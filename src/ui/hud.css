@@ -1972,3 +1972,71 @@ body.is-docked .objective {
   opacity: 0.55;
   cursor: default;
 }
+
+/* Market overview and top needs on the chart (decision 0036). */
+.chart-need {
+  fill: #ffe680;
+  font-weight: 700;
+  text-anchor: middle;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: #173c43;
+  stroke-width: 3;
+}
+.chart-market h3 {
+  margin: 12px 0 6px;
+  font-size: 16px;
+}
+.chart-goods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chart .chart-goods button.active {
+  background: #ffe680;
+  border-color: #ffe680;
+  color: #173c43;
+  font-weight: 700;
+}
+.chart-prices {
+  width: 100%;
+  margin-top: 8px;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.chart-prices th {
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.75;
+  padding: 2px 6px;
+}
+.chart-prices td {
+  padding: 3px 6px;
+  border-top: 1px solid #ffffff22;
+  white-space: nowrap;
+}
+.chart-prices td:last-child {
+  white-space: normal;
+  font-size: 13px;
+}
+.chart-prices td.best {
+  color: #ffe680;
+  font-weight: 700;
+}
+.chart .chart-prices button {
+  min-height: 40px;
+  padding: 4px 10px;
+  text-align: left;
+}
+.chart-port-name {
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: #173c43;
+  stroke-width: 3;
+}
+.best-elsewhere {
+  margin: 4px 0 0;
+  font-size: 13px;
+  opacity: 0.85;
+}

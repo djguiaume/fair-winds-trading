@@ -20,6 +20,14 @@ export const GOOD_DEFS: Record<GoodId, GoodDef> = {
   stone: { id: 'stone', name: 'Stone', basePrice: 18 },
 };
 
+/** Icons shared by the chart and harbour views. */
+export const GOOD_ICONS: Record<GoodId, string> = {
+  fish: '🐟',
+  grain: '🌾',
+  timber: '🪵',
+  stone: '🪨',
+};
+
 export function isGood(id: unknown): id is GoodId {
   return typeof id === 'string' && (GOODS as readonly string[]).includes(id);
 }

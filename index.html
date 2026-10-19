@@ -268,9 +268,19 @@
         aria-label="North-up sea chart with islands, shallows, ports and your ship"
       ></svg>
       <p class="muted small">
-        North is up · Blue arrow: you · Sand: land / exposed banks. Bearing only: steer around land
-        and tack into wind.
+        North is up · Blue arrow: you · Sand: land / exposed banks · Under each port: what it pays
+        most for today. Bearing only: steer around land and tack into wind.
       </p>
+      <section class="chart-market" aria-labelledby="chart-market-title">
+        <h3 id="chart-market-title">Market prices</h3>
+        <div
+          id="chart-goods"
+          class="chart-goods"
+          role="radiogroup"
+          aria-label="Good to compare"
+        ></div>
+        <table id="chart-prices" class="chart-prices"></table>
+      </section>
       <div id="chart-ports" class="chart-actions" aria-label="Port destinations"></div>
       <div id="chart-pins" class="chart-actions" aria-label="Your markers"></div>
       <p id="chart-status" role="status"></p>

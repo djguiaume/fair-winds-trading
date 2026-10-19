@@ -17,3 +17,11 @@ Captures of the game at each phase, taken headless with Playwright (software Web
 | Reef strike: hull at 52% in the HUD | Repairing the hull in port |
 |---|---|
 | ![reef strike](reef-strike.png) | ![hull repair](hull-repair.png) |
+
+| Chart: each port's top need and the price board (decision 0036) | Same chart on a phone |
+|---|---|
+| ![market overview](market-overview-chart.png) | ![market overview phone](market-overview-phone.png) |
+
+Harbour: "Best sale elsewhere" under each good (decision 0036)
+
+![best sale elsewhere](best-sale-elsewhere.png)

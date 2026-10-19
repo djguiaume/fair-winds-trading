@@ -1,7 +1,7 @@
 import { type Contract, deliverContract, openContracts } from '../sim/contracts';
 import { GOODS, GOOD_DEFS, type GoodId } from '../sim/goods';
 import { hullCondition, repairHull, repairPrice } from '../sim/hazards';
-import { goodRole, quoteBuy, quoteSell, type Market } from '../sim/market';
+import { goodRole, quoteAcross, quoteBuy, quoteSell, type Market } from '../sim/market';
 import { CUTTER, SHIP_CLASSES, SLOOP } from '../sim/ship';
 import {
   activeShip,
@@ -338,6 +338,21 @@ export class TradePanel {
       </section>`;
   }
 
+  /** Where this good sells best among the other ports today (decision 0036). */
+  private bestSaleElsewhere(good: GoodId): { name: string; sell: number } | null {
+    const { trade, map } = this.world;
+    const others = map.ports.filter((p) => p.id !== trade.dockedAt);
+    const best = quoteAcross(
+      trade.markets,
+      good,
+      others.map((p) => p.id),
+    ).reduce<{ portId: string; sell: number } | null>(
+      (top, q) => (!top || q.sell > top.sell ? q : top),
+      null,
+    );
+    return best ? { name: findPort(map, best.portId)?.name ?? best.portId, sell: best.sell } : null;
+  }
+
   // --- KIDS MARKET RENDERER ---
   private renderKidsMarket(market: Market, sellAllGold: number): string {
     const { trade, map } = this.world;
@@ -354,6 +369,7 @@ export class TradePanel {
       const sellPrice = quoteSell(market, good, 1);
 
       const fillHoldCost = maxCanBuy > 0 ? quoteBuy(market, good, maxCanBuy) : 0;
+      const bestElsewhere = this.bestSaleElsewhere(good);
       const sellAllIncome = inHold > 0 ? quoteSell(market, good, inHold) : 0;
 
       let badgeText = 'Regular trade';
@@ -385,6 +401,7 @@ export class TradePanel {
             <span>·</span>
             <span>Sell: <b>${sellPrice} 🪙</b></span>
           </div>
+          ${bestElsewhere ? `<p class="best-elsewhere">Sells best at <b>${bestElsewhere.name}</b> (${bestElsewhere.sell} 🪙)</p>` : ''}
 
           <div class="kid-button-row">
             <button
@@ -481,6 +498,7 @@ export class TradePanel {
       qty = Math.min(Math.max(1, qty), upperLimit);
       this.selectedQuantities[good] = qty;
 
+      const bestElsewhere = this.bestSaleElsewhere(good);
       const nextBuy = quoteBuy(market, good, 1);
       const nextSell = quoteSell(market, good, 1);
 
@@ -526,6 +544,7 @@ export class TradePanel {
                 <span class="sep">·</span>
                 <span>In Hold: <b>${inHold}</b></span>
               </div>
+              ${bestElsewhere ? `<div class="best-elsewhere">Best sale elsewhere: <b>${bestElsewhere.name}</b> ${bestElsewhere.sell} 🪙</div>` : ''}
             </div>
           </div>
 

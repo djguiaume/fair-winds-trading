@@ -93,3 +93,52 @@ export function stepMarket(market: Market, dt: number): void {
     market.stock[g] += (market.equilibrium[g] - market.stock[g]) * k;
   }
 }
+
+/** How much a port pays for `good` right now, as a multiple of the good's base price. */
+export function demand(market: Market, good: GoodId): number {
+  return unitSellPrice(good, market.stock[good] + 1) / GOOD_DEFS[good].basePrice;
+}
+
+/**
+ * The port's top need (decision 0036): the good it pays most for right now, relative to that
+ * good's fair price. Live, so a need you fill drops and the port's other want takes over.
+ */
+export function topNeed(market: Market): GoodId {
+  let best: GoodId = GOODS[0];
+  for (const g of GOODS) {
+    const gap = demand(market, g) - demand(market, best);
+    if (gap > 1e-9 || (Math.abs(gap) <= 1e-9 && GOOD_DEFS[g].basePrice > GOOD_DEFS[best].basePrice))
+      best = g;
+  }
+  return best;
+}
+
+export interface PortQuote {
+  portId: string;
+  /** Next unit you buy there. */
+  buy: number;
+  /** Next unit you sell there. */
+  sell: number;
+  available: number;
+}
+
+/** One good's next-unit prices at each listed port, in the order given (market overview). */
+export function quoteAcross(
+  markets: Record<string, Market>,
+  good: GoodId,
+  portIds: readonly string[],
+): PortQuote[] {
+  return portIds.flatMap((portId) => {
+    const market = markets[portId];
+    if (!market) return [];
+    const stock = market.stock[good];
+    return [
+      {
+        portId,
+        buy: unitBuyPrice(good, stock - 1),
+        sell: unitSellPrice(good, stock + 1),
+        available: available(market, good),
+      },
+    ];
+  });
+}
