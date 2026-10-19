@@ -7,6 +7,11 @@ Static mockups (1280×720) to choose the look of the ships and islands within th
 ![Boats D](boats-D.png)
 ![Upgrades D](upgrades-D.png)
 
+**In the game ([0016](../decisions/0016-game-models-style-d-and-b2.md)):** screenshots of the real game models from `models.html` are in [game-models](game-models/).
+
+![Game boats](game-models/boats.png)
+![Game islands](game-models/islands.png)
+
 ## Boats
 
 ### Side by side
