@@ -1,0 +1,57 @@
+{
+  "image": {
+    "model": "model_google-gemini-3-1-flash",
+    "jobId": "job_D6RcxirhGRtJMUu6t5nPqsDn",
+    "inputs": {
+      "prompt": "A single small low-poly sailing sloop in exactly the art style of the reference image: flat-shaded faceted polygons, medium storybook proportions, light wooden hull with a blue painted band along the side and dark brown bottom, one dark wooden mast, a softly bellied off-white mainsail on a boom and a triangular jib, thin rigging lines, small blue pennant at the masthead, two crates on deck. Isolated object, side three-quarter view, centered, whole boat visible including the keel, no water, no shadows, plain pure white background, no text. Game asset for image-to-3D conversion.",
+      "referenceImages": [
+        "@sloop/style-ref.png"
+      ],
+      "aspectRatio": "1:1",
+      "resolution": "1K",
+      "numOutputs": 2
+    },
+    "outputAssetIds": [
+      "asset_33PKmJFHkf94yjM5oR4UF15i",
+      "asset_qKP8SdzmBRtkJsVPyCoSNVwM"
+    ],
+    "creditUnits": 26
+  },
+  "tripo": {
+    "model": "model_tripo-v3-1-image-to-3d",
+    "jobId": "job_YxT6j6jU3tZrsTyQmMgZLz5C",
+    "inputs": {
+      "image": "@sloop/image-picked.jpg",
+      "smartLowPoly": true,
+      "faceLimit": 1000,
+      "texture": true,
+      "pbr": false,
+      "textureQuality": "standard"
+    },
+    "outputAssetIds": [
+      "asset_rwCrCQxFFpPVjSdzRwDnUSR7"
+    ],
+    "creditUnits": 60
+  },
+  "meshy": {
+    "model": "model_meshy-7-img23d",
+    "jobId": "job_38QSKVp8yeAgVWQUikQwpHxh",
+    "inputs": {
+      "image": [
+        "@sloop/image-picked.jpg"
+      ],
+      "shouldRemesh": true,
+      "targetPolycount": 600,
+      "topology": "triangle",
+      "enablePbr": false,
+      "textureResolution": "2k"
+    },
+    "outputAssetIds": [
+      "asset_ks9MGJq59RUp9ZWnZ4UkTMe4",
+      "asset_iyuj4CSRvjeKdRhoPDa5VksC",
+      "asset_AjDKcFy9KGET3DRf78WSHukd",
+      "asset_ykJNYdggDktyfFzvgsLXkq9X"
+    ],
+    "creditUnits": 120
+  }
+}

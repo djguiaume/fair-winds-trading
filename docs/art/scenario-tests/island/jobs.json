@@ -1,0 +1,57 @@
+{
+  "image": {
+    "model": "model_google-gemini-3-1-flash",
+    "jobId": "job_DAPAHi6aLjoSxwU78Hzxvubb",
+    "inputs": {
+      "prompt": "A single small low-poly game island in exactly the art style of the reference image: flat-shaded faceted polygons, stacked light sandstone cliff tiers, a bright green grassy plateau on top, a few low-poly pine trees, three small fishing huts with red and blue roofs, a narrow sandy beach ring and a short wooden dock. Isolated object, three-quarter view from above, centered, whole island visible, no water, no ocean, no shadows, plain pure white background, no text, no labels. Game asset for image-to-3D conversion.",
+      "referenceImages": [
+        "@island/style-ref.png"
+      ],
+      "aspectRatio": "1:1",
+      "resolution": "1K",
+      "numOutputs": 2
+    },
+    "outputAssetIds": [
+      "asset_deKpYSaU72Bva26eqGB2HJFa",
+      "asset_i1ENyVyd79VDxfWd1LLgr4V5"
+    ],
+    "creditUnits": 26
+  },
+  "tripo": {
+    "model": "model_tripo-v3-1-image-to-3d",
+    "jobId": "job_fBUE1me82Rw7rkz3pKtPfjMh",
+    "inputs": {
+      "image": "@island/image-picked.jpg",
+      "smartLowPoly": true,
+      "faceLimit": 1000,
+      "texture": true,
+      "pbr": false,
+      "textureQuality": "standard"
+    },
+    "outputAssetIds": [
+      "asset_u9otMdVSUBZkww8Wa6P2WvML"
+    ],
+    "creditUnits": 60
+  },
+  "meshy": {
+    "model": "model_meshy-7-img23d",
+    "jobId": "job_gKJTjGiASny2WCbMYNUsXjiA",
+    "inputs": {
+      "image": [
+        "@island/image-picked.jpg"
+      ],
+      "shouldRemesh": true,
+      "targetPolycount": 600,
+      "topology": "triangle",
+      "enablePbr": false,
+      "textureResolution": "2k"
+    },
+    "outputAssetIds": [
+      "asset_K8KZ493KbtfjiWSLaAepcgDG",
+      "asset_UTRjtz3sL875Jd1wZkaY2Qpo",
+      "asset_JtGD3adv4UaoPchcypfBYGSV",
+      "asset_brBEWFwLV3jU4UCexYPFpbrn"
+    ],
+    "creditUnits": 120
+  }
+}

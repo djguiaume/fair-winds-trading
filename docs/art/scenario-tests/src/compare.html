@@ -1,0 +1,40 @@
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../../src/common.css"><script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script></head><body><canvas id="c" width="1280" height="720"></canvas><div id="labels"></div>
+<div class="title"><b id="t"></b><span id="sub"></span></div>
+<script type="module">
+// Code-built model vs Scenario-generated GLBs, same light and sea. Needs docs/art/src/lib.js (art-style PR)
+// and a ./node_modules symlink to the repo's node_modules; serve over http (GLB fetch). See ../README.md.
+import * as T from 'three';import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
+import {STYLES,makeScene,boat,wake,label,island,reseed} from '../../src/lib.js';
+const q=new URLSearchParams(location.search),what=q.get('a')||'sloop',wire=q.get('w')==='1';const rot={tripo:+(q.get('rt')||(what==='sloop'?Math.PI/2:0)),meshy:+(q.get('rm')||(what==='sloop'?Math.PI/2:0))};
+const st=what==='island'?STYLES.BL:STYLES.D;
+const {r,s}=makeScene(st,c);
+const tris=o=>{let n=0;o.traverse(m=>{if(m.isMesh&&!m.userData.helper&&!m.material.transparent){const g=m.geometry;n+=(g.index?g.index.count:g.attributes.position.count)/3}});return Math.round(n)};
+const box=o=>{const b=new T.Box3();o.updateMatrixWorld(true);o.traverse(m=>{if(m.isMesh&&!m.userData.helper&&!(m.material.transparent))b.expandByObject(m,true)});return b};
+const edges=o=>{const L=[];o.traverse(m=>{if(m.isMesh&&!m.userData.helper)L.push(m)});for(const m of L){const e=new T.LineSegments(new T.WireframeGeometry(m.geometry),new T.LineBasicMaterial({color:'#111',transparent:true,opacity:.45}));e.userData.helper=true;m.add(e)}};
+const sp=what==='island'?28:9;const cols=[-sp,0,sp];const items=[];
+// 1. code-built reference
+let ref;
+if(what==='island'){const t=new T.Group();s.add(t);const {g}=island(st,t,0,0,9,'port',5);ref=g;}
+else{reseed(5);ref=boat(st,'sloop',{sails:2,hold:2,hull:2},.25);ref.rotation.y=-1.45;const w=new T.Group();w.add(ref);s.add(w);ref=w;}
+ref.position.x=cols[0];items.push(['Code-built ('+(what==='island'?'B2':'D')+')',ref]);
+const loader=new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+const refBox=box(ref),refSize=refBox.getSize(new T.Vector3());
+for(const [i,src] of [[1,'tripo'],[2,'meshy']]){
+  const gl=await loader.loadAsync('../'+what+'/'+src+'.glb');const m=gl.scene;
+  m.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;}});
+  const w=new T.Group();w.add(m);m.rotation.y=rot[src]+(what==='sloop'?-1.45:0);
+  // scale to the code-built footprint (largest horizontal size), sit on y=0 (island: beach at waterline)
+  let b=box(w),sz=b.getSize(new T.Vector3());const k=Math.max(refSize.x,refSize.z)/Math.max(sz.x,sz.z);w.scale.setScalar(k);
+  b=box(w);w.position.set(cols[i]-(b.min.x+b.max.x)/2,(what==='island'?-.35:-.15*refSize.y)-b.min.y,-(b.min.z+b.max.z)/2);
+  s.add(w);items.push(['Scenario · '+(src==='tripo'?'Tripo 3.1':'Meshy 7'),w]);
+}
+if(what==='island'){/* hide the code-built glow plane's triangles from the count */}
+if(wire)items.forEach(([,o])=>edges(o));
+const cam=new T.PerspectiveCamera(30,1280/720,1,500);
+if(what==='island'){cam.position.set(0,50,74);cam.lookAt(0,1,4);}else{cam.position.set(0,9,30);cam.lookAt(0,3,0);}
+items.forEach(([n,o])=>{const b=box(o);label(cam,new T.Vector3((b.min.x+b.max.x)/2,0,b.max.z+(what==='island'?3:1)),'<div class="n">'+n+'</div><div class="d">'+tris(o).toLocaleString('en')+' triangles</div>','tag')});
+document.getElementById('t').textContent=(what==='island'?'Island · bright highlands (B2)':'Sloop · storybook classic (D)')+(wire?' · wireframe':'');
+document.getElementById('sub').textContent='Code-built vs Scenario image-to-3D, same light and sea';
+if(what==='sloop')items.forEach(([,o])=>wake(s,o,o.position.x,0,-1.45));
+r.render(s,cam);document.title='done';
+</script></body></html>
