@@ -8,7 +8,8 @@
 - A simple, tunable sailing model (speed from the angle to the wind, tacking), not a rigid-body simulation.
 - Lots of HTML-style UI: trade panels, floating port labels, minimap, route editor and dashboard (Phases 1–3).
 - Many automated ships simulated even when off-screen (Phase 3), so the game logic must not depend on the renderer.
-- No backend, saves in the browser, quick to load on mid-range devices, and fast to iterate on (the 3D mockup was already built with three.js).
+- No backend, saves in the browser, fast to iterate on (the 3D mockup was already built with three.js).
+- Roadmap answers (2026-10-19): **desktop and mobile from day one**, tested on an old tablet and a phone, so performance is a hard constraint. Arcade sailing with tacking (no speed straight into the wind). Start with **one static map**, with seeded generation possible later without a rewrite. Short sandbox game; light hazards first, pirates and factions much later.
 
 **Decision (proposed):**
 
@@ -25,10 +26,20 @@
 | Audio | **Howler.js** (Phase 5) | Simple, reliable web audio. |
 | Saves | **localStorage** (JSON, versioned) → IndexedDB if saves grow | Matches the roadmap's "save to the browser". |
 | Tests / quality | **Vitest** for the simulation, **ESLint + Prettier** | Fast, works with Vite out of the box. |
+| Map data | Map is a **JSON description** (islands, ports, goods) loaded by the sim; all randomness goes through one **seeded PRNG** | Phase 0–1 ship a hand-made JSON map; a seeded generator can later produce the same JSON, so nothing else changes. |
+| Input | **Pointer Events** + an input layer mapping keyboard *and* touch (drag-to-steer, on-screen sail buttons) to the same actions | Desktop and mobile from day one. |
 | Hosting / CI | **GitHub Pages** deployed by **GitHub Actions** on every push to `main` | Free, no backend, every change playable at a URL. |
 | Package manager | **npm** | Default, nothing to install. |
 
-Target: desktop browsers first (keyboard + mouse), with input abstracted so touch controls can be added later.
+**Mobile performance budget (from day one):**
+
+- Target 60 fps on desktop, 30+ fps on an old tablet; test on Guillaume's tablet and phone at every phase.
+- Cap pixel ratio at 1.5 (lower on weak devices), one directional light, a single small shadow map (or baked blob shadows on low quality).
+- Merge static island geometry, **instanced meshes** for repeated props (trees, crates, buildings), vertex colors instead of textures.
+- Ocean shader kept cheap (no reflections/refraction); fewer wave vertices on low quality.
+- Automatic quality levels (low/medium/high) chosen from measured frame time, overridable in settings.
+- Small download: initial load under ~2 MB, compressed glTF (meshopt), lazy-load later content.
+- Pause rendering when the tab is hidden; responsive HUD for portrait and landscape.
 
 **Alternatives considered:**
 
