@@ -13,6 +13,6 @@
 | [0009](0009-sandbox-short-sessions.md) | Sandbox for short play sessions | 2026-10-19 | Accepted |
 | [0010](0010-light-hazards-pirates-later.md) | Light hazards now, pirates and factions later | 2026-10-19 | Accepted |
 | [0011](0011-ship-lineup-and-upgrades.md) | Five ship classes, bought and upgraded with delivery money | 2026-10-19 | Accepted |
-| [0012](0012-boat-and-island-art-style.md) | Art style for boats and islands | 2026-10-19 | Proposed |
+| [0012](0012-boat-and-island-art-style.md) | Art style: A sea, bright highland islands; boats pending | 2026-10-19 | Partly accepted |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

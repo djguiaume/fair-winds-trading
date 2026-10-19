@@ -3,12 +3,12 @@
 <script type="module">
 import * as T from 'three';import {STYLES,makeScene,boat,wake,label,island,reseed} from './lib.js';
 const key=new URLSearchParams(location.search).get('s')||'A',st=STYLES[key];
-const notes={A:'Low round sand islands with glowing turquoise shallows, palms and pastel houses (closest to the ad).',B:'Tall layered cliffs with small beaches, pine forests and stone villages. More dramatic, harder to read from far.',C:'Soft rounded hills, puffy trees, white foam rings, ink outlines. Must be paired with toon boats.'};
-document.getElementById('t').textContent='Islands '+key+' · '+st.name;document.getElementById('note').textContent=notes[key];
+const notes={A:'Low round sand islands with glowing turquoise shallows, palms and pastel houses (closest to the ad).',B:'Tall layered cliffs with small beaches, pine forests and stone villages. More dramatic, harder to read from far.',C:'Soft rounded hills, puffy trees, white foam rings, ink outlines. Must be paired with toon boats.',BL:'B highland shapes in light sandstone with bright grass, red roofs and the glowing shallows of A.'};
+document.getElementById('t').textContent='Islands '+(key==='BL'?'B2':key)+' · '+st.name;document.getElementById('note').textContent=notes[key];
 const {r,s}=makeScene(st,c);
 const cam=new T.PerspectiveCamera(40,1280/720,1,500);cam.position.set(0,62,38);cam.lookAt(0,0,0);
 const I=[[-30,-8,9,'port','Port Calda','Fish · wants Timber',3],[28,-12,7.5,'timber','Pinehold','Timber · wants Grain',2],[25,15,8,'grain','Saltmere','Grain · wants Fish',1],[-31,21,5.5,'stone','Greyrock','Stone · wants Bread',1]];
 I.forEach(([x,z,R,t,n,w,l],i)=>{const {top}=island(st,s,x,z,R,t,5+i*3);label(cam,new T.Vector3(x,top+3,z-R*.6),'<span class="lvl">'+l+'</span><span class="lb">'+n+'<small>'+w+'</small></span>')});
-reseed(9);const b=boat(st,'sloop',{sails:2,hold:2,hull:2},.6);b.position.set(-2,0,6);b.rotation.y=2.4;b.scale.setScalar(1.25);s.add(b);wake(s,b,-2,6,2.4,1.25);
+reseed(9);const b=boat(st.isl==='highlandLight'?STYLES.A:st,'sloop',{sails:2,hold:2,hull:2},.6);b.position.set(-2,0,6);b.rotation.y=2.4;b.scale.setScalar(1.25);s.add(b);wake(s,b,-2,6,2.4,1.25);
 r.render(s,cam);document.title='done';
 </script></body></html>

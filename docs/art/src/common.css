@@ -1,7 +1,7 @@
 *{box-sizing:border-box}body{margin:0;width:1280px;height:720px;overflow:hidden;font-family:"Trebuchet MS",Verdana,sans-serif}
 #c{position:absolute;inset:0}#labels{position:absolute;inset:0}
 .label,.tag{position:absolute;color:#fff;transform:translate(-50%,0);text-align:center;text-shadow:0 2px 0 rgba(0,0,0,.35)}
-.tag .n{font-weight:bold;font-size:17px;background:rgba(20,40,50,.78);border-radius:8px;padding:4px 10px;display:inline-block}
+.tag .n{white-space:nowrap;font-weight:bold;font-size:17px;background:rgba(20,40,50,.78);border-radius:8px;padding:4px 10px;display:inline-block}
 .tag .d{white-space:nowrap;font-size:12px;margin-top:3px;background:rgba(20,40,50,.6);border-radius:6px;padding:2px 8px;display:inline-block;color:#ffe9a8}
 .tag .p{font-size:13px;font-weight:bold;color:#ffd84a;margin-top:2px}
 .label{transform:translate(-50%,-100%);display:flex;align-items:center;gap:6px}

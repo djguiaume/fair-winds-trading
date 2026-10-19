@@ -10,19 +10,40 @@ export const reseed = (s) => { seed = s; };
 // ---------- styles ----------
 const toonRamp = (() => { const d = new Uint8Array([90, 170, 255]); const t = new T.DataTexture(d, 3, 1, T.RedFormat); t.minFilter = t.magFilter = T.NearestFilter; t.needsUpdate = true; return t; })();
 
+// Every style uses the same sea (Guillaume picked the islands-A water for all).
+export const SEA = { water: '#1f8d98', bg: '#1d7480', ground: '#1a5560' };
+
 export const STYLES = {
-  A: { name: 'Chunky toy', L: .85, B: 1.3, H: 1.55, sheer: .55, belly: .55, stripe: true, rig: false, outline: false,
+  A: { name: 'Chunky toy', isl: 'sandbar', mastK: .9, fewSq: true, flag: 1.5, L: .85, B: 1.3, H: 1.55, sheer: .55, belly: .55, stripe: true, rig: false, outline: false,
     water: '#1f8d98', bg: '#1d7480', sky: '#e8fbff', ground: '#1a5560', sun: '#fff0d0', sunI: 1.7, hemiI: 1.15,
     hull: ['#a8622c', '#8f4f22', '#b5733a', '#7d4520', '#93582b'], band: ['#2f6f9f', '#c0533a', '#e0b13a', '#3f8f5a', '#7a4fa0'],
     sail: '#fbf6e8', deck: '#d9a866', mast: '#5b3a1e' },
-  B: { name: 'Faceted classic', L: 1.12, B: .88, H: .95, sheer: .3, belly: .12, stripe: false, rig: true, outline: false,
+  B: { name: 'Faceted classic', isl: 'highland', trim: true, L: 1.12, B: .88, H: .95, sheer: .3, belly: .12, stripe: false, rig: true, outline: false,
     water: '#256f86', bg: '#1f5f73', sky: '#dfeef5', ground: '#203f4a', sun: '#fff6e8', sunI: 1.5, hemiI: 1.0,
     hull: ['#7a5432', '#6c4a2c', '#82593a', '#5e4128', '#71502f'], band: ['#3b3b3b', '#3b3b3b', '#2e3a46', '#3b3b3b', '#2e3a46'],
     sail: '#e9e1cc', deck: '#b8925f', mast: '#4a3220' },
-  C: { name: 'Toon outlined', L: 1, B: 1.12, H: 1.25, sheer: .45, belly: .4, stripe: true, rig: false, outline: true,
+  C: { name: 'Toon outlined', isl: 'toon', L: 1, B: 1.12, H: 1.25, sheer: .45, belly: .4, stripe: true, rig: false, outline: true,
     water: '#2bb3c0', bg: '#27a6b4', sky: '#ffffff', ground: '#4a8f9a', sun: '#ffffff', sunI: 1.9, hemiI: 1.25,
     hull: ['#c2723a', '#b0602e', '#cf8244', '#a65a2a', '#bb6c36'], band: ['#3a8fe0', '#ff5a4a', '#ffc93a', '#41c47a', '#a46bf0'],
     sail: '#ffffff', deck: '#f0c27a', mast: '#6b3f1e' },
+  // Round 2: between A and B.
+  D: { name: 'Storybook classic', isl: 'sandbar', mastK: .95, flag: 1.3, L: 1, B: 1.05, H: 1.2, sheer: .45, belly: .35, stripe: true, rig: true, outline: false,
+    sky: '#e8fbff', sun: '#fff0d0', sunI: 1.7, hemiI: 1.15,
+    hull: ['#9a5a2a', '#8a4f24', '#a5683a', '#7a4420', '#8d552a'], band: ['#2f6f9f', '#c0533a', '#e0b13a', '#3f8f5a', '#7a4fa0'],
+    sail: '#fbf6e8', deck: '#d4a466', mast: '#5b3a1e' },
+  E: { name: 'Painted merchant', isl: 'sandbar', flag: 1.2, L: 1.1, B: .92, H: 1.0, sheer: .35, belly: .25, stripe: true, rig: true, outline: false,
+    sky: '#e8fbff', sun: '#fff0d0', sunI: 1.7, hemiI: 1.15,
+    hull: ['#2f5f8f', '#3f7f55', '#a8443a', '#c8902f', '#3a3a46'], band: ['#efe6cf', '#efe6cf', '#efe6cf', '#efe6cf', '#efe6cf'],
+    sail: '#f3ecd9', deck: '#c99a5f', mast: '#4a3220' },
+  F: { name: 'Dark wood and gold', isl: 'sandbar', mastK: .95, fewSq: true, flag: 1.5, L: .9, B: 1.25, H: 1.6, sheer: .75, belly: .45, stripe: true, rig: false, outline: false,
+    sky: '#e8fbff', sun: '#fff0d0', sunI: 1.75, hemiI: 1.2,
+    hull: ['#6b3e1e', '#5e3519', '#734322', '#552f16', '#62391b'], band: ['#d9a441', '#d9a441', '#d9a441', '#d9a441', '#d9a441'],
+    sail: '#efe2c4', deck: '#b07a45', mast: '#3e2614' },
+  // Island-only style: B's highland shapes, lighter colours, A's shallows glow.
+  BL: { name: 'Bright highlands', isl: 'highlandLight', mastK: .9, fewSq: true, flag: 1.5, L: .85, B: 1.3, H: 1.55, sheer: .55, belly: .55, stripe: true, rig: false, outline: false,
+    sky: '#e8fbff', sun: '#fff0d0', sunI: 1.7, hemiI: 1.15,
+    hull: ['#a8622c', '#8f4f22', '#b5733a', '#7d4520', '#93582b'], band: ['#2f6f9f', '#c0533a', '#e0b13a', '#3f8f5a', '#7a4fa0'],
+    sail: '#fbf6e8', deck: '#d9a866', mast: '#5b3a1e' },
 };
 
 export function mat(st, color, o = {}) {
@@ -124,7 +145,7 @@ export function boat(st, clsName, upg = { sails: 2, hold: 2, hull: 2 }, trim = .
   const hull = new T.Mesh(hullGeo(L, B, H, sheer), [deckM, hullM]); hull.position.y = H * .55; g.add(hull);
   const deckY = H * .55;
   // painted band and copper sheathing
-  if (upg.hull >= 2 && (st.stripe || st === STYLES.B)) {
+  if (upg.hull >= 2 && (st.stripe || st.trim)) {
     const bg = hullGeo(L * 1.015, B * 1.03, H * .28, sheer, .97, .985); bg.groups = bg.groups.filter(q => q.materialIndex === 1);
     const band = new T.Mesh(bg, [null, mat(st, bandC)]); band.position.y = deckY + .02; g.add(band);
   }
@@ -162,7 +183,7 @@ export function boat(st, clsName, upg = { sails: 2, hold: 2, hull: 2 }, trim = .
   const extraTop = upg.sails >= 3;
   let foremostTop = null;
   c.masts.forEach((m, mi) => {
-    const mz = m.z * st.L, mh = m.h * (st === STYLES.A ? .9 : 1);
+    const mz = m.z * st.L, mh = m.h * (st.mastK || 1);
     const base = deckY + sheer * (mz / (L / 2)) ** 2;
     const mast = new T.Mesh(new T.CylinderGeometry(.07 * st.B, .11 * st.B, mh, 6), mastM); mast.position.set(0, base + mh / 2, mz); g.add(mast);
     const piv = new T.Group(); piv.position.set(0, 0, mz); g.add(piv);
@@ -176,9 +197,9 @@ export function boat(st, clsName, upg = { sails: 2, hold: 2, hull: 2 }, trim = .
       const bp = new T.Group(); bp.rotation.y = trim; bp.add(boom); piv.add(bp);
       if (m.top && extraTop) add(sailGeo(V(0, head + .1, 0), V(0, head + .1, -aft * .5), V(0, base + mh - .1, 0), V(0, base + mh - .15, -.05), bel * .5, V(1, 0, 0)), trim);
     } else {
-      const n = m.n + (extraTop ? 0 : -1) + (st === STYLES.A ? -1 : 0), span = (mh - 1) / m.n;
+      const n = m.n + (extraTop ? 0 : -1) + (st.fewSq ? -1 : 0), span = (mh - 1) / m.n;
       for (let k = 0; k < Math.max(2, n); k++) {
-        const y0 = base + 1 + k * span, y1 = y0 + span * .92, w = B * (st === STYLES.A ? 1.15 : 1.05) * (1 - k * .14);
+        const y0 = base + 1 + k * span, y1 = y0 + span * .92, w = B * (st.fewSq ? 1.15 : 1.05) * (1 - k * .14);
         const yard = new T.Mesh(new T.CylinderGeometry(.05, .05, w * 1.1, 5), mastM); yard.rotation.z = Math.PI / 2; yard.position.y = y1;
         const yp = new T.Group(); yp.rotation.y = trim * .6; yp.add(yard); piv.add(yp);
         add(sailGeo(V(-w / 2, y0, 0), V(w / 2, y0, 0), V(-w / 2 * .9, y1, 0), V(w / 2 * .9, y1, 0), st.belly * .6 + .12, V(0, 0, 1)), trim * .6);
@@ -186,7 +207,7 @@ export function boat(st, clsName, upg = { sails: 2, hold: 2, hull: 2 }, trim = .
     }
     // flag
     const fl = new T.Mesh(new T.BufferGeometry().setFromPoints([V(0, 0, 0), V(0, -.5, 0), V(0, -.25, -1)]), new T.MeshBasicMaterial({ color: mi === 0 ? bandC : '#ffffff', side: T.DoubleSide }));
-    fl.scale.setScalar(st === STYLES.A ? 1.5 : 1); fl.position.set(0, base + mh + .1, mz); fl.userData.noInk = true; g.add(fl);
+    fl.scale.setScalar(st.flag || 1); fl.position.set(0, base + mh + .1, mz); fl.userData.noInk = true; g.add(fl);
     if (!foremostTop) foremostTop = { y: base + mh * .82, z: mz };
   });
   // jibs to the bowsprit
@@ -209,7 +230,7 @@ export function boat(st, clsName, upg = { sails: 2, hold: 2, hull: 2 }, trim = .
     const lg = new T.BufferGeometry(); lg.setAttribute('position', new T.Float32BufferAttribute(pts, 3));
     g.add(new T.LineSegments(lg, new T.LineBasicMaterial({ color: '#2d2218', transparent: true, opacity: .7 })));
   }
-  if (upg.sails >= 3 && st !== STYLES.B) { // stern lantern
+  if (upg.sails >= 3 && !st.rig) { // stern lantern
     const ln = new T.Mesh(new T.OctahedronGeometry(.18), new T.MeshBasicMaterial({ color: '#ffd774' })); ln.position.set(0, deckY + sheer + .9 + c.castle * .6, -L / 2 + .2); g.add(ln);
   }
   g.traverse(o => { if (o.isMesh) { o.castShadow = true; } });
@@ -230,13 +251,13 @@ export function wake(scene, b, x, z, rot, s = 1) {
 export function makeScene(st, canvas, w = 1280, h = 720) {
   const r = new T.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true }); r.setSize(w, h, false);
   r.shadowMap.enabled = true; r.shadowMap.type = T.PCFSoftShadowMap; r.outputColorSpace = T.SRGBColorSpace;
-  const s = new T.Scene(); s.background = new T.Color(st.bg); s.fog = new T.Fog(st.bg, 90, 190);
-  s.add(new T.HemisphereLight(st.sky, st.ground, st.hemiI));
+  const s = new T.Scene(); s.background = new T.Color(SEA.bg); s.fog = new T.Fog(SEA.bg, 90, 190);
+  s.add(new T.HemisphereLight(st.sky, SEA.ground, st.hemiI));
   const sun = new T.DirectionalLight(st.sun, st.sunI); sun.position.set(-30, 55, 25); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
   Object.assign(sun.shadow.camera, { left: -70, right: 70, top: 70, bottom: -70, far: 200 }); sun.shadow.bias = -.0005; s.add(sun);
   const wg = new T.PlaneGeometry(260, 200, 80, 60); wg.rotateX(-Math.PI / 2); const p = wg.attributes.position;
-  for (let i = 0; i < p.count; i++) p.setY(i, (rnd() - .5) * (st.outline ? 0 : st === STYLES.A ? .12 : .3)); wg.computeVertexNormals();
-  const water = new T.Mesh(wg, st.outline ? new T.MeshToonMaterial({ color: st.water, gradientMap: toonRamp }) : new T.MeshLambertMaterial({ color: st.water, flatShading: true }));
+  for (let i = 0; i < p.count; i++) p.setY(i, (rnd() - .5) * (st.outline ? 0 : .12)); wg.computeVertexNormals();
+  const water = new T.Mesh(wg, st.outline ? new T.MeshToonMaterial({ color: SEA.water, gradientMap: toonRamp }) : new T.MeshLambertMaterial({ color: SEA.water, flatShading: true }));
   water.position.y = -.1; water.receiveShadow = true; s.add(water);
   return { r, s, sun };
 }
@@ -254,9 +275,9 @@ function glowTex(inner, outer) {
   x.fillStyle = g; x.fillRect(0, 0, 128, 128); const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; return t;
 }
 
-function kit(st) {
+function kit(st, isl) {
   const K = {};
-  if (st === STYLES.A) {
+  if (isl === 'sandbar') {
     K.tree = () => { // palm
       const t = new T.Group(); const trunk = mat(st, '#9a6a3a'), leaf = mat(st, '#4caf50');
       let y = 0, x = 0; for (let i = 0; i < 4; i++) { const sgm = new T.Mesh(new T.CylinderGeometry(.11, .15, .55, 5), trunk); x += .07; sgm.position.set(x, y + .27, 0); sgm.rotation.z = -.15 * i; t.add(sgm); y += .52; }
@@ -266,13 +287,15 @@ function kit(st) {
     K.house = (i) => { const h = new T.Group(); const b = new T.Mesh(new T.BoxGeometry(1.1, 1, 1), mat(st, ['#fff3dc', '#ffd9b0', '#d9f0f5', '#ffe9e0'][i % 4])); b.position.y = .5; h.add(b);
       const rf = new T.Mesh(new T.ConeGeometry(.92, .75, 4), mat(st, ['#d9553a', '#2f7fbf', '#e0a030', '#3f9f6a'][i % 4])); rf.position.y = 1.35; rf.rotation.y = Math.PI / 4; h.add(rf); return h; };
     K.sand = '#f2d9a0'; K.grass = '#7cc04f'; K.rock = '#8a8580'; K.rock2 = '#a39d94'; K.field = ['#e8c547', '#c9d65a', '#e2b53e'];
-  } else if (st === STYLES.B) {
+  } else if (isl === 'highland' || isl === 'highlandLight') {
+    const lt = isl === 'highlandLight';
     K.tree = () => { const t = new T.Group(); const tr = new T.Mesh(new T.CylinderGeometry(.08, .12, .6, 5), mat(st, '#5a3d24')); tr.position.y = .3; t.add(tr);
-      const sc = .8 + rnd() * .5; for (let i = 0; i < 3; i++) { const c = new T.Mesh(new T.ConeGeometry(.65 - i * .16, .9, 6), mat(st, ['#2f5f3a', '#356b40', '#2a5434'][i])); c.position.y = .75 + i * .45; t.add(c); } t.scale.setScalar(sc); return t; };
-    K.house = (i) => { const h = new T.Group(); const b = new T.Mesh(new T.BoxGeometry(1.2, .9, .9), mat(st, ['#cfc6b4', '#bdb3a1', '#d8d0bf'][i % 3])); b.position.y = .45; h.add(b);
-      const rf = new T.Mesh(new T.CylinderGeometry(0, .75, .6, 4, 1), mat(st, ['#4a4f58', '#6b4a3a', '#4a4f58'][i % 3])); rf.scale.set(1.15, 1, .85); rf.rotation.y = Math.PI / 4; rf.position.y = 1.2; h.add(rf);
+      const sc = .8 + rnd() * .5; for (let i = 0; i < 3; i++) { const c = new T.Mesh(new T.ConeGeometry(.65 - i * .16, .9, 6), mat(st, (lt ? ['#3f8f45', '#4aa04f', '#38833f'] : ['#2f5f3a', '#356b40', '#2a5434'])[i])); c.position.y = .75 + i * .45; t.add(c); } t.scale.setScalar(sc); return t; };
+    K.house = (i) => { const h = new T.Group(); const b = new T.Mesh(new T.BoxGeometry(1.2, .9, .9), mat(st, (lt ? ['#f4ede0', '#ece2cf', '#f8f3ea'] : ['#cfc6b4', '#bdb3a1', '#d8d0bf'])[i % 3])); b.position.y = .45; h.add(b);
+      const rf = new T.Mesh(new T.CylinderGeometry(0, .75, .6, 4, 1), mat(st, (lt ? ['#c8603e', '#3f74a8', '#c8603e'] : ['#4a4f58', '#6b4a3a', '#4a4f58'])[i % 3])); rf.scale.set(1.15, 1, .85); rf.rotation.y = Math.PI / 4; rf.position.y = 1.2; h.add(rf);
       const ch = new T.Mesh(new T.BoxGeometry(.18, .5, .18), mat(st, '#8a8174')); ch.position.set(.35, 1.3, 0); h.add(ch); return h; };
-    K.sand = '#d9c49a'; K.grass = '#5f8f45'; K.rock = '#6f6a63'; K.rock2 = '#857d70'; K.field = ['#c9a94a', '#a8a84a', '#b89a40'];
+    if (lt) { K.sand = '#f2d9a0'; K.grass = '#7cc04f'; K.rock = '#c2ad8c'; K.rock2 = '#d6c4a4'; K.field = ['#e8c547', '#c9d65a', '#e2b53e']; }
+    else { K.sand = '#d9c49a'; K.grass = '#5f8f45'; K.rock = '#6f6a63'; K.rock2 = '#857d70'; K.field = ['#c9a94a', '#a8a84a', '#b89a40']; }
   } else {
     K.tree = () => { const t = new T.Group(); const tr = new T.Mesh(new T.CylinderGeometry(.12, .16, .8, 6), mat(st, '#8a5530')); tr.position.y = .4; t.add(tr);
       const c = ['#3fbf5a', '#5ad16a', '#36a94e'][Math.floor(rnd() * 3)];
@@ -285,18 +308,20 @@ function kit(st) {
 }
 
 // type: 'port' (fish), 'timber', 'grain', 'stone'
-export function island(st, scene, x, z, R, type, s = 7) {
+export function island(st, scene, x, z, R, type, s = 7, isl = st.isl) {
   reseed(s);
-  const K = kit(st), g = new T.Group(); g.position.set(x, 0, z); scene.add(g);
+  const K = kit(st, isl), g = new T.Group(); g.position.set(x, 0, z); scene.add(g);
   let top, dome = null; // height of the walkable top (dome: height by distance, toon hills)
   const sx = 1 + (rnd() - .5) * .3, sz = 1 + (rnd() - .5) * .3;
-  if (st === STYLES.A) {
+  if (isl === 'sandbar' || isl === 'highlandLight') {
     const glow = new T.Mesh(new T.CircleGeometry(R * 2.1, 40).rotateX(-Math.PI / 2), new T.MeshBasicMaterial({ map: glowTex('rgba(150,240,225,.95)', 'rgba(120,230,220,0)'), transparent: true, depthWrite: false }));
     glow.scale.set(sx, 1, sz); glow.position.y = .1; g.add(glow);
+  }
+  if (isl === 'sandbar') {
     const sand = new T.Mesh(slab(blobShape(R, 16, .22, sx, sz), 1.0, .88), mat(st, K.sand)); sand.position.y = -.4; g.add(sand);
     const gr = new T.Mesh(slab(blobShape(R * .7, 12, .25, sx, sz), .7, .9), mat(st, K.grass)); gr.position.y = .5; g.add(gr);
     top = 1.2;
-  } else if (st === STYLES.B) {
+  } else if (isl !== 'toon') {
     const beach = new T.Mesh(slab(blobShape(R * 1.05, 14, .45, sx, sz), .6, .9), mat(st, K.sand)); beach.position.y = -.3; g.add(beach);
     const layers = type === 'stone' ? 5 : type === 'grain' ? 2 : 3; let y = .2;
     for (let i = 0; i < layers; i++) { const h = 1.2 + rnd() * .6; const l = new T.Mesh(slab(blobShape(R * (.9 - i * .15), 11, .3, sx, sz), h, .9), mat(st, i % 2 ? K.rock2 : K.rock)); l.position.set((rnd() - .5) * R * .1, y, (rnd() - .5) * R * .1); g.add(l); y += h; }
@@ -324,13 +349,13 @@ export function island(st, scene, x, z, R, type, s = 7) {
     at(logs, 1.4, R * .55); at(K.house(1), 1.9, R * .5);
   } else if (type === 'grain') {
     for (let i = 0; i < 4; i++) { const f = new T.Mesh(new T.BoxGeometry(R * .32, .12, R * .5), mat(st, K.field[i % 3])); at(f, 0, 0, .05).position.x += (i - 1.5) * R * .34; f.position.z -= R * .1;
-      if (st !== STYLES.A) for (let k = 0; k < 3; k++) { const ln = new T.Mesh(new T.BoxGeometry(R * .3, .05, .06), mat(st, '#8f7a30')); ln.position.set(f.position.x, top + .13, f.position.z + (k - 1) * R * .14); g.add(ln); } }
-    const mill = new T.Group(); const tw = new T.Mesh(new T.CylinderGeometry(.45, .65, 2.2, 8), mat(st, st === STYLES.B ? '#cfc6b4' : '#fff3dc')); tw.position.y = 1.1; mill.add(tw);
-    const cap = new T.Mesh(new T.ConeGeometry(.6, .7, 8), mat(st, st === STYLES.C ? '#ff6a4a' : '#8a4a2a')); cap.position.y = 2.55; mill.add(cap);
+      if (isl !== 'sandbar') for (let k = 0; k < 3; k++) { const ln = new T.Mesh(new T.BoxGeometry(R * .3, .05, .06), mat(st, '#8f7a30')); ln.position.set(f.position.x, top + .13, f.position.z + (k - 1) * R * .14); g.add(ln); } }
+    const mill = new T.Group(); const tw = new T.Mesh(new T.CylinderGeometry(.45, .65, 2.2, 8), mat(st, isl === 'highland' ? '#cfc6b4' : '#fff3dc')); tw.position.y = 1.1; mill.add(tw);
+    const cap = new T.Mesh(new T.ConeGeometry(.6, .7, 8), mat(st, isl === 'toon' ? '#ff6a4a' : '#8a4a2a')); cap.position.y = 2.55; mill.add(cap);
     for (let k = 0; k < 4; k++) { const bl = new T.Mesh(new T.BoxGeometry(.25, 1.8, .05), mat(st, '#f4ead2')); bl.position.y = .9; const pv = new T.Group(); pv.position.set(0, 2.2, .55); pv.rotation.z = k * Math.PI / 2 + .4; pv.add(bl); mill.add(pv); }
     at(mill, 2.4, R * .5); at(K.house(2), 3.2, R * .55); at(K.tree(), 4.2, R * .6); at(K.tree(), 4.6, R * .5);
   } else if (type === 'stone') {
-    for (let i = 0; i < 3; i++) { const rk = new T.Mesh(new T.DodecahedronGeometry(R * (.28 - i * .06), st === STYLES.C ? 1 : 0), mat(st, i % 2 ? K.rock2 : K.rock)); rk.scale.y = 1.3; at(rk, i * 2.1, R * .3 * i, R * .12); }
+    for (let i = 0; i < 3; i++) { const rk = new T.Mesh(new T.DodecahedronGeometry(R * (.28 - i * .06), isl === 'toon' ? 1 : 0), mat(st, i % 2 ? K.rock2 : K.rock)); rk.scale.y = 1.3; at(rk, i * 2.1, R * .3 * i, R * .12); }
     for (let i = 0; i < 3; i++) at(K.tree(), 3 + i * .5, R * .6);
     const cart = new T.Mesh(new T.BoxGeometry(.8, .4, .6), mat(st, '#8a6a4a')); at(cart, 4.6, R * .45, .2);
   }
