@@ -31,8 +31,9 @@ Goal: one boat on an empty ocean that is fun to steer.
 
 - Top-down camera following the boat, stylized ocean, a couple of islands with collision.
 - Wind: one global direction and strength, shown by a wind arrow/vane and drifting particles.
-- Sailing model: boat speed depends on angle to the wind (no-go zone ~45° upwind, best on beam/broad reach); sail trim auto or one key.
-- Controls: steer left/right, raise/lower sails. Keyboard first, touch later.
+- Sailing model (arcade, [0006](decisions/0006-arcade-sailing-with-tacking.md)): speed depends on angle to the wind; heading into the no-go zone (~45° either side of the wind) stalls the boat, so upwind means tacking. Sail trim is automatic.
+- Controls: steer left/right, raise/lower sails. Keyboard **and** touch from the start ([0005](decisions/0005-desktop-and-mobile.md)).
+- Performance baseline: smooth on an old tablet and a phone (quality setting, capped pixel ratio).
 - Wake trail and a simple speed readout.
 
 **Done when:** tacking upwind to reach an island is a small, satisfying challenge.
@@ -41,14 +42,15 @@ Goal: one boat on an empty ocean that is fun to steer.
 
 Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 
-- A small archipelago (5–8 islands), 3–4 settlements, each producing one good and wanting others (e.g. fish, timber, grain, cloth).
+- One handmade archipelago (5–8 islands) defined as data and built with a seedable RNG, so seeded maps can come later ([0007](decisions/0007-static-map-seed-ready.md)), 3–4 settlements, each producing one good and wanting others (e.g. fish, timber, grain, cloth).
 - Docking: slow down near a port to open a trade panel; buy, sell, accept delivery contracts.
 - Cargo hold with limited capacity; prices vary by supply and demand per settlement.
 - Gold as currency; one ship upgrade (bigger hold or better sails).
 - Wind that shifts slowly over time so the same trip changes.
 - Minimap with port markers and current wind.
 - Floating labels over ports in the ad's style (name, level badge, what they want).
-- Save to the browser (local storage).
+- Sandbox play in short sessions: auto-save to the browser and instant resume ([0008](decisions/0008-sandbox-short-sessions.md)).
+- Light hazards: reefs and shallows ([0009](decisions/0009-light-hazards-pirates-later.md)).
 
 **Done when:** you can earn enough to buy the upgrade and feel the difference.
 
@@ -60,7 +62,7 @@ Goal: deliveries visibly change the world.
 - Higher levels unlock new demands, including goods produced only on distant islands.
 - Demand decays if unmet, so neglected towns stall.
 - Simple production chains (timber → planks, grain → bread) at higher-level towns.
-- Day/night cycle and weather states (calm, breeze, gale) affecting wind strength.
+- Day/night cycle and weather states (calm, breeze, gale) affecting wind strength; storms can spoil cargo.
 
 ## Phase 3 — Fleet and automated trade routes
 
@@ -81,26 +83,34 @@ Goal: growth pushes you outward into tougher navigation.
 - Currents, reefs and shallows that block bigger ships.
 - Big settlements demand exotic goods from far regions, forcing long routes.
 - Ports you can found or upgrade (warehouses, shipyards) to act as relay hubs.
+- Seeded procedural maps: new archipelago from a seed, shareable.
 
-## Phase 5 — Polish and optional extras
+## Phase 5 — Pirates
+
+- Pirate ships that hunt loaded merchants; outrun them, or arm ships with light defenses.
+- Ship health and repairs at ports; escort ships for valuable routes.
+
+## Phase 6 — Enemy factions (maybe)
+
+- Rival trading powers competing for settlements and routes; contested waters.
+
+## Phase 7 — Polish and optional extras
 
 - Sound: waves, creaking hulls, sails, ambient port music.
 - Ship cosmetics (sail colors, flags, figureheads).
-- Light hazards instead of heavy combat: storms, pirates you outrun rather than fight (optional, can stay out).
-- Mobile/touch controls and responsive UI.
-- Achievements, scenario maps, maybe shareable seeds.
+- Achievements.
 - Possible later: online leaderboards or shared world (needs a backend; decide much later).
 
 ---
 
 ## Out of scope for now
 
-- Ship-to-ship combat as a core feature (the reference game's focus; we deliberately trade it for logistics).
+- Ship-to-ship combat as a core feature before Phase 5 (trade stays the core; see [0009](decisions/0009-light-hazards-pirates-later.md)).
 - Multiplayer and monetization.
-- Tech stack choice: next discussion, before Phase 0 starts.
+- Tech stack choice: being discussed in its own thread, before Phase 0 starts.
 
 ## Open questions for the tech-stack discussion
 
 - ~~True 3D or 2.5D?~~ Decided: real-time 3D low-poly ([decision 0004](decisions/0004-real-time-3d.md)). Which 3D engine?
-- Desktop-first or mobile-first controls?
+- ~~Desktop or mobile first?~~ Both from day one, tuned for an old tablet ([0005](decisions/0005-desktop-and-mobile.md)).
 - How much simulation runs for off-screen automated ships (needed from Phase 3)?
