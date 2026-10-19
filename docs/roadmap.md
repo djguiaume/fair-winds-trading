@@ -101,6 +101,6 @@ Goal: growth pushes you outward into tougher navigation.
 
 ## Open questions for the tech-stack discussion
 
-- True 3D low-poly (closest to the ad) or 2.5D/sprite rendering?
+- ~~True 3D or 2.5D?~~ Decided: real-time 3D low-poly ([decision 0004](decisions/0004-real-time-3d.md)). Which 3D engine?
 - Desktop-first or mobile-first controls?
 - How much simulation runs for off-screen automated ships (needed from Phase 3)?
