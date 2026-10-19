@@ -1,0 +1,411 @@
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #1d6f7a;
+  font-family: 'Trebuchet MS', Verdana, sans-serif;
+  color: #fff;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+#stage {
+  position: fixed;
+  inset: 0;
+  touch-action: none;
+}
+#scene {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+#hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  --gap: max(12px, env(safe-area-inset-left));
+}
+#hud button,
+#hud select,
+#hud input,
+#hud .settings,
+#hud .help {
+  pointer-events: auto;
+}
+.panel {
+  background: rgba(20, 40, 50, 0.72);
+  border-radius: 14px;
+  padding: 8px 12px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+}
+.muted {
+  opacity: 0.75;
+}
+.small {
+  font-size: 12px;
+}
+
+/* Speed */
+.speed {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  left: var(--gap);
+  min-width: 128px;
+}
+.speed .big {
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 1;
+}
+.speed small {
+  font-size: 14px;
+  margin-left: 4px;
+  opacity: 0.8;
+}
+.pos {
+  font-size: 13px;
+  margin-top: 4px;
+  font-weight: bold;
+}
+.pos.bad {
+  color: #ff8a73;
+}
+.pos.good {
+  color: #9be37d;
+}
+.sail-pips {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.sail-pips i {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.2);
+}
+.sail-pips i.on {
+  background: #f4f0e2;
+}
+
+/* Objective */
+.objective {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 15px;
+}
+.objective b {
+  color: #ffe680;
+}
+
+/* Compass */
+.compass {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  right: var(--gap);
+  width: 118px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 13px;
+  padding: 6px;
+  white-space: nowrap;
+}
+.compass .title {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  opacity: 0.8;
+}
+.compass svg {
+  display: block;
+  width: 96px;
+  height: 96px;
+  margin: 2px auto 2px;
+  overflow: visible;
+}
+.compass .ring {
+  fill: rgba(255, 255, 255, 0.06);
+  stroke: rgba(255, 255, 255, 0.45);
+  stroke-width: 2;
+}
+.compass .nogo {
+  fill: rgba(255, 90, 70, 0.35);
+}
+.compass .north {
+  fill: #fff;
+  font-size: 10px;
+  text-anchor: middle;
+}
+.compass .wind {
+  fill: #9fe7ff;
+}
+.compass .boat {
+  fill: #f4f0e2;
+  stroke: #5b3a1e;
+  stroke-width: 1.5;
+}
+.compass .wp {
+  fill: #ffe680;
+  stroke: #8a6200;
+  stroke-width: 1.5;
+}
+
+/* Off-screen buoy arrow */
+.wp-arrow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(20, 40, 50, 0.72);
+  border: 2px solid #ffe680;
+  color: #ffe680;
+  font-size: 15px;
+}
+.wp-arrow[hidden] {
+  display: none;
+}
+
+/* Toast */
+.toast {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(90vw, 460px);
+  text-align: center;
+  background: rgba(20, 40, 50, 0.85);
+  border: 2px solid #ffe680;
+  border-radius: 14px;
+  padding: 10px 16px;
+  font-weight: bold;
+  font-size: 16px;
+  animation: toast-in 0.25s ease-out;
+}
+.toast[hidden] {
+  display: none;
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+}
+
+/* Tiller (drag-to-steer indicator) */
+.tiller {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+.tiller::before {
+  content: '';
+  position: absolute;
+  left: -60px;
+  top: -3px;
+  width: 120px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.25);
+}
+.tiller i {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid #fff;
+}
+.tiller[hidden] {
+  display: none;
+}
+
+/* Sail buttons */
+.sail-buttons {
+  position: absolute;
+  right: var(--gap);
+  bottom: max(16px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-weight: bold;
+  font-size: 13px;
+}
+.sail-buttons button,
+.icon-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.6);
+  background: rgba(20, 40, 50, 0.72);
+  color: #fff;
+  font-size: 24px;
+  font-family: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.sail-buttons button:active,
+.icon-btn:active {
+  background: rgba(60, 110, 120, 0.9);
+}
+.top-buttons {
+  position: absolute;
+  left: var(--gap);
+  bottom: max(16px, env(safe-area-inset-bottom));
+  display: flex;
+  gap: 8px;
+}
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  font-size: 20px;
+  border-width: 2px;
+}
+.fps {
+  position: absolute;
+  left: var(--gap);
+  bottom: calc(max(16px, env(safe-area-inset-bottom)) + 52px);
+  font: 12px monospace;
+  opacity: 0.8;
+}
+
+/* Settings */
+.settings {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(90vw, 300px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+}
+.settings[hidden],
+.help[hidden] {
+  display: none;
+}
+.settings h3 {
+  margin: 0;
+}
+.settings label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.settings .check {
+  justify-content: flex-start;
+}
+.settings select,
+.settings button,
+.help button {
+  font: inherit;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+.settings select option {
+  color: #000;
+}
+button.primary {
+  background: #f2c230;
+  color: #5a3d00;
+  border-color: #fff3c4;
+  font-weight: bold;
+  text-shadow: none;
+}
+
+/* Help */
+.help {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(10, 30, 40, 0.35);
+  padding: 16px;
+}
+.help .card {
+  max-width: 520px;
+  max-height: 100%;
+  overflow: auto;
+  padding: 18px 20px;
+}
+.help h1 {
+  margin: 0;
+  font-size: 26px;
+}
+.help p {
+  margin: 2px 0 10px;
+}
+.help ul {
+  padding-left: 18px;
+  margin: 0 0 12px;
+  line-height: 1.35;
+}
+.help li {
+  margin-bottom: 4px;
+}
+.help .controls {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  margin-bottom: 14px;
+}
+.help .controls > div {
+  flex: 1;
+}
+.help h4 {
+  margin: 0 0 4px;
+  color: #ffe680;
+}
+.help .primary {
+  width: 100%;
+  font-size: 18px;
+}
+
+@media (max-width: 560px) {
+  .objective {
+    top: auto;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    font-size: 13px;
+  }
+  .speed .big {
+    font-size: 22px;
+  }
+  .compass {
+    width: 96px;
+  }
+  .compass svg {
+    width: 76px;
+    height: 76px;
+  }
+  .top-buttons {
+    bottom: auto;
+    top: calc(max(12px, env(safe-area-inset-top)) + 96px);
+  }
+  .fps {
+    bottom: auto;
+    top: calc(max(12px, env(safe-area-inset-top)) + 148px);
+  }
+  .help .controls {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

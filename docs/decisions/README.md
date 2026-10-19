@@ -12,5 +12,6 @@
 | [0008](0008-static-map-seed-ready.md) | One static map first, code ready for seeded maps | 2026-10-19 | Accepted |
 | [0009](0009-sandbox-short-sessions.md) | Sandbox for short play sessions | 2026-10-19 | Accepted |
 | [0010](0010-light-hazards-pirates-later.md) | Light hazards now, pirates and factions later | 2026-10-19 | Accepted |
+| [0011](0011-phase-0-prototype-choices.md) | Phase 0 prototype: sailing feel, controls and performance choices | 2026-10-19 | Accepted |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

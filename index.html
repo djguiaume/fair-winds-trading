@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#1d6f7a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Fair Winds Trading · Sailing prototype</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/src/ui/hud.css" />
+  </head>
+  <body>
+    <div id="stage">
+      <canvas id="scene"></canvas>
+    </div>
+
+    <div id="hud">
+      <div class="panel speed">
+        <div class="big"><span id="speed">0.0</span><small>kn</small></div>
+        <div id="point-of-sail" class="pos">&nbsp;</div>
+        <div class="sail-pips" title="Sails"><i></i><i></i></div>
+      </div>
+
+      <div class="panel objective">
+        <span class="muted">Sail to</span> <b id="obj-name">…</b>
+        <span id="obj-dist" class="muted"></span>
+      </div>
+
+      <div class="panel compass">
+        <div class="title">WIND</div>
+        <svg viewBox="-50 -50 100 100" aria-label="Wind compass">
+          <circle r="40" class="ring" />
+          <g id="c-nogo">
+            <path d="M0 0 L-28.28 -28.28 A40 40 0 0 1 28.28 -28.28 Z" class="nogo" />
+          </g>
+          <text y="-43" class="north">N</text>
+          <g id="c-wp"><circle cy="-40" r="5" class="wp" /></g>
+          <g id="c-wind">
+            <path d="M0 -30 L9 -6 L2 -9 L2 26 L-2 26 L-2 -9 L-9 -6 Z" class="wind" />
+          </g>
+          <g id="c-boat"><path d="M0 -17 L6 6 L0 3 L-6 6 Z" class="boat" /></g>
+        </svg>
+        <div id="wind-text">&nbsp;</div>
+      </div>
+
+      <div id="wp-arrow" class="wp-arrow" hidden><span>▲</span></div>
+      <div id="toast" class="toast" hidden></div>
+      <div id="tiller" class="tiller" hidden><i></i></div>
+
+      <div class="sail-buttons">
+        <button id="sail-up" aria-label="Raise sails">▲</button>
+        <span>Sails</span>
+        <button id="sail-down" aria-label="Lower sails">▼</button>
+      </div>
+
+      <div class="top-buttons">
+        <button id="help-btn" class="icon-btn" aria-label="Help">?</button>
+        <button id="settings-btn" class="icon-btn" aria-label="Settings">⚙</button>
+      </div>
+      <div id="fps" class="fps" hidden></div>
+
+      <div id="settings" class="panel settings" hidden>
+        <h3>Settings</h3>
+        <label
+          >Graphics
+          <select id="quality">
+            <option value="auto">Auto</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </label>
+        <div id="quality-now" class="muted small"></div>
+        <label class="check"><input type="checkbox" id="show-fps" /> Show FPS</label>
+        <button id="shift-wind">Shift the wind 45°</button>
+        <button id="reset-boat">Back to start</button>
+        <button id="close-settings" class="primary">Close</button>
+      </div>
+
+      <div id="help" class="help">
+        <div class="panel card">
+          <h1>Fair Winds Trading</h1>
+          <p class="muted">Sailing prototype</p>
+          <ul>
+            <li>
+              <b>The wind drives you.</b> You are fastest with the wind across the boat and slower
+              with it behind.
+            </li>
+            <li>
+              <b>You can't sail into the wind.</b> Point inside the red zone on the compass and the
+              sails flap and the boat stops.
+            </li>
+            <li>
+              <b>To go upwind, zigzag</b> (tack): sail about 50° off the wind, then turn through it
+              to the other side.
+            </li>
+            <li><b>Follow the buoys</b> (gold beacon) around the islands.</li>
+          </ul>
+          <div class="controls">
+            <div>
+              <h4>Touch</h4>
+              Drag left/right anywhere to steer<br />▲ ▼ to raise/lower sails
+            </div>
+            <div>
+              <h4>Keyboard</h4>
+              ← → or A D to steer<br />↑ ↓ or W S for sails<br />Mouse wheel to zoom
+            </div>
+          </div>
+          <button id="start" class="primary">Set sail</button>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
