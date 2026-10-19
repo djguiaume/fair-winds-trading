@@ -18,6 +18,10 @@ Captures of the game at each phase, taken headless with Playwright (software Web
 |---|---|
 | ![reef strike](reef-strike.png) | ![hull repair](hull-repair.png) |
 
+| Ran aground on a rocky shore (decision 0038, French) | Rammed Port Calda's pier at 8 kn: the harbour opens with the repair bar |
+|---|---|
+| ![shore crash](crash-shore-fr.png) | ![pier crash](crash-pier.png) |
+
 | Chart: each port's top need and the price board (decision 0036) | Same chart on a phone |
 |---|---|
 | ![market overview](market-overview-chart.png) | ![market overview phone](market-overview-phone.png) |

@@ -107,6 +107,8 @@ export const fr: Record<MessageKey, string> = {
   'toast.windShifts': 'Le vent tourne…',
   'toast.waypoint': '{label} atteint en {time} ! Suivant : {next}',
   'toast.reef': 'Choc sur un récif ! Coque à {pct} %, réparez au port',
+  'toast.crash': 'Échoué sur la côte ! Coque à {pct} %, réparez au port',
+  'toast.crashPier': 'Choc contre le ponton ! Coque à {pct} %, réparez au port',
   'toast.bump': 'Bong ! Attention au rivage',
 
   // --- Boussole et conseils de louvoyage -----------------------------------------------------
@@ -385,7 +387,8 @@ export const fr: Record<MessageKey, string> = {
   'kids.upg.holdDesc': 'Ta cale devient plus grande pour transporter plus de choses.',
   'kids.upg.holdLevel': 'Cale niveau {level}',
   'kids.upg.hull': '🛡️ Bateau plus solide !',
-  'kids.upg.hullDesc': 'Un petit bonus de vitesse. La solidité servira contre les futurs dangers.',
+  'kids.upg.hullDesc':
+    'Un petit bonus de vitesse et une coque plus solide contre les chocs et les récifs.',
   'kids.upg.hullLevel': 'Coque niveau {level}',
   'kids.maxLevel': '⭐ Niveau max !',
   'kids.upgrade': '⭐ Améliorer ({price} pièces)',

@@ -1,14 +1,14 @@
 import { type BoatControls, type BoatState, createBoat, stepBoat } from './boat';
-import { resolveCollisions } from './collision';
+import { type Pier, piersOf, resolveCollisions } from './collision';
 import type { MapDef } from './map';
 import {
   type Reef,
   damageHull,
+  impactDamage,
   reefDistance,
   reefsOf,
   shallowDrag,
   shallowness,
-  STRIKE_DAMAGE,
 } from './hazards';
 import { DEG, distance } from './math';
 import type { ShipClass } from './ship';
@@ -36,6 +36,8 @@ export interface World {
   windBlockers: WindBlocker[];
   /** Reefs, derived from the map once (decision 0032). */
   reefs: Reef[];
+  /** Harbour piers, solid to the hull (decision 0038). */
+  piers: Pier[];
   /** 0 = deep water … 1 = at a reef's edge. */
   shallow: number;
   /** Degrees added to the map's wind direction (the "new wind" button). */
@@ -57,6 +59,7 @@ export interface World {
 export type WorldEvent =
   | { type: 'bump' }
   | { type: 'reef-strike'; damage: number }
+  | { type: 'crash'; damage: number; surface: 'shore' | 'pier' }
   | { type: 'waypoint'; label: string; seconds: number; next: string }
   | DockEvent;
 
@@ -72,6 +75,7 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     funnel: 0,
     windBlockers: windBlockers(map.islands, map.terrain),
     reefs: reefsOf(map.terrain),
+    piers: piersOf(map),
     shallow: 0,
     windOffsetDeg: 0,
     boat: createBoat(map.start.x, map.start.y, map.start.headingDeg * DEG),
@@ -137,20 +141,23 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   if (world.shallow > 0) world.boat.speedKn *= shallowDrag(world.shallow, world.ship, dt);
   const sinceBump = world.boat.sinceBump;
   const speedBefore = world.boat.speedKn;
-  resolveCollisions(
+  const surface = resolveCollisions(
     world.boat,
     world.ship.radius,
     world.map.islands,
     world.map.boundsRadius,
     world.map.terrain,
+    world.piers,
   );
   // Report a new hit, not every frame spent grinding along a shore.
-  if (world.boat.sinceBump === 0 && sinceBump > 0.5) {
-    // Beaches are soft; reefs hole the hull in proportion to the speed the strike took off.
-    const lost = speedBefore - world.boat.speedKn;
-    const onReef = nearReef <= world.ship.radius + 1;
-    const damage = onReef ? damageHull(world.trade, lost * STRIKE_DAMAGE) : 0;
-    events.push(damage >= 1 ? { type: 'reef-strike', damage } : { type: 'bump' });
+  if (surface && world.boat.sinceBump === 0 && sinceBump > 0.5) {
+    // Damage follows the speed the impact took off: reefs always cut, shores and piers only
+    // past a docking bump, sandbanks are soft (decisions 0032 and 0038).
+    const damage = damageHull(world.trade, impactDamage(surface, speedBefore - world.boat.speedKn));
+    if (damage >= 1 && surface === 'reef') events.push({ type: 'reef-strike', damage });
+    else if (damage >= 1 && (surface === 'shore' || surface === 'pier'))
+      events.push({ type: 'crash', damage, surface });
+    else events.push({ type: 'bump' });
   }
 
   events.push(...stepTrade(world.trade, world.map, world.boat, dt));

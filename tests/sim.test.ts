@@ -139,7 +139,7 @@ describe('collision', () => {
     const boat = createBoat(0, -9, 0);
     boat.speedKn = 6;
     const hit = resolveCollisions(boat, 2, [{ id: 'a', x: 0, y: 0, radius: 10 }], 1000);
-    expect(hit).toBe(true);
+    expect(hit).toBe('shore');
     expect(Math.hypot(boat.x, boat.y)).toBeCloseTo(12);
     expect(boat.speedKn).toBeLessThan(1.5);
     expect(boat.sinceBump).toBe(0);

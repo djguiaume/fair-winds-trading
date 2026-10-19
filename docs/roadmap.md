@@ -71,7 +71,7 @@ Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 - **Complete UI redesign.** The current HUD and panels are not good enough; redesign them as a whole (mockups first, then build), keeping touch and the old-tablet budget ([0006](decisions/0006-desktop-and-mobile.md)).
 - **Kids mode made playable.** It is unplayable today; rework controls, text and pacing so a child can actually sail and trade.
 - **Wind strength you can see**, not only its direction: for example gust streaks, flag or sail flutter and a strength scale on the compass.
-- **Hull damage from any crash**, not only reefs ([0032](decisions/0032-reef-strikes-and-shallows.md)): hitting an island, coast, pier or (later) another ship damages the hull too.
+- **Hull damage from any crash** (implemented for review, [0038](decisions/0038-hull-damage-from-any-crash.md)): ramming an island, coast or pier damages the hull in proportion to the impact speed, docking bumps and sandbanks are free, piers are now solid. Repair in any harbour as in [0032](decisions/0032-reef-strikes-and-shallows.md). Ship-to-ship collisions come with pirates (Phase 5).
 
 **Done when:** you can earn enough to buy upgrades and the cutter, and feel the difference.
 

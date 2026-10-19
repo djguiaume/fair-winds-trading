@@ -107,6 +107,8 @@ export const en = {
   'toast.windShifts': 'The wind shifts…',
   'toast.waypoint': '{label} reached in {time}! Next: {next}',
   'toast.reef': 'Struck a reef! Hull {pct}%, repair in port',
+  'toast.crash': 'Ran aground! Hull {pct}%, repair in port',
+  'toast.crashPier': 'Rammed the pier! Hull {pct}%, repair in port',
   'toast.bump': 'Bump! Mind the shore',
 
   // --- Wind compass and tacking tips ---------------------------------------------------------
@@ -383,7 +385,7 @@ export const en = {
   'kids.upg.holdDesc': 'Gives you extra room in your hold to carry more items.',
   'kids.upg.holdLevel': 'Hold Level {level}',
   'kids.upg.hull': '🛡️ Tougher Boat!',
-  'kids.upg.hullDesc': 'Adds a small speed boost. Toughness is reserved for future hazards.',
+  'kids.upg.hullDesc': 'Adds a small speed boost and a stronger hull for bumps and reefs.',
   'kids.upg.hullLevel': 'Hull Level {level}',
   'kids.maxLevel': '⭐ Max Level!',
   'kids.upgrade': '⭐ Upgrade ({price} Coins)',

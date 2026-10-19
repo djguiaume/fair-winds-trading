@@ -181,6 +181,7 @@ export function applySave(world: World, data: SaveData): void {
       world.map.islands,
       world.map.boundsRadius,
       world.map.terrain,
+      world.piers,
     )
   ) {
     const start = world.map.start;

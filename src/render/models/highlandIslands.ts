@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { IslandDef, MapDef, TerrainDef } from '../../sim/map';
+import { pierAt } from '../../sim/collision';
 import { bearingTo } from '../../sim/math';
 import { type Rng, createRng, range } from '../../sim/rng';
 import { mergeAll, paint, vertexColorMaterial } from './geometry';
@@ -287,15 +288,10 @@ export function islandParts(
   // The harbour (+Z) faces the course buoy named after this island, else a seeded direction.
   const wp = map.course.find((w) => w.label === island.name);
   const bearing = wp ? bearingTo(island, wp) : rng() * Math.PI * 2;
+  // Exact pier head, shared with the pier's collision segment (decision 0038).
   if (look.dock && onHarbour) {
-    // Exact pier-head coordinates, using the same scale/rotation as its geometry below.
-    const angle = Math.PI - bearing;
-    const x = island.radius * 0.08;
-    const z = island.radius * 0.85 + Math.min(island.radius * 0.75, 4.5 * ISLAND_SCALE);
-    onHarbour({
-      x: island.x + Math.cos(angle) * x + Math.sin(angle) * z,
-      y: island.y + Math.sin(angle) * x - Math.cos(angle) * z,
-    });
+    const pier = pierAt(island, bearing);
+    onHarbour({ x: pier.x1, y: pier.y1 });
   }
   if (look.landmark) {
     const size = Math.min(1.15, capR / 3.8);
