@@ -1,6 +1,6 @@
 # 0011. Five ship classes, bought and upgraded with delivery money
 
-**Status:** Accepted, 2026-10-19 (numbers are starting values to tune in play)
+**Status:** Accepted, 2026-10-19 (numbers are starting values to tune in play); lineup table refined into three lines by [0035](0035-three-ship-lines.md)
 
 **Context:** Guillaume asked for several boats that the player can upgrade with money earned from deliveries. The roadmap only had "one ship upgrade" in Phase 1 and three classes in Phase 3.
 
