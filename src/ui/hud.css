@@ -1914,3 +1914,61 @@ body.is-docked .objective {
     overflow: auto;
   }
 }
+
+/* Delivery orders (decision 0028) */
+.contracts {
+  background: rgba(255, 230, 128, 0.1);
+  border: 1px solid rgba(255, 230, 128, 0.35);
+  border-radius: 10px;
+  padding: 8px 14px;
+  margin-bottom: 12px;
+}
+
+.contracts-title {
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+
+.contract-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;
+}
+
+.deliver-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.contract-list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+/* Hull condition and repair (decision 0032) */
+.hull-stat.is-low {
+  color: #ffb27a;
+}
+
+.repair-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 150, 100, 0.12);
+  border: 1px solid rgba(255, 150, 100, 0.4);
+  border-radius: 10px;
+  padding: 8px 14px;
+  margin-bottom: 12px;
+}
+
+.repair-bar button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

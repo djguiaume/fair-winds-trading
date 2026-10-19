@@ -31,8 +31,15 @@
 | [0024](0024-on-demand-chart-and-quiet-sandbox.md) | On-demand chart, player markers, quieter HUD and suspended practice course | 2026-10-19 | Proposed implementation |
 
 | [0025](0025-optional-first-voyage-tutorial.md) | Optional, resumable first sailing and trading delivery tutorial | 2026-10-19 | Implementation for review |
+| [0026](0026-slow-weather-shifts.md) | Slow weather shifts | 2026-10-19 | Implementation for review |
+| [0027](0027-islands-shape-the-wind.md) | Islands shape the wind: calm lee, faster flanks | 2026-10-19 | Implementation for review |
+| [0028](0028-delivery-contracts.md) | Delivery contracts | 2026-10-19 | Implementation for review |
+| [0029](0029-one-main-production-per-port.md) | One main production per port | 2026-10-19 | Accepted |
+| [0030](0030-home-base-upgrades-and-earned-ships.md) | Home-base upgrades and earned ships | 2026-10-19 | Accepted (direction) |
 
 | [0031](0031-windward-ring-map.md) | Windward Ring replaces Staggered passages as the trading map | 2026-10-19 | Implementation for review |
+| [0032](0032-reef-strikes-and-shallows.md) | Reef strikes and shallows | 2026-10-19 | Implementation for review |
+
 | [0035](0035-three-ship-lines.md) | Three ship lines: swift, warship and hauler | 2026-10-19 | Accepted direction |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

@@ -1,6 +1,6 @@
 # 0035. Three ship lines: swift, warship and hauler
 
-**Status:** Accepted direction, 2026-10-19 (Guillaume asked for it; numbers are starting values to tune in play). Refines [0011](0011-ship-lineup-and-upgrades.md) and builds on [0030](0030-home-base-upgrades-and-earned-ships.md). Numbered 0035 because 0026–0030 are in review and other threads may take 0032–0034.
+**Status:** Accepted direction, 2026-10-19 (Guillaume asked for it; numbers are starting values to tune in play). Refines [0011](0011-ship-lineup-and-upgrades.md) and builds on [0030](0030-home-base-upgrades-and-earned-ships.md). Numbered 0035 to leave 0033–0034 free for parallel threads.
 
 **Context:** Guillaume wants more ship diversity: the player should be able to go down one of three boat categories, roughly *fast and agile* (less firepower, average cargo), *slow with lots of firepower* (low cargo) and *lots of cargo* (less firepower, slow), balanced by Claude. Today [0011](0011-ship-lineup-and-upgrades.md) is a single ladder (sloop → cutter → schooner → brig → fluyt) where each ship is mostly "bigger", and firepower does not exist yet. [0030](0030-home-base-upgrades-and-earned-ships.md) already says new classes are built at discoverable ports and unlocked by deliveries there, which fits several lines well.
 
