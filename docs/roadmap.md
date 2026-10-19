@@ -64,6 +64,13 @@ Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 - Sandbox play in short sessions: auto-save to the browser and instant resume ([0009](decisions/0009-sandbox-short-sessions.md)).
 - Light hazards ([0010](decisions/0010-light-hazards-pirates-later.md)), implemented for review in [0032](decisions/0032-reef-strikes-and-shallows.md): shallows around reefs slow the boat (deeper hulls more); striking a reef damages the hull, which leaks speed until repaired in port. Nothing sinks.
 
+**Play-test fixes (requested by Guillaume, 2026-10-19):**
+
+- **Complete UI redesign.** The current HUD and panels are not good enough; redesign them as a whole (mockups first, then build), keeping touch and the old-tablet budget ([0006](decisions/0006-desktop-and-mobile.md)).
+- **Kids mode made playable.** It is unplayable today; rework controls, text and pacing so a child can actually sail and trade.
+- **Wind strength you can see**, not only its direction: for example gust streaks, flag or sail flutter and a strength scale on the compass.
+- **Hull damage from any crash**, not only reefs ([0032](decisions/0032-reef-strikes-and-shallows.md)): hitting an island, coast, pier or (later) another ship damages the hull too.
+
 **Done when:** you can earn enough to buy upgrades and the cutter, and feel the difference.
 
 ## Phase 2 — Living settlements
@@ -74,7 +81,7 @@ Goal: deliveries visibly change the world.
 - Higher levels unlock new demands, including goods produced only on distant islands.
 - Demand decays if unmet, so neglected towns stall.
 - Simple production chains (timber → planks, grain → bread) at higher-level towns.
-- Day/night cycle and weather states (calm, breeze, gale) affecting wind strength; storms can spoil cargo.
+- **Dynamic weather:** day/night cycle and weather states (calm, breeze, gale, rain, storms) that move across the map and change wind strength; storms can spoil cargo. Builds on Phase 1's slow wind shifts ([0026](decisions/0026-slow-weather-shifts.md)).
 
 ## Phase 3 — Fleet and automated trade routes
 
@@ -114,7 +121,7 @@ Goal: growth pushes you outward into tougher navigation.
 
 ## Phase 6 — Enemy factions (maybe)
 
-- Rival trading powers competing for settlements and routes; contested waters.
+- **Concurrent trading companies:** rival companies with their own ships and routes compete for settlements, contracts and prices; contested waters.
 
 ## Phase 7 — Polish and optional extras
 
