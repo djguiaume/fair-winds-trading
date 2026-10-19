@@ -9,3 +9,7 @@ Captures of the game at each phase, taken headless with Playwright (software Web
 | Main menu, desktop | Main menu, phone | Main menu, phone landscape |
 |---|---|---|
 | ![menu desktop](menu-desktop.png) | ![menu phone](menu-phone.png) | ![menu landscape](menu-phone-landscape.png) |
+
+| Delivery orders, Captain mode | Delivery orders, Kids mode |
+|---|---|
+| ![orders](delivery-orders.png) | ![orders kids](delivery-orders-kids.png) |
