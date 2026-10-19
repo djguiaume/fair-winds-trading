@@ -5,10 +5,16 @@ export interface Settings {
   quality: QualitySetting;
   showFps: boolean;
   seenHelp: boolean;
+  seenWindHint: boolean;
 }
 
 const KEY = 'fwt.settings.v1';
-const DEFAULTS: Settings = { quality: 'auto', showFps: false, seenHelp: false };
+const DEFAULTS: Settings = {
+  quality: 'auto',
+  showFps: false,
+  seenHelp: false,
+  seenWindHint: false,
+};
 
 export function loadSettings(): Settings {
   try {

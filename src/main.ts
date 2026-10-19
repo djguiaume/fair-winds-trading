@@ -44,7 +44,13 @@ const storage: SaveStorage | null = (() => {
 if (storage) loadGame(storage, world);
 let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
 const view = new GameView(canvas, world, level);
-const hud = new Hud(world);
+const hud = new Hud(world, {
+  seen: settings.seenWindHint,
+  markSeen: () => {
+    settings.seenWindHint = true;
+    saveSettings(settings);
+  },
+});
 const input = new Input(stage);
 const monitor = new FrameMonitor();
 let sailStep = world.boat.sailStep;
@@ -54,6 +60,7 @@ let sailStep = world.boat.sailStep;
 // simulation is paused while the menu or the help card is up.
 const menu = $('menu');
 const help = $('help');
+const windHelp = $<HTMLDialogElement>('wind-help');
 const helpClose = $('start');
 const settingsPanel = $('settings');
 const playButton = $('menu-play');
@@ -62,8 +69,13 @@ let started = false;
 let paused = true;
 
 function refreshPause() {
-  paused = mode === 'menu' || !help.hidden;
+  paused = mode === 'menu' || !help.hidden || windHelp.open;
 }
+
+hud.onWindHelpChange = () => {
+  input.releaseAll();
+  refreshPause();
+};
 
 function showMenu() {
   mode = 'menu';
@@ -110,7 +122,7 @@ $('menu-btn').addEventListener('click', showMenu);
 helpClose.addEventListener('click', closeHelp);
 $('help-btn').addEventListener('click', openHelp);
 window.addEventListener('keydown', (e) => {
-  if (e.code !== 'Escape') return;
+  if (e.code !== 'Escape' || windHelp.open) return;
   if (!settingsPanel.hidden) closeSettings();
   else if (!help.hidden) closeHelp();
   else if (mode === 'play') showMenu();
@@ -245,7 +257,7 @@ function tick(now: number) {
   }
 
   view.render(dt);
-  hud.update(dt, (x, y) => view.project(x, y), size);
+  hud.update(dt, (x, y) => view.project(x, y), size, !paused);
 
   if (monitor.sample(dt) && settings.quality === 'auto' && level !== 'low') {
     setLevel(lowerQuality(level));

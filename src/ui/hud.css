@@ -533,3 +533,123 @@ body.in-menu .settings .in-game {
     min-height: 52px;
   }
 }
+
+/* Compass help: quiet, local feedback rather than repeated sailing-warning toasts. */
+.compass-open {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-shadow: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.compass .title {
+  display: block;
+}
+.compass-open:focus-visible,
+.upwind-chip:focus-visible,
+.wind-first-hint button:focus-visible {
+  outline: 2px solid #ffe3a0;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+.compass.is-upwind .boat {
+  fill: #ffce7a;
+}
+.compass.wind-pulse .nogo {
+  animation: wind-gentle-pulse 1.8s ease-in-out infinite;
+}
+@keyframes wind-gentle-pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+.upwind-chip {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 4px;
+  padding: 5px 2px;
+  border: 0;
+  border-radius: 7px;
+  background: #574c2a66;
+  color: #ffdfa0;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.upwind-chip[hidden],
+.wind-first-hint[hidden] {
+  display: none;
+}
+.wind-first-hint {
+  pointer-events: auto;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  width: min(214px, calc(100vw - 24px));
+  display: flex;
+  align-items: center;
+  white-space: normal;
+  background: #153b47ed;
+  border: 1px solid #9aa99a;
+  border-radius: 8px;
+  padding-left: 10px;
+  font-size: 12px;
+  font-weight: normal;
+  text-align: left;
+}
+.wind-first-hint button {
+  flex: 0 0 44px;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: #f0e7cc;
+  font-size: 22px;
+  cursor: pointer;
+}
+#hud .wind-help {
+  pointer-events: auto;
+  width: min(92vw, 360px);
+  max-height: 85dvh;
+  overflow: auto;
+  color: #fff;
+  padding: 20px;
+  background: #183f4b;
+  white-space: normal;
+}
+.wind-help::backdrop {
+  background: #081e2b99;
+}
+.wind-help h2 {
+  margin: 0 0 12px;
+  font-size: 23px;
+}
+.wind-help p {
+  margin: 0 0 10px;
+  line-height: 1.45;
+}
+.wind-help svg {
+  display: block;
+  width: 100%;
+  max-height: 180px;
+}
+.wind-help button {
+  min-height: 44px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 9px;
+  border: 2px solid #fff3c4;
+  font: inherit;
+  cursor: pointer;
+}
+@media (prefers-reduced-motion: reduce) {
+  .compass.wind-pulse .nogo {
+    animation: none;
+  }
+}

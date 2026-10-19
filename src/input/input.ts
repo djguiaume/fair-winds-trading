@@ -51,7 +51,12 @@ export class Input {
   }
 
   private keyDown = (e: KeyboardEvent) => {
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
+    if (
+      document.querySelector('dialog[open]') ||
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLSelectElement
+    )
+      return;
     let handled = true;
     switch (e.code) {
       case 'ArrowLeft':
@@ -84,10 +89,11 @@ export class Input {
     if (e.code === 'ArrowRight' || e.code === 'KeyD') this.right = false;
   };
 
-  private releaseAll = () => {
+  releaseAll = () => {
     this.left = this.right = false;
     this.dragId = null;
     this.dragSteer = 0;
+    this.sailDelta = 0;
     this.onDrag(null);
   };
 

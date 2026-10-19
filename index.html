@@ -30,21 +30,44 @@
         <span id="obj-dist" class="muted"></span>
       </div>
 
-      <div class="panel compass">
-        <div class="title">WIND</div>
-        <svg viewBox="-50 -50 100 100" aria-label="Wind compass">
-          <circle r="40" class="ring" />
-          <g id="c-nogo">
-            <path d="M0 0 L-28.28 -28.28 A40 40 0 0 1 28.28 -28.28 Z" class="nogo" />
-          </g>
-          <text y="-43" class="north">N</text>
-          <g id="c-wp"><circle cy="-40" r="5" class="wp" /></g>
-          <g id="c-wind">
-            <path d="M0 -30 L9 -6 L2 -9 L2 26 L-2 26 L-2 -9 L-9 -6 Z" class="wind" />
-          </g>
-          <g id="c-boat"><path d="M0 -17 L6 6 L0 3 L-6 6 Z" class="boat" /></g>
-        </svg>
-        <div id="wind-text">&nbsp;</div>
+      <div id="wind-compass" class="panel compass">
+        <button
+          id="wind-help-trigger"
+          class="compass-open"
+          type="button"
+          aria-label="Wind compass. Open sailing tips"
+          aria-haspopup="dialog"
+          aria-controls="wind-help"
+        >
+          <span class="title">WIND</span>
+          <svg viewBox="-50 -50 100 100" aria-hidden="true">
+            <circle r="40" class="ring" />
+            <g id="c-nogo">
+              <path d="M0 0 L-28.28 -28.28 A40 40 0 0 1 28.28 -28.28 Z" class="nogo" />
+            </g>
+            <text y="-43" class="north">N</text>
+            <g id="c-wp"><circle cy="-40" r="5" class="wp" /></g>
+            <g id="c-wind">
+              <path d="M0 -30 L9 -6 L2 -9 L2 26 L-2 26 L-2 -9 L-9 -6 Z" class="wind" />
+            </g>
+            <g id="c-boat"><path d="M0 -17 L6 6 L0 3 L-6 6 Z" class="boat" /></g>
+          </svg>
+          <span id="wind-text">&nbsp;</span>
+        </button>
+        <button
+          id="upwind-chip"
+          class="upwind-chip"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="wind-help"
+          hidden
+        >
+          Into the wind ⓘ
+        </button>
+        <div id="wind-first-hint" class="wind-first-hint" hidden>
+          <span>Tap the compass for sailing tips</span>
+          <button id="dismiss-wind-hint" type="button" aria-label="Dismiss compass hint">×</button>
+        </div>
       </div>
 
       <div id="wp-arrow" class="wp-arrow" hidden><span>▲</span></div>
@@ -82,6 +105,63 @@
         <button id="reset-boat" class="in-game">Back to start</button>
         <button id="close-settings" class="primary">Close</button>
       </div>
+
+      <dialog
+        id="wind-help"
+        class="panel wind-help"
+        aria-labelledby="wind-help-title"
+        aria-describedby="wind-help-copy"
+      >
+        <h2 id="wind-help-title">Sailing upwind</h2>
+        <p id="wind-help-copy">
+          Turn away from the wind to fill your sails. Zigzag to travel upwind.
+        </p>
+        <svg viewBox="0 0 260 160" role="img" aria-labelledby="tack-title tack-description">
+          <title id="tack-title">Tacking into the wind</title>
+          <desc id="tack-description">
+            Wind blows downward. Sail diagonally left, then diagonally right, to reach a destination
+            above you.
+          </desc>
+          <defs>
+            <marker
+              id="tack-arrow"
+              viewBox="0 0 10 10"
+              refX="8"
+              refY="5"
+              markerWidth="5"
+              markerHeight="5"
+              orient="auto-start-reverse"
+            >
+              <path d="M0 0 L10 5 L0 10 Z" fill="#ffe3a0" />
+            </marker>
+          </defs>
+          <path
+            d="M30 18 V56 M55 18 V56 M80 18 V56"
+            stroke="#9fe7ff"
+            stroke-width="3"
+            marker-end="url(#tack-arrow)"
+          />
+          <text x="25" y="78" fill="#b8dfe5" font-size="13">Wind</text>
+          <path
+            d="M162 144 L102 104 L162 64 L114 30"
+            fill="none"
+            stroke="#ffe3a0"
+            stroke-width="4"
+            stroke-linejoin="round"
+            marker-end="url(#tack-arrow)"
+          />
+          <circle cx="114" cy="20" r="5" fill="#ffe3a0" />
+          <path d="M160 137 L169 151 L157 147 L152 151 Z" fill="#f4f0e2" />
+          <text x="184" y="103" fill="#e3eadd" font-size="13">Zigzag</text>
+        </svg>
+        <p class="muted small">
+          Passing through the no-go zone during a tack is normal. The compass settles as soon as
+          your sails can draw again.
+        </p>
+        <button id="close-wind-help" class="primary" type="button" autofocus>
+          Back to sailing
+        </button>
+      </dialog>
 
       <div id="help" class="help">
         <div class="panel card">
