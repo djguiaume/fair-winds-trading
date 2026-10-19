@@ -10,7 +10,7 @@ import { Input } from '../src/input/input';
 import { SeaChart } from '../src/ui/seaChart';
 
 function setup() {
-  document.body.innerHTML = `<dialog id="chart"><button id="close-chart">Back</button><svg id="chart-map"></svg><span id="chart-wind"></span><div id="chart-ports"></div><div id="chart-pins"></div><p id="chart-status"></p><button id="chart-pin-here">Mark position</button><button id="chart-clear-target">Clear</button></dialog>`;
+  document.body.innerHTML = `<dialog id="chart"><button id="close-chart">Back</button><svg id="chart-map"></svg><span id="chart-wind"></span><div id="chart-goods"></div><table id="chart-prices"></table><div id="chart-ports"></div><div id="chart-pins"></div><p id="chart-status"></p><button id="chart-pin-here">Mark position</button><button id="chart-clear-target">Clear</button></dialog>`;
   const world = createWorld(PHASE1_MAP, SLOOP);
   const chart = new SeaChart(document.querySelector('dialog')!, world, {});
   chart.open();

@@ -41,5 +41,6 @@
 | [0032](0032-reef-strikes-and-shallows.md) | Reef strikes and shallows | 2026-10-19 | Implementation for review |
 
 | [0035](0035-three-ship-lines.md) | Three ship lines: swift, warship and hauler | 2026-10-19 | Accepted direction |
+| [0036](0036-port-needs-and-market-overview.md) | Port needs on the chart and a market overview | 2026-10-19 | Implementation for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

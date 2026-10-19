@@ -1,5 +1,7 @@
 import type { World } from '../sim/world';
 import { DEG } from '../sim/math';
+import { GOODS, GOOD_DEFS, GOOD_ICONS, type GoodId } from '../sim/goods';
+import { quoteAcross, topNeed, unitSellPrice } from '../sim/market';
 
 interface Pin {
   x: number;
@@ -15,6 +17,8 @@ export class SeaChart {
   private pins: Pin[] = [];
   private previousFocus: HTMLElement | null = null;
   private readonly key: string;
+  /** Good shown in the market overview; null until the chart first opens. */
+  private good: GoodId | null = null;
 
   constructor(
     private readonly dialog: HTMLDialogElement,
@@ -74,12 +78,18 @@ export class SeaChart {
   open() {
     if (this.isOpen) return;
     this.previousFocus = document.activeElement as HTMLElement | null;
+    this.good ??= this.defaultGood();
     this.draw();
     this.dialog.showModal();
     this.onChange();
   }
   close() {
     this.dialog.close();
+  }
+  /** Compare what you carry most of; with an empty hold, start with the first good. */
+  private defaultGood(): GoodId {
+    const { cargo } = this.world.trade.captain;
+    return GOODS.reduce((best, g) => (cargo[g] > cargo[best] ? g : best), GOODS[0]);
   }
   private status(message: string) {
     this.get('chart-status').textContent = message;
@@ -112,6 +122,76 @@ export class SeaChart {
     b.addEventListener('click', action);
     parent.append(b);
     return b;
+  }
+  private selectPort(portId: string) {
+    const { map } = this.world;
+    const port = map.ports.find((p) => p.id === portId)!;
+    const anchor = this.harbours[port.id] ?? map.islands.find((i) => i.id === port.islandId)!;
+    // Use the visible pier as the destination, rather than a legacy practice buoy.
+    this.world.destination = { portId: port.id, label: port.name, x: anchor.x, y: anchor.y };
+    this.onDestinationChange();
+    this.draw();
+    this.status(`Bearing set for ${port.name}. Close the chart when ready.`);
+  }
+  /** Market overview (decision 0036): one good's prices at every charted port. */
+  private drawMarket() {
+    const good = this.good ?? this.defaultGood();
+    const { map, trade } = this.world;
+    const goods = this.get('chart-goods');
+    goods.replaceChildren();
+    for (const g of GOODS) {
+      const b = this.button(goods, `${GOOD_ICONS[g]} ${GOOD_DEFS[g].name}`, () => {
+        this.good = g;
+        this.draw();
+        this.status(`Comparing ${GOOD_DEFS[g].name.toLowerCase()} prices.`);
+      });
+      b.setAttribute('role', 'radio');
+      b.setAttribute('aria-checked', String(g === good));
+      if (g === good) b.classList.add('active');
+    }
+    // Every port counts as charted for now; a discovery system would filter this list.
+    const quotes = quoteAcross(
+      trade.markets,
+      good,
+      map.ports.map((p) => p.id),
+    );
+    const cheapest = Math.min(...quotes.filter((q) => q.available > 0).map((q) => q.buy));
+    const dearest = Math.max(...quotes.map((q) => q.sell));
+    const table = this.get('chart-prices');
+    table.replaceChildren();
+    const head = document.createElement('tr');
+    for (const label of ['Port', 'Buy', 'Sell', ''])
+      head.append(Object.assign(document.createElement('th'), { textContent: label }));
+    table.append(head);
+    for (const q of quotes) {
+      const port = map.ports.find((p) => p.id === q.portId)!;
+      const row = document.createElement('tr');
+      const nameCell = document.createElement('td');
+      this.button(nameCell, port.name, () => this.selectPort(port.id)).dataset.compare = port.id;
+      const buy = Object.assign(document.createElement('td'), {
+        textContent: q.available > 0 ? `${q.buy} 🪙` : 'none',
+      });
+      const sell = Object.assign(document.createElement('td'), { textContent: `${q.sell} 🪙` });
+      const notes: string[] = [];
+      if (q.available > 0 && q.buy === cheapest) {
+        buy.classList.add('best');
+        notes.push('cheapest');
+      }
+      if (q.sell === dearest) {
+        sell.classList.add('best');
+        notes.push('pays most');
+      }
+      const order = trade.contracts.byPort[port.id];
+      if (order && order.readyIn <= 0 && order.good === good)
+        notes.push(`📜 order ${order.qty} for ${order.reward} 🪙`);
+      if (trade.dockedAt === port.id) notes.push('you are here');
+      const note = Object.assign(document.createElement('td'), {
+        textContent: notes.join(' · '),
+        className: 'muted',
+      });
+      row.append(nameCell, buy, sell, note);
+      table.append(row);
+    }
   }
   private draw() {
     const focused = document.activeElement;
@@ -178,13 +258,7 @@ export class SeaChart {
     for (const port of map.ports) {
       const island = map.islands.find((i) => i.id === port.islandId)!;
       const anchor = this.harbours[port.id] ?? island;
-      const select = () => {
-        // Use the visible pier as the destination, rather than a legacy practice buoy.
-        this.world.destination = { portId: port.id, label: port.name, ...anchor };
-        this.onDestinationChange();
-        this.draw();
-        this.status(`Bearing set for ${port.name}. Close the chart when ready.`);
-      };
+      const select = () => this.selectPort(port.id);
       const mark = shape('text', {
         x: anchor.x,
         y: -anchor.y,
@@ -193,12 +267,28 @@ export class SeaChart {
         tabindex: 0,
         'aria-label': `Set bearing to ${port.name}`,
       });
+      // Port labels scale with the chart so names and needs stay legible on a phone.
+      const size = Math.round(16 * Math.max(1, extent / 220));
+      const top = -island.y - island.radius - 8;
       const name = shape('text', {
         x: island.x,
-        y: -island.y - island.radius - 8,
-        class: 'chart-place',
+        y: top - size * 1.1,
+        class: 'chart-place chart-port-name',
+        style: `font-size: ${size}px`,
       });
       name.textContent = port.name;
+      const market = this.world.trade.markets[port.id];
+      if (market) {
+        // Top need (decision 0036): the good this port pays most for today, and that price.
+        const need = topNeed(market);
+        const needLabel = shape('text', {
+          x: island.x,
+          y: top,
+          class: 'chart-need',
+          style: `font-size: ${Math.round(size * 0.9)}px`,
+        });
+        needLabel.textContent = `wants ${GOOD_ICONS[need]} ${unitSellPrice(need, market.stock[need] + 1)}🪙`;
+      }
       mark.textContent = '⚓';
       mark.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -212,6 +302,7 @@ export class SeaChart {
       });
       this.button(ports, `⚓ ${port.name}`, select);
     }
+    this.drawMarket();
     const pins = this.get('chart-pins');
     pins.replaceChildren();
     for (const pin of this.pins) {
