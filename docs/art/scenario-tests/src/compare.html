@@ -1,7 +1,7 @@
 <html><head><meta charset="utf-8"><link rel="stylesheet" href="../../src/common.css"><script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script></head><body><canvas id="c" width="1280" height="720"></canvas><div id="labels"></div>
 <div class="title"><b id="t"></b><span id="sub"></span></div>
 <script type="module">
-// Code-built model vs Scenario-generated GLBs, same light and sea. Needs docs/art/src/lib.js (art-style PR)
+// Code-built model vs Scenario-generated GLBs, same light and sea. Needs docs/art/src/lib.js
 // and a ./node_modules symlink to the repo's node_modules; serve over http (GLB fetch). See ../README.md.
 import * as T from 'three';import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
 import {STYLES,makeScene,boat,wake,label,island,reseed} from '../../src/lib.js';
