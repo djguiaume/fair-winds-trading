@@ -73,6 +73,8 @@ export interface MapDef {
   terrain?: TerrainDef[];
   /** Phase 0 practice course: buoys to reach in order, looping. */
   course: WaypointDef[];
+  /** Opt-in prototype practice only; normal trading has no assigned course. */
+  practiceCourse?: boolean;
   /** Trading ports (Phase 1). */
   ports: PortDef[];
 }

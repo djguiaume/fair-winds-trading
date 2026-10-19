@@ -1708,3 +1708,125 @@ body.is-docked .objective {
     bottom: calc(max(18px, env(safe-area-inset-bottom)) + 72px);
   }
 }
+
+/* On-demand chart: static SVG, no blur, animations, textures or permanent minimap. */
+.chart {
+  width: min(900px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  box-sizing: border-box;
+  color: #f4f0e2;
+}
+.chart::backdrop {
+  background: rgba(5, 26, 31, 0.88);
+}
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.chart h2 {
+  margin: 0 0 8px;
+}
+.chart button {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 2px solid #ffffff55;
+  border-radius: 10px;
+  background: #183f4b;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.chart button:focus-visible {
+  outline: 3px solid #ffe680;
+}
+.chart-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+#chart-map {
+  display: block;
+  width: 100%;
+  height: min(52vh, 520px);
+  height: min(52dvh, 520px);
+  background: #205b65;
+  touch-action: manipulation;
+}
+.chart-boundary {
+  fill: #28717b;
+  stroke: #83bac1;
+  stroke-dasharray: 6 6;
+}
+.chart-land {
+  fill: #a7bb83;
+  stroke: #ead8a4;
+  stroke-width: 4;
+}
+.chart-bank {
+  fill: #ead8a4;
+  stroke: #b4a16e;
+  stroke-width: 2;
+}
+.chart-boat {
+  fill: #86e8ff;
+  stroke: #102f39;
+  stroke-width: 2;
+}
+.chart-selected {
+  fill: none;
+  stroke: #ffe680;
+  stroke-width: 3;
+}
+.chart-port,
+.chart-pin {
+  fill: #fff0ae;
+  font-size: 30px;
+  text-anchor: middle;
+  cursor: pointer;
+  paint-order: stroke;
+  stroke: #173c43;
+  stroke-width: 3;
+}
+.chart-place {
+  fill: #f4f0e2;
+  font-size: 16px;
+  text-anchor: middle;
+  pointer-events: none;
+}
+.chart-port:focus {
+  outline: 3px solid white;
+}
+/* Optional destination stays away from top stats and never appears in free sailing. */
+.objective {
+  top: auto;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  max-width: calc(100vw - 170px);
+  white-space: normal;
+  font-size: 13px;
+}
+.objective[hidden] {
+  display: none;
+}
+/* Ship name is available at the shipyard; keep the sailing summary compact. */
+.captain-stats .ship-tag {
+  display: none;
+}
+
+#chart-btn {
+  width: 58px;
+  border-radius: 12px;
+  font-size: 16px;
+}
+.objective {
+  left: calc(var(--gap) + 118px);
+  right: calc(var(--gap) + 80px);
+  transform: none;
+  max-width: none;
+  width: fit-content;
+}

@@ -23,6 +23,7 @@ import {
 } from './ui/fullscreen';
 import { Hud } from './ui/hud';
 import { loadSettings, saveSettings } from './ui/settings';
+import { SeaChart } from './ui/seaChart';
 import { TradePanel } from './ui/tradePanel';
 
 declare const __BUILD_REVISION__: string;
@@ -67,6 +68,11 @@ const hud = new Hud(
   view.harbours,
 );
 const input = new Input(stage);
+const chart = new SeaChart($('chart') as HTMLDialogElement, world, view.harbours);
+chart.onChange = () => {
+  input.releaseAll();
+  refreshPause();
+};
 const tradePanel = new TradePanel($('trade-panel'), world);
 tradePanel.uiMode = settings.uiMode;
 hud.portLabels.isKidMode = settings.uiMode === 'kids';
@@ -101,6 +107,8 @@ hud.onPortClick = (portId: string) => {
     handleEvents([{ type: 'docked', portId }]);
   } else {
     if (setPortDestination(world, portId)) {
+      const anchor = view.harbours[portId];
+      if (anchor) Object.assign(world.destination!, anchor);
       hud.showToast(`Course set for ${world.destination!.label}`, 2);
     }
   }
@@ -121,7 +129,12 @@ let paused = true;
 
 function refreshPause() {
   paused =
-    mode === 'menu' || !settingsPanel.hidden || !help.hidden || tradePanel.isOpen || windHelp.open;
+    mode === 'menu' ||
+    !settingsPanel.hidden ||
+    !help.hidden ||
+    tradePanel.isOpen ||
+    windHelp.open ||
+    chart.isOpen;
   input.setEnabled(!paused);
 }
 
@@ -174,9 +187,14 @@ $('menu-settings').addEventListener('click', () => {
 });
 $('menu-btn').addEventListener('click', showMenu);
 helpClose.addEventListener('click', closeHelp);
-$('help-btn').addEventListener('click', openHelp);
 window.addEventListener('keydown', (e) => {
-  if (e.code !== 'Escape' || windHelp.open) return;
+  if (e.code === 'KeyM' && !e.repeat && mode === 'play' && (chart.isOpen || !paused)) {
+    e.preventDefault();
+    if (chart.isOpen) chart.close();
+    else chart.open();
+    return;
+  }
+  if (e.code !== 'Escape' || windHelp.open || chart.isOpen) return;
   if (tradePanel.isOpen) {
     tradePanel.close();
     refreshPause();
@@ -190,16 +208,13 @@ showMenu();
 // --- Fullscreen --------------------------------------------------------------------------------
 const fsSupport = classifySupport(probeSupport());
 const fsMenuButton = $('menu-fullscreen');
-const fsGameButton = $('fullscreen-btn');
-fsMenuButton.hidden = fsGameButton.hidden = fsSupport !== 'api';
+fsMenuButton.hidden = fsSupport !== 'api';
 $('fs-hint').hidden = fsSupport !== 'home-screen';
 const describeFullscreen = () => {
   const on = isFullscreen();
   fsMenuButton.textContent = on ? 'Exit fullscreen' : 'Fullscreen';
-  fsGameButton.setAttribute('aria-label', on ? 'Exit fullscreen' : 'Fullscreen');
-  fsGameButton.classList.toggle('on', on);
 };
-for (const button of [fsMenuButton, fsGameButton]) {
+for (const button of [fsMenuButton]) {
   button.addEventListener('click', () => void toggleFullscreen());
 }
 onFullscreenChange(describeFullscreen);
@@ -227,10 +242,7 @@ showFps.checked = settings.showFps;
 const describeQuality = () => (qualityNow.textContent = `Now using: ${level}`);
 describeQuality();
 
-$('settings-btn').addEventListener('click', () => {
-  settingsPanel.hidden = !settingsPanel.hidden;
-  refreshPause();
-});
+$('chart-btn').addEventListener('click', () => chart.open());
 function closeSettings() {
   settingsPanel.hidden = true;
   if (mode === 'menu') menu.hidden = false;
@@ -334,7 +346,7 @@ function tick(now: number) {
     if (steps === 6) accumulator = 0;
   }
 
-  view.render(dt);
+  if (!chart.isOpen) view.render(dt);
   hud.update(dt, (x, y) => view.project(x, y), size, !paused);
 
   if (monitor.sample(dt) && settings.quality === 'auto' && level !== 'low') {

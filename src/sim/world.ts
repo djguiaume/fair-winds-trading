@@ -62,6 +62,11 @@ export function currentWaypoint(world: World) {
   return world.destination ?? world.map.course[world.course.index % world.map.course.length]!;
 }
 
+/** Only explicit player destinations appear during sandbox trading. */
+export function navigationTarget(world: World) {
+  return world.destination ?? (world.map.practiceCourse ? currentWaypoint(world) : null);
+}
+
 /** A fixed approach point chosen on the side of the port facing the boat. */
 export function setPortDestination(world: World, portId: string): boolean {
   const port = world.map.ports.find((p) => p.id === portId);
@@ -106,6 +111,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
 
   const wp = currentWaypoint(world);
   if (
+    world.map.practiceCourse &&
     !world.destination &&
     world.map.course.length > 0 &&
     distance(world.boat, wp) < WAYPOINT_RADIUS

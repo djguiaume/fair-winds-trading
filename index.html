@@ -63,8 +63,8 @@
         <span class="dock-text">Trade at <b id="dock-port-name">Port</b></span>
       </button>
 
-      <div class="panel objective">
-        <span class="muted">Sail to</span> <b id="obj-name">…</b>
+      <div id="navigation-target" class="panel objective" hidden>
+        <span class="muted">Bearing to</span> <b id="obj-name">…</b>
         <span id="obj-dist" class="muted"></span>
       </div>
 
@@ -120,9 +120,9 @@
 
       <div class="top-buttons">
         <button id="menu-btn" class="icon-btn" aria-label="Main menu">☰</button>
-        <button id="help-btn" class="icon-btn" aria-label="Help">?</button>
-        <button id="settings-btn" class="icon-btn" aria-label="Settings">⚙</button>
-        <button id="fullscreen-btn" class="icon-btn" aria-label="Fullscreen" hidden>⛶</button>
+        <button id="chart-btn" class="icon-btn" aria-label="Open chart (M)" aria-haspopup="dialog">
+          Map
+        </button>
       </div>
       <div id="fps" class="fps" hidden></div>
 
@@ -223,7 +223,10 @@
               <b>Trading &amp; Ports:</b> Slow down near any island dock to trade goods at the
               market, buy vessel upgrades, and purchase the cutter.
             </li>
-            <li><b>Follow the buoys</b> or tap on-screen port markers to set your course.</li>
+            <li>
+              <b>Open Map</b> (M) to find ports and place markers. Only your chosen destination gets
+              a bearing cue.
+            </li>
           </ul>
           <div class="controls">
             <div>
@@ -233,7 +236,8 @@
             </div>
             <div>
               <h4>Keyboard</h4>
-              ← → or A D to steer<br />↑ ↓ or W S for sails<br />Mouse wheel to zoom
+              ← → or A D to steer<br />↑ ↓ or W S for sails<br />Mouse wheel to zoom<br />M to open
+              the chart
             </div>
           </div>
           <button id="start" class="primary">Set sail</button>
@@ -241,6 +245,34 @@
       </div>
     </div>
 
+    <dialog id="chart" class="panel chart" aria-labelledby="chart-title">
+      <header class="chart-header">
+        <div>
+          <h2 id="chart-title">Sea chart</h2>
+          <span id="chart-wind"></span>
+        </div>
+        <button id="close-chart" type="button" autofocus>Back to sea</button>
+      </header>
+      <p id="chart-instructions">
+        Tap the sea to place a marker (up to 5). Tap a port or marker to select a bearing.
+      </p>
+      <svg
+        id="chart-map"
+        role="group"
+        aria-label="North-up sea chart with islands, shallows, ports and your ship"
+      ></svg>
+      <p class="muted small">
+        North is up · Blue arrow: you · Sand: land / exposed banks. Bearing only: steer around land
+        and tack into wind.
+      </p>
+      <div id="chart-ports" class="chart-actions" aria-label="Port destinations"></div>
+      <div id="chart-pins" class="chart-actions" aria-label="Your markers"></div>
+      <p id="chart-status" role="status"></p>
+      <div class="chart-actions">
+        <button id="chart-pin-here" type="button">Mark my position</button
+        ><button id="chart-clear-target" type="button">Clear bearing</button>
+      </div>
+    </dialog>
     <div id="trade-panel" class="trade-panel-overlay" hidden></div>
 
     <div id="menu" class="menu" hidden>

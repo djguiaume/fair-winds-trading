@@ -3,7 +3,7 @@ import { DEG, bearingTo, distance, wrapPositive } from '../sim/math';
 import { type PointOfSail, pointOfSail } from '../sim/ship';
 import { windTo } from '../sim/wind';
 import { windFeedback } from './windFeedback';
-import { type World, type WorldEvent, currentWaypoint } from '../sim/world';
+import { type World, type WorldEvent, navigationTarget } from '../sim/world';
 import type { ScreenPoint } from '../render/view';
 
 import { GOODS, GOOD_DEFS } from '../sim/goods';
@@ -36,6 +36,7 @@ export class Hud {
   private readonly speed = $('speed');
   private readonly pos = $('point-of-sail');
   private readonly pips = Array.from(document.querySelectorAll<HTMLElement>('.sail-pips i'));
+  private readonly objective = $('navigation-target');
   private readonly objName = $('obj-name');
   private readonly objDist = $('obj-dist');
   private readonly windText = $('wind-text');
@@ -184,7 +185,7 @@ export class Hud {
     active = true,
   ) {
     const { boat, wind, ship } = this.world;
-    const wp = currentWaypoint(this.world);
+    const wp = navigationTarget(this.world);
 
     // Rotations every frame (cheap attribute writes), text ~8 times a second.
     const rot = (el: HTMLElement, rad: number) =>
@@ -198,7 +199,9 @@ export class Hud {
     rot(this.cNoGo, wind.from);
     rot(this.cWind, windTo(wind));
     rot(this.cBoat, boat.heading);
-    rot(this.cWp, bearingTo(boat, wp));
+    this.cWp.style.display = wp ? '' : 'none';
+    this.objective.hidden = !wp;
+    if (wp) rot(this.cWp, bearingTo(boat, wp));
 
     const twa = trueWindAngle(boat.heading, wind);
     const irons = Math.abs(twa) < ship.noGoAngle;
@@ -234,8 +237,8 @@ export class Hud {
       this.pos.className = `pos ${p.tone}`;
       const step = SAIL_STEPS[boat.sailStep] ?? 0;
       this.pips.forEach((pip, i) => pip.classList.toggle('on', step >= (i + 1) / this.pips.length));
-      this.objName.textContent = wp.label;
-      this.objDist.textContent = `${Math.round(distance(boat, wp))} m`;
+      this.objName.textContent = wp?.label ?? '';
+      this.objDist.textContent = wp ? `${Math.round(distance(boat, wp))} m` : '';
       const fromDir = COMPASS[Math.round(wrapPositive(wind.from) / (Math.PI / 4)) % 8];
       this.windText.textContent = `${fromDir} · ${wind.speedKn.toFixed(0)} kn`;
 
@@ -262,9 +265,9 @@ export class Hud {
     }
 
     // Arrow at the screen edge when the buoy is off-screen.
-    const s = project(wp.x, wp.y);
-    this.wpArrow.hidden = s.onScreen;
-    if (!s.onScreen) {
+    const s = wp ? project(wp.x, wp.y) : null;
+    this.wpArrow.hidden = !s || s.onScreen;
+    if (s && !s.onScreen) {
       const cx = size.w / 2;
       const cy = size.h / 2;
       const b = project(boat.x, boat.y);
