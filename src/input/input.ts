@@ -15,11 +15,23 @@ export class Input {
   private dragOriginX = 0;
   private dragSteer = 0;
   private sailDelta = 0;
+  private enabled = true;
   /** Called on the first input of any kind (e.g. to hide the help card). */
   onActivity: () => void = () => {};
   /** Called when a drag starts/moves/ends, for the on-screen tiller indicator. */
   onDrag: (drag: { x: number; y: number; steer: number } | null) => void = () => {};
   onZoom: (factor: number) => void = () => {};
+
+  setEnabled(enabled: boolean) {
+    this.enabled = enabled;
+    if (!enabled) {
+      this.releaseAll();
+    }
+  }
+
+  get isEnabled(): boolean {
+    return this.enabled;
+  }
 
   constructor(private readonly surface: HTMLElement) {
     window.addEventListener('keydown', this.keyDown);
@@ -34,24 +46,31 @@ export class Input {
 
   /** Current steering: -1 = hard left, 1 = hard right. */
   get steer(): number {
+    if (!this.enabled) return 0;
     const keys = (this.right ? 1 : 0) - (this.left ? 1 : 0);
     return keys !== 0 ? keys : this.dragSteer;
   }
 
   /** Sail steps requested since the last call (+ = raise). */
   takeSailDelta(): number {
+    if (!this.enabled) {
+      this.sailDelta = 0;
+      return 0;
+    }
     const d = this.sailDelta;
     this.sailDelta = 0;
     return d;
   }
 
   pressSail(delta: number) {
+    if (!this.enabled) return;
     this.sailDelta += delta;
     this.onActivity();
   }
 
   private keyDown = (e: KeyboardEvent) => {
     if (
+      !this.enabled ||
       document.querySelector('dialog[open]') ||
       e.target instanceof HTMLInputElement ||
       e.target instanceof HTMLSelectElement
@@ -103,7 +122,8 @@ export class Input {
   }
 
   private pointerDown = (e: PointerEvent) => {
-    if (this.dragId !== null || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    if (!this.enabled || this.dragId !== null || (e.pointerType === 'mouse' && e.button !== 0))
+      return;
     this.dragId = e.pointerId;
     this.dragOriginX = e.clientX;
     this.dragSteer = 0;
@@ -126,6 +146,7 @@ export class Input {
   };
 
   private wheel = (e: WheelEvent) => {
+    if (!this.enabled) return;
     e.preventDefault();
     this.onZoom(Math.exp(e.deltaY * 0.001));
   };

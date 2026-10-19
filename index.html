@@ -9,7 +9,17 @@
     <meta name="theme-color" content="#1d6f7a" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <title>Fair Winds Trading · Sailing prototype</title>
+    <title>Fair Winds Trading</title>
+    <meta
+      name="description"
+      content="A low-poly 3D browser sailing and trading game with ports, goods, dynamic market economy, shipyard upgrades, and navigation."
+    />
+    <meta property="og:title" content="Fair Winds Trading" />
+    <meta
+      property="og:description"
+      content="A low-poly 3D browser sailing and trading game with ports, goods, dynamic market economy, shipyard upgrades, and navigation."
+    />
+    <meta property="og:type" content="website" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/src/ui/hud.css" />
   </head>
@@ -24,6 +34,34 @@
         <div id="point-of-sail" class="pos">&nbsp;</div>
         <div class="sail-pips" title="Sails"><i></i><i></i></div>
       </div>
+
+      <div class="panel captain-stats" id="captain-stats">
+        <div class="captain-stat" id="hud-gold-box" title="Captain's Gold">
+          <span class="stat-icon">🪙</span>
+          <b id="hud-gold">120</b>
+        </div>
+        <button
+          class="captain-stat"
+          id="hud-cargo-box"
+          title="Cargo Hold Capacity"
+          aria-expanded="false"
+          aria-controls="hud-cargo-tooltip"
+        >
+          <span class="stat-icon">📦</span>
+          <span id="hud-cargo">0 / 10</span>
+        </button>
+        <div class="captain-stat ship-tag" id="hud-ship-box" title="Active Vessel">
+          <span id="hud-ship">Sloop</span>
+        </div>
+        <div id="hud-cargo-tooltip" class="cargo-tooltip" hidden></div>
+      </div>
+
+      <div id="port-labels" class="port-labels-layer"></div>
+
+      <button id="dock-btn" class="dock-btn" hidden aria-label="Open port trade">
+        <span class="dock-icon">⚓</span>
+        <span class="dock-text">Trade at <b id="dock-port-name">Port</b></span>
+      </button>
 
       <div class="panel objective">
         <span class="muted">Sail to</span> <b id="obj-name">…</b>
@@ -103,6 +141,7 @@
         <label class="check"><input type="checkbox" id="show-fps" /> Show FPS</label>
         <button id="shift-wind" class="in-game">Shift the wind 45°</button>
         <button id="reset-boat" class="in-game">Back to start</button>
+        <button id="reset-save" class="in-game danger-btn">New Game (Reset Progress)</button>
         <button id="close-settings" class="primary">Close</button>
       </div>
 
@@ -166,7 +205,7 @@
       <div id="help" class="help">
         <div class="panel card">
           <h1>Fair Winds Trading</h1>
-          <p class="muted">Sailing prototype</p>
+          <p class="muted">Sailing &amp; Trading Prototype</p>
           <ul>
             <li>
               <b>The wind drives you.</b> You are fastest with the wind across the boat and slower
@@ -180,12 +219,17 @@
               <b>To go upwind, zigzag</b> (tack): sail about 50° off the wind, then turn through it
               to the other side.
             </li>
-            <li><b>Follow the buoys</b> (gold beacon) around the islands.</li>
+            <li>
+              <b>Trading &amp; Ports:</b> Slow down near any island dock to trade goods at the
+              market, buy vessel upgrades, and purchase the cutter.
+            </li>
+            <li><b>Follow the buoys</b> or tap on-screen port markers to set your course.</li>
           </ul>
           <div class="controls">
             <div>
               <h4>Touch</h4>
-              Drag left/right anywhere to steer<br />▲ ▼ to raise/lower sails
+              Drag left/right anywhere to steer<br />▲ ▼ to raise/lower sails<br />Tap port markers
+              to navigate
             </div>
             <div>
               <h4>Keyboard</h4>
@@ -196,6 +240,8 @@
         </div>
       </div>
     </div>
+
+    <div id="trade-panel" class="trade-panel-overlay" hidden></div>
 
     <div id="menu" class="menu" hidden>
       <div class="menu-card">
@@ -212,7 +258,7 @@
           For fullscreen on iPhone, tap Share, then <b>Add to Home Screen</b>, and start the game
           from there.
         </p>
-        <p class="menu-version">Sailing prototype · Phase 0</p>
+        <p class="menu-version">Trading &amp; Shipyard · Phase 1</p>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>

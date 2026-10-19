@@ -5,6 +5,8 @@ import type { WindConfig } from './wind';
  * A map is plain data (decision 0008): Phase 0 ships one handmade JSON file in `src/data/`; a
  * seeded generator can later produce the same shape without touching the simulation.
  */
+export type LandmarkKind = 'lighthouse' | 'ruins' | 'wreck' | 'beacon';
+
 export interface IslandDef {
   id: string;
   name?: string;
@@ -20,6 +22,9 @@ export interface IslandDef {
      * A plain string so map JSON type-checks.
      */
     kind?: string;
+    landmark?: LandmarkKind;
+    /** Optional scenic cliff tiers, 1–4; existing ports retain their normal profile. */
+    layers?: number;
     houses?: number;
     trees?: number;
     rock?: boolean;
@@ -34,6 +39,7 @@ export interface TerrainDef {
   id: string;
   kind: 'island' | 'sandbank';
   outline: [number, number][];
+  look?: { trees?: number; landmark?: LandmarkKind };
 }
 
 export interface WaypointDef {

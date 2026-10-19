@@ -1,9 +1,11 @@
 import * as THREE from 'three';
-import type { IslandDef, MapDef } from '../../sim/map';
+import type { IslandDef, MapDef, TerrainDef } from '../../sim/map';
 import { bearingTo } from '../../sim/math';
 import { type Rng, createRng, range } from '../../sim/rng';
 import { mergeAll, paint, vertexColorMaterial } from './geometry';
 import type { IslandsBuilder } from './types';
+import { landmarkParts } from './landmarks';
+import { coastDistance } from '../../sim/coast';
 
 /**
  * B2 "Bright highlands" islands (decision 0012), ported from the reference builder in
@@ -145,7 +147,13 @@ export function islandParts(island: IslandDef, map: MapDef, seed: number): Parts
   );
 
   // Sandstone layers, each stepped back from the harbour so the dock side stays low.
-  const layers = kind === 'stone' ? 4 : kind === 'grain' ? 2 : kind ? 3 : look.rock ? 2 : 1;
+  const layers = Math.max(
+    1,
+    Math.min(
+      4,
+      look.layers ?? (kind === 'stone' ? 4 : kind === 'grain' ? 2 : kind ? 3 : look.rock ? 2 : 1),
+    ),
+  );
   let y = 0;
   let ox = 0;
   let oz = 0;
@@ -256,19 +264,32 @@ export function islandParts(island: IslandDef, map: MapDef, seed: number): Parts
       0.4,
     );
   } else {
-    if (look.rock) {
+    if (look.rock && !look.landmark) {
       const boulder = new THREE.DodecahedronGeometry(R * 0.3, 0).scale(1, 1.3, 1);
       at([paint(boulder, B2.rock2)], rng() * 6, 0.2, rng() * 3, R * 0.12);
     }
     for (let i = 0; i < houses; i++)
       at(house(i), HARBOUR + (i - (houses - 1) / 2) * 0.6, 0.6, rng() * 3);
     for (let i = 0; i < trees; i++)
-      at(tree(rng), rng() * Math.PI * 2, 0.3 + rng() * 0.5, rng() * 3);
+      at(
+        tree(rng),
+        rng() * Math.PI * 2,
+        look.landmark ? 0.78 + rng() * 0.1 : 0.3 + rng() * 0.5,
+        rng() * 3,
+      );
   }
 
   // The harbour (+Z) faces the course buoy named after this island, else a seeded direction.
   const wp = map.course.find((w) => w.label === island.name);
   const bearing = wp ? bearingTo(island, wp) : rng() * Math.PI * 2;
+  if (look.landmark) {
+    const size = Math.min(1.15, capR / 3.8);
+    if (look.landmark === 'wreck') {
+      put(out, landmarkParts('wreck', Math.min(0.9, R * 0.07)), 0, 0.6, R * 0.84, Math.PI / 2);
+    } else {
+      put(out, landmarkParts(look.landmark, size), ox, top, oz, 0.2);
+    }
+  }
   // rotateY(π - bearing) turns +Z to (sin b, 0, -cos b), the bearing's direction in the scene.
   for (const g of out) {
     g.scale(ISLAND_SCALE, ISLAND_SCALE, ISLAND_SCALE);
@@ -276,6 +297,88 @@ export function islandParts(island: IslandDef, map: MapDef, seed: number): Parts
     g.translate(island.x, 0, -island.y);
   }
   return out;
+}
+
+/** Detail geometry only, anchored inside the exact solid shoreline. */
+export function terrainProps(feature: TerrainDef, seed: number): Parts {
+  const parts: Parts = [];
+  const bank = feature.kind === 'sandbank';
+  // Decoration stays entirely on solid land; it cannot narrow the sailing passages.
+  const rng = createRng(seed);
+  const xs = feature.outline.map((p) => p[0]);
+  const ys = feature.outline.map((p) => p[1]);
+  const occupied: { x: number; y: number; radius: number }[] = [];
+  const sample = (radius: number) => {
+    for (let attempt = 0; attempt < 512; attempt++) {
+      const x = range(rng, Math.min(...xs), Math.max(...xs));
+      const y = range(rng, Math.min(...ys), Math.max(...ys));
+      if (coastDistance(x, y, feature.outline).distance > -radius) continue;
+      if (occupied.some((p) => Math.hypot(p.x - x, p.y - y) < p.radius + radius)) continue;
+      occupied.push({ x, y, radius });
+      return { x, y };
+    }
+    return null;
+  };
+  const topY = bank ? 0.8 : 3.2;
+  if (feature.look?.landmark) {
+    const s = bank ? 1.15 : 1.8;
+    const radius =
+      feature.look.landmark === 'wreck' ? 4.6 : feature.look.landmark === 'ruins' ? 5.1 : 3.1;
+    const p = sample(radius);
+    if (!p) throw new Error(`Landmark does not fit on ${feature.id}`);
+    put(parts, landmarkParts(feature.look.landmark, s), p.x, topY, -p.y, 0.3);
+  }
+  if (!bank) {
+    // Small terraced outcrops give the long barriers relief like the highland islands.
+    for (let i = 0; i < 4; i++) {
+      const p = sample(4.2);
+      if (!p) break;
+      const base = new THREE.CylinderGeometry(3.1, 4, 1.7, 7).translate(p.x, topY + 0.85, -p.y);
+      parts.push(paint(base, B2.rock));
+      const upper = new THREE.CylinderGeometry(1.8, 2.8, 1.5, 6).translate(
+        p.x + 0.3,
+        topY + 2.3,
+        -p.y,
+      );
+      parts.push(paint(upper, B2.rock2));
+      parts.push(
+        paint(
+          new THREE.CylinderGeometry(1.7, 1.8, 0.2, 6).translate(p.x + 0.3, topY + 3.15, -p.y),
+          B2.grass,
+        ),
+      );
+    }
+  }
+  for (let i = 0; i < (feature.look?.trees ?? 0); i++) {
+    const p = sample(2.4);
+    if (!p) break;
+    put(parts, tree(rng), p.x, topY, -p.y, rng() * 6, 2.3);
+  }
+  // Rock outcrops, grass tufts and driftwood break up the otherwise flat surfaces.
+  for (let i = 0; i < (bank ? 7 : 9); i++) {
+    const p = sample(bank ? 1.1 : 2);
+    if (!p) break;
+    const size = bank ? range(rng, 0.45, 0.85) : range(rng, 1.0, 1.7);
+    parts.push(
+      paint(
+        new THREE.DodecahedronGeometry(size, 0)
+          .scale(1, 0.7, 1)
+          .translate(p.x, topY + size * 0.35, -p.y),
+        i % 2 ? B2.rock : B2.rock2,
+      ),
+    );
+    if (bank) {
+      const driftwood = new THREE.BoxGeometry(1.8, 0.25, 0.3)
+        .rotateY(rng() * 6)
+        .translate(p.x, topY + 0.3, -p.y);
+      parts.push(paint(driftwood, B2.logs));
+    } else {
+      parts.push(
+        paint(new THREE.ConeGeometry(0.7, 1.4, 4).translate(p.x, topY + 0.7, -p.y), B2.leaves[1]!),
+      );
+    }
+  }
+  return parts;
 }
 
 /** All islands of the map merged into one mesh. */
@@ -305,6 +408,9 @@ export const buildHighlandIslands: IslandsBuilder = (map, { shadows }) => {
       }
     }
     parts.push(painted);
+    parts.push(
+      ...terrainProps(feature, map.seed * 1709 + (map.terrain?.indexOf(feature) ?? 0) * 97),
+    );
   }
   const mesh = new THREE.Mesh(mergeAll(parts), vertexColorMaterial());
   mesh.castShadow = shadows;

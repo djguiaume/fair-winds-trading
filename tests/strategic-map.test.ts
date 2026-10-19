@@ -9,7 +9,12 @@ import { DEG, bearingTo, clamp, wrapAngle } from '../src/sim/math';
 import { SLOOP, CUTTER, polarFraction } from '../src/sim/ship';
 import { applySave, serializeWorld, validateSave } from '../src/sim/save';
 import { createWorld } from '../src/sim/world';
-import { buildHighlandIslands, islandParts } from '../src/render/models/highlandIslands';
+import {
+  buildHighlandIslands,
+  islandParts,
+  terrainProps,
+} from '../src/render/models/highlandIslands';
+import { triangleCount } from '../src/render/models/geometry';
 import { Ocean } from '../src/render/ocean';
 
 const terrain = PHASE1_MAP.terrain!;
@@ -80,7 +85,10 @@ describe('polygon coast collisions', () => {
 
 describe('selected trading map', () => {
   it('preserves all existing islands, docks, props and procedural seeds exactly', () => {
-    expect(PHASE1_MAP.islands).toEqual(PHASE0_MAP.islands);
+    for (const i of [0, 1, 2, 6]) expect(PHASE1_MAP.islands[i]).toEqual(PHASE0_MAP.islands[i]);
+    expect(
+      PHASE1_MAP.islands.slice(0, 8).map(({ id, x, y, radius }) => ({ id, x, y, radius })),
+    ).toEqual(PHASE0_MAP.islands.map(({ id, x, y, radius }) => ({ id, x, y, radius })));
     expect(PHASE1_MAP.seed).toBe(PHASE0_MAP.seed);
     for (const i of [0, 1, 2, 6]) {
       const oldParts = islandParts(PHASE0_MAP.islands[i]!, PHASE0_MAP, PHASE0_MAP.seed * 1000 + i);
@@ -133,6 +141,47 @@ describe('selected trading map', () => {
       }
     mesh.geometry.dispose();
     mesh.material.dispose();
+    ocean.dispose();
+  });
+  it('adds real land-bound scenery to every barrier and sandbank within the mobile mesh budget', () => {
+    for (const [i, feature] of terrain.entries()) {
+      expect(feature.look?.landmark).toBeTruthy();
+      const props = terrainProps(feature, PHASE1_MAP.seed * 1709 + i * 97);
+      expect(props.reduce((n, g) => n + triangleCount(g), 0)).toBeGreaterThan(100);
+      for (const g of props) {
+        const p = g.attributes.position!;
+        for (let k = 0; k < p.count; k++)
+          expect(
+            coastDistance(p.getX(k), -p.getZ(k), feature.outline).distance,
+          ).toBeLessThanOrEqual(0.001);
+        g.dispose();
+      }
+    }
+    const mesh = buildHighlandIslands(PHASE1_MAP, { shadows: false }) as THREE.Mesh<
+      THREE.BufferGeometry,
+      THREE.Material
+    >;
+    expect(mesh.children).toHaveLength(0);
+    expect(triangleCount(mesh.geometry)).toBeLessThan(20000);
+    mesh.geometry.dispose();
+    mesh.material.dispose();
+  });
+  it('expands the sea while keeping new outer islands clear of the core and the world edge', () => {
+    expect(PHASE1_MAP.boundsRadius).toBe(440);
+    const outer = PHASE1_MAP.islands.slice(8);
+    expect(outer).toHaveLength(4);
+    expect(PHASE1_MAP.islands.length).toBeLessThanOrEqual(12);
+    for (const i of PHASE1_MAP.islands) {
+      if (!PHASE1_MAP.ports.some((p) => p.islandId === i.id)) expect(i.look?.landmark).toBeTruthy();
+    }
+    for (const i of outer) {
+      expect(Math.hypot(i.x, i.y) - i.radius).toBeGreaterThan(260);
+      expect(Math.hypot(i.x, i.y) + i.radius + SLOOP.radius + 20).toBeLessThan(
+        PHASE1_MAP.boundsRadius,
+      );
+    }
+    const ocean = new Ocean(PHASE1_MAP.islands, 8, false, 480, terrain);
+    expect(ocean.mesh.material.uniforms.uIslandCount!.value).toBe(PHASE1_MAP.islands.length);
     ocean.dispose();
   });
   it('migrates prototype trading progress and relocates covered positions without losing cargo', () => {
@@ -276,6 +325,18 @@ describe('wind-aware route audit', () => {
       Math.max(...report).toFixed(0),
       's',
     );
+  }, 30000);
+  it('can reach all four outer landmark islands under northeast and southwest winds', () => {
+    for (const island of PHASE1_MAP.islands.slice(8))
+      for (const wind of [30, 210]) {
+        const plan = route(
+          PHASE1_MAP.start,
+          { x: island.x, y: island.y - island.radius - 20 },
+          wind,
+        );
+        expect(plan.points.length).toBeGreaterThan(1);
+        expect(plan.seconds).toBeLessThan(180);
+      }
   }, 30000);
   it('sails a four-port circuit with the actual sloop model without hitting shore', () => {
     const boat = createBoat(
