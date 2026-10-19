@@ -9,6 +9,17 @@ How boats move in Fair Winds Trading, and which numbers to change to tune the fe
 - Wind `from` is where the wind comes from (sailor convention). The **true wind angle** (TWA) is the angle between the bow and the wind: 0 = bow into the wind, 180° = wind from astern. Positive when the wind comes over the starboard (right) side.
 - The simulation runs at a fixed 60 steps per second, independent of the frame rate.
 
+## Wind the boat feels (`src/sim/wind.ts`)
+
+- **Sea wind** (`windAt`): the map's prevailing wind, plus slow weather periods on the trading map (a new direction within ±50° and strength ×0.8–1.15 every 3 minutes, easing over 60 s, [0026](decisions/0026-slow-weather-shifts.md)), plus small gusts and swing.
+- **Islands** (`windEffectAt`, [0027](decisions/0027-islands-shape-the-wind.md)): up to 55 % less wind right behind an island, fading over 70 units downwind; up to 10 % more beside one island's flank and 20 % more in a channel between two. Sandbanks don't block wind.
+- `world.seaWind` is the open-sea wind; `world.wind` (what the boat, compass and HUD use) includes the island effects.
+
+## Hazards (`src/sim/hazards.ts`, [0032](decisions/0032-reef-strikes-and-shallows.md))
+
+- Within 14 units of a reef the hull drags: up to 0.6/s extra braking × the ship's `draft` (sloop 0.7, cutter 1).
+- Striking a reef takes 6 hull points per knot lost; a damaged hull sails up to 25 % slower until repaired.
+
 ## Each step (`stepBoat` in `src/sim/boat.ts`)
 
 1. **Sails** ease toward the requested step (0, ½, full) at 1.4 per second.

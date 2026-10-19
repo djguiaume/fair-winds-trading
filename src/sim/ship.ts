@@ -32,6 +32,8 @@ export interface ShipClass {
   leeway: number;
   /** Collision radius (units). */
   radius: number;
+  /** How deep the hull sits, relative: scales the drag of shallow water (decision 0032). */
+  draft: number;
   /** Cargo capacity in units of goods, before hold upgrades. */
   hold: number;
   /** Shipyard price in gold (0 for the starter ship). */
@@ -64,6 +66,7 @@ export const SLOOP: ShipClass = {
   turnDrag: 0.18,
   leeway: 0.045,
   radius: 4.5,
+  draft: 0.7,
   hold: 10,
   price: 0,
   upgradePrices: [400, 1200],
@@ -97,6 +100,7 @@ export const CUTTER: ShipClass = {
   turnDrag: 0.18,
   leeway: 0.04,
   radius: 5,
+  draft: 1,
   hold: 16,
   price: 1500,
   upgradePrices: [600, 1800],
