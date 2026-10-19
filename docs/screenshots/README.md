@@ -13,3 +13,7 @@ Captures of the game at each phase, taken headless with Playwright (software Web
 | Delivery orders, Captain mode | Delivery orders, Kids mode |
 |---|---|
 | ![orders](delivery-orders.png) | ![orders kids](delivery-orders-kids.png) |
+
+| Reef strike: hull at 52% in the HUD | Repairing the hull in port |
+|---|---|
+| ![reef strike](reef-strike.png) | ![hull repair](hull-repair.png) |

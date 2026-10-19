@@ -1,6 +1,7 @@
 import { SAIL_STEPS, trueWindAngle } from '../sim/boat';
 import { DEG, bearingTo, distance, wrapPositive } from '../sim/math';
 import { type PointOfSail, pointOfSail } from '../sim/ship';
+import { hullCondition } from '../sim/hazards';
 import { windTo } from '../sim/wind';
 import { windFeedback } from './windFeedback';
 import { type World, type WorldEvent, navigationTarget } from '../sim/world';
@@ -52,6 +53,8 @@ export class Hud {
   // Phase 1 persistent stats and docking
   private readonly hudGold = $('hud-gold');
   private readonly hudCargo = $('hud-cargo');
+  private readonly hudHull = $('hud-hull');
+  private readonly hudHullBox = $('hud-hull-box');
   private readonly hudShip = $('hud-ship');
   private readonly cargoBox = $('hud-cargo-box');
   private readonly cargoTooltip = $('hud-cargo-tooltip');
@@ -158,6 +161,9 @@ export class Hud {
     for (const e of events) {
       if (e.type === 'waypoint') {
         this.showToast(`${e.label} reached in ${formatTime(e.seconds)}! Next: ${e.next}`, 3.5);
+      } else if (e.type === 'reef-strike') {
+        const pct = Math.round(hullCondition(this.world.trade) * 100);
+        this.showToast(`Struck a reef! Hull ${pct}%, repair in port`, 2.5);
       } else if (e.type === 'bump' && this.toastTimer <= 0) {
         this.showToast('Bump! Mind the shore', 1.2);
       }
@@ -250,6 +256,10 @@ export class Hud {
       this.hudGold.textContent = trade.captain.gold.toLocaleString();
       this.hudCargo.textContent = `${cargoUsed(trade)} / ${capacity(trade)}`;
       this.hudShip.textContent = activeShip(trade).name;
+      const hull = Math.round(hullCondition(trade) * 100);
+      this.hudHullBox.hidden = hull >= 100;
+      this.hudHull.textContent = `${hull}%`;
+      this.hudHullBox.classList.toggle('is-low', hull < 50);
 
       if (trade.dockedAt) {
         this.dockBtn.hidden = false;

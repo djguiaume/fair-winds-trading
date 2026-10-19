@@ -1949,3 +1949,26 @@ body.is-docked .objective {
   font-size: 13px;
   opacity: 0.9;
 }
+
+/* Hull condition and repair (decision 0032) */
+.hull-stat.is-low {
+  color: #ffb27a;
+}
+
+.repair-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 150, 100, 0.12);
+  border: 1px solid rgba(255, 150, 100, 0.4);
+  border-radius: 10px;
+  padding: 8px 14px;
+  margin-bottom: 12px;
+}
+
+.repair-bar button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

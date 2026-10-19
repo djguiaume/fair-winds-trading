@@ -1,5 +1,6 @@
 import { type Contract, deliverContract, openContracts } from '../sim/contracts';
 import { GOODS, GOOD_DEFS, type GoodId } from '../sim/goods';
+import { hullCondition, repairHull, repairPrice } from '../sim/hazards';
 import { goodRole, quoteBuy, quoteSell, type Market } from '../sim/market';
 import { CUTTER, SHIP_CLASSES, SLOOP } from '../sim/ship';
 import {
@@ -231,6 +232,7 @@ export class TradePanel {
           </div>
         </section>
 
+        ${this.renderRepair(isKid)}
         <nav class="trade-tabs">
           <button id="tp-tab-market" class="tab-btn ${this.tab === 'market' ? 'active' : ''}">
             ${isKid ? '⚖ Buy & Sell Goods' : '⚖ Market Commodities'}
@@ -272,6 +274,26 @@ export class TradePanel {
         : this.container.querySelector<HTMLButtonElement>('#tp-close')
       )?.focus({ preventScroll: true });
     }
+  }
+
+  /** Hull repair after reef strikes (decision 0032); shown only when the hull is damaged. */
+  private renderRepair(isKid: boolean): string {
+    const { trade } = this.world;
+    const pct = Math.round(hullCondition(trade) * 100);
+    if (pct >= 100 && repairPrice(trade) === 0) return '';
+    const price = repairPrice(trade);
+    const canPay = trade.captain.gold >= 2;
+    const label =
+      trade.captain.gold >= price
+        ? `${isKid ? 'Fix it' : 'Repair'} for ${price} 🪙`
+        : canPay
+          ? `${isKid ? 'Fix some' : 'Repair what you can afford'}`
+          : 'Need more gold';
+    return `
+      <section class="repair-bar">
+        <span>🛠 ${isKid ? 'Your boat is leaking!' : 'Hull'} <b>${pct}%</b>${isKid ? '' : ' · leaking, slower until repaired'}</span>
+        <button id="tp-repair" class="sell-all-btn" ${canPay ? '' : 'disabled'}>${label}</button>
+      </section>`;
   }
 
   /** Delivery orders (decision 0028): this port's, with a Deliver button, then the others'. */
@@ -897,6 +919,17 @@ export class TradePanel {
     sellAllBtn?.addEventListener('click', () => {
       const res = sellAll(this.world.trade);
       this.finish(res, { kind: 'sell', good: null });
+    });
+
+    this.container.querySelector('#tp-repair')?.addEventListener('click', () => {
+      const res = repairHull(this.world.trade);
+      if (res.ok) {
+        this.message = `Hull repaired for ${res.gold} gold.`;
+        this.onAction();
+      } else {
+        this.message = res.error === 'not-enough-gold' ? 'You need more gold.' : '';
+      }
+      this.render();
     });
 
     this.container.querySelector('#tp-deliver')?.addEventListener('click', () => {

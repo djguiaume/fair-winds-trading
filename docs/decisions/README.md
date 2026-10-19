@@ -38,5 +38,6 @@
 | [0030](0030-home-base-upgrades-and-earned-ships.md) | Home-base upgrades and earned ships | 2026-10-19 | Accepted (direction) |
 
 | [0030](0030-windward-ring-map.md) | Windward Ring replaces Staggered passages as the trading map | 2026-10-19 | Implementation for review |
+| [0032](0032-reef-strikes-and-shallows.md) | Reef strikes and shallows | 2026-10-19 | Implementation for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

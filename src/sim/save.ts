@@ -5,7 +5,7 @@ import { GOODS, type GoodAmounts, emptyAmounts } from './goods';
 import { wrapPositive } from './math';
 import { SHIP_CLASSES } from './ship';
 import { activeShip, findPort } from './trade';
-import { MAX_UPGRADE_LEVEL, UPGRADE_TRACKS, type UpgradeLevels } from './upgrades';
+import { MAX_UPGRADE_LEVEL, UPGRADE_TRACKS, type UpgradeLevels, hullDurability } from './upgrades';
 import type { World } from './world';
 
 /**
@@ -27,6 +27,8 @@ export interface SaveData {
   activeShip: string;
   ships: Record<string, UpgradeLevels>;
   cargo: GoodAmounts;
+  /** Hull damage per ship (decision 0032). Optional: older saves have sound hulls. */
+  hullDamage?: Record<string, number>;
   dockedAt: string | null;
   /** Port id → current stock per good. */
   markets: Record<string, GoodAmounts>;
@@ -53,6 +55,7 @@ export function serializeWorld(world: World): SaveData {
     activeShip: captain.activeShip,
     ships,
     cargo: { ...captain.cargo },
+    hullDamage: { ...captain.hullDamage },
     dockedAt,
     markets: stocks,
     contracts: structuredClone(world.trade.contracts),
@@ -81,6 +84,17 @@ function readLevels(v: unknown): UpgradeLevels | null {
     const n = v[t];
     if (!isNum(n) || !Number.isInteger(n) || n < 1 || n > MAX_UPGRADE_LEVEL) return null;
     out[t] = n;
+  }
+  return out;
+}
+
+/** Damage only for owned ships, within the hull's durability; anything else reads as sound. */
+function readHullDamage(v: unknown, ships: Record<string, UpgradeLevels>): Record<string, number> {
+  const out: Record<string, number> = {};
+  if (!isObj(v)) return out;
+  for (const [id, levels] of Object.entries(ships)) {
+    const n = v[id];
+    if (isNum(n) && n > 0) out[id] = Math.min(n, hullDurability(levels));
   }
   return out;
 }
@@ -128,6 +142,7 @@ export function validateSave(raw: unknown, world: World): SaveData | null {
     activeShip: active,
     ships,
     cargo,
+    hullDamage: readHullDamage(raw.hullDamage, ships),
     dockedAt: dockedAt as string | null,
     markets,
     contracts: readContracts(raw.contracts, world.map),
@@ -146,6 +161,7 @@ export function applySave(world: World, data: SaveData): void {
     activeShip: data.activeShip,
     ships: data.ships,
     cargo: data.cargo,
+    hullDamage: { ...(data.hullDamage ?? {}) },
   };
   for (const [id, stock] of Object.entries(data.markets)) {
     const market = trade.markets[id];

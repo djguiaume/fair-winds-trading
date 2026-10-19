@@ -1,4 +1,5 @@
 import { type ContractState, createContracts, stepContracts } from './contracts';
+import { leakFactor } from './hazards';
 import { GOODS, type GoodAmounts, type GoodId, emptyAmounts, totalAmount } from './goods';
 import type { MapDef, PortDef } from './map';
 import { type Market, available, createMarket, quoteBuy, quoteSell, stepMarket } from './market';
@@ -10,6 +11,7 @@ import {
   type UpgradeTrack,
   effectiveShip,
   holdCapacity,
+  hullDurability,
   stockLevels,
   upgradePrice,
 } from './upgrades';
@@ -35,6 +37,8 @@ export interface Captain {
   /** Owned ship classes and their upgrade levels (one active ship in Phase 1). */
   ships: Record<string, UpgradeLevels>;
   cargo: GoodAmounts;
+  /** Hull points lost to reef strikes, per owned ship class (decision 0032). */
+  hullDamage: Record<string, number>;
 }
 
 export interface TradeState {
@@ -73,6 +77,7 @@ export function createTradeState(map: MapDef, startShip: ShipClass): TradeState 
       activeShip: startShip.id,
       ships: { [startShip.id]: stockLevels() },
       cargo: emptyAmounts(),
+      hullDamage: {},
     },
     markets,
     dockedAt: null,
@@ -84,7 +89,15 @@ export function createTradeState(map: MapDef, startShip: ShipClass): TradeState 
 export function activeShip(trade: TradeState): ShipClass {
   const { captain } = trade;
   const base = SHIP_CLASSES[captain.activeShip]!;
-  return effectiveShip(base, captain.ships[captain.activeShip] ?? stockLevels());
+  const ship = effectiveShip(base, captain.ships[captain.activeShip] ?? stockLevels());
+  // A damaged hull leaks and sails slower until repaired (decision 0032).
+  const damage = captain.hullDamage[captain.activeShip] ?? 0;
+  if (damage <= 0) return ship;
+  const durability = hullDurability(captain.ships[captain.activeShip] ?? stockLevels());
+  return {
+    ...ship,
+    speedRatio: ship.speedRatio * leakFactor(Math.max(0, 1 - damage / durability)),
+  };
 }
 
 export function capacity(trade: TradeState): number {

@@ -49,6 +49,7 @@ Typical prices with the current numbers (gold per unit, first unit):
 | `RECOVERY_SECONDS` | `market.ts` | 75 s | make a hammered route stay poor for longer |
 | `CONTRACT_PRICE_FACTOR`, `CONTRACT_DISTANCE_SCALE` | `contracts.ts` | 1.75, 500 | make orders pay more (or long hauls pay more) |
 | `CONTRACT_QTY`, `CONTRACT_COOLDOWN` | `contracts.ts` | 4–8, 90 s | make orders bigger, or come back sooner |
+| `REPAIR_COST`, `STRIKE_DAMAGE` | `hazards.ts` | 1.5 gold/pt, 6 pts/kn | make reef strikes cost more |
 | `START_GOLD` | `trade.ts` | 120 | start richer |
 | `DOCK_RANGE`, `DOCK_SPEED_KN` | `trade.ts` | 14 units, 1.5 kn | make docking easier |
 | `UPGRADE_EFFECTS` | `upgrades.ts` | see below | make upgrades stronger |
@@ -80,6 +81,7 @@ All functions take `world.trade` and work only while docked (`world.trade.docked
 - `buy(trade, good, qty)`, `sell(trade, good, qty)`, `sellAll(trade)`: all or nothing; return `{ ok: true, gold }` or `{ ok: false, error }`.
 - `maxBuy(trade, good)`, `quoteBuy(market, good, qty)`, `quoteSell(market, good, qty)`, `unitBuyPrice` / `unitSellPrice`: for showing prices before trading.
 - `buyUpgrade(trade, track)`, `upgradePrice(class, levels, track)`, `buyShip(trade, 'cutter')`, `switchShip(trade, id)`.
+- `repairHull(trade)`, `repairPrice(trade)`, `hullCondition(trade)`: hull repair after reef strikes ([0032](decisions/0032-reef-strikes-and-shallows.md)).
 - `deliverContract(trade, map)`, `openContracts(trade.contracts)`: delivery orders.
 - `stepWorld` returns `{ type: 'docked' | 'undocked', portId }` events.
 
