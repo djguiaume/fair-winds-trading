@@ -50,7 +50,7 @@ const monitor = new FrameMonitor();
 let sailStep = world.boat.sailStep;
 
 // --- Main menu, help card and pause ------------------------------------------------------------
-// The game opens on the title menu with the scene running behind it (decision 0015). The
+// The game opens on the title menu with the scene running behind it (decision 0017). The
 // simulation is paused while the menu or the help card is up.
 const menu = $('menu');
 const help = $('help');
