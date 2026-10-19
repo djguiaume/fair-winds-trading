@@ -1,3 +1,4 @@
+import { type LanguageId, isLanguage } from '../i18n';
 import type { QualitySetting } from '../render/quality';
 
 export type UiMode = 'adult' | 'kids';
@@ -9,6 +10,8 @@ export interface Settings {
   seenHelp: boolean;
   seenWindHint: boolean;
   uiMode: UiMode;
+  /** Chosen language; null follows the browser (decision 0037). */
+  language: LanguageId | null;
 }
 
 const KEY = 'fwt.settings.v1';
@@ -18,12 +21,17 @@ const DEFAULTS: Settings = {
   seenHelp: false,
   seenWindHint: false,
   uiMode: 'adult',
+  language: null,
 };
 
 export function loadSettings(): Settings {
   try {
     const raw = localStorage.getItem(KEY);
-    return raw ? { ...DEFAULTS, ...(JSON.parse(raw) as Partial<Settings>) } : { ...DEFAULTS };
+    const settings = raw
+      ? { ...DEFAULTS, ...(JSON.parse(raw) as Partial<Settings>) }
+      : { ...DEFAULTS };
+    if (!isLanguage(settings.language)) settings.language = null;
+    return settings;
   } catch {
     return { ...DEFAULTS };
   }

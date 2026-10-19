@@ -1,7 +1,8 @@
 import type { ScreenPoint } from '../render/view';
-import { GOOD_DEFS, type GoodId } from '../sim/goods';
+import { type GoodId } from '../sim/goods';
 import { DOCK_RANGE, DOCK_SPEED_KN, distanceToPort } from '../sim/trade';
 import { navigationTarget, type World } from '../sim/world';
+import { goodName, t } from '../i18n';
 
 export type PortMarkerMode = 'approach' | 'objective' | 'all' | 'off';
 
@@ -46,16 +47,16 @@ export class PortLabels {
       if (!island) continue;
 
       const produces = port.produces
-        .map((g) => `${GOOD_ICONS[g as GoodId] ?? ''} ${GOOD_DEFS[g as GoodId]?.name ?? g}`)
+        .map((g) => `${GOOD_ICONS[g as GoodId] ?? ''} ${goodName(g)}`)
         .join(', ');
       const wants = port.wants
-        .map((g) => `${GOOD_ICONS[g as GoodId] ?? ''} ${GOOD_DEFS[g as GoodId]?.name ?? g}`)
+        .map((g) => `${GOOD_ICONS[g as GoodId] ?? ''} ${goodName(g)}`)
         .join(', ');
 
       const el = document.createElement('button');
       el.className = 'port-marker';
       el.type = 'button';
-      el.setAttribute('aria-label', `Set course for ${port.name}`);
+      el.setAttribute('aria-label', t('port.setCourse', { name: port.name }));
       el.dataset.portId = port.id;
       el.hidden = true;
 
@@ -65,11 +66,11 @@ export class PortLabels {
             <span class="port-marker-icon" aria-hidden="true">⚓</span>
             <span class="port-marker-name">${port.name}</span>
           </span>
-          <span class="port-marker-cue">Harbour</span>
+          <span class="port-marker-cue">${t('port.harbour')}</span>
           <span class="port-marker-tag">
             <span class="produces-tag">${produces}</span>
             <span class="sign-sep">·</span>
-            <span class="wants-tag">Wants ${wants}</span>
+            <span class="wants-tag">${t('port.wants', { goods: wants })}</span>
           </span>
         </span>
       `;
@@ -131,12 +132,12 @@ export class PortLabels {
 
       const canDock = distToShore <= DOCK_RANGE && boat.speedKn < DOCK_SPEED_KN;
       const cue = isDocked
-        ? 'Docked · Tap to trade'
+        ? t('port.cueDocked')
         : canDock
-          ? 'Tap to dock & trade'
+          ? t('port.cueCanDock')
           : distToShore <= DOCK_RANGE + 12
-            ? 'Slow down to dock'
-            : 'Trading harbour';
+            ? t('port.cueSlowDown')
+            : t('port.cueTrading');
       if (entry.cue.textContent !== cue) entry.cue.textContent = cue;
       entry.root.classList.toggle('ready', canDock || isDocked);
       entry.root.setAttribute('aria-label', `${port.name}: ${cue}`);

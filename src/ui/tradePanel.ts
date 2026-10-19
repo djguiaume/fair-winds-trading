@@ -28,6 +28,7 @@ import {
 } from '../sim/upgrades';
 import type { World } from '../sim/world';
 import type { UiMode } from './settings';
+import { formatNumber, goodName, shipName, t } from '../i18n';
 
 export type TradePanelTab = 'market' | 'shipyard';
 
@@ -44,21 +45,7 @@ export class TradePanel {
   private message = '';
 
   private finish(result: TradeResult, transaction?: { kind: 'buy' | 'sell'; good: GoodId | null }) {
-    this.message = result.ok
-      ? 'Done. Your cargo and gold are up to date.'
-      : {
-          'not-docked': 'Sail close to a port and slow down first.',
-          'bad-quantity': 'Choose a whole number of goods.',
-          'not-enough-gold': 'You need more gold.',
-          'hold-full': 'Your hold is full.',
-          'out-of-stock': 'The port has too little stock.',
-          'not-in-hold': 'You do not have that much cargo.',
-          'max-level': 'This upgrade is already at its highest level.',
-          'already-owned': 'You already own this boat.',
-          'not-owned': 'Buy this boat first.',
-          'unknown-ship': 'This boat is unavailable.',
-          'cargo-too-big': 'Sell some cargo before changing boats.',
-        }[result.error];
+    this.message = result.ok ? t('trade.done') : t(`trade.err.${result.error}`);
     if (result.ok) {
       this.onAction();
       if (transaction && result.gold > 0) this.onTrade(transaction.kind, transaction.good);
@@ -85,7 +72,7 @@ export class TradePanel {
   ) {
     this.container.setAttribute('role', 'dialog');
     this.container.setAttribute('aria-modal', 'true');
-    this.container.setAttribute('aria-label', 'Harbour trading and shipyard');
+    this.container.setAttribute('aria-label', t('trade.dialogLabel'));
     this.container.tabIndex = -1;
     this.container.addEventListener('keydown', (e) => {
       e.stopPropagation();
@@ -165,10 +152,10 @@ export class TradePanel {
       this.container.innerHTML = `
         <div class="trade-modal panel card">
           <div class="trade-header">
-            <h2>Harbour</h2>
-            <button class="close-btn" id="tp-close" aria-label="Close">✕</button>
+            <h2>${t('trade.harbour')}</h2>
+            <button class="close-btn" id="tp-close" aria-label="${t('trade.close')}">✕</button>
           </div>
-          <p class="muted">No port market available.</p>
+          <p class="muted">${t('trade.noMarket')}</p>
         </div>
       `;
       this.attachListeners();
@@ -189,8 +176,8 @@ export class TradePanel {
     }
 
     const makesGood = port.produces[0] ?? 'timber';
-    const makesName = GOOD_DEFS[makesGood as GoodId]?.name ?? makesGood;
-    const wantsNames = port.wants.map((w) => GOOD_DEFS[w as GoodId]?.name ?? w).join(', ');
+    const makesName = goodName(makesGood);
+    const wantsNames = port.wants.map((w) => goodName(w)).join(', ');
 
     const isKid = this.uiMode === 'kids';
 
@@ -198,18 +185,18 @@ export class TradePanel {
       <div class="trade-modal panel card ${isKid ? 'kids-view' : 'captain-view'}">
         <header class="trade-header">
           <div class="port-title-area">
-            <div class="port-kicker">${isKid ? 'Town Harbour' : 'Port Registry & Ledger'}</div>
+            <div class="port-kicker">${isKid ? t('kids.kicker') : t('trade.kicker')}</div>
             <h2 class="port-name">${port.name}</h2>
             <div class="port-roles-summary">
-              <span class="role-tag produces">${isKid ? 'Makes Plenty:' : 'Produces:'} <b>${makesName}</b></span>
-              <span class="role-tag wants">${isKid ? 'Wants to Buy:' : 'Demands:'} <b>${wantsNames}</b></span>
+              <span class="role-tag produces">${isKid ? t('kids.produces') : t('trade.produces')} <b>${makesName}</b></span>
+              <span class="role-tag wants">${isKid ? t('kids.wants') : t('trade.demands')} <b>${wantsNames}</b></span>
             </div>
           </div>
           <div class="header-controls">
-            <button id="tp-toggle-mode" class="mode-toggle-btn" title="Switch interface mode">
-              ${isKid ? '🧭 Switch to Captain Mode' : '⛵ Switch to Kids Mode'}
+            <button id="tp-toggle-mode" class="mode-toggle-btn" title="${t('trade.switchMode')}">
+              ${isKid ? t('kids.toCaptain') : t('trade.toKids')}
             </button>
-            <button class="close-btn" id="tp-close" aria-label="Close">✕</button>
+            <button class="close-btn" id="tp-close" aria-label="${t('trade.close')}">✕</button>
           </div>
         </header>
 
@@ -217,28 +204,28 @@ export class TradePanel {
         <section class="captain-bar">
           <div class="stat-pill gold-pill">
             <span class="stat-icon">🪙</span>
-            <span class="stat-val">${captain.gold.toLocaleString()}</span>
-            <span class="stat-label">${isKid ? 'gold coins' : 'gold'}</span>
+            <span class="stat-val">${formatNumber(captain.gold)}</span>
+            <span class="stat-label">${isKid ? t('kids.gold') : t('trade.gold')}</span>
           </div>
           <div class="stat-pill hold-pill">
             <span class="stat-icon">📦</span>
             <span class="stat-val">${holdUsed} / ${holdCap}</span>
-            <span class="stat-label">${isKid ? `cargo (${freeCap} empty slots)` : `cargo (${freeCap} free)`}</span>
+            <span class="stat-label">${isKid ? t('kids.cargoFree', { n: freeCap }) : t('trade.cargoFree', { n: freeCap })}</span>
           </div>
           <div class="stat-pill ship-pill">
             <span class="stat-icon">⛵</span>
-            <span class="stat-val">${currentShip.name}</span>
-            <span class="stat-label">${isKid ? 'current boat' : `L${activeLevels.sails}·L${activeLevels.hold}·L${activeLevels.hull}`}</span>
+            <span class="stat-val">${shipName(currentShip)}</span>
+            <span class="stat-label">${isKid ? t('kids.currentBoat') : `L${activeLevels.sails}·L${activeLevels.hold}·L${activeLevels.hull}`}</span>
           </div>
         </section>
 
         ${this.renderRepair(isKid)}
         <nav class="trade-tabs">
           <button id="tp-tab-market" class="tab-btn ${this.tab === 'market' ? 'active' : ''}">
-            ${isKid ? '⚖ Buy & Sell Goods' : '⚖ Market Commodities'}
+            ${isKid ? t('kids.tabMarket') : t('trade.tabMarket')}
           </button>
           <button id="tp-tab-shipyard" class="tab-btn ${this.tab === 'shipyard' ? 'active' : ''}">
-            ${isKid ? '🛠 Ship Upgrades' : '🛠 Shipyard & Vessels'}
+            ${isKid ? t('kids.tabShipyard') : t('trade.tabShipyard')}
           </button>
         </nav>
 
@@ -257,7 +244,7 @@ export class TradePanel {
 
         <p class="trade-status" role="status">${this.message}</p>
         <footer class="trade-footer">
-          <button id="tp-undock" class="primary undock-btn">${isKid ? '⛵ Back to Sailing!' : 'Return to Sea'}</button>
+          <button id="tp-undock" class="primary undock-btn">${isKid ? t('kids.undock') : t('trade.undock')}</button>
         </footer>
       </div>
     `;
@@ -285,13 +272,13 @@ export class TradePanel {
     const canPay = trade.captain.gold >= 2;
     const label =
       trade.captain.gold >= price
-        ? `${isKid ? 'Fix it' : 'Repair'} for ${price} 🪙`
+        ? t(isKid ? 'kids.fix' : 'trade.repair', { price })
         : canPay
-          ? `${isKid ? 'Fix some' : 'Repair what you can afford'}`
-          : 'Need more gold';
+          ? t(isKid ? 'kids.fixSome' : 'trade.repairSome')
+          : t('trade.needGold');
     return `
       <section class="repair-bar">
-        <span>🛠 ${isKid ? 'Your boat is leaking!' : 'Hull'} <b>${pct}%</b>${isKid ? '' : ' · leaking, slower until repaired'}</span>
+        <span>🛠 ${isKid ? t('kids.leaking') : t('trade.hull')} <b>${t('unit.percent', { n: pct })}</b>${isKid ? '' : t('trade.leaking')}</span>
         <button id="tp-repair" class="sell-all-btn" ${canPay ? '' : 'disabled'}>${label}</button>
       </section>`;
   }
@@ -304,18 +291,18 @@ export class TradePanel {
     const goods = (c: Contract) =>
       isKid
         ? `${GOOD_ICONS[c.good]} ×${c.qty}`
-        : `${c.qty} ${GOOD_DEFS[c.good].name.toLowerCase()}`;
+        : t('trade.contractGoods', { qty: c.qty, good: goodName(c.good).toLowerCase() });
 
     let hereHtml: string;
     if (!here || here.readyIn > 0) {
-      hereHtml = `<p class="contract-line muted">${isKid ? 'No job here right now. Come back soon!' : 'No order here right now; a new one is posted soon.'}</p>`;
+      hereHtml = `<p class="contract-line muted">${isKid ? t('kids.noJob') : t('trade.noOrder')}</p>`;
     } else {
       const missing = here.qty - trade.captain.cargo[here.good];
       hereHtml = `
         <div class="contract-line contract-here">
-          <span>${isKid ? 'This town needs' : 'This port orders'} <b>${goods(here)}</b> · ${isKid ? 'pays' : 'reward'} <b>${here.reward} 🪙</b></span>
+          <span>${isKid ? t('kids.townNeeds') : t('trade.portOrders')} <b>${goods(here)}</b> · ${isKid ? t('kids.pays') : t('trade.reward')} <b>${here.reward} 🪙</b></span>
           <button id="tp-deliver" class="sell-all-btn deliver-btn" ${missing > 0 ? 'disabled' : ''}>
-            ${missing > 0 ? `Need ${missing} more` : isKid ? 'Deliver! ✓' : `Deliver for +${here.reward} 🪙`}
+            ${missing > 0 ? t('trade.needMore', { n: missing }) : isKid ? t('kids.deliver') : t('trade.deliverFor', { reward: here.reward })}
           </button>
         </div>`;
     }
@@ -325,14 +312,14 @@ export class TradePanel {
         (c) =>
           `<li><b>${portName(c.portId)}</b>: ${goods(c)} · ${c.reward} 🪙${
             trade.captain.cargo[c.good] >= c.qty
-              ? ' <span class="role-badge produces">in hold</span>'
+              ? ` <span class="role-badge produces">${t('trade.inHoldBadge')}</span>`
               : ''
           }</li>`,
       )
       .join('');
     return `
-      <section class="contracts" aria-label="${isKid ? 'Jobs' : 'Delivery orders'}">
-        <h3 class="contracts-title">${isKid ? '📜 Jobs' : '📜 Delivery orders'}</h3>
+      <section class="contracts" aria-label="${isKid ? t('kids.jobs') : t('trade.orders')}">
+        <h3 class="contracts-title">📜 ${isKid ? t('kids.jobs') : t('trade.orders')}</h3>
         ${hereHtml}
         ${others.length ? `<ul class="contract-list">${othersHtml}</ul>` : ''}
       </section>`;
@@ -372,13 +359,13 @@ export class TradePanel {
       const bestElsewhere = this.bestSaleElsewhere(good);
       const sellAllIncome = inHold > 0 ? quoteSell(market, good, inHold) : 0;
 
-      let badgeText = 'Regular trade';
+      let badgeText = t('kids.regular');
       let badgeClass = 'neutral';
       if (role === 'produces') {
-        badgeText = '⭐ Cheap here!';
+        badgeText = t('kids.cheap');
         badgeClass = 'produces';
       } else if (role === 'wants') {
-        badgeText = '💰 High reward!';
+        badgeText = t('kids.highReward');
         badgeClass = 'wants';
       }
 
@@ -387,21 +374,21 @@ export class TradePanel {
           <div class="kid-good-head">
             <span class="kid-icon">${GOOD_ICONS[good]}</span>
             <div class="kid-title-block">
-              <h4 class="kid-good-name">${def.name}</h4>
+              <h4 class="kid-good-name">${goodName(def.id)}</h4>
               <span class="role-badge ${badgeClass}">${badgeText}</span>
             </div>
             <div class="kid-hold-count">
-              <span class="count-label">In your hold:</span>
+              <span class="count-label">${t('kids.inYourHold')}</span>
               <b class="count-val">${inHold}</b>
             </div>
           </div>
 
           <div class="kid-price-summary">
-            <span>Buy: <b>${buyPrice} 🪙</b></span>
+            <span>${t('kids.buy')} <b>${buyPrice} 🪙</b></span>
             <span>·</span>
-            <span>Sell: <b>${sellPrice} 🪙</b></span>
+            <span>${t('kids.sell')} <b>${sellPrice} 🪙</b></span>
           </div>
-          ${bestElsewhere ? `<p class="best-elsewhere">Sells best at <b>${bestElsewhere.name}</b> (${bestElsewhere.sell} 🪙)</p>` : ''}
+          ${bestElsewhere ? `<p class="best-elsewhere">${t('kids.sellsBestAt', { name: bestElsewhere.name, price: bestElsewhere.sell })}</p>` : ''}
 
           <div class="kid-button-row">
             <button
@@ -411,7 +398,7 @@ export class TradePanel {
               data-qty="1"
               ${maxCanBuy < 1 ? 'disabled' : ''}
             >
-              Buy 1 (${buyPrice} 🪙)
+              ${t('kids.buyOne', { price: buyPrice })}
             </button>
 
             ${
@@ -423,7 +410,7 @@ export class TradePanel {
                 data-good="${good}"
                 data-qty="${maxCanBuy}"
               >
-                Fill Hold (+${maxCanBuy} for ${fillHoldCost} 🪙)
+                ${t('kids.fillHold', { n: maxCanBuy, price: fillHoldCost })}
               </button>
             `
                 : ''
@@ -436,7 +423,7 @@ export class TradePanel {
               data-qty="1"
               ${inHold < 1 ? 'disabled' : ''}
             >
-              Sell 1 (+${sellPrice} 🪙)
+              ${t('kids.sellOne', { price: sellPrice })}
             </button>
 
             ${
@@ -448,7 +435,7 @@ export class TradePanel {
                 data-good="${good}"
                 data-qty="${inHold}"
               >
-                Sell All ${inHold} (+${sellAllIncome} 🪙)
+                ${t('kids.sellAllOf', { n: inHold, price: sellAllIncome })}
               </button>
             `
                 : ''
@@ -464,9 +451,9 @@ export class TradePanel {
           sellAllGold > 0
             ? `
           <div class="sell-all-bar kid-banner">
-            <span>🎁 You have cargo ready to sell!</span>
+            <span>${t('kids.cargoReady')}</span>
             <button id="tp-sell-all" class="sell-all-btn">
-              🎉 Sell All Cargo (+${sellAllGold} 🪙)
+              ${t('kids.sellAll', { price: sellAllGold })}
             </button>
           </div>
         `
@@ -508,26 +495,26 @@ export class TradePanel {
       const canBuy = maxCanBuy >= qty && qty > 0;
       let buyDisabledReason = '';
       if (!canBuy) {
-        if (stock === 0) buyDisabledReason = 'Out of stock';
-        else if (free === 0) buyDisabledReason = 'Hold is full';
-        else if (captain.gold < nextBuy) buyDisabledReason = 'Need more gold';
-        else if (qty > stock) buyDisabledReason = `Only ${stock} in stock`;
-        else if (qty > free) buyDisabledReason = `Only ${free} space left`;
-        else buyDisabledReason = 'Cannot afford quantity';
+        if (stock === 0) buyDisabledReason = t('trade.outOfStock');
+        else if (free === 0) buyDisabledReason = t('trade.holdFull');
+        else if (captain.gold < nextBuy) buyDisabledReason = t('trade.needGold');
+        else if (qty > stock) buyDisabledReason = t('trade.onlyStock', { n: stock });
+        else if (qty > free) buyDisabledReason = t('trade.onlySpace', { n: free });
+        else buyDisabledReason = t('trade.cannotAfford');
       }
 
       const canSell = inHold >= qty && qty > 0;
       let sellDisabledReason = '';
       if (!canSell) {
-        if (inHold === 0) sellDisabledReason = 'None in hold';
-        else sellDisabledReason = `Only ${inHold} in hold`;
+        if (inHold === 0) sellDisabledReason = t('trade.noneInHold');
+        else sellDisabledReason = t('trade.onlyInHold', { n: inHold });
       }
 
-      let roleBadge = '<span class="role-badge neutral">Standard trade</span>';
+      let roleBadge = `<span class="role-badge neutral">${t('trade.standard')}</span>`;
       if (role === 'produces') {
-        roleBadge = '<span class="role-badge produces">Produces · Cheap</span>';
+        roleBadge = `<span class="role-badge produces">${t('trade.producesCheap')}</span>`;
       } else if (role === 'wants') {
-        roleBadge = '<span class="role-badge wants">Demanded · Dear</span>';
+        roleBadge = `<span class="role-badge wants">${t('trade.demandedDear')}</span>`;
       }
 
       return `
@@ -536,53 +523,53 @@ export class TradePanel {
             <div class="good-icon">${GOOD_ICONS[good]}</div>
             <div class="good-text">
               <div class="good-header">
-                <h4 class="good-name">${def.name}</h4>
+                <h4 class="good-name">${goodName(def.id)}</h4>
                 ${roleBadge}
               </div>
               <div class="good-meta">
-                <span>Stock: <b>${stock}</b></span>
+                <span>${t('trade.stock')} <b>${stock}</b></span>
                 <span class="sep">·</span>
-                <span>In Hold: <b>${inHold}</b></span>
+                <span>${t('trade.inHold')} <b>${inHold}</b></span>
               </div>
-              ${bestElsewhere ? `<div class="best-elsewhere">Best sale elsewhere: <b>${bestElsewhere.name}</b> ${bestElsewhere.sell} 🪙</div>` : ''}
+              ${bestElsewhere ? `<div class="best-elsewhere">${t('trade.bestElsewhere', { name: bestElsewhere.name, price: bestElsewhere.sell })}</div>` : ''}
             </div>
           </div>
 
           <div class="good-prices">
             <div class="price-col">
-              <span class="price-label">Buy 1st unit:</span>
+              <span class="price-label">${t('trade.buyFirst')}</span>
               <span class="price-val">${nextBuy} 🪙</span>
             </div>
             <div class="price-col">
-              <span class="price-label">Sell 1st unit:</span>
+              <span class="price-label">${t('trade.sellFirst')}</span>
               <span class="price-val">${nextSell} 🪙</span>
             </div>
           </div>
 
           <div class="qty-control-area">
-            <span class="qty-title">Quantity:</span>
+            <span class="qty-title">${t('trade.quantity')}</span>
             <div class="qty-stepper">
-              <button class="qty-btn" data-good="${good}" data-delta="-1" aria-label="Decrease quantity">-</button>
+              <button class="qty-btn" data-good="${good}" data-delta="-1" aria-label="${t('trade.decrease')}">-</button>
               <span class="qty-display">${qty}</span>
-              <button class="qty-btn" data-good="${good}" data-delta="1" aria-label="Increase quantity">+</button>
+              <button class="qty-btn" data-good="${good}" data-delta="1" aria-label="${t('trade.increase')}">+</button>
             </div>
             <div class="qty-quick-buttons">
               <button class="qty-quick" data-good="${good}" data-set="1">1</button>
               <button class="qty-quick" data-good="${good}" data-set="5">5</button>
-              <button class="qty-quick" data-good="${good}" data-set="max">Max</button>
+              <button class="qty-quick" data-good="${good}" data-set="max">${t('trade.max')}</button>
             </div>
           </div>
 
           <div class="quote-preview">
             <div class="quote-line">
-              <span class="quote-mode">Buy ${qty}:</span>
+              <span class="quote-mode">${t('trade.buyN', { n: qty })}</span>
               <span class="quote-total ${canBuy ? 'affordable' : 'unaffordable'}">${costQuote} 🪙</span>
-              ${qty > 1 ? `<span class="quote-avg">(${(costQuote / qty).toFixed(1)}/ea)</span>` : ''}
+              ${qty > 1 ? `<span class="quote-avg">${t('trade.each', { price: formatNumber(costQuote / qty, 1) })}</span>` : ''}
             </div>
             <div class="quote-line">
-              <span class="quote-mode">Sell ${qty}:</span>
+              <span class="quote-mode">${t('trade.sellN', { n: qty })}</span>
               <span class="quote-total income">+${sellQuote} 🪙</span>
-              ${qty > 1 ? `<span class="quote-avg">(${(sellQuote / qty).toFixed(1)}/ea)</span>` : ''}
+              ${qty > 1 ? `<span class="quote-avg">${t('trade.each', { price: formatNumber(sellQuote / qty, 1) })}</span>` : ''}
             </div>
           </div>
 
@@ -595,7 +582,7 @@ export class TradePanel {
               ${!canBuy ? 'disabled' : ''}
               title="${buyDisabledReason}"
             >
-              ${canBuy ? `Buy ${qty} for ${costQuote} 🪙` : buyDisabledReason}
+              ${canBuy ? t('trade.buyFor', { n: qty, price: costQuote }) : buyDisabledReason}
             </button>
             <button
               class="trade-act-btn sell-btn"
@@ -605,7 +592,7 @@ export class TradePanel {
               ${!canSell ? 'disabled' : ''}
               title="${sellDisabledReason}"
             >
-              ${canSell ? `Sell ${qty} for +${sellQuote} 🪙` : sellDisabledReason}
+              ${canSell ? t('trade.sellFor', { n: qty, price: sellQuote }) : sellDisabledReason}
             </button>
           </div>
         </article>
@@ -618,9 +605,9 @@ export class TradePanel {
           sellAllGold > 0
             ? `
           <div class="sell-all-bar">
-            <span>Cargo ready to sell:</span>
+            <span>${t('trade.cargoReady')}</span>
             <button id="tp-sell-all" class="sell-all-btn">
-              Sell All Cargo for +${sellAllGold} 🪙
+              ${t('trade.sellAll', { price: sellAllGold })}
             </button>
           </div>
         `
@@ -644,21 +631,21 @@ export class TradePanel {
     const tracks = [
       {
         track: 'sails' as UpgradeTrack,
-        title: '💨 Sail Faster!',
-        desc: 'Makes your boat zoom through the water much quicker.',
-        current: `Speed Level ${levels.sails}`,
+        title: t('kids.upg.sails'),
+        desc: t('kids.upg.sailsDesc'),
+        current: t('kids.upg.sailsLevel', { level: levels.sails }),
       },
       {
         track: 'hold' as UpgradeTrack,
-        title: '📦 Carry More Goods!',
-        desc: 'Gives you extra room in your hold to carry more items.',
-        current: `Hold Level ${levels.hold}`,
+        title: t('kids.upg.hold'),
+        desc: t('kids.upg.holdDesc'),
+        current: t('kids.upg.holdLevel', { level: levels.hold }),
       },
       {
         track: 'hull' as UpgradeTrack,
-        title: '🛡️ Tougher Boat!',
-        desc: 'Adds a small speed boost. Toughness is reserved for future hazards.',
-        current: `Hull Level ${levels.hull}`,
+        title: t('kids.upg.hull'),
+        desc: t('kids.upg.hullDesc'),
+        current: t('kids.upg.hullLevel', { level: levels.hull }),
       },
     ];
 
@@ -679,10 +666,10 @@ export class TradePanel {
           <div class="upgrade-action">
             ${
               isMax
-                ? `<button class="upgrade-btn maxed" disabled>⭐ Max Level!</button>`
+                ? `<button class="upgrade-btn maxed" disabled>${t('kids.maxLevel')}</button>`
                 : canAfford
-                  ? `<button class="upgrade-btn primary kid-btn" data-track="${track}">⭐ Upgrade (${nextPrice} Coins)</button>`
-                  : `<button class="upgrade-btn" disabled>Needs ${nextPrice! - captain.gold} more coins</button>`
+                  ? `<button class="upgrade-btn primary kid-btn" data-track="${track}">${t('kids.upgrade', { price: nextPrice! })}</button>`
+                  : `<button class="upgrade-btn" disabled>${t('kids.needCoins', { n: nextPrice! - captain.gold })}</button>`
             }
           </div>
         </article>
@@ -693,14 +680,14 @@ export class TradePanel {
     return `
       <div class="shipyard-section kids-layout">
         <div class="section-title">
-          <h3>Upgrade Your Boat!</h3>
+          <h3>${t('kids.upgradeTitle')}</h3>
         </div>
         <div class="upgrades-grid">
           ${upgradeCardsHtml}
         </div>
 
         <div class="section-title ships-title">
-          <h3>Boat Fleet</h3>
+          <h3>${t('kids.fleet')}</h3>
         </div>
         ${this.renderFleet()}
       </div>
@@ -721,63 +708,34 @@ export class TradePanel {
       const nextPrice = upgradePrice(activeShipBase, levels, track);
       const canAfford = nextPrice !== null && captain.gold >= nextPrice;
 
-      let name = 'Sails & Rigging';
-      let icon = '⛵';
-      let currentDesc = '';
-      let nextDesc = '';
-
-      if (track === 'sails') {
-        name = 'Sails & Rigging';
-        icon = '💨';
-        if (currentLevel === 1) currentDesc = 'Standard mainsail & jib rig';
-        else if (currentLevel === 2) currentDesc = '+8% speed, +15% accel, improved canvas';
-        else currentDesc = '+16% speed, +30% accel, topsail & striped racing cloth';
-
-        if (currentLevel === 1) nextDesc = 'Level 2: +8% speed, +15% acceleration, improved canvas';
-        else if (currentLevel === 2)
-          nextDesc = 'Level 3: +16% speed, +30% acceleration, topsail & striped cloth';
-      } else if (track === 'hold') {
-        name = 'Hold Capacity';
-        icon = '📦';
-        const c1 = holdCapacity(activeShipBase, { sails: 1, hold: 1, hull: 1 });
-        const c2 = holdCapacity(activeShipBase, { sails: 1, hold: 2, hull: 1 });
-        const c3 = holdCapacity(activeShipBase, { sails: 1, hold: 3, hull: 1 });
-
-        if (currentLevel === 1) currentDesc = `Standard hold (${c1} units cargo)`;
-        else if (currentLevel === 2)
-          currentDesc = `Reinforced hold (${c2} units), crates & barrels on deck`;
-        else currentDesc = `Expanded hold (${c3} units), full deck cargo stowage`;
-
-        if (currentLevel === 1)
-          nextDesc = `Level 2: +60% capacity (${c2} units) with deck crates and barrels`;
-        else if (currentLevel === 2)
-          nextDesc = `Level 3: +120% capacity (${c3} units) with heavy cargo stowage`;
-      } else if (track === 'hull') {
-        name = 'Hull & Framing';
-        icon = '🛡';
-        const d1 = hullDurability({ sails: 1, hold: 1, hull: 1 });
-        const d2 = hullDurability({ sails: 1, hold: 1, hull: 2 });
-        const d3 = hullDurability({ sails: 1, hold: 1, hull: 3 });
-
-        if (currentLevel === 1) currentDesc = `Stock oak hull (${d1} durability)`;
-        else if (currentLevel === 2)
-          currentDesc = `+2% speed, ${d2} durability, reinforced timber strakes`;
-        else currentDesc = `+4% speed, ${d3} durability, copper sheathing`;
-
-        if (currentLevel === 1)
-          nextDesc = `Level 2: +2% speed, ${d2} durability, reinforced timber`;
-        else if (currentLevel === 2)
-          nextDesc = `Level 3: +4% speed, ${d3} durability, copper sheathing`;
-      }
+      const icon = { sails: '💨', hold: '📦', hull: '🛡' }[track];
+      const name = t(`upg.${track}`);
+      // Each level's number: hold capacity for the hold, durability for the hull (decision 0011).
+      const amount = (level: 1 | 2 | 3) => {
+        const levels = { sails: 1, hold: 1, hull: 1, [track]: level };
+        return track === 'hold'
+          ? holdCapacity(activeShipBase, levels)
+          : track === 'hull'
+            ? hullDurability(levels)
+            : 0;
+      };
+      const level = Math.min(Math.max(currentLevel, 1), 3) as 1 | 2 | 3;
+      const currentDesc = t(`upg.${track}.${level}`, { n: amount(level) });
+      const nextDesc =
+        level === 1
+          ? t(`upg.${track}.next2`, { n: amount(2) })
+          : level === 2
+            ? t(`upg.${track}.next3`, { n: amount(3) })
+            : '';
 
       let buttonHtml: string;
       if (isMax) {
-        buttonHtml = `<button class="upgrade-btn maxed" disabled>Max Level</button>`;
+        buttonHtml = `<button class="upgrade-btn maxed" disabled>${t('upg.maxLevel')}</button>`;
       } else if (canAfford) {
-        buttonHtml = `<button class="upgrade-btn primary" data-track="${track}">Upgrade to L${currentLevel + 1} (${nextPrice} 🪙)</button>`;
+        buttonHtml = `<button class="upgrade-btn primary" data-track="${track}">${t('upg.upgradeTo', { level: currentLevel + 1, price: nextPrice! })}</button>`;
       } else {
         const short = nextPrice! - captain.gold;
-        buttonHtml = `<button class="upgrade-btn" disabled title="Need ${short} more gold">Upgrade L${currentLevel + 1} (${nextPrice} 🪙) · Need ${short}g</button>`;
+        buttonHtml = `<button class="upgrade-btn" disabled title="${t('upg.needGoldTitle', { n: short })}">${t('upg.upgradeShort', { level: currentLevel + 1, price: nextPrice!, n: short })}</button>`;
       }
 
       const pipsHtml = [1, 2, 3]
@@ -791,14 +749,14 @@ export class TradePanel {
             <div class="track-titles">
               <h4 class="track-name">${name}</h4>
               <div class="track-pips-container">
-                <span class="track-level-text">Level ${currentLevel} of ${MAX_UPGRADE_LEVEL}</span>
+                <span class="track-level-text">${t('upg.levelOf', { level: currentLevel, max: MAX_UPGRADE_LEVEL })}</span>
                 <div class="track-pips">${pipsHtml}</div>
               </div>
             </div>
           </div>
           <div class="track-effects">
             <p class="current-effect">${currentDesc}</p>
-            ${!isMax ? `<p class="next-effect"><b>Next:</b> ${nextDesc}</p>` : '<p class="max-note">Fully upgraded for this vessel.</p>'}
+            ${!isMax ? `<p class="next-effect"><b>${t('upg.next')}</b> ${nextDesc}</p>` : `<p class="max-note">${t('upg.fullyUpgraded')}</p>`}
           </div>
           <div class="upgrade-action">
             ${buttonHtml}
@@ -810,16 +768,16 @@ export class TradePanel {
     return `
       <div class="shipyard-section adult-layout">
         <div class="section-title">
-          <h3>Upgrades for active ${activeShipBase.name}</h3>
-          <span class="muted small">Visual modifications appear on your vessel immediately</span>
+          <h3>${t('upg.forActive', { ship: shipName(activeShipBase) })}</h3>
+          <span class="muted small">${t('upg.visualNote')}</span>
         </div>
         <div class="upgrades-grid">
           ${tracksHtml}
         </div>
 
         <div class="section-title ships-title">
-          <h3>Vessel Lineup</h3>
-          <span class="muted small">Transfer your command between owned ships at any dock</span>
+          <h3>${t('fleet.title')}</h3>
+          <span class="muted small">${t('fleet.note')}</span>
         </div>
 
         ${this.renderFleet()}
@@ -842,33 +800,40 @@ export class TradePanel {
     const cutterFitsCargo = cargoNow <= cutterCap;
     const sloopFitsCargo = cargoNow <= sloopCap;
 
+    const sloop = shipName(SLOOP);
+    const cutter = shipName(CUTTER);
+    const cutterPrice = formatNumber(CUTTER.price);
+    const sailing = `<span class="ship-badge active-badge">${t('fleet.sailing')}</span>`;
+
     let cutterButtonHtml: string;
     if (activeShipId === 'cutter') {
-      cutterButtonHtml = `<span class="ship-badge active-badge">Currently Sailing</span>`;
+      cutterButtonHtml = sailing;
     } else if (ownsCutter) {
       if (cutterFitsCargo) {
-        cutterButtonHtml = `<button class="ship-btn primary" data-ship-switch="cutter">Switch to Cutter</button>`;
+        cutterButtonHtml = `<button class="ship-btn primary" data-ship-switch="cutter">${t('fleet.switchTo', { ship: cutter })}</button>`;
       } else {
-        cutterButtonHtml = `<button class="ship-btn" disabled title="Cargo too large">Switch to Cutter (Cargo too large)</button>`;
+        cutterButtonHtml = `<button class="ship-btn" disabled title="${t('fleet.cargoTooLarge')}">${t('fleet.switchTooLarge', { ship: cutter })}</button>`;
       }
     } else {
       if (!cutterCanAfford) {
-        cutterButtonHtml = `<button class="ship-btn" disabled title="Need ${CUTTER.price - captain.gold} more gold">Buy Cutter (${CUTTER.price.toLocaleString()} 🪙) · Need ${CUTTER.price - captain.gold}g</button>`;
+        const short = CUTTER.price - captain.gold;
+        cutterButtonHtml = `<button class="ship-btn" disabled title="${t('upg.needGoldTitle', { n: short })}">${t('fleet.buyNeed', { ship: cutter, price: cutterPrice, n: short })}</button>`;
       } else if (!cutterFitsCargo) {
-        cutterButtonHtml = `<button class="ship-btn" disabled title="Cargo exceeds Cutter hold">Buy Cutter (${CUTTER.price.toLocaleString()} 🪙) · Cargo too big</button>`;
+        cutterButtonHtml = `<button class="ship-btn" disabled title="${t('fleet.cargoExceeds', { ship: cutter })}">${t('fleet.buyCargoBig', { ship: cutter, price: cutterPrice })}</button>`;
       } else {
-        cutterButtonHtml = `<button class="ship-btn primary" data-ship-buy="cutter">Buy Cutter (${CUTTER.price.toLocaleString()} 🪙)</button>`;
+        cutterButtonHtml = `<button class="ship-btn primary" data-ship-buy="cutter">${t('fleet.buy', { ship: cutter, price: cutterPrice })}</button>`;
       }
     }
 
     let sloopButtonHtml: string;
     if (activeShipId === 'sloop') {
-      sloopButtonHtml = `<span class="ship-badge active-badge">Currently Sailing</span>`;
+      sloopButtonHtml = sailing;
     } else {
       if (sloopFitsCargo) {
-        sloopButtonHtml = `<button class="ship-btn primary" data-ship-switch="sloop">Switch to Sloop</button>`;
+        sloopButtonHtml = `<button class="ship-btn primary" data-ship-switch="sloop">${t('fleet.switchTo', { ship: sloop })}</button>`;
       } else {
-        sloopButtonHtml = `<button class="ship-btn" disabled title="Cargo too large (${cargoNow}/${sloopCap})">Switch to Sloop (Cargo ${cargoNow}/${sloopCap})</button>`;
+        const load = { used: cargoNow, cap: sloopCap };
+        sloopButtonHtml = `<button class="ship-btn" disabled title="${t('fleet.cargoTooLargeCount', load)}">${t('fleet.switchCargo', { ship: sloop, ...load })}</button>`;
       }
     }
 
@@ -876,13 +841,13 @@ export class TradePanel {
         <div class="ships-grid">
           <article class="ship-card adult-card ${activeShipId === 'sloop' ? 'active-ship' : ''}">
             <div class="ship-card-header">
-              <h4>Sloop</h4>
-              <span class="ship-role-tag">Starter Coastal Vessel</span>
+              <h4>${sloop}</h4>
+              <span class="ship-role-tag">${t('fleet.sloopRole')}</span>
             </div>
             <div class="ship-specs">
-              <div>Hold: <b>${sloopCap} units</b></div>
-              <div>Points: <b>45°</b> off wind</div>
-              <div>Handling: <b>Agile & forgiving helm</b></div>
+              <div>${t('fleet.hold', { n: sloopCap })}</div>
+              <div>${t('fleet.sloopPoints')}</div>
+              <div>${t('fleet.sloopHandling')}</div>
             </div>
             <div class="ship-action">
               ${sloopButtonHtml}
@@ -891,13 +856,13 @@ export class TradePanel {
 
           <article class="ship-card adult-card ${activeShipId === 'cutter' ? 'active-ship' : ''}">
             <div class="ship-card-header">
-              <h4>Cutter</h4>
-              <span class="ship-role-tag">Merchant Fast Vessel</span>
+              <h4>${cutter}</h4>
+              <span class="ship-role-tag">${t('fleet.cutterRole')}</span>
             </div>
             <div class="ship-specs">
-              <div>Hold: <b>${cutterCap} units</b> (base 16)</div>
-              <div>Points: <b>40°</b> off wind (5° closer!)</div>
-              <div>Speed: <b>+6% top speed</b>, heavier helm</div>
+              <div>${t('fleet.hold', { n: cutterCap })}${t('fleet.cutterBase')}</div>
+              <div>${t('fleet.cutterPoints')}</div>
+              <div>${t('fleet.cutterSpeed')}</div>
             </div>
             <div class="ship-action">
               ${cutterButtonHtml}
@@ -943,10 +908,10 @@ export class TradePanel {
     this.container.querySelector('#tp-repair')?.addEventListener('click', () => {
       const res = repairHull(this.world.trade);
       if (res.ok) {
-        this.message = `Hull repaired for ${res.gold} gold.`;
+        this.message = t('trade.repaired', { gold: res.gold });
         this.onAction();
       } else {
-        this.message = res.error === 'not-enough-gold' ? 'You need more gold.' : '';
+        this.message = res.error === 'not-enough-gold' ? t('trade.err.not-enough-gold') : '';
       }
       this.render();
     });
@@ -954,10 +919,10 @@ export class TradePanel {
     this.container.querySelector('#tp-deliver')?.addEventListener('click', () => {
       const res = deliverContract(this.world.trade, this.world.map);
       if (res.ok) {
-        this.message = `Order delivered. +${res.gold} gold.`;
+        this.message = t('trade.delivered', { gold: res.gold });
         this.onAction();
       } else {
-        this.message = 'You need the full order in your hold.';
+        this.message = t('trade.needFullOrder');
       }
       this.render();
     });

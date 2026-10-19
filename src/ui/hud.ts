@@ -7,19 +7,20 @@ import { windFeedback } from './windFeedback';
 import { type World, type WorldEvent, navigationTarget } from '../sim/world';
 import type { ScreenPoint } from '../render/view';
 
-import { GOODS, GOOD_DEFS } from '../sim/goods';
+import { GOODS } from '../sim/goods';
 import { activeShip, capacity, cargoUsed, findPort } from '../sim/trade';
 import { PortLabels } from './portLabels';
+import { formatNumber, goodName, shipName, t } from '../i18n';
 
-const POINT_OF_SAIL: Record<PointOfSail, { text: string; tone: '' | 'good' | 'bad' }> = {
-  'in-irons': { text: 'Headwind', tone: '' },
-  'close-hauled': { text: 'Close-hauled', tone: '' },
-  'beam-reach': { text: 'Beam reach', tone: 'good' },
-  'broad-reach': { text: 'Broad reach', tone: 'good' },
-  running: { text: 'Running', tone: '' },
+const POINT_OF_SAIL_TONE: Record<PointOfSail, '' | 'good' | 'bad'> = {
+  'in-irons': '',
+  'close-hauled': '',
+  'beam-reach': 'good',
+  'broad-reach': 'good',
+  running: '',
 };
 
-const COMPASS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+const COMPASS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
 
 function $(id: string): HTMLElement {
   const el = document.getElementById(id);
@@ -144,10 +145,12 @@ export class Hud {
     }
     const { captain } = this.world.trade;
     const items = GOODS.filter((g) => captain.cargo[g] > 0)
-      .map((g) => `${GOOD_DEFS[g].name}: <b>${captain.cargo[g]}</b>`)
+      .map((g) => `${goodName(g)}: <b>${captain.cargo[g]}</b>`)
       .join('<br>');
 
-    this.cargoTooltip.innerHTML = items ? items : '<span class="muted">Hold is empty</span>';
+    this.cargoTooltip.innerHTML = items
+      ? items
+      : `<span class="muted">${t('hud.holdEmpty')}</span>`;
     this.cargoTooltip.hidden = false;
   }
 
@@ -160,12 +163,15 @@ export class Hud {
   handleEvents(events: WorldEvent[]) {
     for (const e of events) {
       if (e.type === 'waypoint') {
-        this.showToast(`${e.label} reached in ${formatTime(e.seconds)}! Next: ${e.next}`, 3.5);
+        this.showToast(
+          t('toast.waypoint', { label: e.label, time: formatTime(e.seconds), next: e.next }),
+          3.5,
+        );
       } else if (e.type === 'reef-strike') {
         const pct = Math.round(hullCondition(this.world.trade) * 100);
-        this.showToast(`Struck a reef! Hull ${pct}%, repair in port`, 2.5);
+        this.showToast(t('toast.reef', { pct }), 2.5);
       } else if (e.type === 'bump' && this.toastTimer <= 0) {
-        this.showToast('Bump! Mind the shore', 1.2);
+        this.showToast(t('toast.bump'), 1.2);
       }
     }
   }
@@ -180,7 +186,7 @@ export class Hud {
 
   setFps(fps: number | null) {
     this.fps.hidden = fps === null;
-    if (fps !== null) this.fps.textContent = `${fps.toFixed(0)} fps`;
+    if (fps !== null) this.fps.textContent = t('hud.fps', { n: fps.toFixed(0) });
   }
 
   /** `project` maps a sim position to screen pixels; `size` is the viewport. */
@@ -221,9 +227,7 @@ export class Hud {
     this.compass.classList.toggle('is-upwind', cue.amber);
     this.compass.classList.toggle('wind-pulse', cue.pulse);
     this.windChip.hidden = !cue.chip;
-    const label = cue.amber
-      ? 'Wind compass. Into the wind. Open sailing tips'
-      : 'Wind compass. Open sailing tips';
+    const label = cue.amber ? t('wind.compassUpwind') : t('wind.compass');
     if (this.windTrigger.getAttribute('aria-label') !== label)
       this.windTrigger.setAttribute('aria-label', label);
     if (cue.chip && !this.seenWindHint) {
@@ -237,28 +241,30 @@ export class Hud {
     this.sinceText += dt;
     if (this.sinceText > 0.12) {
       this.sinceText = 0;
-      this.speed.textContent = boat.speedKn.toFixed(1);
-      const p = POINT_OF_SAIL[pointOfSail(ship, twa)];
-      this.pos.textContent = boat.sailStep === 0 ? 'Sails down' : p.text;
-      this.pos.className = `pos ${p.tone}`;
+      this.speed.textContent = formatNumber(boat.speedKn, 1);
+      const p = pointOfSail(ship, twa);
+      this.pos.textContent = boat.sailStep === 0 ? t('hud.sailsDown') : t(`pos.${p}`);
+      this.pos.className = `pos ${POINT_OF_SAIL_TONE[p]}`;
       const step = SAIL_STEPS[boat.sailStep] ?? 0;
       this.pips.forEach((pip, i) => pip.classList.toggle('on', step >= (i + 1) / this.pips.length));
       this.objName.textContent = wp?.label ?? '';
-      this.objDist.textContent = wp ? `${Math.round(distance(boat, wp))} m` : '';
-      const fromDir = COMPASS[Math.round(wrapPositive(wind.from) / (Math.PI / 4)) % 8];
+      this.objDist.textContent = wp ? t('unit.metres', { n: Math.round(distance(boat, wp)) }) : '';
+      const fromDir = t(
+        `compass.${COMPASS[Math.round(wrapPositive(wind.from) / (Math.PI / 4)) % 8]!}`,
+      );
       // Name the lee so a sudden drop in speed reads as the island, not a bug (decision 0027).
-      const lee = this.world.shelter > 0.25 ? ' · lee' : '';
-      this.windText.textContent = `${fromDir} · ${wind.speedKn.toFixed(0)} kn${lee}`;
+      const lee = this.world.shelter > 0.25 ? ` · ${t('hud.lee')}` : '';
+      this.windText.textContent = `${fromDir} · ${wind.speedKn.toFixed(0)} ${t('unit.knots')}${lee}`;
 
       document.body.classList.toggle('is-docked', Boolean(this.world.trade.dockedAt));
       // Captain stats & dock button
       const { trade, map } = this.world;
-      this.hudGold.textContent = trade.captain.gold.toLocaleString();
+      this.hudGold.textContent = formatNumber(trade.captain.gold);
       this.hudCargo.textContent = `${cargoUsed(trade)} / ${capacity(trade)}`;
-      this.hudShip.textContent = activeShip(trade).name;
+      this.hudShip.textContent = shipName(activeShip(trade));
       const hull = Math.round(hullCondition(trade) * 100);
       this.hudHullBox.hidden = hull >= 100;
-      this.hudHull.textContent = `${hull}%`;
+      this.hudHull.textContent = t('unit.percent', { n: hull });
       this.hudHullBox.classList.toggle('is-low', hull < 50);
 
       if (trade.dockedAt) {

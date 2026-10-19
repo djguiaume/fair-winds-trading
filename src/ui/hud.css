@@ -508,6 +508,38 @@ body.in-menu .settings .in-game {
   font-size: 13px;
   opacity: 0.85;
 }
+/* Language switcher (decision 0037): each language named in its own words, no flags. */
+.menu-language {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px 0 0;
+}
+.menu-language-icon {
+  font-size: 18px;
+  opacity: 0.8;
+}
+.menu-language button {
+  min-height: 44px;
+  min-width: 96px;
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 16px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(20, 40, 50, 0.6);
+  color: #fff;
+  cursor: pointer;
+}
+.menu-language button[aria-pressed='true'] {
+  background: #fff;
+  border-color: #fff;
+  color: #173c43;
+  font-weight: 700;
+  cursor: default;
+}
 .menu-version {
   margin: 18px 0 0;
   font-size: 12px;
