@@ -5,7 +5,7 @@ import { type Rng, createRng, range } from '../../sim/rng';
 import { mergeAll, paint, vertexColorMaterial } from './geometry';
 import type { IslandsBuilder } from './types';
 import { landmarkParts } from './landmarks';
-import { coastDistance } from '../../sim/coast';
+import { coastDistance, insetOutline } from '../../sim/coast';
 
 /**
  * B2 "Bright highlands" islands (decision 0012), ported from the reference builder in
@@ -314,51 +314,97 @@ export function islandParts(
   return out;
 }
 
+/**
+ * Terraces of a barrier island (decision 0026): the beach is the exact collision outline, then
+ * two sandstone tiers and a grass cap, each inset so nothing overhangs the shore.
+ */
+const RIDGE_TIERS = [
+  { inset: 0, bottom: -0.8, top: 1, color: B2.sand },
+  { inset: 4, bottom: 0.8, top: 4.6, color: B2.rock },
+  { inset: 8, bottom: 4.4, top: 7.6, color: B2.rock2 },
+  { inset: 10, bottom: 7.5, top: 8, color: B2.grass },
+] as const;
+const RIDGE_TOP = 8;
+const CORAL = ['#e08a6a', '#f0a580', '#d9707a'];
+
+function extrudeOutline(outline: TerrainDef['outline'], bottom: number, top: number) {
+  const shape = new THREE.Shape(outline.map(([x, y]) => new THREE.Vector2(x, y)));
+  const geometry = new THREE.ExtrudeGeometry(shape, {
+    depth: top - bottom,
+    bevelEnabled: false,
+    curveSegments: 1,
+  });
+  geometry.rotateX(-Math.PI / 2);
+  return geometry.translate(0, bottom, 0);
+}
+
 /** Detail geometry only, anchored inside the exact solid shoreline. */
 export function terrainProps(feature: TerrainDef, seed: number): Parts {
   const parts: Parts = [];
   const bank = feature.kind === 'sandbank';
-  // Decoration stays entirely on solid land; it cannot narrow the sailing passages.
+  const reef = feature.kind === 'reef';
+  // Decoration stays inside the shore (on barriers, on the grass cap); it cannot narrow passages.
+  const area = bank || reef ? feature.outline : insetOutline(feature.outline, RIDGE_TIERS[3].inset);
   const rng = createRng(seed);
-  const xs = feature.outline.map((p) => p[0]);
-  const ys = feature.outline.map((p) => p[1]);
+  const xs = area.map((p) => p[0]);
+  const ys = area.map((p) => p[1]);
   const occupied: { x: number; y: number; radius: number }[] = [];
   const sample = (radius: number) => {
     for (let attempt = 0; attempt < 512; attempt++) {
       const x = range(rng, Math.min(...xs), Math.max(...xs));
       const y = range(rng, Math.min(...ys), Math.max(...ys));
-      if (coastDistance(x, y, feature.outline).distance > -radius) continue;
+      if (coastDistance(x, y, area).distance > -radius) continue;
       if (occupied.some((p) => Math.hypot(p.x - x, p.y - y) < p.radius + radius)) continue;
       occupied.push({ x, y, radius });
       return { x, y };
     }
     return null;
   };
-  const topY = bank ? 0.8 : 3.2;
+  const topY = reef ? 0 : bank ? 0.8 : RIDGE_TOP;
   if (feature.look?.landmark) {
-    const s = bank ? 1.15 : 1.8;
+    const s = bank || reef ? 1.15 : 1.8;
     const radius =
       feature.look.landmark === 'wreck' ? 4.6 : feature.look.landmark === 'ruins' ? 5.1 : 3.1;
     const p = sample(radius);
     if (!p) throw new Error(`Landmark does not fit on ${feature.id}`);
     put(parts, landmarkParts(feature.look.landmark, s), p.x, topY, -p.y, 0.3);
   }
+  if (reef) {
+    // Rocks and coral heads just awash; the ocean shader paints the shallows and foam around them.
+    for (let i = 0; i < 26; i++) {
+      const size = range(rng, 1.1, 2.2);
+      const p = sample(size + 1.2);
+      if (!p) break;
+      parts.push(
+        paint(
+          new THREE.DodecahedronGeometry(size, 0)
+            .scale(1, 0.6, 1)
+            .rotateY(rng() * 6)
+            .translate(p.x, size * 0.35, -p.y),
+          i % 3 ? B2.rock : B2.rock2,
+        ),
+      );
+      if (i % 2) {
+        const coral = new THREE.ConeGeometry(0.8, 1.6, 5).translate(
+          p.x + size * 0.6,
+          0.7,
+          -p.y + size * 0.3,
+        );
+        parts.push(paint(coral, CORAL[i % 3]!));
+      }
+    }
+    return parts;
+  }
   if (!bank) {
     // Small terraced outcrops give the long barriers relief like the highland islands.
     for (let i = 0; i < 4; i++) {
-      const p = sample(4.2);
+      const p = sample(3.4);
       if (!p) break;
-      const base = new THREE.CylinderGeometry(3.1, 4, 1.7, 7).translate(p.x, topY + 0.85, -p.y);
+      const base = new THREE.CylinderGeometry(2.4, 3.2, 1.7, 7).translate(p.x, topY + 0.85, -p.y);
       parts.push(paint(base, B2.rock));
-      const upper = new THREE.CylinderGeometry(1.8, 2.8, 1.5, 6).translate(
-        p.x + 0.3,
-        topY + 2.3,
-        -p.y,
-      );
-      parts.push(paint(upper, B2.rock2));
       parts.push(
         paint(
-          new THREE.CylinderGeometry(1.7, 1.8, 0.2, 6).translate(p.x + 0.3, topY + 3.15, -p.y),
+          new THREE.CylinderGeometry(1.7, 1.8, 0.2, 6).translate(p.x, topY + 1.75, -p.y),
           B2.grass,
         ),
       );
@@ -405,33 +451,17 @@ export const buildHighlandIslands: IslandsBuilder = (map, { shadows }) => {
       if (port) harbours[port.id] = point;
     }),
   );
-  // Non-circular barriers use the very same outline as simulation collision.
-  for (const feature of map.terrain ?? []) {
-    const shape = new THREE.Shape(feature.outline.map(([x, y]) => new THREE.Vector2(x, y)));
-    const bank = feature.kind === 'sandbank';
-    const geometry = new THREE.ExtrudeGeometry(shape, {
-      depth: bank ? 1.2 : 3.6,
-      bevelEnabled: false,
-      curveSegments: 1,
-    });
-    geometry.rotateX(-Math.PI / 2);
-    geometry.translate(0, -0.4, 0);
-    const painted = paint(geometry, bank ? B2.sand : B2.rock);
-    // Grass caps, sandstone sides. No overhanging visuals beyond the collision outline.
-    if (!bank) {
-      const normal = painted.attributes.normal!;
-      const colors = painted.attributes.color!;
-      const top = new THREE.Color(B2.grass);
-      const side = new THREE.Color(B2.rock2);
-      for (let i = 0; i < normal.count; i++) {
-        const color = normal.getY(i) > 0.5 ? top : side;
-        colors.setXYZ(i, color.r, color.g, color.b);
+  // Non-circular coasts use the very same outline as simulation collision.
+  for (const [index, feature] of (map.terrain ?? []).entries()) {
+    if (feature.kind === 'sandbank') {
+      parts.push(paint(extrudeOutline(feature.outline, -0.4, 0.8), B2.sand));
+    } else if (feature.kind === 'island') {
+      for (const tier of RIDGE_TIERS) {
+        const outline = tier.inset ? insetOutline(feature.outline, tier.inset) : feature.outline;
+        parts.push(paint(extrudeOutline(outline, tier.bottom, tier.top), tier.color));
       }
     }
-    parts.push(painted);
-    parts.push(
-      ...terrainProps(feature, map.seed * 1709 + (map.terrain?.indexOf(feature) ?? 0) * 97),
-    );
+    parts.push(...terrainProps(feature, map.seed * 1709 + index * 97));
   }
   const mesh = new THREE.Mesh(mergeAll(parts), vertexColorMaterial());
   mesh.userData.harbours = harbours;

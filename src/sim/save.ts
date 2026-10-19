@@ -119,7 +119,8 @@ export function validateSave(raw: unknown, world: World): SaveData | null {
   }
   return {
     version: SAVE_VERSION,
-    map: world.map.name,
+    // The map it was saved on, so applySave can tell a migrated save (always a known name here).
+    map: raw.map as string,
     time,
     windOffsetDeg,
     boat: { x: boat.x, y: boat.y, heading: boat.heading },
@@ -153,9 +154,11 @@ export function applySave(world: World, data: SaveData): void {
   trade.dockedAt = data.dockedAt;
   if (data.contracts) trade.contracts = readContracts(data.contracts, world.map);
   world.ship = activeShip(trade);
-  // Compatible prototype saves keep all trading progress. If a new coastline covers the old
-  // position, resume safely at the known-clear spawn rather than strand the boat on land.
+  // Compatible older-map saves keep all trading progress. The coasts and ports have moved since
+  // (decision 0026), so they resume at the known-clear spawn; so does a save whose position a
+  // coastline now covers, rather than strand the boat on land.
   if (
+    data.map !== world.map.name ||
     resolveCollisions(
       world.boat,
       world.ship.radius,

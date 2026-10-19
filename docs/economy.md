@@ -13,7 +13,7 @@ Each port has one main production ([0029](decisions/0029-one-main-production-per
 | Westholm | westholm | grain | stone, fish |
 | Stonehaven | south-cay | stone | grain, timber |
 
-Ports live in `src/data/phase0-map.json` under `ports`; any island can host one. Every port trades every good: its role only sets where the stock settles.
+Ports live in the map data (`src/data/phase1-map.json` for trading) under `ports`; any island can host one. Every port trades every good: its role only sets where the stock settles.
 
 ## Prices
 
@@ -35,7 +35,7 @@ Typical prices with the current numbers (gold per unit, first unit):
 
 ## Delivery contracts
 
-`src/sim/contracts.ts`, decision [0028](decisions/0028-delivery-contracts.md). Each port has one order for a good it wants: 4–8 units, reward = units × base price × (1.75 + haul / 500), rounded to 5, where haul is the distance from the nearest other port making the good. Deliver while docked (all units at once); the goods leave the hold without changing the market. The port posts its next order 90 s later. Typical first orders on the current map: 7 stone to Port Calda for about 300 gold, 7 grain to Saltmere for about 155.
+`src/sim/contracts.ts`, decision [0028](decisions/0028-delivery-contracts.md). Each port has one order for a good it wants: 4–8 units, reward = units × base price × (1.75 + haul / 500), rounded to 5, where haul is the distance from the nearest other port making the good. Deliver while docked (all units at once); the goods leave the hold without changing the market. The port posts its next order 90 s later. Typical first orders on the Windward Ring: 7 stone to Port Calda for about 385 gold, 7 grain to Saltmere for about 210.
 
 ## Tuning knobs
 

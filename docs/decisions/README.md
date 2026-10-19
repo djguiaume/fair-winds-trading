@@ -37,4 +37,6 @@
 | [0029](0029-one-main-production-per-port.md) | One main production per port | 2026-10-19 | Accepted |
 | [0030](0030-home-base-upgrades-and-earned-ships.md) | Home-base upgrades and earned ships | 2026-10-19 | Accepted (direction) |
 
+| [0030](0030-windward-ring-map.md) | Windward Ring replaces Staggered passages as the trading map | 2026-10-19 | Implementation for review |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
