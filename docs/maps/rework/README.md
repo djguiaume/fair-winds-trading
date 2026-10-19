@@ -1,6 +1,6 @@
 # Phase 1 map rework: mockups
 
-**Status:** Guillaume chose **A, Windward Ring**, 2026-10-19, asking for a real reason to sail between Saltmere and Westholm (now drawn on the mockup). Implemented in `src/data/phase1-map.json`; [decision 0030](../../decisions/0030-windward-ring-map.md).
+**Status:** Guillaume chose **A, Windward Ring**, 2026-10-19, asking for a real reason to sail between Saltmere and Westholm (now drawn on the mockup). Implemented in `src/data/phase1-map.json`; [decision 0031](../../decisions/0031-windward-ring-map.md).
 
 ## As built
 

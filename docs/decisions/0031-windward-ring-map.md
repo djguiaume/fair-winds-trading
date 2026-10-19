@@ -1,4 +1,4 @@
-# 0030. Windward Ring replaces Staggered passages as the trading map
+# 0031. Windward Ring replaces Staggered passages as the trading map
 
 **Status:** Implementation for review, 2026-10-19. Guillaume chose mockup A, asking for a real reason to sail between Saltmere and Westholm.
 

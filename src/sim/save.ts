@@ -171,7 +171,7 @@ export function applySave(world: World, data: SaveData): void {
   if (data.contracts) trade.contracts = readContracts(data.contracts, world.map);
   world.ship = activeShip(trade);
   // Compatible older-map saves keep all trading progress. The coasts and ports have moved since
-  // (decision 0026), so they resume at the known-clear spawn; so does a save whose position a
+  // (decision 0031), so they resume at the known-clear spawn; so does a save whose position a
   // coastline now covers, rather than strand the boat on land.
   if (
     data.map !== world.map.name ||
