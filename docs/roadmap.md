@@ -31,8 +31,8 @@ Goal: one boat on an empty ocean that is fun to steer.
 
 - Top-down camera following the boat, stylized ocean, a couple of islands with collision.
 - Wind: one global direction and strength, shown by a wind arrow/vane and drifting particles.
-- Sailing model (arcade, [0006](decisions/0006-arcade-sailing-with-tacking.md)): speed depends on angle to the wind; heading into the no-go zone (~45° either side of the wind) stalls the boat, so upwind means tacking. Sail trim is automatic.
-- Controls: steer left/right, raise/lower sails. Keyboard **and** touch from the start ([0005](decisions/0005-desktop-and-mobile.md)).
+- Sailing model (arcade, [0007](decisions/0007-arcade-sailing-with-tacking.md)): speed depends on angle to the wind; heading into the no-go zone (~45° either side of the wind) stalls the boat, so upwind means tacking. Sail trim is automatic.
+- Controls: steer left/right, raise/lower sails. Keyboard **and** touch from the start ([0006](decisions/0006-desktop-and-mobile.md)).
 - Performance baseline: smooth on an old tablet and a phone (quality setting, capped pixel ratio).
 - Wake trail and a simple speed readout.
 
@@ -42,15 +42,15 @@ Goal: one boat on an empty ocean that is fun to steer.
 
 Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 
-- One handmade archipelago (5–8 islands) defined as data and built with a seedable RNG, so seeded maps can come later ([0007](decisions/0007-static-map-seed-ready.md)), 3–4 settlements, each producing one good and wanting others (e.g. fish, timber, grain, cloth).
+- One handmade archipelago (5–8 islands) with 3–4 settlements, each producing one good and wanting others (e.g. fish, timber, grain, cloth). The map is defined as data and uses a seedable RNG, so seeded maps can come later ([0008](decisions/0008-static-map-seed-ready.md)).
 - Docking: slow down near a port to open a trade panel; buy, sell, accept delivery contracts.
 - Cargo hold with limited capacity; prices vary by supply and demand per settlement.
 - Gold as currency; one ship upgrade (bigger hold or better sails).
 - Wind that shifts slowly over time so the same trip changes.
 - Minimap with port markers and current wind.
 - Floating labels over ports in the ad's style (name, level badge, what they want).
-- Sandbox play in short sessions: auto-save to the browser and instant resume ([0008](decisions/0008-sandbox-short-sessions.md)).
-- Light hazards: reefs and shallows ([0009](decisions/0009-light-hazards-pirates-later.md)).
+- Sandbox play in short sessions: auto-save to the browser and instant resume ([0009](decisions/0009-sandbox-short-sessions.md)).
+- Light hazards: reefs and shallows ([0010](decisions/0010-light-hazards-pirates-later.md)).
 
 **Done when:** you can earn enough to buy the upgrade and feel the difference.
 
@@ -105,12 +105,12 @@ Goal: growth pushes you outward into tougher navigation.
 
 ## Out of scope for now
 
-- Ship-to-ship combat as a core feature before Phase 5 (trade stays the core; see [0009](decisions/0009-light-hazards-pirates-later.md)).
+- Ship-to-ship combat as a core feature before Phase 5 (trade stays the core; see [0010](decisions/0010-light-hazards-pirates-later.md)).
 - Multiplayer and monetization.
 - Tech stack choice: being discussed in its own thread, before Phase 0 starts.
 
 ## Open questions for the tech-stack discussion
 
 - ~~True 3D or 2.5D?~~ Decided: real-time 3D low-poly ([decision 0004](decisions/0004-real-time-3d.md)). Which 3D engine?
-- ~~Desktop or mobile first?~~ Both from day one, tuned for an old tablet ([0005](decisions/0005-desktop-and-mobile.md)).
+- ~~Desktop or mobile first?~~ Both from day one, tuned for an old tablet ([0006](decisions/0006-desktop-and-mobile.md)).
 - How much simulation runs for off-screen automated ships (needed from Phase 3)?

@@ -1,4 +1,4 @@
-# 0009. Light hazards now, pirates and enemy factions later
+# 0010. Light hazards now, pirates and enemy factions later
 
 **Status:** Accepted, 2026-10-19 (refines [0002](0002-trade-over-combat.md))
 

@@ -1,4 +1,4 @@
-# 0007. Start with one static map, keep the code ready for seeded generation
+# 0008. Start with one static map, keep the code ready for seeded generation
 
 **Status:** Accepted, 2026-10-19
 

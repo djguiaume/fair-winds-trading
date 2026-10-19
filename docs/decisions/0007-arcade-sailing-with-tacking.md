@@ -1,4 +1,4 @@
-# 0006. Arcade sailing, but the wind's no-go zone is real
+# 0007. Arcade sailing, but the wind's no-go zone is real
 
 **Status:** Accepted, 2026-10-19
 

@@ -1,4 +1,4 @@
-# 0005. Desktop and mobile from day one, optimized for low-end devices
+# 0006. Desktop and mobile from day one, optimized for low-end devices
 
 **Status:** Accepted, 2026-10-19
 

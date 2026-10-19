@@ -1,4 +1,4 @@
-# 0008. Sandbox game for short play sessions
+# 0009. Sandbox game for short play sessions
 
 **Status:** Accepted, 2026-10-19
 
