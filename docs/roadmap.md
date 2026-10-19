@@ -27,7 +27,7 @@ Pick up goods at a settlement → read the wind → sail (tacking when needed) �
 
 ## Phase 0 — Sailing prototype ("does sailing feel good?")
 
-**Status (2026-10-19):** first playable build, [play it here](https://djguiaume.github.io/fair-winds-trading/). Implementation choices in [0013](decisions/0013-phase-0-prototype-choices.md), model in [sailing-model.md](sailing-model.md). Next: play-test on the tablet and phone, then tune.
+**Status (2026-10-19):** first playable build, [play it here](https://djguiaume.github.io/fair-winds-trading/). Implementation choices in [0013](decisions/0013-phase-0-prototype-choices.md), model in [sailing-model.md](sailing-model.md). Title menu and fullscreen added in [0015](decisions/0015-main-menu-and-fullscreen.md). Next: play-test on the tablet and phone, then tune.
 
 Goal: one boat on an empty ocean that is fun to steer.
 
@@ -38,6 +38,7 @@ Goal: one boat on an empty ocean that is fun to steer.
 - Performance baseline: smooth on an old tablet and a phone (quality setting, capped pixel ratio).
 - Wake trail and a simple speed readout.
 - A looping practice course of buoys (first leg upwind) to judge whether tacking feels right.
+- Title menu (play, how to play, settings) and a fullscreen option, with an Add to Home Screen hint on iPhone.
 
 **Done when:** tacking upwind to reach an island is a small, satisfying challenge.
 
