@@ -34,10 +34,14 @@ export interface IslandDef {
 
 /** A coastline shared by rendering and collision; coordinates are world x east / y north.
  * Sandbanks are permanently above-water obstacles for now, not a new depth/damage system.
+ * Reefs are rocks and coral just awash: solid to the hull like a shore, drawn without land
+ * (decision 0026).
  */
 export interface TerrainDef {
   id: string;
-  kind: 'island' | 'sandbank';
+  /** Shown on the sea chart. */
+  name?: string;
+  kind: 'island' | 'sandbank' | 'reef';
   outline: [number, number][];
   look?: { trees?: number; landmark?: LandmarkKind };
 }

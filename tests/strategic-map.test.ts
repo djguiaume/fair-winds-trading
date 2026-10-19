@@ -2,18 +2,14 @@ import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { PHASE0_MAP, PHASE1_MAP } from '../src/data/maps';
 import { createBoat, stepBoat, KNOT_TO_UNITS } from '../src/sim/boat';
-import { coastDistance } from '../src/sim/coast';
+import { coastDistance, insetOutline } from '../src/sim/coast';
 import { resolveCollisions } from '../src/sim/collision';
 import type { MapDef, TerrainDef } from '../src/sim/map';
 import { DEG, bearingTo, clamp, wrapAngle } from '../src/sim/math';
 import { SLOOP, CUTTER, polarFraction } from '../src/sim/ship';
 import { applySave, serializeWorld, validateSave } from '../src/sim/save';
 import { createWorld } from '../src/sim/world';
-import {
-  buildHighlandIslands,
-  islandParts,
-  terrainProps,
-} from '../src/render/models/highlandIslands';
+import { buildHighlandIslands, terrainProps } from '../src/render/models/highlandIslands';
 import { triangleCount } from '../src/render/models/geometry';
 import { Ocean } from '../src/render/ocean';
 
@@ -83,26 +79,29 @@ describe('polygon coast collisions', () => {
   });
 });
 
-describe('selected trading map', () => {
-  it('preserves all existing islands, docks, props and procedural seeds exactly', () => {
-    for (const i of [0, 1, 2, 6]) expect(PHASE1_MAP.islands[i]).toEqual(PHASE0_MAP.islands[i]);
-    expect(
-      PHASE1_MAP.islands.slice(0, 8).map(({ id, x, y, radius }) => ({ id, x, y, radius })),
-    ).toEqual(PHASE0_MAP.islands.map(({ id, x, y, radius }) => ({ id, x, y, radius })));
-    expect(PHASE1_MAP.seed).toBe(PHASE0_MAP.seed);
-    for (const i of [0, 1, 2, 6]) {
-      const oldParts = islandParts(PHASE0_MAP.islands[i]!, PHASE0_MAP, PHASE0_MAP.seed * 1000 + i);
-      const newParts = islandParts(PHASE1_MAP.islands[i]!, PHASE1_MAP, PHASE1_MAP.seed * 1000 + i);
-      expect(newParts.map((g) => Array.from(g.attributes.position!.array))).toEqual(
-        oldParts.map((g) => Array.from(g.attributes.position!.array)),
-      );
-      [...oldParts, ...newParts].forEach((g) => g.dispose());
+describe('Windward Ring trading map', () => {
+  const portIslands = PHASE1_MAP.ports.map((port) =>
+    PHASE1_MAP.islands.find((i) => i.id === port.islandId)!,
+  );
+  const scenery = PHASE1_MAP.islands.filter((i) => !portIslands.includes(i));
+  it('spreads the four ports around the rim and makes them the main landmarks', () => {
+    expect(PHASE1_MAP.name).toBe('Windward Ring');
+    expect(PHASE1_MAP.boundsRadius).toBe(440);
+    expect(portIslands).toHaveLength(4);
+    for (const island of portIslands) {
+      expect(Math.hypot(island.x, island.y)).toBeGreaterThan(280);
+      expect(island.radius).toBeGreaterThan(Math.max(...scenery.map((i) => i.radius)));
+      expect(island.look?.dock).toBe(true);
     }
+    // One port on each side of the wind: every compass quarter has a port.
+    const quarters = new Set(
+      portIslands.map((i) => Math.floor(bearingTo({ x: 0, y: 0 }, i) / (Math.PI / 2))),
+    );
+    expect(quarters.size).toBe(4);
   });
   it('keeps spawn, every docking ring and a broad eastern sailing lane clear', () => {
     expect(clear(PHASE1_MAP.start.x, PHASE1_MAP.start.y, CUTTER.radius + 3)).toBe(true);
-    for (const port of PHASE1_MAP.ports) {
-      const island = PHASE1_MAP.islands.find((i) => i.id === port.islandId)!;
+    for (const island of portIslands) {
       for (let angle = 0; angle < 360; angle += 15) {
         const d = island.radius + 12;
         expect(
@@ -114,38 +113,59 @@ describe('selected trading map', () => {
         ).toBe(true);
       }
     }
-    for (let x = 115; x <= 175; x += 5)
-      for (let y = -170; y <= 110; y += 5) {
-        // Existing east-key and far-rock remain landmarks, with room around both sides.
-        expect(terrain.every((t) => coastDistance(x, y, t.outline).distance > 12)).toBe(true);
-      }
+    for (let x = 300; x <= 380; x += 5)
+      for (let y = -60; y <= 100; y += 5) expect(clear(x, y, 12)).toBe(true);
   });
-  it('renders the exact new coastline in one merged mesh and gives every edge a water halo', () => {
+  it('blocks the straight Saltmere–Westholm line but leaves a reach lane each way', () => {
+    const [saltmere, westholm] = [portIslands[1]!, portIslands[2]!];
+    let blocked = false;
+    for (let t = 0.2; t <= 0.8; t += 0.01)
+      if (
+        !clear(
+          saltmere.x + (westholm.x - saltmere.x) * t,
+          saltmere.y + (westholm.y - saltmere.y) * t,
+          SLOOP.radius,
+        )
+      )
+        blocked = true;
+    expect(blocked).toBe(true);
+    const out = route(approaches[1]!, approaches[2]!, 30);
+    const back = route(approaches[2]!, approaches[1]!, 30);
+    // Across the wind both ways: the round trip is no slower than one upwind leg to Calda.
+    const upwind = route(approaches[3]!, approaches[0]!, 30);
+    expect(out.seconds + back.seconds).toBeLessThan(upwind.seconds * 2);
+  }, 30000);
+  it('draws barrier islands in B2 tiers inside the exact collision outline', () => {
     const mesh = buildHighlandIslands(PHASE1_MAP, { shadows: false }) as THREE.Mesh<
       THREE.BufferGeometry,
       THREE.Material
     >;
-    expect(mesh.geometry.attributes.position!.count).toBeGreaterThan(0);
-    expect(Array.from(mesh.geometry.attributes.position!.array).every(Number.isFinite)).toBe(true);
+    const pos = mesh.geometry.attributes.position!;
+    expect(pos.count).toBeGreaterThan(0);
+    expect(Array.from(pos.array).every(Number.isFinite)).toBe(true);
     const ocean = new Ocean(PHASE1_MAP.islands, 8, false, 480, terrain);
     expect(ocean.mesh.material.uniforms.uCoastEdgeCount!.value).toBe(
       terrain.reduce((n, t) => n + t.outline.length, 0),
     );
-    for (const t of terrain)
+    for (const t of terrain.filter((t) => t.kind !== 'reef'))
       for (const [x, y] of t.outline) {
-        const pos = mesh.geometry.attributes.position!;
         let found = false;
         for (let i = 0; i < pos.count; i++)
           if (Math.abs(pos.getX(i) - x) < 1e-4 && Math.abs(pos.getZ(i) + y) < 1e-4) found = true;
         expect(found).toBe(true);
       }
+    for (const t of terrain.filter((t) => t.kind === 'island'))
+      for (const inset of [4, 8, 10])
+        for (const [x, y] of insetOutline(t.outline, inset))
+          expect(coastDistance(x, y, t.outline).distance).toBeLessThan(-inset + 0.5);
     mesh.geometry.dispose();
     mesh.material.dispose();
     ocean.dispose();
   });
-  it('adds real land-bound scenery to every barrier and sandbank within the mobile mesh budget', () => {
+  it('keeps every barrier and reef prop inside its shore within the mobile mesh budget', () => {
+    expect(terrain.some((t) => t.kind === 'reef')).toBe(true);
     for (const [i, feature] of terrain.entries()) {
-      expect(feature.look?.landmark).toBeTruthy();
+      if (feature.kind === 'island') expect(feature.look?.landmark).toBeTruthy();
       const props = terrainProps(feature, PHASE1_MAP.seed * 1709 + i * 97);
       expect(props.reduce((n, g) => n + triangleCount(g), 0)).toBeGreaterThan(100);
       for (const g of props) {
@@ -166,44 +186,45 @@ describe('selected trading map', () => {
     mesh.geometry.dispose();
     mesh.material.dispose();
   });
-  it('expands the sea while keeping new outer islands clear of the core and the world edge', () => {
-    expect(PHASE1_MAP.boundsRadius).toBe(440);
-    const outer = PHASE1_MAP.islands.slice(8);
-    expect(outer).toHaveLength(4);
+  it('gives every scenery island a landmark and keeps islands inside the world edge', () => {
     expect(PHASE1_MAP.islands.length).toBeLessThanOrEqual(12);
-    for (const i of PHASE1_MAP.islands) {
-      if (!PHASE1_MAP.ports.some((p) => p.islandId === i.id)) expect(i.look?.landmark).toBeTruthy();
-    }
-    for (const i of outer) {
-      expect(Math.hypot(i.x, i.y) - i.radius).toBeGreaterThan(260);
+    for (const i of scenery) expect(i.look?.landmark).toBeTruthy();
+    for (const i of PHASE1_MAP.islands)
       expect(Math.hypot(i.x, i.y) + i.radius + SLOOP.radius + 20).toBeLessThan(
         PHASE1_MAP.boundsRadius,
       );
-    }
     const ocean = new Ocean(PHASE1_MAP.islands, 8, false, 480, terrain);
     expect(ocean.mesh.material.uniforms.uIslandCount!.value).toBe(PHASE1_MAP.islands.length);
     ocean.dispose();
   });
-  it('migrates prototype trading progress and relocates covered positions without losing cargo', () => {
+  it('migrates older-map trading progress and resumes at the clear spawn', () => {
+    for (const map of [PHASE0_MAP, { ...PHASE0_MAP, name: 'Staggered passages' }]) {
+      const old = createWorld(map, SLOOP);
+      old.trade.captain.gold = 987;
+      old.trade.captain.cargo.fish = 3;
+      old.boat.x = 150;
+      old.boat.y = -100;
+      old.trade.dockedAt = 'saltmere';
+      const resumed = createWorld(PHASE1_MAP, SLOOP);
+      const valid = validateSave(serializeWorld(old), resumed);
+      expect(valid).not.toBeNull();
+      applySave(resumed, valid!);
+      expect(resumed.trade.captain.gold).toBe(987);
+      expect(resumed.trade.captain.cargo.fish).toBe(3);
+      expect(resumed.trade.dockedAt).toBeNull();
+      expect(resumed.boat.x).toBe(PHASE1_MAP.start.x);
+      expect(resumed.boat.y).toBe(PHASE1_MAP.start.y);
+    }
     const old = createWorld(PHASE0_MAP, SLOOP);
-    old.trade.captain.gold = 987;
-    old.trade.captain.cargo.fish = 3;
-    old.boat.x = -50;
-    old.boat.y = 80; // new northern barrier
     const resumed = createWorld(PHASE1_MAP, SLOOP);
-    const valid = validateSave(serializeWorld(old), resumed);
-    expect(valid).not.toBeNull();
-    applySave(resumed, valid!);
-    expect(resumed.trade.captain.gold).toBe(987);
-    expect(resumed.trade.captain.cargo.fish).toBe(3);
-    expect(resumed.boat.x).toBe(PHASE1_MAP.start.x);
-    expect(resumed.boat.y).toBe(PHASE1_MAP.start.y);
     expect(validateSave({ ...serializeWorld(old), map: 'unrelated' }, resumed)).toBeNull();
-    old.boat.x = 150;
-    old.boat.y = -100;
-    applySave(resumed, validateSave(serializeWorld(old), resumed)!);
-    expect(resumed.boat.x).toBe(150);
-    expect(resumed.boat.y).toBe(-100);
+    // A same-map save keeps its position.
+    const same = createWorld(PHASE1_MAP, SLOOP);
+    same.boat.x = 330;
+    same.boat.y = 20;
+    applySave(resumed, validateSave(serializeWorld(same), resumed)!);
+    expect(resumed.boat.x).toBe(330);
+    expect(resumed.boat.y).toBe(20);
   });
 });
 
@@ -326,8 +347,9 @@ describe('wind-aware route audit', () => {
       's',
     );
   }, 30000);
-  it('can reach all four outer landmark islands under northeast and southwest winds', () => {
-    for (const island of PHASE1_MAP.islands.slice(8))
+  it('can reach every scenery island under northeast and southwest winds', () => {
+    const ports = new Set(PHASE1_MAP.ports.map((p) => p.islandId));
+    for (const island of PHASE1_MAP.islands.filter((i) => !ports.has(i.id)))
       for (const wind of [30, 210]) {
         const plan = route(
           PHASE1_MAP.start,
@@ -351,7 +373,7 @@ describe('wind-aware route audit', () => {
     for (const destination of [2, 3, 1, 0]) {
       // Leave Saltmere to seaward before turning upwind: heading straight north from
       // its southern approach would put the island inside the turn.
-      const offshore = { x: 112, y: -192 };
+      const offshore = { x: 336, y: -192 };
       const departure = destination === 0 ? route(boat, offshore, 30) : null;
       const onward = route(departure ? offshore : boat, approaches[destination]!, 30);
       const plan = departure
@@ -362,7 +384,7 @@ describe('wind-aware route audit', () => {
         : onward;
       let index = 1;
       const startTime = elapsed;
-      while (index < plan.points.length && elapsed - startTime < 240) {
+      while (index < plan.points.length && elapsed - startTime < 400) {
         const target = plan.points[index]!;
         if (Math.hypot(target.x - boat.x, target.y - boat.y) < 9) {
           index++;

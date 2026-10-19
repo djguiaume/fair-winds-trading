@@ -482,12 +482,13 @@ const A = {
   deep: [blob(-60, 40, 60, 501, { sx: 3.2, sy: 0.5, rot: -32 })],
   notes: [
     { x: 330, y: 40, text: 'OPEN WATER' },
-    { x: -80, y: 30, text: 'THE NARROWS' },
+    { x: -95, y: 50, text: 'THE NARROWS' },
   ],
   routes: [
     { tag: 'Timber run', label: 'Calda → Saltmere', via: ['calda', [230, 90], 'saltmere'], color: '#f2c14e', note: 'downwind, outside the reefs', labelAt: 1 },
     { tag: 'Stone haul', label: 'Stonehaven → Calda', via: ['stonehaven', [-110, -160], [-80, 20], [0, 75], 'calda'], color: '#ff9b71', note: 'upwind through the Narrows', labelAt: 2 },
     { tag: 'Grain', label: 'Westholm → Stonehaven', via: ['westholm', [-280, -120], 'stonehaven'], color: '#b5e48c', note: 'reach', labelAt: 1 },
+    { tag: 'Fish ⇄ grain', label: 'Westholm ⇄ Saltmere', via: ['westholm', [-180, 30], [-20, 22], [110, -20], 'saltmere'], color: '#8ecae6', note: 'beam reach both ways', labelAt: 3 },
   ],
 };
 

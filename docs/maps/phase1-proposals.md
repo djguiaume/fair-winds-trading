@@ -1,6 +1,6 @@
 # Phase 1 map proposals
 
-> **Rework in progress (2026-10-19):** two new layouts are proposed in [rework/](rework/README.md) after Guillaume found this map lacking.
+> **Superseded (2026-10-19):** Guillaume found this map lacking; the Windward Ring layout from [rework/](rework/README.md) replaces it ([decision 0030](../decisions/0030-windward-ring-map.md)).
 
 **Status:** Guillaume selected the strengthened B layout, 2026-10-19. Implemented in `src/data/phase1-map.json`; [decision 0019](../decisions/0019-staggered-passages-first-map.md).
 

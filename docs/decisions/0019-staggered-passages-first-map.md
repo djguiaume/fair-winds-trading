@@ -1,6 +1,6 @@
 # 0019. Use strengthened Staggered passages as the first trading map
 
-**Status:** Accepted by Guillaume, 2026-10-19.
+**Status:** Accepted by Guillaume, 2026-10-19; superseded by [0030](0030-windward-ring-map.md) (Windward Ring).
 
 **Context:** Guillaume wanted meaningful route planning rather than a four-corner layout. The latest scope keeps the four current main islands as they are, adds smaller islands, sandbanks or corridors, and retains open ocean for speedy boats and later fighting. He accepted the recommendation to use strengthened proposal B and the associated progression direction.
 

@@ -13,7 +13,7 @@ How buying, selling, docking, upgrades and saving work in Fair Winds Trading, an
 | Westholm | westholm | grain | stone, fish |
 | Stonehaven | south-cay | stone | grain, timber |
 
-Ports live in `src/data/phase0-map.json` under `ports`; any island can host one. Every port trades every good: its role only sets where the stock settles.
+Ports live in the map data (`src/data/phase1-map.json` for trading) under `ports`; any island can host one. Every port trades every good: its role only sets where the stock settles.
 
 ## Prices
 

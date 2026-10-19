@@ -1,6 +1,12 @@
 # Phase 1 map rework: mockups
 
-**Status:** proposals for Guillaume to choose from, 2026-10-19. Nothing in the game changes until one is picked; the choice will get its own decision record.
+**Status:** Guillaume chose **A, Windward Ring**, 2026-10-19, asking for a real reason to sail between Saltmere and Westholm (now drawn on the mockup). Implemented in `src/data/phase1-map.json`; [decision 0030](../../decisions/0030-windward-ring-map.md).
+
+## As built
+
+![Windward Ring, top-down render of the real game models](windward-ring-overview.png)
+
+Rendered from the real island models and ocean shader by `docs/maps/src/overview.html` (open it with `npm run dev`). Differences from the mockup: reefs are drawn as rocks and coral inside a foam line rather than a filled shallow, and the two outer islands are scenery until unlockable ports exist.
 
 ## Why a rework
 

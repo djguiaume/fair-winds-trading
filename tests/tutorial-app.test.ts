@@ -8,10 +8,10 @@ import type { Input } from '../src/input/input';
 vi.mock('../src/render/view', () => ({
   GameView: class {
     harbours = {
-      calda: { x: 93, y: 105 },
-      saltmere: { x: 66, y: -150 },
-      westholm: { x: -92, y: 22 },
-      stonehaven: { x: 0, y: 0 },
+      calda: { x: 152, y: 240 },
+      saltmere: { x: 252, y: -134 },
+      westholm: { x: -280, y: 40 },
+      stonehaven: { x: -140, y: -270 },
     };
     resize() {}
     render() {}
@@ -79,7 +79,7 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   await flushClose();
   expect(input.isEnabled).toBe(true);
   click('#tutorial-continue');
-  Object.assign(world.boat, { x: 93, y: 105, speedKn: 0 });
+  Object.assign(world.boat, { x: 152, y: 240, speedKn: 0 });
   click('.port-marker[data-port-id="calda"]');
   expect(world.trade.dockedAt).toBe('calda');
   expect(input.isEnabled).toBe(false);
@@ -94,7 +94,7 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   click('#close-chart');
   await flushClose();
   world.trade.dockedAt = null;
-  Object.assign(world.boat, { x: 66, y: -150, speedKn: 0 });
+  Object.assign(world.boat, { x: 252, y: -134, speedKn: 0 });
   click('.port-marker[data-port-id="saltmere"]');
   click('#tp-sell-all');
   expect(world.trade.captain.cargo.timber).toBe(0);
