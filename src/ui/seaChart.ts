@@ -11,6 +11,7 @@ const NS = 'http://www.w3.org/2000/svg';
 /** A static DOM/SVG chart, built only on opening; no second WebGL scene or render loop. */
 export class SeaChart {
   onChange: () => void = () => {};
+  onDestinationChange: () => void = () => {};
   private pins: Pin[] = [];
   private previousFocus: HTMLElement | null = null;
   private readonly key: string;
@@ -41,6 +42,7 @@ export class SeaChart {
     this.get('close-chart').addEventListener('click', () => this.close());
     this.get('chart-clear-target').addEventListener('click', () => {
       world.destination = null;
+      this.onDestinationChange();
       this.draw();
       this.status('Bearing cleared. Sail wherever you like.');
     });
@@ -164,6 +166,7 @@ export class SeaChart {
       const select = () => {
         // Use the visible pier as the destination, rather than a legacy practice buoy.
         this.world.destination = { portId: port.id, label: port.name, ...anchor };
+        this.onDestinationChange();
         this.draw();
         this.status(`Bearing set for ${port.name}. Close the chart when ready.`);
       };
@@ -199,6 +202,7 @@ export class SeaChart {
     for (const pin of this.pins) {
       const select = () => {
         this.world.destination = { ...pin, portId: '' };
+        this.onDestinationChange();
         this.draw();
         this.status(`Bearing set for ${pin.label}.`);
       };

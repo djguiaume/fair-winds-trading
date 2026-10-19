@@ -7,6 +7,8 @@ import { clamp } from './sim/math';
 import { type SaveStorage, clearSave, loadGame, saveGame } from './sim/save';
 import { SLOOP } from './sim/ship';
 import * as trade from './sim/trade';
+import { Tutorial } from './sim/tutorial';
+import { TutorialCard } from './ui/tutorial';
 import {
   type WorldEvent,
   createWorld,
@@ -53,7 +55,7 @@ const storage: SaveStorage | null = (() => {
     return null;
   }
 })();
-if (storage) loadGame(storage, world);
+const resumedVoyage = storage ? loadGame(storage, world) : false;
 let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
 const view = new GameView(canvas, world, level);
 const hud = new Hud(
@@ -71,9 +73,13 @@ const input = new Input(stage);
 const chart = new SeaChart($('chart') as HTMLDialogElement, world, view.harbours);
 chart.onChange = () => {
   input.releaseAll();
+  if (chart.isOpen) tutorial.chartOpened();
   refreshPause();
 };
 const tradePanel = new TradePanel($('trade-panel'), world);
+const tutorial = new Tutorial(world, view.harbours, storage, resumedVoyage);
+const tutorialCard = new TutorialCard(tutorial);
+const tutorialOffer = $<HTMLDialogElement>('tutorial-offer');
 tradePanel.uiMode = settings.uiMode;
 hud.portLabels.isKidMode = settings.uiMode === 'kids';
 tradePanel.onUiModeChange = (mode) => {
@@ -105,10 +111,12 @@ hud.onPortClick = (portId: string) => {
     refreshPause();
   } else if (trade.tryDock(world.trade, world.map, world.boat, portId)) {
     handleEvents([{ type: 'docked', portId }]);
+    tutorial.observe();
   } else {
     if (setPortDestination(world, portId)) {
       const anchor = view.harbours[portId];
       if (anchor) Object.assign(world.destination!, anchor);
+      tutorial.destinationSelected();
       hud.showToast(`Course set for ${world.destination!.label}`, 2);
     }
   }
@@ -134,7 +142,17 @@ function refreshPause() {
     !help.hidden ||
     tradePanel.isOpen ||
     windHelp.open ||
-    chart.isOpen;
+    chart.isOpen ||
+    tutorialOffer.open;
+  tutorialCard.setSurface(
+    mode === 'menu' || !settingsPanel.hidden || !help.hidden || windHelp.open || tutorialOffer.open
+      ? null
+      : chart.isOpen
+        ? 'chart'
+        : tradePanel.isOpen
+          ? 'market'
+          : 'sea',
+  );
   input.setEnabled(!paused);
 }
 
@@ -160,7 +178,8 @@ function play() {
   started = true;
   document.body.classList.remove('in-menu');
   menu.hidden = true;
-  if (!settings.seenHelp) openHelp();
+  tutorial.resume();
+  if (tutorial.shouldOffer(resumedVoyage)) tutorialOffer.showModal();
   refreshPause();
 }
 
@@ -179,6 +198,53 @@ function closeHelp() {
   refreshPause();
 }
 
+tutorial.onChange = () => {
+  tutorialCard.render();
+  $('menu-tutorial').textContent = tutorial.isActive
+    ? 'Continue tutorial'
+    : tutorial.status === 'unseen'
+      ? 'Learn to sail & trade'
+      : 'Replay tutorial';
+};
+tutorial.onChange();
+chart.onDestinationChange = () => tutorial.destinationSelected();
+tradePanel.onTrade = (kind, good) => tutorial.traded(kind, good);
+tradePanel.onRender = () => tutorialCard.render();
+tutorialCard.onChart = () => {
+  if (tradePanel.isOpen) tradePanel.close();
+  chart.open();
+};
+tutorialCard.onMarket = () => {
+  if (world.trade.dockedAt) tradePanel.open('market');
+  else tutorialCard.onChart();
+  refreshPause();
+};
+tutorialCard.onTips = () => $('wind-help-trigger').click();
+$('tutorial-start').addEventListener('click', () => {
+  tutorial.start();
+  tutorialOffer.close();
+  refreshPause();
+});
+$('tutorial-free').addEventListener('click', () => {
+  tutorial.skip();
+  tutorialOffer.close();
+  refreshPause();
+});
+tutorialOffer.addEventListener('cancel', () => tutorial.skip());
+tutorialOffer.addEventListener('close', () => {
+  refreshPause();
+  $('menu-btn').focus({ preventScroll: true });
+});
+$('menu-tutorial').addEventListener('click', () => {
+  // Enter play without automatically showing the first-voyage offer a second time.
+  mode = 'play';
+  started = true;
+  document.body.classList.remove('in-menu');
+  menu.hidden = true;
+  if (tutorial.isActive) tutorial.resume();
+  else tutorialOffer.showModal();
+  refreshPause();
+});
 playButton.addEventListener('click', play);
 $('menu-help').addEventListener('click', openHelp);
 $('menu-settings').addEventListener('click', () => {
@@ -194,7 +260,7 @@ window.addEventListener('keydown', (e) => {
     else chart.open();
     return;
   }
-  if (e.code !== 'Escape' || windHelp.open || chart.isOpen) return;
+  if (e.code !== 'Escape' || windHelp.open || chart.isOpen || tutorialOffer.open) return;
   if (tradePanel.isOpen) {
     tradePanel.close();
     refreshPause();
@@ -339,14 +405,16 @@ function tick(now: number) {
     accumulator += dt;
     let steps = 0;
     while (!paused && accumulator >= SIM_STEP && steps < 6) {
-      handleEvents(stepWorld(world, { steer: input.steer, sailStep }, SIM_STEP));
+      const controls = { steer: input.steer, sailStep };
+      handleEvents(stepWorld(world, controls, SIM_STEP));
+      tutorial.observe(controls, SIM_STEP);
       accumulator -= SIM_STEP;
       steps++;
     }
     if (steps === 6) accumulator = 0;
   }
 
-  if (!chart.isOpen) view.render(dt);
+  if (!chart.isOpen && !tutorialOffer.open) view.render(dt);
   hud.update(dt, (x, y) => view.project(x, y), size, !paused);
 
   if (monitor.sample(dt) && settings.quality === 'auto' && level !== 'low') {

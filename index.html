@@ -56,6 +56,7 @@
         <div id="hud-cargo-tooltip" class="cargo-tooltip" hidden></div>
       </div>
 
+      <div id="tutorial-sea"></div>
       <div id="port-labels" class="port-labels-layer"></div>
 
       <button id="dock-btn" class="dock-btn" hidden aria-label="Open port trade">
@@ -253,6 +254,7 @@
         </div>
         <button id="close-chart" type="button" autofocus>Back to sea</button>
       </header>
+      <div id="tutorial-chart"></div>
       <p id="chart-instructions">
         Tap the sea to place a marker (up to 5). Tap a port or marker to select a bearing.
       </p>
@@ -273,6 +275,21 @@
         ><button id="chart-clear-target" type="button">Clear bearing</button>
       </div>
     </dialog>
+    <dialog id="tutorial-offer" class="panel tutorial-offer" aria-labelledby="tutorial-offer-title">
+      <h2 id="tutorial-offer-title">Your first voyage</h2>
+      <p>
+        Learn to read the chart, sail with the wind, dock and make a small delivery. Follow short
+        hints while you play; hide or skip them anytime.
+      </p>
+      <p class="muted small">
+        Uses your current boat and voyage. It won’t reset progress or spend gold for you. Sailing
+        pauses while this choice is open.
+      </p>
+      <div class="tutorial-actions">
+        <button id="tutorial-start" class="primary" type="button" autofocus>Start tutorial</button>
+        <button id="tutorial-free" type="button">Free sailing</button>
+      </div>
+    </dialog>
     <div id="trade-panel" class="trade-panel-overlay" hidden></div>
 
     <div id="menu" class="menu" hidden>
@@ -282,6 +299,7 @@
         <p class="menu-tagline">Read the wind. Deliver the goods.</p>
         <nav class="menu-buttons">
           <button id="menu-play" class="primary">Set sail</button>
+          <button id="menu-tutorial">Learn to sail &amp; trade</button>
           <button id="menu-help">How to play</button>
           <button id="menu-settings">Settings</button>
           <button id="menu-fullscreen" hidden>Fullscreen</button>

@@ -41,7 +41,7 @@ export class TradePanel {
   private returnFocus: HTMLElement | null = null;
   private message = '';
 
-  private finish(result: TradeResult) {
+  private finish(result: TradeResult, transaction?: { kind: 'buy' | 'sell'; good: GoodId | null }) {
     this.message = result.ok
       ? 'Done. Your cargo and gold are up to date.'
       : {
@@ -57,7 +57,10 @@ export class TradePanel {
           'unknown-ship': 'This boat is unavailable.',
           'cargo-too-big': 'Sell some cargo before changing boats.',
         }[result.error];
-    if (result.ok) this.onAction();
+    if (result.ok) {
+      this.onAction();
+      if (transaction && result.gold > 0) this.onTrade(transaction.kind, transaction.good);
+    }
     this.render();
   }
   uiMode: UiMode = 'adult';
@@ -69,6 +72,8 @@ export class TradePanel {
   };
 
   onAction: () => void = () => {};
+  onTrade: (kind: 'buy' | 'sell', good: GoodId | null) => void = () => {};
+  onRender: () => void = () => {};
   onClose: () => void = () => {};
   onUiModeChange: (mode: UiMode) => void = () => {};
 
@@ -89,7 +94,7 @@ export class TradePanel {
       if (e.key !== 'Tab') return;
       const buttons = [
         ...this.container.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'),
-      ];
+      ].filter((button) => !button.closest('[hidden]'));
       const first = buttons[0],
         last = buttons.at(-1);
       if (!first) {
@@ -206,6 +211,7 @@ export class TradePanel {
           </div>
         </header>
 
+        <div id="tutorial-market"></div>
         <section class="captain-bar">
           <div class="stat-pill gold-pill">
             <span class="stat-icon">🪙</span>
@@ -254,6 +260,7 @@ export class TradePanel {
 
     this.container.innerHTML = html;
     this.attachListeners();
+    this.onRender();
     const modal = this.container.querySelector('.trade-modal');
     if (modal) modal.scrollTop = scrollTop;
     if (focusKey) {
@@ -845,7 +852,7 @@ export class TradePanel {
     const sellAllBtn = this.container.querySelector('#tp-sell-all');
     sellAllBtn?.addEventListener('click', () => {
       const res = sellAll(this.world.trade);
-      this.finish(res);
+      this.finish(res, { kind: 'sell', good: null });
     });
 
     // Stepper buttons
@@ -889,10 +896,10 @@ export class TradePanel {
 
           if (action === 'buy') {
             const res = buy(this.world.trade, good, qty);
-            this.finish(res);
+            this.finish(res, { kind: 'buy', good });
           } else if (action === 'sell') {
             const res = sell(this.world.trade, good, qty);
-            this.finish(res);
+            this.finish(res, { kind: 'sell', good });
           }
         });
       });

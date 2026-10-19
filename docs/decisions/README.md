@@ -30,4 +30,6 @@
 
 | [0024](0024-on-demand-chart-and-quiet-sandbox.md) | On-demand chart, player markers, quieter HUD and suspended practice course | 2026-10-19 | Proposed implementation |
 
+| [0025](0025-optional-first-voyage-tutorial.md) | Optional, resumable first sailing and trading delivery tutorial | 2026-10-19 | Implementation for review |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

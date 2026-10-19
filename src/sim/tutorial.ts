@@ -1,0 +1,334 @@
+import { GOODS, GOOD_DEFS, isGood, type GoodId } from './goods';
+import { type BoatControls } from './boat';
+import { type SaveStorage } from './save';
+import { findPort, cargoUsed } from './trade';
+import type { World } from './world';
+
+export const TUTORIAL_STEPS = [
+  'chart',
+  'choose-port',
+  'sails',
+  'wind',
+  'dock',
+  'buy',
+  'choose-delivery',
+  'deliver',
+  'sell',
+] as const;
+export type TutorialStep = (typeof TUTORIAL_STEPS)[number];
+type Status = 'unseen' | 'active' | 'skipped' | 'completed';
+interface Progress {
+  status: Status;
+  step: TutorialStep;
+  origin: string | null;
+  delivery: string | null;
+  good: GoodId | null;
+}
+const fresh = (): Progress => ({
+  status: 'unseen',
+  step: 'chart',
+  origin: null,
+  delivery: null,
+  good: null,
+});
+
+/** Observes real actions. Never moves the boat, changes wind, grants cargo or trades for the player. */
+export class Tutorial {
+  private progress = fresh();
+  private ownedTarget: World['destination'] = null;
+  private lowered = false;
+  private raised = false;
+  private steeringSeconds = 0;
+  private movingSeconds = 0;
+  finishedNotice = false;
+  onChange: () => void = () => {};
+  readonly key: string;
+
+  constructor(
+    private readonly world: World,
+    private readonly harbours: Record<string, { x: number; y: number }>,
+    private readonly storage: SaveStorage | null,
+    resumedVoyage = true,
+  ) {
+    this.key = `fwt.tutorial.v1.${world.map.name}`;
+    try {
+      const p = JSON.parse(storage?.getItem(this.key) ?? 'null') as Progress | null;
+      const port = (id: unknown) =>
+        id === null || (typeof id === 'string' && Boolean(findPort(world.map, id)));
+      if (
+        p &&
+        ['unseen', 'active', 'skipped', 'completed'].includes(p.status) &&
+        TUTORIAL_STEPS.includes(p.step) &&
+        port(p.origin) &&
+        port(p.delivery) &&
+        (p.good === null || isGood(p.good))
+      ) {
+        this.progress = p;
+        // Incomplete/corrupt context restarts the lesson, never the voyage.
+        if (this.isActive && TUTORIAL_STEPS.indexOf(p.step) >= 2 && !p.origin)
+          this.progress.step = 'chart';
+        if (this.isActive && ['deliver', 'sell'].includes(p.step) && (!p.delivery || !p.good))
+          this.progress.step = 'choose-delivery';
+      }
+    } catch {
+      /* Private storage, old or malformed tutorial state: no impact on the voyage. */
+    }
+    // An unfinished lesson belongs to its voyage; completed/skipped choices are remembered.
+    if (!resumedVoyage && this.isActive) this.progress = fresh();
+  }
+  get status() {
+    return this.progress.status;
+  }
+  get step() {
+    return this.progress.step;
+  }
+  get isActive() {
+    return this.status === 'active';
+  }
+  get good() {
+    return this.progress.good;
+  }
+  get origin() {
+    return this.progress.origin;
+  }
+  get delivery() {
+    return this.progress.delivery;
+  }
+  shouldOffer(resumedVoyage: boolean) {
+    return !resumedVoyage && this.status === 'unseen';
+  }
+  get hasCargo() {
+    return cargoUsed(this.world.trade) > 0;
+  }
+
+  private publish() {
+    try {
+      this.storage?.setItem(this.key, JSON.stringify(this.progress));
+    } catch {
+      /* optional */
+    }
+    this.onChange();
+  }
+  private go(step: TutorialStep) {
+    this.progress.step = step;
+    this.publish();
+  }
+  private clearTarget() {
+    if (this.ownedTarget && this.world.destination === this.ownedTarget)
+      this.world.destination = null;
+    this.ownedTarget = null;
+  }
+  start() {
+    this.clearTarget();
+    this.progress = { ...fresh(), status: 'active' };
+    this.lowered = this.raised = false;
+    this.steeringSeconds = this.movingSeconds = 0;
+    this.finishedNotice = false;
+    this.publish();
+  }
+  /** Called only when entering play, not during construction or on the title screen. */
+  resume() {
+    if (!this.isActive || this.world.destination) return;
+    const id = ['sails', 'wind', 'dock', 'buy'].includes(this.step)
+      ? this.origin
+      : ['deliver', 'sell'].includes(this.step)
+        ? this.delivery
+        : null;
+    const port = id ? findPort(this.world.map, id) : null;
+    const anchor = id ? this.harbours[id] : null;
+    if (port && anchor) {
+      this.ownedTarget = { portId: port.id, label: port.name, ...anchor };
+      this.world.destination = this.ownedTarget;
+    }
+    this.observe();
+  }
+  skip() {
+    this.clearTarget();
+    this.progress.status = 'skipped';
+    this.finishedNotice = false;
+    this.publish();
+  }
+  dismissFinished() {
+    this.finishedNotice = false;
+    this.onChange();
+  }
+  chartOpened() {
+    if (this.isActive && this.step === 'chart') this.go('choose-port');
+  }
+
+  destinationSelected() {
+    if (!this.isActive) return;
+    const target = this.world.destination;
+    if (!target || !findPort(this.world.map, target.portId)) {
+      if (['sails', 'wind', 'dock'].includes(this.step)) this.go('choose-port');
+      else if (['deliver', 'sell'].includes(this.step)) this.go('choose-delivery');
+      return;
+    }
+    if (['chart', 'choose-port', 'sails', 'wind', 'dock'].includes(this.step)) {
+      this.progress.origin = target.portId;
+      this.ownedTarget = target;
+      if (this.step === 'chart' || this.step === 'choose-port') this.go('sails');
+      else this.publish();
+    } else if (
+      ['choose-delivery', 'deliver', 'sell'].includes(this.step) &&
+      target.portId !== this.origin
+    ) {
+      this.progress.delivery = target.portId;
+      this.ownedTarget = target;
+      this.go('deliver');
+      this.observe();
+    }
+  }
+  /** Lightweight numeric checks at simulation frequency; DOM changes only on lesson transitions. */
+  observe(controls?: BoatControls, dt = 0) {
+    if (!this.isActive) return;
+    const { boat, trade } = this.world;
+    if (this.step === 'choose-delivery' || this.step === 'deliver' || this.step === 'sell') {
+      if (!this.good || trade.captain.cargo[this.good] === 0) {
+        this.progress.good = GOODS.find((g) => trade.captain.cargo[g] > 0) ?? null;
+        if (!this.good) {
+          this.clearTarget();
+          this.progress.delivery = null;
+          this.go('choose-port');
+          return;
+        }
+        this.publish();
+      }
+    }
+    if (this.step === 'sails' && controls) {
+      if (controls.sailStep === 0) this.lowered = true;
+      if (this.lowered && controls.sailStep > 0) this.raised = true;
+      if (Math.abs(controls.steer) > 0.15) this.steeringSeconds += dt;
+      if (boat.speedKn > 0.7) this.movingSeconds += dt;
+      if (this.lowered && this.raised && this.steeringSeconds >= 0.3 && this.movingSeconds >= 1)
+        this.go('wind');
+    }
+    if (this.step === 'buy' && trade.dockedAt !== this.origin) this.go('dock');
+    if (this.step === 'sell' && trade.dockedAt !== this.delivery) this.go('deliver');
+    if (this.step === 'dock' && trade.dockedAt === this.origin) this.go('buy');
+    if (this.step === 'deliver' && trade.dockedAt === this.delivery) this.go('sell');
+  }
+  continueLesson() {
+    if (!this.isActive) return;
+    if (this.step === 'sails') this.go('wind');
+    else if (this.step === 'wind') {
+      this.go('dock');
+      this.observe();
+    } else if (this.step === 'buy' && this.hasCargo) {
+      this.progress.good = GOODS.find((g) => this.world.trade.captain.cargo[g] > 0)!;
+      this.go('choose-delivery');
+    }
+  }
+  /** The UI calls this only after a successful real buy/sell, never for upgrades or failed trades. */
+  traded(kind: 'buy' | 'sell', good: GoodId | null) {
+    if (!this.isActive) return;
+    const dock = this.world.trade.dockedAt;
+    if (this.step === 'buy' && kind === 'buy' && dock === this.origin && good) {
+      this.progress.good = good;
+      this.go('choose-delivery');
+    } else if (
+      this.step === 'sell' &&
+      kind === 'sell' &&
+      dock === this.delivery &&
+      (good === null || good === this.good)
+    ) {
+      this.clearTarget();
+      this.progress.status = 'completed';
+      this.finishedNotice = true;
+      this.publish();
+    } else if (
+      ['choose-delivery', 'deliver', 'sell'].includes(this.step) &&
+      this.good &&
+      this.world.trade.captain.cargo[this.good] === 0
+    ) {
+      // Cargo sold early: use another held good, or teach buying at the current harbour again.
+      this.progress.good = GOODS.find((g) => this.world.trade.captain.cargo[g] > 0) ?? null;
+      if (!this.good && dock) {
+        this.progress.origin = dock;
+        this.progress.delivery = null;
+        this.go('buy');
+      } else this.publish();
+    }
+  }
+
+  get lesson(): {
+    title: string;
+    copy: string;
+    action: 'chart' | 'market' | 'tips' | null;
+    continueText: string | null;
+  } {
+    const origin = this.origin ? findPort(this.world.map, this.origin)?.name : 'your chosen port';
+    const delivery = this.delivery ? findPort(this.world.map, this.delivery)?.name : 'another port';
+    const cargo = this.good ? GOOD_DEFS[this.good].name : 'your cargo';
+    const firstPort = this.world.map.ports.find((p) => p.id === this.origin);
+    const produced = firstPort?.produces[0];
+    const buyer = this.world.map.ports.find(
+      (p) => p.id !== this.origin && this.good && p.wants.includes(this.good),
+    );
+    switch (this.step) {
+      case 'chart':
+        return {
+          title: 'Find your bearings',
+          copy: 'Open Map (M). Blue is your boat, anchors are trading ports. Sailing pauses while you plan.',
+          action: 'chart',
+          continueText: null,
+        };
+      case 'choose-port':
+        return {
+          title: 'Choose a harbour',
+          copy: 'Tap a nearby anchor or a port button below to set a bearing. Close the chart when ready. This is a direction, not a safe route through land.',
+          action: 'chart',
+          continueText: null,
+        };
+      case 'sails':
+        return {
+          title: 'Try sails and steering',
+          copy: 'Lower sails with ▼ / ↓, then raise with ▲ / ↑. Drag left/right on the sea or use ← → to steer. Leave the harbour and sail a little; avoid the coast.',
+          action: null,
+          continueText: 'I know these controls',
+        };
+      case 'wind':
+        return {
+          title: 'Let the wind help',
+          copy: 'The shaded compass wedge is the no-go zone. To go upwind, sail diagonally on one side of it, then turn through to the other side. A brief slowdown during a tack is normal.',
+          action: 'tips',
+          continueText: 'Continue to harbour',
+        };
+      case 'dock':
+        return {
+          title: `Dock at ${origin}`,
+          copy: 'Follow your bearing around land. Lower sails near the pier and slow below 1.5 kn. Tap its anchor to dock and trade; slow approaches can also dock automatically.',
+          action: 'chart',
+          continueText: null,
+        };
+      case 'buy':
+        return {
+          title: 'Pick up a small cargo',
+          copy: `At ${origin}, open Market and buy 1 ${produced ? GOOD_DEFS[produced].name : 'unit of a produced good'}. Produced goods are usually cheaper. Buy only what you can afford; carrying existing cargo works too.`,
+          action: 'market',
+          continueText: this.hasCargo ? 'Use my existing cargo' : null,
+        };
+      case 'choose-delivery':
+        return {
+          title: `Find a buyer for ${cargo}`,
+          copy: `Open Map and choose a different port${buyer ? ` — ${buyer.name} wants ${cargo}` : ''}. Return to sea, raise sails and carry your cargo there. Prices change; compare the actual quotes.`,
+          action: 'chart',
+          continueText: null,
+        };
+      case 'deliver':
+        return {
+          title: `Carry ${cargo} to ${delivery}`,
+          copy: 'Sail around land and tack if needed. Lower sails as you approach the marked pier, then dock. Reopen the chart whenever you need your bearings.',
+          action: 'chart',
+          continueText: null,
+        };
+      case 'sell':
+        return {
+          title: 'Make your first delivery',
+          copy: `At ${delivery}, open Market and sell at least 1 ${cargo}, or use Sell All. Read the quoted gold before you trade.`,
+          action: 'market',
+          continueText: null,
+        };
+    }
+  }
+}

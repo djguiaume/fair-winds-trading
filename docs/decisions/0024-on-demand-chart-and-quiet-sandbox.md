@@ -1,6 +1,6 @@
 # 0024. On-demand chart and quiet sandbox navigation
 
-**Status:** Proposed implementation for review, 2026-10-19. Disabling the automatic practice course was explicitly requested by Guillaume.
+**Status:** Merged in PR #12, 2026-10-19. Disabling the automatic practice course was explicitly requested by Guillaume.
 
 ## Context
 
