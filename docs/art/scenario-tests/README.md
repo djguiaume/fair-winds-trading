@@ -1,8 +1,8 @@
 # Scenario (scenario.gg) test: one island, one sloop
 
-A first test of generating game models with [Scenario](https://app.scenario.com) instead of building them in code. One **B2 bright highland island** (fish port) and one **style D storybook sloop**, each made as text + style reference → image → low-poly 3D model (GLB), then compared with the code-built version from the art sheets ([docs/art](../README.md) on the art-style PR). Done 2026-10-19 through the Scenario API.
+A first test of generating game models with [Scenario](https://app.scenario.com) instead of building them in code. One **B2 bright highland island** (fish port) and one **style D storybook sloop**, each made as text + style reference → image → low-poly 3D model (GLB), then compared with the code-built version from the art sheets ([docs/art](../README.md)). Done 2026-10-19 through the Scenario API.
 
-No decision is recorded yet: this is evidence for one. The boat style pick is still open (see [decision 0012](../../decisions/0012-boat-and-island-art-style.md) on the art-style PR).
+**Outcome:** [decision 0014](../../decisions/0014-code-built-models-for-now.md) keeps every model code-built for now. The test cost 412 credit units, about half of a month's Scenario allowance, so generated assets aren't affordable for the whole game yet.
 
 ## Results
 
@@ -32,9 +32,9 @@ Wireframes: [island](compare-island-wire.png), [sloop](compare-sloop-wire.png).
 ### What it looks like
 
 - **Island: good.** Both tools kept the B2 look: stacked sandstone tiers, bright grass cap, pines, red and blue roofs, beach ring, dock. Meshy's is the closest to the sheet and the cheapest. Tripo's cliffs are taller and smoother. Neither has the turquoise shallows glow, which stays a separate decal in game (as in the code-built version). The shape is fixed, so the beach line would need to match the island's collision radius by scaling, and per-island variety means one generation per island (or kit pieces, see below).
-- **Sloop: looks right, but not usable as a game boat.** Silhouette and colours match style D well. It is a single frozen mesh: the boom, sails and pennant are fused with the hull, so the game cannot swing the boom, trim or reef the sails, or swap upgrade parts ([0011](../../decisions/0011-ship-lineup-and-upgrades.md) on the art-style PR). Separating parts afterwards means hand work in Blender for every ship and every upgrade level. Scenario's Tripo "generate parts" option exists but cannot be textured.
+- **Sloop: looks right, but not usable as a game boat.** Silhouette and colours match style D well. It is a single frozen mesh: the boom, sails and pennant are fused with the hull, so the game cannot swing the boom, trim or reef the sails, or swap upgrade parts ([0011](../../decisions/0011-ship-lineup-and-upgrades.md)). Separating parts afterwards means hand work in Blender for every ship and every upgrade level. Scenario's Tripo "generate parts" option exists but cannot be textured.
 
-**Recommendation:** use Scenario (image → Meshy 7 with remesh → optimize) for islands, buildings and props; keep boats code-built (or modelled by hand) so sails and upgrades stay animatable. This matches the split discussed earlier for the asset pipeline. Not decided until Guillaume says so; it would become decision 0014 or later.
+**Recommendation:** use Scenario (image → Meshy 7 with remesh → optimize) for islands, buildings and props; keep boats code-built (or modelled by hand) so sails and upgrades stay animatable. This matches the split discussed earlier for the asset pipeline. Guillaume chose to stay with code-built models for now because of the credit cost ([0014](../../decisions/0014-code-built-models-for-now.md)).
 
 ## Cost
 
@@ -73,7 +73,7 @@ The exact inputs of every job are in `island/jobs.json` and `sloop/jobs.json` (`
 
 ### Re-rendering the comparison
 
-`src/compare.html` puts the code-built model (from `docs/art/src/lib.js`, on the art-style PR) and the two GLBs side by side under the same light and sea; `?a=island` or `?a=sloop`, add `&w=1` for wireframes. From this folder, with `docs/art/src` present:
+`src/compare.html` puts the code-built model (from `docs/art/src/lib.js`,) and the two GLBs side by side under the same light and sea; `?a=island` or `?a=sloop`, add `&w=1` for wireframes. From this folder:
 
 ```sh
 ln -s ../../../../node_modules src/node_modules

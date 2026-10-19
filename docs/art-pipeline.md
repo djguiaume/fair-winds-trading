@@ -1,6 +1,6 @@
 # Art pipeline: swapping boat and island looks
 
-The game logic never touches 3D models. Everything visual for boats and islands goes through one file, `src/render/models/index.ts`, which picks a **boat factory** and an **islands builder**. Phase 0 uses procedural placeholders in the style of the [3D mockup](mockups/README.md); a chosen art style replaces them by changing those two lines.
+The game logic never touches 3D models. Everything visual for boats and islands goes through one file, `src/render/models/index.ts`, which picks a **boat factory** and an **islands builder**. Phase 0 uses procedural placeholders in the style of the [3D mockup](mockups/README.md); a chosen art style replaces them by changing those two lines. The chosen style is in [0012](decisions/0012-boat-and-island-art-style.md): D storybook classic boats, B2 bright highland islands, A sea colours; [docs/art/src/lib.js](art/src/lib.js) has reference builders for them.
 
 ## Boats: `BoatModel` (`src/render/models/types.ts`)
 
@@ -22,4 +22,4 @@ Per [0005](decisions/0005-tech-stack.md): model in Blender, low-poly with vertex
 
 ## Generated models (Scenario)
 
-A test of generating an island and a sloop with Scenario (image → low-poly GLB), with triangle counts, file sizes, cost and the step-by-step workflow, is in [art/scenario-tests](art/scenario-tests/README.md). Short version: good for islands and props after optimizing (meshopt + 512² WebP texture, under 50 KB each); boats come out as one frozen mesh, so sails and upgrades could not move.
+A test of generating an island and a sloop with Scenario (image → low-poly GLB), with triangle counts, file sizes, cost and the step-by-step workflow, is in [art/scenario-tests](art/scenario-tests/README.md). Short version: good for islands and props after optimizing (meshopt + 512² WebP texture, under 50 KB each); boats come out as one frozen mesh, so sails and upgrades could not move. Because of the credit cost, all models stay code-built for now ([0014](decisions/0014-code-built-models-for-now.md)).

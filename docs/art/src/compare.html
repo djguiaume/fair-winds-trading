@@ -1,0 +1,12 @@
+<html><head><link rel="stylesheet" href="common.css"><script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script></head><body><canvas id="c" width="1280" height="720"></canvas><div id="labels"></div>
+<div class="title"><b>Boat styles side by side · <span id="k"></span></b><span>Same ship, same light, same sea: A and B plus the three in-between options</span></div>
+<script type="module">
+import * as T from 'three';import {STYLES,makeScene,boat,wake,label,reseed} from './lib.js';
+const cls=new URLSearchParams(location.search).get('c')||'brig';const names={sloop:'Sloop',schooner:'Schooner',brig:'Brig'};document.getElementById('k').textContent=names[cls];
+const {r,s}=makeScene(STYLES.A,c);
+const cam=new T.PerspectiveCamera(30,1280/720,1,500);const far=cls==='sloop'?47:68;cam.position.set(0,far*.36,far);cam.lookAt(0,cls==='sloop'?2.6:3.6,0);
+const keys=['A','D','F','E','B'],sp=cls==='sloop'?8.5:12;
+keys.forEach((k,i)=>{reseed(5);const st=STYLES[k],x=(i-2)*sp;const b=boat(st,cls,{sails:2,hold:2,hull:2},.25);b.position.set(x,0,0);b.rotation.y=-1.45;s.add(b);wake(s,b,x,0,-1.45);
+ label(cam,new T.Vector3(x,0,cls==='sloop'?4:5.5),'<div class="n">'+k+' · '+st.name+'</div>','tag')});
+r.render(s,cam);document.title='done';
+</script></body></html>
