@@ -35,5 +35,6 @@
 | [0027](0027-islands-shape-the-wind.md) | Islands shape the wind: calm lee, faster flanks | 2026-10-19 | Implementation for review |
 | [0028](0028-delivery-contracts.md) | Delivery contracts | 2026-10-19 | Implementation for review |
 | [0029](0029-one-main-production-per-port.md) | One main production per port | 2026-10-19 | Accepted |
+| [0030](0030-home-base-upgrades-and-earned-ships.md) | Home-base upgrades and earned ships | 2026-10-19 | Accepted (direction) |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
