@@ -125,7 +125,10 @@
             </g>
             <g id="c-boat"><path d="M0 -17 L6 6 L0 3 L-6 6 Z" class="boat" /></g>
           </svg>
-          <span class="wind-gauge" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+          <!-- Strength bars hidden for now (decision 0040); remove `hidden` to show them. -->
+          <span class="wind-gauge" aria-hidden="true" hidden
+            ><i></i><i></i><i></i><i></i><i></i
+          ></span>
           <span class="wind-force-line">
             <span id="wind-force">&nbsp;</span>
             <span id="wind-gust" class="wind-gust" hidden data-i18n="wind.gust">gust</span>

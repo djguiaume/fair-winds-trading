@@ -16,6 +16,11 @@ reviewed first; he picked "build as shown, and also tune the streaks".
 
 ## Decision
 
+**Update (2026-10-19, after review):** Guillaume asked to hide the five strength bars for now. The
+word, gust tag, arrow colour and weight and the streak tuning stay. The bars remain in the markup
+with `hidden` (`index.html`), so showing them again is a one-attribute change; the redesign can
+decide. Point 1 below describes them as built.
+
 1. **Strength gauge under the compass dial:** five bars that fill with the wind the boat feels
    (after lee and channel effects), plus a one-word name. Steps: Calm under 7 kn, Light 7–11,
    Breeze 11–15, Fresh 15–19, Strong 19+. The bars, the word and the compass arrow share one
@@ -39,9 +44,9 @@ sits inside the existing compass panel so the coming UI redesign can move or res
 
 ## Consequences
 
-- A lee or channel is visible as bars dropping or rising, which explains speed changes without
-  extra text.
-- The compass panel is about 35 px taller; it still clears the sail buttons on a landscape phone
-  ([screenshots](../screenshots/)).
+- A lee or channel shows as the word and arrow colour changing (and the bars, when shown), which
+  explains speed changes without extra text.
+- With the bars hidden the compass panel is about 18 px taller than before (about 35 px with
+  them); it still clears the sail buttons on a landscape phone ([screenshots](../screenshots/)).
 - Thresholds are tuned for the current maps (about 5–22 kn). Phase 2's gales and storms will need
   more steps or a new top step.

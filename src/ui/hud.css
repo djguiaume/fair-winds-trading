@@ -2145,6 +2145,7 @@ body.is-docked .objective {
   color: #fff;
   font-size: 11px;
 }
+.wind-gauge[hidden],
 .wind-gust[hidden] {
   display: none;
 }

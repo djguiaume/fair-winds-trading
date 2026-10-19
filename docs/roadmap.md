@@ -70,7 +70,7 @@ Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 
 - **Complete UI redesign.** The current HUD and panels are not good enough; redesign them as a whole (mockups first, then build), keeping touch and the old-tablet budget ([0006](decisions/0006-desktop-and-mobile.md)).
 - **Kids mode made playable.** It is unplayable today; rework controls, text and pacing so a child can actually sail and trade.
-- **Wind strength you can see** (implemented for review, [0040](decisions/0040-visible-wind-strength.md)): a five-bar strength gauge with a word (Calm to Strong; plain words in Kids mode) and a short gust cue on the compass, and the sea streaks thin out in a calm and brighten in strong wind.
+- **Wind strength you can see** (implemented for review, [0040](decisions/0040-visible-wind-strength.md)): a strength word (Calm to Strong; plain words in Kids mode), a coloured arrow and a short gust cue on the compass (five-bar gauge built but hidden for now), and the sea streaks thin out in a calm and brighten in strong wind.
 - **Hull damage from any crash**, not only reefs ([0032](decisions/0032-reef-strikes-and-shallows.md)): hitting an island, coast, pier or (later) another ship damages the hull too.
 
 **Done when:** you can earn enough to buy upgrades and the cutter, and feel the difference.
