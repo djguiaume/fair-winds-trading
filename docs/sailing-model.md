@@ -1,6 +1,6 @@
 # Sailing model
 
-How boats move in Fair Winds Trading, and which numbers to change to tune the feel. Code: `src/sim/` (no three.js imports, unit-tested in `tests/`). Decisions: [0007](decisions/0007-arcade-sailing-with-tacking.md), [0011](decisions/0011-phase-0-prototype-choices.md).
+How boats move in Fair Winds Trading, and which numbers to change to tune the feel. Code: `src/sim/` (no three.js imports, unit-tested in `tests/`). Decisions: [0007](decisions/0007-arcade-sailing-with-tacking.md), [0013](decisions/0013-phase-0-prototype-choices.md).
 
 ## Conventions
 

@@ -1,4 +1,4 @@
-# 0011. Phase 0 prototype: sailing feel, controls and performance choices
+# 0013. Phase 0 prototype: sailing feel, controls and performance choices
 
 **Status:** Accepted, 2026-10-19 (implementation choices; open to tuning after play-testing)
 
