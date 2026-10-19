@@ -21,7 +21,7 @@ A top-down, low-poly sailing and trading game for the browser. The visual style 
 
 ## Core loop
 
-Pick up goods at a settlement → read the wind → sail (tacking when needed) → deliver for profit → settlement grows and asks for new goods → buy a better ship or open a route → repeat with farther, harder destinations.
+Pick up goods at a settlement → read the wind → sail (tacking when needed) → deliver for profit → settlement grows and asks for new goods → upgrade your ship, buy a bigger one or open a route → repeat with farther, harder destinations.
 
 ---
 
@@ -45,14 +45,14 @@ Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 - One handmade archipelago (5–8 islands) with 3–4 settlements, each producing one good and wanting others (e.g. fish, timber, grain, cloth). The map is defined as data and uses a seedable RNG, so seeded maps can come later ([0008](decisions/0008-static-map-seed-ready.md)).
 - Docking: slow down near a port to open a trade panel; buy, sell, accept delivery contracts.
 - Cargo hold with limited capacity; prices vary by supply and demand per settlement.
-- Gold as currency; one ship upgrade (bigger hold or better sails).
+- Gold as currency. Shipyard at ports: three upgrade tracks for the sloop (sails, hold, hull, levels visible on the model) and a second ship class to buy, the cutter ([0011](decisions/0011-ship-lineup-and-upgrades.md)).
 - Wind that shifts slowly over time so the same trip changes.
 - Minimap with port markers and current wind.
 - Floating labels over ports in the ad's style (name, level badge, what they want).
 - Sandbox play in short sessions: auto-save to the browser and instant resume ([0009](decisions/0009-sandbox-short-sessions.md)).
 - Light hazards: reefs and shallows ([0010](decisions/0010-light-hazards-pirates-later.md)).
 
-**Done when:** you can earn enough to buy the upgrade and feel the difference.
+**Done when:** you can earn enough to buy upgrades and the cutter, and feel the difference.
 
 ## Phase 2 — Living settlements
 
@@ -68,7 +68,7 @@ Goal: deliveries visibly change the world.
 
 Goal: shift from sailing every trip to designing a network. This is the main twist on the reference game.
 
-- Buy additional ships of different classes (sloop: fast, small hold; brig: balanced; fluyt/merchantman: big hold, poor upwind).
+- Buy additional ships from the full lineup ([0011](decisions/0011-ship-lineup-and-upgrades.md)): sloop and cutter (small, point high), schooner (best upwind), brig (fast downwind), fluyt (huge hold, poor upwind). Each class has its own polar curve and the same three upgrade tracks.
 - Route editor: pick ports in order, what to load/unload at each, and assign ships.
 - Automated ships sail with the same wind model; routes that fight the wind are slow, so route design is a puzzle.
 - Route dashboard: trips, profit per route, delays.
@@ -116,4 +116,5 @@ Decided in [decision 0005](decisions/0005-tech-stack.md): three.js + TypeScript 
 
 - ~~True 3D or 2.5D?~~ Decided: real-time 3D low-poly ([decision 0004](decisions/0004-real-time-3d.md)), built with three.js ([0005](decisions/0005-tech-stack.md)).
 - ~~Desktop or mobile first?~~ Both from day one, tuned for an old tablet ([0006](decisions/0006-desktop-and-mobile.md)).
+- Art style for boats and islands: three options each mocked up in [docs/art](art/), recommendation A + A (chunky toy boats, sunny sandbar islands); waiting for a pick ([0012](decisions/0012-boat-and-island-art-style.md)).
 - How much simulation runs for off-screen automated ships (needed from Phase 3)? The stack keeps the sim renderer-free so it can run off-screen or in a Web Worker; the level of detail is still open.
