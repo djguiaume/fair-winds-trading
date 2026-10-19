@@ -72,6 +72,7 @@ Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 - **Kids mode made playable.** It is unplayable today; rework controls, text and pacing so a child can actually sail and trade.
 - **Wind strength you can see**, not only its direction: for example gust streaks, flag or sail flutter and a strength scale on the compass.
 - **Hull damage from any crash** (implemented for review, [0038](decisions/0038-hull-damage-from-any-crash.md)): ramming an island, coast or pier damages the hull in proportion to the impact speed, docking bumps and sandbanks are free, piers are now solid. Repair in any harbour as in [0032](decisions/0032-reef-strikes-and-shallows.md). Ship-to-ship collisions come with pirates (Phase 5).
+- **Docking you can rely on and a visible sea edge** (implemented for review, [0041](decisions/0041-harbour-mooring-and-edge-buoys.md)): lowering sails near a port while already slow (under 3 kn) brings the boat to a dead stop and docks it; fast arrivals still crash. Clearer pier cues. Red bobbing buoys mark the edge of the map.
 
 **Done when:** you can earn enough to buy upgrades and the cutter, and feel the difference.
 

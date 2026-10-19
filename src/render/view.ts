@@ -14,7 +14,7 @@ import {
 } from './models';
 import { Ocean, waveHeight } from './ocean';
 import { PALETTE } from './palette';
-import { BuoyMarker, createBlobShadow } from './props';
+import { BuoyMarker, EdgeBuoys, createBlobShadow } from './props';
 import { renderPixelRatio, QUALITY, type QualityLevel, type QualityProfile } from './quality';
 import { Wake } from './wake';
 import { WindStreaks } from './windStreaks';
@@ -51,6 +51,7 @@ export class GameView {
   private readonly boatShadow = createBlobShadow(6.5, 14);
   private readonly wake = new Wake();
   private readonly buoy = new BuoyMarker();
+  private readonly edgeBuoys: EdgeBuoys;
   private ocean!: Ocean;
   private streaks!: WindStreaks;
   private profile!: QualityProfile;
@@ -89,7 +90,15 @@ export class GameView {
     this.islands = buildIslands(world.map, { shadows: true });
     this.level = level;
     this.boat = this.buildBoat();
-    this.scene.add(this.islands, this.boat.root, this.boatShadow, this.wake.mesh, this.buoy.root);
+    this.edgeBuoys = new EdgeBuoys(world.map.boundsRadius);
+    this.scene.add(
+      this.islands,
+      this.boat.root,
+      this.boatShadow,
+      this.wake.mesh,
+      this.buoy.root,
+      this.edgeBuoys.mesh,
+    );
 
     toScene(world.boat.x, world.boat.y, this.target);
     this.setQuality(level);
@@ -247,6 +256,7 @@ export class GameView {
     const to = bearingVector(windTo(wind));
     this.streaks.update(dt, this.target, to.x, -to.y, wind.speedKn * KNOT_TO_UNITS * 0.75);
     this.ocean.update(time, this.target);
+    this.edgeBuoys.update(time, (x, z) => waveHeight(x, z, time));
 
     this.buoy.root.visible = Boolean(this.world.map.practiceCourse && !this.world.destination);
     if (this.buoy.root.visible) {
@@ -274,6 +284,7 @@ export class GameView {
     this.streaks.dispose();
     this.wake.dispose();
     this.buoy.dispose();
+    this.edgeBuoys.dispose();
     this.boat.dispose();
     this.renderer.dispose();
   }

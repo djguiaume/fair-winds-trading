@@ -22,6 +22,10 @@ Captures of the game at each phase, taken headless with Playwright (software Web
 |---|---|
 | ![shore crash](crash-shore-fr.png) | ![pier crash](crash-pier.png) |
 
+Red buoys marking the edge of the sea (decision 0041)
+
+![edge buoys](edge-buoys.png)
+
 | Chart: each port's top need and the price board (decision 0036) | Same chart on a phone |
 |---|---|
 | ![market overview](market-overview-chart.png) | ![market overview phone](market-overview-phone.png) |

@@ -52,7 +52,7 @@ export const en = {
   'help.tack':
     '<b>To go upwind, zigzag</b> (tack): sail about 50° off the wind, then turn through it to the other side.',
   'help.trade':
-    '<b>Trading &amp; Ports:</b> Slow down near any island dock to trade goods at the market, buy vessel upgrades, and purchase the cutter.',
+    '<b>Trading &amp; Ports:</b> Approach any island pier slowly and lower your sails: the crew brings you alongside to trade goods at the market, buy vessel upgrades, and purchase the cutter.',
   'help.map':
     '<b>Open Map</b> (M) to find ports and place markers. Only your chosen destination gets a bearing cue.',
   'help.touch': 'Touch',
@@ -136,6 +136,8 @@ export const en = {
   'port.cueDocked': 'Docked · Tap to trade',
   'port.cueCanDock': 'Tap to dock & trade',
   'port.cueSlowDown': 'Slow down to dock',
+  'port.cueLowerSails': 'Lower sails to dock',
+  'port.cueCloser': 'Sail closer to dock',
   'port.cueTrading': 'Trading harbour',
 
   // --- Sea chart -----------------------------------------------------------------------------
@@ -213,7 +215,7 @@ export const en = {
   'lesson.wind.continue': 'Continue to harbour',
   'lesson.dock.title': 'Dock at {origin}',
   'lesson.dock.copy':
-    'Follow your bearing around land. Lower sails near the pier and slow below 1.5 kn. Tap its anchor to dock and trade; slow approaches can also dock automatically.',
+    'Follow your bearing around land. Lower your sails early and come in slowly: under 3 kn near the pier, the crew stops the boat and docks. Too fast and you hit the pier!',
   'lesson.buy.title': 'Pick up a small cargo',
   'lesson.buy.copy':
     'At {origin}, open Market and buy 1 {good}. Produced goods are usually cheaper. Buy only what you can afford; carrying existing cargo works too.',

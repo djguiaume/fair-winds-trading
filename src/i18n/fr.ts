@@ -51,7 +51,7 @@ export const fr: Record<MessageKey, string> = {
   'help.tack':
     '<b>Pour remonter au vent, zigzaguez</b> (louvoyez) : naviguez à environ 50° du vent, puis virez de bord pour passer de l’autre côté.',
   'help.trade':
-    '<b>Commerce et ports :</b> ralentissez près du quai d’une île pour échanger des marchandises au marché, améliorer votre navire et acheter le cotre.',
+    '<b>Commerce et ports :</b> approchez lentement du quai d’une île et affalez, l’équipage vous met à quai pour échanger des marchandises au marché, améliorer votre navire et acheter le cotre.',
   'help.map':
     '<b>Ouvrez la carte</b> (M) pour trouver les ports et poser des repères. Seule la destination choisie affiche un cap.',
   'help.touch': 'Tactile',
@@ -137,6 +137,8 @@ export const fr: Record<MessageKey, string> = {
   'port.cueDocked': 'Amarré · Touchez pour commercer',
   'port.cueCanDock': 'Touchez pour accoster',
   'port.cueSlowDown': 'Ralentissez pour accoster',
+  'port.cueLowerSails': 'Affalez pour accoster',
+  'port.cueCloser': 'Approchez pour accoster',
   'port.cueTrading': 'Port de commerce',
 
   // --- Carte marine --------------------------------------------------------------------------
@@ -214,7 +216,7 @@ export const fr: Record<MessageKey, string> = {
   'lesson.wind.continue': 'Continuer vers le port',
   'lesson.dock.title': 'Accostez à {origin}',
   'lesson.dock.copy':
-    'Suivez votre cap en contournant les terres. Affalez les voiles près du quai et ralentissez sous 1,5 nd. Touchez son ancre pour accoster et commercer ; une approche lente peut aussi accoster toute seule.',
+    'Suivez votre cap en contournant les terres. Affalez tôt et arrivez lentement : sous 3 nd près du quai, l’équipage arrête le bateau et vous met à quai. Trop vite, et c’est le choc contre le ponton !',
   'lesson.buy.title': 'Chargez une petite cargaison',
   'lesson.buy.copy':
     'À {origin}, ouvrez le marché et achetez 1 {good}. Les marchandises produites sur place sont souvent moins chères. N’achetez que ce que vous pouvez payer ; une cargaison déjà à bord convient aussi.',

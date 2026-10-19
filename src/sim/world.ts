@@ -12,11 +12,24 @@ import {
 } from './hazards';
 import { DEG, distance } from './math';
 import type { ShipClass } from './ship';
-import { type DockEvent, type TradeState, activeShip, createTradeState, stepTrade } from './trade';
+import {
+  type DockEvent,
+  type TradeState,
+  activeShip,
+  createTradeState,
+  portInRange,
+  stepTrade,
+} from './trade';
 import { type Wind, type WindBlocker, localWind, windAt, windBlockers, windEffectAt } from './wind';
 
 /** Distance (units) at which a course buoy counts as reached. */
 export const WAYPOINT_RADIUS = 12;
+/** Braking (1/s) when the sails are lowered within docking range of a port (decision 0041). */
+export const HARBOUR_BRAKE = 1.6;
+/** The crew only takes her alongside below this speed (knots); faster, she can still crash. */
+export const MOOR_MAX_KN = 3;
+/** Below this (knots) a boat being brought alongside comes to a dead stop. */
+export const MOORED_KN = 0.2;
 
 /** The whole game state. Plain data, no three.js: the renderer only reads it (decision 0005). */
 export interface World {
@@ -122,6 +135,15 @@ export function setPortDestination(world: World, portId: string): boolean {
   return true;
 }
 
+function moor(boat: BoatState, dt: number): void {
+  const k = Math.exp(-HARBOUR_BRAKE * dt);
+  boat.speedKn = boat.speedKn * k < MOORED_KN ? 0 : boat.speedKn * k;
+  // Lines ashore hold her against the wind once she has stopped.
+  const hold = boat.speedKn === 0 ? 0 : k;
+  boat.drift.x *= hold;
+  boat.drift.y *= hold;
+}
+
 export function stepWorld(world: World, controls: BoatControls, dt: number): WorldEvent[] {
   const events: WorldEvent[] = [];
   world.time += dt;
@@ -135,6 +157,14 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   world.ship = activeShip(world.trade);
 
   stepBoat(world.boat, controls, world.ship, world.wind, dt);
+  // Lowering the sails near a port at a slow speed brings her alongside: the crew throws lines, she stops dead
+  // and no longer drifts, so docking is reliable instead of a slow exponential crawl (0041).
+  if (
+    world.boat.sailStep === 0 &&
+    world.boat.speedKn < MOOR_MAX_KN &&
+    portInRange(world.map, world.boat)
+  )
+    moor(world.boat, dt);
   // Shallows drag at the hull near reefs; deeper hulls feel it more (decision 0032).
   const nearReef = reefDistance(world.reefs, world.boat);
   world.shallow = shallowness(nearReef, world.ship.radius);
