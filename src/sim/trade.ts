@@ -121,6 +121,21 @@ export function portInRange(map: MapDef, pos: { x: number; y: number }, range = 
   return best;
 }
 
+/** Explicit and automatic docking share the same range/speed validation. */
+export function tryDock(
+  trade: TradeState,
+  map: MapDef,
+  boat: { x: number; y: number; speedKn: number },
+  portId: string,
+): boolean {
+  const port = findPort(map, portId);
+  if (!port || boat.speedKn >= DOCK_SPEED_KN || distanceToPort(map, boat, port) > DOCK_RANGE)
+    return false;
+  if (trade.dockedAt && trade.dockedAt !== portId) return false;
+  trade.dockedAt = portId;
+  return true;
+}
+
 export type DockEvent = { type: 'docked'; portId: string } | { type: 'undocked'; portId: string };
 
 /**
@@ -144,8 +159,7 @@ export function stepTrade(
   }
   if (!trade.dockedAt && boat.speedKn < DOCK_SPEED_KN) {
     const port = portInRange(map, boat);
-    if (port) {
-      trade.dockedAt = port.id;
+    if (port && tryDock(trade, map, boat, port.id)) {
       events.push({ type: 'docked', portId: port.id });
     }
   }

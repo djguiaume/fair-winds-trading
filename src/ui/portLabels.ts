@@ -1,6 +1,6 @@
 import type { ScreenPoint } from '../render/view';
 import { GOOD_DEFS, type GoodId } from '../sim/goods';
-import { distanceToPort } from '../sim/trade';
+import { DOCK_RANGE, DOCK_SPEED_KN, distanceToPort } from '../sim/trade';
 import { currentWaypoint, type World } from '../sim/world';
 
 export type PortMarkerMode = 'approach' | 'objective' | 'all' | 'off';
@@ -20,7 +20,8 @@ export class PortLabels {
       boxEl: HTMLElement;
       nameEl: HTMLElement;
       tagEl: HTMLElement;
-      island: World['map']['islands'][number];
+      anchor: { x: number; y: number };
+      cue: HTMLElement;
     }
   > = new Map();
 
@@ -31,6 +32,7 @@ export class PortLabels {
   constructor(
     private readonly container: HTMLElement,
     private readonly world: World,
+    private readonly harbours: Record<string, { x: number; y: number }> = {},
   ) {
     this.init();
   }
@@ -60,9 +62,10 @@ export class PortLabels {
       el.innerHTML = `
         <span class="port-marker-box">
           <span class="port-marker-header">
-            <span class="port-marker-icon">⚓</span>
+            <span class="port-marker-icon" aria-hidden="true">⚓</span>
             <span class="port-marker-name">${port.name}</span>
           </span>
+          <span class="port-marker-cue">Harbour</span>
           <span class="port-marker-tag">
             <span class="produces-tag">${produces}</span>
             <span class="sign-sep">·</span>
@@ -80,7 +83,8 @@ export class PortLabels {
 
       this.portElements.set(port.id, {
         root: el,
-        island,
+        anchor: this.harbours[port.id] ?? island,
+        cue: el.querySelector('.port-marker-cue')!,
         boxEl: el.querySelector('.port-marker-box')!,
         nameEl: el.querySelector('.port-marker-name')!,
         tagEl: el.querySelector('.port-marker-tag')!,
@@ -104,8 +108,6 @@ export class PortLabels {
       const entry = this.portElements.get(port.id);
       if (!entry) continue;
 
-      const island = entry.island;
-
       const distToShore = distanceToPort(map, boat, port);
       const isDocked = trade.dockedAt === port.id;
       const isObjective = currentWp?.label.toLowerCase().includes(port.name.toLowerCase());
@@ -113,11 +115,11 @@ export class PortLabels {
       let shouldShow = false;
 
       if (effectiveMode === 'approach') {
-        // Only show when near harbour (<= 45m from shore or docked)
-        shouldShow = distToShore <= 45 || isDocked;
+        // Show the pier early enough to plan the approach.
+        shouldShow = distToShore <= 100 || isDocked;
       } else if (effectiveMode === 'objective') {
-        // Show only the destination port or when docked
-        shouldShow = isObjective || isDocked || distToShore <= 35;
+        // The selected destination and nearby harbours remain identifiable.
+        shouldShow = isObjective || isDocked || distToShore <= 100;
       } else if (effectiveMode === 'all') {
         shouldShow = distToShore <= 160 || isDocked;
       }
@@ -127,11 +129,22 @@ export class PortLabels {
         continue;
       }
 
-      const s = project(island.x, island.y);
+      const canDock = distToShore <= DOCK_RANGE && boat.speedKn < DOCK_SPEED_KN;
+      const cue = isDocked
+        ? 'Docked · Tap to trade'
+        : canDock
+          ? 'Tap to dock & trade'
+          : distToShore <= DOCK_RANGE + 12
+            ? 'Slow down to dock'
+            : 'Trading harbour';
+      if (entry.cue.textContent !== cue) entry.cue.textContent = cue;
+      entry.root.classList.toggle('ready', canDock || isDocked);
+      entry.root.setAttribute('aria-label', `${port.name}: ${cue}`);
+      const s = project(entry.anchor.x, entry.anchor.y);
       if (s.onScreen) {
         entry.root.hidden = false;
         entry.root.classList.toggle('docked', isDocked);
-        entry.root.style.transform = `translate(${s.x}px, ${s.y - 36}px)`;
+        entry.root.style.transform = `translate(${s.x}px, ${s.y - 14}px)`;
       } else {
         // Hide off-screen markers to avoid screen edge clutter
         entry.root.hidden = true;

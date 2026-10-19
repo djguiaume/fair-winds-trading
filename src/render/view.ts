@@ -95,6 +95,11 @@ export class GameView {
     this.setQuality(level);
   }
 
+  /** Anchors exported while building the mesh; no duplicated generation or extra draw calls. */
+  get harbours(): Record<string, { x: number; y: number }> {
+    return this.islands.userData.harbours ?? {};
+  }
+
   /** Class and upgrade levels of the ship being sailed, and a key that changes with them. */
   private activeBoat() {
     const { captain } = this.world.trade;

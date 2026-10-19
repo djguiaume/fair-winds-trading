@@ -26,4 +26,6 @@
 | [0021](0021-larger-sea-and-coastal-landmarks.md) | Larger sea, distinct coastal landmarks and a fixed scenery budget | 2026-10-19 | Accepted |
 | [0022](0022-trading-ui-integration-and-tablet-budget.md) | Integrate Google AI trading UI and bound tablet rendering cost | 2026-10-19 | Accepted |
 
+| [0023](0023-visible-pier-markers-and-docking.md) | Pier-head harbour labels, explicit docking and visible build identity | 2026-10-19 | Accepted |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

@@ -79,6 +79,7 @@ export class Hud {
   constructor(
     private readonly world: World,
     private readonly windPreferences: { seen: boolean; markSeen: () => void },
+    harbours: Record<string, { x: number; y: number }> = {},
   ) {
     this.seenWindHint = windPreferences.seen;
     const open = () => {
@@ -104,7 +105,7 @@ export class Hud {
       target.focus({ preventScroll: true });
     });
 
-    this.portLabels = new PortLabels($('port-labels'), this.world);
+    this.portLabels = new PortLabels($('port-labels'), this.world, harbours);
     this.portLabels.onPortClick = (portId) => this.onPortClick(portId);
 
     this.dockBtn.addEventListener('click', () => {

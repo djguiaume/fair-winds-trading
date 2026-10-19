@@ -55,7 +55,7 @@ Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 - Gold as currency. Shipyard at ports: three upgrade tracks for the sloop (sails, hold, hull, levels visible on the model) and a second ship class to buy, the cutter ([0011](decisions/0011-ship-lineup-and-upgrades.md)).
 - Wind that shifts slowly over time so the same trip changes.
 - Minimap with port markers and current wind.
-- Floating port labels show names and trade goods; tapping sets a destination. Settlement levels and level badges remain Phase 2 work.
+- Pier-head labels show an anchor, port name and docking cue; tapping sets a destination or docks/trades when stopped within range ([0023](decisions/0023-visible-pier-markers-and-docking.md)). Trade goods appear in the market panel. Settlement levels and level badges remain Phase 2 work.
 - Sandbox play in short sessions: auto-save to the browser and instant resume ([0009](decisions/0009-sandbox-short-sessions.md)).
 - Light hazards: reefs and shallows ([0010](decisions/0010-light-hazards-pirates-later.md)).
 
