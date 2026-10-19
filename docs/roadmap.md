@@ -107,14 +107,13 @@ Goal: growth pushes you outward into tougher navigation.
 
 - Ship-to-ship combat as a core feature before Phase 5 (trade stays the core; see [0010](decisions/0010-light-hazards-pirates-later.md)).
 - Multiplayer and monetization.
-<<<<<<< HEAD
-- Tech stack: decided in [decision 0005](decisions/0005-tech-stack.md) (three.js + TypeScript + Vite).
-=======
-- Tech stack choice: being discussed in its own thread, before Phase 0 starts.
->>>>>>> origin/main
 
-## Open questions for the tech-stack discussion
+## Tech stack
 
-- ~~True 3D or 2.5D?~~ Decided: real-time 3D low-poly ([decision 0004](decisions/0004-real-time-3d.md)). Which 3D engine?
+Decided in [decision 0005](decisions/0005-tech-stack.md): three.js + TypeScript + Vite, static site on GitHub Pages, simulation separate from rendering, mobile performance budget from day one.
+
+## Settled and open questions
+
+- ~~True 3D or 2.5D?~~ Decided: real-time 3D low-poly ([decision 0004](decisions/0004-real-time-3d.md)), built with three.js ([0005](decisions/0005-tech-stack.md)).
 - ~~Desktop or mobile first?~~ Both from day one, tuned for an old tablet ([0006](decisions/0006-desktop-and-mobile.md)).
-- How much simulation runs for off-screen automated ships (needed from Phase 3)?
+- How much simulation runs for off-screen automated ships (needed from Phase 3)? The stack keeps the sim renderer-free so it can run off-screen or in a Web Worker; the level of detail is still open.

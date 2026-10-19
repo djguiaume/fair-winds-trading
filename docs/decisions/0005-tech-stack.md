@@ -9,7 +9,7 @@
 - Lots of HTML-style UI: trade panels, floating port labels, minimap, route editor and dashboard (Phases 1–3).
 - Many automated ships simulated even when off-screen (Phase 3), so the game logic must not depend on the renderer.
 - No backend, saves in the browser, fast to iterate on (the 3D mockup was already built with three.js).
-- Roadmap answers (2026-10-19): **desktop and mobile from day one**, tested on an old tablet and a phone, so performance is a hard constraint. Arcade sailing with tacking (no speed straight into the wind). Start with **one static map**, with seeded generation possible later without a rewrite. Short sandbox game; light hazards first, pirates and factions much later.
+- Roadmap answers (2026-10-19, see [0006](0006-desktop-and-mobile.md)–[0010](0010-light-hazards-pirates-later.md)): **desktop and mobile from day one**, tested on an old tablet and a phone, so performance is a hard constraint. Arcade sailing with tacking (no speed straight into the wind). Start with **one static map**, with seeded generation possible later without a rewrite. Short sandbox game; light hazards first, pirates and factions much later.
 
 **Decision:**
 
