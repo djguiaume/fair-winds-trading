@@ -135,9 +135,11 @@ export class PortLabels {
         ? t('port.cueDocked')
         : canDock
           ? t('port.cueCanDock')
-          : distToShore <= DOCK_RANGE + 12
-            ? t('port.cueSlowDown')
-            : t('port.cueTrading');
+          : distToShore <= DOCK_RANGE
+            ? t(boat.sailStep > 0 ? 'port.cueLowerSails' : 'port.cueSlowDown')
+            : distToShore <= DOCK_RANGE + 12
+              ? t('port.cueCloser')
+              : t('port.cueTrading');
       if (entry.cue.textContent !== cue) entry.cue.textContent = cue;
       entry.root.classList.toggle('ready', canDock || isDocked);
       entry.root.setAttribute('aria-label', `${port.name}: ${cue}`);

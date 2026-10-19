@@ -71,7 +71,9 @@ Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 - **Complete UI redesign.** The current HUD and panels are not good enough; redesign them as a whole (mockups first, then build), keeping touch and the old-tablet budget ([0006](decisions/0006-desktop-and-mobile.md)).
 - **Kids mode made playable.** It is unplayable today; rework controls, text and pacing so a child can actually sail and trade.
 - **Wind strength you can see** (implemented for review, [0040](decisions/0040-visible-wind-strength.md)): a strength word (Calm to Strong; plain words in Kids mode), a coloured arrow and a short gust cue on the compass (five-bar gauge built but hidden for now), and the sea streaks thin out in a calm and brighten in strong wind.
-- **Hull damage from any crash**, not only reefs ([0032](decisions/0032-reef-strikes-and-shallows.md)): hitting an island, coast, pier or (later) another ship damages the hull too.
+- **Hull damage from any crash** (implemented for review, [0038](decisions/0038-hull-damage-from-any-crash.md)): ramming an island, coast or pier damages the hull in proportion to the impact speed, docking bumps and sandbanks are free, piers are now solid. Repair in any harbour as in [0032](decisions/0032-reef-strikes-and-shallows.md). Ship-to-ship collisions come with pirates (Phase 5).
+  - *Later (Guillaume, 2026-10-19):* make damage visible and audible: crash sounds, floating debris and splash effects on impact, and the boat model changing at each 20–25 % of hull lost (scuffed paint, patched or torn sails, missing rails, a list), cleared by repair.
+- **Docking you can rely on and a visible sea edge** (implemented for review, [0041](decisions/0041-harbour-mooring-and-edge-buoys.md)): lowering sails near a port while already slow (under 3 kn) brings the boat to a dead stop and docks it; fast arrivals still crash. Clearer pier cues. Red bobbing buoys mark the edge of the map.
 
 **Done when:** you can earn enough to buy upgrades and the cutter, and feel the difference.
 
@@ -120,6 +122,15 @@ Goal: growth pushes you outward into tougher navigation.
 - Pirate ships that hunt loaded merchants; outrun them, or arm ships with light defenses.
 - Ship health and repairs at ports; escort ships for valuable routes.
 - **Warship line** (ketch → brig → frigate: lots of firepower and hull, low cargo, slow upwind) from a naval yard, and a fourth upgrade track, **guns**, so any ship can arm a little ([0035](decisions/0035-three-ship-lines.md)). Swift ships escape pirates, warships fight them, haulers need escorts.
+
+## Racing missions (requested by Guillaume, 2026-10-19)
+
+Timed delivery races between ports, alongside the sandbox rather than replacing it.
+
+- Each mission is a fixed route (port A to port B, optionally via checkpoints) with a cargo to deliver against the clock, and medal times (bronze, silver, gold) plus a personal best.
+- **Fixed difficulty parameters** so every attempt is the same challenge: a predefined wind (direction, strength, gusts, shifts), weather (calm, squalls, storms once Phase 2 weather exists) and, once Phase 5 lands, pirates on set patrols. Damage and repairs ([0038](decisions/0038-hull-damage-from-any-crash.md)) count against the time.
+- Missions are data-driven like maps (id, route, ship, cargo, wind/weather/pirate settings, medal times), so new ones are a JSON entry; seeded so wind gusts replay identically.
+- A first set can ship as soon as the wind and weather settings can be pinned (after Phase 2); pirate missions follow Phase 5. Medals could unlock cosmetics or maps (see Selectable maps); online leaderboards stay a Phase 7 maybe.
 
 ## Phase 6 — Enemy factions (maybe)
 

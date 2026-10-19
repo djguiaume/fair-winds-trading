@@ -75,3 +75,54 @@ export function createBlobShadow(width: number, length: number): THREE.Mesh {
   mesh.renderOrder = 1;
   return mesh;
 }
+
+/** Spacing (units) between the red buoys that mark the edge of the sea (decision 0041). */
+export const EDGE_BUOY_SPACING = 28;
+
+/**
+ * Red can buoys bobbing in a ring just inside the sea's edge, so the invisible wall the boat
+ * bumps into can be seen. One instanced draw call; only the matrices change each frame.
+ */
+export class EdgeBuoys {
+  readonly mesh: THREE.InstancedMesh;
+  private readonly spots: Array<{ x: number; z: number; phase: number }> = [];
+  private readonly dummy = new THREE.Object3D();
+
+  constructor(boundsRadius: number) {
+    const geometry = mergeAll([
+      paint(place(new THREE.CylinderGeometry(1.0, 1.2, 1.2, 8), 0, 0.3, 0), '#d93a2b'),
+      paint(place(new THREE.CylinderGeometry(1.02, 1.02, 0.35, 8), 0, 1.05, 0), '#f6f1e4'),
+      paint(place(new THREE.CylinderGeometry(0.75, 1.0, 1.0, 8), 0, 1.7, 0), '#d93a2b'),
+      paint(place(new THREE.ConeGeometry(0.5, 0.9, 6), 0, 2.65, 0), '#d93a2b'),
+    ]);
+    // Just beyond where the boat's hull is held, so it sails alongside them, never through.
+    const r = boundsRadius + 6;
+    const count = Math.max(8, Math.round((Math.PI * 2 * r) / EDGE_BUOY_SPACING));
+    for (let i = 0; i < count; i++) {
+      const a = (i / count) * Math.PI * 2;
+      this.spots.push({ x: Math.cos(a) * r, z: Math.sin(a) * r, phase: i * 1.7 });
+    }
+    this.mesh = new THREE.InstancedMesh(geometry, vertexColorMaterial(), count);
+    this.mesh.frustumCulled = false;
+    this.update(0, () => 0);
+  }
+
+  update(time: number, waterY: (x: number, z: number) => number) {
+    this.spots.forEach((s, i) => {
+      this.dummy.position.set(s.x, waterY(s.x, s.z) - 0.2, s.z);
+      this.dummy.rotation.set(
+        Math.sin(time * 1.4 + s.phase) * 0.12,
+        0,
+        Math.cos(time * 1.1 + s.phase) * 0.12,
+      );
+      this.dummy.updateMatrix();
+      this.mesh.setMatrixAt(i, this.dummy.matrix);
+    });
+    this.mesh.instanceMatrix.needsUpdate = true;
+  }
+
+  dispose() {
+    this.mesh.geometry.dispose();
+    (this.mesh.material as THREE.Material).dispose();
+  }
+}

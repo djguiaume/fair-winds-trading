@@ -2,11 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
 import { createBoat } from '../src/sim/boat';
 import {
+  CRASH_DAMAGE,
+  CRASH_SAFE_KN,
   LEAK_PENALTY,
   REPAIR_COST,
   SHALLOW_WIDTH,
   damageHull,
   hullCondition,
+  impactDamage,
   reefDistance,
   reefsOf,
   repairHull,
@@ -16,7 +19,7 @@ import {
 import type { MapDef, TerrainDef } from '../src/sim/map';
 import { type SaveStorage, loadGame, saveGame } from '../src/sim/save';
 import { CUTTER, SLOOP } from '../src/sim/ship';
-import { activeShip } from '../src/sim/trade';
+import { DOCK_SPEED_KN, activeShip } from '../src/sim/trade';
 import { type World, createWorld, stepWorld } from '../src/sim/world';
 
 const DT = 1 / 60;
@@ -50,7 +53,7 @@ function sailNorth(world: World, x: number, seconds: number) {
   let damage = 0;
   for (let t = 0; t < seconds; t += DT) {
     for (const e of stepWorld(world, { steer: 0, sailStep: 2 }, DT)) {
-      if (e.type === 'reef-strike') damage += e.damage;
+      if (e.type === 'reef-strike' || e.type === 'crash') damage += e.damage;
     }
   }
   return damage;
@@ -96,15 +99,60 @@ describe('reefs and shallows (0032)', () => {
     expect(speedBeside(CUTTER, 17) / speedBeside(CUTTER, 60)).toBeLessThan(shallowSloop / deep);
   });
 
-  it('holes the hull when striking a reef, but not when bumping a beach', () => {
+  it('holes the hull on a reef, dents it on a shore, and spares sandbanks and docking bumps', () => {
     const world = createWorld(MAP, SLOOP);
-    const damage = sailNorth(world, 0, 8);
-    expect(damage).toBeGreaterThan(10);
+    const reefDamage = sailNorth(world, 0, 8);
+    expect(reefDamage).toBeGreaterThan(10);
     expect(hullCondition(world.trade)).toBeLessThan(1);
 
-    const beach = createWorld({ ...MAP, terrain: [{ ...reef, kind: 'island' }] }, SLOOP);
-    expect(sailNorth(beach, 0, 8)).toBe(0);
-    expect(hullCondition(beach.trade)).toBe(1);
+    // Ramming a rocky shore at full sail hurts too (0038), a little less than a reef.
+    const shore = createWorld({ ...MAP, terrain: [{ ...reef, kind: 'island' }] }, SLOOP);
+    const shoreDamage = sailNorth(shore, 0, 8);
+    expect(shoreDamage).toBeGreaterThan(5);
+    expect(shoreDamage).toBeLessThan(reefDamage);
+
+    const bank = createWorld({ ...MAP, terrain: [{ ...reef, kind: 'sandbank' }] }, SLOOP);
+    expect(sailNorth(bank, 0, 8)).toBe(0);
+
+    // Drifting into the shore at docking speed with the sails down is a free bump.
+    const gentle = createWorld({ ...MAP, terrain: [{ ...reef, kind: 'island' }] }, SLOOP);
+    const events: string[] = [];
+    gentle.boat = createBoat(0, 34, 0);
+    gentle.boat.speedKn = DOCK_SPEED_KN - 0.1;
+    for (let t = 0; t < 4; t += DT)
+      for (const e of stepWorld(gentle, { steer: 0, sailStep: 0 }, DT)) events.push(e.type);
+    expect(events).toContain('bump');
+    expect(hullCondition(gentle.trade)).toBe(1);
+  });
+
+  it('scales shore and pier damage with impact speed, past a docking bump', () => {
+    expect(impactDamage('shore', CRASH_SAFE_KN)).toBe(0);
+    expect(impactDamage('pier', CRASH_SAFE_KN + 2)).toBe(2 * CRASH_DAMAGE);
+    expect(impactDamage('shore', 7)).toBeGreaterThan(impactDamage('shore', 4));
+    expect(impactDamage('reef', 1)).toBeGreaterThan(0);
+    expect(impactDamage('sandbank', 8)).toBe(0);
+    expect(impactDamage('edge', 8)).toBe(0);
+  });
+
+  it('makes harbour piers solid and reports ramming one', () => {
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    expect(world.piers).toHaveLength(PHASE1_MAP.ports.length);
+    const pier = world.piers[0]!;
+    // Sail straight across the outer end of the pier, from one side to the other.
+    const mx = pier.x0 + (pier.x1 - pier.x0) * 0.85,
+      my = pier.y0 + (pier.y1 - pier.y0) * 0.85;
+    const along = Math.atan2(pier.x1 - pier.x0, pier.y1 - pier.y0);
+    const heading = along + Math.PI / 2;
+    world.boat = createBoat(mx - Math.sin(heading) * 7, my - Math.cos(heading) * 7, heading);
+    world.boat.speedKn = 8;
+    world.boat.sailStep = 0;
+    const events = [];
+    for (let t = 0; t < 1; t += DT) events.push(...stepWorld(world, { steer: 0, sailStep: 0 }, DT));
+    const crash = events.find((e) => e.type === 'crash');
+    expect(crash).toMatchObject({ type: 'crash', surface: 'pier' });
+    expect(hullCondition(world.trade)).toBeLessThan(1);
+    const side = (world.boat.x - mx) * Math.sin(heading) + (world.boat.y - my) * Math.cos(heading);
+    expect(side).toBeLessThan(0); // still on the near side: it did not sail through
   });
 
   it('a damaged hull leaks speed, never below the leak floor, and nothing sinks', () => {

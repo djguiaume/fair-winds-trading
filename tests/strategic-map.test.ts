@@ -56,7 +56,7 @@ describe('polygon coast collisions', () => {
         [-1, -1],
       ]) {
         const boat = createBoat(x!, y!, 0);
-        expect(resolveCollisions(boat, 4.5, [], 260, [{ ...square, outline }])).toBe(true);
+        expect(resolveCollisions(boat, 4.5, [], 260, [{ ...square, outline }])).toBe('shore');
         expect(coastDistance(boat.x, boat.y, outline).distance).toBeGreaterThanOrEqual(4.5 - 1e-5);
       }
     }
@@ -72,9 +72,9 @@ describe('polygon coast collisions', () => {
     ];
     expect(coastDistance(12, 12, outline).distance).toBeGreaterThan(4.5);
     const boat = createBoat(12, 12, 0);
-    expect(resolveCollisions(boat, 4.5, [], 260, [{ ...square, outline }])).toBe(false);
+    expect(resolveCollisions(boat, 4.5, [], 260, [{ ...square, outline }])).toBeNull();
     const corner = createBoat(4.8, 4.8, 0);
-    expect(resolveCollisions(corner, 4.5, [], 260, [{ ...square, outline }])).toBe(true);
+    expect(resolveCollisions(corner, 4.5, [], 260, [{ ...square, outline }])).toBe('shore');
     expect(coastDistance(corner.x, corner.y, outline).distance).toBeGreaterThanOrEqual(4.5 - 1e-5);
   });
 });
@@ -420,7 +420,7 @@ describe('wind-aware route audit', () => {
             terrain,
           ),
           `leg to ${destination}, at ${boat.x.toFixed(1)},${boat.y.toFixed(1)} target ${target.x},${target.y}`,
-        ).toBe(false);
+        ).toBeNull();
         elapsed += 1 / 60;
       }
       expect(

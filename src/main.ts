@@ -419,7 +419,9 @@ function handleEvents(events: WorldEvent[]) {
   for (const e of events) {
     if (e.type === 'docked') {
       const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
-      hud.showToast(t('toast.docked', { name: portName }), 2.5);
+      // Ramming the pier also stops you in range: keep the damage toast, the harbour shows repair.
+      const hurt = events.some((x) => x.type === 'crash' || x.type === 'reef-strike');
+      if (!hurt) hud.showToast(t('toast.docked', { name: portName }), 2.5);
       tradePanel.open('market');
       refreshPause();
       autosave();

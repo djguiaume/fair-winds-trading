@@ -201,6 +201,9 @@ export class Hud {
       } else if (e.type === 'reef-strike') {
         const pct = Math.round(hullCondition(this.world.trade) * 100);
         this.showToast(t('toast.reef', { pct }), 2.5);
+      } else if (e.type === 'crash') {
+        const pct = Math.round(hullCondition(this.world.trade) * 100);
+        this.showToast(t(e.surface === 'pier' ? 'toast.crashPier' : 'toast.crash', { pct }), 2.5);
       } else if (e.type === 'bump' && this.toastTimer <= 0) {
         this.showToast(t('toast.bump'), 1.2);
       }

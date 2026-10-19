@@ -1,3 +1,4 @@
+import type { Surface } from './collision';
 import { coastDistance } from './coast';
 import type { TerrainDef } from './map';
 import { clamp } from './math';
@@ -8,6 +9,7 @@ import { hullDurability } from './upgrades';
 /**
  * Light hazards (decisions 0010 and 0032): shallow water around reefs drags at the hull, and
  * striking a reef damages it. A damaged hull leaks and sails slower until it is repaired in port.
+ * Ramming a shore or a pier hurts too, once the impact is harder than a docking bump (0038).
  * Nothing sinks and no cargo is lost: hazards cost time and gold, not the voyage.
  */
 
@@ -17,6 +19,10 @@ export const SHALLOW_WIDTH = 14;
 export const SHALLOW_DRAG = 0.6;
 /** Hull points lost per knot of speed a reef strike takes off. */
 export const STRIKE_DAMAGE = 6;
+/** Knots of speed a shore or pier impact may take off for free: docking bumps never hurt. */
+export const CRASH_SAFE_KN = 2;
+/** Hull points lost per knot a shore or pier impact takes off beyond the safe bump. */
+export const CRASH_DAMAGE = 5;
 /** Speed lost with a fully wrecked hull (the leak), scaled by damage. */
 export const LEAK_PENALTY = 0.25;
 /** Gold per hull point repaired. */
@@ -60,6 +66,17 @@ export function shallowness(distanceToReef: number, shipRadius: number): number 
 /** Speed multiplier for this step from dragging through shallows. */
 export function shallowDrag(shallow: number, ship: ShipClass, dt: number): number {
   return Math.exp(-SHALLOW_DRAG * shallow * ship.draft * dt);
+}
+
+/**
+ * Hull points an impact on `surface` costs, given the knots it took off. Reefs cut at any speed,
+ * shores and piers only past a docking bump; sandbanks and the edge of the sea are soft.
+ */
+export function impactDamage(surface: Surface, speedLost: number): number {
+  if (surface === 'reef') return speedLost * STRIKE_DAMAGE;
+  if (surface === 'shore' || surface === 'pier')
+    return Math.max(0, speedLost - CRASH_SAFE_KN) * CRASH_DAMAGE;
+  return 0;
 }
 
 export function hullDamage(trade: TradeState): number {
