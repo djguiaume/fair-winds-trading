@@ -27,6 +27,15 @@ export interface IslandDef {
   };
 }
 
+/** A coastline shared by rendering and collision; coordinates are world x east / y north.
+ * Sandbanks are permanently above-water obstacles for now, not a new depth/damage system.
+ */
+export interface TerrainDef {
+  id: string;
+  kind: 'island' | 'sandbank';
+  outline: [number, number][];
+}
+
 export interface WaypointDef {
   /** Name shown in the HUD ("Sail to …"). */
   label: string;
@@ -47,12 +56,15 @@ export interface PortDef {
 
 export interface MapDef {
   name: string;
+  /** Explicit compatible predecessor maps; never accept arbitrary other-map saves. */
+  compatibleSaveMaps?: string[];
   seed: number;
   /** The playable sea is a disc of this radius around (0, 0). */
   boundsRadius: number;
   wind: WindConfig;
   start: { x: number; y: number; headingDeg: number };
   islands: IslandDef[];
+  terrain?: TerrainDef[];
   /** Phase 0 practice course: buoys to reach in order, looping. */
   course: WaypointDef[];
   /** Trading ports (Phase 1). */

@@ -69,7 +69,13 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
 
   stepBoat(world.boat, controls, world.ship, world.wind, dt);
   const sinceBump = world.boat.sinceBump;
-  resolveCollisions(world.boat, world.ship.radius, world.map.islands, world.map.boundsRadius);
+  resolveCollisions(
+    world.boat,
+    world.ship.radius,
+    world.map.islands,
+    world.map.boundsRadius,
+    world.map.terrain,
+  );
   // Report a new hit, not every frame spent grinding along a shore.
   if (world.boat.sinceBump === 0 && sinceBump > 0.5) events.push({ type: 'bump' });
 

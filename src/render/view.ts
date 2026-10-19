@@ -138,7 +138,13 @@ export class GameView {
       this.scene.remove(this.streaks.mesh);
       this.streaks.dispose();
     }
-    this.ocean = new Ocean(this.world.map.islands, profile.oceanSegments, profile.fancyWater, 480);
+    this.ocean = new Ocean(
+      this.world.map.islands,
+      profile.oceanSegments,
+      profile.fancyWater,
+      480,
+      this.world.map.terrain,
+    );
     this.streaks = new WindStreaks(profile.windStreaks);
     this.scene.add(this.ocean.mesh, this.streaks.mesh);
 

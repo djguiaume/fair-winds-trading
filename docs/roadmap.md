@@ -46,9 +46,10 @@ Goal: one boat on an empty ocean that is fun to steer.
 
 Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 
-**Status (2026-10-19):** trade rules done in the simulation ([0015](decisions/0015-trade-economy.md), details in [economy.md](economy.md)): four ports and four goods with supply-and-demand prices, cargo hold, gold, docking, sloop upgrades, the cutter and auto-save. Next: the trade panel and shipyard UI, upgrade parts on the boat models, then contracts, shifting wind, minimap and port labels.
+**Status (2026-10-19):** trade rules done in the simulation ([0015](decisions/0015-trade-economy.md), details in [economy.md](economy.md)): four prototype ports and four goods (port roles remain provisional; layout selected in [0019](decisions/0019-staggered-passages-first-map.md); map planning in [0018](decisions/0018-map-proposals-and-unlocks.md)) with supply-and-demand prices, cargo hold, gold, docking, sloop upgrades, the cutter and auto-save. Next: the trade panel and shipyard UI, upgrade parts on the boat models, then contracts, shifting wind, minimap and port labels.
 
-- One handmade archipelago (5–8 islands) with 3–4 settlements, each producing one good and wanting others (e.g. fish, timber, grain, cloth). The map is defined as data and uses a seedable RNG, so seeded maps can come later ([0008](decisions/0008-static-map-seed-ready.md)).
+- **Selected first map: strengthened B, Staggered passages** ([0019](decisions/0019-staggered-passages-first-map.md), [overview](maps/phase1-proposals.md)). Four existing main islands keep their appearance, sizes and positions. Staggered polygon barriers and exposed sandbanks add route choices; the stronger southern hook makes a broad eastern bypass useful for faster ships and later combat. Phase 0's original map remains available in data for practice/testing.
+- Island/port production roles remain provisional. Keep the existing economy assignments playable until production chains and multi-stop circuits are designed; this layout selection does not approve those roles. Map data remains seed-ready ([0008](decisions/0008-static-map-seed-ready.md)).
 - Docking: slow down near a port to open a trade panel; buy, sell, accept delivery contracts.
 - Cargo hold with limited capacity; prices vary by supply and demand per settlement.
 - Gold as currency. Shipyard at ports: three upgrade tracks for the sloop (sails, hold, hull, levels visible on the model) and a second ship class to buy, the cutter ([0011](decisions/0011-ship-lineup-and-upgrades.md)).
@@ -79,6 +80,15 @@ Goal: shift from sailing every trip to designing a network. This is the main twi
 - Automated ships sail with the same wind model; routes that fight the wind are slow, so route design is a puzzle.
 - Route dashboard: trips, profit per route, delays.
 - Player can still captain any ship by hand (e.g. to rush an urgent contract).
+
+## Between Phases 2 and 4 — Selectable maps and persistent unlocks
+
+- Multiple handmade sandbox maps, selectable from the main menu; the Phase 1 map is available from the start. Additional maps introduce different island layouts, distances and sailing challenges.
+- Unlock later maps through persistent captain progression. **Preferred design:** delivery and settlement milestones rather than XP earned simply by sailing. Exact requirements remain open until play-testing; later maps add navigation complexity rather than size alone.
+- Store map metadata (stable id, title, preview, difficulty and unlock condition) separately from world data; preserve the data-driven, seeded-map path in [0008](decisions/0008-static-map-seed-ready.md).
+- Keep account-free captain unlocks separate from each map's voyage save. Switching maps must preserve existing cargo, ships, markets and settlement progress in the appropriate voyage; define migration from the current single-save format before implementing the selector.
+- Offer explicit new-voyage and resume actions per map, with clear locked-map requirements. Map unlocks open new sandboxes rather than a scripted campaign.
+- Scope decision: [0018](decisions/0018-map-proposals-and-unlocks.md). The selector and progression are planned work, not part of the Phase 1 map preview task.
 
 ## Phase 4 — Expansion and harder seas
 

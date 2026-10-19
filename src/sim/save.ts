@@ -1,4 +1,5 @@
 import { createBoat } from './boat';
+import { resolveCollisions } from './collision';
 import { GOODS, type GoodAmounts, emptyAmounts } from './goods';
 import { wrapPositive } from './math';
 import { SHIP_CLASSES } from './ship';
@@ -85,7 +86,9 @@ function readLevels(v: unknown): UpgradeLevels | null {
  * is from another version or map, or damaged.
  */
 export function validateSave(raw: unknown, world: World): SaveData | null {
-  if (!isObj(raw) || raw.version !== SAVE_VERSION || raw.map !== world.map.name) return null;
+  if (!isObj(raw) || raw.version !== SAVE_VERSION) return null;
+  if (raw.map !== world.map.name && !world.map.compatibleSaveMaps?.includes(raw.map as string))
+    return null;
   const { time, windOffsetDeg, boat, gold, activeShip: active, dockedAt } = raw;
   if (!isNum(time) || !isNum(windOffsetDeg) || !isNum(gold) || gold < 0) return null;
   if (!isObj(boat) || !isNum(boat.x) || !isNum(boat.y) || !isNum(boat.heading)) return null;
@@ -144,6 +147,21 @@ export function applySave(world: World, data: SaveData): void {
   }
   trade.dockedAt = data.dockedAt;
   world.ship = activeShip(trade);
+  // Compatible prototype saves keep all trading progress. If a new coastline covers the old
+  // position, resume safely at the known-clear spawn rather than strand the boat on land.
+  if (
+    resolveCollisions(
+      world.boat,
+      world.ship.radius,
+      world.map.islands,
+      world.map.boundsRadius,
+      world.map.terrain,
+    )
+  ) {
+    const start = world.map.start;
+    world.boat = createBoat(start.x, start.y, (start.headingDeg * Math.PI) / 180);
+    trade.dockedAt = null;
+  }
 }
 
 export function saveGame(storage: SaveStorage, world: World): boolean {

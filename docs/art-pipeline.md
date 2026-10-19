@@ -25,3 +25,7 @@ Per [0005](decisions/0005-tech-stack.md): model in Blender, low-poly with vertex
 ## Generated models (Scenario)
 
 A test of generating an island and a sloop with Scenario (image → low-poly GLB), with triangle counts, file sizes, cost and the step-by-step workflow, is in [art/scenario-tests](art/scenario-tests/README.md). Short version: good for islands and props after optimizing (meshopt + 512² WebP texture, under 50 KB each); boats come out as one frozen mesh, so sails and upgrades could not move. Because of the credit cost, all models stay code-built for now ([0014](decisions/0014-code-built-models-for-now.md)).
+
+## Strategic coastlines
+
+Phase 1 terrain polygons (`MapDef.terrain`) use the same world-space outline for shore collision, B2-colored extruded terrain in the merged island mesh, and ocean shallows/foam. Current sandbanks are exposed solid land, not depth zones. The ocean supports up to 64 added coastline edges and fails explicitly beyond its budget. Original circular island models remain unchanged. See [0019](decisions/0019-staggered-passages-first-map.md).
