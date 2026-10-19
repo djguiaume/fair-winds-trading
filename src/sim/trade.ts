@@ -1,3 +1,4 @@
+import { type ContractState, createContracts, stepContracts } from './contracts';
 import { GOODS, type GoodAmounts, type GoodId, emptyAmounts, totalAmount } from './goods';
 import type { MapDef, PortDef } from './map';
 import { type Market, available, createMarket, quoteBuy, quoteSell, stepMarket } from './market';
@@ -41,6 +42,8 @@ export interface TradeState {
   markets: Record<string, Market>;
   /** Port id the boat is docked at, or null at sea. */
   dockedAt: string | null;
+  /** Delivery orders posted by the ports (decision 0028). */
+  contracts: ContractState;
 }
 
 export type TradeError =
@@ -73,6 +76,7 @@ export function createTradeState(map: MapDef, startShip: ShipClass): TradeState 
     },
     markets,
     dockedAt: null,
+    contracts: createContracts(map),
   };
 }
 
@@ -149,6 +153,7 @@ export function stepTrade(
   dt: number,
 ): DockEvent[] {
   for (const market of Object.values(trade.markets)) stepMarket(market, dt);
+  stepContracts(trade.contracts, dt);
   const events: DockEvent[] = [];
   if (trade.dockedAt) {
     const port = findPort(map, trade.dockedAt);

@@ -1,3 +1,4 @@
+import { type Contract, deliverContract, openContracts } from '../sim/contracts';
 import { GOODS, GOOD_DEFS, type GoodId } from '../sim/goods';
 import { goodRole, quoteBuy, quoteSell, type Market } from '../sim/market';
 import { CUTTER, SHIP_CLASSES, SLOOP } from '../sim/ship';
@@ -240,6 +241,7 @@ export class TradePanel {
         </nav>
 
         <main class="trade-content">
+          ${this.tab === 'market' ? this.renderContracts(isKid) : ''}
           ${
             this.tab === 'market'
               ? isKid
@@ -270,6 +272,48 @@ export class TradePanel {
         : this.container.querySelector<HTMLButtonElement>('#tp-close')
       )?.focus({ preventScroll: true });
     }
+  }
+
+  /** Delivery orders (decision 0028): this port's, with a Deliver button, then the others'. */
+  private renderContracts(isKid: boolean): string {
+    const { trade, map } = this.world;
+    const here = trade.contracts.byPort[trade.dockedAt!];
+    const portName = (id: string) => findPort(map, id)?.name ?? id;
+    const goods = (c: Contract) =>
+      isKid
+        ? `${GOOD_ICONS[c.good]} ×${c.qty}`
+        : `${c.qty} ${GOOD_DEFS[c.good].name.toLowerCase()}`;
+
+    let hereHtml: string;
+    if (!here || here.readyIn > 0) {
+      hereHtml = `<p class="contract-line muted">${isKid ? 'No job here right now. Come back soon!' : 'No order here right now; a new one is posted soon.'}</p>`;
+    } else {
+      const missing = here.qty - trade.captain.cargo[here.good];
+      hereHtml = `
+        <div class="contract-line contract-here">
+          <span>${isKid ? 'This town needs' : 'This port orders'} <b>${goods(here)}</b> · ${isKid ? 'pays' : 'reward'} <b>${here.reward} 🪙</b></span>
+          <button id="tp-deliver" class="sell-all-btn deliver-btn" ${missing > 0 ? 'disabled' : ''}>
+            ${missing > 0 ? `Need ${missing} more` : isKid ? 'Deliver! ✓' : `Deliver for +${here.reward} 🪙`}
+          </button>
+        </div>`;
+    }
+    const others = openContracts(trade.contracts).filter((c) => c.portId !== trade.dockedAt);
+    const othersHtml = others
+      .map(
+        (c) =>
+          `<li><b>${portName(c.portId)}</b>: ${goods(c)} · ${c.reward} 🪙${
+            trade.captain.cargo[c.good] >= c.qty
+              ? ' <span class="role-badge produces">in hold</span>'
+              : ''
+          }</li>`,
+      )
+      .join('');
+    return `
+      <section class="contracts" aria-label="${isKid ? 'Jobs' : 'Delivery orders'}">
+        <h3 class="contracts-title">${isKid ? '📜 Jobs' : '📜 Delivery orders'}</h3>
+        ${hereHtml}
+        ${others.length ? `<ul class="contract-list">${othersHtml}</ul>` : ''}
+      </section>`;
   }
 
   // --- KIDS MARKET RENDERER ---
@@ -853,6 +897,17 @@ export class TradePanel {
     sellAllBtn?.addEventListener('click', () => {
       const res = sellAll(this.world.trade);
       this.finish(res, { kind: 'sell', good: null });
+    });
+
+    this.container.querySelector('#tp-deliver')?.addEventListener('click', () => {
+      const res = deliverContract(this.world.trade, this.world.map);
+      if (res.ok) {
+        this.message = `Order delivered. +${res.gold} gold.`;
+        this.onAction();
+      } else {
+        this.message = 'You need the full order in your hold.';
+      }
+      this.render();
     });
 
     // Stepper buttons

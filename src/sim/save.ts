@@ -1,4 +1,5 @@
 import { createBoat } from './boat';
+import { type ContractState, readContracts } from './contracts';
 import { resolveCollisions } from './collision';
 import { GOODS, type GoodAmounts, emptyAmounts } from './goods';
 import { wrapPositive } from './math';
@@ -29,6 +30,8 @@ export interface SaveData {
   dockedAt: string | null;
   /** Port id → current stock per good. */
   markets: Record<string, GoodAmounts>;
+  /** Delivery orders (decision 0028). Optional: older saves get fresh orders. */
+  contracts?: ContractState;
 }
 
 /** The subset of the Web Storage API the save needs. */
@@ -52,6 +55,7 @@ export function serializeWorld(world: World): SaveData {
     cargo: { ...captain.cargo },
     dockedAt,
     markets: stocks,
+    contracts: structuredClone(world.trade.contracts),
   };
 }
 
@@ -125,6 +129,7 @@ export function validateSave(raw: unknown, world: World): SaveData | null {
     cargo,
     dockedAt: dockedAt as string | null,
     markets,
+    contracts: readContracts(raw.contracts, world.map),
   };
 }
 
@@ -146,6 +151,7 @@ export function applySave(world: World, data: SaveData): void {
     if (market) market.stock = { ...stock };
   }
   trade.dockedAt = data.dockedAt;
+  if (data.contracts) trade.contracts = readContracts(data.contracts, world.map);
   world.ship = activeShip(trade);
   // Compatible prototype saves keep all trading progress. If a new coastline covers the old
   // position, resume safely at the known-clear spawn rather than strand the boat on land.

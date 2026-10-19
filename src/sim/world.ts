@@ -4,7 +4,7 @@ import type { MapDef } from './map';
 import { DEG, distance } from './math';
 import type { ShipClass } from './ship';
 import { type DockEvent, type TradeState, activeShip, createTradeState, stepTrade } from './trade';
-import { type Wind, type WindBlocker, localWind, shelterAt, windAt, windBlockers } from './wind';
+import { type Wind, type WindBlocker, localWind, windAt, windBlockers, windEffectAt } from './wind';
 
 /** Distance (units) at which a course buoy counts as reached. */
 export const WAYPOINT_RADIUS = 12;
@@ -21,6 +21,8 @@ export interface World {
   seaWind: Wind;
   /** 0 = open sea … 1 = right behind a tall island. */
   shelter: number;
+  /** 0 = no effect … 1 = wind squeezed through a channel between islands. */
+  funnel: number;
   /** Land that blocks the wind, derived from the map once. */
   windBlockers: WindBlocker[];
   /** Degrees added to the map's wind direction (the "new wind" button). */
@@ -51,6 +53,7 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     wind: windAt(map.wind, 0, map.seed),
     seaWind: windAt(map.wind, 0, map.seed),
     shelter: 0,
+    funnel: 0,
     windBlockers: windBlockers(map.islands, map.terrain),
     windOffsetDeg: 0,
     boat: createBoat(map.start.x, map.start.y, map.start.headingDeg * DEG),
@@ -102,8 +105,10 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   world.time += dt;
   const cfg = { ...world.map.wind, fromDeg: world.map.wind.fromDeg + world.windOffsetDeg };
   world.seaWind = windAt(cfg, world.time, world.map.seed);
-  world.shelter = shelterAt(world.windBlockers, world.boat, world.seaWind);
-  world.wind = localWind(world.seaWind, world.shelter);
+  const effect = windEffectAt(world.windBlockers, world.boat, world.seaWind);
+  world.shelter = effect.shelter;
+  world.funnel = effect.funnel;
+  world.wind = localWind(world.seaWind, effect);
   // Upgrades and ship purchases change the trade state; the boat picks them up here.
   world.ship = activeShip(world.trade);
 

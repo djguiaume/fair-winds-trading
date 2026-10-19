@@ -5,12 +5,14 @@ import type { IslandDef, TerrainDef } from '../src/sim/map';
 import { SLOOP } from '../src/sim/ship';
 import {
   DEFAULT_WEATHER,
+  FUNNEL_GAIN,
   SHADOW_DEPTH,
   localWind,
   shelterAt,
   weatherAt,
   windAt,
   windBlockers,
+  windEffectAt,
 } from '../src/sim/wind';
 import { createWorld, stepWorld } from '../src/sim/world';
 
@@ -87,7 +89,23 @@ describe('wind shadow behind islands (0027)', () => {
   });
 
   it('never stops the wind completely', () => {
-    expect(localWind(north, 1).speedKn).toBeCloseTo(14 * (1 - SHADOW_DEPTH));
+    expect(localWind(north, { shelter: 1, funnel: 0 }).speedKn).toBeCloseTo(
+      14 * (1 - SHADOW_DEPTH),
+    );
+  });
+
+  it('speeds the wind up along an island flank, more in a channel between two', () => {
+    const flank = windEffectAt(blockers, { x: 26, y: 0 }, north);
+    expect(flank.shelter).toBe(0);
+    expect(flank.funnel).toBeGreaterThan(0.2);
+    expect(localWind(north, flank).speedKn).toBeGreaterThan(14);
+    expect(windEffectAt(blockers, { x: 80, y: 0 }, north).funnel).toBe(0);
+
+    const pair = windBlockers([island, { id: 'east', x: 50, y: 0, radius: 18 }]);
+    const channel = windEffectAt(pair, { x: 25, y: 0 }, north);
+    expect(channel.funnel).toBeGreaterThan(flank.funnel);
+    expect(channel.funnel).toBeLessThanOrEqual(1);
+    expect(localWind(north, channel).speedKn).toBeLessThanOrEqual(14 * (1 + FUNNEL_GAIN));
   });
 
   it('slows a boat sailing through the lee', () => {

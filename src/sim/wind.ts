@@ -91,7 +91,7 @@ export function windTo(wind: Wind): number {
   return wrapPositive(wind.from + Math.PI);
 }
 
-// --- Wind shadow behind islands (decision 0027) -----------------------------------------------
+// --- Islands change the wind: lee shadow and flank funnel (decision 0027) -----------------------------------------------
 
 /** How far downwind (units) an island still calms the wind. */
 export const SHADOW_LENGTH = 70;
@@ -164,24 +164,85 @@ function rayShelter(
   return 0;
 }
 
+/** Largest boost beside an island's flank; a narrow channel between two islands gets it fully. */
+export const FUNNEL_GAIN = 0.2;
+/** How far to the side (units) land still speeds the wind up. */
+const FUNNEL_REACH = 28;
+const FUNNEL_STEP = 7;
+/** Side rays, measured from straight upwind: ahead of the beam and abeam. */
+const FUNNEL_ANGLES = [60 * DEG, 90 * DEG];
+
+/** 0..1: how close land is on one side (nearest hit over the side rays). */
+function sideProximity(
+  blockers: readonly WindBlocker[],
+  pos: { x: number; y: number },
+  from: number,
+  side: 1 | -1,
+): number {
+  let best = 0;
+  for (const angle of FUNNEL_ANGLES) {
+    const d = bearingVector(from + side * angle);
+    for (let s = FUNNEL_STEP; s <= FUNNEL_REACH; s += FUNNEL_STEP) {
+      const px = pos.x + d.x * s,
+        py = pos.y + d.y * s;
+      let h = 0;
+      for (const b of blockers) if (b.height > h && isLand(b, px, py)) h = b.height;
+      if (h > 0) {
+        best = Math.max(best, h * (1 - (s - FUNNEL_STEP) / FUNNEL_REACH));
+        break;
+      }
+    }
+  }
+  return best;
+}
+
+export interface WindEffect {
+  /** 0 = open sea … 1 = right behind a tall island. */
+  shelter: number;
+  /** 0 = no effect … 1 = squeezed between two islands; wind speeds up along flanks. */
+  funnel: number;
+}
+
 /**
- * How sheltered a sea position is from `wind`, 0 (open sea) .. 1 (right behind a tall island).
- * Three short upwind rays: a few dozen point checks, cheap enough for every frame on a tablet.
+ * How islands change the wind at a sea position (decision 0027): calm in their lee, a little
+ * stronger along their sides and in channels. A few short rays, a few hundred point checks at
+ * most: cheap enough for every frame on a tablet.
  */
-export function shelterAt(
+export function windEffectAt(
   blockers: readonly WindBlocker[],
   pos: { x: number; y: number },
   wind: Wind,
-) {
+): WindEffect {
   let total = 0;
   for (const spread of [-SHADOW_SPREAD, 0, SHADOW_SPREAD]) {
     const d = bearingVector(wind.from + spread);
     total += rayShelter(blockers, pos.x, pos.y, d.x, d.y);
   }
-  return clamp(total / 3, 0, 1);
+  const shelter = clamp(total / 3, 0, 1);
+  // One flank speeds the wind up a little; land on both sides (a channel) up to the full gain.
+  const left = sideProximity(blockers, pos, wind.from, -1);
+  const right = sideProximity(blockers, pos, wind.from, 1);
+  const funnel = clamp(
+    (Math.max(left, right) * 0.5 + Math.min(left, right) * 0.5) * (1 - shelter),
+    0,
+    1,
+  );
+  return { shelter, funnel };
 }
 
-/** The wind a boat feels at `pos`: the sea wind, weakened in the lee of islands. */
-export function localWind(sea: Wind, shelter: number): Wind {
-  return { from: sea.from, speedKn: sea.speedKn * (1 - SHADOW_DEPTH * shelter) };
+/** Shelter only (0..1); see `windEffectAt`. */
+export function shelterAt(
+  blockers: readonly WindBlocker[],
+  pos: { x: number; y: number },
+  wind: Wind,
+) {
+  return windEffectAt(blockers, pos, wind).shelter;
+}
+
+/** The wind a boat feels: the sea wind, weakened in the lee and stronger along flanks. */
+export function localWind(sea: Wind, effect: WindEffect): Wind {
+  return {
+    from: sea.from,
+    speedKn: sea.speedKn * (1 - SHADOW_DEPTH * effect.shelter) * (1 + FUNNEL_GAIN * effect.funnel),
+  };
 }
