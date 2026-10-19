@@ -1,8 +1,12 @@
 import { defineConfig } from 'vitest/config';
+import { execSync } from 'node:child_process';
+
+const revision = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
 
 // Relative base so the build works on GitHub Pages (/fair-winds-trading/) and locally.
 export default defineConfig({
   base: './',
+  define: { __BUILD_REVISION__: JSON.stringify(revision) },
   build: {
     target: 'es2020',
     chunkSizeWarningLimit: 800,

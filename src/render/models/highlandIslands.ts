@@ -132,7 +132,12 @@ function windmill(): Parts {
  * One island in reference units around its own origin, with its harbour side toward +Z.
  * Returns the parts, already scaled, turned and moved to the island's place on the map.
  */
-export function islandParts(island: IslandDef, map: MapDef, seed: number): Parts {
+export function islandParts(
+  island: IslandDef,
+  map: MapDef,
+  seed: number,
+  onHarbour?: (point: { x: number; y: number }) => void,
+): Parts {
   const rng = createRng(seed);
   const look = island.look ?? {};
   const kind = look.kind ?? map.ports.find((p) => p.islandId === island.id)?.produces[0];
@@ -282,6 +287,16 @@ export function islandParts(island: IslandDef, map: MapDef, seed: number): Parts
   // The harbour (+Z) faces the course buoy named after this island, else a seeded direction.
   const wp = map.course.find((w) => w.label === island.name);
   const bearing = wp ? bearingTo(island, wp) : rng() * Math.PI * 2;
+  if (look.dock && onHarbour) {
+    // Exact pier-head coordinates, using the same scale/rotation as its geometry below.
+    const angle = Math.PI - bearing;
+    const x = island.radius * 0.08;
+    const z = island.radius * 0.85 + Math.min(island.radius * 0.75, 4.5 * ISLAND_SCALE);
+    onHarbour({
+      x: island.x + Math.cos(angle) * x + Math.sin(angle) * z,
+      y: island.y + Math.sin(angle) * x - Math.cos(angle) * z,
+    });
+  }
   if (look.landmark) {
     const size = Math.min(1.15, capR / 3.8);
     if (look.landmark === 'wreck') {
@@ -383,7 +398,13 @@ export function terrainProps(feature: TerrainDef, seed: number): Parts {
 
 /** All islands of the map merged into one mesh. */
 export const buildHighlandIslands: IslandsBuilder = (map, { shadows }) => {
-  const parts = map.islands.flatMap((island, i) => islandParts(island, map, map.seed * 1000 + i));
+  const harbours: Record<string, { x: number; y: number }> = {};
+  const parts = map.islands.flatMap((island, i) =>
+    islandParts(island, map, map.seed * 1000 + i, (point) => {
+      const port = map.ports.find((p) => p.islandId === island.id);
+      if (port) harbours[port.id] = point;
+    }),
+  );
   // Non-circular barriers use the very same outline as simulation collision.
   for (const feature of map.terrain ?? []) {
     const shape = new THREE.Shape(feature.outline.map(([x, y]) => new THREE.Vector2(x, y)));
@@ -413,6 +434,7 @@ export const buildHighlandIslands: IslandsBuilder = (map, { shadows }) => {
     );
   }
   const mesh = new THREE.Mesh(mergeAll(parts), vertexColorMaterial());
+  mesh.userData.harbours = harbours;
   mesh.castShadow = shadows;
   mesh.receiveShadow = shadows;
   return mesh;

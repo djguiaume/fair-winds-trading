@@ -1677,3 +1677,34 @@ body.is-docked .objective {
     transition: none;
   }
 }
+
+/* Anchor labels to actual pier heads instead of hiding them behind the island. */
+.port-marker-cue {
+  display: block;
+  font-size: 11px;
+  margin-top: 3px;
+  color: #f5e6bc;
+}
+.port-marker.ready .port-marker-box {
+  border-color: #9be37d;
+}
+.port-marker-icon {
+  font-size: 20px;
+  color: #ffe680;
+}
+.port-marker-tag {
+  display: none;
+}
+.port-marker-box::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: calc(50% - 5px);
+  border: 5px solid transparent;
+  border-top-color: #ffe680;
+}
+@media (max-width: 560px) {
+  .dock-btn {
+    bottom: calc(max(18px, env(safe-area-inset-bottom)) + 72px);
+  }
+}

@@ -25,6 +25,10 @@ import { Hud } from './ui/hud';
 import { loadSettings, saveSettings } from './ui/settings';
 import { TradePanel } from './ui/tradePanel';
 
+declare const __BUILD_REVISION__: string;
+const release = document.getElementById('build-revision');
+if (release) release.textContent = __BUILD_REVISION__;
+
 const SIM_STEP = 1 / 60;
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -51,13 +55,17 @@ const storage: SaveStorage | null = (() => {
 if (storage) loadGame(storage, world);
 let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
 const view = new GameView(canvas, world, level);
-const hud = new Hud(world, {
-  seen: settings.seenWindHint,
-  markSeen: () => {
-    settings.seenWindHint = true;
-    saveSettings(settings);
+const hud = new Hud(
+  world,
+  {
+    seen: settings.seenWindHint,
+    markSeen: () => {
+      settings.seenWindHint = true;
+      saveSettings(settings);
+    },
   },
-});
+  view.harbours,
+);
 const input = new Input(stage);
 const tradePanel = new TradePanel($('trade-panel'), world);
 tradePanel.uiMode = settings.uiMode;
@@ -89,6 +97,8 @@ hud.onPortClick = (portId: string) => {
   if (world.trade.dockedAt === portId) {
     tradePanel.open('market');
     refreshPause();
+  } else if (trade.tryDock(world.trade, world.map, world.boat, portId)) {
+    handleEvents([{ type: 'docked', portId }]);
   } else {
     if (setPortDestination(world, portId)) {
       hud.showToast(`Course set for ${world.destination!.label}`, 2);
