@@ -2,7 +2,10 @@
 
 Static mockups (1280×720) to choose the look of the ships and islands within the real-time 3D low-poly direction ([0004](../decisions/0004-real-time-3d.md)). They are procedural three.js renders, not game code. The choice is tracked in [decision 0012](../decisions/0012-boat-and-island-art-style.md); the ship lineup and upgrades they show are in [decision 0011](../decisions/0011-ship-lineup-and-upgrades.md).
 
-**Status (round 2):** islands settled on **B2** (B's highland shapes, lighter colours, A's water and shallows glow). Every sheet now uses the **A sea colours**. Boats: Guillaume liked A and B and asked for more options, so D, E and F sit between them; pick pending.
+**Chosen ([0012](../decisions/0012-boat-and-island-art-style.md)):** **A sea colours** everywhere, **B2 bright highland** islands, **D storybook classic** boats. The other sheets stay as the record of the options.
+
+![Boats D](boats-D.png)
+![Upgrades D](upgrades-D.png)
 
 ## Boats
 

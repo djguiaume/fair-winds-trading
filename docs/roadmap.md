@@ -116,5 +116,5 @@ Decided in [decision 0005](decisions/0005-tech-stack.md): three.js + TypeScript 
 
 - ~~True 3D or 2.5D?~~ Decided: real-time 3D low-poly ([decision 0004](decisions/0004-real-time-3d.md)), built with three.js ([0005](decisions/0005-tech-stack.md)).
 - ~~Desktop or mobile first?~~ Both from day one, tuned for an old tablet ([0006](decisions/0006-desktop-and-mobile.md)).
-- Art style ([0012](decisions/0012-boat-and-island-art-style.md), mockups in [docs/art](art/)): sea and islands decided (A water everywhere, B2 bright highland islands); boat style still open between A, B, D, E and F.
+- ~~Art style?~~ Decided ([0012](decisions/0012-boat-and-island-art-style.md), mockups in [docs/art](art/)): A sea colours, B2 bright highland islands, D storybook classic boats.
 - How much simulation runs for off-screen automated ships (needed from Phase 3)? The stack keeps the sim renderer-free so it can run off-screen or in a Web Worker; the level of detail is still open.
