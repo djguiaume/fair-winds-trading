@@ -1,5 +1,7 @@
 # Phase 1 map proposals
 
+> **Rework in progress (2026-10-19):** two new layouts are proposed in [rework/](rework/README.md) after Guillaume found this map lacking.
+
 **Status:** Guillaume selected the strengthened B layout, 2026-10-19. Implemented in `src/data/phase1-map.json`; [decision 0019](../decisions/0019-staggered-passages-first-map.md).
 
 ## Selected map
