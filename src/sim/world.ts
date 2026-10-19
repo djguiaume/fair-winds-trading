@@ -4,7 +4,7 @@ import type { MapDef } from './map';
 import { DEG, distance } from './math';
 import type { ShipClass } from './ship';
 import { type DockEvent, type TradeState, activeShip, createTradeState, stepTrade } from './trade';
-import { type Wind, windAt } from './wind';
+import { type Wind, type WindBlocker, localWind, shelterAt, windAt, windBlockers } from './wind';
 
 /** Distance (units) at which a course buoy counts as reached. */
 export const WAYPOINT_RADIUS = 12;
@@ -15,7 +15,14 @@ export interface World {
   /** Ship the boat sails as: the active class with its upgrades (follows `trade.captain`). */
   ship: ShipClass;
   time: number;
+  /** Wind the boat feels: the sea wind, calmer in the lee of islands (decision 0027). */
   wind: Wind;
+  /** Wind over open water, before island shelter. */
+  seaWind: Wind;
+  /** 0 = open sea … 1 = right behind a tall island. */
+  shelter: number;
+  /** Land that blocks the wind, derived from the map once. */
+  windBlockers: WindBlocker[];
   /** Degrees added to the map's wind direction (the "new wind" button). */
   windOffsetDeg: number;
   boat: BoatState;
@@ -41,7 +48,10 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     map,
     ship: activeShip(trade),
     time: 0,
-    wind: windAt(map.wind, 0),
+    wind: windAt(map.wind, 0, map.seed),
+    seaWind: windAt(map.wind, 0, map.seed),
+    shelter: 0,
+    windBlockers: windBlockers(map.islands, map.terrain),
     windOffsetDeg: 0,
     boat: createBoat(map.start.x, map.start.y, map.start.headingDeg * DEG),
     destination: null,
@@ -91,7 +101,9 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   const events: WorldEvent[] = [];
   world.time += dt;
   const cfg = { ...world.map.wind, fromDeg: world.map.wind.fromDeg + world.windOffsetDeg };
-  world.wind = windAt(cfg, world.time);
+  world.seaWind = windAt(cfg, world.time, world.map.seed);
+  world.shelter = shelterAt(world.windBlockers, world.boat, world.seaWind);
+  world.wind = localWind(world.seaWind, world.shelter);
   // Upgrades and ship purchases change the trade state; the boat picks them up here.
   world.ship = activeShip(world.trade);
 

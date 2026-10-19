@@ -240,7 +240,9 @@ export class Hud {
       this.objName.textContent = wp?.label ?? '';
       this.objDist.textContent = wp ? `${Math.round(distance(boat, wp))} m` : '';
       const fromDir = COMPASS[Math.round(wrapPositive(wind.from) / (Math.PI / 4)) % 8];
-      this.windText.textContent = `${fromDir} · ${wind.speedKn.toFixed(0)} kn`;
+      // Name the lee so a sudden drop in speed reads as the island, not a bug (decision 0027).
+      const lee = this.world.shelter > 0.25 ? ' · lee' : '';
+      this.windText.textContent = `${fromDir} · ${wind.speedKn.toFixed(0)} kn${lee}`;
 
       document.body.classList.toggle('is-docked', Boolean(this.world.trade.dockedAt));
       // Captain stats & dock button
