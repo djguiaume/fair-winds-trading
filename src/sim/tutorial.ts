@@ -1,4 +1,5 @@
-import { GOODS, GOOD_DEFS, isGood, type GoodId } from './goods';
+import { goodName, t } from '../i18n';
+import { GOODS, isGood, type GoodId } from './goods';
 import { type BoatControls } from './boat';
 import { type SaveStorage } from './save';
 import { findPort, cargoUsed } from './trade';
@@ -257,78 +258,63 @@ export class Tutorial {
     action: 'chart' | 'market' | 'tips' | null;
     continueText: string | null;
   } {
-    const origin = this.origin ? findPort(this.world.map, this.origin)?.name : 'your chosen port';
-    const delivery = this.delivery ? findPort(this.world.map, this.delivery)?.name : 'another port';
-    const cargo = this.good ? GOOD_DEFS[this.good].name : 'your cargo';
+    const origin = this.origin
+      ? findPort(this.world.map, this.origin)?.name
+      : t('tutorial.yourPort');
+    const delivery = this.delivery
+      ? findPort(this.world.map, this.delivery)?.name
+      : t('tutorial.anotherPort');
+    const cargo = this.good ? goodName(this.good) : t('tutorial.yourCargo');
     const firstPort = this.world.map.ports.find((p) => p.id === this.origin);
     const produced = firstPort?.produces[0];
     const buyer = this.world.map.ports.find(
       (p) => p.id !== this.origin && this.good && p.wants.includes(this.good),
     );
-    switch (this.step) {
+    const step = this.step;
+    const params = { origin: origin ?? '', delivery: delivery ?? '', cargo };
+    const text = (part: 'title' | 'copy', extra: Record<string, string> = {}) =>
+      t(`lesson.${step}.${part}`, { ...params, ...extra });
+    switch (step) {
       case 'chart':
-        return {
-          title: 'Find your bearings',
-          copy: 'Open Map (M). Blue is your boat, anchors are trading ports. Sailing pauses while you plan.',
-          action: 'chart',
-          continueText: null,
-        };
       case 'choose-port':
-        return {
-          title: 'Choose a harbour',
-          copy: 'Tap a nearby anchor or a port button below to set a bearing. Close the chart when ready. This is a direction, not a safe route through land.',
-          action: 'chart',
-          continueText: null,
-        };
+        return { title: text('title'), copy: text('copy'), action: 'chart', continueText: null };
       case 'sails':
         return {
-          title: 'Try sails and steering',
-          copy: 'Lower sails with ▼ / ↓, then raise with ▲ / ↑. Drag left/right on the sea or use ← → to steer. Leave the harbour and sail a little; avoid the coast.',
+          title: text('title'),
+          copy: text('copy'),
           action: null,
-          continueText: 'I know these controls',
+          continueText: t('lesson.sails.continue'),
         };
       case 'wind':
         return {
-          title: 'Let the wind help',
-          copy: 'The shaded compass wedge is the no-go zone. To go upwind, sail diagonally on one side of it, then turn through to the other side. A brief slowdown during a tack is normal.',
+          title: text('title'),
+          copy: text('copy'),
           action: 'tips',
-          continueText: 'Continue to harbour',
+          continueText: t('lesson.wind.continue'),
         };
       case 'dock':
-        return {
-          title: `Dock at ${origin}`,
-          copy: 'Follow your bearing around land. Lower sails near the pier and slow below 1.5 kn. Tap its anchor to dock and trade; slow approaches can also dock automatically.',
-          action: 'chart',
-          continueText: null,
-        };
+      case 'deliver':
+        return { title: text('title'), copy: text('copy'), action: 'chart', continueText: null };
       case 'buy':
         return {
-          title: 'Pick up a small cargo',
-          copy: `At ${origin}, open Market and buy 1 ${produced ? GOOD_DEFS[produced].name : 'unit of a produced good'}. Produced goods are usually cheaper. Buy only what you can afford; carrying existing cargo works too.`,
+          title: text('title'),
+          copy: text('copy', {
+            good: produced ? goodName(produced) : t('tutorial.producedGood'),
+          }),
           action: 'market',
-          continueText: this.hasCargo ? 'Use my existing cargo' : null,
+          continueText: this.hasCargo ? t('lesson.buy.continue') : null,
         };
       case 'choose-delivery':
         return {
-          title: `Find a buyer for ${cargo}`,
-          copy: `Open Map and choose a different port${buyer ? ` — ${buyer.name} wants ${cargo}` : ''}. Return to sea, raise sails and carry your cargo there. Prices change; compare the actual quotes.`,
-          action: 'chart',
-          continueText: null,
-        };
-      case 'deliver':
-        return {
-          title: `Carry ${cargo} to ${delivery}`,
-          copy: 'Sail around land and tack if needed. Lower sails as you approach the marked pier, then dock. Reopen the chart whenever you need your bearings.',
+          title: text('title'),
+          copy: text('copy', {
+            buyer: buyer ? t('lesson.choose-delivery.buyer', { name: buyer.name, cargo }) : '',
+          }),
           action: 'chart',
           continueText: null,
         };
       case 'sell':
-        return {
-          title: 'Make your first delivery',
-          copy: `At ${delivery}, open Market and sell at least 1 ${cargo}, or use Sell All. Read the quoted gold before you trade.`,
-          action: 'market',
-          continueText: null,
-        };
+        return { title: text('title'), copy: text('copy'), action: 'market', continueText: null };
     }
   }
 }

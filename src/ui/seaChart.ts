@@ -1,7 +1,8 @@
 import type { World } from '../sim/world';
 import { DEG } from '../sim/math';
-import { GOODS, GOOD_DEFS, GOOD_ICONS, type GoodId } from '../sim/goods';
+import { GOODS, GOOD_ICONS, type GoodId } from '../sim/goods';
 import { quoteAcross, topNeed, unitSellPrice } from '../sim/market';
+import { goodName, t } from '../i18n';
 
 interface Pin {
   x: number;
@@ -48,7 +49,7 @@ export class SeaChart {
       world.destination = null;
       this.onDestinationChange();
       this.draw();
-      this.status('Bearing cleared. Sail wherever you like.');
+      this.status(t('chart.statusCleared'));
     });
     this.get('chart-pin-here').addEventListener('click', () =>
       this.addPin(world.boat.x, world.boat.y),
@@ -104,7 +105,7 @@ export class SeaChart {
   private addPin(x: number, y: number) {
     if (Math.hypot(x, y) > this.world.map.boundsRadius) return;
     if (this.pins.length >= 5) {
-      this.status('Five markers placed. Remove one to make room.');
+      this.status(t('chart.statusFull'));
       return;
     }
     const label = Array.from({ length: 5 }, (_, i) => `Marker ${i + 1}`).find(
@@ -113,7 +114,11 @@ export class SeaChart {
     this.pins.push({ x, y, label });
     this.save();
     this.draw();
-    this.status(`${label} placed. Select it below to set a bearing.`);
+    this.status(t('chart.statusPlaced', { label: this.pinName(label) }));
+  }
+  /** Pins keep their English id ("Marker 2") in storage; this is the name players read. */
+  private pinName(label: string) {
+    return t('chart.marker', { n: label.slice(-1) });
   }
   private button(parent: HTMLElement, label: string, action: () => void) {
     const b = document.createElement('button');
@@ -131,7 +136,7 @@ export class SeaChart {
     this.world.destination = { portId: port.id, label: port.name, x: anchor.x, y: anchor.y };
     this.onDestinationChange();
     this.draw();
-    this.status(`Bearing set for ${port.name}. Close the chart when ready.`);
+    this.status(t('chart.statusPortSet', { name: port.name }));
   }
   /** Market overview (decision 0036): one good's prices at every charted port. */
   private drawMarket() {
@@ -140,10 +145,10 @@ export class SeaChart {
     const goods = this.get('chart-goods');
     goods.replaceChildren();
     for (const g of GOODS) {
-      const b = this.button(goods, `${GOOD_ICONS[g]} ${GOOD_DEFS[g].name}`, () => {
+      const b = this.button(goods, `${GOOD_ICONS[g]} ${goodName(g)}`, () => {
         this.good = g;
         this.draw();
-        this.status(`Comparing ${GOOD_DEFS[g].name.toLowerCase()} prices.`);
+        this.status(t('chart.statusComparing', { good: goodName(g).toLowerCase() }));
       });
       b.setAttribute('role', 'radio');
       b.setAttribute('aria-checked', String(g === good));
@@ -160,7 +165,7 @@ export class SeaChart {
     const table = this.get('chart-prices');
     table.replaceChildren();
     const head = document.createElement('tr');
-    for (const label of ['Port', 'Buy', 'Sell', ''])
+    for (const label of [t('chart.colPort'), t('chart.colBuy'), t('chart.colSell'), ''])
       head.append(Object.assign(document.createElement('th'), { textContent: label }));
     table.append(head);
     for (const q of quotes) {
@@ -169,22 +174,22 @@ export class SeaChart {
       const nameCell = document.createElement('td');
       this.button(nameCell, port.name, () => this.selectPort(port.id)).dataset.compare = port.id;
       const buy = Object.assign(document.createElement('td'), {
-        textContent: q.available > 0 ? `${q.buy} 🪙` : 'none',
+        textContent: q.available > 0 ? `${q.buy} 🪙` : t('chart.none'),
       });
       const sell = Object.assign(document.createElement('td'), { textContent: `${q.sell} 🪙` });
       const notes: string[] = [];
       if (q.available > 0 && q.buy === cheapest) {
         buy.classList.add('best');
-        notes.push('cheapest');
+        notes.push(t('chart.cheapest'));
       }
       if (q.sell === dearest) {
         sell.classList.add('best');
-        notes.push('pays most');
+        notes.push(t('chart.paysMost'));
       }
       const order = trade.contracts.byPort[port.id];
       if (order && order.readyIn <= 0 && order.good === good)
-        notes.push(`📜 order ${order.qty} for ${order.reward} 🪙`);
-      if (trade.dockedAt === port.id) notes.push('you are here');
+        notes.push(t('chart.order', { qty: order.qty, reward: order.reward }));
+      if (trade.dockedAt === port.id) notes.push(t('chart.youAreHere'));
       const note = Object.assign(document.createElement('td'), {
         textContent: notes.join(' · '),
         className: 'muted',
@@ -251,8 +256,10 @@ export class SeaChart {
       class: 'chart-boat',
     });
     const windDegrees = Math.round((wind.from / DEG + 360) % 360);
-    this.get('chart-wind').textContent =
-      `N ↑ · Wind from ${windDegrees}° · ${wind.speedKn.toFixed(0)} kn · Sailing paused`;
+    this.get('chart-wind').textContent = t('chart.wind', {
+      deg: windDegrees,
+      kn: wind.speedKn.toFixed(0),
+    });
     const ports = this.get('chart-ports');
     ports.replaceChildren();
     for (const port of map.ports) {
@@ -265,7 +272,7 @@ export class SeaChart {
         class: 'chart-port',
         role: 'button',
         tabindex: 0,
-        'aria-label': `Set bearing to ${port.name}`,
+        'aria-label': t('chart.setBearingTo', { name: port.name }),
       });
       // Port labels scale with the chart so names and needs stay legible on a phone.
       const size = Math.round(16 * Math.max(1, extent / 220));
@@ -287,7 +294,10 @@ export class SeaChart {
           class: 'chart-need',
           style: `font-size: ${Math.round(size * 0.9)}px`,
         });
-        needLabel.textContent = `wants ${GOOD_ICONS[need]} ${unitSellPrice(need, market.stock[need] + 1)}🪙`;
+        needLabel.textContent = t('chart.wantsLabel', {
+          icon: GOOD_ICONS[need],
+          price: unitSellPrice(need, market.stock[need] + 1),
+        });
       }
       mark.textContent = '⚓';
       mark.addEventListener('click', (e) => {
@@ -307,10 +317,10 @@ export class SeaChart {
     pins.replaceChildren();
     for (const pin of this.pins) {
       const select = () => {
-        this.world.destination = { ...pin, portId: '' };
+        this.world.destination = { x: pin.x, y: pin.y, label: this.pinName(pin.label), portId: '' };
         this.onDestinationChange();
         this.draw();
-        this.status(`Bearing set for ${pin.label}.`);
+        this.status(t('chart.statusPinSet', { label: this.pinName(pin.label) }));
       };
       const mark = shape('text', { x: pin.x, y: -pin.y, class: 'chart-pin' });
       mark.textContent = pin.label.replace('Marker ', '⚑');
@@ -318,17 +328,20 @@ export class SeaChart {
         e.stopPropagation();
         select();
       });
-      this.button(pins, `⚑ ${pin.label}`, select);
-      this.button(pins, `Remove ${pin.label}`, () => {
+      this.button(pins, `⚑ ${this.pinName(pin.label)}`, select);
+      this.button(pins, t('chart.removeMarker', { label: this.pinName(pin.label) }), () => {
         this.pins = this.pins.filter((p) => p !== pin);
-        if (this.world.destination?.label === pin.label && !this.world.destination.portId)
+        const target = this.world.destination;
+        if (target && !target.portId && target.x === pin.x && target.y === pin.y)
           this.world.destination = null;
         this.save();
         this.draw();
-        this.status(`${pin.label} removed.`);
+        this.status(t('chart.statusRemoved', { label: this.pinName(pin.label) }));
       });
     }
-    this.status(destination ? `Bearing: ${destination.label}` : 'No destination selected.');
+    this.status(
+      destination ? t('chart.statusBearing', { label: destination.label }) : t('chart.statusNone'),
+    );
     if (focusText) {
       const replacement = Array.from(this.dialog.querySelectorAll('button')).find(
         (b) => b.textContent === focusText,

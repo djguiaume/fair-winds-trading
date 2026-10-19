@@ -26,6 +26,15 @@ import {
 import { Hud } from './ui/hud';
 import { loadSettings, saveSettings } from './ui/settings';
 import { SeaChart } from './ui/seaChart';
+import {
+  LANGUAGES,
+  browserLanguages,
+  detectLanguage,
+  language,
+  setLanguage,
+  t,
+  translateDom,
+} from './i18n';
 import { TradePanel } from './ui/tradePanel';
 
 declare const __BUILD_REVISION__: string;
@@ -36,16 +45,20 @@ const SIM_STEP = 1 / 60;
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const stage = $('stage');
+
+// Language: the player's choice, else the browser's, else English (decision 0037).
+const settings = loadSettings();
+setLanguage(settings.language ?? detectLanguage(browserLanguages()));
+translateDom();
 const canvas = $<HTMLCanvasElement>('scene');
 
 // three.js needs WebGL2 (iOS 15+, Android Chrome since ~2017). Say so instead of a blank page.
 if (!document.createElement('canvas').getContext('webgl2')) {
   $('help').innerHTML =
-    '<div class="panel card"><h1>Fair Winds Trading</h1><p>Sorry, this browser does not support WebGL2, which the game needs. Try updating the browser or the system (iOS 15+ on iPad).</p></div>';
+    `<div class="panel card"><h1>${t('game.title')}</h1><p>${t('webgl.unsupported')}</p></div>`;
   throw new Error('WebGL2 not available');
 }
 
-const settings = loadSettings();
 const world = createWorld(PHASE1_MAP, SLOOP);
 // Progress (gold, ships, cargo, markets, position) auto-saves to the browser (decision 0015).
 const storage: SaveStorage | null = (() => {
@@ -117,7 +130,7 @@ hud.onPortClick = (portId: string) => {
       const anchor = view.harbours[portId];
       if (anchor) Object.assign(world.destination!, anchor);
       tutorial.destinationSelected();
-      hud.showToast(`Course set for ${world.destination!.label}`, 2);
+      hud.showToast(t('toast.courseSet', { name: world.destination!.label }), 2);
     }
   }
 };
@@ -168,7 +181,7 @@ function showMenu() {
   settingsPanel.hidden = true;
   if (tradePanel.isOpen) tradePanel.close();
   menu.hidden = false;
-  playButton.textContent = started ? 'Resume' : 'Set sail';
+  playButton.textContent = started ? t('menu.resume') : t('menu.play');
   refreshPause();
   playButton.focus({ preventScroll: true });
 }
@@ -184,7 +197,7 @@ function play() {
 }
 
 function openHelp() {
-  helpClose.textContent = mode === 'menu' ? 'Back' : 'Set sail';
+  helpClose.textContent = mode === 'menu' ? t('help.back') : t('menu.play');
   menu.hidden = true;
   help.hidden = false;
   refreshPause();
@@ -201,10 +214,10 @@ function closeHelp() {
 tutorial.onChange = () => {
   tutorialCard.render();
   $('menu-tutorial').textContent = tutorial.isActive
-    ? 'Continue tutorial'
+    ? t('menu.tutorialContinue')
     : tutorial.status === 'unseen'
-      ? 'Learn to sail & trade'
-      : 'Replay tutorial';
+      ? t('menu.tutorial')
+      : t('menu.tutorialReplay');
 };
 tutorial.onChange();
 chart.onDestinationChange = () => tutorial.destinationSelected();
@@ -278,13 +291,35 @@ fsMenuButton.hidden = fsSupport !== 'api';
 $('fs-hint').hidden = fsSupport !== 'home-screen';
 const describeFullscreen = () => {
   const on = isFullscreen();
-  fsMenuButton.textContent = on ? 'Exit fullscreen' : 'Fullscreen';
+  fsMenuButton.textContent = on ? t('menu.exitFullscreen') : t('menu.fullscreen');
 };
 for (const button of [fsMenuButton]) {
   button.addEventListener('click', () => void toggleFullscreen());
 }
 onFullscreenChange(describeFullscreen);
 describeFullscreen();
+
+// --- Language switcher ------------------------------------------------------------------------
+// Each language is named in its own words, without flags (decision 0037). Switching saves the
+// voyage and reloads, so every panel is rebuilt in the new language.
+const languageGroup = $('menu-language');
+languageGroup.setAttribute('aria-label', t('menu.language'));
+for (const lang of LANGUAGES) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.lang = lang.id;
+  b.textContent = lang.name;
+  b.dataset.language = lang.id;
+  b.setAttribute('aria-pressed', String(lang.id === language()));
+  b.addEventListener('click', () => {
+    if (lang.id === language()) return;
+    settings.language = lang.id;
+    saveSettings(settings);
+    autosave();
+    window.location.reload();
+  });
+  languageGroup.append(b);
+}
 
 // --- Controls ----------------------------------------------------------------------------------
 input.onDrag = (d) => hud.setTiller(d);
@@ -305,7 +340,8 @@ const showFps = $<HTMLInputElement>('show-fps');
 const qualityNow = $('quality-now');
 qualitySelect.value = settings.quality;
 showFps.checked = settings.showFps;
-const describeQuality = () => (qualityNow.textContent = `Now using: ${level}`);
+const describeQuality = () =>
+  (qualityNow.textContent = t('settings.nowUsing', { level: t(`settings.${level}`) }));
 describeQuality();
 
 $('chart-btn').addEventListener('click', () => chart.open());
@@ -326,7 +362,7 @@ showFps.addEventListener('change', () => {
 });
 $('shift-wind').addEventListener('click', () => {
   world.windOffsetDeg = (world.windOffsetDeg + 45) % 360;
-  hud.showToast('The wind shifts…', 1.5);
+  hud.showToast(t('toast.windShifts'), 1.5);
 });
 $('reset-boat').addEventListener('click', () => {
   resetBoat(world);
@@ -336,7 +372,7 @@ $('reset-boat').addEventListener('click', () => {
 });
 const resetSaveBtn = document.getElementById('reset-save');
 resetSaveBtn?.addEventListener('click', () => {
-  if (window.confirm('Start a new voyage? Your gold, cargo and upgrades will be reset.')) {
+  if (window.confirm(t('settings.confirmNewGame'))) {
     if (storage) clearSave(storage);
     window.location.reload();
   }
@@ -371,13 +407,13 @@ function handleEvents(events: WorldEvent[]) {
   for (const e of events) {
     if (e.type === 'docked') {
       const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
-      hud.showToast(`Docked at ${portName}`, 2.5);
+      hud.showToast(t('toast.docked', { name: portName }), 2.5);
       tradePanel.open('market');
       refreshPause();
       autosave();
     } else if (e.type === 'undocked') {
       const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
-      hud.showToast(`Departed ${portName}`, 1.5);
+      hud.showToast(t('toast.departed', { name: portName }), 1.5);
       if (tradePanel.isOpen) {
         tradePanel.close();
         refreshPause();

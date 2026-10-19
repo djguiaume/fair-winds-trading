@@ -25,3 +25,11 @@ Captures of the game at each phase, taken headless with Playwright (software Web
 Harbour: "Best sale elsewhere" under each good (decision 0036)
 
 ![best sale elsewhere](best-sale-elsewhere.png)
+
+| French main menu with the language switcher (decision 0037) | Same menu on a phone |
+|---|---|
+| ![menu in French](i18n-menu-fr.png) | ![menu in French on a phone](i18n-menu-phone-fr.png) |
+
+| Harbour in French, Captain mode | Kids mode | Sea chart |
+|---|---|---|
+| ![harbour in French](i18n-harbour-fr.png) | ![kids mode in French](i18n-harbour-kids-fr.png) | ![chart in French](i18n-chart-fr.png) |

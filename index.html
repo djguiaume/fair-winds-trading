@@ -30,13 +30,18 @@
 
     <div id="hud">
       <div class="panel speed">
-        <div class="big"><span id="speed">0.0</span><small>kn</small></div>
+        <div class="big"><span id="speed">0.0</span><small data-i18n="unit.knots">kn</small></div>
         <div id="point-of-sail" class="pos">&nbsp;</div>
-        <div class="sail-pips" title="Sails"><i></i><i></i></div>
+        <div class="sail-pips" title="Sails" data-i18n-attr="title:hud.sails"><i></i><i></i></div>
       </div>
 
       <div class="panel captain-stats" id="captain-stats">
-        <div class="captain-stat" id="hud-gold-box" title="Captain's Gold">
+        <div
+          class="captain-stat"
+          id="hud-gold-box"
+          title="Captain's Gold"
+          data-i18n-attr="title:hud.gold"
+        >
           <span class="stat-icon">🪙</span>
           <b id="hud-gold">120</b>
         </div>
@@ -44,17 +49,29 @@
           class="captain-stat"
           id="hud-cargo-box"
           title="Cargo Hold Capacity"
+          data-i18n-attr="title:hud.cargo"
           aria-expanded="false"
           aria-controls="hud-cargo-tooltip"
         >
           <span class="stat-icon">📦</span>
           <span id="hud-cargo">0 / 10</span>
         </button>
-        <div class="captain-stat hull-stat" id="hud-hull-box" title="Hull condition" hidden>
+        <div
+          class="captain-stat hull-stat"
+          id="hud-hull-box"
+          title="Hull condition"
+          data-i18n-attr="title:hud.hull"
+          hidden
+        >
           <span class="stat-icon">🛠</span>
           <span id="hud-hull">100%</span>
         </div>
-        <div class="captain-stat ship-tag" id="hud-ship-box" title="Active Vessel">
+        <div
+          class="captain-stat ship-tag"
+          id="hud-ship-box"
+          title="Active Vessel"
+          data-i18n-attr="title:hud.ship"
+        >
           <span id="hud-ship">Sloop</span>
         </div>
         <div id="hud-cargo-tooltip" class="cargo-tooltip" hidden></div>
@@ -63,13 +80,21 @@
       <div id="tutorial-sea"></div>
       <div id="port-labels" class="port-labels-layer"></div>
 
-      <button id="dock-btn" class="dock-btn" hidden aria-label="Open port trade">
+      <button
+        id="dock-btn"
+        class="dock-btn"
+        hidden
+        aria-label="Open port trade"
+        data-i18n-attr="aria-label:hud.openTrade"
+      >
         <span class="dock-icon">⚓</span>
-        <span class="dock-text">Trade at <b id="dock-port-name">Port</b></span>
+        <span class="dock-text"
+          ><span data-i18n="hud.tradeAt">Trade at</span> <b id="dock-port-name">Port</b></span
+        >
       </button>
 
       <div id="navigation-target" class="panel objective" hidden>
-        <span class="muted">Bearing to</span> <b id="obj-name">…</b>
+        <span class="muted" data-i18n="hud.bearingTo">Bearing to</span> <b id="obj-name">…</b>
         <span id="obj-dist" class="muted"></span>
       </div>
 
@@ -79,10 +104,11 @@
           class="compass-open"
           type="button"
           aria-label="Wind compass. Open sailing tips"
+          data-i18n-attr="aria-label:wind.compass"
           aria-haspopup="dialog"
           aria-controls="wind-help"
         >
-          <span class="title">WIND</span>
+          <span class="title" data-i18n="wind.title">WIND</span>
           <svg viewBox="-50 -50 100 100" aria-hidden="true">
             <circle r="40" class="ring" />
             <g id="c-nogo">
@@ -104,12 +130,20 @@
           aria-haspopup="dialog"
           aria-controls="wind-help"
           hidden
+          data-i18n="wind.chip"
         >
           Into the wind ⓘ
         </button>
         <div id="wind-first-hint" class="wind-first-hint" hidden>
-          <span>Tap the compass for sailing tips</span>
-          <button id="dismiss-wind-hint" type="button" aria-label="Dismiss compass hint">×</button>
+          <span data-i18n="wind.hint">Tap the compass for sailing tips</span>
+          <button
+            id="dismiss-wind-hint"
+            type="button"
+            aria-label="Dismiss compass hint"
+            data-i18n-attr="aria-label:wind.dismissHint"
+          >
+            ×
+          </button>
         </div>
       </div>
 
@@ -118,36 +152,62 @@
       <div id="tiller" class="tiller" hidden><i></i></div>
 
       <div class="sail-buttons">
-        <button id="sail-up" aria-label="Raise sails">▲</button>
-        <span>Sails</span>
-        <button id="sail-down" aria-label="Lower sails">▼</button>
+        <button id="sail-up" aria-label="Raise sails" data-i18n-attr="aria-label:hud.raiseSails">
+          ▲
+        </button>
+        <span data-i18n="hud.sails">Sails</span>
+        <button id="sail-down" aria-label="Lower sails" data-i18n-attr="aria-label:hud.lowerSails">
+          ▼
+        </button>
       </div>
 
       <div class="top-buttons">
-        <button id="menu-btn" class="icon-btn" aria-label="Main menu">☰</button>
-        <button id="chart-btn" class="icon-btn" aria-label="Open chart (M)" aria-haspopup="dialog">
-          Map
+        <button
+          id="menu-btn"
+          class="icon-btn"
+          aria-label="Main menu"
+          data-i18n-attr="aria-label:hud.mainMenu"
+        >
+          ☰
+        </button>
+        <button
+          id="chart-btn"
+          class="icon-btn"
+          aria-label="Open chart (M)"
+          aria-haspopup="dialog"
+          data-i18n-attr="aria-label:hud.openChart"
+        >
+          <span data-i18n="hud.map">Map</span>
         </button>
       </div>
       <div id="fps" class="fps" hidden></div>
 
       <div id="settings" class="panel settings" hidden>
-        <h3>Settings</h3>
+        <h3 data-i18n="settings.title">Settings</h3>
         <label
-          >Graphics
+          ><span data-i18n="settings.graphics">Graphics</span>
           <select id="quality">
-            <option value="auto">Auto</option>
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
+            <option value="auto" data-i18n="settings.auto">Auto</option>
+            <option value="low" data-i18n="settings.low">Low</option>
+            <option value="medium" data-i18n="settings.medium">Medium</option>
+            <option value="high" data-i18n="settings.high">High</option>
           </select>
         </label>
         <div id="quality-now" class="muted small"></div>
-        <label class="check"><input type="checkbox" id="show-fps" /> Show FPS</label>
-        <button id="shift-wind" class="in-game">Shift the wind 45°</button>
-        <button id="reset-boat" class="in-game">Back to start</button>
-        <button id="reset-save" class="in-game danger-btn">New Game (Reset Progress)</button>
-        <button id="close-settings" class="primary">Close</button>
+        <label class="check"
+          ><input type="checkbox" id="show-fps" />
+          <span data-i18n="settings.showFps">Show FPS</span></label
+        >
+        <button id="shift-wind" class="in-game" data-i18n="settings.shiftWind">
+          Shift the wind 45°
+        </button>
+        <button id="reset-boat" class="in-game" data-i18n="settings.resetBoat">
+          Back to start
+        </button>
+        <button id="reset-save" class="in-game danger-btn" data-i18n="settings.newGame">
+          New Game (Reset Progress)
+        </button>
+        <button id="close-settings" class="primary" data-i18n="settings.close">Close</button>
       </div>
 
       <dialog
@@ -156,13 +216,13 @@
         aria-labelledby="wind-help-title"
         aria-describedby="wind-help-copy"
       >
-        <h2 id="wind-help-title">Sailing upwind</h2>
-        <p id="wind-help-copy">
+        <h2 id="wind-help-title" data-i18n="wind.helpTitle">Sailing upwind</h2>
+        <p id="wind-help-copy" data-i18n="wind.helpCopy">
           Turn away from the wind to fill your sails. Zigzag to travel upwind.
         </p>
         <svg viewBox="0 0 260 160" role="img" aria-labelledby="tack-title tack-description">
-          <title id="tack-title">Tacking into the wind</title>
-          <desc id="tack-description">
+          <title id="tack-title" data-i18n="wind.diagramTitle">Tacking into the wind</title>
+          <desc id="tack-description" data-i18n="wind.diagramDesc">
             Wind blows downward. Sail diagonally left, then diagonally right, to reach a destination
             above you.
           </desc>
@@ -185,7 +245,7 @@
             stroke-width="3"
             marker-end="url(#tack-arrow)"
           />
-          <text x="25" y="78" fill="#b8dfe5" font-size="13">Wind</text>
+          <text x="25" y="78" fill="#b8dfe5" font-size="13" data-i18n="wind.diagramWind">Wind</text>
           <path
             d="M162 144 L102 104 L162 64 L114 30"
             fill="none"
@@ -196,56 +256,68 @@
           />
           <circle cx="114" cy="20" r="5" fill="#ffe3a0" />
           <path d="M160 137 L169 151 L157 147 L152 151 Z" fill="#f4f0e2" />
-          <text x="184" y="103" fill="#e3eadd" font-size="13">Zigzag</text>
+          <text x="184" y="103" fill="#e3eadd" font-size="13" data-i18n="wind.diagramZigzag">
+            Zigzag
+          </text>
         </svg>
-        <p class="muted small">
+        <p class="muted small" data-i18n="wind.helpNote">
           Passing through the no-go zone during a tack is normal. The compass settles as soon as
           your sails can draw again.
         </p>
-        <button id="close-wind-help" class="primary" type="button" autofocus>
+        <button
+          id="close-wind-help"
+          class="primary"
+          type="button"
+          autofocus
+          data-i18n="wind.helpClose"
+        >
           Back to sailing
         </button>
       </dialog>
 
       <div id="help" class="help">
         <div class="panel card">
-          <h1>Fair Winds Trading</h1>
-          <p class="muted">Sailing &amp; Trading Prototype</p>
+          <h1 data-i18n="game.title">Fair Winds Trading</h1>
+          <p class="muted" data-i18n="help.subtitle">Sailing &amp; Trading Prototype</p>
           <ul>
-            <li>
+            <li data-i18n-html="help.wind">
               <b>The wind drives you.</b> You are fastest with the wind across the boat and slower
               with it behind.
             </li>
-            <li>
+            <li data-i18n-html="help.noGo">
               <b>You can't sail into the wind.</b> Point inside the red zone on the compass and the
               sails flap and the boat stops.
             </li>
-            <li>
+            <li data-i18n-html="help.tack">
               <b>To go upwind, zigzag</b> (tack): sail about 50° off the wind, then turn through it
               to the other side.
             </li>
-            <li>
+            <li data-i18n-html="help.trade">
               <b>Trading &amp; Ports:</b> Slow down near any island dock to trade goods at the
               market, buy vessel upgrades, and purchase the cutter.
             </li>
-            <li>
+            <li data-i18n-html="help.map">
               <b>Open Map</b> (M) to find ports and place markers. Only your chosen destination gets
               a bearing cue.
             </li>
           </ul>
           <div class="controls">
             <div>
-              <h4>Touch</h4>
-              Drag left/right anywhere to steer<br />▲ ▼ to raise/lower sails<br />Tap port markers
-              to navigate
+              <h4 data-i18n="help.touch">Touch</h4>
+              <span data-i18n-html="help.touchControls"
+                >Drag left/right anywhere to steer<br />▲ ▼ to raise/lower sails<br />Tap port
+                markers to navigate</span
+              >
             </div>
             <div>
-              <h4>Keyboard</h4>
-              ← → or A D to steer<br />↑ ↓ or W S for sails<br />Mouse wheel to zoom<br />M to open
-              the chart
+              <h4 data-i18n="help.keyboard">Keyboard</h4>
+              <span data-i18n-html="help.keyboardControls"
+                >← → or A D to steer<br />↑ ↓ or W S for sails<br />Mouse wheel to zoom<br />M to
+                open the chart</span
+              >
             </div>
           </div>
-          <button id="start" class="primary">Set sail</button>
+          <button id="start" class="primary" data-i18n="menu.play">Set sail</button>
         </div>
       </div>
     </div>
@@ -253,77 +325,103 @@
     <dialog id="chart" class="panel chart" aria-labelledby="chart-title">
       <header class="chart-header">
         <div>
-          <h2 id="chart-title">Sea chart</h2>
+          <h2 id="chart-title" data-i18n="chart.title">Sea chart</h2>
           <span id="chart-wind"></span>
         </div>
-        <button id="close-chart" type="button" autofocus>Back to sea</button>
+        <button id="close-chart" type="button" autofocus data-i18n="chart.back">Back to sea</button>
       </header>
       <div id="tutorial-chart"></div>
-      <p id="chart-instructions">
+      <p id="chart-instructions" data-i18n="chart.instructions">
         Tap the sea to place a marker (up to 5). Tap a port or marker to select a bearing.
       </p>
       <svg
         id="chart-map"
         role="group"
         aria-label="North-up sea chart with islands, shallows, ports and your ship"
+        data-i18n-attr="aria-label:chart.mapLabel"
       ></svg>
-      <p class="muted small">
+      <p class="muted small" data-i18n="chart.legend">
         North is up · Blue arrow: you · Sand: land / exposed banks · Under each port: what it pays
         most for today. Bearing only: steer around land and tack into wind.
       </p>
       <section class="chart-market" aria-labelledby="chart-market-title">
-        <h3 id="chart-market-title">Market prices</h3>
+        <h3 id="chart-market-title" data-i18n="chart.marketTitle">Market prices</h3>
         <div
           id="chart-goods"
           class="chart-goods"
           role="radiogroup"
           aria-label="Good to compare"
+          data-i18n-attr="aria-label:chart.goodToCompare"
         ></div>
         <table id="chart-prices" class="chart-prices"></table>
       </section>
-      <div id="chart-ports" class="chart-actions" aria-label="Port destinations"></div>
-      <div id="chart-pins" class="chart-actions" aria-label="Your markers"></div>
+      <div
+        id="chart-ports"
+        class="chart-actions"
+        aria-label="Port destinations"
+        data-i18n-attr="aria-label:chart.portDestinations"
+      ></div>
+      <div
+        id="chart-pins"
+        class="chart-actions"
+        aria-label="Your markers"
+        data-i18n-attr="aria-label:chart.yourMarkers"
+      ></div>
       <p id="chart-status" role="status"></p>
       <div class="chart-actions">
-        <button id="chart-pin-here" type="button">Mark my position</button
-        ><button id="chart-clear-target" type="button">Clear bearing</button>
+        <button id="chart-pin-here" type="button" data-i18n="chart.pinHere">Mark my position</button
+        ><button id="chart-clear-target" type="button" data-i18n="chart.clearTarget">
+          Clear bearing
+        </button>
       </div>
     </dialog>
     <dialog id="tutorial-offer" class="panel tutorial-offer" aria-labelledby="tutorial-offer-title">
-      <h2 id="tutorial-offer-title">Your first voyage</h2>
-      <p>
+      <h2 id="tutorial-offer-title" data-i18n="tutorial.offerTitle">Your first voyage</h2>
+      <p data-i18n="tutorial.offerCopy">
         Learn to read the chart, sail with the wind, dock and make a small delivery. Follow short
         hints while you play; hide or skip them anytime.
       </p>
-      <p class="muted small">
+      <p class="muted small" data-i18n="tutorial.offerNote">
         Uses your current boat and voyage. It won’t reset progress or spend gold for you. Sailing
         pauses while this choice is open.
       </p>
       <div class="tutorial-actions">
-        <button id="tutorial-start" class="primary" type="button" autofocus>Start tutorial</button>
-        <button id="tutorial-free" type="button">Free sailing</button>
+        <button
+          id="tutorial-start"
+          class="primary"
+          type="button"
+          autofocus
+          data-i18n="tutorial.start"
+        >
+          Start tutorial
+        </button>
+        <button id="tutorial-free" type="button" data-i18n="tutorial.free">Free sailing</button>
       </div>
     </dialog>
     <div id="trade-panel" class="trade-panel-overlay" hidden></div>
 
     <div id="menu" class="menu" hidden>
       <div class="menu-card">
-        <p class="menu-kicker">The</p>
-        <h1 class="menu-title">Fair Winds<br />Trading Co.</h1>
-        <p class="menu-tagline">Read the wind. Deliver the goods.</p>
+        <p class="menu-kicker" data-i18n="menu.kicker">The</p>
+        <h1 class="menu-title" data-i18n-html="menu.title">Fair Winds<br />Trading Co.</h1>
+        <p class="menu-tagline" data-i18n="menu.tagline">Read the wind. Deliver the goods.</p>
         <nav class="menu-buttons">
-          <button id="menu-play" class="primary">Set sail</button>
-          <button id="menu-tutorial">Learn to sail &amp; trade</button>
-          <button id="menu-help">How to play</button>
-          <button id="menu-settings">Settings</button>
-          <button id="menu-fullscreen" hidden>Fullscreen</button>
+          <button id="menu-play" class="primary" data-i18n="menu.play">Set sail</button>
+          <button id="menu-tutorial" data-i18n="menu.tutorial">Learn to sail &amp; trade</button>
+          <button id="menu-help" data-i18n="menu.help">How to play</button>
+          <button id="menu-settings" data-i18n="menu.settings">Settings</button>
+          <button id="menu-fullscreen" hidden data-i18n="menu.fullscreen">Fullscreen</button>
         </nav>
-        <p id="fs-hint" class="menu-hint" hidden>
+        <p id="fs-hint" class="menu-hint" hidden data-i18n-html="menu.fsHint">
           For fullscreen on iPhone, tap Share, then <b>Add to Home Screen</b>, and start the game
           from there.
         </p>
+        <div id="menu-language" class="menu-language" role="group" aria-label="Language">
+          <span class="menu-language-icon" aria-hidden="true">🌐</span>
+        </div>
         <p class="menu-version">
-          Trading &amp; Shipyard · Phase 1 · Build <span id="build-revision"></span>
+          <span data-i18n="menu.version">Trading &amp; Shipyard · Phase 1 · Build</span>
+          <span id="build-revision"></span>
         </p>
       </div>
     </div>
