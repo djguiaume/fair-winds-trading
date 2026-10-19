@@ -1,0 +1,3 @@
+// Screenshot a page: node shot.js URL OUT.png (Playwright + the container's Chromium).
+const {chromium}=require('playwright');(async()=>{const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium',args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const p=await b.newPage({viewport:{width:1280,height:720}});p.on('console',m=>console.log(m.text()));p.on('pageerror',e=>console.log('ERR',e.message));
+await p.goto(process.argv[2]);await p.waitForFunction(()=>document.title==='done',{timeout:60000}).catch(e=>console.log('timeout'));await p.waitForTimeout(500);await p.screenshot({path:process.argv[3]});await b.close()})();
