@@ -1,16 +1,18 @@
 import type { BoatState } from './boat';
-import type { IslandDef } from './map';
+import type { IslandDef, TerrainDef } from './map';
+import { coastDistance } from './coast';
 import { bearingVector } from './math';
 
 /**
- * Keep the boat out of islands and inside the sea. Islands are circles in Phase 0 (polygons can
- * come with real coastlines). Returns true when the boat hit something this step.
+ * Keep the boat out of circular islands and polygon coastlines, and inside the sea.
+ * Returns true when the boat hit something this step.
  */
 export function resolveCollisions(
   boat: BoatState,
   radius: number,
   islands: readonly IslandDef[],
   boundsRadius: number,
+  terrain: readonly TerrainDef[] = [],
 ): boolean {
   let hit = false;
   for (const island of islands) {
@@ -24,6 +26,17 @@ export function resolveCollisions(
       boat.x += nx * overlap;
       boat.y += ny * overlap;
       bump(boat, nx, ny);
+      hit = true;
+    }
+  }
+  for (const feature of terrain) {
+    // At a concave corner, clearing one edge can leave overlap with its neighbor.
+    for (let pass = 0; pass < 8; pass++) {
+      const coast = coastDistance(boat.x, boat.y, feature.outline);
+      if (coast.distance >= radius) break;
+      boat.x += coast.nx * (radius - coast.distance + 1e-6);
+      boat.y += coast.ny * (radius - coast.distance + 1e-6);
+      bump(boat, coast.nx, coast.ny);
       hit = true;
     }
   }

@@ -1,8 +1,9 @@
 import * as THREE from 'three';
-import type { IslandDef } from '../sim/map';
+import type { IslandDef, TerrainDef } from '../sim/map';
 import { PALETTE } from './palette';
 
 const MAX_ISLANDS = 12;
+const MAX_COAST_EDGES = 64;
 
 const vertexShader = /* glsl */ `
 uniform float uTime;
@@ -32,6 +33,8 @@ const fragmentShader = /* glsl */ `
 uniform float uTime;
 uniform vec3 uIslands[${MAX_ISLANDS}];
 uniform int uIslandCount;
+uniform vec4 uCoastEdges[${MAX_COAST_EDGES}];
+uniform int uCoastEdgeCount;
 uniform vec3 uSunDir;
 uniform vec3 uWater;
 uniform vec3 uWaterLight;
@@ -57,6 +60,14 @@ void main() {
   for (int i = 0; i < ${MAX_ISLANDS}; i++) {
     if (i >= uIslandCount) break;
     d = min(d, length(vWorld.xz - uIslands[i].xy) - uIslands[i].z);
+  }
+  for (int i = 0; i < ${MAX_COAST_EDGES}; i++) {
+    if (i >= uCoastEdgeCount) break;
+    vec2 a = uCoastEdges[i].xy;
+    vec2 b = uCoastEdges[i].zw;
+    vec2 ab = b - a;
+    float t = clamp(dot(vWorld.xz - a, ab) / max(dot(ab, ab), 0.001), 0.0, 1.0);
+    d = min(d, length(vWorld.xz - (a + ab * t)));
   }
   col = mix(col, uShallow, (1.0 - smoothstep(0.0, 14.0, d)) * 0.85);
 #ifdef FANCY
@@ -91,19 +102,38 @@ export class Ocean {
   readonly mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
   private cell: number;
 
-  constructor(islands: readonly IslandDef[], segments: number, fancy: boolean, size = 420) {
+  constructor(
+    islands: readonly IslandDef[],
+    segments: number,
+    fancy: boolean,
+    size = 420,
+    terrain: readonly TerrainDef[] = [],
+  ) {
     this.cell = size / segments;
     const islandUniform = Array.from({ length: MAX_ISLANDS }, (_, i) => {
       const isl = islands[i];
       // Sim y (north) is three.js -z.
       return isl ? new THREE.Vector3(isl.x, -isl.y, isl.radius) : new THREE.Vector3();
     });
+    const edges = terrain.flatMap(({ outline }) =>
+      outline.map((a, i) => {
+        const b = outline[(i + 1) % outline.length]!;
+        return new THREE.Vector4(a[0], -a[1], b[0], -b[1]);
+      }),
+    );
+    if (edges.length > MAX_COAST_EDGES) throw new Error('Map exceeds ocean coastline budget');
+    const edgeUniform = Array.from(
+      { length: MAX_COAST_EDGES },
+      (_, i) => edges[i] ?? new THREE.Vector4(),
+    );
     const material = new THREE.ShaderMaterial({
       vertexShader,
       fragmentShader,
       defines: fancy ? { FANCY: '' } : {},
       uniforms: {
         uTime: { value: 0 },
+        uCoastEdges: { value: edgeUniform },
+        uCoastEdgeCount: { value: edges.length },
         uIslands: { value: islandUniform },
         uIslandCount: { value: Math.min(islands.length, MAX_ISLANDS) },
         uSunDir: { value: new THREE.Vector3(-0.45, 0.8, 0.35).normalize() },

@@ -281,6 +281,31 @@ export function islandParts(island: IslandDef, map: MapDef, seed: number): Parts
 /** All islands of the map merged into one mesh. */
 export const buildHighlandIslands: IslandsBuilder = (map, { shadows }) => {
   const parts = map.islands.flatMap((island, i) => islandParts(island, map, map.seed * 1000 + i));
+  // Non-circular barriers use the very same outline as simulation collision.
+  for (const feature of map.terrain ?? []) {
+    const shape = new THREE.Shape(feature.outline.map(([x, y]) => new THREE.Vector2(x, y)));
+    const bank = feature.kind === 'sandbank';
+    const geometry = new THREE.ExtrudeGeometry(shape, {
+      depth: bank ? 1.2 : 3.6,
+      bevelEnabled: false,
+      curveSegments: 1,
+    });
+    geometry.rotateX(-Math.PI / 2);
+    geometry.translate(0, -0.4, 0);
+    const painted = paint(geometry, bank ? B2.sand : B2.rock);
+    // Grass caps, sandstone sides. No overhanging visuals beyond the collision outline.
+    if (!bank) {
+      const normal = painted.attributes.normal!;
+      const colors = painted.attributes.color!;
+      const top = new THREE.Color(B2.grass);
+      const side = new THREE.Color(B2.rock2);
+      for (let i = 0; i < normal.count; i++) {
+        const color = normal.getY(i) > 0.5 ? top : side;
+        colors.setXYZ(i, color.r, color.g, color.b);
+      }
+    }
+    parts.push(painted);
+  }
   const mesh = new THREE.Mesh(mergeAll(parts), vertexColorMaterial());
   mesh.castShadow = shadows;
   mesh.receiveShadow = shadows;

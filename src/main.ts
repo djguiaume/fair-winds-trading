@@ -1,4 +1,4 @@
-import { PHASE0_MAP } from './data/maps';
+import { PHASE1_MAP } from './data/maps';
 import { Input } from './input/input';
 import { FrameMonitor, type QualityLevel, guessQuality, lowerQuality } from './render/quality';
 import { GameView } from './render/view';
@@ -32,7 +32,7 @@ if (!document.createElement('canvas').getContext('webgl2')) {
 }
 
 const settings = loadSettings();
-const world = createWorld(PHASE0_MAP, SLOOP);
+const world = createWorld(PHASE1_MAP, SLOOP);
 // Progress (gold, ships, cargo, markets, position) auto-saves to the browser (decision 0015).
 const storage: SaveStorage | null = (() => {
   try {

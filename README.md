@@ -6,7 +6,9 @@ A top-down, low-poly sailing and trading game for the browser. You sail with (an
 
 ## Status
 
-Phase 0, the sailing prototype: one sloop, wind with a real no-go zone (tack to go upwind), a practice course of buoys around a few islands, keyboard and touch controls. See the [roadmap](docs/roadmap.md).
+The sailing/trade prototype now uses the selected **Staggered passages** map: existing ports plus strategic barriers, sandbanks and an open eastern route. Existing prototype trading saves migrate. See the [map overview](docs/maps/phase1-proposals.md). Trade rules exist in the simulation; the trading UI and remaining Phase 1 features are still in progress.
+
+The original Phase 0 practice map remains in the repository: one sloop, wind with a real no-go zone (tack to go upwind), a practice course of buoys around a few islands, keyboard and touch controls. See the [roadmap](docs/roadmap.md).
 
 ## Documentation
 

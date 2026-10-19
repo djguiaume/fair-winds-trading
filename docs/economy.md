@@ -4,6 +4,8 @@ How buying, selling, docking, upgrades and saving work in Fair Winds Trading, an
 
 ## Ports and goods
 
+**Design status:** These are the current prototype assignments, not approved final port roles or map layout. Guillaume confirmed both remain open; see [0018](decisions/0018-map-proposals-and-unlocks.md) and the [map proposals](maps/phase1-proposals.md).
+
 | Port | Island | Makes | Wants |
 |---|---|---|---|
 | Port Calda | calda | timber | fish, stone |

@@ -19,5 +19,7 @@
 | [0015](0015-trade-economy.md) | Phase 1 trade economy: stock-driven prices, docking, upgrades, save | 2026-10-19 | Accepted |
 | [0016](0016-game-models-style-d-and-b2.md) | Game models: storybook boats and bright highland islands, built in code | 2026-10-19 | Accepted |
 | [0017](0017-main-menu-and-fullscreen.md) | Main menu over the live scene, fullscreen with iPhone fallback | 2026-10-19 | Accepted |
+| [0018](0018-map-proposals-and-unlocks.md) | Preview map choices, then implement; selectable maps and persistent unlocks | 2026-10-19 | Accepted scope; choices pending |
+| [0019](0019-staggered-passages-first-map.md) | Strengthened Staggered passages, compatible saves and milestone progression | 2026-10-19 | Accepted |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
