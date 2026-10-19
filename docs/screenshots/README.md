@@ -33,3 +33,13 @@ Harbour: "Best sale elsewhere" under each good (decision 0036)
 | Harbour in French, Captain mode | Kids mode | Sea chart |
 |---|---|---|
 | ![harbour in French](i18n-harbour-fr.png) | ![kids mode in French](i18n-harbour-kids-fr.png) | ![chart in French](i18n-chart-fr.png) |
+
+## Wind strength (decision 0040)
+
+| Breeze, desktop | Calm, phone | Strong with a gust, phone |
+|---|---|---|
+| ![breeze on desktop](wind-strength-captain-breeze-desktop.png) | ![calm on a phone](wind-strength-captain-calm-phone.png) | ![strong wind on a phone](wind-strength-captain-strong-phone.png) |
+
+| Kids mode, strong | Kids mode in French, light | French, fresh with a gust, portrait |
+|---|---|---|
+| ![kids mode, very windy](wind-strength-kids-strong-phone.png) | ![kids mode in French](wind-strength-kids-fr-light-phone.png) | ![French portrait](wind-strength-captain-fr-fresh-portrait.png) |

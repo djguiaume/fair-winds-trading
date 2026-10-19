@@ -126,6 +126,17 @@ export const en = {
   'wind.helpNote':
     'Passing through the no-go zone during a tack is normal. The compass settles as soon as your sails can draw again.',
   'wind.helpClose': 'Back to sailing',
+  'wind.gust': 'gust',
+  'windForce.calm': 'Calm',
+  'windForce.light': 'Light',
+  'windForce.breeze': 'Breeze',
+  'windForce.fresh': 'Fresh',
+  'windForce.strong': 'Strong',
+  'kidsWind.calm': 'No wind',
+  'kidsWind.light': 'Little wind',
+  'kidsWind.breeze': 'Good wind',
+  'kidsWind.fresh': 'Big wind',
+  'kidsWind.strong': 'Very windy',
 
   // --- Port markers at sea -------------------------------------------------------------------
   'port.setCourse': 'Set course for {name}',
