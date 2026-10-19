@@ -248,7 +248,8 @@ export class GameView {
     this.streaks.update(dt, this.target, to.x, -to.y, wind.speedKn * KNOT_TO_UNITS * 0.75);
     this.ocean.update(time, this.target);
 
-    if (this.world.map.course.length) {
+    this.buoy.root.visible = Boolean(this.world.map.practiceCourse && !this.world.destination);
+    if (this.buoy.root.visible) {
       const wp = currentWaypoint(this.world);
       toScene(wp.x, wp.y, this.buoy.root.position);
       this.buoy.update(time, waveHeight(wp.x, -wp.y, time), WAYPOINT_RADIUS);

@@ -1,7 +1,7 @@
 import type { ScreenPoint } from '../render/view';
 import { GOOD_DEFS, type GoodId } from '../sim/goods';
 import { DOCK_RANGE, DOCK_SPEED_KN, distanceToPort } from '../sim/trade';
-import { currentWaypoint, type World } from '../sim/world';
+import { navigationTarget, type World } from '../sim/world';
 
 export type PortMarkerMode = 'approach' | 'objective' | 'all' | 'off';
 
@@ -101,7 +101,7 @@ export class PortLabels {
     }
 
     const { map, boat, trade } = this.world;
-    const currentWp = currentWaypoint(this.world);
+    const currentWp = navigationTarget(this.world);
     const effectiveMode = this.isKidMode ? 'objective' : this.mode;
 
     for (const port of map.ports) {
@@ -110,7 +110,7 @@ export class PortLabels {
 
       const distToShore = distanceToPort(map, boat, port);
       const isDocked = trade.dockedAt === port.id;
-      const isObjective = currentWp?.label.toLowerCase().includes(port.name.toLowerCase());
+      const isObjective = currentWp?.label === port.name;
 
       let shouldShow = false;
 

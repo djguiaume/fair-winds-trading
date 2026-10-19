@@ -28,4 +28,6 @@
 
 | [0023](0023-visible-pier-markers-and-docking.md) | Pier-head harbour labels, explicit docking and visible build identity | 2026-10-19 | Accepted |
 
+| [0024](0024-on-demand-chart-and-quiet-sandbox.md) | On-demand chart, player markers, quieter HUD and suspended practice course | 2026-10-19 | Proposed implementation |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
