@@ -2072,3 +2072,130 @@ body.is-docked .objective {
   font-size: 13px;
   opacity: 0.85;
 }
+
+/* Wind strength gauge (decision 0040): five bars, a word and a short gust cue under the dial.
+   Colour always comes with a bar count, so the strength still reads without colour. */
+.compass {
+  --force: #7fe0a8;
+}
+.compass[data-force='0'] {
+  --force: #c9d6da;
+}
+.compass[data-force='1'] {
+  --force: #9fe7ff;
+}
+.compass[data-force='3'] {
+  --force: #ffe17a;
+}
+.compass[data-force='4'] {
+  --force: #ffa25a;
+}
+.compass .wind {
+  fill: var(--force);
+}
+.wind-gauge {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  height: 17px;
+  margin: 1px 0 2px;
+}
+.wind-gauge i {
+  display: block;
+  width: 12px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.18);
+  transition: background-color 0.4s;
+}
+.wind-gauge i:nth-child(1) {
+  height: 5px;
+}
+.wind-gauge i:nth-child(2) {
+  height: 8px;
+}
+.wind-gauge i:nth-child(3) {
+  height: 11px;
+}
+.wind-gauge i:nth-child(4) {
+  height: 14px;
+}
+.wind-gauge i:nth-child(5) {
+  height: 17px;
+}
+.wind-gauge i.on {
+  background: var(--force);
+}
+.wind-force-line {
+  display: block;
+  font-size: 14px;
+  color: var(--force);
+}
+.compass #wind-text {
+  display: block;
+  font-size: 12px;
+  font-weight: normal;
+  opacity: 0.85;
+}
+.wind-gust {
+  margin-left: 3px;
+  padding: 0 5px;
+  border-radius: 6px;
+  background: #ffffff26;
+  color: #fff;
+  font-size: 11px;
+}
+.wind-gauge[hidden],
+.wind-gust[hidden] {
+  display: none;
+}
+.compass.is-kids {
+  width: 132px;
+}
+.compass.is-kids .wind-gauge {
+  gap: 4px;
+  height: 25px;
+}
+.compass.is-kids .wind-gauge i {
+  width: 16px;
+}
+.compass.is-kids .wind-gauge i:nth-child(1) {
+  height: 7px;
+}
+.compass.is-kids .wind-gauge i:nth-child(2) {
+  height: 11px;
+}
+.compass.is-kids .wind-gauge i:nth-child(3) {
+  height: 15px;
+}
+.compass.is-kids .wind-gauge i:nth-child(4) {
+  height: 20px;
+}
+.compass.is-kids .wind-gauge i:nth-child(5) {
+  height: 25px;
+}
+.compass.is-kids .wind-force-line {
+  font-size: 17px;
+}
+.compass.is-kids #wind-text {
+  display: none;
+}
+@media (max-height: 500px), (max-width: 600px) {
+  .wind-gauge i {
+    width: 10px;
+  }
+  .compass.is-kids {
+    width: 112px;
+  }
+  .compass.is-kids .wind-gauge i {
+    width: 14px;
+  }
+  .compass.is-kids .wind-force-line {
+    font-size: 15px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wind-gauge i {
+    transition: none;
+  }
+}
