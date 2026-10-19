@@ -1,5 +1,5 @@
 /**
- * Fullscreen with graceful fallbacks (decision 0015).
+ * Fullscreen with graceful fallbacks (decision 0017).
  *
  * - Desktop browsers, Android and iPadOS Safari (16.4+, older ones prefixed) support the
  *   Fullscreen API on any element.
