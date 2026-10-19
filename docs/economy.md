@@ -4,7 +4,7 @@ How buying, selling, docking, upgrades and saving work in Fair Winds Trading, an
 
 ## Ports and goods
 
-**Design status:** These are the current prototype assignments, not approved final port roles or map layout. Guillaume confirmed both remain open; see [0018](decisions/0018-map-proposals-and-unlocks.md) and the [map proposals](maps/phase1-proposals.md).
+Each port has one main production ([0029](decisions/0029-one-main-production-per-port.md)). The map layout itself is still being reworked; see [0018](decisions/0018-map-proposals-and-unlocks.md) and the [map proposals](maps/phase1-proposals.md).
 
 | Port | Island | Makes | Wants |
 |---|---|---|---|
@@ -33,6 +33,10 @@ Typical prices with the current numbers (gold per unit, first unit):
 | Timber | 14 | 6 | 21 | 16 / 12 |
 | Stone | 18 | 8 | 27 | 20 / 16 |
 
+## Delivery contracts
+
+`src/sim/contracts.ts`, decision [0028](decisions/0028-delivery-contracts.md). Each port has one order for a good it wants: 4–8 units, reward = units × base price × (1.75 + haul / 500), rounded to 5, where haul is the distance from the nearest other port making the good. Deliver while docked (all units at once); the goods leave the hold without changing the market. The port posts its next order 90 s later. Typical first orders on the current map: 7 stone to Port Calda for about 300 gold, 7 grain to Saltmere for about 155.
+
 ## Tuning knobs
 
 | Knob | File | Value | Raise it to… |
@@ -43,6 +47,8 @@ Typical prices with the current numbers (gold per unit, first unit):
 | `PRICE_ELASTICITY` | `market.ts` | 0.8 | make prices react more to stock (bigger margins, faster slide) |
 | `SPREAD` | `market.ts` | 8 % | make the port's cut bigger |
 | `RECOVERY_SECONDS` | `market.ts` | 75 s | make a hammered route stay poor for longer |
+| `CONTRACT_PRICE_FACTOR`, `CONTRACT_DISTANCE_SCALE` | `contracts.ts` | 1.75, 500 | make orders pay more (or long hauls pay more) |
+| `CONTRACT_QTY`, `CONTRACT_COOLDOWN` | `contracts.ts` | 4–8, 90 s | make orders bigger, or come back sooner |
 | `START_GOLD` | `trade.ts` | 120 | start richer |
 | `DOCK_RANGE`, `DOCK_SPEED_KN` | `trade.ts` | 14 units, 1.5 kn | make docking easier |
 | `UPGRADE_EFFECTS` | `upgrades.ts` | see below | make upgrades stronger |
@@ -74,6 +80,7 @@ All functions take `world.trade` and work only while docked (`world.trade.docked
 - `buy(trade, good, qty)`, `sell(trade, good, qty)`, `sellAll(trade)`: all or nothing; return `{ ok: true, gold }` or `{ ok: false, error }`.
 - `maxBuy(trade, good)`, `quoteBuy(market, good, qty)`, `quoteSell(market, good, qty)`, `unitBuyPrice` / `unitSellPrice`: for showing prices before trading.
 - `buyUpgrade(trade, track)`, `upgradePrice(class, levels, track)`, `buyShip(trade, 'cutter')`, `switchShip(trade, id)`.
+- `deliverContract(trade, map)`, `openContracts(trade.contracts)`: delivery orders.
 - `stepWorld` returns `{ type: 'docked' | 'undocked', portId }` events.
 
 In the browser, open the game with `?debug` and use `fwt.trade.buy(fwt.world.trade, 'stone', 5)` and friends from the console; `fwt.newGame()` wipes the save.
