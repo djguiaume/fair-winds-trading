@@ -3,8 +3,8 @@ import type { MapDef } from '../../sim/map';
 
 /**
  * Swap point for art (see docs/art-pipeline.md): any boat or island look only has to satisfy
- * these interfaces. Phase 0 uses procedural placeholders; glTF models from the art-style work
- * can replace them without touching the simulation or the rest of the renderer.
+ * these interfaces. The game uses code-built models in the chosen art style (decision 0016); glTF
+ * models could replace them without touching the simulation or the rest of the renderer.
  */
 
 /** Everything a boat model needs to animate itself, computed from the simulation each frame. */
@@ -26,10 +26,33 @@ export interface BoatModel {
   /** Root object: bow points to -Z, origin at the waterline center, 1 unit ≈ 1 m. */
   readonly root: THREE.Object3D;
   update(pose: BoatPose): void;
+  /** Optional: drop fine details (rigging lines) at the low quality setting. */
+  setLowDetail?(low: boolean): void;
   dispose(): void;
 }
 
-export type BoatModelFactory = (shipClassId: string) => BoatModel;
+/** Level 1 (stock) to 3 on each upgrade track of decision 0011. */
+export type UpgradeLevel = 1 | 2 | 3;
+
+/** The three upgrade tracks; every level is visible on the model. */
+export interface ShipUpgrades {
+  /** 1 patched canvas, 2 new canvas and an extra jib, 3 racing sails with a stripe and topsail. */
+  sails: UpgradeLevel;
+  /** More crates and barrels on deck as the hold grows. */
+  hold: UpgradeLevel;
+  /** 1 bare wood, 2 painted class-colour band, 3 copper-sheathed bottom. */
+  hull: UpgradeLevel;
+}
+
+export const STOCK_UPGRADES: ShipUpgrades = { sails: 1, hold: 1, hull: 1 };
+
+export interface BoatModelOptions {
+  upgrades?: ShipUpgrades;
+  /** Thin rigging lines (default true); can also be toggled later with setLowDetail. */
+  rigging?: boolean;
+}
+
+export type BoatModelFactory = (shipClassId: string, options?: BoatModelOptions) => BoatModel;
 
 export interface IslandBuildOptions {
   shadows: boolean;

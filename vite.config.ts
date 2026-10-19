@@ -6,6 +6,13 @@ export default defineConfig({
   build: {
     target: 'es2020',
     chunkSizeWarningLimit: 800,
+    // models.html is the model sheet (decision 0016), published next to the game.
+    rollupOptions: {
+      input: {
+        main: 'index.html',
+        models: 'models.html',
+      },
+    },
   },
   test: {
     include: ['tests/**/*.test.ts'],

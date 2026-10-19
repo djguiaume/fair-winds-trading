@@ -1,6 +1,8 @@
 # Art pipeline: swapping boat and island looks
 
-The game logic never touches 3D models. Everything visual for boats and islands goes through one file, `src/render/models/index.ts`, which picks a **boat factory** and an **islands builder**. Phase 0 uses procedural placeholders in the style of the [3D mockup](mockups/README.md); a chosen art style replaces them by changing those two lines. The chosen style is in [0012](decisions/0012-boat-and-island-art-style.md): D storybook classic boats, B2 bright highland islands, A sea colours; [docs/art/src/lib.js](art/src/lib.js) has reference builders for them.
+The game logic never touches 3D models. Everything visual for boats and islands goes through one file, `src/render/models/index.ts`, which picks a **boat factory** and an **islands builder**. Another look replaces the current one by changing those two lines. The chosen style is in [0012](decisions/0012-boat-and-island-art-style.md): D storybook classic boats, B2 bright highland islands, A sea colours. The game builds them in code ([0016](decisions/0016-game-models-style-d-and-b2.md)): `storybookBoat.ts` and `highlandIslands.ts` port the reference builders of [docs/art/src/lib.js](art/src/lib.js). The Phase 0 placeholders were removed (see git history before 0016).
+
+**Model sheet:** `models.html` (`npm run dev`, then `/models.html?view=boats` or `?view=islands`; also published next to the game) shows the game's own models with draw-call and triangle counts, useful on the real tablet. Screenshots are in [art/game-models](art/game-models/).
 
 ## Boats: `BoatModel` (`src/render/models/types.ts`)
 
@@ -10,11 +12,11 @@ A boat model is any object with:
 - `update(pose)`: called every frame with the sail area (0–1), boom swing (radians, negative = to port), luff (0 = full, 1 = flapping), heel (radians) and the wind direction relative to the bow (for flags). The model decides how to show these: swing a boom, scale or swap sail meshes, rotate a pennant.
 - `dispose()`.
 
-The factory receives the ship class id (`'sloop'` today), so later classes (brig, fluyt, upgrades) can return different models. The renderer handles position, heading, bobbing on the waves, the wake and the blob shadow.
+The factory receives the ship class id (`'sloop'`, `'cutter'`; unknown ids fall back to the sloop) and options: `upgrades` (`{ sails, hold, hull }`, each 1–3, stock by default; every level shows on the model, see [0011](decisions/0011-ship-lineup-and-upgrades.md)) and `rigging`. A model can implement `setLowDetail(low)`; the storybook boats hide their rigging lines at the low quality setting. Buying an upgrade means building a new model with the new levels. The renderer handles position, heading, bobbing on the waves, the wake and the blob shadow.
 
 ## Islands: `IslandsBuilder`
 
-`(map, { shadows }) => Object3D`. It gets the whole map (island positions, radii, `look` hints such as houses, trees, rock, dock, and the course buoys so docks can face them) and should return as few meshes as possible: the placeholder merges every island into **one vertex-colored mesh** (one draw call). The beach line should match each island's `radius`, which is also its collision circle.
+`(map, { shadows }) => Object3D`. It gets the whole map (island positions, radii, `look` hints such as houses, trees, rock, dock, and the course buoys so docks can face them) and should return as few meshes as possible: the highland builder merges every island into **one vertex-colored mesh** (one draw call). `look.kind` (`fish`, `timber`, `grain`, `stone`) picks the producer props: village and drying racks, forest and log pile, fields and windmill, boulders and a cart; without it the island is plain. Each island's harbour side (dock, town, lowest cliffs) faces the course buoy named after it. The beach line should match each island's `radius`, which is also its collision circle.
 
 ## Using glTF models (from Phase 1)
 

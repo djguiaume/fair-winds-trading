@@ -11,7 +11,7 @@
       "x": 68,
       "y": 105,
       "radius": 20,
-      "look": { "houses": 5, "trees": 7, "dock": true }
+      "look": { "kind": "fish", "houses": 5, "trees": 3, "dock": true }
     },
     {
       "id": "saltmere",
@@ -19,7 +19,7 @@
       "x": 45,
       "y": -150,
       "radius": 16,
-      "look": { "houses": 3, "trees": 5, "dock": true }
+      "look": { "kind": "grain", "houses": 2, "trees": 3, "dock": true }
     },
     {
       "id": "westholm",
@@ -27,13 +27,19 @@
       "x": -112,
       "y": 22,
       "radius": 15,
-      "look": { "houses": 2, "trees": 5, "dock": true }
+      "look": { "kind": "timber", "houses": 1, "trees": 16, "dock": true }
     },
     { "id": "skerry", "x": 11, "y": 8, "radius": 9, "look": { "trees": 2, "rock": true } },
     { "id": "east-key", "x": 135, "y": -30, "radius": 8, "look": { "trees": 4 } },
     { "id": "north-rock", "x": -52, "y": 128, "radius": 7, "look": { "trees": 1, "rock": true } },
     { "id": "south-cay", "x": -158, "y": -105, "radius": 11, "look": { "trees": 5 } },
-    { "id": "far-rock", "x": 150, "y": 142, "radius": 10, "look": { "trees": 2, "rock": true } }
+    {
+      "id": "far-rock",
+      "x": 150,
+      "y": 142,
+      "radius": 10,
+      "look": { "kind": "stone", "trees": 3, "rock": true }
+    }
   ],
   "course": [
     { "label": "Port Calda", "x": 56, "y": 75 },

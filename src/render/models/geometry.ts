@@ -70,3 +70,41 @@ export function mergeAll(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
 export function vertexColorMaterial() {
   return new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
 }
+
+/**
+ * Vertex colors per geometry group, for shapes like ExtrudeGeometry whose caps (group 0) and
+ * sides (group 1) should differ: e.g. a deck on top of a painted hull.
+ */
+export function paintGroups(geometry: THREE.BufferGeometry, colors: THREE.ColorRepresentation[]) {
+  const g = paint(geometry, colors[0]!);
+  const col = g.attributes.color!;
+  for (const group of g.groups) {
+    const c = new THREE.Color(colors[group.materialIndex ?? 0] ?? colors[0]!);
+    for (let i = group.start; i < group.start + group.count; i++) col.setXYZ(i, c.r, c.g, c.b);
+  }
+  g.clearGroups();
+  return g;
+}
+
+/** New non-indexed geometry holding only one group's triangles (e.g. an extrusion's sides). */
+export function keepGroup(geometry: THREE.BufferGeometry, materialIndex: number) {
+  const src = geometry.index ? geometry.toNonIndexed() : geometry;
+  const pos = src.attributes.position!;
+  const out: number[] = [];
+  for (const group of src.groups) {
+    if (group.materialIndex !== materialIndex) continue;
+    for (let i = group.start; i < group.start + group.count; i++) {
+      out.push(pos.getX(i), pos.getY(i), pos.getZ(i));
+    }
+  }
+  if (src !== geometry) src.dispose();
+  geometry.dispose();
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(out, 3));
+  return g;
+}
+
+/** Number of triangles in a geometry (indexed or not), for budget checks. */
+export function triangleCount(geometry: THREE.BufferGeometry) {
+  return (geometry.index ? geometry.index.count : geometry.attributes.position!.count) / 3;
+}

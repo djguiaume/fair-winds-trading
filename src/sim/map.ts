@@ -13,6 +13,11 @@ export interface IslandDef {
   radius: number;
   /** Visual hints for the island model; the simulation ignores them. */
   look?: {
+    /**
+     * What the island's props show it produces (decision 0012): 'fish', 'timber', 'grain' or
+     * 'stone'. A plain string so map JSON type-checks; anything else draws a plain island.
+     */
+    kind?: string;
     houses?: number;
     trees?: number;
     rock?: boolean;

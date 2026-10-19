@@ -108,6 +108,7 @@ export class GameView {
         if (m) (Array.isArray(m) ? m : [m]).forEach((mat) => (mat.needsUpdate = true));
       });
     }
+    this.boat.setLowDetail?.(level === 'low');
     this.profile = profile;
     this.resize(this.width, this.height);
   }
