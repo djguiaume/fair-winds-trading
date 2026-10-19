@@ -1,11 +1,14 @@
 import type { QualitySetting } from '../render/quality';
 
+export type UiMode = 'adult' | 'kids';
+
 /** Player settings, saved in localStorage (versioned key so the format can change later). */
 export interface Settings {
   quality: QualitySetting;
   showFps: boolean;
   seenHelp: boolean;
   seenWindHint: boolean;
+  uiMode: UiMode;
 }
 
 const KEY = 'fwt.settings.v1';
@@ -14,6 +17,7 @@ const DEFAULTS: Settings = {
   showFps: false,
   seenHelp: false,
   seenWindHint: false,
+  uiMode: 'adult',
 };
 
 export function loadSettings(): Settings {

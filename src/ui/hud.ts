@@ -6,6 +6,10 @@ import { windFeedback } from './windFeedback';
 import { type World, type WorldEvent, currentWaypoint } from '../sim/world';
 import type { ScreenPoint } from '../render/view';
 
+import { GOODS, GOOD_DEFS } from '../sim/goods';
+import { activeShip, capacity, cargoUsed, findPort } from '../sim/trade';
+import { PortLabels } from './portLabels';
+
 const POINT_OF_SAIL: Record<PointOfSail, { text: string; tone: '' | 'good' | 'bad' }> = {
   'in-irons': { text: 'Headwind', tone: '' },
   'close-hauled': { text: 'Close-hauled', tone: '' },
@@ -27,7 +31,7 @@ function formatTime(seconds: number): string {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
-/** Plain-DOM heads-up display (Phase 0; Preact panels arrive with trading in Phase 1). */
+/** Plain-DOM heads-up display with trading stats and port labels. */
 export class Hud {
   private readonly speed = $('speed');
   private readonly pos = $('point-of-sail');
@@ -43,8 +47,23 @@ export class Hud {
   private readonly toast = $('toast');
   private readonly tiller = $('tiller');
   private readonly fps = $('fps');
+
+  // Phase 1 persistent stats and docking
+  private readonly hudGold = $('hud-gold');
+  private readonly hudCargo = $('hud-cargo');
+  private readonly hudShip = $('hud-ship');
+  private readonly cargoBox = $('hud-cargo-box');
+  private readonly cargoTooltip = $('hud-cargo-tooltip');
+  private readonly dockBtn = $('dock-btn');
+  private readonly dockPortName = $('dock-port-name');
+  readonly portLabels: PortLabels;
+
+  onDockClick: () => void = () => {};
+  onPortClick: (portId: string) => void = () => {};
+
   private toastTimer = 0;
   private sinceText = 1;
+  private sincePortLabels = 1;
   private ironsTime = 0;
   private noGoAngle = -1;
   private readonly compass = $('wind-compass');
@@ -84,6 +103,24 @@ export class Hud {
           : this.windTrigger;
       target.focus({ preventScroll: true });
     });
+
+    this.portLabels = new PortLabels($('port-labels'), this.world);
+    this.portLabels.onPortClick = (portId) => this.onPortClick(portId);
+
+    this.dockBtn.addEventListener('click', () => {
+      this.onDockClick();
+    });
+
+    this.cargoBox.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.toggleCargoTooltip();
+      this.cargoBox.setAttribute('aria-expanded', String(!this.cargoTooltip.hidden));
+    });
+
+    document.addEventListener('click', () => {
+      if (!this.cargoTooltip.hidden) this.cargoTooltip.hidden = true;
+      this.cargoBox.setAttribute('aria-expanded', 'false');
+    });
   }
 
   private dismissWindHint() {
@@ -93,6 +130,20 @@ export class Hud {
       this.seenWindHint = true;
       this.windPreferences.markSeen();
     }
+  }
+
+  private toggleCargoTooltip() {
+    if (!this.cargoTooltip.hidden) {
+      this.cargoTooltip.hidden = true;
+      return;
+    }
+    const { captain } = this.world.trade;
+    const items = GOODS.filter((g) => captain.cargo[g] > 0)
+      .map((g) => `${GOOD_DEFS[g].name}: <b>${captain.cargo[g]}</b>`)
+      .join('<br>');
+
+    this.cargoTooltip.innerHTML = items ? items : '<span class="muted">Hold is empty</span>';
+    this.cargoTooltip.hidden = false;
   }
 
   showToast(text: string, seconds = 2.5) {
@@ -186,6 +237,27 @@ export class Hud {
       this.objDist.textContent = `${Math.round(distance(boat, wp))} m`;
       const fromDir = COMPASS[Math.round(wrapPositive(wind.from) / (Math.PI / 4)) % 8];
       this.windText.textContent = `${fromDir} · ${wind.speedKn.toFixed(0)} kn`;
+
+      document.body.classList.toggle('is-docked', Boolean(this.world.trade.dockedAt));
+      // Captain stats & dock button
+      const { trade, map } = this.world;
+      this.hudGold.textContent = trade.captain.gold.toLocaleString();
+      this.hudCargo.textContent = `${cargoUsed(trade)} / ${capacity(trade)}`;
+      this.hudShip.textContent = activeShip(trade).name;
+
+      if (trade.dockedAt) {
+        this.dockBtn.hidden = false;
+        const port = findPort(map, trade.dockedAt);
+        this.dockPortName.textContent = port?.name ?? trade.dockedAt;
+      } else {
+        this.dockBtn.hidden = true;
+      }
+    }
+
+    this.sincePortLabels += dt;
+    if (this.sincePortLabels >= 0.1) {
+      this.sincePortLabels = 0;
+      this.portLabels.update(project);
     }
 
     // Arrow at the screen edge when the buoy is off-screen.

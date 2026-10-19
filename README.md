@@ -6,7 +6,7 @@ A top-down, low-poly sailing and trading game for the browser. You sail with (an
 
 ## Status
 
-The sailing/trade prototype now uses the selected **Staggered passages** map: existing ports plus strategic barriers, sandbanks and an open eastern route. Existing prototype trading saves migrate. See the [map overview](docs/maps/phase1-proposals.md). Trade rules exist in the simulation; the trading UI and remaining Phase 1 features are still in progress.
+The sailing/trade prototype now uses the selected **Staggered passages** map: existing ports plus strategic barriers, sandbanks and an open eastern route. Existing prototype trading saves migrate. The sea now extends to radius 440, with distinct coastal scenery and four outer landmarks ([overview](docs/maps/expanded-overview.png), [details](docs/maps/coastal-details.png)). Dock to buy/sell goods, upgrade ships or buy the Cutter; Captain/Kids interfaces and port labels are integrated. Contracts, minimap and settlement growth remain planned. Low graphics has a 750,000-pixel render budget and simpler shoreline shading; actual older-tablet performance still needs device testing.
 
 The original Phase 0 practice map remains in the repository: one sloop, wind with a real no-go zone (tack to go upwind), a practice course of buoys around a few islands, keyboard and touch controls. See the [roadmap](docs/roadmap.md).
 
@@ -27,7 +27,7 @@ Needs Node 22+.
 ```sh
 npm install
 npm run dev      # local server with hot reload (add --host to try it on a phone on the same Wi-Fi)
-npm test         # simulation unit tests (Vitest)
+npm test         # simulation and DOM integration tests (Vitest)
 npm run lint     # ESLint + Prettier
 npm run build    # static site in dist/
 ```
@@ -43,5 +43,5 @@ Every push to `main` is tested and published to GitHub Pages by `.github/workflo
 | `src/render/` | three.js scene: ocean shader, camera, wake, wind streaks, quality levels. |
 | `src/render/models/` | Boat and island models behind a swappable interface. |
 | `src/input/` | Keyboard, mouse and touch mapped to the same actions. |
-| `src/ui/` | HUD and settings (plain DOM in Phase 0). |
-| `tests/` | Vitest tests for the simulation. |
+| `src/ui/` | HUD, trading/shipyard, port labels and settings (plain DOM). |
+| `tests/` | Vitest simulation, map, render-budget and DOM integration tests. |

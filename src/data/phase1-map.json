@@ -1,7 +1,7 @@
 {
   "name": "Staggered passages",
   "seed": 7,
-  "boundsRadius": 260,
+  "boundsRadius": 440,
   "wind": {
     "fromDeg": 30,
     "speedKn": 14,
@@ -57,7 +57,8 @@
       "radius": 9,
       "look": {
         "trees": 2,
-        "rock": true
+        "rock": true,
+        "landmark": "beacon"
       }
     },
     {
@@ -66,7 +67,8 @@
       "y": -30,
       "radius": 8,
       "look": {
-        "trees": 4
+        "trees": 4,
+        "landmark": "wreck"
       }
     },
     {
@@ -76,7 +78,8 @@
       "radius": 7,
       "look": {
         "trees": 1,
-        "rock": true
+        "rock": true,
+        "landmark": "ruins"
       }
     },
     {
@@ -99,7 +102,59 @@
       "radius": 10,
       "look": {
         "trees": 2,
-        "rock": true
+        "rock": true,
+        "landmark": "lighthouse"
+      }
+    },
+    {
+      "id": "abbey-head",
+      "name": "Abbey Head",
+      "x": -260,
+      "y": 250,
+      "radius": 27,
+      "look": {
+        "trees": 14,
+        "rock": true,
+        "landmark": "ruins",
+        "layers": 3
+      }
+    },
+    {
+      "id": "lantern-isle",
+      "name": "Lantern Isle",
+      "x": 330,
+      "y": 100,
+      "radius": 30,
+      "look": {
+        "trees": 10,
+        "rock": true,
+        "landmark": "lighthouse",
+        "layers": 3
+      }
+    },
+    {
+      "id": "wreckers-rest",
+      "name": "Wrecker’s Rest",
+      "x": -300,
+      "y": -200,
+      "radius": 34,
+      "look": {
+        "trees": 9,
+        "rock": false,
+        "landmark": "wreck",
+        "layers": 1
+      }
+    },
+    {
+      "id": "watchman-key",
+      "name": "Watchman Key",
+      "x": 215,
+      "y": -305,
+      "radius": 22,
+      "look": {
+        "trees": 16,
+        "rock": true,
+        "landmark": "beacon"
       }
     }
   ],
@@ -166,7 +221,11 @@
         [-29, 51],
         [-48, 69],
         [-73, 68]
-      ]
+      ],
+      "look": {
+        "trees": 18,
+        "landmark": "ruins"
+      }
     },
     {
       "id": "south-hook",
@@ -185,7 +244,11 @@
         [21, -85],
         [-8, -73],
         [-29, -54]
-      ]
+      ],
+      "look": {
+        "trees": 24,
+        "landmark": "beacon"
+      }
     },
     {
       "id": "western-bank",
@@ -197,7 +260,10 @@
         [-71, -94],
         [-76, -105],
         [-91, -121]
-      ]
+      ],
+      "look": {
+        "landmark": "wreck"
+      }
     },
     {
       "id": "southern-bank",
@@ -209,7 +275,10 @@
         [3, -141],
         [-3, -157],
         [-15, -168]
-      ]
+      ],
+      "look": {
+        "landmark": "beacon"
+      }
     }
   ]
 }

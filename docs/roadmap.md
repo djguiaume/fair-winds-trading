@@ -46,16 +46,16 @@ Goal: one boat on an empty ocean that is fun to steer.
 
 Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 
-**Status (2026-10-19):** trade rules done in the simulation ([0015](decisions/0015-trade-economy.md), details in [economy.md](economy.md)): four prototype ports and four goods (port roles remain provisional; layout selected in [0019](decisions/0019-staggered-passages-first-map.md); map planning in [0018](decisions/0018-map-proposals-and-unlocks.md)) with supply-and-demand prices, cargo hold, gold, docking, sloop upgrades, the cutter and auto-save. Next: the trade panel and shipyard UI, upgrade parts on the boat models, then contracts, shifting wind, minimap and port labels.
+**Status (2026-10-19):** trade rules done in the simulation ([0015](decisions/0015-trade-economy.md), details in [economy.md](economy.md)): four prototype ports and four goods (port roles remain provisional; layout selected in [0019](decisions/0019-staggered-passages-first-map.md); map planning in [0018](decisions/0018-map-proposals-and-unlocks.md)) with supply-and-demand prices, cargo hold, gold, docking, sloop upgrades, the cutter and auto-save. Market/Shipyard UI, Captain/Kids modes, persistent gold/cargo/ship stats and nearby port labels are integrated ([0022](decisions/0022-trading-ui-integration-and-tablet-budget.md)); upgrades already appear on the boat models. The sea is larger and the coasts have distinct landmarks ([0021](decisions/0021-larger-sea-and-coastal-landmarks.md)). Next: target-tablet play-testing, delivery contracts, a minimap and broader wind/progression tuning.
 
-- **Selected first map: strengthened B, Staggered passages** ([0019](decisions/0019-staggered-passages-first-map.md), [overview](maps/phase1-proposals.md)). Four existing main islands keep their appearance, sizes and positions. Staggered polygon barriers and exposed sandbanks add route choices; the stronger southern hook makes a broad eastern bypass useful for faster ships and later combat. Phase 0's original map remains available in data for practice/testing.
+- **Selected first map: strengthened B, Staggered passages** ([0019](decisions/0019-staggered-passages-first-map.md), [overview](maps/phase1-proposals.md)). Four existing main islands keep their appearance, sizes and positions. Staggered polygon barriers and exposed sandbanks add route choices; the stronger southern hook makes a broad eastern bypass useful for faster ships and later combat. Phase 0's original map remains available in data for practice/testing. The current boundary is radius 440 with four outer scenic islands; [expanded overview](maps/expanded-overview.png), [coastal details](maps/coastal-details.png). These add exploration space without changing the four main trading islands.
 - Island/port production roles remain provisional. Keep the existing economy assignments playable until production chains and multi-stop circuits are designed; this layout selection does not approve those roles. Map data remains seed-ready ([0008](decisions/0008-static-map-seed-ready.md)).
-- Docking: slow down near a port to open a trade panel; buy, sell, accept delivery contracts.
+- Docking: slow down near a port to open Market/Shipyard; buy, sell, upgrade and change ships. Delivery contracts remain planned.
 - Cargo hold with limited capacity; prices vary by supply and demand per settlement.
 - Gold as currency. Shipyard at ports: three upgrade tracks for the sloop (sails, hold, hull, levels visible on the model) and a second ship class to buy, the cutter ([0011](decisions/0011-ship-lineup-and-upgrades.md)).
 - Wind that shifts slowly over time so the same trip changes.
 - Minimap with port markers and current wind.
-- Floating labels over ports in the ad's style (name, level badge, what they want).
+- Floating port labels show names and trade goods; tapping sets a destination. Settlement levels and level badges remain Phase 2 work.
 - Sandbox play in short sessions: auto-save to the browser and instant resume ([0009](decisions/0009-sandbox-short-sessions.md)).
 - Light hazards: reefs and shallows ([0010](decisions/0010-light-hazards-pirates-later.md)).
 

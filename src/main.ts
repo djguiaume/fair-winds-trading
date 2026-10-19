@@ -7,7 +7,13 @@ import { clamp } from './sim/math';
 import { type SaveStorage, clearSave, loadGame, saveGame } from './sim/save';
 import { SLOOP } from './sim/ship';
 import * as trade from './sim/trade';
-import { type WorldEvent, createWorld, resetBoat, stepWorld } from './sim/world';
+import {
+  type WorldEvent,
+  createWorld,
+  setPortDestination,
+  resetBoat,
+  stepWorld,
+} from './sim/world';
 import {
   classifySupport,
   isFullscreen,
@@ -17,6 +23,7 @@ import {
 } from './ui/fullscreen';
 import { Hud } from './ui/hud';
 import { loadSettings, saveSettings } from './ui/settings';
+import { TradePanel } from './ui/tradePanel';
 
 const SIM_STEP = 1 / 60;
 
@@ -52,8 +59,42 @@ const hud = new Hud(world, {
   },
 });
 const input = new Input(stage);
+const tradePanel = new TradePanel($('trade-panel'), world);
+tradePanel.uiMode = settings.uiMode;
+hud.portLabels.isKidMode = settings.uiMode === 'kids';
+tradePanel.onUiModeChange = (mode) => {
+  settings.uiMode = mode;
+  hud.portLabels.isKidMode = mode === 'kids';
+  saveSettings(settings);
+};
 const monitor = new FrameMonitor();
 let sailStep = world.boat.sailStep;
+
+tradePanel.onAction = () => {
+  world.ship = trade.activeShip(world.trade);
+  autosave();
+};
+tradePanel.onClose = () => {
+  refreshPause();
+};
+
+hud.onDockClick = () => {
+  if (world.trade.dockedAt) {
+    tradePanel.open('market');
+    refreshPause();
+  }
+};
+
+hud.onPortClick = (portId: string) => {
+  if (world.trade.dockedAt === portId) {
+    tradePanel.open('market');
+    refreshPause();
+  } else {
+    if (setPortDestination(world, portId)) {
+      hud.showToast(`Course set for ${world.destination!.label}`, 2);
+    }
+  }
+};
 
 // --- Main menu, help card and pause ------------------------------------------------------------
 // The game opens on the title menu with the scene running behind it (decision 0017). The
@@ -69,7 +110,9 @@ let started = false;
 let paused = true;
 
 function refreshPause() {
-  paused = mode === 'menu' || !help.hidden || windHelp.open;
+  paused =
+    mode === 'menu' || !settingsPanel.hidden || !help.hidden || tradePanel.isOpen || windHelp.open;
+  input.setEnabled(!paused);
 }
 
 hud.onWindHelpChange = () => {
@@ -82,6 +125,7 @@ function showMenu() {
   document.body.classList.add('in-menu');
   help.hidden = true;
   settingsPanel.hidden = true;
+  if (tradePanel.isOpen) tradePanel.close();
   menu.hidden = false;
   playButton.textContent = started ? 'Resume' : 'Set sail';
   refreshPause();
@@ -123,7 +167,10 @@ helpClose.addEventListener('click', closeHelp);
 $('help-btn').addEventListener('click', openHelp);
 window.addEventListener('keydown', (e) => {
   if (e.code !== 'Escape' || windHelp.open) return;
-  if (!settingsPanel.hidden) closeSettings();
+  if (tradePanel.isOpen) {
+    tradePanel.close();
+    refreshPause();
+  } else if (!settingsPanel.hidden) closeSettings();
   else if (!help.hidden) closeHelp();
   else if (mode === 'play') showMenu();
 });
@@ -172,10 +219,12 @@ describeQuality();
 
 $('settings-btn').addEventListener('click', () => {
   settingsPanel.hidden = !settingsPanel.hidden;
+  refreshPause();
 });
 function closeSettings() {
   settingsPanel.hidden = true;
   if (mode === 'menu') menu.hidden = false;
+  refreshPause();
 }
 $('close-settings').addEventListener('click', closeSettings);
 qualitySelect.addEventListener('change', () => {
@@ -195,6 +244,14 @@ $('reset-boat').addEventListener('click', () => {
   resetBoat(world);
   sailStep = world.boat.sailStep;
   settingsPanel.hidden = true;
+  refreshPause();
+});
+const resetSaveBtn = document.getElementById('reset-save');
+resetSaveBtn?.addEventListener('click', () => {
+  if (window.confirm('Start a new voyage? Your gold, cargo and upgrades will be reset.')) {
+    if (storage) clearSave(storage);
+    window.location.reload();
+  }
 });
 
 function setLevel(next: QualityLevel) {
@@ -214,7 +271,7 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// --- Trade hooks (the trade panel arrives with the Phase 1 UI) --------------------------------
+// --- Docking, trading and automatic saves --------------------------------
 const AUTOSAVE_SECONDS = 15;
 let lastSave = world.time;
 function autosave() {
@@ -225,7 +282,18 @@ function handleEvents(events: WorldEvent[]) {
   hud.handleEvents(events);
   for (const e of events) {
     if (e.type === 'docked') {
-      hud.showToast(`Docked at ${trade.findPort(world.map, e.portId)?.name ?? e.portId}`, 2);
+      const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
+      hud.showToast(`Docked at ${portName}`, 2.5);
+      tradePanel.open('market');
+      refreshPause();
+      autosave();
+    } else if (e.type === 'undocked') {
+      const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
+      hud.showToast(`Departed ${portName}`, 1.5);
+      if (tradePanel.isOpen) {
+        tradePanel.close();
+        refreshPause();
+      }
       autosave();
     }
   }
@@ -248,7 +316,7 @@ function tick(now: number) {
     sailStep = clamp(sailStep + sailDelta, 0, SAIL_STEPS.length - 1);
     accumulator += dt;
     let steps = 0;
-    while (accumulator >= SIM_STEP && steps < 6) {
+    while (!paused && accumulator >= SIM_STEP && steps < 6) {
       handleEvents(stepWorld(world, { steer: input.steer, sailStep }, SIM_STEP));
       accumulator -= SIM_STEP;
       steps++;

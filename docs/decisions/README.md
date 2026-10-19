@@ -23,4 +23,7 @@
 | [0019](0019-staggered-passages-first-map.md) | Strengthened Staggered passages, compatible saves and milestone progression | 2026-10-19 | Accepted |
 | [0020](0020-quiet-upwind-compass-help.md) | Quiet compass feedback and optional upwind help | 2026-10-19 | Accepted |
 
+| [0021](0021-larger-sea-and-coastal-landmarks.md) | Larger sea, distinct coastal landmarks and a fixed scenery budget | 2026-10-19 | Accepted |
+| [0022](0022-trading-ui-integration-and-tablet-budget.md) | Integrate Google AI trading UI and bound tablet rendering cost | 2026-10-19 | Accepted |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

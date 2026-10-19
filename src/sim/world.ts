@@ -19,6 +19,7 @@ export interface World {
   /** Degrees added to the map's wind direction (the "new wind" button). */
   windOffsetDeg: number;
   boat: BoatState;
+  destination: { portId: string; label: string; x: number; y: number } | null;
   course: {
     index: number;
     /** Time the current leg started. */
@@ -43,6 +44,7 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     wind: windAt(map.wind, 0),
     windOffsetDeg: 0,
     boat: createBoat(map.start.x, map.start.y, map.start.headingDeg * DEG),
+    destination: null,
     course: { index: 0, legStart: 0, reached: 0, lastLegSeconds: null },
     trade,
   };
@@ -52,11 +54,32 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
 export function resetBoat(world: World): void {
   const { start } = world.map;
   world.boat = createBoat(start.x, start.y, start.headingDeg * DEG);
+  world.destination = null;
   world.course = { index: 0, legStart: world.time, reached: 0, lastLegSeconds: null };
 }
 
 export function currentWaypoint(world: World) {
-  return world.map.course[world.course.index % world.map.course.length]!;
+  return world.destination ?? world.map.course[world.course.index % world.map.course.length]!;
+}
+
+/** A fixed approach point chosen on the side of the port facing the boat. */
+export function setPortDestination(world: World, portId: string): boolean {
+  const port = world.map.ports.find((p) => p.id === portId);
+  const island = world.map.islands.find((i) => i.id === port?.islandId);
+  if (!port || !island) return false;
+  const dx = world.boat.x - island.x,
+    dy = world.boat.y - island.y;
+  const length = Math.hypot(dx, dy) || 1;
+  const existing = world.map.course.find((p) =>
+    p.label.toLowerCase().includes(port.name.toLowerCase()),
+  );
+  world.destination = {
+    portId,
+    label: port.name,
+    x: existing?.x ?? island.x + (dx / length) * (island.radius + 10),
+    y: existing?.y ?? island.y + (dy / length) * (island.radius + 10),
+  };
+  return true;
 }
 
 export function stepWorld(world: World, controls: BoatControls, dt: number): WorldEvent[] {
@@ -82,7 +105,11 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   events.push(...stepTrade(world.trade, world.map, world.boat, dt));
 
   const wp = currentWaypoint(world);
-  if (world.map.course.length > 0 && distance(world.boat, wp) < WAYPOINT_RADIUS) {
+  if (
+    !world.destination &&
+    world.map.course.length > 0 &&
+    distance(world.boat, wp) < WAYPOINT_RADIUS
+  ) {
     const seconds = world.time - world.course.legStart;
     world.course.index = (world.course.index + 1) % world.map.course.length;
     world.course.reached += 1;

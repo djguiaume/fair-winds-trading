@@ -653,3 +653,1027 @@ body.in-menu .settings .in-game {
     animation: none;
   }
 }
+
+/* ==========================================================================
+   Phase 1 Trading, Shipyard, Port Labels & Captain Stats
+   ========================================================================== */
+
+/* Persistent Captain Stats HUD (Gold, Cargo, Ship) */
+.captain-stats {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  left: calc(var(--gap) + 144px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  padding: 6px 12px;
+  z-index: 10;
+}
+
+.captain-stat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.captain-stat b {
+  color: #ffe680;
+}
+
+.captain-stat.ship-tag {
+  background: rgba(242, 194, 48, 0.16);
+  border-color: rgba(242, 194, 48, 0.4);
+  color: #ffe680;
+  font-weight: bold;
+}
+
+.cargo-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  background: rgba(12, 28, 38, 0.95);
+  border: 2px solid #ffe680;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 25;
+}
+
+.cargo-tooltip[hidden] {
+  display: none;
+}
+
+/* Docking Button Prompt */
+.dock-btn {
+  position: absolute;
+  left: 50%;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  border-radius: 30px;
+  background: #f2c230;
+  color: #5a3d00;
+  border: 3px solid #fff3c4;
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: bold;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+  z-index: 15;
+  touch-action: manipulation;
+  animation: dock-pulse 2.2s infinite ease-in-out;
+}
+
+.dock-btn:active {
+  background: #ffd75a;
+}
+
+.dock-btn[hidden] {
+  display: none;
+}
+
+.dock-icon {
+  font-size: 20px;
+}
+
+@keyframes dock-pulse {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.05);
+  }
+}
+
+.danger-btn {
+  border-color: rgba(255, 120, 100, 0.5) !important;
+  color: #ff8a73 !important;
+}
+
+/* Floating Port Markers */
+.port-labels-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 5;
+}
+
+.port-marker {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: auto;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.05s linear;
+}
+
+.port-marker-box {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  background: rgba(14, 30, 40, 0.88);
+  border: 2px solid rgba(255, 230, 128, 0.5);
+  border-radius: 10px;
+  padding: 5px 9px;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  text-align: center;
+}
+
+.port-marker.docked .port-marker-box {
+  border-color: #9be37d;
+  background: rgba(16, 40, 36, 0.92);
+}
+
+.port-marker.offscreen .port-marker-box {
+  bottom: auto;
+  top: -14px;
+  padding: 3px 6px;
+  font-size: 11px;
+}
+
+.port-marker-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.port-marker-name {
+  color: #ffe680;
+}
+
+.port-marker-dist {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.port-marker-tag {
+  font-size: 11px;
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.produces-tag {
+  color: #9be37d;
+}
+
+.wants-tag {
+  color: #ffe680;
+}
+
+.port-marker-dock {
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #5a3d00;
+  background: #f2c230;
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+
+.port-marker-dock[hidden] {
+  display: none;
+}
+
+.port-marker-arrow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  display: grid;
+  place-items: center;
+  color: #ffe680;
+  font-size: 13px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.port-marker-arrow[hidden] {
+  display: none;
+}
+
+/* Trade Panel Modal Overlay */
+.trade-panel-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 16, 24, 0.76);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+  padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
+    max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  touch-action: pan-y;
+}
+
+.trade-panel-overlay[hidden] {
+  display: none;
+}
+
+.trade-modal {
+  width: min(100%, 780px);
+  max-height: min(92vh, 700px);
+  background: rgba(18, 38, 48, 0.96);
+  border: 2px solid #ffe680;
+  border-radius: 16px;
+  padding: 16px 20px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.65);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.trade-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: 8px;
+}
+
+.port-kicker {
+  font:
+    italic 13px Georgia,
+    serif;
+  opacity: 0.85;
+}
+
+.port-name {
+  margin: 2px 0 4px;
+  font:
+    bold 26px/1.1 Georgia,
+    'Times New Roman',
+    serif;
+  color: #ffe680;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
+}
+
+.port-roles-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.role-tag {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.role-tag.produces {
+  color: #9be37d;
+  border: 1px solid rgba(155, 227, 125, 0.35);
+}
+
+.role-tag.wants {
+  color: #ffe680;
+  border: 1px solid rgba(255, 230, 128, 0.35);
+}
+
+.close-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  touch-action: manipulation;
+}
+
+.close-btn:active {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Captain Bar */
+.captain-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: rgba(10, 24, 32, 0.65);
+  border-radius: 10px;
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.stat-pill .stat-val {
+  font-weight: bold;
+}
+
+.gold-pill .stat-val {
+  color: #ffe680;
+}
+
+.stat-pill .stat-label {
+  opacity: 0.75;
+  font-size: 12px;
+}
+
+/* Tabs */
+.trade-tabs {
+  display: flex;
+  gap: 10px;
+}
+
+.tab-btn {
+  flex: 1;
+  min-height: 46px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.tab-btn.active {
+  background: #f2c230;
+  color: #5a3d00;
+  border-color: #fff3c4;
+}
+
+.tab-btn:active {
+  opacity: 0.9;
+}
+
+/* Market section */
+.market-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sell-all-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(155, 227, 125, 0.15);
+  border: 1px solid rgba(155, 227, 125, 0.4);
+  border-radius: 10px;
+  padding: 8px 14px;
+}
+
+.sell-all-btn {
+  min-height: 44px;
+  padding: 6px 18px;
+  border-radius: 8px;
+  border: 2px solid #9be37d;
+  background: #9be37d;
+  color: #1a4d10;
+  font: inherit;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.sell-all-btn:active {
+  background: #b6f29e;
+}
+
+.goods-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.good-card {
+  background: rgba(14, 28, 36, 0.72);
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.good-card.produces {
+  border-color: rgba(155, 227, 125, 0.45);
+}
+
+.good-card.wants {
+  border-color: rgba(255, 230, 128, 0.45);
+}
+
+.good-info {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.good-icon {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.good-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.good-name {
+  margin: 0;
+  font-size: 17px;
+}
+
+.role-badge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.role-badge.produces {
+  background: rgba(155, 227, 125, 0.2);
+  color: #9be37d;
+}
+
+.role-badge.wants {
+  background: rgba(255, 230, 128, 0.2);
+  color: #ffe680;
+}
+
+.role-badge.neutral {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.good-meta {
+  font-size: 13px;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
+.good-meta .sep {
+  opacity: 0.4;
+  margin: 0 4px;
+}
+
+.good-prices {
+  display: flex;
+  justify-content: space-around;
+  background: rgba(0, 0, 0, 0.26);
+  border-radius: 8px;
+  padding: 6px;
+  font-size: 13px;
+}
+
+.price-col {
+  text-align: center;
+}
+
+.price-label {
+  font-size: 11px;
+  opacity: 0.75;
+  display: block;
+}
+
+.price-val {
+  font-weight: bold;
+  color: #ffe680;
+}
+
+.qty-control-area {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+
+.qty-title {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.qty-stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.qty-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  touch-action: manipulation;
+}
+
+.qty-btn:active {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.qty-display {
+  min-width: 28px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.qty-quick-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.qty-quick {
+  min-height: 32px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.qty-quick:active {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.quote-preview {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 2px 4px;
+}
+
+.quote-line {
+  display: flex;
+  gap: 4px;
+  align-items: baseline;
+}
+
+.quote-total {
+  font-weight: bold;
+}
+
+.quote-total.affordable {
+  color: #ffe680;
+}
+
+.quote-total.unaffordable {
+  color: #ff8a73;
+}
+
+.quote-total.income {
+  color: #9be37d;
+}
+
+.quote-avg {
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.good-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.trade-act-btn {
+  min-height: 46px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  border: 2px solid;
+  transition: opacity 0.15s;
+  touch-action: manipulation;
+}
+
+.trade-act-btn.buy-btn {
+  background: rgba(242, 194, 48, 0.2);
+  border-color: #f2c230;
+  color: #ffe680;
+}
+
+.trade-act-btn.buy-btn:not([disabled]):active {
+  background: #f2c230;
+  color: #5a3d00;
+}
+
+.trade-act-btn.sell-btn {
+  background: rgba(155, 227, 125, 0.2);
+  border-color: #9be37d;
+  color: #9be37d;
+}
+
+.trade-act-btn.sell-btn:not([disabled]):active {
+  background: #9be37d;
+  color: #1a4d10;
+}
+
+.trade-act-btn[disabled] {
+  opacity: 0.42;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.trade-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.undock-btn {
+  min-height: 48px;
+  min-width: 170px;
+  font-size: 16px;
+}
+
+/* Shipyard Section */
+.shipyard-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-title h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #ffe680;
+}
+
+.section-title.ships-title {
+  margin-top: 8px;
+}
+
+.upgrades-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.upgrade-card {
+  background: rgba(14, 28, 36, 0.72);
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.upgrade-card-header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.track-icon {
+  font-size: 24px;
+}
+
+.track-name {
+  margin: 0;
+  font-size: 16px;
+}
+
+.track-pips-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 3px;
+}
+
+.track-level-text {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.track-pips {
+  display: flex;
+  gap: 4px;
+}
+
+.track-pip {
+  width: 14px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.track-pip.filled {
+  background: #f2c230;
+}
+
+.track-effects {
+  font-size: 13px;
+  line-height: 1.35;
+  flex: 1;
+}
+
+.current-effect {
+  margin: 0 0 4px;
+  color: #fff;
+}
+
+.next-effect {
+  margin: 0;
+  color: #ffe680;
+}
+
+.max-note {
+  margin: 0;
+  color: #9be37d;
+  font-weight: bold;
+}
+
+.upgrade-btn {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  touch-action: manipulation;
+}
+
+.upgrade-btn.primary {
+  background: #f2c230;
+  color: #5a3d00;
+  border-color: #fff3c4;
+}
+
+.upgrade-btn.primary:active {
+  background: #ffd75a;
+}
+
+.upgrade-btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.upgrade-btn.maxed {
+  background: rgba(155, 227, 125, 0.15);
+  border-color: rgba(155, 227, 125, 0.4);
+  color: #9be37d;
+}
+
+.ships-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.ship-card {
+  background: rgba(14, 28, 36, 0.72);
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ship-card.active-ship {
+  border-color: #f2c230;
+  background: rgba(20, 42, 54, 0.88);
+}
+
+.ship-card-header h4 {
+  margin: 0;
+  font-size: 18px;
+  color: #ffe680;
+}
+
+.ship-role-tag {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.ship-specs {
+  font-size: 13px;
+  line-height: 1.45;
+  flex: 1;
+}
+
+.ship-specs b {
+  color: #ffe680;
+}
+
+.ship-btn {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  touch-action: manipulation;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.ship-btn.primary {
+  background: #f2c230;
+  color: #5a3d00;
+  border-color: #fff3c4;
+}
+
+.ship-btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ship-badge.active-badge {
+  display: block;
+  text-align: center;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(242, 194, 48, 0.2);
+  border: 1px solid #f2c230;
+  color: #ffe680;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 560px) {
+  .captain-stats {
+    top: calc(max(12px, env(safe-area-inset-top)) + 76px);
+    left: var(--gap);
+    padding: 4px 8px;
+    font-size: 13px;
+  }
+
+  .trade-modal {
+    padding: 12px 14px;
+    max-height: 94vh;
+  }
+
+  .goods-grid,
+  .upgrades-grid,
+  .ships-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .port-name {
+    font-size: 22px;
+  }
+}
+
+/* Keep the new HUD clear of the compass, objective and helm controls. */
+.captain-stats {
+  top: calc(max(12px, env(safe-area-inset-top)) + 86px);
+  left: var(--gap);
+  max-width: calc(100vw - 150px);
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.captain-stat {
+  cursor: default;
+}
+button.captain-stat {
+  pointer-events: auto;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  min-height: 44px;
+}
+.port-marker {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+.port-marker-box {
+  min-height: 44px;
+}
+.port-marker:focus-visible .port-marker-box {
+  outline: 3px solid white;
+}
+.port-marker[hidden] {
+  display: none;
+}
+.trade-modal {
+  min-width: 0;
+}
+.trade-header {
+  gap: 12px;
+}
+.header-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.close-btn,
+.qty-btn,
+.qty-quick,
+.mode-toggle-btn {
+  min-width: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
+}
+.trade-status:empty {
+  display: none;
+}
+.trade-status {
+  margin: 0;
+  color: #ffe680;
+}
+body.is-docked .objective {
+  visibility: hidden;
+}
+@media (max-width: 560px) {
+  .captain-stats {
+    max-width: calc(100vw - 128px);
+    padding: 4px;
+    font-size: 12px;
+  }
+  .captain-stat {
+    padding: 4px;
+  }
+  .captain-stat.ship-tag {
+    display: none;
+  }
+  .top-buttons {
+    top: calc(max(12px, env(safe-area-inset-top)) + 150px);
+  }
+  .fps {
+    top: calc(max(12px, env(safe-area-inset-top)) + 202px);
+  }
+  .trade-header {
+    flex-wrap: wrap;
+  }
+  .header-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .dock-btn {
+    max-width: calc(100vw - 128px);
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dock-btn {
+    animation: none;
+  }
+  .port-marker {
+    transition: none;
+  }
+}

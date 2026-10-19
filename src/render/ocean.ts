@@ -5,8 +5,35 @@ import { PALETTE } from './palette';
 const MAX_ISLANDS = 12;
 const MAX_COAST_EDGES = 64;
 
+const shoreShader = /* glsl */ `
+uniform vec3 uIslands[${MAX_ISLANDS}];
+uniform int uIslandCount;
+uniform vec4 uCoastEdges[${MAX_COAST_EDGES}];
+uniform int uCoastEdgeCount;
+float shoreDistance(vec2 p) {
+  float d = 1e5;
+  for (int i = 0; i < ${MAX_ISLANDS}; i++) {
+    if (i >= uIslandCount) break;
+    d = min(d, length(p - uIslands[i].xy) - uIslands[i].z);
+  }
+  for (int i = 0; i < ${MAX_COAST_EDGES}; i++) {
+    if (i >= uCoastEdgeCount) break;
+    vec2 a = uCoastEdges[i].xy;
+    vec2 b = uCoastEdges[i].zw;
+    vec2 ab = b - a;
+    float t = clamp(dot(p - a, ab) / max(dot(ab, ab), 0.001), 0.0, 1.0);
+    d = min(d, length(p - (a + ab * t)));
+  }
+  return d;
+}
+`;
+
 const vertexShader = /* glsl */ `
 uniform float uTime;
+#ifdef VERTEX_SHORES
+${shoreShader}
+varying float vShoreDistance;
+#endif
 varying vec3 vWorld;
 varying float vHeight;
 varying float vFogDepth;
@@ -22,6 +49,9 @@ void main() {
   float h = wave(world.xz);
   world.y += h;
   vWorld = world.xyz;
+#ifdef VERTEX_SHORES
+  vShoreDistance = shoreDistance(world.xz);
+#endif
   vHeight = h;
   vec4 mv = viewMatrix * world;
   vFogDepth = -mv.z;
@@ -31,10 +61,12 @@ void main() {
 
 const fragmentShader = /* glsl */ `
 uniform float uTime;
-uniform vec3 uIslands[${MAX_ISLANDS}];
-uniform int uIslandCount;
-uniform vec4 uCoastEdges[${MAX_COAST_EDGES}];
-uniform int uCoastEdgeCount;
+#ifndef VERTEX_SHORES
+${shoreShader}
+#endif
+#ifdef VERTEX_SHORES
+varying float vShoreDistance;
+#endif
 uniform vec3 uSunDir;
 uniform vec3 uWater;
 uniform vec3 uWaterLight;
@@ -56,26 +88,20 @@ void main() {
   vec3 col = mix(uWater, uWaterLight, smoothstep(-0.35, 0.45, vHeight));
 
   // Distance to the nearest beach: shallow tint and a moving foam line.
-  float d = 1e5;
-  for (int i = 0; i < ${MAX_ISLANDS}; i++) {
-    if (i >= uIslandCount) break;
-    d = min(d, length(vWorld.xz - uIslands[i].xy) - uIslands[i].z);
-  }
-  for (int i = 0; i < ${MAX_COAST_EDGES}; i++) {
-    if (i >= uCoastEdgeCount) break;
-    vec2 a = uCoastEdges[i].xy;
-    vec2 b = uCoastEdges[i].zw;
-    vec2 ab = b - a;
-    float t = clamp(dot(vWorld.xz - a, ab) / max(dot(ab, ab), 0.001), 0.0, 1.0);
-    d = min(d, length(vWorld.xz - (a + ab * t)));
-  }
+#ifdef VERTEX_SHORES
+  float d = vShoreDistance;
+#else
+  float d = shoreDistance(vWorld.xz);
+#endif
   col = mix(col, uShallow, (1.0 - smoothstep(0.0, 14.0, d)) * 0.85);
 #ifdef FANCY
   float ripple = sin(vWorld.x * 0.45 + uTime * 1.3) * sin(vWorld.z * 0.5 - uTime * 1.7);
-#else
-  float ripple = 0.0;
 #endif
+#ifdef FANCY
   float foam = 1.0 - smoothstep(0.8, 2.6, d + 0.7 * ripple + 0.6 * sin(uTime * 1.4 + d * 0.6));
+#else
+  float foam = 1.0 - smoothstep(0.8, 2.6, d);
+#endif
   col = mix(col, uFoam, foam * 0.8);
 
   col *= light;
@@ -129,7 +155,7 @@ export class Ocean {
     const material = new THREE.ShaderMaterial({
       vertexShader,
       fragmentShader,
-      defines: fancy ? { FANCY: '' } : {},
+      defines: fancy ? { FANCY: '' } : { VERTEX_SHORES: '' },
       uniforms: {
         uTime: { value: 0 },
         uCoastEdges: { value: edgeUniform },

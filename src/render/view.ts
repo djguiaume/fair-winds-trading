@@ -15,7 +15,7 @@ import {
 import { Ocean, waveHeight } from './ocean';
 import { PALETTE } from './palette';
 import { BuoyMarker, createBlobShadow } from './props';
-import { QUALITY, type QualityLevel, type QualityProfile } from './quality';
+import { renderPixelRatio, QUALITY, type QualityLevel, type QualityProfile } from './quality';
 import { Wake } from './wake';
 import { WindStreaks } from './windStreaks';
 
@@ -164,7 +164,9 @@ export class GameView {
   resize(width: number, height: number) {
     this.width = Math.max(1, width);
     this.height = Math.max(1, height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.profile.pixelRatioCap));
+    this.renderer.setPixelRatio(
+      renderPixelRatio(width, height, window.devicePixelRatio || 1, this.profile),
+    );
     this.renderer.setSize(this.width, this.height, false);
     this.camera.aspect = this.width / this.height;
     this.camera.updateProjectionMatrix();

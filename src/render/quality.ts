@@ -8,6 +8,8 @@ export type QualitySetting = QualityLevel | 'auto';
 export interface QualityProfile {
   /** Maximum device pixel ratio used for the canvas. */
   pixelRatioCap: number;
+  /** Maximum 3D drawing-buffer area; the DOM stays at native resolution. */
+  maxRenderPixels: number;
   /** Ocean grid resolution (cells per side). */
   oceanSegments: number;
   windStreaks: number;
@@ -18,8 +20,16 @@ export interface QualityProfile {
 }
 
 export const QUALITY: Record<QualityLevel, QualityProfile> = {
-  low: { pixelRatioCap: 1, oceanSegments: 48, windStreaks: 36, shadows: false, fancyWater: false },
+  low: {
+    maxRenderPixels: 750_000,
+    pixelRatioCap: 1,
+    oceanSegments: 48,
+    windStreaks: 36,
+    shadows: false,
+    fancyWater: false,
+  },
   medium: {
+    maxRenderPixels: 1_250_000,
     pixelRatioCap: 1.25,
     oceanSegments: 80,
     windStreaks: 60,
@@ -27,6 +37,7 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
     fancyWater: true,
   },
   high: {
+    maxRenderPixels: 2_500_000,
     pixelRatioCap: 1.5,
     oceanSegments: 120,
     windStreaks: 90,
@@ -35,13 +46,29 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
   },
 };
 
+/** Can fall below 1 on large tablets to keep fill-rate bounded. */
+export function renderPixelRatio(
+  width: number,
+  height: number,
+  deviceRatio: number,
+  profile: QualityProfile,
+): number {
+  const area = Math.max(1, width) * Math.max(1, height);
+  return Math.min(
+    deviceRatio || 1,
+    profile.pixelRatioCap,
+    Math.sqrt(profile.maxRenderPixels / area),
+  );
+}
+
 const ORDER: QualityLevel[] = ['low', 'medium', 'high'];
 
 /** First guess before any frame is measured: touch devices start lower. */
 export function guessQuality(): QualityLevel {
   const touch = navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
   const cores = navigator.hardwareConcurrency || 4;
-  if (touch && cores <= 4) return 'low';
+  const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+  if (touch && (cores <= 4 || (memory !== undefined && memory <= 4))) return 'low';
   if (touch) return 'medium';
   return 'high';
 }
