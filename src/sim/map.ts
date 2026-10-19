@@ -1,3 +1,4 @@
+import type { GoodId } from './goods';
 import type { WindConfig } from './wind';
 
 /**
@@ -27,6 +28,17 @@ export interface WaypointDef {
   y: number;
 }
 
+/** A settlement you can dock at and trade with (decision 0015). It sits on one island. */
+export interface PortDef {
+  id: string;
+  name: string;
+  islandId: string;
+  /** Goods made here: plentiful and cheap. */
+  produces: GoodId[];
+  /** Goods the town needs: scarce and dear. */
+  wants: GoodId[];
+}
+
 export interface MapDef {
   name: string;
   seed: number;
@@ -37,4 +49,6 @@ export interface MapDef {
   islands: IslandDef[];
   /** Phase 0 practice course: buoys to reach in order, looping. */
   course: WaypointDef[];
+  /** Trading ports (Phase 1). */
+  ports: PortDef[];
 }

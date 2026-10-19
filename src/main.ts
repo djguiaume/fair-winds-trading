@@ -4,8 +4,10 @@ import { FrameMonitor, type QualityLevel, guessQuality, lowerQuality } from './r
 import { GameView } from './render/view';
 import { SAIL_STEPS } from './sim/boat';
 import { clamp } from './sim/math';
+import { type SaveStorage, clearSave, loadGame, saveGame } from './sim/save';
 import { SLOOP } from './sim/ship';
-import { createWorld, resetBoat, stepWorld } from './sim/world';
+import * as trade from './sim/trade';
+import { type WorldEvent, createWorld, resetBoat, stepWorld } from './sim/world';
 import {
   classifySupport,
   isFullscreen,
@@ -31,6 +33,15 @@ if (!document.createElement('canvas').getContext('webgl2')) {
 
 const settings = loadSettings();
 const world = createWorld(PHASE0_MAP, SLOOP);
+// Progress (gold, ships, cargo, markets, position) auto-saves to the browser (decision 0015).
+const storage: SaveStorage | null = (() => {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+})();
+if (storage) loadGame(storage, world);
 let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
 const view = new GameView(canvas, world, level);
 const hud = new Hud(world);
@@ -191,6 +202,25 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
+// --- Trade hooks (the trade panel arrives with the Phase 1 UI) --------------------------------
+const AUTOSAVE_SECONDS = 15;
+let lastSave = world.time;
+function autosave() {
+  if (storage) saveGame(storage, world);
+  lastSave = world.time;
+}
+function handleEvents(events: WorldEvent[]) {
+  hud.handleEvents(events);
+  for (const e of events) {
+    if (e.type === 'docked') {
+      hud.showToast(`Docked at ${trade.findPort(world.map, e.portId)?.name ?? e.portId}`, 2);
+      autosave();
+    }
+  }
+  if (world.time - lastSave >= AUTOSAVE_SECONDS) autosave();
+}
+window.addEventListener('pagehide', autosave);
+
 // --- Main loop: fixed-step simulation, render once per frame ----------------------------------
 let accumulator = 0;
 let last = performance.now();
@@ -207,7 +237,7 @@ function tick(now: number) {
     accumulator += dt;
     let steps = 0;
     while (accumulator >= SIM_STEP && steps < 6) {
-      hud.handleEvents(stepWorld(world, { steer: input.steer, sailStep }, SIM_STEP));
+      handleEvents(stepWorld(world, { steer: input.steer, sailStep }, SIM_STEP));
       accumulator -= SIM_STEP;
       steps++;
     }
@@ -226,6 +256,7 @@ function tick(now: number) {
 // Stop rendering while the tab is hidden (battery on phones and tablets).
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
+    autosave();
     cancelAnimationFrame(frame);
   } else {
     last = performance.now();
@@ -234,7 +265,12 @@ document.addEventListener('visibilitychange', () => {
 });
 frame = requestAnimationFrame(tick);
 
-// `?debug` exposes the game objects in the console (used by screenshot scripts too).
+// `?debug` exposes the game objects in the console (used by screenshot scripts too). Until the
+// trade panel lands, trading works from there, e.g. `fwt.trade.buy(fwt.world.trade, 'fish', 5)`.
 if (new URLSearchParams(location.search).has('debug')) {
-  Object.assign(window, { fwt: { world, view, input } });
+  const newGame = () => {
+    if (storage) clearSave(storage);
+    location.reload();
+  };
+  Object.assign(window, { fwt: { world, view, input, trade, newGame } });
 }

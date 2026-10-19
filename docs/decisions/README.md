@@ -17,5 +17,6 @@
 | [0013](0013-phase-0-prototype-choices.md) | Phase 0 prototype: sailing feel, controls and performance choices | 2026-10-19 | Accepted |
 | [0014](0014-code-built-models-for-now.md) | Code-built models for now, not Scenario-generated ones | 2026-10-19 | Accepted |
 | [0015](0015-main-menu-and-fullscreen.md) | Main menu over the live scene, fullscreen with iPhone fallback | 2026-10-19 | Accepted |
+| [0015](0015-trade-economy.md) | Phase 1 trade economy: stock-driven prices, docking, upgrades, save | 2026-10-19 | Accepted |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
