@@ -315,7 +315,7 @@ export function islandParts(
 }
 
 /**
- * Terraces of a barrier island (decision 0026): the beach is the exact collision outline, then
+ * Terraces of a barrier island (decision 0031): the beach is the exact collision outline, then
  * two sandstone tiers and a grass cap, each inset so nothing overhangs the shore.
  */
 const RIDGE_TIERS = [
