@@ -123,6 +123,15 @@ Goal: growth pushes you outward into tougher navigation.
 - Ship health and repairs at ports; escort ships for valuable routes.
 - **Warship line** (ketch → brig → frigate: lots of firepower and hull, low cargo, slow upwind) from a naval yard, and a fourth upgrade track, **guns**, so any ship can arm a little ([0035](decisions/0035-three-ship-lines.md)). Swift ships escape pirates, warships fight them, haulers need escorts.
 
+## Racing missions (requested by Guillaume, 2026-10-19)
+
+Timed delivery races between ports, alongside the sandbox rather than replacing it.
+
+- Each mission is a fixed route (port A to port B, optionally via checkpoints) with a cargo to deliver against the clock, and medal times (bronze, silver, gold) plus a personal best.
+- **Fixed difficulty parameters** so every attempt is the same challenge: a predefined wind (direction, strength, gusts, shifts), weather (calm, squalls, storms once Phase 2 weather exists) and, once Phase 5 lands, pirates on set patrols. Damage and repairs ([0038](decisions/0038-hull-damage-from-any-crash.md)) count against the time.
+- Missions are data-driven like maps (id, route, ship, cargo, wind/weather/pirate settings, medal times), so new ones are a JSON entry; seeded so wind gusts replay identically.
+- A first set can ship as soon as the wind and weather settings can be pinned (after Phase 2); pirate missions follow Phase 5. Medals could unlock cosmetics or maps (see Selectable maps); online leaderboards stay a Phase 7 maybe.
+
 ## Phase 6 — Enemy factions (maybe)
 
 - **Concurrent trading companies:** rival companies with their own ships and routes compete for settlements, contracts and prices; contested waters.
