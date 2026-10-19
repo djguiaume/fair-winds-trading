@@ -2,6 +2,7 @@
 // Usage: node docs/maps/rework/src/mockups.mjs  -> writes layout-*.svg next to this folder.
 // Pure SVG, no dependencies; world units are game units (x east, y north), wind from 30°.
 import { writeFileSync } from 'node:fs';
+import process from 'node:process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -590,5 +591,5 @@ const B = {
 for (const layout of [A, B]) {
   const file = join(OUT, `layout-${layout.letter.toLowerCase()}.svg`);
   writeFileSync(file, render(layout));
-  console.log('wrote', file);
+  process.stdout.write(`wrote ${file}\n`);
 }
