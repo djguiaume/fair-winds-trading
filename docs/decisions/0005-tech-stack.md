@@ -1,6 +1,6 @@
 # 0005. Tech stack: three.js + TypeScript + Vite, static site
 
-**Status:** Proposed, 2026-10-19 (waiting for Guillaume's confirmation)
+**Status:** Accepted, 2026-10-19 (confirmed by Guillaume)
 
 **Context:** The game is rendered in real-time 3D low-poly ([0004](0004-real-time-3d.md)) and runs in the browser. Needs, from the [roadmap](../roadmap.md):
 
@@ -11,7 +11,7 @@
 - No backend, saves in the browser, fast to iterate on (the 3D mockup was already built with three.js).
 - Roadmap answers (2026-10-19): **desktop and mobile from day one**, tested on an old tablet and a phone, so performance is a hard constraint. Arcade sailing with tacking (no speed straight into the wind). Start with **one static map**, with seeded generation possible later without a rewrite. Short sandbox game; light hazards first, pirates and factions much later.
 
-**Decision (proposed):**
+**Decision:**
 
 | Layer | Choice | Why |
 |---|---|---|
