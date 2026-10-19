@@ -1,6 +1,6 @@
 # Art pipeline: swapping boat and island looks
 
-The game logic never touches 3D models. Everything visual for boats and islands goes through one file, `src/render/models/index.ts`, which picks a **boat factory** and an **islands builder**. Phase 0 uses procedural placeholders in the style of the [3D mockup](mockups/README.md); a chosen art style replaces them by changing those two lines.
+The game logic never touches 3D models. Everything visual for boats and islands goes through one file, `src/render/models/index.ts`, which picks a **boat factory** and an **islands builder**. Phase 0 uses procedural placeholders in the style of the [3D mockup](mockups/README.md); a chosen art style replaces them by changing those two lines. The chosen style is in [0012](decisions/0012-boat-and-island-art-style.md): D storybook classic boats, B2 bright highland islands, A sea colours; [docs/art/src/lib.js](art/src/lib.js) has reference builders for them.
 
 ## Boats: `BoatModel` (`src/render/models/types.ts`)
 

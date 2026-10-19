@@ -1,0 +1,12 @@
+*{box-sizing:border-box}body{margin:0;width:1280px;height:720px;overflow:hidden;font-family:"Trebuchet MS",Verdana,sans-serif}
+#c{position:absolute;inset:0}#labels{position:absolute;inset:0}
+.label,.tag{position:absolute;color:#fff;transform:translate(-50%,0);text-align:center;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.tag .n{white-space:nowrap;font-weight:bold;font-size:17px;background:rgba(20,40,50,.78);border-radius:8px;padding:4px 10px;display:inline-block}
+.tag .d{white-space:nowrap;font-size:12px;margin-top:3px;background:rgba(20,40,50,.6);border-radius:6px;padding:2px 8px;display:inline-block;color:#ffe9a8}
+.tag .p{font-size:13px;font-weight:bold;color:#ffd84a;margin-top:2px}
+.label{transform:translate(-50%,-100%);display:flex;align-items:center;gap:6px}
+.lvl{background:#f2c230;color:#5a3d00;border:3px solid #fff3c4;border-radius:8px;width:30px;height:30px;display:grid;place-items:center;font-weight:900;font-size:15px;text-shadow:none}
+.lb{background:rgba(20,40,50,.8);border-radius:8px;padding:3px 9px;font-weight:bold;font-size:14px;text-align:left}.lb small{display:block;font-weight:normal;font-size:11px;color:#ffe9a8}
+.title{position:absolute;top:14px;left:18px;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.title b{font-size:24px;display:block}.title span{font-size:14px;opacity:.85}
+.note{position:absolute;top:16px;right:16px;background:rgba(20,40,50,.6);padding:6px 10px;border-radius:8px;color:#fff;font-size:12px;text-align:right;max-width:420px}

@@ -1,0 +1,12 @@
+<html><head><link rel="stylesheet" href="common.css"><script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script></head><body><canvas id="c" width="1280" height="720"></canvas><div id="labels"></div>
+<div class="title"><b>Upgrading a ship · Sloop, style <span id="k"></span></b><span>Three upgrade tracks, each visible on the model: sails, hold, hull</span></div><div class="note">Every class has the same three tracks. Prices scale with the class.</div>
+<script type="module">
+import * as T from 'three';import {STYLES,makeScene,boat,wake,label,reseed} from './lib.js';
+const key=new URLSearchParams(location.search).get('s')||'A',st=STYLES[key];document.getElementById('k').textContent=key+' ('+st.name+')';
+const {r,s}=makeScene(st,c);
+const cam=new T.PerspectiveCamera(30,1280/720,1,500);cam.position.set(0,12,33);cam.lookAt(0,2.8,0);
+const L=[[1,'Stock','Patched sails · 2 crates · bare hull','free'],[2,'Level 2','New canvas + extra jib · hold +6 · painted hull','🪙 400 each'],[3,'Level 3','Racing sails + topsail · hold +12 · copper bottom','🪙 1 200 each']];
+L.forEach(([lv,n,d,p],i)=>{reseed(4);const x=(i-1)*11;const R=+(new URLSearchParams(location.search).get('r')||-1.45);const b=boat(st,'sloop',{sails:lv,hold:lv,hull:lv},+(new URLSearchParams(location.search).get('t')||.25));b.position.set(x,0,0);b.rotation.y=R;s.add(b);wake(s,b,x,0,R);
+ label(cam,new T.Vector3(x,0,4.2),'<div class="n">'+n+'</div><br><div class="d">'+d+'</div><div class="p">'+p+'</div>','tag')});
+r.render(s,cam);document.title='done';
+</script></body></html>
