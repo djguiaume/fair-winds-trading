@@ -1,0 +1,21 @@
+{
+  "name": "Fair Winds Trading Co.",
+  "short_name": "Fair Winds",
+  "description": "A low-poly 3D sailing and trading game: read the wind, deliver the goods.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "background_color": "#1d6f7a",
+  "theme_color": "#1d6f7a",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

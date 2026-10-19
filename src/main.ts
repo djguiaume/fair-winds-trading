@@ -299,6 +299,16 @@ for (const button of [fsMenuButton]) {
 onFullscreenChange(describeFullscreen);
 describeFullscreen();
 
+// --- Install as an app (decision 0039) ---------------------------------------------------------
+// Only in builds: in dev a service worker would cache Vite's modules and fight hot reload.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {
+      // No service worker (private mode, blocked): the game still runs, just not installable.
+    });
+  });
+}
+
 // --- Language switcher ------------------------------------------------------------------------
 // Each language is named in its own words, without flags (decision 0037). Switching saves the
 // voyage and reloads, so every panel is rebuilt in the new language.
