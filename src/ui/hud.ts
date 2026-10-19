@@ -3,6 +3,7 @@ import { DEG, bearingTo, distance, wrapPositive } from '../sim/math';
 import { type PointOfSail, pointOfSail } from '../sim/ship';
 import { hullCondition } from '../sim/hazards';
 import { windTo } from '../sim/wind';
+import { WIND_FORCES, createWindGauge, updateWindGauge } from '../sim/windStrength';
 import { windFeedback } from './windFeedback';
 import { type World, type WorldEvent, navigationTarget } from '../sim/world';
 import type { ScreenPoint } from '../render/view';
@@ -44,6 +45,15 @@ export class Hud {
   private readonly windText = $('wind-text');
   private readonly cNoGo = $('c-nogo');
   private readonly cWind = $('c-wind');
+  private readonly cWindScale = $('c-wind-scale');
+  private readonly windForceText = $('wind-force');
+  private readonly windGust = $('wind-gust');
+  private readonly windBars = Array.from(document.querySelectorAll<HTMLElement>('.wind-gauge i'));
+  private windGauge = createWindGauge(0);
+  private shownForce = -1;
+  private shownKids: boolean | null = null;
+  /** Kids mode shows the strength as a big plain word and hides the knots. */
+  isKidMode = false;
   private readonly cBoat = $('c-boat');
   private readonly cWp = $('c-wp');
   private readonly wpArrow = $('wp-arrow');
@@ -127,6 +137,27 @@ export class Hud {
       if (!this.cargoTooltip.hidden) this.cargoTooltip.hidden = true;
       this.cargoBox.setAttribute('aria-expanded', 'false');
     });
+  }
+
+  /** Strength gauge under the compass (decision 0040): bars, a word and a short gust cue. */
+  private updateWindStrength(dt: number, speedKn: number) {
+    if (this.shownForce < 0) this.windGauge = createWindGauge(speedKn);
+    this.windGauge = updateWindGauge(this.windGauge, speedKn, dt);
+    const { force, gust } = this.windGauge;
+    const kids = this.isKidMode;
+    if (force !== this.shownForce || kids !== this.shownKids) {
+      this.shownForce = force;
+      this.shownKids = kids;
+      this.compass.dataset.force = String(force);
+      this.compass.classList.toggle('is-kids', kids);
+      this.windBars.forEach((bar, i) => bar.classList.toggle('on', i <= force));
+      this.windForceText.textContent = t(
+        `${kids ? 'kidsWind' : 'windForce'}.${WIND_FORCES[force]}`,
+      );
+      // The arrow grows a little bolder as the wind rises; its length and direction stay.
+      this.cWindScale.setAttribute('transform', `scale(${(0.8 + force * 0.12).toFixed(2)} 1)`);
+    }
+    this.windGust.hidden = gust <= 0;
   }
 
   private dismissWindHint() {
@@ -213,6 +244,7 @@ export class Hud {
     }
     rot(this.cNoGo, wind.from);
     rot(this.cWind, windTo(wind));
+    this.updateWindStrength(dt, wind.speedKn);
     rot(this.cBoat, boat.heading);
     this.cWp.style.display = wp ? '' : 'none';
     this.objective.hidden = !wp;

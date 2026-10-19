@@ -60,10 +60,23 @@ export class WindStreaks {
     };
   }
 
-  /** `toX/toZ`: scene-space unit vector the wind blows toward; `speed` in units/s. */
-  update(dt: number, center: THREE.Vector3, toX: number, toZ: number, speed: number) {
+  /**
+   * `toX/toZ`: scene-space unit vector the wind blows toward; `speed` in units/s. `strength` 0..1
+   * (decision 0040): around a normal breeze the streaks look as before; a calm thins and fades
+   * them, strong wind makes every streak show and brightens them a little.
+   */
+  update(
+    dt: number,
+    center: THREE.Vector3,
+    toX: number,
+    toZ: number,
+    speed: number,
+    strength = 0.56,
+  ) {
     const len = 3 + speed * 0.18;
     const w = 0.09;
+    const shown = Math.min(1, 0.4 + 1.1 * strength) * this.streaks.length;
+    const alpha = 0.35 * (0.5 + 0.9 * strength);
     this.streaks.forEach((s, i) => {
       s.age += dt;
       s.x += toX * speed * dt;
@@ -93,7 +106,7 @@ export class WindStreaks {
         ],
         i * 12,
       );
-      const a = 0.35 * fade;
+      const a = i < shown ? alpha * fade : 0;
       this.colors.set([1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, a, 1, 1, 1, a], i * 16);
     });
     this.geometry.attributes.position!.needsUpdate = true;

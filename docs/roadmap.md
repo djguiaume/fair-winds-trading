@@ -70,8 +70,9 @@ Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 
 - **Complete UI redesign.** The current HUD and panels are not good enough; redesign them as a whole (mockups first, then build), keeping touch and the old-tablet budget ([0006](decisions/0006-desktop-and-mobile.md)).
 - **Kids mode made playable.** It is unplayable today; rework controls, text and pacing so a child can actually sail and trade.
-- **Wind strength you can see**, not only its direction: for example gust streaks, flag or sail flutter and a strength scale on the compass.
+- **Wind strength you can see** (implemented for review, [0040](decisions/0040-visible-wind-strength.md)): a strength word (Calm to Strong; plain words in Kids mode), a coloured arrow and a short gust cue on the compass (five-bar gauge built but hidden for now), and the sea streaks thin out in a calm and brighten in strong wind.
 - **Hull damage from any crash** (implemented for review, [0038](decisions/0038-hull-damage-from-any-crash.md)): ramming an island, coast or pier damages the hull in proportion to the impact speed, docking bumps and sandbanks are free, piers are now solid. Repair in any harbour as in [0032](decisions/0032-reef-strikes-and-shallows.md). Ship-to-ship collisions come with pirates (Phase 5).
+  - *Later (Guillaume, 2026-10-19):* make damage visible and audible: crash sounds, floating debris and splash effects on impact, and the boat model changing at each 20–25 % of hull lost (scuffed paint, patched or torn sails, missing rails, a list), cleared by repair.
 - **Docking you can rely on and a visible sea edge** (implemented for review, [0041](decisions/0041-harbour-mooring-and-edge-buoys.md)): lowering sails near a port while already slow (under 3 kn) brings the boat to a dead stop and docks it; fast arrivals still crash. Clearer pier cues. Red bobbing buoys mark the edge of the map.
 
 **Done when:** you can earn enough to buy upgrades and the cutter, and feel the difference.

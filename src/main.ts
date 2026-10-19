@@ -95,9 +95,11 @@ const tutorialCard = new TutorialCard(tutorial);
 const tutorialOffer = $<HTMLDialogElement>('tutorial-offer');
 tradePanel.uiMode = settings.uiMode;
 hud.portLabels.isKidMode = settings.uiMode === 'kids';
+hud.isKidMode = settings.uiMode === 'kids';
 tradePanel.onUiModeChange = (mode) => {
   settings.uiMode = mode;
   hud.portLabels.isKidMode = mode === 'kids';
+  hud.isKidMode = mode === 'kids';
   saveSettings(settings);
 };
 const monitor = new FrameMonitor();

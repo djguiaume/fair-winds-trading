@@ -119,10 +119,20 @@
             <text y="-43" class="north">N</text>
             <g id="c-wp"><circle cy="-40" r="5" class="wp" /></g>
             <g id="c-wind">
-              <path d="M0 -30 L9 -6 L2 -9 L2 26 L-2 26 L-2 -9 L-9 -6 Z" class="wind" />
+              <g id="c-wind-scale">
+                <path d="M0 -30 L9 -6 L2 -9 L2 26 L-2 26 L-2 -9 L-9 -6 Z" class="wind" />
+              </g>
             </g>
             <g id="c-boat"><path d="M0 -17 L6 6 L0 3 L-6 6 Z" class="boat" /></g>
           </svg>
+          <!-- Strength bars hidden for now (decision 0040); remove `hidden` to show them. -->
+          <span class="wind-gauge" aria-hidden="true" hidden
+            ><i></i><i></i><i></i><i></i><i></i
+          ></span>
+          <span class="wind-force-line">
+            <span id="wind-force">&nbsp;</span>
+            <span id="wind-gust" class="wind-gust" hidden data-i18n="wind.gust">gust</span>
+          </span>
           <span id="wind-text">&nbsp;</span>
         </button>
         <button

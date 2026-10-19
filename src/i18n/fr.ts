@@ -129,6 +129,17 @@ export const fr: Record<MessageKey, string> = {
   'wind.helpNote':
     'Traverser la zone de vent debout pendant un virement de bord est normal. La boussole se calme dès que vos voiles portent à nouveau.',
   'wind.helpClose': 'Reprendre la navigation',
+  'wind.gust': 'rafale',
+  'windForce.calm': 'Calme',
+  'windForce.light': 'Léger',
+  'windForce.breeze': 'Brise',
+  'windForce.fresh': 'Frais',
+  'windForce.strong': 'Fort',
+  'kidsWind.calm': 'Pas de vent',
+  'kidsWind.light': 'Petit vent',
+  'kidsWind.breeze': 'Bon vent',
+  'kidsWind.fresh': 'Gros vent',
+  'kidsWind.strong': 'Très venté',
 
   // --- Repères des ports en mer --------------------------------------------------------------
   'port.setCourse': 'Mettre le cap sur {name}',

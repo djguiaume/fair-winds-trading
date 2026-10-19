@@ -3,6 +3,7 @@ import { trueWindAngle } from '../sim/boat';
 import { DEG, approach, bearingVector, clamp, wrapAngle } from '../sim/math';
 import { polarFraction } from '../sim/ship';
 import { windTo } from '../sim/wind';
+import { windStrength01 } from '../sim/windStrength';
 import { WAYPOINT_RADIUS, type World, currentWaypoint } from '../sim/world';
 import { KNOT_TO_UNITS } from '../sim/boat';
 import {
@@ -254,7 +255,14 @@ export class GameView {
     this.wake.update(dt, time, this.tmp.set(bx, 0, bz), dir.x, -dir.y, boat.speedKn);
 
     const to = bearingVector(windTo(wind));
-    this.streaks.update(dt, this.target, to.x, -to.y, wind.speedKn * KNOT_TO_UNITS * 0.75);
+    this.streaks.update(
+      dt,
+      this.target,
+      to.x,
+      -to.y,
+      wind.speedKn * KNOT_TO_UNITS * 0.75,
+      windStrength01(wind.speedKn),
+    );
     this.ocean.update(time, this.target);
     this.edgeBuoys.update(time, (x, z) => waveHeight(x, z, time));
 
