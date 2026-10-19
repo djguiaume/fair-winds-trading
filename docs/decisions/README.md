@@ -21,5 +21,6 @@
 | [0017](0017-main-menu-and-fullscreen.md) | Main menu over the live scene, fullscreen with iPhone fallback | 2026-10-19 | Accepted |
 | [0018](0018-map-proposals-and-unlocks.md) | Preview map choices, then implement; selectable maps and persistent unlocks | 2026-10-19 | Accepted scope; choices pending |
 | [0019](0019-staggered-passages-first-map.md) | Strengthened Staggered passages, compatible saves and milestone progression | 2026-10-19 | Accepted |
+| [0020](0020-quiet-upwind-compass-help.md) | Quiet compass feedback and optional upwind help | 2026-10-19 | Accepted |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
