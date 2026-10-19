@@ -419,7 +419,7 @@ button.primary {
   color: #ffe680;
 }
 
-/* Main menu (decision 0015): the live scene stays visible behind it. */
+/* Main menu (decision 0017): the live scene stays visible behind it. */
 body.in-menu #hud > :not(.settings):not(.help),
 body.in-menu .settings .in-game {
   display: none;
