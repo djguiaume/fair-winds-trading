@@ -1,8 +1,8 @@
 import { DEG, clamp } from './math';
 
 /**
- * A ship class: everything that makes one hull sail differently from another. Phase 0 has only
- * the sloop; Phase 1+ adds bigger ships (bigger hold, worse upwind) by adding entries here.
+ * A ship class: everything that makes one hull sail differently from another. Phase 1 has the
+ * sloop and the cutter; Phase 3 adds bigger ships (bigger hold, worse upwind) as new entries.
  * See docs/sailing-model.md for what each number does and how to tune it.
  */
 export interface ShipClass {
@@ -32,6 +32,12 @@ export interface ShipClass {
   leeway: number;
   /** Collision radius (units). */
   radius: number;
+  /** Cargo capacity in units of goods, before hold upgrades. */
+  hold: number;
+  /** Shipyard price in gold (0 for the starter ship). */
+  price: number;
+  /** Shipyard price of upgrade level 2 and level 3, the same for each track (decision 0011). */
+  upgradePrices: readonly [number, number];
 }
 
 export const SLOOP: ShipClass = {
@@ -58,9 +64,45 @@ export const SLOOP: ShipClass = {
   turnDrag: 0.18,
   leeway: 0.045,
   radius: 4.5,
+  hold: 10,
+  price: 0,
+  upgradePrices: [400, 1200],
 };
 
-export const SHIP_CLASSES: Record<string, ShipClass> = { sloop: SLOOP };
+/**
+ * Second ship of Phase 1 (decision 0011): a narrower no-go zone (points higher into the wind), a
+ * touch more speed, a bigger hold, but a heavier helm than the sloop.
+ */
+export const CUTTER: ShipClass = {
+  id: 'cutter',
+  name: 'Cutter',
+  noGoAngle: 40 * DEG,
+  polar: [
+    [0, 0],
+    [40, 0.45],
+    [50, 0.72],
+    [65, 0.9],
+    [95, 1],
+    [125, 0.92],
+    [155, 0.78],
+    [180, 0.68],
+  ],
+  speedRatio: 0.66,
+  accel: 0.5,
+  decel: 0.28,
+  ironsDecel: 0.9,
+  turnRate: 56 * DEG,
+  minSteerage: 0.4,
+  steerageSpeedKn: 4.5,
+  turnDrag: 0.18,
+  leeway: 0.04,
+  radius: 5,
+  hold: 16,
+  price: 1500,
+  upgradePrices: [600, 1800],
+};
+
+export const SHIP_CLASSES: Record<string, ShipClass> = { sloop: SLOOP, cutter: CUTTER };
 
 /**
  * Fraction of top speed (0..1) at true wind angle `twa` (radians, 0 = head to wind, π = dead

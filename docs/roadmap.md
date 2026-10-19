@@ -46,6 +46,8 @@ Goal: one boat on an empty ocean that is fun to steer.
 
 Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 
+**Status (2026-10-19):** trade rules done in the simulation ([0015](decisions/0015-trade-economy.md), details in [economy.md](economy.md)): four ports and four goods with supply-and-demand prices, cargo hold, gold, docking, sloop upgrades, the cutter and auto-save. Next: the trade panel and shipyard UI, upgrade parts on the boat models, then contracts, shifting wind, minimap and port labels.
+
 - One handmade archipelago (5–8 islands) with 3–4 settlements, each producing one good and wanting others (e.g. fish, timber, grain, cloth). The map is defined as data and uses a seedable RNG, so seeded maps can come later ([0008](decisions/0008-static-map-seed-ready.md)).
 - Docking: slow down near a port to open a trade panel; buy, sell, accept delivery contracts.
 - Cargo hold with limited capacity; prices vary by supply and demand per settlement.

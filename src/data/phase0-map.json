@@ -2,8 +2,17 @@
   "name": "Phase 0 practice waters",
   "seed": 7,
   "boundsRadius": 260,
-  "wind": { "fromDeg": 30, "speedKn": 14, "gustiness": 0.15, "shiftDeg": 6 },
-  "start": { "x": 0, "y": -112, "headingDeg": 90 },
+  "wind": {
+    "fromDeg": 30,
+    "speedKn": 14,
+    "gustiness": 0.15,
+    "shiftDeg": 6
+  },
+  "start": {
+    "x": 0,
+    "y": -112,
+    "headingDeg": 90
+  },
   "islands": [
     {
       "id": "calda",
@@ -11,7 +20,11 @@
       "x": 68,
       "y": 105,
       "radius": 20,
-      "look": { "houses": 5, "trees": 7, "dock": true }
+      "look": {
+        "houses": 5,
+        "trees": 7,
+        "dock": true
+      }
     },
     {
       "id": "saltmere",
@@ -19,7 +32,11 @@
       "x": 45,
       "y": -150,
       "radius": 16,
-      "look": { "houses": 3, "trees": 5, "dock": true }
+      "look": {
+        "houses": 3,
+        "trees": 5,
+        "dock": true
+      }
     },
     {
       "id": "westholm",
@@ -27,17 +44,110 @@
       "x": -112,
       "y": 22,
       "radius": 15,
-      "look": { "houses": 2, "trees": 5, "dock": true }
+      "look": {
+        "houses": 2,
+        "trees": 5,
+        "dock": true
+      }
     },
-    { "id": "skerry", "x": 11, "y": 8, "radius": 9, "look": { "trees": 2, "rock": true } },
-    { "id": "east-key", "x": 135, "y": -30, "radius": 8, "look": { "trees": 4 } },
-    { "id": "north-rock", "x": -52, "y": 128, "radius": 7, "look": { "trees": 1, "rock": true } },
-    { "id": "south-cay", "x": -158, "y": -105, "radius": 11, "look": { "trees": 5 } },
-    { "id": "far-rock", "x": 150, "y": 142, "radius": 10, "look": { "trees": 2, "rock": true } }
+    {
+      "id": "skerry",
+      "x": 11,
+      "y": 8,
+      "radius": 9,
+      "look": {
+        "trees": 2,
+        "rock": true
+      }
+    },
+    {
+      "id": "east-key",
+      "x": 135,
+      "y": -30,
+      "radius": 8,
+      "look": {
+        "trees": 4
+      }
+    },
+    {
+      "id": "north-rock",
+      "x": -52,
+      "y": 128,
+      "radius": 7,
+      "look": {
+        "trees": 1,
+        "rock": true
+      }
+    },
+    {
+      "id": "south-cay",
+      "x": -158,
+      "y": -105,
+      "radius": 11,
+      "look": {
+        "houses": 2,
+        "trees": 4,
+        "rock": true,
+        "dock": true
+      },
+      "name": "Stonehaven"
+    },
+    {
+      "id": "far-rock",
+      "x": 150,
+      "y": 142,
+      "radius": 10,
+      "look": {
+        "trees": 2,
+        "rock": true
+      }
+    }
   ],
   "course": [
-    { "label": "Port Calda", "x": 56, "y": 75 },
-    { "label": "Westholm", "x": -86, "y": 30 },
-    { "label": "Saltmere", "x": 29, "y": -127 }
+    {
+      "label": "Port Calda",
+      "x": 56,
+      "y": 75
+    },
+    {
+      "label": "Westholm",
+      "x": -86,
+      "y": 30
+    },
+    {
+      "label": "Saltmere",
+      "x": 29,
+      "y": -127
+    }
+  ],
+  "ports": [
+    {
+      "id": "calda",
+      "name": "Port Calda",
+      "islandId": "calda",
+      "produces": ["timber"],
+      "wants": ["fish", "stone"]
+    },
+    {
+      "id": "saltmere",
+      "name": "Saltmere",
+      "islandId": "saltmere",
+      "produces": ["fish"],
+      "wants": ["timber", "grain"]
+    },
+    {
+      "id": "westholm",
+      "name": "Westholm",
+      "islandId": "westholm",
+      "produces": ["grain"],
+      "wants": ["stone", "fish"]
+    },
+    {
+      "id": "stonehaven",
+      "name": "Stonehaven",
+      "islandId": "south-cay",
+      "produces": ["stone"],
+      "wants": ["grain", "timber"]
+    }
   ]
 }
