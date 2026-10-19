@@ -142,11 +142,26 @@ export class SeaChart {
         label.textContent = island.name;
       }
     }
-    for (const terrain of map.terrain ?? [])
+    for (const terrain of map.terrain ?? []) {
       shape('polygon', {
         points: terrain.outline.map(([x, y]) => `${x},${-y}`).join(' '),
-        class: terrain.kind === 'sandbank' ? 'chart-bank' : 'chart-land',
+        class:
+          terrain.kind === 'island'
+            ? 'chart-land'
+            : terrain.kind === 'reef'
+              ? 'chart-reef'
+              : 'chart-bank',
       });
+      if (terrain.name) {
+        const xs = terrain.outline.map((p) => p[0]);
+        const label = shape('text', {
+          x: (Math.min(...xs) + Math.max(...xs)) / 2,
+          y: -Math.max(...terrain.outline.map((p) => p[1])) - 6,
+          class: 'chart-place',
+        });
+        label.textContent = terrain.name;
+      }
+    }
     if (destination)
       shape('circle', { cx: destination.x, cy: -destination.y, r: 17, class: 'chart-selected' });
     // Heading uses north = zero and clockwise positive, matching SVG rotation.

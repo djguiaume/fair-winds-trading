@@ -1,5 +1,5 @@
 {
-  "name": "Staggered passages",
+  "name": "Windward Ring",
   "seed": 7,
   "boundsRadius": 440,
   "wind": {
@@ -9,52 +9,66 @@
     "shiftDeg": 6
   },
   "start": {
-    "x": 0,
-    "y": -112,
-    "headingDeg": 90
+    "x": 225,
+    "y": -100,
+    "headingDeg": 120
   },
   "islands": [
     {
       "id": "calda",
       "name": "Port Calda",
-      "x": 68,
-      "y": 105,
-      "radius": 20,
+      "x": 170,
+      "y": 270,
+      "radius": 26,
       "look": {
-        "houses": 5,
-        "trees": 7,
+        "houses": 6,
+        "trees": 8,
         "dock": true
       }
     },
     {
       "id": "saltmere",
       "name": "Saltmere",
-      "x": 45,
-      "y": -150,
-      "radius": 16,
+      "x": 285,
+      "y": -140,
+      "radius": 24,
       "look": {
-        "houses": 3,
-        "trees": 5,
+        "houses": 6,
+        "trees": 6,
         "dock": true
       }
     },
     {
       "id": "westholm",
       "name": "Westholm",
-      "x": -112,
-      "y": 22,
-      "radius": 15,
+      "x": -310,
+      "y": 50,
+      "radius": 24,
       "look": {
-        "houses": 2,
+        "houses": 5,
+        "trees": 6,
+        "dock": true
+      }
+    },
+    {
+      "id": "south-cay",
+      "name": "Stonehaven",
+      "x": -160,
+      "y": -300,
+      "radius": 23,
+      "look": {
+        "houses": 5,
         "trees": 5,
+        "rock": true,
         "dock": true
       }
     },
     {
       "id": "skerry",
-      "x": 11,
-      "y": 8,
-      "radius": 9,
+      "name": "Skerry",
+      "x": -60,
+      "y": -150,
+      "radius": 11,
       "look": {
         "trees": 2,
         "rock": true,
@@ -62,117 +76,75 @@
       }
     },
     {
-      "id": "east-key",
-      "x": 135,
-      "y": -30,
+      "id": "bell-rock",
+      "x": 60,
+      "y": 140,
       "radius": 8,
-      "look": {
-        "trees": 4,
-        "landmark": "wreck"
-      }
-    },
-    {
-      "id": "north-rock",
-      "x": -52,
-      "y": 128,
-      "radius": 7,
       "look": {
         "trees": 1,
         "rock": true,
-        "landmark": "ruins"
-      }
-    },
-    {
-      "id": "south-cay",
-      "x": -158,
-      "y": -105,
-      "radius": 11,
-      "look": {
-        "houses": 2,
-        "trees": 4,
-        "rock": true,
-        "dock": true
-      },
-      "name": "Stonehaven"
-    },
-    {
-      "id": "far-rock",
-      "x": 150,
-      "y": 142,
-      "radius": 10,
-      "look": {
-        "trees": 2,
-        "rock": true,
-        "landmark": "lighthouse"
+        "landmark": "beacon"
       }
     },
     {
       "id": "abbey-head",
       "name": "Abbey Head",
-      "x": -260,
-      "y": 250,
-      "radius": 27,
+      "x": -250,
+      "y": 280,
+      "radius": 18,
       "look": {
-        "trees": 14,
+        "trees": 10,
         "rock": true,
         "landmark": "ruins",
         "layers": 3
       }
     },
     {
-      "id": "lantern-isle",
-      "name": "Lantern Isle",
-      "x": 330,
-      "y": 100,
-      "radius": 30,
+      "id": "watchman-key",
+      "name": "Watchman Key",
+      "x": 150,
+      "y": -350,
+      "radius": 17,
       "look": {
         "trees": 10,
         "rock": true,
         "landmark": "lighthouse",
-        "layers": 3
+        "layers": 2
       }
     },
     {
-      "id": "wreckers-rest",
-      "name": "Wrecker’s Rest",
-      "x": -300,
-      "y": -200,
-      "radius": 34,
+      "id": "lantern-rock",
+      "name": "Lantern Rock",
+      "x": 350,
+      "y": 160,
+      "radius": 10,
       "look": {
-        "trees": 9,
-        "rock": false,
-        "landmark": "wreck",
-        "layers": 1
-      }
-    },
-    {
-      "id": "watchman-key",
-      "name": "Watchman Key",
-      "x": 215,
-      "y": -305,
-      "radius": 22,
-      "look": {
-        "trees": 16,
+        "trees": 2,
         "rock": true,
-        "landmark": "beacon"
+        "landmark": "lighthouse"
       }
     }
   ],
   "course": [
     {
       "label": "Port Calda",
-      "x": 56,
-      "y": 75
+      "x": 143,
+      "y": 222
     },
     {
       "label": "Westholm",
-      "x": -86,
-      "y": 30
+      "x": -258,
+      "y": 31
     },
     {
       "label": "Saltmere",
-      "x": 29,
-      "y": -127
+      "x": 231,
+      "y": -130
+    },
+    {
+      "label": "Stonehaven",
+      "x": -125,
+      "y": -258
     }
   ],
   "ports": [
@@ -205,80 +177,124 @@
       "wants": ["grain", "timber"]
     }
   ],
-  "compatibleSaveMaps": ["Phase 0 practice waters"],
+  "compatibleSaveMaps": ["Staggered passages", "Phase 0 practice waters"],
   "terrain": [
     {
-      "id": "north-barrier",
+      "id": "greyback-ridge",
+      "name": "Greyback Ridge",
       "kind": "island",
       "outline": [
-        [-83, 84],
-        [-63, 98],
-        [-39, 92],
-        [-17, 65],
-        [6, 47],
-        [7, 35],
-        [-8, 34],
-        [-29, 51],
-        [-48, 69],
-        [-73, 68]
+        [-205, 195],
+        [-195, 215],
+        [-172, 222],
+        [-148, 208],
+        [-128, 190],
+        [-105, 180],
+        [-78, 160],
+        [-52, 142],
+        [-34, 126],
+        [-36, 104],
+        [-58, 96],
+        [-88, 118],
+        [-112, 128],
+        [-140, 152],
+        [-178, 170],
+        [-200, 180]
       ],
       "look": {
-        "trees": 18,
+        "trees": 28,
         "landmark": "ruins"
       }
     },
     {
-      "id": "south-hook",
+      "id": "gull-hook",
+      "name": "Gull Hook",
       "kind": "island",
       "outline": [
-        [-49, -43],
-        [-40, -33],
-        [-14, -39],
-        [7, -61],
-        [30, -66],
-        [55, -59],
-        [82, -48],
-        [96, -57],
-        [81, -79],
-        [49, -91],
-        [21, -85],
-        [-8, -73],
-        [-29, -54]
+        [-28, -12],
+        [-14, 4],
+        [8, 2],
+        [30, -14],
+        [52, -24],
+        [78, -46],
+        [104, -60],
+        [124, -72],
+        [134, -92],
+        [120, -110],
+        [96, -104],
+        [70, -86],
+        [46, -76],
+        [18, -58],
+        [-8, -44],
+        [-26, -30]
       ],
       "look": {
-        "trees": 24,
+        "trees": 28,
         "landmark": "beacon"
       }
     },
     {
-      "id": "western-bank",
-      "kind": "sandbank",
+      "id": "narrows-reef",
+      "kind": "reef",
       "outline": [
-        [-108, -115],
-        [-96, -98],
-        [-83, -91],
-        [-71, -94],
-        [-76, -105],
-        [-91, -121]
+        [1, 44],
+        [-10, 61],
+        [-50, 84],
+        [-71, 86],
+        [-63, 69],
+        [-20, 45]
+      ]
+    },
+    {
+      "id": "east-reef",
+      "kind": "reef",
+      "outline": [
+        [193, -4],
+        [190, 17],
+        [158, 53],
+        [133, 68],
+        [142, 42],
+        [173, 3]
       ],
       "look": {
         "landmark": "wreck"
       }
     },
     {
-      "id": "southern-bank",
-      "kind": "sandbank",
+      "id": "sw-reef",
+      "kind": "reef",
       "outline": [
-        [-20, -154],
-        [-12, -141],
-        [-2, -135],
-        [3, -141],
-        [-3, -157],
-        [-15, -168]
-      ],
-      "look": {
-        "landmark": "beacon"
-      }
+        [-129, -112],
+        [-139, -95],
+        [-182, -75],
+        [-210, -74],
+        [-192, -95],
+        [-148, -116]
+      ]
+    },
+    {
+      "id": "south-reef",
+      "kind": "reef",
+      "outline": [
+        [91, -205],
+        [75, -199],
+        [32, -211],
+        [15, -226],
+        [37, -230],
+        [75, -218]
+      ]
+    },
+    {
+      "id": "abbey-reef",
+      "kind": "reef",
+      "outline": [
+        [-212, 190],
+        [-224, 192],
+        [-245, 173],
+        [-253, 156],
+        [-236, 158],
+        [-215, 177]
+      ]
     }
   ]
 }

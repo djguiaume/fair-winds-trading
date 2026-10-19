@@ -1773,6 +1773,13 @@ body.is-docked .objective {
   stroke: #b4a16e;
   stroke-width: 2;
 }
+.chart-reef {
+  fill: #7fe3e0;
+  fill-opacity: 0.55;
+  stroke: #e08a6a;
+  stroke-width: 2;
+  stroke-dasharray: 4 4;
+}
 .chart-boat {
   fill: #86e8ff;
   stroke: #102f39;

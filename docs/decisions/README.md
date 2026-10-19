@@ -32,4 +32,6 @@
 
 | [0025](0025-optional-first-voyage-tutorial.md) | Optional, resumable first sailing and trading delivery tutorial | 2026-10-19 | Implementation for review |
 
+| [0030](0030-windward-ring-map.md) | Windward Ring replaces Staggered passages as the trading map | 2026-10-19 | Implementation for review |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
