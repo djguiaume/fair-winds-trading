@@ -6,5 +6,6 @@
 | [0002](0002-trade-over-combat.md) | Focus on sailing and trade, not combat | 2026-10-19 | Accepted |
 | [0003](0003-document-everything-in-repo.md) | Keep all docs, decisions, code and assets in this repo | 2026-10-19 | Accepted |
 | [0004](0004-real-time-3d.md) | Render in real-time 3D low-poly (not 2.5D) | 2026-10-19 | Accepted |
+| [0005](0005-tech-stack.md) | Tech stack: three.js + TypeScript + Vite, static site | 2026-10-19 | Proposed |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

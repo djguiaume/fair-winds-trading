@@ -97,7 +97,7 @@ Goal: growth pushes you outward into tougher navigation.
 
 - Ship-to-ship combat as a core feature (the reference game's focus; we deliberately trade it for logistics).
 - Multiplayer and monetization.
-- Tech stack choice: next discussion, before Phase 0 starts.
+- Tech stack choice: proposed in [decision 0005](decisions/0005-tech-stack.md), waiting for confirmation before Phase 0 starts.
 
 ## Open questions for the tech-stack discussion
 
