@@ -1830,3 +1830,80 @@ body.is-docked .objective {
   max-width: none;
   width: fit-content;
 }
+
+/* Optional tutorial: one small card, moved into the active chart/market/sea surface. */
+#tutorial-sea {
+  position: absolute;
+  bottom: max(82px, env(safe-area-inset-bottom));
+  left: var(--gap);
+  width: min(360px, calc(100vw - 112px));
+  pointer-events: auto;
+}
+.tutorial-card {
+  border: 1px solid #d6bf7b;
+  border-radius: 12px;
+  padding: 10px;
+  background: #183f4b;
+  color: #f4f0e2;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 8px 0;
+}
+.tutorial-card[hidden] {
+  display: none;
+}
+.tutorial-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.tutorial-card h3 {
+  font-size: 15px;
+  margin: 0;
+}
+.tutorial-card p {
+  margin: 6px 0 10px;
+}
+.tutorial-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tutorial-card button,
+.tutorial-offer button {
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid #fff6;
+  border-radius: 8px;
+  background: #285b66;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.tutorial-card button:focus-visible,
+.tutorial-offer button:focus-visible {
+  outline: 3px solid #ffe680;
+}
+.tutorial-offer {
+  background: #183f4b;
+  color: #fff;
+  width: min(440px, calc(100vw - 24px));
+  max-height: 85vh;
+  overflow: auto;
+  padding: 20px;
+}
+.tutorial-offer::backdrop {
+  background: #081e2bdd;
+}
+@media (max-height: 480px) {
+  #tutorial-sea {
+    bottom: 68px;
+    width: min(430px, calc(100vw - 220px));
+    max-height: calc(100vh - 240px);
+    min-height: 44px;
+    overflow: auto;
+  }
+}
