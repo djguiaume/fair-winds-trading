@@ -33,5 +33,6 @@
 | [0025](0025-optional-first-voyage-tutorial.md) | Optional, resumable first sailing and trading delivery tutorial | 2026-10-19 | Implementation for review |
 
 | [0031](0031-windward-ring-map.md) | Windward Ring replaces Staggered passages as the trading map | 2026-10-19 | Implementation for review |
+| [0035](0035-three-ship-lines.md) | Three ship lines: swift, warship and hauler | 2026-10-19 | Accepted direction |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

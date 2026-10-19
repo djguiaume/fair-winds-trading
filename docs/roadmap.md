@@ -76,7 +76,7 @@ Goal: deliveries visibly change the world.
 
 Goal: shift from sailing every trip to designing a network. This is the main twist on the reference game.
 
-- Buy additional ships from the full lineup ([0011](decisions/0011-ship-lineup-and-upgrades.md)): sloop and cutter (small, point high), schooner (best upwind), brig (fast downwind), fluyt (huge hold, poor upwind). Each class has its own polar curve and the same three upgrade tracks.
+- Buy additional ships from three lines after the starter sloop ([0035](decisions/0035-three-ship-lines.md), refining [0011](decisions/0011-ship-lineup-and-upgrades.md)): **swift** (cutter → schooner → clipper: fast, agile, average hold) and **hauler** (hoy → fluyt → indiaman: huge hold, slow, poor upwind). Each line is built at its own discoverable port and unlocked by deliveries there ([0030](decisions/0030-home-base-upgrades-and-earned-ships.md)). Each class has its own polar curve and the same three upgrade tracks; the player can mix lines in the fleet.
 - Route editor: pick ports in order, what to load/unload at each, and assign ships.
 - Automated ships sail with the same wind model; routes that fight the wind are slow, so route design is a puzzle.
 - Route dashboard: trips, profit per route, delays.
@@ -106,6 +106,7 @@ Goal: growth pushes you outward into tougher navigation.
 
 - Pirate ships that hunt loaded merchants; outrun them, or arm ships with light defenses.
 - Ship health and repairs at ports; escort ships for valuable routes.
+- **Warship line** (ketch → brig → frigate: lots of firepower and hull, low cargo, slow upwind) from a naval yard, and a fourth upgrade track, **guns**, so any ship can arm a little ([0035](decisions/0035-three-ship-lines.md)). Swift ships escape pirates, warships fight them, haulers need escorts.
 
 ## Phase 6 — Enemy factions (maybe)
 
