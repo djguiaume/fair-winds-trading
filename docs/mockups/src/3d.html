@@ -1,0 +1,53 @@
+<html><head><link rel="stylesheet" href="hud.css"><script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js"}}</script></head><body>
+<canvas id="c" width="1280" height="720"></canvas><div id="labels"></div>
+<div class="hud top"><div class="panel chip"><span class="coin"></span>1 240</div><div class="panel chip">⚓ Sloop "Gull"</div></div>
+<div class="hud wind panel">WIND<svg width="70" height="70" viewBox="-35 -35 70 70"><circle r="31" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="2"/><g transform="rotate(225)"><path d="M0,-26 L9,6 L0,0 L-9,6Z" fill="#9fe7ff"/></g><text y="32" font-size="9" fill="#fff" text-anchor="middle">N</text></svg>NE · 14 kn</div>
+<div class="hud cargo panel"><h4>Cargo hold 7/10</h4><div class="row"><span>🐟 Fish</span><span>4</span></div><div class="row"><span>🪵 Timber</span><span>3</span></div><div class="row" style="color:#ffe9a8"><span>Contract: Timber → Port Calda</span><span>+180</span></div><div class="bar"><i></i></div></div>
+<div class="hud mini"><svg width="170" height="170"><circle cx="40" cy="60" r="18" fill="#e9d8a6"/><circle cx="120" cy="45" r="12" fill="#e9d8a6"/><circle cx="110" cy="125" r="22" fill="#e9d8a6"/><path d="M85 85 l-6 12 l6 -4 l6 4z" fill="#fff"/><path d="M85 85 L110 125" stroke="#fff" stroke-dasharray="4 4"/></svg></div>
+
+<div class="hud title">Mockup A · real-time 3D low-poly</div>
+<script type="module">
+import * as T from 'three';
+const r=new T.WebGLRenderer({canvas:c,antialias:true,preserveDrawingBuffer:true});r.setSize(1280,720,false);r.shadowMap.enabled=true;r.shadowMap.type=T.PCFSoftShadowMap;
+const s=new T.Scene();s.background=new T.Color('#1d6f7a');s.fog=new T.Fog('#1d6f7a',80,160);
+const cam=new T.PerspectiveCamera(40,1280/720,1,500);cam.position.set(0,52,32);cam.lookAt(0,0,2);
+s.add(new T.HemisphereLight('#dff6ff','#1a4d55',1.1));const sun=new T.DirectionalLight('#fff1d6',1.6);sun.position.set(-30,50,20);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-60,right:60,top:60,bottom:-60});s.add(sun);
+let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+const M=(c,o={})=>new T.MeshStandardMaterial({color:c,flatShading:true,roughness:.9,...o});
+// water
+const wg=new T.PlaneGeometry(220,160,90,70);wg.rotateX(-Math.PI/2);const p=wg.attributes.position;for(let i=0;i<p.count;i++)p.setY(i,(rnd()-.5)*.35);wg.computeVertexNormals();
+const water=new T.Mesh(wg,M('#2a8f9a',{roughness:.4,metalness:.1}));water.receiveShadow=true;s.add(water);
+function island(x,z,R,{town=0,trees=6,rock=0}={}){
+ const g=new T.Group();g.position.set(x,0,z);
+ const sh=new T.Mesh(new T.CircleGeometry(R*1.7,24).rotateX(-Math.PI/2),M('#58c2c0',{transparent:true,opacity:.55}));sh.position.y=.2;g.add(sh);
+ const sand=new T.CylinderGeometry(R,R*1.15,1.2,14,1);const sp=sand.attributes.position;for(let i=0;i<sp.count;i++){const k=1+(rnd()-.5)*.25;sp.setX(i,sp.getX(i)*k);sp.setZ(i,sp.getZ(i)*k)}sand.computeVertexNormals();
+ const sm=new T.Mesh(sand,M('#ecd49a'));sm.position.y=.4;sm.receiveShadow=true;g.add(sm);
+ const grass=new T.Mesh(new T.CylinderGeometry(R*.72,R*.82,1.6,10),M('#6fb04a'));grass.position.y=1.2;grass.castShadow=grass.receiveShadow=true;g.add(grass);
+ if(rock){const rk=new T.Mesh(new T.DodecahedronGeometry(R*.5,0),M('#6d6a66'));rk.position.set(R*.2,2.2,-R*.2);rk.scale.y=1.4;rk.castShadow=true;g.add(rk)}
+ for(let i=0;i<trees;i++){const a=rnd()*6.28,d=rnd()*R*.6;const t=new T.Group();t.position.set(Math.cos(a)*d,2,Math.sin(a)*d);
+  const tr=new T.Mesh(new T.CylinderGeometry(.12,.18,1.6,5),M('#8a5a2b'));tr.position.y=.8;t.add(tr);
+  const lf=new T.Mesh(new T.ConeGeometry(.9,.5,6),M('#3f8f3a'));lf.position.y=1.7;t.add(lf);t.traverse(o=>o.castShadow=true);g.add(t)}
+ for(let i=0;i<town;i++){const a=-1.2+i*.55,d=R*.45;const h=new T.Group();h.position.set(Math.cos(a)*d,2,Math.sin(a)*d+R*.1);
+  const b=new T.Mesh(new T.BoxGeometry(1.1,.9,1),M(['#f3ead6','#e8c9a0','#d7e3e8'][i%3]));b.position.y=.45;h.add(b);
+  const rf=new T.Mesh(new T.ConeGeometry(.95,.7,4),M(['#c0533a','#2f6f9f','#c0533a'][i%3]));rf.position.y=1.25;rf.rotation.y=Math.PI/4;h.add(rf);h.traverse(o=>{o.castShadow=true});g.add(h)}
+ if(town){const dock=new T.Mesh(new T.BoxGeometry(.9,.2,R*.9),M('#9b6b3d'));dock.position.set(R*.15,.8,R*1.2);dock.castShadow=true;g.add(dock)}
+ s.add(g);return g}
+const isl=[island(-30,-8,9,{town:5,trees:4}),island(27,-14,6,{trees:5,rock:1}),island(20,20,7.5,{town:3,trees:5}),island(-40,24,5,{trees:3,rock:1}),island(46,6,4,{trees:2})];
+function ship(x,z,rot,scale=1,sailC='#f4f0e2',hullC='#9b5e2e'){
+ const g=new T.Group();const sh=new T.Shape();sh.moveTo(0,2.4);sh.quadraticCurveTo(1.1,.6,.9,-1.6);sh.lineTo(-.9,-1.6);sh.quadraticCurveTo(-1.1,.6,0,2.4);
+ const hull=new T.Mesh(new T.ExtrudeGeometry(sh,{depth:.8,bevelEnabled:false}).rotateX(Math.PI/2),M(hullC));hull.position.y=.9;g.add(hull);
+ const deck=new T.Mesh(new T.ShapeGeometry(sh).rotateX(-Math.PI/2),M('#c99a5f'));deck.position.y=.92;g.add(deck);
+ const mast=new T.Mesh(new T.CylinderGeometry(.08,.1,4.2,5),M('#5b3a1e'));mast.position.set(0,3,.3);g.add(mast);
+ const sg=new T.BufferGeometry();sg.setAttribute('position',new T.Float32BufferAttribute([0,4.9,.3, 0,1.5,.3, 1.4,1.5,-1.4, 0,4.6,.4, 0,1.6,1.1, -1.1,1.4,2.3],3));sg.computeVertexNormals();
+ const sail=new T.Mesh(sg,new T.MeshStandardMaterial({color:sailC,side:T.DoubleSide,flatShading:true,emissive:sailC,emissiveIntensity:.35}));g.add(sail);
+ for(let i=0;i<3;i++){const cr=new T.Mesh(new T.BoxGeometry(.45,.35,.45),M('#b98a4a'));cr.position.set((i-1)*.45,1.1,-.9);g.add(cr)}
+ g.traverse(o=>{o.castShadow=true});g.position.set(x,0,z);g.rotation.y=rot;g.scale.setScalar(scale);s.add(g);
+ const wk=new T.Mesh(new T.PlaneGeometry(1.1*scale,4.5*scale,1,1).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:'#e6fbff',transparent:true,opacity:.3}));wk.position.set(x-Math.sin(rot)*4.2*scale,.3,z-Math.cos(rot)*4.2*scale);wk.rotation.y=rot;s.add(wk);return g}
+ship(-2,4,2.5,2.1);ship(-12,-17,1.2,1.6,'#f6e0b0','#7a4b26');ship(34,26,-2.4,1.7,'#d9e9f2','#8d5a30');
+// wind streaks
+for(let i=0;i<26;i++){const l=new T.Mesh(new T.PlaneGeometry(.12,4).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:'#fff',transparent:true,opacity:.25}));l.position.set((rnd()-.5)*110,.6,(rnd()-.5)*70);l.rotation.y=Math.PI/4+Math.PI;s.add(l)}
+r.render(s,cam);
+const lab=(v,lvl,name,want)=>{const q=v.clone().project(cam);const d=document.createElement('div');d.className='label';d.style.left=(q.x+1)/2*1280+'px';d.style.top=(1-q.y)/2*720+'px';d.innerHTML=`<span class="lvl">${lvl}</span><span class="lb">${name}<small>${want}</small></span>`;labels.appendChild(d)};
+lab(new T.Vector3(-30,5,-13),3,'Port Calda','wants Timber, Cloth');lab(new T.Vector3(20,6,16),1,'Saltmere','wants Grain');
+document.title='done';
+</script></body></html>

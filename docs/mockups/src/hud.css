@@ -1,0 +1,19 @@
+*{box-sizing:border-box}body{margin:0;width:1280px;height:720px;overflow:hidden;font-family:"Trebuchet MS",Verdana,sans-serif;background:#1d6f7a}
+#c{position:absolute;inset:0}
+.hud{position:absolute;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.panel{background:rgba(20,40,50,.72);border-radius:14px;padding:10px 14px;border:2px solid rgba(255,255,255,.15)}
+.top{top:16px;left:16px;display:flex;gap:10px}
+.chip{display:flex;align-items:center;gap:8px;font-weight:bold;font-size:20px}
+.coin{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe680,#e0a800);border:2px solid #8a6200}
+.wind{top:16px;right:16px;width:130px;text-align:center;font-weight:bold}
+.wind svg{display:block;margin:4px auto}
+.cargo{bottom:16px;left:16px;width:300px}
+.cargo h4{margin:0 0 8px;font-size:15px;letter-spacing:.06em;text-transform:uppercase;opacity:.85}
+.row{display:flex;justify-content:space-between;font-size:16px;margin:3px 0}
+.bar{height:10px;border-radius:5px;background:rgba(255,255,255,.2);margin-top:8px;overflow:hidden}.bar i{display:block;height:100%;width:70%;background:#7ddf64}
+.mini{bottom:16px;right:16px;width:170px;height:170px;border-radius:50%;background:#2b8a95;border:4px solid #e9d8a6;overflow:hidden}
+.label{position:absolute;color:#fff;transform:translate(-50%,-100%);display:flex;align-items:center;gap:6px}
+.lvl{background:#f2c230;color:#5a3d00;border:3px solid #fff3c4;border-radius:8px;width:34px;height:34px;display:grid;place-items:center;font-weight:900;font-size:17px;text-shadow:none}
+.lb{background:rgba(20,40,50,.8);border-radius:8px;padding:4px 10px;font-weight:bold;font-size:15px}
+.lb small{display:block;font-weight:normal;font-size:12px;color:#ffe9a8}
+.title{bottom:16px;left:50%;transform:translateX(-50%);font-size:13px;opacity:.7}

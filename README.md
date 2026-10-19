@@ -6,6 +6,7 @@ A top-down, low-poly sailing and trading game for the browser. You sail with (an
 
 - [Roadmap](docs/roadmap.md): phased plan from sailing prototype to full trade network.
 - [Decisions](docs/decisions/): one file per decision (ADR style), newest number last.
+- [Mockups](docs/mockups/): 3D vs 2.5D look comparison.
 - [Visual reference](docs/reference/): screenshots from the *Privateers: Pirate Wars* ad that inspired the art style.
 
 ## Status
