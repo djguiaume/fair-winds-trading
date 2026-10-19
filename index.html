@@ -58,8 +58,10 @@
       </div>
 
       <div class="top-buttons">
+        <button id="menu-btn" class="icon-btn" aria-label="Main menu">☰</button>
         <button id="help-btn" class="icon-btn" aria-label="Help">?</button>
         <button id="settings-btn" class="icon-btn" aria-label="Settings">⚙</button>
+        <button id="fullscreen-btn" class="icon-btn" aria-label="Fullscreen" hidden>⛶</button>
       </div>
       <div id="fps" class="fps" hidden></div>
 
@@ -76,8 +78,8 @@
         </label>
         <div id="quality-now" class="muted small"></div>
         <label class="check"><input type="checkbox" id="show-fps" /> Show FPS</label>
-        <button id="shift-wind">Shift the wind 45°</button>
-        <button id="reset-boat">Back to start</button>
+        <button id="shift-wind" class="in-game">Shift the wind 45°</button>
+        <button id="reset-boat" class="in-game">Back to start</button>
         <button id="close-settings" class="primary">Close</button>
       </div>
 
@@ -112,6 +114,25 @@
           </div>
           <button id="start" class="primary">Set sail</button>
         </div>
+      </div>
+    </div>
+
+    <div id="menu" class="menu" hidden>
+      <div class="menu-card">
+        <p class="menu-kicker">The</p>
+        <h1 class="menu-title">Fair Winds<br />Trading Co.</h1>
+        <p class="menu-tagline">Read the wind. Deliver the goods.</p>
+        <nav class="menu-buttons">
+          <button id="menu-play" class="primary">Set sail</button>
+          <button id="menu-help">How to play</button>
+          <button id="menu-settings">Settings</button>
+          <button id="menu-fullscreen" hidden>Fullscreen</button>
+        </nav>
+        <p id="fs-hint" class="menu-hint" hidden>
+          For fullscreen on iPhone, tap Share, then <b>Add to Home Screen</b>, and start the game
+          from there.
+        </p>
+        <p class="menu-version">Sailing prototype · Phase 0</p>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>

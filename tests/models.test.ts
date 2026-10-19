@@ -148,4 +148,14 @@ describe('highland islands (B2)', () => {
       ).toBeLessThan(0.3);
     }
   });
+
+  it("takes the island's look from the good its port produces", () => {
+    const calda = map.islands.find((i) => i.id === 'calda')!;
+    const port = map.ports.find((p) => p.islandId === 'calda')!;
+    expect(port.produces[0]).toBe('timber');
+    const count = (m: typeof map) =>
+      islandParts(calda, m, 1).reduce((n, g) => n + triangleCount(g), 0);
+    // Timber islands get a forest even if the map asks for few trees.
+    expect(count(map)).toBeGreaterThan(count({ ...map, ports: [] }));
+  });
 });

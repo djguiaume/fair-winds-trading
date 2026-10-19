@@ -1,3 +1,4 @@
+import type { GoodId } from './goods';
 import type { WindConfig } from './wind';
 
 /**
@@ -14,8 +15,9 @@ export interface IslandDef {
   /** Visual hints for the island model; the simulation ignores them. */
   look?: {
     /**
-     * What the island's props show it produces (decision 0012): 'fish', 'timber', 'grain' or
-     * 'stone'. A plain string so map JSON type-checks; anything else draws a plain island.
+     * What the island's props show it produces (decision 0016): 'fish', 'timber', 'grain' or
+     * 'stone'. Defaults to the first good its port produces; anything else draws a plain island.
+     * A plain string so map JSON type-checks.
      */
     kind?: string;
     houses?: number;
@@ -32,6 +34,17 @@ export interface WaypointDef {
   y: number;
 }
 
+/** A settlement you can dock at and trade with (decision 0015). It sits on one island. */
+export interface PortDef {
+  id: string;
+  name: string;
+  islandId: string;
+  /** Goods made here: plentiful and cheap. */
+  produces: GoodId[];
+  /** Goods the town needs: scarce and dear. */
+  wants: GoodId[];
+}
+
 export interface MapDef {
   name: string;
   seed: number;
@@ -42,4 +55,6 @@ export interface MapDef {
   islands: IslandDef[];
   /** Phase 0 practice course: buoys to reach in order, looping. */
   course: WaypointDef[];
+  /** Trading ports (Phase 1). */
+  ports: PortDef[];
 }

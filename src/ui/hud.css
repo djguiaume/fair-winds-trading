@@ -409,3 +409,127 @@ button.primary {
     gap: 8px;
   }
 }
+
+/* Fullscreen button state */
+.icon-btn[hidden] {
+  display: none;
+}
+.icon-btn.on {
+  border-color: #ffe680;
+  color: #ffe680;
+}
+
+/* Main menu (decision 0017): the live scene stays visible behind it. */
+body.in-menu #hud > :not(.settings):not(.help),
+body.in-menu .settings .in-game {
+  display: none;
+}
+.menu {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  background: radial-gradient(ellipse at center, rgba(10, 30, 40, 0.1), rgba(10, 30, 40, 0.55));
+  text-align: center;
+  overflow: auto;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+.menu[hidden] {
+  display: none;
+}
+.menu-card {
+  width: min(100%, 360px);
+  animation: menu-in 0.4s ease-out;
+}
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+.menu-kicker {
+  margin: 0;
+  font:
+    italic 18px Georgia,
+    'Times New Roman',
+    serif;
+  opacity: 0.85;
+}
+.menu-title {
+  margin: 0;
+  font:
+    bold 46px/1 Georgia,
+    'Times New Roman',
+    serif;
+  color: #ffe680;
+  text-shadow:
+    0 3px 0 #8a5a12,
+    0 6px 14px rgba(0, 0, 0, 0.45);
+}
+.menu-tagline {
+  margin: 10px 0 22px;
+  font-size: 16px;
+}
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.menu-buttons button {
+  min-height: 52px;
+  font: inherit;
+  font-size: 18px;
+  border-radius: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(20, 40, 50, 0.72);
+  color: #fff;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.menu-buttons button:active {
+  background: rgba(60, 110, 120, 0.9);
+}
+.menu-buttons button.primary {
+  font-size: 22px;
+  min-height: 60px;
+  background: #f2c230;
+  color: #5a3d00;
+}
+.menu-buttons button.primary:active {
+  background: #ffd75a;
+}
+.menu-buttons button[hidden] {
+  display: none;
+}
+.menu-hint {
+  margin: 14px 0 0;
+  font-size: 13px;
+  opacity: 0.85;
+}
+.menu-version {
+  margin: 18px 0 0;
+  font-size: 12px;
+  opacity: 0.6;
+}
+@media (max-height: 480px) {
+  /* Phones in landscape: tighter title, two-column buttons. */
+  .menu-title {
+    font-size: 34px;
+  }
+  .menu-tagline {
+    margin: 6px 0 12px;
+  }
+  .menu-card {
+    width: min(100%, 520px);
+  }
+  .menu-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .menu-buttons button.primary {
+    grid-column: 1 / -1;
+    min-height: 52px;
+  }
+}

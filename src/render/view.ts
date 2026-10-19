@@ -5,7 +5,13 @@ import { polarFraction } from '../sim/ship';
 import { windTo } from '../sim/wind';
 import { WAYPOINT_RADIUS, type World, currentWaypoint } from '../sim/world';
 import { KNOT_TO_UNITS } from '../sim/boat';
-import { type BoatModel, buildIslands, createBoatModel } from './models';
+import {
+  type BoatModel,
+  type ShipUpgrades,
+  type UpgradeLevel,
+  buildIslands,
+  createBoatModel,
+} from './models';
 import { Ocean, waveHeight } from './ocean';
 import { PALETTE } from './palette';
 import { BuoyMarker, createBlobShadow } from './props';
@@ -38,7 +44,10 @@ export class GameView {
   private readonly camera = new THREE.PerspectiveCamera(40, 1, 1, 600);
   private readonly sun = new THREE.DirectionalLight(PALETTE.sun, 1.7);
   private readonly islands: THREE.Object3D;
-  private readonly boat: BoatModel;
+  private boat: BoatModel;
+  /** Ship class and upgrade levels the boat model was built for; rebuilt when they change. */
+  private boatKey = '';
+  private level: QualityLevel;
   private readonly boatShadow = createBlobShadow(6.5, 14);
   private readonly wake = new Wake();
   private readonly buoy = new BuoyMarker();
@@ -78,15 +87,48 @@ export class GameView {
     this.scene.add(this.sun, this.sun.target);
 
     this.islands = buildIslands(world.map, { shadows: true });
-    this.boat = createBoatModel(world.ship.id);
-    this.boat.root.rotation.order = 'YXZ';
+    this.level = level;
+    this.boat = this.buildBoat();
     this.scene.add(this.islands, this.boat.root, this.boatShadow, this.wake.mesh, this.buoy.root);
 
     toScene(world.boat.x, world.boat.y, this.target);
     this.setQuality(level);
   }
 
+  /** Class and upgrade levels of the ship being sailed, and a key that changes with them. */
+  private activeBoat() {
+    const { captain } = this.world.trade;
+    const lv = captain.ships[captain.activeShip];
+    const level = (n: number | undefined) => clamp(Math.round(n ?? 1), 1, 3) as UpgradeLevel;
+    const upgrades: ShipUpgrades = {
+      sails: level(lv?.sails),
+      hold: level(lv?.hold),
+      hull: level(lv?.hull),
+    };
+    const id = captain.activeShip;
+    return { id, upgrades, key: `${id}:${upgrades.sails}${upgrades.hold}${upgrades.hull}` };
+  }
+
+  /** The model for the ship being sailed, with its upgrade levels visible (decision 0016). */
+  private buildBoat(): BoatModel {
+    const { id, upgrades, key } = this.activeBoat();
+    this.boatKey = key;
+    const boat = createBoatModel(id, { upgrades, rigging: this.level !== 'low' });
+    boat.root.rotation.order = 'YXZ';
+    return boat;
+  }
+
+  /** Rebuild the boat after a shipyard purchase or a ship change. */
+  private refreshBoat() {
+    if (this.activeBoat().key === this.boatKey) return;
+    this.scene.remove(this.boat.root);
+    this.boat.dispose();
+    this.boat = this.buildBoat();
+    this.scene.add(this.boat.root);
+  }
+
   setQuality(level: QualityLevel) {
+    this.level = level;
     const profile = QUALITY[level];
     if (this.ocean) {
       this.scene.remove(this.ocean.mesh);
@@ -158,6 +200,7 @@ export class GameView {
     this.sun.target.position.copy(this.target);
 
     // Boat pose from the simulation.
+    this.refreshBoat();
     const twa = trueWindAngle(boat.heading, wind);
     const abs = Math.abs(twa);
     const lee = twa > 0 ? -1 : 1;

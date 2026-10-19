@@ -93,7 +93,7 @@ if (view === 'boats') {
     islands: [
       {
         id: 'a',
-        name: 'Port Calda',
+        name: 'Saltmere',
         x: -42,
         y: 30,
         radius: 20,
@@ -101,7 +101,7 @@ if (view === 'boats') {
       },
       {
         id: 'b',
-        name: 'Westholm',
+        name: 'Port Calda',
         x: 42,
         y: 34,
         radius: 15,
@@ -109,7 +109,7 @@ if (view === 'boats') {
       },
       {
         id: 'c',
-        name: 'Saltmere',
+        name: 'Westholm',
         x: 44,
         y: -32,
         radius: 16,
@@ -117,7 +117,7 @@ if (view === 'boats') {
       },
       {
         id: 'd',
-        name: 'Far Rock',
+        name: 'Stonehaven',
         x: -40,
         y: -34,
         radius: 13,
@@ -125,11 +125,12 @@ if (view === 'boats') {
       },
     ],
     // Harbours face the middle, where the sloop is.
+    ports: [],
     course: [
-      { label: 'Port Calda', x: -10, y: 8 },
-      { label: 'Westholm', x: 10, y: 8 },
-      { label: 'Saltmere', x: 10, y: -8 },
-      { label: 'Far Rock', x: -10, y: -8 },
+      { label: 'Saltmere', x: -10, y: 8 },
+      { label: 'Port Calda', x: 10, y: 8 },
+      { label: 'Westholm', x: 10, y: -8 },
+      { label: 'Stonehaven', x: -10, y: -8 },
     ],
   };
   islandsForWater = map.islands;

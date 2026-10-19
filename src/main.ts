@@ -4,8 +4,17 @@ import { FrameMonitor, type QualityLevel, guessQuality, lowerQuality } from './r
 import { GameView } from './render/view';
 import { SAIL_STEPS } from './sim/boat';
 import { clamp } from './sim/math';
+import { type SaveStorage, clearSave, loadGame, saveGame } from './sim/save';
 import { SLOOP } from './sim/ship';
-import { createWorld, resetBoat, stepWorld } from './sim/world';
+import * as trade from './sim/trade';
+import { type WorldEvent, createWorld, resetBoat, stepWorld } from './sim/world';
+import {
+  classifySupport,
+  isFullscreen,
+  onFullscreenChange,
+  probeSupport,
+  toggleFullscreen,
+} from './ui/fullscreen';
 import { Hud } from './ui/hud';
 import { loadSettings, saveSettings } from './ui/settings';
 
@@ -24,6 +33,15 @@ if (!document.createElement('canvas').getContext('webgl2')) {
 
 const settings = loadSettings();
 const world = createWorld(PHASE0_MAP, SLOOP);
+// Progress (gold, ships, cargo, markets, position) auto-saves to the browser (decision 0015).
+const storage: SaveStorage | null = (() => {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+})();
+if (storage) loadGame(storage, world);
 let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
 const view = new GameView(canvas, world, level);
 const hud = new Hud(world);
@@ -31,21 +49,92 @@ const input = new Input(stage);
 const monitor = new FrameMonitor();
 let sailStep = world.boat.sailStep;
 
-// --- Help card -------------------------------------------------------------------------------
+// --- Main menu, help card and pause ------------------------------------------------------------
+// The game opens on the title menu with the scene running behind it (decision 0017). The
+// simulation is paused while the menu or the help card is up.
+const menu = $('menu');
 const help = $('help');
-let paused = !settings.seenHelp;
-help.hidden = settings.seenHelp;
-const closeHelp = () => {
+const helpClose = $('start');
+const settingsPanel = $('settings');
+const playButton = $('menu-play');
+let mode: 'menu' | 'play' = 'menu';
+let started = false;
+let paused = true;
+
+function refreshPause() {
+  paused = mode === 'menu' || !help.hidden;
+}
+
+function showMenu() {
+  mode = 'menu';
+  document.body.classList.add('in-menu');
   help.hidden = true;
-  paused = false;
+  settingsPanel.hidden = true;
+  menu.hidden = false;
+  playButton.textContent = started ? 'Resume' : 'Set sail';
+  refreshPause();
+  playButton.focus({ preventScroll: true });
+}
+
+function play() {
+  mode = 'play';
+  started = true;
+  document.body.classList.remove('in-menu');
+  menu.hidden = true;
+  if (!settings.seenHelp) openHelp();
+  refreshPause();
+}
+
+function openHelp() {
+  helpClose.textContent = mode === 'menu' ? 'Back' : 'Set sail';
+  menu.hidden = true;
+  help.hidden = false;
+  refreshPause();
+}
+
+function closeHelp() {
+  help.hidden = true;
   settings.seenHelp = true;
   saveSettings(settings);
-};
-$('start').addEventListener('click', closeHelp);
-$('help-btn').addEventListener('click', () => {
-  help.hidden = false;
-  paused = true;
+  if (mode === 'menu') menu.hidden = false;
+  refreshPause();
+}
+
+playButton.addEventListener('click', play);
+$('menu-help').addEventListener('click', openHelp);
+$('menu-settings').addEventListener('click', () => {
+  menu.hidden = true;
+  settingsPanel.hidden = false;
 });
+$('menu-btn').addEventListener('click', showMenu);
+helpClose.addEventListener('click', closeHelp);
+$('help-btn').addEventListener('click', openHelp);
+window.addEventListener('keydown', (e) => {
+  if (e.code !== 'Escape') return;
+  if (!settingsPanel.hidden) closeSettings();
+  else if (!help.hidden) closeHelp();
+  else if (mode === 'play') showMenu();
+});
+help.hidden = true;
+showMenu();
+
+// --- Fullscreen --------------------------------------------------------------------------------
+const fsSupport = classifySupport(probeSupport());
+const fsMenuButton = $('menu-fullscreen');
+const fsGameButton = $('fullscreen-btn');
+fsMenuButton.hidden = fsGameButton.hidden = fsSupport !== 'api';
+$('fs-hint').hidden = fsSupport !== 'home-screen';
+const describeFullscreen = () => {
+  const on = isFullscreen();
+  fsMenuButton.textContent = on ? 'Exit fullscreen' : 'Fullscreen';
+  fsGameButton.setAttribute('aria-label', on ? 'Exit fullscreen' : 'Fullscreen');
+  fsGameButton.classList.toggle('on', on);
+};
+for (const button of [fsMenuButton, fsGameButton]) {
+  button.addEventListener('click', () => void toggleFullscreen());
+}
+onFullscreenChange(describeFullscreen);
+describeFullscreen();
 
 // --- Controls ----------------------------------------------------------------------------------
 input.onDrag = (d) => hud.setTiller(d);
@@ -61,7 +150,6 @@ for (const [id, delta] of [
 }
 
 // --- Settings panel ----------------------------------------------------------------------------
-const settingsPanel = $('settings');
 const qualitySelect = $<HTMLSelectElement>('quality');
 const showFps = $<HTMLInputElement>('show-fps');
 const qualityNow = $('quality-now');
@@ -73,7 +161,11 @@ describeQuality();
 $('settings-btn').addEventListener('click', () => {
   settingsPanel.hidden = !settingsPanel.hidden;
 });
-$('close-settings').addEventListener('click', () => (settingsPanel.hidden = true));
+function closeSettings() {
+  settingsPanel.hidden = true;
+  if (mode === 'menu') menu.hidden = false;
+}
+$('close-settings').addEventListener('click', closeSettings);
 qualitySelect.addEventListener('change', () => {
   settings.quality = qualitySelect.value as typeof settings.quality;
   saveSettings(settings);
@@ -110,6 +202,25 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
+// --- Trade hooks (the trade panel arrives with the Phase 1 UI) --------------------------------
+const AUTOSAVE_SECONDS = 15;
+let lastSave = world.time;
+function autosave() {
+  if (storage) saveGame(storage, world);
+  lastSave = world.time;
+}
+function handleEvents(events: WorldEvent[]) {
+  hud.handleEvents(events);
+  for (const e of events) {
+    if (e.type === 'docked') {
+      hud.showToast(`Docked at ${trade.findPort(world.map, e.portId)?.name ?? e.portId}`, 2);
+      autosave();
+    }
+  }
+  if (world.time - lastSave >= AUTOSAVE_SECONDS) autosave();
+}
+window.addEventListener('pagehide', autosave);
+
 // --- Main loop: fixed-step simulation, render once per frame ----------------------------------
 let accumulator = 0;
 let last = performance.now();
@@ -120,12 +231,13 @@ function tick(now: number) {
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
 
-  sailStep = clamp(sailStep + input.takeSailDelta(), 0, SAIL_STEPS.length - 1);
+  const sailDelta = input.takeSailDelta();
   if (!paused) {
+    sailStep = clamp(sailStep + sailDelta, 0, SAIL_STEPS.length - 1);
     accumulator += dt;
     let steps = 0;
     while (accumulator >= SIM_STEP && steps < 6) {
-      hud.handleEvents(stepWorld(world, { steer: input.steer, sailStep }, SIM_STEP));
+      handleEvents(stepWorld(world, { steer: input.steer, sailStep }, SIM_STEP));
       accumulator -= SIM_STEP;
       steps++;
     }
@@ -144,6 +256,7 @@ function tick(now: number) {
 // Stop rendering while the tab is hidden (battery on phones and tablets).
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
+    autosave();
     cancelAnimationFrame(frame);
   } else {
     last = performance.now();
@@ -152,7 +265,12 @@ document.addEventListener('visibilitychange', () => {
 });
 frame = requestAnimationFrame(tick);
 
-// `?debug` exposes the game objects in the console (used by screenshot scripts too).
+// `?debug` exposes the game objects in the console (used by screenshot scripts too). Until the
+// trade panel lands, trading works from there, e.g. `fwt.trade.buy(fwt.world.trade, 'fish', 5)`.
 if (new URLSearchParams(location.search).has('debug')) {
-  Object.assign(window, { fwt: { world, view, input } });
+  const newGame = () => {
+    if (storage) clearSave(storage);
+    location.reload();
+  };
+  Object.assign(window, { fwt: { world, view, input, trade, newGame } });
 }

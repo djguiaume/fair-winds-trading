@@ -133,7 +133,7 @@ function windmill(): Parts {
 export function islandParts(island: IslandDef, map: MapDef, seed: number): Parts {
   const rng = createRng(seed);
   const look = island.look ?? {};
-  const kind = look.kind;
+  const kind = look.kind ?? map.ports.find((p) => p.islandId === island.id)?.produces[0];
   const R = island.radius / ISLAND_SCALE;
   const sx = 1 + (rng() - 0.5) * 0.16;
   const sz = 1 + (rng() - 0.5) * 0.16;
@@ -213,7 +213,7 @@ export function islandParts(island: IslandDef, map: MapDef, seed: number): Parts
     }
     for (let i = 0; i < trees; i++) at(tree(rng), -HARBOUR + (i - (trees - 1) / 2) * 0.7, 0.62);
   } else if (kind === 'timber') {
-    for (let i = 0; i < trees; i++) {
+    for (let i = 0; i < Math.max(trees, 14); i++) {
       const a = rng() * Math.PI * 2;
       // Leave a clearing on the harbour side for the log pile and the hut.
       if (Math.abs(Math.atan2(Math.sin(a - HARBOUR), Math.cos(a - HARBOUR))) < 0.6) continue;
@@ -247,6 +247,7 @@ export function islandParts(island: IslandDef, map: MapDef, seed: number): Parts
       const boulder = new THREE.DodecahedronGeometry(R * (0.24 - i * 0.05), 0).scale(1, 1.3, 1);
       at([paint(boulder, i % 2 ? B2.rock2 : B2.rock)], i * 2.1, 0.45 * i, rng() * 3, R * 0.1);
     }
+    for (let i = 0; i < houses; i++) at(house(i), HARBOUR - 0.5 - i * 0.5, 0.55, rng() * 3);
     for (let i = 0; i < trees; i++) at(tree(rng), 3 + i * 0.5, 0.75);
     at(
       [paint(new THREE.BoxGeometry(0.8, 0.4, 0.6).translate(0, 0.2, 0), B2.cart)],
