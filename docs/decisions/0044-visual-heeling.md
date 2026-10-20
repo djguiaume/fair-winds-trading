@@ -9,7 +9,7 @@
 - **Purely visual.** `src/render/heel.ts` turns the wind the boat feels into a roll of the boat model (`BoatPose.heel`). The simulation, speed and controls do not change.
 - **What sets the heel:**
   - Point of sail: none in irons or while the sails flap, the most from a close reach to a beam reach, falling to about an eighth of that dead downwind.
-  - Wind strength: the wind the boat feels, so weather shifts ([0026](0026-slow-weather-shifts.md)), the calm lee of an island and faster flanks and channels ([0027](0027-islands-shape-the-wind.md)) all show. It grows a little faster than the wind (power 1.25): about 11° for a stock sloop on a beam reach in the 14 kn breeze, never past 18°.
+  - Wind strength: the wind the boat feels, so weather shifts ([0026](0026-slow-weather-shifts.md)), the calm lee of an island and faster flanks and channels ([0027](0027-islands-shape-the-wind.md)) all show. It grows a little faster than the wind (power 1.25): about 14° for a stock sloop on a beam reach in the 14 kn breeze, never past 23°. That is 1.3× a realistic heel (a small sloop sails at 10 to 20° in a fresh breeze, heavy cargo ships 5 to 10°): Guillaume asked for it on 2026-10-20 so the lean reads from the high camera.
   - Sail area: reefing stands her up.
   - Gusts: wind above its last 4 seconds' average adds an extra lean, so the boat lurches as a gust arrives and settles after.
   - Ship class: `HEEL_FACTOR` per class, 1 = sloop. Swift line (cutter 1.05, schooner 1.15, clipper 1.05) leans most; warships (ketch 0.85, brig 0.75, frigate 0.65) and haulers (hoy 0.75, fluyt 0.6, indiaman 0.5) stand stiffer, as in [0035](0035-three-ship-lines.md). An unknown class uses 1.

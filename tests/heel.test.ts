@@ -36,7 +36,7 @@ const beam = (over: Partial<HeelInput> = {}): HeelInput => ({
 });
 
 describe('visual heel (decision 0044)', () => {
-  it('leans a stock sloop about 11° on a beam reach in the usual breeze', () => {
+  it('leans a stock sloop about 14° on a beam reach in the usual breeze', () => {
     expect(targetHeel(beam())).toBeCloseTo(BASE_HEEL, 5);
   });
 
