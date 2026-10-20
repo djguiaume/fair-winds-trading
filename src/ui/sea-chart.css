@@ -167,10 +167,17 @@ dialog.chart::backdrop {
   stroke-opacity: 0.7;
   vector-effect: non-scaling-stroke;
 }
-.chart-land {
+.chart-shore {
   fill: #f2cf7e;
   stroke: var(--outline);
-  stroke-width: 1.6px;
+  stroke-width: 6px;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.chart-land {
+  fill: #7cc04f;
+  stroke: #f2cf7e;
+  stroke-width: 3px;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
@@ -391,7 +398,12 @@ dialog.chart::backdrop {
   margin: 0;
   font: 500 15px var(--body);
 }
-.chart-legend .chart-land,
+.chart-legend .chart-shore {
+  stroke-width: 4.5px;
+}
+.chart-legend .chart-land {
+  stroke-width: 2px;
+}
 .chart-legend .chart-reef,
 .chart-legend .chart-bank {
   stroke-width: 1.5;

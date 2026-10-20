@@ -14,7 +14,7 @@ text line adds nothing.
 
 ## Decision
 
-- **Style D chart.** Teal sea, sand islands with an ink outline, navy header and footer bars with
+- **Style D chart.** Teal sea, islands drawn like the 3D ones (green grass top, sand shore, ink outline; Guillaume did not want all-sand land), navy header and footer bars with
   chunky buttons, red close button, brass active states. The compass, zoom and the signature boat
   from 0057 stay. No wind text chip: wind is read from the compass only.
 - **Port cards.** Each charted port is a small navy card on a stem at its pier: the port name and,

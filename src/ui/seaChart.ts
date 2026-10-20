@@ -384,9 +384,14 @@ export class SeaChart {
       return el;
     };
     shape('circle', { r: map.boundsRadius, class: 'chart-boundary' });
+    // Land reads like the 3D islands: an ink outline, a sand shore and a grass top.
+    const land = (tag: string, attrs: Record<string, string | number>) => {
+      shape(tag, { ...attrs, class: 'chart-shore' });
+      shape(tag, { ...attrs, class: 'chart-land' });
+    };
     const charted = discoveredPorts(map, this.world.trade);
     for (const island of map.islands) {
-      shape('circle', { cx: island.x, cy: -island.y, r: island.radius, class: 'chart-land' });
+      land('circle', { cx: island.x, cy: -island.y, r: island.radius });
       if (island.name && !charted.some((p) => p.islandId === island.id)) {
         const label = shape('text', {
           x: island.x,
@@ -398,15 +403,10 @@ export class SeaChart {
       }
     }
     for (const terrain of map.terrain ?? []) {
-      shape('polygon', {
-        points: terrain.outline.map(([x, y]) => `${x},${-y}`).join(' '),
-        class:
-          terrain.kind === 'island'
-            ? 'chart-land'
-            : terrain.kind === 'reef'
-              ? 'chart-reef'
-              : 'chart-bank',
-      });
+      const points = terrain.outline.map(([x, y]) => `${x},${-y}`).join(' ');
+      if (terrain.kind === 'island') land('polygon', { points });
+      else
+        shape('polygon', { points, class: terrain.kind === 'reef' ? 'chart-reef' : 'chart-bank' });
       if (terrain.name) {
         const xs = terrain.outline.map((p) => p[0]);
         const label = shape('text', {
