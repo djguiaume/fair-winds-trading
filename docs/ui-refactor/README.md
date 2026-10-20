@@ -2,7 +2,7 @@
 
 *2026-10-20. Analysis only: nothing here is decided yet. The decisions we take from it will get their own ADRs.*
 
-**Status:** style D chosen and recorded in [ADR 0049](../decisions/0049-ui-instrument-style.md). The **Sea HUD is built** ([screenshots](sea-hud/README.md)); Port, Chart and menus come next.
+**Status:** style D chosen and recorded in [ADR 0049](../decisions/0049-ui-instrument-style.md). The **Sea HUD is built** ([screenshots](sea-hud/README.md)) and so is the **full-screen Port screen** ([screenshots](port/README.md)); Chart and menus come next.
 
 Roadmap item: **Complete UI redesign** (Phase 1, [roadmap](../roadmap.md)). Constraints that still hold: desktop **and** touch, smooth on an old tablet and a phone ([0006](../decisions/0006-desktop-and-mobile.md)), English and French ([0037](../decisions/0037-english-and-french-translations.md)), style of the *Privateers: Pirate Wars* ad ([reference](../reference/)).
 

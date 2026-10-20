@@ -1,0 +1,655 @@
+/*
+ * Full-screen port (decision 0049): the trade panel in the "instrument" style. Header with the
+ * port, what it makes and wants, gold and hold; tabs Market / Orders / Shipyard; one row per good
+ * with the price on its Buy and Sell buttons; actions along the bottom. Tokens come from
+ * sea-hud.css; older trade rules in hud.css still apply to Kids mode.
+ */
+
+.trade-panel-overlay {
+  place-items: stretch;
+  padding: 0;
+  background: rgba(6, 18, 27, 0.6);
+}
+.trade-modal.port-screen {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  padding: 0;
+  gap: 0;
+  border: 0;
+  border-radius: 0;
+  background: rgba(9, 28, 41, 0.97);
+  box-shadow: none;
+  color: var(--ink);
+  font-family: var(--body);
+  text-shadow: none;
+}
+
+/* --- Header ---------------------------------------------------------------------------- */
+.port-screen .trade-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: max(10px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 10px
+    max(16px, env(safe-area-inset-left));
+  border-bottom: 1px solid var(--brass-line);
+  background: #0b2230;
+}
+.port-screen .port-title-area {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  min-width: 0;
+}
+.port-screen .port-name {
+  margin: 0;
+  color: var(--ink);
+  font: 700 30px/1 var(--display);
+  letter-spacing: 0.06em;
+  text-shadow: none;
+  text-transform: uppercase;
+}
+.port-screen .port-roles-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+}
+.port-screen .role-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--brass-line);
+  border-radius: 6px;
+  background: none;
+  color: var(--ink);
+  font: 700 14px/1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.port-screen .role-tag small {
+  margin-right: 4px;
+  font-size: inherit;
+}
+.port-screen .icon {
+  width: 1.25em;
+  height: 1.25em;
+  flex: none;
+  vertical-align: middle;
+}
+.port-screen .header-controls {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  width: auto;
+}
+.port-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--brass-line);
+  border-radius: 8px;
+  font: 700 20px/1 var(--display);
+  white-space: nowrap;
+}
+.port-chip .icon {
+  width: 24px;
+  height: 24px;
+}
+.port-screen .close-btn {
+  width: 46px;
+  height: 46px;
+  border: 2px solid var(--outline);
+  border-radius: 10px;
+  background: linear-gradient(#ff8a73, #ec5a43);
+  box-shadow:
+    inset 0 -3px 0 #b8261a,
+    0 3px 8px rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+}
+.port-screen .close-btn:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 -1px 0 #b8261a;
+}
+
+/* --- Tabs and lot size ------------------------------------------------------------------ */
+.port-screen .trade-tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 8px max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+  border-bottom: 1px solid rgba(238, 243, 244, 0.12);
+}
+.port-screen .tab-btn {
+  flex: none;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: 8px 8px 0 0;
+  background: none;
+  color: var(--ink-dim);
+  font: 700 18px/1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.port-screen .tab-btn.active {
+  border-bottom-color: var(--brass);
+  background: rgba(232, 196, 106, 0.12);
+  color: var(--ink);
+}
+.tab-badge {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: var(--brass);
+  color: #2a1c00;
+  font-size: 13px;
+  vertical-align: 2px;
+}
+.lot-picker {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding-bottom: 5px;
+}
+.lot-picker small {
+  margin-right: 2px;
+  color: var(--ink-dim);
+  font: 700 13px var(--display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.lot-btn {
+  min-width: 44px;
+  height: 36px;
+  border: 1px solid var(--brass-line);
+  border-radius: 6px;
+  background: none;
+  color: var(--ink-dim);
+  font: 700 16px/1 var(--display);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.lot-btn[aria-pressed='true'] {
+  border-color: var(--outline);
+  background: var(--brass);
+  color: #2a1c00;
+}
+
+/* --- Chunky buttons ------------------------------------------------------------------- */
+.port-btn,
+.port-screen .sell-all-btn,
+.port-screen .upgrade-btn,
+.port-screen .ship-btn {
+  --lo: var(--brass-lo);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 46px;
+  padding: 0 16px;
+  border: 2px solid var(--outline);
+  border-radius: 10px;
+  background: linear-gradient(var(--brass-hi), #e0b452);
+  box-shadow:
+    inset 0 -3px 0 var(--lo),
+    0 3px 8px rgba(0, 0, 0, 0.35);
+  color: #2a1c00;
+  font: 700 17px/1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.port-btn.green,
+.port-screen .sell-all-btn {
+  --lo: #2f9c41;
+  background: linear-gradient(#7fe08c, #49c45c);
+  color: #08240e;
+}
+.port-btn.red {
+  --lo: #b8261a;
+  background: linear-gradient(#ff8a73, #ec5a43);
+  color: #2b0703;
+}
+.port-btn .icon {
+  width: 20px;
+  height: 20px;
+}
+.port-btn .coin {
+  width: 17px;
+  height: 17px;
+}
+.port-btn:not(:disabled):active,
+.port-screen .sell-all-btn:not(:disabled):active,
+.port-screen .upgrade-btn:not(:disabled):active,
+.port-screen .ship-btn:not(:disabled):active {
+  transform: translateY(2px);
+  box-shadow: inset 0 -1px 0 var(--lo);
+}
+.port-btn:disabled,
+.port-screen .sell-all-btn:disabled,
+.port-screen .upgrade-btn:disabled,
+.port-screen .ship-btn:disabled {
+  border-color: rgba(238, 243, 244, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+  color: rgba(238, 243, 244, 0.4);
+  cursor: default;
+  opacity: 1;
+}
+.port-btn:focus-visible,
+.lot-btn:focus-visible,
+.port-screen .tab-btn:focus-visible,
+.port-screen .close-btn:focus-visible {
+  outline: 2px solid var(--brass-hi);
+  outline-offset: 2px;
+}
+
+/* The tutorial's market lesson sits between the tabs and the goods. */
+.port-screen #tutorial-market {
+  padding: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+}
+
+/* --- Market: one row per good, side panel -------------------------------------------- */
+.port-screen .trade-content {
+  flex: 1;
+  padding: 8px max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left));
+}
+.port-screen .market-section.adult-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 270px);
+  align-items: start;
+  gap: 14px;
+}
+.goods-list {
+  display: flex;
+  flex-direction: column;
+}
+.good-row {
+  display: grid;
+  grid-template-areas: 'icon text hold buy sell';
+  grid-template-columns: 40px minmax(0, 1fr) 48px 128px 128px;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 6px;
+  padding: 8px;
+  border-bottom: 1px solid rgba(238, 243, 244, 0.12);
+}
+.good-row.wants {
+  background: rgba(232, 196, 106, 0.06);
+}
+.good-icon {
+  grid-area: icon;
+  display: grid;
+  place-items: center;
+}
+.port-screen .good-icon .icon {
+  width: 34px;
+  height: 34px;
+}
+.good-text {
+  grid-area: text;
+  min-width: 0;
+}
+.good-row .good-name {
+  display: block;
+  font-size: 19px;
+  font-weight: 600;
+}
+.good-note {
+  display: block;
+  color: var(--ink-dim);
+  font-size: 14px;
+  font-weight: 600;
+}
+.good-row.wants .good-note {
+  color: var(--brass);
+}
+.good-best {
+  display: none;
+  grid-area: best;
+  font-size: 15px;
+}
+.good-best small,
+.good-hold small {
+  display: block;
+  color: var(--ink-dim);
+  font: 700 12px/1.2 var(--display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.good-hold {
+  grid-area: hold;
+  min-width: 44px;
+  text-align: center;
+}
+.good-hold b {
+  font: 700 22px/1 var(--display);
+}
+.good-row .buy-btn {
+  grid-area: buy;
+}
+.good-row .sell-btn {
+  grid-area: sell;
+}
+/* Beat the older .trade-act-btn colours in hud.css. */
+.port-screen .good-row .buy-btn:not(:disabled) {
+  border-color: var(--outline);
+  background: linear-gradient(var(--brass-hi), #e0b452);
+  color: #2a1c00;
+}
+.port-screen .good-row .sell-btn:not(:disabled) {
+  border-color: var(--outline);
+  background: linear-gradient(#7fe08c, #49c45c);
+  color: #08240e;
+}
+.port-screen .good-row .trade-act-btn {
+  flex: none;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+.good-row .trade-act-btn small {
+  font-size: 15px;
+}
+.good-row .trade-act-btn b {
+  font-size: 22px;
+}
+
+.port-side {
+  position: sticky;
+  top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.side-card {
+  padding: 10px 14px 12px;
+  border: 1px solid var(--brass-line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.side-card h3,
+.port-screen .contracts-title,
+.port-screen .section-title h3 {
+  margin: 0 0 6px;
+  color: var(--brass);
+  font: 700 18px/1.2 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.side-card ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.side-card li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  line-height: 1.7;
+}
+.side-card p {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+.side-card .order-line {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 16px;
+}
+.side-card .deliver-btn {
+  width: 100%;
+}
+
+/* --- Orders tab ------------------------------------------------------------------------ */
+.port-screen .contracts {
+  max-width: 720px;
+  font-size: 16px;
+  opacity: 1;
+}
+.port-screen .contract-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+}
+.port-screen .contract-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.port-screen .contract-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(238, 243, 244, 0.12);
+}
+.port-screen .contracts .coin {
+  width: 16px;
+  height: 16px;
+}
+
+/* --- Shipyard tab: same panels and buttons ---------------------------------------------- */
+.port-screen .trade-content.tab-shipyard {
+  padding-bottom: 24px;
+}
+.port-screen .upgrade-card,
+.port-screen .ship-card {
+  border: 1px solid var(--brass-line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: none;
+}
+.port-screen .ship-card.active-ship {
+  border-color: var(--green);
+}
+.port-screen .track-name,
+.port-screen .ship-card-header h4 {
+  font: 700 19px/1.2 var(--display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.port-screen .track-pip.filled {
+  background: var(--brass);
+}
+.port-screen .upgrade-btn,
+.port-screen .ship-btn {
+  width: 100%;
+  min-height: 44px;
+  font-size: 15px;
+  white-space: normal;
+}
+.port-screen .upgrades-grid {
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+}
+.port-screen .upgrade-card {
+  padding: 12px;
+  gap: 8px;
+}
+.port-screen .upgrade-btn {
+  margin-top: auto;
+}
+.port-screen .upgrade-btn.maxed {
+  color: var(--green-ink);
+}
+
+/* --- Status and actions along the bottom ------------------------------------------- */
+.port-screen .trade-status {
+  margin: 0;
+  padding: 0 max(16px, env(safe-area-inset-right)) 4px;
+  color: var(--brass);
+  font-size: 15px;
+  text-align: right;
+}
+.port-screen .trade-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px max(16px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left));
+  border-top: 1px solid var(--brass-line);
+  background: #0b2230;
+}
+.footer-gap {
+  flex: 1;
+}
+.port-screen .undock-btn {
+  min-width: 150px;
+}
+
+/* --- Sizes ----------------------------------------------------------------------------- */
+@media (max-height: 480px) {
+  .port-screen .trade-header {
+    padding-top: max(6px, env(safe-area-inset-top));
+    padding-bottom: 6px;
+  }
+  .port-screen .port-name {
+    font-size: 26px;
+  }
+  .port-chip {
+    height: 36px;
+    font-size: 18px;
+  }
+  .port-screen .tab-btn {
+    min-height: 40px;
+  }
+  .good-row {
+    padding: 4px 8px;
+  }
+  .port-btn,
+  .port-screen .sell-all-btn {
+    min-height: 42px;
+  }
+  .port-screen .shipyard-section .section-title .small {
+    display: none;
+  }
+  .port-screen .trade-footer {
+    padding-top: 6px;
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Large screens: room for where each good sells best, right in its row. */
+@media (min-width: 1100px) {
+  .good-row {
+    grid-template-areas: 'icon text best hold buy sell';
+    grid-template-columns: 40px minmax(0, 1fr) minmax(160px, auto) 52px 150px 150px;
+  }
+  .good-best {
+    display: block;
+  }
+  .port-screen .market-section.adult-layout {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+}
+
+/* Portrait phones: the side panel first, Buy and Sell under each good, actions stacked. */
+@media (max-width: 640px) {
+  .port-screen .trade-header {
+    align-items: flex-start;
+  }
+  .port-screen .trade-header {
+    gap: 8px;
+  }
+  .port-screen .header-controls {
+    gap: 6px;
+  }
+  .port-chip {
+    height: 34px;
+    padding: 0 8px;
+    font-size: 17px;
+  }
+  .port-chip .icon {
+    width: 20px;
+    height: 20px;
+  }
+  .port-screen .close-btn {
+    width: 40px;
+    height: 40px;
+  }
+  .port-screen .port-name {
+    font-size: 24px;
+  }
+  .port-screen .role-tag {
+    height: 26px;
+    padding: 0 7px;
+    font-size: 13px;
+  }
+  /* The lot size gets its own line under the tabs. */
+  .port-screen .trade-tabs {
+    flex-wrap: wrap;
+  }
+  .lot-picker {
+    order: 1;
+    width: 100%;
+    justify-content: flex-end;
+    padding: 6px 0;
+  }
+  .port-screen .market-section.adult-layout {
+    grid-template-columns: 1fr;
+  }
+  .port-side {
+    position: static;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    order: -1;
+  }
+  .good-row {
+    grid-template-areas:
+      'icon text text hold'
+      'buy buy sell sell';
+    grid-template-columns: 36px 1fr 1fr auto;
+  }
+  .port-screen .good-row .trade-act-btn {
+    min-width: 0;
+  }
+  .lot-picker small {
+    display: none;
+  }
+  .port-screen .tab-btn {
+    padding: 0 10px;
+    font-size: 16px;
+  }
+  .port-screen #tp-repair {
+    width: 100%;
+  }
+  .port-screen .trade-footer .footer-gap {
+    display: none;
+  }
+  .port-screen #tp-sell-all,
+  .port-screen .undock-btn {
+    flex: 1;
+    min-width: 0;
+  }
+}

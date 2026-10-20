@@ -32,3 +32,14 @@
 - The active ship name is no longer on the Sea HUD; it stays on the port screen.
 - `src/ui/sea-hud.css` holds the new style and is loaded after `hud.css`. Old rules in `hud.css` for elements the Sea HUD replaced were removed; the port, chart and menu rules stay until those screens are rebuilt.
 - Old tablet budget ([0006](0006-desktop-and-mobile.md)): the HUD is still plain DOM updated about eight times a second, with no blur filters on the panels (backdrop blur is costly on old GPUs).
+
+## Port screen
+
+*Added 2026-10-20 with the second screen of the redesign ([screenshots](../ui-refactor/port/README.md)).*
+
+- **Full screen** in every orientation: a sticky header (port name, Home port / Makes / Wants tags with goods icons, gold chip, hold chip with the filling crate, close), tabs **Market / Orders / Shipyard**, and a sticky action bar (**Repair** with % and price, **Sell all** with the total, **Set sail**).
+- **Market rows:** one row per good with its icon, a short note (made here, wanted, wanted · order n), the count in the hold and two chunky buttons that carry the price: brass **Buy**, green **Sell**. Each tap trades one **lot** (×1, ×5 or ×10, picked next to the tabs), clamped to gold, hold space, stock or what is aboard. This replaces the quantity stepper and the Max buttons.
+- **Side panel:** this port's delivery order with its Deliver button, and the best prices elsewhere for the cargo aboard (or for what this port makes when the hold is empty). Desktop also shows the best price elsewhere in each row.
+- **Orders tab:** every port's open delivery order, with a count badge on the tab. Kids mode keeps orders on its market tab.
+- **Portrait:** side panel first as two cards, Buy and Sell under each good, lot picker on its own line, actions stacked.
+- The styles live in `src/ui/port-screen.css`, loaded after `sea-hud.css`; the shipyard cards keep their markup and only take the new buttons and frames. No coin emoji in Captain mode prices: icons from the sprite, or "gold" in text.

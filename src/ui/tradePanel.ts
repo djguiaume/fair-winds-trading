@@ -6,7 +6,6 @@ import { DEG } from '../sim/math';
 import { SHIP_CLASSES, SLOOP } from '../sim/ship';
 import { type ShipOffer, discoveredPorts, homePort, shipOffers } from '../sim/shipyards';
 import {
-  activeShip,
   buy,
   buyShip,
   buyUpgrade,
@@ -31,8 +30,13 @@ import {
 import type { World } from '../sim/world';
 import { KIDS_MODE_AVAILABLE, type UiMode } from './settings';
 import { formatNumber, goodName, shipName, t } from '../i18n';
+import { COIN, crateIcon, icon } from './icons';
 
-export type TradePanelTab = 'market' | 'shipyard';
+export type TradePanelTab = 'market' | 'orders' | 'shipyard';
+
+/** Lot sizes for one tap on Buy or Sell (decision 0049); clamped to what the hold, stock and gold allow. */
+const LOTS = [1, 5, 10] as const;
+type Lot = (typeof LOTS)[number];
 
 const GOOD_ICONS: Record<GoodId, string> = {
   fish: '🐟',
@@ -55,12 +59,7 @@ export class TradePanel {
     this.render();
   }
   uiMode: UiMode = 'adult';
-  private selectedQuantities: Record<GoodId, number> = {
-    fish: 1,
-    grain: 1,
-    timber: 1,
-    stone: 1,
-  };
+  private lot: Lot = 1;
 
   onAction: () => void = () => {};
   onTrade: (kind: 'buy' | 'sell', good: GoodId | null) => void = () => {};
@@ -165,11 +164,8 @@ export class TradePanel {
     }
 
     const { captain } = trade;
-    const currentShip = activeShip(trade);
     const holdCap = capacity(trade);
     const holdUsed = cargoUsed(trade);
-    const freeCap = freeSpace(trade);
-    const activeLevels = captain.ships[captain.activeShip] ?? { sails: 1, hold: 1, hull: 1 };
 
     let totalSellableValue = 0;
     for (const g of GOODS) {
@@ -177,27 +173,29 @@ export class TradePanel {
       if (q > 0) totalSellableValue += quoteSell(market, g, q);
     }
 
-    const wantsNames = port.wants.map((w) => goodName(w)).join(', ');
-
     const isKid = this.uiMode === 'kids';
-    const makesGood = port.produces[0];
-    const makesHtml = makesGood
-      ? `${isKid ? t('kids.produces') : t('trade.produces')} <b>${goodName(makesGood)}</b>`
-      : t('trade.shipwright');
+    if (isKid && this.tab === 'orders') this.tab = 'market';
+    const goodIcons = (goods: readonly string[]) =>
+      goods.map((g) => `<span title="${goodName(g)}">${icon(g)}</span>`).join('');
+    const orders = this.openOrderCount();
+    const tabBtn = (tab: TradePanelTab, label: string, extra = '') =>
+      `<button id="tp-tab-${tab}" class="tab-btn ${this.tab === tab ? 'active' : ''}" aria-pressed="${this.tab === tab}">${label}${extra}</button>`;
 
+    // Full-screen port (decision 0049): header, tabs, one screen of content, actions along the bottom.
     const html = `
-      <div class="trade-modal panel card ${isKid ? 'kids-view' : 'captain-view'}">
+      <div class="trade-modal port-screen ${isKid ? 'kids-view' : 'captain-view'}">
         <header class="trade-header">
           <div class="port-title-area">
-            <div class="port-kicker">${isKid ? t('kids.kicker') : t('trade.kicker')}</div>
             <h2 class="port-name">${port.name}</h2>
             <div class="port-roles-summary">
-              ${port.id === homePort(map).id ? `<span class="role-tag home">${t('trade.homePort')}</span>` : ''}
-              <span class="role-tag produces">${makesHtml}</span>
-              <span class="role-tag wants">${isKid ? t('kids.wants') : t('trade.demands')} <b>${wantsNames}</b></span>
+              ${port.id === homePort(map).id ? `<span class="role-tag home">${icon('anchor')}${t('trade.homePort')}</span>` : ''}
+              ${port.produces.length ? `<span class="role-tag produces"><small>${isKid ? t('kids.produces') : t('trade.makes')}</small>${goodIcons(port.produces)}</span>` : `<span class="role-tag produces">${t('trade.shipwright')}</span>`}
+              <span class="role-tag wants"><small>${isKid ? t('kids.wants') : t('trade.wants')}</small>${goodIcons(port.wants)}</span>
             </div>
           </div>
           <div class="header-controls">
+            <span class="port-chip" title="${t('hud.gold')}">${COIN}<b>${formatNumber(captain.gold)}</b></span>
+            <span class="port-chip" title="${t('hud.cargo')}">${crateIcon(holdCap > 0 ? holdUsed / holdCap : 0)}<b>${holdUsed}/${holdCap}</b></span>
             ${
               KIDS_MODE_AVAILABLE
                 ? `<button id="tp-toggle-mode" class="mode-toggle-btn" title="${t('trade.switchMode')}">
@@ -209,51 +207,45 @@ export class TradePanel {
           </div>
         </header>
 
-        <div id="tutorial-market"></div>
-        <section class="captain-bar">
-          <div class="stat-pill gold-pill">
-            <span class="stat-icon">🪙</span>
-            <span class="stat-val">${formatNumber(captain.gold)}</span>
-            <span class="stat-label">${isKid ? t('kids.gold') : t('trade.gold')}</span>
-          </div>
-          <div class="stat-pill hold-pill">
-            <span class="stat-icon">📦</span>
-            <span class="stat-val">${holdUsed} / ${holdCap}</span>
-            <span class="stat-label">${isKid ? t('kids.cargoFree', { n: freeCap }) : t('trade.cargoFree', { n: freeCap })}</span>
-          </div>
-          <div class="stat-pill ship-pill">
-            <span class="stat-icon">⛵</span>
-            <span class="stat-val">${shipName(currentShip)}</span>
-            <span class="stat-label">${isKid ? t('kids.currentBoat') : `L${activeLevels.sails}·L${activeLevels.hold}·L${activeLevels.hull}`}</span>
-          </div>
-        </section>
-
-        ${this.renderRepair(isKid)}
         <nav class="trade-tabs">
-          <button id="tp-tab-market" class="tab-btn ${this.tab === 'market' ? 'active' : ''}">
-            ${isKid ? t('kids.tabMarket') : t('trade.tabMarket')}
-          </button>
-          <button id="tp-tab-shipyard" class="tab-btn ${this.tab === 'shipyard' ? 'active' : ''}">
-            ${isKid ? t('kids.tabShipyard') : t('trade.tabShipyard')}
-          </button>
+          ${tabBtn('market', isKid ? t('kids.tabMarket') : t('trade.tabMarket'))}
+          ${isKid ? '' : tabBtn('orders', t('trade.tabOrders'), orders ? ` <span class="tab-badge">${orders}</span>` : '')}
+          ${tabBtn('shipyard', isKid ? t('kids.tabShipyard') : t('trade.tabShipyard'))}
+          ${
+            this.tab === 'market' && !isKid
+              ? `<span class="lot-picker" role="group" aria-label="${t('trade.lot')}"><small>${t('trade.lot')}</small>${LOTS.map(
+                  (n) =>
+                    `<button class="lot-btn" data-lot="${n}" aria-pressed="${this.lot === n}">×${n}</button>`,
+                ).join('')}</span>`
+              : ''
+          }
         </nav>
 
-        <main class="trade-content">
-          ${this.tab === 'market' ? this.renderContracts(isKid) : ''}
+        <div id="tutorial-market"></div>
+        <main class="trade-content tab-${this.tab}">
           ${
             this.tab === 'market'
               ? isKid
-                ? this.renderKidsMarket(market, totalSellableValue)
-                : this.renderAdultMarket(market, totalSellableValue)
-              : isKid
-                ? this.renderKidsShipyard()
-                : this.renderAdultShipyard()
+                ? this.renderContracts(isKid) + this.renderKidsMarket(market, totalSellableValue)
+                : this.renderAdultMarket(market)
+              : this.tab === 'orders'
+                ? this.renderContracts(isKid)
+                : isKid
+                  ? this.renderKidsShipyard()
+                  : this.renderAdultShipyard()
           }
         </main>
 
         <p class="trade-status" role="status">${this.message}</p>
         <footer class="trade-footer">
-          <button id="tp-undock" class="primary undock-btn">${isKid ? t('kids.undock') : t('trade.undock')}</button>
+          ${this.renderRepair(isKid)}
+          <span class="footer-gap"></span>
+          ${
+            totalSellableValue > 0 && !isKid
+              ? `<button id="tp-sell-all" class="port-btn green">${t('trade.sellAll', { price: totalSellableValue })}${COIN}</button>`
+              : ''
+          }
+          <button id="tp-undock" class="port-btn brass undock-btn">${icon('anchor')}${isKid ? t('kids.undock') : t('trade.undock')}</button>
         </footer>
       </div>
     `;
@@ -281,15 +273,23 @@ export class TradePanel {
     const canPay = trade.captain.gold >= 2;
     const label =
       trade.captain.gold >= price
-        ? t(isKid ? 'kids.fix' : 'trade.repair', { price })
+        ? t(isKid ? 'kids.fix' : 'trade.repair', { pct, price })
         : canPay
-          ? t(isKid ? 'kids.fixSome' : 'trade.repairSome')
+          ? t(isKid ? 'kids.fixSome' : 'trade.repairSome', { pct })
           : t('trade.needGold');
-    return `
-      <section class="repair-bar">
-        <span>🛠 ${isKid ? t('kids.leaking') : t('trade.hull')} <b>${t('unit.percent', { n: pct })}</b>${isKid ? '' : t('trade.leaking')}</span>
-        <button id="tp-repair" class="sell-all-btn" ${canPay ? '' : 'disabled'}>${label}</button>
-      </section>`;
+    return `<button id="tp-repair" class="port-btn red" title="${t('trade.hull')} ${t('unit.percent', { n: pct })}${t('trade.leaking')}" ${canPay ? '' : 'disabled'}>${icon('hull')}${label}${trade.captain.gold >= price ? COIN : ''}</button>`;
+  }
+
+  /** Open delivery orders across the map, counted on the Orders tab. */
+  private openOrderCount(): number {
+    const { trade, map } = this.world;
+    const here = trade.contracts.byPort[trade.dockedAt!];
+    // Same list as the Orders tab: ports not yet discovered stay hidden (decision 0048).
+    const charted = discoveredPorts(map, trade).map((p) => p.id);
+    const others = openContracts(trade.contracts).filter(
+      (c) => c.portId !== trade.dockedAt && charted.includes(c.portId),
+    );
+    return others.length + (here && here.readyIn <= 0 ? 1 : 0);
   }
 
   /** Delivery orders (decision 0028): this port's, with a Deliver button, then the others'. */
@@ -309,7 +309,7 @@ export class TradePanel {
       const missing = here.qty - trade.captain.cargo[here.good];
       hereHtml = `
         <div class="contract-line contract-here">
-          <span>${isKid ? t('kids.townNeeds') : t('trade.portOrders')} <b>${goods(here)}</b> · ${isKid ? t('kids.pays') : t('trade.reward')} <b>${here.reward} 🪙</b></span>
+          <span>${isKid ? t('kids.townNeeds') : t('trade.portOrders')} <b>${goods(here)}</b> · ${isKid ? t('kids.pays') : t('trade.reward')} <b>${here.reward}${COIN}</b></span>
           <button id="tp-deliver" class="sell-all-btn deliver-btn" ${missing > 0 ? 'disabled' : ''}>
             ${missing > 0 ? t('trade.needMore', { n: missing }) : isKid ? t('kids.deliver') : t('trade.deliverFor', { reward: here.reward })}
           </button>
@@ -322,7 +322,7 @@ export class TradePanel {
     const othersHtml = others
       .map(
         (c) =>
-          `<li><b>${portName(c.portId)}</b>: ${goods(c)} · ${c.reward} 🪙${
+          `<li><b>${portName(c.portId)}</b>: ${goods(c)} · ${c.reward}${COIN}${
             trade.captain.cargo[c.good] >= c.qty
               ? ` <span class="role-badge produces">${t('trade.inHoldBadge')}</span>`
               : ''
@@ -331,7 +331,7 @@ export class TradePanel {
       .join('');
     return `
       <section class="contracts" aria-label="${isKid ? t('kids.jobs') : t('trade.orders')}">
-        <h3 class="contracts-title">📜 ${isKid ? t('kids.jobs') : t('trade.orders')}</h3>
+        <h3 class="contracts-title">${isKid ? t('kids.jobs') : t('trade.orders')}</h3>
         ${hereHtml}
         ${others.length ? `<ul class="contract-list">${othersHtml}</ul>` : ''}
       </section>`;
@@ -479,155 +479,105 @@ export class TradePanel {
   }
 
   // --- ADULT / CAPTAIN MARKET RENDERER ---
-  private renderAdultMarket(market: Market, sellAllGold: number): string {
+  /** One row per good: price on the button, one tap per lot (decision 0049). */
+  private renderAdultMarket(market: Market): string {
     const { trade, map } = this.world;
     const port = findPort(map, trade.dockedAt!)!;
     const { captain } = trade;
+    const order = trade.contracts.byPort[trade.dockedAt!];
+    const liveOrder = order && order.readyIn <= 0 ? order : null;
 
-    const cardsHtml = GOODS.map((good) => {
+    const rowsHtml = GOODS.map((good) => {
       const def = GOOD_DEFS[good];
       const role = goodRole(port, good);
       const stock = Math.max(0, Math.floor(market.stock[good]));
       const inHold = captain.cargo[good];
       const free = freeSpace(trade);
-      const maxCanBuy = maxBuy(trade, good);
-
-      let qty = this.selectedQuantities[good] ?? 1;
-      const upperLimit = Math.max(1, Math.max(maxCanBuy, inHold, 1));
-      qty = Math.min(Math.max(1, qty), upperLimit);
-      this.selectedQuantities[good] = qty;
-
-      const bestElsewhere = this.bestSaleElsewhere(good);
+      const buyQty = Math.max(1, Math.min(this.lot, maxBuy(trade, good)));
+      const sellQty = Math.max(1, Math.min(this.lot, inHold));
+      const costQuote = quoteBuy(market, good, buyQty);
+      const sellQuote = quoteSell(market, good, sellQty);
       const nextBuy = quoteBuy(market, good, 1);
-      const nextSell = quoteSell(market, good, 1);
 
-      const costQuote = qty > 0 ? quoteBuy(market, good, qty) : 0;
-      const sellQuote = qty > 0 ? quoteSell(market, good, qty) : 0;
-
-      const canBuy = maxCanBuy >= qty && qty > 0;
+      const canBuy = maxBuy(trade, good) >= buyQty;
       let buyDisabledReason = '';
       if (!canBuy) {
         if (stock === 0) buyDisabledReason = t('trade.outOfStock');
         else if (free === 0) buyDisabledReason = t('trade.holdFull');
         else if (captain.gold < nextBuy) buyDisabledReason = t('trade.needGold');
-        else if (qty > stock) buyDisabledReason = t('trade.onlyStock', { n: stock });
-        else if (qty > free) buyDisabledReason = t('trade.onlySpace', { n: free });
         else buyDisabledReason = t('trade.cannotAfford');
       }
+      const canSell = inHold >= sellQty;
+      const sellDisabledReason = canSell ? '' : t('trade.noneInHold');
 
-      const canSell = inHold >= qty && qty > 0;
-      let sellDisabledReason = '';
-      if (!canSell) {
-        if (inHold === 0) sellDisabledReason = t('trade.noneInHold');
-        else sellDisabledReason = t('trade.onlyInHold', { n: inHold });
-      }
-
-      let roleBadge = `<span class="role-badge neutral">${t('trade.standard')}</span>`;
-      if (role === 'produces') {
-        roleBadge = `<span class="role-badge produces">${t('trade.producesCheap')}</span>`;
-      } else if (role === 'wants') {
-        roleBadge = `<span class="role-badge wants">${t('trade.demandedDear')}</span>`;
-      }
+      const note =
+        role === 'produces'
+          ? t('trade.madeHere')
+          : role === 'wants'
+            ? liveOrder?.good === good
+              ? t('trade.wantedOrder', { n: liveOrder.qty })
+              : t('trade.wanted')
+            : '';
+      const best = this.bestSaleElsewhere(good);
+      const qtyLabel = (n: number) => (n > 1 ? ` ${n}` : '');
 
       return `
-        <article class="good-card adult-card ${role}">
-          <div class="good-info">
-            <div class="good-icon">${GOOD_ICONS[good]}</div>
-            <div class="good-text">
-              <div class="good-header">
-                <h4 class="good-name">${goodName(def.id)}</h4>
-                ${roleBadge}
-              </div>
-              <div class="good-meta">
-                <span>${t('trade.stock')} <b>${stock}</b></span>
-                <span class="sep">·</span>
-                <span>${t('trade.inHold')} <b>${inHold}</b></span>
-              </div>
-              ${bestElsewhere ? `<div class="best-elsewhere">${t('trade.bestElsewhere', { name: bestElsewhere.name, price: bestElsewhere.sell })}</div>` : ''}
-            </div>
-          </div>
-
-          <div class="good-prices">
-            <div class="price-col">
-              <span class="price-label">${t('trade.buyFirst')}</span>
-              <span class="price-val">${nextBuy} 🪙</span>
-            </div>
-            <div class="price-col">
-              <span class="price-label">${t('trade.sellFirst')}</span>
-              <span class="price-val">${nextSell} 🪙</span>
-            </div>
-          </div>
-
-          <div class="qty-control-area">
-            <span class="qty-title">${t('trade.quantity')}</span>
-            <div class="qty-stepper">
-              <button class="qty-btn" data-good="${good}" data-delta="-1" aria-label="${t('trade.decrease')}">-</button>
-              <span class="qty-display">${qty}</span>
-              <button class="qty-btn" data-good="${good}" data-delta="1" aria-label="${t('trade.increase')}">+</button>
-            </div>
-            <div class="qty-quick-buttons">
-              <button class="qty-quick" data-good="${good}" data-set="1">1</button>
-              <button class="qty-quick" data-good="${good}" data-set="5">5</button>
-              <button class="qty-quick" data-good="${good}" data-set="max">${t('trade.max')}</button>
-            </div>
-          </div>
-
-          <div class="quote-preview">
-            <div class="quote-line">
-              <span class="quote-mode">${t('trade.buyN', { n: qty })}</span>
-              <span class="quote-total ${canBuy ? 'affordable' : 'unaffordable'}">${costQuote} 🪙</span>
-              ${qty > 1 ? `<span class="quote-avg">${t('trade.each', { price: formatNumber(costQuote / qty, 1) })}</span>` : ''}
-            </div>
-            <div class="quote-line">
-              <span class="quote-mode">${t('trade.sellN', { n: qty })}</span>
-              <span class="quote-total income">+${sellQuote} 🪙</span>
-              ${qty > 1 ? `<span class="quote-avg">${t('trade.each', { price: formatNumber(sellQuote / qty, 1) })}</span>` : ''}
-            </div>
-          </div>
-
-          <div class="good-actions">
-            <button
-              class="trade-act-btn buy-btn"
-              data-action="buy"
-              data-good="${good}"
-              data-qty="${qty}"
-              ${!canBuy ? 'disabled' : ''}
-              title="${buyDisabledReason}"
-            >
-              ${canBuy ? t('trade.buyFor', { n: qty, price: costQuote }) : buyDisabledReason}
-            </button>
-            <button
-              class="trade-act-btn sell-btn"
-              data-action="sell"
-              data-good="${good}"
-              data-qty="${qty}"
-              ${!canSell ? 'disabled' : ''}
-              title="${sellDisabledReason}"
-            >
-              ${canSell ? t('trade.sellFor', { n: qty, price: sellQuote }) : sellDisabledReason}
-            </button>
-          </div>
+        <article class="good-row ${role}">
+          <span class="good-icon">${icon(good)}</span>
+          <span class="good-text">
+            <b class="good-name">${goodName(def.id)}</b>
+            ${note ? `<small class="good-note">${note}</small>` : ''}
+          </span>
+          <span class="good-best">${best ? `<small>${t('trade.bestElsewhereTitle')}</small>${t('trade.paysAt', { name: best.name, price: best.sell })}` : ''}</span>
+          <span class="good-hold"><b>${inHold}</b><small>${t('trade.hold')}</small></span>
+          <button
+            class="trade-act-btn buy-btn port-btn brass"
+            data-action="buy"
+            data-good="${good}"
+            data-qty="${buyQty}"
+            ${!canBuy ? 'disabled' : ''}
+            title="${canBuy ? t('trade.buyFor', { n: buyQty, price: costQuote }) : buyDisabledReason}"
+          ><small>${t('trade.buy')}${qtyLabel(buyQty)}</small><b>${costQuote}</b></button>
+          <button
+            class="trade-act-btn sell-btn port-btn green ${role === 'wants' ? 'pays-well' : ''}"
+            data-action="sell"
+            data-good="${good}"
+            data-qty="${sellQty}"
+            ${!canSell ? 'disabled' : ''}
+            title="${canSell ? t('trade.sellFor', { n: sellQty, price: sellQuote }) : sellDisabledReason}"
+          ><small>${t('trade.sell')}${qtyLabel(sellQty)}</small><b>${sellQuote}</b></button>
         </article>
       `;
     }).join('');
 
+    // Side panel: this port's order, then where the cargo (or what this port makes) sells best.
+    const hereGoods = GOODS.filter((g) => captain.cargo[g] > 0);
+    const tips = (hereGoods.length ? hereGoods : port.produces)
+      .map((g) => {
+        const best = this.bestSaleElsewhere(g as GoodId);
+        return best
+          ? `<li>${icon(g)} ${t('trade.paysAt', { name: best.name, price: best.sell })}</li>`
+          : '';
+      })
+      .join('');
+    const missing = liveOrder ? liveOrder.qty - captain.cargo[liveOrder.good] : 0;
+    const orderHtml = liveOrder
+      ? `<p class="order-line">${icon(liveOrder.good)} <b>${t('trade.contractGoods', { qty: liveOrder.qty, good: goodName(liveOrder.good).toLowerCase() })}</b> → <b>${liveOrder.reward}</b>${COIN}</p>
+         <button id="tp-deliver" class="port-btn green deliver-btn" ${missing > 0 ? 'disabled' : ''}>
+           ${missing > 0 ? t('trade.needMore', { n: missing }) : t('trade.deliverFor', { reward: liveOrder.reward })}
+         </button>`
+      : `<p class="muted">${t('trade.noOrder')}</p>`;
+
     return `
       <div class="market-section adult-layout">
-        ${
-          sellAllGold > 0
-            ? `
-          <div class="sell-all-bar">
-            <span>${t('trade.cargoReady')}</span>
-            <button id="tp-sell-all" class="sell-all-btn">
-              ${t('trade.sellAll', { price: sellAllGold })}
-            </button>
-          </div>
-        `
-            : ''
-        }
-        <div class="goods-grid">
-          ${cardsHtml}
-        </div>
+        <div class="goods-list">${rowsHtml}</div>
+        <aside class="port-side">
+          <section class="side-card">
+            <h3>${t('trade.orderHere')}</h3>
+            ${orderHtml}
+          </section>
+          ${tips ? `<section class="side-card"><h3>${t('trade.bestElsewhereTitle')}</h3><ul>${tips}</ul></section>` : ''}
+        </aside>
       </div>
     `;
   }
@@ -749,10 +699,10 @@ export class TradePanel {
       if (isMax) {
         buttonHtml = `<button class="upgrade-btn maxed" disabled>${t('upg.maxLevel')}</button>`;
       } else if (canAfford) {
-        buttonHtml = `<button class="upgrade-btn primary" data-track="${track}">${t('upg.upgradeTo', { level: currentLevel + 1, price: nextPrice! })}</button>`;
+        buttonHtml = `<button class="upgrade-btn primary" data-track="${track}">${t('upg.upgradeTo', { price: nextPrice! })}</button>`;
       } else {
         const short = nextPrice! - captain.gold;
-        buttonHtml = `<button class="upgrade-btn" disabled title="${t('upg.needGoldTitle', { n: short })}">${t('upg.upgradeShort', { level: currentLevel + 1, price: nextPrice!, n: short })}</button>`;
+        buttonHtml = `<button class="upgrade-btn" disabled title="${t('upg.needGoldTitle', { n: short })}">${t('upg.upgradeShort', { price: nextPrice!, n: short })}</button>`;
       }
 
       const pipsHtml = [1, 2, 3]
@@ -938,31 +888,14 @@ export class TradePanel {
       this.render();
     });
 
-    // Stepper buttons
-    this.container.querySelectorAll<HTMLButtonElement>('.qty-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const good = btn.dataset.good as GoodId;
-        const delta = parseInt(btn.dataset.delta || '0', 10);
-        if (!good) return;
-        const cur = this.selectedQuantities[good] ?? 1;
-        this.selectedQuantities[good] = Math.max(1, cur + delta);
-        this.render();
-      });
+    this.container.querySelector('#tp-tab-orders')?.addEventListener('click', () => {
+      this.tab = 'orders';
+      this.render();
     });
 
-    // Quick quantity buttons
-    this.container.querySelectorAll<HTMLButtonElement>('.qty-quick').forEach((btn) => {
+    this.container.querySelectorAll<HTMLButtonElement>('[data-lot]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const good = btn.dataset.good as GoodId;
-        const setVal = btn.dataset.set;
-        if (!good) return;
-        if (setVal === 'max') {
-          const m = maxBuy(this.world.trade, good);
-          const hold = this.world.trade.captain.cargo[good];
-          this.selectedQuantities[good] = Math.max(1, Math.max(m, hold));
-        } else {
-          this.selectedQuantities[good] = parseInt(setVal || '1', 10);
-        }
+        this.lot = Number(btn.dataset.lot) as Lot;
         this.render();
       });
     });

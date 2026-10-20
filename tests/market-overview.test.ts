@@ -69,6 +69,6 @@ describe('top needs and market overview (decision 0036)', () => {
       ids.filter((id) => id !== 'saltmere'),
     ).sort((a, b) => b.sell - a.sell)[0]!;
     const name = PHASE1_MAP.ports.find((p) => p.id === best.portId)!.name;
-    expect(document.body.textContent).toContain(`Best sale elsewhere: ${name} ${best.sell}`);
+    expect(document.body.textContent).toContain(`${name} pays ${best.sell}`);
   });
 });
