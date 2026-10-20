@@ -77,6 +77,7 @@ Goal: a complete, short game loop someone else can enjoy for 15 minutes.
   - *Later (Guillaume, 2026-10-19):* make damage visible and audible: crash sounds, floating debris and splash effects on impact, and the boat model changing at each 20–25 % of hull lost (scuffed paint, patched or torn sails, missing rails, a list), cleared by repair.
 - **Docking you can rely on and a visible sea edge** (implemented for review, [0041](decisions/0041-harbour-mooring-and-edge-buoys.md)): lowering sails near a port while already slow (under 3 kn) brings the boat to a dead stop and docks it; fast arrivals still crash. Clearer pier cues. Red bobbing buoys mark the edge of the map.
 - **Visual heeling** (implemented for review, [0044](decisions/0044-visual-heeling.md)): the boat leans away from the wind, most on a reach, little running, more in strong wind and with a lurch in gusts, easing off in an island's lee; wide, heavy ships lean less than tall, slim ones. Purely visual, calmer on Low.
+- **Background music** (requested by Guillaume, 2026-10-20; implemented for review, [0045](decisions/0045-background-music.md)): the "Fair Winds" theme, a light sea-folk air on a flute over quiet chords, composed live in code so it never repeats exactly; Music volume slider in Settings. Picked from six samples over two listening rounds.
 
 **Done when:** you can earn enough to buy upgrades and the cutter, and feel the difference.
 
@@ -141,7 +142,7 @@ Timed delivery races between ports, alongside the sandbox rather than replacing 
 
 ## Phase 7 — Polish and optional extras
 
-- Sound: waves, creaking hulls, sails, ambient port music.
+- Sound: waves, creaking hulls, sails, crashes, port music (the round-1 jig from [0045](decisions/0045-background-music.md) is a candidate). Background music is already in ([0045](decisions/0045-background-music.md)).
 - Ship cosmetics (sail colors, flags, figureheads).
 - Achievements.
 - **Kids mode rework** (shelved in [0043](decisions/0043-shelve-kids-mode.md), code kept behind `KIDS_MODE_AVAILABLE`): rework controls, text and pacing so a child can actually sail and trade, on top of the redesigned UI, then show the switch again.

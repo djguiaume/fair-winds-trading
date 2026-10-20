@@ -71,6 +71,7 @@ export const fr: Record<MessageKey, string> = {
   'settings.high': 'Élevé',
   'settings.nowUsing': 'Actuellement : {level}',
   'settings.showFps': 'Afficher les IPS',
+  'settings.music': 'Musique',
   'settings.shiftWind': 'Tourner le vent de 45°',
   'settings.resetBoat': 'Retour au départ',
   'settings.newGame': 'Nouvelle partie (efface la progression)',

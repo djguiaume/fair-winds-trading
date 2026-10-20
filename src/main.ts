@@ -25,6 +25,7 @@ import {
 } from './ui/fullscreen';
 import { Hud } from './ui/hud';
 import { loadSettings, saveSettings } from './ui/settings';
+import { Music } from './audio/music';
 import { SeaChart } from './ui/seaChart';
 import {
   LANGUAGES,
@@ -51,6 +52,14 @@ const stage = $('stage');
 
 // Language: the player's choice, else the browser's, else English (decision 0037).
 const settings = loadSettings();
+
+// Background music (decision 0045): browsers only allow sound after a tap or key press, so the
+// first one anywhere starts it (iOS only honours some event types, so listen to several).
+const music = new Music(settings.musicVolume);
+const unlockAudio = () => music.unlock();
+for (const type of ['pointerdown', 'pointerup', 'touchend', 'keydown'] as const) {
+  window.addEventListener(type, unlockAudio, { capture: true, once: true });
+}
 setLanguage(settings.language ?? detectLanguage(browserLanguages()));
 translateDom();
 const canvas = $<HTMLCanvasElement>('scene');
@@ -371,6 +380,14 @@ qualitySelect.addEventListener('change', () => {
   saveSettings(settings);
   setLevel(settings.quality === 'auto' ? guessQuality() : settings.quality);
 });
+const musicVolume = $<HTMLInputElement>('music-volume');
+musicVolume.value = String(Math.round(settings.musicVolume * 100));
+musicVolume.addEventListener('input', () => {
+  settings.musicVolume = Number(musicVolume.value) / 100;
+  music.unlock();
+  music.setVolume(settings.musicVolume);
+});
+musicVolume.addEventListener('change', () => saveSettings(settings));
 showFps.addEventListener('change', () => {
   settings.showFps = showFps.checked;
   saveSettings(settings);
@@ -478,6 +495,7 @@ function tick(now: number) {
 
 // Stop rendering while the tab is hidden (battery on phones and tablets).
 document.addEventListener('visibilitychange', () => {
+  music.setHidden(document.hidden);
   if (document.hidden) {
     autosave();
     cancelAnimationFrame(frame);
