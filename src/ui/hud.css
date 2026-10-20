@@ -51,133 +51,6 @@ body {
   font-size: 12px;
 }
 
-/* Speed */
-.speed {
-  position: absolute;
-  top: max(12px, env(safe-area-inset-top));
-  left: var(--gap);
-  min-width: 128px;
-}
-.speed .big {
-  font-size: 28px;
-  font-weight: bold;
-  line-height: 1;
-}
-.speed small {
-  font-size: 14px;
-  margin-left: 4px;
-  opacity: 0.8;
-}
-.pos {
-  font-size: 13px;
-  margin-top: 4px;
-  font-weight: bold;
-}
-.pos.bad {
-  color: #ff8a73;
-}
-.pos.good {
-  color: #9be37d;
-}
-.sail-pips {
-  display: flex;
-  gap: 4px;
-  margin-top: 6px;
-}
-.sail-pips i {
-  flex: 1;
-  height: 6px;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.2);
-}
-.sail-pips i.on {
-  background: #f4f0e2;
-}
-
-/* Objective */
-.objective {
-  position: absolute;
-  top: max(12px, env(safe-area-inset-top));
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  font-size: 15px;
-}
-.objective b {
-  color: #ffe680;
-}
-
-/* Compass */
-.compass {
-  position: absolute;
-  top: max(12px, env(safe-area-inset-top));
-  right: var(--gap);
-  width: 118px;
-  text-align: center;
-  font-weight: bold;
-  font-size: 13px;
-  padding: 6px;
-  white-space: nowrap;
-}
-.compass .title {
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  opacity: 0.8;
-}
-.compass svg {
-  display: block;
-  width: 96px;
-  height: 96px;
-  margin: 2px auto 2px;
-  overflow: visible;
-}
-.compass .ring {
-  fill: rgba(255, 255, 255, 0.06);
-  stroke: rgba(255, 255, 255, 0.45);
-  stroke-width: 2;
-}
-.compass .nogo {
-  fill: rgba(255, 90, 70, 0.35);
-}
-.compass .north {
-  fill: #fff;
-  font-size: 10px;
-  text-anchor: middle;
-}
-.compass .wind {
-  fill: #9fe7ff;
-}
-.compass .boat {
-  fill: #f4f0e2;
-  stroke: #5b3a1e;
-  stroke-width: 1.5;
-}
-.compass .wp {
-  fill: #ffe680;
-  stroke: #8a6200;
-  stroke-width: 1.5;
-}
-
-/* Off-screen buoy arrow */
-.wp-arrow {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 34px;
-  height: 34px;
-  margin: -17px 0 0 -17px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: rgba(20, 40, 50, 0.72);
-  border: 2px solid #ffe680;
-  color: #ffe680;
-  font-size: 15px;
-}
-.wp-arrow[hidden] {
-  display: none;
-}
-
 /* Toast */
 .toast {
   position: absolute;
@@ -231,56 +104,6 @@ body {
 }
 .tiller[hidden] {
   display: none;
-}
-
-/* Sail buttons */
-.sail-buttons {
-  position: absolute;
-  right: var(--gap);
-  bottom: max(16px, env(safe-area-inset-bottom));
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  font-weight: bold;
-  font-size: 13px;
-}
-.sail-buttons button,
-.icon-btn {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  border: 3px solid rgba(255, 255, 255, 0.6);
-  background: rgba(20, 40, 50, 0.72);
-  color: #fff;
-  font-size: 24px;
-  font-family: inherit;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-.sail-buttons button:active,
-.icon-btn:active {
-  background: rgba(60, 110, 120, 0.9);
-}
-.top-buttons {
-  position: absolute;
-  left: var(--gap);
-  bottom: max(16px, env(safe-area-inset-bottom));
-  display: flex;
-  gap: 8px;
-}
-.icon-btn {
-  width: 44px;
-  height: 44px;
-  font-size: 20px;
-  border-width: 2px;
-}
-.fps {
-  position: absolute;
-  left: var(--gap);
-  bottom: calc(max(16px, env(safe-area-inset-bottom)) + 52px);
-  font: 12px monospace;
-  opacity: 0.8;
 }
 
 /* Settings */
@@ -381,42 +204,10 @@ button.primary {
 }
 
 @media (max-width: 560px) {
-  .objective {
-    top: auto;
-    bottom: max(16px, env(safe-area-inset-bottom));
-    font-size: 13px;
-  }
-  .speed .big {
-    font-size: 22px;
-  }
-  .compass {
-    width: 96px;
-  }
-  .compass svg {
-    width: 76px;
-    height: 76px;
-  }
-  .top-buttons {
-    bottom: auto;
-    top: calc(max(12px, env(safe-area-inset-top)) + 96px);
-  }
-  .fps {
-    bottom: auto;
-    top: calc(max(12px, env(safe-area-inset-top)) + 148px);
-  }
   .help .controls {
     flex-direction: column;
     gap: 8px;
   }
-}
-
-/* Fullscreen button state */
-.icon-btn[hidden] {
-  display: none;
-}
-.icon-btn.on {
-  border-color: #ffe680;
-  color: #ffe680;
 }
 
 /* Main menu (decision 0017): the live scene stays visible behind it. */
@@ -574,85 +365,6 @@ body.in-menu .settings .in-game {
     min-height: 52px;
   }
 }
-
-/* Compass help: quiet, local feedback rather than repeated sailing-warning toasts. */
-.compass-open {
-  display: block;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  text-shadow: inherit;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-.compass .title {
-  display: block;
-}
-.compass-open:focus-visible,
-.upwind-chip:focus-visible,
-.wind-first-hint button:focus-visible {
-  outline: 2px solid #ffe3a0;
-  outline-offset: 3px;
-  border-radius: 6px;
-}
-.compass.is-upwind .boat {
-  fill: #ffce7a;
-}
-.compass.wind-pulse .nogo {
-  animation: wind-gentle-pulse 1.8s ease-in-out infinite;
-}
-@keyframes wind-gentle-pulse {
-  50% {
-    opacity: 0.4;
-  }
-}
-.upwind-chip {
-  width: 100%;
-  min-height: 44px;
-  margin-top: 4px;
-  padding: 5px 2px;
-  border: 0;
-  border-radius: 7px;
-  background: #574c2a66;
-  color: #ffdfa0;
-  font: inherit;
-  font-size: 11px;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-.upwind-chip[hidden],
-.wind-first-hint[hidden] {
-  display: none;
-}
-.wind-first-hint {
-  pointer-events: auto;
-  position: absolute;
-  right: 0;
-  top: calc(100% + 6px);
-  width: min(214px, calc(100vw - 24px));
-  display: flex;
-  align-items: center;
-  white-space: normal;
-  background: #153b47ed;
-  border: 1px solid #9aa99a;
-  border-radius: 8px;
-  padding-left: 10px;
-  font-size: 12px;
-  font-weight: normal;
-  text-align: left;
-}
-.wind-first-hint button {
-  flex: 0 0 44px;
-  min-height: 44px;
-  border: 0;
-  background: transparent;
-  color: #f0e7cc;
-  font-size: 22px;
-  cursor: pointer;
-}
 #hud .wind-help {
   pointer-events: auto;
   width: min(92vw, 360px);
@@ -689,231 +401,10 @@ body.in-menu .settings .in-game {
   font: inherit;
   cursor: pointer;
 }
-@media (prefers-reduced-motion: reduce) {
-  .compass.wind-pulse .nogo {
-    animation: none;
-  }
-}
-
-/* ==========================================================================
-   Phase 1 Trading, Shipyard, Port Labels & Captain Stats
-   ========================================================================== */
-
-/* Persistent Captain Stats HUD (Gold, Cargo, Ship) */
-.captain-stats {
-  position: absolute;
-  top: max(12px, env(safe-area-inset-top));
-  left: calc(var(--gap) + 144px);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  padding: 6px 12px;
-  z-index: 10;
-}
-
-.captain-stat {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 8px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-.captain-stat b {
-  color: #ffe680;
-}
-
-.captain-stat.ship-tag {
-  background: rgba(242, 194, 48, 0.16);
-  border-color: rgba(242, 194, 48, 0.4);
-  color: #ffe680;
-  font-weight: bold;
-}
-
-.cargo-tooltip {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  background: rgba(12, 28, 38, 0.95);
-  border: 2px solid #ffe680;
-  border-radius: 10px;
-  padding: 8px 12px;
-  font-size: 13px;
-  line-height: 1.4;
-  white-space: nowrap;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-  z-index: 25;
-}
-
-.cargo-tooltip[hidden] {
-  display: none;
-}
-
-/* Docking Button Prompt */
-.dock-btn {
-  position: absolute;
-  left: 50%;
-  bottom: max(18px, env(safe-area-inset-bottom));
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 24px;
-  border-radius: 30px;
-  background: #f2c230;
-  color: #5a3d00;
-  border: 3px solid #fff3c4;
-  font-family: inherit;
-  font-size: 17px;
-  font-weight: bold;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
-  cursor: pointer;
-  z-index: 15;
-  touch-action: manipulation;
-  animation: dock-pulse 2.2s infinite ease-in-out;
-}
-
-.dock-btn:active {
-  background: #ffd75a;
-}
-
-.dock-btn[hidden] {
-  display: none;
-}
-
-.dock-icon {
-  font-size: 20px;
-}
-
-@keyframes dock-pulse {
-  0%,
-  100% {
-    transform: translateX(-50%) scale(1);
-  }
-  50% {
-    transform: translateX(-50%) scale(1.05);
-  }
-}
 
 .danger-btn {
   border-color: rgba(255, 120, 100, 0.5) !important;
   color: #ff8a73 !important;
-}
-
-/* Floating Port Markers */
-.port-labels-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 5;
-}
-
-.port-marker {
-  position: absolute;
-  left: 0;
-  top: 0;
-  pointer-events: auto;
-  cursor: pointer;
-  user-select: none;
-  transition: transform 0.05s linear;
-}
-
-.port-marker-box {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-  background: rgba(14, 30, 40, 0.88);
-  border: 2px solid rgba(255, 230, 128, 0.5);
-  border-radius: 10px;
-  padding: 5px 9px;
-  white-space: nowrap;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-  text-align: center;
-}
-
-.port-marker.docked .port-marker-box {
-  border-color: #9be37d;
-  background: rgba(16, 40, 36, 0.92);
-}
-
-.port-marker.offscreen .port-marker-box {
-  bottom: auto;
-  top: -14px;
-  padding: 3px 6px;
-  font-size: 11px;
-}
-
-.port-marker-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  align-items: baseline;
-  font-size: 13px;
-  font-weight: bold;
-}
-
-.port-marker-name {
-  color: #ffe680;
-}
-
-.port-marker-dist {
-  font-size: 11px;
-  opacity: 0.8;
-}
-
-.port-marker-tag {
-  font-size: 11px;
-  display: flex;
-  gap: 5px;
-  justify-content: center;
-  margin-top: 1px;
-}
-
-.produces-tag {
-  color: #9be37d;
-}
-
-.wants-tag {
-  color: #ffe680;
-}
-
-.port-marker-dock {
-  margin-top: 3px;
-  font-size: 11px;
-  font-weight: bold;
-  color: #5a3d00;
-  background: #f2c230;
-  border-radius: 6px;
-  padding: 2px 6px;
-}
-
-.port-marker-dock[hidden] {
-  display: none;
-}
-
-.port-marker-arrow {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 22px;
-  height: 22px;
-  margin: -11px 0 0 -11px;
-  display: grid;
-  place-items: center;
-  color: #ffe680;
-  font-size: 13px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-}
-
-.port-marker-arrow[hidden] {
-  display: none;
 }
 
 /* Trade Panel Modal Overlay */
@@ -1592,13 +1083,6 @@ body.in-menu .settings .in-game {
 
 /* Responsive adjustments */
 @media (max-width: 560px) {
-  .captain-stats {
-    top: calc(max(12px, env(safe-area-inset-top)) + 76px);
-    left: var(--gap);
-    padding: 4px 8px;
-    font-size: 13px;
-  }
-
   .trade-modal {
     padding: 12px 14px;
     max-height: 94vh;
@@ -1613,41 +1097,6 @@ body.in-menu .settings .in-game {
   .port-name {
     font-size: 22px;
   }
-}
-
-/* Keep the new HUD clear of the compass, objective and helm controls. */
-.captain-stats {
-  top: calc(max(12px, env(safe-area-inset-top)) + 86px);
-  left: var(--gap);
-  max-width: calc(100vw - 150px);
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.captain-stat {
-  cursor: default;
-}
-button.captain-stat {
-  pointer-events: auto;
-  cursor: pointer;
-  color: inherit;
-  font: inherit;
-  min-height: 44px;
-}
-.port-marker {
-  border: 0;
-  padding: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-}
-.port-marker-box {
-  min-height: 44px;
-}
-.port-marker:focus-visible .port-marker-box {
-  outline: 3px solid white;
-}
-.port-marker[hidden] {
-  display: none;
 }
 .trade-modal {
   min-width: 0;
@@ -1676,77 +1125,13 @@ button.captain-stat {
   margin: 0;
   color: #ffe680;
 }
-body.is-docked .objective {
-  visibility: hidden;
-}
 @media (max-width: 560px) {
-  .captain-stats {
-    max-width: calc(100vw - 128px);
-    padding: 4px;
-    font-size: 12px;
-  }
-  .captain-stat {
-    padding: 4px;
-  }
-  .captain-stat.ship-tag {
-    display: none;
-  }
-  .top-buttons {
-    top: calc(max(12px, env(safe-area-inset-top)) + 150px);
-  }
-  .fps {
-    top: calc(max(12px, env(safe-area-inset-top)) + 202px);
-  }
   .trade-header {
     flex-wrap: wrap;
   }
   .header-controls {
     width: 100%;
     justify-content: space-between;
-  }
-  .dock-btn {
-    max-width: calc(100vw - 128px);
-    padding: 10px 12px;
-    font-size: 14px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .dock-btn {
-    animation: none;
-  }
-  .port-marker {
-    transition: none;
-  }
-}
-
-/* Anchor labels to actual pier heads instead of hiding them behind the island. */
-.port-marker-cue {
-  display: block;
-  font-size: 11px;
-  margin-top: 3px;
-  color: #f5e6bc;
-}
-.port-marker.ready .port-marker-box {
-  border-color: #9be37d;
-}
-.port-marker-icon {
-  font-size: 20px;
-  color: #ffe680;
-}
-.port-marker-tag {
-  display: none;
-}
-.port-marker-box::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: calc(50% - 5px);
-  border: 5px solid transparent;
-  border-top-color: #ffe680;
-}
-@media (max-width: 560px) {
-  .dock-btn {
-    bottom: calc(max(18px, env(safe-area-inset-bottom)) + 72px);
   }
 }
 
@@ -1849,34 +1234,6 @@ body.is-docked .objective {
 }
 .chart-port:focus {
   outline: 3px solid white;
-}
-/* Optional destination stays away from top stats and never appears in free sailing. */
-.objective {
-  top: auto;
-  bottom: max(12px, env(safe-area-inset-bottom));
-  max-width: calc(100vw - 170px);
-  white-space: normal;
-  font-size: 13px;
-}
-.objective[hidden] {
-  display: none;
-}
-/* Ship name is available at the shipyard; keep the sailing summary compact. */
-.captain-stats .ship-tag {
-  display: none;
-}
-
-#chart-btn {
-  width: 58px;
-  border-radius: 12px;
-  font-size: 16px;
-}
-.objective {
-  left: calc(var(--gap) + 118px);
-  right: calc(var(--gap) + 80px);
-  transform: none;
-  max-width: none;
-  width: fit-content;
 }
 
 /* Optional tutorial: one small card, moved into the active chart/market/sea surface. */
@@ -1991,11 +1348,7 @@ body.is-docked .objective {
   opacity: 0.9;
 }
 
-/* Hull condition and repair (decision 0032) */
-.hull-stat.is-low {
-  color: #ffb27a;
-}
-
+/* Hull repair in port (decision 0032) */
 .repair-bar {
   display: flex;
   flex-wrap: wrap;
@@ -2081,27 +1434,7 @@ body.is-docked .objective {
   font-size: 13px;
   opacity: 0.85;
 }
-
-/* Wind strength gauge (decision 0040): five bars, a word and a short gust cue under the dial.
-   Colour always comes with a bar count, so the strength still reads without colour. */
-.compass {
-  --force: #7fe0a8;
-}
-.compass[data-force='0'] {
-  --force: #c9d6da;
-}
-.compass[data-force='1'] {
-  --force: #9fe7ff;
-}
-.compass[data-force='3'] {
-  --force: #ffe17a;
-}
-.compass[data-force='4'] {
-  --force: #ffa25a;
-}
-.compass .wind {
-  fill: var(--force);
-}
+/* Wind strength gauge (decision 0040), hidden for now; the rest of the compass is in sea-hud.css. */
 .wind-gauge {
   display: flex;
   align-items: flex-end;
@@ -2135,72 +1468,13 @@ body.is-docked .objective {
 .wind-gauge i.on {
   background: var(--force);
 }
-.wind-force-line {
-  display: block;
-  font-size: 14px;
-  color: var(--force);
-}
-.compass #wind-text {
-  display: block;
-  font-size: 12px;
-  font-weight: normal;
-  opacity: 0.85;
-}
-.wind-gust {
-  margin-left: 3px;
-  padding: 0 5px;
-  border-radius: 6px;
-  background: #ffffff26;
-  color: #fff;
-  font-size: 11px;
-}
 .wind-gauge[hidden],
 .wind-gust[hidden] {
-  display: none;
-}
-.compass.is-kids {
-  width: 132px;
-}
-.compass.is-kids .wind-gauge {
-  gap: 4px;
-  height: 25px;
-}
-.compass.is-kids .wind-gauge i {
-  width: 16px;
-}
-.compass.is-kids .wind-gauge i:nth-child(1) {
-  height: 7px;
-}
-.compass.is-kids .wind-gauge i:nth-child(2) {
-  height: 11px;
-}
-.compass.is-kids .wind-gauge i:nth-child(3) {
-  height: 15px;
-}
-.compass.is-kids .wind-gauge i:nth-child(4) {
-  height: 20px;
-}
-.compass.is-kids .wind-gauge i:nth-child(5) {
-  height: 25px;
-}
-.compass.is-kids .wind-force-line {
-  font-size: 17px;
-}
-.compass.is-kids #wind-text {
   display: none;
 }
 @media (max-height: 500px), (max-width: 600px) {
   .wind-gauge i {
     width: 10px;
-  }
-  .compass.is-kids {
-    width: 112px;
-  }
-  .compass.is-kids .wind-gauge i {
-    width: 14px;
-  }
-  .compass.is-kids .wind-force-line {
-    font-size: 15px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

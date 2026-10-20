@@ -6,7 +6,7 @@ import { clamp } from '../sim/math';
  *
  * - Keyboard: ←/→ or A/D steer, ↑/↓ or W/S raise/lower sails.
  * - Touch or mouse: press anywhere on the sea and drag left/right to steer, like a tiller;
- *   the farther you drag, the harder you turn. Sail buttons live in the HUD.
+ *   the farther you drag, the harder you turn. The sail lever lives in the HUD.
  */
 export class Input {
   private left = false;
@@ -15,6 +15,7 @@ export class Input {
   private dragOriginX = 0;
   private dragSteer = 0;
   private sailDelta = 0;
+  private sailTarget: number | null = null;
   private enabled = true;
   /** Called on the first input of any kind (e.g. to hide the help card). */
   onActivity: () => void = () => {};
@@ -60,6 +61,21 @@ export class Input {
     const d = this.sailDelta;
     this.sailDelta = 0;
     return d;
+  }
+
+  /** Sail setting picked on the HUD lever since the last call, or null. */
+  takeSailTarget(): number | null {
+    const target = this.enabled ? this.sailTarget : null;
+    this.sailTarget = null;
+    return target;
+  }
+
+  /** Jump straight to a sail step (the HUD lever), instead of one step up or down. */
+  setSail(step: number) {
+    if (!this.enabled) return;
+    this.sailTarget = step;
+    this.sailDelta = 0;
+    this.onActivity();
   }
 
   pressSail(delta: number) {
@@ -113,6 +129,7 @@ export class Input {
     this.dragId = null;
     this.dragSteer = 0;
     this.sailDelta = 0;
+    this.sailTarget = null;
     this.onDrag(null);
   };
 

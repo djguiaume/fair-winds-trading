@@ -57,7 +57,7 @@ export const en = {
     '<b>Open Map</b> (M) to find ports and place markers. Only your chosen destination gets a bearing cue.',
   'help.touch': 'Touch',
   'help.touchControls':
-    'Drag left/right anywhere to steer<br />▲ ▼ to raise/lower sails<br />Tap port markers to navigate',
+    'Drag left/right anywhere to steer<br />Sail lever (right) to set the sails<br />Tap port markers to navigate',
   'help.keyboard': 'Keyboard',
   'help.keyboardControls':
     '← → or A D to steer<br />↑ ↓ or W S for sails<br />Mouse wheel to zoom<br />M to open the chart',
@@ -81,12 +81,9 @@ export const en = {
 
   // --- HUD -----------------------------------------------------------------------------------
   'hud.sails': 'Sails',
-  'hud.raiseSails': 'Raise sails',
-  'hud.lowerSails': 'Lower sails',
   'hud.gold': "Captain's Gold",
   'hud.cargo': 'Cargo Hold Capacity',
   'hud.hull': 'Hull condition',
-  'hud.ship': 'Active Vessel',
   'hud.holdEmpty': 'Hold is empty',
   'hud.tradeAt': 'Trade at',
   'hud.openTrade': 'Open port trade',
@@ -97,6 +94,11 @@ export const en = {
   'hud.fps': '{n} fps',
   'hud.lee': 'lee',
   'hud.sailsDown': 'Sails down',
+  'hud.sailFull': 'Full',
+  'hud.sailHalf': 'Half',
+  'hud.sailNone': 'Down',
+  'hud.hdg': 'HDG',
+  'hud.showLog': 'Show speed and heading',
   'pos.in-irons': 'Headwind',
   'pos.close-hauled': 'Close-hauled',
   'pos.beam-reach': 'Beam reach',
@@ -113,7 +115,6 @@ export const en = {
   'toast.bump': 'Bump! Mind the shore',
 
   // --- Wind compass and tacking tips ---------------------------------------------------------
-  'wind.title': 'WIND',
   'wind.compass': 'Wind compass. Open sailing tips',
   'wind.compassUpwind': 'Wind compass. Into the wind. Open sailing tips',
   'wind.chip': 'Into the wind ⓘ',
@@ -144,7 +145,10 @@ export const en = {
   // --- Port markers at sea -------------------------------------------------------------------
   'port.setCourse': 'Set course for {name}',
   'port.harbour': 'Harbour',
-  'port.wants': 'Wants {goods}',
+  'port.wantsLabel': 'Wants',
+  'port.makesLabel': 'Makes',
+  'port.dockBtn': 'Dock',
+  'port.tradeBtn': 'Trade',
   'port.cueDocked': 'Docked · Tap to trade',
   'port.cueCanDock': 'Tap to dock & trade',
   'port.cueSlowDown': 'Slow down to dock',
@@ -219,7 +223,7 @@ export const en = {
     'Tap a nearby anchor or a port button below to set a bearing. Close the chart when ready. This is a direction, not a safe route through land.',
   'lesson.sails.title': 'Try sails and steering',
   'lesson.sails.copy':
-    'Lower sails with ▼ / ↓, then raise with ▲ / ↑. Drag left/right on the sea or use ← → to steer. Leave the harbour and sail a little; avoid the coast.',
+    'Lower the sails with the lever on the right (or ↓), then raise them again (or ↑). Drag left/right on the sea or use ← → to steer. Leave the harbour and sail a little; avoid the coast.',
   'lesson.sails.continue': 'I know these controls',
   'lesson.wind.title': 'Let the wind help',
   'lesson.wind.copy':

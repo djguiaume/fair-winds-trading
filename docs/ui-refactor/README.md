@@ -2,6 +2,8 @@
 
 *2026-10-20. Analysis only: nothing here is decided yet. The decisions we take from it will get their own ADRs.*
 
+**Status:** style D chosen and recorded in [ADR 0049](../decisions/0049-ui-instrument-style.md). The **Sea HUD is built** ([screenshots](sea-hud/README.md)); Port, Chart and menus come next.
+
 Roadmap item: **Complete UI redesign** (Phase 1, [roadmap](../roadmap.md)). Constraints that still hold: desktop **and** touch, smooth on an old tablet and a phone ([0006](../decisions/0006-desktop-and-mobile.md)), English and French ([0037](../decisions/0037-english-and-french-translations.md)), style of the *Privateers: Pirate Wars* ad ([reference](../reference/)).
 
 ![Current UI on a phone in landscape](current/overview-phone-landscape.jpg)
@@ -197,3 +199,4 @@ CHART: full-screen map, ✕ top-right, good selector chips along the bottom colo
 2. **Port:** full-screen.
 3. **Layouts:** phone landscape and desktop first; portrait must also work and look good.
 4. **Visual direction:** after seeing three styles, Guillaume chose C with B's icons and buttons, B's chart, speed, heading and point of sail in a log at the top right beside the compass, and cargo shown as a count with a filling crate icon (no bar). The combined proposal is [style D](mockups/README.md#style-d-combined-proposal).
+5. **Build:** "Yes go" for the ADR and the Sea HUD. Done in [ADR 0049](../decisions/0049-ui-instrument-style.md), see the [Sea HUD screenshots](sea-hud/README.md). Next: the full-screen Port screen.
