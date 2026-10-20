@@ -58,7 +58,7 @@ export const fr: Record<MessageKey, string> = {
   'help.trade':
     '<b>Commerce et ports :</b> approchez lentement du quai d’une île et affalez, l’équipage vous met à quai pour échanger des marchandises au marché, améliorer votre navire et acheter le cotre.',
   'help.map':
-    '<b>Ouvrez la carte</b> (M) pour trouver les ports et poser des repères. Seule la destination choisie affiche un cap.',
+    '<b>Ouvrez la carte</b> (M) pour comparer les prix et choisir un port. Seule la destination choisie affiche un cap.',
   'help.touch': 'Tactile',
   'help.touchControls':
     'Glissez à gauche ou à droite pour barrer<br />Levier des voiles (à droite) pour les régler<br />Touchez les ports pour y mettre le cap',
@@ -165,19 +165,16 @@ export const fr: Record<MessageKey, string> = {
 
   // --- Carte marine --------------------------------------------------------------------------
   'chart.legendTitle': 'Légende',
-  'chart.marketShort': 'Prix',
-  'chart.markersTitle': 'Repères',
+  'chart.marketShort': 'Tous les prix',
   'chart.tools': 'Outils de la carte',
   'chart.closePanel': 'Fermer le volet',
   'chart.keyYou': 'Vous',
   'chart.keyPort': 'Port',
-  'chart.keyMarker': 'Repère',
   'chart.keyTarget': 'Destination',
   'chart.keyLand': 'Terre',
   'chart.keyReef': 'Récif · danger',
   'chart.keyBank': 'Banc découvert',
   'chart.keyNorth': 'Nord en haut',
-  'chart.keyNeed': 'Meilleur prix de vente au port',
   'chart.localWind': 'Vent à votre bateau',
   'chart.pauseHelp':
     'La navigation et la météo sont en pause sur la carte. La boussole indique le vent à votre bateau.',
@@ -189,26 +186,22 @@ export const fr: Record<MessageKey, string> = {
   'chart.fit': 'Vue entière',
   'chart.boatLabel': 'Vous · cap {deg}°',
   'chart.windLabel': 'Vent du {deg}° · {kn} nd · {force}',
-  'chart.needVerb': 'veut',
-  'chart.needLabel': 'Demande {good} · {price} pièces',
   'chart.title': 'Carte marine',
   'chart.back': 'Retour en mer',
   'chart.instructions':
-    'Touchez la mer pour poser un repère (5 au maximum). Touchez un port ou un repère pour y mettre le cap.',
+    'Touchez un port pour y mettre le cap. Choisissez une marchandise en bas pour comparer son prix dans chaque port.',
   'chart.mapLabel': 'Carte marine orientée au nord avec îles, hauts-fonds, ports et votre navire',
-  'chart.legend':
-    'Le nord est en haut · Flèche bleue : vous · Sable : terre et bancs découverts · Sous chaque port : ce qu’il paie le mieux aujourd’hui. Cap seulement : contournez les terres et louvoyez face au vent.',
   'chart.marketTitle': 'Prix du marché',
   'chart.goodToCompare': 'Marchandise à comparer',
-  'chart.portDestinations': 'Ports de destination',
-  'chart.yourMarkers': 'Vos repères',
-  'chart.pinHere': 'Marquer ma position',
   'chart.clearTarget': 'Effacer le cap',
-  'chart.wind': 'N ↑ · Vent du {deg}° · {kn} nd · Navigation en pause',
-  'chart.marker': 'Repère {n}',
-  'chart.removeMarker': 'Retirer {label}',
+  'chart.pricesFor': 'Prix : {good}',
+  'chart.cardBuy': 'achat {price}',
+  'chart.cardSell': 'vente {price}',
+  'chart.cardCheapest': 'moins cher',
+  'chart.cardBest': 'meilleur prix',
+  'chart.course': 'Cap sur {label} · {dist}',
+  'chart.keyGood': 'Prix de la marchandise choisie en bas',
   'chart.setBearingTo': 'Mettre le cap sur {name}',
-  'chart.wantsLabel': 'veut {icon} {price}🪙',
   'chart.colPort': 'Port',
   'chart.colBuy': 'Achat',
   'chart.colSell': 'Vente',
@@ -218,14 +211,7 @@ export const fr: Record<MessageKey, string> = {
   'chart.order': 'commande : {qty} pour {reward} pièces',
   'chart.youAreHere': 'vous êtes ici',
   'chart.statusCleared': 'Cap effacé. Naviguez où bon vous semble.',
-  'chart.statusFull': 'Cinq repères posés. Retirez-en un pour faire de la place.',
-  'chart.statusPlaced': '{label} posé. Ouvrez Repères pour y mettre le cap.',
   'chart.statusPortSet': 'Cap sur {name}. Fermez la carte quand vous êtes prêt.',
-  'chart.statusComparing': 'Comparaison des prix : {good}.',
-  'chart.statusPinSet': 'Cap sur {label}.',
-  'chart.statusRemoved': '{label} retiré.',
-  'chart.statusBearing': 'Cap : {label}',
-  'chart.statusNone': 'Aucune destination choisie.',
 
   // --- Tutoriel du premier voyage ------------------------------------------------------------
   'tutorial.offerTitle': 'Votre premier voyage',
@@ -251,10 +237,10 @@ export const fr: Record<MessageKey, string> = {
   'tutorial.producedGood': 'marchandise produite sur place',
   'lesson.chart.title': 'Trouvez vos repères',
   'lesson.chart.copy':
-    'Ouvrez la carte (M). Le bleu, c’est votre bateau ; les ancres sont des ports de commerce. La navigation est en pause pendant que vous préparez votre route.',
+    'Ouvrez la carte (M). Le bateau brun, c’est vous ; les étiquettes sont des ports de commerce. La navigation est en pause pendant que vous préparez votre route.',
   'lesson.choose-port.title': 'Choisissez un port',
   'lesson.choose-port.copy':
-    'Touchez une ancre proche ou un bouton de port ci-dessous pour mettre le cap. Fermez la carte quand vous êtes prêt. C’est une direction, pas un chemin sûr à travers les terres.',
+    'Touchez l’étiquette d’un port proche pour y mettre le cap. Fermez la carte quand vous êtes prêt. C’est une direction, pas un chemin sûr à travers les terres.',
   'lesson.sails.title': 'Essayez les voiles et la barre',
   'lesson.sails.copy':
     'Affalez les voiles avec le levier à droite (ou ↓), puis hissez-les à nouveau (ou ↑). Glissez à gauche ou à droite sur la mer, ou utilisez ← →, pour barrer. Sortez du port et naviguez un peu ; évitez la côte.',

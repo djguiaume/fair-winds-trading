@@ -68,4 +68,6 @@
 
 | [0057](0057-fullscreen-readable-sea-chart.md) | Full-screen sea chart, static local-wind compass, pictographic legend and fixed-size signature boat | 2026-10-20 | Implementation for review |
 
+| [0058](0058-chart-style-d-port-cards.md) | Style D chart: port price cards, always-visible goods compare (experiment), markers moved to later, one Trade button, hull icon | 2026-10-20 | Implementation for review |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

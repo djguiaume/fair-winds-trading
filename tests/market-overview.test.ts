@@ -34,7 +34,7 @@ describe('top needs and market overview (decision 0036)', () => {
   });
 
   it('shows needs on the chart and a price table that sets a bearing', () => {
-    document.body.innerHTML = `<dialog id="chart"><button id="close-chart">Back</button><svg id="chart-map"></svg><span id="chart-wind"></span><div id="chart-goods"></div><table id="chart-prices"></table><div id="chart-ports"></div><div id="chart-pins"></div><p id="chart-status"></p><button id="chart-pin-here">Mark position</button><button id="chart-clear-target">Clear</button></dialog>`;
+    document.body.innerHTML = `<dialog id="chart"><button id="close-chart">Back</button><svg id="chart-map"></svg><span id="chart-wind"></span><span id="chart-course"></span><div id="chart-goods"></div><table id="chart-prices"></table><p id="chart-status"></p><button id="chart-clear-target">Clear</button></dialog>`;
     const world = createWorld(PHASE1_MAP, SLOOP);
     world.trade.captain.cargo.timber = 4;
     const chart = new SeaChart(document.querySelector('dialog')!, world, {});

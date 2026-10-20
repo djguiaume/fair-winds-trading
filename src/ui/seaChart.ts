@@ -1,26 +1,19 @@
 import type { World } from '../sim/world';
 import { WIND_FORCES, windForce } from '../sim/windStrength';
-import { DEG } from '../sim/math';
 import { GOODS, type GoodId } from '../sim/goods';
-import { quoteAcross, topNeed, unitSellPrice } from '../sim/market';
+import { type PortQuote, quoteAcross } from '../sim/market';
+import { DEG, distance } from '../sim/math';
 import { discoveredPorts } from '../sim/shipyards';
 import { goodName, t } from '../i18n';
 import { icon, COIN } from './icons';
 
-interface Pin {
-  x: number;
-  y: number;
-  label: string;
-}
 const NS = 'http://www.w3.org/2000/svg';
 
 /** An event-driven DOM/SVG chart; no second WebGL scene or animation loop. */
 export class SeaChart {
   onChange: () => void = () => {};
   onDestinationChange: () => void = () => {};
-  private pins: Pin[] = [];
   private previousFocus: HTMLElement | null = null;
-  private readonly key: string;
   /** Good shown in the market overview; null until the chart first opens. */
   private good: GoodId | null = null;
   private zoom = 1;
@@ -37,21 +30,9 @@ export class SeaChart {
     private readonly world: World,
     private readonly harbours: Record<string, { x: number; y: number }>,
   ) {
-    this.key = `fwt.chart.v1.${world.map.name}`;
     try {
-      const data: unknown = JSON.parse(localStorage.getItem(this.key) ?? '[]');
-      if (Array.isArray(data))
-        this.pins = data
-          .filter(
-            (p): p is Pin =>
-              p &&
-              Number.isFinite(p.x) &&
-              Number.isFinite(p.y) &&
-              Math.hypot(p.x, p.y) <= world.map.boundsRadius &&
-              typeof p.label === 'string' &&
-              /^Marker [1-5]$/.test(p.label),
-          )
-          .slice(0, 5);
+      // Chart markers were removed (decision 0058); drop what older versions stored.
+      localStorage.removeItem(`fwt.chart.v1.${world.map.name}`);
     } catch {
       /* Chart storage is optional and never touches voyage saves. */
     }
@@ -71,20 +52,6 @@ export class SeaChart {
       this.draw();
       this.status(t('chart.statusCleared'));
     });
-    this.get('chart-pin-here').addEventListener('click', () =>
-      this.addPin(world.boat.x, world.boat.y),
-    );
-    this.get('chart-map').addEventListener('click', (event) => {
-      if (this.dragged) return;
-      const svg = this.get('chart-map') as unknown as SVGSVGElement;
-      const matrix = svg.getScreenCTM();
-      if (!matrix) return;
-      const point = svg.createSVGPoint();
-      point.x = event.clientX;
-      point.y = event.clientY;
-      const p = point.matrixTransform(matrix.inverse());
-      this.addPin(p.x, -p.y);
-    });
     dialog.addEventListener('close', () => {
       this.onChange();
       this.previousFocus?.focus({ preventScroll: true });
@@ -93,7 +60,7 @@ export class SeaChart {
 
   private setPanel(name: string | null) {
     this.panel = name;
-    for (const id of ['legend', 'market', 'markers']) {
+    for (const id of ['legend', 'market']) {
       const panel = this.dialog.querySelector<HTMLElement>(`#chart-${id}-panel`);
       if (panel) panel.hidden = name !== id;
       this.dialog
@@ -102,7 +69,7 @@ export class SeaChart {
     }
   }
   private setupTools() {
-    for (const id of ['legend', 'market', 'markers']) {
+    for (const id of ['legend', 'market']) {
       this.dialog.querySelector(`#chart-${id}-toggle`)?.addEventListener('click', () => {
         this.setPanel(this.panel === id ? null : id);
       });
@@ -148,7 +115,7 @@ export class SeaChart {
       event.preventDefault();
       this.updateViewBox();
     });
-    // A drag must never select a port or place a marker on pointer release.
+    // A drag must never select a port on pointer release.
     svg.addEventListener(
       'click',
       (event) => {
@@ -262,8 +229,8 @@ export class SeaChart {
     this.get('chart-wind').textContent =
       `${t(`windForce.${WIND_FORCES[force]}`)} · ${wind.speedKn.toFixed(0)} ${t('unit.knots')}${shelter > 0.25 ? ` · ${t('hud.lee')}` : ''}`;
   }
-  private get(id: string): HTMLElement {
-    return this.dialog.querySelector(`#${id}`)!;
+  private get<T extends HTMLElement = HTMLElement>(id: string): T {
+    return this.dialog.querySelector<T>(`#${id}`)!;
   }
   get isOpen() {
     return this.dialog.open;
@@ -277,6 +244,7 @@ export class SeaChart {
     this.setPanel(null);
     this.dialog.showModal();
     this.draw();
+    this.status('');
     this.onChange();
   }
   close() {
@@ -289,31 +257,6 @@ export class SeaChart {
   }
   private status(message: string) {
     this.get('chart-status').textContent = message;
-  }
-  private save() {
-    try {
-      localStorage.setItem(this.key, JSON.stringify(this.pins));
-    } catch {
-      /* private mode */
-    }
-  }
-  private addPin(x: number, y: number) {
-    if (Math.hypot(x, y) > this.world.map.boundsRadius) return;
-    if (this.pins.length >= 5) {
-      this.status(t('chart.statusFull'));
-      return;
-    }
-    const label = Array.from({ length: 5 }, (_, i) => `Marker ${i + 1}`).find(
-      (label) => !this.pins.some((p) => p.label === label),
-    )!;
-    this.pins.push({ x, y, label });
-    this.save();
-    this.draw();
-    this.status(t('chart.statusPlaced', { label: this.pinName(label) }));
-  }
-  /** Pins keep their English id ("Marker 2") in storage; this is the name players read. */
-  private pinName(label: string) {
-    return t('chart.marker', { n: label.slice(-1) });
   }
   private button(parent: HTMLElement, label: string, action: () => void) {
     const b = document.createElement('button');
@@ -333,9 +276,26 @@ export class SeaChart {
     this.draw();
     this.status(t('chart.statusPortSet', { name: port.name }));
   }
-  /** Market overview (decision 0036): one good's prices at every charted port. */
-  private drawMarket() {
+  /** One good's prices at every charted port (decisions 0036, 0048), and which are best. */
+  private quotes() {
     const good = this.good ?? this.defaultGood();
+    const { map, trade } = this.world;
+    const quotes = quoteAcross(
+      trade.markets,
+      good,
+      discoveredPorts(map, trade).map((p) => p.id),
+    );
+    const stocked = quotes.filter((q) => q.available > 0).map((q) => q.buy);
+    return {
+      good,
+      quotes,
+      cheapest: stocked.length ? Math.min(...stocked) : null,
+      dearest: Math.max(...quotes.map((q) => q.sell)),
+    };
+  }
+  /** Goods to compare along the bottom, and the full price table in its sheet. */
+  private drawMarket(market: ReturnType<SeaChart['quotes']>) {
+    const { good, quotes, cheapest, dearest } = market;
     const { map, trade } = this.world;
     const goods = this.get('chart-goods');
     goods.replaceChildren();
@@ -343,21 +303,14 @@ export class SeaChart {
       const b = this.button(goods, goodName(g), () => {
         this.good = g;
         this.draw();
-        this.status(t('chart.statusComparing', { good: goodName(g).toLowerCase() }));
       });
       b.insertAdjacentHTML('afterbegin', icon(g));
       b.setAttribute('role', 'radio');
       b.setAttribute('aria-checked', String(g === good));
       if (g === good) b.classList.add('active');
     }
-    // Only charted ports (decision 0048): hidden yards join once discovered.
-    const quotes = quoteAcross(
-      trade.markets,
-      good,
-      discoveredPorts(map, trade).map((p) => p.id),
-    );
-    const cheapest = Math.min(...quotes.filter((q) => q.available > 0).map((q) => q.buy));
-    const dearest = Math.max(...quotes.map((q) => q.sell));
+    const title = this.dialog.querySelector('#chart-market-title');
+    if (title) title.textContent = t('chart.pricesFor', { good: goodName(good) });
     const table = this.get('chart-prices');
     table.replaceChildren();
     const head = document.createElement('tr');
@@ -396,6 +349,21 @@ export class SeaChart {
       table.append(row);
     }
   }
+  /** The port card's second line: the picked good's price there, green when it is the best. */
+  private cardLine(q: PortQuote | undefined, market: ReturnType<SeaChart['quotes']>) {
+    if (!q) return { text: '', best: false };
+    if (q.available > 0 && q.buy === market.cheapest)
+      return {
+        text: `${t('chart.cardBuy', { price: q.buy })} · ${t('chart.cardCheapest')}`,
+        best: true,
+      };
+    if (q.sell === market.dearest)
+      return {
+        text: `${t('chart.cardSell', { price: q.sell })} · ${t('chart.cardBest')}`,
+        best: true,
+      };
+    return { text: t('chart.cardSell', { price: q.sell }), best: false };
+  }
   private draw() {
     const focused = document.activeElement;
     const focusedTarget = focused?.getAttribute('data-chart-target');
@@ -422,8 +390,9 @@ export class SeaChart {
       if (island.name && !charted.some((p) => p.islandId === island.id)) {
         const label = shape('text', {
           x: island.x,
-          y: -island.y - island.radius - 6,
+          y: -island.y - island.radius - 6 * unit,
           class: 'chart-place',
+          style: `font-size: ${11 * unit}px`,
         });
         label.textContent = island.name;
       }
@@ -442,19 +411,29 @@ export class SeaChart {
         const xs = terrain.outline.map((p) => p[0]);
         const label = shape('text', {
           x: (Math.min(...xs) + Math.max(...xs)) / 2,
-          y: -Math.max(...terrain.outline.map((p) => p[1])) - 6,
+          y: -Math.max(...terrain.outline.map((p) => p[1])) - 6 * unit,
           class: 'chart-place',
+          style: `font-size: ${11 * unit}px`,
         });
         label.textContent = terrain.name;
       }
     }
-    if (destination)
+    // The course: a dashed line from the boat to a small ring on the destination's pier.
+    if (destination) {
+      shape('line', {
+        x1: boat.x,
+        y1: -boat.y,
+        x2: destination.x,
+        y2: -destination.y,
+        class: 'chart-course',
+      });
       shape('circle', {
         cx: destination.x,
         cy: -destination.y,
-        r: 15 * unit,
+        r: 7 * unit,
         class: 'chart-selected',
       });
+    }
     // Screen-sized signature boat; position/heading remain exact world coordinates.
     const player = shape('g', {
       transform: `translate(${boat.x} ${-boat.y}) rotate(${boat.heading / DEG}) scale(${unit * 0.72})`,
@@ -469,102 +448,95 @@ export class SeaChart {
     use.setAttribute('width', '36');
     use.setAttribute('height', '44');
     player.append(use);
-    const ports = this.get('chart-ports');
-    ports.replaceChildren();
+    const market = this.quotes();
+    const [vx, vy, vw, vh] = (svg.getAttribute('viewBox') ?? '0 0 0 0').split(' ').map(Number);
+    const view = { x: vx!, y: vy!, w: vw!, h: vh! };
+    // Cards grow a little on large screens, where 14px names look lost.
+    const rect = svg.getBoundingClientRect();
+    const k = Math.min(1.3, Math.max(1, Math.min(rect.width, rect.height) / 520));
+    // One card per charted port (style D, decision 0058): its name and the picked good's price.
     for (const port of charted) {
       const island = map.islands.find((i) => i.id === port.islandId)!;
       const anchor = this.harbours[port.id] ?? island;
       const select = () => this.selectPort(port.id);
+      const selected = destination?.portId === port.id;
       const group = shape('g', {
-        class: 'chart-port-target',
+        class: `chart-port-target${selected ? ' is-selected' : ''}`,
         role: 'button',
         tabindex: 0,
         'data-chart-target': port.id,
         'aria-label': t('chart.setBearingTo', { name: port.name }),
       });
-      shape('circle', { cx: anchor.x, cy: -anchor.y, r: 22 * unit, fill: 'transparent' }, group);
-      const mark = shape(
+      const line = this.cardLine(
+        market.quotes.find((q) => q.portId === port.id),
+        market,
+      );
+      const nameSize = 14 * k * unit;
+      const lineSize = 12.5 * k * unit;
+      const iconSize = 15 * k * unit;
+      const lineWidth = line.text.length * lineSize * 0.5 + iconSize + 4 * unit;
+      const width = Math.max(port.name.length * nameSize * 0.56, lineWidth) + 16 * unit;
+      const height = 38 * k * unit;
+      let bottom = -island.y - island.radius - 10 * unit;
+      // Keep the boat readable when it sits right under a card.
+      if (
+        Math.abs(boat.x - island.x) < width / 2 + 14 * unit &&
+        Math.abs(-boat.y - (bottom - height / 2)) < height / 2 + 14 * unit
+      )
+        bottom -= height + 18 * unit;
+      const top = bottom - height;
+      // Keep the whole card on screen at the chart's edges.
+      const cx = Math.min(
+        Math.max(island.x, view.x + width / 2 + 6 * unit),
+        view.x + view.w - width / 2 - 6 * unit,
+      );
+      shape(
+        'line',
+        { x1: cx, y1: bottom, x2: anchor.x, y2: -anchor.y, class: 'chart-card-stem' },
+        group,
+      );
+      shape('circle', { cx: anchor.x, cy: -anchor.y, r: 3.5 * unit, class: 'chart-pier' }, group);
+      shape(
+        'rect',
+        { x: cx - width / 2, y: top, width, height, rx: 4 * unit, class: 'chart-card-box' },
+        group,
+      );
+      const name = shape(
         'text',
         {
-          x: anchor.x,
-          y: -anchor.y,
-          style: `font-size: ${22 * unit}px`,
-          class: 'chart-port',
+          x: cx,
+          y: top + 16 * k * unit,
+          class: 'chart-card-name',
+          style: `font-size: ${nameSize}px`,
         },
         group,
       );
-      // Port labels scale with the chart so names and needs stay legible on a phone.
-      const size = 12 * unit;
-      let top = Math.min(-island.y - island.radius - 8, -anchor.y - 27 * unit);
-      // Keep the boat readable when it is beside its harbour's name/price.
-      if (
-        Math.abs(boat.x - island.x) < 80 * unit &&
-        Math.abs(-boat.y - (top - size * 0.5)) < 26 * unit
-      )
-        top -= 30 * unit;
-      const name = shape('text', {
-        x: island.x,
-        y: top - size * 1.1,
-        class: 'chart-place chart-port-name',
-        style: `font-size: ${size}px`,
-      });
       name.textContent = port.name;
-      group.append(name);
-      const market = this.world.trade.markets[port.id];
-      if (market) {
-        // Top need (decision 0036): the good this port pays most for today, and that price.
-        const need = topNeed(market);
-        const price = String(unitSellPrice(need, market.stock[need] + 1));
-        const word = t('chart.needVerb');
-        const font = 11 * unit;
-        const wordWidth = word.length * font * 0.55;
-        const priceWidth = price.length * font * 0.6;
-        const width = wordWidth + priceWidth + font * 3.5;
-        const left = island.x - width / 2;
-        const needLabel = shape(
-          'g',
+      if (line.text) {
+        const left = cx - lineWidth / 2;
+        shape(
+          'use',
           {
-            class: 'chart-need',
-            'aria-label': t('chart.needLabel', { good: goodName(need), price }),
+            href: `#i-${market.good}`,
+            x: left,
+            y: top + 20 * k * unit,
+            width: iconSize,
+            height: iconSize,
           },
           group,
         );
-        const wordText = shape(
+        const price = shape(
           'text',
-          { x: left, y: top, style: `font-size: ${font}px` },
-          needLabel,
-        );
-        wordText.textContent = word;
-        shape(
-          'use',
           {
-            href: `#i-${need}`,
-            x: left + wordWidth + font * 0.4,
-            y: top - font,
-            width: font * 1.2,
-            height: font * 1.2,
+            x: left + iconSize + 4 * unit,
+            y: top + 32 * k * unit,
+            class: `chart-need${line.best ? ' best' : ''}`,
+            style: `font-size: ${lineSize}px`,
           },
-          needLabel,
+          group,
         );
-        const priceText = shape(
-          'text',
-          { x: left + wordWidth + font * 1.9, y: top, style: `font-size: ${font}px` },
-          needLabel,
-        );
-        priceText.textContent = price;
-        shape(
-          'use',
-          {
-            href: '#i-coin',
-            x: left + wordWidth + font * 2.1 + priceWidth,
-            y: top - font,
-            width: font * 1.15,
-            height: font * 1.15,
-          },
-          needLabel,
-        );
+        price.textContent = line.text;
       }
-      mark.textContent = '⚓';
       group.addEventListener('click', (e) => {
         e.stopPropagation();
         select();
@@ -575,60 +547,19 @@ export class SeaChart {
           select();
         }
       });
-      this.button(ports, `⚓ ${port.name}`, select);
     }
-    this.drawMarket();
-    const pins = this.get('chart-pins');
-    pins.replaceChildren();
-    for (const pin of this.pins) {
-      const select = () => {
-        this.world.destination = { x: pin.x, y: pin.y, label: this.pinName(pin.label), portId: '' };
-        this.onDestinationChange();
-        this.draw();
-        this.status(t('chart.statusPinSet', { label: this.pinName(pin.label) }));
-      };
-      const group = shape('g', {
-        class: 'chart-pin-target',
-        role: 'button',
-        tabindex: 0,
-        'data-chart-target': pin.label,
-        'aria-label': t('chart.setBearingTo', { name: this.pinName(pin.label) }),
-      });
-      shape('circle', { cx: pin.x, cy: -pin.y, r: 22 * unit, fill: 'transparent' }, group);
-      const mark = shape(
-        'text',
-        {
-          x: pin.x,
-          y: -pin.y,
-          class: 'chart-pin',
-          style: `font-size: ${22 * unit}px`,
-        },
-        group,
-      );
-      mark.textContent = pin.label.replace('Marker ', '⚑');
-      group.addEventListener('click', (e) => {
-        e.stopPropagation();
-        select();
-      });
-      group.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          select();
-        }
-      });
-      this.button(pins, `⚑ ${this.pinName(pin.label)}`, select);
-      this.button(pins, t('chart.removeMarker', { label: this.pinName(pin.label) }), () => {
-        this.pins = this.pins.filter((p) => p !== pin);
-        const target = this.world.destination;
-        if (target && !target.portId && target.x === pin.x && target.y === pin.y)
-          this.world.destination = null;
-        this.save();
-        this.draw();
-        this.status(t('chart.statusRemoved', { label: this.pinName(pin.label) }));
-      });
-    }
+    this.drawMarket(market);
     svg.append(player);
-    this.status(destination ? t('chart.statusBearing', { label: destination.label }) : '');
+    const course = this.dialog.querySelector<HTMLElement>('#chart-course');
+    if (course) {
+      course.hidden = !destination;
+      if (destination)
+        course.textContent = t('chart.course', {
+          label: destination.label,
+          dist: t('unit.metres', { n: Math.round(distance(boat, destination)) }),
+        });
+    }
+    this.get<HTMLButtonElement>('chart-clear-target').disabled = !destination;
     if (focusedTarget) {
       Array.from(this.dialog.querySelectorAll<SVGElement>('[data-chart-target]'))
         .find((element) => element.getAttribute('data-chart-target') === focusedTarget)
