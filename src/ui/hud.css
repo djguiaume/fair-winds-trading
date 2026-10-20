@@ -2208,3 +2208,7 @@ body.is-docked .objective {
     transition: none;
   }
 }
+.settings input[type='range'] {
+  width: 55%;
+  accent-color: #f2c230;
+}

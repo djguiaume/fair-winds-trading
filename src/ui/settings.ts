@@ -18,6 +18,8 @@ export interface Settings {
   uiMode: UiMode;
   /** Chosen language; null follows the browser (decision 0037). */
   language: LanguageId | null;
+  /** Background music volume, 0 (off) to 1 (decision 0045). */
+  musicVolume: number;
 }
 
 const KEY = 'fwt.settings.v1';
@@ -28,6 +30,7 @@ const DEFAULTS: Settings = {
   seenWindHint: false,
   uiMode: 'adult',
   language: null,
+  musicVolume: 0.6,
 };
 
 export function loadSettings(): Settings {
@@ -37,6 +40,8 @@ export function loadSettings(): Settings {
       ? { ...DEFAULTS, ...(JSON.parse(raw) as Partial<Settings>) }
       : { ...DEFAULTS };
     if (!isLanguage(settings.language)) settings.language = null;
+    const volume = Number(settings.musicVolume);
+    settings.musicVolume = Number.isFinite(volume) ? Math.min(1, Math.max(0, volume)) : 0.6;
     if (!KIDS_MODE_AVAILABLE) settings.uiMode = 'adult';
     return settings;
   } catch {

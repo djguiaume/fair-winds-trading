@@ -72,6 +72,7 @@ export const en = {
   'settings.high': 'High',
   'settings.nowUsing': 'Now using: {level}',
   'settings.showFps': 'Show FPS',
+  'settings.music': 'Music',
   'settings.shiftWind': 'Shift the wind 45°',
   'settings.resetBoat': 'Back to start',
   'settings.newGame': 'New Game (Reset Progress)',
