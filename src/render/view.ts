@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { trueWindAngle } from '../sim/boat';
 import { DEG, approach, bearingVector, clamp, wrapAngle } from '../sim/math';
-import { polarFraction } from '../sim/ship';
 import { windTo } from '../sim/wind';
 import { windStrength01 } from '../sim/windStrength';
 import { WAYPOINT_RADIUS, type World, currentWaypoint } from '../sim/world';
@@ -13,6 +12,7 @@ import {
   buildIslands,
   createBoatModel,
 } from './models';
+import { HEEL_FEEL, Heel, heelFactor } from './heel';
 import { Ocean, waveHeight } from './ocean';
 import { PALETTE } from './palette';
 import { BuoyMarker, EdgeBuoys, createBlobShadow } from './props';
@@ -49,6 +49,9 @@ export class GameView {
   /** Ship class and upgrade levels the boat model was built for; rebuilt when they change. */
   private boatKey = '';
   private level: QualityLevel;
+  private readonly heel = new Heel();
+  /** How readily the current class leans (decision 0044). */
+  private heelFactor = 1;
   private readonly boatShadow = createBlobShadow(6.5, 14);
   private readonly wake = new Wake();
   private readonly buoy = new BuoyMarker();
@@ -128,6 +131,7 @@ export class GameView {
   private buildBoat(): BoatModel {
     const { id, upgrades, key } = this.activeBoat();
     this.boatKey = key;
+    this.heelFactor = heelFactor(id);
     const boat = createBoatModel(id, { upgrades, rigging: this.level !== 'low' });
     boat.root.rotation.order = 'YXZ';
     return boat;
@@ -229,8 +233,18 @@ export class GameView {
     const lee = twa > 0 ? -1 : 1;
     const boomMag = (12 + clamp((abs / DEG - 45) / 135, 0, 1) * 68) * DEG;
     const luff = 1 - clamp((abs - ship.noGoAngle * 0.8) / (ship.noGoAngle * 0.3), 0, 1);
-    const drive = polarFraction(ship, twa) * boat.sail * (wind.speedKn / 14);
-    const heel = -lee * drive * clamp((180 - abs / DEG) / 120, 0, 1) * 11 * DEG;
+    const heel = this.heel.update(
+      {
+        twa,
+        noGoAngle: ship.noGoAngle,
+        windKn: wind.speedKn,
+        sail: boat.sail,
+        luff,
+        factor: this.heelFactor,
+      },
+      dt,
+      HEEL_FEEL[this.level === 'low' ? 'smooth' : 'lively'],
+    );
     const shake = boat.sinceBump < 0.4 ? Math.sin(time * 60) * (0.4 - boat.sinceBump) * 0.4 : 0;
     this.boat.update({
       sail: boat.sail,
