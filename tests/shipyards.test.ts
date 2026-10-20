@@ -236,7 +236,7 @@ describe('shipyard tab (decision 0048)', () => {
     const panel = panelAt(world, 'calda');
     expect(panel.querySelector('[data-track]')).toBeNull();
     expect(panel.textContent).toContain('Upgrades are fitted at your home port, Saltmere.');
-    expect(panel.textContent).toContain('Built at Saltmere · 1,500 🪙');
+    expect(panel.textContent).toContain('Built at Saltmere · 1,500 gold');
     expect(panel.textContent).toContain('Orders to deliver at Watchman Key: 3');
     expect(panel.textContent).toContain('Built at a port off the chart');
   });

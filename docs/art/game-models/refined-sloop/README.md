@@ -1,6 +1,6 @@
 # Refined sloop — actual engine screenshots
 
-Decision [0050](../../../decisions/0050-refined-upgrade-aware-sloop.md). Captured from the real `models.html` model inspector at 1280×720; these are not AI illustrations. Other ships are unchanged.
+Decision [0051](../../../decisions/0051-refined-upgrade-aware-sloop.md). Captured from the real `models.html` model inspector at 1280×720; these are not AI illustrations. Other ships are unchanged.
 
 | State | Inspector query (after `models.html?view=sloop&still&`) | Screenshot |
 |---|---|---|

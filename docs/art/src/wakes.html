@@ -1,0 +1,23 @@
+<!doctype html><html><body style="margin:0"><script type="module">
+import * as THREE from 'three';
+import { Ocean } from '../../../src/render/ocean.ts';
+import { Wake } from '../../../src/render/wake.ts';
+import { createBoatModel } from '../../../src/render/models/index.ts';
+import { QUALITY } from '../../../src/render/quality.ts';
+const level=new URLSearchParams(location.search).get('quality') || 'medium';
+const id=new URLSearchParams(location.search).get('ship') || 'sloop';
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(1000,750);document.body.append(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#237b87');
+scene.add(new THREE.HemisphereLight('#e1f4fc','#1a4d55',1.5));
+const sun=new THREE.DirectionalLight('#fff1d2',1.7);sun.position.set(-30,50,20);scene.add(sun);
+const p=QUALITY[level];const ocean=new Ocean([],p.oceanSegments,p.fancyWater);scene.add(ocean.mesh);
+const boat=createBoatModel(id,{upgrades:{sails:3,hold:3,hull:3}});scene.add(boat.root);
+boat.update({sail:1,boomAngle:0.6,luff:0,heel:0.08,windRelative:1,time:8});
+const wake=new Wake();wake.setQuality(level);scene.add(wake.mesh);
+const pos=new THREE.Vector3();let dirX=0,dirZ=0;
+for(let i=0;i<=360;i++){const t=i/60;const a=t*0.14;pos.set(Math.sin(a)*70,0,-Math.cos(a)*70);dirX=Math.cos(a);dirZ=Math.sin(a);wake.update(1/60,t,pos,dirX,dirZ,7,boat.wakeHull);}
+boat.root.position.copy(pos);boat.root.rotation.y=Math.atan2(-dirX,-dirZ);ocean.update(6,pos);
+const camera=new THREE.PerspectiveCamera(40,1000/750,1,600);camera.position.copy(pos).add(new THREE.Vector3(18,65,48));camera.lookAt(pos.x-10,0,pos.z-2);
+renderer.render(scene,camera);window.ready=true;
+</script></body></html>

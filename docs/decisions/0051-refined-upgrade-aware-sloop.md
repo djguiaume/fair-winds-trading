@@ -1,4 +1,4 @@
-# 0050. Refined sloop with upgrade-aware geometry and attached sail pivots
+# 0051. Refined sloop with upgrade-aware geometry and attached sail pivots
 
 **Status:** Implementation for review, 2026-10-20.
 
@@ -19,4 +19,5 @@
 - `sloop-rig.test.ts` checks all 27 upgrade combinations, actual luff vertices against the forestays while tacking/lowering/heeling/luffing, mainsail mast attachment, colour upgrades, budgets, and quality toggling. Existing saves, ship stats and sailing rules are unchanged.
 - Actual screenshots, not generated illustrations: [refined-sloop](../art/game-models/refined-sloop/README.md). Review at `/models.html?view=sloop&level=3&quality=low&still` (also `medium`/`high`, levels `1`/`2`, `sail=0.35`, signed `boom=-45`).
 - Desktop headless WebGL rendering verifies all three game profiles without browser errors. A physical older-tablet frame-rate check remains necessary; headless software rendering is not a device performance guarantee.
+- Integration with merged wake decision [0050](0050-tablet-friendly-ship-wakes.md): expose the sloop's unchanged hull length/beam to the hull-attached foam, retaining the wake quality budgets and reset on ship rebuilds. Renumbered this decision to 0051 to avoid the parallel 0050 collision. Combined validation: 222 tests, build and lint pass; all three game profiles render without browser errors.
 - Applying the visual rework to the cutter and later ship lines is separate work.

@@ -146,6 +146,8 @@ interface Headsail {
 /** Refined starter sloop. Upgrade semantics and the BoatModel waterline frame stay unchanged. */
 export class RefinedSloop implements BoatModel {
   readonly root = new THREE.Group();
+  /** Same waterline envelope at every upgrade level, for the hull-attached wake. */
+  readonly wakeHull = { length: L * BOAT_SCALE, beam: B * BOAT_SCALE };
   readonly stats = { triangles: 0, meshes: 0, crates: 0, barrels: 0, jibs: 0, topsail: false };
   private readonly body = new THREE.Group();
   private readonly ship = new THREE.Group();

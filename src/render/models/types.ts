@@ -25,6 +25,8 @@ export interface BoatPose {
 export interface BoatModel {
   /** Root object: bow points to -Z, origin at the waterline center, 1 unit ≈ 1 m. */
   readonly root: THREE.Object3D;
+  /** Waterline footprint in scene units, for hull-attached wake effects. */
+  readonly wakeHull: { length: number; beam: number };
   update(pose: BoatPose): void;
   /** Optional: drop fine details (rigging lines) at the low quality setting. */
   setLowDetail?(low: boolean): void;
