@@ -69,7 +69,7 @@ export const SLOOP: ShipClass = {
   draft: 0.7,
   hold: 10,
   price: 0,
-  upgradePrices: [400, 1200],
+  upgradePrices: [300, 900],
 };
 
 /**
@@ -103,7 +103,7 @@ export const CUTTER: ShipClass = {
   draft: 1,
   hold: 16,
   price: 1500,
-  upgradePrices: [600, 1800],
+  upgradePrices: [500, 1800],
 };
 
 export const SHIP_CLASSES: Record<string, ShipClass> = { sloop: SLOOP, cutter: CUTTER };

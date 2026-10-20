@@ -2,7 +2,7 @@ import { GOOD_DEFS, type GoodId, isGood } from './goods';
 import type { MapDef, PortDef } from './map';
 import { distance } from './math';
 import { createRng } from './rng';
-import type { TradeState } from './trade';
+import { type TradeState, capacity } from './trade';
 
 /**
  * Delivery contracts (decision 0028): every port posts one order for a good it wants, paying a
@@ -10,12 +10,14 @@ import type { TradeState } from './trade';
  * next order after a short pause. Plain data, saved with the voyage.
  */
 
-/** Smallest and largest order; the top fits a stock sloop's hold of 10. */
+/** Smallest and largest order for a stock sloop (hold 10); bigger holds get bigger orders. */
 export const CONTRACT_QTY: [number, number] = [4, 8];
+/** Largest order as a share of the hold of the ship sailed when the order is posted (decision 0046). */
+export const CONTRACT_HOLD_SHARE = 0.6;
 /** Reward per unit as a multiple of the good's base price (a sale where wanted is about ×1.5 before the price slides). */
-export const CONTRACT_PRICE_FACTOR = 1.75;
+export const CONTRACT_PRICE_FACTOR = 1.5;
 /** Long hauls pay more: the price factor rises by 1 per this many units from the nearest maker. */
-export const CONTRACT_DISTANCE_SCALE = 500;
+export const CONTRACT_DISTANCE_SCALE = 700;
 /** Seconds before a port posts its next order after one is delivered. */
 export const CONTRACT_COOLDOWN = 90;
 
@@ -59,14 +61,33 @@ export function contractReward(map: MapDef, port: PortDef, good: GoodId, qty: nu
   return Math.round((perUnit * qty) / 5) * 5;
 }
 
-/** The `n`-th order a port posts. Deterministic from the map seed, port and count. */
-export function makeContract(map: MapDef, port: PortDef, n: number, readyIn = 0): Contract {
+/**
+ * Order size range for a captain whose hold is `hold`: 4–8 up to a hold of about 13, then the top
+ * grows with the hold (60 %) and the bottom stays half the top, so orders keep up with bigger ships.
+ */
+export function contractQtyRange(hold = 0): [number, number] {
+  const [lo, hi] = CONTRACT_QTY;
+  const top = Math.max(hi, Math.round(hold * CONTRACT_HOLD_SHARE));
+  return [Math.max(lo, Math.round(top / 2)), top];
+}
+
+/**
+ * The `n`-th order a port posts. Deterministic from the map seed, port, count and the hold of the
+ * ship sailed when it is posted.
+ */
+export function makeContract(
+  map: MapDef,
+  port: PortDef,
+  n: number,
+  readyIn = 0,
+  hold = 0,
+): Contract {
   let h = map.seed ^ 0xc0de;
   for (const ch of port.id) h = Math.imul(h ^ ch.charCodeAt(0), 0x01000193);
   const rng = createRng((h ^ Math.imul(n + 1, 0x9e3779b1)) >>> 0);
   const wants = port.wants.length > 0 ? port.wants : (['fish'] as GoodId[]);
   const good = wants[Math.floor(rng() * wants.length)]!;
-  const [lo, hi] = CONTRACT_QTY;
+  const [lo, hi] = contractQtyRange(hold);
   const qty = lo + Math.floor(rng() * (hi - lo + 1));
   return { portId: port.id, good, qty, reward: contractReward(map, port, good, qty), readyIn };
 }
@@ -106,6 +127,7 @@ export function deliverContract(trade: TradeState, map: MapDef): DeliverResult {
     port,
     trade.contracts.completed,
     CONTRACT_COOLDOWN,
+    capacity(trade),
   );
   return { ok: true, gold: c.reward };
 }
