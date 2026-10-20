@@ -26,6 +26,7 @@
     <link rel="stylesheet" href="/src/ui/hud.css" />
     <link rel="stylesheet" href="/src/ui/sea-hud.css" />
     <link rel="stylesheet" href="/src/ui/port-screen.css" />
+    <link rel="stylesheet" href="/src/ui/sea-chart.css" />
   </head>
   <body>
     <div id="stage">
@@ -34,6 +35,31 @@
 
     <div id="hud">
       <svg class="icon-sprite" aria-hidden="true">
+        <symbol id="i-info" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" />
+          <path d="M12 10V17" stroke="currentColor" stroke-width="2" />
+          <circle cx="12" cy="7" r="1.2" fill="currentColor" />
+        </symbol>
+        <symbol id="i-chart-boat" viewBox="-18 -22 36 44">
+          <ellipse
+            cy="1"
+            rx="14"
+            ry="19"
+            fill="#86e8ff"
+            fill-opacity=".18"
+            stroke="#86e8ff"
+            stroke-width="2"
+          />
+          <path
+            d="M0 -18 Q11 -10 9 15 Q0 20 -9 15 Q-11 -10 0 -18Z"
+            fill="#9b6037"
+            stroke="#102f39"
+            stroke-width="2"
+          />
+          <path d="M0 -12 Q7 -6 6 12 L-6 12 Q-7 -6 0 -12Z" fill="#f4e5bd" />
+          <path d="M0 -8V10M-5 7H5" stroke="#5e3b28" stroke-width="2" />
+          <path d="M0 -22L-4 -17H4Z" fill="#f4e5bd" stroke="#102f39" stroke-width="1" />
+        </symbol>
         <symbol id="i-coin" viewBox="0 0 24 24">
           <circle
             cx="12"
@@ -510,55 +536,228 @@
 
     <dialog id="chart" class="panel chart" aria-labelledby="chart-title">
       <header class="chart-header">
-        <div>
-          <h2 id="chart-title" data-i18n="chart.title">Sea chart</h2>
-          <span id="chart-wind"></span>
-        </div>
+        <h2 id="chart-title" data-i18n="chart.title">Sea chart</h2>
         <button id="close-chart" type="button" autofocus data-i18n="chart.back">Back to sea</button>
       </header>
       <div id="tutorial-chart"></div>
-      <p id="chart-instructions" data-i18n="chart.instructions">
-        Tap the sea to place a marker (up to 5). Tap a port or marker to select a bearing.
-      </p>
-      <svg
-        id="chart-map"
-        role="group"
-        aria-label="North-up sea chart with islands, shallows, ports and your ship"
-        data-i18n-attr="aria-label:chart.mapLabel"
-      ></svg>
-      <p class="muted small" data-i18n="chart.legend">
-        North is up · Blue arrow: you · Sand: land / exposed banks · Under each port: what it pays
-        most for today. Bearing only: steer around land and tack into wind.
-      </p>
-      <section class="chart-market" aria-labelledby="chart-market-title">
-        <h3 id="chart-market-title" data-i18n="chart.marketTitle">Market prices</h3>
-        <div
-          id="chart-goods"
-          class="chart-goods"
-          role="radiogroup"
-          aria-label="Good to compare"
-          data-i18n-attr="aria-label:chart.goodToCompare"
-        ></div>
-        <table id="chart-prices" class="chart-prices"></table>
-      </section>
-      <div
-        id="chart-ports"
-        class="chart-actions"
-        aria-label="Port destinations"
-        data-i18n-attr="aria-label:chart.portDestinations"
-      ></div>
-      <div
-        id="chart-pins"
-        class="chart-actions"
-        aria-label="Your markers"
-        data-i18n-attr="aria-label:chart.yourMarkers"
-      ></div>
-      <p id="chart-status" role="status"></p>
-      <div class="chart-actions">
-        <button id="chart-pin-here" type="button" data-i18n="chart.pinHere">Mark my position</button
-        ><button id="chart-clear-target" type="button" data-i18n="chart.clearTarget">
-          Clear bearing
-        </button>
+      <div class="chart-viewport">
+        <svg
+          id="chart-map"
+          role="group"
+          aria-label="North-up sea chart with islands, shallows, ports and your ship"
+          data-i18n-attr="aria-label:chart.mapLabel"
+        ></svg>
+        <nav class="chart-tools" aria-label="Chart tools" data-i18n-attr="aria-label:chart.tools">
+          <button
+            id="chart-legend-toggle"
+            type="button"
+            aria-controls="chart-legend-panel"
+            aria-expanded="false"
+          >
+            <svg class="icon" aria-hidden="true"><use href="#i-info" /></svg>
+            <span data-i18n="chart.legendTitle">Legend</span>
+          </button>
+          <button
+            id="chart-market-toggle"
+            type="button"
+            aria-controls="chart-market-panel"
+            aria-expanded="false"
+          >
+            <svg class="icon" aria-hidden="true"><use href="#i-coin" /></svg>
+            <span data-i18n="chart.marketShort">Prices</span>
+          </button>
+          <button
+            id="chart-markers-toggle"
+            type="button"
+            aria-controls="chart-markers-panel"
+            aria-expanded="false"
+          >
+            <span aria-hidden="true">⚑</span> <span data-i18n="chart.markersTitle">Markers</span>
+          </button>
+        </nav>
+        <aside
+          id="chart-compass"
+          class="compass chart-compass"
+          aria-label="Local wind"
+          data-i18n-attr="aria-label:chart.localWind"
+        >
+          <div id="chart-dial"></div>
+          <span id="chart-wind"></span>
+        </aside>
+        <section
+          id="chart-legend-panel"
+          class="chart-sheet"
+          aria-labelledby="chart-legend-title"
+          hidden
+        >
+          <header>
+            <h3 id="chart-legend-title" data-i18n="chart.legendTitle">Legend</h3>
+            <button
+              type="button"
+              data-chart-close
+              aria-label="Close panel"
+              data-i18n-attr="aria-label:chart.closePanel"
+            >
+              ×
+            </button>
+          </header>
+          <dl class="chart-legend">
+            <div>
+              <dt>
+                <svg viewBox="-18 -22 36 44" aria-hidden="true">
+                  <use href="#i-chart-boat" x="-18" y="-22" width="36" height="44" />
+                </svg>
+              </dt>
+              <dd data-i18n="chart.keyYou">You</dd>
+            </div>
+            <div>
+              <dt class="legend-port">⚓</dt>
+              <dd data-i18n="chart.keyPort">Port</dd>
+            </div>
+            <div>
+              <dt class="legend-pin">⚑</dt>
+              <dd data-i18n="chart.keyMarker">Marker</dd>
+            </div>
+            <div>
+              <dt>
+                <svg viewBox="0 0 36 24" aria-hidden="true">
+                  <ellipse cx="18" cy="12" rx="14" ry="8" class="chart-selected" />
+                </svg>
+              </dt>
+              <dd data-i18n="chart.keyTarget">Destination</dd>
+            </div>
+            <div>
+              <dt>
+                <svg viewBox="0 0 36 24" aria-hidden="true">
+                  <path d="M3 20L7 5 22 3 33 18Z" class="chart-land" />
+                </svg>
+              </dt>
+              <dd data-i18n="chart.keyLand">Land</dd>
+            </div>
+            <div>
+              <dt>
+                <svg viewBox="0 0 36 24" aria-hidden="true">
+                  <path d="M3 20L7 5 22 3 33 18Z" class="chart-reef" />
+                </svg>
+              </dt>
+              <dd data-i18n="chart.keyReef">Reef · danger</dd>
+            </div>
+            <div>
+              <dt>
+                <svg viewBox="0 0 36 24" aria-hidden="true">
+                  <path d="M3 20L7 5 22 3 33 18Z" class="chart-bank" />
+                </svg>
+              </dt>
+              <dd data-i18n="chart.keyBank">Exposed bank</dd>
+            </div>
+            <div>
+              <dt>N ↑</dt>
+              <dd data-i18n="chart.keyNorth">North up</dd>
+            </div>
+            <div>
+              <dt>
+                <svg class="icon" aria-hidden="true"><use href="#i-coin" /></svg>
+              </dt>
+              <dd data-i18n="chart.keyNeed">Port’s best sale price</dd>
+            </div>
+          </dl>
+          <p data-i18n="chart.instructions">
+            Tap the sea to place a marker (up to 5). Tap a port or marker to select a bearing.
+          </p>
+          <p data-i18n="chart.gestures">Drag to explore · + / − to zoom.</p>
+          <p data-i18n="chart.bearingHelp">
+            A bearing is not a safe route. Avoid land and tack into the wind.
+          </p>
+          <p class="muted" data-i18n="chart.pauseHelp">
+            Sailing and weather pause while the chart is open. The compass shows wind at your boat.
+          </p>
+        </section>
+        <section
+          id="chart-market-panel"
+          class="chart-sheet chart-market-sheet"
+          aria-labelledby="chart-market-title"
+          hidden
+        >
+          <header>
+            <h3 id="chart-market-title" data-i18n="chart.marketTitle">Market prices</h3>
+            <button
+              type="button"
+              data-chart-close
+              aria-label="Close panel"
+              data-i18n-attr="aria-label:chart.closePanel"
+            >
+              ×
+            </button>
+          </header>
+          <div class="chart-market">
+            <div
+              id="chart-goods"
+              class="chart-goods"
+              role="radiogroup"
+              aria-label="Good to compare"
+              data-i18n-attr="aria-label:chart.goodToCompare"
+            ></div>
+            <table id="chart-prices" class="chart-prices"></table>
+          </div>
+        </section>
+        <section
+          id="chart-markers-panel"
+          class="chart-sheet"
+          aria-labelledby="chart-markers-title"
+          hidden
+        >
+          <header>
+            <h3 id="chart-markers-title" data-i18n="chart.markersTitle">Markers</h3>
+            <button
+              type="button"
+              data-chart-close
+              aria-label="Close panel"
+              data-i18n-attr="aria-label:chart.closePanel"
+            >
+              ×
+            </button>
+          </header>
+          <div
+            id="chart-ports"
+            class="chart-actions"
+            aria-label="Port destinations"
+            data-i18n-attr="aria-label:chart.portDestinations"
+          ></div>
+          <div
+            id="chart-pins"
+            class="chart-actions"
+            aria-label="Your markers"
+            data-i18n-attr="aria-label:chart.yourMarkers"
+          ></div>
+
+          <div class="chart-actions">
+            <button id="chart-pin-here" type="button" data-i18n="chart.pinHere">
+              Mark my position</button
+            ><button id="chart-clear-target" type="button" data-i18n="chart.clearTarget">
+              Clear bearing
+            </button>
+          </div>
+        </section>
+        <div class="chart-zoom">
+          <button
+            id="chart-zoom-in"
+            type="button"
+            aria-label="Zoom in"
+            data-i18n-attr="aria-label:chart.zoomIn"
+          >
+            +
+          </button>
+          <button
+            id="chart-zoom-out"
+            type="button"
+            aria-label="Zoom out"
+            data-i18n-attr="aria-label:chart.zoomOut"
+          >
+            −
+          </button>
+          <button id="chart-fit" type="button" data-i18n="chart.fit">Whole map</button>
+        </div>
+        <p id="chart-status" class="chart-status" role="status"></p>
       </div>
     </dialog>
     <dialog id="tutorial-offer" class="panel tutorial-offer" aria-labelledby="tutorial-offer-title">

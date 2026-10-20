@@ -92,7 +92,10 @@ describe('translations (decision 0037)', () => {
     const chart = new SeaChart(document.getElementById('chart') as HTMLDialogElement, world, {});
     chart.open();
     expect(document.getElementById('chart-prices')!.textContent).toContain(fr['chart.colBuy']);
-    expect(document.getElementById('chart-wind')!.textContent).toContain('Navigation en pause');
+    expect(document.getElementById('chart-wind')!.textContent).toContain('nd');
+    expect(document.getElementById('chart-compass')!.getAttribute('aria-label')).toContain(
+      'Vent du',
+    );
     chart.close();
 
     const tutorial = new Tutorial(world, {}, null);

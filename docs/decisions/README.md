@@ -66,4 +66,6 @@
 
 | [0056](0056-refined-upgrade-aware-clipper.md) | Refined clipper: independent fine-entry hull, three attached gaff rigs and individual jib stays, all upgrades and tablet profiles | 2026-10-20 | Implementation for review |
 
+| [0057](0057-fullscreen-readable-sea-chart.md) | Full-screen sea chart, static local-wind compass, pictographic legend and fixed-size signature boat | 2026-10-20 | Implementation for review |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
