@@ -1,0 +1,137 @@
+[
+  {
+    "name": "level1-high",
+    "query": "level=1&quality=high",
+    "stats": "19 draw calls · 30,270 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "name": "level2-high",
+    "query": "level=2&quality=high",
+    "stats": "21 draw calls · 30,526 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "name": "level3-high",
+    "query": "level=3&quality=high",
+    "stats": "21 draw calls · 30,774 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "name": "level3-medium",
+    "query": "level=3&quality=medium",
+    "stats": "11 draw calls · 13,787 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "name": "level3-low",
+    "query": "level=3&quality=low",
+    "stats": "10 draw calls · 5,595 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "name": "level3-reefed",
+    "query": "level=3&quality=high&sail=0.35&boom=-45",
+    "stats": "21 draw calls · 30,774 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "name": "level3-stern",
+    "query": "level=3&quality=high&yaw=-45",
+    "stats": "21 draw calls · 30,774 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "name": "mixed-upgrades",
+    "query": "hull=1&hold=3&sails=2&quality=medium",
+    "stats": "11 draw calls · 13,715 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "name": "furled-low",
+    "query": "level=3&quality=low&sail=0&boom=-45",
+    "stats": "10 draw calls · 5,595 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "name": "game-low",
+    "stats": {
+      "calls": 16,
+      "triangles": 33095,
+      "geometries": 15,
+      "profile": "low",
+      "boat": {
+        "triangles": 987,
+        "meshes": 9,
+        "crates": 6,
+        "barrels": 3,
+        "jibs": 3,
+        "topsail": true
+      },
+      "hull": {
+        "length": 18.04,
+        "beam": 5.313000000000001
+      },
+      "wakeDrawVertices": 216,
+      "drawingBuffer": {
+        "width": 1154,
+        "height": 649
+      }
+    },
+    "errors": []
+  },
+  {
+    "name": "game-medium",
+    "stats": {
+      "calls": 17,
+      "triangles": 41515,
+      "geometries": 16,
+      "profile": "medium",
+      "boat": {
+        "triangles": 987,
+        "meshes": 9,
+        "crates": 6,
+        "barrels": 3,
+        "jibs": 3,
+        "topsail": true
+      },
+      "hull": {
+        "length": 18.04,
+        "beam": 5.313000000000001
+      },
+      "wakeDrawVertices": 612,
+      "drawingBuffer": {
+        "width": 1280,
+        "height": 720
+      }
+    },
+    "errors": []
+  },
+  {
+    "name": "game-high",
+    "stats": {
+      "calls": 27,
+      "triangles": 75224,
+      "geometries": 16,
+      "profile": "high",
+      "boat": {
+        "triangles": 987,
+        "meshes": 9,
+        "crates": 6,
+        "barrels": 3,
+        "jibs": 3,
+        "topsail": true
+      },
+      "hull": {
+        "length": 18.04,
+        "beam": 5.313000000000001
+      },
+      "wakeDrawVertices": 972,
+      "drawingBuffer": {
+        "width": 1280,
+        "height": 720
+      }
+    },
+    "errors": []
+  }
+]
