@@ -7,6 +7,7 @@ import { damageHull, repairHull } from '../src/sim/hazards';
 import { quoteBuy, quoteSell, stepMarket } from '../src/sim/market';
 import { DEG } from '../src/sim/math';
 import { createRng } from '../src/sim/rng';
+import { stepSettlements } from '../src/sim/settlement';
 import { homePort } from '../src/sim/shipyards';
 import { CUTTER, SLOOP, type ShipClass, polarFraction } from '../src/sim/ship';
 import {
@@ -18,6 +19,8 @@ import {
   capacity,
   maxBuy,
   sellAll,
+  syncMarketLevels,
+  upgradeAllowed,
 } from '../src/sim/trade';
 import { type UpgradeTrack, effectiveShip, upgradePrice } from '../src/sim/upgrades';
 import { createWorld } from '../src/sim/world';
@@ -129,6 +132,8 @@ interface Voyage {
   repairGold: number;
   legs: number;
   routes: Record<string, number>;
+  /** Minute each port reached each level (decision 0059), e.g. "saltmere 3". */
+  levels: Record<string, number>;
 }
 
 function sail(opts: { contracts: boolean; relaxed: boolean; minutes?: number }): Voyage {
@@ -144,6 +149,7 @@ function sail(opts: { contracts: boolean; relaxed: boolean; minutes?: number }):
     repairGold: 0,
     legs: 0,
     routes: {},
+    levels: {},
   };
   let at = HOME;
   let t = 0;
@@ -159,7 +165,7 @@ function sail(opts: { contracts: boolean; relaxed: boolean; minutes?: number }):
       if (r.ok) v.contractGold += r.gold;
     }
     const before = trade.captain.gold;
-    sellAll(trade);
+    sellAll(trade, MAP);
     v.marketGold += trade.captain.gold - before;
 
     // Shop in a fixed order at the home port, keeping a little gold back for the next load.
@@ -175,6 +181,9 @@ function sail(opts: { contracts: boolean; relaxed: boolean; minutes?: number }):
         continue;
       }
       if (trade.captain.gold < price + 80) break;
+      // The top upgrades wait for the home port to grow into a town (decision 0059).
+      const levels = trade.captain.ships[ship]!;
+      if (item !== 'cutter' && !upgradeAllowed(trade, MAP, levels[item] + 1)) break;
       const ok =
         item === 'cutter' ? buyShip(trade, MAP, 'cutter').ok : buyUpgrade(trade, MAP, item).ok;
       expect(ok).toBe(true);
@@ -192,7 +201,11 @@ function sail(opts: { contracts: boolean; relaxed: boolean; minutes?: number }):
         : item === 'cutter'
           ? CUTTER.price
           : upgradePrice(activeShip(trade), trade.captain.ships[trade.captain.activeShip]!, item);
-    const goHome = at !== HOME && want !== null && trade.captain.gold >= want + 80;
+    const allowed =
+      item === undefined ||
+      item === 'cutter' ||
+      upgradeAllowed(trade, MAP, trade.captain.ships[trade.captain.activeShip]![item] + 1);
+    const goHome = at !== HOME && want !== null && allowed && trade.captain.gold >= want + 80;
     const all = legOptions(trade, at, opts.contracts);
     const options = goHome ? all.filter((o) => o.to === HOME) : all;
     let leg = options[0]!;
@@ -210,6 +223,8 @@ function sail(opts: { contracts: boolean; relaxed: boolean; minutes?: number }):
     for (const m of Object.values(trade.markets)) stepMarket(m, seconds);
     stepContracts(trade.contracts, seconds);
     t += seconds;
+    for (const up of stepSettlements(trade, seconds)) v.levels[`${up.portId} ${up.level}`] = t / 60;
+    syncMarketLevels(trade, MAP);
     at = leg.to;
     v.legs++;
   }
@@ -220,7 +235,11 @@ function report(name: string, v: Voyage) {
   const income = v.marketGold + v.contractGold;
   console.log(
     `${name}: ${v.legs} legs, ${income} gold earned (${Math.round((100 * v.contractGold) / income)} % orders), repairs ${v.repairGold}\n  ` +
-      v.boughtAt.map(([n, m]) => `${m.toFixed(1)} min ${n}`).join(', '),
+      v.boughtAt.map(([n, m]) => `${m.toFixed(1)} min ${n}`).join(', ') +
+      '\n  levels: ' +
+      Object.entries(v.levels)
+        .map(([n, m]) => `${m.toFixed(1)} min ${n}`)
+        .join(', '),
   );
 }
 

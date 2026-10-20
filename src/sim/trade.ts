@@ -2,9 +2,27 @@ import { type ContractState, createContracts, stepContracts } from './contracts'
 import { leakFactor } from './hazards';
 import { GOODS, type GoodAmounts, type GoodId, emptyAmounts, totalAmount } from './goods';
 import type { MapDef, PortDef } from './map';
-import { type Market, available, createMarket, quoteBuy, quoteSell, stepMarket } from './market';
+import {
+  type Market,
+  available,
+  createMarket,
+  quoteBuy,
+  quoteSell,
+  setMarketLevel,
+  stepMarket,
+} from './market';
 import { distance } from './math';
 import { createRng } from './rng';
+import {
+  type LevelUp,
+  type SettlementState,
+  addGrowth,
+  createSettlements,
+  settlementLevel,
+  stepSettlements,
+  upgradeNeedsLevel,
+  wantsAt,
+} from './settlement';
 import { SHIP_CLASSES, type ShipClass } from './ship';
 import {
   type ShipyardProgress,
@@ -57,6 +75,8 @@ export interface TradeState {
   contracts: ContractState;
   /** Ports on the chart and standing with each shipwright (decision 0048). */
   progress: ShipyardProgress;
+  /** Each port's settlement level and growth (decision 0059). */
+  settlements: SettlementState;
 }
 
 export type TradeError =
@@ -73,7 +93,8 @@ export type TradeError =
   | 'cargo-too-big'
   | 'not-home-port'
   | 'not-at-yard'
-  | 'ship-locked';
+  | 'ship-locked'
+  | 'port-too-small';
 
 export type TradeResult = { ok: true; gold: number } | { ok: false; error: TradeError };
 
@@ -81,8 +102,10 @@ const fail = (error: TradeError): TradeResult => ({ ok: false, error });
 
 export function createTradeState(map: MapDef, startShip: ShipClass): TradeState {
   const rng = createRng(map.seed ^ 0x7ade);
+  const settlements = createSettlements(map);
   const markets: Record<string, Market> = {};
-  for (const port of map.ports) markets[port.id] = createMarket(port, rng);
+  for (const port of map.ports)
+    markets[port.id] = createMarket(port, rng, settlements.byPort[port.id]!.level);
   return {
     captain: {
       gold: START_GOLD,
@@ -95,7 +118,16 @@ export function createTradeState(map: MapDef, startShip: ShipClass): TradeState 
     dockedAt: null,
     contracts: createContracts(map),
     progress: createProgress(map),
+    settlements,
   };
+}
+
+/** Bring every market's demand in line with its settlement level (after a level-up or a load). */
+export function syncMarketLevels(trade: TradeState, map: MapDef): void {
+  for (const port of map.ports) {
+    const market = trade.markets[port.id];
+    if (market) setMarketLevel(market, port, settlementLevel(trade, port.id));
+  }
 }
 
 /** What the boat simulation should sail: the active class with its upgrades. */
@@ -169,7 +201,8 @@ export function tryDock(
 export type DockEvent =
   | { type: 'docked'; portId: string }
   | { type: 'undocked'; portId: string }
-  | { type: 'discovered'; portId: string };
+  | { type: 'discovered'; portId: string }
+  | LevelUp;
 
 /**
  * Advance markets and docking by `dt`. Docking happens when the boat is close to a port and
@@ -184,6 +217,13 @@ export function stepTrade(
   for (const market of Object.values(trade.markets)) stepMarket(market, dt);
   stepContracts(trade.contracts, dt);
   const events: DockEvent[] = [];
+  // Towns that got enough goods grow a level: deeper demand from now on (decision 0059).
+  for (const up of stepSettlements(trade, dt)) {
+    const port = findPort(map, up.portId);
+    const market = trade.markets[up.portId];
+    if (port && market) setMarketLevel(market, port, up.level);
+    events.push(up);
+  }
   for (const port of discoverNear(trade, map, boat))
     events.push({ type: 'discovered', portId: port.id });
   if (trade.dockedAt) {
@@ -230,8 +270,11 @@ export function buy(trade: TradeState, good: GoodId, qty: number): TradeResult {
   return { ok: true, gold: cost };
 }
 
-/** Sell `qty` units from the hold at the docked port; `gold` is the amount received. */
-export function sell(trade: TradeState, good: GoodId, qty: number): TradeResult {
+/**
+ * Sell `qty` units from the hold at the docked port; `gold` is the amount received. Goods the town
+ * wants also help it grow (decision 0059); pass the map so it knows what the town wants.
+ */
+export function sell(trade: TradeState, good: GoodId, qty: number, map?: MapDef): TradeResult {
   const market = dockedMarket(trade);
   if (!market) return fail('not-docked');
   if (!Number.isInteger(qty) || qty <= 0) return fail('bad-quantity');
@@ -240,21 +283,28 @@ export function sell(trade: TradeState, good: GoodId, qty: number): TradeResult 
   trade.captain.gold += income;
   trade.captain.cargo[good] -= qty;
   market.stock[good] += qty;
+  if (map && wantsAt(map, trade, market.portId).includes(good))
+    addGrowth(trade, market.portId, qty);
   return { ok: true, gold: income };
 }
 
 /** Sell everything in the hold at the docked port. */
-export function sellAll(trade: TradeState): TradeResult {
+export function sellAll(trade: TradeState, map?: MapDef): TradeResult {
   if (!dockedMarket(trade)) return fail('not-docked');
   let gold = 0;
   for (const g of GOODS) {
     const qty = trade.captain.cargo[g];
     if (qty > 0) {
-      const r = sell(trade, g, qty);
+      const r = sell(trade, g, qty, map);
       if (r.ok) gold += r.gold;
     }
   }
   return { ok: true, gold };
+}
+
+/** Whether the home port is big enough to fit upgrade level `to` (decision 0059). */
+export function upgradeAllowed(trade: TradeState, map: MapDef, to: number): boolean {
+  return settlementLevel(trade, homePort(map).id) >= upgradeNeedsLevel(to);
 }
 
 /** Raise one upgrade track of the active ship by a level (home port only, decision 0048). */
@@ -266,6 +316,7 @@ export function buyUpgrade(trade: TradeState, map: MapDef, track: UpgradeTrack):
   const levels = captain.ships[captain.activeShip]!;
   const price = upgradePrice(base, levels, track);
   if (price === null) return fail('max-level');
+  if (!upgradeAllowed(trade, map, levels[track] + 1)) return fail('port-too-small');
   if (price > captain.gold) return fail('not-enough-gold');
   captain.gold -= price;
   levels[track] += 1;

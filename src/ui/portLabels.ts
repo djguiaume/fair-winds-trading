@@ -2,6 +2,7 @@ import type { ScreenPoint } from '../render/view';
 import { type GoodId } from '../sim/goods';
 import { isDiscovered } from '../sim/shipyards';
 import { unitSellPrice } from '../sim/market';
+import { wantsAt } from '../sim/settlement';
 import { DOCK_RANGE, DOCK_SPEED_KN, distanceToPort } from '../sim/trade';
 import { navigationTarget, type World } from '../sim/world';
 import { goodName, t } from '../i18n';
@@ -42,6 +43,12 @@ export class PortLabels {
     this.init();
   }
 
+  /** Redraw the signs, e.g. after a town grows and wants more goods (decision 0059). */
+  rebuild() {
+    this.portElements.clear();
+    this.init();
+  }
+
   private init() {
     this.container.innerHTML = '';
     const { map } = this.world;
@@ -53,7 +60,7 @@ export class PortLabels {
       const produces = port.produces
         .map((g) => `<span title="${goodName(g)}">${goodIcon(g)}</span>`)
         .join('');
-      const wants = port.wants
+      const wants = wantsAt(map, this.world.trade, port.id)
         .map(
           (g) =>
             `<span class="sign-good" title="${goodName(g)}">${goodIcon(g)}<b data-price="${g}"></b>${COIN}</span>`,

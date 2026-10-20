@@ -15,6 +15,7 @@ import {
 import { GOOD_DEFS } from '../src/sim/goods';
 import { createMarket, quoteSell } from '../src/sim/market';
 import { type SaveStorage, loadGame, saveGame, serializeWorld } from '../src/sim/save';
+import { startLevel } from '../src/sim/settlement';
 import { SLOOP } from '../src/sim/ship';
 import { stepTrade } from '../src/sim/trade';
 import { createWorld } from '../src/sim/world';
@@ -40,8 +41,10 @@ describe('delivery contracts (0028)', () => {
     for (const port of PHASE1_MAP.ports) {
       const c = state.byPort[port.id]!;
       expect(port.wants).toContain(c.good);
-      expect(c.qty).toBeGreaterThanOrEqual(CONTRACT_QTY[0]);
-      expect(c.qty).toBeLessThanOrEqual(Math.min(CONTRACT_QTY[1], SLOOP.hold));
+      // Hamlets order a little less than villages (decision 0059).
+      const [lo, hi] = contractQtyRange(0, startLevel(port));
+      expect(c.qty).toBeGreaterThanOrEqual(Math.min(lo, CONTRACT_QTY[0]));
+      expect(c.qty).toBeLessThanOrEqual(Math.min(hi, CONTRACT_QTY[1], SLOOP.hold));
     }
     expect(createContracts(PHASE1_MAP)).toEqual(state);
   });

@@ -3,9 +3,10 @@ import { type ContractState, readContracts } from './contracts';
 import { resolveCollisions } from './collision';
 import { GOODS, type GoodAmounts, emptyAmounts } from './goods';
 import { wrapPositive } from './math';
+import { type SettlementState, readSettlements } from './settlement';
 import { SHIP_CLASSES } from './ship';
 import { type ShipyardProgress, readProgress } from './shipyards';
-import { activeShip, findPort } from './trade';
+import { activeShip, findPort, syncMarketLevels } from './trade';
 import { MAX_UPGRADE_LEVEL, UPGRADE_TRACKS, type UpgradeLevels, hullDurability } from './upgrades';
 import type { World } from './world';
 
@@ -37,6 +38,8 @@ export interface SaveData {
   contracts?: ContractState;
   /** Discovered ports and shipwright standing (decision 0048). Optional: older saves start fresh. */
   progress?: ShipyardProgress;
+  /** Settlement levels and growth (decision 0059). Optional: older saves start at the map's levels. */
+  settlements?: SettlementState;
 }
 
 /** The subset of the Web Storage API the save needs. */
@@ -63,6 +66,7 @@ export function serializeWorld(world: World): SaveData {
     markets: stocks,
     contracts: structuredClone(world.trade.contracts),
     progress: structuredClone(world.trade.progress),
+    settlements: structuredClone(world.trade.settlements),
   };
 }
 
@@ -135,6 +139,7 @@ export function validateSave(raw: unknown, world: World): SaveData | null {
       if (stock) markets[port.id] = stock;
     }
   }
+  const settlements = readSettlements(raw.settlements, world.map);
   return {
     version: SAVE_VERSION,
     // The map it was saved on, so applySave can tell a migrated save (always a known name here).
@@ -149,8 +154,9 @@ export function validateSave(raw: unknown, world: World): SaveData | null {
     hullDamage: readHullDamage(raw.hullDamage, ships),
     dockedAt: dockedAt as string | null,
     markets,
-    contracts: readContracts(raw.contracts, world.map),
+    contracts: readContracts(raw.contracts, world.map, settlements),
     progress: readProgress(raw.progress, world.map),
+    settlements,
   };
 }
 
@@ -173,7 +179,9 @@ export function applySave(world: World, data: SaveData): void {
     if (market) market.stock = { ...stock };
   }
   trade.dockedAt = data.dockedAt;
-  if (data.contracts) trade.contracts = readContracts(data.contracts, world.map);
+  trade.settlements = readSettlements(data.settlements, world.map);
+  syncMarketLevels(trade, world.map);
+  if (data.contracts) trade.contracts = readContracts(data.contracts, world.map, trade.settlements);
   trade.progress = readProgress(data.progress, world.map);
   world.ship = activeShip(trade);
   // Compatible older-map saves keep all trading progress. The coasts and ports have moved since

@@ -68,4 +68,6 @@
 
 | [0057](0057-fullscreen-readable-sea-chart.md) | Full-screen sea chart, static local-wind compass, pictographic legend and fixed-size signature boat | 2026-10-20 | Implementation for review |
 
+| [0059](0059-settlement-levels.md) | Settlement levels: four town sizes grown by deliveries, level wants and deeper demand, top upgrades need a home town | 2026-10-20 | Implementation for review |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

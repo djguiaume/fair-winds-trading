@@ -119,6 +119,7 @@ export const fr: Record<MessageKey, string> = {
   'toast.crashPier': 'Choc contre le ponton ! Coque à {pct} %, réparez au port',
   'toast.bump': 'Bong ! Attention au rivage',
   'toast.discovered': 'Nouveau port sur la carte : {name}. Son chantier construit des navires',
+  'toast.levelUp': '{name} s’agrandit : {level} !',
 
   // --- Boussole et conseils de louvoyage -----------------------------------------------------
   'wind.compass': 'Boussole du vent. Ouvrir les conseils de navigation',
@@ -302,8 +303,18 @@ export const fr: Record<MessageKey, string> = {
     'Améliorations et changements de navire se font à votre port d’attache.',
   'trade.err.not-at-yard': 'Ce navire se construit dans un autre port.',
   'trade.err.ship-locked': 'Le chantier attend d’abord plus de livraisons ici.',
+  'trade.err.port-too-small':
+    'Votre port d’attache doit grandir avant de poser cette amélioration.',
   'trade.shipwright': 'Chantier naval',
   'trade.homePort': 'Port d’attache',
+  'settlement.level.1': 'Hameau',
+  'settlement.level.2': 'Village',
+  'settlement.level.3': 'Bourg',
+  'settlement.level.4': 'Ville portuaire',
+  'settlement.growing': '{level} · {pct} %',
+  'settlement.stalling': '{level} · {pct} % · stagne',
+  'settlement.hint':
+    'Vendez à {name} les marchandises qu’il demande, ou livrez ses commandes, pour l’aider à grandir',
   'trade.switchMode': 'Changer de mode d’affichage',
   'trade.toKids': '⛵ Passer en mode Enfants',
   'trade.tabMarket': 'Marché',
@@ -387,6 +398,7 @@ export const fr: Record<MessageKey, string> = {
   'fleet.points': 'Remonte à <b>{deg}°</b> du vent',
   'fleet.speed': 'Vitesse max : <b>{pct} %</b> du sloop',
   'upg.homeOnly': 'Les améliorations se posent à votre port d’attache, {port}.',
+  'upg.needsLevel': 'Faites d’abord grandir {port} : {level}',
   'fleet.sailing': 'Navire actuel',
   'fleet.switchTo': 'Prendre le {ship}',
   'fleet.cargoTooLarge': 'Cargaison trop grande',

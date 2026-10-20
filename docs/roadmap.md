@@ -90,9 +90,9 @@ Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 
 Goal: deliveries visibly change the world.
 
-- Settlements have a level and population; meeting demand levels them up (more buildings on the island, bigger dock).
-- Higher levels unlock new demands, including goods produced only on distant islands.
-- Demand decays if unmet, so neglected towns stall.
+- Settlements have a level and population; meeting demand levels them up (more buildings on the island, bigger dock). **Levels implemented for review ([0059](decisions/0059-settlement-levels.md)):** hamlet, village, town, port town; selling wanted goods and delivering orders grow a town; the home port must be a town before the top upgrades. Island visuals per level are in progress.
+- Higher levels unlock new demands, including goods produced only on distant islands. *Done for the existing goods (level wants, deeper demand, bigger orders); new goods still to come.*
+- Demand decays if unmet, so neglected towns stall. *Done: growth drains back after 3 minutes without supply; levels never drop.*
 - Simple production chains (timber → planks, grain → bread) at higher-level towns.
 - **Dynamic weather:** day/night cycle and weather states (calm, breeze, gale, rain, storms) that move across the map and change wind strength; storms can spoil cargo. Builds on Phase 1's slow wind shifts ([0026](decisions/0026-slow-weather-shifts.md)).
 

@@ -446,6 +446,16 @@ function handleEvents(events: WorldEvent[]) {
       const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
       hud.showToast(t('toast.discovered', { name: portName }), 4);
       autosave();
+    } else if (e.type === 'level-up') {
+      // A town grew (decision 0059): new wants on its sign, and the island grows with it.
+      const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
+      hud.showToast(
+        t('toast.levelUp', { name: portName, level: t(`settlement.level.${e.level}`) }),
+        4,
+      );
+      hud.portLabels.rebuild();
+      if (tradePanel.isOpen) tradePanel.render();
+      autosave();
     } else if (e.type === 'undocked') {
       const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
       hud.showToast(t('toast.departed', { name: portName }), 1.5);

@@ -3,6 +3,13 @@ import { GOODS, GOOD_DEFS, type GoodId } from '../sim/goods';
 import { hullCondition, repairHull, repairPrice } from '../sim/hazards';
 import { goodRole, quoteAcross, quoteBuy, quoteSell, type Market } from '../sim/market';
 import { DEG } from '../sim/math';
+import {
+  growthProgress,
+  settlementLevel,
+  STALL_SECONDS,
+  upgradeNeedsLevel,
+  wantsAt,
+} from '../sim/settlement';
 import { SHIP_CLASSES, SLOOP } from '../sim/ship';
 import { type ShipOffer, discoveredPorts, homePort, shipOffers } from '../sim/shipyards';
 import {
@@ -18,6 +25,7 @@ import {
   sellAll,
   switchShip,
   type TradeResult,
+  upgradeAllowed,
 } from '../sim/trade';
 import {
   MAX_UPGRADE_LEVEL,
@@ -190,7 +198,8 @@ export class TradePanel {
             <div class="port-roles-summary">
               ${port.id === homePort(map).id ? `<span class="role-tag home">${icon('anchor')}${t('trade.homePort')}</span>` : ''}
               ${port.produces.length ? `<span class="role-tag produces"><small>${isKid ? t('kids.produces') : t('trade.makes')}</small>${goodIcons(port.produces)}</span>` : `<span class="role-tag produces">${t('trade.shipwright')}</span>`}
-              <span class="role-tag wants"><small>${isKid ? t('kids.wants') : t('trade.wants')}</small>${goodIcons(port.wants)}</span>
+              <span class="role-tag wants"><small>${isKid ? t('kids.wants') : t('trade.wants')}</small>${goodIcons(wantsAt(map, trade, port.id))}</span>
+              ${this.settlementTag(port.id, port.name)}
             </div>
           </div>
           <div class="header-controls">
@@ -352,6 +361,36 @@ export class TradePanel {
     return best ? { name: findPort(map, best.portId)?.name ?? best.portId, sell: best.sell } : null;
   }
 
+  /** The town's size and growth toward the next level (decision 0059). */
+  private settlementTag(portId: string, name: string): string {
+    const s = this.world.trade.settlements.byPort[portId];
+    if (!s) return '';
+    const level = t(`settlement.level.${s.level}`);
+    const pct = Math.round(growthProgress(this.world.trade, portId) * 100);
+    const text =
+      s.level >= 4
+        ? level
+        : t(
+            s.sinceSupply > STALL_SECONDS && s.growth > 0
+              ? 'settlement.stalling'
+              : 'settlement.growing',
+            {
+              level,
+              pct,
+            },
+          );
+    return `<span class="role-tag level" title="${t('settlement.hint', { name })}">${text}</span>`;
+  }
+
+  /** Why an upgrade waits: the home port has to grow first (decision 0059). */
+  private needsLevelText(to: number): string {
+    const home = homePort(this.world.map);
+    return t('upg.needsLevel', {
+      port: home.name,
+      level: t(`settlement.level.${upgradeNeedsLevel(to)}`),
+    });
+  }
+
   // --- KIDS MARKET RENDERER ---
   private renderKidsMarket(market: Market, sellAllGold: number): string {
     const { trade, map } = this.world;
@@ -360,7 +399,7 @@ export class TradePanel {
 
     const cardsHtml = GOODS.map((good) => {
       const def = GOOD_DEFS[good];
-      const role = goodRole(port, good);
+      const role = goodRole(port, good, settlementLevel(trade, port.id));
       const inHold = captain.cargo[good];
       const maxCanBuy = maxBuy(trade, good);
 
@@ -489,7 +528,7 @@ export class TradePanel {
 
     const rowsHtml = GOODS.map((good) => {
       const def = GOOD_DEFS[good];
-      const role = goodRole(port, good);
+      const role = goodRole(port, good, settlementLevel(trade, port.id));
       const stock = Math.max(0, Math.floor(market.stock[good]));
       const inHold = captain.cargo[good];
       const free = freeSpace(trade);
@@ -629,9 +668,11 @@ export class TradePanel {
             ${
               isMax
                 ? `<button class="upgrade-btn maxed" disabled>${t('kids.maxLevel')}</button>`
-                : canAfford
-                  ? `<button class="upgrade-btn primary kid-btn" data-track="${track}">${t('kids.upgrade', { price: nextPrice! })}</button>`
-                  : `<button class="upgrade-btn" disabled>${t('kids.needCoins', { n: nextPrice! - captain.gold })}</button>`
+                : !upgradeAllowed(trade, this.world.map, cur + 1)
+                  ? `<button class="upgrade-btn" disabled>${this.needsLevelText(cur + 1)}</button>`
+                  : canAfford
+                    ? `<button class="upgrade-btn primary kid-btn" data-track="${track}">${t('kids.upgrade', { price: nextPrice! })}</button>`
+                    : `<button class="upgrade-btn" disabled>${t('kids.needCoins', { n: nextPrice! - captain.gold })}</button>`
             }
           </div>
         </article>
@@ -698,6 +739,8 @@ export class TradePanel {
       let buttonHtml: string;
       if (isMax) {
         buttonHtml = `<button class="upgrade-btn maxed" disabled>${t('upg.maxLevel')}</button>`;
+      } else if (!upgradeAllowed(trade, this.world.map, currentLevel + 1)) {
+        buttonHtml = `<button class="upgrade-btn" disabled>${this.needsLevelText(currentLevel + 1)}</button>`;
       } else if (canAfford) {
         buttonHtml = `<button class="upgrade-btn primary" data-track="${track}">${t('upg.upgradeTo', { price: nextPrice! })}</button>`;
       } else {
@@ -862,7 +905,7 @@ export class TradePanel {
     // Sell all
     const sellAllBtn = this.container.querySelector('#tp-sell-all');
     sellAllBtn?.addEventListener('click', () => {
-      const res = sellAll(this.world.trade);
+      const res = sellAll(this.world.trade, this.world.map);
       this.finish(res, { kind: 'sell', good: null });
     });
 
@@ -914,7 +957,7 @@ export class TradePanel {
             const res = buy(this.world.trade, good, qty);
             this.finish(res, { kind: 'buy', good });
           } else if (action === 'sell') {
-            const res = sell(this.world.trade, good, qty);
+            const res = sell(this.world.trade, good, qty, this.world.map);
             this.finish(res, { kind: 'sell', good });
           }
         });
