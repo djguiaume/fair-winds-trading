@@ -71,6 +71,8 @@ Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 
 **Play-test fixes (requested by Guillaume, 2026-10-19):**
 
+- **Refined sloop (implemented for review, [0050](decisions/0050-refined-upgrade-aware-sloop.md)):** shaped hull and raised gunwales, hatch and rudder/tiller; all hull/hold/sail upgrades preserved. Mainsail pivots on the mast and each jib on its own forestay; sail endpoints and moving rigging remain attached. Low/Medium/High retained, maximum upgrades 743 triangles / six meshes, ropes omitted on Low. Actual engine [screenshots](art/game-models/refined-sloop/README.md); physical older-tablet validation remains. Other ship models can follow separately.
+
 - **Complete UI redesign.** The current HUD and panels are not good enough; redesign them as a whole (mockups first, then build), keeping touch and the old-tablet budget ([0006](decisions/0006-desktop-and-mobile.md)). Analysis of the current UI, comparable mobile games and a recommendation: [ui-refactor](ui-refactor/README.md). Style picked: navy and brass "instruments" with colour goods icons and chunky buttons ([0049](decisions/0049-ui-instrument-style.md)). **Sea HUD implemented for review**; next the full-screen Port screen, then the chart, then menus and tutorial coach marks.
 - **Kids mode shelved** ([0043](decisions/0043-shelve-kids-mode.md)): hidden from the game for now, saves fall back to Captain mode; the rework moved to Phase 7.
 - **Wind strength you can see** (implemented for review, [0040](decisions/0040-visible-wind-strength.md)): a strength word (Calm to Strong; plain words in Kids mode), a coloured arrow and a short gust cue on the compass (five-bar gauge built but hidden for now), and the sea streaks thin out in a calm and brighten in strong wind.

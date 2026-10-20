@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import { RefinedSloop } from './sloop';
+import { BOAT_SCALE, STYLE_D } from './boatStyle';
+export { BOAT_SCALE, STYLE_D } from './boatStyle';
 import { createRng } from '../../sim/rng';
 import { keepGroup, mergeAll, paint, paintGroups, vertexColorMaterial } from './geometry';
 import {
@@ -8,31 +11,6 @@ import {
   type ShipUpgrades,
   STOCK_UPGRADES,
 } from './types';
-
-/**
- * Style D "Storybook classic" (decision 0012), ported from the reference builder in
- * docs/art/src/lib.js (`STYLES.D`, `CLASSES`, `boat`). Proportions and colours match the art
- * sheets; geometry is merged into a few vertex-coloured meshes for the old-tablet budget.
- */
-export const STYLE_D = {
-  L: 1,
-  B: 1.05,
-  H: 1.2,
-  sheer: 0.45,
-  belly: 0.35,
-  mastK: 0.95,
-  flag: 1.3,
-  sail: '#fbf6e8',
-  patchedSail: '#d9c9a2',
-  patches: ['#b8a27a', '#a89068'],
-  deck: '#d4a466',
-  mast: '#5b3a1e',
-  crate: '#c4914e',
-  barrel: '#8a5a30',
-  copper: '#c8743c',
-  rigging: '#2d2218',
-  lamp: '#ffd774',
-};
 
 interface MastDef {
   /** Position along the hull in reference units, + toward the bow. */
@@ -155,9 +133,6 @@ export const BOAT_CLASSES: Record<string, BoatClassDef> = {
     castle: 2,
   },
 };
-
-/** Reference sheets draw a 5 m sloop; the game draws boats chunky (sloop ≈ 11 m), like the ad. */
-export const BOAT_SCALE = 2.2;
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
@@ -649,8 +624,10 @@ export class StorybookBoat implements BoatModel {
 }
 
 export const createStorybookBoat: BoatModelFactory = (shipClassId, options = {}) =>
-  new StorybookBoat(
-    BOAT_CLASSES[shipClassId] ?? BOAT_CLASSES.sloop!,
-    options.upgrades ?? STOCK_UPGRADES,
-    options.rigging ?? true,
-  );
+  shipClassId === 'sloop' || !BOAT_CLASSES[shipClassId]
+    ? new RefinedSloop(options)
+    : new StorybookBoat(
+        BOAT_CLASSES[shipClassId] ?? BOAT_CLASSES.sloop!,
+        options.upgrades ?? STOCK_UPGRADES,
+        options.rigging ?? true,
+      );
