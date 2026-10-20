@@ -348,15 +348,12 @@ for (const lang of LANGUAGES) {
 // --- Controls ----------------------------------------------------------------------------------
 input.onDrag = (d) => hud.setTiller(d);
 input.onZoom = (f) => view.setZoom(view.getZoom() * f);
-for (const [id, delta] of [
-  ['sail-up', 1],
-  ['sail-down', -1],
-] as const) {
-  $(id).addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    input.pressSail(delta);
-  });
-}
+hud.onSailStep = (step) => input.setSail(step);
+hud.onLogToggle = (shown) => {
+  settings.showLog = shown;
+  saveSettings(settings);
+};
+hud.showLog = settings.showLog;
 
 // --- Settings panel ----------------------------------------------------------------------------
 const qualitySelect = $<HTMLSelectElement>('quality');
@@ -474,7 +471,9 @@ function tick(now: number) {
   last = now;
 
   const sailDelta = input.takeSailDelta();
+  const sailTarget = input.takeSailTarget();
   if (!paused) {
+    if (sailTarget !== null) sailStep = sailTarget;
     sailStep = clamp(sailStep + sailDelta, 0, SAIL_STEPS.length - 1);
     accumulator += dt;
     let steps = 0;

@@ -156,18 +156,24 @@ describe('visible harbour approaches', () => {
     }));
     const marker = layer.querySelector<HTMLButtonElement>(`[data-port-id="${port.id}"]`)!;
     expect(marker.hidden).toBe(false);
-    expect(marker.textContent).toContain('⚓');
+    const dock = marker.querySelector<HTMLElement>('.port-marker-dock')!;
+    const cue = marker.querySelector<HTMLElement>('.port-marker-cue')!;
+    expect(marker.querySelector('use[href="#i-anchor"]')).not.toBeNull();
     expect(marker.textContent).toContain(port.name);
-    expect(marker.textContent).toContain('Lower sails to dock');
+    expect(cue.textContent).toBe('Lower sails to dock');
+    expect(dock.hidden).toBe(true);
     world.boat.speedKn = 0;
     labels.update(() => ({ x: 123, y: 234, onScreen: true }));
-    expect(marker.textContent).toContain('Tap to dock & trade');
+    expect(cue.hidden).toBe(true);
+    expect(dock.hidden).toBe(false);
+    expect(dock.textContent!.trim()).toBe('Dock');
     labels.onPortClick = (id) => {
       if (tryDock(world.trade, world.map, world.boat, id)) world.trade.dockedAt = id;
     };
     marker.click();
     expect(world.trade.dockedAt).toBe(port.id);
     labels.update(() => ({ x: 123, y: 234, onScreen: true }));
-    expect(marker.textContent).toContain('Docked · Tap to trade');
+    expect(dock.textContent!.trim()).toBe('Trade');
+    expect(marker.getAttribute('aria-label')).toContain('Docked · Tap to trade');
   });
 });

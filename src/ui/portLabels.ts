@@ -1,18 +1,17 @@
 import type { ScreenPoint } from '../render/view';
 import { type GoodId } from '../sim/goods';
 import { isDiscovered } from '../sim/shipyards';
+import { unitSellPrice } from '../sim/market';
 import { DOCK_RANGE, DOCK_SPEED_KN, distanceToPort } from '../sim/trade';
 import { navigationTarget, type World } from '../sim/world';
 import { goodName, t } from '../i18n';
 
 export type PortMarkerMode = 'approach' | 'objective' | 'all' | 'off';
 
-const GOOD_ICONS: Record<GoodId, string> = {
-  fish: '🐟',
-  grain: '🌾',
-  timber: '🪵',
-  stone: '🪨',
-};
+const COIN = '<svg class="icon coin" aria-hidden="true"><use href="#i-coin" /></svg>';
+/** A colour goods icon from the HUD's SVG sprite (decision 0049). */
+const goodIcon = (good: string) =>
+  `<svg class="icon" aria-hidden="true"><use href="#i-${good}" /></svg>`;
 
 export class PortLabels {
   private readonly portElements: Map<
@@ -24,6 +23,8 @@ export class PortLabels {
       tagEl: HTMLElement;
       anchor: { x: number; y: number };
       cue: HTMLElement;
+      dock: HTMLElement;
+      prices: { good: GoodId; el: HTMLElement }[];
     }
   > = new Map();
 
@@ -48,11 +49,14 @@ export class PortLabels {
       if (!island) continue;
 
       const produces = port.produces
-        .map((g) => `${GOOD_ICONS[g as GoodId] ?? ''} ${goodName(g)}`)
-        .join(', ');
+        .map((g) => `<span title="${goodName(g)}">${goodIcon(g)}</span>`)
+        .join('');
       const wants = port.wants
-        .map((g) => `${GOOD_ICONS[g as GoodId] ?? ''} ${goodName(g)}`)
-        .join(', ');
+        .map(
+          (g) =>
+            `<span class="sign-good" title="${goodName(g)}">${goodIcon(g)}<b data-price="${g}"></b>${COIN}</span>`,
+        )
+        .join('');
 
       const el = document.createElement('button');
       el.className = 'port-marker';
@@ -64,16 +68,20 @@ export class PortLabels {
       el.innerHTML = `
         <span class="port-marker-box">
           <span class="port-marker-header">
-            <span class="port-marker-icon" aria-hidden="true">⚓</span>
+            <svg class="icon port-marker-icon" aria-hidden="true"><use href="#i-anchor" /></svg>
             <span class="port-marker-name">${port.name}</span>
           </span>
-          <span class="port-marker-cue">${t('port.harbour')}</span>
           <span class="port-marker-tag">
-            <span class="produces-tag">${produces}</span>
-            <span class="sign-sep">·</span>
-            <span class="wants-tag">${t('port.wants', { goods: wants })}</span>
+            <span class="wants-tag"><small>${t('port.wantsLabel')}</small>${wants}</span>
+            <span class="produces-tag"><small>${t('port.makesLabel')}</small>${produces}</span>
           </span>
+          <span class="port-marker-cue">${t('port.harbour')}</span>
         </span>
+        <span class="port-marker-dock" hidden>
+          <svg class="icon" aria-hidden="true"><use href="#i-anchor" /></svg>
+          <span class="port-marker-dock-text"></span>
+        </span>
+        <span class="port-marker-stem" aria-hidden="true"></span>
       `;
 
       el.addEventListener('click', (e) => {
@@ -90,6 +98,11 @@ export class PortLabels {
         boxEl: el.querySelector('.port-marker-box')!,
         nameEl: el.querySelector('.port-marker-name')!,
         tagEl: el.querySelector('.port-marker-tag')!,
+        dock: el.querySelector('.port-marker-dock')!,
+        prices: Array.from(el.querySelectorAll<HTMLElement>('[data-price]')).map((p) => ({
+          good: p.dataset.price as GoodId,
+          el: p,
+        })),
       });
     }
   }
@@ -146,13 +159,29 @@ export class PortLabels {
               ? t('port.cueCloser')
               : t('port.cueTrading');
       if (entry.cue.textContent !== cue) entry.cue.textContent = cue;
-      entry.root.classList.toggle('ready', canDock || isDocked);
+      // A brass Dock (or Trade, once moored) button replaces the cue when it is one tap away.
+      const ready = canDock || isDocked;
+      entry.cue.hidden = ready;
+      entry.dock.hidden = !ready;
+      if (ready) {
+        const label = t(isDocked ? 'port.tradeBtn' : 'port.dockBtn');
+        const text = entry.dock.lastElementChild!;
+        if (text.textContent !== label) text.textContent = label;
+      }
+      // What the port pays today for the goods it wants.
+      const market = trade.markets[port.id];
+      for (const p of entry.prices) {
+        const price = market ? String(unitSellPrice(p.good, market.stock[p.good])) : '';
+        if (p.el.textContent !== price) p.el.textContent = price;
+      }
+      entry.root.classList.toggle('ready', ready);
       entry.root.setAttribute('aria-label', `${port.name}: ${cue}`);
       const s = project(entry.anchor.x, entry.anchor.y);
       if (s.onScreen) {
         entry.root.hidden = false;
         entry.root.classList.toggle('docked', isDocked);
-        entry.root.style.transform = `translate(${s.x}px, ${s.y - 14}px)`;
+        // The sign stands on its pier: bottom centre of the sign at the anchor point.
+        entry.root.style.transform = `translate(${s.x.toFixed(0)}px, ${s.y.toFixed(0)}px) translate(-50%, -100%)`;
       } else {
         // Hide off-screen markers to avoid screen edge clutter
         entry.root.hidden = true;
