@@ -29,7 +29,7 @@ import {
  */
 
 /** Gold at the start of a new game: enough for a first hold of cheap goods. */
-export const START_GOLD = 120;
+export const START_GOLD = 150;
 /** Dock when within this distance of a port island's shore… */
 export const DOCK_RANGE = 14;
 /** …and slower than this (knots). Lower the sails near a port to dock. */

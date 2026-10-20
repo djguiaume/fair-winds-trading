@@ -28,14 +28,14 @@ Typical prices with the current numbers (gold per unit, first unit):
 
 | Good | Base | Buy where made | Sell where wanted | Buy / sell elsewhere |
 |---|---|---|---|---|
-| Fish | 8 | 4 | 12 | 9 / 7 |
-| Grain | 10 | 5 | 15 | 12 / 8 |
-| Timber | 14 | 6 | 21 | 16 / 12 |
-| Stone | 18 | 8 | 27 | 20 / 16 |
+| Fish | 8 | 4 | 14 | 9 / 7 |
+| Grain | 10 | 5 | 18 | 11 / 9 |
+| Timber | 14 | 6 | 25 | 16 / 12 |
+| Stone | 18 | 8 | 33 | 20 / 16 |
 
 ## Delivery contracts
 
-`src/sim/contracts.ts`, decision [0028](decisions/0028-delivery-contracts.md). Each port has one order for a good it wants: 4–8 units, reward = units × base price × (1.75 + haul / 500), rounded to 5, where haul is the distance from the nearest other port making the good. Deliver while docked (all units at once); the goods leave the hold without changing the market. The port posts its next order 90 s later. Typical first orders on the Windward Ring: 7 stone to Port Calda for about 385 gold, 7 grain to Saltmere for about 210.
+`src/sim/contracts.ts`, decision [0028](decisions/0028-delivery-contracts.md). Each port has one order for a good it wants: 4–8 units while the hold is small, then up to 60 % of the hold of the ship sailed when the order is posted ([0046](decisions/0046-phase-1-economy-tuning.md)); reward = units × base price × (1.5 + haul / 700), rounded to 5, where haul is the distance from the nearest other port making the good. Deliver while docked (all units at once); the goods leave the hold without changing the market. The port posts its next order 90 s later. Typical first orders on the Windward Ring: 7 stone to Port Calda for 310 gold, 7 grain to Saltmere for 165.
 
 ## Tuning knobs
 
@@ -43,19 +43,31 @@ Typical prices with the current numbers (gold per unit, first unit):
 |---|---|---|---|
 | `basePrice` per good | `goods.ts` | 8 / 10 / 14 / 18 | make a good worth more everywhere |
 | `REFERENCE_STOCK` | `market.ts` | 30 | stock at which a good trades at base price |
-| `EQUILIBRIUM` | `market.ts` | makes 100, wants 15, neither 30 | widen (makes ↑, wants ↓) the gap between cheap and dear ports |
+| `EQUILIBRIUM` | `market.ts` | makes 100, wants 12, neither 30 | widen (makes ↑, wants ↓) the gap between cheap and dear ports |
 | `PRICE_ELASTICITY` | `market.ts` | 0.8 | make prices react more to stock (bigger margins, faster slide) |
-| `SPREAD` | `market.ts` | 8 % | make the port's cut bigger |
+| `SPREAD` | `market.ts` | 6 % | make the port's cut bigger |
 | `RECOVERY_SECONDS` | `market.ts` | 75 s | make a hammered route stay poor for longer |
-| `CONTRACT_PRICE_FACTOR`, `CONTRACT_DISTANCE_SCALE` | `contracts.ts` | 1.75, 500 | make orders pay more (or long hauls pay more) |
-| `CONTRACT_QTY`, `CONTRACT_COOLDOWN` | `contracts.ts` | 4–8, 90 s | make orders bigger, or come back sooner |
-| `REPAIR_COST`, `STRIKE_DAMAGE` | `hazards.ts` | 1.5 gold/pt, 6 pts/kn | make reef strikes cost more |
-| `START_GOLD` | `trade.ts` | 120 | start richer |
+| `CONTRACT_PRICE_FACTOR`, `CONTRACT_DISTANCE_SCALE` | `contracts.ts` | 1.5, 700 | make orders pay more (or long hauls pay more) |
+| `CONTRACT_QTY`, `CONTRACT_HOLD_SHARE`, `CONTRACT_COOLDOWN` | `contracts.ts` | 4–8, 60 % of hold, 90 s | make orders bigger, or come back sooner |
+| `REPAIR_COST`, `STRIKE_DAMAGE` | `hazards.ts` | 2 gold/pt, 6 pts/kn | make reef strikes cost more |
+| `START_GOLD` | `trade.ts` | 150 | start richer |
 | `DOCK_RANGE`, `DOCK_SPEED_KN` | `trade.ts` | 14 units, 1.5 kn | make docking easier |
 | `UPGRADE_EFFECTS` | `upgrades.ts` | see below | make upgrades stronger |
 | `hold`, `price`, `upgradePrices` | `ship.ts` | per class | change capacity and costs |
 
-The balance test in `tests/economy.test.ts` (stone one way, timber back, 60 s per leg) fails if the first upgrade takes more than 6 legs or the cutter takes fewer than 8 or more than 18, which catches tuning that makes the game too slow or too easy.
+## Balance targets
+
+`tests/economy-balance.test.ts` ([0046](decisions/0046-phase-1-economy-tuning.md)) simulates 40 minutes on the Windward Ring, with leg times from the ship polars over the shifting wind (45–100 s per sloop leg plus 20 s in port). It fails when tuning breaks these targets:
+
+| Milestone | Sharp captain (best load every leg) | Relaxed captain (40 % slower, often 2nd/3rd best load, a crash every 5 legs) |
+|---|---|---|
+| First upgrade | ≤ 5 min (now 3.7) | ≤ 8 min (now 5.8) |
+| Cutter (1 500) | 9–16 min (now 12.7); ≤ 25 min without orders (now 18.9) | ≤ 32 min (now 18.2) |
+| Cutter fully upgraded | ≥ 25 min (now 34) | |
+| Delivery orders' share of income | 30–65 % (now 55 %) | |
+| Repairs | | under 10 % of income (now 5 %) |
+
+No single route may take more than 30 % of the sharp captain's legs, so wind shifts and orders keep sending you to different ports. Run `npx vitest run tests/economy-balance.test.ts --silent=false` to see the purchase timeline.
 
 ## Ships and upgrades
 
@@ -70,7 +82,7 @@ Ship lines from [0035](decisions/0035-three-ship-lines.md); where they are built
 | Hold (stock) | 10 | 16 | 30 | 50 | 25 | 60 | 120 |
 | No-go zone | 45° | 40° | 38° | 40° | 50° | 55° | 55° |
 | Top speed vs sloop | 100 % | 106 % | 125 % | 145 % | 85 % | 81 % | 85 % |
-| Upgrade price (L2 / L3, each track) | 400 / 1 200 | 600 / 1 800 | 1 500 / 4 500 | 5 000 / 15 000 | 700 / 2 100 | 2 000 / 6 000 | 6 000 / 18 000 |
+| Upgrade price (L2 / L3, each track) | 300 / 900 | 500 / 1 800 | 1 500 / 4 500 | 5 000 / 15 000 | 700 / 2 100 | 2 000 / 6 000 | 6 000 / 18 000 |
 
 Hold upgrades multiply the stock hold by 1.6 and 2.2 (sloop 10 / 16 / 22, cutter 16 / 26 / 35).
 
