@@ -34,7 +34,7 @@ already updated; a delay/reset would not fix this.
 
 ## Consequences and validation
 
-233 tests pass, including real-perspective-camera regressions for southward targets behind
+239 tests pass after integrating the refined schooner from latest main, including real-perspective-camera regressions for southward targets behind
 and across the camera plane, immediate opposite target selection/clearing, consecutive-frame
 marker movement and unchanged-content mutation checks. Production build, ESLint and formatting
 checks pass. Existing harbour, save and rendering-budget regressions remain green.

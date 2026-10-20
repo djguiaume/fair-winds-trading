@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* global require, process, localStorage, window, document, fwt, requestAnimationFrame, getComputedStyle, console */
 const { chromium } = require('playwright');
 const fs = require('node:fs');
 const root = process.cwd();
