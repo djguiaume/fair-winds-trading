@@ -12,7 +12,7 @@ Roadmap item: **Complete UI redesign** (Phase 1, [roadmap](../roadmap.md)). Cons
 
 The game's systems are fine; the UI presents them as **a web page laid over a game**. Every feature got its own dark panel with prose, labels and buttons, so the screen has no hierarchy and the important actions sit below the fold. Mobile games in this genre do the opposite: a full-bleed sea with information **pinned to things in the world**, a thin resource strip, one big thumb control per hand, and port screens that are **one screen per task with big icons and one tap per action**.
 
-**Recommendation:** rebuild the UI around three screens (Sea, Port, Chart) with one shared visual language (game font, wood/parchment/gold frames, a code-built icon set), moving information out of panels and onto the world. Start with static mockups of those three screens in two visual directions, you pick one, then build Sea HUD → Port → Chart → menus.
+**Recommendation:** rebuild the UI around three screens (Sea, Port, Chart) with one shared visual language (game font, wood/parchment/gold frames, a code-built icon set), moving information out of panels and onto the world. Start with static mockups of those three screens in three visual styles ([mockups](mockups/README.md)), you pick one, then build Sea HUD → Port → Chart → menus.
 
 ---
 
@@ -144,7 +144,7 @@ I looked for mobile games close to ours (sailing + trading + upgrades, short ses
 |---|---|---|---|
 | Steer | Floating tiller | Stick or wheel | **Keep** the tiller, add a faint wheel under the thumb while dragging |
 | Sail | ▲ ▼ buttons + pips + "Sails" label | One lever / speed setting | **Merge** into one vertical sail lever on the right thumb (3 notches, the sail drawn on it) |
-| Speed, point of sail | "8.3 kn" + "Beam reach" panel | Not shown, or wake/speed lines | **Move** to the world: wake and spray show speed, compass rim glows green on a good angle. Knots only in a detail toggle |
+| Speed, point of sail | "8.3 kn" + "Beam reach" panel | Not shown, or wake/speed lines | **Keep visible by default, smaller**, next to the compass, with a toggle to hide them (the audience is people who like sailing). The compass rim also glows green on a good angle |
 | Wind | Compass + word + direction + knots + chips | Wind and heading in one widget | **Keep** the compass, make it the hero (bigger, ring coloured by strength, no-go wedge), drop the text lines; "into the wind" becomes a pulse on the wedge + one coach mark |
 | Gold / cargo / hull / ship | Boxed panel | Top strip, icons + numbers | **Strip** at top: gold, cargo bar, hull only when damaged; hull **also as a bar above the boat** like the ad |
 | Ports nearby | World labels with "wants X" | Pins over ports | **Keep**, restyle as signboards (port icon + wanted good icon + price), dock prompt as a big button on the pier label itself |
@@ -186,14 +186,14 @@ CHART: full-screen map, ✕ top-right, good selector chips along the bottom colo
 
 ## 5. Proposed next steps (to plan together)
 
-1. **Mockups first** (static images, as you prefer): Sea, Port and Chart on a phone in landscape, in **two visual directions**: (a) *storybook wood and parchment*, close to the boats' style D, and (b) *clean bold mobile*, closer to the ad's floating badges. You pick one (or mix).
+1. **Mockups first** (static images, as you prefer): Sea, Port and Chart in **three visual styles**, see [mockups](mockups/README.md). You pick one (or mix).
 2. Write the ADR for the chosen direction and these principles.
 3. Build in this order, each as its own PR with before/after screenshots: **Sea HUD → Port screen → Chart → menus, settings and tutorial coach marks**. Port portrait and tablet layouts follow each screen.
 4. Kids mode stays shelved; its rework (Phase 7) builds on the new components.
 
-### Questions for you
+### Answers so far (Guillaume, 2026-10-20)
 
-1. **Numbers at sea:** hide knots and point of sail by default (shown in a details toggle), or keep them visible?
-2. **Port:** full-screen port screen (the sea hidden behind), or a big panel with the harbour still visible behind it?
-3. **Portrait phones:** first-class layout too, or landscape-first with portrait "works but plain"?
-4. **Visual direction:** happy to see both (a) and (b), or do you already lean one way?
+1. **Numbers at sea:** keep speed in knots and point of sail **visible by default**, smaller than today, with a toggle to hide them. The players we target like sailing first.
+2. **Port:** full-screen.
+3. **Layouts:** phone landscape and desktop first; portrait must also work and look good.
+4. **Visual direction:** see three styles side by side: [mockups](mockups/README.md).
