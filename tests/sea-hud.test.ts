@@ -137,3 +137,19 @@ describe('responsive overlay updates', () => {
     expect(marker.hidden).toBe(true);
   });
 });
+
+describe('one Trade button at a time (decision 0058)', () => {
+  it('uses the port sign when it is on screen, and the bottom button only when it is not', () => {
+    const { world, hud } = setup();
+    world.trade.dockedAt = 'saltmere';
+    hud.update(0.2, project, size);
+    expect(document.querySelector('.port-marker[data-port-id="saltmere"]')).not.toBeNull();
+    expect($('dock-btn').hidden).toBe(true);
+    const offScreen = (x: number, y: number) => ({ x, y, onScreen: false });
+    hud.update(0.2, offScreen, size);
+    expect($('dock-btn').hidden).toBe(false);
+    world.trade.dockedAt = null;
+    hud.update(0.2, project, size);
+    expect($('dock-btn').hidden).toBe(true);
+  });
+});

@@ -10,7 +10,7 @@ import { Input } from '../src/input/input';
 import { SeaChart } from '../src/ui/seaChart';
 
 function setup() {
-  document.body.innerHTML = `<dialog id="chart"><button id="close-chart">Back</button><svg id="chart-map"></svg><span id="chart-wind"></span><div id="chart-goods"></div><table id="chart-prices"></table><div id="chart-ports"></div><div id="chart-pins"></div><p id="chart-status"></p><button id="chart-pin-here">Mark position</button><button id="chart-clear-target">Clear</button></dialog>`;
+  document.body.innerHTML = `<dialog id="chart"><button id="close-chart">Back</button><svg id="chart-map"></svg><span id="chart-wind"></span><span id="chart-course"></span><div id="chart-goods"></div><table id="chart-prices"></table><p id="chart-status"></p><button id="chart-clear-target">Clear</button></dialog>`;
   const world = createWorld(PHASE1_MAP, SLOOP);
   const chart = new SeaChart(document.querySelector('dialog')!, world, {});
   chart.open();
@@ -39,8 +39,7 @@ describe('sandbox navigation', () => {
     world.trade.captain.gold = 1234;
     saveGame(localStorage, world);
     const before = localStorage.getItem(SAVE_KEY);
-    click('#chart-pin-here');
-    click('#chart-ports button');
+    click(`[data-compare="${PHASE1_MAP.ports[0]!.id}"]`);
     expect(localStorage.getItem(SAVE_KEY)).toBe(before);
     const restored = createWorld(PHASE1_MAP, SLOOP);
     expect(loadGame(localStorage, restored)).toBe(true);
@@ -51,30 +50,20 @@ describe('sandbox navigation', () => {
 describe('on-demand chart', () => {
   it('sets an explicit port bearing and clears it without advancing a course', () => {
     const { world } = setup();
-    click('#chart-ports button');
+    click(`[data-compare="${PHASE1_MAP.ports[0]!.id}"]`);
     expect(world.destination?.portId).toBe(PHASE1_MAP.ports[0]!.id);
+    expect(document.getElementById('chart-course')!.textContent).toContain(
+      PHASE1_MAP.ports[0]!.name,
+    );
     click('#chart-clear-target');
     expect(navigationTarget(world)).toBeNull();
   });
-  it('caps markers at five, persists them separately and removes a selected marker', () => {
-    const { world, chart } = setup();
-    for (let i = 0; i < 6; i++) click('#chart-pin-here');
-    expect(document.querySelectorAll('#chart-pins button')).toHaveLength(10);
-    click('#chart-pins button');
-    expect(world.destination?.label).toBe('Marker 1');
-    click('#chart-pins button:nth-child(2)');
-    expect(world.destination).toBeNull();
-    chart.close();
-    setup();
-    expect(document.querySelectorAll('#chart-pins button')).toHaveLength(8);
-  });
-  it('ignores malformed chart storage without affecting sailing', () => {
-    localStorage.setItem(
-      `fwt.chart.v1.${PHASE1_MAP.name}`,
-      '[null,{"x":99999,"y":0,"label":"Marker 1"}]',
-    );
+  it('has no markers any more and forgets what older versions stored (decision 0058)', () => {
+    localStorage.setItem(`fwt.chart.v1.${PHASE1_MAP.name}`, '[{"x":0,"y":0,"label":"Marker 1"}]');
     const { world } = setup();
-    expect(document.querySelectorAll('#chart-pins button')).toHaveLength(0);
+    expect(localStorage.getItem(`fwt.chart.v1.${PHASE1_MAP.name}`)).toBeNull();
+    // Tapping the sea no longer drops a marker or sets a course.
+    document.getElementById('chart-map')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(navigationTarget(world)).toBeNull();
   });
 });

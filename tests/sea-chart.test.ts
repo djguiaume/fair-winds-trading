@@ -94,7 +94,7 @@ describe('full-screen chart planning', () => {
     expect(get<HTMLButtonElement>('chart-zoom-out').disabled).toBe(true);
   });
 
-  it('selects ports by keyboard, retains focus and keeps pins and voyage saves independent', () => {
+  it('selects ports by keyboard, retains focus, and outlines the chosen port card', () => {
     const { world } = setup();
     localStorage.setItem('fwt.save.v1', 'untouched');
     const target = document.querySelector<SVGElement>('[data-chart-target="westholm"]')!;
@@ -102,14 +102,43 @@ describe('full-screen chart planning', () => {
     target.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     expect(world.destination?.portId).toBe('westholm');
     expect(document.activeElement?.getAttribute('data-chart-target')).toBe('westholm');
-    click('chart-markers-toggle');
-    click('chart-pin-here');
-    expect(JSON.parse(localStorage.getItem(`fwt.chart.v1.${world.map.name}`)!)).toHaveLength(1);
+    expect(document.querySelector('[data-chart-target="westholm"]')!.classList).toContain(
+      'is-selected',
+    );
+    expect(document.querySelectorAll('#chart-map .chart-course')).toHaveLength(1);
+    expect(get<HTMLElement>('chart-course').hidden).toBe(false);
     expect(localStorage.getItem('fwt.save.v1')).toBe('untouched');
-    const pin = document.querySelector<SVGElement>('[data-chart-target="Marker 1"]')!;
-    pin.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
-    expect(world.destination?.label).toBe('Marker 1');
     click('chart-clear-target');
     expect(world.destination).toBeNull();
+    expect(get<HTMLElement>('chart-course').hidden).toBe(true);
+    expect(get<HTMLButtonElement>('chart-clear-target').disabled).toBe(true);
+  });
+
+  it('opens with names only on an empty hold, then prices one picked good under every port', () => {
+    const { world } = setup();
+    const charted = world.map.ports.filter((p) => !p.hidden);
+    expect(document.querySelectorAll('.chart-port-name')).toHaveLength(charted.length);
+    expect(document.querySelectorAll('.chart-need')).toHaveLength(0);
+    const stone = [...document.querySelectorAll<HTMLButtonElement>('#chart-goods button')].find(
+      (b) => b.textContent!.includes('Stone'),
+    )!;
+    stone.click();
+    expect(document.querySelector('#chart-goods [aria-pressed="true"]')!.textContent).toContain(
+      'Stone',
+    );
+    expect(document.querySelectorAll('.chart-need')).toHaveLength(charted.length);
+    expect(document.querySelectorAll('.chart-need.best').length).toBeGreaterThan(0);
+    expect(get('chart-market-title').textContent).toContain('Stone');
+  });
+
+  it('keeps port labels apart and off the boat', () => {
+    setup();
+    const boxes = [...document.querySelectorAll('.chart-port-target .chart-card-box')].map((r) => {
+      const n = (a: string) => Number(r.getAttribute(a));
+      return { x0: n('x'), y0: n('y'), x1: n('x') + n('width'), y1: n('y') + n('height') };
+    });
+    for (const [i, a] of boxes.entries())
+      for (const b of boxes.slice(i + 1))
+        expect(a.x1 <= b.x0 || b.x1 <= a.x0 || a.y1 <= b.y0 || b.y1 <= a.y0).toBe(true);
   });
 });

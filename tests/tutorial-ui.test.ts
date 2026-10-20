@@ -45,7 +45,7 @@ describe('tutorial card in real UI surfaces', () => {
     chart.open();
     tutorial.chartOpened();
     card.setSurface('chart');
-    click('#chart-ports button');
+    click('[data-compare="calda"]');
     expect(tutorial.step).toBe('sails');
     expect(document.querySelectorAll('.tutorial-card')).toHaveLength(1);
     expect(document.querySelector('#tutorial-chart .tutorial-card')).not.toBeNull();

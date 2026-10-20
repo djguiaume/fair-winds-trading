@@ -1,28 +1,35 @@
 import type { World } from '../sim/world';
 import { WIND_FORCES, windForce } from '../sim/windStrength';
-import { DEG } from '../sim/math';
 import { GOODS, type GoodId } from '../sim/goods';
-import { quoteAcross, topNeed, unitSellPrice } from '../sim/market';
+import { type PortQuote, quoteAcross } from '../sim/market';
+import { DEG, distance } from '../sim/math';
 import { discoveredPorts } from '../sim/shipyards';
 import { goodName, t } from '../i18n';
 import { icon, COIN } from './icons';
 
-interface Pin {
-  x: number;
-  y: number;
-  label: string;
-}
 const NS = 'http://www.w3.org/2000/svg';
+
+type Box = { x0: number; y0: number; x1: number; y1: number };
+const box = (cx: number, cy: number, w: number, h: number): Box => ({
+  x0: cx - w / 2,
+  y0: cy - h / 2,
+  x1: cx + w / 2,
+  y1: cy + h / 2,
+});
+/** Overlapping area of two boxes, used to choose the clearest side for a label. */
+const overlap = (a: Box, b: Box) =>
+  Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0)) *
+  Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0));
 
 /** An event-driven DOM/SVG chart; no second WebGL scene or animation loop. */
 export class SeaChart {
   onChange: () => void = () => {};
   onDestinationChange: () => void = () => {};
-  private pins: Pin[] = [];
   private previousFocus: HTMLElement | null = null;
-  private readonly key: string;
-  /** Good shown in the market overview; null until the chart first opens. */
+  /** Good whose prices show under the port names; null shows names only. */
   private good: GoodId | null = null;
+  /** Until the player picks a good, the chart follows the cargo in the hold. */
+  private goodPicked = false;
   private zoom = 1;
   private center = { x: 0, y: 0 };
   private panel: string | null = null;
@@ -37,21 +44,9 @@ export class SeaChart {
     private readonly world: World,
     private readonly harbours: Record<string, { x: number; y: number }>,
   ) {
-    this.key = `fwt.chart.v1.${world.map.name}`;
     try {
-      const data: unknown = JSON.parse(localStorage.getItem(this.key) ?? '[]');
-      if (Array.isArray(data))
-        this.pins = data
-          .filter(
-            (p): p is Pin =>
-              p &&
-              Number.isFinite(p.x) &&
-              Number.isFinite(p.y) &&
-              Math.hypot(p.x, p.y) <= world.map.boundsRadius &&
-              typeof p.label === 'string' &&
-              /^Marker [1-5]$/.test(p.label),
-          )
-          .slice(0, 5);
+      // Chart markers were removed (decision 0058); drop what older versions stored.
+      localStorage.removeItem(`fwt.chart.v1.${world.map.name}`);
     } catch {
       /* Chart storage is optional and never touches voyage saves. */
     }
@@ -71,20 +66,6 @@ export class SeaChart {
       this.draw();
       this.status(t('chart.statusCleared'));
     });
-    this.get('chart-pin-here').addEventListener('click', () =>
-      this.addPin(world.boat.x, world.boat.y),
-    );
-    this.get('chart-map').addEventListener('click', (event) => {
-      if (this.dragged) return;
-      const svg = this.get('chart-map') as unknown as SVGSVGElement;
-      const matrix = svg.getScreenCTM();
-      if (!matrix) return;
-      const point = svg.createSVGPoint();
-      point.x = event.clientX;
-      point.y = event.clientY;
-      const p = point.matrixTransform(matrix.inverse());
-      this.addPin(p.x, -p.y);
-    });
     dialog.addEventListener('close', () => {
       this.onChange();
       this.previousFocus?.focus({ preventScroll: true });
@@ -93,7 +74,7 @@ export class SeaChart {
 
   private setPanel(name: string | null) {
     this.panel = name;
-    for (const id of ['legend', 'market', 'markers']) {
+    for (const id of ['legend', 'market']) {
       const panel = this.dialog.querySelector<HTMLElement>(`#chart-${id}-panel`);
       if (panel) panel.hidden = name !== id;
       this.dialog
@@ -102,7 +83,7 @@ export class SeaChart {
     }
   }
   private setupTools() {
-    for (const id of ['legend', 'market', 'markers']) {
+    for (const id of ['legend', 'market']) {
       this.dialog.querySelector(`#chart-${id}-toggle`)?.addEventListener('click', () => {
         this.setPanel(this.panel === id ? null : id);
       });
@@ -148,7 +129,7 @@ export class SeaChart {
       event.preventDefault();
       this.updateViewBox();
     });
-    // A drag must never select a port or place a marker on pointer release.
+    // A drag must never select a port on pointer release.
     svg.addEventListener(
       'click',
       (event) => {
@@ -200,7 +181,14 @@ export class SeaChart {
     return (
       ((this.world.map.boundsRadius + 24) * 2) /
       this.zoom /
-      Math.max(1, Math.min(rect.width || 600, rect.height || 600))
+      // In landscape the goods column and the compass sit beside the round sea, not over it.
+      Math.max(
+        1,
+        Math.min(
+          (rect.width || 600) - ((rect.width || 600) > (rect.height || 600) ? 300 : 0),
+          rect.height || 600,
+        ),
+      )
     );
   }
   private updateViewBox() {
@@ -262,8 +250,8 @@ export class SeaChart {
     this.get('chart-wind').textContent =
       `${t(`windForce.${WIND_FORCES[force]}`)} · ${wind.speedKn.toFixed(0)} ${t('unit.knots')}${shelter > 0.25 ? ` · ${t('hud.lee')}` : ''}`;
   }
-  private get(id: string): HTMLElement {
-    return this.dialog.querySelector(`#${id}`)!;
+  private get<T extends HTMLElement = HTMLElement>(id: string): T {
+    return this.dialog.querySelector<T>(`#${id}`)!;
   }
   get isOpen() {
     return this.dialog.open;
@@ -271,49 +259,26 @@ export class SeaChart {
   open() {
     if (this.isOpen) return;
     this.previousFocus = document.activeElement as HTMLElement | null;
-    this.good ??= this.defaultGood();
+    if (!this.goodPicked) this.good = this.defaultGood();
     this.zoom = 1;
     this.center = { x: 0, y: 0 };
     this.setPanel(null);
     this.dialog.showModal();
     this.draw();
+    this.status('');
     this.onChange();
   }
   close() {
     this.dialog.close();
   }
-  /** Compare what you carry most of; with an empty hold, start with the first good. */
-  private defaultGood(): GoodId {
+  /** Show prices for what you carry most of; with an empty hold, a clean chart of names. */
+  private defaultGood(): GoodId | null {
     const { cargo } = this.world.trade.captain;
-    return GOODS.reduce((best, g) => (cargo[g] > cargo[best] ? g : best), GOODS[0]);
+    const most = GOODS.reduce((best, g) => (cargo[g] > cargo[best] ? g : best), GOODS[0]);
+    return cargo[most] > 0 ? most : null;
   }
   private status(message: string) {
     this.get('chart-status').textContent = message;
-  }
-  private save() {
-    try {
-      localStorage.setItem(this.key, JSON.stringify(this.pins));
-    } catch {
-      /* private mode */
-    }
-  }
-  private addPin(x: number, y: number) {
-    if (Math.hypot(x, y) > this.world.map.boundsRadius) return;
-    if (this.pins.length >= 5) {
-      this.status(t('chart.statusFull'));
-      return;
-    }
-    const label = Array.from({ length: 5 }, (_, i) => `Marker ${i + 1}`).find(
-      (label) => !this.pins.some((p) => p.label === label),
-    )!;
-    this.pins.push({ x, y, label });
-    this.save();
-    this.draw();
-    this.status(t('chart.statusPlaced', { label: this.pinName(label) }));
-  }
-  /** Pins keep their English id ("Marker 2") in storage; this is the name players read. */
-  private pinName(label: string) {
-    return t('chart.marker', { n: label.slice(-1) });
   }
   private button(parent: HTMLElement, label: string, action: () => void) {
     const b = document.createElement('button');
@@ -333,31 +298,43 @@ export class SeaChart {
     this.draw();
     this.status(t('chart.statusPortSet', { name: port.name }));
   }
-  /** Market overview (decision 0036): one good's prices at every charted port. */
-  private drawMarket() {
-    const good = this.good ?? this.defaultGood();
+  /** One good's prices at every charted port (decisions 0036, 0048), and which are best. */
+  private quotes() {
+    const good = this.good ?? GOODS[0];
     const { map, trade } = this.world;
-    const goods = this.get('chart-goods');
-    goods.replaceChildren();
-    for (const g of GOODS) {
-      const b = this.button(goods, goodName(g), () => {
-        this.good = g;
-        this.draw();
-        this.status(t('chart.statusComparing', { good: goodName(g).toLowerCase() }));
-      });
-      b.insertAdjacentHTML('afterbegin', icon(g));
-      b.setAttribute('role', 'radio');
-      b.setAttribute('aria-checked', String(g === good));
-      if (g === good) b.classList.add('active');
-    }
-    // Only charted ports (decision 0048): hidden yards join once discovered.
     const quotes = quoteAcross(
       trade.markets,
       good,
       discoveredPorts(map, trade).map((p) => p.id),
     );
-    const cheapest = Math.min(...quotes.filter((q) => q.available > 0).map((q) => q.buy));
-    const dearest = Math.max(...quotes.map((q) => q.sell));
+    const stocked = quotes.filter((q) => q.available > 0).map((q) => q.buy);
+    return {
+      good,
+      quotes,
+      cheapest: stocked.length ? Math.min(...stocked) : null,
+      dearest: Math.max(...quotes.map((q) => q.sell)),
+    };
+  }
+  /** Goods to compare along the bottom, and the full price table in its sheet. */
+  private drawMarket(market: ReturnType<SeaChart['quotes']>) {
+    const { good, quotes, cheapest, dearest } = market;
+    const { map, trade } = this.world;
+    const goods = this.get('chart-goods');
+    goods.replaceChildren();
+    for (const g of GOODS) {
+      // Tap a good to show its prices on the chart; tap it again for names only.
+      const b = this.button(goods, goodName(g), () => {
+        this.good = this.good === g ? null : g;
+        this.goodPicked = true;
+        this.draw();
+      });
+      b.insertAdjacentHTML('afterbegin', icon(g));
+      const on = g === this.good;
+      b.setAttribute('aria-pressed', String(on));
+      if (on) b.classList.add('active');
+    }
+    const title = this.dialog.querySelector('#chart-market-title');
+    if (title) title.textContent = t('chart.pricesFor', { good: goodName(good) });
     const table = this.get('chart-prices');
     table.replaceChildren();
     const head = document.createElement('tr');
@@ -396,6 +373,13 @@ export class SeaChart {
       table.append(row);
     }
   }
+  /** The price under a port's name for the picked good: buy where it is stocked, else sell. */
+  private priceLine(q: PortQuote | undefined, market: ReturnType<SeaChart['quotes']>) {
+    if (!q) return { text: '', best: false };
+    if (q.available > 0 && q.buy === market.cheapest)
+      return { text: t('chart.cardBuy', { price: q.buy }), best: true };
+    return { text: t('chart.cardSell', { price: q.sell }), best: q.sell === market.dearest };
+  }
   private draw() {
     const focused = document.activeElement;
     const focusedTarget = focused?.getAttribute('data-chart-target');
@@ -416,48 +400,61 @@ export class SeaChart {
       return el;
     };
     shape('circle', { r: map.boundsRadius, class: 'chart-boundary' });
+    // Land reads like the 3D islands: an ink outline, a sand shore and a grass top.
+    const land = (tag: string, attrs: Record<string, string | number>) => {
+      shape(tag, { ...attrs, class: 'chart-shore' });
+      shape(tag, { ...attrs, class: 'chart-land' });
+    };
     const charted = discoveredPorts(map, this.world.trade);
+    // Map text needs the same screen size at every zoom and grows a little on large screens.
+    const rect = svg.getBoundingClientRect();
+    const k = Math.min(1.25, Math.max(1, Math.min(rect.width, rect.height) / 520));
+    const px = unit * k;
+    // Island and reef names are placed after the ports, only where they fit (decision 0058).
+    const places: { name: string; x: number; top: number; bottom: number }[] = [];
+    const landBoxes: Box[] = [];
     for (const island of map.islands) {
-      shape('circle', { cx: island.x, cy: -island.y, r: island.radius, class: 'chart-land' });
-      if (island.name && !charted.some((p) => p.islandId === island.id)) {
-        const label = shape('text', {
+      land('circle', { cx: island.x, cy: -island.y, r: island.radius });
+      landBoxes.push(box(island.x, -island.y, island.radius * 2, island.radius * 2));
+      if (island.name && !charted.some((p) => p.islandId === island.id))
+        places.push({
+          name: island.name,
           x: island.x,
-          y: -island.y - island.radius - 6,
-          class: 'chart-place',
+          top: -island.y - island.radius,
+          bottom: -island.y + island.radius,
         });
-        label.textContent = island.name;
-      }
     }
     for (const terrain of map.terrain ?? []) {
-      shape('polygon', {
-        points: terrain.outline.map(([x, y]) => `${x},${-y}`).join(' '),
-        class:
-          terrain.kind === 'island'
-            ? 'chart-land'
-            : terrain.kind === 'reef'
-              ? 'chart-reef'
-              : 'chart-bank',
-      });
-      if (terrain.name) {
-        const xs = terrain.outline.map((p) => p[0]);
-        const label = shape('text', {
-          x: (Math.min(...xs) + Math.max(...xs)) / 2,
-          y: -Math.max(...terrain.outline.map((p) => p[1])) - 6,
-          class: 'chart-place',
-        });
-        label.textContent = terrain.name;
-      }
+      const points = terrain.outline.map(([x, y]) => `${x},${-y}`).join(' ');
+      if (terrain.kind === 'island') land('polygon', { points });
+      else
+        shape('polygon', { points, class: terrain.kind === 'reef' ? 'chart-reef' : 'chart-bank' });
+      const xs = terrain.outline.map((p) => p[0]);
+      const ys = terrain.outline.map((p) => -p[1]);
+      const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+      if (terrain.kind === 'island') landBoxes.push({ x0, x1, y0, y1 });
+      if (terrain.name && terrain.kind === 'island')
+        places.push({ name: terrain.name, x: (x0 + x1) / 2, top: y0, bottom: y1 });
     }
-    if (destination)
+    // The course: a dashed line from the boat to a small ring on the destination's pier.
+    if (destination) {
+      shape('line', {
+        x1: boat.x,
+        y1: -boat.y,
+        x2: destination.x,
+        y2: -destination.y,
+        class: 'chart-course',
+      });
       shape('circle', {
         cx: destination.x,
         cy: -destination.y,
-        r: 15 * unit,
+        r: 7 * unit,
         class: 'chart-selected',
       });
+    }
     // Screen-sized signature boat; position/heading remain exact world coordinates.
     const player = shape('g', {
-      transform: `translate(${boat.x} ${-boat.y}) rotate(${boat.heading / DEG}) scale(${unit * 0.72})`,
+      transform: `translate(${boat.x} ${-boat.y}) rotate(${boat.heading / DEG}) scale(${unit * 0.85})`,
       class: 'chart-player',
       role: 'img',
       'aria-label': t('chart.boatLabel', { deg: Math.round((boat.heading / DEG + 360) % 360) }),
@@ -469,102 +466,123 @@ export class SeaChart {
     use.setAttribute('width', '36');
     use.setAttribute('height', '44');
     player.append(use);
-    const ports = this.get('chart-ports');
-    ports.replaceChildren();
+    const market = this.quotes();
+    const showPrices = this.good !== null;
+    const [vx, vy, vw, vh] = (svg.getAttribute('viewBox') ?? '0 0 0 0').split(' ').map(Number);
+    const view = { x0: vx!, y0: vy!, x1: vx! + vw!, y1: vy! + vh! };
+    const boatBox = box(boat.x, -boat.y, 34 * unit, 34 * unit);
+    const placed: Box[] = [];
+    // Anchor badges sit on the piers; labels keep clear of every one of them.
+    const badges = charted.map((port) => {
+      const pier = this.harbours[port.id] ?? map.islands.find((i) => i.id === port.islandId)!;
+      return box(pier.x, -pier.y, 20 * px, 20 * px);
+    });
+    // Pick the free side of the island for a label: above, below, right, then left.
+    const placeLabel = (cx: number, top: number, bottom: number, w: number, h: number) => {
+      const gap = 5 * unit;
+      const mid = (top + bottom) / 2,
+        half = (bottom - top) / 2;
+      const candidates = [
+        { x: cx, y: top - gap - h / 2 },
+        { x: cx, y: bottom + gap + h / 2 },
+        { x: cx + half + gap + w / 2, y: mid },
+        { x: cx - half - gap - w / 2, y: mid },
+      ].map((c) => ({
+        // Keep labels on screen at the chart's edges.
+        x: Math.min(Math.max(c.x, view.x0 + w / 2 + 4 * unit), view.x1 - w / 2 - 4 * unit),
+        y: Math.min(Math.max(c.y, view.y0 + h / 2 + 4 * unit), view.y1 - h / 2 - 4 * unit),
+      }));
+      let best = candidates[0]!,
+        bestScore = Infinity;
+      for (const c of candidates) {
+        const b = box(c.x, c.y, w, h);
+        const score =
+          3 * overlap(b, boatBox) +
+          3 * [...placed, ...badges].reduce((sum, p) => sum + overlap(b, p), 0) +
+          landBoxes.reduce((sum, l) => sum + overlap(b, l), 0) * 0.5;
+        if (score < bestScore - 1e-6) {
+          best = c;
+          bestScore = score;
+        }
+      }
+      return { ...best, clash: bestScore };
+    };
+    // Ports: an anchor badge on the pier, the name, and the picked good's price.
     for (const port of charted) {
       const island = map.islands.find((i) => i.id === port.islandId)!;
       const anchor = this.harbours[port.id] ?? island;
       const select = () => this.selectPort(port.id);
+      const selected = destination?.portId === port.id;
       const group = shape('g', {
-        class: 'chart-port-target',
+        class: `chart-port-target${selected ? ' is-selected' : ''}`,
         role: 'button',
         tabindex: 0,
         'data-chart-target': port.id,
         'aria-label': t('chart.setBearingTo', { name: port.name }),
       });
-      shape('circle', { cx: anchor.x, cy: -anchor.y, r: 22 * unit, fill: 'transparent' }, group);
-      const mark = shape(
-        'text',
+      const price = showPrices
+        ? this.priceLine(
+            market.quotes.find((q) => q.portId === port.id),
+            market,
+          )
+        : { text: '', best: false };
+      const nameSize = 15 * px,
+        priceSize = 13 * px;
+      const w = Math.max(port.name.length * nameSize * 0.52, price.text.length * priceSize * 0.52);
+      const h = nameSize * 1.15 + (price.text ? priceSize * 1.2 : 0);
+      const spot = placeLabel(island.x, -island.y - island.radius, -island.y + island.radius, w, h);
+      placed.push(box(spot.x, spot.y, w, h));
+      const top = spot.y - h / 2;
+      // Invisible tap areas: the label and a finger-sized circle on the pier.
+      shape(
+        'rect',
         {
-          x: anchor.x,
-          y: -anchor.y,
-          style: `font-size: ${22 * unit}px`,
-          class: 'chart-port',
+          x: spot.x - w / 2 - 4 * unit,
+          y: top - 3 * unit,
+          width: w + 8 * unit,
+          height: h + 6 * unit,
+          class: 'chart-card-box',
         },
         group,
       );
-      // Port labels scale with the chart so names and needs stay legible on a phone.
-      const size = 12 * unit;
-      let top = Math.min(-island.y - island.radius - 8, -anchor.y - 27 * unit);
-      // Keep the boat readable when it is beside its harbour's name/price.
-      if (
-        Math.abs(boat.x - island.x) < 80 * unit &&
-        Math.abs(-boat.y - (top - size * 0.5)) < 26 * unit
-      )
-        top -= 30 * unit;
-      const name = shape('text', {
-        x: island.x,
-        y: top - size * 1.1,
-        class: 'chart-place chart-port-name',
-        style: `font-size: ${size}px`,
-      });
+      shape('circle', { cx: anchor.x, cy: -anchor.y, r: 20 * unit, class: 'chart-hit' }, group);
+      shape('circle', { cx: anchor.x, cy: -anchor.y, r: 9 * px, class: 'chart-port-dot' }, group);
+      shape(
+        'use',
+        {
+          href: '#i-anchor',
+          x: anchor.x - 6 * px,
+          y: -anchor.y - 6 * px,
+          width: 12 * px,
+          height: 12 * px,
+          class: 'chart-port-anchor',
+        },
+        group,
+      );
+      const name = shape(
+        'text',
+        {
+          x: spot.x,
+          y: top + nameSize * 0.9,
+          class: 'chart-port-name',
+          style: `font-size: ${nameSize}px`,
+        },
+        group,
+      );
       name.textContent = port.name;
-      group.append(name);
-      const market = this.world.trade.markets[port.id];
-      if (market) {
-        // Top need (decision 0036): the good this port pays most for today, and that price.
-        const need = topNeed(market);
-        const price = String(unitSellPrice(need, market.stock[need] + 1));
-        const word = t('chart.needVerb');
-        const font = 11 * unit;
-        const wordWidth = word.length * font * 0.55;
-        const priceWidth = price.length * font * 0.6;
-        const width = wordWidth + priceWidth + font * 3.5;
-        const left = island.x - width / 2;
-        const needLabel = shape(
-          'g',
+      if (price.text) {
+        const line = shape(
+          'text',
           {
-            class: 'chart-need',
-            'aria-label': t('chart.needLabel', { good: goodName(need), price }),
+            x: spot.x,
+            y: top + nameSize * 1.15 + priceSize * 0.95,
+            class: `chart-need${price.best ? ' best' : ''}`,
+            style: `font-size: ${priceSize}px`,
           },
           group,
         );
-        const wordText = shape(
-          'text',
-          { x: left, y: top, style: `font-size: ${font}px` },
-          needLabel,
-        );
-        wordText.textContent = word;
-        shape(
-          'use',
-          {
-            href: `#i-${need}`,
-            x: left + wordWidth + font * 0.4,
-            y: top - font,
-            width: font * 1.2,
-            height: font * 1.2,
-          },
-          needLabel,
-        );
-        const priceText = shape(
-          'text',
-          { x: left + wordWidth + font * 1.9, y: top, style: `font-size: ${font}px` },
-          needLabel,
-        );
-        priceText.textContent = price;
-        shape(
-          'use',
-          {
-            href: '#i-coin',
-            x: left + wordWidth + font * 2.1 + priceWidth,
-            y: top - font,
-            width: font * 1.15,
-            height: font * 1.15,
-          },
-          needLabel,
-        );
+        line.textContent = price.text;
       }
-      mark.textContent = '⚓';
       group.addEventListener('click', (e) => {
         e.stopPropagation();
         select();
@@ -575,60 +593,36 @@ export class SeaChart {
           select();
         }
       });
-      this.button(ports, `⚓ ${port.name}`, select);
     }
-    this.drawMarket();
-    const pins = this.get('chart-pins');
-    pins.replaceChildren();
-    for (const pin of this.pins) {
-      const select = () => {
-        this.world.destination = { x: pin.x, y: pin.y, label: this.pinName(pin.label), portId: '' };
-        this.onDestinationChange();
-        this.draw();
-        this.status(t('chart.statusPinSet', { label: this.pinName(pin.label) }));
-      };
-      const group = shape('g', {
-        class: 'chart-pin-target',
-        role: 'button',
-        tabindex: 0,
-        'data-chart-target': pin.label,
-        'aria-label': t('chart.setBearingTo', { name: this.pinName(pin.label) }),
+    // Secondary names: small and quiet, and left out where they would cover a port or the boat.
+    for (const place of places) {
+      const size = 11 * px;
+      const w = place.name.length * size * 0.5,
+        h = size * 1.2;
+      const spot = placeLabel(place.x, place.top, place.bottom, w, h);
+      const b = box(spot.x, spot.y, w, h);
+      if (overlap(b, boatBox) > 0 || placed.some((p) => overlap(b, p) > 0)) continue;
+      placed.push(b);
+      const label = shape('text', {
+        x: spot.x,
+        y: spot.y + size * 0.35,
+        class: 'chart-place',
+        style: `font-size: ${size}px`,
       });
-      shape('circle', { cx: pin.x, cy: -pin.y, r: 22 * unit, fill: 'transparent' }, group);
-      const mark = shape(
-        'text',
-        {
-          x: pin.x,
-          y: -pin.y,
-          class: 'chart-pin',
-          style: `font-size: ${22 * unit}px`,
-        },
-        group,
-      );
-      mark.textContent = pin.label.replace('Marker ', '⚑');
-      group.addEventListener('click', (e) => {
-        e.stopPropagation();
-        select();
-      });
-      group.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          select();
-        }
-      });
-      this.button(pins, `⚑ ${this.pinName(pin.label)}`, select);
-      this.button(pins, t('chart.removeMarker', { label: this.pinName(pin.label) }), () => {
-        this.pins = this.pins.filter((p) => p !== pin);
-        const target = this.world.destination;
-        if (target && !target.portId && target.x === pin.x && target.y === pin.y)
-          this.world.destination = null;
-        this.save();
-        this.draw();
-        this.status(t('chart.statusRemoved', { label: this.pinName(pin.label) }));
-      });
+      label.textContent = place.name;
     }
+    this.drawMarket(market);
     svg.append(player);
-    this.status(destination ? t('chart.statusBearing', { label: destination.label }) : '');
+    const course = this.dialog.querySelector<HTMLElement>('#chart-course');
+    if (course) {
+      course.hidden = !destination;
+      if (destination)
+        (course.querySelector('#chart-course-text') ?? course).textContent = t('chart.course', {
+          label: destination.label,
+          dist: t('unit.metres', { n: Math.round(distance(boat, destination)) }),
+        });
+    }
+    this.get<HTMLButtonElement>('chart-clear-target').disabled = !destination;
     if (focusedTarget) {
       Array.from(this.dialog.querySelectorAll<SVGElement>('[data-chart-target]'))
         .find((element) => element.getAttribute('data-chart-target') === focusedTarget)

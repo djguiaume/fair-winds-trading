@@ -109,6 +109,12 @@ export class PortLabels {
     }
   }
 
+  /** True while this port's sign is on screen with its Dock/Trade button showing. */
+  dockShown(portId: string): boolean {
+    const entry = this.portElements.get(portId);
+    return Boolean(entry && !entry.root.hidden && !entry.dock.hidden);
+  }
+
   update(project: (x: number, y: number) => ScreenPoint, dt = 0.12) {
     this.sinceContent += dt;
     const refreshContent = this.sinceContent >= 0.12;

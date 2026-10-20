@@ -2,6 +2,8 @@
 
 **Status:** Implemented for review, 2026-10-20. Guillaume approved the analysis and the brown boat with cream deck, dark outline and light-blue halo.
 
+> Markers part superseded by [0058](0058-chart-style-d-port-cards.md) (2026-10-20): personal markers are removed and moved to later.
+
 ## Context
 
 Playtesters found the chart too small, its wind direction/strength text hard to interpret,
