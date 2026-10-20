@@ -50,6 +50,8 @@ export interface RefinedRig {
   cargoExtra: number;
   boom: number;
   gaff: number;
+  /** Optional shorter forward mast; only the aft main carries the upgraded topsail. */
+  foremast?: { z: number; height: number; boom: number; gaff: number };
 }
 
 /** Simple coloured triangles: no textures, extra materials or per-frame geometry rebuilds. */
@@ -163,13 +165,22 @@ function cloth(
   return f.geometry();
 }
 
+interface GaffSail {
+  pivot: THREE.Group;
+  sail: THREE.Mesh;
+  peak: THREE.Vector3;
+  clew: THREE.Vector3;
+  mastTop: THREE.Vector3;
+  sheetAnchor: THREE.Vector3;
+}
+
 interface Headsail {
   axis: THREE.Group;
   sail: THREE.Mesh;
   clew: THREE.Vector3;
 }
 
-/** Shared refined single-mast construction. Upgrade semantics and the BoatModel waterline frame stay unchanged. */
+/** Shared refined gaff-rig construction. Upgrade semantics and the BoatModel waterline frame stay unchanged. */
 export class RefinedBoat implements BoatModel {
   readonly root = new THREE.Group();
   /** Same waterline envelope at every upgrade level, for the hull-attached wake. */
@@ -177,19 +188,14 @@ export class RefinedBoat implements BoatModel {
   readonly stats = { triangles: 0, meshes: 0, crates: 0, barrels: 0, jibs: 0, topsail: false };
   private readonly body = new THREE.Group();
   private readonly ship = new THREE.Group();
-  private readonly main = new THREE.Group();
-  private readonly mainsail: THREE.Mesh;
+  private readonly gaffSails: GaffSail[] = [];
   private readonly headsails: Headsail[] = [];
   private readonly flag: THREE.Mesh;
   private readonly rigging: THREE.LineSegments;
   private readonly riggingEnabled: boolean;
   private readonly runningOffset: number;
-  private readonly peak: THREE.Vector3;
-  private readonly mainClew: THREE.Vector3;
-  private readonly mastTop: THREE.Vector3;
   private readonly beam: number;
   private readonly tmp = new THREE.Vector3();
-  private readonly mainSheetAnchor: THREE.Vector3;
   private readonly jibSheetAnchor: THREE.Vector3;
   private readonly disposables: Array<THREE.BufferGeometry | THREE.Material> = [];
 
@@ -202,7 +208,6 @@ export class RefinedBoat implements BoatModel {
     const deckAt = (z: number) => DECK + ST.sheer * (L / 5) ** 0.5 * (z / (L / 2)) ** 2;
     this.beam = B;
     this.wakeHull = { length: L * BOAT_SCALE, beam: B * BOAT_SCALE };
-    this.mainSheetAnchor = V(0, deckAt(-L * 0.4) + 0.12, -L * 0.4);
     this.jibSheetAnchor = V(0, deckAt(0) + 0.12, 0);
     const upg = options.upgrades ?? STOCK_UPGRADES;
     this.riggingEnabled = options.rigging ?? true;
@@ -226,8 +231,9 @@ export class RefinedBoat implements BoatModel {
     const box = (w: number, h: number, l: number, x: number, y: number, z: number, color: string) =>
       paint(new THREE.BoxGeometry(w, h, l).translate(x, y, z), color);
     // Forward hatch leaves a working area behind the mast for the upgraded cargo stacks.
-    parts.push(box(0.64, 0.13, 0.58, 0, deckAt(1.3) + 0.09, 1.3, ST.mast));
-    parts.push(box(0.54, 0.05, 0.48, 0, deckAt(1.3) + 0.18, 1.3, ST.deck));
+    const hatchZ = rig.foremast ? 2.65 : 1.3;
+    parts.push(box(0.64, 0.13, 0.58, 0, deckAt(hatchZ) + 0.09, hatchZ, ST.mast));
+    parts.push(box(0.54, 0.05, 0.48, 0, deckAt(hatchZ) + 0.18, hatchZ, ST.deck));
     const stern = -L * 0.5;
     parts.push(box(0.1, 0.72, 0.32, 0, deckAt(stern) - 0.4, stern - 0.1, ST.mast));
     parts.push(spar(V(0, deckAt(stern) - 0.1, stern), V(0, deckAt(stern) + 0.23, stern)));
@@ -238,7 +244,7 @@ export class RefinedBoat implements BoatModel {
     for (let i = 0; i < cargoCount; i++) {
       const slot = i % 6;
       const x = (slot % 2 === 0 ? -1 : 1) * 0.3;
-      const z = -Math.floor(slot / 2) * 0.65;
+      const z = -Math.floor(slot / 2) * (rig.foremast ? 0.5 : 0.65);
       const layer = Math.floor(i / 6);
       const barrel = upg.hold >= 2 && i % 3 === 2;
       const g = barrel
@@ -250,30 +256,63 @@ export class RefinedBoat implements BoatModel {
       else this.stats.crates++;
     }
     const mastBase = deckAt(MAST_Z);
-    this.mastTop = V(0, mastBase + MAST_H, MAST_Z);
-    parts.push(spar(V(0, mastBase, MAST_Z), this.mastTop, 0.075));
+    const mastTop = V(0, mastBase + MAST_H, MAST_Z);
+    parts.push(spar(V(0, mastBase, MAST_Z), mastTop, 0.075));
+    const fore = rig.foremast;
+    const foreBase = fore ? deckAt(fore.z) : mastBase;
+    const foreHeight = fore ? fore.height * ST.mastK : MAST_H;
+    const foreZ = fore?.z ?? MAST_Z;
+    if (fore) parts.push(spar(V(0, foreBase, foreZ), V(0, foreBase + foreHeight, foreZ), 0.07));
     const bow = V(0, deckAt(L / 2) + 0.13, L / 2);
     const bowspritTip = V(0, bow.y + 0.2, L * 0.73);
     parts.push(spar(V(0, bow.y - 0.1, L * 0.35), bowspritTip, 0.05));
     this.ship.add(mesh(mergeAll(parts), wood, `${rig.name}Hull`));
 
-    // The gooseneck is on the mast, never the sail's centre. Both luff corners stay on this axis.
-    this.main.name = 'MainsailPivot';
-    this.main.position.set(0, mastBase + 0.7, MAST_Z);
-    const throat = V(0, MAST_H * 0.47, 0);
-    this.peak = V(0, MAST_H * 0.69, -rig.gaff);
-    this.mainClew = V(0, 0, -rig.boom);
-    const spars = mergeAll([spar(V(0, 0, 0), this.mainClew), spar(throat, this.peak)]);
-    this.main.add(mesh(spars, wood, 'BoomAndGaff'));
-    const sails = [cloth(V(0, 0, 0), this.mainClew, throat, this.peak, upg.sails, 0.32, BAND)];
-    if (upg.sails >= 3) {
-      const top = V(0, MAST_H - 0.85, 0);
-      sails.push(cloth(throat, this.peak, top, top, upg.sails, 0.13, BAND));
-      this.stats.topsail = true;
-    }
-    this.mainsail = mesh(mergeAll(sails), canvas, 'Mainsail');
-    this.main.add(this.mainsail);
-    this.ship.add(this.main);
+    // Both masts use their own gooseneck, gaff lift and working sheet. Their luffs remain
+    // on the corresponding mast, and the shorter foresail clears the taller aft mainmast.
+    const addGaff = (
+      name: string,
+      z: number,
+      base: number,
+      height: number,
+      boom: number,
+      gaff: number,
+      topsail: boolean,
+      anchorZ: number,
+    ) => {
+      const pivot = new THREE.Group();
+      pivot.name = `${name}Pivot`;
+      pivot.position.set(0, base + 0.7, z);
+      const throat = V(0, height * 0.47, 0);
+      const peak = V(0, height * 0.69, -gaff);
+      const clew = V(0, 0, -boom);
+      pivot.add(
+        mesh(
+          mergeAll([spar(V(0, 0, 0), clew), spar(throat, peak)]),
+          wood,
+          name === 'Mainsail' ? 'BoomAndGaff' : 'ForeBoomAndGaff',
+        ),
+      );
+      const sails = [cloth(V(0, 0, 0), clew, throat, peak, upg.sails, 0.32, BAND)];
+      if (topsail && upg.sails >= 3) {
+        const top = V(0, height - 0.85, 0);
+        sails.push(cloth(throat, peak, top, top, upg.sails, 0.13, BAND));
+        this.stats.topsail = true;
+      }
+      const sail = mesh(mergeAll(sails), canvas, name);
+      pivot.add(sail);
+      this.ship.add(pivot);
+      this.gaffSails.push({
+        pivot,
+        sail,
+        peak,
+        clew,
+        mastTop: V(0, base + height, z),
+        sheetAnchor: V(0, deckAt(anchorZ) + 0.12, anchorZ),
+      });
+    };
+    addGaff('Mainsail', MAST_Z, mastBase, MAST_H, rig.boom, rig.gaff, true, -L * 0.4);
+    if (fore) addGaff('Foresail', foreZ, foreBase, foreHeight, fore.boom, fore.gaff, false, -0.9);
 
     // Each upgraded jib has its OWN head/tack pair and inclined stay axis. Do not merge their
     // pivots or scale along the stay: reefing rolls the free edge towards the stay instead.
@@ -281,17 +320,21 @@ export class RefinedBoat implements BoatModel {
     const line = (a: THREE.Vector3, b: THREE.Vector3) => lines.push(...a.toArray(), ...b.toArray());
     const nj = rig.stockJibs + (upg.sails >= 2 ? 1 : 0);
     for (let j = 0; j < nj; j++) {
-      // Cutter: a low inner staysail and narrower outer jibs, rather than nested copies.
+      // Multi-jib rigs: a low inner staysail and narrower outer jibs, rather than nested copies.
       // Their tack points sit exactly on the solid bowsprit, including the extra upgraded jib.
-      const cutter = rig.stockJibs === 2;
-      const tackFraction = cutter ? 0.48 + j * 0.12 : 0.53 + j * 0.13;
-      const tackY = cutter ? bow.y - 0.1 + (0.3 * (tackFraction - 0.35)) / 0.38 : bow.y + j * 0.1;
+      const multiJib = rig.stockJibs === 2;
+      const tackFraction = multiJib ? 0.48 + j * 0.12 : 0.53 + j * 0.13;
+      const tackY = multiJib ? bow.y - 0.1 + (0.3 * (tackFraction - 0.35)) / 0.38 : bow.y + j * 0.1;
       const tack = V(0, tackY, L * tackFraction);
-      const head = V(0, mastBase + MAST_H * (cutter ? 0.68 + j * 0.14 : 0.76 + j * 0.15), MAST_Z);
+      const head = V(
+        0,
+        foreBase + foreHeight * (multiJib ? 0.68 + j * 0.14 : 0.76 + j * 0.15),
+        foreZ,
+      );
       const clew = V(
         0,
-        mastBase + 0.8 + j * 0.1,
-        MAST_Z + (cutter ? 0.65 + j * 0.85 : 0.35 + j * 0.22),
+        foreBase + 0.8 + j * 0.1,
+        foreZ + (multiJib ? 0.65 + j * 0.85 : 0.35 + j * 0.22),
       );
       const axis = new THREE.Group();
       axis.name = `JibStay${j + 1}`;
@@ -314,9 +357,18 @@ export class RefinedBoat implements BoatModel {
     for (const side of [-1, 1]) {
       line(V(0, mastBase + MAST_H * 0.8, MAST_Z), V(side * B * 0.43, deckAt(0.15) + 0.1, 0.15));
     }
+    if (fore) {
+      for (const side of [-1, 1]) {
+        line(
+          V(0, foreBase + foreHeight * 0.8, foreZ),
+          V(side * B * 0.43, deckAt(foreZ) + 0.1, foreZ),
+        );
+      }
+      line(mastTop, V(0, foreBase + foreHeight, foreZ));
+    }
     this.runningOffset = lines.length / 3;
     // Gaff lift, mainsheet, and one working sheet per jib. Updated in ship-local coordinates.
-    for (let i = 0; i < 2 + nj; i++) line(V(0, 0, 0), V(0, 0, 0));
+    for (let i = 0; i < 2 * this.gaffSails.length + nj; i++) line(V(0, 0, 0), V(0, 0, 0));
     const ropes = new THREE.BufferGeometry();
     ropes.setAttribute(
       'position',
@@ -343,7 +395,7 @@ export class RefinedBoat implements BoatModel {
     const flagMat = new THREE.MeshBasicMaterial({ color: BAND, side: THREE.DoubleSide });
     this.disposables.push(flagMat);
     this.flag = mesh(flagGeo, flagMat, 'Pennant');
-    this.flag.position.copy(this.mastTop);
+    this.flag.position.copy(fore ? V(0, foreBase + foreHeight, foreZ) : mastTop);
     this.flag.scale.setScalar(ST.flag);
     this.ship.add(this.flag);
     this.ship.rotation.y = Math.PI;
@@ -364,11 +416,13 @@ export class RefinedBoat implements BoatModel {
     this.body.rotation.z = p.heel;
     const side = p.boomAngle < 0 ? -1 : 1;
     const fill = side * Math.max(0.08, 1 - p.luff) + p.luff * Math.sin(p.time * 26) * 0.35;
-    this.main.rotation.y = p.boomAngle;
-    // Lower the gaff along the mast with the cloth; the boom/gooseneck never leaves its seat.
-    this.main.scale.y = 0.06 + 0.94 * p.sail;
-    this.mainsail.scale.x = fill;
-    this.main.updateMatrix();
+    for (const gaff of this.gaffSails) {
+      gaff.pivot.rotation.y = p.boomAngle;
+      // Lower cloth and gaff along the mast, keeping the boom at its fixed gooseneck.
+      gaff.pivot.scale.y = 0.06 + 0.94 * p.sail;
+      gaff.sail.scale.x = fill;
+      gaff.pivot.updateMatrix();
+    }
     for (const jib of this.headsails) {
       jib.sail.rotation.y = p.boomAngle * 0.6;
       jib.sail.scale.set(fill, 1, 0.04 + 0.96 * p.sail);
@@ -379,10 +433,12 @@ export class RefinedBoat implements BoatModel {
       const pos = this.rigging.geometry.getAttribute('position') as THREE.BufferAttribute;
       let i = this.runningOffset;
 
-      this.putLinePoint(pos, i++, this.mastTop);
-      this.putLinePoint(pos, i++, this.tmp.copy(this.peak).applyMatrix4(this.main.matrix));
-      this.putLinePoint(pos, i++, this.mainSheetAnchor);
-      this.putLinePoint(pos, i++, this.tmp.copy(this.mainClew).applyMatrix4(this.main.matrix));
+      for (const gaff of this.gaffSails) {
+        this.putLinePoint(pos, i++, gaff.mastTop);
+        this.putLinePoint(pos, i++, this.tmp.copy(gaff.peak).applyMatrix4(gaff.pivot.matrix));
+        this.putLinePoint(pos, i++, gaff.sheetAnchor);
+        this.putLinePoint(pos, i++, this.tmp.copy(gaff.clew).applyMatrix4(gaff.pivot.matrix));
+      }
       for (const jib of this.headsails) {
         this.jibSheetAnchor.x = -side * this.beam * 0.4;
         this.putLinePoint(pos, i++, this.jibSheetAnchor);
