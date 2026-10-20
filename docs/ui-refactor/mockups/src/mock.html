@@ -247,63 +247,89 @@ body[data-style="b"] .legend { background: rgba(10,30,40,.8); border: 3px solid 
 body[data-style="b"] .xbtn { background: #ff5a4a; border: 3px solid #0b1a22; border-radius: 12px; width: 2.4em; height: 2.4em; display: grid; place-items: center; margin-left: auto; box-shadow: inset 0 -3px 0 #b8261a; }
 
 /* =================================================================== STYLE C: instruments */
-body[data-style="c"] {
+body:is([data-style="c"],[data-style="d"]) {
   --display: 'Barlow Condensed', sans-serif; --body: 'Barlow', sans-serif;
   --ink: #eef3f4; --track: rgba(255,255,255,.18); --cargo: #e8c46a;
   --navy: rgba(9, 28, 41, .82); --line: rgba(232, 196, 106, .55); --brass: #e8c46a;
   --fish: #eef3f4; --grain: #eef3f4; --timber: #eef3f4; --stone: #eef3f4; --coin: #e8c46a; --crate: #eef3f4; --hull: #ff8a6a;
 }
-body[data-style="c"] .chip, body[data-style="c"] .edge, body[data-style="c"] .card, body[data-style="c"] .chip2, body[data-style="c"] .legend {
+body:is([data-style="c"],[data-style="d"]) .chip, body:is([data-style="c"],[data-style="d"]) .edge, body:is([data-style="c"],[data-style="d"]) .card, body:is([data-style="c"],[data-style="d"]) .chip2, body:is([data-style="c"],[data-style="d"]) .legend {
   background: var(--navy); border: 1px solid var(--line); border-radius: 6px; backdrop-filter: blur(4px);
 }
-body[data-style="c"] .chip { font-family: var(--display); font-weight: 600; font-size: 1.1em; letter-spacing: .03em; }
-body[data-style="c"] .wind { background: var(--navy); border: 1px solid var(--line); border-radius: 50%; padding: .25em; }
-body[data-style="c"] .wind .caption { position: absolute; top: 100%; margin-top: .3em; white-space: nowrap; font-family: var(--display); font-size: .95em; letter-spacing: .05em; text-transform: uppercase; background: var(--navy); border: 1px solid var(--line); border-radius: 6px; padding: .2em .6em; }
-body[data-style="c"] .wind .caption b { display: inline; color: var(--brass); margin-right: .3em; }
-body[data-style="c"] .log { font-family: var(--display); letter-spacing: .04em; }
-body[data-style="c"] .log .kn { font-weight: 700; font-size: 1.6em; }
-body[data-style="c"] .rbtn { background: var(--navy); border: 1px solid var(--line); border-radius: 8px; color: var(--ink); }
-body[data-style="c"] .lever .track { background: var(--navy); border: 1px solid var(--line); width: .5em; }
-body[data-style="c"] .lever .notch span { font-family: var(--display); letter-spacing: .05em; text-transform: uppercase; color: var(--ink); text-shadow: 0 1px 3px #000; }
-body[data-style="c"] .lever .knob { background: var(--brass); border-radius: 6px; color: #0d2230; height: 1.9em; }
-body[data-style="c"] .board { background: var(--navy); border: 1px solid var(--line); border-radius: 6px; }
-body[data-style="c"] .sign .name { font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-size: 1.05em; }
-body[data-style="c"] .sign .wants { color: #c9d7dc; }
-body[data-style="c"] .dock { background: var(--brass); color: #0d2230; border-radius: 6px; font-family: var(--display); letter-spacing: .06em; text-transform: uppercase; }
-body[data-style="c"] .stem { background: var(--line); }
-body[data-style="c"] .hullbar { background: rgba(0,0,0,.5); height: .3em; }
-body[data-style="c"] .hullbar i { background: #ff8a6a; }
-body[data-style="c"] .edge { font-family: var(--display); letter-spacing: .05em; text-transform: uppercase; font-weight: 600; }
-body[data-style="c"] .port { background: rgba(7, 22, 33, .9); }
-body[data-style="c"] .port .head { border-bottom: 1px solid var(--line); }
-body[data-style="c"] .port .title { font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
-body[data-style="c"] .port .tag { border: 1px solid rgba(255,255,255,.2); border-radius: 4px; font-family: var(--display); letter-spacing: .04em; text-transform: uppercase; font-weight: 600; }
-body[data-style="c"] .port .close { border: 1px solid var(--line); border-radius: 6px; }
-body[data-style="c"] .port .tabs { padding-top: .5em; }
-body[data-style="c"] .port .tab { font-family: var(--display); letter-spacing: .06em; text-transform: uppercase; font-weight: 600; border-bottom: 2px solid transparent; color: #9fb4bd; padding: .3em .9em; }
-body[data-style="c"] .port .tab.on { color: var(--ink); border-bottom-color: var(--brass); }
-body[data-style="c"] .port .tab .badge { background: var(--brass); color: #0d2230; }
-body[data-style="c"] .good { border-bottom: 1px solid rgba(255,255,255,.12); }
-body[data-style="c"] .good.want .gname small { color: var(--brass); }
-body[data-style="c"] .good small, body[data-style="c"] .goods-head { color: #8ea6b0; }
-body[data-style="c"] .goods-head { font-family: var(--display); }
-body[data-style="c"] .good .price b { font-family: var(--display); font-weight: 600; font-size: 1.35em; }
-body[data-style="c"] .acts button { border-radius: 6px; font-family: var(--display) !important; letter-spacing: .06em; text-transform: uppercase; font-weight: 600 !important; border: 1px solid; }
-body[data-style="c"] .acts .buy { background: transparent; color: var(--brass); border-color: var(--brass); }
-body[data-style="c"] .acts .sell { background: var(--brass); color: #0d2230; border-color: var(--brass); }
-body[data-style="c"] .acts .off { background: transparent; color: #5b7480; border-color: #2f4855; }
-body[data-style="c"] .best { color: #8fe3a4; }
-body[data-style="c"] .card h4 { font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--brass); }
-body[data-style="c"] .port .foot { border-top: 1px solid var(--line); }
-body[data-style="c"] .btn { border-radius: 6px; font-family: var(--display); letter-spacing: .06em; text-transform: uppercase; font-weight: 600; font-size: 1.05em; }
-body[data-style="c"] .btn.pri { background: var(--brass); color: #0d2230; }
-body[data-style="c"] .btn.sec { background: transparent; color: var(--brass); border: 1px solid var(--brass); }
-body[data-style="c"] .btn.warn { background: transparent; color: #ff8a6a; border: 1px solid #ff8a6a; }
-body[data-style="c"] .chart { background: #0e2b3a; }
-body[data-style="c"] .chart .ttl { font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
-body[data-style="c"] .chip2 { font-family: var(--display); letter-spacing: .05em; text-transform: uppercase; font-weight: 600; }
-body[data-style="c"] .chip2.on { background: var(--brass); color: #0d2230; }
-body[data-style="c"] .xbtn { background: var(--navy); border: 1px solid var(--line); border-radius: 6px; width: 2.4em; height: 2.4em; display: grid; place-items: center; margin-left: auto; }
+body:is([data-style="c"],[data-style="d"]) .chip { font-family: var(--display); font-weight: 600; font-size: 1.1em; letter-spacing: .03em; }
+body:is([data-style="c"],[data-style="d"]) .wind { background: var(--navy); border: 1px solid var(--line); border-radius: 50%; padding: .25em; }
+body:is([data-style="c"],[data-style="d"]) .wind .caption { position: absolute; top: 100%; margin-top: .3em; white-space: nowrap; font-family: var(--display); font-size: .95em; letter-spacing: .05em; text-transform: uppercase; background: var(--navy); border: 1px solid var(--line); border-radius: 6px; padding: .2em .6em; }
+body:is([data-style="c"],[data-style="d"]) .wind .caption b { display: inline; color: var(--brass); margin-right: .3em; }
+body:is([data-style="c"],[data-style="d"]) .log { font-family: var(--display); letter-spacing: .04em; }
+body:is([data-style="c"],[data-style="d"]) .log .kn { font-weight: 700; font-size: 1.6em; }
+body:is([data-style="c"],[data-style="d"]) .rbtn { background: var(--navy); border: 1px solid var(--line); border-radius: 8px; color: var(--ink); }
+body:is([data-style="c"],[data-style="d"]) .lever .track { background: var(--navy); border: 1px solid var(--line); width: .5em; }
+body:is([data-style="c"],[data-style="d"]) .lever .notch span { font-family: var(--display); letter-spacing: .05em; text-transform: uppercase; color: var(--ink); text-shadow: 0 1px 3px #000; }
+body:is([data-style="c"],[data-style="d"]) .lever .knob { background: var(--brass); border-radius: 6px; color: #0d2230; height: 1.9em; }
+body:is([data-style="c"],[data-style="d"]) .board { background: var(--navy); border: 1px solid var(--line); border-radius: 6px; }
+body:is([data-style="c"],[data-style="d"]) .sign .name { font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-size: 1.05em; }
+body:is([data-style="c"],[data-style="d"]) .sign .wants { color: #c9d7dc; }
+body:is([data-style="c"],[data-style="d"]) .dock { background: var(--brass); color: #0d2230; border-radius: 6px; font-family: var(--display); letter-spacing: .06em; text-transform: uppercase; }
+body:is([data-style="c"],[data-style="d"]) .stem { background: var(--line); }
+body:is([data-style="c"],[data-style="d"]) .hullbar { background: rgba(0,0,0,.5); height: .3em; }
+body:is([data-style="c"],[data-style="d"]) .hullbar i { background: #ff8a6a; }
+body:is([data-style="c"],[data-style="d"]) .edge { font-family: var(--display); letter-spacing: .05em; text-transform: uppercase; font-weight: 600; }
+body:is([data-style="c"],[data-style="d"]) .port { background: rgba(7, 22, 33, .9); }
+body:is([data-style="c"],[data-style="d"]) .port .head { border-bottom: 1px solid var(--line); }
+body:is([data-style="c"],[data-style="d"]) .port .title { font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+body:is([data-style="c"],[data-style="d"]) .port .tag { border: 1px solid rgba(255,255,255,.2); border-radius: 4px; font-family: var(--display); letter-spacing: .04em; text-transform: uppercase; font-weight: 600; }
+body:is([data-style="c"],[data-style="d"]) .port .close { border: 1px solid var(--line); border-radius: 6px; }
+body:is([data-style="c"],[data-style="d"]) .port .tabs { padding-top: .5em; }
+body:is([data-style="c"],[data-style="d"]) .port .tab { font-family: var(--display); letter-spacing: .06em; text-transform: uppercase; font-weight: 600; border-bottom: 2px solid transparent; color: #9fb4bd; padding: .3em .9em; }
+body:is([data-style="c"],[data-style="d"]) .port .tab.on { color: var(--ink); border-bottom-color: var(--brass); }
+body:is([data-style="c"],[data-style="d"]) .port .tab .badge { background: var(--brass); color: #0d2230; }
+body:is([data-style="c"],[data-style="d"]) .good { border-bottom: 1px solid rgba(255,255,255,.12); }
+body:is([data-style="c"],[data-style="d"]) .good.want .gname small { color: var(--brass); }
+body:is([data-style="c"],[data-style="d"]) .good small, body:is([data-style="c"],[data-style="d"]) .goods-head { color: #8ea6b0; }
+body:is([data-style="c"],[data-style="d"]) .goods-head { font-family: var(--display); }
+body:is([data-style="c"],[data-style="d"]) .good .price b { font-family: var(--display); font-weight: 600; font-size: 1.35em; }
+body:is([data-style="c"],[data-style="d"]) .acts button { border-radius: 6px; font-family: var(--display) !important; letter-spacing: .06em; text-transform: uppercase; font-weight: 600 !important; border: 1px solid; }
+body:is([data-style="c"],[data-style="d"]) .acts .buy { background: transparent; color: var(--brass); border-color: var(--brass); }
+body:is([data-style="c"],[data-style="d"]) .acts .sell { background: var(--brass); color: #0d2230; border-color: var(--brass); }
+body:is([data-style="c"],[data-style="d"]) .acts .off { background: transparent; color: #5b7480; border-color: #2f4855; }
+body:is([data-style="c"],[data-style="d"]) .best { color: #8fe3a4; }
+body:is([data-style="c"],[data-style="d"]) .card h4 { font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--brass); }
+body:is([data-style="c"],[data-style="d"]) .port .foot { border-top: 1px solid var(--line); }
+body:is([data-style="c"],[data-style="d"]) .btn { border-radius: 6px; font-family: var(--display); letter-spacing: .06em; text-transform: uppercase; font-weight: 600; font-size: 1.05em; }
+body:is([data-style="c"],[data-style="d"]) .btn.pri { background: var(--brass); color: #0d2230; }
+body:is([data-style="c"],[data-style="d"]) .btn.sec { background: transparent; color: var(--brass); border: 1px solid var(--brass); }
+body:is([data-style="c"],[data-style="d"]) .btn.warn { background: transparent; color: #ff8a6a; border: 1px solid #ff8a6a; }
+body:is([data-style="c"],[data-style="d"]) .chart { background: #0e2b3a; }
+body:is([data-style="c"],[data-style="d"]) .chart .ttl { font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+body:is([data-style="c"],[data-style="d"]) .chip2 { font-family: var(--display); letter-spacing: .05em; text-transform: uppercase; font-weight: 600; }
+body:is([data-style="c"],[data-style="d"]) .chip2.on { background: var(--brass); color: #0d2230; }
+body:is([data-style="c"],[data-style="d"]) .xbtn { background: var(--navy); border: 1px solid var(--line); border-radius: 6px; width: 2.4em; height: 2.4em; display: grid; place-items: center; margin-left: auto; }
+
+/* =================================================================== STYLE D: combined (C + B) */
+body[data-style="d"] { --fish: #4fc3f7; --grain: #ffd54a; --timber: #c98a4b; --stone: #b8c2cc; --coin: #ffc928; --crate: #d99a52; --hull: #ff5a4a; }
+body[data-style="d"] .acts button, body[data-style="d"] .btn, body[data-style="d"] .dock, body[data-style="d"] .rbtn, body[data-style="d"] .xbtn, body[data-style="d"] .port .close {
+  border: 2px solid #06141c !important; border-radius: 10px !important; font-size: 1.02em;
+}
+body[data-style="d"] .acts .buy, body[data-style="d"] .btn.pri, body[data-style="d"] .dock { background: #e8c46a; color: #1a1406; box-shadow: inset 0 -4px 0 #b08a2c, 0 2px 0 rgba(0,0,0,.35); }
+body[data-style="d"] .acts .sell, body[data-style="d"] .btn.sec { background: #59d36b; color: #0b2a12; box-shadow: inset 0 -4px 0 #2f9c41, 0 2px 0 rgba(0,0,0,.35); }
+body[data-style="d"] .acts .off { background: rgba(255,255,255,.06); color: #5b7480; box-shadow: none; }
+body[data-style="d"] .btn.warn { background: #ff6a55; color: #fff; box-shadow: inset 0 -4px 0 #b8261a, 0 2px 0 rgba(0,0,0,.35); }
+body[data-style="d"] .rbtn { background: rgba(9,28,41,.85); color: var(--ink); box-shadow: inset 0 -4px 0 rgba(0,0,0,.45), 0 2px 0 rgba(0,0,0,.35); }
+body[data-style="d"] .rbtn.blue { background: #e8c46a; color: #1a1406; box-shadow: inset 0 -4px 0 #b08a2c, 0 2px 0 rgba(0,0,0,.35); }
+body[data-style="d"] .xbtn, body[data-style="d"] .port .close { background: #ff6a55; color: #fff; box-shadow: inset 0 -3px 0 #b8261a; }
+body[data-style="d"] .lever .knob { box-shadow: inset 0 -4px 0 #b08a2c, 0 2px 0 rgba(0,0,0,.35); border: 2px solid #06141c; height: 2.2em; }
+body[data-style="d"] .port .tab.on { background: rgba(232,196,106,.14); border-radius: 8px 8px 0 0; }
+body[data-style="d"] .good.want { background: rgba(255, 213, 74, .07); }
+body[data-style="d"] .chart { background: #1f8a96; }
+body[data-style="d"] .chip2 { background: rgba(9,28,41,.88); }
+body[data-style="d"] .chip2.on { background: #e8c46a; color: #1a1406; box-shadow: inset 0 -3px 0 #b08a2c; }
+/* speed log: its own instrument next to the sail lever (it reads the result of the sail setting) */
+.log2 { position: absolute; right: 7.2em; bottom: 12px; display: grid; grid-template-columns: auto auto; align-items: center; column-gap: .45em; padding: .3em .7em .35em; background: rgba(9,28,41,.85); border: 1px solid rgba(232,196,106,.55); border-radius: 8px; font-family: var(--display); letter-spacing: .04em; line-height: 1.05; }
+.log2 .kn { font-size: 1.9em; font-weight: 700; }
+.log2 .kn small { font-size: .5em; font-weight: 600; margin-left: .15em; color: #9fb4bd; }
+.log2 .pos { grid-column: 1 / -1; font-size: .85em; font-weight: 600; text-transform: uppercase; color: #8fe3a4; }
+.log2 .eye { width: 1.1em; height: 1.1em; opacity: .65; justify-self: end; }
+body[data-size="portrait"] .log2 { right: 12px; bottom: 12.4em; }
 </style>
 </head>
 <body>
@@ -342,11 +368,11 @@ const W = innerWidth, H = innerHeight;
 function rose() {
   // North-up compass rose: no-go wedge around the wind, wind arrow, boat, target tick.
   const windFrom = 30, heading = 125, target = 345, s = style;
-  const ring = { a: ['#f8ecd0', '#7a4a26', '#3b2414'], b: ['rgba(10,30,40,.85)', '#0b1a22', '#fff'], c: ['rgba(9,28,41,.0)', 'rgba(232,196,106,.7)', '#eef3f4'] }[s];
-  const nogo = { a: 'rgba(185,67,47,.35)', b: 'rgba(255,70,60,.55)', c: 'rgba(255,120,100,.35)' }[s];
-  const wind = { a: '#2f7fb0', b: '#ffd54a', c: '#e8c46a' }[s];
-  const boat = { a: '#5b3418', b: '#fff', c: '#eef3f4' }[s];
-  const good = { a: '#5f8f2e', b: '#59d36b', c: '#8fe3a4' }[s];
+  const ring = { a: ['#f8ecd0', '#7a4a26', '#3b2414'], b: ['rgba(10,30,40,.85)', '#0b1a22', '#fff'], c: ['rgba(9,28,41,.0)', 'rgba(232,196,106,.7)', '#eef3f4'] }[s === 'd' ? 'c' : s];
+  const nogo = { a: 'rgba(185,67,47,.35)', b: 'rgba(255,70,60,.55)', c: 'rgba(255,120,100,.35)' }[s === 'd' ? 'c' : s];
+  const wind = { a: '#2f7fb0', b: '#ffd54a', c: '#e8c46a' }[s === 'd' ? 'c' : s];
+  const boat = { a: '#5b3418', b: '#fff', c: '#eef3f4' }[s === 'd' ? 'c' : s];
+  const good = { a: '#5f8f2e', b: '#59d36b', c: '#8fe3a4' }[s === 'd' ? 'c' : s];
   const pt = (deg, r) => { const a = (deg - 90) * Math.PI / 180; return [Math.cos(a) * r, Math.sin(a) * r]; };
   const arc = (from, to, r) => { const [x1, y1] = pt(from, r), [x2, y2] = pt(to, r); return `M0 0 L${x1} ${y1} A${r} ${r} 0 0 1 ${x2} ${y2} Z`; };
   let ticks = '';
@@ -439,6 +465,7 @@ function chart() {
   const colours = {
     a: { sea: '#cfe3d6', sea2: '#b8d6c9', land: '#e7cf96', landS: '#8a6436', reef: '#c7724f', text: '#3b2414', line: '#9a6234', you: '#2f6fa0', pin: '#b9432f', grid: 'rgba(90,60,30,.18)' },
     b: { sea: '#2aa7b3', sea2: '#1f8a96', land: '#f2d28a', landS: '#0b1a22', reef: '#ff8a6a', text: '#fff', line: '#ffd54a', you: '#fff', pin: '#ff5a4a', grid: 'rgba(255,255,255,.08)' },
+    d: { sea: '#2aa7b3', sea2: '#1f8a96', land: '#f2d28a', landS: '#0b1a22', reef: '#ff8a6a', text: '#fff', line: '#e8c46a', you: '#fff', pin: '#ff5a4a', grid: 'rgba(255,255,255,.08)' },
     c: { sea: '#123a4d', sea2: '#0e2b3a', land: '#2c5566', landS: '#e8c46a', reef: '#ff8a6a', text: '#eef3f4', line: '#e8c46a', you: '#8fe3a4', pin: '#ff8a6a', grid: 'rgba(232,196,106,.12)' },
   }[style];
   const blob = (x, y, r, seed) => { let d = ''; for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2, k = 1 + .14 * Math.sin(seed * 7 + i * 2.3); d += `${i ? 'L' : 'M'}${(x + Math.cos(a) * r * k).toFixed(1)} ${(-y + Math.sin(a) * r * k).toFixed(1)}`; } return d + 'Z'; };
@@ -464,7 +491,7 @@ function chart() {
     const hot = tagOf[p.id];
     pins += `<g>
       <line x1="${x}" y1="${y}" x2="${x}" y2="${ly - up * 14}" stroke="${colours.text}" stroke-opacity=".5" stroke-width="1.5"/>
-      <rect x="${x - fs * 5.6}" y="${ly - fs * 1.05}" width="${fs * 11.2}" height="${fs * 2.6}" rx="${style === 'c' ? 5 : 12}" fill="${style === 'a' ? '#f3e3c0' : style === 'b' ? 'rgba(10,30,40,.85)' : 'rgba(9,28,41,.9)'}" stroke="${hot ? colours.line : style === 'a' ? '#7a4a26' : 'rgba(255,255,255,.25)'}" stroke-width="${hot ? 3.5 : 2}"/>
+      <rect x="${x - fs * 5.6}" y="${ly - fs * 1.05}" width="${fs * 11.2}" height="${fs * 2.6}" rx="${style === 'c' ? 5 : style === 'd' ? 8 : 12}" fill="${style === 'a' ? '#f3e3c0' : style === 'b' || style === 'd' ? 'rgba(10,30,40,.88)' : 'rgba(9,28,41,.9)'}" stroke="${hot ? colours.line : style === 'a' ? '#7a4a26' : 'rgba(255,255,255,.25)'}" stroke-width="${hot ? 3.5 : 2}"/>
       <text x="${x}" y="${ly + fs * .2}" text-anchor="middle" font-size="${fs}" font-weight="800" fill="${style === 'a' ? '#3b2414' : '#fff'}" style="font-family:var(--display)">${p.name}</text>
       <text x="${x}" y="${ly + fs * 1.3}" text-anchor="middle" font-size="${fs * .8}" font-weight="700" fill="${hot ? (style === 'a' ? '#5f8f2e' : '#8fe3a4') : style === 'a' ? '#7a5a3a' : '#c9d7dc'}">grain ${price[p.id]}${hot ? ' · ' + hot : ''}</text>
     </g>`;
@@ -505,6 +532,10 @@ function chart() {
 }
 
 ({ sea, port, chart })[screen]();
+if (style === 'd' && screen === 'sea') {
+  document.querySelector('.log').remove();
+  document.querySelector('.hud').insertAdjacentHTML('beforeend', `<div class="log2"><span class="kn num">6.8<small>kn</small></span>${I('eye', 'eye')}<span class="pos">Beam reach</span></div>`);
+}
 if (style === 'c' && screen === 'sea') {
   // Instrument style: the log sits in its own box under the wind caption.
   const log = document.querySelector('.log');

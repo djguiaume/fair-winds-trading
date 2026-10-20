@@ -1,6 +1,18 @@
 # UI mockups: three styles
 
-*2026-10-20. Static mockups for the UI refactor ([analysis](../README.md)). Nothing is decided until Guillaume picks a style.*
+*2026-10-20. Static mockups for the UI refactor ([analysis](../README.md)).*
+
+**Current proposal: [style D](#style-d-combined-proposal)**, which combines C and B as Guillaume asked. Styles A to C below are the first round.
+
+## Style D: combined proposal
+
+![Style D](style-d.jpg)
+
+Guillaume agreed with the recommendation (C with B's icons and buttons), but asked to move speed and point of sail away from the compass and to use B's chart. Style D therefore takes:
+
+- **From C:** the navy and brass panels, the condensed instrument font, the wind compass and the layout.
+- **From B:** full-colour goods icons, chunky buttons with a pressed edge (brass Buy, green Sell, red Repair and close), and the chart's teal sea with sand islands.
+- **Speed and point of sail:** now a separate **speed log** next to the sail lever at the bottom right, still visible by default with its hide toggle. It shows the result of the sail setting, so it sits beside it. On a portrait phone it sits just above the lever.
 
 All three styles use the **same layout and the same information**. Only the look changes. They are drawn over real captures of the game (the sea, Saltmere and the sloop), so the art style around them is the real one.
 
@@ -30,13 +42,14 @@ Chunky rounded font (Lilita One), thick dark outlines, bright yellow, green and 
 
 Navy glass panels with thin brass lines, a condensed uppercase font (Barlow Condensed) like a boat's instrument display, and single-colour line icons. The compass reads like a real wind instrument. **Pros:** speaks to people who like sailing, is calm and precise, and scales well to desktop. **Cons:** cooler and less playful, and the single-colour goods icons are harder to tell apart.
 
-## My recommendation
+## First-round recommendation
 
 **Style C for the sea HUD and chart, with the colour goods icons and the chunkier buttons from B.** The target players like sailing, so an instrument-like compass and chart fit them best, and the navy glass hides the least of the sea. B's coloured icons and pressed buttons make trading quicker to read on a phone. If you prefer one pure style, C is my pick, then A.
 
 ## Files
 
-- `compare-styles.jpg`: Sea and Port in the three styles, phone landscape.
+- `style-d.jpg`: the combined proposal on every size.
+- `compare-styles.jpg`: Sea and Port in the three first-round styles, phone landscape.
 - `style-a.jpg`, `style-b.jpg`, `style-c.jpg`: each style on phone landscape (Sea, Port, Chart), desktop (Sea) and portrait (Sea, Port, Chart).
 - `screens/`: every screen on its own: `<style>-<screen>-<size>.png`, with sizes landscape 844×390, desktop 1280×720 and portrait 390×844.
-- `src/`: the mockup page (`mock.html?style=a|b|c&screen=sea|port|chart&size=landscape|desktop|portrait`), the map data, fonts (Google Fonts, OFL), the background captures, and the Playwright scripts used to capture backgrounds (`bg.mjs`) and render the screens (`render.mjs`). Both scripts point at the cloud container's Chromium and `playwright-core` paths.
+- `src/`: the mockup page (`mock.html?style=a|b|c|d&screen=sea|port|chart&size=landscape|desktop|portrait`), the map data, fonts (Google Fonts, OFL), the background captures, and the Playwright scripts used to capture backgrounds (`bg.mjs`) and render the screens (`render.mjs`). Both scripts point at the cloud container's Chromium and `playwright-core` paths.
