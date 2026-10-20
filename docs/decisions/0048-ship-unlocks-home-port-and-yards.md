@@ -1,0 +1,23 @@
+# 0048. Ship unlocks: home port, hidden yards and shipwright standing
+
+**Status:** Implementation for review, 2026-10-20 (Guillaume asked to start ship unlocks per [0030](0030-home-base-upgrades-and-earned-ships.md) and [0035](0035-three-ship-lines.md)). Numbers are starting values to tune in play. Numbered 0048 to leave 0046–0047 free for parallel threads.
+
+**Context:** [0030](0030-home-base-upgrades-and-earned-ships.md) decided that upgrades happen only at a home-base port and that new ship classes are built at discoverable ports, unlocked by deliveries there and then bought with gold. [0035](0035-three-ship-lines.md) set three ship lines with stats and prices, and proposed the swift yard at Watchman Key and the hauler yard at Abbey Head, two scenery islands of the Windward Ring ([0031](0031-windward-ring-map.md)). Until now every port sold everything, and only the sloop and cutter existed.
+
+**Decision:**
+
+- **Home port: Saltmere,** the port nearest the start (`homePort` in the map; a map without one uses the port nearest the start). Upgrades and switching between owned ships happen only there; every other harbour still trades, repairs and posts orders. The home port is fixed for now.
+- **Two hidden yard ports.** Abbey Head and Watchman Key become small shipwright towns with a pier, a market and delivery orders. They make nothing and want timber (both), grain (Watchman Key) and fish (Abbey Head), so shipbuilding is a new outlet for Port Calda's timber. They start off the chart (`hidden` in the map): the chart, port labels, price board and other ports' order lists leave them out until the boat sails within 90 units of their shore, which shows a "New port on the chart" toast.
+- **Who builds what** (`builds` in the map): the cutter at the home port, as in Phase 1; schooner and clipper at Watchman Key (swift line); hoy, fluyt and indiaman at Abbey Head (hauler line). The warship line waits for its naval yard in Phase 5.
+- **Standing = orders delivered at that port.** A shipwright sells a class once you have delivered enough of its port's orders: cutter 0, tier 1 (hoy) 1, tier 2 (schooner, fluyt) 3, tier 3 (clipper, indiaman) 6. Orders elsewhere do not count. Gold still pays the [0035](0035-three-ship-lines.md) price.
+- **Buying** happens at the yard and you sail the new ship away (cargo moves across if it fits); the old ship waits at the home port, where you can switch back.
+- **Ship classes.** All six swift and hauler classes are in the simulation with the [0035](0035-three-ship-lines.md) numbers (speed and turning relative to the sloop, no-go angle, hold, price). Bigger hulls also accelerate more slowly, need more speed to steer, sit deeper in the shallows ([0032](0032-reef-strikes-and-shallows.md)) and have bigger collision radii, so the indiaman may prefer open water to the Narrows. Square riggers (fluyt, indiaman) peak on a broad reach and keep more speed running. Upgrade prices scale with the ship's price. Per-class hull points and guns from [0035](0035-three-ship-lines.md) wait for Phase 5; hull durability still comes from the hull upgrade only.
+- **Models.** The five new classes are code-built in style D ([0016](0016-game-models-style-d-and-b2.md)): swift ships slim with tall fore-and-aft rigs and cool colours, haulers broad and deep with warm colours; the fluyt and indiaman add square sails on yards (wider than the reference sheet so they read from the game camera) and a raised stern deck with lit windows. Preview: `models.html?view=lines` ([image](../art/game-models/ship-lines.png)).
+- **Shipyard tab (kept minimal).** The UI redesign is rebuilding the port screens, so this change only reuses the existing tab: upgrades show at the home port and a one-line note elsewhere; the vessel list shows every class with its line, tier, hold, pointing and speed, and either a Buy/Switch button or what is missing ("Built at Saltmere", "Orders to deliver at Watchman Key: 2", "Built at a port off the chart", "Moored at Saltmere"). Sim logic lives in `src/sim/shipyards.ts`, separate from the UI.
+
+**Consequences:**
+
+- Saves gain an optional `progress` field (discovered ports, standing per port). Older saves load with the four main ports charted and no standing; ships already owned are kept.
+- The economy tests now buy upgrades and the cutter at the home port (a detour home in the balance test). The cutter goal of Phase 1 still holds.
+- Prices from 5 000 to 25 000 gold are far above a Phase 1 session's income; the economy-tuning work decides whether contracts or prices move, and this ADR owns only ship prices and unlock thresholds.
+- Open: moving the home port, a visible "standing" counter on the yard's order, and showing the yards as "?" on the chart before discovery.

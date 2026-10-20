@@ -13,6 +13,7 @@
     "y": -100,
     "headingDeg": 120
   },
+  "homePort": "saltmere",
   "islands": [
     {
       "id": "calda",
@@ -96,7 +97,9 @@
         "trees": 10,
         "rock": true,
         "landmark": "ruins",
-        "layers": 3
+        "layers": 3,
+        "houses": 4,
+        "dock": true
       }
     },
     {
@@ -109,7 +112,9 @@
         "trees": 10,
         "rock": true,
         "landmark": "lighthouse",
-        "layers": 2
+        "layers": 2,
+        "houses": 4,
+        "dock": true
       }
     },
     {
@@ -145,6 +150,16 @@
       "label": "Stonehaven",
       "x": -125,
       "y": -258
+    },
+    {
+      "label": "Abbey Head",
+      "x": -222,
+      "y": 252
+    },
+    {
+      "label": "Watchman Key",
+      "x": 125,
+      "y": -318
     }
   ],
   "ports": [
@@ -175,6 +190,24 @@
       "islandId": "south-cay",
       "produces": ["stone"],
       "wants": ["grain", "timber"]
+    },
+    {
+      "id": "watchman-key",
+      "name": "Watchman Key",
+      "islandId": "watchman-key",
+      "produces": [],
+      "wants": ["timber", "grain"],
+      "builds": ["schooner", "clipper"],
+      "hidden": true
+    },
+    {
+      "id": "abbey-head",
+      "name": "Abbey Head",
+      "islandId": "abbey-head",
+      "produces": [],
+      "wants": ["timber", "fish"],
+      "builds": ["hoy", "fluyt", "indiaman"],
+      "hidden": true
     }
   ],
   "compatibleSaveMaps": ["Staggered passages", "Phase 0 practice waters"],

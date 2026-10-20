@@ -2,6 +2,7 @@ import { GOOD_DEFS, type GoodId, isGood } from './goods';
 import type { MapDef, PortDef } from './map';
 import { distance } from './math';
 import { createRng } from './rng';
+import { addStanding } from './shipyards';
 import type { TradeState } from './trade';
 
 /**
@@ -101,6 +102,7 @@ export function deliverContract(trade: TradeState, map: MapDef): DeliverResult {
   trade.captain.cargo[c.good] -= c.qty;
   trade.captain.gold += c.reward;
   trade.contracts.completed += 1;
+  addStanding(trade, portId);
   trade.contracts.byPort[portId] = makeContract(
     map,
     port,

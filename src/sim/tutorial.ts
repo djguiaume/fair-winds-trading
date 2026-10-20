@@ -2,6 +2,7 @@ import { goodName, t } from '../i18n';
 import { GOODS, isGood, type GoodId } from './goods';
 import { type BoatControls } from './boat';
 import { type SaveStorage } from './save';
+import { isDiscovered } from './shipyards';
 import { findPort, cargoUsed } from './trade';
 import type { World } from './world';
 
@@ -268,7 +269,11 @@ export class Tutorial {
     const firstPort = this.world.map.ports.find((p) => p.id === this.origin);
     const produced = firstPort?.produces[0];
     const buyer = this.world.map.ports.find(
-      (p) => p.id !== this.origin && this.good && p.wants.includes(this.good),
+      (p) =>
+        p.id !== this.origin &&
+        this.good &&
+        p.wants.includes(this.good) &&
+        isDiscovered(this.world.trade, p.id),
     );
     const step = this.step;
     const params = { origin: origin ?? '', delivery: delivery ?? '', cargo };

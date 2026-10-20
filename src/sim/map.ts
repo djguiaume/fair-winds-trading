@@ -62,6 +62,10 @@ export interface PortDef {
   produces: GoodId[];
   /** Goods the town needs: scarce and dear. */
   wants: GoodId[];
+  /** Ship classes its shipwright builds (decision 0048). */
+  builds?: string[];
+  /** Off the chart until the boat sails near it (decision 0048). */
+  hidden?: boolean;
 }
 
 export interface MapDef {
@@ -81,4 +85,6 @@ export interface MapDef {
   practiceCourse?: boolean;
   /** Trading ports (Phase 1). */
   ports: PortDef[];
+  /** Port id of the home port: upgrades and ship changes (decision 0048). Default: nearest the start. */
+  homePort?: string;
 }

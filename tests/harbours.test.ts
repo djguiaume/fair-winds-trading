@@ -31,7 +31,7 @@ function approach(portId: string, extra = 4) {
 
 describe('visible harbour approaches', () => {
   it('exports the exact rendered pier head for each trading island', () => {
-    expect(Object.keys(harbours)).toHaveLength(4);
+    expect(Object.keys(harbours)).toHaveLength(PHASE1_MAP.ports.length);
     const wood = new THREE.Color('#9b6b3d');
     for (const port of PHASE1_MAP.ports) {
       const index = PHASE1_MAP.islands.findIndex((i) => i.id === port.islandId);

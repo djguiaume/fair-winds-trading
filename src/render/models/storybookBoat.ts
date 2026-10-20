@@ -31,6 +31,7 @@ export const STYLE_D = {
   barrel: '#8a5a30',
   copper: '#c8743c',
   rigging: '#2d2218',
+  lamp: '#ffd774',
 };
 
 interface MastDef {
@@ -39,6 +40,8 @@ interface MastDef {
   h: number;
   /** Carries a topsail at sails level 3. */
   top?: boolean;
+  /** Square rig: `n` courses on yards (one fewer below sails level 3). Default fore-and-aft. */
+  square?: number;
 }
 
 export interface BoatClassDef {
@@ -54,9 +57,15 @@ export interface BoatClassDef {
   band: string;
   /** Class index: bigger ships carry more cargo. */
   ci: number;
+  /** Raised stern deck with lit windows, 1 or 2 high (big square riggers). */
+  castle?: number;
 }
 
-/** Fore-and-aft rigged classes so far; the square riggers (brig, fluyt) come in a later phase. */
+/**
+ * Every class the player can sail (decision 0035): the swift line keeps slim hulls and tall
+ * fore-and-aft rigs in cool colours, the hauler line deep broad hulls, square sails and warm
+ * colours. Proportions follow the reference sheets (docs/art/src/lib.js `CLASSES`).
+ */
 export const BOAT_CLASSES: Record<string, BoatClassDef> = {
   sloop: {
     L: 5.0,
@@ -77,6 +86,73 @@ export const BOAT_CLASSES: Record<string, BoatClassDef> = {
     hull: '#8a4f24',
     band: '#c0533a',
     ci: 1,
+  },
+  schooner: {
+    L: 8.2,
+    B: 2.3,
+    H: 1.1,
+    masts: [
+      { z: 1.6, h: 6.4 },
+      { z: -1.4, h: 7.4, top: true },
+    ],
+    jibs: 2,
+    hull: '#7d4a22',
+    band: '#2f8f7a',
+    ci: 2,
+  },
+  clipper: {
+    L: 9.8,
+    B: 2.4,
+    H: 1.15,
+    masts: [
+      { z: 2.8, h: 7.6 },
+      { z: 0.2, h: 8.8, top: true },
+      { z: -2.6, h: 7.8, top: true },
+    ],
+    jibs: 3,
+    hull: '#3b3d48',
+    band: '#d8b04a',
+    ci: 2,
+  },
+  hoy: {
+    L: 6.2,
+    B: 2.7,
+    H: 1.3,
+    masts: [{ z: 0.6, h: 5.6, top: true }],
+    jibs: 1,
+    hull: '#8f6a3a',
+    band: '#c9a23a',
+    ci: 3,
+  },
+  fluyt: {
+    L: 11.5,
+    B: 3.5,
+    H: 1.8,
+    masts: [
+      { z: 3.2, h: 8.6, square: 3 },
+      { z: 0, h: 9.6, square: 3 },
+      { z: -3.3, h: 6.8 },
+    ],
+    jibs: 1,
+    hull: '#6e4520',
+    band: '#b5652a',
+    ci: 4,
+    castle: 2,
+  },
+  indiaman: {
+    L: 13,
+    B: 3.8,
+    H: 2,
+    masts: [
+      { z: 3.8, h: 9.6, square: 3 },
+      { z: 0.4, h: 10.8, square: 3 },
+      { z: -3.8, h: 7.6 },
+    ],
+    jibs: 2,
+    hull: '#5c3a1c',
+    band: '#8a2f2f',
+    ci: 5,
+    castle: 2,
   },
 };
 
@@ -182,6 +258,9 @@ export class StorybookBoat implements BoatModel {
   private readonly ship = new THREE.Group();
   private readonly booms: THREE.Group[] = [];
   private readonly mainsails: THREE.Mesh[] = [];
+  /** Square rig: each mast's yards turn together; each course furls up to its yard. */
+  private readonly yards: THREE.Group[] = [];
+  private readonly courses: THREE.Mesh[] = [];
   private readonly jibPivot = new THREE.Group();
   private readonly jibs: THREE.Mesh;
   private readonly flag: THREE.Mesh;
@@ -210,17 +289,67 @@ export class StorybookBoat implements BoatModel {
       parts.push(paint(cu.translate(0, deckY - H * 0.42, 0), st.copper));
     }
 
-    // Cargo on deck grows with the hold.
+    // Raised stern deck with lit windows on the big square riggers (reference `castle`).
+    let castleFront = -L / 2;
+    if (cls.castle) {
+      const ch = 0.4 * cls.castle * st.H;
+      const cw = B * 0.78;
+      const cl = L * (0.22 + 0.05 * cls.castle);
+      const y = deckY + sheer * 0.7;
+      castleFront = -L / 2 + cl;
+      parts.push(
+        paint(
+          new THREE.BoxGeometry(cw, ch, cl).translate(0, y + ch / 2, castleFront - cl / 2 + 0.05),
+          cls.hull,
+        ),
+      );
+      parts.push(
+        paint(
+          new THREE.BoxGeometry(cw * 0.84, 0.06, cl * 0.9).translate(
+            0,
+            y + ch,
+            castleFront - cl / 2 + 0.1,
+          ),
+          st.deck,
+        ),
+      );
+      if (upg.hull >= 2)
+        parts.push(
+          paint(
+            new THREE.BoxGeometry(cw * 1.02, ch * 0.25, 0.08).translate(
+              0,
+              y + ch * 0.7,
+              -L / 2 + 0.03,
+            ),
+            cls.band,
+          ),
+        );
+      for (let i = -1; i <= 1; i++)
+        parts.push(
+          paint(
+            new THREE.BoxGeometry(0.28, 0.22, 0.05).translate(
+              i * cw * 0.25,
+              y + ch * 0.45,
+              -L / 2 + 0.03,
+            ),
+            STYLE_D.lamp,
+          ),
+        );
+    }
+
+    // Cargo on deck grows with the hold, stowed forward of any stern castle.
     const crates = [2, 4, 7][upg.hold - 1]! + cls.ci;
     const s = 0.42 * Math.min(1.6, st.H);
-    const maxCol = Math.max(1, Math.floor((L * 0.42) / (s * 1.08)));
+    const firstZ = -L * 0.08 + (cls.masts.length > 1 ? L * 0.05 : 0);
+    const room = cls.castle ? firstZ - castleFront - s * 0.5 : L * 0.42;
+    const maxCol = Math.max(1, Math.floor(room / (s * 1.08)));
     const per = maxCol * 2;
     for (let i = 0; i < crates; i++) {
       const layer = Math.floor(i / per);
       const row = i % 2;
       const colIdx = Math.floor((i % per) / 2);
       const isBarrel = upg.hold >= 2 && i % 3 === 2;
-      const z = -L * 0.08 - colIdx * s * 1.08 + (cls.masts.length > 1 ? L * 0.05 : 0);
+      const z = firstZ - colIdx * s * 1.08;
       const geo = isBarrel
         ? new THREE.CylinderGeometry(s * 0.45, s * 0.45, s * 0.8, 7)
         : new THREE.BoxGeometry(s, s * 0.85, s);
@@ -262,6 +391,11 @@ export class StorybookBoat implements BoatModel {
           st.mast,
         ),
       );
+      foremost ??= { y: base + mh * 0.82, z: mz, top: base + mh + 0.1 };
+      if (m.square) {
+        this.addSquareRig(m.square, extraTop, base, mh, mz, B, cloth, woodMat, sailMat);
+        continue;
+      }
       // Boom and sails pivot on the mast at the foot of the sail, so reefing scales from there.
       const foot = base + 0.7;
       const head = base + mh * 0.8 - foot;
@@ -313,8 +447,6 @@ export class StorybookBoat implements BoatModel {
       this.mainsails.push(sail);
       this.booms.push(pivot);
       this.ship.add(pivot);
-
-      foremost ??= { y: base + mh * 0.82, z: mz, top: base + mh + 0.1 };
     }
     const fore = foremost!;
 
@@ -426,6 +558,60 @@ export class StorybookBoat implements BoatModel {
     });
   }
 
+  /**
+   * Square courses on yards (reference `rig: 'sq'`): `n` sails stacked up the mast, narrowing
+   * aloft, bellied toward the bow. Each hangs from its yard so reefing furls it upward.
+   */
+  private addSquareRig(
+    n: number,
+    extraTop: boolean,
+    base: number,
+    mh: number,
+    mz: number,
+    B: number,
+    cloth: CellColor,
+    woodMat: THREE.Material,
+    sailMat: THREE.Material,
+  ) {
+    const turn = new THREE.Group();
+    turn.position.set(0, 0, mz);
+    const span = (mh - 1) / n;
+    const count = Math.max(2, n - (extraTop ? 0 : 1));
+    for (let k = 0; k < count; k++) {
+      const y0 = base + 1 + k * span;
+      const y1 = y0 + span * 0.92;
+      // Wider than the reference sheet (1.05 beams) so square rigs read from the game camera.
+      const w = B * 1.4 * (1 - k * 0.14);
+      const course = new THREE.Group();
+      course.position.y = y1;
+      const yardGeo = paint(
+        new THREE.CylinderGeometry(0.05, 0.05, w * 1.1, 5).rotateZ(Math.PI / 2),
+        STYLE_D.mast,
+      );
+      const sailGeoK = sailGeo(
+        V(-w / 2, y0 - y1, 0),
+        V(w / 2, y0 - y1, 0),
+        V((-w / 2) * 0.9, 0, 0),
+        V((w / 2) * 0.9, 0, 0),
+        STYLE_D.belly * 0.6 + 0.12,
+        V(0, 0, 1),
+        cloth,
+        5,
+        4,
+      );
+      this.disposables.push(yardGeo, sailGeoK);
+      course.add(new THREE.Mesh(yardGeo, woodMat));
+      const sail = new THREE.Mesh(sailGeoK, sailMat);
+      sail.castShadow = true;
+      course.add(sail);
+      this.courses.push(sail);
+      turn.add(course);
+    }
+    if (extraTop) this.stats.topsail = true;
+    this.yards.push(turn);
+    this.ship.add(turn);
+  }
+
   update(p: BoatPose): void {
     this.body.rotation.z = p.heel;
     const side = p.boomAngle < 0 ? -1 : 1;
@@ -436,6 +622,13 @@ export class StorybookBoat implements BoatModel {
     for (const sail of this.mainsails) {
       sail.scale.set(fill, reef, 1);
       sail.visible = p.sail > 0.02;
+    }
+    // Yards brace round less than a boom swings; square sails always fill toward the bow.
+    for (const yard of this.yards) yard.rotation.y = p.boomAngle * 0.6;
+    const square = Math.max(0.08, 1 - p.luff) + flutter * 0.5;
+    for (const course of this.courses) {
+      course.scale.set(1, reef, square);
+      course.visible = p.sail > 0.02;
     }
     const jibTurn = this.jibs.parent!;
     jibTurn.rotation.y = p.boomAngle * 0.6;

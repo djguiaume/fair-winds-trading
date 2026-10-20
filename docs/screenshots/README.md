@@ -51,3 +51,9 @@ Harbour: "Best sale elsewhere" under each good (decision 0036)
 | Kids mode, strong | Kids mode in French, light | French, fresh with a gust, portrait |
 |---|---|---|
 | ![kids mode, very windy](wind-strength-kids-strong-phone.png) | ![kids mode in French](wind-strength-kids-fr-light-phone.png) | ![French portrait](wind-strength-captain-fr-fresh-portrait.png) |
+
+## Ship unlocks ([0048](../decisions/0048-ship-unlocks-home-port-and-yards.md))
+
+| Abbey Head yard, hoy unlocked | Away from home: no upgrades, where each ship is built | A fluyt at sea |
+|---|---|---|
+| ![Abbey Head shipyard](shipyard-abbey-head.png) | ![shipyard away from home](shipyard-away-from-home.png) | ![fluyt at sea](fluyt-at-sea.png) |

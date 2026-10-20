@@ -117,7 +117,8 @@ describe('delivery contracts (0028)', () => {
       const deliver = () => container.querySelector<HTMLButtonElement>('#tp-deliver')!;
       expect(deliver().disabled).toBe(true);
       const others = container.querySelectorAll('.contract-list li');
-      expect(others).toHaveLength(PHASE1_MAP.ports.length - 1);
+      // Only charted ports: the hidden yards' orders show once discovered (decision 0048).
+      expect(others).toHaveLength(PHASE1_MAP.ports.filter((p) => !p.hidden).length - 1);
 
       const order = world.trade.contracts.byPort[port.id]!;
       world.trade.captain.cargo[order.good] = order.qty;
