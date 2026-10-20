@@ -55,4 +55,6 @@
 | [0048](0048-ship-unlocks-home-port-and-yards.md) | Ship unlocks: Saltmere home port for upgrades and switching; hidden yards at Watchman Key (swift) and Abbey Head (hauler) open ships after 1/3/6 deliveries there | 2026-10-20 | Implementation for review |
 | [0049](0049-ui-instrument-style.md) | UI redesign: "instrument" style (navy and brass, colour icons, chunky buttons) and the new Sea HUD | 2026-10-20 | Sea HUD implemented for review |
 
+| [0050](0050-tablet-friendly-ship-wakes.md) | Hull-sized bow foam and broken stern wakes, scaled across three tablet detail budgets | 2026-10-20 | Implementation for review |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

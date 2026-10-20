@@ -252,6 +252,7 @@ function sailColors(level: number, band: string): CellColor {
  */
 export class StorybookBoat implements BoatModel {
   readonly root = new THREE.Group();
+  readonly wakeHull: { length: number; beam: number };
   /** Object counts for tests and the model sheet. */
   readonly stats = { triangles: 0, meshes: 0, crates: 0, barrels: 0, jibs: 0, topsail: false };
   private readonly body = new THREE.Group();
@@ -272,6 +273,7 @@ export class StorybookBoat implements BoatModel {
     const rng = createRng(cls.ci * 31 + upg.hold * 7 + 1);
     const L = cls.L * st.L;
     const B = cls.B * st.B;
+    this.wakeHull = { length: L * BOAT_SCALE, beam: B * BOAT_SCALE };
     const H = cls.H * st.H;
     const sheer = st.sheer * (L / 5) ** 0.5;
     const deckY = H * 0.55;

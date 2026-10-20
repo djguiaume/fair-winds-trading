@@ -143,11 +143,13 @@ export class GameView {
     this.scene.remove(this.boat.root);
     this.boat.dispose();
     this.boat = this.buildBoat();
+    this.wake.reset();
     this.scene.add(this.boat.root);
   }
 
   setQuality(level: QualityLevel) {
     this.level = level;
+    this.wake.setQuality(level);
     const profile = QUALITY[level];
     if (this.ocean) {
       this.scene.remove(this.ocean.mesh);
@@ -266,7 +268,7 @@ export class GameView {
     this.boatShadow.position.set(pos.x + 1.8, 0.55, pos.z - 1);
     this.boatShadow.rotation.y = yaw;
 
-    this.wake.update(dt, time, this.tmp.set(bx, 0, bz), dir.x, -dir.y, boat.speedKn);
+    this.wake.update(dt, time, pos, dir.x, -dir.y, boat.speedKn, this.boat.wakeHull);
 
     const to = bearingVector(windTo(wind));
     this.streaks.update(
