@@ -114,21 +114,31 @@ describe('full-screen chart planning', () => {
     expect(get<HTMLButtonElement>('chart-clear-target').disabled).toBe(true);
   });
 
-  it('compares one good on every port card, in green where it is cheapest or pays most', () => {
+  it('opens with names only on an empty hold, then prices one picked good under every port', () => {
     const { world } = setup();
+    const charted = world.map.ports.filter((p) => !p.hidden);
+    expect(document.querySelectorAll('.chart-port-name')).toHaveLength(charted.length);
+    expect(document.querySelectorAll('.chart-need')).toHaveLength(0);
     const stone = [...document.querySelectorAll<HTMLButtonElement>('#chart-goods button')].find(
       (b) => b.textContent!.includes('Stone'),
     )!;
     stone.click();
-    expect(document.querySelector('#chart-goods [aria-checked="true"]')!.textContent).toContain(
+    expect(document.querySelector('#chart-goods [aria-pressed="true"]')!.textContent).toContain(
       'Stone',
     );
-    const cards = document.querySelectorAll('.chart-port-target');
-    const charted = world.map.ports.filter((p) => !p.hidden);
-    expect(cards).toHaveLength(charted.length);
-    for (const card of cards)
-      expect(card.querySelector('use')!.getAttribute('href')).toBe('#i-stone');
+    expect(document.querySelectorAll('.chart-need')).toHaveLength(charted.length);
     expect(document.querySelectorAll('.chart-need.best').length).toBeGreaterThan(0);
     expect(get('chart-market-title').textContent).toContain('Stone');
+  });
+
+  it('keeps port labels apart and off the boat', () => {
+    setup();
+    const boxes = [...document.querySelectorAll('.chart-port-target .chart-card-box')].map((r) => {
+      const n = (a: string) => Number(r.getAttribute(a));
+      return { x0: n('x'), y0: n('y'), x1: n('x') + n('width'), y1: n('y') + n('height') };
+    });
+    for (const [i, a] of boxes.entries())
+      for (const b of boxes.slice(i + 1))
+        expect(a.x1 <= b.x0 || b.x1 <= a.x0 || a.y1 <= b.y0 || b.y1 <= a.y0).toBe(true);
   });
 });

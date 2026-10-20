@@ -1,8 +1,8 @@
 /*
- * Chart: a paused, static SVG planning screen (decisions 0057, 0058). Style D from the mockups:
- * a bright teal sea, sand islands outlined in ink, navy port cards with brass for the selected
- * port and green for the best price, goods to compare along the bottom. Tokens come from
- * sea-hud.css.
+ * Chart: a paused, static SVG planning screen (decisions 0057, 0058). The map fills the screen
+ * and every control floats in a corner or along a side, where the round sea leaves room. Strong
+ * hierarchy: the boat and course, then ports (anchor badge, bold name), then quiet island names.
+ * Prices appear only for the good picked along the side. Tokens come from sea-hud.css.
  */
 dialog.chart {
   inset: 0;
@@ -15,7 +15,7 @@ dialog.chart {
   padding: 0;
   border: 0;
   border-radius: 0;
-  background: #1f8996;
+  background: #1b7480;
   overflow: hidden;
   color: var(--ink);
   font-family: var(--body);
@@ -28,51 +28,67 @@ dialog.chart::backdrop {
   background: rgba(5, 26, 31, 0.88);
 }
 
-/* --- Header and footer bars -------------------------------------------------------------- */
-.chart-header,
-.chart-footer {
-  flex: 0 0 auto;
+/* --- Floating controls ------------------------------------------------------------------ */
+.chart-header {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  right: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
-  padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 8px
+  padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 0
     max(12px, env(safe-area-inset-left));
+  pointer-events: none;
 }
-.chart-footer {
-  flex-wrap: wrap;
-  padding: 8px max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom))
-    max(12px, env(safe-area-inset-left));
+.chart-header > * {
+  pointer-events: auto;
 }
+/* The title is for screen readers; the map speaks for itself. */
 .chart h2 {
-  margin: 0 6px 0 0;
-  color: var(--ink);
-  font: 700 26px/1 var(--display);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
   white-space: nowrap;
 }
-.chart-header-gap,
-.chart-footer-gap {
+.chart-header-gap {
   flex: 1;
+  pointer-events: none;
 }
 .chart-chip {
   display: inline-flex;
   align-items: center;
+  gap: 8px;
   min-width: 0;
-  height: 38px;
-  padding: 0 12px;
+  max-width: min(420px, 60vw);
+  height: 40px;
+  padding: 0 4px 0 12px;
   border: 1px solid var(--brass-line);
   border-radius: 8px;
   background: var(--navy-solid);
-  font: 700 16px/1 var(--display);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font: 700 17px/1 var(--display);
+  letter-spacing: 0.03em;
   white-space: nowrap;
+}
+.chart-chip > span {
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .chart-chip[hidden] {
   display: none;
+}
+.chart .chart-chip button {
+  width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink-dim);
+  font-size: 16px;
 }
 
 /* Buttons: navy with a brass line; the picked good in brass; Close in red, as in the port. */
@@ -110,6 +126,13 @@ dialog.chart::backdrop {
   height: 22px;
   flex: none;
 }
+#chart-legend-toggle {
+  width: 46px;
+  padding: 0;
+}
+.chart-legend-label {
+  display: none;
+}
 .chart .chart-close {
   width: 46px;
   min-height: 46px;
@@ -123,10 +146,33 @@ dialog.chart::backdrop {
   color: #fff;
   font-size: 20px;
 }
+
+/* Goods to price along the left side (a row along the bottom in portrait). */
+.chart-footer {
+  position: absolute;
+  z-index: 3;
+  left: max(12px, env(safe-area-inset-left));
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  pointer-events: none;
+}
+.chart-footer > * {
+  pointer-events: auto;
+}
 .chart .chart-goods {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 6px;
+}
+.chart .chart-goods button,
+.chart #chart-market-toggle {
+  justify-content: flex-start;
+  min-height: 40px;
+  font-size: 15px;
 }
 .chart .chart-goods button.active {
   border-color: var(--outline);
@@ -134,11 +180,8 @@ dialog.chart::backdrop {
   box-shadow: inset 0 -3px 0 var(--brass-lo);
   color: #2a1c00;
 }
-.chart #chart-clear-target {
-  border: 1px solid var(--brass-line);
-  background: var(--navy-solid);
-  box-shadow: 0 2px 0 var(--outline);
-  color: var(--ink);
+.chart #chart-market-toggle {
+  margin-top: 6px;
 }
 
 /* --- The map ---------------------------------------------------------------------------- */
@@ -161,10 +204,8 @@ dialog.chart::backdrop {
 }
 .chart-boundary {
   fill: #2aa6b4;
-  stroke: var(--brass);
+  stroke: rgba(238, 243, 244, 0.35);
   stroke-width: 1.5px;
-  stroke-dasharray: 6 5;
-  stroke-opacity: 0.7;
   vector-effect: non-scaling-stroke;
 }
 .chart-shore {
@@ -183,99 +224,110 @@ dialog.chart::backdrop {
 }
 .chart-bank {
   fill: #f7e3ad;
-  fill-opacity: 0.75;
-  stroke: #b4a16e;
-  stroke-width: 1px;
-  vector-effect: non-scaling-stroke;
+  fill-opacity: 0.6;
+  stroke: none;
 }
 .chart-reef {
-  fill: #6f8f94;
-  fill-opacity: 0.75;
+  fill: #e86a52;
+  fill-opacity: 0.35;
   stroke: #e86a52;
   stroke-width: 1.4px;
   stroke-dasharray: 3 3;
   vector-effect: non-scaling-stroke;
 }
 .chart-place {
-  fill: #eef3f4;
+  fill: rgba(238, 243, 244, 0.8);
   font-family: var(--body);
   font-style: italic;
+  font-weight: 500;
   text-anchor: middle;
   pointer-events: none;
 }
 .chart-course {
   stroke: var(--brass-hi);
-  stroke-width: 2.5px;
-  stroke-dasharray: 7 6;
+  stroke-width: 3px;
+  stroke-dasharray: 8 6;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
 }
 .chart-selected {
-  fill: var(--brass);
-  stroke: var(--outline);
-  stroke-width: 1.5px;
+  fill: none;
+  stroke: var(--brass-hi);
+  stroke-width: 3px;
   vector-effect: non-scaling-stroke;
 }
 .chart-player {
   pointer-events: none;
 }
 
-/* Port cards: one tap sets the course; the selected port is outlined in brass. */
+/* Ports: an anchor badge on the pier and a bold name with a dark halo, no box behind it. */
 .chart-port-target {
   cursor: pointer;
   outline: none;
 }
-.chart-card-box {
-  fill: rgba(9, 28, 41, 0.92);
-  stroke: rgba(238, 243, 244, 0.18);
-  stroke-width: 1px;
+.chart-card-box,
+.chart-hit {
+  fill: transparent;
+  stroke: none;
+}
+.chart-port-dot {
+  fill: var(--navy-solid);
+  stroke: var(--brass);
+  stroke-width: 1.5px;
   vector-effect: non-scaling-stroke;
 }
-.chart-card-stem {
-  stroke: rgba(238, 243, 244, 0.75);
-  stroke-width: 1.2px;
+.chart-port-anchor {
+  color: var(--brass-hi);
+}
+.chart-port-target.is-selected .chart-port-dot {
+  fill: var(--brass);
+  stroke: var(--outline);
+}
+.chart-port-target.is-selected .chart-port-anchor {
+  color: var(--outline);
+}
+.chart-port-name,
+.chart-need {
+  paint-order: stroke;
+  stroke: rgba(6, 20, 28, 0.85);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  text-anchor: middle;
   vector-effect: non-scaling-stroke;
 }
-.chart-pier {
-  fill: var(--outline);
-  stroke: #eef3f4;
-  stroke-width: 1px;
-  vector-effect: non-scaling-stroke;
-}
-.chart-card-name {
-  fill: var(--ink);
+.chart-port-name {
+  fill: #fff;
   font-family: var(--display);
   font-weight: 700;
   letter-spacing: 0.03em;
-  text-anchor: middle;
 }
 .chart-need {
-  fill: var(--ink-dim);
+  fill: var(--ink);
   font-family: var(--body);
   font-weight: 600;
 }
 .chart-need.best {
   fill: var(--green);
 }
-.chart-port-target.is-selected .chart-card-box {
-  stroke: var(--brass);
-  stroke-width: 2.5px;
-}
-.chart-port-target:hover .chart-card-box {
-  stroke: rgba(232, 196, 106, 0.6);
+.chart-port-target.is-selected .chart-port-name,
+.chart-port-target:hover .chart-port-name {
+  fill: var(--brass-hi);
 }
 .chart-port-target:focus-visible .chart-card-box {
   stroke: #fff;
-  stroke-width: 2.5px;
+  stroke-width: 2px;
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
 }
 
 /* --- Wind compass, zoom and status over the map ---------------------------------------- */
 .chart-compass.compass {
   position: absolute;
-  top: 8px;
+  z-index: 2;
+  top: calc(max(10px, env(safe-area-inset-top)) + 54px);
   right: max(12px, env(safe-area-inset-right));
-  width: 110px;
-  padding: 5px;
+  width: 96px;
+  padding: 4px;
   border: 1px solid var(--brass-line);
   border-radius: 10px;
   background: var(--navy-solid);
@@ -283,44 +335,42 @@ dialog.chart::backdrop {
 }
 .chart-compass.compass svg {
   display: block;
-  width: 88px;
-  height: 88px;
+  width: 76px;
+  height: 76px;
   margin: auto;
 }
 .chart-compass #chart-wind {
   display: block;
-  font: 700 13px/1.2 var(--display);
+  font: 700 12px/1.2 var(--display);
   letter-spacing: 0.04em;
   text-align: center;
   text-transform: uppercase;
 }
 .chart-zoom {
   position: absolute;
-  bottom: 8px;
-  left: max(12px, env(safe-area-inset-left));
+  z-index: 2;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  right: max(12px, env(safe-area-inset-right));
   display: flex;
-  gap: 5px;
+  flex-direction: column;
+  gap: 6px;
 }
-.chart-zoom button:first-child,
-.chart-zoom button:nth-child(2) {
+.chart .chart-zoom button {
   width: 44px;
   padding: 0;
   font-size: 24px;
 }
+.chart .chart-zoom #chart-fit {
+  font-size: 20px;
+}
+/* Course changes are spoken; the course chip already shows them. */
 .chart-status {
   position: absolute;
-  bottom: 8px;
-  right: max(12px, env(safe-area-inset-right));
-  max-width: calc(100% - 280px);
+  width: 1px;
+  height: 1px;
   margin: 0;
-  padding: 6px 10px;
-  border-radius: 6px;
-  background: var(--navy-solid);
-  font: 500 14px/1.3 var(--body);
-  pointer-events: none;
-}
-.chart-status:empty {
-  display: none;
+  overflow: hidden;
+  clip-path: inset(50%);
 }
 
 /* --- Sheets: legend and the full price table --------------------------------------------- */
@@ -450,99 +500,86 @@ dialog.chart::backdrop {
   display: none;
 }
 .chart #tutorial-chart {
-  padding: 0 max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left));
+  padding: calc(max(10px, env(safe-area-inset-top)) + 52px) max(12px, env(safe-area-inset-right)) 0
+    max(12px, env(safe-area-inset-left));
 }
 .chart #tutorial-chart .tutorial-card {
   margin: 0 0 6px;
 }
 
+.chart-key-price {
+  color: var(--green);
+  font: 700 16px var(--body);
+}
+
 /* --- Sizes ------------------------------------------------------------------------------ */
-/* Short landscape phones: thinner bars so the map keeps its height. */
+/* Short landscape phones: smaller controls, so the round sea keeps the full height. */
 @media (max-height: 450px) {
-  .chart-header {
-    padding-top: max(6px, env(safe-area-inset-top));
-    padding-bottom: 4px;
-  }
-  .chart-footer {
-    padding-top: 4px;
-    padding-bottom: max(6px, env(safe-area-inset-bottom));
-  }
-  .chart h2 {
-    font-size: 22px;
-  }
   .chart button {
-    min-height: 40px;
-    font-size: 15px;
+    min-height: 38px;
+    font-size: 14px;
+  }
+  .chart .chart-goods button,
+  .chart #chart-market-toggle {
+    min-height: 36px;
+    font-size: 14px;
   }
   .chart-chip {
-    height: 34px;
-    font-size: 15px;
+    height: 36px;
+    font-size: 14px;
   }
   .chart-compass.compass {
-    width: 92px;
+    top: calc(max(10px, env(safe-area-inset-top)) + 50px);
+    width: 84px;
   }
   .chart-compass.compass svg {
-    width: 70px;
-    height: 70px;
+    width: 64px;
+    height: 64px;
   }
-  .chart-zoom {
-    flex-direction: column;
-  }
-  .chart-zoom button {
-    width: 44px;
-  }
-  .chart-zoom #chart-fit {
+  .chart .chart-zoom #chart-fit {
     display: none;
-  }
-  /* The course chip already says where you are heading; keep the note for screen readers. */
-  .chart-status {
-    clip-path: inset(50%);
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    overflow: hidden;
   }
 }
 
-/* Portrait phones: the course chip gets its own line; goods fill the first footer row. */
-@media (max-width: 600px) {
-  .chart-header {
+/* Portrait: the sea fills the width; goods run along the bottom and the course chip wraps. */
+@media (orientation: portrait) {
+  .chart-footer {
+    top: auto;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    right: calc(max(12px, env(safe-area-inset-right)) + 56px);
+    transform: none;
+    flex-direction: row;
     flex-wrap: wrap;
   }
-  .chart h2 {
-    font-size: 22px;
+  .chart .chart-goods {
+    flex-direction: row;
+    flex-wrap: wrap;
   }
-  .chart #chart-course {
-    order: 1;
-    flex: 1 1 100%;
+  .chart #chart-market-toggle {
+    margin-top: 0;
   }
-  .chart-legend-label {
-    display: none;
+  .chart-chip {
+    max-width: calc(100vw - 150px);
   }
+}
+@media (orientation: portrait) and (max-width: 600px) {
   .chart .chart-goods {
     flex: 1 1 100%;
+    flex-wrap: nowrap;
   }
   .chart .chart-goods button {
-    flex: 1;
-    padding: 0 6px;
+    flex: 1 1 0;
+    justify-content: center;
+    gap: 4px;
+    padding: 0 4px;
+    font-size: 13px;
+  }
+  .chart #chart-market-toggle {
+    padding: 0 10px;
     font-size: 14px;
   }
   .chart .chart-goods .icon {
     width: 18px;
     height: 18px;
-  }
-  .chart-compass.compass {
-    width: 88px;
-  }
-  .chart-compass.compass svg {
-    width: 70px;
-    height: 70px;
-  }
-  .chart-status {
-    left: max(12px, env(safe-area-inset-left));
-    right: auto;
-    bottom: 60px;
-    max-width: calc(100% - 24px);
-    font-size: 13px;
   }
 }

@@ -41,7 +41,7 @@ describe('top needs and market overview (decision 0036)', () => {
     chart.open();
     expect(document.querySelectorAll('.chart-need')).toHaveLength(ids.length);
     // Opens on the good in the hold.
-    const active = document.querySelector('#chart-goods [aria-checked="true"]')!;
+    const active = document.querySelector('#chart-goods [aria-pressed="true"]')!;
     expect(active.textContent).toContain('Timber');
     const rows = document.querySelectorAll('#chart-prices tr');
     expect(rows).toHaveLength(ids.length + 1);
@@ -50,9 +50,13 @@ describe('top needs and market overview (decision 0036)', () => {
       (b) => b.textContent!.includes('Stone'),
     )!;
     stone.click();
-    expect(document.querySelector('#chart-goods [aria-checked="true"]')!.textContent).toContain(
+    expect(document.querySelector('#chart-goods [aria-pressed="true"]')!.textContent).toContain(
       'Stone',
     );
+    // Tapping the picked good again leaves only the port names (decision 0058).
+    stone.click();
+    expect(document.querySelectorAll('.chart-need')).toHaveLength(0);
+    expect(document.querySelector('#chart-goods [aria-pressed="true"]')).toBeNull();
     document.querySelector<HTMLButtonElement>(`[data-compare="westholm"]`)!.click();
     expect(world.destination?.portId).toBe('westholm');
   });

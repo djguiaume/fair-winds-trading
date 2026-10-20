@@ -9,13 +9,27 @@ import { icon, COIN } from './icons';
 
 const NS = 'http://www.w3.org/2000/svg';
 
+type Box = { x0: number; y0: number; x1: number; y1: number };
+const box = (cx: number, cy: number, w: number, h: number): Box => ({
+  x0: cx - w / 2,
+  y0: cy - h / 2,
+  x1: cx + w / 2,
+  y1: cy + h / 2,
+});
+/** Overlapping area of two boxes, used to choose the clearest side for a label. */
+const overlap = (a: Box, b: Box) =>
+  Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0)) *
+  Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0));
+
 /** An event-driven DOM/SVG chart; no second WebGL scene or animation loop. */
 export class SeaChart {
   onChange: () => void = () => {};
   onDestinationChange: () => void = () => {};
   private previousFocus: HTMLElement | null = null;
-  /** Good shown in the market overview; null until the chart first opens. */
+  /** Good whose prices show under the port names; null shows names only. */
   private good: GoodId | null = null;
+  /** Until the player picks a good, the chart follows the cargo in the hold. */
+  private goodPicked = false;
   private zoom = 1;
   private center = { x: 0, y: 0 };
   private panel: string | null = null;
@@ -167,7 +181,14 @@ export class SeaChart {
     return (
       ((this.world.map.boundsRadius + 24) * 2) /
       this.zoom /
-      Math.max(1, Math.min(rect.width || 600, rect.height || 600))
+      // In landscape the goods column and the compass sit beside the round sea, not over it.
+      Math.max(
+        1,
+        Math.min(
+          (rect.width || 600) - ((rect.width || 600) > (rect.height || 600) ? 300 : 0),
+          rect.height || 600,
+        ),
+      )
     );
   }
   private updateViewBox() {
@@ -238,7 +259,7 @@ export class SeaChart {
   open() {
     if (this.isOpen) return;
     this.previousFocus = document.activeElement as HTMLElement | null;
-    this.good ??= this.defaultGood();
+    if (!this.goodPicked) this.good = this.defaultGood();
     this.zoom = 1;
     this.center = { x: 0, y: 0 };
     this.setPanel(null);
@@ -250,10 +271,11 @@ export class SeaChart {
   close() {
     this.dialog.close();
   }
-  /** Compare what you carry most of; with an empty hold, start with the first good. */
-  private defaultGood(): GoodId {
+  /** Show prices for what you carry most of; with an empty hold, a clean chart of names. */
+  private defaultGood(): GoodId | null {
     const { cargo } = this.world.trade.captain;
-    return GOODS.reduce((best, g) => (cargo[g] > cargo[best] ? g : best), GOODS[0]);
+    const most = GOODS.reduce((best, g) => (cargo[g] > cargo[best] ? g : best), GOODS[0]);
+    return cargo[most] > 0 ? most : null;
   }
   private status(message: string) {
     this.get('chart-status').textContent = message;
@@ -278,7 +300,7 @@ export class SeaChart {
   }
   /** One good's prices at every charted port (decisions 0036, 0048), and which are best. */
   private quotes() {
-    const good = this.good ?? this.defaultGood();
+    const good = this.good ?? GOODS[0];
     const { map, trade } = this.world;
     const quotes = quoteAcross(
       trade.markets,
@@ -300,14 +322,16 @@ export class SeaChart {
     const goods = this.get('chart-goods');
     goods.replaceChildren();
     for (const g of GOODS) {
+      // Tap a good to show its prices on the chart; tap it again for names only.
       const b = this.button(goods, goodName(g), () => {
-        this.good = g;
+        this.good = this.good === g ? null : g;
+        this.goodPicked = true;
         this.draw();
       });
       b.insertAdjacentHTML('afterbegin', icon(g));
-      b.setAttribute('role', 'radio');
-      b.setAttribute('aria-checked', String(g === good));
-      if (g === good) b.classList.add('active');
+      const on = g === this.good;
+      b.setAttribute('aria-pressed', String(on));
+      if (on) b.classList.add('active');
     }
     const title = this.dialog.querySelector('#chart-market-title');
     if (title) title.textContent = t('chart.pricesFor', { good: goodName(good) });
@@ -349,20 +373,12 @@ export class SeaChart {
       table.append(row);
     }
   }
-  /** The port card's second line: the picked good's price there, green when it is the best. */
-  private cardLine(q: PortQuote | undefined, market: ReturnType<SeaChart['quotes']>) {
+  /** The price under a port's name for the picked good: buy where it is stocked, else sell. */
+  private priceLine(q: PortQuote | undefined, market: ReturnType<SeaChart['quotes']>) {
     if (!q) return { text: '', best: false };
     if (q.available > 0 && q.buy === market.cheapest)
-      return {
-        text: `${t('chart.cardBuy', { price: q.buy })} · ${t('chart.cardCheapest')}`,
-        best: true,
-      };
-    if (q.sell === market.dearest)
-      return {
-        text: `${t('chart.cardSell', { price: q.sell })} · ${t('chart.cardBest')}`,
-        best: true,
-      };
-    return { text: t('chart.cardSell', { price: q.sell }), best: false };
+      return { text: t('chart.cardBuy', { price: q.buy }), best: true };
+    return { text: t('chart.cardSell', { price: q.sell }), best: q.sell === market.dearest };
   }
   private draw() {
     const focused = document.activeElement;
@@ -390,33 +406,35 @@ export class SeaChart {
       shape(tag, { ...attrs, class: 'chart-land' });
     };
     const charted = discoveredPorts(map, this.world.trade);
+    // Map text needs the same screen size at every zoom and grows a little on large screens.
+    const rect = svg.getBoundingClientRect();
+    const k = Math.min(1.25, Math.max(1, Math.min(rect.width, rect.height) / 520));
+    const px = unit * k;
+    // Island and reef names are placed after the ports, only where they fit (decision 0058).
+    const places: { name: string; x: number; top: number; bottom: number }[] = [];
+    const landBoxes: Box[] = [];
     for (const island of map.islands) {
       land('circle', { cx: island.x, cy: -island.y, r: island.radius });
-      if (island.name && !charted.some((p) => p.islandId === island.id)) {
-        const label = shape('text', {
+      landBoxes.push(box(island.x, -island.y, island.radius * 2, island.radius * 2));
+      if (island.name && !charted.some((p) => p.islandId === island.id))
+        places.push({
+          name: island.name,
           x: island.x,
-          y: -island.y - island.radius - 6 * unit,
-          class: 'chart-place',
-          style: `font-size: ${11 * unit}px`,
+          top: -island.y - island.radius,
+          bottom: -island.y + island.radius,
         });
-        label.textContent = island.name;
-      }
     }
     for (const terrain of map.terrain ?? []) {
       const points = terrain.outline.map(([x, y]) => `${x},${-y}`).join(' ');
       if (terrain.kind === 'island') land('polygon', { points });
       else
         shape('polygon', { points, class: terrain.kind === 'reef' ? 'chart-reef' : 'chart-bank' });
-      if (terrain.name) {
-        const xs = terrain.outline.map((p) => p[0]);
-        const label = shape('text', {
-          x: (Math.min(...xs) + Math.max(...xs)) / 2,
-          y: -Math.max(...terrain.outline.map((p) => p[1])) - 6 * unit,
-          class: 'chart-place',
-          style: `font-size: ${11 * unit}px`,
-        });
-        label.textContent = terrain.name;
-      }
+      const xs = terrain.outline.map((p) => p[0]);
+      const ys = terrain.outline.map((p) => -p[1]);
+      const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+      if (terrain.kind === 'island') landBoxes.push({ x0, x1, y0, y1 });
+      if (terrain.name && terrain.kind === 'island')
+        places.push({ name: terrain.name, x: (x0 + x1) / 2, top: y0, bottom: y1 });
     }
     // The course: a dashed line from the boat to a small ring on the destination's pier.
     if (destination) {
@@ -436,7 +454,7 @@ export class SeaChart {
     }
     // Screen-sized signature boat; position/heading remain exact world coordinates.
     const player = shape('g', {
-      transform: `translate(${boat.x} ${-boat.y}) rotate(${boat.heading / DEG}) scale(${unit * 0.72})`,
+      transform: `translate(${boat.x} ${-boat.y}) rotate(${boat.heading / DEG}) scale(${unit * 0.85})`,
       class: 'chart-player',
       role: 'img',
       'aria-label': t('chart.boatLabel', { deg: Math.round((boat.heading / DEG + 360) % 360) }),
@@ -449,12 +467,47 @@ export class SeaChart {
     use.setAttribute('height', '44');
     player.append(use);
     const market = this.quotes();
+    const showPrices = this.good !== null;
     const [vx, vy, vw, vh] = (svg.getAttribute('viewBox') ?? '0 0 0 0').split(' ').map(Number);
-    const view = { x: vx!, y: vy!, w: vw!, h: vh! };
-    // Cards grow a little on large screens, where 14px names look lost.
-    const rect = svg.getBoundingClientRect();
-    const k = Math.min(1.3, Math.max(1, Math.min(rect.width, rect.height) / 520));
-    // One card per charted port (style D, decision 0058): its name and the picked good's price.
+    const view = { x0: vx!, y0: vy!, x1: vx! + vw!, y1: vy! + vh! };
+    const boatBox = box(boat.x, -boat.y, 34 * unit, 34 * unit);
+    const placed: Box[] = [];
+    // Anchor badges sit on the piers; labels keep clear of every one of them.
+    const badges = charted.map((port) => {
+      const pier = this.harbours[port.id] ?? map.islands.find((i) => i.id === port.islandId)!;
+      return box(pier.x, -pier.y, 20 * px, 20 * px);
+    });
+    // Pick the free side of the island for a label: above, below, right, then left.
+    const placeLabel = (cx: number, top: number, bottom: number, w: number, h: number) => {
+      const gap = 5 * unit;
+      const mid = (top + bottom) / 2,
+        half = (bottom - top) / 2;
+      const candidates = [
+        { x: cx, y: top - gap - h / 2 },
+        { x: cx, y: bottom + gap + h / 2 },
+        { x: cx + half + gap + w / 2, y: mid },
+        { x: cx - half - gap - w / 2, y: mid },
+      ].map((c) => ({
+        // Keep labels on screen at the chart's edges.
+        x: Math.min(Math.max(c.x, view.x0 + w / 2 + 4 * unit), view.x1 - w / 2 - 4 * unit),
+        y: Math.min(Math.max(c.y, view.y0 + h / 2 + 4 * unit), view.y1 - h / 2 - 4 * unit),
+      }));
+      let best = candidates[0]!,
+        bestScore = Infinity;
+      for (const c of candidates) {
+        const b = box(c.x, c.y, w, h);
+        const score =
+          3 * overlap(b, boatBox) +
+          3 * [...placed, ...badges].reduce((sum, p) => sum + overlap(b, p), 0) +
+          landBoxes.reduce((sum, l) => sum + overlap(b, l), 0) * 0.5;
+        if (score < bestScore - 1e-6) {
+          best = c;
+          bestScore = score;
+        }
+      }
+      return { ...best, clash: bestScore };
+    };
+    // Ports: an anchor badge on the pier, the name, and the picked good's price.
     for (const port of charted) {
       const island = map.islands.find((i) => i.id === port.islandId)!;
       const anchor = this.harbours[port.id] ?? island;
@@ -467,75 +520,68 @@ export class SeaChart {
         'data-chart-target': port.id,
         'aria-label': t('chart.setBearingTo', { name: port.name }),
       });
-      const line = this.cardLine(
-        market.quotes.find((q) => q.portId === port.id),
-        market,
-      );
-      const nameSize = 14 * k * unit;
-      const lineSize = 12.5 * k * unit;
-      const iconSize = 15 * k * unit;
-      const lineWidth = line.text.length * lineSize * 0.5 + iconSize + 4 * unit;
-      const width = Math.max(port.name.length * nameSize * 0.56, lineWidth) + 16 * unit;
-      const height = 38 * k * unit;
-      let bottom = -island.y - island.radius - 10 * unit;
-      // Keep the boat readable when it sits right under a card.
-      if (
-        Math.abs(boat.x - island.x) < width / 2 + 14 * unit &&
-        Math.abs(-boat.y - (bottom - height / 2)) < height / 2 + 14 * unit
-      )
-        bottom -= height + 18 * unit;
-      const top = bottom - height;
-      // Keep the whole card on screen at the chart's edges.
-      const cx = Math.min(
-        Math.max(island.x, view.x + width / 2 + 6 * unit),
-        view.x + view.w - width / 2 - 6 * unit,
-      );
-      shape(
-        'line',
-        { x1: cx, y1: bottom, x2: anchor.x, y2: -anchor.y, class: 'chart-card-stem' },
-        group,
-      );
-      shape('circle', { cx: anchor.x, cy: -anchor.y, r: 3.5 * unit, class: 'chart-pier' }, group);
+      const price = showPrices
+        ? this.priceLine(
+            market.quotes.find((q) => q.portId === port.id),
+            market,
+          )
+        : { text: '', best: false };
+      const nameSize = 15 * px,
+        priceSize = 13 * px;
+      const w = Math.max(port.name.length * nameSize * 0.52, price.text.length * priceSize * 0.52);
+      const h = nameSize * 1.15 + (price.text ? priceSize * 1.2 : 0);
+      const spot = placeLabel(island.x, -island.y - island.radius, -island.y + island.radius, w, h);
+      placed.push(box(spot.x, spot.y, w, h));
+      const top = spot.y - h / 2;
+      // Invisible tap areas: the label and a finger-sized circle on the pier.
       shape(
         'rect',
-        { x: cx - width / 2, y: top, width, height, rx: 4 * unit, class: 'chart-card-box' },
+        {
+          x: spot.x - w / 2 - 4 * unit,
+          y: top - 3 * unit,
+          width: w + 8 * unit,
+          height: h + 6 * unit,
+          class: 'chart-card-box',
+        },
+        group,
+      );
+      shape('circle', { cx: anchor.x, cy: -anchor.y, r: 20 * unit, class: 'chart-hit' }, group);
+      shape('circle', { cx: anchor.x, cy: -anchor.y, r: 9 * px, class: 'chart-port-dot' }, group);
+      shape(
+        'use',
+        {
+          href: '#i-anchor',
+          x: anchor.x - 6 * px,
+          y: -anchor.y - 6 * px,
+          width: 12 * px,
+          height: 12 * px,
+          class: 'chart-port-anchor',
+        },
         group,
       );
       const name = shape(
         'text',
         {
-          x: cx,
-          y: top + 16 * k * unit,
-          class: 'chart-card-name',
+          x: spot.x,
+          y: top + nameSize * 0.9,
+          class: 'chart-port-name',
           style: `font-size: ${nameSize}px`,
         },
         group,
       );
       name.textContent = port.name;
-      if (line.text) {
-        const left = cx - lineWidth / 2;
-        shape(
-          'use',
-          {
-            href: `#i-${market.good}`,
-            x: left,
-            y: top + 20 * k * unit,
-            width: iconSize,
-            height: iconSize,
-          },
-          group,
-        );
-        const price = shape(
+      if (price.text) {
+        const line = shape(
           'text',
           {
-            x: left + iconSize + 4 * unit,
-            y: top + 32 * k * unit,
-            class: `chart-need${line.best ? ' best' : ''}`,
-            style: `font-size: ${lineSize}px`,
+            x: spot.x,
+            y: top + nameSize * 1.15 + priceSize * 0.95,
+            class: `chart-need${price.best ? ' best' : ''}`,
+            style: `font-size: ${priceSize}px`,
           },
           group,
         );
-        price.textContent = line.text;
+        line.textContent = price.text;
       }
       group.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -548,13 +594,30 @@ export class SeaChart {
         }
       });
     }
+    // Secondary names: small and quiet, and left out where they would cover a port or the boat.
+    for (const place of places) {
+      const size = 11 * px;
+      const w = place.name.length * size * 0.5,
+        h = size * 1.2;
+      const spot = placeLabel(place.x, place.top, place.bottom, w, h);
+      const b = box(spot.x, spot.y, w, h);
+      if (overlap(b, boatBox) > 0 || placed.some((p) => overlap(b, p) > 0)) continue;
+      placed.push(b);
+      const label = shape('text', {
+        x: spot.x,
+        y: spot.y + size * 0.35,
+        class: 'chart-place',
+        style: `font-size: ${size}px`,
+      });
+      label.textContent = place.name;
+    }
     this.drawMarket(market);
     svg.append(player);
     const course = this.dialog.querySelector<HTMLElement>('#chart-course');
     if (course) {
       course.hidden = !destination;
       if (destination)
-        course.textContent = t('chart.course', {
+        (course.querySelector('#chart-course-text') ?? course).textContent = t('chart.course', {
           label: destination.label,
           dist: t('unit.metres', { n: Math.round(distance(boat, destination)) }),
         });

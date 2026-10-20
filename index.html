@@ -41,24 +41,23 @@
           <circle cx="12" cy="7" r="1.2" fill="currentColor" />
         </symbol>
         <symbol id="i-chart-boat" viewBox="-18 -22 36 44">
-          <ellipse
-            cy="1"
-            rx="14"
-            ry="19"
-            fill="#86e8ff"
-            fill-opacity=".18"
-            stroke="#86e8ff"
-            stroke-width="2"
-          />
+          <circle r="17" fill="#86e8ff" fill-opacity=".16" stroke="#86e8ff" stroke-width="1.5" />
           <path
-            d="M0 -18 Q11 -10 9 15 Q0 20 -9 15 Q-11 -10 0 -18Z"
+            d="M0 -21C6 -14 7.5 -4 7 6L6 17H-6L-7 6C-7.5 -4 -6 -14 0 -21Z"
             fill="#9b6037"
             stroke="#102f39"
             stroke-width="2"
+            stroke-linejoin="round"
           />
-          <path d="M0 -12 Q7 -6 6 12 L-6 12 Q-7 -6 0 -12Z" fill="#f4e5bd" />
-          <path d="M0 -8V10M-5 7H5" stroke="#5e3b28" stroke-width="2" />
-          <path d="M0 -22L-4 -17H4Z" fill="#f4e5bd" stroke="#102f39" stroke-width="1" />
+          <path d="M0 -16C4 -10 5 -3 4.8 5L4 14H-4L-4.8 5C-5 -3 -4 -10 0 -16Z" fill="#c98a4b" />
+          <path
+            d="M0 -8Q11 0 4 13Z"
+            fill="#fdf6e3"
+            stroke="#102f39"
+            stroke-width="1.2"
+            stroke-linejoin="round"
+          />
+          <circle cy="-8" r="1.8" fill="#102f39" />
         </symbol>
         <symbol id="i-coin" viewBox="0 0 24 24">
           <circle
@@ -547,7 +546,18 @@
     <dialog id="chart" class="chart" aria-labelledby="chart-title">
       <header class="chart-header">
         <h2 id="chart-title" data-i18n="chart.title">Sea chart</h2>
-        <span id="chart-course" class="chart-chip" hidden></span>
+        <div id="chart-course" class="chart-chip" hidden>
+          <span id="chart-course-text"></span>
+          <button
+            id="chart-clear-target"
+            type="button"
+            aria-label="Clear course"
+            title="Clear course"
+            data-i18n-attr="aria-label:chart.clearTarget;title:chart.clearTarget"
+          >
+            ✕
+          </button>
+        </div>
         <span class="chart-header-gap"></span>
         <button
           id="chart-legend-toggle"
@@ -618,9 +628,15 @@
             <div>
               <dt>
                 <svg viewBox="0 0 36 24" aria-hidden="true">
-                  <rect x="3" y="3" width="30" height="13" rx="2" class="chart-card-box" />
-                  <path d="M18 16v4" class="chart-card-stem" />
-                  <circle cx="18" cy="21" r="2" class="chart-pier" />
+                  <circle cx="18" cy="12" r="9" class="chart-port-dot" />
+                  <use
+                    href="#i-anchor"
+                    x="12"
+                    y="6"
+                    width="12"
+                    height="12"
+                    class="chart-port-anchor"
+                  />
                 </svg>
               </dt>
               <dd data-i18n="chart.keyPort">Port</dd>
@@ -664,9 +680,7 @@
               <dd data-i18n="chart.keyNorth">North up</dd>
             </div>
             <div>
-              <dt>
-                <svg class="icon" aria-hidden="true"><use href="#i-grain" /></svg>
-              </dt>
+              <dt class="chart-key-price">17</dt>
               <dd data-i18n="chart.keyGood">Prices for the good picked below</dd>
             </div>
           </dl>
@@ -715,7 +729,15 @@
           >
             −
           </button>
-          <button id="chart-fit" type="button" data-i18n="chart.fit">Whole map</button>
+          <button
+            id="chart-fit"
+            type="button"
+            aria-label="Whole map"
+            title="Whole map"
+            data-i18n-attr="aria-label:chart.fit;title:chart.fit"
+          >
+            ⤢
+          </button>
         </div>
         <p id="chart-status" class="chart-status" role="status"></p>
       </div>
@@ -723,7 +745,7 @@
         <div
           id="chart-goods"
           class="chart-goods"
-          role="radiogroup"
+          role="group"
           aria-label="Good to compare"
           data-i18n-attr="aria-label:chart.goodToCompare"
         ></div>
@@ -735,15 +757,6 @@
         >
           <svg class="icon" aria-hidden="true"><use href="#i-coin" /></svg>
           <span data-i18n="chart.marketShort">All prices</span>
-        </button>
-        <span class="chart-footer-gap"></span>
-        <button
-          id="chart-clear-target"
-          class="port-btn"
-          type="button"
-          data-i18n="chart.clearTarget"
-        >
-          Clear course
         </button>
       </footer>
     </dialog>
