@@ -216,7 +216,9 @@ export class GameView {
     this.target.x = approach(this.target.x, tx, 2.5, dt);
     this.target.z = approach(this.target.z, tz, 2.5, dt);
     const aspect = this.width / this.height;
-    const dist = BASE_DISTANCE * this.zoom * (aspect < 1 ? clamp(0.6 / aspect, 1, 1.15) : 1);
+    // The field of view is vertical, so a tall phone sees a thin strip of sea: pull back until
+    // portrait shows about as much water across as a landscape tablet (Guillaume, 2026-10-20).
+    const dist = BASE_DISTANCE * this.zoom * (aspect < 1 ? clamp(0.85 / aspect, 1, 1.9) : 1);
     this.camera.position.set(
       this.target.x,
       Math.sin(CAMERA_PITCH) * dist,

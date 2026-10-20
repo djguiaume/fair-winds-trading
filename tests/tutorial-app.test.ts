@@ -66,7 +66,7 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   click('#tutorial-action');
   expect(chart.open).toBe(true);
   expect(input.isEnabled).toBe(false);
-  click('#chart-ports button');
+  click('[data-compare="calda"]');
   expect(world.destination?.portId).toBe('calda');
   click('#close-chart');
   await flushClose();
@@ -90,7 +90,7 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   );
   click('#tutorial-action');
   expect(chart.open).toBe(true);
-  click('#chart-ports button:nth-child(2)');
+  click('[data-compare="saltmere"]');
   click('#close-chart');
   await flushClose();
   world.trade.dockedAt = null;

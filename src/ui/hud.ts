@@ -402,11 +402,8 @@ export class Hud {
       (this.hullBar.firstElementChild as HTMLElement).style.width = `${hull}%`;
 
       if (trade.dockedAt) {
-        this.dockBtn.hidden = false;
         const port = findPort(map, trade.dockedAt);
         this.dockPortName.textContent = port?.name ?? trade.dockedAt;
-      } else {
-        this.dockBtn.hidden = true;
       }
     }
 
@@ -416,6 +413,10 @@ export class Hud {
     }
 
     this.portLabels.update(project, dt);
+    // One Trade button at a time: the port sign's, or this one when the sign is off screen.
+    const dockedAt = this.world.trade.dockedAt;
+    const showDock = dockedAt !== null && !this.portLabels.dockShown(dockedAt);
+    if (this.dockBtn.hidden === showDock) this.dockBtn.hidden = !showDock;
 
     // Arrow at the screen edge when the buoy is off-screen.
     const s = wp ? project(wp.x, wp.y) : null;

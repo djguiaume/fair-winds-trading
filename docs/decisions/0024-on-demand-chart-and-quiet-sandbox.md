@@ -2,6 +2,8 @@
 
 **Status:** Merged in PR #12, 2026-10-19. Disabling the automatic practice course was explicitly requested by Guillaume.
 
+> Markers part superseded by [0058](0058-chart-style-d-port-cards.md) (2026-10-20): personal markers are removed and moved to later.
+
 ## Context
 
 After PRs #10 and #11, the larger sea is harder to navigate and the sailing HUD is crowded. Guillaume requested map/marker ideas, comparison with similar games, and temporary removal of the port-to-port guidance, with its return planned alongside a tutorial. Read decisions 0019–0023 before this change: keep the detailed map, explicit pier docking, quiet wind help, saves and tablet budgets.

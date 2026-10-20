@@ -1,4 +1,9 @@
-/* Chart: a paused, static SVG planning screen (decision 0057). */
+/*
+ * Chart: a paused, static SVG planning screen (decisions 0057, 0058). The map fills the screen
+ * and every control floats in a corner or along a side, where the round sea leaves room. Strong
+ * hierarchy: the boat and course, then ports (anchor badge, bold name), then quiet island names.
+ * Prices appear only for the good picked along the side. Tokens come from sea-hud.css.
+ */
 dialog.chart {
   inset: 0;
   margin: 0;
@@ -7,159 +12,410 @@ dialog.chart {
   height: 100vh;
   height: 100dvh;
   max-height: none;
-  padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
-    max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  padding: 0;
   border: 0;
   border-radius: 0;
-  background: #091c29;
+  background: #1b7480;
   overflow: hidden;
-  color: #f4f0e2;
+  color: var(--ink);
+  font-family: var(--body);
 }
 dialog.chart[open] {
   display: flex;
   flex-direction: column;
-  gap: 6px;
 }
-.chart .chart-header {
-  flex: 0 0 auto;
-  min-height: 44px;
+dialog.chart::backdrop {
+  background: rgba(5, 26, 31, 0.88);
 }
+
+/* --- Floating controls ------------------------------------------------------------------ */
+.chart-header {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 0
+    max(12px, env(safe-area-inset-left));
+  pointer-events: none;
+}
+.chart-header > * {
+  pointer-events: auto;
+}
+/* The title is for screen readers; the map speaks for itself. */
 .chart h2 {
-  margin: 0;
-  font: 700 24px var(--font-display, 'Barlow Condensed', sans-serif);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
+.chart-header-gap {
+  flex: 1;
+  pointer-events: none;
+}
+.chart-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: min(420px, 60vw);
+  height: 40px;
+  padding: 0 4px 0 12px;
+  border: 1px solid var(--brass-line);
+  border-radius: 8px;
+  background: var(--navy-solid);
+  font: 700 17px/1 var(--display);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.chart-chip > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chart-chip[hidden] {
+  display: none;
+}
+.chart .chart-chip button {
+  width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink-dim);
+  font-size: 16px;
+}
+
+/* Buttons: navy with a brass line; the picked good in brass; Close in red, as in the port. */
 .chart button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   min-height: 44px;
-  padding: 7px 12px;
-  border: 1px solid #b99b59;
-  border-radius: 7px;
-  background: #102d3d;
-  color: #f4f0e2;
-  font:
-    600 16px 'Barlow',
-    sans-serif;
-  box-shadow: 0 2px 0 #030e17;
+  padding: 0 12px;
+  border: 1px solid var(--brass-line);
+  border-radius: 8px;
+  background: var(--navy-solid);
+  box-shadow: 0 2px 0 var(--outline);
+  color: var(--ink);
+  font: 700 16px/1 var(--display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
 }
-.chart button:hover,
 .chart button[aria-expanded='true'] {
-  background: #2a4a53;
+  background: #1c4456;
 }
 .chart button:disabled {
-  opacity: 0.4;
+  opacity: 0.45;
   cursor: default;
 }
-.chart #close-chart {
-  background: #e8c46a;
-  color: #102431;
-  border-color: #ffdf8a;
+.chart button:focus-visible {
+  outline: 2px solid var(--brass-hi);
+  outline-offset: 2px;
 }
+.chart .icon {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+#chart-legend-toggle {
+  width: 46px;
+  padding: 0;
+}
+.chart-legend-label {
+  display: none;
+}
+.chart .chart-close {
+  width: 46px;
+  min-height: 46px;
+  padding: 0;
+  border: 2px solid var(--outline);
+  border-radius: 10px;
+  background: linear-gradient(#ff8a73, #ec5a43);
+  box-shadow:
+    inset 0 -3px 0 #b8261a,
+    0 3px 8px rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-size: 20px;
+}
+
+/* Goods to price along the left side (a row along the bottom in portrait). */
+.chart-footer {
+  position: absolute;
+  z-index: 3;
+  left: max(12px, env(safe-area-inset-left));
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  pointer-events: none;
+}
+.chart-footer > * {
+  pointer-events: auto;
+}
+.chart .chart-goods {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.chart .chart-goods button,
+.chart #chart-market-toggle {
+  justify-content: flex-start;
+  min-height: 40px;
+  font-size: 15px;
+}
+.chart .chart-goods button.active {
+  border-color: var(--outline);
+  background: linear-gradient(var(--brass-hi), var(--brass));
+  box-shadow: inset 0 -3px 0 var(--brass-lo);
+  color: #2a1c00;
+}
+.chart #chart-market-toggle {
+  margin-top: 6px;
+}
+
+/* --- The map ---------------------------------------------------------------------------- */
 .chart-viewport {
   position: relative;
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid #496b70;
-  border-radius: 8px;
-  background: #205b65;
 }
 .chart #chart-map {
+  display: block;
   width: 100%;
   height: 100%;
   touch-action: none;
   user-select: none;
 }
+.chart #chart-map:focus-visible {
+  outline: 2px solid var(--brass-hi);
+  outline-offset: -3px;
+}
+.chart-boundary {
+  fill: #2aa6b4;
+  stroke: rgba(238, 243, 244, 0.35);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+.chart-shore {
+  fill: #f2cf7e;
+  stroke: var(--outline);
+  stroke-width: 6px;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.chart-land {
+  fill: #7cc04f;
+  stroke: #f2cf7e;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.chart-bank {
+  fill: #f7e3ad;
+  fill-opacity: 0.6;
+  stroke: none;
+}
+.chart-reef {
+  fill: #e86a52;
+  fill-opacity: 0.35;
+  stroke: #e86a52;
+  stroke-width: 1.4px;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+}
+.chart-place {
+  fill: rgba(238, 243, 244, 0.8);
+  font-family: var(--body);
+  font-style: italic;
+  font-weight: 500;
+  text-anchor: middle;
+  pointer-events: none;
+}
+.chart-course {
+  stroke: var(--brass-hi);
+  stroke-width: 3px;
+  stroke-dasharray: 8 6;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.chart-selected {
+  fill: none;
+  stroke: var(--brass-hi);
+  stroke-width: 3px;
+  vector-effect: non-scaling-stroke;
+}
 .chart-player {
   pointer-events: none;
 }
-.chart-tools {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  max-width: calc(100% - 145px);
+
+/* Ports: an anchor badge on the pier and a bold name with a dark halo, no box behind it. */
+.chart-port-target {
+  cursor: pointer;
+  outline: none;
 }
-.chart-tools .icon {
-  width: 20px;
-  height: 20px;
+.chart-card-box,
+.chart-hit {
+  fill: transparent;
+  stroke: none;
 }
+.chart-port-dot {
+  fill: var(--navy-solid);
+  stroke: var(--brass);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+.chart-port-anchor {
+  color: var(--brass-hi);
+}
+.chart-port-target.is-selected .chart-port-dot {
+  fill: var(--brass);
+  stroke: var(--outline);
+}
+.chart-port-target.is-selected .chart-port-anchor {
+  color: var(--outline);
+}
+.chart-port-name,
+.chart-need {
+  paint-order: stroke;
+  stroke: rgba(6, 20, 28, 0.85);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  text-anchor: middle;
+  vector-effect: non-scaling-stroke;
+}
+.chart-port-name {
+  fill: #fff;
+  font-family: var(--display);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.chart-need {
+  fill: var(--ink);
+  font-family: var(--body);
+  font-weight: 600;
+}
+.chart-need.best {
+  fill: var(--green);
+}
+.chart-port-target.is-selected .chart-port-name,
+.chart-port-target:hover .chart-port-name {
+  fill: var(--brass-hi);
+}
+.chart-port-target:focus-visible .chart-card-box {
+  stroke: #fff;
+  stroke-width: 2px;
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
+}
+
+/* --- Wind compass, zoom and status over the map ---------------------------------------- */
 .chart-compass.compass {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 110px;
-  padding: 5px;
-  border: 1px solid #b99b59;
-  border-radius: 8px;
-  background: #091c29;
+  z-index: 2;
+  top: calc(max(10px, env(safe-area-inset-top)) + 54px);
+  right: max(12px, env(safe-area-inset-right));
+  width: 96px;
+  padding: 4px;
+  border: 1px solid var(--brass-line);
+  border-radius: 10px;
+  background: var(--navy-solid);
   pointer-events: none;
 }
 .chart-compass.compass svg {
-  width: 88px;
-  height: 88px;
   display: block;
+  width: 76px;
+  height: 76px;
   margin: auto;
 }
 .chart-compass #chart-wind {
   display: block;
-  font:
-    600 12px 'Barlow',
-    sans-serif;
+  font: 700 12px/1.2 var(--display);
+  letter-spacing: 0.04em;
   text-align: center;
-  line-height: 1.2;
+  text-transform: uppercase;
 }
+.chart-zoom {
+  position: absolute;
+  z-index: 2;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  right: max(12px, env(safe-area-inset-right));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.chart .chart-zoom button {
+  width: 44px;
+  padding: 0;
+  font-size: 24px;
+}
+.chart .chart-zoom #chart-fit {
+  font-size: 20px;
+}
+/* Course changes are spoken; the course chip already shows them. */
+.chart-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* --- Sheets: legend and the full price table --------------------------------------------- */
 .chart-sheet {
   position: absolute;
   z-index: 2;
-  top: 64px;
-  bottom: 62px;
-  left: 10px;
-  width: min(310px, calc(100% - 20px));
+  top: 8px;
+  bottom: 8px;
+  left: max(12px, env(safe-area-inset-left));
+  width: min(320px, calc(100% - 24px));
   padding: 12px;
   box-sizing: border-box;
   overflow: auto;
   overscroll-behavior: contain;
-  background: #0c2533;
-  border: 1px solid #b99b59;
-  border-radius: 8px;
-  box-shadow: 0 5px 15px #06172280;
+  border: 1px solid var(--brass-line);
+  border-radius: 10px;
+  background: #0b2230;
+  box-shadow: 0 5px 15px rgba(6, 23, 34, 0.5);
 }
 .chart-sheet[hidden] {
   display: none;
 }
 .chart-market-sheet {
-  width: min(500px, calc(100% - 20px));
+  width: min(500px, calc(100% - 24px));
 }
 .chart-sheet header {
+  position: sticky;
+  top: -12px;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  position: sticky;
-  top: -12px;
-  background: #0c2533;
-  z-index: 1;
+  background: #0b2230;
 }
 .chart-sheet h3 {
   margin: 0;
-  font:
-    700 22px 'Barlow Condensed',
-    sans-serif;
+  color: var(--brass);
+  font: 700 22px/1.1 var(--display);
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #e8c46a;
 }
 .chart-sheet p {
-  font:
-    500 14px/1.4 'Barlow',
-    sans-serif;
   margin: 10px 0 0;
+  font: 500 14px/1.4 var(--body);
 }
 .chart-sheet header button {
   width: 44px;
@@ -176,13 +432,13 @@ dialog.chart[open] {
   min-height: 37px;
 }
 .chart-legend dt {
-  width: 40px;
-  height: 32px;
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
+  width: 40px;
+  height: 32px;
   font-weight: 700;
-  flex: 0 0 auto;
 }
 .chart-legend dt svg {
   width: 34px;
@@ -190,174 +446,140 @@ dialog.chart[open] {
 }
 .chart-legend dd {
   margin: 0;
-  font:
-    500 15px 'Barlow',
-    sans-serif;
+  font: 500 15px var(--body);
 }
-.chart-legend .legend-pin,
-.chart-legend .legend-port {
-  color: #fff0ae;
-  font-size: 26px;
+.chart-legend .chart-shore {
+  stroke-width: 4.5px;
 }
-.chart-zoom {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  display: flex;
-  gap: 5px;
-}
-.chart-zoom button:first-child,
-.chart-zoom button:nth-child(2) {
-  width: 44px;
-  font-size: 24px;
-  padding: 0;
-}
-.chart-status {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  max-width: calc(100% - 260px);
-  margin: 0;
-  padding: 6px 10px;
-  border-radius: 5px;
-  background: #091c29;
-  font:
-    500 14px/1.3 'Barlow',
-    sans-serif;
-  pointer-events: none;
-}
-.chart .chart-prices {
-  min-width: 0;
-  width: 100%;
-  font-size: 14px;
-}
-.chart .chart-prices td,
-.chart .chart-prices th {
-  padding: 6px 4px;
-}
-.chart .chart-prices button {
-  padding: 5px 7px;
-  font-size: 14px;
-}
-.chart #tutorial-chart:empty {
-  display: none;
-}
-.chart #tutorial-chart .tutorial-card {
-  margin: 0;
-}
-@media (max-width: 600px) {
-  .chart h2 {
-    font-size: 20px;
-  }
-  .chart-tools {
-    max-width: calc(100% - 112px);
-    gap: 4px;
-    left: 6px;
-    top: 6px;
-  }
-  .chart-tools button {
-    font-size: 13px;
-    padding: 5px 7px;
-  }
-  .chart-compass.compass {
-    right: 6px;
-    top: 6px;
-    width: 88px;
-  }
-  .chart-compass.compass svg {
-    width: 70px;
-    height: 70px;
-  }
-  .chart-compass #chart-wind {
-    font-size: 11px;
-  }
-  .chart-sheet {
-    top: 108px;
-    bottom: 94px;
-    left: 6px;
-    width: calc(100% - 12px);
-  }
-  .chart-status {
-    bottom: 62px;
-    left: 6px;
-    right: 6px;
-    max-width: none;
-    width: fit-content;
-    font-size: 12px;
-  }
-}
-@media (max-height: 450px) and (min-width: 601px) {
-  .chart-sheet {
-    top: 60px;
-    bottom: 60px;
-    width: min(440px, calc(100% - 145px));
-  }
-  .chart h2 {
-    font-size: 20px;
-  }
-  .chart-compass.compass svg {
-    width: 66px;
-    height: 66px;
-  }
-  .chart-compass.compass {
-    width: 95px;
-  }
-}
-.chart-status:empty {
-  display: none;
-}
-.chart-port-target,
-.chart-pin-target {
-  cursor: pointer;
-}
-.chart-port-target .chart-place,
-.chart-port-target .chart-need {
-  pointer-events: auto;
-}
-.chart-port-target:focus-visible > circle,
-.chart-pin-target:focus-visible > circle {
-  stroke: #ffe680;
+.chart-legend .chart-land {
   stroke-width: 2px;
-  vector-effect: non-scaling-stroke;
 }
-.chart #chart-map:focus-visible {
-  outline: 2px solid #e8c46a;
-  outline-offset: -3px;
-}
-.chart-legend .chart-land,
 .chart-legend .chart-reef,
 .chart-legend .chart-bank {
   stroke-width: 1.5;
 }
-
-.chart .chart-need text {
-  text-anchor: start;
-  fill: #ffe680;
+.chart .chart-prices {
+  width: 100%;
+  margin-top: 8px;
+  border-collapse: collapse;
+  font: 500 15px var(--body);
+}
+.chart .chart-prices th {
+  padding: 4px;
+  color: var(--ink-dim);
+  font: 700 13px var(--display);
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+}
+.chart .chart-prices td {
+  padding: 5px 4px;
+  border-top: 1px solid rgba(238, 243, 244, 0.12);
+  white-space: nowrap;
+}
+.chart .chart-prices td:last-child {
+  font-size: 13px;
+  white-space: normal;
+}
+.chart .chart-prices td.best {
+  color: var(--green);
+  font-weight: 700;
+}
+.chart .chart-prices button {
+  min-height: 38px;
+  padding: 0 8px;
+  font-size: 15px;
+  text-transform: none;
 }
 .chart .chart-prices .icon {
   width: 16px;
   height: 16px;
-  vertical-align: middle;
+  vertical-align: -3px;
 }
-.chart .chart-goods .icon {
-  width: 22px;
-  height: 22px;
+.chart #tutorial-chart:empty {
+  display: none;
 }
-.chart .chart-need {
-  pointer-events: auto;
+.chart #tutorial-chart {
+  padding: calc(max(10px, env(safe-area-inset-top)) + 52px) max(12px, env(safe-area-inset-right)) 0
+    max(12px, env(safe-area-inset-left));
+}
+.chart #tutorial-chart .tutorial-card {
+  margin: 0 0 6px;
 }
 
-/* Short landscape screens have room beside the chart, not above its northern ports. */
-@media (max-height: 450px) and (min-width: 601px) {
-  .chart-tools {
-    flex-direction: column;
-    align-items: stretch;
-    width: 125px;
-    max-width: none;
+.chart-key-price {
+  color: var(--green);
+  font: 700 16px var(--body);
+}
+
+/* --- Sizes ------------------------------------------------------------------------------ */
+/* Short landscape phones: smaller controls, so the round sea keeps the full height. */
+@media (max-height: 450px) {
+  .chart button {
+    min-height: 38px;
+    font-size: 14px;
   }
-  .chart-sheet {
-    top: 10px;
-    left: 145px;
-    width: min(440px, calc(100% - 265px));
+  .chart .chart-goods button,
+  .chart #chart-market-toggle {
+    min-height: 36px;
+    font-size: 14px;
+  }
+  .chart-chip {
+    height: 36px;
+    font-size: 14px;
+  }
+  .chart-compass.compass {
+    top: calc(max(10px, env(safe-area-inset-top)) + 50px);
+    width: 84px;
+  }
+  .chart-compass.compass svg {
+    width: 64px;
+    height: 64px;
+  }
+  .chart .chart-zoom #chart-fit {
+    display: none;
+  }
+}
+
+/* Portrait: the sea fills the width; goods run along the bottom and the course chip wraps. */
+@media (orientation: portrait) {
+  .chart-footer {
+    top: auto;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    right: calc(max(12px, env(safe-area-inset-right)) + 56px);
+    transform: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .chart .chart-goods {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .chart #chart-market-toggle {
+    margin-top: 0;
+  }
+  .chart-chip {
+    max-width: calc(100vw - 150px);
+  }
+}
+@media (orientation: portrait) and (max-width: 600px) {
+  .chart .chart-goods {
+    flex: 1 1 100%;
+    flex-wrap: nowrap;
+  }
+  .chart .chart-goods button {
+    flex: 1 1 0;
+    justify-content: center;
+    gap: 4px;
+    padding: 0 4px;
+    font-size: 13px;
+  }
+  .chart #chart-market-toggle {
+    padding: 0 10px;
+    font-size: 14px;
+  }
+  .chart .chart-goods .icon {
+    width: 18px;
+    height: 18px;
   }
 }

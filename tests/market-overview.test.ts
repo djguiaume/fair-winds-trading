@@ -34,14 +34,14 @@ describe('top needs and market overview (decision 0036)', () => {
   });
 
   it('shows needs on the chart and a price table that sets a bearing', () => {
-    document.body.innerHTML = `<dialog id="chart"><button id="close-chart">Back</button><svg id="chart-map"></svg><span id="chart-wind"></span><div id="chart-goods"></div><table id="chart-prices"></table><div id="chart-ports"></div><div id="chart-pins"></div><p id="chart-status"></p><button id="chart-pin-here">Mark position</button><button id="chart-clear-target">Clear</button></dialog>`;
+    document.body.innerHTML = `<dialog id="chart"><button id="close-chart">Back</button><svg id="chart-map"></svg><span id="chart-wind"></span><span id="chart-course"></span><div id="chart-goods"></div><table id="chart-prices"></table><p id="chart-status"></p><button id="chart-clear-target">Clear</button></dialog>`;
     const world = createWorld(PHASE1_MAP, SLOOP);
     world.trade.captain.cargo.timber = 4;
     const chart = new SeaChart(document.querySelector('dialog')!, world, {});
     chart.open();
     expect(document.querySelectorAll('.chart-need')).toHaveLength(ids.length);
     // Opens on the good in the hold.
-    const active = document.querySelector('#chart-goods [aria-checked="true"]')!;
+    const active = document.querySelector('#chart-goods [aria-pressed="true"]')!;
     expect(active.textContent).toContain('Timber');
     const rows = document.querySelectorAll('#chart-prices tr');
     expect(rows).toHaveLength(ids.length + 1);
@@ -50,9 +50,13 @@ describe('top needs and market overview (decision 0036)', () => {
       (b) => b.textContent!.includes('Stone'),
     )!;
     stone.click();
-    expect(document.querySelector('#chart-goods [aria-checked="true"]')!.textContent).toContain(
+    expect(document.querySelector('#chart-goods [aria-pressed="true"]')!.textContent).toContain(
       'Stone',
     );
+    // Tapping the picked good again leaves only the port names (decision 0058).
+    stone.click();
+    expect(document.querySelectorAll('.chart-need')).toHaveLength(0);
+    expect(document.querySelector('#chart-goods [aria-pressed="true"]')).toBeNull();
     document.querySelector<HTMLButtonElement>(`[data-compare="westholm"]`)!.click();
     expect(world.destination?.portId).toBe('westholm');
   });
