@@ -66,9 +66,8 @@ describe('translations (decision 0037)', () => {
     expect(document.getElementById('menu-settings')!.textContent).toBe(fr['menu.settings']);
     expect(document.querySelector('.menu-title')!.innerHTML).toContain('Compagnie');
     expect(document.getElementById('chart-title')!.textContent).toBe(fr['chart.title']);
-    expect(document.getElementById('sail-up')!.getAttribute('aria-label')).toBe(
-      fr['hud.raiseSails'],
-    );
+    expect(document.getElementById('sail-full')!.textContent!.trim()).toBe(fr['hud.sailFull']);
+    expect(document.getElementById('sail-lever')!.getAttribute('aria-label')).toBe(fr['hud.sails']);
     expect(document.getElementById('help')!.textContent).toContain('Le vent vous pousse');
   });
 

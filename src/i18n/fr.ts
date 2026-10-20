@@ -56,7 +56,7 @@ export const fr: Record<MessageKey, string> = {
     '<b>Ouvrez la carte</b> (M) pour trouver les ports et poser des repères. Seule la destination choisie affiche un cap.',
   'help.touch': 'Tactile',
   'help.touchControls':
-    'Glissez à gauche ou à droite pour barrer<br />▲ ▼ pour hisser ou affaler les voiles<br />Touchez les ports pour y mettre le cap',
+    'Glissez à gauche ou à droite pour barrer<br />Levier des voiles (à droite) pour les régler<br />Touchez les ports pour y mettre le cap',
   'help.keyboard': 'Clavier',
   'help.keyboardControls':
     '← → ou A D (Q D en AZERTY) pour barrer<br />↑ ↓ ou W S (Z S) pour les voiles<br />Molette pour zoomer<br />M pour ouvrir la carte',
@@ -81,12 +81,9 @@ export const fr: Record<MessageKey, string> = {
 
   // --- Interface en mer ----------------------------------------------------------------------
   'hud.sails': 'Voiles',
-  'hud.raiseSails': 'Hisser les voiles',
-  'hud.lowerSails': 'Affaler les voiles',
   'hud.gold': 'Or du capitaine',
   'hud.cargo': 'Capacité de la cale',
   'hud.hull': 'État de la coque',
-  'hud.ship': 'Navire actuel',
   'hud.holdEmpty': 'La cale est vide',
   'hud.tradeAt': 'Commercer à',
   'hud.openTrade': 'Ouvrir le commerce du port',
@@ -97,6 +94,11 @@ export const fr: Record<MessageKey, string> = {
   'hud.fps': '{n} ips',
   'hud.lee': 'abri',
   'hud.sailsDown': 'Voiles affalées',
+  'hud.sailFull': 'Pleines',
+  'hud.sailHalf': 'Réduites',
+  'hud.sailNone': 'Affalées',
+  'hud.hdg': 'CAP',
+  'hud.showLog': 'Afficher la vitesse et le cap',
   'pos.in-irons': 'Vent debout',
   'pos.close-hauled': 'Au près',
   'pos.beam-reach': 'Vent de travers',
@@ -113,7 +115,6 @@ export const fr: Record<MessageKey, string> = {
   'toast.bump': 'Bong ! Attention au rivage',
 
   // --- Boussole et conseils de louvoyage -----------------------------------------------------
-  'wind.title': 'VENT',
   'wind.compass': 'Boussole du vent. Ouvrir les conseils de navigation',
   'wind.compassUpwind': 'Boussole du vent. Face au vent. Ouvrir les conseils de navigation',
   'wind.chip': 'Face au vent ⓘ',
@@ -145,7 +146,10 @@ export const fr: Record<MessageKey, string> = {
   // --- Repères des ports en mer --------------------------------------------------------------
   'port.setCourse': 'Mettre le cap sur {name}',
   'port.harbour': 'Port',
-  'port.wants': 'Demande {goods}',
+  'port.wantsLabel': 'Achète',
+  'port.makesLabel': 'Produit',
+  'port.dockBtn': 'Accoster',
+  'port.tradeBtn': 'Commercer',
   'port.cueDocked': 'Amarré · Touchez pour commercer',
   'port.cueCanDock': 'Touchez pour accoster',
   'port.cueSlowDown': 'Ralentissez pour accoster',
@@ -220,7 +224,7 @@ export const fr: Record<MessageKey, string> = {
     'Touchez une ancre proche ou un bouton de port ci-dessous pour mettre le cap. Fermez la carte quand vous êtes prêt. C’est une direction, pas un chemin sûr à travers les terres.',
   'lesson.sails.title': 'Essayez les voiles et la barre',
   'lesson.sails.copy':
-    'Affalez les voiles avec ▼ / ↓, puis hissez-les avec ▲ / ↑. Glissez à gauche ou à droite sur la mer, ou utilisez ← →, pour barrer. Sortez du port et naviguez un peu ; évitez la côte.',
+    'Affalez les voiles avec le levier à droite (ou ↓), puis hissez-les à nouveau (ou ↑). Glissez à gauche ou à droite sur la mer, ou utilisez ← →, pour barrer. Sortez du port et naviguez un peu ; évitez la côte.',
   'lesson.sails.continue': 'Je connais ces commandes',
   'lesson.wind.title': 'Laissez le vent vous aider',
   'lesson.wind.copy':
