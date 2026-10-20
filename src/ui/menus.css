@@ -1,0 +1,918 @@
+/*
+ * Menus, settings, how to play, dialogs and tutorial coach marks in the "instrument" style
+ * (decisions 0049 and 0061). Uses the design tokens defined at the top of sea-hud.css.
+ * Loaded last. No backdrop blur: it is costly on old tablets (decision 0006).
+ */
+
+/* --- Shared pieces ---------------------------------------------------------------------- */
+.icon-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+.menu,
+.sheet,
+.d-dialog,
+.coach {
+  font-family: var(--body);
+  color: var(--ink);
+  text-align: left;
+  text-shadow: none;
+}
+.menu .icon,
+.sheet .icon,
+.d-dialog .icon,
+.coach .icon {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+.d-btn {
+  --lo: rgba(0, 0, 0, 0.4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 16px;
+  border: 2px solid var(--outline);
+  border-radius: 10px;
+  background: var(--navy-solid);
+  box-shadow:
+    inset 0 -3px 0 var(--lo),
+    0 3px 8px rgba(0, 0, 0, 0.35);
+  color: var(--ink);
+  font: 700 18px/1 var(--display);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.d-btn.brass {
+  --lo: var(--brass-lo);
+  background: linear-gradient(var(--brass-hi), #e0b452);
+  color: #2a1c00;
+}
+.d-btn.red {
+  --lo: #b8261a;
+  background: linear-gradient(#ff8a73, #ec5a43);
+  color: #2b0703;
+}
+.d-btn.big {
+  min-height: 56px;
+  font-size: 24px;
+}
+.d-btn.square {
+  width: 46px;
+  padding: 0;
+}
+.d-btn:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 -1px 0 var(--lo);
+}
+.d-btn[hidden] {
+  display: none;
+}
+.d-btn:focus-visible,
+.menu-row:focus-visible,
+.seg button:focus-visible,
+.switch:focus-visible,
+.coach button:focus-visible {
+  outline: 3px solid var(--brass-hi);
+  outline-offset: 2px;
+}
+
+/* Segmented choice: language, graphics. */
+.seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  padding: 3px;
+  border: 1px solid var(--brass-line);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.25);
+}
+.seg button {
+  min-height: 36px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--ink-dim);
+  font: 700 15px/1 var(--display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.seg button[aria-pressed='true'],
+.seg button[aria-checked='true'] {
+  background: var(--brass);
+  color: #2a1c00;
+}
+
+/* --- Title menu and pause --------------------------------------------------------------- */
+/* The live scene stays visible beside the menu (decision 0017). On the title screen the sea
+   HUD is hidden; in pause it stays visible, dimmed, under the menu. */
+body.in-menu.at-title #hud > * {
+  display: none;
+}
+body.at-title .in-game {
+  display: none !important;
+}
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: linear-gradient(
+    90deg,
+    rgba(6, 18, 27, 0.72) 0,
+    rgba(6, 18, 27, 0.3) 46%,
+    rgba(6, 18, 27, 0) 72%
+  );
+}
+.menu.is-paused {
+  background: rgba(6, 18, 27, 0.55);
+}
+.menu[hidden] {
+  display: none;
+}
+.menu-side {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 360px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: max(16px, env(safe-area-inset-top)) 22px max(12px, env(safe-area-inset-bottom))
+    max(22px, env(safe-area-inset-left));
+  border-right: 1px solid var(--brass-line);
+  background: rgba(9, 28, 41, 0.94);
+  overflow-y: auto;
+  animation: menu-in 0.3s ease-out;
+}
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+}
+.menu-sheet {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+}
+.menu-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.menu-emblem {
+  width: 58px;
+  height: 58px;
+  flex: none;
+}
+.menu-brand p,
+.menu-brand h1 {
+  margin: 0;
+}
+.menu-kicker {
+  font: 600 13px/1 var(--display);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+.menu-title {
+  margin-top: 2px !important;
+  font: 700 30px/0.95 var(--display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.menu-tagline {
+  margin-top: 5px !important;
+  font: 500 14px/1.25 var(--body);
+  color: var(--ink-dim);
+}
+.menu.is-paused .menu-tagline {
+  display: none;
+}
+.menu-status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+  font: 700 17px/1 var(--display);
+  letter-spacing: 0.05em;
+}
+.menu-status[hidden] {
+  display: none;
+}
+.menu-status span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.menu-status .icon {
+  width: 20px;
+  height: 20px;
+}
+.menu-paused {
+  padding: 5px 10px;
+  border: 1px solid var(--brass-line);
+  border-radius: 99px;
+  color: var(--brass);
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+#menu-play {
+  width: 100%;
+}
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.menu-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(232, 196, 106, 0.25);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink);
+  font: 700 17px/1.1 var(--display);
+  letter-spacing: 0.07em;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.menu-row:active {
+  background: rgba(232, 196, 106, 0.14);
+}
+.menu-row .icon {
+  color: var(--brass);
+}
+.menu-row small {
+  margin-left: auto;
+  color: var(--green-ink);
+  font: 600 13px/1.1 var(--body);
+  letter-spacing: 0;
+  text-align: right;
+  text-transform: none;
+}
+.menu-hint {
+  margin: 0;
+  color: var(--ink-dim);
+  font-size: 13px;
+  line-height: 1.35;
+}
+.menu-hint[hidden] {
+  display: none;
+}
+.menu-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+}
+.menu-version {
+  margin: 0 0 0 auto;
+  color: var(--ink-dim);
+  font: 600 12px/1.3 var(--display);
+  letter-spacing: 0.06em;
+  text-align: right;
+  text-transform: uppercase;
+}
+/* Readable version first (decision 0042); the commit code stays small, for debugging. */
+.menu-version .app-version {
+  color: var(--brass);
+}
+.menu-version .build-revision {
+  opacity: 0.6;
+  font-size: 10px;
+}
+
+/* Short landscape phones: a tighter panel so everything fits without scrolling. */
+@media (max-height: 480px) {
+  .menu-side,
+  .menu-sheet {
+    gap: 7px;
+  }
+  .menu-emblem {
+    width: 46px;
+    height: 46px;
+  }
+  .menu-title {
+    font-size: 26px;
+  }
+  .menu-row {
+    min-height: 40px;
+  }
+  .d-btn.big {
+    min-height: 50px;
+    font-size: 22px;
+  }
+}
+/* Desktop: the same panel, roomier. */
+@media (min-width: 1100px) and (min-height: 680px) {
+  .menu-side {
+    width: 430px;
+    padding: 44px 40px 26px;
+    gap: 14px;
+  }
+  .menu-sheet {
+    gap: 14px;
+  }
+  .menu-emblem {
+    width: 78px;
+    height: 78px;
+  }
+  .menu-title {
+    font-size: 42px;
+  }
+  .menu-row {
+    min-height: 52px;
+    font-size: 19px;
+  }
+}
+/* Portrait: the title sits over the sea and the buttons move to a bottom sheet. */
+@media (orientation: portrait) and (max-width: 700px) {
+  .menu,
+  .menu.is-paused {
+    background: linear-gradient(0deg, rgba(6, 18, 27, 0.75), rgba(6, 18, 27, 0.15));
+  }
+  .menu-side {
+    top: 0;
+    right: 0;
+    width: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    animation: none;
+  }
+  .menu-sheet {
+    flex: none;
+    margin-top: auto;
+    padding: 18px max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom))
+      max(16px, env(safe-area-inset-left));
+    border-top: 1px solid var(--brass-line);
+    border-radius: 18px 18px 0 0;
+    background: rgba(9, 28, 41, 0.95);
+    animation: sheet-in 0.3s ease-out;
+  }
+  @keyframes sheet-in {
+    from {
+      transform: translateY(24px);
+      opacity: 0;
+    }
+  }
+  .menu:not(.is-paused) .menu-brand {
+    flex-direction: column;
+    margin-top: max(56px, env(safe-area-inset-top));
+    text-align: center;
+  }
+  .menu:not(.is-paused) .menu-emblem {
+    width: 84px;
+    height: 84px;
+  }
+  .menu:not(.is-paused) .menu-title {
+    font-size: 44px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  }
+  .menu:not(.is-paused) .menu-tagline {
+    color: var(--ink);
+    font-size: 16px;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+  }
+  /* In pause the title moves into the sheet, above the buttons. */
+  .menu.is-paused .menu-brand {
+    order: 1;
+    justify-content: center;
+    margin-top: auto;
+    padding: 18px 16px 10px;
+    border-top: 1px solid var(--brass-line);
+    border-radius: 18px 18px 0 0;
+    background: rgba(9, 28, 41, 0.95);
+  }
+  .menu.is-paused .menu-sheet {
+    order: 2;
+    margin-top: 0;
+    padding-top: 0;
+    border: 0;
+    border-radius: 0;
+    animation: none;
+  }
+  .menu-status {
+    justify-content: center;
+  }
+}
+
+/* --- Full-screen sheets: settings, how to play ---------------------------------------- */
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: #0b2231;
+}
+.sheet[hidden] {
+  display: none;
+}
+.sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 8px
+    max(20px, env(safe-area-inset-left));
+  border-bottom: 1px solid var(--brass-line);
+}
+.sheet-head > .icon {
+  color: var(--brass);
+}
+.sheet-head h2 {
+  flex: 1;
+  margin: 0;
+  font: 700 26px/1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.sheet-body {
+  display: grid;
+  align-content: start;
+  gap: 10px 26px;
+  min-height: 0;
+  padding: 12px max(20px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom))
+    max(20px, env(safe-area-inset-left));
+  overflow-y: auto;
+}
+@media (min-width: 1100px) and (min-height: 680px) {
+  .sheet-body {
+    gap: 16px 40px;
+    padding: 24px max(40px, calc(50vw - 480px));
+  }
+}
+
+/* Settings */
+.settings-body {
+  grid-template-columns: 1fr 1fr;
+}
+.set-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.set-label {
+  margin: 0;
+  color: var(--brass);
+  font: 700 13px/1 var(--display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.set-group .set-label:not(:first-child) {
+  margin-top: 6px;
+}
+.set-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  min-height: 48px;
+  padding: 6px 12px;
+  border: 1px solid rgba(232, 196, 106, 0.18);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: default;
+}
+label.set-row {
+  cursor: pointer;
+}
+.set-name {
+  font: 700 17px/1.1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.set-name small {
+  display: block;
+  color: var(--ink-dim);
+  font: 500 13px/1.2 var(--body);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.set-ctl {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.set-pct {
+  min-width: 40px;
+  font: 700 16px/1 var(--display);
+  text-align: right;
+}
+.set-row input[type='range'] {
+  width: 150px;
+  accent-color: var(--brass);
+}
+.switch {
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 52px;
+  height: 30px;
+  margin: 0;
+  border: 2px solid var(--outline);
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #c9d3d6;
+  transition: transform 0.15s;
+}
+.switch:checked {
+  background: var(--green);
+}
+.switch:checked::after {
+  transform: translateX(22px);
+  background: #fff;
+}
+.set-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.set-note {
+  margin: 0;
+  color: var(--ink-dim);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+/* How to play: three picture cards and one line of controls, one screen without scrolling. */
+.help-body {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: center;
+}
+.help-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 1px solid rgba(232, 196, 106, 0.25);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.help-art {
+  width: 100%;
+  height: 96px;
+}
+.help-card h3 {
+  margin: 0;
+  color: var(--brass);
+  font: 700 19px/1 var(--display);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+.help-card p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.35;
+}
+.help-controls {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.help-controls b {
+  margin-right: 6px;
+  color: var(--brass);
+  font: 700 14px/1 var(--display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.help-controls kbd {
+  display: inline-block;
+  min-width: 22px;
+  padding: 3px 5px;
+  border: 1px solid var(--brass-line);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.3);
+  font: 700 13px/1 var(--display);
+  text-align: center;
+}
+/* Phones and tablets without a keyboard skip the keyboard line. */
+@media (hover: none) and (pointer: coarse) {
+  .help-controls .keys {
+    display: none;
+  }
+}
+@media (max-height: 480px) {
+  .help-art {
+    height: 70px;
+  }
+  .help-card p {
+    font-size: 14px;
+  }
+}
+@media (min-width: 1100px) and (min-height: 680px) {
+  .help-art {
+    height: 150px;
+  }
+  .help-card {
+    padding: 16px 20px;
+  }
+  .help-card p {
+    font-size: 17px;
+  }
+}
+@media (max-width: 700px) {
+  .settings-body,
+  .help-body {
+    grid-template-columns: 1fr;
+    align-content: start;
+  }
+  .help-card {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    align-items: center;
+    gap: 4px 12px;
+    padding: 8px 12px;
+  }
+  .help-art {
+    grid-row: span 2;
+    height: 84px;
+  }
+}
+
+/* --- Dialogs: tutorial offer, sailing upwind ------------------------------------------- */
+.d-dialog,
+#hud .d-dialog {
+  width: min(460px, calc(100vw - 32px));
+  max-height: calc(100dvh - 24px);
+  padding: 20px 22px;
+  overflow: auto;
+  border: 1px solid var(--brass-line);
+  border-radius: 14px;
+  background: rgba(9, 28, 41, 0.97);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  color: var(--ink);
+  pointer-events: auto;
+  white-space: normal;
+}
+.d-dialog::backdrop {
+  background: rgba(6, 18, 27, 0.6);
+}
+.d-dialog h2 {
+  margin: 0;
+  font: 700 28px/1 var(--display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.d-dialog p {
+  margin: 12px 0 0;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.offer-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.offer-emblem {
+  width: 56px;
+  height: 56px;
+  flex: none;
+}
+.offer-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.offer-steps li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.06);
+  font: 700 13px/1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.d-dialog .offer-steps .icon {
+  width: 16px;
+  height: 16px;
+  color: var(--brass);
+}
+.d-dialog .offer-note {
+  color: var(--ink-dim);
+  font-size: 13px;
+}
+.offer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+.offer-actions .d-btn {
+  flex: 1 1 150px;
+  white-space: normal;
+}
+.wind-help svg {
+  display: block;
+  width: 100%;
+  max-height: 170px;
+  margin-top: 8px;
+}
+.wind-help .d-btn {
+  width: 100%;
+  margin-top: 14px;
+}
+@media (max-height: 480px) {
+  .d-dialog,
+  #hud .d-dialog {
+    padding: 14px 18px;
+  }
+  .d-dialog h2 {
+    font-size: 24px;
+  }
+  .wind-help svg {
+    max-height: 110px;
+  }
+}
+
+/* --- Tutorial coach marks ---------------------------------------------------------------- */
+/* One bubble and one ring, moved into the open surface (sea, chart, port). The hosts only
+   carry them, so they never push the surface's own content. */
+#tutorial-sea,
+#tutorial-chart,
+#tutorial-market {
+  display: contents;
+}
+.coach-ring {
+  position: fixed;
+  z-index: 60;
+  border: 3px solid var(--brass);
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 4px rgba(232, 196, 106, 0.25),
+    0 0 18px rgba(232, 196, 106, 0.6);
+  pointer-events: none;
+}
+.coach-ring::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 2px solid rgba(232, 196, 106, 0.6);
+  border-radius: 18px;
+  animation: coach-pulse 1.6s ease-out infinite;
+}
+@keyframes coach-pulse {
+  to {
+    opacity: 0;
+    transform: scale(1.18);
+  }
+}
+.coach-ring[hidden],
+.coach[hidden] {
+  display: none;
+}
+.coach {
+  position: fixed;
+  z-index: 61;
+  width: max-content;
+  max-width: min(330px, calc(100vw - 24px));
+  padding: 9px 12px 10px;
+  border: 1.5px solid var(--brass);
+  border-radius: 12px;
+  background: rgba(9, 28, 41, 0.97);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  pointer-events: auto;
+}
+.coach-arrow {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 0 solid var(--brass);
+  background: rgba(9, 28, 41, 0.97);
+  transform: rotate(45deg);
+}
+.coach[data-side='top'] .coach-arrow {
+  bottom: -8px;
+  border-width: 0 1.5px 1.5px 0;
+}
+.coach[data-side='bottom'] .coach-arrow {
+  top: -8px;
+  border-width: 1.5px 0 0 1.5px;
+}
+.coach[data-side='left'] .coach-arrow {
+  right: -8px;
+  border-width: 1.5px 1.5px 0 0;
+}
+.coach[data-side='right'] .coach-arrow {
+  left: -8px;
+  border-width: 0 0 1.5px 1.5px;
+}
+.coach[data-side='none'] .coach-arrow {
+  display: none;
+}
+.coach-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.coach-dots {
+  display: flex;
+  flex: none;
+  gap: 3px;
+}
+.coach-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+}
+.coach-dots i.done {
+  background: var(--brass);
+}
+.coach-dots i.now {
+  background: var(--ink);
+}
+.coach h3 {
+  flex: 1;
+  margin: 0;
+  color: var(--brass);
+  font: 700 15px/1.1 var(--display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.coach .coach-text-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 30px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--ink-dim);
+  font: 700 12px/1 var(--display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.coach .coach-text-btn .icon {
+  width: 14px;
+  height: 14px;
+}
+.coach p {
+  margin: 5px 0 0;
+  font: 600 15px/1.3 var(--body);
+}
+.coach-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.coach .d-btn {
+  min-height: 38px;
+  padding: 0 12px;
+  font-size: 15px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .coach-ring::after,
+  .menu-side,
+  .menu-sheet {
+    animation: none;
+  }
+}

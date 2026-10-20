@@ -266,11 +266,6 @@
   outline-offset: 2px;
 }
 
-/* The tutorial's market lesson sits between the tabs and the goods. */
-.port-screen #tutorial-market {
-  padding: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
-}
-
 /* --- Market: one row per good, side panel -------------------------------------------- */
 .port-screen .trade-content {
   flex: 1;

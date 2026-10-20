@@ -1,3 +1,4 @@
+/* global window, document, innerWidth, innerHeight */
 /* Injected into the running game to draw the menu + coach-mark mockups over real screens. */
 (() => {
   const fr = document.documentElement.lang === 'fr' || (window.MOCK_LANG === 'fr');

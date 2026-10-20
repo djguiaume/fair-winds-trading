@@ -96,10 +96,6 @@
 .sail-lever {
   z-index: 10;
 }
-/* Tutorial hints stay readable over port signs (the coach marks are redesigned later). */
-#tutorial-sea {
-  z-index: 11;
-}
 
 /* --- Resources: top left ------------------------------------------------------------------ */
 #captain-stats {
@@ -951,12 +947,6 @@ button.captain-stat:focus-visible {
   }
   .speed-log .pos {
     font-size: 13px;
-  }
-  /* Under the resources, clear of the bottom buttons, the sail lever and "Trade at". */
-  #tutorial-sea {
-    top: calc(var(--top) + 140px);
-    bottom: auto;
-    width: calc(100vw - 2 * var(--gap));
   }
 }
 

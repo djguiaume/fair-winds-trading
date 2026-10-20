@@ -1,6 +1,26 @@
-# Menus and tutorial coach marks: mockups
+# Menus and tutorial coach marks
 
-*2026-10-20. Last step of the style D redesign ([ADR 0049](../../decisions/0049-ui-instrument-style.md)). Mockups only, waiting for Guillaume's pick; nothing is built yet.*
+## Built
+
+Captured from the game with `node docs/ui-refactor/menus/capture.cjs` (phone landscape and desktop in English, phone portrait in French), files in `built/`.
+
+| | Phone landscape | Desktop | Phone portrait (FR) |
+|---|---|---|---|
+| Title menu | ![](built/01-menu-landscape.jpg) | ![](built/01-menu-desktop.jpg) | ![](built/01-menu-portrait.jpg) |
+| Tutorial offer | ![](built/02-offer-landscape.jpg) | ![](built/02-offer-desktop.jpg) | ![](built/02-offer-portrait.jpg) |
+| Coach mark: map | ![](built/03-coach-map-landscape.jpg) | ![](built/03-coach-map-desktop.jpg) | ![](built/03-coach-map-portrait.jpg) |
+| Pause | ![](built/04-pause-landscape.jpg) | ![](built/04-pause-desktop.jpg) | ![](built/04-pause-portrait.jpg) |
+| Settings | ![](built/05-settings-landscape.jpg) | ![](built/05-settings-desktop.jpg) | ![](built/05-settings-portrait.jpg) |
+| How to play | ![](built/06-help-landscape.jpg) | ![](built/06-help-desktop.jpg) | ![](built/06-help-portrait.jpg) |
+| Coach mark: chart | ![](built/07-coach-port-landscape.jpg) | ![](built/07-coach-port-desktop.jpg) | ![](built/07-coach-port-portrait.jpg) |
+| Coach mark: sails | ![](built/08-coach-sails-landscape.jpg) | ![](built/08-coach-sails-desktop.jpg) | ![](built/08-coach-sails-portrait.jpg) |
+| Coach mark: wind | ![](built/09-coach-wind-landscape.jpg) | ![](built/09-coach-wind-desktop.jpg) | ![](built/09-coach-wind-portrait.jpg) |
+| Coach mark: buy | ![](built/10-coach-buy-landscape.jpg) | ![](built/10-coach-buy-desktop.jpg) | ![](built/10-coach-buy-portrait.jpg) |
+| Sailing upwind tips | ![](built/11-wind-help-landscape.jpg) | ![](built/11-wind-help-desktop.jpg) | ![](built/11-wind-help-portrait.jpg) |
+
+## Mockups
+
+*2026-10-20. Last step of the style D redesign ([ADR 0049](../../decisions/0049-ui-instrument-style.md)). Guillaume approved the mockups ("Yes, build it"); built in [decision 0061](../../decisions/0061-menus-and-coach-marks.md).*
 
 Review page: https://claude.ai/artifact/PvXcCAFJHtPsuY89uKFDbx
 

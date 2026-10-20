@@ -47,26 +47,27 @@ export const en = {
     'For fullscreen on iPhone, tap Share, then <b>Add to Home Screen</b>, and start the game from there.',
   'menu.version': 'Trading & Shipyard · Phase 1',
   'menu.language': 'Language',
+  'menu.paused': 'Paused',
+  'menu.tutorialNote': '9 short steps',
+  'menu.tutorialStep': 'Step {step}/{total}',
 
   // --- How to play -----------------------------------------------------------------------------
-  'help.subtitle': 'Sailing & Trading Prototype',
-  'help.wind':
-    '<b>The wind drives you.</b> You are fastest with the wind across the boat and slower with it behind.',
-  'help.noGo':
-    "<b>You can't sail into the wind.</b> Point inside the red zone on the compass and the sails flap and the boat stops.",
-  'help.tack':
-    '<b>To go upwind, zigzag</b> (tack): sail about 50° off the wind, then turn through it to the other side.',
-  'help.trade':
-    '<b>Trading &amp; Ports:</b> Approach any island pier slowly and lower your sails: the crew brings you alongside to trade goods at the market, buy vessel upgrades, and purchase the cutter.',
-  'help.map':
-    '<b>Open Map</b> (M) to compare prices and pick a port. Only your chosen destination gets a bearing cue.',
+  'help.windTitle': 'The wind',
+  'help.windCopy':
+    "You can't sail into the red zone. You are fastest with the wind across the boat (green band).",
+  'help.tackTitle': 'Tacking',
+  'help.tackCopy':
+    'To go upwind, zigzag about 50° off the wind, first on one side, then the other.',
+  'help.tradeTitle': 'Trading',
+  'help.tradeCopy':
+    'Buy what a port makes, sell where it is wanted. Delivery orders pay extra. Open the map to compare prices.',
   'help.touch': 'Touch',
-  'help.touchControls':
-    'Drag left/right anywhere to steer<br />Sail lever (right) to set the sails<br />Tap port markers to navigate',
+  'help.touchLine': 'Drag to steer · sail lever · tap a port',
   'help.keyboard': 'Keyboard',
-  'help.keyboardControls':
-    '← → or A D to steer<br />↑ ↓ or W S for sails<br />Mouse wheel to zoom<br />M to open the chart',
-  'help.back': 'Back',
+  'help.keySteer': 'steer',
+  'help.keySails': 'sails',
+  'help.keyMap': 'map',
+  'help.keyMenu': 'menu',
 
   // --- Settings ------------------------------------------------------------------------------
   'settings.title': 'Settings',
@@ -80,8 +81,15 @@ export const en = {
   'settings.music': 'Music',
   'settings.shiftWind': 'Shift the wind 45°',
   'settings.resetBoat': 'Back to start',
-  'settings.newGame': 'New Game (Reset Progress)',
+  'settings.newGame': 'New game',
   'settings.close': 'Close',
+  'settings.display': 'Display',
+  'settings.speedLog': 'Speed log at sea',
+  'settings.speedLogNote': 'Speed, heading, point of sail',
+  'settings.fpsNote': 'Frames per second',
+  'settings.soundLanguage': 'Sound · Language',
+  'settings.voyage': 'Voyage',
+  'settings.resetBoatNote': 'Stuck? Back to start brings the boat back to port.',
   'settings.confirmNewGame': 'Start a new voyage? Your gold, cargo and upgrades will be reset.',
 
   // --- HUD -----------------------------------------------------------------------------------
@@ -212,56 +220,54 @@ export const en = {
   // --- First-voyage tutorial -----------------------------------------------------------------
   'tutorial.offerTitle': 'Your first voyage',
   'tutorial.offerCopy':
-    'Learn to read the chart, sail with the wind, dock and make a small delivery. Follow short hints while you play; hide or skip them anytime.',
-  'tutorial.offerNote':
-    'Uses your current boat and voyage. It won’t reset progress or spend gold for you. Sailing pauses while this choice is open.',
+    'Short hints, pinned to what you need to tap. Your real game: nothing is reset.',
+  'tutorial.offerNote': 'It never spends gold for you. Sailing pauses while this choice is open.',
   'tutorial.start': 'Start tutorial',
   'tutorial.free': 'Free sailing',
   'tutorial.cardLabel': 'Optional sailing tutorial',
   'tutorial.complete': 'First delivery complete!',
   'tutorial.completeCopy':
-    'You can now explore, compare prices and save for upgrades. Free sailing has no assigned circuit. Replay the tutorial from Menu anytime.',
+    'Explore, compare prices and save for upgrades. Replay the tutorial from the menu anytime.',
   'tutorial.show': 'Show',
   'tutorial.hide': 'Hide',
   'tutorial.openMap': 'Open map',
   'tutorial.openMarket': 'Open market',
   'tutorial.showTips': 'Show tacking tips',
-  'tutorial.skip': 'Skip tutorial',
+  'tutorial.skip': 'Skip',
   'tutorial.yourPort': 'your chosen port',
   'tutorial.anotherPort': 'another port',
   'tutorial.yourCargo': 'your cargo',
-  'tutorial.producedGood': 'unit of a produced good',
-  'lesson.chart.title': 'Find your bearings',
-  'lesson.chart.copy':
-    'Open Map (M). The brown boat is you, the cards are trading ports. Sailing pauses while you plan.',
+  'tutorial.producedGood': 'its own goods',
+  'tutorial.themeDeliver': 'Deliver',
+  'tutorial.themeDock': 'Dock',
+  'tutorial.themeWind': 'Wind',
+  'tutorial.themeSails': 'Sails',
+  'tutorial.themeChart': 'Chart',
+  'lesson.chart.title': 'Open the map',
+  'lesson.chart.copy': 'Pick your first harbour on the map (M). Sailing pauses while you plan.',
   'lesson.choose-port.title': 'Choose a harbour',
-  'lesson.choose-port.copy':
-    'Tap a nearby port card to set a course. Close the chart when ready. This is a direction, not a safe route through land.',
-  'lesson.sails.title': 'Try sails and steering',
+  'lesson.choose-port.copy': 'Tap a port to set your course, then close the map.',
+  'lesson.sails.title': 'Sails and steering',
   'lesson.sails.copy':
-    'Lower the sails with the lever on the right (or ↓), then raise them again (or ↑). Drag left/right on the sea or use ← → to steer. Leave the harbour and sail a little; avoid the coast.',
+    'Lower the sails, raise them again, and drag left or right to steer (or ↑ ↓ and ← →).',
   'lesson.sails.continue': 'I know these controls',
   'lesson.wind.title': 'Let the wind help',
   'lesson.wind.copy':
-    'The shaded compass wedge is the no-go zone. To go upwind, sail diagonally on one side of it, then turn through to the other side. A brief slowdown during a tack is normal.',
-  'lesson.wind.continue': 'Continue to harbour',
+    'Keep the bow out of the red zone. To go upwind, zigzag from one side of it to the other.',
+  'lesson.wind.continue': 'Continue',
   'lesson.dock.title': 'Dock at {origin}',
   'lesson.dock.copy':
-    'Follow your bearing around land. Lower your sails early and come in slowly: under 3 kn near the pier, the crew stops the boat and docks. Too fast and you hit the pier!',
+    'Follow the arrow. Lower the sails early: under 3 kn near the pier, the crew docks you.',
   'lesson.buy.title': 'Pick up a small cargo',
-  'lesson.buy.copy':
-    'At {origin}, open Market and buy 1 {good}. Produced goods are usually cheaper. Buy only what you can afford; carrying existing cargo works too.',
+  'lesson.buy.copy': '{origin} makes {good}, so it is cheap here. Buy one lot.',
   'lesson.buy.continue': 'Use my existing cargo',
   'lesson.choose-delivery.title': 'Find a buyer for {cargo}',
-  'lesson.choose-delivery.copy':
-    'Open Map and choose a different port{buyer}. Return to sea, raise sails and carry your cargo there. Prices change; compare the actual quotes.',
+  'lesson.choose-delivery.copy': 'Open the map and pick another port{buyer}.',
   'lesson.choose-delivery.buyer': ' — {name} wants {cargo}',
   'lesson.deliver.title': 'Carry {cargo} to {delivery}',
-  'lesson.deliver.copy':
-    'Sail around land and tack if needed. Lower sails as you approach the marked pier, then dock. Reopen the chart whenever you need your bearings.',
+  'lesson.deliver.copy': 'Sail there, tacking if needed, and slow down at the pier to dock.',
   'lesson.sell.title': 'Make your first delivery',
-  'lesson.sell.copy':
-    'At {delivery}, open Market and sell at least 1 {cargo}, or use Sell All. Read the quoted gold before you trade.',
+  'lesson.sell.copy': 'Sell your {cargo} here, or tap Sell all.',
 
   // --- Harbour: market, orders, shipyard -----------------------------------------------------
   'trade.dialogLabel': 'Harbour trading and shipyard',

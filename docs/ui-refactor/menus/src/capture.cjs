@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* global require, process, __dirname, console, window, document, sessionStorage, localStorage, mock, fwt */
 const { chromium } = require('/opt/node-tools/node_modules/playwright');
 const fs = require('fs');
 const root = '/home/user/fair-winds-trading';
@@ -52,7 +54,7 @@ const CM = {
     await page.evaluate(() => mock.help()); await shot('06-help');
     await page.evaluate(() => { mock.clear(); document.getElementById('chart-btn').click(); }); await page.waitForTimeout(500);
     await page.evaluate((c) => { const n = [...document.querySelectorAll('.chart-port-name')].find(e => e.textContent.includes('Saltmere')); const g = n.closest('g') || n; mock.coach({ target: g.getBoundingClientRect(), pad: 8, step: 1, title: c.port[0], text: c.port[1] }); }, c); await shot('07-coach-port');
-    await page.evaluate(() => { mock.clear(); const d = document.getElementById('chart'); document.getElementById('close-chart').click(); });
+    await page.evaluate(() => { mock.clear(); document.getElementById('close-chart').click(); });
     await page.waitForTimeout(400);
     await page.evaluate((c) => mock.coach({ target: '#sail-lever', step: 2, title: c.sails[0], text: c.sails[1], act: `<div class="btn">${c.sails[2]}</div>`, prefer: 'left' }), c); await shot('08-coach-sails');
     await page.evaluate((c) => mock.coach({ target: '#wind-compass', step: 3, title: c.wind[0], text: c.wind[1], act: `<div class="btn brass">${c.wind[2]}</div><div class="btn">${c.wind[3]}</div>`, prefer: 'left' }), c); await shot('09-coach-wind');

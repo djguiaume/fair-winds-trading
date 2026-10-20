@@ -70,4 +70,6 @@
 
 | [0058](0058-chart-style-d-port-cards.md) | Clear style D chart (no boxes, prices on demand), markers moved to later, one Trade button, hull icon, wider portrait view | 2026-10-20 | Implementation for review |
 
+| [0061](0061-menus-and-coach-marks.md) | Menus, pause, full-screen settings and How to play in style D; tutorial coach marks replace the tutorial card | 2026-10-20 | Implementation for review |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
