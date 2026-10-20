@@ -282,9 +282,13 @@ export class TradePanel {
 
   /** Open delivery orders across the map, counted on the Orders tab. */
   private openOrderCount(): number {
-    const { trade } = this.world;
+    const { trade, map } = this.world;
     const here = trade.contracts.byPort[trade.dockedAt!];
-    const others = openContracts(trade.contracts).filter((c) => c.portId !== trade.dockedAt);
+    // Same list as the Orders tab: ports not yet discovered stay hidden (decision 0048).
+    const charted = discoveredPorts(map, trade).map((p) => p.id);
+    const others = openContracts(trade.contracts).filter(
+      (c) => c.portId !== trade.dockedAt && charted.includes(c.portId),
+    );
     return others.length + (here && here.readyIn <= 0 ? 1 : 0);
   }
 

@@ -154,8 +154,12 @@ describe('full-screen port (decision 0049)', () => {
   it('counts open orders on the Orders tab and shows them there', () => {
     const { panel, container, click } = setup();
     panel.open();
-    expect(container.querySelector('#tp-tab-orders .tab-badge')).not.toBeNull();
+    const badge = container.querySelector('#tp-tab-orders .tab-badge')!.textContent;
     click('#tp-tab-orders');
-    expect(container.querySelectorAll('.contract-list li').length).toBeGreaterThan(0);
+    const listed = container.querySelectorAll('.contract-list li').length;
+    expect(listed).toBeGreaterThan(0);
+    // The badge counts what the tab lists: undiscovered ports stay hidden (decision 0048).
+    const here = container.querySelector('#tp-deliver') ? 1 : 0;
+    expect(Number(badge)).toBe(listed + here);
   });
 });
