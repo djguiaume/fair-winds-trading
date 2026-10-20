@@ -133,6 +133,7 @@ if (inspectBoat) {
     timber: { name: 'Port Calda', radius: 26 },
     grain: { name: 'Westholm', radius: 24 },
     stone: { name: 'Stonehaven', radius: 23 },
+    yard: { name: 'Abbey Head', radius: 18 },
   } as const;
   const LEVEL_NAMES = ['Hamlet', 'Village', 'Town', 'Port town'];
   const kindParam = params.get('kind') ?? 'fish';
@@ -140,7 +141,7 @@ if (inspectBoat) {
   const level = Math.max(1, Math.min(4, Number(params.get('level')) || 4)) as 1 | 2 | 3 | 4;
   const entries =
     kindParam === 'all'
-      ? (Object.keys(kinds) as (keyof typeof kinds)[]).map((k) => ({ kind: k, level }))
+      ? (['fish', 'timber', 'grain', 'stone'] as const).map((k) => ({ kind: k, level }))
       : ([1, 2, 3, 4] as const).map((l) => ({ kind: kindParam as keyof typeof kinds, level: l }));
   const map: MapDef = {
     name: 'towns',
@@ -154,7 +155,13 @@ if (inspectBoat) {
       x: (i - 1.5) * 64,
       y: 0,
       radius: kinds[e.kind].radius,
-      look: { kind: e.kind, houses: 5, trees: e.kind === 'timber' ? 14 : 4, dock: true },
+      look: {
+        kind: e.kind,
+        houses: 5,
+        trees: e.kind === 'timber' ? 14 : 4,
+        dock: true,
+        ...(e.kind === 'yard' ? { landmark: 'ruins' as const, rock: true } : {}),
+      },
     })),
     ports: entries.map((e, i) => ({
       id: `p${i}`,
