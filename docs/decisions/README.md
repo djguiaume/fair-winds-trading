@@ -64,4 +64,6 @@
 | [0054](0054-refined-upgrade-aware-schooner.md) | Refined schooner: independent long hull, two attached gaff rigs and separate jib stays, all upgrades and tablet qualities | 2026-10-20 | Implementation for review |
 | [0055](0055-smooth-port-labels-and-stable-bearings.md) | Per-frame composited pier markers and destination arrows that remain correct behind the camera | 2026-10-20 | Implementation for review |
 
+| [0056](0056-refined-upgrade-aware-clipper.md) | Refined clipper: independent fine-entry hull, three attached gaff rigs and individual jib stays, all upgrades and tablet profiles | 2026-10-20 | Implementation for review |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { RefinedClipper } from './clipper';
 import { RefinedSchooner } from './schooner';
 import { RefinedCutter } from './cutter';
 import { RefinedSloop } from './sloop';
@@ -634,8 +635,10 @@ export const createStorybookBoat: BoatModelFactory = (shipClassId, options = {})
       ? new RefinedCutter(options)
       : shipClassId === 'schooner'
         ? new RefinedSchooner(options)
-        : new StorybookBoat(
-            BOAT_CLASSES[shipClassId] ?? BOAT_CLASSES.sloop!,
-            options.upgrades ?? STOCK_UPGRADES,
-            options.rigging ?? true,
-          );
+        : shipClassId === 'clipper'
+          ? new RefinedClipper(options)
+          : new StorybookBoat(
+              BOAT_CLASSES[shipClassId] ?? BOAT_CLASSES.sloop!,
+              options.upgrades ?? STOCK_UPGRADES,
+              options.rigging ?? true,
+            );
