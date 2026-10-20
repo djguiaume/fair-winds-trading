@@ -49,5 +49,6 @@
 | [0041](0041-harbour-mooring-and-edge-buoys.md) | Harbour mooring (slow + sails down = stop and dock), clearer dock cues, red buoys at the sea edge | 2026-10-19 | Implementation for review |
 | [0042](0042-light-versioning.md) | Light versioning: v0.<phase>.<deploy> in the menu, commit code kept small beside it | 2026-10-20 | Implementation for review |
 | [0043](0043-shelve-kids-mode.md) | Shelve Kids mode: hidden from the game (code kept behind a flag), rework moved to Phase 7 | 2026-10-20 | Accepted |
+| [0044](0044-visual-heeling.md) | Visual heeling: the boat leans with point of sail, wind strength, gusts and ship class; calmer on Low | 2026-10-20 | Implementation for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
