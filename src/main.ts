@@ -442,6 +442,10 @@ function handleEvents(events: WorldEvent[]) {
       tradePanel.open('market');
       refreshPause();
       autosave();
+    } else if (e.type === 'discovered') {
+      const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
+      hud.showToast(t('toast.discovered', { name: portName }), 4);
+      autosave();
     } else if (e.type === 'undocked') {
       const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
       hud.showToast(t('toast.departed', { name: portName }), 1.5);

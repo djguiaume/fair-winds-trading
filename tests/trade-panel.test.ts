@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
 import { quoteBuy, quoteSell } from '../src/sim/market';
 import { CUTTER, SLOOP } from '../src/sim/ship';
+import { homePort } from '../src/sim/shipyards';
 import { stockLevels, upgradePrice } from '../src/sim/upgrades';
 import { createWorld } from '../src/sim/world';
 import { TradePanel } from '../src/ui/tradePanel';
@@ -10,7 +11,8 @@ import { loadSettings, saveSettings } from '../src/ui/settings';
 
 function setup() {
   const world = createWorld(PHASE1_MAP, SLOOP);
-  world.trade.dockedAt = PHASE1_MAP.ports[0]!.id;
+  // The home port: the only shipyard with upgrades and ship changes (decision 0048).
+  world.trade.dockedAt = homePort(PHASE1_MAP).id;
   document.body.innerHTML = '<button id="return">Harbour</button><div id="panel" hidden></div>';
   const container = document.querySelector<HTMLElement>('#panel')!;
   const panel = new TradePanel(container, world);

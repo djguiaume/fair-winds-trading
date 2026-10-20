@@ -7,6 +7,13 @@ import { distance } from './math';
 import { createRng } from './rng';
 import { SHIP_CLASSES, type ShipClass } from './ship';
 import {
+  type ShipyardProgress,
+  createProgress,
+  discoverNear,
+  homePort,
+  shipOffer,
+} from './shipyards';
+import {
   type UpgradeLevels,
   type UpgradeTrack,
   effectiveShip,
@@ -22,7 +29,7 @@ import {
  */
 
 /** Gold at the start of a new game: enough for a first hold of cheap goods. */
-export const START_GOLD = 120;
+export const START_GOLD = 150;
 /** Dock when within this distance of a port island's shore… */
 export const DOCK_RANGE = 14;
 /** …and slower than this (knots). Lower the sails near a port to dock. */
@@ -48,6 +55,8 @@ export interface TradeState {
   dockedAt: string | null;
   /** Delivery orders posted by the ports (decision 0028). */
   contracts: ContractState;
+  /** Ports on the chart and standing with each shipwright (decision 0048). */
+  progress: ShipyardProgress;
 }
 
 export type TradeError =
@@ -61,7 +70,10 @@ export type TradeError =
   | 'already-owned'
   | 'not-owned'
   | 'unknown-ship'
-  | 'cargo-too-big';
+  | 'cargo-too-big'
+  | 'not-home-port'
+  | 'not-at-yard'
+  | 'ship-locked';
 
 export type TradeResult = { ok: true; gold: number } | { ok: false; error: TradeError };
 
@@ -82,6 +94,7 @@ export function createTradeState(map: MapDef, startShip: ShipClass): TradeState 
     markets,
     dockedAt: null,
     contracts: createContracts(map),
+    progress: createProgress(map),
   };
 }
 
@@ -153,7 +166,10 @@ export function tryDock(
   return true;
 }
 
-export type DockEvent = { type: 'docked'; portId: string } | { type: 'undocked'; portId: string };
+export type DockEvent =
+  | { type: 'docked'; portId: string }
+  | { type: 'undocked'; portId: string }
+  | { type: 'discovered'; portId: string };
 
 /**
  * Advance markets and docking by `dt`. Docking happens when the boat is close to a port and
@@ -168,6 +184,8 @@ export function stepTrade(
   for (const market of Object.values(trade.markets)) stepMarket(market, dt);
   stepContracts(trade.contracts, dt);
   const events: DockEvent[] = [];
+  for (const port of discoverNear(trade, map, boat))
+    events.push({ type: 'discovered', portId: port.id });
   if (trade.dockedAt) {
     const port = findPort(map, trade.dockedAt);
     if (!port || distanceToPort(map, boat, port) > DOCK_RANGE + UNDOCK_MARGIN) {
@@ -239,9 +257,10 @@ export function sellAll(trade: TradeState): TradeResult {
   return { ok: true, gold };
 }
 
-/** Raise one upgrade track of the active ship by a level (shipyard, docked only). */
-export function buyUpgrade(trade: TradeState, track: UpgradeTrack): TradeResult {
+/** Raise one upgrade track of the active ship by a level (home port only, decision 0048). */
+export function buyUpgrade(trade: TradeState, map: MapDef, track: UpgradeTrack): TradeResult {
   if (!trade.dockedAt) return fail('not-docked');
+  if (trade.dockedAt !== homePort(map).id) return fail('not-home-port');
   const { captain } = trade;
   const base = SHIP_CLASSES[captain.activeShip]!;
   const levels = captain.ships[captain.activeShip]!;
@@ -253,13 +272,21 @@ export function buyUpgrade(trade: TradeState, track: UpgradeTrack): TradeResult 
   return { ok: true, gold: price };
 }
 
-/** Buy a new ship class and sail it from now on (cargo moves across if it fits). */
-export function buyShip(trade: TradeState, classId: string): TradeResult {
+/**
+ * Buy a new ship class from the shipwright that builds it and sail it from now on (cargo moves
+ * across if it fits; the old ship waits at the home port). Needs enough standing there
+ * (decision 0048).
+ */
+export function buyShip(trade: TradeState, map: MapDef, classId: string): TradeResult {
   if (!trade.dockedAt) return fail('not-docked');
   const cls = SHIP_CLASSES[classId];
   if (!cls) return fail('unknown-ship');
   const { captain } = trade;
   if (captain.ships[classId]) return fail('already-owned');
+  const offer = shipOffer(trade, map, classId);
+  if (offer.status === 'no-yard') return fail('unknown-ship');
+  if (offer.yard?.id !== trade.dockedAt) return fail('not-at-yard');
+  if (offer.status !== 'for-sale') return fail('ship-locked');
   if (cls.price > captain.gold) return fail('not-enough-gold');
   if (cargoUsed(trade) > holdCapacity(cls, stockLevels())) return fail('cargo-too-big');
   captain.gold -= cls.price;
@@ -268,9 +295,10 @@ export function buyShip(trade: TradeState, classId: string): TradeResult {
   return { ok: true, gold: cls.price };
 }
 
-/** Switch to another owned ship at a port (the cargo moves across, so it must fit). */
-export function switchShip(trade: TradeState, classId: string): TradeResult {
+/** Switch to another owned ship at the home port (the cargo moves across, so it must fit). */
+export function switchShip(trade: TradeState, map: MapDef, classId: string): TradeResult {
   if (!trade.dockedAt) return fail('not-docked');
+  if (trade.dockedAt !== homePort(map).id) return fail('not-home-port');
   const cls = SHIP_CLASSES[classId];
   const levels = trade.captain.ships[classId];
   if (!cls || !levels) return fail('not-owned');

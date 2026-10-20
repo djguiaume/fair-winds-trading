@@ -2,6 +2,7 @@ import type { World } from '../sim/world';
 import { DEG } from '../sim/math';
 import { GOODS, GOOD_ICONS, type GoodId } from '../sim/goods';
 import { quoteAcross, topNeed, unitSellPrice } from '../sim/market';
+import { discoveredPorts } from '../sim/shipyards';
 import { goodName, t } from '../i18n';
 
 interface Pin {
@@ -154,11 +155,11 @@ export class SeaChart {
       b.setAttribute('aria-checked', String(g === good));
       if (g === good) b.classList.add('active');
     }
-    // Every port counts as charted for now; a discovery system would filter this list.
+    // Only charted ports (decision 0048): hidden yards join once discovered.
     const quotes = quoteAcross(
       trade.markets,
       good,
-      map.ports.map((p) => p.id),
+      discoveredPorts(map, trade).map((p) => p.id),
     );
     const cheapest = Math.min(...quotes.filter((q) => q.available > 0).map((q) => q.buy));
     const dearest = Math.max(...quotes.map((q) => q.sell));
@@ -216,9 +217,10 @@ export class SeaChart {
       return el;
     };
     shape('circle', { r: map.boundsRadius, class: 'chart-boundary' });
+    const charted = discoveredPorts(map, this.world.trade);
     for (const island of map.islands) {
       shape('circle', { cx: island.x, cy: -island.y, r: island.radius, class: 'chart-land' });
-      if (island.name && !map.ports.some((p) => p.islandId === island.id)) {
+      if (island.name && !charted.some((p) => p.islandId === island.id)) {
         const label = shape('text', {
           x: island.x,
           y: -island.y - island.radius - 6,
@@ -262,7 +264,7 @@ export class SeaChart {
     });
     const ports = this.get('chart-ports');
     ports.replaceChildren();
-    for (const port of map.ports) {
+    for (const port of charted) {
       const island = map.islands.find((i) => i.id === port.islandId)!;
       const anchor = this.harbours[port.id] ?? island;
       const select = () => this.selectPort(port.id);

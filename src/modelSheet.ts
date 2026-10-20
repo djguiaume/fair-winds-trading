@@ -1,8 +1,9 @@
 /**
  * Model sheet (models.html): the game's own boat and island models side by side, for reviewing
  * the art (decision 0016) and checking triangle and draw-call counts on a real device.
- * ?view=boats shows the sloop at each upgrade level and the cutter; ?view=islands the four
- * producer islands at the game camera's angle.
+ * ?view=boats shows the sloop at each upgrade level and the cutter; ?view=lines the starter and
+ * the swift and hauler lines (decision 0035); ?view=islands the four producer islands at the game
+ * camera's angle.
  */
 import * as THREE from 'three';
 import { type BoatModel, type ShipUpgrades, buildIslands, createBoatModel } from './render/models';
@@ -12,7 +13,7 @@ import type { MapDef } from './sim/map';
 import { DEG } from './sim/math';
 
 const params = new URLSearchParams(location.search);
-const view = params.get('view') === 'islands' ? 'islands' : 'boats';
+const view = (['islands', 'lines'] as const).find((v) => v === params.get('view')) ?? 'boats';
 const canvas = document.getElementById('scene') as HTMLCanvasElement;
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -28,7 +29,7 @@ sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
 Object.assign(sun.shadow.camera, { left: -90, right: 90, top: 90, bottom: -90, far: 200 });
 scene.add(sun, sun.target);
-const camera = new THREE.PerspectiveCamera(view === 'boats' ? 30 : 40, 1, 1, 800);
+const camera = new THREE.PerspectiveCamera(view === 'islands' ? 40 : 30, 1, 1, 800);
 
 const boats: BoatModel[] = [];
 const labels: Array<{ at: THREE.Vector3; html: string }> = [];
@@ -82,6 +83,27 @@ if (view === 'boats') {
   addBoat('cutter', L(3), 50, 0, side, 'Cutter · level 3<small>all upgrades</small>');
   camera.position.set(3, 34, 132);
   camera.lookAt(3, 4, 0);
+} else if (view === 'lines') {
+  document.getElementById('title')!.textContent = 'Ship lines · swift and hauler (0035)';
+  const side = -150 * DEG; // bow toward the camera, so square sails show their face
+  addBoat('sloop', L(1), -72, -22, side, 'Sloop<small>starter</small>');
+  const rows = [
+    { z: -22, ids: ['cutter', 'schooner', 'clipper'], line: 'Swift' },
+    { z: 30, ids: ['hoy', 'fluyt', 'indiaman'], line: 'Hauler' },
+  ];
+  for (const row of rows)
+    row.ids.forEach((id, i) =>
+      addBoat(
+        id,
+        L(1),
+        -34 + i * 40,
+        row.z,
+        side,
+        `${id[0]!.toUpperCase()}${id.slice(1)}<small>${row.line} · tier ${i + 1}</small>`,
+      ),
+    );
+  camera.position.set(0, 80, 170);
+  camera.lookAt(0, 2, 4);
 } else {
   document.getElementById('title')!.textContent = 'Islands · B2 (Bright highlands)';
   const map: MapDef = {

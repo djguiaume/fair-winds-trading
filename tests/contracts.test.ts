@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
 import {
   CONTRACT_COOLDOWN,
+  CONTRACT_HOLD_SHARE,
   CONTRACT_QTY,
+  contractQtyRange,
   createContracts,
   deliverContract,
   makeContract,
@@ -77,6 +79,24 @@ describe('delivery contracts (0028)', () => {
     expect(trade.contracts.byPort[port.id]!.readyIn).toBe(0);
   });
 
+  it('grows orders with the hold of the ship sailed when they are posted (0046)', () => {
+    expect(contractQtyRange(SLOOP.hold)).toEqual(CONTRACT_QTY);
+    const [lo, hi] = contractQtyRange(35);
+    expect(hi).toBe(Math.round(35 * CONTRACT_HOLD_SHARE));
+    expect(lo).toBe(Math.round(hi / 2));
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    const { trade } = world;
+    trade.captain.ships.sloop!.hold = 3;
+    const port = PHASE1_MAP.ports[0]!;
+    trade.dockedAt = port.id;
+    const order = trade.contracts.byPort[port.id]!;
+    trade.captain.cargo[order.good] = order.qty;
+    expect(deliverContract(trade, PHASE1_MAP).ok).toBe(true);
+    const next = trade.contracts.byPort[port.id]!;
+    expect(next.qty).toBeGreaterThanOrEqual(contractQtyRange(22)[0]);
+    expect(next.qty).toBeLessThanOrEqual(contractQtyRange(22)[1]);
+  });
+
   it('saves and resumes orders; older saves without them get fresh orders', () => {
     const world = createWorld(PHASE1_MAP, SLOOP);
     world.trade.contracts.completed = 3;
@@ -118,7 +138,8 @@ describe('delivery contracts (0028)', () => {
       const deliver = () => container.querySelector<HTMLButtonElement>('#tp-deliver')!;
       expect(deliver().disabled).toBe(true);
       const others = container.querySelectorAll('.contract-list li');
-      expect(others).toHaveLength(PHASE1_MAP.ports.length - 1);
+      // Only charted ports: the hidden yards' orders show once discovered (decision 0048).
+      expect(others).toHaveLength(PHASE1_MAP.ports.filter((p) => !p.hidden).length - 1);
 
       const order = world.trade.contracts.byPort[port.id]!;
       world.trade.captain.cargo[order.good] = order.qty;

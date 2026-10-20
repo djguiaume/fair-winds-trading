@@ -13,14 +13,14 @@ import { clamp } from './math';
 /** Stock at which a good trades at its base price. */
 export const REFERENCE_STOCK = 30;
 /** Equilibrium stock by role: what the port settles at when nobody trades. */
-export const EQUILIBRIUM: Record<GoodRole, number> = { produces: 100, wants: 15, neutral: 30 };
+export const EQUILIBRIUM: Record<GoodRole, number> = { produces: 100, wants: 12, neutral: 30 };
 /** How strongly price reacts to stock: mid = base × (reference / stock) ^ elasticity. */
 export const PRICE_ELASTICITY = 0.8;
 /** Mid price stays within these multiples of the base price. */
 export const PRICE_FLOOR = 0.35;
 export const PRICE_CEILING = 3;
 /** The port's cut: you buy a bit above the mid price and sell a bit below it. */
-export const SPREAD = 0.08;
+export const SPREAD = 0.06;
 /** Seconds for a stock to close ~63 % of the gap back to equilibrium. */
 export const RECOVERY_SECONDS = 75;
 

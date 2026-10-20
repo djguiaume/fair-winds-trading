@@ -26,7 +26,7 @@ export const CRASH_DAMAGE = 5;
 /** Speed lost with a fully wrecked hull (the leak), scaled by damage. */
 export const LEAK_PENALTY = 0.25;
 /** Gold per hull point repaired. */
-export const REPAIR_COST = 1.5;
+export const REPAIR_COST = 2;
 
 export interface Reef {
   outline: TerrainDef['outline'];

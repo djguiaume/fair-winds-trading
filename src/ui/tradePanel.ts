@@ -2,7 +2,9 @@ import { type Contract, deliverContract, openContracts } from '../sim/contracts'
 import { GOODS, GOOD_DEFS, type GoodId } from '../sim/goods';
 import { hullCondition, repairHull, repairPrice } from '../sim/hazards';
 import { goodRole, quoteAcross, quoteBuy, quoteSell, type Market } from '../sim/market';
-import { CUTTER, SHIP_CLASSES, SLOOP } from '../sim/ship';
+import { DEG } from '../sim/math';
+import { SHIP_CLASSES, SLOOP } from '../sim/ship';
+import { type ShipOffer, discoveredPorts, homePort, shipOffers } from '../sim/shipyards';
 import {
   buy,
   buyShip,
@@ -186,7 +188,8 @@ export class TradePanel {
           <div class="port-title-area">
             <h2 class="port-name">${port.name}</h2>
             <div class="port-roles-summary">
-              <span class="role-tag produces"><small>${isKid ? t('kids.produces') : t('trade.makes')}</small>${goodIcons(port.produces)}</span>
+              ${port.id === homePort(map).id ? `<span class="role-tag home">${icon('anchor')}${t('trade.homePort')}</span>` : ''}
+              ${port.produces.length ? `<span class="role-tag produces"><small>${isKid ? t('kids.produces') : t('trade.makes')}</small>${goodIcons(port.produces)}</span>` : `<span class="role-tag produces">${t('trade.shipwright')}</span>`}
               <span class="role-tag wants"><small>${isKid ? t('kids.wants') : t('trade.wants')}</small>${goodIcons(port.wants)}</span>
             </div>
           </div>
@@ -308,7 +311,10 @@ export class TradePanel {
           </button>
         </div>`;
     }
-    const others = openContracts(trade.contracts).filter((c) => c.portId !== trade.dockedAt);
+    const charted = discoveredPorts(map, trade).map((p) => p.id);
+    const others = openContracts(trade.contracts).filter(
+      (c) => c.portId !== trade.dockedAt && charted.includes(c.portId),
+    );
     const othersHtml = others
       .map(
         (c) =>
@@ -330,7 +336,7 @@ export class TradePanel {
   /** Where this good sells best among the other ports today (decision 0036). */
   private bestSaleElsewhere(good: GoodId): { name: string; sell: number } | null {
     const { trade, map } = this.world;
-    const others = map.ports.filter((p) => p.id !== trade.dockedAt);
+    const others = discoveredPorts(map, trade).filter((p) => p.id !== trade.dockedAt);
     const best = quoteAcross(
       trade.markets,
       good,
@@ -629,14 +635,19 @@ export class TradePanel {
       })
       .join('');
 
+    const home = homePort(this.world.map);
     return `
       <div class="shipyard-section kids-layout">
         <div class="section-title">
           <h3>${t('kids.upgradeTitle')}</h3>
         </div>
-        <div class="upgrades-grid">
+        ${
+          trade.dockedAt === home.id
+            ? `<div class="upgrades-grid">
           ${upgradeCardsHtml}
-        </div>
+        </div>`
+            : `<p class="muted home-note">${t('upg.homeOnly', { port: home.name })}</p>`
+        }
 
         <div class="section-title ships-title">
           <h3>${t('kids.fleet')}</h3>
@@ -717,19 +728,24 @@ export class TradePanel {
       `;
     }).join('');
 
+    const home = homePort(this.world.map);
+    const upgradesHtml =
+      trade.dockedAt === home.id
+        ? `<div class="upgrades-grid">
+          ${tracksHtml}
+        </div>`
+        : `<p class="muted home-note">${t('upg.homeOnly', { port: home.name })}</p>`;
     return `
       <div class="shipyard-section adult-layout">
         <div class="section-title">
           <h3>${t('upg.forActive', { ship: shipName(activeShipBase) })}</h3>
           <span class="muted small">${t('upg.visualNote')}</span>
         </div>
-        <div class="upgrades-grid">
-          ${tracksHtml}
-        </div>
+        ${upgradesHtml}
 
         <div class="section-title ships-title">
           <h3>${t('fleet.title')}</h3>
-          <span class="muted small">${t('fleet.note')}</span>
+          <span class="muted small">${t('fleet.note', { port: home.name })}</span>
         </div>
 
         ${this.renderFleet()}
@@ -737,89 +753,78 @@ export class TradePanel {
     `;
   }
 
+  /**
+   * Every ship class (decision 0048): the starter, then each line's ships with where they are
+   * built and what it takes to buy them. Switching and upgrades happen at the home port only.
+   */
   private renderFleet(): string {
-    const { trade } = this.world;
+    const { trade, map } = this.world;
     const { captain } = trade;
-    const activeShipId = captain.activeShip;
-    const ownsCutter = Boolean(captain.ships.cutter);
+    const here = trade.dockedAt;
+    const home = homePort(map);
+    const atHome = here === home.id;
     const cargoNow = cargoUsed(trade);
-    const sloopCap = holdCapacity(SLOOP, captain.ships.sloop ?? { sails: 1, hold: 1, hull: 1 });
-    const cutterCap = ownsCutter
-      ? holdCapacity(CUTTER, captain.ships.cutter!)
-      : holdCapacity(CUTTER, { sails: 1, hold: 1, hull: 1 });
-
-    const cutterCanAfford = captain.gold >= CUTTER.price;
-    const cutterFitsCargo = cargoNow <= cutterCap;
-    const sloopFitsCargo = cargoNow <= sloopCap;
-
-    const sloop = shipName(SLOOP);
-    const cutter = shipName(CUTTER);
-    const cutterPrice = formatNumber(CUTTER.price);
+    const stock = { sails: 1, hold: 1, hull: 1 };
     const sailing = `<span class="ship-badge active-badge">${t('fleet.sailing')}</span>`;
+    const note = (text: string) => `<span class="ship-note muted small">${text}</span>`;
 
-    let cutterButtonHtml: string;
-    if (activeShipId === 'cutter') {
-      cutterButtonHtml = sailing;
-    } else if (ownsCutter) {
-      if (cutterFitsCargo) {
-        cutterButtonHtml = `<button class="ship-btn primary" data-ship-switch="cutter">${t('fleet.switchTo', { ship: cutter })}</button>`;
-      } else {
-        cutterButtonHtml = `<button class="ship-btn" disabled title="${t('fleet.cargoTooLarge')}">${t('fleet.switchTooLarge', { ship: cutter })}</button>`;
+    const action = (offer: ShipOffer): string => {
+      const { cls } = offer;
+      const ship = shipName(cls);
+      if (captain.activeShip === cls.id) return sailing;
+      if (offer.status === 'owned') {
+        if (!atHome) return note(t('fleet.waitingAt', { port: home.name }));
+        const cap = holdCapacity(cls, captain.ships[cls.id]!);
+        if (cargoNow <= cap)
+          return `<button class="ship-btn primary" data-ship-switch="${cls.id}">${t('fleet.switchTo', { ship })}</button>`;
+        const load = { used: cargoNow, cap };
+        return `<button class="ship-btn" disabled title="${t('fleet.cargoTooLargeCount', load)}">${t('fleet.switchCargo', { ship, ...load })}</button>`;
       }
-    } else {
-      if (!cutterCanAfford) {
-        const short = CUTTER.price - captain.gold;
-        cutterButtonHtml = `<button class="ship-btn" disabled title="${t('upg.needGoldTitle', { n: short })}">${t('fleet.buyNeed', { ship: cutter, price: cutterPrice, n: short })}</button>`;
-      } else if (!cutterFitsCargo) {
-        cutterButtonHtml = `<button class="ship-btn" disabled title="${t('fleet.cargoExceeds', { ship: cutter })}">${t('fleet.buyCargoBig', { ship: cutter, price: cutterPrice })}</button>`;
-      } else {
-        cutterButtonHtml = `<button class="ship-btn primary" data-ship-buy="cutter">${t('fleet.buy', { ship: cutter, price: cutterPrice })}</button>`;
+      if (offer.status === 'undiscovered') return note(t('fleet.undiscovered'));
+      const yard = offer.yard!.name;
+      if (offer.status === 'needs-standing')
+        return note(t('fleet.needsOrders', { n: offer.ordersLeft, port: yard }));
+      const price = formatNumber(cls.price);
+      if (here !== offer.yard!.id) return note(t('fleet.builtAt', { port: yard, price }));
+      if (captain.gold < cls.price) {
+        const short = cls.price - captain.gold;
+        return `<button class="ship-btn" disabled title="${t('upg.needGoldTitle', { n: short })}">${t('fleet.buyNeed', { ship, price, n: short })}</button>`;
       }
-    }
+      if (cargoNow > holdCapacity(cls, stock))
+        return `<button class="ship-btn" disabled title="${t('fleet.cargoExceeds', { ship })}">${t('fleet.buyCargoBig', { ship, price })}</button>`;
+      return `<button class="ship-btn primary" data-ship-buy="${cls.id}">${t('fleet.buy', { ship, price })}</button>`;
+    };
 
-    let sloopButtonHtml: string;
-    if (activeShipId === 'sloop') {
-      sloopButtonHtml = sailing;
-    } else {
-      if (sloopFitsCargo) {
-        sloopButtonHtml = `<button class="ship-btn primary" data-ship-switch="sloop">${t('fleet.switchTo', { ship: sloop })}</button>`;
-      } else {
-        const load = { used: cargoNow, cap: sloopCap };
-        sloopButtonHtml = `<button class="ship-btn" disabled title="${t('fleet.cargoTooLargeCount', load)}">${t('fleet.switchCargo', { ship: sloop, ...load })}</button>`;
-      }
-    }
+    const card = (offer: ShipOffer): string => {
+      const { cls } = offer;
+      const levels = captain.ships[cls.id] ?? stock;
+      const speed = Math.round((cls.speedRatio / SLOOP.speedRatio) * 100);
+      const role =
+        cls.line === 'starter'
+          ? t('fleet.line.starter')
+          : t('fleet.lineTier', { line: t(`fleet.line.${cls.line}`), tier: cls.tier });
+      return `
+          <article class="ship-card adult-card ${captain.activeShip === cls.id ? 'active-ship' : ''}" data-ship="${cls.id}">
+            <div class="ship-card-header">
+              <h4>${shipName(cls)}</h4>
+              <span class="ship-role-tag">${role}</span>
+            </div>
+            <div class="ship-specs">
+              <div>${t('fleet.hold', { n: holdCapacity(cls, levels) })}</div>
+              <div>${t('fleet.points', { deg: Math.round(cls.noGoAngle / DEG) })}</div>
+              <div>${t('fleet.speed', { pct: speed })}</div>
+            </div>
+            <div class="ship-action">
+              ${action(offer)}
+            </div>
+          </article>`;
+    };
 
+    const sloop: ShipOffer = { cls: SLOOP, status: 'owned', yard: home, ordersLeft: 0 };
+    const offers = [sloop, ...shipOffers(trade, map).filter((o) => o.status !== 'no-yard')];
     return `
         <div class="ships-grid">
-          <article class="ship-card adult-card ${activeShipId === 'sloop' ? 'active-ship' : ''}">
-            <div class="ship-card-header">
-              <h4>${sloop}</h4>
-              <span class="ship-role-tag">${t('fleet.sloopRole')}</span>
-            </div>
-            <div class="ship-specs">
-              <div>${t('fleet.hold', { n: sloopCap })}</div>
-              <div>${t('fleet.sloopPoints')}</div>
-              <div>${t('fleet.sloopHandling')}</div>
-            </div>
-            <div class="ship-action">
-              ${sloopButtonHtml}
-            </div>
-          </article>
-
-          <article class="ship-card adult-card ${activeShipId === 'cutter' ? 'active-ship' : ''}">
-            <div class="ship-card-header">
-              <h4>${cutter}</h4>
-              <span class="ship-role-tag">${t('fleet.cutterRole')}</span>
-            </div>
-            <div class="ship-specs">
-              <div>${t('fleet.hold', { n: cutterCap })}${t('fleet.cutterBase')}</div>
-              <div>${t('fleet.cutterPoints')}</div>
-              <div>${t('fleet.cutterSpeed')}</div>
-            </div>
-            <div class="ship-action">
-              ${cutterButtonHtml}
-            </div>
-          </article>
+          ${offers.map(card).join('')}
         </div>
     `;
   }
@@ -918,7 +923,7 @@ export class TradePanel {
         btn.addEventListener('click', () => {
           const track = btn.dataset.track as UpgradeTrack;
           if (!track) return;
-          const res = buyUpgrade(this.world.trade, track);
+          const res = buyUpgrade(this.world.trade, this.world.map, track);
           this.finish(res);
         });
       });
@@ -928,7 +933,7 @@ export class TradePanel {
       btn.addEventListener('click', () => {
         const shipId = btn.dataset.shipBuy;
         if (!shipId) return;
-        const res = buyShip(this.world.trade, shipId);
+        const res = buyShip(this.world.trade, this.world.map, shipId);
         this.finish(res);
       });
     });
@@ -937,7 +942,7 @@ export class TradePanel {
       btn.addEventListener('click', () => {
         const shipId = btn.dataset.shipSwitch;
         if (!shipId) return;
-        const res = switchShip(this.world.trade, shipId);
+        const res = switchShip(this.world.trade, this.world.map, shipId);
         this.finish(res);
       });
     });

@@ -80,9 +80,13 @@ describe('polygon coast collisions', () => {
 });
 
 describe('Windward Ring trading map', () => {
-  const portIslands = PHASE1_MAP.ports.map((port) =>
-    PHASE1_MAP.islands.find((i) => i.id === port.islandId)!,
-  );
+  // The four main ports; the two shipwright yards start off the chart (decision 0048).
+  const portIslands = PHASE1_MAP.ports
+    .filter((port) => !port.hidden)
+    .map((port) => PHASE1_MAP.islands.find((i) => i.id === port.islandId)!);
+  const yardIslands = PHASE1_MAP.ports
+    .filter((port) => port.hidden)
+    .map((port) => PHASE1_MAP.islands.find((i) => i.id === port.islandId)!);
   const scenery = PHASE1_MAP.islands.filter((i) => !portIslands.includes(i));
   it('spreads the four ports around the rim and makes them the main landmarks', () => {
     expect(PHASE1_MAP.name).toBe('Windward Ring');
@@ -98,10 +102,13 @@ describe('Windward Ring trading map', () => {
       portIslands.map((i) => Math.floor(bearingTo({ x: 0, y: 0 }, i) / (Math.PI / 2))),
     );
     expect(quarters.size).toBe(4);
+    // Abbey Head and Watchman Key: small hidden yard ports on the old scenery islands.
+    expect(yardIslands.map((i) => i.id).sort()).toEqual(['abbey-head', 'watchman-key']);
+    for (const island of yardIslands) expect(island.look?.dock).toBe(true);
   });
   it('keeps spawn, every docking ring and a broad eastern sailing lane clear', () => {
     expect(clear(PHASE1_MAP.start.x, PHASE1_MAP.start.y, CUTTER.radius + 3)).toBe(true);
-    for (const island of portIslands) {
+    for (const island of [...portIslands, ...yardIslands]) {
       for (let angle = 0; angle < 360; angle += 15) {
         const d = island.radius + 12;
         expect(
@@ -346,6 +353,20 @@ describe('wind-aware route audit', () => {
       Math.max(...report).toFixed(0),
       's',
     );
+  }, 30000);
+  it('can reach both shipwright yards from the start in either wind', () => {
+    for (const port of PHASE1_MAP.ports.filter((p) => p.hidden)) {
+      const island = PHASE1_MAP.islands.find((i) => i.id === port.islandId)!;
+      for (const wind of [30, 210]) {
+        const plan = route(
+          PHASE1_MAP.start,
+          { x: island.x, y: island.y - island.radius - 20 },
+          wind,
+        );
+        expect(plan.points.length).toBeGreaterThan(1);
+        expect(plan.seconds).toBeLessThan(240);
+      }
+    }
   }, 30000);
   it('can reach every scenery island under northeast and southwest winds', () => {
     const ports = new Set(PHASE1_MAP.ports.map((p) => p.islandId));

@@ -51,6 +51,8 @@
 | [0043](0043-shelve-kids-mode.md) | Shelve Kids mode: hidden from the game (code kept behind a flag), rework moved to Phase 7 | 2026-10-20 | Accepted |
 | [0044](0044-visual-heeling.md) | Visual heeling: the boat leans with point of sail, wind strength, gusts and ship class; calmer on Low | 2026-10-20 | Implementation for review |
 | [0045](0045-background-music.md) | Background music: "Fair Winds" sea-folk air composed live in code (flute, quiet chords, bass), new tune every ~30 s, Music volume setting | 2026-10-20 | Implementation for review |
+| [0046](0046-phase-1-economy-tuning.md) | Phase 1 economy tuning: wider margins, cheaper first upgrades, leaner delivery orders that grow with the hold, dearer repairs | 2026-10-20 | Implementation for review |
+| [0048](0048-ship-unlocks-home-port-and-yards.md) | Ship unlocks: Saltmere home port for upgrades and switching; hidden yards at Watchman Key (swift) and Abbey Head (hauler) open ships after 1/3/6 deliveries there | 2026-10-20 | Implementation for review |
 | [0049](0049-ui-instrument-style.md) | UI redesign: "instrument" style (navy and brass, colour icons, chunky buttons) and the new Sea HUD | 2026-10-20 | Sea HUD implemented for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

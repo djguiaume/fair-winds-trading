@@ -170,9 +170,9 @@ describe('reefs and shallows (0032)', () => {
     expect(repairHull(trade)).toEqual({ ok: false, error: 'not-docked' });
     trade.dockedAt = 'anywhere';
     expect(repairPrice(trade)).toBe(Math.ceil(40 * REPAIR_COST));
-    trade.captain.gold = 30;
+    trade.captain.gold = 20 * REPAIR_COST;
     const partial = repairHull(trade);
-    expect(partial).toEqual({ ok: true, gold: 30, points: 20 });
+    expect(partial).toEqual({ ok: true, gold: 20 * REPAIR_COST, points: 20 });
     expect(hullCondition(trade)).toBeCloseTo(0.8);
     trade.captain.gold = 1000;
     expect(repairHull(trade).ok).toBe(true);

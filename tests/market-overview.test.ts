@@ -7,7 +7,8 @@ import { createWorld } from '../src/sim/world';
 import { SeaChart } from '../src/ui/seaChart';
 import { TradePanel } from '../src/ui/tradePanel';
 
-const ids = PHASE1_MAP.ports.map((p) => p.id);
+/** Charted ports at the start: the hidden yards join once discovered (decision 0048). */
+const ids = PHASE1_MAP.ports.filter((p) => !p.hidden).map((p) => p.id);
 
 describe('top needs and market overview (decision 0036)', () => {
   it('names a wanted good as each port top need, and it moves when you fill it', () => {
