@@ -27,7 +27,7 @@ import {
   type UpgradeTrack,
 } from '../sim/upgrades';
 import type { World } from '../sim/world';
-import type { UiMode } from './settings';
+import { KIDS_MODE_AVAILABLE, type UiMode } from './settings';
 import { formatNumber, goodName, shipName, t } from '../i18n';
 
 export type TradePanelTab = 'market' | 'shipyard';
@@ -193,9 +193,13 @@ export class TradePanel {
             </div>
           </div>
           <div class="header-controls">
-            <button id="tp-toggle-mode" class="mode-toggle-btn" title="${t('trade.switchMode')}">
+            ${
+              KIDS_MODE_AVAILABLE
+                ? `<button id="tp-toggle-mode" class="mode-toggle-btn" title="${t('trade.switchMode')}">
               ${isKid ? t('kids.toCaptain') : t('trade.toKids')}
-            </button>
+            </button>`
+                : ''
+            }
             <button class="close-btn" id="tp-close" aria-label="${t('trade.close')}">✕</button>
           </div>
         </header>

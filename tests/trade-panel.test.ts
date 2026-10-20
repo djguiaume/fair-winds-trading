@@ -115,12 +115,14 @@ describe('harbour UI with real trade state', () => {
     expect(world.trade.captain.cargo.fish).toBe(0);
   });
 
-  it('switches modes and persists the preference without resetting progress', () => {
-    const { world, panel, click } = setup();
-    panel.onUiModeChange = (mode) => saveSettings({ ...loadSettings(), uiMode: mode });
+  it('hides the Kids mode switch while Kids mode is shelved (decision 0043)', () => {
+    const { container, panel } = setup();
     panel.open();
-    click('#tp-toggle-mode');
-    expect(loadSettings().uiMode).toBe('kids');
-    expect(world.trade.captain.gold).toBe(120);
+    expect(container.querySelector('#tp-toggle-mode')).toBeNull();
+  });
+
+  it('falls back to Captain mode when a saved preference says Kids', () => {
+    saveSettings({ ...loadSettings(), uiMode: 'kids' });
+    expect(loadSettings().uiMode).toBe('adult');
   });
 });
