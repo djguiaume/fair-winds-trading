@@ -70,7 +70,7 @@ Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 
 **Play-test fixes (requested by Guillaume, 2026-10-19):**
 
-- **Complete UI redesign.** The current HUD and panels are not good enough; redesign them as a whole (mockups first, then build), keeping touch and the old-tablet budget ([0006](decisions/0006-desktop-and-mobile.md)).
+- **Complete UI redesign.** The current HUD and panels are not good enough; redesign them as a whole (mockups first, then build), keeping touch and the old-tablet budget ([0006](decisions/0006-desktop-and-mobile.md)). Analysis of the current UI, comparable mobile games and a recommendation: [ui-refactor](ui-refactor/README.md).
 - **Kids mode shelved** ([0043](decisions/0043-shelve-kids-mode.md)): hidden from the game for now, saves fall back to Captain mode; the rework moved to Phase 7.
 - **Wind strength you can see** (implemented for review, [0040](decisions/0040-visible-wind-strength.md)): a strength word (Calm to Strong; plain words in Kids mode), a coloured arrow and a short gust cue on the compass (five-bar gauge built but hidden for now), and the sea streaks thin out in a calm and brighten in strong wind.
 - **Hull damage from any crash** (implemented for review, [0038](decisions/0038-hull-damage-from-any-crash.md)): ramming an island, coast or pier damages the hull in proportion to the impact speed, docking bumps and sandbanks are free, piers are now solid. Repair in any harbour as in [0032](decisions/0032-reef-strikes-and-shallows.md). Ship-to-ship collisions come with pirates (Phase 5).
