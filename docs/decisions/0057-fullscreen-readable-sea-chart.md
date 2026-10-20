@@ -1,4 +1,4 @@
-# 0056. A larger, quieter sea chart with an instrument compass and signature player boat
+# 0057. A larger, quieter sea chart with an instrument compass and signature player boat
 
 **Status:** Implemented for review, 2026-10-20. Guillaume approved the analysis and the brown boat with cream deck, dark outline and light-blue halo.
 
@@ -59,7 +59,7 @@ only changes the viewBox. The world remains paused and the underlying renderer r
 All three graphics levels use this same chart. Existing voyage/pin storage schemas and keys,
 ship models, upgrades, map data and sailing rules remain unchanged.
 
-243 tests pass, including sheet/Escape/focus behavior, local-wind direction and compass isolation,
+246 tests pass, including sheet/Escape/focus behavior, local-wind direction and compass isolation,
 zoom bounds and player scaling, explicit bearings, persistent pins and save independence.
 Production build, ESLint and formatting checks pass. Actual game screenshots and repeatable
 Chromium checks for Low/Medium/High, English/French and four viewport profiles are in

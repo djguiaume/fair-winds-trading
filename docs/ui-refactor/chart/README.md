@@ -3,7 +3,7 @@
 2026-10-20. Real game UI captures from the Vite app in Chromium, using software WebGL.
 The only staged gameplay state is discovery of all six ports, so every harbour can be reviewed.
 This is the working SVG chart and instrument, not a generated preview. See
-[decision 0056](../../decisions/0056-fullscreen-readable-sea-chart.md).
+[decision 0057](../../decisions/0057-fullscreen-readable-sea-chart.md).
 
 | Profile | Chart | Legend | Prices |
 | --- | --- | --- | --- |

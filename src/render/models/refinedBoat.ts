@@ -52,6 +52,12 @@ export interface RefinedRig {
   gaff: number;
   /** Optional shorter forward mast; only the aft main carries the upgraded topsail. */
   foremast?: { z: number; height: number; boom: number; gaff: number };
+  /** Third fore-and-aft mast for the swift-line clipper, with its own upgraded topsail. */
+  mizzen?: { z: number; height: number; boom: number; gaff: number };
+  hatchZ?: number;
+  cargoZ?: number;
+  cargoX?: number;
+  maxJibs?: number;
 }
 
 /** Simple coloured triangles: no textures, extra materials or per-frame geometry rebuilds. */
@@ -231,7 +237,7 @@ export class RefinedBoat implements BoatModel {
     const box = (w: number, h: number, l: number, x: number, y: number, z: number, color: string) =>
       paint(new THREE.BoxGeometry(w, h, l).translate(x, y, z), color);
     // Forward hatch leaves a working area behind the mast for the upgraded cargo stacks.
-    const hatchZ = rig.foremast ? 2.65 : 1.3;
+    const hatchZ = rig.hatchZ ?? (rig.foremast ? 2.65 : 1.3);
     parts.push(box(0.64, 0.13, 0.58, 0, deckAt(hatchZ) + 0.09, hatchZ, ST.mast));
     parts.push(box(0.54, 0.05, 0.48, 0, deckAt(hatchZ) + 0.18, hatchZ, ST.deck));
     const stern = -L * 0.5;
@@ -243,8 +249,8 @@ export class RefinedBoat implements BoatModel {
     const cargoCount = [2, 4, 7][upg.hold - 1]! + rig.cargoExtra;
     for (let i = 0; i < cargoCount; i++) {
       const slot = i % 6;
-      const x = (slot % 2 === 0 ? -1 : 1) * 0.3;
-      const z = -Math.floor(slot / 2) * (rig.foremast ? 0.5 : 0.65);
+      const x = (slot % 2 === 0 ? -1 : 1) * (rig.cargoX ?? 0.3);
+      const z = (rig.cargoZ ?? 0) - Math.floor(slot / 2) * (rig.foremast ? 0.5 : 0.65);
       const layer = Math.floor(i / 6);
       const barrel = upg.hold >= 2 && i % 3 === 2;
       const g = barrel
@@ -263,6 +269,15 @@ export class RefinedBoat implements BoatModel {
     const foreHeight = fore ? fore.height * ST.mastK : MAST_H;
     const foreZ = fore?.z ?? MAST_Z;
     if (fore) parts.push(spar(V(0, foreBase, foreZ), V(0, foreBase + foreHeight, foreZ), 0.07));
+    const mizzen = rig.mizzen;
+    if (mizzen)
+      parts.push(
+        spar(
+          V(0, deckAt(mizzen.z), mizzen.z),
+          V(0, deckAt(mizzen.z) + mizzen.height * ST.mastK, mizzen.z),
+          0.07,
+        ),
+      );
     const bow = V(0, deckAt(L / 2) + 0.13, L / 2);
     const bowspritTip = V(0, bow.y + 0.2, L * 0.73);
     parts.push(spar(V(0, bow.y - 0.1, L * 0.35), bowspritTip, 0.05));
@@ -290,7 +305,11 @@ export class RefinedBoat implements BoatModel {
         mesh(
           mergeAll([spar(V(0, 0, 0), clew), spar(throat, peak)]),
           wood,
-          name === 'Mainsail' ? 'BoomAndGaff' : 'ForeBoomAndGaff',
+          name === 'Mainsail'
+            ? 'BoomAndGaff'
+            : name === 'Mizzen'
+              ? 'MizzenBoomAndGaff'
+              : 'ForeBoomAndGaff',
         ),
       );
       const sails = [cloth(V(0, 0, 0), clew, throat, peak, upg.sails, 0.32, BAND)];
@@ -311,18 +330,48 @@ export class RefinedBoat implements BoatModel {
         sheetAnchor: V(0, deckAt(anchorZ) + 0.12, anchorZ),
       });
     };
-    addGaff('Mainsail', MAST_Z, mastBase, MAST_H, rig.boom, rig.gaff, true, -L * 0.4);
-    if (fore) addGaff('Foresail', foreZ, foreBase, foreHeight, fore.boom, fore.gaff, false, -0.9);
+    addGaff(
+      'Mainsail',
+      MAST_Z,
+      mastBase,
+      MAST_H,
+      rig.boom,
+      rig.gaff,
+      true,
+      rig.mizzen ? -2.2 : -L * 0.4,
+    );
+    if (fore)
+      addGaff(
+        'Foresail',
+        foreZ,
+        foreBase,
+        foreHeight,
+        fore.boom,
+        fore.gaff,
+        false,
+        rig.mizzen ? 0.5 : -0.9,
+      );
+    if (mizzen)
+      addGaff(
+        'Mizzen',
+        mizzen.z,
+        deckAt(mizzen.z),
+        mizzen.height * ST.mastK,
+        mizzen.boom,
+        mizzen.gaff,
+        true,
+        -L * 0.46,
+      );
 
     // Each upgraded jib has its OWN head/tack pair and inclined stay axis. Do not merge their
     // pivots or scale along the stay: reefing rolls the free edge towards the stay instead.
     const lines: number[] = [];
     const line = (a: THREE.Vector3, b: THREE.Vector3) => lines.push(...a.toArray(), ...b.toArray());
-    const nj = rig.stockJibs + (upg.sails >= 2 ? 1 : 0);
+    const nj = Math.min(rig.maxJibs ?? Infinity, rig.stockJibs + (upg.sails >= 2 ? 1 : 0));
     for (let j = 0; j < nj; j++) {
       // Multi-jib rigs: a low inner staysail and narrower outer jibs, rather than nested copies.
       // Their tack points sit exactly on the solid bowsprit, including the extra upgraded jib.
-      const multiJib = rig.stockJibs === 2;
+      const multiJib = rig.stockJibs >= 2;
       const tackFraction = multiJib ? 0.48 + j * 0.12 : 0.53 + j * 0.13;
       const tackY = multiJib ? bow.y - 0.1 + (0.3 * (tackFraction - 0.35)) / 0.38 : bow.y + j * 0.1;
       const tack = V(0, tackY, L * tackFraction);
@@ -365,6 +414,11 @@ export class RefinedBoat implements BoatModel {
         );
       }
       line(mastTop, V(0, foreBase + foreHeight, foreZ));
+    }
+    if (mizzen) {
+      const top = V(0, deckAt(mizzen.z) + mizzen.height * ST.mastK, mizzen.z);
+      for (const side of [-1, 1]) line(top, V(side * B * 0.38, deckAt(mizzen.z) + 0.1, mizzen.z));
+      line(mastTop, top);
     }
     this.runningOffset = lines.length / 3;
     // Gaff lift, mainsheet, and one working sheet per jib. Updated in ship-local coordinates.
