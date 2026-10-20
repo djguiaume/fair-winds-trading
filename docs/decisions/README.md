@@ -56,5 +56,6 @@
 | [0049](0049-ui-instrument-style.md) | UI redesign: "instrument" style (navy and brass, colour icons, chunky buttons) and the new Sea HUD | 2026-10-20 | Sea HUD implemented for review |
 
 | [0050](0050-tablet-friendly-ship-wakes.md) | Hull-sized bow foam and broken stern wakes, scaled across three tablet detail budgets | 2026-10-20 | Implementation for review |
+| [0051](0051-refined-upgrade-aware-sloop.md) | Refined sloop with preserved upgrades, attached mainsail and per-jib forestay pivots; Low/Medium/High retained | 2026-10-20 | Implementation for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

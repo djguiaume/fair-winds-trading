@@ -132,7 +132,9 @@ export class GameView {
     const { id, upgrades, key } = this.activeBoat();
     this.boatKey = key;
     this.heelFactor = heelFactor(id);
-    const boat = createBoatModel(id, { upgrades, rigging: this.level !== 'low' });
+    // Quality is a live toggle, not a permanent factory opt-out: Low → Medium must restore ropes.
+    const boat = createBoatModel(id, { upgrades });
+    boat.setLowDetail?.(this.level === 'low');
     boat.root.rotation.order = 'YXZ';
     return boat;
   }
