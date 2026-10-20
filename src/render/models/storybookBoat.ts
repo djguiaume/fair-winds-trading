@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { RefinedCutter } from './cutter';
 import { RefinedSloop } from './sloop';
 import { BOAT_SCALE, STYLE_D } from './boatStyle';
 export { BOAT_SCALE, STYLE_D } from './boatStyle';
@@ -628,8 +629,10 @@ export class StorybookBoat implements BoatModel {
 export const createStorybookBoat: BoatModelFactory = (shipClassId, options = {}) =>
   shipClassId === 'sloop' || !BOAT_CLASSES[shipClassId]
     ? new RefinedSloop(options)
-    : new StorybookBoat(
-        BOAT_CLASSES[shipClassId] ?? BOAT_CLASSES.sloop!,
-        options.upgrades ?? STOCK_UPGRADES,
-        options.rigging ?? true,
-      );
+    : shipClassId === 'cutter'
+      ? new RefinedCutter(options)
+      : new StorybookBoat(
+          BOAT_CLASSES[shipClassId] ?? BOAT_CLASSES.sloop!,
+          options.upgrades ?? STOCK_UPGRADES,
+          options.rigging ?? true,
+        );
