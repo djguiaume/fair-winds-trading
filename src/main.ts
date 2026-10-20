@@ -37,7 +37,10 @@ import {
 } from './i18n';
 import { TradePanel } from './ui/tradePanel';
 
+declare const __APP_VERSION__: string;
 declare const __BUILD_REVISION__: string;
+const appVersion = document.getElementById('app-version');
+if (appVersion) appVersion.textContent = `v${__APP_VERSION__}`;
 const release = document.getElementById('build-revision');
 if (release) release.textContent = __BUILD_REVISION__;
 

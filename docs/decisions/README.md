@@ -47,5 +47,6 @@
 | [0039](0039-installable-web-app.md) | Installable web app: manifest, icons and a network-first service worker | 2026-10-19 | Implementation for review |
 | [0040](0040-visible-wind-strength.md) | Visible wind strength: word, arrow colour and gust cue on the compass (bars hidden for now); streaks follow strength | 2026-10-19 | Implementation for review |
 | [0041](0041-harbour-mooring-and-edge-buoys.md) | Harbour mooring (slow + sails down = stop and dock), clearer dock cues, red buoys at the sea edge | 2026-10-19 | Implementation for review |
+| [0042](0042-light-versioning.md) | Light versioning: v0.<phase>.<deploy> in the menu, commit code kept small beside it | 2026-10-20 | Implementation for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
