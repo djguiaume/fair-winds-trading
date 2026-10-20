@@ -123,7 +123,10 @@ describe('trading', () => {
   it('needs a port', () => {
     const world = newWorld();
     expect(buy(world.trade, 'fish', 1)).toEqual({ ok: false, error: 'not-docked' });
-    expect(buyUpgrade(world.trade, 'sails')).toEqual({ ok: false, error: 'not-docked' });
+    expect(buyUpgrade(world.trade, PHASE0_MAP, 'sails')).toEqual({
+      ok: false,
+      error: 'not-docked',
+    });
   });
 
   it('moves gold, cargo and stock', () => {
@@ -199,20 +202,20 @@ describe('docking', () => {
 describe('shipyard', () => {
   it('upgrades change the sailing numbers and the hold', () => {
     const world = newWorld();
-    const trade = dock(world, 'calda');
+    const trade = dock(world, 'saltmere');
     trade.captain.gold = 10_000;
     const before = activeShip(trade);
     const [l2, l3] = SLOOP.upgradePrices;
     expect(upgradePrice(SLOOP, trade.captain.ships.sloop!, 'sails')).toBe(l2);
-    expect(buyUpgrade(trade, 'sails')).toEqual({ ok: true, gold: l2 });
-    expect(buyUpgrade(trade, 'sails')).toEqual({ ok: true, gold: l3 });
-    expect(buyUpgrade(trade, 'sails')).toEqual({ ok: false, error: 'max-level' });
+    expect(buyUpgrade(trade, PHASE0_MAP, 'sails')).toEqual({ ok: true, gold: l2 });
+    expect(buyUpgrade(trade, PHASE0_MAP, 'sails')).toEqual({ ok: true, gold: l3 });
+    expect(buyUpgrade(trade, PHASE0_MAP, 'sails')).toEqual({ ok: false, error: 'max-level' });
     expect(activeShip(trade).speedRatio).toBeGreaterThan(before.speedRatio * 1.1);
     expect(activeShip(trade).accel).toBeGreaterThan(before.accel);
 
-    buyUpgrade(trade, 'hold');
+    buyUpgrade(trade, PHASE0_MAP, 'hold');
     expect(capacity(trade)).toBe(16);
-    buyUpgrade(trade, 'hold');
+    buyUpgrade(trade, PHASE0_MAP, 'hold');
     expect(capacity(trade)).toBe(22);
 
     // The boat sails with the upgrades from the next step.
@@ -228,21 +231,21 @@ describe('shipyard', () => {
 
   it('sells the cutter, which then becomes the active ship', () => {
     const world = newWorld();
-    const trade = dock(world, 'calda');
-    expect(buyShip(trade, 'cutter')).toEqual({ ok: false, error: 'not-enough-gold' });
+    const trade = dock(world, 'saltmere');
+    expect(buyShip(trade, PHASE0_MAP, 'cutter')).toEqual({ ok: false, error: 'not-enough-gold' });
     trade.captain.gold = 2000;
-    expect(buyShip(trade, 'cutter')).toEqual({ ok: true, gold: 1500 });
+    expect(buyShip(trade, PHASE0_MAP, 'cutter')).toEqual({ ok: true, gold: 1500 });
     expect(trade.captain.activeShip).toBe('cutter');
     expect(capacity(trade)).toBe(CUTTER.hold);
     expect(activeShip(trade).noGoAngle).toBeLessThan(SLOOP.noGoAngle);
-    expect(buyShip(trade, 'cutter')).toEqual({ ok: false, error: 'already-owned' });
-    expect(buyShip(trade, 'galleon')).toEqual({ ok: false, error: 'unknown-ship' });
+    expect(buyShip(trade, PHASE0_MAP, 'cutter')).toEqual({ ok: false, error: 'already-owned' });
+    expect(buyShip(trade, PHASE0_MAP, 'galleon')).toEqual({ ok: false, error: 'unknown-ship' });
 
     // Back to the sloop only if the cargo fits in it.
     trade.captain.cargo.timber = 12;
-    expect(switchShip(trade, 'sloop')).toEqual({ ok: false, error: 'cargo-too-big' });
+    expect(switchShip(trade, PHASE0_MAP, 'sloop')).toEqual({ ok: false, error: 'cargo-too-big' });
     trade.captain.cargo.timber = 4;
-    expect(switchShip(trade, 'sloop').ok).toBe(true);
+    expect(switchShip(trade, PHASE0_MAP, 'sloop').ok).toBe(true);
     expect(trade.captain.activeShip).toBe('sloop');
   });
 });
@@ -263,10 +266,10 @@ describe('save and load', () => {
   it('round-trips progress through storage', () => {
     const storage = new MemoryStorage();
     const world = newWorld();
-    const trade = dock(world, 'calda');
+    const trade = dock(world, 'saltmere');
     trade.captain.gold = 5000;
-    buyShip(trade, 'cutter');
-    buyUpgrade(trade, 'hull');
+    buyShip(trade, PHASE0_MAP, 'cutter');
+    buyUpgrade(trade, PHASE0_MAP, 'hull');
     buy(trade, 'timber', 5);
     world.boat.x = 12;
     world.boat.y = -34;

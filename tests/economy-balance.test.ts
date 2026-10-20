@@ -7,6 +7,7 @@ import { damageHull, repairHull } from '../src/sim/hazards';
 import { quoteBuy, quoteSell, stepMarket } from '../src/sim/market';
 import { DEG } from '../src/sim/math';
 import { createRng } from '../src/sim/rng';
+import { homePort } from '../src/sim/shipyards';
 import { CUTTER, SLOOP, type ShipClass, polarFraction } from '../src/sim/ship';
 import {
   type TradeState,
@@ -30,6 +31,10 @@ import { createWorld } from '../src/sim/world';
  */
 
 const MAP = PHASE1_MAP;
+/** The four charted ports: the hidden shipwright yards stay out of a first session (decision 0048). */
+const PORTS = MAP.ports.filter((p) => !p.hidden);
+/** Upgrades and the cutter are bought only at the home port, Saltmere (decision 0048). */
+const HOME = homePort(MAP).id;
 const DOCK_SECONDS = 20;
 /** Wind from the map's prevailing direction, ±50° and ×0.8–1.1 as the weather shifts (0026). */
 const WEATHERS = Array.from({ length: 11 }, (_, i) => (i - 5) * 10).flatMap((off) =>
@@ -77,7 +82,7 @@ function legOptions(trade: TradeState, from: string, contracts: boolean): Leg[] 
   const ship = effectiveShip(activeShip(trade), trade.captain.ships[trade.captain.activeShip]!);
   const here = trade.markets[from]!;
   const legs: Leg[] = [];
-  for (const dest of MAP.ports) {
+  for (const dest of PORTS) {
     if (dest.id === from) continue;
     const seconds = legSeconds(ship, from, dest.id) + DOCK_SECONDS;
     const there = trade.markets[dest.id]!;
@@ -140,7 +145,7 @@ function sail(opts: { contracts: boolean; relaxed: boolean; minutes?: number }):
     legs: 0,
     routes: {},
   };
-  let at = MAP.ports[1]!.id;
+  let at = HOME;
   let t = 0;
   let next = 0;
   while (t < minutes * 60) {
@@ -157,8 +162,8 @@ function sail(opts: { contracts: boolean; relaxed: boolean; minutes?: number }):
     sellAll(trade);
     v.marketGold += trade.captain.gold - before;
 
-    // Shop in a fixed order, keeping a little gold back for the next load.
-    while (next < SHOPPING.length) {
+    // Shop in a fixed order at the home port, keeping a little gold back for the next load.
+    while (at === HOME && next < SHOPPING.length) {
       const item = SHOPPING[next]!;
       const ship = trade.captain.activeShip;
       const price =
@@ -170,7 +175,8 @@ function sail(opts: { contracts: boolean; relaxed: boolean; minutes?: number }):
         continue;
       }
       if (trade.captain.gold < price + 80) break;
-      const ok = item === 'cutter' ? buyShip(trade, 'cutter').ok : buyUpgrade(trade, item).ok;
+      const ok =
+        item === 'cutter' ? buyShip(trade, MAP, 'cutter').ok : buyUpgrade(trade, MAP, item).ok;
       expect(ok).toBe(true);
       const name = item === 'cutter' ? 'cutter' : `${ship} ${item}`;
       v.bought[name] ??= t / 60;
@@ -178,7 +184,17 @@ function sail(opts: { contracts: boolean; relaxed: boolean; minutes?: number }):
       next++;
     }
 
-    const options = legOptions(trade, at, opts.contracts);
+    // With gold for the next purchase, head home to spend it (shipyard only there, 0048).
+    const item = SHOPPING[next];
+    const want =
+      item === undefined
+        ? null
+        : item === 'cutter'
+          ? CUTTER.price
+          : upgradePrice(activeShip(trade), trade.captain.ships[trade.captain.activeShip]!, item);
+    const goHome = at !== HOME && want !== null && trade.captain.gold >= want + 80;
+    const all = legOptions(trade, at, opts.contracts);
+    const options = goHome ? all.filter((o) => o.to === HOME) : all;
     let leg = options[0]!;
     if (opts.relaxed) {
       const paying = options.filter((o) => o.gain > 0).slice(0, 3);
@@ -217,8 +233,8 @@ describe('economy balance (0046)', () => {
   report('relaxed captain', relaxed);
 
   it('legs between ports take about a minute', () => {
-    for (const a of MAP.ports)
-      for (const b of MAP.ports) {
+    for (const a of PORTS)
+      for (const b of PORTS) {
         if (a === b) continue;
         const s = legSeconds(SLOOP, a.id, b.id);
         expect(s).toBeGreaterThan(30);

@@ -4,6 +4,7 @@ import { resolveCollisions } from './collision';
 import { GOODS, type GoodAmounts, emptyAmounts } from './goods';
 import { wrapPositive } from './math';
 import { SHIP_CLASSES } from './ship';
+import { type ShipyardProgress, readProgress } from './shipyards';
 import { activeShip, findPort } from './trade';
 import { MAX_UPGRADE_LEVEL, UPGRADE_TRACKS, type UpgradeLevels, hullDurability } from './upgrades';
 import type { World } from './world';
@@ -34,6 +35,8 @@ export interface SaveData {
   markets: Record<string, GoodAmounts>;
   /** Delivery orders (decision 0028). Optional: older saves get fresh orders. */
   contracts?: ContractState;
+  /** Discovered ports and shipwright standing (decision 0048). Optional: older saves start fresh. */
+  progress?: ShipyardProgress;
 }
 
 /** The subset of the Web Storage API the save needs. */
@@ -59,6 +62,7 @@ export function serializeWorld(world: World): SaveData {
     dockedAt,
     markets: stocks,
     contracts: structuredClone(world.trade.contracts),
+    progress: structuredClone(world.trade.progress),
   };
 }
 
@@ -146,6 +150,7 @@ export function validateSave(raw: unknown, world: World): SaveData | null {
     dockedAt: dockedAt as string | null,
     markets,
     contracts: readContracts(raw.contracts, world.map),
+    progress: readProgress(raw.progress, world.map),
   };
 }
 
@@ -169,6 +174,7 @@ export function applySave(world: World, data: SaveData): void {
   }
   trade.dockedAt = data.dockedAt;
   if (data.contracts) trade.contracts = readContracts(data.contracts, world.map);
+  trade.progress = readProgress(data.progress, world.map);
   world.ship = activeShip(trade);
   // Compatible older-map saves keep all trading progress. The coasts and ports have moved since
   // (decision 0031), so they resume at the known-clear spawn; so does a save whose position a

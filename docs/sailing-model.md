@@ -18,7 +18,7 @@ How boats move in Fair Winds Trading, and which numbers to change to tune the fe
 
 ## Hazards (`src/sim/hazards.ts`, [0032](decisions/0032-reef-strikes-and-shallows.md), [0038](decisions/0038-hull-damage-from-any-crash.md))
 
-- Within 14 units of a reef the hull drags: up to 0.6/s extra braking × the ship's `draft` (sloop 0.7, cutter 1).
+- Within 14 units of a reef the hull drags: up to 0.6/s extra braking × the ship's `draft` (sloop 0.7, cutter 1, up to 1.8 for the indiaman).
 - Striking a reef takes 6 hull points per knot lost; a damaged hull sails up to 25 % slower until repaired.
 - Ramming a rocky shore or a pier takes 5 hull points per knot lost beyond a free 2-knot bump; sandbanks and the sea's edge are soft ([0038](decisions/0038-hull-damage-from-any-crash.md)). Piers are solid segments out to the pier head.
 

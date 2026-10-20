@@ -13,7 +13,7 @@ Each port has one main production ([0029](decisions/0029-one-main-production-per
 | Westholm | westholm | grain | stone, fish |
 | Stonehaven | south-cay | stone | grain, timber |
 
-Ports live in the map data (`src/data/phase1-map.json` for trading) under `ports`; any island can host one. Every port trades every good: its role only sets where the stock settles.
+Ports live in the map data (`src/data/phase1-map.json` for trading) under `ports`; any island can host one. Every port trades every good: its role only sets where the stock settles. A port can list ship classes it `builds` and start `hidden` until discovered ([0048](decisions/0048-ship-unlocks-home-port-and-yards.md)); the map's `homePort` is where upgrades and ship changes happen.
 
 ## Prices
 
@@ -71,12 +71,20 @@ No single route may take more than 30 % of the sharp captain's legs, so wind shi
 
 ## Ships and upgrades
 
-| | Sloop | Cutter |
-|---|---|---|
-| Price | starter | 1 500 |
-| Hold (stock / L2 / L3) | 10 / 16 / 22 | 16 / 26 / 35 |
-| No-go zone | 45° | 40° |
-| Upgrade price (L2 / L3, each track) | 300 / 900 | 500 / 1 800 |
+Ship lines from [0035](decisions/0035-three-ship-lines.md); where they are built and what unlocks them from [0048](decisions/0048-ship-unlocks-home-port-and-yards.md). Upgrades and switching ships happen only at the home port (Saltmere).
+
+| | Sloop | Cutter | Schooner | Clipper | Hoy | Fluyt | Indiaman |
+|---|---|---|---|---|---|---|---|
+| Line · tier | starter | swift 1 | swift 2 | swift 3 | hauler 1 | hauler 2 | hauler 3 |
+| Built at | starter | Saltmere (home) | Watchman Key | Watchman Key | Abbey Head | Abbey Head | Abbey Head |
+| Orders delivered there to unlock | – | 0 | 3 | 6 | 1 | 3 | 6 |
+| Price | starter | 1 500 | 5 000 | 20 000 | 1 800 | 7 000 | 25 000 |
+| Hold (stock) | 10 | 16 | 30 | 50 | 25 | 60 | 120 |
+| No-go zone | 45° | 40° | 38° | 40° | 50° | 55° | 55° |
+| Top speed vs sloop | 100 % | 106 % | 125 % | 145 % | 85 % | 81 % | 85 % |
+| Upgrade price (L2 / L3, each track) | 300 / 900 | 500 / 1 800 | 1 500 / 4 500 | 5 000 / 15 000 | 700 / 2 100 | 2 000 / 6 000 | 6 000 / 18 000 |
+
+Hold upgrades multiply the stock hold by 1.6 and 2.2 (sloop 10 / 16 / 22, cutter 16 / 26 / 35).
 
 | Track | Level 2 | Level 3 |
 |---|---|---|
@@ -92,10 +100,11 @@ All functions take `world.trade` and work only while docked (`world.trade.docked
 
 - `buy(trade, good, qty)`, `sell(trade, good, qty)`, `sellAll(trade)`: all or nothing; return `{ ok: true, gold }` or `{ ok: false, error }`.
 - `maxBuy(trade, good)`, `quoteBuy(market, good, qty)`, `quoteSell(market, good, qty)`, `unitBuyPrice` / `unitSellPrice`: for showing prices before trading.
-- `buyUpgrade(trade, track)`, `upgradePrice(class, levels, track)`, `buyShip(trade, 'cutter')`, `switchShip(trade, id)`.
+- `buyUpgrade(trade, map, track)`, `upgradePrice(class, levels, track)`, `buyShip(trade, map, 'cutter')`, `switchShip(trade, map, id)`: upgrades and switching at the home port, ships at their yard.
+- `shipOffers(trade, map)`, `shipOffer(trade, map, id)`, `homePort(map)`, `discoveredPorts(map, trade)` (`src/sim/shipyards.ts`): what each class needs, and which ports are on the chart.
 - `repairHull(trade)`, `repairPrice(trade)`, `hullCondition(trade)`: hull repair after reef strikes ([0032](decisions/0032-reef-strikes-and-shallows.md)).
 - `deliverContract(trade, map)`, `openContracts(trade.contracts)`: delivery orders.
-- `stepWorld` returns `{ type: 'docked' | 'undocked', portId }` events.
+- `stepWorld` returns `{ type: 'docked' | 'undocked' | 'discovered', portId }` events.
 
 In the browser, open the game with `?debug` and use `fwt.trade.buy(fwt.world.trade, 'stone', 5)` and friends from the console; `fwt.newGame()` wipes the save.
 
