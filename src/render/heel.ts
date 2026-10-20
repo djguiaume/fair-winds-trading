@@ -6,10 +6,11 @@ import { DEG, clamp } from '../sim/math';
  * changes the simulation, so speed and controls are the same with or without it.
  */
 
-/** Heel of a stock sloop with full sails on a beam reach in the maps' 14 kn breeze. */
-export const BASE_HEEL = 11 * DEG;
+/** Heel of a stock sloop with full sails on a beam reach in the maps' 14 kn breeze: about 1.3× a real
+ * small sloop, so the lean still reads from the high camera (Guillaume, 2026-10-20). */
+export const BASE_HEEL = 14.3 * DEG;
 /** No hull ever leans past this, however strong the wind. */
-export const MAX_HEEL = 18 * DEG;
+export const MAX_HEEL = 23 * DEG;
 /** Wind speed that gives BASE_HEEL. */
 const REFERENCE_KN = 14;
 
