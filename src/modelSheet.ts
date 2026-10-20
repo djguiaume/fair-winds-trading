@@ -3,7 +3,7 @@
  * the art (decision 0016) and checking triangle and draw-call counts on a real device.
  * ?view=boats shows the sloop at each upgrade level and the cutter; ?view=lines the starter and
  * the swift and hauler lines (decision 0035); ?view=islands the four producer islands at the game
- * camera's angle. ?view=sloop&level=3&quality=low inspects the refined sloop (or view=cutter / view=schooner) with the game's
+ * camera's angle. ?view=sloop&level=3&quality=low inspects the refined sloop (or view=cutter / view=schooner / view=clipper) with the game's
  * three quality profiles; independent hull/hold/sails=1..3, yaw degrees, sail=0..1 and signed boom degrees exercise its attachment pivots.
  */
 import * as THREE from 'three';
@@ -16,10 +16,11 @@ import { DEG } from './sim/math';
 
 const params = new URLSearchParams(location.search);
 const view =
-  (['islands', 'lines', 'sloop', 'cutter', 'schooner'] as const).find(
+  (['islands', 'lines', 'sloop', 'cutter', 'schooner', 'clipper'] as const).find(
     (v) => v === params.get('view'),
   ) ?? 'boats';
-const inspectBoat = view === 'sloop' || view === 'cutter' || view === 'schooner';
+const inspectBoat =
+  view === 'sloop' || view === 'cutter' || view === 'schooner' || view === 'clipper';
 const quality: QualityLevel =
   (['low', 'medium', 'high'] as const).find((q) => q === params.get('quality')) ??
   (params.has('low') ? 'low' : 'high');
@@ -84,8 +85,8 @@ if (inspectBoat) {
   boats[0]!.setLowDetail?.(low);
   camera.position.set(
     0,
-    view === 'schooner' ? 30 : view === 'cutter' ? 26 : 22,
-    view === 'schooner' ? 54 : view === 'cutter' ? 45 : 38,
+    view === 'clipper' ? 34 : view === 'schooner' ? 30 : view === 'cutter' ? 26 : 22,
+    view === 'clipper' ? 63 : view === 'schooner' ? 54 : view === 'cutter' ? 45 : 38,
   );
   camera.lookAt(0, 5, 0);
 } else if (view === 'boats') {
