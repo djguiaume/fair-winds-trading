@@ -62,5 +62,6 @@
 | [0053](0053-distinct-cutter-hull.md) | Independently shaped cutter hull: fine bow, broad flat transom and V bottom; sloop geometry and attached rigs retained | 2026-10-20 | Implementation for review |
 
 | [0054](0054-refined-upgrade-aware-schooner.md) | Refined schooner: independent long hull, two attached gaff rigs and separate jib stays, all upgrades and tablet qualities | 2026-10-20 | Implementation for review |
+| [0055](0055-smooth-port-labels-and-stable-bearings.md) | Per-frame composited pier markers and destination arrows that remain correct behind the camera | 2026-10-20 | Implementation for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

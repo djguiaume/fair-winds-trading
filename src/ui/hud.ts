@@ -11,6 +11,7 @@ import type { ScreenPoint } from '../render/view';
 import { GOODS } from '../sim/goods';
 import { capacity, cargoUsed, findPort } from '../sim/trade';
 import { PortLabels } from './portLabels';
+import { screenBearing } from './screenBearing';
 import { formatNumber, goodName, t } from '../i18n';
 
 const POINT_OF_SAIL_TONE: Record<PointOfSail, '' | 'good' | 'bad'> = {
@@ -98,7 +99,6 @@ export class Hud {
 
   private toastTimer = 0;
   private sinceText = 1;
-  private sincePortLabels = 1;
   private ironsTime = 0;
   private noGoAngle = -1;
   private readonly compass = $('wind-compass');
@@ -337,6 +337,10 @@ export class Hud {
     this.cWp.style.display = wp ? '' : 'none';
     this.objective.hidden = !wp;
     if (wp) rot(this.cWp, bearingTo(boat, wp));
+    const targetAngle = wp ? screenBearing(project, boat, wp) : 0;
+    if (wp) this.objArrow.style.transform = `rotate(${targetAngle}rad)`;
+    const targetName = wp?.label ?? '';
+    if (this.objName.textContent !== targetName) this.objName.textContent = targetName;
 
     const twa = trueWindAngle(boat.heading, wind);
     const irons = Math.abs(twa) < ship.noGoAngle;
@@ -371,15 +375,7 @@ export class Hud {
       this.pos.textContent = boat.sailStep === 0 ? t('hud.sailsDown') : t(`pos.${p}`);
       this.pos.className = `pos ${boat.sailStep === 0 ? '' : POINT_OF_SAIL_TONE[p]}`;
       if (this.leverDrag === null) this.showSail(boat.sailStep);
-      this.objName.textContent = wp?.label ?? '';
       this.objDist.textContent = wp ? t('unit.metres', { n: Math.round(distance(boat, wp)) }) : '';
-      if (wp) {
-        // Point the chip's arrow the way the destination lies on screen.
-        const a = project(boat.x, boat.y);
-        const b = project(wp.x, wp.y);
-        const ang = Math.atan2(b.x - a.x, a.y - b.y);
-        if (Number.isFinite(ang)) this.objArrow.style.transform = `rotate(${ang.toFixed(2)}rad)`;
-      }
       const fromDir = compassPoint(wind.from);
       // Name the lee so a sudden drop in speed reads as the island, not a bug (decision 0027).
       const lee = this.world.shelter > 0.25 ? ` · ${t('hud.lee')}` : '';
@@ -419,11 +415,7 @@ export class Hud {
       this.hullBar.style.transform = `translate(${b.x.toFixed(0)}px, ${(b.y - 52).toFixed(0)}px)`;
     }
 
-    this.sincePortLabels += dt;
-    if (this.sincePortLabels >= 0.1) {
-      this.sincePortLabels = 0;
-      this.portLabels.update(project);
-    }
+    this.portLabels.update(project, dt);
 
     // Arrow at the screen edge when the buoy is off-screen.
     const s = wp ? project(wp.x, wp.y) : null;
@@ -431,18 +423,15 @@ export class Hud {
     if (s && !s.onScreen) {
       const cx = size.w / 2;
       const cy = size.h / 2;
-      const b = project(boat.x, boat.y);
-      let dx = s.x - b.x;
-      let dy = s.y - b.y;
-      if (!Number.isFinite(dx) || !Number.isFinite(dy)) [dx, dy] = [0, -1];
+      const dx = Math.sin(targetAngle);
+      const dy = -Math.cos(targetAngle);
       const margin = 34;
       const k = Math.min(
         (cx - margin) / Math.abs(dx || 1e-6),
         (cy - margin - 60) / Math.abs(dy || 1e-6),
       );
-      const ang = Math.atan2(dx, -dy);
       this.wpArrow.style.transform = `translate(${cx + dx * k}px, ${cy + dy * k}px)`;
-      (this.wpArrow.firstElementChild as HTMLElement).style.transform = `rotate(${ang}rad)`;
+      (this.wpArrow.firstElementChild as HTMLElement).style.transform = `rotate(${targetAngle}rad)`;
     }
 
     if (this.toastTimer > 0) {

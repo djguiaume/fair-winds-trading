@@ -80,3 +80,60 @@ describe('Sea HUD (decision 0049)', () => {
     expect(input.takeSailTarget()).toBeNull();
   });
 });
+
+describe('responsive overlay updates', () => {
+  it('switches both arrows and the name together on the first frame after selecting another target', () => {
+    const { world, hud } = setup();
+    Object.assign(world.boat, { x: 0, y: 0 });
+    const project = (x: number, y: number) => ({
+      x: 400 + x,
+      y: 300 - y,
+      onScreen: Math.abs(y) < 100,
+    });
+    world.destination = { x: 0, y: 300, portId: '', label: 'Previous target' };
+    hud.update(0.2, project, size);
+    world.destination = { x: 0, y: -300, portId: 'watchman', label: 'Watchman Key' };
+    // Less than the text throttle; target selection must still be immediate.
+    hud.update(1 / 60, project, size);
+    expect($('obj-name').textContent).toBe('Watchman Key');
+    expect($('obj-arrow').style.transform).toBe(`rotate(${Math.PI}rad)`);
+    expect(($('wp-arrow').firstElementChild as HTMLElement).style.transform).toBe(
+      `rotate(${Math.PI}rad)`,
+    );
+    expect($('wp-arrow').hidden).toBe(false);
+    world.destination = null;
+    hud.update(1 / 60, project, size);
+    expect($('navigation-target').hidden).toBe(true);
+    expect($('wp-arrow').hidden).toBe(true);
+  });
+
+  it('moves pier labels on consecutive frames without rewriting unchanged content', () => {
+    const { world, hud } = setup();
+    const port = world.map.ports[0]!;
+    const island = world.map.islands.find((i) => i.id === port.islandId)!;
+    Object.assign(world.boat, { x: island.x + island.radius + 50, y: island.y });
+    let x = 400;
+    const project = () => ({ x, y: 300, onScreen: true });
+    hud.update(0.2, project, size);
+    const marker = document.querySelector<HTMLElement>(`[data-port-id="${port.id}"]`)!;
+    expect(marker.hidden).toBe(false);
+    const first = marker.style.transform;
+    const observer = new MutationObserver(() => {});
+    observer.observe(marker, {
+      attributes: true,
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+    x += 0.5;
+    hud.update(1 / 60, project, size);
+    expect(marker.style.transform).not.toBe(first);
+    const mutations = observer.takeRecords();
+    expect(mutations.length).toBeGreaterThan(0);
+    expect(mutations.every((m) => m.target === marker && m.attributeName === 'style')).toBe(true);
+    observer.disconnect();
+    hud.portLabels.mode = 'off';
+    hud.update(1 / 60, project, size);
+    expect(marker.hidden).toBe(true);
+  });
+});

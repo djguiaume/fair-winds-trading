@@ -1,0 +1,104 @@
+{
+  "errors": [],
+  "results": [
+    {
+      "quality": "low",
+      "visibleMarkers": 1,
+      "motion": {
+        "before": "translate3d(470.34px, 441.51px, 0px) translate(-50%, -100%)",
+        "after": "translate3d(469.43px, 441.51px, 0px) translate(-50%, -100%)",
+        "willChange": "transform",
+        "contain": "layout style"
+      },
+      "bearing": {
+        "target": {
+          "x": 133.9373544297087,
+          "y": -331.64888239688923
+        },
+        "name": "Watchman Key",
+        "rotation": -2.76305,
+        "pointsSouth": true,
+        "edgeVisible": true,
+        "edgeRotation": "rotate(-2.76305rad)",
+        "originalProjection": {
+          "x": 3166.625346756142,
+          "y": -6002.47927523436,
+          "onScreen": false
+        },
+        "boatProjection": {
+          "x": 640.0000000305092,
+          "y": 350.3209613147862,
+          "onScreen": true
+        },
+        "calls": 11,
+        "triangles": 32543
+      }
+    },
+    {
+      "quality": "medium",
+      "visibleMarkers": 1,
+      "motion": {
+        "before": "translate3d(470.34px, 441.51px, 0px) translate(-50%, -100%)",
+        "after": "translate3d(468.31px, 441.51px, 0px) translate(-50%, -100%)",
+        "willChange": "transform",
+        "contain": "layout style"
+      },
+      "bearing": {
+        "target": {
+          "x": 133.9373544297087,
+          "y": -331.64888239688923
+        },
+        "name": "Watchman Key",
+        "rotation": -2.76305,
+        "pointsSouth": true,
+        "edgeVisible": true,
+        "edgeRotation": "rotate(-2.76305rad)",
+        "originalProjection": {
+          "x": 3166.6253467584274,
+          "y": -6002.479275217989,
+          "onScreen": false
+        },
+        "boatProjection": {
+          "x": 640.0000000269088,
+          "y": 350.32096131655976,
+          "onScreen": true
+        },
+        "calls": 12,
+        "triangles": 40831
+      }
+    },
+    {
+      "quality": "high",
+      "visibleMarkers": 1,
+      "motion": {
+        "before": "translate3d(470.34px, 441.51px, 0px) translate(-50%, -100%)",
+        "after": "translate3d(468.31px, 441.51px, 0px) translate(-50%, -100%)",
+        "willChange": "transform",
+        "contain": "layout style"
+      },
+      "bearing": {
+        "target": {
+          "x": 133.9373544297087,
+          "y": -331.64888239688923
+        },
+        "name": "Watchman Key",
+        "rotation": -2.76305,
+        "pointsSouth": true,
+        "edgeVisible": true,
+        "edgeRotation": "rotate(-2.76305rad)",
+        "originalProjection": {
+          "x": 3166.6253467584274,
+          "y": -6002.479275217989,
+          "onScreen": false
+        },
+        "boatProjection": {
+          "x": 640.0000000269088,
+          "y": 350.32096131655976,
+          "onScreen": true
+        },
+        "calls": 18,
+        "triangles": 73940
+      }
+    }
+  ]
+}

@@ -505,6 +505,8 @@ button.captain-stat:focus-visible {
   pointer-events: none;
 }
 .port-marker {
+  will-change: transform;
+  contain: layout style;
   position: absolute;
   top: 0;
   left: 0;

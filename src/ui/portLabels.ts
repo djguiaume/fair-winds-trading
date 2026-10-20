@@ -28,6 +28,8 @@ export class PortLabels {
     }
   > = new Map();
 
+  private sinceContent = 1;
+
   mode: PortMarkerMode = 'approach';
   isKidMode = false;
   onPortClick: (portId: string) => void = () => {};
@@ -107,10 +109,13 @@ export class PortLabels {
     }
   }
 
-  update(project: (x: number, y: number) => ScreenPoint) {
+  update(project: (x: number, y: number) => ScreenPoint, dt = 0.12) {
+    this.sinceContent += dt;
+    const refreshContent = this.sinceContent >= 0.12;
+    if (refreshContent) this.sinceContent = 0;
     if (this.mode === 'off') {
       for (const entry of this.portElements.values()) {
-        entry.root.hidden = true;
+        if (!entry.root.hidden) entry.root.hidden = true;
       }
       return;
     }
@@ -124,7 +129,7 @@ export class PortLabels {
       if (!entry) continue;
 
       if (!isDiscovered(trade, port.id)) {
-        entry.root.hidden = true;
+        if (!entry.root.hidden) entry.root.hidden = true;
         continue;
       }
       const distToShore = distanceToPort(map, boat, port);
@@ -144,47 +149,55 @@ export class PortLabels {
       }
 
       if (!shouldShow) {
-        entry.root.hidden = true;
+        if (!entry.root.hidden) entry.root.hidden = true;
         continue;
       }
 
-      const canDock = distToShore <= DOCK_RANGE && boat.speedKn < DOCK_SPEED_KN;
-      const cue = isDocked
-        ? t('port.cueDocked')
-        : canDock
-          ? t('port.cueCanDock')
-          : distToShore <= DOCK_RANGE
-            ? t(boat.sailStep > 0 ? 'port.cueLowerSails' : 'port.cueSlowDown')
-            : distToShore <= DOCK_RANGE + 12
-              ? t('port.cueCloser')
-              : t('port.cueTrading');
-      if (entry.cue.textContent !== cue) entry.cue.textContent = cue;
-      // A brass Dock (or Trade, once moored) button replaces the cue when it is one tap away.
-      const ready = canDock || isDocked;
-      entry.cue.hidden = ready;
-      entry.dock.hidden = !ready;
-      if (ready) {
-        const label = t(isDocked ? 'port.tradeBtn' : 'port.dockBtn');
-        const text = entry.dock.lastElementChild!;
-        if (text.textContent !== label) text.textContent = label;
-      }
-      // What the port pays today for the goods it wants.
-      const market = trade.markets[port.id];
-      for (const p of entry.prices) {
-        const price = market ? String(unitSellPrice(p.good, market.stock[p.good])) : '';
-        if (p.el.textContent !== price) p.el.textContent = price;
-      }
-      entry.root.classList.toggle('ready', ready);
-      entry.root.setAttribute('aria-label', `${port.name}: ${cue}`);
       const s = project(entry.anchor.x, entry.anchor.y);
       if (s.onScreen) {
-        entry.root.hidden = false;
-        entry.root.classList.toggle('docked', isDocked);
-        // The sign stands on its pier: bottom centre of the sign at the anchor point.
-        entry.root.style.transform = `translate(${s.x.toFixed(0)}px, ${s.y.toFixed(0)}px) translate(-50%, -100%)`;
+        // Only content is throttled. Pier motion follows the rendered camera every frame.
+        if (refreshContent || entry.root.hidden) {
+          const canDock = distToShore <= DOCK_RANGE && boat.speedKn < DOCK_SPEED_KN;
+          const cue = isDocked
+            ? t('port.cueDocked')
+            : canDock
+              ? t('port.cueCanDock')
+              : distToShore <= DOCK_RANGE
+                ? t(boat.sailStep > 0 ? 'port.cueLowerSails' : 'port.cueSlowDown')
+                : distToShore <= DOCK_RANGE + 12
+                  ? t('port.cueCloser')
+                  : t('port.cueTrading');
+          if (entry.cue.textContent !== cue) entry.cue.textContent = cue;
+          // A brass Dock (or Trade, once moored) button replaces the cue when it is one tap away.
+          const ready = canDock || isDocked;
+          entry.cue.hidden = ready;
+          entry.dock.hidden = !ready;
+          if (ready) {
+            const label = t(isDocked ? 'port.tradeBtn' : 'port.dockBtn');
+            const text = entry.dock.lastElementChild!;
+            if (text.textContent !== label) text.textContent = label;
+          }
+          // What the port pays today for the goods it wants.
+          const market = trade.markets[port.id];
+          for (const p of entry.prices) {
+            const price = market ? String(unitSellPrice(p.good, market.stock[p.good])) : '';
+            if (p.el.textContent !== price) p.el.textContent = price;
+          }
+          if (entry.root.classList.contains('ready') !== ready)
+            entry.root.classList.toggle('ready', ready);
+          const ariaLabel = `${port.name}: ${cue}`;
+          if (entry.root.getAttribute('aria-label') !== ariaLabel)
+            entry.root.setAttribute('aria-label', ariaLabel);
+        }
+        if (entry.root.hidden) entry.root.hidden = false;
+        if (entry.root.classList.contains('docked') !== isDocked)
+          entry.root.classList.toggle('docked', isDocked);
+        // Composite the existing sign rather than repainting its shadow and SVGs as it moves.
+        const transform = `translate3d(${s.x.toFixed(2)}px, ${s.y.toFixed(2)}px, 0) translate(-50%, -100%)`;
+        if (entry.root.style.transform !== transform) entry.root.style.transform = transform;
       } else {
         // Hide off-screen markers to avoid screen edge clutter
-        entry.root.hidden = true;
+        if (!entry.root.hidden) entry.root.hidden = true;
       }
     }
   }
