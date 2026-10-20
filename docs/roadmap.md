@@ -40,7 +40,7 @@ Goal: one boat on an empty ocean that is fun to steer.
 - Sailing model (arcade, [0007](decisions/0007-arcade-sailing-with-tacking.md)): speed depends on angle to the wind; heading into the no-go zone (~45° either side of the wind) stalls the boat, so upwind means tacking. Sail trim is automatic.
 - Controls: steer left/right, raise/lower sails. Keyboard **and** touch from the start ([0006](decisions/0006-desktop-and-mobile.md)).
 - Performance baseline: smooth on an old tablet and a phone (quality setting, capped pixel ratio).
-- Wake trail and a simple speed readout. Upwind feedback stays on the compass: delayed pulse/chip and optional tap-to-open help, with a remembered first-use hint ([0020](decisions/0020-quiet-upwind-compass-help.md)).
+- Wake trail and a simple speed readout. Hull-sized bow foam and broken stern trails with distinct Low/Medium/High budgets are implemented for review ([0050](decisions/0050-tablet-friendly-ship-wakes.md)); ocean shading improvements remain separate. Upwind feedback stays on the compass: delayed pulse/chip and optional tap-to-open help, with a remembered first-use hint ([0020](decisions/0020-quiet-upwind-compass-help.md)).
 - A looping practice course of buoys (first leg upwind) remains in Phase 0 data/tests to judge whether tacking feels right. It is disabled in normal trading play as requested; player-facing guidance returns with the optional Phase 1 tutorial ([0024](decisions/0024-on-demand-chart-and-quiet-sandbox.md)).
 - Title menu (play, how to play, settings) and a fullscreen option, with an Add to Home Screen hint on iPhone.
 
