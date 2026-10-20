@@ -40,7 +40,7 @@ export const en = {
   'menu.exitFullscreen': 'Exit fullscreen',
   'menu.fsHint':
     'For fullscreen on iPhone, tap Share, then <b>Add to Home Screen</b>, and start the game from there.',
-  'menu.version': 'Trading & Shipyard · Phase 1 · Build',
+  'menu.version': 'Trading & Shipyard · Phase 1',
   'menu.language': 'Language',
 
   // --- How to play -----------------------------------------------------------------------------

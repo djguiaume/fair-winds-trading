@@ -545,6 +545,15 @@ body.in-menu .settings .in-game {
   font-size: 12px;
   opacity: 0.6;
 }
+/* Readable version first (decision 0042); the commit code stays small, for debugging. */
+.menu-version .app-version {
+  font-size: 14px;
+}
+.menu-version .build-revision {
+  margin-left: 6px;
+  font-size: 10px;
+  opacity: 0.75;
+}
 @media (max-height: 480px) {
   /* Phones in landscape: tighter title, two-column buttons. */
   .menu-title {
