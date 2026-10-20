@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createBoatModel } from '../src/render/models';
 import { RefinedSloop } from '../src/render/models/sloop';
 import { RefinedCutter } from '../src/render/models/cutter';
+import { STYLE_D } from '../src/render/models/boatStyle';
 import { QUALITY } from '../src/render/quality';
 import type { BoatPose, ShipUpgrades } from '../src/render/models/types';
 
@@ -34,6 +35,42 @@ describe('refined upgraded cutter', () => {
     cutter.dispose();
     sloop.dispose();
   });
+  it('has its own fine bow, wide flat transom and V bottom at every hull upgrade', () => {
+    for (const hull of [1, 2, 3] as const) {
+      const cutter = new RefinedCutter({ upgrades: { hull, hold: 1, sails: 1 } });
+      const sloop = new RefinedSloop({ upgrades: { hull, hold: 1, sails: 1 } });
+      const cp = mesh(cutter, 'CutterHull').geometry.getAttribute('position');
+      const sp = sloop.root.getObjectByName('SloopHull') as THREE.Mesh;
+      const positions = sp.geometry.getAttribute('position');
+      // Each outline station emits 42 vertices: deck, three shell bands, bottom, gunwale.
+      // Read the merged production geometry, normalized by each class's dimensions.
+      const deck = (
+        p: THREE.BufferAttribute | THREE.InterleavedBufferAttribute,
+        i: number,
+        length: number,
+        beam: number,
+      ) => new THREE.Vector2(p.getX(i * 42 + 1) / (beam * STYLE_D.B), p.getZ(i * 42 + 1) / length);
+      const bow = deck(cp, 1, 6.2, 2.1);
+      const sloopBow = deck(positions, 1, 5, 1.9);
+      expect(bow.x).toBeCloseTo(0.14);
+      expect(sloopBow.x).toBeCloseTo(0.23);
+      expect(bow.x).toBeLessThan(sloopBow.x);
+      // Both transom corners share a stern plane, but the cutter has a broad working stern.
+      const stern = deck(cp, 6, 6.2, 2.1);
+      const opposite = deck(cp, 7, 6.2, 2.1);
+      expect(stern.x).toBeCloseTo(0.38);
+      expect(opposite.x).toBeCloseTo(-0.38);
+      expect(stern.y).toBeCloseTo(-0.5);
+      expect(opposite.y).toBeCloseTo(stern.y);
+      expect(stern.x / deck(positions, 6, 5, 1.9).x).toBeGreaterThan(2);
+      // Actual bottom section is independently shaped too, not just a new deck outline.
+      expect(cp.getX(3 * 42 + 16) / cp.getX(3 * 42 + 1)).toBeCloseTo(0.06);
+      expect(positions.getX(3 * 42 + 16) / positions.getX(3 * 42 + 1)).toBeCloseTo(0.18);
+      cutter.dispose();
+      sloop.dispose();
+    }
+  });
+
   it('keeps both ends of EVERY upgraded jib on its own forestay while tacking, reefing and heeling', () => {
     for (const sails of [1, 2, 3] as const)
       for (const hold of [1, 2, 3] as const)

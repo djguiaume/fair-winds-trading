@@ -148,6 +148,7 @@ Timed delivery races between ports, alongside the sandbox rather than replacing 
 
 - Sound: waves, creaking hulls, sails, crashes, port music (the round-1 jig from [0045](decisions/0045-background-music.md) is a candidate). Background music is already in ([0045](decisions/0045-background-music.md)).
 - Ship cosmetics (sail colors, flags, figureheads).
+- Cutter visual refinement review ([0052](decisions/0052-refined-upgrade-aware-cutter.md), [0053](decisions/0053-distinct-cutter-hull.md)): independent fine-entry/transom/V-bottom hull, preserved upgrades and attached rigs; actual engine captures in draft PR #36. Later boat refinements must retain independently authored hull silhouettes and sections.
 - Achievements.
 - **Kids mode rework** (shelved in [0043](decisions/0043-shelve-kids-mode.md), code kept behind `KIDS_MODE_AVAILABLE`): rework controls, text and pacing so a child can actually sail and trade, on top of the redesigned UI, then show the switch again.
 - Possible later: online leaderboards or shared world (needs a backend; decide much later).

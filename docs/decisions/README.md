@@ -59,4 +59,6 @@
 | [0051](0051-refined-upgrade-aware-sloop.md) | Refined sloop with preserved upgrades, attached mainsail and per-jib forestay pivots; Low/Medium/High retained | 2026-10-20 | Implementation for review |
 | [0052](0052-refined-upgrade-aware-cutter.md) | Refined cutter with preserved proportions/upgrades, individual jib stays and hull-sized wake; three graphics profiles | 2026-10-20 | Implementation for review |
 
+| [0053](0053-distinct-cutter-hull.md) | Independently shaped cutter hull: fine bow, broad flat transom and V bottom; sloop geometry and attached rigs retained | 2026-10-20 | Implementation for review |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

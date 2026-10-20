@@ -6,7 +6,7 @@
 
 **Decision:**
 
-- Extract the sloop's construction into `RefinedBoat`; retain `RefinedSloop` and introduce `RefinedCutter` as dimension/palette definitions. The sloop's geometry and animation remain unchanged. Other ship classes retain the previous builder.
+- Extract the sloop's construction into `RefinedBoat`; retain `RefinedSloop` and introduce `RefinedCutter` as dimension/palette definitions (subsequently corrected to independent hull profiles in [0053](0053-distinct-cutter-hull.md)). The sloop's geometry and animation remain unchanged. Other ship classes retain the previous builder.
 - Preserve the cutter's 6.2 × 2.1 × 1 reference hull (13.64 × 4.851 m displayed length/beam), 6.4 reference mast height and aft-set mast at z=0.2. Use its brown timber, red class band/pennant/racing stripe, and its own 3.1 m boom and 2.4 m gaff. The rounded bilge, raised gunwales, hatch, rudder and tiller share the refined art language.
 - All 27 independent upgrades remain: hold 1/2/3 shows 3/5/8 cargo pieces, with barrels from hold 2; hull 2 adds red paint and hull 3 retains paint plus copper; sails 1 has patched canvas and two jibs, sails 2 has clean canvas and a third jib, sails 3 adds stripes and a topsail. No save, stats or sailing-rule changes.
 - Mainsail/boom turn at the mast gooseneck; lowering slides the gaff/throat down the mast without moving the tack. Each headsail rotates around its own head-to-tack inclined stay. Its luff stays fixed while lowering rolls the free edge inward. Cutter tacks lie on the solid bowsprit; a low inner staysail and narrower outer jibs give a distinct rig. Running sheet endpoints follow their moving clews. This is the sloop's inexpensive sail-handling approximation, not cloth physics.

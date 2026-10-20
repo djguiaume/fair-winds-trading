@@ -1,6 +1,6 @@
 # Refined cutter — actual engine screenshots
 
-Decision [0052](../../../decisions/0052-refined-upgrade-aware-cutter.md). Captured at 1280×720 from the real three.js model inspector and `GameView`; no generated artwork. The refined sloop references are [next door](../refined-sloop/README.md).
+Decisions [0053](../../../decisions/0053-distinct-cutter-hull.md) (independent hull correction) and [0052](../../../decisions/0052-refined-upgrade-aware-cutter.md). Captured at 1280×720 from the real three.js model inspector and `GameView`; no generated artwork. The refined sloop references are [next door](../refined-sloop/README.md).
 
 | State | Query after `models.html?view=cutter&still&` | Capture |
 |---|---|---|
@@ -10,6 +10,16 @@ Decision [0052](../../../decisions/0052-refined-upgrade-aware-cutter.md). Captur
 | Maximum upgrades, Low | `level=3&quality=low` | [level3-low.png](level3-low.png) |
 | Lowered sail, opposite tack | `level=3&sail=0.35&boom=-45&quality=medium` | [level3-reefed.png](level3-reefed.png) |
 | Independent upgrades: stock sails, hold 2, hull 3 | `level=1&hull=3&hold=2&sails=1&quality=medium` | [mixed-upgrades.png](mixed-upgrades.png) |
+
+## Distinct hull correction
+
+These captures replace the initial shared-outline cutter. The cutter now has an independently authored fine bow, aft-set maximum beam, broad flat transom and narrow V bottom. The sloop keeps its rounded stern and fuller bilge. All sail pivots and attachment positions remain unchanged.
+
+![Same-scale top-down hull inspection; sails and ropes hidden](hull-comparison.png)
+
+![Cutter stern inspection, full upgraded rig](level3-stern.png)
+
+The top-down comparison renders the actual production hull meshes at the same world scale, hiding sails and ropes to make their outlines visible; mast and cargo remain. The stern capture is `level=3&quality=high&yaw=-45`.
 
 ![Maximum upgrades](level3-high.png)
 

@@ -4,12 +4,44 @@ import { mergeAll, paint, triangleCount, vertexColorMaterial } from './geometry'
 import { STOCK_UPGRADES, type BoatModel, type BoatModelOptions, type BoatPose } from './types';
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
-/** Dimensions are authored per class, never a scaled copy of the starter boat. */
+/** Normalized hull sections, authored independently of rig dimensions and palette. */
+export interface HullShape {
+  outline: ReadonlyArray<readonly [number, number]>;
+  rings: ReadonlyArray<{ t: number; beam: number; length: number }>;
+}
+
+/** Rounded starter hull. Other classes supply their own silhouette and sections. */
+const SLOOP_HULL: HullShape = {
+  outline: [
+    [0, 0.5],
+    [0.23, 0.4],
+    [0.4, 0.23],
+    [0.5, 0],
+    [0.48, -0.25],
+    [0.34, -0.44],
+    [0.16, -0.5],
+    [-0.16, -0.5],
+    [-0.34, -0.44],
+    [-0.48, -0.25],
+    [-0.5, 0],
+    [-0.4, 0.23],
+    [-0.23, 0.4],
+  ],
+  rings: [
+    { t: 0, beam: 1, length: 1 },
+    { t: 0.25, beam: 1.01, length: 0.99 },
+    { t: 0.65, beam: 0.8, length: 0.93 },
+    { t: 1, beam: 0.18, length: 0.78 },
+  ],
+};
+
+/** Dimensions and hull sections are authored per class. */
 export interface RefinedRig {
   name: string;
   length: number;
   beam: number;
   depth: number;
+  hullShape?: HullShape;
   mastZ: number;
   mastHeight: number;
   band: string;
@@ -44,34 +76,16 @@ class Faces {
   }
 }
 
-/** Rounded stern, broad middle and pointed bow; several depth rings form a real bilge. */
+/** Class-specific deck outline and depth sections, with shared gunwale construction. */
 function hullGeometry(level: number, rig: RefinedRig) {
   const { length: L, band: BAND, hull: HULL } = rig;
   const B = rig.beam * ST.B;
   const H = rig.depth * ST.H;
   const DECK = H * 0.55;
   const deckAt = (z: number) => DECK + ST.sheer * (L / 5) ** 0.5 * (z / (L / 2)) ** 2;
-  const outline = [
-    [0, 0.5],
-    [0.23, 0.4],
-    [0.4, 0.23],
-    [0.5, 0],
-    [0.48, -0.25],
-    [0.34, -0.44],
-    [0.16, -0.5],
-    [-0.16, -0.5],
-    [-0.34, -0.44],
-    [-0.48, -0.25],
-    [-0.5, 0],
-    [-0.4, 0.23],
-    [-0.23, 0.4],
-  ].map(([x, z]) => V(x! * B, deckAt(z! * L), z! * L));
-  const rings = [
-    { t: 0, beam: 1, length: 1 },
-    { t: 0.25, beam: 1.01, length: 0.99 },
-    { t: 0.65, beam: 0.8, length: 0.93 },
-    { t: 1, beam: 0.18, length: 0.78 },
-  ].map(({ t, beam, length }) =>
+  const shape = rig.hullShape ?? SLOOP_HULL;
+  const outline = shape.outline.map(([x, z]) => V(x * B, deckAt(z * L), z * L));
+  const rings = shape.rings.map(({ t, beam, length }) =>
     outline.map((p) => V(p.x * beam, deckAt(p.z * length) - H * t, p.z * length)),
   );
   const f = new Faces();
