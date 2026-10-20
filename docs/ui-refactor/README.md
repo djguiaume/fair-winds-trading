@@ -196,4 +196,4 @@ CHART: full-screen map, ✕ top-right, good selector chips along the bottom colo
 1. **Numbers at sea:** keep speed in knots and point of sail **visible by default**, smaller than today, with a toggle to hide them. The players we target like sailing first.
 2. **Port:** full-screen.
 3. **Layouts:** phone landscape and desktop first; portrait must also work and look good.
-4. **Visual direction:** after seeing three styles, Guillaume chose C with B's icons and buttons, B's chart, and speed and point of sail moved away from the compass. The combined proposal is [style D](mockups/README.md#style-d-combined-proposal).
+4. **Visual direction:** after seeing three styles, Guillaume chose C with B's icons and buttons, B's chart, speed, heading and point of sail in a log at the top right beside the compass, and cargo shown as a count with a filling crate icon (no bar). The combined proposal is [style D](mockups/README.md#style-d-combined-proposal).

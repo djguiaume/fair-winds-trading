@@ -12,7 +12,8 @@ Guillaume agreed with the recommendation (C with B's icons and buttons), but ask
 
 - **From C:** the navy and brass panels, the condensed instrument font, the wind compass and the layout.
 - **From B:** full-colour goods icons, chunky buttons with a pressed edge (brass Buy, green Sell, red Repair and close), and the chart's teal sea with sand islands.
-- **Speed and point of sail:** now a separate **speed log** next to the sail lever at the bottom right, still visible by default with its hide toggle. It shows the result of the sail setting, so it sits beside it. On a portrait phone it sits just above the lever.
+- **Speed log at the top right**, left of the compass: speed in knots, heading (HDG 125° SE) and point of sail, visible by default with its hide toggle. Together with the compass it forms one instrument cluster.
+- **Cargo without a bar:** just the count (3/10) and a crate icon that fills up with the hold.
 
 All three styles use the **same layout and the same information**. Only the look changes. They are drawn over real captures of the game (the sea, Saltmere and the sloop), so the art style around them is the real one.
 
