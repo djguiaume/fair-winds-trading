@@ -3,8 +3,8 @@
  * the art (decision 0016) and checking triangle and draw-call counts on a real device.
  * ?view=boats shows the sloop at each upgrade level and the cutter; ?view=lines the starter and
  * the swift and hauler lines (decision 0035); ?view=islands the four producer islands at the game
- * camera's angle. ?view=sloop&level=3&quality=low inspects the refined sloop with the game's
- * three quality profiles; sail=0..1 and signed boom degrees exercise its attachment pivots.
+ * camera's angle. ?view=sloop&level=3&quality=low inspects the refined sloop (or view=cutter) with the game's
+ * three quality profiles; independent hull/hold/sails=1..3, yaw degrees, sail=0..1 and signed boom degrees exercise its attachment pivots.
  */
 import * as THREE from 'three';
 import { type BoatModel, type ShipUpgrades, buildIslands, createBoatModel } from './render/models';
@@ -16,7 +16,9 @@ import { DEG } from './sim/math';
 
 const params = new URLSearchParams(location.search);
 const view =
-  (['islands', 'lines', 'sloop'] as const).find((v) => v === params.get('view')) ?? 'boats';
+  (['islands', 'lines', 'sloop', 'cutter'] as const).find((v) => v === params.get('view')) ??
+  'boats';
+const inspectBoat = view === 'sloop' || view === 'cutter';
 const quality: QualityLevel =
   (['low', 'medium', 'high'] as const).find((q) => q === params.get('quality')) ??
   (params.has('low') ? 'low' : 'high');
@@ -24,11 +26,11 @@ const profile = QUALITY[quality];
 const canvas = document.getElementById('scene') as HTMLCanvasElement;
 const renderer = new THREE.WebGLRenderer({
   canvas,
-  antialias: view !== 'sloop' || quality === 'high',
+  antialias: !inspectBoat || quality === 'high',
   preserveDrawingBuffer: true,
 });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.shadowMap.enabled = view !== 'sloop' || profile.shadows;
+renderer.shadowMap.enabled = !inspectBoat || profile.shadows;
 renderer.shadowMap.type = THREE.PCFShadowMap;
 
 const scene = new THREE.Scene();
@@ -62,22 +64,24 @@ function addBoat(
 }
 
 let islandsForWater: MapDef['islands'] = [];
+const upgrade = (key: string, fallback: 1 | 2 | 3) =>
+  Math.max(1, Math.min(3, Number(params.get(key)) || fallback)) as 1 | 2 | 3;
 const L = (n: 1 | 2 | 3): ShipUpgrades => ({ sails: n, hold: n, hull: n });
-if (view === 'sloop') {
+if (inspectBoat) {
   const level = Math.max(1, Math.min(3, Number(params.get('level')) || 3)) as 1 | 2 | 3;
   const low = quality === 'low';
   document.getElementById('title')!.textContent =
-    `Refined sloop · level ${level} · ${quality} quality`;
+    `Refined ${view} · sails ${upgrade('sails', level)} / hold ${upgrade('hold', level)} / hull ${upgrade('hull', level)} · ${quality}`;
   addBoat(
-    'sloop',
-    L(level),
+    view,
+    { sails: upgrade('sails', level), hold: upgrade('hold', level), hull: upgrade('hull', level) },
     0,
     0,
-    -90 * DEG,
+    (Number(params.get('yaw')) || -90) * DEG,
     'Actual game model<small>hull, hold and sails upgrades preserved</small>',
   );
   boats[0]!.setLowDetail?.(low);
-  camera.position.set(0, 22, 38);
+  camera.position.set(0, view === 'cutter' ? 26 : 22, view === 'cutter' ? 45 : 38);
   camera.lookAt(0, 5, 0);
 } else if (view === 'boats') {
   document.getElementById('title')!.textContent = 'Boats · style D (Storybook classic)';
@@ -197,13 +201,13 @@ if (view === 'sloop') {
   camera.lookAt(0, 0, 0);
 }
 scene.traverse((o) => {
-  if ((o as THREE.Mesh).isMesh && view !== 'sloop') o.receiveShadow = true;
+  if ((o as THREE.Mesh).isMesh && !inspectBoat) o.receiveShadow = true;
 });
 
 const ocean = new Ocean(
   islandsForWater,
-  view === 'sloop' ? profile.oceanSegments : 140,
-  view === 'sloop' ? profile.fancyWater : true,
+  inspectBoat ? profile.oceanSegments : 140,
+  inspectBoat ? profile.fancyWater : true,
   600,
 );
 ocean.setFog(400, 700);
@@ -212,7 +216,7 @@ scene.add(ocean.mesh);
 function resize() {
   const w = innerWidth;
   const h = innerHeight;
-  if (view === 'sloop') renderer.setPixelRatio(renderPixelRatio(w, h, devicePixelRatio, profile));
+  if (inspectBoat) renderer.setPixelRatio(renderPixelRatio(w, h, devicePixelRatio, profile));
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
@@ -238,10 +242,8 @@ const clock = new THREE.Clock();
 renderer.setAnimationLoop(() => {
   const t = params.has('still') ? 3 : clock.getElapsedTime();
   const sail =
-    view === 'sloop' && params.has('sail')
-      ? Math.max(0, Math.min(1, Number(params.get('sail'))))
-      : 1;
-  const boom = view === 'sloop' && params.has('boom') ? Number(params.get('boom')) * DEG : 35 * DEG;
+    inspectBoat && params.has('sail') ? Math.max(0, Math.min(1, Number(params.get('sail')))) : 1;
+  const boom = inspectBoat && params.has('boom') ? Number(params.get('boom')) * DEG : 35 * DEG;
   for (const b of boats) {
     b.update({ sail, boomAngle: boom, luff: 0, heel: -6 * DEG, windRelative: 0.6, time: t });
   }
