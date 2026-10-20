@@ -126,3 +126,34 @@ describe('harbour UI with real trade state', () => {
     expect(loadSettings().uiMode).toBe('adult');
   });
 });
+
+describe('full-screen port (decision 0049)', () => {
+  it('buys and sells in lots, clamped to what the hold allows', () => {
+    const { world, panel, container, click } = setup();
+    world.trade.captain.gold = 10_000;
+    panel.open();
+    click('[data-lot="5"]');
+    click('[data-action="buy"][data-good="fish"]');
+    expect(world.trade.captain.cargo.fish).toBe(5);
+    click('[data-lot="10"]');
+    // Only 5 places left in a 10-place hold.
+    expect(
+      container.querySelector<HTMLButtonElement>('[data-action="buy"][data-good="fish"]')!.dataset
+        .qty,
+    ).toBe('5');
+    expect(
+      container.querySelector<HTMLButtonElement>('[data-action="sell"][data-good="fish"]')!.dataset
+        .qty,
+    ).toBe('5');
+    click('#tp-sell-all');
+    expect(world.trade.captain.cargo.fish).toBe(0);
+  });
+
+  it('counts open orders on the Orders tab and shows them there', () => {
+    const { panel, container, click } = setup();
+    panel.open();
+    expect(container.querySelector('#tp-tab-orders .tab-badge')).not.toBeNull();
+    click('#tp-tab-orders');
+    expect(container.querySelectorAll('.contract-list li').length).toBeGreaterThan(0);
+  });
+});

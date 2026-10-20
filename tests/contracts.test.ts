@@ -113,7 +113,8 @@ describe('delivery contracts (0028)', () => {
       const container = document.querySelector<HTMLElement>('#panel')!;
       const panel = new TradePanel(container, world);
       panel.uiMode = mode;
-      panel.open();
+      // Captain mode lists every order on its own tab (decision 0049); Kids mode keeps them on the market.
+      panel.open(mode === 'adult' ? 'orders' : 'market');
       const deliver = () => container.querySelector<HTMLButtonElement>('#tp-deliver')!;
       expect(deliver().disabled).toBe(true);
       const others = container.querySelectorAll('.contract-list li');
