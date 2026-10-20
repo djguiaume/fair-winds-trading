@@ -1,0 +1,161 @@
+{
+  "results": [
+    {
+      "name": "desktop",
+      "width": 1280,
+      "height": 720,
+      "quality": "medium",
+      "language": "en",
+      "idle": {
+        "mutations": 0,
+        "renders": 0,
+        "elapsedWorldTime": 0
+      },
+      "layout": {
+        "width": 1280,
+        "map": {
+          "x": 11,
+          "y": 65,
+          "width": 1258,
+          "height": 646,
+          "top": 65,
+          "right": 1269,
+          "bottom": 711,
+          "left": 11
+        },
+        "player": {
+          "x": 779.11669921875,
+          "y": 441.68341064453125,
+          "width": 36.26861572265625,
+          "height": 32.579071044921875,
+          "top": 441.68341064453125,
+          "right": 815.3853149414062,
+          "bottom": 474.2624816894531,
+          "left": 779.11669921875
+        },
+        "sheets": 0
+      },
+      "marketFits": true,
+      "zoomPlayerHeight": 32.579071044921875,
+      "touchAndMouseInteractions": true
+    },
+    {
+      "name": "tablet-fr",
+      "width": 1024,
+      "height": 768,
+      "quality": "low",
+      "language": "fr",
+      "idle": {
+        "mutations": 0,
+        "renders": 0,
+        "elapsedWorldTime": 0
+      },
+      "layout": {
+        "width": 1024,
+        "map": {
+          "x": 11,
+          "y": 65,
+          "width": 1002,
+          "height": 694,
+          "top": 65,
+          "right": 1013,
+          "bottom": 759,
+          "left": 11
+        },
+        "player": {
+          "x": 662.7544555664062,
+          "y": 470.85546875,
+          "width": 36.26861572265625,
+          "height": 32.579071044921875,
+          "top": 470.85546875,
+          "right": 699.0230712890625,
+          "bottom": 503.4345397949219,
+          "left": 662.7544555664062
+        },
+        "sheets": 0
+      },
+      "marketFits": true,
+      "zoomPlayerHeight": 32.579071044921875,
+      "touchAndMouseInteractions": true
+    },
+    {
+      "name": "phone-landscape-fr",
+      "width": 844,
+      "height": 390,
+      "quality": "low",
+      "language": "fr",
+      "idle": {
+        "mutations": 0,
+        "renders": 0,
+        "elapsedWorldTime": 0
+      },
+      "layout": {
+        "width": 844,
+        "map": {
+          "x": 11,
+          "y": 65,
+          "width": 822,
+          "height": 316,
+          "top": 65,
+          "right": 833,
+          "bottom": 381,
+          "left": 11
+        },
+        "player": {
+          "x": 481.1064147949219,
+          "y": 241.12362670898438,
+          "width": 36.268585205078125,
+          "height": 32.579071044921875,
+          "top": 241.12362670898438,
+          "right": 517.375,
+          "bottom": 273.70269775390625,
+          "left": 481.1064147949219
+        },
+        "sheets": 0
+      },
+      "marketFits": true,
+      "zoomPlayerHeight": 32.579071044921875,
+      "touchAndMouseInteractions": true
+    },
+    {
+      "name": "phone-portrait",
+      "width": 390,
+      "height": 844,
+      "quality": "high",
+      "language": "en",
+      "idle": {
+        "mutations": 0,
+        "renders": 0,
+        "elapsedWorldTime": 0
+      },
+      "layout": {
+        "width": 390,
+        "map": {
+          "x": 11,
+          "y": 65,
+          "width": 368,
+          "height": 770,
+          "top": 65,
+          "right": 379,
+          "bottom": 835,
+          "left": 11
+        },
+        "player": {
+          "x": 266.71929931640625,
+          "y": 473.73297119140625,
+          "width": 36.268585205078125,
+          "height": 32.579071044921875,
+          "top": 473.73297119140625,
+          "right": 302.9878845214844,
+          "bottom": 506.3120422363281,
+          "left": 266.71929931640625
+        },
+        "sheets": 0
+      },
+      "marketFits": true,
+      "zoomPlayerHeight": 32.5791015625,
+      "touchAndMouseInteractions": true
+    }
+  ],
+  "errors": []
+}
