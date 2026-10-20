@@ -91,7 +91,7 @@ Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 
 Goal: deliveries visibly change the world.
 
-- Settlements have a level and population; meeting demand levels them up (more buildings on the island, bigger dock).
+- Settlements have a level and population; meeting demand levels them up (more buildings on the island, bigger dock). Town visuals proposed in [0060](decisions/0060-growing-town-visuals.md): hamlet, village, town and port town on a waterfront shelf, with a stone quay and crane instead of a longer pier, so docking and collision stay the same.
 - Higher levels unlock new demands, including goods produced only on distant islands.
 - Demand decays if unmet, so neglected towns stall.
 - Simple production chains (timber → planks, grain → bread) at higher-level towns.

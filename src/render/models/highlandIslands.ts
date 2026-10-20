@@ -7,6 +7,7 @@ import { mergeAll, paint, vertexColorMaterial } from './geometry';
 import type { IslandsBuilder } from './types';
 import { landmarkParts } from './landmarks';
 import { coastDistance, insetOutline } from '../../sim/coast';
+import { type TownLevel, townParts } from './towns';
 
 /**
  * B2 "Bright highlands" islands (decision 0012), ported from the reference builder in
@@ -138,6 +139,7 @@ export function islandParts(
   map: MapDef,
   seed: number,
   onHarbour?: (point: { x: number; y: number }) => void,
+  level?: TownLevel,
 ): Parts {
   const rng = createRng(seed);
   const look = island.look ?? {};
@@ -152,6 +154,16 @@ export function islandParts(
     paint(slab(blobShape(rng, R * 1.1, 14, 0.2, sx, sz), 1.45, 0.85).translate(0, -1, 0), B2.sand),
   );
 
+  // A port with a settlement level (decision 0060) gets a low grass shelf on the harbour side for
+  // its town: the cliffs shrink and step back, the beach and collision outline stay as they were.
+  const town = level !== undefined && !!look.dock;
+  const SHELF_Y = 0.65;
+  const cliffK = town ? 0.74 : 1;
+  if (town) {
+    const shelf = slab(blobShape(rng, R * 0.9, 14, 0.12, sx, sz), SHELF_Y + 0.3, 0.97);
+    out.push(paint(shelf.translate(0, -0.3, R * 0.02), B2.grass));
+  }
+
   // Sandstone layers, each stepped back from the harbour so the dock side stays low.
   const layers = Math.max(
     1,
@@ -162,16 +174,17 @@ export function islandParts(
   );
   let y = 0;
   let ox = 0;
-  let oz = 0;
+  let oz = town ? -R * 0.3 : 0;
+  const cliffAt = { x: 0, z: oz };
   for (let i = 0; i < layers; i++) {
     const h = kind === 'stone' ? range(rng, 1.1, 1.5) : range(rng, 1.2, 1.8);
     ox += (rng() - 0.5) * R * 0.08;
     oz -= R * 0.05;
-    const layer = slab(blobShape(rng, R * (0.9 - i * 0.15), 11, 0.3, sx, sz), h, 0.9);
+    const layer = slab(blobShape(rng, R * (0.9 - i * 0.15) * cliffK, 11, 0.3, sx, sz), h, 0.9);
     out.push(paint(layer.translate(ox, y, oz), i % 2 ? B2.rock2 : B2.rock));
     y += h;
   }
-  const capR = R * (0.92 - layers * 0.15);
+  const capR = R * (0.92 - layers * 0.15) * cliffK;
   out.push(
     paint(slab(blobShape(rng, capR, 11, 0.2, sx, sz), 0.25, 0.95).translate(ox, y, oz), B2.grass),
   );
@@ -219,7 +232,8 @@ export function islandParts(
     }
   }
 
-  const houses = look.houses ?? 0;
+  // In a town the houses come from the settlement level instead of the map's fixed count.
+  const houses = town ? 0 : (look.houses ?? 0);
   const trees = look.trees ?? 0;
   if (kind === 'fish') {
     for (let i = 0; i < houses; i++) {
@@ -234,7 +248,7 @@ export function islandParts(
       at(tree(rng), a, Math.sqrt(rng()) * 0.85, rng() * 3);
     }
     at(logPile(), HARBOUR - 0.35, 0.55, 0.3);
-    for (let i = 0; i < Math.max(1, houses); i++)
+    for (let i = 0; i < (town ? 0 : Math.max(1, houses)); i++)
       at(house(i + 1), HARBOUR + 0.45 + i * 0.5, 0.6, 0.5);
   } else if (kind === 'grain') {
     const w = capR * 0.32;
@@ -253,7 +267,7 @@ export function islandParts(
       }
     }
     at(windmill(), HARBOUR + 0.8, 0.62, 0.4);
-    for (let i = 0; i < Math.max(1, houses); i++)
+    for (let i = 0; i < (town ? 0 : Math.max(1, houses)); i++)
       at(house(i + 2), HARBOUR - 0.8 + i * 0.45, 0.6, rng() * 3);
     for (let i = 0; i < trees; i++) at(tree(rng), -HARBOUR + (i - (trees - 1) / 2) * 0.5, 0.88);
   } else if (kind === 'stone') {
@@ -283,6 +297,22 @@ export function islandParts(
         look.landmark ? 0.78 + rng() * 0.1 : 0.3 + rng() * 0.5,
         rng() * 3,
       );
+  }
+
+  if (town) {
+    out.push(
+      ...townParts({
+        rng,
+        level,
+        R,
+        shelfR: R * 0.84,
+        shelfY: SHELF_Y,
+        cliff: { ...cliffAt, r: R * 0.9 * cliffK * 0.92 },
+        pierX: R * 0.08,
+        cap: { x: ox, y: top, z: oz, r: capR },
+        occupied: [],
+      }),
+    );
   }
 
   // The harbour (+Z) faces the course buoy named after this island, else a seeded direction.
@@ -439,14 +469,20 @@ export function terrainProps(feature: TerrainDef, seed: number): Parts {
 }
 
 /** All islands of the map merged into one mesh. */
-export const buildHighlandIslands: IslandsBuilder = (map, { shadows }) => {
+export const buildHighlandIslands: IslandsBuilder = (map, { shadows, levels }) => {
   const harbours: Record<string, { x: number; y: number }> = {};
-  const parts = map.islands.flatMap((island, i) =>
-    islandParts(island, map, map.seed * 1000 + i, (point) => {
-      const port = map.ports.find((p) => p.islandId === island.id);
-      if (port) harbours[port.id] = point;
-    }),
-  );
+  const parts = map.islands.flatMap((island, i) => {
+    const port = map.ports.find((p) => p.islandId === island.id);
+    return islandParts(
+      island,
+      map,
+      map.seed * 1000 + i,
+      (point) => {
+        if (port) harbours[port.id] = point;
+      },
+      port && levels ? levels[port.id] : undefined,
+    );
+  });
   // Non-circular coasts use the very same outline as simulation collision.
   for (const [index, feature] of (map.terrain ?? []).entries()) {
     if (feature.kind === 'sandbank') {

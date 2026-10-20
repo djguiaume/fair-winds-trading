@@ -70,4 +70,6 @@
 
 | [0058](0058-chart-style-d-port-cards.md) | Clear style D chart (no boxes, prices on demand), markers moved to later, one Trade button, hull icon, wider portrait view | 2026-10-20 | Implementation for review |
 
+| [0060](0060-growing-town-visuals.md) | Towns grow visibly over four settlement levels on a new waterfront shelf; islands keep their coast, collision and pier | 2026-10-20 | Proposed (mockups) |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

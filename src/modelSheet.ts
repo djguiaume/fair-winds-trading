@@ -4,7 +4,8 @@
  * ?view=boats shows the sloop at each upgrade level and the cutter; ?view=lines the starter and
  * the swift and hauler lines (decision 0035); ?view=islands the four producer islands at the game
  * camera's angle. ?view=sloop&level=3&quality=low inspects the refined sloop (or view=cutter / view=schooner / view=clipper) with the game's
- * three quality profiles; independent hull/hold/sails=1..3, yaw degrees, sail=0..1 and signed boom degrees exercise its attachment pivots.
+ * three quality profiles; ?view=towns&kind=fish shows one port island at the four settlement levels
+ * (decision 0060), &kind=all every producer island at &level=1..4, &before=1 the current look; independent hull/hold/sails=1..3, yaw degrees, sail=0..1 and signed boom degrees exercise its attachment pivots.
  */
 import * as THREE from 'three';
 import { type BoatModel, type ShipUpgrades, buildIslands, createBoatModel } from './render/models';
@@ -16,7 +17,7 @@ import { DEG } from './sim/math';
 
 const params = new URLSearchParams(location.search);
 const view =
-  (['islands', 'lines', 'sloop', 'cutter', 'schooner', 'clipper'] as const).find(
+  (['islands', 'towns', 'lines', 'sloop', 'cutter', 'schooner', 'clipper'] as const).find(
     (v) => v === params.get('view'),
   ) ?? 'boats';
 const inspectBoat =
@@ -44,7 +45,12 @@ sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
 Object.assign(sun.shadow.camera, { left: -90, right: 90, top: 90, bottom: -90, far: 200 });
 scene.add(sun, sun.target);
-const camera = new THREE.PerspectiveCamera(view === 'islands' ? 40 : 30, 1, 1, 800);
+const camera = new THREE.PerspectiveCamera(
+  view === 'islands' || view === 'towns' ? 40 : 30,
+  1,
+  1,
+  800,
+);
 
 const boats: BoatModel[] = [];
 const labels: Array<{ at: THREE.Vector3; html: string }> = [];
@@ -120,6 +126,80 @@ if (inspectBoat) {
   addBoat('cutter', L(3), 50, 0, side, 'Cutter · level 3<small>all upgrades</small>');
   camera.position.set(3, 34, 132);
   camera.lookAt(3, 4, 0);
+} else if (view === 'towns') {
+  // The real Windward Ring port sizes, so the shelf is judged on the islands it must fit.
+  const kinds = {
+    fish: { name: 'Saltmere', radius: 24 },
+    timber: { name: 'Port Calda', radius: 26 },
+    grain: { name: 'Westholm', radius: 24 },
+    stone: { name: 'Stonehaven', radius: 23 },
+  } as const;
+  const LEVEL_NAMES = ['Hamlet', 'Village', 'Town', 'Port town'];
+  const kindParam = params.get('kind') ?? 'fish';
+  const before = params.has('before');
+  const level = Math.max(1, Math.min(4, Number(params.get('level')) || 4)) as 1 | 2 | 3 | 4;
+  const entries =
+    kindParam === 'all'
+      ? (Object.keys(kinds) as (keyof typeof kinds)[]).map((k) => ({ kind: k, level }))
+      : ([1, 2, 3, 4] as const).map((l) => ({ kind: kindParam as keyof typeof kinds, level: l }));
+  const map: MapDef = {
+    name: 'towns',
+    seed: 7,
+    boundsRadius: 300,
+    wind: { fromDeg: 0, speedKn: 14, gustiness: 0, shiftDeg: 0 },
+    start: { x: 0, y: 0, headingDeg: 0 },
+    islands: entries.map((e, i) => ({
+      id: `i${i}`,
+      name: kinds[e.kind].name,
+      x: (i - 1.5) * 64,
+      y: 0,
+      radius: kinds[e.kind].radius,
+      look: { kind: e.kind, houses: 5, trees: e.kind === 'timber' ? 14 : 4, dock: true },
+    })),
+    ports: entries.map((e, i) => ({
+      id: `p${i}`,
+      name: kinds[e.kind].name,
+      islandId: `i${i}`,
+      produces: [],
+      wants: [],
+    })),
+    // Every harbour faces the camera.
+    course: entries.map((e, i) => ({ label: kinds[e.kind].name, x: (i - 1.5) * 64, y: -40 })),
+  };
+  const levels = Object.fromEntries(entries.map((e, i) => [`p${i}`, e.level]));
+  document.getElementById('title')!.textContent = before
+    ? 'Port islands today · fixed houses'
+    : kindParam === 'all'
+      ? `Settlement level ${level} · ${LEVEL_NAMES[level - 1]} (0060)`
+      : `${kinds[kindParam as keyof typeof kinds].name} · settlement levels 1–4 (0060)`;
+  islandsForWater = map.islands;
+  // One island per build, so each copy gets the same seed and only its level differs.
+  map.islands.forEach((island, i) =>
+    scene.add(
+      buildIslands(
+        { ...map, islands: [island], ports: [map.ports[i]!], course: [map.course[i]!] },
+        { shadows: true, levels: before ? undefined : levels },
+      ),
+    ),
+  );
+  entries.forEach((e, i) =>
+    labels.push({
+      at: new THREE.Vector3((i - 1.5) * 64, 0, 34),
+      html: before
+        ? `${kinds[e.kind].name}<small>today</small>`
+        : `${LEVEL_NAMES[e.level - 1]}<small>${kinds[e.kind].name} · level ${e.level}</small>`,
+    }),
+  );
+  addBoat('sloop', L(1), -64 * 1.5 + 18, 28, 60 * DEG, '');
+  labels.pop();
+  // &focus=1..4 frames one island at the game camera's pitch and default distance.
+  const focus = Number(params.get('focus'));
+  const fx = focus >= 1 && focus <= 4 ? (focus - 2.5) * 64 : 0;
+  const pitch = (focus ? 58 : 50) * DEG;
+  const dist = focus ? 110 : 205;
+  if (focus) labels.length = 0;
+  camera.position.set(fx, Math.sin(pitch) * dist, 8 + Math.cos(pitch) * dist);
+  camera.lookAt(fx, 0, focus ? 8 : 4);
 } else if (view === 'lines') {
   document.getElementById('title')!.textContent = 'Ship lines · swift and hauler (0035)';
   const side = -150 * DEG; // bow toward the camera, so square sails show their face
