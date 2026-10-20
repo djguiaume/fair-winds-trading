@@ -16,6 +16,8 @@ export interface Settings {
   seenHelp: boolean;
   seenWindHint: boolean;
   uiMode: UiMode;
+  /** Speed log (speed, heading, point of sail) shown at sea; on by default (decision 0049). */
+  showLog: boolean;
   /** Chosen language; null follows the browser (decision 0037). */
   language: LanguageId | null;
   /** Background music volume, 0 (off) to 1 (decision 0045). */
@@ -29,6 +31,7 @@ const DEFAULTS: Settings = {
   seenHelp: false,
   seenWindHint: false,
   uiMode: 'adult',
+  showLog: true,
   language: null,
   musicVolume: 0.6,
 };

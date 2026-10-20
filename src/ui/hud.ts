@@ -1,4 +1,4 @@
-import { SAIL_STEPS, trueWindAngle } from '../sim/boat';
+import { trueWindAngle } from '../sim/boat';
 import { DEG, bearingTo, distance, wrapPositive } from '../sim/math';
 import { type PointOfSail, pointOfSail } from '../sim/ship';
 import { hullCondition } from '../sim/hazards';
@@ -9,9 +9,9 @@ import { type World, type WorldEvent, navigationTarget } from '../sim/world';
 import type { ScreenPoint } from '../render/view';
 
 import { GOODS } from '../sim/goods';
-import { activeShip, capacity, cargoUsed, findPort } from '../sim/trade';
+import { capacity, cargoUsed, findPort } from '../sim/trade';
 import { PortLabels } from './portLabels';
-import { formatNumber, goodName, shipName, t } from '../i18n';
+import { formatNumber, goodName, t } from '../i18n';
 
 const POINT_OF_SAIL_TONE: Record<PointOfSail, '' | 'good' | 'bad'> = {
   'in-irons': '',
@@ -29,6 +29,11 @@ function $(id: string): HTMLElement {
   return el;
 }
 
+/** Nearest of the eight compass points for a direction in radians, translated. */
+function compassPoint(rad: number): string {
+  return t(`compass.${COMPASS[Math.round(wrapPositive(rad) / (Math.PI / 4)) % 8]!}`);
+}
+
 function formatTime(seconds: number): string {
   const s = Math.round(seconds);
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -37,13 +42,23 @@ function formatTime(seconds: number): string {
 /** Plain-DOM heads-up display with trading stats and port labels. */
 export class Hud {
   private readonly speed = $('speed');
+  private readonly heading = $('heading');
   private readonly pos = $('point-of-sail');
-  private readonly pips = Array.from(document.querySelectorAll<HTMLElement>('.sail-pips i'));
+  private readonly speedLog = $('speed-log');
+  private readonly logToggle = $('log-toggle');
+  private readonly lever = $('sail-lever');
+  private readonly leverButtons = Array.from(
+    document.querySelectorAll<HTMLButtonElement>('#sail-lever button[data-step]'),
+  );
+  private leverDrag: number | null = null;
+  private shownSail = -1;
   private readonly objective = $('navigation-target');
+  private readonly objArrow = $('obj-arrow');
   private readonly objName = $('obj-name');
   private readonly objDist = $('obj-dist');
   private readonly windText = $('wind-text');
   private readonly cNoGo = $('c-nogo');
+  private readonly cBand = $('c-band');
   private readonly cWind = $('c-wind');
   private readonly cWindScale = $('c-wind-scale');
   private readonly windForceText = $('wind-force');
@@ -66,7 +81,8 @@ export class Hud {
   private readonly hudCargo = $('hud-cargo');
   private readonly hudHull = $('hud-hull');
   private readonly hudHullBox = $('hud-hull-box');
-  private readonly hudShip = $('hud-ship');
+  private readonly hullBar = $('hull-bar');
+  private readonly cargoFill = $('hud-cargo-fill');
   private readonly cargoBox = $('hud-cargo-box');
   private readonly cargoTooltip = $('hud-cargo-tooltip');
   private readonly dockBtn = $('dock-btn');
@@ -74,6 +90,10 @@ export class Hud {
   readonly portLabels: PortLabels;
 
   onDockClick: () => void = () => {};
+  /** The player picked a sail step on the lever (0 = down). */
+  onSailStep: (step: number) => void = () => {};
+  /** The player showed or folded the speed log. */
+  onLogToggle: (shown: boolean) => void = () => {};
   onPortClick: (portId: string) => void = () => {};
 
   private toastTimer = 0;
@@ -137,6 +157,73 @@ export class Hud {
       if (!this.cargoTooltip.hidden) this.cargoTooltip.hidden = true;
       this.cargoBox.setAttribute('aria-expanded', 'false');
     });
+
+    this.logToggle.addEventListener('click', () => {
+      this.showLog = this.speedLog.classList.contains('is-folded');
+      this.onLogToggle(this.showLog);
+    });
+    this.initLever();
+  }
+
+  /** Speed log at the top right (decision 0049): on by default, folds to a small button. */
+  set showLog(shown: boolean) {
+    this.speedLog.classList.toggle('is-folded', !shown);
+    this.logToggle.setAttribute('aria-pressed', String(shown));
+  }
+
+  get showLog(): boolean {
+    return !this.speedLog.classList.contains('is-folded');
+  }
+
+  /** Sail lever: tap a notch or drag along it; keyboard users press the notch buttons. */
+  private initLever() {
+    const track = this.lever.querySelector<HTMLElement>('.lever-track')!;
+    const pick = (clientY: number) => {
+      let best = this.leverButtons[0]!;
+      let bestGap = Infinity;
+      for (const b of this.leverButtons) {
+        const r = b.getBoundingClientRect();
+        const gap = Math.abs(clientY - (r.top + r.height / 2));
+        if (gap < bestGap) [best, bestGap] = [b, gap];
+      }
+      const step = Number(best.dataset.step);
+      if (step !== this.shownSail) {
+        this.showSail(step);
+        this.onSailStep(step);
+      }
+    };
+    track.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      e.preventDefault();
+      this.leverDrag = e.pointerId;
+      track.setPointerCapture?.(e.pointerId);
+      pick(e.clientY);
+    });
+    track.addEventListener('pointermove', (e) => {
+      if (e.pointerId === this.leverDrag) pick(e.clientY);
+    });
+    const release = (e: PointerEvent) => {
+      if (e.pointerId === this.leverDrag) this.leverDrag = null;
+    };
+    track.addEventListener('pointerup', release);
+    track.addEventListener('pointercancel', release);
+    for (const b of this.leverButtons) {
+      // Pointer presses are handled above; this catches Enter / Space on a focused notch.
+      b.addEventListener('click', (e) => {
+        if (e.detail !== 0) return;
+        const step = Number(b.dataset.step);
+        this.showSail(step);
+        this.onSailStep(step);
+      });
+    }
+  }
+
+  private showSail(step: number) {
+    if (step === this.shownSail) return;
+    this.shownSail = step;
+    this.lever.dataset.step = String(step);
+    for (const b of this.leverButtons)
+      b.setAttribute('aria-pressed', String(Number(b.dataset.step) === step));
   }
 
   /** Strength gauge under the compass (decision 0040): bars, a word and a short gust cue. */
@@ -243,6 +330,7 @@ export class Hud {
       this.cNoGo.firstElementChild!.setAttribute('d', `M0 0 L${-x} ${y} A40 40 0 0 1 ${x} ${y} Z`);
     }
     rot(this.cNoGo, wind.from);
+    rot(this.cBand, wind.from);
     rot(this.cWind, windTo(wind));
     this.updateWindStrength(dt, wind.speedKn);
     rot(this.cBoat, boat.heading);
@@ -277,16 +365,22 @@ export class Hud {
     if (this.sinceText > 0.12) {
       this.sinceText = 0;
       this.speed.textContent = formatNumber(boat.speedKn, 1);
+      const hdg = Math.round(wrapPositive(boat.heading) / DEG) % 360;
+      this.heading.textContent = `${hdg}° ${compassPoint(boat.heading)}`;
       const p = pointOfSail(ship, twa);
       this.pos.textContent = boat.sailStep === 0 ? t('hud.sailsDown') : t(`pos.${p}`);
-      this.pos.className = `pos ${POINT_OF_SAIL_TONE[p]}`;
-      const step = SAIL_STEPS[boat.sailStep] ?? 0;
-      this.pips.forEach((pip, i) => pip.classList.toggle('on', step >= (i + 1) / this.pips.length));
+      this.pos.className = `pos ${boat.sailStep === 0 ? '' : POINT_OF_SAIL_TONE[p]}`;
+      if (this.leverDrag === null) this.showSail(boat.sailStep);
       this.objName.textContent = wp?.label ?? '';
       this.objDist.textContent = wp ? t('unit.metres', { n: Math.round(distance(boat, wp)) }) : '';
-      const fromDir = t(
-        `compass.${COMPASS[Math.round(wrapPositive(wind.from) / (Math.PI / 4)) % 8]!}`,
-      );
+      if (wp) {
+        // Point the chip's arrow the way the destination lies on screen.
+        const a = project(boat.x, boat.y);
+        const b = project(wp.x, wp.y);
+        const ang = Math.atan2(b.x - a.x, a.y - b.y);
+        if (Number.isFinite(ang)) this.objArrow.style.transform = `rotate(${ang.toFixed(2)}rad)`;
+      }
+      const fromDir = compassPoint(wind.from);
       // Name the lee so a sudden drop in speed reads as the island, not a bug (decision 0027).
       const lee = this.world.shelter > 0.25 ? ` · ${t('hud.lee')}` : '';
       this.windText.textContent = `${fromDir} · ${wind.speedKn.toFixed(0)} ${t('unit.knots')}${lee}`;
@@ -295,12 +389,21 @@ export class Hud {
       // Captain stats & dock button
       const { trade, map } = this.world;
       this.hudGold.textContent = formatNumber(trade.captain.gold);
-      this.hudCargo.textContent = `${cargoUsed(trade)} / ${capacity(trade)}`;
-      this.hudShip.textContent = shipName(activeShip(trade));
+      const used = cargoUsed(trade);
+      const cap = capacity(trade);
+      this.hudCargo.textContent = `${used}/${cap}`;
+      // The crate icon fills with the hold instead of a bar (decision 0049).
+      const fill = 16 * Math.min(1, cap > 0 ? used / cap : 0);
+      this.cargoFill.setAttribute('y', (20 - fill).toFixed(1));
+      this.cargoFill.setAttribute('height', fill.toFixed(1));
+      this.cargoBox.classList.toggle('is-full', used >= cap);
       const hull = Math.round(hullCondition(trade) * 100);
       this.hudHullBox.hidden = hull >= 100;
       this.hudHull.textContent = t('unit.percent', { n: hull });
       this.hudHullBox.classList.toggle('is-low', hull < 50);
+      this.hullBar.hidden = hull >= 100;
+      this.hullBar.classList.toggle('is-low', hull < 50);
+      (this.hullBar.firstElementChild as HTMLElement).style.width = `${hull}%`;
 
       if (trade.dockedAt) {
         this.dockBtn.hidden = false;
@@ -309,6 +412,11 @@ export class Hud {
       } else {
         this.dockBtn.hidden = true;
       }
+    }
+
+    if (!this.hullBar.hidden) {
+      const b = project(boat.x, boat.y);
+      this.hullBar.style.transform = `translate(${b.x.toFixed(0)}px, ${(b.y - 52).toFixed(0)}px)`;
     }
 
     this.sincePortLabels += dt;

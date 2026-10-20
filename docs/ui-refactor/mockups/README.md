@@ -2,7 +2,7 @@
 
 *2026-10-20. Static mockups for the UI refactor ([analysis](../README.md)).*
 
-**Current proposal: [style D](#style-d-combined-proposal)**, which combines C and B as Guillaume asked. Styles A to C below are the first round.
+**Chosen: [style D](#style-d-combined-proposal)** ([ADR 0049](../../decisions/0049-ui-instrument-style.md)), which combines C and B as Guillaume asked. The Sea HUD is now built in the game ([screenshots](../sea-hud/README.md)). Styles A to C below are the first round.
 
 ## Style D: combined proposal
 
