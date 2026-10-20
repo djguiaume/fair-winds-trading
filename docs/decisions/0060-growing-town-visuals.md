@@ -1,6 +1,6 @@
 # 0060. Towns grow visibly with their settlement level
 
-**Status:** Proposed (mockups for review, 2026-10-20)
+**Status:** Accepted (Guillaume approved the round 2 mockups, 2026-10-20). Render code done; game wiring follows the settlement logic ([0059](0059-settlement-levels.md)).
 
 ## Context
 
@@ -10,7 +10,7 @@ The settlement logic is built in parallel ([0059](0059-settlement-levels.md), "S
 
 Today each port island has a fixed number of houses on its cliff top (`look.houses`). The cliff tops are small: the stone island's cap is about a third of its radius and the grain and timber caps are already full of fields and forest, so there is no room for a town to grow there. Islands stay code-built ([0014](0014-code-built-models-for-now.md), [0016](0016-game-models-style-d-and-b2.md)) in the B2 style, in one merged mesh, and must stay cheap on the old tablet ([0006](0006-desktop-and-mobile.md)).
 
-## Decision (proposed)
+## Decision
 
 Round 1 (one shared town layout on every island) was rejected by Guillaume as too uniform. Round 2:
 
@@ -24,7 +24,7 @@ Round 1 (one shared town layout on every island) was rejected by Guillaume as to
 3. **The dock grows on the simulation's pier line:** a narrow plank jetty (level 1), a proper pier with bollards (level 2), a wider deck with a T-head and harbour lamp (level 3), a second pier, quay wall and second warehouse (level 4). Warehouses at the pier root from level 2.
 4. **Collision unchanged for now.** Beach and collision radius are untouched, and the main pier stays on `pierAt`'s segment. The T-head, the second pier and the moored fishing boats are scenery the ship can pass through; making them solid is a follow-up in `src/sim/collision.ts` (the logic thread's area).
 5. **Growth only adds.** Every feature draws from its own seeded stream and fills candidates in a fixed order; plots for later buildings (second pier, slipway, quarry) are reserved from level 1, so a level-up never moves what already stands.
-6. **Render interface.** `buildIslands(map, { shadows, levels })` takes a level per port id; a port left out keeps today's look. The view will expose `setSettlementLevels(levels)`, called at start from `settlementLevels()` and on each `level-up` event; it rebuilds the island mesh only when a level changed.
+6. **Render interface.** `buildIslands(map, { shadows, levels })` takes a level per port id; a port left out keeps today's look. `View.setSettlementLevels(levels)` (in `src/render/view.ts`) is to be called at start from `settlementLevels()` and on each `level-up` event; it rebuilds the island mesh only when a level changed.
 
 Mockups, rendered with the real game code in `models.html?view=towns`, are in [docs/art/towns](../art/towns/).
 

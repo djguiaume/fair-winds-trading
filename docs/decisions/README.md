@@ -70,6 +70,6 @@
 
 | [0058](0058-chart-style-d-port-cards.md) | Clear style D chart (no boxes, prices on demand), markers moved to later, one Trade button, hull icon, wider portrait view | 2026-10-20 | Implementation for review |
 
-| [0060](0060-growing-town-visuals.md) | Towns grow visibly over four settlement levels, each port its own way (fish waterfront, timber clearing, grain patchwork, stone terraces and cliff quarry), with a growing dock | 2026-10-20 | Proposed (mockups) |
+| [0060](0060-growing-town-visuals.md) | Towns grow visibly over four settlement levels, each port its own way (fish waterfront, timber clearing, grain patchwork, stone terraces and cliff quarry), with a growing dock | 2026-10-20 | Accepted; render code done, wiring after 0059 |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
