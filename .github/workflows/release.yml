@@ -38,5 +38,10 @@ jobs:
         run: |
           notes="docs/releases/${TAG}.md"
           if [ ! -f "$notes" ]; then echo "Missing $notes"; exit 1; fi
-          sha=$(git rev-parse "origin/${COMMIT}" 2>/dev/null || git rev-parse "$COMMIT")
-          gh release create "$TAG" --target "$sha" --title "$TITLE" --notes-file "$notes"
+          sha=$(git rev-parse --verify --quiet "origin/${COMMIT}^{commit}" || git rev-parse --verify "${COMMIT}^{commit}")
+          # Tag the commit first, then publish the release on that tag.
+          if ! git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null; then
+            git tag "$TAG" "$sha"
+            git push origin "refs/tags/${TAG}"
+          fi
+          gh release create "$TAG" --verify-tag --title "$TITLE" --notes-file "$notes"
