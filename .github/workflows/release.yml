@@ -1,0 +1,42 @@
+name: GitHub release
+
+# Publishes a GitHub release from notes kept in the repo (decision 0062).
+# Run it from the Actions tab (or push a tag v*): it tags the given commit and uses
+# docs/releases/<tag>.md as the release notes.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag, e.g. v0.1.50 (notes must exist in docs/releases/<tag>.md)'
+        required: true
+      commit:
+        description: 'Commit to tag (default: latest main)'
+        required: false
+        default: main
+      title:
+        description: 'Release title'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag || github.ref_name }}
+          COMMIT: ${{ inputs.commit || github.sha }}
+          TITLE: ${{ inputs.title || github.ref_name }}
+        run: |
+          notes="docs/releases/${TAG}.md"
+          if [ ! -f "$notes" ]; then echo "Missing $notes"; exit 1; fi
+          sha=$(git rev-parse "origin/${COMMIT}" 2>/dev/null || git rev-parse "$COMMIT")
+          gh release create "$TAG" --target "$sha" --title "$TITLE" --notes-file "$notes"

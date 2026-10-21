@@ -72,4 +72,6 @@
 
 | [0061](0061-menus-and-coach-marks.md) | Menus, pause, full-screen settings and How to play in style D; tutorial coach marks replace the tutorial card | 2026-10-20 | Implementation for review |
 
+| [0062](0062-github-releases-per-phase.md) | GitHub release at the end of each phase and for notable milestones; tag = menu version; Phase 1 released as v0.1.50 | 2026-10-21 | Accepted |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
