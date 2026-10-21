@@ -95,7 +95,7 @@ Goal: deliveries visibly change the world.
 
 **Status (2026-10-21):** started; the menu now shows Phase 2 and `v0.2.x`. Settlement levels (ADR 0059, PR #42) and growing town visuals (ADR 0060, PR #43) are in review.
 
-- Settlements have a level and population; meeting demand levels them up (more buildings on the island, bigger dock).
+- Settlements have a level and population; meeting demand levels them up (more buildings on the island, bigger dock). Town visuals accepted in [0060](decisions/0060-growing-town-visuals.md): hamlet, village, town and port town, each port with its own island profile, buildings, industry and growing dock; a level-3 workshop per town (sawmill, smokehouse, bakery, masons). Making the T-head and second pier solid is a follow-up.
 - Higher levels unlock new demands, including goods produced only on distant islands.
 - Demand decays if unmet, so neglected towns stall.
 - Simple production chains (timber → planks, grain → bread) at higher-level towns.

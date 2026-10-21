@@ -8,6 +8,7 @@ import { KNOT_TO_UNITS } from '../sim/boat';
 import {
   type BoatModel,
   type ShipUpgrades,
+  type TownLevel,
   type UpgradeLevel,
   buildIslands,
   createBoatModel,
@@ -44,7 +45,9 @@ export class GameView {
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(40, 1, 1, 600);
   private readonly sun = new THREE.DirectionalLight(PALETTE.sun, 1.7);
-  private readonly islands: THREE.Object3D;
+  private islands: THREE.Object3D;
+  /** Settlement level per port the islands were last built with (decision 0060). */
+  private townLevels: Record<string, TownLevel> | undefined;
   private boat: BoatModel;
   /** Ship class and upgrade levels the boat model was built for; rebuilt when they change. */
   private boatKey = '';
@@ -196,6 +199,25 @@ export class GameView {
   }
 
   /** 1 = default; larger = farther away. */
+  /**
+   * Grow the port towns to these settlement levels (decision 0060). Rebuilds the merged island
+   * mesh only when a level changed; call once at start and on each level-up.
+   */
+  setSettlementLevels(levels: Record<string, TownLevel>) {
+    const old = this.townLevels;
+    if (old && Object.keys(levels).every((id) => old[id] === levels[id])) return;
+    this.townLevels = { ...levels };
+    const next = buildIslands(this.world.map, { shadows: true, levels: this.townLevels });
+    this.scene.remove(this.islands);
+    this.islands.traverse((o) => {
+      const mesh = o as THREE.Mesh;
+      mesh.geometry?.dispose();
+      (mesh.material as THREE.Material | undefined)?.dispose();
+    });
+    this.islands = next;
+    this.scene.add(next);
+  }
+
   setZoom(zoom: number) {
     this.zoom = clamp(zoom, 0.6, 1.7);
   }

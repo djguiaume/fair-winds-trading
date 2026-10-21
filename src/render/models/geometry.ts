@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import type { Rng } from '../../sim/rng';
 
 /**
  * Helpers to build flat-shaded, vertex-colored low-poly meshes and merge them into one draw call.
@@ -20,6 +21,34 @@ export function paint(geometry: THREE.BufferGeometry, color: THREE.ColorRepresen
   }
   g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   g.computeVertexNormals();
+  return g;
+}
+
+/** Jittered closed outline of radius ~R, stretched by sx/sz. */
+export function blobShape(rng: Rng, R: number, n: number, jit: number, sx: number, sz: number) {
+  const s = new THREE.Shape();
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2;
+    const r = R * (1 + (rng() - 0.5) * jit);
+    const x = Math.cos(a) * r * sx;
+    const y = Math.sin(a) * r * sz;
+    if (i) s.lineTo(x, y);
+    else s.moveTo(x, y);
+  }
+  s.closePath();
+  return s;
+}
+
+/** Shape extruded up from y = 0 to y = h, its top scaled by k (a tapered cliff layer). */
+export function slab(shape: THREE.Shape, h: number, k = 1) {
+  const g = new THREE.ExtrudeGeometry(shape, { depth: h, bevelEnabled: false, curveSegments: 4 });
+  g.rotateX(-Math.PI / 2);
+  const p = g.attributes.position!;
+  for (let i = 0; i < p.count; i++) {
+    const f = 1 + (k - 1) * (p.getY(i) / h);
+    p.setX(i, p.getX(i) * f);
+    p.setZ(i, p.getZ(i) * f);
+  }
   return g;
 }
 
