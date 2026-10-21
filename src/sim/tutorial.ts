@@ -253,6 +253,57 @@ export class Tutorial {
     }
   }
 
+  /** What the first harbour makes: the cheap good the buy lesson suggests. */
+  private get producedGood(): GoodId | undefined {
+    return this.world.map.ports.find((p) => p.id === this.origin)?.produces[0];
+  }
+  /** A charted port that wants the cargo aboard, for the delivery lesson. */
+  private get buyer() {
+    return this.world.map.ports.find(
+      (p) =>
+        p.id !== this.origin &&
+        this.good &&
+        p.wants.includes(this.good) &&
+        isDiscovered(this.world.trade, p.id),
+    );
+  }
+  /** The harbour the coach mark points at on the chart (decision 0061). */
+  get pointerPort(): string | null {
+    switch (this.step) {
+      case 'chart':
+      case 'choose-port': {
+        // The nearest charted harbour: the easiest first trip.
+        const { boat, map, trade } = this.world;
+        let best: string | null = null;
+        let bestDistance = Infinity;
+        for (const port of map.ports) {
+          if (!isDiscovered(trade, port.id)) continue;
+          const at = this.harbours[port.id] ?? map.islands.find((i) => i.id === port.islandId);
+          if (!at) continue;
+          const distance = Math.hypot(at.x - boat.x, at.y - boat.y);
+          if (distance < bestDistance) {
+            bestDistance = distance;
+            best = port.id;
+          }
+        }
+        return best;
+      }
+      case 'choose-delivery':
+        return this.buyer?.id ?? null;
+      case 'deliver':
+      case 'sell':
+        return this.delivery;
+      default:
+        return this.origin;
+    }
+  }
+  /** The good whose Buy or Sell button the coach mark points at in the market. */
+  get pointerGood(): GoodId | null {
+    if (this.step === 'buy') return this.producedGood ?? null;
+    if (this.step === 'sell') return this.good;
+    return null;
+  }
+
   get lesson(): {
     title: string;
     copy: string;
@@ -266,15 +317,8 @@ export class Tutorial {
       ? findPort(this.world.map, this.delivery)?.name
       : t('tutorial.anotherPort');
     const cargo = this.good ? goodName(this.good) : t('tutorial.yourCargo');
-    const firstPort = this.world.map.ports.find((p) => p.id === this.origin);
-    const produced = firstPort?.produces[0];
-    const buyer = this.world.map.ports.find(
-      (p) =>
-        p.id !== this.origin &&
-        this.good &&
-        p.wants.includes(this.good) &&
-        isDiscovered(this.world.trade, p.id),
-    );
+    const produced = this.producedGood;
+    const buyer = this.buyer;
     const step = this.step;
     const params = { origin: origin ?? '', delivery: delivery ?? '', cargo };
     const text = (part: 'title' | 'copy', extra: Record<string, string> = {}) =>

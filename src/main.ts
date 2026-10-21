@@ -7,8 +7,8 @@ import { clamp } from './sim/math';
 import { type SaveStorage, clearSave, loadGame, saveGame } from './sim/save';
 import { SLOOP } from './sim/ship';
 import * as trade from './sim/trade';
-import { Tutorial } from './sim/tutorial';
-import { TutorialCard } from './ui/tutorial';
+import { TUTORIAL_STEPS, Tutorial } from './sim/tutorial';
+import { TutorialCoach } from './ui/tutorial';
 import {
   type WorldEvent,
   createWorld,
@@ -66,8 +66,9 @@ const canvas = $<HTMLCanvasElement>('scene');
 
 // three.js needs WebGL2 (iOS 15+, Android Chrome since ~2017). Say so instead of a blank page.
 if (!document.createElement('canvas').getContext('webgl2')) {
-  $('help').innerHTML =
-    `<div class="panel card"><h1>${t('game.title')}</h1><p>${t('webgl.unsupported')}</p></div>`;
+  const help = $('help');
+  help.innerHTML = `<div class="sheet-body"><h2>${t('game.title')}</h2><p>${t('webgl.unsupported')}</p></div>`;
+  help.hidden = false;
   throw new Error('WebGL2 not available');
 }
 
@@ -103,7 +104,7 @@ chart.onChange = () => {
 };
 const tradePanel = new TradePanel($('trade-panel'), world);
 const tutorial = new Tutorial(world, view.harbours, storage, resumedVoyage);
-const tutorialCard = new TutorialCard(tutorial);
+const coach = new TutorialCoach(tutorial);
 const tutorialOffer = $<HTMLDialogElement>('tutorial-offer');
 tradePanel.uiMode = settings.uiMode;
 hud.portLabels.isKidMode = settings.uiMode === 'kids';
@@ -171,7 +172,7 @@ function refreshPause() {
     windHelp.open ||
     chart.isOpen ||
     tutorialOffer.open;
-  tutorialCard.setSurface(
+  coach.setSurface(
     mode === 'menu' || !settingsPanel.hidden || !help.hidden || windHelp.open || tutorialOffer.open
       ? null
       : chart.isOpen
@@ -191,11 +192,18 @@ hud.onWindHelpChange = () => {
 function showMenu() {
   mode = 'menu';
   document.body.classList.add('in-menu');
+  document.body.classList.toggle('at-title', !started);
   help.hidden = true;
   settingsPanel.hidden = true;
   if (tradePanel.isOpen) tradePanel.close();
+  // Pause shows the voyage under the same menu (decision 0061).
+  menu.classList.toggle('is-paused', started);
+  $('menu-status').hidden = !started;
+  $('menu-gold').textContent = String(world.trade.captain.gold);
+  $('menu-cargo').textContent = `${trade.cargoUsed(world.trade)}/${trade.capacity(world.trade)}`;
+  $('menu-play-label').textContent = started ? t('menu.resume') : t('menu.play');
+  $('menu-play-icon').setAttribute('href', started ? '#i-play' : '#i-sail');
   menu.hidden = false;
-  playButton.textContent = started ? t('menu.resume') : t('menu.play');
   refreshPause();
   playButton.focus({ preventScroll: true });
 }
@@ -203,7 +211,7 @@ function showMenu() {
 function play() {
   mode = 'play';
   started = true;
-  document.body.classList.remove('in-menu');
+  document.body.classList.remove('in-menu', 'at-title');
   menu.hidden = true;
   tutorial.resume();
   if (tutorial.shouldOffer(resumedVoyage)) tutorialOffer.showModal();
@@ -211,7 +219,6 @@ function play() {
 }
 
 function openHelp() {
-  helpClose.textContent = mode === 'menu' ? t('help.back') : t('menu.play');
   menu.hidden = true;
   help.hidden = false;
   refreshPause();
@@ -226,27 +233,35 @@ function closeHelp() {
 }
 
 tutorial.onChange = () => {
-  tutorialCard.render();
-  $('menu-tutorial').textContent = tutorial.isActive
+  coach.render();
+  $('menu-tutorial-label').textContent = tutorial.isActive
     ? t('menu.tutorialContinue')
     : tutorial.status === 'unseen'
       ? t('menu.tutorial')
       : t('menu.tutorialReplay');
+  $('menu-tutorial-note').textContent = tutorial.isActive
+    ? t('menu.tutorialStep', {
+        step: String(TUTORIAL_STEPS.indexOf(tutorial.step) + 1),
+        total: String(TUTORIAL_STEPS.length),
+      })
+    : tutorial.status === 'unseen'
+      ? t('menu.tutorialNote')
+      : '';
 };
 tutorial.onChange();
 chart.onDestinationChange = () => tutorial.destinationSelected();
 tradePanel.onTrade = (kind, good) => tutorial.traded(kind, good);
-tradePanel.onRender = () => tutorialCard.render();
-tutorialCard.onChart = () => {
+tradePanel.onRender = () => coach.render();
+coach.onChart = () => {
   if (tradePanel.isOpen) tradePanel.close();
   chart.open();
 };
-tutorialCard.onMarket = () => {
+coach.onMarket = () => {
   if (world.trade.dockedAt) tradePanel.open('market');
-  else tutorialCard.onChart();
+  else coach.onChart();
   refreshPause();
 };
-tutorialCard.onTips = () => $('wind-help-trigger').click();
+coach.onTips = () => $('wind-help-trigger').click();
 $('tutorial-start').addEventListener('click', () => {
   tutorial.start();
   tutorialOffer.close();
@@ -266,7 +281,7 @@ $('menu-tutorial').addEventListener('click', () => {
   // Enter play without automatically showing the first-voyage offer a second time.
   mode = 'play';
   started = true;
-  document.body.classList.remove('in-menu');
+  document.body.classList.remove('in-menu', 'at-title');
   menu.hidden = true;
   if (tutorial.isActive) tutorial.resume();
   else tutorialOffer.showModal();
@@ -277,6 +292,7 @@ $('menu-help').addEventListener('click', openHelp);
 $('menu-settings').addEventListener('click', () => {
   menu.hidden = true;
   settingsPanel.hidden = false;
+  $('close-settings').focus({ preventScroll: true });
 });
 $('menu-btn').addEventListener('click', showMenu);
 helpClose.addEventListener('click', closeHelp);
@@ -304,8 +320,9 @@ const fsMenuButton = $('menu-fullscreen');
 fsMenuButton.hidden = fsSupport !== 'api';
 $('fs-hint').hidden = fsSupport !== 'home-screen';
 const describeFullscreen = () => {
-  const on = isFullscreen();
-  fsMenuButton.textContent = on ? t('menu.exitFullscreen') : t('menu.fullscreen');
+  const label = isFullscreen() ? t('menu.exitFullscreen') : t('menu.fullscreen');
+  fsMenuButton.setAttribute('aria-label', label);
+  fsMenuButton.title = label;
 };
 for (const button of [fsMenuButton]) {
   button.addEventListener('click', () => void toggleFullscreen());
@@ -326,40 +343,58 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 // --- Language switcher ------------------------------------------------------------------------
 // Each language is named in its own words, without flags (decision 0037). Switching saves the
 // voyage and reloads, so every panel is rebuilt in the new language.
-const languageGroup = $('menu-language');
-languageGroup.setAttribute('aria-label', t('menu.language'));
-for (const lang of LANGUAGES) {
-  const b = document.createElement('button');
-  b.type = 'button';
-  b.lang = lang.id;
-  b.textContent = lang.name;
-  b.dataset.language = lang.id;
-  b.setAttribute('aria-pressed', String(lang.id === language()));
-  b.addEventListener('click', () => {
-    if (lang.id === language()) return;
-    settings.language = lang.id;
-    saveSettings(settings);
-    autosave();
-    window.location.reload();
-  });
-  languageGroup.append(b);
+// The menu footer shows short codes (EN, FR), the settings the full names.
+$('menu-language').setAttribute('aria-label', t('menu.language'));
+for (const [group, short] of [
+  [$('menu-language'), true],
+  [$('settings-language'), false],
+] as const) {
+  for (const lang of LANGUAGES) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.lang = lang.id;
+    b.textContent = short ? lang.id.toUpperCase() : lang.name;
+    if (short) b.setAttribute('aria-label', lang.name);
+    b.dataset.language = lang.id;
+    b.setAttribute('aria-pressed', String(lang.id === language()));
+    b.addEventListener('click', () => {
+      if (lang.id === language()) return;
+      settings.language = lang.id;
+      saveSettings(settings);
+      autosave();
+      window.location.reload();
+    });
+    group.append(b);
+  }
 }
 
 // --- Controls ----------------------------------------------------------------------------------
 input.onDrag = (d) => hud.setTiller(d);
 input.onZoom = (f) => view.setZoom(view.getZoom() * f);
 hud.onSailStep = (step) => input.setSail(step);
+const showLog = $<HTMLInputElement>('show-log');
 hud.onLogToggle = (shown) => {
   settings.showLog = shown;
+  showLog.checked = shown;
   saveSettings(settings);
 };
 hud.showLog = settings.showLog;
+showLog.checked = settings.showLog;
+showLog.addEventListener('change', () => {
+  hud.showLog = showLog.checked;
+  settings.showLog = showLog.checked;
+  saveSettings(settings);
+});
 
 // --- Settings panel ----------------------------------------------------------------------------
-const qualitySelect = $<HTMLSelectElement>('quality');
+const qualityButtons = [...$('quality').querySelectorAll<HTMLButtonElement>('[data-quality]')];
 const showFps = $<HTMLInputElement>('show-fps');
 const qualityNow = $('quality-now');
-qualitySelect.value = settings.quality;
+const markQuality = () => {
+  for (const b of qualityButtons)
+    b.setAttribute('aria-checked', String(b.dataset.quality === settings.quality));
+};
+markQuality();
 showFps.checked = settings.showFps;
 const describeQuality = () =>
   (qualityNow.textContent = t('settings.nowUsing', { level: t(`settings.${level}`) }));
@@ -372,14 +407,19 @@ function closeSettings() {
   refreshPause();
 }
 $('close-settings').addEventListener('click', closeSettings);
-qualitySelect.addEventListener('change', () => {
-  settings.quality = qualitySelect.value as typeof settings.quality;
-  saveSettings(settings);
-  setLevel(settings.quality === 'auto' ? guessQuality() : settings.quality);
-});
+for (const b of qualityButtons)
+  b.addEventListener('click', () => {
+    settings.quality = b.dataset.quality as typeof settings.quality;
+    saveSettings(settings);
+    markQuality();
+    setLevel(settings.quality === 'auto' ? guessQuality() : settings.quality);
+  });
 const musicVolume = $<HTMLInputElement>('music-volume');
+const musicValue = $('music-volume-value');
 musicVolume.value = String(Math.round(settings.musicVolume * 100));
+musicValue.textContent = `${musicVolume.value}%`;
 musicVolume.addEventListener('input', () => {
+  musicValue.textContent = `${musicVolume.value}%`;
   settings.musicVolume = Number(musicVolume.value) / 100;
   music.unlock();
   music.setVolume(settings.musicVolume);
@@ -389,6 +429,8 @@ showFps.addEventListener('change', () => {
   settings.showFps = showFps.checked;
   saveSettings(settings);
 });
+// A testing aid, not a player setting: only with ?debug (decision 0061).
+$('shift-wind').hidden = !new URLSearchParams(location.search).has('debug');
 $('shift-wind').addEventListener('click', () => {
   world.windOffsetDeg = (world.windOffsetDeg + 45) % 360;
   hud.showToast(t('toast.windShifts'), 1.5);
@@ -474,6 +516,7 @@ window.addEventListener('pagehide', autosave);
 let accumulator = 0;
 let last = performance.now();
 let frame = 0;
+let coachTick = 0;
 
 function tick(now: number) {
   frame = requestAnimationFrame(tick);
@@ -499,6 +542,8 @@ function tick(now: number) {
 
   if (!chart.isOpen && !tutorialOffer.open) view.render(dt);
   hud.update(dt, (x, y) => view.project(x, y), size, !paused);
+  // Coach marks follow moving targets (port signs) about ten times a second.
+  if (++coachTick % 6 === 0) coach.place();
 
   if (monitor.sample(dt) && settings.quality === 'auto' && level !== 'low') {
     setLevel(lowerQuality(level));
