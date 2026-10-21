@@ -16,6 +16,7 @@ vi.mock('../src/render/view', () => ({
     resize() {}
     render() {}
     setQuality() {}
+    setSettlementLevels() {}
     setZoom() {}
     getZoom() {
       return 1;

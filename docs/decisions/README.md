@@ -70,10 +70,14 @@
 
 | [0058](0058-chart-style-d-port-cards.md) | Clear style D chart (no boxes, prices on demand), markers moved to later, one Trade button, hull icon, wider portrait view | 2026-10-20 | Implementation for review |
 
+| [0059](0059-settlement-levels.md) | Settlement levels: four town sizes grown by deliveries, level wants and deeper demand, top upgrades need a home town | 2026-10-20 | Implementation for review |
+
 | [0060](0060-growing-town-visuals.md) | Towns grow visibly over four settlement levels, each port its own way (fish waterfront, timber clearing, grain patchwork, stone terraces and cliff quarry), with a growing dock | 2026-10-20 | Accepted; render code done, wiring after 0059 |
 
 | [0061](0061-menus-and-coach-marks.md) | Menus, pause, full-screen settings and How to play in style D; tutorial coach marks replace the tutorial card | 2026-10-20 | Implementation for review |
 
 | [0062](0062-github-releases-per-phase.md) | GitHub release at the end of each phase and for notable milestones; tag = menu version; Phase 1 released as v0.1.50 | 2026-10-21 | Accepted |
+
+| [0063](0063-specialized-town-goods.md) | Specialized goods: each town's workshop makes smoked fish, bread, planks or cut stone; buyers open with the workshop | 2026-10-21 | Implementation for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

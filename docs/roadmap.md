@@ -93,12 +93,12 @@ Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 
 Goal: deliveries visibly change the world.
 
-**Status (2026-10-21):** started; the menu now shows Phase 2 and `v0.2.x`. Settlement levels (ADR 0059, PR #42) and growing town visuals (ADR 0060, PR #43) are in review.
+**Status (2026-10-21):** started; the menu now shows Phase 2 and `v0.2.x`. Growing town visuals (ADR 0060) are in; settlement levels and town specialties (ADR 0059, 0063, PR #42) are in review.
 
-- Settlements have a level and population; meeting demand levels them up (more buildings on the island, bigger dock). Town visuals accepted in [0060](decisions/0060-growing-town-visuals.md): hamlet, village, town and port town, each port with its own island profile, buildings, industry and growing dock; a level-3 workshop per town (sawmill, smokehouse, bakery, masons). Making the T-head and second pier solid is a follow-up.
-- Higher levels unlock new demands, including goods produced only on distant islands.
-- Demand decays if unmet, so neglected towns stall.
-- Simple production chains (timber → planks, grain → bread) at higher-level towns.
+- Settlements have a level and population; meeting demand levels them up (more buildings on the island, bigger dock). **Levels implemented for review ([0059](decisions/0059-settlement-levels.md)):** hamlet, village, town, port town; selling wanted goods and delivering orders grow a town; the home port must be a town before the top upgrades. Town visuals accepted in [0060](decisions/0060-growing-town-visuals.md): each port with its own island profile, buildings, industry and growing dock; a level-3 workshop per town (sawmill, smokehouse, bakery, masons). Making the T-head and second pier solid is a follow-up.
+- Higher levels unlock new demands, including goods produced only on distant islands. *Done: level wants, deeper demand, bigger orders, and town specialties ([0063](decisions/0063-specialized-town-goods.md)); goods only made on distant islands still to come.*
+- Demand decays if unmet, so neglected towns stall. *Done: growth drains back after 3 minutes without supply; levels never drop.*
+- Simple production chains (timber → planks, grain → bread) at higher-level towns. **Implemented for review ([0063](decisions/0063-specialized-town-goods.md)):** a town's workshop makes smoked fish, bread, planks or cut stone, and other ports start buying it.
 - **Dynamic weather:** day/night cycle and weather states (calm, breeze, gale, rain, storms) that move across the map and change wind strength; storms can spoil cargo. Builds on Phase 1's slow wind shifts ([0026](decisions/0026-slow-weather-shifts.md)).
 
 ## Phase 3 — Fleet and automated trade routes

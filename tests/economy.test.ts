@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PHASE0_MAP } from '../src/data/maps';
-import { GOODS, GOOD_DEFS, isGood } from '../src/sim/goods';
+import { GOODS, GOOD_DEFS, RAW_GOODS, isGood } from '../src/sim/goods';
 import {
   EQUILIBRIUM,
   createMarket,
@@ -71,8 +71,8 @@ describe('map ports', () => {
       for (const g of [...port.produces, ...port.wants]) expect(isGood(g)).toBe(true);
     }
   });
-  it('every good is made somewhere and wanted somewhere else', () => {
-    for (const g of GOODS) {
+  it('every bulk good is made somewhere and wanted somewhere else', () => {
+    for (const g of RAW_GOODS) {
       expect(PHASE0_MAP.ports.some((p) => p.produces.includes(g))).toBe(true);
       expect(PHASE0_MAP.ports.some((p) => p.wants.includes(g))).toBe(true);
     }
@@ -208,6 +208,9 @@ describe('shipyard', () => {
     const [l2, l3] = SLOOP.upgradePrices;
     expect(upgradePrice(SLOOP, trade.captain.ships.sloop!, 'sails')).toBe(l2);
     expect(buyUpgrade(trade, PHASE0_MAP, 'sails')).toEqual({ ok: true, gold: l2 });
+    // The top level waits for the home port to grow into a town (decision 0059).
+    expect(buyUpgrade(trade, PHASE0_MAP, 'sails')).toEqual({ ok: false, error: 'port-too-small' });
+    trade.settlements.byPort.saltmere!.level = 3;
     expect(buyUpgrade(trade, PHASE0_MAP, 'sails')).toEqual({ ok: true, gold: l3 });
     expect(buyUpgrade(trade, PHASE0_MAP, 'sails')).toEqual({ ok: false, error: 'max-level' });
     expect(activeShip(trade).speedRatio).toBeGreaterThan(before.speedRatio * 1.1);

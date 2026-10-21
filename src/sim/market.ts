@@ -1,7 +1,23 @@
-import { GOODS, GOOD_DEFS, type GoodAmounts, type GoodId, emptyAmounts } from './goods';
+import {
+  GOODS,
+  GOOD_DEFS,
+  type GoodAmounts,
+  type GoodId,
+  emptyAmounts,
+  isSpecialty,
+} from './goods';
 import type { PortDef } from './map';
 import { type Rng, range } from './rng';
 import { clamp } from './math';
+import {
+  PRODUCES_EQUILIBRIUM,
+  SPECIALTY_SHARE,
+  WANTS_EQUILIBRIUM,
+  clampLevel,
+  portProduces,
+  portWants,
+  startLevel,
+} from './settlement';
 
 /**
  * Supply and demand at one port (decision 0015). Each good has a stock that drifts back toward an
@@ -12,8 +28,16 @@ import { clamp } from './math';
 
 /** Stock at which a good trades at its base price. */
 export const REFERENCE_STOCK = 30;
-/** Equilibrium stock by role: what the port settles at when nobody trades. */
-export const EQUILIBRIUM: Record<GoodRole, number> = { produces: 100, wants: 12, neutral: 30 };
+/**
+ * Equilibrium stock by role for a village (level 2): what the port settles at when nobody trades.
+ * Other settlement levels scale wants and produces (decision 0059, `equilibriumFor`).
+ */
+export const EQUILIBRIUM: Record<GoodRole, number> = {
+  produces: 100,
+  wants: 12,
+  neutral: 30,
+  none: 0,
+};
 /** How strongly price reacts to stock: mid = base × (reference / stock) ^ elasticity. */
 export const PRICE_ELASTICITY = 0.8;
 /** Mid price stays within these multiples of the base price. */
@@ -24,7 +48,8 @@ export const SPREAD = 0.06;
 /** Seconds for a stock to close ~63 % of the gap back to equilibrium. */
 export const RECOVERY_SECONDS = 75;
 
-export type GoodRole = 'produces' | 'wants' | 'neutral';
+/** `none`: a specialized good the port neither makes nor buys; it is not traded there (0063). */
+export type GoodRole = 'produces' | 'wants' | 'neutral' | 'none';
 
 export interface Market {
   portId: string;
@@ -32,21 +57,68 @@ export interface Market {
   equilibrium: GoodAmounts;
 }
 
-export function goodRole(port: PortDef, good: GoodId): GoodRole {
-  if (port.produces.includes(good)) return 'produces';
-  if (port.wants.includes(good)) return 'wants';
-  return 'neutral';
+/** What `good` is to the port at settlement `level` (default: the level it starts at). */
+export function goodRole(
+  port: PortDef,
+  good: GoodId,
+  level: number = startLevel(port),
+  made: ReadonlySet<GoodId> = new Set(),
+): GoodRole {
+  if (portProduces(port, clampLevel(level)).includes(good)) return 'produces';
+  if (portWants(port, clampLevel(level), made).includes(good)) return 'wants';
+  return isSpecialty(good) ? 'none' : 'neutral';
+}
+
+/** Equilibrium stock for a role at a settlement level (decision 0059). */
+export function equilibriumFor(role: GoodRole, level: number, good?: GoodId): number {
+  const i = Math.min(Math.max(Math.round(level), 1), WANTS_EQUILIBRIUM.length) - 1;
+  if (role === 'wants') return WANTS_EQUILIBRIUM[i]!;
+  if (role === 'produces')
+    return good && isSpecialty(good)
+      ? Math.round(PRODUCES_EQUILIBRIUM[i]! * SPECIALTY_SHARE)
+      : PRODUCES_EQUILIBRIUM[i]!;
+  return EQUILIBRIUM[role];
 }
 
 /** A port's market at equilibrium, with a little seeded variety so ports don't look identical. */
-export function createMarket(port: PortDef, rng?: Rng): Market {
+export function createMarket(
+  port: PortDef,
+  rng?: Rng,
+  level: number = startLevel(port),
+  made: ReadonlySet<GoodId> = new Set(),
+): Market {
   const equilibrium = emptyAmounts();
   const stock = emptyAmounts();
   for (const g of GOODS) {
-    equilibrium[g] = EQUILIBRIUM[goodRole(port, g)];
-    stock[g] = equilibrium[g] * (rng ? range(rng, 0.85, 1.15) : 1);
+    equilibrium[g] = equilibriumFor(goodRole(port, g, level, made), level, g);
+    // Untraded goods draw nothing, so the seeded variety of the other goods stays as it was.
+    stock[g] = equilibrium[g] > 0 ? equilibrium[g] * (rng ? range(rng, 0.85, 1.15) : 1) : 0;
   }
   return { portId: port.id, stock, equilibrium };
+}
+
+/**
+ * The town grew, a specialty came on the market, or a save restored its level: new wants and
+ * deeper demand. Only the equilibrium moves; stocks drift there at the usual pace.
+ */
+export function setMarketLevel(
+  market: Market,
+  port: PortDef,
+  level: number,
+  made: ReadonlySet<GoodId> = new Set(),
+): void {
+  for (const g of GOODS) {
+    const was = market.equilibrium[g];
+    market.equilibrium[g] = equilibriumFor(goodRole(port, g, level, made), level, g);
+    // A market that just opened (a new workshop, or a new buyer of its specialty) starts at its
+    // usual stock rather than empty, so the first prices are not at the ceiling (0063).
+    if (was <= 0 && market.equilibrium[g] > 0) market.stock[g] = market.equilibrium[g];
+  }
+}
+
+/** Whether the port trades `good` at all (specialized goods only where made or wanted, 0063). */
+export function trades(market: Market, good: GoodId): boolean {
+  return market.equilibrium[good] > 0;
 }
 
 /** Mid price of one unit of `good` when the port holds `stock` of it. */
@@ -106,6 +178,7 @@ export function demand(market: Market, good: GoodId): number {
 export function topNeed(market: Market): GoodId {
   let best: GoodId = GOODS[0];
   for (const g of GOODS) {
+    if (!trades(market, g)) continue;
     const gap = demand(market, g) - demand(market, best);
     if (gap > 1e-9 || (Math.abs(gap) <= 1e-9 && GOOD_DEFS[g].basePrice > GOOD_DEFS[best].basePrice))
       best = g;
@@ -130,7 +203,7 @@ export function quoteAcross(
 ): PortQuote[] {
   return portIds.flatMap((portId) => {
     const market = markets[portId];
-    if (!market) return [];
+    if (!market || !trades(market, good)) return [];
     const stock = market.stock[good];
     return [
       {

@@ -3,6 +3,8 @@ import { Input } from './input/input';
 import { FrameMonitor, type QualityLevel, guessQuality, lowerQuality } from './render/quality';
 import { GameView } from './render/view';
 import { SAIL_STEPS } from './sim/boat';
+import { isSpecialty } from './sim/goods';
+import { settlementLevels } from './sim/settlement';
 import { clamp } from './sim/math';
 import { type SaveStorage, clearSave, loadGame, saveGame } from './sim/save';
 import { SLOOP } from './sim/ship';
@@ -32,6 +34,7 @@ import {
   browserLanguages,
   detectLanguage,
   language,
+  goodName,
   setLanguage,
   t,
   translateDom,
@@ -84,6 +87,8 @@ const storage: SaveStorage | null = (() => {
 const resumedVoyage = storage ? loadGame(storage, world) : false;
 let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
 const view = new GameView(canvas, world, level);
+// Islands show each port's settlement level, including one restored from the save (0059, 0060).
+view.setSettlementLevels(settlementLevels(world.trade));
 const hud = new Hud(
   world,
   {
@@ -487,6 +492,27 @@ function handleEvents(events: WorldEvent[]) {
     } else if (e.type === 'discovered') {
       const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
       hud.showToast(t('toast.discovered', { name: portName }), 4);
+      autosave();
+    } else if (e.type === 'level-up') {
+      // A town grew (decision 0059): new wants on its sign, and the island grows with it.
+      const port = trade.findPort(world.map, e.portId);
+      const portName = port?.name ?? e.portId;
+      // A new town opens its workshop: say what it makes now (decision 0063).
+      const specialty =
+        port?.levelProduces?.[String(e.level) as '2' | '3' | '4']?.find(isSpecialty);
+      hud.showToast(
+        specialty
+          ? t('toast.workshop', {
+              name: portName,
+              workshop: t(`workshop.${specialty}`),
+              good: goodName(specialty),
+            })
+          : t('toast.levelUp', { name: portName, level: t(`settlement.level.${e.level}`) }),
+        5,
+      );
+      view.setSettlementLevels(settlementLevels(world.trade));
+      hud.portLabels.rebuild();
+      if (tradePanel.isOpen) tradePanel.render();
       autosave();
     } else if (e.type === 'undocked') {
       const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;

@@ -15,6 +15,8 @@ Each port has one main production ([0029](decisions/0029-one-main-production-per
 
 Ports live in the map data (`src/data/phase1-map.json` for trading) under `ports`; any island can host one. Every port trades every good: its role only sets where the stock settles. A port can list ship classes it `builds` and start `hidden` until discovered ([0048](decisions/0048-ship-unlocks-home-port-and-yards.md)); the map's `homePort` is where upgrades and ship changes happen.
 
+Each port is also a settlement with a level ([0059](decisions/0059-settlement-levels.md), `src/sim/settlement.ts`): `level` (start, default 2 = village) and `levelWants` (goods it starts wanting at a level) in the map data. Selling wanted goods and delivering orders grow it; a town keeps less stock of its wants and more of its product, posts bigger orders, and at the home port unlocks level 3 upgrades. A town also opens a workshop (`levelProduces`) making a specialized good, which ports listing it in `wantsMade` start buying ([0063](decisions/0063-specialized-town-goods.md)); specialties trade only where made or wanted (`trades()` in `market.ts`).
+
 ## Prices
 
 `src/sim/market.ts`. Each port holds a stock of each good.
@@ -53,6 +55,11 @@ Typical prices with the current numbers (gold per unit, first unit):
 | `START_GOLD` | `trade.ts` | 150 | start richer |
 | `DOCK_RANGE`, `DOCK_SPEED_KN` | `trade.ts` | 14 units, 1.5 kn | make docking easier |
 | `UPGRADE_EFFECTS` | `upgrades.ts` | see below | make upgrades stronger |
+| `GROWTH_TO_LEVEL`, `ORDER_GROWTH_BONUS` | `settlement.ts` | 40 / 150 / 350 pts, +5 per order | make towns grow faster |
+| `STALL_SECONDS`, `STALL_DECAY_PER_MINUTE` | `settlement.ts` | 180 s, 2 pts/min | make neglect hurt more |
+| `WANTS_EQUILIBRIUM`, `PRODUCES_EQUILIBRIUM`, `ORDER_SCALE` | `settlement.ts` | 15/12/10/8, 85/100/115/130, ×0.8–1.5 | make level-ups change the market more |
+| `SPECIALTY_SHARE` | `settlement.ts` | 40 % | make workshops stock more specialty goods |
+| `UPGRADE_NEEDS_LEVEL` | `settlement.ts` | level 2 upgrades: village, level 3: town | gate upgrades on the home port's size |
 | `hold`, `price`, `upgradePrices` | `ship.ts` | per class | change capacity and costs |
 
 ## Balance targets
