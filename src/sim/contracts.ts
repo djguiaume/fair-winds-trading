@@ -7,9 +7,13 @@ import {
   ORDER_SCALE,
   type SettlementState,
   addGrowth,
+  createSettlements,
+  madeGoods,
+  portProduces,
   portWants,
   settlementLevel,
   startLevel,
+  wantsAt,
 } from './settlement';
 import { addStanding } from './shipyards';
 import { type TradeState, capacity } from './trade';
@@ -59,7 +63,8 @@ export function haulDistance(map: MapDef, port: PortDef, good: GoodId): number {
   let best = Infinity;
   for (const p of map.ports) {
     const from = islandOf(map, p);
-    if (p.id !== port.id && from && p.produces.includes(good))
+    // A workshop counts as a maker whatever its town's level today (decision 0063).
+    if (p.id !== port.id && from && portProduces(p, 4).includes(good))
       best = Math.min(best, distance(from, to));
   }
   return Number.isFinite(best) ? best : 0;
@@ -94,11 +99,12 @@ export function makeContract(
   readyIn = 0,
   hold = 0,
   level: number = startLevel(port),
+  made: ReadonlySet<GoodId> = new Set(),
 ): Contract {
   let h = map.seed ^ 0xc0de;
   for (const ch of port.id) h = Math.imul(h ^ ch.charCodeAt(0), 0x01000193);
   const rng = createRng((h ^ Math.imul(n + 1, 0x9e3779b1)) >>> 0);
-  const wanted = portWants(port, level);
+  const wanted = portWants(port, level, made);
   const wants = wanted.length > 0 ? wanted : (['fish'] as GoodId[]);
   const good = wants[Math.floor(rng() * wants.length)]!;
   const [lo, hi] = contractQtyRange(hold, level);
@@ -145,6 +151,7 @@ export function deliverContract(trade: TradeState, map: MapDef): DeliverResult {
     CONTRACT_COOLDOWN,
     capacity(trade),
     settlementLevel(trade, portId),
+    madeGoods(map, trade),
   );
   return { ok: true, gold: c.reward };
 }
@@ -173,10 +180,9 @@ export function readContracts(
     if (
       c &&
       isGood(c.good) &&
-      portWants(
-        port,
-        settlements ? settlementLevel({ settlements }, port.id) : startLevel(port),
-      ).includes(c.good) &&
+      wantsAt(map, { settlements: settlements ?? createSettlements(map) }, port.id).includes(
+        c.good,
+      ) &&
       isNum(c.qty) &&
       Number.isInteger(c.qty) &&
       c.qty > 0 &&

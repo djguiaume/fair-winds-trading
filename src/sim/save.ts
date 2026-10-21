@@ -174,13 +174,14 @@ export function applySave(world: World, data: SaveData): void {
     cargo: data.cargo,
     hullDamage: { ...(data.hullDamage ?? {}) },
   };
+  // Levels first, so the markets that are open match the save before its stocks go in.
+  trade.settlements = readSettlements(data.settlements, world.map);
+  syncMarketLevels(trade, world.map);
   for (const [id, stock] of Object.entries(data.markets)) {
     const market = trade.markets[id];
     if (market) market.stock = { ...stock };
   }
   trade.dockedAt = data.dockedAt;
-  trade.settlements = readSettlements(data.settlements, world.map);
-  syncMarketLevels(trade, world.map);
   if (data.contracts) trade.contracts = readContracts(data.contracts, world.map, trade.settlements);
   trade.progress = readProgress(data.progress, world.map);
   world.ship = activeShip(trade);

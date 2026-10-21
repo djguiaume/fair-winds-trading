@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* global require, process, window, localStorage, fwt, console */
-// Settlement levels (decision 0059): port screen captures with the town's size tag, its wants and
-// the home-port upgrade gate. Run from the repo root: node docs/screenshots/settlements/capture.cjs
+// Settlement levels (decision 0059) and specialized goods (0063): port screen captures with the
+// town's size tag, its wants, the home-port upgrade gate and a workshop's specialty on sale. Run from the repo root: node docs/screenshots/settlements/capture.cjs
 const { chromium } = require('playwright');
 const root = process.cwd();
 (async () => {
@@ -58,6 +58,14 @@ const root = process.cwd();
       await dockAt('calda');
       await page.waitForSelector('.port-screen');
       await page.screenshot({ path: `${dir}/calda-town-${name}.png` });
+      await page.click('#tp-close');
+      // Specialized goods (decision 0063): Saltmere now buys Calda's planks.
+      await page.evaluate(() => {
+        fwt.world.trade.captain.cargo.planks = 5;
+      });
+      await dockAt('saltmere');
+      await page.waitForSelector('.port-screen');
+      await page.screenshot({ path: `${dir}/saltmere-buys-planks-${name}.png` });
       await page.close();
     }
   } finally {

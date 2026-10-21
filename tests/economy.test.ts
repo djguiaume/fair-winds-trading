@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PHASE0_MAP } from '../src/data/maps';
-import { GOODS, GOOD_DEFS, isGood } from '../src/sim/goods';
+import { GOODS, GOOD_DEFS, RAW_GOODS, isGood } from '../src/sim/goods';
 import {
   EQUILIBRIUM,
   createMarket,
@@ -71,8 +71,8 @@ describe('map ports', () => {
       for (const g of [...port.produces, ...port.wants]) expect(isGood(g)).toBe(true);
     }
   });
-  it('every good is made somewhere and wanted somewhere else', () => {
-    for (const g of GOODS) {
+  it('every bulk good is made somewhere and wanted somewhere else', () => {
+    for (const g of RAW_GOODS) {
       expect(PHASE0_MAP.ports.some((p) => p.produces.includes(g))).toBe(true);
       expect(PHASE0_MAP.ports.some((p) => p.wants.includes(g))).toBe(true);
     }

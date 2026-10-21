@@ -8,6 +8,10 @@ export const fr: Record<MessageKey, string> = {
   'good.grain': 'Céréales',
   'good.timber': 'Bois',
   'good.stone': 'Pierre',
+  'good.smokedFish': 'Poisson fumé',
+  'good.bread': 'Pain',
+  'good.planks': 'Planches',
+  'good.cutStone': 'Pierre de taille',
   'ship.sloop': 'Sloop',
   'ship.cutter': 'Cotre',
   'ship.schooner': 'Schooner',
@@ -128,6 +132,11 @@ export const fr: Record<MessageKey, string> = {
   'toast.bump': 'Bong ! Attention au rivage',
   'toast.discovered': 'Nouveau port sur la carte : {name}. Son chantier construit des navires',
   'toast.levelUp': '{name} s’agrandit : {level} !',
+  'toast.workshop': '{name} s’agrandit : sa nouvelle {workshop} produit : {good} !',
+  'workshop.smokedFish': 'fumerie',
+  'workshop.bread': 'boulangerie',
+  'workshop.planks': 'scierie',
+  'workshop.cutStone': 'taillerie de pierre',
 
   // --- Boussole et conseils de louvoyage -----------------------------------------------------
   'wind.compass': 'Boussole du vent. Ouvrir les conseils de navigation',
@@ -298,6 +307,7 @@ export const fr: Record<MessageKey, string> = {
   'trade.err.ship-locked': 'Le chantier attend d’abord plus de livraisons ici.',
   'trade.err.port-too-small':
     'Votre port d’attache doit grandir avant de poser cette amélioration.',
+  'trade.err.not-traded': 'Ce port ne fait pas commerce de cette marchandise.',
   'trade.shipwright': 'Chantier naval',
   'trade.homePort': 'Port d’attache',
   'settlement.level.1': 'Hameau',

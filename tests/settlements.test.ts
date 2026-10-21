@@ -1,16 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { PHASE0_MAP, PHASE1_MAP } from '../src/data/maps';
-import { deliverContract } from '../src/sim/contracts';
-import { isGood } from '../src/sim/goods';
-import { EQUILIBRIUM } from '../src/sim/market';
+import { deliverContract, makeContract } from '../src/sim/contracts';
+import { SPECIALTY_GOODS, isGood, isSpecialty } from '../src/sim/goods';
+import { EQUILIBRIUM, quoteAcross, stepMarket, topNeed, trades } from '../src/sim/market';
 import { type SaveStorage, loadGame, saveGame } from '../src/sim/save';
 import {
   GROWTH_TO_LEVEL,
   MAX_SETTLEMENT_LEVEL,
   ORDER_GROWTH_BONUS,
   STALL_SECONDS,
+  WANTS_EQUILIBRIUM,
   addGrowth,
+  madeGoods,
+  portProduces,
   portWants,
+  producesAt,
   readSettlements,
   settlementLevel,
   settlementLevels,
@@ -20,7 +24,7 @@ import {
 } from '../src/sim/settlement';
 import { SLOOP } from '../src/sim/ship';
 import { homePort } from '../src/sim/shipyards';
-import { buyUpgrade, sell, stepTrade } from '../src/sim/trade';
+import { buy, buyUpgrade, sell, stepTrade } from '../src/sim/trade';
 import { type World, createWorld, stepWorld } from '../src/sim/world';
 
 const MAP = PHASE1_MAP;
@@ -209,3 +213,104 @@ describe('settlement levels (0059)', () => {
     expect(settlementLevels(back.trade)).toEqual(settlementLevels(w.trade));
   });
 });
+
+describe('specialized goods (0063)', () => {
+  const town = (w: World, portId: string) => {
+    addGrowth(w.trade, portId, GROWTH_TO_LEVEL[3]);
+    return step(w, 0.1);
+  };
+
+  it('each charted town has one workshop, and every specialty has buyers', () => {
+    for (const g of SPECIALTY_GOODS) {
+      const makers = MAP.ports.filter((p) => portProduces(p, 4).includes(g));
+      expect(makers).toHaveLength(1);
+      expect(portProduces(makers[0]!, 2)).not.toContain(g);
+      expect(portProduces(makers[0]!, 3)).toContain(g);
+      const buyers = MAP.ports.filter((p) => p.wantsMade?.includes(g));
+      expect(buyers.length).toBeGreaterThanOrEqual(2);
+      for (const b of buyers) expect(b.id).not.toBe(makers[0]!.id);
+    }
+  });
+
+  it('are not traded anywhere until a town makes them', () => {
+    const w = world();
+    expect(madeGoods(MAP, w.trade).size).toBe(0);
+    for (const port of MAP.ports) {
+      const m = w.trade.markets[port.id]!;
+      for (const g of SPECIALTY_GOODS) {
+        expect(trades(m, g)).toBe(false);
+        expect(m.stock[g]).toBe(0);
+      }
+      expect(isSpecialty(topNeed(m))).toBe(false);
+    }
+    expect(quoteAcross(w.trade.markets, 'planks', ['calda', 'saltmere'])).toEqual([]);
+    // Nothing to sell them to yet.
+    w.trade.dockedAt = 'saltmere';
+    w.trade.captain.cargo.planks = 2;
+    expect(sell(w.trade, 'planks', 1, MAP)).toEqual({ ok: false, error: 'not-traded' });
+  });
+
+  it('a new town opens its workshop and its buyers start wanting the specialty', () => {
+    const w = world();
+    const events = town(w, 'calda');
+    expect(events).toContainEqual({ type: 'level-up', portId: 'calda', level: 3 });
+    expect(producesAt(MAP, w.trade, 'calda')).toEqual(['timber', 'planks']);
+    expect([...madeGoods(MAP, w.trade)]).toEqual(['planks']);
+    const calda = w.trade.markets.calda!;
+    expect(calda.equilibrium.planks).toBeGreaterThan(0);
+    // Opens stocked, so the first prices are not at the ceiling.
+    expect(calda.stock.planks).toBe(calda.equilibrium.planks);
+    expect(calda.equilibrium.planks).toBeLessThan(calda.equilibrium.timber);
+    // Buyers: Saltmere, Westholm and both yards. Others still do not trade planks.
+    for (const id of ['saltmere', 'westholm', 'watchman-key', 'abbey-head']) {
+      expect(wantsAt(MAP, w.trade, id)).toContain('planks');
+      expect(w.trade.markets[id]!.equilibrium.planks).toBe(
+        WANTS_EQUILIBRIUM[settlementLevel(w.trade, id) - 1],
+      );
+    }
+    expect(trades(w.trade.markets.stonehaven!, 'planks')).toBe(false);
+
+    // Planks go from the sawmill to Saltmere at a profit, and grow Saltmere.
+    for (const m of Object.values(w.trade.markets)) for (let i = 0; i < 300; i++) stepMarketOnce(m);
+    w.trade.dockedAt = 'calda';
+    w.trade.captain.gold = 1000;
+    expect(buy(w.trade, 'planks', 5).ok).toBe(true);
+    const paid = 1000 - w.trade.captain.gold;
+    w.trade.dockedAt = 'saltmere';
+    const before = w.trade.settlements.byPort.saltmere!.growth;
+    const sale = sell(w.trade, 'planks', 5, MAP);
+    expect(sale.ok && sale.gold).toBeGreaterThan(paid);
+    expect(w.trade.settlements.byPort.saltmere!.growth).toBe(before + 5);
+  });
+
+  it('orders can ask for a specialty once it is made, and saves keep it all', () => {
+    const w = world();
+    town(w, 'westholm');
+    const made = madeGoods(MAP, w.trade);
+    const calda = MAP.ports.find((p) => p.id === 'calda')!;
+    const goods = new Set(
+      Array.from({ length: 40 }, (_, n) => makeContract(MAP, calda, n, 0, 0, 2, made).good),
+    );
+    expect(goods.has('bread')).toBe(true);
+    // A saved bread order at Calda stays valid on load because Westholm still bakes.
+    w.trade.contracts.byPort.calda = {
+      ...makeContract(MAP, calda, 0, 0, 0, 2, made),
+      good: 'bread',
+    };
+    w.trade.captain.cargo.bread = 3;
+    const storage = new MemoryStorage();
+    saveGame(storage, w);
+    const back = world();
+    expect(loadGame(storage, back)).toBe(true);
+    expect(back.trade.contracts.byPort.calda!.good).toBe('bread');
+    expect(back.trade.captain.cargo.bread).toBe(3);
+    expect(back.trade.markets.calda!.equilibrium.bread).toBe(EQUILIBRIUM.wants);
+    expect(back.trade.markets.westholm!.stock.bread).toBeCloseTo(
+      w.trade.markets.westholm!.stock.bread,
+    );
+  });
+});
+
+function stepMarketOnce(m: Parameters<typeof stepMarket>[0]) {
+  stepMarket(m, 1);
+}

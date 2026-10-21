@@ -10,6 +10,7 @@ import {
   quoteSell,
   setMarketLevel,
   stepMarket,
+  trades,
 } from './market';
 import { distance } from './math';
 import { createRng } from './rng';
@@ -18,6 +19,7 @@ import {
   type SettlementState,
   addGrowth,
   createSettlements,
+  madeGoods,
   settlementLevel,
   stepSettlements,
   upgradeNeedsLevel,
@@ -94,7 +96,8 @@ export type TradeError =
   | 'not-home-port'
   | 'not-at-yard'
   | 'ship-locked'
-  | 'port-too-small';
+  | 'port-too-small'
+  | 'not-traded';
 
 export type TradeResult = { ok: true; gold: number } | { ok: false; error: TradeError };
 
@@ -105,7 +108,12 @@ export function createTradeState(map: MapDef, startShip: ShipClass): TradeState 
   const settlements = createSettlements(map);
   const markets: Record<string, Market> = {};
   for (const port of map.ports)
-    markets[port.id] = createMarket(port, rng, settlements.byPort[port.id]!.level);
+    markets[port.id] = createMarket(
+      port,
+      rng,
+      settlements.byPort[port.id]!.level,
+      madeGoods(map, { settlements }),
+    );
   return {
     captain: {
       gold: START_GOLD,
@@ -124,9 +132,10 @@ export function createTradeState(map: MapDef, startShip: ShipClass): TradeState 
 
 /** Bring every market's demand in line with its settlement level (after a level-up or a load). */
 export function syncMarketLevels(trade: TradeState, map: MapDef): void {
+  const made = madeGoods(map, trade);
   for (const port of map.ports) {
     const market = trade.markets[port.id];
-    if (market) setMarketLevel(market, port, settlementLevel(trade, port.id));
+    if (market) setMarketLevel(market, port, settlementLevel(trade, port.id), made);
   }
 }
 
@@ -217,13 +226,11 @@ export function stepTrade(
   for (const market of Object.values(trade.markets)) stepMarket(market, dt);
   stepContracts(trade.contracts, dt);
   const events: DockEvent[] = [];
-  // Towns that got enough goods grow a level: deeper demand from now on (decision 0059).
-  for (const up of stepSettlements(trade, dt)) {
-    const port = findPort(map, up.portId);
-    const market = trade.markets[up.portId];
-    if (port && market) setMarketLevel(market, port, up.level);
-    events.push(up);
-  }
+  // Towns that got enough goods grow a level: deeper demand from now on (decision 0059), and a
+  // new town's specialty opens a market at the ports that buy it (0063).
+  const ups = stepSettlements(trade, dt);
+  if (ups.length) syncMarketLevels(trade, map);
+  events.push(...ups);
   for (const port of discoverNear(trade, map, boat))
     events.push({ type: 'discovered', portId: port.id });
   if (trade.dockedAt) {
@@ -279,6 +286,7 @@ export function sell(trade: TradeState, good: GoodId, qty: number, map?: MapDef)
   if (!market) return fail('not-docked');
   if (!Number.isInteger(qty) || qty <= 0) return fail('bad-quantity');
   if (qty > trade.captain.cargo[good]) return fail('not-in-hold');
+  if (!trades(market, good)) return fail('not-traded');
   const income = quoteSell(market, good, qty);
   trade.captain.gold += income;
   trade.captain.cargo[good] -= qty;

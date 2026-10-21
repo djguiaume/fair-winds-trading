@@ -70,6 +70,10 @@ export interface PortDef {
   level?: number;
   /** Extra goods the town wants once it reaches a level, keyed by level ("2" to "4") (decision 0059). */
   levelWants?: Partial<Record<'2' | '3' | '4', GoodId[]>>;
+  /** Specialized goods its workshop starts making at a level, keyed like `levelWants` (decision 0063). */
+  levelProduces?: Partial<Record<'2' | '3' | '4', GoodId[]>>;
+  /** Specialized goods the town buys once some town makes them (decision 0063). */
+  wantsMade?: GoodId[];
 }
 
 export interface MapDef {

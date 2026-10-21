@@ -2,7 +2,7 @@ import type { ScreenPoint } from '../render/view';
 import { type GoodId } from '../sim/goods';
 import { isDiscovered } from '../sim/shipyards';
 import { unitSellPrice } from '../sim/market';
-import { wantsAt } from '../sim/settlement';
+import { producesAt, wantsAt } from '../sim/settlement';
 import { DOCK_RANGE, DOCK_SPEED_KN, distanceToPort } from '../sim/trade';
 import { navigationTarget, type World } from '../sim/world';
 import { goodName, t } from '../i18n';
@@ -57,7 +57,7 @@ export class PortLabels {
       const island = map.islands.find((i) => i.id === port.islandId);
       if (!island) continue;
 
-      const produces = port.produces
+      const produces = producesAt(map, this.world.trade, port.id)
         .map((g) => `<span title="${goodName(g)}">${goodIcon(g)}</span>`)
         .join('');
       const wants = wantsAt(map, this.world.trade, port.id)

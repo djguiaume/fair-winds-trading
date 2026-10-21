@@ -1,10 +1,12 @@
 import { type Contract, deliverContract, openContracts } from '../sim/contracts';
-import { GOODS, GOOD_DEFS, type GoodId } from '../sim/goods';
+import { GOODS, GOOD_DEFS, GOOD_ICONS, type GoodId } from '../sim/goods';
 import { hullCondition, repairHull, repairPrice } from '../sim/hazards';
-import { goodRole, quoteAcross, quoteBuy, quoteSell, type Market } from '../sim/market';
+import { goodRole, quoteAcross, quoteBuy, quoteSell, trades, type Market } from '../sim/market';
 import { DEG } from '../sim/math';
 import {
   growthProgress,
+  madeGoods,
+  producesAt,
   settlementLevel,
   STALL_SECONDS,
   upgradeNeedsLevel,
@@ -45,13 +47,6 @@ export type TradePanelTab = 'market' | 'orders' | 'shipyard';
 /** Lot sizes for one tap on Buy or Sell (decision 0049); clamped to what the hold, stock and gold allow. */
 const LOTS = [1, 5, 10] as const;
 type Lot = (typeof LOTS)[number];
-
-const GOOD_ICONS: Record<GoodId, string> = {
-  fish: '🐟',
-  grain: '🌾',
-  timber: '🪵',
-  stone: '🪨',
-};
 
 export class TradePanel {
   private tab: TradePanelTab = 'market';
@@ -178,7 +173,7 @@ export class TradePanel {
     let totalSellableValue = 0;
     for (const g of GOODS) {
       const q = captain.cargo[g];
-      if (q > 0) totalSellableValue += quoteSell(market, g, q);
+      if (q > 0 && trades(market, g)) totalSellableValue += quoteSell(market, g, q);
     }
 
     const isKid = this.uiMode === 'kids';
@@ -197,7 +192,7 @@ export class TradePanel {
             <h2 class="port-name">${port.name}</h2>
             <div class="port-roles-summary">
               ${port.id === homePort(map).id ? `<span class="role-tag home">${icon('anchor')}${t('trade.homePort')}</span>` : ''}
-              ${port.produces.length ? `<span class="role-tag produces"><small>${isKid ? t('kids.produces') : t('trade.makes')}</small>${goodIcons(port.produces)}</span>` : `<span class="role-tag produces">${t('trade.shipwright')}</span>`}
+              ${port.produces.length ? `<span class="role-tag produces"><small>${isKid ? t('kids.produces') : t('trade.makes')}</small>${goodIcons(producesAt(map, trade, port.id))}</span>` : `<span class="role-tag produces">${t('trade.shipwright')}</span>`}
               <span class="role-tag wants"><small>${isKid ? t('kids.wants') : t('trade.wants')}</small>${goodIcons(wantsAt(map, trade, port.id))}</span>
               ${this.settlementTag(port.id, port.name)}
             </div>
@@ -397,30 +392,33 @@ export class TradePanel {
     const port = findPort(map, trade.dockedAt!)!;
     const { captain } = trade;
 
-    const cardsHtml = GOODS.map((good) => {
-      const def = GOOD_DEFS[good];
-      const role = goodRole(port, good, settlementLevel(trade, port.id));
-      const inHold = captain.cargo[good];
-      const maxCanBuy = maxBuy(trade, good);
+    const made = madeGoods(map, trade);
+    // Specialized goods appear only where they are made or wanted (decision 0063).
+    const cardsHtml = GOODS.filter((g) => trades(market, g))
+      .map((good) => {
+        const def = GOOD_DEFS[good];
+        const role = goodRole(port, good, settlementLevel(trade, port.id), made);
+        const inHold = captain.cargo[good];
+        const maxCanBuy = maxBuy(trade, good);
 
-      const buyPrice = quoteBuy(market, good, 1);
-      const sellPrice = quoteSell(market, good, 1);
+        const buyPrice = quoteBuy(market, good, 1);
+        const sellPrice = quoteSell(market, good, 1);
 
-      const fillHoldCost = maxCanBuy > 0 ? quoteBuy(market, good, maxCanBuy) : 0;
-      const bestElsewhere = this.bestSaleElsewhere(good);
-      const sellAllIncome = inHold > 0 ? quoteSell(market, good, inHold) : 0;
+        const fillHoldCost = maxCanBuy > 0 ? quoteBuy(market, good, maxCanBuy) : 0;
+        const bestElsewhere = this.bestSaleElsewhere(good);
+        const sellAllIncome = inHold > 0 ? quoteSell(market, good, inHold) : 0;
 
-      let badgeText = t('kids.regular');
-      let badgeClass = 'neutral';
-      if (role === 'produces') {
-        badgeText = t('kids.cheap');
-        badgeClass = 'produces';
-      } else if (role === 'wants') {
-        badgeText = t('kids.highReward');
-        badgeClass = 'wants';
-      }
+        let badgeText = t('kids.regular');
+        let badgeClass = 'neutral';
+        if (role === 'produces') {
+          badgeText = t('kids.cheap');
+          badgeClass = 'produces';
+        } else if (role === 'wants') {
+          badgeText = t('kids.highReward');
+          badgeClass = 'wants';
+        }
 
-      return `
+        return `
         <article class="good-card kid-card ${role}">
           <div class="kid-good-head">
             <span class="kid-icon">${GOOD_ICONS[good]}</span>
@@ -494,7 +492,8 @@ export class TradePanel {
           </div>
         </article>
       `;
-    }).join('');
+      })
+      .join('');
 
     return `
       <div class="market-section kids-layout">
@@ -526,41 +525,44 @@ export class TradePanel {
     const order = trade.contracts.byPort[trade.dockedAt!];
     const liveOrder = order && order.readyIn <= 0 ? order : null;
 
-    const rowsHtml = GOODS.map((good) => {
-      const def = GOOD_DEFS[good];
-      const role = goodRole(port, good, settlementLevel(trade, port.id));
-      const stock = Math.max(0, Math.floor(market.stock[good]));
-      const inHold = captain.cargo[good];
-      const free = freeSpace(trade);
-      const buyQty = Math.max(1, Math.min(this.lot, maxBuy(trade, good)));
-      const sellQty = Math.max(1, Math.min(this.lot, inHold));
-      const costQuote = quoteBuy(market, good, buyQty);
-      const sellQuote = quoteSell(market, good, sellQty);
-      const nextBuy = quoteBuy(market, good, 1);
+    const made = madeGoods(map, trade);
+    // Specialized goods appear only where they are made or wanted (decision 0063).
+    const rowsHtml = GOODS.filter((g) => trades(market, g))
+      .map((good) => {
+        const def = GOOD_DEFS[good];
+        const role = goodRole(port, good, settlementLevel(trade, port.id), made);
+        const stock = Math.max(0, Math.floor(market.stock[good]));
+        const inHold = captain.cargo[good];
+        const free = freeSpace(trade);
+        const buyQty = Math.max(1, Math.min(this.lot, maxBuy(trade, good)));
+        const sellQty = Math.max(1, Math.min(this.lot, inHold));
+        const costQuote = quoteBuy(market, good, buyQty);
+        const sellQuote = quoteSell(market, good, sellQty);
+        const nextBuy = quoteBuy(market, good, 1);
 
-      const canBuy = maxBuy(trade, good) >= buyQty;
-      let buyDisabledReason = '';
-      if (!canBuy) {
-        if (stock === 0) buyDisabledReason = t('trade.outOfStock');
-        else if (free === 0) buyDisabledReason = t('trade.holdFull');
-        else if (captain.gold < nextBuy) buyDisabledReason = t('trade.needGold');
-        else buyDisabledReason = t('trade.cannotAfford');
-      }
-      const canSell = inHold >= sellQty;
-      const sellDisabledReason = canSell ? '' : t('trade.noneInHold');
+        const canBuy = maxBuy(trade, good) >= buyQty;
+        let buyDisabledReason = '';
+        if (!canBuy) {
+          if (stock === 0) buyDisabledReason = t('trade.outOfStock');
+          else if (free === 0) buyDisabledReason = t('trade.holdFull');
+          else if (captain.gold < nextBuy) buyDisabledReason = t('trade.needGold');
+          else buyDisabledReason = t('trade.cannotAfford');
+        }
+        const canSell = inHold >= sellQty;
+        const sellDisabledReason = canSell ? '' : t('trade.noneInHold');
 
-      const note =
-        role === 'produces'
-          ? t('trade.madeHere')
-          : role === 'wants'
-            ? liveOrder?.good === good
-              ? t('trade.wantedOrder', { n: liveOrder.qty })
-              : t('trade.wanted')
-            : '';
-      const best = this.bestSaleElsewhere(good);
-      const qtyLabel = (n: number) => (n > 1 ? ` ${n}` : '');
+        const note =
+          role === 'produces'
+            ? t('trade.madeHere')
+            : role === 'wants'
+              ? liveOrder?.good === good
+                ? t('trade.wantedOrder', { n: liveOrder.qty })
+                : t('trade.wanted')
+              : '';
+        const best = this.bestSaleElsewhere(good);
+        const qtyLabel = (n: number) => (n > 1 ? ` ${n}` : '');
 
-      return `
+        return `
         <article class="good-row ${role}">
           <span class="good-icon">${icon(good)}</span>
           <span class="good-text">
@@ -587,11 +589,12 @@ export class TradePanel {
           ><small>${t('trade.sell')}${qtyLabel(sellQty)}</small><b>${sellQuote}</b></button>
         </article>
       `;
-    }).join('');
+      })
+      .join('');
 
     // Side panel: this port's order, then where the cargo (or what this port makes) sells best.
     const hereGoods = GOODS.filter((g) => captain.cargo[g] > 0);
-    const tips = (hereGoods.length ? hereGoods : port.produces)
+    const tips = (hereGoods.length ? hereGoods : producesAt(map, trade, port.id))
       .map((g) => {
         const best = this.bestSaleElsewhere(g as GoodId);
         return best

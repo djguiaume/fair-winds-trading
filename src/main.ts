@@ -3,6 +3,7 @@ import { Input } from './input/input';
 import { FrameMonitor, type QualityLevel, guessQuality, lowerQuality } from './render/quality';
 import { GameView } from './render/view';
 import { SAIL_STEPS } from './sim/boat';
+import { isSpecialty } from './sim/goods';
 import { clamp } from './sim/math';
 import { type SaveStorage, clearSave, loadGame, saveGame } from './sim/save';
 import { SLOOP } from './sim/ship';
@@ -32,6 +33,7 @@ import {
   browserLanguages,
   detectLanguage,
   language,
+  goodName,
   setLanguage,
   t,
   translateDom,
@@ -490,10 +492,20 @@ function handleEvents(events: WorldEvent[]) {
       autosave();
     } else if (e.type === 'level-up') {
       // A town grew (decision 0059): new wants on its sign, and the island grows with it.
-      const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
+      const port = trade.findPort(world.map, e.portId);
+      const portName = port?.name ?? e.portId;
+      // A new town opens its workshop: say what it makes now (decision 0063).
+      const specialty =
+        port?.levelProduces?.[String(e.level) as '2' | '3' | '4']?.find(isSpecialty);
       hud.showToast(
-        t('toast.levelUp', { name: portName, level: t(`settlement.level.${e.level}`) }),
-        4,
+        specialty
+          ? t('toast.workshop', {
+              name: portName,
+              workshop: t(`workshop.${specialty}`),
+              good: goodName(specialty),
+            })
+          : t('toast.levelUp', { name: portName, level: t(`settlement.level.${e.level}`) }),
+        5,
       );
       hud.portLabels.rebuild();
       if (tradePanel.isOpen) tradePanel.render();

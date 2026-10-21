@@ -1,4 +1,4 @@
-import { type GoodId, isGood } from './goods';
+import { type GoodId, isGood, isSpecialty } from './goods';
 import type { MapDef, PortDef } from './map';
 
 /**
@@ -28,6 +28,8 @@ export const STALL_DECAY_PER_MINUTE = 2;
  */
 export const WANTS_EQUILIBRIUM = [15, 12, 10, 8] as const;
 export const PRODUCES_EQUILIBRIUM = [85, 100, 115, 130] as const;
+/** A workshop makes less than the bulk trade: its stock is this share of PRODUCES_EQUILIBRIUM (0063). */
+export const SPECIALTY_SHARE = 0.4;
 /** Order size multiplier per level (decision 0028 sizes are level 2). */
 export const ORDER_SCALE = [0.8, 1, 1.25, 1.5] as const;
 
@@ -68,13 +70,50 @@ export function startLevel(port: PortDef): SettlementLevel {
   return clampLevel(port.level ?? 2);
 }
 
-/** Goods the port wants at `level`: its base wants plus every want unlocked up to that level. */
-export function portWants(port: PortDef, level: number): GoodId[] {
-  const out = [...port.wants];
+type LevelKey = '2' | '3' | '4';
+
+/** Goods the port makes at `level`: its bulk good plus its workshop's specialty from town level (0063). */
+export function portProduces(port: PortDef, level: number): GoodId[] {
+  const out = [...port.produces];
   for (let l = 2; l <= level; l++)
-    for (const g of port.levelWants?.[String(l) as '2' | '3' | '4'] ?? [])
-      if (isGood(g) && !out.includes(g) && !port.produces.includes(g)) out.push(g);
+    for (const g of port.levelProduces?.[String(l) as LevelKey] ?? [])
+      if (isGood(g) && !out.includes(g)) out.push(g);
   return out;
+}
+
+/**
+ * Goods the port wants at `level`: its base wants, every want unlocked up to that level, and the
+ * specialized goods it buys that some town already makes (`made`, decision 0063).
+ */
+export function portWants(
+  port: PortDef,
+  level: number,
+  made: ReadonlySet<GoodId> = new Set(),
+): GoodId[] {
+  const out = [...port.wants];
+  const makes = portProduces(port, level);
+  const add = (g: GoodId) => {
+    if (isGood(g) && !out.includes(g) && !makes.includes(g)) out.push(g);
+  };
+  for (let l = 2; l <= level; l++)
+    for (const g of port.levelWants?.[String(l) as LevelKey] ?? []) add(g);
+  for (const g of port.wantsMade ?? []) if (made.has(g)) add(g);
+  return out;
+}
+
+/** Specialized goods some port makes at its current level: the ones with a market (0063). */
+export function madeGoods(map: MapDef, state: HasSettlements): Set<GoodId> {
+  const made = new Set<GoodId>();
+  for (const port of map.ports)
+    for (const g of portProduces(port, settlementLevel(state, port.id)))
+      if (isSpecialty(g)) made.add(g);
+  return made;
+}
+
+/** What the port makes right now (levels included). */
+export function producesAt(map: MapDef, state: HasSettlements, portId: string): GoodId[] {
+  const port = map.ports.find((p) => p.id === portId);
+  return port ? portProduces(port, settlementLevel(state, portId)) : [];
 }
 
 /** Points still needed for the next level, or null at the top. */
@@ -104,10 +143,10 @@ export function settlementLevels(state: HasSettlements): Record<string, Settleme
   return out;
 }
 
-/** What the docked port wants right now (levels included). */
+/** What the port wants right now (levels and specialties on the market included). */
 export function wantsAt(map: MapDef, state: HasSettlements, portId: string): GoodId[] {
   const port = map.ports.find((p) => p.id === portId);
-  return port ? portWants(port, settlementLevel(state, portId)) : [];
+  return port ? portWants(port, settlementLevel(state, portId), madeGoods(map, state)) : [];
 }
 
 /** Growth toward the next level, for a progress bar: 0 … 1 (1 at the top level). */
