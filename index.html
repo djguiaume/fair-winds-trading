@@ -27,160 +27,245 @@
     <link rel="stylesheet" href="/src/ui/sea-hud.css" />
     <link rel="stylesheet" href="/src/ui/port-screen.css" />
     <link rel="stylesheet" href="/src/ui/sea-chart.css" />
+    <link rel="stylesheet" href="/src/ui/menus.css" />
   </head>
   <body>
+    <svg class="icon-sprite" aria-hidden="true">
+      <symbol id="i-info" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" />
+        <path d="M12 10V17" stroke="currentColor" stroke-width="2" />
+        <circle cx="12" cy="7" r="1.2" fill="currentColor" />
+      </symbol>
+      <symbol id="i-chart-boat" viewBox="-18 -22 36 44">
+        <circle r="17" fill="#86e8ff" fill-opacity=".16" stroke="#86e8ff" stroke-width="1.5" />
+        <path
+          d="M0 -21C6 -14 7.5 -4 7 6L6 17H-6L-7 6C-7.5 -4 -6 -14 0 -21Z"
+          fill="#9b6037"
+          stroke="#102f39"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+        <path d="M0 -16C4 -10 5 -3 4.8 5L4 14H-4L-4.8 5C-5 -3 -4 -10 0 -16Z" fill="#c98a4b" />
+        <path
+          d="M0 -8Q11 0 4 13Z"
+          fill="#fdf6e3"
+          stroke="#102f39"
+          stroke-width="1.2"
+          stroke-linejoin="round"
+        />
+        <circle cy="-8" r="1.8" fill="#102f39" />
+      </symbol>
+      <symbol id="i-coin" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" fill="#ffc928" stroke="rgba(0,0,0,.45)" stroke-width="1.5" />
+        <circle cx="12" cy="12" r="6.2" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="1.5" />
+      </symbol>
+      <symbol id="i-hull" viewBox="0 0 24 24">
+        <path
+          d="M1.5 10h14.5l7-3-3.4 8.7A3.5 3.5 0 0 1 16.4 18H6a3.5 3.5 0 0 1-3.1-1.9z"
+          fill="#c98a4b"
+          stroke="#06141c"
+          stroke-width="1.3"
+          stroke-linejoin="round"
+        />
+        <path d="M2.4 10.4h14" stroke="#7a4a22" stroke-width="1.6" />
+        <path d="M2.9 13.3h18.4M4.2 15.9h15.4" stroke="rgba(6,20,28,.45)" stroke-width="1" />
+        <path
+          d="M12.2 10.6l-1.4 2.6 1.9 1.3-1.2 2.9"
+          stroke="#06141c"
+          stroke-width="1.5"
+          fill="none"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="i-fish" viewBox="0 0 24 24">
+        <path
+          d="M2 12c3-5 9-6 14-2l5-4v12l-5-4c-5 4-11 3-14-2z"
+          fill="#4fc3f7"
+          stroke="rgba(0,0,0,.45)"
+          stroke-width="1.4"
+        />
+        <circle cx="7" cy="11" r="1.2" fill="#1a2a30" />
+      </symbol>
+      <symbol id="i-grain" viewBox="0 0 24 24">
+        <path d="M12 22V6" stroke="rgba(0,0,0,.5)" stroke-width="1.6" />
+        <g fill="#ffd54a" stroke="rgba(0,0,0,.45)" stroke-width="1.2">
+          <ellipse cx="12" cy="4" rx="2" ry="3" />
+          <ellipse cx="8.5" cy="9" rx="2" ry="3" transform="rotate(-30 8.5 9)" />
+          <ellipse cx="15.5" cy="9" rx="2" ry="3" transform="rotate(30 15.5 9)" />
+          <ellipse cx="8.5" cy="14" rx="2" ry="3" transform="rotate(-30 8.5 14)" />
+          <ellipse cx="15.5" cy="14" rx="2" ry="3" transform="rotate(30 15.5 14)" />
+        </g>
+      </symbol>
+      <symbol id="i-timber" viewBox="0 0 24 24">
+        <g fill="#c98a4b" stroke="rgba(0,0,0,.5)" stroke-width="1.4">
+          <rect x="3" y="12" width="18" height="7" rx="3.5" />
+          <rect x="3" y="5" width="18" height="7" rx="3.5" />
+        </g>
+        <g fill="#f0d29a" stroke="rgba(0,0,0,.45)" stroke-width="1.2">
+          <circle cx="18" cy="8.5" r="2.6" />
+          <circle cx="18" cy="15.5" r="2.6" />
+        </g>
+      </symbol>
+      <symbol id="i-stone" viewBox="0 0 24 24">
+        <path
+          d="M4 17l2-8 6-5 7 4 2 9-6 3H8z"
+          fill="#b8c2cc"
+          stroke="rgba(0,0,0,.5)"
+          stroke-width="1.4"
+        />
+        <path
+          d="M12 4l-1 7 8 6M11 11l-5 6"
+          stroke="rgba(0,0,0,.25)"
+          stroke-width="1.2"
+          fill="none"
+        />
+      </symbol>
+      <symbol id="i-anchor" viewBox="0 0 24 24">
+        <g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <circle cx="12" cy="5" r="2" />
+          <path d="M12 7v14M7 11h10M4 14c1 4 4 7 8 7s7-3 8-7" />
+        </g>
+      </symbol>
+      <symbol id="i-map" viewBox="0 0 24 24">
+        <path
+          d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+        <path d="M9 4v14M15 6v14" stroke="currentColor" stroke-width="2" />
+      </symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24">
+        <path
+          d="M4 7h16M4 12h16M4 17h16"
+          stroke="currentColor"
+          stroke-width="2.4"
+          stroke-linecap="round"
+        />
+      </symbol>
+      <symbol id="i-eye" viewBox="0 0 24 24">
+        <path
+          d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        />
+        <circle cx="12" cy="12" r="3" fill="currentColor" />
+      </symbol>
+      <symbol id="i-gauge" viewBox="0 0 24 24">
+        <path
+          d="M3 17a9 9 0 0 1 18 0"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+        />
+        <path d="M12 17l5-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+        <circle cx="12" cy="17" r="2" fill="currentColor" />
+      </symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24">
+        <path d="M12 2l8 18-8-5-8 5z" fill="currentColor" />
+      </symbol>
+      <symbol id="i-sail" viewBox="0 0 24 24">
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linejoin="round"
+          stroke-linecap="round"
+        >
+          <path d="M12 3v15M12 4l7 12h-7M11 6L5 16h6M3 19c3 2 15 2 18 0" />
+        </g>
+      </symbol>
+      <symbol id="i-play" viewBox="0 0 24 24">
+        <path
+          d="M8 5l11 7-11 7z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="i-compass" viewBox="0 0 24 24">
+        <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M15.5 8.5l-2 5-5 2 2-5z" />
+        </g>
+      </symbol>
+      <symbol id="i-book" viewBox="0 0 24 24">
+        <path
+          d="M4 5c3-1.5 6-1.5 8 0v14c-2-1.5-5-1.5-8 0zM20 5c-3-1.5-6-1.5-8 0v14c2-1.5 5-1.5 8 0z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="i-gear" viewBox="0 0 24 24">
+        <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="3.2" />
+          <path
+            d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"
+          />
+        </g>
+      </symbol>
+      <symbol id="i-fullscreen" viewBox="0 0 24 24">
+        <path
+          d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="i-close" viewBox="0 0 24 24">
+        <path
+          d="M6 6l12 12M18 6L6 18"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-linecap="round"
+        />
+      </symbol>
+      <symbol id="i-emblem" viewBox="-50 -50 100 100">
+        <circle r="46" fill="#123246" stroke="#e8c46a" stroke-width="3" />
+        <circle r="38" fill="none" stroke="rgba(232,196,106,.45)" stroke-width="1.5" />
+        <g id="i-emblem-point">
+          <path d="M0-40L7-7 0 0z" fill="#f3d37e" />
+          <path d="M0-40L-7-7 0 0z" fill="#b08a2c" />
+        </g>
+        <use href="#i-emblem-point" transform="rotate(90)" />
+        <use href="#i-emblem-point" transform="rotate(180)" />
+        <use href="#i-emblem-point" transform="rotate(270)" />
+        <g fill="#eef3f4" opacity=".75">
+          <path d="M0-26L4-4 0 0-4-4z" transform="rotate(45)" />
+          <path d="M0-26L4-4 0 0-4-4z" transform="rotate(135)" />
+          <path d="M0-26L4-4 0 0-4-4z" transform="rotate(225)" />
+          <path d="M0-26L4-4 0 0-4-4z" transform="rotate(315)" />
+        </g>
+        <circle r="5" fill="#e8c46a" stroke="#06141c" stroke-width="2" />
+      </symbol>
+      <symbol id="i-crate" viewBox="0 0 24 24">
+        <rect
+          x="3"
+          y="4"
+          width="18"
+          height="16"
+          rx="2"
+          fill="#f2b25c"
+          stroke="#06141c"
+          stroke-width="1.6"
+        />
+        <path d="M3 9.3h18M3 14.6h18" stroke="#06141c" stroke-width="1.2" opacity=".6" />
+      </symbol>
+    </svg>
     <div id="stage">
       <canvas id="scene"></canvas>
     </div>
 
     <div id="hud">
-      <svg class="icon-sprite" aria-hidden="true">
-        <symbol id="i-info" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" />
-          <path d="M12 10V17" stroke="currentColor" stroke-width="2" />
-          <circle cx="12" cy="7" r="1.2" fill="currentColor" />
-        </symbol>
-        <symbol id="i-chart-boat" viewBox="-18 -22 36 44">
-          <circle r="17" fill="#86e8ff" fill-opacity=".16" stroke="#86e8ff" stroke-width="1.5" />
-          <path
-            d="M0 -21C6 -14 7.5 -4 7 6L6 17H-6L-7 6C-7.5 -4 -6 -14 0 -21Z"
-            fill="#9b6037"
-            stroke="#102f39"
-            stroke-width="2"
-            stroke-linejoin="round"
-          />
-          <path d="M0 -16C4 -10 5 -3 4.8 5L4 14H-4L-4.8 5C-5 -3 -4 -10 0 -16Z" fill="#c98a4b" />
-          <path
-            d="M0 -8Q11 0 4 13Z"
-            fill="#fdf6e3"
-            stroke="#102f39"
-            stroke-width="1.2"
-            stroke-linejoin="round"
-          />
-          <circle cy="-8" r="1.8" fill="#102f39" />
-        </symbol>
-        <symbol id="i-coin" viewBox="0 0 24 24">
-          <circle
-            cx="12"
-            cy="12"
-            r="10"
-            fill="#ffc928"
-            stroke="rgba(0,0,0,.45)"
-            stroke-width="1.5"
-          />
-          <circle cx="12" cy="12" r="6.2" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="1.5" />
-        </symbol>
-        <symbol id="i-hull" viewBox="0 0 24 24">
-          <path
-            d="M1.5 10h14.5l7-3-3.4 8.7A3.5 3.5 0 0 1 16.4 18H6a3.5 3.5 0 0 1-3.1-1.9z"
-            fill="#c98a4b"
-            stroke="#06141c"
-            stroke-width="1.3"
-            stroke-linejoin="round"
-          />
-          <path d="M2.4 10.4h14" stroke="#7a4a22" stroke-width="1.6" />
-          <path d="M2.9 13.3h18.4M4.2 15.9h15.4" stroke="rgba(6,20,28,.45)" stroke-width="1" />
-          <path
-            d="M12.2 10.6l-1.4 2.6 1.9 1.3-1.2 2.9"
-            stroke="#06141c"
-            stroke-width="1.5"
-            fill="none"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </symbol>
-        <symbol id="i-fish" viewBox="0 0 24 24">
-          <path
-            d="M2 12c3-5 9-6 14-2l5-4v12l-5-4c-5 4-11 3-14-2z"
-            fill="#4fc3f7"
-            stroke="rgba(0,0,0,.45)"
-            stroke-width="1.4"
-          />
-          <circle cx="7" cy="11" r="1.2" fill="#1a2a30" />
-        </symbol>
-        <symbol id="i-grain" viewBox="0 0 24 24">
-          <path d="M12 22V6" stroke="rgba(0,0,0,.5)" stroke-width="1.6" />
-          <g fill="#ffd54a" stroke="rgba(0,0,0,.45)" stroke-width="1.2">
-            <ellipse cx="12" cy="4" rx="2" ry="3" />
-            <ellipse cx="8.5" cy="9" rx="2" ry="3" transform="rotate(-30 8.5 9)" />
-            <ellipse cx="15.5" cy="9" rx="2" ry="3" transform="rotate(30 15.5 9)" />
-            <ellipse cx="8.5" cy="14" rx="2" ry="3" transform="rotate(-30 8.5 14)" />
-            <ellipse cx="15.5" cy="14" rx="2" ry="3" transform="rotate(30 15.5 14)" />
-          </g>
-        </symbol>
-        <symbol id="i-timber" viewBox="0 0 24 24">
-          <g fill="#c98a4b" stroke="rgba(0,0,0,.5)" stroke-width="1.4">
-            <rect x="3" y="12" width="18" height="7" rx="3.5" />
-            <rect x="3" y="5" width="18" height="7" rx="3.5" />
-          </g>
-          <g fill="#f0d29a" stroke="rgba(0,0,0,.45)" stroke-width="1.2">
-            <circle cx="18" cy="8.5" r="2.6" />
-            <circle cx="18" cy="15.5" r="2.6" />
-          </g>
-        </symbol>
-        <symbol id="i-stone" viewBox="0 0 24 24">
-          <path
-            d="M4 17l2-8 6-5 7 4 2 9-6 3H8z"
-            fill="#b8c2cc"
-            stroke="rgba(0,0,0,.5)"
-            stroke-width="1.4"
-          />
-          <path
-            d="M12 4l-1 7 8 6M11 11l-5 6"
-            stroke="rgba(0,0,0,.25)"
-            stroke-width="1.2"
-            fill="none"
-          />
-        </symbol>
-        <symbol id="i-anchor" viewBox="0 0 24 24">
-          <g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-            <circle cx="12" cy="5" r="2" />
-            <path d="M12 7v14M7 11h10M4 14c1 4 4 7 8 7s7-3 8-7" />
-          </g>
-        </symbol>
-        <symbol id="i-map" viewBox="0 0 24 24">
-          <path
-            d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linejoin="round"
-          />
-          <path d="M9 4v14M15 6v14" stroke="currentColor" stroke-width="2" />
-        </symbol>
-        <symbol id="i-menu" viewBox="0 0 24 24">
-          <path
-            d="M4 7h16M4 12h16M4 17h16"
-            stroke="currentColor"
-            stroke-width="2.4"
-            stroke-linecap="round"
-          />
-        </symbol>
-        <symbol id="i-eye" viewBox="0 0 24 24">
-          <path
-            d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          />
-          <circle cx="12" cy="12" r="3" fill="currentColor" />
-        </symbol>
-        <symbol id="i-gauge" viewBox="0 0 24 24">
-          <path
-            d="M3 17a9 9 0 0 1 18 0"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.2"
-            stroke-linecap="round"
-          />
-          <path d="M12 17l5-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
-          <circle cx="12" cy="17" r="2" fill="currentColor" />
-        </symbol>
-        <symbol id="i-arrow" viewBox="0 0 24 24">
-          <path d="M12 2l8 18-8-5-8 5z" fill="currentColor" />
-        </symbol>
-      </svg>
-
       <div class="panel captain-stats" id="captain-stats">
         <div
           class="captain-stat"
@@ -399,41 +484,9 @@
       </div>
       <div id="fps" class="fps" hidden></div>
 
-      <div id="settings" class="panel settings" hidden>
-        <h3 data-i18n="settings.title">Settings</h3>
-        <label
-          ><span data-i18n="settings.graphics">Graphics</span>
-          <select id="quality">
-            <option value="auto" data-i18n="settings.auto">Auto</option>
-            <option value="low" data-i18n="settings.low">Low</option>
-            <option value="medium" data-i18n="settings.medium">Medium</option>
-            <option value="high" data-i18n="settings.high">High</option>
-          </select>
-        </label>
-        <div id="quality-now" class="muted small"></div>
-        <label
-          ><span data-i18n="settings.music">Music</span>
-          <input type="range" id="music-volume" min="0" max="100" step="5" />
-        </label>
-        <label class="check"
-          ><input type="checkbox" id="show-fps" />
-          <span data-i18n="settings.showFps">Show FPS</span></label
-        >
-        <button id="shift-wind" class="in-game" data-i18n="settings.shiftWind">
-          Shift the wind 45°
-        </button>
-        <button id="reset-boat" class="in-game" data-i18n="settings.resetBoat">
-          Back to start
-        </button>
-        <button id="reset-save" class="in-game danger-btn" data-i18n="settings.newGame">
-          New Game (Reset Progress)
-        </button>
-        <button id="close-settings" class="primary" data-i18n="settings.close">Close</button>
-      </div>
-
       <dialog
         id="wind-help"
-        class="panel wind-help"
+        class="d-dialog wind-help"
         aria-labelledby="wind-help-title"
         aria-describedby="wind-help-copy"
       >
@@ -487,7 +540,7 @@
         </p>
         <button
           id="close-wind-help"
-          class="primary"
+          class="d-btn brass"
           type="button"
           autofocus
           data-i18n="wind.helpClose"
@@ -495,52 +548,6 @@
           Back to sailing
         </button>
       </dialog>
-
-      <div id="help" class="help">
-        <div class="panel card">
-          <h1 data-i18n="game.title">Fair Winds Trading</h1>
-          <p class="muted" data-i18n="help.subtitle">Sailing &amp; Trading Prototype</p>
-          <ul>
-            <li data-i18n-html="help.wind">
-              <b>The wind drives you.</b> You are fastest with the wind across the boat and slower
-              with it behind.
-            </li>
-            <li data-i18n-html="help.noGo">
-              <b>You can't sail into the wind.</b> Point inside the red zone on the compass and the
-              sails flap and the boat stops.
-            </li>
-            <li data-i18n-html="help.tack">
-              <b>To go upwind, zigzag</b> (tack): sail about 50° off the wind, then turn through it
-              to the other side.
-            </li>
-            <li data-i18n-html="help.trade">
-              <b>Trading &amp; Ports:</b> Slow down near any island dock to trade goods at the
-              market, buy vessel upgrades, and purchase the cutter.
-            </li>
-            <li data-i18n-html="help.map">
-              <b>Open Map</b> (M) to find ports and place markers. Only your chosen destination gets
-              a bearing cue.
-            </li>
-          </ul>
-          <div class="controls">
-            <div>
-              <h4 data-i18n="help.touch">Touch</h4>
-              <span data-i18n-html="help.touchControls"
-                >Drag left/right anywhere to steer<br />Sail lever (right) to set the sails<br />Tap
-                port markers to navigate</span
-              >
-            </div>
-            <div>
-              <h4 data-i18n="help.keyboard">Keyboard</h4>
-              <span data-i18n-html="help.keyboardControls"
-                >← → or A D to steer<br />↑ ↓ or W S for sails<br />Mouse wheel to zoom<br />M to
-                open the chart</span
-              >
-            </div>
-          </div>
-          <button id="start" class="primary" data-i18n="menu.play">Set sail</button>
-        </div>
-      </div>
     </div>
 
     <dialog id="chart" class="chart" aria-labelledby="chart-title">
@@ -760,58 +767,318 @@
         </button>
       </footer>
     </dialog>
-    <dialog id="tutorial-offer" class="panel tutorial-offer" aria-labelledby="tutorial-offer-title">
-      <h2 id="tutorial-offer-title" data-i18n="tutorial.offerTitle">Your first voyage</h2>
+    <dialog
+      id="tutorial-offer"
+      class="d-dialog tutorial-offer"
+      aria-labelledby="tutorial-offer-title"
+    >
+      <div class="offer-top">
+        <svg class="offer-emblem" aria-hidden="true"><use href="#i-emblem" /></svg>
+        <h2 id="tutorial-offer-title" data-i18n="tutorial.offerTitle">Your first voyage</h2>
+      </div>
       <p data-i18n="tutorial.offerCopy">
-        Learn to read the chart, sail with the wind, dock and make a small delivery. Follow short
-        hints while you play; hide or skip them anytime.
+        Short hints, pinned to what you need to tap. Your real game: nothing is reset.
       </p>
-      <p class="muted small" data-i18n="tutorial.offerNote">
-        Uses your current boat and voyage. It won’t reset progress or spend gold for you. Sailing
-        pauses while this choice is open.
+      <ul class="offer-steps">
+        <li>
+          <svg class="icon" aria-hidden="true"><use href="#i-map" /></svg
+          ><span data-i18n="tutorial.themeChart">Chart</span>
+        </li>
+        <li>
+          <svg class="icon" aria-hidden="true"><use href="#i-sail" /></svg
+          ><span data-i18n="tutorial.themeSails">Sails</span>
+        </li>
+        <li>
+          <svg class="icon" aria-hidden="true"><use href="#i-compass" /></svg
+          ><span data-i18n="tutorial.themeWind">Wind</span>
+        </li>
+        <li>
+          <svg class="icon" aria-hidden="true"><use href="#i-anchor" /></svg
+          ><span data-i18n="tutorial.themeDock">Dock</span>
+        </li>
+        <li>
+          <svg class="icon" aria-hidden="true"><use href="#i-coin" /></svg
+          ><span data-i18n="tutorial.themeDeliver">Deliver</span>
+        </li>
+      </ul>
+      <p class="offer-note" data-i18n="tutorial.offerNote">
+        It won’t spend gold for you. Sailing pauses while this choice is open.
       </p>
-      <div class="tutorial-actions">
+      <div class="offer-actions">
         <button
           id="tutorial-start"
-          class="primary"
+          class="d-btn brass"
           type="button"
           autofocus
           data-i18n="tutorial.start"
         >
           Start tutorial
         </button>
-        <button id="tutorial-free" type="button" data-i18n="tutorial.free">Free sailing</button>
+        <button id="tutorial-free" class="d-btn" type="button" data-i18n="tutorial.free">
+          Free sailing
+        </button>
       </div>
     </dialog>
     <div id="trade-panel" class="trade-panel-overlay" hidden></div>
 
     <div id="menu" class="menu" hidden>
-      <div class="menu-card">
-        <p class="menu-kicker" data-i18n="menu.kicker">The</p>
-        <h1 class="menu-title" data-i18n-html="menu.title">Fair Winds<br />Trading Co.</h1>
-        <p class="menu-tagline" data-i18n="menu.tagline">Read the wind. Deliver the goods.</p>
-        <nav class="menu-buttons">
-          <button id="menu-play" class="primary" data-i18n="menu.play">Set sail</button>
-          <button id="menu-tutorial" data-i18n="menu.tutorial">Learn to sail &amp; trade</button>
-          <button id="menu-help" data-i18n="menu.help">How to play</button>
-          <button id="menu-settings" data-i18n="menu.settings">Settings</button>
-          <button id="menu-fullscreen" hidden data-i18n="menu.fullscreen">Fullscreen</button>
-        </nav>
-        <p id="fs-hint" class="menu-hint" hidden data-i18n-html="menu.fsHint">
-          For fullscreen on iPhone, tap Share, then <b>Add to Home Screen</b>, and start the game
-          from there.
-        </p>
-        <div id="menu-language" class="menu-language" role="group" aria-label="Language">
-          <span class="menu-language-icon" aria-hidden="true">🌐</span>
+      <div class="menu-side">
+        <div class="menu-brand">
+          <svg class="menu-emblem" aria-hidden="true"><use href="#i-emblem" /></svg>
+          <div>
+            <p class="menu-kicker" data-i18n="menu.kicker">The</p>
+            <h1 class="menu-title" data-i18n-html="menu.title">Fair Winds<br />Trading Co.</h1>
+            <p class="menu-tagline" data-i18n="menu.tagline">Read the wind. Deliver the goods.</p>
+          </div>
         </div>
-        <p class="menu-version">
-          <span data-i18n="menu.version">Trading &amp; Shipyard · Phase 1</span>
-          <br />
-          <b id="app-version" class="app-version"></b>
-          <span id="build-revision" class="build-revision"></span>
-        </p>
+        <div class="menu-sheet">
+          <p id="menu-status" class="menu-status" hidden>
+            <span class="menu-paused" data-i18n="menu.paused">Paused</span>
+            <span
+              ><svg class="icon" aria-hidden="true"><use href="#i-coin" /></svg
+              ><b id="menu-gold"></b
+            ></span>
+            <span
+              ><svg class="icon" aria-hidden="true"><use href="#i-crate" /></svg
+              ><b id="menu-cargo"></b
+            ></span>
+          </p>
+          <button id="menu-play" class="d-btn brass big" type="button">
+            <svg class="icon" aria-hidden="true"><use id="menu-play-icon" href="#i-sail" /></svg>
+            <span id="menu-play-label" data-i18n="menu.play">Set sail</span>
+          </button>
+          <nav class="menu-list">
+            <button id="menu-tutorial" class="menu-row tutorial-row" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#i-compass" /></svg>
+              <span id="menu-tutorial-label" data-i18n="menu.tutorial"
+                >Learn to sail &amp; trade</span
+              >
+              <small id="menu-tutorial-note"></small>
+            </button>
+            <button id="menu-help" class="menu-row" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#i-book" /></svg>
+              <span data-i18n="menu.help">How to play</span>
+            </button>
+            <button id="menu-settings" class="menu-row" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#i-gear" /></svg>
+              <span data-i18n="menu.settings">Settings</span>
+            </button>
+          </nav>
+          <p id="fs-hint" class="menu-hint" hidden data-i18n-html="menu.fsHint">
+            For fullscreen on iPhone, tap Share, then <b>Add to Home Screen</b>, and start the game
+            from there.
+          </p>
+          <footer class="menu-foot">
+            <button
+              id="menu-fullscreen"
+              class="d-btn square"
+              type="button"
+              hidden
+              aria-label="Fullscreen"
+              title="Fullscreen"
+            >
+              <svg class="icon" aria-hidden="true"><use href="#i-fullscreen" /></svg>
+            </button>
+            <div id="menu-language" class="seg" role="group" aria-label="Language"></div>
+            <p class="menu-version">
+              <span data-i18n="menu.version">Trading &amp; Shipyard · Phase 1</span>
+              <br />
+              <b id="app-version" class="app-version"></b>
+              <span id="build-revision" class="build-revision"></span>
+            </p>
+          </footer>
+        </div>
       </div>
     </div>
+
+    <section id="settings" class="sheet settings-sheet" aria-labelledby="settings-title" hidden>
+      <header class="sheet-head">
+        <svg class="icon" aria-hidden="true"><use href="#i-gear" /></svg>
+        <h2 id="settings-title" data-i18n="settings.title">Settings</h2>
+        <button
+          id="close-settings"
+          class="d-btn red square"
+          type="button"
+          aria-label="Close"
+          title="Close"
+          data-i18n-attr="aria-label:settings.close;title:settings.close"
+        >
+          <svg class="icon" aria-hidden="true"><use href="#i-close" /></svg>
+        </button>
+      </header>
+      <div class="sheet-body settings-body">
+        <div class="set-group">
+          <h3 class="set-label" data-i18n="settings.display">Display</h3>
+          <div class="set-row">
+            <span class="set-name"
+              ><span id="quality-label" data-i18n="settings.graphics">Graphics</span
+              ><small id="quality-now"></small
+            ></span>
+            <div id="quality" class="seg" role="radiogroup" aria-labelledby="quality-label">
+              <button type="button" role="radio" data-quality="auto" data-i18n="settings.auto">
+                Auto
+              </button>
+              <button type="button" role="radio" data-quality="low" data-i18n="settings.low">
+                Low
+              </button>
+              <button type="button" role="radio" data-quality="medium" data-i18n="settings.medium">
+                Medium
+              </button>
+              <button type="button" role="radio" data-quality="high" data-i18n="settings.high">
+                High
+              </button>
+            </div>
+          </div>
+          <label class="set-row">
+            <span class="set-name"
+              ><span data-i18n="settings.speedLog">Speed log at sea</span
+              ><small data-i18n="settings.speedLogNote">Speed, heading, point of sail</small></span
+            >
+            <input type="checkbox" id="show-log" class="switch" role="switch" />
+          </label>
+          <label class="set-row">
+            <span class="set-name"
+              ><span data-i18n="settings.showFps">Show FPS</span
+              ><small data-i18n="settings.fpsNote">Frames per second</small></span
+            >
+            <input type="checkbox" id="show-fps" class="switch" role="switch" />
+          </label>
+        </div>
+        <div class="set-group">
+          <h3 class="set-label" data-i18n="settings.soundLanguage">Sound · Language</h3>
+          <label class="set-row">
+            <span class="set-name" data-i18n="settings.music">Music</span>
+            <span class="set-ctl">
+              <input type="range" id="music-volume" min="0" max="100" step="5" />
+              <output id="music-volume-value" class="set-pct" for="music-volume"></output>
+            </span>
+          </label>
+          <div class="set-row">
+            <span id="language-label" class="set-name" data-i18n="menu.language">Language</span>
+            <div
+              id="settings-language"
+              class="seg"
+              role="group"
+              aria-labelledby="language-label"
+            ></div>
+          </div>
+          <h3 class="set-label" data-i18n="settings.voyage">Voyage</h3>
+          <div class="set-actions">
+            <button id="reset-boat" class="d-btn in-game" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#i-anchor" /></svg>
+              <span data-i18n="settings.resetBoat">Back to start</span>
+            </button>
+            <button id="reset-save" class="d-btn red" type="button" data-i18n="settings.newGame">
+              New game
+            </button>
+            <button
+              id="shift-wind"
+              class="d-btn in-game"
+              type="button"
+              hidden
+              data-i18n="settings.shiftWind"
+            >
+              Shift the wind 45°
+            </button>
+          </div>
+          <p class="set-note in-game" data-i18n="settings.resetBoatNote">
+            Stuck? Brings the boat back to port.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="help" class="sheet help-sheet" aria-labelledby="help-title" hidden>
+      <header class="sheet-head">
+        <svg class="icon" aria-hidden="true"><use href="#i-book" /></svg>
+        <h2 id="help-title" data-i18n="menu.help">How to play</h2>
+        <button
+          id="start"
+          class="d-btn red square"
+          type="button"
+          aria-label="Close"
+          title="Close"
+          data-i18n-attr="aria-label:settings.close;title:settings.close"
+        >
+          <svg class="icon" aria-hidden="true"><use href="#i-close" /></svg>
+        </button>
+      </header>
+      <div class="sheet-body help-body">
+        <article class="help-card">
+          <svg class="help-art" viewBox="-60 -50 120 100" aria-hidden="true">
+            <circle r="40" fill="none" stroke="rgba(238,243,244,.35)" stroke-width="2" />
+            <path d="M0 0L-21-34A40 40 0 0 1 21-34z" fill="rgba(255,106,85,.55)" />
+            <path
+              d="M-37.6-13.7A40 40 0 0 0-13.7 37.6M37.6-13.7A40 40 0 0 1 13.7 37.6"
+              fill="none"
+              stroke="#59d36b"
+              stroke-width="6"
+            />
+            <path d="M0-48V-22M-6-28L0-20 6-28" fill="none" stroke="#9fe7ff" stroke-width="4" />
+            <path
+              d="M-14 0C-6-7 8-7 14-4V4C8 7-6 7-14 0z"
+              fill="#f4f0e2"
+              stroke="#06141c"
+              stroke-width="1.5"
+            />
+          </svg>
+          <h3 data-i18n="help.windTitle">The wind</h3>
+          <p data-i18n="help.windCopy">
+            You can't sail into the red zone. You are fastest with the wind across the boat (green
+            band).
+          </p>
+        </article>
+        <article class="help-card">
+          <svg class="help-art" viewBox="0 0 200 130" aria-hidden="true">
+            <path
+              d="M25 10V40M45 10V40M20 34L25 42 30 34M40 34L45 42 50 34"
+              fill="none"
+              stroke="#9fe7ff"
+              stroke-width="3"
+            />
+            <path
+              d="M130 118L80 90 130 62 80 34 108 16"
+              fill="none"
+              stroke="#e8c46a"
+              stroke-width="4"
+              stroke-linejoin="round"
+            />
+            <circle cx="112" cy="13" r="6" fill="#e8c46a" />
+            <path d="M126 106L140 126 124 120 118 124z" fill="#f4f0e2" />
+          </svg>
+          <h3 data-i18n="help.tackTitle">Tacking</h3>
+          <p data-i18n="help.tackCopy">
+            To go upwind, zigzag about 50° off the wind, first on one side, then the other.
+          </p>
+        </article>
+        <article class="help-card">
+          <svg class="help-art" viewBox="0 0 200 100" aria-hidden="true">
+            <use href="#i-fish" x="10" y="26" width="48" height="48" />
+            <path d="M66 50H128" stroke="#e8c46a" stroke-width="4" stroke-dasharray="7 6" />
+            <path d="M122 42L134 50 122 58" fill="none" stroke="#e8c46a" stroke-width="4" />
+            <use href="#i-coin" x="142" y="28" width="44" height="44" />
+          </svg>
+          <h3 data-i18n="help.tradeTitle">Trading</h3>
+          <p data-i18n="help.tradeCopy">
+            Buy what a port makes, sell where it is wanted. Delivery orders pay extra. Open the map
+            to compare prices.
+          </p>
+        </article>
+        <p class="help-controls">
+          <span
+            ><b data-i18n="help.touch">Touch</b>
+            <span data-i18n="help.touchLine">Drag to steer · sail lever · tap a port</span></span
+          >
+          <span class="keys"
+            ><b data-i18n="help.keyboard">Keyboard</b> <kbd>← →</kbd>
+            <span data-i18n="help.keySteer">steer</span> · <kbd>↑ ↓</kbd>
+            <span data-i18n="help.keySails">sails</span> · <kbd>M</kbd>
+            <span data-i18n="help.keyMap">map</span> · <kbd>Esc</kbd>
+            <span data-i18n="help.keyMenu">menu</span></span
+          >
+        </p>
+      </div>
+    </section>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

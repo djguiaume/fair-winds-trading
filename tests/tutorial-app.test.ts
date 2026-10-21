@@ -63,7 +63,8 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   await flushClose();
   expect(offer.open).toBe(false);
   expect(input.isEnabled).toBe(true);
-  click('#tutorial-action');
+  // The coach mark rings the Map button; tapping it opens the chart.
+  click('#chart-btn');
   expect(chart.open).toBe(true);
   expect(input.isEnabled).toBe(false);
   click('[data-compare="calda"]');
@@ -108,7 +109,7 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   expect(input.isEnabled).toBe(true);
   const before = JSON.stringify(world.trade);
   click('#menu-btn');
-  expect(document.getElementById('menu-tutorial')!.textContent).toBe('Replay tutorial');
+  expect(document.getElementById('menu-tutorial-label')!.textContent).toBe('Replay tutorial');
   click('#menu-tutorial');
   expect(offer.open).toBe(true);
   expect(input.isEnabled).toBe(false);
