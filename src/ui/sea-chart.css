@@ -496,17 +496,6 @@ dialog.chart::backdrop {
   height: 16px;
   vertical-align: -3px;
 }
-.chart #tutorial-chart:empty {
-  display: none;
-}
-.chart #tutorial-chart {
-  padding: calc(max(10px, env(safe-area-inset-top)) + 52px) max(12px, env(safe-area-inset-right)) 0
-    max(12px, env(safe-area-inset-left));
-}
-.chart #tutorial-chart .tutorial-card {
-  margin: 0 0 6px;
-}
-
 .chart-key-price {
   color: var(--green);
   font: 700 16px var(--body);

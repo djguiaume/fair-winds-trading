@@ -5,7 +5,7 @@ import { PHASE1_MAP } from '../src/data/maps';
 import { SLOOP } from '../src/sim/ship';
 import { Tutorial } from '../src/sim/tutorial';
 import { createWorld } from '../src/sim/world';
-import { TutorialCard } from '../src/ui/tutorial';
+import { TutorialCoach } from '../src/ui/tutorial';
 import { TradePanel } from '../src/ui/tradePanel';
 import { SeaChart } from '../src/ui/seaChart';
 
@@ -25,7 +25,7 @@ const click = (selector: string) => {
 function setup(mode: 'adult' | 'kids' = 'adult') {
   const world = createWorld(PHASE1_MAP, SLOOP);
   const tutorial = new Tutorial(world, {}, localStorage);
-  const card = new TutorialCard(tutorial);
+  const card = new TutorialCoach(tutorial);
   const panel = new TradePanel(document.getElementById('trade-panel')!, world);
   panel.uiMode = mode;
   tutorial.onChange = () => card.render();
@@ -37,7 +37,7 @@ function setup(mode: 'adult' | 'kids' = 'adult') {
   return { world, tutorial, card, panel, chart };
 }
 
-describe('tutorial card in real UI surfaces', () => {
+describe('tutorial coach marks in real UI surfaces', () => {
   it('moves one card between sea and chart; port selection and clearing drive the lesson', () => {
     const { tutorial, card, chart } = setup();
     card.setSurface('sea');
@@ -105,4 +105,43 @@ describe('tutorial card in real UI surfaces', () => {
       expect(document.querySelector<HTMLElement>('.tutorial-card')!.hidden).toBe(true);
     });
   }
+});
+
+describe('coach marks (decision 0061)', () => {
+  it('rings the element to tap and puts the bubble beside it', () => {
+    const { card } = setup();
+    const target = document.getElementById('chart-btn')!;
+    target.getBoundingClientRect = () => new DOMRect(80, 600, 120, 48);
+    card.setSurface('sea');
+    const ring = document.querySelector<HTMLElement>('.coach-ring')!;
+    const bubble = document.querySelector<HTMLElement>('.coach')!;
+    expect(ring.hidden).toBe(false);
+    expect(ring.style.left).toBe('74px');
+    expect(bubble.dataset.side).toBe('top');
+    // The ring replaces the bubble's own "Open map" button.
+    expect(document.getElementById('tutorial-action')).toBeNull();
+  });
+  it('falls back to an unpinned bubble with its action button when nothing is on screen', () => {
+    const { card } = setup();
+    card.setSurface('sea');
+    expect(document.querySelector<HTMLElement>('.coach-ring')!.hidden).toBe(true);
+    expect(document.querySelector<HTMLElement>('.coach')!.dataset.side).toBe('none');
+    expect(document.getElementById('tutorial-action')).not.toBeNull();
+  });
+  it('points at the nearest harbour on the chart and the cheap good in the market', () => {
+    const { world, tutorial } = setup();
+    const saltmere = PHASE1_MAP.islands.find(
+      (i) => i.id === PHASE1_MAP.ports.find((p) => p.id === 'saltmere')!.islandId,
+    )!;
+    Object.assign(world.boat, { x: saltmere.x + 5, y: saltmere.y });
+    expect(tutorial.pointerPort).toBe('saltmere');
+    world.destination = { portId: 'calda', label: 'Port Calda', x: 0, y: 0 };
+    tutorial.destinationSelected();
+    tutorial.continueLesson();
+    tutorial.continueLesson();
+    world.trade.dockedAt = 'calda';
+    tutorial.observe();
+    expect(tutorial.step).toBe('buy');
+    expect(tutorial.pointerGood).toBe(PHASE1_MAP.ports.find((p) => p.id === 'calda')!.produces[0]);
+  });
 });

@@ -44,28 +44,29 @@ export const fr: Record<MessageKey, string> = {
   'menu.exitFullscreen': 'Quitter le plein écran',
   'menu.fsHint':
     'Pour jouer en plein écran sur iPhone, touchez Partager, puis <b>Sur l’écran d’accueil</b>, et lancez le jeu depuis là.',
-  'menu.version': 'Commerce et chantier naval · Phase 1',
+  'menu.version': 'Commerce et chantier naval · Phase 2',
   'menu.language': 'Langue',
+  'menu.paused': 'En pause',
+  'menu.tutorialNote': '9 étapes courtes',
+  'menu.tutorialStep': 'Étape {step}/{total}',
 
   // --- Comment jouer -------------------------------------------------------------------------
-  'help.subtitle': 'Prototype de navigation et de commerce',
-  'help.wind':
-    '<b>Le vent vous pousse.</b> Vous allez le plus vite avec le vent de travers, moins vite avec le vent dans le dos.',
-  'help.noGo':
-    '<b>Impossible de remonter face au vent.</b> Pointez dans la zone rouge de la boussole et les voiles faseyent, le bateau s’arrête.',
-  'help.tack':
-    '<b>Pour remonter au vent, zigzaguez</b> (louvoyez) : naviguez à environ 50° du vent, puis virez de bord pour passer de l’autre côté.',
-  'help.trade':
-    '<b>Commerce et ports :</b> approchez lentement du quai d’une île et affalez, l’équipage vous met à quai pour échanger des marchandises au marché, améliorer votre navire et acheter le cotre.',
-  'help.map':
-    '<b>Ouvrez la carte</b> (M) pour comparer les prix et choisir un port. Seule la destination choisie affiche un cap.',
+  'help.windTitle': 'Le vent',
+  'help.windCopy':
+    'Impossible de remonter dans la zone rouge. Vous allez le plus vite avec le vent de travers (bande verte).',
+  'help.tackTitle': 'Louvoyer',
+  'help.tackCopy':
+    'Pour remonter au vent, zigzaguez à environ 50° du vent, d’un bord puis de l’autre.',
+  'help.tradeTitle': 'Commercer',
+  'help.tradeCopy':
+    'Achetez ce qu’un port produit, vendez là où on le demande. Les commandes paient mieux. Ouvrez la carte pour comparer les prix.',
   'help.touch': 'Tactile',
-  'help.touchControls':
-    'Glissez à gauche ou à droite pour barrer<br />Levier des voiles (à droite) pour les régler<br />Touchez les ports pour y mettre le cap',
+  'help.touchLine': 'Glisser pour barrer · levier des voiles · toucher un port',
   'help.keyboard': 'Clavier',
-  'help.keyboardControls':
-    '← → ou A D (Q D en AZERTY) pour barrer<br />↑ ↓ ou W S (Z S) pour les voiles<br />Molette pour zoomer<br />M pour ouvrir la carte',
-  'help.back': 'Retour',
+  'help.keySteer': 'barrer',
+  'help.keySails': 'voiles',
+  'help.keyMap': 'carte',
+  'help.keyMenu': 'menu',
 
   // --- Réglages ------------------------------------------------------------------------------
   'settings.title': 'Réglages',
@@ -79,8 +80,15 @@ export const fr: Record<MessageKey, string> = {
   'settings.music': 'Musique',
   'settings.shiftWind': 'Tourner le vent de 45°',
   'settings.resetBoat': 'Retour au départ',
-  'settings.newGame': 'Nouvelle partie (efface la progression)',
+  'settings.newGame': 'Nouvelle partie',
   'settings.close': 'Fermer',
+  'settings.display': 'Affichage',
+  'settings.speedLog': 'Loch à la mer',
+  'settings.speedLogNote': 'Vitesse, cap et allure',
+  'settings.fpsNote': 'Images par seconde',
+  'settings.soundLanguage': 'Son · Langue',
+  'settings.voyage': 'Voyage',
+  'settings.resetBoatNote': 'Bloqué ? Retour au départ ramène le bateau au port.',
   'settings.confirmNewGame':
     'Commencer un nouveau voyage ? Votre or, votre cargaison et vos améliorations seront remis à zéro.',
 
@@ -214,56 +222,57 @@ export const fr: Record<MessageKey, string> = {
   // --- Tutoriel du premier voyage ------------------------------------------------------------
   'tutorial.offerTitle': 'Votre premier voyage',
   'tutorial.offerCopy':
-    'Apprenez à lire la carte, à naviguer avec le vent, à accoster et à faire une petite livraison. Suivez de courts conseils en jouant ; masquez-les ou passez-les quand vous voulez.',
+    'De courts conseils, posés sur ce qu’il faut toucher. Votre vraie partie : rien n’est remis à zéro.',
   'tutorial.offerNote':
-    'Utilise votre bateau et votre voyage actuels. Rien n’est remis à zéro et aucun or n’est dépensé à votre place. La navigation est en pause pendant ce choix.',
+    'Aucun or n’est dépensé à votre place. La navigation est en pause pendant ce choix.',
   'tutorial.start': 'Commencer le tutoriel',
   'tutorial.free': 'Navigation libre',
   'tutorial.cardLabel': 'Tutoriel de navigation facultatif',
   'tutorial.complete': 'Première livraison réussie !',
   'tutorial.completeCopy':
-    'Vous pouvez maintenant explorer, comparer les prix et économiser pour des améliorations. La navigation libre n’a pas de circuit imposé. Rejouez le tutoriel depuis le Menu quand vous voulez.',
+    'Explorez, comparez les prix et économisez pour des améliorations. Rejouez le tutoriel depuis le menu quand vous voulez.',
   'tutorial.show': 'Afficher',
   'tutorial.hide': 'Masquer',
   'tutorial.openMap': 'Ouvrir la carte',
   'tutorial.openMarket': 'Ouvrir le marché',
   'tutorial.showTips': 'Conseils de louvoyage',
-  'tutorial.skip': 'Passer le tutoriel',
+  'tutorial.skip': 'Passer',
   'tutorial.yourPort': 'le port choisi',
   'tutorial.anotherPort': 'un autre port',
   'tutorial.yourCargo': 'votre cargaison',
-  'tutorial.producedGood': 'marchandise produite sur place',
-  'lesson.chart.title': 'Trouvez vos repères',
+  'tutorial.producedGood': 'ses marchandises',
+  'tutorial.themeDeliver': 'Livrer',
+  'tutorial.themeDock': 'Accoster',
+  'tutorial.themeWind': 'Vent',
+  'tutorial.themeSails': 'Voiles',
+  'tutorial.themeChart': 'Carte',
+  'lesson.chart.title': 'Ouvrez la carte',
   'lesson.chart.copy':
-    'Ouvrez la carte (M). Le bateau brun, c’est vous ; les étiquettes sont des ports de commerce. La navigation est en pause pendant que vous préparez votre route.',
+    'Choisissez votre premier port sur la carte (M). La navigation est en pause pendant que vous regardez.',
   'lesson.choose-port.title': 'Choisissez un port',
-  'lesson.choose-port.copy':
-    'Touchez l’étiquette d’un port proche pour y mettre le cap. Fermez la carte quand vous êtes prêt. C’est une direction, pas un chemin sûr à travers les terres.',
-  'lesson.sails.title': 'Essayez les voiles et la barre',
+  'lesson.choose-port.copy': 'Touchez un port pour fixer le cap, puis fermez la carte.',
+  'lesson.sails.title': 'Voiles et barre',
   'lesson.sails.copy':
-    'Affalez les voiles avec le levier à droite (ou ↓), puis hissez-les à nouveau (ou ↑). Glissez à gauche ou à droite sur la mer, ou utilisez ← →, pour barrer. Sortez du port et naviguez un peu ; évitez la côte.',
+    'Affalez, puis hissez les voiles, et glissez à gauche ou à droite pour barrer (ou ↑ ↓ et ← →).',
   'lesson.sails.continue': 'Je connais ces commandes',
   'lesson.wind.title': 'Laissez le vent vous aider',
   'lesson.wind.copy':
-    'Le secteur ombré de la boussole est la zone de vent debout. Pour remonter au vent, naviguez en diagonale d’un côté, puis virez de bord pour passer de l’autre. Un court ralentissement pendant le virement est normal.',
-  'lesson.wind.continue': 'Continuer vers le port',
+    'Gardez l’étrave hors de la zone rouge. Pour remonter au vent, zigzaguez d’un côté à l’autre.',
+  'lesson.wind.continue': 'Continuer',
   'lesson.dock.title': 'Accostez à {origin}',
   'lesson.dock.copy':
-    'Suivez votre cap en contournant les terres. Affalez tôt et arrivez lentement : sous 3 nd près du quai, l’équipage arrête le bateau et vous met à quai. Trop vite, et c’est le choc contre le ponton !',
+    'Suivez la flèche. Affalez tôt : sous 3 nd près du quai, l’équipage vous met à quai.',
   'lesson.buy.title': 'Chargez une petite cargaison',
-  'lesson.buy.copy':
-    'À {origin}, ouvrez le marché et achetez 1 {good}. Les marchandises produites sur place sont souvent moins chères. N’achetez que ce que vous pouvez payer ; une cargaison déjà à bord convient aussi.',
+  'lesson.buy.copy': '{origin} produit : {good}. C’est bon marché ici. Achetez un lot.',
   'lesson.buy.continue': 'Utiliser ma cargaison actuelle',
   'lesson.choose-delivery.title': 'Trouvez un acheteur : {cargo}',
-  'lesson.choose-delivery.copy':
-    'Ouvrez la carte et choisissez un autre port{buyer}. Retournez en mer, hissez les voiles et portez-y votre cargaison. Les prix changent ; comparez les offres réelles.',
+  'lesson.choose-delivery.copy': 'Ouvrez la carte et choisissez un autre port{buyer}.',
   'lesson.choose-delivery.buyer': ' : {name} demande {cargo}',
   'lesson.deliver.title': 'Portez {cargo} à {delivery}',
   'lesson.deliver.copy':
-    'Contournez les terres et louvoyez si besoin. Affalez les voiles en approchant du quai indiqué, puis accostez. Rouvrez la carte dès que vous avez besoin de vos repères.',
+    'Naviguez jusque-là, louvoyez si besoin, et ralentissez au quai pour accoster.',
   'lesson.sell.title': 'Faites votre première livraison',
-  'lesson.sell.copy':
-    'À {delivery}, ouvrez le marché et vendez au moins 1 {cargo}, ou utilisez Tout vendre. Lisez le prix proposé avant d’échanger.',
+  'lesson.sell.copy': 'Vendez votre cargaison ({cargo}) ici, ou touchez Tout vendre.',
 
   // --- Port : marché, commandes, chantier ----------------------------------------------------
   'trade.dialogLabel': 'Commerce du port et chantier naval',

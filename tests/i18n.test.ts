@@ -62,13 +62,14 @@ describe('translations (decision 0037)', () => {
     document.body.innerHTML = body();
     setLanguage('fr');
     translateDom();
-    expect(document.getElementById('menu-play')!.textContent).toBe(fr['menu.play']);
-    expect(document.getElementById('menu-settings')!.textContent).toBe(fr['menu.settings']);
+    expect(document.getElementById('menu-play-label')!.textContent).toBe(fr['menu.play']);
+    expect(document.getElementById('menu-settings')!.textContent!.trim()).toBe(fr['menu.settings']);
     expect(document.querySelector('.menu-title')!.innerHTML).toContain('Compagnie');
     expect(document.getElementById('chart-title')!.textContent).toBe(fr['chart.title']);
     expect(document.getElementById('sail-full')!.textContent!.trim()).toBe(fr['hud.sailFull']);
     expect(document.getElementById('sail-lever')!.getAttribute('aria-label')).toBe(fr['hud.sails']);
-    expect(document.getElementById('help')!.textContent).toContain('Le vent vous pousse');
+    expect(document.getElementById('help')!.textContent).toContain(fr['help.windCopy']);
+    expect(document.getElementById('settings')!.textContent).toContain(fr['settings.speedLog']);
   });
 
   it('runs the harbour, kids mode, chart and tutorial in French', () => {
