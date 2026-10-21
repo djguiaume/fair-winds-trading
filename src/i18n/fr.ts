@@ -44,7 +44,7 @@ export const fr: Record<MessageKey, string> = {
   'menu.exitFullscreen': 'Quitter le plein écran',
   'menu.fsHint':
     'Pour jouer en plein écran sur iPhone, touchez Partager, puis <b>Sur l’écran d’accueil</b>, et lancez le jeu depuis là.',
-  'menu.version': 'Commerce et chantier naval · Phase 1',
+  'menu.version': 'Commerce et chantier naval · Phase 2',
   'menu.language': 'Langue',
   'menu.paused': 'En pause',
   'menu.tutorialNote': '9 étapes courtes',

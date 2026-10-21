@@ -2,7 +2,7 @@
 
 One-picture summary for phones: [roadmap-image/roadmap.png](roadmap-image/roadmap.png) (source `roadmap-image/roadmap.html`, render with `node docs/roadmap-image/shot.cjs`).
 
-Versions follow the phases: the menu shows `v0.<phase>.<deploy>` (Phase 1 is `v0.1.x`), see [0042](decisions/0042-light-versioning.md).
+Versions follow the phases: the menu shows `v0.<phase>.<deploy>` (Phase 1 is `v0.1.x`, Phase 2 is `v0.2.x`), see [0042](decisions/0042-light-versioning.md). Each finished phase gets a GitHub release ([0062](decisions/0062-github-releases-per-phase.md), [notes](releases/README.md)).
 
 A top-down, low-poly sailing and trading game for the browser. The visual style follows the *Privateers: Pirate Wars* ad ([screenshots](reference/), teal stylized ocean, sandy islands with soft glow, chunky wooden ships, floating UI bars), but the core loop is **sailing with the wind and delivering goods**, not combat.
 
@@ -50,6 +50,8 @@ Goal: one boat on an empty ocean that is fun to steer.
 
 Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 
+**Done (2026-10-21):** released as [v0.1.50](releases/v0.1.50.md) ([0062](decisions/0062-github-releases-per-phase.md)). Physical old-tablet validation stays open as a follow-up.
+
 **Status (2026-10-19):** trade rules done in the simulation ([0015](decisions/0015-trade-economy.md), details in [economy.md](economy.md)): four prototype ports and four goods (one main production each; layout reworked in [0031](decisions/0031-windward-ring-map.md); map planning in [0018](decisions/0018-map-proposals-and-unlocks.md)) with supply-and-demand prices, cargo hold, gold, docking, sloop upgrades, the cutter and auto-save. Market/Shipyard UI, Captain/Kids modes (Kids mode hidden for now, [0043](decisions/0043-shelve-kids-mode.md)), persistent gold/cargo/ship stats and nearby port labels are integrated ([0022](decisions/0022-trading-ui-integration-and-tablet-budget.md)); upgrades already appear on the boat models. The sea is larger and the coasts have distinct landmarks ([0021](decisions/0021-larger-sea-and-coastal-landmarks.md)). On-demand chart and player markers are merged ([0024](decisions/0024-on-demand-chart-and-quiet-sandbox.md)); the automatic port-to-port practice guidance is disabled in trading play. The optional first-voyage tutorial is implemented for review ([0025](decisions/0025-optional-first-voyage-tutorial.md)). Each port has one main production ([0029](decisions/0029-one-main-production-per-port.md)). Delivery contracts ([0028](decisions/0028-delivery-contracts.md)), slow weather shifts ([0026](decisions/0026-slow-weather-shifts.md)) and island wind effects, a calm lee and faster flanks and channels ([0027](decisions/0027-islands-shape-the-wind.md)), are implemented for review, and so are reef strikes and shallows ([0032](decisions/0032-reef-strikes-and-shallows.md)). Economy tuning is implemented for review ([0046](decisions/0046-phase-1-economy-tuning.md)).
 
 - **Trading map: Windward Ring** ([0031](decisions/0031-windward-ring-map.md), [mockups and overview](maps/rework/README.md)), replacing Staggered passages ([0019](decisions/0019-staggered-passages-first-map.md)). Ports sit around the rim, one on each side of the wind, and are the main landmarks. Two B2 barrier islands lie across the wind in the middle with five reefs, so routes choose between threading the Narrows and sailing round in open water; Saltmere ⇄ Westholm is a beam reach both ways around Gull Hook. Open water stays on the east rim for faster ships and later combat. Phase 0's original map remains available in data for practice/testing.
@@ -90,6 +92,8 @@ Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 ## Phase 2 — Living settlements
 
 Goal: deliveries visibly change the world.
+
+**Status (2026-10-21):** started; the menu now shows Phase 2 and `v0.2.x`. Settlement levels (ADR 0059, PR #42) and growing town visuals (ADR 0060, PR #43) are in review.
 
 - Settlements have a level and population; meeting demand levels them up (more buildings on the island, bigger dock).
 - Higher levels unlock new demands, including goods produced only on distant islands.
