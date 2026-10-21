@@ -4,6 +4,7 @@ import { FrameMonitor, type QualityLevel, guessQuality, lowerQuality } from './r
 import { GameView } from './render/view';
 import { SAIL_STEPS } from './sim/boat';
 import { isSpecialty } from './sim/goods';
+import { settlementLevels } from './sim/settlement';
 import { clamp } from './sim/math';
 import { type SaveStorage, clearSave, loadGame, saveGame } from './sim/save';
 import { SLOOP } from './sim/ship';
@@ -86,6 +87,8 @@ const storage: SaveStorage | null = (() => {
 const resumedVoyage = storage ? loadGame(storage, world) : false;
 let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
 const view = new GameView(canvas, world, level);
+// Islands show each port's settlement level, including one restored from the save (0059, 0060).
+view.setSettlementLevels(settlementLevels(world.trade));
 const hud = new Hud(
   world,
   {
@@ -507,6 +510,7 @@ function handleEvents(events: WorldEvent[]) {
           : t('toast.levelUp', { name: portName, level: t(`settlement.level.${e.level}`) }),
         5,
       );
+      view.setSettlementLevels(settlementLevels(world.trade));
       hud.portLabels.rebuild();
       if (tradePanel.isOpen) tradePanel.render();
       autosave();

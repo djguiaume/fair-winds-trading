@@ -1,5 +1,6 @@
 import type * as THREE from 'three';
 import type { MapDef } from '../../sim/map';
+import type { TownLevel } from './towns';
 
 /**
  * Swap point for art (see docs/art-pipeline.md): any boat or island look only has to satisfy
@@ -58,6 +59,8 @@ export type BoatModelFactory = (shipClassId: string, options?: BoatModelOptions)
 
 export interface IslandBuildOptions {
   shadows: boolean;
+  /** Settlement level per port id (decision 0060); a port left out keeps the map's fixed look. */
+  levels?: Record<string, TownLevel>;
 }
 
 /** Builds every island of a map as one object (ideally one merged mesh = one draw call). */

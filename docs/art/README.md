@@ -58,6 +58,8 @@ Every scene shows the four kinds of producer island (fish port, timber, grain, s
 
 ![Islands B2](islands-B2.png)
 
+**Growing towns (proposed, [0060](../decisions/0060-growing-town-visuals.md)):** port islands at each settlement level, in [towns](towns/).
+
 Earlier options, all re-rendered on the A sea:
 
 | A · Sunny sandbar | B · Rugged highlands | C · Toon diorama |

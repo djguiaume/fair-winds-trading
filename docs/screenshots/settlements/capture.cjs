@@ -55,6 +55,17 @@ const root = process.cwd();
       });
       await page.waitForTimeout(300);
       await page.screenshot({ path: `${dir}/level-up-toast-${name}.png` });
+      // The island grows with the town (decision 0060): Calda as a town, seen from the sea.
+      await page.evaluate(() => {
+        const w = fwt.world;
+        const island = w.map.islands.find((i) => i.id === 'calda');
+        w.boat.x = island.x + island.radius + 25;
+        w.boat.y = island.y;
+        w.boat.speedKn = 0;
+        w.boat.sailStep = 0;
+      });
+      await page.waitForTimeout(3000);
+      await page.screenshot({ path: `${dir}/calda-town-island-${name}.png` });
       await dockAt('calda');
       await page.waitForSelector('.port-screen');
       await page.screenshot({ path: `${dir}/calda-town-${name}.png` });
