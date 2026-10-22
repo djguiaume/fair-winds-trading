@@ -11,6 +11,7 @@ import type { ScreenPoint } from '../render/view';
 import { GOODS } from '../sim/goods';
 import { capacity, cargoUsed, findPort } from '../sim/trade';
 import { PortLabels } from './portLabels';
+import { type HazardKind, hazardBadge } from './hazardMarker';
 import { screenBearing } from './screenBearing';
 import { formatNumber, goodName, t } from '../i18n';
 
@@ -273,8 +274,10 @@ export class Hud {
     this.cargoTooltip.hidden = false;
   }
 
-  showToast(text: string, seconds = 2.5) {
+  showToast(text: string, seconds = 2.5, hazard?: HazardKind) {
     this.toast.textContent = text;
+    // Hazard warnings carry the same badge as the chart (decision 0070).
+    if (hazard) this.toast.prepend(hazardBadge(hazard));
     this.toast.hidden = false;
     this.toastTimer = seconds;
   }
@@ -293,7 +296,7 @@ export class Hud {
         const pct = Math.round(hullCondition(this.world.trade) * 100);
         this.showToast(t(e.surface === 'pier' ? 'toast.crashPier' : 'toast.crash', { pct }), 2.5);
       } else if (e.type === 'storm-near') {
-        this.showToast(t('toast.stormNear', { dir: compassPoint(e.bearing) }), 4);
+        this.showToast(t('toast.stormNear', { dir: compassPoint(e.bearing) }), 4, 'storm');
       } else if (e.type === 'overboard') {
         this.showToast(t('toast.overboard', { n: e.qty, good: goodName(e.good) }), 3);
       } else if (e.type === 'bump' && this.toastTimer <= 0) {

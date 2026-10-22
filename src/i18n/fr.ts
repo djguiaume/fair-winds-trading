@@ -262,6 +262,8 @@ export const fr: Record<MessageKey, string> = {
   'chart.keyTarget': 'Destination',
   'chart.keyLand': 'Terre',
   'chart.keyReef': 'Récif · danger',
+  'chart.keyStorm': 'Tempête · dérive lentement',
+  'chart.storm': 'Tempête',
   'chart.keyBank': 'Banc découvert',
   'chart.keyNorth': 'Nord en haut',
   'chart.localWind': 'Vent à votre bateau',

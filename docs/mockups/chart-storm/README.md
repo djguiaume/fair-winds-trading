@@ -10,4 +10,4 @@ Guillaume (2026-10-22): the chart's storm (grey dashed patch, darker core, drift
 - **D · Danger zone:** a red hatched zone with a "!" badge.
 
 Mockups are drawn by injecting SVG into the live chart (`capture.cjs`, run against `npx vite --port 5199`).
-The pick will be recorded as an ADR before it is built.
+**Picked: A**, built as a reusable hazard marker ([0070](../../decisions/0070-hazard-markers.md)).

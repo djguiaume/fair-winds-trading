@@ -68,6 +68,12 @@ body {
 .toast[hidden] {
   display: none;
 }
+.hazard-toast-badge {
+  width: 28px;
+  height: 28px;
+  margin: -4px 8px -4px 0;
+  vertical-align: middle;
+}
 @keyframes toast-in {
   from {
     opacity: 0;

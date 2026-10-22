@@ -243,26 +243,51 @@ dialog.chart::backdrop {
   text-anchor: middle;
   pointer-events: none;
 }
-/* Storms (decision 0067): a soft grey patch, a darker core and a short track arrow. */
-.chart-storm circle {
-  fill: rgba(52, 66, 76, 0.28);
-  stroke: rgba(52, 66, 76, 0.5);
-  stroke-width: 1.5px;
-  stroke-dasharray: 5 5;
+/* Hazard markers (decision 0070): a badge, a name with a halo, drift chevrons; storms add a
+   soft cloud for their reach. Storms are slate (weather); red stays free for pirates. */
+.hazard-storm {
+  --hazard-badge: #1d2a36;
+  --hazard-ring: #f4ead2;
+  --hazard-chevron: #f4ead2;
+}
+.hazard-badge {
+  fill: var(--hazard-badge);
+  stroke: var(--hazard-ring);
+  stroke-width: 2px;
   vector-effect: non-scaling-stroke;
 }
-.chart-storm .core {
-  fill: rgba(40, 50, 60, 0.35);
-  stroke: none;
-}
-.chart-storm .track {
-  stroke: rgba(40, 50, 60, 0.7);
-  stroke-width: 3px;
-  stroke-linecap: round;
+.hazard-chevron {
+  fill: var(--hazard-chevron);
+  stroke: rgba(6, 20, 28, 0.6);
+  stroke-width: 1px;
   vector-effect: non-scaling-stroke;
 }
-.chart-storm .track-head {
-  fill: rgba(40, 50, 60, 0.7);
+.hazard-name {
+  fill: #fff;
+  font-family: var(--display);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  paint-order: stroke;
+  stroke: rgba(6, 20, 28, 0.85);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  text-anchor: middle;
+  vector-effect: non-scaling-stroke;
+}
+.hazard-cloud-core {
+  stop-color: rgb(22, 32, 44);
+  stop-opacity: 0.75;
+}
+.hazard-cloud-mid {
+  stop-color: rgb(28, 40, 54);
+  stop-opacity: 0.5;
+}
+.hazard-cloud-edge {
+  stop-color: rgb(28, 40, 54);
+  stop-opacity: 0;
+}
+.chart-hazard {
+  pointer-events: none;
 }
 .chart-course {
   stroke: var(--brass-hi);
@@ -397,7 +422,8 @@ dialog.chart::backdrop {
 /* --- Sheets: legend and the full price table --------------------------------------------- */
 .chart-sheet {
   position: absolute;
-  z-index: 2;
+  /* Above the goods buttons (3), which otherwise cover the legend in landscape. */
+  z-index: 4;
   top: 8px;
   bottom: 8px;
   left: max(12px, env(safe-area-inset-left));

@@ -257,6 +257,8 @@ export const en = {
   'chart.keyTarget': 'Destination',
   'chart.keyLand': 'Land',
   'chart.keyReef': 'Reef · danger',
+  'chart.keyStorm': 'Storm · drifts slowly',
+  'chart.storm': 'Storm',
   'chart.keyBank': 'Exposed bank',
   'chart.keyNorth': 'North up',
   'chart.localWind': 'Wind at your boat',

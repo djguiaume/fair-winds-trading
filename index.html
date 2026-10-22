@@ -36,6 +36,10 @@
         <path d="M12 10V17" stroke="currentColor" stroke-width="2" />
         <circle cx="12" cy="7" r="1.2" fill="currentColor" />
       </symbol>
+      <symbol id="i-storm" viewBox="0 0 24 24">
+        <path d="M6 14.5a3.6 3.6 0 0 1 1.2-7 5 5 0 0 1 9.4 1.2 3 3 0 0 1 1.4 5.8z" fill="#f4ead2" />
+        <path d="M12.6 13.2l-3 4.6h2.6l-1.4 4.2 4.4-5.6h-2.6l1.6-3.2z" fill="#ffcf4a" />
+      </symbol>
       <symbol id="i-chart-boat" viewBox="-18 -22 36 44">
         <circle r="17" fill="#86e8ff" fill-opacity=".16" stroke="#86e8ff" stroke-width="1.5" />
         <path
@@ -813,6 +817,15 @@
             <div>
               <dt class="chart-key-price">17</dt>
               <dd data-i18n="chart.keyGood">Prices for the good picked below</dd>
+            </div>
+            <div>
+              <dt>
+                <svg class="hazard-storm" viewBox="-18 -18 36 36" aria-hidden="true">
+                  <circle r="16" class="hazard-badge" />
+                  <use href="#i-storm" x="-16" y="-16" width="32" height="32" />
+                </svg>
+              </dt>
+              <dd data-i18n="chart.keyStorm">Storm · drifts slowly</dd>
             </div>
           </dl>
           <p data-i18n="chart.instructions">Tap a port to set a course.</p>

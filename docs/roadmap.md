@@ -135,6 +135,7 @@ Goal: growth pushes you outward into tougher navigation.
 ## Phase 5 — Pirates
 
 - Pirate ships that hunt loaded merchants; outrun them, or arm ships with light defenses.
+- Pirate sightings use the hazard marker on the chart and in warnings ([0070](decisions/0070-hazard-markers.md)), with a red badge.
 - Pirates can be switched off in Settings, like storms ([0067](decisions/0067-weather-states-and-storms.md)): every hazard gets an on/off switch.
 - Ship health and repairs at ports; escort ships for valuable routes.
 - **Warship line** (ketch → brig → frigate: lots of firepower and hull, low cargo, slow upwind) from a naval yard, and a fourth upgrade track, **guns**, so any ship can arm a little ([0035](decisions/0035-three-ship-lines.md)). Swift ships escape pirates, warships fight them, haulers need escorts.
