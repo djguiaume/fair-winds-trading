@@ -136,6 +136,9 @@ export class PortLabels {
     const { map, boat, trade } = this.world;
     const currentWp = navigationTarget(this.world);
     const effectiveMode = this.isKidMode ? 'objective' : this.mode;
+    // Beyond this gap, visibility and every docking cue treat the port as distant.
+    // Objective and docked signs can still show when the bounded query returns Infinity.
+    const maxGap = effectiveMode === 'all' ? 160 : 100;
 
     for (const port of map.ports) {
       const entry = this.portElements.get(port.id);
@@ -151,6 +154,7 @@ export class PortLabels {
         port,
         settlementLevel(this.world.trade, port.id),
         this.world.ship.id,
+        maxGap,
       );
       const isDocked = trade.dockedAt === port.id;
       const isObjective = currentWp?.label === port.name;

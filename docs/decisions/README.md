@@ -109,4 +109,5 @@ Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decis
 | [0085](0085-island-collision-bounds.md) | Skip distant island polygon collisions using cached bounds; defer lake geometry until nearby | 2026-10-22 | Implemented for review |
 | [0086](0086-squared-coast-distance.md) | Compare squared coast distances, preserving original normals and numerical edge cases | 2026-10-22 | Implemented for review |
 | [0087](0087-harbour-hull-range-bound.md) | Reject distant harbours before transforming the cached hull | 2026-10-22 | Implemented for review |
+| [0088](0088-bounded-port-label-distances.md) | Bound port-label harbour queries to their visibility range | 2026-10-22 | Implemented for review |
 | [0089](0089-skip-dry-rain.md) | Skip rain particles and uploads when showers and storm circles cannot reach the camera rain field | 2026-10-22 | Implemented for review |
