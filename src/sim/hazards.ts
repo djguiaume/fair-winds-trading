@@ -70,11 +70,11 @@ export function shallowDrag(shallow: number, ship: ShipClass, dt: number): numbe
 
 /**
  * Hull points an impact on `surface` costs, given the knots it took off. Reefs cut at any speed,
- * shores and piers only past a docking bump; sandbanks and the edge of the sea are soft.
+ * shores, piers and moored boats only past a docking bump; sandbanks and the edge of the sea are soft.
  */
 export function impactDamage(surface: Surface, speedLost: number): number {
   if (surface === 'reef') return speedLost * STRIKE_DAMAGE;
-  if (surface === 'shore' || surface === 'pier')
+  if (surface === 'shore' || surface === 'pier' || surface === 'boat')
     return Math.max(0, speedLost - CRASH_SAFE_KN) * CRASH_DAMAGE;
   return 0;
 }

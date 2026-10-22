@@ -194,6 +194,7 @@ export const fr: Record<MessageKey, string> = {
   'toast.reef': 'Choc sur un récif ! Coque à {pct} %, réparez au port',
   'toast.crash': 'Échoué sur la côte ! Coque à {pct} %, réparez au port',
   'toast.crashPier': 'Choc contre le ponton ! Coque à {pct} %, réparez au port',
+  'toast.crashBoat': 'Choc contre un bateau au mouillage ! Coque à {pct} %, réparez au port',
   'toast.bump': 'Bong ! Attention au rivage',
   'toast.discovered': 'Nouveau port sur la carte : {name}. Son chantier construit des navires',
   'toast.levelUp': '{name} s’agrandit : {level} !',
