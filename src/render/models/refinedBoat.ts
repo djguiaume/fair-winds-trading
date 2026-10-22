@@ -79,6 +79,14 @@ export interface SquareMast {
   courses: number;
 }
 
+/** Square courses hang this far forward of their mast and belly up to this much further. */
+const SQUARE_FORWARD = 0.14;
+const SQUARE_BELLY = 0.3;
+/** Boom angles the game draws close-hauled and dead downwind (view.ts), and the hardest brace. */
+const CLOSE_BOOM = (12 * Math.PI) / 180;
+const RUN_BOOM = (80 * Math.PI) / 180;
+const MAX_BRACE = (40 * Math.PI) / 180;
+
 /** Simple coloured triangles: no textures, extra materials or per-frame geometry rebuilds. */
 class Faces {
   private pos: number[] = [];
@@ -352,7 +360,10 @@ export class RefinedBoat implements BoatModel {
     const outline = deckOutline(rig);
     this.beam = B;
     this.wakeHull = { length: L * BOAT_SCALE, beam: B * BOAT_SCALE };
-    this.jibSheetAnchor = V(0, deckAt(0) + 0.12, 0);
+    // Square riggers lead jib sheets to the rail just ahead of the foremast's courses.
+    const foremost = rig.squareMasts?.reduce((z, m) => Math.max(z, m.z), -Infinity);
+    const sheetZ = foremost === undefined ? 0 : foremost + SQUARE_FORWARD + SQUARE_BELLY + 0.4;
+    this.jibSheetAnchor = V(0, deckAt(sheetZ) + 0.12, sheetZ);
     const upg = options.upgrades ?? STOCK_UPGRADES;
     this.riggingEnabled = options.rigging ?? true;
     const wood = vertexColorMaterial();
@@ -521,7 +532,7 @@ export class RefinedBoat implements BoatModel {
     for (const m of squareMasts) {
       const turn = new THREE.Group();
       turn.name = `${m.name}Brace`;
-      turn.position.set(0, 0, m.z + 0.14);
+      turn.position.set(0, 0, m.z + SQUARE_FORWARD);
       const shown = m.courses - (upg.sails >= 3 ? 0 : 1);
       const pos: number[] = [];
       const furled: number[] = [];
@@ -541,7 +552,7 @@ export class RefinedBoat implements BoatModel {
           V(0, yard, -head / 2),
           V(0, yard, head / 2),
           upg.sails,
-          0.3,
+          SQUARE_BELLY,
           BAND,
           5,
           4,
@@ -598,17 +609,29 @@ export class RefinedBoat implements BoatModel {
       const multiJib = rig.stockJibs >= 2;
       const tackFraction = multiJib ? 0.48 + j * 0.12 : 0.53 + j * 0.13;
       const tackY = multiJib ? bow.y - 0.1 + (0.3 * (tackFraction - 0.35)) / 0.38 : bow.y + j * 0.1;
-      const tack = V(0, tackY, L * tackFraction);
-      const head = V(
+      let tack = V(0, tackY, L * tackFraction);
+      let head = V(
         0,
         jibMast.base + jibMast.height * (multiJib ? 0.68 + j * 0.14 : 0.76 + j * 0.15),
         jibMast.z,
       );
-      const clew = V(
+      let clew = V(
         0,
         jibMast.base + 0.8 + j * 0.1,
         jibMast.z + (multiJib ? 0.65 + j * 0.85 : 0.35 + j * 0.22),
       );
+      let stayTop = head;
+      if (squareMasts.length) {
+        // Square riggers: each stay runs from the masthead, above the top yard, to the bowsprit,
+        // and the jib is hanked on its lower part only, so the whole jib stays forward of the
+        // foremast's courses and their belly (decision 0079).
+        const t = 0.56 + j * 0.1;
+        tack = V(0, bow.y - 0.1 + (0.3 * (t - 0.35)) / 0.38, L * t);
+        stayTop = V(0, jibMast.base + jibMast.height - 0.1 - j * 0.25, jibMast.z);
+        const clearZ = jibMast.z + SQUARE_FORWARD + SQUARE_BELLY + 0.25;
+        head = stayTop.clone().lerp(tack, (clearZ - stayTop.z) / (tack.z - stayTop.z));
+        clew = V(0, deckAt(clearZ) + 1 + j * 0.2, clearZ + 0.55 + j * 0.9);
+      }
       const axis = new THREE.Group();
       axis.name = `JibStay${j + 1}`;
       axis.position.copy(tack);
@@ -624,7 +647,7 @@ export class RefinedBoat implements BoatModel {
       axis.add(sail);
       this.ship.add(axis);
       this.headsails.push({ axis, sail, clew: c });
-      line(tack, head);
+      line(tack, stayTop);
     }
     this.stats.jibs = nj;
     for (const side of [-1, 1]) {
@@ -732,10 +755,18 @@ export class RefinedBoat implements BoatModel {
       gaff.sail.scale.x = fill;
       gaff.pivot.updateMatrix();
     }
-    // Yards brace round less than a boom swings; square sails always fill toward the bow.
+    // Yards brace against the boom: square when running, hard round (up to 40°) close-hauled,
+    // the leeward yard-arms aft; the brace eases through zero as the boom crosses in a tack.
+    // Square sails always fill toward the bow.
+    const boom = Math.abs(p.boomAngle);
+    const brace =
+      -Math.sign(p.boomAngle) *
+      MAX_BRACE *
+      (1 - Math.min(1, Math.max(0, (boom - CLOSE_BOOM) / (RUN_BOOM - CLOSE_BOOM)))) *
+      Math.min(1, boom / CLOSE_BOOM);
     const square = Math.max(0.08, 1 - p.luff) + p.luff * Math.sin(p.time * 26) * 0.2;
     for (const rig of this.squareRigs) {
-      rig.turn.rotation.y = p.boomAngle * 0.6;
+      rig.turn.rotation.y = brace;
       rig.turn.updateMatrix();
       rig.sails.morphTargetInfluences![0] = 1 - p.sail;
       rig.sails.scale.z = square;
