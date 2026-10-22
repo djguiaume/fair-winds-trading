@@ -10,6 +10,7 @@ import {
   shallowDrag,
   shallowness,
 } from './hazards';
+import { settlementLevels } from './settlement';
 import { DEG, bearingTo, clamp, distance } from './math';
 import type { ShipClass } from './ship';
 import {
@@ -180,6 +181,15 @@ function moor(boat: BoatState, dt: number): void {
   boat.drift.y *= hold;
 }
 
+const pierVersions = new WeakMap<World, string>();
+export function refreshPiers(world: World) {
+  const levels = settlementLevels(world.trade);
+  const key = JSON.stringify(levels);
+  if (pierVersions.get(world) === key) return;
+  world.piers = piersOf(world.map, levels);
+  pierVersions.set(world, key);
+}
+
 /** Warn when a storm's edge comes this close (map units). */
 export const STORM_WARNING = 140;
 /** Heel past which loose cargo starts to slide (decision 0067). A full-sailed sloop on a beam
@@ -260,6 +270,7 @@ export function stepHeel(world: World, dt: number): WorldEvent[] {
 }
 
 export function stepWorld(world: World, controls: BoatControls, dt: number): WorldEvent[] {
+  refreshPiers(world);
   const events: WorldEvent[] = [];
   world.time += dt;
   const { weather } = world.map.wind;
@@ -288,7 +299,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   if (
     world.boat.sailStep === 0 &&
     world.boat.speedKn < MOOR_MAX_KN &&
-    portInRange(world.map, world.boat)
+    portInRange(world.map, world.boat, undefined, settlementLevels(world.trade))
   )
     moor(world.boat, dt);
   // Shallows drag at the hull near reefs; deeper hulls feel it more (decision 0032).
@@ -317,6 +328,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   }
 
   events.push(...stepTrade(world.trade, world.map, world.boat, dt));
+  refreshPiers(world);
   events.push(...stepStorms(world));
   events.push(...stepHeel(world, dt));
 

@@ -2,7 +2,7 @@ import type { ScreenPoint } from '../render/view';
 import { type GoodId } from '../sim/goods';
 import { isDiscovered } from '../sim/shipyards';
 import { unitSellPrice } from '../sim/market';
-import { producesAt, wantsAt } from '../sim/settlement';
+import { producesAt, wantsAt, settlementLevel } from '../sim/settlement';
 import { DOCK_RANGE, DOCK_SPEED_KN, distanceToPort } from '../sim/trade';
 import { navigationTarget, type World } from '../sim/world';
 import { goodName, t } from '../i18n';
@@ -145,7 +145,12 @@ export class PortLabels {
         if (!entry.root.hidden) entry.root.hidden = true;
         continue;
       }
-      const distToShore = distanceToPort(map, boat, port);
+      const distToShore = distanceToPort(
+        map,
+        boat,
+        port,
+        settlementLevel(this.world.trade, port.id),
+      );
       const isDocked = trade.dockedAt === port.id;
       const isObjective = currentWp?.label === port.name;
 

@@ -157,6 +157,7 @@ if (inspectBoat) {
       radius: kinds[e.kind].radius,
       look: {
         kind: e.kind,
+        ...(e.kind !== 'yard' && !before ? { profile: e.kind, harbourBearing: Math.PI } : {}),
         houses: 5,
         trees: e.kind === 'timber' ? 14 : 4,
         dock: true,
@@ -179,16 +180,19 @@ if (inspectBoat) {
     : kindParam === 'all'
       ? `Settlement level ${level} · ${LEVEL_NAMES[level - 1]} (0060)`
       : `${kinds[kindParam as keyof typeof kinds].name} · settlement levels 1–4 (0060)`;
-  islandsForWater = map.islands;
+  islandsForWater = params.has('focus')
+    ? map.islands.filter((_, i) => i === Number(params.get('focus')) - 1)
+    : map.islands;
   // One island per build, so each copy gets the same seed and only its level differs.
-  map.islands.forEach((island, i) =>
+  map.islands.forEach((island, i) => {
+    if (params.has('focus') && i !== Number(params.get('focus')) - 1) return;
     scene.add(
       buildIslands(
         { ...map, islands: [island], ports: [map.ports[i]!], course: [map.course[i]!] },
         { shadows: true, levels: before ? undefined : levels },
       ),
-    ),
-  );
+    );
+  });
   entries.forEach((e, i) =>
     labels.push({
       at: new THREE.Vector3((i - 1.5) * 64, 0, 34),
@@ -197,13 +201,15 @@ if (inspectBoat) {
         : `${LEVEL_NAMES[e.level - 1]}<small>${kinds[e.kind].name} · level ${e.level}</small>`,
     }),
   );
-  addBoat('sloop', L(1), -64 * 1.5 + 18, 28, 60 * DEG, '');
-  labels.pop();
+  if (!params.has('focus')) {
+    addBoat('sloop', L(1), -64 * 1.5 + 18, 28, 60 * DEG, '');
+    labels.pop();
+  }
   // &focus=1..4 frames one island at the game camera's pitch and default distance.
   const focus = Number(params.get('focus'));
   const fx = focus >= 1 && focus <= 4 ? (focus - 2.5) * 64 : 0;
   const pitch = (focus ? 58 : 50) * DEG;
-  const dist = focus ? 110 : 205;
+  const dist = focus ? 150 : 245;
   if (focus) labels.length = 0;
   camera.position.set(fx, Math.sin(pitch) * dist, 8 + Math.cos(pitch) * dist);
   camera.lookAt(fx, 0, focus ? 8 : 4);
@@ -312,6 +318,14 @@ function resize() {
   if (inspectBoat) renderer.setPixelRatio(renderPixelRatio(w, h, devicePixelRatio, profile));
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
+  if (view === 'towns' && params.has('focus')) {
+    const focus = Number(params.get('focus'));
+    const x = (focus - 2.5) * 64 + (params.get('kind') === 'fish' ? 8 : 0);
+    const dist = 150 * Math.max(1, 1.1 / camera.aspect);
+    const pitch = 58 * DEG;
+    camera.position.set(x, Math.sin(pitch) * dist, 8 + Math.cos(pitch) * dist);
+    camera.lookAt(x, 0, 8);
+  }
   camera.updateProjectionMatrix();
 }
 addEventListener('resize', resize);

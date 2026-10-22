@@ -87,4 +87,6 @@
 | [0069](0069-help-orders.md) | Help orders: the most neglected town (or the home port holding back an upgrade) posts an order paying 1.5× with double growth; one at a time, 4-minute pause | 2026-10-22 | Implementation for review |
 | [0070](0070-hazard-markers.md) | Hazard markers: one badge (icon, name, drift chevrons; storms add a soft cloud) on the chart and in warning toasts; storms slate, red kept for pirates | 2026-10-22 | Implementation for review |
 
+| [0071](0071-distinct-producer-islands.md) | Distinct producer coastlines, lake and islets, visible beaches, organic towns and solid growing harbours | 2026-10-22 | Implemented for review |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

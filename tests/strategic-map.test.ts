@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { PHASE0_MAP, PHASE1_MAP } from '../src/data/maps';
 import { createBoat, stepBoat, KNOT_TO_UNITS } from '../src/sim/boat';
+import { islandCoasts, islandPoint } from '../src/sim/islandLayout';
 import { coastDistance, insetOutline } from '../src/sim/coast';
 import { resolveCollisions } from '../src/sim/collision';
 import type { MapDef, TerrainDef } from '../src/sim/map';
@@ -41,7 +42,12 @@ function clear(x: number, y: number, margin: number, map = PHASE1_MAP) {
 function clearUncached(x: number, y: number, margin: number, map = PHASE1_MAP) {
   return (
     Math.hypot(x, y) < map.boundsRadius - margin &&
-    map.islands.every((i) => Math.hypot(x - i.x, y - i.y) > i.radius + margin) &&
+    map.islands.every((i) => {
+      const coasts = islandCoasts(i);
+      return coasts
+        ? coasts.every((c) => coastDistance(x, y, c).distance > margin)
+        : Math.hypot(x - i.x, y - i.y) > i.radius + margin;
+    }) &&
     (map.terrain ?? []).every((t) => coastDistance(x, y, t.outline).distance > margin)
   );
 }
@@ -106,9 +112,16 @@ describe('Windward Ring trading map', () => {
     expect(yardIslands.map((i) => i.id).sort()).toEqual(['abbey-head', 'watchman-key']);
     for (const island of yardIslands) expect(island.look?.dock).toBe(true);
   });
-  it('keeps spawn, every docking ring and a broad eastern sailing lane clear', () => {
+  it('keeps spawn, harbour approaches and a broad eastern sailing lane clear', () => {
     expect(clear(PHASE1_MAP.start.x, PHASE1_MAP.start.y, CUTTER.radius + 3)).toBe(true);
     for (const island of [...portIslands, ...yardIslands]) {
+      if (island.look?.profile) {
+        for (let z = 1.5; z <= 2.0; z += 0.1) {
+          const p = islandPoint(island, 0.08, z);
+          expect(clear(p.x, p.y, CUTTER.radius)).toBe(true);
+        }
+        continue;
+      }
       for (let angle = 0; angle < 360; angle += 15) {
         const d = island.radius + 12;
         expect(
@@ -151,9 +164,7 @@ describe('Windward Ring trading map', () => {
     expect(pos.count).toBeGreaterThan(0);
     expect(Array.from(pos.array).every(Number.isFinite)).toBe(true);
     const ocean = new Ocean(PHASE1_MAP.islands, 8, false, 480, terrain);
-    expect(ocean.mesh.material.uniforms.uCoastEdgeCount!.value).toBe(
-      terrain.reduce((n, t) => n + t.outline.length, 0),
-    );
+    expect(ocean.mesh.material.uniforms.uShoreMap!.value).toBeInstanceOf(THREE.DataTexture);
     for (const t of terrain.filter((t) => t.kind !== 'reef'))
       for (const [x, y] of t.outline) {
         let found = false;
@@ -206,7 +217,7 @@ describe('Windward Ring trading map', () => {
         PHASE1_MAP.boundsRadius,
       );
     const ocean = new Ocean(PHASE1_MAP.islands, 8, false, 480, terrain);
-    expect(ocean.mesh.material.uniforms.uIslandCount!.value).toBe(PHASE1_MAP.islands.length);
+    expect(ocean.mesh.material.uniforms.uShoreMap!.value.image.width).toBe(512);
     ocean.dispose();
   });
   it('migrates older-map trading progress and resumes at the clear spawn', () => {
@@ -268,6 +279,7 @@ function route(
   goal: Point,
   windDeg: number,
   map: MapDef = PHASE1_MAP,
+  turningClearance = 11,
 ): { points: Point[]; seconds: number } {
   const key = (p: Point) => `${p.x},${p.y}`;
   const snap = (p: Point) => ({
@@ -316,7 +328,7 @@ function route(
           !clear(
             p.x + ((q.x - p.x) * i) / samples,
             p.y + ((q.y - p.y) * i) / samples,
-            SLOOP.radius + 11,
+            SLOOP.radius + turningClearance,
             map,
           )
         ) {
@@ -338,7 +350,9 @@ function route(
 }
 const approaches = PHASE1_MAP.ports.map((port) => {
   const island = PHASE1_MAP.islands.find((i) => i.id === port.islandId)!;
-  return { x: island.x, y: island.y - island.radius - 20 };
+  return island.look?.profile
+    ? islandPoint(island, 0.08, 2.0)
+    : { x: island.x, y: island.y - island.radius - 20 };
 });
 describe('wind-aware route audit', () => {
   it('connects every port pair without sailing into the no-go zone in several wind directions', () => {
@@ -387,9 +401,13 @@ describe('wind-aware route audit', () => {
       }
   }, 30000);
   it('sails a four-port circuit with the actual sloop model without hitting shore', () => {
+    const circuitApproaches = PHASE1_MAP.ports.map((p) => {
+      const i = PHASE1_MAP.islands.find((i) => i.id === p.islandId)!;
+      return i.look?.profile ? islandPoint(i, 0.08, 2.8) : { x: i.x, y: i.y - i.radius - 30 };
+    });
     const boat = createBoat(
-      Math.round(approaches[0]!.x / STEP) * STEP,
-      Math.round(approaches[0]!.y / STEP) * STEP,
+      Math.round(circuitApproaches[0]!.x / STEP) * STEP,
+      Math.round(circuitApproaches[0]!.y / STEP) * STEP,
       Math.PI / 2,
     );
     let elapsed = 0;
@@ -400,8 +418,14 @@ describe('wind-aware route audit', () => {
       // Leave Saltmere to seaward before turning upwind: heading straight north from
       // its southern approach would put the island inside the turn.
       const offshore = { x: 336, y: -192 };
-      const departure = destination === 0 ? route(boat, offshore, 30) : null;
-      const onward = route(departure ? offshore : boat, approaches[destination]!, 30);
+      const departure = destination === 0 ? route(boat, offshore, 30, PHASE1_MAP, 20) : null;
+      const onward = route(
+        departure ? offshore : boat,
+        circuitApproaches[destination]!,
+        30,
+        PHASE1_MAP,
+        20,
+      );
       const plan = departure
         ? {
             points: [...departure.points, ...onward.points.slice(1)],
@@ -412,7 +436,7 @@ describe('wind-aware route audit', () => {
       const startTime = elapsed;
       while (index < plan.points.length && elapsed - startTime < 400) {
         const target = plan.points[index]!;
-        if (Math.hypot(target.x - boat.x, target.y - boat.y) < 9) {
+        if (Math.hypot(target.x - boat.x, target.y - boat.y) < 4) {
           index++;
           continue;
         }
@@ -431,7 +455,11 @@ describe('wind-aware route audit', () => {
           boat,
           {
             steer,
-            sailStep: Math.abs(error) > 20 * DEG ? 0 : 1,
+            sailStep:
+              Math.abs(error) > 15 * DEG ||
+              (Math.hypot(target.x - boat.x, target.y - boat.y) < 24 && boat.speedKn > 3)
+                ? 0
+                : 1,
           },
           SLOOP,
           { from: 30 * DEG, speedKn: 14 },

@@ -8,7 +8,7 @@ import { SHIP_CLASSES } from './ship';
 import { type ShipyardProgress, readProgress } from './shipyards';
 import { activeShip, findPort, syncMarketLevels } from './trade';
 import { MAX_UPGRADE_LEVEL, UPGRADE_TRACKS, type UpgradeLevels, hullDurability } from './upgrades';
-import type { World } from './world';
+import { refreshPiers, type World } from './world';
 
 /**
  * Save and resume (decisions 0009, 0015): the progress that matters is written as small versioned
@@ -185,6 +185,7 @@ export function applySave(world: World, data: SaveData): void {
   if (data.contracts) trade.contracts = readContracts(data.contracts, world.map, trade.settlements);
   trade.progress = readProgress(data.progress, world.map);
   world.ship = activeShip(trade);
+  refreshPiers(world);
   // Compatible older-map saves keep all trading progress. The coasts and ports have moved since
   // (decision 0031), so they resume at the known-clear spawn; so does a save whose position a
   // coastline now covers, rather than strand the boat on land.

@@ -36,7 +36,7 @@ describe('visible harbour approaches', () => {
     for (const port of PHASE1_MAP.ports) {
       const index = PHASE1_MAP.islands.findIndex((i) => i.id === port.islandId);
       const island = PHASE1_MAP.islands[index]!;
-      const parts = islandParts(island, PHASE1_MAP, PHASE1_MAP.seed * 1000 + index);
+      const parts = islandParts(island, PHASE1_MAP, PHASE1_MAP.seed * 1000 + index, undefined, 2);
       const pier = parts.find(
         (g) =>
           Math.abs(g.attributes.color!.getX(0) - wood.r) < 1e-6 &&
