@@ -111,3 +111,4 @@ Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decis
 | [0087](0087-harbour-hull-range-bound.md) | Reject distant harbours before transforming the cached hull | 2026-10-22 | Implemented for review |
 | [0088](0088-bounded-port-label-distances.md) | Bound port-label harbour queries to their visibility range | 2026-10-22 | Implemented for review |
 | [0089](0089-skip-dry-rain.md) | Skip rain particles and uploads when showers and storm circles cannot reach the camera rain field | 2026-10-22 | Implemented for review |
+| [0090](0090-pier-refresh-level-snapshot.md) | Reuse pier geometry without allocating or serializing levels on unchanged simulation steps | 2026-10-22 | Implemented for review |
