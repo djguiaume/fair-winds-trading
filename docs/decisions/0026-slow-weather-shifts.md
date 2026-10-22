@@ -2,6 +2,8 @@
 
 **Status:** Implementation for review, 2026-10-19. Guillaume asked to go ahead with the recommended Phase 1 work.
 
+**Update 2026-10-22:** the ±50° range around the prevailing wind is replaced by a random walk round the whole compass, and the wind now varies across the sea ([0064](0064-wind-from-every-quarter.md)).
+
 **Context:** The roadmap's Phase 1 asks for "wind that shifts slowly over time so the same trip changes". Until now the wind only swung a few degrees around the map's prevailing direction, so a route that was upwind stayed upwind forever.
 
 **Decision:**

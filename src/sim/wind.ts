@@ -10,19 +10,38 @@ export interface Wind {
 }
 
 /**
- * Slow weather (decision 0026): every `periodSec` the sea wind settles on a new direction within
- * ±`rangeDeg` of the map's prevailing wind and a new strength in `strength`, easing across over
- * the first `blendSec`. Deterministic from the map seed, so a voyage resumes in the same weather.
+ * Slow weather (decisions 0026 and 0064): every `periodSec` the sea wind veers or backs by up to
+ * `stepDeg` from where it was and settles on a new strength in `strength`, easing across over the
+ * first `blendSec`. A gentle pull (`revert`) keeps the map's prevailing wind the most common one,
+ * but over a long voyage the wind can come from any quarter. Deterministic from the map seed, so a
+ * voyage resumes in the same weather.
  */
 export interface WeatherConfig {
   periodSec: number;
   blendSec: number;
-  rangeDeg: number;
+  /** Largest change of direction from one period to the next, in degrees. */
+  stepDeg: number;
+  /** 0..1: share of the offset from the prevailing wind dropped each period (0 = free wander). */
+  revert: number;
   /** Strength multipliers [min, max] applied to `speedKn`. */
   strength: [number, number];
+  /** The wind differs across the sea at the same moment (decision 0064); none = one wind everywhere. */
+  regions?: RegionConfig;
 }
 
-/** Global wind settings for a map: one prevailing direction and strength for the whole sea. */
+/** Large, slowly drifting areas where the wind bends and strengthens or eases (decision 0064). */
+export interface RegionConfig {
+  /** Largest bend of the direction from the sea-wide wind, in degrees. */
+  bendDeg: number;
+  /** Largest change of strength, e.g. 0.15 = ±15 %. */
+  strength: number;
+  /** Size of one wind region, in map units (a full wave is twice this). */
+  sizeUnits: number;
+  /** Seconds for the regions to drift by one region. */
+  driftSec: number;
+}
+
+/** Global wind settings for a map: one prevailing direction and strength. */
 export interface WindConfig {
   fromDeg: number;
   speedKn: number;
@@ -34,26 +53,55 @@ export interface WindConfig {
   weather?: WeatherConfig;
 }
 
-/** Phase 1 weather: a new wind every 3 minutes, so the same trip plays differently. */
+/**
+ * Phase 2 weather: a new wind every 3 minutes that wanders round the compass, and regions of the
+ * sea where it blows from a different angle at the same moment.
+ */
 export const DEFAULT_WEATHER: WeatherConfig = {
   periodSec: 180,
   blendSec: 60,
-  rangeDeg: 50,
+  stepDeg: 75,
+  revert: 0.12,
   strength: [0.8, 1.15],
+  regions: { bendDeg: 40, strength: 0.15, sizeUnits: 400, driftSec: 900 },
 };
 
+interface Slot {
+  offsetDeg: number;
+  strength: number;
+}
+
+/** Offsets of every period so far, per seed and config: the walk is a running sum. */
+const walks = new WeakMap<WeatherConfig, Map<number, Slot[]>>();
+
+function slotRng(seed: number, slot: number) {
+  return createRng((seed ^ Math.imul(slot, 0x9e3779b1)) >>> 0);
+}
+
 /** The weather of one period: offset from the prevailing direction (deg) and strength factor. */
-export function weatherSlot(weather: WeatherConfig, seed: number, slot: number) {
+export function weatherSlot(weather: WeatherConfig, seed: number, slot: number): Slot {
   // Slot 0 is the prevailing wind, so a fresh voyage starts in the map's designed breeze.
   if (slot <= 0) return { offsetDeg: 0, strength: 1 };
-  const rng = createRng((seed ^ Math.imul(slot, 0x9e3779b1)) >>> 0);
-  const offsetDeg = (rng() * 2 - 1) * weather.rangeDeg;
+  let bySeed = walks.get(weather);
+  if (!bySeed) walks.set(weather, (bySeed = new Map()));
+  let walk = bySeed.get(seed);
+  if (!walk) bySeed.set(seed, (walk = [{ offsetDeg: 0, strength: 1 }]));
   const [lo, hi] = weather.strength;
-  return { offsetDeg, strength: lo + (hi - lo) * rng() };
+  // A random walk: each period veers or backs from the last one, so the wind can swing right
+  // round over a long voyage instead of staying in one quarter of the compass.
+  for (let k = walk.length; k <= slot; k++) {
+    const rng = slotRng(seed, k);
+    const step = (rng() * 2 - 1) * weather.stepDeg;
+    const strength = lo + (hi - lo) * rng();
+    const offset = walk[k - 1]!.offsetDeg * (1 - weather.revert) + step;
+    // Keep the offset in -180..180 so easing between periods always takes the short way round.
+    walk.push({ offsetDeg: ((((offset + 180) % 360) + 360) % 360) - 180, strength });
+  }
+  return walk[slot]!;
 }
 
 /** Weather in force at time `t`, eased from the previous period. */
-export function weatherAt(weather: WeatherConfig, seed: number, t: number) {
+export function weatherAt(weather: WeatherConfig, seed: number, t: number): Slot {
   const slot = Math.floor(Math.max(0, t) / weather.periodSec);
   const now = weatherSlot(weather, seed, slot);
   const into = Math.max(0, t) - slot * weather.periodSec;
@@ -61,28 +109,74 @@ export function weatherAt(weather: WeatherConfig, seed: number, t: number) {
   const before = weatherSlot(weather, seed, slot - 1);
   const k = into / weather.blendSec;
   const s = k * k * (3 - 2 * k);
+  // Ease along the shorter arc, then wrap, so a shift across south never spins the long way.
+  let turn = now.offsetDeg - before.offsetDeg;
+  turn -= 360 * Math.round(turn / 360);
   return {
-    offsetDeg: before.offsetDeg + (now.offsetDeg - before.offsetDeg) * s,
+    offsetDeg: before.offsetDeg + turn * s,
     strength: before.strength + (now.strength - before.strength) * s,
   };
 }
 
 /**
- * Sea wind at time `t` (seconds), away from any island. Deterministic: slow weather periods, plus
- * a sum of slow sines for gusts and a small direction swing so the sea feels alive.
+ * How the wind differs at one spot of the sea (decision 0064): two slow waves with seeded
+ * directions bend it by up to `bendDeg` and change its strength by up to `strength`, drifting
+ * so the regions move. Smooth in space and time, so a boat never feels a jump.
  */
-export function windAt(config: WindConfig, t: number, seed = 0): Wind {
-  const gust =
-    0.6 * Math.sin((t * TAU) / 23) +
-    0.3 * Math.sin((t * TAU) / 9.7 + 1.3) +
-    0.1 * Math.sin(t * 1.9);
-  const swing = Math.sin((t * TAU) / 61) * 0.7 + Math.sin((t * TAU) / 17 + 0.4) * 0.3;
+export function regionAt(
+  regions: RegionConfig,
+  seed: number,
+  t: number,
+  x: number,
+  y: number,
+): { bendDeg: number; strength: number } {
+  const rng = createRng((seed * 0x85ebca6b) >>> 0);
+  const k = Math.PI / regions.sizeUnits;
+  const wave = (i: number) => {
+    const angle = rng() * TAU + i * 2.1;
+    const phase = rng() * TAU;
+    const along = x * Math.cos(angle) + y * Math.sin(angle);
+    return Math.sin(k * along * (1 - 0.25 * i) + (t / regions.driftSec) * Math.PI + phase);
+  };
+  const a = wave(0),
+    b = wave(1),
+    c = wave(2);
+  return {
+    bendDeg: regions.bendDeg * (0.65 * a + 0.35 * b),
+    strength: 1 + regions.strength * (0.6 * c + 0.4 * a * b),
+  };
+}
+
+/**
+ * Sea wind at time `t` (seconds) and position `pos`, away from any island. Deterministic: slow
+ * weather periods, regions where it bends, plus a sum of slow sines for gusts and a small
+ * direction swing so the sea feels alive.
+ */
+export function windAt(
+  config: WindConfig,
+  t: number,
+  seed = 0,
+  pos: { x: number; y: number } = { x: 0, y: 0 },
+): Wind {
   const weather = config.weather
     ? weatherAt(config.weather, seed, t)
     : { offsetDeg: 0, strength: 1 };
+  const region = config.weather?.regions
+    ? regionAt(config.weather.regions, seed, t, pos.x, pos.y)
+    : { bendDeg: 0, strength: 1 };
+  // Gusts arrive at different moments in different places once the wind has regions.
+  const lag = config.weather?.regions ? pos.x * 0.011 - pos.y * 0.017 : 0;
+  const g = t + lag;
+  const gust =
+    0.6 * Math.sin((g * TAU) / 23) +
+    0.3 * Math.sin((g * TAU) / 9.7 + 1.3) +
+    0.1 * Math.sin(g * 1.9);
+  const swing = Math.sin((g * TAU) / 61) * 0.7 + Math.sin((g * TAU) / 17 + 0.4) * 0.3;
   return {
-    from: wrapPositive((config.fromDeg + weather.offsetDeg + swing * config.shiftDeg) * DEG),
-    speedKn: config.speedKn * weather.strength * (1 + gust * config.gustiness),
+    from: wrapPositive(
+      (config.fromDeg + weather.offsetDeg + region.bendDeg + swing * config.shiftDeg) * DEG,
+    ),
+    speedKn: config.speedKn * weather.strength * region.strength * (1 + gust * config.gustiness),
   };
 }
 
