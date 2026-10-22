@@ -8,6 +8,7 @@ import {
   islandLayout,
   layoutGround,
   characterPiers,
+  fishingMoorings,
   type IslandTheme,
   type Outline,
 } from '../../sim/islandLayout';
@@ -292,6 +293,109 @@ function slip(planked: boolean): Parts {
       parts.push(box(0.08, 0.9, 0.08, -w, 0.55, z, C.plank));
       parts.push(box(0.08, 0.9, 0.08, w, 0.55, z, C.plank));
     }
+  }
+  return parts;
+}
+
+/** Dense woods use open triangular trunks and two conifer tiers to stay in budget. */
+function woodlandTree(kind: IslandTheme, rng: Rng): Parts {
+  const s = range(rng, 0.8, 1.3);
+  const trunk = paint(
+    new THREE.CylinderGeometry(0.07 * s, 0.1 * s, 0.7 * s, 3, 1, true).translate(0, 0.35 * s, 0),
+    C.trunk,
+  );
+  if (kind === 'timber' || kind === 'stone')
+    return [
+      trunk,
+      paint(
+        new THREE.ConeGeometry(0.62 * s, 1.15 * s, 5, 1, true).translate(0, 0.95 * s, 0),
+        C.pine[0]!,
+      ),
+      paint(
+        new THREE.ConeGeometry(0.4 * s, 1.0 * s, 5, 1, true).translate(0, 1.55 * s, 0),
+        C.pine[1]!,
+      ),
+    ];
+  return [
+    trunk,
+    paint(
+      new THREE.IcosahedronGeometry(0.65 * s, 0).translate(0, s, 0),
+      C.leaves[Math.floor(rng() * 3)]!,
+    ),
+  ];
+}
+
+/** Open timber workshops with readable machinery and stacked planks. */
+function timberWorkshop(store: boolean): Parts {
+  const parts = [gable(3.5, 2.3, 0.7, 1.9, store ? '#6e7f45' : '#a65c35')];
+  for (const x of [-1.5, 1.5])
+    for (const z of [-0.9, 0.9]) parts.push(box(0.16, 1.9, 0.16, x, 0.95, z, C.post));
+  if (store) {
+    put(parts, lumber(), -0.7, 0, 0, 0, 1.4);
+    put(parts, lumber(), 0.8, 0, 0.2, 0, 1.2);
+  } else {
+    parts.push(
+      box(2.8, 0.65, 0.8, 0, 0.325, 0, C.wood),
+      box(0.15, 2.2, 0.15, 0.5, 1.1, 0, '#b3c6cf'),
+    );
+    const log = new THREE.CylinderGeometry(0.22, 0.22, 3.1, 6)
+      .rotateZ(Math.PI / 2)
+      .translate(0, 0.88, 0);
+    parts.push(paint(log, '#c0905c'));
+  }
+  parts[0]!.userData.timberWorkshop = store ? 'lumber-store' : 'cutting-shed';
+  return parts;
+}
+
+function workingSawmill(): Parts {
+  const parts = sawmill()
+    .slice(0, 2)
+    .map((g) => g.rotateY(-Math.PI / 2));
+  parts.push(
+    paint(
+      new THREE.CylinderGeometry(0.82, 0.82, 0.18, 12)
+        .rotateX(Math.PI / 2)
+        .translate(0, 0.85, 1.12),
+      C.post,
+    ),
+  );
+  for (let spoke = 0; spoke < 8; spoke++)
+    parts.push(
+      paint(
+        new THREE.BoxGeometry(0.09, 1.5, 0.08)
+          .rotateZ((spoke * Math.PI) / 4)
+          .translate(0, 0.85, 1.24),
+        C.plank,
+      ),
+    );
+  parts.push(paint(new THREE.TorusGeometry(0.76, 0.08, 4, 12).translate(0, 0.85, 1.25), C.plank));
+  return parts;
+}
+
+/** Open, curved hull and slipway: its silhouette must read as a ship from offshore. */
+function workingSlip(planked: boolean): Parts {
+  const parts = slip(false);
+  parts.push(box(2.8, 0.12, 5.0, 0, -0.05, 0, C.plank));
+  if (planked) {
+    const vertices: number[] = [];
+    const point = (section: number, arc: number) => {
+      const t = section / 8,
+        a = -Math.PI / 2 + (arc / 6) * Math.PI;
+      const width = 0.12 + Math.pow(Math.sin(t * Math.PI), 0.65) * 1.05;
+      return [Math.sin(a) * width, 1.25 - Math.cos(a) * width, -2.3 + t * 4.6];
+    };
+    for (let section = 0; section < 8; section++)
+      for (let arc = 0; arc < 6; arc++) {
+        const a = point(section, arc),
+          b = point(section + 1, arc),
+          c = point(section + 1, arc + 1),
+          d = point(section, arc + 1);
+        vertices.push(...a, ...b, ...c, ...a, ...c, ...d, ...c, ...b, ...a, ...d, ...c, ...a);
+      }
+    const hull = new THREE.BufferGeometry();
+    hull.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    hull.computeVertexNormals();
+    parts.push(paint(hull, '#b77c43'));
   }
   return parts;
 }
@@ -895,8 +999,10 @@ export function characterStreets(kind: IslandTheme) {
 /** A seeded maximum-level plan follows winding lanes, with uneven setbacks and small courts. */
 export function characterTownPlan(kind: IslandTheme, R: number) {
   const layout = islandLayout(kind);
-  const spacing = kind === 'grain' ? 0.165 : kind === 'timber' ? 0.19 : 0.18;
-  const margin = (kind === 'timber' ? 1.1 : kind === 'grain' ? 0.9 : 1.0) / R;
+  const spacing =
+    kind === 'grain' ? 0.165 : kind === 'timber' ? 0.19 : kind === 'stone' ? 0.14 : 0.18;
+  const margin =
+    (kind === 'timber' ? 1.1 : kind === 'grain' ? 0.9 : kind === 'stone' ? 0.82 : 1.0) / R;
   const plots: (Spot & { yaw: number })[] = [];
   const rng = createRng(711 + ['fish', 'timber', 'stone', 'grain'].indexOf(kind));
   for (const street of characterStreets(kind)) {
@@ -912,14 +1018,25 @@ export function characterTownPlan(kind: IslandTheme, R: number) {
         const x = p.x + nx * setback,
           z = p.z + nz * setback;
         const h = layoutGround(layout, x, z, margin);
-        if (h === null || (Math.abs(x - 0.08) < 0.12 && z > 0.45)) continue;
+        if (
+          h === null ||
+          (kind === 'stone' &&
+            layout.surfaces.some((s) => s.material === 'rock' && s.height === h)) ||
+          (Math.abs(x - 0.08) < 0.12 && z > 0.45)
+        )
+          continue;
         if (Math.hypot(x - layout.landmark[0], z - layout.landmark[1]) < 0.24) continue;
         const civic =
           kind === 'fish' ? [0.15, -0.45] : kind === 'timber' ? [-0.05, -0.2] : [-0.35, -0.25];
-        if ([[-0.2, 0.5], civic].some(([cx, cz]) => Math.hypot(x - cx!, z - cz!) < 0.23)) continue;
+        if (Math.hypot(x + 0.2, z - 0.5) < 0.23 || Math.hypot(x - civic[0]!, z - civic[1]!) < 0.32)
+          continue;
         if (kind === 'timber' && ((x > 0.3 && z > 0.25) || z < -0.55)) continue;
-        if (kind === 'fish' && x > 0.75 && z > 0) continue;
-        if (kind === 'stone' && Math.abs(x + 0.65) < 0.16 && z > 0.24) continue;
+        if (
+          kind === 'fish' &&
+          ((x > 0.75 && z > 0) || (x > -1.3 && x < -0.1 && z > 0.15 && z < 0.68))
+        )
+          continue;
+        if (kind === 'stone' && x > -1.2 && x < -0.25 && z > 0.12 && z < 0.5) continue;
         if (kind === 'grain' && ((x > 0.65 && z > -0.2) || Math.hypot(x + 0.9, z + 0.65) < 0.2))
           continue;
         if (plots.some((q) => Math.hypot(q.x / R - x, q.z / R - z) < spacing * 0.9)) continue;
@@ -928,20 +1045,27 @@ export function characterTownPlan(kind: IslandTheme, R: number) {
   }
   // Irregular back courts fill gaps behind the frontage; no second regimented row.
   const lanes = characterStreets(kind).map((c) => c.getSpacedPoints(80));
-  for (let i = 0; i < 1800 && plots.length < 44; i++) {
+  for (let i = 0; i < 5000 && plots.length < 44; i++) {
     const x = range(rng, kind === 'grain' ? -0.85 : -1.4, kind === 'grain' ? 0.65 : 1.25);
     const z = range(rng, -0.78, 0.68);
     const h = layoutGround(layout, x, z, margin);
-    if (h === null || (Math.abs(x - 0.08) < 0.12 && z > 0.45)) continue;
+    if (
+      h === null ||
+      (kind === 'stone' && layout.surfaces.some((s) => s.material === 'rock' && s.height === h)) ||
+      (Math.abs(x - 0.08) < 0.12 && z > 0.45)
+    )
+      continue;
     const civic =
       kind === 'fish' ? [0.15, -0.45] : kind === 'timber' ? [-0.05, -0.2] : [-0.35, -0.25];
     if (
-      [[-0.2, 0.5], civic, layout.landmark].some(([cx, cz]) => Math.hypot(x - cx!, z - cz!) < 0.25)
+      [[-0.2, 0.5], layout.landmark].some(([cx, cz]) => Math.hypot(x - cx!, z - cz!) < 0.25) ||
+      Math.hypot(x - civic[0]!, z - civic[1]!) < 0.32
     )
       continue;
     if (kind === 'timber' && ((x > 0.3 && z > 0.25) || z < -0.55)) continue;
-    if (kind === 'fish' && x > 0.75 && z > 0) continue;
-    if (kind === 'stone' && Math.abs(x + 0.65) < 0.16 && z > 0.24) continue;
+    if (kind === 'fish' && ((x > 0.75 && z > 0) || (x > -1.3 && x < -0.1 && z > 0.15 && z < 0.68)))
+      continue;
+    if (kind === 'stone' && x > -1.2 && x < -0.25 && z > 0.12 && z < 0.5) continue;
     if (plots.some((q) => Math.hypot(q.x / R - x, q.z / R - z) < spacing * 0.95)) continue;
     let nearest = Infinity,
       yaw = 0;
@@ -957,17 +1081,62 @@ export function characterTownPlan(kind: IslandTheme, R: number) {
     if (nearest < 0.105 || nearest > 0.38) continue;
     plots.push({ x: x * R, y: h * R, z: z * R, yaw });
   }
-  return plots.sort(
-    (a, b) =>
-      Math.hypot(a.x - 0.08 * R, a.z - 0.85 * R) - Math.hypot(b.x - 0.08 * R, b.z - 0.85 * R),
-  );
+  // Grow outwards from one harbour-side nucleus, including the first three homes.
+  const ordered: typeof plots = [];
+  while (plots.length) {
+    const nucleus = ordered[0] ?? {
+      x: (kind === 'stone' ? -0.9 : -0.32) * R,
+      z: (kind === 'stone' ? -0.3 : 0.38) * R,
+      y: 0,
+    };
+    plots.sort((a, b) => {
+      const score = (p: Spot) => {
+        const local = ordered.length
+          ? Math.min(...ordered.map((q) => Math.hypot(p.x - q.x, p.z - q.z)))
+          : 0;
+        return (
+          Math.hypot(p.x - nucleus.x, p.z - nucleus.z) +
+          local * 1.8 +
+          (ordered.length ? Math.abs(p.y - nucleus.y) * 1.5 : 0)
+        );
+      };
+      return score(a) - score(b);
+    });
+    ordered.push(plots.shift()!);
+  }
+  return ordered;
+}
+
+/** Omit horizontal undersides: every island is viewed from above the sea. */
+function withoutUndersides(g: THREE.BufferGeometry) {
+  const normal = g.getAttribute('normal');
+  const keep: number[] = [];
+  for (let i = 0; i < normal.count; i += 3)
+    if (!(normal.getY(i) < -0.999 && normal.getY(i + 1) < -0.999 && normal.getY(i + 2) < -0.999))
+      keep.push(i, i + 1, i + 2);
+  if (keep.length === normal.count) return g;
+  const trimmed = new THREE.BufferGeometry();
+  for (const [name, attribute] of Object.entries(g.attributes)) {
+    const values = new Float32Array(keep.length * attribute.itemSize);
+    keep.forEach((index, j) => {
+      for (let k = 0; k < attribute.itemSize; k++)
+        values[j * attribute.itemSize + k] = attribute.array[index * attribute.itemSize + k]!;
+    });
+    trimmed.setAttribute(
+      name,
+      new THREE.BufferAttribute(values, attribute.itemSize, attribute.normalized),
+    );
+  }
+  trimmed.userData = g.userData;
+  g.dispose();
+  return trimmed;
 }
 
 /** The new silhouettes retain the inexpensive primitive models and single merged land mesh. */
 function characterTownParts(spec: TownIslandSpec): Parts {
   const kind = spec.profile!;
   const { R, level } = spec;
-  const layout = islandLayout(kind);
+  const layout = islandLayout(kind, level);
   const out: Parts = [];
   const shape = (outline: Outline, holes: Outline[] = []) => {
     const s = new THREE.Shape(outline.map(([x, z]) => new THREE.Vector2(x * R, -z * R)));
@@ -992,7 +1161,7 @@ function characterTownParts(spec: TownIslandSpec): Parts {
   for (const coast of layout.coasts)
     terrain(coast, -1, 0.3, C.sand, layout.lake ? [layout.lake] : []);
   for (const s of layout.surfaces) {
-    if (s.material === 'rock' && s.height > 0.5) {
+    if (s.material === 'rock' && s.height > 0.7) {
       const xs = s.outline.map((p) => p[0]),
         zs = s.outline.map((p) => p[1]);
       const cx = (Math.min(...xs) + Math.max(...xs)) / 2,
@@ -1013,18 +1182,69 @@ function characterTownParts(spec: TownIslandSpec): Parts {
       );
   }
   if (kind === 'stone') {
-    for (let i = 0; i < 10; i++) {
-      const top = (0.65 - (i * (0.65 - 0.065)) / 9) * R;
-      out.push(
-        box(
-          R * 0.15,
-          top - 0.3,
-          R * 0.06,
-          -0.65 * R,
-          (top + 0.3) / 2,
-          (0.28 + i * 0.045) * R,
+    // Two flights traverse the cliff face, with a landing above the lower village.
+    const flights = [
+      [
+        [-1.1, 0.18, 0.68],
+        [-0.4, 0.34, 0.38],
+      ],
+      [
+        [-0.4, 0.34, 0.38],
+        [-1.05, 0.46, 0.08],
+      ],
+    ];
+    for (const [a, b] of flights)
+      for (let i = 0; i < 12; i++) {
+        const t = (i + 0.5) / 12,
+          x = a![0]! + (b![0]! - a![0]!) * t,
+          z = a![1]! + (b![1]! - a![1]!) * t;
+        const y = a![2]! + (b![2]! - a![2]!) * t;
+        const length = (Math.hypot(b![0]! - a![0]!, b![1]! - a![1]!) * R) / 12;
+        // Full masonry beneath each tread bears on the dry lower terrace.
+        const supportHeight = (y - 0.08) * R;
+        const step = box(
+          length + 0.02,
+          supportHeight + 0.03,
+          R * 0.085,
+          0,
+          -supportHeight / 2,
+          0,
           C.cut,
-        ),
+        );
+        put(out, [step], x * R, y * R, z * R, -Math.atan2(b![1]! - a![1]!, b![0]! - a![0]!));
+      }
+    put(out, [box(R * 0.13, 0.12, R * 0.12, 0, 0, 0, C.cut)], -0.4 * R, 0.38 * R, 0.34 * R);
+    put(
+      out,
+      [paint(new THREE.PlaneGeometry(R * 0.28, R * 0.055).rotateX(-Math.PI / 2), '#c1af7c')],
+      -1.07 * R,
+      0.68 * R + 0.015,
+      0.04 * R,
+      Math.PI / 2,
+    );
+    // The footpath starts on dry land and connects the stair foot to the harbour.
+    const path = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-1.05, 0, 0.46),
+      new THREE.Vector3(-0.7, 0, 0.57),
+      new THREE.Vector3(-0.25, 0, 0.58),
+      new THREE.Vector3(0.08, 0, 0.63),
+    ]);
+    const p = path.getSpacedPoints(25);
+    for (let i = 1; i < p.length; i++) {
+      const a = p[i - 1]!,
+        b = p[i]!;
+      put(
+        out,
+        [
+          paint(
+            new THREE.PlaneGeometry(a.distanceTo(b) * R + 0.02, R * 0.055).rotateX(-Math.PI / 2),
+            '#c1af7c',
+          ),
+        ],
+        ((a.x + b.x) * R) / 2,
+        0.08 * R + 0.015,
+        ((a.z + b.z) * R) / 2,
+        -Math.atan2(b.z - a.z, b.x - a.x),
       );
     }
   }
@@ -1035,9 +1255,112 @@ function characterTownParts(spec: TownIslandSpec): Parts {
     water.rotateX(-Math.PI / 2).translate(0, 0.5, 0);
     out.push(paint(water, '#319eae'));
   }
-  const plots = characterTownPlan(kind, R);
+  const boundsOf = (parts: Parts) => {
+    const bounds = new THREE.Box3();
+    for (const g of parts) {
+      g.computeBoundingBox();
+      bounds.union(g.boundingBox!);
+    }
+    return bounds;
+  };
+  type Footprint = [number, number][];
+  const footprint = (parts: Parts): Footprint => {
+    const points: Footprint = [];
+    for (const g of parts) {
+      const p = g.getAttribute('position');
+      for (let i = 0; i < p.count; i++) points.push([p.getX(i), p.getZ(i)]);
+    }
+    points.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    const cross = (a: number[], b: number[], c: number[]) =>
+      (b[0]! - a[0]!) * (c[1]! - a[1]!) - (b[1]! - a[1]!) * (c[0]! - a[0]!);
+    const half = (ps: Footprint) => {
+      const h: Footprint = [];
+      for (const p of ps) {
+        while (h.length > 1 && cross(h[h.length - 2]!, h[h.length - 1]!, p) <= 0) h.pop();
+        h.push(p);
+      }
+      h.pop();
+      return h;
+    };
+    return [...half(points), ...half([...points].reverse())];
+  };
+  const overlaps = (a: Footprint, b: Footprint) => {
+    for (const p of [a, b])
+      for (let i = 0; i < p.length; i++) {
+        const q = p[(i + 1) % p.length]!,
+          r = p[i]!,
+          nx = q[1] - r[1],
+          nz = r[0] - q[0];
+        const aa = a.map((v) => v[0] * nx + v[1] * nz),
+          bb = b.map((v) => v[0] * nx + v[1] * nz);
+        if (
+          Math.max(...aa) + 0.03 * Math.hypot(nx, nz) < Math.min(...bb) ||
+          Math.max(...bb) + 0.03 * Math.hypot(nx, nz) < Math.min(...aa)
+        )
+          return false;
+      }
+    return true;
+  };
+  const buildings: Footprint[] = [];
+  const reserve = (parts: Parts, x: number, z: number, scale: number, yaw = 0) => {
+    put([], parts, x * R, 0, z * R, yaw, scale);
+    buildings.push(footprint(parts));
+    parts.forEach((g) => g.dispose());
+  };
+  reserve(warehouse(STYLE[kind].roofs[0]!), -0.2, 0.5, 1.1);
+  if (kind === 'fish') {
+    reserve(marketHall(), 0.15, -0.45, 2);
+    reserve(smokehouse(), 0.85, 0.06, 2.1);
+  } else if (kind === 'timber') {
+    reserve(workingSawmill(), -0.05, -0.2, 2);
+    reserve(workingSlip(true), 1.05, 0.38, 1.65, 0.25);
+    reserve(timberWorkshop(false), 0.4, 0.43, 1.1);
+    reserve(timberWorkshop(true), 1.0, -0.9, 1.1);
+  } else if (kind === 'stone') {
+    reserve(masons(), 0.68, 0.12, 2);
+    reserve(keep(), layout.landmark[0], layout.landmark[1], 1.25);
+  } else {
+    reserve(spireChurch(), -0.35, -0.25, 2);
+    reserve(barn(), 0.85, -0.05, 1.65);
+    reserve(granary(), -0.9, -0.65, 1.7);
+    reserve(bakery(), 1.25, -0.05, 1.75);
+  }
+  const homeRng = createRng(spec.seed);
+  const homes: { parts: Parts; spot: Spot & { yaw: number } }[] = [];
+  for (const p of characterTownPlan(kind, R)) {
+    const i = homes.length;
+    const parts =
+      kind === 'fish'
+        ? fishHouse(i, homeRng)
+        : kind === 'timber'
+          ? cabin(i, homeRng)
+          : kind === 'stone'
+            ? stoneHouse(i)
+            : farmhouse(i);
+    put([], parts, p.x, p.y, p.z, p.yaw, kind === 'grain' ? 0.8 : kind === 'timber' ? 1 : 1.15);
+    const bounds = boundsOf(parts);
+    bounds.min.y = -100;
+    bounds.max.y = 100;
+    const polygon = footprint(parts);
+    if (buildings.some((b) => overlaps(b, polygon))) {
+      parts.forEach((g) => g.dispose());
+      continue;
+    }
+    buildings.push(polygon);
+    parts[0]!.userData.residence = i;
+    parts[0]!.userData.buildingBounds = {
+      minX: bounds.min.x,
+      maxX: bounds.max.x,
+      minZ: bounds.min.z,
+      maxZ: bounds.max.z,
+    };
+    homes.push({ parts, spot: p });
+  }
+  const plots = homes.map((h) => h.spot);
   // Reveal connected lane fragments near occupied plots, with no roads across water or cliffs.
-  const active = plots.slice(0, [3, 10, 21, 32][level - 1]!);
+  const growth = [3, 10, Math.min(21, Math.ceil(homes.length * 0.75)), 32];
+  const active = plots.slice(0, growth[level - 1]!);
+  const clearedLanes: { x: number; z: number }[] = [];
   for (const street of characterStreets(kind)) {
     const points = street.getSpacedPoints(110);
     for (let i = 1; i < points.length; i++) {
@@ -1050,6 +1373,7 @@ function characterTownParts(spec: TownIslandSpec): Parts {
       const ha = layoutGround(layout, a.x, a.z, 0.025),
         hb = layoutGround(layout, b.x, b.z, 0.025);
       if (ha !== h || hb !== h) continue;
+      clearedLanes.push({ x, z });
       const len = a.distanceTo(b) * R;
       const g = paint(
         new THREE.PlaneGeometry(len + 0.01, R * 0.04).rotateX(-Math.PI / 2).translate(0, 0.012, 0),
@@ -1058,25 +1382,38 @@ function characterTownParts(spec: TownIslandSpec): Parts {
       put(out, [g], x * R, h * R, z * R, -Math.atan2(b.z - a.z, b.x - a.x));
     }
   }
-  const count = [3, 10, 21, 32][level - 1]!;
-  const rng = createRng(spec.seed);
-  plots.slice(0, count).forEach((p, i) => {
-    const home =
-      kind === 'fish'
-        ? fishHouse(i, rng)
-        : kind === 'timber'
-          ? cabin(i, rng)
-          : kind === 'stone'
-            ? stoneHouse(i)
-            : farmhouse(i);
-    home[0]!.userData.residence = i;
-    // Houses face their winding lane; plots and random streams stay fixed as the town grows.
-    put(out, home, p.x, p.y, p.z, p.yaw, kind === 'grain' ? 0.8 : kind === 'timber' ? 1.0 : 1.15);
+  homes.forEach((home, i) => {
+    if (i < growth[level - 1]!) out.push(...home.parts);
+    else home.parts.forEach((g) => g.dispose());
   });
   dock(out, level, characterPiers(kind, R, level)[0]!, kind === 'stone' && level >= 3);
+  // The same blue-and-white harbour flag identifies the player berth at every port.
+  const arrival = characterPiers(kind, R, level)[0]!;
+  if (level < 3) put(out, lampPost(), arrival.x + 0.25, 0.55, arrival.z0 + arrival.len - 0.4);
+  const flag = [
+    cyl(0.055, 0.07, 3.0, 0, 1.5, 0, C.post, 5),
+    box(1.1, 0.8, 0.05, 0.55, 2.5, 0, '#f8f3ea'),
+    box(0.45, 0.8, 0.055, 0.85, 2.5, 0, '#3f74a8'),
+  ];
+  flag[0]!.userData.playerBerth = true;
+  put(out, flag, arrival.x - 0.33, 0.55, arrival.z0 + arrival.len - 0.35);
+  // A pale landing strip makes the longest pier stand out without filling the water lane.
+  out.push(
+    box(
+      0.35,
+      0.025,
+      Math.min(2.4, arrival.len),
+      arrival.x,
+      0.565,
+      arrival.z0 + arrival.len - 1.2,
+      '#f2d9a0',
+    ),
+  );
+
   // Additional finger piers use the shared harbour plan (including their collision segments).
   for (const p of characterPiers(kind, R, level).slice(1))
     secondPier(out, p.x, p.z0, p.len, kind === 'stone');
+  const occupied: { x: number; z: number; radius: number }[] = [];
   const placeAt = (parts: Parts, x: number, z: number, scale = 1.1, footprint?: number) => {
     const bounds = new THREE.Box3();
     for (const g of parts) {
@@ -1091,7 +1428,10 @@ function characterTownParts(spec: TownIslandSpec): Parts {
         scale) /
       R;
     const h = layoutGround(layout, x, z, footprint ?? margin);
-    if (h !== null) put(out, parts, x * R, h * R, z * R, 0, scale);
+    if (h !== null) {
+      put(out, parts, x * R, h * R, z * R, 0, scale);
+      occupied.push({ x, z, radius: margin });
+    }
   };
   if (level >= 2) placeAt(warehouse(STYLE[kind].roofs[0]!), -0.2, 0.5);
   const workshop = (parts: Parts) => {
@@ -1103,22 +1443,31 @@ function characterTownParts(spec: TownIslandSpec): Parts {
       kind === 'fish'
         ? marketHall()
         : kind === 'timber'
-          ? sawmill()
+          ? workingSawmill()
           : kind === 'stone'
             ? masons()
             : spireChurch();
     if (kind === 'timber' || kind === 'stone') civic = workshop(civic);
     placeAt(
       civic,
-      kind === 'fish' ? 0.15 : kind === 'timber' ? -0.05 : -0.35,
-      kind === 'fish' ? -0.45 : kind === 'timber' ? -0.2 : -0.25,
-      1.35,
+      kind === 'fish' ? 0.15 : kind === 'timber' ? -0.05 : kind === 'stone' ? 0.68 : -0.35,
+      kind === 'fish' ? -0.45 : kind === 'timber' ? -0.2 : kind === 'stone' ? 0.12 : -0.25,
+      2.0,
+      kind === 'stone' ? 0.025 : 0.12,
     );
   }
   const features = [1, 2, 4, 6][level - 1]!;
   if (kind === 'fish') {
-    for (let i = 0; i < features; i++) placeAt(rack(), -1.2 + i * 0.28, 0.73);
-    if (level >= 3) placeAt(workshop(smokehouse()), 0.9, 0.15);
+    for (let i = 0; i < features + 2; i++) {
+      const x = -1.1 + (i % 4) * 0.28,
+        z = 0.52 - Math.floor(i / 4) * 0.22;
+      const drying = rack();
+      for (let f = 0; f < 5; f++)
+        drying.push(cyl(0.04, 0.1, 0.3, -0.45 + f * 0.22, 0.55, 0.06, '#cad7d5', 5));
+      placeAt(drying, x, z, 1.5, 0.06);
+      placeAt(crates(2), x, z - 0.09, 1.0, 0.04);
+    }
+    placeAt(workshop(smokehouse()), 0.85, 0.06, level >= 3 ? 2.1 : 1.45, 0.1);
     put(
       out,
       landmarkParts('lighthouse', 0.8),
@@ -1127,87 +1476,153 @@ function characterTownParts(spec: TownIslandSpec): Parts {
       layout.landmark[1] * R,
     );
     if (level >= 3) placeAt(fishHouse(1, createRng(spec.seed)), 1.95, 0.65);
-    for (let i = 0; i < level; i++)
-      put(out, fishingBoat(), (-0.55 + i * 0.35) * R, 0, 1.13 * R, 0.1, 0.9);
-  } else if (kind === 'timber') {
-    for (let i = 0; i < features; i++)
-      placeAt(i % 2 ? lumber() : logPile(), 0.4 + (i % 3) * 0.3, 0.58 - Math.floor(i / 3) * 0.25);
-    if (level >= 3) put(out, slip(level === 4), 1.05 * R, 0.45, 0.6 * R, 0.45);
-  } else if (kind === 'stone') {
-    for (let i = 0; i < Math.min(level, 3); i++) {
-      placeAt(derrick(), 0.85, -0.15 + i * 0.24, 1.1, 0.045);
-      placeAt(blocks(3 + level), 1.0, -0.1 + i * 0.24);
+    for (const mooring of fishingMoorings(level)) {
+      const boat = fishingBoat();
+      // Spar, furled net and buoys remain readable from the approach camera.
+      boat.push(box(1.2, 0.07, 0.07, 0, 1.7, -0.2, C.post));
+      for (let n = 0; n < 4; n++)
+        boat.push(cyl(0.07, 0.07, 0.18, -0.4 + n * 0.25, 0.5, 0.35, '#e2c160', 5));
+      boat.push(box(0.5, 0.16, 0.6, 0, 0.43, 0.55, '#aaa88b'));
+      put(out, boat, mooring.x * R, 0, mooring.z * R, mooring.yaw, 1.55);
     }
+  } else if (kind === 'timber') {
+    if (level >= 3) {
+      placeAt(timberWorkshop(false), 0.4, 0.43, 1.1, 0.1);
+      placeAt(timberWorkshop(true), 1.0, -0.9, 1.1, 0.1);
+    }
+    for (let i = 0; i < features; i++) {
+      if (i < 3) {
+        const x = 0.35 + i * 0.21,
+          z = 0.82;
+        const pile = logPile();
+        pile[0]!.userData.logYard = 'shore';
+        put(out, pile, x * R, 0.3, z * R, 0.08, 1.1);
+        occupied.push({ x, z, radius: 0.14 });
+      } else {
+        const pile = logPile();
+        pile[0]!.userData.logYard = 'upland';
+        placeAt(pile, 0.2 + (i - 3) * 0.23, -0.9, 1.1, 0.09);
+      }
+    }
+    if (level < 3) placeAt(workshop(workingSawmill()), -0.05, -0.2, 1.7, 0.12);
+    put(out, lampPost(), 0.12 * R, 0.11 * R, -0.05 * R, 0, 1.3);
+    put(out, lampPost(), 0.95 * R, 0.3, 0.82 * R, 0, 1.3);
+    if (level >= 3) put(out, lampPost(), 0.9 * R, 0.32 * R, -0.9 * R, 0, 1.3);
+    // A substantial waterfront boatyard, with a hull on stocks visible from the sea.
+    put(out, workingSlip(level >= 3), 1.05 * R, 0.11 * R, 0.38 * R, 0.25, 1.65);
+    occupied.push({ x: 1.05, z: 0.38, radius: 0.28 });
+  } else if (kind === 'stone') {
+    const benches = [
+      [0.85, 0.22],
+      [0.32, -0.22],
+      [-0.03, -0.28],
+    ];
+    benches.slice(0, Math.min(level, 3)).forEach(([x, z]) => {
+      placeAt(derrick(), x!, z!, 1.65, 0.025);
+      placeAt(blocks(3 + level), x! + 0.12, z! + 0.12, 1.3, 0.025);
+      const h = layoutGround(layout, x!, z!);
+      if (h !== null)
+        for (const offset of [-0.025, 0.025])
+          put(
+            out,
+            [box(R * 0.32, 0.035, 0.035, 0, 0.03, 0, C.post)],
+            x! * R,
+            h * R,
+            (z! + offset) * R,
+            -0.2,
+          );
+      occupied.push({ x: x!, z: z!, radius: 0.2 });
+    });
     placeAt(keep(), layout.landmark[0], layout.landmark[1], level === 4 ? 1.25 : 0.7);
   } else {
-    placeAt(windmill(), 1.0, -0.5, 1.25, 0.07);
-    if (level >= 3) placeAt(windmill(), -1.15, -0.4, 1.25, 0.07);
-    if (level >= 2) placeAt(barn(), 0.85, -0.05);
-    if (level >= 3) placeAt(granary(), -0.9, -0.65);
-    if (level >= 3) placeAt(workshop(bakery()), 1.25, -0.05);
+    const firstMill = windmill();
+    firstMill[0]!.userData.windmill = { x: -1.15, z: -0.4 };
+    placeAt(firstMill, -1.15, -0.4, 1.25, 0.07);
+    if (level >= 3) placeAt(windmill(), 1.0, -0.5, 1.25, 0.07);
+    placeAt(barn(), 0.85, -0.05, level >= 2 ? 1.65 : 1.1, 0.12);
+    if (level >= 3) placeAt(granary(), -0.9, -0.65, 1.7, 0.1);
+    if (level >= 3) placeAt(workshop(bakery()), 1.25, -0.05, 1.75, 0.1);
   }
-  // Fields/forest are reserved outside the final town footprint at every level.
-  const treesRng = createRng(spec.seed + 789);
-  const forest: { x: number; z: number }[] = [];
-  for (let i = 0; i < 650; i++) {
-    const x = range(treesRng, -1.7, 1.7),
-      z = range(treesRng, -1.3, 0.7);
-    const h = layoutGround(layout, x, z, 0.08);
-    if (h === null || plots.some((p) => Math.hypot(p.x / R - x, p.z / R - z) < 0.16)) continue;
-    if (
-      kind === 'grain' &&
-      [
-        [-0.9, -0.65],
-        [1, -0.5],
-        [-1.15, -0.4],
-      ].some(([cx, cz]) => Math.hypot(x - cx!, z - cz!) < 0.2)
-    )
-      continue;
-    if (Math.hypot(x - layout.landmark[0], z - layout.landmark[1]) < 0.25) continue;
-    if (
-      kind === 'timber' &&
-      z < -0.23 &&
-      !forest.some((p) => Math.hypot(p.x - x, p.z - z) < 0.11)
-    ) {
-      put(out, pine(treesRng), x * R, h * R, z * R, treesRng() * 6, 1.8);
-      forest.push({ x, z });
-    } else if (i < 22 && z < -0.4)
-      put(out, kind === 'stone' ? pine(treesRng) : broadleaf(treesRng), x * R, h * R, z * R, 0, 1);
-  }
+  // Fields claim woodland as the settlement grows. Future house sites remain wooded.
+  const fields: { x: number; z: number; h: number }[] = [];
   if (kind === 'grain') {
-    let fields = 0;
+    const candidates: typeof fields = [];
     for (let z = -1.04; z < 0.65; z += 0.32)
       for (let x = -1.5; x < 1.6; x += 0.32) {
         const h = layoutGround(layout, x, z, 0.17);
         if (
+          h === null ||
+          plots.some((p) => Math.hypot(p.x / R - x, p.z / R - z) < 0.28) ||
           [
             [0.85, -0.05],
             [1.25, -0.05],
             [-0.9, -0.65],
             [-0.35, -0.25],
             [-0.2, 0.5],
-          ].some(([cx, cz]) => Math.hypot(x - cx!, z - cz!) < 0.33)
-        )
-          continue;
-        if (
-          h === null ||
-          plots.some((p) => Math.hypot(p.x / R - x, p.z / R - z) < 0.28) ||
+          ].some(([cx, cz]) => Math.hypot(cx! - x, cz! - z) < 0.33) ||
           Math.hypot(x - 1, z + 0.5) < 0.3 ||
           Math.hypot(x + 1.15, z + 0.4) < 0.3
         )
           continue;
-        if (fields++ >= [3, 7, 13, 22][level - 1]!) continue;
-        put(
-          out,
-          [
-            box(R * 0.28, 0.07, R * 0.28, 0, 0.035, 0, C.crops[fields % 5]!),
-            box(R * 0.26, 0.03, 0.05, 0, 0.09, 0, C.furrow),
-          ],
-          x * R,
-          h * R,
-          z * R,
-        );
+        candidates.push({ x, z, h });
       }
+    candidates.sort((a, b) => Math.hypot(a.x + 0.4, a.z - 0.1) - Math.hypot(b.x + 0.4, b.z - 0.1));
+    fields.push(...candidates.slice(0, [3, 7, 13, 22][level - 1]!));
+    fields.forEach(({ x, z, h }, i) => {
+      const patch = [box(R * 0.28, 0.07, R * 0.28, 0, 0.035, 0, C.crops[i % 5]!)];
+      patch[0]!.userData.field = { x, z };
+      for (let row = -2; row <= 2; row++)
+        patch.push(
+          paint(
+            new THREE.PlaneGeometry(R * 0.26, 0.035)
+              .rotateX(-Math.PI / 2)
+              .translate(0, 0.085, row * R * 0.045),
+            C.furrow,
+          ),
+        );
+      put(out, patch, x * R, h * R, z * R);
+    });
   }
-  return out;
+  // Fixed candidate trees keep untouched woods stable; occupied land alone clears them.
+  const treesRng = createRng(spec.seed + 789);
+  const forest: { x: number; z: number }[] = [];
+  for (let i = 0; i < 1100; i++) {
+    const x = range(treesRng, -1.7, 1.7),
+      z = range(treesRng, -1.3, 0.72);
+    const tree = woodlandTree(kind, treesRng);
+    const yaw = treesRng() * 6,
+      scale = kind === 'timber' ? 1.8 : kind === 'stone' ? 1.1 : 1.7;
+    const h = layoutGround(layout, x, z, 0.09);
+    const finalHeight = layoutGround(islandLayout(kind), x, z, 0.09);
+    if (
+      h === null ||
+      finalHeight === null ||
+      (kind === 'stone' &&
+        layout.surfaces.some(
+          (s) => s.material === 'rock' && s.outline.length > 0 && h === s.height,
+        ))
+    )
+      continue;
+    if (
+      forest.some(
+        (p) =>
+          Math.hypot(p.x - x, p.z - z) <
+          (kind === 'timber' ? 0.185 : kind === 'stone' ? 0.23 : 0.27),
+      )
+    )
+      continue;
+    forest.push({ x, z });
+    if (
+      active.some((p) => Math.hypot(p.x / R - x, p.z / R - z) < 0.19) ||
+      clearedLanes.some((p) => Math.hypot(p.x - x, p.z - z) < 0.09) ||
+      occupied.some((p) => Math.hypot(p.x - x, p.z - z) < p.radius + 0.1) ||
+      fields.some((p) => Math.abs(p.x - x) < 0.22 && Math.abs(p.z - z) < 0.22) ||
+      (Math.abs(x - 0.08) < 0.14 && z > 0.45) ||
+      Math.hypot(x - layout.landmark[0], z - layout.landmark[1]) < 0.23
+    )
+      continue;
+    tree[0]!.userData.tree = { x, z };
+    put(out, tree, x * R, h * R, z * R, yaw, scale);
+  }
+  return out.map(withoutUndersides);
 }

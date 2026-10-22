@@ -89,4 +89,6 @@
 
 | [0071](0071-distinct-producer-islands.md) | Distinct producer coastlines, lake and islets, visible beaches, organic towns and solid growing harbours | 2026-10-22 | Implemented for review |
 
+| [0072](0072-wooded-villages-and-working-landscapes.md) | Compact wooded villages, progressive clearing, visible fishing and boatbuilding, and a quarry cut into the mountain | 2026-10-22 | Implemented for review |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { PHASE1_MAP } from '../src/data/maps';
 import {
   islandCoasts,
+  characterPiers,
+  fishingMoorings,
   islandLayout,
   islandPoint,
   islandLake,
@@ -13,6 +15,8 @@ import { characterTownPlan, townIslandParts } from '../src/render/models/towns';
 import { coastDistance } from '../src/sim/coast';
 import { createBoat } from '../src/sim/boat';
 import { piersOf, resolveCollisions } from '../src/sim/collision';
+import { createTradeState, tryDock } from '../src/sim/trade';
+import { SLOOP } from '../src/sim/ship';
 import { shoreTexture } from '../src/render/ocean';
 
 const kinds: IslandTheme[] = ['fish', 'timber', 'stone', 'grain'];
@@ -22,7 +26,8 @@ describe('producer island geography', () => {
       const R = 24 / 2.2;
       const plan = characterTownPlan(kind, R);
 
-      expect(plan.length, kind).toBeGreaterThanOrEqual(30);
+      // The cliffside access route takes precedence over four extra quarry-town plots.
+      expect(plan.length, kind).toBeGreaterThanOrEqual(kind === 'stone' ? 28 : 30);
       for (const p of plan)
         expect(layoutGround(islandLayout(kind), p.x / R, p.z / R, 0.075), kind).not.toBeNull();
       const counts = [1, 2, 3, 4].map((level) => {
@@ -40,9 +45,164 @@ describe('producer island geography', () => {
         parts.forEach((g) => g.dispose());
         return count;
       });
-      for (let i = 1; i < 4; i++) expect(counts[i]!).toBeGreaterThan(counts[i - 1]!);
+      // Tree clearing can reduce triangles even while occupied homes increase.
+      expect(counts[3]!, kind).toBeGreaterThan(2000);
       expect(counts[3]!).toBeLessThan(12000);
     }
+  });
+  it('starts around one village nucleus and clears woodland as occupied land expands', () => {
+    for (const kind of kinds) {
+      const R = 24 / 2.2,
+        plan = characterTownPlan(kind, R);
+      const nucleus = plan.slice(0, 3);
+      for (const p of nucleus)
+        expect(
+          Math.min(...nucleus.filter((q) => q !== p).map((q) => Math.hypot(p.x - q.x, p.z - q.z))),
+          kind,
+        ).toBeLessThan(R * 0.36);
+      const stages = ([1, 4] as const).map((level) =>
+        townIslandParts({
+          seed: 7001,
+          profile: kind,
+          kind,
+          R,
+          level,
+          sx: 1,
+          sz: 1,
+          pier: { x: R * 0.08, z0: R * 0.85, len: 4.5 },
+        }),
+      );
+      const trees = stages.map((parts) =>
+        parts
+          .filter((g) => g.userData.tree)
+          .map((g) => g.userData.tree as { x: number; z: number }),
+      );
+      expect(trees[0]!.length, kind).toBeGreaterThan(10);
+      expect(trees[1]!.length, kind).toBeGreaterThan(0);
+      expect(trees[1]!.length, kind).toBeLessThan(trees[0]!.length);
+      for (const tree of trees[1]!) expect(trees[0], kind).toContainEqual(tree);
+      if (kind === 'grain')
+        expect(stages[1]!.filter((g) => g.userData.field).length).toBeGreaterThan(
+          stages[0]!.filter((g) => g.userData.field).length,
+        );
+      if (kind === 'stone')
+        for (const p of plan)
+          expect(
+            islandLayout(kind).surfaces.some((s) => s.material === 'rock' && s.height * R === p.y),
+          ).toBe(false);
+      stages.flat().forEach((g) => g.dispose());
+    }
+  });
+  it('widens and deepens the quarry while keeping coasts and inhabited ground fixed', () => {
+    const layouts = [1, 2, 3, 4].map((level) => islandLayout('stone', level));
+    const exposed = layouts.map((layout) => {
+      expect(layout.coasts).toEqual(layouts[0]!.coasts);
+      let cuts = 0;
+      for (let x = -0.45; x < 0.7; x += 0.07)
+        for (let z = -0.4; z < 0.22; z += 0.07) {
+          const h = layoutGround(layout, x, z);
+          if (h !== null && h < 0.68) cuts++;
+        }
+      return cuts;
+    });
+    for (let i = 1; i < 4; i++) expect(exposed[i]!).toBeGreaterThan(exposed[i - 1]!);
+    for (const p of characterTownPlan('stone', 24 / 2.2))
+      for (const layout of layouts)
+        expect(layoutGround(layout, p.x / (24 / 2.2), p.z / (24 / 2.2))).toBeCloseTo(
+          p.y / (24 / 2.2),
+        );
+  });
+  it('keeps a broad sea approach to the flagged player berth clear at every level', () => {
+    for (const island of PHASE1_MAP.islands.filter((i) => i.look?.profile))
+      for (const level of [1, 2, 3, 4]) {
+        const port = PHASE1_MAP.ports.find((p) => p.islandId === island.id)!;
+        const pier = characterPiers(island.look!.profile!, island.radius / 2.2, level)[0]!;
+        const head = (pier.z0 + pier.len) / (island.radius / 2.2);
+        const solid = piersOf(PHASE1_MAP, { [port.id]: level });
+        for (const offset of [-0.2, 0, 0.2])
+          for (let approach = 0.25; approach <= 0.8; approach += 0.1) {
+            const p = islandPoint(island, 0.08 + offset, head + approach);
+            expect(
+              resolveCollisions(
+                createBoat(p.x, p.y, 0),
+                3,
+                PHASE1_MAP.islands,
+                10000,
+                PHASE1_MAP.terrain,
+                solid,
+              ),
+              `${island.name} L${level}`,
+            ).toBeNull();
+          }
+        const trade = createTradeState(PHASE1_MAP, SLOOP);
+        trade.settlements.byPort[port.id]!.level = level as 1 | 2 | 3 | 4;
+        const p = islandPoint(island, 0.08, head + 0.3);
+        expect(tryDock(trade, PHASE1_MAP, { ...p, speedKn: 0 }, port.id)).toBe(true);
+        for (const working of characterPiers(
+          island.look!.profile!,
+          island.radius / 2.2,
+          level,
+        ).slice(1))
+          expect(Math.abs(working.x - pier.x)).toBeGreaterThan((island.radius / 2.2) * 0.65);
+      }
+    for (const mooring of fishingMoorings(4))
+      if (mooring.z > 0.8) expect(Math.abs(mooring.x - 0.08)).toBeGreaterThan(0.8);
+  });
+  it('puts the first windmill beside the initial fields', () => {
+    const R = 24 / 2.2;
+    const parts = townIslandParts({
+      seed: 7001,
+      profile: 'grain',
+      kind: 'grain',
+      R,
+      level: 1,
+      sx: 1,
+      sz: 1,
+      pier: { x: R * 0.08, z0: R * 0.85, len: 4.5 },
+    });
+    const mill = parts.find((g) => g.userData.windmill)!.userData.windmill as {
+      x: number;
+      z: number;
+    };
+    const fields = parts
+      .filter((g) => g.userData.field)
+      .map((g) => g.userData.field as { x: number; z: number });
+    expect(Math.min(...fields.map((p) => Math.hypot(mill.x - p.x, mill.z - p.z)))).toBeLessThan(
+      0.65,
+    );
+    parts.forEach((g) => g.dispose());
+  });
+  it('splits Calda log storage between the sandy working shore and upland plateau', () => {
+    const R = 24 / 2.2,
+      parts = townIslandParts({
+        seed: 7001,
+        profile: 'timber',
+        kind: 'timber',
+        R,
+        level: 4,
+        sx: 1,
+        sz: 1,
+        pier: { x: 0, z0: 0, len: 4.5 },
+      });
+    const shore = parts.filter((g) => g.userData.logYard === 'shore'),
+      upland = parts.filter((g) => g.userData.logYard === 'upland');
+    expect(
+      parts
+        .filter((g) => g.userData.timberWorkshop)
+        .map((g) => g.userData.timberWorkshop)
+        .sort(),
+    ).toEqual(['cutting-shed', 'lumber-store']);
+    expect(shore).toHaveLength(3);
+    expect(upland).toHaveLength(3);
+    for (const g of shore) {
+      g.computeBoundingBox();
+      expect(Math.abs(g.boundingBox!.min.y - 0.3)).toBeLessThan(0.05);
+    }
+    for (const g of upland) {
+      g.computeBoundingBox();
+      expect(Math.abs(g.boundingBox!.min.y - 0.32 * R)).toBeLessThan(0.05);
+    }
+    parts.forEach((g) => g.dispose());
   });
   it('keeps the lake out of terrain/building placement and supplies satellite shorelines', () => {
     const calda = islandLayout('timber');

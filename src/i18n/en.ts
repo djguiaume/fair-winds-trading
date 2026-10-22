@@ -336,7 +336,7 @@ export const en = {
   'lesson.wind.continue': 'Continue',
   'lesson.dock.title': 'Dock at {origin}',
   'lesson.dock.copy':
-    'Follow the arrow. Lower the sails early: under 3 kn near the pier, the crew docks you.',
+    'Follow the arrow to the pier with the blue-and-white flag. Lower sails early: below 1.5 kn near the pier, the crew docks you.',
   'lesson.buy.title': 'Pick up a small cargo',
   'lesson.buy.copy': '{origin} makes {good}, so it is cheap here. Buy one lot.',
   'lesson.buy.continue': 'Use my existing cargo',

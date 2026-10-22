@@ -22,6 +22,7 @@ import { Wake } from './wake';
 import { WindStreaks } from './windStreaks';
 import { Rain } from './rain';
 import { Atmosphere } from './atmosphere';
+import { LighthouseBeams } from './lighthouseBeams';
 import { Lanterns } from './lanterns';
 import { daylightAt } from '../sim/daylight';
 import { StormClouds } from './stormClouds';
@@ -77,6 +78,7 @@ export class GameView {
   private readonly boatShadow = createBlobShadow(6.5, 14);
   private readonly wake = new Wake();
   private readonly buoy = new BuoyMarker();
+  private readonly lighthouseBeams: LighthouseBeams;
   private readonly edgeBuoys: EdgeBuoys;
   private ocean!: Ocean;
   private streaks!: WindStreaks;
@@ -114,6 +116,8 @@ export class GameView {
     this.scene.add(this.sun, this.sun.target);
 
     this.islands = buildIslands(world.map, { shadows: true });
+    this.lighthouseBeams = new LighthouseBeams(world.map.islands);
+    this.scene.add(this.lighthouseBeams.root);
     this.level = level;
     this.boat = this.buildBoat();
     this.edgeBuoys = new EdgeBuoys(world.map.boundsRadius);
@@ -374,6 +378,7 @@ export class GameView {
       lantern.getWorldPosition(this.boatLantern);
     } else this.boatLantern.set(pos.x, 6, pos.z);
     this.lanterns.update(glow, this.boatLantern, time);
+    this.lighthouseBeams.update(time, glow);
     // Lit windows and street lamps in the towns.
     const windows = this.islands.userData.windows as THREE.MeshBasicMaterial | undefined;
     windows?.color.copy(WINDOWS_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
@@ -402,6 +407,7 @@ export class GameView {
   }
 
   dispose() {
+    this.lighthouseBeams.dispose();
     this.ocean.dispose();
     this.streaks.dispose();
     this.rain.dispose();

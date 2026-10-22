@@ -9,6 +9,9 @@
  */
 import * as THREE from 'three';
 import { type BoatModel, type ShipUpgrades, buildIslands, createBoatModel } from './render/models';
+import { LighthouseBeams } from './render/lighthouseBeams';
+import { Atmosphere } from './render/atmosphere';
+import { daylightAt } from './sim/daylight';
 import { Ocean } from './render/ocean';
 import { PALETTE } from './render/palette';
 import { QUALITY, renderPixelRatio, type QualityLevel } from './render/quality';
@@ -38,7 +41,8 @@ renderer.shadowMap.type = THREE.PCFShadowMap;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(PALETTE.deepWater);
-scene.add(new THREE.HemisphereLight(PALETTE.sky, '#1a4d55', 1.5));
+const skyLight = new THREE.HemisphereLight(PALETTE.sky, '#1a4d55', 1.5);
+scene.add(skyLight);
 const sun = new THREE.DirectionalLight(PALETTE.sun, 1.7);
 sun.position.set(-30, 50, 20);
 sun.castShadow = true;
@@ -311,6 +315,28 @@ const ocean = new Ocean(
 );
 ocean.setFog(400, 700);
 scene.add(ocean.mesh);
+const lighthouseBeams = new LighthouseBeams(islandsForWater);
+scene.add(lighthouseBeams.root);
+// Reuse the game's moonlight and window rendering for repeatable night reviews.
+if (params.has('night')) {
+  scene.fog = new THREE.Fog(PALETTE.deepWater, 400, 700);
+  const target = new THREE.Vector3(
+    params.has('focus') ? (Number(params.get('focus')) - 2.5) * 64 : 0,
+    0,
+    8,
+  );
+  new Atmosphere(scene, sun, skyLight).update(
+    1,
+    daylightAt(570),
+    { kind: 'breeze', rain: 0, showers: 0, storm: 0, storms: [] },
+    ocean,
+    target,
+  );
+  scene.traverse((o) => {
+    const windows = o.userData.windows as THREE.MeshBasicMaterial | undefined;
+    windows?.color.set('#ffffff');
+  });
+}
 
 function resize() {
   const w = innerWidth;
@@ -354,6 +380,7 @@ renderer.setAnimationLoop(() => {
   for (const b of boats) {
     b.update({ sail, boomAngle: boom, luff: 0, heel: -6 * DEG, windRelative: 0.6, time: t });
   }
+  lighthouseBeams.update(params.has('still') ? 3 : t, params.has('night') ? 1 : 0);
   ocean.update(t, new THREE.Vector3());
   renderer.info.reset();
   renderer.render(scene, camera);

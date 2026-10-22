@@ -23,7 +23,7 @@ const oval = (x: number, z: number, rx: number, rz: number): Outline =>
   });
 
 /** Authored silhouettes in radius units, shared by models, collision, chart and water. */
-function createIslandLayout(kind: IslandTheme): IslandLayout {
+function createIslandLayout(kind: IslandTheme, level: number): IslandLayout {
   if (kind === 'fish') {
     const main: Outline = [
       [-1.55, 0.35],
@@ -80,8 +80,8 @@ function createIslandLayout(kind: IslandTheme): IslandLayout {
   }
   if (kind === 'stone') {
     const main: Outline = [
-      [-1.4, 0.25],
-      [-1.15, -0.85],
+      [-1.6, 0.25],
+      [-1.4, -0.85],
       [-0.25, -1.05],
       [0.8, -0.7],
       [1.35, -0.15],
@@ -90,12 +90,19 @@ function createIslandLayout(kind: IslandTheme): IslandLayout {
       [-0.2, 0.82],
       [-0.95, 0.65],
     ];
-    const high: Outline = [
-      [-1.25, 0.05],
-      [-1.05, -0.75],
+    // The eastern mountain face is bitten away in a broad open amphitheatre.
+    // Each successively higher bench retreats into the mountain, rather than
+    // sitting on the shore as an unrelated pile of slabs.
+    const bench = (cut: number): Outline => [
+      [-1.45, 0.05],
+      [-1.25, -0.75],
       [-0.25, -0.92],
       [0.55, -0.65],
-      [0.7, -0.2],
+      [0.7, -0.42],
+      [0.32 - cut, -0.44],
+      [-0.02 - cut, -0.25],
+      [-0.05 - cut, -0.02],
+      [0.18 - cut, 0.18],
       [0.25, 0.25],
       [-0.65, 0.3],
     ];
@@ -104,29 +111,38 @@ function createIslandLayout(kind: IslandTheme): IslandLayout {
       coasts: [main, stack],
       surfaces: [
         { outline: main, height: 0.08, material: 'grass' },
-        { outline: high, height: 0.65, material: 'grass' },
         {
           outline: [
-            [0.55, -0.3],
-            [0.95, -0.32],
+            [-0.4, -0.5],
+            [0.75, -0.55],
             [1.2, -0.08],
-            [1.15, 0.43],
-            [0.82, 0.57],
-            [0.55, 0.4],
+            [1.12, 0.48],
+            [0.4, 0.48],
+            [-0.4, 0.05],
           ],
           height: 0.16,
           material: 'rock',
         },
+        { outline: bench(-0.45), height: 0.29, material: 'rock' },
+        { outline: bench(-0.18), height: 0.42, material: 'rock' },
+        { outline: bench(0.08), height: 0.55, material: 'rock' },
         {
-          outline: [
-            [0.58, -0.28],
-            [0.94, -0.29],
-            [1.13, -0.09],
-            [1.05, 0.12],
-            [0.7, 0.23],
-          ],
-          height: 0.27,
-          material: 'rock',
+          outline:
+            level === 1
+              ? [
+                  [-1.45, 0.05],
+                  [-1.25, -0.75],
+                  [-0.25, -0.92],
+                  [0.55, -0.65],
+                  [0.74, -0.34],
+                  [0.62, -0.1],
+                  [0.45, 0.12],
+                  [0.25, 0.25],
+                  [-0.65, 0.3],
+                ]
+              : bench([-0.5, -0.18, 0.08, 0.34][level - 1]!),
+          height: 0.68,
+          material: 'grass',
         },
         { outline: stack, height: 0.75, material: 'rock' },
       ],
@@ -140,29 +156,17 @@ function createIslandLayout(kind: IslandTheme): IslandLayout {
     [0.55, -1.35],
     [1.45, -0.85],
     [1.85, 0.1],
-    [1.75, 0.8],
-    [1.25, 1.1],
-    [1.0, 0.95],
-    [0.85, 0.82],
-    [0.84, 0.65],
-    [0.9, 0.4],
-    [0.86, 0.26],
-    [0.72, 0.18],
-    [0.58, 0.22],
-    [0.5, 0.38],
-    [0.46, 0.6],
-    [0.32, 0.72],
+    [1.65, 0.72],
+    [1.15, 0.88],
+    [0.65, 0.76],
     [0.15, 0.83],
     [-0.25, 0.78],
-    [-0.38, 0.6],
-    [-0.4, 0.34],
-    [-0.52, 0.22],
-    [-0.7, 0.2],
-    [-0.86, 0.26],
-    [-0.94, 0.42],
-    [-0.96, 0.65],
-    [-0.9, 0.85],
-    [-0.85, 1.0],
+    [-0.42, 0.6],
+    [-0.44, 0.39],
+    [-0.6, 0.3],
+    [-0.8, 0.34],
+    [-1.02, 0.58],
+    [-1.12, 0.9],
     [-1.55, 0.95],
   ];
   return {
@@ -172,18 +176,25 @@ function createIslandLayout(kind: IslandTheme): IslandLayout {
   };
 }
 
-const layouts = new Map<IslandTheme, IslandLayout>();
-export function islandLayout(kind: IslandTheme): IslandLayout {
-  const prior = layouts.get(kind);
+const layouts = new Map<string, IslandLayout>();
+export function islandLayout(kind: IslandTheme, level = 4): IslandLayout {
+  const key = `${kind}/${kind === 'stone' ? level : 4}`;
+  const prior = layouts.get(key);
   if (prior) return prior;
-  const layout = createIslandLayout(kind);
+  const layout = createIslandLayout(kind, level);
   // Explicit sandy shores: building height checks use the very same inset as the model.
   for (const surface of layout.surfaces)
     if (surface.height < 0.15) {
       surface.outline = insetOutline(surface.outline, 0.085);
+      // Calda's working beach widens inland beneath the compact shore log yard.
+      if (kind === 'timber')
+        surface.outline = surface.outline.map(([x, z]) => [
+          x,
+          z - (z > 0.5 && x > 0 ? 0.25 * Math.min(1, x / 0.8) : 0),
+        ]);
       if (surface.holes) surface.holes = surface.holes.map((h) => insetOutline(h, -0.035));
     }
-  layouts.set(kind, layout);
+  layouts.set(key, layout);
   return layout;
 }
 
@@ -247,13 +258,42 @@ export function islandLake(island: IslandDef): Outline | null {
 
 export function characterPiers(kind: IslandTheme, R: number, level: number) {
   const piers = [{ x: R * 0.08, z0: R * 0.63, len: Math.min(R * 0.75, 4.5) + R * 0.22 }];
-  if (level >= 3) piers.push({ x: -R * 0.65, z0: R * 0.88, len: R * 0.4 });
-  if (level >= 4) piers.push({ x: R * 0.52, z0: R * 0.82, len: R * 0.38 });
-  // Westholm's inlet mouths stay clear; its secondary docks follow the central peninsula.
-  if (kind === 'grain')
-    piers.slice(1).forEach((p, i) => {
-      p.x = R * (i ? 0.27 : -0.15);
-      p.z0 = R * 0.81;
-    });
+  // Working docks stay shorter and well away from the central arrival lane.
+  const sides =
+    kind === 'grain'
+      ? [
+          [-1.45, 0.8, 0.3],
+          [1.2, 0.7, 0.28],
+        ]
+      : kind === 'stone'
+        ? [
+            [-1.05, 0.4, 0.4],
+            [0.95, 0.6, 0.28],
+          ]
+        : kind === 'fish'
+          ? [
+              [-0.9, 0.8, 0.28],
+              [0.82, 0.7, 0.32],
+            ]
+          : [
+              [-1.05, 0.8, 0.25],
+              [1.1, 0.7, 0.28],
+            ];
+  for (let i = 0; i < Math.max(0, level - 2); i++) {
+    const [x, z, len] = sides[i]!;
+    piers.push({ x: x! * R, z0: z! * R, len: len! * R });
+  }
   return piers;
+}
+
+/** Decorative boats moor beside the fishing beaches, never in the merchant approach. */
+export function fishingMoorings(level: number) {
+  return [
+    { x: -1.75, z: 0.1, yaw: 0.7 },
+    { x: 1.55, z: -0.2, yaw: -0.8 },
+    { x: -0.8, z: -1.25, yaw: 1.5 },
+    { x: -1.35, z: 1.12, yaw: 0.2 },
+    { x: 0.65, z: -1.18, yaw: 1.2 },
+    { x: 2.4, z: 0.85, yaw: -0.4 },
+  ].slice(0, level + 2);
 }

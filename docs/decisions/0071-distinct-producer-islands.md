@@ -19,7 +19,7 @@ each producer an authored, level-independent landscape in `sim/islandLayout.ts`:
   and a timber town in the low clearing.
 - Stonehaven: a high stone-town plateau, sheer cliff, stepped pale quarry, stairs to the lower
   harbour and a pointed offshore sea stack.
-- Westholm: a low, connected agricultural island with two tidal inlets, fields and windmills.
+- Westholm: a low, connected agricultural island with an asymmetric tidal inlet, fields and windmills.
   No bridges.
 
 The coastline is shared by rendering, collision, the chart, shoreline effects and wind shelter.
@@ -27,9 +27,8 @@ Legacy round islands and polygon barriers remain supported. A landlocked lake ha
 terrain hole, still-water surface and bank collision; it is not connected to the sailing sea.
 
 House sites follow curved lanes with irregular setbacks and seeded back courts, not a grid.
-Reserve the maximum town plan from the start, avoid water/cliff edges and industry, and reveal
-3 / 10 / 21 / up to 32 residences through levels 1–4, plus civic and working buildings. The plan,
-existing houses and landform do not move on level-up. The four main ports retain their existing
+Keep a stable maximum town plan, leave future plots wooded until occupied, avoid water/cliff edges and industry, and reveal
+3 / 10 / up to 21 / up to 32 residences through levels 1–4, plus civic and working buildings. The plan and existing houses do not move on level-up; Stonehaven's extraction face retreats with growth (0072), while the coastline stays fixed. The four main ports retain their existing
 starting village level and all existing trade/economy progression.
 
 Maintain the primary pier head to preserve harbour cues and saved approaches. Grow the docks

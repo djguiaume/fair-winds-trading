@@ -1,7 +1,7 @@
 # Producer island identities
 
 Actual renders from the game's model sheet, not generated concept art. Level 1 is on the left;
-level 4 is on the right. The camera, coastline and terrain stay the same within each pair.
+level 4 is on the right. The camera and coastline stay fixed within each pair; Stonehaven's quarry expands as the town grows.
 
 ![Four producer islands, hamlet to port town](comparison.jpg)
 
@@ -11,6 +11,12 @@ level 4 is on the right. The camera, coastline and terrain stay the same within 
 | Port Calda | [Full render](timber-level1.jpg) | [Full render](timber-level4.jpg) |
 | Stonehaven | [Full render](stone-level1.jpg) | [Full render](stone-level4.jpg) |
 | Westholm | [Full render](grain-level1.jpg) | [Full render](grain-level4.jpg) |
+
+[Stonehaven: all four quarry stages](quarry-growth.jpg) shows the extraction face retreating into the mountain while the village and coastline remain fixed.
+
+The blue-and-white flag marks the player berth. Shorter working piers and fishing boats leave its arrival lane clear.
+
+[Night review of all four port towns](night-comparison.jpg) uses the game moonlight, water colours, lit windows and lanterns. Add `&night` to the same model-sheet URL.
 
 ## Reproduce
 
@@ -22,4 +28,6 @@ to inspect all four levels together. `before=1` retains the earlier fixed-house 
 The comparison is a labelled contact sheet of the eight captures, with surrounding empty sea
 cropped consistently. The geometry and buildings in the images have not been painted or edited.
 
-See [decision 0071](../../decisions/0071-distinct-producer-islands.md).
+Revised after visual review: wooded starting villages, progressive clearing, larger working waterfronts and a quarry cut into the mountain.
+
+See [decision 0072](../../decisions/0072-wooded-villages-and-working-landscapes.md) and [decision 0071](../../decisions/0071-distinct-producer-islands.md).
