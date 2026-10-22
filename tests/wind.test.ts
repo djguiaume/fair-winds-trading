@@ -10,6 +10,7 @@ import {
   localWind,
   shelterAt,
   weatherAt,
+  weatherSlot,
   windAt,
   windBlockers,
   windEffectAt,
@@ -24,17 +25,74 @@ describe('slow weather (0026)', () => {
     expect(weatherAt(DEFAULT_WEATHER, seed, 1000)).toEqual(weatherAt(DEFAULT_WEATHER, seed, 1000));
   });
 
-  it('settles on new directions and strengths within the configured range', () => {
+  it('settles on new strengths within range and steps the direction a bounded amount', () => {
     const offsets = new Set<number>();
+    let prev = weatherSlot(DEFAULT_WEATHER, seed, 0);
     for (let slot = 1; slot < 40; slot++) {
-      const w = weatherAt(DEFAULT_WEATHER, seed, slot * DEFAULT_WEATHER.periodSec + 100);
-      expect(Math.abs(w.offsetDeg)).toBeLessThanOrEqual(DEFAULT_WEATHER.rangeDeg);
+      const w = weatherSlot(DEFAULT_WEATHER, seed, slot);
+      expect(Math.abs(w.offsetDeg)).toBeLessThanOrEqual(180);
       expect(w.strength).toBeGreaterThanOrEqual(DEFAULT_WEATHER.strength[0]);
       expect(w.strength).toBeLessThanOrEqual(DEFAULT_WEATHER.strength[1]);
+      const turn = Math.abs(wrapAngle((w.offsetDeg - prev.offsetDeg) * DEG)) / DEG;
+      // The step, plus the small pull back toward the prevailing wind.
+      expect(turn).toBeLessThanOrEqual(
+        DEFAULT_WEATHER.stepDeg + DEFAULT_WEATHER.revert * 180 + 1e-6,
+      );
       offsets.add(Math.round(w.offsetDeg / 10));
+      prev = w;
     }
     // Real variety, not one fixed shift.
     expect(offsets.size).toBeGreaterThan(5);
+  });
+
+  it('comes from every quarter of the compass over a long voyage, not only the top (0064)', () => {
+    for (const s of [1, 7, 42, 1234]) {
+      const quarters = new Set<number>();
+      let fromPrevailing = 0;
+      const slots = 200;
+      for (let slot = 0; slot < slots; slot++) {
+        const w = windAt(PHASE1_MAP.wind, slot * DEFAULT_WEATHER.periodSec + 90, s);
+        quarters.add(Math.floor(((w.from / DEG + 45) % 360) / 90));
+        const off = Math.abs(wrapAngle(w.from - PHASE1_MAP.wind.fromDeg * DEG)) / DEG;
+        if (off < 60) fromPrevailing++;
+      }
+      expect(quarters.size).toBe(4);
+      // The prevailing wind is still the most common one.
+      expect(fromPrevailing / slots).toBeGreaterThan(0.3);
+      expect(fromPrevailing / slots).toBeLessThan(0.85);
+    }
+  });
+
+  it('blows from different directions in different parts of the sea at the same moment (0064)', () => {
+    const t = 500;
+    const spots = [
+      { x: -300, y: 0 },
+      { x: 300, y: 0 },
+      { x: 0, y: -300 },
+      { x: 0, y: 300 },
+      { x: 0, y: 0 },
+    ];
+    const dirs = spots.map((p) => windAt(PHASE1_MAP.wind, t, seed, p).from);
+    let spread = 0;
+    for (const a of dirs)
+      for (const b of dirs) spread = Math.max(spread, Math.abs(wrapAngle(a - b)));
+    expect(spread / DEG).toBeGreaterThan(20);
+    expect(spread / DEG).toBeLessThan(
+      2 * (DEFAULT_WEATHER.regions!.bendDeg + PHASE1_MAP.wind.shiftDeg) + 1,
+    );
+  });
+
+  it('changes smoothly under a fast boat crossing wind regions', () => {
+    // 16 knots straight across the map, sampled every frame at 30 fps.
+    const dt = 1 / 30;
+    let prev = windAt(PHASE1_MAP.wind, 0, seed, { x: -400, y: -100 });
+    for (let t = dt; t < 60; t += dt) {
+      const pos = { x: -400 + t * 16 * 1.6, y: -100 + t * 3 };
+      const w = windAt(PHASE1_MAP.wind, t, seed, pos);
+      expect(Math.abs(wrapAngle(w.from - prev.from)) / DEG).toBeLessThan(0.5);
+      expect(Math.abs(w.speedKn - prev.speedKn)).toBeLessThan(0.3);
+      prev = w;
+    }
   });
 
   it('eases into a new wind instead of jumping', () => {

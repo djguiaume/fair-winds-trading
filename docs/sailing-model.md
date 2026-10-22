@@ -11,7 +11,7 @@ How boats move in Fair Winds Trading, and which numbers to change to tune the fe
 
 ## Wind the boat feels (`src/sim/wind.ts`)
 
-- **Sea wind** (`windAt`): the map's prevailing wind, plus slow weather periods on the trading map (a new direction within ±50° and strength ×0.8–1.15 every 3 minutes, easing over 60 s, [0026](decisions/0026-slow-weather-shifts.md)), plus small gusts and swing.
+- **Sea wind** (`windAt`): the map's prevailing wind, plus slow weather periods on the trading map (every 3 minutes the direction veers or backs up to 75° from the last period, drifting round the whole compass with a gentle pull to the prevailing wind, and the strength becomes ×0.8–1.15, easing over 60 s, [0026](decisions/0026-slow-weather-shifts.md), [0064](decisions/0064-wind-from-every-quarter.md)), plus regions of the sea where it bends up to ±40° and ±15 % stronger or weaker ([0064](decisions/0064-wind-from-every-quarter.md)), plus small gusts and swing. It is sampled at the boat's position.
 - **Islands** (`windEffectAt`, [0027](decisions/0027-islands-shape-the-wind.md)): up to 55 % less wind right behind an island, fading over 70 units downwind; up to 10 % more beside one island's flank and 20 % more in a channel between two. Sandbanks don't block wind.
 - `world.seaWind` is the open-sea wind; `world.wind` (what the boat, compass and HUD use) includes the island effects.
 - **Heel** (`src/render/heel.ts`, [0044](decisions/0044-visual-heeling.md)): the boat model leans with `world.wind`, the point of sail, sail area, gusts and the class's `HEEL_FACTOR`. Render-only: it never changes speed or steering.
