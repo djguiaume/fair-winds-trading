@@ -2,21 +2,44 @@ import type { BoatState } from './boat';
 import type { IslandDef, MapDef, TerrainDef } from './map';
 import { coastDistance } from './coast';
 import { bearingTo, bearingVector } from './math';
-import { islandCoasts, islandPoint, islandLake, characterPiers } from './islandLayout';
+import {
+  islandCoasts,
+  islandPoint,
+  islandLake,
+  characterPiers,
+  fishingMoorings,
+} from './islandLayout';
 
-/** What the boat ran into; hulls fare worst on reefs, then piers and rocky shores (decision 0038). */
-export type Surface = 'reef' | 'pier' | 'shore' | 'sandbank' | 'edge';
-const HARDNESS: Record<Surface, number> = { reef: 4, pier: 3, shore: 2, sandbank: 1, edge: 0 };
+/**
+ * What the boat ran into; hulls fare worst on reefs, then piers, moored boats and rocky shores
+ * (decisions 0038 and 0082).
+ */
+export type Surface = 'reef' | 'pier' | 'boat' | 'shore' | 'sandbank' | 'edge';
+const HARDNESS: Record<Surface, number> = {
+  reef: 4,
+  pier: 3,
+  boat: 3,
+  shore: 2,
+  sandbank: 1,
+  edge: 0,
+};
 
 /** Island scale the pier is modelled at; the renderer draws the same pier (highlandIslands). */
 const PIER_SCALE = 2.2;
 /** Half the pier's width (units), posts included. */
 export const PIER_HALF_WIDTH = 0.45 * PIER_SCALE;
+/** A moored fishing boat's hull: half its length and beam, in map units (towns.ts fishingBoat). */
+export const MOORED_BOAT_HALF_LENGTH = 1.0 * 1.55 * PIER_SCALE;
+export const MOORED_BOAT_HALF_WIDTH = 0.45 * 1.55 * PIER_SCALE;
 
-/** A harbour pier as a solid segment from the island out to its head. */
+/**
+ * A harbour pier as a solid segment from the island out to its head. A boat moored in the harbour
+ * is the same kind of capsule along its keel, flagged so a ram reports the boat (decision 0082).
+ */
 export interface Pier {
   islandId: string;
   halfWidth?: number;
+  boat?: boolean;
   x0: number;
   y0: number;
   /** Pier head: where the boat docks. */
@@ -55,8 +78,37 @@ export function piersOf(
           island.look?.profile ? (island.look.harbourBearing ?? 0) : bearingTo(island, wp),
         ),
       );
+    const port = map.ports?.find((p) => p.islandId === island.id);
+    if (island.look?.dock && wp && !island.look.profile && port) {
+      // A hidden yard grows the plain town dock (townIslandParts): a T-head from level 3 and a
+      // second pier with its quay at level 4, in the same harbour frame as its main pier (0082).
+      const level = levels[port.id] ?? port.level ?? 1;
+      const main = piers[piers.length - 1]!;
+      main.halfWidth = ([0.3, 0.45, 0.55, 0.55][level - 1] ?? 0.55) * PIER_SCALE;
+      const angle = Math.PI - bearingTo(island, wp);
+      const at = (x: number, z: number) => ({
+        x: island.x + island.radius * (Math.cos(angle) * x + Math.sin(angle) * z),
+        y: island.y + island.radius * (Math.sin(angle) * x - Math.cos(angle) * z),
+      });
+      const span = (x0: number, z0: number, x1: number, z1: number, halfWidth?: number) => {
+        const a = at(x0, z0),
+          b = at(x1, z1);
+        piers.push({ islandId: island.id, x0: a.x, y0: a.y, x1: b.x, y1: b.y, halfWidth });
+      };
+      const len = Math.min(0.75, (4.5 * PIER_SCALE) / island.radius);
+      const unit = PIER_SCALE / island.radius;
+      if (level >= 3) {
+        const z = 0.85 + len - 0.4 * unit;
+        span(0.08 - 1.4 * unit, z, 0.08 + 1.4 * unit, z, 0.5 * PIER_SCALE);
+      }
+      if (level >= 4) {
+        const x = 0.08 - 0.42,
+          z0 = 0.85 - 0.2 * unit;
+        span(x, z0, x, z0 + len * 0.6);
+        span(x - 1.3 * unit, z0 - 0.1 * unit, x + 1.3 * unit, z0 - 0.1 * unit, 0.35 * PIER_SCALE);
+      }
+    }
     if (island.look?.profile) {
-      const port = map.ports?.find((p) => p.islandId === island.id);
       const level = port ? (levels[port.id] ?? port.level ?? 2) : 1;
       const main = piers[piers.length - 1];
       if (main?.islandId === island.id)
@@ -88,6 +140,23 @@ export function piersOf(
           0.35 * 2.2,
         );
       }
+      // Fishing boats at their moorings round the fishing island (towns.ts draws them at
+      // 1.55 times a 2-unit hull): a keel-long capsule each, so the ship bumps them (0082).
+      if (island.look.profile === 'fish')
+        for (const m of fishingMoorings(level)) {
+          const half = (MOORED_BOAT_HALF_LENGTH - MOORED_BOAT_HALF_WIDTH) / island.radius;
+          const a = islandPoint(island, m.x - Math.sin(m.yaw) * half, m.z - Math.cos(m.yaw) * half);
+          const b = islandPoint(island, m.x + Math.sin(m.yaw) * half, m.z + Math.cos(m.yaw) * half);
+          piers.push({
+            islandId: island.id,
+            x0: a.x,
+            y0: a.y,
+            x1: b.x,
+            y1: b.y,
+            halfWidth: MOORED_BOAT_HALF_WIDTH,
+            boat: true,
+          });
+        }
     }
   }
   return piers;
@@ -171,7 +240,7 @@ export function resolveCollisions(
       boat.x += nx * overlap;
       boat.y += ny * overlap;
       bump(boat, nx, ny);
-      touch('pier');
+      touch(pier.boat ? 'boat' : 'pier');
     }
   }
   const fromCenter = Math.hypot(boat.x, boat.y);

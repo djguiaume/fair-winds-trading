@@ -836,7 +836,7 @@ function dock(out: Parts, level: TownLevel, pier: TownIslandSpec['pier'], stone:
   const { x, z0, len } = pier;
   const w = [0.6, 0.9, 1.1, 1.1][level - 1]!;
   const deck = stone ? C.stone : level === 1 ? '#a8805a' : C.wood;
-  out.push(box(w, 0.2, len, x, 0.45, z0 + len / 2, deck));
+  out.push(deckOf(box(w, 0.2, len, x, 0.45, z0 + len / 2, deck)));
   const posts = level === 1 ? [0.5, 1.0] : [0.3, 0.6, 0.95];
   for (const k of [-1, 1])
     for (const t of posts) {
@@ -847,19 +847,25 @@ function dock(out: Parts, level: TownLevel, pier: TownIslandSpec['pier'], stone:
     for (const k of [-1, 1])
       out.push(cyl(0.09, 0.11, 0.25, x + k * (w / 2 - 0.15), 0.67, z0 + len * 0.9, '#3d3d3d'));
   if (level >= 3) {
-    out.push(box(2.8, 0.2, 1.0, x, 0.45, z0 + len - 0.4, deck));
+    out.push(deckOf(box(2.8, 0.2, 1.0, x, 0.45, z0 + len - 0.4, deck)));
     for (const k of [-1, 1])
       out.push(cyl(0.08, 0.08, 1.2, x + k * 1.3, 0, z0 + len - 0.4, C.post, 5));
     put(out, lampPost(), x + 1.2, 0.55, z0 + len - 0.4);
   }
 }
 
+/** Tags a deck the ship must not sail through; tests match it to a collision pier (0082). */
+function deckOf(g: THREE.BufferGeometry) {
+  g.userData.solid = 'pier';
+  return g;
+}
+
 function secondPier(out: Parts, x: number, z0: number, len: number, stone: boolean) {
-  out.push(box(0.9, 0.2, len, x, 0.45, z0 + len / 2, stone ? C.stone : C.wood));
+  out.push(deckOf(box(0.9, 0.2, len, x, 0.45, z0 + len / 2, stone ? C.stone : C.wood)));
   for (const k of [-1, 1])
     for (const t of [0.4, 0.95])
       out.push(cyl(0.08, 0.08, 1.2, x + k * 0.4, 0, z0 + len * t, C.post, 5));
-  out.push(box(2.6, 0.5, 0.7, x, 0.3, z0 - 0.1, C.stoneDark));
+  out.push(deckOf(box(2.6, 0.5, 0.7, x, 0.3, z0 - 0.1, C.stoneDark)));
 }
 
 /**
@@ -1492,6 +1498,7 @@ function characterTownParts(spec: TownIslandSpec): Parts {
       for (let n = 0; n < 4; n++)
         boat.push(cyl(0.07, 0.07, 0.18, -0.4 + n * 0.25, 0.5, 0.35, '#e2c160', 5));
       boat.push(box(0.5, 0.16, 0.6, 0, 0.43, 0.55, '#aaa88b'));
+      boat[0]!.userData.solid = 'boat'; // the hull, matched by a collision capsule (0082)
       put(out, boat, mooring.x * R, 0, mooring.z * R, mooring.yaw, 1.55);
     }
   } else if (kind === 'timber') {
