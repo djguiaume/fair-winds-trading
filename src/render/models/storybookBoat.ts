@@ -243,6 +243,8 @@ export class StorybookBoat implements BoatModel {
   private readonly jibPivot = new THREE.Group();
   private readonly jibs: THREE.Mesh;
   private readonly flag: THREE.Mesh;
+  /** Masthead lantern (decision 0068): high on the first mast, where it reads from above. */
+  readonly lantern = new THREE.Object3D();
   private readonly rigging: THREE.LineSegments;
   private readonly disposables: Array<THREE.BufferGeometry | THREE.Material> = [];
 
@@ -443,6 +445,8 @@ export class StorybookBoat implements BoatModel {
     this.flag.scale.setScalar(st.flag);
     this.flag.position.set(0, fore.top, fore.z);
     this.ship.add(this.flag);
+    this.lantern.position.set(0, fore.top - 0.6, fore.z);
+    this.ship.add(this.lantern);
 
     // Bowsprit, then the jibs from it to the mast; they turn together around the forestay.
     const bowY = deckY + sheer;

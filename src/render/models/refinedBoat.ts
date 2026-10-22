@@ -197,6 +197,8 @@ export class RefinedBoat implements BoatModel {
   private readonly gaffSails: GaffSail[] = [];
   private readonly headsails: Headsail[] = [];
   private readonly flag: THREE.Mesh;
+  /** Masthead lantern (decision 0068): high on the mast, where it reads from above. */
+  readonly lantern = new THREE.Object3D();
   private readonly rigging: THREE.LineSegments;
   private readonly riggingEnabled: boolean;
   private readonly runningOffset: number;
@@ -452,6 +454,8 @@ export class RefinedBoat implements BoatModel {
     this.flag.position.copy(fore ? V(0, foreBase + foreHeight, foreZ) : mastTop);
     this.flag.scale.setScalar(ST.flag);
     this.ship.add(this.flag);
+    this.lantern.position.copy(this.flag.position).y -= 0.6;
+    this.ship.add(this.lantern);
     this.ship.rotation.y = Math.PI;
     this.body.scale.setScalar(BOAT_SCALE);
     this.body.add(this.ship);

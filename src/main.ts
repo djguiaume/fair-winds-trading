@@ -430,6 +430,39 @@ showLog.addEventListener('change', () => {
   saveSettings(settings);
 });
 
+// Day and night can be turned off for players who dislike sailing at night (decision 0068).
+const dayNight = $<HTMLInputElement>('day-night');
+view.dayNight = settings.dayNight;
+dayNight.checked = settings.dayNight;
+dayNight.addEventListener('change', () => {
+  view.dayNight = dayNight.checked;
+  settings.dayNight = dayNight.checked;
+  saveSettings(settings);
+});
+
+// Weather and storms can be turned off like every hazard (decision 0067; pirates will follow in
+// Phase 5). Without weather there are no storms either, so that switch is greyed out.
+const weatherSwitch = $<HTMLInputElement>('weather');
+const storms = $<HTMLInputElement>('storms');
+const syncWeather = () => {
+  world.dynamicWeather = settings.weather;
+  world.storms = settings.storms;
+  weatherSwitch.checked = settings.weather;
+  storms.checked = settings.storms;
+  storms.disabled = !settings.weather;
+};
+syncWeather();
+weatherSwitch.addEventListener('change', () => {
+  settings.weather = weatherSwitch.checked;
+  syncWeather();
+  saveSettings(settings);
+});
+storms.addEventListener('change', () => {
+  settings.storms = storms.checked;
+  syncWeather();
+  saveSettings(settings);
+});
+
 // --- Settings panel ----------------------------------------------------------------------------
 const qualityButtons = [...$('quality').querySelectorAll<HTMLButtonElement>('[data-quality]')];
 const showFps = $<HTMLInputElement>('show-fps');

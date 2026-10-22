@@ -188,10 +188,15 @@ describe('Windward Ring trading map', () => {
       THREE.BufferGeometry,
       THREE.Material
     >;
-    expect(mesh.children).toHaveLength(0);
-    expect(triangleCount(mesh.geometry)).toBeLessThan(20000);
-    mesh.geometry.dispose();
-    mesh.material.dispose();
+    // One extra draw call at most: the window glass that lights up at night (decision 0068).
+    const windows = mesh.children as THREE.Mesh<THREE.BufferGeometry, THREE.Material>[];
+    expect(windows.length).toBeLessThanOrEqual(1);
+    const glass = windows.reduce((n, w) => n + triangleCount(w.geometry), 0);
+    expect(triangleCount(mesh.geometry) + glass).toBeLessThan(20000);
+    for (const m of [mesh, ...windows]) {
+      m.geometry.dispose();
+      m.material.dispose();
+    }
   });
   it('gives every scenery island a landmark and keeps islands inside the world edge', () => {
     expect(PHASE1_MAP.islands.length).toBeLessThanOrEqual(12);

@@ -2,6 +2,8 @@
 
 **Status:** Implementation for review, 2026-10-20 (Guillaume said yes to the proposal). Numbers are starting values to tune in play.
 
+**Update 2026-10-22:** the heel model moved to `src/sim/heel.ts` so the simulation can throw cargo overboard when she heels too hard ([0067](0067-weather-states-and-storms.md)); the drawn lean is unchanged.
+
 **Context:** The boat model already tilted a little, but the tilt followed the speed polar and jumped instantly with every change, so it barely read as the wind pushing on the sails. Guillaume likes the current wind feel and wanted the boat to heel like a real one: more on a reach, little running downwind, a lurch in gusts, and different for a wide, heavy hull than for a tall, slim rig. The game must stay smooth on an old tablet and a phone ([0006](0006-desktop-and-mobile.md)).
 
 **Decision:**

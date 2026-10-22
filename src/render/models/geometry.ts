@@ -24,6 +24,54 @@ export function paint(geometry: THREE.BufferGeometry, color: THREE.ColorRepresen
   return g;
 }
 
+/** Window glass: most windows are lit at night, a few stay dark (decision 0068). */
+const LIT_GLASS = '#ffd98a';
+const DARK_GLASS = '#2e3a46';
+
+/** Marks a part as glowing glass, drawn by the window mesh that lights up at night. */
+export function glowing(geometry: THREE.BufferGeometry) {
+  geometry.userData.window = true;
+  return geometry;
+}
+
+export const isGlowing = (geometry: THREE.BufferGeometry) => geometry.userData.window === true;
+
+/**
+ * Window panes on the walls of a w × d house whose windows sit at height y, centred on (cx, cz):
+ * `front` panes on the front (+Z) and back walls and `side` on each end. `seed` picks which stay
+ * dark at night.
+ */
+export function windowPanes(
+  w: number,
+  d: number,
+  y: number,
+  front: number,
+  side: number,
+  seed: number,
+  cx = 0,
+  cz = 0,
+): THREE.BufferGeometry[] {
+  const out: THREE.BufferGeometry[] = [];
+  let k = 0;
+  const pane = (rotY: number, x: number, z: number) => {
+    const lit = (seed * 7 + k++ * 3) % 10 < 7;
+    const g = new THREE.PlaneGeometry(0.2, 0.26).rotateY(rotY).translate(cx + x, y, cz + z);
+    out.push(glowing(paint(g, lit ? LIT_GLASS : DARK_GLASS)));
+  };
+  const along = (n: number, len: number) =>
+    Array.from({ length: n }, (_, i) => ((i + 1) / (n + 1) - 0.5) * len);
+  const off = 0.012;
+  for (const x of along(front, w)) {
+    pane(0, x, d / 2 + off);
+    pane(Math.PI, x, -d / 2 - off);
+  }
+  for (const z of along(side, d)) {
+    pane(Math.PI / 2, w / 2 + off, z);
+    pane(-Math.PI / 2, -w / 2 - off, z);
+  }
+  return out;
+}
+
 /** Jittered closed outline of radius ~R, stretched by sx/sz. */
 export function blobShape(rng: Rng, R: number, n: number, jit: number, sx: number, sz: number) {
   const s = new THREE.Shape();

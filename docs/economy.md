@@ -17,6 +17,10 @@ Ports live in the map data (`src/data/phase1-map.json` for trading) under `ports
 
 Each port is also a settlement with a level ([0059](decisions/0059-settlement-levels.md), `src/sim/settlement.ts`): `level` (start, default 2 = village) and `levelWants` (goods it starts wanting at a level) in the map data. Selling wanted goods and delivering orders grow it; a town keeps less stock of its wants and more of its product, posts bigger orders, and at the home port unlocks level 3 upgrades. A town also opens a workshop (`levelProduces`) making a specialized good, which ports listing it in `wantsMade` start buying ([0063](decisions/0063-specialized-town-goods.md)); specialties trade only where made or wanted (`trades()` in `market.ts`). The far yards make rare goods once they are villages (honey at Abbey Head, lamp oil at Watchman Key), bought across the map through `wantsMade`; a town needs `RARE_FOR_PORT_TOWN` (20) units of its rare good before it can become a port town ([0065](decisions/0065-rare-goods-from-the-far-yards.md)).
 
+## Cargo overboard
+
+Heeling past 20° for 2.5 s, or a sudden lurch, sends one unit of the good the hold carries most of over the side: ease the sails in a gale or a storm ([0067](decisions/0067-weather-states-and-storms.md)). Nothing is lost alongside. The balance simulation sails in fixed winds and ignores weather.
+
 ## Prices
 
 `src/sim/market.ts`. Each port holds a stock of each good.

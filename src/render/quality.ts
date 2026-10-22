@@ -13,6 +13,8 @@ export interface QualityProfile {
   /** Ocean grid resolution (cells per side). */
   oceanSegments: number;
   windStreaks: number;
+  /** Falling rain streaks around the camera (decision 0067). */
+  rainDrops: number;
   /** Real shadow map for island props; boats always use a cheap blob shadow. */
   shadows: boolean;
   /** Smooth foam animation and second wave layer in the ocean shader. */
@@ -25,6 +27,7 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
     pixelRatioCap: 1,
     oceanSegments: 48,
     windStreaks: 36,
+    rainDrops: 160,
     shadows: false,
     fancyWater: false,
   },
@@ -33,6 +36,7 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
     pixelRatioCap: 1.25,
     oceanSegments: 80,
     windStreaks: 60,
+    rainDrops: 260,
     shadows: false,
     fancyWater: true,
   },
@@ -41,6 +45,7 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
     pixelRatioCap: 1.5,
     oceanSegments: 120,
     windStreaks: 90,
+    rainDrops: 400,
     shadows: true,
     fancyWater: true,
   },

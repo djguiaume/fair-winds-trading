@@ -11,6 +11,7 @@ import type { ScreenPoint } from '../render/view';
 import { GOODS } from '../sim/goods';
 import { capacity, cargoUsed, findPort } from '../sim/trade';
 import { PortLabels } from './portLabels';
+import { type HazardKind, hazardBadge } from './hazardMarker';
 import { screenBearing } from './screenBearing';
 import { formatNumber, goodName, t } from '../i18n';
 
@@ -58,6 +59,7 @@ export class Hud {
   private readonly objName = $('obj-name');
   private readonly objDist = $('obj-dist');
   private readonly windText = $('wind-text');
+  private readonly weatherText = $('weather-text');
   private readonly cNoGo = $('c-nogo');
   private readonly cBand = $('c-band');
   private readonly cWind = $('c-wind');
@@ -272,8 +274,10 @@ export class Hud {
     this.cargoTooltip.hidden = false;
   }
 
-  showToast(text: string, seconds = 2.5) {
+  showToast(text: string, seconds = 2.5, hazard?: HazardKind) {
     this.toast.textContent = text;
+    // Hazard warnings carry the same badge as the chart (decision 0070).
+    if (hazard) this.toast.prepend(hazardBadge(hazard));
     this.toast.hidden = false;
     this.toastTimer = seconds;
   }
@@ -291,6 +295,10 @@ export class Hud {
       } else if (e.type === 'crash') {
         const pct = Math.round(hullCondition(this.world.trade) * 100);
         this.showToast(t(e.surface === 'pier' ? 'toast.crashPier' : 'toast.crash', { pct }), 2.5);
+      } else if (e.type === 'storm-near') {
+        this.showToast(t('toast.stormNear', { dir: compassPoint(e.bearing) }), 4, 'storm');
+      } else if (e.type === 'overboard') {
+        this.showToast(t('toast.overboard', { n: e.qty, good: goodName(e.good) }), 3);
       } else if (e.type === 'bump' && this.toastTimer <= 0) {
         this.showToast(t('toast.bump'), 1.2);
       }
@@ -380,6 +388,14 @@ export class Hud {
       // Name the lee so a sudden drop in speed reads as the island, not a bug (decision 0027).
       const lee = this.world.shelter > 0.25 ? ` · ${t('hud.lee')}` : '';
       this.windText.textContent = `${fromDir} · ${wind.speedKn.toFixed(0)} ${t('unit.knots')}${lee}`;
+      // Weather only shows when it is not a plain breeze, in line with the quiet HUD (0067).
+      const { weather } = this.world;
+      const kind = weather.storm > 0.15 ? 'storm' : weather.kind;
+      this.weatherText.hidden = kind === 'breeze';
+      if (this.weatherText.dataset.kind !== kind) {
+        this.weatherText.dataset.kind = kind;
+        this.weatherText.textContent = t(`weather.${kind}`);
+      }
 
       document.body.classList.toggle('is-docked', Boolean(this.world.trade.dockedAt));
       // Captain stats & dock button

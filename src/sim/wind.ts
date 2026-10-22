@@ -1,7 +1,8 @@
 import { coastDistance } from './coast';
 import type { IslandDef, TerrainDef } from './map';
-import { DEG, TAU, bearingVector, clamp, wrapPositive } from './math';
+import { DEG, TAU, bearingVector, clamp, wrapAngle, wrapPositive } from './math';
 import { createRng } from './rng';
+import { type Storm, type StormConfig, stormStrength, stormWindFrom, stormsAt } from './storms';
 
 /** Wind at one moment. `from` is the compass bearing the wind blows FROM (sailors' convention). */
 export interface Wind {
@@ -23,10 +24,31 @@ export interface WeatherConfig {
   stepDeg: number;
   /** 0..1: share of the offset from the prevailing wind dropped each period (0 = free wander). */
   revert: number;
-  /** Strength multipliers [min, max] applied to `speedKn`. */
+  /** Strength multipliers [min, max] applied to `speedKn` in a plain breeze. */
   strength: [number, number];
+  /** Sea-wide weather states (decision 0067); none = always a breeze. */
+  kinds?: Record<WeatherKind, KindConfig>;
+  /** Chance that a period keeps the previous period's weather. */
+  persist?: number;
+  /** Moving storm cells (decision 0067). */
+  storms?: StormConfig;
   /** The wind differs across the sea at the same moment (decision 0064); none = one wind everywhere. */
   regions?: RegionConfig;
+}
+
+/** Sea-wide weather of one period (decision 0067). Storms are separate, moving cells. */
+export const WEATHER_KINDS = ['calm', 'breeze', 'rain', 'gale'] as const;
+export type WeatherKind = (typeof WEATHER_KINDS)[number];
+
+export interface KindConfig {
+  /** How often this weather is picked when it changes. */
+  weight: number;
+  /** Strength multipliers [min, max]. */
+  strength: [number, number];
+  /** 0..1: how hard it rains. */
+  rain: number;
+  /** Gusts are this many times stronger than the map's `gustiness`. */
+  gusts: number;
 }
 
 /** Large, slowly drifting areas where the wind bends and strengthens or eases (decision 0064). */
@@ -64,11 +86,33 @@ export const DEFAULT_WEATHER: WeatherConfig = {
   revert: 0.12,
   strength: [0.8, 1.15],
   regions: { bendDeg: 40, strength: 0.15, sizeUnits: 400, driftSec: 900 },
+  kinds: {
+    breeze: { weight: 0.5, strength: [0.8, 1.15], rain: 0, gusts: 1 },
+    calm: { weight: 0.17, strength: [0.35, 0.55], rain: 0, gusts: 0.6 },
+    rain: { weight: 0.18, strength: [0.95, 1.2], rain: 0.7, gusts: 1.6 },
+    gale: { weight: 0.15, strength: [1.35, 1.55], rain: 0.15, gusts: 1.6 },
+  },
+  persist: 0.35,
+  storms: { everySec: 600, radius: 95, speed: 3.2, areaRadius: 440 },
 };
 
 interface Slot {
   offsetDeg: number;
   strength: number;
+  kind: WeatherKind;
+  rain: number;
+  gusts: number;
+}
+
+const FIRST_SLOT: Slot = { offsetDeg: 0, strength: 1, kind: 'breeze', rain: 0, gusts: 1 };
+
+function pickKind(weather: WeatherConfig, previous: WeatherKind, roll: number, roll2: number) {
+  const kinds = weather.kinds!;
+  if (roll < (weather.persist ?? 0)) return previous;
+  const total = WEATHER_KINDS.reduce((sum, k) => sum + kinds[k].weight, 0);
+  let x = roll2 * total;
+  for (const k of WEATHER_KINDS) if ((x -= kinds[k].weight) < 0) return k;
+  return 'breeze';
 }
 
 /** Offsets of every period so far, per seed and config: the walk is a running sum. */
@@ -81,21 +125,32 @@ function slotRng(seed: number, slot: number) {
 /** The weather of one period: offset from the prevailing direction (deg) and strength factor. */
 export function weatherSlot(weather: WeatherConfig, seed: number, slot: number): Slot {
   // Slot 0 is the prevailing wind, so a fresh voyage starts in the map's designed breeze.
-  if (slot <= 0) return { offsetDeg: 0, strength: 1 };
+  if (slot <= 0) return FIRST_SLOT;
   let bySeed = walks.get(weather);
   if (!bySeed) walks.set(weather, (bySeed = new Map()));
   let walk = bySeed.get(seed);
-  if (!walk) bySeed.set(seed, (walk = [{ offsetDeg: 0, strength: 1 }]));
-  const [lo, hi] = weather.strength;
+  if (!walk) bySeed.set(seed, (walk = [FIRST_SLOT]));
   // A random walk: each period veers or backs from the last one, so the wind can swing right
   // round over a long voyage instead of staying in one quarter of the compass.
   for (let k = walk.length; k <= slot; k++) {
     const rng = slotRng(seed, k);
     const step = (rng() * 2 - 1) * weather.stepDeg;
-    const strength = lo + (hi - lo) * rng();
-    const offset = walk[k - 1]!.offsetDeg * (1 - weather.revert) + step;
-    // Keep the offset in -180..180 so easing between periods always takes the short way round.
-    walk.push({ offsetDeg: ((((offset + 180) % 360) + 360) % 360) - 180, strength });
+    const roll = rng();
+    const prev = walk[k - 1]!;
+    const offset = prev.offsetDeg * (1 - weather.revert) + step;
+    // Separate draws for the weather kind, so maps without kinds keep the same wind walk.
+    const kindRng = slotRng(seed ^ 0x3c6ef372, k);
+    const kind = weather.kinds ? pickKind(weather, prev.kind, kindRng(), kindRng()) : 'breeze';
+    const def = weather.kinds?.[kind];
+    const [lo, hi] = def?.strength ?? weather.strength;
+    walk.push({
+      // Keep the offset in -180..180 so easing between periods always takes the short way round.
+      offsetDeg: ((((offset + 180) % 360) + 360) % 360) - 180,
+      strength: lo + (hi - lo) * roll,
+      kind,
+      rain: def?.rain ?? 0,
+      gusts: def?.gusts ?? 1,
+    });
   }
   return walk[slot]!;
 }
@@ -112,9 +167,14 @@ export function weatherAt(weather: WeatherConfig, seed: number, t: number): Slot
   // Ease along the shorter arc, then wrap, so a shift across south never spins the long way.
   let turn = now.offsetDeg - before.offsetDeg;
   turn -= 360 * Math.round(turn / 360);
+  const mix = (a: number, b: number) => a + (b - a) * s;
   return {
     offsetDeg: before.offsetDeg + turn * s,
-    strength: before.strength + (now.strength - before.strength) * s,
+    strength: mix(before.strength, now.strength),
+    // The new weather's name shows once it is halfway in.
+    kind: s < 0.5 ? before.kind : now.kind,
+    rain: mix(before.rain, now.rain),
+    gusts: mix(before.gusts, now.gusts),
   };
 }
 
@@ -147,20 +207,57 @@ export function regionAt(
   };
 }
 
+const stormless = new WeakMap<WeatherConfig, WeatherConfig>();
+
+/** The same weather without moving storms, for players who turn them off (decision 0067). Cached
+ * so the weather walk keeps its cache. */
+export function withoutStorms(weather: WeatherConfig): WeatherConfig {
+  let calm = stormless.get(weather);
+  if (!calm) stormless.set(weather, (calm = { ...weather, storms: undefined }));
+  return calm;
+}
+
+const steadied = new WeakMap<WeatherConfig, WeatherConfig>();
+
+/**
+ * A steady breeze for players who turn the weather off (decision 0067): no calm, rain or gale
+ * spells and no storms. The wind still veers, backs and differs across the sea (decision 0064).
+ */
+export function steadyWeather(weather: WeatherConfig): WeatherConfig {
+  let steady = steadied.get(weather);
+  if (!steady)
+    steadied.set(weather, (steady = { ...weather, kinds: undefined, storms: undefined }));
+  return steady;
+}
+
+/** The weather where a boat is: sea-wide state, rain and storm (decision 0067). */
+export interface LocalWeather {
+  kind: WeatherKind;
+  /** 0..1 rain at this spot (showers, or a storm's downpour). */
+  rain: number;
+  /** 0..1 sea-wide showers, outside any storm. */
+  showers: number;
+  /** 0..1: how hard the nearest storm hits here. */
+  storm: number;
+  /** Storms on the sea right now, for the chart and the renderer. */
+  storms: Storm[];
+}
+
+const NO_STORMS: Storm[] = [];
+
 /**
  * Sea wind at time `t` (seconds) and position `pos`, away from any island. Deterministic: slow
- * weather periods, regions where it bends, plus a sum of slow sines for gusts and a small
- * direction swing so the sea feels alive.
+ * weather periods, regions where it bends, storms, plus a sum of slow sines for gusts and a small
+ * direction swing so the sea feels alive. `out` receives the local weather when given.
  */
 export function windAt(
   config: WindConfig,
   t: number,
   seed = 0,
   pos: { x: number; y: number } = { x: 0, y: 0 },
+  out?: LocalWeather,
 ): Wind {
-  const weather = config.weather
-    ? weatherAt(config.weather, seed, t)
-    : { offsetDeg: 0, strength: 1 };
+  const weather = config.weather ? weatherAt(config.weather, seed, t) : FIRST_SLOT;
   const region = config.weather?.regions
     ? regionAt(config.weather.regions, seed, t, pos.x, pos.y)
     : { bendDeg: 0, strength: 1 };
@@ -172,13 +269,36 @@ export function windAt(
     0.3 * Math.sin((g * TAU) / 9.7 + 1.3) +
     0.1 * Math.sin(g * 1.9);
   const swing = Math.sin((g * TAU) / 61) * 0.7 + Math.sin((g * TAU) / 17 + 0.4) * 0.3;
-  return {
-    from: wrapPositive(
-      (config.fromDeg + weather.offsetDeg + region.bendDeg + swing * config.shiftDeg) * DEG,
-    ),
-    speedKn: config.speedKn * weather.strength * region.strength * (1 + gust * config.gustiness),
-  };
+  let from = (config.fromDeg + weather.offsetDeg + region.bendDeg + swing * config.shiftDeg) * DEG;
+  let speedKn =
+    config.speedKn *
+    weather.strength *
+    region.strength *
+    (1 + gust * config.gustiness * weather.gusts);
+
+  // Storms (decision 0067): the wind turns to circle the centre and blows much harder.
+  const storms = config.weather?.storms ? stormsAt(config.weather.storms, seed, t) : NO_STORMS;
+  let storm = 0;
+  for (const s of storms) {
+    const k = stormStrength(s, pos.x, pos.y);
+    if (k <= 0) continue;
+    const turn = wrapAngle(stormWindFrom(s, pos.x, pos.y) - from);
+    from += turn * Math.min(1, k * 1.1);
+    speedKn *= 1 + STORM_GAIN * k;
+    storm = Math.max(storm, k);
+  }
+  if (out) {
+    out.kind = weather.kind;
+    out.rain = Math.max(weather.rain, storm);
+    out.showers = weather.rain;
+    out.storm = storm;
+    out.storms = storms;
+  }
+  return { from: wrapPositive(from), speedKn };
 }
+
+/** How much a storm core adds to the wind (×1.9 at full force). */
+export const STORM_GAIN = 0.9;
 
 /** Compass bearing the wind blows TOWARD. */
 export function windTo(wind: Wind): number {

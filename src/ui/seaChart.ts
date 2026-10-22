@@ -7,6 +7,7 @@ import { DEG, distance } from '../sim/math';
 import { discoveredPorts } from '../sim/shipyards';
 import { goodName, t } from '../i18n';
 import { icon, COIN } from './icons';
+import { drawHazard } from './hazardMarker';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -441,6 +442,16 @@ export class SeaChart {
       if (terrain.kind === 'island') landBoxes.push({ x0, x1, y0, y1 });
       if (terrain.name && terrain.kind === 'island')
         places.push({ name: terrain.name, x: (x0 + x1) / 2, top: y0, bottom: y1 });
+    }
+    // Storms (decisions 0067 and 0070): a hazard badge over a soft cloud, chevrons for the drift.
+    for (const storm of this.world.weather.storms) {
+      if (storm.intensity < 0.05) continue;
+      drawHazard(
+        svg as unknown as SVGElement,
+        { kind: 'storm', ...storm, reach: storm.radius, strength: storm.intensity },
+        px,
+        t('chart.storm'),
+      );
     }
     // The course: a dashed line from the boat to a small ring on the destination's pier.
     if (destination) {

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { LandmarkKind } from '../../sim/map';
-import { paint } from './geometry';
+import { glowing, paint } from './geometry';
 
 type Parts = THREE.BufferGeometry[];
 const cream = '#f4ede0',
@@ -35,6 +35,7 @@ export function landmarkParts(kind: LandmarkKind, scale = 1): Parts {
     for (const x of [-0.65, 0.65])
       for (const z of [-0.65, 0.65]) box(0.13, 1, 0.13, x, 4.8, z, wood);
     box(0.6, 0.7, 0.6, 0, 4.8, 0, '#ffe3a0');
+    glowing(out[out.length - 1]!); // the lamp room lights up at night
     cylinder(0, 1.3, 0.9, 5.75, '#3f74a8');
     box(0.45, 0.9, 0.12, 0, 0.95, 1.0, dark);
   } else if (kind === 'ruins') {

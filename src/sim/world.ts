@@ -1,4 +1,4 @@
-import { type BoatControls, type BoatState, createBoat, stepBoat } from './boat';
+import { type BoatControls, type BoatState, createBoat, stepBoat, trueWindAngle } from './boat';
 import { type Pier, piersOf, resolveCollisions } from './collision';
 import type { MapDef } from './map';
 import {
@@ -10,7 +10,7 @@ import {
   shallowDrag,
   shallowness,
 } from './hazards';
-import { DEG, distance } from './math';
+import { DEG, bearingTo, clamp, distance } from './math';
 import type { ShipClass } from './ship';
 import {
   type DockEvent,
@@ -20,7 +20,19 @@ import {
   portInRange,
   stepTrade,
 } from './trade';
-import { type Wind, type WindBlocker, localWind, windAt, windBlockers, windEffectAt } from './wind';
+import { GOODS, type GoodId } from './goods';
+import { HEEL_FEEL, Heel, heelFactor } from './heel';
+import {
+  type LocalWeather,
+  type Wind,
+  type WindBlocker,
+  localWind,
+  steadyWeather,
+  windAt,
+  windBlockers,
+  windEffectAt,
+  withoutStorms,
+} from './wind';
 
 /** Distance (units) at which a course buoy counts as reached. */
 export const WAYPOINT_RADIUS = 12;
@@ -53,6 +65,20 @@ export interface World {
   piers: Pier[];
   /** 0 = deep water … 1 = at a reef's edge. */
   shallow: number;
+  /** Weather at the boat: sea-wide state, rain and storm (decision 0067). */
+  weather: LocalWeather;
+  /** How far she leans (decision 0067): drives cargo going overboard. */
+  heel: Heel;
+  /** Seconds spent heeled past `HEAVY_HEEL` (eases off when she stands up). */
+  overHeel: number;
+  /** Seconds before another lurch can throw cargo. */
+  lurchCooldown: number;
+  /** Storms the captain has already been warned about. */
+  stormsWarned: number[];
+  /** Weather spells and storms on (decision 0067); off = a steady breeze. A Settings switch. */
+  dynamicWeather: boolean;
+  /** Moving storms on (decision 0067); players can turn them off in Settings. */
+  storms: boolean;
   /** Degrees added to the map's wind direction (the "new wind" button). */
   windOffsetDeg: number;
   boat: BoatState;
@@ -74,6 +100,8 @@ export type WorldEvent =
   | { type: 'reef-strike'; damage: number }
   | { type: 'crash'; damage: number; surface: 'shore' | 'pier' }
   | { type: 'waypoint'; label: string; seconds: number; next: string }
+  | { type: 'storm-near'; bearing: number }
+  | { type: 'overboard'; good: GoodId; qty: number }
   | DockEvent;
 
 export function createWorld(map: MapDef, ship: ShipClass): World {
@@ -84,6 +112,14 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     time: 0,
     wind: windAt(map.wind, 0, map.seed, map.start),
     seaWind: windAt(map.wind, 0, map.seed, map.start),
+    weather: { kind: 'breeze', rain: 0, showers: 0, storm: 0, storms: [] },
+    heel: new Heel(),
+    overHeel: 0,
+    // The heel settles in the first moments of a voyage; that is not a lurch.
+    lurchCooldown: LURCH_COOLDOWN,
+    stormsWarned: [],
+    dynamicWeather: true,
+    storms: true,
     shelter: 0,
     funnel: 0,
     windBlockers: windBlockers(map.islands, map.terrain),
@@ -144,11 +180,101 @@ function moor(boat: BoatState, dt: number): void {
   boat.drift.y *= hold;
 }
 
+/** Warn when a storm's edge comes this close (map units). */
+export const STORM_WARNING = 140;
+/** Heel past which loose cargo starts to slide (decision 0067). A full-sailed sloop on a beam
+ * reach heels about 14° in the 14 kn breeze and only passes this from about 19 kn. */
+export const HEAVY_HEEL = 20 * DEG;
+/** Seconds spent past `HEAVY_HEEL` before a unit of cargo goes overboard. */
+export const HEAVY_SECONDS = 2.5;
+/** A lurch faster than this (rad/s) while well heeled throws cargo at once. */
+export const LURCH_RATE = 22 * DEG;
+/** Heel the lurch must reach to count. */
+export const LURCH_HEEL = 16 * DEG;
+/** Seconds after a loss before another lurch can throw more. */
+const LURCH_COOLDOWN = 3;
+
+/** Storm warnings (decision 0067). */
+export function stepStorms(world: World): WorldEvent[] {
+  const events: WorldEvent[] = [];
+  const { boat, weather } = world;
+  for (const s of weather.storms) {
+    if (world.stormsWarned.includes(s.id)) continue;
+    if (distance(boat, s) - s.radius > STORM_WARNING) continue;
+    world.stormsWarned = [...world.stormsWarned.slice(-4), s.id];
+    events.push({ type: 'storm-near', bearing: bearingTo(boat, s) });
+  }
+  return events;
+}
+
+/** One unit of the good the hold carries most of goes over the side. */
+function loseCargo(world: World): WorldEvent[] {
+  const cargo = world.trade.captain.cargo;
+  let good: GoodId | null = null;
+  for (const g of GOODS) if (cargo[g] > 0 && (!good || cargo[g] > cargo[good])) good = g;
+  if (!good) return [];
+  cargo[good] -= 1;
+  return [{ type: 'overboard', good, qty: 1 }];
+}
+
+/**
+ * Cargo shifts when she heels too far or too suddenly (decision 0067, Guillaume's idea): sailing
+ * full in a gale or a storm costs cargo unless you ease the sails or bear away, so reading the
+ * wind pays. Uses the same heel model the boat is drawn with.
+ */
+export function stepHeel(world: World, dt: number): WorldEvent[] {
+  const { boat, ship, wind, trade } = world;
+  const before = world.heel.angle;
+  const twa = trueWindAngle(boat.heading, wind);
+  const abs = Math.abs(twa);
+  const luff = 1 - clamp((abs - ship.noGoAngle * 0.8) / (ship.noGoAngle * 0.3), 0, 1);
+  const angle = world.heel.update(
+    {
+      twa,
+      noGoAngle: ship.noGoAngle,
+      windKn: wind.speedKn,
+      sail: boat.sail,
+      luff,
+      factor: heelFactor(trade.captain.activeShip),
+    },
+    dt,
+    HEEL_FEEL.lively,
+  );
+  world.lurchCooldown = Math.max(0, world.lurchCooldown - dt);
+  // Alongside or with the sails down nothing is thrown about.
+  if (trade.dockedAt || dt <= 0) return [];
+  const rate = Math.abs(angle - before) / dt;
+  if (rate > LURCH_RATE && Math.abs(angle) > LURCH_HEEL && world.lurchCooldown === 0) {
+    world.lurchCooldown = LURCH_COOLDOWN;
+    world.overHeel = 0;
+    return loseCargo(world);
+  }
+  if (Math.abs(angle) <= HEAVY_HEEL) {
+    world.overHeel = Math.max(0, world.overHeel - dt);
+    return [];
+  }
+  world.overHeel += dt;
+  if (world.overHeel < HEAVY_SECONDS) return [];
+  world.overHeel = 0;
+  return loseCargo(world);
+}
+
 export function stepWorld(world: World, controls: BoatControls, dt: number): WorldEvent[] {
   const events: WorldEvent[] = [];
   world.time += dt;
-  const cfg = { ...world.map.wind, fromDeg: world.map.wind.fromDeg + world.windOffsetDeg };
-  world.seaWind = windAt(cfg, world.time, world.map.seed, world.boat);
+  const { weather } = world.map.wind;
+  const cfg = {
+    ...world.map.wind,
+    fromDeg: world.map.wind.fromDeg + world.windOffsetDeg,
+    weather: !weather
+      ? weather
+      : !world.dynamicWeather
+        ? steadyWeather(weather)
+        : !world.storms
+          ? withoutStorms(weather)
+          : weather,
+  };
+  world.seaWind = windAt(cfg, world.time, world.map.seed, world.boat, world.weather);
   const effect = windEffectAt(world.windBlockers, world.boat, world.seaWind);
   world.shelter = effect.shelter;
   world.funnel = effect.funnel;
@@ -191,6 +317,8 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   }
 
   events.push(...stepTrade(world.trade, world.map, world.boat, dt));
+  events.push(...stepStorms(world));
+  events.push(...stepHeel(world, dt));
 
   const wp = currentWaypoint(world);
   if (

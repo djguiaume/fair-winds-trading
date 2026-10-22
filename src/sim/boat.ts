@@ -54,9 +54,22 @@ export function trueWindAngle(heading: number, wind: Wind): number {
   return wrapAngle(wind.from - heading);
 }
 
+/** Above this wind (knots) more wind barely adds speed: the crew spills it (decision 0067). */
+export const OVERPOWERED_KN = 21;
+
+/** Wind that drives the boat: all of it up to `OVERPOWERED_KN`, a quarter of anything above. */
+export function drivingWind(speedKn: number): number {
+  return speedKn <= OVERPOWERED_KN ? speedKn : OVERPOWERED_KN + (speedKn - OVERPOWERED_KN) * 0.25;
+}
+
 /** Speed the boat settles at for this heading, wind and sail (knots). */
 export function targetSpeed(ship: ShipClass, heading: number, wind: Wind, sail: number): number {
-  return polarFraction(ship, trueWindAngle(heading, wind)) * wind.speedKn * ship.speedRatio * sail;
+  return (
+    polarFraction(ship, trueWindAngle(heading, wind)) *
+    drivingWind(wind.speedKn) *
+    ship.speedRatio *
+    sail
+  );
 }
 
 /**

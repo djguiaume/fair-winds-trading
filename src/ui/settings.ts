@@ -22,6 +22,12 @@ export interface Settings {
   language: LanguageId | null;
   /** Background music volume, 0 (off) to 1 (decision 0045). */
   musicVolume: number;
+  /** Day and night cycle (decision 0068); off keeps a bright day for players who dislike night. */
+  dayNight: boolean;
+  /** Weather spells and storms (decision 0067); off = a steady breeze. */
+  weather: boolean;
+  /** Moving storms (decision 0067); hazards can be turned off (Guillaume). */
+  storms: boolean;
 }
 
 const KEY = 'fwt.settings.v1';
@@ -34,6 +40,9 @@ const DEFAULTS: Settings = {
   showLog: true,
   language: null,
   musicVolume: 0.6,
+  dayNight: true,
+  weather: true,
+  storms: true,
 };
 
 export function loadSettings(): Settings {

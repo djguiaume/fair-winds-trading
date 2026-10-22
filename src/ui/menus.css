@@ -587,6 +587,13 @@ label.set-row {
   transform: translateX(22px);
   background: #fff;
 }
+/* A switch that depends on another (Storms needs Weather) is greyed out while that one is off. */
+.set-row:has(.switch:disabled) {
+  opacity: 0.45;
+}
+.switch:disabled {
+  cursor: default;
+}
 .set-actions {
   display: flex;
   flex-wrap: wrap;

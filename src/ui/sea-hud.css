@@ -429,6 +429,19 @@ body.is-docked .objective {
   font-weight: 600;
   white-space: nowrap;
 }
+.weather-text {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink);
+  font-size: 0.86em;
+  white-space: nowrap;
+}
+.weather-text[hidden] {
+  display: none;
+}
+.weather-text[data-kind='storm'] {
+  color: #ffb36b;
+}
 .wind-gust {
   margin-left: 2px;
   padding: 0 4px;

@@ -29,6 +29,8 @@ export interface BoatModel {
   /** Waterline footprint in scene units, for hull-attached wake effects. */
   readonly wakeHull: { length: number; beam: number };
   update(pose: BoatPose): void;
+  /** Optional: where the boat's night lantern hangs (decision 0068); it heels with the mast. */
+  readonly lantern?: THREE.Object3D;
   /** Optional: drop fine details (rigging lines) at the low quality setting. */
   setLowDetail?(low: boolean): void;
   dispose(): void;

@@ -20,10 +20,20 @@ import { BuoyMarker, EdgeBuoys, createBlobShadow } from './props';
 import { renderPixelRatio, QUALITY, type QualityLevel, type QualityProfile } from './quality';
 import { Wake } from './wake';
 import { WindStreaks } from './windStreaks';
+import { Rain } from './rain';
+import { Atmosphere } from './atmosphere';
+import { Lanterns } from './lanterns';
+import { daylightAt } from '../sim/daylight';
+import { StormClouds } from './stormClouds';
+import { stormRain } from '../sim/storms';
 
+/** Game time whose light is kept when day and night is off: early afternoon. */
+const ALWAYS_DAY = 200;
+/** Window glass tint: dark panes by day, the vertex colours (warm or dark) at night. */
+const WINDOWS_BY_DAY = new THREE.Color('#5c6470');
+const WINDOWS_AT_NIGHT = new THREE.Color('#ffffff');
 const CAMERA_PITCH = 58 * DEG;
 const BASE_DISTANCE = 110;
-const SUN_OFFSET = new THREE.Vector3(-30, 50, 20);
 
 /** Sim (x east, y north) → three.js scene (x, 0, -y). */
 function toScene(x: number, y: number, out = new THREE.Vector3()) {
@@ -45,6 +55,15 @@ export class GameView {
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(40, 1, 1, 600);
   private readonly sun = new THREE.DirectionalLight(PALETTE.sun, 1.7);
+  private readonly hemi = new THREE.HemisphereLight(PALETTE.sky, '#1a4d55', 1.5);
+  /** Time of day and weather light (decisions 0067 and 0068). */
+  private readonly atmosphere = new Atmosphere(this.scene, this.sun, this.hemi);
+  private lanterns!: Lanterns;
+  /** Day and night cycle on (decision 0068); off holds early afternoon. */
+  dayNight = true;
+  private readonly boatLantern = new THREE.Vector3();
+  private readonly stormClouds = new StormClouds();
+  private rain!: Rain;
   private islands: THREE.Object3D;
   /** Settlement level per port the islands were last built with (decision 0060). */
   private townLevels: Record<string, TownLevel> | undefined;
@@ -82,7 +101,7 @@ export class GameView {
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.scene.background = new THREE.Color(PALETTE.deepWater);
     this.scene.fog = new THREE.Fog(PALETTE.deepWater, 120, 220);
-    this.scene.add(new THREE.HemisphereLight(PALETTE.sky, '#1a4d55', 1.5));
+    this.scene.add(this.hemi);
     this.sun.shadow.mapSize.set(1024, 1024);
     Object.assign(this.sun.shadow.camera, {
       left: -70,
@@ -105,10 +124,35 @@ export class GameView {
       this.wake.mesh,
       this.buoy.root,
       this.edgeBuoys.mesh,
+      this.stormClouds.root,
     );
 
     toScene(world.boat.x, world.boat.y, this.target);
+    this.buildLanterns();
     this.setQuality(level);
+  }
+
+  /** Harbour lanterns (decision 0068): one on each pier head and a town glow a little inland. */
+  private buildLanterns() {
+    if (this.lanterns) {
+      this.scene.remove(this.lanterns.points);
+      this.lanterns.dispose();
+    }
+    const spots: THREE.Vector3[] = [];
+    for (const port of this.world.map.ports) {
+      const pier = this.harbours[port.id];
+      const island = this.world.map.islands.find((i) => i.id === port.islandId);
+      if (!pier || !island) continue;
+      spots.push(toScene(pier.x, pier.y, new THREE.Vector3()).setY(4));
+      const town = toScene(
+        pier.x + (island.x - pier.x) * 0.35,
+        pier.y + (island.y - pier.y) * 0.35,
+        new THREE.Vector3(),
+      );
+      spots.push(town.setY(7));
+    }
+    this.lanterns = new Lanterns(spots);
+    this.scene.add(this.lanterns.points);
   }
 
   /** Anchors exported while building the mesh; no duplicated generation or extra draw calls. */
@@ -164,6 +208,10 @@ export class GameView {
       this.scene.remove(this.streaks.mesh);
       this.streaks.dispose();
     }
+    if (this.rain) {
+      this.scene.remove(this.rain.mesh);
+      this.rain.dispose();
+    }
     this.ocean = new Ocean(
       this.world.map.islands,
       profile.oceanSegments,
@@ -172,7 +220,8 @@ export class GameView {
       this.world.map.terrain,
     );
     this.streaks = new WindStreaks(profile.windStreaks);
-    this.scene.add(this.ocean.mesh, this.streaks.mesh);
+    this.rain = new Rain(profile.rainDrops);
+    this.scene.add(this.ocean.mesh, this.streaks.mesh, this.rain.mesh);
 
     if (this.profile?.shadows !== profile.shadows) {
       this.renderer.shadowMap.enabled = profile.shadows;
@@ -216,6 +265,7 @@ export class GameView {
     });
     this.islands = next;
     this.scene.add(next);
+    this.buildLanterns();
   }
 
   setZoom(zoom: number) {
@@ -248,11 +298,13 @@ export class GameView {
     );
     this.camera.lookAt(this.target);
     const fog = this.scene.fog as THREE.Fog;
-    fog.near = dist * 1.3;
-    fog.far = dist * 2.4;
+    const day = daylightAt(this.dayNight ? time : ALWAYS_DAY);
+    this.atmosphere.update(dt, day, this.world.weather, this.ocean, this.target);
+    const gloom = this.atmosphere.gloom;
+    // Rain and the dark close in a little, never enough to hide the next island.
+    fog.near = dist * (1.3 - 0.45 * gloom - 0.15 * day.night);
+    fog.far = dist * (2.4 - 0.6 * gloom - 0.2 * day.night);
     this.ocean.setFog(fog.near, fog.far);
-    this.sun.position.copy(this.target).add(SUN_OFFSET);
-    this.sun.target.position.copy(this.target);
 
     // Boat pose from the simulation.
     this.refreshBoat();
@@ -305,6 +357,26 @@ export class GameView {
       wind.speedKn * KNOT_TO_UNITS * 0.75,
       windStrength01(wind.speedKn),
     );
+    const { weather } = this.world;
+    this.stormClouds.update(weather.storms, time);
+    // Showers fall everywhere; a storm's downpour only under its cloud.
+    const kn = wind.speedKn * KNOT_TO_UNITS * 0.6;
+    this.rain.update(dt, this.target, to.x * kn, -to.y * kn, (x, z) => {
+      let r = weather.showers;
+      for (const s of weather.storms) r = Math.max(r, stormRain(s, x, -z));
+      return r;
+    });
+    // Masthead lantern (heels with the mast), else a lantern above the deck.
+    const glow = Math.max(day.night, gloom * 0.5);
+    const lantern = this.boat.lantern;
+    if (lantern) {
+      lantern.updateWorldMatrix(true, false);
+      lantern.getWorldPosition(this.boatLantern);
+    } else this.boatLantern.set(pos.x, 6, pos.z);
+    this.lanterns.update(glow, this.boatLantern, time);
+    // Lit windows and street lamps in the towns.
+    const windows = this.islands.userData.windows as THREE.MeshBasicMaterial | undefined;
+    windows?.color.copy(WINDOWS_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
     this.ocean.update(time, this.target);
     this.edgeBuoys.update(time, (x, z) => waveHeight(x, z, time));
 
@@ -332,6 +404,9 @@ export class GameView {
   dispose() {
     this.ocean.dispose();
     this.streaks.dispose();
+    this.rain.dispose();
+    this.stormClouds.dispose();
+    this.lanterns.dispose();
     this.wake.dispose();
     this.buoy.dispose();
     this.edgeBuoys.dispose();
