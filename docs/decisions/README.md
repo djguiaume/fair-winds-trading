@@ -108,3 +108,4 @@ Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decis
 | [0084](0084-hull-aware-docking.md) | Docking uses the oriented hull and full pier geometry, with a forgiving 16-unit gap | 2026-10-22 | Implemented for review |
 | [0085](0085-island-collision-bounds.md) | Skip distant island polygon collisions using cached bounds; defer lake geometry until nearby | 2026-10-22 | Implemented for review |
 | [0086](0086-squared-coast-distance.md) | Compare squared coast distances, preserving original normals and numerical edge cases | 2026-10-22 | Implemented for review |
+| [0087](0087-harbour-hull-range-bound.md) | Reject distant harbours before transforming the cached hull | 2026-10-22 | Implemented for review |
