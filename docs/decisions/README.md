@@ -80,6 +80,6 @@
 
 | [0063](0063-specialized-town-goods.md) | Specialized goods: each town's workshop makes smoked fish, bread, planks or cut stone; buyers open with the workshop | 2026-10-21 | Implementation for review |
 
-| [0065](0065-rare-goods-from-the-far-yards.md) | Rare goods: the far yards make the first ones (Phase 2), outer islands a rarer set (Phase 4); wanted across the map | 2026-10-22 | Accepted |
+| [0065](0065-rare-goods-from-the-far-yards.md) | Rare goods: the far yards make honey and lamp oil (Phase 2), outer islands a rarer set (Phase 4); wanted across the map; a town needs 20 of its rare good to become a port town | 2026-10-22 | Accepted, implementation for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

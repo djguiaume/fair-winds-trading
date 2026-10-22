@@ -223,7 +223,8 @@ function sail(opts: { contracts: boolean; relaxed: boolean; minutes?: number }):
     for (const m of Object.values(trade.markets)) stepMarket(m, seconds);
     stepContracts(trade.contracts, seconds);
     t += seconds;
-    for (const up of stepSettlements(trade, seconds)) v.levels[`${up.portId} ${up.level}`] = t / 60;
+    for (const up of stepSettlements(trade, seconds, MAP))
+      v.levels[`${up.portId} ${up.level}`] = t / 60;
     syncMarketLevels(trade, MAP);
     at = leg.to;
     v.legs++;
