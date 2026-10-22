@@ -68,6 +68,9 @@ export const fr: Record<MessageKey, string> = {
   'help.tradeTitle': 'Commercer',
   'help.tradeCopy':
     'Achetez ce qu’un port produit, vendez là où on le demande. Les commandes paient mieux. Ouvrez la carte pour comparer les prix.',
+  'help.pressTitle': 'Vent fort',
+  'help.pressCopy':
+    'Quand la commande des voiles passe à l’orange puis au rouge, choquez ou abattez, sinon la cargaison passe par-dessus bord.',
   'help.touch': 'Tactile',
   'help.touchLine': 'Glisser pour barrer · levier des voiles · toucher un port',
   'help.keyboard': 'Clavier',
@@ -185,6 +188,7 @@ export const fr: Record<MessageKey, string> = {
   'toast.waypoint': '{label} atteint en {time} ! Suivant : {next}',
   'toast.stormNear':
     'Tempête au {dir} ! Réduisez la voile ou la cargaison risque de passer par-dessus bord',
+  'toast.pressHint': 'Vent fort ! Choquez les voiles ou la cargaison passe par-dessus bord',
   'toast.overboard': 'Trop de gîte : {n} {good} par-dessus bord. Choquez les voiles',
   'weather.calm': 'Calme',
   'weather.breeze': 'Brise',
