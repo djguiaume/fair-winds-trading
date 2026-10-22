@@ -1,0 +1,149 @@
+import { describe, expect, it } from 'vitest';
+import { PHASE1_MAP } from '../src/data/maps';
+import { KNOT_TO_UNITS, OVERPOWERED_KN, drivingWind } from '../src/sim/boat';
+import { DEG, bearingVector, wrapAngle } from '../src/sim/math';
+import { SLOOP } from '../src/sim/ship';
+import { type Storm, STORM_CORE, stormStrength, stormsAt } from '../src/sim/storms';
+import {
+  DEFAULT_WEATHER,
+  type LocalWeather,
+  WEATHER_KINDS,
+  type WeatherKind,
+  weatherSlot,
+  windAt,
+} from '../src/sim/wind';
+import { PERISHABLE, SOAK_SECONDS, createWorld, stepStorms, stepWorld } from '../src/sim/world';
+
+const STORMS = DEFAULT_WEATHER.storms!;
+const seed = PHASE1_MAP.seed;
+
+/** First storm of a seed, at the moment it is strongest near the middle of its track. */
+function firstStorm(s = seed): { t: number; storm: Storm } {
+  for (let t = 0; t < 3600; t += 5) {
+    const storms = stormsAt(STORMS, s, t);
+    const storm = storms.find((x) => x.intensity > 0.75 && Math.hypot(x.x, x.y) < 300);
+    if (storm) return { t, storm };
+  }
+  throw new Error('no storm in the first hour');
+}
+
+describe('weather states (0065)', () => {
+  it('cycles through calm, breeze, rain and gale, with breeze the most common', () => {
+    const counts: Record<WeatherKind, number> = { calm: 0, breeze: 0, rain: 0, gale: 0 };
+    for (let slot = 0; slot < 400; slot++) counts[weatherSlot(DEFAULT_WEATHER, seed, slot).kind]++;
+    for (const k of WEATHER_KINDS) expect(counts[k]).toBeGreaterThan(20);
+    expect(counts.breeze).toBe(Math.max(...Object.values(counts)));
+  });
+
+  it('makes a calm light and a gale strong', () => {
+    const k = DEFAULT_WEATHER.kinds!;
+    expect(PHASE1_MAP.wind.speedKn * k.calm.strength[1]).toBeLessThan(8);
+    expect(PHASE1_MAP.wind.speedKn * k.gale.strength[0]).toBeGreaterThan(18);
+    expect(k.rain.rain).toBeGreaterThan(0.5);
+  });
+
+  it('starts a new voyage in a dry breeze', () => {
+    const out = {} as LocalWeather;
+    windAt(PHASE1_MAP.wind, 0, seed, PHASE1_MAP.start, out);
+    expect(out).toMatchObject({ kind: 'breeze', rain: 0, storm: 0 });
+  });
+});
+
+describe('moving storms (0065)', () => {
+  it('are reproducible and come along within the first quarter hour', () => {
+    expect(stormsAt(STORMS, seed, 1234)).toEqual(stormsAt(STORMS, seed, 1234));
+    for (const s of [1, 7, 42, 99]) {
+      let seen = false;
+      for (let t = 0; t < 900 && !seen; t += 10) seen = stormsAt(STORMS, s, t).length > 0;
+      expect(seen).toBe(true);
+    }
+  });
+
+  it('cross the sea slower than a sloop, from the edge through the middle', () => {
+    const { t, storm } = firstStorm();
+    const later = stormsAt(STORMS, seed, t + 10).find((s) => s.id === storm.id)!;
+    const speed = Math.hypot(later.x - storm.x, later.y - storm.y) / 10;
+    expect(speed).toBeCloseTo(STORMS.speed, 5);
+    // Half the speed of a sloop at 8 knots, so a captain can get out of the way.
+    expect(speed).toBeLessThanOrEqual(8 * KNOT_TO_UNITS * 0.5);
+    // Born outside the sea, faint at first.
+    let start = t;
+    while (stormsAt(STORMS, seed, start - 1).some((s) => s.id === storm.id)) start--;
+    const born = stormsAt(STORMS, seed, start).find((s) => s.id === storm.id)!;
+    expect(Math.hypot(born.x, born.y)).toBeGreaterThan(STORMS.areaRadius);
+    expect(born.intensity).toBeLessThan(0.05);
+  });
+
+  it('blow much harder in the core and circle anticlockwise round the centre', () => {
+    const { t, storm } = firstStorm();
+    const core = storm.radius * STORM_CORE * 0.8;
+    expect(stormStrength(storm, storm.x + core, storm.y)).toBeCloseTo(storm.intensity, 5);
+    expect(stormStrength(storm, storm.x + storm.radius * 1.01, storm.y)).toBe(0);
+    const out = {} as LocalWeather;
+    const outside = windAt(PHASE1_MAP.wind, t, seed, { x: storm.x + 2 * storm.radius, y: storm.y });
+    // North of the centre an anticlockwise storm blows toward the west, so it comes from the east.
+    const north = windAt(PHASE1_MAP.wind, t, seed, { x: storm.x, y: storm.y + core }, out);
+    expect(out.storm).toBeGreaterThan(0.75);
+    expect(out.rain).toBeGreaterThan(0.75);
+    expect(north.speedKn).toBeGreaterThan(outside.speedKn * 1.4);
+    expect(Math.abs(wrapAngle(north.from - 90 * DEG)) / DEG).toBeLessThan(35);
+    const south = windAt(PHASE1_MAP.wind, t, seed, { x: storm.x, y: storm.y - core });
+    expect(Math.abs(wrapAngle(south.from - 270 * DEG)) / DEG).toBeLessThan(35);
+  });
+
+  it('spill the excess wind instead of doubling the boat speed', () => {
+    expect(drivingWind(14)).toBe(14);
+    expect(drivingWind(OVERPOWERED_KN)).toBe(OVERPOWERED_KN);
+    expect(drivingWind(33)).toBe(OVERPOWERED_KN + 3);
+  });
+});
+
+describe('storm warnings and soaked cargo (0065)', () => {
+  function worldInStorm() {
+    const { t, storm } = firstStorm();
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    world.time = t;
+    // Point her downwind-ish near the storm centre with sails down, so she stays in the core.
+    world.boat.x = storm.x + 5;
+    world.boat.y = storm.y;
+    world.boat.heading = Math.atan2(storm.dx, storm.dy);
+    return { world, storm };
+  }
+
+  it('warns once when a storm comes near', () => {
+    const { world, storm } = worldInStorm();
+    const v = bearingVector(Math.atan2(storm.dx, storm.dy) + Math.PI);
+    world.boat.x = storm.x + v.x * (storm.radius + 100);
+    world.boat.y = storm.y + v.y * (storm.radius + 100);
+    const first = stepWorld(world, { steer: 0, sailStep: 0 }, 0.1);
+    expect(first.filter((e) => e.type === 'storm-near')).toHaveLength(1);
+    const again = stepWorld(world, { steer: 0, sailStep: 0 }, 0.1);
+    expect(again.some((e) => e.type === 'storm-near')).toBe(false);
+  });
+
+  it('spoils some perishable cargo in the core, but not timber', () => {
+    const { world } = worldInStorm();
+    const cargo = world.trade.captain.cargo;
+    cargo.fish = 20;
+    cargo.timber = 10;
+    const spoiled = [];
+    for (let i = 0; i < (SOAK_SECONDS * 2.5) / 0.1; i++)
+      spoiled.push(...stepWorld(world, { steer: 0, sailStep: 0 }, 0.1));
+    const events = spoiled.filter((e) => e.type === 'spoiled');
+    expect(events.length).toBeGreaterThanOrEqual(1);
+    expect(cargo.fish).toBeLessThan(20);
+    expect(cargo.fish).toBeGreaterThan(10);
+    expect(cargo.timber).toBe(10);
+    expect(PERISHABLE).not.toContain('timber');
+  });
+
+  it('keeps cargo dry while docked', () => {
+    const { world } = worldInStorm();
+    stepWorld(world, { steer: 0, sailStep: 0 }, 0.1);
+    expect(world.weather.storm).toBeGreaterThan(0.5);
+    world.trade.dockedAt = PHASE1_MAP.homePort!;
+    world.trade.captain.cargo.fish = 20;
+    for (let i = 0; i < (SOAK_SECONDS * 3) / 0.1; i++) stepStorms(world, 0.1);
+    expect(world.trade.captain.cargo.fish).toBe(20);
+  });
+});

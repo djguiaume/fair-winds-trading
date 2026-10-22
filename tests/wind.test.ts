@@ -21,7 +21,7 @@ describe('slow weather (0026)', () => {
   const seed = 7;
 
   it('starts a voyage in the prevailing wind and is reproducible from the seed', () => {
-    expect(weatherAt(DEFAULT_WEATHER, seed, 0)).toEqual({ offsetDeg: 0, strength: 1 });
+    expect(weatherAt(DEFAULT_WEATHER, seed, 0)).toMatchObject({ offsetDeg: 0, strength: 1 });
     expect(weatherAt(DEFAULT_WEATHER, seed, 1000)).toEqual(weatherAt(DEFAULT_WEATHER, seed, 1000));
   });
 
@@ -31,8 +31,9 @@ describe('slow weather (0026)', () => {
     for (let slot = 1; slot < 40; slot++) {
       const w = weatherSlot(DEFAULT_WEATHER, seed, slot);
       expect(Math.abs(w.offsetDeg)).toBeLessThanOrEqual(180);
-      expect(w.strength).toBeGreaterThanOrEqual(DEFAULT_WEATHER.strength[0]);
-      expect(w.strength).toBeLessThanOrEqual(DEFAULT_WEATHER.strength[1]);
+      const [lo, hi] = DEFAULT_WEATHER.kinds![w.kind].strength;
+      expect(w.strength).toBeGreaterThanOrEqual(lo);
+      expect(w.strength).toBeLessThanOrEqual(hi);
       const turn = Math.abs(wrapAngle((w.offsetDeg - prev.offsetDeg) * DEG)) / DEG;
       // The step, plus the small pull back toward the prevailing wind.
       expect(turn).toBeLessThanOrEqual(
@@ -95,10 +96,14 @@ describe('slow weather (0026)', () => {
     }
   });
 
-  it('eases into a new wind instead of jumping', () => {
-    let prev = windAt(PHASE1_MAP.wind, 0, seed);
+  it('eases into a new wind instead of jumping (storms aside)', () => {
+    const noStorms = {
+      ...PHASE1_MAP.wind,
+      weather: { ...DEFAULT_WEATHER, storms: undefined },
+    };
+    let prev = windAt(noStorms, 0, seed);
     for (let t = 0.5; t < 1200; t += 0.5) {
-      const w = windAt(PHASE1_MAP.wind, t, seed);
+      const w = windAt(noStorms, t, seed);
       expect(Math.abs(wrapAngle(w.from - prev.from)) / DEG).toBeLessThan(2);
       prev = w;
     }

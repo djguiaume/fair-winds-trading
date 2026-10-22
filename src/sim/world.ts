@@ -10,7 +10,7 @@ import {
   shallowDrag,
   shallowness,
 } from './hazards';
-import { DEG, distance } from './math';
+import { DEG, bearingTo, distance } from './math';
 import type { ShipClass } from './ship';
 import {
   type DockEvent,
@@ -20,7 +20,16 @@ import {
   portInRange,
   stepTrade,
 } from './trade';
-import { type Wind, type WindBlocker, localWind, windAt, windBlockers, windEffectAt } from './wind';
+import type { GoodId } from './goods';
+import {
+  type LocalWeather,
+  type Wind,
+  type WindBlocker,
+  localWind,
+  windAt,
+  windBlockers,
+  windEffectAt,
+} from './wind';
 
 /** Distance (units) at which a course buoy counts as reached. */
 export const WAYPOINT_RADIUS = 12;
@@ -53,6 +62,12 @@ export interface World {
   piers: Pier[];
   /** 0 = deep water … 1 = at a reef's edge. */
   shallow: number;
+  /** Weather at the boat: sea-wide state, rain and storm (decision 0065). */
+  weather: LocalWeather;
+  /** Storm exposure (seconds at full force) since cargo was last soaked. */
+  soak: number;
+  /** Storms the captain has already been warned about. */
+  stormsWarned: number[];
   /** Degrees added to the map's wind direction (the "new wind" button). */
   windOffsetDeg: number;
   boat: BoatState;
@@ -74,6 +89,8 @@ export type WorldEvent =
   | { type: 'reef-strike'; damage: number }
   | { type: 'crash'; damage: number; surface: 'shore' | 'pier' }
   | { type: 'waypoint'; label: string; seconds: number; next: string }
+  | { type: 'storm-near'; bearing: number }
+  | { type: 'spoiled'; goods: Partial<Record<GoodId, number>> }
   | DockEvent;
 
 export function createWorld(map: MapDef, ship: ShipClass): World {
@@ -84,6 +101,9 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     time: 0,
     wind: windAt(map.wind, 0, map.seed, map.start),
     seaWind: windAt(map.wind, 0, map.seed, map.start),
+    weather: { kind: 'breeze', rain: 0, showers: 0, storm: 0, storms: [] },
+    soak: 0,
+    stormsWarned: [],
     shelter: 0,
     funnel: 0,
     windBlockers: windBlockers(map.islands, map.terrain),
@@ -144,11 +164,47 @@ function moor(boat: BoatState, dt: number): void {
   boat.drift.y *= hold;
 }
 
+/** Goods that seawater ruins; timber, stone and the workshop goods are packed to keep (0065). */
+export const PERISHABLE: readonly GoodId[] = ['fish', 'grain', 'bread'];
+/** Seconds in a storm's core before a soaking spoils part of the perishable cargo. */
+export const SOAK_SECONDS = 4;
+/** Share of each perishable good lost per soaking (at least one unit). */
+export const SOAK_SHARE = 0.1;
+/** Warn when a storm's edge comes this close (map units). */
+export const STORM_WARNING = 140;
+
+/** Storm warnings and spoiled cargo (decision 0065). */
+export function stepStorms(world: World, dt: number): WorldEvent[] {
+  const events: WorldEvent[] = [];
+  const { boat, weather, trade } = world;
+  for (const s of weather.storms) {
+    if (world.stormsWarned.includes(s.id)) continue;
+    if (distance(boat, s) - s.radius > STORM_WARNING) continue;
+    world.stormsWarned = [...world.stormsWarned.slice(-4), s.id];
+    events.push({ type: 'storm-near', bearing: bearingTo(boat, s) });
+  }
+  // Moored in harbour, the cargo is under cover.
+  if (weather.storm < 0.5 || trade.dockedAt) return events;
+  world.soak += weather.storm * dt;
+  if (world.soak < SOAK_SECONDS) return events;
+  world.soak = 0;
+  const lost: Partial<Record<GoodId, number>> = {};
+  const cargo = trade.captain.cargo;
+  for (const g of PERISHABLE) {
+    if (cargo[g] <= 0) continue;
+    const n = Math.min(cargo[g], Math.max(1, Math.round(cargo[g] * SOAK_SHARE)));
+    cargo[g] -= n;
+    lost[g] = n;
+  }
+  if (Object.keys(lost).length) events.push({ type: 'spoiled', goods: lost });
+  return events;
+}
+
 export function stepWorld(world: World, controls: BoatControls, dt: number): WorldEvent[] {
   const events: WorldEvent[] = [];
   world.time += dt;
   const cfg = { ...world.map.wind, fromDeg: world.map.wind.fromDeg + world.windOffsetDeg };
-  world.seaWind = windAt(cfg, world.time, world.map.seed, world.boat);
+  world.seaWind = windAt(cfg, world.time, world.map.seed, world.boat, world.weather);
   const effect = windEffectAt(world.windBlockers, world.boat, world.seaWind);
   world.shelter = effect.shelter;
   world.funnel = effect.funnel;
@@ -191,6 +247,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   }
 
   events.push(...stepTrade(world.trade, world.map, world.boat, dt));
+  events.push(...stepStorms(world, dt));
 
   const wp = currentWaypoint(world);
   if (

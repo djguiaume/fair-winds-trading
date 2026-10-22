@@ -4,6 +4,7 @@ import { GOODS, type GoodId, isSpecialty } from '../sim/goods';
 import { madeGoods } from '../sim/settlement';
 import { type PortQuote, quoteAcross } from '../sim/market';
 import { DEG, distance } from '../sim/math';
+import { STORM_CORE } from '../sim/storms';
 import { discoveredPorts } from '../sim/shipyards';
 import { goodName, t } from '../i18n';
 import { icon, COIN } from './icons';
@@ -441,6 +442,37 @@ export class SeaChart {
       if (terrain.kind === 'island') landBoxes.push({ x0, x1, y0, y1 });
       if (terrain.name && terrain.kind === 'island')
         places.push({ name: terrain.name, x: (x0 + x1) / 2, top: y0, bottom: y1 });
+    }
+    // Storms (decision 0065): a grey patch with its core, and where it is heading in 2 minutes.
+    for (const storm of this.world.weather.storms) {
+      if (storm.intensity < 0.05) continue;
+      const g = shape('g', { class: 'chart-storm', opacity: Math.min(1, storm.intensity * 1.3) });
+      shape('circle', { cx: storm.x, cy: -storm.y, r: storm.radius }, g);
+      shape(
+        'circle',
+        { cx: storm.x, cy: -storm.y, r: storm.radius * STORM_CORE, class: 'core' },
+        g,
+      );
+      // A short arrow from the centre the way it is drifting; it is not a course.
+      const len = storm.radius * 0.8;
+      const tip = { x: storm.x + storm.dx * len, y: -(storm.y + storm.dy * len) };
+      shape('line', { x1: storm.x, y1: -storm.y, x2: tip.x, y2: tip.y, class: 'track' }, g);
+      const head = 9 * unit;
+      const [ux, uy] = [storm.dx, -storm.dy];
+      shape(
+        'polygon',
+        {
+          points: [
+            [tip.x + ux * head, tip.y + uy * head],
+            [tip.x - uy * head * 0.8, tip.y + ux * head * 0.8],
+            [tip.x + uy * head * 0.8, tip.y - ux * head * 0.8],
+          ]
+            .map((p) => p.join(','))
+            .join(' '),
+          class: 'track-head',
+        },
+        g,
+      );
     }
     // The course: a dashed line from the boat to a small ring on the destination's pier.
     if (destination) {

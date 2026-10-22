@@ -58,6 +58,7 @@ export class Hud {
   private readonly objName = $('obj-name');
   private readonly objDist = $('obj-dist');
   private readonly windText = $('wind-text');
+  private readonly weatherText = $('weather-text');
   private readonly cNoGo = $('c-nogo');
   private readonly cBand = $('c-band');
   private readonly cWind = $('c-wind');
@@ -291,6 +292,13 @@ export class Hud {
       } else if (e.type === 'crash') {
         const pct = Math.round(hullCondition(this.world.trade) * 100);
         this.showToast(t(e.surface === 'pier' ? 'toast.crashPier' : 'toast.crash', { pct }), 2.5);
+      } else if (e.type === 'storm-near') {
+        this.showToast(t('toast.stormNear', { dir: compassPoint(e.bearing) }), 4);
+      } else if (e.type === 'spoiled') {
+        const list = Object.entries(e.goods)
+          .map(([g, n]) => `${n} ${goodName(g)}`)
+          .join(', ');
+        this.showToast(t('toast.spoiled', { list }), 3);
       } else if (e.type === 'bump' && this.toastTimer <= 0) {
         this.showToast(t('toast.bump'), 1.2);
       }
@@ -380,6 +388,14 @@ export class Hud {
       // Name the lee so a sudden drop in speed reads as the island, not a bug (decision 0027).
       const lee = this.world.shelter > 0.25 ? ` · ${t('hud.lee')}` : '';
       this.windText.textContent = `${fromDir} · ${wind.speedKn.toFixed(0)} ${t('unit.knots')}${lee}`;
+      // Weather only shows when it is not a plain breeze, in line with the quiet HUD (0065).
+      const { weather } = this.world;
+      const kind = weather.storm > 0.15 ? 'storm' : weather.kind;
+      this.weatherText.hidden = kind === 'breeze';
+      if (this.weatherText.dataset.kind !== kind) {
+        this.weatherText.dataset.kind = kind;
+        this.weatherText.textContent = t(`weather.${kind}`);
+      }
 
       document.body.classList.toggle('is-docked', Boolean(this.world.trade.dockedAt));
       // Captain stats & dock button

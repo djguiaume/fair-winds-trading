@@ -243,6 +243,27 @@ dialog.chart::backdrop {
   text-anchor: middle;
   pointer-events: none;
 }
+/* Storms (decision 0065): a soft grey patch, a darker core and a short track arrow. */
+.chart-storm circle {
+  fill: rgba(52, 66, 76, 0.28);
+  stroke: rgba(52, 66, 76, 0.5);
+  stroke-width: 1.5px;
+  stroke-dasharray: 5 5;
+  vector-effect: non-scaling-stroke;
+}
+.chart-storm .core {
+  fill: rgba(40, 50, 60, 0.35);
+  stroke: none;
+}
+.chart-storm .track {
+  stroke: rgba(40, 50, 60, 0.7);
+  stroke-width: 3px;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.chart-storm .track-head {
+  fill: rgba(40, 50, 60, 0.7);
+}
 .chart-course {
   stroke: var(--brass-hi);
   stroke-width: 3px;

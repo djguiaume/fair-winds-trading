@@ -183,6 +183,14 @@ export class Ocean {
     this.mesh.material.uniforms.uFogFar!.value = far;
   }
 
+  /** Water and fog colours, for weather and time of day (decisions 0065, 0066). */
+  setColors(water: THREE.Color, waterLight: THREE.Color, fog: THREE.Color): void {
+    const u = this.mesh.material.uniforms;
+    (u.uWater!.value as THREE.Color).copy(water);
+    (u.uWaterLight!.value as THREE.Color).copy(waterLight);
+    (u.uFogColor!.value as THREE.Color).copy(fog);
+  }
+
   /** Keep the grid centered on the camera target, snapped to whole cells so waves don't swim. */
   update(time: number, center: THREE.Vector3): void {
     this.mesh.material.uniforms.uTime!.value = time;
