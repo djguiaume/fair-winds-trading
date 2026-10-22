@@ -2,7 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { DEG, bearingTo, wrapAngle } from '../src/sim/math';
 import { createRng } from '../src/sim/rng';
 import { SLOOP, pointOfSail, polarFraction } from '../src/sim/ship';
-import { type BoatState, createBoat, stepBoat, trueWindAngle } from '../src/sim/boat';
+import {
+  REFERENCE_BREEZE_KN,
+  type BoatState,
+  createBoat,
+  stepBoat,
+  topSpeedKn,
+  trueWindAngle,
+} from '../src/sim/boat';
+import { effectiveShip } from '../src/sim/upgrades';
 import { resolveCollisions } from '../src/sim/collision';
 import { createWorld, stepWorld } from '../src/sim/world';
 import { PHASE0_MAP } from '../src/data/maps';
@@ -179,5 +187,15 @@ describe('world', () => {
       return [w.boat.x, w.boat.y, w.boat.heading];
     };
     expect(run()).toEqual(run());
+  });
+});
+
+describe('top speed in knots (decision 0075)', () => {
+  it('quotes the best point of sail in the reference breeze', () => {
+    expect(REFERENCE_BREEZE_KN).toBe(14);
+    expect(topSpeedKn(SLOOP)).toBeCloseTo(14 * SLOOP.speedRatio);
+    expect(topSpeedKn(effectiveShip(SLOOP, { sails: 3, hold: 1, hull: 3 }))).toBeCloseTo(
+      14 * SLOOP.speedRatio * 1.16 * 1.04,
+    );
   });
 });

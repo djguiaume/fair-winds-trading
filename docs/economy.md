@@ -94,7 +94,7 @@ Ship lines from [0035](decisions/0035-three-ship-lines.md); where they are built
 | Price | starter | 1 500 | 5 000 | 20 000 | 1 800 | 7 000 | 25 000 |
 | Hold (stock) | 10 | 16 | 30 | 50 | 25 | 60 | 120 |
 | No-go zone | 45° | 40° | 38° | 40° | 50° | 55° | 55° |
-| Top speed vs sloop | 100 % | 106 % | 125 % | 145 % | 85 % | 81 % | 85 % |
+| Top speed, 14 kn breeze ([0075](decisions/0075-ship-speed-in-knots.md)) | 8.7 kn | 9.2 kn | 10.9 kn | 12.6 kn | 7.4 kn | 7.0 kn | 7.4 kn |
 | Upgrade price (L2 / L3, each track) | 300 / 900 | 500 / 1 800 | 1 500 / 4 500 | 5 000 / 15 000 | 700 / 2 100 | 2 000 / 6 000 | 6 000 / 18 000 |
 
 Hold upgrades multiply the stock hold by 1.6 and 2.2 (sloop 10 / 16 / 22, cutter 16 / 26 / 35).

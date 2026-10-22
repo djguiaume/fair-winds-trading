@@ -1,3 +1,4 @@
+import { REFERENCE_BREEZE_KN, topSpeedKn } from '../sim/boat';
 import { type Contract, deliverContract, openContracts } from '../sim/contracts';
 import { GOODS, GOOD_DEFS, GOOD_ICONS, type GoodId } from '../sim/goods';
 import { hullCondition, repairHull, repairPrice } from '../sim/hazards';
@@ -40,6 +41,7 @@ import {
   MAX_UPGRADE_LEVEL,
   UPGRADE_TRACKS,
   holdCapacity,
+  effectiveShip,
   hullDurability,
   upgradePrice,
   type UpgradeTrack,
@@ -763,12 +765,16 @@ export class TradePanel {
             : 0;
       };
       const level = Math.min(Math.max(currentLevel, 1), 3) as 1 | 2 | 3;
-      const currentDesc = t(`upg.${track}.${level}`, { n: amount(level) });
+      // Top speed in knots with this track at `level` and the other tracks as they are (decision 0075).
+      const kn = (level: 1 | 2 | 3) =>
+        formatNumber(topSpeedKn(effectiveShip(activeShipBase, { ...levels, [track]: level })), 1);
+      const params = (level: 1 | 2 | 3) => ({ n: amount(level), kn: kn(level) });
+      const currentDesc = t(`upg.${track}.${level}`, params(level));
       const nextDesc =
         level === 1
-          ? t(`upg.${track}.next2`, { n: amount(2) })
+          ? t(`upg.${track}.next2`, params(2))
           : level === 2
-            ? t(`upg.${track}.next3`, { n: amount(3) })
+            ? t(`upg.${track}.next3`, params(3))
             : '';
 
       let buttonHtml: string;
@@ -880,7 +886,7 @@ export class TradePanel {
     const card = (offer: ShipOffer): string => {
       const { cls } = offer;
       const levels = captain.ships[cls.id] ?? stock;
-      const speed = Math.round((cls.speedRatio / SLOOP.speedRatio) * 100);
+      const speed = formatNumber(topSpeedKn(effectiveShip(cls, levels)), 1);
       const role =
         cls.line === 'starter'
           ? t('fleet.line.starter')
@@ -894,7 +900,7 @@ export class TradePanel {
             <div class="ship-specs">
               <div>${t('fleet.hold', { n: holdCapacity(cls, levels) })}</div>
               <div>${t('fleet.points', { deg: Math.round(cls.noGoAngle / DEG) })}</div>
-              <div>${t('fleet.speed', { pct: speed })}</div>
+              <div>${t('fleet.speed', { kn: speed })}</div>
             </div>
             <div class="ship-action">
               ${action(offer)}
@@ -908,6 +914,7 @@ export class TradePanel {
         <div class="ships-grid">
           ${offers.map(card).join('')}
         </div>
+        <p class="muted small speed-note">${t('upg.speedNote', { wind: REFERENCE_BREEZE_KN })}</p>
     `;
   }
 

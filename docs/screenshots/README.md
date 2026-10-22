@@ -57,3 +57,9 @@ Harbour: "Best sale elsewhere" under each good (decision 0036)
 | Abbey Head yard, hoy unlocked | Away from home: no upgrades, where each ship is built | A fluyt at sea |
 |---|---|---|
 | ![Abbey Head shipyard](shipyard-abbey-head.png) | ![shipyard away from home](shipyard-away-from-home.png) | ![fluyt at sea](fluyt-at-sea.png) |
+
+## Ship speed in knots ([0075](../decisions/0075-ship-speed-in-knots.md))
+
+| Shipyard, upgrades in knots | Fleet in French | Fleet, portrait |
+|---|---|---|
+| ![shipyard in knots](speed-knots-shipyard-landscape.png) | ![fleet in French](speed-knots-shipyard-fr-landscape-fleet.png) | ![fleet portrait](speed-knots-shipyard-portrait-fleet.png) |

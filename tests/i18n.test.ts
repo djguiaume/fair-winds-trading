@@ -86,6 +86,10 @@ describe('translations (decision 0037)', () => {
     expect(market).not.toContain('Return to Sea');
     panel.open('shipyard');
     expect(document.getElementById('trade-panel')!.textContent).toContain(fr['upg.sails']);
+    // Ship speeds are quoted in knots, French style (decision 0075).
+    const yard = document.getElementById('trade-panel')!.textContent!;
+    expect(yard).toContain('Vitesse max : 8,7\u00a0nd');
+    expect(yard).not.toContain('du sloop');
     panel.uiMode = 'kids';
     panel.open('market');
     expect(document.getElementById('trade-panel')!.textContent).toContain(fr['kids.undock']);
