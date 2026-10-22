@@ -70,14 +70,17 @@ function track(config: StormConfig, seed: number, k: number): Track {
   };
 }
 
-/** Storms on the sea at time `t` (usually none or one). */
-export function stormsAt(config: StormConfig, seed: number, t: number): Storm[] {
+/**
+ * Storms on the sea at time `t` (usually none or one). Only storms that formed at or after `from`
+ * count, so storms held back for a while (decision 0072) never pop up mid-sea when let go.
+ */
+export function stormsAt(config: StormConfig, seed: number, t: number, from = 0): Storm[] {
   const out: Storm[] = [];
   const now = Math.floor(t / config.everySec);
   // A storm lasts well under two stretches, so only the last few can still be out.
   for (let k = Math.max(0, now - 2); k <= now; k++) {
     const tr = track(config, seed, k);
-    if (t < tr.start || t > tr.end) continue;
+    if (t < tr.start || t > tr.end || tr.start < from) continue;
     const age = t - tr.start;
     const ramp = clamp(Math.min(age, tr.end - t) / STORM_RAMP, 0, 1);
     out.push({

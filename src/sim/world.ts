@@ -79,6 +79,15 @@ export interface World {
   dynamicWeather: boolean;
   /** Moving storms on (decision 0067); players can turn them off in Settings. */
   storms: boolean;
+  /**
+   * Why storms are held back right now (decision 0072): 'tutorial', later a special event such as
+   * a delivery race with fixed weather. Any entry holds them; see `holdStorms`.
+   */
+  stormHolds: string[];
+  /** Only storms that form at or after this time; set when storms come back (decision 0072). */
+  stormsFrom: number;
+  /** Whether storms could blow on the last step, to notice when they come back. */
+  stormsOn: boolean;
   /** Degrees added to the map's wind direction (the "new wind" button). */
   windOffsetDeg: number;
   boat: BoatState;
@@ -120,6 +129,9 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     stormsWarned: [],
     dynamicWeather: true,
     storms: true,
+    stormHolds: [],
+    stormsFrom: 0,
+    stormsOn: true,
     shelter: 0,
     funnel: 0,
     windBlockers: windBlockers(map.islands, map.terrain),
@@ -259,10 +271,26 @@ export function stepHeel(world: World, dt: number): WorldEvent[] {
   return loseCargo(world);
 }
 
+/**
+ * Holds storms back for a reason (decision 0072), or lets that reason go. Storms never blow during
+ * the tutorial or a special event, whatever the Settings say. Idempotent, so callers can sync it
+ * every step.
+ */
+export function holdStorms(world: World, reason: string, held: boolean) {
+  const has = world.stormHolds.includes(reason);
+  if (held && !has) world.stormHolds = [...world.stormHolds, reason];
+  else if (!held && has) world.stormHolds = world.stormHolds.filter((r) => r !== reason);
+}
+
 export function stepWorld(world: World, controls: BoatControls, dt: number): WorldEvent[] {
   const events: WorldEvent[] = [];
   world.time += dt;
   const { weather } = world.map.wind;
+  // When storms come back (Settings, end of the tutorial or an event), only new ones form at the
+  // edge of the sea: one already under way would otherwise appear out of nowhere (decision 0072).
+  const stormsOn = world.dynamicWeather && world.storms && world.stormHolds.length === 0;
+  if (stormsOn && !world.stormsOn) world.stormsFrom = world.time;
+  world.stormsOn = stormsOn;
   const cfg = {
     ...world.map.wind,
     fromDeg: world.map.wind.fromDeg + world.windOffsetDeg,
@@ -270,9 +298,10 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
       ? weather
       : !world.dynamicWeather
         ? steadyWeather(weather)
-        : !world.storms
+        : !stormsOn
           ? withoutStorms(weather)
           : weather,
+    stormsFrom: world.stormsFrom,
   };
   world.seaWind = windAt(cfg, world.time, world.map.seed, world.boat, world.weather);
   const effect = windEffectAt(world.windBlockers, world.boat, world.seaWind);

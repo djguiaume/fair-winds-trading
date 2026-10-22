@@ -4,7 +4,7 @@ import { type BoatControls } from './boat';
 import { type SaveStorage } from './save';
 import { isDiscovered } from './shipyards';
 import { findPort, cargoUsed } from './trade';
-import type { World } from './world';
+import { type World, holdStorms } from './world';
 
 export const TUTORIAL_STEPS = [
   'chart',
@@ -183,6 +183,8 @@ export class Tutorial {
   }
   /** Lightweight numeric checks at simulation frequency; DOM changes only on lesson transitions. */
   observe(controls?: BoatControls, dt = 0) {
+    // No storms while the lesson runs (decision 0072).
+    holdStorms(this.world, 'tutorial', this.isActive);
     if (!this.isActive) return;
     const { boat, trade } = this.world;
     if (this.step === 'choose-delivery' || this.step === 'deliver' || this.step === 'sell') {

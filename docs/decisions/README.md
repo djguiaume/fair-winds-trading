@@ -86,5 +86,6 @@
 | [0068](0068-day-and-night.md) | 12-minute day: golden dusk, blue moonlit night, dawn; the sun moves; harbour and masthead lanterns, lit town windows; looks only, no gameplay change; can be turned off | 2026-10-22 | Implementation for review |
 | [0069](0069-help-orders.md) | Help orders: the most neglected town (or the home port holding back an upgrade) posts an order paying 1.5× with double growth; one at a time, 4-minute pause | 2026-10-22 | Implementation for review |
 | [0070](0070-hazard-markers.md) | Hazard markers: one badge (icon, name, drift chevrons; storms add a soft cloud) on the chart and in warning toasts; storms slate, red kept for pirates | 2026-10-22 | Implementation for review |
+| [0072](0072-no-storms-in-tutorial-or-events.md) | No storms during the tutorial or special events: `holdStorms` with a reason; when storms return only new ones form at the sea's edge | 2026-10-22 | Implementation for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
