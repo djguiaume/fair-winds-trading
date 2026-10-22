@@ -5,6 +5,7 @@ import { goodRole, quoteAcross, quoteBuy, quoteSell, trades, type Market } from 
 import { DEG } from '../sim/math';
 import {
   growthProgress,
+  portTownGate,
   madeGoods,
   producesAt,
   settlementLevel,
@@ -13,7 +14,13 @@ import {
   wantsAt,
 } from '../sim/settlement';
 import { SHIP_CLASSES, SLOOP } from '../sim/ship';
-import { type ShipOffer, discoveredPorts, homePort, shipOffers } from '../sim/shipyards';
+import {
+  type ShipOffer,
+  discoveredPorts,
+  homePort,
+  isDiscovered,
+  shipOffers,
+} from '../sim/shipyards';
 import {
   buy,
   buyShip,
@@ -180,6 +187,7 @@ export class TradePanel {
     if (isKid && this.tab === 'orders') this.tab = 'market';
     const goodIcons = (goods: readonly string[]) =>
       goods.map((g) => `<span title="${goodName(g)}">${icon(g)}</span>`).join('');
+    const makes = producesAt(map, trade, port.id);
     const orders = this.openOrderCount();
     const tabBtn = (tab: TradePanelTab, label: string, extra = '') =>
       `<button id="tp-tab-${tab}" class="tab-btn ${this.tab === tab ? 'active' : ''}" aria-pressed="${this.tab === tab}">${label}${extra}</button>`;
@@ -192,7 +200,8 @@ export class TradePanel {
             <h2 class="port-name">${port.name}</h2>
             <div class="port-roles-summary">
               ${port.id === homePort(map).id ? `<span class="role-tag home">${icon('anchor')}${t('trade.homePort')}</span>` : ''}
-              ${port.produces.length ? `<span class="role-tag produces"><small>${isKid ? t('kids.produces') : t('trade.makes')}</small>${goodIcons(producesAt(map, trade, port.id))}</span>` : `<span class="role-tag produces">${t('trade.shipwright')}</span>`}
+              ${makes.length ? `<span class="role-tag produces"><small>${isKid ? t('kids.produces') : t('trade.makes')}</small>${goodIcons(makes)}</span>` : ''}
+              ${!port.produces.length ? `<span class="role-tag produces">${t('trade.shipwright')}</span>` : ''}
               <span class="role-tag wants"><small>${isKid ? t('kids.wants') : t('trade.wants')}</small>${goodIcons(wantsAt(map, trade, port.id))}</span>
               ${this.settlementTag(port.id, port.name)}
             </div>
@@ -362,6 +371,28 @@ export class TradePanel {
     if (!s) return '';
     const level = t(`settlement.level.${s.level}`);
     const pct = Math.round(growthProgress(this.world.trade, portId) * 100);
+    // A town short of its rare goods shows how many it has had (decision 0065).
+    const gate = s.level === 3 ? portTownGate(this.world.map, this.world.trade, portId) : null;
+    if (gate) {
+      const goods = gate.goods.map((g) => icon(g)).join('');
+      const text = t('settlement.rare', { level, pct, have: gate.have, need: gate.need, goods });
+      const sources = this.world.map.ports
+        .filter(
+          (p) =>
+            p.levelProduces &&
+            Object.values(p.levelProduces)
+              .flat()
+              .some((g) => gate.goods.includes(g)),
+        )
+        .map((p) => (isDiscovered(this.world.trade, p.id) ? p.name : t('settlement.farIsland')));
+      const hint = t('settlement.rareHint', {
+        name,
+        need: gate.need,
+        goods: gate.goods.map(goodName).join(', '),
+        source: sources[0] ?? t('settlement.farIsland'),
+      });
+      return `<span class="role-tag level rare" title="${hint}">${text}</span>`;
+    }
     const text =
       s.level >= 4
         ? level

@@ -3,7 +3,7 @@ import { Input } from './input/input';
 import { FrameMonitor, type QualityLevel, guessQuality, lowerQuality } from './render/quality';
 import { GameView } from './render/view';
 import { SAIL_STEPS } from './sim/boat';
-import { isSpecialty } from './sim/goods';
+import { isRare, isSpecialty } from './sim/goods';
 import { settlementLevels } from './sim/settlement';
 import { clamp } from './sim/math';
 import { type SaveStorage, clearSave, loadGame, saveGame } from './sim/save';
@@ -498,16 +498,20 @@ function handleEvents(events: WorldEvent[]) {
       const port = trade.findPort(world.map, e.portId);
       const portName = port?.name ?? e.portId;
       // A new town opens its workshop: say what it makes now (decision 0063).
-      const specialty =
-        port?.levelProduces?.[String(e.level) as '2' | '3' | '4']?.find(isSpecialty);
+      const opened = port?.levelProduces?.[String(e.level) as '2' | '3' | '4'] ?? [];
+      const specialty = opened.find(isSpecialty);
+      // A far yard starts making its rare good (decision 0065).
+      const rare = opened.find(isRare);
       hud.showToast(
-        specialty
-          ? t('toast.workshop', {
-              name: portName,
-              workshop: t(`workshop.${specialty}`),
-              good: goodName(specialty),
-            })
-          : t('toast.levelUp', { name: portName, level: t(`settlement.level.${e.level}`) }),
+        rare
+          ? t('toast.rareGood', { name: portName, good: goodName(rare) })
+          : specialty
+            ? t('toast.workshop', {
+                name: portName,
+                workshop: t(`workshop.${specialty}`),
+                good: goodName(specialty),
+              })
+            : t('toast.levelUp', { name: portName, level: t(`settlement.level.${e.level}`) }),
         5,
       );
       view.setSettlementLevels(settlementLevels(world.trade));

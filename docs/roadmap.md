@@ -96,7 +96,7 @@ Goal: deliveries visibly change the world.
 **Status (2026-10-22):** started; the menu now shows Phase 2 and `v0.2.x`. Growing town visuals (ADR 0060) are in; settlement levels and town specialties (ADR 0059, 0063, PR #42) are in review.
 
 - Settlements have a level and population; meeting demand levels them up (more buildings on the island, bigger dock). **Levels implemented for review ([0059](decisions/0059-settlement-levels.md)):** hamlet, village, town, port town; selling wanted goods and delivering orders grow a town; the home port must be a town before the top upgrades. Town visuals accepted in [0060](decisions/0060-growing-town-visuals.md): each port with its own island profile, buildings, industry and growing dock; a level-3 workshop per town (sawmill, smokehouse, bakery, masons). Making the T-head and second pier solid is a follow-up.
-- Higher levels unlock new demands, including goods produced only on distant islands. *Done: level wants, deeper demand, bigger orders, and town specialties ([0063](decisions/0063-specialized-town-goods.md)); goods only made on distant islands still to come.*
+- Higher levels unlock new demands, including goods produced only on distant islands. *Done: level wants, deeper demand, bigger orders, and town specialties ([0063](decisions/0063-specialized-town-goods.md)); and rare goods from the far yards ([0065](decisions/0065-rare-goods-from-the-far-yards.md), implemented for review): Abbey Head makes honey and Watchman Key lamp oil once they grow to villages, bought only across the map; a town needs 20 of its rare good to become a port town.*
 - Demand decays if unmet, so neglected towns stall. *Done: growth drains back after 3 minutes without supply; levels never drop.*
 - Simple production chains (timber → planks, grain → bread) at higher-level towns. **Implemented for review ([0063](decisions/0063-specialized-town-goods.md)):** a town's workshop makes smoked fish, bread, planks or cut stone, and other ports start buying it.
 - **Dynamic weather:** day/night cycle and weather states (calm, breeze, gale, rain, storms) that move across the map and change wind strength; storms can spoil cargo. Builds on Phase 1's slow wind shifts ([0026](decisions/0026-slow-weather-shifts.md)). *Step 1 implemented for review ([0064](decisions/0064-wind-from-every-quarter.md)): the wind now wanders round the whole compass instead of always blowing from the top, and differs from one part of the sea to another at the same moment. Weather states and storms next, then day and night.*
@@ -127,7 +127,7 @@ Goal: growth pushes you outward into tougher navigation.
 - Larger, explorable map with fog of war; discover new islands and settlements.
 - Regional wind patterns: trade-wind belts, doldrums with almost no wind, variable stormy zones, seasonal shifts.
 - Currents, reefs and shallows that block bigger ships.
-- Big settlements demand exotic goods from far regions, forcing long routes.
+- Big settlements demand exotic goods from far regions, forcing long routes. Planned: outer islands past the Windward Ring's edge, one upwind and one downwind, make a rarer second set of goods that only port towns want ([0065](decisions/0065-rare-goods-from-the-far-yards.md)).
 - Ports you can found or upgrade (warehouses, shipyards) to act as relay hubs.
 - Seeded procedural maps: new archipelago from a seed, shareable.
 

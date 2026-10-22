@@ -18,6 +18,7 @@ import {
   type LevelUp,
   type SettlementState,
   addGrowth,
+  addRare,
   createSettlements,
   madeGoods,
   settlementLevel,
@@ -228,7 +229,7 @@ export function stepTrade(
   const events: DockEvent[] = [];
   // Towns that got enough goods grow a level: deeper demand from now on (decision 0059), and a
   // new town's specialty opens a market at the ports that buy it (0063).
-  const ups = stepSettlements(trade, dt);
+  const ups = stepSettlements(trade, dt, map);
   if (ups.length) syncMarketLevels(trade, map);
   events.push(...ups);
   for (const port of discoverNear(trade, map, boat))
@@ -291,8 +292,10 @@ export function sell(trade: TradeState, good: GoodId, qty: number, map?: MapDef)
   trade.captain.gold += income;
   trade.captain.cargo[good] -= qty;
   market.stock[good] += qty;
-  if (map && wantsAt(map, trade, market.portId).includes(good))
+  if (map && wantsAt(map, trade, market.portId).includes(good)) {
     addGrowth(trade, market.portId, qty);
+    addRare(trade, market.portId, good, qty);
+  }
   return { ok: true, gold: income };
 }
 
