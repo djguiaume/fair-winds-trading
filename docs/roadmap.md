@@ -70,6 +70,7 @@ Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 - Pier-head labels show an anchor, port name and docking cue; tapping sets a destination or docks/trades when stopped within range ([0023](decisions/0023-visible-pier-markers-and-docking.md)). Trade goods appear in the market panel. Settlement levels and level badges remain Phase 2 work.
 - **English and French (implemented for review, [0037](decisions/0037-english-and-french-translations.md)):** every screen, Kids mode and the tutorial are translated; the language follows the browser and can be changed from the main menu (English / Français, no flags). New languages are one dictionary file each.
 - Sandbox play in short sessions: auto-save to the browser and instant resume ([0009](decisions/0009-sandbox-short-sessions.md)).
+- **Move a voyage between devices** (implemented for review, [0066](decisions/0066-move-voyage-between-devices.md)): Menu → Move your voyage shows the save as a QR code to scan on the other device (in game or with the camera app), with copy/paste and a `.json` file as fallbacks. No server; a copy, not a sync.
 - Light hazards ([0010](decisions/0010-light-hazards-pirates-later.md)), implemented for review in [0032](decisions/0032-reef-strikes-and-shallows.md): shallows around reefs slow the boat (deeper hulls more); striking a reef damages the hull, which leaks speed until repaired in port. Nothing sinks.
 
 **Play-test fixes (requested by Guillaume, 2026-10-19):**

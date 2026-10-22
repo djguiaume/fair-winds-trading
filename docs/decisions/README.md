@@ -80,5 +80,6 @@
 
 | [0063](0063-specialized-town-goods.md) | Specialized goods: each town's workshop makes smoked fish, bread, planks or cut stone; buyers open with the workshop | 2026-10-21 | Implementation for review |
 | [0064](0064-wind-from-every-quarter.md) | Wind wanders round the whole compass (random walk) and bends across regions of the sea; the boat feels the wind where it is | 2026-10-22 | Implementation for review |
+| [0066](0066-move-voyage-between-devices.md) | Move a voyage between devices without a server: QR code (main way, scan in game or with the camera app), copy/paste code, or `.json` file; checked and confirmed before replacing | 2026-10-22 | Implementation for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
