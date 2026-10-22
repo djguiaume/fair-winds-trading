@@ -17,11 +17,14 @@ import {
 import {
   HEAVY_SECONDS,
   LURCH_GUST_KN,
+  LURCH_PRESS_KN,
   OVERPRESSED_KN,
+  type PressLevel,
   type World,
   type WorldEvent,
   createWorld,
   holdStorms,
+  pressLevel,
   stepHeel,
   stepWorld,
 } from '../src/sim/world';
@@ -364,5 +367,62 @@ describe('cargo overboard when she heels too hard (0067)', () => {
     world.trade.dockedAt = PHASE1_MAP.homePort!;
     world.overHeel = HEAVY_SECONDS * 0.9;
     for (let i = 0; i < 300; i++) expect(stepHeel(world, 1 / 30)).toHaveLength(0);
+  });
+});
+
+describe('press warning on the sails control (0078)', () => {
+  /** Beam reach under full sail in a steady wind of `kn`, logging the warning and the losses. */
+  function watch(kn: number, seconds: number) {
+    const map: MapDef = {
+      ...PHASE1_MAP,
+      wind: { fromDeg: 0, speedKn: kn, gustiness: 0, shiftDeg: 0 },
+    };
+    const world = createWorld(map, SLOOP);
+    world.trade.captain.cargo.timber = 6;
+    let level: PressLevel = 0;
+    const firstAt: Record<PressLevel, number> = { 0: 0, 1: Infinity, 2: Infinity };
+    let firstLoss = Infinity;
+    for (let t = 0; t < seconds; t += 1 / 30) {
+      world.boat.x = 0;
+      world.boat.y = 370;
+      world.boat.heading = Math.PI / 2;
+      const lost = stepWorld(world, { steer: 0, sailStep: 2 }, 1 / 30);
+      level = pressLevel(world, level);
+      firstAt[level] = Math.min(firstAt[level], t);
+      if (lost.some((e) => e.type === 'overboard')) firstLoss = Math.min(firstLoss, t);
+    }
+    return { firstAt, firstLoss, level };
+  }
+
+  it('stays quiet in a normal breeze', () => {
+    const { firstAt } = watch(14, 60);
+    expect(firstAt[1]).toBe(Infinity);
+    expect(firstAt[2]).toBe(Infinity);
+  });
+
+  it('turns amber, then red, and red comes before any cargo goes over', () => {
+    const { firstAt, firstLoss, level } = watch(24, 30);
+    expect(level).toBe(2);
+    expect(firstAt[1]).toBeLessThan(firstAt[2]);
+    expect(firstLoss - firstAt[2]).toBeGreaterThanOrEqual(HEAVY_SECONDS);
+  });
+
+  it('does not flicker as the press wavers around a line', () => {
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    world.pressKn = OVERPRESSED_KN - 0.3;
+    expect(pressLevel(world, 2)).toBe(2);
+    expect(pressLevel(world, 1)).toBe(1);
+    world.pressKn = LURCH_PRESS_KN - 0.3;
+    expect(pressLevel(world, 1)).toBe(1);
+    expect(pressLevel(world, 0)).toBe(0);
+    world.pressKn = LURCH_PRESS_KN - 1;
+    expect(pressLevel(world, 2)).toBe(0);
+  });
+
+  it('says nothing alongside', () => {
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    world.pressKn = 30;
+    world.trade.dockedAt = PHASE1_MAP.homePort!;
+    expect(pressLevel(world, 2)).toBe(0);
   });
 });

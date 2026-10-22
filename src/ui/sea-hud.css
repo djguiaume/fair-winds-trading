@@ -888,6 +888,68 @@ button.captain-stat:focus-visible {
   transform: translateY(calc(2 * (var(--notch) + var(--notch-gap))));
 }
 
+/* Press warning (decision 0078): the sails control turns amber when a hard gust could throw
+   cargo, red when cargo is about to go over the side, and the lee edge of the screen glows the
+   same colour. Only opacity animates, so it stays cheap on old phones. */
+.press-glow {
+  --press: 242, 179, 61;
+  --lee: 90deg;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    var(--lee),
+    rgba(var(--press), 0) 55%,
+    rgba(var(--press), 0.16) 80%,
+    rgba(var(--press), 0.45) 100%
+  );
+  transition: opacity 0.4s;
+}
+.press-glow[data-press='1'] {
+  opacity: 0.8;
+}
+.press-glow[data-press='2'] {
+  --press: 226, 80, 58;
+  opacity: 1;
+  animation: press-pulse 0.9s ease-in-out infinite alternate;
+}
+@keyframes press-pulse {
+  from {
+    opacity: 0.55;
+  }
+}
+/* Portrait phones: the edge is far from the boat, so it glows wider and stronger. */
+@media (orientation: portrait) {
+  .press-glow {
+    background: linear-gradient(
+      var(--lee),
+      rgba(var(--press), 0) 45%,
+      rgba(var(--press), 0.24) 75%,
+      rgba(var(--press), 0.62) 100%
+    );
+  }
+}
+.sail-lever[data-press='1'],
+.sail-lever[data-press='2'] {
+  border-color: rgb(var(--press));
+  box-shadow: 0 0 14px rgba(var(--press), 0.6);
+}
+.sail-lever[data-press='1'] {
+  --press: 242, 179, 61;
+}
+.sail-lever[data-press='2'] {
+  --press: 226, 80, 58;
+}
+.sail-lever[data-press='1'] button[aria-pressed='true'],
+.sail-lever[data-press='2'] button[aria-pressed='true'] {
+  background: rgba(var(--press), 0.92);
+  color: #2a1d05;
+}
+.sail-lever[data-press='2'] button[aria-pressed='true'] {
+  color: #fff;
+}
+
 /* --- Sizes --------------------------------------------------------------------------------- */
 
 /* Phones in landscape: slimmer instruments so the sea stays visible. */
@@ -980,5 +1042,8 @@ button.captain-stat:focus-visible {
   }
   .lever-handle {
     transition: none;
+  }
+  .press-glow[data-press='2'] {
+    animation: none;
   }
 }

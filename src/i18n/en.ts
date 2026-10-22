@@ -69,6 +69,9 @@ export const en = {
   'help.tradeTitle': 'Trading',
   'help.tradeCopy':
     'Buy what a port makes, sell where it is wanted. Delivery orders pay extra. Open the map to compare prices.',
+  'help.pressTitle': 'Strong wind',
+  'help.pressCopy':
+    'When the sails control turns amber, then red, ease the sails or bear away, or cargo goes overboard.',
   'help.touch': 'Touch',
   'help.touchLine': 'Drag to steer · sail lever · tap a port',
   'help.keyboard': 'Keyboard',
@@ -183,6 +186,7 @@ export const en = {
   'toast.windShifts': 'The wind shifts…',
   'toast.waypoint': '{label} reached in {time}! Next: {next}',
   'toast.stormNear': 'Storm to the {dir}! Ease the sails or cargo may go overboard',
+  'toast.pressHint': 'Strong wind! Ease the sails or cargo goes overboard',
   'toast.overboard': 'Heeled too hard: {n} {good} went overboard. Ease the sails',
   'weather.calm': 'Calm',
   'weather.breeze': 'Breeze',

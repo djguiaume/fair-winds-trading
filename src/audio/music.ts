@@ -9,6 +9,7 @@
  */
 import { composeTune, EIGHTHS_PER_BAR, type Tune } from './composer';
 import { createBand, playNote, type Band } from './synth';
+import { playCreak } from './sfx';
 
 /** How far ahead notes are scheduled, and how often the scheduler wakes. */
 const LOOKAHEAD = 1.5;
@@ -45,6 +46,16 @@ export class Music {
     this.band.out.gain.value = this.level;
     this.barTime = this.ctx.currentTime + 0.3;
     this.apply();
+  }
+
+  /**
+   * The hull creaks when she is pressed too hard (decision 0078). Effects share the sound slider
+   * with the music for now, so muted music means a silent creak too.
+   */
+  creak(): void {
+    const { ctx } = this;
+    if (!ctx || !this.audible || ctx.state !== 'running') return;
+    playCreak(ctx, ctx.destination, 1.6 * this.level);
   }
 
   /** 0..1, from the settings slider. */
