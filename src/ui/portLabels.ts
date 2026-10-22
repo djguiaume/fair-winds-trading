@@ -198,7 +198,9 @@ export class PortLabels {
           // What the port pays today for the goods it wants.
           const market = trade.markets[port.id];
           for (const p of entry.prices) {
-            const price = market ? String(unitSellPrice(p.good, market.stock[p.good])) : '';
+            const price = market
+              ? String(unitSellPrice(p.good, market.stock[p.good], market.spread))
+              : '';
             if (p.el.textContent !== price) p.el.textContent = price;
           }
           if (entry.root.classList.contains('ready') !== ready)

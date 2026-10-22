@@ -102,6 +102,6 @@
 | [0080](0080-refined-upgrade-aware-hoy.md) | Refined hoy: beamy flat-bottomed hull, leeboards, raised boom over deck cargo, attached sails through every pose | 2026-10-22 | Implementation for review |
 | [0081](0081-refined-indiaman.md) | Refined indiaman: own wall-sided hull with a broad square transom and painted gun ports; reuses the shared square rig, stern castle and gaff mizzen; every sail stays attached | 2026-10-22 | Implementation for review |
 | [0082](0082-solid-moored-boats-and-yard-docks.md) | Moored fishing boats and the hidden yards' grown docks are solid; ramming a moored boat dents the hull | 2026-10-22 | Implemented for review |
-| [0083](0083-difficulty-levels.md) | Difficulty levels: Fair winds, Captain, Old salt; same sailing, different costs (damage, cargo, repairs, prices, growth, storms) | 2026-10-22 | Proposed |
+| [0083](0083-difficulty-levels.md) | Difficulty levels: Fair winds, Captain, Old salt; same sailing, different costs (damage, cargo, repairs, prices, growth, storms) | 2026-10-22 | Implemented for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

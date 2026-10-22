@@ -19,6 +19,7 @@ import {
   upgradeNeedsLevel,
   wantsAt,
 } from './settlement';
+import { knobs } from './difficulty';
 import { addStanding, homePort, isDiscovered } from './shipyards';
 import { type TradeState, capacity } from './trade';
 import { MAX_UPGRADE_LEVEL, UPGRADE_TRACKS } from './upgrades';
@@ -85,8 +86,14 @@ export function haulDistance(map: MapDef, port: PortDef, good: GoodId): number {
   return Number.isFinite(best) ? best : 0;
 }
 
-export function contractReward(map: MapDef, port: PortDef, good: GoodId, qty: number): number {
-  const factor = CONTRACT_PRICE_FACTOR + haulDistance(map, port, good) / CONTRACT_DISTANCE_SCALE;
+export function contractReward(
+  map: MapDef,
+  port: PortDef,
+  good: GoodId,
+  qty: number,
+  priceFactor = CONTRACT_PRICE_FACTOR,
+): number {
+  const factor = priceFactor + haulDistance(map, port, good) / CONTRACT_DISTANCE_SCALE;
   const perUnit = GOOD_DEFS[good].basePrice * factor;
   return Math.round((perUnit * qty) / 5) * 5;
 }
@@ -115,6 +122,7 @@ export function makeContract(
   hold = 0,
   level: number = startLevel(port),
   made: ReadonlySet<GoodId> = new Set(),
+  priceFactor = CONTRACT_PRICE_FACTOR,
 ): Contract {
   let h = map.seed ^ 0xc0de;
   for (const ch of port.id) h = Math.imul(h ^ ch.charCodeAt(0), 0x01000193);
@@ -124,7 +132,8 @@ export function makeContract(
   const good = wants[Math.floor(rng() * wants.length)]!;
   const [lo, hi] = contractQtyRange(hold, level);
   const qty = lo + Math.floor(rng() * (hi - lo + 1));
-  return { portId: port.id, good, qty, reward: contractReward(map, port, good, qty), readyIn };
+  const reward = contractReward(map, port, good, qty, priceFactor);
+  return { portId: port.id, good, qty, reward, readyIn };
 }
 
 export function createContracts(map: MapDef): ContractState {
@@ -170,6 +179,7 @@ export function deliverContract(trade: TradeState, map: MapDef): DeliverResult {
     capacity(trade),
     settlementLevel(trade, portId),
     madeGoods(map, trade),
+    knobs(trade.difficulty).orderFactor,
   );
   return { ok: true, gold: c.reward };
 }

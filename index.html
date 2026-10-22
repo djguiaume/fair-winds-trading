@@ -1086,6 +1086,27 @@
             >
             <input type="checkbox" id="day-night" class="switch" role="switch" />
           </label>
+          <div class="set-row">
+            <span class="set-name"
+              ><span id="wind-label" data-i18n="settings.wind">Wind</span
+              ><small data-i18n="settings.windNote"
+                >Steady: a trade wind that barely turns</small
+              ></span
+            >
+            <div id="wind-choice" class="seg" role="radiogroup" aria-labelledby="wind-label">
+              <button type="button" role="radio" data-wind="steady" data-i18n="settings.windSteady">
+                Steady
+              </button>
+              <button
+                type="button"
+                role="radio"
+                data-wind="shifting"
+                data-i18n="settings.windShifting"
+              >
+                Shifting
+              </button>
+            </div>
+          </div>
           <label class="set-row">
             <span class="set-name"
               ><span data-i18n="settings.weather">Weather</span
@@ -1129,6 +1150,25 @@
             ></div>
           </div>
           <h3 class="set-label" data-i18n="settings.voyage">Voyage</h3>
+          <div class="set-row">
+            <span class="set-name"
+              ><span id="difficulty-label" data-i18n="settings.difficulty">Difficulty</span
+              ><small data-i18n="settings.difficultyNote"
+                >Prices, damage, cargo and storms. Sailing never changes.</small
+              ></span
+            >
+            <div id="difficulty" class="seg" role="radiogroup" aria-labelledby="difficulty-label">
+              <button type="button" role="radio" data-level="fair" data-i18n="level.fair">
+                Fair winds
+              </button>
+              <button type="button" role="radio" data-level="captain" data-i18n="level.captain">
+                Captain
+              </button>
+              <button type="button" role="radio" data-level="salt" data-i18n="level.salt">
+                Old salt
+              </button>
+            </div>
+          </div>
           <div class="set-actions">
             <button id="reset-boat" class="d-btn in-game" type="button">
               <svg class="icon" aria-hidden="true"><use href="#i-anchor" /></svg>
@@ -1151,6 +1191,130 @@
             Stuck? Brings the boat back to port.
           </p>
         </div>
+      </div>
+    </section>
+
+    <section id="new-voyage" class="sheet level-sheet" aria-labelledby="level-title" hidden>
+      <svg width="0" height="0" class="icon-sprite" aria-hidden="true">
+        <defs>
+          <path
+            id="i-level-wave"
+            d="M2 0 q5 -6 10 0 t10 0 t10 0 t10 0"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3.2"
+            stroke-linecap="round"
+          />
+        </defs>
+      </svg>
+      <header class="sheet-head">
+        <svg class="icon" aria-hidden="true"><use href="#i-sail" /></svg>
+        <h2 id="level-title" data-i18n="level.title">New voyage</h2>
+        <span class="level-sub" data-i18n="level.sub"></span>
+        <button
+          id="close-new-voyage"
+          class="d-btn red square"
+          type="button"
+          aria-label="Close"
+          title="Close"
+          data-i18n-attr="aria-label:settings.close;title:settings.close"
+        >
+          <svg class="icon" aria-hidden="true"><use href="#i-close" /></svg>
+        </button>
+      </header>
+      <div class="sheet-body level-body">
+        <div id="level-cards" class="level-cards" role="radiogroup" aria-labelledby="level-title">
+          <button
+            type="button"
+            role="radio"
+            class="level-card"
+            data-level="fair"
+            aria-checked="false"
+          >
+            <span class="level-top">
+              <svg
+                class="level-waves"
+                viewBox="0 0 46 34"
+                aria-hidden="true"
+                style="color: #8fe3a4"
+              >
+                <use href="#i-level-wave" y="20" />
+              </svg>
+              <span class="level-name" data-i18n="level.fair"></span>
+            </span>
+            <span class="level-tag" data-i18n="level.fairTag"></span>
+            <ul>
+              <li data-i18n="level.fair1"></li>
+              <li data-i18n="level.fair2"></li>
+              <li data-i18n="level.fair3"></li>
+              <li class="extra" data-i18n="level.fair4"></li>
+              <li class="extra" data-i18n="level.fair5"></li>
+            </ul>
+          </button>
+          <button
+            type="button"
+            role="radio"
+            class="level-card"
+            data-level="captain"
+            aria-checked="false"
+          >
+            <span class="level-badge" data-i18n="level.asDesigned">As designed</span>
+            <span class="level-top">
+              <svg
+                class="level-waves"
+                viewBox="0 0 46 34"
+                aria-hidden="true"
+                style="color: #e8c46a"
+              >
+                <use href="#i-level-wave" y="13" />
+                <use href="#i-level-wave" y="25" />
+              </svg>
+              <span class="level-name" data-i18n="level.captain"></span>
+            </span>
+            <span class="level-tag" data-i18n="level.captainTag"></span>
+            <ul>
+              <li data-i18n="level.captain1"></li>
+              <li data-i18n="level.captain2"></li>
+              <li data-i18n="level.captain3"></li>
+              <li class="extra" data-i18n="level.captain4"></li>
+              <li class="extra" data-i18n="level.captain5"></li>
+            </ul>
+          </button>
+          <button
+            type="button"
+            role="radio"
+            class="level-card"
+            data-level="salt"
+            aria-checked="false"
+          >
+            <span class="level-top">
+              <svg
+                class="level-waves"
+                viewBox="0 0 46 34"
+                aria-hidden="true"
+                style="color: #ff8a73"
+              >
+                <use href="#i-level-wave" y="8" />
+                <use href="#i-level-wave" y="18" />
+                <use href="#i-level-wave" y="28" />
+              </svg>
+              <span class="level-name" data-i18n="level.salt"></span>
+            </span>
+            <span class="level-tag" data-i18n="level.saltTag"></span>
+            <ul>
+              <li data-i18n="level.salt1"></li>
+              <li data-i18n="level.salt2"></li>
+              <li data-i18n="level.salt3"></li>
+              <li class="extra" data-i18n="level.salt4"></li>
+            </ul>
+          </button>
+        </div>
+        <footer class="level-foot">
+          <p class="level-note" data-i18n="level.note"></p>
+          <button id="set-sail" class="d-btn brass big" type="button" data-i18n="level.setSail">
+            Set sail
+          </button>
+        </footer>
       </div>
     </section>
 

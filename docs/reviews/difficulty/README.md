@@ -1,6 +1,6 @@
 # Difficulty levels: proposal
 
-**Status:** Proposal for Guillaume to choose (2026-10-22). No game code yet. Decision draft: [0083](../../decisions/0083-difficulty-levels.md).
+**Status:** Picked and built (2026-10-22). Guillaume agreed on several levels, added the wind, and said "start working on it": three levels plus the Wind steady/shifting setting. Decision: [0083](../../decisions/0083-difficulty-levels.md). Screenshots of the built screens: [docs/screenshots/difficulty/](../../screenshots/difficulty/).
 
 Guillaume: "game can be difficult which is a good and a bad thing. how can we go about making distinct difficulty levels?"
 
@@ -34,8 +34,8 @@ The audience is sailing fans first. So the boat sails the same at every level: p
 | Cargo overboard | **off**; the sails still turn amber/red so you learn | 1 unit per lurch | **2 units** per lurch, same warning lines |
 | Reef and crash damage | × 0.5 | × 1 | × 1.5 |
 | Repairs (gold per hull point) | 1 | 2 | 3 |
-| Port's cut on trades | 3 % | 6 % | 9 % |
-| Order reward factor | 1.8 | 1.5 | 1.3 |
+| Port's cut on trades | 2 % | 6 % | 11 % |
+| Order reward factor | 2.0 | 1.5 | 1.25 |
 | Start gold | 250 | 150 | 100 |
 | Town growth needed | × 0.75 | × 1 | × 1.25 |
 | Wind direction | **steady trade wind**: about ± 15° round the prevailing wind, slow changes, sea regions barely bend it, softer gusts | dynamic wind as now (0064): a new direction every 3 min, up to 75° a step, regions bend ± 40° | as Captain, or a little shiftier |
@@ -49,18 +49,18 @@ Wind direction (Guillaume, 2026-10-22: "dynamic wind as there is now will feel b
 
 ## Effect on pace (balance simulation)
 
-`tests/difficulty-preview.test.ts` runs the 0046 balance sim with the preset knobs applied on top: income × 1.2 / 1 / 0.85 stands in for the port's cut and order changes, plus damage, repair price, growth thresholds and start gold. 150 minutes of play; the relaxed captain is the median of 9 seeds. Run it with `FWT_DIFFICULTY_SIM=1 npx vitest run tests/difficulty-preview.test.ts` (skipped in CI).
+`tests/difficulty-balance.test.ts` runs the 0046 balance sim on each level with the game's own knobs (`src/sim/difficulty.ts`): start gold, the port's cut, order rewards, damage, repair price and town growth. Fair winds times its legs over the steady wind's narrow range (about ± 10° instead of ± 50°), so legs into the wind stay beats. 120 minutes of play; the relaxed captain is the median of 5 seeds.
 
-| Preset | Captain | 1st upgrade | Cutter | Cutter maxed | 1st town | Repairs / income |
+| Level | Captain | 1st upgrade | Cutter | Cutter maxed | 1st town | Repairs / income |
 | --- | --- | --- | --- | --- | --- | --- |
-| Fair winds | sharp | 2.4 min | 9.3 min | 38 min | 15 min | 0 % |
-| Fair winds | relaxed | 4.2 min | 19 min | 57 min | 37 min | 1 % |
+| Fair winds | sharp | 2.4 min | 9.0 min | 38 min | 12 min | 0 % |
+| Fair winds | relaxed | 5.4 min | 21 min | 67 min | 31 min | 1 % |
 | **Captain** | sharp | 4.9 min | 14.5 min | 46 min | 24 min | 0 % |
-| **Captain** | relaxed | 7.3 min | 25 min | 80 min | 44 min | 3 % |
-| Old salt | sharp | 4.9 min | 16.7 min | 72 min | 25 min | 0 % |
-| Old salt | relaxed | 7.6 min | 40 min | 112 min | 68 min | 8 % |
+| **Captain** | relaxed | 7.3 min | 25 min | 80 min | 60 min | 3 % |
+| Old salt | sharp | 4.9 min | 14.5 min | over 2 h | 32 min | 0 % |
+| Old salt | relaxed | 7.5 min | 31 min | 102 min | 63 min | 10 % |
 
-Reading it: Fair winds lets a casual player reach the cutter about as fast as a sharp player does today. Old salt barely slows a sharp captain early (start gold is the only brake), but every mistake is felt: repairs reach 8 % of a careless captain's income and the long game takes about 40 % longer. The sim does not model cargo overboard, storms, night or the steadier Fair winds wind (its leg times average the shifting wind's range), so Old salt will feel harder at sea than these numbers say, and Fair winds softer.
+Reading it: on Fair winds a relaxed captain reaches the cutter about as fast as a sharp one on Captain, and towns grow in half the time, so the top upgrades come within a session or two. Old salt hardly slows a sharp captain early but stretches the long game (no maxed cutter in 2 h), and a careless captain pays 10 % of income in repairs. The steady wind costs Fair winds about a minute on the cutter (some legs are always a beat), which the better prices more than make up. The sim does not model cargo overboard, storms or night, so Old salt feels harder at sea than these numbers say, and Fair winds softer. The tests check the order of the levels and these targets; Captain's own targets stay in `tests/economy-balance.test.ts` (0046).
 
 ## How it fits with the Settings switches
 
@@ -79,12 +79,11 @@ Reading it: Fair winds lets a casual player reach the cutter about as fast as a 
 
 Kids mode (shelved in [0043](../../decisions/0043-shelve-kids-mode.md)) is a different axis: it changes the *presentation* (words instead of numbers, simpler screens), not the costs. When it comes back in Phase 7 it should be **Kids UI on top of Fair winds**, locked to it. Fair winds gives that rework its gameplay half for free; the difficulty picker is not Kids mode and does not hide any sailing numbers.
 
-## Cost to build (once picked)
+## As built
 
-Small: one `difficulty.ts` table of knobs read by `hazards.ts`, `market.ts`, `contracts.ts`, `settlement.ts`, `world.ts` (cargo) and the weather config; one save field; the New voyage screen and a Settings row; EN/FR strings; tests that each preset hits its pace targets (the preview test becomes real targets). About one thread's work.
-
-## Options for Guillaume
-
-1. **Three presets as above** (recommended).
-2. **Two levels only**, Fair winds and Captain: Old salt comes later with pirates, when "hard" has more to bite on.
-3. **Three presets plus Custom**: the same table as individual sliders behind an "Advanced" button. More to test and explain; could be added later on top of option 1.
+- `src/sim/difficulty.ts`: the levels, their knobs and `weatherFor` (gales, storms and the steady trade wind, cached so the weather walk keeps its cache).
+- Read by `hazards.ts` (repairs), `world.ts` (crash damage, cargo overboard, wind with a 60 s blend when the level or the Wind setting changes), `market.ts` (the port's cut, per market), `contracts.ts` (next order's reward) and `settlement.ts` (growth).
+- `TradeState.difficulty` and `easiestDifficulty`, saved as optional fields (no save version change). `setDifficulty` and `startVoyage` in `trade.ts`.
+- New voyage screen (`#new-voyage`), shown when Play starts a fresh voyage; Settings › Voyage › Difficulty and Settings › Wind. EN and FR (French names: Bon vent, Capitaine, Vieux loup de mer).
+- On Fair winds the one-time strong-wind message says the cargo would go over on harder levels.
+- Changing level at sea drops a storm already under way (the storm tracks depend on the level's interval).

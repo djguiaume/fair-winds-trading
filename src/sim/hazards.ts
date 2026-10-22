@@ -5,6 +5,7 @@ import { clamp } from './math';
 import type { ShipClass } from './ship';
 import type { TradeState } from './trade';
 import { hullDurability } from './upgrades';
+import { knobs } from './difficulty';
 
 /**
  * Light hazards (decisions 0010 and 0032): shallow water around reefs drags at the hull, and
@@ -25,8 +26,13 @@ export const CRASH_SAFE_KN = 2;
 export const CRASH_DAMAGE = 5;
 /** Speed lost with a fully wrecked hull (the leak), scaled by damage. */
 export const LEAK_PENALTY = 0.25;
-/** Gold per hull point repaired. */
+/** Gold per hull point repaired on Captain; the difficulty level sets it (decision 0083). */
 export const REPAIR_COST = 2;
+
+/** Gold per hull point repaired at the voyage's difficulty level. */
+export function repairCost(trade: TradeState): number {
+  return knobs(trade.difficulty).repairCost;
+}
 
 export interface Reef {
   outline: TerrainDef['outline'];
@@ -109,7 +115,7 @@ export function damageHull(trade: TradeState, points: number): number {
 }
 
 export function repairPrice(trade: TradeState): number {
-  return Math.ceil(hullDamage(trade) * REPAIR_COST);
+  return Math.ceil(hullDamage(trade) * repairCost(trade));
 }
 
 export type RepairResult =
@@ -121,9 +127,10 @@ export function repairHull(trade: TradeState): RepairResult {
   if (!trade.dockedAt) return { ok: false, error: 'not-docked' };
   const damage = hullDamage(trade);
   if (damage <= 0) return { ok: false, error: 'not-damaged' };
-  const points = Math.min(damage, Math.floor(trade.captain.gold / REPAIR_COST));
+  const cost = repairCost(trade);
+  const points = Math.min(damage, Math.floor(trade.captain.gold / cost));
   if (points <= 0) return { ok: false, error: 'not-enough-gold' };
-  const gold = Math.ceil(points * REPAIR_COST);
+  const gold = Math.ceil(points * cost);
   trade.captain.gold -= gold;
   trade.captain.hullDamage[trade.captain.activeShip] = damage - points;
   return { ok: true, gold, points };

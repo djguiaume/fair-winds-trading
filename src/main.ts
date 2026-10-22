@@ -10,6 +10,7 @@ import { type SaveStorage, clearSave, loadGame, saveGame } from './sim/save';
 import { LINK_KEY } from './sim/saveTransfer';
 import { SLOOP } from './sim/ship';
 import * as trade from './sim/trade';
+import { type Difficulty, isDifficulty, knobs } from './sim/difficulty';
 import { TUTORIAL_STEPS, Tutorial } from './sim/tutorial';
 import { TutorialCoach } from './ui/tutorial';
 import {
@@ -176,6 +177,7 @@ const help = $('help');
 const windHelp = $<HTMLDialogElement>('wind-help');
 const helpClose = $('start');
 const settingsPanel = $('settings');
+const newVoyage = $('new-voyage');
 const playButton = $('menu-play');
 // Move a voyage to another device by QR code or file (decision 0066). The QR links back here.
 const transfer = new TransferPanel(
@@ -192,6 +194,7 @@ function refreshPause() {
   paused =
     mode === 'menu' ||
     !settingsPanel.hidden ||
+    !newVoyage.hidden ||
     !help.hidden ||
     transfer.isOpen ||
     tradePanel.isOpen ||
@@ -226,6 +229,7 @@ function showMenu() {
   document.body.classList.toggle('at-title', !started);
   help.hidden = true;
   settingsPanel.hidden = true;
+  newVoyage.hidden = true;
   if (transfer.isOpen) transfer.close();
   if (tradePanel.isOpen) tradePanel.close();
   // Pause shows the voyage under the same menu (decision 0061).
@@ -240,7 +244,48 @@ function showMenu() {
   playButton.focus({ preventScroll: true });
 }
 
+/*
+ * New voyage (decision 0083): a fresh voyage starts by picking a difficulty level. Captain is
+ * preselected; the level can be changed later in Settings.
+ */
+let chosenLevel: Difficulty = world.trade.difficulty;
+let levelPicked = resumedVoyage;
+const levelCards = [...newVoyage.querySelectorAll<HTMLButtonElement>('.level-card')];
+const markLevelCards = () => {
+  for (const c of levelCards)
+    c.setAttribute('aria-checked', String(c.dataset.level === chosenLevel));
+};
+for (const c of levelCards)
+  c.addEventListener('click', () => {
+    if (isDifficulty(c.dataset.level)) chosenLevel = c.dataset.level;
+    markLevelCards();
+  });
+function openNewVoyage() {
+  menu.hidden = true;
+  markLevelCards();
+  newVoyage.hidden = false;
+  refreshPause();
+  levelCards.find((c) => c.dataset.level === chosenLevel)?.focus({ preventScroll: true });
+}
+$('close-new-voyage').addEventListener('click', () => {
+  newVoyage.hidden = true;
+  showMenu();
+});
+$('set-sail').addEventListener('click', () => {
+  trade.startVoyage(world.trade, chosenLevel);
+  applyLevelWind(chosenLevel);
+  markDifficulty();
+  levelPicked = true;
+  newVoyage.hidden = true;
+  autosave();
+  play();
+});
+
 function play() {
+  if (!levelPicked) {
+    openNewVoyage();
+    return;
+  }
   mode = 'play';
   started = true;
   document.body.classList.remove('in-menu', 'at-title');
@@ -356,7 +401,10 @@ window.addEventListener('keydown', (e) => {
   } else if (!settingsPanel.hidden) closeSettings();
   else if (transfer.isOpen) transfer.close();
   else if (!help.hidden) closeHelp();
-  else if (mode === 'play') showMenu();
+  else if (!newVoyage.hidden) {
+    newVoyage.hidden = true;
+    showMenu();
+  } else if (mode === 'play') showMenu();
 });
 help.hidden = true;
 showMenu();
@@ -463,6 +511,44 @@ const syncWeather = () => {
   storms.disabled = !settings.weather;
 };
 syncWeather();
+// Wind: steady trade wind or the shifting wind (decision 0083); the level sets its default.
+const windButtons = [...$('wind-choice').querySelectorAll<HTMLButtonElement>('[data-wind]')];
+const syncWind = () => {
+  world.steadyWind = settings.steadyWind;
+  for (const b of windButtons)
+    b.setAttribute('aria-checked', String((b.dataset.wind === 'steady') === settings.steadyWind));
+};
+syncWind();
+for (const b of windButtons)
+  b.addEventListener('click', () => {
+    settings.steadyWind = b.dataset.wind === 'steady';
+    syncWind();
+    saveSettings(settings);
+  });
+function applyLevelWind(level: Difficulty) {
+  settings.steadyWind = knobs(level).steadyWind;
+  syncWind();
+  saveSettings(settings);
+}
+
+// Difficulty (decision 0083): changeable at any time; it moves the Wind choice to the level's default.
+const difficultyButtons = [...$('difficulty').querySelectorAll<HTMLButtonElement>('[data-level]')];
+function markDifficulty() {
+  for (const b of difficultyButtons)
+    b.setAttribute('aria-checked', String(b.dataset.level === world.trade.difficulty));
+}
+markDifficulty();
+for (const b of difficultyButtons)
+  b.addEventListener('click', () => {
+    const level = b.dataset.level;
+    if (!isDifficulty(level) || level === world.trade.difficulty) return;
+    trade.setDifficulty(world.trade, level);
+    chosenLevel = level;
+    applyLevelWind(level);
+    markDifficulty();
+    autosave();
+  });
+
 weatherSwitch.addEventListener('change', () => {
   settings.weather = weatherSwitch.checked;
   syncWeather();

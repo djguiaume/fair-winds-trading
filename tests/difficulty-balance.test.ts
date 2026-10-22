@@ -1,9 +1,10 @@
 /**
- * Difficulty presets preview (docs/reviews/difficulty/README.md). A copy of the 0046 balance
- * simulation with rough preset knobs applied on top (income, damage, repair price, town growth,
- * start gold). Not a target test: it prints a pace table and is skipped unless FWT_DIFFICULTY_SIM is set.
+ * Difficulty levels on the Windward Ring (decision 0083). The 0046 balance simulation, run on each
+ * level with the game's own knobs: start gold, the port's cut, order rewards, damage, repair price
+ * and town growth all come from src/sim/difficulty.ts. Fair winds also sails in the steady trade
+ * wind, so its legs are timed over a narrow wind range. Captain must stay the 0046 game.
  */
-import { expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
 import { KNOT_TO_UNITS } from '../src/sim/boat';
 import { deliverContract, stepContracts, syncHelpOrder } from '../src/sim/contracts';
@@ -12,13 +13,14 @@ import { damageHull, repairHull } from '../src/sim/hazards';
 import { quoteBuy, quoteSell, stepMarket } from '../src/sim/market';
 import { DEG } from '../src/sim/math';
 import { createRng } from '../src/sim/rng';
-import { GROWTH_TO_LEVEL, stepSettlements } from '../src/sim/settlement';
-const BASE_GROWTH = { ...GROWTH_TO_LEVEL };
+import { stepSettlements } from '../src/sim/settlement';
+import { DIFFICULTIES, type Difficulty, knobs } from '../src/sim/difficulty';
 import { homePort } from '../src/sim/shipyards';
 import { CUTTER, SLOOP, type ShipClass, polarFraction } from '../src/sim/ship';
 import {
   type TradeState,
   activeShip,
+  startVoyage,
   buy,
   buyShip,
   buyUpgrade,
@@ -45,10 +47,18 @@ const PORTS = MAP.ports.filter((p) => !p.hidden);
 /** Upgrades and the cutter are bought only at the home port, Saltmere (decision 0048). */
 const HOME = homePort(MAP).id;
 const DOCK_SECONDS = 20;
-/** Wind from the map's prevailing direction, ±50° and ×0.8–1.1 as the weather shifts (0026). */
-const WEATHERS = Array.from({ length: 11 }, (_, i) => (i - 5) * 10).flatMap((off) =>
-  [0.8, 0.95, 1.1].map((s) => ({ from: (MAP.wind.fromDeg + off) * DEG, kn: MAP.wind.speedKn * s })),
-);
+/** Wind from the map's prevailing direction, ±`spread`° and ×0.8–1.1 as the weather shifts. */
+const weathers = (spread: number) =>
+  Array.from({ length: 11 }, (_, i) => ((i - 5) * spread) / 5).flatMap((off) =>
+    [0.8, 0.95, 1.1].map((s) => ({
+      from: (MAP.wind.fromDeg + off) * DEG,
+      kn: MAP.wind.speedKn * s,
+    })),
+  );
+/** ±50° as in 0046 for the shifting wind; the steady trade wind stays within about ±10°. */
+const SHIFTING = weathers(50);
+const STEADY = weathers(10);
+let WEATHERS = SHIFTING;
 
 function islandOfPort(portId: string) {
   const port = MAP.ports.find((p) => p.id === portId)!;
@@ -142,28 +152,18 @@ interface Voyage {
   levels: Record<string, number>;
 }
 
-export interface Preset {
-  name: string;
-  income: number;
-  damage: number;
-  repair: number;
-  growth: number;
-  startGold: number;
-}
-
 function sail(opts: {
   contracts: boolean;
   relaxed: boolean;
   minutes?: number;
-  p: Preset;
+  level: Difficulty;
   seed?: number;
 }): Voyage {
   const minutes = opts.minutes ?? 40;
   const world = createWorld(MAP, SLOOP);
   const trade = world.trade;
-  trade.captain.gold = opts.p.startGold;
-  for (const [k, n] of Object.entries(BASE_GROWTH))
-    GROWTH_TO_LEVEL[Number(k) as 2 | 3 | 4] = Math.round(n * opts.p.growth);
+  startVoyage(trade, opts.level);
+  WEATHERS = knobs(opts.level).steadyWind ? STEADY : SHIFTING;
   const rng = createRng(opts.seed ?? 7);
   const v: Voyage = {
     bought: {},
@@ -176,33 +176,21 @@ function sail(opts: {
     levels: {},
   };
   let at = HOME;
-  let lastCost = 0;
   let t = 0;
   let next = 0;
   while (t < minutes * 60) {
     trade.dockedAt = at;
     if (opts.relaxed) {
       const r = repairHull(trade);
-      if (r.ok) {
-        const extra = Math.round(r.points * (opts.p.repair - 2));
-        trade.captain.gold -= extra;
-        v.repairGold += r.gold + extra;
-      }
+      if (r.ok) v.repairGold += r.gold;
     }
     if (opts.contracts) {
       const r = deliverContract(trade, MAP);
-      if (r.ok) {
-        const bonus = Math.round(r.gold * (opts.p.income - 1));
-        trade.captain.gold += bonus;
-        v.contractGold += r.gold + bonus;
-      }
+      if (r.ok) v.contractGold += r.gold;
     }
     const before = trade.captain.gold;
     sellAll(trade, MAP);
-    const sold = trade.captain.gold - before;
-    const bonus = Math.round(Math.max(0, sold - lastCost) * (opts.p.income - 1));
-    trade.captain.gold += bonus;
-    v.marketGold += sold + bonus;
+    v.marketGold += trade.captain.gold - before;
 
     // Shop in a fixed order at the home port, keeping a little gold back for the next load.
     while (at === HOME && next < SHOPPING.length) {
@@ -250,14 +238,13 @@ function sail(opts: {
       const r = rng();
       leg = paying[Math.min(paying.length - 1, r < 0.5 ? 0 : r < 0.8 ? 1 : 2)] ?? leg;
     }
-    const g0 = trade.captain.gold;
     if (leg.good && leg.qty > 0) expect(buy(trade, leg.good, leg.qty).ok).toBe(true);
-    lastCost = g0 - trade.captain.gold;
     const key = `${at}>${leg.to}`;
     v.routes[key] = (v.routes[key] ?? 0) + 1;
     trade.dockedAt = null;
     const seconds = leg.seconds * (opts.relaxed ? 1.4 : 1);
-    if (opts.relaxed && rng() < 0.2) damageHull(trade, (20 + rng() * 30) * opts.p.damage);
+    if (opts.relaxed && rng() < 0.2)
+      damageHull(trade, (20 + rng() * 30) * knobs(opts.level).damage);
     for (const m of Object.values(trade.markets)) stepMarket(m, seconds);
     stepContracts(trade.contracts, seconds);
     // A neglected town, or the home port holding back an upgrade, asks for help (0069).
@@ -272,49 +259,99 @@ function sail(opts: {
   return v;
 }
 
-const PRESETS: Preset[] = [
-  { name: 'Fair winds', income: 1.2, damage: 0.5, repair: 1, growth: 0.75, startGold: 250 },
-  { name: 'Captain', income: 1, damage: 1, repair: 2, growth: 1, startGold: 150 },
-  { name: 'Old salt', income: 0.85, damage: 1.5, repair: 3, growth: 1.25, startGold: 100 },
-];
+const NAMES: Record<Difficulty, string> = {
+  fair: 'Fair winds',
+  captain: 'Captain',
+  salt: 'Old salt',
+};
+const SEEDS = [1, 2, 3, 4, 5];
 
-const fmt = (m: number | undefined) => (m === undefined ? '-' : m.toFixed(1));
+interface Pace {
+  firstUpgrade?: number;
+  cutter?: number;
+  maxed?: number;
+  firstTown?: number;
+  repairs: number;
+}
 
-// Preview only (docs/reviews/difficulty): run with FWT_DIFFICULTY_SIM=1 npx vitest run tests/difficulty-preview.test.ts
-it.runIf(process.env.FWT_DIFFICULTY_SIM)('difficulty presets: pace', () => {
-  const rows: string[] = [];
-  for (const p of PRESETS)
-    for (const relaxed of [false, true]) {
-      const seeds = relaxed ? [1, 2, 3, 4, 5, 6, 7, 8, 9] : [7];
-      const runs = seeds.map((seed) => sail({ contracts: true, relaxed, minutes: 150, p, seed }));
-      const median = (f: (v: Voyage) => number | undefined) => {
-        const xs = runs.map((v) => f(v) ?? Infinity).sort((a, b) => a - b);
-        const m = xs[Math.floor(xs.length / 2)]!;
-        return isFinite(m) ? m : undefined;
-      };
-      const firstTown = (v: Voyage) => {
-        const ms = Object.entries(v.levels)
-          .filter(([k]) => k.endsWith(' 3'))
-          .map(([, m]) => m);
-        return ms.length ? Math.min(...ms) : undefined;
-      };
-      rows.push(
-        [
-          p.name,
-          relaxed ? 'relaxed' : 'sharp',
-          fmt(median((v) => v.bought['sloop hold'])),
-          fmt(median((v) => v.bought.cutter)),
-          fmt(median((v) => v.boughtAt.filter(([n]) => n === 'cutter hull')[1]?.[1])),
-          fmt(median(firstTown)),
-          fmt(median((v) => v.levels['saltmere 3'])),
-          `${median((v) => Math.round((100 * v.repairGold) / (v.marketGold + v.contractGold)))} %`,
-        ].join(' | '),
-      );
-    }
-  for (const [k, n] of Object.entries(BASE_GROWTH)) GROWTH_TO_LEVEL[Number(k) as 2 | 3 | 4] = n;
-  console.log(
-    'preset | captain | 1st upgrade | cutter | cutter maxed | 1st town (L3) | Saltmere L3 | repairs\n' +
-      rows.join('\n'),
+/** Median milestones of a captain over a few seeds (one run for the sharp one: no randomness). */
+function pace(level: Difficulty, relaxed: boolean): Pace {
+  const runs = (relaxed ? SEEDS : [7]).map((seed) =>
+    sail({ contracts: true, relaxed, minutes: 120, level, seed }),
   );
-  expect(rows.length).toBe(6);
+  WEATHERS = SHIFTING;
+  const median = (f: (v: Voyage) => number | undefined) => {
+    const xs = runs.map((v) => f(v) ?? Infinity).sort((a, b) => a - b);
+    const m = xs[Math.floor(xs.length / 2)]!;
+    return Number.isFinite(m) ? m : undefined;
+  };
+  const firstTown = (v: Voyage) => {
+    const ms = Object.entries(v.levels)
+      .filter(([k]) => k.endsWith(' 3'))
+      .map(([, m]) => m);
+    return ms.length ? Math.min(...ms) : undefined;
+  };
+  return {
+    firstUpgrade: median((v) => v.bought['sloop hold']),
+    cutter: median((v) => v.bought.cutter),
+    maxed: median((v) => v.boughtAt.filter(([n]) => n === 'cutter hull')[1]?.[1]),
+    firstTown: median(firstTown),
+    repairs: median((v) => v.repairGold / (v.marketGold + v.contractGold)) ?? 0,
+  };
+}
+
+const fmt = (m: number | undefined) => (m === undefined ? '-' : `${m.toFixed(1)} min`);
+
+describe('difficulty levels (0083)', () => {
+  const results = DIFFICULTIES.map((level) => ({
+    level,
+    sharp: pace(level, false),
+    relaxed: pace(level, true),
+  }));
+  const by = Object.fromEntries(results.map((r) => [r.level, r])) as Record<
+    Difficulty,
+    (typeof results)[number]
+  >;
+  console.log(
+    'level | captain | 1st upgrade | cutter | cutter maxed | 1st town | repairs\n' +
+      results
+        .flatMap((r) =>
+          (['sharp', 'relaxed'] as const).map((who) =>
+            [
+              NAMES[r.level],
+              who,
+              fmt(r[who].firstUpgrade),
+              fmt(r[who].cutter),
+              fmt(r[who].maxed),
+              fmt(r[who].firstTown),
+              `${Math.round(100 * r[who].repairs)} %`,
+            ].join(' | '),
+          ),
+        )
+        .join('\n'),
+  );
+
+  it('each level is slower than the one before for a relaxed captain', () => {
+    expect(by.fair.relaxed.cutter!).toBeLessThan(by.captain.relaxed.cutter!);
+    expect(by.captain.relaxed.cutter!).toBeLessThan(by.salt.relaxed.cutter!);
+    expect(by.fair.relaxed.firstTown!).toBeLessThan(by.salt.relaxed.firstTown!);
+  });
+
+  it('Fair winds gets a relaxed captain to the cutter about as fast as a sharp one on Captain', () => {
+    expect(by.fair.relaxed.firstUpgrade!).toBeLessThanOrEqual(6);
+    expect(by.fair.relaxed.cutter!).toBeLessThanOrEqual(22);
+    // Towns grow much sooner, so the top upgrades come within a session or two.
+    expect(by.fair.relaxed.firstTown!).toBeLessThan(by.captain.relaxed.firstTown! * 0.7);
+  });
+
+  it('Old salt is a long haul but still reaches the cutter within a long evening', () => {
+    expect(by.salt.relaxed.cutter!).toBeGreaterThanOrEqual(28);
+    expect(by.salt.relaxed.cutter!).toBeLessThanOrEqual(55);
+    // Mistakes sting: repairs weigh much more than on Captain.
+    expect(by.salt.relaxed.repairs).toBeGreaterThan(by.captain.relaxed.repairs * 1.5);
+  });
+
+  it('a sharp captain still reaches the cutter early on every level', () => {
+    for (const r of results) expect(r.sharp.cutter!).toBeLessThanOrEqual(20);
+  });
 });

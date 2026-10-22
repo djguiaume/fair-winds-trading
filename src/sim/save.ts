@@ -1,12 +1,13 @@
 import { SAIL_STEPS, type BoatState, createBoat } from './boat';
 import { type ContractState, readContracts } from './contracts';
 import { resolveCollisions } from './collision';
+import { type Difficulty, DEFAULT_DIFFICULTY, isDifficulty } from './difficulty';
 import { GOODS, type GoodAmounts, emptyAmounts } from './goods';
 import { wrapPositive } from './math';
 import { type SettlementState, readSettlements } from './settlement';
 import { SHIP_CLASSES } from './ship';
 import { type ShipyardProgress, readProgress } from './shipyards';
-import { activeShip, findPort, syncMarketLevels } from './trade';
+import { activeShip, findPort, setDifficulty, syncMarketLevels } from './trade';
 import { MAX_UPGRADE_LEVEL, UPGRADE_TRACKS, type UpgradeLevels, hullDurability } from './upgrades';
 import { refreshPiers, type World } from './world';
 
@@ -42,6 +43,10 @@ export interface SaveData {
   progress?: ShipyardProgress;
   /** Settlement levels and growth (decision 0059). Optional: older saves start at the map's levels. */
   settlements?: SettlementState;
+  /** Difficulty level (decision 0083). Optional: older saves play on as Captain. */
+  difficulty?: Difficulty;
+  /** Easiest level played on the voyage (0083). Optional: defaults to `difficulty`. */
+  easiestDifficulty?: Difficulty;
 }
 
 /** The subset of the Web Storage API the save needs. */
@@ -74,6 +79,8 @@ export function serializeWorld(world: World): SaveData {
     contracts: structuredClone(world.trade.contracts),
     progress: structuredClone(world.trade.progress),
     settlements: structuredClone(world.trade.settlements),
+    difficulty: world.trade.difficulty,
+    easiestDifficulty: world.trade.easiestDifficulty,
   };
 }
 
@@ -147,6 +154,7 @@ export function validateSave(raw: unknown, world: World): SaveData | null {
     }
   }
   const settlements = readSettlements(raw.settlements, world.map);
+  const difficulty = isDifficulty(raw.difficulty) ? raw.difficulty : DEFAULT_DIFFICULTY;
   return {
     version: SAVE_VERSION,
     // The map it was saved on, so applySave can tell a migrated save (always a known name here).
@@ -174,6 +182,8 @@ export function validateSave(raw: unknown, world: World): SaveData | null {
     contracts: readContracts(raw.contracts, world.map, settlements),
     progress: readProgress(raw.progress, world.map),
     settlements,
+    difficulty,
+    easiestDifficulty: isDifficulty(raw.easiestDifficulty) ? raw.easiestDifficulty : difficulty,
   };
 }
 
@@ -211,6 +221,8 @@ export function applySave(world: World, data: SaveData): void {
   trade.dockedAt = data.dockedAt;
   if (data.contracts) trade.contracts = readContracts(data.contracts, world.map, trade.settlements);
   trade.progress = readProgress(data.progress, world.map);
+  trade.easiestDifficulty = data.easiestDifficulty ?? data.difficulty ?? DEFAULT_DIFFICULTY;
+  setDifficulty(trade, data.difficulty ?? DEFAULT_DIFFICULTY);
   world.ship = activeShip(trade);
   refreshPiers(world);
   // Compatible older-map saves keep all trading progress. The coasts and ports have moved since

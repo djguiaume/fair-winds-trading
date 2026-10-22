@@ -1,6 +1,7 @@
 import { islandCoasts, islandPoint, characterPiers } from './islandLayout';
 import { coastDistance } from './coast';
 import { type ContractState, createContracts, stepContracts, syncHelpOrder } from './contracts';
+import { type Difficulty, DEFAULT_DIFFICULTY, easier, knobs } from './difficulty';
 import { leakFactor } from './hazards';
 import { GOODS, type GoodAmounts, type GoodId, emptyAmounts, totalAmount } from './goods';
 import type { MapDef, PortDef } from './map';
@@ -83,6 +84,10 @@ export interface TradeState {
   progress: ShipyardProgress;
   /** Each port's settlement level and growth (decision 0059). */
   settlements: SettlementState;
+  /** Difficulty level of the voyage (decision 0083): costs and pace, never the sailing. */
+  difficulty: Difficulty;
+  /** Easiest level played on this voyage, for racing missions and best times later. */
+  easiestDifficulty: Difficulty;
 }
 
 export type TradeError =
@@ -131,7 +136,30 @@ export function createTradeState(map: MapDef, startShip: ShipClass): TradeState 
     contracts: createContracts(map),
     progress: createProgress(map),
     settlements,
+    difficulty: DEFAULT_DIFFICULTY,
+    easiestDifficulty: DEFAULT_DIFFICULTY,
   };
+}
+
+/**
+ * Change the voyage's difficulty (decision 0083). Takes effect at once: prices, damage, repairs
+ * and growth use the new level; orders already posted keep their reward; nothing is refunded.
+ */
+export function setDifficulty(trade: TradeState, difficulty: Difficulty): void {
+  trade.difficulty = difficulty;
+  trade.easiestDifficulty = easier(trade.easiestDifficulty, difficulty);
+  const { spread } = knobs(difficulty);
+  for (const m of Object.values(trade.markets)) m.spread = spread;
+}
+
+/**
+ * Start a fresh voyage on `difficulty`: the level's start gold, and it counts as the easiest
+ * level played so far.
+ */
+export function startVoyage(trade: TradeState, difficulty: Difficulty): void {
+  trade.easiestDifficulty = difficulty;
+  setDifficulty(trade, difficulty);
+  trade.captain.gold = knobs(difficulty).startGold;
 }
 
 /** Bring every market's demand in line with its settlement level (after a level-up or a load). */
