@@ -10,6 +10,7 @@ export default tseslint.config(
       'docs/ui-refactor/mockups/src',
       'docs/art',
       'docs/roadmap-image',
+      'tools/ship-models',
     ],
   },
   js.configs.recommended,

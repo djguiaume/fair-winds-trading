@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { createStorybookBoat } from '../src/render/models/storybookBoat';
+import { createShipModel } from '../src/render/models/shipModels';
 import { RefinedSloop } from '../src/render/models/sloop';
 import { QUALITY } from '../src/render/quality';
 import type { BoatPose, ShipUpgrades } from '../src/render/models/types';
@@ -21,9 +21,9 @@ function luffVertices(m: THREE.Mesh) {
 
 describe('refined upgraded sloop', () => {
   it('uses the new model only for the sloop (and the documented unknown-class fallback)', () => {
-    const sloop = createStorybookBoat('sloop');
-    const fallback = createStorybookBoat('unknown');
-    const cutter = createStorybookBoat('cutter');
+    const sloop = createShipModel('sloop');
+    const fallback = createShipModel('unknown');
+    const cutter = createShipModel('cutter');
     expect(sloop).toBeInstanceOf(RefinedSloop);
     expect(fallback).toBeInstanceOf(RefinedSloop);
     expect(cutter).not.toBeInstanceOf(RefinedSloop);

@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { PHASE0_MAP } from '../src/data/maps';
 import { bearingTo } from '../src/sim/math';
 import { buildHighlandIslands, islandParts } from '../src/render/models/highlandIslands';
-import { StorybookBoat, createStorybookBoat } from '../src/render/models/storybookBoat';
+import type { StorybookBoat } from '../src/render/models/storybookBoat';
+import { createShipModel } from '../src/render/models/shipModels';
 import { triangleCount } from '../src/render/models/geometry';
 import type { BoatPose, ShipUpgrades, UpgradeLevel } from '../src/render/models/types';
 
@@ -11,7 +12,7 @@ const POSE: BoatPose = { sail: 1, boomAngle: 0, luff: 0, heel: 0, windRelative: 
 const level = (n: UpgradeLevel): ShipUpgrades => ({ sails: n, hold: n, hull: n });
 
 function boat(id = 'sloop', upgrades = level(1)) {
-  return createStorybookBoat(id, { upgrades }) as StorybookBoat;
+  return createShipModel(id, { upgrades }) as StorybookBoat;
 }
 
 function worldBox(o: THREE.Object3D) {

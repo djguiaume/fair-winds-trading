@@ -1,0 +1,15 @@
+# 0077. One file per ship model, so the remaining ships can be redesigned in parallel
+
+**Status:** Accepted, 2026-10-22.
+
+**Context:** The sloop, cutter, schooner and clipper were redesigned one at a time (PRs #35, #36, #37, #39; decisions [0051](0051-refined-upgrade-aware-sloop.md)–[0056](0056-refined-upgrade-aware-clipper.md)). Before Phase 3, Guillaume asked whether each ship not yet redesigned should get its own thread working in parallel. An audit ([comparison sheet](../art/game-models/ship-compare.png)) found three ships still on the original storybook construction: the **hoy, fluyt and indiaman** (the hauler line). The warship line (ketch, brig, frigate, [0035](0035-three-ship-lines.md)) has no simulation class or model yet; it belongs to Phase 5. Every ship was routed through one nested conditional in `storybookBoat.ts`, so parallel work would have collided there. The model sheet's inspector and capture script only covered the four refined ships, and each ship thread had copied its own capture script.
+
+**Decision:**
+
+- `src/render/models/shipModels.ts` is the single table from ship class id to model. Each class lives in its own file (`sloop.ts`, `cutter.ts`, `schooner.ts`, `clipper.ts`, `hoy.ts`, `fluyt.ts`, `indiaman.ts`), which exports one entry `{ refined, create }`. The game's `createBoatModel` points at that table and unknown ids still fall back to the sloop. The hoy, fluyt and indiaman files hold `refined: false` entries that build the original storybook model. **A per-ship redesign only replaces the entry in its own file**, plus its own test, capture folder and decision.
+- The model sheet inspects any class: `models.html?view=<id>` (with the existing level, quality, sail, boom and yaw parameters), framed by hull length. `view=compare&level=1..3` shows every class side by side at true size, labelled refined or still to redesign.
+- One shared capture script, `tools/ship-models/capture.cjs`, makes the standard captures for any ship (`node tools/ship-models/capture.cjs hoy`) or the comparison sheet (`… compare`), instead of each thread copying one.
+- The fluyt and indiaman need square sails on yards and a raised stern deck. `refinedBoat.ts` only builds gaff rigs and jibs so far. This square rig is built **once** as shared construction, with the fluyt as the reference ship, before the indiaman starts. The hoy is a single-mast fore-and-aft rig and can start at once.
+- Reserved decision numbers, so parallel threads don't race for them: **0078 hoy, 0079 fluyt (with the shared square rig and stern castle), 0080 indiaman.**
+
+**Consequences:** The three remaining redesigns touch disjoint files, apart from the fluyt's one-time extension of `refinedBoat.ts`. The indiaman waits for that extension; the hoy does not. Existing refined models and their tests are unchanged (the tests now call `createShipModel`). Every redesign keeps the established bar: its own hull sections, attached rigs, all 27 upgrade combinations, hull-sized wake, three graphics levels and a triangle budget. The warship line gets its models with Phase 5.

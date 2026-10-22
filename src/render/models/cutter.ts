@@ -1,4 +1,5 @@
 import { RefinedBoat, type HullShape } from './refinedBoat';
+import type { ShipModelEntry } from './shipModels';
 import type { BoatModelOptions } from './types';
 
 /** Fine entry, aft-set maximum beam and broad flat working transom, unlike the round sloop.
@@ -51,3 +52,8 @@ export class RefinedCutter extends RefinedBoat {
     );
   }
 }
+
+export const createCutter: ShipModelEntry = {
+  refined: true,
+  create: (options) => new RefinedCutter(options),
+};
