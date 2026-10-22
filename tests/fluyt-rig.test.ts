@@ -17,6 +17,15 @@ const L = 11.5;
 const deckAt = (z: number) =>
   1.8 * STYLE_D.H * 0.55 + STYLE_D.sheer * (L / 5) ** 0.5 * (z / (L / 2)) ** 2;
 const CASTLE = 0.8 * STYLE_D.H;
+const DEG = Math.PI / 180;
+const BOOMS = [-80, -40, -12, -3.6, 0, 3.6, 12, 40, 80].map((d) => d * DEG);
+/** Expected yard brace for a boom angle: hard round close-hauled, square running (view.ts range). */
+const braceFor = (b: number) =>
+  -Math.sign(b) *
+  40 *
+  DEG *
+  (1 - Math.min(1, Math.max(0, (Math.abs(b) - 12 * DEG) / (68 * DEG)))) *
+  Math.min(1, Math.abs(b) / (12 * DEG));
 const squares = [
   { name: 'Fore', z: 3.2, h: 8.6 },
   { name: 'Main', z: 0, h: 9.6 },
@@ -98,7 +107,7 @@ describe('refined fluyt', () => {
           // Jib stays, mizzen shrouds, 2 × (4 shrouds + 1 stay) on the square masts.
           const running = (jibs + 2 + 2 * 5) * 2;
           for (const sail of [0, 0.35, 1])
-            for (const boomAngle of [-1, 0, 1])
+            for (const boomAngle of BOOMS)
               for (const luff of [0, 1])
                 for (const heel of [-0.3, 0.3]) {
                   b.update({ ...POSE, sail, boomAngle, heel, luff, time: 0.06 });
@@ -110,7 +119,16 @@ describe('refined fluyt', () => {
                     const p = sails.geometry.getAttribute('position');
                     const brace = sails.parent!;
                     expect(brace.position.z).toBeCloseTo(sq.z + 0.14);
-                    expect(brace.rotation.y).toBeCloseTo(boomAngle * 0.6);
+                    expect(brace.rotation.y).toBeCloseTo(braceFor(boomAngle));
+                    // The leeward yard-arm (the boom's side) is braced aft, never forward.
+                    const lee = boomAngle < 0 ? 1 : -1; // ship-local +x is port
+                    const arm0 = brace.position.clone().add(
+                      v()
+                        .set(lee, 0, 0)
+                        .applyAxisAngle(v().set(0, 1, 0), brace.rotation.y),
+                    );
+                    if (Math.abs(boomAngle) > 0.01)
+                      expect(arm0.z).toBeLessThanOrEqual(brace.position.z + 1e-9);
                     yards.computeBoundingBox();
                     const arm = Math.max(yards.boundingBox!.max.x, -yards.boundingBox!.min.x);
                     const courseCount = b.stats.courses / 2;
@@ -147,13 +165,39 @@ describe('refined fluyt', () => {
                       }
                     }
                   }
-                  // Jibs: luff on its own stay, head on the foremost square mast.
+                  // Jibs: luff on its own stay from the fore masthead, and clear of the fore courses.
+                  const foreSails = mesh(b, 'ForeCourses');
+                  const fp = foreSails.geometry.getAttribute('position');
+                  let footY = Infinity;
+                  let headY = -Infinity;
+                  let halfW = 0;
+                  for (let i = 0; i < fp.count; i++) {
+                    footY = Math.min(footY, fp.getY(i));
+                    headY = Math.max(headY, fp.getY(i));
+                    halfW = Math.max(halfW, Math.abs(fp.getX(i)));
+                  }
                   for (let j = 0; j < jibs; j++) {
                     const m = mesh(b, `Jib${j + 1}`);
                     const p = m.geometry.getAttribute('position');
-                    const head = v().fromBufferAttribute(lines, j * 2 + 1);
-                    expect(head.z).toBeCloseTo(3.2);
-                    expect(head.y).toBeLessThan(deckAt(3.2) + 8.6 * STYLE_D.mastK);
+                    const top = v().fromBufferAttribute(lines, j * 2 + 1);
+                    expect(top.z).toBeCloseTo(3.2);
+                    expect(top.y).toBeLessThan(deckAt(3.2) + 8.6 * STYLE_D.mastK);
+                    // Above every yard: no course hangs where the stay meets the mast.
+                    expect(top.y).toBeGreaterThan(headY);
+                    for (let i = 0; i < p.count; i++) {
+                      const q = foreSails.parent!.worldToLocal(
+                        m.localToWorld(v().fromBufferAttribute(p, i)),
+                      );
+                      if (q.y < footY || q.y > headY || Math.abs(q.x) > halfW) continue;
+                      expect(q.z).toBeGreaterThan(0.3 + 0.02); // forward of the fullest belly
+                    }
+                    // The jib's head is on its stay, between the bowsprit and the masthead.
+                    let hi = 0;
+                    for (let i = 0; i < p.count; i++) if (p.getY(i) > p.getY(hi)) hi = i;
+                    const tack = point(j * 2);
+                    const stay = new THREE.Line3(tack, rope.localToWorld(top.clone()));
+                    const jibHead = m.localToWorld(v().fromBufferAttribute(p, hi));
+                    near(stay.closestPointToPoint(jibHead, true, v()), jibHead);
                     let count = 0;
                     for (let i = 0; i < p.count; i++) {
                       if (Math.abs(p.getX(i)) > 1e-6 || Math.abs(p.getZ(i)) > 1e-6) continue;
@@ -175,7 +219,7 @@ describe('refined fluyt', () => {
                 }
           b.dispose();
         }
-  });
+  }, 60_000);
 
   it('furls each course up to its own yard and keeps furled canvas visible', () => {
     const b = new RefinedFluyt({ upgrades: { sails: 3, hold: 1, hull: 1 } });

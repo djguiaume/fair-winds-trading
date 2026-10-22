@@ -6,6 +6,8 @@ The fluyt has square-rigged fore and main masts and a gaff mizzen standing on a 
 
 ![Fully upgraded fluyt, High](level3-high.png)
 
+The yards brace with the wind: hard round close-hauled, square running. The jibs stay forward of the fore courses ([points of sail](points-of-sail.png)).
+
 | State | Inspector query after `models.html?view=fluyt&still&` | Capture |
 |---|---|---|
 | Stock | `level=1&quality=high` | [Stock](level1-high.png) |
