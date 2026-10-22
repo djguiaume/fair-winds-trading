@@ -21,21 +21,14 @@ import { renderPixelRatio, QUALITY, type QualityLevel, type QualityProfile } fro
 import { Wake } from './wake';
 import { WindStreaks } from './windStreaks';
 import { Rain } from './rain';
+import { Atmosphere } from './atmosphere';
+import { Lanterns } from './lanterns';
+import { daylightAt } from '../sim/daylight';
 import { StormClouds } from './stormClouds';
 import { stormRain } from '../sim/storms';
 
 const CAMERA_PITCH = 58 * DEG;
 const BASE_DISTANCE = 110;
-const SUN_OFFSET = new THREE.Vector3(-30, 50, 20);
-const SUN_INTENSITY = 1.7;
-const HEMI_INTENSITY = 1.5;
-/** Sea and sky colours under the darkest storm (decision 0066). */
-const STORM_SKY = new THREE.Color('#2a3a42');
-const STORM_WATER = new THREE.Color('#1c3f47');
-const STORM_WATER_LIGHT = new THREE.Color('#2b5159');
-const CLEAR_SKY = new THREE.Color(PALETTE.deepWater);
-const CLEAR_WATER = new THREE.Color(PALETTE.water);
-const CLEAR_WATER_LIGHT = new THREE.Color(PALETTE.waterLight);
 
 /** Sim (x east, y north) → three.js scene (x, 0, -y). */
 function toScene(x: number, y: number, out = new THREE.Vector3()) {
@@ -56,10 +49,12 @@ export class GameView {
   readonly renderer: THREE.WebGLRenderer;
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(40, 1, 1, 600);
-  private readonly sun = new THREE.DirectionalLight(PALETTE.sun, SUN_INTENSITY);
-  private readonly hemi = new THREE.HemisphereLight(PALETTE.sky, '#1a4d55', HEMI_INTENSITY);
-  /** 0 = clear … 1 = under a storm: darkens sky, sea and light (decision 0066). */
-  private gloom = 0;
+  private readonly sun = new THREE.DirectionalLight(PALETTE.sun, 1.7);
+  private readonly hemi = new THREE.HemisphereLight(PALETTE.sky, '#1a4d55', 1.5);
+  /** Time of day and weather light (decisions 0066 and 0067). */
+  private readonly atmosphere = new Atmosphere(this.scene, this.sun, this.hemi);
+  private lanterns!: Lanterns;
+  private readonly sternLantern = new THREE.Vector3();
   private readonly stormClouds = new StormClouds();
   private rain!: Rain;
   private islands: THREE.Object3D;
@@ -126,7 +121,31 @@ export class GameView {
     );
 
     toScene(world.boat.x, world.boat.y, this.target);
+    this.buildLanterns();
     this.setQuality(level);
+  }
+
+  /** Harbour lanterns (decision 0067): one on each pier head and a town glow a little inland. */
+  private buildLanterns() {
+    if (this.lanterns) {
+      this.scene.remove(this.lanterns.points);
+      this.lanterns.dispose();
+    }
+    const spots: THREE.Vector3[] = [];
+    for (const port of this.world.map.ports) {
+      const pier = this.harbours[port.id];
+      const island = this.world.map.islands.find((i) => i.id === port.islandId);
+      if (!pier || !island) continue;
+      spots.push(toScene(pier.x, pier.y, new THREE.Vector3()).setY(4));
+      const town = toScene(
+        pier.x + (island.x - pier.x) * 0.35,
+        pier.y + (island.y - pier.y) * 0.35,
+        new THREE.Vector3(),
+      );
+      spots.push(town.setY(7));
+    }
+    this.lanterns = new Lanterns(spots);
+    this.scene.add(this.lanterns.points);
   }
 
   /** Anchors exported while building the mesh; no duplicated generation or extra draw calls. */
@@ -239,6 +258,7 @@ export class GameView {
     });
     this.islands = next;
     this.scene.add(next);
+    this.buildLanterns();
   }
 
   setZoom(zoom: number) {
@@ -271,12 +291,13 @@ export class GameView {
     );
     this.camera.lookAt(this.target);
     const fog = this.scene.fog as THREE.Fog;
-    this.updateGloom(dt);
-    fog.near = dist * (1.3 - 0.45 * this.gloom);
-    fog.far = dist * (2.4 - 0.6 * this.gloom);
+    const day = daylightAt(time);
+    this.atmosphere.update(dt, day, this.world.weather, this.ocean, this.target);
+    const gloom = this.atmosphere.gloom;
+    // Rain and the dark close in a little, never enough to hide the next island.
+    fog.near = dist * (1.3 - 0.45 * gloom - 0.15 * day.night);
+    fog.far = dist * (2.4 - 0.6 * gloom - 0.2 * day.night);
     this.ocean.setFog(fog.near, fog.far);
-    this.sun.position.copy(this.target).add(SUN_OFFSET);
-    this.sun.target.position.copy(this.target);
 
     // Boat pose from the simulation.
     this.refreshBoat();
@@ -338,6 +359,9 @@ export class GameView {
       for (const s of weather.storms) r = Math.max(r, stormRain(s, x, -z));
       return r;
     });
+    // Stern lantern just behind the boat, above the deck.
+    this.sternLantern.set(pos.x - dir.x * 4.5, 4, pos.z + dir.y * 4.5);
+    this.lanterns.update(Math.max(day.night, gloom * 0.5), this.sternLantern, time);
     this.ocean.update(time, this.target);
     this.edgeBuoys.update(time, (x, z) => waveHeight(x, z, time));
 
@@ -350,29 +374,6 @@ export class GameView {
 
     this.renderer.render(this.scene, this.camera);
   }
-
-  /**
-   * Weather light (decision 0066): rain and storms darken the sky, the sea and the sun, easing
-   * over a few seconds so sailing into a storm feels like the light going.
-   */
-  private updateGloom(dt: number) {
-    const { kind, rain, storm } = this.world.weather;
-    const target = clamp(Math.max(rain * 0.55, storm, kind === 'gale' ? 0.25 : 0), 0, 1);
-    this.gloom = approach(this.gloom, target, 0.35, dt);
-    const g = this.gloom;
-    const sky = (this.scene.background as THREE.Color).copy(CLEAR_SKY).lerp(STORM_SKY, g);
-    (this.scene.fog as THREE.Fog).color.copy(sky);
-    this.sun.intensity = SUN_INTENSITY * (1 - 0.6 * g);
-    this.hemi.intensity = HEMI_INTENSITY * (1 - 0.4 * g);
-    this.ocean.setColors(
-      this.tmpColor.copy(CLEAR_WATER).lerp(STORM_WATER, g),
-      this.tmpColor2.copy(CLEAR_WATER_LIGHT).lerp(STORM_WATER_LIGHT, g),
-      sky,
-    );
-  }
-
-  private readonly tmpColor = new THREE.Color();
-  private readonly tmpColor2 = new THREE.Color();
 
   /** Where a sim position lands on screen (for HUD markers). */
   project(x: number, y: number): ScreenPoint {
@@ -390,6 +391,7 @@ export class GameView {
     this.streaks.dispose();
     this.rain.dispose();
     this.stormClouds.dispose();
+    this.lanterns.dispose();
     this.wake.dispose();
     this.buoy.dispose();
     this.edgeBuoys.dispose();
