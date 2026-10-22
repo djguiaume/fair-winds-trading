@@ -1,4 +1,4 @@
-import { createBoat } from './boat';
+import { SAIL_STEPS, type BoatState, createBoat } from './boat';
 import { type ContractState, readContracts } from './contracts';
 import { resolveCollisions } from './collision';
 import { GOODS, type GoodAmounts, emptyAmounts } from './goods';
@@ -24,7 +24,9 @@ export interface SaveData {
   map: string;
   time: number;
   windOffsetDeg: number;
-  boat: { x: number; y: number; heading: number };
+  /** `sailStep` is the sail setting (decision 0076). Optional: older saves resume with full sails
+   * at sea and sails down in port. */
+  boat: { x: number; y: number; heading: number; sailStep?: number };
   gold: number;
   activeShip: string;
   ships: Record<string, UpgradeLevels>;
@@ -56,7 +58,12 @@ export function serializeWorld(world: World): SaveData {
     map: world.map.name,
     time: world.time,
     windOffsetDeg: world.windOffsetDeg,
-    boat: { x: world.boat.x, y: world.boat.y, heading: world.boat.heading },
+    boat: {
+      x: world.boat.x,
+      y: world.boat.y,
+      heading: world.boat.heading,
+      sailStep: world.boat.sailStep,
+    },
     gold: captain.gold,
     activeShip: captain.activeShip,
     ships,
@@ -146,7 +153,17 @@ export function validateSave(raw: unknown, world: World): SaveData | null {
     map: raw.map as string,
     time,
     windOffsetDeg,
-    boat: { x: boat.x, y: boat.y, heading: boat.heading },
+    boat: {
+      x: boat.x,
+      y: boat.y,
+      heading: boat.heading,
+      // A bad sail setting is not worth losing the voyage over: it just reads as unknown.
+      ...(isNum(boat.sailStep) &&
+      Number.isInteger(boat.sailStep) &&
+      SAIL_STEPS[boat.sailStep] !== undefined
+        ? { sailStep: boat.sailStep }
+        : {}),
+    },
     gold,
     activeShip: active,
     ships,
@@ -158,6 +175,16 @@ export function validateSave(raw: unknown, world: World): SaveData | null {
     progress: readProgress(raw.progress, world.map),
     settlements,
   };
+}
+
+/**
+ * Sails on resume (decision 0076): as the captain left them, except in port, where she stays
+ * alongside with sails down rather than wake up under full canvas and drift off the pier.
+ */
+function resumeSails(boat: BoatState, saved: number | undefined, docked: boolean): void {
+  const step = docked ? 0 : (saved ?? boat.sailStep);
+  boat.sailStep = step;
+  boat.sail = SAIL_STEPS[step]!;
 }
 
 /** Put saved progress into a freshly created world. The boat resumes at rest where it was. */
@@ -204,6 +231,7 @@ export function applySave(world: World, data: SaveData): void {
     world.boat = createBoat(start.x, start.y, (start.headingDeg * Math.PI) / 180);
     trade.dockedAt = null;
   }
+  resumeSails(world.boat, data.boat.sailStep, trade.dockedAt !== null);
 }
 
 export function saveGame(storage: SaveStorage, world: World): boolean {

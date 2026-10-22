@@ -37,6 +37,7 @@ function setup() {
     tutorial.continueLesson();
     tutorial.continueLesson();
     world.trade.dockedAt = 'calda';
+    world.boat.sailStep = 0; // alongside with sails down, as docking leaves her
     tutorial.observe();
     expect(tutorial.step).toBe('buy');
   };
