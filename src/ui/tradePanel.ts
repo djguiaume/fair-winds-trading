@@ -322,6 +322,7 @@ export class TradePanel {
       const missing = here.qty - trade.captain.cargo[here.good];
       hereHtml = `
         <div class="contract-line contract-here">
+          ${here.help ? `<span class="role-badge help">🆘 ${t('trade.help')}</span>` : ''}
           <span>${isKid ? t('kids.townNeeds') : t('trade.portOrders')} <b>${goods(here)}</b> · ${isKid ? t('kids.pays') : t('trade.reward')} <b>${here.reward}${COIN}</b></span>
           <button id="tp-deliver" class="sell-all-btn deliver-btn" ${missing > 0 ? 'disabled' : ''}>
             ${missing > 0 ? t('trade.needMore', { n: missing }) : isKid ? t('kids.deliver') : t('trade.deliverFor', { reward: here.reward })}
@@ -335,7 +336,7 @@ export class TradePanel {
     const othersHtml = others
       .map(
         (c) =>
-          `<li><b>${portName(c.portId)}</b>: ${goods(c)} · ${c.reward}${COIN}${
+          `<li>${c.help ? '🆘 ' : ''}<b>${portName(c.portId)}</b>: ${goods(c)} · ${c.reward}${COIN}${
             trade.captain.cargo[c.good] >= c.qty
               ? ` <span class="role-badge produces">${t('trade.inHoldBadge')}</span>`
               : ''
@@ -635,7 +636,7 @@ export class TradePanel {
       .join('');
     const missing = liveOrder ? liveOrder.qty - captain.cargo[liveOrder.good] : 0;
     const orderHtml = liveOrder
-      ? `<p class="order-line">${icon(liveOrder.good)} <b>${t('trade.contractGoods', { qty: liveOrder.qty, good: goodName(liveOrder.good).toLowerCase() })}</b> → <b>${liveOrder.reward}</b>${COIN}</p>
+      ? `${liveOrder.help ? `<p class="order-help">🆘 ${t('trade.help')}</p>` : ''}<p class="order-line">${icon(liveOrder.good)} <b>${t('trade.contractGoods', { qty: liveOrder.qty, good: goodName(liveOrder.good).toLowerCase() })}</b> → <b>${liveOrder.reward}</b>${COIN}</p>
          <button id="tp-deliver" class="port-btn green deliver-btn" ${missing > 0 ? 'disabled' : ''}>
            ${missing > 0 ? t('trade.needMore', { n: missing }) : t('trade.deliverFor', { reward: liveOrder.reward })}
          </button>`

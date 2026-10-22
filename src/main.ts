@@ -536,6 +536,20 @@ function handleEvents(events: WorldEvent[]) {
       const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
       hud.showToast(t('toast.discovered', { name: portName }), 4);
       autosave();
+    } else if (e.type === 'help-order') {
+      // A neglected town asks for help: its order pays extra (decision 0069).
+      const order = world.trade.contracts.byPort[e.portId];
+      const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
+      if (order)
+        hud.showToast(
+          t('toast.help', {
+            name: portName,
+            qty: order.qty,
+            good: goodName(order.good).toLowerCase(),
+          }),
+          5,
+        );
+      if (tradePanel.isOpen) tradePanel.render();
     } else if (e.type === 'level-up') {
       // A town grew (decision 0059): new wants on its sign, and the island grows with it.
       const port = trade.findPort(world.map, e.portId);

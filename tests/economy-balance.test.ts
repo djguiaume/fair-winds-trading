@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
 import { KNOT_TO_UNITS } from '../src/sim/boat';
-import { deliverContract, stepContracts } from '../src/sim/contracts';
+import { deliverContract, stepContracts, syncHelpOrder } from '../src/sim/contracts';
 import { GOODS, type GoodId } from '../src/sim/goods';
 import { damageHull, repairHull } from '../src/sim/hazards';
 import { quoteBuy, quoteSell, stepMarket } from '../src/sim/market';
@@ -222,6 +222,8 @@ function sail(opts: { contracts: boolean; relaxed: boolean; minutes?: number }):
     if (opts.relaxed && rng() < 0.2) damageHull(trade, 20 + rng() * 30);
     for (const m of Object.values(trade.markets)) stepMarket(m, seconds);
     stepContracts(trade.contracts, seconds);
+    // A neglected town, or the home port holding back an upgrade, asks for help (0069).
+    syncHelpOrder(MAP, trade);
     t += seconds;
     for (const up of stepSettlements(trade, seconds, MAP))
       v.levels[`${up.portId} ${up.level}`] = t / 60;

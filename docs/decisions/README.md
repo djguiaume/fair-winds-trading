@@ -84,4 +84,6 @@
 
 | [0065](0065-rare-goods-from-the-far-yards.md) | Rare goods: the far yards make honey and lamp oil (Phase 2), outer islands a rarer set (Phase 4); wanted across the map; a town needs 20 of its rare good to become a port town | 2026-10-22 | Accepted, implementation for review |
 
+| [0069](0069-help-orders.md) | Help orders: the most neglected town (or the home port holding back an upgrade) posts an order paying 1.5× with double growth; one at a time, 4-minute pause | 2026-10-22 | Implementation for review |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

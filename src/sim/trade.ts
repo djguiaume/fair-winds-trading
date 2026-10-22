@@ -1,4 +1,4 @@
-import { type ContractState, createContracts, stepContracts } from './contracts';
+import { type ContractState, createContracts, stepContracts, syncHelpOrder } from './contracts';
 import { leakFactor } from './hazards';
 import { GOODS, type GoodAmounts, type GoodId, emptyAmounts, totalAmount } from './goods';
 import type { MapDef, PortDef } from './map';
@@ -212,6 +212,7 @@ export type DockEvent =
   | { type: 'docked'; portId: string }
   | { type: 'undocked'; portId: string }
   | { type: 'discovered'; portId: string }
+  | { type: 'help-order'; portId: string }
   | LevelUp;
 
 /**
@@ -232,6 +233,9 @@ export function stepTrade(
   const ups = stepSettlements(trade, dt, map);
   if (ups.length) syncMarketLevels(trade, map);
   events.push(...ups);
+  // A neglected town (or the home port holding back an upgrade) asks for help (decision 0069).
+  const help = syncHelpOrder(map, trade);
+  if (help) events.push({ type: 'help-order', portId: help });
   for (const port of discoverNear(trade, map, boat))
     events.push({ type: 'discovered', portId: port.id });
   if (trade.dockedAt) {

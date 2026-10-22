@@ -367,7 +367,9 @@ export class SeaChart {
       }
       const order = trade.contracts.byPort[port.id];
       if (order && order.readyIn <= 0 && order.good === good)
-        notes.push(t('chart.order', { qty: order.qty, reward: order.reward }));
+        notes.push(
+          t(order.help ? 'chart.help' : 'chart.order', { qty: order.qty, reward: order.reward }),
+        );
       if (trade.dockedAt === port.id) notes.push(t('chart.youAreHere'));
       const note = Object.assign(document.createElement('td'), {
         textContent: notes.join(' · '),
