@@ -176,6 +176,19 @@ export function findPort(map: MapDef, portId: string): PortDef | undefined {
   return map.ports.find((p) => p.id === portId);
 }
 
+// Map geometry is static; only a settlement's level changes its piers.
+const harbours = new WeakMap<
+  MapDef,
+  Map<
+    string,
+    {
+      coasts: ReturnType<typeof islandCoasts>;
+      piers: ReturnType<typeof piersOf>;
+      reach: number;
+    }
+  >
+>();
+
 /** Gap from the oriented, rendered hull to this port's shore or any solid pier. */
 export function distanceToPort(
   map: MapDef,
@@ -183,17 +196,41 @@ export function distanceToPort(
   port: PortDef,
   level = port.level ?? 2,
   shipId = 'sloop',
+  maxGap = Infinity,
 ) {
   const island = map.islands.find((i) => i.id === port.islandId);
   if (!island) return Infinity;
+  let cache = harbours.get(map);
+  if (!cache) harbours.set(map, (cache = new Map()));
+  const key = `${port.id}/${level}`;
+  let geometry = cache.get(key);
+  if (!geometry) {
+    const coasts = islandCoasts(island);
+    const piers = piersOf(map, { [port.id]: level }).filter(
+      (p) => p.islandId === island.id && !p.boat,
+    );
+    const reach = Math.max(
+      coasts ? 0 : island.radius,
+      ...(coasts ?? []).flatMap((coast) =>
+        coast.map(([x, y]) => Math.hypot(x - island.x, y - island.y)),
+      ),
+      ...piers.flatMap((p) => [
+        Math.hypot(p.x0 - island.x, p.y0 - island.y) + (p.halfWidth ?? PIER_HALF_WIDTH),
+        Math.hypot(p.x1 - island.x, p.y1 - island.y) + (p.halfWidth ?? PIER_HALF_WIDTH),
+      ]),
+    );
+    geometry = { coasts, piers, reach };
+    cache.set(key, geometry);
+  }
   const hull = hullFootprint(pos, shipId);
-  const coasts = islandCoasts(island);
+  const hullReach = Math.max(...hull.map(([x, y]) => Math.hypot(x - pos.x, y - pos.y)));
+  // A conservative enclosing circle can only reject a harbour that is certainly too far.
+  if (Math.hypot(pos.x - island.x, pos.y - island.y) - geometry.reach - hullReach > maxGap)
+    return Infinity;
+  const { coasts, piers } = geometry;
   const shore = coasts
     ? Math.min(...coasts.map((coast) => hullCoastGap(hull, coast)))
     : Math.max(0, coastDistance(island.x, island.y, hull).distance - island.radius);
-  const piers = piersOf(map, { [port.id]: level }).filter(
-    (p) => p.islandId === island.id && !p.boat,
-  );
   return Math.min(
     shore,
     ...piers.map((p) =>
@@ -216,7 +253,7 @@ export function portInRange(
   let best: PortDef | null = null;
   let bestD = range;
   for (const port of map.ports) {
-    const d = distanceToPort(map, pos, port, levels[port.id] ?? port.level ?? 2, shipId);
+    const d = distanceToPort(map, pos, port, levels[port.id] ?? port.level ?? 2, shipId, bestD);
     if (d <= bestD) {
       best = port;
       bestD = d;
@@ -236,8 +273,14 @@ export function tryDock(
   if (
     !port ||
     boat.speedKn >= DOCK_SPEED_KN ||
-    distanceToPort(map, boat, port, settlementLevel(trade, port.id), activeShip(trade).id) >
-      DOCK_RANGE
+    distanceToPort(
+      map,
+      boat,
+      port,
+      settlementLevel(trade, port.id),
+      activeShip(trade).id,
+      DOCK_RANGE,
+    ) > DOCK_RANGE
   )
     return false;
   if (trade.dockedAt && trade.dockedAt !== portId) return false;
@@ -279,7 +322,14 @@ export function stepTrade(
     const port = findPort(map, trade.dockedAt);
     if (
       !port ||
-      distanceToPort(map, boat, port, settlementLevel(trade, port.id), activeShip(trade).id) >
+      distanceToPort(
+        map,
+        boat,
+        port,
+        settlementLevel(trade, port.id),
+        activeShip(trade).id,
+        DOCK_RANGE + UNDOCK_MARGIN,
+      ) >
         DOCK_RANGE + UNDOCK_MARGIN
     ) {
       events.push({ type: 'undocked', portId: trade.dockedAt });

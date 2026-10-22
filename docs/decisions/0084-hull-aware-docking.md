@@ -30,6 +30,10 @@ edits and docking share the same hull data without importing rendering code into
 simulation. Rigging, bowsprits, waves and heel do not change the docking footprint, keeping
 the interaction stable. Collision shapes are unchanged.
 
+Cache static harbour geometry per settlement level. Before a range check, use enclosing
+circles to reject harbours that are certainly too far away; nearby checks still use the
+full oriented hull and pier geometry.
+
 Regressions cover every port on both maps, all seven ships, four settlement levels, multiple
 headings, pier ends and sides, shoreline contact, speed rejection and departure hysteresis.
 The existing rendered-pier/trade-panel and sail-lowering tests now cover the full fleet.
