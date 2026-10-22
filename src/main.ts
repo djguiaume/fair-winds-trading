@@ -682,5 +682,5 @@ if (new URLSearchParams(location.search).has('debug')) {
     if (storage) clearSave(storage);
     location.reload();
   };
-  Object.assign(window, { fwt: { world, view, input, trade, newGame } });
+  Object.assign(window, { fwt: { world, view, input, trade, tradePanel, newGame } });
 }

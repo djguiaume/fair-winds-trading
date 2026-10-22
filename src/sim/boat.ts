@@ -62,6 +62,15 @@ export function drivingWind(speedKn: number): number {
   return speedKn <= OVERPOWERED_KN ? speedKn : OVERPOWERED_KN + (speedKn - OVERPOWERED_KN) * 0.25;
 }
 
+/** Wind used to quote a ship's top speed in the shipyard: the Windward Ring's normal breeze
+ * (decision 0075). */
+export const REFERENCE_BREEZE_KN = 14;
+
+/** Top speed (knots) on the best point of sail, full sails, in `windKn` of true wind. */
+export function topSpeedKn(ship: ShipClass, windKn = REFERENCE_BREEZE_KN): number {
+  return drivingWind(windKn) * ship.speedRatio;
+}
+
 /** Speed the boat settles at for this heading, wind and sail (knots). */
 export function targetSpeed(ship: ShipClass, heading: number, wind: Wind, sail: number): number {
   return (
