@@ -26,6 +26,7 @@ Strength and rain ease across the 60 s blend like the direction. A new voyage st
 - **Cargo overboard when she heels too hard** (Guillaume, replacing a first version where storms spoiled fish, grain and bread: "why not making some cargo go overboard if heeling gets too heavy or too sudden? makes player lower sails or read the wind better"). The heel model of [0044](0044-visual-heeling.md) moves into the simulation (`src/sim/heel.ts`, lively feel) and the world tracks the boat's heel:
   - **Too heavy:** for every 2.5 s spent past 20° of heel, one unit of the good the hold carries most of goes over the side. A full-sailed sloop on a beam reach heels about 14° in the usual 14 kn breeze and passes 20° from about 19 kn, so gales and storms under full sail cost cargo; half sail, a closer course or running off keeps it.
   - **Too sudden:** a lurch faster than 22°/s past 16° of heel (a hard gust) throws a unit at once, at most every 3 s.
+  - *Update:* playtesters lost cargo in normal weather, so the rule now reads how hard the wind presses her instead of the drawn heel ([0074](0074-forgiving-cargo-overboard.md)): breeze, rain and tacks never cost cargo.
   - Nothing is lost alongside. Wider, heavier hulls heel less (`HEEL_FACTOR`), so haulers keep their cargo better.
   - Toast: "Heeled too hard: 1 timber went overboard. Ease the sails".
 - **Warning:** once per storm, when its edge comes within 140 units: toast "Storm to the NE! Ease the sails or cargo may go overboard".
@@ -50,7 +51,7 @@ Storms and states are pure functions of the map seed and time like the rest of t
 
 - Weather becomes something to read and route around: wait out a calm, run before a gale, dodge a storm, or take the risk with timber but not with fish.
 - Losses are one unit at a time on purpose, while play-testing tells whether they should bite harder. The visual heel still uses the quality-level feel, so on Low the drawn lean is a little calmer than the one that decides cargo.
-- Tuning knobs: `DEFAULT_WEATHER.kinds`, `persist`, `storms` in `src/sim/wind.ts`; `STORM_GAIN`, `STORM_WARNING`, `OVERPOWERED_KN` and `HEAVY_HEEL`, `HEAVY_SECONDS`, `LURCH_RATE`, `LURCH_HEEL` in `src/sim/world.ts`.
+- Tuning knobs: `DEFAULT_WEATHER.kinds`, `persist`, `storms` in `src/sim/wind.ts`; `STORM_GAIN`, `STORM_WARNING`, `OVERPOWERED_KN`, and the cargo knobs of [0074](0074-forgiving-cargo-overboard.md) in `src/sim/world.ts`.
 - Storm tracks use the map's radius (`storms.areaRadius`, 440 for the Windward Ring); a future map sets its own.
 - Cost per frame: a few sines and one storm check for the wind; rain is one dynamic line buffer (~400 segments at most); the storm shadow is one mesh. No new textures or post-processing.
 - The day and night cycle comes next and reuses the same light and colour hooks (`Ocean.setColors`, sky and light intensities in `GameView`).

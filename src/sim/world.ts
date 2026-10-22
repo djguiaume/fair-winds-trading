@@ -22,7 +22,7 @@ import {
   stepTrade,
 } from './trade';
 import { GOODS, type GoodId } from './goods';
-import { HEEL_FEEL, Heel, heelFactor } from './heel';
+import { heelFactor, pointOfSailHeel } from './heel';
 import {
   type LocalWeather,
   type Wind,
@@ -68,9 +68,13 @@ export interface World {
   shallow: number;
   /** Weather at the boat: sea-wide state, rain and storm (decision 0067). */
   weather: LocalWeather;
-  /** How far she leans (decision 0067): drives cargo going overboard. */
-  heel: Heel;
-  /** Seconds spent heeled past `HEAVY_HEEL` (eases off when she stands up). */
+  /**
+   * How hard the wind presses her (decisions 0067 and 0074), as the wind speed that would press a
+   * full-sailed sloop on a beam reach as hard, averaged over a few seconds so a gust stands out.
+   * Drives cargo going overboard. Negative until the first step.
+   */
+  pressKn: number;
+  /** Seconds spent pressed past `OVERPRESSED_KN` (eases off when she stands up). */
   overHeel: number;
   /** Seconds before another lurch can throw cargo. */
   lurchCooldown: number;
@@ -123,10 +127,9 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     wind: windAt(map.wind, 0, map.seed, map.start),
     seaWind: windAt(map.wind, 0, map.seed, map.start),
     weather: { kind: 'breeze', rain: 0, showers: 0, storm: 0, storms: [] },
-    heel: new Heel(),
+    pressKn: -1,
     overHeel: 0,
-    // The heel settles in the first moments of a voyage; that is not a lurch.
-    lurchCooldown: LURCH_COOLDOWN,
+    lurchCooldown: 0,
     stormsWarned: [],
     dynamicWeather: true,
     storms: true,
@@ -204,17 +207,26 @@ export function refreshPiers(world: World) {
 
 /** Warn when a storm's edge comes this close (map units). */
 export const STORM_WARNING = 140;
-/** Heel past which loose cargo starts to slide (decision 0067). A full-sailed sloop on a beam
- * reach heels about 14° in the 14 kn breeze and only passes this from about 19 kn. */
-export const HEAVY_HEEL = 20 * DEG;
-/** Seconds spent past `HEAVY_HEEL` before a unit of cargo goes overboard. */
-export const HEAVY_SECONDS = 2.5;
-/** A lurch faster than this (rad/s) while well heeled throws cargo at once. */
-export const LURCH_RATE = 22 * DEG;
-/** Heel the lurch must reach to count. */
-export const LURCH_HEEL = 16 * DEG;
+/*
+ * Cargo overboard (decisions 0067 and 0074). The first rule read the heel the boat is drawn with,
+ * but that heel is exaggerated so it reads from the high camera, slim rigs lean extra, and the
+ * hull swings past its mark on every tack: players lost cargo in the ordinary breeze. The rule now
+ * reads how hard the wind presses her, from the same inputs as the heel (wind she feels, point of
+ * sail, sail area, luffing) but before any of the drawing.
+ */
+/** Pressed this hard (averaged) for `HEAVY_SECONDS`, a unit goes over the side. Breeze and rain
+ * stay under it (at most about 18.5 and 19.3 kn); a gale or a storm under full sail passes it. */
+export const OVERPRESSED_KN = 19.5;
+/** Seconds spent past `OVERPRESSED_KN` before a unit of cargo goes overboard. */
+export const HEAVY_SECONDS = 3;
+/** A gust this much above the average press throws cargo at once... */
+export const LURCH_GUST_KN = 4;
+/** ...when she is already pressed this hard. */
+export const LURCH_PRESS_KN = 18;
 /** Seconds after a loss before another lurch can throw more. */
 const LURCH_COOLDOWN = 3;
+/** Seconds over which the press is averaged, to tell a gust from a steady blow. */
+const PRESS_AVERAGE_SEC = 4;
 
 /** Storm warnings (decision 0067). */
 export function stepStorms(world: World): WorldEvent[] {
@@ -240,38 +252,34 @@ function loseCargo(world: World): WorldEvent[] {
 }
 
 /**
- * Cargo shifts when she heels too far or too suddenly (decision 0067, Guillaume's idea): sailing
- * full in a gale or a storm costs cargo unless you ease the sails or bear away, so reading the
- * wind pays. Uses the same heel model the boat is drawn with.
+ * Cargo shifts when she is pressed too hard for too long or a hard gust knocks her over
+ * (decisions 0067 and 0074, Guillaume's idea): sailing full in a gale or a storm costs cargo unless
+ * you ease the sails or bear away, so reading the wind pays. Tacks and the ordinary breeze never
+ * cost cargo. Stiff hulls (haulers, warships) stand up to more.
  */
 export function stepHeel(world: World, dt: number): WorldEvent[] {
   const { boat, ship, wind, trade } = world;
-  const before = world.heel.angle;
-  const twa = trueWindAngle(boat.heading, wind);
-  const abs = Math.abs(twa);
+  const abs = Math.abs(trueWindAngle(boat.heading, wind));
   const luff = 1 - clamp((abs - ship.noGoAngle * 0.8) / (ship.noGoAngle * 0.3), 0, 1);
-  const angle = world.heel.update(
-    {
-      twa,
-      noGoAngle: ship.noGoAngle,
-      windKn: wind.speedKn,
-      sail: boat.sail,
-      luff,
-      factor: heelFactor(trade.captain.activeShip),
-    },
-    dt,
-    HEEL_FEEL.lively,
-  );
+  const drive = pointOfSailHeel(abs, ship.noGoAngle) * boat.sail * (1 - luff);
+  // Heel grows with wind^1.25 × drive (src/sim/heel.ts), so this is the beam-reach equivalent.
+  const stiff = Math.min(1, heelFactor(trade.captain.activeShip));
+  const press = wind.speedKn * Math.pow(drive * stiff, 0.8);
+  if (world.pressKn < 0) world.pressKn = press;
+  if (dt > 0) world.pressKn += (press - world.pressKn) * (1 - Math.exp(-dt / PRESS_AVERAGE_SEC));
   world.lurchCooldown = Math.max(0, world.lurchCooldown - dt);
-  // Alongside or with the sails down nothing is thrown about.
+  // Alongside nothing is thrown about.
   if (trade.dockedAt || dt <= 0) return [];
-  const rate = Math.abs(angle - before) / dt;
-  if (rate > LURCH_RATE && Math.abs(angle) > LURCH_HEEL && world.lurchCooldown === 0) {
+  if (
+    press - world.pressKn > LURCH_GUST_KN &&
+    world.pressKn > LURCH_PRESS_KN &&
+    world.lurchCooldown === 0
+  ) {
     world.lurchCooldown = LURCH_COOLDOWN;
     world.overHeel = 0;
     return loseCargo(world);
   }
-  if (Math.abs(angle) <= HEAVY_HEEL) {
+  if (world.pressKn <= OVERPRESSED_KN) {
     world.overHeel = Math.max(0, world.overHeel - dt);
     return [];
   }
