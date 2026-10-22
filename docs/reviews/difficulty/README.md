@@ -45,7 +45,7 @@ The audience is sailing fans first. So the boat sails the same at every level: p
 
 Names follow the game's voice: **Fair winds** (the game's own name), **Captain** (the current mode is already called Captain), **Old salt** (an experienced sailor).
 
-Wind direction (Guillaume, 2026-10-22: "dynamic wind as there is now will feel brutal"): the steady trade wind on Fair winds is probably the knob players feel most. It keeps sailing honest, since the boat sails exactly the same and only the sea is kinder. Two things to check when building it: with a near-fixed wind some legs are always a beat and others always a reach, so route balance must be re-simulated before fixing the range; and a level change at sea blends the wind over a minute or two instead of snapping it.
+Wind direction (Guillaume, 2026-10-22: "dynamic wind as there is now will feel brutal"): the steady trade wind on Fair winds is probably the knob players feel most. It keeps sailing honest, since the boat sails exactly the same and only the sea is kinder. The level only sets the **default**: a Settings choice **Wind: Steady / Shifting** sits next to Day and night, Weather and Storms, so a sailing fan can play Fair winds prices with shifting wind, or Old salt with a steady one (Guillaume asked whether to mix it into the levels; proposed answer: yes as a default, with an override, because wind is a matter of taste while damage, prices and cargo are how forgiving the game is). Two things to check when building it: with a near-fixed wind some legs are always a beat and others always a reach, so route balance must be re-simulated before fixing the range; and a level change at sea blends the wind over a minute or two instead of snapping it.
 
 ## Effect on pace (balance simulation)
 
@@ -64,7 +64,7 @@ Reading it: Fair winds lets a casual player reach the cutter about as fast as a 
 
 ## How it fits with the Settings switches
 
-- **Two separate things.** The switches (Day and night, Weather, Storms, and Pirates in Phase 5) decide *what happens at sea*. Difficulty decides *what it costs*. They stay independent at every level, so a player can pick Old salt with storms off, or Fair winds with night on.
+- **Two separate things.** The switches (Wind steady/shifting, whose default comes from the level; Day and night, Weather, Storms, and Pirates in Phase 5) decide *what happens at sea*. Difficulty decides *what it costs*. They stay independent at every level, so a player can pick Old salt with storms off, or Fair winds with night on.
 - The switches stay global (Settings, localStorage). Difficulty belongs to the voyage (see below).
 - **Pirates (Phase 5)** get their own switch, as Guillaume asked. Difficulty then scales them like the rest: how often they show up and how much a boarding takes (for example, Fair winds: they chase and warn but take nothing; Old salt: they take more and patrol the long hauls).
 
