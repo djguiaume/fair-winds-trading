@@ -43,6 +43,8 @@ Typical prices with the current numbers (gold per unit, first unit):
 
 `src/sim/contracts.ts`, decision [0028](decisions/0028-delivery-contracts.md). Each port has one order for a good it wants: 4–8 units while the hold is small, then up to 60 % of the hold of the ship sailed when the order is posted ([0046](decisions/0046-phase-1-economy-tuning.md)); reward = units × base price × (1.5 + haul / 700), rounded to 5, where haul is the distance from the nearest other port making the good. Deliver while docked (all units at once); the goods leave the hold without changing the market. The port posts its next order 90 s later. Typical first orders on the Windward Ring: 7 stone to Port Calda for 310 gold, 7 grain to Saltmere for 165.
 
+**Help orders** ([0069](decisions/0069-help-orders.md)): one order at a time becomes a help order. It is posted by the home port while an upgrade waits on its level, otherwise by the discovered town that has stalled the longest. It pays `HELP_REWARD_FACTOR` (1.5) times the reward and `HELP_GROWTH_FACTOR` (2) times the growth. It stays a help order until delivered, and the next one waits `HELP_COOLDOWN` (240 s).
+
 ## Tuning knobs
 
 | Knob | File | Value | Raise it to… |

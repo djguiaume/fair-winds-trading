@@ -42,7 +42,7 @@ So a first town lands inside a first session for a good player, and a port town 
 
 Possible fixes, to pick from:
 
-- **Catch-up orders** (recommended, fixes 1, 2 and partly 3): the smallest or most neglected town posts a "help" order with double reward and double growth, marked on the chart. The home port always counts as neglected while an upgrade waits on it.
+- **Catch-up orders** (recommended, fixes 1, 2 and partly 3; **chosen, built as [0069](../../decisions/0069-help-orders.md)** with a 1.5× reward instead of 2× and a pause between them): the smallest or most neglected town posts a "help" order with double reward and double growth, marked on the chart. The home port always counts as neglected while an upgrade waits on it.
 - **Orders pay more in bigger towns** (fixes 3): reward per unit scales with the town's level, like order size already does.
 - **Growth by value** (fixes 6): 1 point per 10 gold of base price instead of per unit. Simple but changes all the 0059 numbers; not recommended now.
 

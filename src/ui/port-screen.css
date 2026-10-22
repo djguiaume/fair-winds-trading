@@ -419,6 +419,12 @@
 .side-card .deliver-btn {
   width: 100%;
 }
+/* A help order from a neglected town (decision 0069). */
+.side-card .order-help {
+  color: #ffb36b;
+  font-weight: 700;
+  font-size: 14px;
+}
 
 /* --- Orders tab ------------------------------------------------------------------------ */
 .port-screen .contracts {

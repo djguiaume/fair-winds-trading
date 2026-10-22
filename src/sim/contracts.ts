@@ -3,8 +3,10 @@ import type { MapDef, PortDef } from './map';
 import { distance } from './math';
 import { createRng } from './rng';
 import {
+  MAX_SETTLEMENT_LEVEL,
   ORDER_GROWTH_BONUS,
   ORDER_SCALE,
+  STALL_SECONDS,
   type SettlementState,
   addGrowth,
   addRare,
@@ -14,10 +16,12 @@ import {
   portWants,
   settlementLevel,
   startLevel,
+  upgradeNeedsLevel,
   wantsAt,
 } from './settlement';
-import { addStanding } from './shipyards';
+import { addStanding, homePort, isDiscovered } from './shipyards';
 import { type TradeState, capacity } from './trade';
+import { MAX_UPGRADE_LEVEL, UPGRADE_TRACKS } from './upgrades';
 
 /**
  * Delivery contracts (decision 0028): every port posts one order for a good it wants, paying a
@@ -35,6 +39,12 @@ export const CONTRACT_PRICE_FACTOR = 1.5;
 export const CONTRACT_DISTANCE_SCALE = 700;
 /** Seconds before a port posts its next order after one is delivered. */
 export const CONTRACT_COOLDOWN = 90;
+/** A help order pays this much more than a usual order (decision 0069)... */
+export const HELP_REWARD_FACTOR = 1.5;
+/** ...and grows the town this many times as much. */
+export const HELP_GROWTH_FACTOR = 2;
+/** Seconds after a help order is delivered before the next one is asked. */
+export const HELP_COOLDOWN = 240;
 
 export interface Contract {
   /** Port that wants the goods (deliver there). */
@@ -44,6 +54,8 @@ export interface Contract {
   reward: number;
   /** Seconds until the order is posted; 0 = open now. */
   readyIn: number;
+  /** A help order from a neglected town: reward already raised, growth doubled (0069). */
+  help?: boolean;
 }
 
 export interface ContractState {
@@ -51,6 +63,8 @@ export interface ContractState {
   byPort: Record<string, Contract>;
   /** Orders delivered this voyage (feeds settlement growth in Phase 2). */
   completed: number;
+  /** Seconds until the next help order may be asked (0069). */
+  helpIn?: number;
 }
 
 function islandOf(map: MapDef, port: PortDef) {
@@ -122,6 +136,7 @@ export function createContracts(map: MapDef): ContractState {
 export function stepContracts(state: ContractState, dt: number): void {
   for (const c of Object.values(state.byPort))
     if (c.readyIn > 0) c.readyIn = Math.max(0, c.readyIn - dt);
+  if (state.helpIn) state.helpIn = Math.max(0, state.helpIn - dt);
 }
 
 /** Orders open now, nearest-first is up to the caller. */
@@ -144,7 +159,8 @@ export function deliverContract(trade: TradeState, map: MapDef): DeliverResult {
   trade.captain.gold += c.reward;
   trade.contracts.completed += 1;
   addStanding(trade, portId);
-  addGrowth(trade, portId, c.qty + ORDER_GROWTH_BONUS);
+  addGrowth(trade, portId, (c.qty + ORDER_GROWTH_BONUS) * (c.help ? HELP_GROWTH_FACTOR : 1));
+  if (c.help) trade.contracts.helpIn = HELP_COOLDOWN;
   addRare(trade, portId, c.good, c.qty);
   trade.contracts.byPort[portId] = makeContract(
     map,
@@ -156,6 +172,53 @@ export function deliverContract(trade: TradeState, map: MapDef): DeliverResult {
     madeGoods(map, trade),
   );
   return { ok: true, gold: c.reward };
+}
+
+/**
+ * The town that most needs help (decision 0069): the home port while one of the active ship's
+ * next upgrades waits for it to grow, otherwise the discovered town left longest without the
+ * goods it wants, once it has stalled. Null when no town needs help.
+ */
+export function helpPortId(map: MapDef, trade: TradeState): string | null {
+  if (!map.ports.length) return null;
+  const home = homePort(map).id;
+  const levels = trade.captain.ships[trade.captain.activeShip];
+  const homeLevel = settlementLevel(trade, home);
+  if (
+    levels &&
+    UPGRADE_TRACKS.some(
+      (k) => levels[k] < MAX_UPGRADE_LEVEL && upgradeNeedsLevel(levels[k] + 1) > homeLevel,
+    )
+  )
+    return home;
+  let best: string | null = null;
+  let longest = STALL_SECONDS;
+  for (const port of map.ports) {
+    const s = trade.settlements.byPort[port.id];
+    if (!s || s.level >= MAX_SETTLEMENT_LEVEL || !isDiscovered(trade, port.id)) continue;
+    if (s.sinceSupply >= longest && (best === null || s.sinceSupply > longest)) {
+      best = port.id;
+      longest = s.sinceSupply;
+    }
+  }
+  return best;
+}
+
+/**
+ * Turn the open order of the town that most needs help into a help order: better reward, double
+ * growth (decision 0069). One at a time, a pause after each, and it stays a help order until
+ * delivered, so cargo bought for it never loses its premium. Returns the port whose order just
+ * became one.
+ */
+export function syncHelpOrder(map: MapDef, trade: TradeState): string | null {
+  const orders = Object.values(trade.contracts.byPort);
+  if ((trade.contracts.helpIn ?? 0) > 0 || orders.some((c) => c.help)) return null;
+  const portId = helpPortId(map, trade);
+  const c = portId ? trade.contracts.byPort[portId] : undefined;
+  if (!c || c.readyIn > 0) return null;
+  c.help = true;
+  c.reward = Math.round((c.reward * HELP_REWARD_FACTOR) / 5) * 5;
+  return c.portId;
 }
 
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
@@ -172,7 +235,7 @@ export function readContracts(
 ): ContractState {
   const fresh = createContracts(map);
   if (typeof raw !== 'object' || raw === null) return fresh;
-  const r = raw as { byPort?: unknown; completed?: unknown };
+  const r = raw as { byPort?: unknown; completed?: unknown; helpIn?: unknown };
   const completed =
     isNum(r.completed) && Number.isInteger(r.completed) && r.completed >= 0 ? r.completed : 0;
   const saved =
@@ -199,8 +262,10 @@ export function readContracts(
         qty: c.qty,
         reward: c.reward,
         readyIn: Math.min(c.readyIn, CONTRACT_COOLDOWN),
+        ...(c.help === true ? { help: true } : {}),
       };
     }
   }
-  return { byPort: fresh.byPort, completed };
+  const helpIn = isNum(r.helpIn) && r.helpIn > 0 ? Math.min(r.helpIn, HELP_COOLDOWN) : 0;
+  return { byPort: fresh.byPort, completed, ...(helpIn ? { helpIn } : {}) };
 }
