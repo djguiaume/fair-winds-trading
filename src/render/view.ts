@@ -20,7 +20,7 @@ import { BuoyMarker, EdgeBuoys, createBlobShadow } from './props';
 import { renderPixelRatio, QUALITY, type QualityLevel, type QualityProfile } from './quality';
 import { Wake } from './wake';
 import { WindStreaks } from './windStreaks';
-import { Rain } from './rain';
+import { Rain, rainMayReachArea } from './rain';
 import { Atmosphere } from './atmosphere';
 import { LighthouseBeams } from './lighthouseBeams';
 import { Lanterns } from './lanterns';
@@ -365,11 +365,18 @@ export class GameView {
     this.stormClouds.update(weather.storms, time);
     // Showers fall everywhere; a storm's downpour only under its cloud.
     const kn = wind.speedKn * KNOT_TO_UNITS * 0.6;
-    this.rain.update(dt, this.target, to.x * kn, -to.y * kn, (x, z) => {
-      let r = weather.showers;
-      for (const s of weather.storms) r = Math.max(r, stormRain(s, x, -z));
-      return r;
-    });
+    this.rain.update(
+      dt,
+      this.target,
+      to.x * kn,
+      -to.y * kn,
+      (x, z) => {
+        let r = weather.showers;
+        for (const s of weather.storms) r = Math.max(r, stormRain(s, x, -z));
+        return r;
+      },
+      rainMayReachArea(this.target, weather.showers, weather.storms),
+    );
     // Masthead lantern (heels with the mast), else a lantern above the deck.
     const glow = Math.max(day.night, gloom * 0.5);
     const lantern = this.boat.lantern;
