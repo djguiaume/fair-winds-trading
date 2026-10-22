@@ -15,8 +15,9 @@ import {
   withoutStorms,
 } from '../src/sim/wind';
 import {
-  HEAVY_HEEL,
   HEAVY_SECONDS,
+  LURCH_GUST_KN,
+  OVERPRESSED_KN,
   type World,
   type WorldEvent,
   createWorld,
@@ -26,6 +27,7 @@ import {
 } from '../src/sim/world';
 import type { MapDef } from '../src/sim/map';
 import { Tutorial } from '../src/sim/tutorial';
+import { stockLevels } from '../src/sim/upgrades';
 
 const STORMS = DEFAULT_WEATHER.storms!;
 const seed = PHASE1_MAP.seed;
@@ -292,9 +294,62 @@ describe('cargo overboard when she heels too hard (0067)', () => {
     expect(lost).toBe(0);
   });
 
+  // Playtest (Guillaume, 2026-10-22): players lost cargo in normal weather. Every ship, fifteen
+  // minutes of breeze and rain spells with gusts, island lee and channels, tacking and gybing.
+  it('never loses cargo in breeze or rain, whatever the ship, through tacks and gybes (0074)', () => {
+    const weather = {
+      ...DEFAULT_WEATHER,
+      kinds: {
+        ...DEFAULT_WEATHER.kinds!,
+        calm: { ...DEFAULT_WEATHER.kinds!.calm, weight: 0 },
+        gale: { ...DEFAULT_WEATHER.kinds!.gale, weight: 0 },
+      },
+      storms: undefined,
+    };
+    const map: MapDef = { ...PHASE1_MAP, wind: { ...PHASE1_MAP.wind, weather } };
+    for (const id of ['sloop', 'cutter', 'schooner', 'clipper', 'hoy', 'fluyt']) {
+      const world = createWorld(map, SLOOP);
+      world.trade.captain.ships[id] = stockLevels();
+      world.trade.captain.activeShip = id;
+      world.trade.captain.cargo.timber = 500;
+      for (let t = 0; t < 900; t += 1 / 20) {
+        // Keep her at sea, turning hard for a few seconds every 31 s, alternately each way.
+        if (Math.hypot(world.boat.x, world.boat.y) > 380) {
+          world.boat.x *= 0.5;
+          world.boat.y *= 0.5;
+        }
+        const turn = Math.floor(t / 31);
+        const steer = t % 31 < 4 ? (turn % 2 ? 1 : -1) : 0;
+        stepWorld(world, { steer, sailStep: 2 }, 1 / 20);
+      }
+      expect({ id, timber: world.trade.captain.cargo.timber }).toEqual({ id, timber: 500 });
+    }
+  }, 30000);
+
+  it('a hard gust knocks cargo over when she is already pressed (0074)', () => {
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    world.trade.captain.cargo.timber = 3;
+    world.boat.heading = Math.PI / 2;
+    world.boat.sail = 1;
+    world.wind = { from: 0, speedKn: 19 };
+    stepHeel(world, 1 / 30);
+    expect(world.pressKn).toBeLessThan(OVERPRESSED_KN);
+    world.wind = { from: 0, speedKn: 19 + LURCH_GUST_KN + 1 };
+    expect(stepHeel(world, 1 / 30)).toMatchObject([{ type: 'overboard', good: 'timber' }]);
+    // The same gust in a light breeze only heels her.
+    const light = createWorld(PHASE1_MAP, SLOOP);
+    light.trade.captain.cargo.timber = 3;
+    light.boat.heading = Math.PI / 2;
+    light.boat.sail = 1;
+    light.wind = { from: 0, speedKn: 12 };
+    stepHeel(light, 1 / 30);
+    light.wind = { from: 0, speedKn: 12 + LURCH_GUST_KN + 1 };
+    expect(stepHeel(light, 1 / 30)).toHaveLength(0);
+  });
+
   it('throws cargo over the side under full sail in a gale', () => {
     const { world, lost } = sail(24, 2, 30);
-    expect(Math.abs(world.heel.angle)).toBeGreaterThan(HEAVY_HEEL);
+    expect(world.pressKn).toBeGreaterThan(OVERPRESSED_KN);
     expect(lost.length).toBeGreaterThanOrEqual(5);
     // The good she carries most of goes first.
     expect(lost[0]).toMatchObject({ type: 'overboard', good: 'timber', qty: 1 });

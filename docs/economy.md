@@ -19,7 +19,7 @@ Each port is also a settlement with a level ([0059](decisions/0059-settlement-le
 
 ## Cargo overboard
 
-Heeling past 20° for 2.5 s, or a sudden lurch, sends one unit of the good the hold carries most of over the side: ease the sails in a gale or a storm ([0067](decisions/0067-weather-states-and-storms.md)). Nothing is lost alongside. The balance simulation sails in fixed winds and ignores weather.
+Being pressed too hard for 3 s under full sail (a gale or a storm; never the breeze, rain or a tack, [0074](decisions/0074-forgiving-cargo-overboard.md)), or a hard gust while already pressed, sends one unit of the good the hold carries most of over the side: ease the sails in a gale or a storm ([0067](decisions/0067-weather-states-and-storms.md)). Nothing is lost alongside. The balance simulation sails in fixed winds and ignores weather.
 
 ## Prices
 
