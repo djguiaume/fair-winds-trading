@@ -73,6 +73,8 @@ export interface WindConfig {
   shiftDeg: number;
   /** Slow weather shifts; without it the wind keeps its prevailing direction (Phase 0). */
   weather?: WeatherConfig;
+  /** Only storms that form at or after this game time (decision 0072). */
+  stormsFrom?: number;
 }
 
 /**
@@ -277,7 +279,9 @@ export function windAt(
     (1 + gust * config.gustiness * weather.gusts);
 
   // Storms (decision 0067): the wind turns to circle the centre and blows much harder.
-  const storms = config.weather?.storms ? stormsAt(config.weather.storms, seed, t) : NO_STORMS;
+  const storms = config.weather?.storms
+    ? stormsAt(config.weather.storms, seed, t, config.stormsFrom)
+    : NO_STORMS;
   let storm = 0;
   for (const s of storms) {
     const k = stormStrength(s, pos.x, pos.y);

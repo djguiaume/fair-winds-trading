@@ -20,10 +20,12 @@ import {
   type World,
   type WorldEvent,
   createWorld,
+  holdStorms,
   stepHeel,
   stepWorld,
 } from '../src/sim/world';
 import type { MapDef } from '../src/sim/map';
+import { Tutorial } from '../src/sim/tutorial';
 
 const STORMS = DEFAULT_WEATHER.storms!;
 const seed = PHASE1_MAP.seed;
@@ -165,6 +167,60 @@ describe('weather switched off (0067)', () => {
     stepWorld(world, { steer: 0, sailStep: 0 }, 0.1);
     expect(world.weather.kind).toBe('breeze');
     expect(world.weather.storms).toHaveLength(0);
+  });
+});
+
+describe('storms held back (0072)', () => {
+  const memory = () => {
+    const values = new Map<string, string>();
+    return {
+      getItem: (k: string) => values.get(k) ?? null,
+      setItem: (k: string, v: string) => void values.set(k, v),
+      removeItem: (k: string) => void values.delete(k),
+    };
+  };
+  const still = { steer: 0, sailStep: 0 };
+
+  it('blows no storm while held, and the one under way does not pop up when let go', () => {
+    const { t, storm } = firstStorm();
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    world.boat.x = storm.x;
+    world.boat.y = storm.y;
+    world.time = t - 0.1;
+    holdStorms(world, 'event', true);
+    holdStorms(world, 'event', true);
+    expect(world.stormHolds).toEqual(['event']);
+    const held = stepWorld(world, still, 0.1);
+    expect(world.weather.storms).toHaveLength(0);
+    expect(held.some((e) => e.type === 'storm-near')).toBe(false);
+    // Let go right in the storm's path: it stays away until it has crossed the sea.
+    holdStorms(world, 'event', false);
+    stepWorld(world, still, 0.1);
+    expect(world.weather.storms).toHaveLength(0);
+    expect(world.weather.storm).toBe(0);
+    // The next storm forms at the edge as usual.
+    let next = false;
+    for (let k = 0; k < 2 * STORMS.everySec && !next; k++) {
+      world.time += 1;
+      stepWorld(world, still, 0.01);
+      next = world.weather.storms.length > 0;
+    }
+    expect(next).toBe(true);
+  });
+
+  it('holds storms through the tutorial, whatever the Settings say', () => {
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    const tutorial = new Tutorial(world, {}, memory());
+    tutorial.start();
+    tutorial.observe();
+    expect(world.stormHolds).toContain('tutorial');
+    const { t } = firstStorm();
+    world.time = t;
+    stepWorld(world, still, 0.1);
+    expect(world.weather.storms).toHaveLength(0);
+    tutorial.skip();
+    tutorial.observe();
+    expect(world.stormHolds).not.toContain('tutorial');
   });
 });
 
