@@ -15,6 +15,8 @@ export interface Settings {
   showFps: boolean;
   seenHelp: boolean;
   seenWindHint: boolean;
+  /** The one-time "ease the sails" message has been shown (decision 0078). */
+  seenPressHint: boolean;
   uiMode: UiMode;
   /** Speed log (speed, heading, point of sail) shown at sea; on by default (decision 0049). */
   showLog: boolean;
@@ -36,6 +38,7 @@ const DEFAULTS: Settings = {
   showFps: false,
   seenHelp: false,
   seenWindHint: false,
+  seenPressHint: false,
   uiMode: 'adult',
   showLog: true,
   language: null,

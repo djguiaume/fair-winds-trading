@@ -606,9 +606,9 @@ label.set-row {
   line-height: 1.35;
 }
 
-/* How to play: three picture cards and one line of controls, one screen without scrolling. */
+/* How to play: four picture cards and one line of controls, one screen without scrolling. */
 .help-body {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   align-content: center;
 }
 .help-card {

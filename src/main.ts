@@ -102,6 +102,17 @@ const hud = new Hud(
   },
   view.harbours,
 );
+// Press warning (decision 0078): a one-time "ease the sails" message, and a buzz and a creak
+// when she crosses into red.
+hud.seenPressHint = settings.seenPressHint;
+hud.onPressHintSeen = () => {
+  settings.seenPressHint = true;
+  saveSettings(settings);
+};
+hud.onPressDanger = () => {
+  navigator.vibrate?.([70, 50, 70]);
+  music.creak();
+};
 const input = new Input(stage);
 const chart = new SeaChart($('chart') as HTMLDialogElement, world, view.harbours);
 chart.onChange = () => {
