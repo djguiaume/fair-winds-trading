@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<style>
+:root{--deep:#1d6f7a;--water:#2a8f9a;--light:#3aa7ae;--shallow:#58c2c0;--foam:#e6fbff;--sand:#ecd49a;--sandDark:#d9bd7e;--grass:#6fb04a;--grassDark:#5a9a3c;--hull:#9b5e2e;--mast:#5b3a1e;--sail:#f4f0e2;--roof:#c0533a;--ink:#3b2a17}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:540px;font-family:"Trebuchet MS","DejaVu Sans",sans-serif;color:var(--ink);
+ background:radial-gradient(ellipse at 30% 0%,var(--light),var(--water) 45%,var(--deep));padding:26px 20px 22px}
+header{text-align:center;color:var(--foam);margin-bottom:16px}
+header .kicker{font-size:13px;letter-spacing:3px;text-transform:uppercase;opacity:.85}
+header h1{font-size:32px;line-height:1.05;margin:4px 0 6px;text-shadow:0 2px 0 rgba(0,0,0,.18)}
+header p{font-size:14.5px;opacity:.95}
+.legend{display:flex;justify-content:center;gap:14px;margin:10px 0 0;font-size:13px;color:var(--foam)}
+.legend span{display:flex;align-items:center;gap:5px}
+.route{position:relative;padding-left:46px}
+.route:before{content:"";position:absolute;left:17px;top:18px;bottom:30px;border-left:3px dashed rgba(230,251,255,.7)}
+.stop{position:relative;margin-bottom:11px}
+.dot{position:absolute;left:-46px;top:6px;width:37px;height:37px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:bold;border:3px solid var(--foam)}
+.done .dot{background:var(--grass);color:#fff}
+.now .dot{background:var(--sand);}
+.next .dot{background:var(--deep);color:var(--foam);font-size:15px}
+.card{background:var(--sail);border-radius:14px;padding:10px 13px 11px;box-shadow:0 3px 0 rgba(0,0,0,.15)}
+.done .card{background:#eef6e4}
+.now .card{background:var(--sand);border:3px solid var(--hull)}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+h2{font-size:18px;line-height:1.15}
+h2 small{display:block;font-size:12px;font-weight:normal;text-transform:uppercase;letter-spacing:1.5px;opacity:.7}
+.tag{font-size:11.5px;font-weight:bold;padding:3px 8px;border-radius:20px;white-space:nowrap;color:#fff;text-transform:uppercase;letter-spacing:.5px}
+.done .tag{background:var(--grassDark)}
+.now .tag{background:var(--roof)}
+.next .tag{background:var(--water)}
+.maybe .tag{background:#8b8b85}
+ul{list-style:none;margin-top:5px;font-size:14px;line-height:1.35}
+li{padding-left:15px;position:relative}
+li:before{content:"•";position:absolute;left:2px;color:var(--hull)}
+li.ok:before{content:"✓";color:var(--grassDark);font-weight:bold;left:0}
+li.wip:before{content:"⛵";left:-3px;font-size:12px;top:1px}
+li.todo:before{content:"○";color:var(--roof);left:0;font-size:12px;top:1px}
+.ships{display:flex;gap:6px;margin-top:6px}
+.ship{flex:1;background:rgba(255,255,255,.55);border-radius:9px;padding:5px 6px;font-size:12px;line-height:1.25;text-align:center}
+.ship b{display:block;font-size:13px}
+footer{text-align:center;color:var(--foam);font-size:12px;opacity:.85;margin-top:6px}
+</style></head><body>
+<header>
+ <div class="kicker">⚓ Carte du capitaine</div>
+ <h1>Fair Winds Trading Co.</h1>
+ <p>Naviguer avec le vent, livrer des marchandises, bâtir un empire maritime.</p>
+ <div class="legend"><span>✅ terminé</span><span>⛵ en cours</span><span>○ à faire</span></div>
+</header>
+
+<div class="route">
+
+<div class="stop done"><div class="dot">✓</div><div class="card">
+ <div class="top"><h2><small>Phase 0</small>Une navigation agréable</h2><span class="tag">Terminée</span></div>
+ <ul><li class="ok">Voile au vent, louvoyer pour remonter</li><li class="ok">Tactile + clavier, tourne sur vieille tablette</li><li class="ok">Menu, plein écran, jouable en ligne</li></ul>
+</div></div>
+
+<div class="stop done"><div class="dot">✓</div><div class="card">
+ <div class="top"><h2><small>Phase 1 · v0.1.50</small>Le commerce en solo</h2><span class="tag">Terminée</span></div>
+ <ul>
+  <li class="ok">Carte Windward Ring : 4 ports, 4 marchandises</li>
+  <li class="ok">Marché, commandes de livraison, économie réglée</li>
+  <li class="ok">Récifs, réparations, carte marine, tutoriel</li>
+  <li class="ok">Améliorations au port d’attache, navires à gagner</li>
+  <li class="ok">Nouvelle interface, musique, anglais + français</li>
+ </ul>
+</div></div>
+
+<div class="stop now"><div class="dot">⛵</div><div class="card">
+ <div class="top"><h2><small>Phase 2 · v0.2</small>Des villes vivantes</h2><span class="tag">En cours</span></div>
+ <ul>
+  <li class="ok">Niveaux des villes : hameau → ville portuaire</li>
+  <li class="ok">Ateliers : planches, pain, poisson fumé, pierre taillée</li>
+  <li class="ok">Météo 1 : le vent tourne sur toute la rose</li>
+  <li class="wip">Produits rares des chantiers lointains : miel, huile</li>
+  <li class="wip">Transfert de sauvegarde par QR code</li>
+  <li class="todo">Météo 2 : grains et tempêtes, cargaison abîmée</li>
+  <li class="todo">Météo 3 : le jour et la nuit</li>
+ </ul>
+</div></div>
+
+<div class="stop next"><div class="dot">🗺</div><div class="card">
+ <div class="top"><h2><small>En parallèle</small>De nouvelles mers à débloquer</h2><span class="tag">Prévu</span></div>
+ <ul><li>Choisir une mer depuis le menu, une sauvegarde par mer</li><li>Débloquées par des étapes de livraison</li></ul>
+</div></div>
+
+<div class="stop next"><div class="dot">3</div><div class="card">
+ <div class="top"><h2><small>Phase 3</small>Flotte et routes commerciales</h2><span class="tag">Prévu</span></div>
+ <ul><li>Tracer des routes, les navires les suivent seuls</li><li>Tableau de bord : trajets, profit par route</li></ul>
+ <div class="ships">
+  <div class="ship"><b>Rapides</b>cotre → goélette → clipper</div>
+  <div class="ship"><b>Cargos</b>heu → flûte → indiaman</div>
+ </div>
+</div></div>
+
+<div class="stop next"><div class="dot">4</div><div class="card">
+ <div class="top"><h2><small>Phase 4</small>Des mers plus rudes</h2><span class="tag">Prévu</span></div>
+ <ul><li>Brouillard de guerre, îles à découvrir</li><li>Îles lointaines : épices et teinture</li><li>Pot-au-noir, alizés, courants</li><li>Cartes générées à partager</li></ul>
+</div></div>
+
+<div class="stop next"><div class="dot">5</div><div class="card">
+ <div class="top"><h2><small>Phase 5</small>Les pirates</h2><span class="tag">Prévu</span></div>
+ <ul><li>Des pirates chassent les marchands chargés</li><li>Navires de guerre (ketch → brick → frégate), canons, escortes</li></ul>
+</div></div>
+
+<div class="stop next"><div class="dot">⏱</div><div class="card">
+ <div class="top"><h2><small>Après la phase 2</small>Courses chronométrées</h2><span class="tag">Prévu</span></div>
+ <ul><li>Livraisons contre la montre, vent et météo fixés</li><li>Médailles bronze, argent, or</li></ul>
+</div></div>
+
+<div class="stop next maybe"><div class="dot">6</div><div class="card">
+ <div class="top"><h2><small>Phase 6</small>Compagnies rivales</h2><span class="tag">Peut-être</span></div>
+ <ul><li>Des compagnies concurrentes, des eaux disputées</li></ul>
+</div></div>
+
+<div class="stop next"><div class="dot">7</div><div class="card">
+ <div class="top"><h2><small>Phase 7</small>Finitions</h2><span class="tag">Plus tard</span></div>
+ <ul><li>Sons, couleurs de voiles et pavillons, succès</li><li>Mode enfants repensé</li></ul>
+</div></div>
+
+</div>
+<footer>Mis à jour le 22 oct. 2026 · djguiaume.github.io/fair-winds-trading</footer>
+</body></html>

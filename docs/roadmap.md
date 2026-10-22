@@ -1,6 +1,6 @@
 # Fair Winds Trading — Game Roadmap (draft v1)
 
-One-picture summary for phones: [roadmap-image/roadmap.png](roadmap-image/roadmap.png) (source `roadmap-image/roadmap.html`, render with `node docs/roadmap-image/shot.cjs`).
+One-picture summary for phones: [roadmap-image/roadmap.png](roadmap-image/roadmap.png) (source `roadmap-image/roadmap.html`, render with `node docs/roadmap-image/shot.cjs`). In French, updated 2026-10-22: [roadmap-image/roadmap-fr.png](roadmap-image/roadmap-fr.png) (`node docs/roadmap-image/shot.cjs roadmap-fr`).
 
 Versions follow the phases: the menu shows `v0.<phase>.<deploy>` (Phase 1 is `v0.1.x`, Phase 2 is `v0.2.x`), see [0042](decisions/0042-light-versioning.md). Each finished phase gets a GitHub release ([0062](decisions/0062-github-releases-per-phase.md), [notes](releases/README.md)).
 
