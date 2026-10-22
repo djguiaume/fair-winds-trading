@@ -31,3 +31,5 @@ cropped consistently. The geometry and buildings in the images have not been pai
 Revised after visual review: wooded starting villages, progressive clearing, larger working waterfronts and a quarry cut into the mountain.
 
 See [decision 0072](../../decisions/0072-wooded-villages-and-working-landscapes.md) and [decision 0071](../../decisions/0071-distinct-producer-islands.md).
+
+Calda revision: an enlarged forested upper plateau and rocky mountain ridge remain prominent at level 4. See [decision 0073](../../decisions/0073-calda-forested-mountain-plateau.md).

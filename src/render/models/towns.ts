@@ -308,11 +308,19 @@ function woodlandTree(kind: IslandTheme, rng: Rng): Parts {
     return [
       trunk,
       paint(
-        new THREE.ConeGeometry(0.62 * s, 1.15 * s, 5, 1, true).translate(0, 0.95 * s, 0),
+        new THREE.ConeGeometry(0.62 * s, 1.15 * s, kind === 'timber' ? 4 : 5, 1, true).translate(
+          0,
+          0.95 * s,
+          0,
+        ),
         C.pine[0]!,
       ),
       paint(
-        new THREE.ConeGeometry(0.4 * s, 1.0 * s, 5, 1, true).translate(0, 1.55 * s, 0),
+        new THREE.ConeGeometry(0.4 * s, 1.0 * s, kind === 'timber' ? 4 : 5, 1, true).translate(
+          0,
+          1.55 * s,
+          0,
+        ),
         C.pine[1]!,
       ),
     ];
@@ -1168,9 +1176,10 @@ function characterTownParts(spec: TownIslandSpec): Parts {
         cz = (Math.min(...zs) + Math.max(...zs)) / 2;
       const rx = (Math.max(...xs) - Math.min(...xs)) / 2,
         rz = (Math.max(...zs) - Math.min(...zs)) / 2;
-      const g = new THREE.ConeGeometry(R, s.height * R, 10)
+      const mountainBase = kind === 'timber' ? 0.32 * R : 0;
+      const g = new THREE.ConeGeometry(R, s.height * R - mountainBase, 10)
         .scale(rx, 1, rz)
-        .translate(cx * R, (s.height * R) / 2, cz * R);
+        .translate(cx * R, (s.height * R + mountainBase) / 2, cz * R);
       out.push(paint(g, C.rock2));
     } else
       terrain(
@@ -1315,7 +1324,7 @@ function characterTownParts(spec: TownIslandSpec): Parts {
     reserve(workingSawmill(), -0.05, -0.2, 2);
     reserve(workingSlip(true), 1.05, 0.38, 1.65, 0.25);
     reserve(timberWorkshop(false), 0.4, 0.43, 1.1);
-    reserve(timberWorkshop(true), 1.0, -0.9, 1.1);
+    reserve(timberWorkshop(true), -0.12, -1.16, 1.1);
   } else if (kind === 'stone') {
     reserve(masons(), 0.68, 0.12, 2);
     reserve(keep(), layout.landmark[0], layout.landmark[1], 1.25);
@@ -1488,7 +1497,7 @@ function characterTownParts(spec: TownIslandSpec): Parts {
   } else if (kind === 'timber') {
     if (level >= 3) {
       placeAt(timberWorkshop(false), 0.4, 0.43, 1.1, 0.1);
-      placeAt(timberWorkshop(true), 1.0, -0.9, 1.1, 0.1);
+      placeAt(timberWorkshop(true), -0.12, -1.16, 1.1, 0.1);
     }
     for (let i = 0; i < features; i++) {
       if (i < 3) {
@@ -1586,17 +1595,19 @@ function characterTownParts(spec: TownIslandSpec): Parts {
   // Fixed candidate trees keep untouched woods stable; occupied land alone clears them.
   const treesRng = createRng(spec.seed + 789);
   const forest: { x: number; z: number }[] = [];
-  for (let i = 0; i < 1100; i++) {
-    const x = range(treesRng, -1.7, 1.7),
-      z = range(treesRng, -1.3, 0.72);
+  for (let i = 0; i < (kind === 'timber' ? 2600 : 1100); i++) {
+    const x = range(treesRng, -1.7, kind === 'timber' ? 1.95 : 1.7),
+      z = range(treesRng, kind === 'timber' ? -1.8 : -1.3, 0.72);
     const tree = woodlandTree(kind, treesRng);
     const yaw = treesRng() * 6,
       scale = kind === 'timber' ? 1.8 : kind === 'stone' ? 1.1 : 1.7;
-    const h = layoutGround(layout, x, z, 0.09);
-    const finalHeight = layoutGround(islandLayout(kind), x, z, 0.09);
+    const treeMargin = kind === 'timber' ? 0.055 : 0.09;
+    const h = layoutGround(layout, x, z, treeMargin);
+    const finalHeight = layoutGround(islandLayout(kind), x, z, treeMargin);
     if (
       h === null ||
       finalHeight === null ||
+      (kind === 'timber' && h > 0.7) ||
       (kind === 'stone' &&
         layout.surfaces.some(
           (s) => s.material === 'rock' && s.outline.length > 0 && h === s.height,
@@ -1607,7 +1618,7 @@ function characterTownParts(spec: TownIslandSpec): Parts {
       forest.some(
         (p) =>
           Math.hypot(p.x - x, p.z - z) <
-          (kind === 'timber' ? 0.185 : kind === 'stone' ? 0.23 : 0.27),
+          (kind === 'timber' ? (h === 0.32 ? 0.11 : 0.185) : kind === 'stone' ? 0.23 : 0.27),
       )
     )
       continue;

@@ -204,6 +204,33 @@ describe('producer island geography', () => {
     }
     parts.forEach((g) => g.dispose());
   });
+  it('retains a forested mountain plateau at Calda level 4', () => {
+    const R = 24 / 2.2,
+      layout = islandLayout('timber');
+    const parts = townIslandParts({
+      seed: 7001,
+      profile: 'timber',
+      kind: 'timber',
+      R,
+      level: 4,
+      sx: 1,
+      sz: 1,
+      pier: { x: 0, z0: 0, len: 4.5 },
+    });
+    const upland = parts
+      .filter((g) => g.userData.tree)
+      .filter((g) => {
+        const p = g.userData.tree as { x: number; z: number };
+        return layoutGround(layout, p.x, p.z, 0.04) === 0.32;
+      });
+    expect(upland.length).toBeGreaterThanOrEqual(20);
+    expect(Math.max(...layout.surfaces.map((s) => s.height))).toBeGreaterThan(0.9);
+    for (const g of parts.filter((g) => g.userData.tree)) {
+      const p = g.userData.tree as { x: number; z: number };
+      expect(layoutGround(layout, p.x, p.z, 0.04)!).toBeLessThan(0.7);
+    }
+    parts.forEach((g) => g.dispose());
+  });
   it('keeps the lake out of terrain/building placement and supplies satellite shorelines', () => {
     const calda = islandLayout('timber');
     expect(layoutGround(calda, -0.65, -0.45)).toBeNull();

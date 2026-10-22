@@ -347,7 +347,8 @@ function resize() {
   if (view === 'towns' && params.has('focus')) {
     const focus = Number(params.get('focus'));
     const x = (focus - 2.5) * 64 + (params.get('kind') === 'fish' ? 8 : 0);
-    const dist = 150 * Math.max(1, 1.1 / camera.aspect);
+    const dist =
+      150 * Math.max(1, 1.1 / camera.aspect) * (params.get('kind') === 'timber' ? 1.22 : 1);
     const pitch = 58 * DEG;
     camera.position.set(x, Math.sin(pitch) * dist, 8 + Math.cos(pitch) * dist);
     camera.lookAt(x, 0, 8);

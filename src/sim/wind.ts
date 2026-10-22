@@ -344,9 +344,11 @@ export function windBlockers(
             ? clamp(r / 18, 0.2, 0.6)
             : i.look?.profile === 'stone'
               ? 1
-              : i.look?.profile === 'grain'
-                ? 0.3
-                : 0.65,
+              : i.look?.profile === 'timber'
+                ? 0.9
+                : i.look?.profile === 'grain'
+                  ? 0.3
+                  : 0.65,
           x,
           y,
           r,

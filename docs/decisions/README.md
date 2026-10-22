@@ -91,4 +91,6 @@
 
 | [0072](0072-wooded-villages-and-working-landscapes.md) | Compact wooded villages, progressive clearing, visible fishing and boatbuilding, and a quarry cut into the mountain | 2026-10-22 | Implemented for review |
 
+| [0073](0073-calda-forested-mountain-plateau.md) | Calda retains dense upper woodland around an enlarged plateau and rocky mountain ridge | 2026-10-22 | Implemented for review |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

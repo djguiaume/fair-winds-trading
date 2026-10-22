@@ -203,7 +203,8 @@ describe('Windward Ring trading map', () => {
     const windows = mesh.children as THREE.Mesh<THREE.BufferGeometry, THREE.Material>[];
     expect(windows.length).toBeLessThanOrEqual(1);
     const glass = windows.reduce((n, w) => n + triangleCount(w.geometry), 0);
-    expect(triangleCount(mesh.geometry) + glass).toBeLessThan(20000);
+    // Decision 0073: allow 5% more land geometry for Calda's enlarged forested mountain.
+    expect(triangleCount(mesh.geometry) + glass).toBeLessThan(21000);
     for (const m of [mesh, ...windows]) {
       m.geometry.dispose();
       m.material.dispose();
