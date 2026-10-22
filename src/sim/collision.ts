@@ -12,7 +12,7 @@ import {
 
 /**
  * What the boat ran into; hulls fare worst on reefs, then piers, moored boats and rocky shores
- * (decisions 0038 and 0081).
+ * (decisions 0038 and 0082).
  */
 export type Surface = 'reef' | 'pier' | 'boat' | 'shore' | 'sandbank' | 'edge';
 const HARDNESS: Record<Surface, number> = {
@@ -34,7 +34,7 @@ export const MOORED_BOAT_HALF_WIDTH = 0.45 * 1.55 * PIER_SCALE;
 
 /**
  * A harbour pier as a solid segment from the island out to its head. A boat moored in the harbour
- * is the same kind of capsule along its keel, flagged so a ram reports the boat (decision 0081).
+ * is the same kind of capsule along its keel, flagged so a ram reports the boat (decision 0082).
  */
 export interface Pier {
   islandId: string;
@@ -81,7 +81,7 @@ export function piersOf(
     const port = map.ports?.find((p) => p.islandId === island.id);
     if (island.look?.dock && wp && !island.look.profile && port) {
       // A hidden yard grows the plain town dock (townIslandParts): a T-head from level 3 and a
-      // second pier with its quay at level 4, in the same harbour frame as its main pier (0081).
+      // second pier with its quay at level 4, in the same harbour frame as its main pier (0082).
       const level = levels[port.id] ?? port.level ?? 1;
       const main = piers[piers.length - 1]!;
       main.halfWidth = ([0.3, 0.45, 0.55, 0.55][level - 1] ?? 0.55) * PIER_SCALE;
@@ -141,7 +141,7 @@ export function piersOf(
         );
       }
       // Fishing boats at their moorings round the fishing island (towns.ts draws them at
-      // 1.55 times a 2-unit hull): a keel-long capsule each, so the ship bumps them (0081).
+      // 1.55 times a 2-unit hull): a keel-long capsule each, so the ship bumps them (0082).
       if (island.look.profile === 'fish')
         for (const m of fishingMoorings(level)) {
           const half = (MOORED_BOAT_HALF_LENGTH - MOORED_BOAT_HALF_WIDTH) / island.radius;

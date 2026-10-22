@@ -854,7 +854,7 @@ function dock(out: Parts, level: TownLevel, pier: TownIslandSpec['pier'], stone:
   }
 }
 
-/** Tags a deck the ship must not sail through; tests match it to a collision pier (0081). */
+/** Tags a deck the ship must not sail through; tests match it to a collision pier (0082). */
 function deckOf(g: THREE.BufferGeometry) {
   g.userData.solid = 'pier';
   return g;
@@ -1498,7 +1498,7 @@ function characterTownParts(spec: TownIslandSpec): Parts {
       for (let n = 0; n < 4; n++)
         boat.push(cyl(0.07, 0.07, 0.18, -0.4 + n * 0.25, 0.5, 0.35, '#e2c160', 5));
       boat.push(box(0.5, 0.16, 0.6, 0, 0.43, 0.55, '#aaa88b'));
-      boat[0]!.userData.solid = 'boat'; // the hull, matched by a collision capsule (0081)
+      boat[0]!.userData.solid = 'boat'; // the hull, matched by a collision capsule (0082)
       put(out, boat, mooring.x * R, 0, mooring.z * R, mooring.yaw, 1.55);
     }
   } else if (kind === 'timber') {

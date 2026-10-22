@@ -136,7 +136,7 @@ describe('reefs and shallows (0032)', () => {
 
   it('makes harbour piers solid and reports ramming one', () => {
     const world = createWorld(PHASE1_MAP, SLOOP);
-    // One main pier per port; Saltmere's moored fishing boats are solid too (0081).
+    // One main pier per port; Saltmere's moored fishing boats are solid too (0082).
     expect(world.piers.filter((p) => !p.boat)).toHaveLength(PHASE1_MAP.ports.length);
     const pier = world.piers[0]!;
     // Sail straight across the outer end of the pier, from one side to the other.

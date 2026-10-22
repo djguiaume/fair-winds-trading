@@ -1,4 +1,4 @@
-# Solid moored boats and yard docks (decision 0081)
+# Solid moored boats and yard docks (decision 0082)
 
 Captured in the built game with headless Chromium (`capture.cjs`, against `npx vite --port 5199`).
 The overlays are drawn from the live `world.piers`: yellow = solid piers, T-heads and quays,

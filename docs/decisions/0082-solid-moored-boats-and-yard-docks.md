@@ -1,4 +1,4 @@
-# 0081. Solid moored boats and grown yard docks
+# 0082. Solid moored boats and grown yard docks
 
 **Status:** Implemented for review, 2026-10-22.
 

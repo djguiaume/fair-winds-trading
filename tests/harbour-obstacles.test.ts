@@ -33,7 +33,7 @@ function drawnObstacles(level: number) {
   return out;
 }
 
-describe('solid harbour obstacles (0081)', () => {
+describe('solid harbour obstacles (0082)', () => {
   it('puts a collision pier or boat under every drawn deck and moored hull, at every level', () => {
     for (const level of [1, 2, 3, 4]) {
       const solid = piersOf(PHASE1_MAP, levelsAt(level));

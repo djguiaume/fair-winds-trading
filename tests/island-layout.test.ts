@@ -266,7 +266,7 @@ describe('producer island geography', () => {
     const at = (level: number) =>
       piersOf(PHASE1_MAP, Object.fromEntries(PHASE1_MAP.ports.map((p) => [p.id, level])));
     // 20 pier and quay segments at the producers, 3 more moored boats at Saltmere and a T-head,
-    // second pier and quay at each hidden yard (0081).
+    // second pier and quay at each hidden yard (0082).
     expect(at(4).length - at(1).length).toBe(29);
     for (const pier of at(4)) {
       const boat = createBoat((pier.x0 + pier.x1) / 2, (pier.y0 + pier.y1) / 2, 0);
