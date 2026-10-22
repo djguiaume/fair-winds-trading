@@ -390,6 +390,7 @@
     </svg>
     <div id="stage">
       <canvas id="scene"></canvas>
+      <div id="press-glow" class="press-glow" data-press="0" aria-hidden="true"></div>
     </div>
 
     <div id="hud">
@@ -1373,6 +1374,43 @@
           <p data-i18n="help.tradeCopy">
             Buy what a port makes, sell where it is wanted. Delivery orders pay extra. Open the map
             to compare prices.
+          </p>
+        </article>
+        <article class="help-card">
+          <svg class="help-art" viewBox="0 0 200 110" aria-hidden="true">
+            <path
+              d="M14 30H58M8 48H62M18 66H54M52 22L64 30 52 38M56 40L68 48 56 56"
+              fill="none"
+              stroke="#9fe7ff"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
+            <g transform="rotate(24 112 88)">
+              <path d="M112 12V86L150 86z" fill="#f4f0e2" stroke="#06141c" stroke-width="1.5" />
+              <path d="M84 88H146L136 100H94z" fill="#8a5a33" stroke="#06141c" stroke-width="1.5" />
+            </g>
+            <rect
+              x="158"
+              y="80"
+              width="14"
+              height="14"
+              rx="2"
+              fill="#c98b4a"
+              transform="rotate(18 165 87)"
+            />
+            <path
+              d="M150 104C162 98 176 98 190 104"
+              fill="none"
+              stroke="#9fe7ff"
+              stroke-width="2"
+            />
+            <rect x="24" y="86" width="40" height="16" rx="8" fill="#f2b33d" />
+            <rect x="70" y="86" width="16" height="16" rx="8" fill="#e2503a" />
+          </svg>
+          <h3 data-i18n="help.pressTitle">Strong wind</h3>
+          <p data-i18n="help.pressCopy">
+            When the sails control turns amber, then red, ease the sails or bear away, or cargo goes
+            overboard.
           </p>
         </article>
         <p class="help-controls">

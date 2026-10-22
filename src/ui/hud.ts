@@ -5,7 +5,13 @@ import { hullCondition } from '../sim/hazards';
 import { windTo } from '../sim/wind';
 import { WIND_FORCES, createWindGauge, updateWindGauge } from '../sim/windStrength';
 import { windFeedback } from './windFeedback';
-import { type World, type WorldEvent, navigationTarget } from '../sim/world';
+import {
+  type PressLevel,
+  type World,
+  type WorldEvent,
+  navigationTarget,
+  pressLevel,
+} from '../sim/world';
 import type { ScreenPoint } from '../render/view';
 
 import { GOODS } from '../sim/goods';
@@ -53,6 +59,16 @@ export class Hud {
     document.querySelectorAll<HTMLButtonElement>('#sail-lever button[data-step]'),
   );
   private leverDrag: number | null = null;
+  /** Press warning (decision 0078): the sails control turns amber, then red, and the lee edge of
+   * the screen glows the same colour. */
+  private readonly pressGlow = $('press-glow');
+  private press: PressLevel = 0;
+  private glowAngle = NaN;
+  /** The one-time "ease the sails" message has been shown. */
+  seenPressHint = false;
+  onPressHintSeen: () => void = () => {};
+  /** She just crossed into red: main buzzes the phone and plays a creak. */
+  onPressDanger: () => void = () => {};
   private shownSail = -1;
   private readonly objective = $('navigation-target');
   private readonly objArrow = $('obj-arrow');
@@ -249,6 +265,32 @@ export class Hud {
     this.windGust.hidden = gust <= 0;
   }
 
+  /** Press warning (decision 0078): cheap class and custom-property writes, only on change. */
+  private updatePress(project: (x: number, y: number) => ScreenPoint, active: boolean) {
+    const level = active ? pressLevel(this.world, this.press) : 0;
+    if (level !== this.press) {
+      if (level === 2 && this.press < 2) this.onPressDanger();
+      this.press = level;
+      this.lever.dataset.press = String(level);
+      this.pressGlow.dataset.press = String(level);
+      if (level > 0 && !this.seenPressHint) {
+        this.seenPressHint = true;
+        this.onPressHintSeen();
+        this.showToast(t('toast.pressHint'), 5);
+      }
+    }
+    if (level === 0) return;
+    // The glow sits on the lee side, where she leans: the way the wind blows, on screen.
+    const { boat, wind } = this.world;
+    const to = windTo(wind);
+    const lee = { x: boat.x + Math.sin(to), y: boat.y + Math.cos(to) };
+    const deg = Math.round(screenBearing(project, boat, lee) / DEG);
+    if (!(Math.abs(deg - this.glowAngle) < 2)) {
+      this.glowAngle = deg;
+      this.pressGlow.style.setProperty('--lee', `${deg}deg`);
+    }
+  }
+
   private dismissWindHint() {
     this.hintSeconds = 0;
     this.windHint.hidden = true;
@@ -351,6 +393,7 @@ export class Hud {
     rot(this.cBand, wind.from);
     rot(this.cWind, windTo(wind));
     this.updateWindStrength(dt, wind.speedKn);
+    this.updatePress(project, active);
     rot(this.cBoat, boat.heading);
     this.cWp.style.display = wp ? '' : 'none';
     this.objective.hidden = !wp;

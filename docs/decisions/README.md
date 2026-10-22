@@ -95,5 +95,7 @@
 | [0073](0073-calda-forested-mountain-plateau.md) | Calda retains dense upper woodland around an enlarged plateau and rocky mountain ridge | 2026-10-22 | Implemented for review |
 | [0074](0074-forgiving-cargo-overboard.md) | Cargo overboard reads how hard the wind presses her, not the drawn heel: breeze, rain and tacks never cost cargo; gales and storms under full sail still do | 2026-10-22 | Implementation for review |
 | [0075](0075-ship-speed-in-knots.md) | Ship speeds in the shipyard quoted in knots (best point of sail, 14 kn breeze) instead of % of the sloop | 2026-10-22 | Implemented for review |
+| [0076](0076-sails-on-resume.md) | Sails resume as the captain left them at sea, always down in port; the save now stores the sail setting | 2026-10-22 | Implemented for review |
+| [0078](0078-press-warning.md) | Press warning: the sails control and the lee edge of the screen turn amber, then red, before cargo goes overboard; one-time message, How to play card, buzz and creak | 2026-10-22 | Accepted |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

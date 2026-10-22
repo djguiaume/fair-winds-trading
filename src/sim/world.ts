@@ -74,6 +74,8 @@ export interface World {
    * Drives cargo going overboard. Negative until the first step.
    */
   pressKn: number;
+  /** The press right now, before averaging: the warning reads it so it shows before a lurch. */
+  pressNowKn: number;
   /** Seconds spent pressed past `OVERPRESSED_KN` (eases off when she stands up). */
   overHeel: number;
   /** Seconds before another lurch can throw cargo. */
@@ -128,6 +130,7 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     seaWind: windAt(map.wind, 0, map.seed, map.start),
     weather: { kind: 'breeze', rain: 0, showers: 0, storm: 0, storms: [] },
     pressKn: -1,
+    pressNowKn: 0,
     overHeel: 0,
     lurchCooldown: 0,
     stormsWarned: [],
@@ -228,6 +231,25 @@ const LURCH_COOLDOWN = 3;
 /** Seconds over which the press is averaged, to tell a gust from a steady blow. */
 const PRESS_AVERAGE_SEC = 4;
 
+/**
+ * How close she is to losing cargo, for the press warning on the sails control (decision 0078):
+ * 0 = fine; 1 = amber, a hard gust can throw cargo (`LURCH_PRESS_KN`); 2 = red, cargo goes over
+ * the side within `HEAVY_SECONDS` (`OVERPRESSED_KN`). A little hysteresis keeps it from flickering
+ * as the press wavers around a line. Alongside there is nothing to warn about.
+ */
+export type PressLevel = 0 | 1 | 2;
+const PRESS_HYSTERESIS_KN = 0.6;
+
+export function pressLevel(world: World, previous: PressLevel): PressLevel {
+  // The press right now leads the average, so the warning comes before a gust can knock her.
+  const press = Math.max(world.pressKn, world.pressNowKn);
+  if (world.trade.dockedAt || world.pressKn < 0) return 0;
+  const over = (line: number, held: boolean) => press > line - (held ? PRESS_HYSTERESIS_KN : 0);
+  if (over(OVERPRESSED_KN, previous === 2)) return 2;
+  if (over(LURCH_PRESS_KN, previous >= 1)) return 1;
+  return 0;
+}
+
 /** Storm warnings (decision 0067). */
 export function stepStorms(world: World): WorldEvent[] {
   const events: WorldEvent[] = [];
@@ -265,6 +287,7 @@ export function stepHeel(world: World, dt: number): WorldEvent[] {
   // Heel grows with wind^1.25 × drive (src/sim/heel.ts), so this is the beam-reach equivalent.
   const stiff = Math.min(1, heelFactor(trade.captain.activeShip));
   const press = wind.speedKn * Math.pow(drive * stiff, 0.8);
+  world.pressNowKn = press;
   if (world.pressKn < 0) world.pressKn = press;
   if (dt > 0) world.pressKn += (press - world.pressKn) * (1 - Math.exp(-dt / PRESS_AVERAGE_SEC));
   world.lurchCooldown = Math.max(0, world.lurchCooldown - dt);
