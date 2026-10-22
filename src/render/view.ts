@@ -29,7 +29,7 @@ const BASE_DISTANCE = 110;
 const SUN_OFFSET = new THREE.Vector3(-30, 50, 20);
 const SUN_INTENSITY = 1.7;
 const HEMI_INTENSITY = 1.5;
-/** Sea and sky colours under the darkest storm (decision 0065). */
+/** Sea and sky colours under the darkest storm (decision 0066). */
 const STORM_SKY = new THREE.Color('#2a3a42');
 const STORM_WATER = new THREE.Color('#1c3f47');
 const STORM_WATER_LIGHT = new THREE.Color('#2b5159');
@@ -58,7 +58,7 @@ export class GameView {
   private readonly camera = new THREE.PerspectiveCamera(40, 1, 1, 600);
   private readonly sun = new THREE.DirectionalLight(PALETTE.sun, SUN_INTENSITY);
   private readonly hemi = new THREE.HemisphereLight(PALETTE.sky, '#1a4d55', HEMI_INTENSITY);
-  /** 0 = clear … 1 = under a storm: darkens sky, sea and light (decision 0065). */
+  /** 0 = clear … 1 = under a storm: darkens sky, sea and light (decision 0066). */
   private gloom = 0;
   private readonly stormClouds = new StormClouds();
   private rain!: Rain;
@@ -352,7 +352,7 @@ export class GameView {
   }
 
   /**
-   * Weather light (decision 0065): rain and storms darken the sky, the sea and the sun, easing
+   * Weather light (decision 0066): rain and storms darken the sky, the sea and the sun, easing
    * over a few seconds so sailing into a storm feels like the light going.
    */
   private updateGloom(dt: number) {

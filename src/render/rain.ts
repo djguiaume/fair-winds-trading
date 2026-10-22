@@ -16,7 +16,7 @@ const TOP = 40;
 const FALL = 70;
 
 /**
- * Rain (decision 0065): short falling streaks around the camera, slanted by the wind. Each drop
+ * Rain (decision 0066): short falling streaks around the camera, slanted by the wind. Each drop
  * asks `rainAt` how hard it rains where it is, so a storm's downpour has an edge you can see
  * coming. One draw call; the drop count follows the quality level.
  */

@@ -443,7 +443,7 @@ export class SeaChart {
       if (terrain.name && terrain.kind === 'island')
         places.push({ name: terrain.name, x: (x0 + x1) / 2, top: y0, bottom: y1 });
     }
-    // Storms (decision 0065): a grey patch with its core, and where it is heading in 2 minutes.
+    // Storms (decision 0066): a grey patch with its core, and where it is heading in 2 minutes.
     for (const storm of this.world.weather.storms) {
       if (storm.intensity < 0.05) continue;
       const g = shape('g', { class: 'chart-storm', opacity: Math.min(1, storm.intensity * 1.3) });

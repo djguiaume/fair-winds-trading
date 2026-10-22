@@ -19,7 +19,7 @@ Each port is also a settlement with a level ([0059](decisions/0059-settlement-le
 
 ## Storms and spoiled cargo
 
-Seawater spoils fish, grain and bread in a storm's core: 10 % (at least 1) of each every 4 s at full force; timber, stone and workshop goods keep, and cargo is safe while docked ([0065](decisions/0065-weather-states-and-storms.md)). The balance simulation sails in fixed winds and ignores storms.
+Seawater spoils fish, grain and bread in a storm's core: 10 % (at least 1) of each every 4 s at full force; timber, stone and workshop goods keep, and cargo is safe while docked ([0066](decisions/0066-weather-states-and-storms.md)). The balance simulation sails in fixed winds and ignores storms.
 
 ## Prices
 

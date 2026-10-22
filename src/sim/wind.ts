@@ -26,17 +26,17 @@ export interface WeatherConfig {
   revert: number;
   /** Strength multipliers [min, max] applied to `speedKn` in a plain breeze. */
   strength: [number, number];
-  /** Sea-wide weather states (decision 0065); none = always a breeze. */
+  /** Sea-wide weather states (decision 0066); none = always a breeze. */
   kinds?: Record<WeatherKind, KindConfig>;
   /** Chance that a period keeps the previous period's weather. */
   persist?: number;
-  /** Moving storm cells (decision 0065). */
+  /** Moving storm cells (decision 0066). */
   storms?: StormConfig;
   /** The wind differs across the sea at the same moment (decision 0064); none = one wind everywhere. */
   regions?: RegionConfig;
 }
 
-/** Sea-wide weather of one period (decision 0065). Storms are separate, moving cells. */
+/** Sea-wide weather of one period (decision 0066). Storms are separate, moving cells. */
 export const WEATHER_KINDS = ['calm', 'breeze', 'rain', 'gale'] as const;
 export type WeatherKind = (typeof WEATHER_KINDS)[number];
 
@@ -207,7 +207,7 @@ export function regionAt(
   };
 }
 
-/** The weather where a boat is: sea-wide state, rain and storm (decision 0065). */
+/** The weather where a boat is: sea-wide state, rain and storm (decision 0066). */
 export interface LocalWeather {
   kind: WeatherKind;
   /** 0..1 rain at this spot (showers, or a storm's downpour). */
@@ -253,7 +253,7 @@ export function windAt(
     region.strength *
     (1 + gust * config.gustiness * weather.gusts);
 
-  // Storms (decision 0065): the wind turns to circle the centre and blows much harder.
+  // Storms (decision 0066): the wind turns to circle the centre and blows much harder.
   const storms = config.weather?.storms ? stormsAt(config.weather.storms, seed, t) : NO_STORMS;
   let storm = 0;
   for (const s of storms) {

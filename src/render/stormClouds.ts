@@ -4,7 +4,7 @@ import type { Storm } from '../sim/storms';
 const MAX_STORMS = 2;
 
 /**
- * The shadow a storm cloud throws on the sea (decision 0065): a dark disc with a soft edge at the
+ * The shadow a storm cloud throws on the sea (decision 0066): a dark disc with a soft edge at the
  * storm's position, so a storm can be seen coming before its rain arrives. One cheap mesh per
  * storm, no textures.
  */
