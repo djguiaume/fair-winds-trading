@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-/* global require, process, window, document, localStorage */
+/* global require, process, window, document, localStorage, innerWidth, innerHeight */
 // Solid harbour obstacles (decision 0081): moored boats and grown yard docks, with an overlay of
 // the collision capsules drawn from the live world.piers. Run against `npx vite --port 5199`.
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');

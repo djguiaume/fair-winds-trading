@@ -97,5 +97,6 @@
 | [0075](0075-ship-speed-in-knots.md) | Ship speeds in the shipyard quoted in knots (best point of sail, 14 kn breeze) instead of % of the sloop | 2026-10-22 | Implemented for review |
 | [0076](0076-sails-on-resume.md) | Sails resume as the captain left them at sea, always down in port; the save now stores the sail setting | 2026-10-22 | Implemented for review |
 | [0078](0078-press-warning.md) | Press warning: the sails control and the lee edge of the screen turn amber, then red, before cargo goes overboard; one-time message, How to play card, buzz and creak | 2026-10-22 | Accepted |
+| [0081](0081-solid-moored-boats-and-yard-docks.md) | Moored fishing boats and the hidden yards' grown docks are solid; ramming a moored boat dents the hull | 2026-10-22 | Implemented for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
