@@ -106,3 +106,4 @@
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
 
 | [0084](0084-hull-aware-docking.md) | Docking uses the oriented hull and full pier geometry, with a forgiving 16-unit gap | 2026-10-22 | Implemented for review |
+| [0085](0085-island-collision-bounds.md) | Skip distant island polygon collisions using cached bounds; defer lake geometry until nearby | 2026-10-22 | Implemented for review |
