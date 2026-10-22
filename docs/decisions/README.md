@@ -79,5 +79,6 @@
 | [0062](0062-github-releases-per-phase.md) | GitHub release at the end of each phase and for notable milestones; tag = menu version; Phase 1 released as v0.1.50 | 2026-10-21 | Accepted |
 
 | [0063](0063-specialized-town-goods.md) | Specialized goods: each town's workshop makes smoked fish, bread, planks or cut stone; buyers open with the workshop | 2026-10-21 | Implementation for review |
+| [0064](0064-wind-from-every-quarter.md) | Wind wanders round the whole compass (random walk) and bends across regions of the sea; the boat feels the wind where it is | 2026-10-22 | Implementation for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

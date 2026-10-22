@@ -39,7 +39,7 @@ export interface World {
   time: number;
   /** Wind the boat feels: the sea wind, calmer in the lee of islands (decision 0027). */
   wind: Wind;
-  /** Wind over open water, before island shelter. */
+  /** Wind over open water where the boat is, before island shelter; it differs across the sea (0064). */
   seaWind: Wind;
   /** 0 = open sea … 1 = right behind a tall island. */
   shelter: number;
@@ -82,8 +82,8 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     map,
     ship: activeShip(trade),
     time: 0,
-    wind: windAt(map.wind, 0, map.seed),
-    seaWind: windAt(map.wind, 0, map.seed),
+    wind: windAt(map.wind, 0, map.seed, map.start),
+    seaWind: windAt(map.wind, 0, map.seed, map.start),
     shelter: 0,
     funnel: 0,
     windBlockers: windBlockers(map.islands, map.terrain),
@@ -148,7 +148,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   const events: WorldEvent[] = [];
   world.time += dt;
   const cfg = { ...world.map.wind, fromDeg: world.map.wind.fromDeg + world.windOffsetDeg };
-  world.seaWind = windAt(cfg, world.time, world.map.seed);
+  world.seaWind = windAt(cfg, world.time, world.map.seed, world.boat);
   const effect = windEffectAt(world.windBlockers, world.boat, world.seaWind);
   world.shelter = effect.shelter;
   world.funnel = effect.funnel;
