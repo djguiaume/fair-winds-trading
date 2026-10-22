@@ -207,6 +207,16 @@ export function regionAt(
   };
 }
 
+const stormless = new WeakMap<WeatherConfig, WeatherConfig>();
+
+/** The same weather without moving storms, for players who turn them off (decision 0067). Cached
+ * so the weather walk keeps its cache. */
+export function withoutStorms(weather: WeatherConfig): WeatherConfig {
+  let calm = stormless.get(weather);
+  if (!calm) stormless.set(weather, (calm = { ...weather, storms: undefined }));
+  return calm;
+}
+
 /** The weather where a boat is: sea-wide state, rain and storm (decision 0067). */
 export interface LocalWeather {
   kind: WeatherKind;

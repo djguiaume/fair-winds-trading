@@ -38,7 +38,8 @@ Storms and states are pure functions of the map seed and time like the rest of t
 - **Rain:** falling streaks around the camera, slanted by the wind, one draw call (160 / 260 / 400 drops on low / medium / high quality). Each drop checks the rain where it is, so a storm's downpour has an edge you can sail into.
 - **Storm shadow:** a dark soft disc on the sea under each storm, visible before you are in it.
 - **HUD:** the weather word (Calm, Rain, Gale, Storm) appears under the wind readout only when it is not a plain breeze.
-- **Chart:** storms show as a grey patch with a darker core and a short arrow for the way it drifts. The chart still shows no wind arrows ([0058](0058-chart-style-d-port-cards.md)).
+- **Chart:** storms show as a grey patch with a darker core and a short arrow for the way it drifts. The chart still shows no wind arrows ([0058](0058-chart-style-d-port-cards.md)). Guillaume found this patch unclear (2026-10-22); clearer options are being proposed as mockups before anything changes.
+- **Storms can be turned off** in Settings (Storms, on by default; saved with the other settings). Off removes the storm tracks from the wind, so there are no storms, warnings or storm rain; calm, rain and gale periods stay. Rule from Guillaume: every hazard gets such a switch, so pirates (Phase 5) must get one too.
 
 ![Overview](../screenshots/weather/weather-overview.png)
 

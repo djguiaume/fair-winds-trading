@@ -440,6 +440,16 @@ dayNight.addEventListener('change', () => {
   saveSettings(settings);
 });
 
+// Storms can be turned off like every hazard (decision 0067; pirates will follow in Phase 5).
+const storms = $<HTMLInputElement>('storms');
+world.storms = settings.storms;
+storms.checked = settings.storms;
+storms.addEventListener('change', () => {
+  world.storms = storms.checked;
+  settings.storms = storms.checked;
+  saveSettings(settings);
+});
+
 // --- Settings panel ----------------------------------------------------------------------------
 const qualityButtons = [...$('quality').querySelectorAll<HTMLButtonElement>('[data-quality]')];
 const showFps = $<HTMLInputElement>('show-fps');

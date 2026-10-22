@@ -30,6 +30,7 @@ import {
   windAt,
   windBlockers,
   windEffectAt,
+  withoutStorms,
 } from './wind';
 
 /** Distance (units) at which a course buoy counts as reached. */
@@ -73,6 +74,8 @@ export interface World {
   lurchCooldown: number;
   /** Storms the captain has already been warned about. */
   stormsWarned: number[];
+  /** Moving storms on (decision 0067); players can turn them off in Settings. */
+  storms: boolean;
   /** Degrees added to the map's wind direction (the "new wind" button). */
   windOffsetDeg: number;
   boat: BoatState;
@@ -112,6 +115,7 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     // The heel settles in the first moments of a voyage; that is not a lurch.
     lurchCooldown: LURCH_COOLDOWN,
     stormsWarned: [],
+    storms: true,
     shelter: 0,
     funnel: 0,
     windBlockers: windBlockers(map.islands, map.terrain),
@@ -254,7 +258,12 @@ export function stepHeel(world: World, dt: number): WorldEvent[] {
 export function stepWorld(world: World, controls: BoatControls, dt: number): WorldEvent[] {
   const events: WorldEvent[] = [];
   world.time += dt;
-  const cfg = { ...world.map.wind, fromDeg: world.map.wind.fromDeg + world.windOffsetDeg };
+  const { weather } = world.map.wind;
+  const cfg = {
+    ...world.map.wind,
+    fromDeg: world.map.wind.fromDeg + world.windOffsetDeg,
+    weather: weather && !world.storms ? withoutStorms(weather) : weather,
+  };
   world.seaWind = windAt(cfg, world.time, world.map.seed, world.boat, world.weather);
   const effect = windEffectAt(world.windBlockers, world.boat, world.seaWind);
   world.shelter = effect.shelter;

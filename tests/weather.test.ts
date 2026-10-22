@@ -11,6 +11,7 @@ import {
   type WeatherKind,
   weatherSlot,
   windAt,
+  withoutStorms,
 } from '../src/sim/wind';
 import {
   HEAVY_HEEL,
@@ -104,6 +105,30 @@ describe('moving storms (0067)', () => {
     expect(drivingWind(14)).toBe(14);
     expect(drivingWind(OVERPOWERED_KN)).toBe(OVERPOWERED_KN);
     expect(drivingWind(33)).toBe(OVERPOWERED_KN + 3);
+  });
+});
+
+describe('storms switched off (0067)', () => {
+  it('leaves the sea without storms but keeps the rest of the weather', () => {
+    const { t, storm } = firstStorm();
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    world.storms = false;
+    world.time = t;
+    world.boat.x = storm.x;
+    world.boat.y = storm.y;
+    const events = stepWorld(world, { steer: 0, sailStep: 0 }, 0.1);
+    expect(world.weather.storms).toHaveLength(0);
+    expect(world.weather.storm).toBe(0);
+    expect(events.some((e) => e.type === 'storm-near')).toBe(false);
+    const on = windAt(PHASE1_MAP.wind, t, seed, world.boat);
+    // Same weather walk either way: only the storm's own push differs.
+    const off = windAt({ ...PHASE1_MAP.wind, weather: withoutStorms(DEFAULT_WEATHER) }, t, seed, {
+      x: storm.x + 3 * storm.radius,
+      y: storm.y,
+    });
+    const far = windAt(PHASE1_MAP.wind, t, seed, { x: storm.x + 3 * storm.radius, y: storm.y });
+    expect(off).toEqual(far);
+    expect(on.speedKn).toBeGreaterThan(off.speedKn);
   });
 });
 
