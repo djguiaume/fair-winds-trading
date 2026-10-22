@@ -1,34 +1,10 @@
-import { RefinedBoat, type HullShape } from './refinedBoat';
+import { HULL_DIMENSIONS, FLUYT_HULL } from '../../sim/hullShape';
+import { RefinedBoat } from './refinedBoat';
 import type { ShipModelEntry } from './shipModels';
 import type { BoatModelOptions } from './types';
 
 /** Bluff round bow, narrow pinched stern and the fluyt's pear-shaped sections: the topsides
  * tumble home to a narrow deck over a wide, flat-floored hold. */
-const FLUYT_HULL: HullShape = {
-  outline: [
-    [0, 0.5],
-    [0.26, 0.45],
-    [0.42, 0.32],
-    [0.5, 0.12],
-    [0.5, -0.1],
-    [0.44, -0.3],
-    [0.32, -0.44],
-    [0.2, -0.5],
-    [-0.2, -0.5],
-    [-0.32, -0.44],
-    [-0.44, -0.3],
-    [-0.5, -0.1],
-    [-0.5, 0.12],
-    [-0.42, 0.32],
-    [-0.26, 0.45],
-  ],
-  rings: [
-    { t: 0, beam: 1, length: 1 },
-    { t: 0.28, beam: 1.16, length: 0.99 },
-    { t: 0.62, beam: 1.08, length: 0.93 },
-    { t: 1, beam: 0.56, length: 0.8 },
-  ],
-};
 
 /** Square-rigged fore and main, gaff mizzen on the stern castle, warm hauler palette. */
 export class RefinedFluyt extends RefinedBoat {
@@ -36,8 +12,8 @@ export class RefinedFluyt extends RefinedBoat {
     super(
       {
         name: 'Fluyt',
-        length: 11.5,
-        beam: 3.5,
+        length: HULL_DIMENSIONS.fluyt!.length,
+        beam: HULL_DIMENSIONS.fluyt!.beam,
         depth: 1.8,
         hullShape: FLUYT_HULL,
         hull: '#6e4520',

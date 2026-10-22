@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { afterAll, describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
 import { buildHighlandIslands, islandParts } from '../src/render/models/highlandIslands';
-import { SLOOP, CUTTER } from '../src/sim/ship';
+import { SLOOP, SHIP_CLASSES } from '../src/sim/ship';
 import { DOCK_RANGE, tryDock } from '../src/sim/trade';
 import { createWorld, stepWorld } from '../src/sim/world';
 import { PortLabels } from '../src/ui/portLabels';
@@ -64,7 +64,7 @@ describe('visible harbour approaches', () => {
     }
   });
 
-  for (const ship of [SLOOP, CUTTER]) {
+  for (const ship of Object.values(SHIP_CLASSES)) {
     for (const port of PHASE1_MAP.ports) {
       it(`${ship.name} can stop beyond ${port.name}'s pier and open trading`, () => {
         const world = createWorld(PHASE1_MAP, ship);
@@ -82,25 +82,26 @@ describe('visible harbour approaches', () => {
     }
   }
 
-  for (const port of PHASE1_MAP.ports) {
-    it(`lowering sails near ${port.name} brings the boat to a dead stop and docks it`, () => {
-      const world = createWorld(PHASE1_MAP, SLOOP);
-      const p = approach(port.id, 2);
-      const island = PHASE1_MAP.islands.find((i) => i.id === port.islandId)!;
-      // Drifting past the pier at a slow 2.5 kn, sails lowered.
-      const tangent = Math.atan2(-(p.y - island.y), p.x - island.x);
-      Object.assign(world.boat, p, { heading: tangent, speedKn: 2.5, sail: 0, sailStep: 0 });
-      const events = [];
-      for (let t = 0; t < 4; t += 1 / 60)
-        events.push(...stepWorld(world, { steer: 0, sailStep: 0 }, 1 / 60));
-      expect(events).toContainEqual({ type: 'docked', portId: port.id });
-      expect(world.boat.speedKn).toBe(0);
-      const moored = { x: world.boat.x, y: world.boat.y };
-      for (let t = 0; t < 20; t += 1 / 60) stepWorld(world, { steer: 0, sailStep: 0 }, 1 / 60);
-      expect(Math.hypot(world.boat.x - moored.x, world.boat.y - moored.y)).toBeLessThan(0.5);
-      expect(world.trade.dockedAt).toBe(port.id);
-    });
-  }
+  for (const ship of Object.values(SHIP_CLASSES))
+    for (const port of PHASE1_MAP.ports) {
+      it(`${ship.name}: lowering sails near ${port.name} brings the boat to a dead stop and docks it`, () => {
+        const world = createWorld(PHASE1_MAP, ship);
+        const p = approach(port.id, 2);
+        const island = PHASE1_MAP.islands.find((i) => i.id === port.islandId)!;
+        // Drifting past the pier at a slow 2.5 kn, sails lowered.
+        const tangent = Math.atan2(-(p.y - island.y), p.x - island.x);
+        Object.assign(world.boat, p, { heading: tangent, speedKn: 2.5, sail: 0, sailStep: 0 });
+        const events = [];
+        for (let t = 0; t < 4; t += 1 / 60)
+          events.push(...stepWorld(world, { steer: 0, sailStep: 0 }, 1 / 60));
+        expect(events).toContainEqual({ type: 'docked', portId: port.id });
+        expect(world.boat.speedKn).toBe(0);
+        const moored = { x: world.boat.x, y: world.boat.y };
+        for (let t = 0; t < 20; t += 1 / 60) stepWorld(world, { steer: 0, sailStep: 0 }, 1 / 60);
+        expect(Math.hypot(world.boat.x - moored.x, world.boat.y - moored.y)).toBeLessThan(0.5);
+        expect(world.trade.dockedAt).toBe(port.id);
+      });
+    }
 
   it('does not save a fast arrival: lowering sails at the last moment still crashes', () => {
     const world = createWorld(PHASE1_MAP, SLOOP);

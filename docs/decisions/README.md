@@ -104,3 +104,5 @@
 | [0082](0082-solid-moored-boats-and-yard-docks.md) | Moored fishing boats and the hidden yards' grown docks are solid; ramming a moored boat dents the hull | 2026-10-22 | Implemented for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
+
+| [0084](0084-hull-aware-docking.md) | Docking uses the oriented hull and full pier geometry, with a forgiving 16-unit gap | 2026-10-22 | Implemented for review |

@@ -1,40 +1,16 @@
+import { HULL_DIMENSIONS, INDIAMAN_HULL } from '../../sim/hullShape';
 import * as THREE from 'three';
 import { STYLE_D as ST } from './boatStyle';
 import { mergeAll, paint, triangleCount } from './geometry';
-import { RefinedBoat, type HullShape } from './refinedBoat';
+import { RefinedBoat } from './refinedBoat';
 import type { ShipModelEntry } from './shipModels';
 import type { BoatModelOptions } from './types';
 
-const L = 13;
+const L = HULL_DIMENSIONS.indiaman!.length;
 const DEPTH = 2;
 
 /** Full bow, long parallel midbody and a broad square transom under the castle. The sections are
  * wall-sided with only a slight tumblehome and a firm bilge, unlike the fluyt's pear shape. */
-const INDIAMAN_HULL: HullShape = {
-  outline: [
-    [0, 0.5],
-    [0.22, 0.44],
-    [0.38, 0.33],
-    [0.47, 0.18],
-    [0.5, 0.02],
-    [0.5, -0.24],
-    [0.47, -0.39],
-    [0.42, -0.5],
-    [-0.42, -0.5],
-    [-0.47, -0.39],
-    [-0.5, -0.24],
-    [-0.5, 0.02],
-    [-0.47, 0.18],
-    [-0.38, 0.33],
-    [-0.22, 0.44],
-  ],
-  rings: [
-    { t: 0, beam: 1, length: 1 },
-    { t: 0.3, beam: 1.04, length: 0.99 },
-    { t: 0.66, beam: 0.96, length: 0.94 },
-    { t: 1, beam: 0.5, length: 0.8 },
-  ],
-};
 
 /** Painted gun ports along the upper strake, both sides, in reference units (z, bow +). */
 export const INDIAMAN_PORTS = [-4.3, -2.8, -1.3, 0.2, 1.7, 3.2];
@@ -77,7 +53,7 @@ export class RefinedIndiaman extends RefinedBoat {
       {
         name: 'Indiaman',
         length: L,
-        beam: 3.8,
+        beam: HULL_DIMENSIONS.indiaman!.beam,
         depth: DEPTH,
         hullShape: INDIAMAN_HULL,
         hull: '#5c3a1c',

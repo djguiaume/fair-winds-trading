@@ -1,4 +1,6 @@
-import { islandCoasts, islandPoint, characterPiers } from './islandLayout';
+import { islandCoasts } from './islandLayout';
+import { piersOf, PIER_HALF_WIDTH } from './collision';
+import { hullFootprint, hullSegmentGap, hullCoastGap } from './harbourDistance';
 import { coastDistance } from './coast';
 import { type ContractState, createContracts, stepContracts, syncHelpOrder } from './contracts';
 import { leakFactor } from './hazards';
@@ -14,7 +16,6 @@ import {
   stepMarket,
   trades,
 } from './market';
-import { distance } from './math';
 import { createRng } from './rng';
 import {
   type LevelUp,
@@ -54,9 +55,9 @@ import {
 
 /** Gold at the start of a new game: enough for a first hold of cheap goods. */
 export const START_GOLD = 150;
-/** Dock when within this distance of a port island's shore… */
-export const DOCK_RANGE = 14;
-/** …and slower than this (knots). Lower the sails near a port to dock. */
+/** Maximum hull-to-shore/pier gap, with two extra units for forgiving approaches. */
+export const DOCK_RANGE = 16;
+/** Dock below this speed (knots). Lower the sails near a port to dock. */
 export const DOCK_SPEED_KN = 1.5;
 /** Leave the port once this much farther than DOCK_RANGE (avoids flicker at the edge). */
 export const UNDOCK_MARGIN = 6;
@@ -175,39 +176,47 @@ export function findPort(map: MapDef, portId: string): PortDef | undefined {
   return map.ports.find((p) => p.id === portId);
 }
 
-/** Distance from the boat to the shore of the port's island (negative = overlapping). */
+/** Gap from the oriented, rendered hull to this port's shore or any solid pier. */
 export function distanceToPort(
   map: MapDef,
-  pos: { x: number; y: number },
+  pos: { x: number; y: number; heading?: number },
   port: PortDef,
   level = port.level ?? 2,
+  shipId = 'sloop',
 ) {
   const island = map.islands.find((i) => i.id === port.islandId);
   if (!island) return Infinity;
+  const hull = hullFootprint(pos, shipId);
   const coasts = islandCoasts(island);
-  if (coasts) {
-    const heads = characterPiers(island.look!.profile!, island.radius / 2.2, level).map((p) =>
-      islandPoint(island, (p.x * 2.2) / island.radius, ((p.z0 + p.len) * 2.2) / island.radius),
-    );
-    return Math.min(
-      coastDistance(pos.x, pos.y, coasts[0]!).distance,
-      ...heads.map((h) => distance(pos, h)),
-    );
-  }
-  return distance(pos, island) - island.radius;
+  const shore = coasts
+    ? Math.min(...coasts.map((coast) => hullCoastGap(hull, coast)))
+    : Math.max(0, coastDistance(island.x, island.y, hull).distance - island.radius);
+  const piers = piersOf(map, { [port.id]: level }).filter(
+    (p) => p.islandId === island.id && !p.boat,
+  );
+  return Math.min(
+    shore,
+    ...piers.map((p) =>
+      Math.max(
+        0,
+        hullSegmentGap(hull, [p.x0, p.y0], [p.x1, p.y1]) - (p.halfWidth ?? PIER_HALF_WIDTH),
+      ),
+    ),
+  );
 }
 
 /** The nearest port within docking range of `pos`, if any. */
 export function portInRange(
   map: MapDef,
-  pos: { x: number; y: number },
+  pos: { x: number; y: number; heading?: number },
   range = DOCK_RANGE,
   levels: Record<string, number> = {},
+  shipId = 'sloop',
 ) {
   let best: PortDef | null = null;
   let bestD = range;
   for (const port of map.ports) {
-    const d = distanceToPort(map, pos, port, levels[port.id] ?? port.level ?? 2);
+    const d = distanceToPort(map, pos, port, levels[port.id] ?? port.level ?? 2, shipId);
     if (d <= bestD) {
       best = port;
       bestD = d;
@@ -220,14 +229,15 @@ export function portInRange(
 export function tryDock(
   trade: TradeState,
   map: MapDef,
-  boat: { x: number; y: number; speedKn: number },
+  boat: { x: number; y: number; speedKn: number; heading?: number },
   portId: string,
 ): boolean {
   const port = findPort(map, portId);
   if (
     !port ||
     boat.speedKn >= DOCK_SPEED_KN ||
-    distanceToPort(map, boat, port, settlementLevel(trade, port.id)) > DOCK_RANGE
+    distanceToPort(map, boat, port, settlementLevel(trade, port.id), activeShip(trade).id) >
+      DOCK_RANGE
   )
     return false;
   if (trade.dockedAt && trade.dockedAt !== portId) return false;
@@ -249,7 +259,7 @@ export type DockEvent =
 export function stepTrade(
   trade: TradeState,
   map: MapDef,
-  boat: { x: number; y: number; speedKn: number },
+  boat: { x: number; y: number; speedKn: number; heading?: number },
   dt: number,
 ): DockEvent[] {
   for (const market of Object.values(trade.markets)) stepMarket(market, dt);
@@ -269,14 +279,15 @@ export function stepTrade(
     const port = findPort(map, trade.dockedAt);
     if (
       !port ||
-      distanceToPort(map, boat, port, settlementLevel(trade, port.id)) > DOCK_RANGE + UNDOCK_MARGIN
+      distanceToPort(map, boat, port, settlementLevel(trade, port.id), activeShip(trade).id) >
+        DOCK_RANGE + UNDOCK_MARGIN
     ) {
       events.push({ type: 'undocked', portId: trade.dockedAt });
       trade.dockedAt = null;
     }
   }
   if (!trade.dockedAt && boat.speedKn < DOCK_SPEED_KN) {
-    const port = portInRange(map, boat, DOCK_RANGE, settlementLevels(trade));
+    const port = portInRange(map, boat, DOCK_RANGE, settlementLevels(trade), activeShip(trade).id);
     if (port && tryDock(trade, map, boat, port.id)) {
       events.push({ type: 'docked', portId: port.id });
     }

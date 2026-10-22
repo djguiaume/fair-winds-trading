@@ -1,35 +1,13 @@
+import { HULL_DIMENSIONS, HOY_HULL } from '../../sim/hullShape';
 import * as THREE from 'three';
 import { STYLE_D as ST } from './boatStyle';
 import { paint } from './geometry';
-import { RefinedBoat, type HullDetailContext, type HullShape } from './refinedBoat';
+import { RefinedBoat, type HullDetailContext } from './refinedBoat';
 import type { ShipModelEntry } from './shipModels';
 import type { BoatModelOptions } from './types';
 
 /** Apple-cheeked bow, nearly parallel sides and a broad rounded stern on a flat, wide bottom:
  * a coastal carrier built to sit on a mudflat, unlike the swift line's fine V sections. */
-const HOY_HULL: HullShape = {
-  outline: [
-    [0, 0.5],
-    [0.27, 0.47],
-    [0.42, 0.39],
-    [0.5, 0.22],
-    [0.5, -0.12],
-    [0.47, -0.34],
-    [0.34, -0.5],
-    [-0.34, -0.5],
-    [-0.47, -0.34],
-    [-0.5, -0.12],
-    [-0.5, 0.22],
-    [-0.42, 0.39],
-    [-0.27, 0.47],
-  ],
-  rings: [
-    { t: 0, beam: 1, length: 1 },
-    { t: 0.3, beam: 0.98, length: 0.98 },
-    { t: 0.75, beam: 0.86, length: 0.9 },
-    { t: 1, beam: 0.6, length: 0.8 },
-  ],
-};
 
 const LEEBOARD_Z = 0.35;
 
@@ -79,8 +57,8 @@ export class RefinedHoy extends RefinedBoat {
     super(
       {
         name: 'Hoy',
-        length: 6.2,
-        beam: 2.7,
+        length: HULL_DIMENSIONS.hoy!.length,
+        beam: HULL_DIMENSIONS.hoy!.beam,
         depth: 1.3,
         hullShape: HOY_HULL,
         hull: '#8f6a3a',
