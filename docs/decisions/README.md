@@ -100,6 +100,7 @@
 | [0077](0077-one-file-per-ship-model.md) | One file per ship model, a shared inspector and capture script; hoy, fluyt (shared square rig) and indiaman redesigned in parallel, decision numbers 0079 (fluyt), 0080 (hoy) and 0081 (indiaman) reserved | 2026-10-22 | Accepted |
 | [0079](0079-refined-fluyt-and-square-rig.md) | Refined fluyt: shared square rig (courses on yards, furled by morph toward each yard, clews sheeted) and stern castle from the hull outline; pear-shaped hull, gaff mizzen on the castle | 2026-10-22 | Implementation for review |
 | [0080](0080-refined-upgrade-aware-hoy.md) | Refined hoy: beamy flat-bottomed hull, leeboards, raised boom over deck cargo, attached sails through every pose | 2026-10-22 | Implementation for review |
+| [0081](0081-refined-indiaman.md) | Refined indiaman: own wall-sided hull with a broad square transom and painted gun ports; reuses the shared square rig, stern castle and gaff mizzen; every sail stays attached | 2026-10-22 | Implementation for review |
 | [0082](0082-solid-moored-boats-and-yard-docks.md) | Moored fishing boats and the hidden yards' grown docks are solid; ramming a moored boat dents the hull | 2026-10-22 | Implemented for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
