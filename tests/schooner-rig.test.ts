@@ -176,7 +176,7 @@ describe('refined upgraded schooner', () => {
           expect(b.stats.jibs).toBe(sails === 1 ? 2 : 3);
           expect(b.stats.topsail).toBe(sails === 3);
           expect(b.stats.meshes).toBeLessThanOrEqual(9);
-          expect(b.stats.triangles).toBeLessThanOrEqual(987);
+          expect(b.stats.triangles).toBeLessThanOrEqual(1071);
           expect(b.wakeHull.length).toBeCloseTo(18.04);
           expect(b.wakeHull.beam).toBeCloseTo(5.313);
           // Hull 2 keeps green paint, hull 3 also keeps copper: colour upgrades remain actual geometry.

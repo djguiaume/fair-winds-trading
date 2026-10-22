@@ -2,6 +2,7 @@ import { HULL_DIMENSIONS, CLIPPER_HULL } from '../../sim/hullShape';
 import { RefinedBoat } from './refinedBoat';
 import type { ShipModelEntry } from './shipModels';
 import type { BoatModelOptions } from './types';
+import { clipperDetails } from './clipperDetails';
 
 /** Knife entry and long parallel run into a small raked transom. The clipper's
  * sections are independent of the schooner's forward shoulder and swept counter. */
@@ -12,6 +13,7 @@ export class RefinedClipper extends RefinedBoat {
     super(
       {
         name: 'Clipper',
+        boatDetails: clipperDetails,
         length: HULL_DIMENSIONS.clipper!.length,
         beam: HULL_DIMENSIONS.clipper!.beam,
         depth: 1.15,

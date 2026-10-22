@@ -5,6 +5,7 @@ import { paint } from './geometry';
 import { RefinedBoat, type HullDetailContext } from './refinedBoat';
 import type { ShipModelEntry } from './shipModels';
 import type { BoatModelOptions } from './types';
+import { hoyDetails } from './hoyDetails';
 
 /** Apple-cheeked bow, nearly parallel sides and a broad rounded stern on a flat, wide bottom:
  * a coastal carrier built to sit on a mudflat, unlike the swift line's fine V sections. */
@@ -74,6 +75,8 @@ export class RefinedHoy extends RefinedBoat {
         cargoZ: -0.2,
         cargoX: 0.46,
         details: leeboards,
+        boatDetails: hoyDetails,
+        replaceDeckDetails: true,
       },
       options,
     );

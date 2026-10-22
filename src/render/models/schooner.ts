@@ -2,6 +2,7 @@ import { HULL_DIMENSIONS, SCHOONER_HULL } from '../../sim/hullShape';
 import { RefinedBoat } from './refinedBoat';
 import type { ShipModelEntry } from './shipModels';
 import type { BoatModelOptions } from './types';
+import { schoonerDetails } from './schoonerDetails';
 
 /** Long fine entry, forward shoulder and swept, narrow counter stern. Independently
  * authored sections retain the swift schooner's slender shape, rather than stretching a cutter.
@@ -13,6 +14,7 @@ export class RefinedSchooner extends RefinedBoat {
     super(
       {
         name: 'Schooner',
+        boatDetails: schoonerDetails,
         length: HULL_DIMENSIONS.schooner!.length,
         beam: HULL_DIMENSIONS.schooner!.beam,
         depth: 1.1,

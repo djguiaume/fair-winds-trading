@@ -359,6 +359,8 @@ if (params.has('night')) {
   });
 }
 
+for (const boat of boats) boat.setNightLighting?.(params.has('night') ? 1 : 0);
+
 function resize() {
   const w = innerWidth;
   const h = innerHeight;
@@ -399,8 +401,12 @@ renderer.setAnimationLoop(() => {
   const sail =
     inspectBoat && params.has('sail') ? Math.max(0, Math.min(1, Number(params.get('sail')))) : 1;
   const boom = inspectBoat && params.has('boom') ? Number(params.get('boom')) * DEG : 35 * DEG;
+  const trueAngle = (45 + Math.max(0, Math.min(1, (Math.abs(boom) / DEG - 12) / 68)) * 135) * DEG;
+  const windRelative = params.has('wind')
+    ? Number(params.get('wind')) * DEG
+    : (boom < 0 ? -1 : 1) * (Math.PI - trueAngle);
   for (const b of boats) {
-    b.update({ sail, boomAngle: boom, luff: 0, heel: -6 * DEG, windRelative: 0.6, time: t });
+    b.update({ sail, boomAngle: boom, luff: 0, heel: -6 * DEG, windRelative, time: t });
   }
   lighthouseBeams.update(params.has('still') ? 3 : t, params.has('night') ? 1 : 0);
   ocean.update(t, new THREE.Vector3());

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "fluyt",
+    "name": "port",
+    "query": "level=3&yaw=-70&boom=-45",
+    "errors": []
+  },
+  {
+    "id": "fluyt",
+    "name": "starboard",
+    "query": "level=3&yaw=-70&boom=45",
+    "errors": []
+  },
+  {
+    "id": "fluyt",
+    "name": "night",
+    "query": "level=3&yaw=45&boom=-45&night",
+    "errors": []
+  },
+  {
+    "id": "fluyt",
+    "name": "close",
+    "query": "level=1&yaw=45&boom=17",
+    "errors": []
+  },
+  {
+    "id": "fluyt",
+    "name": "reefed",
+    "query": "hull=2&hold=3&sails=2&sail=.35&boom=45&yaw=-45",
+    "errors": []
+  },
+  {
+    "id": "fluyt",
+    "name": "furled-low",
+    "query": "level=3&quality=low&sail=0&yaw=45&boom=-45",
+    "errors": []
+  },
+  {
+    "id": "indiaman",
+    "name": "port",
+    "query": "level=3&yaw=-70&boom=-45",
+    "errors": []
+  },
+  {
+    "id": "indiaman",
+    "name": "starboard",
+    "query": "level=3&yaw=-70&boom=45",
+    "errors": []
+  },
+  {
+    "id": "indiaman",
+    "name": "night",
+    "query": "level=3&yaw=45&boom=-45&night",
+    "errors": []
+  },
+  {
+    "id": "indiaman",
+    "name": "close",
+    "query": "level=1&yaw=45&boom=17",
+    "errors": []
+  },
+  {
+    "id": "indiaman",
+    "name": "reefed",
+    "query": "hull=2&hold=3&sails=2&sail=.35&boom=45&yaw=-45",
+    "errors": []
+  },
+  {
+    "id": "indiaman",
+    "name": "furled-low",
+    "query": "level=3&quality=low&sail=0&yaw=45&boom=-45",
+    "errors": []
+  }
+]
