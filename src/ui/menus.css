@@ -307,7 +307,14 @@ body.at-title .in-game {
 @media (max-height: 480px) {
   .menu-side,
   .menu-sheet {
-    gap: 7px;
+    gap: 6px;
+  }
+  .menu-side {
+    padding-top: max(10px, env(safe-area-inset-top));
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+  .menu-list {
+    gap: 5px;
   }
   .menu-emblem {
     width: 46px;
@@ -317,11 +324,34 @@ body.at-title .in-game {
     font-size: 26px;
   }
   .menu-row {
-    min-height: 40px;
+    min-height: 37px;
   }
   .d-btn.big {
-    min-height: 50px;
+    min-height: 46px;
     font-size: 22px;
+  }
+}
+/* The shortest landscape phones (about 360 px high): one notch tighter still. */
+@media (max-height: 400px) {
+  .menu-side,
+  .menu-sheet {
+    gap: 5px;
+  }
+  .menu-list {
+    gap: 4px;
+  }
+  .menu-emblem {
+    width: 40px;
+    height: 40px;
+  }
+  .menu-title {
+    font-size: 23px;
+  }
+  .menu-row {
+    min-height: 34px;
+  }
+  .d-btn.big {
+    min-height: 42px;
   }
 }
 /* Desktop: the same panel, roomier. */
@@ -668,6 +698,243 @@ label.set-row {
   .help-art {
     grid-row: span 2;
     height: 84px;
+  }
+}
+
+/* --- Move your voyage: QR code, scan, file (decision 0066) ------------------------------ */
+/* Landscape first: the code (or camera) on the left, words and buttons on the right. */
+.transfer-sheet .sheet-head .seg {
+  margin-right: 4px;
+}
+.transfer-sheet .seg[hidden] {
+  display: none;
+}
+.transfer-body {
+  align-content: center;
+}
+.transfer-pane {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px 28px;
+}
+.transfer-pane[hidden] {
+  display: none;
+}
+.qr-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+/* White square, dark modules: the contrast every camera app expects. Never dims or tints. */
+.qr-box {
+  width: min(62dvh, 340px);
+  aspect-ratio: 1;
+  padding: 4px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+.qr-box svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.qr-card figcaption {
+  color: var(--ink-dim);
+  font: 600 14px/1.2 var(--body);
+}
+.transfer-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  max-width: 520px;
+}
+.transfer-steps {
+  margin: 0;
+  padding-left: 22px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.transfer-steps li + li {
+  margin-top: 6px;
+}
+.transfer-steps b {
+  color: var(--brass);
+}
+.scan-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: min(62dvh, 340px);
+}
+.scan-card .set-note {
+  text-align: center;
+}
+.scan-view {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 2px solid var(--brass-line);
+  border-radius: 12px;
+  background: #000;
+}
+.scan-view[hidden] {
+  display: none;
+}
+.scan-view video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.scan-frame {
+  position: absolute;
+  inset: 14%;
+  border: 3px solid var(--brass-hi);
+  border-radius: 10px;
+  box-shadow: 0 0 0 999px rgba(6, 18, 27, 0.35);
+}
+.transfer-paste {
+  width: 100%;
+  min-height: 72px;
+  padding: 8px 10px;
+  border: 1px solid var(--brass-line);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--ink);
+  font:
+    500 14px/1.3 ui-monospace,
+    Menlo,
+    monospace;
+  word-break: break-all;
+  resize: vertical;
+}
+.transfer-error {
+  margin: 0;
+  padding: 8px 12px;
+  border-left: 4px solid var(--red);
+  border-radius: 6px;
+  background: rgba(255, 106, 85, 0.14);
+  font-size: 15px;
+  line-height: 1.35;
+}
+.transfer-error[hidden] {
+  display: none;
+}
+/* Replace? Two voyage cards side by side, the arriving one in brass. */
+.transfer-confirm {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  text-align: center;
+}
+.transfer-question {
+  margin: 0;
+  font: 700 26px/1.1 var(--display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.voyage-cards {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.sheet .voyage-arrow {
+  width: 28px;
+  height: 28px;
+  color: var(--brass);
+  transform: rotate(90deg);
+}
+.voyage-card {
+  min-width: 200px;
+  padding: 12px 16px;
+  border: 1px solid rgba(232, 196, 106, 0.25);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  text-align: left;
+}
+.voyage-card.incoming {
+  border-color: var(--brass);
+  background: rgba(232, 196, 106, 0.1);
+}
+.voyage-card h4 {
+  margin: 0 0 8px;
+  color: var(--brass);
+  font: 700 15px/1 var(--display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.voyage-card dl {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 4px 16px;
+  margin: 0;
+}
+.voyage-card dt {
+  color: var(--ink-dim);
+  font-size: 14px;
+}
+.voyage-card dd {
+  margin: 0;
+  font: 700 17px/1.1 var(--display);
+  text-align: right;
+}
+@media (max-height: 480px) {
+  .transfer-steps {
+    font-size: 14px;
+  }
+  .transfer-question {
+    font-size: 22px;
+  }
+  .voyage-card {
+    padding: 8px 12px;
+  }
+}
+/* Portrait: everything in one column, the code on top. */
+@media (orientation: portrait) {
+  .transfer-pane {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+  .qr-box,
+  .scan-card {
+    width: min(78vw, 340px);
+  }
+  .transfer-side {
+    width: 100%;
+  }
+  .voyage-cards {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .sheet .voyage-arrow {
+    transform: rotate(180deg);
+  }
+  .voyage-card {
+    width: min(100%, 320px);
+  }
+}
+/* Narrow portrait: the Send / Receive tabs get their own full-width row under the title. */
+@media (orientation: portrait) and (max-width: 520px) {
+  .transfer-sheet .sheet-head {
+    flex-wrap: wrap;
+  }
+  .transfer-sheet .sheet-head h2 {
+    font-size: 22px;
+  }
+  .transfer-sheet .sheet-head .seg {
+    order: 3;
+    flex-wrap: nowrap;
+    width: 100%;
+    margin: 0;
+  }
+  .transfer-sheet .sheet-head .seg button {
+    flex: 1;
   }
 }
 

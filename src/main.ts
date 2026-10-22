@@ -7,6 +7,7 @@ import { isRare, isSpecialty } from './sim/goods';
 import { settlementLevels } from './sim/settlement';
 import { clamp } from './sim/math';
 import { type SaveStorage, clearSave, loadGame, saveGame } from './sim/save';
+import { LINK_KEY } from './sim/saveTransfer';
 import { SLOOP } from './sim/ship';
 import * as trade from './sim/trade';
 import { TUTORIAL_STEPS, Tutorial } from './sim/tutorial';
@@ -40,6 +41,7 @@ import {
   translateDom,
 } from './i18n';
 import { TradePanel } from './ui/tradePanel';
+import { TransferPanel } from './ui/transferPanel';
 
 declare const __APP_VERSION__: string;
 declare const __BUILD_REVISION__: string;
@@ -164,6 +166,13 @@ const windHelp = $<HTMLDialogElement>('wind-help');
 const helpClose = $('start');
 const settingsPanel = $('settings');
 const playButton = $('menu-play');
+// Move a voyage to another device by QR code or file (decision 0066). The QR links back here.
+const transfer = new TransferPanel(
+  $('transfer'),
+  world,
+  storage,
+  () => location.origin + location.pathname,
+);
 let mode: 'menu' | 'play' = 'menu';
 let started = false;
 let paused = true;
@@ -173,12 +182,18 @@ function refreshPause() {
     mode === 'menu' ||
     !settingsPanel.hidden ||
     !help.hidden ||
+    transfer.isOpen ||
     tradePanel.isOpen ||
     windHelp.open ||
     chart.isOpen ||
     tutorialOffer.open;
   coach.setSurface(
-    mode === 'menu' || !settingsPanel.hidden || !help.hidden || windHelp.open || tutorialOffer.open
+    mode === 'menu' ||
+      !settingsPanel.hidden ||
+      !help.hidden ||
+      transfer.isOpen ||
+      windHelp.open ||
+      tutorialOffer.open
       ? null
       : chart.isOpen
         ? 'chart'
@@ -200,6 +215,7 @@ function showMenu() {
   document.body.classList.toggle('at-title', !started);
   help.hidden = true;
   settingsPanel.hidden = true;
+  if (transfer.isOpen) transfer.close();
   if (tradePanel.isOpen) tradePanel.close();
   // Pause shows the voyage under the same menu (decision 0061).
   menu.classList.toggle('is-paused', started);
@@ -299,6 +315,20 @@ $('menu-settings').addEventListener('click', () => {
   settingsPanel.hidden = false;
   $('close-settings').focus({ preventScroll: true });
 });
+$('menu-transfer').addEventListener('click', () => {
+  menu.hidden = true;
+  transfer.open('send');
+  refreshPause();
+});
+transfer.onClose = () => {
+  if (mode === 'menu') menu.hidden = false;
+  refreshPause();
+};
+transfer.onReplaced = () => {
+  // The incoming voyage is stored; reload into it without the autosave writing this one back.
+  leaving = true;
+  window.location.reload();
+};
 $('menu-btn').addEventListener('click', showMenu);
 helpClose.addEventListener('click', closeHelp);
 window.addEventListener('keydown', (e) => {
@@ -313,11 +343,20 @@ window.addEventListener('keydown', (e) => {
     tradePanel.close();
     refreshPause();
   } else if (!settingsPanel.hidden) closeSettings();
+  else if (transfer.isOpen) transfer.close();
   else if (!help.hidden) closeHelp();
   else if (mode === 'play') showMenu();
 });
 help.hidden = true;
 showMenu();
+// Opened from a QR code scanned with a camera app: offer that voyage straight away.
+if (location.hash.startsWith(`#${LINK_KEY}=`)) {
+  const link = location.href;
+  history.replaceState(null, '', location.pathname + location.search);
+  menu.hidden = true;
+  transfer.openWithCode(link);
+  refreshPause();
+}
 
 // --- Fullscreen --------------------------------------------------------------------------------
 const fsSupport = classifySupport(probeSupport());
@@ -449,6 +488,7 @@ $('reset-boat').addEventListener('click', () => {
 const resetSaveBtn = document.getElementById('reset-save');
 resetSaveBtn?.addEventListener('click', () => {
   if (window.confirm(t('settings.confirmNewGame'))) {
+    leaving = true;
     if (storage) clearSave(storage);
     window.location.reload();
   }
@@ -474,7 +514,10 @@ resize();
 // --- Docking, trading and automatic saves --------------------------------
 const AUTOSAVE_SECONDS = 15;
 let lastSave = world.time;
+/** Set while the page reloads into a new or transferred voyage: nothing may save over it. */
+let leaving = false;
 function autosave() {
+  if (leaving) return;
   if (storage) saveGame(storage, world);
   lastSave = world.time;
 }
@@ -588,6 +631,7 @@ frame = requestAnimationFrame(tick);
 // trade panel lands, trading works from there, e.g. `fwt.trade.buy(fwt.world.trade, 'fish', 5)`.
 if (new URLSearchParams(location.search).has('debug')) {
   const newGame = () => {
+    leaving = true;
     if (storage) clearSave(storage);
     location.reload();
   };
