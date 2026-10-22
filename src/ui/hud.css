@@ -368,6 +368,10 @@ button.primary {
   color: #ffe680;
 }
 
+.role-badge.help {
+  background: rgba(255, 179, 107, 0.2);
+  color: #ffb36b;
+}
 .role-badge.neutral {
   background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.7);

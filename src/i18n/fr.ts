@@ -184,6 +184,10 @@ export const fr: Record<MessageKey, string> = {
   'toast.discovered': 'Nouveau port sur la carte : {name}. Son chantier construit des navires',
   'toast.levelUp': '{name} s’agrandit : {level} !',
   'toast.workshop': '{name} s’agrandit : sa nouvelle {workshop} produit : {good} !',
+  'toast.help':
+    '{name} appelle à l’aide : {good} × {qty} paie plus et le fait grandir deux fois plus vite',
+  'trade.help': 'Appel à l’aide · paie en plus, croissance doublée',
+  'chart.help': 'appel à l’aide : {qty} pour {reward} pièces',
   'toast.rareGood':
     '{name} s’agrandit : on y produit désormais : {good}, recherché de l’autre côté de la mer !',
   'workshop.smokedFish': 'fumerie',
