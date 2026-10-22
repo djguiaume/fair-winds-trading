@@ -2,6 +2,7 @@ import { HULL_DIMENSIONS, FLUYT_HULL } from '../../sim/hullShape';
 import { RefinedBoat } from './refinedBoat';
 import type { ShipModelEntry } from './shipModels';
 import type { BoatModelOptions } from './types';
+import { FLUYT_MIZZEN, fluytCargo, fluytDetails } from './fluytDetails';
 
 /** Bluff round bow, narrow pinched stern and the fluyt's pear-shaped sections: the topsides
  * tumble home to a narrow deck over a wide, flat-floored hold. */
@@ -26,11 +27,15 @@ export class RefinedFluyt extends RefinedBoat {
         mastHeight: 6.8,
         mainName: 'Mizzen',
         mainTopsail: false,
-        boom: 1.9,
+        boom: FLUYT_MIZZEN.aft,
         gaff: 1.5,
-        castle: { length: 3.7, height: 0.8 },
+        castle: { length: 11.5 * 0.27, height: 0.8 },
+        sternLayout: FLUYT_MIZZEN,
+        replaceDeckDetails: true,
+        boatDetails: fluytDetails,
+        cargo: fluytCargo,
         stockJibs: 1,
-        cargoExtra: 3,
+        cargoExtra: 4,
         hatchZ: -1,
         cargoZ: 2.3,
         cargoX: 0.55,

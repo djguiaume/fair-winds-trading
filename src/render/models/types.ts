@@ -31,6 +31,7 @@ export interface BoatModel {
   update(pose: BoatPose): void;
   /** Optional: where the boat's night lantern hangs (decision 0068); it heels with the mast. */
   readonly lantern?: THREE.Object3D;
+  setNightLighting?(night: number): void;
   /** Optional: drop fine details (rigging lines) at the low quality setting. */
   setLowDetail?(low: boolean): void;
   dispose(): void;

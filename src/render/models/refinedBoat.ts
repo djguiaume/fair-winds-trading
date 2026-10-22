@@ -1,7 +1,8 @@
 import { SLOOP_HULL, type HullShape } from '../../sim/hullShape';
 import * as THREE from 'three';
 import { BOAT_SCALE, STYLE_D as ST } from './boatStyle';
-import { mergeAll, paint, triangleCount, vertexColorMaterial } from './geometry';
+import { isGlowing, mergeAll, paint, triangleCount, vertexColorMaterial } from './geometry';
+import type { BoatCargo, BoatDetails } from './boatDetails';
 import {
   STOCK_UPGRADES,
   type BoatModel,
@@ -11,6 +12,8 @@ import {
 } from './types';
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
+const CABIN_DAY = new THREE.Color('#485461');
+const CABIN_NIGHT = new THREE.Color('#b7ab91');
 /** Normalized hull sections, authored independently of rig dimensions and palette. */
 export type { HullShape } from '../../sim/hullShape';
 
@@ -54,6 +57,12 @@ export interface RefinedRig {
   /** Class-specific fittings (leeboards, hatch coamings…) merged into the hull mesh, so they
    * cost no extra draw call. Receives the deck sheer and the upgrade levels. */
   details?: (ctx: HullDetailContext) => THREE.BufferGeometry[];
+  /** Class-authored deck fittings, including window panes tagged with glowing(). */
+  boatDetails?: BoatDetails;
+  replaceDeckDetails?: boolean;
+  cargo?: BoatCargo;
+  /** Authored quarterdeck and rear rig heights; foot is above the original main deck. */
+  sternLayout?: { deck: number; foot: number; aft: number; sheet: { z: number; y: number } };
 }
 
 export interface HullDetailContext {
@@ -108,7 +117,10 @@ class Faces {
 }
 
 /** Class-specific deck outline and depth sections, with shared gunwale construction. */
-function hullGeometry(level: number, rig: RefinedRig) {
+export function hullGeometry(
+  level: number,
+  rig: Pick<RefinedRig, 'length' | 'beam' | 'depth' | 'hull' | 'band' | 'hullShape'>,
+) {
   const { length: L, band: BAND, hull: HULL } = rig;
   const B = rig.beam * ST.B;
   const H = rig.depth * ST.H;
@@ -314,6 +326,8 @@ interface Headsail {
 
 /** Shared refined gaff-rig construction. Upgrade semantics and the BoatModel waterline frame stay unchanged. */
 export class RefinedBoat implements BoatModel {
+  readonly cargoBounds: THREE.Box3[] = [];
+  private windowMaterial?: THREE.MeshBasicMaterial;
   readonly root = new THREE.Group();
   /** Same waterline envelope at every upgrade level, for the hull-attached wake. */
   readonly wakeHull: { length: number; beam: number };
@@ -346,13 +360,20 @@ export class RefinedBoat implements BoatModel {
     const { length: L, mastZ: MAST_Z, band: BAND } = rig;
     const B = rig.beam * ST.B;
     const H = rig.depth * ST.H;
-    const MAST_H = rig.mastHeight * ST.mastK;
     const DECK = H * 0.55;
     const deckAt = (z: number) => DECK + ST.sheer * (L / 5) ** 0.5 * (z / (L / 2)) ** 2;
     // Where masts, sheets and the tiller stand: on the stern castle when there is one.
     const castleFront = rig.castle ? -L / 2 + rig.castle.length : -Infinity;
     const standAt = (z: number) =>
-      deckAt(z) + (rig.castle && z < castleFront ? rig.castle.height * ST.H : 0);
+      rig.sternLayout && z < castleFront
+        ? rig.sternLayout.deck
+        : deckAt(z) + (rig.castle && z < castleFront ? rig.castle.height * ST.H : 0);
+    // Preserve the current rig's masthead when moving its foot onto the authored deck.
+    const MAST_H =
+      rig.mastHeight * ST.mastK +
+      (rig.sternLayout
+        ? deckAt(MAST_Z) + (rig.castle?.height ?? 0) * ST.H - rig.sternLayout.deck
+        : 0);
     const outline = deckOutline(rig);
     this.beam = B;
     this.wakeHull = { length: L * BOAT_SCALE, beam: B * BOAT_SCALE };
@@ -379,31 +400,48 @@ export class RefinedBoat implements BoatModel {
       return m;
     };
     const parts = [hullGeometry(upg.hull, rig)];
-    if (rig.castle) parts.push(castleGeometry(upg.hull, rig));
+    if (rig.castle && !rig.replaceDeckDetails) parts.push(castleGeometry(upg.hull, rig));
     const box = (w: number, h: number, l: number, x: number, y: number, z: number, color: string) =>
       paint(new THREE.BoxGeometry(w, h, l).translate(x, y, z), color);
     // Forward hatch leaves a working area behind the mast for the upgraded cargo stacks.
     const hatchZ = rig.hatchZ ?? (rig.foremast ? 2.65 : 1.3);
-    parts.push(box(0.64, 0.13, 0.58, 0, deckAt(hatchZ) + 0.09, hatchZ, ST.mast));
-    parts.push(box(0.54, 0.05, 0.48, 0, deckAt(hatchZ) + 0.18, hatchZ, ST.deck));
-    const stern = -L * 0.5;
-    // The big hulls' rudder reaches down their deeper sternpost; the tiller works on the castle.
-    const rudder = rig.castle ? H * 0.8 : 0.72;
-    parts.push(box(0.1, rudder, 0.32, 0, deckAt(stern) + 0.32 - rudder, stern - 0.1, ST.mast));
-    const helm = standAt(stern);
-    parts.push(spar(V(0, deckAt(stern) - 0.1, stern), V(0, helm + 0.23, stern)));
-    parts.push(spar(V(0, helm + 0.23, stern), V(0.12, helm + 0.23, stern + 0.65)));
+    if (!rig.replaceDeckDetails) {
+      parts.push(box(0.64, 0.13, 0.58, 0, deckAt(hatchZ) + 0.09, hatchZ, ST.mast));
+      parts.push(box(0.54, 0.05, 0.48, 0, deckAt(hatchZ) + 0.18, hatchZ, ST.deck));
+      const stern = -L * 0.5;
+      // The big hulls' rudder reaches down their deeper sternpost; the tiller works on the castle.
+      const rudder = rig.castle ? H * 0.8 : 0.72;
+      parts.push(box(0.1, rudder, 0.32, 0, deckAt(stern) + 0.32 - rudder, stern - 0.1, ST.mast));
+      const helm = standAt(stern);
+      parts.push(spar(V(0, deckAt(stern) - 0.1, stern), V(0, helm + 0.23, stern)));
+      parts.push(spar(V(0, helm + 0.23, stern), V(0.12, helm + 0.23, stern + 0.65)));
+    }
     const cargoCount = [2, 4, 7][upg.hold - 1]! + rig.cargoExtra;
+    const detailContext = {
+      length: L,
+      beam: B,
+      depth: H,
+      deckAt,
+      hull: rig.hull,
+      band: BAND,
+      upgrades: upg,
+    };
+    const cargo = rig.cargo?.(detailContext);
+    if (cargo && cargo.length !== cargoCount)
+      throw new Error('Cargo layout must preserve hold counts');
     for (let i = 0; i < cargoCount; i++) {
       const slot = i % 6;
-      const x = (slot % 2 === 0 ? -1 : 1) * (rig.cargoX ?? 0.3);
-      const z = (rig.cargoZ ?? 0) - Math.floor(slot / 2) * (rig.foremast ? 0.5 : 0.65);
-      const layer = Math.floor(i / 6);
-      const barrel = upg.hold >= 2 && i % 3 === 2;
+      const x = cargo?.[i]?.x ?? (slot % 2 === 0 ? -1 : 1) * (rig.cargoX ?? 0.3);
+      const z =
+        cargo?.[i]?.z ?? (rig.cargoZ ?? 0) - Math.floor(slot / 2) * (rig.foremast ? 0.5 : 0.65);
+      const layer = cargo ? (cargo[i]?.layer ?? 0) : Math.floor(i / 6);
+      const barrel = cargo?.[i]?.barrel ?? (upg.hold >= 2 && i % 3 === 2);
       const g = barrel
         ? new THREE.CylinderGeometry(0.21, 0.21, 0.42, 7)
         : new THREE.BoxGeometry(0.46, 0.42, 0.46);
       g.translate(x, deckAt(z) + 0.23 + layer * 0.43, z);
+      g.computeBoundingBox();
+      this.cargoBounds.push(g.boundingBox!.clone());
       parts.push(paint(g, barrel ? ST.barrel : ST.crate));
       if (barrel) this.stats.barrels++;
       else this.stats.crates++;
@@ -442,7 +480,18 @@ export class RefinedBoat implements BoatModel {
     parts.push(spar(V(0, bow.y - 0.1, L * 0.35), bowspritTip, 0.05));
     if (rig.details)
       parts.push(...rig.details({ deckAt, halfBeam: B / 2, depth: H, upgrades: upg }));
-    this.ship.add(mesh(mergeAll(parts), wood, `${rig.name}Hull`));
+    if (rig.boatDetails) parts.push(...rig.boatDetails(detailContext));
+    this.ship.add(mesh(mergeAll(parts.filter((g) => !isGlowing(g))), wood, `${rig.name}Hull`));
+    const glass = parts.filter(isGlowing);
+    if (glass.length) {
+      this.windowMaterial = new THREE.MeshBasicMaterial({
+        vertexColors: true,
+        color: '#485461',
+        toneMapped: false,
+      });
+      this.disposables.push(this.windowMaterial);
+      this.ship.add(mesh(mergeAll(glass), this.windowMaterial, 'SternWindows'));
+    }
 
     // Both masts use their own gooseneck, gaff lift and working sheet. Their luffs remain
     // on the corresponding mast, and the shorter foresail clears the taller aft mainmast.
@@ -458,7 +507,13 @@ export class RefinedBoat implements BoatModel {
     ) => {
       const pivot = new THREE.Group();
       pivot.name = `${name}Pivot`;
-      pivot.position.set(0, base + (rig.gooseneck ?? 0.7), z);
+      pivot.position.set(
+        0,
+        rig.sternLayout && z === MAST_Z
+          ? deckAt(z) + rig.sternLayout.foot
+          : base + (rig.gooseneck ?? 0.7),
+        z,
+      );
       const throat = V(0, height * 0.47, 0);
       const peak = V(0, height * 0.69, -gaff);
       const clew = V(0, 0, -boom);
@@ -488,7 +543,10 @@ export class RefinedBoat implements BoatModel {
         peak,
         clew,
         mastTop: V(0, base + height, z),
-        sheetAnchor: V(0, standAt(anchorZ) + 0.12, anchorZ),
+        sheetAnchor:
+          rig.sternLayout && z === MAST_Z
+            ? V(0, rig.sternLayout.sheet.y, rig.sternLayout.sheet.z)
+            : V(0, standAt(anchorZ) + 0.12, anchorZ),
       });
     };
     addGaff(
@@ -823,6 +881,11 @@ export class RefinedBoat implements BoatModel {
 
   setLowDetail(low: boolean) {
     this.rigging.visible = this.riggingEnabled && !low;
+  }
+  setNightLighting(night: number) {
+    this.windowMaterial?.color
+      .copy(CABIN_DAY)
+      .lerp(CABIN_NIGHT, THREE.MathUtils.clamp(night, 0, 1));
   }
   dispose() {
     for (const d of this.disposables) d.dispose();

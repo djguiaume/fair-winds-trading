@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { RefinedFluyt } from '../src/render/models/fluyt';
+import { FLUYT_MIZZEN } from '../src/render/models/fluytDetails';
 import { RefinedClipper } from '../src/render/models/clipper';
 import { createBoatModel } from '../src/render/models';
 import { isRefinedShip } from '../src/render/models/shipModels';
@@ -55,7 +56,7 @@ describe('refined fluyt', () => {
     expect(hull.boundingBox!.max.y).toBeGreaterThan(deckAt(-L / 2) + CASTLE);
     const mizzen = b.root.getObjectByName('MizzenPivot')!;
     expect(mizzen.position.z).toBe(-3.3);
-    expect(mizzen.position.y).toBeCloseTo(deckAt(-3.3) + CASTLE + 0.7);
+    expect(mizzen.position.y).toBeCloseTo(deckAt(-3.3) + FLUYT_MIZZEN.foot);
     // Its boom finishes inside the stern.
     const spar = mesh(b, 'MizzenBoomAndGaff').geometry;
     spar.computeBoundingBox();
@@ -72,13 +73,13 @@ describe('refined fluyt', () => {
       for (const hold of [1, 2, 3] as const)
         for (const hull of [1, 2, 3] as const) {
           const b = new RefinedFluyt({ upgrades: { sails, hold, hull } });
-          expect(b.stats.crates + b.stats.barrels).toBe([5, 7, 10][hold - 1]);
+          expect(b.stats.crates + b.stats.barrels).toBe([6, 8, 11][hold - 1]);
           expect(b.stats.barrels > 0).toBe(hold >= 2);
           expect(b.stats.jibs).toBe(sails >= 2 ? 2 : 1);
           expect(b.stats.courses).toBe(sails === 3 ? 6 : 4);
           expect(b.stats.topsail).toBe(sails === 3);
-          expect(b.stats.meshes).toBeLessThanOrEqual(10);
-          expect(b.stats.triangles).toBeLessThanOrEqual(1300);
+          expect(b.stats.meshes).toBeLessThanOrEqual(11); // Includes one quiet glazing mesh.
+          expect(b.stats.triangles).toBeLessThanOrEqual(1699);
           let triangles = 0;
           b.root.traverse((o) => {
             if ((o as THREE.Mesh).isMesh) triangles += triangleCount((o as THREE.Mesh).geometry);

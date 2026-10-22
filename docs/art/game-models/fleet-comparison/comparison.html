@@ -1,0 +1,43 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Boat fleet — before and after</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;background:#113c43;color:#fff;font-family:Arial,sans-serif;width:2940px}
+header{height:110px;padding:23px 35px;display:flex;align-items:center;justify-content:space-between;background:#10343b}
+h1{font-size:35px;margin:0 0 9px}p{font-size:20px;margin:0;color:#b7d5d5}.legend{font-size:19px;text-align:right;line-height:1.5;color:#c4dddd}
+.names{display:grid;grid-template-columns:repeat(7,1fr);height:60px;background:#164a51;align-items:center;text-align:center;font-size:25px;font-weight:bold}.names small{display:block;font-size:14px;color:#b9d3d2;font-weight:normal;margin-top:5px}
+.stage{position:relative;height:960px}canvas{display:block;width:2940px;height:960px}.row-label{position:absolute;left:25px;font-size:22px;font-weight:bold;letter-spacing:2px;padding:8px 13px;background:#11343bcf;border-radius:5px}.old{top:12px}.new{top:492px;background:#244e37e8;color:#d9f2c8}.rule{position:absolute;top:479px;left:0;width:100%;border-top:2px solid #639498}
+footer{height:53px;padding:15px 35px;font-size:18px;color:#b9d6d5;background:#10343b}
+</style></head><body>
+<header><div><h1>Fair Winds Trading · boat model comparison</h1><p>Previous models on top · updated models directly below</p></div><div class="legend">Matching camera, lighting, pose and upgrades in each column<br>Fully upgraded · sloop and cutter unchanged</div></header>
+<div class="names"><div>Sloop<small>STARTER · UNCHANGED</small></div><div>Cutter<small>SWIFT I · UNCHANGED</small></div><div>Schooner<small>SWIFT II</small></div><div>Clipper<small>SWIFT III</small></div><div>Hoy<small>HAULER I</small></div><div>Fluyt<small>HAULER II</small></div><div>Indiaman<small>HAULER III</small></div></div>
+<div class="stage"><canvas id="comparison"></canvas><div class="row-label old">BEFORE</div><div class="row-label new">NOW</div><div class="rule"></div></div>
+<footer>Actual game geometry · each boat pair uses the same scale; columns are framed individually so details remain readable.</footer>
+<script type="module">
+import * as THREE from 'three';
+import {createStorybookBoat as previous} from './previous/src/render/models/storybookBoat.ts';
+import {createBoatModel as current} from '/src/render/models/index.ts';
+const renderer=new THREE.WebGLRenderer({canvas:document.querySelector('canvas'),antialias:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(1);renderer.setSize(2940,960,false);renderer.setScissorTest(true);
+const ids=['sloop','cutter','schooner','clipper','hoy','fluyt','indiaman'];
+const pose={sail:1,boomAngle:-0.55,luff:0,heel:-0.08,windRelative:-(Math.PI-(45+((0.55*180/Math.PI-12)/68)*135)*Math.PI/180),time:3};
+for(let column=0;column<ids.length;column++){
+  const pair=[previous(ids[column],{upgrades:{hull:3,hold:3,sails:3}}),current(ids[column],{upgrades:{hull:3,hold:3,sails:3}})];
+  const bounds=new THREE.Box3();
+  for(const b of pair){b.root.rotation.y=Math.PI/4;b.update(pose);b.root.updateWorldMatrix(true,true);bounds.union(new THREE.Box3().setFromObject(b.root));}
+  const target=bounds.getCenter(new THREE.Vector3());
+  const camera=new THREE.OrthographicCamera(-1,1,1,-1,.1,250);
+  camera.position.copy(target).add(new THREE.Vector3(0,42,60));camera.lookAt(target);camera.updateMatrixWorld(true);
+  const inverse=camera.matrixWorldInverse;let xmax=0,ymax=0;
+  for(const x of [bounds.min.x,bounds.max.x])for(const y of [bounds.min.y,bounds.max.y])for(const z of [bounds.min.z,bounds.max.z]){
+    const p=new THREE.Vector3(x,y,z).applyMatrix4(inverse);xmax=Math.max(xmax,Math.abs(p.x));ymax=Math.max(ymax,Math.abs(p.y));
+  }
+  const half=Math.max(ymax,xmax/(420/480))*1.12;camera.left=-half*420/480;camera.right=half*420/480;camera.top=half;camera.bottom=-half;camera.updateProjectionMatrix();
+  for(let row=0;row<2;row++){
+    const scene=new THREE.Scene();scene.background=new THREE.Color('#25808a');
+    scene.add(new THREE.HemisphereLight('#c5eff1','#1a4d55',1.5));
+    const sun=new THREE.DirectionalLight('#fff1d2',1.7);sun.position.set(-30,50,20);scene.add(sun);scene.add(pair[row].root);
+    renderer.setViewport(column*420,(1-row)*480,420,480);renderer.setScissor(column*420,(1-row)*480,420,480);renderer.render(scene,camera);
+  }
+}
+window.comparisonReady=true;
+</script></body></html>

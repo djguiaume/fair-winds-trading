@@ -5,6 +5,7 @@ import { mergeAll, paint, triangleCount } from './geometry';
 import { RefinedBoat } from './refinedBoat';
 import type { ShipModelEntry } from './shipModels';
 import type { BoatModelOptions } from './types';
+import { INDIAMAN_MIZZEN, indiamanDetails } from './indiamanDetails';
 
 const L = HULL_DIMENSIONS.indiaman!.length;
 const DEPTH = 2;
@@ -66,9 +67,12 @@ export class RefinedIndiaman extends RefinedBoat {
         mastHeight: 7.6,
         mainName: 'Mizzen',
         mainTopsail: false,
-        boom: 2,
+        boom: INDIAMAN_MIZZEN.aft,
         gaff: 1.6,
-        castle: { length: 4.4, height: 0.9 },
+        castle: { length: L * 0.27, height: 0.9 },
+        sternLayout: INDIAMAN_MIZZEN,
+        replaceDeckDetails: true,
+        boatDetails: indiamanDetails,
         stockJibs: 2,
         cargoExtra: 5,
         hatchZ: -1.3,
