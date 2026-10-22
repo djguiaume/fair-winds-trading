@@ -277,6 +277,7 @@ describe('save and load', () => {
     world.boat.x = 12;
     world.boat.y = -34;
     world.time = 321;
+    world.boat.sailStep = 0;
     expect(saveGame(storage, world)).toBe(true);
 
     const resumed = newWorld();
@@ -284,6 +285,47 @@ describe('save and load', () => {
     expect(serializeWorld(resumed)).toEqual(serializeWorld(world));
     expect(resumed.ship.id).toBe('cutter');
     expect(resumed.boat.speedKn).toBe(0);
+  });
+
+  // Decision 0076: the sails come back as the captain left them, but never up in port.
+  it('resumes the sail setting at sea and sails down in port', () => {
+    const storage = new MemoryStorage();
+    const world = newWorld();
+    world.boat.sailStep = 1;
+    saveGame(storage, world);
+    const atSea = newWorld();
+    expect(loadGame(storage, atSea)).toBe(true);
+    expect(atSea.boat.sailStep).toBe(1);
+    expect(atSea.boat.sail).toBe(0.5);
+    expect(atSea.boat.speedKn).toBe(0);
+
+    dock(world, 'saltmere');
+    world.boat.sailStep = 2;
+    saveGame(storage, world);
+    const inPort = newWorld();
+    expect(loadGame(storage, inPort)).toBe(true);
+    expect(inPort.boat.sailStep).toBe(0);
+    expect(inPort.boat.sail).toBe(0);
+  });
+
+  it('reads older saves without a sail setting: full at sea, down in port', () => {
+    const storage = new MemoryStorage();
+    const world = newWorld();
+    const data = serializeWorld(world);
+    const oldBoat = { x: data.boat.x, y: data.boat.y, heading: data.boat.heading };
+    storage.setItem(SAVE_KEY, JSON.stringify({ ...data, boat: oldBoat }));
+    const atSea = newWorld();
+    expect(loadGame(storage, atSea)).toBe(true);
+    expect(atSea.boat.sailStep).toBe(2);
+
+    storage.setItem(SAVE_KEY, JSON.stringify({ ...data, boat: oldBoat, dockedAt: 'saltmere' }));
+    const inPort = newWorld();
+    expect(loadGame(storage, inPort)).toBe(true);
+    expect(inPort.boat.sailStep).toBe(0);
+
+    // A mangled sail setting does not cost the voyage.
+    storage.setItem(SAVE_KEY, JSON.stringify({ ...data, boat: { ...oldBoat, sailStep: 7 } }));
+    expect(loadGame(storage, newWorld())).toBe(true);
   });
 
   it('starts fresh on a missing, damaged or foreign save', () => {
