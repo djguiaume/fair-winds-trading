@@ -1,6 +1,6 @@
 import type { World } from '../sim/world';
 import { WIND_FORCES, windForce } from '../sim/windStrength';
-import { GOODS, type GoodId, isSpecialty } from '../sim/goods';
+import { GOODS, type GoodId, isMadeGood } from '../sim/goods';
 import { madeGoods } from '../sim/settlement';
 import { type PortQuote, quoteAcross } from '../sim/market';
 import { DEG, distance } from '../sim/math';
@@ -325,9 +325,7 @@ export class SeaChart {
     goods.replaceChildren();
     // Specialized goods join once a town makes them, or while one is in the hold (decision 0063).
     const made = madeGoods(map, trade);
-    const inPlay = GOODS.filter(
-      (g) => !isSpecialty(g) || made.has(g) || trade.captain.cargo[g] > 0,
-    );
+    const inPlay = GOODS.filter((g) => !isMadeGood(g) || made.has(g) || trade.captain.cargo[g] > 0);
     for (const g of inPlay) {
       // Tap a good to show its prices on the chart; tap it again for names only.
       const b = this.button(goods, goodName(g), () => {
@@ -443,7 +441,7 @@ export class SeaChart {
       if (terrain.name && terrain.kind === 'island')
         places.push({ name: terrain.name, x: (x0 + x1) / 2, top: y0, bottom: y1 });
     }
-    // Storms (decision 0066): a grey patch with its core, and where it is heading in 2 minutes.
+    // Storms (decision 0067): a grey patch with its core, and where it is heading in 2 minutes.
     for (const storm of this.world.weather.storms) {
       if (storm.intensity < 0.05) continue;
       const g = shape('g', { class: 'chart-storm', opacity: Math.min(1, storm.intensity * 1.3) });

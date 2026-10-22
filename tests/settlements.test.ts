@@ -10,7 +10,9 @@ import {
   ORDER_GROWTH_BONUS,
   STALL_SECONDS,
   WANTS_EQUILIBRIUM,
+  RARE_FOR_PORT_TOWN,
   addGrowth,
+  addRare,
   madeGoods,
   portProduces,
   portWants,
@@ -124,6 +126,10 @@ describe('settlement levels (0059)', () => {
     expect(t.markets.calda!.equilibrium.fish).toBeLessThan(EQUILIBRIUM.wants);
     expect(t.markets.calda!.equilibrium.timber).toBeGreaterThan(EQUILIBRIUM.produces);
 
+    // Calda waits at full growth until it has had its rare good (decision 0065).
+    expect(step(w, 0.1).some((e) => e.type === 'level-up')).toBe(false);
+    expect(t.settlements.byPort.calda!.growth).toBe(GROWTH_TO_LEVEL[4]);
+    addRare(t, 'calda', 'lampOil', RARE_FOR_PORT_TOWN);
     const second = step(w, 0.1);
     expect(second).toContainEqual({ type: 'level-up', portId: 'calda', level: 4 });
     expect(settlementLevel(t, 'calda')).toBe(4);
@@ -137,14 +143,14 @@ describe('settlement levels (0059)', () => {
     const w = world();
     const t = w.trade;
     addGrowth(t, 'westholm', 20);
-    stepSettlements(t, STALL_SECONDS - 1);
+    stepSettlements(t, STALL_SECONDS - 1, MAP);
     expect(t.settlements.byPort.westholm!.growth).toBe(20);
-    stepSettlements(t, 60 * 30);
+    stepSettlements(t, 60 * 30, MAP);
     expect(t.settlements.byPort.westholm!.growth).toBe(0);
     expect(settlementLevel(t, 'westholm')).toBe(2);
     // Fresh supply restarts the clock.
     addGrowth(t, 'westholm', 4);
-    stepSettlements(t, 60);
+    stepSettlements(t, 60, MAP);
     expect(t.settlements.byPort.westholm!.growth).toBe(4);
   });
 
@@ -196,10 +202,15 @@ describe('settlement levels (0059)', () => {
       },
       MAP,
     );
-    expect(read.byPort.calda).toEqual({ level: 4, growth: 0, sinceSupply: 0 });
+    expect(read.byPort.calda).toEqual({ level: 4, growth: 0, sinceSupply: 0, rare: 0 });
     // Never below the map's starting level.
-    expect(read.byPort.saltmere).toEqual({ level: 2, growth: 0, sinceSupply: 0 });
-    expect(read.byPort.westholm).toEqual({ level: 3, growth: GROWTH_TO_LEVEL[4], sinceSupply: 0 });
+    expect(read.byPort.saltmere).toEqual({ level: 2, growth: 0, sinceSupply: 0, rare: 0 });
+    expect(read.byPort.westholm).toEqual({
+      level: 3,
+      growth: GROWTH_TO_LEVEL[4],
+      sinceSupply: 0,
+      rare: 0,
+    });
     expect(read.byPort.nowhere).toBeUndefined();
 
     const w = world();

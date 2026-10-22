@@ -62,7 +62,7 @@ export interface World {
   piers: Pier[];
   /** 0 = deep water … 1 = at a reef's edge. */
   shallow: number;
-  /** Weather at the boat: sea-wide state, rain and storm (decision 0066). */
+  /** Weather at the boat: sea-wide state, rain and storm (decision 0067). */
   weather: LocalWeather;
   /** Storm exposure (seconds at full force) since cargo was last soaked. */
   soak: number;
@@ -164,7 +164,7 @@ function moor(boat: BoatState, dt: number): void {
   boat.drift.y *= hold;
 }
 
-/** Goods that seawater ruins; timber, stone and the workshop goods are packed to keep (0066). */
+/** Goods that seawater ruins; timber, stone and the workshop goods are packed to keep (0067). */
 export const PERISHABLE: readonly GoodId[] = ['fish', 'grain', 'bread'];
 /** Seconds in a storm's core before a soaking spoils part of the perishable cargo. */
 export const SOAK_SECONDS = 4;
@@ -173,7 +173,7 @@ export const SOAK_SHARE = 0.1;
 /** Warn when a storm's edge comes this close (map units). */
 export const STORM_WARNING = 140;
 
-/** Storm warnings and spoiled cargo (decision 0066). */
+/** Storm warnings and spoiled cargo (decision 0067). */
 export function stepStorms(world: World, dt: number): WorldEvent[] {
   const events: WorldEvent[] = [];
   const { boat, weather, trade } = world;

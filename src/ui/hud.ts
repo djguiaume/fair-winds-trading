@@ -388,7 +388,7 @@ export class Hud {
       // Name the lee so a sudden drop in speed reads as the island, not a bug (decision 0027).
       const lee = this.world.shelter > 0.25 ? ` · ${t('hud.lee')}` : '';
       this.windText.textContent = `${fromDir} · ${wind.speedKn.toFixed(0)} ${t('unit.knots')}${lee}`;
-      // Weather only shows when it is not a plain breeze, in line with the quiet HUD (0066).
+      // Weather only shows when it is not a plain breeze, in line with the quiet HUD (0067).
       const { weather } = this.world;
       const kind = weather.storm > 0.15 ? 'storm' : weather.kind;
       this.weatherText.hidden = kind === 'breeze';

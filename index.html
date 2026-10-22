@@ -172,6 +172,53 @@
           stroke-width="1"
         />
       </symbol>
+      <symbol id="i-honey" viewBox="0 0 24 24">
+        <path
+          d="M6 8h12l1 10c0 2-2 3-4 3H9c-2 0-4-1-4-3z"
+          fill="#f2b23a"
+          stroke="rgba(0,0,0,.5)"
+          stroke-width="1.3"
+        />
+        <rect
+          x="5"
+          y="4"
+          width="14"
+          height="4"
+          rx="1.2"
+          fill="#c98b4a"
+          stroke="rgba(0,0,0,.5)"
+          stroke-width="1.3"
+        />
+        <path
+          d="M8 11c0 2 2 2 2 4"
+          stroke="#fff3c4"
+          stroke-opacity=".7"
+          stroke-width="1.4"
+          fill="none"
+          stroke-linecap="round"
+        />
+      </symbol>
+      <symbol id="i-lampOil" viewBox="0 0 24 24">
+        <path
+          d="M3 15c0-2 3-4 8-4h5l5-3-2 5c0 3-3 6-9 6-4 0-7-2-7-4z"
+          fill="#d9c27a"
+          stroke="rgba(0,0,0,.5)"
+          stroke-width="1.3"
+        />
+        <path
+          d="M6 11c0-3 2-6 3-8 1 2 3 5 3 8"
+          fill="#ff9a3c"
+          stroke="rgba(0,0,0,.4)"
+          stroke-width="1"
+        />
+        <path
+          d="M9 9c0-1.5 .5-3 .9-4"
+          stroke="#fff3c4"
+          stroke-width="1.2"
+          fill="none"
+          stroke-linecap="round"
+        />
+      </symbol>
       <symbol id="i-anchor" viewBox="0 0 24 24">
         <g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
           <circle cx="12" cy="5" r="2" />
@@ -297,6 +344,31 @@
           <path d="M0-26L4-4 0 0-4-4z" transform="rotate(315)" />
         </g>
         <circle r="5" fill="#e8c46a" stroke="#06141c" stroke-width="2" />
+      </symbol>
+      <symbol id="i-transfer" viewBox="0 0 24 24">
+        <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+          <rect x="2" y="5" width="8" height="14" rx="1.6" />
+          <rect x="14" y="5" width="8" height="14" rx="1.6" />
+          <path d="M9 10h6m-2-2 2 2-2 2M15 15H9m2-2-2 2 2 2" stroke-linecap="round" />
+        </g>
+      </symbol>
+      <symbol id="i-camera" viewBox="0 0 24 24">
+        <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+          <path d="M3 8h4l2-3h6l2 3h4v11H3z" />
+          <circle cx="12" cy="13" r="3.5" />
+        </g>
+      </symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24">
+        <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+          <rect x="8" y="8" width="12" height="13" rx="1.6" />
+          <path d="M16 8V4H4v13h4" />
+        </g>
+      </symbol>
+      <symbol id="i-file" viewBox="0 0 24 24">
+        <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+          <path d="M6 3h8l4 4v14H6z" />
+          <path d="M14 3v4h4M9 13h6M9 17h6" stroke-linecap="round" />
+        </g>
       </symbol>
       <symbol id="i-crate" viewBox="0 0 24 24">
         <rect
@@ -911,6 +983,11 @@
               <svg class="icon" aria-hidden="true"><use href="#i-book" /></svg>
               <span data-i18n="menu.help">How to play</span>
             </button>
+            <button id="menu-transfer" class="menu-row" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#i-transfer" /></svg>
+              <span data-i18n="menu.transfer">Move your voyage</span>
+              <small data-i18n="menu.transferNote">QR code or file</small>
+            </button>
             <button id="menu-settings" class="menu-row" type="button">
               <svg class="icon" aria-hidden="true"><use href="#i-gear" /></svg>
               <span data-i18n="menu.settings">Settings</span>
@@ -1036,6 +1113,152 @@
           <p class="set-note in-game" data-i18n="settings.resetBoatNote">
             Stuck? Brings the boat back to port.
           </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="transfer" class="sheet transfer-sheet" aria-labelledby="transfer-title" hidden>
+      <header class="sheet-head">
+        <svg class="icon" aria-hidden="true"><use href="#i-transfer" /></svg>
+        <h2 id="transfer-title" data-i18n="transfer.title">Move your voyage</h2>
+        <div id="transfer-tabs" class="seg" role="tablist">
+          <button
+            id="transfer-tab-send"
+            type="button"
+            role="tab"
+            aria-controls="transfer-send"
+            data-i18n="transfer.send"
+          >
+            Send
+          </button>
+          <button
+            id="transfer-tab-receive"
+            type="button"
+            role="tab"
+            aria-controls="transfer-receive"
+            data-i18n="transfer.receive"
+          >
+            Receive
+          </button>
+        </div>
+        <button
+          id="close-transfer"
+          class="d-btn red square"
+          type="button"
+          aria-label="Close"
+          title="Close"
+          data-i18n-attr="aria-label:settings.close;title:settings.close"
+        >
+          <svg class="icon" aria-hidden="true"><use href="#i-close" /></svg>
+        </button>
+      </header>
+      <div class="sheet-body transfer-body">
+        <div id="transfer-send" class="transfer-pane" role="tabpanel">
+          <figure class="qr-card">
+            <div id="transfer-qr" class="qr-box"></div>
+            <figcaption data-i18n="transfer.scanThis">Scan me with the other device</figcaption>
+          </figure>
+          <div class="transfer-side">
+            <h3 class="set-label" data-i18n="transfer.howTitle">On the other device</h3>
+            <ol class="transfer-steps">
+              <li data-i18n-html="transfer.how1">
+                Open the game, then <b>Menu → Move your voyage → Receive</b>, and tap <b>Scan</b>.
+              </li>
+              <li data-i18n="transfer.how2">
+                Or point its camera app at the code: it opens the game with your voyage.
+              </li>
+            </ol>
+            <div class="set-actions">
+              <button id="transfer-copy" class="d-btn" type="button">
+                <svg class="icon" aria-hidden="true"><use href="#i-copy" /></svg>
+                <span id="transfer-copy-label" data-i18n="transfer.copy">Copy code</span>
+              </button>
+              <button id="transfer-download" class="d-btn" type="button">
+                <svg class="icon" aria-hidden="true"><use href="#i-file" /></svg>
+                <span data-i18n="transfer.download">Save as file</span>
+              </button>
+            </div>
+            <p class="set-note" data-i18n="transfer.copyNote">
+              The code and the file hold the voyage as it is right now. Keep sailing on one device
+              only: the two copies do not stay in step.
+            </p>
+          </div>
+        </div>
+
+        <div id="transfer-receive" class="transfer-pane" role="tabpanel" hidden>
+          <div class="scan-card">
+            <div id="scan-view" class="scan-view" hidden>
+              <video id="scan-video" playsinline muted></video>
+              <span class="scan-frame" aria-hidden="true"></span>
+            </div>
+            <button id="scan-start" class="d-btn brass big" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#i-camera" /></svg>
+              <span data-i18n="transfer.scan">Scan a code</span>
+            </button>
+            <button id="scan-stop" class="d-btn" type="button" hidden data-i18n="transfer.stopScan">
+              Stop camera
+            </button>
+            <p id="scan-hint" class="set-note" data-i18n="transfer.scanHint">
+              Point the camera at the QR code on the other device.
+            </p>
+          </div>
+          <div class="transfer-side">
+            <h3 class="set-label" data-i18n="transfer.pasteTitle">Or paste a code</h3>
+            <textarea
+              id="transfer-paste"
+              class="transfer-paste"
+              rows="3"
+              spellcheck="false"
+              autocomplete="off"
+              autocapitalize="off"
+              data-i18n-attr="placeholder:transfer.pastePlaceholder"
+              placeholder="FW1…"
+            ></textarea>
+            <div class="set-actions">
+              <button id="transfer-load" class="d-btn" type="button" data-i18n="transfer.load">
+                Load code
+              </button>
+              <button id="transfer-open-file" class="d-btn" type="button">
+                <svg class="icon" aria-hidden="true"><use href="#i-file" /></svg>
+                <span data-i18n="transfer.openFile">Open save file</span>
+              </button>
+              <input id="transfer-file" type="file" accept=".json,application/json" hidden />
+            </div>
+            <p id="transfer-error" class="transfer-error" role="alert" hidden></p>
+          </div>
+        </div>
+
+        <div id="transfer-confirm" class="transfer-pane transfer-confirm" hidden>
+          <h3 class="transfer-question" data-i18n="transfer.replaceTitle">
+            Replace the voyage on this device?
+          </h3>
+          <div class="voyage-cards">
+            <div class="voyage-card">
+              <h4 data-i18n="transfer.here">On this device</h4>
+              <dl id="voyage-here"></dl>
+            </div>
+            <svg class="voyage-arrow icon" aria-hidden="true"><use href="#i-arrow" /></svg>
+            <div class="voyage-card incoming">
+              <h4 data-i18n="transfer.incoming">Arriving</h4>
+              <dl id="voyage-incoming"></dl>
+            </div>
+          </div>
+          <p class="set-note" data-i18n="transfer.replaceNote">
+            The voyage on this device is lost unless you send it somewhere first.
+          </p>
+          <div class="set-actions">
+            <button
+              id="transfer-replace"
+              class="d-btn red"
+              type="button"
+              data-i18n="transfer.replace"
+            >
+              Replace my voyage
+            </button>
+            <button id="transfer-keep" class="d-btn" type="button" data-i18n="transfer.keep">
+              Keep mine
+            </button>
+          </div>
         </div>
       </div>
     </section>

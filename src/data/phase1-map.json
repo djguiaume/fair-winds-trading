@@ -172,7 +172,7 @@
       "level": 2,
       "levelWants": { "3": ["grain"] },
       "levelProduces": { "3": ["planks"] },
-      "wantsMade": ["smokedFish", "bread"]
+      "wantsMade": ["smokedFish", "bread", "lampOil"]
     },
     {
       "id": "saltmere",
@@ -183,7 +183,7 @@
       "level": 2,
       "levelWants": { "3": ["stone"] },
       "levelProduces": { "3": ["smokedFish"] },
-      "wantsMade": ["planks", "cutStone"]
+      "wantsMade": ["planks", "cutStone", "honey"]
     },
     {
       "id": "westholm",
@@ -194,7 +194,7 @@
       "level": 2,
       "levelWants": { "3": ["timber"] },
       "levelProduces": { "3": ["bread"] },
-      "wantsMade": ["cutStone", "planks"]
+      "wantsMade": ["cutStone", "planks", "lampOil"]
     },
     {
       "id": "stonehaven",
@@ -205,7 +205,7 @@
       "level": 2,
       "levelWants": { "3": ["fish"] },
       "levelProduces": { "3": ["cutStone"] },
-      "wantsMade": ["bread", "smokedFish"]
+      "wantsMade": ["bread", "smokedFish", "honey"]
     },
     {
       "id": "watchman-key",
@@ -215,6 +215,7 @@
       "wants": ["timber", "grain"],
       "level": 1,
       "levelWants": { "2": ["fish"], "3": ["stone"] },
+      "levelProduces": { "2": ["lampOil"] },
       "wantsMade": ["planks", "bread"],
       "builds": ["schooner", "clipper"],
       "hidden": true
@@ -227,6 +228,7 @@
       "wants": ["timber", "fish"],
       "level": 1,
       "levelWants": { "2": ["grain"], "3": ["stone"] },
+      "levelProduces": { "2": ["honey"] },
       "wantsMade": ["planks", "cutStone"],
       "builds": ["hoy", "fluyt", "indiaman"],
       "hidden": true

@@ -51,7 +51,7 @@ export class GameView {
   private readonly camera = new THREE.PerspectiveCamera(40, 1, 1, 600);
   private readonly sun = new THREE.DirectionalLight(PALETTE.sun, 1.7);
   private readonly hemi = new THREE.HemisphereLight(PALETTE.sky, '#1a4d55', 1.5);
-  /** Time of day and weather light (decisions 0066 and 0067). */
+  /** Time of day and weather light (decisions 0067 and 0068). */
   private readonly atmosphere = new Atmosphere(this.scene, this.sun, this.hemi);
   private lanterns!: Lanterns;
   private readonly sternLantern = new THREE.Vector3();
@@ -125,7 +125,7 @@ export class GameView {
     this.setQuality(level);
   }
 
-  /** Harbour lanterns (decision 0067): one on each pier head and a town glow a little inland. */
+  /** Harbour lanterns (decision 0068): one on each pier head and a town glow a little inland. */
   private buildLanterns() {
     if (this.lanterns) {
       this.scene.remove(this.lanterns.points);

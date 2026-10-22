@@ -52,7 +52,7 @@ const DAY = look(
   PALETTE.sky,
   1.5,
 );
-/** Low golden sun at dusk and dawn (decision 0067). */
+/** Low golden sun at dusk and dawn (decision 0068). */
 const GOLDEN = look(
   '#5b5478',
   '#2f6a86',
@@ -65,7 +65,7 @@ const GOLDEN = look(
   1.2,
 );
 /**
- * Moonlit night (decision 0067): deep blue, never black, so coasts, reefs and boats stay
+ * Moonlit night (decision 0068): deep blue, never black, so coasts, reefs and boats stay
  * readable on an old tablet screen.
  */
 const NIGHT = look(
@@ -79,7 +79,7 @@ const NIGHT = look(
   '#7d9fdc',
   0.7,
 );
-/** Under the darkest storm (decision 0066). */
+/** Under the darkest storm (decision 0067). */
 const STORM = look(
   '#2a3a42',
   '#1c3f47',
@@ -108,8 +108,8 @@ function mix(out: Look, a: Look, b: Look, k: number): Look {
 const blank = () => look('#000', '#000', '#000', '#000', '#000', '#000', 0, '#000', 0);
 
 /**
- * Light and colour of the scene from the time of day (decision 0067) and the weather at the boat
- * (decision 0066). Only colours and intensities change: no extra lights, passes or textures.
+ * Light and colour of the scene from the time of day (decision 0068) and the weather at the boat
+ * (decision 0067). Only colours and intensities change: no extra lights, passes or textures.
  */
 export class Atmosphere {
   /** 0 = clear … 1 = under a storm, eased so sailing into one feels like the light going. */

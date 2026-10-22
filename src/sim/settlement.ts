@@ -1,4 +1,4 @@
-import { type GoodId, isGood, isSpecialty } from './goods';
+import { type GoodId, isGood, isMadeGood, isRare } from './goods';
 import type { MapDef, PortDef } from './map';
 
 /**
@@ -8,6 +8,7 @@ import type { MapDef, PortDef } from './map';
  * at the home port, unlocks higher shipyard upgrades. A town nobody supplies stalls: its growth
  * drains back to the start of its level, but a level once reached is never lost.
  * Levels change only in whole steps, so the renderer can rebuild an island on the rare level-up.
+ * A town that wants a rare good becomes a port town only once it has received enough of it (0065).
  */
 
 export type SettlementLevel = 1 | 2 | 3 | 4;
@@ -30,6 +31,13 @@ export const WANTS_EQUILIBRIUM = [15, 12, 10, 8] as const;
 export const PRODUCES_EQUILIBRIUM = [85, 100, 115, 130] as const;
 /** A workshop makes less than the bulk trade: its stock is this share of PRODUCES_EQUILIBRIUM (0063). */
 export const SPECIALTY_SHARE = 0.4;
+/**
+ * A far yard's stock of its rare good, as a share of PRODUCES_EQUILIBRIUM (0065): more than a
+ * workshop, so the yard sells it cheap enough to pay for the longest crossings on the map.
+ */
+export const RARE_SHARE = 0.7;
+/** Units of its rare goods a town must receive before it can become a port town (decision 0065). */
+export const RARE_FOR_PORT_TOWN = 20;
 /** Order size multiplier per level (decision 0028 sizes are level 2). */
 export const ORDER_SCALE = [0.8, 1, 1.25, 1.5] as const;
 
@@ -45,6 +53,8 @@ export interface Settlement {
   growth: number;
   /** Seconds since the town last received goods it wants. */
   sinceSupply: number;
+  /** Units of rare goods it has received, for the port town gate (decision 0065). */
+  rare: number;
 }
 
 export interface SettlementState {
@@ -83,7 +93,7 @@ export function portProduces(port: PortDef, level: number): GoodId[] {
 
 /**
  * Goods the port wants at `level`: its base wants, every want unlocked up to that level, and the
- * specialized goods it buys that some town already makes (`made`, decision 0063).
+ * specialized and rare goods it buys that some port already makes (`made`, decisions 0063, 0065).
  */
 export function portWants(
   port: PortDef,
@@ -101,12 +111,12 @@ export function portWants(
   return out;
 }
 
-/** Specialized goods some port makes at its current level: the ones with a market (0063). */
+/** Specialized and rare goods some port makes at its current level: the ones with a market (0063). */
 export function madeGoods(map: MapDef, state: HasSettlements): Set<GoodId> {
   const made = new Set<GoodId>();
   for (const port of map.ports)
     for (const g of portProduces(port, settlementLevel(state, port.id)))
-      if (isSpecialty(g)) made.add(g);
+      if (isMadeGood(g)) made.add(g);
   return made;
 }
 
@@ -124,7 +134,7 @@ export function growthNeeded(level: SettlementLevel): number | null {
 export function createSettlements(map: MapDef): SettlementState {
   const byPort: Record<string, Settlement> = {};
   for (const port of map.ports)
-    byPort[port.id] = { level: startLevel(port), growth: 0, sinceSupply: 0 };
+    byPort[port.id] = { level: startLevel(port), growth: 0, sinceSupply: 0, rare: 0 };
   return { byPort };
 }
 
@@ -165,11 +175,44 @@ export function addGrowth(state: HasSettlements, portId: string, points: number)
   if (s.level < MAX_SETTLEMENT_LEVEL) s.growth += points;
 }
 
+/** A wanted rare good arrived (sold or delivered): it counts toward the port town gate (0065). */
+export function addRare(state: HasSettlements, portId: string, good: GoodId, qty: number): void {
+  const s = state.settlements.byPort[portId];
+  if (s && isRare(good) && qty > 0) s.rare += qty;
+}
+
+/** Rare goods the port buys: what it must receive to become a port town (0065). */
+export function rareWants(port: PortDef): GoodId[] {
+  return (port.wantsMade ?? []).filter((g) => isGood(g) && isRare(g));
+}
+
+export interface PortTownGate {
+  goods: GoodId[];
+  /** Units received so far and units needed. */
+  have: number;
+  need: number;
+}
+
+/** What still holds a town back from port town, or null when nothing does (0065). */
+export function portTownGate(
+  map: MapDef,
+  state: HasSettlements,
+  portId: string,
+): PortTownGate | null {
+  const port = map.ports.find((p) => p.id === portId);
+  const s = state.settlements.byPort[portId];
+  if (!port || !s || s.level >= MAX_SETTLEMENT_LEVEL) return null;
+  const goods = rareWants(port);
+  if (!goods.length || s.rare >= RARE_FOR_PORT_TOWN) return null;
+  return { goods, have: Math.floor(s.rare), need: RARE_FOR_PORT_TOWN };
+}
+
 /**
  * Advance every settlement by `dt`: stalled towns drain growth, and towns with enough growth
- * rise a level (one step per call, the rest carries over). Returns the level-ups.
+ * rise a level (one step per call, the rest carries over). A town still short of its rare goods
+ * waits at full growth instead of becoming a port town (0065). Returns the level-ups.
  */
-export function stepSettlements(state: HasSettlements, dt: number): LevelUp[] {
+export function stepSettlements(state: HasSettlements, dt: number, map: MapDef): LevelUp[] {
   const ups: LevelUp[] = [];
   for (const [portId, s] of Object.entries(state.settlements.byPort)) {
     const before = s.sinceSupply;
@@ -178,7 +221,9 @@ export function stepSettlements(state: HasSettlements, dt: number): LevelUp[] {
     if (stalled > 0 && s.growth > 0)
       s.growth = Math.max(0, s.growth - (STALL_DECAY_PER_MINUTE * stalled) / 60);
     const need = growthNeeded(s.level);
-    if (need !== null && s.growth >= need) {
+    if (need !== null && s.growth >= need && s.level === 3 && portTownGate(map, state, portId)) {
+      s.growth = need;
+    } else if (need !== null && s.growth >= need) {
       s.growth -= need;
       s.level = (s.level + 1) as SettlementLevel;
       if (s.level >= MAX_SETTLEMENT_LEVEL) s.growth = 0;
@@ -211,7 +256,8 @@ export function readSettlements(raw: unknown, map: MapDef): SettlementState {
     const need = growthNeeded(level);
     const growth = isNum(s.growth) && s.growth > 0 && need !== null ? Math.min(s.growth, need) : 0;
     const sinceSupply = isNum(s.sinceSupply) && s.sinceSupply > 0 ? s.sinceSupply : 0;
-    fresh.byPort[port.id] = { level, growth, sinceSupply };
+    const rare = isNum(s.rare) && s.rare > 0 ? s.rare : 0;
+    fresh.byPort[port.id] = { level, growth, sinceSupply, rare };
   }
   return fresh;
 }

@@ -1,4 +1,4 @@
-# 0066. Weather states and moving storms
+# 0067. Weather states and moving storms
 
 **Status:** Implemented for review, 2026-10-22. Guillaume: "start on weather first", the Phase 2 roadmap item "weather states (calm, breeze, gale, rain, storms) that move across the map and change wind strength; storms can spoil cargo". Builds on [0026](0026-slow-weather-shifts.md) and [0064](0064-wind-from-every-quarter.md).
 

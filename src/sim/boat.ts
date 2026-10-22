@@ -54,7 +54,7 @@ export function trueWindAngle(heading: number, wind: Wind): number {
   return wrapAngle(wind.from - heading);
 }
 
-/** Above this wind (knots) more wind barely adds speed: the crew spills it (decision 0066). */
+/** Above this wind (knots) more wind barely adds speed: the crew spills it (decision 0067). */
 export const OVERPOWERED_KN = 21;
 
 /** Wind that drives the boat: all of it up to `OVERPOWERED_KN`, a quarter of anything above. */

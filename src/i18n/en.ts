@@ -13,6 +13,8 @@ export const en = {
   'good.bread': 'Bread',
   'good.planks': 'Planks',
   'good.cutStone': 'Cut stone',
+  'good.honey': 'Honey',
+  'good.lampOil': 'Lamp oil',
   'ship.sloop': 'Sloop',
   'ship.cutter': 'Cutter',
   'ship.schooner': 'Schooner',
@@ -54,6 +56,8 @@ export const en = {
   'menu.paused': 'Paused',
   'menu.tutorialNote': '9 short steps',
   'menu.tutorialStep': 'Step {step}/{total}',
+  'menu.transfer': 'Move your voyage',
+  'menu.transferNote': 'QR code or file',
 
   // --- How to play -----------------------------------------------------------------------------
   'help.windTitle': 'The wind',
@@ -95,6 +99,52 @@ export const en = {
   'settings.voyage': 'Voyage',
   'settings.resetBoatNote': 'Stuck? Back to start brings the boat back to port.',
   'settings.confirmNewGame': 'Start a new voyage? Your gold, cargo and upgrades will be reset.',
+
+  // --- Moving a voyage between devices (decision 0066) ----------------------------------------
+  'transfer.title': 'Move your voyage',
+  'transfer.send': 'Send',
+  'transfer.receive': 'Receive',
+  'transfer.scanThis': 'Scan me with the other device',
+  'transfer.howTitle': 'On the other device',
+  'transfer.how1':
+    'Open the game, then <b>Menu → Move your voyage → Receive</b>, and tap <b>Scan</b>.',
+  'transfer.how2': 'Or point its camera app at the code: it opens the game with your voyage.',
+  'transfer.copy': 'Copy code',
+  'transfer.copied': 'Copied',
+  'transfer.download': 'Save as file',
+  'transfer.copyNote':
+    'The code and the file hold the voyage as it is right now. Keep sailing on one device only: the two copies do not stay in step.',
+  'transfer.scan': 'Scan a code',
+  'transfer.stopScan': 'Stop camera',
+  'transfer.scanHint': 'Point the camera at the QR code on the other device.',
+  'transfer.noCamera':
+    'No camera here, or it was not allowed. Paste the code or open a save file instead.',
+  'transfer.pasteTitle': 'Or paste a code',
+  'transfer.pastePlaceholder': 'Paste the code or link here (FW1…)',
+  'transfer.load': 'Load code',
+  'transfer.openFile': 'Open save file',
+  'transfer.unreadable':
+    'This is not a Fair Winds voyage, or it got cut or changed on the way. Copy it again.',
+  'transfer.newer':
+    'This voyage comes from a newer version of the game. Update this device first (reload the page).',
+  'transfer.otherMap': 'This voyage is for another sea map and cannot be sailed here.',
+  'transfer.damaged':
+    'This voyage is damaged and cannot be loaded. Make a new code on the other device.',
+  'transfer.replaceTitle': 'Replace the voyage on this device?',
+  'transfer.here': 'On this device',
+  'transfer.incoming': 'Arriving',
+  'transfer.gold': 'Gold',
+  'transfer.ship': 'Ship',
+  'transfer.fleet': 'Ships owned',
+  'transfer.cargo': 'Cargo',
+  'transfer.played': 'Sailed',
+  'transfer.minutes': '{n} min',
+  'transfer.hours': '{h} h {m} min',
+  'transfer.replaceNote': 'The voyage on this device is lost unless you send it somewhere first.',
+  'transfer.replace': 'Replace my voyage',
+  'transfer.keep': 'Keep mine',
+  'transfer.saveFailed':
+    'This device could not store the voyage (private browsing or full storage).',
 
   // --- HUD -----------------------------------------------------------------------------------
   'hud.sails': 'Sails',
@@ -140,6 +190,7 @@ export const en = {
   'toast.discovered': 'New port on the chart: {name}. Its shipwright builds ships',
   'toast.levelUp': '{name} has grown into a {level}!',
   'toast.workshop': '{name} has grown: its new {workshop} makes {good}!',
+  'toast.rareGood': '{name} has grown: it now makes {good}, wanted across the sea!',
   'workshop.smokedFish': 'smokehouse',
   'workshop.bread': 'bakery',
   'workshop.planks': 'sawmill',
@@ -316,6 +367,9 @@ export const en = {
   'settlement.level.4': 'Port town',
   'settlement.growing': '{level} · {pct}%',
   'settlement.stalling': '{level} · {pct}% · stalling',
+  'settlement.rare': '{level} · {pct}% · {have}/{need} {goods}',
+  'settlement.rareHint': 'To become a port town, {name} needs {need} {goods} from {source}',
+  'settlement.farIsland': 'a far island',
   'settlement.hint': 'Sell {name} the goods it wants, or deliver its orders, to help it grow',
   'trade.switchMode': 'Switch interface mode',
   'trade.toKids': '⛵ Switch to Kids Mode',

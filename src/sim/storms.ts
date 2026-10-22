@@ -2,7 +2,7 @@ import { DEG, TAU, clamp } from './math';
 import { createRng } from './rng';
 
 /**
- * Moving storms (decision 0066): now and then a storm cell crosses the sea on a straight track,
+ * Moving storms (decision 0067): now and then a storm cell crosses the sea on a straight track,
  * slower than a boat so it can be dodged. Inside it the wind spins round its centre and blows much
  * harder, rain pours and loose cargo gets soaked. Like the rest of the weather, storms are a pure
  * function of the map seed and time, so nothing is saved.

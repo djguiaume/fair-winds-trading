@@ -80,7 +80,12 @@
 
 | [0063](0063-specialized-town-goods.md) | Specialized goods: each town's workshop makes smoked fish, bread, planks or cut stone; buyers open with the workshop | 2026-10-21 | Implementation for review |
 | [0064](0064-wind-from-every-quarter.md) | Wind wanders round the whole compass (random walk) and bends across regions of the sea; the boat feels the wind where it is | 2026-10-22 | Implementation for review |
-| [0066](0066-weather-states-and-storms.md) | Weather states (calm, breeze, rain, gale) per period and moving storms that turn and strengthen the wind, darken the sea and soak fish, grain and bread | 2026-10-22 | Implementation for review |
-| [0067](0067-day-and-night.md) | 12-minute day: golden dusk, blue moonlit night, dawn; the sun moves; harbour and stern lanterns; looks only, no gameplay change | 2026-10-22 | Implementation for review |
+| [0065](0065-rare-goods-from-the-far-yards.md) | Rare goods: the far yards make honey and lamp oil (Phase 2), outer islands a rarer set (Phase 4); wanted across the map; a town needs 20 of its rare good to become a port town | 2026-10-22 | Accepted, implementation for review |
+
+| [0066](0066-move-voyage-between-devices.md) | Move a voyage between devices without a server: QR code (main way, scan in game or with the camera app), copy/paste code, or `.json` file; checked and confirmed before replacing | 2026-10-22 | Implementation for review |
+
+| [0067](0067-weather-states-and-storms.md) | Weather states (calm, breeze, rain, gale) per period and moving storms that turn and strengthen the wind, darken the sea and soak fish, grain and bread | 2026-10-22 | Implementation for review |
+
+| [0068](0068-day-and-night.md) | 12-minute day: golden dusk, blue moonlit night, dawn; the sun moves; harbour and stern lanterns; looks only, no gameplay change | 2026-10-22 | Implementation for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

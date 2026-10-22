@@ -12,6 +12,8 @@ export const fr: Record<MessageKey, string> = {
   'good.bread': 'Pain',
   'good.planks': 'Planches',
   'good.cutStone': 'Pierre de taille',
+  'good.honey': 'Miel',
+  'good.lampOil': 'Huile de lampe',
   'ship.sloop': 'Sloop',
   'ship.cutter': 'Cotre',
   'ship.schooner': 'Schooner',
@@ -53,6 +55,8 @@ export const fr: Record<MessageKey, string> = {
   'menu.paused': 'En pause',
   'menu.tutorialNote': '9 étapes courtes',
   'menu.tutorialStep': 'Étape {step}/{total}',
+  'menu.transfer': 'Transférer la partie',
+  'menu.transferNote': 'QR code ou fichier',
 
   // --- Comment jouer -------------------------------------------------------------------------
   'help.windTitle': 'Le vent',
@@ -95,6 +99,53 @@ export const fr: Record<MessageKey, string> = {
   'settings.resetBoatNote': 'Bloqué ? Retour au départ ramène le bateau au port.',
   'settings.confirmNewGame':
     'Commencer un nouveau voyage ? Votre or, votre cargaison et vos améliorations seront remis à zéro.',
+
+  // --- Transférer une partie (décision 0066) --------------------------------------------------
+  'transfer.title': 'Transférer la partie',
+  'transfer.send': 'Envoyer',
+  'transfer.receive': 'Recevoir',
+  'transfer.scanThis': 'Scannez-moi avec l’autre appareil',
+  'transfer.howTitle': 'Sur l’autre appareil',
+  'transfer.how1':
+    'Ouvrez le jeu, puis <b>Menu → Transférer la partie → Recevoir</b>, et touchez <b>Scanner</b>.',
+  'transfer.how2': 'Ou visez le code avec son appareil photo : il ouvre le jeu avec votre partie.',
+  'transfer.copy': 'Copier le code',
+  'transfer.copied': 'Copié',
+  'transfer.download': 'Enregistrer un fichier',
+  'transfer.copyNote':
+    'Le code et le fichier contiennent la partie telle qu’elle est maintenant. Continuez sur un seul appareil : les deux copies ne restent pas synchronisées.',
+  'transfer.scan': 'Scanner un code',
+  'transfer.stopScan': 'Arrêter la caméra',
+  'transfer.scanHint': 'Visez le QR code affiché sur l’autre appareil.',
+  'transfer.noCamera':
+    'Pas de caméra, ou elle n’est pas autorisée. Collez le code ou ouvrez un fichier de sauvegarde.',
+  'transfer.pasteTitle': 'Ou collez un code',
+  'transfer.pastePlaceholder': 'Collez le code ou le lien ici (FW1…)',
+  'transfer.load': 'Charger le code',
+  'transfer.openFile': 'Ouvrir un fichier',
+  'transfer.unreadable':
+    'Ce n’est pas une partie Fair Winds, ou elle a été coupée ou modifiée en route. Copiez-la à nouveau.',
+  'transfer.newer':
+    'Cette partie vient d’une version plus récente du jeu. Mettez d’abord cet appareil à jour (rechargez la page).',
+  'transfer.otherMap': 'Cette partie est faite pour une autre carte et ne peut pas être jouée ici.',
+  'transfer.damaged':
+    'Cette partie est abîmée et ne peut pas être chargée. Créez un nouveau code sur l’autre appareil.',
+  'transfer.replaceTitle': 'Remplacer la partie de cet appareil ?',
+  'transfer.here': 'Sur cet appareil',
+  'transfer.incoming': 'Qui arrive',
+  'transfer.gold': 'Or',
+  'transfer.ship': 'Navire',
+  'transfer.fleet': 'Flotte',
+  'transfer.cargo': 'Cargaison',
+  'transfer.played': 'Navigué',
+  'transfer.minutes': '{n} min',
+  'transfer.hours': '{h} h {m} min',
+  'transfer.replaceNote':
+    'La partie de cet appareil sera perdue, sauf si vous l’envoyez ailleurs avant.',
+  'transfer.replace': 'Remplacer ma partie',
+  'transfer.keep': 'Garder la mienne',
+  'transfer.saveFailed':
+    'Cet appareil n’a pas pu enregistrer la partie (navigation privée ou stockage plein).',
 
   // --- Interface en mer ----------------------------------------------------------------------
   'hud.sails': 'Voiles',
@@ -140,6 +191,8 @@ export const fr: Record<MessageKey, string> = {
   'toast.discovered': 'Nouveau port sur la carte : {name}. Son chantier construit des navires',
   'toast.levelUp': '{name} s’agrandit : {level} !',
   'toast.workshop': '{name} s’agrandit : sa nouvelle {workshop} produit : {good} !',
+  'toast.rareGood':
+    '{name} s’agrandit : on y produit désormais : {good}, recherché de l’autre côté de la mer !',
   'workshop.smokedFish': 'fumerie',
   'workshop.bread': 'boulangerie',
   'workshop.planks': 'scierie',
@@ -323,6 +376,10 @@ export const fr: Record<MessageKey, string> = {
   'settlement.level.4': 'Ville portuaire',
   'settlement.growing': '{level} · {pct} %',
   'settlement.stalling': '{level} · {pct} % · stagne',
+  'settlement.rare': '{level} · {pct} % · {have}/{need} {goods}',
+  'settlement.rareHint':
+    'Pour devenir une ville portuaire, {name} a besoin de {need} {goods} venus de {source}',
+  'settlement.farIsland': 'une île lointaine',
   'settlement.hint':
     'Vendez à {name} les marchandises qu’il demande, ou livrez ses commandes, pour l’aider à grandir',
   'trade.switchMode': 'Changer de mode d’affichage',

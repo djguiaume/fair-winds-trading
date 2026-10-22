@@ -19,7 +19,7 @@ function glowTexture(): THREE.Texture {
 }
 
 /**
- * Warm lights at night (decision 0067): lanterns on every harbour and a stern lantern on the
+ * Warm lights at night (decision 0068): lanterns on every harbour and a stern lantern on the
  * boat, so ports and your own ship are easy to find in the dark. One additive point cloud, no
  * real lights, so it costs one draw call on an old tablet.
  */

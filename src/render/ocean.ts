@@ -183,7 +183,7 @@ export class Ocean {
     this.mesh.material.uniforms.uFogFar!.value = far;
   }
 
-  /** Water and fog colours, for weather and time of day (decisions 0066, 0067). */
+  /** Water and fog colours, for weather and time of day (decisions 0067, 0068). */
   setColors(
     water: THREE.Color,
     waterLight: THREE.Color,

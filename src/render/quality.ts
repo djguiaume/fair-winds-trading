@@ -13,7 +13,7 @@ export interface QualityProfile {
   /** Ocean grid resolution (cells per side). */
   oceanSegments: number;
   windStreaks: number;
-  /** Falling rain streaks around the camera (decision 0066). */
+  /** Falling rain streaks around the camera (decision 0067). */
   rainDrops: number;
   /** Real shadow map for island props; boats always use a cheap blob shadow. */
   shadows: boolean;

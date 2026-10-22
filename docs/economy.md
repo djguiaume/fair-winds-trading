@@ -15,11 +15,11 @@ Each port has one main production ([0029](decisions/0029-one-main-production-per
 
 Ports live in the map data (`src/data/phase1-map.json` for trading) under `ports`; any island can host one. Every port trades every good: its role only sets where the stock settles. A port can list ship classes it `builds` and start `hidden` until discovered ([0048](decisions/0048-ship-unlocks-home-port-and-yards.md)); the map's `homePort` is where upgrades and ship changes happen.
 
-Each port is also a settlement with a level ([0059](decisions/0059-settlement-levels.md), `src/sim/settlement.ts`): `level` (start, default 2 = village) and `levelWants` (goods it starts wanting at a level) in the map data. Selling wanted goods and delivering orders grow it; a town keeps less stock of its wants and more of its product, posts bigger orders, and at the home port unlocks level 3 upgrades. A town also opens a workshop (`levelProduces`) making a specialized good, which ports listing it in `wantsMade` start buying ([0063](decisions/0063-specialized-town-goods.md)); specialties trade only where made or wanted (`trades()` in `market.ts`).
+Each port is also a settlement with a level ([0059](decisions/0059-settlement-levels.md), `src/sim/settlement.ts`): `level` (start, default 2 = village) and `levelWants` (goods it starts wanting at a level) in the map data. Selling wanted goods and delivering orders grow it; a town keeps less stock of its wants and more of its product, posts bigger orders, and at the home port unlocks level 3 upgrades. A town also opens a workshop (`levelProduces`) making a specialized good, which ports listing it in `wantsMade` start buying ([0063](decisions/0063-specialized-town-goods.md)); specialties trade only where made or wanted (`trades()` in `market.ts`). The far yards make rare goods once they are villages (honey at Abbey Head, lamp oil at Watchman Key), bought across the map through `wantsMade`; a town needs `RARE_FOR_PORT_TOWN` (20) units of its rare good before it can become a port town ([0065](decisions/0065-rare-goods-from-the-far-yards.md)).
 
 ## Storms and spoiled cargo
 
-Seawater spoils fish, grain and bread in a storm's core: 10 % (at least 1) of each every 4 s at full force; timber, stone and workshop goods keep, and cargo is safe while docked ([0066](decisions/0066-weather-states-and-storms.md)). The balance simulation sails in fixed winds and ignores storms.
+Seawater spoils fish, grain and bread in a storm's core: 10 % (at least 1) of each every 4 s at full force; timber, stone and workshop goods keep, and cargo is safe while docked ([0067](decisions/0067-weather-states-and-storms.md)). The balance simulation sails in fixed winds and ignores storms.
 
 ## Prices
 

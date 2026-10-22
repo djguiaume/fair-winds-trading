@@ -1,7 +1,7 @@
 import { clamp } from './math';
 
 /**
- * Day and night (decision 0067). One game day lasts 12 minutes: a long day, a short golden dusk, a
+ * Day and night (decision 0068). One game day lasts 12 minutes: a long day, a short golden dusk, a
  * blue night that stays easy to sail in, and a quick dawn. A new voyage starts in the morning.
  * A pure function of game time like the weather, so a resumed voyage is at the same hour.
  */

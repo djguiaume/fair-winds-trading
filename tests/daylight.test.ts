@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DAY_SECONDS, DUSK_END, NIGHT_END, daylightAt } from '../src/sim/daylight';
 
-describe('day and night (0067)', () => {
+describe('day and night (0068)', () => {
   it('starts a voyage in the morning, in full daylight', () => {
     const d = daylightAt(0);
     expect(d.hour).toBeCloseTo(7, 5);

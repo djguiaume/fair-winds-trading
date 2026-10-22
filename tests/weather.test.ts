@@ -27,7 +27,7 @@ function firstStorm(s = seed): { t: number; storm: Storm } {
   throw new Error('no storm in the first hour');
 }
 
-describe('weather states (0066)', () => {
+describe('weather states (0067)', () => {
   it('cycles through calm, breeze, rain and gale, with breeze the most common', () => {
     const counts: Record<WeatherKind, number> = { calm: 0, breeze: 0, rain: 0, gale: 0 };
     for (let slot = 0; slot < 400; slot++) counts[weatherSlot(DEFAULT_WEATHER, seed, slot).kind]++;
@@ -49,7 +49,7 @@ describe('weather states (0066)', () => {
   });
 });
 
-describe('moving storms (0066)', () => {
+describe('moving storms (0067)', () => {
   it('are reproducible and come along within the first quarter hour', () => {
     expect(stormsAt(STORMS, seed, 1234)).toEqual(stormsAt(STORMS, seed, 1234));
     for (const s of [1, 7, 42, 99]) {
@@ -98,7 +98,7 @@ describe('moving storms (0066)', () => {
   });
 });
 
-describe('storm warnings and soaked cargo (0066)', () => {
+describe('storm warnings and soaked cargo (0067)', () => {
   function worldInStorm() {
     const { t, storm } = firstStorm();
     const world = createWorld(PHASE1_MAP, SLOOP);
