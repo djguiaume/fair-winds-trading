@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* global require, process, window, localStorage, document */
+// Storm-on-chart mockups (decision 0067 follow-up): injects proposal SVG into the live chart.
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const OUT = '/tmp/claude-0/shots/chart/';
 const variants = process.argv.slice(2);
@@ -71,12 +74,12 @@ const variants = process.argv.slice(2);
         chevrons(cx + ux * (R + 10 * u), cy + uy * (R + 10 * u), 3, 20 * u, '#f4ead2');
       } else if (name === 'C') {
         // corridor: where it will be over the next 2 minutes
-        const speed = 3.2, t1 = 60, t2 = 120;
-        const p1 = [cx + ux * speed * t1, cy + uy * speed * t1], p2 = [cx + ux * speed * t2, cy + uy * speed * t2];
+        const speed = 3.2, t1 = 60;
+        const p1 = [cx + ux * speed * t1, cy + uy * speed * t1];
         const nx = -uy, ny = ux;
         const corr = [[cx + nx * R, cy + ny * R], [p1[0] + nx * R, p1[1] + ny * R], [p1[0] - nx * R, p1[1] - ny * R], [cx - nx * R, cy - ny * R]];
         el('polygon', { points: corr.map((q) => q.join(',')).join(' '), fill: 'rgba(28,40,54,0.12)' });
-        const p2b = p1; corr[1] = [p1[0] + nx * R, p1[1] + ny * R]; corr[2] = [p1[0] - nx * R, p1[1] - ny * R];
+        corr[1] = [p1[0] + nx * R, p1[1] + ny * R]; corr[2] = [p1[0] - nx * R, p1[1] - ny * R];
         for (const [p, t] of [[p1, 'in 1 min']]) {
           el('circle', { cx: p[0], cy: p[1], r: R, fill: 'none', stroke: 'rgba(28,40,54,0.55)', 'stroke-width': 1.5 * u, 'stroke-dasharray': `${6*u} ${5*u}` });
           label(p[0] + ux * R * 0.0, p[1] + uy * R * 0.0 + 5 * u, t, 13, '#f4ead2');
