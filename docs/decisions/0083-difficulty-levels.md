@@ -9,7 +9,7 @@ Guillaume: the game "can be difficult which is a good and a bad thing". Difficul
 ## Decision (proposed)
 
 - Three presets picked on New voyage and changeable any time in Settings: **Fair winds**, **Captain** (today's game, the default) and **Old salt**.
-- Sailing is identical at every level (polars, no-go zone, tacking, shallows, wind, press warning). Presets change only costs and pace: cargo overboard (off / 1 / 2 units), crash damage (× 0.5 / 1 / 1.5), repairs (1 / 2 / 3 g per point), the port's cut (3 / 6 / 9 %), order rewards (× 1.8 / 1.5 / 1.3), start gold (250 / 150 / 100), town growth needed (× 0.75 / 1 / 1.25), gale share (8 / 15 / 22 %) and storm interval (15 / 10 / 7 min).
+- Sailing is identical at every level (polars, no-go zone, tacking, shallows, wind, press warning). Presets change only costs and pace: cargo overboard (off / 1 / 2 units), crash damage (× 0.5 / 1 / 1.5), repairs (1 / 2 / 3 g per point), the port's cut (3 / 6 / 9 %), order rewards (× 1.8 / 1.5 / 1.3), start gold (250 / 150 / 100), town growth needed (× 0.75 / 1 / 1.25), wind direction (a steady trade wind about ± 15° on Fair winds, today's dynamic wind on Captain and Old salt), gale share (8 / 15 / 22 %) and storm interval (15 / 10 / 7 min).
 - The Settings switches (night, weather, storms, pirates from Phase 5) stay global and independent of the preset.
 - The preset is saved with the voyage as an optional `difficulty` field (older saves load as Captain), plus the easiest level used, for racing missions later.
 - Kids mode, when reworked (0043), is Kids UI on top of Fair winds.

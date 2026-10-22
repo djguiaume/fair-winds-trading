@@ -38,11 +38,14 @@ The audience is sailing fans first. So the boat sails the same at every level: p
 | Order reward factor | 1.8 | 1.5 | 1.3 |
 | Start gold | 250 | 150 | 100 |
 | Town growth needed | × 0.75 | × 1 | × 1.25 |
+| Wind direction | **steady trade wind**: about ± 15° round the prevailing wind, slow changes, sea regions barely bend it, softer gusts | dynamic wind as now (0064): a new direction every 3 min, up to 75° a step, regions bend ± 40° | as Captain, or a little shiftier |
 | Gale share of weather spells | 8 % | 15 % | 22 % |
 | A storm crosses the sea every | 15 min | 10 min | 7 min |
 | Help orders | on | on | on |
 
 Names follow the game's voice: **Fair winds** (the game's own name), **Captain** (the current mode is already called Captain), **Old salt** (an experienced sailor).
+
+Wind direction (Guillaume, 2026-10-22: "dynamic wind as there is now will feel brutal"): the steady trade wind on Fair winds is probably the knob players feel most. It keeps sailing honest, since the boat sails exactly the same and only the sea is kinder. Two things to check when building it: with a near-fixed wind some legs are always a beat and others always a reach, so route balance must be re-simulated before fixing the range; and a level change at sea blends the wind over a minute or two instead of snapping it.
 
 ## Effect on pace (balance simulation)
 
@@ -57,7 +60,7 @@ Names follow the game's voice: **Fair winds** (the game's own name), **Captain**
 | Old salt | sharp | 4.9 min | 16.7 min | 72 min | 25 min | 0 % |
 | Old salt | relaxed | 7.6 min | 40 min | 112 min | 68 min | 8 % |
 
-Reading it: Fair winds lets a casual player reach the cutter about as fast as a sharp player does today. Old salt barely slows a sharp captain early (start gold is the only brake), but every mistake is felt: repairs reach 8 % of a careless captain's income and the long game takes about 40 % longer. The sim does not model cargo overboard, storms or night, so Old salt will feel harder at sea than these numbers say, and Fair winds softer.
+Reading it: Fair winds lets a casual player reach the cutter about as fast as a sharp player does today. Old salt barely slows a sharp captain early (start gold is the only brake), but every mistake is felt: repairs reach 8 % of a careless captain's income and the long game takes about 40 % longer. The sim does not model cargo overboard, storms, night or the steadier Fair winds wind (its leg times average the shifting wind's range), so Old salt will feel harder at sea than these numbers say, and Fair winds softer.
 
 ## How it fits with the Settings switches
 
