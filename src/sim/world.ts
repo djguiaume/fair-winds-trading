@@ -27,6 +27,7 @@ import {
   type Wind,
   type WindBlocker,
   localWind,
+  steadyWeather,
   windAt,
   windBlockers,
   windEffectAt,
@@ -74,6 +75,8 @@ export interface World {
   lurchCooldown: number;
   /** Storms the captain has already been warned about. */
   stormsWarned: number[];
+  /** Weather spells and storms on (decision 0067); off = a steady breeze. A Settings switch. */
+  dynamicWeather: boolean;
   /** Moving storms on (decision 0067); players can turn them off in Settings. */
   storms: boolean;
   /** Degrees added to the map's wind direction (the "new wind" button). */
@@ -115,6 +118,7 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     // The heel settles in the first moments of a voyage; that is not a lurch.
     lurchCooldown: LURCH_COOLDOWN,
     stormsWarned: [],
+    dynamicWeather: true,
     storms: true,
     shelter: 0,
     funnel: 0,
@@ -262,7 +266,13 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   const cfg = {
     ...world.map.wind,
     fromDeg: world.map.wind.fromDeg + world.windOffsetDeg,
-    weather: weather && !world.storms ? withoutStorms(weather) : weather,
+    weather: !weather
+      ? weather
+      : !world.dynamicWeather
+        ? steadyWeather(weather)
+        : !world.storms
+          ? withoutStorms(weather)
+          : weather,
   };
   world.seaWind = windAt(cfg, world.time, world.map.seed, world.boat, world.weather);
   const effect = windEffectAt(world.windBlockers, world.boat, world.seaWind);

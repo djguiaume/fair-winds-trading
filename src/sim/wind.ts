@@ -217,6 +217,19 @@ export function withoutStorms(weather: WeatherConfig): WeatherConfig {
   return calm;
 }
 
+const steadied = new WeakMap<WeatherConfig, WeatherConfig>();
+
+/**
+ * A steady breeze for players who turn the weather off (decision 0067): no calm, rain or gale
+ * spells and no storms. The wind still veers, backs and differs across the sea (decision 0064).
+ */
+export function steadyWeather(weather: WeatherConfig): WeatherConfig {
+  let steady = steadied.get(weather);
+  if (!steady)
+    steadied.set(weather, (steady = { ...weather, kinds: undefined, storms: undefined }));
+  return steady;
+}
+
 /** The weather where a boat is: sea-wide state, rain and storm (decision 0067). */
 export interface LocalWeather {
   kind: WeatherKind;

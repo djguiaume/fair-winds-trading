@@ -10,6 +10,7 @@ import {
   WEATHER_KINDS,
   type WeatherKind,
   weatherSlot,
+  steadyWeather,
   windAt,
   withoutStorms,
 } from '../src/sim/wind';
@@ -129,6 +130,41 @@ describe('storms switched off (0067)', () => {
     const far = windAt(PHASE1_MAP.wind, t, seed, { x: storm.x + 3 * storm.radius, y: storm.y });
     expect(off).toEqual(far);
     expect(on.speedKn).toBeGreaterThan(off.speedKn);
+  });
+});
+
+describe('weather switched off (0067)', () => {
+  it('blows a steady breeze with no rain or storms, but the wind still turns', () => {
+    const steady = { ...PHASE1_MAP.wind, weather: steadyWeather(DEFAULT_WEATHER) };
+    const out: LocalWeather = { kind: 'breeze', rain: 0, showers: 0, storm: 0, storms: [] };
+    const [lo, hi] = DEFAULT_WEATHER.strength;
+    let minFrom = Infinity,
+      maxFrom = -Infinity;
+    for (let t = 0; t < 3600; t += 20) {
+      const wind = windAt(steady, t, seed, { x: 0, y: 0 }, out);
+      expect(out.kind).toBe('breeze');
+      expect(out.rain).toBe(0);
+      expect(out.storms).toHaveLength(0);
+      // Regions bend the strength by up to ±15 % on top of the breeze range.
+      expect(wind.speedKn).toBeGreaterThanOrEqual(PHASE1_MAP.wind.speedKn * lo * 0.84);
+      expect(wind.speedKn).toBeLessThanOrEqual(PHASE1_MAP.wind.speedKn * hi * 1.16);
+      const from = wrapAngle(wind.from - PHASE1_MAP.wind.fromDeg * DEG);
+      minFrom = Math.min(minFrom, from);
+      maxFrom = Math.max(maxFrom, from);
+    }
+    expect(maxFrom - minFrom).toBeGreaterThan(90 * DEG);
+  });
+
+  it('is what the world sails in when the switch is off', () => {
+    const { t, storm } = firstStorm();
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    world.dynamicWeather = false;
+    world.time = t;
+    world.boat.x = storm.x;
+    world.boat.y = storm.y;
+    stepWorld(world, { steer: 0, sailStep: 0 }, 0.1);
+    expect(world.weather.kind).toBe('breeze');
+    expect(world.weather.storms).toHaveLength(0);
   });
 });
 

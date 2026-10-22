@@ -440,13 +440,26 @@ dayNight.addEventListener('change', () => {
   saveSettings(settings);
 });
 
-// Storms can be turned off like every hazard (decision 0067; pirates will follow in Phase 5).
+// Weather and storms can be turned off like every hazard (decision 0067; pirates will follow in
+// Phase 5). Without weather there are no storms either, so that switch is greyed out.
+const weatherSwitch = $<HTMLInputElement>('weather');
 const storms = $<HTMLInputElement>('storms');
-world.storms = settings.storms;
-storms.checked = settings.storms;
+const syncWeather = () => {
+  world.dynamicWeather = settings.weather;
+  world.storms = settings.storms;
+  weatherSwitch.checked = settings.weather;
+  storms.checked = settings.storms;
+  storms.disabled = !settings.weather;
+};
+syncWeather();
+weatherSwitch.addEventListener('change', () => {
+  settings.weather = weatherSwitch.checked;
+  syncWeather();
+  saveSettings(settings);
+});
 storms.addEventListener('change', () => {
-  world.storms = storms.checked;
   settings.storms = storms.checked;
+  syncWeather();
   saveSettings(settings);
 });
 

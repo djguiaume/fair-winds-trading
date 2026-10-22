@@ -3,7 +3,15 @@ import type { IslandDef, MapDef, TerrainDef } from '../../sim/map';
 import { pierAt } from '../../sim/collision';
 import { bearingTo } from '../../sim/math';
 import { type Rng, createRng, range } from '../../sim/rng';
-import { blobShape, mergeAll, paint, slab, vertexColorMaterial } from './geometry';
+import {
+  blobShape,
+  isGlowing,
+  mergeAll,
+  paint,
+  slab,
+  vertexColorMaterial,
+  windowPanes,
+} from './geometry';
 import type { IslandsBuilder } from './types';
 import { landmarkParts } from './landmarks';
 import { coastDistance, insetOutline } from '../../sim/coast';
@@ -75,6 +83,7 @@ function house(i: number): Parts {
     paint(new THREE.BoxGeometry(1.2, 0.9, 0.9).translate(0, 0.45, 0), B2.walls[i % 3]!),
     paint(roof.translate(0, 1.2, 0), B2.roofs[i % 3]!),
     paint(new THREE.BoxGeometry(0.18, 0.5, 0.18).translate(0.35, 1.3, 0), B2.chimney),
+    ...windowPanes(1.2, 0.9, 0.5, 2, 1, i),
   ];
 }
 
@@ -463,9 +472,20 @@ export const buildHighlandIslands: IslandsBuilder = (map, { shadows, levels }) =
     }
     parts.push(...terrainProps(feature, map.seed * 1709 + index * 97));
   }
-  const mesh = new THREE.Mesh(mergeAll(parts), vertexColorMaterial());
+  const mesh = new THREE.Mesh(mergeAll(parts.filter((g) => !isGlowing(g))), vertexColorMaterial());
   mesh.userData.harbours = harbours;
   mesh.castShadow = shadows;
   mesh.receiveShadow = shadows;
+  // Window glass and street lamps: a second mesh whose colour the view brightens at night.
+  const glass = parts.filter(isGlowing);
+  if (glass.length) {
+    const windows = new THREE.Mesh(
+      mergeAll(glass),
+      new THREE.MeshBasicMaterial({ vertexColors: true }),
+    );
+    windows.name = 'windows';
+    mesh.add(windows);
+    mesh.userData.windows = windows.material;
+  }
   return mesh;
 };

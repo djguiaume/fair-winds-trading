@@ -94,6 +94,8 @@ export const fr: Record<MessageKey, string> = {
   'settings.speedLog': 'Loch à la mer',
   'settings.dayNight': 'Jour et nuit',
   'settings.dayNightNote': 'Désactivé : toujours de jour',
+  'settings.weather': 'Météo',
+  'settings.weatherNote': 'Désactivé : brise régulière, ni pluie ni tempête',
   'settings.storms': 'Tempêtes',
   'settings.stormsNote': 'Désactivé : aucune tempête en mer',
   'settings.speedLogNote': 'Vitesse, cap et allure',

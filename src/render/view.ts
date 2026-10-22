@@ -29,6 +29,9 @@ import { stormRain } from '../sim/storms';
 
 /** Game time whose light is kept when day and night is off: early afternoon. */
 const ALWAYS_DAY = 200;
+/** Window glass tint: dark panes by day, the vertex colours (warm or dark) at night. */
+const WINDOWS_BY_DAY = new THREE.Color('#5c6470');
+const WINDOWS_AT_NIGHT = new THREE.Color('#ffffff');
 const CAMERA_PITCH = 58 * DEG;
 const BASE_DISTANCE = 110;
 
@@ -58,7 +61,7 @@ export class GameView {
   private lanterns!: Lanterns;
   /** Day and night cycle on (decision 0068); off holds early afternoon. */
   dayNight = true;
-  private readonly sternLantern = new THREE.Vector3();
+  private readonly boatLantern = new THREE.Vector3();
   private readonly stormClouds = new StormClouds();
   private rain!: Rain;
   private islands: THREE.Object3D;
@@ -363,9 +366,17 @@ export class GameView {
       for (const s of weather.storms) r = Math.max(r, stormRain(s, x, -z));
       return r;
     });
-    // Stern lantern just behind the boat, above the deck.
-    this.sternLantern.set(pos.x - dir.x * 4.5, 4, pos.z + dir.y * 4.5);
-    this.lanterns.update(Math.max(day.night, gloom * 0.5), this.sternLantern, time);
+    // Masthead lantern (heels with the mast), else a lantern above the deck.
+    const glow = Math.max(day.night, gloom * 0.5);
+    const lantern = this.boat.lantern;
+    if (lantern) {
+      lantern.updateWorldMatrix(true, false);
+      lantern.getWorldPosition(this.boatLantern);
+    } else this.boatLantern.set(pos.x, 6, pos.z);
+    this.lanterns.update(glow, this.boatLantern, time);
+    // Lit windows and street lamps in the towns.
+    const windows = this.islands.userData.windows as THREE.MeshBasicMaterial | undefined;
+    windows?.color.copy(WINDOWS_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
     this.ocean.update(time, this.target);
     this.edgeBuoys.update(time, (x, z) => waveHeight(x, z, time));
 

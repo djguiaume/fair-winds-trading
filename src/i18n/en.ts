@@ -95,6 +95,8 @@ export const en = {
   'settings.speedLog': 'Speed log at sea',
   'settings.dayNight': 'Day and night',
   'settings.dayNightNote': 'Off: always daytime',
+  'settings.weather': 'Weather',
+  'settings.weatherNote': 'Off: a steady breeze, no rain or storms',
   'settings.storms': 'Storms',
   'settings.stormsNote': 'Off: no storms cross the sea',
   'settings.speedLogNote': 'Speed, heading, point of sail',

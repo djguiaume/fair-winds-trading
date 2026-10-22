@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { LandmarkKind } from '../../sim/map';
 import { type Rng, createRng, range } from '../../sim/rng';
-import { blobShape, paint, slab } from './geometry';
+import { blobShape, glowing, paint, slab, windowPanes } from './geometry';
 import { landmarkParts } from './landmarks';
 
 /**
@@ -104,6 +104,7 @@ function fishHouse(i: number, rng: Rng): Parts {
     gable(0.9, 1.1, 0.7, h, roofs[(i * 3) % 4]!),
     box(0.16, 0.45, 0.16, 0.25, h + 0.5, 0.15, C.chimney),
     box(0.3, 0.45, 0.04, 0, 0.23, 0.49, C.post),
+    ...windowPanes(0.8, 0.95, h * 0.72, 2, 1, i),
   ];
 }
 
@@ -115,6 +116,7 @@ function cabin(i: number, rng: Rng): Parts {
     box(w, 0.7, 0.95, 0, 0.35, 0, walls[i % 3]!),
     gable(w + 0.2, 1.2, 0.45, 0.7, roofs[i % 3]!),
     box(0.25, 1.2, 0.25, w / 2 - 0.1, 0.6, -0.2, C.chimney),
+    ...windowPanes(w, 0.95, 0.4, 2, 0, i),
   ];
 }
 
@@ -124,6 +126,7 @@ function farmhouse(i: number): Parts {
   return [
     box(1.6, 0.75, 0.85, 0, 0.375, 0, walls[i % 3]!),
     hip(1.85, 1.1, 0.75, 0.75, roofs[i % 3]!),
+    ...windowPanes(1.6, 0.85, 0.42, 3, 1, i),
   ];
 }
 
@@ -141,8 +144,12 @@ function stoneHouse(i: number): Parts {
   const parts = [
     box(1.0, 0.9, 0.9, 0, 0.45, 0, walls[i % 3]!),
     hip(1.15, 1.05, 0.6, 0.9, roofs[i % 3]!),
+    ...windowPanes(1.0, 0.9, 0.5, 2, 1, i),
   ];
-  if (i % 3 === 2) parts.push(box(0.45, 1.7, 0.45, 0.4, 0.85, 0.3, walls[(i + 1) % 3]!));
+  if (i % 3 === 2) {
+    parts.push(box(0.45, 1.7, 0.45, 0.4, 0.85, 0.3, walls[(i + 1) % 3]!));
+    parts.push(...windowPanes(0.45, 0.45, 1.4, 1, 0, i + 1, 0.4, 0.3));
+  }
   return parts;
 }
 
@@ -151,6 +158,7 @@ function yardHouse(i: number): Parts {
   return [
     box(1.1, 0.85, 0.9, 0, 0.42, 0, walls[i % 3]!),
     gable(1.25, 1.05, 0.55, 0.85, roofs[i % 3]!),
+    ...windowPanes(1.1, 0.9, 0.48, 2, 1, i),
   ];
 }
 
@@ -288,6 +296,7 @@ function bakery(): Parts {
     gable(1.45, 1.1, 0.6, 0.85, '#c8603e'),
     paint(oven.translate(0.95, 0, 0), '#c9a27a'),
     box(0.3, 1.0, 0.3, -0.4, 1.3, -0.15, C.chimney),
+    ...windowPanes(1.3, 0.9, 0.48, 2, 0, 3),
   ];
 }
 
@@ -324,7 +333,7 @@ function spireChurch(): Parts {
 }
 
 function keep(): Parts {
-  const parts = [box(1.6, 3.0, 1.6, 0, 1.5, 0, '#cfc4b0')];
+  const parts = [box(1.6, 3.0, 1.6, 0, 1.5, 0, '#cfc4b0'), ...windowPanes(1.6, 1.6, 2.2, 1, 1, 1)];
   for (const x of [-0.6, 0, 0.6])
     for (const z of [-0.6, 0.6]) parts.push(box(0.35, 0.35, 0.35, x, 3.17, z, '#cfc4b0'));
   parts.push(cyl(0.03, 0.03, 1.4, 0, 3.7, 0, C.post, 4));
@@ -371,7 +380,10 @@ function warehouse(roof: string): Parts {
 }
 
 function lampPost(): Parts {
-  return [cyl(0.04, 0.05, 1.3, 0, 0.65, 0, C.post, 4), box(0.2, 0.25, 0.2, 0, 1.4, 0, C.lamp)];
+  return [
+    cyl(0.04, 0.05, 1.3, 0, 0.65, 0, C.post, 4),
+    glowing(box(0.2, 0.25, 0.2, 0, 1.4, 0, C.lamp)),
+  ];
 }
 
 // ---------------------------------------------------------------- the island
