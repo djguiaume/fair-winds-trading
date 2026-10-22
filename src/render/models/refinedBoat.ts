@@ -1,7 +1,13 @@
 import * as THREE from 'three';
 import { BOAT_SCALE, STYLE_D as ST } from './boatStyle';
 import { mergeAll, paint, triangleCount, vertexColorMaterial } from './geometry';
-import { STOCK_UPGRADES, type BoatModel, type BoatModelOptions, type BoatPose } from './types';
+import {
+  STOCK_UPGRADES,
+  type BoatModel,
+  type BoatModelOptions,
+  type BoatPose,
+  type ShipUpgrades,
+} from './types';
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 /** Normalized hull sections, authored independently of rig dimensions and palette. */
@@ -68,6 +74,21 @@ export interface RefinedRig {
   mainTopsail?: boolean;
   /** The fluyt's only gaff is its aft mizzen. */
   mainName?: 'Mainsail' | 'Mizzen';
+  /** Boom height above the deck at the mast (default 0.7); raised to clear tall deck cargo. */
+  gooseneck?: number;
+  /** Class-specific fittings (leeboards, hatch coamings…) merged into the hull mesh, so they
+   * cost no extra draw call. Receives the deck sheer and the upgrade levels. */
+  details?: (ctx: HullDetailContext) => THREE.BufferGeometry[];
+}
+
+export interface HullDetailContext {
+  /** Deck height at a station along the hull (bow +Z before the model's final turn). */
+  deckAt: (z: number) => number;
+  /** Half the scaled beam at the deck. */
+  halfBeam: number;
+  /** Scaled hull depth, deck to keel. */
+  depth: number;
+  upgrades: ShipUpgrades;
 }
 
 export interface SquareMast {
@@ -444,6 +465,8 @@ export class RefinedBoat implements BoatModel {
     const bow = V(0, deckAt(L / 2) + 0.13, L / 2);
     const bowspritTip = V(0, bow.y + 0.2, L * 0.73);
     parts.push(spar(V(0, bow.y - 0.1, L * 0.35), bowspritTip, 0.05));
+    if (rig.details)
+      parts.push(...rig.details({ deckAt, halfBeam: B / 2, depth: H, upgrades: upg }));
     this.ship.add(mesh(mergeAll(parts), wood, `${rig.name}Hull`));
 
     // Both masts use their own gooseneck, gaff lift and working sheet. Their luffs remain
@@ -460,7 +483,7 @@ export class RefinedBoat implements BoatModel {
     ) => {
       const pivot = new THREE.Group();
       pivot.name = `${name}Pivot`;
-      pivot.position.set(0, base + 0.7, z);
+      pivot.position.set(0, base + (rig.gooseneck ?? 0.7), z);
       const throat = V(0, height * 0.47, 0);
       const peak = V(0, height * 0.69, -gaff);
       const clew = V(0, 0, -boom);
