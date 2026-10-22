@@ -1,0 +1,44 @@
+[
+  {
+    "name": "level1-high",
+    "query": "level=1&quality=high",
+    "stats": "21 draw calls · 30,746 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "name": "level2-high",
+    "query": "level=2&quality=high",
+    "stats": "23 draw calls · 31,002 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "name": "level3-high",
+    "query": "level=3&quality=high",
+    "stats": "23 draw calls · 31,346 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "name": "level3-low",
+    "query": "level=3&quality=low",
+    "stats": "11 draw calls · 5,881 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "name": "level3-reefed",
+    "query": "level=3&quality=high&sail=0.35&boom=-45",
+    "stats": "23 draw calls · 31,346 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "name": "level3-stern",
+    "query": "level=3&quality=high&yaw=-45",
+    "stats": "23 draw calls · 31,346 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "name": "mixed-upgrades",
+    "query": "hull=1&hold=3&sails=2&quality=medium",
+    "stats": "12 draw calls · 13,953 triangles (incl. ocean)",
+    "errors": []
+  }
+]

@@ -97,6 +97,9 @@
 | [0075](0075-ship-speed-in-knots.md) | Ship speeds in the shipyard quoted in knots (best point of sail, 14 kn breeze) instead of % of the sloop | 2026-10-22 | Implemented for review |
 | [0076](0076-sails-on-resume.md) | Sails resume as the captain left them at sea, always down in port; the save now stores the sail setting | 2026-10-22 | Implemented for review |
 | [0078](0078-press-warning.md) | Press warning: the sails control and the lee edge of the screen turn amber, then red, before cargo goes overboard; one-time message, How to play card, buzz and creak | 2026-10-22 | Accepted |
+| [0077](0077-one-file-per-ship-model.md) | One file per ship model, a shared inspector and capture script; hoy, fluyt (shared square rig) and indiaman redesigned in parallel, decision numbers 0079 (fluyt), 0080 (hoy) and 0081 (indiaman) reserved | 2026-10-22 | Accepted |
+| [0079](0079-refined-fluyt-and-square-rig.md) | Refined fluyt: shared square rig (courses on yards, furled by morph toward each yard, clews sheeted) and stern castle from the hull outline; pear-shaped hull, gaff mizzen on the castle | 2026-10-22 | Implementation for review |
+| [0080](0080-refined-upgrade-aware-hoy.md) | Refined hoy: beamy flat-bottomed hull, leeboards, raised boom over deck cargo, attached sails through every pose | 2026-10-22 | Implementation for review |
 | [0082](0082-solid-moored-boats-and-yard-docks.md) | Moored fishing boats and the hidden yards' grown docks are solid; ramming a moored boat dents the hull | 2026-10-22 | Implemented for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

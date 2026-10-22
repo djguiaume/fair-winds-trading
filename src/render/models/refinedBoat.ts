@@ -1,7 +1,13 @@
 import * as THREE from 'three';
 import { BOAT_SCALE, STYLE_D as ST } from './boatStyle';
 import { mergeAll, paint, triangleCount, vertexColorMaterial } from './geometry';
-import { STOCK_UPGRADES, type BoatModel, type BoatModelOptions, type BoatPose } from './types';
+import {
+  STOCK_UPGRADES,
+  type BoatModel,
+  type BoatModelOptions,
+  type BoatPose,
+  type ShipUpgrades,
+} from './types';
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 /** Normalized hull sections, authored independently of rig dimensions and palette. */
@@ -58,7 +64,49 @@ export interface RefinedRig {
   cargoZ?: number;
   cargoX?: number;
   maxJibs?: number;
+  /** Square-rigged masts (hauler line, decision 0079): stacked courses hang from yards that
+   * brace round together; the top course is added at sails 3. The jibs stay on the foremost. */
+  squareMasts?: ReadonlyArray<SquareMast>;
+  /** Raised stern deck of the big square riggers, in reference units. Masts, sheets and the
+   * tiller standing on it start from its top. */
+  castle?: { length: number; height: number };
+  /** The main gaff carries the sails-3 topsail (default true). */
+  mainTopsail?: boolean;
+  /** The fluyt's only gaff is its aft mizzen. */
+  mainName?: 'Mainsail' | 'Mizzen';
+  /** Boom height above the deck at the mast (default 0.7); raised to clear tall deck cargo. */
+  gooseneck?: number;
+  /** Class-specific fittings (leeboards, hatch coamings…) merged into the hull mesh, so they
+   * cost no extra draw call. Receives the deck sheer and the upgrade levels. */
+  details?: (ctx: HullDetailContext) => THREE.BufferGeometry[];
 }
+
+export interface HullDetailContext {
+  /** Deck height at a station along the hull (bow +Z before the model's final turn). */
+  deckAt: (z: number) => number;
+  /** Half the scaled beam at the deck. */
+  halfBeam: number;
+  /** Scaled hull depth, deck to keel. */
+  depth: number;
+  upgrades: ShipUpgrades;
+}
+
+export interface SquareMast {
+  /** Mesh names: `${name}Yards` and `${name}Courses`, e.g. Fore / Main. */
+  name: string;
+  z: number;
+  height: number;
+  /** Courses at sails 3; one fewer below. */
+  courses: number;
+}
+
+/** Square courses hang this far forward of their mast and belly up to this much further. */
+const SQUARE_FORWARD = 0.14;
+const SQUARE_BELLY = 0.3;
+/** Boom angles the game draws close-hauled and dead downwind (view.ts), and the hardest brace. */
+const CLOSE_BOOM = (12 * Math.PI) / 180;
+const RUN_BOOM = (80 * Math.PI) / 180;
+const MAX_BRACE = (40 * Math.PI) / 180;
 
 /** Simple coloured triangles: no textures, extra materials or per-frame geometry rebuilds. */
 class Faces {
@@ -121,6 +169,94 @@ function hullGeometry(level: number, rig: RefinedRig) {
   return f.geometry();
 }
 
+/** Deck outline in ship-local coordinates (+Z bow), shared by the hull and the stern castle. */
+function deckOutline(rig: RefinedRig) {
+  const L = rig.length;
+  const B = rig.beam * ST.B;
+  const DECK = rig.depth * ST.H * 0.55;
+  const deckAt = (z: number) => DECK + ST.sheer * (L / 5) ** 0.5 * (z / (L / 2)) ** 2;
+  return (rig.hullShape ?? SLOOP_HULL).outline.map(([x, z]) => V(x * B, deckAt(z * L), z * L));
+}
+
+/** Half the deck's width at `z`, read from the authored outline (for shrouds and sheets). */
+function halfBeamAt(outline: THREE.Vector3[], z: number) {
+  let best = 0;
+  for (let i = 0; i < outline.length; i++) {
+    const a = outline[i]!;
+    const b = outline[(i + 1) % outline.length]!;
+    if ((a.z - z) * (b.z - z) > 0 || a.z === b.z) continue;
+    best = Math.max(best, Math.abs(a.x + ((b.x - a.x) * (z - a.z)) / (b.z - a.z)));
+  }
+  return best;
+}
+
+/**
+ * Raised stern deck that follows the hull's own stern outline: walls flush with the topsides,
+ * a deck on top, a forward bulkhead, a rail, and stern windows. Hull 2 paints its upper strake
+ * in the class colour, like the hull band.
+ */
+function castleGeometry(level: number, rig: RefinedRig) {
+  const { length: L, castle } = rig;
+  const f = new Faces();
+  if (!castle) return f.geometry();
+  const outline = deckOutline(rig);
+  const front = -L / 2 + castle.length;
+  const ch = castle.height * ST.H;
+  const poly: THREE.Vector3[] = [];
+  for (let i = 0; i < outline.length; i++) {
+    const a = outline[i]!;
+    const b = outline[(i + 1) % outline.length]!;
+    if (a.z <= front) poly.push(a);
+    if ((a.z - front) * (b.z - front) < 0)
+      poly.push(a.clone().lerp(b, (front - a.z) / (b.z - a.z)));
+  }
+  // Rotate so the polygon starts at the starboard crossing: walls run round the stern, and the
+  // closing edge is the forward bulkhead.
+  const start = poly.findIndex((p) => Math.abs(p.z - front) < 1e-9 && p.x > 0);
+  const ring = [...poly.slice(start), ...poly.slice(0, start)];
+  const up = (p: THREE.Vector3, h: number) => V(p.x, p.y + h, p.z);
+  const top = V(0, ring.reduce((y, p) => y + p.y, 0) / ring.length + ch, (front - L / 2) / 2);
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i]!;
+    const b = ring[(i + 1) % ring.length]!;
+    const bulkhead = i === ring.length - 1;
+    f.quad(up(a, ch * 0.72), a, b, up(b, ch * 0.72), rig.hull);
+    f.quad(
+      up(a, ch),
+      up(a, ch * 0.72),
+      up(b, ch * 0.72),
+      up(b, ch),
+      level >= 2 ? rig.band : rig.hull,
+    );
+    f.tri(top, up(a, ch), up(b, ch), ST.deck);
+    if (bulkhead) continue;
+    // Low rail round the castle edge: outer face and cap.
+    const ai = V(a.x * 0.92, a.y, a.z * 0.985);
+    const bi = V(b.x * 0.92, b.y, b.z * 0.985);
+    f.quad(up(a, ch + 0.14), up(a, ch), up(b, ch), up(b, ch + 0.14), rig.hull);
+    f.quad(up(ai, ch + 0.14), up(a, ch + 0.14), up(b, ch + 0.14), up(bi, ch + 0.14), ST.deck);
+  }
+  // Stern windows on the transom: warm lit panes in dark frames.
+  const sternX = halfBeamAt(outline, -L / 2 + 1e-3);
+  const z = -L / 2 - 0.012;
+  const sternY = ST.sheer * (L / 5) ** 0.5 + rig.depth * ST.H * 0.55;
+  const count = 3;
+  for (let k = 0; k < count; k++) {
+    const cx = ((k + 0.5) / count - 0.5) * sternX * 1.5;
+    const w = (sternX * 1.5) / count - 0.12;
+    const y0 = sternY + ch * 0.25;
+    const y1 = sternY + ch * 0.62;
+    f.quad(
+      V(cx - w / 2, y0, z),
+      V(cx - w / 2, y1, z),
+      V(cx + w / 2, y1, z),
+      V(cx + w / 2, y0, z),
+      '#f2c66d',
+    );
+  }
+  return f.geometry();
+}
+
 /** A spar between two actual attachment points. */
 function spar(a: THREE.Vector3, b: THREE.Vector3, radius = 0.045) {
   const d = b.clone().sub(a);
@@ -130,7 +266,8 @@ function spar(a: THREE.Vector3, b: THREE.Vector3, radius = 0.045) {
   return paint(g, ST.mast);
 }
 
-/** Cloth edges have zero belly, so tack, luff, head and spar attachments cannot drift. */
+/** Cloth edges have zero belly, so tack, luff, head and spar attachments cannot drift.
+ * `nu` × `nv` panels; the sails-3 racing stripe runs across the middle two rows. */
 function cloth(
   a: THREE.Vector3,
   b: THREE.Vector3,
@@ -139,21 +276,23 @@ function cloth(
   level: number,
   belly: number,
   band: string,
+  nu = 6,
+  nv = 6,
 ) {
   const f = new Faces();
-  const n = 6;
   const at = (u: number, v: number) =>
     V(
       -belly * Math.sin(Math.PI * u) * Math.sin(Math.PI * v),
       (a.y * (1 - u) + b.y * u) * (1 - v) + (c.y * (1 - u) + d.y * u) * v,
       (a.z * (1 - u) + b.z * u) * (1 - v) + (c.z * (1 - u) + d.z * u) * v,
     );
-  for (let j = 0; j < n; j++)
-    for (let i = 0; i < n; i++) {
+  const stripe = nv / 2;
+  for (let j = 0; j < nv; j++)
+    for (let i = 0; i < nu; i++) {
       const color =
         level === 1 && (i * 7 + j * 3) % 8 === 1
           ? ST.patches[(i + j) % 2]!
-          : level === 3 && (j === 2 || j === 3)
+          : level === 3 && (j === stripe - 1 || j === stripe)
             ? band
             : level === 1
               ? ST.patchedSail
@@ -161,10 +300,10 @@ function cloth(
                 ? '#eee6d4'
                 : ST.sail;
       f.quad(
-        at(i / n, j / n),
-        at((i + 1) / n, j / n),
-        at((i + 1) / n, (j + 1) / n),
-        at(i / n, (j + 1) / n),
+        at(i / nu, j / nv),
+        at((i + 1) / nu, j / nv),
+        at((i + 1) / nu, (j + 1) / nv),
+        at(i / nu, (j + 1) / nv),
         color,
       );
     }
@@ -180,6 +319,18 @@ interface GaffSail {
   sheetAnchor: THREE.Vector3;
 }
 
+/** One square-rigged mast: every course hangs from its own yard; all brace round together. */
+interface SquareRig {
+  turn: THREE.Group;
+  sails: THREE.Mesh;
+  /** Per course, in the yards' frame: yard height, foot depth below it, half foot width. */
+  courses: Array<{ yard: number; drop: number; half: number }>;
+  /** Yard-arm ends, where the course above sheets home. */
+  yardArms: number[];
+  /** The lowest course sheets home to the rail here, aft of its mast (port, starboard). */
+  rail: [THREE.Vector3, THREE.Vector3];
+}
+
 interface Headsail {
   axis: THREE.Group;
   sail: THREE.Mesh;
@@ -191,11 +342,20 @@ export class RefinedBoat implements BoatModel {
   readonly root = new THREE.Group();
   /** Same waterline envelope at every upgrade level, for the hull-attached wake. */
   readonly wakeHull: { length: number; beam: number };
-  readonly stats = { triangles: 0, meshes: 0, crates: 0, barrels: 0, jibs: 0, topsail: false };
+  readonly stats = {
+    triangles: 0,
+    meshes: 0,
+    crates: 0,
+    barrels: 0,
+    jibs: 0,
+    topsail: false,
+    courses: 0,
+  };
   private readonly body = new THREE.Group();
   private readonly ship = new THREE.Group();
   private readonly gaffSails: GaffSail[] = [];
   private readonly headsails: Headsail[] = [];
+  private readonly squareRigs: SquareRig[] = [];
   private readonly flag: THREE.Mesh;
   /** Masthead lantern (decision 0068): high on the mast, where it reads from above. */
   readonly lantern = new THREE.Object3D();
@@ -214,9 +374,17 @@ export class RefinedBoat implements BoatModel {
     const MAST_H = rig.mastHeight * ST.mastK;
     const DECK = H * 0.55;
     const deckAt = (z: number) => DECK + ST.sheer * (L / 5) ** 0.5 * (z / (L / 2)) ** 2;
+    // Where masts, sheets and the tiller stand: on the stern castle when there is one.
+    const castleFront = rig.castle ? -L / 2 + rig.castle.length : -Infinity;
+    const standAt = (z: number) =>
+      deckAt(z) + (rig.castle && z < castleFront ? rig.castle.height * ST.H : 0);
+    const outline = deckOutline(rig);
     this.beam = B;
     this.wakeHull = { length: L * BOAT_SCALE, beam: B * BOAT_SCALE };
-    this.jibSheetAnchor = V(0, deckAt(0) + 0.12, 0);
+    // Square riggers lead jib sheets to the rail just ahead of the foremast's courses.
+    const foremost = rig.squareMasts?.reduce((z, m) => Math.max(z, m.z), -Infinity);
+    const sheetZ = foremost === undefined ? 0 : foremost + SQUARE_FORWARD + SQUARE_BELLY + 0.4;
+    this.jibSheetAnchor = V(0, deckAt(sheetZ) + 0.12, sheetZ);
     const upg = options.upgrades ?? STOCK_UPGRADES;
     this.riggingEnabled = options.rigging ?? true;
     const wood = vertexColorMaterial();
@@ -236,6 +404,7 @@ export class RefinedBoat implements BoatModel {
       return m;
     };
     const parts = [hullGeometry(upg.hull, rig)];
+    if (rig.castle) parts.push(castleGeometry(upg.hull, rig));
     const box = (w: number, h: number, l: number, x: number, y: number, z: number, color: string) =>
       paint(new THREE.BoxGeometry(w, h, l).translate(x, y, z), color);
     // Forward hatch leaves a working area behind the mast for the upgraded cargo stacks.
@@ -243,11 +412,12 @@ export class RefinedBoat implements BoatModel {
     parts.push(box(0.64, 0.13, 0.58, 0, deckAt(hatchZ) + 0.09, hatchZ, ST.mast));
     parts.push(box(0.54, 0.05, 0.48, 0, deckAt(hatchZ) + 0.18, hatchZ, ST.deck));
     const stern = -L * 0.5;
-    parts.push(box(0.1, 0.72, 0.32, 0, deckAt(stern) - 0.4, stern - 0.1, ST.mast));
-    parts.push(spar(V(0, deckAt(stern) - 0.1, stern), V(0, deckAt(stern) + 0.23, stern)));
-    parts.push(
-      spar(V(0, deckAt(stern) + 0.23, stern), V(0.12, deckAt(stern) + 0.23, stern + 0.65)),
-    );
+    // The big hulls' rudder reaches down their deeper sternpost; the tiller works on the castle.
+    const rudder = rig.castle ? H * 0.8 : 0.72;
+    parts.push(box(0.1, rudder, 0.32, 0, deckAt(stern) + 0.32 - rudder, stern - 0.1, ST.mast));
+    const helm = standAt(stern);
+    parts.push(spar(V(0, deckAt(stern) - 0.1, stern), V(0, helm + 0.23, stern)));
+    parts.push(spar(V(0, helm + 0.23, stern), V(0.12, helm + 0.23, stern + 0.65)));
     const cargoCount = [2, 4, 7][upg.hold - 1]! + rig.cargoExtra;
     for (let i = 0; i < cargoCount; i++) {
       const slot = i % 6;
@@ -263,7 +433,7 @@ export class RefinedBoat implements BoatModel {
       if (barrel) this.stats.barrels++;
       else this.stats.crates++;
     }
-    const mastBase = deckAt(MAST_Z);
+    const mastBase = standAt(MAST_Z);
     const mastTop = V(0, mastBase + MAST_H, MAST_Z);
     parts.push(spar(V(0, mastBase, MAST_Z), mastTop, 0.075));
     const fore = rig.foremast;
@@ -280,9 +450,23 @@ export class RefinedBoat implements BoatModel {
           0.07,
         ),
       );
+    // Square masts: the mast and a fighting top above the lowest course are part of the hull mesh.
+    const squareMasts = (rig.squareMasts ?? []).map((m) => {
+      const base = standAt(m.z);
+      const height = m.height * ST.mastK;
+      const span = (height - 1.5) / m.courses;
+      parts.push(spar(V(0, base, m.z), V(0, base + height, m.z), 0.085));
+      const topY = base + 1.1 + span * 0.92 + 0.1;
+      parts.push(
+        paint(new THREE.CylinderGeometry(0.42, 0.3, 0.12, 6).translate(0, topY, m.z), ST.mast),
+      );
+      return { ...m, base, height, span };
+    });
     const bow = V(0, deckAt(L / 2) + 0.13, L / 2);
     const bowspritTip = V(0, bow.y + 0.2, L * 0.73);
     parts.push(spar(V(0, bow.y - 0.1, L * 0.35), bowspritTip, 0.05));
+    if (rig.details)
+      parts.push(...rig.details({ deckAt, halfBeam: B / 2, depth: H, upgrades: upg }));
     this.ship.add(mesh(mergeAll(parts), wood, `${rig.name}Hull`));
 
     // Both masts use their own gooseneck, gaff lift and working sheet. Their luffs remain
@@ -299,7 +483,7 @@ export class RefinedBoat implements BoatModel {
     ) => {
       const pivot = new THREE.Group();
       pivot.name = `${name}Pivot`;
-      pivot.position.set(0, base + 0.7, z);
+      pivot.position.set(0, base + (rig.gooseneck ?? 0.7), z);
       const throat = V(0, height * 0.47, 0);
       const peak = V(0, height * 0.69, -gaff);
       const clew = V(0, 0, -boom);
@@ -329,18 +513,18 @@ export class RefinedBoat implements BoatModel {
         peak,
         clew,
         mastTop: V(0, base + height, z),
-        sheetAnchor: V(0, deckAt(anchorZ) + 0.12, anchorZ),
+        sheetAnchor: V(0, standAt(anchorZ) + 0.12, anchorZ),
       });
     };
     addGaff(
-      'Mainsail',
+      rig.mainName ?? 'Mainsail',
       MAST_Z,
       mastBase,
       MAST_H,
       rig.boom,
       rig.gaff,
-      true,
-      rig.mizzen ? -2.2 : -L * 0.4,
+      rig.mainTopsail ?? true,
+      rig.mizzen ? -2.2 : rig.castle ? -L * 0.47 : -L * 0.4,
     );
     if (fore)
       addGaff(
@@ -365,28 +549,112 @@ export class RefinedBoat implements BoatModel {
         -L * 0.46,
       );
 
+    // Square courses: each hangs from its own yard, just forward of the mast, and bellies toward
+    // the bow. All of one mast's courses are one mesh; furling is a morph toward each course's
+    // own yard, so every head stays on its yard and no geometry is rebuilt per frame.
+    for (const m of squareMasts) {
+      const turn = new THREE.Group();
+      turn.name = `${m.name}Brace`;
+      turn.position.set(0, 0, m.z + SQUARE_FORWARD);
+      const shown = m.courses - (upg.sails >= 3 ? 0 : 1);
+      const pos: number[] = [];
+      const furled: number[] = [];
+      const colors: number[] = [];
+      const yardParts: THREE.BufferGeometry[] = [];
+      const courses: SquareRig['courses'] = [];
+      const yardArms: number[] = [];
+      for (let k = 0; k < shown; k++) {
+        const foot = m.base + 1.1 + k * m.span;
+        const yard = foot + m.span * 0.92;
+        const w = B * 1.32 * (1 - 0.16 * k);
+        const head = w * 0.88;
+        // Authored in the cloth's own plane (luff along z), then turned square across the ship.
+        const g = cloth(
+          V(0, foot, -w / 2),
+          V(0, foot, w / 2),
+          V(0, yard, -head / 2),
+          V(0, yard, head / 2),
+          upg.sails,
+          SQUARE_BELLY,
+          BAND,
+          5,
+          4,
+        ).rotateY(Math.PI / 2);
+        const p = g.getAttribute('position');
+        const c = g.getAttribute('color');
+        for (let i = 0; i < p.count; i++) {
+          pos.push(p.getX(i), p.getY(i), p.getZ(i));
+          furled.push(p.getX(i), yard + (p.getY(i) - yard) * 0.06, p.getZ(i));
+          colors.push(c.getX(i), c.getY(i), c.getZ(i));
+        }
+        g.dispose();
+        yardParts.push(spar(V(-head * 0.56, yard, 0), V(head * 0.56, yard, 0), 0.05));
+        courses.push({ yard, drop: yard - foot, half: w / 2 });
+        yardArms.push(head * 0.56);
+      }
+      const sailGeo = new THREE.BufferGeometry();
+      sailGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      sailGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      sailGeo.morphAttributes.position = [new THREE.Float32BufferAttribute(furled, 3)];
+      sailGeo.computeVertexNormals();
+      turn.add(mesh(mergeAll(yardParts), wood, `${m.name}Yards`));
+      const sails = mesh(sailGeo, canvas, `${m.name}Courses`);
+      sails.updateMorphTargets();
+      turn.add(sails);
+      this.ship.add(turn);
+      const railZ = m.z - 1.4;
+      const railX = halfBeamAt(outline, railZ) * 0.9;
+      const railY = standAt(railZ) + 0.2;
+      this.squareRigs.push({
+        turn,
+        sails,
+        courses,
+        yardArms,
+        rail: [V(-railX, railY, railZ), V(railX, railY, railZ)],
+      });
+      this.stats.courses += shown;
+      if (shown === m.courses) this.stats.topsail = true;
+    }
+
     // Each upgraded jib has its OWN head/tack pair and inclined stay axis. Do not merge their
     // pivots or scale along the stay: reefing rolls the free edge towards the stay instead.
     const lines: number[] = [];
     const line = (a: THREE.Vector3, b: THREE.Vector3) => lines.push(...a.toArray(), ...b.toArray());
     const nj = Math.min(rig.maxJibs ?? Infinity, rig.stockJibs + (upg.sails >= 2 ? 1 : 0));
+    // Square riggers set their jibs on the foremost square mast.
+    const jibMast = squareMasts.reduce<{ base: number; height: number; z: number } | undefined>(
+      (best, m) => (best && best.z > m.z ? best : m),
+      undefined,
+    ) ?? { base: foreBase, height: foreHeight, z: foreZ };
     for (let j = 0; j < nj; j++) {
       // Multi-jib rigs: a low inner staysail and narrower outer jibs, rather than nested copies.
       // Their tack points sit exactly on the solid bowsprit, including the extra upgraded jib.
       const multiJib = rig.stockJibs >= 2;
       const tackFraction = multiJib ? 0.48 + j * 0.12 : 0.53 + j * 0.13;
       const tackY = multiJib ? bow.y - 0.1 + (0.3 * (tackFraction - 0.35)) / 0.38 : bow.y + j * 0.1;
-      const tack = V(0, tackY, L * tackFraction);
-      const head = V(
+      let tack = V(0, tackY, L * tackFraction);
+      let head = V(
         0,
-        foreBase + foreHeight * (multiJib ? 0.68 + j * 0.14 : 0.76 + j * 0.15),
-        foreZ,
+        jibMast.base + jibMast.height * (multiJib ? 0.68 + j * 0.14 : 0.76 + j * 0.15),
+        jibMast.z,
       );
-      const clew = V(
+      let clew = V(
         0,
-        foreBase + 0.8 + j * 0.1,
-        foreZ + (multiJib ? 0.65 + j * 0.85 : 0.35 + j * 0.22),
+        jibMast.base + 0.8 + j * 0.1,
+        jibMast.z + (multiJib ? 0.65 + j * 0.85 : 0.35 + j * 0.22),
       );
+      let stayTop = head;
+      if (squareMasts.length) {
+        // Square riggers: each stay runs from the masthead, above the top yard, to the bowsprit,
+        // and the jib is hanked on its lower part only, so the whole jib stays forward of the
+        // foremast's courses and their belly (decision 0079).
+        const t = 0.56 + j * 0.1;
+        tack = V(0, bow.y - 0.1 + (0.3 * (t - 0.35)) / 0.38, L * t);
+        stayTop = V(0, jibMast.base + jibMast.height - 0.1 - j * 0.25, jibMast.z);
+        const clearZ = jibMast.z + SQUARE_FORWARD + SQUARE_BELLY + 0.25;
+        head = stayTop.clone().lerp(tack, (clearZ - stayTop.z) / (tack.z - stayTop.z));
+        clew = V(0, deckAt(clearZ) + 1 + j * 0.2, clearZ + 0.55 + j * 0.9);
+      }
       const axis = new THREE.Group();
       axis.name = `JibStay${j + 1}`;
       axis.position.copy(tack);
@@ -402,11 +670,29 @@ export class RefinedBoat implements BoatModel {
       axis.add(sail);
       this.ship.add(axis);
       this.headsails.push({ axis, sail, clew: c });
-      line(tack, head);
+      line(tack, stayTop);
     }
     this.stats.jibs = nj;
     for (const side of [-1, 1]) {
-      line(V(0, mastBase + MAST_H * 0.8, MAST_Z), V(side * B * 0.43, deckAt(0.15) + 0.1, 0.15));
+      if (rig.castle)
+        line(
+          V(0, mastBase + MAST_H * 0.8, MAST_Z),
+          V(side * halfBeamAt(outline, MAST_Z) * 0.9, mastBase + 0.1, MAST_Z),
+        );
+      else
+        line(V(0, mastBase + MAST_H * 0.8, MAST_Z), V(side * B * 0.43, deckAt(0.15) + 0.1, 0.15));
+    }
+    // Square masts: shrouds to the rail on both sides, and a stay to the next mast aft.
+    for (const [i, m] of squareMasts.entries()) {
+      const x = halfBeamAt(outline, m.z) * 0.92;
+      for (const side of [-1, 1])
+        for (const at of [0.42, 0.85])
+          line(V(0, m.base + m.height * at, m.z), V(side * x, deckAt(m.z) + 0.15, m.z - 0.4));
+      const aft = squareMasts[i + 1];
+      line(
+        V(0, m.base + m.height, m.z),
+        aft ? V(0, aft.base + aft.height * 0.9, aft.z) : V(0, mastBase + MAST_H, MAST_Z),
+      );
     }
     if (fore) {
       for (const side of [-1, 1]) {
@@ -424,7 +710,8 @@ export class RefinedBoat implements BoatModel {
     }
     this.runningOffset = lines.length / 3;
     // Gaff lift, mainsheet, and one working sheet per jib. Updated in ship-local coordinates.
-    for (let i = 0; i < 2 * this.gaffSails.length + nj; i++) line(V(0, 0, 0), V(0, 0, 0));
+    const sheets = 2 * this.stats.courses;
+    for (let i = 0; i < 2 * this.gaffSails.length + nj + sheets; i++) line(V(0, 0, 0), V(0, 0, 0));
     const ropes = new THREE.BufferGeometry();
     ropes.setAttribute(
       'position',
@@ -451,7 +738,17 @@ export class RefinedBoat implements BoatModel {
     const flagMat = new THREE.MeshBasicMaterial({ color: BAND, side: THREE.DoubleSide });
     this.disposables.push(flagMat);
     this.flag = mesh(flagGeo, flagMat, 'Pennant');
-    this.flag.position.copy(fore ? V(0, foreBase + foreHeight, foreZ) : mastTop);
+    const tallest = squareMasts.reduce<(typeof squareMasts)[number] | undefined>(
+      (best, m) => (best && best.base + best.height >= m.base + m.height ? best : m),
+      undefined,
+    );
+    this.flag.position.copy(
+      tallest
+        ? V(0, tallest.base + tallest.height, tallest.z)
+        : fore
+          ? V(0, foreBase + foreHeight, foreZ)
+          : mastTop,
+    );
     this.flag.scale.setScalar(ST.flag);
     this.ship.add(this.flag);
     this.lantern.position.copy(this.flag.position).y -= 0.6;
@@ -481,6 +778,22 @@ export class RefinedBoat implements BoatModel {
       gaff.sail.scale.x = fill;
       gaff.pivot.updateMatrix();
     }
+    // Yards brace against the boom: square when running, hard round (up to 40°) close-hauled,
+    // the leeward yard-arms aft; the brace eases through zero as the boom crosses in a tack.
+    // Square sails always fill toward the bow.
+    const boom = Math.abs(p.boomAngle);
+    const brace =
+      -Math.sign(p.boomAngle) *
+      MAX_BRACE *
+      (1 - Math.min(1, Math.max(0, (boom - CLOSE_BOOM) / (RUN_BOOM - CLOSE_BOOM)))) *
+      Math.min(1, boom / CLOSE_BOOM);
+    const square = Math.max(0.08, 1 - p.luff) + p.luff * Math.sin(p.time * 26) * 0.2;
+    for (const rig of this.squareRigs) {
+      rig.turn.rotation.y = brace;
+      rig.turn.updateMatrix();
+      rig.sails.morphTargetInfluences![0] = 1 - p.sail;
+      rig.sails.scale.z = square;
+    }
     for (const jib of this.headsails) {
       jib.sail.rotation.y = p.boomAngle * 0.6;
       jib.sail.scale.set(fill, 1, 0.04 + 0.96 * p.sail);
@@ -506,6 +819,24 @@ export class RefinedBoat implements BoatModel {
           this.tmp.copy(jib.clew).applyMatrix4(jib.sail.matrix).applyMatrix4(jib.axis.matrix),
         );
       }
+      // Each course's clews sheet home to the yard-arms below it; the lowest course's to the rail.
+      const reef = 0.06 + 0.94 * p.sail;
+      for (const rig of this.squareRigs)
+        rig.courses.forEach((c, k) => {
+          for (const s of [-1, 1]) {
+            const below = rig.courses[k - 1];
+            if (below) {
+              const arm = rig.yardArms[k - 1]!;
+              this.putLinePoint(
+                pos,
+                i++,
+                this.tmp.set(s * arm, below.yard, 0).applyMatrix4(rig.turn.matrix),
+              );
+            } else this.putLinePoint(pos, i++, rig.rail[s < 0 ? 0 : 1]);
+            this.tmp.set(s * c.half, c.yard - c.drop * reef, 0).applyMatrix4(rig.turn.matrix);
+            this.putLinePoint(pos, i++, this.tmp);
+          }
+        });
       pos.needsUpdate = true;
     }
     this.flag.rotation.y = Math.PI - p.windRelative + Math.sin(p.time * 9) * 0.12;

@@ -3,12 +3,15 @@
  * the art (decision 0016) and checking triangle and draw-call counts on a real device.
  * ?view=boats shows the sloop at each upgrade level and the cutter; ?view=lines the starter and
  * the swift and hauler lines (decision 0035); ?view=islands the four producer islands at the game
- * camera's angle. ?view=sloop&level=3&quality=low inspects the refined sloop (or view=cutter / view=schooner / view=clipper) with the game's
- * three quality profiles; ?view=towns&kind=fish shows one port island at the four settlement levels
+ * camera's angle. ?view=sloop&level=3&quality=low inspects one ship class (any id in BOAT_CLASSES) with
+ * the game's three quality profiles; ?view=compare&level=1..3 every class side by side at true size
+ * (decision 0077); ?view=towns&kind=fish shows one port island at the four settlement levels
  * (decision 0060), &kind=all every producer island at &level=1..4, &before=1 the current look; independent hull/hold/sails=1..3, yaw degrees, sail=0..1 and signed boom degrees exercise its attachment pivots.
  */
 import * as THREE from 'three';
 import { type BoatModel, type ShipUpgrades, buildIslands, createBoatModel } from './render/models';
+import { BOAT_CLASSES } from './render/models/storybookBoat';
+import { isRefinedShip } from './render/models/shipModels';
 import { LighthouseBeams } from './render/lighthouseBeams';
 import { Atmosphere } from './render/atmosphere';
 import { daylightAt } from './sim/daylight';
@@ -19,12 +22,11 @@ import type { MapDef } from './sim/map';
 import { DEG } from './sim/math';
 
 const params = new URLSearchParams(location.search);
-const view =
-  (['islands', 'towns', 'lines', 'sloop', 'cutter', 'schooner', 'clipper'] as const).find(
+const view: string =
+  ['islands', 'towns', 'lines', 'compare', ...Object.keys(BOAT_CLASSES)].find(
     (v) => v === params.get('view'),
   ) ?? 'boats';
-const inspectBoat =
-  view === 'sloop' || view === 'cutter' || view === 'schooner' || view === 'clipper';
+const inspectBoat = view in BOAT_CLASSES;
 const quality: QualityLevel =
   (['low', 'medium', 'high'] as const).find((q) => q === params.get('quality')) ??
   (params.has('low') ? 'low' : 'high');
@@ -83,7 +85,7 @@ if (inspectBoat) {
   const level = Math.max(1, Math.min(3, Number(params.get('level')) || 3)) as 1 | 2 | 3;
   const low = quality === 'low';
   document.getElementById('title')!.textContent =
-    `Refined ${view} · sails ${upgrade('sails', level)} / hold ${upgrade('hold', level)} / hull ${upgrade('hull', level)} · ${quality}`;
+    `${view} · sails ${upgrade('sails', level)} / hold ${upgrade('hold', level)} / hull ${upgrade('hull', level)} · ${quality}`;
   addBoat(
     view,
     { sails: upgrade('sails', level), hold: upgrade('hold', level), hull: upgrade('hull', level) },
@@ -93,12 +95,10 @@ if (inspectBoat) {
     'Actual game model<small>hull, hold and sails upgrades preserved</small>',
   );
   boats[0]!.setLowDetail?.(low);
-  camera.position.set(
-    0,
-    view === 'clipper' ? 34 : view === 'schooner' ? 30 : view === 'cutter' ? 26 : 22,
-    view === 'clipper' ? 63 : view === 'schooner' ? 54 : view === 'cutter' ? 45 : 38,
-  );
-  camera.lookAt(0, 5, 0);
+  // Framed by hull length: 5 m sloop at 22 / 38, as the refined captures were taken.
+  const k = Math.max(1, BOAT_CLASSES[view]!.L / 5) ** 0.85;
+  camera.position.set(0, 22 * k, 38 * k);
+  camera.lookAt(0, 5 * k, 0);
 } else if (view === 'boats') {
   document.getElementById('title')!.textContent = 'Boats · style D (Storybook classic)';
   const side = -90 * DEG; // bow to the left of the screen
@@ -217,6 +217,27 @@ if (inspectBoat) {
   if (focus) labels.length = 0;
   camera.position.set(fx, Math.sin(pitch) * dist, 8 + Math.cos(pitch) * dist);
   camera.lookAt(fx, 0, focus ? 8 : 4);
+} else if (view === 'compare') {
+  // Every playable hull side by side at true relative size and one upgrade level (&level=1..3),
+  // tagged with whether it already has its own refined model (decision 0077). A long, narrow
+  // lens keeps the row close to orthographic so sizes compare fairly.
+  const level = Math.max(1, Math.min(3, Number(params.get('level')) || 1)) as 1 | 2 | 3;
+  document.getElementById('title')!.textContent =
+    `Ship models · ${level === 1 ? 'stock' : `all upgrades at level ${level}`}`;
+  const ids = Object.keys(BOAT_CLASSES);
+  const gap = 6;
+  const width = ids.reduce((w, id) => w + BOAT_CLASSES[id]!.L * 2.2 + gap, -gap);
+  let x = -width / 2;
+  for (const id of ids) {
+    const len = BOAT_CLASSES[id]!.L * 2.2;
+    const status = isRefinedShip(id) ? 'refined' : 'old model · to redesign';
+    const name = `${id[0]!.toUpperCase()}${id.slice(1)}`;
+    addBoat(id, L(level), x + len / 2, 0, -90 * DEG, `${name}<small>${status}</small>`);
+    x += len + gap;
+  }
+  camera.fov = 13;
+  camera.position.set(0, 70, 380);
+  camera.lookAt(0, 9, 0);
 } else if (view === 'lines') {
   document.getElementById('title')!.textContent = 'Ship lines · swift and hauler (0035)';
   const side = -150 * DEG; // bow toward the camera, so square sails show their face

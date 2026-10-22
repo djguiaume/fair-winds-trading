@@ -1,4 +1,5 @@
 import { RefinedBoat, type HullShape } from './refinedBoat';
+import type { ShipModelEntry } from './shipModels';
 import type { BoatModelOptions } from './types';
 
 /** Long fine entry, forward shoulder and swept, narrow counter stern. Independently
@@ -52,3 +53,8 @@ export class RefinedSchooner extends RefinedBoat {
     );
   }
 }
+
+export const createSchooner: ShipModelEntry = {
+  refined: true,
+  create: (options) => new RefinedSchooner(options),
+};

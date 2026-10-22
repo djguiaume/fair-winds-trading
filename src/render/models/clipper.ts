@@ -1,4 +1,5 @@
 import { RefinedBoat, type HullShape } from './refinedBoat';
+import type { ShipModelEntry } from './shipModels';
 import type { BoatModelOptions } from './types';
 
 /** Knife entry and long parallel run into a small raked transom. The clipper's
@@ -56,3 +57,8 @@ export class RefinedClipper extends RefinedBoat {
     );
   }
 }
+
+export const createClipper: ShipModelEntry = {
+  refined: true,
+  create: (options) => new RefinedClipper(options),
+};

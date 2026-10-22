@@ -1,4 +1,5 @@
 import { RefinedBoat } from './refinedBoat';
+import type { ShipModelEntry } from './shipModels';
 import type { BoatModelOptions } from './types';
 
 /** Starter proportions and palette from decision 0051. */
@@ -23,3 +24,8 @@ export class RefinedSloop extends RefinedBoat {
     );
   }
 }
+
+export const createSloop: ShipModelEntry = {
+  refined: true,
+  create: (options) => new RefinedSloop(options),
+};

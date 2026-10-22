@@ -1,19 +1,9 @@
 import * as THREE from 'three';
-import { RefinedClipper } from './clipper';
-import { RefinedSchooner } from './schooner';
-import { RefinedCutter } from './cutter';
-import { RefinedSloop } from './sloop';
 import { BOAT_SCALE, STYLE_D } from './boatStyle';
 export { BOAT_SCALE, STYLE_D } from './boatStyle';
 import { createRng } from '../../sim/rng';
 import { keepGroup, mergeAll, paint, paintGroups, vertexColorMaterial } from './geometry';
-import {
-  type BoatModel,
-  type BoatModelFactory,
-  type BoatPose,
-  type ShipUpgrades,
-  STOCK_UPGRADES,
-} from './types';
+import { type BoatModel, type BoatPose, type ShipUpgrades, STOCK_UPGRADES } from './types';
 
 interface MastDef {
   /** Position along the hull in reference units, + toward the bow. */
@@ -631,18 +621,3 @@ export class StorybookBoat implements BoatModel {
     for (const d of this.disposables) d.dispose();
   }
 }
-
-export const createStorybookBoat: BoatModelFactory = (shipClassId, options = {}) =>
-  shipClassId === 'sloop' || !BOAT_CLASSES[shipClassId]
-    ? new RefinedSloop(options)
-    : shipClassId === 'cutter'
-      ? new RefinedCutter(options)
-      : shipClassId === 'schooner'
-        ? new RefinedSchooner(options)
-        : shipClassId === 'clipper'
-          ? new RefinedClipper(options)
-          : new StorybookBoat(
-              BOAT_CLASSES[shipClassId] ?? BOAT_CLASSES.sloop!,
-              options.upgrades ?? STOCK_UPGRADES,
-              options.rigging ?? true,
-            );
