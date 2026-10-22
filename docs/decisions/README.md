@@ -105,3 +105,5 @@
 | [0083](0083-difficulty-levels.md) | Difficulty levels: Fair winds, Captain, Old salt; same sailing, different costs (damage, cargo, repairs, prices, growth, storms) | 2026-10-22 | Implemented for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
+
+| [0084](0084-hull-aware-docking.md) | Docking uses the oriented hull and full pier geometry, with a forgiving 16-unit gap | 2026-10-22 | Implemented for review |

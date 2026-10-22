@@ -1,0 +1,41 @@
+{
+  "errors": [],
+  "captures": [
+    {
+      "name": "sloop-day",
+      "stats": "15 draw calls · 30,286 triangles (incl. ocean)"
+    },
+    {
+      "name": "cutter-day",
+      "stats": "17 draw calls · 30,454 triangles (incl. ocean)"
+    },
+    {
+      "name": "schooner-day",
+      "stats": "21 draw calls · 30,942 triangles (incl. ocean)"
+    },
+    {
+      "name": "clipper-day",
+      "stats": "25 draw calls · 31,518 triangles (incl. ocean)"
+    },
+    {
+      "name": "hoy-day",
+      "stats": "15 draw calls · 30,798 triangles (incl. ocean)"
+    },
+    {
+      "name": "fluyt-day",
+      "stats": "25 draw calls · 32,198 triangles (incl. ocean)"
+    },
+    {
+      "name": "fluyt-night",
+      "stats": "12 draw calls · 6,307 triangles (incl. ocean)"
+    },
+    {
+      "name": "indiaman-day",
+      "stats": "27 draw calls · 33,134 triangles (incl. ocean)"
+    },
+    {
+      "name": "indiaman-night",
+      "stats": "13 draw calls · 6,775 triangles (incl. ocean)"
+    }
+  ]
+}

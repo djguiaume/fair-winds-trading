@@ -1,34 +1,11 @@
-import { RefinedBoat, type HullShape } from './refinedBoat';
+import { HULL_DIMENSIONS, FLUYT_HULL } from '../../sim/hullShape';
+import { RefinedBoat } from './refinedBoat';
 import type { ShipModelEntry } from './shipModels';
 import type { BoatModelOptions } from './types';
+import { FLUYT_MIZZEN, fluytCargo, fluytDetails } from './fluytDetails';
 
 /** Bluff round bow, narrow pinched stern and the fluyt's pear-shaped sections: the topsides
  * tumble home to a narrow deck over a wide, flat-floored hold. */
-const FLUYT_HULL: HullShape = {
-  outline: [
-    [0, 0.5],
-    [0.26, 0.45],
-    [0.42, 0.32],
-    [0.5, 0.12],
-    [0.5, -0.1],
-    [0.44, -0.3],
-    [0.32, -0.44],
-    [0.2, -0.5],
-    [-0.2, -0.5],
-    [-0.32, -0.44],
-    [-0.44, -0.3],
-    [-0.5, -0.1],
-    [-0.5, 0.12],
-    [-0.42, 0.32],
-    [-0.26, 0.45],
-  ],
-  rings: [
-    { t: 0, beam: 1, length: 1 },
-    { t: 0.28, beam: 1.16, length: 0.99 },
-    { t: 0.62, beam: 1.08, length: 0.93 },
-    { t: 1, beam: 0.56, length: 0.8 },
-  ],
-};
 
 /** Square-rigged fore and main, gaff mizzen on the stern castle, warm hauler palette. */
 export class RefinedFluyt extends RefinedBoat {
@@ -36,8 +13,8 @@ export class RefinedFluyt extends RefinedBoat {
     super(
       {
         name: 'Fluyt',
-        length: 11.5,
-        beam: 3.5,
+        length: HULL_DIMENSIONS.fluyt!.length,
+        beam: HULL_DIMENSIONS.fluyt!.beam,
         depth: 1.8,
         hullShape: FLUYT_HULL,
         hull: '#6e4520',
@@ -50,11 +27,15 @@ export class RefinedFluyt extends RefinedBoat {
         mastHeight: 6.8,
         mainName: 'Mizzen',
         mainTopsail: false,
-        boom: 1.9,
+        boom: FLUYT_MIZZEN.aft,
         gaff: 1.5,
-        castle: { length: 3.7, height: 0.8 },
+        castle: { length: 11.5 * 0.27, height: 0.8 },
+        sternLayout: FLUYT_MIZZEN,
+        replaceDeckDetails: true,
+        boatDetails: fluytDetails,
+        cargo: fluytCargo,
         stockJibs: 1,
-        cargoExtra: 3,
+        cargoExtra: 4,
         hatchZ: -1,
         cargoZ: 2.3,
         cargoX: 0.55,

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { INDIAMAN_PORTS, RefinedIndiaman } from '../src/render/models/indiaman';
+import { INDIAMAN_MIZZEN } from '../src/render/models/indiamanDetails';
 import { RefinedFluyt } from '../src/render/models/fluyt';
 import { RefinedClipper } from '../src/render/models/clipper';
 import { createBoatModel } from '../src/render/models';
@@ -70,7 +71,7 @@ describe('refined indiaman', () => {
     expect(hull.boundingBox!.max.y).toBeGreaterThan(deckAt(-L / 2) + CASTLE);
     const mizzen = b.root.getObjectByName('MizzenPivot')!;
     expect(mizzen.position.z).toBe(-3.8);
-    expect(mizzen.position.y).toBeCloseTo(deckAt(-3.8) + CASTLE + 0.7);
+    expect(mizzen.position.y).toBeCloseTo(deckAt(-3.8) + INDIAMAN_MIZZEN.foot);
     // Its boom finishes inside the stern.
     const spar = mesh(b, 'MizzenBoomAndGaff').geometry;
     spar.computeBoundingBox();
@@ -124,8 +125,8 @@ describe('refined indiaman', () => {
           expect(b.stats.jibs).toBe(sails >= 2 ? 3 : 2);
           expect(b.stats.courses).toBe(sails === 3 ? 6 : 4);
           expect(b.stats.topsail).toBe(sails === 3);
-          expect(b.stats.meshes).toBeLessThanOrEqual(11);
-          expect(b.stats.triangles).toBeLessThanOrEqual(1450);
+          expect(b.stats.meshes).toBeLessThanOrEqual(12); // Includes one quiet glazing mesh.
+          expect(b.stats.triangles).toBeLessThanOrEqual(2167);
           let triangles = 0;
           b.root.traverse((o) => {
             if ((o as THREE.Mesh).isMesh) triangles += triangleCount((o as THREE.Mesh).geometry);

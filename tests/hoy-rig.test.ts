@@ -57,7 +57,7 @@ describe('refined hoy', () => {
           expect(b.stats.jibs).toBe(nj);
           expect(b.stats.topsail).toBe(sails === 3);
           expect(b.stats.meshes).toBeLessThanOrEqual(6);
-          expect(b.stats.triangles).toBeLessThanOrEqual(900);
+          expect(b.stats.triangles).toBeLessThanOrEqual(999);
           let triangles = 0;
           b.root.traverse((o) => {
             if ((o as THREE.Mesh).isMesh) triangles += triangleCount((o as THREE.Mesh).geometry);

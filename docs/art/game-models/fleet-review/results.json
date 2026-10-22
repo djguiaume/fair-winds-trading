@@ -1,0 +1,419 @@
+{
+  "captures": [
+    {
+      "name": "sloop-stock",
+      "query": "view=sloop&level=1",
+      "stats": "13 draw calls · 29,814 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "sloop-upgraded",
+      "query": "view=sloop&level=3",
+      "stats": "15 draw calls · 30,286 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "sloop-stern",
+      "query": "view=sloop&level=3&yaw=45&boom=-45",
+      "stats": "15 draw calls · 30,286 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "cutter-stock",
+      "query": "view=cutter&level=1",
+      "stats": "15 draw calls · 29,982 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "cutter-upgraded",
+      "query": "view=cutter&level=3",
+      "stats": "17 draw calls · 30,454 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "cutter-stern",
+      "query": "view=cutter&level=3&yaw=45&boom=-45",
+      "stats": "17 draw calls · 30,454 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "schooner-stock",
+      "query": "view=schooner&level=1",
+      "stats": "19 draw calls · 30,438 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "schooner-upgraded",
+      "query": "view=schooner&level=3",
+      "stats": "21 draw calls · 30,942 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "schooner-stern",
+      "query": "view=schooner&level=3&yaw=45&boom=-45",
+      "stats": "21 draw calls · 30,942 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "clipper-stock",
+      "query": "view=clipper&level=1",
+      "stats": "25 draw calls · 31,014 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "clipper-upgraded",
+      "query": "view=clipper&level=3",
+      "stats": "25 draw calls · 31,518 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "clipper-stern",
+      "query": "view=clipper&level=3&yaw=45&boom=-45",
+      "stats": "25 draw calls · 31,518 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "hoy-stock",
+      "query": "view=hoy&level=1",
+      "stats": "13 draw calls · 30,014 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "hoy-upgraded",
+      "query": "view=hoy&level=3",
+      "stats": "13 draw calls · 30,342 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "hoy-stern",
+      "query": "view=hoy&level=3&yaw=45&boom=-45",
+      "stats": "13 draw calls · 30,342 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "fluyt-stock",
+      "query": "view=fluyt&level=1",
+      "stats": "29 draw calls · 30,630 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "fluyt-upgraded",
+      "query": "view=fluyt&level=3",
+      "stats": "37 draw calls · 31,150 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "fluyt-stern",
+      "query": "view=fluyt&level=3&yaw=45&boom=-45",
+      "stats": "37 draw calls · 31,150 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "indiaman-stock",
+      "query": "view=indiaman&level=1",
+      "stats": "29 draw calls · 31,110 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "indiaman-upgraded",
+      "query": "view=indiaman&level=3",
+      "stats": "37 draw calls · 31,662 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "indiaman-stern",
+      "query": "view=indiaman&level=3&yaw=45&boom=-45",
+      "stats": "37 draw calls · 31,662 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "fleet-stock",
+      "query": "view=lines&level=1",
+      "stats": "137 draw calls · 50,602 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "fleet-upgraded",
+      "query": "view=lines&level=3",
+      "stats": "159 draw calls · 53,954 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "schooner-furled-low",
+      "query": "view=schooner&level=3&quality=low&sail=0&boom=-45",
+      "stats": "10 draw calls · 5,679 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "clipper-furled-low",
+      "query": "view=clipper&level=3&quality=low&sail=0&boom=-45",
+      "stats": "12 draw calls · 5,967 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "hoy-furled-low",
+      "query": "view=hoy&level=3&quality=low&sail=0&boom=-45",
+      "stats": "4 draw calls · 5,219 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "fluyt-furled-low",
+      "query": "view=fluyt&level=3&quality=low&sail=0&boom=-45",
+      "stats": "10 draw calls · 5,407 triangles (incl. ocean)",
+      "errors": []
+    },
+    {
+      "name": "indiaman-furled-low",
+      "query": "view=indiaman&level=3&quality=low&sail=0&boom=-45",
+      "stats": "10 draw calls · 5,631 triangles (incl. ocean)",
+      "errors": []
+    }
+  ],
+  "budgets": [
+    {
+      "id": "sloop",
+      "levels": [
+        {
+          "level": 1,
+          "triangles": 507,
+          "meshes": 5,
+          "cargo": 2,
+          "wake": {
+            "length": 11,
+            "beam": 4.389
+          }
+        },
+        {
+          "level": 2,
+          "triangles": 619,
+          "meshes": 6,
+          "cargo": 4,
+          "wake": {
+            "length": 11,
+            "beam": 4.389
+          }
+        },
+        {
+          "level": 3,
+          "triangles": 743,
+          "meshes": 6,
+          "cargo": 7,
+          "wake": {
+            "length": 11,
+            "beam": 4.389
+          }
+        }
+      ]
+    },
+    {
+      "id": "cutter",
+      "levels": [
+        {
+          "level": 1,
+          "triangles": 591,
+          "meshes": 6,
+          "cargo": 3,
+          "wake": {
+            "length": 13.640000000000002,
+            "beam": 4.851000000000001
+          }
+        },
+        {
+          "level": 2,
+          "triangles": 703,
+          "meshes": 7,
+          "cargo": 5,
+          "wake": {
+            "length": 13.640000000000002,
+            "beam": 4.851000000000001
+          }
+        },
+        {
+          "level": 3,
+          "triangles": 827,
+          "meshes": 7,
+          "cargo": 8,
+          "wake": {
+            "length": 13.640000000000002,
+            "beam": 4.851000000000001
+          }
+        }
+      ]
+    },
+    {
+      "id": "schooner",
+      "levels": [
+        {
+          "level": 1,
+          "triangles": 819,
+          "meshes": 8,
+          "cargo": 4,
+          "wake": {
+            "length": 18.04,
+            "beam": 5.313000000000001
+          }
+        },
+        {
+          "level": 2,
+          "triangles": 947,
+          "meshes": 9,
+          "cargo": 6,
+          "wake": {
+            "length": 18.04,
+            "beam": 5.313000000000001
+          }
+        },
+        {
+          "level": 3,
+          "triangles": 1071,
+          "meshes": 9,
+          "cargo": 9,
+          "wake": {
+            "length": 18.04,
+            "beam": 5.313000000000001
+          }
+        }
+      ]
+    },
+    {
+      "id": "clipper",
+      "levels": [
+        {
+          "level": 1,
+          "triangles": 1107,
+          "meshes": 11,
+          "cargo": 4,
+          "wake": {
+            "length": 21.560000000000002,
+            "beam": 5.5440000000000005
+          }
+        },
+        {
+          "level": 2,
+          "triangles": 1163,
+          "meshes": 11,
+          "cargo": 6,
+          "wake": {
+            "length": 21.560000000000002,
+            "beam": 5.5440000000000005
+          }
+        },
+        {
+          "level": 3,
+          "triangles": 1359,
+          "meshes": 11,
+          "cargo": 9,
+          "wake": {
+            "length": 21.560000000000002,
+            "beam": 5.5440000000000005
+          }
+        }
+      ]
+    },
+    {
+      "id": "hoy",
+      "levels": [
+        {
+          "level": 1,
+          "triangles": 607,
+          "meshes": 5,
+          "cargo": 5,
+          "wake": {
+            "length": 13.640000000000002,
+            "beam": 6.237000000000001
+          }
+        },
+        {
+          "level": 2,
+          "triangles": 695,
+          "meshes": 5,
+          "cargo": 7,
+          "wake": {
+            "length": 13.640000000000002,
+            "beam": 6.237000000000001
+          }
+        },
+        {
+          "level": 3,
+          "triangles": 771,
+          "meshes": 5,
+          "cargo": 10,
+          "wake": {
+            "length": 13.640000000000002,
+            "beam": 6.237000000000001
+          }
+        }
+      ]
+    },
+    {
+      "id": "fluyt",
+      "levels": [
+        {
+          "level": 1,
+          "triangles": 915,
+          "meshes": 13,
+          "cargo": 6,
+          "wake": {
+            "length": 25.3,
+            "beam": 8.085
+          }
+        },
+        {
+          "level": 2,
+          "triangles": 1003,
+          "meshes": 13,
+          "cargo": 8,
+          "wake": {
+            "length": 25.3,
+            "beam": 8.085
+          }
+        },
+        {
+          "level": 3,
+          "triangles": 1175,
+          "meshes": 17,
+          "cargo": 11,
+          "wake": {
+            "length": 25.3,
+            "beam": 8.085
+          }
+        }
+      ]
+    },
+    {
+      "id": "indiaman",
+      "levels": [
+        {
+          "level": 1,
+          "triangles": 1155,
+          "meshes": 13,
+          "cargo": 7,
+          "wake": {
+            "length": 28.6,
+            "beam": 8.778
+          }
+        },
+        {
+          "level": 2,
+          "triangles": 1259,
+          "meshes": 13,
+          "cargo": 9,
+          "wake": {
+            "length": 28.6,
+            "beam": 8.778
+          }
+        },
+        {
+          "level": 3,
+          "triangles": 1431,
+          "meshes": 17,
+          "cargo": 12,
+          "wake": {
+            "length": 28.6,
+            "beam": 8.778
+          }
+        }
+      ]
+    }
+  ]
+}
