@@ -265,10 +265,12 @@ describe('producer island geography', () => {
   it('adds solid secondary piers only when the settlement builds them', () => {
     const at = (level: number) =>
       piersOf(PHASE1_MAP, Object.fromEntries(PHASE1_MAP.ports.map((p) => [p.id, level])));
-    expect(at(4).length - at(1).length).toBe(20);
+    // 20 pier and quay segments at the producers, 3 more moored boats at Saltmere and a T-head,
+    // second pier and quay at each hidden yard (0082).
+    expect(at(4).length - at(1).length).toBe(29);
     for (const pier of at(4)) {
       const boat = createBoat((pier.x0 + pier.x1) / 2, (pier.y0 + pier.y1) / 2, 0);
-      expect(resolveCollisions(boat, 1, [], 1000, [], [pier])).toBe('pier');
+      expect(resolveCollisions(boat, 1, [], 1000, [], [pier])).toBe(pier.boat ? 'boat' : 'pier');
     }
   });
   it('keeps existing houses in place through all four growth stages', () => {

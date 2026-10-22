@@ -336,7 +336,17 @@ export class Hud {
         this.showToast(t('toast.reef', { pct }), 2.5);
       } else if (e.type === 'crash') {
         const pct = Math.round(hullCondition(this.world.trade) * 100);
-        this.showToast(t(e.surface === 'pier' ? 'toast.crashPier' : 'toast.crash', { pct }), 2.5);
+        this.showToast(
+          t(
+            e.surface === 'pier'
+              ? 'toast.crashPier'
+              : e.surface === 'boat'
+                ? 'toast.crashBoat'
+                : 'toast.crash',
+            { pct },
+          ),
+          2.5,
+        );
       } else if (e.type === 'storm-near') {
         this.showToast(t('toast.stormNear', { dir: compassPoint(e.bearing) }), 4, 'storm');
       } else if (e.type === 'overboard') {

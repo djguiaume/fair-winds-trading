@@ -196,6 +196,7 @@ export const en = {
   'toast.reef': 'Struck a reef! Hull {pct}%, repair in port',
   'toast.crash': 'Ran aground! Hull {pct}%, repair in port',
   'toast.crashPier': 'Rammed the pier! Hull {pct}%, repair in port',
+  'toast.crashBoat': 'Rammed a moored boat! Hull {pct}%, repair in port',
   'toast.bump': 'Bump! Mind the shore',
   'toast.discovered': 'New port on the chart: {name}. Its shipwright builds ships',
   'toast.levelUp': '{name} has grown into a {level}!',

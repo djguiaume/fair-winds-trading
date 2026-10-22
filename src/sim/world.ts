@@ -114,7 +114,7 @@ export interface World {
 export type WorldEvent =
   | { type: 'bump' }
   | { type: 'reef-strike'; damage: number }
-  | { type: 'crash'; damage: number; surface: 'shore' | 'pier' }
+  | { type: 'crash'; damage: number; surface: 'shore' | 'pier' | 'boat' }
   | { type: 'waypoint'; label: string; seconds: number; next: string }
   | { type: 'storm-near'; bearing: number }
   | { type: 'overboard'; good: GoodId; qty: number }
@@ -382,7 +382,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
     // past a docking bump, sandbanks are soft (decisions 0032 and 0038).
     const damage = damageHull(world.trade, impactDamage(surface, speedBefore - world.boat.speedKn));
     if (damage >= 1 && surface === 'reef') events.push({ type: 'reef-strike', damage });
-    else if (damage >= 1 && (surface === 'shore' || surface === 'pier'))
+    else if (damage >= 1 && (surface === 'shore' || surface === 'pier' || surface === 'boat'))
       events.push({ type: 'crash', damage, surface });
     else events.push({ type: 'bump' });
   }
