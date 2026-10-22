@@ -1,7 +1,8 @@
+import { HULL_SCALE, HULL_BEAM_SCALE } from '../../sim/hullShape';
 /** Shared storybook palette and display scale (decisions 0012, 0016). */
 export const STYLE_D = {
   L: 1,
-  B: 1.05,
+  B: HULL_BEAM_SCALE,
   H: 1.2,
   sheer: 0.45,
   belly: 0.35,
@@ -20,4 +21,4 @@ export const STYLE_D = {
 };
 
 /** The 5 m reference sloop is drawn about 11 m long for readability. */
-export const BOAT_SCALE = 2.2;
+export const BOAT_SCALE = HULL_SCALE;

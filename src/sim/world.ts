@@ -359,7 +359,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   if (
     world.boat.sailStep === 0 &&
     world.boat.speedKn < MOOR_MAX_KN &&
-    portInRange(world.map, world.boat, undefined, settlementLevels(world.trade))
+    portInRange(world.map, world.boat, undefined, settlementLevels(world.trade), world.ship.id)
   )
     moor(world.boat, dt);
   // Shallows drag at the hull near reefs; deeper hulls feel it more (decision 0032).

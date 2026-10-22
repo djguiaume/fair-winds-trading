@@ -1,3 +1,4 @@
+import { HULL_DIMENSIONS } from '../../sim/hullShape';
 import { RefinedBoat } from './refinedBoat';
 import type { ShipModelEntry } from './shipModels';
 import type { BoatModelOptions } from './types';
@@ -8,8 +9,8 @@ export class RefinedSloop extends RefinedBoat {
     super(
       {
         name: 'Sloop',
-        length: 5,
-        beam: 1.9,
+        length: HULL_DIMENSIONS.sloop!.length,
+        beam: HULL_DIMENSIONS.sloop!.beam,
         depth: 0.9,
         mastZ: 0.5,
         mastHeight: 5.2,

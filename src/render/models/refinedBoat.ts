@@ -1,3 +1,4 @@
+import { SLOOP_HULL, type HullShape } from '../../sim/hullShape';
 import * as THREE from 'three';
 import { BOAT_SCALE, STYLE_D as ST } from './boatStyle';
 import { mergeAll, paint, triangleCount, vertexColorMaterial } from './geometry';
@@ -11,35 +12,9 @@ import {
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 /** Normalized hull sections, authored independently of rig dimensions and palette. */
-export interface HullShape {
-  outline: ReadonlyArray<readonly [number, number]>;
-  rings: ReadonlyArray<{ t: number; beam: number; length: number }>;
-}
+export type { HullShape } from '../../sim/hullShape';
 
 /** Rounded starter hull. Other classes supply their own silhouette and sections. */
-const SLOOP_HULL: HullShape = {
-  outline: [
-    [0, 0.5],
-    [0.23, 0.4],
-    [0.4, 0.23],
-    [0.5, 0],
-    [0.48, -0.25],
-    [0.34, -0.44],
-    [0.16, -0.5],
-    [-0.16, -0.5],
-    [-0.34, -0.44],
-    [-0.48, -0.25],
-    [-0.5, 0],
-    [-0.4, 0.23],
-    [-0.23, 0.4],
-  ],
-  rings: [
-    { t: 0, beam: 1, length: 1 },
-    { t: 0.25, beam: 1.01, length: 0.99 },
-    { t: 0.65, beam: 0.8, length: 0.93 },
-    { t: 1, beam: 0.18, length: 0.78 },
-  ],
-};
 
 /** Dimensions and hull sections are authored per class. */
 export interface RefinedRig {

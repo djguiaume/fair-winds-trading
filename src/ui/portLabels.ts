@@ -150,6 +150,7 @@ export class PortLabels {
         boat,
         port,
         settlementLevel(this.world.trade, port.id),
+        this.world.ship.id,
       );
       const isDocked = trade.dockedAt === port.id;
       const isObjective = currentWp?.label === port.name;
