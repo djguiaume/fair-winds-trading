@@ -96,5 +96,6 @@
 | [0074](0074-forgiving-cargo-overboard.md) | Cargo overboard reads how hard the wind presses her, not the drawn heel: breeze, rain and tacks never cost cargo; gales and storms under full sail still do | 2026-10-22 | Implementation for review |
 | [0075](0075-ship-speed-in-knots.md) | Ship speeds in the shipyard quoted in knots (best point of sail, 14 kn breeze) instead of % of the sloop | 2026-10-22 | Implemented for review |
 | [0077](0077-one-file-per-ship-model.md) | One file per ship model, a shared inspector and capture script; hoy, fluyt (shared square rig) and indiaman redesigned in parallel, decision numbers 0078–0080 reserved | 2026-10-22 | Accepted |
+| [0079](0079-refined-fluyt-and-square-rig.md) | Refined fluyt: shared square rig (courses on yards, furled by morph toward each yard, clews sheeted) and stern castle from the hull outline; pear-shaped hull, gaff mizzen on the castle | 2026-10-22 | Implementation for review |
 
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.
