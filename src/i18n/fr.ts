@@ -12,6 +12,8 @@ export const fr: Record<MessageKey, string> = {
   'good.bread': 'Pain',
   'good.planks': 'Planches',
   'good.cutStone': 'Pierre de taille',
+  'good.honey': 'Miel',
+  'good.lampOil': 'Huile de lampe',
   'ship.sloop': 'Sloop',
   'ship.cutter': 'Cotre',
   'ship.schooner': 'Schooner',
@@ -182,6 +184,8 @@ export const fr: Record<MessageKey, string> = {
   'toast.discovered': 'Nouveau port sur la carte : {name}. Son chantier construit des navires',
   'toast.levelUp': '{name} s’agrandit : {level} !',
   'toast.workshop': '{name} s’agrandit : sa nouvelle {workshop} produit : {good} !',
+  'toast.rareGood':
+    '{name} s’agrandit : on y produit désormais : {good}, recherché de l’autre côté de la mer !',
   'workshop.smokedFish': 'fumerie',
   'workshop.bread': 'boulangerie',
   'workshop.planks': 'scierie',
@@ -365,6 +369,10 @@ export const fr: Record<MessageKey, string> = {
   'settlement.level.4': 'Ville portuaire',
   'settlement.growing': '{level} · {pct} %',
   'settlement.stalling': '{level} · {pct} % · stagne',
+  'settlement.rare': '{level} · {pct} % · {have}/{need} {goods}',
+  'settlement.rareHint':
+    'Pour devenir une ville portuaire, {name} a besoin de {need} {goods} venus de {source}',
+  'settlement.farIsland': 'une île lointaine',
   'settlement.hint':
     'Vendez à {name} les marchandises qu’il demande, ou livrez ses commandes, pour l’aider à grandir',
   'trade.switchMode': 'Changer de mode d’affichage',

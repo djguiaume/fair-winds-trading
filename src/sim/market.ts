@@ -4,13 +4,15 @@ import {
   type GoodAmounts,
   type GoodId,
   emptyAmounts,
-  isSpecialty,
+  isMadeGood,
+  isRare,
 } from './goods';
 import type { PortDef } from './map';
 import { type Rng, range } from './rng';
 import { clamp } from './math';
 import {
   PRODUCES_EQUILIBRIUM,
+  RARE_SHARE,
   SPECIALTY_SHARE,
   WANTS_EQUILIBRIUM,
   clampLevel,
@@ -66,7 +68,7 @@ export function goodRole(
 ): GoodRole {
   if (portProduces(port, clampLevel(level)).includes(good)) return 'produces';
   if (portWants(port, clampLevel(level), made).includes(good)) return 'wants';
-  return isSpecialty(good) ? 'none' : 'neutral';
+  return isMadeGood(good) ? 'none' : 'neutral';
 }
 
 /** Equilibrium stock for a role at a settlement level (decision 0059). */
@@ -74,8 +76,8 @@ export function equilibriumFor(role: GoodRole, level: number, good?: GoodId): nu
   const i = Math.min(Math.max(Math.round(level), 1), WANTS_EQUILIBRIUM.length) - 1;
   if (role === 'wants') return WANTS_EQUILIBRIUM[i]!;
   if (role === 'produces')
-    return good && isSpecialty(good)
-      ? Math.round(PRODUCES_EQUILIBRIUM[i]! * SPECIALTY_SHARE)
+    return good && isMadeGood(good)
+      ? Math.round(PRODUCES_EQUILIBRIUM[i]! * (isRare(good) ? RARE_SHARE : SPECIALTY_SHARE))
       : PRODUCES_EQUILIBRIUM[i]!;
   return EQUILIBRIUM[role];
 }

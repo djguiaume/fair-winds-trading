@@ -7,6 +7,7 @@ import {
   ORDER_SCALE,
   type SettlementState,
   addGrowth,
+  addRare,
   createSettlements,
   madeGoods,
   portProduces,
@@ -144,6 +145,7 @@ export function deliverContract(trade: TradeState, map: MapDef): DeliverResult {
   trade.contracts.completed += 1;
   addStanding(trade, portId);
   addGrowth(trade, portId, c.qty + ORDER_GROWTH_BONUS);
+  addRare(trade, portId, c.good, c.qty);
   trade.contracts.byPort[portId] = makeContract(
     map,
     port,
