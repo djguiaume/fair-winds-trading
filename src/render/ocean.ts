@@ -1,32 +1,92 @@
 import * as THREE from 'three';
 import type { IslandDef, TerrainDef } from '../sim/map';
+import { islandCoasts } from '../sim/islandLayout';
 import { PALETTE } from './palette';
 
-const MAX_ISLANDS = 12;
-const MAX_COAST_EDGES = 64;
-
+/** Baked shoreline distance: constant shader cost as authored coast complexity grows. */
 const shoreShader = /* glsl */ `
-uniform vec3 uIslands[${MAX_ISLANDS}];
-uniform int uIslandCount;
-uniform vec4 uCoastEdges[${MAX_COAST_EDGES}];
-uniform int uCoastEdgeCount;
+uniform sampler2D uShoreMap;
+uniform vec4 uShoreBounds;
 float shoreDistance(vec2 p) {
-  float d = 1e5;
-  for (int i = 0; i < ${MAX_ISLANDS}; i++) {
-    if (i >= uIslandCount) break;
-    d = min(d, length(p - uIslands[i].xy) - uIslands[i].z);
-  }
-  for (int i = 0; i < ${MAX_COAST_EDGES}; i++) {
-    if (i >= uCoastEdgeCount) break;
-    vec2 a = uCoastEdges[i].xy;
-    vec2 b = uCoastEdges[i].zw;
-    vec2 ab = b - a;
-    float t = clamp(dot(p - a, ab) / max(dot(ab, ab), 0.001), 0.0, 1.0);
-    d = min(d, length(p - (a + ab * t)));
-  }
-  return d;
+  vec2 uv = (p-uShoreBounds.xy)/uShoreBounds.zw;
+  if (any(lessThan(uv,vec2(0.0))) || any(greaterThan(uv,vec2(1.0)))) return 64.0;
+  return texture2D(uShoreMap,uv).r*64.0;
 }
 `;
+
+export function shoreTexture(islands: readonly IslandDef[], terrain: readonly TerrainDef[]) {
+  const edges: [number, number, number, number][] = [];
+  const circles: IslandDef[] = [];
+  const add = (outline: [number, number][]) =>
+    outline.forEach((a, i) => {
+      const b = outline[(i + 1) % outline.length]!;
+      edges.push([a[0], -a[1], b[0], -b[1]]);
+    });
+  for (const island of islands) {
+    const coasts = islandCoasts(island);
+    if (coasts) coasts.forEach(add);
+    else circles.push(island);
+  }
+  terrain.forEach((t) => add(t.outline));
+  const points = edges.flatMap(([x, z, u, v]) => [
+    [x, z],
+    [u, v],
+  ]);
+  circles.forEach((i) =>
+    points.push([i.x - i.radius, -i.y - i.radius], [i.x + i.radius, -i.y + i.radius]),
+  );
+  if (!points.length) points.push([-1, -1], [1, 1]);
+  const x0 = Math.min(...points.map((p) => p[0]!)) - 24;
+  const z0 = Math.min(...points.map((p) => p[1]!)) - 24;
+  const w = Math.max(...points.map((p) => p[0]!)) + 24 - x0;
+  const h = Math.max(...points.map((p) => p[1]!)) + 24 - z0;
+  const size = 512;
+  const distances = new Float32Array(size * size).fill(64);
+  // Rasterize only a 20-unit band around each segment/circle, not every edge per texel.
+  const band = (
+    xmin: number,
+    zmin: number,
+    xmax: number,
+    zmax: number,
+    distance: (x: number, z: number) => number,
+  ) => {
+    const xa = Math.max(0, Math.floor(((xmin - 20 - x0) / w) * size)),
+      xb = Math.min(size - 1, Math.ceil(((xmax + 20 - x0) / w) * size));
+    const za = Math.max(0, Math.floor(((zmin - 20 - z0) / h) * size)),
+      zb = Math.min(size - 1, Math.ceil(((zmax + 20 - z0) / h) * size));
+    for (let j = za; j <= zb; j++)
+      for (let i = xa; i <= xb; i++) {
+        const k = j * size + i;
+        distances[k] = Math.min(
+          distances[k]!,
+          distance(x0 + ((i + 0.5) / size) * w, z0 + ((j + 0.5) / size) * h),
+        );
+      }
+  };
+  for (const [x, z, u, v] of edges)
+    band(Math.min(x, u), Math.min(z, v), Math.max(x, u), Math.max(z, v), (px, pz) => {
+      const dx = u - x,
+        dz = v - z;
+      const t = Math.max(
+        0,
+        Math.min(1, ((px - x) * dx + (pz - z) * dz) / (dx * dx + dz * dz || 1)),
+      );
+      return Math.hypot(px - x - t * dx, pz - z - t * dz);
+    });
+  for (const c of circles)
+    band(c.x - c.radius, -c.y - c.radius, c.x + c.radius, -c.y + c.radius, (x, z) =>
+      Math.abs(Math.hypot(x - c.x, z + c.y) - c.radius),
+    );
+  const bytes = new Uint8Array(size * size * 4);
+  distances.forEach((d, i) => {
+    bytes[i * 4] = Math.round((d / 64) * 255);
+    bytes[i * 4 + 3] = 255;
+  });
+  const texture = new THREE.DataTexture(bytes, size, size, THREE.RGBAFormat);
+  texture.minFilter = texture.magFilter = THREE.LinearFilter;
+  texture.needsUpdate = true;
+  return { texture, bounds: new THREE.Vector4(x0, z0, w, h) };
+}
 
 const vertexShader = /* glsl */ `
 uniform float uTime;
@@ -136,32 +196,15 @@ export class Ocean {
     terrain: readonly TerrainDef[] = [],
   ) {
     this.cell = size / segments;
-    const islandUniform = Array.from({ length: MAX_ISLANDS }, (_, i) => {
-      const isl = islands[i];
-      // Sim y (north) is three.js -z.
-      return isl ? new THREE.Vector3(isl.x, -isl.y, isl.radius) : new THREE.Vector3();
-    });
-    const edges = terrain.flatMap(({ outline }) =>
-      outline.map((a, i) => {
-        const b = outline[(i + 1) % outline.length]!;
-        return new THREE.Vector4(a[0], -a[1], b[0], -b[1]);
-      }),
-    );
-    if (edges.length > MAX_COAST_EDGES) throw new Error('Map exceeds ocean coastline budget');
-    const edgeUniform = Array.from(
-      { length: MAX_COAST_EDGES },
-      (_, i) => edges[i] ?? new THREE.Vector4(),
-    );
+    const shore = shoreTexture(islands, terrain);
     const material = new THREE.ShaderMaterial({
       vertexShader,
       fragmentShader,
       defines: fancy ? { FANCY: '' } : { VERTEX_SHORES: '' },
       uniforms: {
         uTime: { value: 0 },
-        uCoastEdges: { value: edgeUniform },
-        uCoastEdgeCount: { value: edges.length },
-        uIslands: { value: islandUniform },
-        uIslandCount: { value: Math.min(islands.length, MAX_ISLANDS) },
+        uShoreMap: { value: shore.texture },
+        uShoreBounds: { value: shore.bounds },
         uSunDir: { value: new THREE.Vector3(-0.45, 0.8, 0.35).normalize() },
         uWater: { value: new THREE.Color(PALETTE.water) },
         uWaterLight: { value: new THREE.Color(PALETTE.waterLight) },
@@ -215,6 +258,7 @@ export class Ocean {
   }
 
   dispose(): void {
+    (this.mesh.material.uniforms.uShoreMap!.value as THREE.Texture).dispose();
     this.mesh.geometry.dispose();
     this.mesh.material.dispose();
   }

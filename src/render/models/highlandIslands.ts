@@ -130,13 +130,14 @@ export function islandParts(
   const sz = 1 + (rng() - 0.5) * 0.16;
   const out: Parts = [];
   // A port with a settlement level grows its own town and island profile (decision 0060).
-  const town = level !== undefined && !!look.dock;
+  const town = (level !== undefined || !!look.profile) && !!look.dock;
 
   if (town) {
     out.push(
       ...townIslandParts({
         seed,
-        level,
+        level: level ?? 1,
+        profile: look.profile,
         kind,
         R,
         sx,
@@ -302,7 +303,7 @@ export function islandParts(
 
   // The harbour (+Z) faces the course buoy named after this island, else a seeded direction.
   const wp = map.course.find((w) => w.label === island.name);
-  const bearing = wp ? bearingTo(island, wp) : rng() * Math.PI * 2;
+  const bearing = look.harbourBearing ?? (wp ? bearingTo(island, wp) : rng() * Math.PI * 2);
   // Exact pier head, shared with the pier's collision segment (decision 0038).
   if (look.dock && onHarbour) {
     const pier = pierAt(island, bearing);

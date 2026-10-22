@@ -1,3 +1,4 @@
+import { islandCoasts } from './islandLayout';
 import { coastDistance } from './coast';
 import type { IslandDef, TerrainDef } from './map';
 import { DEG, TAU, bearingVector, clamp, wrapAngle, wrapPositive } from './math';
@@ -335,12 +336,39 @@ export function windBlockers(
   islands: readonly IslandDef[],
   terrain: readonly TerrainDef[] = [],
 ): WindBlocker[] {
-  const out: WindBlocker[] = islands.map((i) => ({
-    height: clamp(i.radius / 18, 0.35, 1) * clamp(1 + 0.1 * ((i.look?.layers ?? 1) - 1), 1, 1.3),
-    x: i.x,
-    y: i.y,
-    r: i.radius,
-  }));
+  const out: WindBlocker[] = islands.flatMap((i) => {
+    const coasts = islandCoasts(i);
+    if (coasts)
+      return coasts.map((outline, index) => {
+        const x = outline.reduce((n, p) => n + p[0], 0) / outline.length;
+        const y = outline.reduce((n, p) => n + p[1], 0) / outline.length;
+        const r = Math.max(...outline.map((p) => Math.hypot(p[0] - x, p[1] - y)));
+        return {
+          height: index
+            ? clamp(r / 18, 0.2, 0.6)
+            : i.look?.profile === 'stone'
+              ? 1
+              : i.look?.profile === 'timber'
+                ? 0.9
+                : i.look?.profile === 'grain'
+                  ? 0.3
+                  : 0.65,
+          x,
+          y,
+          r,
+          outline,
+        };
+      });
+    return [
+      {
+        height:
+          clamp(i.radius / 18, 0.35, 1) * clamp(1 + 0.1 * ((i.look?.layers ?? 1) - 1), 1, 1.3),
+        x: i.x,
+        y: i.y,
+        r: i.radius,
+      },
+    ];
+  });
   for (const t of terrain) {
     if (t.kind !== 'island' || t.outline.length < 3) continue;
     let cx = 0,

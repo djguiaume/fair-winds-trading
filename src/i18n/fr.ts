@@ -344,7 +344,7 @@ export const fr: Record<MessageKey, string> = {
   'lesson.wind.continue': 'Continuer',
   'lesson.dock.title': 'Accostez à {origin}',
   'lesson.dock.copy':
-    'Suivez la flèche. Affalez tôt : sous 3 nd près du quai, l’équipage vous met à quai.',
+    'Suivez la flèche vers le quai au pavillon bleu et blanc. Affalez tôt : sous 1,5 nd près du quai, l’équipage vous met à quai.',
   'lesson.buy.title': 'Chargez une petite cargaison',
   'lesson.buy.copy': '{origin} produit : {good}. C’est bon marché ici. Achetez un lot.',
   'lesson.buy.continue': 'Utiliser ma cargaison actuelle',

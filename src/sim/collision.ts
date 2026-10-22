@@ -2,6 +2,7 @@ import type { BoatState } from './boat';
 import type { IslandDef, MapDef, TerrainDef } from './map';
 import { coastDistance } from './coast';
 import { bearingTo, bearingVector } from './math';
+import { islandCoasts, islandPoint, islandLake, characterPiers } from './islandLayout';
 
 /** What the boat ran into; hulls fare worst on reefs, then piers and rocky shores (decision 0038). */
 export type Surface = 'reef' | 'pier' | 'shore' | 'sandbank' | 'edge';
@@ -15,6 +16,7 @@ export const PIER_HALF_WIDTH = 0.45 * PIER_SCALE;
 /** A harbour pier as a solid segment from the island out to its head. */
 export interface Pier {
   islandId: string;
+  halfWidth?: number;
   x0: number;
   y0: number;
   /** Pier head: where the boat docks. */
@@ -33,17 +35,60 @@ export function pierAt(island: IslandDef, bearing: number): Pier {
   const x = island.radius * 0.08;
   const z0 = island.radius * 0.85;
   const z1 = z0 + Math.min(island.radius * 0.75, 4.5 * PIER_SCALE);
-  const root = at(x, z0);
+  const root = at(x, island.look?.profile ? island.radius * 0.63 : z0);
   const head = at(x, z1);
   return { islandId: island.id, x0: root.x, y0: root.y, x1: head.x, y1: head.y };
 }
 
 /** Piers that face the course buoy named after their island (the harbour side). */
-export function piersOf(map: Pick<MapDef, 'islands' | 'course'>): Pier[] {
+export function piersOf(
+  map: Pick<MapDef, 'islands' | 'course'> & Partial<Pick<MapDef, 'ports'>>,
+  levels: Record<string, number> = {},
+): Pier[] {
   const piers: Pier[] = [];
   for (const island of map.islands) {
     const wp = map.course.find((w) => w.label === island.name);
-    if (island.look?.dock && wp) piers.push(pierAt(island, bearingTo(island, wp)));
+    if (island.look?.dock && wp)
+      piers.push(
+        pierAt(
+          island,
+          island.look?.profile ? (island.look.harbourBearing ?? 0) : bearingTo(island, wp),
+        ),
+      );
+    if (island.look?.profile) {
+      const port = map.ports?.find((p) => p.islandId === island.id);
+      const level = port ? (levels[port.id] ?? port.level ?? 2) : 1;
+      const main = piers[piers.length - 1];
+      if (main?.islandId === island.id)
+        main.halfWidth = ([0.3, 0.45, 0.55, 0.55][level - 1] ?? 0.55) * PIER_SCALE;
+      const crossbar = (x: number, z: number, halfLength: number, halfWidth: number) => {
+        const a = islandPoint(island, x - halfLength, z),
+          b = islandPoint(island, x + halfLength, z);
+        piers.push({ islandId: island.id, x0: a.x, y0: a.y, x1: b.x, y1: b.y, halfWidth });
+      };
+      if (level >= 3)
+        crossbar(
+          0.08,
+          0.85 + Math.min(0.75, 9.9 / island.radius) - (0.4 * 2.2) / island.radius,
+          (1.4 * 2.2) / island.radius,
+          0.5 * 2.2,
+        );
+      for (const p of characterPiers(island.look.profile, island.radius / 2.2, level).slice(1)) {
+        const root = islandPoint(island, (p.x * 2.2) / island.radius, (p.z0 * 2.2) / island.radius);
+        const head = islandPoint(
+          island,
+          (p.x * 2.2) / island.radius,
+          ((p.z0 + p.len) * 2.2) / island.radius,
+        );
+        piers.push({ islandId: island.id, x0: root.x, y0: root.y, x1: head.x, y1: head.y });
+        crossbar(
+          (p.x * 2.2) / island.radius,
+          ((p.z0 - 0.1) * 2.2) / island.radius,
+          (1.3 * 2.2) / island.radius,
+          0.35 * 2.2,
+        );
+      }
+    }
   }
   return piers;
 }
@@ -65,6 +110,26 @@ export function resolveCollisions(
     if (hit === null || HARDNESS[surface] > HARDNESS[hit]) hit = surface;
   };
   for (const island of islands) {
+    const coasts = islandCoasts(island);
+    if (coasts) {
+      const lake = islandLake(island);
+      for (const [index, outline] of coasts.entries()) {
+        for (let pass = 0; pass < 8; pass++) {
+          let coast = coastDistance(boat.x, boat.y, outline);
+          if (index === 0 && lake) {
+            const hole = coastDistance(boat.x, boat.y, lake);
+            if (-hole.distance > coast.distance)
+              coast = { distance: -hole.distance, nx: -hole.nx, ny: -hole.ny };
+          }
+          if (coast.distance >= radius) break;
+          boat.x += coast.nx * (radius - coast.distance + 1e-6);
+          boat.y += coast.ny * (radius - coast.distance + 1e-6);
+          bump(boat, coast.nx, coast.ny);
+          touch('shore');
+        }
+      }
+      continue;
+    }
     const dx = boat.x - island.x;
     const dy = boat.y - island.y;
     const dist = Math.hypot(dx, dy) || 1e-6;
@@ -99,7 +164,7 @@ export function resolveCollisions(
     const dx = boat.x - (pier.x0 + sx * t);
     const dy = boat.y - (pier.y0 + sy * t);
     const dist = Math.hypot(dx, dy) || 1e-6;
-    const overlap = PIER_HALF_WIDTH + radius - dist;
+    const overlap = (pier.halfWidth ?? PIER_HALF_WIDTH) + radius - dist;
     if (overlap > 0) {
       const nx = dx / dist;
       const ny = dy / dist;

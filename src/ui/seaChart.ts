@@ -1,3 +1,4 @@
+import { islandCoasts, islandLake } from '../sim/islandLayout';
 import type { World } from '../sim/world';
 import { WIND_FORCES, windForce } from '../sim/windStrength';
 import { GOODS, type GoodId, isMadeGood } from '../sim/goods';
@@ -421,8 +422,28 @@ export class SeaChart {
     const places: { name: string; x: number; top: number; bottom: number }[] = [];
     const landBoxes: Box[] = [];
     for (const island of map.islands) {
-      land('circle', { cx: island.x, cy: -island.y, r: island.radius });
-      landBoxes.push(box(island.x, -island.y, island.radius * 2, island.radius * 2));
+      const coasts = islandCoasts(island);
+      if (coasts) {
+        for (const outline of coasts)
+          land('polygon', { points: outline.map(([x, y]) => `${x},${-y}`).join(' ') });
+      } else land('circle', { cx: island.x, cy: -island.y, r: island.radius });
+      const lake = islandLake(island);
+      if (lake)
+        shape('polygon', {
+          points: lake.map(([x, y]) => `${x},${-y}`).join(' '),
+          fill: '#2b9eac',
+          stroke: '#d6c4a4',
+          'stroke-width': 1,
+        });
+      if (coasts) {
+        const ps = coasts.flat();
+        landBoxes.push({
+          x0: Math.min(...ps.map((p) => p[0])),
+          x1: Math.max(...ps.map((p) => p[0])),
+          y0: Math.min(...ps.map((p) => -p[1])),
+          y1: Math.max(...ps.map((p) => -p[1])),
+        });
+      } else landBoxes.push(box(island.x, -island.y, island.radius * 2, island.radius * 2));
       if (island.name && !charted.some((p) => p.islandId === island.id))
         places.push({
           name: island.name,

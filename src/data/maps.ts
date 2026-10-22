@@ -2,6 +2,7 @@ import type { MapDef } from '../sim/map';
 import { DEFAULT_WEATHER } from '../sim/wind';
 import phase0 from './phase0-map.json';
 import phase1 from './phase1-map.json';
+import { bearingTo } from '../sim/math';
 
 // JSON imports type good ids as plain strings; the map tests check every id is a known good.
 export const PHASE0_MAP = phase0 as MapDef;
@@ -11,3 +12,11 @@ export const PHASE1_MAP: MapDef = {
   ...(phase1 as MapDef),
   wind: { weather: DEFAULT_WEATHER, ...(phase1 as MapDef).wind },
 };
+for (const island of PHASE1_MAP.islands) {
+  const port = PHASE1_MAP.ports.find((p) => p.islandId === island.id && !p.hidden);
+  const wp = PHASE1_MAP.course.find((p) => p.label === island.name);
+  if (port && wp && island.look) {
+    island.look.profile = port.produces[0] as 'fish' | 'timber' | 'grain' | 'stone';
+    island.look.harbourBearing = bearingTo(island, wp);
+  }
+}

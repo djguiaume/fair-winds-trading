@@ -88,4 +88,10 @@
 | [0070](0070-hazard-markers.md) | Hazard markers: one badge (icon, name, drift chevrons; storms add a soft cloud) on the chart and in warning toasts; storms slate, red kept for pirates | 2026-10-22 | Implementation for review |
 | [0072](0072-no-storms-in-tutorial-or-events.md) | No storms during the tutorial or special events: `holdStorms` with a reason; when storms return only new ones form at the sea's edge | 2026-10-22 | Implementation for review |
 
+| [0071](0071-distinct-producer-islands.md) | Distinct producer coastlines, lake and islets, visible beaches, organic towns and solid growing harbours | 2026-10-22 | Implemented for review |
+
+| [0072](0072-wooded-villages-and-working-landscapes.md) | Compact wooded villages, progressive clearing, visible fishing and boatbuilding, and a quarry cut into the mountain | 2026-10-22 | Implemented for review |
+
+| [0073](0073-calda-forested-mountain-plateau.md) | Calda retains dense upper woodland around an enlarged plateau and rocky mountain ridge | 2026-10-22 | Implemented for review |
+
 Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decision**, **Consequences**.

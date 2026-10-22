@@ -16,6 +16,10 @@ export interface IslandDef {
   radius: number;
   /** Visual hints for the island model; the simulation ignores them. */
   look?: {
+    /** Authored producer geography; omitted for legacy maps and small scenic islands. */
+    profile?: 'fish' | 'timber' | 'grain' | 'stone';
+    /** Harbour bearing in radians, shared with coastline transforms. */
+    harbourBearing?: number;
     /**
      * What the island's props show it produces (decision 0016): 'fish', 'timber', 'grain' or
      * 'stone'. Defaults to the first good its port produces; anything else draws a plain island.
