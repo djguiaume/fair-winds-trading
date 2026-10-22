@@ -27,6 +27,8 @@ import { daylightAt } from '../sim/daylight';
 import { StormClouds } from './stormClouds';
 import { stormRain } from '../sim/storms';
 
+/** Game time whose light is kept when day and night is off: early afternoon. */
+const ALWAYS_DAY = 200;
 const CAMERA_PITCH = 58 * DEG;
 const BASE_DISTANCE = 110;
 
@@ -54,6 +56,8 @@ export class GameView {
   /** Time of day and weather light (decisions 0067 and 0068). */
   private readonly atmosphere = new Atmosphere(this.scene, this.sun, this.hemi);
   private lanterns!: Lanterns;
+  /** Day and night cycle on (decision 0068); off holds early afternoon. */
+  dayNight = true;
   private readonly sternLantern = new THREE.Vector3();
   private readonly stormClouds = new StormClouds();
   private rain!: Rain;
@@ -291,7 +295,7 @@ export class GameView {
     );
     this.camera.lookAt(this.target);
     const fog = this.scene.fog as THREE.Fog;
-    const day = daylightAt(time);
+    const day = daylightAt(this.dayNight ? time : ALWAYS_DAY);
     this.atmosphere.update(dt, day, this.world.weather, this.ocean, this.target);
     const gloom = this.atmosphere.gloom;
     // Rain and the dark close in a little, never enough to hide the next island.

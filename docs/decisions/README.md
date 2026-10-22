@@ -84,7 +84,7 @@
 
 | [0066](0066-move-voyage-between-devices.md) | Move a voyage between devices without a server: QR code (main way, scan in game or with the camera app), copy/paste code, or `.json` file; checked and confirmed before replacing | 2026-10-22 | Implementation for review |
 
-| [0067](0067-weather-states-and-storms.md) | Weather states (calm, breeze, rain, gale) per period and moving storms that turn and strengthen the wind, darken the sea and soak fish, grain and bread | 2026-10-22 | Implementation for review |
+| [0067](0067-weather-states-and-storms.md) | Weather states (calm, breeze, rain, gale) per period and moving storms that turn and strengthen the wind, darken the sea; heeling too hard or too suddenly throws cargo overboard | 2026-10-22 | Implementation for review |
 
 | [0068](0068-day-and-night.md) | 12-minute day: golden dusk, blue moonlit night, dawn; the sun moves; harbour and stern lanterns; looks only, no gameplay change | 2026-10-22 | Implementation for review |
 

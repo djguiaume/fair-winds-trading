@@ -12,7 +12,16 @@ import {
   weatherSlot,
   windAt,
 } from '../src/sim/wind';
-import { PERISHABLE, SOAK_SECONDS, createWorld, stepStorms, stepWorld } from '../src/sim/world';
+import {
+  HEAVY_HEEL,
+  HEAVY_SECONDS,
+  type World,
+  type WorldEvent,
+  createWorld,
+  stepHeel,
+  stepWorld,
+} from '../src/sim/world';
+import type { MapDef } from '../src/sim/map';
 
 const STORMS = DEFAULT_WEATHER.storms!;
 const seed = PHASE1_MAP.seed;
@@ -98,7 +107,7 @@ describe('moving storms (0067)', () => {
   });
 });
 
-describe('storm warnings and soaked cargo (0067)', () => {
+describe('storm warnings (0067)', () => {
   function worldInStorm() {
     const { t, storm } = firstStorm();
     const world = createWorld(PHASE1_MAP, SLOOP);
@@ -120,30 +129,68 @@ describe('storm warnings and soaked cargo (0067)', () => {
     const again = stepWorld(world, { steer: 0, sailStep: 0 }, 0.1);
     expect(again.some((e) => e.type === 'storm-near')).toBe(false);
   });
+});
 
-  it('spoils some perishable cargo in the core, but not timber', () => {
-    const { world } = worldInStorm();
-    const cargo = world.trade.captain.cargo;
-    cargo.fish = 20;
-    cargo.timber = 10;
-    const spoiled = [];
-    for (let i = 0; i < (SOAK_SECONDS * 2.5) / 0.1; i++)
-      spoiled.push(...stepWorld(world, { steer: 0, sailStep: 0 }, 0.1));
-    const events = spoiled.filter((e) => e.type === 'spoiled');
-    expect(events.length).toBeGreaterThanOrEqual(1);
-    expect(cargo.fish).toBeLessThan(20);
-    expect(cargo.fish).toBeGreaterThan(10);
-    expect(cargo.timber).toBe(10);
-    expect(PERISHABLE).not.toContain('timber');
+describe('cargo overboard when she heels too hard (0067)', () => {
+  /** Beam reach in a steady wind of `kn` knots for `seconds`, kept in open water. */
+  function sail(kn: number, sailStep: number, seconds: number, setup?: (w: World) => void) {
+    const map: MapDef = {
+      ...PHASE1_MAP,
+      wind: { fromDeg: 0, speedKn: kn, gustiness: 0, shiftDeg: 0 },
+    };
+    const world = createWorld(map, SLOOP);
+    world.trade.captain.cargo.timber = 6;
+    world.trade.captain.cargo.fish = 4;
+    const lost: WorldEvent[] = [];
+    for (let t = 0; t < seconds; t += 1 / 30) {
+      world.boat.x = 0;
+      world.boat.y = 400 - 30;
+      world.boat.heading = Math.PI / 2;
+      setup?.(world);
+      lost.push(
+        ...stepWorld(world, { steer: 0, sailStep }, 1 / 30).filter((e) => e.type === 'overboard'),
+      );
+    }
+    return { world, lost };
+  }
+
+  it('never loses cargo in a normal breeze under full sail', () => {
+    expect(sail(14, 2, 60).lost).toHaveLength(0);
+    expect(sail(17, 2, 60).lost).toHaveLength(0);
   });
 
-  it('keeps cargo dry while docked', () => {
-    const { world } = worldInStorm();
-    stepWorld(world, { steer: 0, sailStep: 0 }, 0.1);
-    expect(world.weather.storm).toBeGreaterThan(0.5);
+  it('keeps the cargo through gusts and tacks in the real breeze', () => {
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    world.trade.captain.cargo.timber = 6;
+    let lost = 0;
+    // Five minutes of the opening breeze (before the first storm), tacking every 20 s.
+    for (let t = 0; t < 280; t += 1 / 30) {
+      world.boat.x = 0;
+      world.boat.y = 370;
+      const steer = Math.floor(t / 20) % 2 === 0 ? 0 : t % 20 < 3 ? 1 : 0;
+      lost += stepWorld(world, { steer, sailStep: 2 }, 1 / 30).filter(
+        (e) => e.type === 'overboard',
+      ).length;
+    }
+    expect(lost).toBe(0);
+  });
+
+  it('throws cargo over the side under full sail in a gale', () => {
+    const { world, lost } = sail(24, 2, 30);
+    expect(Math.abs(world.heel.angle)).toBeGreaterThan(HEAVY_HEEL);
+    expect(lost.length).toBeGreaterThanOrEqual(5);
+    // The good she carries most of goes first.
+    expect(lost[0]).toMatchObject({ type: 'overboard', good: 'timber', qty: 1 });
+  });
+
+  it('keeps the cargo when the sails are eased', () => {
+    expect(sail(24, 1, 60).lost).toHaveLength(0);
+  });
+
+  it('loses nothing alongside', () => {
+    const { world } = sail(24, 2, 5);
     world.trade.dockedAt = PHASE1_MAP.homePort!;
-    world.trade.captain.cargo.fish = 20;
-    for (let i = 0; i < (SOAK_SECONDS * 3) / 0.1; i++) stepStorms(world, 0.1);
-    expect(world.trade.captain.cargo.fish).toBe(20);
+    world.overHeel = HEAVY_SECONDS * 0.9;
+    for (let i = 0; i < 300; i++) expect(stepHeel(world, 1 / 30)).toHaveLength(0);
   });
 });

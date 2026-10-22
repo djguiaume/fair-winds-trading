@@ -294,11 +294,8 @@ export class Hud {
         this.showToast(t(e.surface === 'pier' ? 'toast.crashPier' : 'toast.crash', { pct }), 2.5);
       } else if (e.type === 'storm-near') {
         this.showToast(t('toast.stormNear', { dir: compassPoint(e.bearing) }), 4);
-      } else if (e.type === 'spoiled') {
-        const list = Object.entries(e.goods)
-          .map(([g, n]) => `${n} ${goodName(g)}`)
-          .join(', ');
-        this.showToast(t('toast.spoiled', { list }), 3);
+      } else if (e.type === 'overboard') {
+        this.showToast(t('toast.overboard', { n: e.qty, good: goodName(e.good) }), 3);
       } else if (e.type === 'bump' && this.toastTimer <= 0) {
         this.showToast(t('toast.bump'), 1.2);
       }
