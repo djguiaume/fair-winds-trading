@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fair Winds Trading · Map editor</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <header class="ed-top">
+      <h1>Map editor</h1>
+      <span class="ed-file"
+        ><b id="ed-map-name"></b> · phase1-map.json
+        <span id="ed-edited" hidden>· ● edited</span></span
+      >
+      <nav class="ed-actions">
+        <button id="ed-undo" title="Undo (Ctrl+Z)">↶ Undo</button>
+        <button id="ed-redo" title="Redo (Ctrl+Shift+Z)">↷ Redo</button>
+        <button id="ed-reset" title="Back to the map shipped with the game">Reset</button>
+        <button id="ed-import" title="Open a map .json file">Import</button>
+        <button id="ed-play" title="Open the game on this map in a new tab">▶ Play this map</button>
+        <button id="ed-export" class="primary">Export map.json</button>
+        <a href="./" title="The game">Game</a>
+        <input id="ed-file" type="file" accept=".json,application/json" hidden />
+      </nav>
+    </header>
+    <main class="ed-main">
+      <aside class="ed-tools" id="ed-tools" aria-label="Tools"></aside>
+      <section class="ed-chart">
+        <svg id="ed-map" tabindex="0" aria-label="Map"></svg>
+        <div class="ed-toggles" id="ed-toggles"></div>
+        <div class="ed-zoom">
+          <button id="ed-zoom-in" aria-label="Zoom in">+</button>
+          <button id="ed-zoom-out" aria-label="Zoom out">−</button>
+          <button id="ed-zoom-fit" aria-label="Fit the map">⤢</button>
+        </div>
+        <p class="ed-hint" id="ed-hint"></p>
+      </section>
+      <aside class="ed-panel">
+        <div id="ed-props"></div>
+        <div class="ed-check-box">
+          <h2>Checks</h2>
+          <ul id="ed-checks" class="ed-checks"></ul>
+          <p class="ed-note">Same checks as the test suite, run in the page.</p>
+        </div>
+      </aside>
+    </main>
+    <script type="module" src="/src/editor/editor.ts"></script>
+  </body>
+</html>
