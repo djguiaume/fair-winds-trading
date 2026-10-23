@@ -114,3 +114,4 @@ Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decis
 | [0089](0089-skip-dry-rain.md) | Skip rain particles and uploads when showers and storm circles cannot reach the camera rain field | 2026-10-22 | Implemented for review |
 | [0090](0090-pier-refresh-level-snapshot.md) | Reuse pier geometry without allocating or serializing levels on unchanged simulation steps | 2026-10-22 | Implemented for review |
 | [0091](0091-translation-quality-pass.md) | Translation quality pass: French in-sentence forms for goods and ships, sailor's vocabulary, no-break spaces, English sentence case | 2026-10-23 | Implemented for review |
+| [0092](0092-phase-2-release.md) | Phase 2 released as v0.2.73 on the merge of PR #67; package.json 0.3.0 and the menu open Phase 3 | 2026-10-23 | Accepted |

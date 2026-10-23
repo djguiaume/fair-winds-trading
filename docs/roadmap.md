@@ -2,7 +2,7 @@
 
 One-picture summary for phones: [roadmap-image/roadmap.png](roadmap-image/roadmap.png) (source `roadmap-image/roadmap.html`, render with `node docs/roadmap-image/shot.cjs`).
 
-Versions follow the phases: the menu shows `v0.<phase>.<deploy>` (Phase 1 is `v0.1.x`, Phase 2 is `v0.2.x`), see [0042](decisions/0042-light-versioning.md). Each finished phase gets a GitHub release ([0062](decisions/0062-github-releases-per-phase.md), [notes](releases/README.md)).
+Versions follow the phases: the menu shows `v0.<phase>.<deploy>` (Phase 1 is `v0.1.x`, Phase 2 is `v0.2.x`, Phase 3 is `v0.3.x`), see [0042](decisions/0042-light-versioning.md). Each finished phase gets a GitHub release ([0062](decisions/0062-github-releases-per-phase.md), [notes](releases/README.md)).
 
 A top-down, low-poly sailing and trading game for the browser. The visual style follows the *Privateers: Pirate Wars* ad ([screenshots](reference/), teal stylized ocean, sandy islands with soft glow, chunky wooden ships, floating UI bars), but the core loop is **sailing with the wind and delivering goods**, not combat.
 
@@ -94,7 +94,7 @@ Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 
 Goal: deliveries visibly change the world.
 
-**Status (2026-10-22):** started; the menu now shows Phase 2 and `v0.2.x`. Growing town visuals (ADR 0060) are in; settlement levels and town specialties (ADR 0059, 0063, PR #42) are in review.
+**Done (2026-10-23):** released as [v0.2.73](releases/v0.2.73.md) ([0092](decisions/0092-phase-2-release.md)): settlement levels, workshops, rare goods, help orders, weather, storms, day and night, difficulty levels, save transfer, solid harbours, the refined hauler models and the translation pass.
 
 - Settlements have a level and population; meeting demand levels them up (more buildings on the island, bigger dock). **Levels implemented for review ([0059](decisions/0059-settlement-levels.md)):** hamlet, village, town, port town; selling wanted goods and delivering orders grow a town; the home port must be a town before the top upgrades. Town visuals accepted in [0060](decisions/0060-growing-town-visuals.md): each port with its own island profile, buildings, industry and growing dock; a level-3 workshop per town (sawmill, smokehouse, bakery, masons). The four producers now have distinct polygon coasts, a lake/islets/cliff/inlets, visible beaches and organic hamlet-to-town layouts ([0071](decisions/0071-distinct-producer-islands.md), implemented for review). The visual revision adds wooded village nuclei, progressive clearing, readable working waterfronts and a mountain-cut quarry ([0072](decisions/0072-wooded-villages-and-working-landscapes.md)). Calda retains a forested mountain plateau even at level 4 ([0073](decisions/0073-calda-forested-mountain-plateau.md)). Their growing T-heads, secondary piers and quays are solid; hidden yards retain the legacy models. Moored fishing boats and the yards' grown docks are solid too, ramming a moored boat dents the hull ([0082](decisions/0082-solid-moored-boats-and-yard-docks.md), implemented for review).
 - Higher levels unlock new demands, including goods produced only on distant islands. *Done: level wants, deeper demand, bigger orders, and town specialties ([0063](decisions/0063-specialized-town-goods.md)); and rare goods from the far yards ([0065](decisions/0065-rare-goods-from-the-far-yards.md), implemented for review): Abbey Head makes honey and Watchman Key lamp oil once they grow to villages, bought only across the map; a town needs 20 of its rare good to become a port town.*
@@ -105,6 +105,8 @@ Goal: deliveries visibly change the world.
 ## Phase 3 — Fleet and automated trade routes
 
 Goal: shift from sailing every trip to designing a network. This is the main twist on the reference game.
+
+**Status (2026-10-23):** started; the menu now shows Phase 3 and `v0.3.x`.
 
 - Buy additional ships from three lines after the starter sloop ([0035](decisions/0035-three-ship-lines.md), refining [0011](decisions/0011-ship-lineup-and-upgrades.md)): **swift** (cutter → schooner → clipper: fast, agile, average hold) and **hauler** (hoy → fluyt → indiaman: huge hold, slow, poor upwind). Each line is built at its own discoverable port and unlocked by deliveries there ([0030](decisions/0030-home-base-upgrades-and-earned-ships.md)); buying and sailing them already works ([0048](decisions/0048-ship-unlocks-home-port-and-yards.md)), Phase 3 adds owning and running several at once. Each class has its own polar curve and the same three upgrade tracks; the player can mix lines in the fleet.
 - Route editor: pick ports in order, what to load/unload at each, and assign ships.
