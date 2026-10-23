@@ -1,6 +1,6 @@
 # Choosing the game's direction: mockups
 
-**Status:** for Guillaume's review, 2026-10-23. Nothing chosen; the choice will be recorded as a new ADR.
+**Status:** reviewed 2026-10-23. **Guillaume chose B and A merged, each shorter, and the expedition as a later extension: [0120](../../../decisions/0120-communities-and-home-island.md)** (see the end of this page).
 **Related:** [the comparison](../README.md), [decision 0097](../../../decisions/0097-progression-candidates-and-later-extensions.md), [roadmap](../../../roadmap.md) Phase 3.
 
 The [comparison](../README.md) asks for "an equally concrete 30-minute sequence for each" direction before choosing. These static mockups give each one that: what you would see, how long it lasts, what it costs to build and which data files it adds. They were also shown as a slide deck.
@@ -104,3 +104,14 @@ C waits for the 5x map, where its new region fits. Picking one direction now and
 - Game screenshots: production build, headless Chromium, `?debug` to place the ship; `models.html?view=towns&kind=grain&still` for Westholm's levels.
 - The harbour island (A1, A2, A4, A5): a **test** island file for Lantern Rock (radius 20 instead of 10, 42-prop catalogue: cabin, ruins, warehouse, cutting shed, lighthouse, market hall, field, slipway…) built in a scratch copy, in three stages; generator in [src/test-island.py](src/test-island.py). Nothing in the game changed.
 - UI overlays: HTML in the game's colours and Barlow fonts ([src/frames.html](src/frames.html)), rendered to JPEG. The frames tagged "Mockup" are proposals; "Real game render" means the 3D picture is the real game.
+
+## The choice (2026-10-23)
+
+Guillaume's direction, recorded in [0120](../../../decisions/0120-communities-and-home-island.md):
+
+- **B and A merged, each shorter.** The people's arcs are the spine (about 4 arcs of about 3 steps); your home island is where their rewards show (about 6 buildings).
+- **An arc's result grows both islands:** a visible change in the port you helped, and a building on yours.
+- **A choice between two buildings each time**, each with small modifiers (example: workshop, repairs at home cheaper; rigging loft, sail upgrades cheaper). Sidegrades, not better and worse.
+- **The building not chosen comes back later at a higher price**, provisionally; to review with the prototype.
+- **Fixed build spots** instead of free placement: tap a spot, pick one of the two. Simple on a phone.
+- **The expedition is a later extension**, next to steam and pirates.

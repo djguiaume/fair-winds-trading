@@ -226,6 +226,6 @@ Suggested survey options:
 
 ## Next decision
 
-**Mockups for the choice (2026-10-23):** [one concrete session per direction, with play time, effort and data files](directions/README.md).
+**Decided 2026-10-23 ([0120](../../decisions/0120-communities-and-home-island.md)):** B and A merged, each shorter: community arcs are the spine and build your home island (a choice of two buildings per arc, fixed build spots); C, the expedition, becomes a later extension. [Mockups used for the choice](directions/README.md).
 
 Choose the primary motivation only after comparing the small prototypes or equivalent concrete play sequences. The initial assessment favors ownership (A) and relationships (B); expedition (C) remains a credible challenger. This ranking is advisory and is not Guillaume's selection. Steam, automation and pirates remain later work regardless of which wins.
