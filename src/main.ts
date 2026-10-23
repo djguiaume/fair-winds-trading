@@ -1,4 +1,5 @@
 import { PHASE1_MAP } from './data/maps';
+import { EDITED_PREFIX, editedMap, prefixedStorage } from './data/editedMap';
 import { Input } from './input/input';
 import { FrameMonitor, type QualityLevel, guessQuality, lowerQuality } from './render/quality';
 import { GameView } from './render/view';
@@ -79,15 +80,30 @@ if (!document.createElement('canvas').getContext('webgl2')) {
   throw new Error('WebGL2 not available');
 }
 
-const world = createWorld(PHASE1_MAP, SLOOP);
 // Progress (gold, ships, cargo, markets, position) auto-saves to the browser (decision 0015).
-const storage: SaveStorage | null = (() => {
+const browserStorage: SaveStorage | null = (() => {
   try {
     return window.localStorage;
   } catch {
     return null;
   }
 })();
+// "Play this map" from the map editor (decision 0095): its own map, save and tutorial progress.
+const playtestMap = editedMap(location.search, browserStorage);
+const storage =
+  playtestMap && browserStorage ? prefixedStorage(browserStorage, EDITED_PREFIX) : browserStorage;
+const world = createWorld(playtestMap ?? PHASE1_MAP, SLOOP);
+if (playtestMap) {
+  document.title = `Edited map · ${document.title}`;
+  const badge = document.createElement('a');
+  badge.href = './editor.html';
+  badge.textContent = 'Edited map · back to editor';
+  badge.style.cssText =
+    'position:fixed;left:50%;bottom:6px;transform:translateX(-50%);z-index:50;padding:3px 10px;' +
+    'border-radius:10px;background:#123246e6;color:#f3d37e;font:600 12px sans-serif;' +
+    'text-decoration:none;';
+  document.body.append(badge);
+}
 const resumedVoyage = storage ? loadGame(storage, world) : false;
 let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
 const view = new GameView(canvas, world, level);

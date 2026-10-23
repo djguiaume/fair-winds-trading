@@ -2,21 +2,18 @@ import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { PHASE0_MAP, PHASE1_MAP } from '../src/data/maps';
 import { createBoat, stepBoat } from '../src/sim/boat';
-import { islandCoasts, islandPoint } from '../src/sim/islandLayout';
+import { islandPoint } from '../src/sim/islandLayout';
 import { coastDistance, insetOutline } from '../src/sim/coast';
 import { resolveCollisions } from '../src/sim/collision';
 import type { MapDef, TerrainDef } from '../src/sim/map';
 import { DEG, bearingTo, clamp, wrapAngle } from '../src/sim/math';
-import { SLOOP, CUTTER, noGoAngle, polarFraction } from '../src/sim/ship';
+import { SLOOP, CUTTER } from '../src/sim/ship';
 import { applySave, serializeWorld, validateSave } from '../src/sim/save';
 import { createWorld } from '../src/sim/world';
+import { type SailRoute, clearAt, sailRoute } from '../src/sim/mapChecks';
 import { buildHighlandIslands, terrainProps } from '../src/render/models/highlandIslands';
 import { triangleCount } from '../src/render/models/geometry';
 import { Ocean } from '../src/render/ocean';
-import { TUNING } from '../src/data/tuning';
-
-// Tuning values moved to src/data/tuning (decision 0094).
-const KNOT_TO_UNITS = TUNING.seamanship.boat.knotToUnits;
 
 const terrain = PHASE1_MAP.terrain!;
 const square: TerrainDef = {
@@ -29,33 +26,9 @@ const square: TerrainDef = {
     [0, 20],
   ],
 };
-const clearanceCache = new WeakMap<MapDef, Map<string, boolean>>();
-function clear(x: number, y: number, margin: number, map = PHASE1_MAP) {
-  let cache = clearanceCache.get(map);
-  if (!cache) {
-    cache = new Map();
-    clearanceCache.set(map, cache);
-  }
-  const key = `${x.toFixed(4)},${y.toFixed(4)},${margin}`;
-  const prior = cache.get(key);
-  if (prior !== undefined) return prior;
-  const result = clearUncached(x, y, margin, map);
-  cache.set(key, result);
-  return result;
-}
-function clearUncached(x: number, y: number, margin: number, map = PHASE1_MAP) {
-  return (
-    Math.hypot(x, y) < map.boundsRadius - margin &&
-    map.islands.every((i) => {
-      const coasts = islandCoasts(i);
-      return coasts
-        ? coasts.every((c) => coastDistance(x, y, c).distance > margin)
-        : Math.hypot(x - i.x, y - i.y) > i.radius + margin;
-    }) &&
-    (map.terrain ?? []).every((t) => coastDistance(x, y, t.outline).distance > margin)
-  );
-}
-
+// The clear-water and route rules live in src/sim/mapChecks.ts so the map editor runs them too.
+const clear = (x: number, y: number, margin: number, map = PHASE1_MAP) =>
+  clearAt(map, x, y, margin);
 describe('polygon coast collisions', () => {
   it('expels a hull from land and stops a glancing shore overlap for either winding', () => {
     for (const outline of [square.outline, [...square.outline].reverse()]) {
@@ -256,102 +229,24 @@ describe('Windward Ring trading map', () => {
   });
 });
 
-// Independent coarse navigation audit: 16 sailing headings, no-go angles excluded, every
-// segment checked against coasts at <=3-unit intervals with extra hull/turning clearance.
-// Costs estimate steady sailing time; the measured circuit below also runs the boat model.
+// Independent coarse navigation audit (sailRoute): 16 sailing headings, no-go angles excluded,
+// every segment checked against coasts with extra hull/turning clearance. Costs estimate steady
+// sailing time; the measured circuit below also runs the boat model.
 type Point = { x: number; y: number };
 const STEP = 8;
-const dirs = [
-  [-1, -1],
-  [-1, 0],
-  [-1, 1],
-  [0, -1],
-  [0, 1],
-  [1, -1],
-  [1, 0],
-  [1, 1],
-  [-2, -1],
-  [-2, 1],
-  [2, -1],
-  [2, 1],
-  [-1, -2],
-  [1, -2],
-  [-1, 2],
-  [1, 2],
-];
 function route(
   start: Point,
   goal: Point,
   windDeg: number,
   map: MapDef = PHASE1_MAP,
   turningClearance = 11,
-): { points: Point[]; seconds: number } {
-  const key = (p: Point) => `${p.x},${p.y}`;
-  const snap = (p: Point) => ({
-    x: Math.round(p.x / STEP) * STEP,
-    y: Math.round(p.y / STEP) * STEP,
-  });
-  const first = snap(start),
-    last = snap(goal),
-    end = key(last);
-  const dist = new Map<string, number>([[key(first), 0]]),
-    prev = new Map<string, string>();
-  const points = new Map<string, Point>([[key(first), first]]);
-  const heuristic = (p: Point) =>
-    Math.hypot(p.x - last.x, p.y - last.y) / (14 * SLOOP.speedRatio * KNOT_TO_UNITS);
-  const queue = [{ p: first, cost: 0, priority: heuristic(first) }];
-  while (queue.length) {
-    queue.sort((a, b) => b.priority - a.priority);
-    const { p, cost } = queue.pop()!;
-    const k = key(p);
-    if (cost !== dist.get(k)) continue;
-    if (k === end) {
-      const path: Point[] = [];
-      let at: string | undefined = k;
-      while (at) {
-        path.push(points.get(at)!);
-        at = prev.get(at);
-      }
-      const ordered = path.reverse();
-      const simplified = ordered.filter((p, i) => {
-        if (i === 0 || i === ordered.length - 1) return true;
-        const a = ordered[i - 1]!,
-          b = ordered[i + 1]!;
-        return (p.x - a.x) * (b.y - p.y) !== (p.y - a.y) * (b.x - p.x);
-      });
-      return { points: simplified, seconds: cost };
-    }
-    for (const [dx, dy] of dirs) {
-      const q = { x: p.x + dx! * STEP, y: p.y + dy! * STEP };
-      const angle = Math.abs(wrapAngle(bearingTo(p, q) - windDeg * DEG));
-      if (angle < noGoAngle(SLOOP) + 10 * DEG) continue;
-      const length = Math.hypot(q.x - p.x, q.y - p.y),
-        samples = Math.ceil(length / 3);
-      let free = true;
-      for (let i = 1; i <= samples; i++)
-        if (
-          !clear(
-            p.x + ((q.x - p.x) * i) / samples,
-            p.y + ((q.y - p.y) * i) / samples,
-            SLOOP.radius + turningClearance,
-            map,
-          )
-        ) {
-          free = false;
-          break;
-        }
-      if (!free) continue;
-      const next =
-        cost + length / (14 * SLOOP.speedRatio * polarFraction(SLOOP, angle) * KNOT_TO_UNITS);
-      const nk = key(q);
-      if (next >= (dist.get(nk) ?? Infinity)) continue;
-      dist.set(nk, next);
-      points.set(nk, q);
-      prev.set(nk, k);
-      queue.push({ p: q, cost: next, priority: next + heuristic(q) });
-    }
-  }
-  throw new Error(`No sailable route ${key(start)} → ${key(goal)} in wind ${windDeg}`);
+): SailRoute {
+  const plan = sailRoute(map, start, goal, windDeg, turningClearance);
+  if (!plan)
+    throw new Error(
+      `No sailable route ${start.x},${start.y} → ${goal.x},${goal.y} in wind ${windDeg}`,
+    );
+  return plan;
 }
 const approaches = PHASE1_MAP.ports.map((port) => {
   const island = PHASE1_MAP.islands.find((i) => i.id === port.islandId)!;

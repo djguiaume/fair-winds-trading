@@ -117,3 +117,4 @@ Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decis
 | [0092](0092-phase-2-release.md) | Phase 2 released as v0.2.73 on the merge of PR #67; package.json 0.3.0 and the menu open Phase 3 | 2026-10-23 | Accepted |
 | [0093](0093-data-driven-content-and-authoring-tools.md) | Data-driven tuning and content (one file per ship: model, sailing, unlock) with a `?tune` panel, a map editor page and an in-panel balance check | 2026-10-23 | Accepted |
 | [0094](0094-tuning-moved-to-data.md) | Tuning moved to data: `src/data/tuning/*.json` read through a live `TUNING` object, `tuning-meta.ts` per value, same values as before | 2026-10-23 | Implemented for review |
+| [0095](0095-map-editor.md) | Map editor page `editor.html`: drag islands, ports, waypoints and coastlines, edit ports, map checks shared with the tests, play the edited map on its own save, export Prettier-ready JSON | 2026-10-23 | Implemented for review |

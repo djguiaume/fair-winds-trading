@@ -7,16 +7,29 @@ import { bearingTo } from '../sim/math';
 // JSON imports type good ids as plain strings; the map tests check every id is a known good.
 export const PHASE0_MAP = phase0 as MapDef;
 
-/** The trading map gets slow weather shifts (decision 0026); Phase 0 practice keeps a steady wind. */
-export const PHASE1_MAP: MapDef = {
-  ...(phase1 as MapDef),
-  wind: { weather: DEFAULT_WEATHER, ...(phase1 as MapDef).wind },
-};
-for (const island of PHASE1_MAP.islands) {
-  const port = PHASE1_MAP.ports.find((p) => p.islandId === island.id && !p.hidden);
-  const wp = PHASE1_MAP.course.find((p) => p.label === island.name);
-  if (port && wp && island.look) {
-    island.look.profile = port.produces[0] as 'fish' | 'timber' | 'grain' | 'stone';
-    island.look.harbourBearing = bearingTo(island, wp);
+/** The shipped trading map as authored, before `prepareMap`; the map editor starts from it. */
+export const PHASE1_SOURCE = phase1 as MapDef;
+
+/**
+ * Turns an authored trading map into the one the game sails: slow weather shifts (decision 0026)
+ * and each port island's look facing its course waypoint. Works on a copy, so the map editor can
+ * prepare its edited map as often as it likes (decision 0095).
+ */
+export function prepareMap(source: MapDef): MapDef {
+  const raw = structuredClone(source);
+  const map: MapDef = {
+    ...raw,
+    wind: { weather: DEFAULT_WEATHER, ...raw.wind },
+  };
+  for (const island of map.islands) {
+    const port = map.ports.find((p) => p.islandId === island.id && !p.hidden);
+    const wp = map.course.find((p) => p.label === island.name);
+    if (port && wp && island.look) {
+      island.look.profile = port.produces[0] as 'fish' | 'timber' | 'grain' | 'stone';
+      island.look.harbourBearing = bearingTo(island, wp);
+    }
   }
+  return map;
 }
+
+export const PHASE1_MAP: MapDef = prepareMap(PHASE1_SOURCE);

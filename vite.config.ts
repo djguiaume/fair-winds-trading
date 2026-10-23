@@ -21,11 +21,13 @@ export default defineConfig({
   build: {
     target: 'es2020',
     chunkSizeWarningLimit: 800,
-    // models.html is the model sheet (decision 0016), published next to the game.
+    // models.html is the model sheet (decision 0016) and editor.html the map editor (decision
+    // 0095), both published next to the game; players never load them.
     rollupOptions: {
       input: {
         main: 'index.html',
         models: 'models.html',
+        editor: 'editor.html',
       },
     },
   },
