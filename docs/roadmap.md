@@ -136,7 +136,7 @@ Goal: growth pushes you outward into tougher navigation.
 
 - Pirate ships that hunt loaded merchants; outrun them, or arm ships with light defenses.
 - Pirate sightings use the hazard marker on the chart and in warnings ([0070](decisions/0070-hazard-markers.md)), with a red badge.
-- Pirates can be switched off in Settings, like storms ([0067](decisions/0067-weather-states-and-storms.md)): every hazard gets an on/off switch.
+- Pirates can be switched off in Settings, like storms ([0067](decisions/0067-weather-states-and-storms.md)): every hazard gets an on/off switch. Each difficulty level ([0083](decisions/0083-difficulty-levels.md)) also scales how often pirates show up and what a boarding costs.
 - Ship health and repairs at ports; escort ships for valuable routes.
 - **Warship line** (ketch → brig → frigate: lots of firepower and hull, low cargo, slow upwind) from a naval yard, and a fourth upgrade track, **guns**, so any ship can arm a little ([0035](decisions/0035-three-ship-lines.md)). Swift ships escape pirates, warships fight them, haulers need escorts.
 
@@ -161,7 +161,7 @@ Timed delivery races between ports, alongside the sandbox rather than replacing 
 - Clipper refinement is implemented for review ([0056](decisions/0056-refined-upgrade-aware-clipper.md)): independent fine-entry hull, three attached fore-and-aft rigs and individual jib stays, all 27 upgrades, unchanged hull-sized wake and three graphics levels; maximum 1,191 triangles / 11 mesh draws. [Engine captures and budgets](art/game-models/refined-clipper/README.md). Physical older-tablet FPS validation remains.
 - **Remaining ship models (in progress, [0077](decisions/0077-one-file-per-ship-model.md)), before Phase 3:** the hoy, fluyt and indiaman still use the original storybook model ([comparison sheet](art/game-models/ship-compare.png)). Each is redesigned in its own file and thread to the same bar as the clipper. **Fluyt done for review ([0079](decisions/0079-refined-fluyt-and-square-rig.md))**: it adds the shared square rig and stern castle, which the indiaman reuses; **Hoy done for review ([0080](decisions/0080-refined-upgrade-aware-hoy.md), [screenshots](art/game-models/refined-hoy/README.md))**; **Indiaman done for review ([0081](decisions/0081-refined-indiaman.md), [screenshots](art/game-models/refined-indiaman/README.md))**: own wall-sided hull, broad transom and gun ports on the shared square rig. Warship models come with Phase 5.
 - Achievements.
-- **Kids mode rework** (shelved in [0043](decisions/0043-shelve-kids-mode.md), code kept behind `KIDS_MODE_AVAILABLE`): rework controls, text and pacing so a child can actually sail and trade, on top of the redesigned UI, then show the switch again.
+- **Kids mode rework** (shelved in [0043](decisions/0043-shelve-kids-mode.md), code kept behind `KIDS_MODE_AVAILABLE`): rework controls, text and pacing so a child can actually sail and trade, on top of the redesigned UI and the Fair winds level ([0083](decisions/0083-difficulty-levels.md)), then show the switch again.
 - Possible later: online leaderboards or shared world (needs a backend; decide much later).
 
 ---
@@ -182,3 +182,4 @@ Decided in [decision 0005](decisions/0005-tech-stack.md): three.js + TypeScript 
 - ~~Art style?~~ Decided ([0012](decisions/0012-boat-and-island-art-style.md), mockups in [docs/art](art/)): A sea colours, B2 bright highland islands, D storybook classic boats. Built in the game ([0016](decisions/0016-game-models-style-d-and-b2.md)): sloop and cutter with visible upgrades, the four producer islands.
 - How much simulation runs for off-screen automated ships (needed from Phase 3)? The stack keeps the sim renderer-free so it can run off-screen or in a Web Worker; the level of detail is still open.
 - ~~Where ships are upgraded and bought?~~ Decided ([0030](decisions/0030-home-base-upgrades-and-earned-ships.md)): upgrades only at the home-base port; each new ship class is built at one port you must discover and earn standing with through delivery contracts, then bought with gold. Implementation follows the map rework.
+- ~~Difficulty levels?~~ Decided and built ([0083](decisions/0083-difficulty-levels.md), [proposal](reviews/difficulty/README.md)): Fair winds / Captain / Old salt change costs, pace, weather and the default wind (steady trade wind on Fair winds) but never how the boat sails; Settings › Wind and the hazard switches stay independent. Pirates (Phase 5) need a switch and a per-level scale.

@@ -30,6 +30,8 @@ export interface Settings {
   weather: boolean;
   /** Moving storms (decision 0067); hazards can be turned off (Guillaume). */
   storms: boolean;
+  /** The steady trade wind (decision 0083); picking a difficulty level sets its default. */
+  steadyWind: boolean;
 }
 
 const KEY = 'fwt.settings.v1';
@@ -46,6 +48,7 @@ const DEFAULTS: Settings = {
   dayNight: true,
   weather: true,
   storms: true,
+  steadyWind: false,
 };
 
 export function loadSettings(): Settings {

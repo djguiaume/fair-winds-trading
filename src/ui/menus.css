@@ -1190,3 +1190,184 @@ label.set-row {
     animation: none;
   }
 }
+
+/* --- New voyage: difficulty level picker (decision 0083) ---------------------------------- */
+.level-sub {
+  flex: 1;
+  color: var(--ink-dim);
+  font-size: 15px;
+}
+.level-sheet .sheet-head h2 {
+  flex: none;
+}
+.level-body {
+  align-content: center;
+  gap: 14px;
+}
+.level-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.level-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 16px 16px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  background: #16303f;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.level-card[aria-checked='true'] {
+  border: 2px solid var(--brass);
+  background: #1b3a4b;
+  box-shadow: 0 0 0 4px rgba(232, 196, 106, 0.15);
+}
+.level-card:focus-visible {
+  outline: 3px solid var(--brass-hi);
+  outline-offset: 2px;
+}
+.level-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.level-waves {
+  flex: none;
+  width: 46px;
+  height: 34px;
+}
+.level-name {
+  font: 700 25px/1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.level-tag {
+  color: var(--brass);
+  font: 600 16px/1.2 var(--display);
+  letter-spacing: 0.04em;
+}
+.level-badge {
+  position: absolute;
+  top: -11px;
+  right: 12px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--brass);
+  color: #2a1c00;
+  font: 700 13px/1 var(--display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.level-card ul {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 15px;
+  line-height: 1.25;
+}
+.level-card li {
+  display: flex;
+  gap: 8px;
+}
+.level-card li::before {
+  content: '';
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--ink-dim);
+}
+.level-foot {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.level-note {
+  flex: 1;
+  margin: 0;
+  color: var(--ink-dim);
+  font-size: 14px;
+  line-height: 1.3;
+}
+/* Phone landscape: the same three cards, fewer lines. */
+@media (max-height: 480px) {
+  .level-sub {
+    font-size: 13px;
+  }
+  .level-body {
+    gap: 8px;
+  }
+  .level-cards {
+    gap: 10px;
+  }
+  .level-card {
+    gap: 5px;
+    padding: 10px 11px;
+  }
+  .level-name {
+    font-size: 20px;
+  }
+  .level-waves {
+    width: 34px;
+    height: 26px;
+  }
+  .level-tag {
+    font-size: 14px;
+  }
+  .level-card ul {
+    gap: 3px;
+    font-size: 13px;
+  }
+  .level-card li::before {
+    width: 5px;
+    height: 5px;
+    margin-top: 5px;
+  }
+  .level-card li.extra {
+    display: none;
+  }
+  .level-note {
+    font-size: 12px;
+  }
+}
+/* Portrait: the cards stack and the chosen one opens. */
+@media (orientation: portrait) and (max-width: 700px) {
+  .level-sub {
+    display: none;
+  }
+  .level-sheet .sheet-head h2 {
+    flex: 1;
+  }
+  .level-body {
+    grid-template-rows: auto 1fr;
+    align-content: stretch;
+  }
+  .level-cards {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    align-content: start;
+  }
+  .level-card[aria-checked='false'] ul {
+    display: none;
+  }
+  .level-card[aria-checked='false'] {
+    padding: 12px 14px;
+  }
+  .level-foot {
+    flex-direction: column;
+    align-items: stretch;
+    align-self: end;
+  }
+}

@@ -1,5 +1,6 @@
 import { type GoodId, isGood, isMadeGood, isRare } from './goods';
 import type { MapDef, PortDef } from './map';
+import { type Difficulty, knobs } from './difficulty';
 
 /**
  * Living settlements (decision 0059). Every port is a settlement with a level from 1 (hamlet) to
@@ -139,7 +140,7 @@ export function createSettlements(map: MapDef): SettlementState {
 }
 
 /** Anything holding settlements: the trade state, or the bare settlement store. */
-type HasSettlements = { settlements: SettlementState };
+type HasSettlements = { settlements: SettlementState; difficulty?: Difficulty };
 
 /** The port's current level (the renderer reads this; 1 for an unknown port). */
 export function settlementLevel(state: HasSettlements, portId: string): SettlementLevel {
@@ -172,7 +173,8 @@ export function addGrowth(state: HasSettlements, portId: string, points: number)
   const s = state.settlements.byPort[portId];
   if (!s || points <= 0) return;
   s.sinceSupply = 0;
-  if (s.level < MAX_SETTLEMENT_LEVEL) s.growth += points;
+  // Towns need less trade to grow on Fair winds and more on Old salt (decision 0083).
+  if (s.level < MAX_SETTLEMENT_LEVEL) s.growth += points / knobs(state.difficulty).growth;
 }
 
 /** A wanted rare good arrived (sold or delivered): it counts toward the port town gate (0065). */

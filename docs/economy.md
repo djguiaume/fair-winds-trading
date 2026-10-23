@@ -124,3 +124,7 @@ In the browser, open the game with `?debug` and use `fwt.trade.buy(fwt.world.tra
 ## Saving
 
 `src/sim/save.ts`. `saveGame(storage, world)` / `loadGame(storage, world)` with any Storage-like object. Key `fwt.save.v1`, versioned with `SAVE_VERSION`; a save from another version or map, or with impossible values, is ignored. `main.ts` saves every 15 s of play, on docking and when the page is hidden.
+
+## Difficulty levels (decision 0083)
+
+The numbers above are the **Captain** level. Fair winds and Old salt scale them from `src/sim/difficulty.ts`: start gold 250 / 150 / 100, the port's cut 2 / 6 / 11 %, order reward factor 2.0 / 1.5 / 1.25, repairs 1 / 2 / 3 gold per hull point, crash damage × 0.5 / 1 / 1.5, growth needed × 0.75 / 1 / 1.25, cargo lost per lurch 0 / 1 / 2. Pace per level: `tests/difficulty-balance.test.ts` and [the difficulty review](reviews/difficulty/README.md).

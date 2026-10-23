@@ -57,6 +57,8 @@ export interface Market {
   portId: string;
   stock: GoodAmounts;
   equilibrium: GoodAmounts;
+  /** The port's cut at the voyage's difficulty level (decision 0083); none = `SPREAD`. */
+  spread?: number;
 }
 
 /** What `good` is to the port at settlement `level` (default: the level it starts at). */
@@ -130,13 +132,13 @@ export function midPrice(good: GoodId, stock: number): number {
 }
 
 /** What the player pays for the next unit (whole gold). */
-export function unitBuyPrice(good: GoodId, stock: number): number {
-  return Math.max(1, Math.ceil(midPrice(good, stock) * (1 + SPREAD)));
+export function unitBuyPrice(good: GoodId, stock: number, spread = SPREAD): number {
+  return Math.max(1, Math.ceil(midPrice(good, stock) * (1 + spread)));
 }
 
 /** What the player gets for the next unit (whole gold). */
-export function unitSellPrice(good: GoodId, stock: number): number {
-  return Math.max(1, Math.floor(midPrice(good, stock) * (1 - SPREAD)));
+export function unitSellPrice(good: GoodId, stock: number, spread = SPREAD): number {
+  return Math.max(1, Math.floor(midPrice(good, stock) * (1 - spread)));
 }
 
 /** Whole units the port can sell right now. */
@@ -148,7 +150,7 @@ export function available(market: Market, good: GoodId): number {
 export function quoteBuy(market: Market, good: GoodId, qty: number): number {
   let total = 0;
   const stock = market.stock[good];
-  for (let i = 0; i < qty; i++) total += unitBuyPrice(good, stock - i - 1);
+  for (let i = 0; i < qty; i++) total += unitBuyPrice(good, stock - i - 1, market.spread);
   return total;
 }
 
@@ -156,7 +158,7 @@ export function quoteBuy(market: Market, good: GoodId, qty: number): number {
 export function quoteSell(market: Market, good: GoodId, qty: number): number {
   let total = 0;
   const stock = market.stock[good];
-  for (let i = 0; i < qty; i++) total += unitSellPrice(good, stock + i + 1);
+  for (let i = 0; i < qty; i++) total += unitSellPrice(good, stock + i + 1, market.spread);
   return total;
 }
 
@@ -170,7 +172,7 @@ export function stepMarket(market: Market, dt: number): void {
 
 /** How much a port pays for `good` right now, as a multiple of the good's base price. */
 export function demand(market: Market, good: GoodId): number {
-  return unitSellPrice(good, market.stock[good] + 1) / GOOD_DEFS[good].basePrice;
+  return unitSellPrice(good, market.stock[good] + 1, market.spread) / GOOD_DEFS[good].basePrice;
 }
 
 /**
@@ -210,8 +212,8 @@ export function quoteAcross(
     return [
       {
         portId,
-        buy: unitBuyPrice(good, stock - 1),
-        sell: unitSellPrice(good, stock + 1),
+        buy: unitBuyPrice(good, stock - 1, market.spread),
+        sell: unitSellPrice(good, stock + 1, market.spread),
         available: available(market, good),
       },
     ];
