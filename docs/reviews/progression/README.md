@@ -226,4 +226,6 @@ Suggested survey options:
 
 ## Next decision
 
+**Mockups for the choice (2026-10-23):** [one concrete session per direction, with play time, effort and data files](directions/README.md).
+
 Choose the primary motivation only after comparing the small prototypes or equivalent concrete play sequences. The initial assessment favors ownership (A) and relationships (B); expedition (C) remains a credible challenger. This ranking is advisory and is not Guillaume's selection. Steam, automation and pirates remain later work regardless of which wins.

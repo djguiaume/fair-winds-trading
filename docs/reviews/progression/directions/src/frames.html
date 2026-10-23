@@ -1,0 +1,317 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Barlow;src:url(/home/user/fair-winds-trading/src/ui/fonts/barlow-500.woff2);font-weight:500}
+@font-face{font-family:Barlow;src:url(/home/user/fair-winds-trading/src/ui/fonts/barlow-600.woff2);font-weight:600}
+@font-face{font-family:Barlow;src:url(/home/user/fair-winds-trading/src/ui/fonts/barlow-700.woff2);font-weight:700}
+@font-face{font-family:'Barlow Condensed';src:url(/home/user/fair-winds-trading/src/ui/fonts/barlow-condensed-600.woff2);font-weight:600}
+@font-face{font-family:'Barlow Condensed';src:url(/home/user/fair-winds-trading/src/ui/fonts/barlow-condensed-700.woff2);font-weight:700}
+:root{--navy:rgba(9,28,41,.9);--solid:#123246;--brass:#e8c46a;--line:rgba(232,196,106,.55);--hi:#f3d37e;--lo:#b08a2c;--ink:#eef3f4;--dim:rgba(238,243,244,.72);--green:#59d36b;--red:#ff6a55;--amber:#ffb36b;--d:'Barlow Condensed',sans-serif;--b:'Barlow',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#222;font-family:var(--b);color:var(--ink)}
+.frame{position:relative;width:1600px;height:900px;overflow:hidden;background:#2a9aa8;margin-bottom:20px}
+.frame.phone{width:844px;height:390px}
+.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.panel{position:absolute;background:var(--navy);border:1.5px solid var(--line);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.35);padding:18px 20px}
+.h{font-family:var(--d);font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--brass)}
+.t{font-family:var(--d);font-weight:700;font-size:30px;text-transform:uppercase;letter-spacing:.03em}
+.s{font-size:18px;color:var(--dim);line-height:1.35}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--d);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:20px;color:#2a1d05;background:linear-gradient(#f3d37e,#e2b44c);border:1.5px solid #8a6a1c;border-radius:10px;padding:10px 18px;box-shadow:0 3px 0 #8a6a1c}
+.btn.ghost{background:rgba(255,255,255,.06);color:var(--ink);border-color:rgba(238,243,244,.35);box-shadow:none}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--d);font-weight:700;font-size:16px;letter-spacing:.05em;text-transform:uppercase;padding:4px 10px;border-radius:7px;border:1px solid rgba(238,243,244,.3);background:rgba(255,255,255,.06)}
+.bar{height:12px;border-radius:6px;background:rgba(255,255,255,.12);overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,#59d36b,#8fe3a4)}
+.tag{position:absolute;right:16px;bottom:14px;font-family:var(--d);font-weight:700;font-size:16px;letter-spacing:.12em;text-transform:uppercase;color:#06141c;background:rgba(243,211,126,.92);padding:4px 10px;border-radius:6px}
+.phone .tag{font-size:11px;padding:2px 7px;right:8px;bottom:6px}
+.cap{position:absolute;left:24px;top:20px;font-family:var(--d);font-weight:700;font-size:26px;letter-spacing:.04em;text-transform:uppercase;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.6)}
+.portrait{width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 50% 38%,#f0c9a0 0 22%,transparent 23%),radial-gradient(ellipse at 50% 100%,#c4683e 0 46%,transparent 47%),#2b5a70;border:3px solid var(--brass);flex:none}
+.row{display:flex;align-items:center;gap:12px}
+.col{display:flex;flex-direction:column;gap:10px}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--green);flex:none}
+.check{width:22px;height:22px;border-radius:6px;border:2px solid var(--green);display:inline-flex;align-items:center;justify-content:center;color:var(--green);font-weight:700;font-size:16px;flex:none}
+.check.no{border-color:rgba(238,243,244,.4);color:transparent}
+.check.part{border-color:var(--amber);color:var(--amber)}
+svg{position:absolute;inset:0;pointer-events:none}
+</style></head><body>
+
+<!-- A1: the deed -->
+<div class="frame" id="A1">
+  <img class="bg" src="/tmp/claude-0/deck/cap/isle1.png">
+  <div class="cap">Your harbour · arriving</div>
+  <div class="panel" style="left:880px;top:200px;width:620px">
+    <div class="row" style="align-items:flex-start;gap:18px">
+      <div class="portrait"></div>
+      <div class="col">
+        <div class="h" style="font-size:18px">Saltmere harbourmaster</div>
+        <div style="font-size:22px;line-height:1.4">“Lantern Rock is yours if you want it. The jetty’s half gone and the cottage leaks, but the anchorage is the best in the islands.”</div>
+      </div>
+    </div>
+    <div style="margin-top:18px;border-top:1px solid rgba(238,243,244,.15);padding-top:14px" class="col">
+      <div class="h" style="font-size:18px">Your island today</div>
+      <div class="row s"><span class="check no">✓</span>Jetty: wrecked, small ships only</div>
+      <div class="row s"><span class="check">✓</span>Captain’s cottage: standing</div>
+      <div class="row s"><span class="check no">✓</span>Warehouse, workshop: not yet built</div>
+    </div>
+    <div class="row" style="margin-top:18px"><span class="btn">⚓ Name your island</span><span class="btn ghost">Later</span></div>
+  </div>
+  <div class="tag">Mockup · proposal</div>
+</div>
+
+<!-- A2: build mode on landscape -->
+<div class="frame" id="A2">
+  <img class="bg" src="/tmp/claude-0/deck/cap/isle1.png" style="filter:saturate(.85)">
+  <svg viewBox="0 0 1600 900">
+    <defs><pattern id="g" width="34" height="34" patternUnits="userSpaceOnUse" patternTransform="skewX(-8)"><path d="M34 0H0V34" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/></pattern></defs>
+    <path d="M190 470 L330 420 L560 440 L640 560 L560 660 L360 700 L210 640 Z" fill="url(#g)"/>
+    <rect x="410" y="470" width="120" height="80" rx="6" fill="rgba(89,211,107,.35)" stroke="#59d36b" stroke-width="3" stroke-dasharray="8 6"/>
+    <circle cx="545" cy="460" r="22" fill="#123246" stroke="#e8c46a" stroke-width="3"/>
+    <path d="M536 460 a9 9 0 1 1 9 9" fill="none" stroke="#e8c46a" stroke-width="3"/>
+  </svg>
+  <div class="cap">Build mode · place the warehouse</div>
+  <div class="panel" style="left:24px;right:24px;bottom:20px;padding:14px 16px;display:flex;gap:14px;align-items:stretch">
+    <div class="col" style="flex:1;border:2px solid var(--brass);border-radius:10px;padding:10px 14px;background:rgba(232,196,106,.12)">
+      <div class="t" style="font-size:24px">Warehouse</div>
+      <div class="s">Keeps 40 cargo. Takes deliveries in parts.</div>
+      <div class="row" style="gap:8px"><span class="chip">🪵 30 planks</span><span class="chip">🪨 10 stone</span><span class="chip">● 120</span></div>
+    </div>
+    <div class="col" style="flex:1;border:1px solid rgba(238,243,244,.2);border-radius:10px;padding:10px 14px">
+      <div class="t" style="font-size:24px">Jetty</div>
+      <div class="s">Lets the cutter and haulers moor.</div>
+      <div class="row" style="gap:8px"><span class="chip">🪵 20 timber</span><span class="chip">● 80</span></div>
+    </div>
+    <div class="col" style="flex:1;border:1px solid rgba(238,243,244,.2);border-radius:10px;padding:10px 14px;opacity:.55">
+      <div class="t" style="font-size:24px">Workshop</div>
+      <div class="s">Repairs here. Needs plans from Calda.</div>
+      <div class="row" style="gap:8px"><span class="chip">🔒 Quest: The plans</span></div>
+    </div>
+    <div class="col" style="width:200px;gap:10px;justify-content:center">
+      <span class="btn ghost">⟲ Turn</span><span class="btn">✓ Place</span>
+    </div>
+  </div>
+  <div class="panel" style="right:24px;top:20px;width:330px;padding:12px 16px">
+    <div class="h" style="font-size:16px">Fixed spots, no terrain editing</div>
+    <div class="s" style="font-size:16px">Green = fits. Buildings snap to a grid on flat ground. Move them again any time.</div>
+  </div>
+  <div class="tag">Mockup · proposal</div>
+</div>
+
+<!-- A3: project on the chart -->
+<div class="frame" id="A3">
+  <img class="bg" src="/tmp/claude-0/deck/cap/chart.png">
+  <svg viewBox="0 0 1600 900">
+    <circle cx="1140" cy="296" r="34" fill="none" stroke="#e8c46a" stroke-width="4"/>
+    <path d="M1062 566 Q1120 450 1138 334" fill="none" stroke="#e8c46a" stroke-width="3" stroke-dasharray="10 8"/>
+    <path d="M985 190 Q1080 220 1112 270" fill="none" stroke="#e8c46a" stroke-width="3" stroke-dasharray="10 8"/>
+  </svg>
+  <div class="panel" style="left:24px;top:240px;width:440px">
+    <div class="h" style="font-size:18px">Project · Lantern Rock</div>
+    <div class="t" style="margin:4px 0 12px">Warehouse</div>
+    <div class="col" style="gap:12px">
+      <div><div class="row s" style="justify-content:space-between"><span>🪵 Planks</span><span>18 / 30</span></div><div class="bar"><i style="width:60%"></i></div></div>
+      <div><div class="row s" style="justify-content:space-between"><span>🪨 Stone</span><span>4 / 10</span></div><div class="bar"><i style="width:40%"></i></div></div>
+      <div><div class="row s" style="justify-content:space-between"><span>● Gold</span><span>paid</span></div><div class="bar"><i style="width:100%"></i></div></div>
+    </div>
+    <div class="s" style="margin-top:14px">Planks: Port Calda makes them. Stone: Stonehaven. Bring any amount; it is kept.</div>
+    <div class="row" style="margin-top:14px"><span class="btn">Track this</span></div>
+  </div>
+  <div class="tag">Mockup · proposal</div>
+</div>
+
+<!-- A4: coming home, before/after -->
+<div class="frame" id="A4">
+  <img src="/tmp/claude-0/deck/cap/isle1.png" style="position:absolute;left:0;top:0;width:800px;height:900px;object-fit:cover;object-position:18% 50%">
+  <img src="/tmp/claude-0/deck/cap/isle3.png" style="position:absolute;left:800px;top:0;width:800px;height:900px;object-fit:cover;object-position:18% 50%">
+  <div style="position:absolute;left:798px;top:0;width:4px;height:900px;background:var(--brass)"></div>
+  <div class="cap">First visit</div>
+  <div class="cap" style="left:824px">After ten voyages</div>
+  <div class="panel" style="left:880px;bottom:24px;width:640px;padding:14px 18px">
+    <div class="h" style="font-size:18px">What brings you back</div>
+    <div class="s">New jetty, warehouse, workshop, a guest house for the Calda shipwright, and the lighthouse lit. Every building came from cargo you carried.</div>
+  </div>
+  <div class="tag">Real game render, test island file</div>
+</div>
+
+<!-- A5: phone build mode -->
+<div class="frame phone" id="A5">
+  <img class="bg" src="/tmp/claude-0/deck/cap/isle3-phone.png">
+  <svg viewBox="0 0 844 390"><rect x="300" y="196" width="46" height="30" rx="4" fill="rgba(89,211,107,.35)" stroke="#59d36b" stroke-width="2.5" stroke-dasharray="6 4"/></svg>
+  <div class="panel" style="left:8px;top:96px;width:200px;padding:10px;border-radius:12px">
+    <div class="h" style="font-size:13px">Build</div>
+    <div class="col" style="gap:6px;margin-top:6px">
+      <div style="border:2px solid var(--brass);border-radius:8px;padding:6px 8px;background:rgba(232,196,106,.12)"><div class="t" style="font-size:16px">Guest house</div><div class="s" style="font-size:12px">🪵 20 · 🪨 15 · ● 200</div></div>
+      <div style="border:1px solid rgba(238,243,244,.2);border-radius:8px;padding:6px 8px"><div class="t" style="font-size:16px">Chart room</div><div class="s" style="font-size:12px">🔒 after the lighthouse</div></div>
+    </div>
+  </div>
+  <div style="position:absolute;right:120px;bottom:16px;display:flex;gap:8px">
+    <span class="btn ghost" style="font-size:15px;padding:10px 14px">⟲</span>
+    <span class="btn ghost" style="font-size:15px;padding:10px 14px">✕</span>
+    <span class="btn" style="font-size:15px;padding:10px 16px">✓ Place</span>
+  </div>
+  <div class="tag">Mockup on a phone</div>
+</div>
+
+<!-- B1: a person in port -->
+<div class="frame" id="B1">
+  <img class="bg" src="/tmp/claude-0/deck/cap/port-westholm.png" style="filter:brightness(.55)">
+  <div class="panel" style="left:340px;top:150px;width:920px;padding:26px 28px">
+    <div class="row" style="align-items:flex-start;gap:22px">
+      <div class="portrait" style="width:120px;height:120px"></div>
+      <div class="col" style="gap:8px">
+        <div class="h" style="font-size:20px">Maren · Westholm’s baker</div>
+        <div style="font-size:26px;line-height:1.4">“The old oven cracked in the winter storms. With cut stone from Stonehaven I could bake for the whole archipelago again… but Saltmere’s harbourmaster swears timber for the jetty matters more.”</div>
+      </div>
+    </div>
+    <div class="col" style="margin-top:22px;gap:12px">
+      <div class="row" style="justify-content:space-between;border:2px solid var(--brass);border-radius:10px;padding:12px 16px;background:rgba(232,196,106,.1)"><div><div class="t" style="font-size:24px">Rebuild the oven</div><div class="s">10 cut stone from Stonehaven · opens bread for trade</div></div><span class="btn">Help Maren</span></div>
+      <div class="row" style="justify-content:space-between;border:1px solid rgba(238,243,244,.25);border-radius:10px;padding:12px 16px"><div><div class="t" style="font-size:24px">Timber for Saltmere first</div><div class="s">Bigger jetty for haulers · Maren waits, the oven later</div></div><span class="btn ghost">Choose this</span></div>
+    </div>
+  </div>
+  <div class="tag">Mockup · proposal</div>
+</div>
+
+<!-- B2: journal on the chart -->
+<div class="frame" id="B2">
+  <img class="bg" src="/tmp/claude-0/deck/cap/chart.png">
+  <svg viewBox="0 0 1600 900">
+    <path d="M640 735 Q520 600 505 430" fill="none" stroke="#e8c46a" stroke-width="5"/>
+    <path d="M520 390 Q760 230 950 185" fill="none" stroke="rgba(238,243,244,.5)" stroke-width="3" stroke-dasharray="10 8"/>
+    <path d="M530 410 Q800 520 1060 575" fill="none" stroke="rgba(238,243,244,.5)" stroke-width="3" stroke-dasharray="10 8"/>
+    <circle cx="502" cy="405" r="30" fill="none" stroke="#e8c46a" stroke-width="4"/>
+  </svg>
+  <div class="panel" style="right:24px;top:110px;width:470px">
+    <div class="h" style="font-size:18px">Journal · The Broken Routes</div>
+    <div class="t" style="margin:4px 0 12px">Westholm’s oven</div>
+    <div class="col" style="gap:10px">
+      <div class="row s"><span class="check">✓</span>Hear Maren out in Westholm</div>
+      <div class="row s"><span class="check part">!</span>Bring 10 cut stone from Stonehaven (4 / 10)</div>
+      <div class="row s"><span class="check no">✓</span>Carry the first bread to a port that wants it</div>
+    </div>
+    <div style="margin-top:16px;border-top:1px solid rgba(238,243,244,.15);padding-top:12px" class="col">
+      <div class="h" style="font-size:16px">Also open</div>
+      <div class="s">Calda: the sawmill builder’s new slipway · Saltmere: the jetty for haulers</div>
+    </div>
+    <div class="row" style="margin-top:14px"><span class="btn">Tracking</span><span class="btn ghost">Switch</span></div>
+  </div>
+  <div class="tag">Mockup · proposal</div>
+</div>
+
+<!-- B3: consequence -->
+<div class="frame" id="B3">
+  <div style="position:absolute;left:0;top:0;width:800px;height:900px;overflow:hidden"><img src="/tmp/claude-0/deck/cap/towns-grain.png" style="position:absolute;left:0;top:0;width:1600px;height:900px;transform:scale(2.05) translate(-430px,-215px);transform-origin:0 0"></div>
+  <div style="position:absolute;left:800px;top:0;width:800px;height:900px;overflow:hidden"><img src="/tmp/claude-0/deck/cap/towns-grain.png" style="position:absolute;left:0;top:0;width:1600px;height:900px;transform:scale(2.05) translate(-1125px,-215px);transform-origin:0 0"></div>
+  <div style="position:absolute;left:798px;top:0;width:4px;height:900px;background:var(--brass)"></div>
+  <div class="cap">Westholm before</div>
+  <div class="cap" style="left:824px">After Maren’s arc</div>
+  <div class="panel" style="left:480px;top:80px;width:640px;padding:14px 18px">
+    <div class="row" style="gap:14px"><div class="portrait" style="width:64px;height:64px"></div><div><div class="h" style="font-size:18px">Westholm remembers you</div><div class="s">The bakery is open: bread is a new good. Maren will sell to you first and asks about your next voyage.</div></div></div>
+  </div>
+  <div class="tag">Real game render (levels 2 and 4)</div>
+</div>
+
+<!-- B4: the arc map -->
+<div class="frame" id="B4" style="background:radial-gradient(circle at 50% 45%,#1f5d70,#0d2836)">
+  <div class="cap">The Broken Routes · six people, any order</div>
+  <svg viewBox="0 0 1600 900">
+    <g stroke="#e8c46a" stroke-width="3" fill="none">
+      <path d="M800 450 L420 260"/><path d="M800 450 L1180 260"/><path d="M800 450 L400 640" stroke-dasharray="10 8"/><path d="M800 450 L1200 640" stroke-dasharray="10 8"/><path d="M800 450 L800 180" stroke-dasharray="4 10" stroke="rgba(238,243,244,.4)"/><path d="M800 450 L800 760" stroke-dasharray="4 10" stroke="rgba(238,243,244,.4)"/>
+    </g>
+  </svg>
+  <div class="panel" style="left:650px;top:390px;width:300px;text-align:center"><div class="h" style="font-size:16px">Home port</div><div class="t">Saltmere</div><div class="s">The harbourmaster</div></div>
+  <div class="panel" style="left:250px;top:190px;width:340px"><div class="h" style="font-size:16px">Westholm · done</div><div class="t" style="font-size:24px">Maren’s oven</div><div class="s">Bread trade opened</div></div>
+  <div class="panel" style="left:1010px;top:190px;width:340px"><div class="h" style="font-size:16px">Port Calda · in progress</div><div class="t" style="font-size:24px">The new slipway</div><div class="s">Opens the hauler line</div></div>
+  <div class="panel" style="left:230px;top:580px;width:340px;opacity:.85"><div class="h" style="font-size:16px">Stonehaven · open</div><div class="t" style="font-size:24px">The mason’s debt</div><div class="s">A choice between two ports</div></div>
+  <div class="panel" style="left:1030px;top:580px;width:340px;opacity:.85"><div class="h" style="font-size:16px">Abbey Head · hidden</div><div class="t" style="font-size:24px">The quiet shipwright</div><div class="s">Found by exploring</div></div>
+  <div class="panel" style="left:650px;top:90px;width:300px;opacity:.6;text-align:center"><div class="h" style="font-size:16px">Watchman Key · hidden</div><div class="s">Swift-line shipwright</div></div>
+  <div class="panel" style="left:620px;top:720px;width:360px;opacity:.6;text-align:center"><div class="h" style="font-size:16px">Finale</div><div class="s">The compact meets again, once enough routes are back</div></div>
+  <div class="tag">Mockup · structure</div>
+</div>
+
+<!-- C1: the goal on the chart -->
+<div class="frame" id="C1">
+  <img class="bg" src="/tmp/claude-0/deck/cap/chart.png">
+  <svg viewBox="0 0 1600 900">
+    <defs><radialGradient id="fog" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#0d2836" stop-opacity="0"/><stop offset="1" stop-color="#0d2836" stop-opacity=".9"/></radialGradient></defs>
+    <path d="M937 74 A400 400 0 0 1 1176 313" fill="none" stroke="#3b4a55" stroke-width="44" stroke-dasharray="6 6" opacity=".75"/><text x="1150" y="200" font-family="Barlow Condensed" font-weight="700" font-size="24" fill="#eef3f4" transform="rotate(48 1150 200)">STORM BELT</text>
+    
+    <path d="M1080 575 Q1330 420 1280 170" fill="none" stroke="#e8c46a" stroke-width="3" stroke-dasharray="10 8"/>
+    <path d="M1080 575 Q1100 300 1255 150" fill="none" stroke="#ffb36b" stroke-width="3" stroke-dasharray="10 8"/>
+    <circle cx="1280" cy="140" r="26" fill="#123246" stroke="#e8c46a" stroke-width="4"/>
+    <text x="1280" y="150" font-size="28" text-anchor="middle" fill="#e8c46a">?</text>
+  </svg>
+  <div class="panel" style="left:24px;top:170px;width:470px">
+    <div class="h" style="font-size:18px">The great voyage</div>
+    <div class="t" style="margin:4px 0 6px">Beyond the Stormbreak</div>
+    <div class="s" style="margin-bottom:12px">An isolated community past the storm belt. Go when you like; come back with their chart.</div>
+    <div class="h" style="font-size:16px;margin-bottom:6px">Readiness</div>
+    <div class="col" style="gap:8px">
+      <div class="row s"><span class="check">✓</span>Hull 3 or better</div>
+      <div class="row s"><span class="check part">!</span>Supplies for 6 days (you carry 4)</div>
+      <div class="row s"><span class="check no">✓</span>Reef passage chart (ask at Abbey Head)</div>
+      <div class="row s"><span class="check no">✓</span>Refuge at Lantern Rock restocked</div>
+    </div>
+    <div class="s" style="margin-top:12px;font-size:16px">Two approaches: the shallow north passage (small ship) or straight through the storm belt (swift ship).</div>
+  </div>
+  <div class="tag">Mockup · proposal</div>
+</div>
+
+<!-- C2: preparing in port -->
+<div class="frame" id="C2">
+  <img class="bg" src="/tmp/claude-0/deck/cap/port-saltmere.png" style="filter:brightness(.6)">
+  <div class="panel" style="left:24px;right:24px;top:60px;bottom:90px;padding:22px 26px;display:flex;gap:24px">
+    <div class="col" style="flex:1.1">
+      <div class="h" style="font-size:20px">Expedition · Saltmere</div>
+      <div class="t">Supplies and the approach</div>
+      <div class="col" style="gap:14px;margin-top:10px">
+        <div class="row" style="justify-content:space-between"><div><div style="font-size:22px">Provisions</div><div class="s">Each day at sea uses 1. Uses hold space.</div></div><div class="row"><span class="chip">4 days</span><span class="btn">Buy +1 · 30</span></div></div>
+        <div class="row" style="justify-content:space-between"><div><div style="font-size:22px">Spare canvas and timber</div><div class="s">Repair at sea once.</div></div><div class="row"><span class="chip">0</span><span class="btn">Buy · 60</span></div></div>
+        <div class="row" style="justify-content:space-between"><div><div style="font-size:22px">Pilot’s notes</div><div class="s">Show safe water on the chart. From Abbey Head.</div></div><span class="chip">🔒 not found</span></div>
+      </div>
+    </div>
+    <div class="col" style="flex:1;border-left:1px solid rgba(238,243,244,.15);padding-left:24px">
+      <div class="h" style="font-size:20px">Your ship for this</div>
+      <div class="col" style="gap:10px;margin-top:6px">
+        <div style="border:2px solid var(--brass);border-radius:10px;padding:10px 14px;background:rgba(232,196,106,.1)"><div class="t" style="font-size:22px">Cutter · swift</div><div class="s">Through the storm belt in 2 days. Room for 4 days of supplies.</div></div>
+        <div style="border:1px solid rgba(238,243,244,.25);border-radius:10px;padding:10px 14px"><div class="t" style="font-size:22px">Hoy · hauler</div><div class="s">North passage too shallow. Could stock the refuge in one trip.</div></div>
+        <div style="border:1px solid rgba(238,243,244,.25);border-radius:10px;padding:10px 14px"><div class="t" style="font-size:22px">Sloop · small</div><div class="s">Fits the north passage. Slow, little room.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="tag">Mockup · proposal</div>
+</div>
+
+<!-- C3: at sea in the storm belt -->
+<div class="frame" id="C3">
+  <img class="bg" src="/tmp/claude-0/deck/cap/storm-edge.png" style="filter:brightness(.72) saturate(.8)">
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(40,50,60,.35),rgba(20,30,40,.1))"></div>
+  <div class="panel" style="left:300px;top:14px;width:520px;padding:10px 16px">
+    <div class="row" style="justify-content:space-between"><span class="h" style="font-size:18px">Stormbreak · leg 1 of 2</span><span class="chip">Day 2</span></div>
+    <div class="row" style="gap:14px;margin-top:8px">
+      <div style="flex:1"><div class="row s" style="justify-content:space-between"><span>Supplies</span><span>3 of 4 days</span></div><div class="bar"><i style="width:75%"></i></div></div>
+      <div style="flex:1"><div class="row s" style="justify-content:space-between"><span>Hull</span><span>82%</span></div><div class="bar"><i style="width:82%;background:linear-gradient(90deg,#ffb36b,#ffd29a)"></i></div></div>
+    </div>
+  </div>
+  <div class="panel" style="left:560px;top:620px;width:470px;padding:14px 18px">
+    <div class="h" style="font-size:18px">Refuge · 12 nm north-west</div>
+    <div class="s">You can turn back any time. What you learn about the storm belt is kept.</div>
+    <div class="row" style="margin-top:12px"><span class="btn">Press on</span><span class="btn ghost">Head for the refuge</span></div>
+  </div>
+  <div class="tag">Mockup · proposal</div>
+</div>
+
+<!-- C4: retreat keeps knowledge -->
+<div class="frame" id="C4" style="background:#0d2836">
+  <img class="bg" src="/tmp/claude-0/deck/cap/storm-edge.png" style="filter:brightness(.35) blur(2px)">
+  <div class="panel" style="left:380px;top:120px;width:840px;padding:28px 32px">
+    <div class="h" style="font-size:20px">Logbook · first attempt</div>
+    <div class="t" style="font-size:40px;margin:6px 0 14px">Turned back at the storm belt</div>
+    <div class="col" style="gap:12px">
+      <div class="row" style="font-size:22px"><span class="check">✓</span>Storm belt mapped halfway: the calm gap opens at dawn</div>
+      <div class="row" style="font-size:22px"><span class="check">✓</span>Refuge found on the ridge islet: restock it to start leg 2 from there</div>
+      <div class="row" style="font-size:22px"><span class="check part">!</span>Hull 61%: repair at Saltmere</div>
+    </div>
+    <div class="s" style="margin-top:18px;font-size:20px">Next time: leave at dawn, carry spare canvas, or take the north passage with the sloop.</div>
+    <div class="row" style="margin-top:20px"><span class="btn">Back to the chart</span></div>
+  </div>
+  <div class="tag">Mockup · proposal</div>
+</div>
+</body></html>
