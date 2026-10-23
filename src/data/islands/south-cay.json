@@ -444,6 +444,15 @@
     },
     { "type": "derrick", "x": 0.85, "z": 0.22, "size": 1.65, "fit": 0.025, "from": 1 },
     {
+      "type": "derrick",
+      "x": -0.3,
+      "z": 0.66,
+      "size": 1.65,
+      "fit": 0.025,
+      "from": 1,
+      "tags": ["after:stonehaven-light"]
+    },
+    {
       "type": "stone-blocks",
       "x": 0.97,
       "z": 0.34,
