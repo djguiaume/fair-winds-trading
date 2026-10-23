@@ -1,0 +1,230 @@
+<!doctype html>
+<!-- Static mockups for the characters' look (dialogue card, portraits, journal on the chart).
+     Served by Vite from the repo root so the fonts and the icon sprite load:
+     npx vite, then /docs/reviews/characters/src/mock.html?screen=dialogue&size=desktop&style=A
+     render.mjs takes the screenshots. Backgrounds in bg/ are real game captures. -->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      @font-face { font-family: Barlow; src: url(/src/ui/fonts/barlow-500.woff2); font-weight: 500; }
+      @font-face { font-family: Barlow; src: url(/src/ui/fonts/barlow-600.woff2); font-weight: 600; }
+      @font-face { font-family: Barlow; src: url(/src/ui/fonts/barlow-700.woff2); font-weight: 700; }
+      @font-face { font-family: 'Barlow Condensed'; src: url(/src/ui/fonts/barlow-condensed-600.woff2); font-weight: 600; }
+      @font-face { font-family: 'Barlow Condensed'; src: url(/src/ui/fonts/barlow-condensed-700.woff2); font-weight: 700; }
+      :root {
+        --navy: rgba(9, 28, 41, 0.9); --solid: #123246; --brass: #e8c46a; --line: rgba(232, 196, 106, 0.55);
+        --ink: #eef3f4; --dim: rgba(238, 243, 244, 0.72); --green: #59d36b; --amber: #ffb36b; --red: #ff6a55;
+        --d: 'Barlow Condensed', sans-serif; --b: 'Barlow', sans-serif;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { width: 100%; height: 100%; overflow: hidden; }
+      body { font-family: var(--b); color: var(--ink); background: #0c2230; position: relative; }
+      .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+      .icon-sprite { display: none; }
+      .ic { width: 1.1em; height: 1.1em; vertical-align: -0.18em; flex: none; }
+      .panel { position: absolute; background: var(--navy); border: 1.5px solid var(--line); border-radius: 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35); }
+      .h { font-family: var(--d); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--brass); }
+      .t { font-family: var(--d); font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+      .dim { color: var(--dim); }
+      .row { display: flex; align-items: center; gap: 10px; }
+      .col { display: flex; flex-direction: column; gap: 8px; }
+      .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--d); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #2a1d05; background: linear-gradient(#f3d37e, #e2b44c); border: 1.5px solid #8a6a1c; border-radius: 10px; box-shadow: 0 3px 0 #8a6a1c; white-space: nowrap; }
+      .btn.ghost { background: rgba(255, 255, 255, 0.06); color: var(--ink); border-color: rgba(238, 243, 244, 0.35); box-shadow: none; }
+      .chip { display: inline-flex; align-items: center; gap: 6px; font-family: var(--d); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; border-radius: 7px; border: 1px solid rgba(238, 243, 244, 0.3); background: rgba(255, 255, 255, 0.06); white-space: nowrap; }
+      .pips { display: inline-flex; gap: 4px; }
+      .pips i { width: 18px; height: 6px; border-radius: 3px; background: rgba(238, 243, 244, 0.25); }
+      .pips i.on { background: var(--brass); }
+      .tag { position: absolute; right: 10px; bottom: 8px; font-family: var(--d); font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #06141c; background: rgba(243, 211, 126, 0.92); padding: 2px 8px; border-radius: 5px; z-index: 9; }
+      .vignette { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6, 20, 28, 0.15) 30%, rgba(6, 20, 28, 0.75)); }
+      .ask { border: 1.5px solid var(--brass); border-radius: 10px; background: rgba(232, 196, 106, 0.1); }
+      .check { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--green); display: inline-flex; align-items: center; justify-content: center; color: var(--green); font-weight: 700; font-size: 13px; flex: none; }
+      .check.now { border-color: var(--amber); color: var(--amber); }
+      .check.no { border-color: rgba(238, 243, 244, 0.35); color: transparent; }
+      .badge { position: absolute; right: -4px; top: -4px; width: 18px; height: 18px; border-radius: 50%; background: var(--amber); color: #2a1405; font: 700 13px/18px var(--d); text-align: center; border: 1.5px solid #06141c; }
+      .pin { position: absolute; transform: translate(-50%, -100%); filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.4)); }
+      .pin.tracked::after { content: ''; position: absolute; inset: -5px; border-radius: 50%; box-shadow: 0 0 0 3px var(--brass), 0 0 14px 4px rgba(243, 211, 126, 0.7); }
+      svg.overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+      .note { position: absolute; font-family: var(--d); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #fff; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7); }
+    </style>
+  </head>
+  <body>
+    <div id="sprite"></div>
+    <div id="root"></div>
+    <script type="module">
+      import { CAST, portrait } from './portraits.js';
+
+      const q = new URLSearchParams(location.search);
+      const screen = q.get('screen') || 'sheet';
+      const size = q.get('size') || 'desktop';
+      const style = q.get('style') || 'B';
+      const who = Object.fromEntries(CAST.map((c) => [c.id, c]));
+      const root = document.getElementById('root');
+      const icon = (n) => `<svg class="ic"><use href="#i-${n}"/></svg>`;
+      const P = (id, px, mood) => portrait(style, who[id], { size: px, mood });
+
+      const html = await (await fetch('/index.html')).text();
+      document.getElementById('sprite').innerHTML = html.match(/<svg class="icon-sprite"[\s\S]*?<\/svg>/)[0];
+
+      // ---------------- Portrait styles sheet ----------------
+      if (screen === 'sheet') {
+        const styles = [
+          ['A', 'Storybook', 'Soft round shapes, a warm brown outline and rosy cheeks, like the storybook boats. A glimpse of their home port behind them.', 'Warmest; reads well small; shows moods clearly.', 'Least like the low-poly 3D world.'],
+          ['B', 'Low-poly', 'The same faces cut into flat-shaded facets, like the 3D islands, towns and ships. Hexagon frame.', 'Matches the 3D world; could later become real 3D busts.', 'Faces look harder; moods read less at small size.'],
+          ['C', 'Cameo', 'A one-colour profile on parchment in a brass oval, like a vignette on an old sea chart.', 'Cheapest; elegant; no skin tones to get right.', 'No face, so no moods; people look alike from afar.'],
+        ];
+        document.body.style.background = '#0c2230';
+        root.innerHTML = `
+          <div style="padding:26px 34px">
+            <div class="row" style="justify-content:space-between">
+              <div><div class="h" style="font-size:18px">Characters' look · portrait styles</div>
+              <div class="t" style="font-size:34px">Three ways to draw the people of the arcs</div></div>
+              <div class="dim" style="font-size:15px;max-width:520px;text-align:right">All drawn in code from the same few values (skin, hair, hat, beard, clothes, trade item, port colour), so a new person is a few lines in characters.json. Names and trades are placeholders.</div>
+            </div>
+            ${styles.map(([s, name, desc, pro, con]) => `
+              <div class="row" style="margin-top:20px;gap:26px;padding:16px 20px;border:1.5px solid var(--line);border-radius:14px;background:rgba(18,50,70,.6);align-items:center">
+                <div class="col" style="width:270px;flex:none;gap:6px">
+                  <div class="t" style="font-size:28px"><span style="color:var(--brass)">${s}.</span> ${name}</div>
+                  <div class="dim" style="font-size:15px;line-height:1.35">${desc}</div>
+                  <div style="font-size:14px;line-height:1.35"><span style="color:var(--green);font-weight:700">+</span> ${pro}<br><span style="color:var(--red);font-weight:700">−</span> ${con}</div>
+                </div>
+                ${CAST.map((c) => `<div class="col" style="align-items:center;gap:4px">${portrait(s, c, { size: 112 })}
+                  <div class="t" style="font-size:17px">${c.name}</div><div class="h" style="font-size:11px;text-align:center">${c.role}<br>${c.port}</div></div>`).join('')}
+                <div class="col" style="gap:6px;align-items:center;padding-left:18px;border-left:1px solid rgba(238,243,244,.15)">
+                  <div class="h" style="font-size:12px">Moods</div>
+                  <div class="row" style="gap:6px">${['neutral', 'pleased', 'worried'].map((m) => portrait(s, who.maren, { size: 58, mood: m })).join('')}</div>
+                  <div class="h" style="font-size:12px;margin-top:4px">Pin size on the chart</div>
+                  <div class="row" style="gap:6px">${CAST.map((c) => portrait(s, c, { size: 34 })).join('')}</div>
+                </div>
+              </div>`).join('')}
+          </div>
+          <div class="tag" style="font-size:14px">Mockup · proposal</div>`;
+      }
+
+      // ---------------- The cast, drawn by the game's own builder (src/ui/portraits.ts) ----------------
+      if (screen === 'cast') {
+        const game = await import('/src/ui/portraits.ts');
+        const cell = (c, opts, label) => `<div class="col" style="align-items:center;gap:2px">${game.portraitSvg(c, { size: 104, ...opts })}<div class="h" style="font-size:12px">${label}</div></div>`;
+        root.innerHTML = `<div style="padding:24px 30px">
+          <div class="h" style="font-size:16px">Characters' look · style B, low-poly (0124)</div>
+          <div class="t" style="font-size:30px;margin-bottom:14px">The draft cast, drawn by the game code</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+          ${game.CHARACTERS.map((c) => `<div class="row" style="gap:12px;padding:12px 14px;border:1.5px solid var(--line);border-radius:14px;background:rgba(18,50,70,.6)">
+            <div class="col" style="width:92px;flex:none;gap:2px"><div class="t" style="font-size:20px;line-height:1.05">${c.name}</div><div class="dim" style="font-size:13px">${c.role}</div></div>
+            ${game.MOODS.map((m) => cell(c, { mood: m }, m)).join('')}
+            ${Object.keys(c.looks ?? {}).map((v) => cell(c, { variant: v, mood: 'worried' }, v)).join('')}
+          </div>`).join('')}
+          </div>
+          <div class="dim" style="font-size:14px;margin-top:12px">The cast of the approved story (ADR 0122, docs/story/community-arcs.md); names are still placeholders. Each person is a few values in src/data/characters.json; Rook also has a "soaked" look for the wreck in the tutorial.</div>
+        </div><div class="tag" style="font-size:13px">Game code · placeholder cast</div>`;
+      }
+
+      // ---------------- Dialogue card (on docking) ----------------
+      if (screen === 'dialogue') {
+        const text = '“The jetty’s rotten through, captain. One more winter and the haulers won’t moor here at all. Bring me timber from Port Calda and I’ll have it mended.”';
+        const ask = (fs) => `<div class="ask" style="padding:${fs > 15 ? '10px 14px' : '7px 10px'}">
+            <div class="t" style="font-size:${fs + 3}px">${icon('timber')} Bring 12 timber from Port Calda</div>
+            <div class="dim" style="font-size:${fs - 1}px;margin-top:2px">Then: Saltmere’s new jetty, and a building for your island</div></div>`;
+        const head = (fs) => `<div class="row" style="gap:8px;flex-wrap:wrap">
+            <span class="t" style="font-size:${fs + 12}px;line-height:1">Rook</span>
+            <span class="h" style="font-size:${fs}px">Harbourmaster · Saltmere</span></div>
+            <div class="row" style="gap:8px;margin-top:4px"><span class="dim t" style="font-size:${fs - 1}px;letter-spacing:.06em">The rotten jetty · step 1 of 3</span><span class="pips"><i class="on"></i><i></i><i></i></span></div>`;
+        root.innerHTML = `<img class="bg" src="bg/${size}-clean.jpg"><div class="vignette"></div>`;
+        if (size === 'desktop') {
+          root.innerHTML += `
+            <div class="panel" style="left:190px;right:190px;bottom:26px;padding:20px 24px 20px 200px;min-height:250px">
+              <div style="position:absolute;left:18px;top:-58px">${P('rook', 168, 'worried')}</div>
+              ${head(15)}
+              <div style="font-size:20px;line-height:1.4;margin:10px 0 14px">${text}</div>
+              ${ask(16)}
+              <div class="row" style="justify-content:flex-end;margin-top:14px"><span class="btn ghost" style="font-size:18px;padding:9px 18px">Not now</span><span class="btn" style="font-size:18px;padding:9px 22px">${icon('anchor')} I’ll bring it</span></div>
+            </div>`;
+        } else if (size === 'landscape') {
+          root.innerHTML += `
+            <div class="panel" style="left:12px;right:12px;bottom:10px;padding:12px 16px 12px 146px;display:flex;gap:14px">
+              <div style="position:absolute;left:12px;top:-34px">${P('rook', 122, 'worried')}</div>
+              <div style="flex:1;min-width:0">${head(12)}
+                <div style="font-size:14.5px;line-height:1.35;margin:6px 0 8px">${text}</div>${ask(13)}</div>
+              <div class="col" style="justify-content:flex-end;gap:10px;width:132px;flex:none">
+                <span class="btn" style="font-size:16px;padding:9px 10px">I’ll bring it</span><span class="btn ghost" style="font-size:16px;padding:8px 10px">Not now</span></div>
+            </div>`;
+        } else {
+          root.innerHTML += `
+            <div class="panel" style="left:0;right:0;bottom:0;border-radius:18px 18px 0 0;padding:72px 18px 22px;text-align:center">
+              <div style="position:absolute;left:50%;top:-62px;transform:translateX(-50%)">${P('rook', 128, 'worried')}</div>
+              <div class="col" style="align-items:center;gap:0">${head(13).replace(/row" style="gap:8px/g, 'row" style="justify-content:center;gap:8px')}</div>
+              <div style="font-size:16px;line-height:1.4;margin:10px 0 12px;text-align:left">${text}</div>
+              <div style="text-align:left">${ask(14)}</div>
+              <div class="col" style="gap:10px;margin-top:14px"><span class="btn" style="font-size:18px;padding:12px">${icon('anchor')} I’ll bring it</span><span class="btn ghost" style="font-size:18px;padding:11px">Not now</span></div>
+            </div>`;
+        }
+        root.innerHTML += `<div class="tag" style="bottom:auto;top:8px">Mockup · style ${style} · placeholder text</div>`;
+      }
+
+      // ---------------- Journal on the chart ----------------
+      if (screen === 'journal') {
+        const geo = { desktop: [640, 360, 341], landscape: [422, 195, 185], portrait: [195, 421, 185] }[size];
+        const at = ([x, y]) => [geo[0] + x * geo[2], geo[1] + y * geo[2]];
+        const ports = { westholm: [-0.639, -0.094], calda: [0.351, -0.548], saltmere: [0.581, 0.311], stonehaven: [-0.325, 0.627] };
+        const [sx, sy] = at(ports.saltmere), [cx, cy] = at(ports.calda);
+        const small = size !== 'desktop';
+        const pinPx = small ? 30 : 40;
+        const pin = (id, port, extra = '', cls = '') => {
+          const [x, y] = at(ports[port]);
+          return `<div class="pin ${cls}" style="left:${x}px;top:${y - 8}px">${P(id, pinPx)}${extra}</div>`;
+        };
+        const steps = (fs) => `
+          <div class="row" style="font-size:${fs}px"><span class="check">✓</span>Hear Rook out in Saltmere</div>
+          <div class="row" style="font-size:${fs}px"><span class="check now">!</span><span>12 timber from Port Calda <b style="color:var(--amber)">4 / 12</b></span></div>
+          <div class="row dim" style="font-size:${fs}px"><span class="check no">✓</span>Step 3 shows when you get there</div>`;
+        const tracked = (fs, pp) => `
+          <div class="row" style="gap:12px;align-items:center">${P('rook', pp)}
+            <div><div class="h" style="font-size:${fs - 2}px">Rook · Saltmere</div><div class="t" style="font-size:${fs + 8}px;line-height:1.05">The rotten jetty</div>
+            <div class="row" style="gap:6px;margin-top:3px"><span class="pips"><i class="on"></i><i class="on"></i><i></i></span><span class="dim" style="font-size:${fs - 2}px">step 2 of 3</span></div></div></div>`;
+        const others = (fs, pp) => `
+          <div class="row" style="gap:10px"><div style="position:relative">${P('maren', pp)}<span class="badge">!</span></div><div><div class="t" style="font-size:${fs + 1}px">Maren · Westholm</div><div class="dim" style="font-size:${fs - 1}px">Has something to ask you</div></div></div>
+          <div class="row" style="gap:10px">${P('ada', pp)}<div><div class="t" style="font-size:${fs + 1}px">Ada · Stonehaven</div><div class="dim" style="font-size:${fs - 1}px">The quarry road · step 1 of 3</div></div></div>
+          <div class="row" style="gap:10px;opacity:.6">${P('ines', pp)}<div><div class="t" style="font-size:${fs + 1}px">Ines · Port Calda ✓</div><div class="dim" style="font-size:${fs - 1}px">Done · you chose the rigging loft</div></div></div>`;
+        root.innerHTML = `<img class="bg" src="bg/${size}-chart.jpg">
+          <svg class="overlay"><path d="M${sx - 10} ${sy - 6} Q${(sx + cx) / 2 + 60} ${(sy + cy) / 2} ${cx + 4} ${cy + 14}" fill="none" stroke="#f3d37e" stroke-width="${small ? 2.5 : 3.5}" stroke-dasharray="9 7"/>
+          <circle cx="${cx}" cy="${cy}" r="${small ? 15 : 22}" fill="none" stroke="#f3d37e" stroke-width="${small ? 3 : 4}"/></svg>
+          <div class="chip" style="position:absolute;left:${cx + (small ? 16 : 24)}px;top:${cy + (small ? 4 : 8)}px;font-size:${small ? 11 : 14}px;padding:3px 7px;background:rgba(9,28,41,.9);border-color:var(--line);color:var(--brass)">${icon('timber')} 12 timber here</div>
+          ${pin('rook', 'saltmere', '', 'tracked')}${pin('maren', 'westholm', '<span class="badge">!</span>')}${pin('ada', 'stonehaven')}`;
+        if (size === 'desktop') {
+          root.innerHTML += `
+            <div class="panel" style="left:972px;top:186px;width:296px;padding:14px 16px 12px">
+              <div class="row" style="justify-content:space-between"><span class="h row" style="font-size:16px;gap:6px">${icon('book')} Journal</span><span class="chip" style="font-size:12px;padding:2px 7px;color:var(--brass);border-color:var(--line)">Tracking</span></div>
+              <div style="margin-top:10px">${tracked(15, 56)}</div>
+              <div class="col" style="margin:12px 0 2px;gap:9px">${steps(14.5)}</div>
+              <div style="border-top:1px solid rgba(238,243,244,.15);margin:12px 0 10px"></div>
+              <div class="h" style="font-size:13px;margin-bottom:8px">Other people</div>
+              <div class="col" style="gap:7px">${others(13.5, 34)}</div>
+            </div>`;
+        } else if (size === 'landscape') {
+          root.innerHTML += `
+            <div class="panel" style="left:8px;top:8px;bottom:8px;width:286px;padding:10px 12px;border-radius:12px;overflow:hidden;background:#0e2636">
+              <div class="row" style="justify-content:space-between"><span class="h row" style="font-size:13px;gap:6px">${icon('book')} Journal</span><span class="t dim" style="font-size:16px">✕</span></div>
+              <div style="margin-top:6px">${tracked(12, 46)}</div>
+              <div class="col" style="margin:8px 0 2px;gap:6px">${steps(12.5)}</div>
+              <div style="border-top:1px solid rgba(238,243,244,.15);margin:8px 0 7px"></div>
+              <div class="col" style="gap:6px">${others(11.5, 30)}</div>
+            </div>`;
+        } else {
+          root.innerHTML += `
+            <div class="panel" style="left:0;right:0;bottom:0;height:300px;border-radius:18px 18px 0 0;padding:8px 16px 16px;background:#0e2636">
+              <div style="width:44px;height:5px;border-radius:3px;background:rgba(238,243,244,.35);margin:0 auto 8px"></div>
+              <div class="row" style="justify-content:space-between"><span class="h row" style="font-size:14px;gap:6px">${icon('book')} Journal</span><span class="dim" style="font-size:12px">drag up for all</span></div>
+              <div style="margin-top:8px">${tracked(13, 54)}</div>
+              <div class="col" style="margin:10px 0 0;gap:8px">${steps(14)}</div>
+              <div class="row" style="margin-top:12px;gap:10px;border-top:1px solid rgba(238,243,244,.15);padding-top:10px">
+                <span class="h" style="font-size:12px">Others</span>
+                <div style="position:relative">${P('maren', 34)}<span class="badge">!</span></div>${P('ada', 34)}<div style="opacity:.55">${P('ines', 34)}</div></div>
+            </div>`;
+        }
+        root.innerHTML += `<div class="tag" style="${size === 'portrait' ? 'bottom:auto;top:8px;left:8px;right:auto' : ''}">Mockup · style ${style} · placeholder text</div>`;
+      }
+      await document.fonts.ready;
+      document.body.dataset.ready = '1';
+    </script>
+  </body>
+</html>

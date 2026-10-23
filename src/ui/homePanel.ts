@@ -14,7 +14,7 @@ import { type MessageKey, t } from '../i18n';
 
 const COIN = '<svg class="icon coin" aria-hidden="true"><use href="#i-coin" /></svg>';
 
-/** A building's modifier in one line, in the player's words (decision 0124). */
+/** A building's modifier in one line, in the player's words (decision 0126). */
 export function effectLine(b: BuildingDef): string {
   const { kind, value } = b.effect;
   const pct = Math.round(Math.abs(1 - value) * 100);
@@ -24,7 +24,7 @@ export function effectLine(b: BuildingDef): string {
 export const buildingName = (b: BuildingDef) => t(`building.${b.id}` as MessageKey);
 
 /**
- * The home island at the pier (decisions 0120 and 0124): its build spots as tap targets over the
+ * The home island at the pier (decisions 0120 and 0126): its build spots as tap targets over the
  * 3D island, and a card with the choice of two buildings (side by side in landscape, a bottom
  * sheet in portrait). The sea HUD stays: raising the sails leaves, as in any harbour.
  */

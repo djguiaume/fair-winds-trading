@@ -459,7 +459,7 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     5,
     0.05,
     '×',
-    'A building passed over in an arc, built later on a spare spot, costs its price times this (0124).',
+    'A building passed over in an arc, built later on a spare spot, costs its price times this (0126).',
   ),
 
   // --- difficulty.json (decisions 0083, 0113) ---

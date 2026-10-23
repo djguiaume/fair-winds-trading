@@ -124,7 +124,7 @@ describe('producer island geography', () => {
   it('keeps a broad sea approach to the flagged player berth clear at every level', () => {
     for (const island of PHASE1_MAP.islands.filter((i) => i.look?.profile && i.look.dock))
       for (const level of [1, 2, 3, 4]) {
-        // The home island (0124) has no port and no levels: its pier is checked as it stands.
+        // The home island (0126) has no port and no levels: its pier is checked as it stands.
         const port = PHASE1_MAP.ports.find((p) => p.islandId === island.id);
         const pier = characterPiers(island.look!.design!, island.radius / 2.2, level)[0]!;
         const head = (pier.z0 + pier.len) / (island.radius / 2.2);

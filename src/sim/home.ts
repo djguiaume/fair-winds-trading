@@ -4,7 +4,7 @@ import { TUNING } from '../data/tuning';
 import type { IslandDef, MapDef } from './map';
 
 /**
- * The home island (decisions 0120 and 0124): the captain's own island with fixed build spots.
+ * The home island (decisions 0120 and 0126): the captain's own island with fixed build spots.
  * Each community arc ends by offering one arc spot, where the captain picks one building of its
  * pair for free; a building passed over can come back later on a spare spot, for gold (the
  * provisional rule of 0120). Buildings carry one small modifier each. Plain data, no DOM.

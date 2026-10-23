@@ -73,7 +73,7 @@ export function discoverNear(
   for (const port of map.ports) {
     if (isDiscovered(trade, port.id)) continue;
     const island = map.islands.find((i) => i.id === port.islandId);
-    // The lookout sees farther (decision 0124).
+    // The lookout sees farther (decision 0126).
     const range = TUNING.economy.discoverRange * homeEffect(trade.home, 'discoverRange');
     if (island && distance(pos, island) - island.radius <= range) {
       trade.progress.discovered.push(port.id);

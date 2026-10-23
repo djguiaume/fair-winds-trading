@@ -227,7 +227,7 @@ export function syncHelpOrder(map: MapDef, trade: TradeState): string | null {
   const c = portId ? trade.contracts.byPort[portId] : undefined;
   if (!c || c.readyIn > 0) return null;
   c.help = true;
-  // The bakehouse adds its share to help orders (decision 0124).
+  // The bakehouse adds its share to help orders (decision 0126).
   const factor = orderTuning().helpRewardFactor * homeEffect(trade.home, 'helpReward');
   c.reward = Math.round((c.reward * factor) / 5) * 5;
   return c.portId;

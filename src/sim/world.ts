@@ -450,7 +450,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
     // Damage follows the speed the impact took off: reefs always cut, shores and piers only
     // past a docking bump, sandbanks are soft (decisions 0032 and 0038).
     const hit = impactDamage(surface, speedBefore - world.boat.speedKn);
-    // The pilot house takes a share off every knock (decision 0124).
+    // The pilot house takes a share off every knock (decision 0126).
     const damage = damageHull(
       world.trade,
       hit * knobs(world.trade.difficulty).damage * homeEffect(world.trade.home, 'hullDamage'),

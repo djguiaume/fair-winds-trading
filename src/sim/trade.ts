@@ -1,4 +1,5 @@
 import { TUNING } from '../data/tuning';
+import type { QuestState } from './quests';
 import { islandCoasts } from './islandLayout';
 import { piersOf, PIER_HALF_WIDTH } from './collision';
 import { hullFootprint, hullRadius, hullSegmentGap, hullCoastGap } from './harbourDistance';
@@ -94,8 +95,10 @@ export interface TradeState {
   difficulty: Difficulty;
   /** Easiest level played on this voyage, for racing missions and best times later. */
   easiestDifficulty: Difficulty;
-  /** The captain's own island and what stands on it (decision 0124). */
+  /** The captain's own island and what stands on it (decision 0126). */
   home: HomeState;
+  /** Progress of the quests (decision 0125). */
+  quests: QuestState;
 }
 
 export type TradeError =
@@ -147,6 +150,7 @@ export function createTradeState(map: MapDef, startShip: ShipClass): TradeState 
     difficulty: DEFAULT_DIFFICULTY,
     easiestDifficulty: DEFAULT_DIFFICULTY,
     home: createHomeState(),
+    quests: { byId: {} },
   };
 }
 
@@ -200,8 +204,9 @@ export function capacity(trade: TradeState): number {
   return holdCapacity(SHIP_CLASSES[captain.activeShip]!, captain.ships[captain.activeShip]!);
 }
 
+/** Goods aboard, plus the quest cargo (decision 0125), which takes room but cannot be sold. */
 export function cargoUsed(trade: TradeState): number {
-  return totalAmount(trade.captain.cargo);
+  return totalAmount(trade.captain.cargo) + (trade.quests.hold ?? 0);
 }
 
 export function freeSpace(trade: TradeState): number {
@@ -405,7 +410,7 @@ export function stepTrade(
 }
 
 /**
- * The pier of the captain's own island (decision 0124), its distance worked out like a port's.
+ * The pier of the captain's own island (decision 0126), its distance worked out like a port's.
  * A stand-in port record: the home island has no market, orders or town.
  */
 function homeHarbour(map: MapDef): PortDef | null {
@@ -450,12 +455,12 @@ function stepHomeDock(
   return [{ type: 'home-docked' }];
 }
 
-/** A sail upgrade's price, less the rigging loft's share (decision 0124). */
+/** A sail upgrade's price, less the rigging loft's share (decision 0126). */
 export function upgradeCost(trade: TradeState, price: number, track: UpgradeTrack): number {
   return track === 'sails' ? Math.round(price * homeEffect(trade.home, 'sailUpgradePrice')) : price;
 }
 
-/** A new ship's price, less the boathouse's share (decision 0124). */
+/** A new ship's price, less the boathouse's share (decision 0126). */
 export function shipCost(trade: TradeState, cls: ShipClass): number {
   return Math.round(cls.price * homeEffect(trade.home, 'shipPrice'));
 }

@@ -1,4 +1,4 @@
-/* The home island at the pier (decision 0124): build spots over the island, the choice card. */
+/* The home island at the pier (decision 0126): build spots over the island, the choice card. */
 .home-layer {
   position: absolute;
   inset: 0;
@@ -186,6 +186,10 @@
   }
   .home-options {
     flex-direction: column;
+  }
+  /* The speed and wind panels fill the top of a narrow screen: the title goes below them. */
+  .home-bar {
+    top: calc(var(--top, 10px) + 150px);
   }
 }
 @media (max-height: 460px) and (orientation: landscape) {

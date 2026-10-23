@@ -180,6 +180,7 @@ export function tidyDesign(design: IslandDesign): IslandDesign {
     'lake',
     'ground',
     'lanes',
+    'ramps',
     'piers',
     'props',
     'homeSpots',
@@ -203,6 +204,11 @@ export function tidyDesign(design: IslandDesign): IslandDesign {
       ]),
     ),
     lanes: d.lanes.map((l) => ordered(l, ['kind', 'points', 'y', 'base'])),
+    ...(d.ramps && {
+      ramps: d.ramps.map((r) =>
+        ordered(r, ['points', 'width', 'start', 'end', 'material', 'from', 'to']),
+      ),
+    }),
     props: d.props.map((p) => ordered(p, PROP_KEYS as string[])),
     woods: ordered(d.woods, [
       'tree',

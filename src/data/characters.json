@@ -1,0 +1,111 @@
+{
+  "characters": [
+    {
+      "id": "rook",
+      "name": "Rook",
+      "role": "Harbourmaster",
+      "port": "saltmere",
+      "look": {
+        "skin": "#d9a07a",
+        "hair": "#d8d4cc",
+        "hairStyle": "short",
+        "hat": "cap",
+        "hatColor": "#1f3f5c",
+        "badge": "#e8c46a",
+        "beard": true,
+        "clothes": "#24496b",
+        "item": "ledger",
+        "backdrop": "#5fb3c9",
+        "buttons": "#e8c46a"
+      },
+      "looks": {
+        "soaked": {
+          "hat": "none",
+          "item": "none",
+          "wet": true
+        }
+      }
+    },
+    {
+      "id": "kit",
+      "name": "Kit Marlow",
+      "role": "Fisher",
+      "port": "saltmere",
+      "look": {
+        "skin": "#eab896",
+        "hair": "#6b4128",
+        "hairStyle": "short",
+        "hat": "souwester",
+        "hatColor": "#2f8f7f",
+        "clothes": "#3fa392",
+        "stripes": "#f4f1e8",
+        "item": "net",
+        "backdrop": "#7cc4cf"
+      }
+    },
+    {
+      "id": "ines",
+      "name": "Ines Calder",
+      "role": "Shipwright",
+      "port": "calda",
+      "look": {
+        "skin": "#a8714e",
+        "hair": "#c9c2b8",
+        "hairStyle": "braid",
+        "clothes": "#b8642f",
+        "apron": "#6b4a2e",
+        "item": "pencil",
+        "backdrop": "#d8b26a"
+      }
+    },
+    {
+      "id": "maren",
+      "name": "Maren Holt",
+      "role": "Miller and baker",
+      "port": "westholm",
+      "look": {
+        "skin": "#f1c7a0",
+        "hair": "#8a4b2a",
+        "hairStyle": "bun",
+        "hat": "scarf",
+        "hatColor": "#e0b04a",
+        "clothes": "#e9dcc0",
+        "apron": "#ffffff",
+        "item": "flour",
+        "backdrop": "#8fbf7a"
+      }
+    },
+    {
+      "id": "ada",
+      "name": "Ada Flint",
+      "role": "Mason",
+      "port": "stonehaven",
+      "look": {
+        "skin": "#e8b48f",
+        "hair": "#2e2420",
+        "hairStyle": "short",
+        "clothes": "#5f6f78",
+        "item": "chisel",
+        "backdrop": "#8fa9c4",
+        "dust": true
+      }
+    },
+    {
+      "id": "ness",
+      "name": "Old Ness",
+      "role": "Keeper",
+      "port": "watchman-key",
+      "look": {
+        "skin": "#e3b190",
+        "hair": "#f2f0ea",
+        "hairStyle": "short",
+        "hat": "cap",
+        "hatColor": "#b23a30",
+        "clothes": "#a8332b",
+        "item": "spyglass",
+        "backdrop": "#8fb8d8",
+        "stripes": "#f4f1e8"
+      }
+    }
+  ]
+}

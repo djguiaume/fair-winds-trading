@@ -56,7 +56,7 @@ export interface TerrainDef {
   kind: 'island' | 'sandbank' | 'reef';
   outline: [number, number][];
   look?: { trees?: number; landmark?: LandmarkKind };
-  /** Seeds its rocks, coral and trees; left out, its place in the list does (decision 0107). */
+  /** Seeds its rocks, coral and trees; left out, its place in the list does (decision 0110). */
   seed?: number;
 }
 
@@ -110,7 +110,7 @@ export interface MapDef {
   /** Port id of the home port: upgrades and ship changes (decision 0048). Default: nearest the start. */
   homePort?: string;
   /**
-   * Island id of the captain's own island (decision 0124): fixed build spots in its file, a pier
+   * Island id of the captain's own island (decision 0126): fixed build spots in its file, a pier
    * to dock at, no market. Not to be confused with `homePort`.
    */
   homeIsland?: string;

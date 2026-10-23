@@ -99,7 +99,7 @@ export function piersOf(
   const piers: Pier[] = [];
   for (const island of map.islands) {
     const wp = map.course.find((w) => w.label === island.name);
-    // The home island (decision 0124) has no course buoy: its file faces its harbour bearing.
+    // The home island (decision 0126) has no course buoy: its file faces its harbour bearing.
     const home = island.id === map.homeIsland && island.look?.profile;
     if (island.look?.dock && (wp || home))
       piers.push(

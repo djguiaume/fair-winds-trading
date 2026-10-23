@@ -307,6 +307,10 @@
   fill: rgba(255, 106, 85, 0.3);
   stroke: var(--red);
 }
+.i-mark.passive {
+  pointer-events: none;
+  opacity: 0.8;
+}
 .i-mark {
   cursor: pointer;
 }
@@ -367,6 +371,17 @@
 }
 .i-coast.quiet,
 .i-ground.quiet,
+.i-ramp {
+  fill: none;
+  stroke: #7ed39b;
+  stroke-opacity: 0.55;
+  stroke-linejoin: miter;
+  cursor: pointer;
+}
+.i-ramp.quiet {
+  stroke-opacity: 0.3;
+  pointer-events: none;
+}
 .i-lane.quiet {
   stroke-opacity: 0.45;
   fill: transparent;

@@ -7,6 +7,7 @@ import { readHome } from './home';
 import { wrapPositive } from './math';
 import { type SettlementState, readSettlements } from './settlement';
 import { SHIP_CLASSES } from './ship';
+import { type QuestState, readQuests } from './quests';
 import { type ShipyardProgress, readProgress } from './shipyards';
 import { activeShip, findPort, setDifficulty, syncMarketLevels } from './trade';
 import { MAX_UPGRADE_LEVEL, UPGRADE_TRACKS, type UpgradeLevels, hullDurability } from './upgrades';
@@ -50,8 +51,10 @@ export interface SaveData {
   difficulty?: Difficulty;
   /** Easiest level played on the voyage (0083). Optional: defaults to `difficulty`. */
   easiestDifficulty?: Difficulty;
-  /** The home island (decision 0124). Optional: older saves have not been given it yet. */
+  /** The home island (decision 0126). Optional: older saves have not been given it yet. */
   home?: { owned: boolean; offered: string[]; built: Record<string, string> };
+  /** Quest progress (decision 0125). Optional: older saves have none. */
+  quests?: QuestState;
 }
 
 /** The subset of the Web Storage API the save needs. */
@@ -92,6 +95,7 @@ export function serializeWorld(world: World): SaveData {
       offered: [...world.trade.home.offered],
       built: { ...world.trade.home.built },
     },
+    quests: structuredClone(world.trade.quests),
   };
 }
 
@@ -200,6 +204,7 @@ export function validateSave(raw: unknown, world: World): SaveData | null {
     difficulty,
     easiestDifficulty: isDifficulty(raw.easiestDifficulty) ? raw.easiestDifficulty : difficulty,
     home: readHome(raw.home, world.map),
+    quests: readQuests(raw.quests, world.map),
   };
 }
 
@@ -247,6 +252,7 @@ export function applySave(world: World, data: SaveData): void {
   trade.easiestDifficulty = data.easiestDifficulty ?? data.difficulty ?? DEFAULT_DIFFICULTY;
   setDifficulty(trade, data.difficulty ?? DEFAULT_DIFFICULTY);
   trade.home = readHome(data.home, world.map);
+  trade.quests = readQuests(data.quests, world.map);
   world.ship = activeShip(trade);
   refreshPiers(world);
   // Compatible older-map saves keep all trading progress. The coasts and ports have moved since

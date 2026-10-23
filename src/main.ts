@@ -22,7 +22,9 @@ import { LINK_KEY } from './sim/saveTransfer';
 import { SLOOP } from './sim/ship';
 import * as trade from './sim/trade';
 import { type Difficulty, isDifficulty, knobs } from './sim/difficulty';
-import { TUTORIAL_STEPS, Tutorial } from './sim/tutorial';
+import { daylightAt } from './sim/daylight';
+import { QuestBook } from './sim/quests';
+import { TUTORIAL_QUEST, TUTORIAL_STEPS, Tutorial } from './sim/tutorial';
 import { TutorialCoach } from './ui/tutorial';
 import {
   type WorldEvent,
@@ -187,7 +189,7 @@ chart.onChange = () => {
   refreshPause();
 };
 const tradePanel = new TradePanel($('trade-panel'), world);
-// The home island (decision 0124). Until the prologue quest gives it, `?home` gives it to the
+// The home island (decision 0126). Until the prologue quest gives it, `?home` gives it to the
 // voyage being played and offers every arc spot, to try the build spots.
 if (new URLSearchParams(location.search).has('home')) {
   giveHomeIsland(world.trade);
@@ -206,6 +208,14 @@ homePanel.onRepaired = (gold) => {
   autosave();
 };
 const tutorial = new Tutorial(world, view.harbours, storage, resumedVoyage);
+// Quests (decision 0125): every quest file but the tutorial's, saved with the voyage. The
+// tutorial counts as done for them once it is finished or skipped.
+const quests = new QuestBook(world, undefined, {
+  doneElsewhere: (id) =>
+    id === TUTORIAL_QUEST.id && ['completed', 'skipped'].includes(tutorial.status),
+  // A night step counts at any time when night is switched off (hazards stay optional).
+  nightOk: () => !settings.dayNight || daylightAt(world.time).night >= 0.5,
+});
 const coach = new TutorialCoach(tutorial);
 const tutorialOffer = $<HTMLDialogElement>('tutorial-offer');
 tradePanel.uiMode = settings.uiMode;
@@ -791,7 +801,7 @@ function handleEvents(events: WorldEvent[]) {
       if (tradePanel.isOpen) tradePanel.render();
       autosave();
     } else if (e.type === 'home-docked') {
-      // Moored at your own island (decision 0124): its spots show; a new one is said out loud.
+      // Moored at your own island (decision 0126): its spots show; a new one is said out loud.
       const name = world.map.islands.find((i) => i.id === world.map.homeIsland)?.name ?? '';
       const fresh = world.trade.home.offered.length > 0;
       // The camera turns to the island, halfway between it and her, so both show.
@@ -842,6 +852,7 @@ function tick(now: number) {
       const controls = { steer: input.steer, sailStep };
       handleEvents(stepWorld(world, controls, SIM_STEP));
       tutorial.observe(controls, SIM_STEP);
+      quests.update(SIM_STEP);
       accumulator -= SIM_STEP;
       steps++;
     }
@@ -900,5 +911,5 @@ if (new URLSearchParams(location.search).has('debug')) {
     if (storage) clearSave(storage);
     location.reload();
   };
-  Object.assign(window, { fwt: { world, view, input, trade, tradePanel, newGame } });
+  Object.assign(window, { fwt: { world, view, input, trade, tradePanel, quests, newGame } });
 }

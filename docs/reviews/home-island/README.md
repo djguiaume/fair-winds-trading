@@ -1,6 +1,6 @@
 # Home island: which island, where the spots go, tap a spot
 
-**Status:** mockups for Guillaume's pick, 2026-10-23. Nothing in the game changed.
+**Status:** Guillaume picked **Skerry** (2026-10-23); built in [0126](../../decisions/0126-home-island-build-spots.md). Screenshots of the built version are [at the end](#built-2026-10-23).
 **Follows:** [0120](../../decisions/0120-communities-and-home-island.md) (arcs build your home island; fixed build spots, a choice of two buildings). **Lines up with:** the arcs draft in PR #101 (`docs/story/community-arcs.md`, 6 spots, 8 buildings in 4 pairs; names are placeholders).
 
 Three questions to answer before building it: which island is home, where its fixed build spots go, and how choosing a building works on a phone.
@@ -59,3 +59,13 @@ Real game renders of a **test** island file on Skerry (radius 18), in three stag
 - Test island: [src/home-island.py](src/home-island.py) writes a bigger Skerry (with a dock and `harbourBearing` facing south) into a scratch worktree, in stages 0 (arrival), 3 (one arc), 1 (two arcs), 2 (story done).
 - Renders: [src/cap.mjs](src/cap.mjs), the game in headless Chromium with `?debug`, the camera held on the island, the ship drawn at the pier, HUD hidden; spots projected with `view.project`.
 - UI: [src/frames.html](src/frames.html) in the game's colours and Barlow fonts, over the renders. Frames tagged "mockup" are proposals.
+
+## Built (2026-10-23)
+
+Built as [0126](../../decisions/0126-home-island-build-spots.md). Try it with `?home` (gives you the island and offers all four arc spots); sail to Skerry's pier, south-west of Gull Hook, and lower the sails.
+
+| | Moored at home | Choosing | Built |
+|---|---|---|---|
+| Phone, landscape | ![](built/phone-1-docked.jpg) | ![](built/phone-2-choice.jpg) | ![](built/phone-3-built.jpg) |
+| Phone, portrait | ![](built/portrait-1-docked.jpg) | ![](built/portrait-2-choice.jpg) | ![](built/portrait-3-built.jpg) |
+| Desktop | ![](built/desktop-1-docked.jpg) | ![](built/desktop-2-choice.jpg) | ![](built/desktop-3-built.jpg) |

@@ -29,12 +29,12 @@ const hazards = () => TUNING.seamanship.hazards;
 
 /** Gold per hull point repaired at the voyage's difficulty level. */
 export function repairCost(trade: TradeState): number {
-  // The home workshop repairs for less than a port (decision 0124).
+  // The home workshop repairs for less than a port (decision 0126).
   const home = repairsAtHome(trade) ? homeEffect(trade.home, 'homeRepair') : 1;
   return knobs(trade.difficulty).repairCost * home;
 }
 
-/** Moored at home with a workshop built: the hull can be repaired there (decision 0124). */
+/** Moored at home with a workshop built: the hull can be repaired there (decision 0126). */
 export function repairsAtHome(trade: TradeState): boolean {
   return !!trade.home?.docked && hasBuilding(trade.home, 'workshop');
 }

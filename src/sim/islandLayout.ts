@@ -1,6 +1,6 @@
 import type { IslandDef, TerrainDef } from './map';
 import { coastDistance, insetOutline } from './coast';
-import { atLevel, designOf, islandDesign, type IslandDesign } from '../data/islands';
+import { atLevel, designOf, islandDesign, type IslandDesign, type RampDef } from '../data/islands';
 
 export type IslandTheme = 'fish' | 'timber' | 'stone' | 'grain';
 export type Outline = TerrainDef['outline'];
@@ -15,10 +15,21 @@ export interface LandSurface {
   slope?: number;
   slopeEdges?: [number, number][];
 }
+/** A ramp at a level (decision 0123), with the length along it to each point. */
+export interface LayoutRamp {
+  points: Outline;
+  width: number;
+  start: number;
+  end: number;
+  material: RampDef['material'];
+  /** Length from the first point to each point; the last is the whole length. */
+  along: number[];
+}
 export interface IslandLayout {
   coasts: Outline[];
   lake?: Outline;
   surfaces: LandSurface[];
+  ramps: LayoutRamp[];
 }
 
 /**
@@ -42,7 +53,53 @@ function createIslandLayout(design: IslandDesign, level: number): IslandLayout {
         slope: g.slope,
         slopeEdges: g.slopeEdges,
       })),
+    ramps: (design.ramps ?? [])
+      .filter((r) => atLevel(r, level) && r.points.length >= 2)
+      .map((r) => {
+        const along = [0];
+        for (let i = 1; i < r.points.length; i++) {
+          const [ax, az] = r.points[i - 1]!,
+            [bx, bz] = r.points[i]!;
+          along.push(along[i - 1]! + Math.hypot(bx - ax, bz - az));
+        }
+        return { ...r, along };
+      }),
   };
+}
+
+/**
+ * Where a point is on a ramp: its distance from the ramp's centre line and the ramp's height
+ * level with it (rising evenly along the line). Past the ends the line's end points count.
+ */
+export function rampAt(r: LayoutRamp, x: number, z: number) {
+  let best = Infinity,
+    length = 0;
+  for (let i = 1; i < r.points.length; i++) {
+    const [ax, az] = r.points[i - 1]!,
+      [bx, bz] = r.points[i]!;
+    const dx = bx - ax,
+      dz = bz - az;
+    const l = dx * dx + dz * dz;
+    const t = l ? Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / l)) : 0;
+    const d = Math.hypot(x - ax - dx * t, z - az - dz * t);
+    if (d < best) {
+      best = d;
+      length = r.along[i - 1]! + Math.sqrt(l) * t;
+    }
+  }
+  const total = r.along[r.along.length - 1]!;
+  const k = total ? length / total : 0;
+  return { distance: best, height: r.start + (r.end - r.start) * k };
+}
+
+/** The highest ramp under a point (at least `margin` in from its sides), or null. */
+function rampHeight(layout: IslandLayout, x: number, z: number, margin = 0) {
+  let height: number | null = null;
+  for (const r of layout.ramps) {
+    const at = rampAt(r, x, z);
+    if (at.distance <= r.width / 2 - margin) height = Math.max(height ?? 0, at.height);
+  }
+  return height;
 }
 
 /** Width of the sand between a coast and the ground it carries, in radius units. */
@@ -69,7 +126,7 @@ export function layoutGround(
 ): number | null {
   if (!layout.coasts.some((c) => coastDistance(x, z, c).distance <= -margin)) return null;
   if (layout.lake && coastDistance(x, z, layout.lake).distance < margin) return null;
-  if (!layout.surfaces.some((s) => s.slope)) {
+  if (!layout.surfaces.some((s) => s.slope) && !layout.ramps.length) {
     let height: number | null = null;
     for (const s of layout.surfaces) {
       const d = coastDistance(x, z, s.outline).distance;
@@ -80,7 +137,7 @@ export function layoutGround(
     return height;
   }
   if (cliffDistance(layout, x, z) < margin) return null;
-  let height: number | null = null;
+  let height = rampHeight(layout, x, z, margin);
   for (const s of layout.surfaces) {
     if (onSurface(s, x, z)) height = Math.max(height ?? 0, s.height);
     else if (s.slope) {
@@ -133,9 +190,19 @@ export function edgeDistance(
   return best;
 }
 
-/** Distance to the nearest cliff: every edge of raised ground and its holes, but sloped ones. */
+/**
+ * Distance to the nearest cliff: every edge of raised ground and its holes, but sloped ones, and
+ * a ramp's sides. On a ramp only its sides count: it runs over the cliffs it climbs.
+ */
 export function cliffDistance(layout: IslandLayout, x: number, z: number) {
-  let best = Infinity;
+  let best = Infinity,
+    onRamp = false;
+  for (const r of layout.ramps) {
+    const side = rampAt(r, x, z).distance - r.width / 2;
+    if (side <= 0) onRamp = true;
+    best = Math.min(best, Math.abs(side));
+  }
+  if (onRamp) return best;
   for (const s of layout.surfaces) {
     best = Math.min(
       best,
@@ -156,10 +223,15 @@ export function slopeDistance(layout: IslandLayout, x: number, z: number) {
     // On the ramp: outside the outline and closer than its width; near it: within reach.
     best = Math.min(best, outside ? Math.max(0, d - s.slope) : d);
   }
+  for (const r of layout.ramps)
+    best = Math.min(best, Math.max(0, rampAt(r, x, z).distance - r.width / 2));
   return best;
 }
 
-/** Does the straight line from a to b cross a cliff edge? (Slopes are crossed freely.) */
+/**
+ * Does the straight line from a to b cross a cliff edge? Slopes are crossed freely, and so are
+ * cliffs where a ramp runs over them (decision 0123).
+ */
 export function crossesCliff(layout: IslandLayout, ax: number, az: number, bx: number, bz: number) {
   const cross = (o: Outline, pick: (i: number) => boolean) => {
     for (let i = 0; i < o.length; i++) {
@@ -170,7 +242,11 @@ export function crossesCliff(layout: IslandLayout, ax: number, az: number, bx: n
         d2 = (bx - ax) * (dz - az) - (bz - az) * (dx - ax),
         d3 = (dx - cx) * (az - cz) - (dz - cz) * (ax - cx),
         d4 = (dx - cx) * (bz - cz) - (dz - cz) * (bx - cx);
-      if (d1 * d2 < 0 && d3 * d4 < 0) return true;
+      if (d1 * d2 < 0 && d3 * d4 < 0) {
+        if (!layout.ramps.length) return true;
+        const t = d1 / (d1 - d2);
+        if (rampHeight(layout, cx + (dx - cx) * t, cz + (dz - cz) * t) === null) return true;
+      }
     }
     return false;
   };

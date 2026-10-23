@@ -4,6 +4,10 @@ import type { IslandStyle } from '../../data/islands';
 import { vertexColorMaterial } from '../../render/models/geometry';
 import { PROP_TYPES, type Parts } from '../../render/models/props';
 import { NIGHT, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from '../../render/atmosphere';
+import { BeaconLights } from '../../render/beaconLights';
+import { LighthouseBeams } from '../../render/lighthouseBeams';
+import { ISLAND_SCALE } from '../../render/models/highlandIslands';
+import type { IslandDef } from '../../sim/map';
 import { PALETTE } from '../../render/palette';
 
 /**
@@ -45,7 +49,8 @@ export function mergeParts(parts: Parts): THREE.BufferGeometry {
   for (const g of parts)
     for (const name of Object.keys(g.attributes))
       if (!['position', 'normal', 'color'].includes(name)) g.deleteAttribute(name);
-  const merged = mergeGeometries(parts, false) ?? new THREE.BufferGeometry();
+  // An island with no windows (a rock with a beacon) has no glass to merge.
+  const merged = (parts.length && mergeGeometries(parts, false)) || new THREE.BufferGeometry();
   for (const g of parts) g.dispose();
   merged.computeBoundingSphere();
   return merged;
@@ -130,6 +135,11 @@ export class Preview {
   private readonly sky: THREE.HemisphereLight;
   private readonly sun: THREE.DirectionalLight;
   private readonly water: THREE.MeshBasicMaterial;
+  /** Lighthouse beams and beacon lights: the game's, in world units, so scaled to the model. */
+  private readonly lamps = new THREE.Group();
+  private beams: LighthouseBeams | null = null;
+  private beacons: BeaconLights | null = null;
+  private frame = 0;
   yaw = 0;
   pitch = CAMERA_PITCH;
   zoom = 1;
@@ -140,7 +150,8 @@ export class Preview {
     this.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
     [this.sky, this.sun] = lights(this.scene);
     this.water = sea(this.scene);
-    this.scene.add(this.island, this.windows);
+    this.scene.add(this.island, this.windows, this.lamps);
+    this.lamps.scale.setScalar(1 / ISLAND_SCALE);
     this.setNight(false);
     const pointers = new Map<number, { x: number; y: number }>();
     let pinch = 0;
@@ -189,6 +200,20 @@ export class Preview {
     this.render();
   }
 
+  /**
+   * The island's lighthouses and beacons, as the game lights them at night (decision 0121): one
+   * island at the origin whose harbour faces +z, standing at the level shown.
+   */
+  setLamps(island: IslandDef, level: number) {
+    this.beams?.dispose();
+    this.beacons?.dispose();
+    this.lamps.clear();
+    this.beams = new LighthouseBeams([island], { [island.id]: level });
+    this.beacons = new BeaconLights([island], { [island.id]: level });
+    this.lamps.add(this.beams.root, this.beacons.points);
+    this.render();
+  }
+
   /** Back to the game camera's view. */
   resetView() {
     this.yaw = 0;
@@ -214,6 +239,14 @@ export class Preview {
     this.renderer.setClearColor(look ? look.water : SEA);
     this.glass.color.copy(night ? WINDOWS_AT_NIGHT : WINDOWS_BY_DAY);
     this.render();
+    // At night the beams sweep and the beacons flash: keep drawing while it is shown.
+    cancelAnimationFrame(this.frame);
+    const tick = () => {
+      if (!this.night) return;
+      this.render();
+      this.frame = requestAnimationFrame(tick);
+    };
+    if (night) this.frame = requestAnimationFrame(tick);
   }
 
   render() {
@@ -229,10 +262,14 @@ export class Preview {
     const d = (r / Math.sin(fov / 2)) * 0.9 * Math.max(1, 1.2 / this.camera.aspect) * this.zoom;
     this.camera.position.set(
       c.x + Math.sin(this.yaw) * Math.cos(this.pitch) * d,
-      Math.sin(this.pitch) * d,
+      c.y + Math.sin(this.pitch) * d,
       c.z + Math.cos(this.yaw) * Math.cos(this.pitch) * d,
     );
-    this.camera.lookAt(c.x, 0, c.z);
+    // Centred on the whole model, so a tall lighthouse on a small rock stays in the picture.
+    this.camera.lookAt(c);
+    const time = performance.now() / 1000;
+    this.beams?.update(time, this.night ? 1 : 0);
+    this.beacons?.update(time, this.night ? 1 : 0);
     this.renderer.render(this.scene, this.camera);
   }
 }

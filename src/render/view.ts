@@ -94,7 +94,7 @@ export class GameView {
     }
   >();
   private readonly target = new THREE.Vector3();
-  /** A point the camera looks at instead of ahead of the boat (the home island, 0124). */
+  /** A point the camera looks at instead of ahead of the boat (the home island, 0126). */
   private focus: { x: number; y: number } | null = null;
   private readonly tmp = new THREE.Vector3();
   private zoom = 1;
