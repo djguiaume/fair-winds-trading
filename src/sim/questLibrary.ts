@@ -56,6 +56,21 @@ export interface QuestPoint {
   y: number;
 }
 
+/**
+ * A spot at sea (decision 0131): a landing or a mooring with no harbour. A boat is there once it
+ * has stayed inside `within` units, under `maxKn`, for `holdSec` seconds; it stays there, like a
+ * boat alongside a port, until it leaves or speeds up.
+ */
+export interface QuestSpot extends QuestPoint {
+  within: number;
+  maxKn?: number;
+  holdSec?: number;
+}
+
+/** Whether a `place` parameter is a spot at sea (else it is a port id). */
+export const isSpot = (v: unknown): v is QuestSpot =>
+  typeof v === 'object' && v !== null && !Array.isArray(v);
+
 /** What a condition reads. */
 export interface ConditionContext {
   trade: TradeState;
@@ -90,6 +105,7 @@ export interface StepContext extends ConditionContext {
 /** What a parameter holds, for the checks; a trailing `?` makes it optional. */
 type Param =
   | 'port'
+  | 'place'
   | 'good'
   | 'ship'
   | 'building'
@@ -178,6 +194,16 @@ const reachDone = (c: Condition, s: number[]) => {
   const n = (c.points as QuestPoint[]).length;
   return c.order === 'in-order' ? s[0]! >= n : s[0] === 2 ** n - 1;
 };
+
+/** Inside a spot at sea, slow enough. */
+function inSpot(spot: QuestSpot, ctx: StepContext): boolean {
+  return (
+    Math.hypot(ctx.boat.x - spot.x, ctx.boat.y - spot.y) <= spot.within &&
+    ctx.boat.speedKn <= (spot.maxKn ?? Infinity)
+  );
+}
+
+const holdOf = (spot: QuestSpot) => Math.round(num(spot.holdSec) * 100);
 
 /** A run's par, seconds, for the voyage's difficulty level. */
 export function parFor(par: unknown, trade: TradeState): number {
@@ -297,22 +323,29 @@ export const CONDITIONS: Record<string, ConditionKind> = {
     test: (c, _ctx, s) => s[0]! >= num(c.qty),
   },
   /**
-   * Quest cargo (`carried`): pieces of the quest's `item`, loaded alongside `from` as far as the
-   * hold has room, unloaded alongside `to`. It takes hold space and cannot be sold. Slots: pieces
-   * aboard, pieces delivered.
+   * Quest cargo (`carried`): pieces of the quest's `item`, loaded at `from` as far as the hold has
+   * room, unloaded at `to`. Each is a port (alongside) or a spot at sea (decision 0131: held
+   * slowly there). It takes hold space and cannot be sold. Slots: pieces aboard, pieces delivered,
+   * hundredths of a second held at a spot.
    */
   carried: {
-    params: { item: 'item', qty: 'count', from: 'port', to: 'port' },
-    slots: 2,
+    params: { item: 'item', qty: 'count', from: 'place', to: 'place' },
+    slots: 3,
     update(c, ctx, s) {
-      const docked = ctx.trade.dockedAt;
-      if (docked === port(c, ctx, 'from')) {
+      const spot = [c.from, c.to].find((p) => isSpot(p) && inSpot(p, ctx)) as QuestSpot | undefined;
+      // Held up to the spot's time, then kept there while the boat stays: "alongside".
+      s[2] = spot ? Math.min(s[2]! + Math.round(ctx.dt * 100), holdOf(spot)) : 0;
+      const at = (key: 'from' | 'to') =>
+        isSpot(c[key])
+          ? c[key] === spot && s[2]! >= holdOf(spot)
+          : ctx.trade.dockedAt === port(c, ctx, key);
+      if (at('from')) {
         const space = ctx.itemSpace(c.item as string);
         // Space 0: a passenger, who takes no room in the hold.
         const room = space > 0 ? Math.floor(ctx.freeSpace / space) : Infinity;
         s[0] = s[0]! + Math.max(0, Math.min(num(c.qty) - s[0]! - s[1]!, room));
       }
-      if (docked === port(c, ctx, 'to')) {
+      if (at('to')) {
         s[1] = s[1]! + s[0]!;
         s[0] = 0;
       }
@@ -419,7 +452,7 @@ export function portsIn(c: Condition | undefined): string[] {
   for (const [name, spec] of Object.entries(kind.params)) {
     const type = spec.replace('?', '');
     const v = c[name];
-    if (type === 'port' && typeof v === 'string' && v !== 'home') out.push(v);
+    if ((type === 'port' || type === 'place') && typeof v === 'string' && v !== 'home') out.push(v);
     if (type === 'condition') out.push(...portsIn(v as Condition));
     if (type === 'conditions' && Array.isArray(v))
       out.push(...v.flatMap((m) => portsIn(m as Condition)));
@@ -463,6 +496,19 @@ function checkParam(
   const out: string[] = [];
   const bad = (what: string) => out.push(`${where}: ${what}`);
   if (type === 'port' && !resolvePort(scope.map, v)) bad(`no port "${String(v)}"`);
+  if (type === 'place') {
+    if (!isSpot(v)) {
+      if (!resolvePort(scope.map, v)) bad(`no port "${String(v)}"`);
+    } else {
+      const spot = v as unknown as Record<string, unknown>;
+      if (!isPoint(spot) || !(isNumber(spot.within) && (spot.within as number) > 0))
+        bad('a spot at sea needs "x", "y" and "within"');
+      for (const key of ['maxKn', 'holdSec'])
+        if (spot[key] !== undefined && !isNumber(spot[key])) bad(`${key} needs a number`);
+      for (const key of Object.keys(spot))
+        if (!['x', 'y', 'within', 'maxKn', 'holdSec'].includes(key)) bad(`a spot has no "${key}"`);
+    }
+  }
   if (type === 'good' && !isGood(v)) bad(`no good "${String(v)}"`);
   if (type === 'ship' && !(typeof v === 'string' && SHIP_CLASSES[v])) bad(`no ship "${String(v)}"`);
   if (type === 'building' && !buildingById(v as string)) bad(`no building "${String(v)}"`);

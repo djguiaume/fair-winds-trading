@@ -213,7 +213,7 @@ describe('save transfer (decisions 0066, 0118)', () => {
         calda: { step: 'done', counts: [], chose: { build: 'workshop' } },
         westholm: { step: 'trial', counts: [1, 14250, 1], chose: {} },
         stonehaven: { step: 'timber', counts: [7], chose: {} },
-        watchman: { step: 'stones', counts: [1, 1], chose: {} },
+        watchman: { step: 'stones', counts: [1, 1, 0], chose: {} },
       },
       tracked: 'westholm',
     };
