@@ -1,25 +1,31 @@
 # Characters' look: portraits, dialogue card and journal
 
-**Status:** mockups for review, 2026-10-23. Waiting for Guillaume's pick of a portrait style ([0123](../../decisions/0123-characters-look.md)). Nothing is built yet.
+**Status:** 2026-10-23, **Guillaume picked B, low-poly** ([0124](../../decisions/0124-characters-look.md)). The portrait builder (`src/ui/portraits.ts`) and `src/data/characters.json` are built; the dialogue card and journal screens follow with the quest engine.
 **Related:** [0120](../../decisions/0120-communities-and-home-island.md) (community arcs), [the earlier B mockups](../progression/directions/README.md), UI style D ([0049](../../decisions/0049-ui-instrument-style.md)).
 
-The cast is the draft from the story thread (`docs/story/community-arcs.md`, PR #101): Rook, Ines Calder, Maren Holt, Ada Flint and Old Ness. Names, lines and the "rotten jetty" arc are placeholders to show the art direction, not approved story. Backgrounds are real game captures (sea at Saltmere, the chart); everything on top is a static mockup.
+The cast is the draft from the story thread (`docs/story/community-arcs.md`, PR #101): Rook, Kit Marlow, Ines Calder, Maren Holt, Ada Flint and Old Ness. Names, lines and the "rotten jetty" arc are placeholders to show the art direction, not approved story. Backgrounds are real game captures (sea at Saltmere, the chart); everything on top is a static mockup.
 
 ![Overview](overview.jpg)
 
-## 1. Portrait style: pick one
+## The cast in style B, drawn by the game code
+
+![The draft cast in style B](cast.png)
+
+Each person in three moods (neutral, pleased, worried), and Rook soaked after the wreck in the tutorial. B's moods were made bigger after the pick (open smile, raised brows, a drop of sweat) so they still read on a chart pin.
+
+## 1. Portrait style (B chosen)
 
 ![Three portrait styles](portrait-styles.png)
 
-Every portrait is drawn in code (SVG, no paid image credits) from the same few values: skin, hair and hair style, hat, beard, clothes, apron, a trade item and the colour of their port. A new person is a few lines in `characters.json`; moods (neutral, pleased, worried) only move brows, eyes and mouth.
+Every portrait is drawn in code (SVG, no paid image credits). These mockups drew all three styles with `src/portraits.js`; the game's builder is `src/ui/portraits.ts`. Each style is drawn from the same few values: skin, hair and hair style, hat, beard, clothes, apron, a trade item and the colour of their port. A new person is a few lines in `characters.json`; moods (neutral, pleased, worried) only move brows, eyes and mouth.
 
 | | Look | For | Against |
 |---|---|---|---|
-| **A. Storybook** (recommended) | Soft round shapes, warm brown outline, rosy cheeks, their home port behind them, round brass frame | Matches the storybook boats (style D) and the warm tone of the arcs; moods read clearly, even at pin size | Less like the faceted 3D islands and towns |
-| **B. Low-poly** | The same faces cut into flat-shaded facets, hexagon brass frame | Matches the low-poly 3D world; could later become real 3D busts | Faces look harder; moods read less at small size |
+| **A. Storybook** | Soft round shapes, warm brown outline, rosy cheeks, their home port behind them, round brass frame | Matches the storybook boats (style D) and the warm tone of the arcs; moods read clearly, even at pin size | Less like the faceted 3D islands and towns |
+| **B. Low-poly** (chosen) | The same faces cut into flat-shaded facets, hexagon brass frame | Matches the low-poly 3D world; could later become real 3D busts | Faces look harder; moods read less at small size |
 | **C. Cameo** | One-colour profile on parchment in a brass oval, like an old chart vignette | Cheapest, elegant, no skin tones to get right | No face so no moods; people look alike as small pins |
 
-The dialogue card with B and C: [style B](dialogue-desktop-style-B.jpg), [style C](dialogue-desktop-style-C.jpg).
+The screens below use B. The dialogue card with the others: [style A](dialogue-desktop-style-A.jpg), [style C](dialogue-desktop-style-C.jpg).
 
 ## 2. Dialogue card
 
