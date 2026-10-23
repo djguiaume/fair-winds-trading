@@ -155,7 +155,7 @@ These are the two examples from 0120, and both fit a shipwright.
 
 The Teeth is a placeholder name for the reef between Skerry and Stonehaven's route (`sw-reef` in the map file).
 
-**The situation.** Stonehaven quarries and cuts stone. Three boats have hit the Teeth since the winter. Ada wants to build a stone lighthouse on Skerry, the islet at the reef's end.
+**The situation.** Stonehaven quarries and cuts stone. Three boats have hit the Teeth since the winter. Ada wants to build a stone lighthouse on Skerry, the islet at the reef's end. (If Skerry becomes the home island, which the Home island work suggests, the light goes on a small rock at the other end of the reef instead, within sight of your island.)
 
 **Hook.** *"Three boats on the Teeth since the winter. I'll build a tower on Skerry that'll stand a hundred years. I need a strong boat for the stone and a lens for the top."*
 
