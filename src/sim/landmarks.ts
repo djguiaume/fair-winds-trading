@@ -43,11 +43,15 @@ export function terrainSeed(map: MapDef, feature: TerrainDef): number {
 export const landmarkRadius = (kind: string) =>
   kind === 'wreck' ? 4.6 : kind === 'ruins' ? 5.1 : 3.1;
 
-/** Where a reef's or sandbank's landmark stands: the first spot its details take. */
+/**
+ * Where a reef's or sandbank's landmark stands: its `landmarkAt`, or the first spot its details
+ * take.
+ */
 export function landmarkSpot(map: MapDef, featureId: string): { x: number; y: number } | null {
   const feature = map.terrain?.find((f) => f.id === featureId);
   const kind = feature?.look?.landmark;
   if (!feature || !kind || (feature.kind !== 'reef' && feature.kind !== 'sandbank')) return null;
+  if (feature.look?.landmarkAt) return { ...feature.look.landmarkAt };
   return sampleInside(
     createRng(terrainSeed(map, feature)),
     feature.outline,

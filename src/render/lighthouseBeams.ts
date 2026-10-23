@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { IslandDef } from '../sim/map';
-import { atLevel, type PropDef } from '../data/islands';
+import { atLevel, type PropDef, questShown } from '../data/islands';
 import { landmarkLamps } from './landmarkLamps';
 
 /** Beams by the lighthouse prop's variation: 0 Saltmere's opposing pair, 1 one, 2 three. */
@@ -14,7 +14,8 @@ interface Beacon {
 
 /**
  * Sweeping beams on every lighthouse of the island files (decision 0121), sharing one
- * translucent unlit material. A lighthouse that is not built yet at its island's level is dark.
+ * translucent unlit material. A lighthouse that is not built yet at its island's level, or before
+ * its quest is done (`after:<quest>`, decision 0130), is dark.
  */
 export class LighthouseBeams {
   readonly root = new THREE.Group();
@@ -49,12 +50,20 @@ export class LighthouseBeams {
     this.setLevels(levels);
     this.update(0, 0);
   }
+  private levels: Record<string, number> = {};
+  private done: ReadonlySet<string> = new Set();
   /** Shows the beams of the lighthouses standing at each island's town level. */
   setLevels(levels: Record<string, number>) {
+    this.levels = levels;
     for (const { group, island, prop } of this.beacons) {
       const level = levels[island.id] ?? (island.look?.dock ? 1 : 4);
-      group.visible = atLevel(prop, level);
+      group.visible = atLevel(prop, level) && questShown(prop, this.done);
     }
+  }
+  /** The quests done, for lighthouses that stand only after one (decision 0130). */
+  setQuestsDone(done: ReadonlySet<string>) {
+    this.done = new Set(done);
+    this.setLevels(this.levels);
   }
   update(time: number, night: number) {
     this.root.visible = night > 0.05;

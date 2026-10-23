@@ -1,6 +1,13 @@
 import { tOptional } from '../i18n';
 import type { MapDef } from '../sim/map';
-import { type Condition, type QuestPoint, isSpot, resolvePort } from '../sim/questLibrary';
+import {
+  CONDITIONS,
+  type Condition,
+  type QuestPoint,
+  isSpot,
+  resolvePort,
+  slotLayout,
+} from '../sim/questLibrary';
 import { QUEST_DONE, type QuestBook, type QuestDef, type QuestStep } from '../sim/quests';
 import { findPort } from '../sim/trade';
 import { type Character, type Mood, MOODS, character } from './portraits';
@@ -277,4 +284,55 @@ export function questTarget(book: QuestBook, map: MapDef): QuestTarget | null {
   if (isSpot(id)) return { point: { x: id.x, y: id.y }, radius: id.within };
   const port = resolvePort(map, id);
   return port ? { port } : null;
+}
+
+/** A place at sea the tracked step asks the boat to reach (decision 0130). */
+export interface StepMarker extends QuestPoint {
+  within: number;
+  /** Passed already (a gate behind the boat, a spot visited). */
+  reached: boolean;
+  /** The one to make for: the next gate in order, every spot still to visit in any order. */
+  next: boolean;
+}
+
+/**
+ * The step's places at sea, read from its goal and its numbers: `reach` points, a timed run's
+ * `via` points, and quest cargo's spot at sea (where to load it, then where to bring it). Places
+ * that are ports are not markers: the chart's ring and route show them.
+ */
+export function stepMarkers(goal: Condition | undefined, counts: readonly number[]): StepMarker[] {
+  const out: StepMarker[] = [];
+  for (const [c, at] of slotLayout(goal).at) {
+    const s = counts.slice(at, at + (CONDITIONS[c.is]?.slots ?? 0));
+    const first = s[0] ?? 0;
+    if (c.is === 'reach' && Array.isArray(c.points)) {
+      const inOrder = c.order === 'in-order';
+      (c.points as QuestPoint[]).forEach((p, i) => {
+        const reached = inOrder ? i < first : (first & (1 << i)) !== 0;
+        const within = typeof c.within === 'number' ? c.within : 0;
+        out.push({ x: p.x, y: p.y, within, reached, next: inOrder ? i === first : !reached });
+      });
+    }
+    if (c.is === 'timed' && Array.isArray(c.via)) {
+      const passed = s[2] ?? 0;
+      const within = typeof c.within === 'number' ? c.within : 15;
+      (c.via as QuestPoint[]).forEach((p, i) =>
+        out.push({ x: p.x, y: p.y, within, reached: i < passed, next: i === passed }),
+      );
+    }
+    if (c.is === 'carried' && (s[1] ?? 0) < (typeof c.qty === 'number' ? c.qty : 0)) {
+      const spot = first > 0 ? c.to : c.from;
+      if (isSpot(spot))
+        out.push({ x: spot.x, y: spot.y, within: spot.within, reached: false, next: true });
+    }
+  }
+  return out;
+}
+
+/** The tracked step's markers and how they are drawn (the step's `marker`, default rings). */
+export function trackedMarkers(book: QuestBook): { style: string; points: StepMarker[] } | null {
+  const active = book.active.find((a) => a.quest.id === book.tracked);
+  if (!active) return null;
+  const points = stepMarkers(active.step.goal, book.progress(active.quest.id)?.counts ?? []);
+  return points.length ? { style: active.step.marker ?? 'ring', points } : null;
 }

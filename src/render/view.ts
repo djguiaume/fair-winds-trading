@@ -29,6 +29,9 @@ import { LighthouseBeams } from './lighthouseBeams';
 import { BeaconLights } from './beaconLights';
 import { Lanterns } from './lanterns';
 import { Castaway } from './castaway';
+import { SeaMarks } from './seaMarks';
+import { QuestMarkers } from './questMarkers';
+import type { StepMarker } from '../ui/questView';
 import { daylightAt } from '../sim/daylight';
 import { StormClouds } from './stormClouds';
 import { stormRain } from '../sim/storms';
@@ -67,6 +70,12 @@ export class GameView {
   /** Someone waits on the prologue's wreck (decision 0127). */
   castawayWaiting = false;
   private readonly castaway: Castaway;
+  /** Buoys and boats at sea, some only before or after a quest (decision 0130). */
+  private readonly seaMarks: SeaMarks;
+  /** The tracked quest step's places at sea (decision 0130). */
+  private readonly questMarkers = new QuestMarkers();
+  /** What the tracked step marks at sea; the game sets it once the quests run. */
+  stepMarkers: () => { style: string; points: readonly StepMarker[] } | null = () => null;
   private readonly boatLantern = new THREE.Vector3();
   private readonly stormClouds = new StormClouds();
   private rain!: Rain;
@@ -149,8 +158,11 @@ export class GameView {
     this.boat = this.buildBoat();
     this.edgeBuoys = new EdgeBuoys(world.map.boundsRadius);
     this.castaway = new Castaway(world.map);
+    this.seaMarks = new SeaMarks(world.map);
     this.scene.add(
       this.castaway.root,
+      this.seaMarks.root,
+      this.questMarkers.root,
       this.islands,
       this.boat.root,
       this.boatShadow,
@@ -294,6 +306,14 @@ export class GameView {
 
   setHomeBuildings(byIsland: Record<string, Record<string, string>>) {
     this.islands.setHomeBuildings(byIsland);
+  }
+
+  /** What stands before or after a quest (decision 0130): island props, sea marks, lights. */
+  setQuestsDone(done: ReadonlySet<string>) {
+    this.islands.setQuestsDone(done);
+    this.seaMarks.setQuestsDone(done);
+    this.lighthouseBeams.setQuestsDone(done);
+    this.beaconLights.setQuestsDone(done);
   }
 
   setSettlementLevels(levels: Record<string, TownLevel>) {
@@ -440,6 +460,8 @@ export class GameView {
     this.boat.setNightLighting?.(day.night);
     this.ocean.update(time, this.target);
     this.edgeBuoys.update(time, (x, z) => waveHeight(x, z, time), this.camera);
+    this.seaMarks.update(time, (x, z) => waveHeight(x, z, time));
+    this.questMarkers.update(this.stepMarkers(), time, (x, z) => waveHeight(x, z, time));
 
     this.buoy.root.visible = Boolean(this.world.map.practiceCourse && !this.world.destination);
     if (this.buoy.root.visible) {
@@ -482,6 +504,8 @@ export class GameView {
     this.wake.dispose();
     this.buoy.dispose();
     this.edgeBuoys.dispose();
+    this.seaMarks.dispose();
+    this.questMarkers.dispose();
     this.boat.dispose();
     this.renderer.dispose();
   }

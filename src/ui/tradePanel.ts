@@ -9,6 +9,7 @@ import {
   MAX_SETTLEMENT_LEVEL,
   portTownGate,
   madeGoods,
+  portNow,
   producesAt,
   settlementLevel,
   upgradeNeedsLevel,
@@ -385,8 +386,8 @@ export class TradePanel {
       const sources = this.world.map.ports
         .filter(
           (p) =>
-            p.levelProduces &&
-            Object.values(p.levelProduces)
+            portNow(p, this.world.trade).levelProduces &&
+            Object.values(portNow(p, this.world.trade).levelProduces!)
               .flat()
               .some((g) => g && gate.goods.includes(g)),
         )

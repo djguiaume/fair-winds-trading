@@ -17,6 +17,7 @@ import { landmarkParts } from './landmarks';
 import { type Spot, landmarkRadius, sampleInside, terrainSeed } from '../../sim/landmarks';
 import { insetOutline } from '../../sim/coast';
 import { type TownLevel, townIslandParts } from './towns';
+import { designOf, questTagIds } from '../../data/islands';
 
 /**
  * B2 "Bright highlands" islands (decision 0012), ported from the reference builder in
@@ -122,6 +123,7 @@ export function islandParts(
   onHarbour?: (point: { x: number; y: number }) => void,
   level?: TownLevel,
   homeBuilt?: Record<string, string>,
+  questsDone?: ReadonlySet<string>,
 ): Parts {
   const rng = createRng(seed);
   const look = island.look ?? {};
@@ -150,6 +152,7 @@ export function islandParts(
         pier: { x: R * 0.08, z0: R * 0.85, len: Math.min(R * 0.75, 4.5) },
         harbour: !!look.dock,
         homeBuilt,
+        questsDone,
       }),
     );
   } else {
@@ -361,7 +364,11 @@ export function terrainProps(feature: TerrainDef, seed: number): Parts {
   const topY = reef ? 0 : bank ? 0.8 : RIDGE_TOP;
   if (feature.look?.landmark) {
     const s = bank || reef ? 1.15 : 1.8;
-    const p = sample(landmarkRadius(feature.look.landmark));
+    const at = feature.look.landmarkAt;
+    const radius = landmarkRadius(feature.look.landmark);
+    // A landmark set by hand (decision 0130) keeps its room clear of the seeded details.
+    if (at) occupied.push({ ...at, radius });
+    const p = at ?? sample(radius);
     if (!p) throw new Error(`Landmark does not fit on ${feature.id}`);
     put(parts, landmarkParts(feature.look.landmark, s), p.x, topY, -p.y, 0.3);
   }
@@ -446,6 +453,8 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
   private levels: Record<string, TownLevel>;
   /** Island id → spot id → building id (decisions 0126, 0128). */
   private homeBuilt: Record<string, Record<string, string>> = {};
+  /** The quests done, for props shown before or after one (decision 0130). */
+  private questsDone: ReadonlySet<string> = new Set();
 
   constructor(
     private readonly map: MapDef,
@@ -521,6 +530,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
       },
       port ? this.levels[port.id] : undefined,
       this.homeBuilt[island.id],
+      this.questsDone,
     );
     const group = this.batch(parts);
     group.name = `island:${island.id}`;
@@ -558,13 +568,29 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     for (const [index, island] of this.map.islands.entries()) {
       const was = JSON.stringify(previous[island.id] ?? {});
       if (was === JSON.stringify(byIsland[island.id] ?? {})) continue;
-      const old = this.batches.get(island.id)!;
-      const next = this.buildIsland(island, index);
-      this.remove(old);
-      disposeGeometry(old);
-      this.batches.set(island.id, next);
-      this.add(next);
+      this.rebuild(island, index);
     }
+  }
+
+  /** Redraw the islands whose props depend on a quest that has just been done or undone (0130). */
+  setQuestsDone(done: ReadonlySet<string>) {
+    const previous = this.questsDone;
+    this.questsDone = new Set(done);
+    for (const [index, island] of this.map.islands.entries()) {
+      const design = designOf(island);
+      const quests = new Set(design?.props.flatMap(questTagIds));
+      if (![...quests].some((q) => previous.has(q) !== done.has(q))) continue;
+      this.rebuild(island, index);
+    }
+  }
+
+  private rebuild(island: IslandDef, index: number) {
+    const old = this.batches.get(island.id)!;
+    const next = this.buildIsland(island, index);
+    this.remove(old);
+    disposeGeometry(old);
+    this.batches.set(island.id, next);
+    this.add(next);
   }
 
   dispose() {

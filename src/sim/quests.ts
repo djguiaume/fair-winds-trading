@@ -1,6 +1,7 @@
 import characterData from '../data/characters.json';
 import { daylightAt } from './daylight';
 import type { GoodAmounts } from './goods';
+import { type IslandDesign, questTagIds } from '../data/islands';
 import type { MapDef } from './map';
 import {
   type CheckScope,
@@ -65,6 +66,11 @@ export interface QuestStep {
    * `look` are then theirs.
    */
   speaker?: string;
+  /**
+   * How its places at sea are drawn (decision 0130): `ring` (default, a floating ring) or
+   * `gulls` (a flock diving over the spot), for the interface.
+   */
+  marker?: StepMarkerStyle;
 }
 
 export interface QuestDef {
@@ -99,6 +105,10 @@ const PEOPLE = new Map(
     Object.keys(c.looks ?? {}),
   ]),
 );
+
+/** How a step's places at sea are drawn (decision 0130). */
+export const STEP_MARKER_STYLES = ['ring', 'gulls'] as const;
+export type StepMarkerStyle = (typeof STEP_MARKER_STYLES)[number];
 
 /** The `next` that finishes a quest. */
 export const QUEST_DONE = 'done';
@@ -238,6 +248,8 @@ export function checkQuests(
         out.push(`${where}: ${face} has no look "${s.look}"`);
       if (s.compass && !(Number.isFinite(s.compass.x) && Number.isFinite(s.compass.y)))
         out.push(`${where} › compass: needs { "x", "y" }`);
+      if (s.marker !== undefined && !STEP_MARKER_STYLES.includes(s.marker))
+        out.push(`${where}: marker is one of ${STEP_MARKER_STYLES.join(', ')}`);
       if (s.chart && !(typeof s.chart.radius === 'number' && s.chart.radius > 0))
         out.push(`${where} › chart: needs a radius`);
       const later = (next: string | undefined, from: string) => {
@@ -266,6 +278,38 @@ export function checkQuests(
     });
     for (const id of stepIds) if (!reached.has(id)) out.push(`${at} › ${id}: no step leads here`);
   }
+  return out;
+}
+
+/**
+ * Problems with what waits on a quest (decision 0130), as readable lines: island props and sea
+ * marks tagged `after:` or `before:` a quest, and ports whose trade changes after one, must name
+ * a quest there is (`quests`, or `others` such as the tutorial).
+ */
+export function checkQuestHooks(
+  map: MapDef,
+  designs: readonly IslandDesign[],
+  quests: readonly QuestDef[],
+  others: string[] = [],
+): string[] {
+  const known = new Set([...quests.map((q) => q.id), ...others]);
+  const out: string[] = [];
+  const named = (ids: string[], where: string) => {
+    for (const id of ids) if (!known.has(id)) out.push(`${where}: no quest "${id}"`);
+  };
+  for (const design of designs)
+    design.props.forEach((prop, i) => {
+      const where = `island ${design.id} › prop ${i} (${prop.type})`;
+      named(questTagIds(prop), where);
+      // A moored boat is solid, and the collision does not follow quests.
+      if (prop.type === 'moored-boat' && questTagIds(prop).length)
+        out.push(`${where}: a moored boat cannot wait on a quest (use a sea mark)`);
+    });
+  (map.marks ?? []).forEach((mark, i) =>
+    named(questTagIds(mark), `map › mark ${i} (${mark.type})`),
+  );
+  for (const port of map.ports)
+    named(Object.keys(port.afterQuest ?? {}), `port ${port.id} › afterQuest`);
   return out;
 }
 
@@ -490,6 +534,9 @@ export class QuestBook {
     const p = this.progress(quest.id)!;
     this.state.byId[quest.id] = { step: QUEST_DONE, counts: [], chose: p.chose };
     this.pay(quest.reward);
+    // A port that trades differently after this quest has its market follow at once (0130).
+    if (this.world.map.ports.some((port) => port.afterQuest?.[quest.id]))
+      syncMarketLevels(this.trade, this.world.map);
     events.push({ type: 'finished', quest: quest.id });
   }
 

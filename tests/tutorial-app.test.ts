@@ -19,6 +19,7 @@ vi.mock('../src/render/view', () => ({
     setQuality() {}
     setSettlementLevels() {}
     setHomeBuildings() {}
+    setQuestsDone() {}
     setFocus() {}
     setZoom() {}
     getZoom() {
