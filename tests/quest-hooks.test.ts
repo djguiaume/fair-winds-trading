@@ -87,6 +87,7 @@ describe('after:/before: tags', () => {
     expect(checkQuestHooks(map, [], [])).toEqual([
       'map › mark 0 (buoy-red): no quest "test-pier"',
       'map › mark 1 (light): no quest "test-pier"',
+      'port calda › afterQuest: no quest "calda-slipway"',
       'port saltmere › afterQuest: no quest "test-pier"',
     ]);
     const design = structuredClone(islandDesign('saltmere'));

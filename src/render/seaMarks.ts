@@ -23,6 +23,12 @@ function model(type: SeaMarkDef['type']): THREE.BufferGeometry | null {
   if (type === 'buoy-green') return buoy('#2f9a55');
   if (type === 'fishing-boat')
     return mergeAll(fishingBoat()).scale(BOAT_SCALE, BOAT_SCALE, BOAT_SCALE);
+  // A harbour pilot's boat (decision 0131): the same small hull, painted black like a pilot cutter.
+  if (type === 'pilot-cutter') {
+    const parts = fishingBoat();
+    parts[0] = paint(parts[0]!, '#26282c');
+    return mergeAll(parts).scale(BOAT_SCALE, BOAT_SCALE, BOAT_SCALE);
+  }
   // A `light` is a mark on the chart only.
   return null;
 }

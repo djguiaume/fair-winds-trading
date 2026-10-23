@@ -477,8 +477,8 @@
       "turn": 14.3239,
       "size": 1.65,
       "clear": 0.38,
-      "from": 1,
-      "to": 2
+      "tags": ["before:calda-slipway"],
+      "from": 1
     },
     { "type": "warehouse", "x": -0.2, "z": 0.5, "size": 1.1, "from": 2 },
     {
@@ -529,7 +529,8 @@
       "turn": 14.3239,
       "size": 1.65,
       "clear": 0.38,
-      "from": 3
+      "tags": ["after:calda-slipway"],
+      "from": 1
     },
     {
       "type": "log-pile",

@@ -108,8 +108,14 @@ export type PortTradeChange = Partial<
   Pick<PortDef, 'produces' | 'wants' | 'levelProduces' | 'levelWants' | 'wantsMade'>
 >;
 
-/** The kinds of sea mark (decision 0130): channel buoys, a boat at work, a light on the chart. */
-export const SEA_MARK_TYPES = ['buoy-red', 'buoy-green', 'fishing-boat', 'light'] as const;
+/** The kinds of sea mark (decisions 0130, 0131): channel buoys, boats, a light on the chart. */
+export const SEA_MARK_TYPES = [
+  'buoy-red',
+  'buoy-green',
+  'fishing-boat',
+  'pilot-cutter',
+  'light',
+] as const;
 export type SeaMarkType = (typeof SEA_MARK_TYPES)[number];
 
 /**
