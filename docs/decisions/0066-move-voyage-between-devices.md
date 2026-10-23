@@ -1,6 +1,6 @@
 # 0066. Move a voyage between devices with a QR code or a file
 
-**Status:** Implemented for review, 2026-10-22. Guillaume picked options 1 and 2 of the proposal ("ok for 1 and 2, 2 being the main way"): a save code shown as a QR code first, a `.json` file second. No server.
+**Status:** Implemented for review, 2026-10-22. Guillaume picked options 1 and 2 of the proposal ("ok for 1 and 2, 2 being the main way"): a save code shown as a QR code first, a `.json` file second. No server. The code format was made compact in [0118](0118-compact-save-code.md) (`FW2`); `FW1` codes still read.
 
 ## Context
 
