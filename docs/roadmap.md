@@ -204,6 +204,8 @@ Timed delivery races between ports, alongside the sandbox rather than replacing 
 
 Decided in [decision 0005](decisions/0005-tech-stack.md): three.js + TypeScript + Vite, static site on GitHub Pages, simulation separate from rendering, mobile performance budget from day one.
 
+Repeatable production-browser performance scenarios now cover startup, sailing, storms, docking, town growth and graphics-quality changes ([0102](decisions/0102-repeatable-performance-baseline.md)). Workload settings and reporting budgets are JSON data; timing reports guide optimization without flaky CI thresholds. Repeat on target tablets before drawing device-performance conclusions.
+
 ## Settled and open questions
 
 - ~~True 3D or 2.5D?~~ Decided: real-time 3D low-poly ([decision 0004](decisions/0004-real-time-3d.md)), built with three.js ([0005](decisions/0005-tech-stack.md)).

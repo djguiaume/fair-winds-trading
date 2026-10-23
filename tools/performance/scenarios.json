@@ -1,0 +1,16 @@
+{
+  "viewport": { "width": 1280, "height": 800 },
+  "deviceScaleFactor": 1,
+  "settings": { "quality": "high", "musicVolume": 0, "seenHelp": true },
+  "repeats": 3,
+  "warmupMs": 1000,
+  "durationMs": 3000,
+  "timeoutMs": 30000,
+  "reportingBudgets": { "frameMs": 33.34 },
+  "sailing": { "radiusShare": 0.7, "headingOffsetDeg": 90, "sailStep": 2 },
+  "storm": { "scanStepSec": 30, "scanLimitSec": 3600, "minimumIntensity": 0.5 },
+  "docking": { "radialSamples": 72, "radiusMultipliers": [1.2, 1.4, 1.6] },
+  "townGrowth": { "targetLevel": 4 },
+  "qualityChange": { "levels": ["medium", "low", "high"] },
+  "scenarios": ["startup", "sailing", "storm", "docking", "townGrowth", "qualityChange"]
+}
