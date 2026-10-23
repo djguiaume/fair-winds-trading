@@ -37,6 +37,8 @@ export interface IslandCheckKit {
   footprint?: (prop: PropDef) => Outline;
   /** Triangles of the whole island at a level. */
   triangles?: (level: number) => number;
+  /** False for an island with no harbour (decision 0107): no approach to keep clear. */
+  harbour?: boolean;
 }
 
 export const TRIANGLE_BUDGET = 6000;
@@ -158,7 +160,11 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
         }
       }
       // The lane up from the arrival pier, as the old town plan kept it.
-      if (Math.abs(p.x - APPROACH.x) < APPROACH.halfWidth && p.z > APPROACH.z)
+      if (
+        kit.harbour !== false &&
+        Math.abs(p.x - APPROACH.x) < APPROACH.halfWidth &&
+        p.z > APPROACH.z
+      )
         once(`approach${i}`, () => error('approach', `${name} is in the harbour approach`, extra));
       // Side piers, where they stand over the water.
       for (const pier of piers)

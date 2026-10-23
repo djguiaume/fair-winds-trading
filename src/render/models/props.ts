@@ -285,38 +285,41 @@ export function slip(planked: boolean): Parts {
 
 /** Dense woods use open triangular trunks and two conifer tiers to stay in budget. */
 export function woodlandTree(kind: IslandTheme, rng: Rng): Parts {
+  return prepareWoodlandTree(kind, rng)();
+}
+
+/** Consume the model's random draws now; allocate geometry only if the scatter accepts it. */
+function prepareWoodlandTree(kind: IslandTheme, rng: Rng): () => Parts {
   const s = range(rng, 0.8, 1.3);
-  const trunk = paint(
-    new THREE.CylinderGeometry(0.07 * s, 0.1 * s, 0.7 * s, 3, 1, true).translate(0, 0.35 * s, 0),
-    C.trunk,
-  );
-  if (kind === 'timber' || kind === 'stone')
-    return [
-      trunk,
-      paint(
-        new THREE.ConeGeometry(0.62 * s, 1.15 * s, kind === 'timber' ? 4 : 5, 1, true).translate(
-          0,
-          0.95 * s,
-          0,
+  const conifer = kind === 'timber' || kind === 'stone';
+  const leaves = conifer ? undefined : C.leaves[Math.floor(rng() * 3)]!;
+  return () => {
+    const trunk = paint(
+      new THREE.CylinderGeometry(0.07 * s, 0.1 * s, 0.7 * s, 3, 1, true).translate(0, 0.35 * s, 0),
+      C.trunk,
+    );
+    if (conifer)
+      return [
+        trunk,
+        paint(
+          new THREE.ConeGeometry(0.62 * s, 1.15 * s, kind === 'timber' ? 4 : 5, 1, true).translate(
+            0,
+            0.95 * s,
+            0,
+          ),
+          C.pine[0]!,
         ),
-        C.pine[0]!,
-      ),
-      paint(
-        new THREE.ConeGeometry(0.4 * s, 1.0 * s, kind === 'timber' ? 4 : 5, 1, true).translate(
-          0,
-          1.55 * s,
-          0,
+        paint(
+          new THREE.ConeGeometry(0.4 * s, 1.0 * s, kind === 'timber' ? 4 : 5, 1, true).translate(
+            0,
+            1.55 * s,
+            0,
+          ),
+          C.pine[1]!,
         ),
-        C.pine[1]!,
-      ),
-    ];
-  return [
-    trunk,
-    paint(
-      new THREE.IcosahedronGeometry(0.65 * s, 0).translate(0, s, 0),
-      C.leaves[Math.floor(rng() * 3)]!,
-    ),
-  ];
+      ];
+    return [trunk, paint(new THREE.IcosahedronGeometry(0.65 * s, 0).translate(0, s, 0), leaves!)];
+  };
 }
 
 /** Open timber workshops with readable machinery and stacked planks. */
@@ -665,11 +668,21 @@ export const PROP_TYPES: Record<string, PropType> = {
   ruins: { group: 'landmarks', building: true, sizedInModel: true, build: landmark('ruins') },
   beacon: { group: 'landmarks', sizedInModel: true, build: landmark('beacon') },
   wreck: { group: 'landmarks', sizedInModel: true, build: landmark('wreck') },
+  /** A sandstone rock, half sunk (the ridges' rocks, decision 0107). */
+  boulder: {
+    group: 'nature',
+    build: ({ variant }) => [
+      paint(
+        new THREE.DodecahedronGeometry(1, 0).scale(1, 0.7, 1).translate(0, 0.35, 0),
+        variant % 2 ? '#c2ad8c' : '#d6c4a4',
+      ),
+    ],
+  },
 };
 
-/** The woodland tree models the woods scatter, which draw their own seeded size and colour. */
-export const WOODLAND_TREES: Record<string, (rng: Rng) => Parts> = {
-  'woodland-pine': (rng) => woodlandTree('timber', rng),
-  'woodland-fir': (rng) => woodlandTree('stone', rng),
-  'woodland-broadleaf': (rng) => woodlandTree('fish', rng),
+/** Woodland model preparers draw seeded size and colour without building rejected candidates. */
+export const WOODLAND_TREES: Record<string, (rng: Rng) => () => Parts> = {
+  'woodland-pine': (rng) => prepareWoodlandTree('timber', rng),
+  'woodland-fir': (rng) => prepareWoodlandTree('stone', rng),
+  'woodland-broadleaf': (rng) => prepareWoodlandTree('fish', rng),
 };

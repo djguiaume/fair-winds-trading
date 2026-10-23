@@ -2,6 +2,7 @@ import { knotToUnits } from './boat';
 import { coastDistance } from './coast';
 import { isGood } from './goods';
 import { islandCoasts, islandPoint } from './islandLayout';
+import { landmarkOf } from '../data/islands';
 import type { IslandDef, MapDef, PortDef } from './map';
 import { DEG, bearingTo, wrapAngle } from './math';
 import { CUTTER, SLOOP, noGoAngle, polarFraction } from './ship';
@@ -160,8 +161,9 @@ export function sailRoute(
 /** Where a boat waits off a port: in front of the harbour for profiled islands, else south. */
 export function harbourApproach(map: MapDef, port: PortDef, distance = 2.0): Point {
   const island = map.islands.find((i) => i.id === port.islandId)!;
+  // Small islands (the hidden yards, decision 0107) keep the same sea room off their pier.
   return island.look?.profile
-    ? islandPoint(island, 0.08, distance)
+    ? islandPoint(island, 0.08, Math.max(distance, 1 + 22 / island.radius))
     : { x: island.x, y: island.y - island.radius - 20 };
 }
 
@@ -318,7 +320,7 @@ export function quickChecks(map: MapDef): MapCheck[] {
 
   // Scenery islands are landmarks you steer by.
   const portIslands = new Set(map.ports.map((p) => p.islandId));
-  const plain = map.islands.filter((i) => !portIslands.has(i.id) && !i.look?.landmark);
+  const plain = map.islands.filter((i) => !portIslands.has(i.id) && !landmarkOf(i));
   out.push(
     plain.length
       ? fail(

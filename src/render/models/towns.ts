@@ -122,6 +122,8 @@ export interface TownIslandSpec {
   landmark?: LandmarkKind;
   /** Pier line shared with the simulation: x offset, root z and length. */
   pier: { x: number; z0: number; len: number };
+  /** False for an island file with no harbour (decision 0107). */
+  harbour?: boolean;
 }
 
 /**
@@ -130,7 +132,12 @@ export interface TownIslandSpec {
  */
 export function townIslandParts(spec: TownIslandSpec): Parts {
   if (spec.design ?? spec.profile)
-    return designedTownParts(islandDesign(spec.design ?? spec.profile!), spec.R, spec.level);
+    return designedTownParts(
+      islandDesign(spec.design ?? spec.profile!),
+      spec.R,
+      spec.level,
+      spec.harbour,
+    );
   const { level, R, sx, sz, pier } = spec;
   const kind: Kind =
     (['fish', 'timber', 'grain', 'stone'] as const).find((k) => k === spec.kind) ?? 'yard';
@@ -526,7 +533,13 @@ export const isResidence = (prop: PropDef) =>
  * A designed port island at its level, built from its island file (decision 0101): terrain,
  * stairs and paths, the lake, lanes near standing homes, homes, the docks, props and woods.
  */
-export function designedTownParts(design: IslandDesign, R: number, level: TownLevel): Parts {
+export function designedTownParts(
+  design: IslandDesign,
+  R: number,
+  level: TownLevel,
+  /** False for an island with no harbour (decision 0107): no arrival pier, flag or side piers. */
+  harbour = true,
+): Parts {
   const layout = islandLayout(design, level);
   const stone = design.style === 'stone';
   const out: Parts = [];
@@ -703,6 +716,67 @@ export function designedTownParts(design: IslandDesign, R: number, level: TownLe
   for (const parts of homes) out.push(...parts);
 
   // The same blue-and-white harbour flag identifies the player berth at every port.
+  if (harbour) harbourParts(out, design, R, level, stone);
+
+  // Every other prop, in file order; fields claim woodland as the settlement grows.
+  const occupied: { x: number; z: number; clear: number }[] = [];
+  const fields: { x: number; z: number }[] = [];
+  for (const prop of standing) {
+    if (isResidence(prop)) continue;
+    const clear = place(prop, propParts(prop, design, R));
+    if (prop.type === 'field') fields.push(prop);
+    else occupied.push({ x: prop.x, z: prop.z, clear });
+  }
+
+  // Fixed candidate trees keep untouched woods stable; occupied land alone clears them.
+  const woods = design.woods;
+  const make = WOODLAND_TREES[woods.tree]!;
+  const finalLayout = islandLayout(design);
+  const rockHeights = layout.surfaces.filter((s) => s.material === 'rock').map((s) => s.height);
+  const treesRng = createRng(design.seed + 789);
+  const forest: { x: number; z: number }[] = [];
+  const [x0, z0, x1, z1] = woods.area;
+  for (let i = 0; i < woods.tries; i++) {
+    const x = range(treesRng, x0, x1),
+      z = range(treesRng, z0, z1);
+    const buildTree = make(treesRng);
+    const yaw = treesRng() * 6;
+    const h = layoutGround(layout, x, z, woods.margin);
+    // No trees on rock, nor where the grown town's ground (a level-4 quarry) will not carry one.
+    if (
+      h === null ||
+      layoutGround(finalLayout, x, z, woods.margin) === null ||
+      rockHeights.includes(h)
+    )
+      continue;
+    const spacing = woods.spacingAt?.find(([at]) => at === h)?.[1] ?? woods.spacing;
+    if (forest.some((p) => Math.hypot(p.x - x, p.z - z) < spacing)) continue;
+    forest.push({ x, z });
+    if (
+      active.some((p) => Math.hypot(p.x - x, p.z - z) < 0.19) ||
+      clearedLanes.some((p) => Math.hypot(p.x - x, p.z - z) < 0.09) ||
+      occupied.some((p) => Math.hypot(p.x - x, p.z - z) < p.clear) ||
+      fields.some((p) => Math.abs(p.x - x) < 0.22 && Math.abs(p.z - z) < 0.22) ||
+      (woods.areas?.length && !woods.areas.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r)) ||
+      (harbour && Math.abs(x - 0.08) < 0.14 && z > 0.45) ||
+      woods.clear?.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r)
+    )
+      continue;
+    const tree = buildTree();
+    tree[0]!.userData.tree = { x, z };
+    put(out, tree, x * R, h * R, z * R, yaw, woods.size);
+  }
+  return out.map(withoutUndersides);
+}
+
+/** The arrival pier with the player's flag, and the island file's side piers. */
+function harbourParts(
+  out: Parts,
+  design: IslandDesign,
+  R: number,
+  level: TownLevel,
+  stone: boolean,
+) {
   const piers = characterPiers(design, R, level);
   const arrival = piers[0]!;
   dock(out, level, arrival, stone && level >= 3);
@@ -728,55 +802,6 @@ export function designedTownParts(design: IslandDesign, R: number, level: TownLe
   );
   // Additional finger piers use the shared harbour plan (including their collision segments).
   for (const p of piers.slice(1)) secondPier(out, p.x, p.z0, p.len, stone);
-
-  // Every other prop, in file order; fields claim woodland as the settlement grows.
-  const occupied: { x: number; z: number; clear: number }[] = [];
-  const fields: { x: number; z: number }[] = [];
-  for (const prop of standing) {
-    if (isResidence(prop)) continue;
-    const clear = place(prop, propParts(prop, design, R));
-    if (prop.type === 'field') fields.push(prop);
-    else occupied.push({ x: prop.x, z: prop.z, clear });
-  }
-
-  // Fixed candidate trees keep untouched woods stable; occupied land alone clears them.
-  const woods = design.woods;
-  const make = WOODLAND_TREES[woods.tree]!;
-  const finalLayout = islandLayout(design);
-  const rockHeights = layout.surfaces.filter((s) => s.material === 'rock').map((s) => s.height);
-  const treesRng = createRng(design.seed + 789);
-  const forest: { x: number; z: number }[] = [];
-  const [x0, z0, x1, z1] = woods.area;
-  for (let i = 0; i < woods.tries; i++) {
-    const x = range(treesRng, x0, x1),
-      z = range(treesRng, z0, z1);
-    const tree = make(treesRng);
-    const yaw = treesRng() * 6;
-    const h = layoutGround(layout, x, z, woods.margin);
-    // No trees on rock, nor where the grown town's ground (a level-4 quarry) will not carry one.
-    if (
-      h === null ||
-      layoutGround(finalLayout, x, z, woods.margin) === null ||
-      rockHeights.includes(h)
-    )
-      continue;
-    const spacing = woods.spacingAt?.find(([at]) => at === h)?.[1] ?? woods.spacing;
-    if (forest.some((p) => Math.hypot(p.x - x, p.z - z) < spacing)) continue;
-    forest.push({ x, z });
-    if (
-      active.some((p) => Math.hypot(p.x - x, p.z - z) < 0.19) ||
-      clearedLanes.some((p) => Math.hypot(p.x - x, p.z - z) < 0.09) ||
-      occupied.some((p) => Math.hypot(p.x - x, p.z - z) < p.clear) ||
-      fields.some((p) => Math.abs(p.x - x) < 0.22 && Math.abs(p.z - z) < 0.22) ||
-      (woods.areas?.length && !woods.areas.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r)) ||
-      (Math.abs(x - 0.08) < 0.14 && z > 0.45) ||
-      woods.clear?.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r)
-    )
-      continue;
-    tree[0]!.userData.tree = { x, z };
-    put(out, tree, x * R, h * R, z * R, yaw, woods.size);
-  }
-  return out.map(withoutUndersides);
 }
 
 /**
@@ -911,7 +936,7 @@ function planHull(parts: Parts): [number, number][] {
 }
 
 /** What src/sim/islandChecks.ts needs from the models, for an island of radius R. */
-export function islandCheckKit(design: IslandDesign, R: number): IslandCheckKit {
+export function islandCheckKit(design: IslandDesign, R: number, harbour = true): IslandCheckKit {
   const built = (prop: PropDef) => {
     const parts = propParts(prop, design, R);
     const scale = PROP_TYPES[prop.type]!.sizedInModel ? 1 : (prop.size ?? 1);
@@ -919,6 +944,7 @@ export function islandCheckKit(design: IslandDesign, R: number): IslandCheckKit 
   };
   return {
     R,
+    harbour,
     types: PROP_TYPES,
     woodlandTrees: Object.keys(WOODLAND_TREES),
     fit: (prop) => {
@@ -936,7 +962,7 @@ export function islandCheckKit(design: IslandDesign, R: number): IslandCheckKit 
       return hull;
     },
     triangles: (level) => {
-      const parts = designedTownParts(design, R, level as TownLevel);
+      const parts = designedTownParts(design, R, level as TownLevel, harbour);
       const count = parts.reduce((n, g) => n + g.getAttribute('position').count / 3, 0);
       parts.forEach((g) => g.dispose());
       return count;
