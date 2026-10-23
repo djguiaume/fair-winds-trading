@@ -123,9 +123,9 @@ export class PortLabels {
     return Boolean(entry && !entry.root.hidden && !entry.dock.hidden);
   }
 
-  update(project: (x: number, y: number) => ScreenPoint, dt = 0.12) {
+  update(project: (x: number, y: number) => ScreenPoint, dt = 0.12, forceContent = false) {
     this.sinceContent += dt;
-    const refreshContent = this.sinceContent >= 0.12;
+    const refreshContent = forceContent || this.sinceContent >= 0.12;
     if (refreshContent) this.sinceContent = 0;
     if (this.mode === 'off') {
       for (const entry of this.portElements.values()) {

@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
 import { SLOOP } from '../src/sim/ship';
 import { createWorld } from '../src/sim/world';
@@ -152,4 +152,95 @@ describe('one Trade button at a time (decision 0058)', () => {
     hud.update(0.2, project, size);
     expect($('dock-btn').hidden).toBe(true);
   });
+});
+
+describe('hidden HUD work', () => {
+  it('does no projection or instrument mutations while covered and refreshes on return', () => {
+    const { world, hud } = setup();
+    world.destination = { x: 0, y: 300, portId: '', label: 'First target' };
+    hud.update(0.2, project, size);
+    const spy = vi.fn(project);
+    const observer = new MutationObserver(() => {});
+    observer.observe($('hud'), { attributes: true, childList: true, subtree: true });
+    world.boat.heading = Math.PI;
+    world.trade.captain.cargo.fish = 5;
+    world.destination.label = 'New target';
+    hud.update(1 / 60, spy, size, false, false);
+    hud.setFps(30, false);
+    expect(spy).not.toHaveBeenCalled();
+    expect(observer.takeRecords()).toHaveLength(0);
+    hud.update(1 / 60, spy, size, true, true);
+    expect(spy).toHaveBeenCalled();
+    expect($('heading').textContent).toBe('180\u00b0 S');
+    expect($('hud-cargo').textContent).toBe('5/10');
+    expect($('obj-name').textContent).toBe('New target');
+    observer.disconnect();
+  });
+
+  it('keeps toast expiry and pause wind-cue resets running while covered', () => {
+    const { world, hud } = setup();
+    world.boat.heading = world.wind.from;
+    world.boat.sailStep = 2;
+    world.boat.sail = 1;
+    hud.update(4, project, size);
+    expect($('upwind-chip').hidden).toBe(false);
+    hud.showToast('temporary', 1);
+    hud.update(2, project, size, false, false);
+    expect($('toast').hidden).toBe(true);
+    hud.update(1 / 60, project, size, true, true);
+    expect($('upwind-chip').hidden).toBe(true);
+    expect($('wind-compass').classList.contains('wind-pulse')).toBe(false);
+  });
+
+  it('continues refreshing paused instruments that remain visible under translucent sheets', () => {
+    const { world, hud } = setup();
+    hud.update(0.2, project, size);
+    world.trade.captain.cargo.fish = 3;
+    world.boat.heading = Math.PI / 2;
+    const spy = vi.fn(project);
+    world.destination = { x: 300, y: 0, portId: '', label: 'Market target' };
+    hud.update(0.2, spy, size, false, true);
+    expect($('hud-cargo').textContent).toBe('3/10');
+    expect($('heading').textContent).toBe('90\u00b0 E');
+    expect(spy).toHaveBeenCalled();
+  });
+
+  it('skips folded speed text and refreshes it immediately when unfolded', () => {
+    const { world, hud } = setup();
+    hud.update(0.2, project, size);
+    const heading = $('heading').textContent;
+    hud.showLog = false;
+    world.boat.heading = Math.PI;
+    hud.update(0.2, project, size);
+    expect($('heading').textContent).toBe(heading);
+    hud.showLog = true;
+    hud.update(1 / 60, project, size);
+    expect($('heading').textContent).toBe('180\u00b0 S');
+  });
+});
+
+it('refreshes already visible port-sign content on the first uncovered frame', () => {
+  const { world, hud } = setup();
+  world.trade.dockedAt = 'saltmere';
+  hud.update(0.2, project, size);
+  const sign = document.querySelector<HTMLElement>('[data-port-id="saltmere"]')!;
+  const oldLabel = sign.getAttribute('aria-label');
+  hud.update(1 / 60, project, size);
+  hud.update(1 / 60, project, size, false, false);
+  world.trade.dockedAt = null;
+  // A paused, still-visible sheet can close the chart: no elapsed text interval is needed.
+  hud.update(1 / 60, project, size, false, true);
+  expect(sign.getAttribute('aria-label')).not.toBe(oldLabel);
+});
+
+it('advances gust lifetime while hidden instead of replaying a stale gust on return', () => {
+  const { world, hud } = setup();
+  world.wind.speedKn = 8;
+  hud.update(0.2, project, size);
+  world.wind.speedKn = 20;
+  hud.update(1 / 60, project, size);
+  expect($('wind-gust').hidden).toBe(false);
+  hud.update(20, project, size, false, false);
+  hud.update(1 / 60, project, size, false, true);
+  expect($('wind-gust').hidden).toBe(true);
 });
