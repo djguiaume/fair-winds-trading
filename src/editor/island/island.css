@@ -182,6 +182,10 @@
 #ib-svg.armed {
   cursor: copy;
 }
+.ib-levels[hidden] {
+  display: none;
+}
+
 .ib-levels {
   position: absolute;
   top: 10px;

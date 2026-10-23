@@ -56,6 +56,8 @@ export interface TerrainDef {
   kind: 'island' | 'sandbank' | 'reef';
   outline: [number, number][];
   look?: { trees?: number; landmark?: LandmarkKind };
+  /** Seeds its rocks, coral and trees; left out, its place in the list does (decision 0107). */
+  seed?: number;
 }
 
 export interface WaypointDef {

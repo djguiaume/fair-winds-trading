@@ -17,6 +17,8 @@ import type { IslandView } from './scene';
 const NS = 'http://www.w3.org/2000/svg';
 
 export interface OverlayScene {
+  /** False on an island with no harbour: no approach to keep clear (decision 0107). */
+  harbour: boolean;
   design: IslandDesign;
   level: Level;
   view: IslandView;
@@ -90,13 +92,14 @@ export function drawOverlay(svg: SVGSVGElement, s: OverlayScene) {
     defs,
   );
   el('line', { x1: 0, y1: 0, x2: 0, y2: 0.03, class: 'i-hatch-line' }, hatch);
-  el('rect', {
-    x: APPROACH.x - APPROACH.halfWidth,
-    y: APPROACH.z,
-    width: APPROACH.halfWidth * 2,
-    height: 1.6,
-    class: 'i-approach',
-  });
+  if (s.harbour)
+    el('rect', {
+      x: APPROACH.x - APPROACH.halfWidth,
+      y: APPROACH.z,
+      width: APPROACH.halfWidth * 2,
+      height: 1.6,
+      class: 'i-approach',
+    });
 
   if (s.mode !== 'props') drawShapes(s, el, label);
   else if (s.showLater)

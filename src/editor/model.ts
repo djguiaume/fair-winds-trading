@@ -281,26 +281,31 @@ function formatJson(value: unknown, flat: (v: unknown) => boolean): string {
               .join(', ')} }`
           : '{}'
         : JSON.stringify(v);
-  const write = (v: unknown, indent: string, prefix: string): string => {
+  /** `tail`: the comma after it, which Prettier counts in the width. */
+  const write = (v: unknown, indent: string, prefix: string, tail = 0): string => {
     const one = prefix + inline(v);
     if (Array.isArray(v)) {
       // Prettier always breaks a list of two or more non-empty lists or objects (the outlines).
       const nested =
         v.length > 1 &&
         v.every((x) => x && typeof x === 'object' && Object.keys(x as object).length > 1);
-      if (!v.length || (!nested && indent.length + one.length <= WIDTH)) return one;
+      if (!v.length || (!nested && indent.length + one.length + tail <= WIDTH)) return one;
       const inner = indent + '  ';
-      return `${prefix}[\n${v.map((x) => inner + write(x, inner, '')).join(',\n')}\n${indent}]`;
+      const items = v.map((x, i) => inner + write(x, inner, '', i < v.length - 1 ? 1 : 0));
+      return `${prefix}[\n${items.join(',\n')}\n${indent}]`;
     }
     if (v && typeof v === 'object') {
       const entries = Object.entries(v);
       if (!entries.length) return `${prefix}{}`;
-      if (entries.every(([, x]) => flat(x)) && indent.length + one.length <= WIDTH) return one;
+      if (entries.every(([, x]) => flat(x)) && indent.length + one.length + tail <= WIDTH)
+        return one;
       const inner = indent + '  ';
-      return `${prefix}{\n${entries
-        .filter(([, x]) => x !== undefined)
-        .map(([k, x]) => inner + write(x, inner, `${JSON.stringify(k)}: `))
-        .join(',\n')}\n${indent}}`;
+      const kept = entries.filter(([, x]) => x !== undefined);
+      const lines = kept.map(
+        ([k, x], i) =>
+          inner + write(x, inner, `${JSON.stringify(k)}: `, i < kept.length - 1 ? 1 : 0),
+      );
+      return `${prefix}{\n${lines.join(',\n')}\n${indent}}`;
     }
     return one;
   };

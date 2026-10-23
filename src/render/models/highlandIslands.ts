@@ -128,14 +128,16 @@ export function islandParts(
   const sx = 1 + (rng() - 0.5) * 0.16;
   const sz = 1 + (rng() - 0.5) * 0.16;
   const out: Parts = [];
-  // A port with a settlement level grows its own town and island profile (decision 0060).
-  const town = (level !== undefined || !!look.profile || !!look.design) && !!look.dock;
+  // A port with a settlement level grows its own town and island profile (decision 0060); any
+  // island with its own file is built from it, a harbour only with a dock (decision 0107).
+  const town = !!look.design || ((level !== undefined || !!look.profile) && !!look.dock);
 
   if (town) {
     out.push(
       ...townIslandParts({
         seed,
-        level: level ?? 1,
+        // An island with no port has no levels: everything in its file stands.
+        level: level ?? (look.dock ? 1 : 4),
         design: look.design,
         profile: look.profile,
         kind,
@@ -144,6 +146,7 @@ export function islandParts(
         sz,
         landmark: look.landmark,
         pier: { x: R * 0.08, z0: R * 0.85, len: Math.min(R * 0.75, 4.5) },
+        harbour: !!look.dock,
       }),
     );
   } else {
@@ -479,7 +482,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
           parts.push(paint(extrudeOutline(outline, tier.bottom, tier.top), tier.color));
         }
       }
-      parts.push(...terrainProps(feature, map.seed * 1709 + index * 97));
+      parts.push(...terrainProps(feature, feature.seed ?? map.seed * 1709 + index * 97));
       const group = this.batch(parts);
       group.name = `terrain:${feature.id}`;
       this.add(group);
