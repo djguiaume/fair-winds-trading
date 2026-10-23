@@ -194,7 +194,7 @@ describe('Windward Ring trading map', () => {
         PHASE1_MAP.boundsRadius,
       );
     const ocean = new Ocean(PHASE1_MAP.islands, 8, false, 480, terrain);
-    expect(ocean.mesh.material.uniforms.uShoreMap!.value.image.width).toBe(512);
+    expect(ocean.mesh.material.uniforms.uShoreMap!.value.image.width).toBeGreaterThanOrEqual(512);
     ocean.dispose();
   });
   it('migrates older-map trading progress and resumes at the clear spawn', () => {

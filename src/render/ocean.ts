@@ -25,6 +25,11 @@ function currentCoasts(island: IslandDef) {
   );
 }
 
+/** Shoreline bake sharpness: map units per texel (512 texels spanned today's map at about 1.4). */
+const SHORE_UNITS_PER_TEXEL = 1.4;
+/** Texel cap per side: 2048 x 2048 at one byte is 4 MB, the most an old tablet should hold. */
+const SHORE_MAX_TEXELS = 2048;
+
 export type ShoreTexture = ReturnType<typeof shoreTexture>;
 
 /** One map/view owns one bake; quality changes borrow it. No per-frame work or global GPU cache. */
@@ -77,12 +82,24 @@ export function shoreTexture(islands: readonly IslandDef[], terrain: readonly Te
     points.push([i.x - i.radius, -i.y - i.radius], [i.x + i.radius, -i.y + i.radius]),
   );
   if (!points.length) points.push([-1, -1], [1, 1]);
-  const x0 = Math.min(...points.map((p) => p[0]!)) - 24;
-  const z0 = Math.min(...points.map((p) => p[1]!)) - 24;
-  const w = Math.max(...points.map((p) => p[0]!)) + 24 - x0;
-  const h = Math.max(...points.map((p) => p[1]!)) + 24 - z0;
-  const size = 512;
-  const distances = new Float32Array(size * size).fill(64);
+  let x0 = Infinity,
+    z0 = Infinity,
+    x1 = -Infinity,
+    z1 = -Infinity;
+  for (const [x, z] of points) {
+    x0 = Math.min(x0, x!);
+    z0 = Math.min(z0, z!);
+    x1 = Math.max(x1, x!);
+    z1 = Math.max(z1, z!);
+  }
+  x0 -= 24;
+  z0 -= 24;
+  const w = x1 + 24 - x0;
+  const h = z1 + 24 - z0;
+  // Same sharpness on any map size, within a memory budget (decision 0115).
+  const nx = Math.min(SHORE_MAX_TEXELS, Math.max(64, Math.ceil(w / SHORE_UNITS_PER_TEXEL)));
+  const nz = Math.min(SHORE_MAX_TEXELS, Math.max(64, Math.ceil(h / SHORE_UNITS_PER_TEXEL)));
+  const distances = new Float32Array(nx * nz).fill(64);
   // Rasterize only a 20-unit band around each segment/circle, not every edge per texel.
   const band = (
     xmin: number,
@@ -91,16 +108,16 @@ export function shoreTexture(islands: readonly IslandDef[], terrain: readonly Te
     zmax: number,
     distance: (x: number, z: number) => number,
   ) => {
-    const xa = Math.max(0, Math.floor(((xmin - 20 - x0) / w) * size)),
-      xb = Math.min(size - 1, Math.ceil(((xmax + 20 - x0) / w) * size));
-    const za = Math.max(0, Math.floor(((zmin - 20 - z0) / h) * size)),
-      zb = Math.min(size - 1, Math.ceil(((zmax + 20 - z0) / h) * size));
+    const xa = Math.max(0, Math.floor(((xmin - 20 - x0) / w) * nx)),
+      xb = Math.min(nx - 1, Math.ceil(((xmax + 20 - x0) / w) * nx));
+    const za = Math.max(0, Math.floor(((zmin - 20 - z0) / h) * nz)),
+      zb = Math.min(nz - 1, Math.ceil(((zmax + 20 - z0) / h) * nz));
     for (let j = za; j <= zb; j++)
       for (let i = xa; i <= xb; i++) {
-        const k = j * size + i;
+        const k = j * nx + i;
         distances[k] = Math.min(
           distances[k]!,
-          distance(x0 + ((i + 0.5) / size) * w, z0 + ((j + 0.5) / size) * h),
+          distance(x0 + ((i + 0.5) / nx) * w, z0 + ((j + 0.5) / nz) * h),
         );
       }
   };
@@ -118,12 +135,11 @@ export function shoreTexture(islands: readonly IslandDef[], terrain: readonly Te
     band(c.x - c.radius, -c.y - c.radius, c.x + c.radius, -c.y + c.radius, (x, z) =>
       Math.abs(Math.hypot(x - c.x, z + c.y) - c.radius),
     );
-  const bytes = new Uint8Array(size * size * 4);
-  distances.forEach((d, i) => {
-    bytes[i * 4] = Math.round((d / 64) * 255);
-    bytes[i * 4 + 3] = 255;
-  });
-  const texture = new THREE.DataTexture(bytes, size, size, THREE.RGBAFormat);
+  // One byte per texel (the shader reads red only): a quarter of the memory of RGBA.
+  const bytes = new Uint8Array(nx * nz);
+  distances.forEach((d, i) => (bytes[i] = Math.round((d / 64) * 255)));
+  const texture = new THREE.DataTexture(bytes, nx, nz, THREE.RedFormat);
+  texture.unpackAlignment = 1;
   texture.minFilter = texture.magFilter = THREE.LinearFilter;
   texture.needsUpdate = true;
   return { texture, bounds: new THREE.Vector4(x0, z0, w, h) };

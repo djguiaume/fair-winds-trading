@@ -1,0 +1,13 @@
+{
+  "about": "Dev-only test sea for the bigger map (decision 0115): copies of the shipped map spread over 5 times its area. Open with ?map=stress.",
+  "boundsRadius": 985,
+  "copies": [
+    { "x": 0, "y": 0, "turnDeg": 0 },
+    { "x": 430, "y": 430, "turnDeg": 72 },
+    { "x": -430, "y": 430, "turnDeg": 144 },
+    { "x": -430, "y": -430, "turnDeg": 216 },
+    { "x": 430, "y": -430, "turnDeg": 288 }
+  ],
+  "clearance": 30,
+  "edgeMargin": 40
+}

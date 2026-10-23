@@ -20,6 +20,9 @@ const box = (cx: number, cy: number, w: number, h: number): Box => ({
   x1: cx + w / 2,
   y1: cy + h / 2,
 });
+/** Chart scale (map units per pixel) beyond which secondary names are left out. */
+const MAX_UNITS_PER_PIXEL_FOR_NAMES = 3;
+
 /** Overlapping area of two boxes, used to choose the clearest side for a label. */
 const overlap = (a: Box, b: Box) =>
   Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0)) *
@@ -108,7 +111,7 @@ export class SeaChart {
     const changeZoom = (factor: number) => {
       if (this.zoom === 1 && factor > 1)
         this.center = { x: this.world.boat.x, y: -this.world.boat.y };
-      this.zoom = Math.min(3, Math.max(1, this.zoom * factor));
+      this.zoom = Math.min(this.maxZoom, Math.max(1, this.zoom * factor));
       this.draw();
     };
     this.dialog.querySelector('#chart-zoom-in')?.addEventListener('click', () => changeZoom(1.5));
@@ -180,6 +183,13 @@ export class SeaChart {
       dial.replaceChildren(copy);
     }
   }
+  /**
+   * Closest zoom: the same detail as 3x on the Windward Ring (sea radius 440) on any sea, so a
+   * bigger map zooms in further rather than drawing its islands smaller (decision 0115).
+   */
+  private get maxZoom() {
+    return Math.max(3, (3 * (this.world.map.boundsRadius + 24)) / (440 + 24));
+  }
   private unitsPerPixel() {
     const rect = this.get('chart-map').getBoundingClientRect();
     return (
@@ -213,7 +223,7 @@ export class SeaChart {
     svg.setAttribute('viewBox', `${this.center.x - hw} ${this.center.y - hh} ${hw * 2} ${hh * 2}`);
     const plus = this.dialog.querySelector<HTMLButtonElement>('#chart-zoom-in');
     const minus = this.dialog.querySelector<HTMLButtonElement>('#chart-zoom-out');
-    if (plus) plus.disabled = this.zoom >= 3;
+    if (plus) plus.disabled = this.zoom >= this.maxZoom;
     if (minus) minus.disabled = this.zoom <= 1;
   }
   private drawCompass() {
@@ -634,7 +644,10 @@ export class SeaChart {
       });
     }
     // Secondary names: small and quiet, and left out where they would cover a port or the boat.
-    for (const place of places) {
+    // A big sea seen whole on a small screen leaves them out until zoomed in (decision 0115):
+    // past the Windward Ring's phone-portrait scale its islands are too close for them.
+    const roomForNames = unit <= MAX_UNITS_PER_PIXEL_FOR_NAMES;
+    for (const place of roomForNames ? places : []) {
       const size = 11 * px;
       const w = place.name.length * size * 0.5,
         h = size * 1.2;
