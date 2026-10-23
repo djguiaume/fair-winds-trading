@@ -166,7 +166,8 @@ once, saved with the voyage. Example (a test file: [`tests/fixtures/quests/test-
 
 At the top: `id`, `name`, `start` (a condition), `text` (prefix of the text keys:
 `<text>.<step>.title` and `.copy`), optional `reward`, `items` (quest cargo: hold `space` per
-piece, 0 for a passenger), `giver`, `port`. Each step: `id`, then `goal` (a condition) **or** `choose` (two or more
+piece, 0 for a passenger), `giver`, `port`, `offer` (`true`: the card asks first, and the
+quest starts on the player's yes). Each step: `id`, then `goal` (a condition) **or** `choose` (two or more
 options: `id`, `reward`, `next`); optional `reward`, `next` (a later step or `done`; default the
 next one), `clean` (touching a reef or shore starts the step over), `port`, `chart`
 (`{ "port", "radius" }`: the rough circle on the chart), `compass` (`{ "x", "y" }`: a

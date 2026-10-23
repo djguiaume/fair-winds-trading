@@ -370,6 +370,27 @@ describe('quest engine (decision 0125)', () => {
     expect(world.trade.quests.tracked).toBeUndefined();
   });
 
+  it('an offered quest waits for the player\'s yes; "Not now" keeps it offered', () => {
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    const offered = { ...structuredClone(after), offer: true } as unknown as QuestDef;
+    world.trade.quests.byId['test-pier'] = {
+      step: 'done',
+      counts: [],
+      chose: { build: 'workshop' },
+    };
+    const quests = book(world, true, [...TEST_QUESTS.slice(0, 1), offered]);
+    expect(quests.check()).toEqual([{ type: 'offered', quest: 'test-after' }]);
+    expect(quests.check()).toEqual([]);
+    expect(quests.offered.map((q) => q.id)).toEqual(['test-after']);
+    expect(quests.progress('test-after')).toBeUndefined();
+    expect(quests.accept('test-after')).toEqual([
+      { type: 'started', quest: 'test-after' },
+      { type: 'step', quest: 'test-after', step: 'both' },
+    ]);
+    expect(quests.offered).toEqual([]);
+    expect(quests.tracked).toBe('test-after');
+  });
+
   it('one quest is tracked at a time', () => {
     const world = createWorld(PHASE1_MAP, SLOOP);
     const quests = book(world, true, [...TEST_QUESTS, ...SAILING]);

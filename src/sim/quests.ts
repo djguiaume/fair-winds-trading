@@ -74,6 +74,11 @@ export interface QuestDef {
   giver?: string;
   /** Where its card shows, for the interface. */
   port?: string;
+  /**
+   * The player says yes first: once `start` holds, the quest is offered (its card shows "I'll bring
+   * it" / "Not now") and begins on `accept`. "Not now" needs nothing: it stays offered.
+   */
+  offer?: boolean;
   steps: QuestStep[];
 }
 
@@ -178,6 +183,8 @@ export function checkQuests(
       if (!Number.isInteger(def?.space) || def.space < 0)
         out.push(`${at} › items.${item}: space needs a whole number (0 for a passenger)`);
     if (q.port !== undefined && !resolvePort(map, q.port)) out.push(`${at}: no port "${q.port}"`);
+    if (q.offer !== undefined && typeof q.offer !== 'boolean')
+      out.push(`${at}: offer is true or false`);
     out.push(...checkCondition(q.start, scope, false, `${at} › start`));
     out.push(...checkReward(q.reward, scope, `${at} › reward`));
     if (!Array.isArray(q.steps) || q.steps.length === 0) {
@@ -231,6 +238,8 @@ export function checkQuests(
 
 /** What happened in the quests, for the interface. */
 export type QuestEvent =
+  /** An `offer` quest whose start holds: waiting for the player's yes. */
+  | { type: 'offered'; quest: string }
   | { type: 'started'; quest: string }
   | { type: 'step'; quest: string; step: string }
   | { type: 'choice'; quest: string; step: string }
@@ -264,6 +273,8 @@ interface Seen {
 export class QuestBook {
   readonly quests: readonly QuestDef[];
   private seen: Seen | null = null;
+  /** Offered quests already announced, so `offered` is sent once each. */
+  private announced = new Set<string>();
   private since = 0;
   private readonly doneElsewhere: (id: string) => boolean;
   private readonly nightOk: () => boolean;
@@ -299,6 +310,21 @@ export class QuestBook {
       if (step) out.push({ quest, step });
     }
     return out;
+  }
+  /** Quests offered and not yet accepted (their start holds). */
+  get offered(): QuestDef[] {
+    return this.quests.filter(
+      (q) => q.offer && !this.progress(q.id) && testCondition(q.start, this.context()),
+    );
+  }
+  /** The player's yes to an offered quest. */
+  accept(id: string): QuestEvent[] {
+    const quest = this.offered.find((q) => q.id === id);
+    if (!quest) return [];
+    const events: QuestEvent[] = [{ type: 'started', quest: id }];
+    this.enter(quest, quest.steps[0]!, events);
+    this.afterChange(events);
+    return [...events, ...this.check()];
   }
   get tracked(): string | undefined {
     return this.state.tracked;
@@ -338,7 +364,15 @@ export class QuestBook {
       for (const quest of this.quests) {
         const p = this.progress(quest.id);
         if (!p) {
-          if (!testCondition(quest.start, this.context())) continue;
+          if (!testCondition(quest.start, this.context())) {
+            this.announced.delete(quest.id);
+            continue;
+          }
+          if (quest.offer) {
+            if (!this.announced.has(quest.id)) events.push({ type: 'offered', quest: quest.id });
+            this.announced.add(quest.id);
+            continue;
+          }
           events.push({ type: 'started', quest: quest.id });
           this.enter(quest, quest.steps[0]!, events);
           changed = true;
