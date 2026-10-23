@@ -1,0 +1,95 @@
+{
+  "steps": [
+    {
+      "id": "chart",
+      "action": "chart",
+      "picks": "origin",
+      "pointer": "nearest-port",
+      "coach": { "sea": "chart-button", "chart": "chart-port" },
+      "on": { "chart-opened": "choose-port", "port-picked": "sails" }
+    },
+    {
+      "id": "choose-port",
+      "action": "chart",
+      "picks": "origin",
+      "pointer": "nearest-port",
+      "coach": { "sea": "chart-button", "chart": "chart-port" },
+      "on": { "port-picked": "sails" }
+    },
+    {
+      "id": "sails",
+      "port": "origin",
+      "picks": "origin",
+      "continue": "always",
+      "coach": { "sea": "sail-lever", "chart": "close-chart" },
+      "on": { "sails-practised": "wind", "continue": "wind", "destination-cleared": "choose-port" }
+    },
+    {
+      "id": "wind",
+      "action": "tips",
+      "port": "origin",
+      "picks": "origin",
+      "continue": "always",
+      "coach": { "sea": "wind-compass", "chart": "close-chart" },
+      "on": { "continue": "dock", "destination-cleared": "choose-port" }
+    },
+    {
+      "id": "dock",
+      "action": "chart",
+      "port": "origin",
+      "picks": "origin",
+      "coach": { "sea": "port-marker", "chart": "chart-port" },
+      "on": { "docked": "buy", "destination-cleared": "choose-port" }
+    },
+    {
+      "id": "buy",
+      "action": "market",
+      "port": "origin",
+      "continue": "with-cargo",
+      "pointerGood": "produced",
+      "coach": { "sea": "dock-button", "chart": "chart-port", "market": "buy-button" },
+      "on": { "bought": "choose-delivery", "continue": "choose-delivery", "left-port": "dock" }
+    },
+    {
+      "id": "choose-delivery",
+      "action": "chart",
+      "picks": "delivery",
+      "cargo": true,
+      "pointer": "buyer",
+      "coach": { "sea": "chart-button", "chart": "chart-port" },
+      "on": { "port-picked": "deliver", "cargo-gone": "choose-port", "cargo-sold": "buy" }
+    },
+    {
+      "id": "deliver",
+      "action": "chart",
+      "port": "delivery",
+      "picks": "delivery",
+      "cargo": true,
+      "coach": { "sea": "port-marker", "chart": "chart-port" },
+      "on": {
+        "docked": "sell",
+        "port-picked": "deliver",
+        "destination-cleared": "choose-delivery",
+        "cargo-gone": "choose-port",
+        "cargo-sold": "buy"
+      }
+    },
+    {
+      "id": "sell",
+      "action": "market",
+      "port": "delivery",
+      "picks": "delivery",
+      "cargo": true,
+      "pointerGood": "cargo",
+      "coach": { "sea": "dock-button", "chart": "chart-port", "market": "sell-button" },
+      "on": {
+        "sold": "done",
+        "left-port": "deliver",
+        "port-picked": "deliver",
+        "destination-cleared": "choose-delivery",
+        "cargo-gone": "choose-port",
+        "cargo-sold": "buy"
+      }
+    }
+  ]
+}

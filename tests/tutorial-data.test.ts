@@ -1,0 +1,77 @@
+import { describe, expect, it, vi } from 'vitest';
+import en from '../src/i18n/en.json';
+import fr from '../src/i18n/fr.json';
+
+// Decision 0111: the tutorial's lessons are the steps of src/data/tutorial.json. This test drops
+// the wind lesson from the file only: the sails lesson then leads straight to docking.
+vi.mock('../src/data/tutorial.json', async (importOriginal) => {
+  const file = (
+    (await importOriginal()) as { default: { steps: { id: string; on: Record<string, string> }[] } }
+  ).default;
+  const steps = structuredClone(file.steps.filter((s) => s.id !== 'wind'));
+  const sails = steps.find((s) => s.id === 'sails')!;
+  sails.on = { ...sails.on, 'sails-practised': 'dock', continue: 'dock' };
+  return { default: { steps } };
+});
+
+const { TUTORIAL, TUTORIAL_DONE, TUTORIAL_EVENTS, TUTORIAL_STEPS, Tutorial } =
+  await import('../src/sim/tutorial');
+const { PHASE1_MAP } = await import('../src/data/maps');
+const { SLOOP } = await import('../src/sim/ship');
+const { createWorld } = await import('../src/sim/world');
+type StepFile = { id: string; on: Record<string, string>; coach: Record<string, string> };
+const shipped = (
+  (await vi.importActual('../src/data/tutorial.json')) as { default: { steps: StepFile[] } }
+).default;
+
+const COACH = [
+  'chart-button',
+  'sail-lever',
+  'wind-compass',
+  'port-marker',
+  'dock-button',
+  'chart-port',
+  'close-chart',
+  'buy-button',
+  'sell-button',
+];
+
+describe('tutorial steps as data (decision 0111)', () => {
+  it('the shipped file is sound: known events and targets, every lesson has its text', () => {
+    const ids = shipped.steps.map((s) => s.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const step of shipped.steps) {
+      for (const [event, to] of Object.entries(step.on)) {
+        expect(TUTORIAL_EVENTS as readonly string[], `${step.id}: ${event}`).toContain(event);
+        expect([...ids, TUTORIAL_DONE], `${step.id}: ${event} → ${to}`).toContain(to);
+      }
+      for (const target of Object.values(step.coach)) expect(COACH).toContain(target);
+      const keys = ['title', 'copy', ...('continue' in step ? ['continue'] : [])];
+      for (const part of keys)
+        for (const lang of [en, fr])
+          expect(lang, `lesson.${step.id}.${part}`).toHaveProperty([`lesson.${step.id}.${part}`]);
+    }
+    // Some step finishes the tutorial, and every step but the first can be reached.
+    const targets = new Set(shipped.steps.flatMap((s) => Object.values(s.on)));
+    expect(targets).toContain(TUTORIAL_DONE);
+    for (const id of ids.slice(1)) expect(targets, id).toContain(id);
+  });
+
+  it('a lesson removed from the file is skipped, with no code', () => {
+    expect(TUTORIAL_STEPS).not.toContain('wind');
+    expect(TUTORIAL).toHaveLength(shipped.steps.length - 1);
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    const harbours = Object.fromEntries(PHASE1_MAP.ports.map((p) => [p.id, { x: 0, y: 0 }]));
+    const tutorial = new Tutorial(world, harbours, null);
+    tutorial.start();
+    tutorial.chartOpened();
+    world.destination = { portId: 'calda', label: 'Calda', x: 0, y: 0 };
+    tutorial.destinationSelected();
+    expect(tutorial.step).toBe('sails');
+    tutorial.continueLesson();
+    expect(tutorial.step).toBe('dock');
+    world.trade.dockedAt = 'calda';
+    tutorial.observe();
+    expect(tutorial.step).toBe('buy');
+  });
+});

@@ -1,44 +1,41 @@
 import { t } from '../i18n';
-import { TUTORIAL_STEPS, type Tutorial, type TutorialStep } from '../sim/tutorial';
+import { type CoachTarget, TUTORIAL_STEPS, type Tutorial } from '../sim/tutorial';
 
 type Surface = 'sea' | 'chart' | 'market' | null;
 type Side = 'top' | 'bottom' | 'left' | 'right' | 'none';
 
 /**
  * The element a lesson points at on the open surface (decision 0061). Selectors only, so the
- * sea HUD, chart and port screen keep their own markup; null leaves the bubble unpinned.
+ * sea HUD, chart and port screen keep their own markup; null leaves the bubble unpinned. Which
+ * target each step uses is its `coach` entry in `src/data/tutorial.json` (decision 0111).
  */
 function lessonTarget(tutorial: Tutorial, surface: Surface): string | null {
-  const step: TutorialStep = tutorial.step;
+  if (!surface) return null;
   const port = tutorial.pointerPort;
   const good = tutorial.pointerGood;
-  if (surface === 'sea') {
-    switch (step) {
-      case 'chart':
-      case 'choose-port':
-      case 'choose-delivery':
-        return '#chart-btn';
-      case 'sails':
-        return '#sail-lever';
-      case 'wind':
-        return '#wind-compass';
-      case 'dock':
-      case 'deliver':
-        return port ? `.port-marker[data-port-id="${port}"]` : null;
-      case 'buy':
-      case 'sell':
-        return '#dock-btn';
-    }
+  const target: CoachTarget | undefined = tutorial.def.coach[surface];
+  switch (target) {
+    case 'chart-button':
+      return '#chart-btn';
+    case 'sail-lever':
+      return '#sail-lever';
+    case 'wind-compass':
+      return '#wind-compass';
+    case 'dock-button':
+      return '#dock-btn';
+    case 'close-chart':
+      return '#close-chart';
+    case 'port-marker':
+      return port ? `.port-marker[data-port-id="${port}"]` : null;
+    case 'chart-port':
+      return port ? `[data-chart-target="${port}"]` : null;
+    case 'buy-button':
+      return good ? `[data-action="buy"][data-good="${good}"]` : null;
+    case 'sell-button':
+      return good ? `[data-action="sell"][data-good="${good}"]` : null;
+    default:
+      return null;
   }
-  if (surface === 'chart') {
-    if (step === 'sails' || step === 'wind') return '#close-chart';
-    return port ? `[data-chart-target="${port}"]` : null;
-  }
-  if (surface === 'market' && good) {
-    if (step === 'buy') return `[data-action="buy"][data-good="${good}"]`;
-    if (step === 'sell') return `[data-action="sell"][data-good="${good}"]`;
-  }
-  return null;
 }
 
 /** On screen and drawn: hidden, folded or scrolled-away targets leave the bubble unpinned. */
