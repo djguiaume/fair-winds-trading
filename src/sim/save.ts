@@ -3,6 +3,7 @@ import { type ContractState, readContracts } from './contracts';
 import { resolveCollisions } from './collision';
 import { type Difficulty, DEFAULT_DIFFICULTY, isDifficulty } from './difficulty';
 import { GOODS, type GoodAmounts, emptyAmounts } from './goods';
+import { readHome } from './home';
 import { wrapPositive } from './math';
 import { type SettlementState, readSettlements } from './settlement';
 import { SHIP_CLASSES } from './ship';
@@ -49,6 +50,8 @@ export interface SaveData {
   difficulty?: Difficulty;
   /** Easiest level played on the voyage (0083). Optional: defaults to `difficulty`. */
   easiestDifficulty?: Difficulty;
+  /** The home island (decision 0124). Optional: older saves have not been given it yet. */
+  home?: { owned: boolean; offered: string[]; built: Record<string, string> };
 }
 
 /** The subset of the Web Storage API the save needs. */
@@ -84,6 +87,11 @@ export function serializeWorld(world: World): SaveData {
     settlements: structuredClone(world.trade.settlements),
     difficulty: world.trade.difficulty,
     easiestDifficulty: world.trade.easiestDifficulty,
+    home: {
+      owned: world.trade.home.owned,
+      offered: [...world.trade.home.offered],
+      built: { ...world.trade.home.built },
+    },
   };
 }
 
@@ -191,6 +199,7 @@ export function validateSave(raw: unknown, world: World): SaveData | null {
     settlements,
     difficulty,
     easiestDifficulty: isDifficulty(raw.easiestDifficulty) ? raw.easiestDifficulty : difficulty,
+    home: readHome(raw.home, world.map),
   };
 }
 
@@ -237,6 +246,7 @@ export function applySave(world: World, data: SaveData): void {
   trade.progress = readProgress(data.progress, world.map);
   trade.easiestDifficulty = data.easiestDifficulty ?? data.difficulty ?? DEFAULT_DIFFICULTY;
   setDifficulty(trade, data.difficulty ?? DEFAULT_DIFFICULTY);
+  trade.home = readHome(data.home, world.map);
   world.ship = activeShip(trade);
   refreshPiers(world);
   // Compatible older-map saves keep all trading progress. The coasts and ports have moved since

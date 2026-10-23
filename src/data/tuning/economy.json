@@ -38,5 +38,8 @@
     "helpGrowthFactor": 2,
     "helpCooldown": 240
   },
-  "discoverRange": 90
+  "discoverRange": 90,
+  "home": {
+    "laterPriceFactor": 1.5
+  }
 }

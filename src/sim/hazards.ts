@@ -5,6 +5,7 @@ import { clamp } from './math';
 import type { ShipClass } from './ship';
 import type { TradeState } from './trade';
 import { hullDurability } from './upgrades';
+import { hasBuilding, homeEffect } from './home';
 import { knobs } from './difficulty';
 import { TUNING } from '../data/tuning';
 
@@ -28,7 +29,14 @@ const hazards = () => TUNING.seamanship.hazards;
 
 /** Gold per hull point repaired at the voyage's difficulty level. */
 export function repairCost(trade: TradeState): number {
-  return knobs(trade.difficulty).repairCost;
+  // The home workshop repairs for less than a port (decision 0124).
+  const home = repairsAtHome(trade) ? homeEffect(trade.home, 'homeRepair') : 1;
+  return knobs(trade.difficulty).repairCost * home;
+}
+
+/** Moored at home with a workshop built: the hull can be repaired there (decision 0124). */
+export function repairsAtHome(trade: TradeState): boolean {
+  return !!trade.home?.docked && hasBuilding(trade.home, 'workshop');
 }
 
 export interface Reef {
@@ -121,7 +129,7 @@ export type RepairResult =
 
 /** Repair as much of the active hull as the captain can pay for, while docked. */
 export function repairHull(trade: TradeState): RepairResult {
-  if (!trade.dockedAt) return { ok: false, error: 'not-docked' };
+  if (!trade.dockedAt && !repairsAtHome(trade)) return { ok: false, error: 'not-docked' };
   const damage = hullDamage(trade);
   if (damage <= 0) return { ok: false, error: 'not-damaged' };
   const cost = repairCost(trade);

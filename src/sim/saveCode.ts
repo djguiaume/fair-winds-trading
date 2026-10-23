@@ -1,5 +1,6 @@
 import { DIFFICULTIES } from './difficulty';
 import { GOODS } from './goods';
+import { BUILDING_IDS, homeSpots } from './home';
 import type { MapDef } from './map';
 import type { SaveData } from './save';
 import { SHIP_IDS } from './ship';
@@ -35,8 +36,22 @@ function layoutIds(map: MapDef): string[] {
 
 /** 16-bit FNV-1a of the layout lists: different lists give a different fingerprint. */
 export function layoutFingerprint(map: MapDef): number {
+  return fingerprint(layoutIds(map));
+}
+
+/**
+ * The home island's section (decision 0124) comes last, with its own layout number and a
+ * fingerprint of the spots and buildings, so codes made before it still read and a code whose
+ * spots or buildings differ is refused rather than misread.
+ */
+const HOME_SECTION = 1;
+export function homeFingerprint(map: MapDef): number {
+  return fingerprint([...homeSpots(map).map((s) => `${s.id}:${s.pair ?? ''}`), ...BUILDING_IDS]);
+}
+
+function fingerprint(ids: string[]): number {
   let h = 0x811c9dc5;
-  for (const ch of layoutIds(map).join('|')) {
+  for (const ch of ids.join('|')) {
     h ^= ch.charCodeAt(0);
     h = Math.imul(h, 0x01000193) >>> 0;
   }
@@ -178,6 +193,15 @@ export function packSave(save: SaveData, map: MapDef): Uint8Array {
 
   w.uint(indexOrNone(DIFFICULTIES, save.difficulty));
   w.uint(indexOrNone(DIFFICULTIES, save.easiestDifficulty));
+
+  const home = save.home;
+  if (home?.owned) {
+    const spots = homeSpots(map);
+    w.uint(HOME_SECTION);
+    w.uint(homeFingerprint(map));
+    w.flags(spots.map((s) => home.offered.includes(s.id)));
+    for (const s of spots) w.uint(indexOrNone(BUILDING_IDS, home.built[s.id]));
+  }
   return Uint8Array.from(w.bytes);
 }
 
@@ -275,6 +299,22 @@ export function unpackSave(
 
   const difficulty = pick(DIFFICULTIES, r.uint());
   const easiestDifficulty = pick(DIFFICULTIES, r.uint());
+
+  // Only an island that is the captain's is written; a code without the section has none.
+  let home: SaveData['home'];
+  if (!r.done) {
+    const section = r.uint();
+    if (section > HOME_SECTION) return { ok: false, problem: 'newer' };
+    if (r.uint() !== homeFingerprint(map)) return { ok: false, problem: 'otherVersion' };
+    const spots = homeSpots(map);
+    const offered = r.flags(spots.length);
+    const built: Record<string, string> = {};
+    for (const s of spots) {
+      const b = pick(BUILDING_IDS, r.uint());
+      if (b) built[s.id] = b;
+    }
+    home = { owned: true, offered: spots.filter((_, k) => offered[k]).map((s) => s.id), built };
+  }
   if (!r.done) return { ok: false, problem: 'unreadable' };
 
   return {
@@ -298,6 +338,7 @@ export function unpackSave(
       settlements: { byPort: towns, ...(pendingSupply ? { pendingSupply } : {}) },
       ...(difficulty ? { difficulty } : {}),
       ...(easiestDifficulty ? { easiestDifficulty } : {}),
+      ...(home ? { home } : {}),
     },
   };
 }

@@ -94,6 +94,8 @@ export class GameView {
     }
   >();
   private readonly target = new THREE.Vector3();
+  /** A point the camera looks at instead of ahead of the boat (the home island, 0124). */
+  private focus: { x: number; y: number } | null = null;
   private readonly tmp = new THREE.Vector3();
   private zoom = 1;
   private width = 1;
@@ -279,6 +281,15 @@ export class GameView {
   }
 
   /** Grow only the islands whose port levels changed; anchors and harbour lights stay valid. */
+  /** Look at a map point (moored at home: the island and its spots), or follow the boat (null). */
+  setFocus(point: { x: number; y: number } | null) {
+    this.focus = point ? { ...point } : null;
+  }
+
+  setHomeBuildings(built: Record<string, string>) {
+    this.islands.setHomeBuildings(built);
+  }
+
   setSettlementLevels(levels: Record<string, TownLevel>) {
     this.islands.setSettlementLevels(levels);
     this.lighthouseBeams.setLevels(this.islandLevels(levels));
@@ -309,8 +320,8 @@ export class GameView {
 
     // Camera: tilted top-down, looking a little ahead of the boat; farther out in portrait.
     const ahead = boat.speedKn * 1.6;
-    const tx = pos.x + dir.x * ahead;
-    const tz = pos.z - dir.y * ahead;
+    const tx = this.focus ? this.focus.x : pos.x + dir.x * ahead;
+    const tz = this.focus ? -this.focus.y : pos.z - dir.y * ahead;
     this.target.x = approach(this.target.x, tx, 2.5, dt);
     this.target.z = approach(this.target.z, tz, 2.5, dt);
     const aspect = this.width / this.height;

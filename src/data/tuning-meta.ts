@@ -453,6 +453,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     'units',
     "Sailing this close to a hidden port's shore puts it on the chart (0048).",
   ),
+  'economy.home.laterPriceFactor': num(
+    'Passed-over building price',
+    1,
+    5,
+    0.05,
+    '×',
+    'A building passed over in an arc, built later on a spare spot, costs its price times this (0124).',
+  ),
 
   // --- difficulty.json (decisions 0083, 0113) ---
   'difficulty.default': text(

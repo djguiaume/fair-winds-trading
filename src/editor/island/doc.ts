@@ -182,6 +182,7 @@ export function tidyDesign(design: IslandDesign): IslandDesign {
     'lanes',
     'piers',
     'props',
+    'homeSpots',
     'woods',
   ]);
   return {

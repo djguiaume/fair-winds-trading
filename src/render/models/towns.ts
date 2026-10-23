@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { LandmarkKind } from '../../sim/map';
+import { homeDesign } from '../../sim/home';
 import { type Rng, createRng, range } from '../../sim/rng';
 import { blobShape, paint, paintGroups, slab } from './geometry';
 import { coastDistance, insetOutline } from '../../sim/coast';
@@ -126,6 +127,8 @@ export interface TownIslandSpec {
   pier: { x: number; z0: number; len: number };
   /** False for an island file with no harbour (decision 0107). */
   harbour?: boolean;
+  /** The home island's buildings, spot id → building id (decision 0124); none: as first found. */
+  homeBuilt?: Record<string, string>;
 }
 
 /**
@@ -135,7 +138,7 @@ export interface TownIslandSpec {
 export function townIslandParts(spec: TownIslandSpec): Parts {
   if (spec.design ?? spec.profile)
     return designedTownParts(
-      islandDesign(spec.design ?? spec.profile!),
+      homeDesign(islandDesign(spec.design ?? spec.profile!), spec.homeBuilt),
       spec.R,
       spec.level,
       spec.harbour,

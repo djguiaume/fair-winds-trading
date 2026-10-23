@@ -20,9 +20,11 @@ import {
   type TradeState,
   activeShip,
   createTradeState,
+  homeInRange,
   portInRange,
   stepTrade,
 } from './trade';
+import { homeEffect } from './home';
 import { GOODS, type GoodId } from './goods';
 import type { SpatialGrid } from './spatial';
 import { heelFactor, pointOfSailHeel } from './heel';
@@ -425,7 +427,8 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   if (
     world.boat.sailStep === 0 &&
     world.boat.speedKn < harbour().moorMaxKn &&
-    portInRange(world.map, world.boat, undefined, settlementLevels(world.trade), world.ship.id)
+    (portInRange(world.map, world.boat, undefined, settlementLevels(world.trade), world.ship.id) ||
+      homeInRange(world.trade, world.map, world.boat))
   )
     moor(world.boat, dt);
   // Shallows drag at the hull near reefs; deeper hulls feel it more (decision 0032).
@@ -447,7 +450,11 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
     // Damage follows the speed the impact took off: reefs always cut, shores and piers only
     // past a docking bump, sandbanks are soft (decisions 0032 and 0038).
     const hit = impactDamage(surface, speedBefore - world.boat.speedKn);
-    const damage = damageHull(world.trade, hit * knobs(world.trade.difficulty).damage);
+    // The pilot house takes a share off every knock (decision 0124).
+    const damage = damageHull(
+      world.trade,
+      hit * knobs(world.trade.difficulty).damage * homeEffect(world.trade.home, 'hullDamage'),
+    );
     if (damage >= 1 && surface === 'reef') events.push({ type: 'reef-strike', damage });
     else if (damage >= 1 && (surface === 'shore' || surface === 'pier' || surface === 'boat'))
       events.push({ type: 'crash', damage, surface });
