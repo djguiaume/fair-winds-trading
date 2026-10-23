@@ -1,6 +1,6 @@
 # Island builder: mockup and plan
 
-*Decision [0096](../decisions/0096-island-files-and-island-builder.md) (proposed). Nothing is built yet: this page is the mockup to approve and the plan for the two steps after it.*
+*Decision [0096](../decisions/0096-island-files-and-island-builder.md), accepted: Guillaume approved this mockup on 2026-10-23. Nothing is built yet: this page is the mockup and the plan for the two steps after it.*
 
 ![Overview](overview.png)
 
