@@ -31,7 +31,7 @@ export function prepareMap(source: MapDef): MapDef {
         : (port.produces[0] as 'fish' | 'timber' | 'grain' | 'stone');
       island.look.harbourBearing = bearingTo(island, wp);
     } else if (island.look?.design) {
-      // Any other island with its own file (decision 0107): drawn, charted and solid in one frame.
+      // Any other island with its own file (decision 0110): drawn, charted and solid in one frame.
       island.look.profile = islandDesign(island.look.design).style;
       island.look.harbourBearing ??= wp ? bearingTo(island, wp) : 0;
     }

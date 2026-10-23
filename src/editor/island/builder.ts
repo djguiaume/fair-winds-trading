@@ -45,6 +45,7 @@ import {
   type Shape,
   addLake,
   addLane,
+  addRamp,
   addMountain,
   addPlateau,
   deletePoint,
@@ -109,7 +110,7 @@ let open = false;
 let design: IslandDesign;
 let R = 1;
 let level: Level = TOP_LEVEL;
-/** Whether the island has a harbour (a port's); others have no levels (decision 0107). */
+/** Whether the island has a harbour (a port's); others have no levels (decision 0110). */
 let harbour = true;
 /** What new things belong to: the level on show, or every level on an island with no port. */
 const placeLevel = (): Level => (harbour ? level : 1);
@@ -129,7 +130,8 @@ let armed: string | null = null;
 type Mode = 'props' | 'ground' | 'lanes';
 let mode: Mode = 'props';
 let shapeSel: { shape: Shape; point?: number } | null = null;
-type ShapeTool = 'plateau' | 'mountain' | 'lake' | 'grow' | 'clear' | 'lane' | 'path' | 'stairs';
+type ShapeTool =
+  'plateau' | 'mountain' | 'lake' | 'ramp' | 'grow' | 'clear' | 'lane' | 'path' | 'stairs';
 let tool: ShapeTool | null = null;
 /** A lane being drawn (with heights for stairs), and the pointer while drawing or painting. */
 let drawing: number[][] | null = null;
@@ -159,7 +161,7 @@ export function openIsland(target: IslandDef) {
   if (!id || !ISLAND_DESIGNS[id]) return;
 
   design = structuredClone(ISLAND_DESIGNS[id]!);
-  // A file made in this browser (decision 0107): Reset goes back to how it was made.
+  // A file made in this browser (decision 0110): Reset goes back to how it was made.
   if (!SHIPPED[id]) MADE[id] ??= structuredClone(design);
   R = target.radius / ISLAND_SCALE;
   harbour = !!target.look?.dock;
@@ -250,6 +252,17 @@ function rebuild(without?: number) {
   const next = mergeParts(parts);
   top!.setGeometry(next);
   preview!.setGeometry(land, windows);
+  // The game's lamps on this island: harbour toward +z, as the builder's model is drawn.
+  preview!.setLamps(
+    {
+      id: design.id,
+      x: 0,
+      y: 0,
+      radius: R * ISLAND_SCALE,
+      look: { design: design.id, harbourBearing: Math.PI, dock: harbour },
+    },
+    level,
+  );
   for (const g of [geometry, previewLand, previewGlass]) g?.dispose();
   [geometry, previewLand, previewGlass] = [next, land, windows];
   $('ib-preview-title').textContent = `3D preview · level ${level}`;
@@ -471,7 +484,9 @@ const shapeExists = (shape: Shape) =>
       ? !!design.ground[shape.index]
       : shape.kind === 'lake'
         ? !!design.lake
-        : !!design.lanes[shape.index];
+        : shape.kind === 'ramp'
+          ? !!design.ramps?.[shape.index]
+          : !!design.lanes[shape.index];
 
 function removeShape() {
   if (!shapeSel) return;
@@ -487,6 +502,7 @@ const TOOL_HINTS: Record<ShapeTool, string> = {
   plateau: 'Click the island to add raised ground there · Esc cancels',
   mountain: 'Click the island to add a mountain · Esc cancels',
   lake: 'Click the island to add the lake · Esc cancels',
+  ramp: 'Click the foot of the ramp, then its bends, then its top; click the top again or press Enter · Esc cancels',
   grow: 'Paint where trees may grow · Esc stops',
   clear: 'Paint where trees are cleared · Esc stops',
   lane: 'Click to add bends; click the last point again or press Enter to finish · Esc cancels',
@@ -500,7 +516,7 @@ function hint(text?: string) {
     (tool
       ? TOOL_HINTS[tool]
       : mode === 'ground'
-        ? 'Click the coast, raised ground, a mountain or the lake · drag a square to move a point, a ring to add one · click an edge: cliff ↔ slope · Delete removes'
+        ? 'Click the coast, raised ground, a ramp, a mountain or the lake · drag a square to move a point, a ring to add one · click an edge: cliff ↔ slope · Delete removes'
         : mode === 'lanes'
           ? 'Click a lane to edit it · drag a square to move a point, a ring to add one · Delete removes'
           : armed
@@ -702,6 +718,12 @@ const TOOLS: Record<'ground' | 'lanes', [string, string | ShapeTool, string, str
     ['Ground', 'plateau', '⛰️', 'Raised ground: A plateau or terrace, with cliff or slope edges'],
     ['Ground', 'mountain', '🗻', 'Mountain: A rocky peak'],
     ['Ground', 'lake', '💧', 'Lake: Inland water, kept clear of homes'],
+    [
+      'Ground',
+      'ramp',
+      '↗️',
+      'Ramp: Draw its path; it climbs evenly from its start to its end height',
+    ],
     ['Woods', 'grow', '🌲', 'Grow woods: Paint the woods; once painted, trees grow only there'],
     ['Woods', 'clear', '🪓', 'Clear trees: Paint where none grow'],
   ],
@@ -750,14 +772,22 @@ function selectShape(next: Shape | null, point?: number) {
   drawPanel();
 }
 
-/** Ends the lane being drawn: two points or more make a lane, path or stairs. */
+/**
+ * Ends the lane or ramp being drawn: two points or more make one. A ramp starts at the ground's
+ * height at its foot and ends at the ground's height at its top.
+ */
 function finishDrawing() {
   const points = drawing;
-  const kind = tool as 'lane' | 'path' | 'stairs';
+  const kind = tool as 'lane' | 'path' | 'stairs' | 'ramp';
   setTool(null);
   if (points && points.length >= 2) {
     history.record(design);
-    shapeSel = { shape: { kind: 'lane', index: addLane(design, kind, points) } };
+    if (kind === 'ramp') {
+      const [x0, z0] = points[0]!,
+        [x1, z1] = points[points.length - 1]!;
+      const index = addRamp(design, points, heightAt(x0!, z0!), heightAt(x1!, z1!), placeLevel());
+      shapeSel = { shape: { kind: 'ramp', index } };
+    } else shapeSel = { shape: { kind: 'lane', index: addLane(design, kind, points) } };
     commit();
   } else draw();
 }

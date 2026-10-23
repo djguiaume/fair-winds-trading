@@ -13,6 +13,7 @@ import {
   type IslandLayout,
   type IslandTheme,
   type LandSurface,
+  type LayoutRamp,
   type Outline,
 } from '../../sim/islandLayout';
 import {
@@ -124,7 +125,7 @@ export interface TownIslandSpec {
   landmark?: LandmarkKind;
   /** Pier line shared with the simulation: x offset, root z and length. */
   pier: { x: number; z0: number; len: number };
-  /** False for an island file with no harbour (decision 0107). */
+  /** False for an island file with no harbour (decision 0110). */
   harbour?: boolean;
 }
 
@@ -540,7 +541,7 @@ export function designedTownParts(
   design: IslandDesign,
   R: number,
   level: TownLevel,
-  /** False for an island with no harbour (decision 0107): no arrival pier, flag or side piers. */
+  /** False for an island with no harbour (decision 0110): no arrival pier, flag or side piers. */
   harbour = true,
 ): Parts {
   const layout = islandLayout(design, level);
@@ -594,6 +595,9 @@ export function designedTownParts(
   for (const s of layout.surfaces)
     if (s.slope && s.shape !== 'peak')
       out.push(ramp(layout, s, R, s.material === 'grass' ? C.grass : stone ? C.cut : C.rock2));
+  // Ramps that climb along their length (decision 0123).
+  for (const r of layout.ramps)
+    out.push(...rampBand(r, R, r.material === 'grass' ? C.grass : stone ? C.cut : C.rock2));
   for (const g of out) g.userData.islandTerrain = true;
   for (const lane of design.lanes) {
     if (lane.kind === 'stairs') stairs(out, lane, R);
@@ -859,6 +863,72 @@ function ramp(layout: IslandLayout, s: LandSurface, R: number, color: string) {
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   return paint(g, color);
+}
+
+/**
+ * A ramp along its points (decision 0123): a band rising evenly from start to end, with rock
+ * sides and ends down to the beach. Corners are mitred so the band keeps its width.
+ */
+function rampBand(r: LayoutRamp, R: number, color: string): Parts {
+  const p = r.points;
+  const total = r.along[r.along.length - 1]! || 1;
+  const half = r.width / 2;
+  const dir = (i: number) => {
+    const [ax, az] = p[Math.max(0, i - 1)]!,
+      [bx, bz] = p[Math.min(p.length - 1, Math.max(1, i))]!;
+    const l = Math.hypot(bx - ax, bz - az) || 1;
+    return [(bx - ax) / l, (bz - az) / l] as const;
+  };
+  // Left and right edge of each cross-section and its height.
+  const sections = p.map(([x, z], i) => {
+    const [ux, uz] = dir(i),
+      [vx, vz] = dir(i + 1);
+    let nx = -(uz + vz),
+      nz = ux + vx;
+    const l = Math.hypot(nx, nz) || 1;
+    nx /= l;
+    nz /= l;
+    // Mitre: as wide as the band across both runs, no more than twice at a sharp bend.
+    const k = Math.min(2, 1 / Math.max(0.5, Math.abs(nx * -uz + nz * ux)));
+    const y = (r.start + ((r.end - r.start) * r.along[i]!) / total) * R;
+    return {
+      left: [(x + nx * half * k) * R, y, (z + nz * half * k) * R],
+      right: [(x - nx * half * k) * R, y, (z - nz * half * k) * R],
+    };
+  });
+  const top: number[] = [],
+    sides: number[] = [];
+  const quad = (to: number[], a: number[], b: number[], c: number[], d: number[]) =>
+    to.push(...a, ...b, ...c, ...a, ...c, ...d);
+  const low = (v: number[]) => [v[0]!, BEACH_TOP, v[2]!];
+  for (let i = 1; i < sections.length; i++) {
+    const a = sections[i - 1]!,
+      b = sections[i]!;
+    quad(top, a.left, a.right, b.right, b.left);
+    quad(sides, low(a.left), a.left, b.left, low(b.left));
+    quad(sides, a.right, low(a.right), low(b.right), b.right);
+  }
+  const first = sections[0]!,
+    last = sections[sections.length - 1]!;
+  quad(sides, low(first.right), first.right, first.left, low(first.left));
+  quad(sides, low(last.left), last.left, last.right, low(last.right));
+  const mesh = (positions: number[], c: string) => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    // Wound either way round: both faces drawn by flipping to face up or out.
+    const faced = new THREE.BufferGeometry();
+    const both = [...positions];
+    for (let i = 0; i < positions.length; i += 9)
+      both.push(
+        ...positions.slice(i, i + 3),
+        ...positions.slice(i + 6, i + 9),
+        ...positions.slice(i + 3, i + 6),
+      );
+    faced.setAttribute('position', new THREE.Float32BufferAttribute(both, 3));
+    g.dispose();
+    return paint(faced, c);
+  };
+  return [mesh(top, color), mesh(sides, C.rock)];
 }
 
 /** Stairs over a cliff: treads on full masonry down to `base`, a landing at each bend. */

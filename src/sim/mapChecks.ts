@@ -162,7 +162,7 @@ export function sailRoute(
 /** Where a boat waits off a port: in front of the harbour for profiled islands, else south. */
 export function harbourApproach(map: MapDef, port: PortDef, distance = 2.0): Point {
   const island = map.islands.find((i) => i.id === port.islandId)!;
-  // Small islands (the hidden yards, decision 0107) keep the same sea room off their pier.
+  // Small islands (the hidden yards, decision 0110) keep the same sea room off their pier.
   return island.look?.profile
     ? islandPoint(island, 0.08, Math.max(distance, 1 + 22 / island.radius))
     : { x: island.x, y: island.y - island.radius - 20 };

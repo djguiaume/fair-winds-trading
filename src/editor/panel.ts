@@ -26,7 +26,7 @@ export interface PanelHost {
   change(edit: (map: MapDef) => void, rebuildPanel?: boolean): void;
   select(selection: Selection): void;
   remove(): void;
-  /** Opens the island builder on an island, making its file first if needed (0105, 0107). */
+  /** Opens the island builder on an island, making its file first if needed (0105, 0110). */
   editIsland(id: string): void;
 }
 
@@ -213,7 +213,7 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     });
     const look = () => (island.look ??= {});
     if (file) {
-      // Its own file draws it (decision 0107); the radius scales the whole file.
+      // Its own file draws it (decision 0110); the radius scales the whole file.
       node('p', {
         className: 'ed-note',
         textContent: `Its ground, town, trees and landmark are in islands/${file}.json: edit them in the island builder. Radius scales the whole island.`,
