@@ -34,6 +34,22 @@ function hash(text: string): string {
   return h.toString(16).padStart(8, '0');
 }
 
+/** The knobs a level had before 0111 (the file now also holds its name and card look). */
+const KNOBS = [
+  'cargoLost',
+  'damage',
+  'repairCost',
+  'spread',
+  'orderFactor',
+  'startGold',
+  'growth',
+  'galeWeight',
+  'stormEverySec',
+  'steadyWind',
+] as const;
+const knobOnly = (k: object) =>
+  Object.fromEntries(KNOBS.map((key) => [key, (k as Record<string, unknown>)[key]]));
+
 describe('plays the same after moving levels, tutorial and music to data (decision 0111)', () => {
   it('composes the same tunes', () => {
     const tunes = Array.from({ length: 200 }, (_, seed) => JSON.stringify(composeTune(seed)));
@@ -43,11 +59,11 @@ describe('plays the same after moving levels, tutorial and music to data (decisi
   it('keeps the difficulty levels, their order, knobs and weather', () => {
     const out: unknown[] = [[...DIFFICULTIES]];
     for (const a of DIFFICULTIES) {
-      out.push(a, knobs(a), isDifficulty(a), t(`level.${a}` as never));
+      out.push(a, knobOnly(knobs(a)), isDifficulty(a), t(`level.${a}` as never));
       for (const b of DIFFICULTIES) out.push(easier(a, b));
       for (const steady of [false, true]) out.push(weatherFor(DEFAULT_WEATHER, a, steady));
     }
-    out.push(knobs(undefined), knobs('nope' as never), isDifficulty('nope'));
+    out.push(knobOnly(knobs(undefined)), knobOnly(knobs('nope' as never)), isDifficulty('nope'));
     expect(hash(JSON.stringify(out))).toBe('0f2e6bfa');
   });
 

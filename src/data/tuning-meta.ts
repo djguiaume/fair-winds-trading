@@ -454,7 +454,25 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     "Sailing this close to a hidden port's shore puts it on the chart (0048).",
   ),
 
-  // --- difficulty.json (decision 0083) ---
+  // --- difficulty.json (decisions 0083, 0111) ---
+  'difficulty.default': text(
+    'Default level',
+    'Id of the level a voyage plays when none is picked; it keeps the map weather.',
+  ),
+  'difficulty.levels.*.name': text(
+    'Name',
+    'English name; players see `level.<id>` when translated.',
+  ),
+  'difficulty.levels.*.tag': text('Pitch', 'English line under the name (`level.<id>Tag`).'),
+  'difficulty.levels.*.color': text('Wave colour', 'Colour of the waves on the level card.'),
+  'difficulty.levels.*.waves': num(
+    'Waves',
+    1,
+    3,
+    1,
+    undefined,
+    'Waves drawn on the level card: 1 calm to 3 rough.',
+  ),
   'difficulty.levels.*.cargoLost': num(
     'Cargo lost',
     0,

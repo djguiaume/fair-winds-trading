@@ -106,6 +106,11 @@ export function weatherName(kind: string): string {
   return key in en ? t(key) : (TUNING.weather.default.kinds?.[kind]?.name ?? kind);
 }
 
+/** True when the text files have this key (content added in data may not be translated yet). */
+export function hasText(key: string): key is MessageKey {
+  return key in en;
+}
+
 /** A town level's name ("Village"); a level with no translation keeps its `town-levels.json` name. */
 export function townLevelName(level: number): string {
   const key = `settlement.level.${level}` as MessageKey;

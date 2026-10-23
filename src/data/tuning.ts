@@ -1,6 +1,6 @@
 import type { ShipClass } from '../sim/ship';
 import type { GoodDef } from '../sim/goods';
-import type { DifficultyKnobs } from '../sim/difficulty';
+import type { DifficultyLevel } from '../sim/difficulty';
 import type { WeatherConfig } from '../sim/wind';
 import { SHIP_FILES, shipClassOf } from './ships';
 import upgrades from './tuning/upgrades.json';
@@ -16,8 +16,8 @@ import seamanship from './tuning/seamanship.json';
  * so a value changed here takes effect at once (the `?tune` panel will rely on this). Change values
  * in place: the sim and its exported aliases (`SLOOP`, `GOOD_DEFS`, `DEFAULT_WEATHER`…) hold
  * references to the objects inside, so replacing a whole group would leave them on the old one.
- * Ship classes, goods and weather kinds come from their files (decisions 0108, 0109); difficulty
- * levels stay in TypeScript. What each value means, its range and unit: `tuning-meta.ts`.
+ * Ship classes, goods, weather kinds and difficulty levels come from their files (decisions
+ * 0108, 0109, 0111). What each value means, its range and unit: `tuning-meta.ts`.
  */
 export interface Tuning {
   /** The ship classes, by id, from `src/data/ships/*.json`. Angles in degrees (`noGoDeg`, `turnRateDeg`). */
@@ -39,7 +39,10 @@ export interface Tuning {
     orders: Omit<typeof economy.orders, 'qty'> & { qty: [number, number] };
   };
   difficulty: {
-    levels: Record<string, DifficultyKnobs>;
+    /** The level a voyage plays when none is picked (decision 0111). */
+    default: string;
+    /** The levels, easiest first (decision 0111). */
+    levels: Record<string, DifficultyLevel>;
     steadyWind: typeof difficulty.steadyWind;
   };
   weather: Omit<typeof weather, 'default'> & { default: WeatherConfig };

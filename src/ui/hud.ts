@@ -1,3 +1,4 @@
+import { knobs } from '../sim/difficulty';
 import { trueWindAngle } from '../sim/boat';
 import { DEG, bearingTo, distance, wrapPositive } from '../sim/math';
 import { type PointOfSail, noGoAngle, pointOfSail } from '../sim/ship';
@@ -295,9 +296,11 @@ export class Hud {
       if (level > 0 && !this.seenPressHint) {
         this.seenPressHint = true;
         this.onPressHintSeen();
-        // On Fair winds the warning is a lesson: cargo stays aboard (decision 0083).
+        // On a level that keeps the cargo (Fair winds) the warning is a lesson (decision 0083).
         const hint =
-          this.world.trade.difficulty === 'fair' ? 'toast.pressHintFair' : 'toast.pressHint';
+          knobs(this.world.trade.difficulty).cargoLost === 0
+            ? 'toast.pressHintFair'
+            : 'toast.pressHint';
         this.showToast(t(hint), 5);
       }
     }

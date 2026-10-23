@@ -1,3 +1,4 @@
+import { renderDifficultyButtons, renderLevelCards } from './ui/levelCards';
 import { PHASE1_MAP } from './data/maps';
 import { EDITED_PREFIX, editedMap, prefixedStorage } from './data/editedMap';
 import { Input } from './input/input';
@@ -71,6 +72,9 @@ for (const type of ['pointerdown', 'pointerup', 'touchend', 'keydown'] as const)
   window.addEventListener(type, unlockAudio, { capture: true, once: true });
 }
 setLanguage(settings.language ?? detectLanguage(browserLanguages()));
+// Level cards and the Settings level switch come from difficulty.json (decision 0111).
+renderLevelCards(document.getElementById('level-cards')!);
+renderDifficultyButtons(document.getElementById('difficulty')!);
 translateDom();
 const canvas = $<HTMLCanvasElement>('scene');
 

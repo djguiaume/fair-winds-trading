@@ -312,7 +312,7 @@ describe('difficulty levels (0083)', () => {
     relaxed: pace(level, true),
   }));
   const by = Object.fromEntries(results.map((r) => [r.level, r])) as Record<
-    Difficulty,
+    'fair' | 'captain' | 'salt',
     (typeof results)[number]
   >;
   console.log(
