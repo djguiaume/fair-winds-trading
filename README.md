@@ -1,6 +1,6 @@
 # Fair Winds Trading
 
-A top-down, low-poly sailing and trading game for the browser. You sail with (and against) the wind to carry goods between island settlements, watch them grow, and eventually run a fleet on automated trade routes that reach farther and harder-to-sail waters.
+A top-down, low-poly sailing and trading game for the browser. You sail with (and against) the wind to carry goods between island settlements and watch them grow. The next progression direction is under review: build a personal harbour island, connect existing communities, or prepare for a great expedition. Steam and automated logistics are deferred to later work.
 
 **Play the current prototype:** https://djguiaume.github.io/fair-winds-trading/ (desktop, phone or tablet).
 
@@ -12,13 +12,15 @@ The original Phase 0 practice map remains in the repository: one sloop, wind wit
 
 ## Documentation
 
-- [Roadmap](docs/roadmap.md): phased plan from sailing prototype to full trade network.
+- [Roadmap](docs/roadmap.md): phased plan, current progression review and deferred extensions.
+- [Story and progression options](docs/reviews/progression/README.md): three competing directions, market references, pros/cons and prototype questions; no direction selected.
+- [Later extensions](docs/reviews/progression/extensions.md): steam/harbour logistics and pirates, balancing, risks and fit with each direction.
 - [Decisions](docs/decisions/): one file per decision (ADR style), newest number last.
 - [Sailing model](docs/sailing-model.md): how boats move and which numbers tune the feel.
 - [Art pipeline](docs/art-pipeline.md): how to swap boat and island models.
 - [Screenshots](docs/screenshots/): the game as it looks now.
 - [Mockups](docs/mockups/): 3D vs 2.5D look comparison.
-- [Visual reference](docs/reference/): screenshots from the *Privateers: Pirate Wars* ad that inspired the art style.
+- [Visual reference](docs/reference/): screenshots from the _Privateers: Pirate Wars_ ad that inspired the art style.
 
 ## Development
 
@@ -36,12 +38,12 @@ Every push to `main` is tested and published to GitHub Pages by `.github/workflo
 
 ### Layout
 
-| Path | What |
-|---|---|
-| `src/sim/` | Game state and rules: wind, sailing, collisions, course. Plain TypeScript, no three.js. |
-| `src/data/` | Maps as JSON (Phase 0: `phase0-map.json`). |
-| `src/render/` | three.js scene: ocean shader, camera, wake, wind streaks, quality levels. |
-| `src/render/models/` | Boat and island models behind a swappable interface. |
-| `src/input/` | Keyboard, mouse and touch mapped to the same actions. |
-| `src/ui/` | HUD, trading/shipyard, port labels and settings (plain DOM). |
-| `tests/` | Vitest simulation, map, render-budget and DOM integration tests. |
+| Path                 | What                                                                                    |
+| -------------------- | --------------------------------------------------------------------------------------- |
+| `src/sim/`           | Game state and rules: wind, sailing, collisions, course. Plain TypeScript, no three.js. |
+| `src/data/`          | Maps as JSON (Phase 0: `phase0-map.json`).                                              |
+| `src/render/`        | three.js scene: ocean shader, camera, wake, wind streaks, quality levels.               |
+| `src/render/models/` | Boat and island models behind a swappable interface.                                    |
+| `src/input/`         | Keyboard, mouse and touch mapped to the same actions.                                   |
+| `src/ui/`            | HUD, trading/shipyard, port labels and settings (plain DOM).                            |
+| `tests/`             | Vitest simulation, map, render-budget and DOM integration tests.                        |
