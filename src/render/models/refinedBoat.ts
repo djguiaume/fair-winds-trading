@@ -57,6 +57,12 @@ export interface RefinedRig {
   /** Class-specific fittings (leeboards, hatch coamings…) merged into the hull mesh, so they
    * cost no extra draw call. Receives the deck sheer and the upgrade levels. */
   details?: (ctx: HullDetailContext) => THREE.BufferGeometry[];
+  /** Extra geometry fitted onto the finished hull mesh (the indiaman's gun ports are cast onto
+   * its sides); merged into it, so it costs no extra draw. */
+  hullFinish?: (
+    hull: THREE.BufferGeometry,
+    deckAt: (z: number) => number,
+  ) => THREE.BufferGeometry[];
   /** Class-authored deck fittings, including window panes tagged with glowing(). */
   boatDetails?: BoatDetails;
   replaceDeckDetails?: boolean;
@@ -326,6 +332,8 @@ interface Headsail {
 
 /** Shared refined gaff-rig construction. Upgrade semantics and the BoatModel waterline frame stay unchanged. */
 export class RefinedBoat implements BoatModel {
+  /** The class name the model was built for ("Cutter"); its meshes are named after it. */
+  readonly name: string;
   readonly cargoBounds: THREE.Box3[] = [];
   private windowMaterial?: THREE.MeshBasicMaterial;
   readonly root = new THREE.Group();
@@ -358,6 +366,7 @@ export class RefinedBoat implements BoatModel {
 
   constructor(rig: RefinedRig, options: BoatModelOptions = {}) {
     const { length: L, mastZ: MAST_Z, band: BAND } = rig;
+    this.name = rig.name;
     const B = rig.beam * ST.B;
     const H = rig.depth * ST.H;
     const DECK = H * 0.55;
@@ -481,7 +490,9 @@ export class RefinedBoat implements BoatModel {
     if (rig.details)
       parts.push(...rig.details({ deckAt, halfBeam: B / 2, depth: H, upgrades: upg }));
     if (rig.boatDetails) parts.push(...rig.boatDetails(detailContext));
-    this.ship.add(mesh(mergeAll(parts.filter((g) => !isGlowing(g))), wood, `${rig.name}Hull`));
+    let hull = mergeAll(parts.filter((g) => !isGlowing(g)));
+    if (rig.hullFinish) hull = mergeAll([hull, ...rig.hullFinish(hull, deckAt)]);
+    this.ship.add(mesh(hull, wood, `${rig.name}Hull`));
     const glass = parts.filter(isGlowing);
     if (glass.length) {
       this.windowMaterial = new THREE.MeshBasicMaterial({

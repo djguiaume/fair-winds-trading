@@ -1,17 +1,17 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { createBoatModel } from '../src/render/models';
-import { RefinedSloop } from '../src/render/models/sloop';
-import { RefinedCutter } from '../src/render/models/cutter';
 import { STYLE_D } from '../src/render/models/boatStyle';
 import { QUALITY } from '../src/render/quality';
 import type { BoatPose, ShipUpgrades } from '../src/render/models/types';
+import { shipModel } from '../src/render/models/shipModels';
+import type { RefinedBoat } from '../src/render/models/refinedBoat';
 
 const POSE: BoatPose = { sail: 1, boomAngle: 0, luff: 0, heel: 0, windRelative: 0, time: 0 };
 const level = (n: 1 | 2 | 3): ShipUpgrades => ({ sails: n, hold: n, hull: n });
 const v = () => new THREE.Vector3();
 const near = (a: THREE.Vector3, b: THREE.Vector3) => expect(a.distanceTo(b)).toBeLessThan(1e-5);
-const mesh = (b: RefinedCutter, name: string) => b.root.getObjectByName(name) as THREE.Mesh;
+const mesh = (b: RefinedBoat, name: string) => b.root.getObjectByName(name) as THREE.Mesh;
 
 /** Read real geometry vertices, so a correct-looking pivot with detached cloth cannot pass. */
 function luffVertices(m: THREE.Mesh) {
@@ -25,8 +25,8 @@ describe('refined upgraded cutter', () => {
   it('routes only the cutter to its refined class and preserves the hull-sized wake', () => {
     const cutter = createBoatModel('cutter');
     const sloop = createBoatModel('sloop');
-    expect(cutter).toBeInstanceOf(RefinedCutter);
-    expect(sloop).toBeInstanceOf(RefinedSloop);
+    expect((cutter as RefinedBoat).name).toBe('Cutter');
+    expect((sloop as RefinedBoat).name).toBe('Sloop');
     expect(cutter.wakeHull.length).toBeCloseTo(13.64);
     expect(cutter.wakeHull.beam).toBeCloseTo(4.851);
     expect(cutter.wakeHull.length / cutter.wakeHull.beam).toBeGreaterThan(
@@ -37,8 +37,8 @@ describe('refined upgraded cutter', () => {
   });
   it('has its own fine bow, wide flat transom and V bottom at every hull upgrade', () => {
     for (const hull of [1, 2, 3] as const) {
-      const cutter = new RefinedCutter({ upgrades: { hull, hold: 1, sails: 1 } });
-      const sloop = new RefinedSloop({ upgrades: { hull, hold: 1, sails: 1 } });
+      const cutter = shipModel('cutter', { upgrades: { hull, hold: 1, sails: 1 } });
+      const sloop = shipModel('sloop', { upgrades: { hull, hold: 1, sails: 1 } });
       const cp = mesh(cutter, 'CutterHull').geometry.getAttribute('position');
       const sp = sloop.root.getObjectByName('SloopHull') as THREE.Mesh;
       const positions = sp.geometry.getAttribute('position');
@@ -75,7 +75,7 @@ describe('refined upgraded cutter', () => {
     for (const sails of [1, 2, 3] as const)
       for (const hold of [1, 2, 3] as const)
         for (const hull of [1, 2, 3] as const) {
-          const b = new RefinedCutter({ upgrades: { sails, hold, hull } });
+          const b = shipModel('cutter', { upgrades: { sails, hold, hull } });
           const jibs = Array.from({ length: b.stats.jibs }, (_, j) => mesh(b, `Jib${j + 1}`));
           const endpoints = jibs.map((j) => luffVertices(j));
           const rig = b.root.getObjectByName('Rigging') as THREE.LineSegments;
@@ -116,7 +116,7 @@ describe('refined upgraded cutter', () => {
   });
 
   it('keeps the mainsail tack at the gooseneck and its luff on the mast throughout sail lowering', () => {
-    const b = new RefinedCutter({ upgrades: level(3) });
+    const b = shipModel('cutter', { upgrades: level(3) });
     const main = mesh(b, 'Mainsail');
     const pivot = main.parent!;
     const vertices = luffVertices(main);
@@ -145,7 +145,7 @@ describe('refined upgraded cutter', () => {
     for (const sails of [1, 2, 3] as const)
       for (const hold of [1, 2, 3] as const)
         for (const hull of [1, 2, 3] as const) {
-          const b = new RefinedCutter({ upgrades: { sails, hold, hull } });
+          const b = shipModel('cutter', { upgrades: { sails, hold, hull } });
           expect(b.stats.crates + b.stats.barrels).toBe([3, 5, 8][hold - 1]);
           expect(b.stats.jibs).toBe(sails === 1 ? 2 : 3);
           expect(b.stats.topsail).toBe(sails === 3);
@@ -174,7 +174,7 @@ describe('refined upgraded cutter', () => {
   });
 
   it('honours all three quality levels and skips rope-buffer updates on Low', () => {
-    const b = new RefinedCutter({ upgrades: level(3) });
+    const b = shipModel('cutter', { upgrades: level(3) });
     const rig = b.root.getObjectByName('Rigging') as THREE.LineSegments;
     const positions = rig.geometry.getAttribute('position') as THREE.BufferAttribute;
     for (const quality of Object.keys(QUALITY)) {
@@ -186,7 +186,7 @@ describe('refined upgraded cutter', () => {
       expect(mesh(b, 'Jib3').visible).toBe(true);
     }
     b.dispose();
-    const noRopes = new RefinedCutter({ rigging: false });
+    const noRopes = shipModel('cutter', { rigging: false });
     noRopes.setLowDetail(false);
     expect(noRopes.root.getObjectByName('Rigging')!.visible).toBe(false);
     noRopes.dispose();

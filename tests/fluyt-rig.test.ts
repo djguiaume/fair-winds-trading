@@ -1,18 +1,18 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { RefinedFluyt } from '../src/render/models/fluyt';
 import { FLUYT_MIZZEN } from '../src/render/models/fluytDetails';
-import { RefinedClipper } from '../src/render/models/clipper';
 import { createBoatModel } from '../src/render/models';
 import { isRefinedShip } from '../src/render/models/shipModels';
 import { QUALITY } from '../src/render/quality';
 import { STYLE_D } from '../src/render/models/boatStyle';
 import { triangleCount } from '../src/render/models/geometry';
 import type { BoatPose } from '../src/render/models/types';
+import { shipModel } from '../src/render/models/shipModels';
+import type { RefinedBoat } from '../src/render/models/refinedBoat';
 
 const POSE: BoatPose = { sail: 1, boomAngle: 0, luff: 0, heel: 0, windRelative: 0, time: 0 };
 const v = () => new THREE.Vector3();
-const mesh = (b: RefinedFluyt, name: string) => b.root.getObjectByName(name) as THREE.Mesh;
+const mesh = (b: RefinedBoat, name: string) => b.root.getObjectByName(name) as THREE.Mesh;
 const near = (a: THREE.Vector3, b: THREE.Vector3) => expect(a.distanceTo(b)).toBeLessThan(1e-4);
 const L = 11.5;
 const deckAt = (z: number) =>
@@ -44,8 +44,8 @@ function drawn(m: THREE.Mesh, i: number) {
 describe('refined fluyt', () => {
   it('routes through the real factory with its own hull, stern castle and envelope', () => {
     expect(isRefinedShip('fluyt')).toBe(true);
-    const b = createBoatModel('fluyt') as RefinedFluyt;
-    expect(b).toBeInstanceOf(RefinedFluyt);
+    const b = createBoatModel('fluyt') as RefinedBoat;
+    expect((b as RefinedBoat).name).toBe('Fluyt');
     expect(b.wakeHull.length).toBeCloseTo(L * 2.2);
     expect(b.wakeHull.beam).toBeCloseTo(3.5 * STYLE_D.B * 2.2);
     // Pear-shaped sections: the topsides tumble home, so the hull is wider below the deck.
@@ -62,7 +62,7 @@ describe('refined fluyt', () => {
     spar.computeBoundingBox();
     expect(mizzen.position.z + spar.boundingBox!.min.z).toBeGreaterThan(-L / 2);
     expect(b.root.getObjectByName('Mainsail')).toBeUndefined();
-    const clipper = new RefinedClipper();
+    const clipper = shipModel('clipper');
     expect(b.wakeHull.beam).toBeGreaterThan(clipper.wakeHull.beam * 1.4);
     clipper.dispose();
     b.dispose();
@@ -72,7 +72,7 @@ describe('refined fluyt', () => {
     for (const sails of [1, 2, 3] as const)
       for (const hold of [1, 2, 3] as const)
         for (const hull of [1, 2, 3] as const) {
-          const b = new RefinedFluyt({ upgrades: { sails, hold, hull } });
+          const b = shipModel('fluyt', { upgrades: { sails, hold, hull } });
           expect(b.stats.crates + b.stats.barrels).toBe([6, 8, 11][hold - 1]);
           expect(b.stats.barrels > 0).toBe(hold >= 2);
           expect(b.stats.jibs).toBe(sails >= 2 ? 2 : 1);
@@ -223,7 +223,7 @@ describe('refined fluyt', () => {
   }, 60_000);
 
   it('furls each course up to its own yard and keeps furled canvas visible', () => {
-    const b = new RefinedFluyt({ upgrades: { sails: 3, hold: 1, hull: 1 } });
+    const b = shipModel('fluyt', { upgrades: { sails: 3, hold: 1, hull: 1 } });
     b.update({ ...POSE, sail: 0 });
     const m = mesh(b, 'MainCourses');
     expect(m.morphTargetInfluences![0]).toBe(1);
@@ -234,7 +234,7 @@ describe('refined fluyt', () => {
   });
 
   it('keeps sails and upgrades on all quality levels and skips hidden rope updates', () => {
-    const b = new RefinedFluyt({ upgrades: { sails: 3, hold: 3, hull: 3 } });
+    const b = shipModel('fluyt', { upgrades: { sails: 3, hold: 3, hull: 3 } });
     const rope = b.root.getObjectByName('Rigging') as THREE.LineSegments;
     const p = rope.geometry.getAttribute('position') as THREE.BufferAttribute;
     for (const quality of [...Object.keys(QUALITY), 'low', 'high']) {

@@ -81,7 +81,7 @@ const text = (label: string, help: string): TextMeta => ({ kind: 'text', label, 
 const toggle = (label: string, help: string): ToggleMeta => ({ kind: 'toggle', label, help });
 
 export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
-  // --- ships.json: one entry per class (decisions 0007, 0011, 0035, 0048) ---
+  // --- src/data/ships/<id>.json, `sailing` and `unlock` (decisions 0007, 0011, 0035, 0048, 0109) ---
   'ships.*.id': text('Id', 'Class id used in saves and code; must match the key.'),
   'ships.*.name': text('Name', 'English name in the code; players see the translated one.'),
   'ships.*.line': text('Line', 'starter, swift, hauler or warship (decision 0035).'),
