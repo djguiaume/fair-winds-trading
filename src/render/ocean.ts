@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { IslandDef, TerrainDef } from '../sim/map';
-import { islandCoasts } from '../sim/islandLayout';
+import { islandPoint } from '../sim/islandLayout';
+import { designOf } from '../data/islands';
 import { PALETTE } from './palette';
 
 /** Baked shoreline distance: constant shader cost as authored coast complexity grows. */
@@ -14,6 +15,46 @@ float shoreDistance(vec2 p) {
 }
 `;
 
+/** Read current file contents: islandCoasts' simulation cache does not track live file edits. */
+function currentCoasts(island: IslandDef) {
+  return designOf(island)?.coasts.map((coast) =>
+    coast.map(([x, z]): [number, number] => {
+      const p = islandPoint(island, x, z);
+      return [p.x, p.y];
+    }),
+  );
+}
+
+export type ShoreTexture = ReturnType<typeof shoreTexture>;
+
+/** One map/view owns one bake; quality changes borrow it. No per-frame work or global GPU cache. */
+export class ShoreTextureCache {
+  private key?: string;
+  private shore?: ShoreTexture;
+
+  get(islands: readonly IslandDef[], terrain: readonly TerrainDef[] = []): ShoreTexture {
+    // Compare effective shoreline contents, not array identity or fixed island ids. This is only
+    // called when rebuilding water (quality change/editor refresh), never from the frame loop.
+    const key = JSON.stringify([
+      islands.map((i) => currentCoasts(i) ?? [i.x, i.y, i.radius]),
+      terrain.map((t) => t.outline),
+    ]);
+    if (!this.shore || this.key !== key) {
+      const next = shoreTexture(islands, terrain);
+      this.shore?.texture.dispose();
+      this.shore = next;
+      this.key = key;
+    }
+    return this.shore;
+  }
+
+  dispose(): void {
+    this.shore?.texture.dispose();
+    this.shore = undefined;
+    this.key = undefined;
+  }
+}
+
 export function shoreTexture(islands: readonly IslandDef[], terrain: readonly TerrainDef[]) {
   const edges: [number, number, number, number][] = [];
   const circles: IslandDef[] = [];
@@ -23,7 +64,7 @@ export function shoreTexture(islands: readonly IslandDef[], terrain: readonly Te
       edges.push([a[0], -a[1], b[0], -b[1]]);
     });
   for (const island of islands) {
-    const coasts = islandCoasts(island);
+    const coasts = currentCoasts(island);
     if (coasts) coasts.forEach(add);
     else circles.push(island);
   }
@@ -190,6 +231,8 @@ export function waveHeight(x: number, z: number, t: number): number {
 export class Ocean {
   readonly mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
   private cell: number;
+  private readonly ownsShore: boolean;
+  private disposed = false;
 
   constructor(
     islands: readonly IslandDef[],
@@ -197,9 +240,11 @@ export class Ocean {
     fancy: boolean,
     size = 420,
     terrain: readonly TerrainDef[] = [],
+    borrowedShore?: ShoreTexture,
   ) {
     this.cell = size / segments;
-    const shore = shoreTexture(islands, terrain);
+    const shore = borrowedShore ?? shoreTexture(islands, terrain);
+    this.ownsShore = !borrowedShore;
     const material = new THREE.ShaderMaterial({
       vertexShader,
       fragmentShader,
@@ -261,7 +306,9 @@ export class Ocean {
   }
 
   dispose(): void {
-    (this.mesh.material.uniforms.uShoreMap!.value as THREE.Texture).dispose();
+    if (this.disposed) return;
+    this.disposed = true;
+    if (this.ownsShore) (this.mesh.material.uniforms.uShoreMap!.value as THREE.Texture).dispose();
     this.mesh.geometry.dispose();
     this.mesh.material.dispose();
   }
