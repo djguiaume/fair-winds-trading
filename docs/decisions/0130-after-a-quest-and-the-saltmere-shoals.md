@@ -1,6 +1,6 @@
 # 0130. What changes after a quest, the East Reef gap, and the Saltmere shoals arc
 
-**Status:** Shared pieces implemented for review (2026-10-23); the arc itself follows in a second pull request. Part of the community arcs ([0122](0122-community-arcs-story.md)), built to the storyteller brief ([0129](0129-storyteller-brief.md)), which gives the Saltmere thread two shared pieces: the after-a-quest hook and the East Reef gap. It extends the quest engine ([0125](0125-quest-engine.md)) and the island files ([0101](0101-island-files-built.md)).
+**Status:** Implemented for review (2026-10-23): the shared pieces in PR #116, the arc in a second pull request. Part of the community arcs ([0122](0122-community-arcs-story.md)), built to the storyteller brief ([0129](0129-storyteller-brief.md)), which gives the Saltmere thread two shared pieces: the after-a-quest hook and the East Reef gap. It extends the quest engine ([0125](0125-quest-engine.md)) and the island files ([0101](0101-island-files-built.md)).
 
 ## Context
 
@@ -18,6 +18,18 @@ Two more gaps showed up while writing the Saltmere arc. The East Reef has no cha
 6. **A landmark set by hand.** A reef's or bank's `look.landmarkAt: { x, y }` puts its landmark there instead of the first seeded spot. The East Reef's wreck is pinned at the spot it had before the split (151.48, 46.33), so the prologue, its tests and every saved voyage find it where it was. The stress sea moves pinned landmarks and marks with each copy.
 7. **Step markers.** `stepMarkers(goal, counts)` (`src/ui/questView.ts`) lists the tracked step's places at sea, read from its goal: `reach` points, a timed run's `via` points, and quest cargo's spot (where to load it, then where to bring it, 0131), inside `all` / `any` too. The view draws each place still to reach as a ring on the water as wide as the place, the one to make for pulsing with a faint beam seen from afar; the chart draws the same rings. A step's optional `marker: "gulls"` adds a small flock wheeling and diving over each spot.
 8. **Arc cards wait for the tutorial.** Rook's thanks finishes inside the tutorial, so an arc offered at the port where it happens (Kit's, at Saltmere) would open its card over the tutorial's lessons. No quest card shows while the tutorial runs; the offer waits for the next visit after it.
+
+## The arc: "Where the shoals went" (Kit)
+
+Built to the brief, as data only: `src/data/quests/saltmere-shoals.json`, text in `en.json` and `fr.json` (`quest.saltmere-shoals.*`), the map's sea marks and Saltmere's `afterQuest`. Offered at Saltmere once Rook's thanks is done.
+
+| Step | Goal | Places (map units) | Gold |
+|---|---|---|---|
+| `gulls` (worried) | `reach` 3 spots in any order, within 10, `clean`, `marker: "gulls"` | (205, 8), (186, 43), (163, 66): about 14 off the reef's outer, north-east edge | 100 |
+| `channel` | `reach` 3 gates in order, within 10, `clean` | (119.2, 52.6), (134, 66), (148.8, 79.4): from the inner side, through the gap, out to the shoals | 150 |
+| `catch` | `all`: `carried` 6 `catch` (space 1) Saltmere → Port Calda, and `timed` Saltmere → Port Calda | par fair 150 s, captain 110 s, salt 90 s | 250 |
+
+The par comes from the map's sloop route estimate (31 to 50 s of steady sailing depending on the wind), with room for leaving harbour, docking and a tack. The reward offers home spot `spot-3` (Lookout or Pilot house). After the arc: four channel buoys on the gap (on the chart too), three fishing boats on the new ground north-east of the reef, and smoked fish from level 2 (`afterQuest`). A run over par still unloads the catch at Calda; the player runs it again from Saltmere with an empty hold, as for every timed cargo run (noted by the Westholm thread).
 
 ## Consequences
 
