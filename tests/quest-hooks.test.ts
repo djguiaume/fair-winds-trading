@@ -92,7 +92,7 @@ describe('after:/before: tags', () => {
     const design = structuredClone(islandDesign('saltmere'));
     const boat = design.props.findIndex((p) => p.type === 'moored-boat');
     design.props[boat]!.tags = ['after:test-pier'];
-    expect(checkQuestHooks(PHASE1_MAP, [design], [PIER])).toEqual([
+    expect(checkQuestHooks(PHASE1_MAP, [design], [PIER, ...QUESTS])).toEqual([
       `island saltmere › prop ${boat} (moored-boat): a moored boat cannot wait on a quest (use a sea mark)`,
     ]);
   });
@@ -129,9 +129,9 @@ describe('a port that trades differently after a quest', () => {
     const map = hookedMap();
     expect(quickChecks(map).filter((c) => !c.ok)).toEqual([]);
     map.marks!.push({ type: 'fishing-boat', x: 285, y: -140 });
-    const links = quickChecks(map).find((c) => c.id === 'links')!;
-    expect(links.ok).toBe(false);
-    expect(links.message).toContain('mark 2 (fishing-boat) stands on land or a reef');
+    const marks = quickChecks(map).find((c) => c.id === 'marks')!;
+    expect(marks).toMatchObject({ ok: false, severity: 'warning' });
+    expect(marks.message).toBe('mark 2 (fishing-boat) on land or a reef');
   });
 
   it('sea marks and pinned landmarks move with the stress copies', () => {

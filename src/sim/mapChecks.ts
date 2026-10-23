@@ -235,13 +235,28 @@ export function quickChecks(map: MapDef): MapCheck[] {
       problems.push(`${name}: needs x and y`);
     else if (Math.hypot(mark.x, mark.y) > map.boundsRadius)
       problems.push(`${name} is outside the sea`);
-    else if (mark.type !== 'light' && !clearAt(map, mark.x, mark.y, 1))
-      problems.push(`${name} stands on land or a reef`);
   }
   out.push(
     problems.length
       ? fail('links', problems.join('; '))
       : pass('links', 'ids unique, every port on an island, goods known'),
+  );
+
+  // Sea marks in clear water (decision 0130): a warning, as an island dragged onto one is.
+  const aground = (map.marks ?? [])
+    .map((mark, i) => ({ mark, i }))
+    .filter(
+      ({ mark }) =>
+        mark.type !== 'light' &&
+        Number.isFinite(mark.x) &&
+        Number.isFinite(mark.y) &&
+        !clearAt(map, mark.x, mark.y, 1),
+    )
+    .map(({ mark, i }) => `mark ${i} (${mark.type})`);
+  out.push(
+    aground.length
+      ? fail('marks', `${list(aground)} on land or a reef`, 'warning')
+      : pass('marks', 'sea marks in clear water', 'warning'),
   );
 
   // Trade: every good someone wants is made somewhere and every good made has a buyer.

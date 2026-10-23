@@ -231,7 +231,9 @@ const questCard = new QuestCard($<HTMLDialogElement>('quest-card'));
 const questSeen = new Set<string>();
 const questThanks = new Set<string>();
 function showDueCard() {
-  if (questCard.isOpen || tutorialOffer.open) return;
+  // While the tutorial runs, its lesson cards speak: an arc offered meanwhile (Kit's, at
+  // Saltmere) waits for the next visit after it (decision 0130).
+  if (questCard.isOpen || tutorialOffer.open || tutorial.isActive) return;
   const due = dueCard(quests, world.map, world.trade.dockedAt, questSeen, questThanks);
   const card = due && cardFor(quests, world.map, due.quest, due.kind);
   if (!due || !card) return;
