@@ -11,7 +11,8 @@ export interface CoastDistance {
 /** Nearest point on a simple (possibly concave) polygon. Works with either winding. */
 export function coastDistance(x: number, y: number, outline: TerrainDef['outline']): CoastDistance {
   let inside = false;
-  let best = Infinity;
+  let bestSq = Infinity;
+  let found = false;
   let qx = 0;
   let qy = 0;
   let edgeX = 1;
@@ -32,15 +33,27 @@ export function coastDistance(x: number, y: number, outline: TerrainDef['outline
       : 0;
     const px = a[0] + dx * t;
     const py = a[1] + dy * t;
-    const d = Math.hypot(x - px, y - py);
-    if (d < best) {
-      best = d;
+    const rx = x - px;
+    const ry = y - py;
+    const distanceSq = rx * rx + ry * ry;
+    // Squared distances avoid a hypot per edge. Resolve rounding ties and overflow
+    // with the original comparison so the chosen boundary normal stays stable.
+    const uncertain =
+      !Number.isFinite(distanceSq) ||
+      Math.abs(distanceSq - bestSq) <= Number.EPSILON * 8 * Math.max(distanceSq, bestSq);
+    const nearer = uncertain
+      ? Math.hypot(rx, ry) < (found ? Math.hypot(x - qx, y - qy) : Infinity)
+      : distanceSq < bestSq;
+    if (nearer) {
+      bestSq = distanceSq;
+      found = true;
       qx = px;
       qy = py;
       edgeX = dx;
       edgeY = dy;
     }
   }
+  const best = found ? Math.hypot(x - qx, y - qy) : Infinity;
   const sign = inside ? -1 : 1;
   if (best > 1e-8) {
     return { distance: best * sign, nx: ((x - qx) / best) * sign, ny: ((y - qy) / best) * sign };

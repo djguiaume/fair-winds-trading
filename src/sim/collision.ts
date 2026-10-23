@@ -24,6 +24,32 @@ const HARDNESS: Record<Surface, number> = {
   edge: 0,
 };
 
+const coastBounds = new WeakMap<
+  TerrainDef['outline'],
+  { minX: number; minY: number; maxX: number; maxY: number }
+>();
+
+/** Generated island outlines retain their identity until the island's geometry changes. */
+function outsideCoast(boat: BoatState, radius: number, outline: TerrainDef['outline']): boolean {
+  let bounds = coastBounds.get(outline);
+  if (!bounds) {
+    bounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+    for (const [x, y] of outline) {
+      bounds.minX = Math.min(bounds.minX, x);
+      bounds.minY = Math.min(bounds.minY, y);
+      bounds.maxX = Math.max(bounds.maxX, x);
+      bounds.maxY = Math.max(bounds.maxY, y);
+    }
+    coastBounds.set(outline, bounds);
+  }
+  return (
+    boat.x < bounds.minX - radius ||
+    boat.x > bounds.maxX + radius ||
+    boat.y < bounds.minY - radius ||
+    boat.y > bounds.maxY + radius
+  );
+}
+
 /** Island scale the pier is modelled at; the renderer draws the same pier (highlandIslands). */
 const PIER_SCALE = 2.2;
 /** Half the pier's width (units), posts included. */
@@ -181,8 +207,10 @@ export function resolveCollisions(
   for (const island of islands) {
     const coasts = islandCoasts(island);
     if (coasts) {
-      const lake = islandLake(island);
+      let lake: ReturnType<typeof islandLake> | undefined;
       for (const [index, outline] of coasts.entries()) {
+        if (outsideCoast(boat, radius, outline)) continue;
+        if (index === 0) lake = islandLake(island);
         for (let pass = 0; pass < 8; pass++) {
           let coast = coastDistance(boat.x, boat.y, outline);
           if (index === 0 && lake) {

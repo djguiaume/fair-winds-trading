@@ -213,13 +213,33 @@ function moor(boat: BoatState, dt: number): void {
   boat.drift.y *= hold;
 }
 
-const pierVersions = new WeakMap<World, string>();
+interface PierVersion {
+  map: MapDef;
+  levels: ReturnType<typeof settlementLevels>;
+  count: number;
+}
+
+const pierVersions = new WeakMap<World, PierVersion>();
 export function refreshPiers(world: World) {
+  const previous = pierVersions.get(world);
+  const settlements = world.trade.settlements.byPort;
+  let count = 0;
+  let changed = !previous || previous.map !== world.map;
+  // Scan mutable state directly: ordinary simulation steps allocate no level record or JSON.
+  for (const id in settlements) {
+    if (!Object.hasOwn(settlements, id)) continue;
+    count++;
+    if (
+      !previous ||
+      !Object.hasOwn(previous.levels, id) ||
+      previous.levels[id] !== settlements[id]!.level
+    )
+      changed = true;
+  }
+  if (!changed && previous?.count === count) return;
   const levels = settlementLevels(world.trade);
-  const key = JSON.stringify(levels);
-  if (pierVersions.get(world) === key) return;
   world.piers = piersOf(world.map, levels);
-  pierVersions.set(world, key);
+  pierVersions.set(world, { map: world.map, levels, count });
 }
 
 /** Warn when a storm's edge comes this close (map units). */

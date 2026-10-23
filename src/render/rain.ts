@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { type Rng, createRng } from '../sim/rng';
+import { type Storm } from '../sim/storms';
 
 interface Drop {
   x: number;
@@ -14,6 +15,23 @@ const AREA_FAR = 170;
 const TOP = 40;
 /** Falling speed (units/s). */
 const FALL = 70;
+
+/** Conservative broad phase over every position a drop can sample after movement/respawn. */
+export function rainMayReachArea(
+  center: THREE.Vector3,
+  showers: number,
+  storms: readonly Storm[],
+): boolean {
+  if (showers > 0) return true;
+  return storms.some((storm) => {
+    if (storm.intensity <= 0) return false;
+    const dx = Math.max(0, Math.abs(storm.x - center.x) - AREA_X / 2);
+    // Simulation north is negative scene z. The rain field extends further north.
+    const z = -storm.y;
+    const dz = Math.max(0, center.z - AREA_FAR - z, z - center.z - AREA_NEAR);
+    return dx * dx + dz * dz < storm.radius * storm.radius;
+  });
+}
 
 /**
  * Rain (decision 0067): short falling streaks around the camera, slanted by the wind. Each drop
@@ -66,8 +84,12 @@ export class Rain {
     windX: number,
     windZ: number,
     rainAt: (x: number, z: number) => number,
+    rainPossible = true,
   ) {
     this.mesh.visible = false;
+    // Freeze drops while dry. The normal bounds check recentres them on restart, including
+    // camera teleports, without an accumulated dry-frame time step or buffer uploads.
+    if (!rainPossible) return;
     const slant = 0.06;
     this.drops.forEach((d, i) => {
       d.y -= FALL * dt;

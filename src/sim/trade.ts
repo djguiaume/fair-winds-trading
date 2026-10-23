@@ -1,6 +1,6 @@
 import { islandCoasts } from './islandLayout';
 import { piersOf, PIER_HALF_WIDTH } from './collision';
-import { hullFootprint, hullSegmentGap, hullCoastGap } from './harbourDistance';
+import { hullFootprint, hullRadius, hullSegmentGap, hullCoastGap } from './harbourDistance';
 import { coastDistance } from './coast';
 import { type ContractState, createContracts, stepContracts, syncHelpOrder } from './contracts';
 import { type Difficulty, DEFAULT_DIFFICULTY, easier, knobs } from './difficulty';
@@ -250,11 +250,16 @@ export function distanceToPort(
     geometry = { coasts, piers, reach };
     cache.set(key, geometry);
   }
-  const hull = hullFootprint(pos, shipId);
-  const hullReach = Math.max(...hull.map(([x, y]) => Math.hypot(x - pos.x, y - pos.y)));
+  const hullReach = hullRadius(shipId);
+  // Allow for roundoff when rotating and translating the hull into world coordinates.
+  const roundoff = 16 * Number.EPSILON * Math.max(1, Math.abs(pos.x), Math.abs(pos.y), hullReach);
   // A conservative enclosing circle can only reject a harbour that is certainly too far.
-  if (Math.hypot(pos.x - island.x, pos.y - island.y) - geometry.reach - hullReach > maxGap)
+  if (
+    Math.hypot(pos.x - island.x, pos.y - island.y) - geometry.reach - hullReach >
+    maxGap + roundoff
+  )
     return Infinity;
+  const hull = hullFootprint(pos, shipId);
   const { coasts, piers } = geometry;
   const shore = coasts
     ? Math.min(...coasts.map((coast) => hullCoastGap(hull, coast)))

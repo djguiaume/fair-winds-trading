@@ -2,15 +2,11 @@ import { coastDistance } from './coast';
 import { HULL_BEAM_SCALE, HULL_DIMENSIONS, HULL_SCALE, HULL_SHAPES } from './hullShape';
 
 type Point = [number, number];
-const outlines = new Map<string, Point[]>();
+const outlines = new Map<string, { outline: Point[]; radius: number }>();
 
-/** Upright hull footprint, including the widest authored sections; rigging is excluded. */
-export function hullFootprint(
-  boat: { x: number; y: number; heading?: number },
-  shipId: string,
-): Point[] {
-  let outline = outlines.get(shipId);
-  if (!outline) {
+function localHull(shipId: string) {
+  let cached = outlines.get(shipId);
+  if (!cached) {
     const shape = HULL_SHAPES[shipId] ?? HULL_SHAPES.sloop!;
     const size = HULL_DIMENSIONS[shipId] ?? HULL_DIMENSIONS.sloop!;
     const points: Point[] = shape.rings.flatMap((ring) =>
@@ -31,9 +27,24 @@ export function hullFootprint(
       result.pop();
       return result;
     };
-    outline = [...half(points), ...half([...points].reverse())];
-    outlines.set(shipId, outline);
+    const outline = [...half(points), ...half([...points].reverse())];
+    cached = { outline, radius: Math.max(...outline.map(([x, z]) => Math.hypot(x, z))) };
+    outlines.set(shipId, cached);
   }
+  return cached;
+}
+
+/** Heading-independent radius of the cached authored hull, including every ring. */
+export function hullRadius(shipId: string): number {
+  return localHull(shipId).radius;
+}
+
+/** Upright hull footprint, including the widest authored sections; rigging is excluded. */
+export function hullFootprint(
+  boat: { x: number; y: number; heading?: number },
+  shipId: string,
+): Point[] {
+  const { outline } = localHull(shipId);
   const s = Math.sin(boat.heading ?? 0),
     c = Math.cos(boat.heading ?? 0);
   // The renderer turns the authored +Z bow through PI, then applies -heading.
