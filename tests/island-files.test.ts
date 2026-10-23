@@ -121,7 +121,7 @@ describe('island files (decision 0101)', () => {
 });
 
 const GOLDEN: Record<string, string[]> = {
-  calda: ['539:2e4123f8', '647:e498663c', '715:1b2e0bbd', '949:f1946ded'],
+  calda: ['556:6dc4b4e3', '664:95208427', '731:b682ff4a', '965:5ffb41cc'],
   saltmere: ['246:190f7a6', '421:aa8af177', '641:e4577624', '806:691e8290'],
   // The mason's crane on the quay, after the Stonehaven arc (decision 0133).
   'south-cay': ['205:724e9d0c', '290:e7d2a293', '481:8e548660', '572:db3bbb4e'],

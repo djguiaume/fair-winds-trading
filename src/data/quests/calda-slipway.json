@@ -1,0 +1,47 @@
+{
+  "id": "calda-slipway",
+  "name": "The last keel",
+  "start": { "is": "quest-done", "quest": "rooks-thanks" },
+  "offer": true,
+  "text": "quest.calda-slipway",
+  "giver": "ines",
+  "port": "calda",
+  "items": { "mast-tree": { "space": 8 }, "rook": { "space": 0 } },
+  "steps": [
+    {
+      "id": "stone",
+      "mood": "worried",
+      "goal": { "is": "delivered", "port": "calda", "good": "stone", "qty": 8 },
+      "reward": { "gold": 100 }
+    },
+    {
+      "id": "mast",
+      "clean": true,
+      "goal": {
+        "is": "carried",
+        "item": "mast-tree",
+        "qty": 1,
+        "from": { "x": -103, "y": 116, "within": 10, "maxKn": 2, "holdSec": 3 },
+        "to": "calda"
+      },
+      "reward": { "gold": 150 }
+    },
+    {
+      "id": "launch",
+      "goal": {
+        "is": "all",
+        "of": [
+          { "is": "carried", "item": "rook", "qty": 1, "from": "saltmere", "to": "calda" },
+          {
+            "is": "timed",
+            "from": "saltmere",
+            "to": "calda",
+            "par": { "fair": 130, "captain": 100, "salt": 80 }
+          }
+        ]
+      },
+      "reward": { "gold": 250 }
+    }
+  ],
+  "reward": { "homeSpot": ["spot-1"] }
+}

@@ -14,6 +14,16 @@ Quest cargo (`carried`) could only be loaded and unloaded alongside a port. Two 
 4. **The chart follows.** The tracked step's target (`questTarget`) is a spot when the cargo is loaded or unloaded at one: the chart draws the route line and a circle of the spot's `within` there, as it does for a port.
 5. **`clean`** works as before on these steps: touching a reef or shore starts the step over, so a cargo loaded at a spot is unloaded nowhere and is loaded again.
 
+## The Calda arc, "The last keel"
+
+The story is the brief's ([0129](0129-storyteller-brief.md)); card text approved by the head storyteller (2026-10-23). What this decision adds is where things are and the numbers:
+
+6. **Quest file** `src/data/quests/calda-slipway.json`: giver `ines` at Port Calda, offered once Rook's thanks is done. `stone` delivers 8 stone (100 gold); `mast` carries the `mast-tree` (1 piece, space 8: a sloop's hold must be nearly empty) from the landing to Port Calda, `clean` (150 gold); `launch` carries Rook (space 0) from Saltmere to Port Calda inside par (250 gold). The quest's reward offers home spot `spot-1` (Workshop or Rigging loft).
+7. **The landing** is on Greyback Ridge's south shore, at x -103, y 116: within 10 units, under 2 kn, for 3 s. It is about 9 units off the coast, clear of reefs, on the side facing Port Calda (the arc test checks this).
+8. **Par for the launch:** fair 130 s, captain 100 s, salt 80 s. The balance model's sloop leg Saltmere → Port Calda is about 57 s, a clipper's 39 s, so the sloop makes captain's par with a clean passage and salt's with a good one. The title shows it through `{par}` (Westholm's fill-in, [0132](0132-westholm-mill-and-babble-voices.md)).
+9. **Port Calda after the arc** (after-a-quest hook, [0130](0130-after-a-quest-and-the-saltmere-shoals.md)): the bare slipway stands at every level before the arc (`before:calda-slipway`), the slipway with a hull at every level after (`after:calda-slipway`); planks are made from level 2 instead of 3 (`afterQuest`). Before the arc, a level-3 Calda shows the bare slipway instead of the hull it showed until now, which matches "the yard has stood idle since the winter".
+10. **The pilot cutter** is a new sea mark type, `pilot-cutter` (the small hull of the fishing boat, painted black), moored off the pier head (x 164.5, y 239.8), tagged `after:calda-slipway`. A sea mark, not an island prop, because a moored boat is solid and cannot wait on a quest (0130).
+
 ## Consequences
 
 - Any later arc can load or unload quest cargo at a beach, a rock or a mooring with no new code: it is a few numbers in the quest file.
