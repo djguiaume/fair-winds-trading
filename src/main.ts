@@ -1,5 +1,6 @@
 import { renderDifficultyButtons, renderLevelCards } from './ui/levelCards';
-import { PHASE1_MAP } from './data/maps';
+import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from './data/maps';
+import { STRESS_PREFIX, stressMap } from './data/stressMap';
 import { EDITED_PREFIX, editedMap, prefixedStorage } from './data/editedMap';
 import {
   TUNE_LINK_KEY,
@@ -103,7 +104,11 @@ const browserStorage: SaveStorage | null = (() => {
   }
 })();
 // "Play this map" from the map editor (decision 0095): its own map, save and tutorial progress.
-const playtestMap = editedMap(location.search, browserStorage);
+// The bigger-map test sea (decision 0115), `?map=stress`: its own voyage too.
+const stressTest = new URLSearchParams(location.search).get('map') === 'stress';
+const playtestMap =
+  editedMap(location.search, browserStorage) ??
+  (stressTest ? prepareMap(stressMap(PHASE1_SOURCE)) : null);
 // The `?tune` panel (decision 0114): the edits kept in this browser apply before the world is
 // built, and tune mode sails its own test voyage so the real one is never touched. A shared link
 // (`?tune#tune=…`) asks before it replaces them.
@@ -125,19 +130,26 @@ if (tuneMode) {
   applyChanges(loadTuneChanges(browserStorage));
 }
 const voyageStorage =
-  playtestMap && browserStorage ? prefixedStorage(browserStorage, EDITED_PREFIX) : browserStorage;
+  playtestMap && browserStorage
+    ? prefixedStorage(browserStorage, stressTest ? STRESS_PREFIX : EDITED_PREFIX)
+    : browserStorage;
 const storage =
   tuneMode && voyageStorage ? prefixedStorage(voyageStorage, TUNE_PREFIX) : voyageStorage;
 const world = createWorld(playtestMap ?? PHASE1_MAP, SLOOP);
 if (playtestMap) {
-  document.title = `Edited map · ${document.title}`;
+  document.title = `${stressTest ? 'Stress test' : 'Edited map'} · ${document.title}`;
   const badge = document.createElement('a');
   badge.href = './editor.html';
-  badge.textContent = 'Edited map · back to editor';
+  badge.textContent = stressTest ? 'Stress test sea' : 'Edited map · back to editor';
   badge.style.cssText =
     'position:fixed;left:50%;bottom:6px;transform:translateX(-50%);z-index:50;padding:3px 10px;' +
     'border-radius:10px;background:#123246e6;color:#f3d37e;font:600 12px sans-serif;' +
     'text-decoration:none;';
+  // A label only: the stress sea has no editor page to go back to.
+  if (stressTest) {
+    badge.removeAttribute('href');
+    badge.style.pointerEvents = 'none';
+  }
   document.body.append(badge);
 }
 const resumedVoyage = storage ? loadGame(storage, world) : false;

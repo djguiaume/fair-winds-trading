@@ -50,7 +50,8 @@
       "everySec": 600,
       "radius": 95,
       "speed": 3.2,
-      "areaRadius": 440
+      "areaShare": 1,
+      "perRadius": 440
     }
   },
   "blendSec": 60,

@@ -15,9 +15,17 @@ export interface StormConfig {
   radius: number;
   /** Track speed in map units per second (a sloop at 8 kn sails 12.8). */
   speed: number;
-  /** Radius of the sea the storms cross (the map's `boundsRadius`). */
-  areaRadius: number;
+  /** Share of the sea's radius (the map's `boundsRadius`) that the storms cross. */
+  areaShare: number;
+  /**
+   * Sea radius that gets one storm per stretch; a bigger sea has proportionally more out at once,
+   * so a captain meets them as often on any map size (decision 0115).
+   */
+  perRadius: number;
 }
+
+/** Sea radius for a wind without a map (tests, the model sheet): the Windward Ring's. */
+export const DEFAULT_SEA_RADIUS = 440;
 
 export interface Storm {
   id: number;
@@ -48,17 +56,24 @@ interface Track {
   strength: number;
 }
 
-function track(config: StormConfig, seed: number, k: number): Track {
-  const rng = createRng((seed ^ Math.imul(k + 1, 0x27d4eb2d) ^ 0x5bd1e995) >>> 0);
+/** How many storms form in each stretch on a sea of this radius (one lane each). */
+function lanes(config: StormConfig, seaRadius: number) {
+  return Math.max(1, Math.round(seaRadius / config.perRadius));
+}
+
+function track(config: StormConfig, seed: number, k: number, area: number, lane: number): Track {
+  // Lane 0 keeps the tracks storms always had; more lanes on bigger seas get their own seeds.
+  const laneSeed = lane ? Math.imul(lane, 0x68e31da4) : 0;
+  const rng = createRng((seed ^ Math.imul(k + 1, 0x27d4eb2d) ^ 0x5bd1e995 ^ laneSeed) >>> 0);
   // Start somewhere in the second half of stretch k, so storms never overlap at the map edge.
   const start = (k + 0.5 + 0.4 * rng()) * config.everySec;
   const a = rng() * TAU;
-  const r0 = config.areaRadius + config.radius * 0.5;
+  const r0 = area + config.radius * 0.5;
   const sx = Math.sin(a) * r0,
     sy = Math.cos(a) * r0;
   // Aim at a point in the middle half of the sea, so it crosses the islands rather than skims.
   const ta = rng() * TAU,
-    tr = rng() * config.areaRadius * 0.5;
+    tr = rng() * area * 0.5;
   const tx = Math.sin(ta) * tr - sx,
     ty = Math.cos(ta) * tr - sy;
   const half = Math.hypot(tx, ty);
@@ -77,25 +92,38 @@ function track(config: StormConfig, seed: number, k: number): Track {
  * Storms on the sea at time `t` (usually none or one). Only storms that formed at or after `from`
  * count, so storms held back for a while (decision 0072) never pop up mid-sea when let go.
  */
-export function stormsAt(config: StormConfig, seed: number, t: number, from = 0): Storm[] {
+export function stormsAt(
+  config: StormConfig,
+  seed: number,
+  t: number,
+  from = 0,
+  seaRadius = DEFAULT_SEA_RADIUS,
+): Storm[] {
   const out: Storm[] = [];
+  const area = seaRadius * config.areaShare;
+  const n = lanes(config, seaRadius);
   const now = Math.floor(t / config.everySec);
-  // A storm lasts well under two stretches, so only the last few can still be out.
-  for (let k = Math.max(0, now - 2); k <= now; k++) {
-    const tr = track(config, seed, k);
-    if (t < tr.start || t > tr.end || tr.start < from) continue;
-    const age = t - tr.start;
-    const ramp = clamp(Math.min(age, tr.end - t) / stormTuning().rampSec, 0, 1);
-    out.push({
-      id: k,
-      x: tr.sx + tr.dx * config.speed * age,
-      y: tr.sy + tr.dy * config.speed * age,
-      radius: config.radius,
-      intensity: tr.strength * ramp * ramp * (3 - 2 * ramp),
-      dx: tr.dx,
-      dy: tr.dy,
-    });
-  }
+  // The longest crossing (edge to the far side of the middle half) says how many stretches back a
+  // storm can still be out: two on today's sea, more on a bigger one or with slow storms.
+  const longest = (2 * (area * 1.5 + config.radius * 0.5)) / config.speed;
+  const back = Math.ceil(longest / config.everySec) + 1;
+  for (let k = Math.max(0, now - back); k <= now; k++)
+    for (let lane = 0; lane < n; lane++) {
+      const tr = track(config, seed, k, area, lane);
+      if (t < tr.start || t > tr.end || tr.start < from) continue;
+      const age = t - tr.start;
+      const ramp = clamp(Math.min(age, tr.end - t) / stormTuning().rampSec, 0, 1);
+      out.push({
+        // Lane 0 keeps the ids storms always had.
+        id: k + lane * 1_000_000,
+        x: tr.sx + tr.dx * config.speed * age,
+        y: tr.sy + tr.dy * config.speed * age,
+        radius: config.radius,
+        intensity: tr.strength * ramp * ramp * (3 - 2 * ramp),
+        dx: tr.dx,
+        dy: tr.dy,
+      });
+    }
   return out;
 }
 
