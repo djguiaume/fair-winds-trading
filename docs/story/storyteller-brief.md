@@ -11,7 +11,9 @@
 | Are the names final? | **Yes.** Rook, Kit Marlow, Ines Calder, Maren Holt, Ada Flint, Old Ness, the Teeth and Teeth Rock, Greyback Ridge. |
 | Kit: man or woman? | **A man** ("pêcheur" in French). The cast is three men and three women. |
 | An ending? | **Yes:** a short epilogue at Skerry once all four arcs are done (see [The epilogue](#the-epilogue-fair-winds)). |
-| Voices? | Guillaume asked whether recorded voices or a "hum hum" babble with accents. The storyteller recommends **babble**; see [Voices](#voices-babble-not-recordings). |
+| Voices? | **Babble** ("hum hum" talk with an accent), either generated or from sound files, like the music and the other sounds. It must be data. See [Voices](#voices-babble-generated-or-from-files). |
+| The written voice, and Rook naming the four people at the end of the prologue? | **Yes** to both (Guillaume, 21:54). |
+| How to keep it data driven? | Left to the storyteller: see [Everything is data](#everything-is-data). |
 
 ## The voice
 
@@ -44,11 +46,49 @@ Accents come from word choice and from the babble (below), **never from misspell
 | **Ada Flint** (Stonehaven, mason) | blunt, few words, stone images | "It'll stand. Stone doesn't argue." | « Ça tiendra. La pierre ne discute pas. » |
 | **Old Ness** (Watchman Key, keeper) | rambles, wanders off the point, then comes back to it | "Did I tell you about the winter of… never mind. The lens. Yes." | « Je vous ai raconté l’hiver de… peu importe. La lentille. Oui. » |
 
-## Voices: babble, not recordings
+## Voices: babble, generated or from files
 
-The storyteller's recommendation to Guillaume (2026-10-23): when a card opens, the person "speaks" a short burble of made-up syllables, synthesised in code like the foghorn (`audio.json`), with no recorded voices. Each person has a pitch, speed and wobble in `characters.json` (`voice`), and each port has a slight rhythm of its own. There's a **Voices** switch in Settings. It works the same in both languages and never needs redoing when a line changes. Recorded voices would mean every line in two languages, recorded again at each edit.
+When a card opens, the person "speaks" a short burble of made-up syllables (about one per word of the title, capped at about 1.5 s). There are no recorded lines, so nothing needs recording again when a line changes, and it sounds the same in both languages.
 
-This is shared work done **once**, by one owner (see [Who builds the shared pieces](#who-builds-the-shared-pieces)). Arc threads don't wait for it.
+**Where it lives (storyteller's decision): voices are sounds, so they go in `src/data/audio.json`**, next to the music and the effects, in a new `voices` section. The person's entry in `characters.json` only names their voice. That keeps one place for every sound and one rule for generated against recorded, the same as the effects ([content README › Music and sounds](../content/README.md#music-and-sounds-0113)):
+
+```json
+// characters.json, in the person's entry
+"voice": "rook"
+
+// audio.json
+"voices": {
+  "rook":  { "synth": "babble", "pitch": 0.8, "speed": 1.1, "wobble": 0.1, "volume": 1 },
+  "maren": { "synth": "babble", "pitch": 1.4, "speed": 1.4, "wobble": 0.2 },
+  "ness":  { "files": ["audio/voices/ness-1.ogg", "audio/voices/ness-2.ogg"], "volume": 0.9 }
+}
+```
+
+- **Generated:** `synth: "babble"` with `pitch`, `speed` and `wobble` (and an optional `vowels` string for a port's accent). **From files:** `file` (one clip) or `files` (a few short clips, picked at random and cut to length), in `public/audio/voices/`, MP3 or OGG, kept small.
+- **Mood:** an optional `moods` block (`{ "pleased": { "pitch": 1.1 } }`) changes the numbers or the files for that mood.
+- **The accent of a port** is a shared starting point: the people of one port get similar `vowels` and rhythm. Rook and Kit sound like Saltmere.
+- **Settings › Sound** gets a **Voices** switch and volume, which are on by default. The `?tune` panel can preview each voice.
+- The checks refuse a `voice` that `audio.json` lacks, and a missing file.
+
+The Westholm thread builds this once (see [Who builds the shared pieces](#who-builds-the-shared-pieces)). Other arcs only add their person's entry. The six existing people get generated voices first; files can replace any of them later without touching code.
+
+## Everything is data
+
+Guillaume's rule (0093): the four arcs are **only data**, plus generic engine pieces that any later arc can reuse.
+
+| What | Where |
+|---|---|
+| The arc: steps, goals, items, gold, home spot, mood, speaker | `src/data/quests/<id>.json` |
+| What people say: titles, copy, the arc's name, choices | `src/i18n/en.json` and `fr.json` (`quest.<id>.*`) |
+| Who they are: name, role, port, portrait, voice | `src/data/characters.json` (role text in i18n: `character.<id>.role`) |
+| How they sound | `src/data/audio.json` › `voices` (and files in `public/audio/voices/`) |
+| Markers, gates, landing spots | the quest file (map coordinates, 0125) |
+| What changes in a port: new props, chart marks | island files: props tagged `after:<quest>` / `before:<quest>` |
+| What changes in a port's trade (made from level 2, for example) | the map file's port entry, keyed by quest (shape set by the Saltmere thread's after-a-quest hook) |
+| New places (Teeth Rock, the East Reef gap) | the map file and island files, made with the editor where it can |
+| Buildings and their effects | `src/data/buildings.json` |
+
+**No arc-specific TypeScript.** Code never names a quest, step, person or place (`if (quest === 'saltmere-shoals')` is not allowed). When an arc needs something new, it becomes a generic condition, reward, prop tag or field, gets its check in `checkQuests` / the map checks, and goes in the content README. Tests are the only code that names the arcs.
 
 ## Shared conventions
 
@@ -98,8 +138,8 @@ Each shared piece has **one owner thread**, so the four arcs don't build it four
 | **A step's speaker** | A step's `speaker` (a character id) shows that person on the card instead of the giver. | **Stonehaven** | Stonehaven (Ness), Calda (Rook), optional |
 | **Teeth Rock** | A new small rock island file at the west end of `sw-reef`, with its landing spot and the lighthouse props (`after:stonehaven-light`). | **Stonehaven** | Stonehaven |
 | **East Reef gap** | Split the East Reef's outline to open a channel at the north-west end, keeping the prologue wreck and its test where they are. | **Saltmere** | Saltmere |
-| **Babble voices** | `voice` in `characters.json`, the synth in `audio.json`, and the Settings switch. Only if Guillaume agrees. | **Westholm** | every card |
-| **Rook names the four** | One line at the end of the prologue (`lesson.island.copy`, `quest.rooks-thanks.done.copy`) naming Kit, Ines, Maren and Ada. | storyteller | prologue |
+| **Babble voices** | `voices` in `audio.json` (generated or files), `voice` in `characters.json`, the Settings switch, and the checks. | **Westholm** | every card |
+| **Rook names the four** | One line at the end of the prologue (`lesson.island.copy`, `quest.rooks-thanks.done.copy`) naming Kit, Ines, Maren and Ada. **Done in this brief's PR.** | storyteller | prologue |
 | **The epilogue** | `fair-winds`, after the four arcs are merged. | storyteller | |
 
 ## The epilogue: "Fair winds"
