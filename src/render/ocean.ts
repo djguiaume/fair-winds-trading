@@ -232,6 +232,7 @@ export class Ocean {
   readonly mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
   private cell: number;
   private readonly ownsShore: boolean;
+  private readonly ownsMaterial: boolean;
   private disposed = false;
 
   constructor(
@@ -241,32 +242,43 @@ export class Ocean {
     size = 420,
     terrain: readonly TerrainDef[] = [],
     borrowedShore?: ShoreTexture,
+    borrowedMaterial?: THREE.ShaderMaterial,
   ) {
     this.cell = size / segments;
     const shore = borrowedShore ?? shoreTexture(islands, terrain);
     this.ownsShore = !borrowedShore;
-    const material = new THREE.ShaderMaterial({
-      vertexShader,
-      fragmentShader,
-      defines: fancy ? { FANCY: '' } : { VERTEX_SHORES: '' },
-      uniforms: {
-        uTime: { value: 0 },
-        uShoreMap: { value: shore.texture },
-        uShoreBounds: { value: shore.bounds },
-        uSunDir: { value: new THREE.Vector3(-0.45, 0.8, 0.35).normalize() },
-        uWater: { value: new THREE.Color(PALETTE.water) },
-        uWaterLight: { value: new THREE.Color(PALETTE.waterLight) },
-        uShallow: { value: new THREE.Color(PALETTE.shallow) },
-        uFoam: { value: new THREE.Color(PALETTE.foam) },
-        uFogColor: { value: new THREE.Color(PALETTE.deepWater) },
-        uFogNear: { value: 120 },
-        uFogFar: { value: 210 },
-      },
-    });
+    this.ownsMaterial = !borrowedMaterial;
+    const material =
+      borrowedMaterial ??
+      new THREE.ShaderMaterial({
+        vertexShader,
+        fragmentShader,
+        defines: fancy ? { FANCY: '' } : { VERTEX_SHORES: '' },
+        uniforms: {
+          uTime: { value: 0 },
+          uShoreMap: { value: shore.texture },
+          uShoreBounds: { value: shore.bounds },
+          uSunDir: { value: new THREE.Vector3(-0.45, 0.8, 0.35).normalize() },
+          uWater: { value: new THREE.Color(PALETTE.water) },
+          uWaterLight: { value: new THREE.Color(PALETTE.waterLight) },
+          uShallow: { value: new THREE.Color(PALETTE.shallow) },
+          uFoam: { value: new THREE.Color(PALETTE.foam) },
+          uFogColor: { value: new THREE.Color(PALETTE.deepWater) },
+          uFogNear: { value: 120 },
+          uFogFar: { value: 210 },
+        },
+      });
     const geometry = new THREE.PlaneGeometry(size, size, segments, segments);
     geometry.rotateX(-Math.PI / 2);
     this.mesh = new THREE.Mesh(geometry, material);
     this.mesh.frustumCulled = false;
+  }
+
+  /** A view-owned shore may change while this quality level is inactive. */
+  setShore(shore: ShoreTexture): void {
+    if (this.ownsShore) throw new Error('Only borrowed ocean shores may be replaced');
+    this.mesh.material.uniforms.uShoreMap!.value = shore.texture;
+    this.mesh.material.uniforms.uShoreBounds!.value = shore.bounds;
   }
 
   setFog(near: number, far: number): void {
@@ -310,6 +322,6 @@ export class Ocean {
     this.disposed = true;
     if (this.ownsShore) (this.mesh.material.uniforms.uShoreMap!.value as THREE.Texture).dispose();
     this.mesh.geometry.dispose();
-    this.mesh.material.dispose();
+    if (this.ownsMaterial) this.mesh.material.dispose();
   }
 }
