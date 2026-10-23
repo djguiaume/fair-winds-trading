@@ -236,6 +236,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
   'goods.*.madeFrom': text('Made from', 'The bulk good a workshop makes this specialty from.'),
 
   // --- economy.json: market (0015), towns (0059, 0063, 0065), orders (0028, 0046, 0069) ---
+  'economy.updateSeconds': num(
+    'Economy update interval',
+    0.05,
+    1,
+    0.05,
+    's',
+    'Maximum batching interval at sea; docking and supplied towns update immediately.',
+  ),
   'economy.market.referenceStock': num(
     'Reference stock',
     1,

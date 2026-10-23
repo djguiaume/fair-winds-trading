@@ -174,7 +174,7 @@ hud.onPortClick = (portId: string) => {
     tradePanel.open('market');
     refreshPause();
   } else if (trade.tryDock(world.trade, world.map, world.boat, portId)) {
-    handleEvents([{ type: 'docked', portId }]);
+    handleEvents([...trade.flushEconomy(world.trade, world.map), { type: 'docked', portId }]);
     tutorial.observe();
   } else {
     if (setPortDestination(world, portId)) {
