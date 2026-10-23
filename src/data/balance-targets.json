@@ -1,0 +1,26 @@
+{
+  "economy": {
+    "minutes": 40,
+    "legSeconds": [30, 130],
+    "sharpFirstUpgradeMax": 5,
+    "sharpCutter": [9, 16],
+    "sharpCutterMaxedMin": 25,
+    "relaxedFirstUpgradeMax": 8,
+    "relaxedCutterMax": 32,
+    "orderShare": [0.3, 0.65],
+    "marketOnlyCutterMax": 25,
+    "topRouteShareMax": 0.3,
+    "routesMin": 6,
+    "repairShareMax": 0.1
+  },
+  "difficulty": {
+    "minutes": 120,
+    "seeds": [1, 2, 3, 4, 5],
+    "fairFirstUpgradeMax": 6,
+    "fairCutterMax": 22,
+    "fairFirstTownVsCaptainMax": 0.7,
+    "saltCutter": [28, 55],
+    "saltRepairsVsCaptainMin": 1.5,
+    "sharpCutterMax": 20
+  }
+}

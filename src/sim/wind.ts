@@ -4,6 +4,7 @@ import { coastDistance } from './coast';
 import type { IslandDef, TerrainDef } from './map';
 import { DEG, TAU, bearingVector, clamp, wrapAngle, wrapPositive } from './math';
 import { createRng } from './rng';
+import { SpatialGrid } from './spatial';
 import { type Storm, type StormConfig, stormStrength, stormWindFrom, stormsAt } from './storms';
 
 /** Wind at one moment. `from` is the compass bearing the wind blows FROM (sailors' convention). */
@@ -128,7 +129,7 @@ function pickKind(weather: WeatherConfig, previous: WeatherKind, roll: number, r
 }
 
 /** Offsets of every period so far, per seed and config: the walk is a running sum. */
-const walks = new WeakMap<WeatherConfig, Map<number, Slot[]>>();
+let walks = new WeakMap<WeatherConfig, Map<number, Slot[]>>();
 
 function slotRng(seed: number, slot: number) {
   return createRng((seed ^ Math.imul(slot, 0x9e3779b1)) >>> 0);
@@ -221,7 +222,7 @@ export function regionAt(
   };
 }
 
-const stormless = new WeakMap<WeatherConfig, WeatherConfig>();
+let stormless = new WeakMap<WeatherConfig, WeatherConfig>();
 
 /** The same weather without moving storms, for players who turn them off (decision 0067). Cached
  * so the weather walk keeps its cache. */
@@ -231,7 +232,17 @@ export function withoutStorms(weather: WeatherConfig): WeatherConfig {
   return calm;
 }
 
-const steadied = new WeakMap<WeatherConfig, WeatherConfig>();
+let steadied = new WeakMap<WeatherConfig, WeatherConfig>();
+
+/**
+ * Forget the cached weather walks and derived configs. They are keyed by config object, so a
+ * value changed in place by the `?tune` panel (decision 0114) would otherwise never be seen.
+ */
+export function clearWeatherCaches(): void {
+  walks = new WeakMap();
+  stormless = new WeakMap();
+  steadied = new WeakMap();
+}
 
 /**
  * A steady breeze for players who turn the weather off (decision 0067): no calm, rain or gale
@@ -468,10 +479,11 @@ export interface WindEffect {
  * most: cheap enough for every frame on a tablet.
  */
 export function windEffectAt(
-  blockers: readonly WindBlocker[],
+  land: readonly WindBlocker[] | SpatialGrid<WindBlocker>,
   pos: { x: number; y: number },
   wind: Wind,
 ): WindEffect {
+  const blockers = land instanceof SpatialGrid ? nearbyBlockers(land, pos) : land;
   let total = 0;
   const spreadAngle = islandWind().shadowSpreadDeg * DEG;
   for (const spread of [-spreadAngle, 0, spreadAngle]) {
@@ -490,9 +502,25 @@ export function windEffectAt(
   return { shelter, funnel };
 }
 
+/** The wind blockers of a map in a grid, so `windEffectAt` only checks land within reach (0117). */
+export function windGrid(blockers: readonly WindBlocker[]): SpatialGrid<WindBlocker> {
+  return new SpatialGrid(blockers);
+}
+
+const nearby: WindBlocker[] = [];
+/**
+ * Blockers any ray sample could touch: every sample lies within the longer of the shadow and
+ * funnel reach of the boat, and a blocker only counts inside its own circle. One unit of slack
+ * covers rounding in the ray steps; an extra blocker never changes the result, a missing one would.
+ */
+function nearbyBlockers(grid: SpatialGrid<WindBlocker>, pos: { x: number; y: number }) {
+  const reach = Math.max(islandWind().shadowLength, islandWind().funnelReach) + 1;
+  return grid.near(pos.x, pos.y, reach, nearby);
+}
+
 /** Shelter only (0..1); see `windEffectAt`. */
 export function shelterAt(
-  blockers: readonly WindBlocker[],
+  blockers: readonly WindBlocker[] | SpatialGrid<WindBlocker>,
   pos: { x: number; y: number },
   wind: Wind,
 ) {
