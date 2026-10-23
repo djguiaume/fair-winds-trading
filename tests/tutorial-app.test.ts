@@ -133,6 +133,12 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   click('#tutorial-finish');
   click('#tp-close');
   await flushClose();
+  // Docked at Port Calda after Rook's thanks: Ines offers her arc (the brief, 0129).
+  const card = document.getElementById('quest-card') as HTMLDialogElement;
+  expect(card.open).toBe(true);
+  expect(card.textContent).toContain('Bring 8 stone to Port Calda');
+  click('#quest-card [data-act="later"]');
+  await flushClose();
   expect(input.isEnabled).toBe(true);
   const before = JSON.stringify(world.trade);
   click('#menu-btn');
