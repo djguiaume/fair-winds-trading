@@ -3,6 +3,7 @@
     {
       "id": "rook",
       "name": "Rook",
+      "voice": "rook",
       "role": "Harbourmaster",
       "port": "saltmere",
       "look": {
@@ -29,6 +30,7 @@
     {
       "id": "kit",
       "name": "Kit Marlow",
+      "voice": "kit",
       "role": "Fisher",
       "port": "saltmere",
       "look": {
@@ -46,6 +48,7 @@
     {
       "id": "ines",
       "name": "Ines Calder",
+      "voice": "ines",
       "role": "Shipwright",
       "port": "calda",
       "look": {
@@ -61,6 +64,7 @@
     {
       "id": "maren",
       "name": "Maren Holt",
+      "voice": "maren",
       "role": "Miller and baker",
       "port": "westholm",
       "look": {
@@ -78,6 +82,7 @@
     {
       "id": "ada",
       "name": "Ada Flint",
+      "voice": "ada",
       "role": "Mason",
       "port": "stonehaven",
       "look": {
@@ -93,6 +98,7 @@
     {
       "id": "ness",
       "name": "Old Ness",
+      "voice": "ness",
       "role": "Keeper",
       "port": "watchman-key",
       "look": {

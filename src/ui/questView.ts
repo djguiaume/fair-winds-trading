@@ -66,6 +66,18 @@ export function roleLine(map: MapDef, giver: Character | undefined): string | un
   return port ? `${role} · ${port}` : role;
 }
 
+/** A run's par as a clock, "2:20". */
+export function parClock(secs: number): string {
+  const s = Math.round(secs);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+/** What a step's title and copy can name: `{par}`, its timed run's par for the voyage's level. */
+export function stepParams(book: QuestBook, step: QuestStep | undefined): Record<string, string> {
+  const par = book.parSeconds(step);
+  return par === undefined ? {} : { par: parClock(par) };
+}
+
 /** "4 / 12" for a step that counts goods or quest cargo; nothing for the others. */
 export function stepProgress(goal: Condition | undefined, counts: readonly number[]) {
   if (goal?.is === 'reach' && Array.isArray(goal.points)) {
@@ -111,8 +123,8 @@ export function cardFor(
     arc: arcName(quest),
     stepNo: step ? quest.steps.indexOf(step) + 1 : quest.steps.length,
     steps: quest.steps.length,
-    speech: tOptional(`${key}.copy`),
-    ask: tOptional(`${key}.title`),
+    speech: tOptional(`${key}.copy`, stepParams(book, step)),
+    ask: tOptional(`${key}.title`, stepParams(book, step)),
     progress: kind === 'step' ? stepProgress(step?.goal, p?.counts ?? []) : undefined,
     good: typeof step?.goal?.good === 'string' ? step.goal.good : undefined,
   };
@@ -201,7 +213,8 @@ export function journal(book: QuestBook, map: MapDef): JournalEntry[] {
     };
     if (tracked) {
       const p = book.progress(quest.id);
-      const title = (s: QuestStep) => tOptional(`${quest.text}.${s.id}.title`) ?? s.id;
+      const title = (s: QuestStep) =>
+        tOptional(`${quest.text}.${s.id}.title`, stepParams(book, s)) ?? s.id;
       for (const s of quest.steps.slice(0, i)) entry.lines.push({ title: title(s), state: 'done' });
       entry.lines.push({
         title: title(step),

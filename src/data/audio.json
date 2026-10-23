@@ -5,5 +5,56 @@
   "effects": {
     "creak": { "synth": "creak", "volume": 1.6 },
     "foghorn": { "synth": "foghorn", "volume": 1.2 }
+  },
+  "voices": {
+    "rook": {
+      "synth": "babble",
+      "pitch": 0.8,
+      "speed": 1.05,
+      "wobble": 0.08,
+      "vowels": "oau",
+      "moods": { "pleased": { "pitch": 0.88, "wobble": 0.14 }, "worried": { "speed": 0.9 } }
+    },
+    "kit": {
+      "synth": "babble",
+      "pitch": 1,
+      "speed": 1.35,
+      "wobble": 0.16,
+      "vowels": "oaui",
+      "moods": { "pleased": { "pitch": 1.08 }, "worried": { "speed": 1.2 } }
+    },
+    "ines": {
+      "synth": "babble",
+      "pitch": 1.22,
+      "speed": 0.9,
+      "wobble": 0.12,
+      "vowels": "aei",
+      "moods": { "pleased": { "pitch": 1.3 } }
+    },
+    "maren": {
+      "synth": "babble",
+      "pitch": 1.45,
+      "speed": 1.45,
+      "wobble": 0.22,
+      "vowels": "eia",
+      "moods": { "pleased": { "pitch": 1.55, "wobble": 0.28 }, "worried": { "speed": 1.6 } }
+    },
+    "ada": {
+      "synth": "babble",
+      "pitch": 1.12,
+      "speed": 1,
+      "wobble": 0.05,
+      "vowels": "ou",
+      "moods": { "pleased": { "pitch": 1.18 } }
+    },
+    "ness": {
+      "synth": "babble",
+      "pitch": 0.7,
+      "speed": 0.85,
+      "wobble": 0.3,
+      "vowels": "aeo",
+      "volume": 0.9,
+      "moods": { "pleased": { "pitch": 0.76 } }
+    }
   }
 }
