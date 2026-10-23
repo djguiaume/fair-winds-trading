@@ -9,4 +9,3 @@
 **Consequences:** The projection and inside-land logic remain unchanged. Exact equivalence tests cover authored phase-one terrain, near/far samples, reversed winding, boundary points, tiny and huge coordinates, and empty/degenerate outlines. A one-off targeted benchmark uses three positions per authored terrain vertex (near the coast, moderately offset, and far offshore), 18,600 calls per sample, warmup, and five samples. On the development machine, median CPU time fell from 19.85 ms to 13.79 ms (30.5%). This measures this function, not frame rate; gains depend on polygon size and how frequently coast distance is queried.
 
 Run the regression oracle with `node node_modules/vitest/vitest.mjs run tests/coast-distance.test.ts`.
-
