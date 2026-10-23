@@ -30,7 +30,7 @@ const overlap = (a: Box, b: Box) =>
   Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0)) *
   Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0));
 
-/** What the chart shows of the quests (decision 0123); see `questView.ts`. */
+/** What the chart shows of the quests (decision 0124); see `questView.ts`. */
 export interface ChartQuests {
   pins(): QuestPin[];
   target(): { port: string; radius?: number } | null;

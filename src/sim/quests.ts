@@ -55,7 +55,7 @@ export interface QuestStep {
   chart?: { port: string; radius: number };
   /** A point the compass shows the direction of (a foghorn, a wreck), for the interface. */
   compass?: QuestPoint;
-  /** The giver's face on this step's card: `neutral`, `pleased` or `worried` (decision 0123). */
+  /** The giver's face on this step's card: `neutral`, `pleased` or `worried` (decision 0124). */
   mood?: string;
   /** A named look of the giver for this step (`characters.json` › `looks`, e.g. `soaked`). */
   look?: string;

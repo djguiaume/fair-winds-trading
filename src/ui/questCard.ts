@@ -7,7 +7,7 @@ const esc = (s: string) =>
   s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
 /**
- * The quest card (decision 0123): the giver's portrait over the card's edge, their name and role,
+ * The quest card (decision 0124): the giver's portrait over the card's edge, their name and role,
  * the arc and its step pips, what they say, the ask in a brass box, then the buttons. An offer asks
  * "I'll bring it" / "Not now"; a choice shows one button per option; a step or the thanks close
  * with "Fair winds". A bottom card on wide screens, a bottom sheet in portrait (quests.css).

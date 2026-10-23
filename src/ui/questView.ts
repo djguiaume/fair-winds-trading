@@ -6,7 +6,7 @@ import { findPort } from '../sim/trade';
 import { type Character, type Mood, MOODS, character } from './portraits';
 
 /*
- * What the quest card, the journal and the chart show (decision 0123), read from the quest
+ * What the quest card, the journal and the chart show (decision 0124), read from the quest
  * engine (0125) and the quest files. Plain data, so it is tested without a page. Text comes from
  * the quest's keys: `<text>.name` (the arc), `<text>.<step>.copy` (what the giver says),
  * `<text>.<step>.title` (the ask), `<text>.<step>.<option>.title` / `.copy` (a choice) and
