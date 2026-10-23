@@ -10,6 +10,7 @@ import {
   checkCondition,
   checkReward,
   itemsAboard,
+  parFor,
   payReward,
   portsIn,
   resolvePort,
@@ -318,6 +319,25 @@ export class QuestBook {
   }
   isDone(id: string): boolean {
     return this.progress(id)?.step === QUEST_DONE || this.doneElsewhere(id);
+  }
+  /**
+   * The par of a step's timed run (`timed`, also inside `all` / `any`) for the voyage's difficulty
+   * level, in seconds; undefined for a step with no run. Its text shows it as `{par}`.
+   */
+  parSeconds(step: QuestStep | undefined): number | undefined {
+    const find = (c: Condition | undefined): Condition | undefined => {
+      if (!c) return undefined;
+      if (c.is === 'timed') return c;
+      if (c.is === 'all' || c.is === 'any') {
+        for (const m of c.of as Condition[]) {
+          const hit = find(m);
+          if (hit) return hit;
+        }
+      }
+      return undefined;
+    };
+    const timed = find(step?.goal);
+    return timed ? parFor(timed.par, this.trade) : undefined;
   }
   /** Whether a quest has reached `step` (or a later one) or is done. */
   isAt(id: string, step: string): boolean {

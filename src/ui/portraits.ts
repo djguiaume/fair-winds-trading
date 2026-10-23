@@ -61,6 +61,8 @@ export interface Character {
   look: Look;
   /** Named changes to the look, e.g. `soaked`. */
   looks?: Record<string, Partial<Look>>;
+  /** Their babble voice, an id in `audio.json` › `voices` (decision 0132). */
+  voice?: string;
 }
 
 export const CHARACTERS = characterData.characters as Character[];

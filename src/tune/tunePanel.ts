@@ -1,5 +1,6 @@
 import './tune.css';
 import { strToU8, zipSync } from 'fflate';
+import { VOICES } from '../audio/catalog';
 import { SHIPPED_TUNING, TUNING } from '../data/tuning';
 import {
   ID_COLLECTIONS,
@@ -47,6 +48,8 @@ export interface TuneHost {
   gameUrl: () => string;
   /** Start a fresh tune voyage (start gold and town numbers only show on a new one). */
   newVoyage: () => void;
+  /** Play a person's babble voice in a mood (decision 0132), for the Voices sheet. */
+  speak?: (voice: string, mood: string) => void;
 }
 
 type Group = keyof typeof TUNING_GROUPS;
@@ -177,6 +180,7 @@ export class TunePanel {
         if (window.confirm('Start a new test voyage? Your tuning stays.')) this.host.newVoyage();
       }),
       button('tune-btn', 'Share', () => this.showShare()),
+      button('tune-btn', 'Voices', () => this.showVoices()),
       button('tune-btn tune-primary', 'Export', () => this.showExport()),
     );
     this.sheet.hidden = true;
@@ -563,6 +567,26 @@ export class TunePanel {
     );
     this.sheet.replaceChildren(head, ...content);
     this.sheet.hidden = false;
+  }
+
+  /** Hear each person's voice in each mood (decision 0132); voices are edited in audio.json. */
+  private showVoices() {
+    const list = el('ul', 'tune-files');
+    for (const id of Object.keys(VOICES)) {
+      const li = el('li');
+      li.append(el('code', '', id));
+      for (const mood of ['neutral', 'worried', 'pleased'])
+        li.append(button('tune-btn', mood, () => this.host.speak?.(id, mood)));
+      list.append(li);
+    }
+    this.showSheet('Voices', [
+      el(
+        'p',
+        '',
+        'Each person babbles as their card opens. Edit them in src/data/audio.json › voices.',
+      ),
+      list,
+    ]);
   }
 
   private showShare() {

@@ -1,0 +1,52 @@
+{
+  "id": "westholm-mill",
+  "name": "The mill on the hill",
+  "start": { "is": "quest-done", "quest": "rooks-thanks" },
+  "offer": true,
+  "text": "quest.westholm-mill",
+  "giver": "maren",
+  "port": "westholm",
+  "items": { "millstone": { "space": 6 }, "bread-batch": { "space": 1 } },
+  "steps": [
+    {
+      "id": "sails",
+      "mood": "worried",
+      "goal": { "is": "delivered", "port": "westholm", "good": "timber", "qty": 8 },
+      "reward": { "gold": 100 }
+    },
+    {
+      "id": "millstones",
+      "goal": {
+        "is": "carried",
+        "item": "millstone",
+        "qty": 2,
+        "from": "stonehaven",
+        "to": "westholm"
+      },
+      "reward": { "gold": 150 }
+    },
+    {
+      "id": "bread",
+      "goal": {
+        "is": "all",
+        "of": [
+          {
+            "is": "carried",
+            "item": "bread-batch",
+            "qty": 4,
+            "from": "westholm",
+            "to": "saltmere"
+          },
+          {
+            "is": "timed",
+            "from": "westholm",
+            "to": "saltmere",
+            "par": { "fair": 180, "captain": 140, "salt": 110 }
+          }
+        ]
+      },
+      "reward": { "gold": 250 }
+    }
+  ],
+  "reward": { "homeSpot": ["spot-2"], "levelUp": ["westholm"] }
+}

@@ -190,7 +190,10 @@ journal read these text keys, and leave out any nobody wrote: `<text>.name` (the
 `<text>.<step>.copy` (what they say, 2 to 4 lines), `<text>.<step>.title` (the ask, also the
 journal line), `<text>.<step>.<option>.title` and `.copy` (a choice's buttons) and
 `<text>.done.copy` / `.title` (their thanks, shown pleased). A person's role is
-`character.<id>.role`.
+`character.<id>.role`. A timed step's title and copy can say `{par}`: the run's par for the voyage's
+level, as a clock ("Rush bread to Saltmere in {par}" shows "2:20" on Captain,
+[0132](../decisions/0132-westholm-mill-and-babble-voices.md)). A timed run with quest cargo is
+`{ "is": "all", "of": [{ "is": "carried", … }, { "is": "timed", … }] }`.
 
 | Condition | Params | Where |
 | --- | --- | --- |
@@ -238,5 +241,23 @@ Every sound is listed in [`src/data/audio.json`](../../src/data/audio.json):
   `moves` of the melody, `restChance`, `accents`, `padVel`, `bassVel`, `restBars` (pad chords
   between tunes) and `echo`. Every tune is still 16 bars in 6/8 on flute, pad and bass: a new
   form or instrument needs code once.
+- **People's voices** ([0132](../decisions/0132-westholm-mill-and-babble-voices.md)): when a card
+  opens, its person babbles about one syllable per word of the ask (at most 1.5 s). A person's
+  entry in `characters.json` names a voice (`"voice": "maren"`) from the `voices` section:
+
+  ```json
+  "voices": {
+    "maren": { "synth": "babble", "pitch": 1.45, "speed": 1.45, "wobble": 0.22, "vowels": "eia",
+               "moods": { "pleased": { "pitch": 1.55 } } },
+    "ness":  { "files": ["audio/voices/ness-1.ogg", "audio/voices/ness-2.ogg"], "volume": 0.9 }
+  }
+  ```
+
+  Generated: `pitch` (1 = a middle voice, about 180 Hz), `speed` (1 = about seven syllables a
+  second), `wobble` (0 flat to 1 sing-song) and `vowels` (from `aeiou`; give the people of one port
+  the same ones, their accent). Recorded: `file` or `files` in `public/audio/voices/` (one clip is
+  picked at random and cut to length). `volume` and `moods` (`neutral`, `worried`, `pleased`) are
+  optional. Settings › Sound › Voices switches them off; `?tune` › Voices plays each one. The
+  checks refuse a person whose voice is missing and a file not in `public/`.
 - The game plays `music.sea`, `effects.creak` and, during the prologue, `effects.foghorn`; a new kind of moment (port music, a bell when an
   order is done) needs one line of code to play it, then it is a line in this file.
