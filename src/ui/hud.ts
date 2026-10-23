@@ -2,7 +2,7 @@ import { trueWindAngle } from '../sim/boat';
 import { DEG, bearingTo, distance, wrapPositive } from '../sim/math';
 import { type PointOfSail, noGoAngle, pointOfSail } from '../sim/ship';
 import { hullCondition } from '../sim/hazards';
-import { windTo } from '../sim/wind';
+import { USUAL_WEATHER, windTo } from '../sim/wind';
 import { WIND_FORCES, createWindGauge, updateWindGauge } from '../sim/windStrength';
 import { windFeedback } from './windFeedback';
 import {
@@ -19,7 +19,7 @@ import { capacity, cargoUsed, findPort } from '../sim/trade';
 import { PortLabels } from './portLabels';
 import { type HazardKind, hazardBadge } from './hazardMarker';
 import { screenBearing } from './screenBearing';
-import { formatNumber, goodName, t } from '../i18n';
+import { formatNumber, goodName, t, weatherName } from '../i18n';
 
 const POINT_OF_SAIL_TONE: Record<PointOfSail, '' | 'good' | 'bad'> = {
   'in-irons': '',
@@ -486,10 +486,10 @@ export class Hud {
       // Weather only shows when it is not a plain breeze, in line with the quiet HUD (0067).
       const { weather } = this.world;
       const kind = weather.storm > 0.15 ? 'storm' : weather.kind;
-      this.weatherText.hidden = kind === 'breeze';
+      this.weatherText.hidden = kind === USUAL_WEATHER;
       if (this.weatherText.dataset.kind !== kind) {
         this.weatherText.dataset.kind = kind;
-        this.weatherText.textContent = t(`weather.${kind}`);
+        this.weatherText.textContent = weatherName(kind);
       }
 
       document.body.classList.toggle('is-docked', Boolean(this.world.trade.dockedAt));

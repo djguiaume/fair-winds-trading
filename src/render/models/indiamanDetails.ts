@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { BoatDetailContext } from './boatDetails';
 import { STYLE_D as ST } from './boatStyle';
 import { glowing, paint } from './geometry';
-import { INDIAMAN_HULL } from '../../sim/hullShape';
+import { HULL_SHAPES } from '../../sim/hullShape';
 
 /** A broad merchant flagship: full shoulders and a substantial, flat transom. */
 
@@ -156,7 +156,7 @@ export function indiamanDetails(c: BoatDetailContext): THREE.BufferGeometry[] {
   // Follow the hull's raked sternpost down to the immersed blade. The bottom
   // ring retreats forward, so a vertical stock at the deck transom would float
   // behind the underwater hull instead of meeting its lower hinge.
-  const post = INDIAMAN_HULL.rings.map(({ t, length }) => {
+  const post = HULL_SHAPES.indiaman!.rings.map(({ t, length }) => {
     const z = stern * length;
     return new THREE.Vector3(0, deckAt(z) - c.depth * t + (t === 0 ? 0.08 : 0), z - 0.04);
   });
@@ -188,5 +188,3 @@ export function indiamanDetails(c: BoatDetailContext): THREE.BufferGeometry[] {
   parts.push(paint(blade, upgrades.hull >= 3 ? ST.copper : ST.mast));
   return parts;
 }
-
-export { INDIAMAN_HULL } from '../../sim/hullShape';

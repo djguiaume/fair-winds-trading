@@ -64,5 +64,3 @@ export function hoyDetails(c: BoatDetailContext): THREE.BufferGeometry[] {
   }
   return out;
 }
-
-export { HOY_HULL } from '../../sim/hullShape';

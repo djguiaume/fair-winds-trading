@@ -54,16 +54,16 @@ function firstStorm(s = seed): { t: number; storm: Storm } {
 describe('weather states (0067)', () => {
   it('cycles through calm, breeze, rain and gale, with breeze the most common', () => {
     const counts: Record<WeatherKind, number> = { calm: 0, breeze: 0, rain: 0, gale: 0 };
-    for (let slot = 0; slot < 400; slot++) counts[weatherSlot(DEFAULT_WEATHER, seed, slot).kind]++;
+    for (let slot = 0; slot < 400; slot++) counts[weatherSlot(DEFAULT_WEATHER, seed, slot).kind]!++;
     for (const k of WEATHER_KINDS) expect(counts[k]).toBeGreaterThan(20);
     expect(counts.breeze).toBe(Math.max(...Object.values(counts)));
   });
 
   it('makes a calm light and a gale strong', () => {
     const k = DEFAULT_WEATHER.kinds!;
-    expect(PHASE1_MAP.wind.speedKn * k.calm.strength[1]).toBeLessThan(8);
-    expect(PHASE1_MAP.wind.speedKn * k.gale.strength[0]).toBeGreaterThan(18);
-    expect(k.rain.rain).toBeGreaterThan(0.5);
+    expect(PHASE1_MAP.wind.speedKn * k.calm!.strength[1]).toBeLessThan(8);
+    expect(PHASE1_MAP.wind.speedKn * k.gale!.strength[0]).toBeGreaterThan(18);
+    expect(k.rain!.rain).toBeGreaterThan(0.5);
   });
 
   it('starts a new voyage in a dry breeze', () => {
@@ -149,7 +149,14 @@ describe('storms switched off (0067)', () => {
 describe('weather switched off (0067)', () => {
   it('blows a steady breeze with no rain or storms, but the wind still turns', () => {
     const steady = { ...PHASE1_MAP.wind, weather: steadyWeather(DEFAULT_WEATHER) };
-    const out: LocalWeather = { kind: 'breeze', rain: 0, showers: 0, storm: 0, storms: [] };
+    const out: LocalWeather = {
+      kind: 'breeze',
+      rain: 0,
+      showers: 0,
+      gloom: 0,
+      storm: 0,
+      storms: [],
+    };
     const [lo, hi] = DEFAULT_WEATHER.strength;
     let minFrom = Infinity,
       maxFrom = -Infinity;
@@ -310,8 +317,8 @@ describe('cargo overboard when she heels too hard (0067)', () => {
       ...DEFAULT_WEATHER,
       kinds: {
         ...DEFAULT_WEATHER.kinds!,
-        calm: { ...DEFAULT_WEATHER.kinds!.calm, weight: 0 },
-        gale: { ...DEFAULT_WEATHER.kinds!.gale, weight: 0 },
+        calm: { ...DEFAULT_WEATHER.kinds!.calm!, weight: 0 },
+        gale: { ...DEFAULT_WEATHER.kinds!.gale!, weight: 0 },
       },
       storms: undefined,
     };

@@ -166,8 +166,8 @@ describe('difficulty levels (decision 0083)', () => {
   it('moves gales and storms with the level', () => {
     const fair = weatherFor(DEFAULT_WEATHER, 'fair', false);
     const salt = weatherFor(DEFAULT_WEATHER, 'salt', false);
-    expect(fair.kinds!.gale.weight).toBeLessThan(DEFAULT_WEATHER.kinds!.gale.weight);
-    expect(salt.kinds!.gale.weight).toBeGreaterThan(DEFAULT_WEATHER.kinds!.gale.weight);
+    expect(fair.kinds!.gale!.weight).toBeLessThan(DEFAULT_WEATHER.kinds!.gale!.weight);
+    expect(salt.kinds!.gale!.weight).toBeGreaterThan(DEFAULT_WEATHER.kinds!.gale!.weight);
     expect(fair.storms!.everySec).toBeGreaterThan(DEFAULT_WEATHER.storms!.everySec);
     expect(salt.storms!.everySec).toBeLessThan(DEFAULT_WEATHER.storms!.everySec);
   });

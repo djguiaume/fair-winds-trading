@@ -3,14 +3,14 @@
  * the art (decision 0016) and checking triangle and draw-call counts on a real device.
  * ?view=boats shows the sloop at each upgrade level and the cutter; ?view=lines the starter and
  * the swift and hauler lines (decision 0035); ?view=islands the four producer islands at the game
- * camera's angle. ?view=sloop&level=3&quality=low inspects one ship class (any id in BOAT_CLASSES) with
+ * camera's angle. ?view=sloop&level=3&quality=low inspects one ship class (any ship file in src/data/ships/) with
  * the game's three quality profiles; ?view=compare&level=1..3 every class side by side at true size
  * (decision 0077); ?view=towns&kind=fish shows one port island at the four settlement levels
  * (decision 0060), &kind=all every producer island at &level=1..4, &before=1 the current look; independent hull/hold/sails=1..3, yaw degrees, sail=0..1 and signed boom degrees exercise its attachment pivots.
  */
 import * as THREE from 'three';
 import { type BoatModel, type ShipUpgrades, buildIslands, createBoatModel } from './render/models';
-import { BOAT_CLASSES } from './render/models/storybookBoat';
+import { HULL_DIMENSIONS } from './sim/hullShape';
 import { isRefinedShip } from './render/models/shipModels';
 import { LighthouseBeams } from './render/lighthouseBeams';
 import { Atmosphere } from './render/atmosphere';
@@ -23,10 +23,10 @@ import { DEG } from './sim/math';
 
 const params = new URLSearchParams(location.search);
 const view: string =
-  ['islands', 'towns', 'lines', 'compare', ...Object.keys(BOAT_CLASSES)].find(
+  ['islands', 'towns', 'lines', 'compare', ...Object.keys(HULL_DIMENSIONS)].find(
     (v) => v === params.get('view'),
   ) ?? 'boats';
-const inspectBoat = view in BOAT_CLASSES;
+const inspectBoat = view in HULL_DIMENSIONS;
 const quality: QualityLevel =
   (['low', 'medium', 'high'] as const).find((q) => q === params.get('quality')) ??
   (params.has('low') ? 'low' : 'high');
@@ -96,7 +96,7 @@ if (inspectBoat) {
   );
   boats[0]!.setLowDetail?.(low);
   // Framed by hull length: 5 m sloop at 22 / 38, as the refined captures were taken.
-  const k = Math.max(1, BOAT_CLASSES[view]!.L / 5) ** 0.85;
+  const k = Math.max(1, HULL_DIMENSIONS[view]!.length / 5) ** 0.85;
   camera.position.set(0, 22 * k, 38 * k);
   camera.lookAt(0, 5 * k, 0);
 } else if (view === 'boats') {
@@ -224,12 +224,12 @@ if (inspectBoat) {
   const level = Math.max(1, Math.min(3, Number(params.get('level')) || 1)) as 1 | 2 | 3;
   document.getElementById('title')!.textContent =
     `Ship models · ${level === 1 ? 'stock' : `all upgrades at level ${level}`}`;
-  const ids = Object.keys(BOAT_CLASSES);
+  const ids = Object.keys(HULL_DIMENSIONS);
   const gap = 6;
-  const width = ids.reduce((w, id) => w + BOAT_CLASSES[id]!.L * 2.2 + gap, -gap);
+  const width = ids.reduce((w, id) => w + HULL_DIMENSIONS[id]!.length * 2.2 + gap, -gap);
   let x = -width / 2;
   for (const id of ids) {
-    const len = BOAT_CLASSES[id]!.L * 2.2;
+    const len = HULL_DIMENSIONS[id]!.length * 2.2;
     const status = isRefinedShip(id) ? 'refined' : 'old model · to redesign';
     const name = `${id[0]!.toUpperCase()}${id.slice(1)}`;
     addBoat(id, L(level), x + len / 2, 0, -90 * DEG, `${name}<small>${status}</small>`);
@@ -349,7 +349,7 @@ if (params.has('night')) {
   new Atmosphere(scene, sun, skyLight).update(
     1,
     daylightAt(570),
-    { kind: 'breeze', rain: 0, showers: 0, storm: 0, storms: [] },
+    { kind: 'breeze', rain: 0, showers: 0, gloom: 0, storm: 0, storms: [] },
     ocean,
     target,
   );

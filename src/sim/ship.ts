@@ -8,7 +8,7 @@ export type ShipLine = 'starter' | 'swift' | 'hauler' | 'warship';
  * A ship class: everything that makes one hull sail differently from another. The sloop starts,
  * then the swift and hauler lines of decision 0035 (the warship line waits for Phase 5).
  * See docs/sailing-model.md for what each number does and how to tune it; the numbers are in
- * `src/data/tuning/ships.json` (decision 0094).
+ * `src/data/ships/<id>.json` (decision 0109): `sailing` and `unlock`.
  */
 export interface ShipClass {
   id: string;
@@ -55,24 +55,17 @@ export interface ShipClass {
   upgradePrices: readonly [number, number];
 }
 
-/** Ship class ids in shipyard order: starter, swift line, hauler line. Numbers in `ships.json`. */
-export const SHIP_IDS = [
-  'sloop',
-  'cutter',
-  'schooner',
-  'clipper',
-  'hoy',
-  'fluyt',
-  'indiaman',
-] as const;
+/** Ship class ids in shipyard order: starter, swift line, hauler line. One file each in
+ * `src/data/ships/` (decision 0109). */
+export const SHIP_IDS: readonly string[] = Object.keys(TUNING.ships);
 
 /*
- * The classes live in `src/data/tuning/ships.json` (decision 0094). These are the live objects of
- * `TUNING`, so a tuned value shows up everywhere at once. Speed and turning of the swift and hauler
- * lines follow the 0035 table relative to the sloop (speedRatio 0.62 and turnRate 62° = 100);
- * bigger hulls also pick up and lose way more slowly, need more speed to steer and sit deeper in
- * the shallows. Square riggers (fluyt, indiaman) peak on a broad reach and keep more speed running
- * downwind. The cutter (decision 0011) points higher than the sloop, with a heavier helm.
+ * These are the live objects of `TUNING`, so a tuned value shows up everywhere at once. Speed and
+ * turning of the swift and hauler lines follow the 0035 table relative to the sloop (speedRatio
+ * 0.62 and turnRate 62° = 100); bigger hulls also pick up and lose way more slowly, need more
+ * speed to steer and sit deeper in the shallows. Square riggers (fluyt, indiaman) peak on a broad
+ * reach and keep more speed running downwind. The cutter (decision 0011) points higher than the
+ * sloop, with a heavier helm.
  */
 export const SLOOP: ShipClass = TUNING.ships.sloop!;
 export const CUTTER: ShipClass = TUNING.ships.cutter!;

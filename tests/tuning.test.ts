@@ -7,6 +7,7 @@ import {
   GOOD_DEFS,
   GOOD_ICONS,
   MADE_FROM,
+  RARE_GOODS,
   RAW_GOODS,
   SPECIALTY_GOODS,
 } from '../src/sim/goods';
@@ -274,7 +275,29 @@ describe('moved values equal the old constants (decision 0094)', () => {
 
   it('upgrades, goods, difficulty levels and the Phase 2 weather', () => {
     expect(UPGRADE_EFFECTS).toEqual(OLD_UPGRADE_EFFECTS);
-    expect(GOOD_DEFS).toEqual(
+    // Decision 0108 added `kind` to goods and `name` and `gloom` to weather kinds: same values,
+    // the old lists and the gale's grey sky now come from the files.
+    expect([RAW_GOODS, SPECIALTY_GOODS, RARE_GOODS]).toEqual([
+      ['fish', 'grain', 'timber', 'stone'],
+      ['smokedFish', 'bread', 'planks', 'cutStone'],
+      ['honey', 'lampOil'],
+    ]);
+    expect(WEATHER_KINDS).toEqual(['calm', 'breeze', 'rain', 'gale']);
+    expect(
+      Object.fromEntries(Object.entries(DEFAULT_WEATHER.kinds!).map(([id, k]) => [id, k.gloom])),
+    ).toEqual({ calm: 0, breeze: 0, rain: 0, gale: 0.25 });
+    const without = <T extends object>(o: T, ...keys: string[]) =>
+      Object.fromEntries(Object.entries(o).filter(([k]) => !keys.includes(k)));
+    const goodDefs = Object.fromEntries(
+      Object.entries(GOOD_DEFS).map(([id, def]) => [id, without(def, 'kind')]),
+    );
+    const weather = {
+      ...DEFAULT_WEATHER,
+      kinds: Object.fromEntries(
+        Object.entries(DEFAULT_WEATHER.kinds!).map(([id, k]) => [id, without(k, 'name', 'gloom')]),
+      ),
+    };
+    expect(goodDefs).toEqual(
       Object.fromEntries(
         Object.entries(OLD_GOOD_DEFS).map(([id, def]) => [
           id,
@@ -291,7 +314,7 @@ describe('moved values equal the old constants (decision 0094)', () => {
     expect(GOOD_ICONS).toEqual(OLD_GOOD_ICONS);
     expect(MADE_FROM).toEqual(OLD_MADE_FROM);
     expect(DIFFICULTY).toEqual(OLD_DIFFICULTY);
-    expect(DEFAULT_WEATHER).toEqual(OLD_DEFAULT_WEATHER);
+    expect(weather).toEqual(OLD_DEFAULT_WEATHER);
   });
 });
 

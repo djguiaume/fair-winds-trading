@@ -1,3 +1,4 @@
+import { SHIP_FILES } from '../data/ships';
 import { DEG, clamp } from './math';
 
 /**
@@ -15,24 +16,12 @@ export const MAX_HEEL = 23 * DEG;
 const REFERENCE_KN = 14;
 
 /**
- * How readily each class leans, 1 = sloop. Tall, slim rigs heel more; wide, heavy hulls stand up
- * to the wind. Covers the ship lines of decision 0035, so a new class only needs its model.
+ * How readily each class leans, 1 = sloop: `sailing.heel` in `src/data/ships/<id>.json`. Tall,
+ * slim rigs heel more; wide, heavy hulls stand up to the wind.
  */
-export const HEEL_FACTOR: Readonly<Record<string, number>> = {
-  sloop: 1,
-  // Swift line: tall fore-and-aft rigs on slim hulls.
-  cutter: 1.05,
-  schooner: 1.15,
-  clipper: 1.05,
-  // Warship line: wide hulls, heavy guns low down.
-  ketch: 0.85,
-  brig: 0.75,
-  frigate: 0.65,
-  // Hauler line: deep round hulls full of cargo.
-  hoy: 0.75,
-  fluyt: 0.6,
-  indiaman: 0.5,
-};
+export const HEEL_FACTOR: Readonly<Record<string, number>> = Object.fromEntries(
+  SHIP_FILES.map((f) => [f.id, f.sailing.heel]),
+);
 
 export function heelFactor(shipClassId: string): number {
   return HEEL_FACTOR[shipClassId] ?? 1;
