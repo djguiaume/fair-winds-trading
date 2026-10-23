@@ -73,7 +73,7 @@ export const fr: Record<MessageKey, string> = {
   // --- Menu principal ------------------------------------------------------------------------
   'menu.kicker': 'La',
   'menu.title': 'Compagnie<br />Fair Winds',
-  'menu.tagline': 'Bon vent, bonnes affaires !',
+  'menu.tagline': 'Prenez le vent. Livrez la marchandise.',
   'menu.play': 'Larguer les amarres',
   'menu.resume': 'Reprendre',
   'menu.tutorial': 'Apprendre à naviguer et commercer',
