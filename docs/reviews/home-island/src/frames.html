@@ -1,0 +1,121 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Barlow;src:url(/home/user/fair-winds-trading/src/ui/fonts/barlow-500.woff2);font-weight:500}
+@font-face{font-family:Barlow;src:url(/home/user/fair-winds-trading/src/ui/fonts/barlow-600.woff2);font-weight:600}
+@font-face{font-family:Barlow;src:url(/home/user/fair-winds-trading/src/ui/fonts/barlow-700.woff2);font-weight:700}
+@font-face{font-family:'Barlow Condensed';src:url(/home/user/fair-winds-trading/src/ui/fonts/barlow-condensed-600.woff2);font-weight:600}
+@font-face{font-family:'Barlow Condensed';src:url(/home/user/fair-winds-trading/src/ui/fonts/barlow-condensed-700.woff2);font-weight:700}
+:root{--navy:rgba(9,28,41,.9);--solid:#123246;--brass:#e8c46a;--line:rgba(232,196,106,.55);--hi:#f3d37e;--lo:#b08a2c;--ink:#eef3f4;--dim:rgba(238,243,244,.72);--green:#59d36b;--red:#ff6a55;--amber:#ffb36b;--d:'Barlow Condensed',sans-serif;--b:'Barlow',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#222;font-family:var(--b);color:var(--ink)}
+.frame{position:relative;width:1600px;height:900px;overflow:hidden;background:#2a9aa8;margin-bottom:20px}
+.frame.phone{width:844px;height:390px}
+.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.panel{position:absolute;background:var(--navy);border:1.5px solid var(--line);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.35);padding:18px 20px}
+.h{font-family:var(--d);font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--brass)}
+.t{font-family:var(--d);font-weight:700;font-size:30px;text-transform:uppercase;letter-spacing:.03em}
+.s{font-size:18px;color:var(--dim);line-height:1.35}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--d);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:20px;color:#2a1d05;background:linear-gradient(#f3d37e,#e2b44c);border:1.5px solid #8a6a1c;border-radius:10px;padding:10px 18px;box-shadow:0 3px 0 #8a6a1c}
+.btn.ghost{background:rgba(255,255,255,.06);color:var(--ink);border-color:rgba(238,243,244,.35);box-shadow:none}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--d);font-weight:700;font-size:16px;letter-spacing:.05em;text-transform:uppercase;padding:4px 10px;border-radius:7px;border:1px solid rgba(238,243,244,.3);background:rgba(255,255,255,.06)}
+.bar{height:12px;border-radius:6px;background:rgba(255,255,255,.12);overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,#59d36b,#8fe3a4)}
+.tag{position:absolute;right:16px;bottom:14px;font-family:var(--d);font-weight:700;font-size:16px;letter-spacing:.12em;text-transform:uppercase;color:#06141c;background:rgba(243,211,126,.92);padding:4px 10px;border-radius:6px}
+.phone .tag{font-size:11px;padding:2px 7px;right:8px;bottom:6px}
+.cap{position:absolute;left:24px;top:20px;font-family:var(--d);font-weight:700;font-size:26px;letter-spacing:.04em;text-transform:uppercase;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.6)}
+.portrait{width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 50% 38%,#f0c9a0 0 22%,transparent 23%),radial-gradient(ellipse at 50% 100%,#c4683e 0 46%,transparent 47%),#2b5a70;border:3px solid var(--brass);flex:none}
+.row{display:flex;align-items:center;gap:12px}
+.col{display:flex;flex-direction:column;gap:10px}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--green);flex:none}
+.check{width:22px;height:22px;border-radius:6px;border:2px solid var(--green);display:inline-flex;align-items:center;justify-content:center;color:var(--green);font-weight:700;font-size:16px;flex:none}
+.check.no{border-color:rgba(238,243,244,.4);color:transparent}
+.check.part{border-color:var(--amber);color:var(--amber)}
+svg{position:absolute;inset:0;pointer-events:none}
+</style><style>
+.spot{position:absolute;transform:translate(-50%,-50%);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--d);font-weight:700;color:#fff}
+.spot.empty{border:3px dashed rgba(255,255,255,.85);background:rgba(9,28,41,.35)}
+.spot.locked{border:2px dashed rgba(255,255,255,.45);background:rgba(9,28,41,.25);color:rgba(255,255,255,.7)}
+.spot.new{border:3px solid var(--hi);background:rgba(243,211,126,.35);box-shadow:0 0 0 6px rgba(243,211,126,.35),0 0 24px 8px rgba(243,211,126,.55);color:#2a1d05}
+.spot.sel{border:3px solid var(--green);background:rgba(89,211,107,.3);box-shadow:0 0 0 5px rgba(89,211,107,.35)}
+.lbl{position:absolute;transform:translate(-50%,0);font-family:var(--d);font-weight:700;font-size:15px;letter-spacing:.04em;text-transform:uppercase;background:var(--navy);border:1px solid var(--line);border-radius:6px;padding:2px 8px;white-space:nowrap;color:var(--ink)}
+.lbl b{color:var(--brass)}
+.opt{flex:1;border:1.5px solid rgba(238,243,244,.25);border-radius:12px;padding:10px;background:rgba(255,255,255,.04);display:flex;flex-direction:column;gap:6px}
+.pic{border-radius:8px;overflow:hidden;position:relative;background:#2a9aa8}
+.pic img{position:absolute}
+.mod{font-weight:600;color:var(--ink)}
+.kind{font-family:var(--d);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass)}
+.toast{position:absolute;left:50%;transform:translateX(-50%);background:var(--navy);border:1.5px solid var(--line);border-radius:12px;padding:8px 14px;display:flex;gap:10px;align-items:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.mini{font-size:12px;color:var(--dim)}
+.cand{border:1.5px solid rgba(238,243,244,.25);border-radius:12px;padding:12px 14px}
+.cand.rec{border:2px solid var(--brass);background:rgba(232,196,106,.08)}
+table.pos{border-collapse:collapse;width:100%;font-size:14px;margin-top:6px}
+table.pos td{padding:2px 4px;color:var(--dim)} table.pos td:first-child{color:var(--ink)}
+.up{color:var(--amber)} .ok{color:var(--green)}
+</style></head><body>
+<div class="frame" id="H1"><div style="position:absolute;inset:0;background:#1d6f7c"></div><img src="/tmp/claude-0/hi/cap/chart.png" style="position:absolute;left:-250px;top:0;width:1600px;height:900px;clip-path:circle(440px at 800px 450px)"><div style="position:absolute;left:492px;top:596px;width:70px;height:70px;transform:translate(-50%,-50%);border-radius:50%;border:4px solid #f3d37e"></div><div class="lbl" style="left:492px;top:634px">★ Skerry</div><div style="position:absolute;left:608px;top:314px;width:56px;height:56px;transform:translate(-50%,-50%);border-radius:50%;border:3px dashed #fff"></div><div class="lbl" style="left:608px;top:352px">Bell Rock</div><div style="position:absolute;left:890px;top:295px;width:56px;height:56px;transform:translate(-50%,-50%);border-radius:50%;border:3px dashed #fff"></div><div class="lbl" style="left:890px;top:333px">Lantern Rock</div>
+
+<div class="cap" style="left:24px">Which island is home?</div>
+<div class="panel" style="right:20px;top:20px;width:560px;bottom:20px;display:flex;flex-direction:column;gap:12px;padding:16px">
+<div class="s" style="font-size:15px">Distance in map units from the island, and how you sail it in the usual north-east trade wind. A beat is upwind, with tacks.</div><div class="cand rec"><div class="row" style="justify-content:space-between"><div class="t" style="font-size:24px">Skerry</div><span class="chip" style="color:var(--brass);border-color:var(--line)">Recommended</span></div>
+<table class="pos"><tr><td>Saltmere</td><td>345</td><td>reach both ways</td></tr><tr><td>Westholm</td><td>320</td><td>beam reach both ways</td></tr><tr><td>Stonehaven</td><td>180</td><td>run out, <span class=up>beat home</span></td></tr><tr><td>Port Calda</td><td>480</td><td><span class=up>beat out</span>, run home</td></tr></table><div class="s" style="font-size:14px;margin-top:6px">Middle of the four ports, next to the Teeth reef of arc 3. Grows from radius 11 to 18.</div></div><div class="cand "><div class="row" style="justify-content:space-between"><div class="t" style="font-size:24px">Bell Rock</div></div>
+<table class="pos"><tr><td>Saltmere</td><td>360</td><td>reach both ways</td></tr><tr><td>Westholm</td><td>380</td><td>reach both ways</td></tr><tr><td>Port Calda</td><td>170</td><td><span class=up>short beat out</span></td></tr><tr><td>Stonehaven</td><td>490</td><td>run out, <span class=up>long beat home</span></td></tr></table><div class="s" style="font-size:14px;margin-top:6px">Dead centre of the map, today a tiny rock (radius 8 to 18).</div></div><div class="cand "><div class="row" style="justify-content:space-between"><div class="t" style="font-size:24px">Lantern Rock</div><span class="chip" style="color:var(--brass);border-color:var(--line)">Used in the direction mockups</span></div>
+<table class="pos"><tr><td>Port Calda</td><td>210</td><td>beam reach both ways</td></tr><tr><td>Saltmere</td><td>305</td><td>run out, <span class=up>beat home</span></td></tr><tr><td>Westholm</td><td>670</td><td><span class=up>far, beat home</span></td></tr><tr><td>Stonehaven</td><td>690</td><td><span class=up>far, beat home</span></td></tr></table><div class="s" style="font-size:14px;margin-top:6px">Windward corner: every trip home is upwind. Has the lighthouse already.</div></div>
+<div class="s" style="font-size:14px">On the 5x map the island file stays the same; only its place on the map moves.</div></div>
+<div class="tag">Real chart, rings are the mockup</div></div>
+<div class="frame" id="H2"><img class="bg" src="/tmp/claude-0/hi/cap/L0.png"><div class="spot empty" style="left:641px;top:466px;width:57px;height:57px;font-size:27px">1</div><div class="spot empty" style="left:948px;top:460px;width:57px;height:57px;font-size:27px">2</div><div class="spot empty" style="left:800px;top:366px;width:57px;height:57px;font-size:27px">3</div><div class="spot empty" style="left:1004px;top:331px;width:57px;height:57px;font-size:27px">4</div><div class="spot empty" style="left:588px;top:347px;width:57px;height:57px;font-size:27px">5</div><div class="spot empty" style="left:738px;top:205px;width:57px;height:57px;font-size:27px">6</div>
+<div class="lbl" style="left:830px;top:860px">Pier (prologue)</div>
+<div class="cap">Six fixed spots on your island</div>
+<div class="panel" style="left:24px;bottom:24px;width:430px;padding:14px 16px"><div class="col" style="gap:8px"><div class="row" style="gap:10px"><div class="spot empty" style="position:static;transform:none;width:30px;height:30px;font-size:16px;flex:none">1</div><div><div class="h" style="font-size:15px">Arc spot</div><div class="s" style="font-size:15px">Workshop or Rigging loft</div></div></div><div class="row" style="gap:10px"><div class="spot empty" style="position:static;transform:none;width:30px;height:30px;font-size:16px;flex:none">2</div><div><div class="h" style="font-size:15px">Arc spot</div><div class="s" style="font-size:15px">Warehouse or Bakehouse</div></div></div><div class="row" style="gap:10px"><div class="spot empty" style="position:static;transform:none;width:30px;height:30px;font-size:16px;flex:none">3</div><div><div class="h" style="font-size:15px">Arc spot</div><div class="s" style="font-size:15px">Lookout or Pilot house</div></div></div><div class="row" style="gap:10px"><div class="spot empty" style="position:static;transform:none;width:30px;height:30px;font-size:16px;flex:none">4</div><div><div class="h" style="font-size:15px">Arc spot</div><div class="s" style="font-size:15px">Weather glass or Boathouse</div></div></div><div class="row" style="gap:10px"><div class="spot empty" style="position:static;transform:none;width:30px;height:30px;font-size:16px;flex:none">5</div><div><div class="h" style="font-size:15px">Spare</div><div class="s" style="font-size:15px">a building you passed on, for gold</div></div></div><div class="row" style="gap:10px"><div class="spot empty" style="position:static;transform:none;width:30px;height:30px;font-size:16px;flex:none">6</div><div><div class="h" style="font-size:15px">Spare</div><div class="s" style="font-size:15px">same, on the hill</div></div></div></div></div>
+<div class="panel" style="right:24px;top:24px;width:380px;padding:14px 16px"><div class="h" style="font-size:16px">Why here</div><div class="s" style="font-size:15px">Arc spots 1, 2 and 4 are near the water (workshop, warehouse, boathouse); 3 is the middle of the lane; the spares are the two corners left. Spots are flat, so no slope work on a phone, and each is a big tap target.</div></div>
+<div class="tag">Real game render, test island file</div></div>
+<div class="frame" id="H3">
+<img src="/tmp/claude-0/hi/cap/L0.png" style="position:absolute;left:0;top:0;width:533px;height:900px;object-fit:cover;object-position:50% 50%">
+<img src="/tmp/claude-0/hi/cap/L1.png" style="position:absolute;left:533px;top:0;width:534px;height:900px;object-fit:cover;object-position:50% 50%">
+<img src="/tmp/claude-0/hi/cap/L2.png" style="position:absolute;left:1067px;top:0;width:533px;height:900px;object-fit:cover;object-position:50% 50%">
+<div style="position:absolute;left:531px;top:0;width:4px;height:900px;background:var(--brass)"></div><div style="position:absolute;left:1065px;top:0;width:4px;height:900px;background:var(--brass)"></div>
+<div class="cap">After the prologue</div><div class="cap" style="left:557px">Two arcs done</div><div class="cap" style="left:1091px">Story done + one spare</div>
+<div class="panel" style="left:24px;bottom:24px;width:480px;padding:12px 16px"><div class="s" style="font-size:15px">Run down: ruins, a roofless cabin, a broken pier. Six empty spots.</div></div>
+<div class="panel" style="left:557px;bottom:24px;width:480px;padding:12px 16px"><div class="s" style="font-size:15px">Workshop and Warehouse; a lane from the pier, lamps, a boat.</div></div>
+<div class="panel" style="left:1091px;bottom:60px;width:480px;padding:12px 16px"><div class="s" style="font-size:15px">Four arc buildings, plus the Bakehouse bought back on spare 5. Spare 6 still free.</div></div>
+<div class="tag">Real game render, test island file; stand-in models</div></div>
+<div class="frame phone" id="F1"><img class="bg" src="/tmp/claude-0/hi/cap/P3.png"><div class="spot new" style="left:485px;top:192px;width:34px;height:34px;font-size:16px">+</div><div class="spot locked" style="left:422px;top:152px;width:34px;height:34px;font-size:16px">3</div><div class="spot locked" style="left:510px;top:137px;width:34px;height:34px;font-size:16px">4</div>
+<div class="lbl" style="left:485px;top:212px;font-size:12px"><b>Tap</b> to build</div>
+<div class="chip" style="position:absolute;left:10px;top:10px;font-size:15px;background:var(--navy);border-color:var(--line)">● 1,240</div>
+<div class="chip" style="position:absolute;left:50%;top:10px;transform:translateX(-50%);font-size:14px;background:var(--navy);border-color:var(--line);color:var(--brass)">⌂ Skerry · your island</div>
+<div style="position:absolute;left:10px;bottom:10px;display:flex;gap:8px"><span class="btn ghost" style="font-size:14px;padding:8px 12px;background:var(--navy)">☰</span><span class="btn" style="font-size:14px;padding:8px 12px">Map</span></div>
+<div class="toast" style="top:46px"><div class="portrait" style="width:40px;height:40px;border-width:2px"></div><div><div class="h" style="font-size:13px">Maren Holt is grateful</div><div class="s" style="font-size:12px">A new spot on your island: choose what to build.</div></div></div>
+<span class="btn" style="position:absolute;right:10px;bottom:10px;font-size:14px;padding:8px 14px">⛵ Set sail</span>
+<div class="tag" style="top:8px;bottom:auto">1 · Mockup on a phone</div></div>
+<div class="frame phone" id="F2"><img class="bg" src="/tmp/claude-0/hi/cap/P3.png" style="filter:brightness(.8)"><div class="spot sel" style="left:485px;top:192px;width:34px;height:34px;font-size:16px">2</div>
+<div class="panel" style="right:8px;top:50%;transform:translateY(-50%);width:370px;padding:10px 12px;display:flex;flex-direction:column;gap:6px">
+<div class="row" style="justify-content:space-between"><div class="h" style="font-size:14px">Spot 2 · Maren's thanks</div><span class="btn ghost" style="font-size:12px;padding:4px 8px">✕</span></div>
+<div class="row" style="gap:8px;align-items:stretch"><div class="opt"><div class="pic" style="width:150px;height:62px"><img src="/tmp/claude-0/hi/cap/L2.png" style="width:1440.0px;height:810.0px;left:-778.2px;top:-369.5px"></div><div class="kind">Storage</div><div class="t" style="font-size:18px">Warehouse</div><div class="s mod" style="font-size:12px;line-height:1.25">Keep up to 10 crates at home between voyages</div><span class="btn" style="font-size:13px;padding:6px 10px;margin-top:6px">Build</span></div><div class="opt"><div class="pic" style="width:150px;height:62px"><img src="/tmp/claude-0/hi/cap/L2.png" style="width:1440.0px;height:810.0px;left:-454.20000000000005px;top:-267.8px"></div><div class="kind">Orders</div><div class="t" style="font-size:18px">Bakehouse</div><div class="s mod" style="font-size:12px;line-height:1.25">Help orders pay 10 % more</div><span class="btn" style="font-size:13px;padding:6px 10px;margin-top:6px">Build</span></div></div>
+<div class="mini">Free, the arc's reward. The other one can come back later on a spare spot, for gold.</div></div>
+<div class="chip" style="position:absolute;left:10px;top:10px;font-size:15px;background:var(--navy);border-color:var(--line)">● 1,240</div>
+
+<div class="tag" style="right:390px">2 · Mockup on a phone</div></div>
+<div class="frame phone" id="F3"><img class="bg" src="/tmp/claude-0/hi/cap/P1.png"><div class="chip" style="position:absolute;left:10px;top:10px;font-size:15px;background:var(--navy);border-color:var(--line)">● 1,240</div>
+<div class="chip" style="position:absolute;left:50%;top:10px;transform:translateX(-50%);font-size:14px;background:var(--navy);border-color:var(--line);color:var(--brass)">⌂ Skerry · your island</div>
+<div style="position:absolute;left:10px;bottom:10px;display:flex;gap:8px"><span class="btn ghost" style="font-size:14px;padding:8px 12px;background:var(--navy)">☰</span><span class="btn" style="font-size:14px;padding:8px 12px">Map</span></div>
+<div class="toast" style="top:46px"><span style="font-size:22px">🏚</span><div><div class="h" style="font-size:13px">Warehouse built</div><div class="s" style="font-size:12px">Keep up to 10 crates here between voyages. Tap it to store cargo.</div></div></div>
+<div class="lbl" style="left:485px;top:214px;font-size:12px">Warehouse · 0/10</div>
+<span class="btn" style="position:absolute;right:10px;bottom:10px;font-size:14px;padding:8px 14px">⛵ Set sail</span>
+<div class="tag" style="top:8px;bottom:auto">3 · Mockup on a phone</div></div>
+<div class="frame" id="F4" style="width:390px;height:844px"><img src="/tmp/claude-0/hi/cap/T3.png" style="position:absolute;left:0;top:-110px;width:390px;height:844px;filter:brightness(.85)"><div class="spot sel" style="left:267px;top:276px;width:34px;height:34px;font-size:16px">2</div>
+<div class="chip" style="position:absolute;left:10px;top:12px;font-size:15px;background:var(--navy);border-color:var(--line)">● 1,240</div>
+<div class="chip" style="position:absolute;right:10px;top:12px;font-size:14px;background:var(--navy);border-color:var(--line);color:var(--brass)">⌂ Skerry</div>
+<div class="panel" style="left:8px;right:8px;bottom:8px;padding:12px;display:flex;flex-direction:column;gap:8px;border-radius:16px">
+<div style="width:40px;height:4px;border-radius:2px;background:rgba(255,255,255,.3);align-self:center"></div>
+<div class="row" style="justify-content:space-between"><div class="h" style="font-size:15px">Spot 2 · Maren's thanks</div><span class="btn ghost" style="font-size:12px;padding:4px 8px">✕</span></div>
+<div class="opt" style="flex-direction:row;align-items:center;gap:10px;padding:8px"><div class="pic" style="width:96px;height:70px"><img src="/tmp/claude-0/hi/cap/L2.png" style="width:1440.0px;height:810.0px;left:-805.2px;top:-365.5px"></div><div style="flex:1"><div class="kind">Storage</div><div class="t" style="font-size:18px">Warehouse</div><div class="s mod" style="font-size:12px;line-height:1.25">Keep up to 10 crates at home between voyages</div></div><span class="btn" style="font-size:13px;padding:8px 10px">Build</span></div><div class="opt" style="flex-direction:row;align-items:center;gap:10px;padding:8px"><div class="pic" style="width:96px;height:70px"><img src="/tmp/claude-0/hi/cap/L2.png" style="width:1440.0px;height:810.0px;left:-481.20000000000005px;top:-263.8px"></div><div style="flex:1"><div class="kind">Orders</div><div class="t" style="font-size:18px">Bakehouse</div><div class="s mod" style="font-size:12px;line-height:1.25">Help orders pay 10 % more</div></div><span class="btn" style="font-size:13px;padding:8px 10px">Build</span></div>
+<div class="mini">Free, the arc's reward. The other one can come back later on a spare spot, for gold.</div></div>
+<div class="tag" style="font-size:11px;padding:2px 7px;right:8px;top:52px;bottom:auto">Portrait · mockup</div></div>
+<div class="frame" id="F5"><img class="bg" src="/tmp/claude-0/hi/cap/D3.png" style="filter:brightness(.85)"><div class="spot sel" style="left:655px;top:460px;width:55px;height:55px;font-size:26px">2</div><div class="spot locked" style="left:521px;top:366px;width:55px;height:55px;font-size:26px">3</div><div class="spot locked" style="left:730px;top:331px;width:55px;height:55px;font-size:26px">4</div><div class="spot locked" style="left:312px;top:347px;width:55px;height:55px;font-size:26px">5</div><div class="spot locked" style="left:479px;top:195px;width:55px;height:55px;font-size:26px">6</div>
+<div class="chip" style="position:absolute;left:16px;top:16px;font-size:20px;background:var(--navy);border-color:var(--line)">● 1,240</div>
+<div class="panel" style="right:24px;top:50%;transform:translateY(-50%);width:580px;display:flex;flex-direction:column;gap:14px">
+<div class="row"><div class="portrait" style="width:72px;height:72px"></div><div><div class="h" style="font-size:18px">Maren Holt · Westholm</div><div class="s">"The mill turns again! Let me help with your island. Which would serve you best?"</div></div></div>
+<div class="row" style="gap:12px;align-items:stretch"><div class="opt" style="padding:14px;gap:8px"><div class="pic" style="width:236px;height:130px"><img src="/tmp/claude-0/hi/cap/L2.png" style="width:2240.0px;height:1260.0px;left:-1209.1999999999998px;top:-551.0px"></div><div class="kind" style="font-size:14px">Storage</div><div class="t" style="font-size:26px">Warehouse</div><div class="s mod" style="font-size:16px">Keep up to 10 crates at home between voyages.</div><span class="btn" style="margin-top:8px">Build</span></div><div class="opt" style="padding:14px;gap:8px"><div class="pic" style="width:236px;height:130px"><img src="/tmp/claude-0/hi/cap/L2.png" style="width:2240.0px;height:1260.0px;left:-705.1999999999999px;top:-392.79999999999995px"></div><div class="kind" style="font-size:14px">Orders</div><div class="t" style="font-size:26px">Bakehouse</div><div class="s mod" style="font-size:16px">Help orders pay 10 % more.</div><span class="btn" style="margin-top:8px">Build</span></div></div>
+<div class="s" style="font-size:15px">Free, the arc's reward. The other one can come back later on a spare spot, for gold (provisional, 0120).</div></div>
+<div class="tag" style="right:640px">Desktop · mockup</div></div>
+</body></html>
