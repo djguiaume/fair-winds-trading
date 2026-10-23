@@ -24,6 +24,8 @@ import * as trade from './sim/trade';
 import { type Difficulty, isDifficulty, knobs } from './sim/difficulty';
 import { daylightAt } from './sim/daylight';
 import { QuestBook } from './sim/quests';
+import { QuestCard } from './ui/questCard';
+import { cardFor, dueCard, journal, questPins, questTarget } from './ui/questView';
 import { TUTORIAL_QUEST, TUTORIAL_STEPS, Tutorial } from './sim/tutorial';
 import { TutorialCoach } from './ui/tutorial';
 import {
@@ -218,6 +220,49 @@ const quests = new QuestBook(world, undefined, {
 });
 const coach = new TutorialCoach(tutorial);
 const tutorialOffer = $<HTMLDialogElement>('tutorial-offer');
+// People's cards and the journal (decision 0124). `questSeen` holds the cards already shown this
+// session (`<quest>:<step>`, `<quest>:offer`); `questThanks` the finished quests still to thank for.
+const questCard = new QuestCard($<HTMLDialogElement>('quest-card'));
+const questSeen = new Set<string>();
+const questThanks = new Set<string>();
+function showDueCard() {
+  if (questCard.isOpen || tutorialOffer.open) return;
+  const due = dueCard(quests, world.map, world.trade.dockedAt, questSeen, questThanks);
+  const card = due && cardFor(quests, world.map, due.quest, due.kind);
+  if (!due || !card) return;
+  if (due.kind === 'finished') questThanks.delete(due.quest);
+  else if (due.kind === 'offer') questSeen.add(`${due.quest}:offer`);
+  else questSeen.add(`${due.quest}:${quests.progress(due.quest)!.step}`);
+  input.releaseAll();
+  questCard.show(card);
+  refreshPause();
+}
+quests.onEvent = (e) => {
+  if (e.type === 'finished') questThanks.add(e.quest);
+};
+questCard.onAccept = (id) => {
+  // The offer already said what the first step asks.
+  const first = quests.quests.find((q) => q.id === id)?.steps[0];
+  if (first) questSeen.add(`${id}:${first.id}`);
+  quests.accept(id);
+  autosave();
+};
+questCard.onChoose = (id, option) => {
+  quests.choose(id, option);
+  autosave();
+};
+questCard.onClose = () => {
+  refreshPause();
+  showDueCard();
+};
+chart.quests = {
+  pins: () => questPins(quests, world.map, questSeen),
+  target: () => questTarget(quests, world.map),
+  journal: () => journal(quests, world.map),
+  track: (id) => {
+    if (quests.track(id)) autosave();
+  },
+};
 tradePanel.uiMode = settings.uiMode;
 hud.portLabels.isKidMode = settings.uiMode === 'kids';
 hud.isKidMode = settings.uiMode === 'kids';
@@ -232,6 +277,8 @@ let sailStep = world.boat.sailStep;
 
 tradePanel.onAction = () => {
   world.ship = trade.activeShip(world.trade);
+  // Goods handed over move a quest on while the market is still open.
+  if (quests.check().length) showDueCard();
   autosave();
 };
 tradePanel.onClose = () => {
@@ -294,7 +341,8 @@ function refreshPause() {
     homePanel.isOpen ||
     windHelp.open ||
     chart.isOpen ||
-    tutorialOffer.open;
+    tutorialOffer.open ||
+    questCard.isOpen;
   coach.setSurface(
     mode === 'menu' ||
       !settingsPanel.hidden ||
@@ -757,6 +805,9 @@ function handleEvents(events: WorldEvent[]) {
       tradePanel.open('market');
       refreshPause();
       autosave();
+      // "Not now" lasts one call: the offer comes back the next time you dock there.
+      for (const key of questSeen) if (key.endsWith(':offer')) questSeen.delete(key);
+      showDueCard();
     } else if (e.type === 'discovered') {
       const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
       hud.showToast(t('toast.discovered', { name: portName }), 4);
@@ -852,7 +903,7 @@ function tick(now: number) {
       const controls = { steer: input.steer, sailStep };
       handleEvents(stepWorld(world, controls, SIM_STEP));
       tutorial.observe(controls, SIM_STEP);
-      quests.update(SIM_STEP);
+      if (quests.update(SIM_STEP).length) showDueCard();
       accumulator -= SIM_STEP;
       steps++;
     }

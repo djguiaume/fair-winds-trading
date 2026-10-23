@@ -78,6 +78,17 @@ export function t(key: MessageKey, params: Record<string, string | number> = {})
 }
 
 /**
+ * Translate a key built at run time (quest text, `<text>.<step>.title`), or `undefined` when no
+ * language has it, so the interface can leave that line out.
+ */
+export function tOptional(
+  key: string,
+  params: Record<string, string | number> = {},
+): string | undefined {
+  return key in en ? t(key as MessageKey, params) : undefined;
+}
+
+/**
  * Fill static markup: `data-i18n="key"` sets the text, `data-i18n-html="key"` sets trusted markup
  * from our own dictionaries, and `data-i18n-attr="aria-label:key;title:key2"` sets attributes.
  */

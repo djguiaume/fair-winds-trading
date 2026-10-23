@@ -29,6 +29,7 @@
     <link rel="stylesheet" href="/src/ui/home.css" />
     <link rel="stylesheet" href="/src/ui/sea-chart.css" />
     <link rel="stylesheet" href="/src/ui/menus.css" />
+    <link rel="stylesheet" href="/src/ui/quests.css" />
   </head>
   <body>
     <svg class="icon-sprite" aria-hidden="true">
@@ -698,6 +699,19 @@
         </div>
         <span class="chart-header-gap"></span>
         <button
+          id="chart-journal-toggle"
+          type="button"
+          aria-controls="chart-journal-panel"
+          aria-expanded="false"
+          aria-label="Journal"
+          data-i18n-attr="aria-label:journal.title"
+          hidden
+        >
+          <svg class="icon" aria-hidden="true"><use href="#i-book" /></svg>
+          <span class="chart-legend-label" data-i18n="journal.title">Journal</span>
+          <span class="chart-journal-badge" hidden></span>
+        </button>
+        <button
           id="chart-legend-toggle"
           type="button"
           aria-controls="chart-legend-panel"
@@ -841,6 +855,28 @@
           </p>
         </section>
         <section
+          id="chart-journal-panel"
+          class="chart-sheet chart-journal-sheet"
+          aria-labelledby="chart-journal-title"
+          hidden
+        >
+          <header>
+            <h3 id="chart-journal-title">
+              <svg class="icon" aria-hidden="true"><use href="#i-book" /></svg>
+              <span data-i18n="journal.title">Journal</span>
+            </h3>
+            <button
+              type="button"
+              data-chart-close
+              aria-label="Close panel"
+              data-i18n-attr="aria-label:chart.closePanel"
+            >
+              ×
+            </button>
+          </header>
+          <div id="chart-journal-list" class="journal-list"></div>
+        </section>
+        <section
           id="chart-market-panel"
           class="chart-sheet chart-market-sheet"
           aria-labelledby="chart-market-title"
@@ -960,6 +996,8 @@
       </div>
     </dialog>
     <div id="trade-panel" class="trade-panel-overlay" hidden></div>
+    <!-- A person's card for a quest (decision 0124), filled by src/ui/questCard.ts. -->
+    <dialog id="quest-card" class="quest-card"></dialog>
 
     <div id="menu" class="menu" hidden>
       <div class="menu-side">
