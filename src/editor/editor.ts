@@ -1,5 +1,6 @@
 import './editor.css';
 import { EDITED_MAP_KEY, isMapShape } from '../data/editedMap';
+import { ISLAND_DESIGNS, useIslandDesign } from '../data/islands';
 import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../data/maps';
 import type { MapDef } from '../sim/map';
 import { type MapCheck, distanceChanges, quickChecks } from '../sim/mapChecks';
@@ -22,6 +23,7 @@ import {
 } from './model';
 import { renderPanel } from './panel';
 import { hasIslandFile, islandOpen, openIsland, setupIslandBuilder } from './island/builder';
+import { giveIslandFile } from './island/fromLook';
 
 /**
  * Map editor page (decision 0095), published next to the game like the model sheet. It edits the
@@ -126,8 +128,21 @@ function drawPanel() {
   });
 }
 
-/** Opens the island builder (decision 0105) on a port island that has an island file. */
+/**
+ * Opens the island builder (decision 0105) on an island. One without a file, or a ridge, first
+ * gets one made from how it is drawn now (decision 0107), as an edit of the map.
+ */
 function editIsland(id: string) {
+  const existing = findIsland(map, id);
+  if (!existing || !hasIslandFile(existing)) {
+    const before = structuredClone(map);
+    const design = giveIslandFile(map, id);
+    if (!design) return;
+    history.record(before);
+    useIslandDesign(design);
+    selection = { kind: 'island', id };
+    commit(true);
+  }
   const island = findIsland(map, id);
   if (island && hasIslandFile(island)) openIsland(island);
 }
@@ -141,7 +156,7 @@ setupIslandBuilder({
 svg.addEventListener('dblclick', (e) => {
   const hit = (e.target as Element).closest('[data-hit]')?.getAttribute('data-hit') ?? '';
   const [kind, id] = hit.split(':');
-  if (kind === 'island' && id) editIsland(id);
+  if ((kind === 'island' || kind === 'shape') && id) editIsland(id);
 });
 
 /** After any edit: redraw, save the working copy for "Play this map", rerun the checks. */
@@ -220,7 +235,11 @@ function runChecks() {
       worker?.terminate();
       worker = null;
     });
-    worker.postMessage({ id, map: prepared });
+    const designs = prepared.islands.flatMap((i) => {
+      const design = i.look?.design && ISLAND_DESIGNS[i.look.design];
+      return design ? [design] : [];
+    });
+    worker.postMessage({ id, map: prepared, designs });
   }, 600);
 }
 

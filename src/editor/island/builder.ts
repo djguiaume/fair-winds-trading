@@ -67,6 +67,9 @@ const $ = <T extends Element = HTMLElement>(id: string) =>
 
 // The shipped files, before this browser's edited islands replace them for the editor's page.
 const SHIPPED: Record<string, IslandDesign> = structuredClone(ISLAND_DESIGNS);
+/** Island files made in the editor, as they were made (what Reset goes back to). */
+const MADE: Record<string, IslandDesign> = {};
+const original = (id: string) => SHIPPED[id] ?? MADE[id];
 const storage: Storage | null = (() => {
   try {
     return window.localStorage;
@@ -103,6 +106,10 @@ let open = false;
 let design: IslandDesign;
 let R = 1;
 let level: Level = 4;
+/** Whether the island has a harbour (a port's); others have no levels (decision 0107). */
+let harbour = true;
+/** What new things belong to: the level on show, or every level on an island with no port. */
+const placeLevel = (): Level => (harbour ? level : 1);
 let selection: number | null = null;
 let history = new History<IslandDesign>();
 let showLater = true;
@@ -141,13 +148,18 @@ export function setupIslandBuilder(h: Host) {
   host = h;
 }
 
-/** Opens the builder on a port island of the map (its file id is `look.design`). */
+/** Opens the builder on an island of the map with a file (its id is `look.design`). */
 export function openIsland(target: IslandDef) {
   const id = target.look?.design;
   if (!id || !ISLAND_DESIGNS[id]) return;
 
   design = structuredClone(ISLAND_DESIGNS[id]!);
+  // A file made in this browser (decision 0107): Reset goes back to how it was made.
+  if (!SHIPPED[id]) MADE[id] ??= structuredClone(design);
   R = target.radius / ISLAND_SCALE;
+  harbour = !!target.look?.dock;
+  if (!harbour) level = 4;
+  $('ib-levels').parentElement!.hidden = !harbour;
   selection = null;
   shapeSel = null;
   tool = null;
@@ -175,7 +187,8 @@ export function openIsland(target: IslandDef) {
   setMode(mode);
   placePreview();
   fit();
-  commit(false);
+  // A file just made from the map is saved at once: the edited map already refers to it.
+  commit(!SHIPPED[id]);
   svg.focus();
 }
 
@@ -219,7 +232,7 @@ function rebuild(without?: number) {
       without === undefined
         ? design
         : { ...design, props: design.props.filter((_, i) => i !== without) };
-    parts = designedTownParts(shown, R, level as TownLevel);
+    parts = designedTownParts(shown, R, level as TownLevel, harbour);
   } catch (error) {
     hint(`The island does not build: ${String(error)}`);
     return;
@@ -249,7 +262,7 @@ function hull(index: number): [number, number][] {
   let local = hulls.get(key);
   if (!local) {
     try {
-      local = islandCheckKit(design, R).footprint!({ ...p, x: 0, z: 0 });
+      local = islandCheckKit(design, R, harbour).footprint!({ ...p, x: 0, z: 0 });
     } catch {
       local = [
         [-0.03, -0.03],
@@ -273,6 +286,7 @@ function draw() {
   const { now, later } = propsAt(design, level);
   drawOverlay(svg, {
     design,
+    harbour,
     level,
     view,
     width,
@@ -398,13 +412,14 @@ function commit(record = true) {
   if (shapeSel && !shapeExists(shapeSel.shape)) shapeSel = null;
   if (shapeSel?.point !== undefined && !pointsOf(design, shapeSel.shape)?.[shapeSel.point])
     delete shapeSel.point;
-  const edited = !sameDesign(design, SHIPPED[design.id]!);
+  const edited = !SHIPPED[design.id] || !sameDesign(design, SHIPPED[design.id]!);
   $('ib-edited').hidden = !edited;
   $<HTMLButtonElement>('ib-undo').disabled = !history.canUndo;
   $<HTMLButtonElement>('ib-redo').disabled = !history.canRedo;
   if (storage && record) {
+    // Edited shipped files, and every file made here (the map refers to it).
     const drafts = Object.values(ISLAND_DESIGNS).filter(
-      (d) => SHIPPED[d.id] && !sameDesign(d, SHIPPED[d.id]!),
+      (d) => !SHIPPED[d.id] || !sameDesign(d, SHIPPED[d.id]!),
     );
     try {
       saveEditedIslands(storage, drafts);
@@ -511,7 +526,7 @@ function runChecks() {
         drawPanel();
       },
     );
-    worker.postMessage({ id, design, R });
+    worker.postMessage({ id, design, R, harbour });
   }, 400);
 }
 
@@ -746,7 +761,7 @@ function shapePointerDown(e: PointerEvent, x: number, z: number, kind: string, a
       if (addLake(design, x, z)) shapeSel = { shape: { kind: 'lake' } };
     } else {
       const add = tool === 'plateau' ? addPlateau : addMountain;
-      shapeSel = { shape: { kind: 'ground', index: add(design, x, z, under, level) } };
+      shapeSel = { shape: { kind: 'ground', index: add(design, x, z, under, placeLevel()) } };
     }
     setTool(null);
     commit();
@@ -839,7 +854,7 @@ function showMoving(index: number | null, type?: string, x = 0, z = 0) {
     top!.setMoving(null);
     return;
   }
-  const p = index !== null ? design.props[index]! : newProp(design, type!, x, z, level);
+  const p = index !== null ? design.props[index]! : newProp(design, type!, x, z, placeLevel());
   const scale = PROP_TYPES[p.type]!.sizedInModel ? 1 : (p.size ?? 1);
   top!.setMoving(propParts(p, design, R), 0, 0, 0, 0, scale);
   placeMoving(p, p.x, p.z);
@@ -853,10 +868,10 @@ function placeMoving(p: { turn?: number; y?: number; type: string }, x: number, 
 /** A quick fit test for a prop being dropped: on land (or in the sea for boats). */
 function fits(type: string, x: number, z: number) {
   const layout = islandLayout(design, level);
-  const p = newProp(design, type, x, z, level);
+  const p = newProp(design, type, x, z, placeLevel());
   let fit = 0.05;
   try {
-    fit = islandCheckKit(design, R).fit(p);
+    fit = islandCheckKit(design, R, harbour).fit(p);
   } catch {
     /* Unknown models fit nowhere: the checks say why. */
   }
@@ -869,10 +884,10 @@ function fits(type: string, x: number, z: number) {
 }
 
 function setDrop(type: string, x: number, z: number) {
-  const p = newProp(design, type, x, z, level);
+  const p = newProp(design, type, x, z, placeLevel());
   const hullAt = (() => {
     try {
-      return islandCheckKit(design, R).footprint!({ ...p, x: 0, z: 0 }).map(
+      return islandCheckKit(design, R, harbour).footprint!({ ...p, x: 0, z: 0 }).map(
         ([hx, hz]): [number, number] => [hx + x, hz + z],
       );
     } catch {
@@ -1181,11 +1196,12 @@ $('ib-undo').addEventListener('click', undo);
 $('ib-redo').addEventListener('click', redo);
 $('ib-back').addEventListener('click', close);
 $('ib-reset').addEventListener('click', () => {
-  if (!confirm(`Throw away your edits to ${design.name} and go back to the shipped island?`))
-    return;
+  const made = !SHIPPED[design.id];
+  const to = made ? 'the island as it was made' : 'the shipped island';
+  if (!confirm(`Throw away your edits to ${design.name} and go back to ${to}?`)) return;
   history.record(design);
   selection = null;
-  replaceDesign(structuredClone(SHIPPED[design.id]!));
+  replaceDesign(structuredClone(original(design.id)!));
 });
 $('ib-export').addEventListener('click', () => {
   const blob = new Blob([formatIslandJson(tidyDesign(design))], { type: 'application/json' });

@@ -75,9 +75,8 @@
       "y": -150,
       "radius": 11,
       "look": {
-        "trees": 2,
-        "rock": true,
-        "landmark": "beacon"
+        "design": "skerry",
+        "harbourBearing": 2.746581
       }
     },
     {
@@ -86,9 +85,8 @@
       "y": 140,
       "radius": 8,
       "look": {
-        "trees": 1,
-        "rock": true,
-        "landmark": "beacon"
+        "design": "bell-rock",
+        "harbourBearing": 1.408118
       }
     },
     {
@@ -98,12 +96,9 @@
       "y": 280,
       "radius": 18,
       "look": {
-        "trees": 10,
-        "rock": true,
-        "landmark": "ruins",
-        "layers": 3,
-        "houses": 4,
-        "dock": true
+        "design": "abbey-head",
+        "dock": true,
+        "harbourBearing": 2.356194
       }
     },
     {
@@ -113,12 +108,9 @@
       "y": -350,
       "radius": 17,
       "look": {
-        "trees": 10,
-        "rock": true,
-        "landmark": "lighthouse",
-        "layers": 2,
-        "houses": 4,
-        "dock": true
+        "design": "watchman-key",
+        "dock": true,
+        "harbourBearing": 5.619982
       }
     },
     {
@@ -128,9 +120,30 @@
       "y": 160,
       "radius": 10,
       "look": {
-        "trees": 2,
-        "rock": true,
-        "landmark": "lighthouse"
+        "design": "lantern-rock",
+        "harbourBearing": 3.369241
+      }
+    },
+    {
+      "id": "greyback-ridge",
+      "name": "Greyback Ridge",
+      "x": -119,
+      "y": 159,
+      "radius": 20,
+      "look": {
+        "design": "greyback-ridge",
+        "harbourBearing": 3.141592653589793
+      }
+    },
+    {
+      "id": "gull-hook",
+      "name": "Gull Hook",
+      "x": 53,
+      "y": -53,
+      "radius": 20,
+      "look": {
+        "design": "gull-hook",
+        "harbourBearing": 3.141592653589793
       }
     }
   ],
@@ -241,60 +254,6 @@
   "compatibleSaveMaps": ["Staggered passages", "Phase 0 practice waters"],
   "terrain": [
     {
-      "id": "greyback-ridge",
-      "name": "Greyback Ridge",
-      "kind": "island",
-      "outline": [
-        [-205, 195],
-        [-195, 215],
-        [-172, 222],
-        [-148, 208],
-        [-128, 190],
-        [-105, 180],
-        [-78, 160],
-        [-52, 142],
-        [-34, 126],
-        [-36, 104],
-        [-58, 96],
-        [-88, 118],
-        [-112, 128],
-        [-140, 152],
-        [-178, 170],
-        [-200, 180]
-      ],
-      "look": {
-        "trees": 28,
-        "landmark": "ruins"
-      }
-    },
-    {
-      "id": "gull-hook",
-      "name": "Gull Hook",
-      "kind": "island",
-      "outline": [
-        [-28, -12],
-        [-14, 4],
-        [8, 2],
-        [30, -14],
-        [52, -24],
-        [78, -46],
-        [104, -60],
-        [124, -72],
-        [134, -92],
-        [120, -110],
-        [96, -104],
-        [70, -86],
-        [46, -76],
-        [18, -58],
-        [-8, -44],
-        [-26, -30]
-      ],
-      "look": {
-        "trees": 28,
-        "landmark": "beacon"
-      }
-    },
-    {
       "id": "narrows-reef",
       "kind": "reef",
       "outline": [
@@ -304,7 +263,8 @@
         [-71, 86],
         [-63, 69],
         [-20, 45]
-      ]
+      ],
+      "seed": 12157
     },
     {
       "id": "east-reef",
@@ -319,7 +279,8 @@
       ],
       "look": {
         "landmark": "wreck"
-      }
+      },
+      "seed": 12254
     },
     {
       "id": "sw-reef",
@@ -331,7 +292,8 @@
         [-210, -74],
         [-192, -95],
         [-148, -116]
-      ]
+      ],
+      "seed": 12351
     },
     {
       "id": "south-reef",
@@ -343,7 +305,8 @@
         [15, -226],
         [37, -230],
         [75, -218]
-      ]
+      ],
+      "seed": 12448
     },
     {
       "id": "abbey-reef",
@@ -355,7 +318,8 @@
         [-253, 156],
         [-236, 158],
         [-215, 177]
-      ]
+      ],
+      "seed": 12545
     }
   ]
 }
