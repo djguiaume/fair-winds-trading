@@ -81,7 +81,7 @@ export class GameView {
   private readonly wake = new Wake();
   private readonly buoy = new BuoyMarker();
   private readonly lighthouseBeams: LighthouseBeams;
-  readonly beaconLights: BeaconLights;
+  private readonly beaconLights: BeaconLights;
   private readonly edgeBuoys: EdgeBuoys;
   private ocean!: Ocean;
   private readonly shores = new ShoreTextureCache();
@@ -137,7 +137,10 @@ export class GameView {
       this.islandLevels(settlementLevels(world.trade)),
     );
     this.scene.add(this.lighthouseBeams.root);
-    this.beaconLights = new BeaconLights(world.map.islands);
+    this.beaconLights = new BeaconLights(
+      world.map.islands,
+      this.islandLevels(settlementLevels(world.trade)),
+    );
     this.scene.add(this.beaconLights.points);
     this.level = level;
     this.boat = this.buildBoat();
@@ -282,6 +285,7 @@ export class GameView {
   setSettlementLevels(levels: Record<string, TownLevel>) {
     this.islands.setSettlementLevels(levels);
     this.lighthouseBeams.setLevels(this.islandLevels(levels));
+    this.beaconLights.setLevels(this.islandLevels(levels));
   }
 
   /** Town levels by port id, keyed by the port's island instead. */

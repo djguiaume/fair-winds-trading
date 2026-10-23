@@ -13,7 +13,7 @@ interface Beacon {
 }
 
 /**
- * Two opposing beams on every lighthouse of the island files (decision 0119), sharing one
+ * Sweeping beams on every lighthouse of the island files (decision 0121), sharing one
  * translucent unlit material. A lighthouse that is not built yet at its island's level is dark.
  */
 export class LighthouseBeams {

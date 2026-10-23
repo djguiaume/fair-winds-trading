@@ -34,7 +34,7 @@ Coordinates are **island-radius units**, harbour toward +z, x to the right seen 
 - `piers`: side piers `{ x, z, length, from }`. The arrival pier is the simulation's and is not in the file.
 - `props`: `{ type, x, z, turn, size, variant, shape, from, to, y, fit, clear, tags }`.
   - `turn` in degrees; `size` scales the model (landmarks take it as their own size).
-  - `variant`: a house's colours (and every third stone house's tower), how many crates or blocks, a field's crop.
+  - `variant`: a house's colours (and every third stone house's tower), how many crates or blocks, a field's crop; a lighthouse's beams (0 two, 1 one, 2 three) and a beacon's light (0 white flash, 1 unlit, 2 red can, 3 green cone): [0121](../../decisions/0121-lighthouse-and-beacon-night-lights.md).
   - `shape` (0 to 1): what the old code drew at random, a fish house's height or a cabin's length.
   - No `y`: the prop stands on the ground under it, else on the sand, else in the sea.
   - `fit`: the footprint radius the checks use, when it is not the model's own. `clear`: how far round it trees are cleared (default: its footprint plus 0.1; `0` clears nothing).
