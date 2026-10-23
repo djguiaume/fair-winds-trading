@@ -109,8 +109,8 @@ export class TransferPanel {
 
   /** A fresh code every time Send opens: the voyage as it is now. */
   private renderCode() {
-    this.code = encodeSaveCode(serializeWorld(this.world));
-    $(this.root, 'transfer-qr').innerHTML = qrSvg(transferLink(this.gameUrl(), this.code)).svg;
+    this.code = encodeSaveCode(serializeWorld(this.world), this.world.map);
+    $(this.root, 'transfer-qr').innerHTML = qrSvg(transferLink(this.gameUrl(), this.code), 'M').svg;
     window.clearTimeout(this.copiedTimer);
     $(this.root, 'transfer-copy-label').textContent = t('transfer.copy');
   }
