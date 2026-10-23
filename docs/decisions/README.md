@@ -1,27 +1,27 @@
 # Decision log
 
-| # | Decision | Date | Status |
-|---|---|---|---|
-| [0001](0001-game-name.md) | Name the game "Fair Winds Trading" | 2026-10-19 | Accepted |
-| [0002](0002-trade-over-combat.md) | Focus on sailing and trade, not combat | 2026-10-19 | Accepted |
-| [0003](0003-document-everything-in-repo.md) | Keep all docs, decisions, code and assets in this repo | 2026-10-19 | Accepted |
-| [0004](0004-real-time-3d.md) | Render in real-time 3D low-poly (not 2.5D) | 2026-10-19 | Accepted |
-| [0005](0005-tech-stack.md) | Tech stack: three.js + TypeScript + Vite, static site | 2026-10-19 | Accepted |
-| [0006](0006-desktop-and-mobile.md) | Desktop and mobile from day one, optimized for low-end devices | 2026-10-19 | Accepted |
-| [0007](0007-arcade-sailing-with-tacking.md) | Arcade sailing with a real no-go zone (tacking) | 2026-10-19 | Accepted |
-| [0008](0008-static-map-seed-ready.md) | One static map first, code ready for seeded maps | 2026-10-19 | Accepted |
-| [0009](0009-sandbox-short-sessions.md) | Sandbox for short play sessions | 2026-10-19 | Accepted |
-| [0010](0010-light-hazards-pirates-later.md) | Light hazards now, pirates and factions later | 2026-10-19 | Accepted |
-| [0011](0011-ship-lineup-and-upgrades.md) | Five ship classes, bought and upgraded with delivery money | 2026-10-19 | Accepted |
-| [0012](0012-boat-and-island-art-style.md) | Art style: A sea, bright highland islands, storybook classic boats | 2026-10-19 | Accepted |
-| [0013](0013-phase-0-prototype-choices.md) | Phase 0 prototype: sailing feel, controls and performance choices | 2026-10-19 | Accepted |
-| [0014](0014-code-built-models-for-now.md) | Code-built models for now, not Scenario-generated ones | 2026-10-19 | Accepted |
-| [0015](0015-trade-economy.md) | Phase 1 trade economy: stock-driven prices, docking, upgrades, save | 2026-10-19 | Accepted |
-| [0016](0016-game-models-style-d-and-b2.md) | Game models: storybook boats and bright highland islands, built in code | 2026-10-19 | Accepted |
-| [0017](0017-main-menu-and-fullscreen.md) | Main menu over the live scene, fullscreen with iPhone fallback | 2026-10-19 | Accepted |
-| [0018](0018-map-proposals-and-unlocks.md) | Preview map choices, then implement; selectable maps and persistent unlocks | 2026-10-19 | Accepted scope; choices pending |
-| [0019](0019-staggered-passages-first-map.md) | Strengthened Staggered passages, compatible saves and milestone progression | 2026-10-19 | Accepted |
-| [0020](0020-quiet-upwind-compass-help.md) | Quiet compass feedback and optional upwind help | 2026-10-19 | Accepted |
+| #                                            | Decision                                                                    | Date       | Status                          |
+| -------------------------------------------- | --------------------------------------------------------------------------- | ---------- | ------------------------------- |
+| [0001](0001-game-name.md)                    | Name the game "Fair Winds Trading"                                          | 2026-10-19 | Accepted                        |
+| [0002](0002-trade-over-combat.md)            | Focus on sailing and trade, not combat                                      | 2026-10-19 | Accepted                        |
+| [0003](0003-document-everything-in-repo.md)  | Keep all docs, decisions, code and assets in this repo                      | 2026-10-19 | Accepted                        |
+| [0004](0004-real-time-3d.md)                 | Render in real-time 3D low-poly (not 2.5D)                                  | 2026-10-19 | Accepted                        |
+| [0005](0005-tech-stack.md)                   | Tech stack: three.js + TypeScript + Vite, static site                       | 2026-10-19 | Accepted                        |
+| [0006](0006-desktop-and-mobile.md)           | Desktop and mobile from day one, optimized for low-end devices              | 2026-10-19 | Accepted                        |
+| [0007](0007-arcade-sailing-with-tacking.md)  | Arcade sailing with a real no-go zone (tacking)                             | 2026-10-19 | Accepted                        |
+| [0008](0008-static-map-seed-ready.md)        | One static map first, code ready for seeded maps                            | 2026-10-19 | Accepted                        |
+| [0009](0009-sandbox-short-sessions.md)       | Sandbox for short play sessions                                             | 2026-10-19 | Accepted                        |
+| [0010](0010-light-hazards-pirates-later.md)  | Light hazards now, pirates and factions later                               | 2026-10-19 | Accepted                        |
+| [0011](0011-ship-lineup-and-upgrades.md)     | Five ship classes, bought and upgraded with delivery money                  | 2026-10-19 | Accepted                        |
+| [0012](0012-boat-and-island-art-style.md)    | Art style: A sea, bright highland islands, storybook classic boats          | 2026-10-19 | Accepted                        |
+| [0013](0013-phase-0-prototype-choices.md)    | Phase 0 prototype: sailing feel, controls and performance choices           | 2026-10-19 | Accepted                        |
+| [0014](0014-code-built-models-for-now.md)    | Code-built models for now, not Scenario-generated ones                      | 2026-10-19 | Accepted                        |
+| [0015](0015-trade-economy.md)                | Phase 1 trade economy: stock-driven prices, docking, upgrades, save         | 2026-10-19 | Accepted                        |
+| [0016](0016-game-models-style-d-and-b2.md)   | Game models: storybook boats and bright highland islands, built in code     | 2026-10-19 | Accepted                        |
+| [0017](0017-main-menu-and-fullscreen.md)     | Main menu over the live scene, fullscreen with iPhone fallback              | 2026-10-19 | Accepted                        |
+| [0018](0018-map-proposals-and-unlocks.md)    | Preview map choices, then implement; selectable maps and persistent unlocks | 2026-10-19 | Accepted scope; choices pending |
+| [0019](0019-staggered-passages-first-map.md) | Strengthened Staggered passages, compatible saves and milestone progression | 2026-10-19 | Accepted                        |
+| [0020](0020-quiet-upwind-compass-help.md)    | Quiet compass feedback and optional upwind help                             | 2026-10-19 | Accepted                        |
 
 | [0021](0021-larger-sea-and-coastal-landmarks.md) | Larger sea, distinct coastal landmarks and a fixed scenery budget | 2026-10-19 | Accepted |
 | [0022](0022-trading-ui-integration-and-tablet-budget.md) | Integrate Google AI trading UI and bound tablet rendering cost | 2026-10-19 | Accepted |
@@ -119,4 +119,8 @@ Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decis
 | [0094](0094-tuning-moved-to-data.md) | Tuning moved to data: `src/data/tuning/*.json` read through a live `TUNING` object, `tuning-meta.ts` per value, same values as before | 2026-10-23 | Implemented for review |
 | [0095](0095-map-editor.md) | Map editor page `editor.html`: drag islands, ports, waypoints and coastlines, edit ports, map checks shared with the tests, play the edited map on its own save, export Prettier-ready JSON | 2026-10-23 | Implemented for review |
 | [0096](0096-island-files-and-island-builder.md) | Island files (one JSON per port island: coasts, raised ground, lanes, props with the level they appear) and an island builder in `editor.html` with sloped terrain and paths; mockup approved | 2026-10-23 | Accepted |
-| [0097](0097-island-files-built.md) | Island files built: the four port islands come from `src/data/islands/*.json` (prop catalogue, one generic builder, island checks), proven identical to the old code | 2026-10-23 | Implemented for review |
+| [0097](0097-progression-candidates-and-later-extensions.md) | Compare three base progression candidates; defer steam/automation, retain pirates as a later extension; active-play-only progress | 2026-10-23 | Accepted constraints; direction unselected |
+| [0098](0098-batched-economy-at-sea.md) | Batch the economy at a data-driven cadence offshore; flush on docking, preserve supply timing and pending simulation time in saves | 2026-10-23 | Implemented for review |
+| [0099](0099-visible-boundary-buoys.md) | Animate and upload only boundary buoys whose conservative bounds intersect the camera; preserve motion and move boundary tuning to data | 2026-10-23 | Implemented for review |
+| [0100](0100-hidden-hud-updates.md) | Skip covered HUD rendering and folded speed-log text, preserve cue timers, refresh immediately on return | 2026-10-23 | Implemented for review |
+| [0101](0101-island-files-built.md) | Island files built: the four port islands come from `src/data/islands/*.json` (prop catalogue, one generic builder, island checks), proven identical to the old code | 2026-10-23 | Implemented for review |

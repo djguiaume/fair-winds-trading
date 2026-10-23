@@ -1,6 +1,6 @@
 # Island files
 
-*Decision [0097](../../decisions/0097-island-files-built.md), step 2 of [0096](../../decisions/0096-island-files-and-island-builder.md). The four port islands are built from `src/data/islands/<id>.json`; the game looks the same as before.*
+*Decision [0101](../../decisions/0101-island-files-built.md), step 2 of [0096](../../decisions/0096-island-files-and-island-builder.md). The four port islands are built from `src/data/islands/<id>.json`; the game looks the same as before.*
 
 ![Before and after, level 4](before-after-level4.png)
 

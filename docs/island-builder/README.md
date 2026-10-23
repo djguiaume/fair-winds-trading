@@ -1,6 +1,6 @@
 # Island builder: mockup and plan
 
-*Decision [0096](../decisions/0096-island-files-and-island-builder.md), accepted: Guillaume approved this mockup on 2026-10-23. Step 2, the island files, is built ([0097](../decisions/0097-island-files-built.md)); the builder is next. This page is the mockup and the plan.*
+*Decision [0096](../decisions/0096-island-files-and-island-builder.md), accepted: Guillaume approved this mockup on 2026-10-23. Step 2, the island files, is built ([0101](../decisions/0101-island-files-built.md)); the builder is next. This page is the mockup and the plan.*
 
 ![Overview](overview.png)
 
@@ -47,7 +47,7 @@ Two steps, one after the other.
 
 ### Step 2: Island files
 
-**Done ([0097](../decisions/0097-island-files-built.md), PR #78):** the four port islands are built from `src/data/islands/*.json`, proven identical; format and checks in [files](files/README.md).
+**Done ([0101](../decisions/0101-island-files-built.md), PR #78):** the four port islands are built from `src/data/islands/*.json`, proven identical; format and checks in [files](files/README.md).
 
 Move the four port islands out of the code, with **no visible change**.
 

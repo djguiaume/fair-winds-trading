@@ -5,7 +5,7 @@ import westholm from './islands/westholm.json';
 import type { IslandDef } from '../sim/map';
 
 /**
- * Island files (decisions 0096 and 0097): one JSON per designed port island in
+ * Island files (decisions 0096 and 0101): one JSON per designed port island in
  * `src/data/islands/<id>.json`. Coordinates are island-radius units with the harbour toward +z
  * and x to the right seen from the sea, so a file scales with the radius set in the map. Heights
  * (`height`, `y`, `base`) are radius units too.

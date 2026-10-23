@@ -17,7 +17,7 @@ export interface IslandDef {
   /** Visual hints for the island model; the simulation ignores them. */
   look?: {
     /**
-     * Island file id in `src/data/islands/` (decision 0097): coasts, ground, town and props.
+     * Island file id in `src/data/islands/` (decision 0101): coasts, ground, town and props.
      * Islands without one keep the generated look.
      */
     design?: string;

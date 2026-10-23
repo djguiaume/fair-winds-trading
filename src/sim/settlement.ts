@@ -44,10 +44,19 @@ export interface Settlement {
   sinceSupply: number;
   /** Units of rare goods it has received, for the port town gate (decision 0065). */
   rare: number;
+  /** Economy time applied before supply arrived between ticks (saved with the town). */
+  advancedBeforeSupply?: number;
 }
 
 export interface SettlementState {
   byPort: Record<string, Settlement>;
+  /** Supplied towns and carry-over growth resolve on the next sailing step. */
+  pendingSupply?: boolean;
+}
+
+// Supply changes must be reflected on the next simulation step, even between economy ticks.
+export function hasPendingSupply(state: SettlementState): boolean {
+  return state.pendingSupply === true;
 }
 
 export interface LevelUp {
@@ -130,7 +139,11 @@ export function createSettlements(map: MapDef): SettlementState {
 }
 
 /** Anything holding settlements: the trade state, or the bare settlement store. */
-type HasSettlements = { settlements: SettlementState; difficulty?: Difficulty };
+type HasSettlements = {
+  settlements: SettlementState;
+  difficulty?: Difficulty;
+  economyPending?: number;
+};
 
 /** The port's current level (the renderer reads this; 1 for an unknown port). */
 export function settlementLevel(state: HasSettlements, portId: string): SettlementLevel {
@@ -162,6 +175,14 @@ export function growthProgress(state: HasSettlements, portId: string): number {
 export function addGrowth(state: HasSettlements, portId: string, points: number): void {
   const s = state.settlements.byPort[portId];
   if (!s || points <= 0) return;
+  // Supply can also arrive between economy ticks. Settle the time before delivery first,
+  // then exclude it from the next batched tick so the new supply is not aged retroactively.
+  const pending = state.economyPending ?? 0;
+  const owed = pending - (s.advancedBeforeSupply ?? 0);
+  const stalled = Math.max(0, s.sinceSupply + owed - Math.max(s.sinceSupply, towns().stallSeconds));
+  s.growth = Math.max(0, s.growth - (towns().stallDecayPerMinute * stalled) / 60);
+  s.advancedBeforeSupply = pending;
+  state.settlements.pendingSupply = true;
   s.sinceSupply = 0;
   // Towns need less trade to grow on Fair winds and more on Old salt (decision 0083).
   if (s.level < MAX_SETTLEMENT_LEVEL) s.growth += points / knobs(state.difficulty).growth;
@@ -170,7 +191,10 @@ export function addGrowth(state: HasSettlements, portId: string, points: number)
 /** A wanted rare good arrived (sold or delivered): it counts toward the port town gate (0065). */
 export function addRare(state: HasSettlements, portId: string, good: GoodId, qty: number): void {
   const s = state.settlements.byPort[portId];
-  if (s && isRare(good) && qty > 0) s.rare += qty;
+  if (s && isRare(good) && qty > 0) {
+    s.rare += qty;
+    state.settlements.pendingSupply = true;
+  }
 }
 
 /** Rare goods the port buys: what it must receive to become a port town (0065). */
@@ -206,11 +230,14 @@ export function portTownGate(
  * waits at full growth instead of becoming a port town (0065). Returns the level-ups.
  */
 export function stepSettlements(state: HasSettlements, dt: number, map: MapDef): LevelUp[] {
+  delete state.settlements.pendingSupply;
   const ups: LevelUp[] = [];
   for (const [portId, s] of Object.entries(state.settlements.byPort)) {
+    const elapsed = Math.max(0, dt - (s.advancedBeforeSupply ?? 0));
+    delete s.advancedBeforeSupply;
     const before = s.sinceSupply;
-    s.sinceSupply += dt;
-    const stalled = Math.min(dt, s.sinceSupply - Math.max(before, towns().stallSeconds));
+    s.sinceSupply += elapsed;
+    const stalled = Math.min(elapsed, s.sinceSupply - Math.max(before, towns().stallSeconds));
     if (stalled > 0 && s.growth > 0)
       s.growth = Math.max(0, s.growth - (towns().stallDecayPerMinute * stalled) / 60);
     const need = growthNeeded(s.level);
@@ -221,6 +248,8 @@ export function stepSettlements(state: HasSettlements, dt: number, map: MapDef):
       s.level = (s.level + 1) as SettlementLevel;
       if (s.level >= MAX_SETTLEMENT_LEVEL) s.growth = 0;
       ups.push({ type: 'level-up', portId, level: s.level });
+      // Carry-over growth still resolves one level per sailing step.
+      state.settlements.pendingSupply = true;
     }
   }
   return ups;
@@ -240,6 +269,7 @@ const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFin
 export function readSettlements(raw: unknown, map: MapDef): SettlementState {
   const fresh = createSettlements(map);
   if (typeof raw !== 'object' || raw === null) return fresh;
+  if ((raw as { pendingSupply?: unknown }).pendingSupply === true) fresh.pendingSupply = true;
   const saved = (raw as { byPort?: unknown }).byPort;
   if (typeof saved !== 'object' || saved === null) return fresh;
   for (const port of map.ports) {
@@ -250,7 +280,15 @@ export function readSettlements(raw: unknown, map: MapDef): SettlementState {
     const growth = isNum(s.growth) && s.growth > 0 && need !== null ? Math.min(s.growth, need) : 0;
     const sinceSupply = isNum(s.sinceSupply) && s.sinceSupply > 0 ? s.sinceSupply : 0;
     const rare = isNum(s.rare) && s.rare > 0 ? s.rare : 0;
-    fresh.byPort[port.id] = { level, growth, sinceSupply, rare };
+    fresh.byPort[port.id] = {
+      level,
+      growth,
+      sinceSupply,
+      rare,
+      ...(isNum(s.advancedBeforeSupply) && s.advancedBeforeSupply > 0
+        ? { advancedBeforeSupply: s.advancedBeforeSupply }
+        : {}),
+    };
   }
   return fresh;
 }

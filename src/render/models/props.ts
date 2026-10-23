@@ -6,7 +6,7 @@ import { glowing, paint, windowPanes } from './geometry';
 import { landmarkParts } from './landmarks';
 
 /**
- * The prop catalogue (decision 0097): the low-poly buildings and props of the port towns, and
+ * The prop catalogue (decision 0101): the low-poly buildings and props of the port towns, and
  * the type ids island files place them by. Models are in reference units, front toward +Z.
  */
 export type Parts = THREE.BufferGeometry[];

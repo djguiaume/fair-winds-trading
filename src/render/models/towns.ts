@@ -520,7 +520,7 @@ export const isResidence = (prop: PropDef) =>
   !!PROP_TYPES[prop.type]?.home && !prop.tags?.includes('outbuilding');
 
 /**
- * A designed port island at its level, built from its island file (decision 0097): terrain,
+ * A designed port island at its level, built from its island file (decision 0101): terrain,
  * stairs and paths, the lake, lanes near standing homes, homes, the docks, props and woods.
  */
 export function designedTownParts(design: IslandDesign, R: number, level: TownLevel): Parts {

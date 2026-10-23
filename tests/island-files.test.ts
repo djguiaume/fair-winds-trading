@@ -23,7 +23,7 @@ function broken(change: (d: IslandDesign) => void, triangles?: number) {
 const checksOf = (issues: IslandIssue[]) => [...new Set(errors(issues).map((i) => i.check))];
 const prop = (d: IslandDesign, type: string) => d.props.find((p) => p.type === type)!;
 
-describe('island files (decision 0097)', () => {
+describe('island files (decision 0101)', () => {
   it('every map port with a file uses one of the shipped files', () => {
     expect(shipped.map((s) => s.design.id).sort()).toEqual(Object.keys(ISLAND_DESIGNS).sort());
     for (const { design } of shipped) expect(design.coasts.length).toBeGreaterThan(0);

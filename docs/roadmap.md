@@ -4,28 +4,38 @@ One-picture summary for phones: [roadmap-image/roadmap.png](roadmap-image/roadma
 
 Versions follow the phases: the menu shows `v0.<phase>.<deploy>` (Phase 1 is `v0.1.x`, Phase 2 is `v0.2.x`, Phase 3 is `v0.3.x`), see [0042](decisions/0042-light-versioning.md). Each finished phase gets a GitHub release ([0062](decisions/0062-github-releases-per-phase.md), [notes](releases/README.md)).
 
-A top-down, low-poly sailing and trading game for the browser. The visual style follows the *Privateers: Pirate Wars* ad ([screenshots](reference/), teal stylized ocean, sandy islands with soft glow, chunky wooden ships, floating UI bars), but the core loop is **sailing with the wind and delivering goods**, not combat.
+A top-down, low-poly sailing and trading game for the browser. The visual style follows the _Privateers: Pirate Wars_ ad ([screenshots](reference/), teal stylized ocean, sandy islands with soft glow, chunky wooden ships, floating UI bars), but the core loop is **sailing with the wind and delivering goods**, not combat.
+
+## Progression direction under review (2026-10-23)
+
+[Decision 0097](decisions/0097-progression-candidates-and-later-extensions.md) records three competing directions: **a player-built harbour island**, **connecting existing communities**, and **preparing for a great expedition**. None is selected. See the [full comparison, market references and playtest plan](reviews/progression/README.md).
+
+**Steam/automation are deferred**, and pirates remain a separate later extension; both are described in the [extension plan](reviews/progression/extensions.md). They must not be prerequisites for a satisfying base game. Expansion/DLC packaging and timing remain undecided.
+
+**Active play only:** no progress, income, production, deliveries, construction or decay while closed; no wall-clock catch-up. Future systems also stop on pause/suspension. This is a planning requirement, not a runtime change in this documentation PR.
+
+The summary image above predates this review and still shows the former automation-led sequence; this text and ADR 0097 take precedence. Phase numbers remain for continuity while the next gameplay milestone is chosen.
 
 ## Name shortlist
 
-| Name | Repo slug | Why |
-|---|---|---|
-| Tradewind Isles | `tradewind-isles` | Says both pillars at once: trade and wind. Easy to search. |
-| Leeward | `leeward` | Short, nautical, elegant; less obvious about trading. |
-| Saltroute | `saltroute` | Evokes trade lines and shipping routes. |
-| Beam Reach | `beam-reach` | Sailing term for the fastest point of sail; nice for sailors, obscure for others. |
-| **Fair Winds Trading** (chosen) | `fair-winds-trading` | Cozy, company-builder vibe; long. |
+| Name                            | Repo slug            | Why                                                                               |
+| ------------------------------- | -------------------- | --------------------------------------------------------------------------------- |
+| Tradewind Isles                 | `tradewind-isles`    | Says both pillars at once: trade and wind. Easy to search.                        |
+| Leeward                         | `leeward`            | Short, nautical, elegant; less obvious about trading.                             |
+| Saltroute                       | `saltroute`          | Evokes trade lines and shipping routes.                                           |
+| Beam Reach                      | `beam-reach`         | Sailing term for the fastest point of sail; nice for sailors, obscure for others. |
+| **Fair Winds Trading** (chosen) | `fair-winds-trading` | Cozy, company-builder vibe; long.                                                 |
 
 ## Design pillars
 
 1. **The wind is the terrain.** Routes are hard because of wind direction and strength, not because of enemies. Upwind needs tacking; downwind is fast.
 2. **Every delivery matters.** Settlements visibly grow from the goods you bring.
-3. **From captain to shipping magnate.** You start hand-sailing one sloop and end up running a network of automated routes.
+3. **Earn a reason for the next voyage.** Start with one sloop and progress through useful ship choices, discoveries and persistent consequences. The main motivation (personal island, communities or expedition) is under comparison; automation is a later option, not the base-game endpoint ([0097](decisions/0097-progression-candidates-and-later-extensions.md)).
 4. **Readable and charming.** Low-poly, bright, top-down, playable in short sessions.
 
 ## Core loop
 
-Pick up goods at a settlement → read the wind → sail (tacking when needed) → deliver for profit → settlement grows and asks for new goods → upgrade your ship, buy a bigger one or open a route → repeat with farther, harder destinations.
+Pick up goods at a settlement → read the wind → sail (tacking when needed) → deliver for profit → settlement grows and asks for new goods → upgrade your ship, choose another class or pursue a new objective → repeat with farther, harder destinations.
 
 ---
 
@@ -81,8 +91,8 @@ Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 - **Kids mode shelved** ([0043](decisions/0043-shelve-kids-mode.md)): hidden from the game for now, saves fall back to Captain mode; the rework moved to Phase 7.
 - **Wind strength you can see** (implemented for review, [0040](decisions/0040-visible-wind-strength.md)): a strength word (Calm to Strong; plain words in Kids mode), a coloured arrow and a short gust cue on the compass (five-bar gauge built but hidden for now), and the sea streaks thin out in a calm and brighten in strong wind.
 - **Hull damage from any crash** (implemented for review, [0038](decisions/0038-hull-damage-from-any-crash.md)): ramming an island, coast or pier damages the hull in proportion to the impact speed, docking bumps and sandbanks are free, piers are now solid. Repair in any harbour as in [0032](decisions/0032-reef-strikes-and-shallows.md). Ship-to-ship collisions come with pirates (Phase 5).
-  - *Later (Guillaume, 2026-10-20):* chart personal markers, removed in [0058](decisions/0058-chart-style-d-port-cards.md); bring back only if play-tests show a need, with a simpler design than the old five numbered pins.
-  - *Later (Guillaume, 2026-10-19):* make damage visible and audible: crash sounds, floating debris and splash effects on impact, and the boat model changing at each 20–25 % of hull lost (scuffed paint, patched or torn sails, missing rails, a list), cleared by repair.
+  - _Later (Guillaume, 2026-10-20):_ chart personal markers, removed in [0058](decisions/0058-chart-style-d-port-cards.md); bring back only if play-tests show a need, with a simpler design than the old five numbered pins.
+  - _Later (Guillaume, 2026-10-19):_ make damage visible and audible: crash sounds, floating debris and splash effects on impact, and the boat model changing at each 20–25 % of hull lost (scuffed paint, patched or torn sails, missing rails, a list), cleared by repair.
 - **Docking you can rely on and a visible sea edge** (implemented for review, [0041](decisions/0041-harbour-mooring-and-edge-buoys.md)): lowering sails near a port while already slow (under 3 kn) brings the boat to a dead stop and docks it; fast arrivals still crash. Clearer pier cues. Red bobbing buoys mark the edge of the map.
 - **Visual heeling** (implemented for review, [0044](decisions/0044-visual-heeling.md)): the boat leans away from the wind, most on a reach, little running, more in strong wind and with a lurch in gusts, easing off in an island's lee; wide, heavy ships lean less than tall, slim ones. Purely visual, calmer on Low.
 - **Background music** (requested by Guillaume, 2026-10-20; implemented for review, [0045](decisions/0045-background-music.md)): the "Fair Winds" theme, a light sea-folk air on a flute over quiet chords, composed live in code so it never repeats exactly; Music volume slider in Settings. Picked from six samples over two listening rounds.
@@ -97,22 +107,16 @@ Goal: deliveries visibly change the world.
 **Done (2026-10-23):** released as [v0.2.73](releases/v0.2.73.md) ([0092](decisions/0092-phase-2-release.md)): settlement levels, workshops, rare goods, help orders, weather, storms, day and night, difficulty levels, save transfer, solid harbours, the refined hauler models and the translation pass.
 
 - Settlements have a level and population; meeting demand levels them up (more buildings on the island, bigger dock). **Levels implemented for review ([0059](decisions/0059-settlement-levels.md)):** hamlet, village, town, port town; selling wanted goods and delivering orders grow a town; the home port must be a town before the top upgrades. Town visuals accepted in [0060](decisions/0060-growing-town-visuals.md): each port with its own island profile, buildings, industry and growing dock; a level-3 workshop per town (sawmill, smokehouse, bakery, masons). The four producers now have distinct polygon coasts, a lake/islets/cliff/inlets, visible beaches and organic hamlet-to-town layouts ([0071](decisions/0071-distinct-producer-islands.md), implemented for review). The visual revision adds wooded village nuclei, progressive clearing, readable working waterfronts and a mountain-cut quarry ([0072](decisions/0072-wooded-villages-and-working-landscapes.md)). Calda retains a forested mountain plateau even at level 4 ([0073](decisions/0073-calda-forested-mountain-plateau.md)). Their growing T-heads, secondary piers and quays are solid; hidden yards retain the legacy models. Moored fishing boats and the yards' grown docks are solid too, ramming a moored boat dents the hull ([0082](decisions/0082-solid-moored-boats-and-yard-docks.md), implemented for review).
-- Higher levels unlock new demands, including goods produced only on distant islands. *Done: level wants, deeper demand, bigger orders, and town specialties ([0063](decisions/0063-specialized-town-goods.md)); and rare goods from the far yards ([0065](decisions/0065-rare-goods-from-the-far-yards.md), implemented for review): Abbey Head makes honey and Watchman Key lamp oil once they grow to villages, bought only across the map; a town needs 20 of its rare good to become a port town.*
-- Demand decays if unmet, so neglected towns stall. *Done: growth drains back after 3 minutes without supply; levels never drop. The most neglected town, or the home port while an upgrade waits on it, posts a help order with a better reward and double growth ([0069](decisions/0069-help-orders.md)).*
+- Higher levels unlock new demands, including goods produced only on distant islands. _Done: level wants, deeper demand, bigger orders, and town specialties ([0063](decisions/0063-specialized-town-goods.md)); and rare goods from the far yards ([0065](decisions/0065-rare-goods-from-the-far-yards.md), implemented for review): Abbey Head makes honey and Watchman Key lamp oil once they grow to villages, bought only across the map; a town needs 20 of its rare good to become a port town._
+- Demand decays if unmet, so neglected towns stall. _Done: growth drains back after 3 minutes without supply; levels never drop. The most neglected town, or the home port while an upgrade waits on it, posts a help order with a better reward and double growth ([0069](decisions/0069-help-orders.md))._
 - Simple production chains (timber → planks, grain → bread) at higher-level towns. **Implemented for review ([0063](decisions/0063-specialized-town-goods.md)):** a town's workshop makes smoked fish, bread, planks or cut stone, and other ports start buying it.
-- **Dynamic weather:** day/night cycle and weather states (calm, breeze, gale, rain, storms) that move across the map and change wind strength; storms can spoil cargo. Builds on Phase 1's slow wind shifts ([0026](decisions/0026-slow-weather-shifts.md)). *Step 1 implemented for review ([0064](decisions/0064-wind-from-every-quarter.md)): the wind now wanders round the whole compass instead of always blowing from the top, and differs from one part of the sea to another at the same moment. Weather states and moving storms implemented for review ([0067](decisions/0067-weather-states-and-storms.md)): calm, breeze, rain and gale periods, storms that cross the sea, turn and strengthen the wind; heeling too hard or too suddenly throws cargo overboard, so you ease the sails in a blow, and the sails control and the lee edge of the screen turn amber, then red, before it happens ([0078](decisions/0078-press-warning.md)); weather and storms can each be turned off in Settings, and storms never come during the tutorial ([0072](decisions/0072-no-storms-in-tutorial-or-events.md)). Day and night implemented for review ([0068](decisions/0068-day-and-night.md)): a 12-minute day with a golden dusk, a blue moonlit night, lanterns on harbours and the masthead, and lit windows in the towns; it can be turned off in Settings.*
+- **Dynamic weather:** day/night cycle and weather states (calm, breeze, gale, rain, storms) that move across the map and change wind strength; storms can spoil cargo. Builds on Phase 1's slow wind shifts ([0026](decisions/0026-slow-weather-shifts.md)). _Step 1 implemented for review ([0064](decisions/0064-wind-from-every-quarter.md)): the wind now wanders round the whole compass instead of always blowing from the top, and differs from one part of the sea to another at the same moment. Weather states and moving storms implemented for review ([0067](decisions/0067-weather-states-and-storms.md)): calm, breeze, rain and gale periods, storms that cross the sea, turn and strengthen the wind; heeling too hard or too suddenly throws cargo overboard, so you ease the sails in a blow, and the sails control and the lee edge of the screen turn amber, then red, before it happens ([0078](decisions/0078-press-warning.md)); weather and storms can each be turned off in Settings, and storms never come during the tutorial ([0072](decisions/0072-no-storms-in-tutorial-or-events.md)). Day and night implemented for review ([0068](decisions/0068-day-and-night.md)): a 12-minute day with a golden dusk, a blue moonlit night, lanterns on harbours and the masthead, and lit windows in the towns; it can be turned off in Settings._
 
-## Phase 3 — Fleet and automated trade routes
+## Phase 3 — Authoring tools and progression review
 
-Goal: shift from sailing every trip to designing a network. This is the main twist on the reference game.
+**Status (2026-10-23):** the menu/version has entered Phase 3 (`v0.3.x`), but the former automated-fleet goal is now deferred by [0097](decisions/0097-progression-candidates-and-later-extensions.md). Keep the accepted authoring work below; choose the next core gameplay milestone after comparing the [three progression directions](reviews/progression/README.md).
 
-**Status (2026-10-23):** started; the menu now shows Phase 3 and `v0.3.x`.
-
-- Buy additional ships from three lines after the starter sloop ([0035](decisions/0035-three-ship-lines.md), refining [0011](decisions/0011-ship-lineup-and-upgrades.md)): **swift** (cutter → schooner → clipper: fast, agile, average hold) and **hauler** (hoy → fluyt → indiaman: huge hold, slow, poor upwind). Each line is built at its own discoverable port and unlocked by deliveries there ([0030](decisions/0030-home-base-upgrades-and-earned-ships.md)); buying and sailing them already works ([0048](decisions/0048-ship-unlocks-home-port-and-yards.md)), Phase 3 adds owning and running several at once. Each class has its own polar curve and the same three upgrade tracks; the player can mix lines in the fleet.
-- Route editor: pick ports in order, what to load/unload at each, and assign ships.
-- Automated ships sail with the same wind model; routes that fight the wind are slow, so route design is a puzzle.
-- Route dashboard: trips, profit per route, delays.
-- Player can still captain any ship by hand (e.g. to rush an urgent contract).
+Manual ship purchasing, switching and the distinct swift/hauler lineup remain. Owning ships does not require autonomous transport. The earlier route editor, wind-aware automated sailing, route dashboard and simultaneous fleet-operation plan are deferred historical scope, not the next implementation task.
 
 **Data-driven content and authoring tools** ([0093](decisions/0093-data-driven-content-and-authoring-tools.md), [review](reviews/data-driven/README.md)), so Guillaume can tune and add content without code:
 
@@ -121,7 +125,7 @@ Goal: shift from sailing every trip to designing a network. This is the main twi
 3. Content as data: goods, town levels, weather kinds; one file per ship (`model`, `sailing`, `unlock`).
 4. In-game tuning panel (`?tune`): live edit, export, share link.
 5. Balance check in the panel (the economy simulation on edited values).
-6. Island builder ([0096](decisions/0096-island-files-and-island-builder.md), [mockup and plan](island-builder/README.md)), mockup approved: one file per port island (coasts, raised ground, lanes, props per level), then a builder in `editor.html` to place houses, lighthouses or woodpiles, shape the ground (cliffs or slopes) and draw lanes for each level. **Island files done** ([0097](decisions/0097-island-files-built.md), [format](island-builder/files/README.md)): the four port islands come from `src/data/islands/*.json`, identical to before; next, the builder.
+6. Island builder ([0096](decisions/0096-island-files-and-island-builder.md), [mockup and plan](island-builder/README.md)), mockup approved: one file per port island (coasts, raised ground, lanes, props per level), then a builder in `editor.html` to place houses, lighthouses or woodpiles, shape the ground (cliffs or slopes) and draw lanes for each level. **Island files done** ([0101](decisions/0101-island-files-built.md), [format](island-builder/files/README.md)): the four port islands come from `src/data/islands/*.json`, identical to before; next, the builder.
 
 ## Between Phases 2 and 4 — Selectable maps and persistent unlocks
 
@@ -143,13 +147,26 @@ Goal: growth pushes you outward into tougher navigation.
 - Ports you can found or upgrade (warehouses, shipyards) to act as relay hubs.
 - Seeded procedural maps: new archipelago from a seed, shareable.
 
-## Phase 5 — Pirates
+## Phase 5 — Pirates (planned later extension)
+
+**Scope (2026-10-23):** compatible with all three progression candidates; not required for the base story. See [extension fit, risks and validation](reviews/progression/extensions.md). Retain this phase number for continuity; no release date, paid-DLC decision or ordering against steam is committed. Island raids and armies require a separate scope decision.
 
 - Pirate ships that hunt loaded merchants; outrun them, or arm ships with light defenses.
 - Pirate sightings use the hazard marker on the chart and in warnings ([0070](decisions/0070-hazard-markers.md)), with a red badge.
 - Pirates can be switched off in Settings, like storms ([0067](decisions/0067-weather-states-and-storms.md)): every hazard gets an on/off switch. Each difficulty level ([0083](decisions/0083-difficulty-levels.md)) also scales how often pirates show up and what a boarding costs.
 - Ship health and repairs at ports; escort ships for valuable routes.
 - **Warship line** (ketch → brig → frigate: lots of firepower and hull, low cargo, slow upwind) from a naval yard, and a fourth upgrade track, **guns**, so any ship can arm a little ([0035](decisions/0035-three-ship-lines.md)). Swift ships escape pirates, warships fight them, haulers need escorts.
+
+## Later extension — Steam and harbour logistics (deferred)
+
+- Small, relatively slow steam launches, potentially acquired and captained by the player.
+- Balance against swift and large sailing ships through usable hold, fuel/range and operating cost; steam must not make sail obsolete.
+- Validate one manually controlled vessel before deciding whether simple local supply automation improves the game.
+- Automation may follow safe sea lanes with bounded offscreen simulation; wind independence simplifies steering but does not remove obstacle/path/docking requirements. No measured performance claim yet.
+- Storage limits, spending reserves, refuelling and recovery need explicit rules.
+- No progress while closed, paused or suspended, and no catch-up.
+- Compatible with all three base candidates; a player island is not a prerequisite.
+- Details: [Steam and harbour logistics](reviews/progression/extensions.md). Late-stage/expansion scope only; packaging, pricing, timing and order against pirates are undecided.
 
 ## Racing missions (requested by Guillaume, 2026-10-19)
 
@@ -180,7 +197,8 @@ Timed delivery races between ports, alongside the sandbox rather than replacing 
 ## Out of scope for now
 
 - Ship-to-ship combat as a core feature before Phase 5 (trade stays the core; see [0010](decisions/0010-light-hazards-pirates-later.md)).
-- Multiplayer and monetization.
+- Steam propulsion and automated transport as immediate base-game progression (deferred to later work, [0097](decisions/0097-progression-candidates-and-later-extensions.md)).
+- Multiplayer and monetization; expansion planning is not approval for paid DLC.
 
 ## Tech stack
 
@@ -191,6 +209,7 @@ Decided in [decision 0005](decisions/0005-tech-stack.md): three.js + TypeScript 
 - ~~True 3D or 2.5D?~~ Decided: real-time 3D low-poly ([decision 0004](decisions/0004-real-time-3d.md)), built with three.js ([0005](decisions/0005-tech-stack.md)).
 - ~~Desktop or mobile first?~~ Both from day one, tuned for an old tablet ([0006](decisions/0006-desktop-and-mobile.md)).
 - ~~Art style?~~ Decided ([0012](decisions/0012-boat-and-island-art-style.md), mockups in [docs/art](art/)): A sea colours, B2 bright highland islands, D storybook classic boats. Built in the game ([0016](decisions/0016-game-models-style-d-and-b2.md)): sloop and cutter with visible upgrades, the four producer islands.
-- How much simulation runs for off-screen automated ships (needed from Phase 3)? The stack keeps the sim renderer-free so it can run off-screen or in a Web Worker; the level of detail is still open.
+- What is the base progression motivation? Compare [personal island, connected communities and great expedition](reviews/progression/README.md); no selection yet.
+- How much simulation runs for offscreen automated ships (deferred to the steam/logistics evaluation)? The sim remains renderer-free; safe lanes, update frequency and vessel caps need profiling. Offscreen active-play simulation does not imply offline progress.
 - ~~Where ships are upgraded and bought?~~ Decided ([0030](decisions/0030-home-base-upgrades-and-earned-ships.md)): upgrades only at the home-base port; each new ship class is built at one port you must discover and earn standing with through delivery contracts, then bought with gold. Implementation follows the map rework.
 - ~~Difficulty levels?~~ Decided and built ([0083](decisions/0083-difficulty-levels.md), [proposal](reviews/difficulty/README.md)): Fair winds / Captain / Old salt change costs, pace, weather and the default wind (steady trade wind on Fair winds) but never how the boat sails; Settings › Wind and the hazard switches stay independent. Pirates (Phase 5) need a switch and a per-level scale.

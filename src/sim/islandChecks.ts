@@ -3,7 +3,7 @@ import { islandLayout, layoutGround, type Outline } from './islandLayout';
 import { atLevel, type IslandDesign, type PropDef } from '../data/islands';
 
 /**
- * Island file checks (decision 0096 §2, built in 0097), shared by the island builder and
+ * Island file checks (decision 0096 §2, built in 0101), shared by the island builder and
  * tests/island-files.test.ts, as mapChecks.ts is for maps. Errors make a file unfit to ship;
  * warnings are worth a look. Everything here is in island-radius units.
  */

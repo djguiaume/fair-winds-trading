@@ -33,7 +33,7 @@ describe('producer island geography', () => {
       const R = 24 / 2.2;
       const plan = characterTownPlan(kind, R);
 
-      // The homes the island files build (0097). The old plan had 28 plots at Stonehaven, but
+      // The homes the island files build (0101). The old plan had 28 plots at Stonehaven, but
       // the masons' yard and the keep always took five of them, so 23 homes were ever built.
       expect(plan.length, kind).toBeGreaterThanOrEqual(kind === 'stone' ? 23 : 30);
       for (const p of plan)

@@ -19,7 +19,7 @@ export interface IslandLayout {
 }
 
 /**
- * The island's ground at a level, built from its island file (decision 0097): coasts, the lake
+ * The island's ground at a level, built from its island file (decision 0101): coasts, the lake
  * and raised ground. Shared by models, collision, chart and water.
  */
 function createIslandLayout(design: IslandDesign, level: number): IslandLayout {
