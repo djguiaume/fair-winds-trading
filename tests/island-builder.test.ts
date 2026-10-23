@@ -22,6 +22,19 @@ import {
   tidyDesign,
   turnProp,
 } from '../src/editor/island/doc';
+import {
+  addLake,
+  addLane,
+  addMountain,
+  addPlateau,
+  deletePoint,
+  deleteShape,
+  insertPoint,
+  paintWoods,
+  setEdges,
+  setLaneKind,
+  toggleSlopeEdge,
+} from '../src/editor/island/shapes';
 import { History, formatIslandJson } from '../src/editor/model';
 import { islandCheckKit } from '../src/render/models/towns';
 import { checkIsland } from '../src/sim/islandChecks';
@@ -136,6 +149,158 @@ describe('island builder document (0105)', () => {
     addProp(d, newProp(d, 'warehouse', 0, 1.5, 2));
     const issues = checkIsland(d, { ...islandCheckKit(d, R), triangles: undefined });
     expect(issues.filter((i) => i.severity === 'error').map((i) => i.check)).toContain('land');
+  });
+});
+
+describe('island builder ground, lanes and woods (0106)', () => {
+  const plateau = { kind: 'ground', index: 1 } as const;
+
+  it('turns single edges between cliff and slope, as runs', () => {
+    const d = calda();
+    const g = d.ground[1]!;
+    toggleSlopeEdge(d, 1, 7);
+    expect(g).toMatchObject({ slope: 0.15, slopeEdges: [[7, 7]] });
+    toggleSlopeEdge(d, 1, 6);
+    toggleSlopeEdge(d, 1, 8);
+    expect(g.slopeEdges).toEqual([[6, 8]]);
+    toggleSlopeEdge(d, 1, 7);
+    expect(g.slopeEdges).toEqual([
+      [6, 6],
+      [8, 8],
+    ]);
+    setEdges(d, 1, 0.2);
+    expect(g.slope).toBe(0.2);
+    expect(g.slopeEdges).toBeUndefined();
+    toggleSlopeEdge(d, 1, 0);
+    expect(g.slopeEdges).toEqual([[1, 8]]);
+    setEdges(d, 1, null);
+    expect(g.slope).toBeUndefined();
+    expect(g.slopeEdges).toBeUndefined();
+  });
+
+  it('keeps sloped edges in place when points are added or removed', () => {
+    const d = calda();
+    const g = d.ground[1]!;
+    toggleSlopeEdge(d, 1, 7);
+    // A point in the sloped edge splits it into two sloped edges.
+    expect(insertPoint(d, plateau, 7)).toBe(8);
+    expect(g.outline).toHaveLength(10);
+    expect(g.outline![8]).toEqual([0.55, -0.56]);
+    expect(g.slopeEdges).toEqual([[7, 8]]);
+    // A point before it moves the edges up.
+    insertPoint(d, plateau, 2);
+    expect(g.slopeEdges).toEqual([[8, 9]]);
+    // Removing it again, then the split point: one sloped edge again.
+    expect(deletePoint(d, plateau, 3)).toBe(true);
+    expect(deletePoint(d, plateau, 8)).toBe(true);
+    expect(g.outline).toEqual(SHIPPED.calda!.ground[1]!.outline);
+    expect(g.slopeEdges).toEqual([[7, 7]]);
+    // Outlines keep three points, lanes two.
+    const lake = { kind: 'lake' } as const;
+    while (d.lake!.length > 3) deletePoint(d, lake, 0);
+    expect(deletePoint(d, lake, 0)).toBe(false);
+    const lane = { kind: 'lane', index: 2 } as const;
+    expect(deletePoint(d, lane, 0)).toBe(true);
+    expect(deletePoint(d, lane, 0)).toBe(false);
+  });
+
+  it('adds raised ground, a mountain and a lake from the level they are drawn on', () => {
+    const d = calda();
+    const n = d.ground.length;
+    expect(addPlateau(d, -1, 0.4, 0.11, 1)).toBe(n);
+    expect(d.ground[n]).toMatchObject({ height: 0.31, material: 'grass' });
+    expect(d.ground[n]!.outline).toHaveLength(6);
+    addMountain(d, 1.2, 0.2, 0.11, 3);
+    expect(d.ground[n + 1]).toMatchObject({
+      height: 0.71,
+      material: 'rock',
+      shape: 'peak',
+      base: 0.11,
+      from: 3,
+    });
+    // One lake per island.
+    expect(addLake(d, 0, 0)).toBe(false);
+    deleteShape(d, { kind: 'lake' });
+    expect(d.lake).toBeUndefined();
+    expect(addLake(d, 0, 0)).toBe(true);
+    // The main coast stays; an islet takes its own ground with it.
+    expect(deleteShape(d, { kind: 'coast', index: 0 })).toBe(false);
+  });
+
+  it('draws lanes, paths and stairs, and turns one into another', () => {
+    const d = calda();
+    const i = addLane(d, 'stairs', [
+      [-0.25, -0.55, 0.11],
+      [-0.45, -0.95, 0.32],
+    ]);
+    expect(d.lanes[i]).toEqual({
+      kind: 'stairs',
+      base: 0.11,
+      points: [
+        [-0.25, -0.55, 0.11],
+        [-0.45, -0.95, 0.32],
+      ],
+    });
+    setLaneKind(d, i, 'path', () => 0);
+    expect(d.lanes[i]).toEqual({
+      kind: 'path',
+      points: [
+        [-0.25, -0.55],
+        [-0.45, -0.95],
+      ],
+    });
+    setLaneKind(d, i, 'stairs', (x) => (x < -0.3 ? 0.32 : 0.11));
+    expect(d.lanes[i]!.points).toEqual([
+      [-0.25, -0.55, 0.11],
+      [-0.45, -0.95, 0.32],
+    ]);
+    setLaneKind(d, i, 'lane', () => 0);
+    expect(d.lanes[i]).toEqual({
+      points: [
+        [-0.25, -0.55],
+        [-0.45, -0.95],
+      ],
+    });
+  });
+
+  it('paints woods and clearings, each rubbing out the other', () => {
+    const d = calda();
+    const clear = d.woods.clear?.length ?? 0;
+    paintWoods(d, -1, 0, 0.1, 'grow');
+    paintWoods(d, -0.97, 0, 0.1, 'grow'); // closer than half a brush: skipped
+    paintWoods(d, -0.9, 0, 0.1, 'grow');
+    expect(d.woods.areas).toEqual([
+      [-1, 0, 0.1],
+      [-0.9, 0, 0.1],
+    ]);
+    paintWoods(d, -0.95, 0, 0.06, 'clear');
+    expect(d.woods.areas).toBeUndefined();
+    expect(d.woods.clear).toHaveLength(clear + 1);
+    paintWoods(d, -0.95, 0, 0.1, 'grow');
+    expect(d.woods.clear).toHaveLength(clear);
+  });
+
+  it('exports ground, lanes and woods in the files key order', () => {
+    const d = calda();
+    toggleSlopeEdge(d, 1, 7);
+    addPlateau(d, -1, 0.4, 0.11, 2);
+    paintWoods(d, -1, 0, 0.1, 'grow');
+    addLane(d, 'stairs', [
+      [0, 0, 0.11],
+      [0, -0.2, 0.32],
+    ]);
+    const text = formatIslandJson(tidyDesign(JSON.parse(JSON.stringify(d)) as IslandDesign));
+    const back = JSON.parse(text) as IslandDesign;
+    expect(Object.keys(back.ground[1]!)).toEqual([
+      'outline',
+      'height',
+      'material',
+      'slope',
+      'slopeEdges',
+    ]);
+    expect(Object.keys(back.ground.at(-1)!)).toEqual(['outline', 'height', 'material', 'from']);
+    expect(Object.keys(back.lanes.at(-1)!)).toEqual(['kind', 'points', 'base']);
+    expect(Object.keys(back.woods).at(-1)).toBe('areas');
   });
 });
 

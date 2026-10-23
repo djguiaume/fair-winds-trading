@@ -70,11 +70,19 @@
         </nav>
       </header>
       <main class="ib-main" data-tab="props">
-        <aside class="ib-palette" aria-label="Props">
+        <aside class="ib-palette" aria-label="Tools">
+          <div class="ib-modes ib-seg" id="ib-modes">
+            <button data-mode="props">Props</button>
+            <button data-mode="ground">Ground</button>
+            <button data-mode="lanes">Lanes</button>
+          </div>
           <div class="ib-selbar" id="ib-selbar" hidden></div>
-          <input id="ib-search" type="search" placeholder="Find a prop…" />
-          <div class="ib-groups" id="ib-groups"></div>
-          <div class="ib-tiles" id="ib-tiles"></div>
+          <div class="ib-prop-tools" id="ib-prop-tools">
+            <input id="ib-search" type="search" placeholder="Find a prop…" />
+            <div class="ib-groups" id="ib-groups"></div>
+            <div class="ib-tiles" id="ib-tiles"></div>
+          </div>
+          <div class="ib-shape-tools" id="ib-shape-tools" hidden></div>
         </aside>
         <section class="ib-view" id="ib-view">
           <canvas id="ib-canvas"></canvas>
@@ -113,7 +121,9 @@
         </aside>
         <nav class="ib-tabs" id="ib-tabs">
           <button data-tab="select">Select</button>
-          <button data-tab="props">Props</button>
+          <button data-tab="props" data-mode="props">Props</button>
+          <button data-tab="props" data-mode="ground">Ground</button>
+          <button data-tab="props" data-mode="lanes">Lanes</button>
           <button data-tab="checks">Checks <b id="ib-tab-count"></b></button>
         </nav>
       </main>

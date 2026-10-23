@@ -11,6 +11,9 @@ export interface LandSurface {
   material: 'grass' | 'rock';
   shape?: 'peak';
   base?: number;
+  /** Ramp width outward from the sloped edges (decision 0096 §4), and which edges slope. */
+  slope?: number;
+  slopeEdges?: [number, number][];
 }
 export interface IslandLayout {
   coasts: Outline[];
@@ -36,6 +39,8 @@ function createIslandLayout(design: IslandDesign, level: number): IslandLayout {
         material: g.material,
         shape: g.shape,
         base: g.base,
+        slope: g.slope,
+        slopeEdges: g.slopeEdges,
       })),
   };
 }
@@ -52,7 +57,10 @@ export function islandLayout(design: IslandDesign | string, level = 4): IslandLa
   return (byLevel[level] ??= createIslandLayout(d, level));
 }
 
-/** An entire footprint must fit on a single surface and avoid water and cliff edges. */
+/**
+ * An entire footprint must fit on a single surface and avoid water and cliff edges. On a ramp
+ * (a sloped edge, decision 0096 §4) the height is interpolated down to the ground below.
+ */
 export function layoutGround(
   layout: IslandLayout,
   x: number,
@@ -61,14 +69,115 @@ export function layoutGround(
 ): number | null {
   if (!layout.coasts.some((c) => coastDistance(x, z, c).distance <= -margin)) return null;
   if (layout.lake && coastDistance(x, z, layout.lake).distance < margin) return null;
+  if (!layout.surfaces.some((s) => s.slope)) {
+    let height: number | null = null;
+    for (const s of layout.surfaces) {
+      const d = coastDistance(x, z, s.outline).distance;
+      if (Math.abs(d) < margin) return null;
+      if (d < -margin && !s.holes?.some((h) => coastDistance(x, z, h).distance < margin))
+        height = Math.max(height ?? 0, s.height);
+    }
+    return height;
+  }
+  if (cliffDistance(layout, x, z) < margin) return null;
   let height: number | null = null;
   for (const s of layout.surfaces) {
-    const d = coastDistance(x, z, s.outline).distance;
-    if (Math.abs(d) < margin) return null;
-    if (d < -margin && !s.holes?.some((h) => coastDistance(x, z, h).distance < margin))
-      height = Math.max(height ?? 0, s.height);
+    if (onSurface(s, x, z)) height = Math.max(height ?? 0, s.height);
+    else if (s.slope) {
+      const d = edgeDistance(s.outline, x, z, (i) => isSloped(s, i));
+      if (d < s.slope) {
+        const below = baseHeight(layout, s, x, z);
+        height = Math.max(height ?? 0, below + (s.height - below) * (1 - d / s.slope));
+      }
+    }
   }
   return height;
+}
+
+/** Inside a surface's outline and out of its holes. */
+const onSurface = (s: LandSurface, x: number, z: number) =>
+  coastDistance(x, z, s.outline).distance < 0 &&
+  !s.holes?.some((h) => coastDistance(x, z, h).distance < 0);
+
+/** The flat ground under a ramp: the highest other surface there, else the beach (0). */
+function baseHeight(layout: IslandLayout, ramp: LandSurface, x: number, z: number) {
+  let base = 0;
+  for (const s of layout.surfaces)
+    if (s !== ramp && s.height < ramp.height && onSurface(s, x, z)) base = Math.max(base, s.height);
+  return base;
+}
+
+/** Does edge i (from point i to i + 1) of a surface slope? */
+export function isSloped(s: { slope?: number; slopeEdges?: [number, number][] }, i: number) {
+  return !!s.slope && (!s.slopeEdges || s.slopeEdges.some(([a, b]) => i >= a && i <= b));
+}
+
+/** Distance from a point to the nearest of an outline's edges that `pick` keeps. */
+export function edgeDistance(
+  outline: Outline,
+  x: number,
+  z: number,
+  pick: (i: number) => boolean = () => true,
+) {
+  let best = Infinity;
+  for (let i = 0; i < outline.length; i++) {
+    if (!pick(i)) continue;
+    const [ax, az] = outline[i]!,
+      [bx, bz] = outline[(i + 1) % outline.length]!;
+    const dx = bx - ax,
+      dz = bz - az;
+    const l = dx * dx + dz * dz;
+    const t = l ? Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / l)) : 0;
+    best = Math.min(best, Math.hypot(x - ax - dx * t, z - az - dz * t));
+  }
+  return best;
+}
+
+/** Distance to the nearest cliff: every edge of raised ground and its holes, but sloped ones. */
+export function cliffDistance(layout: IslandLayout, x: number, z: number) {
+  let best = Infinity;
+  for (const s of layout.surfaces) {
+    best = Math.min(
+      best,
+      edgeDistance(s.outline, x, z, (i) => !isSloped(s, i)),
+    );
+    for (const h of s.holes ?? []) best = Math.min(best, edgeDistance(h, x, z));
+  }
+  return best;
+}
+
+/** How far a point is inside a ramp (negative: that far from one), Infinity with no slopes. */
+export function slopeDistance(layout: IslandLayout, x: number, z: number) {
+  let best = Infinity;
+  for (const s of layout.surfaces) {
+    if (!s.slope) continue;
+    const d = edgeDistance(s.outline, x, z, (i) => isSloped(s, i));
+    const outside = coastDistance(x, z, s.outline).distance >= 0;
+    // On the ramp: outside the outline and closer than its width; near it: within reach.
+    best = Math.min(best, outside ? Math.max(0, d - s.slope) : d);
+  }
+  return best;
+}
+
+/** Does the straight line from a to b cross a cliff edge? (Slopes are crossed freely.) */
+export function crossesCliff(layout: IslandLayout, ax: number, az: number, bx: number, bz: number) {
+  const cross = (o: Outline, pick: (i: number) => boolean) => {
+    for (let i = 0; i < o.length; i++) {
+      if (!pick(i)) continue;
+      const [cx, cz] = o[i]!,
+        [dx, dz] = o[(i + 1) % o.length]!;
+      const d1 = (bx - ax) * (cz - az) - (bz - az) * (cx - ax),
+        d2 = (bx - ax) * (dz - az) - (bz - az) * (dx - ax),
+        d3 = (dx - cx) * (az - cz) - (dz - cz) * (ax - cx),
+        d4 = (dx - cx) * (bz - cz) - (dz - cz) * (bx - cx);
+      if (d1 * d2 < 0 && d3 * d4 < 0) return true;
+    }
+    return false;
+  };
+  return layout.surfaces.some(
+    (s) =>
+      cross(s.outline, (i) => !isSloped(s, i)) || (s.holes ?? []).some((h) => cross(h, () => true)),
+  );
 }
 
 /** Profiles use the same harbour-facing frame as pierAt. */
@@ -82,20 +191,24 @@ export function islandPoint(island: IslandDef, x: number, z: number) {
     y: island.y + island.radius * (Math.sin(a) * x - Math.cos(a) * z),
   };
 }
-const coastCache = new WeakMap<IslandDef, { key: string; coasts: Outline[] }>();
+const coastCache = new WeakMap<
+  IslandDef,
+  { key: string; design: IslandDesign; coasts: Outline[] }
+>();
 export function islandCoasts(island: IslandDef): Outline[] | null {
   const design = designOf(island);
   if (!design) return null;
   const key = `${island.x}/${island.y}/${island.radius}/${design.id}/${islandBearing(island)}`;
   const cached = coastCache.get(island);
-  if (cached?.key === key) return cached.coasts;
+  // The island builder replaces a design with an edited copy: the cache follows it.
+  if (cached?.key === key && cached.design === design) return cached.coasts;
   const coasts: Outline[] = design.coasts.map((c) =>
     c.map(([x, z]) => {
       const p = islandPoint(island, x, z);
       return [p.x, p.y];
     }),
   );
-  coastCache.set(island, { key, coasts });
+  coastCache.set(island, { key, design, coasts });
   return coasts;
 }
 

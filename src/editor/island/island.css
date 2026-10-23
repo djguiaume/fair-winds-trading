@@ -21,6 +21,66 @@
   grid-template-columns: minmax(220px, 250px) 1fr minmax(300px, 340px);
 }
 
+/* --- Tools: props, ground, lanes ----------------------------------------------------------- */
+.ib-modes button {
+  flex: 1;
+}
+.ib-modes button[aria-pressed='true'] {
+  background: linear-gradient(var(--brass-hi), var(--brass));
+  color: var(--outline);
+  border-color: var(--outline);
+}
+.ib-prop-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+.ib-prop-tools[hidden],
+.ib-shape-tools[hidden] {
+  display: none;
+}
+.ib-shape-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+.ib-shape-tools h3 {
+  margin: 6px 0 0;
+  font: 700 14px/1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+.ib-tool {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 8px 10px;
+  background: var(--field);
+  border-color: transparent;
+}
+.ib-tool[aria-pressed='true'] {
+  border-color: var(--brass-hi);
+  background: #2b5a73;
+}
+.ib-tool > span:first-child {
+  font-size: 20px;
+  line-height: 1.1;
+}
+.ib-tool b {
+  display: block;
+  font: 700 16px var(--display);
+}
+.ib-tool small {
+  display: block;
+  font: 500 12.5px/1.25 var(--body);
+  color: var(--ink-dim);
+}
+
 /* --- Palette ------------------------------------------------------------------------------ */
 .ib-palette {
   display: flex;
@@ -274,6 +334,138 @@
   pointer-events: none;
 }
 
+/* Ground and lanes tools. */
+.i-coast,
+.i-ground,
+.i-lake,
+.i-lane {
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
+}
+.i-coast {
+  fill: transparent;
+  stroke: #fff;
+  stroke-width: 2px;
+}
+.i-ground {
+  fill: rgba(232, 196, 106, 0.06);
+  stroke: var(--brass-hi);
+  stroke-width: 1.5px;
+}
+.i-ground.peak {
+  stroke-dasharray: 5 4;
+  fill: rgba(255, 255, 255, 0.08);
+}
+.i-lake {
+  fill: rgba(80, 180, 255, 0.15);
+  stroke: #9fd8ff;
+  stroke-width: 2px;
+}
+.i-coast.quiet,
+.i-ground.quiet,
+.i-lane.quiet {
+  stroke-opacity: 0.45;
+  fill: transparent;
+  pointer-events: none;
+}
+.i-slope {
+  stroke: var(--green-ink);
+  stroke-width: 5px;
+  stroke-linecap: round;
+  stroke-opacity: 0.85;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.i-lane {
+  fill: none;
+  stroke: #f4e3b5;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+.i-lane.path {
+  stroke-dasharray: 6 4;
+}
+.i-lane.stairs {
+  stroke: #e2d3b5;
+  stroke-width: 5px;
+  stroke-dasharray: 2 2;
+}
+.i-shape-selected {
+  fill: none;
+  stroke: var(--brass-hi);
+  stroke-width: 3px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.i-edge-hit {
+  stroke: transparent;
+  stroke-width: 12px;
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
+}
+.i-edge-hit:hover {
+  stroke: rgba(143, 227, 164, 0.5);
+}
+.i-insert {
+  fill: var(--navy);
+  stroke: var(--brass-hi);
+  stroke-width: 1.2px;
+  vector-effect: non-scaling-stroke;
+  cursor: copy;
+}
+.i-point {
+  fill: var(--brass-hi);
+  stroke: var(--outline);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+  cursor: move;
+}
+.i-point.on {
+  fill: #fff;
+}
+.i-drawing {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2px;
+  stroke-dasharray: 5 4;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.i-drawing-point {
+  fill: #fff;
+  pointer-events: none;
+}
+.i-woods {
+  fill: rgba(47, 122, 69, 0.35);
+  stroke: rgba(143, 227, 164, 0.6);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.i-clearing {
+  fill: rgba(255, 106, 85, 0.15);
+  stroke: rgba(255, 106, 85, 0.7);
+  stroke-width: 1px;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.i-brush {
+  fill: none;
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.i-brush.grow {
+  stroke: var(--green-ink);
+}
+.i-brush.clear {
+  stroke: var(--red);
+}
+#ib-svg.tool {
+  cursor: crosshair;
+}
+
 /* --- Side: selection, preview, checks ----------------------------------------------------- */
 .ib-side {
   display: flex;
@@ -435,6 +627,9 @@ button.danger {
     display: flex;
     border-bottom: 1px solid var(--brass-line);
   }
+  .ib-modes {
+    display: none;
+  }
   .ib-tabs button {
     flex: 1;
     border: 0;
@@ -452,9 +647,7 @@ button.danger {
     order: 3;
     border-left: 0;
   }
-  .ib-main[data-tab='select'] .ib-tabs [data-tab='select'],
-  .ib-main[data-tab='props'] .ib-tabs [data-tab='props'],
-  .ib-main[data-tab='checks'] .ib-tabs [data-tab='checks'] {
+  .ib-tabs button[aria-pressed='true'] {
     color: var(--brass-hi);
     border-bottom-color: var(--brass-hi);
   }
