@@ -38,11 +38,22 @@ export interface WeatherConfig {
   regions?: RegionConfig;
 }
 
-/** Sea-wide weather of one period (decision 0067). Storms are separate, moving cells. */
-export const WEATHER_KINDS = ['calm', 'breeze', 'rain', 'gale'] as const;
-export type WeatherKind = (typeof WEATHER_KINDS)[number];
+/**
+ * Sea-wide weather of one period (decision 0067). Storms are separate, moving cells. The kinds are
+ * the keys of `kinds` in `weather.json` (decision 0108): adding one there is enough. The order of
+ * the file is the order of the weighted pick, so reordering it changes every voyage's weather.
+ */
+export type WeatherKind = string;
+
+/** The plain weather: every voyage starts in it, maps without kinds keep it, the HUD hides it. */
+export const USUAL_WEATHER: WeatherKind = 'breeze';
+
+/** The weather kinds of the shipped Phase 2 weather, in pick order. */
+export const WEATHER_KINDS: readonly WeatherKind[] = Object.keys(TUNING.weather.default.kinds!);
 
 export interface KindConfig {
+  /** English name; the HUD shows the translation (`weather.<id>` in `src/i18n/*.json`) if any. */
+  name: string;
   /** How often this weather is picked when it changes. */
   weight: number;
   /** Strength multipliers [min, max]. */
@@ -51,6 +62,8 @@ export interface KindConfig {
   rain: number;
   /** Gusts are this many times stronger than the map's `gustiness`. */
   gusts: number;
+  /** 0..1: how much darker and greyer the sky gets (rain and storms darken it on their own). */
+  gloom: number;
 }
 
 /** Large, slowly drifting areas where the wind bends and strengthens or eases (decision 0064). */
@@ -92,17 +105,26 @@ interface Slot {
   kind: WeatherKind;
   rain: number;
   gusts: number;
+  gloom: number;
 }
 
-const FIRST_SLOT: Slot = { offsetDeg: 0, strength: 1, kind: 'breeze', rain: 0, gusts: 1 };
+const FIRST_SLOT: Slot = {
+  offsetDeg: 0,
+  strength: 1,
+  kind: USUAL_WEATHER,
+  rain: 0,
+  gusts: 1,
+  gloom: 0,
+};
 
 function pickKind(weather: WeatherConfig, previous: WeatherKind, roll: number, roll2: number) {
   const kinds = weather.kinds!;
   if (roll < (weather.persist ?? 0)) return previous;
-  const total = WEATHER_KINDS.reduce((sum, k) => sum + kinds[k].weight, 0);
+  const ids = Object.keys(kinds);
+  const total = ids.reduce((sum, k) => sum + kinds[k]!.weight, 0);
   let x = roll2 * total;
-  for (const k of WEATHER_KINDS) if ((x -= kinds[k].weight) < 0) return k;
-  return 'breeze';
+  for (const k of ids) if ((x -= kinds[k]!.weight) < 0) return k;
+  return USUAL_WEATHER;
 }
 
 /** Offsets of every period so far, per seed and config: the walk is a running sum. */
@@ -130,7 +152,7 @@ export function weatherSlot(weather: WeatherConfig, seed: number, slot: number):
     const offset = prev.offsetDeg * (1 - weather.revert) + step;
     // Separate draws for the weather kind, so maps without kinds keep the same wind walk.
     const kindRng = slotRng(seed ^ 0x3c6ef372, k);
-    const kind = weather.kinds ? pickKind(weather, prev.kind, kindRng(), kindRng()) : 'breeze';
+    const kind = weather.kinds ? pickKind(weather, prev.kind, kindRng(), kindRng()) : USUAL_WEATHER;
     const def = weather.kinds?.[kind];
     const [lo, hi] = def?.strength ?? weather.strength;
     walk.push({
@@ -140,6 +162,7 @@ export function weatherSlot(weather: WeatherConfig, seed: number, slot: number):
       kind,
       rain: def?.rain ?? 0,
       gusts: def?.gusts ?? 1,
+      gloom: def?.gloom ?? 0,
     });
   }
   return walk[slot]!;
@@ -165,6 +188,7 @@ export function weatherAt(weather: WeatherConfig, seed: number, t: number): Slot
     kind: s < 0.5 ? before.kind : now.kind,
     rain: mix(before.rain, now.rain),
     gusts: mix(before.gusts, now.gusts),
+    gloom: mix(before.gloom, now.gloom),
   };
 }
 
@@ -227,6 +251,8 @@ export interface LocalWeather {
   rain: number;
   /** 0..1 sea-wide showers, outside any storm. */
   showers: number;
+  /** 0..1 sky gloom of the sea-wide weather (a gale's grey sky), outside rain and storms. */
+  gloom: number;
   /** 0..1: how hard the nearest storm hits here. */
   storm: number;
   /** Storms on the sea right now, for the chart and the renderer. */
@@ -283,6 +309,7 @@ export function windAt(
     out.kind = weather.kind;
     out.rain = Math.max(weather.rain, storm);
     out.showers = weather.rain;
+    out.gloom = weather.gloom;
     out.storm = storm;
     out.storms = storms;
   }

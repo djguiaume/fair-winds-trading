@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { STYLE_D as ST } from './boatStyle';
 import { glowing, paint } from './geometry';
 import type { BoatDetailContext } from './boatDetails';
-import { HULL_DIMENSIONS, FLUYT_HULL } from '../../sim/hullShape';
+import { HULL_DIMENSIONS, HULL_SHAPES } from '../../sim/hullShape';
 
 /** Keep the merchant's raised stern; the mizzen is fitted above it, not vice versa. */
 export const FLUYT_STERN = { front: -0.23, back: -0.465, height: 1.02, rail: 0.29 };
@@ -153,7 +153,7 @@ export function fluytDetails(c: BoatDetailContext): THREE.BufferGeometry[] {
   // The rudder follows the raked sternpost down to the underwater hull.
   // Its blade reaches 30% of hull depth below water, still above the central keel.
   const sternZ = -L / 2;
-  const sternProfile = FLUYT_HULL.rings.map(({ t, length }) => {
+  const sternProfile = HULL_SHAPES.fluyt!.rings.map(({ t, length }) => {
     const z = sternZ * length;
     return new THREE.Vector3(0, deckAt(z) - c.depth * t, z - 0.025);
   });
@@ -199,5 +199,3 @@ export function fluytDetails(c: BoatDetailContext): THREE.BufferGeometry[] {
   box(0.1, 0.1, 0.65, 0, stockTop.y, stockTop.z + 0.275, ST.mast);
   return parts;
 }
-
-export { FLUYT_HULL } from '../../sim/hullShape';

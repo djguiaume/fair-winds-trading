@@ -2,7 +2,7 @@ import type { ShipClass } from '../sim/ship';
 import type { GoodDef } from '../sim/goods';
 import type { DifficultyKnobs } from '../sim/difficulty';
 import type { WeatherConfig } from '../sim/wind';
-import ships from './tuning/ships.json';
+import { SHIP_FILES, shipClassOf } from './ships';
 import upgrades from './tuning/upgrades.json';
 import goods from './tuning/goods.json';
 import economy from './tuning/economy.json';
@@ -16,11 +16,11 @@ import seamanship from './tuning/seamanship.json';
  * so a value changed here takes effect at once (the `?tune` panel will rely on this). Change values
  * in place: the sim and its exported aliases (`SLOOP`, `GOOD_DEFS`, `DEFAULT_WEATHER`…) hold
  * references to the objects inside, so replacing a whole group would leave them on the old one.
- * Ids stay in TypeScript for now (ship ids, goods, difficulty levels); tests check the files have
- * exactly those keys. What each value means, its range and unit: `tuning-meta.ts`.
+ * Ship classes, goods and weather kinds come from their files (decisions 0108, 0109); difficulty
+ * levels stay in TypeScript. What each value means, its range and unit: `tuning-meta.ts`.
  */
 export interface Tuning {
-  /** The 7 ship classes, by id. Angles in degrees (`noGoDeg`, `turnRateDeg`). */
+  /** The ship classes, by id, from `src/data/ships/*.json`. Angles in degrees (`noGoDeg`, `turnRateDeg`). */
   ships: Record<string, ShipClass>;
   upgrades: {
     /** Multipliers per upgrade level (index 0 = level 1, stock); hull durability in points. */
@@ -48,7 +48,8 @@ export interface Tuning {
 
 /** The values as shipped. Never changed: the panel resets to these. */
 export const SHIPPED_TUNING: Readonly<Tuning> = {
-  ships,
+  // One file per ship (decision 0109): the sailing and unlock numbers of `src/data/ships/*.json`.
+  ships: Object.fromEntries(SHIP_FILES.map((f) => [f.id, shipClassOf(f)])),
   upgrades,
   goods,
   economy,

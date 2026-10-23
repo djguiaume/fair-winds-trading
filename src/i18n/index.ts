@@ -10,6 +10,7 @@
  *
  * Adding a language: copy `fr.json`, translate it, import it and add one line to `LANGUAGES` below.
  */
+import { TUNING } from '../data/tuning';
 import en from './en.json';
 import frJson from './fr.json';
 
@@ -92,10 +93,22 @@ export function translateDom(root: ParentNode = document): void {
   }
 }
 
-/** A trade good's name in the current language. */
+/** A trade good's name in the current language; a good with no translation keeps its `goods.json` name. */
 export function goodName(id: string): string {
   const key = `good.${id}` as MessageKey;
-  return key in en ? t(key) : id;
+  return key in en ? t(key) : (TUNING.goods[id]?.name ?? id);
+}
+
+/** A weather kind's name ("Gale"); a kind with no translation keeps its `weather.json` name. */
+export function weatherName(kind: string): string {
+  const key = `weather.${kind}` as MessageKey;
+  return key in en ? t(key) : (TUNING.weather.default.kinds?.[kind]?.name ?? kind);
+}
+
+/** The workshop that makes a specialty, "a smokehouse"; a newer good gets "a workshop". */
+export function workshopName(good: string): string {
+  const key = `workshop.${good}` as MessageKey;
+  return t(key in en ? key : 'workshop.any');
 }
 
 /**

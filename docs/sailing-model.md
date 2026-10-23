@@ -40,7 +40,7 @@ How boats move in Fair Winds Trading, and which numbers to change to tune the fe
 
 With 14 kn of wind, the sloop does ~8.7 kn on a beam reach, ~5 kn close-hauled and ~6 kn dead downwind.
 
-## Tuning knobs (`sloop` in `src/data/tuning/ships.json`, decision 0094)
+## Tuning knobs (`sailing` in `src/data/ships/sloop.json`, decisions 0094 and 0109)
 
 | Field | Value | Raise it to… |
 |---|---|---|

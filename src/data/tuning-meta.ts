@@ -81,7 +81,7 @@ const text = (label: string, help: string): TextMeta => ({ kind: 'text', label, 
 const toggle = (label: string, help: string): ToggleMeta => ({ kind: 'toggle', label, help });
 
 export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
-  // --- ships.json: one entry per class (decisions 0007, 0011, 0035, 0048) ---
+  // --- src/data/ships/<id>.json, `sailing` and `unlock` (decisions 0007, 0011, 0035, 0048, 0109) ---
   'ships.*.id': text('Id', 'Class id used in saves and code; must match the key.'),
   'ships.*.name': text('Name', 'English name in the code; players see the translated one.'),
   'ships.*.line': text('Line', 'starter, swift, hauler or warship (decision 0035).'),
@@ -223,7 +223,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
 
   // --- goods.json (decisions 0015, 0063, 0065) ---
   'goods.*.id': text('Id', 'Good id used in saves, maps and code; must match the key.'),
-  'goods.*.name': text('Name', 'English name in the code; players see the translated one.'),
+  'goods.*.name': text(
+    'Name',
+    'English name; players see the translation in src/i18n/*.json when there is one.',
+  ),
+  'goods.*.kind': text(
+    'Kind',
+    'raw (a bulk good ports produce), made (a workshop makes it from madeFrom) or rare (far yards).',
+  ),
   'goods.*.basePrice': num(
     'Base price',
     1,
@@ -654,7 +661,19 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     '× wind',
     'Strength multipliers [min, max] of this weather.',
   ),
+  'weather.default.kinds.*.name': text(
+    'Name',
+    'English name; the HUD shows the translation in src/i18n/*.json when there is one.',
+  ),
   'weather.default.kinds.*.rain': num('Rain', 0, 1, 0.05, undefined, 'How hard it rains.'),
+  'weather.default.kinds.*.gloom': num(
+    'Gloom',
+    0,
+    1,
+    0.05,
+    undefined,
+    'How much darker and greyer the sky gets (rain and storms darken it on their own).',
+  ),
   'weather.default.kinds.*.gusts': num(
     'Gusts',
     0,

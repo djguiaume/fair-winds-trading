@@ -2,30 +2,35 @@
   "fish": {
     "id": "fish",
     "name": "Fish",
+    "kind": "raw",
     "basePrice": 8,
     "icon": "🐟"
   },
   "grain": {
     "id": "grain",
     "name": "Grain",
+    "kind": "raw",
     "basePrice": 10,
     "icon": "🌾"
   },
   "timber": {
     "id": "timber",
     "name": "Timber",
+    "kind": "raw",
     "basePrice": 14,
     "icon": "🪵"
   },
   "stone": {
     "id": "stone",
     "name": "Stone",
+    "kind": "raw",
     "basePrice": 18,
     "icon": "🪨"
   },
   "smokedFish": {
     "id": "smokedFish",
     "name": "Smoked fish",
+    "kind": "made",
     "basePrice": 20,
     "icon": "🍢",
     "madeFrom": "fish"
@@ -33,6 +38,7 @@
   "bread": {
     "id": "bread",
     "name": "Bread",
+    "kind": "made",
     "basePrice": 24,
     "icon": "🍞",
     "madeFrom": "grain"
@@ -40,6 +46,7 @@
   "planks": {
     "id": "planks",
     "name": "Planks",
+    "kind": "made",
     "basePrice": 32,
     "icon": "🪚",
     "madeFrom": "timber"
@@ -47,6 +54,7 @@
   "cutStone": {
     "id": "cutStone",
     "name": "Cut stone",
+    "kind": "made",
     "basePrice": 40,
     "icon": "🧱",
     "madeFrom": "stone"
@@ -54,12 +62,14 @@
   "honey": {
     "id": "honey",
     "name": "Honey",
+    "kind": "rare",
     "basePrice": 55,
     "icon": "🍯"
   },
   "lampOil": {
     "id": "lampOil",
     "name": "Lamp oil",
+    "kind": "rare",
     "basePrice": 50,
     "icon": "🪔"
   }

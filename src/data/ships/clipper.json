@@ -1,0 +1,106 @@
+{
+  "id": "clipper",
+  "name": "Clipper",
+  "line": "swift",
+  "tier": 3,
+  "unlock": {
+    "standing": 6,
+    "price": 20000,
+    "upgradePrices": [5000, 15000]
+  },
+  "sailing": {
+    "noGoDeg": 40,
+    "polar": [
+      [0, 0],
+      [40, 0.47],
+      [50, 0.74],
+      [65, 0.93],
+      [100, 1],
+      [130, 0.95],
+      [160, 0.82],
+      [180, 0.72]
+    ],
+    "speedRatio": 0.9,
+    "accel": 0.46,
+    "decel": 0.24,
+    "ironsDecel": 0.85,
+    "turnRateDeg": 65,
+    "minSteerage": 0.35,
+    "steerageSpeedKn": 5.5,
+    "turnDrag": 0.16,
+    "leeway": 0.035,
+    "radius": 7,
+    "draft": 1.2,
+    "hold": 50,
+    "heel": 1.05
+  },
+  "hull": {
+    "length": 9.8,
+    "beam": 2.4,
+    "depth": 1.15,
+    "outline": [
+      [0, 0.5],
+      [0.08, 0.42],
+      [0.25, 0.29],
+      [0.43, 0.12],
+      [0.5, -0.08],
+      [0.45, -0.3],
+      [0.28, -0.5],
+      [-0.28, -0.5],
+      [-0.45, -0.3],
+      [-0.5, -0.08],
+      [-0.43, 0.12],
+      [-0.25, 0.29],
+      [-0.08, 0.42]
+    ],
+    "rings": [
+      {
+        "t": 0,
+        "beam": 1,
+        "length": 1
+      },
+      {
+        "t": 0.25,
+        "beam": 0.94,
+        "length": 0.99
+      },
+      {
+        "t": 0.65,
+        "beam": 0.56,
+        "length": 0.88
+      },
+      {
+        "t": 1,
+        "beam": 0.07,
+        "length": 0.76
+      }
+    ]
+  },
+  "model": {
+    "hullColor": "#3b3d48",
+    "bandColor": "#d8b04a",
+    "mastZ": 0.2,
+    "mastHeight": 8.8,
+    "boom": 2.45,
+    "gaff": 2.05,
+    "foremast": {
+      "z": 2.8,
+      "height": 7.6,
+      "boom": 2.2,
+      "gaff": 1.8
+    },
+    "mizzen": {
+      "z": -2.6,
+      "height": 7.8,
+      "boom": 2.15,
+      "gaff": 1.8
+    },
+    "stockJibs": 3,
+    "maxJibs": 3,
+    "cargoExtra": 2,
+    "hatchZ": 4,
+    "cargoZ": 1.5,
+    "cargoX": 0.42,
+    "parts": ["clipper-deck"]
+  }
+}

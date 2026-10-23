@@ -1,16 +1,16 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { RefinedClipper } from '../src/render/models/clipper';
-import { RefinedSchooner } from '../src/render/models/schooner';
 import { createBoatModel } from '../src/render/models';
 import { QUALITY } from '../src/render/quality';
 import { STYLE_D } from '../src/render/models/boatStyle';
 import { triangleCount } from '../src/render/models/geometry';
 import type { BoatPose } from '../src/render/models/types';
+import { shipModel } from '../src/render/models/shipModels';
+import type { RefinedBoat } from '../src/render/models/refinedBoat';
 
 const POSE: BoatPose = { sail: 1, boomAngle: 0, luff: 0, heel: 0, windRelative: 0, time: 0 };
 const v = () => new THREE.Vector3();
-const mesh = (b: RefinedClipper, name: string) => b.root.getObjectByName(name) as THREE.Mesh;
+const mesh = (b: RefinedBoat, name: string) => b.root.getObjectByName(name) as THREE.Mesh;
 const near = (a: THREE.Vector3, b: THREE.Vector3) => expect(a.distanceTo(b)).toBeLessThan(1e-5);
 const deckAt = (z: number) =>
   1.15 * STYLE_D.H * 0.55 + STYLE_D.sheer * (9.8 / 5) ** 0.5 * (z / 4.9) ** 2;
@@ -22,8 +22,8 @@ const rigs = [
 
 describe('refined clipper', () => {
   it('routes through the real factory, retains its long hull envelope and independent sections', () => {
-    const b = createBoatModel('clipper') as RefinedClipper;
-    expect(b).toBeInstanceOf(RefinedClipper);
+    const b = createBoatModel('clipper') as RefinedBoat;
+    expect((b as RefinedBoat).name).toBe('Clipper');
     expect(b.wakeHull.length).toBeCloseTo(21.56);
     expect(b.wakeHull.beam).toBeCloseTo(5.544);
     const p = mesh(b, 'ClipperHull').geometry.getAttribute('position');
@@ -32,7 +32,7 @@ describe('refined clipper', () => {
     expect(p.getZ(4 * 42 + 1) / 9.8).toBeCloseTo(-0.08);
     expect(p.getX(6 * 42 + 1) / (2.4 * STYLE_D.B)).toBeCloseTo(0.28);
     expect(p.getX(4 * 42 + 16) / p.getX(4 * 42 + 1)).toBeCloseTo(0.07);
-    const schooner = new RefinedSchooner();
+    const schooner = shipModel('schooner');
     expect(b.wakeHull.length / b.wakeHull.beam).toBeGreaterThan(
       schooner.wakeHull.length / schooner.wakeHull.beam,
     );
@@ -53,7 +53,7 @@ describe('refined clipper', () => {
     for (const sails of [1, 2, 3] as const)
       for (const hold of [1, 2, 3] as const)
         for (const hull of [1, 2, 3] as const) {
-          const b = new RefinedClipper({ upgrades: { sails, hold, hull } });
+          const b = shipModel('clipper', { upgrades: { sails, hold, hull } });
           expect(b.stats.crates + b.stats.barrels).toBe([4, 6, 9][hold - 1]);
           expect(b.stats.jibs).toBe(3); // Existing clipper caps at three, including sails 2/3.
           expect(b.stats.topsail).toBe(sails === 3);
@@ -156,7 +156,7 @@ describe('refined clipper', () => {
   });
 
   it('keeps upgrades and attachment animation on all quality levels, skips hidden rope updates and restores them', () => {
-    const b = new RefinedClipper({ upgrades: { sails: 3, hold: 3, hull: 3 } });
+    const b = shipModel('clipper', { upgrades: { sails: 3, hold: 3, hull: 3 } });
     const rope = b.root.getObjectByName('Rigging') as THREE.LineSegments;
     const p = rope.geometry.getAttribute('position') as THREE.BufferAttribute;
     for (const quality of [...Object.keys(QUALITY), 'low', 'high']) {
@@ -168,7 +168,7 @@ describe('refined clipper', () => {
       expect(mesh(b, 'Jib3').visible).toBe(true);
     }
     b.dispose();
-    const disabled = new RefinedClipper({ rigging: false });
+    const disabled = shipModel('clipper', { rigging: false });
     disabled.setLowDetail(false);
     expect(disabled.root.getObjectByName('Rigging')!.visible).toBe(false);
     disabled.dispose();

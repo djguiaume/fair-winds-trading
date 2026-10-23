@@ -1,5 +1,5 @@
 import { TUNING } from '../data/tuning';
-import type { WeatherConfig } from './wind';
+import { USUAL_WEATHER, type WeatherConfig } from './wind';
 
 /**
  * Difficulty levels (decision 0083). The boat sails the same at every level: polars, no-go zone,
@@ -82,15 +82,22 @@ export function weatherFor(
   const tuned = difficulty !== DEFAULT_DIFFICULTY;
   let kinds = weather.kinds;
   if (kinds) {
-    const gale = tuned ? k.galeWeight : kinds.gale.weight;
-    const breeze = Math.max(0, kinds.breeze.weight + kinds.gale.weight - gale);
+    // The level's gale weight replaces the gale's; the plain breeze takes up the difference.
+    const { gale, [USUAL_WEATHER]: usual } = kinds;
+    const galeWeight = gale ? (tuned ? k.galeWeight : gale.weight) : 0;
+    const shift = gale && usual ? Math.max(-usual.weight, gale.weight - galeWeight) : 0;
     const soft = steadyWind ? steady.gusts : 1;
-    kinds = {
-      calm: { ...kinds.calm, gusts: kinds.calm.gusts * soft },
-      breeze: { ...kinds.breeze, weight: breeze, gusts: kinds.breeze.gusts * soft },
-      rain: { ...kinds.rain, gusts: kinds.rain.gusts * soft },
-      gale: { ...kinds.gale, weight: gale, gusts: kinds.gale.gusts * soft },
-    };
+    kinds = Object.fromEntries(
+      Object.entries(kinds).map(([id, kind]) => [
+        id,
+        {
+          ...kind,
+          ...(id === 'gale' && usual ? { weight: galeWeight } : {}),
+          ...(id === USUAL_WEATHER && gale ? { weight: kind.weight + shift } : {}),
+          gusts: kind.gusts * soft,
+        },
+      ]),
+    );
   }
   const out: WeatherConfig = {
     ...weather,
