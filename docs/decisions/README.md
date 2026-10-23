@@ -125,6 +125,7 @@ Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decis
 | [0100](0100-hidden-hud-updates.md) | Skip covered HUD rendering and folded speed-log text, preserve cue timers, refresh immediately on return | 2026-10-23 | Implemented for review |
 | [0101](0101-island-files-built.md) | Island files built: the four port islands come from `src/data/islands/*.json` (prop catalogue, one generic builder, island checks), proven identical to the old code | 2026-10-23 | Implemented for review |
 | [0102](0102-repeatable-performance-baseline.md) | Data-defined repeated production browser workloads with frame/event and renderer statistics; reporting-only timing budgets | 2026-10-23 | Implemented for review |
+| [0103](0103-local-island-rendering.md) | Local island rendering and settlement rebuilds | 2026-10-23 | Implemented for review |
 | [0104](0104-shoreline-cache.md) | View-owned shoreline texture reused across quality changes, invalidated by current map/coast contents | 2026-10-23 | Implemented for review |
 | [0105](0105-island-builder-props.md) | Island builder part 1 in `editor.html`: open a port island, drag props from the catalogue, levels with later-level ghosts, 3D preview, live island checks, play edited islands, export Prettier-ready island JSON | 2026-10-23 | Implemented for review |
 | [0106](0106-island-builder-ground-lanes-woods.md) | Island builder part 2: sloped ground in the game (ramps, lanes climb them, no buildings on slopes), ground, lane and woods tools, painted woods areas | 2026-10-23 | Implemented for review |

@@ -26,12 +26,16 @@ function triangles(level: TownLevel, kind: string) {
 
 function built(levelsByPort?: Record<string, TownLevel>) {
   const mesh = buildHighlandIslands(PHASE1_MAP, { shadows: false, levels: levelsByPort });
-  const geometry = (mesh as THREE.Mesh).geometry;
+  let triangles = 0;
+  mesh.traverse((o) => {
+    if (o instanceof THREE.Mesh && o.name !== 'windows')
+      triangles += o.geometry.attributes.position!.count / 3;
+  });
   const result = {
-    triangles: geometry.attributes.position!.count / 3,
+    triangles,
     harbours: mesh.userData.harbours as Record<string, { x: number; y: number }>,
   };
-  geometry.dispose();
+  mesh.dispose();
   return result;
 }
 

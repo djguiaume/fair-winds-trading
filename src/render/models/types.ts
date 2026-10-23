@@ -66,5 +66,11 @@ export interface IslandBuildOptions {
   levels?: Record<string, TownLevel>;
 }
 
-/** Builds every island of a map as one object (ideally one merged mesh = one draw call). */
-export type IslandsBuilder = (map: MapDef, options: IslandBuildOptions) => THREE.Object3D;
+/** Rendered land supports incremental settlement changes without replacing stable harbour anchors. */
+export interface IslandModel extends THREE.Object3D {
+  setSettlementLevels(levels: Record<string, TownLevel>): void;
+  dispose(): void;
+}
+
+/** Builds locally culled island batches under one root object. */
+export type IslandsBuilder = (map: MapDef, options: IslandBuildOptions) => IslandModel;

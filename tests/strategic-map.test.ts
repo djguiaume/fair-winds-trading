@@ -133,11 +133,16 @@ describe('Windward Ring trading map', () => {
     expect(out.seconds + back.seconds).toBeLessThan(upwind.seconds * 2);
   }, 30000);
   it('draws barrier islands in B2 tiers inside the exact collision outline', () => {
-    const mesh = buildHighlandIslands(PHASE1_MAP, { shadows: false }) as THREE.Mesh<
-      THREE.BufferGeometry,
-      THREE.Material
-    >;
-    const pos = mesh.geometry.attributes.position!;
+    const mesh = buildHighlandIslands(PHASE1_MAP, { shadows: false });
+    const positions: THREE.BufferAttribute[] = [];
+    mesh.traverse((o) => {
+      if (o instanceof THREE.Mesh)
+        positions.push(o.geometry.attributes.position as THREE.BufferAttribute);
+    });
+    const pos = new THREE.BufferAttribute(
+      new Float32Array(positions.flatMap((p) => Array.from(p.array))),
+      3,
+    );
     expect(pos.count).toBeGreaterThan(0);
     expect(Array.from(pos.array).every(Number.isFinite)).toBe(true);
     const ocean = new Ocean(PHASE1_MAP.islands, 8, false, 480, terrain);
@@ -153,8 +158,7 @@ describe('Windward Ring trading map', () => {
       for (const inset of [4, 8, 10])
         for (const [x, y] of insetOutline(t.outline, inset))
           expect(coastDistance(x, y, t.outline).distance).toBeLessThan(-inset + 0.5);
-    mesh.geometry.dispose();
-    mesh.material.dispose();
+    mesh.dispose();
     ocean.dispose();
   });
   it('keeps every barrier and reef prop inside its shore within the mobile mesh budget', () => {
@@ -172,20 +176,14 @@ describe('Windward Ring trading map', () => {
         g.dispose();
       }
     }
-    const mesh = buildHighlandIslands(PHASE1_MAP, { shadows: false }) as THREE.Mesh<
-      THREE.BufferGeometry,
-      THREE.Material
-    >;
-    // One extra draw call at most: the window glass that lights up at night (decision 0068).
-    const windows = mesh.children as THREE.Mesh<THREE.BufferGeometry, THREE.Material>[];
-    expect(windows.length).toBeLessThanOrEqual(1);
-    const glass = windows.reduce((n, w) => n + triangleCount(w.geometry), 0);
-    // Decision 0073: allow 5% more land geometry for Calda's enlarged forested mountain.
-    expect(triangleCount(mesh.geometry) + glass).toBeLessThan(21000);
-    for (const m of [mesh, ...windows]) {
-      m.geometry.dispose();
-      m.material.dispose();
-    }
+    const mesh = buildHighlandIslands(PHASE1_MAP, { shadows: false });
+    let triangles = 0;
+    mesh.traverse((o) => {
+      if (o instanceof THREE.Mesh) triangles += triangleCount(o.geometry);
+    });
+    // Decision 0073: preserve the complete land + window triangle budget despite local batches.
+    expect(triangles).toBeLessThan(21000);
+    mesh.dispose();
   });
   it('gives every scenery island a landmark and keeps islands inside the world edge', () => {
     expect(PHASE1_MAP.islands.length).toBeLessThanOrEqual(12);

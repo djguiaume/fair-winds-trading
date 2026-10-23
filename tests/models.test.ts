@@ -102,10 +102,15 @@ describe('storybook boats (style D)', () => {
 describe('highland islands (B2)', () => {
   const map = PHASE0_MAP;
 
-  it('merges every island into one mesh within budget', () => {
-    const mesh = buildHighlandIslands(map, { shadows: false }) as THREE.Mesh;
-    expect(mesh.isMesh).toBe(true);
-    expect(triangleCount(mesh.geometry)).toBeLessThan(20000);
+  it('batches each island separately within the original triangle budget', () => {
+    const mesh = buildHighlandIslands(map, { shadows: false });
+    let triangles = 0;
+    mesh.traverse((o) => {
+      if (o instanceof THREE.Mesh) triangles += triangleCount(o.geometry);
+    });
+    expect(mesh.children).toHaveLength(map.islands.length);
+    expect(triangles).toBeLessThan(20000);
+    mesh.dispose();
   });
 
   it('keeps everything above water inside the collision circle, except the dock', () => {

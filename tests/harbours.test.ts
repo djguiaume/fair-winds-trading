@@ -13,14 +13,10 @@ import { TUNING } from '../src/data/tuning';
 // Tuning values moved to src/data/tuning (decision 0094).
 const DOCK_RANGE = TUNING.seamanship.harbour.dockRange;
 
-const mesh = buildHighlandIslands(PHASE1_MAP, { shadows: false }) as THREE.Mesh<
-  THREE.BufferGeometry,
-  THREE.Material
->;
+const mesh = buildHighlandIslands(PHASE1_MAP, { shadows: false });
 const harbours = mesh.userData.harbours as Record<string, { x: number; y: number }>;
 afterAll(() => {
-  mesh.geometry.dispose();
-  mesh.material.dispose();
+  mesh.dispose();
 });
 
 function approach(portId: string, extra = 4) {

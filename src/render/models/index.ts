@@ -10,6 +10,13 @@ import type { BoatModelFactory, IslandsBuilder } from './types';
 
 export const createBoatModel: BoatModelFactory = createShipModel;
 export const buildIslands: IslandsBuilder = buildHighlandIslands;
-export type { BoatModel, BoatModelOptions, BoatPose, ShipUpgrades, UpgradeLevel } from './types';
+export type {
+  IslandModel,
+  BoatModel,
+  BoatModelOptions,
+  BoatPose,
+  ShipUpgrades,
+  UpgradeLevel,
+} from './types';
 export type { TownLevel } from './towns';
 export { STOCK_UPGRADES } from './types';

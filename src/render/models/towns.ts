@@ -578,6 +578,7 @@ export function designedTownParts(design: IslandDesign, R: number, level: TownLe
   for (const s of layout.surfaces)
     if (s.slope && s.shape !== 'peak')
       out.push(ramp(layout, s, R, s.material === 'grass' ? C.grass : stone ? C.cut : C.rock2));
+  for (const g of out) g.userData.islandTerrain = true;
   for (const lane of design.lanes) {
     if (lane.kind === 'stairs') stairs(out, lane, R);
     else if (lane.kind === 'path') {
@@ -616,11 +617,13 @@ export function designedTownParts(design: IslandDesign, R: number, level: TownLe
     }
   }
   if (layout.lake) {
+    const lakeStart = out.length;
     terrain(insetOutline(layout.lake, -0.035), BEACH_TOP, 0.55, C.sand, [layout.lake]);
     // A true hole through the terrain; an independent still-water surface above the ocean.
     const water = new THREE.ShapeGeometry(shape(layout.lake));
     water.rotateX(-Math.PI / 2).translate(0, 0.5, 0);
     out.push(paint(water, '#319eae'));
+    for (const g of out.slice(lakeStart)) g.userData.islandTerrain = true;
   }
 
   const standing = design.props.filter((p) => atLevel(p, level));
