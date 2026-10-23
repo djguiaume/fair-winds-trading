@@ -25,6 +25,8 @@ export interface PanelHost {
   change(edit: (map: MapDef) => void, rebuildPanel?: boolean): void;
   select(selection: Selection): void;
   remove(): void;
+  /** Opens the island builder on an island with an island file (decision 0105). */
+  editIsland(id: string): void;
 }
 
 const LANDMARKS: (LandmarkKind | '')[] = ['', 'lighthouse', 'ruins', 'wreck', 'beacon'];
@@ -196,6 +198,11 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     if (!island) return;
     const port = portOn(map, island.id);
     heading(island.name ?? island.id, port ? 'island + port' : 'island');
+    if (island.look?.design) {
+      const b = buttons();
+      button(b, `✎ Edit island · ${island.look.design}.json`, () => host.editIsland(island.id));
+      b.title = 'Open the island builder (or double-click the island)';
+    }
     text('Name', island.name ?? '', (v) => renameIsland(map, island.id, v));
     xy('Position', island.x, island.y, (x, y) => moveIsland(map, island.id, x, y));
     number('Radius', island.radius, (v) => (island.radius = Math.max(3, v ?? island.radius)), {

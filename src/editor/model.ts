@@ -204,19 +204,22 @@ export function deleteSelection(map: MapDef, sel: Selection): Selection {
 
 // --- Undo ----------------------------------------------------------------------------------
 
-/** Snapshots of the whole map: tiny (about 8 KB) and impossible to get out of step. */
-export class History {
+/**
+ * Snapshots of the whole map (or island file): tiny (8 to 60 KB) and impossible to get out of
+ * step.
+ */
+export class History<T = MapDef> {
   private past: string[] = [];
   private future: string[] = [];
   constructor(private readonly limit = 200) {}
   /** Call before a change. */
-  record(map: MapDef) {
+  record(map: T) {
     this.past.push(JSON.stringify(map));
     if (this.past.length > this.limit) this.past.shift();
     this.future = [];
   }
   /** Drops the last snapshot when the change it guarded did nothing (a click without a drag). */
-  discardIfSame(map: MapDef) {
+  discardIfSame(map: T) {
     if (this.past[this.past.length - 1] === JSON.stringify(map)) this.past.pop();
   }
   get canUndo() {
@@ -225,17 +228,17 @@ export class History {
   get canRedo() {
     return this.future.length > 0;
   }
-  undo(map: MapDef): MapDef | null {
+  undo(map: T): T | null {
     const prior = this.past.pop();
     if (!prior) return null;
     this.future.push(JSON.stringify(map));
-    return JSON.parse(prior) as MapDef;
+    return JSON.parse(prior) as T;
   }
-  redo(map: MapDef): MapDef | null {
+  redo(map: T): T | null {
     const next = this.future.pop();
     if (!next) return null;
     this.past.push(JSON.stringify(map));
-    return JSON.parse(next) as MapDef;
+    return JSON.parse(next) as T;
   }
 }
 
@@ -247,8 +250,27 @@ export class History {
  * except small level tables; arrays on one line when they fit, except lists of points.
  */
 export function formatMapJson(map: MapDef): string {
+  // Level tables ({ "3": ["grain"] }) stay on one line when they fit, as in the file.
+  return formatJson(map, (x) => Array.isArray(x) && x.every(isPlain));
+}
+
+/**
+ * Writes an island file (decision 0096) the way Prettier formats `src/data/islands/*.json`:
+ * small flat objects (piers, ground on a coast, short props) on one line when they fit.
+ */
+export function formatIslandJson(design: unknown): string {
+  return formatJson(design, isPlain);
+}
+
+const isPlain = (v: unknown) => v === null || typeof v !== 'object';
+
+/**
+ * Prettier's JSON layout at print width 100: arrays on one line when they fit, except lists of
+ * two or more points or objects; objects one key per line unless every value passes `flat` and
+ * the object fits.
+ */
+function formatJson(value: unknown, flat: (v: unknown) => boolean): string {
   const WIDTH = 100;
-  const isPlain = (v: unknown) => v === null || typeof v !== 'object';
   const inline = (v: unknown): string =>
     Array.isArray(v)
       ? `[${v.map(inline).join(', ')}]`
@@ -273,9 +295,7 @@ export function formatMapJson(map: MapDef): string {
     if (v && typeof v === 'object') {
       const entries = Object.entries(v);
       if (!entries.length) return `${prefix}{}`;
-      // Level tables ({ "3": ["grain"] }) stay on one line when they fit, as in the file.
-      const table = entries.every(([, x]) => Array.isArray(x) && x.every(isPlain));
-      if (table && indent.length + one.length <= WIDTH) return one;
+      if (entries.every(([, x]) => flat(x)) && indent.length + one.length <= WIDTH) return one;
       const inner = indent + '  ';
       return `${prefix}{\n${entries
         .filter(([, x]) => x !== undefined)
@@ -284,5 +304,5 @@ export function formatMapJson(map: MapDef): string {
     }
     return one;
   };
-  return write(map, '', '') + '\n';
+  return write(value, '', '') + '\n';
 }
