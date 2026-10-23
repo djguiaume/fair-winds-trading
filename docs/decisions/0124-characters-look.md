@@ -1,6 +1,6 @@
 # 0124. Characters' look: code-drawn portraits, dialogue card and journal on the chart
 
-**Status:** Accepted, 2026-10-23: Guillaume picked **B, low-poly**. Portrait builder and `characters.json` implemented for review; the dialogue card and journal screens follow with the quest engine.
+**Status:** Accepted, 2026-10-23: Guillaume picked **B, low-poly**. Portrait builder and `characters.json` merged (PR #105); quest card, chart journal and faces on the chart implemented on the quest engine ([0125](0125-quest-engine.md)), [screenshots](../reviews/characters/README.md#in-the-game).
 
 ## Context
 
@@ -20,6 +20,13 @@ Static mockups for desktop, phone landscape and phone portrait: [characters revi
 2. **Dialogue card:** portrait overlapping the card's edge, name and role, arc name with step pips, 2 to 4 lines, the ask in a brass box (goods icon, amount, where, what it leads to), **I'll bring it** / **Not now**. Shown on docking where someone has something for you, and from the port. Bottom card on desktop, low card with a button column on phone landscape, bottom sheet on phone portrait. The same card carries the end-of-arc choice of two buildings.
 3. **Journal on the chart:** people pins (small portraits on their ports, amber ! for something new, brass glow for the tracked one), a dashed brass line from the tracked step to where its goods are, and a journal panel (tracked arc and its steps; other people one line each). Right panel on desktop, left drawer on phone landscape, bottom sheet on phone portrait.
 4. Text stays in `en.json` / `fr.json`; quests and steps in the quest format of [0113](0113-levels-tutorial-and-music-as-data.md) (data shape with the quest engine work).
+
+## Built (quest card and journal)
+
+- `src/ui/questView.ts` reads the quest engine and the quest files into plain data (tested in `tests/quest-ui.test.ts`); `src/ui/questCard.ts` draws the card; `src/ui/seaChart.ts` draws the faces, the tracked step's place and the Journal panel; `src/ui/quests.css` holds the style.
+- **When a card shows:** an offer when you dock at its port ("Not now" lasts until you dock there again); each new step once, at its port (the step's `port`, else the quest's; none: at once); the thanks, pleased, at the quest's port once it is done. Selling goods moves a quest on while the market is open, so the next card follows the sale.
+- **Journal:** a book button on the chart with a count of new offers. It opens by itself beside the sea on wide screens while a quest is tracked; on phones it is a drawer (landscape) or a bottom sheet (portrait). Tap another person's line to track their quest.
+- Quest steps gained `mood` and `look` (for the interface only).
 
 ## Consequences
 

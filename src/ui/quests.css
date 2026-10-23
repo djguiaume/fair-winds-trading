@@ -22,6 +22,11 @@ dialog.quest-card {
 dialog.quest-card::backdrop {
   background: linear-gradient(180deg, rgba(6, 20, 28, 0.1) 30%, rgba(6, 20, 28, 0.7));
 }
+.quest-card .icon {
+  width: 1.1em;
+  height: 1.1em;
+  flex: none;
+}
 .quest-face {
   position: absolute;
   top: calc(var(--face) * -0.35);
@@ -103,6 +108,7 @@ dialog.quest-card::backdrop {
 }
 .quest-count {
   color: var(--amber);
+  white-space: nowrap;
 }
 .quest-actions {
   display: flex;
@@ -330,6 +336,7 @@ dialog.quest-card::backdrop {
 }
 .journal-steps b {
   color: var(--amber);
+  white-space: nowrap;
 }
 .journal-check {
   display: inline-flex;

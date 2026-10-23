@@ -149,3 +149,15 @@ describe('QuestCard', () => {
     expect(card.isOpen).toBe(false);
   });
 });
+
+describe('stepProgress', () => {
+  it('counts goods handed over, quest cargo delivered and markers reached', async () => {
+    const { stepProgress } = await import('../src/ui/questView');
+    expect(stepProgress({ is: 'delivered', qty: 12 }, [4])).toBe('4 / 12');
+    expect(stepProgress({ is: 'carried', qty: 2 }, [1, 1])).toBe('1 / 2');
+    const points = [{}, {}, {}];
+    expect(stepProgress({ is: 'reach', points }, [0b101])).toBe('2 / 3');
+    expect(stepProgress({ is: 'reach', points, order: 'in-order' }, [1])).toBe('1 / 3');
+    expect(stepProgress({ is: 'docked', port: 'calda' }, [])).toBeUndefined();
+  });
+});
