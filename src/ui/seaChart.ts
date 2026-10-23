@@ -11,7 +11,7 @@ import { goodName, t } from '../i18n';
 import { icon, COIN } from './icons';
 import { drawHazard } from './hazardMarker';
 import { portraitSvg } from './portraits';
-import type { JournalEntry, QuestPin } from './questView';
+import type { JournalEntry, QuestPin, QuestTarget } from './questView';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -33,7 +33,7 @@ const overlap = (a: Box, b: Box) =>
 /** What the chart shows of the quests (decision 0124); see `questView.ts`. */
 export interface ChartQuests {
   pins(): QuestPin[];
-  target(): { port: string; radius?: number } | null;
+  target(): QuestTarget | null;
   journal(): JournalEntry[];
   track(quest: string): void;
 }
@@ -439,7 +439,7 @@ export class SeaChart {
       return this.harbours[id] ?? island ?? null;
     };
     const target = quests.target();
-    const at = target && pierOf(target.port);
+    const at = target && (target.point ?? (target.port ? pierOf(target.port) : null));
     if (target && at) {
       shape('line', { x1: boat.x, y1: -boat.y, x2: at.x, y2: -at.y, class: 'chart-quest-route' });
       shape('circle', {
