@@ -21,6 +21,7 @@ import {
   moveWaypoint,
 } from './model';
 import { renderPanel } from './panel';
+import { hasIslandFile, islandOpen, openIsland, setupIslandBuilder } from './island/builder';
 
 /**
  * Map editor page (decision 0095), published next to the game like the model sheet. It edits the
@@ -121,8 +122,27 @@ function drawPanel() {
     },
     select,
     remove,
+    editIsland,
   });
 }
+
+/** Opens the island builder (decision 0105) on a port island that has an island file. */
+function editIsland(id: string) {
+  const island = findIsland(map, id);
+  if (island && hasIslandFile(island)) openIsland(island);
+}
+setupIslandBuilder({
+  mapName: () => map.name,
+  close: () => {
+    // Island edits can move coasts the chart and the checks use.
+    commit(true);
+  },
+});
+svg.addEventListener('dblclick', (e) => {
+  const hit = (e.target as Element).closest('[data-hit]')?.getAttribute('data-hit') ?? '';
+  const [kind, id] = hit.split(':');
+  if (kind === 'island' && id) editIsland(id);
+});
 
 /** After any edit: redraw, save the working copy for "Play this map", rerun the checks. */
 function commit(rebuildPanel = true) {
@@ -401,6 +421,7 @@ function nudge(dx: number, dy: number) {
 }
 
 document.addEventListener('keydown', (e) => {
+  if (islandOpen()) return;
   const target = e.target as HTMLElement;
   if (target.closest('input, select, textarea')) return;
   const mod = e.ctrlKey || e.metaKey;

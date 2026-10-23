@@ -31,7 +31,7 @@ Everything stays static on GitHub Pages: the tools are extra pages and a hidden 
 |---|---|---|
 | Map: islands, coastlines, reefs, start, course, bounds, base wind | `src/data/phase1-map.json` | ✅ data |
 | Ports: makes, wants, level, what unlocks at each level, yards, hidden | same JSON | ✅ data |
-| All player text, English and French | `src/i18n/en.ts`, `fr.ts` | ✅ data-like (typed TS dictionaries) |
+| All player text, English and French | `src/i18n/en.json`, `fr.json` | ✅ data ([0107](../../decisions/0107-text-in-json-files.md)) |
 | Ship classes: polar curves, speed, turning, hold, price, upgrade prices (7 ships) | `src/sim/ship.ts` | ❌ code |
 | Upgrade effects (sails/hold/hull per level) | `src/sim/upgrades.ts` | ❌ code |
 | Goods: base prices, what each specialty is made from, icons | `src/sim/goods.ts` | ❌ code |

@@ -122,10 +122,10 @@ Manual ship purchasing, switching and the distinct swift/hauler lineup remain. O
 
 1. Tuning to data: `src/data/tuning/*.json` and a live `TUNING` object, no gameplay change (implemented for review, [0094](decisions/0094-tuning-moved-to-data.md)).
 2. Map editor page `editor.html` (in parallel with 1): built, [0095](decisions/0095-map-editor.md), [how to use](map-editor/README.md).
-3. Content as data: goods, town levels, weather kinds; one file per ship (`model`, `sailing`, `unlock`).
+3. Content as data: goods, town levels, weather kinds; one file per ship (`model`, `sailing`, `unlock`). **Text done** ([0107](decisions/0107-text-in-json-files.md), [how to edit](i18n/README.md)): all player text is in `src/i18n/en.json` and `fr.json`.
 4. In-game tuning panel (`?tune`): live edit, export, share link.
 5. Balance check in the panel (the economy simulation on edited values).
-6. Island builder ([0096](decisions/0096-island-files-and-island-builder.md), [mockup and plan](island-builder/README.md)), mockup approved: one file per port island (coasts, raised ground, lanes, props per level), then a builder in `editor.html` to place houses, lighthouses or woodpiles, shape the ground (cliffs or slopes) and draw lanes for each level. **Island files done** ([0101](decisions/0101-island-files-built.md), [format](island-builder/files/README.md)): the four port islands come from `src/data/islands/*.json`, identical to before; next, the builder.
+6. Island builder ([0096](decisions/0096-island-files-and-island-builder.md), [mockup and plan](island-builder/README.md)), mockup approved: one file per port island (coasts, raised ground, lanes, props per level), then a builder in `editor.html` to place houses, lighthouses or woodpiles, shape the ground (cliffs or slopes) and draw lanes for each level. **Island files done** ([0101](decisions/0101-island-files-built.md), [format](island-builder/files/README.md)): the four port islands come from `src/data/islands/*.json`, identical to before. **Builder part 1 built** ([0105](decisions/0105-island-builder-props.md), [how to use](island-builder/builder/README.md)): props, levels, 3D preview, checks, play and export. **Part 2 built** ([0106](decisions/0106-island-builder-ground-lanes-woods.md)): ground with cliff or slope edges, mountains, the lake, lanes, paths and stairs that climb slopes, painted woods.
 
 ## Between Phases 2 and 4 — Selectable maps and persistent unlocks
 

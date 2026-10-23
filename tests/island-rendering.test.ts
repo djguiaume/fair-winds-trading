@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
+import { ISLAND_DESIGNS, useIslandDesign } from '../src/data/islands';
 import { HighlandIslands, islandParts } from '../src/render/models/highlandIslands';
 import { settlementLevels } from '../src/sim/settlement';
 import { createWorld } from '../src/sim/world';
@@ -135,6 +136,39 @@ describe('local island rendering', () => {
     expect(land.some((m) => frustum.intersectsObject(m))).toBe(true);
     expect(land.some((m) => !frustum.intersectsObject(m))).toBe(true);
     model.dispose();
+  });
+
+  it('retains sloped terrain across growth and builds edited designs without stale geometry', () => {
+    const original = ISLAND_DESIGNS.calda!;
+    const edited = structuredClone(original);
+    edited.ground[1]!.slope = 0.15;
+    edited.props.push({ type: 'lamp-post', x: 0.2, z: 0.4, y: 0.32, from: 1 });
+    const island = PHASE1_MAP.islands.find((i) => i.id === 'calda')!;
+    const port = PHASE1_MAP.ports.find((p) => p.islandId === island.id)!;
+    const map = { ...PHASE1_MAP, islands: [island], ports: [port], terrain: [] };
+    const before = new HighlandIslands(map, true, { [port.id]: 1 });
+    try {
+      useIslandDesign(edited);
+      const model = new HighlandIslands(map, true, { [port.id]: 1 });
+      const oldGeometry = meshes(before).map((m) => m.geometry);
+      const currentGeometry = meshes(model).map((m) => m.geometry);
+      expect(vertices(currentGeometry)).not.toEqual(vertices(oldGeometry));
+      const terrain = model.getObjectByName('terrain') as THREE.Mesh;
+      const originalTerrain = before.getObjectByName('terrain') as THREE.Mesh;
+      // The ramp belongs to terrain, so its extra triangles are retained through town growth.
+      expect(terrain.geometry.attributes.position!.count).toBeGreaterThan(
+        originalTerrain.geometry.attributes.position!.count,
+      );
+      model.setSettlementLevels({ [port.id]: 4 });
+      expect(model.getObjectByName('terrain')).toBe(terrain);
+      const expected = islandParts(island, map, map.seed * 1000, undefined, 4);
+      expect(vertices(meshes(model).map((m) => m.geometry))).toEqual(vertices(expected));
+      for (const g of expected) g.dispose();
+      model.dispose();
+    } finally {
+      useIslandDesign(original);
+      before.dispose();
+    }
   });
 
   it('uses restored levels immediately and supports arbitrary ids and map placement', () => {
