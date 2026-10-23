@@ -13,7 +13,10 @@ import type { IslandDef } from '../sim/map';
 export type IslandStyle = 'fish' | 'timber' | 'grain' | 'stone';
 export type Point = [number, number];
 
-/** Raised ground: every edge is a cliff. Low ground that is a coast's beach inset names the coast. */
+/**
+ * Raised ground: every edge is a cliff unless it is sloped (decision 0096 §4). Low ground that is
+ * a coast's beach inset names the coast.
+ */
 export interface GroundDef {
   /** Index of a coast whose outline, inset by the beach width, this ground covers. */
   coast?: number;
@@ -24,6 +27,10 @@ export interface GroundDef {
   /** A rock cone over the outline instead of a flat top, rising from `base`. */
   shape?: 'peak';
   base?: number;
+  /** A ramp of this width (radius units) down from the edges, outward, instead of a cliff. */
+  slope?: number;
+  /** Which edges slope, as runs of edge indices [first, last]; left out, every edge. */
+  slopeEdges?: [number, number][];
   from?: number;
   to?: number;
 }
@@ -87,6 +94,8 @@ export interface WoodsDef {
   spacingAt?: [number, number][];
   /** Circles [x, z, r] kept clear of trees. */
   clear?: [number, number, number][];
+  /** Painted circles [x, z, r] where trees may grow; left out or empty, anywhere in `area`. */
+  areas?: [number, number, number][];
 }
 
 export interface IslandDesign {

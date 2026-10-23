@@ -1,6 +1,6 @@
 # Island builder: mockup and plan
 
-*Decision [0096](../decisions/0096-island-files-and-island-builder.md), accepted: Guillaume approved this mockup on 2026-10-23. Step 2, the island files, is built ([0101](../decisions/0101-island-files-built.md)); step 3, the builder, has its first part ([0105](../decisions/0105-island-builder-props.md), [how to use](builder/README.md)). This page is the mockup and the plan.*
+*Decision [0096](../decisions/0096-island-files-and-island-builder.md), accepted: Guillaume approved this mockup on 2026-10-23. Step 2, the island files, is built ([0101](../decisions/0101-island-files-built.md)); step 3, the builder, is built in two parts ([0105](../decisions/0105-island-builder-props.md), [0106](../decisions/0106-island-builder-ground-lanes-woods.md), [how to use](builder/README.md)). This page is the mockup and the plan.*
 
 ![Overview](overview.png)
 
@@ -62,7 +62,7 @@ About one pull request. Risk: small floating-point or ordering differences in th
 
 ### Step 3: Island builder UI
 
-**Part 1 built ([0105](../decisions/0105-island-builder-props.md), [how to use](builder/README.md)):** island view, props, levels, 3D preview, checks, play and export. Part 2 (ground, slopes, lanes, woods) next.
+**Part 1 built ([0105](../decisions/0105-island-builder-props.md), [how to use](builder/README.md)):** island view, props, levels, 3D preview, checks, play and export. **Part 2 built ([0106](../decisions/0106-island-builder-ground-lanes-woods.md)):** ground with cliff or slope edges, mountain, lake, lanes, paths and stairs, painted woods.
 
 In `editor.html`, under `src/editor/island/`, following this mockup:
 

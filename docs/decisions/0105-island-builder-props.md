@@ -1,6 +1,6 @@
 # 0105. Island builder, part 1: props, levels, preview, checks and export
 
-**Status:** Implemented for review (2026-10-23). Step 3 of [0096](0096-island-files-and-island-builder.md) (accepted, mockup approved), on the island files of [0101](0101-island-files-built.md). Part 2 (ground, slopes, lanes, woods) follows in its own pull request. How to use it: [docs/island-builder/builder](../island-builder/builder/README.md).
+**Status:** Implemented for review (2026-10-23). Step 3 of [0096](0096-island-files-and-island-builder.md) (accepted, mockup approved), on the island files of [0101](0101-island-files-built.md). Part 2 (ground, slopes, lanes, woods): [0106](0106-island-builder-ground-lanes-woods.md). How to use it: [docs/island-builder/builder](../island-builder/builder/README.md).
 
 ## Context
 

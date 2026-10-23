@@ -157,15 +157,59 @@ const PROP_KEYS: (keyof PropDef)[] = [
   'to',
 ];
 
-/** A copy of the design with every prop's keys in the files' order. */
+/** Keys in a fixed order, then any others as they come; undefined values are left out. */
+function ordered<T extends object>(value: T, keys: string[]): T {
+  const out: Record<string, unknown> = {};
+  const v = value as Record<string, unknown>;
+  for (const k of keys) if (v[k] !== undefined) out[k] = v[k];
+  for (const [k, x] of Object.entries(v)) if (!(k in out) && x !== undefined) out[k] = x;
+  return out as T;
+}
+
+/** A copy of the design with every key in the shipped files' order. */
 export function tidyDesign(design: IslandDesign): IslandDesign {
+  const d = ordered(design, [
+    'id',
+    'name',
+    'style',
+    'seed',
+    'coasts',
+    'lake',
+    'ground',
+    'lanes',
+    'piers',
+    'props',
+    'woods',
+  ]);
   return {
-    ...design,
-    props: design.props.map((p) => {
-      const out: Record<string, unknown> = {};
-      for (const k of PROP_KEYS) if (p[k] !== undefined) out[k] = p[k];
-      for (const [k, v] of Object.entries(p)) if (!(k in out)) out[k] = v;
-      return out as unknown as PropDef;
-    }),
+    ...d,
+    ground: d.ground.map((g) =>
+      ordered(g, [
+        'coast',
+        'outline',
+        'holes',
+        'height',
+        'material',
+        'shape',
+        'base',
+        'slope',
+        'slopeEdges',
+        'from',
+        'to',
+      ]),
+    ),
+    lanes: d.lanes.map((l) => ordered(l, ['kind', 'points', 'y', 'base'])),
+    props: d.props.map((p) => ordered(p, PROP_KEYS as string[])),
+    woods: ordered(d.woods, [
+      'tree',
+      'tries',
+      'area',
+      'size',
+      'margin',
+      'spacing',
+      'spacingAt',
+      'clear',
+      'areas',
+    ]),
   };
 }

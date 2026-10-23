@@ -37,6 +37,21 @@ import {
 } from './doc';
 import { drawOverlay } from './overlay';
 import { renderIslandPanel } from './panel';
+import { renderShapePanel } from './shapePanel';
+import {
+  type Shape,
+  addLake,
+  addLane,
+  addMountain,
+  addPlateau,
+  deletePoint,
+  deleteShape,
+  insertPoint,
+  movePoint,
+  paintWoods,
+  pointsOf,
+  toggleSlopeEdge,
+} from './shapes';
 import { Preview, TopView, mergeParts, thumbnails, type IslandView } from './scene';
 
 /**
@@ -100,6 +115,16 @@ let thumbStyle = '';
 let group: PropGroup | 'all' = 'all';
 /** A palette prop waiting for a tap on the island (touch), or being dragged in (mouse). */
 let armed: string | null = null;
+/** The tools out: props, or ground (with woods) and lanes (part 2 of decision 0105). */
+type Mode = 'props' | 'ground' | 'lanes';
+let mode: Mode = 'props';
+let shapeSel: { shape: Shape; point?: number } | null = null;
+type ShapeTool = 'plateau' | 'mountain' | 'lake' | 'grow' | 'clear' | 'lane' | 'path' | 'stairs';
+let tool: ShapeTool | null = null;
+/** A lane being drawn (with heights for stairs), and the pointer while drawing or painting. */
+let drawing: number[][] | null = null;
+let hover: [number, number] | undefined;
+let brush = 0.12;
 const view: IslandView = { cx: 0, cz: 0, upp: 0.01 };
 let fitted = true;
 
@@ -124,6 +149,9 @@ export function openIsland(target: IslandDef) {
   design = structuredClone(ISLAND_DESIGNS[id]!);
   R = target.radius / ISLAND_SCALE;
   selection = null;
+  shapeSel = null;
+  tool = null;
+  drawing = null;
   history = new History<IslandDesign>();
   issues = [];
   triangles = [];
@@ -144,6 +172,7 @@ export function openIsland(target: IslandDef) {
   }
   drawPalette();
   drawLevels();
+  setMode(mode);
   placePreview();
   fit();
   commit(false);
@@ -256,10 +285,36 @@ function draw() {
     hull,
     issues,
     drop,
+    mode,
+    shape: shapeSel,
+    drawing: drawing ? { points: drawing, hover } : undefined,
+    brush:
+      hover && (tool === 'grow' || tool === 'clear')
+        ? { x: hover[0], z: hover[1], r: brush, mode: tool }
+        : undefined,
   });
 }
 
 function drawPanel() {
+  drawSelectionBar();
+  if (mode !== 'props')
+    return renderShapePanel($('ib-panel'), {
+      design,
+      mode,
+      shape: shapeSel,
+      brush,
+      setBrush: (r) => {
+        brush = r;
+        draw();
+      },
+      change: (edit) => {
+        history.record(design);
+        edit(design);
+        commit();
+      },
+      remove: removeShape,
+      heightAt,
+    });
   renderIslandPanel($('ib-panel'), {
     design,
     selection,
@@ -277,14 +332,18 @@ function drawPanel() {
     remove,
     groundOf,
   });
-  drawSelectionBar();
+}
+
+/** The ground's height at a point (the beach is 0), at the level shown. */
+function heightAt(x: number, z: number) {
+  return layoutGround(islandLayout(design, level), x, z, 0) ?? 0;
 }
 
 /** In portrait, the selected prop's quick actions above the palette (the mockup's card). */
 function drawSelectionBar() {
   const bar = $('ib-selbar');
   bar.replaceChildren();
-  const p = selection !== null ? design.props[selection] : undefined;
+  const p = selection !== null && mode === 'props' ? design.props[selection] : undefined;
   bar.hidden = !p;
   if (!p) return;
   const img = document.createElement('img');
@@ -336,6 +395,9 @@ function commit(record = true) {
   design = structuredClone(design);
   useIslandDesign(design);
   if (selection !== null && !design.props[selection]) selection = null;
+  if (shapeSel && !shapeExists(shapeSel.shape)) shapeSel = null;
+  if (shapeSel?.point !== undefined && !pointsOf(design, shapeSel.shape)?.[shapeSel.point])
+    delete shapeSel.point;
   const edited = !sameDesign(design, SHIPPED[design.id]!);
   $('ib-edited').hidden = !edited;
   $<HTMLButtonElement>('ib-undo').disabled = !history.canUndo;
@@ -377,12 +439,48 @@ function duplicate() {
   commit();
 }
 
+const shapeExists = (shape: Shape) =>
+  shape.kind === 'coast'
+    ? !!design.coasts[shape.index]
+    : shape.kind === 'ground'
+      ? !!design.ground[shape.index]
+      : shape.kind === 'lake'
+        ? !!design.lake
+        : !!design.lanes[shape.index];
+
+function removeShape() {
+  if (!shapeSel) return;
+  history.record(design);
+  if (shapeSel.point !== undefined) {
+    if (!deletePoint(design, shapeSel.shape, shapeSel.point)) history.discardIfSame(design);
+    delete shapeSel.point;
+  } else if (deleteShape(design, shapeSel.shape)) shapeSel = null;
+  commit();
+}
+
+const TOOL_HINTS: Record<ShapeTool, string> = {
+  plateau: 'Click the island to add raised ground there · Esc cancels',
+  mountain: 'Click the island to add a mountain · Esc cancels',
+  lake: 'Click the island to add the lake · Esc cancels',
+  grow: 'Paint where trees may grow · Esc stops',
+  clear: 'Paint where trees are cleared · Esc stops',
+  lane: 'Click to add bends; click the last point again or press Enter to finish · Esc cancels',
+  path: 'Click to add bends; click the last point again or press Enter to finish · Esc cancels',
+  stairs: 'Click the foot and the top of a cliff (and any bends); Enter finishes · Esc cancels',
+};
+
 function hint(text?: string) {
   $('ib-hint').textContent =
     text ??
-    (armed
-      ? `Click the island to place a ${propName(armed).toLowerCase()} from level ${level} · Esc cancels`
-      : 'Drag a prop from the palette · drag props to move them · R / Shift+R turn 15° · Delete removes · a prop belongs to the level it first appears');
+    (tool
+      ? TOOL_HINTS[tool]
+      : mode === 'ground'
+        ? 'Click the coast, raised ground, a mountain or the lake · drag a square to move a point, a ring to add one · click an edge: cliff ↔ slope · Delete removes'
+        : mode === 'lanes'
+          ? 'Click a lane to edit it · drag a square to move a point, a ring to add one · Delete removes'
+          : armed
+            ? `Click the island to place a ${propName(armed).toLowerCase()} from level ${level} · Esc cancels`
+            : 'Drag a prop from the palette · drag props to move them · R / Shift+R turn 15° · Delete removes · a prop belongs to the level it first appears');
 }
 
 // --- Checks --------------------------------------------------------------------------------
@@ -540,6 +638,162 @@ function arm(type: string | null) {
   hint();
 }
 
+// --- Modes and the ground and lane tools ----------------------------------------------------
+
+function setMode(next: Mode) {
+  mode = next;
+  setTool(null);
+  shapeSel = null;
+  if (mode !== 'props') {
+    selection = null;
+    arm(null);
+  }
+  for (const b of document.querySelectorAll<HTMLElement>('#ib-modes button, #ib-tabs [data-mode]'))
+    b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
+  syncTabs();
+  $('ib-prop-tools').hidden = mode !== 'props';
+  $('ib-shape-tools').hidden = mode === 'props';
+  drawTools();
+  draw();
+  drawPanel();
+  hint();
+}
+for (const b of $('ib-modes').querySelectorAll<HTMLElement>('button'))
+  b.addEventListener('click', () => setMode(b.dataset.mode as Mode));
+
+function setTool(next: ShapeTool | null) {
+  tool = next;
+  drawing = null;
+  hover = undefined;
+  svg.classList.toggle('tool', !!tool);
+  for (const b of $('ib-shape-tools').querySelectorAll<HTMLElement>('.ib-tool'))
+    b.setAttribute('aria-pressed', String(b.dataset.tool === tool));
+  hint();
+}
+
+const TOOLS: Record<'ground' | 'lanes', [string, string | ShapeTool, string, string][]> = {
+  ground: [
+    ['Ground', 'coast', '🏝️', 'Coast: Drag a point, or a ring on an edge to add one'],
+    ['Ground', 'plateau', '⛰️', 'Raised ground: A plateau or terrace, with cliff or slope edges'],
+    ['Ground', 'mountain', '🗻', 'Mountain: A rocky peak'],
+    ['Ground', 'lake', '💧', 'Lake: Inland water, kept clear of homes'],
+    ['Woods', 'grow', '🌲', 'Grow woods: Paint the woods; once painted, trees grow only there'],
+    ['Woods', 'clear', '🪓', 'Clear trees: Paint where none grow'],
+  ],
+  lanes: [
+    ['Lanes', 'lane', '〰️', 'Lane: Shows near the homes standing at each level'],
+    ['Lanes', 'path', '┈', 'Path: Always shown'],
+    ['Lanes', 'stairs', '🪜', 'Stairs: Climb a cliff between two ground levels'],
+  ],
+};
+
+function drawTools() {
+  const box = $('ib-shape-tools');
+  box.replaceChildren();
+  if (mode === 'props') return;
+  let heading = '';
+  for (const [group, id, icon, text] of TOOLS[mode]) {
+    if (group !== heading) {
+      heading = group;
+      const h = document.createElement('h3');
+      h.textContent = group;
+      box.append(h);
+    }
+    const [name, rest] = text.split(': ');
+    const b = document.createElement('button');
+    b.className = 'ib-tool';
+    b.dataset.tool = id;
+    b.innerHTML = '<span></span><span><b></b><small></small></span>';
+    b.querySelector('span')!.textContent = icon;
+    b.querySelector('b')!.textContent = name!;
+    b.querySelector('small')!.textContent = rest!;
+    if (id === 'lake' && design.lake) b.disabled = true;
+    b.addEventListener('click', () => {
+      if (id === 'coast') {
+        setTool(null);
+        selectShape({ kind: 'coast', index: 0 });
+      } else setTool(tool === id ? null : (id as ShapeTool));
+    });
+    box.append(b);
+  }
+  setTool(tool);
+}
+
+function selectShape(next: Shape | null, point?: number) {
+  shapeSel = next ? { shape: next, point } : null;
+  draw();
+  drawPanel();
+}
+
+/** Ends the lane being drawn: two points or more make a lane, path or stairs. */
+function finishDrawing() {
+  const points = drawing;
+  const kind = tool as 'lane' | 'path' | 'stairs';
+  setTool(null);
+  if (points && points.length >= 2) {
+    history.record(design);
+    shapeSel = { shape: { kind: 'lane', index: addLane(design, kind, points) } };
+    commit();
+  } else draw();
+}
+
+/** A press on the island with the ground or lane tools out. */
+function shapePointerDown(e: PointerEvent, x: number, z: number, kind: string, args: string[]) {
+  if (tool === 'plateau' || tool === 'mountain' || tool === 'lake') {
+    history.record(design);
+    const under = heightAt(x, z);
+    if (tool === 'lake') {
+      if (addLake(design, x, z)) shapeSel = { shape: { kind: 'lake' } };
+    } else {
+      const add = tool === 'plateau' ? addPlateau : addMountain;
+      shapeSel = { shape: { kind: 'ground', index: add(design, x, z, under, level) } };
+    }
+    setTool(null);
+    commit();
+    drawTools();
+    return;
+  }
+  if (tool === 'grow' || tool === 'clear') {
+    history.record(design);
+    paintWoods(design, x, z, brush, tool);
+    drag = { kind: 'paint' };
+    draw();
+    return;
+  }
+  if (tool) {
+    // Drawing a lane: a click on the last point finishes it.
+    const last = drawing?.[drawing.length - 1];
+    if (last && Math.hypot(last[0]! - x, last[1]! - z) < 10 * view.upp) return finishDrawing();
+    drawing ??= [];
+    drawing.push(tool === 'stairs' ? [x, z, heightAt(x, z)] : [x, z]);
+    draw();
+    return;
+  }
+  const sel = shapeSel;
+  if (kind === 'pt' && sel) {
+    history.record(design);
+    sel.point = Number(args[0]);
+    drag = { kind: 'point' };
+    draw();
+  } else if (kind === 'ins' && sel) {
+    history.record(design);
+    sel.point = insertPoint(design, sel.shape, Number(args[0]));
+    drag = { kind: 'point' };
+    draw();
+  } else if (kind === 'edge' && sel?.shape.kind === 'ground') {
+    history.record(design);
+    toggleSlopeEdge(design, sel.shape.index, Number(args[0]));
+    commit();
+  } else if (kind === 'shape') {
+    const [k, i] = args;
+    selectShape(k === 'lake' ? { kind: 'lake' } : ({ kind: k, index: Number(i) } as Shape));
+    drag = { kind: 'pan', sx: e.clientX, sy: e.clientY, cx: view.cx, cz: view.cz };
+  } else {
+    if (shapeSel) selectShape(null);
+    drag = { kind: 'pan', sx: e.clientX, sy: e.clientY, cx: view.cx, cz: view.cz };
+  }
+}
+
 const TOGGLES: [string, () => boolean, (v: boolean) => void][] = [
   ['Outlines', () => outlines, (v) => (outlines = v)],
 ];
@@ -564,6 +818,8 @@ $<HTMLInputElement>('ib-later').addEventListener('change', (e) => {
 type Drag =
   | { kind: 'prop'; index: number; dx: number; dz: number; sx: number; sy: number; moved: boolean }
   | { kind: 'turn'; index: number }
+  | { kind: 'point' }
+  | { kind: 'paint' }
   | { kind: 'pan'; sx: number; sy: number; cx: number; cz: number };
 let drag: Drag | null = null;
 const pointers = new Map<number, { x: number; y: number }>();
@@ -713,7 +969,8 @@ svg.addEventListener('pointerdown', (e) => {
   }
   const p = toIsland(e);
   const hit = (e.target as Element).closest('[data-hit]')?.getAttribute('data-hit') ?? 'sea';
-  const [kind, arg] = hit.split(':');
+  const [kind, arg, ...more] = hit.split(':');
+  if (mode !== 'props') return shapePointerDown(e, p.x, p.z, kind!, [arg ?? '', ...more]);
   if (armed) {
     const type = armed;
     arm(null);
@@ -743,7 +1000,15 @@ svg.addEventListener('pointerdown', (e) => {
 });
 
 svg.addEventListener('pointermove', (e) => {
-  if (!pointers.has(e.pointerId)) return;
+  if (!pointers.has(e.pointerId)) {
+    // Hovering: the lane being drawn follows the pointer, and so does the woods brush.
+    if (drawing || tool === 'grow' || tool === 'clear') {
+      const p = toIsland(e);
+      hover = [p.x, p.z];
+      draw();
+    }
+    return;
+  }
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (pinch && pointers.size === 2) {
     const [a, b] = [...pointers.values()];
@@ -773,6 +1038,21 @@ svg.addEventListener('pointermove', (e) => {
     moveProp(design, drag.index, p.x + drag.dx, p.z + drag.dz);
     const prop = design.props[drag.index]!;
     placeMoving(prop, prop.x, prop.z);
+    draw();
+  } else if (drag.kind === 'point' && shapeSel?.point !== undefined) {
+    const stairs = shapeSel.shape.kind === 'lane';
+    movePoint(
+      design,
+      shapeSel.shape,
+      shapeSel.point,
+      p.x,
+      p.z,
+      stairs ? heightAt(p.x, p.z) : undefined,
+    );
+    draw();
+  } else if (drag.kind === 'paint' && (tool === 'grow' || tool === 'clear')) {
+    hover = [p.x, p.z];
+    paintWoods(design, p.x, p.z, brush, tool);
     draw();
   } else if (drag.kind === 'turn') {
     const prop = design.props[drag.index]!;
@@ -851,9 +1131,16 @@ document.addEventListener('keydown', (e) => {
     duplicate();
   } else if (e.key === 'Delete' || e.key === 'Backspace') {
     e.preventDefault();
-    remove();
+    if (mode === 'props') remove();
+    else removeShape();
+  } else if (e.key === 'Enter' && drawing) {
+    finishDrawing();
   } else if (e.key === 'Escape') {
-    if (armed) arm(null);
+    if (tool) {
+      setTool(null);
+      draw();
+    } else if (shapeSel) selectShape(null);
+    else if (armed) arm(null);
     else if (selection !== null) select(null);
     else close();
   } else if (key === 'r' && !mod && selection !== null) {
@@ -948,9 +1235,19 @@ portrait.addEventListener('change', () => {
     draw();
   }
 });
+function syncTabs() {
+  const tab = (document.querySelector('.ib-main') as HTMLElement).dataset.tab;
+  for (const b of $('ib-tabs').querySelectorAll<HTMLElement>('button'))
+    b.setAttribute(
+      'aria-pressed',
+      String(b.dataset.tab === tab && (!b.dataset.mode || b.dataset.mode === mode)),
+    );
+}
 for (const b of $('ib-tabs').querySelectorAll<HTMLElement>('button'))
   b.addEventListener('click', () => {
     (document.querySelector('.ib-main') as HTMLElement).dataset.tab = b.dataset.tab!;
+    if (b.dataset.mode && b.dataset.mode !== mode) setMode(b.dataset.mode as Mode);
+    syncTabs();
     preview?.render();
   });
 

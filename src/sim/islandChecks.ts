@@ -1,5 +1,12 @@
 import { coastDistance } from './coast';
-import { islandLayout, layoutGround, type Outline } from './islandLayout';
+import {
+  cliffDistance,
+  crossesCliff,
+  islandLayout,
+  layoutGround,
+  slopeDistance,
+  type Outline,
+} from './islandLayout';
 import { atLevel, type IslandDesign, type PropDef } from '../data/islands';
 
 /**
@@ -134,9 +141,12 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
           );
         else if (layout.lake && coastDistance(p.x, p.z, layout.lake).distance < fit)
           once(`lake${i}`, () => error('land', `${name} is in the lake`, extra));
+        else if (type.building && slopeDistance(layout, p.x, p.z) < fit)
+          once(`slope${i}`, () =>
+            error('slope', `${name} is a building on a slope: it needs flat ground`, extra),
+          );
         else if (ground !== null && p.y === undefined && !type.edge) {
-          const edges = layout.surfaces.flatMap((s) => [s.outline, ...(s.holes ?? [])]);
-          const edge = Math.min(...edges.map((o) => Math.abs(coastDistance(p.x, p.z, o).distance)));
+          const edge = cliffDistance(layout, p.x, p.z);
           if (edge < fit)
             once(`cliff${i}`, () =>
               error(
@@ -178,9 +188,10 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
             );
     }
 
-    // Lane pieces over water or a cliff are not drawn.
+    // Lane pieces (and a path's along the ground) over water or a cliff are not drawn.
     design.lanes.forEach((lane, i) => {
-      if (lane.kind && lane.kind !== 'lane') return;
+      if (lane.kind === 'stairs' || (lane.kind === 'path' && lane.y !== undefined)) return;
+      const name = lane.kind === 'path' ? 'Path' : 'Lane';
       let broken = 0,
         first: [number, number] | undefined;
       for (let k = 1; k < lane.points.length; k++) {
@@ -193,16 +204,21 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
             z1 = az! + ((bz! - az!) * (t + 1)) / 10;
           const h0 = layoutGround(layout, x0, z0, 0.025),
             h1 = layoutGround(layout, x1, z1, 0.025);
-          if (h0 === null || h0 !== h1) {
+          // Slopes are climbed; a cliff needs stairs.
+          if (h0 === null || h1 === null || (h0 !== h1 && crossesCliff(layout, x0, z0, x1, z1))) {
             broken++;
             first ??= [x0, z0];
           }
         }
       }
       if (broken && level === 4)
-        warn('lanes', `Lane ${i}: ${broken} pieces cross water or a cliff and are not drawn`, {
-          at: first,
-        });
+        warn(
+          'lanes',
+          `${name} ${i}: ${broken} pieces cross water or a cliff and are not drawn (a cliff needs stairs or a slope)`,
+          {
+            at: first,
+          },
+        );
     });
   }
 
