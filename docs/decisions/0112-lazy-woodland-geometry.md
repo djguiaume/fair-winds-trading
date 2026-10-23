@@ -24,5 +24,3 @@ Town growth still pauses while the changed island is rebuilt. Inspection found t
 ## Consequences
 
 The game avoids doing expensive work that would immediately be discarded. This does not eliminate all growth costs: accepted trees, terrain, buildings, batching and GPU uploads still need work. Device frame-time measurements remain necessary; a CPU builder microbenchmark is not a GPU or tablet result.
-
-
