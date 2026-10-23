@@ -1,6 +1,6 @@
 import { tOptional } from '../i18n';
 import type { MapDef } from '../sim/map';
-import { resolvePort, type Condition } from '../sim/questLibrary';
+import { type Condition, type QuestPoint, isSpot, resolvePort } from '../sim/questLibrary';
 import { QUEST_DONE, type QuestBook, type QuestDef, type QuestStep } from '../sim/quests';
 import { findPort } from '../sim/trade';
 import { type Character, type Mood, MOODS, character } from './portraits';
@@ -245,14 +245,18 @@ export function questPins(book: QuestBook, map: MapDef, seen: ReadonlySet<string
   return [...pins.values()];
 }
 
+/** Where the tracked step leads on the chart: a port, or a spot at sea (decision 0131). */
+export interface QuestTarget {
+  port?: string;
+  point?: QuestPoint;
+  radius?: number;
+}
+
 /**
  * Where the tracked step leads on the chart: the step's rough circle, else the port its goal
- * names (quest cargo: where to load it, then where to bring it).
+ * names (quest cargo: where to load it, then where to bring it, which may be a spot at sea).
  */
-export function questTarget(
-  book: QuestBook,
-  map: MapDef,
-): { port: string; radius?: number } | null {
+export function questTarget(book: QuestBook, map: MapDef): QuestTarget | null {
   const active = book.active.find((a) => a.quest.id === book.tracked);
   if (!active) return null;
   const { step, quest } = active;
@@ -268,6 +272,7 @@ export function questTarget(
         ? goal.to
         : goal.from
       : (goal?.port ?? step.port ?? quest.port);
+  if (isSpot(id)) return { point: { x: id.x, y: id.y }, radius: id.within };
   const port = resolvePort(map, id);
   return port ? { port } : null;
 }
