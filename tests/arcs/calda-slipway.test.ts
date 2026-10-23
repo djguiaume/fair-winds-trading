@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { ISLAND_DESIGNS, islandDesign, questDesign, questShown } from '../../src/data/islands';
 import { PHASE1_MAP } from '../../src/data/maps';
 import { coastDistance } from '../../src/sim/coast';
 import { islandCoasts } from '../../src/sim/islandLayout';
-import { QUESTS, QuestBook, checkQuests } from '../../src/sim/quests';
+import { QUESTS, QuestBook, checkQuestHooks, checkQuests } from '../../src/sim/quests';
+import { producesAt } from '../../src/sim/settlement';
 import { SLOOP } from '../../src/sim/ship';
 import { sell } from '../../src/sim/trade';
 import { TUTORIAL_QUEST } from '../../src/sim/tutorial';
@@ -42,6 +44,9 @@ function dock(p: ReturnType<typeof play>, port: string) {
 describe('arc: calda-slipway, "The last keel"', () => {
   it('passes the checks and follows the brief', () => {
     expect(checkQuests(QUESTS, PHASE1_MAP, [TUTORIAL_QUEST.id])).toEqual([]);
+    expect(
+      checkQuestHooks(PHASE1_MAP, Object.values(ISLAND_DESIGNS), QUESTS, [TUTORIAL_QUEST.id]),
+    ).toEqual([]);
     expect(ARC).toMatchObject({
       giver: 'ines',
       port: 'calda',
@@ -137,5 +142,25 @@ describe('arc: calda-slipway, "The last keel"', () => {
       expect(en[k]!.length, k).toBeLessThanOrEqual(220);
       expect(fr[k]!.length, k).toBeLessThanOrEqual(264);
     }
+  });
+
+  it('changes Port Calda once done: slipway with a hull, the pilot cutter, planks from level 2', () => {
+    const before = new Set<string>();
+    const after = new Set(['calda-slipway']);
+    const types = (done: Set<string>) =>
+      questDesign(islandDesign('calda'), done)
+        .props.filter((p) => p.type.startsWith('slipway'))
+        .map((p) => `${p.type}@${p.from ?? 1}-${p.to ?? 4}`);
+    expect(types(before)).toEqual(['slipway@1-4']);
+    expect(types(after)).toEqual(['slipway-hull@1-4']);
+    const cutter = PHASE1_MAP.marks!.find((m) => m.type === 'pilot-cutter')!;
+    expect(questShown(cutter, before)).toBe(false);
+    expect(questShown(cutter, after)).toBe(true);
+
+    const p = play();
+    p.world.trade.settlements.byPort.calda!.level = 2;
+    expect(producesAt(PHASE1_MAP, p.world.trade, 'calda')).toEqual(['timber']);
+    p.world.trade.quests.byId['calda-slipway'] = { step: 'done', counts: [], chose: {} };
+    expect(producesAt(PHASE1_MAP, p.world.trade, 'calda')).toEqual(['timber', 'planks']);
   });
 });

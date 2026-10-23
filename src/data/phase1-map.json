@@ -210,7 +210,12 @@
       "level": 2,
       "levelWants": { "3": ["grain"] },
       "levelProduces": { "3": ["planks"] },
-      "wantsMade": ["smokedFish", "bread", "lampOil"]
+      "wantsMade": ["smokedFish", "bread", "lampOil"],
+      "afterQuest": {
+        "calda-slipway": {
+          "levelProduces": { "2": ["planks"] }
+        }
+      }
     },
     {
       "id": "saltmere",
@@ -270,6 +275,15 @@
       "wantsMade": ["planks", "cutStone"],
       "builds": ["hoy", "fluyt", "indiaman"],
       "hidden": true
+    }
+  ],
+  "marks": [
+    {
+      "type": "pilot-cutter",
+      "x": 164.5,
+      "y": 239.8,
+      "turn": 209,
+      "tags": ["after:calda-slipway"]
     }
   ],
   "compatibleSaveMaps": ["Staggered passages", "Phase 0 practice waters"],
