@@ -41,8 +41,9 @@ complete (513 in both languages, placeholders matching); the problems were quali
 4. **English**: sentence case everywhere (Kids mode included), "In irons", "Drying bank",
    "Standard" difficulty wording, "Need {n} more" instead of "Need {n}g".
 
-Taste calls made without asking, easy to revert one string at a time: tagline "Jouez avec le
-vent. Livrez la marchandise.", _rose des vents_ rather than _girouette_, _Heu_ kept for the hoy,
+French tagline: "Bon vent, bonnes affaires !" (Guillaume found the first proposal, "Jouez avec le
+vent. Livrez la marchandise.", odd). Taste calls made without asking, easy to revert one string at
+a time: _rose des vents_ rather than _girouette_, _Heu_ kept for the hoy,
 _Vaisseau des Indes_ kept for the indiaman.
 
 ## Consequences
