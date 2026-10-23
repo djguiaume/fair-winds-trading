@@ -6,9 +6,9 @@ Versions follow the phases: the menu shows `v0.<phase>.<deploy>` (Phase 1 is `v0
 
 A top-down, low-poly sailing and trading game for the browser. The visual style follows the _Privateers: Pirate Wars_ ad ([screenshots](reference/), teal stylized ocean, sandy islands with soft glow, chunky wooden ships, floating UI bars), but the core loop is **sailing with the wind and delivering goods**, not combat.
 
-## Progression direction under review (2026-10-23)
+## Progression direction (chosen 2026-10-23)
 
-[Decision 0097](decisions/0097-progression-candidates-and-later-extensions.md) records three competing directions: **a player-built harbour island**, **connecting existing communities**, and **preparing for a great expedition**. None is selected. See the [full comparison, market references and playtest plan](reviews/progression/README.md).
+**Chosen in [0120](decisions/0120-communities-and-home-island.md):** the base game merges two of the three directions of [0097](decisions/0097-progression-candidates-and-later-extensions.md), each shorter. **Community arcs** (one person per port, about 4 arcs of about 3 steps) are the spine; each arc changes that port visibly and lets you add one of **two buildings** (each with small modifiers) on a **fixed spot of your home island**. The **great expedition becomes a later extension**. See the [mockups](reviews/progression/directions/README.md) and the [comparison](reviews/progression/README.md).
 
 **Steam/automation are deferred**, and pirates remain a separate later extension; both are described in the [extension plan](reviews/progression/extensions.md). They must not be prerequisites for a satisfying base game. Expansion/DLC packaging and timing remain undecided.
 
@@ -30,7 +30,7 @@ The summary image above predates this review and still shows the former automati
 
 1. **The wind is the terrain.** Routes are hard because of wind direction and strength, not because of enemies. Upwind needs tacking; downwind is fast.
 2. **Every delivery matters.** Settlements visibly grow from the goods you bring.
-3. **Earn a reason for the next voyage.** Start with one sloop and progress through useful ship choices, discoveries and persistent consequences. The main motivation (personal island, communities or expedition) is under comparison; automation is a later option, not the base-game endpoint ([0097](decisions/0097-progression-candidates-and-later-extensions.md)).
+3. **Earn a reason for the next voyage.** Start with one sloop and progress through useful ship choices, discoveries and persistent consequences. The main motivation is helping the communities, whose arcs build up your home island ([0120](decisions/0120-communities-and-home-island.md)); automation is a later option, not the base-game endpoint ([0097](decisions/0097-progression-candidates-and-later-extensions.md)).
 4. **Readable and charming.** Low-poly, bright, top-down, playable in short sessions.
 
 ## Core loop
@@ -80,7 +80,7 @@ Goal: a complete, short game loop someone else can enjoy for 15 minutes.
 - Pier-head labels show an anchor, port name and docking cue; tapping sets a destination or docks/trades when stopped within range ([0023](decisions/0023-visible-pier-markers-and-docking.md)). Trade goods appear in the market panel. Settlement levels and level badges remain Phase 2 work.
 - **English and French (implemented for review, [0037](decisions/0037-english-and-french-translations.md)):** every screen, Kids mode and the tutorial are translated; the language follows the browser and can be changed from the main menu (English / Français, no flags). New languages are one dictionary file each. A translation quality pass ([0091](decisions/0091-translation-quality-pass.md)) fixed French grammar around goods and ships, sailing vocabulary and typography.
 - Sandbox play in short sessions: auto-save to the browser and instant resume ([0009](decisions/0009-sandbox-short-sessions.md)).
-- **Move a voyage between devices** (implemented for review, [0066](decisions/0066-move-voyage-between-devices.md)): Menu → Move your voyage shows the save as a QR code to scan on the other device (in game or with the camera app), with copy/paste and a `.json` file as fallbacks. No server; a copy, not a sync.
+- **Move a voyage between devices** (implemented for review, [0066](decisions/0066-move-voyage-between-devices.md)): Menu → Move your voyage shows the save as a QR code to scan on the other device (in game or with the camera app), with copy/paste and a `.json` file as fallbacks. No server; a copy, not a sync. The code is compact since [0118](decisions/0118-compact-save-code.md) (`FW2`, whole numbers, about 250 characters today and under 1,000 on the 5x map; old `FW1` codes still read).
 - Light hazards ([0010](decisions/0010-light-hazards-pirates-later.md)), implemented for review in [0032](decisions/0032-reef-strikes-and-shallows.md): shallows around reefs slow the boat (deeper hulls more); striking a reef damages the hull, which leaks speed until repaired in port. Nothing sinks.
 
 **Play-test fixes (requested by Guillaume, 2026-10-19):**
@@ -114,7 +114,7 @@ Goal: deliveries visibly change the world.
 
 ## Phase 3 — Authoring tools and progression review
 
-**Status (2026-10-23):** the menu/version has entered Phase 3 (`v0.3.x`), but the former automated-fleet goal is now deferred by [0097](decisions/0097-progression-candidates-and-later-extensions.md). Keep the accepted authoring work below; choose the next core gameplay milestone after comparing the [three progression directions](reviews/progression/README.md).
+**Status (2026-10-23):** the menu/version has entered Phase 3 (`v0.3.x`), but the former automated-fleet goal is now deferred by [0097](decisions/0097-progression-candidates-and-later-extensions.md). Keep the accepted authoring work below. **Next core gameplay milestone ([0120](decisions/0120-communities-and-home-island.md), [mockups](reviews/progression/directions/README.md)):** a quest engine grown from the tutorial's quest format, then the home island with fixed build spots and a two-building choice per arc, then the first arcs as a narrow prototype behind a flag; all numbers as data (quests, `characters.json`, `buildings.json`, tuning). The expedition is a later extension.
 
 Manual ship purchasing, switching and the distinct swift/hauler lineup remain. Owning ships does not require autonomous transport. The earlier route editor, wind-aware automated sailing, route dashboard and simultaneous fleet-operation plan are deferred historical scope, not the next implementation task.
 
@@ -226,7 +226,7 @@ Repeatable production-browser performance scenarios now cover startup, sailing, 
 - ~~True 3D or 2.5D?~~ Decided: real-time 3D low-poly ([decision 0004](decisions/0004-real-time-3d.md)), built with three.js ([0005](decisions/0005-tech-stack.md)).
 - ~~Desktop or mobile first?~~ Both from day one, tuned for an old tablet ([0006](decisions/0006-desktop-and-mobile.md)).
 - ~~Art style?~~ Decided ([0012](decisions/0012-boat-and-island-art-style.md), mockups in [docs/art](art/)): A sea colours, B2 bright highland islands, D storybook classic boats. Built in the game ([0016](decisions/0016-game-models-style-d-and-b2.md)): sloop and cutter with visible upgrades, the four producer islands.
-- What is the base progression motivation? Compare [personal island, connected communities and great expedition](reviews/progression/README.md); no selection yet.
+- ~~What is the base progression motivation?~~ Decided ([0120](decisions/0120-communities-and-home-island.md)): community arcs that build your home island; expedition as a later extension. Open: whether a building not chosen comes back later at a higher price (provisional), which island is home.
 - How much simulation runs for offscreen automated ships (deferred to the steam/logistics evaluation)? The sim remains renderer-free; safe lanes, update frequency and vessel caps need profiling. Offscreen active-play simulation does not imply offline progress.
 - ~~Where ships are upgraded and bought?~~ Decided ([0030](decisions/0030-home-base-upgrades-and-earned-ships.md)): upgrades only at the home-base port; each new ship class is built at one port you must discover and earn standing with through delivery contracts, then bought with gold. Implementation follows the map rework.
 - ~~Difficulty levels?~~ Decided and built ([0083](decisions/0083-difficulty-levels.md), [proposal](reviews/difficulty/README.md)): Fair winds / Captain / Old salt change costs, pace, weather and the default wind (steady trade wind on Fair winds) but never how the boat sails; Settings › Wind and the hazard switches stay independent. Pirates (Phase 5) need a switch and a per-level scale.
