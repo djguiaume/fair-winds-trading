@@ -46,6 +46,7 @@ import {
 import { Hud } from './ui/hud';
 import { loadSettings, saveSettings } from './ui/settings';
 import { Music } from './audio/music';
+import { wordCount } from './audio/babble';
 import { SeaChart } from './ui/seaChart';
 import {
   LANGUAGES,
@@ -242,6 +243,7 @@ function showDueCard() {
   else questSeen.add(`${due.quest}:${quests.progress(due.quest)!.step}`);
   input.releaseAll();
   questCard.show(card);
+  music.speak(card.giver?.voice, wordCount(card.ask ?? card.speech), card.mood);
   refreshPause();
 }
 quests.onEvent = (e) => {
@@ -759,6 +761,30 @@ musicVolume.addEventListener('input', () => {
   music.setVolume(settings.musicVolume);
 });
 musicVolume.addEventListener('change', () => saveSettings(settings));
+// People's babble on their cards (decision 0132): a switch and a volume of their own.
+const voices = $<HTMLInputElement>('voices');
+const voiceVolume = $<HTMLInputElement>('voice-volume');
+const voiceValue = $('voice-volume-value');
+const applyVoices = () => {
+  voiceValue.textContent = `${voiceVolume.value}%`;
+  voiceVolume.disabled = !settings.voices;
+  music.setVoiceVolume(settings.voices ? settings.voiceVolume : 0);
+};
+voices.checked = settings.voices;
+voiceVolume.value = String(Math.round(settings.voiceVolume * 100));
+applyVoices();
+voices.addEventListener('change', () => {
+  settings.voices = voices.checked;
+  saveSettings(settings);
+  music.unlock();
+  applyVoices();
+});
+voiceVolume.addEventListener('input', () => {
+  settings.voiceVolume = Number(voiceVolume.value) / 100;
+  music.unlock();
+  applyVoices();
+});
+voiceVolume.addEventListener('change', () => saveSettings(settings));
 showFps.addEventListener('change', () => {
   settings.showFps = showFps.checked;
   saveSettings(settings);
@@ -978,6 +1004,10 @@ if (tuneMode) {
         leaving = true;
         if (storage) clearSave(storage);
         location.reload();
+      },
+      speak: (voice, mood) => {
+        music.unlock();
+        music.speak(voice, 5, mood);
       },
     }),
   );

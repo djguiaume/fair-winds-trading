@@ -1,4 +1,6 @@
 import audio from '../data/audio.json';
+import characterData from '../data/characters.json';
+import { SYNTH_VOICES, VOWELS, voiceFiles, type Voice } from './babble';
 import type { Theme } from './composer';
 
 /*
@@ -25,14 +27,21 @@ export const THEMES: Readonly<Record<string, Theme>> = Object.fromEntries(
 
 export const MUSIC = audio.music as Record<string, MusicTrack>;
 export const EFFECTS = audio.effects as Record<string, SoundEffect>;
+/** People's babble voices (decision 0132), named by `voice` in `characters.json`. */
+export const VOICES = (audio as { voices?: Record<string, Voice> }).voices ?? {};
+const MOOD_NAMES = ['neutral', 'pleased', 'worried'];
 
 /** The address of a recorded file in `public/`, under the game's base path. */
 export function soundUrl(file: string): string {
   return `${import.meta.env.BASE_URL}${file.replace(/^\//, '')}`;
 }
 
-/** What is wrong with the sound list: unknown themes or effects, a sound both or neither kind. */
-export function audioProblems(): string[] {
+/**
+ * What is wrong with the sound list: unknown themes, effects or voices, a sound both or neither
+ * kind, a person whose voice is missing and, given `fileExists` (a path in `public/`), a missing
+ * recorded file.
+ */
+export function audioProblems(fileExists?: (file: string) => boolean): string[] {
   const problems: string[] = [];
   const kinds = (sound: object, keys: string[]) => keys.filter((k) => k in sound).length;
   for (const [id, track] of Object.entries(MUSIC)) {
@@ -45,9 +54,52 @@ export function audioProblems(): string[] {
     else if ('synth' in effect && !(SYNTH_EFFECTS as readonly string[]).includes(effect.synth))
       problems.push(`effect ${id}: no synthesised effect "${effect.synth}"`);
   }
+  for (const [id, voice] of Object.entries(VOICES)) problems.push(...voiceProblems(id, voice));
+  for (const c of characterData.characters as { id: string; voice?: string }[])
+    if (c.voice !== undefined && !VOICES[c.voice])
+      problems.push(`character ${c.id}: no voice "${c.voice}" in audio.json voices`);
+  if (fileExists) {
+    const files = [
+      ...Object.values(MUSIC).flatMap((m) => ('file' in m ? [m.file] : [])),
+      ...Object.values(EFFECTS).flatMap((e) => ('file' in e ? [e.file] : [])),
+      ...Object.values(VOICES).flatMap((v) => [
+        ...voiceFiles(v),
+        ...Object.values(v.moods ?? {}).flatMap((m) => voiceFiles(m as Voice)),
+      ]),
+    ];
+    for (const file of files) if (!fileExists(file)) problems.push(`no file public/${file}`);
+  }
   for (const id of ['sea'])
     if (!MUSIC[id]) problems.push(`music ${id}: missing (the game plays it)`);
   for (const id of ['creak', 'foghorn'])
     if (!EFFECTS[id]) problems.push(`effect ${id}: missing (the game plays it)`);
   return problems;
+}
+
+/** What is wrong with one voice. */
+function voiceProblems(id: string, voice: Voice): string[] {
+  const out: string[] = [];
+  const kinds = ['synth', 'file', 'files'].filter((k) => k in voice).length;
+  if (kinds !== 1) out.push(`voice ${id}: one of synth, file or files`);
+  else if ('synth' in voice && !(SYNTH_VOICES as readonly string[]).includes(voice.synth))
+    out.push(`voice ${id}: no synthesised voice "${voice.synth}"`);
+  else if ('files' in voice && (!Array.isArray(voice.files) || voice.files.length === 0))
+    out.push(`voice ${id}: files is a list of at least one clip`);
+  const shapes: [string, object][] = [['', voice], ...Object.entries(voice.moods ?? {})];
+  for (const [mood, shape] of shapes) {
+    const where = mood ? `voice ${id} mood ${mood}` : `voice ${id}`;
+    if (mood && !MOOD_NAMES.includes(mood)) out.push(`${where}: no mood "${mood}"`);
+    for (const key of ['pitch', 'speed', 'volume'] as const) {
+      const v = (shape as Record<string, unknown>)[key];
+      if (v !== undefined && !(typeof v === 'number' && v > 0 && v <= 4))
+        out.push(`${where}: ${key} must be a number above 0, up to 4`);
+    }
+    const wobble = (shape as Record<string, unknown>).wobble;
+    if (wobble !== undefined && !(typeof wobble === 'number' && wobble >= 0 && wobble <= 1))
+      out.push(`${where}: wobble must be 0 to 1`);
+    const vowels = (shape as Record<string, unknown>).vowels;
+    if (vowels !== undefined && !(typeof vowels === 'string' && /^[aeiou]+$/.test(vowels)))
+      out.push(`${where}: vowels are letters from "${VOWELS}"`);
+  }
+  return out;
 }

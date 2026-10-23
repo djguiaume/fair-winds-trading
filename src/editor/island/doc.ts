@@ -26,6 +26,7 @@ const NAMES: Record<string, string> = {
   'spire-church': 'Church',
   'moored-boat': 'Fishing boat',
   'slipway-hull': 'Slipway with hull',
+  'windmill-bare': 'Windmill, bare sails',
   lumber: 'Planks',
   sawmill: 'Sawmill',
   masons: "Mason's yard",
