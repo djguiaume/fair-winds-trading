@@ -1,0 +1,20 @@
+{
+  "id": "test-after",
+  "name": "Test: follows the workshop",
+  "start": { "is": "chose", "quest": "test-pier", "option": "workshop" },
+  "text": "quest.test-after",
+  "steps": [
+    {
+      "id": "both",
+      "goal": {
+        "is": "all",
+        "of": [
+          { "is": "delivered", "port": "westholm", "good": "fish", "qty": 3 },
+          { "is": "delivered", "port": "westholm", "good": "stone", "qty": 2 },
+          { "is": "not", "of": { "is": "has-cargo", "good": "grain", "qty": 1 } }
+        ]
+      }
+    }
+  ],
+  "reward": { "gold": 7 }
+}

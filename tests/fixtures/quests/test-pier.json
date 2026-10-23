@@ -1,0 +1,26 @@
+{
+  "id": "test-pier",
+  "name": "Test: timber for the Saltmere pier",
+  "start": { "is": "quest-done", "quest": "first-voyage" },
+  "text": "quest.test-pier",
+  "port": "saltmere",
+  "steps": [
+    {
+      "id": "timber",
+      "goal": { "is": "delivered", "port": "saltmere", "good": "timber", "qty": 5 },
+      "reward": { "gold": 100 }
+    },
+    {
+      "id": "visit",
+      "goal": { "is": "docked", "port": "home" }
+    },
+    {
+      "id": "build",
+      "choose": [
+        { "id": "workshop", "reward": { "gold": 10 } },
+        { "id": "rigging-loft", "reward": { "gold": 20 } }
+      ]
+    }
+  ],
+  "reward": { "standing": { "saltmere": 2 }, "discover": ["abbey-head"] }
+}

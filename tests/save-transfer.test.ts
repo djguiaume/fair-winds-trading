@@ -5,6 +5,7 @@ import { encode } from 'uqr';
 import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
 import type { MapDef } from '../src/sim/map';
+import type { QuestDef } from '../src/sim/quests';
 import {
   SAVE_KEY,
   type SaveData,
@@ -29,6 +30,8 @@ import {
 import { SLOOP } from '../src/sim/ship';
 import { type World, createWorld, stepWorld } from '../src/sim/world';
 import { qrSvg } from '../src/ui/qr';
+import pier from './fixtures/quests/test-pier.json';
+import sailing from './fixtures/quests/test-sailing.json';
 
 const GAME = 'https://djguiaume.github.io/fair-winds-trading/';
 
@@ -195,6 +198,34 @@ describe('save transfer (decisions 0066, 0118)', () => {
     const read = unpackSave(new Uint8Array(packSave(save, map)), map, save.version);
     expect(read.ok).toBe(true);
     if (read.ok) expect(Object.keys(read.raw.markets)).toHaveLength(30);
+  });
+
+  it('stays under 1,000 characters on the 5x sea with four arcs under way (decision 0125)', () => {
+    const { map, save } = biggerSea(serializeWorld(playedWorld()), 5);
+    // Four arcs and a prologue, as test files: two done, one on a timed run, one carrying cargo.
+    const arcs = ['prologue', 'calda', 'westholm', 'stonehaven', 'watchman'].map((id, i) => ({
+      ...structuredClone(i % 2 ? pier : sailing),
+      id,
+    })) as unknown as QuestDef[];
+    save.quests = {
+      byId: {
+        prologue: { step: 'done', counts: [], chose: {} },
+        calda: { step: 'done', counts: [], chose: { build: 'workshop' } },
+        westholm: { step: 'trial', counts: [1, 14250, 1], chose: {} },
+        stonehaven: { step: 'timber', counts: [7], chose: {} },
+        watchman: { step: 'stones', counts: [1, 1], chose: {} },
+      },
+      tracked: 'westholm',
+    };
+    const link = transferLink(
+      GAME,
+      `FW2${toBase64Url(zlibSync(packSave(save, map, arcs), { level: 9 }))}`,
+    );
+    const plain = transferLink(GAME, encodeSaveCode({ ...save, quests: { byId: {} } }, map));
+    console.log(`5x sea with quests: link ${link.length} chars (+${link.length - plain.length})`);
+    expect(link.length).toBeLessThanOrEqual(LINK_BUDGET);
+    const read = unpackSave(packSave(save, map, arcs), map, save.version, arcs);
+    expect(read.ok && read.raw.quests).toEqual(save.quests);
   });
 
   it('reads a code from a link, or pasted with spaces and line breaks', () => {

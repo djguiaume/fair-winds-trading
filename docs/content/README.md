@@ -119,7 +119,7 @@ fails until every table has one entry per level.
 The tutorial is the first quest, [`src/data/quests/first-voyage.json`](../../src/data/quests/first-voyage.json).
 At the top: `id`, `name`, `start` (`offered`: offered on a fresh voyage and from the menu),
 `text` (the prefix of its text keys, `lesson`), `reward` (`gold` paid once when it is finished)
-and `steps`, the lessons in order. Later quests are meant to use the same format.
+and `steps`, the lessons in order. Later quests use the same file format ([below](#quests-0125)).
 
 Each step:
 
@@ -143,6 +143,56 @@ Events: `chart-opened`, `port-picked`, `destination-cleared`, `sails-practised`,
 
 - Not from data yet: a lesson that waits for something no event watches (reefing in a gale, say)
   needs one new event in code.
+
+## Quests ([0125](../decisions/0125-quest-engine.md))
+
+Every other file in `src/data/quests/` is a quest the engine runs (`src/sim/quests.ts`), several at
+once, saved with the voyage. Example (a test file: [`tests/fixtures/quests/test-pier.json`](../../tests/fixtures/quests/test-pier.json)):
+
+```json
+{
+  "id": "calda-slipway",
+  "name": "The old slipway",
+  "start": { "is": "quest-done", "quest": "first-voyage" },
+  "text": "quest.calda-slipway",
+  "items": { "patterns": { "space": 1 } },
+  "steps": [
+    { "id": "stone", "goal": { "is": "delivered", "port": "calda", "good": "stone", "qty": 8 }, "reward": { "gold": 60 } },
+    { "id": "build", "choose": [{ "id": "workshop" }, { "id": "rigging-loft" }] }
+  ],
+  "reward": { "levelUp": ["calda"] }
+}
+```
+
+At the top: `id`, `name`, `start` (a condition), `text` (prefix of the text keys:
+`<text>.<step>.title` and `.copy`), optional `reward`, `items` (quest cargo: hold `space` per
+piece, 0 for a passenger), `giver`, `port`. Each step: `id`, then `goal` (a condition) **or** `choose` (two or more
+options: `id`, `reward`, `next`); optional `reward`, `next` (a later step or `done`; default the
+next one), `clean` (touching a reef or shore starts the step over), `port`, `chart`
+(`{ "port", "radius" }`: the rough circle on the chart), `compass` (`{ "x", "y" }`: a
+direction mark on the compass, for a foghorn or a wreck).
+
+| Condition | Params | Where |
+| --- | --- | --- |
+| `always` | | anywhere |
+| `all`, `any` | `of`: list of conditions | anywhere |
+| `not` | `of`: a condition | anywhere |
+| `quest-done` | `quest` (also `first-voyage`: finished or skipped) | anywhere |
+| `chose` | `quest`, `option` | anywhere |
+| `docked`, `discovered` | `port` | anywhere |
+| `town-level`, `standing` | `port`, `atLeast` | anywhere |
+| `orders-done`, `gold` | `atLeast` | anywhere |
+| `has-cargo` | `good`, `qty` | anywhere |
+| `owns-ship` | `ship` | anywhere |
+| `delivered` | `port`, `good`, `qty`: sold or for an order there since the step began | goal |
+| `carried` | `item`, `qty`, `from`, `to`: quest cargo, loaded as the hold allows | goal |
+| `reach` | `points` (`[{ "x", "y" }]`), `within`, `order` (`any`/`in-order`), `maxKn` + `holdSec`, `atNight` | goal |
+| `timed` | `from`, `to` (default `from`), `via` (points in order), `within`, `par` (seconds, or `{ "fair": …, "captain": …, "salt": … }`) | goal |
+
+`port` can be `"home"`. Rewards: `gold`, `standing` (`{ "port": n }`), `discover` and `levelUp`
+(lists of ports). `tests/quests.test.ts` checks every shipped quest file; `checkQuests` says
+what is wrong in plain words. Never rename a shipped quest, step or option: old saves would
+start it again.
 
 ## Music and sounds ([0113](../decisions/0113-levels-tutorial-and-music-as-data.md))
 

@@ -1,6 +1,15 @@
 import { DIFFICULTIES } from './difficulty';
 import { GOODS } from './goods';
 import type { MapDef } from './map';
+import { slotLayout } from './questLibrary';
+import {
+  type QuestDef,
+  type QuestState,
+  QUEST_DONE,
+  hasQuestProgress,
+  questFingerprint,
+  questsFor,
+} from './quests';
 import type { SaveData } from './save';
 import { SHIP_IDS } from './ship';
 import { UPGRADE_TRACKS } from './upgrades';
@@ -114,11 +123,18 @@ function indexOrNone(list: readonly string[], id: string | null | undefined): nu
   return id == null ? 0 : list.indexOf(id) + 1;
 }
 
-export function packSave(save: SaveData, map: MapDef): Uint8Array {
+export function packSave(
+  save: SaveData,
+  map: MapDef,
+  quests: readonly QuestDef[] = questsFor(map),
+): Uint8Array {
   const ports = map.ports.map((p) => p.id);
   const w = new Writer();
   w.uint(save.version);
-  w.uint(layoutFingerprint(map));
+  const withQuests = hasQuestProgress(save.quests);
+  // With quest progress, the quests' fingerprint is mixed in (it is never 0), so the reader knows
+  // the quest section follows and a code from other quest files is refused.
+  w.uint(layoutFingerprint(map) ^ (withQuests ? questFingerprint(quests) : 0));
 
   w.uint(save.time);
   w.uint(Math.min(save.economyPending ?? 0, save.time));
@@ -178,7 +194,60 @@ export function packSave(save: SaveData, map: MapDef): Uint8Array {
 
   w.uint(indexOrNone(DIFFICULTIES, save.difficulty));
   w.uint(indexOrNone(DIFFICULTIES, save.easiestDifficulty));
+  if (withQuests) packQuests(w, save.quests!, quests);
   return Uint8Array.from(w.bytes);
+}
+
+/**
+ * The quest section (decision 0125), written only when a quest has progress, so a code without
+ * quests is what it was before: per quest 0 (not started), 1 (done) or 2 + its step, the step's
+ * numbers, and per choice step the option picked + 1; then the tracked quest + 1.
+ */
+function packQuests(w: Writer, state: QuestState, quests: readonly QuestDef[]) {
+  for (const quest of quests) {
+    const p = state.byId[quest.id];
+    if (!p) {
+      w.uint(0);
+      continue;
+    }
+    const at = quest.steps.findIndex((s) => s.id === p.step);
+    w.uint(p.step === QUEST_DONE || at < 0 ? 1 : at + 2);
+    if (at >= 0) for (const n of p.counts) w.uint(n);
+    for (const step of quest.steps)
+      if (step.choose)
+        w.uint(
+          indexOrNone(
+            step.choose.map((o) => o.id),
+            p.chose[step.id],
+          ),
+        );
+  }
+  w.uint(
+    indexOrNone(
+      quests.map((q) => q.id),
+      state.tracked,
+    ),
+  );
+}
+
+function unpackQuests(r: Reader, quests: readonly QuestDef[]): QuestState {
+  const byId: QuestState['byId'] = {};
+  for (const quest of quests) {
+    const head = r.uint();
+    if (!head) continue;
+    const step = head === 1 ? undefined : quest.steps[head - 2];
+    if (head > 1 && !step) throw new Error('no such step');
+    const counts = Array.from({ length: slotLayout(step?.goal).size }, () => r.uint());
+    const chose: Record<string, string> = {};
+    for (const s of quest.steps) {
+      if (!s.choose) continue;
+      const option = s.choose[r.uint() - 1];
+      if (option) chose[s.id] = option.id;
+    }
+    byId[quest.id] = { step: step?.id ?? QUEST_DONE, counts, chose };
+  }
+  const tracked = quests[r.uint() - 1]?.id;
+  return { byId, ...(tracked ? { tracked } : {}) };
 }
 
 /** Why a packed code could not be read back. */
@@ -192,12 +261,16 @@ export function unpackSave(
   bytes: Uint8Array,
   map: MapDef,
   saveVersion: number,
+  quests: readonly QuestDef[] = questsFor(map),
 ): { ok: true; raw: SaveData } | { ok: false; problem: UnpackProblem } {
   const ports = map.ports.map((p) => p.id);
   const r = new Reader(bytes);
   const version = r.uint();
   if (version > saveVersion) return { ok: false, problem: 'newer' };
-  if (r.uint() !== layoutFingerprint(map)) return { ok: false, problem: 'otherVersion' };
+  const fingerprint = r.uint();
+  const withQuests = fingerprint === (layoutFingerprint(map) ^ questFingerprint(quests));
+  if (fingerprint !== layoutFingerprint(map) && !withQuests)
+    return { ok: false, problem: 'otherVersion' };
   const pick = (list: readonly string[], n: number) => (n > 0 ? list[n - 1] : undefined);
 
   const time = r.uint();
@@ -275,6 +348,7 @@ export function unpackSave(
 
   const difficulty = pick(DIFFICULTIES, r.uint());
   const easiestDifficulty = pick(DIFFICULTIES, r.uint());
+  const questState = withQuests ? unpackQuests(r, quests) : undefined;
   if (!r.done) return { ok: false, problem: 'unreadable' };
 
   return {
@@ -298,6 +372,7 @@ export function unpackSave(
       settlements: { byPort: towns, ...(pendingSupply ? { pendingSupply } : {}) },
       ...(difficulty ? { difficulty } : {}),
       ...(easiestDifficulty ? { easiestDifficulty } : {}),
+      ...(questState ? { quests: questState } : {}),
     },
   };
 }
