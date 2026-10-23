@@ -13,7 +13,7 @@ export type MusicTrack = ({ theme: string } | { file: string }) & { volume?: num
 export type SoundEffect = ({ synth: SynthEffect } | { file: string }) & { volume?: number };
 
 /** The effects made in code (`sfx.ts`); a new one needs code once. */
-export const SYNTH_EFFECTS = ['creak'] as const;
+export const SYNTH_EFFECTS = ['creak', 'foghorn'] as const;
 export type SynthEffect = (typeof SYNTH_EFFECTS)[number];
 
 /** The themes in `src/data/music/`, by file name. */
@@ -47,7 +47,7 @@ export function audioProblems(): string[] {
   }
   for (const id of ['sea'])
     if (!MUSIC[id]) problems.push(`music ${id}: missing (the game plays it)`);
-  for (const id of ['creak'])
+  for (const id of ['creak', 'foghorn'])
     if (!EFFECTS[id]) problems.push(`effect ${id}: missing (the game plays it)`);
   return problems;
 }

@@ -17,6 +17,9 @@ import { createWorld } from '../src/sim/world';
  * give the same tunes, the same random tutorial sessions the same lessons, and every level the
  * same knobs and weather. When one of them changes on purpose (a new tune, a new lesson), update
  * its hash in the same pull request and say why.
+ *
+ * Retaken on purpose by decision 0127: the tutorial became the prologue rescue (new lessons at sea
+ * before the chart, Rook taken home to Saltmere), so the random sessions now walk new lessons.
  */
 
 afterEach(() => {
@@ -79,7 +82,7 @@ describe('plays the same after moving levels, tutorial and music to data (decisi
     const lines: string[] = [];
     for (let run = 0; run < 300; run++) lines.push(...tutorialSession(run));
     expect(lines.length).toBeGreaterThan(60000);
-    expect(hash(lines.join('\n'))).toBe('2dd26af3');
+    expect(hash(lines.join('\n'))).toBe('1d8cc54a');
   });
 });
 
@@ -162,8 +165,16 @@ function tutorialSession(seed: number): string[] {
       what = `dock ${world.trade.dockedAt}`;
     } else if (r < 0.62) {
       world.boat.speedKn = rng() * 3;
+      // The prologue (decision 0127): often somewhere near the wreck.
+      const wreck = tutorial.wreck;
+      const nearWreck = wreck !== null && rng() < 0.4;
+      if (nearWreck) {
+        world.boat.x = wreck.x + rng() * 40;
+        world.boat.y = wreck.y;
+        world.boat.speedKn = rng() * 2.5;
+      }
       const controls = { steer: rng() * 2 - 1, sailStep: Math.floor(rng() * 4) };
-      tutorial.observe(controls, rng() * 0.5);
+      tutorial.observe(controls, rng() * (nearWreck ? 4 : 0.5));
       what = `sail ${controls.sailStep}`;
     } else if (r < 0.76) {
       const good = pick(GOODS);

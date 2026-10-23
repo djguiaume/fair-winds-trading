@@ -64,6 +64,8 @@ export interface ConditionContext {
   isDone(questId: string): boolean;
   /** Whether a quest's choice picked `option`. */
   chose(questId: string, option: string): boolean;
+  /** Whether a quest has reached `step` (or a later one) or is done. */
+  isAt(questId: string, step: string): boolean;
 }
 
 /** What a condition with slots sees at each check while its step runs. */
@@ -93,6 +95,7 @@ type Param =
   | 'building'
   | 'island'
   | 'quest'
+  | 'step'
   | 'option'
   | 'item'
   | 'count'
@@ -232,6 +235,10 @@ export const CONDITIONS: Record<string, ConditionKind> = {
     test: (c, ctx, s, goal) => !testCondition(c.of as Condition, ctx, s, goal),
   },
   'quest-done': { params: { quest: 'quest' }, test: (c, ctx) => ctx.isDone(c.quest as string) },
+  'quest-at': {
+    params: { quest: 'quest', step: 'step' },
+    test: (c, ctx) => ctx.isAt(c.quest as string, c.step as string),
+  },
   chose: {
     params: { quest: 'quest', option: 'option' },
     test: (c, ctx) => ctx.chose(c.quest as string, c.option as string),
@@ -431,6 +438,8 @@ export interface CheckScope {
   map: MapDef;
   /** Quest id → its choice options' ids. */
   quests: Map<string, string[]>;
+  /** Quest id → its step ids, where known. */
+  steps: Map<string, string[]>;
   /** The checked quest's items. */
   items: string[];
 }
@@ -461,6 +470,10 @@ function checkParam(
     bad(`no island with build spots "${String(v)}"`);
   if (type === 'quest' && !(typeof v === 'string' && scope.quests.has(v)))
     bad(`no quest "${String(v)}"`);
+  if (type === 'step') {
+    const steps = scope.steps.get(c.quest as string);
+    if (typeof v !== 'string' || (steps && !steps.includes(v))) bad(`no step "${String(v)}"`);
+  }
   if (type === 'option') {
     const options = scope.quests.get(c.quest as string);
     if (options && !options.includes(v as string)) bad(`no option "${String(v)}"`);

@@ -30,18 +30,39 @@ function setup() {
     world.destination = { portId: id, label: port.name, ...harbours[id]! };
     tutorial.destinationSelected();
   };
-  const reachMarket = () => {
+  /** The prologue (decision 0127): sails and wind, the foghorn, alongside the wreck. */
+  const rescue = () => {
     tutorial.start();
+    tutorial.continueLesson();
+    tutorial.continueLesson();
+    expect(tutorial.step).toBe('foghorn');
+    const wreck = tutorial.wreck!;
+    world.boat.x = wreck.x + 40;
+    world.boat.y = wreck.y;
+    tutorial.observe();
+    expect(tutorial.step).toBe('wreck');
+    world.boat.x = wreck.x + 14;
+    world.boat.speedKn = 1;
+    for (let n = 0; n < 8; n++) tutorial.observe({ sailStep: 0, steer: 0 }, 0.5);
+    expect(tutorial.step).toBe('chart');
+  };
+  /** Rook home to Saltmere, the island, and alongside for the first trade. */
+  const reachMarket = () => {
+    rescue();
     tutorial.chartOpened();
-    choose('calda');
-    tutorial.continueLesson();
-    tutorial.continueLesson();
-    world.trade.dockedAt = 'calda';
+    choose('saltmere');
+    expect(tutorial.step).toBe('home');
+    world.trade.dockedAt = 'saltmere';
+    world.boat.x = harbours.saltmere!.x;
+    world.boat.y = harbours.saltmere!.y;
+    world.boat.speedKn = 0;
     world.boat.sailStep = 0; // alongside with sails down, as docking leaves her
     tutorial.observe();
+    expect(tutorial.step).toBe('island');
+    tutorial.continueLesson();
     expect(tutorial.step).toBe('buy');
   };
-  return { world, tutorial, storage, harbours, choose, reachMarket };
+  return { world, tutorial, storage, harbours, choose, rescue, reachMarket };
 }
 
 describe('optional tutorial and save compatibility', () => {
@@ -66,16 +87,26 @@ describe('optional tutorial and save compatibility', () => {
     expect(resumed.step).toBe('buy');
     expect(restored.destination).toBeNull();
     resumed.resume();
-    expect(restored.destination?.portId).toBe('calda');
+    expect(restored.destination?.portId).toBe('saltmere');
     resumed.skip();
     expect(restored.destination).toBeNull();
     expect(storage.getItem(SAVE_KEY)).toBe(voyage);
+    const a = serializeWorld(restored) as unknown as Record<string, unknown>;
+    const b = serializeWorld(world) as unknown as Record<string, unknown>;
+    for (const k of Object.keys(b))
+      if (JSON.stringify(a[k]) !== JSON.stringify(b[k]))
+        console.log(
+          'DIFF',
+          k,
+          JSON.stringify(a[k]).slice(0, 300),
+          JSON.stringify(b[k]).slice(0, 300),
+        );
     expect(serializeWorld(restored)).toEqual(serializeWorld(world));
   });
   it('keeps a later personal destination when skipping', () => {
-    const { world, tutorial, choose } = setup();
-    tutorial.start();
-    choose('calda');
+    const { world, tutorial, choose, rescue } = setup();
+    rescue();
+    choose('saltmere');
     const personal = { portId: '', label: 'Marker 1', x: 40, y: 20 };
     world.destination = personal;
     tutorial.destinationSelected();
@@ -113,10 +144,8 @@ describe('optional tutorial and save compatibility', () => {
 
 describe('real actions drive lessons', () => {
   it('requires lowering/raising, steering and motion for the control exercise', () => {
-    const { world, tutorial, choose } = setup();
+    const { world, tutorial } = setup();
     tutorial.start();
-    tutorial.chartOpened();
-    choose('calda');
     const change = vi.fn();
     tutorial.onChange = change;
     for (let n = 0; n < 120; n++) {
@@ -139,24 +168,24 @@ describe('real actions drive lessons', () => {
     const { world, tutorial, reachMarket, choose, storage, harbours } = setup();
     reachMarket();
     const before = world.trade.captain.gold;
-    const purchase = buy(world.trade, 'timber', 1);
+    const purchase = buy(world.trade, 'fish', 1);
     expect(purchase.ok).toBe(true);
-    tutorial.traded('buy', 'timber');
+    tutorial.traded('buy', 'fish');
     expect(tutorial.step).toBe('choose-delivery');
-    expect(tutorial.lesson.copy).toContain('Saltmere');
-    choose('calda');
-    expect(tutorial.step).toBe('choose-delivery');
+    expect(tutorial.lesson.copy).toContain('Port Calda');
     choose('saltmere');
+    expect(tutorial.step).toBe('choose-delivery');
+    choose('calda');
     expect(tutorial.step).toBe('deliver');
     world.trade.dockedAt = 'westholm';
     tutorial.observe();
     expect(tutorial.step).toBe('deliver');
-    world.trade.dockedAt = 'saltmere';
+    world.trade.dockedAt = 'calda';
     tutorial.observe();
     expect(tutorial.step).toBe('sell');
-    const sale = sell(world.trade, 'timber', 1);
+    const sale = sell(world.trade, 'fish', 1);
     expect(sale.ok).toBe(true);
-    tutorial.traded('sell', 'timber');
+    tutorial.traded('sell', 'fish');
     expect(tutorial.status).toBe('completed');
     expect(tutorial.finishedNotice).toBe(true);
     expect(world.destination).toBeNull();
@@ -165,18 +194,18 @@ describe('real actions drive lessons', () => {
     expect(new Tutorial(world, harbours, storage).status).toBe('completed');
     const after = serializeWorld(world);
     tutorial.start();
-    expect(tutorial.step).toBe('chart');
+    expect(tutorial.step).toBe('sails');
     expect(serializeWorld(world)).toEqual(after);
   });
   it('uses existing cargo and handles Sell All without requiring another purchase', () => {
     const { world, tutorial, reachMarket, choose } = setup();
     world.trade.captain.gold = 0;
-    world.trade.captain.cargo.fish = 8;
+    world.trade.captain.cargo.grain = 8;
     reachMarket();
     tutorial.continueLesson();
-    expect(tutorial.good).toBe('fish');
-    choose('westholm');
-    world.trade.dockedAt = 'westholm';
+    expect(tutorial.good).toBe('grain');
+    choose('stonehaven');
+    world.trade.dockedAt = 'stonehaven';
     tutorial.observe();
     const result = sellAll(world.trade);
     expect(result.ok).toBe(true);
@@ -186,20 +215,25 @@ describe('real actions drive lessons', () => {
   it('returns to buying if the lesson cargo is sold early', () => {
     const { world, tutorial, reachMarket } = setup();
     reachMarket();
-    buy(world.trade, 'timber', 1);
-    tutorial.traded('buy', 'timber');
-    sell(world.trade, 'timber', 1);
-    tutorial.traded('sell', 'timber');
+    buy(world.trade, 'fish', 1);
+    tutorial.traded('buy', 'fish');
+    sell(world.trade, 'fish', 1);
+    tutorial.traded('sell', 'fish');
     expect(tutorial.step).toBe('buy');
     expect(tutorial.status).toBe('active');
   });
   it('clearing a lesson bearing returns to choosing a port', () => {
-    const { world, tutorial, choose } = setup();
-    tutorial.start();
+    const { world, tutorial, choose, rescue } = setup();
+    rescue();
+    // Only Rook's harbour counts while he is aboard.
     choose('calda');
+    expect(tutorial.step).toBe('chart');
+    choose('saltmere');
+    expect(tutorial.step).toBe('home');
+    expect(tutorial.passenger).toBe(true);
     world.destination = null;
     tutorial.destinationSelected();
-    expect(tutorial.step).toBe('choose-port');
+    expect(tutorial.step).toBe('home-port');
   });
 });
 
@@ -216,10 +250,10 @@ describe('tutorial recovery', () => {
   it('recovers from missing lesson cargo without granting goods or leaving a stale bearing', () => {
     const { world, tutorial, reachMarket, choose } = setup();
     reachMarket();
-    buy(world.trade, 'timber', 1);
-    tutorial.traded('buy', 'timber');
-    choose('saltmere');
-    world.trade.captain.cargo.timber = 0;
+    buy(world.trade, 'fish', 1);
+    tutorial.traded('buy', 'fish');
+    choose('calda');
+    world.trade.captain.cargo.fish = 0;
     const before = serializeWorld(world);
     tutorial.observe();
     expect(tutorial.step).toBe('choose-port');

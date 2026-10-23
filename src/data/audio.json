@@ -3,6 +3,7 @@
     "sea": { "theme": "fair-winds" }
   },
   "effects": {
-    "creak": { "synth": "creak", "volume": 1.6 }
+    "creak": { "synth": "creak", "volume": 1.6 },
+    "foghorn": { "synth": "foghorn", "volume": 1.2 }
   }
 }

@@ -156,16 +156,25 @@ export function questHold(state: QuestState, quests: readonly QuestDef[]): numbe
 }
 
 /**
- * Problems with the quest files, as readable lines (none: they are sound). `others` are quest ids
- * a condition may name besides these (the tutorial).
+ * Problems with the quest files, as readable lines (none: they are sound). `others` are the quests
+ * a condition may name besides these (the tutorial), with their step ids when known.
  */
 export function checkQuests(
   quests: readonly QuestDef[],
   map: MapDef,
-  others: string[] = [],
+  others: string[] | Record<string, string[]> = [],
 ): string[] {
+  const outside: Record<string, string[] | undefined> = Array.isArray(others)
+    ? Object.fromEntries(others.map((id) => [id, undefined]))
+    : others;
+  const steps = new Map<string, string[]>([
+    ...Object.entries(outside).flatMap(([id, list]) =>
+      list ? [[id, list] as [string, string[]]] : [],
+    ),
+    ...quests.map((q) => [q.id, (q.steps ?? []).map((s) => s.id)] as [string, string[]]),
+  ]);
   const all = new Map<string, string[]>([
-    ...others.map((id) => [id, []] as [string, string[]]),
+    ...Object.keys(outside).map((id) => [id, []] as [string, string[]]),
     ...quests.map(
       (q) =>
         [q.id, (q.steps ?? []).flatMap((s) => (s.choose ?? []).map((o) => o.id))] as [
@@ -175,10 +184,10 @@ export function checkQuests(
     ),
   ]);
   const out: string[] = [];
-  const ids = new Set<string>(others);
+  const ids = new Set<string>(Object.keys(outside));
   for (const q of quests) {
     const at = `quest ${q.id}`;
-    const scope: CheckScope = { map, quests: all, items: Object.keys(q.items ?? {}) };
+    const scope: CheckScope = { map, quests: all, steps, items: Object.keys(q.items ?? {}) };
     if (ids.has(q.id)) out.push(`${at}: id used twice`);
     ids.add(q.id);
     if (typeof q.name !== 'string' || typeof q.text !== 'string')
@@ -257,6 +266,8 @@ export const QUEST_CHECK_SEC = 0.25;
 export interface QuestBookOptions {
   /** Quests run elsewhere (the tutorial): done when this says so. */
   doneElsewhere?: (id: string) => boolean;
+  /** Quests run elsewhere: whether they have reached a step. */
+  atElsewhere?: (id: string, step: string) => boolean;
   /** Whether night counts now; the game passes "night, or night switched off". */
   nightOk?: () => boolean;
 }
@@ -281,6 +292,7 @@ export class QuestBook {
   private announced = new Set<string>();
   private since = 0;
   private readonly doneElsewhere: (id: string) => boolean;
+  private readonly atElsewhere: (id: string, step: string) => boolean;
   private readonly nightOk: () => boolean;
   onEvent: (e: QuestEvent) => void = () => {};
 
@@ -291,6 +303,7 @@ export class QuestBook {
   ) {
     this.quests = questsFor(world.map, quests);
     this.doneElsewhere = options.doneElsewhere ?? (() => false);
+    this.atElsewhere = options.atElsewhere ?? (() => false);
     this.nightOk = options.nightOk ?? (() => daylightAt(this.world.time).night >= 0.5);
   }
 
@@ -305,6 +318,14 @@ export class QuestBook {
   }
   isDone(id: string): boolean {
     return this.progress(id)?.step === QUEST_DONE || this.doneElsewhere(id);
+  }
+  /** Whether a quest has reached `step` (or a later one) or is done. */
+  isAt(id: string, step: string): boolean {
+    if (this.isDone(id)) return true;
+    const quest = this.quests.find((q) => q.id === id);
+    if (!quest) return this.atElsewhere(id, step);
+    const at = quest.steps.findIndex((s) => s.id === this.progress(id)?.step);
+    return at >= 0 && at >= quest.steps.findIndex((s) => s.id === step);
   }
   /** Started and not done, with the step it is on. */
   get active(): { quest: QuestDef; step: QuestStep }[] {
@@ -346,6 +367,7 @@ export class QuestBook {
       map: this.world.map,
       isDone: (id) => this.isDone(id),
       chose: (id, option) => Object.values(this.progress(id)?.chose ?? {}).includes(option),
+      isAt: (id, step) => this.isAt(id, step),
     };
   }
 

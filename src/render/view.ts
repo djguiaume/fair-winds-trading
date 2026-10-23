@@ -28,6 +28,7 @@ import { Atmosphere, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from './atmosphere';
 import { LighthouseBeams } from './lighthouseBeams';
 import { BeaconLights } from './beaconLights';
 import { Lanterns } from './lanterns';
+import { Castaway } from './castaway';
 import { daylightAt } from '../sim/daylight';
 import { StormClouds } from './stormClouds';
 import { stormRain } from '../sim/storms';
@@ -63,6 +64,9 @@ export class GameView {
   private lanterns!: Lanterns;
   /** Day and night cycle on (decision 0068); off holds early afternoon. */
   dayNight = true;
+  /** Someone waits on the prologue's wreck (decision 0127). */
+  castawayWaiting = false;
+  private readonly castaway: Castaway;
   private readonly boatLantern = new THREE.Vector3();
   private readonly stormClouds = new StormClouds();
   private rain!: Rain;
@@ -144,7 +148,9 @@ export class GameView {
     this.level = level;
     this.boat = this.buildBoat();
     this.edgeBuoys = new EdgeBuoys(world.map.boundsRadius);
+    this.castaway = new Castaway(world.map);
     this.scene.add(
+      this.castaway.root,
       this.islands,
       this.boat.root,
       this.boatShadow,
@@ -315,6 +321,7 @@ export class GameView {
 
   render(dt: number) {
     const { boat, wind, ship, time } = this.world;
+    this.castaway.update(this.castawayWaiting, time);
     const dir = bearingVector(boat.heading);
     const pos = toScene(boat.x, boat.y, this.tmp);
 

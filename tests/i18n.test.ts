@@ -119,7 +119,7 @@ describe('translations (decision 0037)', () => {
 
     const tutorial = new Tutorial(world, {}, null);
     tutorial.start();
-    expect(tutorial.lesson.title).toBe(fr['lesson.chart.title']);
+    expect(tutorial.lesson.title).toBe(fr['lesson.sails.title']);
   });
 
   it('keeps French punctuation on its word with a no-break space (decision 0091)', () => {
