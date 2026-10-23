@@ -22,6 +22,7 @@
       "y": 270,
       "radius": 26,
       "look": {
+        "design": "calda",
         "houses": 6,
         "trees": 8,
         "dock": true
@@ -34,6 +35,7 @@
       "y": -140,
       "radius": 24,
       "look": {
+        "design": "saltmere",
         "houses": 6,
         "trees": 6,
         "dock": true
@@ -46,6 +48,7 @@
       "y": 50,
       "radius": 24,
       "look": {
+        "design": "westholm",
         "houses": 5,
         "trees": 6,
         "dock": true
@@ -58,6 +61,7 @@
       "y": -300,
       "radius": 23,
       "look": {
+        "design": "south-cay",
         "houses": 5,
         "trees": 5,
         "rock": true,

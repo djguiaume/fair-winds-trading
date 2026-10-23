@@ -7,8 +7,9 @@ import {
   islandPoint,
   islandLake,
   characterPiers,
-  fishingMoorings,
+  islandMoorings,
 } from './islandLayout';
+import { designOf } from '../data/islands';
 
 /**
  * What the boat ran into; hulls fare worst on reefs, then piers, moored boats and rocky shores
@@ -151,7 +152,8 @@ export function piersOf(
           (1.4 * 2.2) / island.radius,
           0.5 * 2.2,
         );
-      for (const p of characterPiers(island.look.profile, island.radius / 2.2, level).slice(1)) {
+      const design = designOf(island)!;
+      for (const p of characterPiers(design, island.radius / 2.2, level).slice(1)) {
         const root = islandPoint(island, (p.x * 2.2) / island.radius, (p.z0 * 2.2) / island.radius);
         const head = islandPoint(
           island,
@@ -166,23 +168,22 @@ export function piersOf(
           0.35 * 2.2,
         );
       }
-      // Fishing boats at their moorings round the fishing island (towns.ts draws them at
+      // The moored boats an island file places, Saltmere's fishing fleet (towns.ts draws them at
       // 1.55 times a 2-unit hull): a keel-long capsule each, so the ship bumps them (0082).
-      if (island.look.profile === 'fish')
-        for (const m of fishingMoorings(level)) {
-          const half = (MOORED_BOAT_HALF_LENGTH - MOORED_BOAT_HALF_WIDTH) / island.radius;
-          const a = islandPoint(island, m.x - Math.sin(m.yaw) * half, m.z - Math.cos(m.yaw) * half);
-          const b = islandPoint(island, m.x + Math.sin(m.yaw) * half, m.z + Math.cos(m.yaw) * half);
-          piers.push({
-            islandId: island.id,
-            x0: a.x,
-            y0: a.y,
-            x1: b.x,
-            y1: b.y,
-            halfWidth: MOORED_BOAT_HALF_WIDTH,
-            boat: true,
-          });
-        }
+      for (const m of islandMoorings(design, level)) {
+        const half = (MOORED_BOAT_HALF_LENGTH - MOORED_BOAT_HALF_WIDTH) / island.radius;
+        const a = islandPoint(island, m.x - Math.sin(m.yaw) * half, m.z - Math.cos(m.yaw) * half);
+        const b = islandPoint(island, m.x + Math.sin(m.yaw) * half, m.z + Math.cos(m.yaw) * half);
+        piers.push({
+          islandId: island.id,
+          x0: a.x,
+          y0: a.y,
+          x1: b.x,
+          y1: b.y,
+          halfWidth: MOORED_BOAT_HALF_WIDTH,
+          boat: true,
+        });
+      }
     }
   }
   return piers;

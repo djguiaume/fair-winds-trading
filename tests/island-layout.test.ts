@@ -4,14 +4,15 @@ import { PHASE1_MAP } from '../src/data/maps';
 import {
   islandCoasts,
   characterPiers,
-  fishingMoorings,
+  islandMoorings,
   islandLayout,
   islandPoint,
   islandLake,
   layoutGround,
   type IslandTheme,
 } from '../src/sim/islandLayout';
-import { characterTownPlan, townIslandParts } from '../src/render/models/towns';
+import { isResidence, townIslandParts } from '../src/render/models/towns';
+import { islandDesign } from '../src/data/islands';
 import { coastDistance } from '../src/sim/coast';
 import { createBoat } from '../src/sim/boat';
 import { piersOf, resolveCollisions } from '../src/sim/collision';
@@ -20,14 +21,21 @@ import { SLOOP } from '../src/sim/ship';
 import { shoreTexture } from '../src/render/ocean';
 
 const kinds: IslandTheme[] = ['fish', 'timber', 'stone', 'grain'];
+/** The homes of a style's island file, in residence order, as reference-unit spots. */
+function characterTownPlan(kind: IslandTheme, R: number) {
+  return islandDesign(kind)
+    .props.filter(isResidence)
+    .map((p) => ({ x: p.x * R, y: layoutGround(islandLayout(kind), p.x, p.z)! * R, z: p.z * R }));
+}
 describe('producer island geography', () => {
   it('reserves enough safe plots for a town, with a real level-1 to level-4 difference', () => {
     for (const kind of kinds) {
       const R = 24 / 2.2;
       const plan = characterTownPlan(kind, R);
 
-      // The cliffside access route takes precedence over four extra quarry-town plots.
-      expect(plan.length, kind).toBeGreaterThanOrEqual(kind === 'stone' ? 28 : 30);
+      // The homes the island files build (0101). The old plan had 28 plots at Stonehaven, but
+      // the masons' yard and the keep always took five of them, so 23 homes were ever built.
+      expect(plan.length, kind).toBeGreaterThanOrEqual(kind === 'stone' ? 23 : 30);
       for (const p of plan)
         expect(layoutGround(islandLayout(kind), p.x / R, p.z / R, 0.075), kind).not.toBeNull();
       const counts = [1, 2, 3, 4].map((level) => {
@@ -145,7 +153,7 @@ describe('producer island geography', () => {
         ).slice(1))
           expect(Math.abs(working.x - pier.x)).toBeGreaterThan((island.radius / 2.2) * 0.65);
       }
-    for (const mooring of fishingMoorings(4))
+    for (const mooring of islandMoorings('saltmere', 4))
       if (mooring.z > 0.8) expect(Math.abs(mooring.x - 0.08)).toBeGreaterThan(0.8);
   });
   it('puts the first windmill beside the initial fields', () => {

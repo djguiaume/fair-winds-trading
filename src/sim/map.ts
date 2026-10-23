@@ -16,7 +16,15 @@ export interface IslandDef {
   radius: number;
   /** Visual hints for the island model; the simulation ignores them. */
   look?: {
-    /** Authored producer geography; omitted for legacy maps and small scenic islands. */
+    /**
+     * Island file id in `src/data/islands/` (decision 0101): coasts, ground, town and props.
+     * Islands without one keep the generated look.
+     */
+    design?: string;
+    /**
+     * Producer style of a designed island, set by `prepareMap` (from the island file); an island
+     * with only a style is built from that style's shipped island file.
+     */
     profile?: 'fish' | 'timber' | 'grain' | 'stone';
     /** Harbour bearing in radians, shared with coastline transforms. */
     harbourBearing?: number;
