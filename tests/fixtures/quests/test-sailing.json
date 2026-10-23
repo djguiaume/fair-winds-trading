@@ -1,0 +1,70 @@
+{
+  "id": "test-sailing",
+  "name": "Test: every sailing kind",
+  "start": { "is": "always" },
+  "text": "quest.test-sailing",
+  "items": { "millstone": { "space": 4 } },
+  "steps": [
+    {
+      "id": "stones",
+      "goal": {
+        "is": "carried",
+        "item": "millstone",
+        "qty": 2,
+        "from": "stonehaven",
+        "to": "westholm"
+      }
+    },
+    {
+      "id": "sound",
+      "clean": true,
+      "goal": {
+        "is": "reach",
+        "points": [
+          { "x": 0, "y": 0 },
+          { "x": 100, "y": 0 },
+          { "x": 200, "y": 0 }
+        ],
+        "within": 15
+      }
+    },
+    {
+      "id": "gates",
+      "clean": true,
+      "goal": {
+        "is": "reach",
+        "order": "in-order",
+        "points": [
+          { "x": 0, "y": 100 },
+          { "x": 100, "y": 100 }
+        ],
+        "within": 10
+      }
+    },
+    {
+      "id": "wreck",
+      "goal": {
+        "is": "reach",
+        "points": [{ "x": 50, "y": 50 }],
+        "within": 12,
+        "maxKn": 2,
+        "holdSec": 5
+      }
+    },
+    {
+      "id": "trial",
+      "goal": {
+        "is": "timed",
+        "from": "calda",
+        "via": [{ "x": 300, "y": 300 }],
+        "par": { "fair": 300, "captain": 200, "salt": 150 }
+      }
+    },
+    {
+      "id": "light",
+      "chart": { "port": "stonehaven", "radius": 80 },
+      "goal": { "is": "reach", "points": [{ "x": -50, "y": -50 }], "within": 20, "atNight": true }
+    }
+  ],
+  "reward": { "levelUp": ["westholm"], "gold": 50 }
+}

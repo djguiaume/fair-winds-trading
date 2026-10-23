@@ -8,6 +8,8 @@ export default tseslint.config(
       'node_modules',
       'docs/mockups/src',
       'docs/ui-refactor/mockups/src',
+      'docs/reviews/*/src',
+      'docs/reviews/**/src',
       'docs/art',
       'docs/roadmap-image',
       'tools/ship-models',
