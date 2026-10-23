@@ -7,7 +7,7 @@ import { USUAL_WEATHER, type WeatherConfig } from './wind';
  * and how fast the trade pays, plus how rough the weather is. Captain is the game as tuned in
  * 0046; the other levels scale it. Saved with the voyage and changeable at any time.
  *
- * The levels are the entries of `src/data/tuning/difficulty.json` › `levels` (decision 0111), from
+ * The levels are the entries of `src/data/tuning/difficulty.json` › `levels` (decision 0113), from
  * the easiest to the hardest: a new level is one entry there, and its card on the New voyage
  * screen and its button in Settings are built from it. `default` is the level a voyage plays when
  * none is picked or saved, and the one that keeps the map's own weather.

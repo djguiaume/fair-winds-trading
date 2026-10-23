@@ -7,7 +7,7 @@ import { renderDifficultyButtons, renderLevelCards } from '../src/ui/levelCards'
 
 /*
  * The New voyage cards and the Settings level switch are built from difficulty.json (decision
- * 0111). Built from the shipped file they must match the markup index.html had by hand.
+ * 0113). Built from the shipped file they must match the markup index.html had by hand.
  */
 
 afterEach(() => {
@@ -31,7 +31,7 @@ function build() {
   return { cards, buttons };
 }
 
-describe('difficulty level cards (decision 0111)', () => {
+describe('difficulty level cards (decision 0113)', () => {
   it('match the hand-written markup of decision 0083', () => {
     const old = document.createElement('div');
     old.innerHTML = readFileSync('tests/fixtures/difficulty-markup-0083.html', 'utf8');

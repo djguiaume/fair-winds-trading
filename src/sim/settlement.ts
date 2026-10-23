@@ -15,7 +15,7 @@ import townLevels from '../data/town-levels.json';
  */
 
 /**
- * The town levels, from `src/data/town-levels.json` (decision 0111): their number and English
+ * The town levels, from `src/data/town-levels.json` (decision 0113): their number and English
  * names, in order from the smallest. Level n is entry n - 1; the top one is the port town, the
  * level a rare-goods gate holds back (0065). Each level's numbers sit in `economy.json` › `towns`.
  */

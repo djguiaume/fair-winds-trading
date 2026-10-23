@@ -1,6 +1,6 @@
 /**
  * In-game background music player (decision 0045). Plays the `sea` track of `src/data/audio.json`
- * (decision 0111): a theme is composed tune after tune and scheduled a little ahead on a Web Audio
+ * (decision 0113): a theme is composed tune after tune and scheduled a little ahead on a Web Audio
  * clock; a recorded file loops. Effects come from the same list.
  *
  * - Browsers only allow sound after a tap or key press, so `unlock()` is called from the first

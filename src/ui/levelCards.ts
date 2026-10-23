@@ -2,7 +2,7 @@ import { hasText, t } from '../i18n';
 import { DEFAULT_DIFFICULTY, DIFFICULTIES, DIFFICULTY } from '../sim/difficulty';
 
 /*
- * The difficulty levels on screen (decisions 0083, 0111): a card per level on the New voyage
+ * The difficulty levels on screen (decisions 0083, 0113): a card per level on the New voyage
  * screen and a button per level in Settings, built from `difficulty.json`, so a new level is one
  * entry there. Text comes from `level.<id>`, `level.<id>Tag` and the points `level.<id>1`,
  * `level.<id>2`… in the text files; a level not translated yet shows its file `name` and `tag`

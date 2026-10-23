@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import en from '../src/i18n/en.json';
 import fr from '../src/i18n/fr.json';
 
-// Decision 0111: the tutorial is the first quest; its lessons are the steps of src/data/quests/first-voyage.json. This test drops
+// Decision 0113: the tutorial is the first quest; its lessons are the steps of src/data/quests/first-voyage.json. This test drops
 // the wind lesson from the file only: the sails lesson then leads straight to docking.
 vi.mock('../src/data/quests/first-voyage.json', async (importOriginal) => {
   const file = (
@@ -40,7 +40,7 @@ const COACH = [
   'sell-button',
 ];
 
-describe('tutorial steps as data (decision 0111)', () => {
+describe('tutorial steps as data (decision 0113)', () => {
   it('the shipped file is sound: known events and targets, every lesson has its text', () => {
     expect(shipped).toMatchObject({ id: 'first-voyage', start: 'offered', text: 'lesson' });
     expect(shipped.reward).toEqual({ gold: 0 });

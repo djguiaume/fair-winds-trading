@@ -70,7 +70,7 @@ import type { IslandCheckKit } from '../../sim/islandChecks';
  * collision outline) and the pier line stay where the simulation has them.
  * Every placement is seeded per island and filled in a fixed order, so a level-up only adds.
  */
-/** A town level (decision 0111: their number is data). The hand-built looks below stop at 4: a
+/** A town level (decision 0113: their number is data). The hand-built looks below stop at 4: a
  * higher level looks like a port town until an island file gives it props of its own. */
 export type TownLevel = number;
 
@@ -742,7 +742,7 @@ export function designedTownParts(
   for (let i = 0; i < woods.tries; i++) {
     const x = range(treesRng, x0, x1),
       z = range(treesRng, z0, z1);
-    const tree = make(treesRng);
+    const buildTree = make(treesRng);
     const yaw = treesRng() * 6;
     const h = layoutGround(layout, x, z, woods.margin);
     // No trees on rock, nor where the grown town's ground (a level-4 quarry) will not carry one.
@@ -765,6 +765,7 @@ export function designedTownParts(
       woods.clear?.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r)
     )
       continue;
+    const tree = buildTree();
     tree[0]!.userData.tree = { x, z };
     put(out, tree, x * R, h * R, z * R, yaw, woods.size);
   }

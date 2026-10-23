@@ -72,7 +72,7 @@ Copy a ship file in [`src/data/ships/`](../../src/data/ships/), rename it to the
 - **Names:** `ship.ketch` and `shipThe.ketch` in `src/i18n/en.json` and `fr.json`; until then the
   game shows `name`.
 
-## A new difficulty level ([0111](../decisions/0111-levels-tutorial-and-music-as-data.md))
+## A new difficulty level ([0113](../decisions/0113-levels-tutorial-and-music-as-data.md))
 
 Add an entry under `levels` in
 [`src/data/tuning/difficulty.json`](../../src/data/tuning/difficulty.json), in its place from the
@@ -99,7 +99,7 @@ easiest to the hardest:
   screens. Until then the card shows `name` and `tag` and no points.
 - Check the balance: `tests/difficulty-balance.test.ts` runs every level.
 
-## A new town level ([0111](../decisions/0111-levels-tutorial-and-music-as-data.md))
+## A new town level ([0113](../decisions/0113-levels-tutorial-and-music-as-data.md))
 
 Add an entry at the end of `levels` in
 [`src/data/town-levels.json`](../../src/data/town-levels.json) (`{ "name": "City" }`), then one
@@ -114,7 +114,7 @@ fails until every table has one entry per level.
 - Its look: give props `from: 5` in the island builder; until then it looks like a port town.
 - Name: `settlement.level.5` in `src/i18n/en.json` and `fr.json`; until then the game shows `name`.
 
-## The tutorial's lessons ([0111](../decisions/0111-levels-tutorial-and-music-as-data.md))
+## The tutorial's lessons ([0113](../decisions/0113-levels-tutorial-and-music-as-data.md))
 
 The tutorial is the first quest, [`src/data/quests/first-voyage.json`](../../src/data/quests/first-voyage.json).
 At the top: `id`, `name`, `start` (`offered`: offered on a fresh voyage and from the menu),
@@ -144,7 +144,7 @@ Events: `chart-opened`, `port-picked`, `destination-cleared`, `sails-practised`,
 - Not from data yet: a lesson that waits for something no event watches (reefing in a gale, say)
   needs one new event in code.
 
-## Music and sounds ([0111](../decisions/0111-levels-tutorial-and-music-as-data.md))
+## Music and sounds ([0113](../decisions/0113-levels-tutorial-and-music-as-data.md))
 
 Every sound is listed in [`src/data/audio.json`](../../src/data/audio.json):
 

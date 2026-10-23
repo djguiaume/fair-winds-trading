@@ -8,7 +8,7 @@
  *
  * Time is counted in eighth notes; a bar is 6 of them (6/8, two dotted-quarter beats).
  *
- * The theme, what makes it this tune and not another, is data (decision 0111): tempo, keys and
+ * The theme, what makes it this tune and not another, is data (decision 0113): tempo, keys and
  * scales, bar rhythms, chord progressions, melody moves, rests and loudness come from a file in
  * `src/data/music/`, picked by `src/data/audio.json`. The form above (AABB, 6/8, cadences, chord
  * tones on the strong beats) and the sound itself (`synth.ts`) stay code.
@@ -41,7 +41,7 @@ export interface Tune {
 export const EIGHTHS_PER_BAR = 6;
 const PHRASE_BARS = 4;
 
-/** A theme file in `src/data/music/` (decision 0111). Steps are scale steps, 0 = tonic. */
+/** A theme file in `src/data/music/` (decision 0113). Steps are scale steps, 0 = tonic. */
 export interface Theme {
   name: string;
   /** Dotted-quarter beats per minute, picked per tune in [min, max]. */

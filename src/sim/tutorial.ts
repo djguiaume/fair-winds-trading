@@ -8,7 +8,7 @@ import { findPort, cargoUsed } from './trade';
 import { type World, holdStorms } from './world';
 
 /*
- * The first-voyage tutorial (decisions 0025, 0061) as data (decision 0111): it is the first quest,
+ * The first-voyage tutorial (decisions 0025, 0061) as data (decision 0113): it is the first quest,
  * `src/data/quests/first-voyage.json`, and its lessons, in order, are the quest's steps. A step says which harbour it is about, which port a
  * pick on the chart sets, where the coach mark points, and, in `on`, which step each event leads
  * to. The events are the small library below, watched by this class; a new kind of event (say,

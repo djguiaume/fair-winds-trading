@@ -72,7 +72,7 @@ for (const type of ['pointerdown', 'pointerup', 'touchend', 'keydown'] as const)
   window.addEventListener(type, unlockAudio, { capture: true, once: true });
 }
 setLanguage(settings.language ?? detectLanguage(browserLanguages()));
-// Level cards and the Settings level switch come from difficulty.json (decision 0111).
+// Level cards and the Settings level switch come from difficulty.json (decision 0113).
 renderLevelCards(document.getElementById('level-cards')!);
 renderDifficultyButtons(document.getElementById('difficulty')!);
 translateDom();

@@ -8,7 +8,7 @@ import { ISLAND_DESIGNS, atLevel, type IslandDesign, type PropDef } from '../../
  * shipped files; turns to a tenth of a degree.
  */
 
-/** A town level; their number and names come from `src/data/town-levels.json` (decision 0111). */
+/** A town level; their number and names come from `src/data/town-levels.json` (decision 0113). */
 export type Level = number;
 export const LEVELS: readonly Level[] = SETTLEMENT_LEVELS;
 export const LEVEL_NAMES: readonly string[] = TOWN_LEVELS.map((l) => l.name);

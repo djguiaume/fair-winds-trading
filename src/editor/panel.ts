@@ -31,7 +31,7 @@ export interface PanelHost {
 }
 
 const LANDMARKS: (LandmarkKind | '')[] = ['', 'lighthouse', 'ruins', 'wreck', 'beacon'];
-/** Levels a town can grow into (all but the first), from `town-levels.json` (decision 0111). */
+/** Levels a town can grow into (all but the first), from `town-levels.json` (decision 0113). */
 const LEVELS = SETTLEMENT_LEVELS.slice(1).map(String);
 
 export function renderPanel(root: HTMLElement, host: PanelHost) {

@@ -17,7 +17,7 @@ import seamanship from './tuning/seamanship.json';
  * in place: the sim and its exported aliases (`SLOOP`, `GOOD_DEFS`, `DEFAULT_WEATHER`…) hold
  * references to the objects inside, so replacing a whole group would leave them on the old one.
  * Ship classes, goods, weather kinds and difficulty levels come from their files (decisions
- * 0108, 0109, 0111). What each value means, its range and unit: `tuning-meta.ts`.
+ * 0108, 0109, 0113). What each value means, its range and unit: `tuning-meta.ts`.
  */
 export interface Tuning {
   /** The ship classes, by id, from `src/data/ships/*.json`. Angles in degrees (`noGoDeg`, `turnRateDeg`). */
@@ -39,9 +39,9 @@ export interface Tuning {
     orders: Omit<typeof economy.orders, 'qty'> & { qty: [number, number] };
   };
   difficulty: {
-    /** The level a voyage plays when none is picked (decision 0111). */
+    /** The level a voyage plays when none is picked (decision 0113). */
     default: string;
-    /** The levels, easiest first (decision 0111). */
+    /** The levels, easiest first (decision 0113). */
     levels: Record<string, DifficultyLevel>;
     steadyWind: typeof difficulty.steadyWind;
   };

@@ -313,7 +313,7 @@ describe('moved values equal the old constants (decision 0094)', () => {
     );
     expect(GOOD_ICONS).toEqual(OLD_GOOD_ICONS);
     expect(MADE_FROM).toEqual(OLD_MADE_FROM);
-    // Decision 0111 added each level's name and card look; the knobs are the same.
+    // Decision 0113 added each level's name and card look; the knobs are the same.
     expect(
       Object.fromEntries(
         Object.entries(DIFFICULTY).map(([id, l]) => [

@@ -2,7 +2,7 @@ import audio from '../data/audio.json';
 import type { Theme } from './composer';
 
 /*
- * Every sound of the game, from `src/data/audio.json` (decision 0111, approved by Guillaume
+ * Every sound of the game, from `src/data/audio.json` (decision 0113, approved by Guillaume
  * 2026-10-23 with more sounds to come). A music track is either a recorded file or a theme the
  * composer plays live (a file in `src/data/music/`); an effect is either a recorded file or one of
  * the synthesised effects of `sfx.ts`. Recorded files live in `public/` and are named by their

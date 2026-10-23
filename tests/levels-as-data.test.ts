@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, expect, it, vi } from 'vitest';
 
-// Decision 0111: a difficulty level or a town level added to its file exists everywhere, no code.
+// Decision 0113: a difficulty level or a town level added to its file exists everywhere, no code.
 vi.mock('../src/data/tuning/difficulty.json', async (importOriginal) => {
   const file = (
     (await importOriginal()) as {
@@ -57,7 +57,7 @@ const { createWorld } = await import('../src/sim/world');
 const { startVoyage } = await import('../src/sim/trade');
 const { serializeWorld, validateSave } = await import('../src/sim/save');
 
-describe('levels added in data files only (decision 0111)', () => {
+describe('levels added in data files only (decision 0113)', () => {
   it('a fourth difficulty level is a level: listed last, played, saved and shown', () => {
     expect(DIFFICULTIES).toEqual(['fair', 'captain', 'salt', 'storm']);
     expect(isDifficulty('storm')).toBe(true);

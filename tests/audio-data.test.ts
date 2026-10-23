@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { EFFECTS, MUSIC, THEMES, audioProblems, soundUrl } from '../src/audio/catalog';
 import { composeTune, THEME, type Theme } from '../src/audio/composer';
 
-// Decision 0111: every sound is listed in src/data/audio.json; the music theme is a data file.
-describe('sounds and music as data (decision 0111)', () => {
+// Decision 0113: every sound is listed in src/data/audio.json; the music theme is a data file.
+describe('sounds and music as data (decision 0113)', () => {
   it('the sound list is sound', () => {
     expect(audioProblems()).toEqual([]);
     expect(MUSIC.sea).toEqual({ theme: 'fair-winds' });

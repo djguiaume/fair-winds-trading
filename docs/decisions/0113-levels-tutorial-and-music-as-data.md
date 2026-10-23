@@ -1,4 +1,4 @@
-# 0111. Town levels, difficulty levels, the tutorial and the music as data
+# 0113. Town levels, difficulty levels, the tutorial and the music as data
 
 **Status:** Implemented for review (2026-10-23). Requested by Guillaume ("town and difficulty levels, the tutorial and the music are the next thing to put in data driven if possible"); the last part of step 3 of [0093](0093-data-driven-content-and-authoring-tools.md), after [0107](0107-text-in-json-files.md)–[0110](0110-every-island-has-a-file.md). Guillaume then approved one list of every sound (effects as audio files, music as a file or the generated theme) and asked that the tutorial format work for quests later; both are part of this decision.
 

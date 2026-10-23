@@ -12,7 +12,7 @@ import { Tutorial } from '../src/sim/tutorial';
 import { createWorld } from '../src/sim/world';
 
 /*
- * Decision 0111 moved the town levels, the difficulty list, the tutorial steps and the music theme
+ * Decision 0113 moved the town levels, the difficulty list, the tutorial steps and the music theme
  * to data files. These hashes were taken from the code before the move: the same seeds must still
  * give the same tunes, the same random tutorial sessions the same lessons, and every level the
  * same knobs and weather. When one of them changes on purpose (a new tune, a new lesson), update
@@ -34,7 +34,7 @@ function hash(text: string): string {
   return h.toString(16).padStart(8, '0');
 }
 
-/** The knobs a level had before 0111 (the file now also holds its name and card look). */
+/** The knobs a level had before 0113 (the file now also holds its name and card look). */
 const KNOBS = [
   'cargoLost',
   'damage',
@@ -50,7 +50,7 @@ const KNOBS = [
 const knobOnly = (k: object) =>
   Object.fromEntries(KNOBS.map((key) => [key, (k as Record<string, unknown>)[key]]));
 
-describe('plays the same after moving levels, tutorial and music to data (decision 0111)', () => {
+describe('plays the same after moving levels, tutorial and music to data (decision 0113)', () => {
   it('composes the same tunes', () => {
     const tunes = Array.from({ length: 200 }, (_, seed) => JSON.stringify(composeTune(seed)));
     expect(hash(tunes.join('\n'))).toBe('8ce0a781');

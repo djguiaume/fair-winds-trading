@@ -454,7 +454,7 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     "Sailing this close to a hidden port's shore puts it on the chart (0048).",
   ),
 
-  // --- difficulty.json (decisions 0083, 0111) ---
+  // --- difficulty.json (decisions 0083, 0113) ---
   'difficulty.default': text(
     'Default level',
     'Id of the level a voyage plays when none is picked; it keeps the map weather.',
