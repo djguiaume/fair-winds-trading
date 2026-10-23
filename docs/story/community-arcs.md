@@ -78,12 +78,12 @@ Guillaume's idea. It replaces today's tutorial start (you begin docked at Saltme
 | 3. A foghorn | A foghorn sounds from one direction, and the compass shows a mark towards it. Sail towards the sound. | sailing to a bearing (new) |
 | 4. The wreck | A small boat is stuck on a reef with someone waving from it. Come alongside **slowly** (under ~2 kn close to it) without hitting the reef. Harbourmaster Rook climbs aboard. | slowing down, reefing the sails (new) |
 | 5. Home to Saltmere | Rook asks to go home. Pick Saltmere on the chart and dock. | chart, docking (`chart`, `dock`) |
-| 6. The island | Rook thanks you: *"There's an old island east of here, nobody's lived there since the winter. It's yours if you can make something of it."* Your island appears on the chart, run-down: a broken pier, a roofless cabin, the empty build spots. | new |
+| 6. The island | Rook thanks you: *"There's an old island west of here, nobody's lived there since the winter. It's yours if you can make something of it."* Your island appears on the chart, run-down: a broken pier, a roofless cabin, the empty build spots. | new |
 | 7. First trade | Rook suggests a first cargo: buy, deliver, sell, as today. | `buy`, `deliver`, `sell` |
 
 - **Skipping the tutorial** still gives you the island: Rook's thank-you card shows when you first dock at Saltmere.
 - **Old voyages** that already finished the tutorial get the same card from Rook at their next Saltmere visit, so nobody misses the island.
-- **Where you start** is for the map: an empty stretch near Saltmere, far enough from the hidden ports that they stay hidden. The wreck sits on the nearest reef. Which island is home is up to the Home island work; the mockups used Lantern Rock, east of Saltmere.
+- **Where you start** is for the map: an empty stretch near Saltmere, far enough from the hidden ports that they stay hidden. The wreck sits on the nearest reef. **Home is Skerry** (Guillaume's pick in the Home island work, 2026-10-23): central, a reach both ways from Saltmere, right by the Teeth.
 - **New things it needs:** a foghorn sound (one line in `audio.json`), a direction mark on the compass, the wreck with a figure on it (the `wreck` prop exists), the passenger (quest cargo that takes no hold space) and a "run-down" level for the home island.
 
 ## Arc 1: "Where the shoals went" (Saltmere, fish, Kit Marlow)
@@ -153,19 +153,19 @@ These are the two examples from 0120, and both fit a shipwright.
 
 ## Arc 4: "A light on the Teeth" (Stonehaven, stone, Ada Flint)
 
-The Teeth is a placeholder name for the reef between Skerry and Stonehaven's route (`sw-reef` in the map file).
+The Teeth is a placeholder name for the reef that runs west from Skerry, your home island (`sw-reef` in the map file). The Teeth Rock is its far, western end: a new small rock to add in the map file.
 
-**The situation.** Stonehaven quarries and cuts stone. Three boats have hit the Teeth since the winter. Ada wants to build a stone lighthouse on Skerry, the islet at the reef's end. (If Skerry becomes the home island, which the Home island work suggests, the light goes on a small rock at the other end of the reef instead, within sight of your island.)
+**The situation.** Stonehaven quarries and cuts stone. Three boats have hit the Teeth since the winter. Ada wants to build a stone lighthouse on the Teeth Rock, at the reef's far end, within sight of your island.
 
-**Hook.** *"Three boats on the Teeth since the winter. I'll build a tower on Skerry that'll stand a hundred years. I need a strong boat for the stone and a lens for the top."*
+**Hook.** *"Three boats on the Teeth since the winter. I'll build a tower on the Teeth Rock that'll stand a hundred years. I need a strong boat for the stone and a lens for the top."*
 
 | Step | What you do | Sailing in it | Suits |
 |---|---|---|---|
 | 1. Timber for the scaffold | Bring 6 timber from Port Calda to Stonehaven. | The arc's plain delivery. | any |
-| 2. Stone for the tower | Carry the cut-stone blocks (quest cargo, heavy) to Skerry, which has no harbour. Come in slowly to the landing spot, between the rocks. | A careful approach near the reef with a heavy, slow ship. | haulers |
-| 3. The old lens | Ada's card points to "an old keeper out on Watchman Key". Find Watchman Key (shown as a rough circle on the chart), and bring the lens Old Ness gives you to Skerry. The light comes on as you leave, and you see the beam from the sea (at night if night is on). | Exploring: it discovers Watchman Key. | any |
+| 2. Stone for the tower | Carry the cut-stone blocks (quest cargo, heavy) to the Teeth Rock, which has no harbour. Come in slowly to the landing spot, between the rocks. | A careful approach near the reef with a heavy, slow ship. | haulers |
+| 3. The old lens | Ada's card points to "an old keeper out on Watchman Key". Find Watchman Key (shown as a rough circle on the chart), and bring the lens Old Ness gives you to the Teeth Rock. The light comes on as you leave, and you see the beam from the sea (at night if night is on). | Exploring: it discovers Watchman Key. | any |
 
-**Stonehaven changes:** a stone lighthouse stands on Skerry with the Saltmere sweep ([0121](../decisions/0121-lighthouse-and-beacon-night-lights.md) rule), the reef is drawn with a light on the chart, and Stonehaven's quay gets the mason's crane.
+**Stonehaven changes:** a stone lighthouse stands on the Teeth Rock with the Saltmere sweep ([0121](../decisions/0121-lighthouse-and-beacon-night-lights.md) rule), the reef is drawn with a light on the chart, and Stonehaven's quay gets the mason's crane.
 
 **Choose one for your home island:**
 
