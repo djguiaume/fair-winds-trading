@@ -17,7 +17,7 @@ import type { IslandView } from './scene';
 const NS = 'http://www.w3.org/2000/svg';
 
 export interface OverlayScene {
-  /** False on an island with no harbour: no approach to keep clear (decision 0107). */
+  /** False on an island with no harbour: no approach to keep clear (decision 0110). */
   harbour: boolean;
   design: IslandDesign;
   level: Level;
@@ -208,6 +208,21 @@ function drawShapes(s: OverlayScene, el: El, label: (x: number, z: number, t: st
         el('line', { x1: a[0], y1: a[1], x2: b[0], y2: b[1], class: 'i-slope' });
       });
   });
+  // Ramps (decision 0123): a band as wide as the ramp, its foot and top marked with heights.
+  (design.ramps ?? []).forEach((r, index) => {
+    if (!atLevel(r, s.level)) return;
+    el('polyline', {
+      points: line(r.points),
+      class: `i-ramp${ground ? '' : ' quiet'}`,
+      'stroke-width': r.width,
+      'data-hit': ground ? hit({ kind: 'ramp', index }) : 'sea',
+    }).append(title(`Ramp ${r.start} → ${r.end}`));
+    if (ground) {
+      const [a, b] = [r.points[0]!, r.points[r.points.length - 1]!];
+      label(a[0], a[1] + 14 * u, `↑ ${r.start}`);
+      label(b[0], b[1] - 10 * u, `${r.end}`);
+    }
+  });
   design.lanes.forEach((lane, index) =>
     el('polyline', {
       points: line(lane.points),
@@ -224,16 +239,19 @@ function drawShapes(s: OverlayScene, el: El, label: (x: number, z: number, t: st
     const g = selected.kind === 'ground' ? design.ground[selected.index] : undefined;
     const outline = g ? groundOutline(design, g) : pts;
     if (outline) {
-      const isLane = selected.kind === 'lane';
+      const isLane = selected.kind === 'lane' || selected.kind === 'ramp';
       el(isLane ? 'polyline' : 'polygon', { points: line(outline), class: 'i-shape-selected' });
       const n = outline.length;
       const edges = isLane ? n - 1 : n;
       const xs = outline.map((p) => p[0]!),
         zs = outline.map((p) => p[1]!);
       const what = shapeName(design, selected);
+      const r = selected.kind === 'ramp' ? design.ramps?.[selected.index] : undefined;
       const extra = g
         ? ` · ${g.height}${g.shape === 'peak' ? '' : g.slope ? ' · slope' : ' · cliff'}`
-        : '';
+        : r
+          ? ` · ${r.start} → ${r.end}`
+          : '';
       label((Math.min(...xs) + Math.max(...xs)) / 2, Math.min(...zs) - 10 * u, what + extra);
       if (pts)
         for (let i = 0; i < edges; i++) {

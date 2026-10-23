@@ -130,7 +130,7 @@ function drawPanel() {
 
 /**
  * Opens the island builder (decision 0105) on an island. One without a file, or a ridge, first
- * gets one made from how it is drawn now (decision 0107), as an edit of the map.
+ * gets one made from how it is drawn now (decision 0110), as an edit of the map.
  */
 function editIsland(id: string) {
   const existing = findIsland(map, id);

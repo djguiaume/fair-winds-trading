@@ -367,6 +367,17 @@
 }
 .i-coast.quiet,
 .i-ground.quiet,
+.i-ramp {
+  fill: none;
+  stroke: #7ed39b;
+  stroke-opacity: 0.55;
+  stroke-linejoin: miter;
+  cursor: pointer;
+}
+.i-ramp.quiet {
+  stroke-opacity: 0.3;
+  pointer-events: none;
+}
 .i-lane.quiet {
   stroke-opacity: 0.45;
   fill: transparent;
