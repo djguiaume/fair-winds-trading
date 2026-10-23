@@ -243,6 +243,8 @@ export function resolveCollisions(
     }
   }
   for (const feature of terrain) {
+    // Same box early-out as island coasts: per-step work stays flat as the map grows (0115).
+    if (outsideCoast(boat, radius, feature.outline)) continue;
     // At a concave corner, clearing one edge can leave overlap with its neighbor.
     for (let pass = 0; pass < 8; pass++) {
       const coast = coastDistance(boat.x, boat.y, feature.outline);

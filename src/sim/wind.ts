@@ -91,6 +91,8 @@ export interface WindConfig {
   weather?: WeatherConfig;
   /** Only storms that form at or after this game time (decision 0072). */
   stormsFrom?: number;
+  /** Radius of the sea storms cross: the map's `boundsRadius`, set by `prepareMap` (0115). */
+  seaRadius?: number;
 }
 
 /**
@@ -305,7 +307,7 @@ export function windAt(
 
   // Storms (decision 0067): the wind turns to circle the centre and blows much harder.
   const storms = config.weather?.storms
-    ? stormsAt(config.weather.storms, seed, t, config.stormsFrom)
+    ? stormsAt(config.weather.storms, seed, t, config.stormsFrom, config.seaRadius)
     : NO_STORMS;
   let storm = 0;
   for (const s of storms) {

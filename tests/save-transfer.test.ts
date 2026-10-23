@@ -1,10 +1,21 @@
+import { readFileSync } from 'node:fs';
+import { zlibSync } from 'fflate';
 import jsQR from 'jsqr';
 import { encode } from 'uqr';
 import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
-import { SAVE_KEY, type SaveStorage, loadGame, serializeWorld } from '../src/sim/save';
+import type { MapDef } from '../src/sim/map';
+import {
+  SAVE_KEY,
+  type SaveData,
+  type SaveStorage,
+  loadGame,
+  serializeWorld,
+} from '../src/sim/save';
+import { packSave, unpackSave } from '../src/sim/saveCode';
 import {
   encodeSaveCode,
+  encodeJsonSaveCode,
   extractCode,
   readSaveCode,
   readSaveFile,
@@ -12,6 +23,7 @@ import {
   saveFileText,
   storeSave,
   summarize,
+  toBase64Url,
   transferLink,
 } from '../src/sim/saveTransfer';
 import { SLOOP } from '../src/sim/ship';
@@ -48,7 +60,7 @@ function playedWorld(): World {
 
 /** Decode a QR the way a camera would: rasterise the modules and run a real decoder on them. */
 function scan(text: string): string | null {
-  const qr = encode(text, { ecc: 'L', border: 4 });
+  const qr = encode(text, { ecc: 'M', border: 4 });
   const px = 4;
   const n = qr.size * px;
   const rgba = new Uint8ClampedArray(n * n * 4);
@@ -60,45 +72,133 @@ function scan(text: string): string | null {
   return jsQR(rgba, n, n)?.data ?? null;
 }
 
-describe('save transfer (decision 0066)', () => {
+/** The code for a voyage on the test map. */
+const codeOf = (save: SaveData) => encodeSaveCode(save, PHASE1_MAP);
+
+/** A code made by the game before decision 0118 (FW1, named JSON). */
+const OLD_CODE = readFileSync(
+  new URL('./fixtures/fw1-voyage-code.txt', import.meta.url),
+  'utf8',
+).trim();
+
+/** Links longer than this start to break in some apps (Guillaume, 2026-10-23). */
+const LINK_BUDGET = 1000;
+
+/** The 5x map (decision 0118): about 30 ports, each a copy of a played port with its own numbers. */
+function biggerSea(save: SaveData, copies: number): { map: MapDef; save: SaveData } {
+  let seed = 7;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const map: MapDef = structuredClone(PHASE1_MAP);
+  const big: SaveData = structuredClone(save);
+  for (let n = 2; n <= copies; n++)
+    for (const port of PHASE1_MAP.ports) {
+      const id = `${port.id}-${n}`;
+      map.ports.push({ ...port, id });
+      big.markets[id] = Object.fromEntries(
+        Object.entries(save.markets[port.id]!).map(([g, v]) => [g, v * (0.6 + rnd() * 0.8)]),
+      ) as SaveData['cargo'];
+      const order = save.contracts!.byPort[port.id]!;
+      big.contracts!.byPort[id] = { ...order, portId: id, qty: 2 + Math.floor(rnd() * 8) };
+      big.contracts!.byPort[id]!.reward = 50 + Math.floor(rnd() * 300);
+      big.settlements!.byPort[id] = {
+        level: 1 + Math.floor(rnd() * 4),
+        growth: rnd() * 40,
+        sinceSupply: rnd() * 600,
+        rare: Math.floor(rnd() * 5),
+      };
+      big.progress!.discovered.push(id);
+      big.progress!.standing[id] = Math.floor(rnd() * 8);
+    }
+  return { map, save: big };
+}
+
+describe('save transfer (decisions 0066, 0118)', () => {
   it('moves a voyage through a code and back, unchanged where it matters', () => {
     const from = playedWorld();
-    const code = encodeSaveCode(serializeWorld(from));
+    const code = codeOf(serializeWorld(from));
+    expect(code.startsWith('FW2')).toBe(true);
     const to = createWorld(PHASE1_MAP, SLOOP);
     const read = readSaveCode(code, to);
     expect(read.ok).toBe(true);
     if (!read.ok) return;
-    expect(read.save.gold).toBe(4321.5);
+    // Whole numbers: the game shows no decimals, so the hidden half gold piece rounds.
+    expect(read.save.gold).toBe(4322);
     expect(read.save.ships.cutter).toEqual({ sails: 2, hold: 3, hull: 1 });
     expect(read.save.cargo.planks).toBe(5);
     expect(read.save.boat.x).toBeCloseTo(from.boat.x, 1);
-    expect(read.save.contracts).toEqual(from.trade.contracts);
+    expect(read.save.boat.y).toBeCloseTo(from.boat.y, 1);
+    expect(Math.abs(read.save.boat.heading - (from.boat.heading % (2 * Math.PI)))).toBeLessThan(
+      0.001,
+    );
+    expect(read.save.boat.sailStep).toBe(from.boat.sailStep);
+    expect(Math.abs(read.save.time - from.time)).toBeLessThanOrEqual(0.5);
+    for (const [id, order] of Object.entries(from.trade.contracts.byPort)) {
+      const got = read.save.contracts!.byPort[id]!;
+      expect({ ...got, readyIn: 0, reward: 0 }).toEqual({ ...order, readyIn: 0, reward: 0 });
+      expect(Math.abs(got.readyIn - order.readyIn)).toBeLessThanOrEqual(0.5);
+      expect(Math.abs(got.reward - order.reward)).toBeLessThanOrEqual(0.5);
+    }
+    for (const [id, m] of Object.entries(from.trade.markets))
+      for (const [g, n] of Object.entries(m.stock))
+        expect(Math.abs(read.save.markets[id]![g as 'fish'] - n)).toBeLessThanOrEqual(0.5);
     for (const [id, town] of Object.entries(from.trade.settlements.byPort)) {
       expect(read.save.settlements!.byPort[id]!.level).toBe(town.level);
-      expect(read.save.settlements!.byPort[id]!.sinceSupply).toBeCloseTo(town.sinceSupply, 1);
+      expect(
+        Math.abs(read.save.settlements!.byPort[id]!.sinceSupply - town.sinceSupply),
+      ).toBeLessThanOrEqual(0.5);
     }
+    expect(read.save.progress).toEqual(from.trade.progress);
+    expect(read.save.difficulty).toBe(from.trade.difficulty);
 
     // Stored on the new device, the game resumes it like any save.
     const storage = new MemoryStorage();
     expect(storeSave(storage, read.save)).toBe(true);
     const resumed = createWorld(PHASE1_MAP, SLOOP);
     expect(loadGame(storage, resumed)).toBe(true);
-    expect(resumed.trade.captain.gold).toBe(4321.5);
+    expect(resumed.trade.captain.gold).toBe(4322);
+  });
+
+  it('still reads the FW1 codes made before 0118', () => {
+    const read = readSaveCode(OLD_CODE, createWorld(PHASE1_MAP, SLOOP));
+    expect(read.ok).toBe(true);
+    if (!read.ok) return;
+    expect(read.save.gold).toBe(4321.5);
+    expect(read.save.ships.cutter).toEqual({ sails: 2, hold: 3, hull: 1 });
+    expect(extractCode(transferLink(GAME, OLD_CODE))).toBe(OLD_CODE);
+    const fresh = encodeJsonSaveCode(serializeWorld(playedWorld()));
+    expect(readSaveCode(fresh, createWorld(PHASE1_MAP, SLOOP)).ok).toBe(true);
   });
 
   it('fits in a QR code that a phone can read off a screen', () => {
-    const code = encodeSaveCode(serializeWorld(playedWorld()));
+    const code = codeOf(serializeWorld(playedWorld()));
     const link = transferLink(`${GAME}?debug#old`, code);
-    expect(link.startsWith(`${GAME}?debug#voyage=FW1`)).toBe(true);
-    const { version } = qrSvg(link);
+    expect(link.startsWith(`${GAME}?debug#voyage=FW2`)).toBe(true);
+    const { version } = qrSvg(link, 'M');
     console.log(`link ${link.length} chars, QR version ${version}`);
-    // Version 25 is 117 modules: about 2.5 px each in a 300 px square. Keep well under it.
-    expect(version).toBeLessThanOrEqual(25);
+    // Today's sea: a small, easy QR code (FW1 was about version 23).
+    expect(link.length).toBeLessThanOrEqual(400);
+    expect(version).toBeLessThanOrEqual(14);
     expect(scan(link)).toBe(link);
   });
 
+  it('keeps the link under 1,000 characters on a 5x sea of 30 ports', () => {
+    const { map, save } = biggerSea(serializeWorld(playedWorld()), 5);
+    expect(map.ports.length).toBe(30);
+    const code = encodeSaveCode(save, map);
+    const link = transferLink(GAME, code);
+    const { version } = qrSvg(link, 'M');
+    console.log(`5x sea: link ${link.length} chars, QR version ${version}`);
+    expect(link.length).toBeLessThanOrEqual(LINK_BUDGET);
+    // Version 25 is 117 modules: about 2.5 px each in a 300 px square. Keep under it.
+    expect(version).toBeLessThanOrEqual(25);
+    expect(scan(link)).toBe(link);
+    const read = unpackSave(new Uint8Array(packSave(save, map)), map, save.version);
+    expect(read.ok).toBe(true);
+    if (read.ok) expect(Object.keys(read.raw.markets)).toHaveLength(30);
+  });
+
   it('reads a code from a link, or pasted with spaces and line breaks', () => {
-    const code = encodeSaveCode(serializeWorld(playedWorld()));
+    const code = codeOf(serializeWorld(playedWorld()));
     expect(extractCode(transferLink(GAME, code))).toBe(code);
     expect(extractCode(`  ${code.slice(0, 40)}\n${code.slice(40)} `)).toBe(code);
     expect(extractCode('hello')).toBeNull();
@@ -107,28 +207,53 @@ describe('save transfer (decision 0066)', () => {
 
   it('refuses cut, mistyped and foreign codes', () => {
     const world = createWorld(PHASE1_MAP, SLOOP);
-    const code = encodeSaveCode(serializeWorld(playedWorld()));
+    const save = serializeWorld(playedWorld());
+    const code = codeOf(save);
     expect(readSaveCode(code.slice(0, -12), world)).toEqual({ ok: false, problem: 'unreadable' });
     const i = Math.floor(code.length / 2);
     const typo = code.slice(0, i) + (code[i] === 'A' ? 'B' : 'A') + code.slice(i + 1);
     expect(readSaveCode(typo, world).ok).toBe(false);
     expect(readSaveCode('FW1notacode', world)).toEqual({ ok: false, problem: 'unreadable' });
+    expect(readSaveCode('FW2notacode', world)).toEqual({ ok: false, problem: 'unreadable' });
+    // A sound checksum around too few or too many numbers.
+    const packed = packSave(save, PHASE1_MAP);
+    for (const bytes of [packed.slice(0, -3), Uint8Array.from([...packed, 0])])
+      expect(readSaveCode(`FW2${toBase64Url(zlibSync(bytes))}`, world)).toEqual({
+        ok: false,
+        problem: 'unreadable',
+      });
   });
 
   it('says when a voyage is from a newer game or another map', () => {
     const world = createWorld(PHASE1_MAP, SLOOP);
     const save = serializeWorld(playedWorld());
-    expect(readSaveCode(encodeSaveCode({ ...save, version: 99 }), world)).toEqual({
+    expect(readSaveCode(codeOf({ ...save, version: 99 }), world)).toEqual({
       ok: false,
       problem: 'newer',
     });
-    expect(readSaveCode(encodeSaveCode({ ...save, map: 'Elsewhere' }), world)).toEqual({
+    expect(readSaveCode(encodeJsonSaveCode({ ...save, map: 'Elsewhere' }), world)).toEqual({
       ok: false,
       problem: 'otherMap',
     });
-    expect(readSaveCode(encodeSaveCode({ ...save, gold: -5 }), world)).toEqual({
+    // Sailing a ship the captain does not own.
+    expect(readSaveCode(codeOf({ ...save, activeShip: 'clipper' }), world)).toEqual({
       ok: false,
       problem: 'damaged',
+    });
+  });
+
+  it('refuses a code from a game whose ports or goods lists differ', () => {
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    const save = serializeWorld(playedWorld());
+    const moved: MapDef = { ...PHASE1_MAP, ports: [...PHASE1_MAP.ports].reverse() };
+    expect(readSaveCode(encodeSaveCode(save, moved), world)).toEqual({
+      ok: false,
+      problem: 'otherVersion',
+    });
+    const renamed: MapDef = { ...PHASE1_MAP, name: 'Elsewhere' };
+    expect(readSaveCode(encodeSaveCode(save, renamed), world)).toEqual({
+      ok: false,
+      problem: 'otherVersion',
     });
   });
 

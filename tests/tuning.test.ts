@@ -629,7 +629,7 @@ const OLD_DEFAULT_WEATHER = {
     gale: { weight: 0.15, strength: [1.35, 1.55], rain: 0.15, gusts: 1.6 },
   },
   persist: 0.35,
-  storms: { everySec: 600, radius: 95, speed: 3.2, areaRadius: 440 },
+  storms: { everySec: 600, radius: 95, speed: 3.2, areaShare: 1, perRadius: 440 },
 };
 const OLD_UPGRADE_EFFECTS = {
   sailsSpeed: [1, 1.08, 1.16],

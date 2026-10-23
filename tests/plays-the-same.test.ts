@@ -64,7 +64,8 @@ describe('plays the same after moving levels, tutorial and music to data (decisi
       for (const steady of [false, true]) out.push(weatherFor(DEFAULT_WEATHER, a, steady));
     }
     out.push(knobOnly(knobs(undefined)), knobOnly(knobs('nope' as never)), isDifficulty('nope'));
-    expect(hash(JSON.stringify(out))).toBe('0f2e6bfa');
+    // Updated once for decision 0115: storms' `areaRadius` became `areaShare` and `perRadius`.
+    expect(hash(JSON.stringify(out))).toBe('69017f9c');
   });
 
   it('keeps the town level names', () => {

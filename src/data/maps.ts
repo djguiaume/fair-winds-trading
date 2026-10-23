@@ -20,7 +20,7 @@ export function prepareMap(source: MapDef): MapDef {
   const raw = structuredClone(source);
   const map: MapDef = {
     ...raw,
-    wind: { weather: DEFAULT_WEATHER, ...raw.wind },
+    wind: { weather: DEFAULT_WEATHER, ...raw.wind, seaRadius: raw.boundsRadius },
   };
   for (const island of map.islands) {
     const port = map.ports.find((p) => p.islandId === island.id && !p.hidden);
