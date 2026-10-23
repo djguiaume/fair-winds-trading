@@ -7,10 +7,10 @@ import { type IslandIssue, checkIsland } from '../../sim/islandChecks';
 const scope = self as unknown as Worker;
 scope.addEventListener(
   'message',
-  (event: MessageEvent<{ id: number; design: IslandDesign; R: number }>) => {
-    const { id, design, R } = event.data;
+  (event: MessageEvent<{ id: number; design: IslandDesign; R: number; harbour: boolean }>) => {
+    const { id, design, R, harbour } = event.data;
     try {
-      const kit = islandCheckKit(design, R);
+      const kit = islandCheckKit(design, R, harbour);
       const triangles = [1, 2, 3, 4].map((level) => kit.triangles!(level));
       kit.triangles = () => triangles[3]!;
       scope.postMessage({ id, issues: checkIsland(design, kit), triangles });

@@ -1,8 +1,4 @@
-import calda from './islands/calda.json';
-import saltmere from './islands/saltmere.json';
-import southCay from './islands/south-cay.json';
-import westholm from './islands/westholm.json';
-import type { IslandDef } from '../sim/map';
+import type { IslandDef, LandmarkKind } from '../sim/map';
 
 /**
  * Island files (decisions 0096 and 0101): one JSON per designed port island in
@@ -114,8 +110,11 @@ export interface IslandDesign {
   woods: WoodsDef;
 }
 
+/** Every file in src/data/islands/, by id: one per island (decision 0107). */
 export const ISLAND_DESIGNS: Record<string, IslandDesign> = Object.fromEntries(
-  ([calda, saltmere, westholm, southCay] as unknown as IslandDesign[]).map((d) => [d.id, d]),
+  Object.values(
+    import.meta.glob<IslandDesign>('./islands/*.json', { eager: true, import: 'default' }),
+  ).map((d) => [d.id, d]),
 );
 
 /** Islands and tests that only name a producer style get that style's shipped island. */
@@ -138,6 +137,15 @@ export function islandDesign(idOrStyle: string): IslandDesign {
 export function designOf(island: IslandDef): IslandDesign | null {
   const id = island.look?.design ?? island.look?.profile;
   return id ? islandDesign(id) : null;
+}
+
+/** An island's landmark: its look's, or the first landmark prop of its file (decision 0107). */
+export function landmarkOf(island: IslandDef): LandmarkKind | undefined {
+  const landmarks: string[] = ['lighthouse', 'ruins', 'wreck', 'beacon'] satisfies LandmarkKind[];
+  return (
+    island.look?.landmark ??
+    (designOf(island)?.props.find((p) => landmarks.includes(p.type))?.type as LandmarkKind)
+  );
 }
 
 /** Is this element present at a level? */

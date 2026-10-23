@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
+import { landmarkOf } from '../src/data/islands';
 import { PHASE0_MAP, PHASE1_MAP } from '../src/data/maps';
 import { createBoat, stepBoat } from '../src/sim/boat';
-import { islandPoint } from '../src/sim/islandLayout';
+import { islandCoasts, islandPoint } from '../src/sim/islandLayout';
 import { coastDistance, insetOutline } from '../src/sim/coast';
 import { resolveCollisions } from '../src/sim/collision';
-import type { MapDef, TerrainDef } from '../src/sim/map';
+import type { IslandDef, MapDef, TerrainDef } from '../src/sim/map';
 import { DEG, bearingTo, clamp, wrapAngle } from '../src/sim/math';
 import { SLOOP, CUTTER } from '../src/sim/ship';
 import { applySave, serializeWorld, validateSave } from '../src/sim/save';
@@ -187,7 +188,7 @@ describe('Windward Ring trading map', () => {
   });
   it('gives every scenery island a landmark and keeps islands inside the world edge', () => {
     expect(PHASE1_MAP.islands.length).toBeLessThanOrEqual(12);
-    for (const i of scenery) expect(i.look?.landmark).toBeTruthy();
+    for (const i of scenery) expect(landmarkOf(i), i.id).toBeTruthy();
     for (const i of PHASE1_MAP.islands)
       expect(Math.hypot(i.x, i.y) + i.radius + SLOOP.radius + 20).toBeLessThan(
         PHASE1_MAP.boundsRadius,
@@ -275,25 +276,32 @@ describe('wind-aware route audit', () => {
     for (const port of PHASE1_MAP.ports.filter((p) => p.hidden)) {
       const island = PHASE1_MAP.islands.find((i) => i.id === port.islandId)!;
       for (const wind of [30, 210]) {
-        const plan = route(
-          PHASE1_MAP.start,
-          { x: island.x, y: island.y - island.radius - 20 },
-          wind,
-        );
+        // 20 units south of its shore (its coasts' southmost point, or its round beach).
+        const south = (islandCoasts(island) ?? [[[island.x, island.y - island.radius]]])
+          .flat()
+          .reduce((a, p) => (p[1] < a[1] ? p : a));
+        const plan = route(PHASE1_MAP.start, { x: south[0]!, y: south[1]! - 20 }, wind);
         expect(plan.points.length).toBeGreaterThan(1);
         expect(plan.seconds).toBeLessThan(240);
       }
     }
   }, 30000);
+  /** Open water 20 units off an island's shore: south of a round one, else off its coast. */
+  const offshore = (island: IslandDef) => {
+    const coasts = islandCoasts(island);
+    if (!coasts) return { x: island.x, y: island.y - island.radius - 20 };
+    for (const [x, y] of coasts[0]!) {
+      const d = Math.hypot(x - island.x, y - island.y);
+      const p = { x: x + ((x - island.x) / d) * 20, y: y + ((y - island.y) / d) * 20 };
+      if (clearAt(PHASE1_MAP, p.x, p.y, 14)) return p;
+    }
+    throw new Error(`No open water off ${island.id}`);
+  };
   it('can reach every scenery island under northeast and southwest winds', () => {
     const ports = new Set(PHASE1_MAP.ports.map((p) => p.islandId));
     for (const island of PHASE1_MAP.islands.filter((i) => !ports.has(i.id)))
       for (const wind of [30, 210]) {
-        const plan = route(
-          PHASE1_MAP.start,
-          { x: island.x, y: island.y - island.radius - 20 },
-          wind,
-        );
+        const plan = route(PHASE1_MAP.start, offshore(island), wind);
         expect(plan.points.length).toBeGreaterThan(1);
         expect(plan.seconds).toBeLessThan(180);
       }

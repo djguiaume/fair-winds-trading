@@ -25,7 +25,7 @@ export interface PanelHost {
   change(edit: (map: MapDef) => void, rebuildPanel?: boolean): void;
   select(selection: Selection): void;
   remove(): void;
-  /** Opens the island builder on an island with an island file (decision 0105). */
+  /** Opens the island builder on an island, making its file first if needed (0105, 0107). */
   editIsland(id: string): void;
 }
 
@@ -198,17 +198,33 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     if (!island) return;
     const port = portOn(map, island.id);
     heading(island.name ?? island.id, port ? 'island + port' : 'island');
-    if (island.look?.design) {
-      const b = buttons();
-      button(b, `✎ Edit island · ${island.look.design}.json`, () => host.editIsland(island.id));
-      b.title = 'Open the island builder (or double-click the island)';
-    }
+    const file = island.look?.design;
+    const edit = buttons();
+    button(edit, file ? `✎ Edit island · ${file}.json` : '✎ Edit island (makes its file)', () =>
+      host.editIsland(island.id),
+    );
+    edit.title = 'Open the island builder (or double-click the island)';
     text('Name', island.name ?? '', (v) => renameIsland(map, island.id, v));
     xy('Position', island.x, island.y, (x, y) => moveIsland(map, island.id, x, y));
     number('Radius', island.radius, (v) => (island.radius = Math.max(3, v ?? island.radius)), {
       min: 3,
     });
     const look = () => (island.look ??= {});
+    if (file) {
+      // Its own file draws it (decision 0107); the radius scales the whole file.
+      node('p', {
+        className: 'ed-note',
+        textContent: `Its ground, town, trees and landmark are in islands/${file}.json: edit them in the island builder. Radius scales the whole island.`,
+      });
+      check('Dock', !!island.look?.dock, (v) => (look().dock = v || undefined));
+      if (port) portFields(port);
+      const b = buttons();
+      if (!port)
+        button(b, '⚓ Make it a port', () => host.change(() => addPort(map, island.id), true));
+      else button(b, 'Remove port', () => host.change(() => removePort(map, island.id), true));
+      button(b, 'Delete island', () => host.remove());
+      return;
+    }
     number('Houses', island.look?.houses, (v) => (look().houses = v), { min: 0, optional: true });
     number('Trees', island.look?.trees, (v) => (look().trees = v), { min: 0, optional: true });
     number('Cliff tiers', island.look?.layers, (v) => (look().layers = v), {
@@ -293,6 +309,11 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
       sandbank: 'sandbank',
     };
     heading(shape.name ?? shape.id, kinds[shape.kind]);
+    if (shape.kind === 'island') {
+      const b = buttons();
+      button(b, '✎ Edit island (makes its file)', () => host.editIsland(shape.id));
+      b.title = 'Turns the ridge into an island with its own file, then opens the island builder';
+    }
     text('Name', shape.name ?? '', (v) => {
       if (v) shape.name = v;
       else delete shape.name;

@@ -12,7 +12,7 @@ The files were baked once from the old code by `tools/bake-islands`, and a test 
 
 | What | Where |
 |---|---|
-| The files | `src/data/islands/calda.json`, `saltmere.json`, `westholm.json`, `south-cay.json` (Stonehaven) |
+| The files | One per island: the ports `calda.json`, `saltmere.json`, `westholm.json`, `south-cay.json` (Stonehaven), and since [0110](../../decisions/0110-every-island-has-a-file.md) the scenery islands `skerry`, `bell-rock`, `lantern-rock`, `abbey-head`, `watchman-key` and the ridges `greyback-ridge`, `gull-hook`. Reefs and sandbanks stay outlines in the map file |
 | Map entry | `"look": { "design": "calda", … }` in `src/data/phase1-map.json`; position, radius and harbour bearing stay in the map |
 | Types and loader | `src/data/islands.ts` |
 | Prop catalogue (models, ids, footprints) | `src/render/models/props.ts`, `PROP_TYPES` |
@@ -24,6 +24,7 @@ The files were baked once from the old code by `tools/bake-islands`, and a test 
 
 Coordinates are **island-radius units**, harbour toward +z, x to the right seen from the sea; heights (`height`, `y`, `base`) are radius units too, so a file scales with the radius in the map. Levels are 1 Hamlet, 2 Village, 3 Town, 4 Port town; `from` is the first level something stands at and `to` (left out: to the end) the last.
 
+- **Harbour:** an island has its arrival pier, flag, landing, side piers and harbour approach only when its map entry has `look.dock`; without one it is always drawn at level 4 ([0110](../../decisions/0110-every-island-has-a-file.md)).
 - `style`: `fish`, `timber`, `grain` or `stone` (house colours, rock colour, the stone pier).
 - `seed`: seeds the woods.
 - `coasts`: the main island first, then islets. They are the collision shore.
@@ -43,7 +44,7 @@ Coordinates are **island-radius units**, harbour toward +z, x to the right seen 
 
 ## Prop types
 
-41 ids in `PROP_TYPES`:
+42 ids in `PROP_TYPES`:
 
 - **Homes:** `fish-house`, `cabin`, `farmhouse`, `stone-house`, `yard-house`
 - **Town:** `warehouse`, `market-hall`, `lamp-post`, `crates`, `spire-church`, `bakery`, `paving`
@@ -51,7 +52,7 @@ Coordinates are **island-radius units**, harbour toward +z, x to the right seen 
 - **Fish:** `drying-rack`, `smokehouse`, `moored-boat` (in the sea, solid to the ship)
 - **Farm:** `field`, `windmill`, `barn`, `granary`, `haystack`
 - **Stone:** `masons`, `derrick`, `stone-blocks`, `rail`, `keep`
-- **Nature:** `pine`, `broadleaf`, `woodland-pine`, `woodland-fir`, `woodland-broadleaf`
+- **Nature:** `pine`, `broadleaf`, `boulder`, `woodland-pine`, `woodland-fir`, `woodland-broadleaf`
 - **Landmarks:** `lighthouse`, `ruins`, `beacon`, `wreck`
 
 ## Checks

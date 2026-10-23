@@ -12,7 +12,8 @@ Open **<https://djguiaume.github.io/fair-winds-trading/editor.html>** (or `/edit
 - **Resize an island**: drag one of the four square handles round a selected island.
 - **Reshape a coastline**: select a reef, sandbank or barrier island; drag a dot to move a point, drag a small ring on an edge to add one, **Delete** removes the selected point (three stay at least).
 - **Add**: the tools on the left add a small island, a reef, a sandbank or a barrier island where you click, or move the start. A new island becomes a port with **⚓ Make it a port** in the panel.
-- **Edit what is on a port island**: double-click it (or **✎ Edit island** in its panel) to open the [island builder](../island-builder/builder/README.md).
+- **Edit what is on an island**: double-click any island or ridge (or **✎ Edit island** in its panel) to open the [island builder](../island-builder/builder/README.md). One without a file gets one made first ([0110](../decisions/0110-every-island-has-a-file.md)); commit both `phase1-map.json` and its `islands/<id>.json`.
+- **Map size**: click the sea and change **Sea radius** in the panel.
 - **Panel**: everything about the selection. For a port: name, start level, what it makes and wants, what it makes and wants from levels 2, 3 and 4, specialities it buys, ships its yard builds, hidden, home port. Click the sea (or the wind compass) for the map itself: name, sea radius, base wind, home port.
 - **Keys**: Delete, arrows nudge 1 unit (Shift: 10), Ctrl+Z / Ctrl+Shift+Z, Escape.
 - A dashed outline shows where a moved island or shape was in the shipped map.

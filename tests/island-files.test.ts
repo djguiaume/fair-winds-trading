@@ -7,7 +7,11 @@ import { checkIsland, type IslandIssue } from '../src/sim/islandChecks';
 /** The shipped island files with the radius their island has on the map. */
 const shipped = PHASE1_MAP.islands
   .filter((i) => i.look?.design)
-  .map((i) => ({ design: ISLAND_DESIGNS[i.look!.design!]!, R: i.radius / 2.2 }));
+  .map((i) => ({
+    design: ISLAND_DESIGNS[i.look!.design!]!,
+    R: i.radius / 2.2,
+    harbour: !!i.look!.dock,
+  }));
 const calda = shipped.find((s) => s.design.id === 'calda')!;
 
 const errors = (issues: IslandIssue[]) => issues.filter((i) => i.severity === 'error');
@@ -30,11 +34,12 @@ describe('island files (decision 0101)', () => {
   });
 
   it('passes every island check, with only warnings left', () => {
-    for (const { design, R } of shipped) {
-      const issues = checkIsland(design, islandCheckKit(design, R));
+    for (const { design, R, harbour } of shipped) {
+      const issues = checkIsland(design, islandCheckKit(design, R, harbour));
       expect(errors(issues), design.id).toEqual([]);
-      // Known warnings: lane pieces the old lanes never drew, and Calda above 5,000 triangles.
-      for (const w of issues) expect(['lanes', 'budget'], w.message).toContain(w.check);
+      // Known warnings: lane pieces the old lanes never drew, Calda above 5,000 triangles, and
+      // the hidden yards' houses touching as the old shipyard town placed them (0107).
+      for (const w of issues) expect(['lanes', 'budget', 'overlap'], w.message).toContain(w.check);
     }
   });
 
@@ -95,9 +100,9 @@ describe('island files (decision 0101)', () => {
    */
   it('builds the shipped islands exactly as recorded', () => {
     const hashes: Record<string, string[]> = {};
-    for (const { design, R } of shipped)
+    for (const { design, R, harbour } of shipped)
       hashes[design.id] = ([1, 2, 3, 4] as TownLevel[]).map((level) => {
-        const parts = designedTownParts(design, R, level);
+        const parts = designedTownParts(design, R, level, harbour);
         let h = 0x811c9dc5;
         const mix = (text: string) => {
           for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 0x01000193);
@@ -120,4 +125,12 @@ const GOLDEN: Record<string, string[]> = {
   saltmere: ['246:190f7a6', '421:aa8af177', '641:e4577624', '806:691e8290'],
   'south-cay': ['207:ca57c758', '289:594a75c5', '480:a596e174', '571:74e51cec'],
   westholm: ['176:682cfb3', '339:b6ebce0f', '614:656a10c0', '762:e5943cf4'],
+  // Rebuilt from the old generated islands (decision 0107).
+  'abbey-head': ['57:d285f975', '85:4cfcecff', '104:adf1a12d', '135:7dd54be1'],
+  'bell-rock': Array(4).fill('13:b0dc1251'),
+  'greyback-ridge': Array(4).fill('138:a55581aa'),
+  'gull-hook': Array(4).fill('134:97942c43'),
+  'lantern-rock': Array(4).fill('23:588e8fcb'),
+  skerry: Array(4).fill('17:2e291b19'),
+  'watchman-key': ['43:fbfd2fb9', '73:4bfeb4dd', '92:3e8fc1dd', '99:ac0414a9'],
 };
