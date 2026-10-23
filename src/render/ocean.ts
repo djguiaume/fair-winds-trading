@@ -171,6 +171,9 @@ void main() {
 }
 `;
 
+/** Conservative displacement bound: sum of the three wave amplitudes below and in the shader. */
+export const MAX_WAVE_HEIGHT = 0.32 + 0.24 + 0.12;
+
 /** CPU copy of the vertex shader's wave height, so boats and wakes ride the same waves. */
 export function waveHeight(x: number, z: number, t: number): number {
   return (
