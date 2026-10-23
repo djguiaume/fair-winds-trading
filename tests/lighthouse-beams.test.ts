@@ -36,10 +36,15 @@ it('lights every lighthouse of the island files, and only once it is built', () 
   expect(lighthouses).toEqual(expect.arrayContaining(['saltmere', 'watchman-key', 'lantern-rock']));
   const beams = new LighthouseBeams(PHASE1_MAP.islands);
   expect(beams.root.children).toHaveLength(lighthouses.length);
-  for (const beacon of beams.root.children) {
-    expect(beacon.visible).toBe(true);
-    expect(beacon.position.y).toBeGreaterThan(8);
-  }
+  // Teeth Rock's lighthouse is built by the Stonehaven arc (decision 0133): dark until it is done.
+  const teeth = lighthouses.indexOf('teeth-rock');
+  expect(teeth).toBeGreaterThanOrEqual(0);
+  beams.root.children.forEach((beacon, i) => {
+    expect(beacon.visible).toBe(i !== teeth);
+    expect(beacon.position.y).toBeGreaterThan(i === teeth ? 4 : 8);
+  });
+  beams.setQuestsDone(new Set(['stonehaven-light']));
+  expect(beams.root.children[teeth]!.visible).toBe(true);
   // A lighthouse that only comes with a later town level stays dark until then.
   const saltmere = designOf(PHASE1_MAP.islands.find((i) => i.id === 'saltmere')!)!;
   const lighthouse = saltmere.props.find((p) => p.type === 'lighthouse')!;
