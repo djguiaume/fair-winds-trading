@@ -206,7 +206,7 @@ journal line), `<text>.<step>.<option>.title` and `.copy` (a choice's buttons) a
 | `has-cargo` | `good`, `qty` | anywhere |
 | `owns-ship` | `ship` | anywhere |
 | `delivered` | `port`, `good`, `qty`: sold or for an order there since the step began | goal |
-| `carried` | `item`, `qty`, `from`, `to`: quest cargo, loaded as the hold allows | goal |
+| `carried` | `item`, `qty`, `from`, `to`: quest cargo, loaded as the hold allows; `from`/`to` is a port or a spot at sea `{ "x", "y", "within", "maxKn", "holdSec" }`, held slowly there ([0131](../decisions/0131-calda-slipway-and-cargo-at-a-spot.md)) | goal |
 | `reach` | `points` (`[{ "x", "y" }]`), `within`, `order` (`any`/`in-order`), `maxKn` + `holdSec`, `atNight` | goal |
 | `timed` | `from`, `to` (default `from`), `via` (points in order), `within`, `par` (seconds, or `{ "fair": …, "captain": …, "salt": … }`) | goal |
 

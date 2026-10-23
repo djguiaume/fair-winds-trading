@@ -21,6 +21,7 @@ import { toBase64Url } from '../src/sim/saveTransfer';
 import { SLOOP } from '../src/sim/ship';
 import { buy, capacity, cargoUsed, sell } from '../src/sim/trade';
 import { TUTORIAL_QUEST } from '../src/sim/tutorial';
+import { questTarget } from '../src/ui/questView';
 import { type World, createWorld } from '../src/sim/world';
 import pier from './fixtures/quests/test-pier.json';
 import after from './fixtures/quests/test-after.json';
@@ -249,13 +250,13 @@ describe('quest engine (decision 0125)', () => {
     dock(world, 'stonehaven');
     quests.check();
     // Ten spaces, five of fish: one millstone of four fits.
-    expect(quests.progress('test-sailing')!.counts).toEqual([1, 0]);
+    expect(quests.progress('test-sailing')!.counts).toEqual([1, 0, 0]);
     expect(cargoUsed(world.trade)).toBe(9);
     expect(quests.check()).toEqual([]);
-    expect(quests.progress('test-sailing')!.counts).toEqual([1, 0]);
+    expect(quests.progress('test-sailing')!.counts).toEqual([1, 0, 0]);
     dock(world, 'westholm');
     quests.check();
-    expect(quests.progress('test-sailing')!.counts).toEqual([0, 1]);
+    expect(quests.progress('test-sailing')!.counts).toEqual([0, 1, 0]);
     expect(cargoUsed(world.trade)).toBe(5);
     world.trade.captain.cargo.fish = 0;
     dock(world, 'stonehaven');
@@ -293,10 +294,89 @@ describe('quest engine (decision 0125)', () => {
     world.trade.captain.cargo.timber = capacity(world.trade);
     dock(world, 'calda');
     quests.check();
-    expect(quests.progress('test-rescue')!.counts).toEqual([1, 0]);
+    expect(quests.progress('test-rescue')!.counts).toEqual([1, 0, 0]);
     expect(cargoUsed(world.trade)).toBe(capacity(world.trade));
     dock(world, 'saltmere');
     expect(quests.check()).toEqual([{ type: 'finished', quest: 'test-rescue' }]);
+  });
+
+  it('quest cargo loads and unloads at a spot at sea, held slowly there (decision 0131)', () => {
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    const landing = { x: 40, y: 40, within: 10, maxKn: 2, holdSec: 3 };
+    const raft = {
+      id: 'test-landing',
+      name: 'Test: cargo at a spot',
+      start: { is: 'always' },
+      text: 'quest.test-landing',
+      items: { log: { space: 4 } },
+      steps: [
+        { id: 'logs', goal: { is: 'carried', item: 'log', qty: 2, from: landing, to: 'calda' } },
+        { id: 'back', goal: { is: 'carried', item: 'log', qty: 1, from: 'calda', to: landing } },
+      ],
+    } as unknown as QuestDef;
+    expect(checkQuests([raft], PHASE1_MAP)).toEqual([]);
+    const quests = book(world, true, [raft]);
+    quests.check();
+    world.trade.captain.cargo.fish = 5;
+    world.boat.x = 0;
+    world.boat.y = 0;
+    quests.check();
+    // Too fast, or not long enough: nothing loads.
+    sailTo(world, quests, 42, 40, 5, 5);
+    expect(quests.progress('test-landing')!.counts).toEqual([0, 0, 0]);
+    sailTo(world, quests, 42, 40, 1.5, 2);
+    expect(quests.progress('test-landing')!.counts[0]).toBe(0);
+    // Three seconds held slowly: one log of four fits beside five fish.
+    sailTo(world, quests, 42, 40, 1.5, 1);
+    expect(quests.progress('test-landing')!.counts.slice(0, 2)).toEqual([1, 0]);
+    expect(questTarget(quests, PHASE1_MAP)).toEqual({ port: 'calda' });
+    world.boat.x = 100;
+    dock(world, 'calda');
+    quests.check();
+    world.trade.dockedAt = null;
+    expect(quests.progress('test-landing')!.counts).toEqual([0, 1, 0]);
+    expect(questTarget(quests, PHASE1_MAP)).toEqual({ point: { x: 40, y: 40 }, radius: 10 });
+    world.trade.captain.cargo.fish = 0;
+    sailTo(world, quests, 40, 38, 0, 3);
+    dock(world, 'calda');
+    expect(quests.check()).toEqual([{ type: 'step', quest: 'test-landing', step: 'back' }]);
+    // Unloading at the spot works the same way.
+    quests.check();
+    world.trade.dockedAt = null;
+    quests.check();
+    sailTo(world, quests, 40, 38, 0, 3);
+    expect(quests.progress('test-landing')).toMatchObject({ step: 'done' });
+  });
+
+  it('the checks refuse a spot at sea without its place or with stray fields', () => {
+    const bad = {
+      id: 'test-bad-spot',
+      name: 'Test',
+      start: { is: 'always' },
+      text: 'quest.test',
+      items: { log: { space: 1 } },
+      steps: [
+        {
+          id: 'a',
+          goal: { is: 'carried', item: 'log', qty: 1, from: { x: 1, y: 2 }, to: 'nowhere' },
+        },
+        {
+          id: 'b',
+          goal: {
+            is: 'carried',
+            item: 'log',
+            qty: 1,
+            from: { x: 1, y: 2, within: 5, kn: 2 },
+            to: 'calda',
+          },
+        },
+      ],
+    } as unknown as QuestDef;
+    expect(checkQuests([bad], PHASE1_MAP)).toEqual([
+      'quest test-bad-spot › a › goal › carried.from: a spot at sea needs "x", "y" and "within"',
+      'quest test-bad-spot › a › goal › carried.to: no port "nowhere"',
+      'quest test-bad-spot › b › goal › carried.from: a spot has no "kn"',
+    ]);
   });
 
   it('markers in any order or in order, a slow hold, and a reef hit starts a clean step over', () => {
