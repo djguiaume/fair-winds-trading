@@ -21,6 +21,15 @@
     "mooredKn": 0.2,
     "waypointRadius": 12
   },
+  "boundaryBuoys": {
+    "spacing": 28,
+    "offset": 6,
+    "phaseStep": 1.7,
+    "waterline": -0.2,
+    "pitchRate": 1.4,
+    "rollRate": 1.1,
+    "rockRadians": 0.12
+  },
   "cargo": {
     "overpressedKn": 19.5,
     "heavySeconds": 3,

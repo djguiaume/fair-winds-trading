@@ -392,7 +392,7 @@ export class GameView {
     windows?.color.copy(WINDOWS_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
     this.boat.setNightLighting?.(day.night);
     this.ocean.update(time, this.target);
-    this.edgeBuoys.update(time, (x, z) => waveHeight(x, z, time));
+    this.edgeBuoys.update(time, (x, z) => waveHeight(x, z, time), this.camera);
 
     this.buoy.root.visible = Boolean(this.world.map.practiceCourse && !this.world.destination);
     if (this.buoy.root.visible) {
