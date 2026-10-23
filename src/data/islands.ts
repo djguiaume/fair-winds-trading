@@ -41,6 +41,21 @@ export interface LaneDef {
   base?: number;
 }
 
+/**
+ * A ramp (decision 0123): a band `width` wide along `points` (straight runs, at least two), rising
+ * evenly from `start` at the first point to `end` at the last, so it can curl round raised ground.
+ * Heights are radius units, like ground.
+ */
+export interface RampDef {
+  points: Point[];
+  width: number;
+  start: number;
+  end: number;
+  material: 'grass' | 'rock';
+  from?: number;
+  to?: number;
+}
+
 /** A side pier from a level; the arrival pier stays the simulation's (x 0.08). */
 export interface PierDef {
   x: number;
@@ -105,12 +120,14 @@ export interface IslandDesign {
   lake?: Point[];
   ground: GroundDef[];
   lanes: LaneDef[];
+  /** Ramps that climb along their length (decision 0123); left out, none. */
+  ramps?: RampDef[];
   piers: PierDef[];
   props: PropDef[];
   woods: WoodsDef;
 }
 
-/** Every file in src/data/islands/, by id: one per island (decision 0107). */
+/** Every file in src/data/islands/, by id: one per island (decision 0110). */
 export const ISLAND_DESIGNS: Record<string, IslandDesign> = Object.fromEntries(
   Object.values(
     import.meta.glob<IslandDesign>('./islands/*.json', { eager: true, import: 'default' }),
@@ -139,7 +156,7 @@ export function designOf(island: IslandDef): IslandDesign | null {
   return id ? islandDesign(id) : null;
 }
 
-/** An island's landmark: its look's, or the first landmark prop of its file (decision 0107). */
+/** An island's landmark: its look's, or the first landmark prop of its file (decision 0110). */
 export function landmarkOf(island: IslandDef): LandmarkKind | undefined {
   const landmarks: string[] = ['lighthouse', 'ruins', 'wreck', 'beacon'] satisfies LandmarkKind[];
   return (

@@ -129,7 +129,7 @@ export function islandParts(
   const sz = 1 + (rng() - 0.5) * 0.16;
   const out: Parts = [];
   // A port with a settlement level grows its own town and island profile (decision 0060); any
-  // island with its own file is built from it, a harbour only with a dock (decision 0107).
+  // island with its own file is built from it, a harbour only with a dock (decision 0110).
   const town = !!look.design || ((level !== undefined || !!look.profile) && !!look.dock);
 
   if (town) {

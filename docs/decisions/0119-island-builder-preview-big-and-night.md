@@ -10,10 +10,11 @@ Guillaume (2026-10-23): the builder's 3D view should be expandable to see the is
 
 - **⤢ Bigger view:** the preview fills the builder under its top bar (the whole screen on a phone). There you drag across to turn, up and down to tilt, and use the wheel or a pinch to zoom; **⟲** goes back to the game camera's view. **✕** or Esc closes it, and the small view goes back to the game's angle.
 - **☾ Night / ☀ Day:** the preview uses the game's moonlit night look (`NIGHT` in `src/render/atmosphere.ts`: sky light, moonlight, water colour). Window glass and street lamps are drawn apart, tinted like in the game (`WINDOWS_BY_DAY` → `WINDOWS_AT_NIGHT`, now exported from `atmosphere.ts` and used by `view.ts` too), so lit windows show at night and dark panes by day.
-- Lighthouse beams and beacon lights are separate scene objects in the game. They will be added to the night preview once the night lights work ("Beacon and lighthouse night lights") is on main.
+- The island's lighthouse beams and beacon lights ([0121](0121-lighthouse-and-beacon-night-lights.md)) sweep and flash in the night preview: the game's `LighthouseBeams` and `BeaconLights` for this one island at the level shown.
+- The preview is centred on the whole model, so a tall lighthouse on a small rock stays in the picture. An island with no windows no longer fails to build its preview.
 
 ## Consequences
 
 - An island can be checked at night without playing it.
 - The preview builds the island's glass as its own mesh: a little more work on each rebuild, unnoticeable at 6,000 triangles.
-- The night preview is the game's night without fog, rain or the ocean shader; the colours are the same.
+- The night preview is the game's night without fog, rain or the ocean shader; the colours are the same. Beacon glows are sized for the game's camera, so they look a little large up close.

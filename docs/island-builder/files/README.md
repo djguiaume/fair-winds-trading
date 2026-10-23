@@ -31,6 +31,7 @@ Coordinates are **island-radius units**, harbour toward +z, x to the right seen 
 - `lake`: optional inland water.
 - `ground`: raised ground, every edge a cliff unless it slopes. `"coast": 0` is that coast's ground inside the sandy beach; otherwise an `outline`. `height`, `material` (`grass` or `rock`), optional `holes`, `from`/`to`, and `"shape": "peak"` with `base` for a rock cone. `slope` (a ramp's width, outward from the outline, down to the ground below) with optional `slopeEdges` (runs `[first, last]` of edge indices, edge *i* from point *i* to *i + 1*; left out, every edge slopes): [0106](../../decisions/0106-island-builder-ground-lanes-woods.md).
 - `lanes`: plain lanes (points `[x, z]`, smoothed; a piece shows when a standing home is near and it stays on one ground level or climbs a slope), `"kind": "path"` (always shown, at `y`, or along the ground when there is no `y`) and `"kind": "stairs"` (points `[x, z, height]`, masonry down to `base`, a landing at each bend).
+- `ramps` (optional, [0123](../../decisions/0123-island-builder-ramps.md)): `{ points, width, start, end, material, from, to }`, a band along the points rising evenly from `start` to `end`, over any cliff it crosses.
 - `piers`: side piers `{ x, z, length, from }`. The arrival pier is the simulation's and is not in the file.
 - `props`: `{ type, x, z, turn, size, variant, shape, from, to, y, fit, clear, tags }`.
   - `turn` in degrees; `size` scales the model (landmarks take it as their own size).

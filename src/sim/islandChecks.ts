@@ -38,7 +38,7 @@ export interface IslandCheckKit {
   footprint?: (prop: PropDef) => Outline;
   /** Triangles of the whole island at a level. */
   triangles?: (level: number) => number;
-  /** False for an island with no harbour (decision 0107): no approach to keep clear. */
+  /** False for an island with no harbour (decision 0110): no approach to keep clear. */
   harbour?: boolean;
 }
 
@@ -91,6 +91,13 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
     if (l.kind === 'stairs' && l.points.some((p) => p.length !== 3))
       error('known', `Stairs ${i}: every point needs x, z and a height`);
   });
+  (design.ramps ?? []).forEach((r, i) => {
+    if (r.material !== 'grass' && r.material !== 'rock')
+      error('known', `Ramp ${i}: unknown material "${String(r.material)}"`);
+    if (r.points.length < 2) error('known', `Ramp ${i}: needs two points or more`);
+    if (!(r.width > 0)) error('known', `Ramp ${i}: needs a width`);
+    levelsOk(r, `Ramp ${i}`);
+  });
   design.piers.forEach((p, i) => {
     if (!isLevel(p.from)) error('levels', `Pier ${i}: "from" must be 1 to ${TOP}`);
   });
@@ -107,6 +114,10 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
       if (out) error('ground', `Raised ground ${i} reaches past the coast`, { at: out, level });
     });
   }
+  (design.ramps ?? []).forEach((r, i) => {
+    const out = r.points.find(([x, z]) => !design.coasts.some((c) => inside(x, z, c)));
+    if (out) error('ground', `Ramp ${i} reaches past the coast`, { at: out });
+  });
   if (design.lake) {
     const out = design.lake.find(([x, z]) => coastDistance(x, z, main).distance > -0.02);
     if (out) error('ground', 'The lake reaches the coast', { at: out });
