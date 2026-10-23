@@ -45,7 +45,11 @@ In **Ground** mode with nothing selected, the panel sets the tree, how many trie
 
 ## 3D preview and checks
 
-The preview on the right is the island at the game's camera angle: drag it to turn. The checks are the same code as the test suite (`src/sim/islandChecks.ts`): props on land and out of the lake, boats in the water, nothing in the harbour approach or on a pier, nothing on a cliff edge, buildings not overlapping, each level only adding, no building on a slope, lanes and paths not crossing water or a cliff, and at most 6,000 triangles at level 4. Click a result to select the prop and go to its level; red and amber marks show where on the island.
+The preview on the right is the island at the game's camera angle: drag it to turn. **⤢** opens a bigger view: drag across to turn, up and down to tilt, wheel or pinch to zoom, **⟲** back to the game's angle, **✕** or Esc to close. **☾ Night** shows the island in the game's moonlight with its windows lit ([0119](../../decisions/0119-island-builder-preview-big-and-night.md)).
+
+![The bigger preview at night](preview-night.png)
+
+ The checks are the same code as the test suite (`src/sim/islandChecks.ts`): props on land and out of the lake, boats in the water, nothing in the harbour approach or on a pier, nothing on a cliff edge, buildings not overlapping, each level only adding, no building on a slope, lanes and paths not crossing water or a cliff, and at most 6,000 triangles at level 4. Click a result to select the prop and go to its level; red and amber marks show where on the island.
 
 ## Play and export
 

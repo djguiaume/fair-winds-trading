@@ -564,6 +564,45 @@ button.danger {
   top: 6px;
   left: 6px;
 }
+.ib-preview-tools {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  gap: 4px;
+}
+.ib-preview-tools button {
+  min-width: 28px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--brass-line);
+  border-radius: 6px;
+  background: #0d2433d9;
+  color: var(--ink);
+  font: 700 13px var(--display);
+  cursor: pointer;
+}
+.ib-preview-tools button[aria-pressed='true'] {
+  background: var(--brass);
+  color: #0d2433;
+}
+.ib-preview-tools button[hidden] {
+  display: none;
+}
+/* Bigger 3D view: over the whole builder under its top bar, until ✕ or Esc. */
+.ib-preview.big {
+  position: fixed;
+  inset: 56px 12px 12px;
+  z-index: 40;
+  height: auto;
+  background: #2fa3b3;
+  box-shadow: 0 10px 40px #000a;
+}
+.ib-preview.big .ib-preview-tools button {
+  height: 34px;
+  min-width: 38px;
+  font-size: 15px;
+}
 .ib-preview-hint {
   right: 6px;
   bottom: 6px;
@@ -730,6 +769,13 @@ button.danger {
   }
   #ib-preview-corner .ib-preview-hint {
     display: none;
+  }
+  #ib-preview-corner .ib-preview:not(.big) .ib-preview-title {
+    display: none;
+  }
+  #ib-preview-corner .ib-preview.big {
+    inset: 8px;
+    height: auto;
   }
   .ib-view .ed-zoom {
     right: auto;

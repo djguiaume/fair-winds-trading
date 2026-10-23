@@ -111,7 +111,33 @@
             <div class="ib-preview" id="ib-preview">
               <canvas id="ib-preview-canvas"></canvas>
               <span class="ib-preview-title" id="ib-preview-title">3D preview</span>
-              <span class="ib-preview-hint">drag to turn</span>
+              <span class="ib-preview-hint" id="ib-preview-hint">drag to turn</span>
+              <div class="ib-preview-tools">
+                <button
+                  id="ib-night"
+                  type="button"
+                  title="See the island at night"
+                  aria-pressed="false"
+                >
+                  ☾ Night
+                </button>
+                <button
+                  id="ib-reset-view"
+                  type="button"
+                  title="Back to the game camera's view"
+                  hidden
+                >
+                  ⟲
+                </button>
+                <button
+                  id="ib-expand"
+                  type="button"
+                  title="Bigger 3D view (Esc closes)"
+                  aria-label="Bigger 3D view"
+                >
+                  ⤢
+                </button>
+              </div>
             </div>
           </div>
           <div class="ib-checks">
