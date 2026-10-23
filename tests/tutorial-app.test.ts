@@ -58,6 +58,14 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
     await new Promise((resolve) => setTimeout(resolve, 0));
   };
   click('#menu-play');
+  // A fresh voyage starts by picking a difficulty level, Captain preselected (decision 0083).
+  const picker = document.getElementById('new-voyage')!;
+  expect(picker.hidden).toBe(false);
+  expect(input.isEnabled).toBe(false);
+  expect(picker.querySelector('[data-level="captain"]')!.getAttribute('aria-checked')).toBe('true');
+  click('#set-sail');
+  expect(picker.hidden).toBe(true);
+  expect(world.trade.difficulty).toBe('captain');
   expect(offer.open).toBe(true);
   expect(input.isEnabled).toBe(false);
   click('#tutorial-start');

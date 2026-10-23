@@ -11,6 +11,7 @@ import {
   shallowness,
 } from './hazards';
 import { settlementLevels } from './settlement';
+import { knobs, weatherFor } from './difficulty';
 import { DEG, bearingTo, clamp, distance } from './math';
 import type { ShipClass } from './ship';
 import {
@@ -26,6 +27,7 @@ import { heelFactor, pointOfSailHeel } from './heel';
 import {
   type LocalWeather,
   type Wind,
+  type WindConfig,
   type WindBlocker,
   localWind,
   steadyWeather,
@@ -87,6 +89,15 @@ export interface World {
   /** Moving storms on (decision 0067); players can turn them off in Settings. */
   storms: boolean;
   /**
+   * The steady trade wind (decision 0083): small, slow shifts close to the prevailing wind. A
+   * Settings choice whose default follows the difficulty level (on for Fair winds).
+   */
+  steadyWind: boolean;
+  /** Wind config used on the last step, to notice a change of level or Wind setting. */
+  windConfig: WindConfig | null;
+  /** While the wind eases from an old config to the new one (decision 0083), the old one and when. */
+  windBlend: { from: WindConfig; at: number } | null;
+  /**
    * Why storms are held back right now (decision 0072): 'tutorial', later a special event such as
    * a delivery race with fixed weather. Any entry holds them; see `holdStorms`.
    */
@@ -136,6 +147,9 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     stormsWarned: [],
     dynamicWeather: true,
     storms: true,
+    steadyWind: false,
+    windConfig: null,
+    windBlend: null,
     stormHolds: [],
     stormsFrom: 0,
     stormsOn: true,
@@ -283,14 +297,46 @@ export function stepStorms(world: World): WorldEvent[] {
   return events;
 }
 
-/** One unit of the good the hold carries most of goes over the side. */
+/**
+ * Units of the good the hold carries most of go over the side: one on Captain, two on Old salt,
+ * none on Fair winds, where the warning still shows (decision 0083).
+ */
 function loseCargo(world: World): WorldEvent[] {
   const cargo = world.trade.captain.cargo;
   let good: GoodId | null = null;
   for (const g of GOODS) if (cargo[g] > 0 && (!good || cargo[g] > cargo[good])) good = g;
-  if (!good) return [];
-  cargo[good] -= 1;
-  return [{ type: 'overboard', good, qty: 1 }];
+  const qty = good ? Math.min(cargo[good], knobs(world.trade.difficulty).cargoLost) : 0;
+  if (!good || qty <= 0) return [];
+  cargo[good] -= qty;
+  return [{ type: 'overboard', good, qty }];
+}
+
+/** Seconds the wind takes to ease to a new level or Wind setting, as a weather change does. */
+export const WIND_BLEND_SEC = 60;
+
+/** Sea wind at the boat, eased from the previous config for a while after it changed (0083). */
+function seaWindAt(world: World, cfg: WindConfig): Wind {
+  const previous = world.windConfig;
+  if (previous && previous.weather !== cfg.weather)
+    world.windBlend = { from: previous, at: world.time };
+  world.windConfig = cfg;
+  const wind = windAt(cfg, world.time, world.map.seed, world.boat, world.weather);
+  const blend = world.windBlend;
+  if (!blend) return wind;
+  const k = (world.time - blend.at) / WIND_BLEND_SEC;
+  if (k >= 1 || k < 0) {
+    world.windBlend = null;
+    return wind;
+  }
+  const old = windAt(blend.from, world.time, world.map.seed, world.boat);
+  const s = k * k * (3 - 2 * k);
+  let turn = wind.from - old.from;
+  turn -= 2 * Math.PI * Math.round(turn / (2 * Math.PI));
+  const from = old.from + turn * s;
+  return {
+    from: from - 2 * Math.PI * Math.floor(from / (2 * Math.PI)),
+    speedKn: old.speedKn + (wind.speedKn - old.speedKn) * s,
+  };
 }
 
 /**
@@ -347,7 +393,9 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   refreshPiers(world);
   const events: WorldEvent[] = [];
   world.time += dt;
-  const { weather } = world.map.wind;
+  const base = world.map.wind.weather;
+  // The difficulty level and the Wind setting shape the map's weather (decision 0083).
+  const weather = base && weatherFor(base, world.trade.difficulty, world.steadyWind);
   // When storms come back (Settings, end of the tutorial or an event), only new ones form at the
   // edge of the sea: one already under way would otherwise appear out of nowhere (decision 0072).
   const stormsOn = world.dynamicWeather && world.storms && world.stormHolds.length === 0;
@@ -365,7 +413,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
           : weather,
     stormsFrom: world.stormsFrom,
   };
-  world.seaWind = windAt(cfg, world.time, world.map.seed, world.boat, world.weather);
+  world.seaWind = seaWindAt(world, cfg);
   const effect = windEffectAt(world.windBlockers, world.boat, world.seaWind);
   world.shelter = effect.shelter;
   world.funnel = effect.funnel;
@@ -400,7 +448,8 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   if (surface && world.boat.sinceBump === 0 && sinceBump > 0.5) {
     // Damage follows the speed the impact took off: reefs always cut, shores and piers only
     // past a docking bump, sandbanks are soft (decisions 0032 and 0038).
-    const damage = damageHull(world.trade, impactDamage(surface, speedBefore - world.boat.speedKn));
+    const hit = impactDamage(surface, speedBefore - world.boat.speedKn);
+    const damage = damageHull(world.trade, hit * knobs(world.trade.difficulty).damage);
     if (damage >= 1 && surface === 'reef') events.push({ type: 'reef-strike', damage });
     else if (damage >= 1 && (surface === 'shore' || surface === 'pier' || surface === 'boat'))
       events.push({ type: 'crash', damage, surface });

@@ -389,6 +389,7 @@ export class GameView {
     // Lit windows and street lamps in the towns.
     const windows = this.islands.userData.windows as THREE.MeshBasicMaterial | undefined;
     windows?.color.copy(WINDOWS_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
+    this.boat.setNightLighting?.(day.night);
     this.ocean.update(time, this.target);
     this.edgeBuoys.update(time, (x, z) => waveHeight(x, z, time));
 

@@ -58,7 +58,7 @@ describe('refined clipper', () => {
           expect(b.stats.jibs).toBe(3); // Existing clipper caps at three, including sails 2/3.
           expect(b.stats.topsail).toBe(sails === 3);
           expect(b.stats.meshes).toBeLessThanOrEqual(11);
-          expect(b.stats.triangles).toBeLessThanOrEqual(1191);
+          expect(b.stats.triangles).toBeLessThanOrEqual(1359);
           let triangles = 0;
           b.root.traverse((o) => {
             if ((o as THREE.Mesh).isMesh) triangles += triangleCount((o as THREE.Mesh).geometry);

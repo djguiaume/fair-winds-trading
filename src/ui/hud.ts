@@ -276,7 +276,10 @@ export class Hud {
       if (level > 0 && !this.seenPressHint) {
         this.seenPressHint = true;
         this.onPressHintSeen();
-        this.showToast(t('toast.pressHint'), 5);
+        // On Fair winds the warning is a lesson: cargo stays aboard (decision 0083).
+        const hint =
+          this.world.trade.difficulty === 'fair' ? 'toast.pressHintFair' : 'toast.pressHint';
+        this.showToast(t(hint), 5);
       }
     }
     if (level === 0) return;

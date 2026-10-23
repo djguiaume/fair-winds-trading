@@ -1,0 +1,574 @@
+<!doctype html>
+<!--
+  Static mockup of the difficulty picker (docs/reviews/difficulty/README.md). Not game code.
+  Open with ?view=settings for the Settings row. Rendered to PNG by render.mjs.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Difficulty picker mockup</title>
+    <style>
+      @font-face {
+        font-family: 'Barlow Condensed';
+        font-weight: 700;
+        src: url('../../../src/ui/fonts/barlow-condensed-700.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Barlow Condensed';
+        font-weight: 600;
+        src: url('../../../src/ui/fonts/barlow-condensed-600.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Barlow';
+        font-weight: 500;
+        src: url('../../../src/ui/fonts/barlow-500.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Barlow';
+        font-weight: 700;
+        src: url('../../../src/ui/fonts/barlow-700.woff2') format('woff2');
+      }
+      :root {
+        --navy-solid: #123246;
+        --card: #16303f;
+        --brass: #e8c46a;
+        --brass-line: rgba(232, 196, 106, 0.55);
+        --brass-hi: #f3d37e;
+        --brass-lo: #b08a2c;
+        --ink: #eef3f4;
+        --ink-dim: rgba(238, 243, 244, 0.72);
+        --green: #59d36b;
+        --outline: #06141c;
+        --display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+        --body: 'Barlow', sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+      body {
+        background:
+          radial-gradient(120% 80% at 70% 0%, rgba(80, 160, 190, 0.35), transparent 60%),
+          linear-gradient(#0d2a3a, #0a1f2c);
+        color: var(--ink);
+        font-family: var(--body);
+        overflow: hidden;
+      }
+      .sheet {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--brass-line);
+      }
+      h1 {
+        margin: 0;
+        font: 700 26px/1 var(--display);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      header .sub {
+        color: var(--ink-dim);
+        font-size: 15px;
+      }
+      header .close {
+        margin-left: auto;
+      }
+      .d-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 46px;
+        padding: 0 18px;
+        border: 2px solid var(--outline);
+        border-radius: 10px;
+        background: var(--navy-solid);
+        box-shadow:
+          inset 0 -3px 0 rgba(0, 0, 0, 0.4),
+          0 3px 8px rgba(0, 0, 0, 0.35);
+        color: var(--ink);
+        font: 700 18px/1 var(--display);
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+      .d-btn.brass {
+        background: linear-gradient(var(--brass-hi), #e0b452);
+        box-shadow:
+          inset 0 -3px 0 var(--brass-lo),
+          0 3px 8px rgba(0, 0, 0, 0.35);
+        color: #2a1c00;
+      }
+      .d-btn.big {
+        min-height: 54px;
+        font-size: 24px;
+        padding: 0 28px;
+      }
+      .d-btn.square {
+        width: 46px;
+        padding: 0;
+        font-size: 22px;
+      }
+      main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 14px;
+        width: min(1080px, 100%);
+        margin: 0 auto;
+        padding: 18px 20px;
+        min-height: 0;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        min-height: 0;
+      }
+      .card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 16px 16px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
+        background: var(--card);
+      }
+      .card.on {
+        border: 2px solid var(--brass);
+        background: #1b3a4b;
+        box-shadow: 0 0 0 4px rgba(232, 196, 106, 0.15);
+      }
+      .card .top {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .card svg {
+        flex: none;
+        width: 46px;
+        height: 34px;
+      }
+      .card h2 {
+        margin: 0;
+        font: 700 25px/1 var(--display);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .tag {
+        color: var(--brass);
+        font: 600 16px/1.2 var(--display);
+        letter-spacing: 0.04em;
+      }
+      .badge {
+        position: absolute;
+        top: -11px;
+        right: 12px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        background: var(--brass);
+        color: #2a1c00;
+        font: 700 13px/1 var(--display);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      ul {
+        margin: 2px 0 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 15px;
+        line-height: 1.25;
+      }
+      li {
+        display: flex;
+        gap: 8px;
+      }
+      li::before {
+        content: '';
+        flex: none;
+        width: 7px;
+        height: 7px;
+        margin-top: 6px;
+        border-radius: 50%;
+        background: var(--ink-dim);
+      }
+      li.same {
+        color: var(--ink-dim);
+      }
+      .pace {
+        margin-top: auto;
+        padding-top: 8px;
+        border-top: 1px dashed rgba(255, 255, 255, 0.14);
+        color: var(--ink-dim);
+        font-size: 13px;
+      }
+      .pace b {
+        color: var(--ink);
+      }
+      footer {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .note {
+        flex: 1;
+        color: var(--ink-dim);
+        font-size: 14px;
+        line-height: 1.3;
+      }
+      .note b {
+        color: var(--ink);
+      }
+      .chips {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+      }
+      .chip {
+        padding: 4px 9px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 999px;
+        font: 600 13px/1 var(--display);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .chip.off {
+        color: var(--ink-dim);
+        text-decoration: line-through;
+      }
+      .chip.later {
+        color: var(--ink-dim);
+        border-style: dashed;
+      }
+
+      /* Phone landscape: same three cards, fewer lines. */
+      @media (max-height: 460px) {
+        header {
+          padding: 8px 14px;
+        }
+        h1 {
+          font-size: 21px;
+        }
+        header .sub {
+          font-size: 13px;
+        }
+        main {
+          padding: 10px 14px;
+          gap: 8px;
+        }
+        .cards {
+          gap: 10px;
+        }
+        .card {
+          padding: 10px 11px;
+          gap: 5px;
+        }
+        .card h2 {
+          font-size: 20px;
+        }
+        .card svg {
+          width: 34px;
+          height: 26px;
+        }
+        .tag {
+          font-size: 14px;
+        }
+        ul {
+          font-size: 13px;
+          gap: 3px;
+        }
+        li::before {
+          margin-top: 5px;
+          width: 5px;
+          height: 5px;
+        }
+        li.extra,
+        .pace {
+          display: none;
+        }
+        .note {
+          font-size: 12px;
+        }
+        .chips {
+          display: none;
+        }
+        .d-btn.big {
+          min-height: 44px;
+          font-size: 20px;
+        }
+        .d-btn.square {
+          width: 40px;
+          min-height: 40px;
+        }
+      }
+
+      /* Portrait: cards stack, the chosen one opens. */
+      @media (max-aspect-ratio: 3/4) {
+        header .sub {
+          display: none;
+        }
+        main {
+          padding: 14px;
+          gap: 10px;
+        }
+        .cards {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        .card:not(.on) ul,
+        .card:not(.on) .pace {
+          display: none;
+        }
+        .card:not(.on) {
+          padding: 12px 14px;
+        }
+        main {
+          justify-content: flex-start;
+        }
+        footer {
+          flex-direction: column;
+          align-items: stretch;
+          margin-top: auto;
+        }
+        .d-btn.big {
+          width: 100%;
+        }
+      }
+
+      /* Settings row (?view=settings). */
+      .settings {
+        display: none;
+      }
+      body.view-settings .picker {
+        display: none;
+      }
+      body.view-settings .settings {
+        display: flex;
+      }
+      .section {
+        color: var(--brass);
+        font: 700 13px/1 var(--display);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin: 6px 0 2px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        background: var(--card);
+      }
+      .row .label {
+        flex: 1;
+      }
+      .row .label b {
+        display: block;
+        font: 700 18px/1.1 var(--display);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .row .label span {
+        color: var(--ink-dim);
+        font-size: 13px;
+      }
+      .seg {
+        display: inline-flex;
+        padding: 3px;
+        border: 1px solid var(--brass-line);
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.25);
+      }
+      .seg span {
+        padding: 10px 11px;
+        border-radius: 7px;
+        color: var(--ink-dim);
+        font: 700 15px/1 var(--display);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .seg span.on {
+        background: var(--brass);
+        color: #2a1c00;
+      }
+      .switch {
+        width: 50px;
+        height: 28px;
+        border-radius: 14px;
+        background: var(--green);
+        border: 2px solid var(--outline);
+        position: relative;
+      }
+      .switch::after {
+        content: '';
+        position: absolute;
+        right: 2px;
+        top: 2px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #fff;
+      }
+      .switch.off {
+        background: #33475a;
+      }
+      .switch.off::after {
+        right: auto;
+        left: 2px;
+      }
+      .row.dim {
+        opacity: 0.5;
+      }
+      .settings main {
+        justify-content: flex-start;
+        width: min(560px, 100%);
+        gap: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute">
+      <defs>
+        <path id="wave" d="M2 0 q5 -6 10 0 t10 0 t10 0 t10 0" fill="none" stroke-width="3.2" stroke-linecap="round" />
+      </defs>
+    </svg>
+
+    <div class="sheet picker">
+      <header>
+        <h1>New voyage</h1>
+        <span class="sub">How rough should the seas be?</span>
+        <span class="d-btn square close">✕</span>
+      </header>
+      <main>
+        <div class="cards">
+          <section class="card">
+            <div class="top">
+              <svg viewBox="0 0 46 34"><use href="#wave" y="20" stroke="#8fe3a4" /></svg>
+              <h2>Fair winds</h2>
+            </div>
+            <div class="tag">Learn the trade, no stress</div>
+            <ul>
+              <li>Steady trade wind that barely turns</li>
+              <li>Cargo stays aboard; the sails still warn you</li>
+              <li>Knocks cost half, repairs are cheap</li>
+              <li class="extra">Better prices, towns grow faster</li>
+              <li class="extra">Gales rarer, a storm every 15 min</li>
+            </ul>
+            <div class="pace">Relaxed captain: cutter in about <b>19 min</b></div>
+          </section>
+          <section class="card on">
+            <span class="badge">As designed</span>
+            <div class="top">
+              <svg viewBox="0 0 46 34">
+                <use href="#wave" y="13" stroke="#e8c46a" />
+                <use href="#wave" y="25" stroke="#e8c46a" />
+              </svg>
+              <h2>Captain</h2>
+            </div>
+            <div class="tag">Read the wind or pay for it</div>
+            <ul>
+              <li>Wind shifts every few minutes</li>
+              <li>Gales under full sail throw cargo</li>
+              <li>Reefs, shores and piers hurt the hull</li>
+              <li class="extra">Prices and orders as tuned</li>
+              <li class="extra">A storm crosses about every 10 min</li>
+            </ul>
+            <div class="pace">Relaxed captain: cutter in about <b>25 min</b></div>
+          </section>
+          <section class="card">
+            <div class="top">
+              <svg viewBox="0 0 46 34">
+                <use href="#wave" y="8" stroke="#ff8a73" />
+                <use href="#wave" y="18" stroke="#ff8a73" />
+                <use href="#wave" y="28" stroke="#ff8a73" />
+              </svg>
+              <h2>Old salt</h2>
+            </div>
+            <div class="tag">For sailors who read the sky</div>
+            <ul>
+              <li>Gales more often, a storm every 7 min</li>
+              <li>A lurch throws 2 units, not 1</li>
+              <li>Hard knocks, dearer repairs, thin margins</li>
+              <li class="extra">Towns need more trade to grow</li>
+            </ul>
+            <div class="pace">Relaxed captain: cutter in about <b>40 min</b></div>
+          </section>
+        </div>
+        <footer>
+          <div class="note">
+            <b>The boat sails the same at every level:</b> no-go zone, tacking and speeds never
+            change. You can change the level later in Settings.
+            <div class="chips">
+              <span style="align-self:center">Sea switches, any level:</span>
+              <span class="chip">Wind: steady or shifting</span>
+              <span class="chip">Day and night</span>
+              <span class="chip">Weather</span>
+              <span class="chip">Storms</span>
+              <span class="chip later">Pirates · later</span>
+            </div>
+          </div>
+          <span class="d-btn brass big">Set sail</span>
+        </footer>
+      </main>
+    </div>
+
+    <div class="sheet settings">
+      <header>
+        <h1>Settings</h1>
+        <span class="d-btn square close">✕</span>
+      </header>
+      <main>
+        <div class="section">Voyage</div>
+        <div class="row">
+          <div class="label">
+            <b>Difficulty</b><span>Prices, damage, cargo and storms. Sailing never changes.</span>
+          </div>
+          <div class="seg">
+            <span>Fair winds</span><span class="on">Captain</span><span>Old salt</span>
+          </div>
+        </div>
+        <div class="section">Sea</div>
+        <div class="row">
+          <div class="label"><b>Wind</b><span>Steady: a trade wind that barely turns</span></div>
+          <div class="seg"><span>Steady</span><span class="on">Shifting</span></div>
+        </div>
+        <div class="row">
+          <div class="label"><b>Day and night</b><span>Off: always daytime</span></div>
+          <div class="switch"></div>
+        </div>
+        <div class="row">
+          <div class="label"><b>Weather</b><span>Off: a steady breeze, no rain or storms</span></div>
+          <div class="switch"></div>
+        </div>
+        <div class="row">
+          <div class="label"><b>Storms</b><span>Off: no storms cross the sea</span></div>
+          <div class="switch"></div>
+        </div>
+        <div class="row dim">
+          <div class="label"><b>Pirates</b><span>Phase 5: off means no pirates sail</span></div>
+          <div class="switch off"></div>
+        </div>
+      </main>
+    </div>
+    <script>
+      if (location.search.includes('view=settings')) document.body.classList.add('view-settings');
+    </script>
+  </body>
+</html>

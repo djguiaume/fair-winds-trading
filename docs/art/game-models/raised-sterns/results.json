@@ -1,0 +1,86 @@
+[
+  {
+    "id": "fluyt",
+    "name": "side",
+    "query": "level=3",
+    "stats": "43 draw calls · 31,718 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "id": "fluyt",
+    "name": "stern-day",
+    "query": "level=3&yaw=45&boom=-45",
+    "stats": "43 draw calls · 31,718 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "id": "fluyt",
+    "name": "stern-night",
+    "query": "level=3&yaw=45&boom=-45&night",
+    "stats": "43 draw calls · 31,718 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "id": "fluyt",
+    "name": "stock",
+    "query": "level=1&yaw=45&boom=45",
+    "stats": "35 draw calls · 31,198 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "id": "fluyt",
+    "name": "reefed",
+    "query": "hull=2&hold=3&sails=2&sail=.35&boom=45&yaw=-45",
+    "stats": "35 draw calls · 31,478 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "id": "fluyt",
+    "name": "furled-low-night",
+    "query": "level=3&quality=low&sail=0&yaw=45&night",
+    "stats": "11 draw calls · 5,671 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "id": "indiaman",
+    "name": "side",
+    "query": "level=3",
+    "stats": "43 draw calls · 32,598 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "id": "indiaman",
+    "name": "stern-day",
+    "query": "level=3&yaw=45&boom=-45",
+    "stats": "43 draw calls · 32,598 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "id": "indiaman",
+    "name": "stern-night",
+    "query": "level=3&yaw=45&boom=-45&night",
+    "stats": "43 draw calls · 32,598 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "id": "indiaman",
+    "name": "stock",
+    "query": "level=1&yaw=45&boom=45",
+    "stats": "35 draw calls · 32,046 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "id": "indiaman",
+    "name": "reefed",
+    "query": "hull=2&hold=3&sails=2&sail=.35&boom=45&yaw=-45",
+    "stats": "35 draw calls · 32,358 triangles (incl. ocean)",
+    "errors": []
+  },
+  {
+    "id": "indiaman",
+    "name": "furled-low-night",
+    "query": "level=3&quality=low&sail=0&yaw=45&night",
+    "stats": "11 draw calls · 6,079 triangles (incl. ocean)",
+    "errors": []
+  }
+]
