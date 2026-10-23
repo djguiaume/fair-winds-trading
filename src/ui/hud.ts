@@ -72,6 +72,7 @@ export class Hud {
    * the screen glows the same colour. */
   private readonly pressGlow = $('press-glow');
   private press: PressLevel = 0;
+  private shownPress: PressLevel | null = null;
   private glowAngle = NaN;
   /** The one-time "ease the sails" message has been shown. */
   seenPressHint = false;
@@ -93,6 +94,7 @@ export class Hud {
   private readonly windGust = $('wind-gust');
   private readonly windBars = Array.from(document.querySelectorAll<HTMLElement>('.wind-gauge i'));
   private windGauge = createWindGauge(0);
+  private windGaugeInitialized = false;
   private shownForce = -1;
   private shownKids: boolean | null = null;
   /** Kids mode shows the strength as a big plain word and hides the knots. */
@@ -126,6 +128,7 @@ export class Hud {
 
   private toastTimer = 0;
   private sinceText = 1;
+  private wasVisible = false;
   private ironsTime = 0;
   private noGoAngle = -1;
   private readonly compass = $('wind-compass');
@@ -196,6 +199,7 @@ export class Hud {
   set showLog(shown: boolean) {
     this.speedLog.classList.toggle('is-folded', !shown);
     this.logToggle.setAttribute('aria-pressed', String(shown));
+    if (shown) this.sinceText = 1;
   }
 
   get showLog(): boolean {
@@ -254,9 +258,13 @@ export class Hud {
   }
 
   /** Strength gauge under the compass (decision 0040): bars, a word and a short gust cue. */
-  private updateWindStrength(dt: number, speedKn: number) {
-    if (this.shownForce < 0) this.windGauge = createWindGauge(speedKn);
+  private updateWindStrength(dt: number, speedKn: number, visible: boolean) {
+    if (!this.windGaugeInitialized) {
+      this.windGauge = createWindGauge(speedKn);
+      this.windGaugeInitialized = true;
+    }
     this.windGauge = updateWindGauge(this.windGauge, speedKn, dt);
+    if (!visible) return;
     const { force, gust } = this.windGauge;
     const kids = this.isKidMode;
     if (force !== this.shownForce || kids !== this.shownKids) {
@@ -275,13 +283,15 @@ export class Hud {
   }
 
   /** Press warning (decision 0078): cheap class and custom-property writes, only on change. */
-  private updatePress(project: (x: number, y: number) => ScreenPoint, active: boolean) {
+  private updatePress(
+    project: (x: number, y: number) => ScreenPoint,
+    active: boolean,
+    visible: boolean,
+  ) {
     const level = active ? pressLevel(this.world, this.press) : 0;
     if (level !== this.press) {
       if (level === 2 && this.press < 2) this.onPressDanger();
       this.press = level;
-      this.lever.dataset.press = String(level);
-      this.pressGlow.dataset.press = String(level);
       if (level > 0 && !this.seenPressHint) {
         this.seenPressHint = true;
         this.onPressHintSeen();
@@ -290,6 +300,12 @@ export class Hud {
           this.world.trade.difficulty === 'fair' ? 'toast.pressHintFair' : 'toast.pressHint';
         this.showToast(t(hint), 5);
       }
+    }
+    if (!visible) return;
+    if (this.shownPress !== level) {
+      this.shownPress = level;
+      this.lever.dataset.press = String(level);
+      this.pressGlow.dataset.press = String(level);
     }
     if (level === 0) return;
     // The glow sits on the lee side, where she leans: the way the wind blows, on screen.
@@ -377,20 +393,49 @@ export class Hud {
       `translateX(${drag.steer * 60}px)`;
   }
 
-  setFps(fps: number | null) {
+  setFps(fps: number | null, visible = true) {
+    if (!visible) return;
     this.fps.hidden = fps === null;
     if (fps !== null) this.fps.textContent = t('hud.fps', { n: fps.toFixed(0) });
   }
 
-  /** `project` maps a sim position to screen pixels; `size` is the viewport. */
+  /** `project` maps sim positions to pixels; `size` is the viewport. `active` controls
+   * sailing cues; `visible` controls rendering. Paused instruments can still be visible. */
   update(
     dt: number,
     project: (x: number, y: number) => ScreenPoint,
     size: { w: number; h: number },
     active = true,
+    visible = true,
   ) {
     const { boat, wind, ship } = this.world;
     const wp = navigationTarget(this.world);
+    // Time-dependent cues still advance while the opaque chart or title hides the HUD.
+    if (this.toastTimer > 0) {
+      this.toastTimer -= dt;
+      if (this.toastTimer <= 0) this.toast.hidden = true;
+    }
+    this.updateWindStrength(dt, wind.speedKn, visible);
+    this.updatePress(project, active, visible);
+    const twa = trueWindAngle(boat.heading, wind);
+    const irons = Math.abs(twa) < noGoAngle(ship);
+    const cue = windFeedback(this.ironsTime, dt, {
+      inNoGo: irons,
+      sailsRaised: boat.sailStep > 0 && boat.sail > 0.05,
+      docked: this.world.trade.dockedAt !== null,
+      active,
+    });
+    this.ironsTime = cue.seconds;
+    if (cue.chip && !this.seenWindHint) {
+      this.hintSeconds = 7;
+      this.seenWindHint = true;
+      this.windPreferences.markSeen();
+    }
+    this.hintSeconds = cue.chip ? Math.max(0, this.hintSeconds - dt) : 0;
+    const resumed = visible && !this.wasVisible;
+    this.wasVisible = visible;
+    if (!visible) return;
+    if (resumed) this.sinceText = 1;
 
     // Rotations every frame (cheap attribute writes), text ~8 times a second.
     const rot = (el: HTMLElement, rad: number) =>
@@ -404,8 +449,6 @@ export class Hud {
     rot(this.cNoGo, wind.from);
     rot(this.cBand, wind.from);
     rot(this.cWind, windTo(wind));
-    this.updateWindStrength(dt, wind.speedKn);
-    this.updatePress(project, active);
     rot(this.cBoat, boat.heading);
     this.cWp.style.display = wp ? '' : 'none';
     this.objective.hidden = !wp;
@@ -415,38 +458,25 @@ export class Hud {
     const targetName = wp?.label ?? '';
     if (this.objName.textContent !== targetName) this.objName.textContent = targetName;
 
-    const twa = trueWindAngle(boat.heading, wind);
-    const irons = Math.abs(twa) < noGoAngle(ship);
-    const cue = windFeedback(this.ironsTime, dt, {
-      inNoGo: irons,
-      sailsRaised: boat.sailStep > 0 && boat.sail > 0.05,
-      docked: this.world.trade.dockedAt !== null,
-      active,
-    });
-    this.ironsTime = cue.seconds;
     this.compass.classList.toggle('is-upwind', cue.amber);
     this.compass.classList.toggle('wind-pulse', cue.pulse);
     this.windChip.hidden = !cue.chip;
     const label = cue.amber ? t('wind.compassUpwind') : t('wind.compass');
     if (this.windTrigger.getAttribute('aria-label') !== label)
       this.windTrigger.setAttribute('aria-label', label);
-    if (cue.chip && !this.seenWindHint) {
-      this.hintSeconds = 7;
-      this.seenWindHint = true;
-      this.windPreferences.markSeen();
-    }
-    this.hintSeconds = cue.chip ? Math.max(0, this.hintSeconds - dt) : 0;
     this.windHint.hidden = this.hintSeconds <= 0;
 
     this.sinceText += dt;
     if (this.sinceText > 0.12) {
       this.sinceText = 0;
-      this.speed.textContent = formatNumber(boat.speedKn, 1);
-      const hdg = Math.round(wrapPositive(boat.heading) / DEG) % 360;
-      this.heading.textContent = `${hdg}° ${compassPoint(boat.heading)}`;
-      const p = pointOfSail(ship, twa);
-      this.pos.textContent = boat.sailStep === 0 ? t('hud.sailsDown') : t(`pos.${p}`);
-      this.pos.className = `pos ${boat.sailStep === 0 ? '' : POINT_OF_SAIL_TONE[p]}`;
+      if (this.showLog) {
+        this.speed.textContent = formatNumber(boat.speedKn, 1);
+        const hdg = Math.round(wrapPositive(boat.heading) / DEG) % 360;
+        this.heading.textContent = `${hdg}° ${compassPoint(boat.heading)}`;
+        const p = pointOfSail(ship, twa);
+        this.pos.textContent = boat.sailStep === 0 ? t('hud.sailsDown') : t(`pos.${p}`);
+        this.pos.className = `pos ${boat.sailStep === 0 ? '' : POINT_OF_SAIL_TONE[p]}`;
+      }
       if (this.leverDrag === null) this.showSail(boat.sailStep);
       this.objDist.textContent = wp ? t('unit.metres', { n: Math.round(distance(boat, wp)) }) : '';
       const fromDir = compassPoint(wind.from);
@@ -493,7 +523,7 @@ export class Hud {
       this.hullBar.style.transform = `translate(${b.x.toFixed(0)}px, ${(b.y - 52).toFixed(0)}px)`;
     }
 
-    this.portLabels.update(project, dt);
+    this.portLabels.update(project, dt, resumed);
     // One Trade button at a time: the port sign's, or this one when the sign is off screen.
     const dockedAt = this.world.trade.dockedAt;
     const showDock = dockedAt !== null && !this.portLabels.dockShown(dockedAt);
@@ -514,11 +544,6 @@ export class Hud {
       );
       this.wpArrow.style.transform = `translate(${cx + dx * k}px, ${cy + dy * k}px)`;
       (this.wpArrow.firstElementChild as HTMLElement).style.transform = `rotate(${targetAngle}rad)`;
-    }
-
-    if (this.toastTimer > 0) {
-      this.toastTimer -= dt;
-      if (this.toastTimer <= 0) this.toast.hidden = true;
     }
   }
 }

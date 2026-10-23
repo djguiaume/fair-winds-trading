@@ -122,3 +122,4 @@ Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decis
 | [0097](0097-progression-candidates-and-later-extensions.md) | Compare three base progression candidates; defer steam/automation, retain pirates as a later extension; active-play-only progress | 2026-10-23 | Accepted constraints; direction unselected |
 | [0098](0098-batched-economy-at-sea.md) | Batch the economy at a data-driven cadence offshore; flush on docking, preserve supply timing and pending simulation time in saves | 2026-10-23 | Implemented for review |
 | [0099](0099-visible-boundary-buoys.md) | Animate and upload only boundary buoys whose conservative bounds intersect the camera; preserve motion and move boundary tuning to data | 2026-10-23 | Implemented for review |
+| [0100](0100-hidden-hud-updates.md) | Skip covered HUD rendering and folded speed-log text, preserve cue timers, refresh immediately on return | 2026-10-23 | Implemented for review |

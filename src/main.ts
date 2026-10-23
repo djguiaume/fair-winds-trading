@@ -765,14 +765,17 @@ function tick(now: number) {
   }
 
   if (!chart.isOpen && !tutorialOffer.open) view.render(dt);
-  hud.update(dt, (x, y) => view.project(x, y), size, !paused);
+  // Pause menus and translucent sheets leave sea instruments visible. Only the title's
+  // CSS rule and the opaque, full-screen chart cover the entire HUD.
+  const hudVisible = !(mode === 'menu' && !started) && !chart.isOpen;
+  hud.update(dt, (x, y) => view.project(x, y), size, !paused, hudVisible);
   // Coach marks follow moving targets (port signs) about ten times a second.
   if (++coachTick % 6 === 0) coach.place();
 
   if (monitor.sample(dt) && settings.quality === 'auto' && level !== 'low') {
     setLevel(lowerQuality(level));
   }
-  hud.setFps(settings.showFps ? monitor.fps : null);
+  hud.setFps(settings.showFps ? monitor.fps : null, hudVisible);
 }
 
 // Stop rendering while the tab is hidden (battery on phones and tablets).
