@@ -94,6 +94,26 @@ export function goodName(id: string): string {
   return key in en ? t(key) : id;
 }
 
+/**
+ * A good inside a sentence (decision 0091): `the` reads "le poisson" / "the fish", `some` reads
+ * "du poisson" / "fish". French needs the article, so templates never glue a bare name in.
+ */
+export function goodThe(id: string): string {
+  const key = `goodThe.${id}` as MessageKey;
+  return key in en ? t(key) : goodName(id);
+}
+
+export function goodSome(id: string): string {
+  const key = `goodSome.${id}` as MessageKey;
+  return key in en ? t(key) : goodName(id);
+}
+
+/** A ship class inside a sentence with its article: "la goélette", "the schooner" (decision 0091). */
+export function shipThe(ship: { id: string; name: string }): string {
+  const key = `shipThe.${ship.id}` as MessageKey;
+  return key in en ? t(key) : shipName(ship);
+}
+
 /** A ship class's name in the current language; unknown classes keep their English name. */
 export function shipName(ship: { id: string; name: string }): string {
   const key = `ship.${ship.id}` as MessageKey;

@@ -1,4 +1,4 @@
-import { goodName, t } from '../i18n';
+import { goodSome, goodThe, t } from '../i18n';
 import { GOODS, isGood, type GoodId } from './goods';
 import { type BoatControls } from './boat';
 import { type SaveStorage } from './save';
@@ -318,7 +318,7 @@ export class Tutorial {
     const delivery = this.delivery
       ? findPort(this.world.map, this.delivery)?.name
       : t('tutorial.anotherPort');
-    const cargo = this.good ? goodName(this.good) : t('tutorial.yourCargo');
+    const cargo = this.good ? goodThe(this.good) : t('tutorial.yourCargo');
     const produced = this.producedGood;
     const buyer = this.buyer;
     const step = this.step;
@@ -350,7 +350,7 @@ export class Tutorial {
         return {
           title: text('title'),
           copy: text('copy', {
-            good: produced ? goodName(produced) : t('tutorial.producedGood'),
+            good: produced ? goodSome(produced) : t('tutorial.producedGood'),
           }),
           action: 'market',
           continueText: this.hasCargo ? t('lesson.buy.continue') : null,

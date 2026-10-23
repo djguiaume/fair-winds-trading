@@ -23,7 +23,7 @@ planned later, so the strings should be easy to find and move.
    toasts, wind tips, port signs, sea chart and price board (decision 0036), the harbour in Captain
    and Kids modes (Kids mode uses "tu", Captain mode "vous"), and the first-voyage tutorial.
    **Port and island names stay as they are** (Saltmere, Westholm…): they are place names. The
-   sloop stays "Sloop", the cutter becomes "Cotre"; goods are Poisson, Céréales, Bois, Pierre.
+   sloop stays "Sloop", the cutter becomes "Cotre"; goods are Poisson, Céréales, Bois, Pierre (wording revised in decision 0091).
 3. **Which language**: the player's saved choice (`language` in the settings, `null` = automatic),
    else the first supported language of the browser (`fr-CA` → French), else English.
 4. **Switcher in the main menu**: a row of buttons naming each language in its own words

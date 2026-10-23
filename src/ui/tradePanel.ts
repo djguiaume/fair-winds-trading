@@ -48,7 +48,7 @@ import {
 } from '../sim/upgrades';
 import type { World } from '../sim/world';
 import { KIDS_MODE_AVAILABLE, type UiMode } from './settings';
-import { formatNumber, goodName, shipName, t } from '../i18n';
+import { formatNumber, goodName, shipName, shipThe, t } from '../i18n';
 import { COIN, crateIcon, icon } from './icons';
 
 export type TradePanelTab = 'market' | 'orders' | 'shipyard';
@@ -858,7 +858,7 @@ export class TradePanel {
 
     const action = (offer: ShipOffer): string => {
       const { cls } = offer;
-      const ship = shipName(cls);
+      const ship = shipThe(cls);
       if (captain.activeShip === cls.id) return sailing;
       if (offer.status === 'owned') {
         if (!atHome) return note(t('fleet.waitingAt', { port: home.name }));

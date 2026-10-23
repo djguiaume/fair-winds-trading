@@ -39,7 +39,16 @@ function $(id: string): HTMLElement {
 
 /** Nearest of the eight compass points for a direction in radians, translated. */
 function compassPoint(rad: number): string {
-  return t(`compass.${COMPASS[Math.round(wrapPositive(rad) / (Math.PI / 4)) % 8]!}`);
+  return t(`compass.${compassIndex(rad)}`);
+}
+
+/** The same point as words for a sentence: "to the west", "à l'ouest" (decision 0091). */
+function compassWords(rad: number): string {
+  return t(`compassLong.${compassIndex(rad)}`);
+}
+
+function compassIndex(rad: number): (typeof COMPASS)[number] {
+  return COMPASS[Math.round(wrapPositive(rad) / (Math.PI / 4)) % 8]!;
 }
 
 function formatTime(seconds: number): string {
@@ -351,9 +360,9 @@ export class Hud {
           2.5,
         );
       } else if (e.type === 'storm-near') {
-        this.showToast(t('toast.stormNear', { dir: compassPoint(e.bearing) }), 4, 'storm');
+        this.showToast(t('toast.stormNear', { dir: compassWords(e.bearing) }), 4, 'storm');
       } else if (e.type === 'overboard') {
-        this.showToast(t('toast.overboard', { n: e.qty, good: goodName(e.good) }), 3);
+        this.showToast(t('toast.overboard', { n: e.qty, good: goodName(e.good).toLowerCase() }), 3);
       } else if (e.type === 'bump' && this.toastTimer <= 0) {
         this.showToast(t('toast.bump'), 1.2);
       }
