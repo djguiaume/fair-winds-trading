@@ -213,6 +213,7 @@ Timed delivery races between ports, alongside the sandbox rather than replacing 
 ## Rendering performance
 
 - Local island camera/shadow culling and incremental settlement rebuilds ([0103](decisions/0103-local-island-rendering.md)): preserve authored geometry and stable harbour anchors.
+- Performance priorities ([0116](decisions/0116-performance-priorities.md), [review](reviews/performance/README.md)): now wind shelter near the ship only and camera far distance tied to fog, then an old-tablet and phone test. With the bigger map: shared spatial grid, islands built near the ship, local shoreline texture. Postponed until measured: distant town rebuild deferral, spreading the visible 53 ms town rebuild, level of detail, world loading/unloading, instanced trees.
 
 ## Tech stack
 
