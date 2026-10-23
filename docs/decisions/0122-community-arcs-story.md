@@ -1,12 +1,12 @@
-# 0122. Community arcs: the people, their steps and the building pairs (proposal)
+# 0122. Community arcs: the people, their steps and the building pairs
 
-**Status:** Proposed, 2026-10-23. Waiting for Guillaume's approval before content is built. Names are placeholders.
+**Status:** Accepted, 2026-10-23 (Guillaume, after one round of feedback). Names are placeholders.
 
 ## Context
 
 [0120](0120-communities-and-home-island.md) chose about 4 community arcs of about 3 steps, each changing its port visibly and ending with a choice of two buildings for the home island. The story, the people and the buildings were left open. Guillaume asked (2026-10-23) for placeholder names so the art direction can start, and how long the story should be compared with similar games.
 
-## Decision (proposed)
+## Decision
 
 The full proposal is [docs/story/community-arcs.md](../story/community-arcs.md). In short:
 
@@ -23,4 +23,4 @@ The full proposal is [docs/story/community-arcs.md](../story/community-arcs.md).
 - The quest engine gets a concrete list of step kinds (the doc's "What the quest engine needs"), and the home island work gets 6 spots and 8 buildings.
 - The tutorial changes order and setting (its lessons stay); skipping it, and old voyages, still get the island from the harbourmaster at Saltmere.
 - The characters' look work can draw the six people from the doc's table.
-- If approved, status becomes Accepted and the arcs are written as `src/data/quests/` files, `characters.json` and `buildings.json`, with English and French text.
+- The arcs are written as `src/data/quests/` files, `characters.json` and `buildings.json`, with English and French text.

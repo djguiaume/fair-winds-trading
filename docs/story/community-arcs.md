@@ -1,6 +1,6 @@
 # Community arcs: the people, their steps and the buildings they give you
 
-**Status:** proposal, 2026-10-23, revised the same evening after Guillaume's first feedback. **Waiting for Guillaume's approval before any content is built from it.** Names are placeholders. Numbers are examples to tune, not tuning.
+**Status:** approved by Guillaume, 2026-10-23 (after one round of feedback). Content can now be built from it. Names are placeholders. The open questions at the end stay open for the prototype. Numbers are examples to tune, not tuning.
 **Follows:** [0120](../decisions/0120-communities-and-home-island.md) (arcs build your home island). **Recorded in:** [0122](../decisions/0122-community-arcs-story.md).
 **Feeds:** the quest engine (step kinds it must support, [below](#what-the-quest-engine-needs)), the home island (build spots and buildings, [below](#what-the-home-island-needs)) and the characters' look (who to draw, [below](#the-people-at-a-glance)).
 
@@ -216,7 +216,7 @@ The step kinds above, as a list for the quest engine work (built from [first-voy
 - **8 buildings** in `src/data/buildings.json`, each with a prop, a pair id and a modifier. Props that exist already and could stand in: warehouse, granary, sawmill, slipway, lighthouse, beacon, barn, cabin.
 - New modifier hooks: home storage (Warehouse) and the wind forecast (Weather glass). The other six change numbers that already exist.
 
-## Open questions for Guillaume
+## Open questions, to check with the prototype
 
 1. Do the four arcs now match their towns well enough?
 2. Is "at most one plain delivery per arc" the right balance, or should there be more sailing steps or more trading?
