@@ -2,8 +2,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import html from '../index.html?raw';
 import { PHASE1_MAP } from '../src/data/maps';
-import { en } from '../src/i18n/en';
-import { fr } from '../src/i18n/fr';
+import en from '../src/i18n/en.json';
+import fr from '../src/i18n/fr.json';
 import {
   LANGUAGES,
   detectLanguage,
