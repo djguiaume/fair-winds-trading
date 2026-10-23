@@ -6,7 +6,7 @@ import type { Ocean } from './ocean';
 import { PALETTE } from './palette';
 
 /** One look of the sea and the light: background/fog, water, sun and sky light. */
-interface Look {
+export interface Look {
   sky: THREE.Color;
   water: THREE.Color;
   waterLight: THREE.Color;
@@ -41,7 +41,7 @@ const look = (
 });
 
 /** The bright day of the mockups and the Privateers ad. */
-const DAY = look(
+export const DAY = look(
   PALETTE.deepWater,
   PALETTE.water,
   PALETTE.waterLight,
@@ -68,7 +68,7 @@ const GOLDEN = look(
  * Moonlit night (decision 0068): deep blue, never black, so coasts, reefs and boats stay
  * readable on an old tablet screen.
  */
-const NIGHT = look(
+export const NIGHT = look(
   '#0f2740',
   '#1b3f63',
   '#28567f',
@@ -91,6 +91,10 @@ const STORM = look(
   '#9fb2bb',
   0.9,
 );
+
+/** Window glass tint: dark panes by day, the vertex colours (warm or dark) at night. */
+export const WINDOWS_BY_DAY = new THREE.Color('#5c6470');
+export const WINDOWS_AT_NIGHT = new THREE.Color('#ffffff');
 
 function mix(out: Look, a: Look, b: Look, k: number): Look {
   out.sky.copy(a.sky).lerp(b.sky, k);

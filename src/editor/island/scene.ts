@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import type { IslandStyle } from '../../data/islands';
 import { vertexColorMaterial } from '../../render/models/geometry';
 import { PROP_TYPES, type Parts } from '../../render/models/props';
+import { NIGHT, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from '../../render/atmosphere';
 import { PALETTE } from '../../render/palette';
 
 /**
@@ -22,21 +23,21 @@ export interface IslandView {
 const SEA = '#2fa3b3';
 const CAMERA_PITCH = (58 * Math.PI) / 180;
 
-function lights(scene: THREE.Scene) {
-  scene.add(new THREE.HemisphereLight(PALETTE.sky, '#1a4d55', 1.6));
+function lights(scene: THREE.Scene): [THREE.HemisphereLight, THREE.DirectionalLight] {
+  const sky = new THREE.HemisphereLight(PALETTE.sky, '#1a4d55', 1.6);
   const sun = new THREE.DirectionalLight(PALETTE.sun, 1.6);
   sun.position.set(-40, 100, 60);
-  scene.add(sun);
+  scene.add(sky, sun);
+  return [sky, sun];
 }
 
 /** A translucent sea at the waterline, so the beach below it reads as shallows. */
 function sea(scene: THREE.Scene) {
-  const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(2000, 2000).rotateX(-Math.PI / 2),
-    new THREE.MeshBasicMaterial({ color: SEA, transparent: true, opacity: 0.72 }),
-  );
+  const material = new THREE.MeshBasicMaterial({ color: SEA, transparent: true, opacity: 0.72 });
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000).rotateX(-Math.PI / 2), material);
   plane.renderOrder = 1;
   scene.add(plane);
+  return material;
 }
 
 /** Merges an island's parts into one mesh geometry (and frees the parts). */
@@ -114,39 +115,104 @@ export class TopView {
   }
 }
 
-/** The small 3D preview at the game camera's pitch; drag to turn round the island. */
+/**
+ * The 3D preview at the game camera's pitch: drag across to turn round the island, up and down to
+ * tilt, wheel or pinch to zoom. By night it takes the game's moonlit look and lit windows.
+ */
 export class Preview {
   readonly renderer: THREE.WebGLRenderer;
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(40, 1, 0.5, 800);
   private readonly island = new THREE.Mesh(new THREE.BufferGeometry(), vertexColorMaterial());
+  /** Window glass and street lamps, tinted like the game's (dark by day, lit at night). */
+  private readonly glass = new THREE.MeshBasicMaterial({ vertexColors: true });
+  private readonly windows = new THREE.Mesh(new THREE.BufferGeometry(), this.glass);
+  private readonly sky: THREE.HemisphereLight;
+  private readonly sun: THREE.DirectionalLight;
+  private readonly water: THREE.MeshBasicMaterial;
   yaw = 0;
+  pitch = CAMERA_PITCH;
+  zoom = 1;
+  night = false;
 
   constructor(readonly canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     this.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
-    this.renderer.setClearColor(SEA);
-    lights(this.scene);
-    sea(this.scene);
-    this.scene.add(this.island);
-    let from: number | null = null;
+    [this.sky, this.sun] = lights(this.scene);
+    this.water = sea(this.scene);
+    this.scene.add(this.island, this.windows);
+    this.setNight(false);
+    const pointers = new Map<number, { x: number; y: number }>();
+    let pinch = 0;
     canvas.addEventListener('pointerdown', (e) => {
-      from = e.clientX;
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       canvas.setPointerCapture(e.pointerId);
     });
     canvas.addEventListener('pointermove', (e) => {
-      if (from === null) return;
-      this.yaw -= (e.clientX - from) * 0.01;
-      from = e.clientX;
+      const from = pointers.get(e.pointerId);
+      if (!from) return;
+      if (pointers.size === 2) {
+        from.x = e.clientX;
+        from.y = e.clientY;
+        const [a, b] = [...pointers.values()];
+        const d = Math.hypot(a!.x - b!.x, a!.y - b!.y);
+        if (pinch) this.setZoom(this.zoom * (pinch / d));
+        pinch = d;
+        return;
+      }
+      this.yaw -= (e.clientX - from.x) * 0.01;
+      this.pitch = Math.min(1.45, Math.max(0.2, this.pitch + (e.clientY - from.y) * 0.006));
+      from.x = e.clientX;
+      from.y = e.clientY;
       this.render();
     });
-    const end = () => (from = null);
+    const end = (e: PointerEvent) => {
+      pointers.delete(e.pointerId);
+      pinch = 0;
+    };
     canvas.addEventListener('pointerup', end);
     canvas.addEventListener('pointercancel', end);
+    canvas.addEventListener(
+      'wheel',
+      (e) => {
+        e.preventDefault();
+        this.setZoom(this.zoom * Math.exp(e.deltaY * 0.001));
+      },
+      { passive: false },
+    );
   }
 
-  setGeometry(geometry: THREE.BufferGeometry) {
-    this.island.geometry = geometry;
+  /** The island without its glass, and the glass on its own (the game draws them apart). */
+  setGeometry(land: THREE.BufferGeometry, windows: THREE.BufferGeometry) {
+    this.island.geometry = land;
+    this.windows.geometry = windows;
+    this.render();
+  }
+
+  /** Back to the game camera's view. */
+  resetView() {
+    this.yaw = 0;
+    this.pitch = CAMERA_PITCH;
+    this.zoom = 1;
+    this.render();
+  }
+
+  setZoom(zoom: number) {
+    this.zoom = Math.min(2.5, Math.max(0.25, zoom));
+    this.render();
+  }
+
+  /** The game's moonlit night (decision 0068) or the bright day, with windows lit or dark. */
+  setNight(night: boolean) {
+    this.night = night;
+    const look = night ? NIGHT : null;
+    this.sky.color.set(look ? look.skyLight : PALETTE.sky);
+    this.sky.intensity = look ? look.skyIntensity : 1.6;
+    this.sun.color.set(look ? look.sun : PALETTE.sun);
+    this.sun.intensity = look ? look.sunIntensity : 1.6;
+    this.water.color.set(look ? look.water : SEA);
+    this.renderer.setClearColor(look ? look.water : SEA);
+    this.glass.color.copy(night ? WINDOWS_AT_NIGHT : WINDOWS_BY_DAY);
     this.render();
   }
 
@@ -160,11 +226,11 @@ export class Preview {
     const r = sphere?.radius ?? 20;
     const c = sphere?.center ?? new THREE.Vector3();
     const fov = (this.camera.fov * Math.PI) / 180;
-    const d = (r / Math.sin(fov / 2)) * 0.9 * Math.max(1, 1.2 / this.camera.aspect);
+    const d = (r / Math.sin(fov / 2)) * 0.9 * Math.max(1, 1.2 / this.camera.aspect) * this.zoom;
     this.camera.position.set(
-      c.x + Math.sin(this.yaw) * Math.cos(CAMERA_PITCH) * d,
-      Math.sin(CAMERA_PITCH) * d,
-      c.z + Math.cos(this.yaw) * Math.cos(CAMERA_PITCH) * d,
+      c.x + Math.sin(this.yaw) * Math.cos(this.pitch) * d,
+      Math.sin(this.pitch) * d,
+      c.z + Math.cos(this.yaw) * Math.cos(this.pitch) * d,
     );
     this.camera.lookAt(c.x, 0, c.z);
     this.renderer.render(this.scene, this.camera);

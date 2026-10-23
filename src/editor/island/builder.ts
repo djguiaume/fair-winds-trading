@@ -8,6 +8,7 @@ import {
   type IslandDesign,
 } from '../../data/islands';
 import { ISLAND_SCALE } from '../../render/models/highlandIslands';
+import { isGlowing } from '../../render/models/geometry';
 import { PROP_TYPES, type PropGroup } from '../../render/models/props';
 import {
   designedTownParts,
@@ -143,6 +144,8 @@ const viewBox = $('ib-view');
 let top: TopView | null = null;
 let preview: Preview | null = null;
 let geometry: THREE.BufferGeometry | null = null;
+let previewLand: THREE.BufferGeometry | null = null;
+let previewGlass: THREE.BufferGeometry | null = null;
 
 export const islandOpen = () => open;
 
@@ -196,6 +199,7 @@ export function openIsland(target: IslandDef) {
 
 function close() {
   open = false;
+  expandPreview(false);
   armed = null;
   $('ib').hidden = true;
   $('ed-top').hidden = false;
@@ -239,11 +243,15 @@ function rebuild(without?: number) {
     hint(`The island does not build: ${String(error)}`);
     return;
   }
+  // The preview draws the glass apart, tinted by day or night like the game.
+  const glass = parts.filter(isGlowing);
+  const land = mergeParts(parts.filter((g) => !isGlowing(g)).map((g) => g.clone()));
+  const windows = mergeParts(glass.map((g) => g.clone()));
   const next = mergeParts(parts);
   top!.setGeometry(next);
-  preview!.setGeometry(next);
-  geometry?.dispose();
-  geometry = next;
+  preview!.setGeometry(land, windows);
+  for (const g of [geometry, previewLand, previewGlass]) g?.dispose();
+  [geometry, previewLand, previewGlass] = [next, land, windows];
   $('ib-preview-title').textContent = `3D preview · level ${level}`;
 }
 
@@ -1153,7 +1161,8 @@ document.addEventListener('keydown', (e) => {
   } else if (e.key === 'Enter' && drawing) {
     finishDrawing();
   } else if (e.key === 'Escape') {
-    if (tool) {
+    if (previewBig) expandPreview(false);
+    else if (tool) {
       setTool(null);
       draw();
     } else if (shapeSel) selectShape(null);
@@ -1268,6 +1277,31 @@ for (const b of $('ib-tabs').querySelectorAll<HTMLElement>('button'))
     syncTabs();
     preview?.render();
   });
+
+// --- 3D preview: bigger view and night ---------------------------------------------------------
+let previewBig = false;
+function expandPreview(big: boolean) {
+  previewBig = big;
+  $('ib-preview').classList.toggle('big', big);
+  $('ib-expand').textContent = big ? '✕' : '⤢';
+  $('ib-expand').title = big ? 'Back to the small view (Esc)' : 'Bigger 3D view (Esc closes)';
+  $('ib-reset-view').hidden = !big;
+  $('ib-preview-hint').textContent = big
+    ? 'drag to turn and tilt · wheel or pinch to zoom'
+    : 'drag to turn';
+  if (!big) preview?.resetView();
+  else preview?.render();
+}
+$('ib-expand').addEventListener('click', () => expandPreview(!previewBig));
+$('ib-reset-view').addEventListener('click', () => preview?.resetView());
+$('ib-night').addEventListener('click', () => {
+  if (!preview) return;
+  preview.setNight(!preview.night);
+  $('ib-night').textContent = preview.night ? '☀ Day' : '☾ Night';
+  $('ib-night').setAttribute('aria-pressed', String(preview.night));
+  $('ib-night').title = preview.night ? 'See the island by day' : 'See the island at night';
+});
+new ResizeObserver(() => preview?.render()).observe($('ib-preview'));
 
 new ResizeObserver(() => {
   if (!open) return;
