@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { mergeAll, paint, place, vertexColorMaterial } from './models/geometry';
+import { TUNING } from '../data/tuning';
+import { MAX_WAVE_HEIGHT } from './ocean';
 
 /** Course buoy: striped float, flag, a pulsing ring and a tall faint beacon seen from afar. */
 export class BuoyMarker {
@@ -76,17 +78,18 @@ export function createBlobShadow(width: number, length: number): THREE.Mesh {
   return mesh;
 }
 
-/** Spacing (units) between the red buoys that mark the edge of the sea (decision 0041). */
-export const EDGE_BUOY_SPACING = 28;
-
 /**
  * Red can buoys bobbing in a ring just inside the sea's edge, so the invisible wall the boat
- * bumps into can be seen. One instanced draw call; only the matrices change each frame.
+ * bumps into can be seen. Compact visible buoys into one instanced draw call. Hidden buoys
+ * need only a sphere/frustum test, with no waves, matrix updates or uploaded instance data.
  */
 export class EdgeBuoys {
   readonly mesh: THREE.InstancedMesh;
   private readonly spots: Array<{ x: number; z: number; phase: number }> = [];
   private readonly dummy = new THREE.Object3D();
+  private readonly frustum = new THREE.Frustum();
+  private readonly projection = new THREE.Matrix4();
+  private readonly bounds = new THREE.Sphere();
 
   constructor(boundsRadius: number) {
     const geometry = mergeAll([
@@ -96,29 +99,47 @@ export class EdgeBuoys {
       paint(place(new THREE.ConeGeometry(0.5, 0.9, 6), 0, 2.65, 0), '#d93a2b'),
     ]);
     // Just beyond where the boat's hull is held, so it sails alongside them, never through.
-    const r = boundsRadius + 6;
-    const count = Math.max(8, Math.round((Math.PI * 2 * r) / EDGE_BUOY_SPACING));
+    const tuning = TUNING.seamanship.boundaryBuoys;
+    const r = boundsRadius + tuning.offset;
+    const count = Math.max(8, Math.round((Math.PI * 2 * r) / tuning.spacing));
     for (let i = 0; i < count; i++) {
       const a = (i / count) * Math.PI * 2;
-      this.spots.push({ x: Math.cos(a) * r, z: Math.sin(a) * r, phase: i * 1.7 });
+      this.spots.push({ x: Math.cos(a) * r, z: Math.sin(a) * r, phase: i * tuning.phaseStep });
     }
     this.mesh = new THREE.InstancedMesh(geometry, vertexColorMaterial(), count);
     this.mesh.frustumCulled = false;
-    this.update(0, () => 0);
+    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    // Radius about the rotation origin contains every tilt, plus all water displacement.
+    geometry.computeBoundingSphere();
+    const sphere = geometry.boundingSphere!;
+    this.bounds.radius = sphere.center.length() + sphere.radius + MAX_WAVE_HEIGHT;
+    this.mesh.count = 0;
   }
 
-  update(time: number, waterY: (x: number, z: number) => number) {
-    this.spots.forEach((s, i) => {
-      this.dummy.position.set(s.x, waterY(s.x, s.z) - 0.2, s.z);
+  update(time: number, waterY: (x: number, z: number) => number, camera: THREE.Camera) {
+    camera.updateMatrixWorld();
+    this.projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    this.frustum.setFromProjectionMatrix(this.projection, camera.coordinateSystem);
+    const tuning = TUNING.seamanship.boundaryBuoys;
+    let visible = 0;
+    for (const s of this.spots) {
+      this.bounds.center.set(s.x, tuning.waterline, s.z);
+      if (!this.frustum.intersectsSphere(this.bounds)) continue;
+      this.dummy.position.set(s.x, waterY(s.x, s.z) + tuning.waterline, s.z);
       this.dummy.rotation.set(
-        Math.sin(time * 1.4 + s.phase) * 0.12,
+        Math.sin(time * tuning.pitchRate + s.phase) * tuning.rockRadians,
         0,
-        Math.cos(time * 1.1 + s.phase) * 0.12,
+        Math.cos(time * tuning.rollRate + s.phase) * tuning.rockRadians,
       );
       this.dummy.updateMatrix();
-      this.mesh.setMatrixAt(i, this.dummy.matrix);
-    });
-    this.mesh.instanceMatrix.needsUpdate = true;
+      this.mesh.setMatrixAt(visible++, this.dummy.matrix);
+    }
+    this.mesh.count = visible;
+    this.mesh.instanceMatrix.clearUpdateRanges();
+    if (visible > 0) {
+      this.mesh.instanceMatrix.addUpdateRange(0, visible * this.mesh.instanceMatrix.itemSize);
+      this.mesh.instanceMatrix.needsUpdate = true;
+    }
   }
 
   dispose() {
