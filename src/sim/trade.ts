@@ -1,3 +1,4 @@
+import { TUNING } from '../data/tuning';
 import { islandCoasts } from './islandLayout';
 import { piersOf, PIER_HALF_WIDTH } from './collision';
 import { hullFootprint, hullRadius, hullSegmentGap, hullCoastGap } from './harbourDistance';
@@ -54,14 +55,13 @@ import {
  * which port the boat is docked at. Plain data so it saves as JSON; no rendering, no DOM.
  */
 
-/** Gold at the start of a new game: enough for a first hold of cheap goods. */
-export const START_GOLD = 150;
-/** Maximum hull-to-shore/pier gap, with two extra units for forgiving approaches. */
-export const DOCK_RANGE = 16;
-/** Dock below this speed (knots). Lower the sails near a port to dock. */
-export const DOCK_SPEED_KN = 1.5;
-/** Leave the port once this much farther than DOCK_RANGE (avoids flicker at the edge). */
-export const UNDOCK_MARGIN = 6;
+/*
+ * `src/data/tuning/seamanship.json` › `harbour` (decision 0094): `dockRange`, the maximum
+ * hull-to-shore/pier gap, with two extra units for forgiving approaches; dock below `dockSpeedKn`
+ * (lower the sails near a port to dock); leave the port once `undockMargin` farther than the dock
+ * range (avoids flicker at the edge). Gold at the start is the difficulty level's `startGold`.
+ */
+const harbour = () => TUNING.seamanship.harbour;
 
 export interface Captain {
   gold: number;
@@ -126,7 +126,7 @@ export function createTradeState(map: MapDef, startShip: ShipClass): TradeState 
     );
   return {
     captain: {
-      gold: START_GOLD,
+      gold: knobs(undefined).startGold,
       activeShip: startShip.id,
       ships: { [startShip.id]: stockLevels() },
       cargo: emptyAmounts(),
@@ -279,7 +279,7 @@ export function distanceToPort(
 export function portInRange(
   map: MapDef,
   pos: { x: number; y: number; heading?: number },
-  range = DOCK_RANGE,
+  range = harbour().dockRange,
   levels: Record<string, number> = {},
   shipId = 'sloop',
 ) {
@@ -305,15 +305,15 @@ export function tryDock(
   const port = findPort(map, portId);
   if (
     !port ||
-    boat.speedKn >= DOCK_SPEED_KN ||
+    boat.speedKn >= harbour().dockSpeedKn ||
     distanceToPort(
       map,
       boat,
       port,
       settlementLevel(trade, port.id),
       activeShip(trade).id,
-      DOCK_RANGE,
-    ) > DOCK_RANGE
+      harbour().dockRange,
+    ) > harbour().dockRange
   )
     return false;
   if (trade.dockedAt && trade.dockedAt !== portId) return false;
@@ -361,16 +361,22 @@ export function stepTrade(
         port,
         settlementLevel(trade, port.id),
         activeShip(trade).id,
-        DOCK_RANGE + UNDOCK_MARGIN,
+        harbour().dockRange + harbour().undockMargin,
       ) >
-        DOCK_RANGE + UNDOCK_MARGIN
+        harbour().dockRange + harbour().undockMargin
     ) {
       events.push({ type: 'undocked', portId: trade.dockedAt });
       trade.dockedAt = null;
     }
   }
-  if (!trade.dockedAt && boat.speedKn < DOCK_SPEED_KN) {
-    const port = portInRange(map, boat, DOCK_RANGE, settlementLevels(trade), activeShip(trade).id);
+  if (!trade.dockedAt && boat.speedKn < harbour().dockSpeedKn) {
+    const port = portInRange(
+      map,
+      boat,
+      harbour().dockRange,
+      settlementLevels(trade),
+      activeShip(trade).id,
+    );
     if (port && tryDock(trade, map, boat, port.id)) {
       events.push({ type: 'docked', portId: port.id });
     }

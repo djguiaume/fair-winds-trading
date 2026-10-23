@@ -4,9 +4,6 @@ import { distance } from './math';
 import { createRng } from './rng';
 import {
   MAX_SETTLEMENT_LEVEL,
-  ORDER_GROWTH_BONUS,
-  ORDER_SCALE,
-  STALL_SECONDS,
   type SettlementState,
   addGrowth,
   addRare,
@@ -20,6 +17,7 @@ import {
   wantsAt,
 } from './settlement';
 import { knobs } from './difficulty';
+import { TUNING } from '../data/tuning';
 import { addStanding, homePort, isDiscovered } from './shipyards';
 import { type TradeState, capacity } from './trade';
 import { MAX_UPGRADE_LEVEL, UPGRADE_TRACKS } from './upgrades';
@@ -30,22 +28,17 @@ import { MAX_UPGRADE_LEVEL, UPGRADE_TRACKS } from './upgrades';
  * next order after a short pause. Plain data, saved with the voyage.
  */
 
-/** Smallest and largest order for a stock sloop (hold 10); bigger holds get bigger orders. */
-export const CONTRACT_QTY: [number, number] = [4, 8];
-/** Largest order as a share of the hold of the ship sailed when the order is posted (decision 0046). */
-export const CONTRACT_HOLD_SHARE = 0.6;
-/** Reward per unit as a multiple of the good's base price (a sale where wanted is about ×1.5 before the price slides). */
-export const CONTRACT_PRICE_FACTOR = 1.5;
-/** Long hauls pay more: the price factor rises by 1 per this many units from the nearest maker. */
-export const CONTRACT_DISTANCE_SCALE = 700;
-/** Seconds before a port posts its next order after one is delivered. */
-export const CONTRACT_COOLDOWN = 90;
-/** A help order pays this much more than a usual order (decision 0069)... */
-export const HELP_REWARD_FACTOR = 1.5;
-/** ...and grows the town this many times as much. */
-export const HELP_GROWTH_FACTOR = 2;
-/** Seconds after a help order is delivered before the next one is asked. */
-export const HELP_COOLDOWN = 240;
+/*
+ * The numbers live in `src/data/tuning/economy.json` › `orders` (decision 0094): `qty` is the
+ * smallest and largest order for a stock sloop (hold 10), bigger holds get bigger orders; the
+ * largest order is `holdShare` of the hold of the ship sailed when the order is posted (0046);
+ * long hauls pay more, the price factor rising by 1 per `distanceScale` units from the nearest
+ * maker; a port posts its next order `cooldown` seconds after one is delivered. A help order
+ * (0069) pays `helpRewardFactor` times a usual order, grows the town `helpGrowthFactor` times as
+ * much, and the next one is asked `helpCooldown` seconds after it is delivered. The reward per
+ * unit as a multiple of the base price is the difficulty level's `orderFactor`.
+ */
+const orderTuning = () => TUNING.economy.orders;
 
 export interface Contract {
   /** Port that wants the goods (deliver there). */
@@ -91,9 +84,9 @@ export function contractReward(
   port: PortDef,
   good: GoodId,
   qty: number,
-  priceFactor = CONTRACT_PRICE_FACTOR,
+  priceFactor = knobs(undefined).orderFactor,
 ): number {
-  const factor = priceFactor + haulDistance(map, port, good) / CONTRACT_DISTANCE_SCALE;
+  const factor = priceFactor + haulDistance(map, port, good) / orderTuning().distanceScale;
   const perUnit = GOOD_DEFS[good].basePrice * factor;
   return Math.round((perUnit * qty) / 5) * 5;
 }
@@ -103,10 +96,12 @@ export function contractReward(
  * grows with the hold (60 %) and the bottom stays half the top, so orders keep up with bigger ships.
  */
 export function contractQtyRange(hold = 0, level = 2): [number, number] {
-  const [lo, hi] = CONTRACT_QTY;
+  const { qty, holdShare } = orderTuning();
+  const [lo, hi] = qty;
   // Bigger towns order more, smaller ones less (decision 0059); a village is the 0046 tuning.
-  const scale = ORDER_SCALE[Math.min(Math.max(Math.round(level), 1), ORDER_SCALE.length) - 1]!;
-  const top = Math.max(Math.round(hi * scale), Math.round(hold * CONTRACT_HOLD_SHARE * scale));
+  const orderScale = TUNING.economy.towns.orderScale;
+  const scale = orderScale[Math.min(Math.max(Math.round(level), 1), orderScale.length) - 1]!;
+  const top = Math.max(Math.round(hi * scale), Math.round(hold * holdShare * scale));
   return [Math.max(Math.round(lo * scale), Math.round(top / 2)), top];
 }
 
@@ -122,7 +117,7 @@ export function makeContract(
   hold = 0,
   level: number = startLevel(port),
   made: ReadonlySet<GoodId> = new Set(),
-  priceFactor = CONTRACT_PRICE_FACTOR,
+  priceFactor = knobs(undefined).orderFactor,
 ): Contract {
   let h = map.seed ^ 0xc0de;
   for (const ch of port.id) h = Math.imul(h ^ ch.charCodeAt(0), 0x01000193);
@@ -168,14 +163,18 @@ export function deliverContract(trade: TradeState, map: MapDef): DeliverResult {
   trade.captain.gold += c.reward;
   trade.contracts.completed += 1;
   addStanding(trade, portId);
-  addGrowth(trade, portId, (c.qty + ORDER_GROWTH_BONUS) * (c.help ? HELP_GROWTH_FACTOR : 1));
-  if (c.help) trade.contracts.helpIn = HELP_COOLDOWN;
+  addGrowth(
+    trade,
+    portId,
+    (c.qty + TUNING.economy.towns.orderGrowthBonus) * (c.help ? orderTuning().helpGrowthFactor : 1),
+  );
+  if (c.help) trade.contracts.helpIn = orderTuning().helpCooldown;
   addRare(trade, portId, c.good, c.qty);
   trade.contracts.byPort[portId] = makeContract(
     map,
     port,
     trade.contracts.completed,
-    CONTRACT_COOLDOWN,
+    orderTuning().cooldown,
     capacity(trade),
     settlementLevel(trade, portId),
     madeGoods(map, trade),
@@ -202,7 +201,7 @@ export function helpPortId(map: MapDef, trade: TradeState): string | null {
   )
     return home;
   let best: string | null = null;
-  let longest = STALL_SECONDS;
+  let longest = TUNING.economy.towns.stallSeconds;
   for (const port of map.ports) {
     const s = trade.settlements.byPort[port.id];
     if (!s || s.level >= MAX_SETTLEMENT_LEVEL || !isDiscovered(trade, port.id)) continue;
@@ -227,7 +226,7 @@ export function syncHelpOrder(map: MapDef, trade: TradeState): string | null {
   const c = portId ? trade.contracts.byPort[portId] : undefined;
   if (!c || c.readyIn > 0) return null;
   c.help = true;
-  c.reward = Math.round((c.reward * HELP_REWARD_FACTOR) / 5) * 5;
+  c.reward = Math.round((c.reward * orderTuning().helpRewardFactor) / 5) * 5;
   return c.portId;
 }
 
@@ -271,11 +270,12 @@ export function readContracts(
         good: c.good,
         qty: c.qty,
         reward: c.reward,
-        readyIn: Math.min(c.readyIn, CONTRACT_COOLDOWN),
+        readyIn: Math.min(c.readyIn, orderTuning().cooldown),
         ...(c.help === true ? { help: true } : {}),
       };
     }
   }
-  const helpIn = isNum(r.helpIn) && r.helpIn > 0 ? Math.min(r.helpIn, HELP_COOLDOWN) : 0;
+  const helpIn =
+    isNum(r.helpIn) && r.helpIn > 0 ? Math.min(r.helpIn, orderTuning().helpCooldown) : 0;
   return { byPort: fresh.byPort, completed, ...(helpIn ? { helpIn } : {}) };
 }

@@ -2,9 +2,6 @@
 import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
 import {
-  CONTRACT_COOLDOWN,
-  CONTRACT_HOLD_SHARE,
-  CONTRACT_QTY,
   contractQtyRange,
   createContracts,
   deliverContract,
@@ -20,6 +17,12 @@ import { SLOOP } from '../src/sim/ship';
 import { stepTrade } from '../src/sim/trade';
 import { createWorld } from '../src/sim/world';
 import { TradePanel } from '../src/ui/tradePanel';
+import { TUNING } from '../src/data/tuning';
+
+// Tuning values moved to src/data/tuning (decision 0094).
+const CONTRACT_COOLDOWN = TUNING.economy.orders.cooldown;
+const CONTRACT_HOLD_SHARE = TUNING.economy.orders.holdShare;
+const CONTRACT_QTY = TUNING.economy.orders.qty;
 
 class MemoryStorage implements SaveStorage {
   data = new Map<string, string>();

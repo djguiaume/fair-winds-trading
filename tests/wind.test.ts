@@ -5,8 +5,6 @@ import type { IslandDef, TerrainDef } from '../src/sim/map';
 import { SLOOP } from '../src/sim/ship';
 import {
   DEFAULT_WEATHER,
-  FUNNEL_GAIN,
-  SHADOW_DEPTH,
   localWind,
   shelterAt,
   weatherAt,
@@ -16,6 +14,11 @@ import {
   windEffectAt,
 } from '../src/sim/wind';
 import { createWorld, stepWorld } from '../src/sim/world';
+import { TUNING } from '../src/data/tuning';
+
+// Tuning values moved to src/data/tuning (decision 0094).
+const FUNNEL_GAIN = TUNING.weather.islands.funnelGain;
+const SHADOW_DEPTH = TUNING.weather.islands.shadowDepth;
 
 describe('slow weather (0026)', () => {
   const seed = 7;

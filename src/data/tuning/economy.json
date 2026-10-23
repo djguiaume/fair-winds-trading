@@ -1,0 +1,41 @@
+{
+  "market": {
+    "referenceStock": 30,
+    "equilibrium": {
+      "produces": 100,
+      "wants": 12,
+      "neutral": 30,
+      "none": 0
+    },
+    "elasticity": 0.8,
+    "floor": 0.35,
+    "ceiling": 3,
+    "recoverySeconds": 75
+  },
+  "towns": {
+    "growthToLevel": {
+      "2": 40,
+      "3": 150,
+      "4": 350
+    },
+    "orderGrowthBonus": 5,
+    "stallSeconds": 180,
+    "stallDecayPerMinute": 2,
+    "wantsEquilibrium": [15, 12, 10, 8],
+    "producesEquilibrium": [85, 100, 115, 130],
+    "specialtyShare": 0.4,
+    "rareShare": 0.7,
+    "rareForPortTown": 20,
+    "orderScale": [0.8, 1, 1.25, 1.5]
+  },
+  "orders": {
+    "qty": [4, 8],
+    "holdShare": 0.6,
+    "distanceScale": 700,
+    "cooldown": 90,
+    "helpRewardFactor": 1.5,
+    "helpGrowthFactor": 2,
+    "helpCooldown": 240
+  },
+  "discoverRange": 90
+}

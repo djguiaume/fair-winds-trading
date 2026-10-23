@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { PHASE0_MAP } from '../src/data/maps';
 import { GOODS, GOOD_DEFS, RAW_GOODS, isGood } from '../src/sim/goods';
 import {
-  EQUILIBRIUM,
   createMarket,
   midPrice,
   quoteBuy,
@@ -13,8 +12,6 @@ import {
 } from '../src/sim/market';
 import { CUTTER, SLOOP } from '../src/sim/ship';
 import {
-  DOCK_RANGE,
-  START_GOLD,
   type TradeState,
   activeShip,
   buy,
@@ -36,6 +33,13 @@ import {
   saveGame,
   serializeWorld,
 } from '../src/sim/save';
+import { TUNING } from '../src/data/tuning';
+import { knobs } from '../src/sim/difficulty';
+
+// Tuning values moved to src/data/tuning (decision 0094).
+const DOCK_RANGE = TUNING.seamanship.harbour.dockRange;
+const EQUILIBRIUM = TUNING.economy.market.equilibrium;
+const START_GOLD = knobs('captain').startGold;
 
 const DT = 1 / 60;
 
@@ -240,7 +244,7 @@ describe('shipyard', () => {
     expect(buyShip(trade, PHASE0_MAP, 'cutter')).toEqual({ ok: true, gold: 1500 });
     expect(trade.captain.activeShip).toBe('cutter');
     expect(capacity(trade)).toBe(CUTTER.hold);
-    expect(activeShip(trade).noGoAngle).toBeLessThan(SLOOP.noGoAngle);
+    expect(activeShip(trade).noGoDeg).toBeLessThan(SLOOP.noGoDeg);
     expect(buyShip(trade, PHASE0_MAP, 'cutter')).toEqual({ ok: false, error: 'already-owned' });
     expect(buyShip(trade, PHASE0_MAP, 'galleon')).toEqual({ ok: false, error: 'unknown-ship' });
 

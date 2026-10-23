@@ -1,6 +1,7 @@
 import { type GoodId, isGood, isMadeGood, isRare } from './goods';
 import type { MapDef, PortDef } from './map';
 import { type Difficulty, knobs } from './difficulty';
+import { TUNING } from '../data/tuning';
 
 /**
  * Living settlements (decision 0059). Every port is a settlement with a level from 1 (hamlet) to
@@ -15,42 +16,29 @@ import { type Difficulty, knobs } from './difficulty';
 export type SettlementLevel = 1 | 2 | 3 | 4;
 export const MAX_SETTLEMENT_LEVEL: SettlementLevel = 4;
 
-/** Growth points needed to rise from level n-1 to n (index = n). */
-export const GROWTH_TO_LEVEL: Record<2 | 3 | 4, number> = { 2: 40, 3: 150, 4: 350 };
-/** Points per order delivered, on top of one per unit handed over. */
-export const ORDER_GROWTH_BONUS = 5;
-/** Seconds without any wanted goods before a town starts to stall. */
-export const STALL_SECONDS = 180;
-/** Growth lost per minute while stalled (never below the start of the current level). */
-export const STALL_DECAY_PER_MINUTE = 2;
-
-/**
- * Market depth per level (index = level - 1): a bigger town eats more of what it wants (smaller
- * stock, dearer) and makes more of what it produces. Level 2 matches the Phase 1 tuning (0046).
+/*
+ * The numbers live in `src/data/tuning/economy.json` › `towns` (decision 0094):
+ * - `growthToLevel`: growth points needed to rise from level n-1 to n (key = n);
+ * - `orderGrowthBonus`: points per order delivered, on top of one per unit handed over;
+ * - `stallSeconds`: seconds without any wanted goods before a town starts to stall, then it loses
+ *   `stallDecayPerMinute` growth per minute (never below the start of the current level);
+ * - market depth per level (index = level - 1): a bigger town eats more of what it wants
+ *   (`wantsEquilibrium`: smaller stock, dearer) and makes more of what it produces
+ *   (`producesEquilibrium`). Level 2 matches the Phase 1 tuning (0046);
+ * - a workshop makes less than the bulk trade: its stock is `specialtyShare` of the produces
+ *   equilibrium (0063); a far yard's stock of its rare good is `rareShare` of it (0065), more than
+ *   a workshop, so the yard sells it cheap enough to pay for the longest crossings on the map;
+ * - `rareForPortTown`: units of its rare goods a town must receive before it can become a port
+ *   town (decision 0065);
+ * - `orderScale`: order size multiplier per level (decision 0028 sizes are level 2).
+ * The home port level needed to fit each upgrade level is `upgrades.json` › `homePortLevel`
+ * (decision 0030): the first upgrades need a village, the top ones a town.
  */
-export const WANTS_EQUILIBRIUM = [15, 12, 10, 8] as const;
-export const PRODUCES_EQUILIBRIUM = [85, 100, 115, 130] as const;
-/** A workshop makes less than the bulk trade: its stock is this share of PRODUCES_EQUILIBRIUM (0063). */
-export const SPECIALTY_SHARE = 0.4;
-/**
- * A far yard's stock of its rare good, as a share of PRODUCES_EQUILIBRIUM (0065): more than a
- * workshop, so the yard sells it cheap enough to pay for the longest crossings on the map.
- */
-export const RARE_SHARE = 0.7;
-/** Units of its rare goods a town must receive before it can become a port town (decision 0065). */
-export const RARE_FOR_PORT_TOWN = 20;
-/** Order size multiplier per level (decision 0028 sizes are level 2). */
-export const ORDER_SCALE = [0.8, 1, 1.25, 1.5] as const;
-
-/**
- * Home port level needed to fit each upgrade level (index = upgrade level, decision 0030): the
- * first upgrades need a village, the top ones a town. The home port starts as a village.
- */
-export const UPGRADE_NEEDS_LEVEL: Record<number, SettlementLevel> = { 2: 2, 3: 3 };
+const towns = () => TUNING.economy.towns;
 
 export interface Settlement {
   level: SettlementLevel;
-  /** Points toward the next level (0 … GROWTH_TO_LEVEL[level + 1]). */
+  /** Points toward the next level (0 … `growthToLevel[level + 1]`). */
   growth: number;
   /** Seconds since the town last received goods it wants. */
   sinceSupply: number;
@@ -129,7 +117,9 @@ export function producesAt(map: MapDef, state: HasSettlements, portId: string): 
 
 /** Points still needed for the next level, or null at the top. */
 export function growthNeeded(level: SettlementLevel): number | null {
-  return level >= MAX_SETTLEMENT_LEVEL ? null : GROWTH_TO_LEVEL[(level + 1) as 2 | 3 | 4];
+  return level >= MAX_SETTLEMENT_LEVEL
+    ? null
+    : towns().growthToLevel[String(level + 1) as '2' | '3' | '4'];
 }
 
 export function createSettlements(map: MapDef): SettlementState {
@@ -205,8 +195,9 @@ export function portTownGate(
   const s = state.settlements.byPort[portId];
   if (!port || !s || s.level >= MAX_SETTLEMENT_LEVEL) return null;
   const goods = rareWants(port);
-  if (!goods.length || s.rare >= RARE_FOR_PORT_TOWN) return null;
-  return { goods, have: Math.floor(s.rare), need: RARE_FOR_PORT_TOWN };
+  const need = towns().rareForPortTown;
+  if (!goods.length || s.rare >= need) return null;
+  return { goods, have: Math.floor(s.rare), need };
 }
 
 /**
@@ -219,9 +210,9 @@ export function stepSettlements(state: HasSettlements, dt: number, map: MapDef):
   for (const [portId, s] of Object.entries(state.settlements.byPort)) {
     const before = s.sinceSupply;
     s.sinceSupply += dt;
-    const stalled = Math.min(dt, s.sinceSupply - Math.max(before, STALL_SECONDS));
+    const stalled = Math.min(dt, s.sinceSupply - Math.max(before, towns().stallSeconds));
     if (stalled > 0 && s.growth > 0)
-      s.growth = Math.max(0, s.growth - (STALL_DECAY_PER_MINUTE * stalled) / 60);
+      s.growth = Math.max(0, s.growth - (towns().stallDecayPerMinute * stalled) / 60);
     const need = growthNeeded(s.level);
     if (need !== null && s.growth >= need && s.level === 3 && portTownGate(map, state, portId)) {
       s.growth = need;
@@ -237,7 +228,7 @@ export function stepSettlements(state: HasSettlements, dt: number, map: MapDef):
 
 /** Home port level needed before the next upgrade level `to` can be fitted (1 = always). */
 export function upgradeNeedsLevel(to: number): SettlementLevel {
-  return UPGRADE_NEEDS_LEVEL[to] ?? 1;
+  return (TUNING.upgrades.homePortLevel[String(to)] ?? 1) as SettlementLevel;
 }
 
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);

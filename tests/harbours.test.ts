@@ -4,10 +4,14 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
 import { buildHighlandIslands, islandParts } from '../src/render/models/highlandIslands';
 import { SLOOP, SHIP_CLASSES } from '../src/sim/ship';
-import { DOCK_RANGE, tryDock } from '../src/sim/trade';
+import { tryDock } from '../src/sim/trade';
 import { createWorld, stepWorld } from '../src/sim/world';
 import { PortLabels } from '../src/ui/portLabels';
 import { TradePanel } from '../src/ui/tradePanel';
+import { TUNING } from '../src/data/tuning';
+
+// Tuning values moved to src/data/tuning (decision 0094).
+const DOCK_RANGE = TUNING.seamanship.harbour.dockRange;
 
 const mesh = buildHighlandIslands(PHASE1_MAP, { shadows: false }) as THREE.Mesh<
   THREE.BufferGeometry,

@@ -2,19 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { DEG, bearingTo, wrapAngle } from '../src/sim/math';
 import { createRng } from '../src/sim/rng';
 import { SLOOP, pointOfSail, polarFraction } from '../src/sim/ship';
-import {
-  REFERENCE_BREEZE_KN,
-  type BoatState,
-  createBoat,
-  stepBoat,
-  topSpeedKn,
-  trueWindAngle,
-} from '../src/sim/boat';
+import { type BoatState, createBoat, stepBoat, topSpeedKn, trueWindAngle } from '../src/sim/boat';
 import { effectiveShip } from '../src/sim/upgrades';
 import { resolveCollisions } from '../src/sim/collision';
 import { createWorld, stepWorld } from '../src/sim/world';
 import { PHASE0_MAP } from '../src/data/maps';
 import type { Wind } from '../src/sim/wind';
+import { TUNING } from '../src/data/tuning';
+
+// Tuning values moved to src/data/tuning (decision 0094).
+const REFERENCE_BREEZE_KN = TUNING.seamanship.boat.referenceBreezeKn;
 
 const NORTH_WIND: Wind = { from: 0, speedKn: 14 };
 const DT = 1 / 60;

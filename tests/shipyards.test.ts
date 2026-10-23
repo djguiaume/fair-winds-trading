@@ -2,10 +2,8 @@
 import { describe, expect, it } from 'vitest';
 import { PHASE0_MAP, PHASE1_MAP } from '../src/data/maps';
 import { deliverContract } from '../src/sim/contracts';
-import { DEG } from '../src/sim/math';
 import { CUTTER, SHIP_CLASSES, SLOOP } from '../src/sim/ship';
 import {
-  DISCOVER_RANGE,
   createProgress,
   discoveredPorts,
   homePort,
@@ -18,6 +16,10 @@ import { buyShip, buyUpgrade, capacity, stepTrade, switchShip } from '../src/sim
 import { loadGame, saveGame, type SaveStorage } from '../src/sim/save';
 import { type World, createWorld } from '../src/sim/world';
 import { TradePanel } from '../src/ui/tradePanel';
+import { TUNING } from '../src/data/tuning';
+
+// Tuning values moved to src/data/tuning (decision 0094).
+const DISCOVER_RANGE = TUNING.economy.discoverRange;
 
 const map = PHASE1_MAP;
 
@@ -68,8 +70,8 @@ describe('ship classes (decision 0035)', () => {
     expect(['schooner', 'clipper', 'hoy', 'fluyt', 'indiaman'].map(speed)).toEqual([
       25, 29, 17, 16, 17,
     ]);
-    expect(Math.round(schooner!.noGoAngle / DEG)).toBe(38);
-    expect(Math.round(fluyt!.noGoAngle / DEG)).toBe(55);
+    expect(schooner!.noGoDeg).toBe(38);
+    expect(fluyt!.noGoDeg).toBe(55);
   });
 
   it('gives each line its strength: swift points high and runs fast, haulers carry', () => {
@@ -79,7 +81,7 @@ describe('ship classes (decision 0035)', () => {
         (c) => c.line === 'hauler' && c.tier === tier,
       )!;
       expect(swift.speedRatio).toBeGreaterThan(hauler.speedRatio);
-      expect(swift.noGoAngle).toBeLessThan(hauler.noGoAngle);
+      expect(swift.noGoDeg).toBeLessThan(hauler.noGoDeg);
       expect(hauler.hold).toBeGreaterThan(swift.hold);
       expect(hauler.draft).toBeGreaterThanOrEqual(swift.draft);
     }

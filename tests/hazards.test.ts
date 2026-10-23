@@ -2,11 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
 import { createBoat } from '../src/sim/boat';
 import {
-  CRASH_DAMAGE,
-  CRASH_SAFE_KN,
-  LEAK_PENALTY,
-  REPAIR_COST,
-  SHALLOW_WIDTH,
   damageHull,
   hullCondition,
   impactDamage,
@@ -19,8 +14,18 @@ import {
 import type { MapDef, TerrainDef } from '../src/sim/map';
 import { type SaveStorage, loadGame, saveGame } from '../src/sim/save';
 import { CUTTER, SLOOP } from '../src/sim/ship';
-import { DOCK_SPEED_KN, activeShip } from '../src/sim/trade';
+import { activeShip } from '../src/sim/trade';
 import { type World, createWorld, stepWorld } from '../src/sim/world';
+import { TUNING } from '../src/data/tuning';
+import { knobs } from '../src/sim/difficulty';
+
+// Tuning values moved to src/data/tuning (decision 0094).
+const CRASH_DAMAGE = TUNING.seamanship.hazards.crashDamage;
+const CRASH_SAFE_KN = TUNING.seamanship.hazards.crashSafeKn;
+const DOCK_SPEED_KN = TUNING.seamanship.harbour.dockSpeedKn;
+const LEAK_PENALTY = TUNING.seamanship.hazards.leakPenalty;
+const REPAIR_COST = knobs('captain').repairCost;
+const SHALLOW_WIDTH = TUNING.seamanship.hazards.shallowWidth;
 
 const DT = 1 / 60;
 

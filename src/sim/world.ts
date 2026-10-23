@@ -1,3 +1,4 @@
+import { TUNING } from '../data/tuning';
 import { type BoatControls, type BoatState, createBoat, stepBoat, trueWindAngle } from './boat';
 import { type Pier, piersOf, resolveCollisions } from './collision';
 import type { MapDef } from './map';
@@ -13,7 +14,7 @@ import {
 import { settlementLevels } from './settlement';
 import { knobs, weatherFor } from './difficulty';
 import { DEG, bearingTo, clamp, distance } from './math';
-import type { ShipClass } from './ship';
+import { type ShipClass, noGoAngle } from './ship';
 import {
   type DockEvent,
   type TradeState,
@@ -37,14 +38,13 @@ import {
   withoutStorms,
 } from './wind';
 
-/** Distance (units) at which a course buoy counts as reached. */
-export const WAYPOINT_RADIUS = 12;
-/** Braking (1/s) when the sails are lowered within docking range of a port (decision 0041). */
-export const HARBOUR_BRAKE = 1.6;
-/** The crew only takes her alongside below this speed (knots); faster, she can still crash. */
-export const MOOR_MAX_KN = 3;
-/** Below this (knots) a boat being brought alongside comes to a dead stop. */
-export const MOORED_KN = 0.2;
+/*
+ * `src/data/tuning/seamanship.json` › `harbour` (decision 0094): `waypointRadius` (units) at which
+ * a course buoy counts as reached; `brake` (1/s) when the sails are lowered within docking range of
+ * a port (decision 0041); the crew only takes her alongside below `moorMaxKn` (faster, she can
+ * still crash), and below `mooredKn` a boat being brought alongside comes to a dead stop.
+ */
+const harbour = () => TUNING.seamanship.harbour;
 
 /** The whole game state. Plain data, no three.js: the renderer only reads it (decision 0005). */
 export interface World {
@@ -78,7 +78,7 @@ export interface World {
   pressKn: number;
   /** The press right now, before averaging: the warning reads it so it shows before a lurch. */
   pressNowKn: number;
-  /** Seconds spent pressed past `OVERPRESSED_KN` (eases off when she stands up). */
+  /** Seconds spent pressed past `overpressedKn` (eases off when she stands up). */
   overHeel: number;
   /** Seconds before another lurch can throw cargo. */
   lurchCooldown: number;
@@ -205,8 +205,8 @@ export function setPortDestination(world: World, portId: string): boolean {
 }
 
 function moor(boat: BoatState, dt: number): void {
-  const k = Math.exp(-HARBOUR_BRAKE * dt);
-  boat.speedKn = boat.speedKn * k < MOORED_KN ? 0 : boat.speedKn * k;
+  const k = Math.exp(-harbour().brake * dt);
+  boat.speedKn = boat.speedKn * k < harbour().mooredKn ? 0 : boat.speedKn * k;
   // Lines ashore hold her against the wind once she has stopped.
   const hold = boat.speedKn === 0 ? 0 : k;
   boat.drift.x *= hold;
@@ -242,8 +242,6 @@ export function refreshPiers(world: World) {
   pierVersions.set(world, { map: world.map, levels, count });
 }
 
-/** Warn when a storm's edge comes this close (map units). */
-export const STORM_WARNING = 140;
 /*
  * Cargo overboard (decisions 0067 and 0074). The first rule read the heel the boat is drawn with,
  * but that heel is exaggerated so it reads from the high camera, slim rigs lean extra, and the
@@ -251,36 +249,32 @@ export const STORM_WARNING = 140;
  * reads how hard the wind presses her, from the same inputs as the heel (wind she feels, point of
  * sail, sail area, luffing) but before any of the drawing.
  */
-/** Pressed this hard (averaged) for `HEAVY_SECONDS`, a unit goes over the side. Breeze and rain
- * stay under it (at most about 18.5 and 19.3 kn); a gale or a storm under full sail passes it. */
-export const OVERPRESSED_KN = 19.5;
-/** Seconds spent past `OVERPRESSED_KN` before a unit of cargo goes overboard. */
-export const HEAVY_SECONDS = 3;
-/** A gust this much above the average press throws cargo at once... */
-export const LURCH_GUST_KN = 4;
-/** ...when she is already pressed this hard. */
-export const LURCH_PRESS_KN = 18;
-/** Seconds after a loss before another lurch can throw more. */
-const LURCH_COOLDOWN = 3;
-/** Seconds over which the press is averaged, to tell a gust from a steady blow. */
-const PRESS_AVERAGE_SEC = 4;
+/*
+ * `src/data/tuning/seamanship.json` › `cargo` (decision 0094). Pressed `overpressedKn` (averaged)
+ * for `heavySeconds`, a unit goes over the side: breeze and rain stay under it (at most about 18.5
+ * and 19.3 kn); a gale or a storm under full sail passes it. A gust `lurchGustKn` above the average
+ * press throws cargo at once when she is already pressed `lurchPressKn`, then not again for
+ * `lurchCooldown` seconds. The press is averaged over `pressAverageSec`, to tell a gust from a
+ * steady blow, and the warning keeps `pressHysteresisKn` of hysteresis.
+ */
+const cargoTuning = () => TUNING.seamanship.cargo;
 
 /**
  * How close she is to losing cargo, for the press warning on the sails control (decision 0078):
- * 0 = fine; 1 = amber, a hard gust can throw cargo (`LURCH_PRESS_KN`); 2 = red, cargo goes over
- * the side within `HEAVY_SECONDS` (`OVERPRESSED_KN`). A little hysteresis keeps it from flickering
+ * 0 = fine; 1 = amber, a hard gust can throw cargo (`lurchPressKn`); 2 = red, cargo goes over
+ * the side within `heavySeconds` (`overpressedKn`). A little hysteresis keeps it from flickering
  * as the press wavers around a line. Alongside there is nothing to warn about.
  */
 export type PressLevel = 0 | 1 | 2;
-const PRESS_HYSTERESIS_KN = 0.6;
 
 export function pressLevel(world: World, previous: PressLevel): PressLevel {
   // The press right now leads the average, so the warning comes before a gust can knock her.
   const press = Math.max(world.pressKn, world.pressNowKn);
   if (world.trade.dockedAt || world.pressKn < 0) return 0;
-  const over = (line: number, held: boolean) => press > line - (held ? PRESS_HYSTERESIS_KN : 0);
-  if (over(OVERPRESSED_KN, previous === 2)) return 2;
-  if (over(LURCH_PRESS_KN, previous >= 1)) return 1;
+  const c = cargoTuning();
+  const over = (line: number, held: boolean) => press > line - (held ? c.pressHysteresisKn : 0);
+  if (over(c.overpressedKn, previous === 2)) return 2;
+  if (over(c.lurchPressKn, previous >= 1)) return 1;
   return 0;
 }
 
@@ -290,7 +284,7 @@ export function stepStorms(world: World): WorldEvent[] {
   const { boat, weather } = world;
   for (const s of weather.storms) {
     if (world.stormsWarned.includes(s.id)) continue;
-    if (distance(boat, s) - s.radius > STORM_WARNING) continue;
+    if (distance(boat, s) - s.radius > TUNING.weather.storms.warningRange) continue;
     world.stormsWarned = [...world.stormsWarned.slice(-4), s.id];
     events.push({ type: 'storm-near', bearing: bearingTo(boat, s) });
   }
@@ -311,8 +305,8 @@ function loseCargo(world: World): WorldEvent[] {
   return [{ type: 'overboard', good, qty }];
 }
 
-/** Seconds the wind takes to ease to a new level or Wind setting, as a weather change does. */
-export const WIND_BLEND_SEC = 60;
+/* The wind takes `weather.json` › `blendSec` to ease to a new level or Wind setting, as a weather
+ * change does. */
 
 /** Sea wind at the boat, eased from the previous config for a while after it changed (0083). */
 function seaWindAt(world: World, cfg: WindConfig): Wind {
@@ -323,7 +317,7 @@ function seaWindAt(world: World, cfg: WindConfig): Wind {
   const wind = windAt(cfg, world.time, world.map.seed, world.boat, world.weather);
   const blend = world.windBlend;
   if (!blend) return wind;
-  const k = (world.time - blend.at) / WIND_BLEND_SEC;
+  const k = (world.time - blend.at) / TUNING.weather.blendSec;
   if (k >= 1 || k < 0) {
     world.windBlend = null;
     return wind;
@@ -348,32 +342,34 @@ function seaWindAt(world: World, cfg: WindConfig): Wind {
 export function stepHeel(world: World, dt: number): WorldEvent[] {
   const { boat, ship, wind, trade } = world;
   const abs = Math.abs(trueWindAngle(boat.heading, wind));
-  const luff = 1 - clamp((abs - ship.noGoAngle * 0.8) / (ship.noGoAngle * 0.3), 0, 1);
-  const drive = pointOfSailHeel(abs, ship.noGoAngle) * boat.sail * (1 - luff);
+  const noGo = noGoAngle(ship);
+  const luff = 1 - clamp((abs - noGo * 0.8) / (noGo * 0.3), 0, 1);
+  const drive = pointOfSailHeel(abs, noGo) * boat.sail * (1 - luff);
   // Heel grows with wind^1.25 × drive (src/sim/heel.ts), so this is the beam-reach equivalent.
   const stiff = Math.min(1, heelFactor(trade.captain.activeShip));
   const press = wind.speedKn * Math.pow(drive * stiff, 0.8);
+  const c = cargoTuning();
   world.pressNowKn = press;
   if (world.pressKn < 0) world.pressKn = press;
-  if (dt > 0) world.pressKn += (press - world.pressKn) * (1 - Math.exp(-dt / PRESS_AVERAGE_SEC));
+  if (dt > 0) world.pressKn += (press - world.pressKn) * (1 - Math.exp(-dt / c.pressAverageSec));
   world.lurchCooldown = Math.max(0, world.lurchCooldown - dt);
   // Alongside nothing is thrown about.
   if (trade.dockedAt || dt <= 0) return [];
   if (
-    press - world.pressKn > LURCH_GUST_KN &&
-    world.pressKn > LURCH_PRESS_KN &&
+    press - world.pressKn > c.lurchGustKn &&
+    world.pressKn > c.lurchPressKn &&
     world.lurchCooldown === 0
   ) {
-    world.lurchCooldown = LURCH_COOLDOWN;
+    world.lurchCooldown = c.lurchCooldown;
     world.overHeel = 0;
     return loseCargo(world);
   }
-  if (world.pressKn <= OVERPRESSED_KN) {
+  if (world.pressKn <= c.overpressedKn) {
     world.overHeel = Math.max(0, world.overHeel - dt);
     return [];
   }
   world.overHeel += dt;
-  if (world.overHeel < HEAVY_SECONDS) return [];
+  if (world.overHeel < c.heavySeconds) return [];
   world.overHeel = 0;
   return loseCargo(world);
 }
@@ -426,7 +422,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   // and no longer drifts, so docking is reliable instead of a slow exponential crawl (0041).
   if (
     world.boat.sailStep === 0 &&
-    world.boat.speedKn < MOOR_MAX_KN &&
+    world.boat.speedKn < harbour().moorMaxKn &&
     portInRange(world.map, world.boat, undefined, settlementLevels(world.trade), world.ship.id)
   )
     moor(world.boat, dt);
@@ -466,7 +462,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
     world.map.practiceCourse &&
     !world.destination &&
     world.map.course.length > 0 &&
-    distance(world.boat, wp) < WAYPOINT_RADIUS
+    distance(world.boat, wp) < harbour().waypointRadius
   ) {
     const seconds = world.time - world.course.legStart;
     world.course.index = (world.course.index + 1) % world.map.course.length;

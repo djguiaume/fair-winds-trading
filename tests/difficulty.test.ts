@@ -1,22 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
-import {
-  DIFFICULTY,
-  STEADY_REVERT,
-  STEADY_STEP_DEG,
-  easier,
-  knobs,
-  weatherFor,
-} from '../src/sim/difficulty';
+import { DIFFICULTY, easier, knobs, weatherFor } from '../src/sim/difficulty';
 import { deliverContract } from '../src/sim/contracts';
 import { damageHull, repairHull, repairPrice } from '../src/sim/hazards';
 import { quoteBuy, quoteSell } from '../src/sim/market';
 import { type SaveStorage, SAVE_KEY, loadGame, saveGame, serializeWorld } from '../src/sim/save';
 import { addGrowth } from '../src/sim/settlement';
 import { SLOOP } from '../src/sim/ship';
-import { START_GOLD, setDifficulty, startVoyage } from '../src/sim/trade';
+import { setDifficulty, startVoyage } from '../src/sim/trade';
 import { DEFAULT_WEATHER, weatherAt } from '../src/sim/wind';
-import { WIND_BLEND_SEC, createWorld, stepHeel, stepWorld } from '../src/sim/world';
+import { createWorld, stepHeel, stepWorld } from '../src/sim/world';
+import { TUNING } from '../src/data/tuning';
+
+// Tuning values moved to src/data/tuning (decision 0094).
+const START_GOLD = knobs('captain').startGold;
+const STEADY_REVERT = TUNING.difficulty.steadyWind.revert;
+const STEADY_STEP_DEG = TUNING.difficulty.steadyWind.stepDeg;
+const WIND_BLEND_SEC = TUNING.weather.blendSec;
 
 class MemoryStorage implements SaveStorage {
   data = new Map<string, string>();

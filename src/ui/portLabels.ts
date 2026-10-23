@@ -3,7 +3,8 @@ import { type GoodId } from '../sim/goods';
 import { isDiscovered } from '../sim/shipyards';
 import { unitSellPrice } from '../sim/market';
 import { producesAt, wantsAt, settlementLevel } from '../sim/settlement';
-import { DOCK_RANGE, DOCK_SPEED_KN, distanceToPort } from '../sim/trade';
+import { distanceToPort } from '../sim/trade';
+import { TUNING } from '../data/tuning';
 import { navigationTarget, type World } from '../sim/world';
 import { goodName, t } from '../i18n';
 
@@ -180,14 +181,15 @@ export class PortLabels {
       if (s.onScreen) {
         // Only content is throttled. Pier motion follows the rendered camera every frame.
         if (refreshContent || entry.root.hidden) {
-          const canDock = distToShore <= DOCK_RANGE && boat.speedKn < DOCK_SPEED_KN;
+          const { dockRange, dockSpeedKn } = TUNING.seamanship.harbour;
+          const canDock = distToShore <= dockRange && boat.speedKn < dockSpeedKn;
           const cue = isDocked
             ? t('port.cueDocked')
             : canDock
               ? t('port.cueCanDock')
-              : distToShore <= DOCK_RANGE
+              : distToShore <= dockRange
                 ? t(boat.sailStep > 0 ? 'port.cueLowerSails' : 'port.cueSlowDown')
-                : distToShore <= DOCK_RANGE + 12
+                : distToShore <= dockRange + 12
                   ? t('port.cueCloser')
                   : t('port.cueTrading');
           if (entry.cue.textContent !== cue) entry.cue.textContent = cue;

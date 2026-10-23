@@ -1,0 +1,76 @@
+{
+  "default": {
+    "periodSec": 180,
+    "blendSec": 60,
+    "stepDeg": 75,
+    "revert": 0.12,
+    "strength": [0.8, 1.15],
+    "regions": {
+      "bendDeg": 40,
+      "strength": 0.15,
+      "sizeUnits": 400,
+      "driftSec": 900
+    },
+    "kinds": {
+      "breeze": {
+        "weight": 0.5,
+        "strength": [0.8, 1.15],
+        "rain": 0,
+        "gusts": 1
+      },
+      "calm": {
+        "weight": 0.17,
+        "strength": [0.35, 0.55],
+        "rain": 0,
+        "gusts": 0.6
+      },
+      "rain": {
+        "weight": 0.18,
+        "strength": [0.95, 1.2],
+        "rain": 0.7,
+        "gusts": 1.6
+      },
+      "gale": {
+        "weight": 0.15,
+        "strength": [1.35, 1.55],
+        "rain": 0.15,
+        "gusts": 1.6
+      }
+    },
+    "persist": 0.35,
+    "storms": {
+      "everySec": 600,
+      "radius": 95,
+      "speed": 3.2,
+      "areaRadius": 440
+    }
+  },
+  "blendSec": 60,
+  "storms": {
+    "coreShare": 0.35,
+    "rampSec": 60,
+    "inflowDeg": 20,
+    "windGain": 0.9,
+    "warningRange": 140
+  },
+  "islands": {
+    "shadowLength": 70,
+    "shadowDepth": 0.55,
+    "shadowSpreadDeg": 10,
+    "funnelGain": 0.2,
+    "funnelReach": 28
+  },
+  "force": {
+    "thresholdsKn": [7, 11, 15, 19],
+    "hysteresisKn": 0.6,
+    "gustHoldSec": 1.6,
+    "gustJumpKn": 1.4,
+    "averageSec": 5
+  },
+  "daylight": {
+    "daySeconds": 720,
+    "dayEnd": 420,
+    "duskEnd": 480,
+    "nightEnd": 660
+  }
+}

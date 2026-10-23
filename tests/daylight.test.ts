@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { DAY_SECONDS, DUSK_END, NIGHT_END, daylightAt } from '../src/sim/daylight';
+import { daylightAt } from '../src/sim/daylight';
+import { TUNING } from '../src/data/tuning';
+
+// Tuning values moved to src/data/tuning (decision 0094).
+const DAY_SECONDS = TUNING.weather.daylight.daySeconds;
+const DUSK_END = TUNING.weather.daylight.duskEnd;
+const NIGHT_END = TUNING.weather.daylight.nightEnd;
 
 describe('day and night (0068)', () => {
   it('starts a voyage in the morning, in full daylight', () => {

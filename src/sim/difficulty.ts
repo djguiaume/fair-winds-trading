@@ -1,3 +1,4 @@
+import { TUNING } from '../data/tuning';
 import type { WeatherConfig } from './wind';
 
 /**
@@ -34,44 +35,10 @@ export interface DifficultyKnobs {
   steadyWind: boolean;
 }
 
-export const DIFFICULTY: Readonly<Record<Difficulty, Readonly<DifficultyKnobs>>> = {
-  fair: {
-    cargoLost: 0,
-    damage: 0.5,
-    repairCost: 1,
-    spread: 0.02,
-    orderFactor: 2,
-    startGold: 250,
-    growth: 0.75,
-    galeWeight: 0.08,
-    stormEverySec: 900,
-    steadyWind: true,
-  },
-  captain: {
-    cargoLost: 1,
-    damage: 1,
-    repairCost: 2,
-    spread: 0.06,
-    orderFactor: 1.5,
-    startGold: 150,
-    growth: 1,
-    galeWeight: 0.15,
-    stormEverySec: 600,
-    steadyWind: false,
-  },
-  salt: {
-    cargoLost: 2,
-    damage: 1.5,
-    repairCost: 3,
-    spread: 0.11,
-    orderFactor: 1.25,
-    startGold: 100,
-    growth: 1.25,
-    galeWeight: 0.22,
-    stormEverySec: 420,
-    steadyWind: false,
-  },
-};
+/** The live knobs of each level, from `src/data/tuning/difficulty.json` (decision 0094). */
+export const DIFFICULTY = TUNING.difficulty.levels as Readonly<
+  Record<Difficulty, Readonly<DifficultyKnobs>>
+>;
 
 export function isDifficulty(v: unknown): v is Difficulty {
   return typeof v === 'string' && (DIFFICULTIES as readonly string[]).includes(v);
@@ -90,14 +57,9 @@ export function easier(a: Difficulty, b: Difficulty): Difficulty {
 /*
  * The steady trade wind (Guillaume, 2026-10-22: the dynamic wind "will feel brutal"): small,
  * slow shifts that keep close to the prevailing wind, regions that barely bend it, softer gusts.
- * Bounded by STEADY_STEP_DEG / STEADY_REVERT (±20°); usually within about ±10°.
+ * Bounded by `stepDeg` / `revert` (±20°); usually within about ±10°. Numbers in
+ * `difficulty.json` › `steadyWind`.
  */
-export const STEADY_STEP_DEG = 10;
-export const STEADY_REVERT = 0.5;
-export const STEADY_REGION_BEND_DEG = 10;
-export const STEADY_REGION_STRENGTH = 0.08;
-export const STEADY_GUSTS = 0.75;
-
 const derived = new WeakMap<WeatherConfig, Map<string, WeatherConfig>>();
 
 /**
@@ -115,13 +77,14 @@ export function weatherFor(
   const cached = byKey.get(key);
   if (cached) return cached;
   const k = knobs(difficulty);
+  const steady = TUNING.difficulty.steadyWind;
   // Captain keeps the map's own weather; only the other levels move gales and storms.
   const tuned = difficulty !== DEFAULT_DIFFICULTY;
   let kinds = weather.kinds;
   if (kinds) {
     const gale = tuned ? k.galeWeight : kinds.gale.weight;
     const breeze = Math.max(0, kinds.breeze.weight + kinds.gale.weight - gale);
-    const soft = steadyWind ? STEADY_GUSTS : 1;
+    const soft = steadyWind ? steady.gusts : 1;
     kinds = {
       calm: { ...kinds.calm, gusts: kinds.calm.gusts * soft },
       breeze: { ...kinds.breeze, weight: breeze, gusts: kinds.breeze.gusts * soft },
@@ -136,12 +99,12 @@ export function weatherFor(
       tuned && weather.storms ? { ...weather.storms, everySec: k.stormEverySec } : weather.storms,
     ...(steadyWind
       ? {
-          stepDeg: Math.min(weather.stepDeg, STEADY_STEP_DEG),
-          revert: Math.max(weather.revert, STEADY_REVERT),
+          stepDeg: Math.min(weather.stepDeg, steady.stepDeg),
+          revert: Math.max(weather.revert, steady.revert),
           regions: weather.regions && {
             ...weather.regions,
-            bendDeg: Math.min(weather.regions.bendDeg, STEADY_REGION_BEND_DEG),
-            strength: Math.min(weather.regions.strength, STEADY_REGION_STRENGTH),
+            bendDeg: Math.min(weather.regions.bendDeg, steady.regionBendDeg),
+            strength: Math.min(weather.regions.strength, steady.regionStrength),
           },
         }
       : {}),
