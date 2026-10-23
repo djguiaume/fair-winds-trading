@@ -17,7 +17,7 @@ import { islandDesign } from '../src/data/islands';
 import { coastDistance } from '../src/sim/coast';
 import { createBoat } from '../src/sim/boat';
 import { piersOf, resolveCollisions } from '../src/sim/collision';
-import { createTradeState, tryDock } from '../src/sim/trade';
+import { createTradeState, homeInRange, tryDock } from '../src/sim/trade';
 import { SLOOP } from '../src/sim/ship';
 import { shoreTexture } from '../src/render/ocean';
 
@@ -124,10 +124,11 @@ describe('producer island geography', () => {
   it('keeps a broad sea approach to the flagged player berth clear at every level', () => {
     for (const island of PHASE1_MAP.islands.filter((i) => i.look?.profile && i.look.dock))
       for (const level of [1, 2, 3, 4]) {
-        const port = PHASE1_MAP.ports.find((p) => p.islandId === island.id)!;
+        // The home island (0126) has no port and no levels: its pier is checked as it stands.
+        const port = PHASE1_MAP.ports.find((p) => p.islandId === island.id);
         const pier = characterPiers(island.look!.design!, island.radius / 2.2, level)[0]!;
         const head = (pier.z0 + pier.len) / (island.radius / 2.2);
-        const solid = piersOf(PHASE1_MAP, { [port.id]: level });
+        const solid = piersOf(PHASE1_MAP, port ? { [port.id]: level } : {});
         for (const offset of [-0.2, 0, 0.2])
           for (let approach = 0.25; approach <= 0.8; approach += 0.1) {
             const p = islandPoint(island, 0.08 + offset, head + approach);
@@ -144,9 +145,14 @@ describe('producer island geography', () => {
             ).toBeNull();
           }
         const trade = createTradeState(PHASE1_MAP, SLOOP);
-        trade.settlements.byPort[port.id]!.level = level as 1 | 2 | 3 | 4;
         const p = islandPoint(island, 0.08, head + 0.3);
-        expect(tryDock(trade, PHASE1_MAP, { ...p, speedKn: 0 }, port.id)).toBe(true);
+        if (port) {
+          trade.settlements.byPort[port.id]!.level = level as 1 | 2 | 3 | 4;
+          expect(tryDock(trade, PHASE1_MAP, { ...p, speedKn: 0 }, port.id)).toBe(true);
+        } else {
+          trade.home.owned = true;
+          expect(homeInRange(trade, PHASE1_MAP, p)).toBe(true);
+        }
         for (const working of characterPiers(
           island.look!.profile!,
           island.radius / 2.2,

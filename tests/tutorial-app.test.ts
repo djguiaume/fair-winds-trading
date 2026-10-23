@@ -18,6 +18,8 @@ vi.mock('../src/render/view', () => ({
     render() {}
     setQuality() {}
     setSettlementLevels() {}
+    setHomeBuildings() {}
+    setFocus() {}
     setZoom() {}
     getZoom() {
       return 1;

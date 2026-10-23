@@ -200,7 +200,7 @@ describe('save transfer (decisions 0066, 0118)', () => {
     if (read.ok) expect(Object.keys(read.raw.markets)).toHaveLength(30);
   });
 
-  it('stays under 1,000 characters on the 5x sea with four arcs under way (decision 0125)', () => {
+  it('stays under 1,000 characters on the 5x sea with four arcs under way and a home island (0125, 0126)', () => {
     const { map, save } = biggerSea(serializeWorld(playedWorld()), 5);
     // Four arcs and a prologue, as test files: two done, one on a timed run, one carrying cargo.
     const arcs = ['prologue', 'calda', 'westholm', 'stonehaven', 'watchman'].map((id, i) => ({
@@ -217,15 +217,27 @@ describe('save transfer (decisions 0066, 0118)', () => {
       },
       tracked: 'westholm',
     };
+    // And the home island with two buildings and a spot waiting (decision 0126).
+    save.home = {
+      owned: true,
+      offered: ['spot-3'],
+      built: { 'spot-1': 'workshop', 'spot-2': 'bakehouse', 'spot-5': 'warehouse' },
+    };
     const link = transferLink(
       GAME,
       `FW2${toBase64Url(zlibSync(packSave(save, map, arcs), { level: 9 }))}`,
     );
-    const plain = transferLink(GAME, encodeSaveCode({ ...save, quests: { byId: {} } }, map));
-    console.log(`5x sea with quests: link ${link.length} chars (+${link.length - plain.length})`);
+    const plain = transferLink(
+      GAME,
+      encodeSaveCode({ ...save, quests: { byId: {} }, home: undefined }, map),
+    );
+    console.log(
+      `5x sea with quests and home: link ${link.length} chars (+${link.length - plain.length})`,
+    );
     expect(link.length).toBeLessThanOrEqual(LINK_BUDGET);
     const read = unpackSave(packSave(save, map, arcs), map, save.version, arcs);
     expect(read.ok && read.raw.quests).toEqual(save.quests);
+    expect(read.ok && read.raw.home).toEqual(save.home);
   });
 
   it('reads a code from a link, or pasted with spaces and line breaks', () => {

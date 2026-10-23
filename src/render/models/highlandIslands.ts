@@ -121,6 +121,7 @@ export function islandParts(
   seed: number,
   onHarbour?: (point: { x: number; y: number }) => void,
   level?: TownLevel,
+  homeBuilt?: Record<string, string>,
 ): Parts {
   const rng = createRng(seed);
   const look = island.look ?? {};
@@ -148,6 +149,7 @@ export function islandParts(
         landmark: look.landmark,
         pier: { x: R * 0.08, z0: R * 0.85, len: Math.min(R * 0.75, 4.5) },
         harbour: !!look.dock,
+        homeBuilt,
       }),
     );
   } else {
@@ -442,6 +444,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
   private readonly glass = new THREE.MeshBasicMaterial({ vertexColors: true });
   private readonly batches = new Map<string, THREE.Group>();
   private levels: Record<string, TownLevel>;
+  private homeBuilt: Record<string, string> = {};
 
   constructor(
     private readonly map: MapDef,
@@ -516,6 +519,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
         else harbours[port.id] = point;
       },
       port ? this.levels[port.id] : undefined,
+      island.id === this.map.homeIsland ? this.homeBuilt : undefined,
     );
     const group = this.batch(parts);
     group.name = `island:${island.id}`;
@@ -544,6 +548,21 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
       this.batches.set(island.id, next);
       this.add(next);
     }
+  }
+
+  /** Redraw the home island with what stands on its spots now (decision 0126). */
+  setHomeBuildings(built: Record<string, string>) {
+    if (JSON.stringify(built) === JSON.stringify(this.homeBuilt)) return;
+    this.homeBuilt = { ...built };
+    const index = this.map.islands.findIndex((i) => i.id === this.map.homeIsland);
+    if (index < 0) return;
+    const island = this.map.islands[index]!;
+    const old = this.batches.get(island.id)!;
+    const next = this.buildIsland(island, index);
+    this.remove(old);
+    disposeGeometry(old);
+    this.batches.set(island.id, next);
+    this.add(next);
   }
 
   dispose() {

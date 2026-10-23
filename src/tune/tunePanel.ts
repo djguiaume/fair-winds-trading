@@ -65,6 +65,7 @@ const SECTION_NAMES: Record<string, string> = {
   'economy.market.equilibrium': 'Stock a market settles at',
   'economy.towns': 'Towns',
   'economy.orders': 'Delivery orders',
+  'economy.home': 'Home island',
   'difficulty.levels': 'Level',
   'difficulty.steadyWind': 'Steady trade wind (Wind: steady)',
   'weather.default': 'Map weather',

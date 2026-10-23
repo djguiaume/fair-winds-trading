@@ -110,6 +110,11 @@ export interface MapDef {
   /** Port id of the home port: upgrades and ship changes (decision 0048). Default: nearest the start. */
   homePort?: string;
   /**
+   * Island id of the captain's own island (decision 0126): fixed build spots in its file, a pier
+   * to dock at, no market. Not to be confused with `homePort`.
+   */
+  homeIsland?: string;
+  /**
    * The tutorial's prologue (decision 0127): where a voyage that takes it begins, and the terrain
    * feature whose wreck landmark is the boat to rescue. Without it the tutorial starts at the chart.
    */

@@ -124,9 +124,11 @@ describe("Rook's thanks: the island (decision 0127)", () => {
     tutorial.observe();
     expect(tutorial.step).toBe('island');
     expect(tutorial.reached('island')).toBe(true);
+    expect(world.trade.home.owned).toBe(false);
     quests.check();
     quests.check();
     expect(quests.isDone('rooks-thanks')).toBe(true);
+    expect(world.trade.home.owned).toBe(true);
   });
 
   it('waits for the next Saltmere dock when the tutorial is skipped', () => {
@@ -147,5 +149,6 @@ describe("Rook's thanks: the island (decision 0127)", () => {
     world.trade.dockedAt = 'saltmere';
     quests.check();
     expect(quests.isDone('rooks-thanks')).toBe(true);
+    expect(world.trade.home.owned).toBe(true);
   });
 });

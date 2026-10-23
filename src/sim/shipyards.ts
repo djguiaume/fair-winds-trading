@@ -1,5 +1,6 @@
 import { TUNING } from '../data/tuning';
 import type { MapDef, PortDef } from './map';
+import { homeEffect } from './home';
 import { distance } from './math';
 import { SHIP_CLASSES, type ShipClass } from './ship';
 import type { TradeState } from './trade';
@@ -72,7 +73,9 @@ export function discoverNear(
   for (const port of map.ports) {
     if (isDiscovered(trade, port.id)) continue;
     const island = map.islands.find((i) => i.id === port.islandId);
-    if (island && distance(pos, island) - island.radius <= TUNING.economy.discoverRange) {
+    // The lookout sees farther (decision 0126).
+    const range = TUNING.economy.discoverRange * homeEffect(trade.home, 'discoverRange');
+    if (island && distance(pos, island) - island.radius <= range) {
       trade.progress.discovered.push(port.id);
       found.push(port);
     }
