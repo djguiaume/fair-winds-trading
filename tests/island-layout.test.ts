@@ -150,8 +150,8 @@ describe('producer island geography', () => {
           trade.settlements.byPort[port.id]!.level = level as 1 | 2 | 3 | 4;
           expect(tryDock(trade, PHASE1_MAP, { ...p, speedKn: 0 }, port.id)).toBe(true);
         } else {
-          trade.home.owned = true;
-          expect(homeInRange(trade, PHASE1_MAP, p)).toBe(true);
+          trade.home.islands[island.id] = { owned: true, offered: [], built: {} };
+          expect(homeInRange(trade, PHASE1_MAP, p)).toBe(island.id);
         }
         for (const working of characterPiers(
           island.look!.profile!,

@@ -219,9 +219,13 @@ describe('save transfer (decisions 0066, 0118)', () => {
     };
     // And the home island with two buildings and a spot waiting (decision 0126).
     save.home = {
-      owned: true,
-      offered: ['spot-3'],
-      built: { 'spot-1': 'workshop', 'spot-2': 'bakehouse', 'spot-5': 'warehouse' },
+      islands: {
+        skerry: {
+          owned: true,
+          offered: ['spot-3'],
+          built: { 'spot-1': 'workshop', 'spot-2': 'bakehouse', 'spot-5': 'warehouse' },
+        },
+      },
     };
     const link = transferLink(
       GAME,

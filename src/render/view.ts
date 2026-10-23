@@ -292,8 +292,8 @@ export class GameView {
     this.focus = point ? { ...point } : null;
   }
 
-  setHomeBuildings(built: Record<string, string>) {
-    this.islands.setHomeBuildings(built);
+  setHomeBuildings(byIsland: Record<string, Record<string, string>>) {
+    this.islands.setHomeBuildings(byIsland);
   }
 
   setSettlementLevels(levels: Record<string, TownLevel>) {

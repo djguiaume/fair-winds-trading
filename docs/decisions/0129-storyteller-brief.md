@@ -1,4 +1,4 @@
-# 0128. Storyteller brief: one voice and shared rules for the four arcs
+# 0129. Storyteller brief: one voice and shared rules for the four arcs
 
 **Status:** Accepted (2026-10-23). Guillaume made a head storyteller thread that decides the story for the four arc threads, and answered its questions before they started.
 

@@ -50,6 +50,19 @@ In **Lanes** mode pick **Lane** (shows near the homes standing at each level), *
 
 In **Ground** mode with nothing selected, the panel sets the tree, how many tries, the spacing and the tree size. **Grow woods** paints where trees grow; once you have painted some, trees grow only there. **Clear trees** paints where none grow. The brush size is in the panel; each tool rubs out the other. **Remove painted woods** goes back to trees anywhere. Homes, lanes, props and fields still clear trees as the town grows.
 
+## Build spots
+
+**Spots** mode ([0128](../../decisions/0128-build-spots-on-any-island.md)) edits where the captain builds on a home island (Skerry today, more islands in extensions). Any island whose file has spots can be the captain's.
+
+- Drag a spot to move it, **+ Add a spot** adds one, **Delete spot** (or Delete) removes it.
+- **Kind**: an arc spot of a pair (a finished arc offers that pair's two buildings there, free) or a spare spot (a building passed over comes back there, for gold). Pairs and buildings are in `src/data/buildings.json`.
+- **Show**: *Everything* draws every building at once (as the file has them, to edit them); *First look* draws the island as the captain first finds it; *As chosen* draws the buildings you pick per spot. The checks run on the island as shown.
+- Buildings and run-down props are ordinary props (Props mode) with tags: `home:<building>` at the building's arc spot (moved as is to a spare spot), `home-empty:<spot>` for what goes when that spot is built.
+
+| Everything | First look | As chosen |
+|---|---|---|
+| ![](spots-everything.jpg) | ![](spots-first-look.jpg) | ![](spots-chosen.jpg) |
+
 ## Levels
 
 **1 Hamlet · 2 Village · 3 Town · 4 Port town** (or keys 1 to 4) show the island at that level. With **Show later levels**, what later levels add is dashed; click a dashed outline to select it.
