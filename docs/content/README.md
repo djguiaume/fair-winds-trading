@@ -180,8 +180,9 @@ options: `id`, `reward`, `next`); optional `reward`, `next` (a later step or `do
 next one), `clean` (touching a reef or shore starts the step over), `port`, `chart`
 (`{ "port", "radius" }`: the rough circle on the chart), `compass` (`{ "x", "y" }`: a
 direction mark on the compass, for a foghorn or a wreck), `mood` (the giver's face on this
-step's card: `neutral`, `pleased` or `worried`) and `look` (a named look from
-`characters.json`, e.g. Rook `soaked`).
+step's card: `neutral`, `pleased` or `worried`), `look` (a named look from
+`characters.json`, e.g. Rook `soaked`) and `speaker` (someone else speaks this step's card, a
+`characters.json` id; `mood` and `look` are then theirs: [0133](../decisions/0133-stonehaven-light-arc.md)).
 
 **The person and their card ([0124](../decisions/0124-characters-look.md)).** `giver` is an id in
 [`src/data/characters.json`](../../src/data/characters.json) (name, role, home port and a few
@@ -213,6 +214,31 @@ journal line), `<text>.<step>.<option>.title` and `.copy` (a choice's buttons) a
 (lists of ports). `tests/quests.test.ts` checks every shipped quest file; `checkQuests` says
 what is wrong in plain words. Never rename a shipped quest, step or option: old saves would
 start it again.
+
+**A step's places at sea ([0130](../decisions/0130-after-a-quest-and-the-saltmere-shoals.md)).**
+The tracked step's `reach` points, a timed run's `via` points and quest cargo's spot are drawn
+at sea (a ring as wide as `within`, the next one pulsing) and on the chart, with no extra field.
+`"marker": "gulls"` on a step adds a flock diving over each spot.
+
+### What changes after a quest ([0130](../decisions/0130-after-a-quest-and-the-saltmere-shoals.md))
+
+- **Island props:** add `"tags": ["after:<quest>"]` to a prop that stands once the quest is
+  done, `"tags": ["before:<quest>"]` to one that goes then. To swap a prop, put the pair on the
+  same spot (the island checks know they never stand together). A lighthouse or beacon prop
+  tagged this way is lit only when it stands. A moored boat is solid, so it cannot wait on a
+  quest: use a sea mark.
+- **A port's trade:** in the map's port entry, `"afterQuest": { "<quest>": { "levelProduces":
+  { "2": ["smokedFish"] } } }`. Each field given (`produces`, `wants`, `levelProduces`,
+  `levelWants`, `wantsMade`) takes the place of the port's own once the quest is done.
+- **Sea marks:** the map's `"marks": [{ "type", "x", "y", "turn", "tags", "chart" }]`, for
+  things at sea: `buoy-red`, `buoy-green`, `fishing-boat`, or `light` (a star on the chart
+  only). `turn` is a heading in degrees; `"chart": true` draws it on the chart too. Not solid;
+  the map checks keep them off land and reefs.
+- `checkQuestHooks` (run by `tests/quest-hooks.test.ts`) refuses a tag or `afterQuest` naming a
+  quest that does not exist.
+
+A reef's or bank's landmark can be set by hand with `"look": { "landmark": "wreck",
+"landmarkAt": { "x", "y" } }`, so reshaping the outline does not move it (the prologue wreck).
 
 ## Music and sounds ([0113](../decisions/0113-levels-tutorial-and-music-as-data.md))
 
