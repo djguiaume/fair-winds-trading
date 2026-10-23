@@ -1,4 +1,5 @@
 import { TUNING } from '../data/tuning';
+import type { QuestState } from './quests';
 import { islandCoasts } from './islandLayout';
 import { piersOf, PIER_HALF_WIDTH } from './collision';
 import { hullFootprint, hullRadius, hullSegmentGap, hullCoastGap } from './harbourDistance';
@@ -93,6 +94,8 @@ export interface TradeState {
   difficulty: Difficulty;
   /** Easiest level played on this voyage, for racing missions and best times later. */
   easiestDifficulty: Difficulty;
+  /** Progress of the quests (decision 0125). */
+  quests: QuestState;
 }
 
 export type TradeError =
@@ -143,6 +146,7 @@ export function createTradeState(map: MapDef, startShip: ShipClass): TradeState 
     settlements,
     difficulty: DEFAULT_DIFFICULTY,
     easiestDifficulty: DEFAULT_DIFFICULTY,
+    quests: { byId: {} },
   };
 }
 
@@ -196,8 +200,9 @@ export function capacity(trade: TradeState): number {
   return holdCapacity(SHIP_CLASSES[captain.activeShip]!, captain.ships[captain.activeShip]!);
 }
 
+/** Goods aboard, plus the quest cargo (decision 0125), which takes room but cannot be sold. */
 export function cargoUsed(trade: TradeState): number {
-  return totalAmount(trade.captain.cargo);
+  return totalAmount(trade.captain.cargo) + (trade.quests.hold ?? 0);
 }
 
 export function freeSpace(trade: TradeState): number {
