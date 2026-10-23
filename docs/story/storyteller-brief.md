@@ -28,11 +28,11 @@
 5. **No deadlines or threats that the game doesn't keep.** Nothing can fail, so nobody says "the fair is in a week" or "before dark". A timed run is about freshness or pride ("while the fish are still jumping"), and its par is in the title, not in the copy.
 6. **Numbers:** digits in titles, words in the copy ("eight timber").
 7. **Use the game's own words** for places, goods and ships: Port Calda, Stonehaven, timber, stone, cutter, hauler. Numbers in the copy (crates, knots) must match the quest file.
-7. **Sailing talk is welcome, because the audience likes sailing.** "Come in slow, under two knots", "you'll need a tack or two". Don't explain the interface in dialogue: the coach marks and the title do that.
-8. **Hazards stay optional.** No line needs night or a storm to be switched on. Say "when the light's lit", not "tonight".
-9. **One mention across.** Each arc mentions at least one other person by name, once, so the islands feel like neighbours. Already in the story: Ada's millstones (Westholm), Rook at the launch (Calda), Old Ness and his lens (Stonehaven). Kit mentions Rook, who went looking for the shoals on the East Reef and ended up on it (that's the prologue's wreck).
-10. **Moods:** `worried` on the hook (the first step), `neutral` on the middle steps, and `pleased` on the done card.
-11. **The done card does two things in two lines:** thanks, and an invitation to "pick" the building on your island. Don't name the two buildings there, because the island's spot card shows them.
+8. **Sailing talk is welcome, because the audience likes sailing.** "Come in slow, under two knots", "you'll need a tack or two". Don't explain the interface in dialogue: the coach marks and the title do that.
+9. **Hazards stay optional.** No line needs night or a storm to be switched on. Say "when the light's lit", not "tonight".
+10. **One mention across.** Each arc mentions at least one other person by name, once, so the islands feel like neighbours. Already in the story: Ada's millstones (Westholm), Rook at the launch (Calda), Old Ness and his lens (Stonehaven). Kit mentions Rook, who went looking for the shoals on the East Reef and ended up on it (that's the prologue's wreck).
+11. **Moods:** `worried` on the hook (the first step), `neutral` on the middle steps, and `pleased` on the done card.
+12. **The done card does two things in two lines:** thanks, and an invitation to "pick" the building on your island. Don't name the two buildings there, because the island's spot card shows them.
 
 ### Each person's way of speaking
 
