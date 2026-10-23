@@ -121,11 +121,32 @@ export function portWants(
   return out;
 }
 
+/** The quests a voyage has finished (decision 0130); none for a bare settlement store. */
+export function questsDone(state: HasSettlements): Set<string> {
+  const done = new Set<string>();
+  for (const [id, p] of Object.entries(state.quests?.byId ?? {}))
+    if (p.step === 'done') done.add(id);
+  return done;
+}
+
+/**
+ * The port as it trades now (decision 0130): each quest done that changes its trade
+ * (`afterQuest`) puts its fields in place of the port's own, in the order the map lists them.
+ */
+export function portNow(port: PortDef, state: HasSettlements): PortDef {
+  if (!port.afterQuest) return port;
+  const done = questsDone(state);
+  let out = port;
+  for (const [quest, change] of Object.entries(port.afterQuest))
+    if (done.has(quest)) out = { ...out, ...change };
+  return out;
+}
+
 /** Specialized and rare goods some port makes at its current level: the ones with a market (0063). */
 export function madeGoods(map: MapDef, state: HasSettlements): Set<GoodId> {
   const made = new Set<GoodId>();
   for (const port of map.ports)
-    for (const g of portProduces(port, settlementLevel(state, port.id)))
+    for (const g of portProduces(portNow(port, state), settlementLevel(state, port.id)))
       if (isMadeGood(g)) made.add(g);
   return made;
 }
@@ -133,7 +154,7 @@ export function madeGoods(map: MapDef, state: HasSettlements): Set<GoodId> {
 /** What the port makes right now (levels included). */
 export function producesAt(map: MapDef, state: HasSettlements, portId: string): GoodId[] {
   const port = map.ports.find((p) => p.id === portId);
-  return port ? portProduces(port, settlementLevel(state, portId)) : [];
+  return port ? portProduces(portNow(port, state), settlementLevel(state, portId)) : [];
 }
 
 /** Points still needed for the next level, or null at the top. */
@@ -153,6 +174,8 @@ export function createSettlements(map: MapDef): SettlementState {
 /** Anything holding settlements: the trade state, or the bare settlement store. */
 type HasSettlements = {
   settlements: SettlementState;
+  /** The voyage's quests, for the trade a quest changes (decision 0130). */
+  quests?: { byId: Record<string, { step: string }> };
   difficulty?: Difficulty;
   economyPending?: number;
 };
@@ -172,7 +195,9 @@ export function settlementLevels(state: HasSettlements): Record<string, Settleme
 /** What the port wants right now (levels and specialties on the market included). */
 export function wantsAt(map: MapDef, state: HasSettlements, portId: string): GoodId[] {
   const port = map.ports.find((p) => p.id === portId);
-  return port ? portWants(port, settlementLevel(state, portId), madeGoods(map, state)) : [];
+  return port
+    ? portWants(portNow(port, state), settlementLevel(state, portId), madeGoods(map, state))
+    : [];
 }
 
 /** Growth toward the next level, for a progress bar: 0 … 1 (1 at the top level). */

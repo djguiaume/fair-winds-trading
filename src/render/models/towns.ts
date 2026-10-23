@@ -23,6 +23,7 @@ import {
   type IslandDesign,
   type LaneDef,
   type PropDef,
+  questDesign,
 } from '../../data/islands';
 import {
   C,
@@ -130,6 +131,8 @@ export interface TownIslandSpec {
   harbour?: boolean;
   /** The home island's buildings, spot id → building id (decision 0126); none: as first found. */
   homeBuilt?: Record<string, string>;
+  /** The quests done, for props tagged `after:` or `before:` one (decision 0130); none: no quest. */
+  questsDone?: ReadonlySet<string>;
 }
 
 /**
@@ -139,7 +142,10 @@ export interface TownIslandSpec {
 export function townIslandParts(spec: TownIslandSpec): Parts {
   if (spec.design ?? spec.profile)
     return designedTownParts(
-      homeDesign(islandDesign(spec.design ?? spec.profile!), spec.homeBuilt),
+      questDesign(
+        homeDesign(islandDesign(spec.design ?? spec.profile!), spec.homeBuilt),
+        spec.questsDone ?? new Set(),
+      ),
       spec.R,
       spec.level,
       spec.harbour,

@@ -87,7 +87,10 @@ export interface PropDef {
   /** First level it stands at, 1 to 4, and the last one (left out: to the end). */
   from: number;
   to?: number;
-  /** Game hooks: workshop, windmill, log-yard:shore, log-yard:upland, outbuilding. */
+  /**
+   * Game hooks: workshop, windmill, log-yard:shore, log-yard:upland, outbuilding; `after:<quest>`
+   * (stands once that quest is done) and `before:<quest>` (gone once it is done, decision 0130).
+   */
   tags?: string[];
 }
 
@@ -183,6 +186,43 @@ export function landmarkOf(island: IslandDef): LandmarkKind | undefined {
 /** Is this element present at a level? */
 export const atLevel = (e: { from?: number; to?: number }, level: number) =>
   (e.from ?? 1) <= level && level <= (e.to ?? 4);
+
+/**
+ * Shown with these quests done (decision 0130)? A tag `after:<quest>` needs that quest done,
+ * `before:<quest>` needs it not done; other tags do not matter. Island props, sea marks and the
+ * lights on them all follow this one rule.
+ */
+export function questShown(e: { tags?: readonly string[] }, done: ReadonlySet<string>): boolean {
+  for (const tag of e.tags ?? []) {
+    if (tag.startsWith('after:') && !done.has(tag.slice('after:'.length))) return false;
+    if (tag.startsWith('before:') && done.has(tag.slice('before:'.length))) return false;
+  }
+  return true;
+}
+
+/** The quests an element's `after:` and `before:` tags name. */
+export function questTagIds(e: { tags?: readonly string[] }): string[] {
+  return (e.tags ?? []).flatMap((tag) => {
+    const m = /^(after|before):(.+)$/.exec(tag);
+    return m ? [m[2]!] : [];
+  });
+}
+
+/** Two elements that never stand together: one is `before:` a quest the other is `after:`. */
+export function questApart(a: { tags?: readonly string[] }, b: { tags?: readonly string[] }) {
+  const has = (e: { tags?: readonly string[] }, tag: string) => e.tags?.includes(tag) ?? false;
+  return questTagIds(a).some(
+    (q) =>
+      (has(a, `before:${q}`) && has(b, `after:${q}`)) ||
+      (has(a, `after:${q}`) && has(b, `before:${q}`)),
+  );
+}
+
+/** The island file as it stands with these quests done: its props filtered by `questShown`. */
+export function questDesign(design: IslandDesign, done: ReadonlySet<string>): IslandDesign {
+  if (!design.props.some((p) => questTagIds(p).length)) return design;
+  return { ...design, props: design.props.filter((p) => questShown(p, done)) };
+}
 
 /**
  * The island builder's play-test (decision 0105): an edited island file takes the shipped one's
