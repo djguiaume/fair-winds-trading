@@ -9,7 +9,7 @@ import { bearingTo } from '../../sim/math';
 import { type Rng, createRng, range } from '../../sim/rng';
 
 /**
- * Island files for islands that had none (decision 0107). The map's generated islands (stacked
+ * Island files for islands that had none (decision 0110). The map's generated islands (stacked
  * sandstone layers from a few `look` settings, the shipyard towns of the hidden yards, and the
  * long terraced ridges of the `terrain` list) are replayed here from the same seeds into the port
  * file format: their coast, layers, trees, houses and landmark become ground and props the

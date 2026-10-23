@@ -106,7 +106,7 @@
         const game = await import('/src/ui/portraits.ts');
         const cell = (c, opts, label) => `<div class="col" style="align-items:center;gap:2px">${game.portraitSvg(c, { size: 104, ...opts })}<div class="h" style="font-size:12px">${label}</div></div>`;
         root.innerHTML = `<div style="padding:24px 30px">
-          <div class="h" style="font-size:16px">Characters' look · style B, low-poly (0123)</div>
+          <div class="h" style="font-size:16px">Characters' look · style B, low-poly (0124)</div>
           <div class="t" style="font-size:30px;margin-bottom:14px">The draft cast, drawn by the game code</div>
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
           ${game.CHARACTERS.map((c) => `<div class="row" style="gap:12px;padding:12px 14px;border:1.5px solid var(--line);border-radius:14px;background:rgba(18,50,70,.6)">

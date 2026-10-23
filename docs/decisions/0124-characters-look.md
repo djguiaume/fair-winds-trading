@@ -1,4 +1,4 @@
-# 0123. Characters' look: code-drawn portraits, dialogue card and journal on the chart
+# 0124. Characters' look: code-drawn portraits, dialogue card and journal on the chart
 
 **Status:** Accepted, 2026-10-23: Guillaume picked **B, low-poly**. Portrait builder and `characters.json` implemented for review; the dialogue card and journal screens follow with the quest engine.
 

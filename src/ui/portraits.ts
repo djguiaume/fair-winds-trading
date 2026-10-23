@@ -1,7 +1,7 @@
 import characterData from '../data/characters.json';
 
 /**
- * Portraits of the people of the community arcs (decisions 0120, 0123): low-poly faces drawn in
+ * Portraits of the people of the community arcs (decisions 0120, 0124): low-poly faces drawn in
  * code as SVG from a few values per person in `src/data/characters.json`, framed by a brass
  * hexagon. Every part is a polygon broken into flat-shaded facets, like the 3D islands and ships.
  * No image files: a new person, or a new look for one (Rook soaked after the wreck), is data.

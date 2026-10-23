@@ -668,7 +668,7 @@ export const PROP_TYPES: Record<string, PropType> = {
   ruins: { group: 'landmarks', building: true, sizedInModel: true, build: landmark('ruins') },
   beacon: { group: 'landmarks', sizedInModel: true, build: landmark('beacon') },
   wreck: { group: 'landmarks', sizedInModel: true, build: landmark('wreck') },
-  /** A sandstone rock, half sunk (the ridges' rocks, decision 0107). */
+  /** A sandstone rock, half sunk (the ridges' rocks, decision 0110). */
   boulder: {
     group: 'nature',
     build: ({ variant }) => [

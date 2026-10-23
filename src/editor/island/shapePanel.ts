@@ -3,6 +3,7 @@ import { WOODLAND_TREES } from '../../render/models/props';
 import { isSloped } from '../../sim/islandLayout';
 import { LEVEL_NAMES, LEVELS, type Level, propName } from './doc';
 import {
+  RAMP_WIDTH,
   SLOPE_WIDTH,
   type Shape,
   clearWoodsPainting,
@@ -179,6 +180,29 @@ export function renderShapePanel(root: HTMLElement, host: ShapePanelHost) {
           ? 'Always shown, along the ground.'
           : 'Its pieces show near homes standing at the level, along the ground, up slopes.',
       );
+    button(buttons(), '🗑 Delete', () => host.remove(), 'danger');
+    return;
+  }
+  if (shape.kind === 'ramp') {
+    const r = design.ramps![shape.index]!;
+    number('Start height', r.start, (v) => (r.start = v ?? r.start), { step: 0.01, min: 0 });
+    number('End height', r.end, (v) => (r.end = v ?? r.end), { step: 0.01, min: 0 });
+    number('Width', r.width, (v) => (r.width = v ?? RAMP_WIDTH), { step: 0.01, min: 0.03 });
+    segment(
+      'Ground',
+      [
+        { value: 'grass' as const, text: 'Grass' },
+        { value: 'rock' as const, text: 'Rock' },
+      ],
+      r.material,
+      (m) => (r.material = m),
+    );
+    levels(r);
+    note(
+      'Climbs evenly from its first point (start height) to its last (end height), over any ' +
+        'cliff it crosses. Drag a square to move a point, a ring to add a bend. Lanes and paths ' +
+        'climb it; buildings need flat ground.',
+    );
     button(buttons(), '🗑 Delete', () => host.remove(), 'danger');
     return;
   }

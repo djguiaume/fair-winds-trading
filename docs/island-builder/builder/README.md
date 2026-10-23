@@ -27,6 +27,17 @@ In **Ground** mode the outlines of the coast, raised ground, mountains and the l
 - **Panel:** height, grass or rock, *Appears from* / *Gone after*, a peak's base, and **Edges: Cliff / Slope**.
 - **Slopes:** with raised ground selected, **click an edge** to switch it between cliff and slope (green on the island). *Slope width* is how far the ramp runs out, down to the ground below. Trees, lamp posts, crates and other small props may stand on a slope; **buildings need flat ground** (a red check). The 3D preview shows the ramp.
 
+### Ramps
+
+![A ramp (green band) curling round the plateau's corner, and in 3D](ramp.png)
+
+A slope only runs straight out from an edge. To climb **along** a path, for example round a plateau, use **↗️ Ramp** ([0123](../../decisions/0123-island-builder-ramps.md)):
+
+1. In **Ground** mode press **Ramp**.
+2. Click the **foot** (on the lower ground), then any **bends**, then the **top** (on the higher ground). Click the top again or press **Enter**.
+3. It starts at the ground's height at the foot and ends at the ground's height at the top. Change *Start height*, *End height* and *Width* in the panel. Example: start 0.05, end 0.27.
+4. Drag a square to move a point, the ring in a run to add a bend. Lanes and paths climb it, trees may stand on it, buildings need flat ground.
+
 ## Lanes, paths and stairs
 
 ![A path climbing the slope and stairs up a cliff](lanes.png)

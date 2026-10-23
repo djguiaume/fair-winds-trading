@@ -11,7 +11,7 @@ import {
 } from '../src/ui/portraits';
 import { PHASE1_MAP } from '../src/data/maps';
 
-// Decision 0123: the people of the arcs are data in characters.json, drawn in code.
+// Decision 0124: the people of the arcs are data in characters.json, drawn in code.
 describe('characters.json', () => {
   const colour = /^#[0-9a-f]{6}$/;
 
