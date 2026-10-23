@@ -115,3 +115,4 @@ Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decis
 | [0090](0090-pier-refresh-level-snapshot.md) | Reuse pier geometry without allocating or serializing levels on unchanged simulation steps | 2026-10-22 | Implemented for review |
 | [0091](0091-translation-quality-pass.md) | Translation quality pass: French in-sentence forms for goods and ships, sailor's vocabulary, no-break spaces, English sentence case | 2026-10-23 | Implemented for review |
 | [0092](0092-phase-2-release.md) | Phase 2 released as v0.2.73 on the merge of PR #67; package.json 0.3.0 and the menu open Phase 3 | 2026-10-23 | Accepted |
+| [0093](0093-data-driven-content-and-authoring-tools.md) | Data-driven tuning and content (one file per ship: model, sailing, unlock) with a `?tune` panel, a map editor page and an in-panel balance check | 2026-10-23 | Accepted |
