@@ -1,4 +1,4 @@
-# 0110. Build woodland geometry only for accepted trees
+# 0112. Build woodland geometry only for accepted trees
 
 **Status:** Implemented for review (2026-10-23). Extends [0103](0103-local-island-rendering.md) and [0106](0106-island-builder-ground-lanes-woods.md).
 
@@ -22,4 +22,5 @@ Town growth still pauses while the changed island is rebuilt. Inspection found t
 ## Consequences
 
 The game avoids doing expensive work that would immediately be discarded. This does not eliminate all growth costs: accepted trees, terrain, buildings, batching and GPU uploads still need work. Device frame-time measurements remain necessary; a CPU builder microbenchmark is not a GPU or tablet result.
+
 

@@ -122,6 +122,8 @@ export interface TownIslandSpec {
   landmark?: LandmarkKind;
   /** Pier line shared with the simulation: x offset, root z and length. */
   pier: { x: number; z0: number; len: number };
+  /** False for an island file with no harbour (decision 0107). */
+  harbour?: boolean;
 }
 
 /**
@@ -130,7 +132,12 @@ export interface TownIslandSpec {
  */
 export function townIslandParts(spec: TownIslandSpec): Parts {
   if (spec.design ?? spec.profile)
-    return designedTownParts(islandDesign(spec.design ?? spec.profile!), spec.R, spec.level);
+    return designedTownParts(
+      islandDesign(spec.design ?? spec.profile!),
+      spec.R,
+      spec.level,
+      spec.harbour,
+    );
   const { level, R, sx, sz, pier } = spec;
   const kind: Kind =
     (['fish', 'timber', 'grain', 'stone'] as const).find((k) => k === spec.kind) ?? 'yard';
@@ -526,7 +533,13 @@ export const isResidence = (prop: PropDef) =>
  * A designed port island at its level, built from its island file (decision 0101): terrain,
  * stairs and paths, the lake, lanes near standing homes, homes, the docks, props and woods.
  */
-export function designedTownParts(design: IslandDesign, R: number, level: TownLevel): Parts {
+export function designedTownParts(
+  design: IslandDesign,
+  R: number,
+  level: TownLevel,
+  /** False for an island with no harbour (decision 0107): no arrival pier, flag or side piers. */
+  harbour = true,
+): Parts {
   const layout = islandLayout(design, level);
   const stone = design.style === 'stone';
   const out: Parts = [];
@@ -703,31 +716,7 @@ export function designedTownParts(design: IslandDesign, R: number, level: TownLe
   for (const parts of homes) out.push(...parts);
 
   // The same blue-and-white harbour flag identifies the player berth at every port.
-  const piers = characterPiers(design, R, level);
-  const arrival = piers[0]!;
-  dock(out, level, arrival, stone && level >= 3);
-  if (level < 3) put(out, lampPost(), arrival.x + 0.25, 0.55, arrival.z0 + arrival.len - 0.4);
-  const flag = [
-    cyl(0.055, 0.07, 3.0, 0, 1.5, 0, C.post, 5),
-    box(1.1, 0.8, 0.05, 0.55, 2.5, 0, '#f8f3ea'),
-    box(0.45, 0.8, 0.055, 0.85, 2.5, 0, '#3f74a8'),
-  ];
-  flag[0]!.userData.playerBerth = true;
-  put(out, flag, arrival.x - 0.33, 0.55, arrival.z0 + arrival.len - 0.35);
-  // A pale landing strip makes the longest pier stand out without filling the water lane.
-  out.push(
-    box(
-      0.35,
-      0.025,
-      Math.min(2.4, arrival.len),
-      arrival.x,
-      0.565,
-      arrival.z0 + arrival.len - 1.2,
-      '#f2d9a0',
-    ),
-  );
-  // Additional finger piers use the shared harbour plan (including their collision segments).
-  for (const p of piers.slice(1)) secondPier(out, p.x, p.z0, p.len, stone);
+  if (harbour) harbourParts(out, design, R, level, stone);
 
   // Every other prop, in file order; fields claim woodland as the settlement grows.
   const occupied: { x: number; z: number; clear: number }[] = [];
@@ -769,7 +758,7 @@ export function designedTownParts(design: IslandDesign, R: number, level: TownLe
       occupied.some((p) => Math.hypot(p.x - x, p.z - z) < p.clear) ||
       fields.some((p) => Math.abs(p.x - x) < 0.22 && Math.abs(p.z - z) < 0.22) ||
       (woods.areas?.length && !woods.areas.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r)) ||
-      (Math.abs(x - 0.08) < 0.14 && z > 0.45) ||
+      (harbour && Math.abs(x - 0.08) < 0.14 && z > 0.45) ||
       woods.clear?.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r)
     )
       continue;
@@ -778,6 +767,41 @@ export function designedTownParts(design: IslandDesign, R: number, level: TownLe
     put(out, tree, x * R, h * R, z * R, yaw, woods.size);
   }
   return out.map(withoutUndersides);
+}
+
+/** The arrival pier with the player's flag, and the island file's side piers. */
+function harbourParts(
+  out: Parts,
+  design: IslandDesign,
+  R: number,
+  level: TownLevel,
+  stone: boolean,
+) {
+  const piers = characterPiers(design, R, level);
+  const arrival = piers[0]!;
+  dock(out, level, arrival, stone && level >= 3);
+  if (level < 3) put(out, lampPost(), arrival.x + 0.25, 0.55, arrival.z0 + arrival.len - 0.4);
+  const flag = [
+    cyl(0.055, 0.07, 3.0, 0, 1.5, 0, C.post, 5),
+    box(1.1, 0.8, 0.05, 0.55, 2.5, 0, '#f8f3ea'),
+    box(0.45, 0.8, 0.055, 0.85, 2.5, 0, '#3f74a8'),
+  ];
+  flag[0]!.userData.playerBerth = true;
+  put(out, flag, arrival.x - 0.33, 0.55, arrival.z0 + arrival.len - 0.35);
+  // A pale landing strip makes the longest pier stand out without filling the water lane.
+  out.push(
+    box(
+      0.35,
+      0.025,
+      Math.min(2.4, arrival.len),
+      arrival.x,
+      0.565,
+      arrival.z0 + arrival.len - 1.2,
+      '#f2d9a0',
+    ),
+  );
+  // Additional finger piers use the shared harbour plan (including their collision segments).
+  for (const p of piers.slice(1)) secondPier(out, p.x, p.z0, p.len, stone);
 }
 
 /**
@@ -912,7 +936,7 @@ function planHull(parts: Parts): [number, number][] {
 }
 
 /** What src/sim/islandChecks.ts needs from the models, for an island of radius R. */
-export function islandCheckKit(design: IslandDesign, R: number): IslandCheckKit {
+export function islandCheckKit(design: IslandDesign, R: number, harbour = true): IslandCheckKit {
   const built = (prop: PropDef) => {
     const parts = propParts(prop, design, R);
     const scale = PROP_TYPES[prop.type]!.sizedInModel ? 1 : (prop.size ?? 1);
@@ -920,6 +944,7 @@ export function islandCheckKit(design: IslandDesign, R: number): IslandCheckKit 
   };
   return {
     R,
+    harbour,
     types: PROP_TYPES,
     woodlandTrees: Object.keys(WOODLAND_TREES),
     fit: (prop) => {
@@ -937,7 +962,7 @@ export function islandCheckKit(design: IslandDesign, R: number): IslandCheckKit 
       return hull;
     },
     triangles: (level) => {
-      const parts = designedTownParts(design, R, level as TownLevel);
+      const parts = designedTownParts(design, R, level as TownLevel, harbour);
       const count = parts.reduce((n, g) => n + g.getAttribute('position').count / 3, 0);
       parts.forEach((g) => g.dispose());
       return count;

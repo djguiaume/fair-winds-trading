@@ -668,6 +668,16 @@ export const PROP_TYPES: Record<string, PropType> = {
   ruins: { group: 'landmarks', building: true, sizedInModel: true, build: landmark('ruins') },
   beacon: { group: 'landmarks', sizedInModel: true, build: landmark('beacon') },
   wreck: { group: 'landmarks', sizedInModel: true, build: landmark('wreck') },
+  /** A sandstone rock, half sunk (the ridges' rocks, decision 0107). */
+  boulder: {
+    group: 'nature',
+    build: ({ variant }) => [
+      paint(
+        new THREE.DodecahedronGeometry(1, 0).scale(1, 0.7, 1).translate(0, 0.35, 0),
+        variant % 2 ? '#c2ad8c' : '#d6c4a4',
+      ),
+    ],
+  },
 };
 
 /** Woodland model preparers draw seeded size and colour without building rejected candidates. */

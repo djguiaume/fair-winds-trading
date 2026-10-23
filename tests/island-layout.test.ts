@@ -121,10 +121,10 @@ describe('producer island geography', () => {
         );
   });
   it('keeps a broad sea approach to the flagged player berth clear at every level', () => {
-    for (const island of PHASE1_MAP.islands.filter((i) => i.look?.profile))
+    for (const island of PHASE1_MAP.islands.filter((i) => i.look?.profile && i.look.dock))
       for (const level of [1, 2, 3, 4]) {
         const port = PHASE1_MAP.ports.find((p) => p.islandId === island.id)!;
-        const pier = characterPiers(island.look!.profile!, island.radius / 2.2, level)[0]!;
+        const pier = characterPiers(island.look!.design!, island.radius / 2.2, level)[0]!;
         const head = (pier.z0 + pier.len) / (island.radius / 2.2);
         const solid = piersOf(PHASE1_MAP, { [port.id]: level });
         for (const offset of [-0.2, 0, 0.2])
@@ -261,8 +261,9 @@ describe('producer island geography', () => {
           true,
         );
       }
-      // The main harbour's approach must remain at sea.
-      const head = islandPoint(island, 0.08, 1.4);
+      // The main harbour's approach must remain at sea (ten units off a small yard's beach).
+      if (!island.look?.dock) continue;
+      const head = islandPoint(island, 0.08, Math.max(1.4, 1 + 10 / island.radius));
       const boat = createBoat(head.x, head.y, 0);
       expect(resolveCollisions(boat, 2, [island], 1000)).toBeNull();
     }

@@ -2,7 +2,7 @@
 
 *Step 3 of [0096](../../decisions/0096-island-files-and-island-builder.md). Part 1, [0105](../../decisions/0105-island-builder-props.md): props, levels, 3D preview, checks, play and export. Part 2, [0106](../../decisions/0106-island-builder-ground-lanes-woods.md): ground with cliffs or slopes, lanes and woods.*
 
-Open the map editor (`editor.html`, or `npm run dev` then `/editor.html`) and **double-click a port island**, or select it and press **✎ Edit island**. The palette on the left has three modes: **Props**, **Ground** and **Lanes**.
+Open the map editor (`editor.html`, or `npm run dev` then `/editor.html`) and **double-click any island**, or select it and press **✎ Edit island**. An island or ridge without a file (one you just added, say) first gets one made from how it is drawn ([0110](../../decisions/0110-every-island-has-a-file.md)); export it with the map, both files are needed. An island without a dock has no levels and no harbour. The palette on the left has three modes: **Props**, **Ground** and **Lanes**.
 
 ![The builder at level 3, a log pile just dropped](props.png)
 
