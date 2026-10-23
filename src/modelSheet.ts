@@ -13,6 +13,7 @@ import { type BoatModel, type ShipUpgrades, buildIslands, createBoatModel } from
 import { HULL_DIMENSIONS } from './sim/hullShape';
 import { isRefinedShip } from './render/models/shipModels';
 import { LighthouseBeams } from './render/lighthouseBeams';
+import { BeaconLights } from './render/beaconLights';
 import { Atmosphere } from './render/atmosphere';
 import { daylightAt } from './sim/daylight';
 import { Ocean } from './render/ocean';
@@ -338,6 +339,8 @@ ocean.setFog(400, 700);
 scene.add(ocean.mesh);
 const lighthouseBeams = new LighthouseBeams(islandsForWater);
 scene.add(lighthouseBeams.root);
+const beaconLights = new BeaconLights(islandsForWater);
+scene.add(beaconLights.points);
 // Reuse the game's moonlight and window rendering for repeatable night reviews.
 if (params.has('night')) {
   scene.fog = new THREE.Fog(PALETTE.deepWater, 400, 700);
@@ -409,6 +412,7 @@ renderer.setAnimationLoop(() => {
     b.update({ sail, boomAngle: boom, luff: 0, heel: -6 * DEG, windRelative, time: t });
   }
   lighthouseBeams.update(params.has('still') ? 3 : t, params.has('night') ? 1 : 0);
+  beaconLights.update(params.has('still') ? 3 : t, params.has('night') ? 1 : 0);
   ocean.update(t, new THREE.Vector3());
   renderer.info.reset();
   renderer.render(scene, camera);

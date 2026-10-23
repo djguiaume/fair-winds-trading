@@ -183,7 +183,12 @@ export function renderIslandPanel(root: HTMLElement, host: IslandPanelHost) {
   number('Variant', p.variant, (v) => setPropValue(design, selection, 'variant', v), {
     step: 1,
     min: 0,
-    placeholder: 'colours or count',
+    placeholder:
+      p.type === 'lighthouse'
+        ? '0 two beams, 1 one, 2 three'
+        : p.type === 'beacon'
+          ? '0 white, 1 unlit, 2 red, 3 green'
+          : 'colours or count',
   });
   number('Shape', p.shape, (v) => setPropValue(design, selection, 'shape', v), {
     step: 0.05,

@@ -1,10 +1,24 @@
 import * as THREE from 'three';
 import type { IslandDef } from '../sim/map';
-import { islandPoint } from '../sim/islandLayout';
+import { atLevel, type PropDef } from '../data/islands';
+import { landmarkLamps } from './landmarkLamps';
 
-/** Two opposing lighthouse beams, sharing one translucent unlit material. */
+/** Beams by the lighthouse prop's variation: 0 Saltmere's opposing pair, 1 one, 2 three. */
+const BEAMS = [2, 1, 3];
+
+interface Beacon {
+  group: THREE.Group;
+  island: IslandDef;
+  prop: PropDef;
+}
+
+/**
+ * Sweeping beams on every lighthouse of the island files (decision 0121), sharing one
+ * translucent unlit material. A lighthouse that is not built yet at its island's level is dark.
+ */
 export class LighthouseBeams {
   readonly root = new THREE.Group();
+  private readonly beacons: Beacon[] = [];
   private readonly material = new THREE.MeshBasicMaterial({
     color: '#fff1c4',
     transparent: true,
@@ -16,25 +30,36 @@ export class LighthouseBeams {
   private readonly geometry = new THREE.ConeGeometry(7, 70, 12, 1, true)
     .rotateZ(Math.PI / 2)
     .translate(35, 0, 0);
-  constructor(islands: readonly IslandDef[]) {
+  /** `levels`: town level by island id; others stand at level 1 with a dock, else at 4. */
+  constructor(islands: readonly IslandDef[], levels: Record<string, number> = {}) {
     this.root.name = 'lighthouse-beams';
-    for (const island of islands.filter((i) => i.look?.profile === 'fish')) {
-      const p = islandPoint(island, 1.95, -0.65),
-        beacon = new THREE.Group();
-      beacon.position.set(p.x, 0.12 * island.radius + 4.8 * 0.8 * 2.2, -p.y);
-      for (const angle of [0, Math.PI]) {
+    for (const { position, island, prop } of landmarkLamps(islands, 'lighthouse')) {
+      const group = new THREE.Group();
+      group.position.copy(position);
+      const beams = BEAMS[prop.variant ?? 0] ?? 2;
+      for (let i = 0; i < beams; i++) {
+        const angle = (i * Math.PI * 2) / beams;
         const beam = new THREE.Mesh(this.geometry, this.material);
         beam.rotation.y = angle;
-        beacon.add(beam);
+        group.add(beam);
       }
-      this.root.add(beacon);
+      this.root.add(group);
+      this.beacons.push({ group, island, prop });
     }
+    this.setLevels(levels);
     this.update(0, 0);
+  }
+  /** Shows the beams of the lighthouses standing at each island's town level. */
+  setLevels(levels: Record<string, number>) {
+    for (const { group, island, prop } of this.beacons) {
+      const level = levels[island.id] ?? (island.look?.dock ? 1 : 4);
+      group.visible = atLevel(prop, level);
+    }
   }
   update(time: number, night: number) {
     this.root.visible = night > 0.05;
     this.material.opacity = 0.12 * night;
-    for (const beacon of this.root.children) beacon.rotation.y = time * 0.22;
+    for (const { group } of this.beacons) group.rotation.y = time * 0.22;
   }
   dispose() {
     this.geometry.dispose();

@@ -571,8 +571,8 @@ function field({ R, variant }: PropArgs): Parts {
 
 const landmark =
   (kind: 'lighthouse' | 'ruins' | 'wreck' | 'beacon') =>
-  ({ size }: PropArgs): Parts =>
-    landmarkParts(kind, size);
+  ({ size, variant }: PropArgs): Parts =>
+    landmarkParts(kind, size, variant);
 
 /** Every type an island file can place, by id. Homes' fits are the old town plan's margins. */
 export const PROP_TYPES: Record<string, PropType> = {

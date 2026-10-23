@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { PHASE1_MAP } from '../src/data/maps';
 import { islandPoint } from '../src/sim/islandLayout';
 import { LighthouseBeams } from '../src/render/lighthouseBeams';
+import { designOf } from '../src/data/islands';
 it('anchors opposing rotating beams at the lighthouse lantern and fades them out by day', () => {
   const beams = new LighthouseBeams(PHASE1_MAP.islands),
     island = PHASE1_MAP.islands.find((i) => i.look?.profile === 'fish')!;
@@ -25,5 +26,34 @@ it('anchors opposing rotating beams at the lighthouse lantern and fades them out
   );
   beams.update(12, 0);
   expect(beams.root.visible).toBe(false);
+  beams.dispose();
+});
+
+it('lights every lighthouse of the island files, and only once it is built', () => {
+  const lighthouses = PHASE1_MAP.islands.flatMap((island) =>
+    (designOf(island)?.props ?? []).filter((p) => p.type === 'lighthouse').map(() => island.id),
+  );
+  expect(lighthouses).toEqual(expect.arrayContaining(['saltmere', 'watchman-key', 'lantern-rock']));
+  const beams = new LighthouseBeams(PHASE1_MAP.islands);
+  expect(beams.root.children).toHaveLength(lighthouses.length);
+  for (const beacon of beams.root.children) {
+    expect(beacon.visible).toBe(true);
+    expect(beacon.position.y).toBeGreaterThan(8);
+  }
+  // A lighthouse that only comes with a later town level stays dark until then.
+  const saltmere = designOf(PHASE1_MAP.islands.find((i) => i.id === 'saltmere')!)!;
+  const lighthouse = saltmere.props.find((p) => p.type === 'lighthouse')!;
+  const from = lighthouse.from;
+  lighthouse.from = 3;
+  try {
+    const later = new LighthouseBeams(PHASE1_MAP.islands, { saltmere: 2 });
+    const index = lighthouses.indexOf('saltmere');
+    expect(later.root.children[index]!.visible).toBe(false);
+    later.setLevels({ saltmere: 3 });
+    expect(later.root.children[index]!.visible).toBe(true);
+    later.dispose();
+  } finally {
+    lighthouse.from = from;
+  }
   beams.dispose();
 });

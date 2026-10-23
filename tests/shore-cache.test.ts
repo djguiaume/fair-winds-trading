@@ -200,6 +200,7 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
   for (const key of [
     'islands',
     'lighthouseBeams',
+    'beaconLights',
     'stormClouds',
     'lanterns',
     'wake',

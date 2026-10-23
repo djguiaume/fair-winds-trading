@@ -9,7 +9,7 @@ const cream = '#f4ede0',
   dark = '#6b4a2a';
 
 /** Small recognisable silhouettes, built from the same matte low-poly palette as B2 islands. */
-export function landmarkParts(kind: LandmarkKind, scale = 1): Parts {
+export function landmarkParts(kind: LandmarkKind, scale = 1, variant = 0): Parts {
   const out: Parts = [];
   const box = (
     w: number,
@@ -69,10 +69,13 @@ export function landmarkParts(kind: LandmarkKind, scale = 1): Parts {
     out.push(paint(mast, dark));
     box(1.8, 0.18, 0.5, 2.2, 0.2, 1.2, wood, 0.8);
   } else {
+    // Variant (decision 0121): 2 a red lateral mark with a can top, 3 a green one with a cone.
+    const mark = variant === 2 ? '#c23a2c' : variant === 3 ? '#3f8f5a' : '#c8603e';
     cylinder(1.1, 1.5, 0.45, 0.225, rock, 6);
     cylinder(0.25, 0.35, 3.7, 2.2, cream, 6);
-    cylinder(0.28, 0.3, 0.65, 3.1, '#c8603e', 6);
-    cylinder(0, 0.8, 1, 4.5, '#c8603e', 6);
+    cylinder(0.28, 0.3, 0.65, 3.1, mark, 6);
+    if (variant === 2) cylinder(0.62, 0.62, 1, 4.5, mark, 8);
+    else cylinder(0, 0.8, 1, 4.5, mark, 6);
     box(1.9, 0.22, 0.2, 0, 3.4, 0, dark);
   }
   if (scale !== 1) for (const g of out) g.scale(scale, scale, scale);
