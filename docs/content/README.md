@@ -180,8 +180,9 @@ options: `id`, `reward`, `next`); optional `reward`, `next` (a later step or `do
 next one), `clean` (touching a reef or shore starts the step over), `port`, `chart`
 (`{ "port", "radius" }`: the rough circle on the chart), `compass` (`{ "x", "y" }`: a
 direction mark on the compass, for a foghorn or a wreck), `mood` (the giver's face on this
-step's card: `neutral`, `pleased` or `worried`) and `look` (a named look from
-`characters.json`, e.g. Rook `soaked`).
+step's card: `neutral`, `pleased` or `worried`), `look` (a named look from
+`characters.json`, e.g. Rook `soaked`) and `speaker` (someone else speaks this step's card, a
+`characters.json` id; `mood` and `look` are then theirs: [0133](../decisions/0133-stonehaven-light-arc.md)).
 
 **The person and their card ([0124](../decisions/0124-characters-look.md)).** `giver` is an id in
 [`src/data/characters.json`](../../src/data/characters.json) (name, role, home port and a few

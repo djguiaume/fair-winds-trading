@@ -30,7 +30,9 @@ it('lights the beacons of the island files white at night, dark by day, by varia
   expect(beacons().length).toBeGreaterThanOrEqual(3);
   const lights = new BeaconLights(PHASE1_MAP.islands);
   const colors = lights.points.geometry.attributes.color!;
-  expect(colors.count).toBe(beacons().length);
+  // Unlit day marks (variant 1, Teeth Rock's before its light) have no light.
+  const lit = (list: { variant?: number }[]) => list.filter((p) => p.variant !== 1).length;
+  expect(colors.count).toBe(lit(beacons()));
   lights.update(0, 0);
   expect(lights.points.visible).toBe(false);
   // Find a moment the first beacon flashes: white light.
@@ -51,7 +53,7 @@ it('lights the beacons of the island files white at night, dark by day, by varia
     props[2]!.variant = 3;
     const marks = new BeaconLights(PHASE1_MAP.islands);
     const c = marks.points.geometry.attributes.color!;
-    expect(c.count).toBe(props.length - 1);
+    expect(c.count).toBe(lit(props));
     let red = 0;
     while (!beaconFlash(0, red)) red += 0.05;
     marks.update(red, 1);

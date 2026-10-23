@@ -1,3 +1,4 @@
+import characterData from '../data/characters.json';
 import { daylightAt } from './daylight';
 import type { GoodAmounts } from './goods';
 import type { MapDef } from './map';
@@ -59,6 +60,11 @@ export interface QuestStep {
   mood?: string;
   /** A named look of the giver for this step (`characters.json` › `looks`, e.g. `soaked`). */
   look?: string;
+  /**
+   * Someone else speaks this step's card instead of the giver (a `characters.json` id); `mood` and
+   * `look` are then theirs.
+   */
+  speaker?: string;
 }
 
 export interface QuestDef {
@@ -74,7 +80,7 @@ export interface QuestDef {
   reward?: QuestReward;
   /** Quest cargo (`carried`): item id → hold spaces one piece takes (0: a passenger). Cannot be sold. */
   items?: Record<string, { space: number }>;
-  /** The person giving it (`characters.json`, later), for the interface. */
+  /** The person giving it (`characters.json`), for the interface. */
   giver?: string;
   /** Where its card shows, for the interface. */
   port?: string;
@@ -85,6 +91,14 @@ export interface QuestDef {
   offer?: boolean;
   steps: QuestStep[];
 }
+
+/** The people of `characters.json`, with their named looks, for the checks. */
+const PEOPLE = new Map(
+  (characterData.characters as { id: string; looks?: Record<string, unknown> }[]).map((c) => [
+    c.id,
+    Object.keys(c.looks ?? {}),
+  ]),
+);
 
 /** The `next` that finishes a quest. */
 export const QUEST_DONE = 'done';
@@ -196,6 +210,7 @@ export function checkQuests(
       if (!Number.isInteger(def?.space) || def.space < 0)
         out.push(`${at} › items.${item}: space needs a whole number (0 for a passenger)`);
     if (q.port !== undefined && !resolvePort(map, q.port)) out.push(`${at}: no port "${q.port}"`);
+    if (q.giver !== undefined && !PEOPLE.has(q.giver)) out.push(`${at}: no person "${q.giver}"`);
     if (q.offer !== undefined && typeof q.offer !== 'boolean')
       out.push(`${at}: offer is true or false`);
     out.push(...checkCondition(q.start, scope, false, `${at} › start`));
@@ -216,6 +231,11 @@ export function checkQuests(
       out.push(...checkReward(s.reward, scope, `${where} › reward`));
       for (const p of [s.port, s.chart?.port])
         if (p !== undefined && !resolvePort(map, p)) out.push(`${where}: no port "${p}"`);
+      if (s.speaker !== undefined && !PEOPLE.has(s.speaker))
+        out.push(`${where}: no person "${s.speaker}"`);
+      const face = s.speaker ?? q.giver;
+      if (s.look !== undefined && face && PEOPLE.has(face) && !PEOPLE.get(face)!.includes(s.look))
+        out.push(`${where}: ${face} has no look "${s.look}"`);
       if (s.compass && !(Number.isFinite(s.compass.x) && Number.isFinite(s.compass.y)))
         out.push(`${where} › compass: needs { "x", "y" }`);
       if (s.chart && !(typeof s.chart.radius === 'number' && s.chart.radius > 0))
