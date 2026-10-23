@@ -10,7 +10,7 @@
  */
 import { composeTune, EIGHTHS_PER_BAR, type Theme, type Tune } from './composer';
 import { createBand, playNote, type Band } from './synth';
-import { playCreak } from './sfx';
+import { playCreak, playFoghorn } from './sfx';
 import { EFFECTS, MUSIC, THEMES, soundUrl, type MusicTrack, type SoundEffect } from './catalog';
 
 /** Recorded files, decoded once per audio context. */
@@ -92,6 +92,7 @@ export class Music {
     const volume = level * (effect.volume ?? 1);
     if ('synth' in effect) {
       if (effect.synth === 'creak') playCreak(ctx, ctx.destination, volume);
+      if (effect.synth === 'foghorn') playFoghorn(ctx, ctx.destination, volume);
       return;
     }
     void loadSound(ctx, effect.file).then((buffer) => {
@@ -113,6 +114,13 @@ export class Music {
     const { ctx } = this;
     if (!ctx || !this.audible || ctx.state !== 'running') return;
     this.effect(EFFECTS.creak, this.level);
+  }
+
+  /** A foghorn far off, for the prologue (decision 0127). */
+  foghorn(): void {
+    const { ctx } = this;
+    if (!ctx || !this.audible || ctx.state !== 'running') return;
+    this.effect(EFFECTS.foghorn, this.level);
   }
 
   /** 0..1, from the settings slider. */

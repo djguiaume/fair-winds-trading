@@ -3,7 +3,7 @@ import en from '../src/i18n/en.json';
 import fr from '../src/i18n/fr.json';
 
 // Decision 0113: the tutorial is the first quest; its lessons are the steps of src/data/quests/first-voyage.json. This test drops
-// the wind lesson from the file only: the sails lesson then leads straight to docking.
+// the wind lesson from the file only: the sails lesson then leads straight to picking a port and docking.
 vi.mock('../src/data/quests/first-voyage.json', async (importOriginal) => {
   const file = (
     (await importOriginal()) as {
@@ -12,7 +12,7 @@ vi.mock('../src/data/quests/first-voyage.json', async (importOriginal) => {
   ).default;
   const steps = structuredClone(file.steps.filter((s) => s.id !== 'wind'));
   const sails = steps.find((s) => s.id === 'sails')!;
-  sails.on = { ...sails.on, 'sails-practised': 'dock', continue: 'dock' };
+  sails.on = { ...sails.on, 'sails-practised': 'choose-port', continue: 'choose-port' };
   return { default: { ...file, reward: { gold: 25 }, steps } };
 });
 
@@ -70,11 +70,11 @@ describe('tutorial steps as data (decision 0113)', () => {
     const harbours = Object.fromEntries(PHASE1_MAP.ports.map((p) => [p.id, { x: 0, y: 0 }]));
     const tutorial = new Tutorial(world, harbours, null);
     tutorial.start();
-    tutorial.chartOpened();
-    world.destination = { portId: 'calda', label: 'Calda', x: 0, y: 0 };
-    tutorial.destinationSelected();
     expect(tutorial.step).toBe('sails');
     tutorial.continueLesson();
+    expect(tutorial.step).toBe('choose-port');
+    world.destination = { portId: 'calda', label: 'Calda', x: 0, y: 0 };
+    tutorial.destinationSelected();
     expect(tutorial.step).toBe('dock');
     world.trade.dockedAt = 'calda';
     tutorial.observe();

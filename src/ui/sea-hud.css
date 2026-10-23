@@ -403,6 +403,23 @@ body.is-docked .objective {
   stroke: #fff;
   stroke-width: 1.2;
 }
+/* The prologue's wreck (decision 0127): a brass mark the player steers for. */
+.compass .mark {
+  fill: var(--brass-hi, #f0c66a);
+  stroke: #fff;
+  stroke-width: 1.2;
+  animation: mark-pulse 1.6s ease-in-out infinite;
+}
+@keyframes mark-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .compass .mark {
+    animation: none;
+  }
+}
 .compass.is-upwind .boat {
   fill: #ffce7a;
 }

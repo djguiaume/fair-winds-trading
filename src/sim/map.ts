@@ -114,4 +114,9 @@ export interface MapDef {
    * to dock at, no market. Not to be confused with `homePort`.
    */
   homeIsland?: string;
+  /**
+   * The tutorial's prologue (decision 0127): where a voyage that takes it begins, and the terrain
+   * feature whose wreck landmark is the boat to rescue. Without it the tutorial starts at the chart.
+   */
+  prologue?: { start: { x: number; y: number; headingDeg: number }; wreck: string };
 }

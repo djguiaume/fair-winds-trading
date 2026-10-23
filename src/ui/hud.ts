@@ -102,6 +102,9 @@ export class Hud {
   isKidMode = false;
   private readonly cBoat = $('c-boat');
   private readonly cWp = $('c-wp');
+  private readonly cMark = $('c-mark');
+  /** A place the compass marks the direction of: the prologue's wreck (decision 0127). */
+  mark: { x: number; y: number } | null = null;
   private readonly wpArrow = $('wp-arrow');
   private readonly toast = $('toast');
   private readonly tiller = $('tiller');
@@ -456,6 +459,8 @@ export class Hud {
     this.cWp.style.display = wp ? '' : 'none';
     this.objective.hidden = !wp;
     if (wp) rot(this.cWp, bearingTo(boat, wp));
+    this.cMark.style.display = this.mark ? '' : 'none';
+    if (this.mark) rot(this.cMark, bearingTo(boat, this.mark));
     const targetAngle = wp ? screenBearing(project, boat, wp) : 0;
     if (wp) this.objArrow.style.transform = `rotate(${targetAngle}rad)`;
     const targetName = wp?.label ?? '';

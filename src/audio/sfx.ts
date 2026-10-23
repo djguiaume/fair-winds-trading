@@ -29,3 +29,35 @@ export function playCreak(ctx: BaseAudioContext, destination: AudioNode, level: 
   osc.start(t);
   osc.stop(t + 0.62);
 }
+
+/**
+ * A foghorn far off (decision 0127): two low reedy tones a fifth apart, swelling and fading over
+ * about two and a half seconds, through a low-pass so it sounds distant.
+ */
+export function playFoghorn(ctx: BaseAudioContext, destination: AudioNode, level: number) {
+  const t = ctx.currentTime + 0.02;
+  const low = ctx.createBiquadFilter();
+  low.type = 'lowpass';
+  low.frequency.value = 420;
+  low.Q.value = 0.7;
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0, t);
+  gain.gain.linearRampToValueAtTime(level, t + 0.5);
+  gain.gain.setValueAtTime(level * 0.85, t + 1.8);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.6);
+  low.connect(gain).connect(destination);
+  for (const [freq, share] of [
+    [98, 1],
+    [147, 0.55],
+  ] as const) {
+    const osc = ctx.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(freq * 0.97, t);
+    osc.frequency.linearRampToValueAtTime(freq, t + 0.4);
+    const part = ctx.createGain();
+    part.gain.value = share * 0.5;
+    osc.connect(part).connect(low);
+    osc.start(t);
+    osc.stop(t + 2.7);
+  }
+}

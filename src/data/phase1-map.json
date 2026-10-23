@@ -15,6 +15,14 @@
   },
   "homePort": "saltmere",
   "homeIsland": "skerry",
+  "prologue": {
+    "start": {
+      "x": 203,
+      "y": 132,
+      "headingDeg": 210
+    },
+    "wreck": "east-reef"
+  },
   "islands": [
     {
       "id": "calda",

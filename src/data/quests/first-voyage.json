@@ -8,36 +8,7 @@
   },
   "steps": [
     {
-      "id": "chart",
-      "action": "chart",
-      "picks": "origin",
-      "pointer": "nearest-port",
-      "coach": {
-        "sea": "chart-button",
-        "chart": "chart-port"
-      },
-      "on": {
-        "chart-opened": "choose-port",
-        "port-picked": "sails"
-      }
-    },
-    {
-      "id": "choose-port",
-      "action": "chart",
-      "picks": "origin",
-      "pointer": "nearest-port",
-      "coach": {
-        "sea": "chart-button",
-        "chart": "chart-port"
-      },
-      "on": {
-        "port-picked": "sails"
-      }
-    },
-    {
       "id": "sails",
-      "port": "origin",
-      "picks": "origin",
       "continue": "always",
       "coach": {
         "sea": "sail-lever",
@@ -45,37 +16,104 @@
       },
       "on": {
         "sails-practised": "wind",
-        "continue": "wind",
-        "destination-cleared": "choose-port"
+        "continue": "wind"
       }
     },
     {
       "id": "wind",
       "action": "tips",
-      "port": "origin",
-      "picks": "origin",
       "continue": "always",
       "coach": {
         "sea": "wind-compass",
         "chart": "close-chart"
       },
       "on": {
-        "continue": "dock",
-        "destination-cleared": "choose-port"
+        "continue": "foghorn"
       }
     },
     {
-      "id": "dock",
+      "id": "foghorn",
+      "mark": {
+        "within": 45
+      },
+      "coach": {
+        "sea": "wind-compass",
+        "chart": "close-chart"
+      },
+      "on": {
+        "reached-mark": "wreck"
+      }
+    },
+    {
+      "id": "wreck",
+      "mark": {
+        "within": 16,
+        "maxKn": 2,
+        "holdSec": 3
+      },
+      "coach": {
+        "sea": "sail-lever",
+        "chart": "close-chart"
+      },
+      "on": {
+        "alongside-mark": "chart"
+      }
+    },
+    {
+      "id": "chart",
+      "action": "chart",
+      "origin": "home",
+      "picks": "origin",
+      "passenger": true,
+      "pointer": "origin",
+      "coach": {
+        "sea": "chart-button",
+        "chart": "chart-port"
+      },
+      "on": {
+        "chart-opened": "home-port",
+        "port-picked": "home"
+      }
+    },
+    {
+      "id": "home-port",
+      "action": "chart",
+      "origin": "home",
+      "picks": "origin",
+      "passenger": true,
+      "pointer": "origin",
+      "coach": {
+        "sea": "chart-button",
+        "chart": "chart-port"
+      },
+      "on": {
+        "port-picked": "home"
+      }
+    },
+    {
+      "id": "home",
       "action": "chart",
       "port": "origin",
       "picks": "origin",
+      "origin": "home",
+      "passenger": true,
       "coach": {
         "sea": "port-marker",
         "chart": "chart-port"
       },
       "on": {
-        "docked": "buy",
-        "destination-cleared": "choose-port"
+        "docked": "island",
+        "destination-cleared": "home-port"
+      }
+    },
+    {
+      "id": "island",
+      "port": "origin",
+      "continue": "always",
+      "coach": {},
+      "on": {
+        "continue": "buy",
+        "left-port": "dock"
       }
     },
     {
@@ -148,6 +186,33 @@
         "destination-cleared": "choose-delivery",
         "cargo-gone": "choose-port",
         "cargo-sold": "buy"
+      }
+    },
+    {
+      "id": "choose-port",
+      "action": "chart",
+      "picks": "origin",
+      "pointer": "nearest-port",
+      "coach": {
+        "sea": "chart-button",
+        "chart": "chart-port"
+      },
+      "on": {
+        "port-picked": "dock"
+      }
+    },
+    {
+      "id": "dock",
+      "action": "chart",
+      "port": "origin",
+      "picks": "origin",
+      "coach": {
+        "sea": "port-marker",
+        "chart": "chart-port"
+      },
+      "on": {
+        "docked": "buy",
+        "destination-cleared": "choose-port"
       }
     }
   ]

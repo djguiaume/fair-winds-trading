@@ -133,14 +133,22 @@ Each step:
 | `continue`    | when the card shows Continue: `always` or `with-cargo`                                                                       |
 | `pointer`     | the harbour the coach mark points at: `nearest-port`, `buyer`, `origin` or `delivery` (default: `port`)                     |
 | `pointerGood` | the good whose market button it points at: `produced` (the origin's own) or `cargo`                                         |
+| `origin`      | `home`: the lesson's harbour is the map's home port, and only it counts as the pick (taking Rook home, [0127](../decisions/0127-prologue-rescue-tutorial.md)) |
+| `mark`        | a lesson about the map's prologue wreck: `within` (distance), and to come alongside `maxKn` and `holdSec`; the compass marks the wreck. Skipped on a map without a `prologue` |
+| `passenger`   | `true`: Rook is aboard (no hold space)                                                                                       |
 | `coach`       | what it points at per surface (`sea`, `chart`, `market`): `chart-button`, `sail-lever`, `wind-compass`, `port-marker`, `dock-button`, `chart-port`, `close-chart`, `buy-button`, `sell-button` |
 | `on`          | the step each event leads to (`done` finishes the tutorial)                                                                  |
 
 Events: `chart-opened`, `port-picked`, `destination-cleared`, `sails-practised`, `continue`,
+`reached-mark`, `alongside-mark` (a hull hit starts the hold again),
 `docked`, `left-port`, `bought`, `sold`, `cargo-gone`, `cargo-sold` (what each one watches:
 `src/sim/tutorial.ts`). Lesson text can use `{origin}`, `{delivery}`, `{cargo}`, `{good}` and
 `{buyer}`. `tests/tutorial-data.test.ts` checks every event, target and text exists.
 
+- The prologue's places are in the map file: `prologue.start` (`x`, `y`, `headingDeg`: where a fresh
+  voyage that takes the tutorial begins) and `prologue.wreck` (the reef or sandbank whose wreck is
+  Rook's boat). Rook's thanks, the home island, is the quest
+  [`rooks-thanks.json`](../../src/data/quests/rooks-thanks.json).
 - Not from data yet: a lesson that waits for something no event watches (reefing in a gale, say)
   needs one new event in code.
 
@@ -230,5 +238,5 @@ Every sound is listed in [`src/data/audio.json`](../../src/data/audio.json):
   `moves` of the melody, `restChance`, `accents`, `padVel`, `bassVel`, `restBars` (pad chords
   between tunes) and `echo`. Every tune is still 16 bars in 6/8 on flute, pad and bass: a new
   form or instrument needs code once.
-- The game plays `music.sea` and `effects.creak`; a new kind of moment (port music, a bell when an
+- The game plays `music.sea`, `effects.creak` and, during the prologue, `effects.foghorn`; a new kind of moment (port music, a bell when an
   order is done) needs one line of code to play it, then it is a line in this file.

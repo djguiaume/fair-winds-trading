@@ -16,6 +16,8 @@ export function stressMap(source: MapDef, config = settings): MapDef {
     ...structuredClone(source),
     name: `${source.name} (stress test)`,
     compatibleSaveMaps: [],
+    // The prologue's places are not copied: the tutorial starts at the chart there (decision 0127).
+    prologue: undefined,
     boundsRadius: config.boundsRadius,
     islands: [],
     terrain: [],
