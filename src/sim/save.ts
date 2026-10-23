@@ -3,7 +3,7 @@ import { type ContractState, readContracts } from './contracts';
 import { resolveCollisions } from './collision';
 import { type Difficulty, DEFAULT_DIFFICULTY, isDifficulty } from './difficulty';
 import { GOODS, type GoodAmounts, emptyAmounts } from './goods';
-import { readHome } from './home';
+import { type IslandHome, readHome } from './home';
 import { wrapPositive } from './math';
 import { type SettlementState, readSettlements } from './settlement';
 import { SHIP_CLASSES } from './ship';
@@ -51,8 +51,11 @@ export interface SaveData {
   difficulty?: Difficulty;
   /** Easiest level played on the voyage (0083). Optional: defaults to `difficulty`. */
   easiestDifficulty?: Difficulty;
-  /** The home island (decision 0126). Optional: older saves have not been given it yet. */
-  home?: { owned: boolean; offered: string[]; built: Record<string, string> };
+  /**
+   * The captain's islands (decisions 0126, 0128). Optional: older saves have none. The first
+   * shape (one island, `{ owned, offered, built }`) is read as the map's home island.
+   */
+  home?: { islands: Record<string, IslandHome> };
   /** Quest progress (decision 0125). Optional: older saves have none. */
   quests?: QuestState;
 }
@@ -90,11 +93,7 @@ export function serializeWorld(world: World): SaveData {
     settlements: structuredClone(world.trade.settlements),
     difficulty: world.trade.difficulty,
     easiestDifficulty: world.trade.easiestDifficulty,
-    home: {
-      owned: world.trade.home.owned,
-      offered: [...world.trade.home.offered],
-      built: { ...world.trade.home.built },
-    },
+    home: { islands: structuredClone(world.trade.home.islands) },
     quests: structuredClone(world.trade.quests),
   };
 }

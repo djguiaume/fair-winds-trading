@@ -798,3 +798,41 @@ button.danger {
     bottom: 8px;
   }
 }
+
+/* Build spots (decisions 0126, 0128). */
+.i-spot {
+  fill: rgba(242, 201, 76, 0.18);
+  stroke: var(--brass-hi);
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+  cursor: move;
+}
+.i-spot.spare {
+  stroke-dasharray: 5 4;
+}
+.i-spot.on {
+  fill: rgba(255, 255, 255, 0.3);
+  stroke: #fff;
+  stroke-width: 3px;
+}
+.i-spot-n {
+  fill: #fff;
+  font-weight: 700;
+  text-anchor: middle;
+  pointer-events: none;
+}
+.ib-spot-row {
+  border: 1px solid var(--outline, rgba(255, 255, 255, 0.15));
+  border-radius: 8px;
+  padding: 6px 8px;
+  margin: 6px 0;
+}
+.ib-spot-row.on {
+  border-color: var(--brass-hi);
+}
+.ib-spot-name {
+  all: unset;
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--brass-hi);
+}

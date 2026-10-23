@@ -2,7 +2,14 @@ import { isDifficulty } from './difficulty';
 import { isGood, type GoodAmounts, type GoodId } from './goods';
 import type { MapDef } from './map';
 import { SHIP_CLASSES } from './ship';
-import { buildingById, giveHomeIsland, hasBuilding, homeSpots, offerHomeSpot } from './home';
+import {
+  buildingById,
+  giveHomeIsland,
+  hasBuilding,
+  homeSpots,
+  offerHomeSpot,
+  resolveSpot,
+} from './home';
 import { MAX_SETTLEMENT_LEVEL, settlementLevel } from './settlement';
 import { homePort, isDiscovered, standingAt } from './shipyards';
 import type { TradeState } from './trade';
@@ -31,9 +38,15 @@ export interface QuestReward {
   discover?: string[];
   /** Ports that go up one town level at once (decision 0120's "step up"). */
   levelUp?: string[];
-  /** The home island becomes the captain's (the prologue's reward, decision 0126). */
-  homeIsland?: boolean;
-  /** Home island arc spots offered: the captain picks one building of the pair there (0126). */
+  /**
+   * An island becomes the captain's: `true` for the map's home island (the prologue's reward,
+   * decision 0126), or the id of another island with build spots (decision 0128).
+   */
+  homeIsland?: boolean | string;
+  /**
+   * Arc spots offered: the captain picks one building of the pair there (0126). `spot-2` is on
+   * the home island, `<island>:spot-2` on another one (0128).
+   */
   homeSpot?: string[];
 }
 
@@ -80,6 +93,7 @@ type Param =
   | 'good'
   | 'ship'
   | 'building'
+  | 'island'
   | 'quest'
   | 'step'
   | 'option'
@@ -254,10 +268,14 @@ export const CONDITIONS: Record<string, ConditionKind> = {
     params: { good: 'good', qty: 'count' },
     test: (c, ctx) => ctx.trade.captain.cargo[c.good as GoodId] >= num(c.qty),
   },
-  /** A building stands on the home island (decision 0126): a port can follow the choice. */
+  /**
+   * A building stands on one of the captain's islands, or on `island` (decisions 0126, 0128): a
+   * port can follow the choice.
+   */
   built: {
-    params: { building: 'building' },
-    test: (c, ctx) => hasBuilding(ctx.trade.home, c.building as string),
+    params: { building: 'building', island: 'island?' },
+    test: (c, ctx) =>
+      hasBuilding(ctx.trade.home, c.building as string, c.island as string | undefined),
   },
   'owns-ship': {
     params: { ship: 'ship' },
@@ -448,6 +466,8 @@ function checkParam(
   if (type === 'good' && !isGood(v)) bad(`no good "${String(v)}"`);
   if (type === 'ship' && !(typeof v === 'string' && SHIP_CLASSES[v])) bad(`no ship "${String(v)}"`);
   if (type === 'building' && !buildingById(v as string)) bad(`no building "${String(v)}"`);
+  if (type === 'island' && !homeSpots(scope.map, v as string).length)
+    bad(`no island with build spots "${String(v)}"`);
   if (type === 'quest' && !(typeof v === 'string' && scope.quests.has(v)))
     bad(`no quest "${String(v)}"`);
   if (type === 'step') {
@@ -556,17 +576,15 @@ export function checkReward(r: unknown, scope: CheckScope, at: string): string[]
       for (const p of list)
         if (!resolvePort(scope.map, p)) out.push(`${at}.${key}: no port "${String(p)}"`);
   }
-  if (reward.homeIsland !== undefined && reward.homeIsland !== true)
-    out.push(`${at}.homeIsland: needs true`);
-  if ((reward.homeIsland || reward.homeSpot) && !scope.map.homeIsland)
-    out.push(`${at}: the map has no home island`);
+  const island = reward.homeIsland === true ? scope.map.homeIsland : reward.homeIsland;
+  if (reward.homeIsland !== undefined && !homeSpots(scope.map, island as string).length)
+    out.push(`${at}.homeIsland: needs true (the map's home island) or an island with build spots`);
   if (reward.homeSpot !== undefined) {
-    const arcSpots = homeSpots(scope.map).filter((s) => s.pair);
     if (!Array.isArray(reward.homeSpot)) out.push(`${at}.homeSpot: needs a list of spots`);
     else
-      for (const id of reward.homeSpot)
-        if (!arcSpots.some((s) => s.id === id))
-          out.push(`${at}.homeSpot: no arc spot "${String(id)}" on the home island`);
+      for (const ref of reward.homeSpot)
+        if (!resolveSpot(scope.map, ref))
+          out.push(`${at}.homeSpot: no arc spot "${String(ref)}" (spot-2 or <island>:spot-2)`);
   }
   return out;
 }
@@ -597,6 +615,10 @@ export function payReward(
     up = true;
   }
   if (up) levelled();
-  if (r.homeIsland) giveHomeIsland(trade);
-  for (const spot of r.homeSpot ?? []) offerHomeSpot(trade, map, spot);
+  if (r.homeIsland)
+    giveHomeIsland(trade, map, r.homeIsland === true ? map.homeIsland : r.homeIsland);
+  for (const ref of r.homeSpot ?? []) {
+    const at = resolveSpot(map, ref);
+    if (at) offerHomeSpot(trade, map, at.spot, at.island);
+  }
 }

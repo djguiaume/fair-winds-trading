@@ -7,7 +7,7 @@ import { coastDistance } from './coast';
 import { type ContractState, createContracts, stepContracts, syncHelpOrder } from './contracts';
 import { type Difficulty, DEFAULT_DIFFICULTY, easier, knobs } from './difficulty';
 import { leakFactor } from './hazards';
-import { type HomeState, createHomeState, homeEffect, homeIsland } from './home';
+import { type HomeState, createHomeState, homeEffect, ownedIslands } from './home';
 import { GOODS, type GoodAmounts, type GoodId, emptyAmounts, totalAmount } from './goods';
 import type { MapDef, PortDef } from './map';
 import {
@@ -346,8 +346,8 @@ export type DockEvent =
   | { type: 'undocked'; portId: string }
   | { type: 'discovered'; portId: string }
   | { type: 'help-order'; portId: string }
-  | { type: 'home-docked' }
-  | { type: 'home-undocked' }
+  | { type: 'home-docked'; islandId: string }
+  | { type: 'home-undocked'; islandId: string }
   | LevelUp;
 
 /**
@@ -410,11 +410,11 @@ export function stepTrade(
 }
 
 /**
- * The pier of the captain's own island (decision 0126), its distance worked out like a port's.
- * A stand-in port record: the home island has no market, orders or town.
+ * The pier of one of the captain's islands (decisions 0126, 0128), its distance worked out like
+ * a port's. A stand-in port record: a home island has no market, orders or town.
  */
-function homeHarbour(map: MapDef): PortDef | null {
-  const island = homeIsland(map);
+function homeHarbour(map: MapDef, islandId: string): PortDef | null {
+  const island = map.islands.find((i) => i.id === islandId);
   return island
     ? {
         id: `home:${island.id}`,
@@ -426,18 +426,21 @@ function homeHarbour(map: MapDef): PortDef | null {
     : null;
 }
 
-/** Is she within docking range of the home pier? Only once the island is hers. */
+/** The island of hers whose pier she is within docking range of, if any. */
 export function homeInRange(
   trade: TradeState,
   map: MapDef,
   pos: { x: number; y: number; heading?: number },
   range = harbour().dockRange,
-): boolean {
-  const pier = trade.home.owned ? homeHarbour(map) : null;
-  return !!pier && distanceToPort(map, pos, pier, 1, activeShip(trade).id, range) <= range;
+): string | null {
+  for (const id of ownedIslands(trade.home)) {
+    const pier = homeHarbour(map, id);
+    if (pier && distanceToPort(map, pos, pier, 1, activeShip(trade).id, range) <= range) return id;
+  }
+  return null;
 }
 
-/** Moor at the home pier when slow alongside, cast off when she sails away. */
+/** Moor at a home pier when slow alongside, cast off when she sails away. */
 function stepHomeDock(
   trade: TradeState,
   map: MapDef,
@@ -445,14 +448,17 @@ function stepHomeDock(
 ): DockEvent[] {
   const { home } = trade;
   if (home.docked) {
-    if (homeInRange(trade, map, boat, harbour().dockRange + harbour().undockMargin)) return [];
-    home.docked = false;
-    return [{ type: 'home-undocked' }];
+    const islandId = home.docked;
+    const near = homeInRange(trade, map, boat, harbour().dockRange + harbour().undockMargin);
+    if (near === islandId) return [];
+    delete home.docked;
+    return [{ type: 'home-undocked', islandId }];
   }
-  if (trade.dockedAt || boat.speedKn >= harbour().dockSpeedKn || !homeInRange(trade, map, boat))
-    return [];
-  home.docked = true;
-  return [{ type: 'home-docked' }];
+  const islandId =
+    trade.dockedAt || boat.speedKn >= harbour().dockSpeedKn ? null : homeInRange(trade, map, boat);
+  if (!islandId) return [];
+  home.docked = islandId;
+  return [{ type: 'home-docked', islandId }];
 }
 
 /** A sail upgrade's price, less the rigging loft's share (decision 0126). */
