@@ -27,8 +27,8 @@ Double-click a port island in the map editor, or **✎ Edit island** in its pane
 ![Ground and lanes](terrain-lanes.png)
 
 - **Coast**: drag points, click an edge to add one (as for reefs in the map editor).
-- **Raised ground**: plateaus and terraces with a height and grass or rock; edges are cliffs, as in the game today. **Mountain**: a rock peak. **Lake**.
-- **Lanes**: click to add bends, double-click to finish. A lane that crosses a cliff is flagged: make it **stairs** (Stonehaven has two flights) or end it at the cliff foot. Lanes still appear piece by piece near the homes that exist at each level.
+- **Raised ground**: plateaus and terraces with a height and grass or rock; each edge is a cliff, as in the game today, or a **slope** (a ramp of the width you choose, asked for after the mockup; decision 0096 §4). **Mountain**: a rock peak. **Lake**.
+- **Lanes**: click to add bends, double-click to finish. Lanes follow the ground, so they climb slopes. A lane that crosses a cliff is flagged: make it **stairs** (Stonehaven has two flights) or end it at the cliff foot. Lanes still appear piece by piece near the homes that exist at each level.
 - **Woods**: paint where trees may grow; homes, lanes and fields clear them as the town grows.
 
 ### 4. Phone portrait
@@ -64,7 +64,7 @@ In `editor.html`, under `src/editor/island/`, following this mockup:
 
 1. Island view: double-click to open; live top-down render (three.js, orthographic) with an SVG overlay; level switch with later-level ghosts; pan, zoom, fit.
 2. Props: palette with thumbnails rendered from the catalogue at load, drag and drop (mouse and touch), select, move, turn, size, duplicate, delete, *Appears from* and *Gone after*; undo and redo.
-3. Ground, lanes and woods tools.
+3. Ground, lanes and woods tools, including sloped edges and lanes that climb them (0096 §4): height on a slope interpolates; small props may stand on a slope, buildings not.
 4. 3D preview at the game camera's angle; live checks with marks on the island.
 5. Play this island (the edited map's separate save now carries edited islands too) and Export `<id>.json` in Prettier format, round-trip tested like the map file.
 6. Landscape and portrait layouts; docs in this folder with screenshots of the real thing.
