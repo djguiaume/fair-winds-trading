@@ -1,3 +1,4 @@
+import { MAX_SETTLEMENT_LEVEL, SETTLEMENT_LEVELS, TOWN_LEVELS } from '../../sim/settlement';
 import { ISLAND_DESIGNS, atLevel, type IslandDesign, type PropDef } from '../../data/islands';
 
 /**
@@ -7,8 +8,12 @@ import { ISLAND_DESIGNS, atLevel, type IslandDesign, type PropDef } from '../../
  * shipped files; turns to a tenth of a degree.
  */
 
-export type Level = 1 | 2 | 3 | 4;
-export const LEVEL_NAMES = ['Hamlet', 'Village', 'Town', 'Port town'] as const;
+/** A town level; their number and names come from `src/data/town-levels.json` (decision 0113). */
+export type Level = number;
+export const LEVELS: readonly Level[] = SETTLEMENT_LEVELS;
+export const LEVEL_NAMES: readonly string[] = TOWN_LEVELS.map((l) => l.name);
+/** The port town, the top level: what the builder shows first and the triangle budget counts. */
+export const TOP_LEVEL: Level = MAX_SETTLEMENT_LEVEL;
 
 const round = (v: number, places: number) => Number(v.toFixed(places));
 const pos = (v: number) => round(v, 6);
@@ -93,14 +98,14 @@ export function deleteProp(design: IslandDesign, index: number) {
 }
 
 /**
- * Sets the first and last level a prop stands at. A `from` after `to` drops `to`; `to` 4 or
+ * Sets the first and last level a prop stands at. A `from` after `to` drops `to`; `to` at the top level or
  * none removes the key, as the files leave it out.
  */
 export function setLevels(design: IslandDesign, index: number, from: Level, to?: Level) {
   const p = design.props[index];
   if (!p) return;
   p.from = from;
-  if (to === undefined || to === 4 || to < from) delete p.to;
+  if (to === undefined || to === TOP_LEVEL || to < from) delete p.to;
   else p.to = to;
 }
 
@@ -130,9 +135,7 @@ export function propsAt(design: IslandDesign, level: Level) {
 
 /** Homes per level, as the checks and the panel count them: 3 · 10 · 21 · 32 for Calda. */
 export function homesPerLevel(design: IslandDesign, isHome: (p: PropDef) => boolean) {
-  return ([1, 2, 3, 4] as const).map(
-    (level) => design.props.filter((p) => isHome(p) && atLevel(p, level)).length,
-  );
+  return LEVELS.map((level) => design.props.filter((p) => isHome(p) && atLevel(p, level)).length);
 }
 
 /** True when two designs are the same file. */

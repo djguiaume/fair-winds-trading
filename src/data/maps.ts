@@ -9,7 +9,7 @@ import { islandDesign } from './islands';
 export const PHASE0_MAP = phase0 as MapDef;
 
 /** The shipped trading map as authored, before `prepareMap`; the map editor starts from it. */
-export const PHASE1_SOURCE = phase1 as MapDef;
+export const PHASE1_SOURCE = phase1 as unknown as MapDef;
 
 /**
  * Turns an authored trading map into the one the game sails: slow weather shifts (decision 0026)

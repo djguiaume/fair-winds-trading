@@ -23,6 +23,8 @@ import type { IslandDef } from '../../sim/map';
 import { History, formatIslandJson } from '../model';
 import {
   LEVEL_NAMES,
+  LEVELS,
+  TOP_LEVEL,
   type Level,
   addProp,
   deleteProp,
@@ -105,7 +107,7 @@ let host: Host;
 let open = false;
 let design: IslandDesign;
 let R = 1;
-let level: Level = 4;
+let level: Level = TOP_LEVEL;
 /** Whether the island has a harbour (a port's); others have no levels (decision 0107). */
 let harbour = true;
 /** What new things belong to: the level on show, or every level on an island with no port. */
@@ -158,7 +160,7 @@ export function openIsland(target: IslandDef) {
   if (!SHIPPED[id]) MADE[id] ??= structuredClone(design);
   R = target.radius / ISLAND_SCALE;
   harbour = !!target.look?.dock;
-  if (!harbour) level = 4;
+  if (!harbour) level = TOP_LEVEL;
   $('ib-levels').parentElement!.hidden = !harbour;
   selection = null;
   shapeSel = null;
@@ -570,7 +572,7 @@ function showChecks() {
   if (!checking && triangles.length && !has('budget'))
     li(
       'ok',
-      `✓ 3D: ${triangles[3]!.toLocaleString('en')} of ${TRIANGLE_BUDGET.toLocaleString('en')} triangles at level 4`,
+      `✓ 3D: ${triangles[TOP_LEVEL - 1]!.toLocaleString('en')} of ${TRIANGLE_BUDGET.toLocaleString('en')} triangles at level ${TOP_LEVEL}`,
     );
   const errors = issues.filter((i) => i.severity === 'error').length;
   const warnings = issues.length - errors;
@@ -591,7 +593,7 @@ function setLevel(next: Level) {
 function drawLevels() {
   const seg = $('ib-levels');
   seg.replaceChildren();
-  for (const l of [1, 2, 3, 4] as const) {
+  for (const l of LEVELS) {
     const b = document.createElement('button');
     b.innerHTML = `<b>${l}</b> <span>${LEVEL_NAMES[l - 1]}</span>`;
     b.title = `Level ${l} (key ${l})`;
@@ -1162,7 +1164,7 @@ document.addEventListener('keydown', (e) => {
     history.record(design);
     turnProp(design, selection, (design.props[selection]!.turn ?? 0) + (e.shiftKey ? -15 : 15));
     commit();
-  } else if (['1', '2', '3', '4'].includes(e.key) && !mod) {
+  } else if (LEVELS.map(String).includes(e.key) && !mod) {
     setLevel(Number(e.key) as Level);
   } else if (e.key.startsWith('Arrow') && selection !== null) {
     e.preventDefault();

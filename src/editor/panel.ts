@@ -1,6 +1,7 @@
 import { GOODS, GOOD_DEFS, GOOD_ICONS, type GoodId, isGood } from '../sim/goods';
 import type { LandmarkKind, MapDef, PortDef } from '../sim/map';
 import { SHIP_CLASSES } from '../sim/ship';
+import { DEFAULT_START_LEVEL, SETTLEMENT_LEVELS, TOWN_LEVELS } from '../sim/settlement';
 import {
   type Selection,
   addPort,
@@ -30,7 +31,8 @@ export interface PanelHost {
 }
 
 const LANDMARKS: (LandmarkKind | '')[] = ['', 'lighthouse', 'ruins', 'wreck', 'beacon'];
-const LEVELS = ['2', '3', '4'] as const;
+/** Levels a town can grow into (all but the first), from `town-levels.json` (decision 0113). */
+const LEVELS = SETTLEMENT_LEVELS.slice(1).map(String);
 
 export function renderPanel(root: HTMLElement, host: PanelHost) {
   root.replaceChildren();
@@ -258,13 +260,8 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     text('Port name', port.name, (v) => (port.name = v || port.name));
     select(
       'Start level',
-      String(port.level ?? 2),
-      [
-        ['1', '1 · hamlet'],
-        ['2', '2 · village'],
-        ['3', '3 · town'],
-        ['4', '4 · port town'],
-      ],
+      String(port.level ?? DEFAULT_START_LEVEL),
+      TOWN_LEVELS.map((l, i) => [String(i + 1), `${i + 1} · ${l.name.toLowerCase()}`]),
       (v) => (port.level = Number(v)),
     );
     const goodList = (items: string[] | undefined) => (items ?? []).filter(isGood);

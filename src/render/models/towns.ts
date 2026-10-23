@@ -70,7 +70,9 @@ import type { IslandCheckKit } from '../../sim/islandChecks';
  * collision outline) and the pier line stay where the simulation has them.
  * Every placement is seeded per island and filled in a fixed order, so a level-up only adds.
  */
-export type TownLevel = 1 | 2 | 3 | 4;
+/** A town level (decision 0113: their number is data). The hand-built looks below stop at 4: a
+ * higher level looks like a port town until an island file gives it props of its own. */
+export type TownLevel = number;
 
 type Spot = { x: number; y: number; z: number };
 
@@ -138,7 +140,8 @@ export function townIslandParts(spec: TownIslandSpec): Parts {
       spec.level,
       spec.harbour,
     );
-  const { level, R, sx, sz, pier } = spec;
+  const { R, sx, sz, pier } = spec;
+  const level = Math.min(Math.max(spec.level, 1), 4);
   const kind: Kind =
     (['fish', 'timber', 'grain', 'stone'] as const).find((k) => k === spec.kind) ?? 'yard';
   const P = PROFILE[kind];

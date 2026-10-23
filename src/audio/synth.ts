@@ -19,7 +19,11 @@ export interface Band {
 }
 
 /** Build the shared mixing desk: one filtered bus per instrument, an echo on the flute. */
-export function createBand(ctx: BaseAudioContext, destination: AudioNode = ctx.destination): Band {
+export function createBand(
+  ctx: BaseAudioContext,
+  destination: AudioNode = ctx.destination,
+  echo = THEME.echo,
+): Band {
   const out = ctx.createGain();
   out.connect(destination);
 
@@ -49,7 +53,7 @@ export function createBand(ctx: BaseAudioContext, destination: AudioNode = ctx.d
   tone.type = 'lowpass';
   tone.frequency.value = 2200;
   const wet = ctx.createGain();
-  wet.gain.value = THEME.echo;
+  wet.gain.value = echo;
   flute.connect(delay).connect(tone).connect(feedback).connect(delay);
   tone.connect(wet).connect(comp);
 

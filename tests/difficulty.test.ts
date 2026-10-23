@@ -46,7 +46,7 @@ describe('difficulty levels (decision 0083)', () => {
   it('starts a voyage with the level’s gold and remembers the easiest level played', () => {
     const w = world();
     startVoyage(w.trade, 'salt');
-    expect(w.trade.captain.gold).toBe(DIFFICULTY.salt.startGold);
+    expect(w.trade.captain.gold).toBe(DIFFICULTY.salt!.startGold);
     expect(w.trade.easiestDifficulty).toBe('salt');
     setDifficulty(w.trade, 'fair');
     setDifficulty(w.trade, 'captain');
@@ -136,7 +136,7 @@ describe('difficulty levels (decision 0083)', () => {
     expect(back.trade.difficulty).toBe('salt');
     expect(back.trade.easiestDifficulty).toBe('fair');
     // The port's cut follows the loaded level.
-    expect(back.trade.markets.saltmere!.spread).toBe(DIFFICULTY.salt.spread);
+    expect(back.trade.markets.saltmere!.spread).toBe(DIFFICULTY.salt!.spread);
 
     const old = serializeWorld(world()) as unknown as Record<string, unknown>;
     delete old.difficulty;

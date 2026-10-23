@@ -1,0 +1,9 @@
+{
+  "levels": [
+    { "name": "Hamlet" },
+    { "name": "Village" },
+    { "name": "Town" },
+    { "name": "Port town" }
+  ],
+  "startLevel": 2
+}

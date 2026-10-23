@@ -1,16 +1,23 @@
-import { TUNING } from '../data/tuning';
+import { SHIPPED_TUNING, TUNING } from '../data/tuning';
 import { USUAL_WEATHER, type WeatherConfig } from './wind';
 
 /**
  * Difficulty levels (decision 0083). The boat sails the same at every level: polars, no-go zone,
  * tacking, shallows and the press warning never change. A level only changes what a mistake costs
  * and how fast the trade pays, plus how rough the weather is. Captain is the game as tuned in
- * 0046; the other two scale it. Saved with the voyage and changeable at any time.
+ * 0046; the other levels scale it. Saved with the voyage and changeable at any time.
+ *
+ * The levels are the entries of `src/data/tuning/difficulty.json` › `levels` (decision 0113), from
+ * the easiest to the hardest: a new level is one entry there, and its card on the New voyage
+ * screen and its button in Settings are built from it. `default` is the level a voyage plays when
+ * none is picked or saved, and the one that keeps the map's own weather.
  */
-export const DIFFICULTIES = ['fair', 'captain', 'salt'] as const;
-export type Difficulty = (typeof DIFFICULTIES)[number];
+export type Difficulty = string;
 
-export const DEFAULT_DIFFICULTY: Difficulty = 'captain';
+/** Every level, easiest first, as shipped (the list does not change while playing). */
+export const DIFFICULTIES: readonly Difficulty[] = Object.keys(SHIPPED_TUNING.difficulty.levels);
+
+export const DEFAULT_DIFFICULTY: Difficulty = SHIPPED_TUNING.difficulty.default;
 
 export interface DifficultyKnobs {
   /** Cargo units thrown per lurch or overpressed spell; 0 keeps the cargo (the warning still shows). */
@@ -35,18 +42,30 @@ export interface DifficultyKnobs {
   steadyWind: boolean;
 }
 
+/** A level as its file entry has it: the knobs plus how its card looks. */
+export interface DifficultyLevel extends DifficultyKnobs {
+  /** English name; the game shows `level.<id>` from the text files when there is one. */
+  name: string;
+  /** English one-line pitch under the name (`level.<id>Tag`). */
+  tag: string;
+  /** Colour of the waves on its card. */
+  color: string;
+  /** How many waves its card draws: 1 calm to 3 rough. */
+  waves: number;
+}
+
 /** The live knobs of each level, from `src/data/tuning/difficulty.json` (decision 0094). */
 export const DIFFICULTY = TUNING.difficulty.levels as Readonly<
-  Record<Difficulty, Readonly<DifficultyKnobs>>
+  Record<Difficulty, Readonly<DifficultyLevel>>
 >;
 
 export function isDifficulty(v: unknown): v is Difficulty {
-  return typeof v === 'string' && (DIFFICULTIES as readonly string[]).includes(v);
+  return typeof v === 'string' && DIFFICULTIES.includes(v);
 }
 
 /** The knobs of a level; anything unknown plays as Captain. */
 export function knobs(difficulty: Difficulty | undefined): Readonly<DifficultyKnobs> {
-  return DIFFICULTY[difficulty ?? DEFAULT_DIFFICULTY] ?? DIFFICULTY[DEFAULT_DIFFICULTY];
+  return DIFFICULTY[difficulty ?? DEFAULT_DIFFICULTY] ?? DIFFICULTY[DEFAULT_DIFFICULTY]!;
 }
 
 /** The easier of two levels (for "easiest level played" on a voyage). */

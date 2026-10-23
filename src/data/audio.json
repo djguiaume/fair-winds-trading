@@ -1,0 +1,8 @@
+{
+  "music": {
+    "sea": { "theme": "fair-winds" }
+  },
+  "effects": {
+    "creak": { "synth": "creak", "volume": 1.6 }
+  }
+}

@@ -71,3 +71,102 @@ Copy a ship file in [`src/data/ships/`](../../src/data/ships/), rename it to the
   `?view=boats` for all ships side by side).
 - **Names:** `ship.ketch` and `shipThe.ketch` in `src/i18n/en.json` and `fr.json`; until then the
   game shows `name`.
+
+## A new difficulty level ([0113](../decisions/0113-levels-tutorial-and-music-as-data.md))
+
+Add an entry under `levels` in
+[`src/data/tuning/difficulty.json`](../../src/data/tuning/difficulty.json), in its place from the
+easiest to the hardest:
+
+```json
+"storm": {
+  "name": "Storm petrel",
+  "tag": "Gales all the way",
+  "color": "#c48bff",
+  "waves": 3,
+  "cargoLost": 2, "damage": 2, "repairCost": 4, "spread": 0.14, "orderFactor": 1.1,
+  "startGold": 80, "growth": 1.5, "galeWeight": 0.3, "stormEverySec": 300, "steadyWind": false
+}
+```
+
+- The key is stored in saves: never rename a shipped level. `default` at the top of the file is
+  the level that plays when none is picked (Captain); it keeps the map's own weather and wears the
+  "Standard" badge.
+- `name`, `tag`, `color` and `waves` (1 to 3) make its card on the New voyage screen and its
+  button in Settings; the knobs are explained in `src/data/tuning-meta.ts`.
+- Text: `level.storm` (name), `level.stormTag` and the card's points `level.storm1`,
+  `level.storm2`… in `src/i18n/en.json` and `fr.json`. Points after the third are hidden on small
+  screens. Until then the card shows `name` and `tag` and no points.
+- Check the balance: `tests/difficulty-balance.test.ts` runs every level.
+
+## A new town level ([0113](../decisions/0113-levels-tutorial-and-music-as-data.md))
+
+Add an entry at the end of `levels` in
+[`src/data/town-levels.json`](../../src/data/town-levels.json) (`{ "name": "City" }`), then one
+number for it in each per-level table of
+[`src/data/tuning/economy.json`](../../src/data/tuning/economy.json) › `towns`:
+`growthToLevel` (`"5": 600`), `wantsEquilibrium`, `producesEquilibrium` and `orderScale`. A test
+fails until every table has one entry per level.
+
+- Levels are stored in saves as numbers: add at the end, never in between.
+- The top level is the one the rare-goods gate holds back ([0065](../decisions/0065-rare-goods-from-the-far-yards.md)).
+- What a town wants and makes at the new level: the map editor (port panel, "Wants at L5"…).
+- Its look: give props `from: 5` in the island builder; until then it looks like a port town.
+- Name: `settlement.level.5` in `src/i18n/en.json` and `fr.json`; until then the game shows `name`.
+
+## The tutorial's lessons ([0113](../decisions/0113-levels-tutorial-and-music-as-data.md))
+
+The tutorial is the first quest, [`src/data/quests/first-voyage.json`](../../src/data/quests/first-voyage.json).
+At the top: `id`, `name`, `start` (`offered`: offered on a fresh voyage and from the menu),
+`text` (the prefix of its text keys, `lesson`), `reward` (`gold` paid once when it is finished)
+and `steps`, the lessons in order. Later quests are meant to use the same format.
+
+Each step:
+
+| Field         | What                                                                                                                         |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `id`          | stored in the player's tutorial progress; its text is `<text>.<id>.title`, `.copy` and `.continue`                          |
+| `action`      | the card's button: `chart`, `market` or `tips`                                                                               |
+| `port`        | the harbour the lesson is about: `origin` (where cargo is bought) or `delivery` (where it is sold)                          |
+| `picks`       | which of the two a harbour picked on the chart sets                                                                          |
+| `cargo`       | `true`: the lesson follows the cargo aboard                                                                                  |
+| `continue`    | when the card shows Continue: `always` or `with-cargo`                                                                       |
+| `pointer`     | the harbour the coach mark points at: `nearest-port`, `buyer`, `origin` or `delivery` (default: `port`)                     |
+| `pointerGood` | the good whose market button it points at: `produced` (the origin's own) or `cargo`                                         |
+| `coach`       | what it points at per surface (`sea`, `chart`, `market`): `chart-button`, `sail-lever`, `wind-compass`, `port-marker`, `dock-button`, `chart-port`, `close-chart`, `buy-button`, `sell-button` |
+| `on`          | the step each event leads to (`done` finishes the tutorial)                                                                  |
+
+Events: `chart-opened`, `port-picked`, `destination-cleared`, `sails-practised`, `continue`,
+`docked`, `left-port`, `bought`, `sold`, `cargo-gone`, `cargo-sold` (what each one watches:
+`src/sim/tutorial.ts`). Lesson text can use `{origin}`, `{delivery}`, `{cargo}`, `{good}` and
+`{buyer}`. `tests/tutorial-data.test.ts` checks every event, target and text exists.
+
+- Not from data yet: a lesson that waits for something no event watches (reefing in a gale, say)
+  needs one new event in code.
+
+## Music and sounds ([0113](../decisions/0113-levels-tutorial-and-music-as-data.md))
+
+Every sound is listed in [`src/data/audio.json`](../../src/data/audio.json):
+
+```json
+{
+  "music": { "sea": { "theme": "fair-winds" } },
+  "effects": { "creak": { "synth": "creak", "volume": 1.6 } }
+}
+```
+
+- **A recorded sound:** put the file in `public/audio/` and point to it:
+  `"sea": { "file": "audio/sea-shanty.mp3", "volume": 0.8 }` loops it as the sea music;
+  `"creak": { "file": "audio/creak.ogg" }` plays it as the creak. MP3 or OGG; keep files small for
+  old phones. A missing file plays as silence.
+- **A new tune from the composer:** copy
+  [`src/data/music/fair-winds.json`](../../src/data/music/fair-winds.json), rename it
+  (`harbour-jig.json`), change what differs and point a track at it
+  (`"theme": "harbour-jig"`). The file holds `tempo` (beats per minute range), `scales` and `keys`
+  (tonic as a MIDI note, 62 = D), `rhythms` (bar rhythms in eighths, each adding up to 6),
+  `progressions` (chords as scale degrees, 0 = home chord), `startSteps`, `range`, `leap` and
+  `moves` of the melody, `restChance`, `accents`, `padVel`, `bassVel`, `restBars` (pad chords
+  between tunes) and `echo`. Every tune is still 16 bars in 6/8 on flute, pad and bass: a new
+  form or instrument needs code once.
+- The game plays `music.sea` and `effects.creak`; a new kind of moment (port music, a bell when an
+  order is done) needs one line of code to play it, then it is a line in this file.

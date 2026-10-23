@@ -1,3 +1,4 @@
+import { renderDifficultyButtons, renderLevelCards } from './ui/levelCards';
 import { PHASE1_MAP } from './data/maps';
 import { EDITED_PREFIX, editedMap, prefixedStorage } from './data/editedMap';
 import { Input } from './input/input';
@@ -42,6 +43,7 @@ import {
   goodSome,
   setLanguage,
   t,
+  townLevelName,
   translateDom,
 } from './i18n';
 import { TradePanel } from './ui/tradePanel';
@@ -70,6 +72,9 @@ for (const type of ['pointerdown', 'pointerup', 'touchend', 'keydown'] as const)
   window.addEventListener(type, unlockAudio, { capture: true, once: true });
 }
 setLanguage(settings.language ?? detectLanguage(browserLanguages()));
+// Level cards and the Settings level switch come from difficulty.json (decision 0113).
+renderLevelCards(document.getElementById('level-cards')!);
+renderDifficultyButtons(document.getElementById('difficulty')!);
 translateDom();
 const canvas = $<HTMLCanvasElement>('scene');
 
@@ -714,7 +719,7 @@ function handleEvents(events: WorldEvent[]) {
                 workshop: workshopName(specialty),
                 good: goodSome(specialty),
               })
-            : t('toast.levelUp', { name: portName, level: t(`settlement.level.${e.level}`) }),
+            : t('toast.levelUp', { name: portName, level: townLevelName(e.level) }),
         5,
       );
       view.setSettlementLevels(settlementLevels(world.trade));

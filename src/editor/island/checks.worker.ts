@@ -1,3 +1,4 @@
+import { SETTLEMENT_LEVELS } from '../../sim/settlement';
 import type { IslandDesign } from '../../data/islands';
 import { islandCheckKit } from '../../render/models/towns';
 import { type IslandIssue, checkIsland } from '../../sim/islandChecks';
@@ -11,8 +12,8 @@ scope.addEventListener(
     const { id, design, R, harbour } = event.data;
     try {
       const kit = islandCheckKit(design, R, harbour);
-      const triangles = [1, 2, 3, 4].map((level) => kit.triangles!(level));
-      kit.triangles = () => triangles[3]!;
+      const triangles = SETTLEMENT_LEVELS.map((level) => kit.triangles!(level));
+      kit.triangles = () => triangles.at(-1)!;
       scope.postMessage({ id, issues: checkIsland(design, kit), triangles });
     } catch (error) {
       const issue: IslandIssue = {

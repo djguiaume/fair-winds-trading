@@ -6,6 +6,7 @@ import { landmarkOf } from '../data/islands';
 import type { IslandDef, MapDef, PortDef } from './map';
 import { DEG, bearingTo, wrapAngle } from './math';
 import { CUTTER, SLOOP, noGoAngle, polarFraction } from './ship';
+import { MAX_SETTLEMENT_LEVEL } from './settlement';
 
 /**
  * Map checks (decision 0095): the rules the map tests apply to the Windward Ring, written for any
@@ -209,8 +210,8 @@ export function quickChecks(map: MapDef): MapCheck[] {
   for (const port of map.ports) {
     if (!map.islands.some((i) => i.id === port.islandId))
       problems.push(`${port.name} sits on missing island "${port.islandId}"`);
-    if (port.level !== undefined && !(port.level >= 1 && port.level <= 4))
-      problems.push(`${port.name} level ${port.level} (1 to 4)`);
+    if (port.level !== undefined && !(port.level >= 1 && port.level <= MAX_SETTLEMENT_LEVEL))
+      problems.push(`${port.name} level ${port.level} (1 to ${MAX_SETTLEMENT_LEVEL})`);
     const { made, wanted } = portGoods(port);
     for (const good of [...made, ...wanted])
       if (!isGood(good)) problems.push(`${port.name}: unknown good "${good}"`);
