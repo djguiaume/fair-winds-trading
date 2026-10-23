@@ -1,0 +1,946 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Island builder · mockup</title>
+    <!--
+      Static mockup of the island builder (decision 0096). Not part of the game: it is screenshotted
+      into docs/island-builder/*.png. The island picture and the 3D preview are real renders of
+      Port Calda at level 3 (models.html), the palette tiles are the real prop models, and the
+      homes, lanes and outlines come from the game's own layout code (calda-data.json).
+      Views: ?view=props (default), ?view=terrain, ?view=portrait (open at 412 x 915).
+    -->
+    <style>
+      @font-face {
+        font-family: 'Barlow Condensed';
+        font-weight: 700;
+        src: url('../../../src/ui/fonts/barlow-condensed-700.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Barlow';
+        font-weight: 500;
+        src: url('../../../src/ui/fonts/barlow-500.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Barlow';
+        font-weight: 700;
+        src: url('../../../src/ui/fonts/barlow-700.woff2') format('woff2');
+      }
+      :root {
+        --navy: #0d2433;
+        --navy-solid: #123246;
+        --field: #183e55;
+        --brass: #e8c46a;
+        --brass-line: rgba(232, 196, 106, 0.55);
+        --ink: #eef3f4;
+        --ink-dim: rgba(238, 243, 244, 0.68);
+        --green-ink: #8fe3a4;
+        --amber: #ffb36b;
+        --red: #ff6a55;
+        --display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+        --body: 'Barlow', 'Trebuchet MS', sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      #app {
+        height: 100%;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: var(--navy);
+        color: var(--ink);
+        font: 500 14px/1.3 var(--body);
+        overflow: hidden;
+      }
+      .btn {
+        border: 1px solid var(--brass-line);
+        border-radius: 8px;
+        background: var(--navy-solid);
+        padding: 5px 12px;
+        font: 700 15px/1.2 var(--display);
+        color: var(--ink);
+        white-space: nowrap;
+      }
+      .btn.primary {
+        background: var(--brass);
+        color: #10232f;
+        border-color: var(--brass);
+      }
+      .btn.dim {
+        opacity: 0.4;
+      }
+      h2 {
+        margin: 0 0 8px;
+        font: 700 19px/1.1 var(--display);
+        color: var(--brass);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      h2 small {
+        font: 500 13px var(--body);
+        text-transform: none;
+        color: var(--ink-dim);
+        letter-spacing: 0;
+      }
+      .top {
+        height: 52px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 12px;
+        border-bottom: 1px solid var(--brass-line);
+      }
+      .brand {
+        font: 700 24px/1 var(--display);
+        color: var(--brass);
+        letter-spacing: 0.04em;
+      }
+      .crumb {
+        font: 700 15px var(--body);
+        color: var(--ink-dim);
+      }
+      .crumb b {
+        color: var(--ink);
+      }
+      .grow {
+        flex: 1;
+      }
+      .main {
+        display: flex;
+        height: calc(100% - 52px);
+      }
+      .rail {
+        width: 68px;
+        padding: 10px 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        border-right: 1px solid rgba(232, 196, 106, 0.2);
+      }
+      .tool {
+        width: 52px;
+        border: 1px solid var(--brass-line);
+        border-radius: 8px;
+        background: var(--navy-solid);
+        text-align: center;
+        padding: 5px 0 3px;
+        font-size: 20px;
+      }
+      .tool span {
+        display: block;
+        font: 700 11px var(--display);
+        color: var(--ink-dim);
+        margin-top: 1px;
+        letter-spacing: 0.02em;
+      }
+      .tool.on {
+        background: var(--brass);
+        border-color: var(--brass);
+      }
+      .tool.on span {
+        color: #10232f;
+      }
+      .tool.sep {
+        margin-top: 8px;
+      }
+      .palette {
+        width: 250px;
+        padding: 12px 10px;
+        border-right: 1px solid rgba(232, 196, 106, 0.2);
+        overflow: hidden;
+      }
+      .search {
+        background: var(--field);
+        border-radius: 8px;
+        padding: 6px 10px;
+        color: var(--ink-dim);
+        margin-bottom: 8px;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 10px;
+      }
+      .chip {
+        border: 1px solid var(--brass-line);
+        border-radius: 99px;
+        padding: 2px 9px;
+        font: 700 13px var(--display);
+        color: var(--ink-dim);
+      }
+      .chip.on {
+        background: var(--brass);
+        color: #10232f;
+        border-color: var(--brass);
+      }
+      .group {
+        font: 700 13px var(--display);
+        color: var(--brass);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 8px 2px 4px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+      }
+      .tile {
+        background: var(--field);
+        border: 1px solid transparent;
+        border-radius: 8px;
+        text-align: center;
+        padding: 3px 2px 4px;
+        font: 700 12px/1.05 var(--display);
+        color: var(--ink);
+      }
+      .tile img {
+        width: 56px;
+        height: 56px;
+        display: block;
+        margin: 0 auto 1px;
+      }
+      .tile.drag {
+        border-color: var(--brass);
+        opacity: 0.45;
+      }
+      .tile.style {
+        border-color: rgba(143, 227, 164, 0.5);
+      }
+      .canvas {
+        position: relative;
+        flex: 1;
+        overflow: hidden;
+        background: #2a8f99;
+      }
+      .canvas img.island,
+      .canvas svg {
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+      .levelbar {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(13, 36, 51, 0.88);
+        border: 1px solid var(--brass-line);
+        border-radius: 10px;
+        padding: 6px 10px;
+      }
+      .levelbar .label {
+        font: 700 14px var(--display);
+        color: var(--brass);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .seg {
+        display: flex;
+        border: 1px solid var(--brass-line);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .seg div {
+        padding: 4px 10px;
+        font: 700 14px var(--display);
+        color: var(--ink-dim);
+        border-left: 1px solid rgba(232, 196, 106, 0.3);
+      }
+      .seg div:first-child {
+        border-left: 0;
+      }
+      .seg div b {
+        font-size: 16px;
+        color: var(--ink);
+        margin-right: 4px;
+      }
+      .seg div.on {
+        background: var(--brass);
+        color: #10232f;
+      }
+      .seg div.on b {
+        color: #10232f;
+      }
+      .toggle {
+        font: 700 14px var(--display);
+        color: var(--ink);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .toggle i {
+        width: 15px;
+        height: 15px;
+        border-radius: 4px;
+        background: var(--brass);
+        display: inline-block;
+        color: #10232f;
+        font: 700 12px/15px var(--body);
+        text-align: center;
+        font-style: normal;
+      }
+      .floatbtns {
+        position: absolute;
+        right: 12px;
+        top: 12px;
+        display: flex;
+        gap: 6px;
+      }
+      .pill {
+        border: 1px solid var(--brass-line);
+        border-radius: 99px;
+        background: rgba(13, 36, 51, 0.88);
+        padding: 4px 11px;
+        font: 700 14px var(--display);
+      }
+      .pill.on {
+        background: rgba(232, 196, 106, 0.9);
+        color: #10232f;
+      }
+      .zoom {
+        position: absolute;
+        right: 12px;
+        bottom: 60px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .zoom div {
+        width: 32px;
+        height: 32px;
+        border: 1px solid var(--brass-line);
+        border-radius: 8px;
+        background: rgba(13, 36, 51, 0.88);
+        text-align: center;
+        font: 700 18px/30px var(--body);
+      }
+      .hint {
+        position: absolute;
+        left: 12px;
+        bottom: 12px;
+        background: rgba(13, 36, 51, 0.92);
+        border: 1px solid var(--brass-line);
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 13.5px;
+      }
+      .side {
+        width: 340px;
+        border-left: 1px solid rgba(232, 196, 106, 0.2);
+        padding: 12px 14px;
+        overflow: hidden;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin: 6px 0;
+      }
+      .row > span:first-child {
+        color: var(--ink-dim);
+        white-space: nowrap;
+      }
+      .val {
+        background: var(--field);
+        border-radius: 7px;
+        padding: 5px 9px;
+        min-width: 70px;
+        font-weight: 700;
+      }
+      .sel-head {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 4px;
+      }
+      .sel-head img {
+        width: 58px;
+        height: 58px;
+        background: var(--field);
+        border-radius: 8px;
+      }
+      .sel-head .t {
+        font: 700 21px/1.05 var(--display);
+      }
+      .sel-head .s {
+        color: var(--ink-dim);
+        font-size: 13px;
+      }
+      .small-seg div {
+        padding: 3px 9px;
+      }
+      .dial {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .dial svg {
+        display: block;
+      }
+      hr {
+        border: 0;
+        border-top: 1px solid rgba(232, 196, 106, 0.25);
+        margin: 10px 0;
+      }
+      .preview {
+        position: relative;
+        border: 1px solid var(--brass-line);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .preview img {
+        display: block;
+        width: 100%;
+      }
+      .preview .cap {
+        position: absolute;
+        left: 8px;
+        top: 6px;
+        font: 700 13px var(--display);
+        background: rgba(13, 36, 51, 0.8);
+        border-radius: 6px;
+        padding: 2px 7px;
+      }
+      .preview .cap2 {
+        position: absolute;
+        right: 8px;
+        bottom: 6px;
+        font: 700 12px var(--display);
+        background: rgba(13, 36, 51, 0.8);
+        border-radius: 6px;
+        padding: 2px 7px;
+        color: var(--ink-dim);
+      }
+      .checks div {
+        margin: 3px 0;
+        color: var(--green-ink);
+        font-size: 13.5px;
+      }
+      .checks div.warn {
+        color: var(--amber);
+      }
+      .checks div small {
+        display: block;
+        color: var(--ink-dim);
+        margin-left: 17px;
+        font-size: 12.5px;
+      }
+      .btnrow {
+        display: flex;
+        gap: 6px;
+        margin-top: 8px;
+      }
+      .danger {
+        border-color: rgba(255, 106, 85, 0.6);
+        color: #ffb3a8;
+      }
+      .tools2 .opt {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        background: var(--field);
+        border: 1px solid transparent;
+        border-radius: 8px;
+        padding: 7px 9px;
+        margin-bottom: 6px;
+      }
+      .tools2 .opt.on {
+        border-color: var(--brass);
+      }
+      .tools2 .opt .ic {
+        font-size: 22px;
+        width: 28px;
+        text-align: center;
+      }
+      .tools2 .opt b {
+        font: 700 16px var(--display);
+        display: block;
+      }
+      .tools2 .opt small {
+        color: var(--ink-dim);
+        font-size: 12.5px;
+      }
+
+      /* Portrait (phone): chart on top, sheet below. */
+      body.portrait .top {
+        height: 46px;
+        padding: 0 10px;
+        gap: 8px;
+      }
+      body.portrait .brand {
+        font-size: 19px;
+      }
+      body.portrait .crumb {
+        font-size: 14px;
+      }
+      .p-level {
+        padding: 6px 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid rgba(232, 196, 106, 0.2);
+      }
+      .p-level .seg {
+        flex: 1;
+      }
+      .p-level .seg div {
+        flex: 1;
+        text-align: center;
+        padding: 4px 0;
+      }
+      .p-canvas {
+        position: relative;
+        height: 400px;
+        overflow: hidden;
+        background: #2a8f99;
+      }
+      .p-canvas .mini {
+        position: absolute;
+        right: 8px;
+        bottom: 8px;
+        width: 128px;
+        border: 1px solid var(--brass-line);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .p-canvas .mini img {
+        display: block;
+        width: 100%;
+      }
+      .p-canvas .mini span {
+        position: absolute;
+        left: 4px;
+        top: 3px;
+        font: 700 11px var(--display);
+        background: rgba(13, 36, 51, 0.8);
+        border-radius: 4px;
+        padding: 0 4px;
+      }
+      .tabs {
+        display: flex;
+        border-bottom: 1px solid var(--brass-line);
+      }
+      .tabs div {
+        flex: 1;
+        text-align: center;
+        padding: 8px 0 6px;
+        font: 700 15px var(--display);
+        color: var(--ink-dim);
+      }
+      .tabs div.on {
+        color: var(--brass);
+        border-bottom: 3px solid var(--brass);
+      }
+      .tabs div em {
+        font-style: normal;
+        color: var(--amber);
+      }
+      .selstrip {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        background: var(--field);
+        margin: 8px 10px;
+        border-radius: 10px;
+      }
+      .selstrip img {
+        width: 40px;
+        height: 40px;
+      }
+      .selstrip .t {
+        font: 700 16px/1.05 var(--display);
+        flex: 1;
+      }
+      .selstrip .t small {
+        display: block;
+        font: 500 12px var(--body);
+        color: var(--ink-dim);
+      }
+      .ibtn {
+        width: 36px;
+        height: 36px;
+        border: 1px solid var(--brass-line);
+        border-radius: 8px;
+        background: var(--navy-solid);
+        text-align: center;
+        font: 700 17px/34px var(--body);
+      }
+      .p-pal {
+        padding: 0 10px;
+      }
+      .p-canvas svg {
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+      .p-pal .chips {
+        flex-wrap: nowrap;
+        overflow: hidden;
+      }
+      .p-pal .grid {
+        grid-template-columns: repeat(5, 1fr);
+      }
+      .p-pal .tile img {
+        width: 48px;
+        height: 48px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      const view = new URLSearchParams(location.search).get('view') || 'props';
+      const ISLAND_RADIUS = 26; // Port Calda on the Windward Ring
+
+      const PROPS = {
+        Homes: [
+          ['cabin', 'Cabin'],
+          ['fisher-house', "Fisher's house"],
+          ['farmhouse', 'Farmhouse'],
+          ['stone-house', 'Stone house'],
+          ['yard-house', 'Yard house'],
+        ],
+        Town: [
+          ['warehouse', 'Warehouse'],
+          ['market-hall', 'Market hall'],
+          ['spire-church', 'Church'],
+          ['keep', 'Keep'],
+          ['lamp-post', 'Lamp post'],
+          ['crates', 'Crates'],
+        ],
+        Timber: [
+          ['sawmill', 'Sawmill'],
+          ['big-sawmill', 'Big sawmill'],
+          ['timber-workshop', 'Workshop'],
+          ['log-pile', 'Log pile'],
+          ['lumber', 'Planks'],
+          ['slipway', 'Slipway'],
+        ],
+        Fish: [
+          ['smokehouse', 'Smokehouse'],
+          ['drying-rack', 'Drying rack'],
+          ['fishing-boat', 'Fishing boat'],
+        ],
+        Farm: [
+          ['windmill', 'Windmill'],
+          ['barn', 'Barn'],
+          ['granary', 'Granary'],
+          ['bakery', 'Bakery'],
+          ['haystack', 'Haystack'],
+        ],
+        Stone: [
+          ['masons-yard', "Mason's yard"],
+          ['derrick', 'Derrick'],
+          ['stone-blocks', 'Blocks'],
+        ],
+        Nature: [
+          ['pine', 'Pine'],
+          ['broadleaf', 'Broadleaf'],
+        ],
+        Landmarks: [
+          ['lighthouse', 'Lighthouse'],
+          ['beacon', 'Beacon'],
+          ['ruins', 'Ruins'],
+          ['wreck', 'Wreck'],
+        ],
+      };
+
+      // Everything placed on Port Calda besides homes and trees, as in towns.ts today.
+      const CALDA = [
+        { type: 'warehouse', x: -0.2, z: 0.5, from: 2 },
+        { type: 'sawmill', x: -0.05, z: -0.2, from: 1, to: 2 },
+        { type: 'big-sawmill', x: -0.05, z: -0.2, from: 3 },
+        { type: 'timber-workshop', x: 0.4, z: 0.43, from: 3 },
+        { type: 'timber-workshop', x: -0.12, z: -1.16, from: 3, sel: true },
+        { type: 'log-pile', x: 0.35, z: 0.82, from: 1 },
+        { type: 'log-pile', x: 0.56, z: 0.82, from: 2 },
+        { type: 'log-pile', x: 0.77, z: 0.82, from: 3 },
+        { type: 'log-pile', x: 0.2, z: -0.9, from: 3 },
+        { type: 'log-pile', x: 0.43, z: -0.9, from: 4 },
+        { type: 'log-pile', x: 0.66, z: -0.9, from: 4, warn: true },
+        { type: 'lamp-post', x: 0.12, z: -0.05, from: 1 },
+        { type: 'lamp-post', x: 0.95, z: 0.82, from: 1 },
+        { type: 'lamp-post', x: 0.9, z: -0.9, from: 3 },
+        { type: 'slipway', x: 1.05, z: 0.38, from: 1 },
+      ];
+
+      const LANDSCAPE = { W: 942, H: 948, half: 57, ox: 3.25, oz: -3.9 };
+      const PORTRAIT = { W: 412, H: 400, half: 53, ox: 3.25, oz: -3.9 };
+      const projector = (c) => {
+        const k = c.H / (2 * c.half);
+        return {
+          k,
+          p: (x, z) => [c.W / 2 + (x * ISLAND_RADIUS - c.ox) * k, c.H / 2 + (z * ISLAND_RADIUS - c.oz) * k],
+        };
+      };
+      const pts = (P, list) => list.map(([x, z]) => P.p(x, z).map((v) => v.toFixed(1)).join(',')).join(' ');
+      const thumb = (id) => `props/${id}.png`;
+
+      function paletteHtml(columns, dragId) {
+        let html = '';
+        for (const [group, list] of Object.entries(PROPS)) {
+          html += `<div class="group">${group}</div><div class="grid">`;
+          for (const [id, name] of list)
+            html += `<div class="tile${id === dragId ? ' drag' : ''}"><img src="${thumb(id)}" alt="">${name}</div>`;
+          html += '</div>';
+        }
+        return html;
+      }
+
+      function levelSeg(on, compact) {
+        const names = ['Hamlet', 'Village', 'Town', 'Port town'];
+        return `<div class="seg">${names
+          .map((n, i) => `<div class="${i + 1 === on ? 'on' : ''}"><b>${i + 1}</b>${compact ? '' : n}</div>`)
+          .join('')}</div>`;
+      }
+
+      /** Overlay for the props view: selection, later-level ghosts, a drag in progress, a warning. */
+      function propsOverlay(c, data, opts = {}) {
+        const P = projector(c);
+        const k = P.k * ISLAND_RADIUS; // pixels per island-radius unit
+        let s = `<svg width="${c.W}" height="${c.H}" viewBox="0 0 ${c.W} ${c.H}" xmlns="http://www.w3.org/2000/svg">`;
+        s += `<defs><pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="rgba(255,255,255,0.08)"/><line x1="0" y1="0" x2="0" y2="8" stroke="rgba(255,255,255,0.35)" stroke-width="3"/></pattern></defs>`;
+        // Harbour approach kept clear (pier line from the simulation).
+        const [ax, ay] = P.p(-0.05, 0.62);
+        const [bx] = P.p(0.21, 0.62);
+        s += `<rect x="${ax}" y="${ay}" width="${bx - ax}" height="${c.H - ay}" fill="url(#hatch)" stroke="rgba(255,255,255,0.55)" stroke-dasharray="4 4"/>`;
+        if (!opts.compact) {
+          const [lx, ly] = P.p(0.24, 1.25);
+          s += `<text x="${lx}" y="${ly}" fill="#fff" font-family="Barlow Condensed" font-weight="700" font-size="14" stroke="#06141c" stroke-width="3" paint-order="stroke">⚓ Harbour approach · kept clear</text>`;
+        }
+        // Later-level ghosts: homes from level 4 and the level-4 log piles.
+        for (const h of data.homes.filter((h) => h.from === 4)) {
+          const [x, y] = P.p(h.x, h.z);
+          const w = Math.max(h.w, 0.07) * k,
+            d = Math.max(h.d, 0.07) * k;
+          s += `<rect x="${x - w / 2}" y="${y - d / 2}" width="${w}" height="${d}" rx="2" fill="rgba(255,255,255,0.22)" stroke="#fff" stroke-dasharray="3 2" stroke-width="1.3"/>`;
+        }
+        for (const p of CALDA.filter((p) => p.from === 4)) {
+          const [x, y] = P.p(p.x, p.z);
+          s += `<rect x="${x - 0.075 * k}" y="${y - 0.04 * k}" width="${0.15 * k}" height="${0.08 * k}" rx="2" fill="rgba(255,255,255,0.22)" stroke="${p.warn ? '#ffb36b' : '#fff'}" stroke-dasharray="3 2" stroke-width="${p.warn ? 2 : 1.3}"/>`;
+          if (p.warn && !opts.compact)
+            s += `<g transform="translate(${x + 0.1 * k},${y - 0.11 * k})"><circle r="9" fill="#ffb36b"/><text y="4.5" text-anchor="middle" font-size="13" font-weight="700" fill="#10232f" font-family="Barlow">!</text></g>`;
+        }
+        if (!opts.compact) {
+          const [gx, gy] = P.p(0.43, -0.9);
+          s += `<text x="${gx - 22}" y="${gy + 0.09 * k + 12}" fill="#fff" font-family="Barlow Condensed" font-weight="700" font-size="13" stroke="#06141c" stroke-width="3" paint-order="stroke">from level 4</text>`;
+        }
+        // Selection: the upland timber workshop, with its rotate handle.
+        const sel = CALDA.find((p) => p.sel);
+        const [sx, sy] = P.p(sel.x, sel.z);
+        const sw = 0.36 * k,
+          sd = 0.22 * k;
+        s += `<g transform="translate(${sx},${sy})"><rect x="${-sw / 2}" y="${-sd / 2}" width="${sw}" height="${sd}" fill="none" stroke="#e8c46a" stroke-width="2.5" rx="3"/>`;
+        for (const [hx, hy] of [
+          [-sw / 2, -sd / 2],
+          [sw / 2, -sd / 2],
+          [-sw / 2, sd / 2],
+          [sw / 2, sd / 2],
+        ])
+          s += `<rect x="${hx - 4}" y="${hy - 4}" width="8" height="8" fill="#e8c46a" stroke="#10232f"/>`;
+        s += `<line x1="0" y1="${-sd / 2}" x2="0" y2="${-sd / 2 - 22}" stroke="#e8c46a" stroke-width="2"/><circle cx="0" cy="${-sd / 2 - 28}" r="8" fill="#10232f" stroke="#e8c46a" stroke-width="2"/><text x="0" y="${-sd / 2 - 23.5}" text-anchor="middle" fill="#e8c46a" font-size="12" font-weight="700" font-family="Barlow">⟳</text></g>`;
+        if (!opts.compact)
+          s += `<text x="${sx + sw / 2 + 10}" y="${sy + 5}" fill="#e8c46a" font-family="Barlow Condensed" font-weight="700" font-size="15" stroke="#06141c" stroke-width="3" paint-order="stroke">Workshop · level 3</text>`;
+        // A log pile being dragged in from the palette: green footprint, trees under it get cleared.
+        if (opts.drag) {
+          const [dx, dy] = P.p(0.66, 0.12);
+          s += `<circle cx="${dx}" cy="${dy}" r="${0.2 * k}" fill="rgba(143,227,164,0.18)" stroke="#8fe3a4" stroke-dasharray="5 4" stroke-width="1.5"/>`;
+          s += `<image href="${thumb('log-pile')}" x="${dx - 30}" y="${dy - 30}" width="60" height="60" opacity="0.95"/>`;
+          s += `<rect x="${dx - 0.08 * k}" y="${dy - 0.045 * k}" width="${0.16 * k}" height="${0.09 * k}" rx="2" fill="none" stroke="#8fe3a4" stroke-width="2"/>`;
+          s += `<text x="${dx + 0.22 * k}" y="${dy - 4}" fill="#8fe3a4" font-family="Barlow Condensed" font-weight="700" font-size="15" stroke="#06141c" stroke-width="3" paint-order="stroke">Log pile · from level 3</text>`;
+          s += `<text x="${dx + 0.22 * k}" y="${dy + 13}" fill="#fff" font-family="Barlow" font-weight="500" font-size="12.5" stroke="#06141c" stroke-width="3" paint-order="stroke">on the plateau · 3 trees cleared</text>`;
+        }
+        return s + '</svg>';
+      }
+
+      /** Overlay for the terrain view: coast, plateau and cliff edges, mountain, lake, lanes. */
+      function terrainOverlay(c, data) {
+        const P = projector(c);
+        const L = data.layout;
+        let s = `<svg width="${c.W}" height="${c.H}" viewBox="0 0 ${c.W} ${c.H}" xmlns="http://www.w3.org/2000/svg">`;
+        s += `<rect width="${c.W}" height="${c.H}" fill="rgba(13,36,51,0.18)"/>`;
+        // Coast: white outline with points.
+        const coast = L.coasts[0];
+        s += `<polygon points="${pts(P, coast)}" fill="none" stroke="#fff" stroke-width="2" stroke-opacity="0.9"/>`;
+        for (const q of coast) {
+          const [x, y] = P.p(...q);
+          s += `<circle cx="${x}" cy="${y}" r="4.5" fill="#fff" stroke="#10232f" stroke-width="1.5"/>`;
+        }
+        // The plateau (selected): brass outline, cliff band, handles.
+        const plateau = L.surfaces[1].outline;
+        s += `<polygon points="${pts(P, plateau)}" fill="rgba(232,196,106,0.16)" stroke="#e8c46a" stroke-width="7" stroke-opacity="0.35"/>`;
+        s += `<polygon points="${pts(P, plateau)}" fill="none" stroke="#e8c46a" stroke-width="2.5"/>`;
+        for (let i = 0; i < plateau.length; i++) {
+          const [x, y] = P.p(...plateau[i]);
+          s += `<rect x="${x - 5}" y="${y - 5}" width="10" height="10" fill="#e8c46a" stroke="#10232f" stroke-width="1.5"/>`;
+          const n = plateau[(i + 1) % plateau.length];
+          const [mx, my] = P.p((plateau[i][0] + n[0]) / 2, (plateau[i][1] + n[1]) / 2);
+          s += `<circle cx="${mx}" cy="${my}" r="4" fill="none" stroke="#e8c46a" stroke-width="1.5"/>`;
+        }
+        const [px, py] = P.p(0.45, -0.85);
+        s += `<text x="${px}" y="${py}" text-anchor="middle" fill="#e8c46a" font-family="Barlow Condensed" font-weight="700" font-size="16" stroke="#06141c" stroke-width="3.5" paint-order="stroke">Plateau · 3.8 m · cliff edge</text>`;
+        // Mountain and its shoulder (rock).
+        for (const surf of L.surfaces.filter((s) => s.material === 'rock'))
+          s += `<polygon points="${pts(P, surf.outline)}" fill="none" stroke="#d9d2c0" stroke-width="1.8" stroke-dasharray="6 4"/>`;
+        const [rx, ry] = P.p(1.25, -1.23);
+        s += `<text x="${rx}" y="${ry + 4}" text-anchor="middle" fill="#fff" font-family="Barlow Condensed" font-weight="700" font-size="14" stroke="#06141c" stroke-width="3" paint-order="stroke">Mountain · 11.6 m</text>`;
+        // Lake.
+        s += `<polygon points="${pts(P, L.lake)}" fill="none" stroke="#7fd6ff" stroke-width="2.2"/>`;
+        const [kx, ky] = P.p(-0.65, -0.45);
+        s += `<text x="${kx}" y="${ky + 5}" text-anchor="middle" fill="#fff" font-family="Barlow Condensed" font-weight="700" font-size="14" stroke="#06141c" stroke-width="3" paint-order="stroke">Lake</text>`;
+        // Lanes, with their bend points.
+        for (const lane of data.lanes) {
+          s += `<polyline points="${pts(P, lane)}" fill="none" stroke="#f3d37e" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 0" opacity="0.85"/>`;
+          for (const q of [lane[0], lane[Math.floor(lane.length / 3)], lane[Math.floor((2 * lane.length) / 3)], lane[lane.length - 1]]) {
+            const [x, y] = P.p(...q);
+            s += `<circle cx="${x}" cy="${y}" r="3.5" fill="#f3d37e" stroke="#10232f" stroke-width="1"/>`;
+          }
+        }
+        // A new lane being drawn up to the plateau: it crosses the cliff edge (warning).
+        const draft = [
+          [0.25, 0.1],
+          [0.45, -0.15],
+          [0.62, -0.42],
+          [0.72, -0.68],
+        ];
+        s += `<polyline points="${pts(P, draft)}" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="7 5" stroke-linecap="round"/>`;
+        for (const q of draft.slice(0, 3)) {
+          const [x, y] = P.p(...q);
+          s += `<circle cx="${x}" cy="${y}" r="5" fill="#fff" stroke="#10232f" stroke-width="1.5"/>`;
+        }
+        const [cx, cy] = P.p(0.72, -0.68);
+        s += `<circle cx="${cx}" cy="${cy}" r="7" fill="none" stroke="#fff" stroke-width="2"/><line x1="${cx - 11}" y1="${cy}" x2="${cx + 11}" y2="${cy}" stroke="#fff"/><line x1="${cx}" y1="${cy - 11}" x2="${cx}" y2="${cy + 11}" stroke="#fff"/>`;
+        const [wx, wy] = P.p(0.64, -0.535);
+        s += `<g transform="translate(${wx},${wy})"><circle r="9" fill="#ffb36b"/><text y="4.5" text-anchor="middle" font-size="13" font-weight="700" fill="#10232f" font-family="Barlow">!</text></g>`;
+        s += `<text x="${wx + 16}" y="${wy + 5}" fill="#ffb36b" font-family="Barlow Condensed" font-weight="700" font-size="15" stroke="#06141c" stroke-width="3" paint-order="stroke">crosses the cliff · make it stairs?</text>`;
+        return s + '</svg>';
+      }
+
+      function checksHtml(kind) {
+        const ok = (t, small) => `<div>✓ ${t}${small ? `<small>${small}</small>` : ''}</div>`;
+        const warn = (t, small) => `<div class="warn">⚠ ${t}${small ? `<small>${small}</small>` : ''}</div>`;
+        const list =
+          kind === 'terrain'
+            ? [
+                ok('every surface inside the coast'),
+                ok('lake clear of the coast and the town'),
+                warn('new lane crosses the plateau cliff', 'Add stairs, or end the lane at the cliff foot'),
+                ok('every prop still on its ground', 'the plateau change moves no building'),
+                ok('harbour, piers and approach unchanged'),
+                ok('3D: 5,018 of 6,000 triangles at level 4'),
+              ]
+            : [
+                ok('every prop on land, none in the lake'),
+                ok('clear of piers and the harbour approach'),
+                warn('Log pile (level 4) touches the plateau cliff edge', 'Move it at least 0.6 m inland'),
+                ok('lanes stay on one ground level'),
+                ok('homes per level: 3 · 10 · 21 · 32', 'each level only adds; nothing moves'),
+                ok('3D: 5,018 of 6,000 triangles at level 4'),
+              ];
+        return `<h2>Checks <small>same code as the tests</small></h2><div class="checks">${list.join('')}</div>`;
+      }
+
+      function topBar(compact) {
+        if (compact)
+          return `<div class="top"><span class="brand">ISLANDS</span><span class="crumb"><b>Port Calda</b></span><span class="grow"></span><span class="btn">← Map</span><span class="btn primary">Export</span></div>`;
+        return `<div class="top"><span class="brand">MAP EDITOR</span><span class="crumb">Windward Ring › <b>Port Calda</b> · islands/calda.json</span><span class="grow"></span>
+          <span class="btn">← Back to the map</span><span class="btn dim">↶ Undo</span><span class="btn dim">↷ Redo</span><span class="btn">Reset</span><span class="btn">▶ Play this island</span><span class="btn primary">Export calda.json</span></div>`;
+      }
+
+      function rail(active) {
+        const tools = [
+          ['select', '✥', 'Select'],
+          ['props', '🏠', 'Props'],
+          ['coast', '🏝️', 'Coast'],
+          ['ground', '⛰️', 'Ground'],
+          ['lanes', '〰️', 'Lanes'],
+          ['woods', '🌲', 'Woods'],
+          ['water', '💧', 'Lake'],
+        ];
+        return `<div class="rail">${tools
+          .map(([id, ic, label]) => `<div class="tool${id === active ? ' on' : ''}">${ic}<span>${label}</span></div>`)
+          .join('')}</div>`;
+      }
+
+      function levelBar(on) {
+        return `<div class="levelbar"><span class="label">Level</span>${levelSeg(on)}<span class="toggle"><i>✓</i>Show later levels</span></div>`;
+      }
+
+      async function render() {
+        const data = await (await fetch('calda-data.json')).json();
+        const app = document.getElementById('app');
+        if (view === 'portrait') {
+          document.body.classList.add('portrait');
+          app.innerHTML = `${topBar(true)}
+            <div class="p-level">${levelSeg(3, true)}<span class="toggle"><i>✓</i>Later</span></div>
+            <div class="p-canvas"><img class="island" src="calda-top-portrait.png" width="412" height="400" style="position:absolute;left:0;top:0" alt="">
+              ${propsOverlay(PORTRAIT, data, { compact: true })}
+              <div class="mini"><img src="calda-preview.png" alt=""><span>3D</span></div></div>
+            <div class="tabs"><div>Select</div><div class="on">Props</div><div>Ground</div><div>Lanes</div><div>Checks <em>⚠1</em></div></div>
+            <div class="selstrip"><img src="${thumb('timber-workshop')}" alt=""><div class="t">Workshop<small>from level 3 · on the plateau</small></div>
+              <div class="ibtn">⟲</div><div class="ibtn">⟳</div><div class="ibtn">⧉</div><div class="ibtn" style="color:#ffb3a8">🗑</div></div>
+            <div class="p-pal"><div class="chips"><span class="chip">All</span><span class="chip">Homes</span><span class="chip">Town</span><span class="chip on">Timber</span><span class="chip">Fish</span><span class="chip">Farm</span><span class="chip">Stone</span><span class="chip">Nature</span></div>
+              <div class="grid">${[...PROPS.Timber, ...PROPS.Homes.slice(0, 2), ...PROPS.Town, ...PROPS.Nature.slice(0, 1)]
+                .map(([id, n]) => `<div class="tile"><img src="${thumb(id)}" alt="">${n}</div>`)
+                .join('')}</div>
+              <div style="color:var(--ink-dim);font-size:12.5px;margin-top:8px">Drag a prop onto the island · two fingers pan and zoom</div></div>`;
+          return;
+        }
+        const terrain = view === 'terrain';
+        const left = terrain
+          ? `<div class="palette tools2"><h2>Ground</h2>
+              <div class="opt"><span class="ic">🏝️</span><div><b>Coast</b><small>Drag a point · click an edge to add one</small></div></div>
+              <div class="opt on"><span class="ic">⛰️</span><div><b>Raised ground</b><small>Draw a plateau or a terrace on top of the land</small></div></div>
+              <div class="opt"><span class="ic">🏔️</span><div><b>Mountain</b><small>A rocky peak inside a plateau</small></div></div>
+              <div class="opt"><span class="ic">💧</span><div><b>Lake</b><small>Inland water, kept clear of homes</small></div></div>
+              <h2 style="margin-top:14px">Lanes</h2>
+              <div class="opt on"><span class="ic">〰️</span><div><b>Lane</b><small>Click to add bends, double-click to finish</small></div></div>
+              <div class="opt"><span class="ic">🪜</span><div><b>Stairs</b><small>Climbs a cliff between two ground levels</small></div></div>
+              <h2 style="margin-top:14px">Woods</h2>
+              <div class="opt"><span class="ic">🌲</span><div><b>Woods brush</b><small>Paint where trees grow; homes and lanes clear them</small></div></div></div>`
+          : `<div class="palette"><div class="search">🔍 Find a prop…</div>
+              <div class="chips"><span class="chip on">All</span><span class="chip">Homes</span><span class="chip">Town</span><span class="chip">Timber</span><span class="chip">Fish</span><span class="chip">Farm</span><span class="chip">Stone</span><span class="chip">Nature</span></div>
+              ${paletteHtml(3, 'log-pile')}</div>`;
+        const side = terrain
+          ? `<div class="side"><h2>Plateau <small>raised ground 2 of 4</small></h2>
+              <div class="row"><span>Height</span><span class="val">3.8 m</span></div>
+              <div class="row"><span>Ground</span><div class="seg small-seg"><div class="on">Grass</div><div>Rock</div></div></div>
+              <div class="row"><span>Edge</span><span style="color:var(--ink-dim)">cliff all round (as today)</span></div>
+              <div class="row"><span>From level</span><div class="seg small-seg"><div class="on">1</div><div>2</div><div>3</div><div>4</div></div></div>
+              <div class="row"><span>Points</span><span style="color:var(--ink-dim)">9 · Delete removes one</span></div>
+              <div class="btnrow"><span class="btn">⧉ Duplicate</span><span class="btn danger">🗑 Delete</span></div>
+              <hr><div class="preview"><img src="calda-preview.png" alt=""><span class="cap">3D preview · level 3</span><span class="cap2">drag to turn</span></div><hr>${checksHtml('terrain')}</div>`
+          : `<div class="side"><div class="sel-head"><img src="${thumb('timber-workshop')}" alt=""><div><div class="t">Workshop</div><div class="s">Timber · selected on the plateau</div></div></div>
+              <div class="row"><span>Appears from</span><div class="seg small-seg"><div>1</div><div>2</div><div class="on">3</div><div>4</div></div></div>
+              <div class="row"><span>Gone after</span><div class="seg small-seg"><div class="on">—</div><div>1</div><div>2</div><div>3</div></div></div>
+              <div class="row"><span>Position</span><span><span class="val">x −0.12</span> <span class="val">z −1.16</span></span></div>
+              <div class="row"><span>Turn</span><span class="dial"><span class="btn">⟲ 15°</span><span class="val">0°</span><span class="btn">⟳ 15°</span></span></div>
+              <div class="row"><span>Size</span><span class="val">× 1.1</span></div>
+              <div class="row"><span>Ground</span><span style="color:var(--ink-dim)">plateau, 3.8 m (automatic)</span></div>
+              <div class="btnrow"><span class="btn">⧉ Duplicate</span><span class="btn danger">🗑 Delete</span></div>
+              <hr><div class="preview"><img src="calda-preview.png" alt=""><span class="cap">3D preview · level 3</span><span class="cap2">drag to turn</span></div><hr>${checksHtml('props')}</div>`;
+        const overlay = terrain ? terrainOverlay(LANDSCAPE, data) : propsOverlay(LANDSCAPE, data, { drag: true });
+        const hint = terrain
+          ? 'Raised ground: drag a square to move a point, a ring to add one · Lane: click to bend, double-click to finish'
+          : 'Drag a prop from the palette · R / Shift+R turn 15° · Delete removes · a prop belongs to the level it first appears';
+        app.innerHTML = `${topBar()}<div class="main">${rail(terrain ? 'ground' : 'props')}${left}
+          <div class="canvas"><img class="island" src="calda-top-l3.png" width="942" height="948" alt="">${overlay}${levelBar(3)}
+            <div class="floatbtns"><span class="pill on">Lanes</span><span class="pill on">Outlines</span><span class="pill">Grid</span></div>
+            <div class="zoom"><div>+</div><div>−</div><div>⤢</div></div>
+            <div class="hint">${hint}</div></div>${side}</div>`;
+      }
+      render();
+    </script>
+  </body>
+</html>
