@@ -7,6 +7,7 @@ import { buy, cargoUsed, sell } from '../../src/sim/trade';
 import { TUTORIAL_QUEST } from '../../src/sim/tutorial';
 import { type World, createWorld } from '../../src/sim/world';
 import { cardFor, parClock } from '../../src/ui/questView';
+import { islandDesign, questDesign } from '../../src/data/islands';
 import { setLanguage } from '../../src/i18n';
 import en from '../../src/i18n/en.json';
 import fr from '../../src/i18n/fr.json';
@@ -150,5 +151,14 @@ describe('the Westholm mill arc (0129, 0132)', () => {
         expect(f, key).not.toMatch(/\btu\b|\btoi\b|\bton\b|\bta\b|\btes\b/i);
       }
     }
+  });
+
+  it('Westholm’s mill shows bare frames until the arc is done, then its sails', () => {
+    const mills = (done: string[]) =>
+      questDesign(islandDesign('westholm'), new Set(done))
+        .props.filter((p) => p.x === -1.15 && p.z === -0.4)
+        .map((p) => p.type);
+    expect(mills([])).toEqual(['windmill-bare']);
+    expect(mills([ID])).toEqual(['windmill']);
   });
 });

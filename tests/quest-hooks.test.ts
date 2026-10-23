@@ -83,7 +83,7 @@ describe('after:/before: tags', () => {
 
   it('only name quests there are, and a moored boat cannot wait on one', () => {
     const map = hookedMap();
-    expect(checkQuestHooks(map, Object.values(ISLAND_DESIGNS), [PIER])).toEqual([]);
+    expect(checkQuestHooks(map, Object.values(ISLAND_DESIGNS), [PIER, ...QUESTS])).toEqual([]);
     expect(checkQuestHooks(map, [], [])).toEqual([
       'map › mark 0 (buoy-red): no quest "test-pier"',
       'map › mark 1 (light): no quest "test-pier"',
