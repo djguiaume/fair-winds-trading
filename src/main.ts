@@ -15,7 +15,7 @@ import { FrameMonitor, type QualityLevel, guessQuality, lowerQuality } from './r
 import { GameView } from './render/view';
 import { SAIL_STEPS } from './sim/boat';
 import { isRare, isSpecialty } from './sim/goods';
-import { settlementLevels } from './sim/settlement';
+import { portNow, questsDone, settlementLevels } from './sim/settlement';
 import { clamp } from './sim/math';
 import { type SaveStorage, clearSave, loadGame, saveGame } from './sim/save';
 import { LINK_KEY } from './sim/saveTransfer';
@@ -25,7 +25,7 @@ import { type Difficulty, isDifficulty, knobs } from './sim/difficulty';
 import { daylightAt } from './sim/daylight';
 import { QuestBook } from './sim/quests';
 import { QuestCard } from './ui/questCard';
-import { cardFor, dueCard, journal, questPins, questTarget } from './ui/questView';
+import { cardFor, dueCard, journal, questPins, questTarget, trackedMarkers } from './ui/questView';
 import { TUTORIAL_QUEST, TUTORIAL_STEPS, Tutorial } from './sim/tutorial';
 import { TutorialCoach } from './ui/tutorial';
 import {
@@ -199,6 +199,8 @@ if (new URLSearchParams(location.search).has('home')) {
   for (const spot of homeSpots(world.map)) offerHomeSpot(world.trade, world.map, spot.id);
 }
 view.setHomeBuildings(builtByIsland(world.trade.home));
+// What stands only before or after a quest (decision 0130).
+view.setQuestsDone(questsDone(world.trade));
 const homePanel = new HomePanel($('home-ui'), world);
 homePanel.onChange = () => refreshPause();
 homePanel.onBuilt = (building) => {
@@ -243,6 +245,7 @@ function showDueCard() {
 quests.onEvent = (e) => {
   // While the tutorial runs, its own lesson card speaks for Rook's thanks (decision 0127).
   if (e.type === 'finished' && !tutorial.isActive) questThanks.add(e.quest);
+  if (e.type === 'finished') view.setQuestsDone(questsDone(world.trade));
 };
 questCard.onAccept = (id) => {
   // The offer already said what the first step asks.
@@ -259,7 +262,10 @@ questCard.onClose = () => {
   refreshPause();
   showDueCard();
 };
+// The tracked step's places at sea: gates, spots, landings (decision 0130).
+view.stepMarkers = () => trackedMarkers(quests);
 chart.quests = {
+  markers: () => trackedMarkers(quests)?.points ?? [],
   pins: () => questPins(quests, world.map, questSeen),
   target: () => questTarget(quests, world.map),
   journal: () => journal(quests, world.map),
@@ -840,7 +846,9 @@ function handleEvents(events: WorldEvent[]) {
       const port = trade.findPort(world.map, e.portId);
       const portName = port?.name ?? e.portId;
       // A new town opens its workshop: say what it makes now (decision 0063).
-      const opened = port?.levelProduces?.[String(e.level) as '2' | '3' | '4'] ?? [];
+      const opened =
+        (port && portNow(port, world.trade))?.levelProduces?.[String(e.level) as '2' | '3' | '4'] ??
+        [];
       const specialty = opened.find(isSpecialty);
       // A far yard starts making its rare good (decision 0065).
       const rare = opened.find(isRare);

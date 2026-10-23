@@ -11,6 +11,7 @@ import {
   createSettlements,
   madeGoods,
   portProduces,
+  portNow,
   portWants,
   settlementLevel,
   startLevel,
@@ -173,7 +174,7 @@ export function deliverContract(trade: TradeState, map: MapDef): DeliverResult {
   addRare(trade, portId, c.good, c.qty);
   trade.contracts.byPort[portId] = makeContract(
     map,
-    port,
+    portNow(port, trade),
     trade.contracts.completed,
     orderTuning().cooldown,
     capacity(trade),

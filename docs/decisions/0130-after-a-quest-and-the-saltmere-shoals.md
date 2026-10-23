@@ -1,0 +1,27 @@
+# 0130. What changes after a quest, the East Reef gap, and the Saltmere shoals arc
+
+**Status:** Shared pieces implemented for review (2026-10-23); the arc itself follows in a second pull request. Part of the community arcs ([0122](0122-community-arcs-story.md)), built to the storyteller brief ([0129](0129-storyteller-brief.md)), which gives the Saltmere thread two shared pieces: the after-a-quest hook and the East Reef gap. It extends the quest engine ([0125](0125-quest-engine.md)) and the island files ([0101](0101-island-files-built.md)).
+
+## Context
+
+Every arc ends with a visible change in its port (0122): Saltmere's fishing boats on new ground and buoys on a gap in the reef, Port Calda's rebuilt slipway, Westholm's mill with its sails back, a lighthouse on Teeth Rock. Two ports also make their specialty a level earlier. Until now an island file could only change with the town's level (`from` / `to`), a port's trade was fixed in the map, and nothing at sea could appear or go. The arcs are data only (0093, 0129), so this has to be one generic piece that every arc, and the epilogue, writes in its files.
+
+Two more gaps showed up while writing the Saltmere arc. The East Reef has no channel to sail through, and the prologue's wreck stands where the reef's seeded details put it, so reshaping the reef would move it. And no step's places at sea (`reach` points, a timed run's `via`, a landing spot) were drawn anywhere: a player could not find a gate or a spot.
+
+## Decision
+
+1. **Tags on island props.** A prop tagged `after:<quest>` stands once that quest is done; one tagged `before:<quest>` stands until then. A swap is a pair on one spot (Calda's bare slipway `before:calda-slipway`, the slipway with its hull `after:calda-slipway`); the island checks never count such a pair as overlapping. Lighthouse beams and beacon lights follow their prop's tags, so a lighthouse built by a quest stays dark until it is done. The renderer rebuilds only the islands whose tags name a quest that has just been done. One rule (`questShown` in `src/data/islands.ts`) serves the islands, the sea marks and the lights.
+2. **A port's trade after a quest.** A port entry in the map may have `afterQuest`: quest id → `produces`, `wants`, `levelProduces`, `levelWants` or `wantsMade`. Once that quest is done, each field given takes the place of the port's own (`portNow` in `settlement.ts`), for prices, orders, the chart, the trade panel and the level-up toast. The map is never changed, so another voyage on the same page keeps its own state. Markets follow at once when the quest finishes, and on load (quests are read before the markets are set).
+3. **Sea marks.** The map gets `marks`: `{ type, x, y, turn?, tags?, chart? }` for things at sea that are not on an island. Types: `buoy-red`, `buoy-green`, `fishing-boat` (bobbing models) and `light` (a star on the chart, no model, for a light seen from afar). `chart: true` also draws a mark on the sea chart. Marks are not solid; the map checks keep them off land and reefs. A moored boat on an island stays solid, so the checks refuse quest tags on one (a sea mark does the job).
+4. **The checks.** `checkQuestHooks` refuses a tag or an `afterQuest` naming a quest that does not exist, in plain words; the tests run it on every island file and the map. The map checks count `afterQuest` goods as made or wanted.
+5. **The East Reef gap.** The reef is split at its north-west end: the main reef keeps its south-east part and the wreck, and a new reef, `east-reef-spit`, carries on beyond a channel about 30 units wide. That is room for every ship, the largest (radius 9.5) with a little to spare, and still a channel a sloop threads with care. It runs south-west to north-east, close to the prevailing wind (from 30°), so going out to the shoals takes a tack or two (0122). Nothing marks the gap until the arc is done.
+6. **A landmark set by hand.** A reef's or bank's `look.landmarkAt: { x, y }` puts its landmark there instead of the first seeded spot. The East Reef's wreck is pinned at the spot it had before the split (151.48, 46.33), so the prologue, its tests and every saved voyage find it where it was. The stress sea moves pinned landmarks and marks with each copy.
+7. **Step markers.** `stepMarkers(goal, counts)` (`src/ui/questView.ts`) lists the tracked step's places at sea, read from its goal: `reach` points, a timed run's `via` points, and quest cargo's spot (where to load it, then where to bring it, 0131), inside `all` / `any` too. The view draws each place still to reach as a ring on the water as wide as the place, the one to make for pulsing with a faint beam seen from afar; the chart draws the same rings. A step's optional `marker: "gulls"` adds a small flock wheeling and diving over each spot.
+
+## Consequences
+
+- Every arc's port change, and the epilogue's flag at Skerry, is data: tags in island files, `afterQuest` in the map, sea marks. No arc names a quest in code.
+- The island builder shows a file as authored, every tagged prop at once. Showing "before" and "after" there would be a later builder option.
+- Sea marks are decoration: a fishing boat does not stop the ship. Solid boats at sea would need the collision to follow the quests.
+- The prologue wreck no longer depends on the reef's outline or seed.
+- Gates, gull spots and landings can be found at sea and on the chart; there is still no on-screen countdown while holding slowly at a spot (0131).

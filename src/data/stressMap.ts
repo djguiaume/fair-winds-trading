@@ -21,6 +21,7 @@ export function stressMap(source: MapDef, config = settings): MapDef {
     boundsRadius: config.boundsRadius,
     islands: [],
     terrain: [],
+    marks: [],
     course: [],
     ports: [],
   };
@@ -65,8 +66,17 @@ export function stressMap(source: MapDef, config = settings): MapDef {
         outline: outline.map((p): [number, number] => [p.x, p.y]),
       };
       if (terrain.name) out.name = terrain.name + nameSuffix;
+      const pin = terrain.look?.landmarkAt;
+      if (pin) out.look = { ...out.look, landmarkAt: move(pin.x, pin.y) };
       map.terrain!.push(out);
     }
+    // Sea marks (decision 0130) move and turn with the copy.
+    for (const mark of source.marks ?? [])
+      map.marks!.push({
+        ...structuredClone(mark),
+        ...move(mark.x, mark.y),
+        ...(mark.turn !== undefined ? { turn: mark.turn - copy.turnDeg } : {}),
+      });
     for (const port of source.ports) {
       if (!kept.has(port.islandId)) continue;
       map.ports.push({

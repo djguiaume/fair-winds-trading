@@ -55,7 +55,15 @@ export interface TerrainDef {
   name?: string;
   kind: 'island' | 'sandbank' | 'reef';
   outline: [number, number][];
-  look?: { trees?: number; landmark?: LandmarkKind };
+  look?: {
+    trees?: number;
+    landmark?: LandmarkKind;
+    /**
+     * Where the landmark stands, set by hand (decision 0130); left out, the first spot its seeded
+     * details take. Pins a wreck the prologue sails to when the outline is reshaped.
+     */
+    landmarkAt?: { x: number; y: number };
+  };
   /** Seeds its rocks, coral and trees; left out, its place in the list does (decision 0110). */
   seed?: number;
 }
@@ -88,6 +96,35 @@ export interface PortDef {
   levelProduces?: Partial<Record<string, GoodId[]>>;
   /** Specialized goods the town buys once some town makes them (decision 0063). */
   wantsMade?: GoodId[];
+  /**
+   * What the town trades once a quest is done (decision 0130), by quest id: each field given takes
+   * the place of the port's own (e.g. `levelProduces` with its specialty a level earlier).
+   */
+  afterQuest?: Record<string, PortTradeChange>;
+}
+
+/** The trade fields a quest can change in a port (decision 0130). */
+export type PortTradeChange = Partial<
+  Pick<PortDef, 'produces' | 'wants' | 'levelProduces' | 'levelWants' | 'wantsMade'>
+>;
+
+/** The kinds of sea mark (decision 0130): channel buoys, a boat at work, a light on the chart. */
+export const SEA_MARK_TYPES = ['buoy-red', 'buoy-green', 'fishing-boat', 'light'] as const;
+export type SeaMarkType = (typeof SEA_MARK_TYPES)[number];
+
+/**
+ * Something at sea that is not on an island (decision 0130): a channel buoy, a fishing boat, a
+ * light drawn on the chart. Not solid. Its `tags` (`after:<quest>`, `before:<quest>`) show and
+ * hide it like an island prop's; `chart` also draws it on the sea chart (a `light` is chart only).
+ */
+export interface SeaMarkDef {
+  type: SeaMarkType;
+  x: number;
+  y: number;
+  /** Heading in degrees, 0 = north, clockwise (a boat's bow). */
+  turn?: number;
+  tags?: string[];
+  chart?: boolean;
 }
 
 export interface MapDef {
@@ -119,4 +156,6 @@ export interface MapDef {
    * feature whose wreck landmark is the boat to rescue. Without it the tutorial starts at the chart.
    */
   prologue?: { start: { x: number; y: number; headingDeg: number }; wreck: string };
+  /** Buoys, boats and lights at sea (decision 0130). */
+  marks?: SeaMarkDef[];
 }

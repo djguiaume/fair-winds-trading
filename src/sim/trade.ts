@@ -30,6 +30,7 @@ import {
   madeGoods,
   hasPendingSupply,
   DEFAULT_START_LEVEL,
+  portNow,
   settlementLevel,
   settlementLevels,
   stepSettlements,
@@ -180,7 +181,7 @@ export function syncMarketLevels(trade: TradeState, map: MapDef): void {
   const made = madeGoods(map, trade);
   for (const port of map.ports) {
     const market = trade.markets[port.id];
-    if (market) setMarketLevel(market, port, settlementLevel(trade, port.id), made);
+    if (market) setMarketLevel(market, portNow(port, trade), settlementLevel(trade, port.id), made);
   }
 }
 

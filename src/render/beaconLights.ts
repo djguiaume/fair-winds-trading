@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { IslandDef } from '../sim/map';
-import { atLevel, type PropDef } from '../data/islands';
+import { atLevel, type PropDef, questShown } from '../data/islands';
 import { landmarkLamps } from './landmarkLamps';
 
 /** Light colour by the beacon prop's variant (decision 0121); variant 1 is an unlit day mark. */
@@ -88,11 +88,21 @@ export class BeaconLights {
     this.points.renderOrder = 4;
     this.setLevels(levels);
   }
+  private levels: Record<string, number> = {};
+  private done: ReadonlySet<string> = new Set();
   /** Lights only the beacons standing at each island's town level. */
   setLevels(levels: Record<string, number>) {
+    this.levels = levels;
     this.lamps.forEach(({ island, prop }, i) => {
-      this.standing[i] = atLevel(prop, levels[island.id] ?? (island.look?.dock ? 1 : 4));
+      this.standing[i] =
+        atLevel(prop, levels[island.id] ?? (island.look?.dock ? 1 : 4)) &&
+        questShown(prop, this.done);
     });
+  }
+  /** The quests done, for beacons that stand only before or after one (decision 0130). */
+  setQuestsDone(done: ReadonlySet<string>) {
+    this.done = new Set(done);
+    this.setLevels(this.levels);
   }
   /** `glow` 0..1: night, a little in storms. */
   update(time: number, glow: number) {
