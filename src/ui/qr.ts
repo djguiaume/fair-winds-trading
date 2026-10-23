@@ -1,12 +1,16 @@
 import { encode } from 'uqr';
 
 /**
- * A QR code as SVG markup (decision 0066). Medium error correction: phones read it off a
- * glossy tablet screen with glare. Dark modules on white with a 4-module quiet zone, the
+ * A QR code as SVG markup (decision 0066). Error correction low by default; the save code asks
+ * for medium (decision 0118), now that it is short, so phones read it off a glossy tablet screen
+ * with glare. Dark modules on white with a 4-module quiet zone, the
  * contrast every scanner (and the camera apps) expects.
  */
-export function qrSvg(text: string): { svg: string; size: number; version: number } {
-  const qr = encode(text, { ecc: 'L', border: 4 });
+export function qrSvg(
+  text: string,
+  ecc: 'L' | 'M' = 'L',
+): { svg: string; size: number; version: number } {
+  const qr = encode(text, { ecc, border: 4 });
   let d = '';
   qr.data.forEach((row, y) => {
     row.forEach((on, x) => {

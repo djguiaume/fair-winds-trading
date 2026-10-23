@@ -24,7 +24,7 @@ import { renderPixelRatio, QUALITY, type QualityLevel, type QualityProfile } fro
 import { Wake } from './wake';
 import { WindStreaks } from './windStreaks';
 import { Rain, rainMayReachArea } from './rain';
-import { Atmosphere } from './atmosphere';
+import { Atmosphere, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from './atmosphere';
 import { LighthouseBeams } from './lighthouseBeams';
 import { BeaconLights } from './beaconLights';
 import { Lanterns } from './lanterns';
@@ -34,9 +34,6 @@ import { stormRain } from '../sim/storms';
 
 /** Game time whose light is kept when day and night is off: early afternoon. */
 const ALWAYS_DAY = 200;
-/** Window glass tint: dark panes by day, the vertex colours (warm or dark) at night. */
-const WINDOWS_BY_DAY = new THREE.Color('#5c6470');
-const WINDOWS_AT_NIGHT = new THREE.Color('#ffffff');
 const CAMERA_PITCH = 58 * DEG;
 const BASE_DISTANCE = 110;
 

@@ -20,5 +20,5 @@ At sea, a lighthouse is told apart by its rhythm (how many beams, how often), an
 
 - No change for players at Saltmere; Lantern Rock and Watchman Key now sweep, and the three beacons flash white at night.
 - Cost: one point cloud with three points, one colour upload per frame at night, one beam group per lighthouse (two beams each today). No real lights.
-- The island builder's night preview (thread "Island builder UI", 0119 on its branch, not yet on main) can show these lights by passing a one-island list to `LighthouseBeams` and `BeaconLights`.
+- The island builder's night preview ([0119](0119-island-builder-preview-big-and-night.md)) can show these lights by passing a one-island list to `LighthouseBeams` and `BeaconLights`.
 - Screenshots: [options](../mockups/night-lights/night-lights-options.png), [beacon variants](../mockups/night-lights/beacon-variants.png).

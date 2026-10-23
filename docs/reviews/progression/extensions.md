@@ -1,4 +1,4 @@
-# Later extensions: steam, harbour logistics and pirates
+# Later extensions: steam, harbour logistics, pirates and the great expedition
 
 **Status:** Planned later design directions, not implemented or scheduled. Steam/automation are explicitly deferred; pirates retain their existing later-roadmap intent.
 **Updated:** 2026-10-23.
@@ -94,3 +94,7 @@ Connected communities accommodates both most naturally. The personal island give
 5. Test compatibility with each supported base progression, saves/transfers, difficulty switches and physical target devices.
 
 Steps 2–4 do not establish a release order between the two extensions. Separate decisions are needed for exact rules, vessels, pricing, combat and distribution.
+
+## The great expedition
+
+Moved here from the base-game candidates by [0120](../../decisions/0120-communities-and-home-island.md) (2026-10-23). The idea is unchanged from [direction C](README.md#c-prepare-for-a-great-expedition) and its [mockups](directions/README.md#c-the-great-expedition): a known, intimidating destination past a storm belt, optional preparation, two approaches, refuges, turning back that keeps what you learned, and no combat requirement. It needs a new region (a natural fit for the bigger map), so it comes after the base game; the home island can be its supply base and the people of the community arcs its allies. Order relative to steam and pirates is undecided.

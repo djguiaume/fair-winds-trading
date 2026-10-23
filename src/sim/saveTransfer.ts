@@ -1,24 +1,30 @@
 import { strFromU8, strToU8, unzlibSync, zlibSync } from 'fflate';
+import type { MapDef } from './map';
 import { SAVE_KEY, SAVE_VERSION, type SaveData, type SaveStorage, validateSave } from './save';
+import { packSave, unpackSave } from './saveCode';
 import type { World } from './world';
 
 /**
  * Moving a voyage between devices without a server (decision 0066).
  *
- * - Main way: a save code, the save squeezed with zlib and written in URL-safe base64, shown as
- *   a QR code. The QR holds a link to the game (`…/#voyage=CODE`), so the other device can scan
+ * - Main way: a save code, the save packed as whole numbers (FW2, decision 0118), squeezed with
+ *   zlib and written in URL-safe base64, shown as a QR code. Older FW1 codes (named JSON) still
+ *   read. The QR holds a link to the game (`…/#voyage=CODE`), so the other device can scan
  *   it with the game's own scanner or with its ordinary camera app.
  * - Second way: the same save as a readable `.json` file.
  *
  * Everything coming in goes through `validateSave`, and zlib's checksum catches a mangled code.
  * Pure: no DOM, so the tests run it as is.
  */
-export const CODE_PREFIX = 'FW1';
+export const CODE_PREFIX = 'FW2';
+/** The first codes (decision 0066): the save's JSON, squeezed. Read, no longer written. */
+export const JSON_CODE_PREFIX = 'FW1';
+const PREFIXES = [CODE_PREFIX, JSON_CODE_PREFIX];
 export const LINK_KEY = 'voyage';
 const FILE_GAME = 'fair-winds-trading';
 
 /** Why an incoming voyage was refused, for a clear message. */
-export type TransferProblem = 'unreadable' | 'newer' | 'otherMap' | 'damaged';
+export type TransferProblem = 'unreadable' | 'newer' | 'otherMap' | 'otherVersion' | 'damaged';
 
 export type TransferResult = { ok: true; save: SaveData } | { ok: false; problem: TransferProblem };
 
@@ -51,11 +57,17 @@ function withoutZeros(amounts: Record<string, number>): Record<string, number> {
   return Object.fromEntries(Object.entries(amounts).filter(([, n]) => n !== 0));
 }
 
-export function encodeSaveCode(save: SaveData): string {
+/** The save code: whole numbers in the map's and data files' order (FW2, decision 0118). */
+export function encodeSaveCode(save: SaveData, map: MapDef): string {
+  return CODE_PREFIX + toBase64Url(zlibSync(packSave(save, map), { level: 9 }));
+}
+
+/** An FW1 code (decision 0066), as the game wrote them before 0118. Kept for the tests. */
+export function encodeJsonSaveCode(save: SaveData): string {
   const markets: Record<string, Record<string, number>> = {};
   for (const [id, stock] of Object.entries(save.markets)) markets[id] = withoutZeros(stock);
   const json = JSON.stringify(compact({ ...save, cargo: withoutZeros(save.cargo), markets }));
-  return CODE_PREFIX + toBase64Url(zlibSync(strToU8(json), { level: 9 }));
+  return JSON_CODE_PREFIX + toBase64Url(zlibSync(strToU8(json), { level: 9 }));
 }
 
 /** The link a QR code carries: the game's own address with the code after `#voyage=`. */
@@ -68,7 +80,7 @@ export function extractCode(text: string): string | null {
   const flat = text.replace(/\s+/g, '');
   const at = flat.indexOf(`#${LINK_KEY}=`);
   const code = at >= 0 ? flat.slice(at + LINK_KEY.length + 2) : flat;
-  return code.startsWith(CODE_PREFIX) && /^[A-Za-z0-9_-]+$/.test(code) ? code : null;
+  return PREFIXES.some((p) => code.startsWith(p)) && /^[A-Za-z0-9_-]+$/.test(code) ? code : null;
 }
 
 function check(raw: unknown, world: World): TransferResult {
@@ -92,9 +104,15 @@ export function readSaveCode(text: string, world: World): TransferResult {
   if (!code) return { ok: false, problem: 'unreadable' };
   let raw: unknown;
   try {
-    raw = JSON.parse(strFromU8(unzlibSync(fromBase64Url(code.slice(CODE_PREFIX.length)))));
+    const bytes = unzlibSync(fromBase64Url(code.slice(CODE_PREFIX.length)));
+    if (code.startsWith(JSON_CODE_PREFIX)) raw = JSON.parse(strFromU8(bytes));
+    else {
+      const read = unpackSave(bytes, world.map, SAVE_VERSION);
+      if (!read.ok) return read;
+      raw = read.raw;
+    }
   } catch {
-    // Bad base64, a failed checksum (a cut or mistyped code) or not JSON.
+    // Bad base64, a failed checksum (a cut or mistyped code), not JSON or too few numbers.
     return { ok: false, problem: 'unreadable' };
   }
   return check(raw, world);

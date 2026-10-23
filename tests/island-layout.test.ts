@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { PHASE1_MAP } from '../src/data/maps';
+import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../src/data/maps';
+import { stressMap } from '../src/data/stressMap';
 import {
   islandCoasts,
   characterPiers,
@@ -341,15 +342,26 @@ describe('producer island geography', () => {
   it('bakes all coasts without uniform-array limits', () => {
     const shore = shoreTexture(PHASE1_MAP.islands, PHASE1_MAP.terrain!);
     expect(shore.texture).toBeInstanceOf(THREE.DataTexture);
-    expect(shore.texture.image.width).toBe(512);
     expect(shore.bounds.z).toBeGreaterThan(600);
+    // As sharp as the old 512 bake of this map, one byte per texel (decision 0115).
+    expect(shore.bounds.z / shore.texture.image.width).toBeLessThanOrEqual(1.4);
+    expect(shore.texture.format).toBe(THREE.RedFormat);
     const { data, width, height } = shore.texture.image;
     const coasts = PHASE1_MAP.islands.flatMap((i) => islandCoasts(i) ?? []);
     for (const [x, y] of coasts.flat()) {
       const u = Math.floor(((x - shore.bounds.x) / shore.bounds.z) * width);
       const v = Math.floor(((-y - shore.bounds.y) / shore.bounds.w) * height);
-      expect((data![(v * width + u) * 4]! / 255) * 64).toBeLessThan(3);
+      expect((data![v * width + u]! / 255) * 64).toBeLessThan(3);
     }
+    shore.texture.dispose();
+  });
+  it('keeps the shoreline as sharp on a five times bigger sea, within its memory cap', () => {
+    const big = prepareMap(stressMap(PHASE1_SOURCE));
+    const shore = shoreTexture(big.islands, big.terrain!);
+    const { width, height } = shore.texture.image;
+    expect(shore.bounds.z / width).toBeLessThanOrEqual(1.4);
+    expect(shore.bounds.w / height).toBeLessThanOrEqual(1.4);
+    expect(width * height).toBeLessThanOrEqual(2048 * 2048);
     shore.texture.dispose();
   });
 });

@@ -3,7 +3,7 @@ import { PHASE1_MAP } from '../src/data/maps';
 import { drivingWind } from '../src/sim/boat';
 import { DEG, bearingVector, wrapAngle } from '../src/sim/math';
 import { SLOOP } from '../src/sim/ship';
-import { type Storm, stormStrength, stormsAt } from '../src/sim/storms';
+import { DEFAULT_SEA_RADIUS, type Storm, stormStrength, stormsAt } from '../src/sim/storms';
 import {
   DEFAULT_WEATHER,
   type LocalWeather,
@@ -94,7 +94,7 @@ describe('moving storms (0067)', () => {
     let start = t;
     while (stormsAt(STORMS, seed, start - 1).some((s) => s.id === storm.id)) start--;
     const born = stormsAt(STORMS, seed, start).find((s) => s.id === storm.id)!;
-    expect(Math.hypot(born.x, born.y)).toBeGreaterThan(STORMS.areaRadius);
+    expect(Math.hypot(born.x, born.y)).toBeGreaterThan(DEFAULT_SEA_RADIUS * STORMS.areaShare);
     expect(born.intensity).toBeLessThan(0.05);
   });
 
@@ -437,5 +437,45 @@ describe('press warning on the sails control (0078)', () => {
     world.pressKn = 30;
     world.trade.dockedAt = PHASE1_MAP.homePort!;
     expect(pressLevel(world, 2)).toBe(0);
+  });
+});
+
+describe('storms on a bigger sea (decision 0115)', () => {
+  const seaRadius = 985;
+  const seen = (radius: number, fromCentre: number) => {
+    // Share of game time a spot this far from the centre lies inside some storm's reach.
+    let inside = 0,
+      total = 0;
+    for (let t = 0; t < 600 * 300; t += 30)
+      for (let a = 0; a < 8; a++) {
+        const x = Math.sin(a) * fromCentre,
+          y = Math.cos(a) * fromCentre;
+        total++;
+        if (stormsAt(STORMS, seed, t, 0, radius).some((s) => stormStrength(s, x, y) > 0)) inside++;
+      }
+    return inside / total;
+  };
+
+  it('never makes a storm vanish mid-sea, whatever the sea size', () => {
+    for (const radius of [440, 985, 2200]) {
+      let previous: Storm[] = [];
+      for (let t = 0; t < 600 * 40; t += 5) {
+        const now = stormsAt(STORMS, seed, t, 0, radius);
+        for (const gone of previous.filter((p) => !now.some((s) => s.id === p.id)))
+          expect(gone.intensity, `sea ${radius}, storm ${gone.id}`).toBeLessThan(0.05);
+        previous = now;
+      }
+    }
+  });
+
+  it('keeps today’s storms on today’s sea', () => {
+    for (const t of [700, 1300, 5000, 9100])
+      expect(stormsAt(STORMS, seed, t, 0, 440)).toEqual(stormsAt(STORMS, seed, t));
+  });
+
+  it('reaches the whole bigger sea and meets a captain about as often', () => {
+    const today = seen(440, 200);
+    expect(seen(seaRadius, 800)).toBeGreaterThan(0);
+    expect(seen(seaRadius, 400) / today).toBeGreaterThan(0.6);
   });
 });

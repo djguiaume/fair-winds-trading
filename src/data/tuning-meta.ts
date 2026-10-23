@@ -732,13 +732,21 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     'units/s',
     'Track speed (a sloop at 8 kn sails 12.8).',
   ),
-  'weather.default.storms.areaRadius': num(
+  'weather.default.storms.areaShare': num(
     'Storm area',
+    0.2,
+    1.5,
+    0.05,
+    undefined,
+    "Share of the sea's radius the storms cross; 1 = the whole sea (0115).",
+  ),
+  'weather.default.storms.perRadius': num(
+    'Sea per storm',
     100,
     2000,
     10,
     'units',
-    "Radius of the sea the storms cross (the map's bounds).",
+    'Sea radius that gets one storm per stretch; bigger seas get more at once (0115).',
   ),
   'weather.blendSec': num(
     'Setting change blend',
