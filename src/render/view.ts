@@ -15,7 +15,7 @@ import {
   createBoatModel,
 } from './models';
 import { HEEL_FEEL, Heel, heelFactor } from './heel';
-import { Ocean, waveHeight } from './ocean';
+import { Ocean, ShoreTextureCache, waveHeight } from './ocean';
 import { PALETTE } from './palette';
 import { BuoyMarker, EdgeBuoys, createBlobShadow } from './props';
 import { renderPixelRatio, QUALITY, type QualityLevel, type QualityProfile } from './quality';
@@ -82,6 +82,7 @@ export class GameView {
   private readonly lighthouseBeams: LighthouseBeams;
   private readonly edgeBuoys: EdgeBuoys;
   private ocean!: Ocean;
+  private readonly shores = new ShoreTextureCache();
   private streaks!: WindStreaks;
   private profile!: QualityProfile;
   private readonly target = new THREE.Vector3();
@@ -223,6 +224,7 @@ export class GameView {
       profile.fancyWater,
       480,
       this.world.map.terrain,
+      this.shores.get(this.world.map.islands, this.world.map.terrain),
     );
     this.streaks = new WindStreaks(profile.windStreaks);
     this.rain = new Rain(profile.rainDrops);
@@ -422,6 +424,7 @@ export class GameView {
   dispose() {
     this.lighthouseBeams.dispose();
     this.ocean.dispose();
+    this.shores.dispose();
     this.streaks.dispose();
     this.rain.dispose();
     this.stormClouds.dispose();
