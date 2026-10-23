@@ -449,8 +449,8 @@
       "z": 0.66,
       "size": 1.65,
       "fit": 0.025,
-      "from": 1,
-      "tags": ["after:stonehaven-light"]
+      "tags": ["after:stonehaven-light"],
+      "from": 1
     },
     {
       "type": "stone-blocks",
