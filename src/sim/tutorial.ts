@@ -3,7 +3,8 @@ import firstVoyage from '../data/quests/first-voyage.json';
 import { GOODS, isGood, type GoodId } from './goods';
 import { type BoatControls } from './boat';
 import { type SaveStorage } from './save';
-import { isDiscovered } from './shipyards';
+import { landmarkSpot } from './landmarks';
+import { homePort, isDiscovered } from './shipyards';
 import { findPort, cargoUsed } from './trade';
 import { type World, holdStorms } from './world';
 
@@ -30,7 +31,10 @@ export type LessonPort = 'origin' | 'delivery';
  * - `docked` / `left-port`: alongside the step's `port`, or no longer;
  * - `bought` / `sold`: a real trade at the step's `port` (`sold`: the lesson's cargo);
  * - `cargo-gone`: at sea with none of the lesson's goods left aboard;
- * - `cargo-sold`: the lesson's goods sold early in a harbour, which becomes the new `origin`.
+ * - `cargo-sold`: the lesson's goods sold early in a harbour, which becomes the new `origin`;
+ * - `reached-mark`: within the step's `mark` range of the wreck (decision 0127);
+ * - `alongside-mark`: within range, slower than `mark.maxKn`, for `mark.holdSec` seconds; touching
+ *   a reef or a shore starts the count again.
  */
 export const TUTORIAL_EVENTS = [
   'chart-opened',
@@ -44,6 +48,8 @@ export const TUTORIAL_EVENTS = [
   'sold',
   'cargo-gone',
   'cargo-sold',
+  'reached-mark',
+  'alongside-mark',
 ] as const;
 export type TutorialEvent = (typeof TUTORIAL_EVENTS)[number];
 
@@ -79,6 +85,15 @@ export interface TutorialStepDef {
   coach: { sea?: CoachTarget; chart?: CoachTarget; market?: CoachTarget };
   /** The step each event leads to; `done` finishes the tutorial. */
   on: Partial<Record<TutorialEvent, string>>;
+  /** `home`: the lesson's harbour is the map's home port, the only pick that counts. */
+  origin?: 'home';
+  /**
+   * The wreck of the map's prologue (decision 0127): how close counts, and for coming alongside how
+   * slow and for how long. On a map without a prologue the step is skipped.
+   */
+  mark?: { within: number; maxKn?: number; holdSec?: number };
+  /** Harbourmaster Rook is aboard (a passenger: no hold space). */
+  passenger?: boolean;
 }
 
 /** A quest file: its steps, when it starts and what finishing it pays. */
@@ -105,8 +120,10 @@ export type TutorialStep = string;
 export const TUTORIAL_DONE = 'done';
 
 const stepDef = (id: string): TutorialStepDef => TUTORIAL.find((s) => s.id === id) ?? TUTORIAL[0]!;
-/** The first step that sets a lesson port from the chart: where a lesson missing it restarts. */
-const picking = (port: LessonPort) => TUTORIAL.find((s) => s.picks === port)!.id;
+/** The first open step that sets a lesson port from the chart (not taking Rook home): where a
+ * lesson missing it restarts. */
+const picking = (port: LessonPort) =>
+  TUTORIAL.find((s) => s.picks === port && s.origin !== 'home')!.id;
 /** From the first step that sails to the origin on, a lesson needs to know the origin. */
 const NEEDS_ORIGIN = TUTORIAL.findIndex((s) => s.port === 'origin');
 
@@ -129,6 +146,10 @@ const fresh = (): Progress => ({
 /** Observes real actions. Never moves the boat, changes wind, grants cargo or trades for the player. */
 export class Tutorial {
   private progress = fresh();
+  /** Where the prologue's wreck lies on this map, if it has one (decision 0127). */
+  readonly wreck: { x: number; y: number } | null;
+  private alongsideSeconds = 0;
+  private hullDamage = 0;
   private ownedTarget: World['destination'] = null;
   private lowered = false;
   private raised = false;
@@ -145,6 +166,8 @@ export class Tutorial {
     resumedVoyage = true,
   ) {
     this.key = `fwt.tutorial.v1.${world.map.name}`;
+    const prologue = world.map.prologue;
+    this.wreck = prologue ? landmarkSpot(world.map, prologue.wreck) : null;
     try {
       const p = JSON.parse(storage?.getItem(this.key) ?? 'null') as Progress | null;
       const port = (id: unknown) =>
@@ -167,6 +190,7 @@ export class Tutorial {
     } catch {
       /* Private storage, old or malformed tutorial state: no impact on the voyage. */
     }
+    this.progress.step = this.landing(this.progress.step);
     // An unfinished lesson belongs to its voyage; completed/skipped choices are remembered.
     if (!resumedVoyage && this.isActive) this.progress = fresh();
   }
@@ -207,8 +231,19 @@ export class Tutorial {
     }
     this.onChange();
   }
+  /** The step `step` really starts at: a sea lesson on a map without a wreck goes past itself. */
+  private landing(step: TutorialStep): TutorialStep {
+    for (let i = 0; i < TUTORIAL.length; i++) {
+      const def = stepDef(step);
+      if (!def.mark || this.wreck) break;
+      step = def.on['alongside-mark'] ?? def.on['reached-mark'] ?? step;
+    }
+    return step;
+  }
   private go(step: TutorialStep) {
-    this.progress.step = step;
+    this.progress.step = this.landing(step);
+    if (this.def.origin === 'home') this.progress.origin = homePort(this.world.map).id;
+    this.alongsideSeconds = 0;
     this.publish();
   }
   /** The step the current one's `event` leads to, if any. */
@@ -232,7 +267,20 @@ export class Tutorial {
     this.lowered = this.raised = false;
     this.steeringSeconds = this.movingSeconds = 0;
     this.finishedNotice = false;
-    this.publish();
+    this.go(this.step);
+  }
+  /** Whether the tutorial has reached `step` or a later one, or is not running (decision 0127). */
+  reached(step: string): boolean {
+    if (!this.isActive) return true;
+    return TUTORIAL_STEPS.indexOf(this.step) >= TUTORIAL_STEPS.indexOf(step);
+  }
+  /** The wreck, while a lesson is about it: the compass marks its direction. */
+  get mark(): { x: number; y: number } | null {
+    return this.isActive && this.def.mark ? this.wreck : null;
+  }
+  /** Harbourmaster Rook rides along. */
+  get passenger(): boolean {
+    return this.isActive && this.def.passenger === true;
   }
   /** Called only when entering play, not during construction or on the title screen. */
   resume() {
@@ -271,6 +319,8 @@ export class Tutorial {
     }
     const { picks } = this.def;
     const next = this.next('port-picked');
+    // Taking Rook home: only his harbour counts as the pick.
+    if (this.def.origin === 'home' && target.portId !== homePort(this.world.map).id) return;
     if (picks === 'origin') {
       this.progress.origin = target.portId;
       this.ownedTarget = target;
@@ -301,7 +351,21 @@ export class Tutorial {
         this.publish();
       }
     }
-    const { on, port } = this.def;
+    const { on, port, mark } = this.def;
+    if (mark && this.wreck) {
+      const near = Math.hypot(boat.x - this.wreck.x, boat.y - this.wreck.y) <= mark.within;
+      const damage = trade.captain.hullDamage[trade.captain.activeShip] ?? 0;
+      // A touch of the reef starts the approach again; nothing else is lost.
+      if (damage > this.hullDamage) this.alongsideSeconds = 0;
+      this.hullDamage = damage;
+      if (on['reached-mark'] && near) this.go(on['reached-mark']);
+      else if (on['alongside-mark']) {
+        if (near && boat.speedKn <= (mark.maxKn ?? Infinity)) this.alongsideSeconds += dt;
+        else this.alongsideSeconds = 0;
+        if (near && this.alongsideSeconds >= (mark.holdSec ?? 0)) this.go(on['alongside-mark']);
+      }
+      return;
+    }
     if (on['sails-practised'] && controls) {
       if (controls.sailStep === 0) this.lowered = true;
       if (this.lowered && controls.sailStep > 0) this.raised = true;
@@ -310,7 +374,8 @@ export class Tutorial {
       if (this.lowered && this.raised && this.steeringSeconds >= 0.3 && this.movingSeconds >= 1)
         this.go(on['sails-practised']);
     } else if (on['left-port'] && trade.dockedAt !== this.portOf(port)) this.go(on['left-port']);
-    else if (on.docked && trade.dockedAt === this.portOf(port)) this.go(on.docked);
+    else if (on.docked && trade.dockedAt !== null && trade.dockedAt === this.portOf(port))
+      this.go(on.docked);
   }
   /** The lesson's Continue button, when `continue` shows it. */
   get canContinue(): boolean {

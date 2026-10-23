@@ -14,7 +14,8 @@ import {
 } from './geometry';
 import type { IslandModel, IslandsBuilder } from './types';
 import { landmarkParts } from './landmarks';
-import { coastDistance, insetOutline } from '../../sim/coast';
+import { type Spot, landmarkRadius, sampleInside, terrainSeed } from '../../sim/landmarks';
+import { insetOutline } from '../../sim/coast';
 import { type TownLevel, townIslandParts } from './towns';
 
 /**
@@ -353,26 +354,12 @@ export function terrainProps(feature: TerrainDef, seed: number): Parts {
   // Decoration stays inside the shore (on barriers, on the grass cap); it cannot narrow passages.
   const area = bank || reef ? feature.outline : insetOutline(feature.outline, RIDGE_TIERS[3].inset);
   const rng = createRng(seed);
-  const xs = area.map((p) => p[0]);
-  const ys = area.map((p) => p[1]);
-  const occupied: { x: number; y: number; radius: number }[] = [];
-  const sample = (radius: number) => {
-    for (let attempt = 0; attempt < 512; attempt++) {
-      const x = range(rng, Math.min(...xs), Math.max(...xs));
-      const y = range(rng, Math.min(...ys), Math.max(...ys));
-      if (coastDistance(x, y, area).distance > -radius) continue;
-      if (occupied.some((p) => Math.hypot(p.x - x, p.y - y) < p.radius + radius)) continue;
-      occupied.push({ x, y, radius });
-      return { x, y };
-    }
-    return null;
-  };
+  const occupied: Spot[] = [];
+  const sample = (radius: number) => sampleInside(rng, area, radius, occupied);
   const topY = reef ? 0 : bank ? 0.8 : RIDGE_TOP;
   if (feature.look?.landmark) {
     const s = bank || reef ? 1.15 : 1.8;
-    const radius =
-      feature.look.landmark === 'wreck' ? 4.6 : feature.look.landmark === 'ruins' ? 5.1 : 3.1;
-    const p = sample(radius);
+    const p = sample(landmarkRadius(feature.look.landmark));
     if (!p) throw new Error(`Landmark does not fit on ${feature.id}`);
     put(parts, landmarkParts(feature.look.landmark, s), p.x, topY, -p.y, 0.3);
   }
@@ -472,7 +459,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
       this.add(group);
     }
     // Collision terrain is independent of settlement growth and never rebuilt for a level-up.
-    for (const [index, feature] of (map.terrain ?? []).entries()) {
+    for (const feature of map.terrain ?? []) {
       const parts: Parts = [];
       if (feature.kind === 'sandbank') {
         parts.push(paint(extrudeOutline(feature.outline, -0.4, 0.8), B2.sand));
@@ -482,7 +469,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
           parts.push(paint(extrudeOutline(outline, tier.bottom, tier.top), tier.color));
         }
       }
-      parts.push(...terrainProps(feature, feature.seed ?? map.seed * 1709 + index * 97));
+      parts.push(...terrainProps(feature, terrainSeed(map, feature)));
       const group = this.batch(parts);
       group.name = `terrain:${feature.id}`;
       this.add(group);

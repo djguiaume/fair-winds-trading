@@ -3,6 +3,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import html from '../index.html?raw';
 import type { World } from '../src/sim/world';
 import type { Input } from '../src/input/input';
+import type { Tutorial } from '../src/sim/tutorial';
 
 // Exercise real app wiring and native-dialog lifecycle without needing a WebGL renderer.
 vi.mock('../src/render/view', () => ({
@@ -45,7 +46,9 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
     .spyOn(HTMLCanvasElement.prototype, 'getContext')
     .mockReturnValue({} as WebGL2RenderingContext);
   await import('../src/main');
-  const { world, input } = (window as unknown as { fwt: { world: World; input: Input } }).fwt;
+  const { world, input, tutorial } = (
+    window as unknown as { fwt: { world: World; input: Input; tutorial: Tutorial } }
+  ).fwt;
   const click = (id: string) => {
     const el = document.querySelector<HTMLButtonElement>(id)!;
     expect(el, id).not.toBeNull();
@@ -72,15 +75,9 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   await flushClose();
   expect(offer.open).toBe(false);
   expect(input.isEnabled).toBe(true);
-  // The coach mark rings the Map button; tapping it opens the chart.
-  click('#chart-btn');
-  expect(chart.open).toBe(true);
-  expect(input.isEnabled).toBe(false);
-  click('[data-compare="calda"]');
-  expect(world.destination?.portId).toBe('calda');
-  click('#close-chart');
-  await flushClose();
-  expect(input.isEnabled).toBe(true);
+  // The prologue starts alone at sea (decision 0127).
+  expect(world.boat.x).toBe(world.map.prologue!.start.x);
+  expect(world.trade.dockedAt).toBeNull();
   click('#tutorial-continue');
   click('#tutorial-action'); // Existing compass tacking illustration.
   expect((document.getElementById('wind-help') as HTMLDialogElement).open).toBe(true);
@@ -89,25 +86,44 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   await flushClose();
   expect(input.isEnabled).toBe(true);
   click('#tutorial-continue');
-  Object.assign(world.boat, { x: 152, y: 240, speedKn: 0 });
-  click('.port-marker[data-port-id="calda"]');
-  expect(world.trade.dockedAt).toBe('calda');
+  expect(tutorial.step).toBe('foghorn');
+  // Come alongside the wreck slowly; the sim loop would call this every step.
+  const wreck = tutorial.wreck!;
+  Object.assign(world.boat, { x: wreck.x + 12, y: wreck.y, speedKn: 0.5 });
+  tutorial.observe();
+  for (let n = 0; n < 7; n++) tutorial.observe({ sailStep: 0, steer: 0 }, 0.5);
+  expect(tutorial.step).toBe('chart');
+  // The coach mark rings the Map button; tapping it opens the chart, and Rook asks for home.
+  click('#chart-btn');
+  expect(chart.open).toBe(true);
   expect(input.isEnabled).toBe(false);
-  click('[data-action="buy"][data-good="timber"][data-qty="1"]');
-  expect(world.trade.captain.cargo.timber).toBe(1);
+  click('[data-compare="saltmere"]');
+  expect(world.destination?.portId).toBe('saltmere');
+  click('#close-chart');
+  await flushClose();
+  expect(input.isEnabled).toBe(true);
+  Object.assign(world.boat, { x: 252, y: -134, speedKn: 0 });
+  click('.port-marker[data-port-id="saltmere"]');
+  expect(world.trade.dockedAt).toBe('saltmere');
+  expect(tutorial.step).toBe('island');
+  click('#tutorial-continue');
+  expect(tutorial.step).toBe('buy');
+  expect(input.isEnabled).toBe(false);
+  click('[data-action="buy"][data-good="fish"][data-qty="1"]');
+  expect(world.trade.captain.cargo.fish).toBe(1);
   expect(document.querySelector('#tutorial-market .tutorial-card')!.textContent).toContain(
     'Find a buyer',
   );
   click('#tutorial-action');
   expect(chart.open).toBe(true);
-  click('[data-compare="saltmere"]');
+  click('[data-compare="calda"]');
   click('#close-chart');
   await flushClose();
   world.trade.dockedAt = null;
-  Object.assign(world.boat, { x: 252, y: -134, speedKn: 0 });
-  click('.port-marker[data-port-id="saltmere"]');
+  Object.assign(world.boat, { x: 152, y: 240, speedKn: 0 });
+  click('.port-marker[data-port-id="calda"]');
   click('#tp-sell-all');
-  expect(world.trade.captain.cargo.timber).toBe(0);
+  expect(world.trade.captain.cargo.fish).toBe(0);
   expect(world.destination).toBeNull();
   expect(document.querySelector('#tutorial-market .tutorial-card')!.textContent).toContain(
     'First delivery complete',

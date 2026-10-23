@@ -109,4 +109,9 @@ export interface MapDef {
   ports: PortDef[];
   /** Port id of the home port: upgrades and ship changes (decision 0048). Default: nearest the start. */
   homePort?: string;
+  /**
+   * The tutorial's prologue (decision 0127): where a voyage that takes it begins, and the terrain
+   * feature whose wreck landmark is the boat to rescue. Without it the tutorial starts at the chart.
+   */
+  prologue?: { start: { x: number; y: number; headingDeg: number }; wreck: string };
 }

@@ -525,6 +525,9 @@
               </g>
               <g id="c-boat"><path d="M0 -17 L6 6 L0 3 L-6 6 Z" class="boat" /></g>
               <g id="c-wp"><circle cy="-44" r="4" class="wp" /></g>
+              <g id="c-mark" style="display: none">
+                <path d="M0 -49 L5 -42 L0 -35 L-5 -42 Z" class="mark" />
+              </g>
             </svg>
           </button>
           <!-- Strength bars hidden for now (decision 0040); remove `hidden` to show them. -->
@@ -955,16 +958,16 @@
       </p>
       <ul class="offer-steps">
         <li>
-          <svg class="icon" aria-hidden="true"><use href="#i-map" /></svg
-          ><span data-i18n="tutorial.themeChart">Chart</span>
-        </li>
-        <li>
           <svg class="icon" aria-hidden="true"><use href="#i-sail" /></svg
           ><span data-i18n="tutorial.themeSails">Sails</span>
         </li>
         <li>
           <svg class="icon" aria-hidden="true"><use href="#i-compass" /></svg
           ><span data-i18n="tutorial.themeWind">Wind</span>
+        </li>
+        <li>
+          <svg class="icon" aria-hidden="true"><use href="#i-chart-boat" /></svg
+          ><span data-i18n="tutorial.themeRescue">Rescue</span>
         </li>
         <li>
           <svg class="icon" aria-hidden="true"><use href="#i-anchor" /></svg

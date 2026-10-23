@@ -33,6 +33,7 @@ import {
   createWorld,
   setPortDestination,
   resetBoat,
+  startAtPrologue,
   stepWorld,
 } from './sim/world';
 import {
@@ -193,8 +194,10 @@ const tutorial = new Tutorial(world, view.harbours, storage, resumedVoyage);
 // Quests (decision 0125): every quest file but the tutorial's, saved with the voyage. The
 // tutorial counts as done for them once it is finished or skipped.
 const quests = new QuestBook(world, undefined, {
-  doneElsewhere: (id) =>
-    id === TUTORIAL_QUEST.id && ['completed', 'skipped'].includes(tutorial.status),
+  // The tutorial counts as done unless it is running: finished, skipped, or never offered (a
+  // voyage from before it), so Rook's thanks and the arcs reach every voyage (decision 0127).
+  doneElsewhere: (id) => id === TUTORIAL_QUEST.id && !tutorial.isActive,
+  atElsewhere: (id, step) => id === TUTORIAL_QUEST.id && tutorial.reached(step),
   // A night step counts at any time when night is switched off (hazards stay optional).
   nightOk: () => !settings.dayNight || daylightAt(world.time).night >= 0.5,
 });
@@ -218,7 +221,8 @@ function showDueCard() {
   refreshPause();
 }
 quests.onEvent = (e) => {
-  if (e.type === 'finished') questThanks.add(e.quest);
+  // While the tutorial runs, its own lesson card speaks for Rook's thanks (decision 0127).
+  if (e.type === 'finished' && !tutorial.isActive) questThanks.add(e.quest);
 };
 questCard.onAccept = (id) => {
   // The offer already said what the first step asks.
@@ -461,6 +465,11 @@ coach.onMarket = () => {
 };
 coach.onTips = () => $('wind-help-trigger').click();
 $('tutorial-start').addEventListener('click', () => {
+  // A fresh voyage taking the tutorial begins alone at sea (decision 0127).
+  if (!resumedVoyage && world.time < 60) {
+    startAtPrologue(world);
+    sailStep = world.boat.sailStep;
+  }
   tutorial.start();
   tutorialOffer.close();
   refreshPause();
@@ -848,6 +857,7 @@ let accumulator = 0;
 let last = performance.now();
 let frame = 0;
 let coachTick = 0;
+let foghornIn = 1.5;
 
 function tick(now: number) {
   frame = requestAnimationFrame(tick);
@@ -866,6 +876,12 @@ function tick(now: number) {
       handleEvents(stepWorld(world, controls, SIM_STEP));
       tutorial.observe(controls, SIM_STEP);
       if (quests.update(SIM_STEP).length) showDueCard();
+      // The foghorn sounds every few seconds until the wreck is in sight (decision 0127).
+      foghornIn -= SIM_STEP;
+      if (tutorial.isActive && tutorial.step === 'foghorn' && foghornIn <= 0) {
+        music.foghorn();
+        foghornIn = 9;
+      }
       accumulator -= SIM_STEP;
       steps++;
     }
@@ -876,6 +892,8 @@ function tick(now: number) {
   // Pause menus and translucent sheets leave sea instruments visible. Only the title's
   // CSS rule and the opaque, full-screen chart cover the entire HUD.
   const hudVisible = !(mode === 'menu' && !started) && !chart.isOpen;
+  hud.mark = tutorial.mark;
+  view.castawayWaiting = tutorial.mark !== null;
   hud.update(dt, (x, y) => view.project(x, y), size, !paused, hudVisible);
   // Coach marks follow moving targets (port signs) about ten times a second.
   if (++coachTick % 6 === 0) coach.place();
@@ -923,5 +941,7 @@ if (new URLSearchParams(location.search).has('debug')) {
     if (storage) clearSave(storage);
     location.reload();
   };
-  Object.assign(window, { fwt: { world, view, input, trade, tradePanel, quests, newGame } });
+  Object.assign(window, {
+    fwt: { world, view, input, trade, tradePanel, quests, tutorial, newGame },
+  });
 }

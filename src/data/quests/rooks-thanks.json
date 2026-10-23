@@ -1,0 +1,15 @@
+{
+  "id": "rooks-thanks",
+  "name": "Rook's thanks",
+  "start": {
+    "is": "any",
+    "of": [
+      { "is": "quest-done", "quest": "first-voyage" },
+      { "is": "quest-at", "quest": "first-voyage", "step": "island" }
+    ]
+  },
+  "text": "quest.rooks-thanks",
+  "giver": "rook",
+  "port": "home",
+  "steps": [{ "id": "home", "port": "home", "goal": { "is": "docked", "port": "home" } }]
+}

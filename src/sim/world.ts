@@ -177,6 +177,21 @@ export function resetBoat(world: World): void {
   world.course = { index: 0, legStart: world.time, reached: 0, lastLegSeconds: null };
 }
 
+/**
+ * A voyage that takes the tutorial begins at the prologue's spot at sea (decision 0127), when the
+ * map has one. Returns whether the boat moved.
+ */
+export function startAtPrologue(world: World): boolean {
+  const start = world.map.prologue?.start;
+  if (!start) return false;
+  const { sailStep } = world.boat;
+  world.boat = createBoat(start.x, start.y, start.headingDeg * DEG);
+  world.boat.sailStep = sailStep;
+  world.destination = null;
+  world.trade.dockedAt = null;
+  return true;
+}
+
 export function currentWaypoint(world: World) {
   return world.destination ?? world.map.course[world.course.index % world.map.course.length]!;
 }
