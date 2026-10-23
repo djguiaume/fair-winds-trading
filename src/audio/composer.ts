@@ -7,8 +7,14 @@
  * pad alone follow before the next tune, which gets a new seed: the music never loops exactly.
  *
  * Time is counted in eighth notes; a bar is 6 of them (6/8, two dotted-quarter beats).
+ *
+ * The theme, what makes it this tune and not another, is data (decision 0111): tempo, keys and
+ * scales, bar rhythms, chord progressions, melody moves, rests and loudness come from a file in
+ * `src/data/music/`, picked by `src/data/audio.json`. The form above (AABB, 6/8, cadences, chord
+ * tones on the strong beats) and the sound itself (`synth.ts`) stay code.
  */
 import { createRng, type Rng } from '../sim/rng';
+import fairWinds from '../data/music/fair-winds.json';
 
 export type Voice = 'melody' | 'bass' | 'pad';
 
@@ -34,48 +40,52 @@ export interface Tune {
 
 export const EIGHTHS_PER_BAR = 6;
 const PHRASE_BARS = 4;
-const REST_BARS = 4;
 
-const MAJOR = [0, 2, 4, 5, 7, 9, 11];
-const DORIAN = [0, 2, 3, 5, 7, 9, 10];
+/** A theme file in `src/data/music/` (decision 0111). Steps are scale steps, 0 = tonic. */
+export interface Theme {
+  name: string;
+  /** Dotted-quarter beats per minute, picked per tune in [min, max]. */
+  tempo: [number, number];
+  /** Scales as semitones above the tonic, by name. */
+  scales: Record<string, number[]>;
+  /** The keys a tune can be in: tonic as a MIDI note, and a scale name. */
+  keys: { tonic: number; scale: string }[];
+  /** Bar rhythms in eighths; each sums to 6. */
+  rhythms: number[][];
+  /** Progressions as scale degrees (0 = tonic chord), one chord per bar; the 4th bar is replaced
+   * by the cadence chord. */
+  progressions: number[][];
+  /** Where a phrase's melody may start. */
+  startSteps: number[];
+  /** Lowest and highest melody step. */
+  range: [number, number];
+  /** How far a strong-beat note may jump before it settles on a chord tone. */
+  leap: number;
+  /** Steps a weak-beat note moves by, picked evenly (repeat one to make it likelier). */
+  moves: number[];
+  /** Chance a weak-beat melody note becomes a rest, to give the tune room to breathe. */
+  restChance: number;
+  /** Melody loudness on the downbeat, the second beat and the notes between. */
+  accents: [number, number, number];
+  /** Pad chord loudness. */
+  padVel: number;
+  /** Bass note loudness. */
+  bassVel: number;
+  /** Chords of the pad-only bars between tunes, as degrees. */
+  restBars: number[];
+  /** Echo send on the flute, 0..1. */
+  echo: number;
+}
 
 /**
  * "Fair Winds", the sailing theme Guillaume picked (decision 0045): a sea-folk air on a flute
  * over quiet chords and one bass note per bar. A first, fuller version felt crowded, so this is
- * the light-band take: long notes, a few gaps in the melody, no ornaments, a light echo.
+ * the light-band take: long notes, a few gaps in the melody, no ornaments, a light echo. Keys:
+ * D major, G major, D dorian, A dorian (dorian is the minor of old sea tunes).
  */
-export const THEME = {
-  /** Dotted-quarter beats per minute, picked per tune in [min, max]. */
-  tempo: [84, 92],
-  /** D major, G major, D dorian, A dorian (dorian is the minor of old sea tunes). */
-  keys: [
-    { tonic: 62, scale: MAJOR },
-    { tonic: 67, scale: MAJOR },
-    { tonic: 62, scale: DORIAN },
-    { tonic: 69, scale: DORIAN },
-  ],
-  /** Bar rhythms in eighths; each sums to 6. */
-  rhythms: [[3, 3], [3, 2, 1], [2, 1, 3], [6], [4, 2]],
-  /** Chance a weak-beat melody note becomes a rest, to give the tune room to breathe. */
-  restChance: 0.15,
-  /** Pad chord loudness. */
-  padVel: 0.55,
-  /** Echo send on the flute, 0..1. */
-  echo: 0.15,
-} as const;
+export const THEME: Readonly<Theme> = fairWinds as unknown as Theme;
 
-type Key = (typeof THEME.keys)[number];
-
-/** Progressions as scale degrees (0 = tonic chord), one chord per bar; the 4th bar is replaced
- * by the cadence chord. */
-const PROGRESSIONS = [
-  [0, 4, 5, 3],
-  [0, 3, 0, 4],
-  [0, 5, 3, 4],
-  [0, 3, 4, 4],
-  [5, 3, 0, 4],
-  [0, 6, 3, 4],
-];
+type Key = { tonic: number; scale: readonly number[] };
 
 export const pick = <T>(rng: Rng, list: readonly T[]): T => list[Math.floor(rng() * list.length)]!;
 
@@ -90,15 +100,13 @@ export function scaleNote(tonic: number, scale: readonly number[], step: number)
 /** Scale steps of the triad built on `degree`. */
 const triad = (degree: number) => [degree, degree + 2, degree + 4];
 
-const LOW = -2;
-const HIGH = 9;
-
 /** Nearest step to `from` whose pitch class is one of the chord's. */
-function nearestChordStep(from: number, degree: number) {
+function nearestChordStep(theme: Theme, from: number, degree: number) {
   const tones = triad(degree).map((s) => mod(s, 7));
   let best = from;
   let bestDist = Infinity;
-  for (let s = LOW; s <= HIGH; s++) {
+  const [low, high] = theme.range;
+  for (let s = low; s <= high; s++) {
     if (!tones.includes(mod(s, 7))) continue;
     const d = Math.abs(s - from);
     if (d < bestDist) {
@@ -111,20 +119,21 @@ function nearestChordStep(from: number, degree: number) {
 
 /** One bar of melody as [step, length] pairs (step null = rest). Strong beats (0 and 3) land
  * on chord tones; the notes between move by step. */
-function melodyBar(rng: Rng, start: number, degree: number) {
+function melodyBar(theme: Theme, rng: Rng, start: number, degree: number) {
   const out: [number | null, number][] = [];
   let step = start;
   let pos = 0;
-  for (const len of pick(rng, THEME.rhythms)) {
+  const [low, high] = theme.range;
+  for (const len of pick(rng, theme.rhythms)) {
     if (pos === 0 || pos === 3) {
       // Move to a nearby chord tone, but not the same note as the last strong beat.
       const from = step;
-      step = nearestChordStep(from + Math.round((rng() - 0.5) * 4), degree);
-      if (step === from) step = nearestChordStep(from + (rng() < 0.5 ? 2 : -2), degree);
+      step = nearestChordStep(theme, from + Math.round((rng() - 0.5) * theme.leap), degree);
+      if (step === from) step = nearestChordStep(theme, from + (rng() < 0.5 ? 2 : -2), degree);
       out.push([step, len]);
     } else {
-      step = Math.max(LOW, Math.min(HIGH, step + pick(rng, [-1, -1, 1, 1, 2, -2])));
-      out.push([rng() < THEME.restChance ? null : step, len]);
+      step = Math.max(low, Math.min(high, step + pick(rng, theme.moves)));
+      out.push([rng() < theme.restChance ? null : step, len]);
     }
     pos += len;
   }
@@ -148,18 +157,19 @@ const cadenceBar = (home: boolean, last: number): [number, number][] => {
   ];
 };
 
-/** Compose one tune. Same seed, same tune. */
-export function composeTune(seed: number): Tune {
+/** Compose one tune of `theme`. Same seed, same tune. */
+export function composeTune(seed: number, theme: Theme = THEME): Tune {
   const rng = createRng(seed);
-  const key: Key = pick(rng, THEME.keys);
+  const picked = pick(rng, theme.keys);
+  const key: Key = { tonic: picked.tonic, scale: theme.scales[picked.scale]! };
   const notes: Note[] = [];
   const at = (bar: number, eighth = 0) => bar * EIGHTHS_PER_BAR + eighth;
 
   const phrases = [0, 1].map(() => {
-    const prog = pick(rng, PROGRESSIONS);
-    let step = pick(rng, [0, 2, 4, 7]);
+    const prog = pick(rng, theme.progressions);
+    let step = pick(rng, theme.startSteps);
     const bars = prog.slice(0, PHRASE_BARS - 1).map((degree) => {
-      const bar = melodyBar(rng, step, degree);
+      const bar = melodyBar(theme, rng, step, degree);
       for (const [s] of bar) if (s !== null) step = s;
       return bar;
     });
@@ -176,24 +186,25 @@ export function composeTune(seed: number): Tune {
         for (const [step, len] of bars[i]!) {
           if (step !== null) {
             const midi = scaleNote(key.tonic, key.scale, step);
-            const vel = pos === 0 ? 0.9 : pos === 3 ? 0.75 : 0.6;
+            const [down, second, between] = theme.accents;
+            const vel = pos === 0 ? down : pos === 3 ? second : between;
             notes.push({ voice: 'melody', midi, at: at(bar, pos), len, vel });
           }
           pos += len;
         }
-        accompany(notes, key, degree, at(bar), 1);
+        accompany(theme, notes, key, degree, at(bar), 1);
         bar++;
       });
     }
   }
 
   // Pad-only rest: tonic, a soft move away and back, so the next tune enters fresh.
-  [0, 3, 0, 0].slice(0, REST_BARS).forEach((degree, i) => {
-    accompany(notes, key, degree, at(bar), 0.6 - i * 0.1, true);
+  theme.restBars.forEach((degree, i) => {
+    accompany(theme, notes, key, degree, at(bar), 0.6 - i * 0.1, true);
     bar++;
   });
 
-  const [lo, hi] = THEME.tempo;
+  const [lo, hi] = theme.tempo;
   return {
     notes,
     length: bar * EIGHTHS_PER_BAR,
@@ -203,6 +214,7 @@ export function composeTune(seed: number): Tune {
 
 /** Pad chord for the bar, plus one bass note on the downbeat (none in the rest bars). */
 function accompany(
+  theme: Theme,
   notes: Note[],
   key: Key,
   degree: number,
@@ -213,11 +225,11 @@ function accompany(
   const { tonic, scale } = key;
   for (const step of triad(degree)) {
     const midi = scaleNote(tonic - 12, scale, step);
-    notes.push({ voice: 'pad', midi, at: start, len: 6, vel: vel * THEME.padVel });
+    notes.push({ voice: 'pad', midi, at: start, len: 6, vel: vel * theme.padVel });
   }
   if (padOnly) return;
   const root = scaleNote(tonic - 24, scale, degree);
-  notes.push({ voice: 'bass', midi: root, at: start, len: 3, vel: vel * 0.8 });
+  notes.push({ voice: 'bass', midi: root, at: start, len: 3, vel: vel * theme.bassVel });
 }
 
 export const midiToHz = (midi: number) => 440 * 2 ** ((midi - 69) / 12);

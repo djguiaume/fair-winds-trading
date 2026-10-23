@@ -7,7 +7,7 @@ type Side = 'top' | 'bottom' | 'left' | 'right' | 'none';
 /**
  * The element a lesson points at on the open surface (decision 0061). Selectors only, so the
  * sea HUD, chart and port screen keep their own markup; null leaves the bubble unpinned. Which
- * target each step uses is its `coach` entry in `src/data/tutorial.json` (decision 0111).
+ * target each step uses is its `coach` entry in `src/data/quests/first-voyage.json` (decision 0111).
  */
 function lessonTarget(tutorial: Tutorial, surface: Surface): string | null {
   if (!surface) return null;

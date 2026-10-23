@@ -1,15 +1,33 @@
 /**
- * In-game background music player (decision 0045). Composes tune after tune of the Fair Winds
- * theme and schedules them a little ahead on a Web Audio clock.
+ * In-game background music player (decision 0045). Plays the `sea` track of `src/data/audio.json`
+ * (decision 0111): a theme is composed tune after tune and scheduled a little ahead on a Web Audio
+ * clock; a recorded file loops. Effects come from the same list.
  *
  * - Browsers only allow sound after a tap or key press, so `unlock()` is called from the first
  *   one; until then nothing is created.
  * - Volume 0 suspends the audio context, so muted music costs nothing.
  * - The game suspends it too while the tab is hidden (battery on phones).
  */
-import { composeTune, EIGHTHS_PER_BAR, type Tune } from './composer';
+import { composeTune, EIGHTHS_PER_BAR, type Theme, type Tune } from './composer';
 import { createBand, playNote, type Band } from './synth';
 import { playCreak } from './sfx';
+import { EFFECTS, MUSIC, THEMES, soundUrl, type MusicTrack, type SoundEffect } from './catalog';
+
+/** Recorded files, decoded once per audio context. */
+const buffers = new WeakMap<BaseAudioContext, Map<string, Promise<AudioBuffer | null>>>();
+function loadSound(ctx: BaseAudioContext, file: string): Promise<AudioBuffer | null> {
+  let byFile = buffers.get(ctx);
+  if (!byFile) buffers.set(ctx, (byFile = new Map()));
+  let buffer = byFile.get(file);
+  if (!buffer) {
+    buffer = fetch(soundUrl(file))
+      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(r.statusText))))
+      .then((data) => ctx.decodeAudioData(data))
+      .catch(() => null); // A missing file is silence, never a broken game.
+    byFile.set(file, buffer);
+  }
+  return buffer;
+}
 
 /** How far ahead notes are scheduled, and how often the scheduler wakes. */
 const LOOKAHEAD = 1.5;
@@ -25,6 +43,9 @@ export class Music {
   private bar = 0;
   private barTime = 0;
   private hidden = false;
+  private readonly track: MusicTrack | undefined = MUSIC.sea;
+  private readonly theme: Theme | undefined =
+    this.track && 'theme' in this.track ? THEMES[this.track.theme] : undefined;
 
   constructor(
     private volume: number,
@@ -42,10 +63,46 @@ export class Music {
       (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Ctor) return;
     this.ctx = new Ctor();
-    this.band = createBand(this.ctx);
+    this.band = createBand(this.ctx, this.ctx.destination, this.theme?.echo);
     this.band.out.gain.value = this.level;
     this.barTime = this.ctx.currentTime + 0.3;
+    if (this.track && 'file' in this.track) void this.loop(this.ctx, this.band, this.track);
+    for (const effect of Object.values(EFFECTS))
+      if ('file' in effect) void loadSound(this.ctx, effect.file);
     this.apply();
+  }
+
+  /** A recorded track: loop it on the band's master volume. */
+  private async loop(ctx: AudioContext, band: Band, track: { file: string; volume?: number }) {
+    const buffer = await loadSound(ctx, track.file);
+    if (!buffer) return;
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    const gain = ctx.createGain();
+    gain.gain.value = track.volume ?? 1;
+    source.connect(gain).connect(band.out);
+    source.start();
+  }
+
+  /** Play an effect of the sound list at `level` (before its own volume). */
+  private effect(effect: SoundEffect | undefined, level: number) {
+    const { ctx } = this;
+    if (!ctx || !effect) return;
+    const volume = level * (effect.volume ?? 1);
+    if ('synth' in effect) {
+      if (effect.synth === 'creak') playCreak(ctx, ctx.destination, volume);
+      return;
+    }
+    void loadSound(ctx, effect.file).then((buffer) => {
+      if (!buffer || ctx.state !== 'running') return;
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      const gain = ctx.createGain();
+      gain.gain.value = volume;
+      source.connect(gain).connect(ctx.destination);
+      source.start();
+    });
   }
 
   /**
@@ -55,7 +112,7 @@ export class Music {
   creak(): void {
     const { ctx } = this;
     if (!ctx || !this.audible || ctx.state !== 'running') return;
-    playCreak(ctx, ctx.destination, 1.6 * this.level);
+    this.effect(EFFECTS.creak, this.level);
   }
 
   /** 0..1, from the settings slider. */
@@ -101,11 +158,11 @@ export class Music {
   }
 
   private schedule() {
-    const { ctx, band } = this;
-    if (!ctx || !band) return;
+    const { ctx, band, theme } = this;
+    if (!ctx || !band || !theme) return;
     while (this.barTime < ctx.currentTime + LOOKAHEAD) {
       if (!this.tune || this.bar * EIGHTHS_PER_BAR >= this.tune.length) {
-        this.tune = composeTune(this.seed++);
+        this.tune = composeTune(this.seed++, theme);
         this.bar = 0;
       }
       const tune = this.tune;

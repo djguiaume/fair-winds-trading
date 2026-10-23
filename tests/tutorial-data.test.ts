@@ -2,16 +2,18 @@ import { describe, expect, it, vi } from 'vitest';
 import en from '../src/i18n/en.json';
 import fr from '../src/i18n/fr.json';
 
-// Decision 0111: the tutorial's lessons are the steps of src/data/tutorial.json. This test drops
+// Decision 0111: the tutorial is the first quest; its lessons are the steps of src/data/quests/first-voyage.json. This test drops
 // the wind lesson from the file only: the sails lesson then leads straight to docking.
-vi.mock('../src/data/tutorial.json', async (importOriginal) => {
+vi.mock('../src/data/quests/first-voyage.json', async (importOriginal) => {
   const file = (
-    (await importOriginal()) as { default: { steps: { id: string; on: Record<string, string> }[] } }
+    (await importOriginal()) as {
+      default: { steps: { id: string; on: Record<string, string> }[] } & Record<string, unknown>;
+    }
   ).default;
   const steps = structuredClone(file.steps.filter((s) => s.id !== 'wind'));
   const sails = steps.find((s) => s.id === 'sails')!;
   sails.on = { ...sails.on, 'sails-practised': 'dock', continue: 'dock' };
-  return { default: { steps } };
+  return { default: { ...file, reward: { gold: 25 }, steps } };
 });
 
 const { TUTORIAL, TUTORIAL_DONE, TUTORIAL_EVENTS, TUTORIAL_STEPS, Tutorial } =
@@ -21,7 +23,9 @@ const { SLOOP } = await import('../src/sim/ship');
 const { createWorld } = await import('../src/sim/world');
 type StepFile = { id: string; on: Record<string, string>; coach: Record<string, string> };
 const shipped = (
-  (await vi.importActual('../src/data/tutorial.json')) as { default: { steps: StepFile[] } }
+  (await vi.importActual('../src/data/quests/first-voyage.json')) as {
+    default: { id: string; start: string; text: string; reward: object; steps: StepFile[] };
+  }
 ).default;
 
 const COACH = [
@@ -38,6 +42,8 @@ const COACH = [
 
 describe('tutorial steps as data (decision 0111)', () => {
   it('the shipped file is sound: known events and targets, every lesson has its text', () => {
+    expect(shipped).toMatchObject({ id: 'first-voyage', start: 'offered', text: 'lesson' });
+    expect(shipped.reward).toEqual({ gold: 0 });
     const ids = shipped.steps.map((s) => s.id);
     expect(new Set(ids).size).toBe(ids.length);
     for (const step of shipped.steps) {
@@ -73,5 +79,20 @@ describe('tutorial steps as data (decision 0111)', () => {
     world.trade.dockedAt = 'calda';
     tutorial.observe();
     expect(tutorial.step).toBe('buy');
+    // Finish it: the quest's reward is paid once.
+    const good = PHASE1_MAP.ports.find((p) => p.id === 'calda')!.produces[0]!;
+    world.trade.captain.cargo[good] = 1;
+    tutorial.traded('buy', good);
+    const buyer = PHASE1_MAP.ports.find((p) => p.id !== 'calda' && p.wants.includes(good))!;
+    world.destination = { portId: buyer.id, label: buyer.name, x: 0, y: 0 };
+    tutorial.destinationSelected();
+    world.trade.dockedAt = buyer.id;
+    tutorial.observe();
+    expect(tutorial.step).toBe('sell');
+    const gold = world.trade.captain.gold;
+    world.trade.captain.cargo[good] = 0;
+    tutorial.traded('sell', good);
+    expect(tutorial.status).toBe('completed');
+    expect(world.trade.captain.gold).toBe(gold + 25);
   });
 });

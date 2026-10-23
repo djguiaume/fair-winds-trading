@@ -1,5 +1,5 @@
 import { goodSome, goodThe, t } from '../i18n';
-import tutorialFile from '../data/tutorial.json';
+import firstVoyage from '../data/quests/first-voyage.json';
 import { GOODS, isGood, type GoodId } from './goods';
 import { type BoatControls } from './boat';
 import { type SaveStorage } from './save';
@@ -8,12 +8,13 @@ import { findPort, cargoUsed } from './trade';
 import { type World, holdStorms } from './world';
 
 /*
- * The first-voyage tutorial (decisions 0025, 0061) as data (decision 0111): its lessons, in order,
- * are the steps of `src/data/tutorial.json`. A step says which harbour it is about, which port a
+ * The first-voyage tutorial (decisions 0025, 0061) as data (decision 0111): it is the first quest,
+ * `src/data/quests/first-voyage.json`, and its lessons, in order, are the quest's steps. A step says which harbour it is about, which port a
  * pick on the chart sets, where the coach mark points, and, in `on`, which step each event leads
  * to. The events are the small library below, watched by this class; a new kind of event (say,
- * "reefed in a gale") needs code once, a new lesson or a new order of lessons does not. Lesson text
- * is `lesson.<id>.title`, `lesson.<id>.copy` and, with a Continue button, `lesson.<id>.continue`.
+ * "reefed in a gale") needs code once, a new lesson or a new order of lessons does not. Step text
+ * is `<text>.<id>.title`, `.copy` and, with a Continue button, `.continue` (`lesson.chart.title`).
+ * The same format is meant for later quests (Guillaume, 2026-10-23); this class runs this one.
  */
 
 /** The two harbours a lesson can be about: where the cargo is bought, and where it is sold. */
@@ -80,7 +81,24 @@ export interface TutorialStepDef {
   on: Partial<Record<TutorialEvent, string>>;
 }
 
-export const TUTORIAL: readonly TutorialStepDef[] = tutorialFile.steps as TutorialStepDef[];
+/** A quest file: its steps, when it starts and what finishing it pays. */
+export interface QuestDef {
+  /** Stored nowhere yet; the tutorial's progress keeps its own storage key. */
+  id: string;
+  /** English name, for editors and lists. */
+  name: string;
+  /** When it starts: `offered` is offered on a fresh voyage and from the menu (the tutorial). */
+  start: 'offered';
+  /** Prefix of the step text keys. */
+  text: string;
+  /** Paid once, when a step leads to `done`. */
+  reward: { gold: number };
+  steps: TutorialStepDef[];
+}
+
+/** The tutorial: the first quest. */
+export const TUTORIAL_QUEST = firstVoyage as QuestDef;
+export const TUTORIAL: readonly TutorialStepDef[] = TUTORIAL_QUEST.steps;
 export const TUTORIAL_STEPS: readonly string[] = TUTORIAL.map((s) => s.id);
 export type TutorialStep = string;
 /** The `on` target that finishes the tutorial. */
@@ -158,7 +176,7 @@ export class Tutorial {
   get step() {
     return this.progress.step;
   }
-  /** The current step's entry in `tutorial.json`. */
+  /** The current step's entry in the quest file. */
   get def(): TutorialStepDef {
     return stepDef(this.step);
   }
@@ -321,6 +339,7 @@ export class Tutorial {
     } else if (sold && here && (good === null || good === this.good)) {
       if (sold === TUTORIAL_DONE) {
         this.clearTarget();
+        this.world.trade.captain.gold += TUTORIAL_QUEST.reward.gold;
         this.progress.status = 'completed';
         this.finishedNotice = true;
         this.publish();
@@ -407,7 +426,7 @@ export class Tutorial {
       good: produced ? goodSome(produced) : t('tutorial.producedGood'),
       buyer: buyer ? t('lesson.choose-delivery.buyer', { name: buyer.name, cargo }) : '',
     };
-    const key = (part: string) => `lesson.${id}.${part}` as Parameters<typeof t>[0];
+    const key = (part: string) => `${TUTORIAL_QUEST.text}.${id}.${part}` as Parameters<typeof t>[0];
     return {
       title: t(key('title'), params),
       copy: t(key('copy'), params),
