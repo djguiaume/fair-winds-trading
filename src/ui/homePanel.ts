@@ -4,8 +4,8 @@ import {
   type BuildingDef,
   buildChoices,
   buildOnSpot,
-  homeIsland,
   homeSpots,
+  islandHome,
   passedOver,
   spotPosition,
 } from '../sim/home';
@@ -24,8 +24,8 @@ export function effectLine(b: BuildingDef): string {
 export const buildingName = (b: BuildingDef) => t(`building.${b.id}` as MessageKey);
 
 /**
- * The home island at the pier (decisions 0120 and 0126): its build spots as tap targets over the
- * 3D island, and a card with the choice of two buildings (side by side in landscape, a bottom
+ * One of the captain's islands at its pier (decisions 0120, 0126, 0128): its build spots as tap
+ * targets over the 3D island, and a card with the choice of two buildings (side by side in landscape, a bottom
  * sheet in portrait). The sea HUD stays: raising the sails leaves, as in any harbour.
  */
 export class HomePanel {
@@ -34,6 +34,8 @@ export class HomePanel {
   private readonly markers = new Map<string, HTMLButtonElement>();
   private readonly bar: HTMLElement;
   private openSpot: string | null = null;
+  /** The island moored at, whose spots show. */
+  private islandId: string | null = null;
 
   /** After a building goes up or the hull is repaired: redraw and save. */
   onBuilt: (building: BuildingDef) => void = () => {};
@@ -62,19 +64,23 @@ export class HomePanel {
     return this.openSpot !== null;
   }
 
-  /** Every frame: show the spots while moored at home, over where they stand. */
+  private get island() {
+    return this.world.map.islands.find((i) => i.id === this.islandId);
+  }
+
+  /** Every frame: show the spots while moored at one of her islands, over where they stand. */
   update(project: (x: number, y: number) => ScreenPoint) {
-    const { home } = this.world.trade;
-    const island = homeIsland(this.world.map);
-    const show = !!island && !!home.docked;
-    if (this.layer.hidden === show) {
-      this.layer.hidden = !show;
-      this.bar.hidden = !show;
-      if (show) this.render();
-      else this.close();
+    const docked = this.world.trade.home.docked ?? null;
+    if (docked !== this.islandId) {
+      this.close();
+      this.islandId = docked;
+      this.layer.hidden = !docked;
+      this.bar.hidden = !docked;
+      if (docked) this.render();
     }
-    if (!show || !island) return;
-    for (const spot of homeSpots(this.world.map)) {
+    const island = this.island;
+    if (!island) return;
+    for (const spot of homeSpots(this.world.map, island.id)) {
       const el = this.markers.get(spot.id);
       if (!el) continue;
       const at = spotPosition(island, spot);
@@ -87,15 +93,16 @@ export class HomePanel {
   /** Rebuild the markers and the bar from the home state. */
   render() {
     const { trade, map } = this.world;
-    const { home } = trade;
-    const island = homeIsland(map);
+    const island = this.island;
+    if (!island) return;
+    const home = islandHome(trade.home, island.id);
     this.layer.innerHTML = '';
     this.markers.clear();
-    const spare = passedOver(home, map).length > 0;
-    homeSpots(map).forEach((spot, i) => {
+    const spare = passedOver(trade.home, map, island.id).length > 0;
+    homeSpots(map, island.id).forEach((spot, i) => {
       const b = document.createElement('button');
       b.className = 'home-spot';
-      const offered = buildChoices(trade, map, spot.id).length > 0;
+      const offered = buildChoices(trade, map, spot.id, island.id).length > 0;
       const state = home.built[spot.id]
         ? 'hidden'
         : offered
@@ -126,7 +133,7 @@ export class HomePanel {
     this.bar.innerHTML = '';
     const title = document.createElement('div');
     title.className = 'home-title';
-    title.textContent = `⌂ ${t('home.title', { name: island?.name ?? '' })}`;
+    title.textContent = `⌂ ${t('home.title', { name: island.name ?? island.id })}`;
     this.bar.append(title);
     if (repairsAtHome(trade) && hullDamage(trade) > 0) {
       const repair = document.createElement('button');
@@ -144,9 +151,10 @@ export class HomePanel {
 
   open(spotId: string) {
     const { trade, map } = this.world;
-    const choices = buildChoices(trade, map, spotId);
+    if (!this.islandId) return;
+    const choices = buildChoices(trade, map, spotId, this.islandId);
     if (!choices.length) return;
-    const spots = homeSpots(map);
+    const spots = homeSpots(map, this.islandId);
     const index = spots.findIndex((s) => s.id === spotId);
     const spare = !spots[index]!.pair;
     this.openSpot = spotId;
@@ -207,7 +215,8 @@ export class HomePanel {
   }
 
   private build(spotId: string, building: BuildingDef) {
-    const r = buildOnSpot(this.world.trade, this.world.map, spotId, building.id);
+    if (!this.islandId) return;
+    const r = buildOnSpot(this.world.trade, this.world.map, spotId, building.id, this.islandId);
     if (!r.ok) return;
     this.close();
     this.render();

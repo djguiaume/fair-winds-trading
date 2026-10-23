@@ -61,7 +61,7 @@ import {
 } from './i18n';
 import { TradePanel } from './ui/tradePanel';
 import { HomePanel, buildingName, effectLine } from './ui/homePanel';
-import { giveHomeIsland, homeIsland, homeSpots, offerHomeSpot } from './sim/home';
+import { builtByIsland, giveHomeIsland, homeSpots, islandHome, offerHomeSpot } from './sim/home';
 import { TransferPanel } from './ui/transferPanel';
 
 declare const __APP_VERSION__: string;
@@ -194,14 +194,14 @@ const tradePanel = new TradePanel($('trade-panel'), world);
 // The home island (decision 0126). Until the prologue quest gives it, `?home` gives it to the
 // voyage being played and offers every arc spot, to try the build spots.
 if (new URLSearchParams(location.search).has('home')) {
-  giveHomeIsland(world.trade);
+  giveHomeIsland(world.trade, world.map);
   for (const spot of homeSpots(world.map)) offerHomeSpot(world.trade, world.map, spot.id);
 }
-view.setHomeBuildings(world.trade.home.built);
+view.setHomeBuildings(builtByIsland(world.trade.home));
 const homePanel = new HomePanel($('home-ui'), world);
 homePanel.onChange = () => refreshPause();
 homePanel.onBuilt = (building) => {
-  view.setHomeBuildings(world.trade.home.built);
+  view.setHomeBuildings(builtByIsland(world.trade.home));
   hud.showToast(t('home.built', { name: buildingName(building), effect: effectLine(building) }), 5);
   autosave();
 };
@@ -852,11 +852,12 @@ function handleEvents(events: WorldEvent[]) {
       if (tradePanel.isOpen) tradePanel.render();
       autosave();
     } else if (e.type === 'home-docked') {
-      // Moored at your own island (decision 0126): its spots show; a new one is said out loud.
-      const name = world.map.islands.find((i) => i.id === world.map.homeIsland)?.name ?? '';
-      const fresh = world.trade.home.offered.length > 0;
+      // Moored at one of your islands (decisions 0126, 0128): its spots show; a new one is said
+      // out loud.
+      const island = world.map.islands.find((i) => i.id === e.islandId)!;
+      const name = island.name ?? island.id;
+      const fresh = islandHome(world.trade.home, e.islandId).offered.length > 0;
       // The camera turns to the island, halfway between it and her, so both show.
-      const island = homeIsland(world.map)!;
       view.setFocus({
         x: (island.x * 2 + world.boat.x) / 3,
         y: (island.y * 2 + world.boat.y) / 3,

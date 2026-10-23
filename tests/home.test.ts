@@ -5,6 +5,8 @@ import { TUNING } from '../src/data/tuning';
 import { damageHull, repairPrice } from '../src/sim/hazards';
 import {
   BUILDINGS,
+  buildableIslands,
+  builtByIsland,
   buildChoices,
   buildOnSpot,
   giveHomeIsland,
@@ -21,10 +23,12 @@ import { payReward, testCondition } from '../src/sim/questLibrary';
 import { serializeWorld, validateSave } from '../src/sim/save';
 import { packSave, unpackSave } from '../src/sim/saveCode';
 import { SHIP_CLASSES, SLOOP } from '../src/sim/ship';
-import { shipCost, upgradeCost } from '../src/sim/trade';
+import { homeInRange, shipCost, upgradeCost } from '../src/sim/trade';
+import { characterPiers, islandPoint } from '../src/sim/islandLayout';
+import type { MapDef } from '../src/sim/map';
 import { createWorld } from '../src/sim/world';
 
-// Decision 0126: the home island, its build spots and buildings.
+// Decisions 0126 and 0128: the home island, its build spots and buildings, and more islands.
 const MAP = PHASE1_MAP;
 
 function world() {
@@ -52,7 +56,7 @@ describe('home island (decision 0126)', () => {
     const w = world();
     const { trade } = w;
     expect(buildChoices(trade, MAP, 'spot-1')).toEqual([]); // not the captain's yet
-    giveHomeIsland(trade);
+    giveHomeIsland(trade, MAP);
     expect(buildChoices(trade, MAP, 'spot-1')).toEqual([]); // not offered by an arc yet
     expect(offerHomeSpot(trade, MAP, 'spot-1')).toBe(true);
     expect(offerHomeSpot(trade, MAP, 'spot-1')).toBe(false); // once
@@ -68,7 +72,7 @@ describe('home island (decision 0126)', () => {
       error: 'not-offered',
     });
     expect(buildOnSpot(trade, MAP, 'spot-1', 'workshop')).toEqual({ ok: true, gold: 0 });
-    expect(trade.home.offered).toEqual([]);
+    expect(trade.home.islands.skerry!.offered).toEqual([]);
     expect(passedOver(trade.home, MAP).map((b) => b.id)).toEqual(['rigging-loft']);
 
     const later = buildChoices(trade, MAP, 'spot-5');
@@ -97,15 +101,19 @@ describe('home island (decision 0126)', () => {
     expect(homeEffect(trade.home, 'hullDamage')).toBe(1);
 
     trade.home = {
-      owned: true,
-      offered: [],
-      built: {
-        'spot-1': 'workshop',
-        'spot-3': 'pilot-house',
-        'spot-4': 'boathouse',
-        'spot-5': 'rigging-loft',
+      islands: {
+        skerry: {
+          owned: true,
+          offered: [],
+          built: {
+            'spot-1': 'workshop',
+            'spot-3': 'pilot-house',
+            'spot-4': 'boathouse',
+            'spot-5': 'rigging-loft',
+          },
+        },
       },
-      docked: true,
+      docked: 'skerry',
     };
     expect(upgradeCost(trade, 1000, 'sails')).toBe(Math.round(sailPrice * 0.9));
     expect(upgradeCost(trade, 1000, 'hold')).toBe(1000);
@@ -117,19 +125,18 @@ describe('home island (decision 0126)', () => {
 
   it('saves and reads back, dropping what the map no longer has', () => {
     const w = world();
-    giveHomeIsland(w.trade);
+    giveHomeIsland(w.trade, MAP);
     offerHomeSpot(w.trade, MAP, 'spot-2');
     offerHomeSpot(w.trade, MAP, 'spot-3');
     buildOnSpot(w.trade, MAP, 'spot-2', 'bakehouse');
     const save = JSON.parse(JSON.stringify(serializeWorld(w)));
     expect(validateSave(save, w)?.home).toEqual({
-      owned: true,
-      offered: ['spot-3'],
-      built: { 'spot-2': 'bakehouse' },
+      islands: { skerry: { owned: true, offered: ['spot-3'], built: { 'spot-2': 'bakehouse' } } },
     });
-    // An older save has no home; a wrong building, spot or pair is dropped.
+    // An older save has no home; the first shape (0126) is the home island; a wrong building,
+    // spot or pair is dropped.
     delete save.home;
-    expect(validateSave(save, w)?.home).toEqual({ owned: false, offered: [], built: {} });
+    expect(validateSave(save, w)?.home).toEqual({ islands: {} });
     expect(
       readHome(
         {
@@ -139,28 +146,30 @@ describe('home island (decision 0126)', () => {
         },
         MAP,
       ),
-    ).toEqual({ owned: true, offered: ['spot-1'], built: { 'spot-6': 'warehouse' } });
+    ).toEqual({
+      islands: { skerry: { owned: true, offered: ['spot-1'], built: { 'spot-6': 'warehouse' } } },
+    });
   });
 
   it('carries the home in the save code; codes without it still read', () => {
     const w = world();
     const before = serializeWorld(w);
     const plain = packSave(before, MAP);
-    giveHomeIsland(w.trade);
+    giveHomeIsland(w.trade, MAP);
     offerHomeSpot(w.trade, MAP, 'spot-4');
     offerHomeSpot(w.trade, MAP, 'spot-1');
     buildOnSpot(w.trade, MAP, 'spot-1', 'rigging-loft');
     const save = serializeWorld(w);
     const bytes = packSave(save, MAP);
-    // Section, fingerprint, offered flags, one number per spot.
-    expect(bytes.length - plain.length).toBeLessThanOrEqual(12);
+    // Section, fingerprint, island flags, offered flags, one number per spot.
+    expect(bytes.length - plain.length).toBeLessThanOrEqual(13);
     const read = unpackSave(bytes, MAP, save.version);
     expect(read.ok && read.raw.home).toEqual(save.home);
     const old = unpackSave(plain, MAP, save.version);
     expect(old.ok && old.raw.home).toBeUndefined();
     // Spots or buildings changed since the code was made: refused, not misread.
     const other = structuredClone(MAP);
-    other.homeIsland = undefined;
+    other.islands = other.islands.filter((i) => i.id !== 'skerry');
     expect(unpackSave(bytes, other, save.version)).toEqual({
       ok: false,
       problem: 'otherVersion',
@@ -193,7 +202,7 @@ describe('home island (decision 0126)', () => {
   it('gives the island and offers spots as quest rewards, and checks them', () => {
     const w = world();
     payReward(w.trade, MAP, { homeIsland: true, homeSpot: ['spot-2'] }, () => {});
-    expect(w.trade.home).toMatchObject({ owned: true, offered: ['spot-2'] });
+    expect(w.trade.home.islands.skerry).toMatchObject({ owned: true, offered: ['spot-2'] });
     buildOnSpot(w.trade, MAP, 'spot-2', 'warehouse');
     const ctx = { trade: w.trade, map: MAP } as Parameters<typeof testCondition>[1];
     expect(testCondition({ is: 'built', building: 'warehouse' }, ctx)).toBe(true);
@@ -214,5 +223,44 @@ describe('home island (decision 0126)', () => {
     expect(checkQuests(quest({}, { is: 'built', building: 'castle' }), MAP).join()).toMatch(
       /no building/,
     );
+  });
+
+  it('builds on any island whose file has spots, each kept apart (0128)', () => {
+    // An extension island: a second island drawn from Skerry's file, far off.
+    const sea: MapDef = structuredClone(MAP);
+    const skerry = sea.islands.find((i) => i.id === 'skerry')!;
+    sea.islands.push({ ...structuredClone(skerry), id: 'far-rock', name: 'Far Rock', x: 900 });
+    expect(buildableIslands(sea).map((i) => i.id)).toEqual(['skerry', 'far-rock']);
+    const w = createWorld(sea, SLOOP);
+    w.trade.captain.gold = 10_000;
+    const { trade } = w;
+    expect(w.piers.some((p) => p.islandId === 'far-rock')).toBe(true);
+
+    payReward(trade, sea, { homeIsland: 'far-rock', homeSpot: ['far-rock:spot-3'] }, () => {});
+    expect(trade.home.islands.skerry).toBeUndefined();
+    expect(buildChoices(trade, sea, 'spot-3')).toEqual([]); // not on the home island
+    expect(buildOnSpot(trade, sea, 'spot-3', 'lookout', 'far-rock')).toEqual({ ok: true, gold: 0 });
+    payReward(trade, sea, { homeIsland: true, homeSpot: ['spot-3'] }, () => {});
+    expect(buildOnSpot(trade, sea, 'spot-3', 'pilot-house')).toEqual({ ok: true, gold: 0 });
+    expect(builtByIsland(trade.home)).toEqual({
+      'far-rock': { 'spot-3': 'lookout' },
+      skerry: { 'spot-3': 'pilot-house' },
+    });
+    expect(homeEffect(trade.home, 'discoverRange')).toBe(1.3);
+    expect(homeEffect(trade.home, 'hullDamage')).toBe(0.8);
+    const ctx = { trade, map: sea } as Parameters<typeof testCondition>[1];
+    expect(testCondition({ is: 'built', building: 'lookout', island: 'far-rock' }, ctx)).toBe(true);
+    expect(testCondition({ is: 'built', building: 'lookout', island: 'skerry' }, ctx)).toBe(false);
+
+    // Moored at each pier in turn.
+    const far = sea.islands.find((i) => i.id === 'far-rock')!;
+    const pier = characterPiers(far.look!.design!, far.radius / 2.2, 1)[0]!;
+    const head = (pier.z0 + pier.len) / (far.radius / 2.2);
+    expect(homeInRange(trade, sea, islandPoint(far, 0.08, head + 0.3))).toBe('far-rock');
+
+    // Both in the save code.
+    const save = serializeWorld(w);
+    const read = unpackSave(packSave(save, sea), sea, save.version);
+    expect(read.ok && read.raw.home).toEqual(save.home);
   });
 });

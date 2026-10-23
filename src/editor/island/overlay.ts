@@ -1,4 +1,4 @@
-import { atLevel, type IslandDesign } from '../../data/islands';
+import { atLevel, type HomeSpotDef, type IslandDesign } from '../../data/islands';
 import type { IslandIssue } from '../../sim/islandChecks';
 import { isSloped } from '../../sim/islandLayout';
 import { propName, type Level } from './doc';
@@ -35,8 +35,10 @@ export interface OverlayScene {
   issues: IslandIssue[];
   /** A prop being dragged in from the palette: its outline and whether it fits there. */
   drop?: { hull: [number, number][]; ok: boolean; label: string };
-  /** Which tools are out: props, or ground (with woods) and lanes. */
-  mode: 'props' | 'ground' | 'lanes';
+  /** Which tools are out: props, ground (with woods), lanes or build spots. */
+  mode: 'props' | 'ground' | 'lanes' | 'spots';
+  /** The island's build spots (decisions 0126, 0128) and the selected one. */
+  spots: { list: HomeSpotDef[]; selected: number | null };
   shape: { shape: Shape; point?: number } | null;
   /** A lane being drawn, and where the pointer is. */
   drawing?: { points: number[][]; hover?: [number, number] };
@@ -119,6 +121,7 @@ export function drawOverlay(svg: SVGSVGElement, s: OverlayScene) {
   if (s.mode !== 'props') {
     marks();
     drawShapes(s, el, label);
+    if (s.mode === 'spots') drawSpots(s, el, label);
   } else if (s.showLater)
     for (const i of s.later)
       el('polygon', {
@@ -166,6 +169,32 @@ export function drawOverlay(svg: SVGSVGElement, s: OverlayScene) {
 }
 
 type El = (tag: string, attrs: Record<string, string | number>, parent?: Element) => Element;
+
+/** Build spots: a ring each, numbered, an arc spot solid with its pair, a spare one dashed. */
+function drawSpots(s: OverlayScene, el: El, label: (x: number, z: number, t: string) => Element) {
+  const u = s.view.upp;
+  s.spots.list.forEach((spot, i) => {
+    const g = el('g', { 'data-hit': `spot:${i}` });
+    el(
+      'circle',
+      {
+        cx: spot.x,
+        cy: spot.z,
+        r: Math.max(0.06, 12 * u),
+        class: `i-spot${spot.pair ? '' : ' spare'}${s.spots.selected === i ? ' on' : ''}`,
+      },
+      g,
+    );
+    const t = el(
+      'text',
+      { x: spot.x, y: spot.z + 4.5 * u, class: 'i-spot-n', 'font-size': 12 * u },
+      g,
+    );
+    t.textContent = String(i + 1);
+    g.append(title(`${spot.id} · ${spot.pair ? `arc spot (${spot.pair})` : 'spare spot'}`));
+    label(spot.x, spot.z - Math.max(0.06, 12 * u) - 6 * u, spot.pair ?? 'spare');
+  });
+}
 const line = (points: number[][]) => points.map((p) => `${p[0]},${p[1]}`).join(' ');
 
 /** The ground and lane tools' view: every outline and lane, the selection's points. */

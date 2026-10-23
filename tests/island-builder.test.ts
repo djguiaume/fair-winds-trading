@@ -21,6 +21,10 @@ import {
   setPropValue,
   tidyDesign,
   turnProp,
+  addSpot,
+  deleteSpot,
+  moveSpot,
+  setSpotPair,
 } from '../src/editor/island/doc';
 import {
   addLake,
@@ -301,6 +305,31 @@ describe('island builder ground, lanes and woods (0106)', () => {
     expect(Object.keys(back.ground.at(-1)!)).toEqual(['outline', 'height', 'material', 'from']);
     expect(Object.keys(back.lanes.at(-1)!)).toEqual(['kind', 'points', 'base']);
     expect(Object.keys(back.woods).at(-1)).toBe('areas');
+  });
+});
+
+describe('island builder build spots (0128)', () => {
+  it('adds, moves, pairs and deletes spots, kept in the file order', () => {
+    const d = structuredClone(islandDesign('skerry')!);
+    const before = formatIslandJson(tidyDesign(d));
+    const n = d.homeSpots!.length;
+    const i = addSpot(d, 0.1234567, -0.2);
+    expect(d.homeSpots![i]).toEqual({ id: `spot-${n + 1}`, x: 0.123457, z: -0.2 });
+    moveSpot(d, i, 0.3, 0.31);
+    setSpotPair(d, i, 'crafts');
+    expect(Object.keys(tidyDesign(d).homeSpots![i]!)).toEqual(['id', 'x', 'z', 'pair']);
+    setSpotPair(d, i, undefined);
+    expect(d.homeSpots![i]!.pair).toBeUndefined();
+    deleteSpot(d, i);
+    expect(formatIslandJson(tidyDesign(d))).toBe(before);
+    // No spots left: the key goes, and the island is no longer buildable.
+    const bare = structuredClone(d);
+    while (bare.homeSpots?.length) deleteSpot(bare, 0);
+    expect('homeSpots' in bare).toBe(false);
+    // Ids stay unique after a delete.
+    const e = structuredClone(d);
+    deleteSpot(e, 0);
+    expect(e.homeSpots![addSpot(e, 0, 0)]!.id).toBe(`spot-${n + 1}`);
   });
 });
 

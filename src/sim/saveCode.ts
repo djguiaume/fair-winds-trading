@@ -1,6 +1,6 @@
 import { DIFFICULTIES } from './difficulty';
 import { GOODS } from './goods';
-import { BUILDING_IDS, homeSpots } from './home';
+import { BUILDING_IDS, buildableIslands, homeSpots } from './home';
 import type { MapDef } from './map';
 import { slotLayout } from './questLibrary';
 import {
@@ -49,13 +49,22 @@ export function layoutFingerprint(map: MapDef): number {
 }
 
 /**
- * The home island's section (decision 0126) comes last, with its own layout number and a
- * fingerprint of the spots and buildings, so codes made before it still read and a code whose
- * spots or buildings differ is refused rather than misread.
+ * The home islands' section (decisions 0126, 0128) comes last, with its own layout number and a
+ * fingerprint of the islands, spots and buildings, so codes made before it still read and a code
+ * whose spots or buildings differ is refused rather than misread. Section 1 was the first shape
+ * (the home island only), still read.
  */
-const HOME_SECTION = 1;
+const HOME_SECTION = 2;
+const spotIds = (map: MapDef, islandId?: string) =>
+  homeSpots(map, islandId).map((s) => `${s.id}:${s.pair ?? ''}`);
 export function homeFingerprint(map: MapDef): number {
-  return fingerprint([...homeSpots(map).map((s) => `${s.id}:${s.pair ?? ''}`), ...BUILDING_IDS]);
+  return fingerprint([
+    ...buildableIslands(map).flatMap((i) => [i.id, ...spotIds(map, i.id)]),
+    ...BUILDING_IDS,
+  ]);
+}
+function homeFingerprintV1(map: MapDef): number {
+  return fingerprint([...spotIds(map), ...BUILDING_IDS]);
 }
 
 function fingerprint(ids: string[]): number {
@@ -211,13 +220,20 @@ export function packSave(
   w.uint(indexOrNone(DIFFICULTIES, save.easiestDifficulty));
   if (withQuests) packQuests(w, save.quests!, quests);
 
-  const home = save.home;
-  if (home?.owned) {
-    const spots = homeSpots(map);
+  // Per island with spots: is it hers; then for each of hers, offered flags and one building
+  // number per spot.
+  const islands = buildableIslands(map);
+  const mine = islands.map((i) => !!save.home?.islands[i.id]?.owned);
+  if (mine.some(Boolean)) {
     w.uint(HOME_SECTION);
     w.uint(homeFingerprint(map));
-    w.flags(spots.map((s) => home.offered.includes(s.id)));
-    for (const s of spots) w.uint(indexOrNone(BUILDING_IDS, home.built[s.id]));
+    w.flags(mine);
+    for (const island of islands.filter((_, k) => mine[k])) {
+      const h = save.home!.islands[island.id]!;
+      const spots = homeSpots(map, island.id);
+      w.flags(spots.map((s) => h.offered.includes(s.id)));
+      for (const s of spots) w.uint(indexOrNone(BUILDING_IDS, h.built[s.id]));
+    }
   }
   return Uint8Array.from(w.bytes);
 }
@@ -374,20 +390,31 @@ export function unpackSave(
   const easiestDifficulty = pick(DIFFICULTIES, r.uint());
   const questState = withQuests ? unpackQuests(r, quests) : undefined;
 
-  // Only an island that is the captain's is written; a code without the section has none.
+  // Only islands that are the captain's are written; a code without the section has none.
   let home: SaveData['home'];
   if (!r.done) {
     const section = r.uint();
     if (section > HOME_SECTION) return { ok: false, problem: 'newer' };
-    if (r.uint() !== homeFingerprint(map)) return { ok: false, problem: 'otherVersion' };
-    const spots = homeSpots(map);
-    const offered = r.flags(spots.length);
-    const built: Record<string, string> = {};
-    for (const s of spots) {
-      const b = pick(BUILDING_IDS, r.uint());
-      if (b) built[s.id] = b;
+    const v1 = section === 1;
+    if (r.uint() !== (v1 ? homeFingerprintV1(map) : homeFingerprint(map)))
+      return { ok: false, problem: 'otherVersion' };
+    const islands = v1 ? map.islands.filter((i) => i.id === map.homeIsland) : buildableIslands(map);
+    const mine = v1 ? [true] : r.flags(islands.length);
+    home = { islands: {} };
+    for (const island of islands.filter((_, k) => mine[k])) {
+      const spots = homeSpots(map, island.id);
+      const offered = r.flags(spots.length);
+      const built: Record<string, string> = {};
+      for (const s of spots) {
+        const b = pick(BUILDING_IDS, r.uint());
+        if (b) built[s.id] = b;
+      }
+      home.islands[island.id] = {
+        owned: true,
+        offered: spots.filter((_, k) => offered[k]).map((s) => s.id),
+        built,
+      };
     }
-    home = { owned: true, offered: spots.filter((_, k) => offered[k]).map((s) => s.id), built };
   }
   if (!r.done) return { ok: false, problem: 'unreadable' };
 

@@ -457,7 +457,8 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
   private readonly glass = new THREE.MeshBasicMaterial({ vertexColors: true });
   private readonly batches = new Map<string, THREE.Group>();
   private levels: Record<string, TownLevel>;
-  private homeBuilt: Record<string, string> = {};
+  /** Island id → spot id → building id (decisions 0126, 0128). */
+  private homeBuilt: Record<string, Record<string, string>> = {};
 
   constructor(
     private readonly map: MapDef,
@@ -532,7 +533,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
         else harbours[port.id] = point;
       },
       port ? this.levels[port.id] : undefined,
-      island.id === this.map.homeIsland ? this.homeBuilt : undefined,
+      this.homeBuilt[island.id],
     );
     const group = this.batch(parts);
     group.name = `island:${island.id}`;
@@ -563,19 +564,20 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     }
   }
 
-  /** Redraw the home island with what stands on its spots now (decision 0126). */
-  setHomeBuildings(built: Record<string, string>) {
-    if (JSON.stringify(built) === JSON.stringify(this.homeBuilt)) return;
-    this.homeBuilt = { ...built };
-    const index = this.map.islands.findIndex((i) => i.id === this.map.homeIsland);
-    if (index < 0) return;
-    const island = this.map.islands[index]!;
-    const old = this.batches.get(island.id)!;
-    const next = this.buildIsland(island, index);
-    this.remove(old);
-    disposeGeometry(old);
-    this.batches.set(island.id, next);
-    this.add(next);
+  /** Redraw the islands whose buildings changed (decisions 0126, 0128). */
+  setHomeBuildings(byIsland: Record<string, Record<string, string>>) {
+    const previous = this.homeBuilt;
+    this.homeBuilt = structuredClone(byIsland);
+    for (const [index, island] of this.map.islands.entries()) {
+      const was = JSON.stringify(previous[island.id] ?? {});
+      if (was === JSON.stringify(byIsland[island.id] ?? {})) continue;
+      const old = this.batches.get(island.id)!;
+      const next = this.buildIsland(island, index);
+      this.remove(old);
+      disposeGeometry(old);
+      this.batches.set(island.id, next);
+      this.add(next);
+    }
   }
 
   dispose() {

@@ -210,6 +210,9 @@ export function tidyDesign(design: IslandDesign): IslandDesign {
       ),
     }),
     props: d.props.map((p) => ordered(p, PROP_KEYS as string[])),
+    ...(d.homeSpots && {
+      homeSpots: d.homeSpots.map((s) => ordered(s, ['id', 'x', 'z', 'y', 'pair'])),
+    }),
     woods: ordered(d.woods, [
       'tree',
       'tries',
@@ -222,4 +225,36 @@ export function tidyDesign(design: IslandDesign): IslandDesign {
       'areas',
     ]),
   };
+}
+
+// --- Build spots (decisions 0126, 0128) ---------------------------------------------------
+
+/** Adds a build spot (a spare one: no pair) with the next free `spot-N` id. Returns its index. */
+export function addSpot(design: IslandDesign, x: number, z: number): number {
+  const spots = (design.homeSpots ??= []);
+  let n = spots.length + 1;
+  while (spots.some((s) => s.id === `spot-${n}`)) n++;
+  spots.push({ id: `spot-${n}`, x: pos(x), z: pos(z) });
+  return spots.length - 1;
+}
+
+export function moveSpot(design: IslandDesign, index: number, x: number, z: number) {
+  const s = design.homeSpots?.[index];
+  if (!s) return;
+  s.x = pos(x);
+  s.z = pos(z);
+}
+
+/** An arc spot takes the two buildings of its pair; none makes it a spare spot. */
+export function setSpotPair(design: IslandDesign, index: number, pair: string | undefined) {
+  const s = design.homeSpots?.[index];
+  if (!s) return;
+  if (pair) s.pair = pair;
+  else delete s.pair;
+}
+
+/** Removes a spot; the last one gone removes the key, so the island is no longer buildable. */
+export function deleteSpot(design: IslandDesign, index: number) {
+  design.homeSpots?.splice(index, 1);
+  if (design.homeSpots && !design.homeSpots.length) delete design.homeSpots;
 }

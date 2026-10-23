@@ -29,6 +29,8 @@ import {
   type Level,
   addProp,
   deleteProp,
+  deleteSpot,
+  moveSpot,
   duplicateProp,
   moveProp,
   newProp,
@@ -41,6 +43,8 @@ import {
 import { drawOverlay } from './overlay';
 import { renderIslandPanel } from './panel';
 import { renderShapePanel } from './shapePanel';
+import { type SpotShow, renderSpotPanel } from './spotPanel';
+import { homeView } from '../../sim/home';
 import {
   type Shape,
   addLake,
@@ -127,8 +131,12 @@ let group: PropGroup | 'all' = 'all';
 /** A palette prop waiting for a tap on the island (touch), or being dragged in (mouse). */
 let armed: string | null = null;
 /** The tools out: props, or ground (with woods) and lanes (part 2 of decision 0105). */
-type Mode = 'props' | 'ground' | 'lanes';
+type Mode = 'props' | 'ground' | 'lanes' | 'spots';
 let mode: Mode = 'props';
+/** Build spots (decisions 0126, 0128): the selected one, and what the island shows. */
+let spotSel: number | null = null;
+let showHome: SpotShow = 'all';
+let chosen: Record<string, string> = {};
 let shapeSel: { shape: Shape; point?: number } | null = null;
 type ShapeTool =
   'plateau' | 'mountain' | 'lake' | 'ramp' | 'grow' | 'clear' | 'lane' | 'path' | 'stairs';
@@ -169,6 +177,9 @@ export function openIsland(target: IslandDef) {
   $('ib-levels').parentElement!.hidden = !harbour;
   selection = null;
   shapeSel = null;
+  spotSel = null;
+  showHome = 'all';
+  chosen = {};
   tool = null;
   drawing = null;
   history = new History<IslandDesign>();
@@ -232,14 +243,27 @@ function fit() {
   view.upp = Math.max((x1 - x0 + 0.3) / width, (z1 - z0 + 0.3) / height);
 }
 
+/**
+ * The island as shown: the whole file, or a home state (first look, or the buildings chosen in
+ * Spots), with each shown prop's index in the file and whether it was moved to a spare spot.
+ */
+function displayed() {
+  if (showHome === 'all' || !design.homeSpots?.length) {
+    const all = design.props.map((_, i) => i);
+    return { design, from: all, moved: all.map(() => false) };
+  }
+  return homeView(design, showHome === 'first' ? {} : chosen);
+}
+
 /** Builds the island at the level and shows it in both views. */
 function rebuild(without?: number) {
   let parts;
   try {
+    const view = displayed();
     const shown =
       without === undefined
-        ? design
-        : { ...design, props: design.props.filter((_, i) => i !== without) };
+        ? view.design
+        : { ...view.design, props: view.design.props.filter((_, i) => view.from[i] !== without) };
     parts = designedTownParts(shown, R, level as TownLevel, harbour);
   } catch (error) {
     hint(`The island does not build: ${String(error)}`);
@@ -306,16 +330,20 @@ function draw() {
   const { width, height } = size();
   top!.resize(width, height);
   top!.render(view, R);
+  // Props hidden or moved by the home state shown are not outlined (they are edited in Everything).
+  const { from, moved } = displayed();
+  const editable = new Set(from.filter((_, i) => !moved[i]));
   const { now, later } = propsAt(design, level);
   drawOverlay(svg, {
+    spots: { list: design.homeSpots ?? [], selected: spotSel },
     design,
     harbour,
     level,
     view,
     width,
     height,
-    now,
-    later: showLater ? later : [],
+    now: now.filter((i) => editable.has(i)),
+    later: showLater ? later.filter((i) => editable.has(i)) : [],
     showLater,
     outlines,
     selection,
@@ -334,6 +362,34 @@ function draw() {
 
 function drawPanel() {
   drawSelectionBar();
+  if (mode === 'spots')
+    return renderSpotPanel($('ib-panel'), {
+      design,
+      selected: spotSel,
+      show: showHome,
+      chosen,
+      select: selectSpot,
+      setShow: (show) => {
+        showHome = show;
+        commit(false);
+      },
+      setChosen: (spot, building) => {
+        if (building) chosen[spot] = building;
+        else delete chosen[spot];
+        commit(false);
+      },
+      change: (edit) => {
+        history.record(design);
+        edit(design);
+        commit();
+      },
+      remove: (index) => {
+        history.record(design);
+        deleteSpot(design, index);
+        spotSel = null;
+        commit();
+      },
+    });
   if (mode !== 'props')
     return renderShapePanel($('ib-panel'), {
       design,
@@ -432,6 +488,7 @@ function commit(record = true) {
   design = structuredClone(design);
   useIslandDesign(design);
   if (selection !== null && !design.props[selection]) selection = null;
+  if (spotSel !== null && !design.homeSpots?.[spotSel]) spotSel = null;
   if (shapeSel && !shapeExists(shapeSel.shape)) shapeSel = null;
   if (shapeSel?.point !== undefined && !pointsOf(design, shapeSel.shape)?.[shapeSel.point])
     delete shapeSel.point;
@@ -454,6 +511,12 @@ function commit(record = true) {
   draw();
   drawPanel();
   runChecks();
+}
+
+function selectSpot(next: number | null) {
+  spotSel = next;
+  draw();
+  drawPanel();
 }
 
 function select(next: number | null) {
@@ -515,13 +578,15 @@ function hint(text?: string) {
     text ??
     (tool
       ? TOOL_HINTS[tool]
-      : mode === 'ground'
-        ? 'Click the coast, raised ground, a ramp, a mountain or the lake · drag a square to move a point, a ring to add one · click an edge: cliff ↔ slope · Delete removes'
-        : mode === 'lanes'
-          ? 'Click a lane to edit it · drag a square to move a point, a ring to add one · Delete removes'
-          : armed
-            ? `Click the island to place a ${propName(armed).toLowerCase()} from level ${level} · Esc cancels`
-            : 'Drag a prop from the palette · drag props to move them · R / Shift+R turn 15° · Delete removes · a prop belongs to the level it first appears');
+      : mode === 'spots'
+        ? 'Drag a spot to move it · pick its kind and what it shows in the panel · Delete removes it'
+        : mode === 'ground'
+          ? 'Click the coast, raised ground, a ramp, a mountain or the lake · drag a square to move a point, a ring to add one · click an edge: cliff ↔ slope · Delete removes'
+          : mode === 'lanes'
+            ? 'Click a lane to edit it · drag a square to move a point, a ring to add one · Delete removes'
+            : armed
+              ? `Click the island to place a ${propName(armed).toLowerCase()} from level ${level} · Esc cancels`
+              : 'Drag a prop from the palette · drag props to move them · R / Shift+R turn 15° · Delete removes · a prop belongs to the level it first appears');
 }
 
 // --- Checks --------------------------------------------------------------------------------
@@ -537,12 +602,20 @@ function runChecks() {
   checkTimer = window.setTimeout(() => {
     worker?.terminate();
     worker = new Worker(new URL('./checks.worker.ts', import.meta.url), { type: 'module' });
+    // The island as shown (a home state hides buildings); marks map back to the file's props.
+    const { design: shown, from, moved } = displayed();
     const id = ++checkId;
     worker.addEventListener(
       'message',
       (e: MessageEvent<{ id: number; issues: IslandIssue[]; triangles: number[] }>) => {
         if (e.data.id !== checkId) return;
         issues = e.data.issues;
+        for (const issue of issues)
+          if (issue.prop !== undefined) {
+            const index = from[issue.prop];
+            if (index === undefined || moved[issue.prop]) delete issue.prop;
+            else issue.prop = index;
+          }
         triangles = e.data.triangles;
         checking = false;
         worker?.terminate();
@@ -552,7 +625,7 @@ function runChecks() {
         drawPanel();
       },
     );
-    worker.postMessage({ id, design, R, harbour });
+    worker.postMessage({ id, design: shown, R, harbour });
   }, 400);
 }
 
@@ -693,7 +766,7 @@ function setMode(next: Mode) {
     b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
   syncTabs();
   $('ib-prop-tools').hidden = mode !== 'props';
-  $('ib-shape-tools').hidden = mode === 'props';
+  $('ib-shape-tools').hidden = mode === 'props' || mode === 'spots';
   drawTools();
   draw();
   drawPanel();
@@ -737,7 +810,7 @@ const TOOLS: Record<'ground' | 'lanes', [string, string | ShapeTool, string, str
 function drawTools() {
   const box = $('ib-shape-tools');
   box.replaceChildren();
-  if (mode === 'props') return;
+  if (mode === 'props' || mode === 'spots') return;
   let heading = '';
   for (const [group, id, icon, text] of TOOLS[mode]) {
     if (group !== heading) {
@@ -874,6 +947,7 @@ type Drag =
   | { kind: 'prop'; index: number; dx: number; dz: number; sx: number; sy: number; moved: boolean }
   | { kind: 'turn'; index: number }
   | { kind: 'point' }
+  | { kind: 'spot'; index: number; dx: number; dz: number }
   | { kind: 'paint' }
   | { kind: 'pan'; sx: number; sy: number; cx: number; cz: number };
 let drag: Drag | null = null;
@@ -1025,6 +1099,19 @@ svg.addEventListener('pointerdown', (e) => {
   const p = toIsland(e);
   const hit = (e.target as Element).closest('[data-hit]')?.getAttribute('data-hit') ?? 'sea';
   const [kind, arg, ...more] = hit.split(':');
+  if (mode === 'spots') {
+    if (kind === 'spot') {
+      const index = Number(arg);
+      const spot = design.homeSpots![index]!;
+      if (spotSel !== index) selectSpot(index);
+      history.record(design);
+      drag = { kind: 'spot', index, dx: spot.x - p.x, dz: spot.z - p.z };
+    } else {
+      if (spotSel !== null) selectSpot(null);
+      drag = { kind: 'pan', sx: e.clientX, sy: e.clientY, cx: view.cx, cz: view.cz };
+    }
+    return;
+  }
   if (mode !== 'props') return shapePointerDown(e, p.x, p.z, kind!, [arg ?? '', ...more]);
   if (armed) {
     const type = armed;
@@ -1104,6 +1191,9 @@ svg.addEventListener('pointermove', (e) => {
       p.z,
       stairs ? heightAt(p.x, p.z) : undefined,
     );
+    draw();
+  } else if (drag.kind === 'spot') {
+    moveSpot(design, drag.index, p.x + drag.dx, p.z + drag.dz);
     draw();
   } else if (drag.kind === 'paint' && (tool === 'grow' || tool === 'clear')) {
     hover = [p.x, p.z];
@@ -1187,7 +1277,14 @@ document.addEventListener('keydown', (e) => {
   } else if (e.key === 'Delete' || e.key === 'Backspace') {
     e.preventDefault();
     if (mode === 'props') remove();
-    else removeShape();
+    else if (mode === 'spots') {
+      if (spotSel !== null) {
+        history.record(design);
+        deleteSpot(design, spotSel);
+        spotSel = null;
+        commit();
+      }
+    } else removeShape();
   } else if (e.key === 'Enter' && drawing) {
     finishDrawing();
   } else if (e.key === 'Escape') {
