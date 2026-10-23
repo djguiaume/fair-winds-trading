@@ -130,13 +130,14 @@ export function islandParts(
   const sz = 1 + (rng() - 0.5) * 0.16;
   const out: Parts = [];
   // A port with a settlement level grows its own town and island profile (decision 0060).
-  const town = (level !== undefined || !!look.profile) && !!look.dock;
+  const town = (level !== undefined || !!look.profile || !!look.design) && !!look.dock;
 
   if (town) {
     out.push(
       ...townIslandParts({
         seed,
         level: level ?? 1,
+        design: look.design,
         profile: look.profile,
         kind,
         R,

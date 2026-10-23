@@ -1,0 +1,251 @@
+import { coastDistance } from './coast';
+import { islandLayout, layoutGround, type Outline } from './islandLayout';
+import { atLevel, type IslandDesign, type PropDef } from '../data/islands';
+
+/**
+ * Island file checks (decision 0096 §2, built in 0097), shared by the island builder and
+ * tests/island-files.test.ts, as mapChecks.ts is for maps. Errors make a file unfit to ship;
+ * warnings are worth a look. Everything here is in island-radius units.
+ */
+export interface IslandIssue {
+  severity: 'error' | 'warning';
+  check: string;
+  message: string;
+  /** Where to mark it on the island. */
+  at?: [number, number];
+  /** Index in `design.props`, when it is about a prop. */
+  prop?: number;
+  level?: number;
+}
+
+/** What the checks need to know about prop types and models, which live in the renderer. */
+export interface IslandCheckKit {
+  /** The island's radius in reference units (the models' unit). */
+  R: number;
+  types: Record<string, { home?: boolean; building?: boolean; water?: boolean; edge?: boolean }>;
+  woodlandTrees: string[];
+  /** A prop's footprint radius. */
+  fit: (prop: PropDef) => number;
+  /** A building's plan outline in radius units, for the overlap check. */
+  footprint?: (prop: PropDef) => Outline;
+  /** Triangles of the whole island at a level. */
+  triangles?: (level: number) => number;
+}
+
+export const TRIANGLE_BUDGET = 6000;
+export const TRIANGLE_WARNING = 5000;
+const LEVELS = [1, 2, 3, 4];
+/** The arrival pier's lane, kept for the player's ship (the pier sits at x 0.08). */
+const APPROACH = { x: 0.08, halfWidth: 0.12, z: 0.45 };
+/** Overlap tolerance of the old town plan, in reference units. */
+const TOUCH = 0.03;
+
+const isLevel = (v: unknown) => typeof v === 'number' && LEVELS.includes(v);
+const inside = (x: number, z: number, o: Outline) => coastDistance(x, z, o).distance < 1e-6;
+
+export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIssue[] {
+  const issues: IslandIssue[] = [];
+  const error = (check: string, message: string, extra: Partial<IslandIssue> = {}) =>
+    issues.push({ severity: 'error', check, message, ...extra });
+  const warn = (check: string, message: string, extra: Partial<IslandIssue> = {}) =>
+    issues.push({ severity: 'warning', check, message, ...extra });
+
+  // Known types, kinds and levels.
+  const levelsOk = (e: { from?: number; to?: number }, what: string, extra = {}) => {
+    if (e.from !== undefined && !isLevel(e.from))
+      error('levels', `${what}: "from" must be 1 to 4`, extra);
+    else if (e.to !== undefined && !isLevel(e.to))
+      error('levels', `${what}: "to" must be 1 to 4`, extra);
+    else if ((e.from ?? 1) > (e.to ?? 4)) error('levels', `${what}: "from" is after "to"`, extra);
+    else return true;
+    return false;
+  };
+  design.props.forEach((p, i) => {
+    const extra = { prop: i, at: [p.x, p.z] as [number, number] };
+    if (!kit.types[p.type]) error('known', `Unknown prop type "${p.type}"`, extra);
+    if (p.from === undefined) error('levels', `${p.type}: no "from" level`, extra);
+    levelsOk(p, p.type, extra);
+  });
+  design.ground.forEach((g, i) => {
+    if (g.material !== 'grass' && g.material !== 'rock')
+      error('known', `Ground ${i}: unknown material "${String(g.material)}"`);
+    if (g.coast !== undefined ? !design.coasts[g.coast] : !g.outline?.length)
+      error('known', `Ground ${i}: needs an outline or a coast that exists`);
+    levelsOk(g, `Ground ${i}`);
+  });
+  design.lanes.forEach((l, i) => {
+    if (l.kind && !['lane', 'path', 'stairs'].includes(l.kind))
+      error('known', `Lane ${i}: unknown kind "${l.kind}"`);
+    if (l.points.length < 2) error('known', `Lane ${i}: needs two points or more`);
+    if (l.kind === 'stairs' && l.points.some((p) => p.length !== 3))
+      error('known', `Stairs ${i}: every point needs x, z and a height`);
+  });
+  design.piers.forEach((p, i) => {
+    if (!isLevel(p.from)) error('levels', `Pier ${i}: "from" must be 1 to 4`);
+  });
+  if (!kit.woodlandTrees.includes(design.woods.tree))
+    error('known', `Unknown woods tree "${design.woods.tree}"`);
+  if (issues.some((i) => i.severity === 'error')) return issues;
+
+  // Raised ground and the lake inside the coast.
+  const main = design.coasts[0]!;
+  for (const level of LEVELS) {
+    const layout = islandLayout(design, level);
+    layout.surfaces.forEach((s, i) => {
+      const out = s.outline.find(([x, z]) => !layout.coasts.some((c) => inside(x, z, c)));
+      if (out) error('ground', `Raised ground ${i} reaches past the coast`, { at: out, level });
+    });
+  }
+  if (design.lake) {
+    const out = design.lake.find(([x, z]) => coastDistance(x, z, main).distance > -0.02);
+    if (out) error('ground', 'The lake reaches the coast', { at: out });
+  }
+
+  // Props on their ground, out of the water, the approach and the piers, at every level.
+  const reported = new Set<string>();
+  const once = (key: string, report: () => void) => {
+    if (!reported.has(key)) {
+      reported.add(key);
+      report();
+    }
+  };
+  for (const level of LEVELS) {
+    const layout = islandLayout(design, level);
+    const piers = design.piers.filter((p) => p.from <= level);
+    design.props.forEach((p, i) => {
+      if (!atLevel(p, level)) return;
+      const type = kit.types[p.type]!;
+      const fit = p.fit ?? kit.fit(p);
+      const at: [number, number] = [p.x, p.z];
+      const extra = { prop: i, at, level };
+      const name = `${p.type} (${p.x.toFixed(2)}, ${p.z.toFixed(2)})`;
+      if (type.water) {
+        if (layout.coasts.some((c) => coastDistance(p.x, p.z, c).distance < fit))
+          once(`water${i}`, () =>
+            error('water', `${name} must be in the sea, clear of the shore`, extra),
+          );
+      } else {
+        // On raised ground the whole footprint must fit one level; on the sand, its centre.
+        const ground = layoutGround(layout, p.x, p.z, 0);
+        const land = Math.max(...layout.coasts.map((c) => -coastDistance(p.x, p.z, c).distance));
+        if (land < (ground === null || type.edge ? 0 : fit))
+          once(`land${i}`, () =>
+            error('land', `${name} is not on land (needs ${fit.toFixed(3)} from the shore)`, extra),
+          );
+        else if (layout.lake && coastDistance(p.x, p.z, layout.lake).distance < fit)
+          once(`lake${i}`, () => error('land', `${name} is in the lake`, extra));
+        else if (ground !== null && p.y === undefined && !type.edge) {
+          const edges = layout.surfaces.flatMap((s) => [s.outline, ...(s.holes ?? [])]);
+          const edge = Math.min(...edges.map((o) => Math.abs(coastDistance(p.x, p.z, o).distance)));
+          if (edge < fit)
+            once(`cliff${i}`, () =>
+              error(
+                'cliff',
+                `${name} is on a cliff edge: move it ${(fit - edge).toFixed(3)}`,
+                extra,
+              ),
+            );
+        }
+      }
+      // The lane up from the arrival pier, as the old town plan kept it.
+      if (Math.abs(p.x - APPROACH.x) < APPROACH.halfWidth && p.z > APPROACH.z)
+        once(`approach${i}`, () => error('approach', `${name} is in the harbour approach`, extra));
+      // Side piers, where they stand over the water.
+      for (const pier of piers)
+        for (let t = 0; t <= 1; t += 0.1) {
+          const z = pier.z + pier.length * t;
+          if (layout.coasts.some((c) => inside(pier.x, z, c))) continue;
+          if (Math.hypot(p.x - pier.x, p.z - z) < fit + 0.03)
+            once(`pier${i}`, () => error('pier', `${name} is on a pier`, extra));
+        }
+    });
+
+    // Buildings do not overlap.
+    if (kit.footprint) {
+      const buildings = design.props
+        .map((p, i) => ({ p, i }))
+        .filter(({ p }) => atLevel(p, level) && kit.types[p.type]!.building);
+      const outlines = buildings.map(({ p }) => kit.footprint!(p));
+      for (let a = 0; a < buildings.length; a++)
+        for (let b = a + 1; b < buildings.length; b++)
+          if (overlaps(outlines[a]!, outlines[b]!, TOUCH / kit.R))
+            once(`overlap${buildings[a]!.i}/${buildings[b]!.i}`, () =>
+              warn('overlap', `${buildings[a]!.p.type} and ${buildings[b]!.p.type} overlap`, {
+                prop: buildings[b]!.i,
+                at: [buildings[b]!.p.x, buildings[b]!.p.z],
+                level,
+              }),
+            );
+    }
+
+    // Lane pieces over water or a cliff are not drawn.
+    design.lanes.forEach((lane, i) => {
+      if (lane.kind && lane.kind !== 'lane') return;
+      let broken = 0,
+        first: [number, number] | undefined;
+      for (let k = 1; k < lane.points.length; k++) {
+        const [ax, az] = lane.points[k - 1]!,
+          [bx, bz] = lane.points[k]!;
+        for (let t = 0; t < 10; t++) {
+          const x0 = ax! + ((bx! - ax!) * t) / 10,
+            z0 = az! + ((bz! - az!) * t) / 10,
+            x1 = ax! + ((bx! - ax!) * (t + 1)) / 10,
+            z1 = az! + ((bz! - az!) * (t + 1)) / 10;
+          const h0 = layoutGround(layout, x0, z0, 0.025),
+            h1 = layoutGround(layout, x1, z1, 0.025);
+          if (h0 === null || h0 !== h1) {
+            broken++;
+            first ??= [x0, z0];
+          }
+        }
+      }
+      if (broken && level === 4)
+        warn('lanes', `Lane ${i}: ${broken} pieces cross water or a cliff and are not drawn`, {
+          at: first,
+        });
+    });
+  }
+
+  // Each level only adds: homes stay; a removed prop is replaced where it stood.
+  design.props.forEach((p, i) => {
+    if (p.to === undefined || p.to === 4) return;
+    const extra = { prop: i, at: [p.x, p.z] as [number, number], level: p.to + 1 };
+    if (kit.types[p.type]?.home && !p.tags?.includes('outbuilding'))
+      error('growth', `A home (${p.type}) is removed after level ${p.to}`, extra);
+    else if (
+      !design.props.some(
+        (q) => q !== p && atLevel(q, p.to! + 1) && Math.hypot(q.x - p.x, q.z - p.z) < 0.02,
+      )
+    )
+      warn('growth', `${p.type} goes after level ${p.to} with nothing in its place`, extra);
+  });
+
+  // Old phones: triangles at level 4.
+  if (kit.triangles) {
+    const triangles = kit.triangles(4);
+    if (triangles > TRIANGLE_BUDGET)
+      error('budget', `${triangles} triangles at level 4, over the ${TRIANGLE_BUDGET} budget`);
+    else if (triangles > TRIANGLE_WARNING)
+      warn('budget', `${triangles} triangles at level 4 (budget ${TRIANGLE_BUDGET})`);
+  }
+  return issues;
+}
+
+/** Separating-axis test of two convex outlines, apart by less than `touch` counting as touching. */
+export function overlaps(a: Outline, b: Outline, touch: number) {
+  for (const p of [a, b])
+    for (let i = 0; i < p.length; i++) {
+      const q = p[(i + 1) % p.length]!,
+        r = p[i]!,
+        nx = q[1] - r[1],
+        nz = r[0] - q[0];
+      const aa = a.map((v) => v[0] * nx + v[1] * nz),
+        bb = b.map((v) => v[0] * nx + v[1] * nz);
+      if (
+        Math.max(...aa) + touch * Math.hypot(nx, nz) < Math.min(...bb) ||
+        Math.max(...bb) + touch * Math.hypot(nx, nz) < Math.min(...aa)
+      )
+        return false;
+    }
+  return true;
+}
