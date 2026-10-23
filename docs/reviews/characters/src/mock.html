@@ -57,7 +57,7 @@
       const q = new URLSearchParams(location.search);
       const screen = q.get('screen') || 'sheet';
       const size = q.get('size') || 'desktop';
-      const style = q.get('style') || 'A';
+      const style = q.get('style') || 'B';
       const who = Object.fromEntries(CAST.map((c) => [c.id, c]));
       const root = document.getElementById('root');
       const icon = (n) => `<svg class="ic"><use href="#i-${n}"/></svg>`;
@@ -92,13 +92,31 @@
                   <div class="t" style="font-size:17px">${c.name}</div><div class="h" style="font-size:11px;text-align:center">${c.role}<br>${c.port}</div></div>`).join('')}
                 <div class="col" style="gap:6px;align-items:center;padding-left:18px;border-left:1px solid rgba(238,243,244,.15)">
                   <div class="h" style="font-size:12px">Moods</div>
-                  <div class="row" style="gap:6px">${['neutral', 'happy', 'worried'].map((m) => portrait(s, who.maren, { size: 58, mood: m })).join('')}</div>
+                  <div class="row" style="gap:6px">${['neutral', 'pleased', 'worried'].map((m) => portrait(s, who.maren, { size: 58, mood: m })).join('')}</div>
                   <div class="h" style="font-size:12px;margin-top:4px">Pin size on the chart</div>
                   <div class="row" style="gap:6px">${CAST.map((c) => portrait(s, c, { size: 34 })).join('')}</div>
                 </div>
               </div>`).join('')}
           </div>
           <div class="tag" style="font-size:14px">Mockup · proposal</div>`;
+      }
+
+      // ---------------- The cast, drawn by the game's own builder (src/ui/portraits.ts) ----------------
+      if (screen === 'cast') {
+        const game = await import('/src/ui/portraits.ts');
+        const cell = (c, opts, label) => `<div class="col" style="align-items:center;gap:2px">${game.portraitSvg(c, { size: 104, ...opts })}<div class="h" style="font-size:12px">${label}</div></div>`;
+        root.innerHTML = `<div style="padding:24px 30px">
+          <div class="h" style="font-size:16px">Characters' look · style B, low-poly (0123)</div>
+          <div class="t" style="font-size:30px;margin-bottom:14px">The draft cast, drawn by the game code</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+          ${game.CHARACTERS.map((c) => `<div class="row" style="gap:12px;padding:12px 14px;border:1.5px solid var(--line);border-radius:14px;background:rgba(18,50,70,.6)">
+            <div class="col" style="width:92px;flex:none;gap:2px"><div class="t" style="font-size:20px;line-height:1.05">${c.name}</div><div class="dim" style="font-size:13px">${c.role}</div></div>
+            ${game.MOODS.map((m) => cell(c, { mood: m }, m)).join('')}
+            ${Object.keys(c.looks ?? {}).map((v) => cell(c, { variant: v, mood: 'worried' }, v)).join('')}
+          </div>`).join('')}
+          </div>
+          <div class="dim" style="font-size:14px;margin-top:12px">The cast of the approved story (ADR 0122, docs/story/community-arcs.md); names are still placeholders. Each person is a few values in src/data/characters.json; Rook also has a "soaked" look for the wreck in the tutorial.</div>
+        </div><div class="tag" style="font-size:13px">Game code · placeholder cast</div>`;
       }
 
       // ---------------- Dialogue card (on docking) ----------------

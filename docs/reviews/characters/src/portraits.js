@@ -73,11 +73,11 @@ function storybook(c, mood) {
   if (c.hairStyle === 'bun' && c.hat !== 'scarf') s.push(`<path d="M62 90 q2 -42 38 -42 q36 0 38 42 q-14 -24 -38 -24 q-24 0 -38 24z" fill="${c.hair}" ${o}/>`);
   if (c.hairStyle === 'bald') s.push(`<path d="M62 100 q-2 -10 4 -18 M138 100 q2 -10 -4 -18" fill="none" stroke="${c.hair}" stroke-width="7" stroke-linecap="round"/>`);
   // face
-  const brow = mood === 'worried' ? [[-6, 3], [6, -3]] : mood === 'happy' ? [[-6, -2], [6, -2]] : [[-6, 0], [6, 0]];
+  const brow = mood === 'worried' ? [[-6, 3], [6, -3]] : mood === 'pleased' ? [[-6, -2], [6, -2]] : [[-6, 0], [6, 0]];
   for (const [x, flip] of [[84, 1], [116, -1]]) {
     const [a, b] = flip === 1 ? brow : [[-brow[1][0], brow[1][1]], [-brow[0][0], brow[0][1]]];
     s.push(`<path d="M${x + a[0]} ${74 + a[1]} L${x + b[0]} ${74 + b[1]}" stroke="${shade(c.hair, -0.3)}" stroke-width="4" stroke-linecap="round"/>`);
-    if (mood === 'happy') s.push(`<path d="M${x - 6} 90 q6 -7 12 0" fill="none" stroke="${OUT}" stroke-width="3.5" stroke-linecap="round"/>`);
+    if (mood === 'pleased') s.push(`<path d="M${x - 6} 90 q6 -7 12 0" fill="none" stroke="${OUT}" stroke-width="3.5" stroke-linecap="round"/>`);
     else s.push(`<ellipse cx="${x}" cy="88" rx="4.5" ry="5.5" fill="${OUT}"/><circle cx="${x + 1.5}" cy="86" r="1.6" fill="#fff"/>`);
   }
   s.push(`<circle cx="76" cy="104" r="7" fill="#e8796b" opacity=".45"/><circle cx="124" cy="104" r="7" fill="#e8796b" opacity=".45"/>`);
@@ -85,7 +85,7 @@ function storybook(c, mood) {
   if (c.beard) {
     s.push(`<path d="M64 100 q4 44 36 46 q32 -2 36 -46 q-8 18 -20 16 q-16 -6 -32 0 q-12 2 -20 -16z" fill="${c.hair}" ${o}/>`);
   }
-  const mouth = mood === 'happy' ? 'M88 116 q12 12 24 0' : mood === 'worried' ? 'M89 120 q11 -7 22 0' : 'M90 117 q10 4 20 0';
+  const mouth = mood === 'pleased' ? 'M88 116 q12 12 24 0' : mood === 'worried' ? 'M89 120 q11 -7 22 0' : 'M90 117 q10 4 20 0';
   s.push(`<path d="${mouth}" fill="none" stroke="${c.beard ? '#5a2d1c' : OUT}" stroke-width="3.5" stroke-linecap="round"/>`);
   // hats
   if (c.hat === 'scarf') {
@@ -148,16 +148,20 @@ function lowpoly(c, mood) {
   if (c.hairStyle === 'short') s.push(facets([[62, 86], [66, 58], [100, 44], [134, 58], [138, 86], [120, 66], [80, 66]], c.hair));
   if (c.hairStyle === 'braid' || (c.hairStyle === 'bun' && c.hat !== 'scarf')) s.push(facets([[62, 92], [64, 60], [100, 42], [136, 60], [138, 94], [118, 66], [84, 66]], c.hair));
   if (c.hairStyle === 'bald') s.push(facets([[62, 102], [64, 82], [70, 84], [68, 102]], c.hair) + facets([[138, 102], [136, 82], [130, 84], [132, 102]], c.hair));
-  const browY = mood === 'worried' ? [76, 72] : mood === 'happy' ? [72, 72] : [74, 74];
+  // Moods are drawn larger than in A so they still read at pin size.
+  const browY = mood === 'worried' ? [77, 68] : mood === 'pleased' ? [70, 70] : [74, 74];
   for (const [x, d] of [[84, 1], [116, -1]]) {
-    s.push(`<path d="M${x - 7 * d} ${browY[0]} L${x + 7 * d} ${browY[1]} L${x + 7 * d} ${browY[1] + 3} L${x - 7 * d} ${browY[0] + 3}Z" fill="${shade(c.hair, -0.35)}"/>`);
-    if (mood === 'happy') s.push(`<path d="M${x - 6} 90 L${x} 85 L${x + 6} 90" fill="none" stroke="#1c140e" stroke-width="3.5"/>`);
+    s.push(`<path d="M${x - 8 * d} ${browY[0]} L${x + 7 * d} ${browY[1]} L${x + 7 * d} ${browY[1] + 4.5} L${x - 8 * d} ${browY[0] + 4.5}Z" fill="${shade(c.hair, -0.35)}"/>`);
+    if (mood === 'pleased') s.push(`<path d="M${x - 7} 91 L${x} 84 L${x + 7} 91" fill="none" stroke="#1c140e" stroke-width="4.5" stroke-linejoin="round"/>`);
     else s.push(`<path d="M${x} 82 L${x + 5} 88 L${x} 94 L${x - 5} 88Z" fill="#1c140e"/>`);
   }
+  if (mood === 'pleased') s.push(`<path d="M68 104 L80 100 L78 110Z M132 104 L120 100 L122 110Z" fill="#e8796b" opacity=".7"/>`);
   s.push(facets([[100, 90], [106, 106], [96, 106]], shade(c.skin, -0.08)));
   if (c.beard) s.push(facets([[64, 100], [78, 116], [100, 112], [122, 116], [136, 100], [128, 132], [100, 146], [72, 132]], c.hair));
-  const mouth = mood === 'happy' ? 'M88 116 L100 124 L112 116' : mood === 'worried' ? 'M89 122 L100 117 L111 122' : 'M90 118 L110 118';
-  s.push(`<path d="${mouth}" fill="none" stroke="${c.beard ? '#4a2416' : '#1c140e'}" stroke-width="3.5" stroke-linejoin="round"/>`);
+  const lip = c.beard ? '#4a2416' : '#1c140e';
+  if (mood === 'pleased') s.push(`<path d="M85 114 L115 114 L107 125 L93 125Z" fill="${lip}"/><path d="M88 114 L112 114 L110 118 L90 118Z" fill="#fff"/>`);
+  else s.push(`<path d="${mood === 'worried' ? 'M88 124 L100 116 L112 124' : 'M90 118 L110 118'}" fill="none" stroke="${lip}" stroke-width="4" stroke-linejoin="round"/>`);
+  if (mood === 'worried') s.push(`<path d="M134 70 L139 80 L134 86 L129 80Z" fill="#9fd3e6"/>`);
   if (c.hat === 'scarf') {
     s.push(facets([[56, 94], [62, 62], [100, 40], [138, 62], [144, 94], [122, 68], [78, 68]], c.hatColor));
     s.push(facets([[134, 58], [156, 46], [150, 68]], shade(c.hatColor, -0.15)));
