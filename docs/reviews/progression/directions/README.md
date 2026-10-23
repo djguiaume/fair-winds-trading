@@ -1,6 +1,6 @@
 # Choosing the game's direction: mockups
 
-**Status:** for Guillaume's review, 2026-10-23. Nothing chosen; the choice will be recorded as ADR 0114.
+**Status:** for Guillaume's review, 2026-10-23. Nothing chosen; the choice will be recorded as a new ADR.
 **Related:** [the comparison](../README.md), [decision 0097](../../../decisions/0097-progression-candidates-and-later-extensions.md), [roadmap](../../../roadmap.md) Phase 3.
 
 The [comparison](../README.md) asks for "an equally concrete 30-minute sequence for each" direction before choosing. These static mockups give each one that: what you would see, how long it lasts, what it costs to build and which data files it adds. They were also shown as a slide deck.
@@ -95,7 +95,7 @@ Maren, the oven and "The Broken Routes" are example content from the comparison,
 
 1. **Quest engine first.** Grow the tutorial's quest format into real quests: A needs it for plans and starter quests, B is mostly that, C for the lead-up. It is never wasted.
 2. **Two small prototypes, behind a flag.** A: one island, four buildings, three quests. B: Saltmere and Westholm, five quests, one choice.
-3. **Play, then pick.** Thirty minutes each with the comparison's questions ("did I want another voyage?"), then record the choice as ADR 0114.
+3. **Play, then pick.** Thirty minutes each with the comparison's questions ("did I want another voyage?"), then record the choice as a new ADR.
 
 C waits for the 5x map, where its new region fits. Picking one direction now and skipping the prototypes is also an option.
 

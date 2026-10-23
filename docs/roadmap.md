@@ -114,7 +114,7 @@ Goal: deliveries visibly change the world.
 
 ## Phase 3 — Authoring tools and progression review
 
-**Status (2026-10-23):** the menu/version has entered Phase 3 (`v0.3.x`), but the former automated-fleet goal is now deferred by [0097](decisions/0097-progression-candidates-and-later-extensions.md). Keep the accepted authoring work below; choose the next core gameplay milestone after comparing the [three progression directions](reviews/progression/README.md). **Mockups for that choice:** [directions](reviews/progression/directions/README.md) (2026-10-23, awaiting Guillaume; the choice becomes ADR 0114).
+**Status (2026-10-23):** the menu/version has entered Phase 3 (`v0.3.x`), but the former automated-fleet goal is now deferred by [0097](decisions/0097-progression-candidates-and-later-extensions.md). Keep the accepted authoring work below; choose the next core gameplay milestone after comparing the [three progression directions](reviews/progression/README.md). **Mockups for that choice:** [directions](reviews/progression/directions/README.md) (2026-10-23, awaiting Guillaume; the choice becomes a new ADR).
 
 Manual ship purchasing, switching and the distinct swift/hauler lineup remain. Owning ships does not require autonomous transport. The earlier route editor, wind-aware automated sailing, route dashboard and simultaneous fleet-operation plan are deferred historical scope, not the next implementation task.
 
