@@ -10,6 +10,8 @@ import { noGoAngle } from '../sim/ship';
 import { goodName, t } from '../i18n';
 import { icon, COIN } from './icons';
 import { drawHazard } from './hazardMarker';
+import { portraitSvg } from './portraits';
+import type { JournalEntry, QuestPin } from './questView';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -28,9 +30,22 @@ const overlap = (a: Box, b: Box) =>
   Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0)) *
   Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0));
 
+/** What the chart shows of the quests (decision 0123); see `questView.ts`. */
+export interface ChartQuests {
+  pins(): QuestPin[];
+  target(): { port: string; radius?: number } | null;
+  journal(): JournalEntry[];
+  track(quest: string): void;
+}
+
+const escapeHtml = (s: string) =>
+  s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
 /** An event-driven DOM/SVG chart; no second WebGL scene or animation loop. */
 export class SeaChart {
   onChange: () => void = () => {};
+  /** People's faces on their ports, the tracked step's place and the journal; none: no quests. */
+  quests: ChartQuests | null = null;
   onDestinationChange: () => void = () => {};
   private previousFocus: HTMLElement | null = null;
   /** Good whose prices show under the port names; null shows names only. */
@@ -81,7 +96,7 @@ export class SeaChart {
 
   private setPanel(name: string | null) {
     this.panel = name;
-    for (const id of ['legend', 'market']) {
+    for (const id of ['legend', 'market', 'journal']) {
       const panel = this.dialog.querySelector<HTMLElement>(`#chart-${id}-panel`);
       if (panel) panel.hidden = name !== id;
       this.dialog
@@ -90,7 +105,13 @@ export class SeaChart {
     }
   }
   private setupTools() {
-    for (const id of ['legend', 'market']) {
+    this.dialog.querySelector('#chart-journal-list')?.addEventListener('click', (e) => {
+      const row = (e.target as Element).closest<HTMLElement>('[data-track]');
+      if (!row || !this.quests) return;
+      this.quests.track(row.dataset.track!);
+      this.draw();
+    });
+    for (const id of ['legend', 'market', 'journal']) {
       this.dialog.querySelector(`#chart-${id}-toggle`)?.addEventListener('click', () => {
         this.setPanel(this.panel === id ? null : id);
       });
@@ -276,7 +297,12 @@ export class SeaChart {
     if (!this.goodPicked) this.good = this.defaultGood();
     this.zoom = 1;
     this.center = { x: 0, y: 0 };
-    this.setPanel(null);
+    // Wide screens open with the journal beside the sea while a quest is under way.
+    const wide =
+      typeof matchMedia === 'function' &&
+      matchMedia('(min-width: 900px) and (min-height: 500px)').matches;
+    const tracked = this.quests?.journal().some((e) => e.state === 'tracked') ?? false;
+    this.setPanel(wide && tracked ? 'journal' : null);
     this.dialog.showModal();
     this.draw();
     this.status('');
@@ -399,6 +425,127 @@ export class SeaChart {
       return { text: t('chart.cardBuy', { price: q.buy }), best: true };
     return { text: t('chart.cardSell', { price: q.sell }), best: q.sell === market.dearest };
   }
+  /** The tracked step's place, people's faces on their ports, and the journal panel. */
+  private drawQuests(
+    shape: (tag: string, attrs: Record<string, string | number>, parent?: Element) => Element,
+    unit: number,
+    px: number,
+  ) {
+    const quests = this.quests!;
+    const { map, boat } = this.world;
+    const pierOf = (id: string) => {
+      const port = map.ports.find((p) => p.id === id);
+      const island = port && map.islands.find((i) => i.id === port.islandId);
+      return this.harbours[id] ?? island ?? null;
+    };
+    const target = quests.target();
+    const at = target && pierOf(target.port);
+    if (target && at) {
+      shape('line', { x1: boat.x, y1: -boat.y, x2: at.x, y2: -at.y, class: 'chart-quest-route' });
+      shape('circle', {
+        cx: at.x,
+        cy: -at.y,
+        r: target.radius ?? 15 * px,
+        class: target.radius ? 'chart-quest-area' : 'chart-quest-ring',
+      });
+    }
+    const size = 34 * px;
+    for (const pin of quests.pins()) {
+      const pier = pierOf(pin.port);
+      if (!pier) continue;
+      const g = shape('g', {
+        class: `chart-quest-pin${pin.tracked ? ' is-tracked' : ''}`,
+        transform: `translate(${pier.x} ${-pier.y - 14 * px - size / 2})`,
+      });
+      if (pin.tracked) shape('circle', { r: size * 0.62, class: 'chart-quest-glow' }, g);
+      g.insertAdjacentHTML('beforeend', portraitSvg(pin.giver, { size: 34 }));
+      const face = g.lastElementChild!;
+      for (const [k, v] of Object.entries({
+        x: -size / 2,
+        y: -size / 2,
+        width: size,
+        height: size,
+      }))
+        face.setAttribute(k, String(v));
+      if (pin.alert) {
+        shape(
+          'circle',
+          { cx: size * 0.4, cy: -size * 0.4, r: 8 * px, class: 'chart-quest-alert' },
+          g,
+        );
+        const mark = shape(
+          'text',
+          {
+            x: size * 0.4,
+            y: -size * 0.4 + 4.5 * px,
+            class: 'chart-quest-mark',
+            style: `font-size: ${13 * px}px`,
+          },
+          g,
+        );
+        mark.textContent = '!';
+      }
+    }
+    void unit;
+    this.drawJournal(quests.journal());
+  }
+
+  private drawJournal(entries: JournalEntry[]) {
+    const toggle = this.dialog.querySelector<HTMLElement>('#chart-journal-toggle');
+    const list = this.dialog.querySelector<HTMLElement>('#chart-journal-list');
+    if (toggle) toggle.hidden = entries.length === 0;
+    const news = entries.filter((e) => e.state === 'offered').length;
+    const badge = toggle?.querySelector<HTMLElement>('.chart-journal-badge');
+    if (badge) {
+      badge.hidden = news === 0;
+      badge.textContent = String(news);
+    }
+    if (!list) return;
+    const pips = (e: JournalEntry) =>
+      `<span class="quest-pips" aria-hidden="true">${Array.from({ length: e.steps }, (_, i) => `<i class="${i < e.stepNo ? 'on' : ''}"></i>`).join('')}</span>`;
+    const face = (e: JournalEntry, size: number) =>
+      e.giver
+        ? portraitSvg(e.giver, { size, mood: e.state === 'done' ? 'pleased' : 'neutral' })
+        : '';
+    const html: string[] = [];
+    const tracked = entries.find((e) => e.state === 'tracked');
+    if (tracked) {
+      html.push(`<div class="journal-tracked"><div class="journal-who">${face(tracked, 56)}<div>
+        ${tracked.who ? `<small>${escapeHtml(tracked.who)}</small>` : ''}<b>${escapeHtml(tracked.arc)}</b>
+        <span class="journal-step">${pips(tracked)} ${escapeHtml(t('journal.step', { n: tracked.stepNo, total: tracked.steps }))}</span></div></div>
+        <ul class="journal-steps">${tracked.lines
+          .map(
+            (l) =>
+              `<li class="is-${l.state}"><span class="journal-check" aria-hidden="true">${l.state === 'done' ? '✓' : l.state === 'now' ? '!' : ''}</span><span>${escapeHtml(l.state === 'later' ? t('journal.later') : l.title)}${l.progress ? ` <b>${escapeHtml(l.progress)}</b>` : ''}</span></li>`,
+          )
+          .join('')}</ul></div>`);
+    }
+    const others = entries.filter((e) => e !== tracked);
+    if (others.length) {
+      html.push(`<h4>${escapeHtml(t(tracked ? 'journal.others' : 'journal.people'))}</h4>`);
+      for (const e of others) {
+        const line =
+          e.state === 'offered'
+            ? t('journal.asks')
+            : e.state === 'done'
+              ? e.chose.length
+                ? t('journal.doneChose', { option: e.chose.join(', ') })
+                : t('journal.done')
+              : `${e.arc} · ${t('journal.step', { n: e.stepNo, total: e.steps })}`;
+        const attrs =
+          e.state === 'active'
+            ? ` data-track="${escapeHtml(e.quest)}" role="button" tabindex="0"`
+            : '';
+        html.push(
+          `<div class="journal-row is-${e.state}"${attrs}><span class="journal-face">${face(e, 34)}${
+            e.state === 'offered' ? '<i class="journal-alert">!</i>' : ''
+          }</span><span><b>${escapeHtml(e.who ?? e.arc)}</b><small>${escapeHtml(line)}</small></span></div>`,
+        );
+      }
+    }
+    list.innerHTML = html.join('');
+  }
+
   private draw() {
     const focused = document.activeElement;
     const focusedTarget = focused?.getAttribute('data-chart-target');
@@ -664,6 +811,7 @@ export class SeaChart {
       label.textContent = place.name;
     }
     this.drawMarket(market);
+    if (this.quests) this.drawQuests(shape, unit, px);
     svg.append(player);
     const course = this.dialog.querySelector<HTMLElement>('#chart-course');
     if (course) {

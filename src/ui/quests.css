@@ -1,0 +1,408 @@
+/*
+ * People and their quests (decision 0124): the quest card, the journal on the chart and the
+ * faces on the ports. Style D (0049): navy panels, a brass line, Barlow Condensed.
+ */
+
+/* --- Quest card: a bottom card on wide screens, a bottom sheet in portrait ---------------- */
+dialog.quest-card {
+  --face: 168px;
+  position: fixed;
+  inset: auto 0 max(16px, env(safe-area-inset-bottom)) 0;
+  width: min(900px, calc(100vw - 24px));
+  max-height: calc(100dvh - 90px);
+  margin: 0 auto;
+  padding: 0;
+  overflow: visible;
+  border: 1.5px solid var(--brass-line);
+  border-radius: 14px;
+  background: rgba(9, 28, 41, 0.97);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  color: var(--ink);
+}
+dialog.quest-card::backdrop {
+  background: linear-gradient(180deg, rgba(6, 20, 28, 0.1) 30%, rgba(6, 20, 28, 0.7));
+}
+.quest-face {
+  position: absolute;
+  top: calc(var(--face) * -0.35);
+  left: 18px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+}
+.quest-face svg {
+  width: var(--face);
+  height: var(--face);
+}
+.quest-body {
+  max-height: calc(100dvh - 90px);
+  padding: 18px 22px 18px calc(var(--face) + 34px);
+  overflow: auto;
+  box-sizing: border-box;
+}
+.quest-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+.quest-head h2 {
+  margin: 0;
+  font: 700 30px/1 var(--display);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.quest-role {
+  color: var(--brass);
+  font: 700 15px/1 var(--display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.quest-arc {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  color: var(--ink-dim);
+  font: 700 14px/1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.quest-pips {
+  display: inline-flex;
+  gap: 4px;
+}
+.quest-pips i {
+  width: 18px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(238, 243, 244, 0.25);
+}
+.quest-pips i.on {
+  background: var(--brass);
+}
+.quest-speech {
+  margin: 10px 0 0;
+  font: 500 19px/1.4 var(--body);
+}
+.quest-ask {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--brass);
+  border-radius: 10px;
+  background: rgba(232, 196, 106, 0.1);
+  font: 700 18px/1.2 var(--display);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.quest-ask .icon {
+  width: 22px;
+  height: 22px;
+}
+.quest-count {
+  color: var(--amber);
+}
+.quest-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+.quest-actions.is-choice {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.quest-actions .quest-option {
+  flex-direction: column;
+  align-items: flex-start;
+  height: auto;
+  min-height: 64px;
+  padding: 10px 14px;
+  text-align: left;
+}
+.quest-option span {
+  color: var(--ink-dim);
+  font: 500 14px/1.3 var(--body);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Short landscape phones: a lower card, a smaller face. */
+@media (max-height: 450px) {
+  dialog.quest-card {
+    --face: 116px;
+    inset: auto 0 8px 0;
+    width: calc(100vw - 24px);
+  }
+  .quest-body {
+    padding: 10px 14px 10px calc(var(--face) + 26px);
+  }
+  .quest-head h2 {
+    font-size: 24px;
+  }
+  .quest-speech {
+    margin-top: 6px;
+    font-size: 15px;
+  }
+  .quest-ask {
+    margin-top: 8px;
+    padding: 6px 10px;
+    font-size: 15px;
+  }
+  .quest-actions {
+    margin-top: 8px;
+  }
+}
+
+/* Portrait: a bottom sheet, the face centred on its edge, full-width buttons. */
+@media (orientation: portrait) {
+  dialog.quest-card {
+    --face: 128px;
+    inset: auto 0 0 0;
+    width: 100vw;
+    max-width: 100vw;
+    border-radius: 18px 18px 0 0;
+    border-bottom: 0;
+  }
+  .quest-face {
+    left: 50%;
+    top: calc(var(--face) * -0.5);
+    transform: translateX(-50%);
+  }
+  .quest-body {
+    padding: calc(var(--face) * 0.55) 18px max(20px, env(safe-area-inset-bottom));
+  }
+  .quest-head,
+  .quest-arc {
+    justify-content: center;
+    text-align: center;
+  }
+  .quest-speech {
+    font-size: 16px;
+  }
+  .quest-actions {
+    flex-direction: column;
+  }
+  .quest-actions .d-btn {
+    width: 100%;
+  }
+}
+
+/* --- On the chart: the tracked step's place and people's faces -------------------------- */
+.chart-quest-route {
+  stroke: var(--brass-hi);
+  stroke-width: 3px;
+  stroke-dasharray: 9 7;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.chart-quest-ring {
+  fill: none;
+  stroke: var(--brass-hi);
+  stroke-width: 4px;
+  vector-effect: non-scaling-stroke;
+}
+.chart-quest-area {
+  fill: rgba(243, 211, 126, 0.12);
+  stroke: var(--brass-hi);
+  stroke-width: 3px;
+  stroke-dasharray: 6 6;
+  vector-effect: non-scaling-stroke;
+}
+.chart-quest-pin {
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45));
+  pointer-events: none;
+}
+.chart-quest-glow {
+  fill: rgba(243, 211, 126, 0.35);
+  stroke: var(--brass-hi);
+  stroke-width: 3px;
+  vector-effect: non-scaling-stroke;
+}
+.chart-quest-alert {
+  fill: var(--amber);
+  stroke: var(--outline);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+.chart-quest-mark {
+  fill: #2a1405;
+  font-family: var(--display);
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+/* --- Journal: beside the sea on wide screens, a drawer on phones -------------------------- */
+#chart-journal-toggle {
+  position: relative;
+}
+#chart-journal-toggle[hidden] {
+  display: none;
+}
+.chart-journal-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--outline);
+  border-radius: 9px;
+  background: var(--amber);
+  color: #2a1405;
+  font: 700 12px/16px var(--display);
+  text-align: center;
+}
+.chart-journal-badge[hidden] {
+  display: none;
+}
+.chart-journal-sheet h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+@media (min-width: 900px) and (min-height: 500px) {
+  .chart-journal-sheet {
+    left: auto;
+    right: max(12px, env(safe-area-inset-right));
+    top: calc(max(10px, env(safe-area-inset-top)) + 200px);
+    bottom: auto;
+    max-height: calc(100% - 280px);
+    width: 310px;
+  }
+}
+@media (orientation: portrait) {
+  .chart-journal-sheet {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: 48%;
+    border-radius: 16px 16px 0 0;
+  }
+}
+.journal-list {
+  margin-top: 8px;
+}
+.journal-who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.journal-who small,
+.journal-row small {
+  display: block;
+  color: var(--brass);
+  font: 700 13px/1.2 var(--display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.journal-who b {
+  display: block;
+  font: 700 24px/1.05 var(--display);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.journal-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+  color: var(--ink-dim);
+  font-size: 13px;
+}
+.journal-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  font: 500 15px/1.3 var(--body);
+}
+.journal-steps li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.journal-steps b {
+  color: var(--amber);
+}
+.journal-check {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--green);
+  border-radius: 6px;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+}
+.journal-steps .is-now .journal-check {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+.journal-steps .is-later {
+  color: var(--ink-dim);
+}
+.journal-steps .is-later .journal-check {
+  border-color: rgba(238, 243, 244, 0.35);
+}
+.journal-list h4 {
+  margin: 14px 0 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(238, 243, 244, 0.15);
+  color: var(--brass);
+  font: 700 14px/1 var(--display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.journal-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+  font-size: 13px;
+}
+.journal-row b {
+  display: block;
+  font: 700 16px/1.1 var(--display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.journal-row small {
+  color: var(--ink-dim);
+  font: 500 13px/1.3 var(--body);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.journal-row[data-track] {
+  cursor: pointer;
+}
+.journal-row.is-done {
+  opacity: 0.6;
+}
+.journal-face {
+  position: relative;
+  flex: none;
+}
+.journal-alert {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--outline);
+  border-radius: 50%;
+  background: var(--amber);
+  color: #2a1405;
+  font: 700 12px/14px var(--display);
+  font-style: normal;
+  text-align: center;
+}
