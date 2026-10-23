@@ -750,7 +750,7 @@ export function designedTownParts(design: IslandDesign, R: number, level: TownLe
   for (let i = 0; i < woods.tries; i++) {
     const x = range(treesRng, x0, x1),
       z = range(treesRng, z0, z1);
-    const tree = make(treesRng);
+    const buildTree = make(treesRng);
     const yaw = treesRng() * 6;
     const h = layoutGround(layout, x, z, woods.margin);
     // No trees on rock, nor where the grown town's ground (a level-4 quarry) will not carry one.
@@ -773,6 +773,7 @@ export function designedTownParts(design: IslandDesign, R: number, level: TownLe
       woods.clear?.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r)
     )
       continue;
+    const tree = buildTree();
     tree[0]!.userData.tree = { x, z };
     put(out, tree, x * R, h * R, z * R, yaw, woods.size);
   }
