@@ -132,6 +132,8 @@ const GOLDEN: Record<string, string[]> = {
   'gull-hook': Array(4).fill('134:97942c43'),
   'lantern-rock': Array(4).fill('23:588e8fcb'),
   // The home island (decision 0126): bigger, every building of its spots drawn at once.
+  // Teeth Rock (decision 0133): the Stonehaven arc's lighthouse rock.
+  'teeth-rock': Array(4).fill('14:9c49061c'),
   skerry: ['168:b8a7a88a', '172:5ac98175', '175:6f815c4b', '175:6f815c4b'],
   'watchman-key': ['43:fbfd2fb9', '73:4bfeb4dd', '92:3e8fc1dd', '99:ac0414a9'],
 };

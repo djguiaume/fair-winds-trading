@@ -84,6 +84,9 @@ describe('quest engine (decision 0125)', () => {
     bad.steps[2]!.choose = [{ id: 'only' }];
     bad.steps[1]!.reward = { building: 'x' } as never;
     bad.reward = { gold: -1 };
+    bad.giver = 'nobody';
+    bad.steps[1]!.speaker = 'ghost';
+    bad.steps[0]!.look = 'soaked';
     const problems = checkQuests([bad], PHASE1_MAP).join('\n');
     expect(problems).toContain('unknown condition "moon-phase"');
     expect(problems).toContain('no port "atlantis"');
@@ -92,6 +95,8 @@ describe('quest engine (decision 0125)', () => {
     expect(problems).toContain('not a later step');
     expect(problems).toContain('two options or more');
     expect(problems).toContain('unknown reward "building"');
+    expect(problems).toContain('no person "nobody"');
+    expect(problems).toContain('no person "ghost"');
     const startDelivered = structuredClone(after) as unknown as QuestDef;
     startDelivered.start = { is: 'delivered', port: 'saltmere', good: 'fish', qty: 1 };
     expect(checkQuests([startDelivered], PHASE1_MAP, ['test-pier']).join()).toContain(

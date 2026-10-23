@@ -54,6 +54,26 @@ describe('quest cards (decision 0124)', () => {
     expect(card.good).toBe('timber');
   });
 
+  it("shows a step's speaker instead of the giver, with the speaker's mood and role", () => {
+    setLanguage('en');
+    const world: World = createWorld(PHASE1_MAP, SLOOP);
+    const quest: QuestDef = {
+      ...ROOK,
+      steps: ROOK.steps.map((s, i) => (i === 0 ? { ...s, speaker: 'kit', mood: 'pleased' } : s)),
+    };
+    const book = new QuestBook(world, [quest], {
+      doneElsewhere: (id) => id === TUTORIAL_QUEST.id,
+      nightOk: () => false,
+    });
+    book.check();
+    const card = cardFor(book, world.map, 'test-pier', 'offer')!;
+    expect(card.giver?.id).toBe('kit');
+    expect(card.role).toBe('Fisher · Saltmere');
+    expect(card.mood).toBe('pleased');
+    // The thanks and the pins stay the giver's.
+    expect(questPins(book, world.map, new Set())[0]!.giver.id).toBe('rook');
+  });
+
   it('shows each new step once, a choice with its options, and the thanks pleased', () => {
     const { book, map, world } = setup();
     const seen = new Set<string>(['test-pier:timber']);
