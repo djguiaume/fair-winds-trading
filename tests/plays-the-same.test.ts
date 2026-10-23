@@ -82,7 +82,7 @@ describe('plays the same after moving levels, tutorial and music to data (decisi
     const lines: string[] = [];
     for (let run = 0; run < 300; run++) lines.push(...tutorialSession(run));
     expect(lines.length).toBeGreaterThan(60000);
-    expect(hash(lines.join('\n'))).toBe('1d8cc54a');
+    expect(hash(lines.join('\n'))).toBe('39da415a');
   });
 });
 

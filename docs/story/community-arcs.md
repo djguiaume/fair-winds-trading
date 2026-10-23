@@ -1,6 +1,6 @@
 # Community arcs: the people, their steps and the buildings they give you
 
-**Status:** approved by Guillaume, 2026-10-23 (after one round of feedback). Content can now be built from it. Names are placeholders. The open questions at the end stay open for the prototype. Numbers are examples to tune, not tuning.
+**Status:** approved by Guillaume, 2026-10-23 (after one round of feedback). Content can now be built from it. Names are final ([storyteller brief](storyteller-brief.md), [0129](../decisions/0129-storyteller-brief.md)). The open questions at the end stay open for the prototype. Numbers are examples to tune, not tuning.
 **Follows:** [0120](../decisions/0120-communities-and-home-island.md) (arcs build your home island). **Recorded in:** [0122](../decisions/0122-community-arcs-story.md).
 **Feeds:** the quest engine (step kinds it must support, [below](#what-the-quest-engine-needs)), the home island (build spots and buildings, [below](#what-the-home-island-needs)) and the characters' look (who to draw, [below](#the-people-at-a-glance)).
 
