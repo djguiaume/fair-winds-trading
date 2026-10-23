@@ -91,6 +91,19 @@ export interface PropDef {
   tags?: string[];
 }
 
+/**
+ * A fixed build spot of the home island (decision 0126). An arc spot takes one building of its
+ * `pair` (src/data/buildings.json); a spot without a pair is a spare, for a building passed over.
+ */
+export interface HomeSpotDef {
+  id: string;
+  x: number;
+  z: number;
+  /** Height in radius units, for a spot on raised ground. */
+  y?: number;
+  pair?: string;
+}
+
 /** The seeded scatter of woodland trees, cleared by homes, lanes, props and fields. */
 export interface WoodsDef {
   tree: string;
@@ -124,6 +137,8 @@ export interface IslandDesign {
   ramps?: RampDef[];
   piers: PierDef[];
   props: PropDef[];
+  /** The home island's build spots (decision 0126); props tagged `home:<building>` stand on them. */
+  homeSpots?: HomeSpotDef[];
   woods: WoodsDef;
 }
 

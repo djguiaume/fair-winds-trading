@@ -109,4 +109,9 @@ export interface MapDef {
   ports: PortDef[];
   /** Port id of the home port: upgrades and ship changes (decision 0048). Default: nearest the start. */
   homePort?: string;
+  /**
+   * Island id of the captain's own island (decision 0126): fixed build spots in its file, a pier
+   * to dock at, no market. Not to be confused with `homePort`.
+   */
+  homeIsland?: string;
 }

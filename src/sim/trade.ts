@@ -7,6 +7,7 @@ import { coastDistance } from './coast';
 import { type ContractState, createContracts, stepContracts, syncHelpOrder } from './contracts';
 import { type Difficulty, DEFAULT_DIFFICULTY, easier, knobs } from './difficulty';
 import { leakFactor } from './hazards';
+import { type HomeState, createHomeState, homeEffect, homeIsland } from './home';
 import { GOODS, type GoodAmounts, type GoodId, emptyAmounts, totalAmount } from './goods';
 import type { MapDef, PortDef } from './map';
 import {
@@ -94,6 +95,8 @@ export interface TradeState {
   difficulty: Difficulty;
   /** Easiest level played on this voyage, for racing missions and best times later. */
   easiestDifficulty: Difficulty;
+  /** The captain's own island and what stands on it (decision 0126). */
+  home: HomeState;
   /** Progress of the quests (decision 0125). */
   quests: QuestState;
 }
@@ -146,6 +149,7 @@ export function createTradeState(map: MapDef, startShip: ShipClass): TradeState 
     settlements,
     difficulty: DEFAULT_DIFFICULTY,
     easiestDifficulty: DEFAULT_DIFFICULTY,
+    home: createHomeState(),
     quests: { byId: {} },
   };
 }
@@ -342,6 +346,8 @@ export type DockEvent =
   | { type: 'undocked'; portId: string }
   | { type: 'discovered'; portId: string }
   | { type: 'help-order'; portId: string }
+  | { type: 'home-docked' }
+  | { type: 'home-undocked' }
   | LevelUp;
 
 /**
@@ -377,7 +383,8 @@ export function stepTrade(
       trade.dockedAt = null;
     }
   }
-  if (!trade.dockedAt && boat.speedKn < harbour().dockSpeedKn) {
+  events.push(...stepHomeDock(trade, map, boat));
+  if (!trade.dockedAt && !trade.home.docked && boat.speedKn < harbour().dockSpeedKn) {
     const port = portInRange(
       map,
       boat,
@@ -400,6 +407,62 @@ export function stepTrade(
     events.unshift(...flushEconomy(trade, map));
   }
   return events;
+}
+
+/**
+ * The pier of the captain's own island (decision 0126), its distance worked out like a port's.
+ * A stand-in port record: the home island has no market, orders or town.
+ */
+function homeHarbour(map: MapDef): PortDef | null {
+  const island = homeIsland(map);
+  return island
+    ? {
+        id: `home:${island.id}`,
+        name: island.name ?? island.id,
+        islandId: island.id,
+        produces: [],
+        wants: [],
+      }
+    : null;
+}
+
+/** Is she within docking range of the home pier? Only once the island is hers. */
+export function homeInRange(
+  trade: TradeState,
+  map: MapDef,
+  pos: { x: number; y: number; heading?: number },
+  range = harbour().dockRange,
+): boolean {
+  const pier = trade.home.owned ? homeHarbour(map) : null;
+  return !!pier && distanceToPort(map, pos, pier, 1, activeShip(trade).id, range) <= range;
+}
+
+/** Moor at the home pier when slow alongside, cast off when she sails away. */
+function stepHomeDock(
+  trade: TradeState,
+  map: MapDef,
+  boat: { x: number; y: number; speedKn: number; heading?: number },
+): DockEvent[] {
+  const { home } = trade;
+  if (home.docked) {
+    if (homeInRange(trade, map, boat, harbour().dockRange + harbour().undockMargin)) return [];
+    home.docked = false;
+    return [{ type: 'home-undocked' }];
+  }
+  if (trade.dockedAt || boat.speedKn >= harbour().dockSpeedKn || !homeInRange(trade, map, boat))
+    return [];
+  home.docked = true;
+  return [{ type: 'home-docked' }];
+}
+
+/** A sail upgrade's price, less the rigging loft's share (decision 0126). */
+export function upgradeCost(trade: TradeState, price: number, track: UpgradeTrack): number {
+  return track === 'sails' ? Math.round(price * homeEffect(trade.home, 'sailUpgradePrice')) : price;
+}
+
+/** A new ship's price, less the boathouse's share (decision 0126). */
+export function shipCost(trade: TradeState, cls: ShipClass): number {
+  return Math.round(cls.price * homeEffect(trade.home, 'shipPrice'));
 }
 
 /** Apply all elapsed economy time before a paused dock panel opens, returning its events. */
@@ -495,8 +558,9 @@ export function buyUpgrade(trade: TradeState, map: MapDef, track: UpgradeTrack):
   const { captain } = trade;
   const base = SHIP_CLASSES[captain.activeShip]!;
   const levels = captain.ships[captain.activeShip]!;
-  const price = upgradePrice(base, levels, track);
-  if (price === null) return fail('max-level');
+  const listed = upgradePrice(base, levels, track);
+  if (listed === null) return fail('max-level');
+  const price = upgradeCost(trade, listed, track);
   if (!upgradeAllowed(trade, map, levels[track] + 1)) return fail('port-too-small');
   if (price > captain.gold) return fail('not-enough-gold');
   captain.gold -= price;
@@ -519,12 +583,13 @@ export function buyShip(trade: TradeState, map: MapDef, classId: string): TradeR
   if (offer.status === 'no-yard') return fail('unknown-ship');
   if (offer.yard?.id !== trade.dockedAt) return fail('not-at-yard');
   if (offer.status !== 'for-sale') return fail('ship-locked');
-  if (cls.price > captain.gold) return fail('not-enough-gold');
+  const price = shipCost(trade, cls);
+  if (price > captain.gold) return fail('not-enough-gold');
   if (cargoUsed(trade) > holdCapacity(cls, stockLevels())) return fail('cargo-too-big');
-  captain.gold -= cls.price;
+  captain.gold -= price;
   captain.ships[classId] = stockLevels();
   captain.activeShip = classId;
-  return { ok: true, gold: cls.price };
+  return { ok: true, gold: price };
 }
 
 /** Switch to another owned ship at the home port (the cargo moves across, so it must fit). */

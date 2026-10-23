@@ -14,6 +14,7 @@
     "headingDeg": 120
   },
   "homePort": "saltmere",
+  "homeIsland": "skerry",
   "islands": [
     {
       "id": "calda",
@@ -73,10 +74,11 @@
       "name": "Skerry",
       "x": -60,
       "y": -150,
-      "radius": 11,
+      "radius": 18,
       "look": {
         "design": "skerry",
-        "harbourBearing": 2.746581
+        "harbourBearing": 3.141593,
+        "dock": true
       }
     },
     {

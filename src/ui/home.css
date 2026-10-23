@@ -1,0 +1,207 @@
+/* The home island at the pier (decision 0126): build spots over the island, the choice card. */
+.home-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.home-spot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 3px dashed rgba(255, 255, 255, 0.55);
+  background: rgba(9, 28, 41, 0.35);
+  color: rgba(255, 255, 255, 0.8);
+  font: 700 22px/1 var(--display);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.home-spot:disabled {
+  cursor: default;
+}
+.home-spot[data-state='offer'],
+.home-spot[data-state='spare'] {
+  border: 3px solid var(--brass-hi);
+  background: rgba(243, 211, 126, 0.4);
+  color: #2a1c00;
+  font-size: 28px;
+  animation: home-glow 1.6s ease-in-out infinite;
+}
+.home-spot[data-state='spare'] {
+  border-style: dashed;
+  animation: none;
+}
+.home-spot.selected {
+  border: 3px solid var(--green);
+  background: rgba(89, 211, 107, 0.35);
+  animation: none;
+}
+.home-spot-tip {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 6px);
+  transform: translateX(-50%);
+  padding: 3px 8px;
+  border: 1px solid var(--brass-line);
+  border-radius: 6px;
+  background: var(--navy);
+  color: var(--ink);
+  font: 700 13px/1.2 var(--display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+@keyframes home-glow {
+  50% {
+    box-shadow:
+      0 0 0 7px rgba(243, 211, 126, 0.35),
+      0 0 26px 8px rgba(243, 211, 126, 0.55);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-spot {
+    animation: none !important;
+  }
+}
+
+.home-bar {
+  position: absolute;
+  top: var(--top, 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  pointer-events: auto;
+}
+.home-title {
+  padding: 6px 12px;
+  border: 1.5px solid var(--brass-line);
+  border-radius: 10px;
+  background: var(--navy);
+  color: var(--brass);
+  font: 700 17px/1.1 var(--display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* The choice: a side card in landscape, a bottom sheet in portrait. */
+.home-card {
+  position: absolute;
+  right: max(10px, env(safe-area-inset-right));
+  top: 50%;
+  transform: translateY(-50%);
+  width: min(560px, 46vw);
+  max-height: calc(100% - 20px);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--brass-line);
+  border-radius: 16px;
+  background: var(--navy);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  pointer-events: auto;
+  /* Above the sea instruments: the game is paused while it is open. */
+  z-index: 30;
+}
+.home-card[hidden] {
+  display: none;
+}
+.home-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.home-card h2 {
+  margin: 0;
+  color: var(--brass);
+  font: 700 18px/1.15 var(--display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.home-close {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border: 1.5px solid rgba(238, 243, 244, 0.35);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ink);
+  font-size: 18px;
+  cursor: pointer;
+}
+.home-options {
+  display: flex;
+  gap: 10px;
+}
+.home-option {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border: 1.5px solid rgba(238, 243, 244, 0.25);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.home-option .port-btn {
+  margin-top: auto;
+}
+.home-kind {
+  color: var(--brass);
+  font: 700 13px/1 var(--display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.home-name {
+  color: var(--ink);
+  font: 700 24px/1.1 var(--display);
+  text-transform: uppercase;
+}
+.home-effect {
+  margin: 0 0 4px;
+  color: var(--ink);
+  font: 600 15px/1.3 var(--body);
+}
+.home-note {
+  margin: 0;
+  color: var(--ink-dim);
+  font: 500 13px/1.35 var(--body);
+}
+@media (orientation: portrait) {
+  .home-card {
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    transform: none;
+    width: auto;
+    max-height: 60%;
+  }
+  .home-options {
+    flex-direction: column;
+  }
+  /* The speed and wind panels fill the top of a narrow screen: the title goes below them. */
+  .home-bar {
+    top: calc(var(--top, 10px) + 150px);
+  }
+}
+@media (max-height: 460px) and (orientation: landscape) {
+  .home-card {
+    width: min(420px, 50vw);
+    padding: 10px 12px;
+    gap: 6px;
+  }
+  .home-name {
+    font-size: 19px;
+  }
+  .home-effect {
+    font-size: 13px;
+  }
+}

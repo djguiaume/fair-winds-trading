@@ -93,17 +93,19 @@ export function pierAt(island: IslandDef, bearing: number): Pier {
 
 /** Piers that face the course buoy named after their island (the harbour side). */
 export function piersOf(
-  map: Pick<MapDef, 'islands' | 'course'> & Partial<Pick<MapDef, 'ports'>>,
+  map: Pick<MapDef, 'islands' | 'course'> & Partial<Pick<MapDef, 'ports' | 'homeIsland'>>,
   levels: Record<string, number> = {},
 ): Pier[] {
   const piers: Pier[] = [];
   for (const island of map.islands) {
     const wp = map.course.find((w) => w.label === island.name);
-    if (island.look?.dock && wp)
+    // The home island (decision 0126) has no course buoy: its file faces its harbour bearing.
+    const home = island.id === map.homeIsland && island.look?.profile;
+    if (island.look?.dock && (wp || home))
       piers.push(
         pierAt(
           island,
-          island.look?.profile ? (island.look.harbourBearing ?? 0) : bearingTo(island, wp),
+          island.look?.profile ? (island.look.harbourBearing ?? 0) : bearingTo(island, wp!),
         ),
       );
     const port = map.ports?.find((p) => p.islandId === island.id);

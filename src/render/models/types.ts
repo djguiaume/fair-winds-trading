@@ -69,6 +69,8 @@ export interface IslandBuildOptions {
 /** Rendered land supports incremental settlement changes without replacing stable harbour anchors. */
 export interface IslandModel extends THREE.Object3D {
   setSettlementLevels(levels: Record<string, TownLevel>): void;
+  /** Redraw the home island's buildings (decision 0126). */
+  setHomeBuildings(built: Record<string, string>): void;
   dispose(): void;
 }
 

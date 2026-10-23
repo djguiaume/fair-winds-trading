@@ -1,5 +1,6 @@
 import { GOOD_DEFS, type GoodId, isGood } from './goods';
 import type { MapDef, PortDef } from './map';
+import { homeEffect } from './home';
 import { distance } from './math';
 import { createRng } from './rng';
 import {
@@ -226,7 +227,9 @@ export function syncHelpOrder(map: MapDef, trade: TradeState): string | null {
   const c = portId ? trade.contracts.byPort[portId] : undefined;
   if (!c || c.readyIn > 0) return null;
   c.help = true;
-  c.reward = Math.round((c.reward * orderTuning().helpRewardFactor) / 5) * 5;
+  // The bakehouse adds its share to help orders (decision 0126).
+  const factor = orderTuning().helpRewardFactor * homeEffect(trade.home, 'helpReward');
+  c.reward = Math.round((c.reward * factor) / 5) * 5;
   return c.portId;
 }
 

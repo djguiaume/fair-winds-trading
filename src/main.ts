@@ -60,6 +60,8 @@ import {
   translateDom,
 } from './i18n';
 import { TradePanel } from './ui/tradePanel';
+import { HomePanel, buildingName, effectLine } from './ui/homePanel';
+import { giveHomeIsland, homeIsland, homeSpots, offerHomeSpot } from './sim/home';
 import { TransferPanel } from './ui/transferPanel';
 
 declare const __APP_VERSION__: string;
@@ -189,6 +191,24 @@ chart.onChange = () => {
   refreshPause();
 };
 const tradePanel = new TradePanel($('trade-panel'), world);
+// The home island (decision 0126). Until the prologue quest gives it, `?home` gives it to the
+// voyage being played and offers every arc spot, to try the build spots.
+if (new URLSearchParams(location.search).has('home')) {
+  giveHomeIsland(world.trade);
+  for (const spot of homeSpots(world.map)) offerHomeSpot(world.trade, world.map, spot.id);
+}
+view.setHomeBuildings(world.trade.home.built);
+const homePanel = new HomePanel($('home-ui'), world);
+homePanel.onChange = () => refreshPause();
+homePanel.onBuilt = (building) => {
+  view.setHomeBuildings(world.trade.home.built);
+  hud.showToast(t('home.built', { name: buildingName(building), effect: effectLine(building) }), 5);
+  autosave();
+};
+homePanel.onRepaired = (gold) => {
+  hud.showToast(t('trade.repaired', { gold }), 2.5);
+  autosave();
+};
 const tutorial = new Tutorial(world, view.harbours, storage, resumedVoyage);
 // Quests (decision 0125): every quest file but the tutorial's, saved with the voyage. The
 // tutorial counts as done for them once it is finished or skipped.
@@ -318,6 +338,7 @@ function refreshPause() {
     !help.hidden ||
     transfer.isOpen ||
     tradePanel.isOpen ||
+    homePanel.isOpen ||
     windHelp.open ||
     chart.isOpen ||
     tutorialOffer.open ||
@@ -519,7 +540,8 @@ window.addEventListener('keydown', (e) => {
   if (tradePanel.isOpen) {
     tradePanel.close();
     refreshPause();
-  } else if (!settingsPanel.hidden) closeSettings();
+  } else if (homePanel.isOpen) homePanel.close();
+  else if (!settingsPanel.hidden) closeSettings();
   else if (transfer.isOpen) transfer.close();
   else if (!help.hidden) closeHelp();
   else if (!newVoyage.hidden) {
@@ -829,6 +851,22 @@ function handleEvents(events: WorldEvent[]) {
       hud.portLabels.rebuild();
       if (tradePanel.isOpen) tradePanel.render();
       autosave();
+    } else if (e.type === 'home-docked') {
+      // Moored at your own island (decision 0126): its spots show; a new one is said out loud.
+      const name = world.map.islands.find((i) => i.id === world.map.homeIsland)?.name ?? '';
+      const fresh = world.trade.home.offered.length > 0;
+      // The camera turns to the island, halfway between it and her, so both show.
+      const island = homeIsland(world.map)!;
+      view.setFocus({
+        x: (island.x * 2 + world.boat.x) / 3,
+        y: (island.y * 2 + world.boat.y) / 3,
+      });
+      hud.showToast(t(fresh ? 'home.newSpot' : 'home.docked', { name }), fresh ? 4 : 2.5);
+      autosave();
+    } else if (e.type === 'home-undocked') {
+      view.setFocus(null);
+      homePanel.close();
+      autosave();
     } else if (e.type === 'undocked') {
       const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
       hud.showToast(t('toast.departed', { name: portName }), 1.5);
@@ -877,6 +915,7 @@ function tick(now: number) {
   // CSS rule and the opaque, full-screen chart cover the entire HUD.
   const hudVisible = !(mode === 'menu' && !started) && !chart.isOpen;
   hud.update(dt, (x, y) => view.project(x, y), size, !paused, hudVisible);
+  homePanel.update((x, y) => view.project(x, y));
   // Coach marks follow moving targets (port signs) about ten times a second.
   if (++coachTick % 6 === 0) coach.place();
 
