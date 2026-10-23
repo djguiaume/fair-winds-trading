@@ -2,6 +2,7 @@ import { type GoodId, isGood, isMadeGood, isRare } from './goods';
 import type { MapDef, PortDef } from './map';
 import { type Difficulty, knobs } from './difficulty';
 import { TUNING } from '../data/tuning';
+import townLevels from '../data/town-levels.json';
 
 /**
  * Living settlements (decision 0059). Every port is a settlement with a level from 1 (hamlet) to
@@ -13,8 +14,19 @@ import { TUNING } from '../data/tuning';
  * A town that wants a rare good becomes a port town only once it has received enough of it (0065).
  */
 
-export type SettlementLevel = 1 | 2 | 3 | 4;
-export const MAX_SETTLEMENT_LEVEL: SettlementLevel = 4;
+/**
+ * The town levels, from `src/data/town-levels.json` (decision 0111): their number and English
+ * names, in order from the smallest. Level n is entry n - 1; the top one is the port town, the
+ * level a rare-goods gate holds back (0065). Each level's numbers sit in `economy.json` › `towns`.
+ */
+export const TOWN_LEVELS: readonly { readonly name: string }[] = townLevels.levels;
+/** A town level, 1 to `MAX_SETTLEMENT_LEVEL`. */
+export type SettlementLevel = number;
+export const MAX_SETTLEMENT_LEVEL: SettlementLevel = TOWN_LEVELS.length;
+/** Every level, 1 to the top, for lists and editors. */
+export const SETTLEMENT_LEVELS: readonly SettlementLevel[] = TOWN_LEVELS.map((_, i) => i + 1);
+/** The level a port without one starts a voyage at (the village the 0046 economy was tuned for). */
+export const DEFAULT_START_LEVEL: SettlementLevel = townLevels.startLevel;
 
 /*
  * The numbers live in `src/data/tuning/economy.json` › `towns` (decision 0094):
@@ -67,7 +79,7 @@ export interface LevelUp {
 
 export function clampLevel(n: unknown): SettlementLevel {
   const v = typeof n === 'number' && Number.isFinite(n) ? Math.round(n) : 1;
-  return Math.min(Math.max(v, 1), MAX_SETTLEMENT_LEVEL) as SettlementLevel;
+  return Math.min(Math.max(v, 1), MAX_SETTLEMENT_LEVEL);
 }
 
 /**
@@ -75,10 +87,10 @@ export function clampLevel(n: unknown): SettlementLevel {
  * Phase 1 economy was tuned for (decision 0046).
  */
 export function startLevel(port: PortDef): SettlementLevel {
-  return clampLevel(port.level ?? 2);
+  return clampLevel(port.level ?? DEFAULT_START_LEVEL);
 }
 
-type LevelKey = '2' | '3' | '4';
+type LevelKey = `${number}`;
 
 /** Goods the port makes at `level`: its bulk good plus its workshop's specialty from town level (0063). */
 export function portProduces(port: PortDef, level: number): GoodId[] {
@@ -128,7 +140,7 @@ export function producesAt(map: MapDef, state: HasSettlements, portId: string): 
 export function growthNeeded(level: SettlementLevel): number | null {
   return level >= MAX_SETTLEMENT_LEVEL
     ? null
-    : towns().growthToLevel[String(level + 1) as '2' | '3' | '4'];
+    : (towns().growthToLevel as Record<string, number>)[String(level + 1)]!;
 }
 
 export function createSettlements(map: MapDef): SettlementState {
@@ -241,11 +253,16 @@ export function stepSettlements(state: HasSettlements, dt: number, map: MapDef):
     if (stalled > 0 && s.growth > 0)
       s.growth = Math.max(0, s.growth - (towns().stallDecayPerMinute * stalled) / 60);
     const need = growthNeeded(s.level);
-    if (need !== null && s.growth >= need && s.level === 3 && portTownGate(map, state, portId)) {
+    if (
+      need !== null &&
+      s.growth >= need &&
+      s.level === MAX_SETTLEMENT_LEVEL - 1 &&
+      portTownGate(map, state, portId)
+    ) {
       s.growth = need;
     } else if (need !== null && s.growth >= need) {
       s.growth -= need;
-      s.level = (s.level + 1) as SettlementLevel;
+      s.level += 1;
       if (s.level >= MAX_SETTLEMENT_LEVEL) s.growth = 0;
       ups.push({ type: 'level-up', portId, level: s.level });
       // Carry-over growth still resolves one level per sailing step.
@@ -257,7 +274,7 @@ export function stepSettlements(state: HasSettlements, dt: number, map: MapDef):
 
 /** Home port level needed before the next upgrade level `to` can be fitted (1 = always). */
 export function upgradeNeedsLevel(to: number): SettlementLevel {
-  return (TUNING.upgrades.homePortLevel[String(to)] ?? 1) as SettlementLevel;
+  return TUNING.upgrades.homePortLevel[String(to)] ?? 1;
 }
 
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
@@ -275,7 +292,7 @@ export function readSettlements(raw: unknown, map: MapDef): SettlementState {
   for (const port of map.ports) {
     const s = (saved as Record<string, unknown>)[port.id] as Partial<Settlement> | undefined;
     if (!s || typeof s !== 'object') continue;
-    const level = Math.max(startLevel(port), clampLevel(s.level)) as SettlementLevel;
+    const level = Math.max(startLevel(port), clampLevel(s.level));
     const need = growthNeeded(level);
     const growth = isNum(s.growth) && s.growth > 0 && need !== null ? Math.min(s.growth, need) : 0;
     const sinceSupply = isNum(s.sinceSupply) && s.sinceSupply > 0 ? s.sinceSupply : 0;

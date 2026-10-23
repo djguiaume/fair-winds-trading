@@ -6,6 +6,7 @@ import { hullCondition, repairHull, repairPrice } from '../sim/hazards';
 import { goodRole, quoteAcross, quoteBuy, quoteSell, trades, type Market } from '../sim/market';
 import {
   growthProgress,
+  MAX_SETTLEMENT_LEVEL,
   portTownGate,
   madeGoods,
   producesAt,
@@ -47,7 +48,7 @@ import {
 } from '../sim/upgrades';
 import type { World } from '../sim/world';
 import { KIDS_MODE_AVAILABLE, type UiMode } from './settings';
-import { formatNumber, goodName, shipName, shipThe, t } from '../i18n';
+import { formatNumber, goodName, shipName, shipThe, t, townLevelName } from '../i18n';
 import { COIN, crateIcon, icon } from './icons';
 
 export type TradePanelTab = 'market' | 'orders' | 'shipyard';
@@ -371,10 +372,13 @@ export class TradePanel {
   private settlementTag(portId: string, name: string): string {
     const s = this.world.trade.settlements.byPort[portId];
     if (!s) return '';
-    const level = t(`settlement.level.${s.level}`);
+    const level = townLevelName(s.level);
     const pct = Math.round(growthProgress(this.world.trade, portId) * 100);
     // A town short of its rare goods shows how many it has had (decision 0065).
-    const gate = s.level === 3 ? portTownGate(this.world.map, this.world.trade, portId) : null;
+    const gate =
+      s.level === MAX_SETTLEMENT_LEVEL - 1
+        ? portTownGate(this.world.map, this.world.trade, portId)
+        : null;
     if (gate) {
       const goods = gate.goods.map((g) => icon(g)).join('');
       const text = t('settlement.rare', { level, pct, have: gate.have, need: gate.need, goods });
@@ -384,7 +388,7 @@ export class TradePanel {
             p.levelProduces &&
             Object.values(p.levelProduces)
               .flat()
-              .some((g) => gate.goods.includes(g)),
+              .some((g) => g && gate.goods.includes(g)),
         )
         .map((p) => (isDiscovered(this.world.trade, p.id) ? p.name : t('settlement.farIsland')));
       const hint = t('settlement.rareHint', {
@@ -396,7 +400,7 @@ export class TradePanel {
       return `<span class="role-tag level rare" title="${hint}">${text}</span>`;
     }
     const text =
-      s.level >= 4
+      s.level >= MAX_SETTLEMENT_LEVEL
         ? level
         : t(
             s.sinceSupply > TUNING.economy.towns.stallSeconds && s.growth > 0
@@ -415,7 +419,7 @@ export class TradePanel {
     const home = homePort(this.world.map);
     return t('upg.needsLevel', {
       port: home.name,
-      level: t(`settlement.level.${upgradeNeedsLevel(to)}`),
+      level: townLevelName(upgradeNeedsLevel(to)),
     });
   }
 

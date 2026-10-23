@@ -1,3 +1,4 @@
+import { MAX_SETTLEMENT_LEVEL, SETTLEMENT_LEVELS } from './settlement';
 import { coastDistance } from './coast';
 import {
   cliffDistance,
@@ -43,7 +44,8 @@ export interface IslandCheckKit {
 
 export const TRIANGLE_BUDGET = 6000;
 export const TRIANGLE_WARNING = 5000;
-const LEVELS = [1, 2, 3, 4];
+const LEVELS = SETTLEMENT_LEVELS;
+const TOP = MAX_SETTLEMENT_LEVEL;
 /** The arrival pier's lane, kept for the player's ship (the pier sits at x 0.08). */
 const APPROACH = { x: 0.08, halfWidth: 0.12, z: 0.45 };
 /** Overlap tolerance of the old town plan, in reference units. */
@@ -62,10 +64,10 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
   // Known types, kinds and levels.
   const levelsOk = (e: { from?: number; to?: number }, what: string, extra = {}) => {
     if (e.from !== undefined && !isLevel(e.from))
-      error('levels', `${what}: "from" must be 1 to 4`, extra);
+      error('levels', `${what}: "from" must be 1 to ${TOP}`, extra);
     else if (e.to !== undefined && !isLevel(e.to))
-      error('levels', `${what}: "to" must be 1 to 4`, extra);
-    else if ((e.from ?? 1) > (e.to ?? 4)) error('levels', `${what}: "from" is after "to"`, extra);
+      error('levels', `${what}: "to" must be 1 to ${TOP}`, extra);
+    else if ((e.from ?? 1) > (e.to ?? TOP)) error('levels', `${what}: "from" is after "to"`, extra);
     else return true;
     return false;
   };
@@ -90,7 +92,7 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
       error('known', `Stairs ${i}: every point needs x, z and a height`);
   });
   design.piers.forEach((p, i) => {
-    if (!isLevel(p.from)) error('levels', `Pier ${i}: "from" must be 1 to 4`);
+    if (!isLevel(p.from)) error('levels', `Pier ${i}: "from" must be 1 to ${TOP}`);
   });
   if (!kit.woodlandTrees.includes(design.woods.tree))
     error('known', `Unknown woods tree "${design.woods.tree}"`);
@@ -217,7 +219,7 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
           }
         }
       }
-      if (broken && level === 4)
+      if (broken && level === TOP)
         warn(
           'lanes',
           `${name} ${i}: ${broken} pieces cross water or a cliff and are not drawn (a cliff needs stairs or a slope)`,
@@ -230,7 +232,7 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
 
   // Each level only adds: homes stay; a removed prop is replaced where it stood.
   design.props.forEach((p, i) => {
-    if (p.to === undefined || p.to === 4) return;
+    if (p.to === undefined || p.to === TOP) return;
     const extra = { prop: i, at: [p.x, p.z] as [number, number], level: p.to + 1 };
     if (kit.types[p.type]?.home && !p.tags?.includes('outbuilding'))
       error('growth', `A home (${p.type}) is removed after level ${p.to}`, extra);
@@ -242,13 +244,13 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
       warn('growth', `${p.type} goes after level ${p.to} with nothing in its place`, extra);
   });
 
-  // Old phones: triangles at level 4.
+  // Old phones: triangles at the top level.
   if (kit.triangles) {
-    const triangles = kit.triangles(4);
+    const triangles = kit.triangles(TOP);
     if (triangles > TRIANGLE_BUDGET)
-      error('budget', `${triangles} triangles at level 4, over the ${TRIANGLE_BUDGET} budget`);
+      error('budget', `${triangles} triangles at level ${TOP}, over the ${TRIANGLE_BUDGET} budget`);
     else if (triangles > TRIANGLE_WARNING)
-      warn('budget', `${triangles} triangles at level 4 (budget ${TRIANGLE_BUDGET})`);
+      warn('budget', `${triangles} triangles at level ${TOP} (budget ${TRIANGLE_BUDGET})`);
   }
   return issues;
 }

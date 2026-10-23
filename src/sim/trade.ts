@@ -27,6 +27,7 @@ import {
   createSettlements,
   madeGoods,
   hasPendingSupply,
+  DEFAULT_START_LEVEL,
   settlementLevel,
   settlementLevels,
   stepSettlements,
@@ -225,7 +226,7 @@ export function distanceToPort(
   map: MapDef,
   pos: { x: number; y: number; heading?: number },
   port: PortDef,
-  level = port.level ?? 2,
+  level = port.level ?? DEFAULT_START_LEVEL,
   shipId = 'sloop',
   maxGap = Infinity,
 ) {
@@ -289,7 +290,14 @@ export function portInRange(
   let best: PortDef | null = null;
   let bestD = range;
   for (const port of map.ports) {
-    const d = distanceToPort(map, pos, port, levels[port.id] ?? port.level ?? 2, shipId, bestD);
+    const d = distanceToPort(
+      map,
+      pos,
+      port,
+      levels[port.id] ?? port.level ?? DEFAULT_START_LEVEL,
+      shipId,
+      bestD,
+    );
     if (d <= bestD) {
       best = port;
       bestD = d;

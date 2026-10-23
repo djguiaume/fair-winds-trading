@@ -10,6 +10,7 @@ import {
   islandMoorings,
 } from './islandLayout';
 import { designOf } from '../data/islands';
+import { DEFAULT_START_LEVEL } from './settlement';
 
 /**
  * What the boat ran into; hulls fare worst on reefs, then piers, moored boats and rocky shores
@@ -136,7 +137,7 @@ export function piersOf(
       }
     }
     if (island.look?.profile) {
-      const level = port ? (levels[port.id] ?? port.level ?? 2) : 1;
+      const level = port ? (levels[port.id] ?? port.level ?? DEFAULT_START_LEVEL) : 1;
       const main = piers[piers.length - 1];
       if (main?.islandId === island.id)
         main.halfWidth = ([0.3, 0.45, 0.55, 0.55][level - 1] ?? 0.55) * PIER_SCALE;

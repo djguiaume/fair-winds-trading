@@ -3,6 +3,8 @@ import { PROP_TYPES } from '../../render/models/props';
 import { TRIANGLE_BUDGET, type IslandIssue } from '../../sim/islandChecks';
 import {
   LEVEL_NAMES,
+  LEVELS,
+  TOP_LEVEL,
   type Level,
   homesPerLevel,
   propName,
@@ -22,7 +24,7 @@ export interface IslandPanelHost {
   selection: number | null;
   level: Level;
   issues: IslandIssue[];
-  /** Triangles at levels 1 to 4, once the checks have counted them. */
+  /** Triangles at each level, once the checks have counted them. */
   triangles: number[];
   thumbs: Record<string, string>;
   change(edit: (design: IslandDesign) => void, rebuildPanel?: boolean): void;
@@ -100,10 +102,10 @@ export function renderIslandPanel(root: HTMLElement, host: IslandPanelHost) {
     div('Props').append(
       `${design.props.filter((q) => atLevel(q, host.level)).length} at level ${host.level} · ${design.props.length} in the file`,
     );
-    div('Homes').append(`${homes.join(' · ')} at levels 1 to 4`);
+    div('Homes').append(`${homes.join(' · ')} at levels 1 to ${TOP_LEVEL}`);
     if (host.triangles.length)
       div('Triangles').append(
-        `${host.triangles[host.level - 1]!.toLocaleString('en')} here · ${host.triangles[3]!.toLocaleString('en')} of ${TRIANGLE_BUDGET.toLocaleString('en')} at level 4`,
+        `${host.triangles[host.level - 1]!.toLocaleString('en')} here · ${host.triangles[TOP_LEVEL - 1]!.toLocaleString('en')} of ${TRIANGLE_BUDGET.toLocaleString('en')} at level ${TOP_LEVEL}`,
       );
     node('p', {
       className: 'ed-note',
@@ -131,19 +133,21 @@ export function renderIslandPanel(root: HTMLElement, host: IslandPanelHost) {
   const from = (p.from ?? 1) as Level;
   segment(
     'Appears from',
-    ([1, 2, 3, 4] as const).map((l) => ({ value: l, text: String(l), title: LEVEL_NAMES[l - 1] })),
+    LEVELS.map((l) => ({ value: l, text: String(l), title: LEVEL_NAMES[l - 1] })),
     from,
     (l) => setLevels(design, selection, l, p.to as Level | undefined),
   );
   segment(
     'Gone after',
     [
-      { value: 4 as Level, text: '–', title: 'Stays to the end' },
-      ...([1, 2, 3] as const)
-        .filter((l) => l >= from)
-        .map((l) => ({ value: l as Level, text: String(l), title: LEVEL_NAMES[l - 1] })),
+      { value: TOP_LEVEL, text: '–', title: 'Stays to the end' },
+      ...LEVELS.filter((l) => l < TOP_LEVEL && l >= from).map((l) => ({
+        value: l,
+        text: String(l),
+        title: LEVEL_NAMES[l - 1],
+      })),
     ],
-    (p.to ?? 4) as Level,
+    (p.to ?? TOP_LEVEL) as Level,
     (l) => setLevels(design, selection, from, l),
   );
   const at = div('Position');

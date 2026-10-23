@@ -42,6 +42,7 @@ import {
   goodSome,
   setLanguage,
   t,
+  townLevelName,
   translateDom,
 } from './i18n';
 import { TradePanel } from './ui/tradePanel';
@@ -714,7 +715,7 @@ function handleEvents(events: WorldEvent[]) {
                 workshop: workshopName(specialty),
                 good: goodSome(specialty),
               })
-            : t('toast.levelUp', { name: portName, level: t(`settlement.level.${e.level}`) }),
+            : t('toast.levelUp', { name: portName, level: townLevelName(e.level) }),
         5,
       );
       view.setSettlementLevels(settlementLevels(world.trade));

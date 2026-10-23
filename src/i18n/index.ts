@@ -11,6 +11,7 @@
  * Adding a language: copy `fr.json`, translate it, import it and add one line to `LANGUAGES` below.
  */
 import { TUNING } from '../data/tuning';
+import townLevels from '../data/town-levels.json';
 import en from './en.json';
 import frJson from './fr.json';
 
@@ -103,6 +104,12 @@ export function goodName(id: string): string {
 export function weatherName(kind: string): string {
   const key = `weather.${kind}` as MessageKey;
   return key in en ? t(key) : (TUNING.weather.default.kinds?.[kind]?.name ?? kind);
+}
+
+/** A town level's name ("Village"); a level with no translation keeps its `town-levels.json` name. */
+export function townLevelName(level: number): string {
+  const key = `settlement.level.${level}` as MessageKey;
+  return key in en ? t(key) : (townLevels.levels[level - 1]?.name ?? String(level));
 }
 
 /** The workshop that makes a specialty, "a smokehouse"; a newer good gets "a workshop". */

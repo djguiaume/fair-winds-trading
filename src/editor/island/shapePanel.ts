@@ -1,7 +1,7 @@
 import type { GroundDef, IslandDesign, WoodsDef } from '../../data/islands';
 import { WOODLAND_TREES } from '../../render/models/props';
 import { isSloped } from '../../sim/islandLayout';
-import { LEVEL_NAMES, type Level, propName } from './doc';
+import { LEVEL_NAMES, LEVELS, type Level, propName } from './doc';
 import {
   SLOPE_WIDTH,
   type Shape,
@@ -85,7 +85,7 @@ export function renderShapePanel(root: HTMLElement, host: ShapePanelHost) {
     const from = (e.from ?? 1) as Level;
     segment(
       'Appears from',
-      ([1, 2, 3, 4] as const).map((l) => ({
+      LEVELS.map((l) => ({
         value: l,
         text: String(l),
         title: LEVEL_NAMES[l - 1],

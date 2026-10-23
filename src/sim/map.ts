@@ -82,10 +82,10 @@ export interface PortDef {
   hidden?: boolean;
   /** Settlement level at the start of a voyage, 1 (hamlet) to 4 (port town); default 2, a village (decision 0059). */
   level?: number;
-  /** Extra goods the town wants once it reaches a level, keyed by level ("2" to "4") (decision 0059). */
-  levelWants?: Partial<Record<'2' | '3' | '4', GoodId[]>>;
+  /** Extra goods the town wants once it reaches a level, keyed by level ("2" up to the top level) (decision 0059). */
+  levelWants?: Partial<Record<string, GoodId[]>>;
   /** Specialized goods its workshop starts making at a level, keyed like `levelWants` (decision 0063). */
-  levelProduces?: Partial<Record<'2' | '3' | '4', GoodId[]>>;
+  levelProduces?: Partial<Record<string, GoodId[]>>;
   /** Specialized goods the town buys once some town makes them (decision 0063). */
   wantsMade?: GoodId[];
 }
