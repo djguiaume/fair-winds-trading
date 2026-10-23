@@ -124,13 +124,10 @@ export class Atmosphere {
     private readonly sky: THREE.HemisphereLight,
   ) {}
 
-  /** Target gloom for this weather: a gale a little, rain more, a storm's core most. */
+  /** Target gloom for this weather: a gale a little (its `gloom` in weather.json), rain more, a
+   * storm's core most. */
   static gloomFor(weather: LocalWeather): number {
-    return clamp(
-      Math.max(weather.rain * 0.55, weather.storm, weather.kind === 'gale' ? 0.25 : 0),
-      0,
-      1,
-    );
+    return clamp(Math.max(weather.rain * 0.55, weather.storm, weather.gloom), 0, 1);
   }
 
   update(dt: number, day: Daylight, weather: LocalWeather, ocean: Ocean, target: THREE.Vector3) {

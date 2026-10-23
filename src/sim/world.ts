@@ -139,7 +139,7 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     time: 0,
     wind: windAt(map.wind, 0, map.seed, map.start),
     seaWind: windAt(map.wind, 0, map.seed, map.start),
-    weather: { kind: 'breeze', rain: 0, showers: 0, storm: 0, storms: [] },
+    weather: { kind: 'breeze', rain: 0, showers: 0, gloom: 0, storm: 0, storms: [] },
     pressKn: -1,
     pressNowKn: 0,
     overHeel: 0,

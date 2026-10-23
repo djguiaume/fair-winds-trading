@@ -38,6 +38,7 @@ import {
   detectLanguage,
   language,
   goodName,
+  workshopName,
   goodSome,
   setLanguage,
   t,
@@ -712,7 +713,7 @@ function handleEvents(events: WorldEvent[]) {
           : specialty
             ? t('toast.workshop', {
                 name: portName,
-                workshop: t(`workshop.${specialty}`),
+                workshop: workshopName(specialty),
                 good: goodSome(specialty),
               })
             : t('toast.levelUp', { name: portName, level: t(`settlement.level.${e.level}`) }),

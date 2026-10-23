@@ -349,7 +349,7 @@ if (params.has('night')) {
   new Atmosphere(scene, sun, skyLight).update(
     1,
     daylightAt(570),
-    { kind: 'breeze', rain: 0, showers: 0, storm: 0, storms: [] },
+    { kind: 'breeze', rain: 0, showers: 0, gloom: 0, storm: 0, storms: [] },
     ocean,
     target,
   );
