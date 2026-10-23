@@ -24,6 +24,7 @@ import {
   stepTrade,
 } from './trade';
 import { GOODS, type GoodId } from './goods';
+import type { SpatialGrid } from './spatial';
 import { heelFactor, pointOfSailHeel } from './heel';
 import {
   type LocalWeather,
@@ -34,6 +35,7 @@ import {
   steadyWeather,
   windAt,
   windBlockers,
+  windGrid,
   windEffectAt,
   withoutStorms,
 } from './wind';
@@ -60,8 +62,8 @@ export interface World {
   shelter: number;
   /** 0 = no effect … 1 = wind squeezed through a channel between islands. */
   funnel: number;
-  /** Land that blocks the wind, derived from the map once. */
-  windBlockers: WindBlocker[];
+  /** Land that blocks the wind, derived from the map once, in a grid for nearby lookups (0117). */
+  windBlockers: SpatialGrid<WindBlocker>;
   /** Reefs, derived from the map once (decision 0032). */
   reefs: Reef[];
   /** Harbour piers, solid to the hull (decision 0038). */
@@ -155,7 +157,7 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     stormsOn: true,
     shelter: 0,
     funnel: 0,
-    windBlockers: windBlockers(map.islands, map.terrain),
+    windBlockers: windGrid(windBlockers(map.islands, map.terrain)),
     reefs: reefsOf(map.terrain),
     piers: piersOf(map),
     shallow: 0,

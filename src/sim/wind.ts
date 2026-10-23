@@ -4,6 +4,7 @@ import { coastDistance } from './coast';
 import type { IslandDef, TerrainDef } from './map';
 import { DEG, TAU, bearingVector, clamp, wrapAngle, wrapPositive } from './math';
 import { createRng } from './rng';
+import { SpatialGrid } from './spatial';
 import { type Storm, type StormConfig, stormStrength, stormWindFrom, stormsAt } from './storms';
 
 /** Wind at one moment. `from` is the compass bearing the wind blows FROM (sailors' convention). */
@@ -478,10 +479,11 @@ export interface WindEffect {
  * most: cheap enough for every frame on a tablet.
  */
 export function windEffectAt(
-  blockers: readonly WindBlocker[],
+  land: readonly WindBlocker[] | SpatialGrid<WindBlocker>,
   pos: { x: number; y: number },
   wind: Wind,
 ): WindEffect {
+  const blockers = land instanceof SpatialGrid ? nearbyBlockers(land, pos) : land;
   let total = 0;
   const spreadAngle = islandWind().shadowSpreadDeg * DEG;
   for (const spread of [-spreadAngle, 0, spreadAngle]) {
@@ -500,9 +502,25 @@ export function windEffectAt(
   return { shelter, funnel };
 }
 
+/** The wind blockers of a map in a grid, so `windEffectAt` only checks land within reach (0117). */
+export function windGrid(blockers: readonly WindBlocker[]): SpatialGrid<WindBlocker> {
+  return new SpatialGrid(blockers);
+}
+
+const nearby: WindBlocker[] = [];
+/**
+ * Blockers any ray sample could touch: every sample lies within the longer of the shadow and
+ * funnel reach of the boat, and a blocker only counts inside its own circle. One unit of slack
+ * covers rounding in the ray steps; an extra blocker never changes the result, a missing one would.
+ */
+function nearbyBlockers(grid: SpatialGrid<WindBlocker>, pos: { x: number; y: number }) {
+  const reach = Math.max(islandWind().shadowLength, islandWind().funnelReach) + 1;
+  return grid.near(pos.x, pos.y, reach, nearby);
+}
+
 /** Shelter only (0..1); see `windEffectAt`. */
 export function shelterAt(
-  blockers: readonly WindBlocker[],
+  blockers: readonly WindBlocker[] | SpatialGrid<WindBlocker>,
   pos: { x: number; y: number },
   wind: Wind,
 ) {

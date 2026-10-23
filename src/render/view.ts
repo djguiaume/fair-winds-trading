@@ -314,6 +314,13 @@ export class GameView {
     fog.near = dist * (1.3 - 0.45 * gloom - 0.15 * day.night);
     fog.far = dist * (2.4 - 0.6 * gloom - 0.2 * day.night);
     this.ocean.setFog(fog.near, fog.far);
+    // Nothing past the fog can show, so the camera stops there and three.js skips what lies beyond
+    // (decision 0117). The sea at the top of the screen is about 1.3 x `dist` away, well inside
+    // the nearest the fog ever gets (1.6 x), so the picture is unchanged.
+    if (Math.abs(this.camera.far - fog.far) > 1) {
+      this.camera.far = fog.far;
+      this.camera.updateProjectionMatrix();
+    }
 
     // Boat pose from the simulation.
     this.refreshBoat();
