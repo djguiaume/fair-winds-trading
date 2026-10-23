@@ -4,8 +4,18 @@ import html from '../index.html?raw';
 import { PHASE1_MAP } from '../src/data/maps';
 import { en } from '../src/i18n/en';
 import { fr } from '../src/i18n/fr';
-import { LANGUAGES, detectLanguage, setLanguage, t, translateDom } from '../src/i18n';
-import { SLOOP } from '../src/sim/ship';
+import {
+  LANGUAGES,
+  detectLanguage,
+  goodSome,
+  goodThe,
+  setLanguage,
+  shipThe,
+  t,
+  translateDom,
+} from '../src/i18n';
+import { GOODS } from '../src/sim/goods';
+import { SHIP_CLASSES, SLOOP } from '../src/sim/ship';
 import { Tutorial } from '../src/sim/tutorial';
 import { createWorld } from '../src/sim/world';
 import { SeaChart } from '../src/ui/seaChart';
@@ -70,6 +80,10 @@ describe('translations (decision 0037)', () => {
     expect(document.getElementById('sail-lever')!.getAttribute('aria-label')).toBe(fr['hud.sails']);
     expect(document.getElementById('help')!.textContent).toContain(fr['help.windCopy']);
     expect(document.getElementById('settings')!.textContent).toContain(fr['settings.speedLog']);
+    // The wind compass letters follow the language: W is O in French.
+    expect(
+      document.querySelector('#wind-help-trigger .cardinal[data-i18n="compass.W"]')!.textContent,
+    ).toBe('O');
   });
 
   it('runs the harbour, kids mode, chart and tutorial in French', () => {
@@ -88,7 +102,7 @@ describe('translations (decision 0037)', () => {
     expect(document.getElementById('trade-panel')!.textContent).toContain(fr['upg.sails']);
     // Ship speeds are quoted in knots, French style (decision 0075).
     const yard = document.getElementById('trade-panel')!.textContent!;
-    expect(yard).toContain('Vitesse max : 8,7\u00a0nd');
+    expect(yard).toContain('Vitesse max\u00a0: 8,7\u00a0nd');
     expect(yard).not.toContain('du sloop');
     panel.uiMode = 'kids';
     panel.open('market');
@@ -106,5 +120,37 @@ describe('translations (decision 0037)', () => {
     const tutorial = new Tutorial(world, {}, null);
     tutorial.start();
     expect(tutorial.lesson.title).toBe(fr['lesson.chart.title']);
+  });
+
+  it('keeps French punctuation on its word with a no-break space (decision 0091)', () => {
+    for (const [key, text] of Object.entries(fr)) expect(text, `fr ${key}`).not.toMatch(/ [!?:;%]/);
+  });
+
+  it('gives every good and ship its in-sentence forms (decision 0091)', () => {
+    for (const lang of LANGUAGES) {
+      for (const g of GOODS) {
+        expect(lang.messages, g).toHaveProperty(`goodThe.${g}`);
+        expect(lang.messages, g).toHaveProperty(`goodSome.${g}`);
+      }
+      for (const id of Object.keys(SHIP_CLASSES))
+        expect(lang.messages, id).toHaveProperty(`shipThe.${id}`);
+    }
+  });
+
+  it('builds grammatical French sentences around goods and ships (decision 0091)', () => {
+    setLanguage('fr');
+    expect(t('lesson.deliver.title', { cargo: goodThe('fish'), delivery: 'Saltmere' })).toBe(
+      'Portez le poisson à Saltmere',
+    );
+    expect(t('lesson.buy.copy', { origin: 'Port Calda', good: goodSome('lampOil') })).toBe(
+      'Port Calda produit de l’huile à lampe\u00a0: c’est bon marché ici. Achetez un lot.',
+    );
+    expect(t('fleet.switchTo', { ship: shipThe(SHIP_CLASSES.schooner!) })).toBe(
+      'Prendre la goélette',
+    );
+    setLanguage('en');
+    expect(t('lesson.deliver.title', { cargo: goodThe('fish'), delivery: 'Saltmere' })).toBe(
+      'Carry the fish to Saltmere',
+    );
   });
 });
