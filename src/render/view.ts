@@ -26,6 +26,7 @@ import { WindStreaks } from './windStreaks';
 import { Rain, rainMayReachArea } from './rain';
 import { Atmosphere } from './atmosphere';
 import { LighthouseBeams } from './lighthouseBeams';
+import { BeaconLights } from './beaconLights';
 import { Lanterns } from './lanterns';
 import { daylightAt } from '../sim/daylight';
 import { StormClouds } from './stormClouds';
@@ -80,6 +81,7 @@ export class GameView {
   private readonly wake = new Wake();
   private readonly buoy = new BuoyMarker();
   private readonly lighthouseBeams: LighthouseBeams;
+  readonly beaconLights: BeaconLights;
   private readonly edgeBuoys: EdgeBuoys;
   private ocean!: Ocean;
   private readonly shores = new ShoreTextureCache();
@@ -130,8 +132,13 @@ export class GameView {
       shadows: true,
       levels: settlementLevels(world.trade),
     });
-    this.lighthouseBeams = new LighthouseBeams(world.map.islands);
+    this.lighthouseBeams = new LighthouseBeams(
+      world.map.islands,
+      this.islandLevels(settlementLevels(world.trade)),
+    );
     this.scene.add(this.lighthouseBeams.root);
+    this.beaconLights = new BeaconLights(world.map.islands);
+    this.scene.add(this.beaconLights.points);
     this.level = level;
     this.boat = this.buildBoat();
     this.edgeBuoys = new EdgeBuoys(world.map.boundsRadius);
@@ -274,6 +281,15 @@ export class GameView {
   /** Grow only the islands whose port levels changed; anchors and harbour lights stay valid. */
   setSettlementLevels(levels: Record<string, TownLevel>) {
     this.islands.setSettlementLevels(levels);
+    this.lighthouseBeams.setLevels(this.islandLevels(levels));
+  }
+
+  /** Town levels by port id, keyed by the port's island instead. */
+  private islandLevels(levels: Record<string, TownLevel>) {
+    const out: Record<string, TownLevel> = {};
+    for (const port of this.world.map.ports)
+      if (levels[port.id] !== undefined) out[port.islandId] = levels[port.id]!;
+    return out;
   }
 
   /** 1 = default; larger = farther away. */
@@ -398,6 +414,7 @@ export class GameView {
     } else this.boatLantern.set(pos.x, 6, pos.z);
     this.lanterns.update(glow, this.boatLantern, time);
     this.lighthouseBeams.update(time, glow);
+    this.beaconLights.update(time, glow);
     // Lit windows and street lamps in the towns.
     const windows = this.islands.userData.windows as THREE.MeshBasicMaterial | undefined;
     windows?.color.copy(WINDOWS_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
@@ -433,6 +450,7 @@ export class GameView {
   dispose() {
     this.islands.dispose();
     this.lighthouseBeams.dispose();
+    this.beaconLights.dispose();
     for (const effects of this.qualityEffects.values()) {
       effects.ocean.dispose();
       effects.streaks.dispose();
