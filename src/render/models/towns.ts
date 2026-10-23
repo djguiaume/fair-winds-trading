@@ -472,7 +472,7 @@ function quarry(
 const BEACH_TOP = 0.3;
 
 /** Height a prop stands at, in reference units: the ground under it, else the sand, else the sea. */
-function standHeight(layout: IslandLayout, x: number, z: number, R: number) {
+export function standHeight(layout: IslandLayout, x: number, z: number, R: number) {
   const h = layoutGround(layout, x, z, 0);
   if (h !== null) return h * R;
   return layout.coasts.some((c) => coastDistance(x, z, c).distance < 0) &&

@@ -134,3 +134,29 @@ export function designOf(island: IslandDef): IslandDesign | null {
 /** Is this element present at a level? */
 export const atLevel = (e: { from?: number; to?: number }, level: number) =>
   (e.from ?? 1) <= level && level <= (e.to ?? 4);
+
+/**
+ * The island builder's play-test (decision 0105): an edited island file takes the shipped one's
+ * place for this page only. Islands are looked up by id, so the map and every model follow.
+ */
+export function useIslandDesign(design: IslandDesign) {
+  ISLAND_DESIGNS[design.id] = design;
+}
+
+/** Enough of an island file's shape to load it (the builder's checks then say what is wrong). */
+export function isIslandShape(raw: unknown): raw is IslandDesign {
+  const d = raw as IslandDesign | null;
+  return (
+    !!d &&
+    typeof d === 'object' &&
+    typeof d.id === 'string' &&
+    typeof d.style === 'string' &&
+    Array.isArray(d.coasts) &&
+    Array.isArray(d.ground) &&
+    Array.isArray(d.lanes) &&
+    Array.isArray(d.piers) &&
+    Array.isArray(d.props) &&
+    !!d.woods &&
+    typeof d.woods === 'object'
+  );
+}
