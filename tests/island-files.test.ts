@@ -125,7 +125,7 @@ const GOLDEN: Record<string, string[]> = {
   saltmere: ['246:190f7a6', '421:aa8af177', '641:e4577624', '806:691e8290'],
   // The mason's crane on the quay, after the Stonehaven arc (decision 0133).
   'south-cay': ['205:724e9d0c', '290:e7d2a293', '481:8e548660', '572:db3bbb4e'],
-  westholm: ['176:682cfb3', '339:b6ebce0f', '614:656a10c0', '762:e5943cf4'],
+  westholm: ['190:a208a500', '353:c7bb1c18', '628:5c8b49c1', '776:7f7d15db'],
   // Rebuilt from the old generated islands (decision 0107).
   'abbey-head': ['57:d285f975', '85:4cfcecff', '104:adf1a12d', '135:7dd54be1'],
   'bell-rock': Array(4).fill('13:b0dc1251'),

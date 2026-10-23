@@ -352,7 +352,16 @@
       "z": -0.4,
       "size": 1.25,
       "fit": 0.07,
-      "tags": ["windmill"],
+      "tags": ["windmill", "after:westholm-mill"],
+      "from": 1
+    },
+    {
+      "type": "windmill-bare",
+      "x": -1.15,
+      "z": -0.4,
+      "size": 1.25,
+      "fit": 0.07,
+      "tags": ["windmill", "before:westholm-mill"],
       "from": 1
     },
     { "type": "barn", "x": 0.85, "z": -0.05, "size": 1.1, "fit": 0.12, "from": 1, "to": 1 },

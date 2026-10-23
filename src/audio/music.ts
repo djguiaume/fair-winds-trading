@@ -5,13 +5,22 @@
  *
  * - Browsers only allow sound after a tap or key press, so `unlock()` is called from the first
  *   one; until then nothing is created.
- * - Volume 0 suspends the audio context, so muted music costs nothing.
+ * - Music and voices both at 0 suspend the audio context, so silence costs nothing.
  * - The game suspends it too while the tab is hidden (battery on phones).
  */
 import { composeTune, EIGHTHS_PER_BAR, type Theme, type Tune } from './composer';
 import { createBand, playNote, type Band } from './synth';
 import { playCreak, playFoghorn } from './sfx';
-import { EFFECTS, MUSIC, THEMES, soundUrl, type MusicTrack, type SoundEffect } from './catalog';
+import { babblePlan, MAX_SECONDS, playBabble, playClip, voiceFiles, voiceFor } from './babble';
+import {
+  EFFECTS,
+  MUSIC,
+  THEMES,
+  VOICES,
+  soundUrl,
+  type MusicTrack,
+  type SoundEffect,
+} from './catalog';
 
 /** Recorded files, decoded once per audio context. */
 const buffers = new WeakMap<BaseAudioContext, Map<string, Promise<AudioBuffer | null>>>();
@@ -47,6 +56,9 @@ export class Music {
   private readonly theme: Theme | undefined =
     this.track && 'theme' in this.track ? THEMES[this.track.theme] : undefined;
 
+  /** People's babble on the cards (decision 0132): its own switch and volume in Settings. */
+  private voiceVolume = 0;
+
   constructor(
     private volume: number,
     private seed = Math.floor(Math.random() * 2 ** 31),
@@ -55,7 +67,8 @@ export class Music {
   /** Create the audio graph; call from a user gesture. Safe to call again. */
   unlock(): void {
     if (this.ctx) {
-      if (this.ctx.state === 'suspended' && this.audible) void this.ctx.resume();
+      if (this.ctx.state === 'suspended' && (this.audible || this.voiceVolume > 0))
+        void this.ctx.resume();
       return;
     }
     const Ctor =
@@ -69,6 +82,8 @@ export class Music {
     if (this.track && 'file' in this.track) void this.loop(this.ctx, this.band, this.track);
     for (const effect of Object.values(EFFECTS))
       if ('file' in effect) void loadSound(this.ctx, effect.file);
+    for (const voice of Object.values(VOICES))
+      for (const file of voiceFiles(voice)) void loadSound(this.ctx, file);
     this.apply();
   }
 
@@ -123,6 +138,38 @@ export class Music {
     this.effect(EFFECTS.foghorn, this.level);
   }
 
+  /**
+   * A person speaks as their card opens (decision 0132): a burble of about one syllable per word
+   * of the card's ask (`words`), in their voice from `audio.json` › `voices`, changed for the card's mood.
+   */
+  speak(voiceId: string | undefined, words: number, mood?: string): void {
+    const { ctx } = this;
+    const base = voiceId ? VOICES[voiceId] : undefined;
+    if (!ctx || !base || this.hidden || this.voiceVolume <= 0) return;
+    if (ctx.state === 'suspended') void ctx.resume();
+    const voice = voiceFor(base, mood);
+    const level = MAX_GAIN * this.voiceVolume * this.voiceVolume * (voice.volume ?? 1);
+    if ('synth' in voice) {
+      const plan = babblePlan(voice, words, Math.floor(Math.random() * 2 ** 31));
+      playBabble(ctx, ctx.destination, level, plan);
+      return;
+    }
+    const files = voiceFiles(voice);
+    const file = files[Math.floor(Math.random() * files.length)];
+    if (!file) return;
+    // About as long as the generated voice would talk for the same line.
+    const secs = Math.min(MAX_SECONDS, 0.25 + 0.16 * Math.max(2, words));
+    void loadSound(ctx, file).then((buffer) => {
+      if (buffer && ctx.state === 'running') playClip(ctx, ctx.destination, level, buffer, secs);
+    });
+  }
+
+  /** 0 (voices off) to 1, from Settings › Voices. */
+  setVoiceVolume(volume: number): void {
+    this.voiceVolume = volume;
+    this.apply();
+  }
+
   /** 0..1, from the settings slider. */
   setVolume(volume: number): void {
     this.volume = volume;
@@ -150,8 +197,10 @@ export class Music {
   private apply() {
     const ctx = this.ctx;
     if (!ctx) return;
+    // Voices keep the context awake with the music muted; the tunes only play with music on.
+    if (!this.hidden && (this.audible || this.voiceVolume > 0) && ctx.state === 'suspended')
+      void ctx.resume();
     if (this.audible) {
-      if (ctx.state === 'suspended') void ctx.resume();
       if (!this.timer) {
         // Don't try to catch up on bars missed while suspended.
         this.barTime = Math.max(this.barTime, ctx.currentTime + 0.1);
@@ -161,7 +210,7 @@ export class Music {
     } else {
       if (this.timer) window.clearInterval(this.timer);
       this.timer = 0;
-      if (ctx.state === 'running') void ctx.suspend();
+      if (ctx.state === 'running' && (this.hidden || this.voiceVolume <= 0)) void ctx.suspend();
     }
   }
 

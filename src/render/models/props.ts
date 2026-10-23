@@ -174,14 +174,29 @@ export function broadleaf(rng: Rng): Parts {
   ];
 }
 
-export function windmill(): Parts {
+/**
+ * A tower windmill. `bare` leaves only the wooden stocks of its sails, as after a winter storm
+ * (decision 0132): a town can show it until a quest gives the mill its sails back.
+ */
+export function windmill(bare = false): Parts {
   const parts = [
     cyl(0.42, 0.62, 2.2, 0, 1.1, 0, '#fff3dc', 8),
     cyl(0, 0.58, 0.7, 0, 2.55, 0, '#8a4a2a', 8),
   ];
   for (let k = 0; k < 4; k++) {
-    const blade = new THREE.BoxGeometry(0.25, 1.8, 0.05).translate(0, 0.9, 0);
-    parts.push(paint(blade.rotateZ((k * Math.PI) / 2 + 0.4).translate(0, 2.2, 0.55), C.sail));
+    const turn = (k * Math.PI) / 2 + 0.4;
+    if (!bare) {
+      const blade = new THREE.BoxGeometry(0.25, 1.8, 0.05).translate(0, 0.9, 0);
+      parts.push(paint(blade.rotateZ(turn).translate(0, 2.2, 0.55), C.sail));
+      continue;
+    }
+    // The stock and two bars of the empty lattice, no cloth.
+    const stock = new THREE.BoxGeometry(0.06, 1.8, 0.06).translate(0, 0.9, 0);
+    parts.push(paint(stock.rotateZ(turn).translate(0, 2.2, 0.55), C.post));
+    for (const y of [0.8, 1.6]) {
+      const bar = new THREE.BoxGeometry(0.25, 0.04, 0.04).translate(0, y, 0);
+      parts.push(paint(bar.rotateZ(turn).translate(0, 2.2, 0.55), C.post));
+    }
   }
   return parts;
 }
@@ -638,7 +653,8 @@ export const PROP_TYPES: Record<string, PropType> = {
   smokehouse: { group: 'fish', building: true, build: smokehouse },
   'moored-boat': { group: 'fish', water: true, build: mooredBoat },
   field: { group: 'farm', fitRadius: 0.17, build: field },
-  windmill: { group: 'farm', building: true, build: windmill },
+  windmill: { group: 'farm', building: true, build: () => windmill() },
+  'windmill-bare': { group: 'farm', building: true, build: () => windmill(true) },
   barn: { group: 'farm', building: true, build: barn },
   granary: { group: 'farm', building: true, build: granary },
   haystack: { group: 'farm', build: haystack },

@@ -1184,6 +1184,30 @@
             </span>
           </label>
           <div class="set-row">
+            <span class="set-name"
+              ><span id="voices-label" data-i18n="settings.voices">Voices</span
+              ><small data-i18n="settings.voicesNote">People babble on their cards</small></span
+            >
+            <span class="set-ctl">
+              <input
+                type="range"
+                id="voice-volume"
+                min="0"
+                max="100"
+                step="5"
+                aria-labelledby="voices-label"
+              />
+              <output id="voice-volume-value" class="set-pct" for="voice-volume"></output>
+              <input
+                type="checkbox"
+                id="voices"
+                class="switch"
+                role="switch"
+                aria-labelledby="voices-label"
+              />
+            </span>
+          </div>
+          <div class="set-row">
             <span id="language-label" class="set-name" data-i18n="menu.language">Language</span>
             <div
               id="settings-language"
