@@ -26,6 +26,7 @@ import {
   addRare,
   createSettlements,
   madeGoods,
+  hasPendingSupply,
   settlementLevel,
   settlementLevels,
   stepSettlements,
@@ -75,6 +76,8 @@ export interface Captain {
 }
 
 export interface TradeState {
+  /** Simulated seconds awaiting the next economy tick. Undefined forces an initial tick. */
+  economyPending?: number;
   captain: Captain;
   markets: Record<string, Market>;
   /** Port id the boat is docked at, or null at sea. */
@@ -338,17 +341,9 @@ export function stepTrade(
   boat: { x: number; y: number; speedKn: number; heading?: number },
   dt: number,
 ): DockEvent[] {
-  for (const market of Object.values(trade.markets)) stepMarket(market, dt);
-  stepContracts(trade.contracts, dt);
   const events: DockEvent[] = [];
-  // Towns that got enough goods grow a level: deeper demand from now on (decision 0059), and a
-  // new town's specialty opens a market at the ports that buy it (0063).
-  const ups = stepSettlements(trade, dt, map);
-  if (ups.length) syncMarketLevels(trade, map);
-  events.push(...ups);
-  // A neglected town (or the home port holding back an upgrade) asks for help (decision 0069).
-  const help = syncHelpOrder(map, trade);
-  if (help) events.push({ type: 'help-order', portId: help });
+  const initial = trade.economyPending === undefined;
+  trade.economyPending = (trade.economyPending ?? 0) + dt;
   for (const port of discoverNear(trade, map, boat))
     events.push({ type: 'discovered', portId: port.id });
   if (trade.dockedAt) {
@@ -381,6 +376,34 @@ export function stepTrade(
       events.push({ type: 'docked', portId: port.id });
     }
   }
+  // Docking and discovery remain at sailing cadence. Flush before a newly docked player can
+  // inspect prices or trade; elapsed simulation time is never discarded or wall-clock driven.
+  if (
+    initial ||
+    trade.dockedAt !== null ||
+    hasPendingSupply(trade.settlements) ||
+    trade.economyPending + Number.EPSILON >= TUNING.economy.updateSeconds
+  ) {
+    events.unshift(...flushEconomy(trade, map));
+  }
+  return events;
+}
+
+/** Apply all elapsed economy time before a paused dock panel opens, returning its events. */
+export function flushEconomy(trade: TradeState, map: MapDef): DockEvent[] {
+  const dt = trade.economyPending ?? 0;
+  trade.economyPending = 0;
+  const events: DockEvent[] = [];
+  for (const market of Object.values(trade.markets)) stepMarket(market, dt);
+  stepContracts(trade.contracts, dt);
+  // Towns that got enough goods grow a level: deeper demand from now on (decision 0059), and a
+  // new town's specialty opens a market at the ports that buy it (0063).
+  const ups = stepSettlements(trade, dt, map);
+  if (ups.length) syncMarketLevels(trade, map);
+  events.push(...ups);
+  // A neglected town (or the home port holding back an upgrade) asks for help (decision 0069).
+  const help = syncHelpOrder(map, trade);
+  if (help) events.push({ type: 'help-order', portId: help });
   return events;
 }
 

@@ -24,6 +24,8 @@ export interface SaveData {
   /** Map name, so a save for another map is not applied. */
   map: string;
   time: number;
+  /** Active simulation time not yet applied by the batched economy. */
+  economyPending?: number;
   windOffsetDeg: number;
   /** `sailStep` is the sail setting (decision 0076). Optional: older saves resume with full sails
    * at sea and sails down in port. */
@@ -62,6 +64,7 @@ export function serializeWorld(world: World): SaveData {
     version: SAVE_VERSION,
     map: world.map.name,
     time: world.time,
+    economyPending: world.trade.economyPending ?? 0,
     windOffsetDeg: world.windOffsetDeg,
     boat: {
       x: world.boat.x,
@@ -161,6 +164,10 @@ export function validateSave(raw: unknown, world: World): SaveData | null {
     map: raw.map as string,
     time,
     windOffsetDeg,
+    economyPending:
+      isNum(raw.economyPending) && raw.economyPending >= 0 && raw.economyPending <= time
+        ? raw.economyPending
+        : 0,
     boat: {
       x: boat.x,
       y: boat.y,
@@ -204,6 +211,7 @@ export function applySave(world: World, data: SaveData): void {
   world.boat = createBoat(data.boat.x, data.boat.y, wrapPositive(data.boat.heading));
   world.course.legStart = data.time;
   const trade = world.trade;
+  trade.economyPending = data.economyPending ?? 0;
   trade.captain = {
     gold: data.gold,
     activeShip: data.activeShip,
@@ -213,6 +221,12 @@ export function applySave(world: World, data: SaveData): void {
   };
   // Levels first, so the markets that are open match the save before its stocks go in.
   trade.settlements = readSettlements(data.settlements, world.map);
+  // A supplied town may have already consumed part of the pending batch before its timer reset.
+  // Ignore impossible saved offsets rather than letting them suppress future simulation time.
+  for (const town of Object.values(trade.settlements.byPort)) {
+    if (town.advancedBeforeSupply !== undefined)
+      town.advancedBeforeSupply = Math.min(town.advancedBeforeSupply, trade.economyPending);
+  }
   syncMarketLevels(trade, world.map);
   for (const [id, stock] of Object.entries(data.markets)) {
     const market = trade.markets[id];

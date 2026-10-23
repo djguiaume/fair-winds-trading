@@ -1,4 +1,5 @@
 {
+  "updateSeconds": 0.25,
   "market": {
     "referenceStock": 30,
     "equilibrium": {
