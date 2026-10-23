@@ -10,6 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "perf": "node tools/performance/run.mjs",
+    "perf:test": "node --test tools/performance/stats.test.mjs",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write ."
   },
@@ -24,6 +26,7 @@
     "@types/three": "^0.186.0",
     "eslint": "^10.13.0",
     "happy-dom": "^21.0.3",
+    "playwright": "^1.64.1",
     "prettier": "^3.9.10",
     "typescript": "~6.0",
     "typescript-eslint": "^8.71.2",

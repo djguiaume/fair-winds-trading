@@ -124,3 +124,4 @@ Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decis
 | [0099](0099-visible-boundary-buoys.md) | Animate and upload only boundary buoys whose conservative bounds intersect the camera; preserve motion and move boundary tuning to data | 2026-10-23 | Implemented for review |
 | [0100](0100-hidden-hud-updates.md) | Skip covered HUD rendering and folded speed-log text, preserve cue timers, refresh immediately on return | 2026-10-23 | Implemented for review |
 | [0101](0101-island-files-built.md) | Island files built: the four port islands come from `src/data/islands/*.json` (prop catalogue, one generic builder, island checks), proven identical to the old code | 2026-10-23 | Implemented for review |
+| [0102](0102-repeatable-performance-baseline.md) | Data-defined repeated production browser workloads with frame/event and renderer statistics; reporting-only timing budgets | 2026-10-23 | Implemented for review |
