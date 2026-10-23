@@ -250,6 +250,17 @@ function rebuild(without?: number) {
   const next = mergeParts(parts);
   top!.setGeometry(next);
   preview!.setGeometry(land, windows);
+  // The game's lamps on this island: harbour toward +z, as the builder's model is drawn.
+  preview!.setLamps(
+    {
+      id: design.id,
+      x: 0,
+      y: 0,
+      radius: R * ISLAND_SCALE,
+      look: { design: design.id, harbourBearing: Math.PI, dock: harbour },
+    },
+    level,
+  );
   for (const g of [geometry, previewLand, previewGlass]) g?.dispose();
   [geometry, previewLand, previewGlass] = [next, land, windows];
   $('ib-preview-title').textContent = `3D preview · level ${level}`;
