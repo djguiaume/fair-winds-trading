@@ -284,6 +284,13 @@
       "y": 239.8,
       "turn": 209,
       "tags": ["after:calda-slipway"]
+    },
+    {
+      "type": "light",
+      "x": -226,
+      "y": -80,
+      "tags": ["after:stonehaven-light"],
+      "chart": true
     }
   ],
   "compatibleSaveMaps": ["Staggered passages", "Phase 0 practice waters"],

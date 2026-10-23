@@ -1,0 +1,45 @@
+{
+  "id": "stonehaven-light",
+  "name": "A light on the Teeth",
+  "start": { "is": "quest-done", "quest": "rooks-thanks" },
+  "text": "quest.stonehaven-light",
+  "giver": "ada",
+  "port": "stonehaven",
+  "offer": true,
+  "items": { "stone-blocks": { "space": 5 }, "lens": { "space": 1 } },
+  "steps": [
+    {
+      "id": "scaffold",
+      "mood": "worried",
+      "goal": { "is": "delivered", "port": "stonehaven", "good": "timber", "qty": 6 },
+      "reward": { "gold": 100 }
+    },
+    {
+      "id": "stone",
+      "clean": true,
+      "goal": {
+        "is": "carried",
+        "item": "stone-blocks",
+        "qty": 3,
+        "from": "stonehaven",
+        "to": { "x": -239, "y": -80, "within": 6, "maxKn": 2, "holdSec": 3 }
+      },
+      "reward": { "gold": 150 }
+    },
+    {
+      "id": "lens",
+      "speaker": "ness",
+      "port": "watchman-key",
+      "chart": { "port": "watchman-key", "radius": 60 },
+      "goal": {
+        "is": "carried",
+        "item": "lens",
+        "qty": 1,
+        "from": "watchman-key",
+        "to": { "x": -239, "y": -80, "within": 6, "maxKn": 2, "holdSec": 3 }
+      },
+      "reward": { "gold": 250 }
+    }
+  ],
+  "reward": { "homeSpot": ["spot-4"] }
+}

@@ -123,7 +123,18 @@
       "turn": 11,
       "size": 0.6,
       "variant": 1,
-      "from": 1
+      "from": 1,
+      "tags": ["before:stonehaven-light"]
+    },
+    {
+      "type": "lighthouse",
+      "x": 0,
+      "z": 0,
+      "turn": 11,
+      "size": 0.7,
+      "variant": 0,
+      "from": 1,
+      "tags": ["after:stonehaven-light"]
     }
   ],
   "woods": {
