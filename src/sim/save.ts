@@ -240,6 +240,8 @@ export function applySave(world: World, data: SaveData): void {
     if (town.advancedBeforeSupply !== undefined)
       town.advancedBeforeSupply = Math.min(town.advancedBeforeSupply, trade.economyPending);
   }
+  // Quests next: a quest done can change what a port trades (decision 0130).
+  trade.quests = readQuests(data.quests, world.map);
   syncMarketLevels(trade, world.map);
   for (const [id, stock] of Object.entries(data.markets)) {
     const market = trade.markets[id];
@@ -251,7 +253,6 @@ export function applySave(world: World, data: SaveData): void {
   trade.easiestDifficulty = data.easiestDifficulty ?? data.difficulty ?? DEFAULT_DIFFICULTY;
   setDifficulty(trade, data.difficulty ?? DEFAULT_DIFFICULTY);
   trade.home = readHome(data.home, world.map);
-  trade.quests = readQuests(data.quests, world.map);
   world.ship = activeShip(trade);
   refreshPiers(world);
   // Compatible older-map saves keep all trading progress. The coasts and ports have moved since

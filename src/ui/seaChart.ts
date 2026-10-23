@@ -2,7 +2,8 @@ import { islandCoasts, islandLake } from '../sim/islandLayout';
 import type { World } from '../sim/world';
 import { WIND_FORCES, windForce } from '../sim/windStrength';
 import { GOODS, type GoodId, isMadeGood } from '../sim/goods';
-import { madeGoods } from '../sim/settlement';
+import { madeGoods, questsDone } from '../sim/settlement';
+import { questShown } from '../data/islands';
 import { type PortQuote, quoteAcross } from '../sim/market';
 import { DEG, distance } from '../sim/math';
 import { discoveredPorts } from '../sim/shipyards';
@@ -11,7 +12,7 @@ import { goodName, t } from '../i18n';
 import { icon, COIN } from './icons';
 import { drawHazard } from './hazardMarker';
 import { portraitSvg } from './portraits';
-import type { JournalEntry, QuestPin, QuestTarget } from './questView';
+import type { JournalEntry, QuestPin, QuestTarget, StepMarker } from './questView';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -34,6 +35,8 @@ const overlap = (a: Box, b: Box) =>
 export interface ChartQuests {
   pins(): QuestPin[];
   target(): QuestTarget | null;
+  /** The tracked step's places at sea (decision 0130); left out, none. */
+  markers?(): StepMarker[];
   journal(): JournalEntry[];
   track(quest: string): void;
 }
@@ -449,6 +452,16 @@ export class SeaChart {
         class: target.radius ? 'chart-quest-area' : 'chart-quest-ring',
       });
     }
+    // The step's places at sea: gates and spots still to reach, the next one ringed brighter.
+    for (const m of quests.markers?.() ?? []) {
+      if (m.reached) continue;
+      shape('circle', {
+        cx: m.x,
+        cy: -m.y,
+        r: Math.max(m.within, 4 * px),
+        class: m.next ? 'chart-quest-ring' : 'chart-quest-area',
+      });
+    }
     const size = 34 * px;
     for (const pin of quests.pins()) {
       const pier = pierOf(pin.port);
@@ -621,6 +634,34 @@ export class SeaChart {
       if (terrain.kind === 'island') landBoxes.push({ x0, x1, y0, y1 });
       if (terrain.name && terrain.kind === 'island')
         places.push({ name: terrain.name, x: (x0 + x1) / 2, top: y0, bottom: y1 });
+    }
+    // Sea marks on the chart (decision 0130): channel buoys and lights, once their quest says so.
+    const done = questsDone(this.world.trade);
+    for (const mark of map.marks ?? []) {
+      if (!mark.chart || !questShown(mark, done)) continue;
+      if (mark.type === 'light')
+        shape('path', {
+          d: star(mark.x, -mark.y, 6 * px),
+          fill: '#ffd76a',
+          stroke: '#5a3d24',
+          'stroke-width': 1.2 * px,
+          class: 'chart-mark',
+        });
+      else
+        shape('circle', {
+          cx: mark.x,
+          cy: -mark.y,
+          r: 2.6 * px,
+          fill:
+            mark.type === 'buoy-red'
+              ? '#d93a2b'
+              : mark.type === 'buoy-green'
+                ? '#2f9a55'
+                : '#3f74a8',
+          stroke: '#f6f1e4',
+          'stroke-width': 1 * px,
+          class: 'chart-mark',
+        });
     }
     // Storms (decisions 0067 and 0070): a hazard badge over a soft cloud, chevrons for the drift.
     for (const storm of this.world.weather.storms) {
@@ -834,4 +875,14 @@ export class SeaChart {
       (replacement ?? this.get('close-chart')).focus({ preventScroll: true });
     }
   }
+}
+
+/** A five-pointed star path of outer radius `r` round (cx, cy): a light on the chart (0130). */
+function star(cx: number, cy: number, r: number): string {
+  const points = Array.from({ length: 10 }, (_, i) => {
+    const a = (i * Math.PI) / 5 - Math.PI / 2;
+    const k = i % 2 ? r * 0.45 : r;
+    return `${(cx + Math.cos(a) * k).toFixed(2)},${(cy + Math.sin(a) * k).toFixed(2)}`;
+  });
+  return `M${points.join('L')}Z`;
 }

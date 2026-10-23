@@ -3,7 +3,7 @@ import { coastDistance } from './coast';
 import { isGood } from './goods';
 import { islandCoasts, islandPoint } from './islandLayout';
 import { landmarkOf } from '../data/islands';
-import type { IslandDef, MapDef, PortDef } from './map';
+import { type IslandDef, type MapDef, type PortDef, SEA_MARK_TYPES } from './map';
 import { DEG, bearingTo, wrapAngle } from './math';
 import { CUTTER, SLOOP, noGoAngle, polarFraction } from './ship';
 import { MAX_SETTLEMENT_LEVEL } from './settlement';
@@ -188,11 +188,16 @@ const list = (names: string[]) =>
     : names.join(', ');
 
 function portGoods(port: PortDef) {
-  const lw = Object.values(port.levelWants ?? {}).flat();
-  const lp = Object.values(port.levelProduces ?? {}).flat();
+  // What a quest can change it to counts too (decision 0130).
+  const all = [port, ...Object.values(port.afterQuest ?? {})];
+  const lw = all.flatMap((p) => Object.values(p.levelWants ?? {}).flat());
+  const lp = all.flatMap((p) => Object.values(p.levelProduces ?? {}).flat());
   return {
-    made: [...port.produces, ...lp] as string[],
-    wanted: [...port.wants, ...lw, ...(port.wantsMade ?? [])] as string[],
+    made: [...all.flatMap((p) => p.produces ?? []), ...lp] as string[],
+    wanted: [
+      ...all.flatMap((p) => [...(p.wants ?? []), ...(p.wantsMade ?? [])]),
+      ...lw,
+    ] as string[],
   };
 }
 
@@ -222,10 +227,36 @@ export function quickChecks(map: MapDef): MapCheck[] {
     problems.push(`home port "${map.homePort}" missing`);
   for (const t of map.terrain ?? [])
     if (t.outline.length < 3) problems.push(`${t.name ?? t.id} has fewer than 3 points`);
+  for (const [i, mark] of (map.marks ?? []).entries()) {
+    const name = `mark ${i} (${mark.type})`;
+    if (!(SEA_MARK_TYPES as readonly string[]).includes(mark.type))
+      problems.push(`${name}: type is one of ${SEA_MARK_TYPES.join(', ')}`);
+    if (!Number.isFinite(mark.x) || !Number.isFinite(mark.y))
+      problems.push(`${name}: needs x and y`);
+    else if (Math.hypot(mark.x, mark.y) > map.boundsRadius)
+      problems.push(`${name} is outside the sea`);
+  }
   out.push(
     problems.length
       ? fail('links', problems.join('; '))
       : pass('links', 'ids unique, every port on an island, goods known'),
+  );
+
+  // Sea marks in clear water (decision 0130): a warning, as an island dragged onto one is.
+  const aground = (map.marks ?? [])
+    .map((mark, i) => ({ mark, i }))
+    .filter(
+      ({ mark }) =>
+        mark.type !== 'light' &&
+        Number.isFinite(mark.x) &&
+        Number.isFinite(mark.y) &&
+        !clearAt(map, mark.x, mark.y, 1),
+    )
+    .map(({ mark, i }) => `mark ${i} (${mark.type})`);
+  out.push(
+    aground.length
+      ? fail('marks', `${list(aground)} on land or a reef`, 'warning')
+      : pass('marks', 'sea marks in clear water', 'warning'),
   );
 
   // Trade: every good someone wants is made somewhere and every good made has a buyer.

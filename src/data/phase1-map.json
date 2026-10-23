@@ -155,6 +155,17 @@
         "design": "gull-hook",
         "harbourBearing": 3.141592653589793
       }
+    },
+    {
+      "id": "teeth-rock",
+      "name": "Teeth Rock",
+      "x": -226,
+      "y": -80,
+      "radius": 9,
+      "look": {
+        "design": "teeth-rock",
+        "harbourBearing": 4.712389
+      }
     }
   ],
   "course": [
@@ -282,15 +293,32 @@
       "outline": [
         [193, -4],
         [190, 17],
-        [158, 53],
-        [133, 68],
-        [142, 42],
+        [160, 50],
+        [148, 58],
+        [141, 50],
+        [146, 38],
         [173, 3]
       ],
       "look": {
-        "landmark": "wreck"
+        "landmark": "wreck",
+        "landmarkAt": {
+          "x": 151.48,
+          "y": 46.33
+        }
       },
       "seed": 12254
+    },
+    {
+      "id": "east-reef-spit",
+      "kind": "reef",
+      "outline": [
+        [127, 80],
+        [117, 93],
+        [103, 101],
+        [109, 88],
+        [120, 76]
+      ],
+      "seed": 12642
     },
     {
       "id": "sw-reef",

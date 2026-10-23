@@ -8,7 +8,7 @@ import {
   slopeDistance,
   type Outline,
 } from './islandLayout';
-import { atLevel, type IslandDesign, type PropDef } from '../data/islands';
+import { atLevel, type IslandDesign, type PropDef, questApart } from '../data/islands';
 
 /**
  * Island file checks (decision 0096 §2, built in 0101), shared by the island builder and
@@ -197,7 +197,11 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
       const outlines = buildings.map(({ p }) => kit.footprint!(p));
       for (let a = 0; a < buildings.length; a++)
         for (let b = a + 1; b < buildings.length; b++)
-          if (overlaps(outlines[a]!, outlines[b]!, TOUCH / kit.R))
+          // A prop before a quest and its replacement after it never stand together (0130).
+          if (
+            !questApart(buildings[a]!.p, buildings[b]!.p) &&
+            overlaps(outlines[a]!, outlines[b]!, TOUCH / kit.R)
+          )
             once(`overlap${buildings[a]!.i}/${buildings[b]!.i}`, () =>
               warn('overlap', `${buildings[a]!.p.type} and ${buildings[b]!.p.type} overlap`, {
                 prop: buildings[b]!.i,

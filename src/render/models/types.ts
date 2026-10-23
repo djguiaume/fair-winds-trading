@@ -71,6 +71,8 @@ export interface IslandModel extends THREE.Object3D {
   setSettlementLevels(levels: Record<string, TownLevel>): void;
   /** Redraw the captain's islands' buildings, island id → spot → building (0126, 0128). */
   setHomeBuildings(byIsland: Record<string, Record<string, string>>): void;
+  /** Redraw the islands with props shown only before or after a quest (decision 0130). */
+  setQuestsDone(done: ReadonlySet<string>): void;
   dispose(): void;
 }
 
