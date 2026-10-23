@@ -8,6 +8,7 @@ worth remembering.
 | Release | Commit | What |
 |---|---|---|
 | [v0.1.50](v0.1.50.md) | `5f8a574` | Phase 1 complete: one-captain trading |
+| [v0.2.73](v0.2.73.md) | `0963490` | Phase 2 complete: living settlements |
 
 ## How to cut a release
 
