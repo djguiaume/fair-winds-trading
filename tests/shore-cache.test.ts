@@ -134,31 +134,85 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
   // Exercise the real quality rebuild method without requiring a WebGL context.
   const view: GameView = Object.assign(Object.create(GameView.prototype), {
     shores: cache,
+    qualityEffects: new Map(),
     world: { map },
     wake: { setQuality: vi.fn() },
     boat: { setLowDetail: vi.fn() },
     scene: new THREE.Scene(),
     sun: new THREE.DirectionalLight(),
-    renderer: { shadowMap: { enabled: false } },
+    renderer: { shadowMap: { enabled: false }, dispose: vi.fn() },
     resize: vi.fn(),
   });
   const water = () => (view as unknown as { ocean: Ocean }).ocean;
   view.setQuality('low');
+  const low = water();
+  const effects = (
+    view as unknown as {
+      qualityEffects: Map<
+        string,
+        { ocean: Ocean; streaks: { dispose(): void }; rain: { dispose(): void } }
+      >;
+    }
+  ).qualityEffects;
   const first = water().mesh.material.uniforms.uShoreMap!.value;
   const dispose = vi.spyOn(first, 'dispose');
   map.islands = structuredClone(map.islands);
   view.setQuality('medium');
+  const medium = water();
   expect(water().mesh.material.uniforms.uShoreMap!.value).toBe(first);
   view.setQuality('high');
+  const high = water();
+  expect(high.mesh.material).toBe(medium.mesh.material);
+  expect(low.mesh.material === high.mesh.material).toBe(false);
   expect(water().mesh.material.uniforms.uShoreMap!.value).toBe(first);
   expect(dispose).not.toHaveBeenCalled();
-  map.islands[0]!.x++;
+  const lowDisposed = vi.spyOn(low, 'dispose');
+  const material = new THREE.MeshStandardMaterial();
+  const mesh1 = new THREE.Mesh(new THREE.BoxGeometry(), material);
+  const mesh2 = new THREE.Mesh(mesh1.geometry, material);
+  const scene = (view as unknown as { scene: THREE.Scene }).scene;
+  scene.add(mesh1, mesh2);
+  const version = material.version;
   view.setQuality('low');
-  expect(water().mesh.material.uniforms.uShoreMap!.value).not.toBe(first);
+  expect(material.version).toBe(version); // Three tracks shadow-light changes itself.
+  expect(water()).toBe(low);
+  view.setQuality('medium');
+  expect(water()).toBe(medium);
+  view.setQuality('high');
+  expect(water()).toBe(high);
+  expect(lowDisposed).not.toHaveBeenCalled();
+  expect(effects.size).toBe(Object.keys(QUALITY).length);
+  // Edit while High is active, then request the same level: all inactive oceans rebind too.
+  map.islands[0]!.x++;
+  view.setQuality('high');
+  for (const effect of effects.values()) {
+    expect(effect.ocean.mesh.material.uniforms.uShoreMap!.value === first).toBe(false);
+  }
+  view.setQuality('low');
+  expect(water().mesh.material.uniforms.uShoreMap!.value === first).toBe(false);
   expect(dispose).toHaveBeenCalledTimes(1);
-  water().dispose();
-  cache.dispose();
-  const resources = view as unknown as { streaks: { dispose(): void }; rain: { dispose(): void } };
-  resources.streaks.dispose();
-  resources.rain.dispose();
+  const resourceDisposals = [...effects.values()].flatMap((effect) => [
+    vi.spyOn(effect.ocean.mesh.geometry, 'dispose'),
+    vi.spyOn(effect.ocean.mesh.material, 'dispose'),
+    vi.spyOn(effect.streaks, 'dispose'),
+    vi.spyOn(effect.rain, 'dispose'),
+  ]);
+  for (const key of [
+    'islands',
+    'lighthouseBeams',
+    'stormClouds',
+    'lanterns',
+    'wake',
+    'buoy',
+    'edgeBuoys',
+    'boat',
+  ]) {
+    Object.assign(view, { [key]: { dispose: vi.fn() } });
+  }
+  view.dispose();
+  expect(effects.size).toBe(0);
+  for (const disposed of resourceDisposals) expect(disposed).toHaveBeenCalledTimes(1);
+  expect(lowDisposed).toHaveBeenCalledTimes(1);
+  mesh1.geometry.dispose();
+  material.dispose();
 }, 30_000);

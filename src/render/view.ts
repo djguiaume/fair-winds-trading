@@ -85,6 +85,15 @@ export class GameView {
   private readonly shores = new ShoreTextureCache();
   private streaks!: WindStreaks;
   private profile!: QualityProfile;
+  /** Created only when selected; retain GPU programs/buffers for subsequent switches. */
+  private readonly qualityEffects = new Map<
+    QualityLevel,
+    {
+      ocean: Ocean;
+      streaks: WindStreaks;
+      rain: Rain;
+    }
+  >();
   private readonly target = new THREE.Vector3();
   private readonly tmp = new THREE.Vector3();
   private zoom = 1;
@@ -209,37 +218,42 @@ export class GameView {
     this.level = level;
     this.wake.setQuality(level);
     const profile = QUALITY[level];
-    if (this.ocean) {
-      this.scene.remove(this.ocean.mesh);
-      this.ocean.dispose();
+    if (this.ocean) this.scene.remove(this.ocean.mesh, this.streaks.mesh, this.rain.mesh);
+    const shore = this.shores.get(this.world.map.islands, this.world.map.terrain);
+    // ShoreTextureCache releases its previous bake on a live map edit. Rebind inactive
+    // quality levels too, so returning to one never revives a disposed texture.
+    for (const effects of this.qualityEffects.values()) effects.ocean.setShore(shore);
+    let effects = this.qualityEffects.get(level);
+    if (!effects) {
+      // Ocean shader source depends on fancyWater, not the grid resolution. Share the
+      // existing material so High/Medium never release or relink the same program.
+      const waterMaterial = [...this.qualityEffects.values()].find(
+        (cached) => 'FANCY' in cached.ocean.mesh.material.defines === profile.fancyWater,
+      )?.ocean.mesh.material;
+      effects = {
+        ocean: new Ocean(
+          this.world.map.islands,
+          profile.oceanSegments,
+          profile.fancyWater,
+          480,
+          this.world.map.terrain,
+          shore,
+          waterMaterial,
+        ),
+        streaks: new WindStreaks(profile.windStreaks),
+        rain: new Rain(profile.rainDrops),
+      };
+      this.qualityEffects.set(level, effects);
     }
-    if (this.streaks) {
-      this.scene.remove(this.streaks.mesh);
-      this.streaks.dispose();
-    }
-    if (this.rain) {
-      this.scene.remove(this.rain.mesh);
-      this.rain.dispose();
-    }
-    this.ocean = new Ocean(
-      this.world.map.islands,
-      profile.oceanSegments,
-      profile.fancyWater,
-      480,
-      this.world.map.terrain,
-      this.shores.get(this.world.map.islands, this.world.map.terrain),
-    );
-    this.streaks = new WindStreaks(profile.windStreaks);
-    this.rain = new Rain(profile.rainDrops);
+    ({ ocean: this.ocean, streaks: this.streaks, rain: this.rain } = effects);
     this.scene.add(this.ocean.mesh, this.streaks.mesh, this.rain.mesh);
 
     if (this.profile?.shadows !== profile.shadows) {
       this.renderer.shadowMap.enabled = profile.shadows;
       this.sun.castShadow = profile.shadows;
-      this.scene.traverse((o) => {
-        const m = (o as THREE.Mesh).material;
-        if (m) (Array.isArray(m) ? m : [m]).forEach((mat) => (mat.needsUpdate = true));
-      });
+      // Three tracks the changed shadow-light count and refreshes lit materials.
+      // Forcing every unlit/custom material dirty creates unused shadow variants,
+      // including an expensive water program whose shader never samples shadows.
     }
     this.boat.setLowDetail?.(level === 'low');
     this.profile = profile;
@@ -412,10 +426,13 @@ export class GameView {
   dispose() {
     this.islands.dispose();
     this.lighthouseBeams.dispose();
-    this.ocean.dispose();
+    for (const effects of this.qualityEffects.values()) {
+      effects.ocean.dispose();
+      effects.streaks.dispose();
+      effects.rain.dispose();
+    }
+    this.qualityEffects.clear();
     this.shores.dispose();
-    this.streaks.dispose();
-    this.rain.dispose();
     this.stormClouds.dispose();
     this.lanterns.dispose();
     this.wake.dispose();
