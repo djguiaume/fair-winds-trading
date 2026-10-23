@@ -171,7 +171,18 @@ quest starts on the player's yes). Each step: `id`, then `goal` (a condition) **
 options: `id`, `reward`, `next`); optional `reward`, `next` (a later step or `done`; default the
 next one), `clean` (touching a reef or shore starts the step over), `port`, `chart`
 (`{ "port", "radius" }`: the rough circle on the chart), `compass` (`{ "x", "y" }`: a
-direction mark on the compass, for a foghorn or a wreck).
+direction mark on the compass, for a foghorn or a wreck), `mood` (the giver's face on this
+step's card: `neutral`, `pleased` or `worried`) and `look` (a named look from
+`characters.json`, e.g. Rook `soaked`).
+
+**The person and their card ([0124](../decisions/0124-characters-look.md)).** `giver` is an id in
+[`src/data/characters.json`](../../src/data/characters.json) (name, role, home port and a few
+values that draw their low-poly portrait); `port` is where their card shows. The card and the
+journal read these text keys, and leave out any nobody wrote: `<text>.name` (the arc's name),
+`<text>.<step>.copy` (what they say, 2 to 4 lines), `<text>.<step>.title` (the ask, also the
+journal line), `<text>.<step>.<option>.title` and `.copy` (a choice's buttons) and
+`<text>.done.copy` / `.title` (their thanks, shown pleased). A person's role is
+`character.<id>.role`.
 
 | Condition | Params | Where |
 | --- | --- | --- |

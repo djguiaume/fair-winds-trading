@@ -1,11 +1,20 @@
 # Characters' look: portraits, dialogue card and journal
 
-**Status:** 2026-10-23, **Guillaume picked B, low-poly** ([0124](../../decisions/0124-characters-look.md)). The portrait builder (`src/ui/portraits.ts`) and `src/data/characters.json` are built; the dialogue card and journal screens follow with the quest engine.
+**Status:** 2026-10-23, **Guillaume picked B, low-poly** ([0124](../../decisions/0124-characters-look.md)). The portrait builder (`src/ui/portraits.ts`), `src/data/characters.json`, the quest card and the chart journal are built (see [In the game](#in-the-game)).
 **Related:** [0120](../../decisions/0120-communities-and-home-island.md) (community arcs), [the earlier B mockups](../progression/directions/README.md), UI style D ([0049](../../decisions/0049-ui-instrument-style.md)).
 
 The cast is the draft from the story thread (`docs/story/community-arcs.md`, PR #101): Rook, Kit Marlow, Ines Calder, Maren Holt, Ada Flint and Old Ness. Names, lines and the "rotten jetty" arc are placeholders to show the art direction, not approved story. Backgrounds are real game captures (sea at Saltmere, the chart); everything on top is a static mockup.
 
 ![Overview](overview.jpg)
+
+## In the game
+
+The quest card and the journal, built ([0124](../../decisions/0124-characters-look.md)), captured from the game with a temporary test quest (Kit's arc from the story, placeholder text; no quest content ships yet).
+
+| | Desktop | Phone landscape | Phone portrait |
+|---|---|---|---|
+| Card on docking | ![](game/card-offer-desktop.jpg) | ![](game/card-offer-landscape.jpg) | ![](game/card-offer-portrait.jpg) |
+| Journal on the chart | ![](game/journal-desktop.jpg) | ![](game/journal-landscape.jpg) | ![](game/journal-portrait.jpg) |
 
 ## The cast in style B, drawn by the game code
 
