@@ -125,7 +125,7 @@ Manual ship purchasing, switching and the distinct swift/hauler lineup remain. O
 3. Content as data: goods, town levels, weather kinds; one file per ship (`model`, `sailing`, `unlock`).
 4. In-game tuning panel (`?tune`): live edit, export, share link.
 5. Balance check in the panel (the economy simulation on edited values).
-6. Island builder ([0096](decisions/0096-island-files-and-island-builder.md), [mockup and plan](island-builder/README.md)), proposed: one file per port island (coasts, raised ground, lanes, props per level), then a builder in `editor.html` to place houses, lighthouses or woodpiles, shape the ground and draw lanes for each level. Steps after the mockup is approved: island files (no visible change), then the builder.
+6. Island builder ([0096](decisions/0096-island-files-and-island-builder.md), [mockup and plan](island-builder/README.md)), mockup approved: one file per port island (coasts, raised ground, lanes, props per level), then a builder in `editor.html` to place houses, lighthouses or woodpiles, shape the ground (cliffs or slopes) and draw lanes for each level. Steps after the mockup is approved: island files (no visible change), then the builder.
 
 ## Between Phases 2 and 4 — Selectable maps and persistent unlocks
 

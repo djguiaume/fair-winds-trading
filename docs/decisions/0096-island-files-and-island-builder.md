@@ -1,6 +1,6 @@
 # 0096. Island files and the island builder
 
-**Status:** Proposed (2026-10-23), mockup waiting for Guillaume's approval. Extends [0093](0093-data-driven-content-and-authoring-tools.md) and the map editor ([0095](0095-map-editor.md)). Mockup and plan: [docs/island-builder](../island-builder/README.md).
+**Status:** Accepted (2026-10-23): Guillaume approved the mockup (PR #72) and asked for sloped terrain and sloped paths in the builder (§4). Extends [0093](0093-data-driven-content-and-authoring-tools.md) and the map editor ([0095](0095-map-editor.md)). Mockup and plan: [docs/island-builder](../island-builder/README.md).
 
 ## Context
 
@@ -54,7 +54,7 @@ Coordinates are the frame `islandLayout.ts` uses today: **island-radius units, h
 - **Props** have a `type` from one catalogue (the ~34 models in `towns.ts` plus the four landmarks: homes, town buildings, timber, fish, farm and stone works, trees, landmarks), a position, a `turn` in degrees, an optional `size` and `variant`, and the level they **first appear** (`from`, 1 to 4) and optionally the last level they stand (`to`). A prop that changes at a level (the barn growing, the sawmill becoming the big sawmill, the keep at level 4) is two entries. Height is automatic (the ground under it) unless `y` is given. `tags` keep the game hooks the code sets today (workshop, log yard, windmill, residence order, field, solid boat).
 - **Homes are ordinary props** (`cabin`, `fisher-house`, `farmhouse`, `stone-house`, `yard-house`) with their `from` level, so the seeded house plan becomes a fixed list Guillaume can edit; their order in the file is the residence order.
 - **Fields** become `field` props with a `variant` (crop colour).
-- **Ground** is a list of raised outlines with a height and a material (`grass` or `rock`), optional holes and level range; every edge is a cliff, as today. `"shape": "peak"` is the rock cone of Calda's mountain. The sandy beach inset stays a rule of the game (`0.085` inside the coast), not data.
+- **Ground** is a list of raised outlines with a height and a material (`grass` or `rock`), optional holes and level range. Every edge is a cliff, as today, unless the outline has a `slope` (see §4). `"shape": "peak"` is the rock cone of Calda's mountain. The sandy beach inset stays a rule of the game (`0.085` inside the coast), not data.
 - **Lanes** are polylines (smoothed as today). A plain lane shows its pieces near homes that exist at the current level, so lanes still grow with the town; `path` is always shown; `stairs` carry a height per point.
 - **Woods stay generated**, not hundreds of tree entries: a seeded scatter with spacing and size, limited to painted `areas` (empty = the whole island), and cleared by homes, lanes, props and fields at each level, exactly as now. Single trees can still be placed as `pine` or `broadleaf` props.
 - Islands without a design file (the two hidden yards and the scenery islands) keep today's generated look. A **Convert to editable island** action can bake one into a file later.
@@ -72,7 +72,7 @@ A new `src/sim/islandChecks.ts`, like `mapChecks.ts`, used by the builder page a
 | Not on a cliff edge: a prop closer than its footprint to a ground edge | ✗ error, the builder shows the distance to move |
 | Buildings do not overlap (the footprint test `towns.ts` already uses) | ⚠ warning |
 | Raised ground inside the coast; the lake inside the coast and clear of it | ✗ error |
-| A lane piece never crosses water or a cliff; crossing a cliff needs `stairs` | ⚠ warning (the piece is not drawn) |
+| A lane piece never crosses water or a cliff; crossing a cliff needs `stairs` (a slope needs nothing) | ⚠ warning (the piece is not drawn) |
 | Each level only adds: homes are never removed, and a prop with `to` is replaced at the next level or flagged | ⚠ warning (homes: ✗) |
 | Mobile budget: an island at level 4 stays at or under **6,000 triangles** (today Calda 5,018, Saltmere 4,923, Westholm 2,769, Stonehaven 2,609), and the whole map stays inside the existing `models.test.ts` and `towns.test.ts` budgets | ✗ error over, ⚠ above 5,000 |
 | Coasts changed: the map checks of 0095 run again, since coasts are collision, chart and water | as in 0095 |
@@ -84,10 +84,20 @@ The mockup ([overview](../island-builder/overview.png)) is approved before anyth
 - Double-click a port island on the map (or **✎ Edit island** in its panel) to open its builder; **← Back to the map** returns.
 - The island is a live top-down render with outlines on top; a **level 1 to 4** switch shows the island at that level and, ghosted, what later levels add.
 - **Props**: a palette of real model thumbnails by group, drag onto the island, select, drag, turn (handle, R / Shift+R, 15° buttons), size, duplicate, delete; *Appears from* and *Gone after* levels. A prop dropped on the current level gets that level.
-- **Ground**: coast points, raised ground (draw, reshape, height, grass or rock), mountain, lake. **Lanes**: lane, path and stairs. **Woods**: brush areas.
+- **Ground**: coast points, raised ground (draw, reshape, height, grass or rock, cliff or slope edges), mountain, lake. **Lanes**: lane, path and stairs. **Woods**: brush areas.
 - A small **3D preview** at the game camera's angle, turnable; the checks of §2 live, with amber and red marks on the island.
 - **▶ Play this island** uses the edited-map save of 0095; **Export <id>.json** writes the Prettier-formatted file to upload to `src/data/islands/` like the map file.
 - Landscape and desktop first, and portrait works (island on top, tabs and palette below, preview in a corner), in English like the map editor.
+
+### 4. Sloped terrain and sloped paths
+
+Asked for by Guillaume after the mockup (not drawn in it; it comes with the builder, step 3):
+
+- A raised outline can have a sloped edge instead of a cliff: `"slope": 0.15` (the ramp's width in island-radius units, outward from the outline), either for the whole outline or for a run of its edges (`"slopeEdges": [[2, 5]]`, edge indices). The ramp is a low-poly band from the outline's height down to the ground below, in the outline's material.
+- Ground height becomes a function: `layoutGround` returns the interpolated height on a ramp instead of `null`. Trees, lamp posts, crates, log piles and other small props may stand on a slope; homes and larger buildings still need flat ground (a check: ✗ "building on a slope").
+- Lanes and paths follow the ground height, so a lane crossing a slope climbs it as a ramp; `stairs` are only needed at cliffs. The lane check of §2 accepts slopes.
+- Coasts, collision and the sea are not affected (slopes are inland). A slope adds a few dozen triangles per outline, counted in the budget.
+- Step 2 (island files) has no slopes, so the islands stay identical; slopes arrive with step 3.
 
 ## Consequences
 
