@@ -5,8 +5,10 @@ import { DEG, approach, bearingVector, clamp, wrapAngle } from '../sim/math';
 import { windTo } from '../sim/wind';
 import { windStrength01 } from '../sim/windStrength';
 import { type World, currentWaypoint } from '../sim/world';
+import { settlementLevels } from '../sim/settlement';
 import { TUNING } from '../data/tuning';
 import {
+  type IslandModel,
   type BoatModel,
   type ShipUpgrades,
   type TownLevel,
@@ -66,9 +68,7 @@ export class GameView {
   private readonly boatLantern = new THREE.Vector3();
   private readonly stormClouds = new StormClouds();
   private rain!: Rain;
-  private islands: THREE.Object3D;
-  /** Settlement level per port the islands were last built with (decision 0060). */
-  private townLevels: Record<string, TownLevel> | undefined;
+  private islands: IslandModel;
   private boat: BoatModel;
   /** Ship class and upgrade levels the boat model was built for; rebuilt when they change. */
   private boatKey = '';
@@ -116,7 +116,10 @@ export class GameView {
     });
     this.scene.add(this.sun, this.sun.target);
 
-    this.islands = buildIslands(world.map, { shadows: true });
+    this.islands = buildIslands(world.map, {
+      shadows: true,
+      levels: settlementLevels(world.trade),
+    });
     this.lighthouseBeams = new LighthouseBeams(world.map.islands);
     this.scene.add(this.lighthouseBeams.root);
     this.level = level;
@@ -252,27 +255,12 @@ export class GameView {
     this.camera.updateProjectionMatrix();
   }
 
-  /** 1 = default; larger = farther away. */
-  /**
-   * Grow the port towns to these settlement levels (decision 0060). Rebuilds the merged island
-   * mesh only when a level changed; call once at start and on each level-up.
-   */
+  /** Grow only the islands whose port levels changed; anchors and harbour lights stay valid. */
   setSettlementLevels(levels: Record<string, TownLevel>) {
-    const old = this.townLevels;
-    if (old && Object.keys(levels).every((id) => old[id] === levels[id])) return;
-    this.townLevels = { ...levels };
-    const next = buildIslands(this.world.map, { shadows: true, levels: this.townLevels });
-    this.scene.remove(this.islands);
-    this.islands.traverse((o) => {
-      const mesh = o as THREE.Mesh;
-      mesh.geometry?.dispose();
-      (mesh.material as THREE.Material | undefined)?.dispose();
-    });
-    this.islands = next;
-    this.scene.add(next);
-    this.buildLanterns();
+    this.islands.setSettlementLevels(levels);
   }
 
+  /** 1 = default; larger = farther away. */
   setZoom(zoom: number) {
     this.zoom = clamp(zoom, 0.6, 1.7);
   }
@@ -420,6 +408,7 @@ export class GameView {
   }
 
   dispose() {
+    this.islands.dispose();
     this.lighthouseBeams.dispose();
     this.ocean.dispose();
     this.streaks.dispose();

@@ -12,7 +12,7 @@ import {
   vertexColorMaterial,
   windowPanes,
 } from './geometry';
-import type { IslandsBuilder } from './types';
+import type { IslandModel, IslandsBuilder } from './types';
 import { landmarkParts } from './landmarks';
 import { coastDistance, insetOutline } from '../../sim/coast';
 import { type TownLevel, townIslandParts } from './towns';
@@ -20,8 +20,7 @@ import { type TownLevel, townIslandParts } from './towns';
 /**
  * B2 "Bright highlands" islands (decision 0012), ported from the reference builder in
  * docs/art/src/lib.js (`kit('highlandLight')`, `island`): a beach, stacked sandstone layers and a
- * grass cap, with props that show what the island produces. Every island of the map is merged
- * into one vertex-coloured mesh (one draw call). The shallows glow is drawn by the ocean shader.
+ * grass cap, with props that show what the island produces. Each island is batched separately so the camera can cull distant land. The shallows glow is drawn by the ocean shader.
  */
 export const B2 = {
   sand: '#f2d9a0',
@@ -447,47 +446,148 @@ export function terrainProps(feature: TerrainDef, seed: number): Parts {
   return parts;
 }
 
-/** All islands of the map merged into one mesh. */
-export const buildHighlandIslands: IslandsBuilder = (map, { shadows, levels }) => {
-  const harbours: Record<string, { x: number; y: number }> = {};
-  const parts = map.islands.flatMap((island, i) => {
-    const port = map.ports.find((p) => p.islandId === island.id);
-    return islandParts(
-      island,
-      map,
-      map.seed * 1000 + i,
-      (point) => {
-        if (port) harbours[port.id] = point;
-      },
-      port && levels ? levels[port.id] : undefined,
-    );
-  });
-  // Non-circular coasts use the very same outline as simulation collision.
-  for (const [index, feature] of (map.terrain ?? []).entries()) {
-    if (feature.kind === 'sandbank') {
-      parts.push(paint(extrudeOutline(feature.outline, -0.4, 0.8), B2.sand));
-    } else if (feature.kind === 'island') {
-      for (const tier of RIDGE_TIERS) {
-        const outline = tier.inset ? insetOutline(feature.outline, tier.inset) : feature.outline;
-        parts.push(paint(extrudeOutline(outline, tier.bottom, tier.top), tier.color));
-      }
+/** Separate land batches keep camera and shadow culling local to each island. */
+export class HighlandIslands extends THREE.Group implements IslandModel {
+  private readonly land = vertexColorMaterial();
+  private readonly glass = new THREE.MeshBasicMaterial({ vertexColors: true });
+  private readonly batches = new Map<string, THREE.Group>();
+  private levels: Record<string, TownLevel>;
+
+  constructor(
+    private readonly map: MapDef,
+    private readonly shadows: boolean,
+    levels = {} as Record<string, TownLevel>,
+  ) {
+    super();
+    this.levels = { ...levels };
+    this.userData.harbours = {};
+    // Keep the model-sheet/night-lighting API: every window shares this tint material.
+    this.userData.windows = this.glass;
+    for (const [index, island] of map.islands.entries()) {
+      const group = this.buildIsland(island, index);
+      this.batches.set(island.id, group);
+      this.add(group);
     }
-    parts.push(...terrainProps(feature, map.seed * 1709 + index * 97));
+    // Collision terrain is independent of settlement growth and never rebuilt for a level-up.
+    for (const [index, feature] of (map.terrain ?? []).entries()) {
+      const parts: Parts = [];
+      if (feature.kind === 'sandbank') {
+        parts.push(paint(extrudeOutline(feature.outline, -0.4, 0.8), B2.sand));
+      } else if (feature.kind === 'island') {
+        for (const tier of RIDGE_TIERS) {
+          const outline = tier.inset ? insetOutline(feature.outline, tier.inset) : feature.outline;
+          parts.push(paint(extrudeOutline(outline, tier.bottom, tier.top), tier.color));
+        }
+      }
+      parts.push(...terrainProps(feature, map.seed * 1709 + index * 97));
+      const group = this.batch(parts);
+      group.name = `terrain:${feature.id}`;
+      this.add(group);
+    }
   }
-  const mesh = new THREE.Mesh(mergeAll(parts.filter((g) => !isGlowing(g))), vertexColorMaterial());
-  mesh.userData.harbours = harbours;
-  mesh.castShadow = shadows;
-  mesh.receiveShadow = shadows;
-  // Window glass and street lamps: a second mesh whose colour the view brightens at night.
-  const glass = parts.filter(isGlowing);
-  if (glass.length) {
-    const windows = new THREE.Mesh(
-      mergeAll(glass),
-      new THREE.MeshBasicMaterial({ vertexColors: true }),
+
+  private mesh(parts: Parts, material: THREE.Material) {
+    const geometry = mergeAll(parts);
+    // Bounds include authored outlying props, piers and raised terrain, not just radius.
+    geometry.computeBoundingBox();
+    geometry.computeBoundingSphere();
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.castShadow = material === this.land && this.shadows;
+    mesh.receiveShadow = material === this.land && this.shadows;
+    return mesh;
+  }
+
+  private batch(parts: Parts) {
+    const group = new THREE.Group();
+    for (const [name, selected, material] of [
+      ['terrain', parts.filter((g) => g.userData.islandTerrain), this.land],
+      ['town', parts.filter((g) => !g.userData.islandTerrain && !isGlowing(g)), this.land],
+      ['windows', parts.filter(isGlowing), this.glass],
+    ] as const) {
+      if (!selected.length) continue;
+      const mesh = this.mesh(selected, material);
+      mesh.name = name;
+      group.add(mesh);
+    }
+    return group;
+  }
+
+  private buildIsland(island: IslandDef, index: number) {
+    const port = this.map.ports.find((p) => p.islandId === island.id);
+    const parts = islandParts(
+      island,
+      this.map,
+      this.map.seed * 1000 + index,
+      (point) => {
+        if (!port) return;
+        const harbours = this.userData.harbours as Record<string, { x: number; y: number }>;
+        // HUD, chart and tutorial may retain both the record and individual points.
+        if (harbours[port.id]) Object.assign(harbours[port.id]!, point);
+        else harbours[port.id] = point;
+      },
+      port ? this.levels[port.id] : undefined,
     );
-    windows.name = 'windows';
-    mesh.add(windows);
-    mesh.userData.windows = windows.material;
+    const group = this.batch(parts);
+    group.name = `island:${island.id}`;
+    return group;
   }
-  return mesh;
-};
+
+  setSettlementLevels(levels: Record<string, TownLevel>) {
+    const previous = this.levels;
+    this.levels = { ...levels };
+    for (const [index, island] of this.map.islands.entries()) {
+      const port = this.map.ports.find((p) => p.islandId === island.id);
+      if (!port || previous[port.id] === levels[port.id]) continue;
+      const old = this.batches.get(island.id)!;
+      const next = this.buildIsland(island, index);
+      const oldTerrain = old.getObjectByName('terrain') as THREE.Mesh | undefined;
+      const newTerrain = next.getObjectByName('terrain') as THREE.Mesh | undefined;
+      // Most designed terrain is permanent; level-dependent authored quarry benches are not.
+      if (oldTerrain && newTerrain && sameGeometry(oldTerrain.geometry, newTerrain.geometry)) {
+        newTerrain.geometry.dispose();
+        next.remove(newTerrain);
+        old.remove(oldTerrain);
+        next.add(oldTerrain);
+      }
+      this.remove(old);
+      disposeGeometry(old);
+      this.batches.set(island.id, next);
+      this.add(next);
+    }
+  }
+
+  dispose() {
+    disposeGeometry(this);
+    this.land.dispose();
+    this.glass.dispose();
+    this.clear();
+    this.batches.clear();
+  }
+}
+
+function disposeGeometry(root: THREE.Object3D) {
+  root.traverse((object) => {
+    if (object instanceof THREE.Mesh) object.geometry.dispose();
+  });
+}
+
+/** Compare all vertex attributes: unchanged land retains its already-uploaded GPU geometry. */
+function sameGeometry(a: THREE.BufferGeometry, b: THREE.BufferGeometry) {
+  const names = Object.keys(a.attributes);
+  return (
+    names.length === Object.keys(b.attributes).length &&
+    names.every((name) => {
+      const first = a.attributes[name]!,
+        second = b.attributes[name];
+      return (
+        second &&
+        first.itemSize === second.itemSize &&
+        first.array.length === second.array.length &&
+        first.array.every((value, i) => value === second.array[i])
+      );
+    })
+  );
+}
+
+export const buildHighlandIslands: IslandsBuilder = (map, { shadows, levels }) =>
+  new HighlandIslands(map, shadows, levels);

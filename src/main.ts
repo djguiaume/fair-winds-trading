@@ -107,8 +107,6 @@ if (playtestMap) {
 const resumedVoyage = storage ? loadGame(storage, world) : false;
 let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
 const view = new GameView(canvas, world, level);
-// Islands show each port's settlement level, including one restored from the save (0059, 0060).
-view.setSettlementLevels(settlementLevels(world.trade));
 const hud = new Hud(
   world,
   {

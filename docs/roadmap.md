@@ -200,6 +200,10 @@ Timed delivery races between ports, alongside the sandbox rather than replacing 
 - Steam propulsion and automated transport as immediate base-game progression (deferred to later work, [0097](decisions/0097-progression-candidates-and-later-extensions.md)).
 - Multiplayer and monetization; expansion planning is not approval for paid DLC.
 
+## Rendering performance
+
+- Local island camera/shadow culling and incremental settlement rebuilds ([0103](decisions/0103-local-island-rendering.md)): preserve authored geometry and stable harbour anchors.
+
 ## Tech stack
 
 Decided in [decision 0005](decisions/0005-tech-stack.md): three.js + TypeScript + Vite, static site on GitHub Pages, simulation separate from rendering, mobile performance budget from day one.
