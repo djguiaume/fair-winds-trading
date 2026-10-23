@@ -6,6 +6,7 @@ import { madeGoods } from '../sim/settlement';
 import { type PortQuote, quoteAcross } from '../sim/market';
 import { DEG, distance } from '../sim/math';
 import { discoveredPorts } from '../sim/shipyards';
+import { noGoAngle } from '../sim/ship';
 import { goodName, t } from '../i18n';
 import { icon, COIN } from './icons';
 import { drawHazard } from './hazardMarker';
@@ -234,8 +235,8 @@ export class SeaChart {
       element?.setAttribute('transform', `rotate(${angle})`);
     rotate(compass.querySelector('.nogo')?.parentElement, degrees);
     rotate(compass.querySelector('.band')?.parentElement, degrees);
-    const x = 40 * Math.sin(ship.noGoAngle),
-      y = -40 * Math.cos(ship.noGoAngle);
+    const x = 40 * Math.sin(noGoAngle(ship)),
+      y = -40 * Math.cos(noGoAngle(ship));
     compass.querySelector('.nogo')?.setAttribute('d', `M0 0 L${-x} ${y} A40 40 0 0 1 ${x} ${y} Z`);
     rotate(compass.querySelector('.wind')?.parentElement?.parentElement, degrees + 180);
     compass

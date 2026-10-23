@@ -6,6 +6,7 @@ import type { ShipClass } from './ship';
 import type { TradeState } from './trade';
 import { hullDurability } from './upgrades';
 import { knobs } from './difficulty';
+import { TUNING } from '../data/tuning';
 
 /**
  * Light hazards (decisions 0010 and 0032): shallow water around reefs drags at the hull, and
@@ -14,20 +15,16 @@ import { knobs } from './difficulty';
  * Nothing sinks and no cargo is lost: hazards cost time and gold, not the voyage.
  */
 
-/** Width (units) of the shallow band around a reef. */
-export const SHALLOW_WIDTH = 14;
-/** Extra braking (1/s) at a reef's edge for a ship of draft 1, fading to 0 at the band's edge. */
-export const SHALLOW_DRAG = 0.6;
-/** Hull points lost per knot of speed a reef strike takes off. */
-export const STRIKE_DAMAGE = 6;
-/** Knots of speed a shore or pier impact may take off for free: docking bumps never hurt. */
-export const CRASH_SAFE_KN = 2;
-/** Hull points lost per knot a shore or pier impact takes off beyond the safe bump. */
-export const CRASH_DAMAGE = 5;
-/** Speed lost with a fully wrecked hull (the leak), scaled by damage. */
-export const LEAK_PENALTY = 0.25;
-/** Gold per hull point repaired on Captain; the difficulty level sets it (decision 0083). */
-export const REPAIR_COST = 2;
+/*
+ * The numbers live in `src/data/tuning/seamanship.json` › `hazards` (decision 0094):
+ * `shallowWidth` (units) of the shallow band around a reef; `shallowDrag`, extra braking (1/s) at a
+ * reef's edge for a ship of draft 1, fading to 0 at the band's edge; `strikeDamage`, hull points
+ * lost per knot of speed a reef strike takes off; `crashSafeKn`, knots a shore or pier impact may
+ * take off for free (docking bumps never hurt), then `crashDamage` hull points per knot beyond it;
+ * `leakPenalty`, speed lost with a fully wrecked hull, scaled by damage. The repair cost per hull
+ * point is set by the difficulty level (decision 0083).
+ */
+const hazards = () => TUNING.seamanship.hazards;
 
 /** Gold per hull point repaired at the voyage's difficulty level. */
 export function repairCost(trade: TradeState): number {
@@ -50,7 +47,7 @@ export function reefsOf(terrain: readonly TerrainDef[] = []): Reef[] {
       const x = t.outline.reduce((s, p) => s + p[0], 0) / n;
       const y = t.outline.reduce((s, p) => s + p[1], 0) / n;
       const r = Math.max(...t.outline.map(([px, py]) => Math.hypot(px - x, py - y)));
-      return { outline: t.outline, x, y, r: r + SHALLOW_WIDTH };
+      return { outline: t.outline, x, y, r: r + hazards().shallowWidth };
     });
 }
 
@@ -66,12 +63,12 @@ export function reefDistance(reefs: readonly Reef[], pos: { x: number; y: number
 
 /** 0 = deep water … 1 = right at a reef's edge. */
 export function shallowness(distanceToReef: number, shipRadius: number): number {
-  return clamp(1 - (distanceToReef - shipRadius) / SHALLOW_WIDTH, 0, 1);
+  return clamp(1 - (distanceToReef - shipRadius) / hazards().shallowWidth, 0, 1);
 }
 
 /** Speed multiplier for this step from dragging through shallows. */
 export function shallowDrag(shallow: number, ship: ShipClass, dt: number): number {
-  return Math.exp(-SHALLOW_DRAG * shallow * ship.draft * dt);
+  return Math.exp(-hazards().shallowDrag * shallow * ship.draft * dt);
 }
 
 /**
@@ -79,9 +76,9 @@ export function shallowDrag(shallow: number, ship: ShipClass, dt: number): numbe
  * shores, piers and moored boats only past a docking bump; sandbanks and the edge of the sea are soft.
  */
 export function impactDamage(surface: Surface, speedLost: number): number {
-  if (surface === 'reef') return speedLost * STRIKE_DAMAGE;
+  if (surface === 'reef') return speedLost * hazards().strikeDamage;
   if (surface === 'shore' || surface === 'pier' || surface === 'boat')
-    return Math.max(0, speedLost - CRASH_SAFE_KN) * CRASH_DAMAGE;
+    return Math.max(0, speedLost - hazards().crashSafeKn) * hazards().crashDamage;
   return 0;
 }
 
@@ -101,7 +98,7 @@ export function hullCondition(trade: TradeState): number {
 
 /** Speed factor from leaks. */
 export function leakFactor(condition: number): number {
-  return 1 - LEAK_PENALTY * (1 - condition);
+  return 1 - hazards().leakPenalty * (1 - condition);
 }
 
 /** Damage the active ship's hull; returns the points actually taken. */

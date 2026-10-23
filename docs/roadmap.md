@@ -116,7 +116,7 @@ Goal: shift from sailing every trip to designing a network. This is the main twi
 
 **Data-driven content and authoring tools** ([0093](decisions/0093-data-driven-content-and-authoring-tools.md), [review](reviews/data-driven/README.md)), so Guillaume can tune and add content without code:
 
-1. Tuning to data: `src/data/tuning/*.json` and a live `TUNING` object, no gameplay change.
+1. Tuning to data: `src/data/tuning/*.json` and a live `TUNING` object, no gameplay change (implemented for review, [0094](decisions/0094-tuning-moved-to-data.md)).
 2. Map editor page `editor.html` (in parallel with 1).
 3. Content as data: goods, town levels, weather kinds; one file per ship (`model`, `sailing`, `unlock`).
 4. In-game tuning panel (`?tune`): live edit, export, share link.

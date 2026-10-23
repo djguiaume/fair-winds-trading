@@ -1,0 +1,47 @@
+{
+  "levels": {
+    "fair": {
+      "cargoLost": 0,
+      "damage": 0.5,
+      "repairCost": 1,
+      "spread": 0.02,
+      "orderFactor": 2,
+      "startGold": 250,
+      "growth": 0.75,
+      "galeWeight": 0.08,
+      "stormEverySec": 900,
+      "steadyWind": true
+    },
+    "captain": {
+      "cargoLost": 1,
+      "damage": 1,
+      "repairCost": 2,
+      "spread": 0.06,
+      "orderFactor": 1.5,
+      "startGold": 150,
+      "growth": 1,
+      "galeWeight": 0.15,
+      "stormEverySec": 600,
+      "steadyWind": false
+    },
+    "salt": {
+      "cargoLost": 2,
+      "damage": 1.5,
+      "repairCost": 3,
+      "spread": 0.11,
+      "orderFactor": 1.25,
+      "startGold": 100,
+      "growth": 1.25,
+      "galeWeight": 0.22,
+      "stormEverySec": 420,
+      "steadyWind": false
+    }
+  },
+  "steadyWind": {
+    "stepDeg": 10,
+    "revert": 0.5,
+    "regionBendDeg": 10,
+    "regionStrength": 0.08,
+    "gusts": 0.75
+  }
+}

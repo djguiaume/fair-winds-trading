@@ -1,3 +1,5 @@
+import { TUNING } from '../data/tuning';
+
 /**
  * Trade goods. Four bulk goods (Phase 1): each settlement produces one and wants others
  * (decision 0015). Four specialized goods (decision 0063): a town's workshop makes one from its
@@ -14,13 +16,10 @@ export type GoodId = (typeof GOODS)[number];
 export type SpecialtyGood = (typeof SPECIALTY_GOODS)[number];
 export type RareGood = (typeof RARE_GOODS)[number];
 
-/** The bulk good each specialty is made from (decision 0063). */
-export const MADE_FROM: Record<SpecialtyGood, GoodId> = {
-  smokedFish: 'fish',
-  bread: 'grain',
-  planks: 'timber',
-  cutStone: 'stone',
-};
+/** The bulk good each specialty is made from (decision 0063), from `goods.json`. */
+export const MADE_FROM = Object.fromEntries(
+  SPECIALTY_GOODS.map((g) => [g, TUNING.goods[g]!.madeFrom]),
+) as Record<SpecialtyGood, GoodId>;
 
 export function isSpecialty(good: GoodId): good is SpecialtyGood {
   return (SPECIALTY_GOODS as readonly string[]).includes(good);
@@ -42,32 +41,13 @@ export interface GoodDef {
   basePrice: number;
 }
 
-export const GOOD_DEFS: Record<GoodId, GoodDef> = {
-  fish: { id: 'fish', name: 'Fish', basePrice: 8 },
-  grain: { id: 'grain', name: 'Grain', basePrice: 10 },
-  timber: { id: 'timber', name: 'Timber', basePrice: 14 },
-  stone: { id: 'stone', name: 'Stone', basePrice: 18 },
-  smokedFish: { id: 'smokedFish', name: 'Smoked fish', basePrice: 20 },
-  bread: { id: 'bread', name: 'Bread', basePrice: 24 },
-  planks: { id: 'planks', name: 'Planks', basePrice: 32 },
-  cutStone: { id: 'cutStone', name: 'Cut stone', basePrice: 40 },
-  honey: { id: 'honey', name: 'Honey', basePrice: 55 },
-  lampOil: { id: 'lampOil', name: 'Lamp oil', basePrice: 50 },
-};
+/** Live goods of `src/data/tuning/goods.json` (decision 0094). */
+export const GOOD_DEFS = TUNING.goods as Record<GoodId, GoodDef>;
 
 /** Icons shared by the chart and harbour views. */
-export const GOOD_ICONS: Record<GoodId, string> = {
-  fish: '🐟',
-  grain: '🌾',
-  timber: '🪵',
-  stone: '🪨',
-  smokedFish: '🍢',
-  bread: '🍞',
-  planks: '🪚',
-  cutStone: '🧱',
-  honey: '🍯',
-  lampOil: '🪔',
-};
+export const GOOD_ICONS = Object.fromEntries(
+  GOODS.map((g) => [g, TUNING.goods[g]!.icon]),
+) as Record<GoodId, string>;
 
 export function isGood(id: unknown): id is GoodId {
   return typeof id === 'string' && (GOODS as readonly string[]).includes(id);

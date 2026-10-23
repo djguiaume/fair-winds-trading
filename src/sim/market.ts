@@ -10,16 +10,9 @@ import {
 import type { PortDef } from './map';
 import { type Rng, range } from './rng';
 import { clamp } from './math';
-import {
-  PRODUCES_EQUILIBRIUM,
-  RARE_SHARE,
-  SPECIALTY_SHARE,
-  WANTS_EQUILIBRIUM,
-  clampLevel,
-  portProduces,
-  portWants,
-  startLevel,
-} from './settlement';
+import { TUNING } from '../data/tuning';
+import { knobs } from './difficulty';
+import { clampLevel, portProduces, portWants, startLevel } from './settlement';
 
 /**
  * Supply and demand at one port (decision 0015). Each good has a stock that drifts back toward an
@@ -28,27 +21,15 @@ import {
  * route you hammer pays less until the port recovers.
  */
 
-/** Stock at which a good trades at its base price. */
-export const REFERENCE_STOCK = 30;
-/**
- * Equilibrium stock by role for a village (level 2): what the port settles at when nobody trades.
- * Other settlement levels scale wants and produces (decision 0059, `equilibriumFor`).
+/*
+ * The numbers (reference stock, equilibrium by role, elasticity, floor and ceiling, recovery time)
+ * are in `src/data/tuning/economy.json` › `market` (decision 0094): the stock at which a good trades
+ * at its base price; the equilibrium stock by role for a village (level 2, other levels scale wants
+ * and produces, decision 0059, `equilibriumFor`); mid = base × (reference / stock) ^ elasticity,
+ * kept within floor and ceiling multiples of the base price; seconds for a stock to close ~63 % of
+ * the gap back to equilibrium. The port's cut (spread) is set by the difficulty level.
  */
-export const EQUILIBRIUM: Record<GoodRole, number> = {
-  produces: 100,
-  wants: 12,
-  neutral: 30,
-  none: 0,
-};
-/** How strongly price reacts to stock: mid = base × (reference / stock) ^ elasticity. */
-export const PRICE_ELASTICITY = 0.8;
-/** Mid price stays within these multiples of the base price. */
-export const PRICE_FLOOR = 0.35;
-export const PRICE_CEILING = 3;
-/** The port's cut: you buy a bit above the mid price and sell a bit below it. */
-export const SPREAD = 0.06;
-/** Seconds for a stock to close ~63 % of the gap back to equilibrium. */
-export const RECOVERY_SECONDS = 75;
+const marketTuning = () => TUNING.economy.market;
 
 /** `none`: a specialized good the port neither makes nor buys; it is not traded there (0063). */
 export type GoodRole = 'produces' | 'wants' | 'neutral' | 'none';
@@ -57,7 +38,7 @@ export interface Market {
   portId: string;
   stock: GoodAmounts;
   equilibrium: GoodAmounts;
-  /** The port's cut at the voyage's difficulty level (decision 0083); none = `SPREAD`. */
+  /** The port's cut at the voyage's difficulty level (decision 0083); none = Captain's. */
   spread?: number;
 }
 
@@ -75,13 +56,16 @@ export function goodRole(
 
 /** Equilibrium stock for a role at a settlement level (decision 0059). */
 export function equilibriumFor(role: GoodRole, level: number, good?: GoodId): number {
-  const i = Math.min(Math.max(Math.round(level), 1), WANTS_EQUILIBRIUM.length) - 1;
-  if (role === 'wants') return WANTS_EQUILIBRIUM[i]!;
+  const towns = TUNING.economy.towns;
+  const i = Math.min(Math.max(Math.round(level), 1), towns.wantsEquilibrium.length) - 1;
+  if (role === 'wants') return towns.wantsEquilibrium[i]!;
   if (role === 'produces')
     return good && isMadeGood(good)
-      ? Math.round(PRODUCES_EQUILIBRIUM[i]! * (isRare(good) ? RARE_SHARE : SPECIALTY_SHARE))
-      : PRODUCES_EQUILIBRIUM[i]!;
-  return EQUILIBRIUM[role];
+      ? Math.round(
+          towns.producesEquilibrium[i]! * (isRare(good) ? towns.rareShare : towns.specialtyShare),
+        )
+      : towns.producesEquilibrium[i]!;
+  return marketTuning().equilibrium[role];
 }
 
 /** A port's market at equilibrium, with a little seeded variety so ports don't look identical. */
@@ -127,17 +111,26 @@ export function trades(market: Market, good: GoodId): boolean {
 
 /** Mid price of one unit of `good` when the port holds `stock` of it. */
 export function midPrice(good: GoodId, stock: number): number {
-  const factor = Math.pow(REFERENCE_STOCK / Math.max(stock, 1), PRICE_ELASTICITY);
-  return GOOD_DEFS[good].basePrice * clamp(factor, PRICE_FLOOR, PRICE_CEILING);
+  const m = marketTuning();
+  const factor = Math.pow(m.referenceStock / Math.max(stock, 1), m.elasticity);
+  return GOOD_DEFS[good].basePrice * clamp(factor, m.floor, m.ceiling);
 }
 
 /** What the player pays for the next unit (whole gold). */
-export function unitBuyPrice(good: GoodId, stock: number, spread = SPREAD): number {
+export function unitBuyPrice(
+  good: GoodId,
+  stock: number,
+  spread = knobs(undefined).spread,
+): number {
   return Math.max(1, Math.ceil(midPrice(good, stock) * (1 + spread)));
 }
 
 /** What the player gets for the next unit (whole gold). */
-export function unitSellPrice(good: GoodId, stock: number, spread = SPREAD): number {
+export function unitSellPrice(
+  good: GoodId,
+  stock: number,
+  spread = knobs(undefined).spread,
+): number {
   return Math.max(1, Math.floor(midPrice(good, stock) * (1 - spread)));
 }
 
@@ -164,7 +157,7 @@ export function quoteSell(market: Market, good: GoodId, qty: number): number {
 
 /** Stocks drift back toward equilibrium (production refills, the town consumes). */
 export function stepMarket(market: Market, dt: number): void {
-  const k = 1 - Math.exp(-dt / RECOVERY_SECONDS);
+  const k = 1 - Math.exp(-dt / marketTuning().recoverySeconds);
   for (const g of GOODS) {
     market.stock[g] += (market.equilibrium[g] - market.stock[g]) * k;
   }

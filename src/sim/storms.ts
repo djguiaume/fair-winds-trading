@@ -1,3 +1,4 @@
+import { TUNING } from '../data/tuning';
 import { DEG, TAU, clamp } from './math';
 import { createRng } from './rng';
 
@@ -30,10 +31,12 @@ export interface Storm {
   dy: number;
 }
 
-/** Share of the radius that is the core, where the storm is at full force. */
-export const STORM_CORE = 0.35;
-/** Seconds a storm takes to build up and to die down. */
-const STORM_RAMP = 60;
+/*
+ * `src/data/tuning/weather.json` › `storms` (decision 0094): `coreShare` of the radius is the
+ * core, where the storm is at full force; it takes `rampSec` seconds to build up and to die down;
+ * its wind spirals in toward the centre at `inflowDeg` rather than going round in circles.
+ */
+const stormTuning = () => TUNING.weather.storms;
 
 interface Track {
   start: number;
@@ -82,7 +85,7 @@ export function stormsAt(config: StormConfig, seed: number, t: number, from = 0)
     const tr = track(config, seed, k);
     if (t < tr.start || t > tr.end || tr.start < from) continue;
     const age = t - tr.start;
-    const ramp = clamp(Math.min(age, tr.end - t) / STORM_RAMP, 0, 1);
+    const ramp = clamp(Math.min(age, tr.end - t) / stormTuning().rampSec, 0, 1);
     out.push({
       id: k,
       x: tr.sx + tr.dx * config.speed * age,
@@ -100,7 +103,7 @@ export function stormsAt(config: StormConfig, seed: number, t: number, from = 0)
 export function stormStrength(storm: Storm, x: number, y: number): number {
   const d = Math.hypot(x - storm.x, y - storm.y) / storm.radius;
   if (d >= 1) return 0;
-  const k = clamp((1 - d) / (1 - STORM_CORE), 0, 1);
+  const k = clamp((1 - d) / (1 - stormTuning().coreShare), 0, 1);
   return storm.intensity * k * k * (3 - 2 * k);
 }
 
@@ -110,9 +113,6 @@ export function stormRain(storm: Storm, x: number, y: number): number {
   const k = clamp((1 - d) / 0.35, 0, 1);
   return storm.intensity * k * k * (3 - 2 * k);
 }
-
-/** Inflow angle: storm wind spirals in toward the centre rather than going round in circles. */
-const INFLOW = 20 * DEG;
 
 /**
  * Bearing the storm wind blows FROM at a spot: it circles the centre anticlockwise (seen from
@@ -125,8 +125,9 @@ export function stormWindFrom(storm: Storm, x: number, y: number): number {
   // Anticlockwise tangent, turned toward the centre.
   const tx = -ry / d,
     ty = rx / d;
-  const c = Math.cos(INFLOW),
-    s = Math.sin(INFLOW);
+  const inflow = stormTuning().inflowDeg * DEG;
+  const c = Math.cos(inflow),
+    s = Math.sin(inflow);
   const toX = tx * c - (rx / d) * s,
     toY = ty * c - (ry / d) * s;
   // FROM is the opposite of the way it blows.

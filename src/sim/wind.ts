@@ -1,3 +1,4 @@
+import { TUNING } from '../data/tuning';
 import { islandCoasts } from './islandLayout';
 import { coastDistance } from './coast';
 import type { IslandDef, TerrainDef } from './map';
@@ -80,24 +81,10 @@ export interface WindConfig {
 
 /**
  * Phase 2 weather: a new wind every 3 minutes that wanders round the compass, and regions of the
- * sea where it blows from a different angle at the same moment.
+ * sea where it blows from a different angle at the same moment. Live numbers of
+ * `src/data/tuning/weather.json` › `default` (decision 0094).
  */
-export const DEFAULT_WEATHER: WeatherConfig = {
-  periodSec: 180,
-  blendSec: 60,
-  stepDeg: 75,
-  revert: 0.12,
-  strength: [0.8, 1.15],
-  regions: { bendDeg: 40, strength: 0.15, sizeUnits: 400, driftSec: 900 },
-  kinds: {
-    breeze: { weight: 0.5, strength: [0.8, 1.15], rain: 0, gusts: 1 },
-    calm: { weight: 0.17, strength: [0.35, 0.55], rain: 0, gusts: 0.6 },
-    rain: { weight: 0.18, strength: [0.95, 1.2], rain: 0.7, gusts: 1.6 },
-    gale: { weight: 0.15, strength: [1.35, 1.55], rain: 0.15, gusts: 1.6 },
-  },
-  persist: 0.35,
-  storms: { everySec: 600, radius: 95, speed: 3.2, areaRadius: 440 },
-};
+export const DEFAULT_WEATHER: WeatherConfig = TUNING.weather.default;
 
 interface Slot {
   offsetDeg: number;
@@ -289,7 +276,7 @@ export function windAt(
     if (k <= 0) continue;
     const turn = wrapAngle(stormWindFrom(s, pos.x, pos.y) - from);
     from += turn * Math.min(1, k * 1.1);
-    speedKn *= 1 + STORM_GAIN * k;
+    speedKn *= 1 + TUNING.weather.storms.windGain * k;
     storm = Math.max(storm, k);
   }
   if (out) {
@@ -302,9 +289,6 @@ export function windAt(
   return { from: wrapPositive(from), speedKn };
 }
 
-/** How much a storm core adds to the wind (×1.9 at full force). */
-export const STORM_GAIN = 0.9;
-
 /** Compass bearing the wind blows TOWARD. */
 export function windTo(wind: Wind): number {
   return wrapPositive(wind.from + Math.PI);
@@ -312,14 +296,18 @@ export function windTo(wind: Wind): number {
 
 // --- Islands change the wind: lee shadow and flank funnel (decision 0027) -----------------------------------------------
 
-/** How far downwind (units) an island still calms the wind. */
-export const SHADOW_LENGTH = 70;
-/** Largest share of the wind a tall island takes away right behind its shore. */
-export const SHADOW_DEPTH = 0.55;
+/*
+ * `src/data/tuning/weather.json` › `islands` (decision 0094): `shadowLength`, how far downwind
+ * (units) an island still calms the wind; `shadowDepth`, the largest share of the wind a tall
+ * island takes away right behind its shore; `shadowSpreadDeg`, ray spread either side of straight
+ * upwind, so the lee fades in instead of switching on; `funnelGain`, the largest boost beside an
+ * island's flank (a narrow channel between two islands gets it fully); `funnelReach`, how far to
+ * the side (units) land still speeds the wind up. A storm core adds `storms.windGain` to the wind
+ * (×1.9 at full force).
+ */
+const islandWind = () => TUNING.weather.islands;
 /** Sample spacing along each upwind ray (units). */
 const SHADOW_STEP = 7;
-/** Ray spread either side of straight upwind, so the lee fades in instead of switching on. */
-const SHADOW_SPREAD = 10 * DEG;
 
 /** Land that blocks wind: high islands only; flat sandbanks let it through. */
 export interface WindBlocker {
@@ -400,20 +388,17 @@ function rayShelter(
   dirX: number,
   dirY: number,
 ): number {
-  for (let s = SHADOW_STEP; s <= SHADOW_LENGTH; s += SHADOW_STEP) {
+  const length = islandWind().shadowLength;
+  for (let s = SHADOW_STEP; s <= length; s += SHADOW_STEP) {
     const px = x + dirX * s,
       py = y + dirY * s;
     let best = 0;
     for (const b of blockers) if (b.height > best && isLand(b, px, py)) best = b.height;
-    if (best > 0) return best * (1 - (s - SHADOW_STEP) / SHADOW_LENGTH);
+    if (best > 0) return best * (1 - (s - SHADOW_STEP) / length);
   }
   return 0;
 }
 
-/** Largest boost beside an island's flank; a narrow channel between two islands gets it fully. */
-export const FUNNEL_GAIN = 0.2;
-/** How far to the side (units) land still speeds the wind up. */
-const FUNNEL_REACH = 28;
 const FUNNEL_STEP = 7;
 /** Side rays, measured from straight upwind: ahead of the beam and abeam. */
 const FUNNEL_ANGLES = [60 * DEG, 90 * DEG];
@@ -426,15 +411,16 @@ function sideProximity(
   side: 1 | -1,
 ): number {
   let best = 0;
+  const reach = islandWind().funnelReach;
   for (const angle of FUNNEL_ANGLES) {
     const d = bearingVector(from + side * angle);
-    for (let s = FUNNEL_STEP; s <= FUNNEL_REACH; s += FUNNEL_STEP) {
+    for (let s = FUNNEL_STEP; s <= reach; s += FUNNEL_STEP) {
       const px = pos.x + d.x * s,
         py = pos.y + d.y * s;
       let h = 0;
       for (const b of blockers) if (b.height > h && isLand(b, px, py)) h = b.height;
       if (h > 0) {
-        best = Math.max(best, h * (1 - (s - FUNNEL_STEP) / FUNNEL_REACH));
+        best = Math.max(best, h * (1 - (s - FUNNEL_STEP) / reach));
         break;
       }
     }
@@ -460,7 +446,8 @@ export function windEffectAt(
   wind: Wind,
 ): WindEffect {
   let total = 0;
-  for (const spread of [-SHADOW_SPREAD, 0, SHADOW_SPREAD]) {
+  const spreadAngle = islandWind().shadowSpreadDeg * DEG;
+  for (const spread of [-spreadAngle, 0, spreadAngle]) {
     const d = bearingVector(wind.from + spread);
     total += rayShelter(blockers, pos.x, pos.y, d.x, d.y);
   }
@@ -489,6 +476,9 @@ export function shelterAt(
 export function localWind(sea: Wind, effect: WindEffect): Wind {
   return {
     from: sea.from,
-    speedKn: sea.speedKn * (1 - SHADOW_DEPTH * effect.shelter) * (1 + FUNNEL_GAIN * effect.funnel),
+    speedKn:
+      sea.speedKn *
+      (1 - islandWind().shadowDepth * effect.shelter) *
+      (1 + islandWind().funnelGain * effect.funnel),
   };
 }

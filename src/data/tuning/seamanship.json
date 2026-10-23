@@ -1,0 +1,33 @@
+{
+  "boat": {
+    "knotToUnits": 1.6,
+    "overpoweredKn": 21,
+    "referenceBreezeKn": 14
+  },
+  "hazards": {
+    "shallowWidth": 14,
+    "shallowDrag": 0.6,
+    "strikeDamage": 6,
+    "crashSafeKn": 2,
+    "crashDamage": 5,
+    "leakPenalty": 0.25
+  },
+  "harbour": {
+    "dockRange": 16,
+    "dockSpeedKn": 1.5,
+    "undockMargin": 6,
+    "brake": 1.6,
+    "moorMaxKn": 3,
+    "mooredKn": 0.2,
+    "waypointRadius": 12
+  },
+  "cargo": {
+    "overpressedKn": 19.5,
+    "heavySeconds": 3,
+    "lurchGustKn": 4,
+    "lurchPressKn": 18,
+    "lurchCooldown": 3,
+    "pressAverageSec": 4,
+    "pressHysteresisKn": 0.6
+  }
+}

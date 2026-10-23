@@ -1,6 +1,6 @@
 import { trueWindAngle } from '../sim/boat';
 import { DEG, bearingTo, distance, wrapPositive } from '../sim/math';
-import { type PointOfSail, pointOfSail } from '../sim/ship';
+import { type PointOfSail, noGoAngle, pointOfSail } from '../sim/ship';
 import { hullCondition } from '../sim/hazards';
 import { windTo } from '../sim/wind';
 import { WIND_FORCES, createWindGauge, updateWindGauge } from '../sim/windStrength';
@@ -395,10 +395,10 @@ export class Hud {
     // Rotations every frame (cheap attribute writes), text ~8 times a second.
     const rot = (el: HTMLElement, rad: number) =>
       el.setAttribute('transform', `rotate(${(rad / DEG).toFixed(1)})`);
-    if (this.noGoAngle !== ship.noGoAngle) {
-      this.noGoAngle = ship.noGoAngle;
-      const x = 40 * Math.sin(ship.noGoAngle);
-      const y = -40 * Math.cos(ship.noGoAngle);
+    if (this.noGoAngle !== noGoAngle(ship)) {
+      this.noGoAngle = noGoAngle(ship);
+      const x = 40 * Math.sin(this.noGoAngle);
+      const y = -40 * Math.cos(this.noGoAngle);
       this.cNoGo.firstElementChild!.setAttribute('d', `M0 0 L${-x} ${y} A40 40 0 0 1 ${x} ${y} Z`);
     }
     rot(this.cNoGo, wind.from);
@@ -416,7 +416,7 @@ export class Hud {
     if (this.objName.textContent !== targetName) this.objName.textContent = targetName;
 
     const twa = trueWindAngle(boat.heading, wind);
-    const irons = Math.abs(twa) < ship.noGoAngle;
+    const irons = Math.abs(twa) < noGoAngle(ship);
     const cue = windFeedback(this.ironsTime, dt, {
       inNoGo: irons,
       sailsRaised: boat.sailStep > 0 && boat.sail > 0.05,

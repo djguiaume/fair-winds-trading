@@ -8,12 +8,15 @@ import { HULL_DIMENSIONS, HULL_SCALE } from '../src/sim/hullShape';
 import {
   createTradeState,
   distanceToPort,
-  DOCK_RANGE,
   portInRange,
   stepTrade,
   tryDock,
-  UNDOCK_MARGIN,
 } from '../src/sim/trade';
+import { TUNING } from '../src/data/tuning';
+
+// Tuning values moved to src/data/tuning (decision 0094).
+const DOCK_RANGE = TUNING.seamanship.harbour.dockRange;
+const UNDOCK_MARGIN = TUNING.seamanship.harbour.undockMargin;
 
 describe('real hull harbour clearance', () => {
   it('uses heading, bow/stern length and beam rather than a boat-centre circle', () => {

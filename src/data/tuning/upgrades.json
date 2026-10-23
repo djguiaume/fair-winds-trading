@@ -1,0 +1,13 @@
+{
+  "effects": {
+    "sailsSpeed": [1, 1.08, 1.16],
+    "sailsAccel": [1, 1.15, 1.3],
+    "holdCapacity": [1, 1.6, 2.2],
+    "hullSpeed": [1, 1.02, 1.04],
+    "hullDurability": [100, 150, 220]
+  },
+  "homePortLevel": {
+    "2": 2,
+    "3": 3
+  }
+}

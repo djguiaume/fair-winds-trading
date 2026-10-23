@@ -1,3 +1,5 @@
+import { TUNING } from '../data/tuning';
+
 /**
  * Wind strength the player can read (decision 0040): five named steps for the wind the boat
  * feels, with a little hysteresis so gusts near a boundary don't make the gauge flicker, and a
@@ -10,22 +12,26 @@ export type WindForce = 0 | 1 | 2 | 3 | 4;
 export const WIND_FORCES = ['calm', 'light', 'breeze', 'fresh', 'strong'] as const;
 export type WindForceName = (typeof WIND_FORCES)[number];
 
-/** Lower bound in knots of forces 1..4 (calm is everything below 7 kn). */
-export const FORCE_THRESHOLDS_KN: readonly number[] = [7, 11, 15, 19];
-/** Knots the wind must move past a boundary before the step changes. */
-export const FORCE_HYSTERESIS_KN = 0.6;
+/*
+ * `src/data/tuning/weather.json` › `force` (decision 0094): `thresholdsKn`, the lower bound in
+ * knots of forces 1..4 (calm is everything below 7 kn); `hysteresisKn`, knots the wind must move
+ * past a boundary before the step changes; the gust cue stays up `gustHoldSec` seconds once the
+ * wind is `gustJumpKn` above its recent average, taken over `averageSec` seconds.
+ */
+const force = () => TUNING.weather.force;
 
 /** Force for a wind speed, without memory. */
 export function windForce(speedKn: number): WindForce {
   let f = 0;
-  for (const t of FORCE_THRESHOLDS_KN) if (speedKn >= t) f++;
+  for (const t of force().thresholdsKn) if (speedKn >= t) f++;
   return f as WindForce;
 }
 
 /** Force for a wind speed, staying on `previous` until the speed is clearly past a boundary. */
 export function windForceSticky(speedKn: number, previous: WindForce): WindForce {
-  const lo = previous > 0 ? FORCE_THRESHOLDS_KN[previous - 1]! - FORCE_HYSTERESIS_KN : -Infinity;
-  const hi = previous < 4 ? FORCE_THRESHOLDS_KN[previous]! + FORCE_HYSTERESIS_KN : Infinity;
+  const { thresholdsKn, hysteresisKn } = force();
+  const lo = previous > 0 ? thresholdsKn[previous - 1]! - hysteresisKn : -Infinity;
+  const hi = previous < 4 ? thresholdsKn[previous]! + hysteresisKn : Infinity;
   return speedKn >= lo && speedKn < hi ? previous : windForce(speedKn);
 }
 
@@ -33,13 +39,6 @@ export function windForceSticky(speedKn: number, previous: WindForce): WindForce
 export function windStrength01(speedKn: number): number {
   return Math.min(1, Math.max(0, (speedKn - 5) / 16));
 }
-
-/** Seconds the gust cue stays up. */
-const GUST_HOLD = 1.6;
-/** Knots above the recent average that count as a gust. */
-const GUST_JUMP_KN = 1.4;
-/** Time constant (s) of the recent average. */
-const AVERAGE_TAU = 5;
 
 export interface WindGauge {
   force: WindForce;
@@ -55,8 +54,9 @@ export function createWindGauge(speedKn: number): WindGauge {
 
 /** Advance the gauge by `dt` seconds with the wind the boat feels now. */
 export function updateWindGauge(g: WindGauge, speedKn: number, dt: number): WindGauge {
-  const k = 1 - Math.exp(-dt / AVERAGE_TAU);
+  const { averageSec, gustJumpKn, gustHoldSec } = force();
+  const k = 1 - Math.exp(-dt / averageSec);
   const average = g.average + (speedKn - g.average) * k;
-  const gust = speedKn - average >= GUST_JUMP_KN ? GUST_HOLD : Math.max(0, g.gust - dt);
+  const gust = speedKn - average >= gustJumpKn ? gustHoldSec : Math.max(0, g.gust - dt);
   return { force: windForceSticky(speedKn, g.force), average, gust };
 }

@@ -1,18 +1,22 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { PHASE0_MAP, PHASE1_MAP } from '../src/data/maps';
-import { createBoat, stepBoat, KNOT_TO_UNITS } from '../src/sim/boat';
+import { createBoat, stepBoat } from '../src/sim/boat';
 import { islandCoasts, islandPoint } from '../src/sim/islandLayout';
 import { coastDistance, insetOutline } from '../src/sim/coast';
 import { resolveCollisions } from '../src/sim/collision';
 import type { MapDef, TerrainDef } from '../src/sim/map';
 import { DEG, bearingTo, clamp, wrapAngle } from '../src/sim/math';
-import { SLOOP, CUTTER, polarFraction } from '../src/sim/ship';
+import { SLOOP, CUTTER, noGoAngle, polarFraction } from '../src/sim/ship';
 import { applySave, serializeWorld, validateSave } from '../src/sim/save';
 import { createWorld } from '../src/sim/world';
 import { buildHighlandIslands, terrainProps } from '../src/render/models/highlandIslands';
 import { triangleCount } from '../src/render/models/geometry';
 import { Ocean } from '../src/render/ocean';
+import { TUNING } from '../src/data/tuning';
+
+// Tuning values moved to src/data/tuning (decision 0094).
+const KNOT_TO_UNITS = TUNING.seamanship.boat.knotToUnits;
 
 const terrain = PHASE1_MAP.terrain!;
 const square: TerrainDef = {
@@ -320,7 +324,7 @@ function route(
     for (const [dx, dy] of dirs) {
       const q = { x: p.x + dx! * STEP, y: p.y + dy! * STEP };
       const angle = Math.abs(wrapAngle(bearingTo(p, q) - windDeg * DEG));
-      if (angle < SLOOP.noGoAngle + 10 * DEG) continue;
+      if (angle < noGoAngle(SLOOP) + 10 * DEG) continue;
       const length = Math.hypot(q.x - p.x, q.y - p.y),
         samples = Math.ceil(length / 3);
       let free = true;

@@ -25,10 +25,10 @@ Being pressed too hard for 3 s under full sail (a gale or a storm; never the bre
 
 `src/sim/market.ts`. Each port holds a stock of each good.
 
-- **Mid price** = `basePrice × (REFERENCE_STOCK / stock) ^ PRICE_ELASTICITY`, clamped to `PRICE_FLOOR`…`PRICE_CEILING` × base.
-- **Buy** = mid × (1 + `SPREAD`), rounded up. **Sell** = mid × (1 − `SPREAD`), rounded down.
+- **Mid price** = `basePrice × (referenceStock / stock) ^ elasticity`, clamped to `floor`…`ceiling` × base (`economy.json` › `market`).
+- **Buy** = mid × (1 + `spread`), rounded up. **Sell** = mid × (1 − `spread`), rounded down. The spread is set by the difficulty level (6 % on Captain).
 - Each unit is priced after the previous one moved the stock, so large orders slide.
-- Stocks drift back to their **equilibrium** (by role) with time constant `RECOVERY_SECONDS`.
+- Stocks drift back to their **equilibrium** (by role) with time constant `recoverySeconds`.
 
 Typical prices with the current numbers (gold per unit, first unit):
 
@@ -43,30 +43,32 @@ Typical prices with the current numbers (gold per unit, first unit):
 
 `src/sim/contracts.ts`, decision [0028](decisions/0028-delivery-contracts.md). Each port has one order for a good it wants: 4–8 units while the hold is small, then up to 60 % of the hold of the ship sailed when the order is posted ([0046](decisions/0046-phase-1-economy-tuning.md)); reward = units × base price × (1.5 + haul / 700), rounded to 5, where haul is the distance from the nearest other port making the good. Deliver while docked (all units at once); the goods leave the hold without changing the market. The port posts its next order 90 s later. Typical first orders on the Windward Ring: 7 stone to Port Calda for 310 gold, 7 grain to Saltmere for 165.
 
-**Help orders** ([0069](decisions/0069-help-orders.md)): one order at a time becomes a help order. It is posted by the home port while an upgrade waits on its level, otherwise by the discovered town that has stalled the longest. It pays `HELP_REWARD_FACTOR` (1.5) times the reward and `HELP_GROWTH_FACTOR` (2) times the growth. It stays a help order until delivered, and the next one waits `HELP_COOLDOWN` (240 s).
+**Help orders** ([0069](decisions/0069-help-orders.md)): one order at a time becomes a help order. It is posted by the home port while an upgrade waits on its level, otherwise by the discovered town that has stalled the longest. It pays `helpRewardFactor` (1.5) times the reward and `helpGrowthFactor` (2) times the growth. It stays a help order until delivered, and the next one waits `helpCooldown` (240 s).
 
 ## Tuning knobs
 
-| Knob | File | Value | Raise it to… |
+Every number lives in `src/data/tuning/` ([0094](decisions/0094-tuning-moved-to-data.md)); the sim reads it live from `TUNING`, and `src/data/tuning-meta.ts` says what each one does, its range and unit.
+
+| Knob | File › path | Value | Raise it to… |
 |---|---|---|---|
-| `basePrice` per good | `goods.ts` | 8 / 10 / 14 / 18 | make a good worth more everywhere |
-| `REFERENCE_STOCK` | `market.ts` | 30 | stock at which a good trades at base price |
-| `EQUILIBRIUM` | `market.ts` | makes 100, wants 12, neither 30 | widen (makes ↑, wants ↓) the gap between cheap and dear ports |
-| `PRICE_ELASTICITY` | `market.ts` | 0.8 | make prices react more to stock (bigger margins, faster slide) |
-| `SPREAD` | `market.ts` | 6 % | make the port's cut bigger |
-| `RECOVERY_SECONDS` | `market.ts` | 75 s | make a hammered route stay poor for longer |
-| `CONTRACT_PRICE_FACTOR`, `CONTRACT_DISTANCE_SCALE` | `contracts.ts` | 1.5, 700 | make orders pay more (or long hauls pay more) |
-| `CONTRACT_QTY`, `CONTRACT_HOLD_SHARE`, `CONTRACT_COOLDOWN` | `contracts.ts` | 4–8, 60 % of hold, 90 s | make orders bigger, or come back sooner |
-| `REPAIR_COST`, `STRIKE_DAMAGE` | `hazards.ts` | 2 gold/pt, 6 pts/kn | make reef strikes cost more |
-| `START_GOLD` | `trade.ts` | 150 | start richer |
-| `DOCK_RANGE`, `DOCK_SPEED_KN` | `trade.ts` | 14 units, 1.5 kn | make docking easier |
-| `UPGRADE_EFFECTS` | `upgrades.ts` | see below | make upgrades stronger |
-| `GROWTH_TO_LEVEL`, `ORDER_GROWTH_BONUS` | `settlement.ts` | 40 / 150 / 350 pts, +5 per order | make towns grow faster |
-| `STALL_SECONDS`, `STALL_DECAY_PER_MINUTE` | `settlement.ts` | 180 s, 2 pts/min | make neglect hurt more |
-| `WANTS_EQUILIBRIUM`, `PRODUCES_EQUILIBRIUM`, `ORDER_SCALE` | `settlement.ts` | 15/12/10/8, 85/100/115/130, ×0.8–1.5 | make level-ups change the market more |
-| `SPECIALTY_SHARE` | `settlement.ts` | 40 % | make workshops stock more specialty goods |
-| `UPGRADE_NEEDS_LEVEL` | `settlement.ts` | level 2 upgrades: village, level 3: town | gate upgrades on the home port's size |
-| `hold`, `price`, `upgradePrices` | `ship.ts` | per class | change capacity and costs |
+| `basePrice` per good | `goods.json` | 8 / 10 / 14 / 18 | make a good worth more everywhere |
+| `referenceStock` | `economy.json` › `market` | 30 | stock at which a good trades at base price |
+| `equilibrium` | `economy.json` › `market` | makes 100, wants 12, neither 30 | widen (makes ↑, wants ↓) the gap between cheap and dear ports |
+| `elasticity` | `economy.json` › `market` | 0.8 | make prices react more to stock (bigger margins, faster slide) |
+| `spread` | `difficulty.json` › `levels` | 2 / 6 / 11 % | make the port's cut bigger |
+| `recoverySeconds` | `economy.json` › `market` | 75 s | make a hammered route stay poor for longer |
+| `orderFactor`, `distanceScale` | `difficulty.json` › `levels`, `economy.json` › `orders` | 1.5 on Captain, 700 | make orders pay more (or long hauls pay more) |
+| `qty`, `holdShare`, `cooldown` | `economy.json` › `orders` | 4–8, 60 % of hold, 90 s | make orders bigger, or come back sooner |
+| `repairCost`, `strikeDamage` | `difficulty.json` › `levels`, `seamanship.json` › `hazards` | 2 gold/pt on Captain, 6 pts/kn | make reef strikes cost more |
+| `startGold` | `difficulty.json` › `levels` | 150 on Captain | start richer |
+| `dockRange`, `dockSpeedKn` | `seamanship.json` › `harbour` | 16 units, 1.5 kn | make docking easier |
+| `effects` | `upgrades.json` | see below | make upgrades stronger |
+| `growthToLevel`, `orderGrowthBonus` | `economy.json` › `towns` | 40 / 150 / 350 pts, +5 per order | make towns grow faster |
+| `stallSeconds`, `stallDecayPerMinute` | `economy.json` › `towns` | 180 s, 2 pts/min | make neglect hurt more |
+| `wantsEquilibrium`, `producesEquilibrium`, `orderScale` | `economy.json` › `towns` | 15/12/10/8, 85/100/115/130, ×0.8–1.5 | make level-ups change the market more |
+| `specialtyShare` | `economy.json` › `towns` | 40 % | make workshops stock more specialty goods |
+| `homePortLevel` | `upgrades.json` | level 2 upgrades: village, level 3: town | gate upgrades on the home port's size |
+| `hold`, `price`, `upgradePrices` | `ships.json` | per class | change capacity and costs |
 
 ## Balance targets
 
