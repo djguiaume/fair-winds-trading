@@ -19,7 +19,7 @@ Two languages: English (`src/i18n/en.ts`, source) and French (`src/i18n/fr.ts`).
    recherché"), and colon workarounds ("produit : {good}", "sa nouvelle scierie produit :
    Planches !").
 2. **Wrong or landlubber sailing words**: _fumerie_ (opium den) → _fumoir_; _taillerie_ (gems) →
-   _atelier de taille de pierre_; _boussole_ → _rose des vents_; _zigzaguez_ → _tirez des bords_;
+   _atelier de taille de pierre_; _boussole_ → _girouette_; _zigzaguez_ → _tirez des bords_;
    _écartez-vous du vent_ → _abattez_; _Face au vent_ → _Vent debout_; _angle mort_ → _zone de vent
    debout_; _abri_ → _à l'abri_; _Loch à la mer_ → _Instruments de bord_; Schooner → _Goélette_;
    Fluyt → _Flûte_; line _Cargo_ → _Transport_, _Guerre_ → _Navire de guerre_; _Huile de lampe_ →

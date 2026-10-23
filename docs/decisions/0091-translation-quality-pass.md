@@ -31,20 +31,22 @@ complete (513 in both languages, placeholders matching); the problems were quali
    price boards and signs keep the plain name. Workshop names carry their own article ("un fumoir",
    "une scierie") so their gender never breaks the sentence. Strings that would need agreement with
    a capitalised level name are rephrased ("Nouveau rang pour Saltmere : Village !").
-2. **Real French marine vocabulary**, since the audience is sailors first: _rose des vents_, _tirer
-   des bords_, _abattez_, _vent debout_, _à l'abri_, _instruments de bord_, _réduire la toile_,
-   _Goélette_, _Flûte_, _Transport_ / _Navire de guerre_ lines, _fumoir_, _atelier de taille de
-   pierre_, _huile à lampe_, and Beaufort names for the wind force (petite brise, jolie brise,
-   bonne brise, vent frais, matching the 7 / 11 / 15 / 19 kn thresholds). One word per thing:
-   _quai_, _or_ (pièces stays in Kids mode), _nd_, _navire_ in Captain mode, _zone de vent debout_.
+2. **Real French marine vocabulary**, since the audience is sailors first: _girouette_ for the wind
+   dial (picked by Guillaume: it shows where the wind comes from, which a _rose des vents_ does not;
+   the dial letters N/E/S/O are now translated too), _tirer des bords_, _abattez_, _vent debout_, _à
+   l'abri_, _instruments de bord_, _réduire la toile_, _Goélette_, _Flûte_, _Transport_ / _Navire de
+   guerre_ lines, _fumoir_, _atelier de taille de pierre_, _huile à lampe_, and Beaufort names for
+   the wind force (petite brise, jolie brise, bonne brise, vent frais, matching the 7 / 11 / 15 / 19
+   kn thresholds). One word per thing: _quai_, _or_ (pièces stays in Kids mode), _nd_, _navire_ in
+   Captain mode, _zone de vent debout_.
 3. **French typography**: a no-break space (U+00A0) before `! ? : ; %`, enforced by a test.
 4. **English**: sentence case everywhere (Kids mode included), "In irons", "Drying bank",
    "Standard" difficulty wording, "Need {n} more" instead of "Need {n}g".
 
-French tagline (picked by Guillaume): "Prenez le vent. Livrez la marchandise." (Guillaume found the first proposal, "Jouez avec le
-vent. Livrez la marchandise.", odd). Taste calls made without asking, easy to revert one string at
-a time: _rose des vents_ rather than _girouette_, _Heu_ kept for the hoy,
-_Vaisseau des Indes_ kept for the indiaman.
+French tagline (picked by Guillaume): "Prenez le vent. Livrez la marchandise." (Guillaume found the
+first proposal, "Jouez avec le vent. Livrez la marchandise.", odd). Taste calls made without asking,
+easy to revert one string at a time: _Heu_ kept for the hoy, _Vaisseau des Indes_ kept for the
+indiaman.
 
 ## Consequences
 

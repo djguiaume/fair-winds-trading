@@ -80,6 +80,10 @@ describe('translations (decision 0037)', () => {
     expect(document.getElementById('sail-lever')!.getAttribute('aria-label')).toBe(fr['hud.sails']);
     expect(document.getElementById('help')!.textContent).toContain(fr['help.windCopy']);
     expect(document.getElementById('settings')!.textContent).toContain(fr['settings.speedLog']);
+    // The wind compass letters follow the language: W is O in French.
+    expect(
+      document.querySelector('#wind-help-trigger .cardinal[data-i18n="compass.W"]')!.textContent,
+    ).toBe('O');
   });
 
   it('runs the harbour, kids mode, chart and tutorial in French', () => {

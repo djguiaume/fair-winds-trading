@@ -285,11 +285,11 @@ export const fr: Record<MessageKey, string> = {
   'workshop.cutStone': 'un atelier de taille de pierre',
 
   // --- Boussole et conseils de louvoyage -----------------------------------------------------
-  'wind.compass': 'Rose des vents. Ouvrir les conseils de navigation',
-  'wind.compassUpwind': 'Rose des vents. Vent debout. Ouvrir les conseils de navigation',
+  'wind.compass': 'Girouette. Ouvrir les conseils de navigation',
+  'wind.compassUpwind': 'Girouette. Vent debout. Ouvrir les conseils de navigation',
   'wind.chip': 'Vent debout ⓘ',
-  'wind.hint': 'Touchez la rose des vents pour des conseils',
-  'wind.dismissHint': 'Masquer le conseil de la rose des vents',
+  'wind.hint': 'Touchez la girouette pour des conseils',
+  'wind.dismissHint': 'Masquer le conseil de la girouette',
   'wind.helpTitle': 'Remonter au vent',
   'wind.helpCopy': 'Abattez pour remplir les voiles. Tirez des bords pour remonter au vent.',
   'wind.diagramTitle': 'Louvoyer pour remonter au vent',
@@ -298,7 +298,7 @@ export const fr: Record<MessageKey, string> = {
   'wind.diagramWind': 'Vent',
   'wind.diagramZigzag': 'Bords',
   'wind.helpNote':
-    'Passer par la zone de vent debout pendant un virement de bord est normal. La rose des vents redevient normale dès que les voiles portent à nouveau.',
+    'Passer par la zone de vent debout pendant un virement de bord est normal. La girouette se stabilise dès que les voiles portent à nouveau.',
   'wind.helpClose': 'Reprendre la navigation',
   'wind.gust': 'rafale',
   'windForce.calm': 'Calme',
@@ -342,7 +342,7 @@ export const fr: Record<MessageKey, string> = {
   'chart.keyNorth': 'Nord en haut',
   'chart.localWind': 'Vent à votre bateau',
   'chart.pauseHelp':
-    'La navigation et la météo sont en pause sur la carte. La rose des vents indique le vent à votre bateau.',
+    'La navigation et la météo sont en pause sur la carte. La girouette indique le vent à votre bateau.',
   'chart.bearingHelp':
     'Un cap ne garantit pas le passage. Évitez les terres et louvoyez face au vent.',
   'chart.gestures': 'Glissez pour explorer · + / − pour zoomer.',
