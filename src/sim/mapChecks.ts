@@ -1,10 +1,10 @@
-import { KNOT_TO_UNITS } from './boat';
+import { knotToUnits } from './boat';
 import { coastDistance } from './coast';
 import { isGood } from './goods';
 import { islandCoasts, islandPoint } from './islandLayout';
 import type { IslandDef, MapDef, PortDef } from './map';
 import { DEG, bearingTo, wrapAngle } from './math';
-import { CUTTER, SLOOP, polarFraction } from './ship';
+import { CUTTER, SLOOP, noGoAngle, polarFraction } from './ship';
 
 /**
  * Map checks (decision 0095): the rules the map tests apply to the Windward Ring, written for any
@@ -101,7 +101,7 @@ export function sailRoute(
     prev = new Map<string, string>();
   const points = new Map<string, Point>([[key(first), first]]);
   const heuristic = (p: Point) =>
-    Math.hypot(p.x - last.x, p.y - last.y) / (14 * SLOOP.speedRatio * KNOT_TO_UNITS);
+    Math.hypot(p.x - last.x, p.y - last.y) / (14 * SLOOP.speedRatio * knotToUnits());
   const queue = [{ p: first, cost: 0, priority: heuristic(first) }];
   while (queue.length) {
     queue.sort((a, b) => b.priority - a.priority);
@@ -127,7 +127,7 @@ export function sailRoute(
     for (const [dx, dy] of DIRS) {
       const q = { x: p.x + dx * STEP, y: p.y + dy * STEP };
       const angle = Math.abs(wrapAngle(bearingTo(p, q) - windDeg * DEG));
-      if (angle < SLOOP.noGoAngle + 10 * DEG) continue;
+      if (angle < noGoAngle(SLOOP) + 10 * DEG) continue;
       const length = Math.hypot(q.x - p.x, q.y - p.y),
         samples = Math.ceil(length / 3);
       let free = true;
@@ -145,7 +145,7 @@ export function sailRoute(
         }
       if (!free) continue;
       const next =
-        cost + length / (14 * SLOOP.speedRatio * polarFraction(SLOOP, angle) * KNOT_TO_UNITS);
+        cost + length / (14 * SLOOP.speedRatio * polarFraction(SLOOP, angle) * knotToUnits());
       const nk = key(q);
       if (next >= (dist.get(nk) ?? Infinity)) continue;
       dist.set(nk, next);

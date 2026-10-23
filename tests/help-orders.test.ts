@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
-import {
-  HELP_COOLDOWN,
-  HELP_GROWTH_FACTOR,
-  deliverContract,
-  helpPortId,
-  readContracts,
-  syncHelpOrder,
-} from '../src/sim/contracts';
-import { ORDER_GROWTH_BONUS, STALL_SECONDS, addGrowth } from '../src/sim/settlement';
+import { deliverContract, helpPortId, readContracts, syncHelpOrder } from '../src/sim/contracts';
+import { addGrowth } from '../src/sim/settlement';
 import { SLOOP } from '../src/sim/ship';
 import { stepTrade } from '../src/sim/trade';
 import { type World, createWorld } from '../src/sim/world';
+import { TUNING } from '../src/data/tuning';
+
+// Tuning values moved to src/data/tuning (decision 0094).
+const HELP_COOLDOWN = TUNING.economy.orders.helpCooldown;
+const HELP_GROWTH_FACTOR = TUNING.economy.orders.helpGrowthFactor;
+const ORDER_GROWTH_BONUS = TUNING.economy.towns.orderGrowthBonus;
+const STALL_SECONDS = TUNING.economy.towns.stallSeconds;
 
 /** Help orders from neglected towns and a home port that holds back an upgrade (decision 0069). */
 

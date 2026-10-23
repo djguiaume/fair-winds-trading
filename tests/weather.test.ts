@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
-import { KNOT_TO_UNITS, OVERPOWERED_KN, drivingWind } from '../src/sim/boat';
+import { drivingWind } from '../src/sim/boat';
 import { DEG, bearingVector, wrapAngle } from '../src/sim/math';
 import { SLOOP } from '../src/sim/ship';
-import { type Storm, STORM_CORE, stormStrength, stormsAt } from '../src/sim/storms';
+import { type Storm, stormStrength, stormsAt } from '../src/sim/storms';
 import {
   DEFAULT_WEATHER,
   type LocalWeather,
@@ -15,10 +15,6 @@ import {
   withoutStorms,
 } from '../src/sim/wind';
 import {
-  HEAVY_SECONDS,
-  LURCH_GUST_KN,
-  LURCH_PRESS_KN,
-  OVERPRESSED_KN,
   type PressLevel,
   type World,
   type WorldEvent,
@@ -31,6 +27,16 @@ import {
 import type { MapDef } from '../src/sim/map';
 import { Tutorial } from '../src/sim/tutorial';
 import { stockLevels } from '../src/sim/upgrades';
+import { TUNING } from '../src/data/tuning';
+
+// Tuning values moved to src/data/tuning (decision 0094).
+const HEAVY_SECONDS = TUNING.seamanship.cargo.heavySeconds;
+const KNOT_TO_UNITS = TUNING.seamanship.boat.knotToUnits;
+const LURCH_GUST_KN = TUNING.seamanship.cargo.lurchGustKn;
+const LURCH_PRESS_KN = TUNING.seamanship.cargo.lurchPressKn;
+const OVERPOWERED_KN = TUNING.seamanship.boat.overpoweredKn;
+const OVERPRESSED_KN = TUNING.seamanship.cargo.overpressedKn;
+const STORM_CORE = TUNING.weather.storms.coreShare;
 
 const STORMS = DEFAULT_WEATHER.storms!;
 const seed = PHASE1_MAP.seed;

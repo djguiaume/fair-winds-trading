@@ -1,3 +1,4 @@
+import { TUNING } from '../data/tuning';
 import { clamp } from './math';
 
 /**
@@ -6,13 +7,11 @@ import { clamp } from './math';
  * A pure function of game time like the weather, so a resumed voyage is at the same hour.
  */
 
-/** Seconds of play per game day. */
-export const DAY_SECONDS = 720;
-
-/** Where each part of the day ends, in seconds from 7 o'clock in the morning. */
-export const DAY_END = 420;
-export const DUSK_END = 480;
-export const NIGHT_END = 660;
+/*
+ * `src/data/tuning/weather.json` › `daylight` (decision 0094): `daySeconds` of play per game day,
+ * and where each part of the day ends (`dayEnd`, `duskEnd`, `nightEnd`), in seconds from 7 o'clock
+ * in the morning.
+ */
 
 export interface Daylight {
   /** Clock time 0..24, for a clock or a sun/moon icon. */
@@ -32,15 +31,20 @@ const smooth = (k: number) => {
   return x * x * (3 - 2 * x);
 };
 
-/** Clock hours at the start of each segment (day, dusk, night, dawn) and at the end of the day. */
-const SEGMENTS: [start: number, end: number, fromHour: number, toHour: number][] = [
-  [0, DAY_END, 7, 19],
-  [DAY_END, DUSK_END, 19, 21],
-  [DUSK_END, NIGHT_END, 21, 29],
-  [NIGHT_END, DAY_SECONDS, 29, 31],
-];
-
 export function daylightAt(t: number): Daylight {
+  const {
+    daySeconds: DAY_SECONDS,
+    dayEnd: DAY_END,
+    duskEnd: DUSK_END,
+    nightEnd: NIGHT_END,
+  } = TUNING.weather.daylight;
+  // Clock hours at the start of each segment (day, dusk, night, dawn) and at the end of the day.
+  const SEGMENTS: [start: number, end: number, fromHour: number, toHour: number][] = [
+    [0, DAY_END, 7, 19],
+    [DAY_END, DUSK_END, 19, 21],
+    [DUSK_END, NIGHT_END, 21, 29],
+    [NIGHT_END, DAY_SECONDS, 29, 31],
+  ];
   const s = ((t % DAY_SECONDS) + DAY_SECONDS) % DAY_SECONDS;
   const [a, b, h0, h1] = SEGMENTS.find(([, end]) => s < end) ?? SEGMENTS[SEGMENTS.length - 1]!;
   const hour = (h0 + ((s - a) / (b - a)) * (h1 - h0)) % 24;

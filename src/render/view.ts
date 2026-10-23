@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { trueWindAngle } from '../sim/boat';
+import { noGoAngle } from '../sim/ship';
 import { DEG, approach, bearingVector, clamp, wrapAngle } from '../sim/math';
 import { windTo } from '../sim/wind';
 import { windStrength01 } from '../sim/windStrength';
-import { WAYPOINT_RADIUS, type World, currentWaypoint } from '../sim/world';
-import { KNOT_TO_UNITS } from '../sim/boat';
+import { type World, currentWaypoint } from '../sim/world';
+import { TUNING } from '../data/tuning';
 import {
   type BoatModel,
   type ShipUpgrades,
@@ -316,11 +317,11 @@ export class GameView {
     const abs = Math.abs(twa);
     const lee = twa > 0 ? -1 : 1;
     const boomMag = (12 + clamp((abs / DEG - 45) / 135, 0, 1) * 68) * DEG;
-    const luff = 1 - clamp((abs - ship.noGoAngle * 0.8) / (ship.noGoAngle * 0.3), 0, 1);
+    const luff = 1 - clamp((abs - noGoAngle(ship) * 0.8) / (noGoAngle(ship) * 0.3), 0, 1);
     const heel = this.heel.update(
       {
         twa,
-        noGoAngle: ship.noGoAngle,
+        noGoAngle: noGoAngle(ship),
         windKn: wind.speedKn,
         sail: boat.sail,
         luff,
@@ -358,13 +359,13 @@ export class GameView {
       this.target,
       to.x,
       -to.y,
-      wind.speedKn * KNOT_TO_UNITS * 0.75,
+      wind.speedKn * TUNING.seamanship.boat.knotToUnits * 0.75,
       windStrength01(wind.speedKn),
     );
     const { weather } = this.world;
     this.stormClouds.update(weather.storms, time);
     // Showers fall everywhere; a storm's downpour only under its cloud.
-    const kn = wind.speedKn * KNOT_TO_UNITS * 0.6;
+    const kn = wind.speedKn * TUNING.seamanship.boat.knotToUnits * 0.6;
     this.rain.update(
       dt,
       this.target,
@@ -397,7 +398,11 @@ export class GameView {
     if (this.buoy.root.visible) {
       const wp = currentWaypoint(this.world);
       toScene(wp.x, wp.y, this.buoy.root.position);
-      this.buoy.update(time, waveHeight(wp.x, -wp.y, time), WAYPOINT_RADIUS);
+      this.buoy.update(
+        time,
+        waveHeight(wp.x, -wp.y, time),
+        TUNING.seamanship.harbour.waypointRadius,
+      );
     }
 
     this.renderer.render(this.scene, this.camera);

@@ -1,16 +1,15 @@
-import { REFERENCE_BREEZE_KN, topSpeedKn } from '../sim/boat';
+import { TUNING } from '../data/tuning';
+import { topSpeedKn } from '../sim/boat';
 import { type Contract, deliverContract, openContracts } from '../sim/contracts';
 import { GOODS, GOOD_DEFS, GOOD_ICONS, type GoodId } from '../sim/goods';
 import { hullCondition, repairHull, repairPrice } from '../sim/hazards';
 import { goodRole, quoteAcross, quoteBuy, quoteSell, trades, type Market } from '../sim/market';
-import { DEG } from '../sim/math';
 import {
   growthProgress,
   portTownGate,
   madeGoods,
   producesAt,
   settlementLevel,
-  STALL_SECONDS,
   upgradeNeedsLevel,
   wantsAt,
 } from '../sim/settlement';
@@ -400,7 +399,7 @@ export class TradePanel {
       s.level >= 4
         ? level
         : t(
-            s.sinceSupply > STALL_SECONDS && s.growth > 0
+            s.sinceSupply > TUNING.economy.towns.stallSeconds && s.growth > 0
               ? 'settlement.stalling'
               : 'settlement.growing',
             {
@@ -899,7 +898,7 @@ export class TradePanel {
             </div>
             <div class="ship-specs">
               <div>${t('fleet.hold', { n: holdCapacity(cls, levels) })}</div>
-              <div>${t('fleet.points', { deg: Math.round(cls.noGoAngle / DEG) })}</div>
+              <div>${t('fleet.points', { deg: cls.noGoDeg })}</div>
               <div>${t('fleet.speed', { kn: speed })}</div>
             </div>
             <div class="ship-action">
@@ -914,7 +913,7 @@ export class TradePanel {
         <div class="ships-grid">
           ${offers.map(card).join('')}
         </div>
-        <p class="muted small speed-note">${t('upg.speedNote', { wind: REFERENCE_BREEZE_KN })}</p>
+        <p class="muted small speed-note">${t('upg.speedNote', { wind: TUNING.seamanship.boat.referenceBreezeKn })}</p>
     `;
   }
 

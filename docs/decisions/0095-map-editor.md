@@ -4,7 +4,7 @@
 
 ## Context
 
-[0093](0093-data-driven-content-and-authoring-tools.md) decided that Guillaume edits the game himself, and that the map gets an editor page next to the model sheet: drag islands, ports, waypoints and coastline points, edit port properties, run the map checks the tests run, play the edited map and export the JSON. The map is already data (`src/data/phase1-map.json`), so the editor needs nothing from the parallel "tuning to data" work (0094, in progress).
+[0093](0093-data-driven-content-and-authoring-tools.md) decided that Guillaume edits the game himself, and that the map gets an editor page next to the model sheet: drag islands, ports, waypoints and coastline points, edit port properties, run the map checks the tests run, play the edited map and export the JSON. The map is already data (`src/data/phase1-map.json`), so the editor needs nothing from the parallel "tuning to data" work ([0094](0094-tuning-moved-to-data.md)).
 
 Three things in the code shaped the design:
 

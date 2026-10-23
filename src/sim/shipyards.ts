@@ -1,3 +1,4 @@
+import { TUNING } from '../data/tuning';
 import type { MapDef, PortDef } from './map';
 import { distance } from './math';
 import { SHIP_CLASSES, type ShipClass } from './ship';
@@ -10,9 +11,6 @@ import type { TradeState } from './trade';
  * discovers it; delivering its orders earns standing, and enough standing puts a class on sale.
  * Plain data, saved with the voyage.
  */
-
-/** Sailing within this distance (units) of a hidden port's shore puts it on the chart. */
-export const DISCOVER_RANGE = 90;
 
 export interface ShipyardProgress {
   /** Port ids on the chart: the map's open ports from the start, hidden ones once found. */
@@ -74,7 +72,7 @@ export function discoverNear(
   for (const port of map.ports) {
     if (isDiscovered(trade, port.id)) continue;
     const island = map.islands.find((i) => i.id === port.islandId);
-    if (island && distance(pos, island) - island.radius <= DISCOVER_RANGE) {
+    if (island && distance(pos, island) - island.radius <= TUNING.economy.discoverRange) {
       trade.progress.discovered.push(port.id);
       found.push(port);
     }

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
-import { KNOT_TO_UNITS } from '../src/sim/boat';
 import { deliverContract, stepContracts, syncHelpOrder } from '../src/sim/contracts';
 import { GOODS, type GoodId } from '../src/sim/goods';
 import { damageHull, repairHull } from '../src/sim/hazards';
@@ -24,6 +23,10 @@ import {
 } from '../src/sim/trade';
 import { type UpgradeTrack, effectiveShip, upgradePrice } from '../src/sim/upgrades';
 import { createWorld } from '../src/sim/world';
+import { TUNING } from '../src/data/tuning';
+
+// Tuning values moved to src/data/tuning (decision 0094).
+const KNOT_TO_UNITS = TUNING.seamanship.boat.knotToUnits;
 
 /**
  * Phase 1 balance on the Windward Ring (decision 0046). Two simulated captains trade for 40

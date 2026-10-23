@@ -1,9 +1,20 @@
-import { type ShipClass, polarFraction } from './ship';
+import { TUNING } from '../data/tuning';
+import { type ShipClass, noGoAngle, polarFraction, turnRate } from './ship';
 import { type Wind, windTo } from './wind';
 import { type Vec2, approach, bearingVector, clamp, wrapAngle, wrapPositive } from './math';
 
-/** Game-world units travelled per second at 1 knot. Arcade scale: boats feel brisk. */
-export const KNOT_TO_UNITS = 1.6;
+/*
+ * `src/data/tuning/seamanship.json` › `boat` (decision 0094): `knotToUnits`, game-world units
+ * travelled per second at 1 knot (arcade scale: boats feel brisk); `overpoweredKn`, above which
+ * more wind barely adds speed, the crew spills it (decision 0067); `referenceBreezeKn`, the wind
+ * used to quote a ship's top speed in the shipyard, the Windward Ring's normal breeze (0075).
+ */
+const boatTuning = () => TUNING.seamanship.boat;
+
+/** Game-world units travelled per second at 1 knot. */
+export function knotToUnits(): number {
+  return boatTuning().knotToUnits;
+}
 
 /** Discrete sail settings the player switches between (furled, half, full). */
 export const SAIL_STEPS = [0, 0.5, 1] as const;
@@ -54,20 +65,15 @@ export function trueWindAngle(heading: number, wind: Wind): number {
   return wrapAngle(wind.from - heading);
 }
 
-/** Above this wind (knots) more wind barely adds speed: the crew spills it (decision 0067). */
-export const OVERPOWERED_KN = 21;
-
-/** Wind that drives the boat: all of it up to `OVERPOWERED_KN`, a quarter of anything above. */
+/** Wind that drives the boat: all of it up to `overpoweredKn`, a quarter of anything above. */
 export function drivingWind(speedKn: number): number {
-  return speedKn <= OVERPOWERED_KN ? speedKn : OVERPOWERED_KN + (speedKn - OVERPOWERED_KN) * 0.25;
+  const over = boatTuning().overpoweredKn;
+  return speedKn <= over ? speedKn : over + (speedKn - over) * 0.25;
 }
 
-/** Wind used to quote a ship's top speed in the shipyard: the Windward Ring's normal breeze
- * (decision 0075). */
-export const REFERENCE_BREEZE_KN = 14;
-
-/** Top speed (knots) on the best point of sail, full sails, in `windKn` of true wind. */
-export function topSpeedKn(ship: ShipClass, windKn = REFERENCE_BREEZE_KN): number {
+/** Top speed (knots) on the best point of sail, full sails, in `windKn` of true wind (by default
+ * the shipyard's reference breeze). */
+export function topSpeedKn(ship: ShipClass, windKn = boatTuning().referenceBreezeKn): number {
   return drivingWind(windKn) * ship.speedRatio;
 }
 
@@ -102,12 +108,12 @@ export function stepBoat(
   boat.rudder = approach(boat.rudder, clamp(controls.steer, -1, 1), 10, dt);
   const flow = clamp(boat.speedKn / ship.steerageSpeedKn, 0, 1);
   const steerage = ship.minSteerage + (1 - ship.minSteerage) * flow;
-  boat.heading = wrapPositive(boat.heading + boat.rudder * ship.turnRate * steerage * dt);
+  boat.heading = wrapPositive(boat.heading + boat.rudder * turnRate(ship) * steerage * dt);
 
   // Speed eases toward the polar target; coasting is slow so you carry way through a tack.
   const twa = Math.abs(trueWindAngle(boat.heading, wind));
   const target = targetSpeed(ship, boat.heading, wind, boat.sail);
-  const inIrons = twa < ship.noGoAngle;
+  const inIrons = twa < noGoAngle(ship);
   const rate = boat.speedKn < target ? ship.accel : inIrons ? ship.ironsDecel : ship.decel;
   boat.speedKn = approach(boat.speedKn, target, rate, dt);
   boat.speedKn *= Math.exp(-Math.abs(boat.rudder) * ship.turnDrag * dt);
@@ -119,7 +125,8 @@ export function stepBoat(
   boat.drift.y = approach(boat.drift.y, to.y * push, 0.8, dt);
 
   const dir = bearingVector(boat.heading);
-  boat.x += (dir.x * boat.speedKn + boat.drift.x) * KNOT_TO_UNITS * dt;
-  boat.y += (dir.y * boat.speedKn + boat.drift.y) * KNOT_TO_UNITS * dt;
+  const scale = knotToUnits();
+  boat.x += (dir.x * boat.speedKn + boat.drift.x) * scale * dt;
+  boat.y += (dir.y * boat.speedKn + boat.drift.y) * scale * dt;
   boat.sinceBump += dt;
 }

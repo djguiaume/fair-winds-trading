@@ -1,9 +1,9 @@
+import { TUNING } from '../data/tuning';
 import { piersOf } from '../sim/collision';
 import { GOOD_ICONS, isGood } from '../sim/goods';
 import { islandCoasts, islandLake } from '../sim/islandLayout';
 import type { MapDef } from '../sim/map';
 import { DEG } from '../sim/math';
-import { DOCK_RANGE } from '../sim/trade';
 import type { Selection } from './model';
 import { findIsland, findShape, waypointOf } from './model';
 
@@ -132,7 +132,12 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
       // The first pier of a port island is its main one: you dock within range of its head.
       if (portIslands.has(pier.islandId) && !heads.has(pier.islandId)) {
         heads.add(pier.islandId);
-        el('circle', { cx: pier.x1, cy: -pier.y1, r: DOCK_RANGE, class: 'c-range' });
+        el('circle', {
+          cx: pier.x1,
+          cy: -pier.y1,
+          r: TUNING.seamanship.harbour.dockRange,
+          class: 'c-range',
+        });
       }
     }
   }

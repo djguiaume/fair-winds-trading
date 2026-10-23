@@ -2,15 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { PHASE0_MAP, PHASE1_MAP } from '../src/data/maps';
 import { deliverContract, makeContract } from '../src/sim/contracts';
 import { SPECIALTY_GOODS, isGood, isSpecialty } from '../src/sim/goods';
-import { EQUILIBRIUM, quoteAcross, stepMarket, topNeed, trades } from '../src/sim/market';
+import { quoteAcross, stepMarket, topNeed, trades } from '../src/sim/market';
 import { type SaveStorage, loadGame, saveGame } from '../src/sim/save';
 import {
-  GROWTH_TO_LEVEL,
   MAX_SETTLEMENT_LEVEL,
-  ORDER_GROWTH_BONUS,
-  STALL_SECONDS,
-  WANTS_EQUILIBRIUM,
-  RARE_FOR_PORT_TOWN,
   addGrowth,
   addRare,
   madeGoods,
@@ -28,6 +23,15 @@ import { SLOOP } from '../src/sim/ship';
 import { homePort } from '../src/sim/shipyards';
 import { buy, buyUpgrade, sell, stepTrade } from '../src/sim/trade';
 import { type World, createWorld, stepWorld } from '../src/sim/world';
+import { TUNING } from '../src/data/tuning';
+
+// Tuning values moved to src/data/tuning (decision 0094).
+const EQUILIBRIUM = TUNING.economy.market.equilibrium;
+const GROWTH_TO_LEVEL = TUNING.economy.towns.growthToLevel;
+const ORDER_GROWTH_BONUS = TUNING.economy.towns.orderGrowthBonus;
+const RARE_FOR_PORT_TOWN = TUNING.economy.towns.rareForPortTown;
+const STALL_SECONDS = TUNING.economy.towns.stallSeconds;
+const WANTS_EQUILIBRIUM = TUNING.economy.towns.wantsEquilibrium;
 
 const MAP = PHASE1_MAP;
 

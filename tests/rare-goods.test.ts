@@ -6,8 +6,6 @@ import { trades } from '../src/sim/market';
 import { distance } from '../src/sim/math';
 import { type SaveStorage, loadGame, saveGame } from '../src/sim/save';
 import {
-  GROWTH_TO_LEVEL,
-  RARE_FOR_PORT_TOWN,
   addGrowth,
   madeGoods,
   portProduces,
@@ -19,6 +17,11 @@ import {
 import { SLOOP } from '../src/sim/ship';
 import { sell, stepTrade } from '../src/sim/trade';
 import { type World, createWorld } from '../src/sim/world';
+import { TUNING } from '../src/data/tuning';
+
+// Tuning values moved to src/data/tuning (decision 0094).
+const GROWTH_TO_LEVEL = TUNING.economy.towns.growthToLevel;
+const RARE_FOR_PORT_TOWN = TUNING.economy.towns.rareForPortTown;
 
 /** Rare goods from the far yards and the port town gate (decision 0065). */
 
