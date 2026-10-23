@@ -1,22 +1,26 @@
 /**
  * Tiny in-repo translation layer (decision 0037).
  *
- * - Every player-facing string lives in one dictionary per language (`en.ts` is the source of
- *   truth; other languages must define exactly the same keys, which TypeScript checks).
+ * - Every player-facing string lives in one JSON file per language (`en.json` is the source of
+ *   truth; other languages must define exactly the same keys, which TypeScript and a test check).
+ *   Editing text needs no code: see docs/i18n/README.md.
  * - `t('key', { name })` looks a string up and fills `{name}` placeholders.
  * - Static markup in index.html carries `data-i18n` attributes that `translateDom` fills.
  * - The language comes from the saved setting, else the browser, else English.
  *
- * Adding a language: copy `fr.ts`, translate it, and add one line to `LANGUAGES` below.
+ * Adding a language: copy `fr.json`, translate it, import it and add one line to `LANGUAGES` below.
  */
-import { en, type MessageKey } from './en';
-import { fr } from './fr';
+import en from './en.json';
+import frJson from './fr.json';
 
-export type { MessageKey };
+export type MessageKey = keyof typeof en;
 export type Messages = Record<MessageKey, string>;
 
+/** Typed so a key missing from `fr.json` fails the build, not just the test. */
+const fr: Messages = frJson;
+
 export const LANGUAGES = [
-  { id: 'en', name: 'English', locale: 'en-GB', messages: en as Messages },
+  { id: 'en', name: 'English', locale: 'en-GB', messages: en },
   { id: 'fr', name: 'Français', locale: 'fr-FR', messages: fr },
 ] as const;
 

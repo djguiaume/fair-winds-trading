@@ -28,8 +28,8 @@ Coordinates are **island-radius units**, harbour toward +z, x to the right seen 
 - `seed`: seeds the woods.
 - `coasts`: the main island first, then islets. They are the collision shore.
 - `lake`: optional inland water.
-- `ground`: raised ground, every edge a cliff. `"coast": 0` is that coast's ground inside the sandy beach; otherwise an `outline`. `height`, `material` (`grass` or `rock`), optional `holes`, `from`/`to`, and `"shape": "peak"` with `base` for a rock cone.
-- `lanes`: plain lanes (points `[x, z]`, smoothed; a piece shows when a standing home is near and it stays on one ground level), `"kind": "path"` (always shown, at `y`) and `"kind": "stairs"` (points `[x, z, height]`, masonry down to `base`, a landing at each bend).
+- `ground`: raised ground, every edge a cliff unless it slopes. `"coast": 0` is that coast's ground inside the sandy beach; otherwise an `outline`. `height`, `material` (`grass` or `rock`), optional `holes`, `from`/`to`, and `"shape": "peak"` with `base` for a rock cone. `slope` (a ramp's width, outward from the outline, down to the ground below) with optional `slopeEdges` (runs `[first, last]` of edge indices, edge *i* from point *i* to *i + 1*; left out, every edge slopes): [0106](../../decisions/0106-island-builder-ground-lanes-woods.md).
+- `lanes`: plain lanes (points `[x, z]`, smoothed; a piece shows when a standing home is near and it stays on one ground level or climbs a slope), `"kind": "path"` (always shown, at `y`, or along the ground when there is no `y`) and `"kind": "stairs"` (points `[x, z, height]`, masonry down to `base`, a landing at each bend).
 - `piers`: side piers `{ x, z, length, from }`. The arrival pier is the simulation's and is not in the file.
 - `props`: `{ type, x, z, turn, size, variant, shape, from, to, y, fit, clear, tags }`.
   - `turn` in degrees; `size` scales the model (landmarks take it as their own size).
@@ -39,7 +39,7 @@ Coordinates are **island-radius units**, harbour toward +z, x to the right seen 
   - `fit`: the footprint radius the checks use, when it is not the model's own. `clear`: how far round it trees are cleared (default: its footprint plus 0.1; `0` clears nothing).
   - `tags`: `workshop` (the level-3 industry the game shows when production unlocks), `windmill`, `log-yard:shore` / `log-yard:upland`, `outbuilding` (a house that is not a residence).
   - Homes are the home types (`fish-house`, `cabin`, `farmhouse`, `stone-house`, `yard-house`); their order in the file is the residence order.
-- `woods`: the seeded scatter: `tree` (`woodland-pine`, `woodland-fir`, `woodland-broadleaf`), `tries`, `area` `[x0, z0, x1, z1]`, `size`, `margin` (from cliffs, beach and lake), `spacing` and `spacingAt` (`[height, spacing]`), `clear` circles `[x, z, r]`. Homes, lanes, props and fields clear trees as the town grows.
+- `woods`: the seeded scatter: `tree` (`woodland-pine`, `woodland-fir`, `woodland-broadleaf`), `tries`, `area` `[x0, z0, x1, z1]`, `size`, `margin` (from cliffs, beach and lake), `spacing` and `spacingAt` (`[height, spacing]`), `clear` circles `[x, z, r]`, and optional painted `areas` circles `[x, z, r]` (trees then grow only inside them). Homes, lanes, props and fields clear trees as the town grows.
 
 ## Prop types
 

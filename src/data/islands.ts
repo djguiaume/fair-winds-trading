@@ -13,7 +13,10 @@ import type { IslandDef } from '../sim/map';
 export type IslandStyle = 'fish' | 'timber' | 'grain' | 'stone';
 export type Point = [number, number];
 
-/** Raised ground: every edge is a cliff. Low ground that is a coast's beach inset names the coast. */
+/**
+ * Raised ground: every edge is a cliff unless it is sloped (decision 0096 §4). Low ground that is
+ * a coast's beach inset names the coast.
+ */
 export interface GroundDef {
   /** Index of a coast whose outline, inset by the beach width, this ground covers. */
   coast?: number;
@@ -24,6 +27,10 @@ export interface GroundDef {
   /** A rock cone over the outline instead of a flat top, rising from `base`. */
   shape?: 'peak';
   base?: number;
+  /** A ramp of this width (radius units) down from the edges, outward, instead of a cliff. */
+  slope?: number;
+  /** Which edges slope, as runs of edge indices [first, last]; left out, every edge. */
+  slopeEdges?: [number, number][];
   from?: number;
   to?: number;
 }
@@ -87,6 +94,8 @@ export interface WoodsDef {
   spacingAt?: [number, number][];
   /** Circles [x, z, r] kept clear of trees. */
   clear?: [number, number, number][];
+  /** Painted circles [x, z, r] where trees may grow; left out or empty, anywhere in `area`. */
+  areas?: [number, number, number][];
 }
 
 export interface IslandDesign {
@@ -134,3 +143,29 @@ export function designOf(island: IslandDef): IslandDesign | null {
 /** Is this element present at a level? */
 export const atLevel = (e: { from?: number; to?: number }, level: number) =>
   (e.from ?? 1) <= level && level <= (e.to ?? 4);
+
+/**
+ * The island builder's play-test (decision 0105): an edited island file takes the shipped one's
+ * place for this page only. Islands are looked up by id, so the map and every model follow.
+ */
+export function useIslandDesign(design: IslandDesign) {
+  ISLAND_DESIGNS[design.id] = design;
+}
+
+/** Enough of an island file's shape to load it (the builder's checks then say what is wrong). */
+export function isIslandShape(raw: unknown): raw is IslandDesign {
+  const d = raw as IslandDesign | null;
+  return (
+    !!d &&
+    typeof d === 'object' &&
+    typeof d.id === 'string' &&
+    typeof d.style === 'string' &&
+    Array.isArray(d.coasts) &&
+    Array.isArray(d.ground) &&
+    Array.isArray(d.lanes) &&
+    Array.isArray(d.piers) &&
+    Array.isArray(d.props) &&
+    !!d.woods &&
+    typeof d.woods === 'object'
+  );
+}

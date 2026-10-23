@@ -7,7 +7,7 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   </head>
   <body>
-    <header class="ed-top">
+    <header class="ed-top" id="ed-top">
       <h1>Map editor</h1>
       <span class="ed-file"
         ><b id="ed-map-name"></b> · phase1-map.json
@@ -24,7 +24,7 @@
         <input id="ed-file" type="file" accept=".json,application/json" hidden />
       </nav>
     </header>
-    <main class="ed-main">
+    <main class="ed-main" id="ed-main">
       <aside class="ed-tools" id="ed-tools" aria-label="Tools"></aside>
       <section class="ed-chart">
         <svg id="ed-map" tabindex="0" aria-label="Map"></svg>
@@ -45,6 +45,89 @@
         </div>
       </aside>
     </main>
+    <div id="ib" class="ib" hidden>
+      <header class="ed-top">
+        <h1>Island builder</h1>
+        <span class="ed-file"
+          ><span id="ib-map-name"></span> › <b id="ib-name"></b> <span id="ib-file"></span>
+          <span id="ib-edited" hidden>· ● edited</span></span
+        >
+        <nav class="ed-actions">
+          <button id="ib-back" title="Back to the map (Esc with nothing selected)">
+            ← <span class="ib-long">Back to the map</span><span class="ib-short">Map</span>
+          </button>
+          <button id="ib-undo" title="Undo (Ctrl+Z)">↶<span class="ib-long"> Undo</span></button>
+          <button id="ib-redo" title="Redo (Ctrl+Shift+Z)">
+            ↷<span class="ib-long"> Redo</span>
+          </button>
+          <button id="ib-reset" title="Back to the island shipped with the game">Reset</button>
+          <button id="ib-import" title="Open an island .json file">Import</button>
+          <button id="ib-play" title="Open the game with this island in a new tab">
+            ▶ Play<span class="ib-long"> this island</span>
+          </button>
+          <button id="ib-export" class="primary">Export</button>
+          <input id="ib-input" type="file" accept=".json,application/json" hidden />
+        </nav>
+      </header>
+      <main class="ib-main" data-tab="props">
+        <aside class="ib-palette" aria-label="Tools">
+          <div class="ib-modes ib-seg" id="ib-modes">
+            <button data-mode="props">Props</button>
+            <button data-mode="ground">Ground</button>
+            <button data-mode="lanes">Lanes</button>
+          </div>
+          <div class="ib-selbar" id="ib-selbar" hidden></div>
+          <div class="ib-prop-tools" id="ib-prop-tools">
+            <input id="ib-search" type="search" placeholder="Find a prop…" />
+            <div class="ib-groups" id="ib-groups"></div>
+            <div class="ib-tiles" id="ib-tiles"></div>
+          </div>
+          <div class="ib-shape-tools" id="ib-shape-tools" hidden></div>
+        </aside>
+        <section class="ib-view" id="ib-view">
+          <canvas id="ib-canvas"></canvas>
+          <svg id="ib-svg" tabindex="0" aria-label="Island"></svg>
+          <div class="ib-levels">
+            <span>Level</span>
+            <div class="ib-seg" id="ib-levels"></div>
+            <label
+              ><input type="checkbox" id="ib-later" checked />
+              <span class="ib-long">Show later levels</span
+              ><span class="ib-short">Later</span></label
+            >
+          </div>
+          <div class="ed-toggles ib-toggles" id="ib-toggles"></div>
+          <div class="ed-zoom">
+            <button id="ib-zoom-in" aria-label="Zoom in">+</button>
+            <button id="ib-zoom-out" aria-label="Zoom out">−</button>
+            <button id="ib-zoom-fit" aria-label="Fit the island">⤢</button>
+          </div>
+          <p class="ed-hint" id="ib-hint"></p>
+          <div class="ib-preview-slot" id="ib-preview-corner"></div>
+        </section>
+        <aside class="ib-side">
+          <div id="ib-panel" class="ib-panel"></div>
+          <div class="ib-preview-slot" id="ib-preview-side">
+            <div class="ib-preview" id="ib-preview">
+              <canvas id="ib-preview-canvas"></canvas>
+              <span class="ib-preview-title" id="ib-preview-title">3D preview</span>
+              <span class="ib-preview-hint">drag to turn</span>
+            </div>
+          </div>
+          <div class="ib-checks">
+            <h2>Checks <small>same code as the tests</small></h2>
+            <ul id="ib-checks" class="ed-checks"></ul>
+          </div>
+        </aside>
+        <nav class="ib-tabs" id="ib-tabs">
+          <button data-tab="select">Select</button>
+          <button data-tab="props" data-mode="props">Props</button>
+          <button data-tab="props" data-mode="ground">Ground</button>
+          <button data-tab="props" data-mode="lanes">Lanes</button>
+          <button data-tab="checks">Checks <b id="ib-tab-count"></b></button>
+        </nav>
+      </main>
+    </div>
     <script type="module" src="/src/editor/editor.ts"></script>
   </body>
 </html>

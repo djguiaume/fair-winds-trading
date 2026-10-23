@@ -8,8 +8,11 @@ import {
   islandLayout,
   layoutGround,
   characterPiers,
+  crossesCliff,
+  isSloped,
   type IslandLayout,
   type IslandTheme,
+  type LandSurface,
   type Outline,
 } from '../../sim/islandLayout';
 import {
@@ -472,7 +475,7 @@ function quarry(
 const BEACH_TOP = 0.3;
 
 /** Height a prop stands at, in reference units: the ground under it, else the sand, else the sea. */
-function standHeight(layout: IslandLayout, x: number, z: number, R: number) {
+export function standHeight(layout: IslandLayout, x: number, z: number, R: number) {
   const h = layoutGround(layout, x, z, 0);
   if (h !== null) return h * R;
   return layout.coasts.some((c) => coastDistance(x, z, c).distance < 0) &&
@@ -571,26 +574,41 @@ export function designedTownParts(design: IslandDesign, R: number, level: TownLe
         s.holes,
       );
   }
+  // Sloped edges (decision 0096 §4): a ramp down from the top, outward, to the ground below.
+  for (const s of layout.surfaces)
+    if (s.slope && s.shape !== 'peak')
+      out.push(ramp(layout, s, R, s.material === 'grass' ? C.grass : stone ? C.cut : C.rock2));
   for (const lane of design.lanes) {
     if (lane.kind === 'stairs') stairs(out, lane, R);
     else if (lane.kind === 'path') {
       const path = new THREE.CatmullRomCurve3(
         lane.points.map(([x, z]) => new THREE.Vector3(x, 0, z)),
       );
-      const p = path.getSpacedPoints(25);
+      // At a fixed height, or along the ground: up slopes, never across a cliff or water.
+      const p = path.getSpacedPoints(
+        lane.y === undefined ? Math.ceil(path.getLength() / 0.03) : 25,
+      );
       for (let i = 1; i < p.length; i++) {
         const a = p[i - 1]!,
           b = p[i]!;
+        const len = a.distanceTo(b) * R;
+        const g = paint(
+          new THREE.PlaneGeometry(len + 0.02, R * 0.055).rotateX(-Math.PI / 2),
+          '#c1af7c',
+        );
+        let y = lane.y;
+        if (y === undefined) {
+          const ha = layoutGround(layout, a.x, a.z),
+            hb = layoutGround(layout, b.x, b.z);
+          if (ha === null || hb === null || crossesCliff(layout, a.x, a.z, b.x, b.z)) continue;
+          y = (ha + hb) / 2;
+          g.rotateZ(Math.atan2((hb - ha) * R, len));
+        }
         put(
           out,
-          [
-            paint(
-              new THREE.PlaneGeometry(a.distanceTo(b) * R + 0.02, R * 0.055).rotateX(-Math.PI / 2),
-              '#c1af7c',
-            ),
-          ],
+          [g],
           ((a.x + b.x) * R) / 2,
-          (lane.y ?? 0) * R + 0.015,
+          y * R + 0.015,
           ((a.z + b.z) * R) / 2,
           -Math.atan2(b.z - a.z, b.x - a.x),
         );
@@ -665,13 +683,17 @@ export function designedTownParts(design: IslandDesign, R: number, level: TownLe
       if (h === null || !active.some((p) => Math.hypot(p.x - x, p.z - z) < 0.3)) continue;
       const ha = layoutGround(layout, a.x, a.z, 0.025),
         hb = layoutGround(layout, b.x, b.z, 0.025);
-      if (ha !== h || hb !== h) continue;
+      // On one level, or climbing a slope (never across a cliff).
+      const flat = ha === h && hb === h;
+      if (!flat && (ha === null || hb === null || crossesCliff(layout, a.x, a.z, b.x, b.z)))
+        continue;
       clearedLanes.push({ x, z });
       const len = a.distanceTo(b) * R;
       const g = paint(
         new THREE.PlaneGeometry(len + 0.01, R * 0.04).rotateX(-Math.PI / 2).translate(0, 0.012, 0),
         '#c1af7c',
       );
+      if (!flat) g.rotateZ(Math.atan2((hb! - ha!) * R, len));
       put(out, [g], x * R, h * R, z * R, -Math.atan2(b.z - a.z, b.x - a.x));
     }
   }
@@ -743,6 +765,7 @@ export function designedTownParts(design: IslandDesign, R: number, level: TownLe
       clearedLanes.some((p) => Math.hypot(p.x - x, p.z - z) < 0.09) ||
       occupied.some((p) => Math.hypot(p.x - x, p.z - z) < p.clear) ||
       fields.some((p) => Math.abs(p.x - x) < 0.22 && Math.abs(p.z - z) < 0.22) ||
+      (woods.areas?.length && !woods.areas.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r)) ||
       (Math.abs(x - 0.08) < 0.14 && z > 0.45) ||
       woods.clear?.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r)
     )
@@ -751,6 +774,60 @@ export function designedTownParts(design: IslandDesign, R: number, level: TownLe
     put(out, tree, x * R, h * R, z * R, yaw, woods.size);
   }
   return out.map(withoutUndersides);
+}
+
+/**
+ * The ramp of a sloped outline: a band from each sloped edge's top, outward by the slope's
+ * width, down to the ground below, with a fan at each bend between two sloped edges.
+ */
+function ramp(layout: IslandLayout, s: LandSurface, R: number, color: string) {
+  const o = s.outline;
+  const w = s.slope!;
+  let area = 0;
+  for (let i = 0; i < o.length; i++) {
+    const a = o[i]!,
+      b = o[(i + 1) % o.length]!;
+    area += a[0] * b[1] - b[0] * a[1];
+  }
+  const out = area > 0 ? -1 : 1;
+  const normal = (i: number) => {
+    const a = o[i % o.length]!,
+      b = o[(i + 1) % o.length]!;
+    const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    return [((b[1] - a[1]) / l) * out, (-(b[0] - a[0]) / l) * out] as const;
+  };
+  const foot = (x: number, z: number) => (layoutGround(layout, x, z) ?? 0) * R;
+  const positions: number[] = [];
+  const v = (x: number, y: number, z: number) => positions.push(x * R, y, z * R);
+  /** One triangle, wound to face up. */
+  const tri = (p: number[], q: number[], r: number[]) => {
+    const up = (q[0]! - p[0]!) * (r[2]! - p[2]!) - (q[2]! - p[2]!) * (r[0]! - p[0]!) < 0;
+    for (const [x, y, z] of up ? [p, q, r] : [p, r, q]) v(x!, y!, z!);
+  };
+  const top = s.height * R;
+  for (let i = 0; i < o.length; i++) {
+    if (!isSloped(s, i)) continue;
+    const a = o[i]!,
+      b = o[(i + 1) % o.length]!;
+    const [nx, nz] = normal(i);
+    const fa = [a[0] + nx * w, a[1] + nz * w],
+      fb = [b[0] + nx * w, b[1] + nz * w];
+    const A = [a[0], top, a[1]],
+      B = [b[0], top, b[1]],
+      FA = [fa[0]!, foot(fa[0]!, fa[1]!), fa[1]!],
+      FB = [fb[0]!, foot(fb[0]!, fb[1]!), fb[1]!];
+    tri(A, B, FB);
+    tri(A, FB, FA);
+    // The bend to the next edge, when it slopes too: a fan round the corner.
+    if (isSloped(s, (i + 1) % o.length)) {
+      const [mx, mz] = normal(i + 1);
+      const fc = [b[0] + mx * w, b[1] + mz * w];
+      tri(B, FB, [fc[0]!, foot(fc[0]!, fc[1]!), fc[1]!]);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  return paint(g, color);
 }
 
 /** Stairs over a cliff: treads on full masonry down to `base`, a landing at each bend. */
