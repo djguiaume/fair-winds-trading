@@ -128,7 +128,7 @@ function pickKind(weather: WeatherConfig, previous: WeatherKind, roll: number, r
 }
 
 /** Offsets of every period so far, per seed and config: the walk is a running sum. */
-const walks = new WeakMap<WeatherConfig, Map<number, Slot[]>>();
+let walks = new WeakMap<WeatherConfig, Map<number, Slot[]>>();
 
 function slotRng(seed: number, slot: number) {
   return createRng((seed ^ Math.imul(slot, 0x9e3779b1)) >>> 0);
@@ -221,7 +221,7 @@ export function regionAt(
   };
 }
 
-const stormless = new WeakMap<WeatherConfig, WeatherConfig>();
+let stormless = new WeakMap<WeatherConfig, WeatherConfig>();
 
 /** The same weather without moving storms, for players who turn them off (decision 0067). Cached
  * so the weather walk keeps its cache. */
@@ -231,7 +231,17 @@ export function withoutStorms(weather: WeatherConfig): WeatherConfig {
   return calm;
 }
 
-const steadied = new WeakMap<WeatherConfig, WeatherConfig>();
+let steadied = new WeakMap<WeatherConfig, WeatherConfig>();
+
+/**
+ * Forget the cached weather walks and derived configs. They are keyed by config object, so a
+ * value changed in place by the `?tune` panel (decision 0114) would otherwise never be seen.
+ */
+export function clearWeatherCaches(): void {
+  walks = new WeakMap();
+  stormless = new WeakMap();
+  steadied = new WeakMap();
+}
 
 /**
  * A steady breeze for players who turn the weather off (decision 0067): no calm, rain or gale

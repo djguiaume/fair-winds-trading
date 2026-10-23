@@ -79,7 +79,12 @@ export function easier(a: Difficulty, b: Difficulty): Difficulty {
  * Bounded by `stepDeg` / `revert` (±20°); usually within about ±10°. Numbers in
  * `difficulty.json` › `steadyWind`.
  */
-const derived = new WeakMap<WeatherConfig, Map<string, WeatherConfig>>();
+let derived = new WeakMap<WeatherConfig, Map<string, WeatherConfig>>();
+
+/** Forget the derived weathers after a `?tune` edit (decision 0114). */
+export function clearDifficultyWeatherCache(): void {
+  derived = new WeakMap();
+}
 
 /**
  * The map's weather as a difficulty level and the Wind setting shape it. Cached per input, so the

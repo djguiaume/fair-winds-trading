@@ -72,7 +72,7 @@ Every number lives in `src/data/tuning/` ([0094](decisions/0094-tuning-moved-to-
 
 ## Balance targets
 
-`tests/economy-balance.test.ts` ([0046](decisions/0046-phase-1-economy-tuning.md)) simulates 40 minutes on the Windward Ring, with leg times from the ship polars over the shifting wind (45–100 s per sloop leg plus 20 s in port). It fails when tuning breaks these targets:
+`tests/economy-balance.test.ts` ([0046](decisions/0046-phase-1-economy-tuning.md)) simulates 40 minutes on the Windward Ring, with leg times from the ship polars over the shifting wind (45–100 s per sloop leg plus 20 s in port). The simulation is `src/sim/balance.ts` and the targets are in `src/data/balance-targets.json` ([0114](decisions/0114-tuning-panel-and-balance-check.md)); the `?tune` panel runs the same check on edited values. It fails when tuning breaks these targets:
 
 | Milestone | Sharp captain (best load every leg) | Relaxed captain (40 % slower, often 2nd/3rd best load, a crash every 5 legs) |
 |---|---|---|

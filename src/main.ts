@@ -1,6 +1,14 @@
 import { renderDifficultyButtons, renderLevelCards } from './ui/levelCards';
 import { PHASE1_MAP } from './data/maps';
 import { EDITED_PREFIX, editedMap, prefixedStorage } from './data/editedMap';
+import {
+  TUNE_LINK_KEY,
+  TUNE_PREFIX,
+  applyChanges,
+  decodeTuneCode,
+  loadTuneChanges,
+  saveTuneChanges,
+} from './data/tuningEdits';
 import { Input } from './input/input';
 import { FrameMonitor, type QualityLevel, guessQuality, lowerQuality } from './render/quality';
 import { GameView } from './render/view';
@@ -96,8 +104,30 @@ const browserStorage: SaveStorage | null = (() => {
 })();
 // "Play this map" from the map editor (decision 0095): its own map, save and tutorial progress.
 const playtestMap = editedMap(location.search, browserStorage);
-const storage =
+// The `?tune` panel (decision 0114): the edits kept in this browser apply before the world is
+// built, and tune mode sails its own test voyage so the real one is never touched. A shared link
+// (`?tune#tune=…`) asks before it replaces them.
+const tuneMode = new URLSearchParams(location.search).has('tune');
+if (tuneMode) {
+  const shared = location.hash.includes(`#${TUNE_LINK_KEY}=`)
+    ? decodeTuneCode(location.hash)
+    : null;
+  if (shared) {
+    const n = Object.keys(shared).length;
+    if (
+      window.confirm(
+        `Load ${n} tuning change${n === 1 ? '' : 's'} from this link? They replace the tuning in this browser.`,
+      )
+    )
+      saveTuneChanges(browserStorage, shared);
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+  applyChanges(loadTuneChanges(browserStorage));
+}
+const voyageStorage =
   playtestMap && browserStorage ? prefixedStorage(browserStorage, EDITED_PREFIX) : browserStorage;
+const storage =
+  tuneMode && voyageStorage ? prefixedStorage(voyageStorage, TUNE_PREFIX) : voyageStorage;
 const world = createWorld(playtestMap ?? PHASE1_MAP, SLOOP);
 if (playtestMap) {
   document.title = `Edited map · ${document.title}`;
@@ -794,6 +824,22 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 frame = requestAnimationFrame(tick);
+
+// The tuning panel loads only in tune mode, as its own chunk: players never download it.
+if (tuneMode) {
+  void import('./tune/tunePanel').then(({ openTunePanel }) =>
+    openTunePanel({
+      world,
+      storage: browserStorage,
+      gameUrl: () => location.origin + location.pathname,
+      newVoyage: () => {
+        leaving = true;
+        if (storage) clearSave(storage);
+        location.reload();
+      },
+    }),
+  );
+}
 
 // `?debug` exposes the game objects in the console (used by screenshot scripts too). Until the
 // trade panel lands, trading works from there, e.g. `fwt.trade.buy(fwt.world.trade, 'fish', 5)`.
