@@ -101,8 +101,25 @@ export function drawOverlay(svg: SVGSVGElement, s: OverlayScene) {
       class: 'i-approach',
     });
 
-  if (s.mode !== 'props') drawShapes(s, el, label);
-  else if (s.showLater)
+  // Check marks: red errors, amber warnings, at this level or any. With the ground and lane
+  // tools they sit under the outlines and let clicks through, so a point under one can be fixed.
+  const marks = () => {
+    for (const issue of s.issues) {
+      if (!issue.at || (issue.level !== undefined && issue.level !== s.level)) continue;
+      const g = el('g', {
+        class: `i-mark ${issue.severity}${s.mode === 'props' ? '' : ' passive'}`,
+        'data-hit': issue.prop !== undefined && s.mode === 'props' ? `prop:${issue.prop}` : 'sea',
+      });
+      el('circle', { cx: issue.at[0], cy: issue.at[1], r: 8 * u }, g);
+      const t = el('text', { x: issue.at[0], y: issue.at[1] + 4.5 * u, 'font-size': 12 * u }, g);
+      t.textContent = '!';
+      g.append(title(issue.message));
+    }
+  };
+  if (s.mode !== 'props') {
+    marks();
+    drawShapes(s, el, label);
+  } else if (s.showLater)
     for (const i of s.later)
       el('polygon', {
         points: pts(s.hull(i)),
@@ -120,18 +137,7 @@ export function drawOverlay(svg: SVGSVGElement, s: OverlayScene) {
         'data-hit': `prop:${i}`,
       }).append(title(propName(s.design.props[i]!.type)));
 
-  // Check marks: red errors, amber warnings, at this level or any.
-  for (const issue of s.issues) {
-    if (!issue.at || (issue.level !== undefined && issue.level !== s.level)) continue;
-    const g = el('g', {
-      class: `i-mark ${issue.severity}`,
-      'data-hit': issue.prop !== undefined && s.mode === 'props' ? `prop:${issue.prop}` : 'sea',
-    });
-    el('circle', { cx: issue.at[0], cy: issue.at[1], r: 8 * u }, g);
-    const t = el('text', { x: issue.at[0], y: issue.at[1] + 4.5 * u, 'font-size': 12 * u }, g);
-    t.textContent = '!';
-    g.append(title(issue.message));
-  }
+  if (s.mode === 'props') marks();
 
   if (s.mode === 'props' && s.selection !== null && s.design.props[s.selection]) {
     const i = s.selection;

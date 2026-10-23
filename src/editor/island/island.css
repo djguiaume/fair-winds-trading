@@ -307,6 +307,10 @@
   fill: rgba(255, 106, 85, 0.3);
   stroke: var(--red);
 }
+.i-mark.passive {
+  pointer-events: none;
+  opacity: 0.8;
+}
 .i-mark {
   cursor: pointer;
 }
