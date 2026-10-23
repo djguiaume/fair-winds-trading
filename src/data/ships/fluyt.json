@@ -1,0 +1,115 @@
+{
+  "id": "fluyt",
+  "name": "Fluyt",
+  "line": "hauler",
+  "tier": 2,
+  "unlock": {
+    "standing": 3,
+    "price": 7000,
+    "upgradePrices": [2000, 6000]
+  },
+  "sailing": {
+    "noGoDeg": 55,
+    "polar": [
+      [0, 0],
+      [55, 0.35],
+      [65, 0.6],
+      [80, 0.82],
+      [105, 0.95],
+      [135, 1],
+      [160, 0.97],
+      [180, 0.9]
+    ],
+    "speedRatio": 0.5,
+    "accel": 0.34,
+    "decel": 0.2,
+    "ironsDecel": 1.1,
+    "turnRateDeg": 46,
+    "minSteerage": 0.3,
+    "steerageSpeedKn": 5,
+    "turnDrag": 0.22,
+    "leeway": 0.055,
+    "radius": 8.5,
+    "draft": 1.5,
+    "hold": 60,
+    "heel": 0.6
+  },
+  "hull": {
+    "length": 11.5,
+    "beam": 3.5,
+    "depth": 1.8,
+    "outline": [
+      [0, 0.5],
+      [0.26, 0.45],
+      [0.42, 0.32],
+      [0.5, 0.12],
+      [0.5, -0.1],
+      [0.44, -0.3],
+      [0.32, -0.44],
+      [0.2, -0.5],
+      [-0.2, -0.5],
+      [-0.32, -0.44],
+      [-0.44, -0.3],
+      [-0.5, -0.1],
+      [-0.5, 0.12],
+      [-0.42, 0.32],
+      [-0.26, 0.45]
+    ],
+    "rings": [
+      {
+        "t": 0,
+        "beam": 1,
+        "length": 1
+      },
+      {
+        "t": 0.28,
+        "beam": 1.16,
+        "length": 0.99
+      },
+      {
+        "t": 0.62,
+        "beam": 1.08,
+        "length": 0.93
+      },
+      {
+        "t": 1,
+        "beam": 0.56,
+        "length": 0.8
+      }
+    ]
+  },
+  "model": {
+    "hullColor": "#6e4520",
+    "bandColor": "#b5652a",
+    "squareMasts": [
+      {
+        "name": "Fore",
+        "z": 3.2,
+        "height": 8.6,
+        "courses": 3
+      },
+      {
+        "name": "Main",
+        "z": 0,
+        "height": 9.6,
+        "courses": 3
+      }
+    ],
+    "mastZ": -3.3,
+    "mastHeight": 6.8,
+    "mainName": "Mizzen",
+    "mainTopsail": false,
+    "boom": 2.05,
+    "gaff": 1.5,
+    "castle": {
+      "length": 3.105,
+      "height": 0.8
+    },
+    "stockJibs": 1,
+    "cargoExtra": 4,
+    "hatchZ": -1,
+    "cargoZ": 2.3,
+    "cargoX": 0.55,
+    "parts": ["fluyt-stern"]
+  }
+}

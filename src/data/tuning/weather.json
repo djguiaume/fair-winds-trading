@@ -12,29 +12,37 @@
       "driftSec": 900
     },
     "kinds": {
-      "breeze": {
-        "weight": 0.5,
-        "strength": [0.8, 1.15],
-        "rain": 0,
-        "gusts": 1
-      },
       "calm": {
+        "name": "Calm",
         "weight": 0.17,
         "strength": [0.35, 0.55],
         "rain": 0,
-        "gusts": 0.6
+        "gusts": 0.6,
+        "gloom": 0
+      },
+      "breeze": {
+        "name": "Breeze",
+        "weight": 0.5,
+        "strength": [0.8, 1.15],
+        "rain": 0,
+        "gusts": 1,
+        "gloom": 0
       },
       "rain": {
+        "name": "Rain",
         "weight": 0.18,
         "strength": [0.95, 1.2],
         "rain": 0.7,
-        "gusts": 1.6
+        "gusts": 1.6,
+        "gloom": 0
       },
       "gale": {
+        "name": "Gale",
         "weight": 0.15,
         "strength": [1.35, 1.55],
         "rain": 0.15,
-        "gusts": 1.6
+        "gusts": 1.6,
+        "gloom": 0.25
       }
     },
     "persist": 0.35,

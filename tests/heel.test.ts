@@ -10,20 +10,10 @@ import {
   heelFactor,
   targetHeel,
 } from '../src/render/heel';
+import { SHIP_IDS } from '../src/sim/ship';
 
-/** Starter and the three ship lines of decision 0035. */
-const SHIP_LINES = [
-  'sloop',
-  'cutter',
-  'schooner',
-  'clipper',
-  'ketch',
-  'brig',
-  'frigate',
-  'hoy',
-  'fluyt',
-  'indiaman',
-];
+/** Every ship file (decision 0109); the warship line (ketch, brig, frigate) comes in Phase 5. */
+const SHIP_LINES = SHIP_IDS;
 
 const beam = (over: Partial<HeelInput> = {}): HeelInput => ({
   twa: 90 * DEG,
@@ -63,10 +53,11 @@ describe('visual heel (decision 0044)', () => {
   });
 
   it('gives every ship class a factor: tall swift rigs lean more than wide haulers', () => {
+    expect(SHIP_LINES).toHaveLength(7);
     for (const id of SHIP_LINES) expect(HEEL_FACTOR[id], id).toBeGreaterThan(0);
     expect(heelFactor('schooner')).toBeGreaterThan(heelFactor('sloop'));
     expect(heelFactor('fluyt')).toBeLessThan(heelFactor('sloop'));
-    expect(heelFactor('brig')).toBeLessThan(heelFactor('schooner'));
+    expect(heelFactor('indiaman')).toBeLessThan(heelFactor('hoy'));
     expect(heelFactor('unknown')).toBe(1);
   });
 

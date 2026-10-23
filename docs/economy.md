@@ -68,7 +68,7 @@ Every number lives in `src/data/tuning/` ([0094](decisions/0094-tuning-moved-to-
 | `wantsEquilibrium`, `producesEquilibrium`, `orderScale` | `economy.json` › `towns` | 15/12/10/8, 85/100/115/130, ×0.8–1.5 | make level-ups change the market more |
 | `specialtyShare` | `economy.json` › `towns` | 40 % | make workshops stock more specialty goods |
 | `homePortLevel` | `upgrades.json` | level 2 upgrades: village, level 3: town | gate upgrades on the home port's size |
-| `hold`, `price`, `upgradePrices` | `ships.json` | per class | change capacity and costs |
+| `sailing.hold`, `unlock.price`, `unlock.upgradePrices` | `src/data/ships/<id>.json` | per class | change capacity and costs |
 
 ## Balance targets
 

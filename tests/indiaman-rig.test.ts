@@ -1,19 +1,19 @@
+import { INDIAMAN_PORTS } from '../src/render/models/shipParts';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { INDIAMAN_PORTS, RefinedIndiaman } from '../src/render/models/indiaman';
 import { INDIAMAN_MIZZEN } from '../src/render/models/indiamanDetails';
-import { RefinedFluyt } from '../src/render/models/fluyt';
-import { RefinedClipper } from '../src/render/models/clipper';
 import { createBoatModel } from '../src/render/models';
 import { isRefinedShip } from '../src/render/models/shipModels';
 import { QUALITY } from '../src/render/quality';
 import { STYLE_D } from '../src/render/models/boatStyle';
 import { triangleCount } from '../src/render/models/geometry';
 import type { BoatPose } from '../src/render/models/types';
+import { shipModel } from '../src/render/models/shipModels';
+import type { RefinedBoat } from '../src/render/models/refinedBoat';
 
 const POSE: BoatPose = { sail: 1, boomAngle: 0, luff: 0, heel: 0, windRelative: 0, time: 0 };
 const v = () => new THREE.Vector3();
-const mesh = (b: RefinedIndiaman, name: string) => b.root.getObjectByName(name) as THREE.Mesh;
+const mesh = (b: RefinedBoat, name: string) => b.root.getObjectByName(name) as THREE.Mesh;
 const near = (a: THREE.Vector3, b: THREE.Vector3) => expect(a.distanceTo(b)).toBeLessThan(1e-4);
 const L = 13;
 const deckAt = (z: number) =>
@@ -45,8 +45,8 @@ function drawn(m: THREE.Mesh, i: number) {
 describe('refined indiaman', () => {
   it('routes through the real factory with its own hull, stern castle and envelope', () => {
     expect(isRefinedShip('indiaman')).toBe(true);
-    const b = createBoatModel('indiaman') as RefinedIndiaman;
-    expect(b).toBeInstanceOf(RefinedIndiaman);
+    const b = createBoatModel('indiaman') as RefinedBoat;
+    expect((b as RefinedBoat).name).toBe('Indiaman');
     expect(b.wakeHull.length).toBeCloseTo(L * 2.2);
     expect(b.wakeHull.beam).toBeCloseTo(3.8 * STYLE_D.B * 2.2);
     const half = 3.8 * STYLE_D.B * 0.5;
@@ -54,8 +54,8 @@ describe('refined indiaman', () => {
     hull.computeBoundingBox();
     // Wall-sided: only a slight tumblehome, much less than the fluyt's pear-shaped sections.
     expect(hull.boundingBox!.max.x).toBeLessThan(half * 1.08);
-    const fluyt = new RefinedFluyt();
-    const fh = mesh(fluyt as unknown as RefinedIndiaman, 'FluytHull').geometry;
+    const fluyt = shipModel('fluyt');
+    const fh = mesh(fluyt, 'FluytHull').geometry;
     fh.computeBoundingBox();
     expect(hull.boundingBox!.max.x / half).toBeLessThan(
       fh.boundingBox!.max.x / (3.5 * STYLE_D.B * 0.5),
@@ -80,7 +80,7 @@ describe('refined indiaman', () => {
     // Bigger than the fluyt in every direction.
     expect(b.wakeHull.length).toBeGreaterThan(fluyt.wakeHull.length);
     expect(b.wakeHull.beam).toBeGreaterThan(fluyt.wakeHull.beam);
-    const clipper = new RefinedClipper();
+    const clipper = shipModel('clipper');
     expect(b.wakeHull.beam).toBeGreaterThan(clipper.wakeHull.beam * 1.4);
     clipper.dispose();
     fluyt.dispose();
@@ -88,7 +88,7 @@ describe('refined indiaman', () => {
   });
 
   it('paints a row of gun ports flush on both topsides', () => {
-    const b = new RefinedIndiaman();
+    const b = shipModel('indiaman');
     const hull = mesh(b, 'IndiamanHull').geometry;
     const p = hull.getAttribute('position');
     const c = hull.getAttribute('color');
@@ -119,7 +119,7 @@ describe('refined indiaman', () => {
     for (const sails of [1, 2, 3] as const)
       for (const hold of [1, 2, 3] as const)
         for (const hull of [1, 2, 3] as const) {
-          const b = new RefinedIndiaman({ upgrades: { sails, hold, hull } });
+          const b = shipModel('indiaman', { upgrades: { sails, hold, hull } });
           expect(b.stats.crates + b.stats.barrels).toBe([7, 9, 12][hold - 1]);
           expect(b.stats.barrels > 0).toBe(hold >= 2);
           expect(b.stats.jibs).toBe(sails >= 2 ? 3 : 2);
@@ -270,7 +270,7 @@ describe('refined indiaman', () => {
   }, 60_000);
 
   it('furls each course up to its own yard and keeps furled canvas visible', () => {
-    const b = new RefinedIndiaman({ upgrades: { sails: 3, hold: 1, hull: 1 } });
+    const b = shipModel('indiaman', { upgrades: { sails: 3, hold: 1, hull: 1 } });
     b.update({ ...POSE, sail: 0 });
     const m = mesh(b, 'MainCourses');
     expect(m.morphTargetInfluences![0]).toBe(1);
@@ -281,7 +281,7 @@ describe('refined indiaman', () => {
   });
 
   it('keeps sails and upgrades on all quality levels and skips hidden rope updates', () => {
-    const b = new RefinedIndiaman({ upgrades: { sails: 3, hold: 3, hull: 3 } });
+    const b = shipModel('indiaman', { upgrades: { sails: 3, hold: 3, hull: 3 } });
     const rope = b.root.getObjectByName('Rigging') as THREE.LineSegments;
     const p = rope.geometry.getAttribute('position') as THREE.BufferAttribute;
     for (const quality of [...Object.keys(QUALITY), 'low', 'high']) {

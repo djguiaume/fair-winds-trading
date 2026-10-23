@@ -1,16 +1,17 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { RefinedHoy } from '../src/render/models/hoy';
 import { createBoatModel } from '../src/render/models';
 import { isRefinedShip } from '../src/render/models/shipModels';
 import { QUALITY } from '../src/render/quality';
 import { STYLE_D } from '../src/render/models/boatStyle';
 import { triangleCount } from '../src/render/models/geometry';
 import type { BoatPose } from '../src/render/models/types';
+import { shipModel } from '../src/render/models/shipModels';
+import type { RefinedBoat } from '../src/render/models/refinedBoat';
 
 const POSE: BoatPose = { sail: 1, boomAngle: 0, luff: 0, heel: 0, windRelative: 0, time: 0 };
 const v = () => new THREE.Vector3();
-const mesh = (b: RefinedHoy, name: string) => b.root.getObjectByName(name) as THREE.Mesh;
+const mesh = (b: RefinedBoat, name: string) => b.root.getObjectByName(name) as THREE.Mesh;
 const near = (a: THREE.Vector3, b: THREE.Vector3) => expect(a.distanceTo(b)).toBeLessThan(1e-5);
 const L = 6.2;
 const deckAt = (z: number) =>
@@ -20,8 +21,8 @@ const MAST = { z: 0.9, h: 5.6, boom: 3.4, gaff: 1.7, gooseneck: 1.1 };
 describe('refined hoy', () => {
   it('routes through the real factory with its beamy envelope, flat bottom, leeboards and a boom clear of the cargo', () => {
     expect(isRefinedShip('hoy')).toBe(true);
-    const b = createBoatModel('hoy') as RefinedHoy;
-    expect(b).toBeInstanceOf(RefinedHoy);
+    const b = createBoatModel('hoy') as RefinedBoat;
+    expect((b as RefinedBoat).name).toBe('Hoy');
     expect(b.wakeHull.length).toBeCloseTo(13.64);
     expect(b.wakeHull.beam).toBeCloseTo(6.237);
     const hull = mesh(b, 'HoyHull').geometry;
@@ -51,7 +52,7 @@ describe('refined hoy', () => {
     for (const sails of [1, 2, 3] as const)
       for (const hold of [1, 2, 3] as const)
         for (const hull of [1, 2, 3] as const) {
-          const b = new RefinedHoy({ upgrades: { sails, hold, hull } });
+          const b = shipModel('hoy', { upgrades: { sails, hold, hull } });
           const nj = sails >= 2 ? 2 : 1;
           expect(b.stats.crates + b.stats.barrels).toBe([4, 6, 9][hold - 1]);
           expect(b.stats.jibs).toBe(nj);
@@ -151,7 +152,7 @@ describe('refined hoy', () => {
   });
 
   it('keeps upgrades and attachment animation on all quality levels, skips hidden rope updates and restores them', () => {
-    const b = new RefinedHoy({ upgrades: { sails: 3, hold: 3, hull: 3 } });
+    const b = shipModel('hoy', { upgrades: { sails: 3, hold: 3, hull: 3 } });
     const rope = b.root.getObjectByName('Rigging') as THREE.LineSegments;
     const p = rope.geometry.getAttribute('position') as THREE.BufferAttribute;
     for (const quality of [...Object.keys(QUALITY), 'low', 'high']) {
@@ -163,7 +164,7 @@ describe('refined hoy', () => {
       expect(mesh(b, 'Jib2').visible).toBe(true);
     }
     b.dispose();
-    const disabled = new RefinedHoy({ rigging: false });
+    const disabled = shipModel('hoy', { rigging: false });
     disabled.setLowDetail(false);
     expect(disabled.root.getObjectByName('Rigging')!.visible).toBe(false);
     disabled.dispose();

@@ -39,11 +39,11 @@ const path = require('node:path');
       results.push({ name, query, stats: await page.locator('#stats').textContent(), errors: [...errors] });
     }
     results.push({ name: 'model-budgets', stats: await page.evaluate(async () => {
-      const { RefinedClipper } = await import('/src/render/models/clipper.ts');
+      const { shipModel } = await import('/src/render/models/shipModels.ts');
       const { StorybookBoat, BOAT_CLASSES } = await import('/src/render/models/storybookBoat.ts');
       return [1, 2, 3].map(level => {
         const upgrades = { sails: level, hold: level, hull: level };
-        const refined = new RefinedClipper({ upgrades });
+        const refined = shipModel('clipper', { upgrades });
         const previous = new StorybookBoat(BOAT_CLASSES.clipper, upgrades);
         const result = { level, refined: refined.stats, previous: previous.stats };
         refined.dispose(); previous.dispose();

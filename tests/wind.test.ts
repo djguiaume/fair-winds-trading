@@ -34,7 +34,7 @@ describe('slow weather (0026)', () => {
     for (let slot = 1; slot < 40; slot++) {
       const w = weatherSlot(DEFAULT_WEATHER, seed, slot);
       expect(Math.abs(w.offsetDeg)).toBeLessThanOrEqual(180);
-      const [lo, hi] = DEFAULT_WEATHER.kinds![w.kind].strength;
+      const [lo, hi] = DEFAULT_WEATHER.kinds![w.kind]!.strength;
       expect(w.strength).toBeGreaterThanOrEqual(lo);
       expect(w.strength).toBeLessThanOrEqual(hi);
       const turn = Math.abs(wrapAngle((w.offsetDeg - prev.offsetDeg) * DEG)) / DEG;
