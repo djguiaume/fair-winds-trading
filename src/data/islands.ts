@@ -42,7 +42,12 @@ export interface LaneDef {
   /** Paths: the height they lie at. Stairs: the ground their masonry stands on. */
   y?: number;
   base?: number;
+  /** Lanes and paths: width in radius units (default `LANE_WIDTH`, a path 0.055); narrow village lanes (0172). */
+  width?: number;
 }
+
+/** A lane's or path's width when its file gives none (radius units). */
+export const LANE_WIDTH = 0.04;
 
 /**
  * A ramp (decision 0123): a band `width` wide along `points` (straight runs, at least two), rising

@@ -246,7 +246,7 @@ export function tidyDesign(design: IslandDesign): IslandDesign {
         'to',
       ]),
     ),
-    lanes: d.lanes.map((l) => ordered(l, ['kind', 'points', 'y', 'base'])),
+    lanes: d.lanes.map((l) => ordered(l, ['kind', 'points', 'width', 'y', 'base'])),
     ...(d.ramps && {
       ramps: d.ramps.map((r) =>
         ordered(r, ['points', 'width', 'start', 'end', 'material', 'from', 'to']),
