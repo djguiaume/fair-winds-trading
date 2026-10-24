@@ -57,7 +57,7 @@ export type IslandStep =
       level?: Level;
       height?: number;
       rise?: number;
-      material?: 'grass' | 'rock';
+      material?: string;
       slope?: number;
     } & Shaped)
   | ({ do: 'lake'; at: At } & Shaped)
@@ -67,7 +67,7 @@ export type IslandStep =
       start?: number;
       end?: number;
       width?: number;
-      material?: 'grass' | 'rock';
+      material?: string;
       level?: Level;
     }
   | { do: 'lane' | 'path' | 'stairs'; points: number[][] }
@@ -115,7 +115,9 @@ export type IslandStep =
       what: 'prop' | 'ground' | 'lane' | 'ramp' | 'river' | 'spot' | 'coast' | 'lake' | 'pier';
       index?: number;
     }
-  | { do: 'set'; name?: string; style?: IslandStyle; seed?: number };
+  | { do: 'set'; name?: string; style?: IslandStyle; seed?: number }
+  /** Changes a raised ground (or with `ramp`, a ramp): its material or height (decision 0168). */
+  | { do: 'ground'; index: number; ramp?: boolean; material?: string; height?: number };
 
 export const STEP_KINDS = [
   'islet',
@@ -133,6 +135,7 @@ export const STEP_KINDS = [
   'pier',
   'remove',
   'set',
+  'ground',
 ] as const;
 
 const pos = (v: number) => Number(v.toFixed(6));
@@ -295,6 +298,14 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
       if (step.style) design.style = step.style;
       if (step.seed !== undefined) design.seed = step.seed;
       return 'set';
+    }
+    case 'ground': {
+      const what = step.ramp ? 'ramp' : 'ground';
+      const g = step.ramp ? design.ramps?.[step.index] : design.ground[step.index];
+      if (!g) throw new Error(`no ${what} ${step.index}`);
+      if (step.material) g.material = step.material;
+      if (step.height !== undefined && 'height' in g) g.height = pos(step.height);
+      return `${what} ${step.index}`;
     }
     default:
       throw new Error(`unknown step "${(step as { do: string }).do}" (${STEP_KINDS.join(', ')})`);

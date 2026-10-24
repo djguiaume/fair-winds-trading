@@ -27,13 +27,13 @@ const HELP = `npm run island -- <id|file.json> [step] [options]   change an isla
 npm run island -- new <id> [options]                  a new island file (src/data/islands/<id>.json)
 
 new:   --outline "x,z x,z …" or --blob r=1,points=14,rough=0.22,stretch=1,turn=0 (default)
-       --name "Palm Key" --style timber|fish|grain|stone|tropic --seed 7103 --low 0.06 --force
+       --name "Palm Key" --style <a palette.json style: timber, fish, ice…> --seed 7103 --low 0.06 --force
 steps (island-radius units, harbour toward +z; --level n = from that town level):
   islet     --outline … | --blob r=0.3,… --at x,z [--low h]
-  plateau   --at x,z [--size rx,rz | --outline … | --blob …] [--height h | --rise 0.2] [--slope w] [--rock] [--level n]
-  mountain  --at x,z [--size rx,rz | --outline … | --blob …] [--height h | --rise 0.6] [--level n]
+  plateau   --at x,z [--size rx,rz | --outline … | --blob …] [--height h | --rise 0.2] [--slope w] [--rock | --material snow] [--level n]
+  mountain  --at x,z [--size rx,rz | --outline … | --blob …] [--height h | --rise 0.6] [--material slate] [--level n]
   lake      --at x,z [--size rx,rz | --outline … | --blob …]
-  ramp      --points "x,z x,z …" [--start h --end h (default: the ground there)] [--width 0.1] [--rock] [--level n]
+  ramp      --points "x,z x,z …" [--start h --end h (default: the ground there)] [--width 0.1] [--rock | --material m] [--level n]
   lane | path | stairs   --points "x,z x,z …" (stairs take the ground's height at each point)
   river     --points "x,z x,z …" (source first, mouth last; past the coast it falls into the sea)
             [--kind water|lava] [--width 0.04] [--level n --to n --tags after:quest]
@@ -44,6 +44,7 @@ steps (island-radius units, harbour toward +z; --level n = from that town level)
   pier      --at x,z [--length 0.26] [--level n]
   remove    prop|ground|lane|ramp|river|spot|coast|pier <index>, or remove lake
   set       --name … --style … --seed …
+  ground    <index> [--ramp] --material <palette.json ground: grass, rock, snow, ice…> [--height h]
   tidy      rewrite the file in the builder's format (any step does)
 options: --steps steps.json (or '[{"do":"prop",…}]': a list of steps as data, see src/editor/island/steps.ts)
          --radius r  map radius to check at (default: the island's size on the ring or the Phase 4 sea)
@@ -78,7 +79,8 @@ function blobSpec(v: unknown): BlobSpec | undefined {
 export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandStep {
   const at = pair(args.at);
   const level = num(args.level);
-  const material = args.rock ? ('rock' as const) : undefined;
+  const material =
+    typeof args.material === 'string' ? args.material : args.rock ? 'rock' : undefined;
   const shaped = {
     outline: pointList(args.outline) as [number, number][] | undefined,
     blob: blobSpec(args.blob),
@@ -178,6 +180,14 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
         do: 'remove',
         what: need(rest[0], 'what to remove') as 'prop',
         index: rest[1] !== undefined ? Number(rest[1]) : num(args.index),
+      });
+    case 'ground':
+      return clean({
+        do: 'ground',
+        index: Number(need(rest[0] ?? args.index, 'which ground (an index)')),
+        ramp: args.ramp ? true : undefined,
+        material: typeof args.material === 'string' ? args.material : undefined,
+        height: num(args.height),
       });
     case 'set':
       return clean({

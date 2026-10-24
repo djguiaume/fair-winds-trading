@@ -2,13 +2,14 @@ import type { IslandDef, TerrainDef } from './map';
 import { coastDistance, insetOutline } from './coast';
 import { atLevel, designOf, islandDesign, type IslandDesign, type RampDef } from '../data/islands';
 
-export type IslandTheme = 'fish' | 'timber' | 'stone' | 'grain' | 'tropic';
+/** An island style id (palette.json › styles, decision 0168). */
+export type IslandTheme = string;
 export type Outline = TerrainDef['outline'];
 export interface LandSurface {
   outline: Outline;
   holes?: Outline[];
   height: number;
-  material: 'grass' | 'rock';
+  material: string;
   shape?: 'peak';
   base?: number;
   /** Ramp width outward from the sloped edges (decision 0096 §4), and which edges slope. */

@@ -10,6 +10,7 @@ import {
   type Outline,
 } from './islandLayout';
 import { atLevel, type IslandDesign, type PropDef, questApart } from '../data/islands';
+import { GROUNDS, STYLES, groundId } from '../data/grounds';
 
 /**
  * Island file checks (decision 0096 §2, built in 0101), shared by the island builder and
@@ -79,8 +80,11 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
     if (p.from === undefined) error('levels', `${p.type}: no "from" level`, extra);
     levelsOk(p, p.type, extra, true);
   });
+  // Styles and grounds are data (decision 0168): palette.json › styles and › grounds.
+  if (!STYLES[design.style]) error('known', `Unknown style "${String(design.style)}"`);
+  const knownGround = (m: string) => !!GROUNDS[m] && !!GROUNDS[groundId(m, design.style)];
   design.ground.forEach((g, i) => {
-    if (g.material !== 'grass' && g.material !== 'rock')
+    if (!knownGround(g.material))
       error('known', `Ground ${i}: unknown material "${String(g.material)}"`);
     if (g.coast !== undefined ? !design.coasts[g.coast] : !g.outline?.length)
       error('known', `Ground ${i}: needs an outline or a coast that exists`);
@@ -94,7 +98,7 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
       error('known', `Stairs ${i}: every point needs x, z and a height`);
   });
   (design.ramps ?? []).forEach((r, i) => {
-    if (r.material !== 'grass' && r.material !== 'rock')
+    if (!knownGround(r.material))
       error('known', `Ramp ${i}: unknown material "${String(r.material)}"`);
     if (r.points.length < 2) error('known', `Ramp ${i}: needs two points or more`);
     if (!(r.width > 0)) error('known', `Ramp ${i}: needs a width`);

@@ -237,7 +237,10 @@ function colorOf(
   if (color.startsWith('#')) return color;
   const m = /^(\w+)(?:\[(.+)\])?$/.exec(color);
   if (!m) throw new Error(`Cannot read the colour "${color}"`);
-  const list = (style as Record<string, string[]> | undefined)?.[m[1]!] ?? PALETTE.colors[m[1]!];
+  // A style's walls and roofs, then the palette colours it overrides (decision 0168).
+  const st = style as
+    (Record<string, string[]> & { colors?: Record<string, string | string[]> }) | undefined;
+  const list = st?.[m[1]!] ?? st?.colors?.[m[1]!] ?? PALETTE.colors[m[1]!];
   if (list === undefined) throw new Error(`Unknown colour "${m[1]}"`);
   if (typeof list === 'string') return list;
   const k = m[2] ? compileExpression(m[2])(s) : 0;
