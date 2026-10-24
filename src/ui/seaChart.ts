@@ -730,6 +730,15 @@ export class SeaChart {
           'stroke-width': 1.2 * px,
           class: 'chart-mark',
         });
+      else if (mark.type.startsWith('cardinal-'))
+        // A cardinal mark: a yellow and black diamond, as on real charts.
+        shape('path', {
+          d: `M${mark.x} ${-mark.y - 4 * px}l${3 * px} ${4 * px}l${-3 * px} ${4 * px}l${-3 * px} ${-4 * px}z`,
+          fill: '#f2c230',
+          stroke: '#22252a',
+          'stroke-width': 1.2 * px,
+          class: 'chart-mark',
+        });
       else
         shape('circle', {
           cx: mark.x,

@@ -641,8 +641,10 @@ const sea = {
     { type: 'buoy-green', x: NARROWS_X + 22, y: PASS[0] - 2, chart: true },
     { type: 'buoy-red', x: NARROWS_X - 22, y: PASS[1] + 2, chart: true },
     { type: 'buoy-green', x: NARROWS_X + 22, y: PASS[1] + 2, chart: true },
-    // The deep channel round the reef's south end.
-    { type: 'buoy-red', x: NARROWS_X, y: CHANNEL_TOP - 26, chart: true },
+    // Cardinal marks at both ends of the Narrows reefs: pass north of the north one (the long
+    // way round), south of the south one (the deep channel inside The Trades).
+    { type: 'cardinal-north', x: NARROWS_X - 22, y: -532, chart: true },
+    { type: 'cardinal-south', x: NARROWS_X - 2, y: CHANNEL_TOP - 24, chart: true },
   ],
   windZones,
 };

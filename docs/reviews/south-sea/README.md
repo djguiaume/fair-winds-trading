@@ -30,6 +30,14 @@ Drawn from the data (`src/make-schema.cjs`); routes are schematic.
 ![A sloop crossing Palm Key Narrows](narrows-sloop.png)
 ![An indiaman refused by the Narrows](narrows-indiaman.png)
 
+## Cardinal marks
+
+All four (north, east, south, west, left to right), then the two placed at the Narrows reef ends:
+
+![The four cardinal marks](cardinals-lineup.png)
+![North cardinal at the Narrows north reef](cardinal-north.png)
+![South cardinal at the deep channel](cardinal-south.png)
+
 ## Around the sea
 
 ![The Glass, doldrums south of Wreck Reef](the-glass.png)

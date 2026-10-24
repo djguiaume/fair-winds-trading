@@ -395,9 +395,15 @@
       "chart": true
     },
     {
-      "type": "buoy-red",
-      "x": 335,
-      "y": -864,
+      "type": "cardinal-north",
+      "x": 313,
+      "y": -532,
+      "chart": true
+    },
+    {
+      "type": "cardinal-south",
+      "x": 333,
+      "y": -862,
       "chart": true
     }
   ],
