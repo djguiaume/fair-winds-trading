@@ -1087,7 +1087,7 @@ function drawChecks() {
 // --- Chart ------------------------------------------------------------------------------------
 
 const NS = 'http://www.w3.org/2000/svg';
-const layers: Layers = { names: true, course: false, harbours: true, grid: false };
+const layers: Layers = { names: true, course: false, harbours: true, grid: false, flow: true };
 const svg = () => $<SVGSVGElement>('.qb-map');
 
 const HINTS: Record<Tool, string> = {

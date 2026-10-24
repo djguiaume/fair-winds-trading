@@ -250,6 +250,36 @@ input:focus-visible {
   stroke-dasharray: 3 3;
   vector-effect: non-scaling-stroke;
 }
+.c-zone {
+  fill-opacity: 0.22;
+  pointer-events: none;
+}
+/* A current is darker, deeper water (decision 0140): no outline, no arrows. */
+.c-current {
+  fill: #13607e;
+  fill-opacity: 0.55;
+  pointer-events: none;
+}
+.c-crests path {
+  fill: none;
+  stroke: #d8f1f5;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+.c-dashed {
+  stroke-dasharray: 5 4;
+  stroke-width: 1.5px;
+  opacity: 0.8;
+}
+.c-width {
+  stroke: var(--brass-hi);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.c-width-handle {
+  cursor: ew-resize;
+}
 .c-hit {
   fill: transparent;
   stroke: none;

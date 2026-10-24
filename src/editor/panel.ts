@@ -2,11 +2,16 @@ import { GOODS, GOOD_DEFS, GOOD_ICONS, type GoodId, isGood } from '../sim/goods'
 import type { LandmarkKind, MapDef, PortDef } from '../sim/map';
 import { SHIP_CLASSES } from '../sim/ship';
 import { DEFAULT_START_LEVEL, SETTLEMENT_LEVELS, TOWN_LEVELS } from '../sim/settlement';
+import { TUNING } from '../data/tuning';
+import { zoneKindName } from './flowChart';
 import {
   type Selection,
   addPort,
+  findCurrent,
   findIsland,
   findShape,
+  findZone,
+  reverseCurrent,
   moveIsland,
   portOn,
   removePort,
@@ -343,6 +348,146 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     if (point && shape.outline.length > 3) button(b, 'Delete point', () => host.remove());
     button(b, 'Delete shape', () => {
       host.select({ kind: 'shape', id: shape.id });
+      host.remove();
+    });
+    return;
+  }
+
+  if (selection.kind === 'current') {
+    const c = findCurrent(map, selection.id);
+    if (!c) return;
+    const lane = !!c.path;
+    heading(c.name ?? c.id, lane ? `current lane · ${c.id}` : `area current · ${c.id}`);
+    text('Name', c.name ?? '', (v) => {
+      if (v) c.name = v;
+      else delete c.name;
+    });
+    const [slow, fast] = TUNING.weather.currents.speedKn as [number, number];
+    number('Speed (kn)', c.speedKn, (v) => (c.speedKn = v ?? c.speedKn), {
+      min: slow,
+      max: fast,
+      step: 0.1,
+    });
+    if (!lane)
+      number(
+        'Flows toward (°)',
+        c.towardDeg,
+        (v) => (c.towardDeg = (((v ?? 0) % 360) + 360) % 360),
+        { step: 5 },
+      );
+    const points = c.path ?? c.outline ?? [];
+    const point = selection.point !== undefined ? points[selection.point] : undefined;
+    node('hr');
+    if (point) {
+      heading(`Point ${selection.point! + 1}`, `of ${points.length}`);
+      xy('Position', point[0], point[1], (x, y) => {
+        point[0] = x;
+        point[1] = y;
+      });
+      if (lane && c.path![selection.point!])
+        number(
+          'Width',
+          c.path![selection.point!]![2],
+          (v) => {
+            c.path![selection.point!]![2] = Math.max(4, v ?? 50);
+          },
+          { min: 4, step: 5 },
+        );
+    } else
+      node('p', {
+        className: 'ed-note',
+        textContent: lane
+          ? `${points.length} points, in the direction the water flows. The game smooths them into the curve drawn. Drag a dot to move it, a square to change the width there, a small ring to add a point; drag the water to move the whole current. Speed is at the narrowest place; it eases off where the lane widens.`
+          : `${points.length} points. Drag a dot to reshape, a small ring on an edge to add a point, the water to move it.`,
+      });
+    const b = buttons();
+    button(b, '⇄ Reverse flow', () => host.change(() => reverseCurrent(map, c.id), true));
+    if (point && points.length > (lane ? 2 : 3)) button(b, 'Delete point', () => host.remove());
+    button(b, 'Delete current', () => {
+      host.select({ kind: 'current', id: c.id });
+      host.remove();
+    });
+    return;
+  }
+
+  if (selection.kind === 'zone') {
+    const z = findZone(map, selection.id);
+    if (!z) return;
+    heading(z.name ?? z.id, `wind zone · ${z.id}`);
+    text('Name', z.name ?? '', (v) => {
+      if (v) z.name = v;
+      else delete z.name;
+    });
+    const kinds = TUNING.weather.zones.kinds as Record<string, Record<string, unknown>>;
+    select(
+      'Kind',
+      z.kind,
+      Object.keys(kinds).map((k): [string, string] => [k, zoneKindName(k)]),
+      (v) => {
+        z.kind = v;
+        delete z.tune;
+      },
+    );
+    number(
+      'Wind from (°)',
+      z.headingDeg,
+      (v) => {
+        if (v === undefined) delete z.headingDeg;
+        else z.headingDeg = ((v % 360) + 360) % 360;
+      },
+      { step: 5, optional: true },
+    );
+    // Overrides of the kind's numbers for this zone only; empty = the kind's value.
+    const base = kinds[z.kind] ?? {};
+    const fields = Object.entries(base).filter(
+      ([, v]) => typeof v === 'number' || Array.isArray(v),
+    );
+    if (fields.length) {
+      node('hr');
+      heading('This zone only', 'empty = the kind’s value');
+      for (const [key, value] of fields) {
+        const current = z.tune?.[key];
+        const input = node(
+          'input',
+          {
+            value: current === undefined ? '' : String(current).replace(',', ', '),
+            placeholder: String(value).replace(',', ', '),
+          },
+          row(key),
+        );
+        input.addEventListener('change', () =>
+          host.change(() => {
+            const parts = input.value
+              .split(',')
+              .map((x) => Number(x.trim()))
+              .filter((x) => input.value.trim() && Number.isFinite(x));
+            const tune = { ...z.tune };
+            if (!parts.length) delete tune[key];
+            else
+              tune[key] =
+                Array.isArray(value) && parts.length === 2 ? [parts[0]!, parts[1]!] : parts[0]!;
+            if (Object.keys(tune).length) z.tune = tune;
+            else delete z.tune;
+          }),
+        );
+      }
+    }
+    const point = selection.point !== undefined ? z.outline[selection.point] : undefined;
+    node('hr');
+    if (point) {
+      heading(`Point ${selection.point! + 1}`, `of ${z.outline.length}`);
+      xy('Position', point[0], point[1], (x, y) => {
+        z.outline[selection.point!] = [x, y];
+      });
+    } else
+      node('p', {
+        className: 'ed-note',
+        textContent: `${z.outline.length} points, smoothed into the soft area drawn. The wind changes over ${TUNING.weather.zones.fadeUnits} units inside its edge. Its kind's numbers are in weather.json.`,
+      });
+    const b = buttons();
+    if (point && z.outline.length > 3) button(b, 'Delete point', () => host.remove());
+    button(b, 'Delete zone', () => {
+      host.select({ kind: 'zone', id: z.id });
       host.remove();
     });
     return;
