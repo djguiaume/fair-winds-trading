@@ -1,3 +1,5 @@
+import { groundColors } from '../data/grounds';
+import { ISLAND_DESIGNS } from '../data/islands';
 import { TUNING } from '../data/tuning';
 import { piersOf } from '../sim/collision';
 import { GOOD_ICONS, isGood } from '../sim/goods';
@@ -126,14 +128,16 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
   for (const island of prepared.islands) {
     const hit = `island:${island.id}`;
     const coasts = islandCoasts(island);
+    const [shore, land] = landStyles(island.look?.design);
     if (coasts)
       for (const c of coasts) {
-        el('polygon', { points: pts(c), class: 'c-shore' });
-        el('polygon', { points: pts(c), class: 'c-land' });
+        el('polygon', { points: pts(c), class: 'c-shore', ...shore });
+        el('polygon', { points: pts(c), class: 'c-land', ...land });
       }
     else {
-      el('circle', { cx: island.x, cy: -island.y, r: island.radius, class: 'c-shore' });
-      el('circle', { cx: island.x, cy: -island.y, r: island.radius, class: 'c-land' });
+      const disc = { cx: island.x, cy: -island.y, r: island.radius };
+      el('circle', { ...disc, class: 'c-shore', ...shore });
+      el('circle', { ...disc, class: 'c-land', ...land });
     }
     const lake = islandLake(island);
     if (lake) el('polygon', { points: pts(lake), fill: '#2b9eac', 'pointer-events': 'none' });
@@ -294,13 +298,11 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
       if (!t.name) continue;
       const xs = t.outline.map((p) => p[0]),
         ys = t.outline.map((p) => p[1]);
-      label(
-        t.name,
-        (Math.min(...xs) + Math.max(...xs)) / 2,
-        -(Math.min(...ys) + Math.max(...ys)) / 2,
-        12,
-        'small',
-      );
+      const x = (Math.min(...xs) + Math.max(...xs)) / 2;
+      const y = (Math.min(...ys) + Math.max(...ys)) / 2;
+      // A ring of ice round an island would put its name on the island: under the ring instead.
+      const onIsland = map.islands.some((i) => Math.hypot(i.x - x, i.y - y) < i.radius * 2);
+      label(t.name, x, onIsland ? -Math.min(...ys) + 12 * px : -y, 12, 'small');
     }
     if (layers.marks)
       for (const mark of map.marks ?? [])
@@ -342,4 +344,19 @@ export function drawCompass(svg: SVGSVGElement, fromDeg: number) {
     fill: '#8fd3e6',
     transform: `translate(${-sx} ${-sy}) rotate(${fromDeg})`,
   });
+}
+
+/**
+ * The chart's beach and land colours for an island whose style swaps its grounds (decision 0170:
+ * an ice island is snow on shingle, not green on sand); empty for the usual look.
+ */
+export function landStyles(design: string | undefined): [Record<string, string>, Record<string, string>] {
+  const style = design ? ISLAND_DESIGNS[design]?.style : undefined;
+  if (!style) return [{}, {}];
+  const land = groundColors('grass', style);
+  const beach = groundColors('sand', style);
+  return [
+    beach.id === 'sand' ? {} : { style: `fill:${beach.top[0]}` },
+    land.id === 'grass' ? {} : { style: `fill:${land.top[0]};stroke:${beach.top[0]}` },
+  ];
 }

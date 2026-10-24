@@ -139,6 +139,16 @@
           "switch": "fog"
         },
         "chart": "#cdd6d8"
+      },
+      "cold-sea": {
+        "tint": {
+          "water": "#1f5a6c",
+          "waterLight": "#3f8496",
+          "shallow": "#7aa8b2",
+          "sky": "#1a4c5c",
+          "fade": 160
+        },
+        "chart": "#9fc4d6"
       }
     }
   },

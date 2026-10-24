@@ -5,9 +5,10 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { Window } from 'happy-dom';
-import { type Layers, drawChart } from '../../src/editor/chart';
+import { type Layers, drawChart, landStyles } from '../../src/editor/chart';
 import { zoneKindName, zoneTint } from '../../src/editor/flowChart';
 import { type SeaDef, SEAS, grownMap } from '../../src/data/grownMap';
+import { ISLAND_DESIGNS } from '../../src/data/islands';
 import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../../src/data/maps';
 import { stressMap } from '../../src/data/stressMap';
 import type { MapDef } from '../../src/sim/map';
@@ -382,6 +383,16 @@ function legendEntries(
   const stroke = (cls: string) => (g: Element, make: Make) =>
     make('line', { x1: 0, y1: 7, x2: 24, y2: 7, class: cls }, g);
   const out: Entry[] = [{ text: 'island', swatch: box('c-land') }];
+  // Islands whose style swaps their grounds (an ice island's snow), one entry per look.
+  const looks = new Set<string>();
+  for (const island of map.islands) {
+    const land = landStyles(island.look?.design)[1].style;
+    if (land && !looks.has(land)) {
+      looks.add(land);
+      const style = island.look?.design && ISLAND_DESIGNS[island.look.design]?.style;
+      out.push({ text: `island, ${style} style`, swatch: box('c-land', { style: land }) });
+    }
+  }
   const kinds = new Set((map.terrain ?? []).map((t) => t.kind));
   if (kinds.has('reef')) out.push({ text: 'reef', swatch: box('c-reef') });
   if (kinds.has('sandbank')) out.push({ text: 'sandbank', swatch: box('c-bank') });

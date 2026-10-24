@@ -77,7 +77,10 @@ export type SeaStep =
     }
   | { do: 'remove'; what: SeaThing; id: string | number };
 
-/** The selection a step points at: an id, or an index for waypoints and marks. */
+/**
+ * The selection a step points at: an id, or for waypoints and marks an index into the whole grown
+ * sea (the ring's first) or their label or name, which is safer (decision 0170).
+ */
 export function seaRef(doc: SeaDoc, what: SeaThing, id: string | number): Selection {
   const index = Number(id);
   const sel: Selection =
@@ -92,7 +95,12 @@ export function seaRef(doc: SeaDoc, what: SeaThing, id: string | number): Select
             : what === 'area'
               ? { kind: 'area', id: String(id) }
               : what === 'mark'
-                ? { kind: 'mark', index }
+                ? {
+                    kind: 'mark',
+                    index: Number.isInteger(index)
+                      ? index
+                      : (doc.marks ?? []).findIndex((m) => m.name === id),
+                  }
                 : what === 'waypoint'
                   ? {
                       kind: 'waypoint',

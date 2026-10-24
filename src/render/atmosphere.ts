@@ -125,6 +125,7 @@ export class Atmosphere {
   private readonly lightDir = new THREE.Vector3();
   /** The haze's colour in this light (decision 0169), for the veil over the screen. */
   readonly hazeColor = new THREE.Color();
+  private readonly tintColor = new THREE.Color();
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -160,6 +161,17 @@ export class Atmosphere {
       this.hazeColor.set(haze.kind.color).lerp(NIGHT.sky, day.night * sight.hazeNight);
       l.sky.lerp(this.hazeColor, h);
       l.sunIntensity *= 1 - sight.hazeSunDim * h;
+    }
+
+    // A sea of another colour (decision 0170), darkened at night like the rest.
+    const t = haze?.tintKind ? haze.tint : 0;
+    if (haze?.tintKind && t > 0) {
+      const k = t * (1 - day.night * 0.75);
+      const c = this.tintColor;
+      l.water.lerp(c.set(haze.tintKind.water), k);
+      l.waterLight.lerp(c.set(haze.tintKind.waterLight), k);
+      l.shallow.lerp(c.set(haze.tintKind.shallow), k);
+      if (haze.tintKind.sky) l.sky.lerp(c.set(haze.tintKind.sky), k * (1 - this.gloom));
     }
 
     (this.scene.background as THREE.Color).copy(l.sky);

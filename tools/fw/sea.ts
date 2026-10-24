@@ -31,7 +31,7 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
         zone     --kind trade-belt|doldrums|stormy-coast|cold-gale|sheltered [--heading deg --name …]
         area     --name … [--id …] [--outline …]                    (a chart area, fog of war)
         port     --island <id> [--name …]                           (makes the island a port)
-  move <what> <id|index> --at x,y | --by dx,dy | --to-sea <id>
+  move <what> <id|index> --at x,y | --by dx,dy | --to-sea <id>   (a mark or waypoint: index or name)
   set <what> <id|index> --name … (and any field: --kind, --max-draft, --type, --speed, --level …)
   set sea <id> --name …          set grown --radius 985 --charted 445
   remove <what> <id|index>       (what: island shape port waypoint mark current zone area)

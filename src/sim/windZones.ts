@@ -46,6 +46,8 @@ export interface ZoneKind {
   stormBirth?: number;
   /** Short sight inside it: a fog bank, an ash cloud (decision 0169). */
   haze?: ZoneHaze;
+  /** The sea's own colour inside it: the north's cold, dark water (decision 0170). */
+  tint?: ZoneTint;
   /** Its tint on the editor's map and the labelled chart, `#rrggbb`. */
   chart?: string;
 }
@@ -66,6 +68,22 @@ export interface ZoneHaze {
   fade?: number;
   /** The Settings switch that turns it off (`fog`, `ash`); kinds may share one. */
   switch: string;
+}
+
+/**
+ * A sea of another colour (decision 0170): the water, its light and the shallows (and, if given,
+ * the sky) blend toward these as she sails in. Only colours change, never the wind; night darkens
+ * them like the rest. No Settings switch: it is how that sea looks, not a hazard.
+ */
+export interface ZoneTint {
+  water: string;
+  waterLight: string;
+  shallow: string;
+  sky?: string;
+  /** 0..1: how far toward these colours, deep inside (left out: all the way). */
+  amount?: number;
+  /** It blends in over this many units across the edge (left out: the zones' `fadeUnits`). */
+  fade?: number;
 }
 
 export interface ZonesTuning {
@@ -325,13 +343,23 @@ export interface ZoneVisual {
   kind: ZoneHaze | null;
   /** Id of that zone, for charting it once sailed. */
   zone: string | null;
+  /** 0..1: how far into the most tinted zone (decision 0170); 0 = the sea's usual colours. */
+  tint: number;
+  /** That zone's tint, or null. */
+  tintKind: ZoneTint | null;
 }
 
-export const CLEAR: Readonly<ZoneVisual> = { haze: 0, kind: null, zone: null };
+export const CLEAR: Readonly<ZoneVisual> = {
+  haze: 0,
+  kind: null,
+  zone: null,
+  tint: 0,
+  tintKind: null,
+};
 
 /**
- * The haze at (x, y). `off` lists the Settings switches turned off (`fog`, `ash`): their zones
- * stay clear. Wind effects are not looked at here, so it works with Settings › Wind zones off.
+ * The haze and the sea's tint at (x, y). `off` lists the Settings switches turned off (`fog`,
+ * `ash`): their zones stay clear (a tint has no switch). Wind effects are not looked at here, so it works with Settings › Wind zones off.
  */
 export function zoneVisualAt(
   field: ZoneField,
@@ -343,9 +371,19 @@ export function zoneVisualAt(
   out.haze = 0;
   out.kind = null;
   out.zone = null;
+  out.tint = 0;
+  out.tintKind = null;
   const kinds = zonesTuning().kinds;
   for (const z of field.grid.near(x, y, 0, nearby)) {
     const kind = kinds[z.def.kind];
+    const tint = kind && (value(z.def, kind, 'tint') as ZoneTint | undefined);
+    if (tint) {
+      const w = weightAt(z, x, y, tint.fade ?? zonesTuning().fadeUnits) * (tint.amount ?? 1);
+      if (w > out.tint) {
+        out.tint = w;
+        out.tintKind = tint;
+      }
+    }
     const haze = kind && (value(z.def, kind, 'haze') as ZoneHaze | undefined);
     if (!haze || off.includes(haze.switch)) continue;
     const w = weightAt(z, x, y, haze.fade ?? zonesTuning().fadeUnits);
