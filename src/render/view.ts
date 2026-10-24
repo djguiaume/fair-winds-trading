@@ -20,6 +20,7 @@ import { HEEL_FEEL, Heel, heelFactor } from './heel';
 import { Ocean, ShoreTextureCache, waveHeight } from './ocean';
 import { CalmWater } from './calmWater';
 import { CurrentWater } from './currentWater';
+import { ShallowsWater } from './shallowsWater';
 import { PALETTE } from './palette';
 import { BuoyMarker, EdgeBuoys, createBlobShadow } from './props';
 import { renderPixelRatio, QUALITY, type QualityLevel, type QualityProfile } from './quality';
@@ -99,6 +100,7 @@ export class GameView {
   /** Darker current water with drifting crests (decision 0140). */
   private currentWater?: CurrentWater;
   private calmWater?: CalmWater;
+  private shallowsWater?: ShallowsWater;
   private readonly shores = new ShoreTextureCache();
   private streaks!: WindStreaks;
   private profile!: QualityProfile;
@@ -190,6 +192,8 @@ export class GameView {
       this.shores.get(world.map.islands, world.map.terrain),
     );
     this.scene.add(this.calmWater.root);
+    this.shallowsWater = new ShallowsWater(world.map.terrain);
+    this.scene.add(this.shallowsWater.root);
   }
 
   /** Harbour lanterns (decision 0068): one on each pier head and a town glow a little inland. */
@@ -482,6 +486,7 @@ export class GameView {
     this.ocean.update(time, this.target);
     this.currentWater?.update(time, this.ocean, this.world.currentsOn);
     this.calmWater?.update(time, this.ocean, this.world.windZones);
+    this.shallowsWater?.update(time, this.ocean);
     this.edgeBuoys.update(time, (x, z) => waveHeight(x, z, time), this.camera);
     this.seaMarks.update(time, (x, z) => waveHeight(x, z, time));
     this.questMarkers.update(this.stepMarkers(), time, (x, z) => waveHeight(x, z, time));
@@ -527,6 +532,7 @@ export class GameView {
     this.wake.dispose();
     this.currentWater?.dispose();
     this.calmWater?.dispose();
+    this.shallowsWater?.dispose();
     this.buoy.dispose();
     this.edgeBuoys.dispose();
     this.seaMarks.dispose();

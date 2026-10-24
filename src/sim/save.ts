@@ -300,6 +300,7 @@ export function applySave(world: World, data: SaveData): void {
       world.map.boundsRadius,
       world.map.terrain,
       world.piers,
+      world.ship.draft,
     )
   ) {
     const start = world.map.start;

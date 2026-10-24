@@ -588,7 +588,8 @@ export function designedTownParts(
       const g = new THREE.ConeGeometry(R, s.height * R - mountainBase, 10)
         .scale(rx, 1, rz)
         .translate(cx * R, (s.height * R + mountainBase) / 2, cz * R);
-      out.push(paint(g, C.rock2));
+      // A green hill on the palm islands (decision 0152); every other peak is bare rock.
+      out.push(paint(g, s.material === 'grass' ? C.grass : C.rock2));
     } else
       terrain(
         s.outline,

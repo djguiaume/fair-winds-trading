@@ -1,0 +1,15 @@
+{
+  "id": "palm",
+  "name": "Palm",
+  "group": "nature",
+  "parts": [
+    {
+      "use": "woodland-palm",
+      "vars": {
+        "s": 1.1,
+        "lean": 0.18,
+        "leaf": 0.4
+      }
+    }
+  ]
+}

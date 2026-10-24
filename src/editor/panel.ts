@@ -325,6 +325,7 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
       island: 'barrier island',
       reef: 'reef',
       sandbank: 'sandbank',
+      shallows: 'shallows (deep ships go round)',
     };
     heading(shape.name ?? shape.id, kinds[shape.kind]);
     if (shape.kind === 'island') {
@@ -337,6 +338,9 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
       else delete shape.name;
     });
     select('Kind', shape.kind, Object.entries(kinds), (v) => (shape.kind = v as typeof shape.kind));
+    // Sandy passages refuse ships deeper than this (decision 0152); the sloop draws 0.7.
+    if (shape.kind === 'shallows')
+      number('Max draft', shape.maxDraft, (v) => (shape.maxDraft = v), { min: 0, optional: true });
     const look = () => (shape.look ??= {});
     number('Trees', shape.look?.trees, (v) => (look().trees = v), { min: 0, optional: true });
     select(

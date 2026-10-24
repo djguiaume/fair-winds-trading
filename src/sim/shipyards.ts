@@ -1,5 +1,5 @@
 import { TUNING } from '../data/tuning';
-import type { MapDef, PortDef } from './map';
+import { chartableZoneIds, type MapDef, type PortDef } from './map';
 import { applyPerks } from './perks';
 import { distance } from './math';
 import { SHIP_CLASSES, type ShipClass } from './ship';
@@ -20,6 +20,8 @@ export interface ShipyardProgress {
   standing: Record<string, number>;
   /** Current ids on the chart: sailed in at least once (decision 0140). */
   charted?: string[];
+  /** Named wind zone ids on the chart: sailed well inside at least once (decision 0152). */
+  zones?: string[];
 }
 
 /** The home port: the map's choice, else the port nearest the start. */
@@ -159,6 +161,11 @@ export function readProgress(raw: unknown, map: MapDef): ShipyardProgress {
   if (Array.isArray(charted)) {
     const known = (map.currents ?? []).map((c) => c.id).filter((id) => charted.includes(id));
     if (known.length) fresh.charted = known;
+  }
+  const zones = (raw as { zones?: unknown }).zones;
+  if (Array.isArray(zones)) {
+    const known = chartableZoneIds(map).filter((id) => zones.includes(id));
+    if (known.length) fresh.zones = known;
   }
   if (typeof r.standing === 'object' && r.standing !== null) {
     const saved = r.standing as Record<string, unknown>;
