@@ -1,6 +1,6 @@
 # Phase 4 scope review (2026-10-24)
 
-**Status:** Review, nothing decided. Guillaume asked what in Phase 4 can be analysed, brainstormed or reviewed while Phase 3 finishes. He then picked this scope review as the first step. The answers to the questions at the end will become an ADR and a roadmap update.
+**Status:** Review, partly answered (see below). Guillaume asked what in Phase 4 can be analysed, brainstormed or reviewed while Phase 3 finishes. He then picked this scope review as the first step. The answers to the questions at the end will become an ADR and a roadmap update.
 
 **Read for this review:** the Phase 4 section of the [roadmap](../../roadmap.md) on main, plus [0097](../../decisions/0097-progression-candidates-and-later-extensions.md) (automation deferred), [0120](../../decisions/0120-communities-and-home-island.md) (community arcs and the home island), [0065](../../decisions/0065-rare-goods-from-the-far-yards.md) (outer islands), [0018](../../decisions/0018-map-proposals-and-unlocks.md) (selectable maps, seeded maps), [0064](../../decisions/0064-wind-from-every-quarter.md) (regional wind), [0115](../../decisions/0115-bigger-map-engine-rules.md) (5x map engine rules), [0128](../../decisions/0128-build-spots-on-any-island.md) (build spots on any island) and the [extensions plan](../progression/extensions.md). The code was checked with graphify (`graphify update .`, then `graphify explain`).
 
@@ -87,6 +87,38 @@ The epilogue and the warehouse/weather-glass work touch quests, `buildings.json`
 
 Outposts wait for the warehouse to land. Authoring the real map waits for v0.3.x.
 
+## Answers so far (Guillaume, 2026-10-24)
+
+1. **One big sea:** yes. Today's Windward Ring stays unchanged as the centre.
+2. **Outposts:** OK, but he asked what they are for. Proposal below (founded settlements).
+3. **Seeded maps:** later.
+4. **Seasons:** later.
+5. **Shallows:** hard block. A deep-draft ship cannot enter a shallow passage.
+6. **Story in the new waters:** "maybe yes". The bigger map grows as **biomes** around the ring (below).
+
+## Biomes around the ring (Guillaume's idea, 2026-10-24)
+
+The 5x sea grows outward from the ring in four directions, each a biome with its own island, hazards and wind. Names and goods are placeholders.
+
+| Side | Biome | Sailing challenge | Outpost island | Rare good (second set, 0065) |
+|---|---|---|---|---|
+| North | Ice | Drifting icebergs (moving hazards), cold gales | Ice island | Furs or whale oil |
+| South | Tropical | Sand reefs, shallows that hard-block deep ships, steady trade-wind belt with doldrums | Palm island | Spice |
+| West | Fire | Volcano island, ash clouds that cut visibility, warm currents | Volcano island | Sulphur or obsidian |
+| East | Proposed: fog and storm coast (alternative: kelp and whale grounds) | Fog banks, cliffs, strong currents, frequent storms; where the expedition's storm belt could later start | Cliff island | Open |
+
+This replaces 0065's "one upwind, one downwind" outer islands with one per biome. The wind zones (item 2) and currents (item 3) become per-biome data. New code is needed once each for drifting icebergs, ash or fog visibility, and the biome looks (ice, palms, lava), as for any new weather look (0108).
+
+## Outposts as founded settlements (proposal)
+
+Repairs and shelter alone are thin. Proposal: an outpost is a **new small settlement the player founds** on the biome's island.
+
+- Bring settlers and building goods (timber, planks, stone, food). It grows with the existing town levels and wants (0059).
+- Once big enough it makes the biome's rare good, which only the ring's port towns want.
+- Its buildings (build spots, 0128) give repairs, storage and a sheltered harbour to wait out bad weather, so far voyages happen in stages.
+- Founding it is a small arc of its own, which answers question 6.
+- Manual voyages only, no automation (0097). Later the steam extension and the expedition can use it as a base.
+
 ## Questions for Guillaume
 
 1. **One big sea:** keep today's Windward Ring unchanged as the centre and add fogged outer waters around it (recommended), or rearrange the whole map?
@@ -95,3 +127,8 @@ Outposts wait for the warehouse to land. Authoring the real map waits for v0.3.x
 4. **Seasons:** leave seasonal winds for later and do authored wind zones first (recommended)?
 5. **Shallows:** should a passage hard-block deep ships, or slow and damage them so it stays possible?
 6. **Story in the new waters:** should the outer islands get small arcs of their own (a story reason to explore), or stay trade-only until the expedition?
+
+Still open:
+
+- Is "an outpost is a settlement you found" what you want?
+- Which east biome: fog and storm coast, or kelp and whale grounds?
