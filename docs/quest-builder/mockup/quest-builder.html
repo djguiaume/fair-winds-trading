@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quest builder · mockup</title>
+    <!--
+      Static mockup of the quest builder (decision 0142, proposed). Not part of the game: it is
+      screenshotted into docs/quest-builder/*.png. The chart is the map editor's own drawing
+      (src/editor/chart.ts), the cards are the game's own quest card (src/ui/questCard.ts) with the
+      real portraits, and the quest, its places and its text are the shipped saltmere-shoals quest.
+      Views: ?view=steps (default), card, story, play, sea (open at 915 x 412),
+      portrait and portrait-card (open at 412 x 915). Served by `npm run dev`.
+    -->
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="./quest-builder.ts"></script>
+  </body>
+</html>
