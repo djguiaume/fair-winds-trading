@@ -14,11 +14,24 @@ type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 const isObject = (v: Json): v is { [key: string]: Json } =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
 
-/** One line, or null if `v` holds an object (objects never sit on one line). */
-function flat(v: Json): string | null {
-  if (isObject(v)) return Object.keys(v).length === 0 ? '{}' : null;
+/**
+ * One line, or null if it cannot be: objects never sit on one line, except in files whose objects
+ * were written on one line where they fit (`inline`, the quest files), as Prettier keeps them.
+ */
+function flat(v: Json, inline: boolean): string | null {
+  if (isObject(v)) {
+    const keys = Object.keys(v);
+    if (keys.length === 0) return '{}';
+    if (!inline) return null;
+    const parts = keys.map((k) => {
+      const one = flat(v[k]!, inline);
+      return one === null ? null : `${JSON.stringify(k)}: ${one}`;
+    });
+    return parts.some((p) => p === null) ? null : `{ ${parts.join(', ')} }`;
+  }
   if (Array.isArray(v)) {
-    const parts = v.map(flat);
+    if (inline && matrix(v)) return null;
+    const parts = v.map((e) => flat(e, inline));
     return parts.some((p) => p === null) ? null : `[${parts.join(', ')}]`;
   }
   return JSON.stringify(v);
@@ -34,23 +47,28 @@ function matrix(v: Json[]): boolean {
 }
 
 /** `v` printed at `indent`, its first line starting after `lead` characters on that line. */
-function print(v: Json, indent: string, lead: number, tail: number): string {
+function print(v: Json, indent: string, lead: number, tail: number, inline = false): string {
   const inner = indent + '  ';
   if (isObject(v)) {
     const keys = Object.keys(v);
     if (keys.length === 0) return '{}';
+    // The file's own object (indent '') always opens one key per line.
+    const one = inline && indent ? flat(v, inline) : null;
+    if (one !== null && lead + one.length + tail <= WIDTH) return one;
     const lines = keys.map((k, i) => {
       const key = `${JSON.stringify(k)}: `;
       const comma = i < keys.length - 1 ? 1 : 0;
-      return inner + key + print(v[k]!, inner, inner.length + key.length, comma);
+      return inner + key + print(v[k]!, inner, inner.length + key.length, comma, inline);
     });
     return `{\n${lines.join(',\n')}\n${indent}}`;
   }
   if (Array.isArray(v)) {
     if (v.length === 0) return '[]';
-    const one = flat(v);
+    const one = flat(v, inline);
     if (one !== null && !matrix(v) && lead + one.length + tail <= WIDTH) return one;
-    const lines = v.map((e, i) => inner + print(e, inner, inner.length, i < v.length - 1 ? 1 : 0));
+    const lines = v.map(
+      (e, i) => inner + print(e, inner, inner.length, i < v.length - 1 ? 1 : 0, inline),
+    );
     return `[\n${lines.join(',\n')}\n${indent}]`;
   }
   return JSON.stringify(v);
@@ -59,4 +77,12 @@ function print(v: Json, indent: string, lead: number, tail: number): string {
 /** The file text for a value, with the final newline. */
 export function formatJson(value: unknown): string {
   return print(value as Json, '', 0, 0) + '\n';
+}
+
+/**
+ * A quest file (decision 0142): as `formatJson`, but objects stay on one line where they fit, as
+ * the quest files are written (`{ "x": 205, "y": 8 }`, `"reward": { "gold": 100 }`).
+ */
+export function formatQuestJson(value: unknown): string {
+  return print(value as Json, '', 0, 0, true) + '\n';
 }

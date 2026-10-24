@@ -102,8 +102,8 @@ export interface StepContext extends ConditionContext {
   itemSpace(item: string): number;
 }
 
-/** What a parameter holds, for the checks; a trailing `?` makes it optional. */
-type Param =
+/** What a parameter holds, for the checks and the quest builder; a trailing `?` makes it optional. */
+export type Param =
   | 'port'
   | 'place'
   | 'good'
@@ -122,7 +122,7 @@ type Param =
   | 'par'
   | 'condition'
   | 'conditions';
-type ParamSpec = Param | `${Param}?`;
+export type ParamSpec = Param | `${Param}?`;
 
 interface ConditionKind {
   params: Record<string, ParamSpec>;
@@ -379,6 +379,34 @@ export const CONDITIONS: Record<string, ConditionKind> = {
     update: updateTimed,
     test: (_c, _ctx, s) => s[0] === RUN_MADE,
   },
+};
+
+/**
+ * Each condition kind in a few words, for the quest builder's kind picker (decision 0142). The
+ * builder's fields come from `params` above, so a new kind shows there once it has its line here.
+ */
+export const CONDITION_ABOUT: Record<string, string> = {
+  always: 'at once',
+  all: 'all of several conditions',
+  any: 'any one of several conditions',
+  not: 'a condition does not hold',
+  'quest-done': 'a quest is finished',
+  'quest-at': 'a quest has reached a step',
+  chose: 'an option was picked in a quest',
+  docked: 'alongside a port',
+  discovered: 'a port is on the chart',
+  'town-level': 'a town has grown to a level',
+  standing: 'standing with a shipwright',
+  'orders-done': 'orders completed',
+  gold: 'gold in hand',
+  'has-cargo': 'goods in the hold',
+  built: 'a building stands on an island',
+  moored: 'moored at an island’s pier',
+  'owns-ship': 'owns a ship',
+  delivered: 'hand over goods at a port',
+  carried: 'carry quest cargo from one place to another',
+  reach: 'sail to places at sea',
+  timed: 'a run against the clock',
 };
 
 /**

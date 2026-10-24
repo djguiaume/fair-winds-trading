@@ -1,6 +1,6 @@
 # 0142. A quest builder in the editor
 
-**Status:** Accepted (2026-10-24). Guillaume: "1 go, 2 don't care, you build it and merge it, in the order you want and as parallel as you want, 3 keep [the tutorial] out for the moment but it must use the same quest format as everything is data, 4 new tab". [Mockup and plan](../quest-builder/README.md). Builds on the quest engine [0125](0125-quest-engine.md), the step data of [0139](0139-gentler-prologue-and-quest-cards.md) and the cards of [0141](0141-quay-tab-and-arrival-card.md); the third authoring tool after the map editor [0095](0095-map-editor.md) and the island builder [0105](0105-island-builder-props.md).
+**Status:** Accepted (2026-10-24). Guillaume: "1 go, 2 don't care, you build it and merge it, in the order you want and as parallel as you want, 3 keep [the tutorial] out for the moment but it must use the same quest format as everything is data, 4 new tab". [Mockup and plan](../quest-builder/README.md). **Part 1 built** (2026-10-24, [how to use](../quest-builder/builder/README.md)): the Quests page with editing, card and text, story, checks and export; play from a step is next. Builds on the quest engine [0125](0125-quest-engine.md), the step data of [0139](0139-gentler-prologue-and-quest-cards.md) and the cards of [0141](0141-quay-tab-and-arrival-card.md); the third authoring tool after the map editor [0095](0095-map-editor.md) and the island builder [0105](0105-island-builder-props.md).
 
 ## Context
 
@@ -15,7 +15,7 @@ Guillaume asked whether there should be a quest editor or builder. Quests are da
 5. **Story view**: every quest linked by its start conditions; the quest's own fields beside it.
 6. **Play from a step** in a new tab on the editor's own save, set up for the chosen step, with a quest test bar (restart, skip, close).
 7. **Checks are the tests'** (`checkQuests`, `checkQuestHooks`, map clear-water checks), live; **export** gives the quest file and both text files formatted like the repo.
-8. Built in three PRs: read and show (with the story view), edit and export, play from a step; merged as they are ready.
+8. Built in two parts (Guillaume let the order be chosen): first the page with editing, card and text, story, checks and export; then play from a step.
 9. **The tutorial stays out of the builder for now**, but it must move to the same quest format as the other quests (everything is data), so it can later open in the builder too. That conversion is its own step after the builder.
 
 ## Consequences
@@ -24,3 +24,10 @@ Guillaume asked whether there should be a quest editor or builder. Quests are da
 - The condition and reward kinds gain parameter descriptions (small code change in `questLibrary.ts`), shared by the builder and the checks.
 - The game learns a test start (`?map=edited&quest=…&step=…`) on the editor's isolated save.
 - The tutorial's own lesson format (`first-voyage.json`: `coach`, `on`, `mark`, `continue`) is now a debt: it must become ordinary quest steps.
+
+## As built (part 1)
+
+- A **Quests** button in the map editor's top bar opens the builder over the editor, like the island builder; the map editor's Map/Islands/Quests tabs of the mockup became the views **Chart · Card & text · Story** inside the builder.
+- Condition fields come from each kind's `params` (exported `Param`/`ParamSpec`), and the kind picker reads `CONDITION_ABOUT` in `questLibrary.ts`; a test fails if a kind has no line there.
+- Quest files export byte for byte like the repo: `formatQuestJson` keeps objects on one line where they fit, and a file written with objects open (`fair-winds.json`) keeps the plain `formatJson`.
+- Not built from the mockup: dragging between quests in the story view to link them (the start condition is edited on the right instead), and the portrait quest/step pickers (portrait stacks the lists, the chart and the fields).
