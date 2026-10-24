@@ -690,3 +690,22 @@ dialog.chart::backdrop {
     height: 18px;
   }
 }
+
+/* Fog of war (decision 0153): "Uncharted" across each fogged area. */
+.chart-fog-label {
+  font-family: var(--body);
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-anchor: middle;
+  pointer-events: none;
+}
+.chart-fog-label-a {
+  fill: rgba(110, 86, 52, 0.75);
+}
+.chart-fog-label-b {
+  fill: rgba(70, 92, 100, 0.7);
+}
+.chart-fog-label-c {
+  fill: rgba(238, 243, 244, 0.75);
+}

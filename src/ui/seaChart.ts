@@ -7,6 +7,7 @@ import { questShown } from '../data/islands';
 import { type PortQuote, quoteAcross } from '../sim/market';
 import { DEG, distance } from '../sim/math';
 import { discoveredPorts } from '../sim/shipyards';
+import { chartedAt, islandCharted } from '../sim/fog';
 import { noGoAngle } from '../sim/ship';
 import { laneShape } from '../sim/currents';
 import { knobs } from '../sim/difficulty';
@@ -30,6 +31,9 @@ const box = (cx: number, cy: number, w: number, h: number): Box => ({
 });
 /** Chart scale (map units per pixel) beyond which secondary names are left out. */
 const MAX_UNITS_PER_PIXEL_FOR_NAMES = 3;
+/** Fog of war look being reviewed (decision 0153): `?fog=a|b|c`. */
+const FOG_STYLE =
+  (typeof location !== 'undefined' && new URLSearchParams(location.search).get('fog')) || 'a';
 
 /** Overlapping area of two boxes, used to choose the clearest side for a label. */
 const overlap = (a: Box, b: Box) =>
@@ -310,6 +314,146 @@ export class SeaChart {
         n: (c.speedKn * scale).toFixed(1),
       });
     }
+  }
+
+  /**
+   * Fog of war (decision 0153): the uncharted waters under one layer, with holes where the ring,
+   * the charted areas and the sighted islands are. The holes' edges are a few grey strokes in the
+   * mask, a soft rim without a blur filter, which old tablets draw slowly.
+   */
+  private drawFog(
+    shape: (tag: string, attrs: Record<string, string | number>, parent?: Element) => Element,
+    unit: number,
+    px: number,
+  ) {
+    const { map, trade } = this.world;
+    const fog = map.fog;
+    if (!fog) return;
+    const style = FOG_STYLE;
+    const R = map.boundsRadius;
+    const progress = trade.progress;
+    const defs = shape('defs', {});
+    const mask = shape(
+      'mask',
+      {
+        id: 'chart-fog-mask',
+        maskUnits: 'userSpaceOnUse',
+        x: -R,
+        y: -R,
+        width: 2 * R,
+        height: 2 * R,
+      },
+      defs,
+    );
+    shape('circle', { r: R + 2, fill: '#fff' }, mask);
+    const rim = (style === 'b' ? [26, 16, 8] : style === 'a' ? [10, 5] : [4]).map((w) => w * px);
+    // Mask greys: lighter towards the hole, so the fog thins over the rim.
+    const grey = (k: number, n: number) => {
+      const v = Math.round(255 * (1 - (k + 1) / (n + 1)));
+      return `rgb(${v},${v},${v})`;
+    };
+    const holes: { tag: string; attrs: Record<string, string | number> }[] = [];
+    holes.push({ tag: 'circle', attrs: { r: fog.chartedRadius } });
+    for (const area of fog.areas)
+      if (progress.areas?.includes(area.id))
+        holes.push({
+          tag: 'polygon',
+          attrs: { points: area.outline.map(([x, y]) => `${x},${-y}`).join(' ') },
+        });
+    for (const island of map.islands)
+      if (progress.sighted?.includes(island.id))
+        holes.push({
+          tag: 'circle',
+          attrs: { cx: island.x, cy: -island.y, r: island.radius + 12 },
+        });
+    rim.forEach((w, k) => {
+      for (const h of holes)
+        shape(
+          h.tag,
+          {
+            ...h.attrs,
+            fill: 'none',
+            stroke: grey(k, rim.length),
+            'stroke-width': w * 2,
+            'stroke-linejoin': 'round',
+          },
+          mask,
+        );
+    });
+    for (const h of holes) shape(h.tag, { ...h.attrs, fill: '#000' }, mask);
+    const tile = (style === 'c' ? 14 : 60) * px;
+    const pattern = shape(
+      'pattern',
+      { id: 'chart-fog-pattern', patternUnits: 'userSpaceOnUse', width: tile, height: tile },
+      defs,
+    );
+    if (style === 'a') {
+      // Blank parchment, with the faint pencil grid of a chart not yet drawn.
+      shape('rect', { width: tile, height: tile, fill: '#eadfc6' }, pattern);
+      shape(
+        'path',
+        { d: `M0 0H${tile}M0 0V${tile}`, stroke: '#cdbb98', 'stroke-width': 1 * px, fill: 'none' },
+        pattern,
+      );
+    } else if (style === 'b') {
+      // Sea mist: pale grey with soft puffs.
+      const g = shape('radialGradient', { id: 'chart-fog-puff' }, defs);
+      shape('stop', { offset: 0, 'stop-color': '#f4f7f8', 'stop-opacity': 0.9 }, g);
+      shape('stop', { offset: 1, 'stop-color': '#f4f7f8', 'stop-opacity': 0 }, g);
+      shape('rect', { width: tile, height: tile, fill: '#cad6da' }, pattern);
+      for (const [cx, cy, r] of [
+        [0.2, 0.25, 0.3],
+        [0.7, 0.4, 0.35],
+        [0.35, 0.8, 0.28],
+        [1, 0.9, 0.25],
+        [0, 0.6, 0.2],
+      ])
+        shape(
+          'circle',
+          { cx: cx! * tile, cy: cy! * tile, r: r! * tile, fill: 'url(#chart-fog-puff)' },
+          pattern,
+        );
+    } else {
+      // Faded, hatched sea, as old charts leave unsurveyed water.
+      shape('rect', { width: tile, height: tile, fill: '#1f6a75' }, pattern);
+      shape(
+        'path',
+        { d: `M0 ${tile}L${tile} 0`, stroke: 'rgba(238,243,244,0.28)', 'stroke-width': 1.2 * px },
+        pattern,
+      );
+    }
+    shape('circle', {
+      r: R,
+      fill: 'url(#chart-fog-pattern)',
+      mask: 'url(#chart-fog-mask)',
+      class: 'chart-fog',
+    });
+    if (style === 'c')
+      for (const h of holes)
+        shape(h.tag, {
+          ...h.attrs,
+          fill: 'none',
+          stroke: 'rgba(238,243,244,0.7)',
+          'stroke-width': 1.2 * px,
+          'stroke-dasharray': `${5 * px} ${4 * px}`,
+          mask: 'url(#chart-fog-mask)',
+        });
+    // "Uncharted" written across each fogged area, not its name.
+    for (const area of fog.areas) {
+      if (progress.areas?.includes(area.id)) continue;
+      const xs = area.outline.map((p) => p[0]);
+      const ys = area.outline.map((p) => -p[1]);
+      const cx = xs.reduce((a, b) => a + b, 0) / xs.length;
+      const cy = ys.reduce((a, b) => a + b, 0) / ys.length;
+      const label = shape('text', {
+        x: cx,
+        y: cy,
+        class: `chart-fog-label chart-fog-label-${style}`,
+        style: `font-size: ${13 * px}px`,
+      });
+      label.textContent = t('chart.uncharted');
+    }
+    void unit;
   }
 
   /**
@@ -752,7 +896,11 @@ export class SeaChart {
           y1: Math.max(...ps.map((p) => -p[1])),
         });
       } else landBoxes.push(box(island.x, -island.y, island.radius * 2, island.radius * 2));
-      if (island.name && !charted.some((p) => p.islandId === island.id))
+      if (
+        island.name &&
+        !charted.some((p) => p.islandId === island.id) &&
+        islandCharted(map, this.world.trade.progress, island)
+      )
         places.push({
           name: island.name,
           x: island.x,
@@ -777,10 +925,11 @@ export class SeaChart {
       const ys = terrain.outline.map((p) => -p[1]);
       const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
       if (terrain.kind === 'island') landBoxes.push({ x0, x1, y0, y1 });
-      if (terrain.name && terrain.kind === 'island')
+      const known = chartedAt(map, this.world.trade.progress, (x0 + x1) / 2, -(y0 + y1) / 2);
+      if (terrain.name && terrain.kind === 'island' && known)
         places.push({ name: terrain.name, x: (x0 + x1) / 2, top: y0, bottom: y1 });
       // The chart says which ships cross a sandy passage (decisions 0137, 0152).
-      if (terrain.name && terrain.kind === 'shallows')
+      if (terrain.name && terrain.kind === 'shallows' && known)
         places.push({
           name: t('chart.shallows', { name: terrain.name }),
           x: (x0 + x1) / 2,
@@ -792,6 +941,7 @@ export class SeaChart {
     const done = questsDone(this.world.trade);
     for (const mark of map.marks ?? []) {
       if (!mark.chart || !questShown(mark, done)) continue;
+      if (!chartedAt(map, this.world.trade.progress, mark.x, mark.y)) continue;
       // A named mark (a gateway's light) gets its place name beside it (decision 0152).
       if (mark.name)
         places.push({ name: mark.name, x: mark.x, top: -mark.y - 6, bottom: -mark.y + 6 });
@@ -828,6 +978,7 @@ export class SeaChart {
           class: 'chart-mark',
         });
     }
+    this.drawFog(shape, unit, px);
     // Storms (decisions 0067 and 0070): a hazard badge over a soft cloud, chevrons for the drift.
     for (const storm of this.world.weather.storms) {
       if (storm.intensity < 0.05) continue;
