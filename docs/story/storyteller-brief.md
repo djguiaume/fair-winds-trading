@@ -22,7 +22,7 @@
 ### Rules for every card
 
 1. **2 to 4 short lines**, at most about 220 characters in English. The French may run up to about 20 % longer.
-2. **The title is the ask**, written as an imperative of at most 5 words, with the place in it when there is one: "Bring stone to Port Calda", "Find the diving gulls". It is also the line in the journal.
+2. **The title is the ask**, written as an imperative of at most 5 words, with the place in it when there is one: "Bring stone to Port Calda", "Find the diving gulls". It is also the line in the journal. A timed run's title may run longer if it follows the pattern "Rush … to <place> in {par}" (French: « Portez … à <place> en {par} »).
 3. **The copy is the person talking**, in the first person, with no quotation marks (the card shows who is speaking). Stage directions don't go in the copy.
 4. **Everyone calls the player "captain"**, lower case in a sentence. In French it's "capitaine" with **vous**, and nobody says *tu*. The player has no name and no gender, so French copy addressed to the player must not agree a word with the player's gender (write "Merci, capitaine", not "vous êtes prêt").
 5. **No deadlines or threats that the game doesn't keep.** Nothing can fail, so nobody says "the fair is in a week" or "before dark". A timed run is about freshness or pride ("while the fish are still jumping"), and its par is in the title, not in the copy.

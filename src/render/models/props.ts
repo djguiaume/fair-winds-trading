@@ -510,6 +510,33 @@ export function lampPost(): Parts {
   ];
 }
 
+/** A flagpole flying a two-colour flag (variant picks the colours), as on a company's pier. */
+export function flagpole(variant: number): Parts {
+  const [field, band] = FLAGS[variant % FLAGS.length]!;
+  return [
+    box(0.5, 0.2, 0.5, 0, 0.1, 0, C.stoneDark),
+    cyl(0.08, 0.11, 3.6, 0, 1.9, 0, C.post, 6),
+    box(1.5, 0.9, 0.05, 0.8, 3.2, 0, field),
+    box(1.5, 0.26, 0.06, 0.8, 3.2, 0, band),
+  ];
+}
+
+const FLAGS: [string, string][] = [
+  [C.flag, C.sail],
+  ['#24496b', C.sail],
+  ['#2f8f7f', '#e8c46a'],
+];
+
+/** A name board on two posts, like the one at a harbour's landing. */
+export function nameBoard(): Parts {
+  return [
+    box(0.14, 1.2, 0.14, -0.9, 0.6, 0, C.post),
+    box(0.14, 1.2, 0.14, 0.9, 0.6, 0, C.post),
+    box(2.1, 0.7, 0.1, 0, 1.05, 0.04, C.wood),
+    box(1.8, 0.45, 0.04, 0, 1.05, 0.11, C.sail),
+  ];
+}
+
 // ---------------------------------------------------------------- the catalogue
 
 export interface PropArgs {
@@ -627,6 +654,8 @@ export const PROP_TYPES: Record<string, PropType> = {
   },
   'market-hall': { group: 'town', building: true, build: marketHall },
   'lamp-post': { group: 'town', build: lampPost },
+  flagpole: { group: 'town', build: ({ variant }) => flagpole(variant), fit: 0.4 },
+  'name-board': { group: 'town', build: nameBoard, fit: 1.1 },
   crates: { group: 'town', build: ({ variant }) => crates(variant || 2) },
   'spire-church': { group: 'town', building: true, build: spireChurch },
   bakery: { group: 'town', building: true, build: bakery },

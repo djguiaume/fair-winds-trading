@@ -217,6 +217,17 @@ describe('home island (decision 0126)', () => {
     expect(moved.z).toBeCloseTo(original.z - spot3.z + spot5.z);
   });
 
+  it('knows when she is moored at her island (decision 0134)', () => {
+    const w = world();
+    const ctx = { trade: w.trade, map: MAP } as Parameters<typeof testCondition>[1];
+    expect(testCondition({ is: 'moored' }, ctx)).toBe(false);
+    w.trade.home.docked = 'skerry';
+    expect(testCondition({ is: 'moored' }, ctx)).toBe(true);
+    expect(testCondition({ is: 'moored', island: 'skerry' }, ctx)).toBe(true);
+    w.trade.home.docked = 'elsewhere';
+    expect(testCondition({ is: 'moored' }, ctx)).toBe(false);
+  });
+
   it('gives the island and offers spots as quest rewards, and checks them', () => {
     const w = world();
     payReward(w.trade, MAP, { homeIsland: true, homeSpot: ['spot-2'] }, () => {});
