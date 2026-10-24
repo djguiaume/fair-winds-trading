@@ -1,3 +1,4 @@
+import { bergsTuning } from '../sim/bergs';
 import { GOODS, GOOD_DEFS, GOOD_ICONS, type GoodId, isGood } from '../sim/goods';
 import { type LandmarkKind, type MapDef, type PortDef, SEA_MARK_TYPES } from '../sim/map';
 import { SHIP_CLASSES } from '../sim/ship';
@@ -105,7 +106,7 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     label: string,
     value: number | undefined,
     set: (v: number | undefined) => void,
-    opts: { min?: number; max?: number; step?: number; optional?: boolean } = {},
+    opts: { min?: number; max?: number; step?: number; optional?: boolean; empty?: string } = {},
   ) => {
     const input = node(
       'input',
@@ -115,7 +116,7 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     if (opts.min !== undefined) input.min = String(opts.min);
     if (opts.max !== undefined) input.max = String(opts.max);
     input.step = String(opts.step ?? 1);
-    if (opts.optional) input.placeholder = 'none';
+    if (opts.optional) input.placeholder = opts.empty ?? 'none';
     input.addEventListener('change', () => {
       if (input.value === '' && opts.optional) return host.change(() => set(undefined));
       const v = Number(input.value);
@@ -500,9 +501,16 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
         min: 1,
         optional: true,
       });
-      number('Loops', shape.loops, (v) => (v && v > 1 ? (shape.loops = 2) : delete shape.loops), {
-        min: 1,
+      number(
+        'Loops',
+        shape.loops,
+        (v) => (v && v > 1 ? (shape.loops = Math.round(v)) : delete shape.loops),
+        { min: 1, optional: true },
+      );
+      number('Sway', shape.sway, (v) => (v === undefined ? delete shape.sway : (shape.sway = v)), {
+        min: 0,
         optional: true,
+        empty: `${bergsTuning().sway} (weather.json)`,
       });
       select(
         'Drift',

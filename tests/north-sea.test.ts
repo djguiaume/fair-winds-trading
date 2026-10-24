@@ -87,6 +87,14 @@ describe('drifting icebergs (decision 0170)', () => {
     ]);
   });
 
+  it('takes its own sway and more loops from the field (sea editor, npm run sea)', () => {
+    const three: TerrainDef = { ...structuredClone(def), loops: 3, sway: 3, size: [4, 6] };
+    const f = prepareField(three, 0);
+    expect(f.sway).toBe(3);
+    expect(f.loops.length).toBe(3);
+    expect(f.loops.map((l) => l.dir)).toEqual([1, -1, 1]);
+  });
+
   it('drops the bergs that do not fit, and the checks say so', () => {
     const crowded: TerrainDef = { ...structuredClone(def), count: 60 };
     expect(prepareField(crowded, 0).dropped).toBeGreaterThan(0);

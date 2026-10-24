@@ -60,11 +60,13 @@ export interface Berg {
 
 export interface PreparedField {
   def: TerrainDef;
-  /** The outer loop, then (with `loops: 2`, room allowing) an inner one turning the other way. */
+  /** The outer loop, then (with `loops` above 1, room allowing) inner ones, each turning the other way. */
   loops: BergLoop[];
   bergs: BergSlot[];
   /** Bergs asked for that do not fit round the loops (a map check warns). */
   dropped: number;
+  /** How far its bergs sway either side of their loop: the field's `sway`, else the tuning's. */
+  sway: number;
   /** Bounding circle of the outline. */
   x: number;
   y: number;
@@ -88,8 +90,8 @@ const loopLength = (loop: BergLoop) => loop.along[loop.along.length - 1]!;
 /**
  * A field's loops and bergs, made once. The outer loop is the field's outline smoothed and drawn
  * in toward its middle until the largest berg, swaying out, clears the edge by `margin`. With
- * `loops: 2` an inner loop, turning the other way, is drawn in further until bergs on the two
- * loops cannot touch: then no water in the field stays clear for long. On each loop the bergs are
+ * `loops` above 1, inner loops, each turning the other way, are drawn in further until bergs on
+ * neighbouring loops cannot touch: then no water in the field stays clear for long. On each loop the bergs are
  * spaced evenly, so they never touch one another; as many as fit are kept.
  */
 export function prepareField(def: TerrainDef, index = 0): PreparedField {
@@ -106,22 +108,24 @@ export function prepareField(def: TerrainDef, index = 0): PreparedField {
   const scaled = (k: number) =>
     smooth.map(([px, py]) => [x + (px - x) * k, y + (py - y) * k] as [number, number]);
   const dir = def.spin === 'cw' ? -1 : 1;
+  const sway = def.sway ?? tune.sway;
   let outer = scaled(0.9);
   let k = 0.9;
   for (; k > 0.05; k -= 0.05) {
     outer = scaled(k);
-    const clear = hi + tune.margin + tune.sway;
+    const clear = hi + tune.margin + sway;
     if (outer.every(([px, py]) => coastDistance(px, py, def.outline).distance <= -clear)) break;
   }
+  // Each further loop lies inside the last, far enough that bergs on the two cannot touch, and
+  // turns the other way; as many as `loops` asks for and the field has room for.
   const loops = [makeLoop(outer, dir)];
-  if ((def.loops ?? 1) >= 2) {
-    const apart = 2 * (hi + tune.sway) + tune.margin;
-    for (let j = k - 0.05; j > 0.1; j -= 0.025) {
-      const inner = scaled(j);
-      if (inner.every(([px, py]) => coastDistance(px, py, outer).distance <= -apart)) {
-        loops.push(makeLoop(inner, dir === 1 ? -1 : 1));
-        break;
-      }
+  const apart = 2 * (hi + sway) + tune.margin;
+  let last = outer;
+  for (let j = k - 0.05; loops.length < (def.loops ?? 1) && j > 0.1; j -= 0.025) {
+    const inner = scaled(j);
+    if (inner.every(([px, py]) => coastDistance(px, py, last).distance <= -apart)) {
+      loops.push(makeLoop(inner, loops.length % 2 ? (dir === 1 ? -1 : 1) : dir));
+      last = inner;
     }
   }
   // Bergs share the loops by length, each loop holding as many as fit end to end.
@@ -131,7 +135,7 @@ export function prepareField(def: TerrainDef, index = 0): PreparedField {
   let left = asked;
   loops.forEach((loop, li) => {
     const length = loopLength(loop);
-    const fit = Math.floor(length / (2 * (hi + tune.sway) + tune.margin));
+    const fit = Math.floor(length / (2 * (hi + sway) + tune.margin));
     const share = li === loops.length - 1 ? left : Math.round((asked * length) / total);
     const count = Math.min(fit, share);
     left -= share;
@@ -146,7 +150,7 @@ export function prepareField(def: TerrainDef, index = 0): PreparedField {
         sway: rng() * Math.PI * 2,
       });
   });
-  field = { def, loops, bergs, dropped: asked - bergs.length, x, y, reach };
+  field = { def, loops, bergs, dropped: asked - bergs.length, sway, x, y, reach };
   prepared.set(def, field);
   return field;
 }
@@ -176,7 +180,7 @@ function bergAt(field: PreparedField, b: BergSlot, time: number): Berg {
   const loop = field.loops[b.loop]!;
   const p = onLoop(loop, b.s0 + loop.dir * tune.driftKn * knotToUnits() * time);
   // A slow sideways sway, so the bergs do not run as if on rails and no lane stays clear.
-  const off = tune.sway * Math.sin((time / tune.swaySec) * Math.PI * 2 + b.sway);
+  const off = field.sway * Math.sin((time / tune.swaySec) * Math.PI * 2 + b.sway);
   return {
     x: p.x - p.dy * off,
     y: p.y + p.dx * off,
@@ -206,7 +210,7 @@ export function bergChart(def: TerrainDef, index: number, time = 0) {
         minutesRound: length / speed / 60,
       };
     }),
-    sway: bergsTuning().sway,
+    sway: field.sway,
     bergs: field.bergs.map((b) => bergAt(field, b, time)),
   };
 }
