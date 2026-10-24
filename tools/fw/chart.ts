@@ -6,7 +6,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { Window } from 'happy-dom';
 import { type Layers, drawChart } from '../../src/editor/chart';
-import { zoneKindName } from '../../src/editor/flowChart';
+import { zoneKindName, zoneTint } from '../../src/editor/flowChart';
 import { type SeaDef, SEAS, grownMap } from '../../src/data/grownMap';
 import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../../src/data/maps';
 import { stressMap } from '../../src/data/stressMap';
@@ -388,17 +388,10 @@ function legendEntries(
   if (kinds.has('shallows'))
     out.push({ text: 'shallows: shallow keels only', swatch: box('c-shallows') });
   if (layers.flow) {
-    const tint: Record<string, string> = {
-      'trade-belt': '#f2cf7e',
-      doldrums: '#eef3f4',
-      'stormy-coast': '#5b6b8c',
-      'cold-gale': '#bfe3ff',
-      sheltered: '#7cc04f',
-    };
     for (const kind of new Set((map.windZones ?? []).map((z) => z.kind)))
       out.push({
         text: `wind zone: ${zoneKindName(kind)}`,
-        swatch: box('', { fill: tint[kind] ?? '#888', 'fill-opacity': '0.45' }),
+        swatch: box('', { fill: zoneTint(kind), 'fill-opacity': '0.45' }),
       });
     if (map.currents?.length) out.push({ text: 'current', swatch: box('c-current') });
   }

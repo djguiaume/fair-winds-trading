@@ -39,6 +39,8 @@ import type { StepMarker } from '../ui/questView';
 import { daylightAt } from '../sim/daylight';
 import { StormClouds } from './stormClouds';
 import { stormRain } from '../sim/storms';
+import { CLEAR, type ZoneVisual, mapZones, zoneField, zoneVisualAt } from '../sim/windZones';
+import { smoothOutline } from '../sim/flowShapes';
 
 /** Game time whose light is kept when day and night is off: early afternoon. */
 const ALWAYS_DAY = 200;
@@ -122,6 +124,12 @@ export class GameView {
   /** A point the camera looks at instead of ahead of the boat (the home island, 0126). */
   private focus: { x: number; y: number } | null = null;
   private readonly tmp = new THREE.Vector3();
+  /** The fog bank or ash cloud at the camera's target (decision 0169). */
+  private readonly haze: ZoneVisual = { ...CLEAR };
+  /** The veil over the screen inside a haze, its opacity and colour as last set. */
+  private readonly veil: HTMLElement | null;
+  private veilOpacity = -1;
+  private veilColor = '';
   private zoom = 1;
   private width = 1;
   private height = 1;
@@ -138,6 +146,7 @@ export class GameView {
       stencil: false,
     });
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    this.veil = canvas.parentElement?.querySelector<HTMLElement>('#haze-veil') ?? null;
     this.scene.background = new THREE.Color(PALETTE.deepWater);
     this.scene.fog = new THREE.Fog(PALETTE.deepWater, 120, 220);
     this.scene.add(this.hemi);
@@ -364,6 +373,27 @@ export class GameView {
     return out;
   }
 
+  /**
+   * The veil over the screen (decision 0169): clear round the boat, the haze's colour toward the
+   * edges. Touched only when its opacity or colour changes, so open sea costs nothing.
+   */
+  private updateVeil(haze: ZoneVisual) {
+    if (!this.veil) return;
+    const opacity = haze.kind ? Math.round(haze.haze * 50) / 50 : 0;
+    if (opacity !== this.veilOpacity) {
+      this.veilOpacity = opacity;
+      this.veil.style.opacity = String(opacity);
+    }
+    if (opacity <= 0) return;
+    const c = this.atmosphere.hazeColor;
+    const rgb = `${Math.round(c.r * 255)},${Math.round(c.g * 255)},${Math.round(c.b * 255)}`;
+    if (rgb === this.veilColor) return;
+    this.veilColor = rgb;
+    this.veil.style.background =
+      `radial-gradient(ellipse 70% 65% at 50% 52%, rgba(${rgb},0) 22%, ` +
+      `rgba(${rgb},0.55) 62%, rgba(${rgb},0.9) 100%)`;
+  }
+
   /** 1 = default; larger = farther away. */
   setZoom(zoom: number) {
     this.zoom = clamp(zoom, 0.6, 1.7);
@@ -397,11 +427,23 @@ export class GameView {
     this.camera.lookAt(this.target);
     const fog = this.scene.fog as THREE.Fog;
     const day = daylightAt(this.dayNight ? time : ALWAYS_DAY);
-    this.atmosphere.update(dt, day, this.world.weather, this.ocean, this.target);
+    // Fog banks and ash clouds (decision 0169) are looked up where the camera looks, wind zones
+    // switch or not: only their own Settings switch clears them.
+    const zones = zoneField(mapZones(this.world.map), smoothOutline);
+    const haze = zones
+      ? zoneVisualAt(zones, this.target.x, -this.target.z, this.world.hazeOff, this.haze)
+      : CLEAR;
+    this.atmosphere.update(dt, day, this.world.weather, this.ocean, this.target, haze);
     const gloom = this.atmosphere.gloom;
     // Rain and the dark close in a little, never enough to hide the next island.
     fog.near = dist * (1.3 - 0.45 * gloom - 0.15 * day.night);
     fog.far = dist * (2.4 - 0.6 * gloom - 0.2 * day.night);
+    // A haze closes in much more: its sight counts from the boat, about `dist` from the camera.
+    if (haze.kind && haze.haze > 0) {
+      fog.near += (Math.min(fog.near, dist + haze.kind.near) - fog.near) * haze.haze;
+      fog.far += (Math.min(fog.far, dist + haze.kind.far) - fog.far) * haze.haze;
+    }
+    this.updateVeil(haze);
     this.ocean.setFog(fog.near, fog.far);
     // Nothing past the fog can show, so the camera stops there and three.js skips what lies beyond
     // (decision 0117). The sea at the top of the screen is about 1.3 x `dist` away, well inside

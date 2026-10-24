@@ -122,6 +122,18 @@
         "axis": true,
         "acrossFloor": 0.3,
         "glassy": 0.3
+      },
+      "fog-bank": {
+        "strength": 0.8,
+        "gusts": 0.6,
+        "haze": {
+          "near": 0,
+          "far": 35,
+          "color": "#cdd6d8",
+          "fade": 120,
+          "switch": "fog"
+        },
+        "chart": "#cdd6d8"
       }
     }
   }
