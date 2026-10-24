@@ -12,7 +12,8 @@ import {
   shallowness,
 } from './hazards';
 import { settlementLevels } from './settlement';
-import { knobs, weatherFor } from './difficulty';
+import { DIFFICULTIES, knobs, weatherFor } from './difficulty';
+import { mapZones, zoneField } from './windZones';
 import { DEG, bearingTo, clamp, distance } from './math';
 import { type ShipClass, noGoAngle } from './ship';
 import {
@@ -92,6 +93,8 @@ export interface World {
   dynamicWeather: boolean;
   /** Moving storms on (decision 0067); players can turn them off in Settings. */
   storms: boolean;
+  /** The map's wind zones on (decision 0140): Settings › Weather › Wind zones. */
+  windZones: boolean;
   /**
    * The steady trade wind (decision 0083): small, slow shifts close to the prevailing wind. A
    * Settings choice whose default follows the difficulty level (on for Fair winds).
@@ -156,6 +159,7 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     stormsWarned: [],
     dynamicWeather: true,
     storms: true,
+    windZones: true,
     steadyWind: false,
     windConfig: null,
     windBlend: null,
@@ -336,7 +340,7 @@ function loseCargo(world: World): WorldEvent[] {
 /** Sea wind at the boat, eased from the previous config for a while after it changed (0083). */
 function seaWindAt(world: World, cfg: WindConfig): Wind {
   const previous = world.windConfig;
-  if (previous && previous.weather !== cfg.weather)
+  if (previous && (previous.weather !== cfg.weather || previous.zones !== cfg.zones))
     world.windBlend = { from: previous, at: world.time };
   world.windConfig = cfg;
   const wind = windAt(cfg, world.time, world.map.seed, world.boat, world.weather);
@@ -433,6 +437,9 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
           ? withoutStorms(weather)
           : weather,
     stormsFrom: world.stormsFrom,
+    // Wind zones (decision 0140) sit on top of the weather, with their own Settings switch.
+    zones: world.windZones ? zoneField(mapZones(world.map)) : null,
+    easiest: world.trade.difficulty === DIFFICULTIES[0],
   };
   world.seaWind = seaWindAt(world, cfg);
   if (world.calmWind) world.seaWind = { ...world.calmWind };
