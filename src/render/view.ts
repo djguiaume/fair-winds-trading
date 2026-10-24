@@ -387,11 +387,14 @@ export class GameView {
     if (opacity <= 0) return;
     const c = this.atmosphere.hazeColor;
     const rgb = `${Math.round(c.r * 255)},${Math.round(c.g * 255)},${Math.round(c.b * 255)}`;
-    if (rgb === this.veilColor) return;
-    this.veilColor = rgb;
+    // The look changes with the colour or the `?tune` panel's veil numbers.
+    const key = `${rgb}|${JSON.stringify(TUNING.weather.sight)}`;
+    if (key === this.veilColor) return;
+    this.veilColor = key;
+    const v = TUNING.weather.sight;
     this.veil.style.background =
-      `radial-gradient(ellipse 70% 65% at 50% 52%, rgba(${rgb},0) 22%, ` +
-      `rgba(${rgb},0.55) 62%, rgba(${rgb},0.9) 100%)`;
+      `radial-gradient(ellipse 70% 65% at 50% 52%, rgba(${rgb},0) ${v.veilClear * 100}%, ` +
+      `rgba(${rgb},${v.veilMidAlpha}) ${v.veilMid * 100}%, rgba(${rgb},${v.veilEdgeAlpha}) 100%)`;
   }
 
   /** 1 = default; larger = farther away. */
@@ -435,9 +438,11 @@ export class GameView {
       : CLEAR;
     this.atmosphere.update(dt, day, this.world.weather, this.ocean, this.target, haze);
     const gloom = this.atmosphere.gloom;
-    // Rain and the dark close in a little, never enough to hide the next island.
-    fog.near = dist * (1.3 - 0.45 * gloom - 0.15 * day.night);
-    fog.far = dist * (2.4 - 0.6 * gloom - 0.2 * day.night);
+    // Rain and the dark close in a little, never enough to hide the next island. The view range
+    // is `weather.json` › `sight`, in camera distances (decision 0169).
+    const sight = TUNING.weather.sight;
+    fog.near = dist * (sight.near - sight.gloomNear * gloom - sight.nightNear * day.night);
+    fog.far = dist * (sight.far - sight.gloomFar * gloom - sight.nightFar * day.night);
     // A haze closes in much more: its sight counts from the boat, about `dist` from the camera.
     if (haze.kind && haze.haze > 0) {
       fog.near += (Math.min(fog.near, dist + haze.kind.near) - fog.near) * haze.haze;

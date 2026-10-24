@@ -1,6 +1,6 @@
 # 0169. Haze: fog banks and ash clouds as wind-zone kinds
 
-**Status:** Proposed (2026-10-24). A shared piece for the Phase 4 seas: the east sea's fog banks use it first, the west sea's ash clouds next, the north sea's tint is meant to sit beside it. Screenshots: [docs/reviews/haze](../reviews/haze/README.md).
+**Status:** Accepted (2026-10-24). Guillaume: "Fog is perfect. View range must of course come from data." A shared piece for the Phase 4 seas: the east sea's fog banks use it first, the west sea's ash clouds next, the north sea's tint is meant to sit beside it. Screenshots: [docs/reviews/haze](../reviews/haze/README.md).
 
 ## Context
 
@@ -15,7 +15,8 @@ The east sea is a fog coast and the west sea has ash clouds ([0137](0137-phase-4
 3. **What you see:** the scene fog (sky, sea, islands) takes the haze's colour and closes in toward its sight, the sun dims a little, and a veil over the screen keeps the sea round the boat clear while the edges go grey. The veil is a CSS gradient whose opacity changes only when the haze does (no repaint, nothing at open sea), so it costs an old tablet nearly nothing; the fog itself is the scene fog that is always on.
 4. **Sight is looked, not sailed.** The haze is read where the camera looks through one helper, `zoneVisualAt` in `src/sim/windZones.ts`, which ignores wind numbers and Settings › Wind zones: with wind zones off a fog bank still fogs (its wind effect goes), and with **Settings › Fog banks** off it is clear (its wind stays, if wind zones are on). The north sea's water and sky tint is meant to join the same helper.
 5. **Settings rows from the data.** Settings gets one switch per distinct `haze.switch` in `weather.json` (text `settings.haze.<switch>` and `…Note` in both languages), after Currents. Saved as `settings.haze` (`{ "fog": false }`); left out means on.
-6. **Charted once sailed** like named wind zones: deep inside a named fog bank, by its haze, even with Wind zones off. The chart draws it grey ("The Murk · fog bank") while Wind zones or its haze is on.
+6. **The view range is data too** (Guillaume): `weather.json` › `sight` holds the open sea's sight in camera distances (`near` 1.3, `far` 2.4), how much rain or a storm (`gloomNear`, `gloomFar`) and night (`nightNear`, `nightFar`) close it in, how a haze dims the sun and darkens at night, and the veil's rings and opacities. All in `?tune`.
+7. **Charted once sailed** like named wind zones: deep inside a named fog bank, by its haze, even with Wind zones off. The chart draws it grey ("The Murk · fog bank") while Wind zones or its haze is on.
 
 ## Consequences
 

@@ -136,5 +136,19 @@
         "chart": "#cdd6d8"
       }
     }
+  },
+  "sight": {
+    "near": 1.3,
+    "far": 2.4,
+    "gloomNear": 0.45,
+    "gloomFar": 0.6,
+    "nightNear": 0.15,
+    "nightFar": 0.2,
+    "hazeSunDim": 0.35,
+    "hazeNight": 0.8,
+    "veilClear": 0.22,
+    "veilMid": 0.62,
+    "veilMidAlpha": 0.55,
+    "veilEdgeAlpha": 0.9
   }
 }

@@ -5,6 +5,7 @@ import type { ZoneVisual } from '../sim/windZones';
 import { approach, clamp } from '../sim/math';
 import type { Ocean } from './ocean';
 import { PALETTE } from './palette';
+import { TUNING } from '../data/tuning';
 
 /** One look of the sea and the light: background/fog, water, sun and sky light. */
 export interface Look {
@@ -155,9 +156,10 @@ export class Atmosphere {
     // night like the sky, and dims the sun a little.
     const h = haze?.kind ? haze.haze : 0;
     if (haze?.kind && h > 0) {
-      this.hazeColor.set(haze.kind.color).lerp(NIGHT.sky, day.night * 0.8);
+      const sight = TUNING.weather.sight;
+      this.hazeColor.set(haze.kind.color).lerp(NIGHT.sky, day.night * sight.hazeNight);
       l.sky.lerp(this.hazeColor, h);
-      l.sunIntensity *= 1 - 0.35 * h;
+      l.sunIntensity *= 1 - sight.hazeSunDim * h;
     }
 
     (this.scene.background as THREE.Color).copy(l.sky);
