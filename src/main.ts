@@ -20,7 +20,7 @@ import { Input } from './input/input';
 import { FrameMonitor, type QualityLevel, guessQuality, lowerQuality } from './render/quality';
 import { GameView } from './render/view';
 import { SAIL_STEPS, createBoat } from './sim/boat';
-import { isRare, isSpecialty } from './sim/goods';
+import { isFar, isRare, isSpecialty } from './sim/goods';
 import { portNow, questsDone, settlementLevels } from './sim/settlement';
 import { bearingTo, clamp } from './sim/math';
 import { type SaveStorage, clearSave, loadGame, saveGame } from './sim/save';
@@ -1058,8 +1058,8 @@ function handleEvents(events: WorldEvent[]) {
         (port && portNow(port, world.trade))?.levelProduces?.[String(e.level) as '2' | '3' | '4'] ??
         [];
       const specialty = opened.find(isSpecialty);
-      // A far yard starts making its rare good (decision 0065).
-      const rare = opened.find(isRare);
+      // A far yard starts making its rare good (decision 0065), a main port its far good (0146).
+      const rare = opened.find((g) => isRare(g) || isFar(g));
       hud.showToast(
         rare
           ? t('toast.rareGood', { name: portName, good: goodName(rare) })

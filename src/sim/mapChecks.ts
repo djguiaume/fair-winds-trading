@@ -4,7 +4,7 @@ import { piersOf } from './collision';
 import { CurrentField, laneShape } from './currents';
 import { outlineCrosses, smoothOutline } from './flowShapes';
 import { TUNING } from '../data/tuning';
-import { isGood } from './goods';
+import { isFar, isGood } from './goods';
 import { islandCoasts, islandPoint } from './islandLayout';
 import { landmarkOf } from '../data/islands';
 import { type IslandDef, type MapDef, type PortDef, SEA_MARK_TYPES } from './map';
@@ -222,7 +222,9 @@ const list = (names: string[]) =>
 function portGoods(port: PortDef) {
   // What a quest can change it to counts too (decision 0130).
   const all = [port, ...Object.values(port.afterQuest ?? {})];
-  const lw = all.flatMap((p) => Object.values(p.levelWants ?? {}).flat());
+  const lw = all.flatMap((p) =>
+    [p.levelWants, p.levelWantsMade].flatMap((byLevel) => Object.values(byLevel ?? {}).flat()),
+  );
   const lp = all.flatMap((p) => Object.values(p.levelProduces ?? {}).flat());
   return {
     made: [...all.flatMap((p) => p.produces ?? []), ...lp] as string[],
@@ -249,6 +251,13 @@ export function quickChecks(map: MapDef): MapCheck[] {
       problems.push(`${port.name} sits on missing island "${port.islandId}"`);
     if (port.level !== undefined && !(port.level >= 1 && port.level <= MAX_SETTLEMENT_LEVEL))
       problems.push(`${port.name} level ${port.level} (1 to ${MAX_SETTLEMENT_LEVEL})`);
+    if (
+      port.maxLevel !== undefined &&
+      !(port.maxLevel >= (port.level ?? 1) && port.maxLevel <= MAX_SETTLEMENT_LEVEL)
+    )
+      problems.push(
+        `${port.name} top level ${port.maxLevel} (its level to ${MAX_SETTLEMENT_LEVEL})`,
+      );
     const { made, wanted } = portGoods(port);
     for (const good of [...made, ...wanted])
       if (!isGood(good)) problems.push(`${port.name}: unknown good "${good}"`);
@@ -291,10 +300,11 @@ export function quickChecks(map: MapDef): MapCheck[] {
       : pass('marks', 'sea marks in clear water', 'warning'),
   );
 
-  // Trade: every good someone wants is made somewhere and every good made has a buyer.
+  // Trade: every good someone wants is made somewhere and every good made has a buyer. The ring's
+  // port towns may wait for far goods from seas this map doesn't have yet (decision 0146).
   const made = new Set(map.ports.flatMap((p) => portGoods(p).made));
   const wanted = new Set(map.ports.flatMap((p) => portGoods(p).wanted));
-  const noMaker = [...wanted].filter((g) => !made.has(g));
+  const noMaker = [...wanted].filter((g) => !made.has(g) && !(isGood(g) && isFar(g)));
   const noBuyer = [...made].filter((g) => !wanted.has(g));
   out.push(
     noMaker.length || noBuyer.length

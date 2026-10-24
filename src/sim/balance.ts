@@ -63,6 +63,12 @@ function weathers(map: MapDef, spread: number): Weather[] {
 const SHIFTING_SPREAD = 50;
 const STEADY_SPREAD = 10;
 
+/** The wind range a difficulty level sails in: steady on Fair winds, shifting above (0083). */
+export function difficultyWeather(map: MapDef, level?: Difficulty): Weather[] {
+  const steady = level ? knobs(level).steadyWind : false;
+  return weathers(map, steady ? STEADY_SPREAD : SHIFTING_SPREAD);
+}
+
 function islandOfPort(map: MapDef, portId: string) {
   const port = map.ports.find((p) => p.id === portId)!;
   return map.islands.find((i) => i.id === port.islandId)!;
@@ -222,8 +228,7 @@ export function sailVoyage(opts: VoyageOptions): Voyage {
   const world = createWorld(map, SLOOP);
   const trade = world.trade;
   if (opts.level) startVoyage(trade, opts.level);
-  const steady = opts.level ? knobs(opts.level).steadyWind : false;
-  const weather = weathers(map, steady ? STEADY_SPREAD : SHIFTING_SPREAD);
+  const weather = difficultyWeather(map, opts.level);
   const damage = opts.level ? knobs(opts.level).damage : 1;
   const rng = createRng(opts.seed ?? 7);
   const v: Voyage = {
