@@ -1,0 +1,39 @@
+{
+  "gamepad": {
+    "deadZone": 0.2,
+    "triggerPress": 0.5,
+    "repeatDelayMs": 420,
+    "repeatEveryMs": 140,
+    "sea": {
+      "steerAxis": "lx",
+      "zoomAxis": "ry",
+      "zoomPerSec": 1.6,
+      "actions": {
+        "steerLeft": ["left"],
+        "steerRight": ["right"],
+        "sailUp": ["rb", "rt", "up"],
+        "sailDown": ["lb", "lt", "down"],
+        "strike": ["b"],
+        "harbour": ["a"],
+        "chart": ["y", "view"],
+        "pause": ["menu"]
+      }
+    },
+    "chart": {
+      "panX": "lx",
+      "panY": "ly",
+      "panPxPerSec": 700,
+      "zoomStep": 1.5,
+      "actions": {
+        "panLeft": ["left"],
+        "panRight": ["right"],
+        "panUp": ["up"],
+        "panDown": ["down"],
+        "zoomIn": ["rt", "rb"],
+        "zoomOut": ["lt", "lb"],
+        "fit": ["x"],
+        "close": ["b", "y", "view"]
+      }
+    }
+  }
+}
