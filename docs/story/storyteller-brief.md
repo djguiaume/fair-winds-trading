@@ -255,6 +255,10 @@ Lamp oil (Watchman Key) and cut stone (Stonehaven) are both made goods on the ri
 
 **Order while the west is unbuilt.** The table below has the north start after `outpost-west`. If the north merges first, `saltmere-letter` starts after `outpost-south` for now, and the west thread changes it to `outpost-west` when it lands. Nothing breaks for old saves: a player who has already done the north meets the west next.
 
+### The east sea's names (head storyteller, 2026-10-24)
+
+The names are English in French too. The barrier of skerries is **The Stepping Stones**, not "The Skerries", which is too close to Skerry, the home island. Its gateway is **Gannet Sound**, with a light on its north skerry. Fogwatch's sheltered bay is **Fogwatch Voe**. The two sea stacks off its north tip are **The Giant and his Wife** ("Carlin" is too obscure for kids). The current is **The Race**, and the fog banks are **The Haar** and **The Grey Murk**. The islets are **Puffin Holm**, with a beacon to steer by (not "Gull Holm", which is too close to Gull Hook); **Lamb Holm**, with sheep grazing and nobody hunting; and **Broch Isle**, with an old round tower and standing stones, empty for ages. The chart areas are **The Stepping Stones**, **Fogwatch Waters**, **The Race** and **Amber Reach**.
+
 ### The east storm belt: The Stormbreak (head storyteller, 2026-10-24)
 
 The belt of squall lines beside the fog coast is **The Stormbreak** (English in French: « le Stormbreak »). Its HUD hint is interface text, not a card, so it may give the timing: "Squalls in the Stormbreak · lull in about 1 min" / « Grains dans le Stormbreak · accalmie dans 1 min environ », and "Lull in the Stormbreak · squalls in about 2 min" / « Accalmie dans le Stormbreak · grains dans 2 min environ ». With its switch off, the hint goes. Elias may mention it once in `fogwatch-amber`, in words that still hold with the switch off: "Out past the fog the weather comes in breaths. Wait for the quiet one, captain." / « Au-delà du brouillard, le temps vient par souffles. Attendez le calme, capitaine. »
