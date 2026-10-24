@@ -10,7 +10,7 @@ Written by the head storyteller ([0155](../../decisions/0155-south-sea-story.md)
    - `garden`: look at Palm Key's wild spice from its west beach, slowly (under 3 kn for 3 s). The card says a shallow keel takes the Narrows and deep ones go round.
    - `racks`: bring 10 planks (Port Calda saws them after the slipway arc).
    - Done: the tea garden gets two more rows and three drying racks (`after:sunreach-tea`). Juno names Tam for the first time.
-3. **Palm Key** (`outpost-south`): the draft is below. It goes in once founding is built.
+3. **Palm Key** (`outpost-south`): built in [0158](../../decisions/0158-founding-palm-key.md) from the draft below. Tam's done card shows on Sunreach's Quay, where he brings the first basket.
 
 | Ness at Watchman Key | Sunreach's Quay: Ness's thanks and Juno's offer |
 |---|---|
@@ -32,7 +32,7 @@ Phone portrait: ![](sunreach-quay-portrait.jpg)
 
 ![](tea-garden-before-after.jpg)
 
-## Draft: `outpost-south`, "Palm Key"
+## `outpost-south`, "Palm Key" (built, 0158; the done copy changed to Sunreach)
 
 Agreed with the founding thread, which builds the fields: `site` on Palm Key's port, the goal `landed`, the reward `found`. The quest file comes once that work is merged, with the landing spot it lays out.
 

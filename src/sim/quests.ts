@@ -170,6 +170,11 @@ export interface QuestDef {
   items?: Record<string, { space: number }>;
   /** The person giving it (`characters.json`), for the interface. */
   giver?: string;
+  /**
+   * Someone else speaks the done card instead of the giver (decision 0158): the settler who
+   * founded the outpost thanks the captain on it.
+   */
+  doneSpeaker?: string;
   /** Where its card shows, for the interface. */
   port?: string;
   /**
@@ -366,6 +371,8 @@ export function checkQuests(
         out.push(`${at} › items.${item}: space needs a whole number (0 for a passenger)`);
     if (q.port !== undefined && !resolvePort(map, q.port)) out.push(`${at}: no port "${q.port}"`);
     if (q.giver !== undefined && !PEOPLE.has(q.giver)) out.push(`${at}: no person "${q.giver}"`);
+    if (q.doneSpeaker !== undefined && !PEOPLE.has(q.doneSpeaker))
+      out.push(`${at}: no person "${q.doneSpeaker}"`);
     if (q.offer !== undefined && typeof q.offer !== 'boolean')
       out.push(`${at}: offer is true or false`);
     if (q.main !== undefined && typeof q.main !== 'boolean')
