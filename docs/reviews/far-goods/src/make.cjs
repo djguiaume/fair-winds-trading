@@ -12,10 +12,10 @@ const polar = (deg, r) => { const a = (deg * Math.PI) / 180; return [r * Math.si
 
 // Placeholder Phase 4 sites, from docs/reviews/phase-4-map/src/make.cjs.
 const BIOMES = [
-  { id: 'ice', name: 'North · ice', good: 'Cloudberry jam', icon: '❄', color: '#3f8fbf', tint: '#e6f3fb', port: polar(8, 690), outpost: polar(30, 860), wants: 'lamp oil', price: 110, buyers: ['saltmere', 'stonehaven'] },
-  { id: 'tropic', name: 'South · tropical', good: 'Spice', icon: '✿', color: '#d0732a', tint: '#e2f7ef', port: polar(176, 680), outpost: polar(141, 900), wants: 'honey', price: 90, buyers: ['calda', 'westholm'] },
-  { id: 'fire', name: 'West · fire', good: 'Obsidian', icon: '▲', color: '#b23a2e', tint: '#fbe9df', port: polar(300, 650), outpost: polar(245, 880), wants: 'lamp oil', price: 100, buyers: ['calda', 'saltmere'] },
-  { id: 'fog', name: 'East · fog and storm', good: 'Amber', icon: '◆', color: '#c58a12', tint: '#eceff2', port: polar(94, 680), outpost: polar(66, 870), wants: 'honey', price: 120, buyers: ['westholm', 'stonehaven'] },
+  { id: 'ice', name: 'North · ice', good: 'Cloudberry jam', raw: 'Cloudberries', rawPrice: 25, icon: '❄', color: '#3f8fbf', tint: '#e6f3fb', port: polar(8, 690), outpost: polar(30, 860), wants: 'lamp oil', price: 110, buyers: ['saltmere', 'stonehaven'] },
+  { id: 'tropic', name: 'South · tropical', good: 'Spiced tea', raw: 'Spice', rawPrice: 20, icon: '✿', color: '#d0732a', tint: '#e2f7ef', port: polar(176, 680), outpost: polar(141, 900), wants: 'honey', price: 90, buyers: ['calda', 'westholm'] },
+  { id: 'fire', name: 'West · fire', good: 'Obsidian mirrors', raw: 'Obsidian', rawPrice: 22, icon: '▲', color: '#b23a2e', tint: '#fbe9df', port: polar(300, 650), outpost: polar(245, 880), wants: 'lamp oil', price: 100, buyers: ['calda', 'saltmere'] },
+  { id: 'fog', name: 'East · fog and storm', good: 'Amber beads', raw: 'Amber', rawPrice: 28, icon: '◆', color: '#c58a12', tint: '#eceff2', port: polar(94, 680), outpost: polar(66, 870), wants: 'honey', price: 120, buyers: ['westholm', 'stonehaven'] },
 ];
 const isl = Object.fromEntries(ring.islands.map((i) => [i.id, i]));
 const portIsland = Object.fromEntries(ring.ports.map((p) => [p.id, isl[p.islandId]]));
@@ -36,7 +36,7 @@ s += `<text x="${CX}" y="${CY - 470 * S + 22}" class="small" text-anchor="middle
 for (const b of BIOMES) {
   for (const buyer of b.buyers) {
     const i = portIsland[buyer];
-    const [x1, y1] = P(...b.outpost), [x2, y2] = P(i.x, i.y);
+    const [x1, y1] = P(...b.port), [x2, y2] = P(i.x, i.y);
     const mx = (x1 + x2) / 2 + (y2 - y1) * 0.08, my = (y1 + y2) / 2 - (x2 - x1) * 0.08;
     s += `<path d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" fill="none" stroke="${b.color}" stroke-width="3" opacity=".75" marker-end="url(#arr-${b.id})"/>`;
   }
@@ -47,6 +47,11 @@ for (const b of BIOMES) {
   const y = yard[b.wants];
   const [x1, y1] = P(y.x, y.y), [x2, y2] = P(...b.port);
   s += `<path d="M${x1},${y1} L${x2},${y2}" fill="none" stroke="#6b5a3a" stroke-width="2" stroke-dasharray="7 5" opacity=".7" marker-end="url(#arr-out)"/>`;
+}
+// Raw good: outpost to main port.
+for (const b of BIOMES) {
+  const [x1, y1] = P(...b.outpost), [x2, y2] = P(...b.port);
+  s += `<path d="M${x1},${y1} L${x2},${y2}" fill="none" stroke="${b.color}" stroke-width="5" stroke-dasharray="2 7" stroke-linecap="round" marker-end="url(#arr-${b.id})"/>`;
 }
 // Ring islands.
 for (const i of ring.islands) {
@@ -63,11 +68,11 @@ for (const p of ring.ports) {
 for (const b of BIOMES) {
   const [px, py] = P(...b.port), [ox, oy] = P(...b.outpost);
   s += `<circle cx="${px}" cy="${py}" r="16" fill="#f3ead0" stroke="#5c4a2a" stroke-width="2"/>`;
-  s += `<text x="${px}" y="${py + 34}" class="lbl" text-anchor="middle">Main port</text>`;
-  s += `<text x="${px}" y="${py + 50}" class="small" text-anchor="middle">gathers a little ${b.good.toLowerCase()}, buys ${b.wants}</text>`;
+  s += `<text x="${px}" y="${py + 34}" class="lbl" text-anchor="middle" fill="${b.color}">Main port: crafts ${b.good} ${b.price}</text>`;
+  s += `<text x="${px}" y="${py + 50}" class="small" text-anchor="middle">keeper + arc; buys ${b.raw.toLowerCase()}, ${b.wants}</text>`;
   s += `<circle cx="${ox}" cy="${oy}" r="13" fill="#fff" stroke="${b.color}" stroke-width="3"/>`;
   s += `<text x="${ox}" y="${oy + 5}" text-anchor="middle" fill="${b.color}" style="font:700 14px sans-serif">${b.icon}</text>`;
-  s += `<text x="${ox}" y="${oy - 20}" class="lbl" text-anchor="middle" fill="${b.color}">Outpost: ${b.good} ${b.price}</text>`;
+  s += `<text x="${ox}" y="${oy - 20}" class="lbl" text-anchor="middle" fill="${b.color}">Outpost: gathers ${b.raw} ${b.rawPrice}</text>`;
   const [nx, ny] = P(...{ ice: polar(-28, 880), fog: polar(118, 860), tropic: polar(208, 890), fire: polar(292, 840) }[b.id]);
   s += `<text x="${nx}" y="${ny}" class="biome" text-anchor="middle">${b.name.toUpperCase()}</text>`;
 }
@@ -75,37 +80,38 @@ for (const b of BIOMES) {
 // Legend panel.
 const L = 1290;
 let lg = `<rect x="${L - 20}" y="20" width="560" height="1260" fill="#fbf7ec" stroke="#cbbf9f"/>`;
-lg += `<text x="${L}" y="64" class="title">Far goods (proposal)</text>`;
+lg += `<text x="${L}" y="64" class="title">Far goods (proposal, ADR 0146)</text>`;
 lg += `<text x="${L}" y="92" class="small">Second rare set (0065, 0137). Names from the head storyteller; numbers are proposals.</text>`;
 let y = 140;
 for (const b of BIOMES) {
-  lg += `<text x="${L}" y="${y}" style="font:700 20px sans-serif" fill="${b.color}">${b.icon} ${b.good}, base ${b.price}</text>`;
-  lg += `<text x="${L}" y="${y + 26}" class="lg">A little at the main port, plenty at the outpost</text>`;
+  lg += `<text x="${L}" y="${y}" style="font:700 20px sans-serif" fill="${b.color}">${b.icon} ${b.raw} ${b.rawPrice} → ${b.good} ${b.price}</text>`;
+  lg += `<text x="${L}" y="${y + 26}" class="lg">Gathered at the outpost, crafted at the main port</text>`;
   lg += `<text x="${L}" y="${y + 50}" class="lg">Bought by port towns ${b.buyers.map((x) => portName[x]).join(' and ')}</text>`;
   y += 96;
 }
 y += 10;
-lg += `<line x1="${L}" y1="${y}" x2="${L + 50}" y2="${y}" stroke="#555" stroke-width="3"/><text x="${L + 62}" y="${y + 6}" class="lg">far good, outpost to port town</text>`;
+lg += `<line x1="${L}" y1="${y}" x2="${L + 50}" y2="${y}" stroke="#555" stroke-width="3"/><text x="${L + 62}" y="${y + 6}" class="lg">crafted good, main port to ring port town</text>`;
+y += 34;
+lg += `<line x1="${L}" y1="${y}" x2="${L + 50}" y2="${y}" stroke="#555" stroke-width="5" stroke-dasharray="2 7" stroke-linecap="round"/><text x="${L + 62}" y="${y + 6}" class="lg">raw good, outpost to main port</text>`;
 y += 34;
 lg += `<line x1="${L}" y1="${y}" x2="${L + 50}" y2="${y}" stroke="#6b5a3a" stroke-width="2" stroke-dasharray="7 5"/><text x="${L + 62}" y="${y + 6}" class="lg">honey or lamp oil, outbound cargo</text>`;
 y += 50;
 const rules = [
   'Rules',
-  '• Only port towns (level 4) buy far goods.',
-  '• Each good has two buyers on the far side of the map.',
-  '• Each ring port town buys two far goods.',
-  '• An outpost makes its good once it is a village,',
-  '  like the far yards (0065).',
-  '• Main ports gather a little of the far good',
-  '  (first trip pays) and buy honey or lamp oil.',
-  '• Main ports make no ring goods.',
-  '• Far goods do not count for the honey and lamp oil',
-  '  gate, and add no level 5.',
+  '• Three stops: the outpost gathers, the main port',
+  '  crafts, the ring\'s port towns (level 4) buy.',
+  '• No island makes the ring\'s goods; no two islands',
+  '  make the same good.',
+  '• The main port\'s workshop opens at town level',
+  '  after 20 raw units from its outpost.',
+  '• Each main port has a keeper with a 3-step arc.',
+  '• Each crafted good: two buyers on the far side.',
   '',
-  'Estimate, maxed cutter, one leg:',
-  '  honey today, 30 units: +811',
-  '  first trip from a main port, 20 units: +690 to +920',
-  '  own outpost, 30 units: +1,640 to +2,190',
+  'Estimate, maxed cutter, 30 units, one leg:',
+  '  honey today: +811',
+  '  ring to main port, honey or lamp oil: +600 to +670',
+  '  outpost to main port, raw: +350 to +500',
+  '  main port to ring, crafted: +1,885 to +2,525',
   '',
   'Order the seas open: south, west, north, east.',
 ];

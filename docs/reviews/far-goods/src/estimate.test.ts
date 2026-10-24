@@ -37,10 +37,11 @@ const spread = 0.06; // Captain's cut
 const mid = (base: number, stock: number) =>
   base * Math.min(Math.max(Math.pow(m.referenceStock / Math.max(stock, 1), m.elasticity), m.floor), m.ceiling);
 function run(base: number, makerLevel: number, buyerLevel: number, qty: number, share = t.rareShare) {
+  return runStock(base, t.producesEquilibrium[makerLevel - 1]! * share, t.wantsEquilibrium[buyerLevel - 1]!, qty);
+}
+function runStock(base: number, s0: number, w0: number, qty: number) {
   let cost = 0;
   let paid = 0;
-  const s0 = t.producesEquilibrium[makerLevel - 1]! * share;
-  const w0 = t.wantsEquilibrium[buyerLevel - 1]!;
   for (let i = 0; i < qty; i++) {
     cost += Math.ceil(mid(base, s0 - i - 1) * (1 + spread));
     paid += Math.floor(mid(base, w0 + i + 1) * (1 - spread));
@@ -55,18 +56,20 @@ it('prints the estimate', () => {
   const cases: { label: string; from: string; to: string; base: number; ml: number; bl: number; share?: number; qty?: number }[] = [
     { label: 'honey today', from: 'abbey-head', to: 'saltmere', base: 55, ml: 2, bl: 3 },
     { label: 'lamp oil today', from: 'watchman-key', to: 'calda', base: 50, ml: 2, bl: 3 },
-    { label: 'spice', from: 'outpost-tropic', to: 'calda', base: 90, ml: 2, bl: 4 },
-    { label: 'spice', from: 'outpost-tropic', to: 'westholm', base: 90, ml: 2, bl: 4 },
-    { label: 'cloudberry jam', from: 'outpost-ice', to: 'saltmere', base: 110, ml: 2, bl: 4 },
-    { label: 'cloudberry jam', from: 'outpost-ice', to: 'stonehaven', base: 110, ml: 2, bl: 4 },
-    { label: 'obsidian', from: 'outpost-fire', to: 'calda', base: 100, ml: 2, bl: 4 },
-    { label: 'obsidian', from: 'outpost-fire', to: 'saltmere', base: 100, ml: 2, bl: 4 },
-    { label: 'amber', from: 'outpost-fog', to: 'westholm', base: 120, ml: 2, bl: 4 },
-    { label: 'amber', from: 'outpost-fog', to: 'stonehaven', base: 120, ml: 2, bl: 4 },
-    { label: 'spice, main port taste', from: 'tropic-port', to: 'calda', base: 90, ml: 2, bl: 4, share: 0.3, qty: 15 },
-    { label: 'obsidian, main port taste', from: 'fire-port', to: 'saltmere', base: 100, ml: 2, bl: 4, share: 0.3, qty: 15 },
-    { label: 'jam, main port taste', from: 'ice-port', to: 'saltmere', base: 110, ml: 2, bl: 4, share: 0.3, qty: 15 },
-    { label: 'amber, main port taste', from: 'fog-port', to: 'westholm', base: 120, ml: 2, bl: 4, share: 0.3, qty: 15 },
+    // Raw far good: the outpost (a village) gathers it like a bulk good; the main port buys it.
+    { label: 'spice (raw)', from: 'outpost-tropic', to: 'tropic-port', base: 20, ml: 2, bl: 2, share: 1 },
+    { label: 'obsidian (raw)', from: 'outpost-fire', to: 'fire-port', base: 22, ml: 2, bl: 2, share: 1 },
+    { label: 'cloudberries (raw)', from: 'outpost-ice', to: 'ice-port', base: 25, ml: 2, bl: 2, share: 1 },
+    { label: 'amber (raw)', from: 'outpost-fog', to: 'fog-port', base: 28, ml: 2, bl: 2, share: 1 },
+    // Crafted: the main port's workshop (a town) makes it like a specialty; ring port towns buy it.
+    { label: 'spiced tea', from: 'tropic-port', to: 'calda', base: 90, ml: 3, bl: 4, share: 0.7 },
+    { label: 'spiced tea', from: 'tropic-port', to: 'westholm', base: 90, ml: 3, bl: 4, share: 0.7 },
+    { label: 'obsidian mirrors', from: 'fire-port', to: 'calda', base: 100, ml: 3, bl: 4, share: 0.7 },
+    { label: 'obsidian mirrors', from: 'fire-port', to: 'saltmere', base: 100, ml: 3, bl: 4, share: 0.7 },
+    { label: 'cloudberry jam', from: 'ice-port', to: 'saltmere', base: 110, ml: 3, bl: 4, share: 0.7 },
+    { label: 'cloudberry jam', from: 'ice-port', to: 'stonehaven', base: 110, ml: 3, bl: 4, share: 0.7 },
+    { label: 'amber beads', from: 'fog-port', to: 'westholm', base: 120, ml: 3, bl: 4, share: 0.7 },
+    { label: 'amber beads', from: 'fog-port', to: 'stonehaven', base: 120, ml: 3, bl: 4, share: 0.7 },
     { label: 'honey out', from: 'abbey-head', to: 'tropic-port', base: 55, ml: 2, bl: 2 },
     { label: 'lamp oil out', from: 'watchman-key', to: 'ice-port', base: 50, ml: 2, bl: 2 },
   ];
