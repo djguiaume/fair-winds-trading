@@ -5,14 +5,16 @@ import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../../src/data/maps';
 import { setLanguage, tOptional } from '../../src/i18n';
 import { QUESTS, QuestBook, checkQuestHooks, checkQuests, questsFor } from '../../src/sim/quests';
 import { SLOOP } from '../../src/sim/ship';
+import { isDiscovered } from '../../src/sim/shipyards';
 import { sell, syncMarketLevels } from '../../src/sim/trade';
 import { type World, createWorld } from '../../src/sim/world';
 import { cardFor, dueCard } from '../../src/ui/questView';
 
 // Decision 0155: the south sea's story (storyteller brief, Phase 4): Old Ness's chart, then
-// Juno's idle tea house at Sunreach. Founding Palm Key (`outpost-south`) follows with founding.
+// Juno's idle tea house at Sunreach, then founding Palm Key with Tam (decision 0158).
 const MAP = prepareMap(grownMap(PHASE1_SOURCE));
-const IDS = ['watchman-passage', 'sunreach-tea'];
+const IDS = ['watchman-passage', 'sunreach-tea', 'outpost-south'];
+const LANDING = { x: 487, y: -738 };
 
 function setup() {
   setLanguage('en');
@@ -70,7 +72,7 @@ describe('the south sea story (decision 0155)', () => {
     setLanguage('en');
   });
 
-  it('plays through in a sloop: Ness’s chart to Sunreach, then Juno’s three steps', () => {
+  it('plays through in a sloop: Ness’s chart, Juno’s three steps, then founding Palm Key', () => {
     const { world, book } = setup();
     book.check();
     expect(book.active.map((a) => a.quest.id)).not.toContain('watchman-passage');
@@ -115,5 +117,27 @@ describe('the south sea story (decision 0155)', () => {
     const planks = deliver(world, book, 'planks', 10);
     expect(book.progress('sunreach-tea')!.step).toBe('done');
     expect(world.trade.captain.gold - bread - planks).toBe(gold + 300 + 250 + 400 + 600);
+
+    // Palm Key: Juno offers it at Sunreach; timber and planks landed, then Tam from Watchman Key.
+    expect(book.offered.map((q) => q.id)).toContain('outpost-south');
+    book.accept('outpost-south');
+    expect(cardFor(book, world.map, 'outpost-south', 'step')!.giver?.id).toBe('juno');
+    world.trade.captain.cargo.timber = 6;
+    world.trade.captain.cargo.planks = 4;
+    hold(world, book, LANDING.x, LANDING.y, 1, 4);
+    expect(book.progress('outpost-south')!.step).toBe('supplies');
+    world.trade.captain.cargo.timber = 4;
+    world.trade.captain.cargo.planks = 2;
+    hold(world, book, LANDING.x + 30, LANDING.y, 1, 1);
+    hold(world, book, LANDING.x, LANDING.y, 1, 4);
+    expect(book.progress('outpost-south')!.step).toBe('settler');
+    expect(isDiscovered(world.trade, 'palm-key')).toBe(false);
+    expect(cardFor(book, world.map, 'outpost-south', 'step')!.giver?.id).toBe('tam');
+    dock(world, book, 'watchman-key');
+    hold(world, book, LANDING.x, LANDING.y, 1, 4);
+    expect(book.progress('outpost-south')!.step).toBe('done');
+    expect(isDiscovered(world.trade, 'palm-key')).toBe(true);
+    // Tam, not Juno, thanks the captain on the done card.
+    expect(cardFor(book, world.map, 'outpost-south', 'finished')!.giver?.id).toBe('tam');
   });
 });
