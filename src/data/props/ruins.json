@@ -1,0 +1,53 @@
+{
+  "id": "ruins",
+  "group": "landmarks",
+  "sizedInModel": true,
+  "scale": "size",
+  "building": true,
+  "parts": [
+    {
+      "box": [4.4, 0.35, 3.2],
+      "at": [0, 0.175, 0],
+      "color": "rock"
+    },
+    {
+      "repeat": {
+        "x": [-1.5, 1.5]
+      },
+      "parts": [
+        {
+          "cyl": [0.4, 0.5, 2.8, 6],
+          "at": ["x", 1.6, 0],
+          "color": "cream"
+        },
+        {
+          "box": [1, 0.3, 1],
+          "at": ["x", 3.1, 0],
+          "color": "rock"
+        }
+      ]
+    },
+    {
+      "box": [3.9, 0.6, 0.95],
+      "at": [0, 3.55, 0],
+      "color": "cream"
+    },
+    {
+      "box": [0.6, 1.2, 2.5],
+      "at": [-1.8, 0.9, -0.8],
+      "color": "rock"
+    },
+    {
+      "box": [1.2, 0.55, 0.8],
+      "ops": [["turnY", 0.5]],
+      "at": [0.8, 0.6, -1],
+      "color": "rock2"
+    },
+    {
+      "box": [0.9, 0.4, 0.7],
+      "ops": [["turnY", -0.5]],
+      "at": [1.9, 0.4, 1],
+      "color": "rock"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "yard-house",
+  "group": "homes",
+  "home": true,
+  "building": true,
+  "style": "yard",
+  "parts": [
+    {
+      "box": [1.1, 0.85, 0.9],
+      "at": [0, 0.42, 0],
+      "color": "walls[variant]"
+    },
+    {
+      "gable": [1.25, 1.05, 0.55],
+      "y": 0.85,
+      "color": "roofs[variant]"
+    },
+    {
+      "windows": [1.1, 0.9, 0.48, 2, 1],
+      "seed": "variant"
+    }
+  ]
+}

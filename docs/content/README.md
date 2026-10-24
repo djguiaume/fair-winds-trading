@@ -72,6 +72,47 @@ Copy a ship file in [`src/data/ships/`](../../src/data/ships/), rename it to the
 - **Names:** `ship.ketch` and `shipThe.ketch` in `src/i18n/en.json` and `fr.json`; until then the
   game shows `name`.
 
+## A new building or prop ([0135](../decisions/0135-props-as-data.md))
+
+Every building, tree and rock an island file places is a recipe in
+[`src/data/props/`](../../src/data/props/), one file per type (`fish-house.json`); colours come
+from [`src/data/palette.json`](../../src/data/palette.json). Copy a close file, rename it to the
+new id and change its parts. A new file shows up in the island builder's palette (by its `group`).
+
+```json
+{
+  "id": "fish-house",
+  "name": "Fisher's house",
+  "group": "homes",
+  "home": true,
+  "building": true,
+  "style": "fish",
+  "vars": { "h": { "range": [1.1, 1.6] } },
+  "parts": [
+    { "box": [0.8, "h", 0.95], "at": [0, "h / 2", 0], "color": "walls[variant]" },
+    { "gable": [0.9, 1.1, 0.7], "y": "h", "color": "roofs[variant * 3]" },
+    { "windows": [0.8, 0.95, "h * 0.72", 2, 1], "seed": "variant" }
+  ]
+}
+```
+
+| Key | What |
+| --- | --- |
+| top | `id` (the file name, used by island files), `name` (in the builder), `group` (`homes`, `town`, `timber`, `fish`, `farm`, `stone`, `nature`, `landmarks`), flags `home`, `building`, `water`, `edge`, `sizedInModel`, footprint `fit` / `fitRadius`, `internal` (not in the builder) |
+| `style` | take walls and roofs from this style (`fish`, `timber`, `grain`, `stone`, `yard`) instead of the island's |
+| `vars` | numbers set in order: a number, an expression, or `{ "range": [a, b] }` set by the island file's `shape` (0 gives a, 1 gives b) |
+| `defaults` | values for island-file fields a prop may leave out (`length`) |
+| `extends` | another recipe to copy, with some `vars` changed (`windmill-bare` is `windmill` with `bare: 1`) |
+| `scale` | scales the whole model at the end (the landmarks use `"size"`) |
+
+**Parts.** Each part has one shape: `box` [w, h, d], `cyl` [top r, bottom r, h, sides, open, start, arc], `cone` [r, h, sides], `gable` / `hip` [w, d, h] with eaves at `y`, `sphere`, `ico`, `dodeca`, `torus`, `plane` [w, h], `windows` [w, d, height, front, side, x, z] with `seed`, `use` (another prop, with `vars`), `part` (a shape written in code, `src/render/models/propRecipe.ts` › `CODE_PARTS`), or `parts` (a group). Then `at` [x, y, z] moves it; `ops` (`["move", x, y, z]`, `["turnX" | "turnY" | "turnZ", radians]`, `["scale", s]`) are steps applied before `at`, for pieces that pivot. `if` keeps a part only when its expression is not 0; `repeat` (`{ "x": [-1, 1] }` or `{ "i": { "count": 4 } }`) makes one per value. `glow` makes lit glass; `tag` sets game hooks.
+
+**Colours:** a palette name (`post`, `chimney`, `sail`), a list with an index (`walls[variant]`, `roofs[variant * 3]`, `pine[i]`, `crops[variant]`; the index wraps), `{ "pick": "i % 2", "of": ["stone", "cut"] }`, or `#rrggbb`.
+
+**Expressions** (`"h / 2"`, `"k * pi / 2 + 0.4"`, `"variant == 0 ? 2 : variant"`) use numbers, the names `R` (island radius), `variant`, `shape`, `size`, `length`, the vars and repeat names, `pi`, `+ - * / %`, comparisons, `&& || !`, `? :`, and `floor abs min max sin cos sqrt pow`.
+
+**Checks** (`tests/prop-files.test.ts`): a typo in a key, an unknown colour or name, or a part with no shape fails with the file and part named; every file must build in every style for variants 0 to 5, within its group's triangle budget (`src/data/prop-groups.json`: homes 120, nature 60…) because islands must stay light for the old tablet. Changing a shipped recipe changes the islands that use it: the island golden hashes in `tests/island-files.test.ts` then need the new values, after a look at the island.
+
 ## A new difficulty level ([0113](../decisions/0113-levels-tutorial-and-music-as-data.md))
 
 Add an entry under `levels` in

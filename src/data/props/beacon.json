@@ -1,0 +1,49 @@
+{
+  "id": "beacon",
+  "group": "landmarks",
+  "sizedInModel": true,
+  "scale": "size",
+  "parts": [
+    {
+      "cyl": [1.1, 1.5, 0.45, 6],
+      "at": [0, 0.225, 0],
+      "color": "rock"
+    },
+    {
+      "cyl": [0.25, 0.35, 3.7, 6],
+      "at": [0, 2.2, 0],
+      "color": "cream"
+    },
+    {
+      "cyl": [0.28, 0.3, 0.65, 6],
+      "at": [0, 3.1, 0],
+      "color": {
+        "pick": "variant == 2 ? 1 : variant == 3 ? 2 : 0",
+        "of": ["#c8603e", "#c23a2c", "#3f8f5a"]
+      }
+    },
+    {
+      "if": "variant == 2",
+      "cyl": [0.62, 0.62, 1, 8],
+      "at": [0, 4.5, 0],
+      "color": {
+        "pick": "variant == 2 ? 1 : variant == 3 ? 2 : 0",
+        "of": ["#c8603e", "#c23a2c", "#3f8f5a"]
+      }
+    },
+    {
+      "if": "variant != 2",
+      "cyl": [0, 0.8, 1, 6],
+      "at": [0, 4.5, 0],
+      "color": {
+        "pick": "variant == 2 ? 1 : variant == 3 ? 2 : 0",
+        "of": ["#c8603e", "#c23a2c", "#3f8f5a"]
+      }
+    },
+    {
+      "box": [1.9, 0.22, 0.2],
+      "at": [0, 3.4, 0],
+      "color": "dark"
+    }
+  ]
+}

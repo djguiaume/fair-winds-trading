@@ -1,5 +1,6 @@
 import { MAX_SETTLEMENT_LEVEL, SETTLEMENT_LEVELS, TOWN_LEVELS } from '../../sim/settlement';
 import { ISLAND_DESIGNS, atLevel, type IslandDesign, type PropDef } from '../../data/islands';
+import { PROP_RECIPES } from '../../data/props';
 
 /**
  * The island builder's document (decision 0105): an island file exactly as it is saved in
@@ -20,23 +21,9 @@ const pos = (v: number) => round(v, 6);
 /** Degrees in -180 to 180, so a file never grows 900° turns. */
 const angle = (deg: number) => round(((((deg + 180) % 360) + 360) % 360) - 180, 1);
 
-/** Names in the palette and the panel; the others are made from the id. */
-const NAMES: Record<string, string> = {
-  'fish-house': "Fisher's house",
-  'spire-church': 'Church',
-  'moored-boat': 'Fishing boat',
-  'slipway-hull': 'Slipway with hull',
-  'windmill-bare': 'Windmill, bare sails',
-  lumber: 'Planks',
-  sawmill: 'Sawmill',
-  masons: "Mason's yard",
-  'stone-blocks': 'Stone blocks',
-  rail: 'Quarry rail',
-  'lamp-post': 'Lamp post',
-  'drying-rack': 'Drying rack',
-};
+/** A prop type's name in the palette and the panel: its recipe's `name`, else made from the id. */
 export const propName = (type: string) =>
-  NAMES[type] ?? type.charAt(0).toUpperCase() + type.slice(1).replace(/-/g, ' ');
+  PROP_RECIPES[type]?.name ?? type.charAt(0).toUpperCase() + type.slice(1).replace(/-/g, ' ');
 
 /**
  * What a new prop of a type starts with: the size it has most often on this island, else on

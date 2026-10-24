@@ -1,0 +1,45 @@
+{
+  "id": "sawmill",
+  "name": "Sawmill",
+  "group": "timber",
+  "building": true,
+  "parts": [
+    {
+      "parts": [
+        {
+          "box": [1.8, 1, 1.1],
+          "at": [0, 0.5, 0],
+          "color": "#8a5a32"
+        },
+        {
+          "gable": [2, 1.3, 0.6],
+          "y": 1,
+          "color": "#5a3d24"
+        }
+      ],
+      "ops": [["turnY", "-pi / 2"]]
+    },
+    {
+      "cyl": [0.82, 0.82, 0.18, 12],
+      "ops": [["turnX", "pi / 2"]],
+      "at": [0, 0.85, 1.12],
+      "color": "post"
+    },
+    {
+      "repeat": {
+        "spoke": {
+          "count": 8
+        }
+      },
+      "box": [0.09, 1.5, 0.08],
+      "ops": [["turnZ", "spoke * pi / 4"]],
+      "at": [0, 0.85, 1.24],
+      "color": "plank"
+    },
+    {
+      "torus": [0.76, 0.08, 4, 12],
+      "at": [0, 0.85, 1.25],
+      "color": "plank"
+    }
+  ]
+}

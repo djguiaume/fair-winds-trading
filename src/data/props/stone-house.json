@@ -1,0 +1,38 @@
+{
+  "id": "stone-house",
+  "group": "homes",
+  "home": true,
+  "building": true,
+  "fit": 0.7130434782608696,
+  "style": "stone",
+  "parts": [
+    {
+      "box": [1, 0.9, 0.9],
+      "at": [0, 0.45, 0],
+      "color": "walls[variant]"
+    },
+    {
+      "hip": [1.15, 1.05, 0.6],
+      "y": 0.9,
+      "color": "roofs[variant]"
+    },
+    {
+      "windows": [1, 0.9, 0.5, 2, 1],
+      "seed": "variant"
+    },
+    {
+      "if": "variant % 3 == 2",
+      "parts": [
+        {
+          "box": [0.45, 1.7, 0.45],
+          "at": [0.4, 0.85, 0.3],
+          "color": "walls[variant + 1]"
+        },
+        {
+          "windows": [0.45, 0.45, 1.4, 1, 0, 0.4, 0.3],
+          "seed": "variant + 1"
+        }
+      ]
+    }
+  ]
+}

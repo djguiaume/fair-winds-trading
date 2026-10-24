@@ -1,0 +1,9 @@
+{
+  "id": "slipway-hull",
+  "name": "Slipway with hull",
+  "extends": "slipway",
+  "group": "timber",
+  "vars": {
+    "hull": 1
+  }
+}

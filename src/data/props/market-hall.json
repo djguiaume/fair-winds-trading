@@ -1,0 +1,27 @@
+{
+  "id": "market-hall",
+  "group": "town",
+  "building": true,
+  "style": "fish",
+  "parts": [
+    {
+      "box": [2.4, 0.08, 1.4],
+      "at": [0, 0.04, 0],
+      "color": "stone"
+    },
+    {
+      "gable": [2.7, 1.7, 0.8],
+      "y": 1.1,
+      "color": "roofs[0]"
+    },
+    {
+      "repeat": {
+        "x": [-1.1, 0, 1.1],
+        "z": [-0.6, 0.6]
+      },
+      "box": [0.12, 1.1, 0.12],
+      "at": ["x", 0.55, "z"],
+      "color": "post"
+    }
+  ]
+}

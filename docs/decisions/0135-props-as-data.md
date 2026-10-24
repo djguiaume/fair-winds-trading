@@ -1,6 +1,6 @@
 # 0135. Buildings and props as data
 
-**Status:** Accepted (2026-10-24): Guillaume chose the hybrid (JSON recipes + palette) on the decision card. Nothing is built yet. Asked by Guillaume after the ship files of [0109](0109-one-file-per-ship.md): "a list of buildings with each building's geometry, colour etc", first checking the best way. Full comparison, prototype and before/after picture: [reviews/props-as-data](../reviews/props-as-data/README.md).
+**Status:** Implemented (2026-10-24). Guillaume chose the hybrid (JSON recipes + palette) on the decision card; the port followed the same day (see Implementation). Asked by Guillaume after the ship files of [0109](0109-one-file-per-ship.md): "a list of buildings with each building's geometry, colour etc", first checking the best way. Full comparison, prototype and before/after picture: [reviews/props-as-data](../reviews/props-as-data/README.md).
 
 ## Context
 
@@ -22,3 +22,12 @@ Options weighed: a recipe file per prop (primitive shapes + a palette), the ship
 - A new prop (or a new home building's look) is a JSON file: no code unless it needs a new kind of shape.
 - No visual or performance change from the port: the same triangles are built. The prototype matches the code vertex for vertex for the fish house (20 variant/shape pairs), market hall, windmill and bare windmill.
 - Work after approval: PR 1 the port (reader, palette, 43 files + landmarks, checks, budget test, how-to), after the home island thread's warehouse and weather-glass work merges, since both touch props; PR 2 model sheet prop view and `?tune` colours; later, optional, a recipe editor and a `model` field on home buildings for the build card picture.
+
+## Implementation (2026-10-24)
+
+- **Files:** `src/data/props/*.json` (49: the 45 types island files place, including the epilogue's `flagpole` and `name-board`, plus four `internal` pieces the old town code and other recipes use: `rack`, `fishing-boat`, `slip`, `sawmill-shed`), `src/data/palette.json` (the old `C` and `STYLE`, plus `cream` and `dark` from the landmarks), `src/data/prop-groups.json` (builder order and triangle budget per group). Loader and types: `src/data/props.ts`. Reader: `src/render/models/propRecipe.ts` (expressions, shapes, the `slip-hull` code part, `checkPropRecipe`).
+- **Same geometry:** every type was compared with the old code for 4 styles × 6 variants × 4 shapes × 2 lengths, and the old town code's calls (seeded houses and trees, crates, blocks, warehouses, slips, landmarks at two sizes) the same way: positions, colours, normals and game hooks identical. The island golden hashes did not change. Building is about 10 % slower per prop (1,800 props: 292 ms before, 327 ms after, in tests); woodland trees still draw first and build later.
+- **Seeded draws:** a `range` var draws from the island file's `shape` (every draw), or from the old town code's seeded stream, so both paths build exactly as before.
+- **`props.ts`** keeps the old names (`fishHouse(i, rng)`, `crates(5)`…) as one-line calls of the recipes, `PROP_TYPES` (now with `name`) and `WOODLAND_TREES`; `landmarks.ts` calls the landmark recipes. The island builder's names come from the files (`doc.ts`); within a group the palette is now in id order.
+- **Checks:** `tests/prop-files.test.ts`: unknown keys, colours and names, parts with no shape, every file built in every style for variants 0 to 5 within its group budget, and a new prop built from a file alone. How to add one: [content how-to](../content/README.md#a-new-building-or-prop-0135).
+- **Next:** a prop view on the model sheet and the palette in `?tune` (step 2); later, a recipe editor in the island builder and a `model` on home buildings.

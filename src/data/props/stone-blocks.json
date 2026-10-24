@@ -1,0 +1,23 @@
+{
+  "id": "stone-blocks",
+  "name": "Stone blocks",
+  "group": "stone",
+  "vars": {
+    "n": "variant == 0 ? 3 : variant"
+  },
+  "parts": [
+    {
+      "repeat": {
+        "i": {
+          "count": "n"
+        }
+      },
+      "box": [0.5, 0.4, 0.5],
+      "at": ["i % 3 * 0.55 - 0.55", "0.2 + floor(i / 3) * 0.4", 0],
+      "color": {
+        "pick": "i % 2",
+        "of": ["stone", "cut"]
+      }
+    }
+  ]
+}

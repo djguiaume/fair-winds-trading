@@ -1,0 +1,20 @@
+{
+  "id": "drying-rack",
+  "name": "Drying rack",
+  "group": "fish",
+  "parts": [
+    {
+      "use": "rack"
+    },
+    {
+      "repeat": {
+        "f": {
+          "count": 5
+        }
+      },
+      "cyl": [0.04, 0.1, 0.3, 5],
+      "at": ["-0.45 + f * 0.22", 0.55, 0.06],
+      "color": "#cad7d5"
+    }
+  ]
+}

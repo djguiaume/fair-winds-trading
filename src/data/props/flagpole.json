@@ -1,0 +1,19 @@
+{
+  "id": "flagpole",
+  "group": "town",
+  "fit": 0.4,
+  "parts": [
+    { "box": [0.5, 0.2, 0.5], "at": [0, 0.1, 0], "color": "stoneDark" },
+    { "cyl": [0.08, 0.11, 3.6, 6], "at": [0, 1.9, 0], "color": "post" },
+    {
+      "box": [1.5, 0.9, 0.05],
+      "at": [0.8, 3.2, 0],
+      "color": { "pick": "variant % 3", "of": ["flag", "#24496b", "#2f8f7f"] }
+    },
+    {
+      "box": [1.5, 0.26, 0.06],
+      "at": [0.8, 3.2, 0],
+      "color": { "pick": "variant % 3", "of": ["sail", "sail", "#e8c46a"] }
+    }
+  ]
+}

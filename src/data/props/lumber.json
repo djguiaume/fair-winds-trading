@@ -1,0 +1,20 @@
+{
+  "id": "lumber",
+  "name": "Planks",
+  "group": "timber",
+  "parts": [
+    {
+      "repeat": {
+        "i": {
+          "count": 4
+        }
+      },
+      "box": [1.4, 0.12, 0.7],
+      "at": [0, "0.06 + i * 0.13", 0],
+      "color": {
+        "pick": "i % 2",
+        "of": ["#c49658", "#d2a86a"]
+      }
+    }
+  ]
+}

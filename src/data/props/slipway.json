@@ -1,0 +1,26 @@
+{
+  "id": "slipway",
+  "group": "timber",
+  "edge": true,
+  "vars": {
+    "hull": 0
+  },
+  "parts": [
+    {
+      "use": "slip",
+      "vars": {
+        "planked": 0
+      }
+    },
+    {
+      "box": [2.8, 0.12, 5],
+      "at": [0, -0.05, 0],
+      "color": "plank"
+    },
+    {
+      "if": "hull",
+      "part": "slip-hull",
+      "color": "#b77c43"
+    }
+  ]
+}

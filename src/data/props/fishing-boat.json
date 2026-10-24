@@ -1,0 +1,28 @@
+{
+  "id": "fishing-boat",
+  "name": "Small boat",
+  "group": "fish",
+  "internal": true,
+  "water": true,
+  "parts": [
+    {
+      "cyl": [0.5, 0.35, 2, 6],
+      "ops": [
+        ["turnX", "pi / 2"],
+        ["scale", 1, 0.5, 1],
+        ["move", 0, 0.1, 0]
+      ],
+      "color": "#3f74a8"
+    },
+    {
+      "box": [0.6, 0.06, 1.5],
+      "at": [0, 0.32, 0],
+      "color": "plank"
+    },
+    {
+      "cyl": [0.04, 0.05, 1.8, 4],
+      "at": [0, 1.2, -0.2],
+      "color": "post"
+    }
+  ]
+}

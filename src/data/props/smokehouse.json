@@ -1,0 +1,22 @@
+{
+  "id": "smokehouse",
+  "group": "fish",
+  "building": true,
+  "parts": [
+    {
+      "box": [1, 0.9, 0.8],
+      "at": [0, 0.45, 0],
+      "color": "#5a4636"
+    },
+    {
+      "gable": [1.1, 0.95, 0.5],
+      "y": 0.9,
+      "color": "#3d2f25"
+    },
+    {
+      "box": [0.3, 0.6, 0.3],
+      "at": [0, 1.4, 0],
+      "color": "chimney"
+    }
+  ]
+}
