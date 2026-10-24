@@ -5,7 +5,11 @@ import { resetTuning } from '../src/data/tuning';
 import { setLanguage, t } from '../src/i18n';
 import { DEFAULT_WEATHER } from '../src/sim/wind';
 import { DIFFICULTIES, easier, isDifficulty, knobs, weatherFor } from '../src/sim/difficulty';
-import { GOODS, type GoodId } from '../src/sim/goods';
+import { GOODS as ALL_GOODS, type GoodId, isFar } from '../src/sim/goods';
+
+// The far goods (decision 0146) came after this check and trade nowhere on the ring: the random
+// player picks from the goods it picked from before.
+const GOODS = ALL_GOODS.filter((g) => !isFar(g));
 import { createRng } from '../src/sim/rng';
 import { SLOOP } from '../src/sim/ship';
 import { Tutorial } from '../src/sim/tutorial';

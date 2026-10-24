@@ -3,7 +3,15 @@ import { topSpeedKn } from '../sim/boat';
 import { type Contract, deliverContract, openContracts } from '../sim/contracts';
 import { GOODS, GOOD_DEFS, GOOD_ICONS, type GoodId } from '../sim/goods';
 import { hullCondition, repairHull, repairPrice } from '../sim/hazards';
-import { goodRole, quoteAcross, quoteBuy, quoteSell, trades, type Market } from '../sim/market';
+import {
+  available,
+  goodRole,
+  quoteAcross,
+  quoteBuy,
+  quoteSell,
+  trades,
+  type Market,
+} from '../sim/market';
 import {
   growthProgress,
   MAX_SETTLEMENT_LEVEL,
@@ -616,7 +624,8 @@ export class TradePanel {
       .map((good) => {
         const def = GOOD_DEFS[good];
         const role = goodRole(port, good, settlementLevel(trade, port.id), made);
-        const stock = Math.max(0, Math.floor(market.stock[good]));
+        // A far workshop sells only what it crafted from raw goods received (decision 0146).
+        const stock = available(market, good);
         const inHold = captain.cargo[good];
         const free = freeSpace(trade);
         const buyQty = Math.max(1, Math.min(this.lot, maxBuy(trade, good)));

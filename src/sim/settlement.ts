@@ -118,7 +118,15 @@ export function portWants(
   for (let l = 2; l <= level; l++)
     for (const g of port.levelWants?.[String(l) as LevelKey] ?? []) add(g);
   for (const g of port.wantsMade ?? []) if (made.has(g)) add(g);
+  // The ring's port towns buy far goods (decision 0146), once some main port crafts them.
+  for (let l = 2; l <= level; l++)
+    for (const g of port.levelWantsMade?.[String(l) as LevelKey] ?? []) if (made.has(g)) add(g);
   return out;
+}
+
+/** The highest level the port grows to (decision 0146: outposts stop at town). */
+export function topLevel(port: PortDef): SettlementLevel {
+  return port.maxLevel === undefined ? MAX_SETTLEMENT_LEVEL : clampLevel(port.maxLevel);
 }
 
 /** The quests a voyage has finished (decision 0130); none for a bare settlement store. */
@@ -264,11 +272,16 @@ export function portTownGate(
 /**
  * Advance every settlement by `dt`: stalled towns drain growth, and towns with enough growth
  * rise a level (one step per call, the rest carries over). A town still short of its rare goods
- * waits at full growth instead of becoming a port town (0065). Returns the level-ups.
+ * waits at full growth instead of becoming a port town (0065), and a port at its own `maxLevel`
+ * (an outpost, 0146) waits there for good. Returns the level-ups.
  */
 export function stepSettlements(state: HasSettlements, dt: number, map: MapDef): LevelUp[] {
   delete state.settlements.pendingSupply;
   const ups: LevelUp[] = [];
+  const topOf = (id: string) => {
+    const port = map.ports.find((p) => p.id === id);
+    return port ? topLevel(portNow(port, state)) : MAX_SETTLEMENT_LEVEL;
+  };
   for (const [portId, s] of Object.entries(state.settlements.byPort)) {
     const elapsed = Math.max(0, dt - (s.advancedBeforeSupply ?? 0));
     delete s.advancedBeforeSupply;
@@ -281,9 +294,10 @@ export function stepSettlements(state: HasSettlements, dt: number, map: MapDef):
     if (
       need !== null &&
       s.growth >= need &&
-      s.level === MAX_SETTLEMENT_LEVEL - 1 &&
-      portTownGate(map, state, portId)
+      ((s.level === MAX_SETTLEMENT_LEVEL - 1 && portTownGate(map, state, portId)) ||
+        s.level >= topOf(portId))
     ) {
+      // Held back by the rare goods gate (0065) or at the port's own top level (0146).
       s.growth = need;
     } else if (need !== null && s.growth >= need) {
       s.growth -= need;
