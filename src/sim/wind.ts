@@ -13,7 +13,14 @@ import {
   stormWindFrom,
   stormsAt,
 } from './storms';
-import { NO_ZONE, type ZoneEffect, type ZoneField, zoneEffectAt, zoneStormsAt } from './windZones';
+import {
+  NO_ZONE,
+  type ZoneEffect,
+  type ZoneField,
+  clearZoneFields,
+  zoneEffectAt,
+  zoneStormsAt,
+} from './windZones';
 
 /** Wind at one moment. `from` is the compass bearing the wind blows FROM (sailors' convention). */
 export interface Wind {
@@ -256,6 +263,8 @@ export function clearWeatherCaches(): void {
   walks = new WeakMap();
   stormless = new WeakMap();
   steadied = new WeakMap();
+  // Zone fields hold the fade width (decision 0140).
+  clearZoneFields();
 }
 
 /**

@@ -3,6 +3,9 @@ import { PHASE1_MAP } from '../src/data/maps';
 import { DIFFICULTIES } from '../src/sim/difficulty';
 import { DEG, wrapAngle } from '../src/sim/math';
 import { SLOOP } from '../src/sim/ship';
+import { chartedPorts, legSeconds } from '../src/sim/balance';
+import { harbourApproach, sailRoute } from '../src/sim/mapChecks';
+import type { MapDef } from '../src/sim/map';
 import { DEFAULT_WEATHER, type LocalWeather, type WindConfig, windAt } from '../src/sim/wind';
 import {
   type WindZoneDef,
@@ -241,5 +244,26 @@ describe('wind zones (decision 0140)', () => {
 
   it('the easiest level is the first one in difficulty.json', () => {
     expect(DIFFICULTIES[0]).toBe('fair');
+  });
+
+  it('route and balance checks plan with the zones’ average wind', () => {
+    const [a, b] = chartedPorts(PHASE1_MAP);
+    const ia = PHASE1_MAP.islands.find((i) => i.id === a!.islandId)!;
+    const ib = PHASE1_MAP.islands.find((i) => i.id === b!.islandId)!;
+    const mid = { x: (ia.x + ib.x) / 2, y: (ia.y + ib.y) / 2 };
+    const calm: MapDef = { ...PHASE1_MAP, windZones: [square('d', 'doldrums', mid.x, mid.y, 60)] };
+    const gale: MapDef = { ...PHASE1_MAP, windZones: [square('g', 'cold-gale', mid.x, mid.y, 60)] };
+    const plainLeg = legSeconds(PHASE1_MAP, SLOOP, a!.id, b!.id);
+    expect(legSeconds(calm, SLOOP, a!.id, b!.id)).toBeGreaterThan(plainLeg * 1.2);
+    expect(legSeconds(gale, SLOOP, a!.id, b!.id)).toBeLessThan(plainLeg);
+
+    // The whole sea in the doldrums: every route takes about 1 / 0.325 as long.
+    const still: MapDef = { ...PHASE1_MAP, windZones: [square('s', 'doldrums', 0, 0, 3000)] };
+    const goal = harbourApproach(PHASE1_MAP, a!);
+    const wind = PHASE1_MAP.wind.fromDeg;
+    const open = sailRoute(PHASE1_MAP, PHASE1_MAP.start, goal, wind)!;
+    const slow = sailRoute(still, PHASE1_MAP.start, goal, wind)!;
+    const [lo, hi] = kinds().doldrums!.strength as [number, number];
+    expect(slow.seconds / open.seconds).toBeCloseTo(2 / (lo + hi), 1);
   });
 });
