@@ -282,7 +282,7 @@ export function quickChecks(map: MapDef): MapCheck[] {
     problems.push(`two ports on island "${id}"`);
   if (map.homePort && !map.ports.some((p) => p.id === map.homePort))
     problems.push(`home port "${map.homePort}" missing`);
-  // Fog of war's areas (decision 0153): unique ids, a name for the toast, a real outline.
+  // Fog of war's areas (decision 0155): unique ids, a name for the toast, a real outline.
   const areas = map.fog?.areas ?? [];
   for (const id of dupes(areas.map((a) => a.id))) problems.push(`two chart areas "${id}"`);
   for (const a of areas)

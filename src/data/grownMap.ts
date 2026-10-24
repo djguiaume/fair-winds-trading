@@ -20,7 +20,7 @@ export type SeaDef = Pick<MapDef, 'islands' | 'ports' | 'course'> &
   Partial<Pick<MapDef, 'terrain' | 'marks' | 'currents' | 'windZones'>> & {
     id: string;
     name: string;
-    /** The sea's named areas, each charted at once when sailed into (decision 0153). */
+    /** The sea's named areas, each charted at once when sailed into (decision 0155). */
     chartAreas?: ChartAreaDef[];
   };
 
@@ -38,7 +38,7 @@ export function grownMap(source: MapDef, seas: readonly SeaDef[] = SEAS): MapDef
   map.name = `${source.name} (Phase 4 sea)`;
   map.compatibleSaveMaps = [];
   map.boundsRadius = GROWN_SEA_RADIUS;
-  // The new waters start uncharted; the ring stays charted (decisions 0137, 0153).
+  // The new waters start uncharted; the ring stays charted (decisions 0137, 0155).
   map.fog = { chartedRadius: grown.chartedRadius, areas: [] };
   for (const sea of seas) {
     const add = structuredClone(sea);

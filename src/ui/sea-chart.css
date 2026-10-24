@@ -691,21 +691,16 @@ dialog.chart::backdrop {
   }
 }
 
-/* Fog of war (decision 0153): "Uncharted" across each fogged area. */
-.chart-fog-label {
-  font-family: var(--body);
-  font-style: italic;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-anchor: middle;
-  pointer-events: none;
+/* Fog of war (decision 0155): blank parchment with a faint pencil grid, "Uncharted waters" in ink. */
+.chart-fog-paper {
+  fill: #eadfc6;
 }
-.chart-fog-label-a {
-  fill: rgba(110, 86, 52, 0.75);
+.chart-fog-grid {
+  fill: none;
+  stroke: #cdbb98;
 }
-.chart-fog-label-b {
-  fill: rgba(70, 92, 100, 0.7);
-}
-.chart-fog-label-c {
-  fill: rgba(238, 243, 244, 0.75);
+.chart-zone-label.chart-zone-fog {
+  --zone-ink: rgba(110, 86, 52, 0.8);
+  letter-spacing: 0.08em;
+  stroke: rgba(234, 223, 198, 0.8);
 }

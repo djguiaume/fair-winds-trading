@@ -92,7 +92,7 @@ const WORKSHOP_SECTION = 11;
  */
 const ZONES_SECTION = 12;
 /**
- * Fog of war's section (decision 0153), after the wind zones and only when something in the fog
+ * Fog of war's section (decision 0155), after the wind zones and only when something in the fog
  * is charted: its number, a fingerprint of the map's chart areas and fogged islands, then the
  * areas' count and a flag each, and the islands' count and a flag each.
  */
@@ -576,7 +576,7 @@ export function unpackSave(
     if (same && n === ids.length) zones = ids.filter((_, k) => flags[k]);
     section = r.done ? NO_SECTION : r.uint();
   }
-  // Fog of war (decision 0153): forgotten, like the zones, if the map's areas or islands changed.
+  // Fog of war (decision 0155): forgotten, like the zones, if the map's areas or islands changed.
   let areas: string[] | undefined;
   let sighted: string[] | undefined;
   if (section === FOG_SECTION) {

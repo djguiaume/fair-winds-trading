@@ -10,7 +10,7 @@ import { SLOOP } from '../src/sim/ship';
 import { type World, type WorldEvent, createWorld, stepWorld } from '../src/sim/world';
 
 /*
- * Fog of war (decision 0153): the Phase 4 sea's new waters start uncharted. An area is charted at
+ * Fog of war (decision 0155): the Phase 4 sea's new waters start uncharted. An area is charted at
  * once when she sails into it (or a quest step hands it over), a fogged island alone when sighted.
  */
 
@@ -37,7 +37,7 @@ function lie(world: World, seconds: number) {
 
 const island = (id: string) => map.islands.find((i) => i.id === id)!;
 
-describe('fog of war (0153)', () => {
+describe('fog of war (0155)', () => {
   it('fogs only the new waters: the ring and today’s map stay charted', () => {
     expect(ring.fog).toBeUndefined();
     const fresh = createWorld(map, SLOOP).trade.progress;

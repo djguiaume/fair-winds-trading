@@ -23,7 +23,7 @@ export interface ShipyardProgress {
   charted?: string[];
   /** Named wind zone ids on the chart: sailed well inside at least once (decision 0152). */
   zones?: string[];
-  /** Fog of war (decision 0153): chart area ids sailed into or given by a quest… */
+  /** Fog of war (decision 0155): chart area ids sailed into or given by a quest… */
   areas?: string[];
   /** …and islands in the fog sighted one by one. */
   sighted?: string[];
@@ -67,14 +67,17 @@ export function isDiscovered(trade: TradeState, portId: string): boolean {
   return trade.progress.discovered.includes(portId);
 }
 
-/** Ports on the chart, in map order: found, and not out in the fog (decision 0153). */
+/** A port on the chart: found, and not out in the fog (decision 0155). */
+export function portCharted(map: MapDef, trade: TradeState, port: PortDef): boolean {
+  if (!isDiscovered(trade, port.id)) return false;
+  if (!map.fog) return true;
+  const island = map.islands.find((i) => i.id === port.islandId);
+  return !island || islandCharted(map, trade.progress, island);
+}
+
+/** Ports on the chart, in map order. */
 export function discoveredPorts(map: MapDef, trade: TradeState): PortDef[] {
-  return map.ports.filter((p) => {
-    if (!isDiscovered(trade, p.id)) return false;
-    if (!map.fog) return true;
-    const island = map.islands.find((i) => i.id === p.islandId);
-    return !island || islandCharted(map, trade.progress, island);
-  });
+  return map.ports.filter((p) => portCharted(map, trade, p));
 }
 
 /** Put hidden ports near `pos` on the chart. Returns the ones found just now. */

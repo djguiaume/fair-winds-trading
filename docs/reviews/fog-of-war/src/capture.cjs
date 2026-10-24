@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* global require, process, window, document, localStorage */
-// Fog of war screenshots (ADR 0153): real captures of the Phase 4 sea, `?map=phase4`, in each
-// proposed look (`&fog=a|b|c`). Run against `npx vite --port 5199`:
+// Fog of war screenshots (ADR 0155): real captures of the Phase 4 sea, `?map=phase4`, in each
+// proposed look (`&fog=a|b|c`, review only; the game draws A since). Run against `npx vite --port 5199`:
 //   node docs/reviews/fog-of-war/src/capture.cjs [name ...]
 const path = require('path');
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const OUT = process.env.OUT ?? path.join(__dirname, '..');
-const STYLES = (process.env.STYLES ?? 'a,b,c').split(',');
+const STYLES = (process.env.STYLES ?? 'final').split(',');
 
 // Mid-voyage: Old Ness's chart gave the Coral Line and Sunreach Sound, and she sailed past Lone
 // Palm, so that island alone is charted in the Sugar Bar area. Palm Key Narrows is still fogged.
@@ -96,6 +96,6 @@ async function shoot(browser, style, [name, w, h, what]) {
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader'] });
   for (const style of STYLES)
     for (const s of SHOTS) if (!only.length || only.includes(s[0])) await shoot(browser, style, s);
-  for (const s of SEA) if (!only.length || only.includes(s[0])) await shoot(browser, 'a', s);
+  for (const s of SEA) if (!only.length || only.includes(s[0])) await shoot(browser, 'final', s);
   await browser.close();
 })();
