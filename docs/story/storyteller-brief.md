@@ -209,6 +209,29 @@ The layout stays as it is: tropical south, fire west, ice north, fog and storms 
 - **The north's outpost lies behind pack ice.** Snowberry Isle sits in a cove locked by pack ice: snow on its hills, but a warm spring keeps a green, sheltered moor by the shore, red with cloudberries (a real far-north plant of moors and bogs), and no ship gets in. Nell Marlow knows where the ice is thinnest. Sigrun Vale's arc at Rimewick ends by rebuilding the old beacon that marks that lead. After it, the ice breaks up and the lead stays open for good. Inside stands an **old weather station**, empty since the ice closed the cove; Nell founds the outpost by rebuilding it, with a glasshouse warmed by the spring (`outpost-north`), and the berry pickers come back with her. The station suits the sailing audience: it can later give the north a small weather perk, like Skerry's weather glass. No whaling or sealing station, old or new: no animals are hunted in this game.
 - **Engine, for those two:** an island entry may carry `"after": "<quest>"`, and a terrain entry (the north's pack ice, which may be drawn as an ice island or an ice field) `"before": "<quest>"`, like props and sea marks (0130). The island's land, collision and chart label stay hidden until that quest is done; the ice goes once it is done. Two rules: a change happens only when the boat is far away or docked, never under her, and the map's deep-route check (0152 point 6) must pass with the island there. New visuals (the eruption, steam, the island rising) go to Guillaume as screenshots before merging.
 
+### The west sea, step by step (head storyteller, 2026-10-24)
+
+Written for the thread that lays out Emberhold's sea. That thread writes the three arcs too, so that Cinder Isle's `after:emberhold-glass` tag points at a real quest: no stub quests. Until the quests are written, Cinder Isle's island file waits outside the sea file. Gold amounts are first guesses, for `npm run balance` to settle.
+
+**Place names** (English in French too): the volcano island **The Smoulder** (not a real volcano's name like Hekla); **Ashfall Reach**, the ash zone downwind of it; **Black Strand**, Emberhold's black beach; **The Organ Pipes**, the basalt sea stacks; **Warm Run**, the warm current; **Pumice Bank**, the floating pumice field; and the gateway **The Forge Gap**, through a basalt reef.
+
+**Emberhold** is a normal, working port (levels 1 to 3, like Sunreach) with Bram's glassworks on the quay as its signature: a furnace chimney, cold before his arc and glowing `after:emberhold-glass`. What it makes and buys follows the far goods data (0146, 0150), not the story. Obsidian mirrors come only once Cinder Isle gathers obsidian.
+
+**Eruptions.** The Smoulder smokes all the time, and with the switch on it erupts every few minutes while the boat is near. With the switch off it only smokes. The one story eruption, at the end of Bram's arc, plays whatever the switch says. It is a spectacle only, with no ash or pumice for the boat, and nothing in the copy needs the captain to have watched it. Cinder Isle appears afterwards, only while the boat is far away or docked.
+
+| Quest | Step | Goal | Card |
+|---|---|---|---|
+| `calda-letter` (Ines, Port Calda) | `chart` | dock at Emberhold, charting the Forge Gap and Emberhold's waters | Ines has a letter from her brother Oskar and mentions her slipway once. The done card points to Bram's glassworks. |
+| `emberhold-glass` (Bram) | `kiln` (worried) | deliver 8 cut stone to Emberhold | Reline the cold furnace. Good glass needs a good fire. |
+| | `smoulder` | reach 3 points round The Smoulder, in any order, `clean` | Go and look: the old obsidian beds lie under fresh rock. |
+| | `furnace` | deliver 12 timber to Emberhold | Fire the furnace again. |
+| | done | Cinder Isle `after:emberhold-glass` | The furnace glows, and the Smoulder rumbles. "When it settles, there'll be new ground out there." Names Oskar Calder, who has waited for ground of his own. |
+| `outpost-west` (Bram, speaker and `doneSpeaker` Oskar) | `supplies` (worried) | land 10 planks and 6 timber on Cinder Isle | Bram: the ground's still warm, so build on stone feet. |
+| | `settler` | carry `oskar` (space 0) from Emberhold to Cinder Isle | Oskar, a boatyard saying for everything, mentions Ines once. |
+| | done | `found: ["cinder-isle"]` | Oskar: "Bring what we gather to Bram at Emberhold, captain, and the glassworks will do the rest. Rook will want that in the book." |
+
+Cut stone (Stonehaven) is a made good, so the delivery passes the `wantsMade` rule. Emberhold must buy cut stone and timber for the two deliveries. Ash and pumice stay optional: with them off, every step is the same sail.
+
 ### The north sea, step by step (head storyteller, 2026-10-24)
 
 Written for the "Build the north ice sea" thread, which lays out the sea and writes its three arcs. Gold amounts are first guesses, for `npm run balance` to settle.
@@ -265,5 +288,6 @@ Story calls made for threads outside the arcs. They stand unless Guillaume chang
 
 - Phase 3 story: prologue, the four ring arcs and the epilogue are built and merged.
 - Phase 4, south: all three arcs built and merged (`watchman-passage`, `sunreach-tea`, `outpost-south`; 0155, 0158).
+- Phase 4, west: step design and names above (2026-10-24); the west sea thread builds the sea and its three arcs.
 - Phase 4, north: step design and names above (2026-10-24); the "Build the north ice sea" thread builds the sea and its three arcs.
 - Phase 4, west, north and east: designed above, not built. They need the engine's island `after` and terrain `before` (Cinder Isle rising, Snowberry Isle's pack ice) and their seas laid out first.
