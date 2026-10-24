@@ -10,7 +10,7 @@ const STYLES = (process.env.STYLES ?? 'a,b,c').split(',');
 
 // Mid-voyage: Old Ness's chart gave the Coral Line and Sunreach Sound, and she sailed past Lone
 // Palm, so that island alone is charted in the Sugar Bar area. Palm Key Narrows is still fogged.
-const MID = { areas: ['coral-line', 'sunreach-sound'], sighted: ['lone-palm'] };
+const MID = { areas: ['coral-line', 'sunreach-waters'], sighted: ['lone-palm'] };
 // name, width, height, what
 const SHOTS = [
   ['chart-start-desktop', 1280, 800, { chart: true, progress: {}, boat: [140, -380, 170] }],
@@ -52,7 +52,7 @@ async function shoot(browser, style, [name, w, h, what]) {
     const pr = world.trade.progress;
     pr.areas = [...(what.progress.areas ?? [])];
     pr.sighted = [...(what.progress.sighted ?? [])];
-    pr.zones = world.map.windZones.map((z) => z.id).filter((id) => id !== 'the-glass');
+    if (what.progress.areas) pr.zones = ['sunreach-sound', 'the-trades'];
     const [x, y, deg] = what.boat;
     world.boat.x = x;
     world.boat.y = y;

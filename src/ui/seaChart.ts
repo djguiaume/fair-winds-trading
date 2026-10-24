@@ -441,13 +441,10 @@ export class SeaChart {
     // "Uncharted" written across each fogged area, not its name.
     for (const area of fog.areas) {
       if (progress.areas?.includes(area.id)) continue;
-      const xs = area.outline.map((p) => p[0]);
-      const ys = area.outline.map((p) => -p[1]);
-      const cx = xs.reduce((a, b) => a + b, 0) / xs.length;
-      const cy = ys.reduce((a, b) => a + b, 0) / ys.length;
+      const spot = deepestPoint(area.outline.map(([x, y]) => [x, -y]));
       const label = shape('text', {
-        x: cx,
-        y: cy,
+        x: spot.x,
+        y: spot.y,
         class: `chart-fog-label chart-fog-label-${style}`,
         style: `font-size: ${13 * px}px`,
       });

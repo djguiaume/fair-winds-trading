@@ -265,7 +265,7 @@
   "toast.currentHint": "Un courant ! L’eau vous porte : rapide avec lui, lent contre lui. FOND est votre vitesse sur le fond",
   "toast.currentCharted": "Courant porté sur la carte : {name}",
   "toast.zoneCharted": "Cartographié : {name}, {kind}",
-  "toast.areaCharted": "Cartographié : {name}",
+  "toast.areaCharted": "Cartographié : {name}",
   "toast.pressHint": "Vent fort ! Choquez les voiles ou la cargaison passe par-dessus bord",
   "toast.overboard": "Trop de gîte ! Par-dessus bord : {good} × {n}. Choquez les voiles",
   "weather.calm": "Calme",
