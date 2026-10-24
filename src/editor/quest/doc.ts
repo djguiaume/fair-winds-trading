@@ -1,4 +1,6 @@
+import { grownMap } from '../../data/grownMap';
 import { ISLAND_DESIGNS } from '../../data/islands';
+import { PHASE1_SOURCE, prepareMap } from '../../data/maps';
 import { formatJson, formatQuestJson } from '../../data/jsonFormat';
 import en from '../../i18n/en.json';
 import fr from '../../i18n/fr.json';
@@ -570,10 +572,17 @@ export function checkPlaces(
  * Every problem the quest builder lists (its Checks panel), also run by `npm run check`
  * (decision 0153): quest files, hooks on island files, text and places.
  */
+/** The grown Phase 4 sea, built once when the checks first need it. */
+let GROWN: MapDef | undefined;
+
 export function questProblems(doc: QuestDoc, map: MapDef): string[] {
   try {
-    // Quests for a Phase 4 sea this map lacks are left to the grown sea's checks (decision 0155).
-    const here = questsFor(map, doc.quests);
+    // Quests for a Phase 4 sea this map lacks are left to the grown sea's checks (decision 0155);
+    // a quest naming a port no sea has is still checked here, so a misspelt port shows.
+    const grown = (GROWN ??= prepareMap(grownMap(PHASE1_SOURCE)));
+    const here = doc.quests.filter(
+      (q) => questsFor(map, [q]).length > 0 || questsFor(grown, [q]).length === 0,
+    );
     return [
       ...checkQuests(here, map),
       ...checkQuestHooks(map, Object.values(ISLAND_DESIGNS), doc.quests),
