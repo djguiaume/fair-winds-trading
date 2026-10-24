@@ -26,6 +26,8 @@ Where
   --ship id                     sail this ship (sloop, schooner, fluyt, …)
   --hold Key:ms                 hold a key that long before the shot (e.g. ArrowUp:2500)
   --port id                     docked at this port, port screen open
+  --moor island                 moored at one of her islands' piers (owned first, decision 0159)
+  --quest id:step               a quest started at that step, earlier steps paid (as a quest test)
   --tab market|orders|quay|shipyard   the port screen's tab
   --zoom z                      camera distance, 1 = default, larger = farther (no game limit)
   --look x,y                    camera on this map point instead of the boat
@@ -81,6 +83,8 @@ export function normalise(opts) {
     ship: o.ship ?? null,
     hold: o.hold ? keyHold(o.hold) : null,
     port: o.port ?? null,
+    moor: o.moor ?? null,
+    quest: o.quest ? String(o.quest).split(':') : null,
     tab: o.tab ?? null,
     zoom: o.zoom ?? null,
     look: o.look !== undefined ? pair(o.look) : null,
@@ -109,7 +113,8 @@ export function normalise(opts) {
   };
   for (const s of shot.sizes)
     if (!SIZES[s]) throw new Error(`unknown size ${s} (${Object.keys(SIZES)})`);
-  if (shot.at && shot.port) throw new Error('--at and --port: pick one');
+  if ([shot.at, shot.port, shot.moor].filter(Boolean).length > 1)
+    throw new Error('--at, --port and --moor: pick one');
   shot.name = o.name ?? defaultName(shot);
   return shot;
 }
@@ -201,7 +206,7 @@ async function enter(page) {
 }
 
 async function setScene(page, shot) {
-  if ((shot.at || (shot.port && !shot.url)) && (await visible(page, '#tp-undock')))
+  if ((shot.at || shot.moor || (shot.port && !shot.url)) && (await visible(page, '#tp-undock')))
     await page.click('#tp-undock');
   const problem = await page.evaluate((s) => {
     const { world, view, trade } = window.fwt;
@@ -214,6 +219,7 @@ async function setScene(page, shot) {
       captain.activeShip = s.ship;
       world.ship = trade.activeShip(world.trade);
     }
+    if (s.quest) window.fwt.quests.testStart(s.quest[0], s.quest[1]);
     if (s.charted) world.trade.progress.zones = world.map.windZones.map((z) => z.id);
     for (const [id, level] of s.towns)
       if (!window.fwt.town(id, level)) return `no town ${id} on this sea`;
@@ -224,6 +230,11 @@ async function setScene(page, shot) {
     }
     if (s.port && !s.url && world.trade.dockedAt !== s.port && !window.fwt.dock(s.port))
       return `could not dock at ${s.port}`;
+    if (s.moor) {
+      const home = (world.trade.home.islands[s.moor] ??= { owned: true, offered: [], built: {} });
+      home.owned = true;
+      if (!window.fwt.moor(s.moor)) return `no pier to moor at on ${s.moor}`;
+    }
     if (s.tab && world.trade.dockedAt) window.fwt.tradePanel.open(s.tab);
     if (s.zoom !== null) view.zoom = s.zoom;
     if (s.look) view.setFocus({ x: s.look[0], y: s.look[1] });

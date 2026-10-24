@@ -1,7 +1,7 @@
 {
   "id": "stonehaven-light",
   "name": "A light on the Teeth",
-  "start": { "is": "quest-done", "quest": "rooks-thanks" },
+  "start": { "is": "quest-at", "quest": "rooks-thanks", "step": "skerry" },
   "text": "quest.stonehaven-light",
   "giver": "ada",
   "port": "stonehaven",

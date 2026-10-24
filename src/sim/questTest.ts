@@ -48,6 +48,7 @@ const dist = (px: number, py: number, p: Pier) => {
 /**
  * Where the boat waits docked at a port for a test: the clear water in docking range nearest the
  * pier head, off the shore and the piers, heading away from the island. Null if there is none.
+ * `portId` may also name one of the captain's islands, to moor at its pier (decision 0159).
  */
 export function testBerth(
   map: MapDef,
@@ -56,7 +57,16 @@ export function testBerth(
   portId: string,
   shipId: string,
 ): { x: number; y: number; headingDeg: number } | null {
-  const port = findPort(map, portId);
+  const home = map.islands.find((i) => i.id === portId);
+  const port =
+    findPort(map, portId) ??
+    (home && {
+      id: `home:${home.id}`,
+      name: home.name ?? home.id,
+      islandId: home.id,
+      produces: [],
+      wants: [],
+    });
   const island = port && map.islands.find((i) => i.id === port.islandId);
   if (!port || !island) return null;
   const range = TUNING.seamanship.harbour.dockRange;

@@ -1,7 +1,7 @@
 {
   "id": "calda-slipway",
   "name": "The last keel",
-  "start": { "is": "quest-done", "quest": "rooks-thanks" },
+  "start": { "is": "quest-at", "quest": "rooks-thanks", "step": "skerry" },
   "offer": true,
   "text": "quest.calda-slipway",
   "giver": "ines",

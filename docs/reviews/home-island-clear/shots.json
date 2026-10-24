@@ -1,0 +1,10 @@
+[
+  { "name": "1-rook-at-saltmere", "port": "saltmere", "cards": true },
+  { "name": "2-sea-arrow", "quest": "rooks-thanks:skerry", "at": [200, -150], "heading": 270, "speed": 4 },
+  { "name": "3-chart", "quest": "rooks-thanks:skerry", "at": [200, -150], "heading": 270, "chart": true },
+  { "name": "4-rook-at-skerry", "quest": "rooks-thanks:skerry", "moor": "skerry", "cards": true, "wait": 3000 },
+  { "name": "5-chart-later", "quest": "rooks-thanks:skerry", "moor": "skerry", "chart": true, "wait": 3000 },
+  { "name": "fr-1-rook-at-saltmere", "port": "saltmere", "cards": true, "lang": "fr" },
+  { "name": "fr-4-rook-at-skerry", "quest": "rooks-thanks:skerry", "moor": "skerry", "cards": true, "wait": 3000, "lang": "fr" },
+  { "name": "fr-3-chart", "quest": "rooks-thanks:skerry", "at": [200, -150], "heading": 270, "chart": true, "lang": "fr" }
+]

@@ -10,6 +10,8 @@ export interface Shot {
   speed: number;
   ship: string | null;
   port: string | null;
+  moor: string | null;
+  quest: [string, string] | null;
   tab: string | null;
   zoom: number | null;
   look: [number, number] | null;

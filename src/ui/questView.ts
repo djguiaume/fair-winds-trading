@@ -440,6 +440,11 @@ export function questTarget(book: QuestBook, map: MapDef): QuestTarget | null {
     return port ? { port, radius: step.chart.radius } : null;
   }
   const goal = step.goal;
+  // Moored at one of her islands (a home island's pier): the island itself.
+  if (goal?.is === 'moored') {
+    const island = map.islands.find((i) => i.id === (goal.island ?? map.homeIsland));
+    return island ? { point: { x: island.x, y: island.y } } : null;
+  }
   const counts = book.progress(quest.id)?.counts ?? [];
   // Founding goods (decision 0157): where they land, alone or the first of several.
   const landed =
