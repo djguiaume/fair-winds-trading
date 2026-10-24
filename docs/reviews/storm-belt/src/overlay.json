@@ -1,0 +1,91 @@
+{
+ "title": "East sea \u00b7 the Stormbreak (storm belt, decision 0167)",
+ "islands": [
+  {
+   "x": 720,
+   "y": 25,
+   "radius": 40,
+   "name": "Fogwatch (planned by the fog sea thread)"
+  },
+  {
+   "x": 700,
+   "y": 500,
+   "radius": 28,
+   "name": "Amber Strand (planned)"
+  }
+ ],
+ "areas": [
+  {
+   "outline": [
+    [
+     440,
+     230
+    ],
+    [
+     600,
+     230
+    ],
+    [
+     600,
+     340
+    ],
+    [
+     440,
+     340
+    ]
+   ],
+   "style": "tint",
+   "label": "kept open: the way round"
+  }
+ ],
+ "lines": [
+  {
+   "points": [
+    [
+     700,
+     70
+    ],
+    [
+     700,
+     470
+    ]
+   ],
+   "style": "short",
+   "label": "cross in a lull",
+   "arrow": true
+  },
+  {
+   "points": [
+    [
+     690,
+     70
+    ],
+    [
+     520,
+     200
+    ],
+    [
+     520,
+     370
+    ],
+    [
+     690,
+     470
+    ]
+   ],
+   "style": "long",
+   "label": "or skirt its west end",
+   "arrow": true
+  }
+ ],
+ "labels": [
+  {
+   "at": [
+    880,
+    380
+   ],
+   "text": "squalls roll in from the open ocean, march west",
+   "style": "note"
+  }
+ ]
+}

@@ -1,7 +1,7 @@
 // `npm run balance` (decision 0153): the balance bots of src/sim/balance.ts on all three
 // difficulty levels (Guillaume's rule), as one short table plus the checks that fail.
-import { readFileSync } from 'node:fs';
-import { PHASE1_MAP, prepareMap } from '../../src/data/maps';
+import { PHASE1_MAP } from '../../src/data/maps';
+import { loadSea } from './seas';
 import {
   type BalanceCheck,
   type DifficultyRun,
@@ -44,17 +44,15 @@ const failing = (checks: BalanceCheck[]) =>
 export function run(args: Args): number {
   if (args.help) {
     console.log(`npm run balance [-- options]   balance bots on every difficulty level (about 10 s)
-  --map file.json        a map file (editor export) instead of the ring
+  --map ring|stress|phase4|file.json   the sea (default ring): an editor export, or a sea file
+                         merged round the ring (src/data/seas/*.json or a copy)
   --legs                 only sloop leg times per level (seconds, fast)
   --only economy,levels  run only these parts
   --all                  list passing checks too
   --json                 runs and checks as JSON`);
     return 0;
   }
-  const map: MapDef =
-    typeof args.map === 'string'
-      ? prepareMap(JSON.parse(readFileSync(args.map, 'utf8')) as MapDef)
-      : PHASE1_MAP;
+  const map: MapDef = typeof args.map === 'string' ? loadSea(args.map).prepared : PHASE1_MAP;
   if (args.legs) {
     for (const l of DIFFICULTIES) {
       const t = legTimes(map, l);
