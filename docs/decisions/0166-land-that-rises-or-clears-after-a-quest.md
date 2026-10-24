@@ -1,6 +1,6 @@
 # 0166. Land that rises or clears after a quest
 
-**Status:** Accepted (2026-10-24). A shared engine piece for Phase 4's wave 2 ([0137](0137-phase-4-scope.md)), from the story brief: in the west, Cinder Isle rises after the eruption quest; in the north, the pack ice that closes Snowberry Isle's cove clears after Sigrun's quests. It extends what changes after a quest ([0130](0130-after-a-quest-and-the-saltmere-shoals.md)) from props, sea marks and trade to the land itself, and the sea files and sea editor ([0161](0161-sea-editor.md)).
+**Status:** Accepted (2026-10-24). A shared engine piece for Phase 4's wave 2 ([0137](0137-phase-4-biomes-and-founded-outposts.md)), from the story brief: in the west, Cinder Isle rises after the eruption quest; in the north, the pack ice that closes Snowberry Isle's cove clears after Sigrun's quests. It extends what changes after a quest ([0130](0130-after-a-quest-and-the-saltmere-shoals.md)) from props, sea marks and trade to the land itself, and the sea files and sea editor ([0161](0161-sea-editor-every-sea-file-in-the-map-editor.md)).
 
 ## Context
 
