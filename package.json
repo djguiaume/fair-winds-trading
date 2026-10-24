@@ -18,7 +18,8 @@
     "check": "node tools/fw/fw.mjs check",
     "balance": "node tools/fw/fw.mjs balance",
     "island": "node tools/fw/fw.mjs island",
-    "adr": "node tools/fw/fw.mjs adr"
+    "adr": "node tools/fw/fw.mjs adr",
+    "chart": "node tools/fw/fw.mjs chart"
   },
   "dependencies": {
     "fflate": "^0.8.3",

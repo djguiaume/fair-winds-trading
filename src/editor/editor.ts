@@ -111,7 +111,14 @@ let prepared = prepareMap(map);
 let selection: Selection = null;
 let tool: Tool = 'move';
 const history = new History();
-const layers: Layers = { names: true, course: true, harbours: true, grid: false, flow: true };
+const layers: Layers = {
+  names: true,
+  course: true,
+  harbours: true,
+  grid: false,
+  flow: true,
+  marks: true,
+};
 /** The lane current being laid with the Add current tool, point by point. */
 let laying: string | null = null;
 let lastLayClick: { t: number; x: number; y: number } | null = null;
@@ -639,6 +646,7 @@ const LAYER_NAMES: [keyof Layers, string][] = [
   ['harbours', 'Harbour ranges'],
   ['grid', 'Grid 50'],
   ['flow', 'Currents and zones'],
+  ['marks', 'Sea marks'],
 ];
 for (const [key, label] of LAYER_NAMES) {
   const b = document.createElement('button');

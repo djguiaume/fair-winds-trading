@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../src/data/maps';
 import { ISLAND_DESIGNS } from '../src/data/islands';
 import { checkAll } from '../tools/fw/check';
+import { loadSea, renderChart } from '../tools/fw/chart';
 import { levelTable } from '../tools/fw/balance';
 import { DIFFICULTIES } from '../src/sim/difficulty';
 // @ts-expect-error plain JavaScript module without types
@@ -65,4 +66,35 @@ describe('command-line tools for agents (decision 0153)', () => {
     expect(rows[1]).toContain('64 s (130 s)');
     expect(rows[1]).toContain('5.0 / 20.6 / never min / 1 %');
   });
+
+  it('draws a labelled chart of a sea with an overlay and a sailed route', () => {
+    const { map, prepared } = loadSea('phase4');
+    const out = renderChart({
+      map,
+      prepared,
+      view: [-500, -800, 300, 0],
+      routes: [['start', 'sunreach']],
+      overlay: {
+        title: 'Test chart',
+        islands: [{ x: 0, y: -600, radius: 20, name: 'Proposed Isle' }],
+        lines: [
+          {
+            points: [
+              [0, 0],
+              [0, -600],
+            ],
+            style: 'long',
+            arrow: true,
+          },
+        ],
+        labels: [{ at: [100, -100], text: 'A & B', note: 'note' }],
+      },
+    });
+    expect(out.svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg"')).toBe(true);
+    for (const text of ['Sunreach', 'Proposed Isle', 'A &amp; B', 'Test chart', 'long way'])
+      expect(out.svg).toContain(text);
+    expect(out.svg).not.toContain('data-hit');
+    expect(out.routes[0]!.seconds).toBeGreaterThan(0);
+    expect(out.counted.marks).toBeGreaterThan(0);
+  }, 60000);
 });

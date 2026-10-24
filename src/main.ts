@@ -20,7 +20,7 @@ import {
 import { Input } from './input/input';
 import { FrameMonitor, type QualityLevel, guessQuality, lowerQuality } from './render/quality';
 import { GameView } from './render/view';
-import { SAIL_STEPS, createBoat } from './sim/boat';
+import { SAIL_STEPS, createBoat, knotToUnits } from './sim/boat';
 import { isFar, isRare, isSpecialty } from './sim/goods';
 import { portNow, questsDone, settlementLevels } from './sim/settlement';
 import { bearingTo, clamp } from './sim/math';
@@ -67,6 +67,7 @@ import {
 } from './ui/fullscreen';
 import { Hud } from './ui/hud';
 import { loadSettings, saveSettings } from './ui/settings';
+import type { Bench } from './perf/bench';
 import type { PerfReadout } from './perf/perfReadout';
 import { Music } from './audio/music';
 import { wordCount } from './audio/babble';
@@ -104,6 +105,23 @@ const stage = $('stage');
 
 // Language: the player's choice, else the browser's, else English (decision 0037).
 const settings = loadSettings();
+// The `?bench` device benchmark (decision 0154) sails a fresh voyage kept in memory with every
+// hazard on and the shifting wind, so runs compare; it never saves the player's settings.
+const benchMode = new URLSearchParams(location.search).has('bench');
+if (benchMode)
+  Object.assign(settings, {
+    weather: true,
+    storms: true,
+    dayNight: true,
+    windZones: true,
+    currents: true,
+    steadyWind: false,
+  });
+const keepSettings = () => {
+  if (!benchMode) saveSettings(settings);
+};
+/** The running benchmark, once `?bench` has started it. */
+let bench: Bench | null = null;
 
 // Background music (decision 0045): browsers only allow sound after a tap or key press, so the
 // first one anywhere starts it (iOS only honours some event types, so listen to several).
@@ -178,14 +196,15 @@ if (tuneMode) {
   }
   applyChanges(loadTuneChanges(browserStorage));
 }
-const voyageStorage = questTest
-  ? memoryStorage()
-  : playtestMap && browserStorage
-    ? prefixedStorage(
-        browserStorage,
-        phase4Sea ? PHASE4_PREFIX : stressTest ? STRESS_PREFIX : EDITED_PREFIX,
-      )
-    : browserStorage;
+const voyageStorage =
+  questTest || benchMode
+    ? memoryStorage()
+    : playtestMap && browserStorage
+      ? prefixedStorage(
+          browserStorage,
+          phase4Sea ? PHASE4_PREFIX : stressTest ? STRESS_PREFIX : EDITED_PREFIX,
+        )
+      : browserStorage;
 const storage =
   tuneMode && voyageStorage ? prefixedStorage(voyageStorage, TUNE_PREFIX) : voyageStorage;
 const world = createWorld(playtestMap ?? PHASE1_MAP, SLOOP);
@@ -215,7 +234,7 @@ let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : setting
 const view = new GameView(canvas, world, level);
 // `?perf` test aids (decision 0148): `scale=0.7` draws fewer pixels, `fps=30` caps the frame rate.
 const perfParams = new URLSearchParams(location.search);
-const perfMode = perfParams.has('perf');
+const perfMode = perfParams.has('perf') || benchMode;
 const perfScale = perfMode ? Math.min(1, Math.max(0.3, Number(perfParams.get('scale')) || 1)) : 1;
 const frameCap = perfMode ? Math.max(0, Number(perfParams.get('fps')) || 0) : 0;
 view.renderScale = perfScale;
@@ -225,7 +244,7 @@ const hud = new Hud(
     seen: settings.seenWindHint,
     markSeen: () => {
       settings.seenWindHint = true;
-      saveSettings(settings);
+      keepSettings();
     },
   },
   view.harbours,
@@ -235,13 +254,13 @@ const hud = new Hud(
 hud.seenPressHint = settings.seenPressHint;
 hud.onPressHintSeen = () => {
   settings.seenPressHint = true;
-  saveSettings(settings);
+  keepSettings();
 };
 // The first current met (decision 0140): a one-time hint, then a short "charted" line.
 hud.seenCurrentHint = settings.seenCurrentHint;
 hud.onCurrentHintSeen = () => {
   settings.seenCurrentHint = true;
-  saveSettings(settings);
+  keepSettings();
 };
 hud.onPressDanger = () => {
   navigator.vibrate?.([70, 50, 70]);
@@ -314,7 +333,8 @@ function dueMainCard() {
  * the harbour screen; it never covers the harbour screen, and waits for the next arrival instead.
  */
 function showDueCard(): boolean {
-  if (questCard.isOpen || tutorialOffer.open || tradePanel.isOpen) return false;
+  // The benchmark sails on through every card (decision 0154).
+  if (bench || questCard.isOpen || tutorialOffer.open || tradePanel.isOpen) return false;
   const due = dueMainCard();
   const card = due && cardFor(quests, world.map, due.quest, due.kind);
   if (!due || !card) return false;
@@ -424,7 +444,7 @@ tradePanel.onUiModeChange = (mode) => {
   settings.uiMode = mode;
   hud.portLabels.isKidMode = mode === 'kids';
   hud.isKidMode = mode === 'kids';
-  saveSettings(settings);
+  keepSettings();
 };
 const monitor = new FrameMonitor();
 /** The `?perf` readout, once its chunk has loaded (decision 0148). */
@@ -599,7 +619,7 @@ function openHelp() {
 function closeHelp() {
   help.hidden = true;
   settings.seenHelp = true;
-  saveSettings(settings);
+  keepSettings();
   if (mode === 'menu') menu.hidden = false;
   refreshPause();
 }
@@ -838,7 +858,7 @@ for (const [group, short] of [
     b.addEventListener('click', () => {
       if (lang.id === language()) return;
       settings.language = lang.id;
-      saveSettings(settings);
+      keepSettings();
       autosave();
       window.location.reload();
     });
@@ -854,14 +874,14 @@ const showLog = $<HTMLInputElement>('show-log');
 hud.onLogToggle = (shown) => {
   settings.showLog = shown;
   showLog.checked = shown;
-  saveSettings(settings);
+  keepSettings();
 };
 hud.showLog = settings.showLog;
 showLog.checked = settings.showLog;
 showLog.addEventListener('change', () => {
   hud.showLog = showLog.checked;
   settings.showLog = showLog.checked;
-  saveSettings(settings);
+  keepSettings();
 });
 
 // Day and night can be turned off for players who dislike sailing at night (decision 0068).
@@ -871,7 +891,7 @@ dayNight.checked = settings.dayNight;
 dayNight.addEventListener('change', () => {
   view.dayNight = dayNight.checked;
   settings.dayNight = dayNight.checked;
-  saveSettings(settings);
+  keepSettings();
 });
 
 // Weather and storms can be turned off like every hazard (decision 0067; pirates will follow in
@@ -893,7 +913,7 @@ windZones.checked = settings.windZones;
 windZones.addEventListener('change', () => {
   world.windZones = windZones.checked;
   settings.windZones = windZones.checked;
-  saveSettings(settings);
+  keepSettings();
 });
 // Currents (decision 0140): their own switch too.
 const currentsSwitch = $<HTMLInputElement>('currents');
@@ -902,7 +922,7 @@ currentsSwitch.checked = settings.currents;
 currentsSwitch.addEventListener('change', () => {
   world.currentsOn = currentsSwitch.checked;
   settings.currents = currentsSwitch.checked;
-  saveSettings(settings);
+  keepSettings();
 });
 // Wind: steady trade wind or the shifting wind (decision 0083); the level sets its default.
 const windButtons = [...$('wind-choice').querySelectorAll<HTMLButtonElement>('[data-wind]')];
@@ -916,12 +936,12 @@ for (const b of windButtons)
   b.addEventListener('click', () => {
     settings.steadyWind = b.dataset.wind === 'steady';
     syncWind();
-    saveSettings(settings);
+    keepSettings();
   });
 function applyLevelWind(level: Difficulty) {
   settings.steadyWind = knobs(level).steadyWind;
   syncWind();
-  saveSettings(settings);
+  keepSettings();
 }
 
 // Difficulty (decision 0083): changeable at any time; it moves the Wind choice to the level's default.
@@ -945,12 +965,12 @@ for (const b of difficultyButtons)
 weatherSwitch.addEventListener('change', () => {
   settings.weather = weatherSwitch.checked;
   syncWeather();
-  saveSettings(settings);
+  keepSettings();
 });
 storms.addEventListener('change', () => {
   settings.storms = storms.checked;
   syncWeather();
-  saveSettings(settings);
+  keepSettings();
 });
 
 // --- Settings panel ----------------------------------------------------------------------------
@@ -977,7 +997,7 @@ $('close-settings').addEventListener('click', closeSettings);
 for (const b of qualityButtons)
   b.addEventListener('click', () => {
     settings.quality = b.dataset.quality as typeof settings.quality;
-    saveSettings(settings);
+    keepSettings();
     markQuality();
     setLevel(settings.quality === 'auto' ? guessQuality() : settings.quality);
   });
@@ -991,7 +1011,7 @@ musicVolume.addEventListener('input', () => {
   music.unlock();
   music.setVolume(settings.musicVolume);
 });
-musicVolume.addEventListener('change', () => saveSettings(settings));
+musicVolume.addEventListener('change', () => keepSettings());
 // People's babble on their cards (decision 0132): a switch and a volume of their own.
 const voices = $<HTMLInputElement>('voices');
 const voiceVolume = $<HTMLInputElement>('voice-volume');
@@ -1006,7 +1026,7 @@ voiceVolume.value = String(Math.round(settings.voiceVolume * 100));
 applyVoices();
 voices.addEventListener('change', () => {
   settings.voices = voices.checked;
-  saveSettings(settings);
+  keepSettings();
   music.unlock();
   applyVoices();
 });
@@ -1015,10 +1035,10 @@ voiceVolume.addEventListener('input', () => {
   music.unlock();
   applyVoices();
 });
-voiceVolume.addEventListener('change', () => saveSettings(settings));
+voiceVolume.addEventListener('change', () => keepSettings());
 showFps.addEventListener('change', () => {
   settings.showFps = showFps.checked;
-  saveSettings(settings);
+  keepSettings();
 });
 // A testing aid, not a player setting: only with ?debug (decision 0061).
 $('shift-wind').hidden = !new URLSearchParams(location.search).has('debug');
@@ -1199,6 +1219,7 @@ function tick(now: number) {
 
   const sailDelta = input.takeSailDelta();
   const sailTarget = input.takeSailTarget();
+  if (bench && !paused) driveBench(rawMs / 1000);
   if (!paused) {
     if (sailTarget !== null) sailStep = sailTarget;
     sailStep = clamp(sailStep + sailDelta, 0, SAIL_STEPS.length - 1);
@@ -1245,7 +1266,8 @@ function tick(now: number) {
   // Coach marks follow moving targets (port signs) about ten times a second.
   if (++coachTick % 6 === 0) coach.place();
 
-  if (monitor.sample(dt) && settings.quality === 'auto' && level !== 'low') {
+  // The benchmark keeps one level throughout so its passes compare (decision 0154).
+  if (monitor.sample(dt) && !benchMode && settings.quality === 'auto' && level !== 'low') {
     setLevel(lowerQuality(level));
   }
   hud.setFps(settings.showFps ? monitor.fps : null, hudVisible);
@@ -1301,21 +1323,92 @@ if (tuneMode) {
   );
 }
 
+/**
+ * One benchmark frame (decision 0154): the boat is put on the route (the sim still runs the wind,
+ * weather, towns and wake around it); each pass starts from the same game time at its own
+ * drawing resolution.
+ */
+function driveBench(sec: number) {
+  if (!bench) return;
+  const step = bench.step(sec);
+  const pass = bench.config.passes[step.pass]!;
+  if (step.passStarted) {
+    world.time = bench.config.startTime;
+    view.renderScale = pass.scale;
+    resize();
+    perf?.startPass(pass.label);
+  }
+  if (step.done) {
+    bench = null;
+    perf?.finishBench();
+    view.renderScale = perfScale;
+    resize();
+    sailStep = 0;
+    world.boat.sailStep = 0;
+    return;
+  }
+  const passes = bench.config.passes.length;
+  perf?.setBenchLine(
+    `Benchmark ${step.pass + 1}/${passes} · ${pass.label} · ${Math.ceil(step.left)} s left`,
+  );
+  world.boat.x = step.pose.x;
+  world.boat.y = step.pose.y;
+  world.boat.heading = step.pose.heading;
+  world.boat.speedKn = bench.config.speedKn;
+  world.boat.drift = { x: 0, y: 0 };
+  world.destination = null;
+  sailStep = SAIL_STEPS.length - 1;
+}
+
+/** `?bench`: a fresh captain's voyage, no tutorial, then the route (decision 0154). */
+function startBench(created: Bench) {
+  trade.startVoyage(world.trade, 'captain');
+  markDifficulty();
+  levelPicked = true;
+  tutorialChoice.set('skipped');
+  const [x, y] = created.config.route[0]!;
+  world.boat = createBoat(x, y, 0);
+  bench = created;
+  play();
+}
+
 // The `?perf` readout (decision 0148) for device tests: its own chunk, like the tuning panel.
+// `?bench` loads the benchmark with it and starts once both are in.
 if (perfMode) {
-  void import('./perf/perfReadout').then(({ PerfReadout }) => {
-    const sea = stressTest ? 'stress test sea' : playtestMap ? 'edited map' : "today's sea";
-    perf = new PerfReadout({
-      version: __APP_VERSION__,
-      sea: [sea, perfScale !== 1 ? `scale ${perfScale}` : '', frameCap ? `cap ${frameCap} fps` : '']
-        .filter(Boolean)
-        .join(' · '),
-      switches: () =>
-        (['weather', 'storms', 'dayNight', 'windZones', 'currents'] as const)
-          .map((k) => `${k} ${settings[k] ? 'on' : 'off'}`)
-          .join(', '),
-    });
-  });
+  void Promise.all([import('./perf/perfReadout'), benchMode ? import('./perf/bench') : null]).then(
+    ([{ PerfReadout }, benchModule]) => {
+      const sea = phase4Sea
+        ? 'Phase 4 sea'
+        : stressTest
+          ? 'stress test sea'
+          : playtestMap
+            ? 'edited map'
+            : "today's sea";
+      const created = benchModule
+        ? new benchModule.Bench(benchModule.BENCHMARK, knotToUnits())
+        : null;
+      perf = new PerfReadout({
+        version: __APP_VERSION__,
+        sea: [
+          sea,
+          perfScale !== 1 ? `scale ${perfScale}` : '',
+          frameCap ? `cap ${frameCap} fps` : '',
+        ]
+          .filter(Boolean)
+          .join(' · '),
+        bench: created
+          ? `(${created.config.passes.length} passes of ${Math.round(created.passSec)} s, ` +
+            `${Math.round(created.route.length)} units at ${created.config.speedKn} kn, ` +
+            `level ${level} fixed, all hazards on)`
+          : undefined,
+        switches: () =>
+          (['weather', 'storms', 'dayNight', 'windZones', 'currents'] as const)
+            .map((k) => `${k} ${settings[k] ? 'on' : 'off'}`)
+            .join(', '),
+      });
+      if (created) startBench(created);
+    },
+  );
 }
 
 // `?debug` exposes the game objects in the console (used by screenshot scripts too). Until the
