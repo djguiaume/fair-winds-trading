@@ -1,6 +1,6 @@
 # 0161. Sea editor: every sea file in the map editor
 
-**Status:** Proposed (2026-10-24). Waiting for Guillaume to see the screenshots.
+**Status:** Accepted (2026-10-24). Guillaume approved the screenshots.
 
 ## Context
 
