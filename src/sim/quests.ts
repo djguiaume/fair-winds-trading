@@ -4,7 +4,7 @@ import characterData from '../data/characters.json';
 import { daylightAt } from './daylight';
 import { chartAreaIds, chartAreas } from './fog';
 import { GOODS, type GoodAmounts, type GoodId, isGood } from './goods';
-import { type IslandDesign, questTagIds } from '../data/islands';
+import { type IslandDesign, questTagIds, runningTag } from '../data/islands';
 import { type MapDef, SEA_MARK_TYPES, type SeaMarkDef } from './map';
 import {
   type CheckScope,
@@ -605,6 +605,9 @@ export function checkQuestHooks(
       // A moored boat is solid, and the collision does not follow quests.
       if (prop.type === 'moored-boat' && questTagIds(prop).length)
         out.push(`${where}: a moored boat cannot wait on a quest (use a sea mark)`);
+      // Props follow quests done only; land can follow a running quest (decision 0166).
+      if (prop.tags?.some(runningTag))
+        out.push(`${where}: during:/except: is for islands and shapes`);
     });
   (map.marks ?? []).forEach((mark, i) =>
     named(questTagIds(mark), `map › mark ${i} (${mark.type})`),

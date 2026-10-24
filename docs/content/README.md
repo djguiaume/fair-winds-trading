@@ -372,6 +372,9 @@ at sea (a ring as wide as `within`, the next one pulsing) and on the chart, with
   the prologue wreck always stand. The route checks run with the land before and after its
   quests. Sea editor: **Stands** and **Quest** on an island, shape or mark (a dashed ring on the
   chart); command line: `npm run sea -- set island <id> --after <quest>` (`--before`, `--always`).
+  Islands and shapes also take `"during:<quest>"` (only while that quest runs) and
+  `"except:<quest>"` (all but then), `--during` / `--except` on the command line; props and sea
+  marks do not (a quest's own marks show while it runs).
 - `checkQuestHooks` (run by `tests/quest-hooks.test.ts`) refuses a tag or `afterQuest` naming a
   quest that does not exist; the `quest-tags` map check does the same for islands, shapes and
   marks in the editor, `npm run sea` and `npm run check`.
