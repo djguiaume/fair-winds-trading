@@ -19,7 +19,8 @@ import { TUNING } from '../data/tuning';
 /*
  * The numbers live in `src/data/tuning/seamanship.json` › `hazards` (decision 0094):
  * `shallowWidth` (units) of the shallow band around a reef; `shallowDrag`, extra braking (1/s) at a
- * reef's edge for a ship of draft 1, fading to 0 at the band's edge; `strikeDamage`, hull points
+ * reef's edge for a ship of draft 1, fading to 0 at the band's edge; `passageShallow`, how shallow
+ * a sandy passage feels to a ship that may cross it; `strikeDamage`, hull points
  * lost per knot of speed a reef strike takes off; `crashSafeKn`, knots a shore or pier impact may
  * take off for free (docking bumps never hurt), then `crashDamage` hull points per knot beyond it;
  * `leakPenalty`, speed lost with a fully wrecked hull, scaled by damage. The repair cost per hull
@@ -56,6 +57,20 @@ export function reefsOf(terrain: readonly TerrainDef[] = []): Reef[] {
       const r = Math.max(...t.outline.map(([px, py]) => Math.hypot(px - x, py - y)));
       return { outline: t.outline, x, y, r: r + hazards().shallowWidth };
     });
+}
+
+/**
+ * How shallow the sandy passages under the boat feel (decisions 0137, 0152): `passageShallow`
+ * inside shallows she may cross, else 0. Deeper ships never get inside: collisions refuse them.
+ */
+export function passageShallowness(
+  terrain: readonly TerrainDef[] = [],
+  pos: { x: number; y: number },
+): number {
+  for (const t of terrain)
+    if (t.kind === 'shallows' && coastDistance(pos.x, pos.y, t.outline).distance < 0)
+      return hazards().passageShallow;
+  return 0;
 }
 
 /** Distance from `pos` to the nearest reef shore (Infinity when none is near). */

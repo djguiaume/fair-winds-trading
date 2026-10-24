@@ -246,6 +246,7 @@
   "hud.hdg": "HDG",
   "hud.sog": "SOG",
   "chart.current": "{name} · {n} kn",
+  "chart.zone": "{name} · {kind}",
   "hud.current": "Current {n} kn {dir}",
   "hud.showLog": "Show speed and heading",
   "pos.in-irons": "In irons",
@@ -263,6 +264,7 @@
   "toast.stormNear": "Storm {dir}! Ease the sails or cargo may go overboard",
   "toast.currentHint": "A current! The water carries you: quick going with it, slow against it. SOG is your speed over the ground",
   "toast.currentCharted": "Current charted: {name}",
+  "toast.zoneCharted": "Charted: {name}, {kind}",
   "toast.pressHint": "Strong wind! Ease the sails or cargo goes overboard",
   "toast.overboard": "Heeled too hard: {n} {good} went overboard. Ease the sails",
   "weather.calm": "Calm",
@@ -275,6 +277,7 @@
   "toast.crashPier": "Rammed the pier! Hull {pct}%, repair in port",
   "toast.crashBoat": "Rammed a moored boat! Hull {pct}%, repair in port",
   "toast.bump": "Bump! Mind the shore",
+  "toast.tooShallow": "Too shallow for her keel: only shallow ships cross here. Go round",
   "toast.discovered": "New port on the chart: {name}. Its shipwright builds ships",
   "toast.levelUp": "{name} has grown into a {level}!",
   "toast.workshop": "{name} has grown and opened {workshop}: it makes {good} now!",
@@ -324,6 +327,7 @@
   "port.cueCloser": "Sail closer to dock",
   "port.cueTrading": "Trading harbour",
   "chart.legendTitle": "Legend",
+  "chart.shallows": "{name}: shallow keels only",
   "chart.marketShort": "All prices",
   "chart.tools": "Chart tools",
   "chart.closePanel": "Close panel",
@@ -735,5 +739,10 @@
   "home.aboard": "{n} aboard",
   "home.kept": "{n} kept here",
   "home.warehouseNote": "Crates kept here wait for you between voyages: no prices, nothing spoils. Taking them back needs room in the hold.",
-  "home.warehouseEmpty": "Nothing aboard to keep, and nothing kept yet."
+  "home.warehouseEmpty": "Nothing aboard to keep, and nothing kept yet.",
+  "zone.trade-belt": "trade winds",
+  "zone.doldrums": "doldrums",
+  "zone.stormy-coast": "stormy coast",
+  "zone.cold-gale": "cold gales",
+  "zone.sheltered": "sheltered water"
 }

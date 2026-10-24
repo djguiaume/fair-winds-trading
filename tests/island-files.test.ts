@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
+import { SEAS } from '../src/data/grownMap';
 import { ISLAND_DESIGNS, type IslandDesign } from '../src/data/islands';
 import { designedTownParts, islandCheckKit, type TownLevel } from '../src/render/models/towns';
 import { checkIsland, type IslandIssue } from '../src/sim/islandChecks';
 
-/** The shipped island files with the radius their island has on the map. */
-const shipped = PHASE1_MAP.islands
+/** The shipped island files with the radius their island has on the map (the Phase 4 seas too). */
+const shipped = [...PHASE1_MAP.islands, ...SEAS.flatMap((sea) => sea.islands)]
   .filter((i) => i.look?.design)
   .map((i) => ({
     design: ISLAND_DESIGNS[i.look!.design!]!,
@@ -137,4 +138,9 @@ const GOLDEN: Record<string, string[]> = {
   'teeth-rock': Array(4).fill('25:593e9317'),
   skerry: ['176:5e30be68', '180:f1a016d7', '183:c8300615', '183:c8300615'],
   'watchman-key': ['43:fbfd2fb9', '73:4bfeb4dd', '92:3e8fc1dd', '99:ac0414a9'],
+  // The south sea (decision 0152).
+  sunreach: ['415:5f29af5c', '549:b2e40bf2', '665:cdebaf36', '712:28f7bf9e'],
+  'sunreach-south': ['287:f37c39c5', '312:dfba008', '322:563e9f46', '322:563e9f46'],
+  'palm-key': Array(4).fill('147:9fbbf881'),
+  'lone-palm': Array(4).fill('13:531edc15'),
 };

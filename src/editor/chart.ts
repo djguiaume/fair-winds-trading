@@ -91,7 +91,7 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
     } else
       el('polygon', {
         points: pts(t.outline),
-        class: t.kind === 'reef' ? 'c-reef' : 'c-bank',
+        class: t.kind === 'reef' ? 'c-reef' : t.kind === 'shallows' ? 'c-shallows' : 'c-bank',
         'data-hit': hit,
       });
     const before = shipped.terrain?.find((s) => s.id === t.id);

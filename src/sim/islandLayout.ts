@@ -2,7 +2,7 @@ import type { IslandDef, TerrainDef } from './map';
 import { coastDistance, insetOutline } from './coast';
 import { atLevel, designOf, islandDesign, type IslandDesign, type RampDef } from '../data/islands';
 
-export type IslandTheme = 'fish' | 'timber' | 'stone' | 'grain';
+export type IslandTheme = 'fish' | 'timber' | 'stone' | 'grain' | 'tropic';
 export type Outline = TerrainDef['outline'];
 export interface LandSurface {
   outline: Outline;

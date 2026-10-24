@@ -1,0 +1,41 @@
+{
+  "id": "woodland-palm",
+  "group": "nature",
+  "vars": {
+    "s": {
+      "range": [0.85, 1.25]
+    },
+    "lean": {
+      "range": [-0.28, 0.28]
+    },
+    "leaf": {
+      "range": [0, 1]
+    }
+  },
+  "parts": [
+    {
+      "cyl": ["0.045 * s", "0.08 * s", "1.35 * s", 4, 1],
+      "ops": [
+        ["move", 0, "0.675 * s", 0],
+        ["turnZ", "lean"]
+      ],
+      "color": "palmTrunk"
+    },
+    {
+      "repeat": {
+        "i": {
+          "count": 5
+        }
+      },
+      "plane": ["0.32 * s", "0.95 * s"],
+      "ops": [
+        ["move", 0, "0.475 * s", 0],
+        ["turnX", "-1.95"],
+        ["turnY", "i * 1.2566 + leaf * 1.2"],
+        ["move", 0, "1.33 * s", 0],
+        ["turnZ", "lean"]
+      ],
+      "color": "palm[floor(leaf * 3)]"
+    }
+  ]
+}
