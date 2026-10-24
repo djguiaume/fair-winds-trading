@@ -96,6 +96,10 @@ export function conditionWords(c: Condition | undefined): string {
       return v.port === undefined ? 'a course set' : `a course to ${String(v.port)}`;
     case 'screen':
       return `the ${String(v.screen)} open`;
+    case 'point-of-sail':
+      return `${String(v.point)} for ${String(v.holdSec)} s`;
+    case 'tacked':
+      return `${String(v.count)} tacks`;
     case 'asked':
       return 'when the game asks (tutorial)';
     case 'bought':
@@ -393,6 +397,8 @@ export function defaultParam(type: Param, map: MapDef, questIds: string[]): unkn
       return 120;
     case 'screen':
       return 'chart';
+    case 'sailing':
+      return 'beam-reach';
     case 'condition':
       return { is: 'always' };
     case 'conditions':

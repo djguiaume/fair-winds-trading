@@ -645,6 +645,8 @@ export class QuestBook {
   private readonly screen: () => Screen;
   /** The helm since the last check (decision 0151). */
   private helm: Helm = { sails: [], steerSec: 0, movingSec: 0 };
+  /** Which side the wind was on, upwind, for counting tacks (decision 0163); 0 not yet known. */
+  private windSide = 0;
   onEvent: (e: QuestEvent) => void = () => {};
 
   constructor(
@@ -885,6 +887,16 @@ export class QuestBook {
       if (helm.sails.at(-1) !== controls.sailStep) helm.sails.push(controls.sailStep);
       if (Math.abs(controls.steer) > 0.15) helm.steerSec += dt;
       if (this.world.boat.speedKn > 0.7) helm.movingSec += dt;
+      // The point of sail and the tacks (decision 0163): a tack is the bow crossing the wind.
+      const { boat, wind, ship } = this.world;
+      const twa = trueWindAngle(boat.heading, wind);
+      const point = pointOfSail(ship, twa);
+      helm.pointSec = { ...helm.pointSec, [point]: (helm.pointSec?.[point] ?? 0) + dt };
+      if (Math.abs(twa) < Math.PI / 2 && twa !== 0) {
+        const side = Math.sign(twa);
+        if (this.windSide && side !== this.windSide) helm.tacks = (helm.tacks ?? 0) + 1;
+        this.windSide = side;
+      }
     }
     this.since += dt;
     if (this.since < QUEST_CHECK_SEC) return [];
