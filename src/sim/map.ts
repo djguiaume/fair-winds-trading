@@ -167,7 +167,7 @@ export interface WindZoneDef {
   /** Where the zone's wind blows from, degrees (like the map wind's `fromDeg`). */
   headingDeg?: number;
   outline: [number, number][];
-  tune?: Record<string, number | [number, number]>;
+  tune?: Record<string, number | [number, number] | boolean>;
 }
 
 export interface MapDef {

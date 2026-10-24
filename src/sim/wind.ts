@@ -5,7 +5,15 @@ import type { IslandDef, TerrainDef } from './map';
 import { DEG, TAU, bearingVector, clamp, wrapAngle, wrapPositive } from './math';
 import { createRng } from './rng';
 import { SpatialGrid } from './spatial';
-import { type Storm, type StormConfig, stormStrength, stormWindFrom, stormsAt } from './storms';
+import {
+  DEFAULT_SEA_RADIUS,
+  type Storm,
+  type StormConfig,
+  stormStrength,
+  stormWindFrom,
+  stormsAt,
+} from './storms';
+import { NO_ZONE, type ZoneEffect, type ZoneField, zoneEffectAt, zoneStormsAt } from './windZones';
 
 /** Wind at one moment. `from` is the compass bearing the wind blows FROM (sailors' convention). */
 export interface Wind {
@@ -93,6 +101,10 @@ export interface WindConfig {
   stormsFrom?: number;
   /** Radius of the sea storms cross: the map's `boundsRadius`, set by `prepareMap` (0115). */
   seaRadius?: number;
+  /** The map's wind zones (decision 0140), when the Settings switch has them on. */
+  zones?: ZoneField | null;
+  /** The easiest level: zones never weaken the wind below their kind's `fairFloor` (0140). */
+  easiest?: boolean;
 }
 
 /**
@@ -270,9 +282,12 @@ export interface LocalWeather {
   storm: number;
   /** Storms on the sea right now, for the chart and the renderer. */
   storms: Storm[];
+  /** Id of the wind zone that counts most here (decision 0140), or null at open sea. */
+  zone?: string | null;
 }
 
 const NO_STORMS: Storm[] = [];
+const zoneScratch: ZoneEffect = { ...NO_ZONE };
 
 /**
  * Sea wind at time `t` (seconds) and position `pos`, away from any island. Deterministic: slow
@@ -299,16 +314,34 @@ export function windAt(
     0.1 * Math.sin(g * 1.9);
   const swing = Math.sin((g * TAU) / 61) * 0.7 + Math.sin((g * TAU) / 17 + 0.4) * 0.3;
   let from = (config.fromDeg + weather.offsetDeg + region.bendDeg + swing * config.shiftDeg) * DEG;
+  // Wind zones (decision 0140) bend, weaken or steady the wandering wind where the map has them.
+  const zone = config.zones
+    ? zoneEffectAt(config.zones, seed, t, pos.x, pos.y, from, config.easiest, zoneScratch)
+    : NO_ZONE;
+  from += zone.turn;
   let speedKn =
     config.speedKn *
     weather.strength *
     region.strength *
-    (1 + gust * config.gustiness * weather.gusts);
+    zone.strength *
+    (1 + gust * config.gustiness * weather.gusts * zone.gusts);
 
-  // Storms (decision 0067): the wind turns to circle the centre and blows much harder.
-  const storms = config.weather?.storms
+  // Storms (decision 0067): the wind turns to circle the centre and blows much harder. A stormy
+  // coast breeds more of them (0140).
+  let storms = config.weather?.storms
     ? stormsAt(config.weather.storms, seed, t, config.stormsFrom, config.seaRadius)
     : NO_STORMS;
+  if (config.zones && config.weather?.storms) {
+    const born = zoneStormsAt(
+      config.zones,
+      config.weather.storms,
+      seed,
+      t,
+      config.stormsFrom,
+      config.seaRadius ?? DEFAULT_SEA_RADIUS,
+    );
+    if (born.length) storms = [...storms, ...born];
+  }
   let storm = 0;
   for (const s of storms) {
     const k = stormStrength(s, pos.x, pos.y);
@@ -325,6 +358,7 @@ export function windAt(
     out.gloom = weather.gloom;
     out.storm = storm;
     out.storms = storms;
+    out.zone = zone.zone;
   }
   return { from: wrapPositive(from), speedKn };
 }

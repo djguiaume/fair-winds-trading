@@ -34,6 +34,8 @@ export interface Settings {
   weather: boolean;
   /** Moving storms (decision 0067); hazards can be turned off (Guillaume). */
   storms: boolean;
+  /** Wind zones such as trade belts and doldrums (decision 0140); a hazard, so it can be off. */
+  windZones: boolean;
   /** The steady trade wind (decision 0083); picking a difficulty level sets its default. */
   steadyWind: boolean;
 }
@@ -54,6 +56,7 @@ const DEFAULTS: Settings = {
   dayNight: true,
   weather: true,
   storms: true,
+  windZones: true,
   steadyWind: false,
 };
 
