@@ -1,6 +1,6 @@
 # 0155. The south sea story: Ness's chart and Juno's idle tea house
 
-**Status:** Implemented for review (2026-10-24). Wave 1 of Phase 4 (Guillaume: "Go wave one"). Written by the head storyteller from the [brief's Phase 4 section](../story/storyteller-brief.md#phase-4-the-four-seas) ([0147](0147-phase-4-story.md)) on the south sea of [0152](0152-south-sea-sunreach-layout.md). The new people and the tea garden change wait for Guillaume's OK on the [screenshots](../reviews/south-story/README.md).
+**Status:** Implemented (2026-10-24). Guillaume: "Ok for Juno tam and tea" on the screenshots. Wave 1 of Phase 4 (Guillaume: "Go wave one"). Written by the head storyteller from the [brief's Phase 4 section](../story/storyteller-brief.md#phase-4-the-four-seas) ([0147](0147-phase-4-story.md)) on the south sea of [0152](0152-south-sea-sunreach-layout.md). Screenshots: [review](../reviews/south-story/README.md).
 
 ## Context
 
