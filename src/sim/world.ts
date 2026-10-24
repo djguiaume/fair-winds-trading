@@ -275,7 +275,7 @@ interface PierVersion {
   map: MapDef;
   levels: ReturnType<typeof settlementLevels>;
   count: number;
-  /** Ports on the chart: founding a site (decision 0155) builds its pier. */
+  /** Ports on the chart: founding a site (decision 0157) builds its pier. */
   charted: number;
 }
 

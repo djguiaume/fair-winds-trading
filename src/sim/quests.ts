@@ -567,7 +567,7 @@ export type QuestEvent =
   | { type: 'choice'; quest: string; step: string }
   /** A `clean` step touched a reef or shore and starts over. */
   | { type: 'reset'; quest: string; step: string }
-  /** Goods taken out of the hold for a step (`landed`, decision 0155). */
+  /** Goods taken out of the hold for a step (`landed`, decision 0157). */
   | { type: 'landed'; quest: string; good: GoodId; qty: number }
   | { type: 'finished'; quest: string };
 

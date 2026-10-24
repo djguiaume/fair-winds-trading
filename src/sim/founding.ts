@@ -4,7 +4,7 @@ import { isFounded } from './shipyards';
 import type { TradeState } from './trade';
 
 /*
- * Founding an outpost (decisions 0137, 0155). A port marked `site` in the map is an empty island
+ * Founding an outpost (decisions 0137, 0157). A port marked `site` in the map is an empty island
  * until a quest reward `found` names it: no pier, no market, nothing on the chart, nowhere to dock.
  * Founding puts it on the chart and opens it at its start level; from then on it is a town like
  * any other, grows with the goods it wants and stops at its `maxLevel`. The founding goods and the

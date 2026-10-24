@@ -41,7 +41,7 @@ export interface QuestReward {
   /** Ports that go up one town level at once (decision 0120's "step up"). */
   levelUp?: string[];
   /**
-   * Empty islands founded (decision 0155): ports marked `site` in the map open at their start
+   * Empty islands founded (decision 0157): ports marked `site` in the map open at their start
    * level and go on the chart.
    */
   found?: string[];
@@ -155,7 +155,7 @@ export interface StepContext extends ConditionContext {
   itemSpace(item: string): number;
   /** The helm since the last check (empty when the game passed no controls). */
   helm?: Helm;
-  /** Take goods out of the hold for the quest (`landed`, decision 0155); the game says so. */
+  /** Take goods out of the hold for the quest (`landed`, decision 0157); the game says so. */
   land?(good: GoodId, qty: number): void;
 }
 
@@ -464,7 +464,7 @@ export const CONDITIONS: Record<string, ConditionKind> = {
     test: (c, _ctx, s) => s[0]! >= num(c.qty),
   },
   /**
-   * Goods landed for the quest at `place` (decision 0155): alongside a port, or held slowly at a
+   * Goods landed for the quest at `place` (decision 0157): alongside a port, or held slowly at a
    * spot at sea, they come out of the hold by themselves, as many as she has aboard up to `qty`,
    * so a short load lands what it can and the rest comes later. Nothing is paid; founding goods
    * for an empty island land this way. Slots: how many landed, hundredths of a second held.
@@ -860,7 +860,7 @@ export function checkReward(r: unknown, scope: CheckScope, at: string): string[]
     else
       for (const p of list)
         if (!resolvePort(scope.map, p)) out.push(`${at}.${key}: no port "${String(p)}"`);
-        // A site opens by being founded, never by a chart or a level (decision 0155).
+        // A site opens by being founded, never by a chart or a level (decision 0157).
         else if (key === 'found' && !isSite(p))
           out.push(`${at}.found: "${String(p)}" is no empty island (a port with "site": true)`);
         else if (key !== 'found' && isSite(p))

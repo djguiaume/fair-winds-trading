@@ -39,7 +39,7 @@ const GOODS_BEFORE_FAR: readonly GoodId[] = GOODS.filter((g) => !isFar(g));
 
 /**
  * The port lists a code may have been written with: the map's, and the map's before its empty
- * islands to found were added (decision 0155), so a code from before a sea had its site still reads.
+ * islands to found were added (decision 0157), so a code from before a sea had its site still reads.
  */
 function portLists(map: MapDef): string[][] {
   const all = map.ports.map((p) => p.id);
@@ -408,7 +408,7 @@ export function unpackSave(
   const version = r.uint();
   if (version > saveVersion) return { ok: false, problem: 'newer' };
   const fingerprint = r.uint();
-  // A code from before the far goods (0146), or from before a sea's empty island to found (0155),
+  // A code from before the far goods (0146), or from before a sea's empty island to found (0157),
   // reads with the goods and ports lists it was written with.
   const layout = portLists(map)
     .flatMap((ports) => [GOODS, GOODS_BEFORE_FAR].map((goods) => ({ goods, ports })))

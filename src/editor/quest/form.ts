@@ -589,7 +589,7 @@ export function rewardForm(
   box.append(row('Standing', standing));
   box.append(row('On the chart', chips('discover', ports)));
   box.append(row('Level up', chips('levelUp', ports)));
-  // Only the map's empty islands can be founded (decision 0155).
+  // Only the map's empty islands can be founded (decision 0157).
   const sites = ports.filter(([v]) => ctx.map.ports.some((p) => p.id === v && p.site));
   if (sites.length || r.found) box.append(row('Found an outpost', chips('found', sites)));
   const islands: [string, string][] = buildableIslands(ctx.map).map((i) => [i, i]);

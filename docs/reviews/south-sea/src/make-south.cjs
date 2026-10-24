@@ -425,7 +425,7 @@ function smallIsland(id, name, seed, props, opts = {}) {
     },
   };
 }
-// Palm Key, the outpost site: an empty island (level 0) until a quest founds it (decision 0155).
+// Palm Key, the outpost site: an empty island (level 0) until a quest founds it (decision 0157).
 // Everything from level 1 stands only once it is founded: the epilogue's flagpole and name board
 // (0134), the homes, the spice racks; the daymark and the boulder (`from: 0`) stand before.
 const palmKey = { id: 'palm-key', x: 520, y: -730, radius: 22 };
@@ -455,7 +455,7 @@ const palmKeyFile = smallIsland(
     tries: 260,
     spacing: 0.2,
     stretch: 1.25,
-    // The town's side pier, with its warehouse (decision 0155).
+    // The town's side pier, with its warehouse (decision 0157).
     piers: [{ x: 0.78, z: 0.66, length: 0.28, from: 3 }],
   },
 );
@@ -631,7 +631,7 @@ const sea = {
   terrain,
   ports: [
     // Trade from the far goods (decision 0150): Sunreach's workshop crafts spiced tea only from
-    // the spice it receives. Palm Key is a site (decision 0155): a port only once the
+    // the spice it receives. Palm Key is a site (decision 0157): a port only once the
     // outpost-south arc founds it, then a hamlet that gathers spice and grows to town.
     {
       id: 'sunreach',

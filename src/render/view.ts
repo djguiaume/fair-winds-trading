@@ -83,7 +83,7 @@ export class GameView {
   private readonly stormClouds = new StormClouds();
   private rain!: Rain;
   private islands: IslandModel;
-  /** Town levels the islands were built at, 0 for a site not founded yet (decision 0155). */
+  /** Town levels the islands were built at, 0 for a site not founded yet (decision 0157). */
   private levels: Record<string, TownLevel> = {};
   private boat: BoatModel;
   /** Ship class and upgrade levels the boat model was built for; rebuilt when they change. */
@@ -198,7 +198,7 @@ export class GameView {
     }
     const spots: THREE.Vector3[] = [];
     for (const port of this.world.map.ports) {
-      // No light on an empty island not founded yet (decision 0155).
+      // No light on an empty island not founded yet (decision 0157).
       if (this.levels[port.id] === 0) continue;
       const pier = this.harbours[port.id];
       const island = this.world.map.islands.find((i) => i.id === port.islandId);

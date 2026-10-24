@@ -114,7 +114,7 @@ export function piersOf(
     // harbour bearing.
     const home = island.look?.profile && !!designOf(island)?.homeSpots?.length;
     const port = map.ports?.find((p) => p.islandId === island.id);
-    // An empty island to found has no pier yet (decision 0155).
+    // An empty island to found has no pier yet (decision 0157).
     if (port && (levels[port.id] ?? (port.site ? 0 : 1)) === 0) continue;
     if (island.look?.dock && (wp || home))
       piers.push(

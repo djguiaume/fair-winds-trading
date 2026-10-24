@@ -305,7 +305,7 @@ export function portInRange(
   let bestD = range;
   for (const port of map.ports) {
     const level = levels[port.id] ?? (port.site ? 0 : (port.level ?? DEFAULT_START_LEVEL));
-    // Level 0: an empty island not founded yet, with no harbour (decision 0155).
+    // Level 0: an empty island not founded yet, with no harbour (decision 0157).
     if (level === 0) continue;
     const d = distanceToPort(map, pos, port, level, shipId, bestD);
     if (d <= bestD) {

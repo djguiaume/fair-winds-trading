@@ -360,7 +360,7 @@ function openHarbour() {
 // Every other quest's news away from its harbour: a small note at sea (decision 0141).
 const questNote = new QuestNote($<HTMLButtonElement>('quest-note'), $('captain-stats'));
 questNote.onOpen = () => chart.open();
-/** Sites founded so far (decision 0155): a new one opens its harbour and goes on the chart. */
+/** Sites founded so far (decision 0157): a new one opens its harbour and goes on the chart. */
 let founded = foundedSites(world.map, world.trade).join();
 function checkFounded() {
   const now = foundedSites(world.map, world.trade);
@@ -1456,7 +1456,7 @@ if (new URLSearchParams(location.search).has('debug')) {
     world.destination = null;
   };
   /**
-   * A town as the shots need it (`npm run shots -- --town palm-key:2`, decision 0155): an empty
+   * A town as the shots need it (`npm run shots -- --town palm-key:2`, decision 0157): an empty
    * island founded first, as the `found` reward does, then grown to the level.
    */
   const town = (portId: string, level: number) => {

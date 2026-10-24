@@ -93,7 +93,7 @@ export interface PortDef {
   /** Off the chart until the boat sails near it (decision 0048). */
   hidden?: boolean;
   /**
-   * An empty island to found (decision 0155): not a port until a quest reward `found` names it.
+   * An empty island to found (decision 0157): not a port until a quest reward `found` names it.
    * Until then it has no pier, market or place on the chart, and she cannot dock there; then it
    * opens at its `level` and grows like any town.
    */

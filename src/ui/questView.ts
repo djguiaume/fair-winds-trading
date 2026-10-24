@@ -178,7 +178,7 @@ export function stepProgress(goal: Condition | undefined, counts: readonly numbe
     const n = goal.order === 'in-order' ? s : s.toString(2).replace(/0/g, '').length;
     return `${n} / ${goal.points.length}`;
   }
-  // Founding goods (decision 0155): several goods landed count as one load.
+  // Founding goods (decision 0157): several goods landed count as one load.
   const of = goal?.is === 'all' && Array.isArray(goal.of) ? (goal.of as Condition[]) : [];
   if (of.length && of.every((c) => c.is === 'landed' && typeof c.qty === 'number')) {
     const landed = of.reduce((n, _c, i) => n + (counts[i * 2] ?? 0), 0);
@@ -441,7 +441,7 @@ export function questTarget(book: QuestBook, map: MapDef): QuestTarget | null {
   }
   const goal = step.goal;
   const counts = book.progress(quest.id)?.counts ?? [];
-  // Founding goods (decision 0155): where they land, alone or the first of several.
+  // Founding goods (decision 0157): where they land, alone or the first of several.
   const landed =
     goal?.is === 'landed'
       ? goal
@@ -532,7 +532,7 @@ export function stepMarkers(
       if (isSpot(spot))
         out.push({ x: spot.x, y: spot.y, within: spot.within, reached: false, next: true });
     }
-    // Founding goods' landing spot (decision 0155), until they are all ashore.
+    // Founding goods' landing spot (decision 0157), until they are all ashore.
     if (c.is === 'landed' && isSpot(c.place) && first < (typeof c.qty === 'number' ? c.qty : 0)) {
       const p = c.place;
       if (!out.some((m) => m.x === p.x && m.y === p.y))

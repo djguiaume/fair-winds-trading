@@ -19,7 +19,7 @@ import { effectiveShip } from '../src/sim/upgrades';
 import { type World, createWorld, refreshPiers } from '../src/sim/world';
 import founding from './fixtures/quests/test-founding.json';
 
-// Decision 0155: founding an outpost on the south sea (0152), run on a test quest.
+// Decision 0157: founding an outpost on the south sea (0152), run on a test quest.
 const MAP = prepareMap(grownMap(PHASE1_SOURCE));
 const QUEST = founding as unknown as QuestDef;
 const SPOT = { x: 487, y: -738 };
@@ -41,7 +41,7 @@ function lieAt(w: World, book: QuestBook, x: number, y: number, sec = 4) {
   return events;
 }
 
-describe('an empty island to found (0155)', () => {
+describe('an empty island to found (0157)', () => {
   it('Palm Key is a site on the south sea, an outpost that stops at town', () => {
     expect(site).toMatchObject({ site: true, level: 1, maxLevel: 3, produces: ['spice'] });
     expect(
@@ -135,7 +135,7 @@ describe('an empty island to found (0155)', () => {
   });
 });
 
-describe('founded sites in saves (0155)', () => {
+describe('founded sites in saves (0157)', () => {
   it('keep their port in the saved game and the save code', () => {
     const w = world();
     foundSite(w.trade, MAP, 'palm-key');
@@ -165,7 +165,7 @@ describe('founded sites in saves (0155)', () => {
  * hamlet just founded up to its top, sold at Sunreach, in a maxed cutter's 30-unit load, timed by
  * the balance simulation's leg model in that level's real wind (0149).
  */
-describe('a founded outpost pays on every difficulty (0155)', () => {
+describe('a founded outpost pays on every difficulty (0157)', () => {
   const ship = effectiveShip(SHIP_CLASSES.cutter!, { sails: 3, hull: 3, hold: 3 });
   const qty = Math.min(30, ship.hold);
 

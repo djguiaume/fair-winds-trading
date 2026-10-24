@@ -62,7 +62,7 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
     issues.push({ severity: 'warning', check, message, ...extra });
 
   // Known types, kinds and levels.
-  // A prop `from: 0` stands on an empty island before it is founded too (decision 0155).
+  // A prop `from: 0` stands on an empty island before it is founded too (decision 0157).
   const levelsOk = (e: { from?: number; to?: number }, what: string, extra = {}, zero = false) => {
     if (e.from !== undefined && !isLevel(e.from) && !(zero && e.from === 0))
       error('levels', `${what}: "from" must be ${zero ? 0 : 1} to ${TOP}`, extra);

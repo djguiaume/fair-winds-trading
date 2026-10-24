@@ -33,7 +33,7 @@ Where
                                 --chart-panel legend|market|journal (default none)
   --charted                     every wind zone already sailed (named on the chart)
   --town id:level,…             towns at these levels; an empty island to found is founded first
-                                (0155), so --town palm-key:1 shows Palm Key just founded
+                                (0157), so --town palm-key:1 shows Palm Key just founded
 Look
   --lang en|fr                  language (default en)
   --night  | --time s           night, or this game time in seconds (default 300, day)
