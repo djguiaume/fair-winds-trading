@@ -101,9 +101,20 @@ What Guillaume asked for: **snow and ice textures (mandatory), snowmen, snow-cov
 - **Fogwatch's signature:** the two sea stacks and the foghorn tower; Elias's amber carver's workshop on the quay comes later. Amber is honey-gold beads and lumps on Amber Strand's pale beach.
 - **Props:** two tall sea stacks, a waterfall off a cliff into the sea (the `water` kind of the river feature), stone cairns, slatted drying sheds, boathouses, a foghorn tower, sheep.
 - **Houses (`fog` style):** black tar (`#2f3035`) and whitewash (`#eeeae2`), turf roofs, red frames (`#b8433a`); a white church with a black roof as an ordinary building.
-- **Fog:** greyer sky and water only inside fog banks (biome tint with fog density), so the coast is moody without the whole sea going grey. The storm belt uses the existing storm look ([0067](../decisions/0067-weather-states-and-storms.md)).
+- **Fog:** greyer sky and water only inside fog banks (biome tint with fog density), so the coast is moody without the whole sea going grey. **The Stormbreak** storm belt: slate-blue choppy water (about `#2b5266` / `#3e6a7c`) with whitecap streaks and a sharp broken-foam edge you can steer along; squalls are darker shadow discs with a few thin grey-blue rain curtains (`#8fa0aa`, alpha about 0.25, dropped at Low quality); on the chart a dark slate band with amber (`#ffb36b`) chevrons. Amber means storm warning, red is kept for pirates. Builds on the storm look of [0067](../decisions/0067-weather-states-and-storms.md).
 
-## 9. How a visual gets approved
+## 9. Architecture and landmarks by sea
+
+Guillaume asked what each sea's buildings and landmarks should be (2026-10-24). The port's signature (§3.5) is set with the head storyteller; the rest are ordinary buildings and props the sea threads pick from, within their triangle budget.
+
+| Sea | Everyday buildings | Landmarks and props |
+|---|---|---|
+| **West (Iceland)** | Turf houses with grass roofs and white or red wooden gable fronts (Glaumbær) for the old quarter; corrugated-iron houses painted bright with red, green or blue roofs (Reykjavik) for the working town; a small black wooden church with white trim (Búðir) | **Bram's glassworks** (signature, furnace glows after his arc); an orange square lighthouse; fish-drying racks; a round stone sheep fold; a steaming hot-spring pool; geothermal greenhouses glowing at night; basalt-column cliffs, a sea arch (Dyrhólaey), sea stacks, a geyser that puffs now and then |
+| **North (Greenland)** | Bright painted wooden houses (oxblood, mustard, slate blue, moss green) with white trim and snowy near-black roofs; a **red wooden church** with white trim, a steep snowy roof and a small bell tower (Ilulissat, Nuuk), not a dark Norwegian stave church, which would clash with the bright houses | **Bright fjord houses** (signature) and **Sigrun's jam house** (copper pots, steams after her arc); Lead Rock cairn beacon; snowmen, snow-pines, icebergs, pack ice; Snowberry Isle's weather station and glasshouse |
+| **East (Faroe, Scotland)** | Black tarred wooden houses and whitewashed stone houses with turf roofs and red window frames; turf-roofed boathouses at the shore; slatted drying sheds; a small white church with a black roof (Saksun); dry-stone walls | **Two sea stacks and the foghorn tower** (signature), Elias's amber carver's workshop later; a church ruin on the shore (Kirkjubøur, the existing `ruins` prop recoloured); a round stone broch tower and a ring of standing stones on a headland (Scotland); a white lighthouse with an ochre lantern gallery (the Stevenson lights); a waterfall off a cliff; sheep |
+| **South (tropical)** | `beach-house` homes in the `tropic` palette | Juno's green-roofed tea house (signature), tea-garden terraces, palms, lighthouses on the arm tips |
+
+## 10. How a visual gets approved
 
 1. The thread follows this page and asks the art director thread when something is not covered.
 2. It takes real-game screenshots with `npm run shots` (desktop, landscape and portrait; day and `--night`; hazards on and off) and a labelled chart with `npm run chart` for any map change.
