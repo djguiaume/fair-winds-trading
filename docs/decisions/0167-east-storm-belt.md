@@ -1,6 +1,6 @@
 # 0167. East storm belt
 
-**Status:** Proposed (2026-10-24). Waiting for Guillaume's OK on the look ([captures](../reviews/storm-belt/README.md)).
+**Status:** Accepted (2026-10-24). Guillaume OKed the look after the art director approved it ([captures](../reviews/storm-belt/README.md)).
 
 ## Context
 
