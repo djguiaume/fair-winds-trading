@@ -5,3 +5,4 @@ dist
 # graphify local graph and state (not tracked in this repo)
 .graphify/
 output/performance/
+/shots/

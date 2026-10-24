@@ -16,7 +16,9 @@
     "format": "prettier --write .",
     "fw": "node tools/fw/fw.mjs",
     "check": "node tools/fw/fw.mjs check",
-    "adr": "node tools/fw/fw.mjs adr"
+    "adr": "node tools/fw/fw.mjs adr",
+    "shots": "node tools/fw/fw.mjs shots",
+    "quest": "node tools/fw/fw.mjs quest"
   },
   "dependencies": {
     "fflate": "^0.8.3",
