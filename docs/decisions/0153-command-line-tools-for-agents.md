@@ -65,6 +65,12 @@ Built first, as the base the others use:
 
 The other four (shots, chart, island, quest) are built in parallel threads on top of this base.
 
+## Update (2026-10-24): `npm run chart`
+
+- `npm run chart` (`tools/fw/chart.ts`, [docs/tools/chart.md](../tools/chart.md)) draws a sea with the map editor's own `drawChart` (`src/editor/chart.ts`, run in Node on a happy-dom document) and its CSS, so the picture matches the editor; Chromium only turns the SVG into a PNG. Seas: `ring`, `stress`, `phase4`, an editor export, or a sea file merged round the ring (it replaces the shipped sea with the same id). A side panel holds the title and a legend of what is in view. `--route a,b` sails a leg with `sailRoute` (the route checks' planner) and prints its time; an overlay JSON adds proposed areas, islands, lines and labels.
+- Shared code moved, no copy: sea marks are drawn by `seaMarkShape` in `src/ui/chartMarks.ts`, used by the sea chart, the map editor (new **Sea marks** layer, on) and the quest builder's map. `drawChart` takes an optional size and uses the SVG's own document, so it runs without a browser. Island names on the editor's chart now sit above the coast, not the island's radius (a ring-lagoon island's radius is far above its land).
+- Replaces the drawing scripts `docs/reviews/phase-4-map/src/make.cjs`, `far-goods/src/make.cjs` and `south-sea/src/make-schema.cjs` for new work; they stay as records.
+
 ## Update (2026-10-24): shots and quest built
 
 - `npm run shots` (`tools/fw/shots.mjs`, types in `shots.d.mts`): starts Vite listening and Chromium with SwiftShader, one fresh browser context per shot and size, seeds `fwt.settings.v1` (hints seen, music and voices off, language, night, weather, storms, wind zones, currents; by default a steady day breeze with zones and currents on, like the game), opens `?debug` and clicks through `#menu-play`, `#set-sail`, `#tutorial-free` and `#tp-undock` as a player would. A sea file is played through `?map=edited` with the file in `fwt.editor.map.v1`, island files through `fwt.editor.islands.v1`, so a thread shoots its edits before they are committed. Sizes: desktop 1280×800, landscape 844×390 and portrait 390×844 (touch). A `--list` JSON file holds many shots; command-line options are their defaults. Measured: about 7 s per shot.

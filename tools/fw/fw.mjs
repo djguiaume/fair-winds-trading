@@ -10,6 +10,10 @@ const TOOLS = {
   check: { about: 'every content check: seas, island files, quests', module: '/tools/fw/check.ts' },
   shots: { about: 'standard screenshots of the real game', file: './shots.mjs' },
   balance: { about: 'balance bots on all three difficulty levels', module: '/tools/fw/balance.ts' },
+  chart: {
+    about: 'labelled map of a sea, PNG + SVG, with an overlay',
+    module: '/tools/fw/chart.ts',
+  },
   quest: { about: 'quest checks, play a quest from a step', module: '/tools/fw/quest.ts' },
   adr: { about: 'next free decision number, new decision file', file: './adr.mjs' },
 };

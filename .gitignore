@@ -6,3 +6,4 @@ dist
 .graphify/
 output/performance/
 /shots/
+output/chart/
