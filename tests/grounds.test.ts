@@ -7,6 +7,8 @@ import { applySteps } from '../src/editor/island/steps';
 import { designedTownParts, islandCheckKit } from '../src/render/models/towns';
 import { checkIsland } from '../src/sim/islandChecks';
 import { stepFromArgs } from '../tools/fw/island';
+// @ts-expect-error plain JavaScript module without types
+import { parseArgs } from '../tools/fw/lib.mjs';
 
 const calda = ISLAND_DESIGNS.calda!;
 const errors = (d: IslandDesign) =>
@@ -76,9 +78,11 @@ describe('ground materials and island styles as data (decision 0168)', () => {
 
   it('changes a ground from the command line', () => {
     const d = structuredClone(calda);
-    applySteps(d, [stepFromArgs('ground', { _: [], material: 'ice', height: 0.3 }, ['1'])]);
+    applySteps(d, [
+      stepFromArgs('ground', parseArgs(['--material', 'ice', '--height', '0.3']), ['1']),
+    ]);
     expect(d.ground[1]).toMatchObject({ material: 'ice', height: 0.3 });
-    const peak = stepFromArgs('mountain', { _: [], at: '0,-0.3', material: 'slate' }, []);
+    const peak = stepFromArgs('mountain', parseArgs(['--at=0,-0.3', '--material', 'slate']), []);
     expect(peak).toMatchObject({ do: 'mountain', material: 'slate' });
   });
 });
