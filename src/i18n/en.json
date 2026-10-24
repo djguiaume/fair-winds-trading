@@ -156,6 +156,8 @@
   "settings.currents": "Currents",
   "settings.currentsNote": "Off: still water, no current carries the boat",
   "settings.haze.fog": "Fog banks",
+  "settings.haze.ash": "Ash clouds",
+  "settings.haze.ashNote": "Off: clear sight in the volcano's ash",
   "settings.haze.fogNote": "Off: clear sight inside fog banks",
   "settings.speedLogNote": "Speed, heading, point of sail",
   "settings.fpsNote": "Frames per second",
@@ -801,5 +803,6 @@
   "zone.stormy-coast": "stormy coast",
   "zone.cold-gale": "cold gales",
   "zone.sheltered": "sheltered water",
+  "zone.ash": "ash cloud",
   "zone.fog-bank": "fog bank"
 }

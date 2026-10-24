@@ -241,6 +241,7 @@ export function tidyDesign(design: IslandDesign): IslandDesign {
         'material',
         'shape',
         'base',
+        'crater',
         'slope',
         'slopeEdges',
         'from',

@@ -1,0 +1,31 @@
+{
+  "id": "greenhouse",
+  "name": "Warm greenhouse",
+  "group": "farm",
+  "building": true,
+  "parts": [
+    {
+      "box": [1.8, 0.25, 0.9],
+      "at": [0, 0.125, 0],
+      "color": "#5b5658"
+    },
+    {
+      "box": [1.7, 0.6, 0.82],
+      "at": [0, 0.55, 0],
+      "glow": true,
+      "color": "#c8e8b0"
+    },
+    {
+      "gable": [1.74, 0.86, 0.4],
+      "y": 0.85,
+      "glow": true,
+      "color": "#d8f0c0"
+    },
+    {
+      "repeat": { "x": [-0.85, -0.42, 0, 0.42, 0.85] },
+      "box": [0.05, 1.2, 0.86],
+      "at": ["x", 0.75, 0],
+      "color": "#f4ede0"
+    }
+  ]
+}

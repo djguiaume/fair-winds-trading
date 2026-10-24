@@ -59,6 +59,8 @@ export type IslandStep =
       rise?: number;
       material?: string;
       slope?: number;
+      /** A mountain's crater (decision 0171): its radius as a share of its size. */
+      crater?: number;
     } & Shaped)
   | ({ do: 'lake'; at: At } & Shaped)
   | {
@@ -192,7 +194,9 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
         slope: step.slope,
       };
       const add = step.do === 'plateau' ? addPlateau : addMountain;
-      return `ground ${add(design, x, z, under, level, shape)}`;
+      const index = add(design, x, z, under, level, shape);
+      if (step.crater && step.do === 'mountain') design.ground[index]!.crater = pos(step.crater);
+      return `ground ${index}`;
     }
     case 'lake': {
       const [x, z] = step.at;

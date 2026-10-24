@@ -269,7 +269,16 @@ export function renderShapePanel(root: HTMLElement, host: ShapePanelHost) {
     number('Base', g.base, (v) => (v === undefined ? delete g.base : (g.base = v)), {
       placeholder: '0',
     });
-    note('A peak: a cone over this outline, from its base up to its height, in its ground.');
+    number(
+      'Crater',
+      g.crater,
+      (v) => (v ? (g.crater = Math.min(0.8, Math.max(0.05, v))) : delete g.crater),
+      { step: 0.05, min: 0, placeholder: 'none (a pointed peak)' },
+    );
+    note(
+      'A peak: a cone over this outline, from its base up to its height, in its ground. A crater ' +
+        'cuts its top open (a share of its size); a ground that glows fills it with lava.',
+    );
   } else if (g.outline) {
     edges(g);
   } else note(`Follows coast ${g.coast ?? 0} inside the beach: edit the coast to reshape it.`);

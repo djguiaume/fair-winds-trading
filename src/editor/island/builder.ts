@@ -97,6 +97,7 @@ const GROUPS: [PropGroup | 'all', string][] = [
   ['farm', 'Farm'],
   ['stone', 'Stone'],
   ['nature', 'Nature'],
+  ['rocks', 'Rocks and springs'],
   ['landmarks', 'Landmarks'],
 ];
 

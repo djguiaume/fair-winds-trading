@@ -88,6 +88,8 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
       error('known', `Ground ${i}: unknown material "${String(g.material)}"`);
     if (g.coast !== undefined ? !design.coasts[g.coast] : !g.outline?.length)
       error('known', `Ground ${i}: needs an outline or a coast that exists`);
+    if (g.crater !== undefined && (g.shape !== 'peak' || !(g.crater >= 0.05 && g.crater <= 0.8)))
+      error('known', `Ground ${i}: a crater is for a mountain, 0.05 to 0.8 of its size`);
     levelsOk(g, `Ground ${i}`);
   });
   design.lanes.forEach((l, i) => {

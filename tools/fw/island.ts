@@ -107,6 +107,7 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
         rise: num(args.rise),
         material,
         slope: num(args.slope),
+        crater: num(args.crater),
         ...shaped,
       });
     case 'lake':
