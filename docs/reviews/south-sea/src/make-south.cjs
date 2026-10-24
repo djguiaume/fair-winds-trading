@@ -160,7 +160,7 @@ function townProps(island, a) {
   // Homes in two rows along the inner shore, numbered from the harbour outwards: the town grows
   // both ways along the lagoon as it climbs the levels (decision 0059).
   const rows = [
-    [96, 0.22], [104, 0.22], [88, 0.24], [112, 0.24], [92, 0.4], [108, 0.4],
+    [92, 0.24], [108, 0.24], [86, 0.26], [114, 0.26], [93, 0.42], [107, 0.42],
     [80, 0.24], [120, 0.25], [84, 0.42], [116, 0.42], [72, 0.25], [128, 0.26],
     [76, 0.43], [124, 0.43], [64, 0.27], [136, 0.27], [68, 0.44], [132, 0.44],
     [56, 0.3], [144, 0.29], [60, 0.46], [140, 0.46],
@@ -169,11 +169,11 @@ function townProps(island, a) {
   rows.forEach(([t, k], i) => {
     const [x, z] = at(t, k);
     props.push({
-      type: 'fish-house',
+      type: 'beach-house',
       x,
       z,
       turn: faceIn(t) + (i % 3) * 6 - 6,
-      size: 1.3,
+      size: 1.55,
       variant: i % 4,
       shape: r4((i * 0.37) % 1),
       from: from[i],
@@ -184,18 +184,24 @@ function townProps(island, a) {
     props.push({ type, x, z, turn: faceIn(t), from: 1, ...extra });
   };
   add('market-hall', 100, 0.58, { size: 1.2, from: 3 });
-  add('warehouse', 104, 0.12, { size: 1.2, from: 2 });
-  add('crates', 94, 0.1, { size: 1, variant: 1, from: 2 });
-  add('lamp-post', 99, 0.1, { size: 1 });
-  add('lamp-post', 86, 0.12, { size: 1, from: 2 });
-  add('lamp-post', 114, 0.12, { size: 1, from: 3 });
+  add('warehouse', 121, 0.62, { size: 1.2, from: 2 });
+  add('crates', 90, 0.17, { size: 1, variant: 1, from: 2 });
+  add('lamp-post', 88, 0.2, { size: 1 });
+  add('lamp-post', 106, 0.16, { size: 1, from: 2 });
+  add('lamp-post', 118, 0.17, { size: 1, from: 3 });
   // Drying racks: where Juno's tea will dry once the spice comes in (decisions 0146, 0147).
   add('drying-rack', 70, 0.6, { size: 1.1, from: 2 });
   add('drying-rack', 130, 0.6, { size: 1.1, from: 3 });
+  // Palms between the houses: the woods keep clear of homes, so the town's own are placed.
+  const palmsAt = [
+    [90, 0.32], [110, 0.31], [82, 0.52], [118, 0.5], [74, 0.35], [126, 0.36], [66, 0.53],
+    [134, 0.52], [98, 0.5], [60, 0.37], [140, 0.37], [104, 0.3],
+  ];
+  palmsAt.forEach(([t, k], i) => add('palm', t, k, { turn: (i * 67) % 360, size: 1.1 + (i % 3) * 0.15 }));
   add('moored-boat', 82, -0.12, { from: 2 });
   add('moored-boat', 118, -0.12, { from: 3 });
   // A lighthouse on each headland (ADR 0143: the two headlands are natural places for them).
-  const tip = 15 + (180 + OV) - 6;
+  const tip = 15 + (180 + OV) - 11;
   add('lighthouse', tip, 0.5, { size: 1.0, turn: 0 });
   void R;
   return props;
@@ -226,7 +232,16 @@ function bounds(points) {
  * the arm at angle t, `k` of the way across, `rad` units round and `h` (island-height units)
  * tall. Its woods `clear` circle keeps palms off its slopes.
  */
-function hill(island, a, t, k, rad, h, stretch = 1.3) {
+function hill(island, a, t, k, rad, h, stretch = 1) {
+  // Keep the whole hill on land: no wider than the arm allows round its centre.
+  let room = Infinity;
+  for (const dt of [-8, -4, 0, 4, 8]) {
+    const p = onArm(a, t + dt, 0),
+      q = onArm(a, t + dt, 1);
+    const across = Math.hypot(p[0] - q[0], p[1] - q[1]);
+    room = Math.min(room, across * Math.min(k, 1 - k) * 0.8);
+  }
+  rad = Math.min(rad, room / stretch);
   const [cx, cy] = onArm(a, t, k);
   const pts = [];
   for (let i = 0; i < 8; i++) {
@@ -243,17 +258,17 @@ function hill(island, a, t, k, rad, h, stretch = 1.3) {
 const northCoast = north.outline;
 // Behind the town: a big hill on the west shoulder, a pair on the east and a knoll between.
 const northHills = [
-  hill(sunreach, north, 58, 0.66, 22, 0.62),
-  hill(sunreach, north, 150, 0.62, 24, 0.7),
-  hill(sunreach, north, 168, 0.6, 15, 0.45),
-  hill(sunreach, north, 100, 0.86, 11, 0.32, 1.6),
+  hill(sunreach, north, 46, 0.68, 20, 0.62),
+  hill(sunreach, north, 158, 0.66, 22, 0.7),
+  hill(sunreach, north, 176, 0.6, 14, 0.45),
+  hill(sunreach, north, 100, 0.9, 10, 0.3, 1.6),
 ];
 const sunreachFile = designFile('sunreach', 'Sunreach', sunreach, [northCoast], {
   seed: 7101,
   ground: [{ coast: 0, height: 0.06, material: 'grass' }, ...northHills.map((h) => h.ground)],
   lanes: [
     {
-      points: [52, 64, 76, 88, 100, 112, 124, 136, 148].map((t) =>
+      points: [60, 70, 80, 90, 100, 110, 120, 130, 140].map((t) =>
         toIsland(sunreach, onArm(north, t, 0.33)),
       ),
     },
@@ -280,7 +295,7 @@ function pierAt(island, a, t) {
 }
 
 const southCoast = south.outline;
-const southTip = 15 + (180 + OV) - 6;
+const southTip = 15 + (180 + OV) - 11;
 const southHills = [
   hill(sunreachSouth, south, 72, 0.6, 26, 0.8),
   hill(sunreachSouth, south, 96, 0.55, 18, 0.5),
@@ -330,7 +345,17 @@ function smallIsland(id, name, seed, props, opts = {}) {
     coasts: [coast],
     ground: [
       { coast: 0, height: 0.07, material: 'grass' },
-      ...(opts.hill ? [{ outline: blob(-0.1, 0.15, 0.42, seed + 1, 10, 0.2).map(([x, y]) => [r4(x), r4(y)]), height: 0.22, material: 'grass', slope: 0.18 }] : []),
+      ...(opts.hill
+        ? [
+            {
+              outline: blob(-0.15, -0.2, 0.42, seed + 1, 8, 0.1).map(([x, y]) => [r4(x), r4(y)]),
+              height: 0.9,
+              material: 'grass',
+              shape: 'peak',
+              base: 0.07,
+            },
+          ]
+        : []),
     ],
     lanes: [],
     piers: [],
@@ -342,19 +367,19 @@ function smallIsland(id, name, seed, props, opts = {}) {
       size: 1.7,
       margin: 0.1,
       spacing: opts.spacing ?? 0.24,
+      ...(opts.hill ? { clear: [[-0.15, -0.2, 0.5]] } : {}),
     },
   };
 }
-// Palm Key, the outpost site: empty until it is founded (the flagpole and name board come with
-// the outpost's quest, `after:outpost-south`, decision 0134).
+// Palm Key, the outpost site: empty until it is founded. The flagpole and name board come with
+// the outpost's quest (`after:outpost-south`, decision 0134), added with that quest: tags must
+// name a quest that exists.
 const palmKey = { id: 'palm-key', x: 520, y: -730, radius: 22 };
 const palmKeyFile = smallIsland(
   'palm-key',
   'Palm Key',
   7103,
   [
-    { type: 'flagpole', x: 0.05, z: 0.35, turn: 0, size: 1, from: 1, tags: ['after:outpost-south'] },
-    { type: 'name-board', x: 0.3, z: 0.55, turn: 0, size: 1, from: 1, tags: ['after:outpost-south'] },
     { type: 'boulder', x: -0.55, z: -0.4, turn: 30, size: 0.35, variant: 1, from: 1 },
   ],
   { hill: true, tries: 260, spacing: 0.2, stretch: 1.25 },
@@ -460,14 +485,15 @@ terrain.push(
     name: 'Palm Key Narrows',
     kind: 'shallows',
     maxDraft: 1.2,
-    outline: [
-      [NARROWS_X - 26, PASS[0] + 8],
-      [NARROWS_X + 26, PASS[0] + 8],
-      [NARROWS_X + 30, (PASS[0] + PASS[1]) / 2],
-      [NARROWS_X + 26, PASS[1] - 8],
-      [NARROWS_X - 26, PASS[1] - 8],
-      [NARROWS_X - 30, (PASS[0] + PASS[1]) / 2],
-    ],
+    // A rounded sandy patch that overlaps both reef ends, so the passage is its only way.
+    outline: Array.from({ length: 14 }, (_, i) => {
+      const ang = (i / 14) * Math.PI * 2;
+      const c = Math.cos(ang),
+        sn = Math.sin(ang);
+      const rx = 30 * Math.sign(c) * Math.abs(c) ** 0.6,
+        ry = ((PASS[0] - PASS[1]) / 2 + 10) * Math.sign(sn) * Math.abs(sn) ** 0.6;
+      return [r1(NARROWS_X + rx), r1((PASS[0] + PASS[1]) / 2 + ry)];
+    }),
   },
   // Landmarks in the open sea, so a crossing always has something to steer by (layout B).
   {
@@ -530,8 +556,30 @@ const sea = {
   ],
   terrain,
   ports: [
-    { id: 'sunreach', name: 'Sunreach', islandId: 'sunreach', produces: [], wants: ['honey'], level: 3 },
-    { id: 'palm-key', name: 'Palm Key', islandId: 'palm-key', produces: [], wants: [], level: 1, hidden: true },
+    // Trade from the far goods (decision 0150): Sunreach's workshop crafts spiced tea only from
+    // the spice it receives; Palm Key gathers spice once it is founded.
+    {
+      id: 'sunreach',
+      name: 'Sunreach',
+      islandId: 'sunreach',
+      produces: [],
+      wants: ['spice'],
+      wantsMade: ['honey', 'planks', 'bread'],
+      level: 3,
+      levelProduces: { 3: ['spicedTea'] },
+    },
+    {
+      id: 'palm-key',
+      name: 'Palm Key',
+      islandId: 'palm-key',
+      produces: [],
+      wants: ['grain', 'timber'],
+      level: 2,
+      maxLevel: 3,
+      hidden: true,
+      levelWants: { 3: ['planks', 'stone'] },
+      afterQuest: { 'outpost-south': { levelProduces: { 2: ['spice'] } } },
+    },
   ],
   course: [
     sunreachWp,

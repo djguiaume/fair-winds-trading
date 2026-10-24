@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
+import { SEAS } from '../src/data/grownMap';
 import { ISLAND_DESIGNS, type IslandDesign } from '../src/data/islands';
 import { designedTownParts, islandCheckKit, type TownLevel } from '../src/render/models/towns';
 import { checkIsland, type IslandIssue } from '../src/sim/islandChecks';
 
-/** The shipped island files with the radius their island has on the map. */
-const shipped = PHASE1_MAP.islands
+/** The shipped island files with the radius their island has on the map (the Phase 4 seas too). */
+const shipped = [...PHASE1_MAP.islands, ...SEAS.flatMap((sea) => sea.islands)]
   .filter((i) => i.look?.design)
   .map((i) => ({
     design: ISLAND_DESIGNS[i.look!.design!]!,

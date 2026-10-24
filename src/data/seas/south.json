@@ -467,28 +467,60 @@
       "maxDraft": 1.2,
       "outline": [
         [
-          309,
-          -707
-        ],
-        [
-          361,
-          -707
-        ],
-        [
           365,
           -742.5
         ],
         [
-          361,
-          -778
+          363.2,
+          -719.8
         ],
         [
-          309,
-          -778
+          357.6,
+          -710.1
+        ],
+        [
+          347.2,
+          -705.6
+        ],
+        [
+          322.8,
+          -705.6
+        ],
+        [
+          312.4,
+          -710.1
+        ],
+        [
+          306.8,
+          -719.8
         ],
         [
           305,
           -742.5
+        ],
+        [
+          306.8,
+          -765.2
+        ],
+        [
+          312.4,
+          -774.9
+        ],
+        [
+          322.8,
+          -779.4
+        ],
+        [
+          347.2,
+          -779.4
+        ],
+        [
+          357.6,
+          -774.9
+        ],
+        [
+          363.2,
+          -765.2
         ]
       ]
     },
@@ -791,18 +823,47 @@
       "islandId": "sunreach",
       "produces": [],
       "wants": [
-        "honey"
+        "spice"
       ],
-      "level": 3
+      "wantsMade": [
+        "honey",
+        "planks",
+        "bread"
+      ],
+      "level": 3,
+      "levelProduces": {
+        "3": [
+          "spicedTea"
+        ]
+      }
     },
     {
       "id": "palm-key",
       "name": "Palm Key",
       "islandId": "palm-key",
       "produces": [],
-      "wants": [],
-      "level": 1,
-      "hidden": true
+      "wants": [
+        "grain",
+        "timber"
+      ],
+      "level": 2,
+      "maxLevel": 3,
+      "hidden": true,
+      "levelWants": {
+        "3": [
+          "planks",
+          "stone"
+        ]
+      },
+      "afterQuest": {
+        "outpost-south": {
+          "levelProduces": {
+            "2": [
+              "spice"
+            ]
+          }
+        }
+      }
     }
   ],
   "course": [

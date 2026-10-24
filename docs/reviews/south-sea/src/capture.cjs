@@ -17,9 +17,9 @@ const SHOTS = [
   ['sunreach-landscape', 844, 390, { x: -60, y: -735, zoom: 4.2, boat: [-104, -700, 95] }],
   ['sunreach-portrait', 390, 844, { x: -60, y: -735, zoom: 2.6, boat: [-104, -700, 95] }],
   ['keepers-passage', 1280, 800, { x: 150, y: -500, zoom: 3.2, boat: [146, -470, 175] }],
-  ['narrows-sloop', 1280, 800, { x: 335, y: -742, zoom: 2.0, boat: [315, -742, 90], ship: 'sloop' }],
+  ['narrows-sloop', 1280, 800, { x: 335, y: -742, zoom: 2.0, boat: [352, -745, 250], ship: 'sloop' }],
   ['narrows-indiaman', 1280, 800, { x: 335, y: -742, zoom: 2.0, boat: [300, -742, 90], ship: 'indiaman', push: true }],
-  ['palm-key', 1280, 800, { x: 505, y: -735, zoom: 1.4, boat: [470, -745, 80] }],
+  ['palm-key', 1280, 800, { x: 505, y: -735, zoom: 1.4, boat: [420, -770, 80] }],
   ['lone-palm', 1280, 800, { x: -470, y: -665, zoom: 1.0, boat: [-450, -650, 250] }],
   ['wreck-reef', 1280, 800, { x: 556, y: -330, zoom: 1.6, boat: [520, -300, 120] }],
   ['sugar-bar', 1280, 800, { x: -505, y: -400, zoom: 2.0, boat: [-460, -360, 230] }],
@@ -74,8 +74,15 @@ async function shoot(browser, [name, w, h, what]) {
     await p.waitForTimeout(2500);
     await p.keyboard.up('ArrowUp');
   } else await p.waitForTimeout(1500);
+  // Quest cards that popped up meanwhile (the prologue's) would cover the view.
+  await p.evaluate(() => {
+    for (const d of document.querySelectorAll('dialog[open]')) d.close();
+  });
   if (what.chart) {
-    await p.click('#chart-btn');
+    await p.evaluate(() => {
+      for (const d of document.querySelectorAll('dialog[open]')) d.close();
+      document.getElementById('chart-btn').click();
+    });
     await p.waitForTimeout(800);
   }
   await p.screenshot({ path: path.join(OUT, `${name}.png`) });
