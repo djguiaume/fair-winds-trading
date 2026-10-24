@@ -224,6 +224,8 @@ describe('save transfer (decisions 0066, 0118)', () => {
           owned: true,
           offered: ['spot-3'],
           built: { 'spot-1': 'workshop', 'spot-2': 'bakehouse', 'spot-5': 'warehouse' },
+          // A full warehouse of three goods (decision 0136).
+          stored: { fish: 4, planks: 3, bread: 3 },
         },
       },
     };

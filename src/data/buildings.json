@@ -4,49 +4,49 @@
       "id": "workshop",
       "pair": "crafts",
       "price": 1500,
-      "effect": { "kind": "homeRepair", "value": 0.75 }
+      "perks": ["home-repairs"]
     },
     {
       "id": "rigging-loft",
       "pair": "crafts",
       "price": 1500,
-      "effect": { "kind": "sailUpgradePrice", "value": 0.9 }
+      "perks": ["cheaper-sails"]
     },
     {
       "id": "warehouse",
       "pair": "stores",
       "price": 1500,
-      "effect": { "kind": "homeStorage", "value": 10 }
+      "perks": ["warehouse-room"]
     },
     {
       "id": "bakehouse",
       "pair": "stores",
       "price": 1500,
-      "effect": { "kind": "helpReward", "value": 1.1 }
+      "perks": ["better-help-pay"]
     },
     {
       "id": "lookout",
       "pair": "watch",
       "price": 1500,
-      "effect": { "kind": "discoverRange", "value": 1.3 }
+      "perks": ["farther-sight"]
     },
     {
       "id": "pilot-house",
       "pair": "watch",
       "price": 1500,
-      "effect": { "kind": "hullDamage", "value": 0.8 }
+      "perks": ["softer-knocks"]
     },
     {
       "id": "weather-glass",
       "pair": "waterside",
       "price": 1500,
-      "effect": { "kind": "windForecast", "value": 60 }
+      "perks": ["wind-forecast"]
     },
     {
       "id": "boathouse",
       "pair": "waterside",
       "price": 1500,
-      "effect": { "kind": "shipPrice", "value": 0.9 }
+      "perks": ["cheaper-ships"]
     }
   ]
 }

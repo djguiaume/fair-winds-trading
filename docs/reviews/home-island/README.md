@@ -64,8 +64,10 @@ Real game renders of a **test** island file on Skerry (radius 18), in three stag
 
 Built as [0126](../../decisions/0126-home-island-build-spots.md). Try it with `?home` (gives you the island and offers all four arc spots); sail to Skerry's pier, south-west of Gull Hook, and lower the sails.
 
-| | Moored at home | Choosing | Built |
-|---|---|---|---|
-| Phone, landscape | ![](built/phone-1-docked.jpg) | ![](built/phone-2-choice.jpg) | ![](built/phone-3-built.jpg) |
-| Phone, portrait | ![](built/portrait-1-docked.jpg) | ![](built/portrait-2-choice.jpg) | ![](built/portrait-3-built.jpg) |
-| Desktop | ![](built/desktop-1-docked.jpg) | ![](built/desktop-2-choice.jpg) | ![](built/desktop-3-built.jpg) |
+| | Moored at home | Choosing | Built | Warehouse |
+|---|---|---|---|---|
+| Phone, landscape | ![](built/phone-1-docked.jpg) | ![](built/phone-2-choice.jpg) | ![](built/phone-3-built.jpg) | ![](built/phone-4-warehouse.jpg) |
+| Phone, portrait | ![](built/portrait-1-docked.jpg) | ![](built/portrait-2-choice.jpg) | ![](built/portrait-3-built.jpg) | ![](built/portrait-4-warehouse.jpg) |
+| Desktop | ![](built/desktop-1-docked.jpg) | ![](built/desktop-2-choice.jpg) | ![](built/desktop-3-built.jpg) | ![](built/desktop-4-warehouse.jpg) |
+
+Images refreshed 2026-10-24 for [0136](../../decisions/0136-warehouse-forecast-and-perks-as-data.md): the warehouse works (store and take crates while moored), the weather glass shows the wind a minute ahead under the compass, and building perks come from `src/data/perks.json`.

@@ -72,7 +72,11 @@
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  /* Between the stats and the speed panel; the buttons wrap under the name on a phone. */
+  max-width: min(40vw, 640px);
+  gap: 6px 10px;
   align-items: center;
   pointer-events: auto;
 }
@@ -190,6 +194,7 @@
   /* The speed and wind panels fill the top of a narrow screen: the title goes below them. */
   .home-bar {
     top: calc(var(--top, 10px) + 150px);
+    max-width: calc(100vw - 20px);
   }
 }
 @media (max-height: 460px) and (orientation: landscape) {
@@ -204,4 +209,41 @@
   .home-effect {
     font-size: 13px;
   }
+}
+
+/* The warehouse (decision 0136): one row per good, store and take. */
+.home-store {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.home-store-row {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  grid-template-areas:
+    'name name name name'
+    'counts counts counts counts';
+  justify-content: start;
+  align-items: center;
+  gap: 4px 6px;
+  padding: 8px 10px;
+  border: 1.5px solid rgba(238, 243, 244, 0.25);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.home-store-name {
+  grid-area: name;
+  color: var(--ink);
+  font: 700 18px/1.1 var(--display);
+  text-transform: uppercase;
+}
+.home-store-counts {
+  grid-area: counts;
+  color: var(--ink-dim);
+  font: 600 14px/1.2 var(--body);
+}
+.home-store-row .port-btn {
+  min-height: 40px;
+  padding: 6px 10px;
+  font-size: 14px;
 }

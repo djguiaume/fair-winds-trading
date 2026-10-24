@@ -11,13 +11,13 @@ import {
   buildOnSpot,
   giveHomeIsland,
   homeDesign,
-  homeEffect,
   homeIsland,
   homeSpots,
   offerHomeSpot,
   passedOver,
   readHome,
 } from '../src/sim/home';
+import { applyPerks, checkPerks } from '../src/sim/perks';
 import { type QuestDef, checkQuests } from '../src/sim/quests';
 import { payReward, testCondition } from '../src/sim/questLibrary';
 import { serializeWorld, validateSave } from '../src/sim/save';
@@ -98,7 +98,7 @@ describe('home island (decision 0126)', () => {
     trade.dockedAt = 'saltmere';
     const portRepair = repairPrice(trade);
     trade.dockedAt = null;
-    expect(homeEffect(trade.home, 'hullDamage')).toBe(1);
+    expect(applyPerks(trade.home, 'hullDamage', 1)).toBe(1);
 
     trade.home = {
       islands: {
@@ -119,8 +119,26 @@ describe('home island (decision 0126)', () => {
     expect(upgradeCost(trade, 1000, 'hold')).toBe(1000);
     expect(shipCost(trade, SHIP_CLASSES.cutter!)).toBe(Math.round(shipPrice * 0.9));
     expect(repairPrice(trade)).toBe(Math.ceil(portRepair * 0.75));
-    expect(homeEffect(trade.home, 'hullDamage')).toBe(0.8);
-    expect(homeEffect(trade.home, 'discoverRange')).toBe(1);
+    expect(applyPerks(trade.home, 'hullDamage', 1)).toBe(0.8);
+    expect(applyPerks(trade.home, 'discoverRange', 1)).toBe(1);
+  });
+
+  it('reads perks from data, every hook described and every building perk known (0136)', () => {
+    expect(checkPerks()).toEqual([]);
+    const home = {
+      islands: {
+        skerry: {
+          owned: true,
+          offered: [],
+          built: { 'spot-1': 'workshop', 'spot-2': 'warehouse' },
+        },
+      },
+    };
+    // Island-only perks work only while moored there.
+    expect(applyPerks(home, 'repairPrice', 100)).toBe(100);
+    expect(applyPerks(home, 'storageRoom', 0)).toBe(0);
+    expect(applyPerks({ ...home, docked: 'skerry' }, 'repairPrice', 100)).toBe(75);
+    expect(applyPerks({ ...home, docked: 'skerry' }, 'storageRoom', 0)).toBe(10);
   });
 
   it('saves and reads back, dropping what the map no longer has', () => {
@@ -246,8 +264,8 @@ describe('home island (decision 0126)', () => {
       'far-rock': { 'spot-3': 'lookout' },
       skerry: { 'spot-3': 'pilot-house' },
     });
-    expect(homeEffect(trade.home, 'discoverRange')).toBe(1.3);
-    expect(homeEffect(trade.home, 'hullDamage')).toBe(0.8);
+    expect(applyPerks(trade.home, 'discoverRange', 1)).toBe(1.3);
+    expect(applyPerks(trade.home, 'hullDamage', 1)).toBe(0.8);
     const ctx = { trade, map: sea } as Parameters<typeof testCondition>[1];
     expect(testCondition({ is: 'built', building: 'lookout', island: 'far-rock' }, ctx)).toBe(true);
     expect(testCondition({ is: 'built', building: 'lookout', island: 'skerry' }, ctx)).toBe(false);
