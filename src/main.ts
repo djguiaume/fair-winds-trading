@@ -65,6 +65,7 @@ import {
 } from './ui/fullscreen';
 import { Hud } from './ui/hud';
 import { loadSettings, saveSettings } from './ui/settings';
+import type { PerfReadout } from './perf/perfReadout';
 import { Music } from './audio/music';
 import { wordCount } from './audio/babble';
 import { SeaChart } from './ui/seaChart';
@@ -397,6 +398,8 @@ tradePanel.onUiModeChange = (mode) => {
   saveSettings(settings);
 };
 const monitor = new FrameMonitor();
+/** The `?perf` readout, once its chunk has loaded (decision 0148). */
+let perf: PerfReadout | null = null;
 let sailStep = world.boat.sailStep;
 
 tradePanel.onAction = () => {
@@ -1141,7 +1144,8 @@ let soundIn = 0;
 
 function tick(now: number) {
   frame = requestAnimationFrame(tick);
-  const dt = Math.min(0.1, (now - last) / 1000);
+  const rawMs = now - last;
+  const dt = Math.min(0.1, rawMs / 1000);
   last = now;
 
   const sailDelta = input.takeSailDelta();
@@ -1193,6 +1197,23 @@ function tick(now: number) {
     setLevel(lowerQuality(level));
   }
   hud.setFps(settings.showFps ? monitor.fps : null, hudVisible);
+  if (perf) {
+    const info = view.renderer.info.render;
+    const canvas = view.renderer.domElement;
+    perf.frame({
+      ms: rawMs,
+      counting: mode === 'play' && !paused && hudVisible,
+      level,
+      qualitySetting: settings.quality,
+      drawCalls: info.calls,
+      triangles: info.triangles,
+      canvas: {
+        width: canvas.width,
+        height: canvas.height,
+        pixelRatio: view.renderer.getPixelRatio(),
+      },
+    });
+  }
 }
 
 // Stop rendering while the tab is hidden (battery on phones and tablets).
@@ -1226,6 +1247,20 @@ if (tuneMode) {
       },
     }),
   );
+}
+
+// The `?perf` readout (decision 0148) for device tests: its own chunk, like the tuning panel.
+if (new URLSearchParams(location.search).has('perf')) {
+  void import('./perf/perfReadout').then(({ PerfReadout }) => {
+    perf = new PerfReadout({
+      version: __APP_VERSION__,
+      sea: stressTest ? 'stress test sea' : playtestMap ? 'edited map' : "today's sea",
+      switches: () =>
+        (['weather', 'storms', 'dayNight', 'windZones', 'currents'] as const)
+          .map((k) => `${k} ${settings[k] ? 'on' : 'off'}`)
+          .join(', '),
+    });
+  });
 }
 
 // `?debug` exposes the game objects in the console (used by screenshot scripts too). Until the

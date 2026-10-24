@@ -1,0 +1,7 @@
+{
+  "refreshSec": 1,
+  "warmupSec": 5,
+  "slowFrameMs": 50,
+  "hitchFrameMs": 100,
+  "maxFrames": 108000
+}
