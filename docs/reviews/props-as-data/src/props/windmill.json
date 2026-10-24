@@ -1,0 +1,20 @@
+{
+  "id": "windmill",
+  "group": "farm",
+  "building": true,
+  "vars": { "bare": 0 },
+  "parts": [
+    { "cyl": [0.42, 0.62, 2.2, 8], "at": [0, 1.1, 0], "color": "#fff3dc" },
+    { "cyl": [0, 0.58, 0.7, 8], "at": [0, 2.55, 0], "color": "#8a4a2a" },
+    { "repeat": { "k": { "count": 4 } }, "parts": [
+      { "if": "bare == 0", "box": [0.25, 1.8, 0.05], "color": "sail",
+        "ops": [["move", 0, 0.9, 0], ["turnZ", "k * pi / 2 + 0.4"], ["move", 0, 2.2, 0.55]] },
+      { "if": "bare", "parts": [
+        { "box": [0.06, 1.8, 0.06], "color": "post",
+          "ops": [["move", 0, 0.9, 0], ["turnZ", "k * pi / 2 + 0.4"], ["move", 0, 2.2, 0.55]] },
+        { "repeat": { "y": [0.8, 1.6] }, "box": [0.25, 0.04, 0.04], "color": "post",
+          "ops": [["move", 0, "y", 0], ["turnZ", "k * pi / 2 + 0.4"], ["move", 0, 2.2, 0.55]] }
+      ] }
+    ] }
+  ]
+}

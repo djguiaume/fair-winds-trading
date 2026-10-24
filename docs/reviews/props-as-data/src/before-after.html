@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{margin:0;padding:18px;background:#f4ede0;font:14px system-ui,sans-serif;color:#2b2a26;width:1340px}
+h1{font-size:20px;margin:0 0 4px} p{margin:0 0 12px;color:#5b5548}
+.row{display:flex;gap:14px} .card{background:#fff;border-radius:10px;padding:10px;box-shadow:0 1px 3px #0002}
+.card h2{font-size:14px;margin:0 0 6px} canvas{display:block;border-radius:6px}
+pre{font:11.5px/1.35 ui-monospace,monospace;background:#2b2a26;color:#f4ead2;padding:10px;border-radius:8px;margin:12px 0 0;white-space:pre-wrap}
+.ok{color:#2f7a45;font-weight:600}
+</style></head><body>
+<h1>Props as data: one prop, before and after</h1>
+<p>Fish house, variants 0, 1, 2 with shapes 0.2, 0.9, 0.5. <span class="ok">Left and middle are identical vertex for vertex</span> (prototype test, 20 variant/shape pairs; market hall and both windmills too).</p>
+<div class="row">
+<div class="card"><h2>Before: code (props.ts fishHouse)</h2><canvas id="a"></canvas></div>
+<div class="card"><h2>After: from fish-house.json</h2><canvas id="b"></canvas></div>
+<div class="card"><h2>New prop, no code: net-loft.json</h2><canvas id="c"></canvas></div>
+</div>
+<pre id="json"></pre>
+<script type="module" src="./render.ts"></script>
+</body></html>
