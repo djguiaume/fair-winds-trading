@@ -1,7 +1,8 @@
 import { type StepEffects, checkStepEffects } from './stepEffects';
 import characterData from '../data/characters.json';
 import { daylightAt } from './daylight';
-import { GOODS, type GoodAmounts, isGood } from './goods';
+import { chartAreaIds, chartAreas } from './fog';
+import { GOODS, type GoodAmounts, type GoodId, isGood } from './goods';
 import { type IslandDesign, questTagIds } from '../data/islands';
 import type { MapDef } from './map';
 import {
@@ -116,6 +117,11 @@ export interface QuestStep extends StepEffects {
   coach?: StepCoach;
   /** Paid when the step is done. */
   reward?: QuestReward;
+  /**
+   * Chart areas (fog of war, decision 0156) lifted as soon as the step begins: a pilot's chart
+   * handed over, before the voyage it is for.
+   */
+  charts?: string[];
   /** A later step's id, or `done`; default the following step (after the last: done). */
   next?: string;
   /** Touching a reef or a shore (hull damage) starts the step over, at no other cost. */
@@ -164,6 +170,11 @@ export interface QuestDef {
   items?: Record<string, { space: number }>;
   /** The person giving it (`characters.json`), for the interface. */
   giver?: string;
+  /**
+   * Someone else speaks the done card instead of the giver (decision 0158): the settler who
+   * founded the outpost thanks the captain on it.
+   */
+  doneSpeaker?: string;
   /** Where its card shows, for the interface. */
   port?: string;
   /**
@@ -360,6 +371,8 @@ export function checkQuests(
         out.push(`${at} › items.${item}: space needs a whole number (0 for a passenger)`);
     if (q.port !== undefined && !resolvePort(map, q.port)) out.push(`${at}: no port "${q.port}"`);
     if (q.giver !== undefined && !PEOPLE.has(q.giver)) out.push(`${at}: no person "${q.giver}"`);
+    if (q.doneSpeaker !== undefined && !PEOPLE.has(q.doneSpeaker))
+      out.push(`${at}: no person "${q.doneSpeaker}"`);
     if (q.offer !== undefined && typeof q.offer !== 'boolean')
       out.push(`${at}: offer is true or false`);
     if (q.main !== undefined && typeof q.main !== 'boolean')
@@ -387,6 +400,13 @@ export function checkQuests(
         out.push(`${where}: needs a goal or a choice`);
       if (s.goal !== undefined) out.push(...checkCondition(s.goal, scope, true, `${where} › goal`));
       out.push(...checkReward(s.reward, scope, `${where} › reward`));
+      if (s.charts !== undefined) {
+        const areas = chartAreaIds(map);
+        if (!Array.isArray(s.charts)) out.push(`${where} › charts: a list of chart area ids`);
+        else if (map.fog)
+          for (const id of s.charts)
+            if (!areas.includes(id)) out.push(`${where} › charts: no chart area "${id}"`);
+      }
       for (const p of [s.port, s.chart?.port])
         if (
           p !== undefined &&
@@ -567,6 +587,8 @@ export type QuestEvent =
   | { type: 'choice'; quest: string; step: string }
   /** A `clean` step touched a reef or shore and starts over. */
   | { type: 'reset'; quest: string; step: string }
+  /** Goods taken out of the hold for a step (`landed`, decision 0157). */
+  | { type: 'landed'; quest: string; good: GoodId; qty: number }
   | { type: 'finished'; quest: string };
 
 /** How often the conditions are checked, in seconds of play. */
@@ -1028,6 +1050,7 @@ export class QuestBook {
       chose: was?.chose ?? {},
       ...(was?.vars ? { vars: was.vars } : {}),
     };
+    if (step.charts) chartAreas(this.world.map, this.trade.progress, step.charts);
     // A step about a place this map lacks (the prologue's wreck) is passed by (decision 0151).
     if (missesPlace(step, this.world.map)) {
       this.finishStep(quest, step, undefined, events);
@@ -1112,6 +1135,10 @@ export class QuestBook {
             nightOk,
             freeSpace: freeSpace(trade),
             itemSpace: (item) => quest.items?.[item]?.space ?? 1,
+            land: (good, qty) => {
+              trade.captain.cargo[good] -= qty;
+              events.push({ type: 'landed', quest: quest.id, good, qty });
+            },
           },
           p.counts,
         );

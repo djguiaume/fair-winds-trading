@@ -412,7 +412,7 @@ function smallIsland(id, name, seed, props, opts = {}) {
         : []),
     ],
     lanes: [],
-    piers: [],
+    piers: opts.piers ?? [],
     props,
     woods: {
       tree: 'woodland-palm',
@@ -425,20 +425,39 @@ function smallIsland(id, name, seed, props, opts = {}) {
     },
   };
 }
-// Palm Key, the outpost site: empty until it is founded. The flagpole and name board come with
-// the outpost's quest (`after:outpost-south`, decision 0134), added with that quest: tags must
-// name a quest that exists.
+// Palm Key, the outpost site: an empty island (level 0) until a quest founds it (decision 0157).
+// Everything from level 1 stands only once it is founded: the epilogue's flagpole and name board
+// (0134), the homes, the spice racks; the daymark and the boulder (`from: 0`) stand before.
 const palmKey = { id: 'palm-key', x: 520, y: -730, radius: 22 };
 const palmKeyFile = smallIsland(
   'palm-key',
   'Palm Key',
   7103,
   [
-    { type: 'boulder', x: -0.55, z: -0.4, turn: 30, size: 0.35, variant: 1, from: 1 },
-    // A stone daymark for the Narrows: the island's landmark until the outpost is founded.
-    { type: 'beacon', x: -0.45, z: 0.35, turn: 0, size: 0.5, variant: 0, from: 1 },
+    { type: "boulder", x: -0.55, z: -0.4, turn: 30, size: 0.35, variant: 1, from: 0 },
+    { type: "beacon", x: -0.45, z: 0.35, turn: 0, size: 0.5, variant: 0, from: 0 },
+    { type: "flagpole", x: 0.3, z: 0.58, turn: 180, size: 0.9, variant: 0, shape: 0.5, from: 1 },
+    { type: "name-board", x: -0.22, z: 0.55, turn: 0, size: 0.9, variant: 0, shape: 0.5, from: 1 },
+    { type: "beach-house", x: 0.5, z: 0.36, turn: 165, size: 1.3, variant: 0, shape: 0.3, from: 1 },
+    { type: "beach-house", x: -0.68, z: 0.42, turn: -170, size: 1.3, variant: 1, shape: 0.6, from: 1 },
+    { type: "crates", x: 0.22, z: 0.68, turn: 10, size: 0.8, variant: 1, from: 1 },
+    { type: "drying-rack", x: 0.15, z: 0.3, turn: 175, size: 0.9, from: 1 },
+    { type: "lamp-post", x: 0.42, z: 0.6, turn: 180, size: 0.9, from: 1 },
+    { type: "beach-house", x: 0.85, z: 0.12, turn: 150, size: 1.3, variant: 2, shape: 0.8, from: 2 },
+    { type: "beach-house", x: -0.75, z: 0.05, turn: -150, size: 1.3, variant: 3, shape: 0.2, from: 2 },
+    { type: "drying-rack", x: 0.55, z: 0.0, turn: 160, size: 0.9, from: 2 },
+    { type: "beach-house", x: 0.5, z: -0.4, turn: 170, size: 1.3, variant: 0, shape: 0.9, from: 3 },
+    { type: "beach-house", x: -0.9, z: -0.24, turn: -140, size: 1.3, variant: 2, shape: 0.4, from: 3 },
+    { type: "warehouse", x: 0.9, z: 0.48, turn: 160, size: 1.0, from: 3 },
   ],
-  { hill: true, tries: 260, spacing: 0.2, stretch: 1.25 },
+  {
+    hill: true,
+    tries: 260,
+    spacing: 0.2,
+    stretch: 1.25,
+    // The town's side pier, with its warehouse (decision 0157).
+    piers: [{ x: 0.78, z: 0.66, length: 0.28, from: 3 }],
+  },
 );
 // Lone Palm: one palm on a speck of sand, and an old stone beacon beside it (a daymark).
 const lonePalm = { id: 'lone-palm', x: -470, y: -665, radius: 7 };
@@ -606,14 +625,14 @@ const sea = {
       radius: sunreachSouth.r,
       look: { design: 'sunreach-south', harbourBearing: r4(sunreachSouth.bearing) },
     },
-    { ...palmKey, name: 'Palm Key', look: { design: 'palm-key' } },
+    { ...palmKey, name: 'Palm Key', look: { design: 'palm-key', dock: true } },
     { ...lonePalm, name: 'Lone Palm', look: { design: 'lone-palm', harbourBearing: 0 } },
   ],
   terrain,
   ports: [
     // Trade from the far goods (decision 0150): Sunreach's workshop crafts spiced tea only from
-    // the spice it receives. Palm Key gets its port when outposts can be founded (decision 0137,
-    // outpost-south arc): then maxLevel 3, levelProduces 2: spice through afterQuest.
+    // the spice it receives. Palm Key is a site (decision 0157): a port only once the
+    // outpost-south arc founds it, then a hamlet that gathers spice and grows to town.
     {
       id: 'sunreach',
       name: 'Sunreach',
@@ -623,6 +642,17 @@ const sea = {
       wantsMade: ['honey', 'planks', 'bread'],
       level: 3,
       levelProduces: { 3: ['spicedTea'] },
+    },
+    {
+      id: 'palm-key',
+      name: 'Palm Key',
+      islandId: 'palm-key',
+      site: true,
+      produces: ['spice'],
+      wants: ['timber'],
+      wantsMade: ['bread', 'planks'],
+      level: 1,
+      maxLevel: 3,
     },
   ],
   course: [

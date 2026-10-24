@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../../src/data/maps';
-import { QUESTS, QUEST_DONE, QuestBook, checkQuests } from '../../src/sim/quests';
+import { QUESTS, QUEST_DONE, QuestBook, checkQuests, questsFor } from '../../src/sim/quests';
 import { giveHomeIsland, islandHome } from '../../src/sim/home';
 import { SLOOP } from '../../src/sim/ship';
 import { buy, cargoUsed, sell } from '../../src/sim/trade';
@@ -32,7 +32,7 @@ function start(difficulty?: string) {
 
 describe('the Westholm mill arc (0129, 0132)', () => {
   it('is a sound quest file, offered by Maren at Westholm once Rook has given the island', () => {
-    expect(checkQuests(QUESTS, PHASE1_MAP)).toEqual([]);
+    expect(checkQuests(questsFor(PHASE1_MAP), PHASE1_MAP)).toEqual([]);
     expect(quest.giver).toBe('maren');
     expect(quest.steps.map((s) => s.id)).toEqual(['sails', 'millstones', 'bread']);
     const { quests } = start();

@@ -1,4 +1,5 @@
 import { TUNING } from '../data/tuning';
+import { chartAreaIds, fogIslandIds, islandCharted } from './fog';
 import { chartableZoneIds, type MapDef, type PortDef } from './map';
 import { applyPerks } from './perks';
 import { distance } from './math';
@@ -22,15 +23,21 @@ export interface ShipyardProgress {
   charted?: string[];
   /** Named wind zone ids on the chart: sailed well inside at least once (decision 0152). */
   zones?: string[];
+  /** Fog of war (decision 0156): chart area ids sailed into or given by a quest… */
+  areas?: string[];
+  /** …and islands in the fog sighted one by one. */
+  sighted?: string[];
 }
 
 /** The home port: the map's choice, else the port nearest the start. */
 export function homePort(map: MapDef): PortDef {
   const named = map.ports.find((p) => p.id === map.homePort);
   if (named) return named;
-  let best = map.ports[0]!;
+  // An empty island to found (decision 0157) is never the home port.
+  const ports = map.ports.filter((p) => !p.site);
+  let best = ports[0] ?? map.ports[0]!;
   let bestD = Infinity;
-  for (const port of map.ports) {
+  for (const port of ports) {
     const island = map.islands.find((i) => i.id === port.islandId);
     const d = island ? distance(island, map.start) : Infinity;
     if (d < bestD) {
@@ -55,16 +62,36 @@ export function yardOf(map: MapDef, classId: string): PortDef | null {
 }
 
 export function createProgress(map: MapDef): ShipyardProgress {
-  return { discovered: map.ports.filter((p) => !p.hidden).map((p) => p.id), standing: {} };
+  return {
+    discovered: map.ports.filter((p) => !p.hidden && !p.site).map((p) => p.id),
+    standing: {},
+  };
 }
 
 export function isDiscovered(trade: TradeState, portId: string): boolean {
   return trade.progress.discovered.includes(portId);
 }
 
+/**
+ * Whether a port is open (decision 0157): every port is, except an empty island to found (`site`)
+ * until a quest founds it. A site goes on the chart only when founded, so the chart's list is
+ * also the record of the sites founded, saved with the rest of the voyage.
+ */
+export function isFounded(trade: TradeState, port: PortDef): boolean {
+  return !port.site || isDiscovered(trade, port.id);
+}
+
+/** A port on the chart: found, and not out in the fog (decision 0156). */
+export function portCharted(map: MapDef, trade: TradeState, port: PortDef): boolean {
+  if (!isDiscovered(trade, port.id)) return false;
+  if (!map.fog) return true;
+  const island = map.islands.find((i) => i.id === port.islandId);
+  return !island || islandCharted(map, trade.progress, island);
+}
+
 /** Ports on the chart, in map order. */
 export function discoveredPorts(map: MapDef, trade: TradeState): PortDef[] {
-  return map.ports.filter((p) => isDiscovered(trade, p.id));
+  return map.ports.filter((p) => portCharted(map, trade, p));
 }
 
 /** Put hidden ports near `pos` on the chart. Returns the ones found just now. */
@@ -75,7 +102,8 @@ export function discoverNear(
 ): PortDef[] {
   const found: PortDef[] = [];
   for (const port of map.ports) {
-    if (isDiscovered(trade, port.id)) continue;
+    // A site goes on the chart when it is founded, not when seen (decision 0157).
+    if (port.site || isDiscovered(trade, port.id)) continue;
     const island = map.islands.find((i) => i.id === port.islandId);
     // The lookout sees farther (decision 0126).
     const range = applyPerks(trade.home, 'discoverRange', TUNING.economy.discoverRange);
@@ -166,6 +194,16 @@ export function readProgress(raw: unknown, map: MapDef): ShipyardProgress {
   if (Array.isArray(zones)) {
     const known = chartableZoneIds(map).filter((id) => zones.includes(id));
     if (known.length) fresh.zones = known;
+  }
+  const areas = (raw as { areas?: unknown }).areas;
+  if (Array.isArray(areas)) {
+    const known = chartAreaIds(map).filter((id) => areas.includes(id));
+    if (known.length) fresh.areas = known;
+  }
+  const sighted = (raw as { sighted?: unknown }).sighted;
+  if (Array.isArray(sighted)) {
+    const known = fogIslandIds(map).filter((id) => sighted.includes(id));
+    if (known.length) fresh.sighted = known;
   }
   if (typeof r.standing === 'object' && r.standing !== null) {
     const saved = r.standing as Record<string, unknown>;

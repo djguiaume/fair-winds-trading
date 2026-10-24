@@ -29,9 +29,12 @@ Where
   --tab market|orders|quay|shipyard   the port screen's tab
   --zoom z                      camera distance, 1 = default, larger = farther (no game limit)
   --look x,y                    camera on this map point instead of the boat
+  --menu                        the title menu, before Set sail (the scene options are ignored)
   --chart                       the sea chart open; --chart-zoom n, --chart-pan Key:n,
                                 --chart-panel legend|market|journal (default none)
   --charted                     every wind zone already sailed (named on the chart)
+  --town id:level,…             towns at these levels; an empty island to found is founded first
+                                (0157), so --town palm-key:1 shows Palm Key just founded
 Look
   --lang en|fr                  language (default en)
   --night  | --time s           night, or this game time in seconds (default 300, day)
@@ -82,11 +85,17 @@ export function normalise(opts) {
     tab: o.tab ?? null,
     zoom: o.zoom ?? null,
     look: o.look !== undefined ? pair(o.look) : null,
+    menu: !!o.menu,
     chart: !!o.chart,
     chartZoom: o['chart-zoom'] ?? 0,
     chartPan: o['chart-pan'] ? keyHold(o['chart-pan']) : null,
     chartPanel: o['chart-panel'] ?? null,
     charted: !!o.charted,
+    towns: list(o.town ?? []).map((t) => {
+      const [id, level] = String(t).split(':');
+      if (!id || !(Number(level) >= 1)) throw new Error(`not id:level: ${t}`);
+      return [id, Number(level)];
+    }),
     lang: o.lang ?? 'en',
     night: !!o.night,
     time: o.time ?? null,
@@ -110,7 +119,13 @@ export function normalise(opts) {
 function defaultName(s) {
   const sea = s.seaFile ? basename(s.seaFile, extname(s.seaFile)) : s.sea;
   const where = s.port ?? (s.at ? `${s.at[0]}_${s.at[1]}` : 'start');
-  return [sea, where, s.chart && 'chart', s.night && 'night', s.lang !== 'en' && s.lang]
+  return [
+    sea,
+    s.menu ? 'menu' : where,
+    s.chart && 'chart',
+    s.night && 'night',
+    s.lang !== 'en' && s.lang,
+  ]
     .filter(Boolean)
     .join('-');
 }
@@ -208,6 +223,8 @@ async function setScene(page, shot) {
       world.ship = trade.activeShip(world.trade);
     }
     if (s.charted) world.trade.progress.zones = world.map.windZones.map((z) => z.id);
+    for (const [id, level] of s.towns)
+      if (!window.fwt.town(id, level)) return `no town ${id} on this sea`;
     if (s.at) {
       const beam = ((world.seaWind.from * 180) / Math.PI + 90) % 360;
       window.fwt.place(s.at[0], s.at[1], s.heading ?? beam, s.sail);
@@ -244,37 +261,45 @@ async function shootOne(browser, base, shot, size, file) {
       for (const [k, v] of Object.entries(items)) localStorage.setItem(k, v);
     }, seedStorage(shot));
     await page.goto(base + shotPath(shot));
-    await enter(page);
-    await setScene(page, shot);
-    if (shot.hold) {
-      await page.keyboard.down(shot.hold.key);
-      await pause(shot.hold.n);
-      await page.keyboard.up(shot.hold.key);
-    }
-    await pause(shot.wait);
-    if (!shot.cards) await closeCards(page);
-    if (shot.chart) {
-      await closeCards(page);
-      await page.click('#chart-btn');
-      await pause(600);
-      for (let i = 0; i < shot.chartZoom; i++) await page.click('#chart-zoom-in');
-      if (shot.chartPan) {
-        await page.focus('#chart-map');
-        for (let i = 0; i < shot.chartPan.n; i++) await page.keyboard.press(shot.chartPan.key);
-      }
-      // The panel beside the sea: none by default, so the whole sea shows.
-      await page.evaluate((panel) => {
-        for (const b of document.querySelectorAll('#chart [data-chart-close]'))
-          if (b.offsetParent) b.click();
-        if (panel) document.getElementById(`chart-${panel}-toggle`)?.click();
-      }, shot.chartPanel);
-      await pause(400);
-    }
+    if (shot.menu) {
+      await page.locator('#menu-play').waitFor({ state: 'visible', timeout: 30000 });
+      await pause(shot.wait);
+    } else await shootScene(page, shot);
     await page.screenshot({ path: file });
   } finally {
     await context.close();
   }
   if (errors.length) throw new Error(`page error: ${errors[0]}`);
+}
+
+/** The game entered and the scene set, ready for the shot. */
+async function shootScene(page, shot) {
+  await enter(page);
+  await setScene(page, shot);
+  if (shot.hold) {
+    await page.keyboard.down(shot.hold.key);
+    await pause(shot.hold.n);
+    await page.keyboard.up(shot.hold.key);
+  }
+  await pause(shot.wait);
+  if (!shot.cards) await closeCards(page);
+  if (shot.chart) {
+    await closeCards(page);
+    await page.click('#chart-btn');
+    await pause(600);
+    for (let i = 0; i < shot.chartZoom; i++) await page.click('#chart-zoom-in');
+    if (shot.chartPan) {
+      await page.focus('#chart-map');
+      for (let i = 0; i < shot.chartPan.n; i++) await page.keyboard.press(shot.chartPan.key);
+    }
+    // The panel beside the sea: none by default, so the whole sea shows.
+    await page.evaluate((panel) => {
+      for (const b of document.querySelectorAll('#chart [data-chart-close]'))
+        if (b.offsetParent) b.click();
+      if (panel) document.getElementById(`chart-${panel}-toggle`)?.click();
+    }, shot.chartPanel);
+    await pause(400);
+  }
 }
 
 /** The night's middle, in game seconds, from the tuning file (decision 0068). */

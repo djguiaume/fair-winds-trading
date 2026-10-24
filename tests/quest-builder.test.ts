@@ -1,7 +1,8 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { formatJson, formatQuestJson } from '../src/data/jsonFormat';
-import { PHASE1_MAP } from '../src/data/maps';
+import { grownMap } from '../src/data/grownMap';
+import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../src/data/maps';
 import {
   type QuestDoc,
   addPlace,
@@ -20,7 +21,9 @@ import {
 } from '../src/editor/quest/doc';
 import { clearAt } from '../src/sim/mapChecks';
 import { CONDITIONS, CONDITION_ABOUT, checkCondition } from '../src/sim/questLibrary';
-import { QUESTS, type QuestDef, checkQuests } from '../src/sim/quests';
+import { QUESTS, type QuestDef, checkQuests, questsFor } from '../src/sim/quests';
+
+const PHASE4_MAP = prepareMap(grownMap(PHASE1_SOURCE));
 
 /** The quest builder's document (decision 0142). */
 
@@ -98,7 +101,12 @@ describe('quest builder (decision 0142)', () => {
   it('the shipped quests pass the builder’s text and place checks', () => {
     const doc = shipped();
     expect(checkText(doc)).toEqual([]);
-    expect(checkPlaces(doc, PHASE1_MAP, (x, y) => clearAt(PHASE1_MAP, x, y, 0))).toEqual([]);
+    expect(
+      checkPlaces({ ...doc, quests: questsFor(PHASE1_MAP, doc.quests) }, PHASE1_MAP, (x, y) =>
+        clearAt(PHASE1_MAP, x, y, 0),
+      ),
+    ).toEqual([]);
+    expect(checkPlaces(doc, PHASE4_MAP, (x, y) => clearAt(PHASE4_MAP, x, y, 0))).toEqual([]);
     setText(doc, 'fr', 'quest.saltmere-shoals.catch.title', 'Portez la pêche');
     expect(checkText(doc).join()).toContain('the {…} differ');
   });
@@ -144,6 +152,7 @@ describe('quest builder (decision 0142)', () => {
   it('a new quest from the builder passes the engine’s checks', () => {
     const doc = shipped();
     doc.quests.push(newQuest(doc, PHASE1_MAP));
-    expect(checkQuests(doc.quests, PHASE1_MAP)).toEqual([]);
+    expect(checkQuests(questsFor(PHASE1_MAP, doc.quests), PHASE1_MAP)).toEqual([]);
+    expect(checkQuests(doc.quests, PHASE4_MAP)).toEqual([]);
   });
 });

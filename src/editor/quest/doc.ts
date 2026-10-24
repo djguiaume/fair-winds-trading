@@ -1,4 +1,6 @@
+import { grownMap } from '../../data/grownMap';
 import { ISLAND_DESIGNS } from '../../data/islands';
+import { PHASE1_SOURCE, prepareMap } from '../../data/maps';
 import { formatJson, formatQuestJson } from '../../data/jsonFormat';
 import en from '../../i18n/en.json';
 import fr from '../../i18n/fr.json';
@@ -18,6 +20,7 @@ import {
   QUEST_DONE,
   checkQuestHooks,
   checkQuests,
+  questsFor,
 } from '../../sim/quests';
 
 /*
@@ -119,6 +122,8 @@ export function conditionWords(c: Condition | undefined): string {
       return `owns a ${String(v.ship)}`;
     case 'delivered':
       return `deliver ${String(v.qty)} ${String(v.good)} at ${String(v.port)}`;
+    case 'landed':
+      return `land ${String(v.qty)} ${String(v.good)} ${placeWords(v.place)}`;
     case 'carried':
       return `carry ${String(v.qty)} ${String(v.item)} ${placeWords(v.from)} → ${placeWords(v.to)}`;
     case 'reach': {
@@ -232,6 +237,17 @@ export function stepPlaces(step: QuestStep, map: MapDef): Place[] {
             no: i + 1,
             ordered: false,
           });
+      });
+    if (cond.is === 'landed' && isSpot(cond.place))
+      out.push({
+        kind: 'spot',
+        x: cond.place.x,
+        y: cond.place.y,
+        within: cond.place.within,
+        path: [...path, 'place'],
+        radiusPath: [...path, 'place', 'within'],
+        no: 1,
+        ordered: false,
       });
   };
   walk(step.goal, ['goal']);
@@ -569,13 +585,22 @@ export function checkPlaces(
  * Every problem the quest builder lists (its Checks panel), also run by `npm run check`
  * (decision 0153): quest files, hooks on island files, text and places.
  */
+/** The grown Phase 4 sea, built once when the checks first need it. */
+let GROWN: MapDef | undefined;
+
 export function questProblems(doc: QuestDoc, map: MapDef): string[] {
   try {
+    // Quests for a Phase 4 sea this map lacks are left to the grown sea's checks (decision 0155);
+    // a quest naming a port no sea has is still checked here, so a misspelt port shows.
+    const grown = (GROWN ??= prepareMap(grownMap(PHASE1_SOURCE)));
+    const here = doc.quests.filter(
+      (q) => questsFor(map, [q]).length > 0 || questsFor(grown, [q]).length === 0,
+    );
     return [
-      ...checkQuests(doc.quests, map),
+      ...checkQuests(here, map),
       ...checkQuestHooks(map, Object.values(ISLAND_DESIGNS), doc.quests),
       ...checkText(doc),
-      ...checkPlaces(doc, map, (x, y) => clearAt(map, x, y, 0)),
+      ...checkPlaces({ ...doc, quests: here }, map, (x, y) => clearAt(map, x, y, 0)),
     ];
   } catch (e) {
     return [`the checks stopped: ${String(e)}`];
@@ -642,6 +667,7 @@ export const REWARD_FIELDS: { key: keyof QuestReward; label: string }[] = [
   { key: 'standing', label: 'Standing' },
   { key: 'discover', label: 'On the chart' },
   { key: 'levelUp', label: 'Level up' },
+  { key: 'found', label: 'Found an outpost' },
   { key: 'homeIsland', label: 'An island' },
   { key: 'homeSpot', label: 'Building spots' },
 ];

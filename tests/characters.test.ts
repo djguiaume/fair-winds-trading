@@ -9,14 +9,16 @@ import {
   lookOf,
   portraitSvg,
 } from '../src/ui/portraits';
-import { PHASE1_MAP } from '../src/data/maps';
+import { grownMap } from '../src/data/grownMap';
+import { PHASE1_SOURCE, prepareMap } from '../src/data/maps';
 
 // Decision 0124: the people of the arcs are data in characters.json, drawn in code.
 describe('characters.json', () => {
   const colour = /^#[0-9a-f]{6}$/;
 
   it('gives every person a unique id, a name, a role and a home port on the map', () => {
-    const ports = new Set(PHASE1_MAP.ports.map((p) => p.id));
+    // People of the Phase 4 seas live on the grown sea (decision 0155).
+    const ports = new Set(prepareMap(grownMap(PHASE1_SOURCE)).ports.map((p) => p.id));
     expect(new Set(CHARACTERS.map((c) => c.id)).size).toBe(CHARACTERS.length);
     for (const c of CHARACTERS) {
       expect(c.name.length, c.id).toBeGreaterThan(0);

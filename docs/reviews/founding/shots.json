@@ -1,0 +1,9 @@
+[
+  { "name": "palm-key-site", "at": [440, -770], "heading": 180, "look": [505, -733], "zoom": 1.2 },
+  { "name": "palm-key-founded", "town": "palm-key:1", "at": [440, -770], "heading": 180, "look": [505, -733], "zoom": 1.2, "sizes": ["desktop", "landscape", "portrait"] },
+  { "name": "palm-key-village", "town": "palm-key:2", "at": [440, -770], "heading": 180, "look": [505, -733], "zoom": 1.2 },
+  { "name": "palm-key-town", "town": "palm-key:3", "at": [440, -770], "heading": 180, "look": [505, -733], "zoom": 1.2 },
+  { "name": "palm-key-close", "town": "palm-key:1", "at": [470, -750], "heading": 180, "look": [500, -733], "zoom": 0.6 },
+  { "name": "chart-site", "at": [440, -745], "heading": 180, "chart": true, "chart-zoom": 2, "chart-pan": "ArrowRight:10" },
+  { "name": "chart-founded", "town": "palm-key:1", "at": [440, -745], "heading": 180, "chart": true, "chart-zoom": 2, "chart-pan": "ArrowRight:10" }
+]

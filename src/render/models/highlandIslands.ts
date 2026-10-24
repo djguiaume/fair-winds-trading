@@ -150,7 +150,8 @@ export function islandParts(
         sz,
         landmark: look.landmark,
         pier: { x: R * 0.08, z0: R * 0.85, len: Math.min(R * 0.75, 4.5) },
-        harbour: !!look.dock,
+        // Level 0: an empty island to found, no harbour yet (decision 0157).
+        harbour: !!look.dock && level !== 0,
         homeBuilt,
         questsDone,
       }),

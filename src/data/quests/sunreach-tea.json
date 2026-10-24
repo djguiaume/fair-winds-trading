@@ -1,0 +1,33 @@
+{
+  "id": "sunreach-tea",
+  "name": "The idle tea house",
+  "start": { "is": "quest-done", "quest": "watchman-passage" },
+  "text": "quest.sunreach-tea",
+  "giver": "juno",
+  "port": "sunreach",
+  "offer": true,
+  "steps": [
+    {
+      "id": "bread",
+      "mood": "worried",
+      "goal": { "is": "delivered", "port": "sunreach", "good": "bread", "qty": 8 },
+      "reward": { "gold": 250 }
+    },
+    {
+      "id": "garden",
+      "goal": {
+        "is": "reach",
+        "points": [{ "x": 474, "y": -730 }],
+        "within": 14,
+        "maxKn": 3,
+        "holdSec": 3
+      },
+      "reward": { "gold": 400 }
+    },
+    {
+      "id": "racks",
+      "goal": { "is": "delivered", "port": "sunreach", "good": "planks", "qty": 10 },
+      "reward": { "gold": 600 }
+    }
+  ]
+}

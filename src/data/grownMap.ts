@@ -1,3 +1,4 @@
+import type { ChartAreaDef } from '../sim/fog';
 import type { MapDef } from '../sim/map';
 import grown from './seas/grown.json';
 
@@ -18,6 +19,8 @@ export type SeaDef = Pick<MapDef, 'islands' | 'ports' | 'course'> &
   Partial<Pick<MapDef, 'terrain' | 'marks' | 'currents' | 'windZones'>> & {
     id: string;
     name: string;
+    /** The sea's named areas, each charted at once when sailed into (decision 0156). */
+    chartAreas?: ChartAreaDef[];
   };
 
 /** Every sea file in `src/data/seas/` but `grown.json`, by file name (decision 0156). */
@@ -51,6 +54,8 @@ export function grownMap(source: MapDef, seas: readonly SeaDef[] = SEAS): MapDef
   map.name = `${source.name} (Phase 4 sea)`;
   map.compatibleSaveMaps = [];
   map.boundsRadius = GROWN_SEA_RADIUS;
+  // The new waters start uncharted; the ring stays charted (decisions 0137, 0156).
+  map.fog = { chartedRadius: grown.chartedRadius, areas: [] };
   for (const sea of seas) {
     const add = structuredClone(sea);
     map.islands.push(...add.islands);
@@ -60,6 +65,7 @@ export function grownMap(source: MapDef, seas: readonly SeaDef[] = SEAS): MapDef
     (map.marks ??= []).push(...(add.marks ?? []));
     (map.currents ??= []).push(...(add.currents ?? []));
     (map.windZones ??= []).push(...(add.windZones ?? []));
+    map.fog.areas.push(...(add.chartAreas ?? []));
   }
   return map;
 }

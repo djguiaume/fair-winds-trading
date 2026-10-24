@@ -212,7 +212,7 @@ at once and then every few seconds, with the line `toast.<effect>` if there is o
 direction of the step's place), `mood` (the giver's face on this
 step's card: `neutral`, `pleased` or `worried`), `look` (a named look from
 `characters.json`, e.g. Rook `soaked`) and `speaker` (someone else speaks this step's card, a
-`characters.json` id; `mood` and `look` are then theirs: [0133](../decisions/0133-stonehaven-light-arc.md)). The sea shows the
+`characters.json` id; `mood` and `look` are then theirs: [0133](../decisions/0133-stonehaven-light-arc.md)); the quest's own `doneSpeaker` does the same for the done card (the settler thanks the captain, [0158](../decisions/0158-founding-palm-key.md)). The sea shows the
 **tracked** quest's step: its `compass`, `wind` and `sound` ([0139](../decisions/0139-gentler-prologue-and-quest-cards.md)), and with no course set an
 objective arrow to its compass point, spot or harbour. The tutorial's lessons use the same `wind`
 and `sound` fields.
@@ -259,6 +259,7 @@ level, as a clock ("Rush bread to Saltmere in {par}" shows "2:20" on Captain,
 | `owns-ship` | `ship` | anywhere |
 | `moored` | `island` (optional; default the home island): moored at its pier | anywhere |
 | `delivered` | `port`, `good`, `qty`: sold or for an order there since the step began | goal |
+| `landed` | `place`, `good`, `qty`: goods taken out of the hold at a port alongside, or at a spot at sea held slowly there, as many as she has aboard up to `qty`; nothing paid; founding goods ([0157](../decisions/0157-founding-an-outpost.md)) | goal |
 | `carried` | `item`, `qty`, `from`, `to`: quest cargo, loaded as the hold allows; `from`/`to` is a port or a spot at sea `{ "x", "y", "within", "maxKn", "holdSec" }`, held slowly there ([0131](../decisions/0131-calda-slipway-and-cargo-at-a-spot.md)) | goal |
 | `bought` | `port`, `good` (optional), `qty`: bought there since the step began | goal |
 | `sails-practised` | lowered and raised the sails, steered, got under way | goal |
@@ -266,9 +267,17 @@ level, as a clock ("Rush bread to Saltmere in {par}" shows "2:20" on Captain,
 | `timed` | `from`, `to` (default `from`), `via` (points in order), `within`, `par` (seconds, or `{ "fair": …, "captain": …, "salt": … }`) | goal |
 
 `port` can be `"home"`. Rewards: `gold`, `standing` (`{ "port": n }`), `discover` and `levelUp`
-(lists of ports). `tests/quests.test.ts` checks every shipped quest file; `checkQuests` says
+(lists of ports), and `found` (a list of sites to found, below). `tests/quests.test.ts` checks every shipped quest file; `checkQuests` says
 what is wrong in plain words. Never rename a shipped quest, step or option: old saves would
 start it again.
+
+**An outpost to found ([0157](../decisions/0157-founding-an-outpost.md)).** Give the port entry
+`"site": true` and its `level` (the level it opens at) and `maxLevel`. Until a quest reward
+`"found": ["<port>"]` names it, it is an empty island: no pier, market, chart entry or docking.
+Its island file shows level 0 before founding: give a prop `"from": 0` to have it stand then
+too (a daymark); everything from level 1 appears on the day it is founded (the flagpole and
+name board, the first homes). Founding goods are `landed` at a spot off its beach, the settler
+is a `carried` item (space 0) to the same spot. `discover` and `levelUp` never name a site.
 
 **A step's places at sea ([0130](../decisions/0130-after-a-quest-and-the-saltmere-shoals.md)).**
 The tracked step's `reach` points, a timed run's `via` points and quest cargo's spot are drawn

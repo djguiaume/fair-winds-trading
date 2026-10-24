@@ -1,6 +1,7 @@
 import { DIFFICULTIES } from './difficulty';
 import { GOODS, type GoodId, isFar } from './goods';
 import { BUILDING_IDS, buildableIslands, homeSpots } from './home';
+import { chartAreaIds, fogIslandIds } from './fog';
 import { chartableZoneIds, type MapDef } from './map';
 import { slotLayout } from './questLibrary';
 import {
@@ -37,21 +38,32 @@ const TAU = 2 * Math.PI;
  */
 const GOODS_BEFORE_FAR: readonly GoodId[] = GOODS.filter((g) => !isFar(g));
 
+/**
+ * The port lists a code may have been written with: the map's, and the map's before its empty
+ * islands to found were added (decision 0157), so a code from before a sea had its site still reads.
+ */
+function portLists(map: MapDef): string[][] {
+  const all = map.ports.map((p) => p.id);
+  const open = map.ports.filter((p) => !p.site).map((p) => p.id);
+  return open.length === all.length ? [all] : [all, open];
+}
+
 /** Every id list the layout depends on, in order. */
-function layoutIds(map: MapDef, goods: readonly string[]): string[] {
-  return [
-    map.name,
-    ...map.ports.map((p) => p.id),
-    ...goods,
-    ...SHIP_IDS,
-    ...UPGRADE_TRACKS,
-    ...DIFFICULTIES,
-  ];
+function layoutIds(
+  map: MapDef,
+  goods: readonly string[],
+  ports: readonly string[] = map.ports.map((p) => p.id),
+): string[] {
+  return [map.name, ...ports, ...goods, ...SHIP_IDS, ...UPGRADE_TRACKS, ...DIFFICULTIES];
 }
 
 /** 16-bit FNV-1a of the layout lists: different lists give a different fingerprint. */
-export function layoutFingerprint(map: MapDef, goods: readonly string[] = GOODS): number {
-  return fingerprint(layoutIds(map, goods));
+export function layoutFingerprint(
+  map: MapDef,
+  goods: readonly string[] = GOODS,
+  ports?: readonly string[],
+): number {
+  return fingerprint(layoutIds(map, goods, ports));
 }
 
 /**
@@ -90,11 +102,19 @@ const WORKSHOP_SECTION = 11;
  * is charted: its number, a fingerprint of the map's named zone ids, their count and a flag each.
  */
 const ZONES_SECTION = 12;
+/**
+ * Fog of war's section (decision 0156), after the wind zones and only when something in the fog
+ * is charted: its number, a fingerprint of the map's chart areas and fogged islands, then the
+ * areas' count and a flag each, and the islands' count and a flag each.
+ */
+const FOG_SECTION = 13;
 /** No section left to read (sections are numbered from 1). */
 const NO_SECTION = -1;
 const currentIds = (map: MapDef) => (map.currents ?? []).map((c) => c.id);
 const currentsFingerprint = (map: MapDef) => fingerprint(currentIds(map));
 const zonesFingerprint = (map: MapDef) => fingerprint(chartableZoneIds(map));
+const fogFingerprint = (map: MapDef) =>
+  fingerprint([...chartAreaIds(map), '|', ...fogIslandIds(map)]);
 
 function fingerprint(ids: string[]): number {
   let h = 0x811c9dc5;
@@ -303,6 +323,18 @@ export function packSave(
     w.uint(zoneIds.length);
     w.flags(zones);
   }
+  const areaIds = chartAreaIds(map);
+  const islandIds = fogIslandIds(map);
+  const areas = areaIds.map((id) => !!save.progress?.areas?.includes(id));
+  const sighted = islandIds.map((id) => !!save.progress?.sighted?.includes(id));
+  if (areas.some(Boolean) || sighted.some(Boolean)) {
+    w.uint(FOG_SECTION);
+    w.uint(fogFingerprint(map));
+    w.uint(areaIds.length);
+    w.flags(areas);
+    w.uint(islandIds.length);
+    w.flags(sighted);
+  }
   return Uint8Array.from(w.bytes);
 }
 
@@ -393,19 +425,22 @@ export function unpackSave(
   saveVersion: number,
   quests: readonly QuestDef[] = questsFor(map),
 ): { ok: true; raw: SaveData } | { ok: false; problem: UnpackProblem } {
-  const ports = map.ports.map((p) => p.id);
   const r = new Reader(bytes);
   const version = r.uint();
   if (version > saveVersion) return { ok: false, problem: 'newer' };
   const fingerprint = r.uint();
-  // A code from before the far goods (0146) reads with the goods list it was written with.
-  const goods = [GOODS, GOODS_BEFORE_FAR].find(
-    (list) =>
-      fingerprint === layoutFingerprint(map, list) ||
-      fingerprint === (layoutFingerprint(map, list) ^ questFingerprint(quests)),
-  );
-  if (!goods) return { ok: false, problem: 'otherVersion' };
-  const withQuests = fingerprint !== layoutFingerprint(map, goods);
+  // A code from before the far goods (0146), or from before a sea's empty island to found (0157),
+  // reads with the goods and ports lists it was written with.
+  const layout = portLists(map)
+    .flatMap((ports) => [GOODS, GOODS_BEFORE_FAR].map((goods) => ({ goods, ports })))
+    .find(
+      ({ goods, ports }) =>
+        fingerprint === layoutFingerprint(map, goods, ports) ||
+        fingerprint === (layoutFingerprint(map, goods, ports) ^ questFingerprint(quests)),
+    );
+  if (!layout) return { ok: false, problem: 'otherVersion' };
+  const { goods, ports } = layout;
+  const withQuests = fingerprint !== layoutFingerprint(map, goods, ports);
   const pick = (list: readonly string[], n: number) => (n > 0 ? list[n - 1] : undefined);
 
   const time = r.uint();
@@ -555,6 +590,23 @@ export function unpackSave(
     if (same && n === ids.length) zones = ids.filter((_, k) => flags[k]);
     section = r.done ? NO_SECTION : r.uint();
   }
+  // Fog of war (decision 0156): forgotten, like the zones, if the map's areas or islands changed.
+  let areas: string[] | undefined;
+  let sighted: string[] | undefined;
+  if (section === FOG_SECTION) {
+    const areaIds = chartAreaIds(map);
+    const islandIds = fogIslandIds(map);
+    const same = r.uint() === fogFingerprint(map);
+    const na = r.uint();
+    const areaFlags = r.flags(na);
+    const ni = r.uint();
+    const islandFlags = r.flags(ni);
+    if (same && na === areaIds.length && ni === islandIds.length) {
+      areas = areaIds.filter((_, k) => areaFlags[k]);
+      sighted = islandIds.filter((_, k) => islandFlags[k]);
+    }
+    section = r.done ? NO_SECTION : r.uint();
+  }
   if (section > HOME_SECTION) return { ok: false, problem: 'newer' };
   if (section !== NO_SECTION || !r.done) return { ok: false, problem: 'unreadable' };
 
@@ -581,6 +633,8 @@ export function unpackSave(
         standing,
         ...(charted?.length ? { charted } : {}),
         ...(zones?.length ? { zones } : {}),
+        ...(areas?.length ? { areas } : {}),
+        ...(sighted?.length ? { sighted } : {}),
       },
       settlements: { byPort: towns, ...(pendingSupply ? { pendingSupply } : {}) },
       ...(difficulty ? { difficulty } : {}),

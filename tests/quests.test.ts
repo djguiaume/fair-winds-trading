@@ -69,7 +69,7 @@ function sailTo(world: World, quests: QuestBook, x: number, y: number, kn = 6, s
 
 describe('quest engine (decision 0125)', () => {
   it('the shipped quest files and the test files pass the checks', () => {
-    expect(checkQuests(QUESTS, PHASE1_MAP)).toEqual([]);
+    expect(checkQuests(questsFor(PHASE1_MAP), PHASE1_MAP)).toEqual([]);
     expect(checkQuests(TEST_QUESTS, PHASE1_MAP, ['first-voyage'])).toEqual([]);
     expect(checkQuests(SAILING, PHASE1_MAP)).toEqual([]);
     // The tutorial is a quest like the others (decision 0151).
