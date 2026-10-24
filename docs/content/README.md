@@ -50,6 +50,28 @@ Add an entry under `default.kinds` in
 - Not from data yet: a new look (real fog, snow) needs code once; until then a kind looks like its
   rain and gloom.
 
+## A fog bank or another hazy zone ([0169](../decisions/0169-haze-fog-banks-and-ash-clouds-as-wind-zone-kinds.md))
+
+A fog bank is a wind zone of kind `fog-bank`: draw it with the sea editor's **Add wind zone** (Kind
+`fog-bank`, give it a name so it is charted once sailed) or `npm run sea -- add zone --kind fog-bank
+--sea east --at x,y --name "The Murk"`. A new hazy kind (ash, sea smoke) is an entry under
+`zones.kinds` in [`weather.json`](../../src/data/tuning/weather.json) with a `haze`:
+
+```json
+"ash": {
+  "gusts": 1.2,
+  "haze": { "near": 10, "far": 60, "color": "#9a8f86", "fade": 100, "switch": "ash" },
+  "chart": "#9a8f86"
+}
+```
+
+- `near` / `far`: sight in units past the boat; `color`: the fog by day; `fade`: how wide its edge
+  is; `switch`: the Settings switch that turns it off (kinds may share one). `chart`: its tint on
+  the editor map and the labelled chart.
+- A new `switch` gets its own Settings row by itself; give it text: `settings.haze.ash` and
+  `settings.haze.ashNote` in `en.json` and `fr.json`, and the kind's name `zone.ash`.
+- No story step may need it: the player can switch it off.
+
 ## A new ship ([0109](../decisions/0109-one-file-per-ship.md))
 
 Copy a ship file in [`src/data/ships/`](../../src/data/ships/), rename it to the new id
@@ -99,7 +121,7 @@ new id and change its parts. A new file shows up in the island builder's palette
 | Key | What |
 | --- | --- |
 | top | `id` (the file name, used by island files), `name` (in the builder), `group` (`homes`, `town`, `timber`, `fish`, `farm`, `stone`, `nature`, `landmarks`), flags `home`, `building`, `water`, `edge`, `sizedInModel`, footprint `fit` / `fitRadius`, `internal` (not in the builder) |
-| `style` | take walls and roofs from this style (`fish`, `timber`, `grain`, `stone`, `yard`) instead of the island's |
+| `style` | take walls and roofs from this style (`fish`, `timber`, `grain`, `stone`, `yard`, `tropic`, `ice`) instead of the island's |
 | `vars` | numbers set in order: a number, an expression, or `{ "range": [a, b] }` set by the island file's `shape` (0 gives a, 1 gives b) |
 | `defaults` | values for island-file fields a prop may leave out (`length`) |
 | `extends` | another recipe to copy, with some `vars` changed (`windmill-bare` is `windmill` with `bare: 1`) |
@@ -112,6 +134,36 @@ new id and change its parts. A new file shows up in the island builder's palette
 **Expressions** (`"h / 2"`, `"k * pi / 2 + 0.4"`, `"variant == 0 ? 2 : variant"`) use numbers, the names `R` (island radius), `variant`, `shape`, `size`, `length`, the vars and repeat names, `pi`, `+ - * / %`, comparisons, `&& || !`, `? :`, and `floor abs min max sin cos sqrt pow`.
 
 **Checks** (`tests/prop-files.test.ts`): a typo in a key, an unknown colour or name, or a part with no shape fails with the file and part named; every file must build in every style for variants 0 to 5, within its group's triangle budget (`src/data/prop-groups.json`: homes 120, nature 60…) because islands must stay light for the old tablet. Changing a shipped recipe changes the islands that use it: the island golden hashes in `tests/island-files.test.ts` then need the new values, after a look at the island.
+
+## A new ground or island style ([0168](../decisions/0168-ground-materials-and-island-styles-as-data.md))
+
+Grounds and styles live in [`src/data/palette.json`](../../src/data/palette.json). A ground:
+
+```json
+"slate": {
+  "name": "Slate",
+  "top": ["#6e747c", "#5b6068"],
+  "side": ["#5b6068", "#6e747c"],
+  "cap": ["#eef4f8", "#e3ecf3"],
+  "capAbove": 0.6,
+  "trees": false
+}
+```
+
+`top` paints flat tops, slopes and ramps, `side` the cliffs, `peak` a mountain's cone (else `top`); `cap` paints a peak's faces above `capAbove` of its height (a snow line). A colour is a palette name, `#rrggbb`, or a list (each triangle takes one, a faint speckle). `glow` is a colour that shines at night (lava cracks); `trees: false` keeps woods off it; `beach: true` marks a beach. Island files name grounds in `material` (raised ground, mountains, ramps); the beach is the ground `sand`.
+
+A style has `walls` and `roofs` (house colours), and may swap grounds and override palette colours for its islands:
+
+```json
+"ice": {
+  "walls": ["#a8403a", "#d9a83a", "#3f6a9a", "#4f7f5a"],
+  "roofs": ["#33373d", "#3a3f46", "#2e3238"],
+  "grounds": { "grass": "snow", "rock": "slate", "sand": "shingle" },
+  "colors": { "path": "#d4dbe2" }
+}
+```
+
+So an island file of style `ice` that says `grass` is snow, and a file can still name `snow` or `ice` outright. Pick the style in the island builder (the island's panel) or `npm run island -- <id> set --style ice`; a ground with the builder's Ground picker or `npm run island -- <id> ground 2 --material ice`. `tests/grounds.test.ts` checks every ground in every style.
 
 ## A new difficulty level ([0113](../decisions/0113-levels-tutorial-and-music-as-data.md))
 
@@ -309,8 +361,20 @@ at sea (a ring as wide as `within`, the next one pulsing) and on the chart, with
   models are recipes in `src/data/props/mark-cardinal-*.json`, a yellow and black diamond on
   the chart). `turn` is a heading in degrees; `"chart": true` draws it on the chart too. Not solid;
   the map checks keep them off land and reefs.
+- **Islands and shapes ([0166](../decisions/0166-land-that-rises-or-clears-after-a-quest.md)):**
+  an island entry or a terrain entry (reef, sandbank, shallows, barrier island, ice) in a map or
+  sea file takes the same `"tags": ["after:<quest>"]` (it rises once the quest is done) or
+  `"tags": ["before:<quest>"]` (it clears then). Land, collision, wind shelter, reef drag, piers,
+  sighting, the chart and the shore foam all follow. It swaps only out of the boat's sight
+  (`seamanship.json` › `questLand`: farther than `changeDistance`, or docked and `dockedClear`
+  from it), never under her. One quest per feature; a port on rising land must be a `site`
+  founded after it rises; no port on land that clears; the home port, the captain's island and
+  the prologue wreck always stand. The route checks run with the land before and after its
+  quests. Sea editor: **Stands** and **Quest** on an island, shape or mark (a dashed ring on the
+  chart); command line: `npm run sea -- set island <id> --after <quest>` (`--before`, `--always`).
 - `checkQuestHooks` (run by `tests/quest-hooks.test.ts`) refuses a tag or `afterQuest` naming a
-  quest that does not exist.
+  quest that does not exist; the `quest-tags` map check does the same for islands, shapes and
+  marks in the editor, `npm run sea` and `npm run check`.
 
 A reef's or bank's landmark can be set by hand with `"look": { "landmark": "wreck",
 "landmarkAt": { "x", "y" } }`, so reshaping the outline does not move it (the prologue wreck).

@@ -157,6 +157,8 @@
   "settings.stormBeltNote": "Off: no squalls march through the storm belt",
   "settings.currents": "Currents",
   "settings.currentsNote": "Off: still water, no current carries the boat",
+  "settings.haze.fog": "Fog banks",
+  "settings.haze.fogNote": "Off: clear sight inside fog banks",
   "settings.speedLogNote": "Speed, heading, point of sail",
   "settings.fpsNote": "Frames per second",
   "settings.soundLanguage": "Sound · Language",
@@ -804,5 +806,6 @@
   "zone.stormy-coast": "stormy coast",
   "zone.cold-gale": "cold gales",
   "zone.sheltered": "sheltered water",
-  "zone.storm-belt": "storm belt"
+  "zone.storm-belt": "storm belt",
+  "zone.fog-bank": "fog bank"
 }

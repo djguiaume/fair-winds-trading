@@ -15,6 +15,7 @@ import { laneShape } from '../sim/currents';
 import { knobs } from '../sim/difficulty';
 import { coastDistance } from '../sim/coast';
 import { areaCrests, laneCrests, laneEdges, smoothOutline } from '../sim/flowShapes';
+import { zoneHazy } from '../sim/windZones';
 import { TUNING } from '../data/tuning';
 import { goodName, t, zoneKindName } from '../i18n';
 import { icon, COIN } from './icons';
@@ -436,8 +437,14 @@ export class SeaChart {
   ): ZoneLabel[] {
     const { map, trade } = this.world;
     const charted = trade.progress.zones ?? [];
-    const zones = (map.windZones ?? []).filter((z) => z.name && charted.includes(z.id));
-    if (!zones.length || !this.world.windZones) return [];
+    // With Settings › Wind zones off, fog banks still show while their haze is on (0169).
+    const zones = (map.windZones ?? []).filter(
+      (z) =>
+        z.name &&
+        charted.includes(z.id) &&
+        (this.world.windZones || zoneHazy(z, this.world.hazeOff)),
+    );
+    if (!zones.length) return [];
     return zones.map((z) => {
       const outline = smoothOutline(z.outline);
       const kind = z.kind.replace(/[^a-z-]/g, '');
@@ -886,7 +893,9 @@ export class SeaChart {
     const owned = ownedIslands(this.world.trade.home);
     const homes: typeof map.islands = [];
     const landBoxes: Box[] = [];
-    for (const island of map.islands) {
+    // Only the land standing now: an island a quest has not raised yet is not drawn (0166).
+    const { land: standing } = this.world;
+    for (const island of standing.islands) {
       const coasts = islandCoasts(island);
       if (coasts) {
         for (const outline of coasts)
@@ -923,7 +932,7 @@ export class SeaChart {
           bottom: -island.y + island.radius,
         });
     }
-    for (const terrain of map.terrain ?? []) {
+    for (const terrain of standing.terrain) {
       const points = terrain.outline.map(([x, y]) => `${x},${-y}`).join(' ');
       if (terrain.kind === 'island') land('polygon', { points });
       else

@@ -6,7 +6,8 @@ import { ISLAND_DESIGNS, useIslandDesign } from '../data/islands';
 import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../data/maps';
 import phase1Text from '../data/phase1-map.json?raw';
 import type { MapDef } from '../sim/map';
-import { type MapCheck, distanceChanges, quickChecks } from '../sim/mapChecks';
+import { type MapCheck, distanceChanges, questTagsCheck, quickChecks } from '../sim/mapChecks';
+import { QUESTS } from '../sim/quests';
 import { type Layers, type View, drawChart, drawCompass } from './chart';
 import {
   History,
@@ -406,7 +407,14 @@ function showChecks() {
 }
 
 function runChecks() {
-  quick = [...quickChecks(prepared), distanceChanges(prepared, SHIPPED_PREPARED)];
+  quick = [
+    ...quickChecks(prepared),
+    questTagsCheck(
+      prepared,
+      QUESTS.map((q) => q.id),
+    ),
+    distanceChanges(prepared, SHIPPED_PREPARED),
+  ];
   routes = null;
   showChecks();
   // Route finding takes a few seconds: wait for the edits to settle, run it off the page thread

@@ -583,8 +583,8 @@ function checkCoach(
 }
 
 /**
- * Problems with what waits on a quest (decision 0130), as readable lines: island props and sea
- * marks tagged `after:` or `before:` a quest, and ports whose trade changes after one, must name
+ * Problems with what waits on a quest (decision 0130), as readable lines: island props, sea
+ * marks, islands and shapes (0166) tagged `after:` or `before:` a quest, and ports whose trade changes after one, must name
  * a quest there is (`quests`, or `others` such as the tutorial).
  */
 export function checkQuestHooks(
@@ -609,6 +609,9 @@ export function checkQuestHooks(
   (map.marks ?? []).forEach((mark, i) =>
     named(questTagIds(mark), `map › mark ${i} (${mark.type})`),
   );
+  // Land that rises or clears after a quest (decision 0166).
+  for (const island of map.islands) named(questTagIds(island), `map › island ${island.id}`);
+  for (const shape of map.terrain ?? []) named(questTagIds(shape), `map › shape ${shape.id}`);
   for (const port of map.ports)
     named(Object.keys(port.afterQuest ?? {}), `port ${port.id} › afterQuest`);
   return out;

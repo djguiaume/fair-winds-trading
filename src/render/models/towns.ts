@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import type { LandmarkKind } from '../../sim/map';
 import { homeDesign } from '../../sim/home';
 import { type Rng, createRng, range } from '../../sim/rng';
-import { blobShape, paint, paintGroups, slab } from './geometry';
+import { blobShape, paint, paintFaces, slab } from './geometry';
+import { type GroundColors, groundColors, styleColor } from '../../data/grounds';
 import { coastDistance, insetOutline } from '../../sim/coast';
 import { landmarkParts } from './landmarks';
 import {
@@ -553,6 +554,9 @@ export function designedTownParts(
 ): Parts {
   const layout = islandLayout(design, level);
   const stone = design.style === 'stone';
+  // Grounds as data (palette.json › grounds): the style swaps the file's names for its own.
+  const ground = (material: string) => groundColors(material, design.style);
+  const beach = ground('sand');
   const out: Parts = [];
   const shape = (outline: Outline, holes: Outline[] = []) => {
     const s = new THREE.Shape(outline.map(([x, z]) => new THREE.Vector2(x * R, -z * R)));
@@ -563,7 +567,7 @@ export function designedTownParts(
     outline: Outline,
     bottom: number,
     top: number,
-    cap: string,
+    look: GroundColors,
     holes: Outline[] = [],
   ) => {
     const g = new THREE.ExtrudeGeometry(shape(outline, holes), {
@@ -572,11 +576,16 @@ export function designedTownParts(
       curveSegments: 1,
     });
     g.rotateX(-Math.PI / 2).translate(0, bottom, 0);
-    out.push(paintGroups(g, [cap, cap === C.sand ? C.sand : C.rock]));
+    // The extrusion's first group is its caps, the second its sides (cliffs).
+    const sideFrom = (g.groups[1]?.start ?? Infinity) / 3;
+    out.push(
+      paintFaces(g, look.top, (_x, _y, _z, face) => (face >= sideFrom ? look.side : undefined)),
+    );
   };
   for (const coast of layout.coasts)
-    terrain(coast, -1, BEACH_TOP, C.sand, layout.lake ? [layout.lake] : []);
+    terrain(coast, -1, BEACH_TOP, beach, layout.lake ? [layout.lake] : []);
   for (const s of layout.surfaces) {
+    const look = ground(s.material);
     if (s.shape === 'peak') {
       const xs = s.outline.map((p) => p[0]),
         zs = s.outline.map((p) => p[1]);
@@ -585,28 +594,22 @@ export function designedTownParts(
       const rx = (Math.max(...xs) - Math.min(...xs)) / 2,
         rz = (Math.max(...zs) - Math.min(...zs)) / 2;
       const mountainBase = (s.base ?? 0) * R;
-      const g = new THREE.ConeGeometry(R, s.height * R - mountainBase, 10)
+      const height = s.height * R - mountainBase;
+      // A snow line (capAbove) needs rings up the cone to fall on; plain peaks keep one.
+      const g = new THREE.ConeGeometry(R, height, 10, look.cap ? 4 : 1)
         .scale(rx, 1, rz)
         .translate(cx * R, (s.height * R + mountainBase) / 2, cz * R);
-      // A green hill on the palm islands (decision 0152); every other peak is bare rock.
-      out.push(paint(g, s.material === 'grass' ? C.grass : C.rock2));
-    } else
-      terrain(
-        s.outline,
-        BEACH_TOP,
-        s.height * R,
-        s.material === 'grass' ? C.grass : stone ? C.cut : C.rock2,
-        s.holes,
-      );
+      const line = mountainBase + height * (look.capAbove ?? 1);
+      out.push(paintFaces(g, look.peak, (_x, y) => (look.cap && y > line ? look.cap : undefined)));
+    } else terrain(s.outline, BEACH_TOP, s.height * R, look, s.holes);
   }
   // Sloped edges (decision 0096 §4): a ramp down from the top, outward, to the ground below.
   for (const s of layout.surfaces)
-    if (s.slope && s.shape !== 'peak')
-      out.push(ramp(layout, s, R, s.material === 'grass' ? C.grass : stone ? C.cut : C.rock2));
+    if (s.slope && s.shape !== 'peak') out.push(ramp(layout, s, R, ground(s.material).top));
   // Ramps that climb along their length (decision 0123).
-  for (const r of layout.ramps)
-    out.push(...rampBand(r, R, r.material === 'grass' ? C.grass : stone ? C.cut : C.rock2));
+  for (const r of layout.ramps) out.push(...rampBand(r, R, ground(r.material)));
   for (const g of out) g.userData.islandTerrain = true;
+  const pathColor = styleColor('path', design.style) as string;
   for (const lane of design.lanes) {
     if (lane.kind === 'stairs') stairs(out, lane, R);
     else if (lane.kind === 'path') {
@@ -623,7 +626,7 @@ export function designedTownParts(
         const len = a.distanceTo(b) * R;
         const g = paint(
           new THREE.PlaneGeometry(len + 0.02, R * 0.055).rotateX(-Math.PI / 2),
-          '#c1af7c',
+          pathColor,
         );
         let y = lane.y;
         if (y === undefined) {
@@ -646,7 +649,7 @@ export function designedTownParts(
   }
   if (layout.lake) {
     const lakeStart = out.length;
-    terrain(insetOutline(layout.lake, -0.035), BEACH_TOP, 0.55, C.sand, [layout.lake]);
+    terrain(insetOutline(layout.lake, -0.035), BEACH_TOP, 0.55, beach, [layout.lake]);
     // A true hole through the terrain; an independent still-water surface above the ocean.
     const water = new THREE.ShapeGeometry(shape(layout.lake));
     water.rotateX(-Math.PI / 2).translate(0, 0.5, 0);
@@ -722,7 +725,7 @@ export function designedTownParts(
       const len = a.distanceTo(b) * R;
       const g = paint(
         new THREE.PlaneGeometry(len + 0.01, R * 0.04).rotateX(-Math.PI / 2).translate(0, 0.012, 0),
-        '#c1af7c',
+        pathColor,
       );
       if (!flat) g.rotateZ(Math.atan2((hb! - ha!) * R, len));
       put(out, [g], x * R, h * R, z * R, -Math.atan2(b.z - a.z, b.x - a.x));
@@ -747,7 +750,8 @@ export function designedTownParts(
   const woods = design.woods;
   const make = WOODLAND_TREES[woods.tree]!;
   const finalLayout = islandLayout(design);
-  const rockHeights = layout.surfaces.filter((s) => s.material === 'rock').map((s) => s.height);
+  // No trees on grounds that carry none (rock, ice): by the height of their tops.
+  const rockHeights = layout.surfaces.filter((s) => !ground(s.material).trees).map((s) => s.height);
   const treesRng = createRng(design.seed + 789);
   const forest: { x: number; z: number }[] = [];
   const [x0, z0, x1, z1] = woods.area;
@@ -823,7 +827,7 @@ function harbourParts(
  * The ramp of a sloped outline: a band from each sloped edge's top, outward by the slope's
  * width, down to the ground below, with a fan at each bend between two sloped edges.
  */
-function ramp(layout: IslandLayout, s: LandSurface, R: number, color: string) {
+function ramp(layout: IslandLayout, s: LandSurface, R: number, colors: string[]) {
   const o = s.outline;
   const w = s.slope!;
   let area = 0;
@@ -870,14 +874,14 @@ function ramp(layout: IslandLayout, s: LandSurface, R: number, color: string) {
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  return paint(g, color);
+  return paintFaces(g, colors);
 }
 
 /**
  * A ramp along its points (decision 0123): a band rising evenly from start to end, with rock
  * sides and ends down to the beach. Corners are mitred so the band keeps its width.
  */
-function rampBand(r: LayoutRamp, R: number, color: string): Parts {
+function rampBand(r: LayoutRamp, R: number, look: GroundColors): Parts {
   const p = r.points;
   const total = r.along[r.along.length - 1]! || 1;
   const half = r.width / 2;
@@ -920,7 +924,7 @@ function rampBand(r: LayoutRamp, R: number, color: string): Parts {
     last = sections[sections.length - 1]!;
   quad(sides, low(first.right), first.right, first.left, low(first.left));
   quad(sides, low(last.left), last.left, last.right, low(last.right));
-  const mesh = (positions: number[], c: string) => {
+  const mesh = (positions: number[], c: string[]) => {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     // Wound either way round: both faces drawn by flipping to face up or out.
@@ -934,9 +938,9 @@ function rampBand(r: LayoutRamp, R: number, color: string): Parts {
       );
     faced.setAttribute('position', new THREE.Float32BufferAttribute(both, 3));
     g.dispose();
-    return paint(faced, c);
+    return paintFaces(faced, c);
   };
-  return [mesh(top, color), mesh(sides, C.rock)];
+  return [mesh(top, look.top), mesh(sides, look.side)];
 }
 
 /** Stairs over a cliff: treads on full masonry down to `base`, a landing at each bend. */

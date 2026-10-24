@@ -40,6 +40,8 @@ import type { StepMarker } from '../ui/questView';
 import { daylightAt } from '../sim/daylight';
 import { StormClouds } from './stormClouds';
 import { stormRain } from '../sim/storms';
+import { CLEAR, type ZoneVisual, mapZones, zoneField, zoneVisualAt } from '../sim/windZones';
+import { smoothOutline } from '../sim/flowShapes';
 
 /** Game time whose light is kept when day and night is off: early afternoon. */
 const ALWAYS_DAY = 200;
@@ -124,6 +126,12 @@ export class GameView {
   /** A point the camera looks at instead of ahead of the boat (the home island, 0126). */
   private focus: { x: number; y: number } | null = null;
   private readonly tmp = new THREE.Vector3();
+  /** The fog bank or ash cloud at the camera's target (decision 0169). */
+  private readonly haze: ZoneVisual = { ...CLEAR };
+  /** The veil over the screen inside a haze, its opacity and colour as last set. */
+  private readonly veil: HTMLElement | null;
+  private veilOpacity = -1;
+  private veilColor = '';
   private zoom = 1;
   private width = 1;
   private height = 1;
@@ -140,6 +148,7 @@ export class GameView {
       stencil: false,
     });
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    this.veil = canvas.parentElement?.querySelector<HTMLElement>('#haze-veil') ?? null;
     this.scene.background = new THREE.Color(PALETTE.deepWater);
     this.scene.fog = new THREE.Fog(PALETTE.deepWater, 120, 220);
     this.scene.add(this.hemi);
@@ -183,12 +192,12 @@ export class GameView {
     this.setQuality(level);
     this.currentWater = new CurrentWater(
       world.map.currents ?? [],
-      this.shores.get(world.map.islands, world.map.terrain),
+      this.shores.get(world.land.islands, world.land.terrain),
     );
     this.scene.add(this.currentWater.root);
     this.calmWater = new CalmWater(
       world.map.windZones ?? [],
-      this.shores.get(world.map.islands, world.map.terrain),
+      this.shores.get(world.land.islands, world.land.terrain),
     );
     this.scene.add(this.calmWater.root);
     this.roughWater = new RoughWater(
@@ -198,6 +207,30 @@ export class GameView {
     this.scene.add(this.roughWater.root);
     this.shallowsWater = new ShallowsWater(world.map.terrain);
     this.scene.add(this.shallowsWater.root);
+    this.followLand();
+  }
+
+  /** The land version the scene shows (decision 0166). */
+  private landVersion = -1;
+  /**
+   * Shows the islands and shapes standing now and hides those a quest has not raised yet or has
+   * cleared (decision 0166). The sim swaps them only out of sight, so nothing pops in view.
+   */
+  private followLand() {
+    const { land } = this.world;
+    if (land.version === this.landVersion) return;
+    const first = this.landVersion < 0;
+    this.landVersion = land.version;
+    if (first && !land.out.size) return;
+    this.islands.setLandOut(land.out);
+    this.lighthouseBeams.setLandOut(land.out);
+    this.beaconLights.setLandOut(land.out);
+    this.shallowsWater?.setLandOut(land.out);
+    if (!first) {
+      // The shore foam and tint around the land, and the harbour lanterns, follow it.
+      this.setQuality(this.level);
+      this.buildLanterns();
+    }
   }
 
   /** Harbour lanterns (decision 0068): one on each pier head and a town glow a little inland. */
@@ -211,7 +244,7 @@ export class GameView {
       // No light on an empty island not founded yet (decision 0157).
       if (this.levels[port.id] === 0) continue;
       const pier = this.harbours[port.id];
-      const island = this.world.map.islands.find((i) => i.id === port.islandId);
+      const island = this.world.land.islands.find((i) => i.id === port.islandId);
       if (!pier || !island) continue;
       spots.push(toScene(pier.x, pier.y, new THREE.Vector3()).setY(4));
       const town = toScene(
@@ -271,7 +304,7 @@ export class GameView {
     this.wake.setQuality(level);
     const profile = QUALITY[level];
     if (this.ocean) this.scene.remove(this.ocean.mesh, this.streaks.mesh, this.rain.mesh);
-    const shore = this.shores.get(this.world.map.islands, this.world.map.terrain);
+    const shore = this.shores.get(this.world.land.islands, this.world.land.terrain);
     // ShoreTextureCache releases its previous bake on a live map edit. Rebind inactive
     // quality levels too, so returning to one never revives a disposed texture.
     for (const effects of this.qualityEffects.values()) effects.ocean.setShore(shore);
@@ -287,11 +320,11 @@ export class GameView {
       )?.ocean.mesh.material;
       effects = {
         ocean: new Ocean(
-          this.world.map.islands,
+          this.world.land.islands,
           profile.oceanSegments,
           profile.fancyWater,
           480,
-          this.world.map.terrain,
+          this.world.land.terrain,
           shore,
           waterMaterial,
         ),
@@ -372,6 +405,30 @@ export class GameView {
     return out;
   }
 
+  /**
+   * The veil over the screen (decision 0169): clear round the boat, the haze's colour toward the
+   * edges. Touched only when its opacity or colour changes, so open sea costs nothing.
+   */
+  private updateVeil(haze: ZoneVisual) {
+    if (!this.veil) return;
+    const opacity = haze.kind ? Math.round(haze.haze * 50) / 50 : 0;
+    if (opacity !== this.veilOpacity) {
+      this.veilOpacity = opacity;
+      this.veil.style.opacity = String(opacity);
+    }
+    if (opacity <= 0) return;
+    const c = this.atmosphere.hazeColor;
+    const rgb = `${Math.round(c.r * 255)},${Math.round(c.g * 255)},${Math.round(c.b * 255)}`;
+    // The look changes with the colour or the `?tune` panel's veil numbers.
+    const key = `${rgb}|${JSON.stringify(TUNING.weather.sight)}`;
+    if (key === this.veilColor) return;
+    this.veilColor = key;
+    const v = TUNING.weather.sight;
+    this.veil.style.background =
+      `radial-gradient(ellipse 70% 65% at 50% 52%, rgba(${rgb},0) ${v.veilClear * 100}%, ` +
+      `rgba(${rgb},${v.veilMidAlpha}) ${v.veilMid * 100}%, rgba(${rgb},${v.veilEdgeAlpha}) 100%)`;
+  }
+
   /** 1 = default; larger = farther away. */
   setZoom(zoom: number) {
     this.zoom = clamp(zoom, 0.6, 1.7);
@@ -382,6 +439,7 @@ export class GameView {
   }
 
   render(dt: number) {
+    this.followLand();
     const { boat, wind, ship, time } = this.world;
     this.castaway.update(this.castawayWaiting, time);
     const dir = bearingVector(boat.heading);
@@ -405,11 +463,25 @@ export class GameView {
     this.camera.lookAt(this.target);
     const fog = this.scene.fog as THREE.Fog;
     const day = daylightAt(this.dayNight ? time : ALWAYS_DAY);
-    this.atmosphere.update(dt, day, this.world.weather, this.ocean, this.target);
+    // Fog banks and ash clouds (decision 0169) are looked up where the camera looks, wind zones
+    // switch or not: only their own Settings switch clears them.
+    const zones = zoneField(mapZones(this.world.map), smoothOutline);
+    const haze = zones
+      ? zoneVisualAt(zones, this.target.x, -this.target.z, this.world.hazeOff, this.haze)
+      : CLEAR;
+    this.atmosphere.update(dt, day, this.world.weather, this.ocean, this.target, haze);
     const gloom = this.atmosphere.gloom;
-    // Rain and the dark close in a little, never enough to hide the next island.
-    fog.near = dist * (1.3 - 0.45 * gloom - 0.15 * day.night);
-    fog.far = dist * (2.4 - 0.6 * gloom - 0.2 * day.night);
+    // Rain and the dark close in a little, never enough to hide the next island. The view range
+    // is `weather.json` › `sight`, in camera distances (decision 0169).
+    const sight = TUNING.weather.sight;
+    fog.near = dist * (sight.near - sight.gloomNear * gloom - sight.nightNear * day.night);
+    fog.far = dist * (sight.far - sight.gloomFar * gloom - sight.nightFar * day.night);
+    // A haze closes in much more: its sight counts from the boat, about `dist` from the camera.
+    if (haze.kind && haze.haze > 0) {
+      fog.near += (Math.min(fog.near, dist + haze.kind.near) - fog.near) * haze.haze;
+      fog.far += (Math.min(fog.far, dist + haze.kind.far) - fog.far) * haze.haze;
+    }
+    this.updateVeil(haze);
     this.ocean.setFog(fog.near, fog.far);
     // Nothing past the fog can show, so the camera stops there and three.js skips what lies beyond
     // (decision 0117). The sea at the top of the screen is about 1.3 x `dist` away, well inside

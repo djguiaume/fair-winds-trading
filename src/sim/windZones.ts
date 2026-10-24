@@ -63,6 +63,28 @@ export interface ZoneKind {
   water?: string;
   waterLight?: string;
   foam?: string;
+  /** Short sight inside it: a fog bank, an ash cloud (decision 0169). */
+  haze?: ZoneHaze;
+  /** Its tint on the editor's map and the labelled chart, `#rrggbb`. */
+  chart?: string;
+}
+
+/**
+ * Short sight in a zone (decision 0169): the scene fog closes in and takes this colour as she
+ * sails in. Only the look changes, never the wind, so it shows even with Settings › Wind zones off;
+ * its own Settings switch (`switch`) turns it off.
+ */
+export interface ZoneHaze {
+  /** Clear sight past the boat, in units: the fog starts here. */
+  near: number;
+  /** Nothing shows farther than this past the boat. */
+  far: number;
+  /** The fog's colour by day; night darkens it like the sky. */
+  color: string;
+  /** It thickens over this many units across the edge (left out: the zones' `fadeUnits`). */
+  fade?: number;
+  /** The Settings switch that turns it off (`fog`, `ash`); kinds may share one. */
+  switch: string;
 }
 
 export interface ZonesTuning {
@@ -121,7 +143,7 @@ export function zoneField(
   if (!defs?.length) return null;
   const cached = fields.get(defs);
   if (cached) return cached;
-  const half = zonesTuning().fadeUnits / 2;
+  const { fadeUnits, kinds } = zonesTuning();
   const zones = defs
     .filter((d) => d.outline.length >= 3)
     .map((def, index): PreparedZone => {
@@ -139,6 +161,7 @@ export function zoneField(
       const cx = (x0 + x1) / 2,
         cy = (y0 + y1) / 2;
       const reach = Math.max(...outline.map(([x, y]) => Math.hypot(x - cx, y - cy)));
+      const half = Math.max(fadeUnits, kinds[def.kind]?.haze?.fade ?? 0) / 2;
       return { def, index, outline, cx, cy, reach, x: cx, y: cy, r: reach + half };
     });
   const field = { zones, grid: new SpatialGrid(zones) };
@@ -152,9 +175,13 @@ function value<K extends keyof ZoneKind>(zone: WindZoneDef, kind: ZoneKind, key:
   return (own ?? kind[key]) as ZoneKind[K];
 }
 
-/** 0..1: how much a zone counts at a spot, easing in across its edge. */
-function weightAt(zone: PreparedZone, x: number, y: number): number {
-  const fade = zonesTuning().fadeUnits;
+/** 0..1: how much a zone counts at a spot, easing in across its edge (`fade` units wide). */
+function weightAt(
+  zone: PreparedZone,
+  x: number,
+  y: number,
+  fade = zonesTuning().fadeUnits,
+): number {
   const d = coastDistance(x, y, zone.outline).distance;
   const k = clamp((fade / 2 - d) / Math.max(1, fade), 0, 1);
   return k * k * (3 - 2 * k);
@@ -305,6 +332,62 @@ function shiftAt(seed: number, index: number, t: number, x: number, y: number) {
     0.65 * Math.sin((t * TAU) / 73 + ph + x * 0.009) +
     0.35 * Math.sin((t * TAU) / 29 + ph * 3 - y * 0.011)
   );
+}
+
+// --- Haze: fog banks and ash clouds (decision 0169) ---------------------------------------------
+
+/** The zones' look at one spot: how hazy, and the haze that counts most. */
+export interface ZoneVisual {
+  /** 0..1: how far into the haziest zone, eased across its fade. 0 = clear. */
+  haze: number;
+  /** That zone's haze (its kind's, with the zone's own `tune.haze`), or null when clear. */
+  kind: ZoneHaze | null;
+  /** Id of that zone, for charting it once sailed. */
+  zone: string | null;
+}
+
+export const CLEAR: Readonly<ZoneVisual> = { haze: 0, kind: null, zone: null };
+
+/**
+ * The haze at (x, y). `off` lists the Settings switches turned off (`fog`, `ash`): their zones
+ * stay clear. Wind effects are not looked at here, so it works with Settings › Wind zones off.
+ */
+export function zoneVisualAt(
+  field: ZoneField,
+  x: number,
+  y: number,
+  off: readonly string[] = [],
+  out: ZoneVisual = { ...CLEAR },
+): ZoneVisual {
+  out.haze = 0;
+  out.kind = null;
+  out.zone = null;
+  const kinds = zonesTuning().kinds;
+  for (const z of field.grid.near(x, y, 0, nearby)) {
+    const kind = kinds[z.def.kind];
+    const haze = kind && (value(z.def, kind, 'haze') as ZoneHaze | undefined);
+    if (!haze || off.includes(haze.switch)) continue;
+    const w = weightAt(z, x, y, haze.fade ?? zonesTuning().fadeUnits);
+    if (w <= out.haze) continue;
+    out.haze = w;
+    out.kind = haze;
+    out.zone = z.def.id;
+  }
+  return out;
+}
+
+/** Every Settings switch the zone kinds name, in `weather.json` order: one Settings row each. */
+export function hazeSwitches(): string[] {
+  const out: string[] = [];
+  for (const kind of Object.values(zonesTuning().kinds))
+    if (kind.haze?.switch && !out.includes(kind.haze.switch)) out.push(kind.haze.switch);
+  return out;
+}
+
+/** Is this zone's haze on: its kind has one and that switch is not off? */
+export function zoneHazy(zone: WindZoneDef, off: readonly string[] = []): boolean {
+  const haze = zonesTuning().kinds[zone.kind]?.haze;
+  return !!haze && !off.includes(haze.switch);
 }
 
 // --- Storms born on a stormy coast (decision 0140) ----------------------------------------------
