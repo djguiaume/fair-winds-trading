@@ -28,6 +28,9 @@ export interface Shot {
   cards: boolean;
   wait: number;
   click: string | null;
+  focus: string | null;
+  style: string | null;
+  script: string | null;
   sizes: string[];
   url: string | null;
   storage: Record<string, string>;

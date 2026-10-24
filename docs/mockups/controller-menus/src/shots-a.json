@@ -1,0 +1,115 @@
+[
+ {
+  "menu": true,
+  "focus": "#menu-help",
+  "name": "a-menu",
+  "sizes": [
+   "desktop"
+  ],
+  "style": "docs/mockups/controller-menus/src/focus-a.css",
+  "script": [
+   "docs/mockups/controller-menus/src/hints.js"
+  ]
+ },
+ {
+  "menu": true,
+  "click": [
+   "#menu-settings"
+  ],
+  "focus": "#settings .seg button:nth-child(2)",
+  "name": "a-settings",
+  "sizes": [
+   "desktop"
+  ],
+  "style": "docs/mockups/controller-menus/src/focus-a.css",
+  "script": [
+   "docs/mockups/controller-menus/src/tabs-on.js",
+   "docs/mockups/controller-menus/src/hints.js"
+  ]
+ },
+ {
+  "port": "saltmere",
+  "tab": "market",
+  "focus": ".buy-btn:nth-of-type(1)",
+  "name": "a-market",
+  "sizes": [
+   "desktop"
+  ],
+  "style": "docs/mockups/controller-menus/src/focus-a.css",
+  "script": [
+   "docs/mockups/controller-menus/src/tabs-on.js",
+   "docs/mockups/controller-menus/src/hints.js"
+  ]
+ },
+ {
+  "port": "saltmere",
+  "tab": "quay",
+  "focus": ".quay-people button[data-act]",
+  "name": "a-quay",
+  "sizes": [
+   "desktop"
+  ],
+  "style": "docs/mockups/controller-menus/src/focus-a.css",
+  "script": [
+   "docs/mockups/controller-menus/src/tabs-on.js",
+   "docs/mockups/controller-menus/src/hints.js"
+  ]
+ },
+ {
+  "moor": "skerry",
+  "name": "a-build",
+  "sizes": [
+   "desktop"
+  ],
+  "style": "docs/mockups/controller-menus/src/focus-a.css",
+  "script": [
+   "docs/mockups/controller-menus/src/build-spot.js",
+   "docs/mockups/controller-menus/src/hints.js"
+  ]
+ },
+ {
+  "menu": true,
+  "focus": "#menu-help",
+  "lang": "fr",
+  "name": "a-menu-fr",
+  "sizes": [
+   "portrait"
+  ],
+  "style": "docs/mockups/controller-menus/src/focus-a.css",
+  "script": [
+   "docs/mockups/controller-menus/src/hints.js"
+  ]
+ },
+ {
+  "port": "saltmere",
+  "tab": "market",
+  "focus": ".buy-btn",
+  "lang": "fr",
+  "name": "a-market-fr",
+  "sizes": [
+   "landscape"
+  ],
+  "style": "docs/mockups/controller-menus/src/focus-a.css",
+  "script": [
+   "docs/mockups/controller-menus/src/tabs-on.js",
+   "docs/mockups/controller-menus/src/hints.js"
+  ]
+ },
+ {
+  "menu": true,
+  "click": [
+   "#menu-settings"
+  ],
+  "focus": "#settings .seg button:nth-child(2)",
+  "lang": "fr",
+  "name": "a-settings-fr",
+  "sizes": [
+   "portrait"
+  ],
+  "style": "docs/mockups/controller-menus/src/focus-a.css",
+  "script": [
+   "docs/mockups/controller-menus/src/tabs-on.js",
+   "docs/mockups/controller-menus/src/hints.js"
+  ]
+ }
+]

@@ -1,0 +1,13 @@
+/* Mockup C, "ship's pointer": a thin brass line plus a brass pointer that slides beside the control. */
+html[data-input='pad'] :focus {
+  outline: 2px solid #f3d37e !important;
+  outline-offset: 2px !important;
+}
+.pad-pointer {
+  position: fixed;
+  z-index: 2147483001;
+  width: 22px;
+  height: 26px;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
+}

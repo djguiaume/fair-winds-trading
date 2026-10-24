@@ -59,6 +59,12 @@ Look
   --wait ms                     settle time before the shot (default 1500)
   --click selector              click this before the shot (after the wait), e.g. a card's button,
                                 then wait 800 ms; several in turn with ; (e.g. "#menu-btn;#menu-help")
+                                (--pad and --click also work on --menu)
+  --focus selector              this control focused as by the controller (decision 0163): the page
+                                set to controller input, so the focus ring and button hints show
+  --style a.css,b.css           these stylesheets added to the page before the shot (a mockup's look)
+  --script a.js,b.js            these scripts run in the page, in order, after the focus is set
+                                (a mockup's extra parts)
 Output
   --sizes desktop,landscape,portrait   (default desktop)
   --name name                   file name, written as <name>-<size>.png (default: from the scene)
@@ -90,6 +96,10 @@ const padSteps = (v) =>
     if (axis < 0 && button < 0) throw new Error(`no pad button or axis "${name}"`);
     return { axis, button, value: value === undefined ? 1 : Number(value), n: Number(ms) || 100 };
   });
+const readAll = (v) =>
+  list(v)
+    .map((f) => readFileSync(resolve(ROOT, f), 'utf8'))
+    .join('\n;\n');
 const keyHold = (v) => {
   const [key, n] = String(v).split(':');
   return { key, n: Number(n) || 1 };
@@ -138,7 +148,10 @@ export function normalise(opts) {
     currents: !o['no-currents'],
     cards: o.cards ?? !!o.url,
     wait: o.wait ?? 1500,
-    click: o.click ?? null,
+    click: o.click ? (Array.isArray(o.click) ? o.click.join(';') : String(o.click)) : null,
+    focus: o.focus ?? null,
+    style: o.style ? readAll(o.style) : null,
+    script: o.script ? readAll(o.script) : null,
     sizes: list(o.sizes ?? 'desktop'),
     url: o.url ?? null,
     editor: o.editor === true ? 'ring' : (o.editor ?? null),
@@ -342,7 +355,9 @@ async function shootOne(browser, base, shot, size, file) {
     else if (shot.menu) {
       await page.locator('#menu-play').waitFor({ state: 'visible', timeout: 30000 });
       await pause(shot.wait);
+      await act(page, shot);
     } else await shootScene(page, shot);
+    if (!shot.editor) await dress(page, shot);
     await page.screenshot({ path: file });
   } finally {
     await context.close();
@@ -387,16 +402,8 @@ async function shootEditor(page, shot) {
   await pause(Math.min(shot.wait, 600));
 }
 
-/** The game entered and the scene set, ready for the shot. */
-async function shootScene(page, shot) {
-  await enter(page, shot);
-  await setScene(page, shot);
-  if (shot.hold) {
-    await page.keyboard.down(shot.hold.key);
-    await pause(shot.hold.n);
-    await page.keyboard.up(shot.hold.key);
-  }
-  await pause(shot.wait);
+/** The pad's steps, then the clicks, as a player would. */
+async function act(page, shot) {
   if (shot.pad) {
     // The pad plays the game, not a card left open over it.
     if (!shot.cards) await closeCards(page);
@@ -408,6 +415,37 @@ async function shootScene(page, shot) {
       await page.click(selector.trim());
       await pause(800);
     }
+}
+
+/** A mockup's stylesheets, the controller's focus on a control, then the mockup's scripts. */
+async function dress(page, shot) {
+  if (shot.style) await page.addStyleTag({ content: shot.style });
+  if (shot.focus) {
+    const found = await page.evaluate((sel) => {
+      const el = document.querySelector(sel);
+      if (!el) return false;
+      document.documentElement.dataset.input = 'pad';
+      el.focus();
+      el.scrollIntoView({ block: 'nearest' });
+      return true;
+    }, shot.focus);
+    if (!found) throw new Error(`no element ${shot.focus} to focus`);
+  }
+  if (shot.script) await page.evaluate(shot.script);
+  if (shot.style || shot.script || shot.focus) await pause(300);
+}
+
+/** The game entered and the scene set, ready for the shot. */
+async function shootScene(page, shot) {
+  await enter(page, shot);
+  await setScene(page, shot);
+  if (shot.hold) {
+    await page.keyboard.down(shot.hold.key);
+    await pause(shot.hold.n);
+    await page.keyboard.up(shot.hold.key);
+  }
+  await pause(shot.wait);
+  await act(page, shot);
   if (!shot.cards) await closeCards(page);
   if (shot.chart) {
     await closeCards(page);

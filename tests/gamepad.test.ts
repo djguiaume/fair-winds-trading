@@ -66,7 +66,7 @@ describe('game controller (decision 0162)', () => {
     expect(readPad(pad, new Map(), 0, PAD).held.has('rt')).toBe(true);
   });
 
-  it('at sea: stick steers, bumpers step the sails, B strikes them, Y opens the chart', () => {
+  it('at sea: stick steers, bumpers step the sails, B strikes them, View opens the chart', () => {
     const since: HeldSince = new Map();
     let f = seaPad(readPad(fakePad(['rb'], [0.6, 0, 0, 0]), since, 0, PAD), 1 / 60);
     expect(f.steer).toBeCloseTo(0.5);
@@ -75,12 +75,17 @@ describe('game controller (decision 0162)', () => {
     f = seaPad(readPad(fakePad(['rb', 'left'], [0.6, 0, 0, 0]), since, 5000, PAD), 1 / 60);
     expect(f.sail).toBe(0);
     expect(f.steer).toBe(-1);
-    f = seaPad(readPad(fakePad(['lb', 'b', 'y']), new Map(), 0, PAD), 1 / 60);
+    f = seaPad(readPad(fakePad(['lb', 'b', 'view']), new Map(), 0, PAD), 1 / 60);
     expect(f).toMatchObject({ sail: -1, strike: true, chart: true, pause: false, zoom: 1 });
     f = seaPad(readPad(fakePad(['menu', 'x']), new Map(), 0, PAD), 1 / 60);
     expect(f.pause).toBe(true);
     // X is free at sea: it goes on to the menus.
     expect(f.other).toEqual([{ button: 'x', repeat: false }]);
+    // Y is kept free for later (decision 0163): the map is on View, as in most console games.
+    expect(seaPad(readPad(fakePad(['y']), new Map(), 0, PAD), 1 / 60)).toMatchObject({
+      chart: false,
+      other: [{ button: 'y', repeat: false }],
+    });
     // Right stick up zooms the camera in.
     expect(seaPad(readPad(fakePad([], [0, 0, 0, -1]), new Map(), 0, PAD), 0.5).zoom).toBeLessThan(
       1,

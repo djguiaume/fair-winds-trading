@@ -64,6 +64,18 @@ export type SeaAction =
   'steerLeft' | 'steerRight' | 'sailUp' | 'sailDown' | 'strike' | 'harbour' | 'chart' | 'pause';
 export type ChartAction =
   'panLeft' | 'panRight' | 'panUp' | 'panDown' | 'zoomIn' | 'zoomOut' | 'fit' | 'close';
+/** Menus, the port screen, cards (decision 0163): move the focus, press it, back, tabs, resume. */
+export type MenuAction =
+  | 'up'
+  | 'down'
+  | 'left'
+  | 'right'
+  | 'press'
+  | 'back'
+  | 'secondary'
+  | 'tabPrev'
+  | 'tabNext'
+  | 'resume';
 
 export interface PadControls extends PadConfig {
   sea: {
@@ -80,6 +92,15 @@ export interface PadControls extends PadConfig {
     zoomStep: number;
     actions: Record<ChartAction, PadButton[]>;
   };
+  menu: {
+    /** The stick that moves the focus like the D-pad, and how far it must lean to count. */
+    moveX: PadAxis;
+    moveY: PadAxis;
+    stickPress: number;
+    /** How long the button hints stay up after a screen opens. */
+    hintsSeconds: number;
+    actions: Record<MenuAction, PadButton[]>;
+  };
 }
 
 export const PAD = controls.gamepad as PadControls;
@@ -92,12 +113,13 @@ export function controlProblems(c: PadControls = PAD): string[] {
   if (!(c.deadZone >= 0 && c.deadZone < 1)) out.push('deadZone must be 0..1');
   if (!(c.triggerPress > 0 && c.triggerPress <= 1)) out.push('triggerPress must be 0..1');
   if (!(c.repeatDelayMs > 0 && c.repeatEveryMs > 0)) out.push('repeat timings must be > 0');
-  const contexts = { sea: c.sea, chart: c.chart } as Record<
+  if (!(c.menu.stickPress > 0 && c.menu.stickPress <= 1)) out.push('menu.stickPress must be 0..1');
+  const contexts = { sea: c.sea, chart: c.chart, menu: c.menu } as Record<
     string,
     { actions: Record<string, string[]> } & Record<string, unknown>
   >;
   for (const [name, ctx] of Object.entries(contexts)) {
-    for (const key of ['steerAxis', 'zoomAxis', 'panX', 'panY'])
+    for (const key of ['steerAxis', 'zoomAxis', 'panX', 'panY', 'moveX', 'moveY'])
       if (key in ctx && !axes.has(ctx[key] as string))
         out.push(`${name}.${key}: no axis "${String(ctx[key])}"`);
     for (const [action, list] of Object.entries(ctx.actions)) {

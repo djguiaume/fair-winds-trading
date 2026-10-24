@@ -654,3 +654,10 @@
     min-width: 0;
   }
 }
+
+/* Phones with a controller: the X glyph on Sell all needs the quay hint on its own row (0163). */
+@media (max-width: 640px) {
+  html[data-input='pad'] .port-screen .quay-hint {
+    flex-basis: 100%;
+  }
+}

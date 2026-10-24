@@ -15,7 +15,7 @@
         "sailDown": ["lb", "lt", "down"],
         "strike": ["b"],
         "harbour": ["a"],
-        "chart": ["y", "view"],
+        "chart": ["view"],
         "pause": ["menu"]
       }
     },
@@ -32,7 +32,25 @@
         "zoomIn": ["rt", "rb"],
         "zoomOut": ["lt", "lb"],
         "fit": ["x"],
-        "close": ["b", "y", "view"]
+        "close": ["b", "view"]
+      }
+    },
+    "menu": {
+      "moveX": "lx",
+      "moveY": "ly",
+      "stickPress": 0.5,
+      "hintsSeconds": 4,
+      "actions": {
+        "up": ["up"],
+        "down": ["down"],
+        "left": ["left"],
+        "right": ["right"],
+        "press": ["a"],
+        "back": ["b"],
+        "secondary": ["x"],
+        "tabPrev": ["lb"],
+        "tabNext": ["rb"],
+        "resume": ["menu"]
       }
     }
   }

@@ -20,6 +20,7 @@ import {
   saveTuneChanges,
 } from './data/tuningEdits';
 import { GamepadPoller, chartPad, padInUse, seaPad, type PadContext } from './input/gamepad';
+import { PadFocus, type PadScreen } from './ui/padFocus';
 import { Input } from './input/input';
 import {
   FrameMonitor,
@@ -817,6 +818,10 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (e.code !== 'Escape' || windHelp.open || chart.isOpen || tutorialOffer.open) return;
+  goBack();
+});
+/** Esc, and B on a controller (decision 0163): close the screen on top, or pause at sea. */
+function goBack() {
   if (tradePanel.isOpen) {
     tradePanel.close();
     refreshPause();
@@ -828,7 +833,7 @@ window.addEventListener('keydown', (e) => {
     newVoyage.hidden = true;
     showMenu();
   } else if (mode === 'play') showMenu();
-});
+}
 help.hidden = true;
 showMenu();
 // Opened from a QR code scanned with a camera app: offer that voyage straight away.
@@ -970,6 +975,9 @@ function readPad(now: number, dt: number) {
   const frame = pad.poll(now);
   if (!frame) return;
   const context = padContext();
+  // Every frame: the stick over a menu, and a screen just opened or closed (by A or B) gets its
+  // focus or loses its hints. Nothing is on top at sea or on the bare chart.
+  padFocus.frame(frame, now);
   if (context === 'sea') {
     const sea = seaPad(frame, dt);
     input.setPadSteer(sea.steer);
@@ -990,6 +998,39 @@ function readPad(now: number, dt: number) {
     for (const p of c.other) pad.onMenuPress(p, context);
   } else for (const p of frame.presses) pad.onMenuPress(p, context);
 }
+/**
+ * The screen on top that the pad's focus moves over (decision 0163), in the order Esc closes
+ * them; a dialog (a quest card, the tutorial offer, wind help) first. The chart moves by itself.
+ */
+function padScreen(): PadScreen | null {
+  const dialogs = [...document.querySelectorAll<HTMLDialogElement>('dialog[open]')];
+  const dialog = dialogs.filter((d) => d.id !== 'chart').pop();
+  if (dialog)
+    return {
+      root: dialog,
+      back: () => {
+        // As Esc on a dialog: it may refuse (`cancel` prevented), else it closes.
+        if (dialog.dispatchEvent(new Event('cancel', { cancelable: true }))) dialog.close();
+      },
+    };
+  if (chart.isOpen) return null;
+  const screen = (root: HTMLElement | null) => (root ? { root, back: goBack } : null);
+  if (tradePanel.isOpen) return screen($('trade-panel'));
+  if (homePanel.isOpen) return screen($('home-ui').querySelector<HTMLElement>('.home-card'));
+  if (!settingsPanel.hidden) return screen(settingsPanel);
+  if (transfer.isOpen) return screen($('transfer'));
+  if (!help.hidden) return screen(help);
+  if (!newVoyage.hidden) return screen(newVoyage);
+  if (!menu.hidden) return screen(menu);
+  return null;
+}
+const padFocus = new PadFocus(padScreen, document.getElementById('pad-hints'));
+pad.onMenuPress = (p, context) => padFocus.press(p, context);
+pad.onUsingPad((using) => padFocus.setUsing(using));
+// Start in the pause menu sets sail again, as the menu's own button does.
+padFocus.onResume = () => {
+  if (started && !menu.hidden) playButton.click();
+};
 const showLog = $<HTMLInputElement>('show-log');
 hud.onLogToggle = (shown) => {
   settings.showLog = shown;
@@ -1604,6 +1645,7 @@ if (new URLSearchParams(location.search).has('debug')) {
       input,
       trade,
       tradePanel,
+      homePanel,
       quests,
       coach,
       chart,

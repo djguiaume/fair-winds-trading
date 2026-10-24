@@ -1,0 +1,10 @@
+/* Mockup A, "brass ring": a thick brass ring with a soft glow round the focused control. */
+html[data-input='pad'] :focus {
+  outline: 3px solid #f3d37e !important;
+  outline-offset: 3px !important;
+  box-shadow:
+    0 0 0 7px rgba(243, 211, 126, 0.22),
+    0 0 22px 4px rgba(243, 211, 126, 0.55) !important;
+  position: relative;
+  z-index: 2;
+}

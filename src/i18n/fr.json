@@ -126,6 +126,8 @@
   "help.keyMenu": "menu",
   "help.pad": "Manette",
   "help.padStop": "stop",
+  "pad.choose": "Choisir",
+  "pad.back": "Retour",
   "settings.title": "Réglages",
   "settings.graphics": "Graphismes",
   "settings.auto": "Auto",

@@ -1,0 +1,333 @@
+import {
+  PAD,
+  isFor,
+  type MenuAction,
+  type PadControls,
+  type PadContext,
+  type PadFrame,
+  type PadPress,
+} from '../input/gamepad';
+
+/**
+ * A game controller in the menus, the port screen and on cards (decision 0163). The D-pad or the
+ * left stick moves a real DOM focus to the nearest control in that direction, A presses it, B goes
+ * back (like Esc), X does the screen's extra action (Sell all), LB/RB switch tabs and Start resumes from the pause menu; the buttons are the
+ * `menu` section of `src/data/controls.json`. The focus highlight (brass ring, `menus.css`) and the
+ * button hints only show while the pad is the last input: `html[data-input=pad]`.
+ */
+
+export type Direction = 'up' | 'down' | 'left' | 'right';
+export interface Box {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+/** The screen on top that takes the pad: its element and what "back" does there. */
+export interface PadScreen {
+  root: HTMLElement;
+  back: () => void;
+}
+
+const DIRECTIONS: readonly MenuAction[] = ['up', 'down', 'left', 'right'];
+
+/** What a press asks of the menus, or null for a button they do not use. */
+export function menuAction(press: PadPress, c: PadControls['menu'] = PAD.menu): MenuAction | null {
+  for (const [action, buttons] of Object.entries(c.actions) as [
+    MenuAction,
+    PadControls['menu']['actions'][MenuAction],
+  ][])
+    if (isFor(press, buttons)) return action;
+  return null;
+}
+
+/** The way the stick leans, once it leans past `stickPress`; the stronger axis wins. */
+export function stickDirection(x: number, y: number, press: number): Direction | null {
+  if (Math.max(Math.abs(x), Math.abs(y)) < press) return null;
+  if (Math.abs(x) > Math.abs(y)) return x > 0 ? 'right' : 'left';
+  return y > 0 ? 'down' : 'up';
+}
+
+/** The stick as a held D-pad: a move when it leans, again after the delay, then every so often. */
+export class StickRepeat {
+  private dir: Direction | null = null;
+  private down = 0;
+  private repeated = 0;
+
+  step(dir: Direction | null, now: number, delayMs: number, everyMs: number): Direction | null {
+    if (dir !== this.dir) {
+      this.dir = dir;
+      this.down = this.repeated = now;
+      return dir;
+    }
+    if (!dir) return null;
+    const wait = this.repeated === this.down ? delayMs : everyMs;
+    if (now - this.repeated < wait) return null;
+    this.repeated = now;
+    return dir;
+  }
+}
+
+/**
+ * The box to move to from `from`, going `dir`: only boxes whose centre lies beyond `from`'s centre
+ * that way count; the nearest edge wins, a box off to the side costs twice its sideways gap, so a
+ * column or a row is followed before a jump across. -1 when nothing lies that way.
+ */
+export function nearestInDirection(from: Box, boxes: readonly Box[], dir: Direction): number {
+  const cx = (from.left + from.right) / 2;
+  const cy = (from.top + from.bottom) / 2;
+  let best = -1;
+  let bestScore = Infinity;
+  boxes.forEach((b, i) => {
+    const bx = (b.left + b.right) / 2;
+    const by = (b.top + b.bottom) / 2;
+    let ahead: number;
+    let side: number;
+    let drift: number;
+    if (dir === 'up' || dir === 'down') {
+      if (dir === 'down' ? by <= cy + 1 : by >= cy - 1) return;
+      ahead = dir === 'down' ? b.top - from.bottom : from.top - b.bottom;
+      side = Math.max(0, b.left - from.right, from.left - b.right);
+      drift = Math.abs(bx - cx);
+    } else {
+      if (dir === 'right' ? bx <= cx + 1 : bx >= cx - 1) return;
+      ahead = dir === 'right' ? b.left - from.right : from.left - b.right;
+      side = Math.max(0, b.top - from.bottom, from.top - b.bottom);
+      drift = Math.abs(by - cy);
+    }
+    const score = Math.max(0, ahead) + side * 2 + drift * 0.1;
+    if (score < bestScore) {
+      bestScore = score;
+      best = i;
+    }
+  });
+  return best;
+}
+
+const FOCUSABLE =
+  'button, input:not([type="hidden"]), select, textarea, a[href], [tabindex]:not([tabindex="-1"])';
+const TABS = '[role="tab"], .tab-btn';
+/** Close buttons: the pad starts elsewhere, B already closes. */
+const CLOSE = '.close-btn, #tp-close, .d-btn.red.square, [data-chart-close], .home-close';
+
+function shown(el: HTMLElement): boolean {
+  if ((el as HTMLButtonElement).disabled || el.closest('[hidden], [inert]')) return false;
+  if (typeof el.checkVisibility === 'function')
+    return el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true });
+  return el.getClientRects().length > 0;
+}
+
+/** The controls the pad can reach on a screen, in page order. */
+export function reachable(root: HTMLElement): HTMLElement[] {
+  return [...root.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(shown);
+}
+
+/** Where the focus starts on a screen: its main (brass) button, else its first control. */
+export function startOf(controls: readonly HTMLElement[]): HTMLElement | null {
+  const open = controls.filter((el) => !el.matches(CLOSE) && !el.matches(TABS));
+  return open.find((el) => el.classList.contains('brass')) ?? open[0] ?? controls[0] ?? null;
+}
+
+/** A control's likeness, to find it again when its screen redraws (the market after a sale). */
+function likeness(el: HTMLElement): string {
+  const data = Object.entries(el.dataset)
+    .map(([k, v]) => `${k}=${v}`)
+    .sort();
+  const classes = [...el.classList].filter((c) => !['active', 'selected', 'is-new'].includes(c));
+  return [el.tagName, el.id, ...classes.sort(), ...data].join(' ');
+}
+
+export class PadFocus {
+  private screen: HTMLElement | null = null;
+  private last: { like: string; index: number } | null = null;
+  private stick = new StickRepeat();
+  private using = false;
+  /** The pad just took over: its first move or A only shows where the focus is. */
+  private waking = false;
+  private hintsTimer: ReturnType<typeof setTimeout> | undefined;
+  /** Start in the pause menu: back to the sea. */
+  onResume: () => void = () => {};
+
+  constructor(
+    private readonly screenOf: () => PadScreen | null,
+    private readonly hints: HTMLElement | null,
+    private readonly c: PadControls = PAD,
+  ) {}
+
+  /** The pad is (or is no longer) the last input: show or hide the focus ring and hints. */
+  setUsing(using: boolean) {
+    this.using = using;
+    document.documentElement.dataset.input = using ? 'pad' : 'pointer';
+    if (!using) this.showHints(false);
+    else {
+      this.screen = null;
+      this.waking = !!this.settle();
+    }
+  }
+
+  /**
+   * Every frame while a menu, the port screen or a card is up: the stick, a screen that just
+   * opened (focus its main button), a focused control that went away when its screen redrew.
+   */
+  frame(f: PadFrame, now: number) {
+    if (!this.using) return;
+    const screen = this.settle();
+    if (!screen) return;
+    const dir = this.stick.step(
+      stickDirection(f.axes[this.c.menu.moveX], f.axes[this.c.menu.moveY], this.c.menu.stickPress),
+      now,
+      this.c.repeatDelayMs,
+      this.c.repeatEveryMs,
+    );
+    if (dir) this.move(screen, dir);
+  }
+
+  press(p: PadPress, context: PadContext) {
+    if (context === 'chart') return;
+    const action = menuAction(p, this.c.menu);
+    if (!action || (p.repeat && !DIRECTIONS.includes(action))) return;
+    const screen = this.settle();
+    const waking = this.waking;
+    this.waking = false;
+    if (waking && (action === 'press' || DIRECTIONS.includes(action))) return;
+    if (action === 'resume') {
+      if (context === 'menu') this.onResume();
+      return;
+    }
+    if (!screen) return;
+    const el = document.activeElement as HTMLElement | null;
+    switch (action) {
+      case 'press':
+        if (
+          el &&
+          screen.root.contains(el) &&
+          !(el instanceof HTMLInputElement && el.type === 'range')
+        )
+          el.click();
+        break;
+      case 'back':
+        screen.back();
+        break;
+      case 'secondary': {
+        // The screen's one extra action (Sell all), marked `data-pad="secondary"` with its glyph.
+        const extra = [...screen.root.querySelectorAll<HTMLElement>('[data-pad="secondary"]')].find(
+          shown,
+        );
+        extra?.click();
+        break;
+      }
+      case 'tabPrev':
+      case 'tabNext':
+        this.tab(screen, action === 'tabNext' ? 1 : -1);
+        break;
+      default:
+        this.move(screen, action as Direction);
+    }
+  }
+
+  /** The screen on top, with the focus inside it (put back or at its start when it is not). */
+  private settle(): PadScreen | null {
+    const screen = this.screenOf();
+    if (!screen) {
+      this.screen = null;
+      this.showHints(false);
+      return null;
+    }
+    const opened = screen.root !== this.screen;
+    this.screen = screen.root;
+    const active = document.activeElement as HTMLElement | null;
+    const inside =
+      !!active && active !== screen.root && screen.root.contains(active) && shown(active);
+    if (opened || !inside) {
+      const controls = reachable(screen.root);
+      const back = !opened && this.last ? this.findAgain(controls, this.last) : null;
+      const keep = opened && inside && !active!.matches(CLOSE) ? active : null;
+      const target = back ?? keep ?? startOf(controls);
+      if (target && target !== active) this.focus(target, controls);
+    }
+    if (opened) this.showHints(true, screen.root);
+    return screen;
+  }
+
+  private move(screen: PadScreen, dir: Direction) {
+    const el = document.activeElement as HTMLElement | null;
+    if (!el || !screen.root.contains(el)) return;
+    if (
+      el instanceof HTMLInputElement &&
+      el.type === 'range' &&
+      (dir === 'left' || dir === 'right')
+    ) {
+      if (dir === 'right') el.stepUp();
+      else el.stepDown();
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+      return;
+    }
+    const controls = reachable(screen.root).filter((c) => c !== el);
+    const i = nearestInDirection(
+      el.getBoundingClientRect(),
+      controls.map((c) => c.getBoundingClientRect()),
+      dir,
+    );
+    if (i >= 0) this.focus(controls[i]!, reachable(screen.root));
+  }
+
+  private tab(screen: PadScreen, step: number) {
+    const tabs = [...screen.root.querySelectorAll<HTMLElement>(TABS)].filter(shown);
+    if (tabs.length < 2) return;
+    const current = tabs.findIndex(
+      (t) =>
+        t.getAttribute('aria-selected') === 'true' ||
+        t.getAttribute('aria-pressed') === 'true' ||
+        t.classList.contains('active'),
+    );
+    const next = tabs[(Math.max(0, current) + step + tabs.length) % tabs.length]!;
+    next.click();
+    // The tab's screen redraws: start on its main button rather than on the tab row.
+    this.last = null;
+    queueMicrotask(() => {
+      const controls = reachable(screen.root);
+      const start = startOf(controls);
+      if (start) this.focus(start, controls);
+    });
+  }
+
+  private focus(el: HTMLElement, controls: readonly HTMLElement[]) {
+    el.focus({ preventScroll: true });
+    el.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+    const like = likeness(el);
+    this.last = { like, index: controls.filter((c) => likeness(c) === like).indexOf(el) };
+  }
+
+  private findAgain(controls: readonly HTMLElement[], last: { like: string; index: number }) {
+    const same = controls.filter((c) => likeness(c) === last.like);
+    return same[last.index] ?? same[same.length - 1] ?? null;
+  }
+
+  /**
+   * The A / B / LB RB pill: up when a screen opens with the pad, gone after a few seconds. It is a
+   * popover where the browser has them, so it shows above a modal card (both in the top layer).
+   */
+  private showHints(show: boolean, root?: HTMLElement) {
+    const hints = this.hints;
+    if (!hints) return;
+    clearTimeout(this.hintsTimer);
+    const popover = typeof hints.showPopover === 'function';
+    const hide = () => {
+      hints.classList.remove('show');
+      if (popover) this.hintsTimer = setTimeout(() => hints.hidePopover(), 400);
+    };
+    if (!show || !root) {
+      if (hints.classList.contains('show')) hide();
+      return;
+    }
+    if (popover) {
+      // Shown again, so it lands above whatever card opened last.
+      if (hints.matches(':popover-open')) hints.hidePopover();
+      hints.showPopover();
+    }
+    hints.classList.add('show');
+    this.hintsTimer = setTimeout(hide, this.c.menu.hintsSeconds * 1000);
+  }
+}
