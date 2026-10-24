@@ -18,5 +18,5 @@ The south sea is laid out (0152), but nothing in the story leads there. The brie
 
 - Sunreach South's golden hash in `tests/island-files.test.ts` changes on purpose.
 - The brief's Phase 4 section now says where each relative lives: Tam at Watchman Key, and the other three at their sea's main port, where the founding quest picks them up.
-- Guillaume's answers on the other seas went into the brief's Phase 4 section: the layout stays as it is, the hazards of each sea, eruptions as a spectacle in the west, Cinder Isle born in an eruption after Bram's arc, and Snowberry Isle's cove freed from pack ice after Sigrun's arc (no whaling station), with islands that appear and ice that goes after a quest (`"after"` / `"before"` on island and terrain entries).
+- Guillaume's answers on the other seas went into the brief's Phase 4 section: the layout stays as it is, the hazards of each sea, eruptions as a spectacle in the west, Cinder Isle born in an eruption after Bram's arc, and Snowberry Isle's cove freed from pack ice after Sigrun's arc, with an old weather station to rebuild (no whaling station), with islands that appear and ice that goes after a quest (`"after"` / `"before"` on island and terrain entries).
 - Rewards are placeholders for the Phase 4 balance pass, in the quest files.
