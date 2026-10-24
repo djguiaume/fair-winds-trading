@@ -23,6 +23,23 @@ Open **<https://djguiaume.github.io/fair-winds-trading/editor.html>** (or `/edit
 
 A port's harbour and pier face the waypoint that has **exactly the island's name**. Renaming an island in the panel renames its waypoint too.
 
+## Currents and wind zones
+
+*Decisions [0140](../decisions/0140-wind-zones-and-currents.md) and [0145](../decisions/0145-building-currents.md).* They are stored in the map file as `currents` and `windZones`; the numbers each kind applies are in `src/data/tuning/weather.json`.
+
+- **🌊 Add current**: click to lay the points in the direction the water flows, then double-click (or Enter) to finish. The game smooths the points into the curve drawn here, with the same code.
+- **Edit a current**: select it (click its water). Drag a dot to move a point, a **square** to change the width there, a small ring to add a point, the water to move it all. **Reverse flow** turns it round. Its speed is at the narrowest place and eases off where it widens, at its ends, its sides and near any shore.
+- **〰️ Add area current**: an area of drifting water with a direction, "Flows toward (°)".
+- **🌬️ Add wind zone**: an area you reshape like a reef, a **Kind** (trade belt, doldrums, stormy coast, cold gale, sheltered), "Wind from (°)" for the kinds that turn the wind, and **This zone only** to change one of the kind's numbers for this zone.
+- Currents show as the darker band with crests drifting downstream, zones as soft tinted areas. **Currents and zones** in the layer list hides them.
+- The checks add: ids unique, known kinds, lanes at least 20 units wide, speeds 0.5 to 2.5 kn, no outline crossing itself, all inside the sea, and still water at every harbour.
+
+![The Gap Run selected: points, width squares, Reverse flow](editor-current.png)
+
+![A new current laid south-west, and a wind zone](editor-lay-current.png)
+
+![A doldrums zone with its own numbers](editor-wind-zone.png)
+
 ## Checks
 
 The panel's checks are the code the test suite runs (`src/sim/mapChecks.ts`). Quick ones update on every edit; the sailing routes (a sloop reaches every port from the start in the base wind and against it, every pair of ports connects) take a few seconds and run in the background.

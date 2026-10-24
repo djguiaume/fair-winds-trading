@@ -80,8 +80,8 @@ for (const b of BIOMES) {
 // Legend panel.
 const L = 1290;
 let lg = `<rect x="${L - 20}" y="20" width="560" height="1260" fill="#fbf7ec" stroke="#cbbf9f"/>`;
-lg += `<text x="${L}" y="64" class="title">Far goods (proposal, ADR 0146)</text>`;
-lg += `<text x="${L}" y="92" class="small">Second rare set (0065, 0137). Names from the head storyteller; numbers are proposals.</text>`;
+lg += `<text x="${L}" y="64" class="title">Far goods (ADR 0146)</text>`;
+lg += `<text x="${L}" y="92" class="small">Second rare set (0065, 0137). Names from the head storyteller; numbers to tune in play.</text>`;
 let y = 140;
 for (const b of BIOMES) {
   lg += `<text x="${L}" y="${y}" style="font:700 20px sans-serif" fill="${b.color}">${b.icon} ${b.raw} ${b.rawPrice} → ${b.good} ${b.price}</text>`;
@@ -102,8 +102,8 @@ const rules = [
   '  crafts, the ring\'s port towns (level 4) buy.',
   '• No island makes the ring\'s goods; no two islands',
   '  make the same good.',
-  '• The main port\'s workshop opens at town level',
-  '  after 20 raw units from its outpost.',
+  '• The main port crafts (from town level) only',
+  '  from raw goods it receives: no raw, no craft.',
   '• Each main port has a keeper with a 3-step arc.',
   '• Each crafted good: two buyers on the far side.',
   '',

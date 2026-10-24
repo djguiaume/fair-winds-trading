@@ -1,4 +1,4 @@
-import type { IslandDef, MapDef, PortDef, TerrainDef } from '../sim/map';
+import type { CurrentDef, IslandDef, MapDef, PortDef, TerrainDef, WindZoneDef } from '../sim/map';
 
 /**
  * The map editor's document (decision 0095): the authored map JSON exactly as it is saved in
@@ -11,6 +11,8 @@ export type Selection =
   | { kind: 'shape'; id: string; point?: number }
   | { kind: 'waypoint'; index: number }
   | { kind: 'start' }
+  | { kind: 'current'; id: string; point?: number }
+  | { kind: 'zone'; id: string; point?: number }
   | null;
 
 export type ShapeKind = TerrainDef['kind'];
@@ -22,6 +24,12 @@ export function findIsland(map: MapDef, id: string): IslandDef | undefined {
 }
 export function findShape(map: MapDef, id: string): TerrainDef | undefined {
   return map.terrain?.find((t) => t.id === id);
+}
+export function findCurrent(map: MapDef, id: string): CurrentDef | undefined {
+  return map.currents?.find((c) => c.id === id);
+}
+export function findZone(map: MapDef, id: string): WindZoneDef | undefined {
+  return map.windZones?.find((z) => z.id === id);
 }
 export function portOn(map: MapDef, islandId: string): PortDef | undefined {
   return map.ports.find((p) => p.islandId === islandId);
@@ -127,6 +135,148 @@ export function addShape(map: MapDef, kind: ShapeKind, x: number, y: number): st
   return id;
 }
 
+// --- Currents and wind zones (decision 0140) -----------------------------------------------
+
+/** The points a current or zone is drawn by: a lane's path, else its outline. */
+function flowPoints(map: MapDef, sel: Selection): number[][] | undefined {
+  if (sel?.kind === 'current') {
+    const c = findCurrent(map, sel.id);
+    return c?.path ?? c?.outline;
+  }
+  if (sel?.kind === 'zone') return findZone(map, sel.id)?.outline;
+}
+
+/** Starts a lane current at (x, y); `addLanePoint` lays the rest. */
+export function beginLane(map: MapDef, x: number, y: number): string {
+  map.currents ??= [];
+  const id = freeId(
+    map.currents.map((c) => c.id),
+    'current',
+  );
+  map.currents.push({ id, name: 'New current', speedKn: 1.5, path: [[round(x), round(y), 50]] });
+  return id;
+}
+
+/** Lays the next point of a lane, as wide as the one before; returns its index. */
+export function addLanePoint(map: MapDef, id: string, x: number, y: number): number | undefined {
+  const path = findCurrent(map, id)?.path;
+  if (!path) return;
+  path.push([round(x), round(y), path[path.length - 1]?.[2] ?? 50]);
+  return path.length - 1;
+}
+
+/**
+ * Ends laying a lane: drops the points a double-click repeated and removes a lane left with
+ * fewer than two points. True when the lane stays.
+ */
+export function finishLane(map: MapDef, id: string): boolean {
+  const c = findCurrent(map, id);
+  if (!c?.path) return false;
+  c.path = c.path.filter(
+    (p, i) => i === 0 || Math.hypot(p[0] - c.path![i - 1]![0], p[1] - c.path![i - 1]![1]) > 4,
+  );
+  if (c.path.length >= 2) return true;
+  map.currents!.splice(map.currents!.indexOf(c), 1);
+  return false;
+}
+
+/** An oval of `n` points centred on (x, y), `rx` across and `ry` up. */
+function oval(x: number, y: number, rx: number, ry: number, n = 8): [number, number][] {
+  return Array.from({ length: n }, (_, k) => {
+    const a = (k / n) * Math.PI * 2;
+    return [round(x + rx * Math.cos(a)), round(y + ry * Math.sin(a))] as [number, number];
+  });
+}
+
+/** An area current: an oval flowing east. */
+export function addAreaCurrent(map: MapDef, x: number, y: number): string {
+  map.currents ??= [];
+  const id = freeId(
+    map.currents.map((c) => c.id),
+    'current',
+  );
+  map.currents.push({
+    id,
+    name: 'New drift',
+    speedKn: 0.8,
+    towardDeg: 90,
+    outline: oval(x, y, 90, 60),
+  });
+  return id;
+}
+
+/** A wind zone of the first kind in `kinds`: an oval to drag into shape. */
+export function addZone(map: MapDef, x: number, y: number, kind: string): string {
+  map.windZones ??= [];
+  const id = freeId(
+    map.windZones.map((z) => z.id),
+    'zone',
+  );
+  map.windZones.push({ id, name: 'New zone', kind, outline: oval(x, y, 120, 80) });
+  return id;
+}
+
+/** Moves a whole current or zone. */
+export function moveFlow(map: MapDef, sel: Selection, dx: number, dy: number) {
+  if (sel?.kind === 'current') {
+    const c = findCurrent(map, sel.id);
+    if (c?.path) c.path = c.path.map(([x, y, w]) => [round(x + dx), round(y + dy), w]);
+    if (c?.outline) c.outline = c.outline.map(([x, y]) => [round(x + dx), round(y + dy)]);
+  } else if (sel?.kind === 'zone') {
+    const z = findZone(map, sel.id);
+    if (z) z.outline = z.outline.map(([x, y]) => [round(x + dx), round(y + dy)]);
+  }
+}
+
+/** Moves one point of a current or zone (a lane point keeps its width). */
+export function moveFlowPoint(map: MapDef, sel: Selection, index: number, x: number, y: number) {
+  const p = flowPoints(map, sel)?.[index];
+  if (!p) return;
+  p[0] = round(x);
+  p[1] = round(y);
+}
+
+/** Sets the width of a lane at one of its points (at least 4 units; the checks want more). */
+export function setLaneWidth(map: MapDef, id: string, index: number, width: number) {
+  const p = findCurrent(map, id)?.path?.[index];
+  if (p) p[2] = Math.max(4, round(width));
+}
+
+/**
+ * Adds a point halfway between point `index` and the next (a closed outline wraps round, a lane
+ * does not); returns the new point's index.
+ */
+export function insertFlowPoint(map: MapDef, sel: Selection, index: number): number | undefined {
+  const points = flowPoints(map, sel);
+  if (!points) return;
+  const open = sel?.kind === 'current' && !!findCurrent(map, sel.id)?.path;
+  if (open && index >= points.length - 1) return;
+  const a = points[index % points.length]!,
+    b = points[(index + 1) % points.length]!;
+  points.splice(
+    index + 1,
+    0,
+    a.map((v, k) => round((v + b[k]!) / 2)),
+  );
+  return index + 1;
+}
+
+/** Removes a point; a lane keeps two, an outline three. */
+export function deleteFlowPoint(map: MapDef, sel: Selection, index: number): boolean {
+  const points = flowPoints(map, sel);
+  const open = sel?.kind === 'current' && !!findCurrent(map, sel.id)?.path;
+  if (!points || points.length <= (open ? 2 : 3)) return false;
+  points.splice(index, 1);
+  return true;
+}
+
+/** Turns a current round: a lane's points in the other order, an area's direction by 180°. */
+export function reverseCurrent(map: MapDef, id: string) {
+  const c = findCurrent(map, id);
+  if (c?.path) c.path.reverse();
+  if (c?.towardDeg !== undefined) c.towardDeg = (c.towardDeg + 180) % 360;
+}
+
 /**
  * Turns an island into a port: a name, a dock and houses, a harbour waypoint off its south side
  * and an empty hamlet you then fill with what it makes and wants.
@@ -197,6 +347,17 @@ export function deleteSelection(map: MapDef, sel: Selection): Selection {
   }
   if (sel.kind === 'waypoint') {
     map.course.splice(sel.index, 1);
+    return null;
+  }
+  if (sel.kind === 'current' || sel.kind === 'zone') {
+    if (sel.point !== undefined) {
+      deleteFlowPoint(map, sel, sel.point);
+      return { kind: sel.kind, id: sel.id };
+    }
+    const list: { id: string }[] | undefined =
+      sel.kind === 'current' ? map.currents : map.windZones;
+    const at = list?.findIndex((x) => x.id === sel.id) ?? -1;
+    if (at >= 0) list!.splice(at, 1);
     return null;
   }
   return sel;

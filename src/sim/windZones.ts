@@ -66,7 +66,7 @@ export interface ZonesTuning {
  * the values of the decision stand in for it.
  */
 export function zonesTuning(): ZonesTuning {
-  return (TUNING.weather as { zones?: ZonesTuning }).zones ?? DECIDED_ZONES;
+  return (TUNING.weather as unknown as { zones?: ZonesTuning }).zones ?? DECIDED_ZONES;
 }
 
 const DECIDED_ZONES: ZonesTuning = {

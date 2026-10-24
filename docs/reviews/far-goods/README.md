@@ -1,6 +1,6 @@
 # Far goods for the biomes (Phase 4 economy pass)
 
-**Status:** Proposal, round 4, 2026-10-24, worked out with the head storyteller after Guillaume's feedback. Drafted as [0146](../../decisions/0146-far-goods-from-the-biome-outposts.md), waiting for Guillaume's ok. Docs and data proposal only, no code. The last preparation step from [0137](../../decisions/0137-phase-4-biomes-and-founded-outposts.md).
+**Status:** Decided in [0146](../../decisions/0146-far-goods-from-the-biome-outposts.md), 2026-10-24, after four rounds with Guillaume and the head storyteller. Docs and data proposal only, no code. The last preparation step from [0137](../../decisions/0137-phase-4-biomes-and-founded-outposts.md).
 
 **Read for this pass:** [0065](../../decisions/0065-rare-goods-from-the-far-yards.md) (rare goods, port town gate), [0063](../../decisions/0063-specialized-town-goods.md) (specialties), [0059](../../decisions/0059-settlement-levels.md) (town levels), [0046](../../decisions/0046-phase-1-economy-tuning.md) (economy targets), [0137](../../decisions/0137-phase-4-biomes-and-founded-outposts.md) and its [layout review](../phase-4-map/README.md), [0140](../../decisions/0140-wind-zones-and-currents.md) (wind zones and currents), `src/data/tuning/goods.json`, `economy.json` and the ring's ports in `src/data/phase1-map.json`. The code was checked with graphify (`graphify update .`, then `graphify query` on the rare goods and market code).
 
@@ -32,7 +32,7 @@ Names, order and openers from the head storyteller (cozy: no weapons, no alcohol
 ### The three stops
 
 1. **The outpost you found gathers the raw good.** Once it is a village it gathers it like a ring town makes fish (a full bulk stock), so it is cheap there. Only the main port of its biome buys it. This short hop is the biome's everyday trade.
-2. **The main port is the heart of its biome.** It buys the raw good from its outpost, and honey or lamp oil, ring specialties and founding goods from the ring. Its **workshop** crafts the finished good from town level, once it has received 20 units of its raw good (so the outpost comes first). The workshop keeps a big stock, like the far yards (70 % share). The main port grows with levels and wants like a ring town, and posts delivery orders.
+2. **The main port is the heart of its biome.** It buys the raw good from its outpost, and honey or lamp oil, ring specialties and founding goods from the ring. Its **workshop** crafts the finished good from town level, only from raw goods it has received: each raw unit delivered becomes one crafted unit, so without supplies from the outpost it makes nothing better. The workshop keeps a big stock, like the far yards (70 % share). The main port grows with levels and wants like a ring town, and posts delivery orders.
 3. **The ring's port towns (level 4) buy the crafted good.** Each crafted good has two buyers on the far side of the ring, and each ring town buys two once it is a port town:
 
    | Crafted good | Bought by |
@@ -103,7 +103,7 @@ Nothing is added to the game yet, because the goods would appear in markets befo
   "amberBeads": { "id": "amberBeads", "name": "Amber beads", "kind": "far", "basePrice": 120, "icon": "📿", "madeFrom": "amber" }
   ```
 
-- `economy.json` › `towns`: `rawForWorkshop: 20` (raw far goods a main port must receive before its workshop opens). Stocks reuse today's shares: the outpost gathers like a raw producer, and the workshop uses `rareShare` (0.7).
+- `economy.json`: no new number. The outpost gathers like a raw producer; the workshop's stock target uses `rareShare` (0.7) but fills only from raw units received (one raw → one crafted). That one rule is new code.
 - Map ports: each outpost `levelProduces: { "2": [<raw>] }`; each main port `wants: [<raw>]`, `wantsMade: [honey or lamp oil, specialties]` and `levelProduces: { "3": [<crafted>] }`; each ring port a new `levelWantsMade: { "4": [<two crafted goods>] }`.
 - `src/i18n`: the eight names in English and French.
 - `characters.json` and the brief: one keeper per main port, from the storyteller.
@@ -114,8 +114,6 @@ Nothing is added to the game yet, because the goods would appear in markets befo
 - Round 2 (Guillaume): two islands making the same good is not useful.
 - Round 3 (Guillaume): the main ports must be useful more than once. They are the visual and story anchors of their biomes and must be interesting. With the storyteller: the outpost gathers, the main port crafts and has a keeper with an arc, and the ring buys.
 
-## Question for Guillaume
-
-Is this shape OK: three stops per far voyage (the outpost gathers, the main port crafts and has its own keeper and arc, the ring's port towns buy), with prices climbing in the order the seas open?
+- Round 4 (Guillaume): "yes better". He likes that the main port makes nothing better without raw goods, and asked that story quests explain it and that each biome get its arc. So the workshop crafts only from raw goods received, not just after a first 20, and each biome has the opener's quest, the keeper's arc and the founding of the outpost.
 
 Image: `node docs/reviews/far-goods/src/make.cjs` (writes the SVG and, with Playwright, the PNG).
