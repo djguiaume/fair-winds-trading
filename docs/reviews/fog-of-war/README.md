@@ -24,4 +24,4 @@ Each sheet: mid-voyage (Old Ness's chart gave The Coral Line and Sunreach Waters
 - B, sea mist: ![B](sheet-b.png)
 - C, hatched sea: ![C](sheet-c.png)
 
-The B and C screenshots were taken with the review-only `&fog=b|c` switch, since removed. (The proposal sheets still say "Sunreach Sound" for the area later renamed Sunreach Waters.)
+The B and C screenshots were taken with the review-only `&fog=b|c` switch, since removed.
