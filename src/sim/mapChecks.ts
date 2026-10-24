@@ -12,6 +12,7 @@ import { type IslandDef, type MapDef, type PortDef, SEA_MARK_TYPES, type Terrain
 import { DEG, bearingTo, wrapAngle } from './math';
 import { CUTTER, SHIP_CLASSES, SLOOP, noGoAngle, polarFraction } from './ship';
 import { MAX_SETTLEMENT_LEVEL } from './settlement';
+import { isBeltKind } from './stormBelt';
 import { NO_ZONE, type ZoneEffect, zoneField, zoneMaxGain, zoneMeanAt } from './windZones';
 
 /**
@@ -729,7 +730,8 @@ export function flowChecks(map: MapDef): MapCheck[] {
     const name = z.name ?? z.id;
     if (!(z.kind in kinds))
       problems.push(`${name}: kind "${z.kind}" is one of ${Object.keys(kinds).join(', ')}`);
-    if (z.kind in kinds && 'pull' in (kinds[z.kind] as object) && z.headingDeg === undefined)
+    const kind = (kinds[z.kind] ?? {}) as object;
+    if (('pull' in kind || 'squallEverySec' in kind) && z.headingDeg === undefined)
       problems.push(`${name}: a ${z.kind} zone needs headingDeg`);
     if (z.outline.length < 3) problems.push(`${name} has fewer than 3 points`);
     else if (outlineCrosses(smoothOutline(z.outline))) problems.push(`${name} crosses itself`);
@@ -740,6 +742,28 @@ export function flowChecks(map: MapDef): MapCheck[] {
       ? fail('flow', problems.join('; '))
       : pass('flow', 'currents and wind zones sound and inside the sea'),
   ];
+
+  // Storm belts (decision 0167) keep a squall's width clear of every harbour.
+  const belts = zones.filter((z) => isBeltKind(z.kind) && z.outline.length >= 3);
+  if (belts.length) {
+    const kindOf = (z: (typeof belts)[number]) =>
+      (TUNING.weather.zones.kinds as Record<string, { squallRadius?: number }>)[z.kind]!;
+    const stormy: string[] = [];
+    for (const port of map.ports) {
+      if (!map.islands.some((i) => i.id === port.islandId)) continue;
+      const p = harbourApproach(map, port);
+      for (const z of belts) {
+        const clear = Number(z.tune?.squallRadius ?? kindOf(z).squallRadius ?? 60);
+        if (coastDistance(p.x, p.y, smoothOutline(z.outline)).distance < clear)
+          stormy.push(`${port.name} (${z.name ?? z.id})`);
+      }
+    }
+    out.push(
+      stormy.length
+        ? fail('calm-harbours', `storm belt squalls reach ${list(stormy)}`)
+        : pass('calm-harbours', 'harbours clear of the storm belts'),
+    );
+  }
 
   // Harbours stay still: the current at every pier head and harbour approach is a trickle.
   if (currents.length) {
@@ -845,6 +869,45 @@ function routeChecksOn(map: MapDef): MapCheck[] {
       ? fail('pairs', `no route ${list(cut)}${withCurrents}`)
       : pass('pairs', `every pair of charted ports connects${withCurrents}`),
     ...deepChecks(map, ports, water, cache),
+    ...skirtChecks(map, charted, winds[0]!, water),
+  ];
+}
+
+/**
+ * Storm belts (decision 0167) can always be skirted: every pair of charted ports still connects
+ * with each belt as solid as an island, so timing a lull is a shortcut, never the only way.
+ */
+function skirtChecks(
+  map: MapDef,
+  charted: readonly PortDef[],
+  wind: number,
+  water?: (x: number, y: number) => { east: number; north: number },
+): MapCheck[] {
+  const belts = (map.windZones ?? []).filter((z) => isBeltKind(z.kind) && z.outline.length >= 3);
+  if (!belts.length) return [];
+  const walled: MapDef = {
+    ...map,
+    terrain: [
+      ...(map.terrain ?? []),
+      ...belts.map((z): TerrainDef => ({
+        id: `belt:${z.id}`,
+        kind: 'island',
+        outline: smoothOutline(z.outline),
+      })),
+    ],
+  };
+  const cache = routeCache();
+  const cut: string[] = [];
+  for (const a of charted) {
+    const fromA = sailTimes(walled, harbourApproach(map, a), wind, 11, water, SLOOP, cache);
+    for (const b of charted)
+      if (a !== b && fromA(harbourApproach(map, b)) === undefined)
+        cut.push(`${a.name} → ${b.name}`);
+  }
+  return [
+    cut.length
+      ? fail('skirt-belt', `only through a storm belt: ${list(cut)}`)
+      : pass('skirt-belt', 'every pair of charted ports connects round the storm belts'),
   ];
 }
 

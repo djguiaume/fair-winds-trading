@@ -21,6 +21,7 @@ import {
   zoneEffectAt,
   zoneStormsAt,
 } from './windZones';
+import { beltSquallsAt } from './stormBelt';
 
 /** Wind at one moment. `from` is the compass bearing the wind blows FROM (sailors' convention). */
 export interface Wind {
@@ -112,6 +113,13 @@ export interface WindConfig {
   zones?: ZoneField | null;
   /** The easiest level: zones never weaken the wind below their kind's `fairFloor` (0140). */
   easiest?: boolean;
+  /**
+   * Storm belts' squalls (decision 0167): the level's `stormBelt` knob, or 0 when Settings › Storm
+   * belt is off. Without it there are none.
+   */
+  stormBelt?: number;
+  /** Only squalls born at or after this time: set when the Storm belt switch comes back on. */
+  beltFrom?: number;
 }
 
 /**
@@ -351,6 +359,15 @@ export function windAt(
       config.stormsFrom,
       config.seaRadius ?? DEFAULT_SEA_RADIUS,
     );
+    if (config.stormBelt)
+      beltSquallsAt(
+        config.zones,
+        seed,
+        t,
+        Math.max(config.stormsFrom ?? 0, config.beltFrom ?? 0),
+        config.stormBelt,
+        born,
+      );
     if (born.length) storms = [...storms, ...born];
   }
   let storm = 0;

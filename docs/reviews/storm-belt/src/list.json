@@ -1,0 +1,8 @@
+[
+ {"name":"1-squalls-day","at":[700,190],"heading":0,"zoom":3,"look":[760,250],"time":90,"sizes":["desktop","portrait"]},
+ {"name":"2-lull-day","at":[700,190],"heading":0,"zoom":3,"look":[760,250],"time":225},
+ {"name":"3-inside-squall","at":[760,285],"heading":0,"zoom":1.4,"time":90,"sizes":["desktop","landscape"]},
+ {"name":"4-night","at":[700,190],"heading":0,"zoom":3,"look":[760,250],"time":570,"night":true},
+ {"name":"5-low-quality","at":[700,190],"heading":0,"zoom":3,"look":[760,250],"time":90,"quality":"low"},
+ {"name":"6-storms-off","at":[700,190],"heading":0,"zoom":3,"look":[760,250],"time":90,"storms":false}
+]

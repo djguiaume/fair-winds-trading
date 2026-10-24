@@ -28,7 +28,8 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
                  [--name … --chart --turn deg]
         current  --path "x,y,w x,y,w …" [--speed 1.5 --name …]   (points in the direction it flows)
         drift    [--outline …] --toward deg [--speed 0.8]          (an area current)
-        zone     --kind trade-belt|doldrums|stormy-coast|cold-gale|sheltered [--heading deg --name …]
+        zone     --kind trade-belt|doldrums|stormy-coast|cold-gale|sheltered|storm-belt [--heading deg --name …]
+                 (storm-belt: squalls march downwind of --heading; --outline for its band)
         area     --name … [--id …] [--outline …]                    (a chart area, fog of war)
         port     --island <id> [--name …]                           (makes the island a port)
   move <what> <id|index> --at x,y | --by dx,dy | --to-sea <id>

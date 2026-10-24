@@ -2,14 +2,23 @@ import { TUNING } from '../data/tuning';
 import TARGETS from '../data/balance-targets.json';
 import { deliverContract, stepContracts, syncHelpOrder } from './contracts';
 import { CurrentField } from './currents';
-import { DEFAULT_DIFFICULTY, DIFFICULTIES, type Difficulty, knobs, weatherFor } from './difficulty';
+import {
+  DEFAULT_DIFFICULTY,
+  DIFFICULTIES,
+  DIFFICULTY,
+  type Difficulty,
+  knobs,
+  weatherFor,
+} from './difficulty';
+import { coastDistance } from './coast';
+import { beltMeanWait, beltNow, beltNumbers } from './stormBelt';
 import { GOODS, type GoodId } from './goods';
 import { damageHull, repairHull } from './hazards';
 import type { MapDef } from './map';
 import { quoteBuy, quoteSell, stepMarket } from './market';
 import { DEG } from './math';
 import { smoothOutline } from './flowShapes';
-import { NO_ZONE, type ZoneEffect, zoneField, zoneMeanAt } from './windZones';
+import { NO_ZONE, type ZoneEffect, type ZoneField, zoneField, zoneMeanAt } from './windZones';
 import { createRng } from './rng';
 import { stepSettlements } from './settlement';
 import { CUTTER, SLOOP, type ShipClass, polarFraction } from './ship';
@@ -182,8 +191,23 @@ export function legSeconds(
     const current = currentAlong(map, x, y, path.bearing, currents);
     seconds += stretchSeconds(path.stretch, madeGood(ship, path.bearing, local), current);
   }
+  // Storm belts (decision 0167) crossed on the way: Captain's mean wait for a lull at each.
+  if (zones) seconds += beltWait(zones, path.points, DIFFICULTY[DEFAULT_DIFFICULTY]!.stormBelt);
   byWeather.set(key, seconds);
   return seconds;
+}
+
+/** Mean seconds waiting for lulls at the storm belts a leg's stretches cross (decision 0167). */
+function beltWait(field: ZoneField, points: readonly [number, number][], level: number): number {
+  const belts = beltNumbers(field);
+  if (!belts.size) return 0;
+  let wait = 0;
+  for (const z of field.zones) {
+    const numbers = belts.get(z.def.id);
+    if (numbers && points.some(([x, y]) => coastDistance(x, y, z.outline).distance < 0))
+      wait += beltMeanWait(numbers, level);
+  }
+  return wait;
 }
 
 /** Length of one stretch of a leg sailed in one zone wind (units). */
@@ -200,6 +224,8 @@ export interface Sea {
   wind: WindConfig;
   seed: number;
   currents: number;
+  /** The level's storm belt knob (decision 0167), 0 with the switch off: she waits for a lull. */
+  belt: number;
 }
 
 export interface SeaOptions {
@@ -212,6 +238,8 @@ export interface SeaOptions {
   zones?: boolean;
   /** Settings › Wind steady; by default what the level starts with. */
   steadyWind?: boolean;
+  /** Settings › Storm belt (decision 0167); on by default. */
+  stormBelt?: boolean;
 }
 
 export function seaOf(map: MapDef, opts: SeaOptions = {}): Sea {
@@ -229,6 +257,7 @@ export function seaOf(map: MapDef, opts: SeaOptions = {}): Sea {
     },
     seed: (map.seed ^ Math.imul(opts.seed ?? 0, 0x9e3779b1)) >>> 0,
     currents: opts.currents === false ? 0 : k.currents,
+    belt: opts.stormBelt === false || opts.zones === false ? 0 : k.stormBelt,
   };
 }
 
@@ -245,9 +274,19 @@ export function seaLegSeconds(
 ): number {
   const path = legPath(sea.map, from, to);
   let seconds = 8;
+  let waited: string[] | null = null;
   for (const [x, y] of path.points) {
     spot.x = x;
     spot.y = y;
+    // A storm belt (decision 0167): on reaching it in a train of squalls, she waits for the lull.
+    const belt =
+      sea.belt > 0 && sea.wind.zones
+        ? beltNow(sea.wind.zones, sea.seed, t + seconds, x, y, 0, sea.belt)
+        : null;
+    if (belt?.inside && !waited?.includes(belt.zone)) {
+      (waited ??= []).push(belt.zone);
+      if (belt.squalls) seconds += belt.changeSec;
+    }
     const wind = windAt(sea.wind, t + seconds, sea.seed, spot);
     const current = currentAlong(sea.map, x, y, path.bearing, sea.currents);
     seconds += stretchSeconds(
