@@ -1,6 +1,7 @@
 import { DIFFICULTIES } from './difficulty';
 import { GOODS, type GoodId, isFar } from './goods';
 import { BUILDING_IDS, buildableIslands, homeSpots } from './home';
+import { chartAreaIds, fogIslandIds } from './fog';
 import { chartableZoneIds, type MapDef } from './map';
 import { slotLayout } from './questLibrary';
 import {
@@ -90,11 +91,19 @@ const WORKSHOP_SECTION = 11;
  * is charted: its number, a fingerprint of the map's named zone ids, their count and a flag each.
  */
 const ZONES_SECTION = 12;
+/**
+ * Fog of war's section (decision 0153), after the wind zones and only when something in the fog
+ * is charted: its number, a fingerprint of the map's chart areas and fogged islands, then the
+ * areas' count and a flag each, and the islands' count and a flag each.
+ */
+const FOG_SECTION = 13;
 /** No section left to read (sections are numbered from 1). */
 const NO_SECTION = -1;
 const currentIds = (map: MapDef) => (map.currents ?? []).map((c) => c.id);
 const currentsFingerprint = (map: MapDef) => fingerprint(currentIds(map));
 const zonesFingerprint = (map: MapDef) => fingerprint(chartableZoneIds(map));
+const fogFingerprint = (map: MapDef) =>
+  fingerprint([...chartAreaIds(map), '|', ...fogIslandIds(map)]);
 
 function fingerprint(ids: string[]): number {
   let h = 0x811c9dc5;
@@ -302,6 +311,18 @@ export function packSave(
     w.uint(zonesFingerprint(map));
     w.uint(zoneIds.length);
     w.flags(zones);
+  }
+  const areaIds = chartAreaIds(map);
+  const islandIds = fogIslandIds(map);
+  const areas = areaIds.map((id) => !!save.progress?.areas?.includes(id));
+  const sighted = islandIds.map((id) => !!save.progress?.sighted?.includes(id));
+  if (areas.some(Boolean) || sighted.some(Boolean)) {
+    w.uint(FOG_SECTION);
+    w.uint(fogFingerprint(map));
+    w.uint(areaIds.length);
+    w.flags(areas);
+    w.uint(islandIds.length);
+    w.flags(sighted);
   }
   return Uint8Array.from(w.bytes);
 }
@@ -555,6 +576,23 @@ export function unpackSave(
     if (same && n === ids.length) zones = ids.filter((_, k) => flags[k]);
     section = r.done ? NO_SECTION : r.uint();
   }
+  // Fog of war (decision 0153): forgotten, like the zones, if the map's areas or islands changed.
+  let areas: string[] | undefined;
+  let sighted: string[] | undefined;
+  if (section === FOG_SECTION) {
+    const areaIds = chartAreaIds(map);
+    const islandIds = fogIslandIds(map);
+    const same = r.uint() === fogFingerprint(map);
+    const na = r.uint();
+    const areaFlags = r.flags(na);
+    const ni = r.uint();
+    const islandFlags = r.flags(ni);
+    if (same && na === areaIds.length && ni === islandIds.length) {
+      areas = areaIds.filter((_, k) => areaFlags[k]);
+      sighted = islandIds.filter((_, k) => islandFlags[k]);
+    }
+    section = r.done ? NO_SECTION : r.uint();
+  }
   if (section > HOME_SECTION) return { ok: false, problem: 'newer' };
   if (section !== NO_SECTION || !r.done) return { ok: false, problem: 'unreadable' };
 
@@ -581,6 +619,8 @@ export function unpackSave(
         standing,
         ...(charted?.length ? { charted } : {}),
         ...(zones?.length ? { zones } : {}),
+        ...(areas?.length ? { areas } : {}),
+        ...(sighted?.length ? { sighted } : {}),
       },
       settlements: { byPort: towns, ...(pendingSupply ? { pendingSupply } : {}) },
       ...(difficulty ? { difficulty } : {}),

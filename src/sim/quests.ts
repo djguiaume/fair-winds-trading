@@ -1,6 +1,7 @@
 import { type StepEffects, checkStepEffects } from './stepEffects';
 import characterData from '../data/characters.json';
 import { daylightAt } from './daylight';
+import { chartAreaIds, chartAreas } from './fog';
 import { GOODS, type GoodAmounts, isGood } from './goods';
 import { type IslandDesign, questTagIds } from '../data/islands';
 import type { MapDef } from './map';
@@ -116,6 +117,11 @@ export interface QuestStep extends StepEffects {
   coach?: StepCoach;
   /** Paid when the step is done. */
   reward?: QuestReward;
+  /**
+   * Chart areas (fog of war, decision 0153) lifted as soon as the step begins: a pilot's chart
+   * handed over, before the voyage it is for.
+   */
+  charts?: string[];
   /** A later step's id, or `done`; default the following step (after the last: done). */
   next?: string;
   /** Touching a reef or a shore (hull damage) starts the step over, at no other cost. */
@@ -387,6 +393,13 @@ export function checkQuests(
         out.push(`${where}: needs a goal or a choice`);
       if (s.goal !== undefined) out.push(...checkCondition(s.goal, scope, true, `${where} › goal`));
       out.push(...checkReward(s.reward, scope, `${where} › reward`));
+      if (s.charts !== undefined) {
+        const areas = chartAreaIds(map);
+        if (!Array.isArray(s.charts)) out.push(`${where} › charts: a list of chart area ids`);
+        else if (map.fog)
+          for (const id of s.charts)
+            if (!areas.includes(id)) out.push(`${where} › charts: no chart area "${id}"`);
+      }
       for (const p of [s.port, s.chart?.port])
         if (
           p !== undefined &&
@@ -1028,6 +1041,7 @@ export class QuestBook {
       chose: was?.chose ?? {},
       ...(was?.vars ? { vars: was.vars } : {}),
     };
+    if (step.charts) chartAreas(this.world.map, this.trade.progress, step.charts);
     // A step about a place this map lacks (the prologue's wreck) is passed by (decision 0151).
     if (missesPlace(step, this.world.map)) {
       this.finishStep(quest, step, undefined, events);
