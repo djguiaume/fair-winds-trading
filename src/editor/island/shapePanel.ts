@@ -1,5 +1,6 @@
 import type { GroundDef, IslandDesign, WoodsDef } from '../../data/islands';
 import { WOODLAND_TREES } from '../../render/models/props';
+import { GROUNDS, GROUND_IDS, groundId } from '../../data/grounds';
 import { isSloped } from '../../sim/islandLayout';
 import { LEVEL_NAMES, LEVELS, type Level, propName } from './doc';
 import {
@@ -15,7 +16,7 @@ import {
 
 /**
  * The island builder's panel for the ground and lane tools (decision 0105, part 2): the selected
- * coast, raised ground (height, grass or rock, cliff or slope edges, levels), mountain, lake or
+ * coast, raised ground (height, ground material, cliff or slope edges, levels), mountain, lake or
  * lane, or with nothing selected the woods (with the brush) or the lanes. Every field edits
  * through `change`, which records undo and rebuilds the island.
  */
@@ -81,6 +82,20 @@ export function renderShapePanel(root: HTMLElement, host: ShapePanelHost) {
       b.setAttribute('aria-pressed', String(o.value === current));
       b.addEventListener('click', () => host.change(() => set(o.value)));
     }
+  };
+  /** The ground materials of palette.json (decision 0168); the style may show another. */
+  const groundPicker = (current: string, set: (m: string) => void) => {
+    const r = div('Ground');
+    const s = node('select', {}, r);
+    for (const id of GROUND_IDS) {
+      const shown = groundId(id, design.style);
+      const text =
+        shown === id
+          ? GROUNDS[id]!.name
+          : `${GROUNDS[id]!.name} (${GROUNDS[shown]?.name ?? shown} here)`;
+      node('option', { value: id, textContent: text, selected: id === current }, s);
+    }
+    s.addEventListener('change', () => host.change(() => set(s.value)));
   };
   const levels = (e: { from?: number; to?: number }) => {
     const from = (e.from ?? 1) as Level;
@@ -188,15 +203,7 @@ export function renderShapePanel(root: HTMLElement, host: ShapePanelHost) {
     number('Start height', r.start, (v) => (r.start = v ?? r.start), { step: 0.01, min: 0 });
     number('End height', r.end, (v) => (r.end = v ?? r.end), { step: 0.01, min: 0 });
     number('Width', r.width, (v) => (r.width = v ?? RAMP_WIDTH), { step: 0.01, min: 0.03 });
-    segment(
-      'Ground',
-      [
-        { value: 'grass' as const, text: 'Grass' },
-        { value: 'rock' as const, text: 'Rock' },
-      ],
-      r.material,
-      (m) => (r.material = m),
-    );
+    groundPicker(r.material, (m) => (r.material = m));
     levels(r);
     note(
       'Climbs evenly from its first point (start height) to its last (end height), over any ' +
@@ -210,20 +217,12 @@ export function renderShapePanel(root: HTMLElement, host: ShapePanelHost) {
   const gi = shape.index;
   const g = design.ground[gi]!;
   number('Height', g.height, (v) => (g.height = v ?? g.height), { step: 0.02, min: 0.02 });
-  segment(
-    'Ground',
-    [
-      { value: 'grass' as const, text: 'Grass' },
-      { value: 'rock' as const, text: 'Rock' },
-    ],
-    g.material,
-    (m) => (g.material = m),
-  );
+  groundPicker(g.material, (m) => (g.material = m));
   if (g.shape === 'peak') {
     number('Base', g.base, (v) => (v === undefined ? delete g.base : (g.base = v)), {
       placeholder: '0',
     });
-    note('A rock peak: a cone over this outline, from its base up to its height.');
+    note('A peak: a cone over this outline, from its base up to its height, in its ground.');
   } else if (g.outline) {
     edges(g);
   } else note(`Follows coast ${g.coast ?? 0} inside the beach: edit the coast to reshape it.`);
