@@ -1,6 +1,7 @@
 {
   "economy": {
     "minutes": 40,
+    "seeds": [1, 2, 3, 4, 5],
     "legSeconds": [30, 130],
     "sharpFirstUpgradeMax": 5,
     "sharpCutter": [9, 16],
@@ -16,6 +17,10 @@
   "difficulty": {
     "minutes": 120,
     "seeds": [1, 2, 3, 4, 5],
+    "legEverySec": 300,
+    "legMedian": [40, 90],
+    "legSlowMax": 150,
+    "currentsShiftMax": 0.15,
     "fairFirstUpgradeMax": 6,
     "fairCutterMax": 22,
     "fairFirstTownVsCaptainMax": 0.7,
