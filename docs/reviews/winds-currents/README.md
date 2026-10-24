@@ -1,6 +1,6 @@
 # Winds and currents for Phase 4 (proposal, 2026-10-24)
 
-**Status:** Proposal for Guillaume. Nothing is decided or built. It follows [0137](../../decisions/0137-phase-4-biomes-and-founded-outposts.md) point 6 ("wind zones and currents become authored, per biome") and the [Phase 4 map](../phase-4-map/README.md) (layout B). The code was read with graphify: `windAt` in `src/sim/wind.ts`, `stepBoat` in `src/sim/boat.ts`, `stepWorld` in `src/sim/world.ts`, and the HUD in `src/ui/hud.ts`.
+**Status:** Proposal for Guillaume, revised after his first comments (no arrows; not everything on today's ring). Nothing is decided or built. It follows [0137](../../decisions/0137-phase-4-biomes-and-founded-outposts.md) point 6 ("wind zones and currents become authored, per biome") and the [Phase 4 map](../phase-4-map/README.md) (layout B). The code was read with graphify: `windAt` in `src/sim/wind.ts`, `stepBoat` in `src/sim/boat.ts`, `stepWorld` in `src/sim/world.ts`, and the HUD in `src/ui/hud.ts`.
 
 The mockups are real game captures with the proposed readouts drawn on top. The yellow tag marks what is new. `src/capture.cjs` makes them.
 
@@ -45,11 +45,12 @@ A current moves the water, and everything floating on it, over the ground.
 
 ### How you read it at sea
 
+Guillaume (2026-10-24): **no arrows**. A current is **water that looks different**.
+
 ![Current at sea](sea-current-desktop.png)
 
-- **Compass:** a small **blue arrow** on the ring points where the water flows, next to the green wind arrow. Under the wind line there's "Current 1.8 kn → SE".
-- **Speed log:** under today's speed, "**SOG 9.6 kn**" (speed over ground) appears only while you are in a current. This follows the sailing-first rule: numbers visible but small, and the log's eye toggle hides them with the rest.
-- **On the water:** light streaks flow with the current, like the wind streaks do with the wind ([0040](../../decisions/0040-visible-wind-strength.md)).
+- **On the water:** the current is a band of darker, bluer water with a finer ripple texture than the open sea, and a line of broken water (a tide rip) along its edges. You see where it starts and ends before you sail into it. The direction is felt in the boat's drift and read in the numbers.
+- **Numbers, small:** under today's speed, "**SOG 9.6 kn**" (speed over ground) appears only while you are in a current, and the wind line gets "Current 1.8 kn SE". This follows the sailing-first rule: numbers visible but small, and the log's eye toggle hides them with the rest.
 - **First time only:** "A strong current sets you south-east. Aim a little up-current to hold your course."
 
 Phone landscape and portrait:
@@ -58,11 +59,15 @@ Phone landscape and portrait:
 
 ### On the chart
 
-![Chart layer](chart-layer-desktop.png)
+![Current on the chart](chart-ring-current-desktop.png)
 
-A **Winds & currents** button in the chart header toggles a layer. It shows current lanes as blue bands with chevrons and their speed, wind zones as shaded areas (doldrums, trade belt with its arrows, stormy coast), and only charted areas, so the fog of war still hides the rest. The placements above are **examples on today's sea**. In Phase 4 they sit in the biomes, and the ring keeps none.
+The chart draws current water the same way, as a darker band with its speed, always on (no layer button). Only charted areas show it, so the fog of war still hides the rest. On the [Phase 4 map](../phase-4-map/README.md) the fire biome's warm current and the fog coast's strong current are drawn the same way.
 
-<img src="chart-layer-portrait.png" width="220">
+<img src="chart-ring-current-portrait.png" width="220">
+
+### How much goes on today's ring
+
+Guillaume: today's ring is not big, so it gets **some, not all**. The proposal is **one current** through the passage between Skerry and Gull Hook (shown above, placement to tune) and **no wind zones**. The doldrums, the trade belt, the stormy coast and the cold gales stay in the biomes. A first current close to home also teaches currents before the far waters.
 
 ## 3. Settings and difficulty
 
@@ -76,14 +81,15 @@ Guillaume's rule is that every hazard or annoyance can be switched off. Proposal
 
 1. Zones and currents in the map format, checks and the editor (paint, preview): about 2 PRs.
 2. Sim (`windAt` zone term, current vector in `stepBoat`, iceberg drift) with tests: 1 PR.
-3. HUD readouts, sea streaks, chart layer, first-time hints, Settings switches, en/fr: 1 to 2 PRs.
+3. Current water look (sea shader band, chart band), SOG readout, first-time hints, Settings switches, en/fr: 1 to 2 PRs.
 4. The balance check's bots learn to aim up-current, and the targets get checked: 1 PR.
 
 Everything waits for the v0.3.x release. The data format can be drafted earlier, since nothing in the game reads it until then.
 
 ## Questions for Guillaume
 
-1. **Readouts:** blue current arrow on the compass, "SOG" under the speed, and streaks on the water. Is that enough, or too much?
-2. **Two switches** (Currents, Wind zones), or one switch for both?
-3. **Difficulty:** should currents scale with the level (Fair winds weaker), or stay the same everywhere?
-4. **Tides** (currents that turn slowly over time) left for later? I recommend later.
+1. **Current water look:** darker band, finer ripples, tide-rip edges, plus "SOG" and "Current 1.8 kn SE" in small text. Is that right?
+2. **On today's ring:** one current through the Skerry and Gull Hook passage. Is that the right amount and place?
+3. **Two switches** (Currents, Wind zones), or one switch for both?
+4. **Difficulty:** should currents scale with the level (Fair winds weaker), or stay the same everywhere?
+5. **Tides** (currents that turn slowly over time) left for later? I recommend later.

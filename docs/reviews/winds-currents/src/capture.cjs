@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* global require, process, window, document, localStorage */
 // Winds and currents mockups (Phase 4, ADR 0137): real game captures with the proposed readouts
-// drawn on top (blue current arrow on the compass, SOG under the speed, current streaks, a first-time
-// hint, a chart layer). Nothing here is game code. Run against `npx vite --port 5199`:
+// drawn on top (a band of darker current water, SOG under the speed, a first-time hint). Nothing here is game code. Run against `npx vite --port 5199`:
 //   node docs/reviews/winds-currents/src/capture.cjs
 const path = require('path');
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
@@ -14,8 +13,8 @@ const SHOTS = [
   ['sea-current-landscape', 844, 390, 'current'],
   ['sea-current-portrait', 390, 844, 'current'],
   ['sea-doldrums-desktop', 1280, 720, 'doldrums'],
-  ['chart-layer-desktop', 1280, 720, 'chart'],
-  ['chart-layer-portrait', 390, 844, 'chart'],
+  ['chart-ring-current-desktop', 1280, 720, 'chart'],
+  ['chart-ring-current-portrait', 390, 844, 'chart'],
 ];
 
 // Set of the current in the mockups: towards the south-east, 1.8 kn.
@@ -56,19 +55,13 @@ async function seaOverlay(p, kind, setDeg) {
         sog.className = 'mock-sog';
         sog.textContent = 'SOG 9.6 kn';
         log.appendChild(sog);
-        // Current arrow on the compass ring: blue, pointing where the water flows.
-        const svg = document.querySelector('#wind-help-trigger svg');
-        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        g.setAttribute('transform', `rotate(${setDeg})`);
-        g.innerHTML =
-          '<path d="M0 -47 L6 -37 L2 -38 L2 -30 L-2 -30 L-2 -38 L-6 -37 Z" fill="#2f8fff" stroke="#0b2a4a" stroke-width="1"/>';
-        svg.appendChild(g);
+        // No arrows (Guillaume): the current is a band of visibly different water. Darker, bluer,
+        // with a fine ripple texture inside and a line of broken water (a tide rip) along its edges.
         const cap = document.querySelector('.wind-caption');
         const cur = document.createElement('span');
         cur.className = 'mock-sog';
-        cur.textContent = 'Current 1.8 kn → SE';
+        cur.textContent = 'Current 1.8 kn SE';
         cap.appendChild(cur);
-        // Streaks on the water, flowing with the current.
         const w = window.innerWidth,
           h = window.innerHeight;
         const ns = 'http://www.w3.org/2000/svg';
@@ -78,16 +71,41 @@ async function seaOverlay(p, kind, setDeg) {
         const a = ((setDeg - 90) * Math.PI) / 180;
         const dx = Math.cos(a),
           dy = Math.sin(a);
-        let html = '';
+        // The band runs along the current through the middle of the screen, the boat inside it.
+        const cx = w * 0.48,
+          cy = h * 0.45,
+          half = Math.min(w, h) * 0.24,
+          len = Math.max(w, h) * 1.2;
+        const nx = -dy,
+          ny = dx;
+        const edge = (side) => {
+          const pts = [];
+          for (let i = -12; i <= 12; i++) {
+            const t = (i / 12) * len;
+            const wob = Math.sin(i * 1.7) * half * 0.12;
+            pts.push([cx + dx * t + nx * (side * half + wob), cy + dy * t + ny * (side * half + wob)]);
+          }
+          return pts;
+        };
+        const left = edge(-1),
+          right = edge(1);
+        const poly = [...left, ...right.reverse()].map((p) => p.join(',')).join(' ');
+        let html = `<defs><filter id="soft"><feGaussianBlur stdDeviation="${half * 0.12}"/></filter></defs>`;
+        html += `<polygon points="${poly}" fill="rgba(16,70,120,.33)" filter="url(#soft)"/>`;
+        // Ripple texture: short, crossed wavelets, denser than the open sea's.
         let seed = 7;
         const r = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
-        for (let i = 0; i < 26; i++) {
-          const x = r() * w,
-            y = h * 0.25 + r() * h * 0.7;
-          const L = 40 + r() * 50;
-          html += `<path d="M${x},${y} q${(dx * L) / 2 + dy * 6},${(dy * L) / 2 - dx * 6} ${dx * L},${dy * L}" stroke="rgba(190,235,255,.55)" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
-          if (i % 3 === 0)
-            html += `<path d="M${x + dx * L},${y + dy * L} l${-dx * 8 + dy * 5},${-dy * 8 - dx * 5} M${x + dx * L},${y + dy * L} l${-dx * 8 - dy * 5},${-dy * 8 + dx * 5}" stroke="rgba(190,235,255,.7)" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+        for (let i = 0; i < 70; i++) {
+          const t = (r() * 2 - 1) * len * 0.6,
+            o = (r() * 2 - 1) * half * 0.8;
+          const x = cx + dx * t + nx * o,
+            y = cy + dy * t + ny * o;
+          const L = 10 + r() * 14;
+          html += `<path d="M${x - nx * L},${y - ny * L} q${nx * L},${ny * L - 5} ${nx * L * 2},${ny * L * 2}" stroke="rgba(200,240,255,.35)" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+        }
+        // Tide rips: broken white water along both edges.
+        for (const side of [left, right]) {
+          html += `<polyline points="${side.map((p) => p.join(',')).join(' ')}" fill="none" stroke="rgba(235,250,255,.55)" stroke-width="3" stroke-dasharray="3 9 12 7" stroke-linecap="round"/>`;
         }
         s.innerHTML = html;
         document.body.appendChild(s);
@@ -120,7 +138,7 @@ async function seaOverlay(p, kind, setDeg) {
           : 'The doldrums: the wind is light here. Light, swift ships slip through best.';
       const tag = document.createElement('div');
       tag.className = 'mock-tag';
-      tag.textContent = 'MOCKUP: blue readouts, streaks and hint are proposals';
+      tag.textContent = 'MOCKUP: darker current water, readouts and hint are proposals';
       tag.style.left = '8px';
       tag.style.bottom = '8px';
       document.body.appendChild(tag);
@@ -138,7 +156,8 @@ async function chartOverlay(p) {
     const chev = (x, y, deg, color, size = 9) =>
       `<path transform="translate(${x},${-y}) rotate(${deg})" d="M${-size},${size * 0.7} L0,${-size * 0.7} L${size},${size * 0.7}" fill="none" stroke="${color}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`;
     let html = '';
-    // Example current lane through the passage between Skerry and Gull Hook, flowing south-east.
+    // Guillaume: today's ring can have some of this, not all of it. One current only, through the
+    // passage between Skerry and Gull Hook, drawn as darker water like at sea (no arrows).
     const lane = [
       [-170, 40],
       [-90, -40],
@@ -146,42 +165,20 @@ async function chartOverlay(p) {
       [90, -200],
       [170, -290],
     ];
-    html += `<path d="M${lane.map(([x, y]) => `${x},${-y}`).join(' L')}" stroke="rgba(47,143,255,.28)" stroke-width="44" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
-    for (let i = 0; i < lane.length - 1; i++) {
-      const [x0, y0] = lane[i],
-        [x1, y1] = lane[i + 1];
-      const deg = (Math.atan2(x1 - x0, y1 - y0) * 180) / Math.PI;
-      for (const t of [0.3, 0.75]) html += chev(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, deg, '#1b6fd6');
-    }
+    const d = `M${lane.map(([x, y]) => `${x},${-y}`).join(' L')}`;
+    html += `<path d="${d}" stroke="rgba(16,70,120,.38)" stroke-width="44" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+    html += `<path d="${d}" stroke="rgba(220,245,255,.55)" stroke-width="2" stroke-dasharray="3 10" fill="none" stroke-linecap="round"/>`;
     html += `<text x="190" y="${290 + 22}" class="mock-label">current 1.8 kn</text>`;
-    // Example doldrums patch and a trade-wind belt.
-    html += `<ellipse cx="-300" cy="${230}" rx="95" ry="55" fill="rgba(235,250,255,.45)" stroke="#fff" stroke-dasharray="8 6" stroke-width="2.5"/>`;
-    html += `<text x="-300" y="${236}" class="mock-label">doldrums</text>`;
-    for (let i = 0; i < 5; i++) html += chev(-80 + i * 70, 370, -100, 'rgba(255,255,255,.85)', 8);
-    html += `<text x="60" y="${-370 + 30}" class="mock-label">steady trade wind</text>`;
     g.innerHTML =
       `<style>.mock-label{font:700 15px system-ui,sans-serif;fill:#0b3c55;stroke:#e9fbff;stroke-width:4;paint-order:stroke;text-anchor:middle}</style>` +
       html;
     svg.appendChild(g);
-    // A layer toggle in the chart header, next to the legend button.
-    const legend = document.querySelector('#chart-legend-toggle');
-    const btn = legend.cloneNode(true);
-    btn.id = 'mock-layer';
-    const label = btn.querySelector('.chart-legend-label');
-    label.textContent = 'Winds & currents';
-    label.style.display = 'inline';
-    btn.querySelector('use').setAttribute('href', '#i-compass');
-    btn.style.width = 'auto';
-    btn.style.padding = '0 10px';
-    // The journal opens by itself on a fresh voyage; close it so the layer shows.
+    // No layer toggle: like at sea, current water is always drawn on the chart.
+    // The journal opens by itself on a fresh voyage; close it so the current shows.
     const journal = document.querySelector('#chart-journal-panel');
     if (journal) journal.hidden = true;
-    btn.style.outline = '2px solid #2f8fff';
-    btn.style.background = '#2f8fff';
-    btn.style.color = '#fff';
-    legend.parentNode.insertBefore(btn, legend);
     const tag = document.createElement('div');
-    tag.textContent = 'MOCKUP: example current, doldrums and trade wind on today’s sea';
+    tag.textContent = 'MOCKUP: one example current on today’s sea, as darker water';
     tag.style.cssText =
       'position:fixed;left:8px;bottom:8px;z-index:9999;font:700 11px system-ui,sans-serif;color:#10303a;background:#ffd166;border-radius:6px;padding:2px 6px';
     document.body.appendChild(tag);

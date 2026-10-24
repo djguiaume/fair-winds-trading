@@ -35,6 +35,10 @@ const poly = (pts, attrs) => `<polygon points="${pts.map(sx).join(' ')}" ${attrs
 function label(p, text, cls = 'port', dy = 0) {
   return `<text x="${p[0].toFixed(1)}" y="${(-p[1] + dy).toFixed(1)}" class="${cls}">${text}</text>`;
 }
+function waterBand(points, cls) {
+  const d = 'M' + points.map(sx).join(' L');
+  return `<path d="${d}" class="${cls}"/><path d="${d}" class="${cls}-ripple"/>`;
+}
 function arrow(from, to, cls) {
   return `<line x1="${from[0]}" y1="${-from[1]}" x2="${to[0]}" y2="${-to[1]}" class="${cls}" marker-end="url(#${cls}-head)"/>`;
 }
@@ -57,6 +61,10 @@ const STYLE = `
 .biome{font:800 64px Arial Narrow,Arial,sans-serif;fill:#ffffff;opacity:.85;text-anchor:middle;letter-spacing:3px;stroke:#0b3c46;stroke-width:12;paint-order:stroke}
 .note{font:600 32px Arial,sans-serif;fill:#fff;stroke:#0b3c46;stroke-width:8;paint-order:stroke;text-anchor:middle}
 .wind{stroke:#ffffff;stroke-width:4;opacity:.75}.current{stroke:#0b4a8f;stroke-width:5;opacity:.85}.warm{stroke:#ff8b3d;stroke-width:5;opacity:.9}
+.band-cold{fill:none;stroke:#165c93;stroke-width:70;stroke-linecap:round;stroke-linejoin:round;opacity:.5}
+.band-cold-ripple{fill:none;stroke:#cdeeff;stroke-width:3;stroke-dasharray:4 14;opacity:.6;stroke-linecap:round}
+.band-warm{fill:none;stroke:#3fd0b0;stroke-width:70;stroke-linecap:round;stroke-linejoin:round;opacity:.45}
+.band-warm-ripple{fill:none;stroke:#f3fff9;stroke-width:3;stroke-dasharray:4 14;opacity:.6;stroke-linecap:round}
 .drift{stroke:#ffffff;stroke-width:3;stroke-dasharray:6 5}
 .block{stroke:#d7263d;stroke-width:6;stroke-dasharray:10 6}
 .out{fill:#ffd166;stroke:#10303a;stroke-width:3}.anchor{fill:#10303a;stroke:#f3d88a;stroke-width:3}
@@ -163,10 +171,7 @@ function westFire(place) {
   s += portIsland(place(300, 650), 28, 'island', 42, 'Fire port');
   s += outpost(place(245, 880), 16, 'volc', 43, 'Fire outpost');
   s += scenery(place(302, 900), 18, 'volc', 44, 'basalt stacks', 1.4, 30);
-  for (let k = 0; k < 4; k++) {
-    const p = place(235 + k * 18, 580);
-    s += arrow(p, [p[0] + polar(70, 340)[0], p[1] + polar(70, 340)[1]], 'warm');
-  }
+  s += waterBand([place(232, 600), place(250, 575), place(272, 585), place(292, 560)], 'band-warm');
   s += label(place(262, 545), 'warm current', 'note', 0);
   return s;
 }
@@ -180,11 +185,8 @@ function eastFog(place) {
     s += `<ellipse cx="${p[0]}" cy="${-p[1]}" rx="${80 + k * 10}" ry="38" class="fogbank"/>`;
   }
   s += label(place(68, 520), 'fog banks', 'note', 5);
-  for (let k = 0; k < 4; k++) {
-    const p = place(58 + k * 16, 770);
-    s += arrow(p, [p[0] + polar(80, 160)[0], p[1] + polar(80, 160)[1]], 'current');
-  }
-  s += label(place(80, 770), 'strong current', 'note', -24);
+  s += waterBand([place(40, 930), place(62, 900), place(84, 920), place(106, 895), place(126, 915)], 'band-cold');
+  s += label(place(84, 930), 'strong current', 'note', -40);
   const st = place(100, 935);
   s += `<path d="M${st[0] - 30},${-st[1]} a30,30 0 1,1 30,30 a18,18 0 1,1 -18,-18" class="storm"/>`;
   s += label(st, 'storms (expedition later)', 'note', 52);
@@ -255,7 +257,7 @@ function compass(x, y) {
   return `<g transform="translate(${x},${y})"><rect x="-70" y="-70" width="140" height="160" rx="14" fill="#0f3d47" stroke="#f3d88a" stroke-width="2"/>
   <circle r="52" fill="#174f5b" stroke="#2ba4b3" stroke-width="3"/><text y="-58" class="note" style="font-size:16px">N</text>
   <line x1="${-w[0]}" y1="${w[1]}" x2="${w[0]}" y2="${-w[1]}" class="wind" marker-end="url(#wind-head)"/>
-  <text y="80" class="note" style="font-size:13px">prevailing; it wanders</text></g>`;
+  <text y="80" class="note" style="font-size:13px">prevailing wind</text></g>`;
 }
 
 function legend(x, y, scale = 1) {
@@ -265,7 +267,7 @@ function legend(x, y, scale = 1) {
     ['<line x1="0" y1="0" x2="26" y2="0" class="block"/>', 'hard block: deep ships'],
     ['<rect x="0" y="-9" width="26" height="18" class="reef"/>', 'reef'],
     ['<rect x="0" y="-9" width="26" height="18" class="shoal"/>', 'shallows'],
-    ['<line x1="0" y1="0" x2="22" y2="0" class="current" marker-end="url(#current-head)"/>', 'current'],
+    ['<rect x="0" y="-9" width="26" height="18" rx="9" fill="#165c93" opacity=".6"/>', 'current (darker water)'],
     ['<line x1="0" y1="0" x2="22" y2="0" class="wind" marker-end="url(#wind-head)"/>', 'wind zone'],
   ];
   let s = `<g transform="translate(${x},${y}) scale(${scale})"><rect x="-14" y="-28" width="250" height="${rows.length * 32 + 22}" rx="12" fill="#0f3d47" opacity=".92" stroke="#f3d88a" stroke-width="2"/>`;
