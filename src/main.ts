@@ -41,6 +41,7 @@ import { SLOOP, noGoAngle } from './sim/ship';
 import * as trade from './sim/trade';
 import { type Difficulty, isDifficulty, knobs } from './sim/difficulty';
 import { daylightAt } from './sim/daylight';
+import { hazeSwitches } from './sim/windZones';
 import { QuestBook, useEditedQuests } from './sim/quests';
 import { questTestFrom, sailableHeading, testBerth } from './sim/questTest';
 import { QuestTestBar } from './ui/questTestBar';
@@ -93,6 +94,7 @@ import {
   goodName,
   workshopName,
   goodSome,
+  hasText,
   setLanguage,
   t,
   townLevelName,
@@ -1091,6 +1093,43 @@ currentsSwitch.addEventListener('change', () => {
   settings.currents = currentsSwitch.checked;
   keepSettings();
 });
+// Fog banks and ash clouds (decision 0169): one switch per haze the zone kinds name, made from
+// the data so a new kind needs no code, placed after the Currents row.
+const hazeOff = () => hazeSwitches().filter((id) => settings.haze[id] === false);
+world.hazeOff = hazeOff();
+{
+  let after: Element | null = currentsSwitch.closest('.set-row');
+  for (const id of hazeSwitches()) {
+    const row = document.createElement('label');
+    row.className = 'set-row';
+    const name = document.createElement('span');
+    name.className = 'set-name';
+    const label = document.createElement('span');
+    const note = document.createElement('small');
+    for (const [el, key] of [
+      [label, `settings.haze.${id}`],
+      [note, `settings.haze.${id}Note`],
+    ] as const) {
+      el.dataset.i18n = key;
+      el.textContent = hasText(key) ? t(key) : id;
+    }
+    name.append(label, note);
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.id = `haze-${id}`;
+    input.className = 'switch';
+    input.setAttribute('role', 'switch');
+    input.checked = settings.haze[id] !== false;
+    input.addEventListener('change', () => {
+      settings.haze = { ...settings.haze, [id]: input.checked };
+      world.hazeOff = hazeOff();
+      keepSettings();
+    });
+    row.append(name, input);
+    after?.after(row);
+    after = row;
+  }
+}
 // Wind: steady trade wind or the shifting wind (decision 0083); the level sets its default.
 const windButtons = [...$('wind-choice').querySelectorAll<HTMLButtonElement>('[data-wind]')];
 const syncWind = () => {
@@ -1572,9 +1611,12 @@ if (perfMode) {
             `level ${level} fixed, all hazards on)`
           : undefined,
         switches: () =>
-          (['weather', 'storms', 'dayNight', 'windZones', 'currents'] as const)
-            .map((k) => `${k} ${settings[k] ? 'on' : 'off'}`)
-            .join(', '),
+          [
+            ...(['weather', 'storms', 'dayNight', 'windZones', 'currents'] as const).map(
+              (k) => `${k} ${settings[k] ? 'on' : 'off'}`,
+            ),
+            ...hazeSwitches().map((id) => `${id} ${settings.haze[id] !== false ? 'on' : 'off'}`),
+          ].join(', '),
       });
       if (created) startBench(created);
     },

@@ -50,6 +50,28 @@ Add an entry under `default.kinds` in
 - Not from data yet: a new look (real fog, snow) needs code once; until then a kind looks like its
   rain and gloom.
 
+## A fog bank or another hazy zone ([0169](../decisions/0169-haze-fog-banks-and-ash-clouds-as-wind-zone-kinds.md))
+
+A fog bank is a wind zone of kind `fog-bank`: draw it with the sea editor's **Add wind zone** (Kind
+`fog-bank`, give it a name so it is charted once sailed) or `npm run sea -- add zone --kind fog-bank
+--sea east --at x,y --name "The Murk"`. A new hazy kind (ash, sea smoke) is an entry under
+`zones.kinds` in [`weather.json`](../../src/data/tuning/weather.json) with a `haze`:
+
+```json
+"ash": {
+  "gusts": 1.2,
+  "haze": { "near": 10, "far": 60, "color": "#9a8f86", "fade": 100, "switch": "ash" },
+  "chart": "#9a8f86"
+}
+```
+
+- `near` / `far`: sight in units past the boat; `color`: the fog by day; `fade`: how wide its edge
+  is; `switch`: the Settings switch that turns it off (kinds may share one). `chart`: its tint on
+  the editor map and the labelled chart.
+- A new `switch` gets its own Settings row by itself; give it text: `settings.haze.ash` and
+  `settings.haze.ashNote` in `en.json` and `fr.json`, and the kind's name `zone.ash`.
+- No story step may need it: the player can switch it off.
+
 ## A new ship ([0109](../decisions/0109-one-file-per-ship.md))
 
 Copy a ship file in [`src/data/ships/`](../../src/data/ships/), rename it to the new id

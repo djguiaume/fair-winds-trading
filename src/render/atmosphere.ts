@@ -1,9 +1,11 @@
 import * as THREE from 'three';
 import type { Daylight } from '../sim/daylight';
 import type { LocalWeather } from '../sim/wind';
+import type { ZoneVisual } from '../sim/windZones';
 import { approach, clamp } from '../sim/math';
 import type { Ocean } from './ocean';
 import { PALETTE } from './palette';
+import { TUNING } from '../data/tuning';
 
 /** One look of the sea and the light: background/fog, water, sun and sky light. */
 export interface Look {
@@ -121,6 +123,8 @@ export class Atmosphere {
   private readonly now = blank();
   private readonly storm = blank();
   private readonly lightDir = new THREE.Vector3();
+  /** The haze's colour in this light (decision 0169), for the veil over the screen. */
+  readonly hazeColor = new THREE.Color();
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -134,13 +138,29 @@ export class Atmosphere {
     return clamp(Math.max(weather.rain * 0.55, weather.storm, weather.gloom), 0, 1);
   }
 
-  update(dt: number, day: Daylight, weather: LocalWeather, ocean: Ocean, target: THREE.Vector3) {
+  update(
+    dt: number,
+    day: Daylight,
+    weather: LocalWeather,
+    ocean: Ocean,
+    target: THREE.Vector3,
+    haze?: ZoneVisual,
+  ) {
     this.gloom = approach(this.gloom, Atmosphere.gloomFor(weather), 0.35, dt);
     // Day → golden → night, then the storm on top (a storm at night stays dark blue-grey).
     const l = mix(this.now, DAY, GOLDEN, day.warm * (1 - day.night));
     mix(l, l, NIGHT, day.night);
     mix(this.storm, STORM, NIGHT, day.night * 0.7);
     mix(l, l, this.storm, this.gloom);
+    // A fog bank or ash cloud (decision 0169) turns the sky and the fog its colour, darkened at
+    // night like the sky, and dims the sun a little.
+    const h = haze?.kind ? haze.haze : 0;
+    if (haze?.kind && h > 0) {
+      const sight = TUNING.weather.sight;
+      this.hazeColor.set(haze.kind.color).lerp(NIGHT.sky, day.night * sight.hazeNight);
+      l.sky.lerp(this.hazeColor, h);
+      l.sunIntensity *= 1 - sight.hazeSunDim * h;
+    }
 
     (this.scene.background as THREE.Color).copy(l.sky);
     (this.scene.fog as THREE.Fog).color.copy(l.sky);
@@ -151,8 +171,8 @@ export class Atmosphere {
     ocean.setColors(l.water, l.waterLight, l.sky, l.shallow, l.foam);
 
     // The sun (or moon) moves across the sky; shadows swing with it.
-    const h = day.lightHeight;
-    this.lightDir.set(Math.sin(day.lightBearing), h * 1.6, -Math.cos(day.lightBearing));
+    const height = day.lightHeight;
+    this.lightDir.set(Math.sin(day.lightBearing), height * 1.6, -Math.cos(day.lightBearing));
     this.lightDir.normalize();
     this.sun.position.copy(target).addScaledVector(this.lightDir, 60);
     this.sun.target.position.copy(target);
