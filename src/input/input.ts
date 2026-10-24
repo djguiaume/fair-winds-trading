@@ -5,6 +5,8 @@ import { clamp } from '../sim/math';
  * steer (-1..1, held) and sail up/down (discrete steps).
  *
  * - Keyboard: ←/→ or A/D steer, ↑/↓ or W/S raise/lower sails.
+ * - Game controller (decision 0162): read by `GamepadPoller`, fed in with `setPadSteer` and
+ *   `pressSail`.
  * - Touch or mouse: press anywhere on the sea and drag left/right to steer, like a tiller;
  *   the farther you drag, the harder you turn. The sail lever lives in the HUD.
  */
@@ -14,6 +16,7 @@ export class Input {
   private dragId: number | null = null;
   private dragOriginX = 0;
   private dragSteer = 0;
+  private padSteer = 0;
   private sailDelta = 0;
   private sailTarget: number | null = null;
   private enabled = true;
@@ -49,7 +52,13 @@ export class Input {
   get steer(): number {
     if (!this.enabled) return 0;
     const keys = (this.right ? 1 : 0) - (this.left ? 1 : 0);
-    return keys !== 0 ? keys : this.dragSteer;
+    if (keys !== 0) return keys;
+    return this.padSteer !== 0 ? this.padSteer : this.dragSteer;
+  }
+
+  /** The controller's rudder this frame (decision 0162), -1..1; keys still win. */
+  setPadSteer(steer: number) {
+    this.padSteer = this.enabled ? clamp(steer, -1, 1) : 0;
   }
 
   /** Sail steps requested since the last call (+ = raise). */
@@ -128,6 +137,7 @@ export class Input {
     this.left = this.right = false;
     this.dragId = null;
     this.dragSteer = 0;
+    this.padSteer = 0;
     this.sailDelta = 0;
     this.sailTarget = null;
     this.onDrag(null);

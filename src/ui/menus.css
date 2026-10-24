@@ -674,6 +674,13 @@ label.set-row {
   font: 700 13px/1 var(--display);
   text-align: center;
 }
+/* The controller line shows once a pad is seen (decision 0162). */
+.help-controls .pad {
+  display: none;
+}
+.has-gamepad .help-controls .pad {
+  display: inline;
+}
 /* Phones and tablets without a keyboard skip the keyboard line. */
 @media (hover: none) and (pointer: coarse) {
   .help-controls .keys {
