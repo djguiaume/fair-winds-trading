@@ -381,6 +381,7 @@
   "tutorial.offerNote": "Le tutoriel ne dépense jamais votre or. La navigation est en pause pendant ce choix.",
   "tutorial.start": "Commencer le tutoriel",
   "tutorial.free": "Navigation libre",
+  "tutorial.skipLessons": "Passer les leçons",
   "tutorial.cardLabel": "Tutoriel de navigation facultatif",
   "tutorial.show": "Afficher",
   "tutorial.hide": "Masquer",

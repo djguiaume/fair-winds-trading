@@ -36,6 +36,8 @@ Since [0151](0151-tutorial-as-ordinary-quest-steps.md) the tutorial is an ordina
 - **Skip on the coach bubble** turns the coach off too, instead of dropping the quest: skipped
   during the first lessons the story goes on from the foghorn; skipped after Rook is home, the
   remaining steps are all teaching and the quest ends.
+- The offer's button "Free sailing" no longer said what it does, so it reads **"Skip the lessons"**
+  ("Passer les leçons"); "Free sailing" stays only on the bubble that ends the full tutorial.
 - The tools that click Free sailing to reach free play (`npm run shots`, the performance run) call
   the debug helper `fwt.freePlay()`, which drops the prologue and puts the boat back at the map's
   start, so their pictures and numbers stay as before. `npm run shots -- --prologue` shows the new

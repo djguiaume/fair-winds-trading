@@ -381,6 +381,7 @@
   "tutorial.offerNote": "It never spends gold for you. Sailing pauses while this choice is open.",
   "tutorial.start": "Start tutorial",
   "tutorial.free": "Free sailing",
+  "tutorial.skipLessons": "Skip the lessons",
   "tutorial.cardLabel": "Optional sailing tutorial",
   "tutorial.show": "Show",
   "tutorial.hide": "Hide",
