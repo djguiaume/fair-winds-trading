@@ -1,0 +1,88 @@
+import { it } from 'vitest';
+import { PHASE1_MAP } from '../src/data/maps';
+import { legSeconds } from '../src/sim/balance';
+import { SHIP_CLASSES } from '../src/sim/ship';
+import { effectiveShip } from '../src/sim/upgrades';
+import { TUNING } from '../src/data/tuning';
+import type { MapDef } from '../src/sim/map';
+
+/*
+ * Far goods estimate (docs/reviews/far-goods). Not a balance test: it prices a full hold of a
+ * rare good bought where it is made and sold where it is wanted, and times the leg with the
+ * balance simulation's own leg model, on the ring plus the placeholder Phase 4 sites from
+ * docs/reviews/phase-4-map (bearing clockwise from north, distance from the centre).
+ * Run: cp docs/reviews/far-goods/src/estimate.test.ts tests/zz-estimate.test.ts &&
+ *   npx vitest run tests/zz-estimate.test.ts --silent=false; rm tests/zz-estimate.test.ts
+ */
+const SITES: Record<string, [number, number]> = {
+  'ice-port': [8, 690],
+  'outpost-ice': [30, 860],
+  'tropic-port': [176, 680],
+  'outpost-tropic': [141, 900],
+  'fire-port': [300, 650],
+  'outpost-fire': [245, 880],
+  'fog-port': [94, 680],
+  'outpost-fog': [66, 870],
+};
+const map = structuredClone(PHASE1_MAP) as MapDef;
+for (const [id, [deg, r]] of Object.entries(SITES)) {
+  const a = (deg * Math.PI) / 180;
+  map.islands.push({ id, name: id, x: Math.round(r * Math.sin(a)), y: Math.round(r * Math.cos(a)), radius: 20 } as never);
+  map.ports.push({ id, name: id, islandId: id } as never);
+}
+
+const m = TUNING.economy.market;
+const t = TUNING.economy.towns;
+const spread = 0.06; // Captain's cut
+const mid = (base: number, stock: number) =>
+  base * Math.min(Math.max(Math.pow(m.referenceStock / Math.max(stock, 1), m.elasticity), m.floor), m.ceiling);
+function run(base: number, makerLevel: number, buyerLevel: number, qty: number, share = t.rareShare) {
+  return runStock(base, t.producesEquilibrium[makerLevel - 1]! * share, t.wantsEquilibrium[buyerLevel - 1]!, qty);
+}
+function runStock(base: number, s0: number, w0: number, qty: number) {
+  let cost = 0;
+  let paid = 0;
+  for (let i = 0; i < qty; i++) {
+    cost += Math.ceil(mid(base, s0 - i - 1) * (1 + spread));
+    paid += Math.floor(mid(base, w0 + i + 1) * (1 - spread));
+  }
+  return { cost, paid, gain: paid - cost };
+}
+const maxed = { sails: 3, hull: 3, hold: 3 } as const;
+
+it('prints the estimate', () => {
+  const ships = ['cutter', 'schooner', 'hoy', 'fluyt', 'indiaman'];
+  const rows: string[] = [];
+  const cases: { label: string; from: string; to: string; base: number; ml: number; bl: number; share?: number; qty?: number }[] = [
+    { label: 'honey today', from: 'abbey-head', to: 'saltmere', base: 55, ml: 2, bl: 3 },
+    { label: 'lamp oil today', from: 'watchman-key', to: 'calda', base: 50, ml: 2, bl: 3 },
+    // Raw far good: the outpost (a village) gathers it like a bulk good; the main port buys it.
+    { label: 'spice (raw)', from: 'outpost-tropic', to: 'tropic-port', base: 20, ml: 2, bl: 2, share: 1 },
+    { label: 'obsidian (raw)', from: 'outpost-fire', to: 'fire-port', base: 22, ml: 2, bl: 2, share: 1 },
+    { label: 'cloudberries (raw)', from: 'outpost-ice', to: 'ice-port', base: 25, ml: 2, bl: 2, share: 1 },
+    { label: 'amber (raw)', from: 'outpost-fog', to: 'fog-port', base: 28, ml: 2, bl: 2, share: 1 },
+    // Crafted: the main port's workshop (a town) makes it like a specialty; ring port towns buy it.
+    { label: 'spiced tea', from: 'tropic-port', to: 'calda', base: 90, ml: 3, bl: 4, share: 0.7 },
+    { label: 'spiced tea', from: 'tropic-port', to: 'westholm', base: 90, ml: 3, bl: 4, share: 0.7 },
+    { label: 'obsidian mirrors', from: 'fire-port', to: 'calda', base: 100, ml: 3, bl: 4, share: 0.7 },
+    { label: 'obsidian mirrors', from: 'fire-port', to: 'saltmere', base: 100, ml: 3, bl: 4, share: 0.7 },
+    { label: 'cloudberry jam', from: 'ice-port', to: 'saltmere', base: 110, ml: 3, bl: 4, share: 0.7 },
+    { label: 'cloudberry jam', from: 'ice-port', to: 'stonehaven', base: 110, ml: 3, bl: 4, share: 0.7 },
+    { label: 'amber beads', from: 'fog-port', to: 'westholm', base: 120, ml: 3, bl: 4, share: 0.7 },
+    { label: 'amber beads', from: 'fog-port', to: 'stonehaven', base: 120, ml: 3, bl: 4, share: 0.7 },
+    { label: 'honey out', from: 'abbey-head', to: 'tropic-port', base: 55, ml: 2, bl: 2 },
+    { label: 'lamp oil out', from: 'watchman-key', to: 'ice-port', base: 50, ml: 2, bl: 2 },
+  ];
+  for (const c of cases) {
+    const parts = [`${c.label} ${c.from} -> ${c.to}`];
+    for (const id of ships) {
+      const ship = effectiveShip(SHIP_CLASSES[id]!, maxed);
+      const sec = legSeconds(map, ship, c.from, c.to);
+      const qty = Math.min(ship.hold, c.qty ?? 30);
+      const r = run(c.base, c.ml, c.bl, qty, c.share);
+      parts.push(`${id}: ${qty}u ${Math.round(sec)}s +${r.gain} (${(r.gain / sec).toFixed(1)}/s)`);
+    }
+    rows.push(parts.join(' | '));
+  }
+  console.log(rows.join('\n'));
+});
