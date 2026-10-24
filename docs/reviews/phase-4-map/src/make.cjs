@@ -218,6 +218,20 @@ function chart(variant, upright = false) {
       }
     }
     for (let k = 0; k < 4; k++) s += label(polar(470, k * 90 + 45), 'open sea', 'scen', 0);
+    // The open sea between groups is not empty (Guillaume): islets, a sandbar and a landmark each.
+    const marks = ['old tower', 'wreck', 'seal rocks', 'lone palm'];
+    for (let k = 0; k < 4; k++) {
+      const mid = k * 90 + 45;
+      const R = rng(500 + k);
+      for (let j = 0; j < 4; j++) {
+        const p = polar(600 + R() * 320, mid - 14 + R() * 28);
+        s += poly(blob(p[0], p[1], 8 + R() * 10, 600 + k * 10 + j, 11, 0.4), 'class="island"');
+      }
+      const bar = polar(700 + R() * 120, mid + (R() < 0.5 ? -9 : 9));
+      s += poly(blob(bar[0], bar[1], 26, 700 + k, 9, 0.5, 2.2, mid), 'class="shoal"');
+      const lm = polar(800, mid);
+      s += poly(blob(lm[0], lm[1], 15, 800 + k, 12, 0.3), 'class="island"') + label(lm, marks[k], 'scen', 42);
+    }
   }
   s += `</g>`;
   s += northIce(place) + southTropic(place) + westFire(place) + eastFog(place);
@@ -241,7 +255,7 @@ function compass(x, y) {
   return `<g transform="translate(${x},${y})"><rect x="-70" y="-70" width="140" height="160" rx="14" fill="#0f3d47" stroke="#f3d88a" stroke-width="2"/>
   <circle r="52" fill="#174f5b" stroke="#2ba4b3" stroke-width="3"/><text y="-58" class="note" style="font-size:16px">N</text>
   <line x1="${-w[0]}" y1="${w[1]}" x2="${w[0]}" y2="${-w[1]}" class="wind" marker-end="url(#wind-head)"/>
-  <text y="80" class="note" style="font-size:14px">wind from NNE</text></g>`;
+  <text y="80" class="note" style="font-size:13px">prevailing; it wanders</text></g>`;
 }
 
 function legend(x, y, scale = 1) {
@@ -281,8 +295,8 @@ function portrait() {
   const W = 430, H = 932;
   const view = SEA + 100;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${defs()}
-  <g transform="translate(${W / 2},${H / 2 - 20}) scale(${(W / 2 - 4) / view})">${chart('A', true)}</g>
-  <text x="16" y="36" style="font:800 20px Arial Narrow,Arial,sans-serif;fill:#fff">Phase 4 sea, phone portrait (A)</text>
+  <g transform="translate(${W / 2},${H / 2 - 20}) scale(${(W / 2 - 4) / view})">${chart('B', true)}</g>
+  <text x="16" y="36" style="font:800 20px Arial Narrow,Arial,sans-serif;fill:#fff">Phase 4 sea, phone portrait (B)</text>
   <text x="16" y="60" style="font:500 13px Arial,sans-serif;fill:#d9f4f7">Whole sea at once: ring names and notes</text>
   <text x="16" y="78" style="font:500 13px Arial,sans-serif;fill:#d9f4f7">would wait for zoom, as on the stress sea.</text>
   ${legend(26, 790, 0.62)}</svg>`;
@@ -323,7 +337,7 @@ function fogStart() {
   const shots = [
     ['layout-A-quarters.png', landscape('A')],
     ['layout-B-island-groups.png', landscape('B')],
-    ['layout-A-portrait.png', portrait()],
+    ['layout-B-portrait.png', portrait()],
     ['fog-start.png', fogStart()],
   ];
   for (const [file, { html, W, H }] of shots) {
