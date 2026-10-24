@@ -26,6 +26,8 @@ export interface Layers {
   flow: boolean;
   /** Buoys, cardinal marks, boats and lights (decision 0130). */
   marks: boolean;
+  /** Fog of war's chart areas (decision 0156). */
+  areas?: boolean;
 }
 
 export interface View {
@@ -46,7 +48,7 @@ export interface ChartScene {
   selection: Selection;
   layers: Layers;
   view: View;
-  /** The Windward Ring's own sea radius, drawn dashed on the grown sea (decision 0156). */
+  /** The Windward Ring's own sea radius, drawn dashed on the grown sea (decision 0161). */
   ringRadius?: number;
   /** Chart size in pixels; the SVG's own size when left out (`npm run chart` has no layout). */
   size?: { width: number; height: number };
@@ -89,6 +91,10 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
   }
 
   if (layers.flow) drawFlow(el, map, px);
+  // Fog of war's chart areas (decision 0156): a faint dashed outline each, named below.
+  if (layers.areas)
+    for (const a of map.fog?.areas ?? [])
+      el('polygon', { points: pts(a.outline), class: 'c-area', 'data-hit': `area:${a.id}` });
 
   // Barrier islands, reefs and sandbanks first: port islands sit on top.
   for (const t of map.terrain ?? []) {
@@ -241,7 +247,8 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
       );
     }
   }
-  if (layers.flow) drawFlowSelection(el, map, selection, px);
+  if (layers.flow || (selection?.kind === 'area' && layers.areas))
+    drawFlowSelection(el, map, selection, px);
   if (selection?.kind === 'waypoint') {
     const wp = map.course[selection.index];
     if (wp) el('circle', { cx: wp.x, cy: -wp.y, r: 9 * px, class: 'c-selected' });
@@ -290,6 +297,18 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
       for (const mark of map.marks ?? [])
         if (mark.name) label(mark.name, mark.x, -mark.y - 10 * px, 11, 'small');
     if (layers.flow) flowLabels(map, label);
+    if (layers.areas)
+      for (const a of map.fog?.areas ?? []) {
+        const xs = a.outline.map((p) => p[0]),
+          ys = a.outline.map((p) => p[1]);
+        label(
+          `▦ ${a.name}`,
+          (Math.min(...xs) + Math.max(...xs)) / 2,
+          -(Math.min(...ys) + Math.max(...ys)) / 2,
+          12,
+          'small c-area-label',
+        );
+      }
     label('start', s.x, -s.y + 22 * px, 11, 'small');
   }
 }

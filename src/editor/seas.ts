@@ -3,6 +3,7 @@ import { grownMap } from '../data/grownMap';
 import type { MapDef } from '../sim/map';
 import {
   type Selection,
+  findArea,
   findCurrent,
   findIsland,
   findShape,
@@ -13,7 +14,7 @@ import {
 import { formatMapJson } from './model';
 
 /**
- * The sea editor (decision 0156): the map editor on the whole Phase 4 sea, today's Windward Ring
+ * The sea editor (decision 0161): the map editor on the whole Phase 4 sea, today's Windward Ring
  * with every sea file round it, as one map. Every island, reef, port, waypoint, mark, current and
  * zone carries the file it belongs to (`IN_SEA`), new ones go into the sea picked as the active
  * one, and the export splits the map back into `phase1-map.json`, `seas/grown.json` and one file
@@ -26,7 +27,10 @@ export const RING = 'ring';
 /** The tag every listed thing carries in the editor: the sea file it belongs to. */
 export const IN_SEA = 'inSea';
 
-/** The lists a sea file and the ring share, in the order a new sea file writes them. */
+/**
+ * The lists a sea file and the ring share, in the order a new sea file writes them. A sea file's
+ * `chartAreas` (fog of war, decision 0156) are the merged map's `fog.areas`; the ring has none.
+ */
 export const SEA_LISTS = [
   'islands',
   'terrain',
@@ -35,6 +39,7 @@ export const SEA_LISTS = [
   'marks',
   'currents',
   'windZones',
+  'chartAreas',
 ] as const;
 type ListKey = (typeof SEA_LISTS)[number];
 const LIST_KEYS = new Set<string>(SEA_LISTS);
@@ -68,7 +73,16 @@ export type SeaDoc = MapDef & { seaEditor: SeaEditorState };
 type Tagged = { [IN_SEA]?: string };
 
 /** The ring's own fields the grown sea replaces; the ring file keeps its own. */
-const RING_OWN = new Set(['name', 'boundsRadius', 'compatibleSaveMaps']);
+const RING_OWN = new Set(['name', 'boundsRadius', 'compatibleSaveMaps', 'fog']);
+
+/** One of the lists, in the merged map. */
+function listOf(doc: MapDef, key: ListKey): Tagged[] | undefined {
+  return (key === 'chartAreas' ? doc.fog?.areas : doc[key]) as Tagged[] | undefined;
+}
+function setList(doc: MapDef, key: ListKey, items: Tagged[]) {
+  if (key === 'chartAreas') (doc.fog ??= { chartedRadius: 0, areas: [] }).areas = items as never;
+  else (doc as unknown as Record<string, unknown>)[key] = items;
+}
 
 function head(file: object): FileHead {
   const values = Object.fromEntries(Object.entries(file).filter(([k]) => !LIST_KEYS.has(k)));
@@ -102,6 +116,8 @@ export function mergeSeas(ring: MapDef, seas: readonly SeaDef[], grown: GrownDef
     seas.map((sea) => tagged(sea, sea.id)),
   );
   map.boundsRadius = grown.boundsRadius;
+  if (map.fog && typeof grown.chartedRadius === 'number')
+    map.fog.chartedRadius = grown.chartedRadius;
   return {
     ...map,
     seaEditor: {
@@ -134,9 +150,12 @@ export const GROWN_PATH = 'src/data/seas/grown.json';
 
 /** Tags everything new (added since the last edit) with the active sea. */
 export function claimNew(doc: SeaDoc) {
-  for (const key of SEA_LISTS)
-    for (const item of (doc[key] as Tagged[] | undefined) ?? [])
-      item[IN_SEA] ??= doc.seaEditor.active;
+  const { active } = doc.seaEditor;
+  for (const key of SEA_LISTS) {
+    // The ring is charted from the start: a chart area made there goes to the first sea.
+    const owner = key === 'chartAreas' && active === RING ? seaIds(doc)[0] : active;
+    for (const item of listOf(doc, key) ?? []) if (owner) item[IN_SEA] ??= owner;
+  }
 }
 
 /** The sea a thing belongs to. */
@@ -153,12 +172,13 @@ export function selected(doc: MapDef, sel: Selection): object | undefined {
   if (sel.kind === 'zone') return findZone(doc, sel.id);
   if (sel.kind === 'waypoint') return doc.course[sel.index];
   if (sel.kind === 'mark') return doc.marks?.[sel.index];
+  if (sel.kind === 'area') return findArea(doc, sel.id);
 }
 
 /** Moves the selection into another sea file; an island takes its port and waypoint along. */
 export function moveToSea(doc: SeaDoc, sel: Selection, owner: string) {
   const item = selected(doc, sel) as Tagged | undefined;
-  if (!item) return;
+  if (!item || (sel?.kind === 'area' && owner === RING)) return;
   item[IN_SEA] = owner;
   if (sel?.kind === 'island') {
     const island = findIsland(doc, sel.id)!;
@@ -193,9 +213,8 @@ const strip = <T>(item: T): T => {
 
 /** The listed things one file owns, untagged, in the merged map's order. */
 function owned(doc: SeaDoc, key: ListKey, owner: string, fallback: string): unknown[] {
-  return ((doc[key] as Tagged[] | undefined) ?? [])
-    .filter((item) => (item[IN_SEA] ?? fallback) === owner)
-    .map(strip);
+  if (key === 'chartAreas' && owner === RING) return [];
+  return (listOf(doc, key) ?? []).filter((item) => (item[IN_SEA] ?? fallback) === owner).map(strip);
 }
 
 /**
@@ -208,22 +227,22 @@ function build(
   owner: string,
   field: (key: string) => unknown,
 ): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
   const fallback = doc.seaEditor.active;
-  const lists = new Set<string>();
-  for (const key of file.keys) {
-    if (LIST_KEYS.has(key)) {
-      out[key] = owned(doc, key as ListKey, owner, fallback);
-      lists.add(key);
-    } else {
+  // A list the file did not have yet goes in after the lists before it in SEA_LISTS order.
+  const keys = [...file.keys];
+  for (const [n, key] of SEA_LISTS.entries()) {
+    if (keys.includes(key) || !owned(doc, key, owner, fallback).length) continue;
+    const before = SEA_LISTS.slice(0, n).filter((k) => keys.includes(k));
+    const at = before.length ? keys.indexOf(before[before.length - 1]!) + 1 : keys.length;
+    keys.splice(at, 0, key);
+  }
+  const out: Record<string, unknown> = {};
+  for (const key of keys) {
+    if (LIST_KEYS.has(key)) out[key] = owned(doc, key as ListKey, owner, fallback);
+    else {
       const value = field(key);
       if (value !== undefined) out[key] = value;
     }
-  }
-  for (const key of SEA_LISTS) {
-    if (lists.has(key)) continue;
-    const items = owned(doc, key, owner, fallback);
-    if (items.length) out[key] = items;
   }
   return out;
 }
@@ -253,6 +272,7 @@ export function splitSeas(doc: SeaDoc): { ring: MapDef; grown: GrownDef; seas: S
   );
   const grown: GrownDef = { ...structuredClone(seaEditor.grown) };
   grown.boundsRadius = doc.boundsRadius;
+  if (doc.fog && 'chartedRadius' in grown) grown.chartedRadius = doc.fog.chartedRadius;
   grown.seas = seaIds(doc);
   return { ring: ring as unknown as MapDef, grown, seas };
 }
@@ -294,10 +314,10 @@ export function importSeaFile(doc: SeaDoc, raw: unknown): boolean {
   const items = tagged(file, id) as Record<string, unknown>;
   const top = doc as unknown as Record<string, unknown>;
   for (const key of SEA_LISTS) {
-    const kept = ((top[key] as Tagged[] | undefined) ?? []).filter((x) => x[IN_SEA] !== id);
+    const kept = (listOf(doc, key) ?? []).filter((x) => x[IN_SEA] !== id);
     const added = (items[key] as Tagged[] | undefined) ?? [];
     // The ring's things come first, as in the game's merged map.
-    top[key] = id === RING ? [...added, ...kept] : [...kept, ...added];
+    setList(doc, key, id === RING ? [...added, ...kept] : [...kept, ...added]);
   }
   if (isRing) {
     doc.seaEditor.ring = head(file);

@@ -166,7 +166,7 @@ const browserStorage: SaveStorage | null = (() => {
 // The bigger-map test sea (decision 0115), `?map=stress`, and the Phase 4 sea as laid out so far
 // (decision 0152), `?map=phase4`: each sails its own voyage too.
 const mapParam = new URLSearchParams(location.search).get('map');
-// The sea editor's grown sea (decision 0156): `?map=edited&sea=phase4`.
+// The sea editor's grown sea (decision 0161): `?map=edited&sea=phase4`.
 const editedPhase4 = mapParam === 'edited' && editedSea(location.search);
 const phase4Sea = mapParam === 'phase4';
 const stressTest = mapParam === 'stress';
@@ -226,7 +226,7 @@ const storage =
   tuneMode && voyageStorage ? prefixedStorage(voyageStorage, TUNE_PREFIX) : voyageStorage;
 const world = createWorld(playtestMap ?? PHASE1_MAP, SLOOP);
 if (playtestMap) {
-  document.title = `${phase4Sea ? 'Phase 4 sea' : stressTest ? 'Stress test' : questTest ? 'Quest test' : 'Edited map'} · ${document.title}`;
+  document.title = `${phase4Sea ? 'Phase 4 sea' : stressTest ? 'Stress test' : questTest ? 'Quest test' : editedPhase4 ? 'Edited Phase 4 sea' : 'Edited map'} · ${document.title}`;
   const badge = document.createElement('a');
   badge.href = editedPhase4 ? './editor.html?sea=phase4' : './editor.html';
   badge.textContent = phase4Sea

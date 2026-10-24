@@ -22,6 +22,7 @@ export type Selection =
   | { kind: 'current'; id: string; point?: number }
   | { kind: 'zone'; id: string; point?: number }
   | { kind: 'mark'; index: number }
+  | { kind: 'area'; id: string; point?: number }
   | null;
 
 export type ShapeKind = TerrainDef['kind'];
@@ -39,6 +40,10 @@ export function findCurrent(map: MapDef, id: string): CurrentDef | undefined {
 }
 export function findZone(map: MapDef, id: string): WindZoneDef | undefined {
   return map.windZones?.find((z) => z.id === id);
+}
+/** A fog of war chart area (decision 0156). */
+export function findArea(map: MapDef, id: string) {
+  return map.fog?.areas.find((a) => a.id === id);
 }
 export function portOn(map: MapDef, islandId: string): PortDef | undefined {
   return map.ports.find((p) => p.islandId === islandId);
@@ -165,6 +170,7 @@ function flowPoints(map: MapDef, sel: Selection): number[][] | undefined {
     return c?.path ?? c?.outline;
   }
   if (sel?.kind === 'zone') return findZone(map, sel.id)?.outline;
+  if (sel?.kind === 'area') return findArea(map, sel.id)?.outline;
 }
 
 /** Starts a lane current at (x, y); `addLanePoint` lays the rest. */
@@ -237,14 +243,28 @@ export function addZone(map: MapDef, x: number, y: number, kind: string): string
   return id;
 }
 
+/**
+ * A chart area (decision 0156): an oval named stretch of the new waters, charted all at once when
+ * sailed into. Only a map with fog of war has them; returns null on one without.
+ */
+export function addChartArea(map: MapDef, x: number, y: number): string | null {
+  if (!map.fog) return null;
+  const id = freeId(
+    map.fog.areas.map((a) => a.id),
+    'area',
+  );
+  map.fog.areas.push({ id, name: 'New waters', outline: oval(x, y, 140, 100) });
+  return id;
+}
+
 /** Moves a whole current or zone. */
 export function moveFlow(map: MapDef, sel: Selection, dx: number, dy: number) {
   if (sel?.kind === 'current') {
     const c = findCurrent(map, sel.id);
     if (c?.path) c.path = c.path.map(([x, y, w]) => [round(x + dx), round(y + dy), w]);
     if (c?.outline) c.outline = c.outline.map(([x, y]) => [round(x + dx), round(y + dy)]);
-  } else if (sel?.kind === 'zone') {
-    const z = findZone(map, sel.id);
+  } else if (sel?.kind === 'zone' || sel?.kind === 'area') {
+    const z = sel.kind === 'zone' ? findZone(map, sel.id) : findArea(map, sel.id);
     if (z) z.outline = z.outline.map(([x, y]) => [round(x + dx), round(y + dy)]);
   }
 }
@@ -374,13 +394,13 @@ export function deleteSelection(map: MapDef, sel: Selection): Selection {
     map.marks?.splice(sel.index, 1);
     return null;
   }
-  if (sel.kind === 'current' || sel.kind === 'zone') {
+  if (sel.kind === 'current' || sel.kind === 'zone' || sel.kind === 'area') {
     if (sel.point !== undefined) {
       deleteFlowPoint(map, sel, sel.point);
       return { kind: sel.kind, id: sel.id };
     }
     const list: { id: string }[] | undefined =
-      sel.kind === 'current' ? map.currents : map.windZones;
+      sel.kind === 'current' ? map.currents : sel.kind === 'zone' ? map.windZones : map.fog?.areas;
     const at = list?.findIndex((x) => x.id === sel.id) ?? -1;
     if (at >= 0) list!.splice(at, 1);
     return null;
@@ -447,7 +467,7 @@ export function formatMapJson(map: unknown, original?: string): string {
 /**
  * The objects a JSON file writes over several lines although they would fit on one: Prettier
  * keeps an object open when its file has a line break after the `{`, so a sea file written by a
- * script keeps its layout through the editor (decision 0156). Each is keyed by its own JSON.
+ * script keeps its layout through the editor (decision 0161). Each is keyed by its own JSON.
  */
 const SCALAR = /"(?:[^"\\]|\\.)*"|[^,\]}\s]+/y;
 export function openObjects(text: string): Set<string> {

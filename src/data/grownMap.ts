@@ -23,7 +23,7 @@ export type SeaDef = Pick<MapDef, 'islands' | 'ports' | 'course'> &
     chartAreas?: ChartAreaDef[];
   };
 
-/** Every sea file in `src/data/seas/` but `grown.json`, by file name (decision 0156). */
+/** Every sea file in `src/data/seas/` but `grown.json`, by file name (decision 0161). */
 export const SEA_FILES: Record<string, SeaDef> = Object.fromEntries(
   Object.entries(
     import.meta.glob<SeaDef>(['./seas/*.json', '!./seas/grown.json'], {
@@ -35,7 +35,7 @@ export const SEA_FILES: Record<string, SeaDef> = Object.fromEntries(
 
 /**
  * The seas laid out so far, in the order they open (decision 0147): the south first. The order is
- * `seas` in `grown.json`, so a new sea is a data file and one line there (decision 0156).
+ * `seas` in `grown.json`, so a new sea is a data file and one line there (decision 0161).
  */
 export const SEAS: SeaDef[] = grown.seas.map((id) => {
   const sea = SEA_FILES[id];

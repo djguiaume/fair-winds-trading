@@ -2,7 +2,7 @@
 
 *Decision [0095](../decisions/0095-map-editor.md), step 3 of [0093](../decisions/0093-data-driven-content-and-authoring-tools.md).*
 
-Open **<https://djguiaume.github.io/fair-winds-trading/editor.html>** (or `/editor.html` under `npm run dev`). It edits `src/data/phase1-map.json`, the Windward Ring.
+Open **<https://djguiaume.github.io/fair-winds-trading/editor.html>** (or `/editor.html` under `npm run dev`). It edits `src/data/phase1-map.json`, the Windward Ring, or with **Phase 4 sea** picked in the top bar the whole grown sea and its sea files ([below](#the-phase-4-sea-sea-editor)).
 
 ![The editor on the shipped map](editor-shipped.png)
 
@@ -23,6 +23,26 @@ Open **<https://djguiaume.github.io/fair-winds-trading/editor.html>** (or `/edit
 
 A port's harbour and pier face the waypoint that has **exactly the island's name**. Renaming an island in the panel renames its waypoint too.
 
+## The Phase 4 sea (sea editor)
+
+*Decision [0161](../decisions/0161-sea-editor-every-sea-file-in-the-map-editor.md).* Pick **Phase 4 sea** in the top bar (or open **[editor.html?sea=phase4](https://djguiaume.github.io/fair-winds-trading/editor.html?sea=phase4)**): the Windward Ring and every sea file in `src/data/seas/` as one map, the one `?map=phase4` sails. The dashed circle is the ring's own edge.
+
+![The Phase 4 sea in the editor](../reviews/sea-editor/1-sea-desktop.png)
+
+- **Every thing knows its file.** Select an island, reef, mark, current, zone or chart area: **Sea file** says where it is saved (`phase1-map.json` or `seas/<sea>.json`) and moves it to another file. An island takes its port and harbour waypoint along.
+- **New things go into** the sea picked in the sea panel (click the sea to see it). Chart areas never go into the ring, which is charted from the start.
+- **＋ New sea** makes an empty sea file, listed last in `seas/grown.json` (`"seas"`, the order they open). No code: the game, `npm run check`, `chart` and `shots --sea phase4` pick it up.
+- **Sea radius** and **Charted radius** are in `grown.json`; each sea's name in its file; the ring's wind, start and home port stay in `phase1-map.json`.
+- **Tools** added for the seas, and usable on the ring too: 🫧 shallows (with **Max draft**), 🛟 sea marks (red and green buoys, the four cardinals, lights, fishing boats, pilot cutters, with a name, a turn and **On the chart**), 🗺️ chart areas (fog of war, [0156](../decisions/0156-fog-of-war.md); Phase 4 sea only). A port has **Founding site** ([0157](../decisions/0157-founding-an-outpost.md)).
+- **▶ Play this sea** sails the edited grown sea on its own save, with your edited islands and quests.
+- **Export files** lists every file, changed or same, with a download for each changed one; each is written exactly like the repository's file, so only your edits show in the diff. **Import** takes a sea file (or `phase1-map.json`) and replaces that file's things.
+
+![A new sea with an island, port, reef, shallows, mark, gale and chart area](../reviews/sea-editor/7-new-sea-desktop.png)
+
+![Export: every file, changed or same](../reviews/sea-editor/9-export-desktop.png)
+
+From the command line, `npm run sea` makes the same edits with the editor's code ([CLAUDE.md](../../CLAUDE.md)).
+
 ## Currents and wind zones
 
 *Decisions [0140](../decisions/0140-wind-zones-and-currents.md) and [0145](../decisions/0145-building-currents.md).* They are stored in the map file as `currents` and `windZones`; the numbers each kind applies are in `src/data/tuning/weather.json`.
@@ -42,7 +62,7 @@ A port's harbour and pier face the waypoint that has **exactly the island's name
 
 ## Checks
 
-The panel's checks are the code the test suite runs (`src/sim/mapChecks.ts`). Quick ones update on every edit; the sailing routes (a sloop reaches every port from the start in the base wind and against it, every pair of ports connects) take a few seconds and run in the background.
+The panel's checks are the code the test suite runs (`src/sim/mapChecks.ts`). Quick ones update on every edit; the sailing routes (a sloop reaches every port from the start in the base wind and against it, every pair of ports connects, the deepest ship gets round any shallows) run in the background: under a second on the ring, about 6 s on the Phase 4 sea.
 
 - ✓ green: fine. ⚠ amber: worth a look (for example a port distance changed by more than 5 %, so trade timings and prices change). ✗ red: the game or the tests would break.
 - Some tests are about the Windward Ring itself (four ports in four quarters, the Saltmere–Westholm block, the eastern lane, a measured circuit). They only run in CI, so a big rework can pass the editor and still fail there; the PR says which test.

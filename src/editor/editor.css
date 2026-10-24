@@ -130,9 +130,12 @@ input:focus-visible {
   flex-direction: column;
   gap: 8px;
   padding: 10px 8px;
+  /* Twelve tools are taller than a landscape phone: they scroll. */
+  overflow-y: auto;
   border-right: 1px solid rgba(232, 196, 106, 0.25);
 }
 .ed-tools button {
+  flex: 0 0 auto;
   width: 40px;
   height: 40px;
   padding: 0;
@@ -547,7 +550,7 @@ input:focus-visible {
   margin-top: 10px;
 }
 
-/* --- Sea editor (decision 0156) ----------------------------------------------------------- */
+/* --- Sea editor (decision 0161) ----------------------------------------------------------- */
 .ed-sea {
   border: 1px solid var(--brass-line);
   border-radius: 8px;
@@ -610,4 +613,15 @@ input:focus-visible {
   margin: -4px 0 8px;
   color: var(--ink-dim);
   font-size: 12px;
+}
+.c-area {
+  fill: rgba(243, 211, 126, 0.05);
+  stroke: rgba(243, 211, 126, 0.75);
+  stroke-width: 1.5px;
+  stroke-dasharray: 2 5;
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
+}
+.c-area-label {
+  fill: #f3d37e;
 }

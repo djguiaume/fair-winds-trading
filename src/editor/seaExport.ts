@@ -1,7 +1,7 @@
 import type { SeaExport } from './seas';
 
 /**
- * The sea editor's export (decision 0156): every file the sea is made of, each marked changed or
+ * The sea editor's export (decision 0161): every file the sea is made of, each marked changed or
  * unchanged, with a download for each changed one (and all of them at once). The files are
  * formatted like the repository's, so only real edits show in the diff.
  */

@@ -7,6 +7,7 @@ import { zoneKindName } from './flowChart';
 import {
   type Selection,
   addPort,
+  findArea,
   findCurrent,
   findIsland,
   findShape,
@@ -33,11 +34,11 @@ export interface PanelHost {
   remove(): void;
   /** Opens the island builder on an island, making its file first if needed (0105, 0110). */
   editIsland(id: string): void;
-  /** The sea editor's controls (decision 0156); left out when editing the ring alone. */
+  /** The sea editor's controls (decision 0161); left out when editing the ring alone. */
   seas?: SeaPanel;
 }
 
-/** What the panel needs from the sea editor (decision 0156). */
+/** What the panel needs from the sea editor (decision 0161). */
 export interface SeaPanel {
   /** Every file's owner id and name, the ring first. */
   seas: [string, string][];
@@ -193,10 +194,14 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     for (const [id, name] of seas.seas)
       node(
         'option',
-        { value: id, textContent: `${name} · ${fileOf(id)}`, selected: id === seas.owner },
+        { value: id, textContent: name, title: fileOf(id), selected: id === seas.owner },
         input,
       );
     input.addEventListener('change', () => seas.moveTo(input.value));
+    node('span', {
+      className: 'ed-sea-tag',
+      textContent: `saved in src/data/${fileOf(seas.owner)}`,
+    });
   };
 
   if (!selection && seas) {
@@ -205,15 +210,23 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
       min: seas.ringRadius,
       step: 5,
     });
+    const fog = map.fog;
+    if (fog)
+      number(
+        'Charted radius',
+        fog.chartedRadius,
+        (v) => (fog.chartedRadius = v ?? fog.chartedRadius),
+        { min: 0, step: 5 },
+      );
     node('p', {
       className: 'ed-note',
-      textContent: `In seas/grown.json. The dashed circle is the Windward Ring's own edge (${seas.ringRadius}).`,
+      textContent: `In seas/grown.json. The dashed circle is the Windward Ring's own edge (${seas.ringRadius}); inside the charted radius the chart starts charted, outside it is fog until an area is sailed into (decision 0156).`,
     });
     const active = node('select', {}, row('New things go into'));
     for (const [id, name] of seas.seas)
       node(
         'option',
-        { value: id, textContent: `${name} · ${fileOf(id)}`, selected: id === seas.active },
+        { value: id, textContent: name, title: fileOf(id), selected: id === seas.active },
         active,
       );
     active.addEventListener('change', () => seas.setActive(active.value));
@@ -389,6 +402,11 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     chips('Builds ships', port.builds ?? [], ships, (v) => {
       if (v.length) port.builds = v;
       else delete port.builds;
+    });
+    // An empty island until a quest's `found` reward opens it (decision 0157).
+    check('Founding site', !!port.site, (v) => {
+      if (v) port.site = true;
+      else delete port.site;
     });
     check('Hidden', !!port.hidden, (v) => {
       if (v) port.hidden = true;
@@ -611,6 +629,36 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
         'The port island with this exact name turns its harbour and pier to face this point.',
     });
     button(buttons(), 'Delete waypoint', () => host.remove());
+    return;
+  }
+
+  if (selection.kind === 'area') {
+    const area = findArea(map, selection.id);
+    if (!area) return;
+    heading(area.name, `chart area · ${area.id}`);
+    seaRow();
+    text('Name', area.name, (v) => (area.name = v || area.name));
+    text('Id', area.id, (v) => {
+      if (v && !map.fog!.areas.some((a) => a !== area && a.id === v)) area.id = v;
+    });
+    const point = selection.point !== undefined ? area.outline[selection.point] : undefined;
+    node('hr');
+    if (point) {
+      heading(`Point ${selection.point! + 1}`, `of ${area.outline.length}`);
+      xy('Position', point[0], point[1], (x, y) => {
+        area.outline[selection.point!] = [x, y];
+      });
+    } else
+      node('p', {
+        className: 'ed-note',
+        textContent: `${area.outline.length} points. Sailing into it charts all of it, with "${area.name}" in the toast. Its id is kept in saves and quest steps (charts): renaming the id makes old saves forget the area.`,
+      });
+    const b = buttons();
+    if (point && area.outline.length > 3) button(b, 'Delete point', () => host.remove());
+    button(b, 'Delete area', () => {
+      host.select({ kind: 'area', id: area.id });
+      host.remove();
+    });
     return;
   }
 

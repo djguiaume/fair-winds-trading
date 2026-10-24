@@ -170,3 +170,44 @@ describe('npm run shots and npm run quest (decision 0153)', () => {
     ).toMatchObject({ start: { headingDeg: expect.any(Number) } });
   });
 });
+
+describe('npm run sea and shots --editor (decision 0161)', () => {
+  it('turns a command line into the sea editor’s step', async () => {
+    const { seaStepFromArgs } = await import('../tools/fw/sea');
+    expect(
+      seaStepFromArgs(
+        parseArgs(['add', 'shallows', '--sea', 'south', '--at', '10,-600', '--max-draft', '1.2']),
+      ),
+    ).toEqual({
+      do: 'add',
+      what: 'shallows',
+      sea: 'south',
+      at: [10, -600],
+      outline: undefined,
+      path: undefined,
+      island: undefined,
+      fields: { maxDraft: 1.2 },
+    });
+    expect(
+      seaStepFromArgs(parseArgs(['add', 'mark', '--at', '1,2', '--type', 'light', '--name', '7'])),
+    ).toMatchObject({ fields: { type: 'light', name: '7' } });
+    expect(seaStepFromArgs(parseArgs(['set', 'grown', '--radius', '1000']))).toEqual({
+      do: 'set',
+      what: 'grown',
+      fields: { boundsRadius: 1000, chartedRadius: undefined },
+    });
+    expect(seaStepFromArgs(parseArgs(['move', 'island', 'palm-key', '--to-sea', 'north']))).toEqual(
+      { do: 'move', what: 'island', id: 'palm-key', at: undefined, by: undefined, toSea: 'north' },
+    );
+    expect(seaStepFromArgs(parseArgs(['list']))).toBeNull();
+    expect(() => seaStepFromArgs(parseArgs(['bogus']))).toThrow('unknown command');
+  });
+
+  it('shoots the map editor on a sea, with a selection', () => {
+    const shot = normalise({ editor: 'phase4', select: 'area:sugar-bar' });
+    expect(shotPath(shot)).toBe('/editor.html?debug&sea=phase4');
+    expect(shot.name).toBe('editor-phase4-area-sugar-bar');
+    expect(shotPath(normalise({ editor: true }))).toBe('/editor.html?debug');
+    expect(() => normalise({ editor: 'north' })).toThrow('--editor ring|phase4');
+  });
+});

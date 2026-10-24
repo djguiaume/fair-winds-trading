@@ -36,7 +36,7 @@ const shipped = (): Record<string, string> => {
 };
 const fresh = () => mergeSeas(PHASE1_SOURCE, SEAS, grownFile as GrownDef);
 
-describe('sea editor (0156)', () => {
+describe('sea editor (0161)', () => {
   it('lists every sea file in grown.json, and each file is named after its id', () => {
     const files = readdirSync('src/data/seas')
       .filter((f) => f !== 'grown.json')
@@ -152,7 +152,7 @@ describe('sea editor (0156)', () => {
   });
 });
 
-describe('route checks on the grown sea (0156)', () => {
+describe('route checks on the grown sea (0161)', () => {
   it('one search from a place gives what a route to each port finds', async () => {
     const { sailRoute, sailTimes, harbourApproach } = await import('../src/sim/mapChecks');
     const map = prepareMap(grownMap(PHASE1_SOURCE));
@@ -164,4 +164,59 @@ describe('route checks on the grown sea (0156)', () => {
       else expect(times(goal)).toBeCloseTo(route.seconds, 6);
     }
   }, 60_000);
+});
+
+describe('sea steps, as npm run sea applies them (0161)', () => {
+  it('lays out a new sea from data, in canonical key order', async () => {
+    const { applySeaSteps } = await import('../src/editor/seaSteps');
+    const doc = fresh();
+    const made = applySeaSteps(doc, [
+      { do: 'new', sea: 'north', name: 'The Ice' },
+      { do: 'add', what: 'area', sea: 'north', at: [0, 780], fields: { id: 'ice', name: 'Ice' } },
+      { do: 'add', what: 'zone', sea: 'north', at: [100, 820], fields: { kind: 'cold-gale' } },
+      { do: 'add', what: 'mark', sea: 'north', at: [30, 700], fields: { type: 'light' } },
+      { do: 'add', what: 'shallows', sea: 'south', at: [300, -640], fields: { maxDraft: 1 } },
+      { do: 'move', what: 'mark', id: doc.marks!.length, by: [5, 0] },
+    ]);
+    expect(made).toHaveLength(6);
+    const out = seaExports(doc, shipped());
+    const north = JSON.parse(out.find((f) => f.path === 'src/data/seas/north.json')!.text);
+    expect(Object.keys(north)).toEqual([
+      'id',
+      'name',
+      'islands',
+      'terrain',
+      'ports',
+      'course',
+      'marks',
+      'windZones',
+      'chartAreas',
+    ]);
+    expect(north.marks).toEqual([{ type: 'light', x: 35, y: 700 }]);
+    expect(north.chartAreas[0].id).toBe('ice');
+    const south = JSON.parse(out.find((f) => f.path === 'src/data/seas/south.json')!.text);
+    expect(south.terrain.at(-1)).toMatchObject({ kind: 'shallows', maxDraft: 1 });
+    expect(quickChecks(prepareMap(doc)).filter((c) => !c.ok && c.severity === 'error')).toEqual([]);
+  });
+
+  it('puts a chart area made on the ring into the first sea (the ring has no fog)', async () => {
+    const { addChartArea } = await import('../src/editor/model');
+    const doc = fresh();
+    doc.seaEditor.active = RING;
+    addChartArea(doc, 0, -700);
+    claimNew(doc);
+    const { seas, ring } = splitSeas(doc);
+    expect(seas[0]!.chartAreas!.at(-1)!.id).toBe('area-1');
+    expect('fog' in ring).toBe(false);
+  });
+
+  it('refuses a step that cannot apply', async () => {
+    const { applySeaSteps } = await import('../src/editor/seaSteps');
+    expect(() => applySeaSteps(fresh(), [{ do: 'remove', what: 'island', id: 'nope' }])).toThrow(
+      'no island',
+    );
+    expect(() =>
+      applySeaSteps(fresh(), [{ do: 'add', what: 'reef', sea: 'nowhere', at: [0, 0] }]),
+    ).toThrow('no sea');
+  });
 });

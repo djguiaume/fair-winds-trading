@@ -14,7 +14,7 @@ import { PHASE1_SOURCE, prepareMap } from './maps';
 export const EDITED_MAP_KEY = 'fwt.editor.map.v1';
 export const EDITED_PREFIX = 'fwt.editor.play.';
 /**
- * The sea editor's working copy (decision 0156): the whole Phase 4 sea, played with
+ * The sea editor's working copy (decision 0161): the whole Phase 4 sea, played with
  * `?map=edited&sea=phase4` on its own save (EDITED_SEA_PREFIX).
  */
 export const EDITED_SEAS_KEY = 'fwt.editor.seas.v1';
@@ -66,7 +66,7 @@ export function editedQuests(search: string, storage: SaveStorage | null): Edite
  * The edited map to sail, or null when the address does not ask for one or it is unreadable.
  * Edited island files replace the shipped ones first; with only islands edited, the shipped map
  * is sailed, still on the play-test save. With `&sea=phase4` it is the sea editor's grown sea
- * (decision 0156), whose things carry the sea file they belong to: the game ignores that.
+ * (decision 0161), whose things carry the sea file they belong to: the game ignores that.
  */
 export function editedMap(search: string, storage: SaveStorage | null): MapDef | null {
   if (new URLSearchParams(search).get('map') !== 'edited' || !storage) return null;

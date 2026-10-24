@@ -87,7 +87,7 @@ export function seaRoom(map: MapDef, x: number, y: number, draft = SLOOP.draft):
 
 /**
  * Every shore of a map once: island coasts (or discs), solid terrain outlines, each with its
- * bounding circle, so `clearAt` measures only the few shores near a point (decision 0156: the
+ * bounding circle, so `clearAt` measures only the few shores near a point (decision 0161: the
  * grown sea has hundreds of outline points). Terrain keeps its entry: shallows are shore only to
  * deeper hulls.
  */
@@ -179,7 +179,7 @@ export function sailRoute(
 
 /**
  * The quickest time from `start` to every point a sloop can reach there, in one search: what
- * `sailRoute` would find to each of them, without a search per goal (decision 0156: the grown
+ * `sailRoute` would find to each of them, without a search per goal (decision 0161: the grown
  * sea's route checks went from minutes to seconds). Undefined where it cannot get.
  */
 export function sailTimes(
@@ -724,7 +724,7 @@ export function routeChecks(map: MapDef): MapCheck[] {
   const field = map.currents?.length && strongest > 0 ? new CurrentField(map) : null;
   const sample = { east: 0, north: 0, id: '' };
   const water = field ? (x: number, y: number) => field.at(x, y, strongest, sample) : undefined;
-  // One search from each place answers every route from it (decision 0156).
+  // One search from each place answers every route from it (decision 0161).
   const cache = routeCache();
   const times = (from: Point, wind: number) => sailTimes(map, from, wind, 11, water, SLOOP, cache);
   const withCurrents = field ? ', against the strongest currents' : '';

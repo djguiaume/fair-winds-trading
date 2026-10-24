@@ -12,6 +12,7 @@ import {
   History,
   type Selection,
   addAreaCurrent,
+  addChartArea,
   addIsland,
   addLanePoint,
   addMark,
@@ -19,6 +20,7 @@ import {
   addZone,
   beginLane,
   deleteSelection,
+  findArea,
   findCurrent,
   findIsland,
   findShape,
@@ -83,7 +85,8 @@ type Tool =
   | 'start'
   | 'current'
   | 'area'
-  | 'zone';
+  | 'zone'
+  | 'chartArea';
 const TOOLS: { id: Tool; icon: string; label: string; hint: string }[] = [
   {
     id: 'move',
@@ -136,13 +139,19 @@ const TOOLS: { id: Tool; icon: string; label: string; hint: string }[] = [
     label: 'Add wind zone',
     hint: 'Click the sea to add a wind zone, then drag its points and pick its kind',
   },
+  {
+    id: 'chartArea',
+    icon: '🗺️',
+    label: 'Add chart area',
+    hint: 'Click the sea to add a chart area (fog of war): sailing into it charts all of it',
+  },
 ];
 
 // --- State ---------------------------------------------------------------------------------
 
 /**
  * Which sea the editor works on: today's Windward Ring (`phase1-map.json`), or with `?sea=phase4`
- * the whole Phase 4 sea, the ring and every sea file round it (decision 0156).
+ * the whole Phase 4 sea, the ring and every sea file round it (decision 0161).
  */
 const SEA_MODE = new URLSearchParams(location.search).get('sea') === 'phase4';
 const DRAFT_KEY = SEA_MODE ? EDITED_SEAS_KEY : EDITED_MAP_KEY;
@@ -189,6 +198,7 @@ const layers: Layers = {
   grid: false,
   flow: true,
   marks: true,
+  areas: true,
 };
 /** The lane current being laid with the Add current tool, point by point. */
 let laying: string | null = null;
@@ -251,7 +261,7 @@ function drawPanel() {
   });
 }
 
-/** The sea editor's part of the panel (decision 0156): which file, the active sea, new seas. */
+/** The sea editor's part of the panel (decision 0161): which file, the active sea, new seas. */
 function seaPanel() {
   const doc = seaDoc();
   if (!doc) return undefined;
@@ -464,7 +474,10 @@ svg.addEventListener('pointerdown', (e) => {
   const hit = (e.target as Element).closest('[data-hit]')?.getAttribute('data-hit') ?? 'sea';
   const [hitKind, id = '', arg] = hit.split(':');
   // Adding on top of a zone or a current's water is adding on the sea.
-  const kind = tool !== 'move' && (hitKind === 'zone' || hitKind === 'current') ? 'sea' : hitKind;
+  const kind =
+    tool !== 'move' && (hitKind === 'zone' || hitKind === 'current' || hitKind === 'area')
+      ? 'sea'
+      : hitKind;
   if (tool === 'current') {
     // Every click lays the next point, wherever it lands. The chart is redrawn after each one, so
     // the browser's dblclick (two clicks on one element) never fires: a quick second click on the
@@ -495,7 +508,10 @@ svg.addEventListener('pointerdown', (e) => {
     else if (tool === 'mark')
       selection = { kind: 'mark', index: addMark(map, p.x, p.y, 'buoy-red') };
     else if (tool === 'area') selection = { kind: 'current', id: addAreaCurrent(map, p.x, p.y) };
-    else if (tool === 'zone')
+    else if (tool === 'chartArea') {
+      const id = addChartArea(map, p.x, p.y);
+      selection = id ? { kind: 'area', id } : null;
+    } else if (tool === 'zone')
       selection = {
         kind: 'zone',
         id: addZone(map, p.x, p.y, Object.keys(TUNING.weather.zones.kinds)[0]!),
@@ -519,7 +535,7 @@ svg.addEventListener('pointerdown', (e) => {
     pan();
     return;
   }
-  if (kind === 'zone' || kind === 'current') {
+  if (kind === 'zone' || kind === 'current' || kind === 'area') {
     // A first press selects a zone or current and pans (zones can cover much of the sea); once
     // selected, a press drags it.
     if (selection?.kind !== kind || selection.id !== id) {
@@ -547,9 +563,10 @@ svg.addEventListener('pointerdown', (e) => {
     const index = kind === 'insert' ? insertPoint(map, id, Number(arg))! : Number(arg);
     drag = { kind: 'point', id, index };
     selection = { kind: 'shape', id, point: index };
-  } else if (kind === 'cpoint' || kind === 'zpoint' || kind === 'cinsert' || kind === 'zinsert') {
-    const sel = { kind: kind[0] === 'c' ? ('current' as const) : ('zone' as const), id };
-    const index = kind.endsWith('insert') ? insertFlowPoint(map, sel, Number(arg)) : Number(arg);
+  } else if (/^[cza](point|insert)$/.test(kind!)) {
+    const flow = { c: 'current', z: 'zone', a: 'area' } as const;
+    const sel = { kind: flow[kind![0] as 'c' | 'z' | 'a'], id };
+    const index = kind!.endsWith('insert') ? insertFlowPoint(map, sel, Number(arg)) : Number(arg);
     if (index === undefined) return;
     drag = { kind: 'fpoint', index };
     selection = { ...sel, point: index };
@@ -704,9 +721,17 @@ function nudge(dx: number, dy: number) {
   } else if (selection.kind === 'mark') {
     const mark = map.marks?.[selection.index];
     if (mark) moveMark(map, selection.index, mark.x + dx, mark.y + dy);
-  } else if (selection.kind === 'current' || selection.kind === 'zone') {
+  } else if (
+    selection.kind === 'current' ||
+    selection.kind === 'zone' ||
+    selection.kind === 'area'
+  ) {
     const c = selection.kind === 'current' ? findCurrent(map, selection.id) : undefined;
-    const points = c ? (c.path ?? c.outline) : findZone(map, selection.id)?.outline;
+    const points = c
+      ? (c.path ?? c.outline)
+      : selection.kind === 'zone'
+        ? findZone(map, selection.id)?.outline
+        : findArea(map, selection.id)?.outline;
     const point = selection.point !== undefined ? points?.[selection.point] : undefined;
     if (point) moveFlowPoint(map, selection, selection.point!, point[0] + dx, point[1] + dy);
     else moveFlow(map, selection, dx, dy);
@@ -769,7 +794,8 @@ function setTool(next: Tool) {
     b.setAttribute('aria-pressed', String(b.dataset.tool === tool));
   $('ed-hint').textContent = TOOLS.find((t) => t.id === tool)!.hint;
 }
-for (const t of TOOLS) {
+// Chart areas belong to the sea files: the ring alone has no fog of war (decision 0156).
+for (const t of TOOLS.filter((t) => SEA_MODE || t.id !== 'chartArea')) {
   const b = document.createElement('button');
   b.textContent = t.icon;
   b.title = t.label;
@@ -786,8 +812,9 @@ const LAYER_NAMES: [keyof Layers, string][] = [
   ['grid', 'Grid 50'],
   ['flow', 'Currents and zones'],
   ['marks', 'Sea marks'],
+  ['areas', 'Chart areas'],
 ];
-for (const [key, label] of LAYER_NAMES) {
+for (const [key, label] of LAYER_NAMES.filter(([k]) => SEA_MODE || k !== 'areas')) {
   const b = document.createElement('button');
   b.textContent = label;
   b.setAttribute('aria-pressed', String(layers[key]));
@@ -807,7 +834,8 @@ function replaceMap(next: MapDef) {
     (selection?.kind === 'waypoint' && !map.course[selection.index]) ||
     (selection?.kind === 'mark' && !map.marks?.[selection.index]) ||
     (selection?.kind === 'current' && !findCurrent(map, selection.id)) ||
-    (selection?.kind === 'zone' && !findZone(map, selection.id))
+    (selection?.kind === 'zone' && !findZone(map, selection.id)) ||
+    (selection?.kind === 'area' && !findArea(map, selection.id))
   )
     selection = null;
   commit();
@@ -851,7 +879,7 @@ fileInput.addEventListener('change', async () => {
     const raw: unknown = JSON.parse(await file.text());
     const doc = seaDoc();
     if (doc) {
-      // A sea file, or the ring's map file: it replaces that file's things (decision 0156).
+      // A sea file, or the ring's map file: it replaces that file's things (decision 0161).
       const next = structuredClone(doc);
       if (!importSeaFile(next, raw)) throw new Error('not a sea');
       history.record(map);
@@ -868,7 +896,7 @@ fileInput.addEventListener('change', async () => {
   }
 });
 
-/** The top bar's sea picker: the ring alone or the whole Phase 4 sea (decision 0156). */
+/** The top bar's sea picker: the ring alone or the whole Phase 4 sea (decision 0161). */
 function setupSeaSwitch() {
   const pick = $<HTMLSelectElement>('ed-sea');
   pick.value = SEA_MODE ? 'phase4' : 'ring';
@@ -898,3 +926,32 @@ function tickCrests(now: number) {
   requestAnimationFrame(tickCrests);
 }
 requestAnimationFrame(tickCrests);
+
+// `?debug`: a handle for `npm run shots -- --editor` (decision 0161) to frame and select.
+if (new URLSearchParams(location.search).has('debug'))
+  (window as unknown as { fwtEditor: unknown }).fwtEditor = {
+    focus(x: number, y: number, upp?: number) {
+      fitted = false;
+      [view.cx, view.cy] = [x, y];
+      if (upp) view.upp = clampZoom(upp);
+      drawMap();
+    },
+    /** A chart hit as the chart tags it: "island:sunreach", "area:sugar-bar", "mark:3", "start". */
+    select(hit: string) {
+      const [kind, id = ''] = hit.split(':');
+      const index = Number(id);
+      select(
+        kind === 'mark' || kind === 'waypoint'
+          ? { kind, index }
+          : kind === 'start'
+            ? { kind }
+            : kind === 'island' ||
+                kind === 'shape' ||
+                kind === 'current' ||
+                kind === 'zone' ||
+                kind === 'area'
+              ? { kind, id }
+              : null,
+      );
+    },
+  };
