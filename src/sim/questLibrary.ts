@@ -303,6 +303,14 @@ export const CONDITIONS: Record<string, ConditionKind> = {
     test: (c, ctx) =>
       hasBuilding(ctx.trade.home, c.building as string, c.island as string | undefined),
   },
+  /** Moored at the pier of the home island, or of `island` (one of hers with build spots). */
+  moored: {
+    params: { island: 'island?' },
+    test: (c, ctx) => {
+      const docked = ctx.trade.home.docked;
+      return !!docked && docked === ((c.island as string | undefined) ?? ctx.map.homeIsland);
+    },
+  },
   'owns-ship': {
     params: { ship: 'ship' },
     test: (c, ctx) => ctx.trade.captain.ships[c.ship as string] !== undefined,

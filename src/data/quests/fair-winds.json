@@ -1,0 +1,39 @@
+{
+  "id": "fair-winds",
+  "name": "Fair winds",
+  "start": {
+    "is": "all",
+    "of": [
+      {
+        "is": "quest-done",
+        "quest": "saltmere-shoals"
+      },
+      {
+        "is": "quest-done",
+        "quest": "calda-slipway"
+      },
+      {
+        "is": "quest-done",
+        "quest": "westholm-mill"
+      },
+      {
+        "is": "quest-done",
+        "quest": "stonehaven-light"
+      }
+    ]
+  },
+  "text": "quest.fair-winds",
+  "giver": "rook",
+  "reward": {
+    "gold": 200
+  },
+  "steps": [
+    {
+      "id": "home",
+      "mood": "pleased",
+      "goal": {
+        "is": "moored"
+      }
+    }
+  ]
+}
