@@ -47,3 +47,80 @@ Today's wind already wanders round the compass on Captain and Old salt ([0064](0
 - The chart needs a "currents sailed" set in the save. It is small (one id per current) and fits the FW2 code ([0118](0118-compact-save-code.md)).
 - The balance check's bots must learn to aim up-current, and the route targets need re-checking with the ring current on.
 - The [Phase 4 map](../reviews/phase-4-map/README.md) draws its fire and fog-coast currents the same way: smooth, darker water.
+
+## Update (2026-10-24): data format, editor and where it is computed (proposal)
+
+Guillaume asked how currents and wind zones are described in the map file to stay data driven, said the map editor must support them, and asked whether they are always computed or only near the player.
+
+### In the map file
+
+Two new lists sit next to `terrain` in the map JSON (for example `phase1-map.json`). The map holds only the **shapes and the authored strengths**. The numbers each kind applies live in `tuning/weather.json`, following [0093](0093-data-driven-content-and-authoring-tools.md).
+
+```json
+"currents": [
+  {
+    "id": "middle-gap",
+    "name": "The Gap Run",
+    "speedKn": 1.8,
+    "path": [[-362, 248, 60], [-245, 142, 55], [-168, 52, 50], [-52, 19, 40], [103, 52, 45], [271, 65, 60]]
+  },
+  {
+    "id": "fire-warm",
+    "name": "Warm Drift",
+    "speedKn": 0.8,
+    "towardDeg": 200,
+    "outline": [[-900, 120], [-760, 160], [-700, 20], [-820, -60]]
+  }
+],
+"windZones": [
+  {
+    "id": "south-trades",
+    "name": "The Trades",
+    "kind": "trade-belt",
+    "headingDeg": 60,
+    "outline": [[-300, -700], [300, -680], [320, -820], [-280, -840]]
+  },
+  { "id": "glass-calm", "kind": "doldrums", "outline": [[40, -900], [140, -880], [130, -980], [30, -990]] }
+]
+```
+
+- A **lane** current has a `path`: authored control points `[x, y, width]`, in flow order, so the water runs from the first point to the last. The width is per point, so it can be wide and slack at the ends and narrow in a gap. The game and the editor smooth the path with one shared function, so the editor shows exactly what the game sails. `speedKn` is the speed at the narrowest point and eases off where the lane widens (a factor in `weather.json`, `currents.wideSlowdown`). The edge fade width is also in `weather.json`.
+- An **area** current has a closed `outline` and a `towardDeg` instead of a path. The outline is smoothed the same way.
+- A **wind zone** has a closed `outline`, a `kind` and, for a trade belt, a `headingDeg`. A zone can override any number of its kind with an optional `"tune": { "strength": 0.3 }`.
+- The kinds and their numbers go in a new `zones` block in `weather.json`:
+  - `trade-belt` has `pull` 0.7 and `gusts` 0.5.
+  - `doldrums` has `strength` [0.25, 0.4] and `fairFloor` 0.6.
+  - `stormy-coast` has `gusts` 1.5 and `stormBirth` 2.
+  - `cold-gale` has `strength` 1.2 and `gusts` 0.8.
+  - All of them share one `fadeUnits` of 40.
+- **Map checks** (the editor and the tests run the same ones):
+  - Ids are unique, and each `kind` exists in `weather.json`.
+  - Every shape sits inside `boundsRadius`.
+  - No current reaches a harbour mooring at more than a trickle.
+  - A lane is at least 20 units wide, and no closed outline crosses itself.
+- **The save does not change**, apart from the set of current ids already charted (Decision 4).
+
+### In the map editor
+
+The editor already edits terrain outlines: drag the points, insert a point on an edge, Delete. Zones and currents reuse that machinery.
+
+- **Add current** (new tool): click to lay points along the lane and double-click to finish. Drag a point to move it. Each point has a small width handle, dragged like an island's radius handle. The side panel has the name, the speed and a "Reverse flow" button. A second option, **Area current**, places an oval outline with a direction dial.
+- **Add wind zone** (new tool): click the sea to place an oval outline and drag its points, as for a reef. The side panel has a kind picker, a heading dial for trade belts and optional overrides.
+- **Preview:** currents are drawn as the smooth darker band with crests drifting downstream, and zones as soft tinted areas with their names. A **Currents and zones** switch in the layer list hides them while editing islands.
+- **Play this map** sails the edited currents and zones straight away. Export writes them into the map file to commit.
+
+### Computed only where needed
+
+Nothing is computed over the whole sea.
+
+- **Sim:** the wind and the current are asked only at the points that need them: the player's boat each frame, the boats and icebergs actually simulated near it, and the balance check's bots offline. Each lookup asks a `SpatialGrid` ([0117](0117-nearby-wind-shelter-and-camera-far.md)) for the few shapes whose bounding circle touches that point. It costs a few microseconds per frame, like island shelter today, and stays the same at 5x the sea.
+- **At sea:** each lane is one ribbon mesh along its smoothed path, built once at load. Its crests scroll in the shader. three.js skips ribbons outside the camera, so only the current in view is drawn.
+- **On the chart:** the charted currents are drawn once as static shapes.
+
+### Building it in parallel
+
+Currents and wind zones touch the same files: `map.ts`, the editor, the map checks and `weather.json`.
+
+1. A first small PR lands the shared base: the smoothing function, the two lists in the `MapDef` type, the `zones` and `currents` blocks in `weather.json`, the map checks, and the editor's path and outline tools.
+2. After that, currents (sim, ribbon look, SOG, chart, Settings switch) and wind zones (sim, doldrums look, Settings switch) can each be built in their own thread without conflicts.
+3. The far goods pass is docs and data only, so it can run at the same time from the start.
