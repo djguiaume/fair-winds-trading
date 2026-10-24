@@ -382,6 +382,23 @@
   stroke-opacity: 0.3;
   pointer-events: none;
 }
+/* Rivers (decision 0167): a band as wide as the river. */
+.i-river {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.85;
+}
+.i-river.water {
+  stroke: #319eae;
+}
+.i-river.lava {
+  stroke: #ff6a2a;
+}
+.i-river.quiet {
+  opacity: 0.4;
+  pointer-events: none;
+}
 .i-lane.quiet {
   stroke-opacity: 0.45;
   fill: transparent;

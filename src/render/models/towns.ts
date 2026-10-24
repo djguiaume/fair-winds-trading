@@ -11,6 +11,8 @@ import {
   characterPiers,
   crossesCliff,
   isSloped,
+  PEAK_SEGMENTS,
+  peakBox,
   type IslandLayout,
   type IslandTheme,
   type LandSurface,
@@ -64,6 +66,7 @@ import {
   type Parts,
 } from './props';
 import type { IslandCheckKit } from '../../sim/islandChecks';
+import { riverParts } from './rivers';
 
 /**
  * Settlement growth (decision 0060): a port island's town grows in four steps, hamlet, village,
@@ -578,14 +581,9 @@ export function designedTownParts(
     terrain(coast, -1, BEACH_TOP, C.sand, layout.lake ? [layout.lake] : []);
   for (const s of layout.surfaces) {
     if (s.shape === 'peak') {
-      const xs = s.outline.map((p) => p[0]),
-        zs = s.outline.map((p) => p[1]);
-      const cx = (Math.min(...xs) + Math.max(...xs)) / 2,
-        cz = (Math.min(...zs) + Math.max(...zs)) / 2;
-      const rx = (Math.max(...xs) - Math.min(...xs)) / 2,
-        rz = (Math.max(...zs) - Math.min(...zs)) / 2;
+      const { cx, cz, rx, rz } = peakBox(s);
       const mountainBase = (s.base ?? 0) * R;
-      const g = new THREE.ConeGeometry(R, s.height * R - mountainBase, 10)
+      const g = new THREE.ConeGeometry(R, s.height * R - mountainBase, PEAK_SEGMENTS)
         .scale(rx, 1, rz)
         .translate(cx * R, (s.height * R + mountainBase) / 2, cz * R);
       // A green hill on the palm islands (decision 0152); every other peak is bare rock.
@@ -653,6 +651,10 @@ export function designedTownParts(
     out.push(paint(water, '#319eae'));
     for (const g of out.slice(lakeStart)) g.userData.islandTerrain = true;
   }
+  // Rivers of water or lava (decision 0167) lie on the ground built above.
+  for (const river of design.rivers ?? [])
+    if (atLevel(river, level) && river.points.length >= 2)
+      out.push(...riverParts(layout, river, R));
 
   const standing = design.props.filter((p) => atLevel(p, level));
   /** Places a prop's parts (into `into`) and returns how far it clears the woods. */

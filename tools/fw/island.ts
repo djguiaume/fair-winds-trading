@@ -35,12 +35,14 @@ steps (island-radius units, harbour toward +z; --level n = from that town level)
   lake      --at x,z [--size rx,rz | --outline … | --blob …]
   ramp      --points "x,z x,z …" [--start h --end h (default: the ground there)] [--width 0.1] [--rock] [--level n]
   lane | path | stairs   --points "x,z x,z …" (stairs take the ground's height at each point)
+  river     --points "x,z x,z …" (source first, mouth last; past the coast it falls into the sea)
+            [--kind water|lava] [--width 0.04] [--level n --to n --tags after:quest]
   woods     --at x,z [--r 0.2] [--clear]  paint (turns woods on); --tree --tries --size --spacing --margin
   spot      --at x,z [--pair id] [--y h]
   prop      <type> --at "x,z[ x,z …]" [--turn deg --size s --variant v --shape s --length l --y h --fit r --clear r]
             [--level n --to n --tags a,b]
   pier      --at x,z [--length 0.26] [--level n]
-  remove    prop|ground|lane|ramp|spot|coast|pier <index>, or remove lake
+  remove    prop|ground|lane|ramp|river|spot|coast|pier <index>, or remove lake
   set       --name … --style … --seed …
   tidy      rewrite the file in the builder's format (any step does)
 options: --steps steps.json (or '[{"do":"prop",…}]': a list of steps as data, see src/editor/island/steps.ts)
@@ -121,6 +123,16 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
     case 'path':
     case 'stairs':
       return { do: kind, points: need(pointList(args.points), '--points "x,z x,z"') };
+    case 'river':
+      return clean({
+        do: 'river',
+        points: need(pointList(args.points), '--points "x,z x,z"'),
+        kind: args.kind === 'lava' ? ('lava' as const) : args.kind === 'water' ? ('water' as const) : undefined,
+        width: num(args.width),
+        level,
+        to: num(args.to),
+        tags: typeof args.tags === 'string' ? args.tags.split(',') : undefined,
+      });
     case 'woods':
       return clean({
         do: 'woods',

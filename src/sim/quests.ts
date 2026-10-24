@@ -606,6 +606,10 @@ export function checkQuestHooks(
       if (prop.type === 'moored-boat' && questTagIds(prop).length)
         out.push(`${where}: a moored boat cannot wait on a quest (use a sea mark)`);
     });
+  for (const design of designs)
+    (design.rivers ?? []).forEach((river, i) =>
+      named(questTagIds(river), `island ${design.id} › river ${i}`),
+    );
   (map.marks ?? []).forEach((mark, i) =>
     named(questTagIds(mark), `map › mark ${i} (${mark.type})`),
   );

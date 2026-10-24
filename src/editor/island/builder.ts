@@ -49,6 +49,7 @@ import {
   type Shape,
   addLake,
   addLane,
+  addRiver,
   addRamp,
   addMountain,
   addPlateau,
@@ -139,7 +140,17 @@ let showHome: SpotShow = 'all';
 let chosen: Record<string, string> = {};
 let shapeSel: { shape: Shape; point?: number } | null = null;
 type ShapeTool =
-  'plateau' | 'mountain' | 'lake' | 'ramp' | 'grow' | 'clear' | 'lane' | 'path' | 'stairs';
+  | 'plateau'
+  | 'mountain'
+  | 'lake'
+  | 'ramp'
+  | 'grow'
+  | 'clear'
+  | 'lane'
+  | 'path'
+  | 'stairs'
+  | 'river'
+  | 'lava';
 let tool: ShapeTool | null = null;
 /** A lane being drawn (with heights for stairs), and the pointer while drawing or painting. */
 let drawing: number[][] | null = null;
@@ -549,7 +560,9 @@ const shapeExists = (shape: Shape) =>
         ? !!design.lake
         : shape.kind === 'ramp'
           ? !!design.ramps?.[shape.index]
-          : !!design.lanes[shape.index];
+          : shape.kind === 'river'
+            ? !!design.rivers?.[shape.index]
+            : !!design.lanes[shape.index];
 
 function removeShape() {
   if (!shapeSel) return;
@@ -571,6 +584,9 @@ const TOOL_HINTS: Record<ShapeTool, string> = {
   lane: 'Click to add bends; click the last point again or press Enter to finish · Esc cancels',
   path: 'Click to add bends; click the last point again or press Enter to finish · Esc cancels',
   stairs: 'Click the foot and the top of a cliff (and any bends); Enter finishes · Esc cancels',
+  river:
+    'Click the source, then bends down to the mouth (past the coast it falls into the sea); Enter finishes · Esc cancels',
+  lava: 'Click the source, then bends down to the mouth (past the coast it steams in the sea); Enter finishes · Esc cancels',
 };
 
 function hint(text?: string) {
@@ -583,7 +599,7 @@ function hint(text?: string) {
         : mode === 'ground'
           ? 'Click the coast, raised ground, a ramp, a mountain or the lake · drag a square to move a point, a ring to add one · click an edge: cliff ↔ slope · Delete removes'
           : mode === 'lanes'
-            ? 'Click a lane to edit it · drag a square to move a point, a ring to add one · Delete removes'
+            ? 'Click a lane or river to edit it · drag a square to move a point, a ring to add one · Delete removes'
             : armed
               ? `Click the island to place a ${propName(armed).toLowerCase()} from level ${level} · Esc cancels`
               : 'Drag a prop from the palette · drag props to move them · R / Shift+R turn 15° · Delete removes · a prop belongs to the level it first appears');
@@ -804,6 +820,8 @@ const TOOLS: Record<'ground' | 'lanes', [string, string | ShapeTool, string, str
     ['Lanes', 'lane', '〰️', 'Lane: Shows near the homes standing at each level'],
     ['Lanes', 'path', '┈', 'Path: Always shown'],
     ['Lanes', 'stairs', '🪜', 'Stairs: Climb a cliff between two ground levels'],
+    ['Rivers', 'river', '🏞️', 'River: Water down the land, falls at cliffs and into the sea'],
+    ['Rivers', 'lava', '🌋', 'Lava river: Glows at night, steams where it meets the sea'],
   ],
 };
 
@@ -851,7 +869,7 @@ function selectShape(next: Shape | null, point?: number) {
  */
 function finishDrawing() {
   const points = drawing;
-  const kind = tool as 'lane' | 'path' | 'stairs' | 'ramp';
+  const kind = tool as 'lane' | 'path' | 'stairs' | 'ramp' | 'river' | 'lava';
   setTool(null);
   if (points && points.length >= 2) {
     history.record(design);
@@ -860,6 +878,9 @@ function finishDrawing() {
         [x1, z1] = points[points.length - 1]!;
       const index = addRamp(design, points, heightAt(x0!, z0!), heightAt(x1!, z1!), placeLevel());
       shapeSel = { shape: { kind: 'ramp', index } };
+    } else if (kind === 'river' || kind === 'lava') {
+      const index = addRiver(design, kind === 'lava' ? 'lava' : 'water', points, placeLevel());
+      shapeSel = { shape: { kind: 'river', index } };
     } else shapeSel = { shape: { kind: 'lane', index: addLane(design, kind, points) } };
     commit();
   } else draw();

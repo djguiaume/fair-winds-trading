@@ -23,6 +23,7 @@ import {
   addMountain,
   addPlateau,
   addRamp,
+  addRiver,
   blobOutline,
   deleteShape,
   paintWoods,
@@ -71,6 +72,15 @@ export type IslandStep =
     }
   | { do: 'lane' | 'path' | 'stairs'; points: number[][] }
   | {
+      do: 'river';
+      points: number[][];
+      kind?: 'water' | 'lava';
+      width?: number;
+      level?: Level;
+      to?: Level;
+      tags?: string[];
+    }
+  | {
       do: 'woods';
       at?: At;
       r?: number;
@@ -102,7 +112,7 @@ export type IslandStep =
   | { do: 'pier'; at: At; length?: number; level?: Level }
   | {
       do: 'remove';
-      what: 'prop' | 'ground' | 'lane' | 'ramp' | 'spot' | 'coast' | 'lake' | 'pier';
+      what: 'prop' | 'ground' | 'lane' | 'ramp' | 'river' | 'spot' | 'coast' | 'lake' | 'pier';
       index?: number;
     }
   | { do: 'set'; name?: string; style?: IslandStyle; seed?: number };
@@ -116,6 +126,7 @@ export const STEP_KINDS = [
   'lane',
   'path',
   'stairs',
+  'river',
   'woods',
   'spot',
   'prop',
@@ -147,7 +158,10 @@ export function islandFromOutline(
   opts: Shaped & { name?: string; style?: IslandStyle; seed?: number; low?: number } = {},
 ): IslandDesign {
   const seed = opts.seed ?? 1;
-  const coast = outlineOf({ blob: { r: 1, points: 14, rough: 0.22 }, ...opts }, seed)!;
+  const coast = outlineOf(
+    { ...opts, blob: opts.blob ?? (opts.outline ? undefined : { r: 1, points: 14, rough: 0.22 }) },
+    seed,
+  )!;
   return newDesign(id, coast, { name: opts.name, style: opts.style, seed, low: opts.low });
 }
 
@@ -206,6 +220,14 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
           : step.points;
       return `lane ${addLane(design, step.do, points)}`;
     }
+    case 'river': {
+      if (step.points.length < 2) throw new Error('a river needs two points or more');
+      const index = addRiver(design, step.kind ?? 'water', step.points, level, step.width);
+      const river = design.rivers![index]!;
+      if (step.to !== undefined) river.to = step.to;
+      if (step.tags?.length) river.tags = [...step.tags];
+      return `river ${index}`;
+    }
     case 'woods': {
       const w = design.woods;
       if (step.tree) w.tree = step.tree;
@@ -253,6 +275,7 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
         ground: design.ground,
         lane: design.lanes,
         ramp: design.ramps,
+        river: design.rivers,
         spot: design.homeSpots,
         coast: design.coasts,
         pier: design.piers,
@@ -299,6 +322,7 @@ export function islandSummary(design: IslandDesign, isHome: (p: PropDef) => bool
     ...(design.lake ? ['lake'] : []),
     ...(design.lanes.length ? [n(design.lanes.length, 'lane')] : []),
     ...(design.ramps?.length ? [n(design.ramps.length, 'ramp')] : []),
+    ...(design.rivers?.length ? [n(design.rivers.length, 'river')] : []),
     ...(design.piers.length ? [n(design.piers.length, 'pier')] : []),
     n(design.props.length, 'prop'),
     ...(homes.some(Boolean) ? [`homes ${homes.join('·')}`] : []),

@@ -6,6 +6,7 @@ import {
   islandLayout,
   layoutGround,
   slopeDistance,
+  surfaceHeight,
   type Outline,
 } from './islandLayout';
 import { atLevel, type IslandDesign, type PropDef, questApart } from '../data/islands';
@@ -99,6 +100,13 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
     if (!(r.width > 0)) error('known', `Ramp ${i}: needs a width`);
     levelsOk(r, `Ramp ${i}`);
   });
+  (design.rivers ?? []).forEach((r, i) => {
+    if (r.kind && r.kind !== 'water' && r.kind !== 'lava')
+      error('known', `River ${i}: unknown kind "${String(r.kind)}"`);
+    if (r.points.length < 2) error('known', `River ${i}: needs two points or more`);
+    if (!(r.width > 0)) error('known', `River ${i}: needs a width`);
+    levelsOk(r, `River ${i}`);
+  });
   design.piers.forEach((p, i) => {
     if (!isLevel(p.from)) error('levels', `Pier ${i}: "from" must be 1 to ${TOP}`);
   });
@@ -115,6 +123,23 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
       if (out) error('ground', `Raised ground ${i} reaches past the coast`, { at: out, level });
     });
   }
+  // A river rises on land (decision 0167); only its mouth may reach past the coast.
+  (design.rivers ?? []).forEach((r, i) => {
+    const [x, z] = r.points[0] as [number, number];
+    if (!design.coasts.some((c) => inside(x, z, c)))
+      error('ground', `River ${i} rises at sea: its first point must be on the island`, {
+        at: [x, z],
+      });
+    const layout = islandLayout(design, r.from ?? 1);
+    for (let k = 1; k < r.points.length; k++) {
+      const [ax, az] = r.points[k - 1] as [number, number],
+        [bx, bz] = r.points[k] as [number, number];
+      const ha = surfaceHeight(layout, ax, az),
+        hb = surfaceHeight(layout, bx, bz);
+      if (ha !== null && hb !== null && hb > ha + 0.02)
+        warn('ground', `River ${i} runs uphill between points ${k} and ${k + 1}`, { at: [bx, bz] });
+    }
+  });
   (design.ramps ?? []).forEach((r, i) => {
     const out = r.points.find(([x, z]) => !design.coasts.some((c) => inside(x, z, c)));
     if (out) error('ground', `Ramp ${i} reaches past the coast`, { at: out });

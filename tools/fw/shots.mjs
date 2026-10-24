@@ -212,6 +212,8 @@ export function shotPath(shot) {
   const q = new URLSearchParams({ debug: '' });
   const map = shot.seaFile || shot.islands.length ? 'edited' : SEAS[shot.sea];
   if (map) q.set('map', map);
+  // Island files tried on the Phase 4 sea: the edited map falls back to the grown sea (0161).
+  if (map === 'edited' && !shot.seaFile && shot.sea === 'phase4') q.set('sea', 'phase4');
   return `/?${q}`;
 }
 

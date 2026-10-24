@@ -61,7 +61,7 @@ export interface RampDef {
  * lies on the ground (plateaus, ramps, slopes, mountains). Where the ground drops at a cliff it
  * falls as a sheet to the ground below; a mouth past the coast falls into the sea. `water` is
  * drawn in the lake's colour; `lava` glows at night like lit windows, with a dark crust and steam
- * where it meets the sea. Points are [x, z], or [x, z, height] to pin a point's height.
+ * where it meets the sea. Points are [x, z] in radius units.
  */
 export interface RiverDef {
   kind?: 'water' | 'lava';
