@@ -50,6 +50,28 @@ Add an entry under `default.kinds` in
 - Not from data yet: a new look (real fog, snow) needs code once; until then a kind looks like its
   rain and gloom.
 
+## A fog bank or another hazy zone ([0169](../decisions/0169-haze-fog-banks-and-ash-clouds-as-wind-zone-kinds.md))
+
+A fog bank is a wind zone of kind `fog-bank`: draw it with the sea editor's **Add wind zone** (Kind
+`fog-bank`, give it a name so it is charted once sailed) or `npm run sea -- add zone --kind fog-bank
+--sea east --at x,y --name "The Murk"`. A new hazy kind (ash, sea smoke) is an entry under
+`zones.kinds` in [`weather.json`](../../src/data/tuning/weather.json) with a `haze`:
+
+```json
+"ash": {
+  "gusts": 1.2,
+  "haze": { "near": 10, "far": 60, "color": "#9a8f86", "fade": 100, "switch": "ash" },
+  "chart": "#9a8f86"
+}
+```
+
+- `near` / `far`: sight in units past the boat; `color`: the fog by day; `fade`: how wide its edge
+  is; `switch`: the Settings switch that turns it off (kinds may share one). `chart`: its tint on
+  the editor map and the labelled chart.
+- A new `switch` gets its own Settings row by itself; give it text: `settings.haze.ash` and
+  `settings.haze.ashNote` in `en.json` and `fr.json`, and the kind's name `zone.ash`.
+- No story step may need it: the player can switch it off.
+
 ## A new ship ([0109](../decisions/0109-one-file-per-ship.md))
 
 Copy a ship file in [`src/data/ships/`](../../src/data/ships/), rename it to the new id
@@ -347,8 +369,23 @@ at sea (a ring as wide as `within`, the next one pulsing) and on the chart, with
   models are recipes in `src/data/props/mark-cardinal-*.json`, a yellow and black diamond on
   the chart). `turn` is a heading in degrees; `"chart": true` draws it on the chart too. Not solid;
   the map checks keep them off land and reefs.
+- **Islands and shapes ([0166](../decisions/0166-land-that-rises-or-clears-after-a-quest.md)):**
+  an island entry or a terrain entry (reef, sandbank, shallows, barrier island, ice) in a map or
+  sea file takes the same `"tags": ["after:<quest>"]` (it rises once the quest is done) or
+  `"tags": ["before:<quest>"]` (it clears then). Land, collision, wind shelter, reef drag, piers,
+  sighting, the chart and the shore foam all follow. It swaps only out of the boat's sight
+  (`seamanship.json` › `questLand`: farther than `changeDistance`, or docked and `dockedClear`
+  from it), never under her. One quest per feature; a port on rising land must be a `site`
+  founded after it rises; no port on land that clears; the home port, the captain's island and
+  the prologue wreck always stand. The route checks run with the land before and after its
+  quests. Sea editor: **Stands** and **Quest** on an island, shape or mark (a dashed ring on the
+  chart); command line: `npm run sea -- set island <id> --after <quest>` (`--before`, `--always`).
+  Islands and shapes also take `"during:<quest>"` (only while that quest runs) and
+  `"except:<quest>"` (all but then), `--during` / `--except` on the command line; props and sea
+  marks do not (a quest's own marks show while it runs).
 - `checkQuestHooks` (run by `tests/quest-hooks.test.ts`) refuses a tag or `afterQuest` naming a
-  quest that does not exist.
+  quest that does not exist; the `quest-tags` map check does the same for islands, shapes and
+  marks in the editor, `npm run sea` and `npm run check`.
 
 A reef's or bank's landmark can be set by hand with `"look": { "landmark": "wreck",
 "landmarkAt": { "x", "y" } }`, so reshaping the outline does not move it (the prologue wreck).

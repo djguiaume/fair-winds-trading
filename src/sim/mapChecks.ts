@@ -6,7 +6,8 @@ import { outlineCrosses, smoothOutline } from './flowShapes';
 import { TUNING } from '../data/tuning';
 import { isFar, isGood } from './goods';
 import { islandCoasts, islandPoint } from './islandLayout';
-import { landmarkOf } from '../data/islands';
+import { landmarkOf, questTagIds, runningTag } from '../data/islands';
+import { hasQuestLand, standingMap } from './questLand';
 import { type IslandDef, type MapDef, type PortDef, SEA_MARK_TYPES, type TerrainDef } from './map';
 import { DEG, bearingTo, wrapAngle } from './math';
 import { CUTTER, SHIP_CLASSES, SLOOP, noGoAngle, polarFraction } from './ship';
@@ -456,6 +457,60 @@ function portGoods(port: PortDef) {
   };
 }
 
+/**
+ * Land that rises or clears with a quest (decision 0166): its tags are `after:`, `before:`,
+ * `during:` or `except:` one quest, its id names it alone (an island and a shape share none), a
+ * port on it is an empty island to found once it has risen `after:` a quest, and the home port, the captain's island and the prologue's
+ * wreck always stand.
+ */
+export function questLandProblems(map: MapDef): string[] {
+  const problems: string[] = [];
+  const islandIds = new Set(map.islands.map((i) => i.id));
+  for (const f of [...map.islands, ...(map.terrain ?? [])]) {
+    const quests = questTagIds(f);
+    if (!quests.length) continue;
+    const name = f.name ?? f.id;
+    if (quests.length > 1) problems.push(`${name} waits on more than one quest`);
+    if (!('radius' in f) && islandIds.has(f.id))
+      problems.push(`${name}: an island has the same id, so it cannot rise or clear alone`);
+    const port = 'radius' in f ? map.ports.find((p) => p.islandId === f.id) : undefined;
+    if (port && !f.tags?.some((t) => t.startsWith('after:')))
+      problems.push(`${name} clears with a quest, so it cannot carry ${port.name}`);
+    else if (port && !port.site)
+      problems.push(
+        `${port.name} stands on land that rises after a quest: make it a site to found`,
+      );
+    if (port && port.id === map.homePort) problems.push(`${name} carries the home port`);
+    if (f.id === map.homeIsland) problems.push(`${name} is the captain's island`);
+    if (f.id === map.prologue?.wreck) problems.push(`${name} holds the prologue's wreck`);
+  }
+  // A mark follows quests done only; a quest's own marks show while it runs (decision 0164).
+  for (const [i, mark] of (map.marks ?? []).entries())
+    if (mark.tags?.some(runningTag))
+      problems.push(`mark ${i}: during:/except: is for land; use the quest's own marks`);
+  return problems;
+}
+
+/**
+ * Islands, shapes and sea marks that wait on a quest name one there is (decisions 0130, 0166).
+ * The quests come from the caller, so the map checks stay free of the quest engine.
+ */
+export function questTagsCheck(map: MapDef, quests: readonly string[]): MapCheck {
+  const known = new Set(quests);
+  const unknown = [
+    ...map.islands.map((f) => [f.id, f] as const),
+    ...(map.terrain ?? []).map((f) => [f.id, f] as const),
+    ...(map.marks ?? []).map((f, i) => [`mark ${i}`, f] as const),
+  ].flatMap(([where, f]) =>
+    questTagIds(f)
+      .filter((q) => !known.has(q))
+      .map((q) => `${where} waits on "${q}"`),
+  );
+  return unknown.length
+    ? fail('quest-tags', `no such quest: ${list(unknown)}`)
+    : pass('quest-tags', 'land and marks that wait on a quest name real quests');
+}
+
 /** The quick checks: data that holds together, land inside the sea, clear harbours and spawn. */
 export function quickChecks(map: MapDef): MapCheck[] {
   const out: MapCheck[] = [];
@@ -495,6 +550,7 @@ export function quickChecks(map: MapDef): MapCheck[] {
       problems.push(`chart area "${a.id}" needs a name and an outline`);
   for (const t of map.terrain ?? [])
     if (t.outline.length < 3) problems.push(`${t.name ?? t.id} has fewer than 3 points`);
+  problems.push(...questLandProblems(map));
   for (const [i, mark] of (map.marks ?? []).entries()) {
     const name = `mark ${i} (${mark.type})`;
     if (!(SEA_MARK_TYPES as readonly string[]).includes(mark.type))
@@ -719,6 +775,37 @@ export function flowChecks(map: MapDef): MapCheck[] {
  * to find, never easier, so a route found there is there on every level and with them off.
  */
 export function routeChecks(map: MapDef): MapCheck[] {
+  if (!hasQuestLand(map)) return routeChecksOn(map);
+  // Land that rises or clears with a quest (decision 0166): the routes must hold before any of
+  // those quests, while they run (when land waits on a running quest) and after all of them,
+  // each check once per state.
+  const features = [...map.islands, ...(map.terrain ?? [])];
+  const quests = new Set(features.flatMap((f) => questTagIds(f)));
+  const none = new Set<string>();
+  const states: [string, string, ReadonlySet<string>, ReadonlySet<string>][] = [
+    ['before', 'before its quests', none, none],
+    ...(features.some((f) => f.tags?.some(runningTag))
+      ? [
+          ['during', 'while its quests run', none, quests] as [
+            string,
+            string,
+            typeof none,
+            typeof none,
+          ],
+        ]
+      : []),
+    ['after', 'after its quests', quests, none],
+  ];
+  return states.flatMap(([id, state, done, running]) =>
+    routeChecksOn(standingMap(map, done, running)).map((c) => ({
+      ...c,
+      id: `${c.id}-${id}`,
+      message: `${c.message} (land ${state})`,
+    })),
+  );
+}
+
+function routeChecksOn(map: MapDef): MapCheck[] {
   const winds = [map.wind.fromDeg, (map.wind.fromDeg + 180) % 360];
   const strongest = Math.max(0, ...Object.values(TUNING.difficulty.levels).map((l) => l.currents));
   const field = map.currents?.length && strongest > 0 ? new CurrentField(map) : null;

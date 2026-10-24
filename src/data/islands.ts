@@ -217,20 +217,32 @@ export const atLevel = (e: { from?: number; to?: number }, level: number) =>
 /**
  * Shown with these quests done (decision 0130)? A tag `after:<quest>` needs that quest done,
  * `before:<quest>` needs it not done; other tags do not matter. Island props, sea marks and the
- * lights on them all follow this one rule.
+ * lights on them all follow this one rule. Islands and shapes (decision 0166) also take
+ * `during:<quest>` (only while it runs) and `except:<quest>` (not while it runs), read from
+ * `running`, the quests started and not done.
  */
-export function questShown(e: { tags?: readonly string[] }, done: ReadonlySet<string>): boolean {
+export function questShown(
+  e: { tags?: readonly string[] },
+  done: ReadonlySet<string>,
+  running: ReadonlySet<string> = NONE,
+): boolean {
   for (const tag of e.tags ?? []) {
     if (tag.startsWith('after:') && !done.has(tag.slice('after:'.length))) return false;
     if (tag.startsWith('before:') && done.has(tag.slice('before:'.length))) return false;
+    if (tag.startsWith('during:') && !running.has(tag.slice('during:'.length))) return false;
+    if (tag.startsWith('except:') && running.has(tag.slice('except:'.length))) return false;
   }
   return true;
 }
+const NONE: ReadonlySet<string> = new Set();
+
+/** Tags that follow a running quest (decision 0166): islands and shapes only. */
+export const runningTag = (tag: string) => /^(during|except):/.test(tag);
 
 /** The quests an element's `after:` and `before:` tags name. */
 export function questTagIds(e: { tags?: readonly string[] }): string[] {
   return (e.tags ?? []).flatMap((tag) => {
-    const m = /^(after|before):(.+)$/.exec(tag);
+    const m = /^(after|before|during|except):(.+)$/.exec(tag);
     return m ? [m[2]!] : [];
   });
 }

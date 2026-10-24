@@ -144,6 +144,25 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
       el('circle', { cx: before.x, cy: -before.y, r: before.radius, class: 'c-ghost' });
   }
 
+  // Land that rises or clears after a quest (decision 0166): a dashed ring and its quest.
+  for (const f of [...prepared.islands, ...(map.terrain ?? [])]) {
+    const tag = f.tags?.find((t) => /^(after|before|during|except):/.test(t));
+    if (!tag) continue;
+    // Gold where it rises (after, during), pale where it clears (before, except).
+    const cls = `c-quest c-quest-${/^(after|during):/.test(tag) ? 'after' : 'before'}`;
+    // Its quest under it, clear of the name above.
+    let x: number, below: number;
+    if ('radius' in f) {
+      el('circle', { cx: f.x, cy: -f.y, r: f.radius + 4 * px, class: cls });
+      [x, below] = [f.x, -f.y + f.radius + 16 * px];
+    } else {
+      el('polygon', { points: pts(f.outline), class: cls });
+      x = f.outline.reduce((n, p) => n + p[0], 0) / f.outline.length;
+      below = Math.max(...f.outline.map((p) => -p[1])) + 14 * px;
+    }
+    label(tag.replace(':', ' '), x, below, 10, 'c-quest-label');
+  }
+
   if (layers.harbours) {
     const heads = new Set<string>();
     for (const pier of piersOf(prepared)) {
