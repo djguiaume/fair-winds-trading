@@ -1,6 +1,6 @@
 # 0146. Far goods: the outpost gathers, the main port crafts, the ring buys
 
-**Status:** Accepted, 2026-10-24 (Guillaume: "yes better"). Worked out with the head storyteller (names, order, openers, keepers) over four rounds of Guillaume's feedback. Docs and data proposal only; nothing is built until Phase 4. Review: [far goods](../reviews/far-goods/README.md).
+**Status:** Accepted, 2026-10-24 (Guillaume: "yes better"). Worked out with the head storyteller (names, order, openers, keepers) over four rounds of Guillaume's feedback. Built in [0149](0149-building-far-goods.md). Review: [far goods](../reviews/far-goods/README.md).
 
 ## Context
 
