@@ -129,7 +129,12 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
       return clean({
         do: 'river',
         points: need(pointList(args.points), '--points "x,z x,z"'),
-        kind: args.kind === 'lava' ? ('lava' as const) : args.kind === 'water' ? ('water' as const) : undefined,
+        kind:
+          args.kind === 'lava'
+            ? ('lava' as const)
+            : args.kind === 'water'
+              ? ('water' as const)
+              : undefined,
         width: num(args.width),
         level,
         to: num(args.to),

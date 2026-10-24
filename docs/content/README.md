@@ -143,6 +143,14 @@ A style has `walls` and `roofs` (house colours), and may swap grounds and overri
 
 So an island file of style `ice` that says `grass` is snow, and a file can still name `snow` or `ice` outright. Pick the style in the island builder (the island's panel) or `npm run island -- <id> set --style ice`; a ground with the builder's Ground picker or `npm run island -- <id> ground 2 --material ice`. `tests/grounds.test.ts` checks every ground in every style.
 
+## A river or a lava river ([0167](../decisions/0167-rivers-of-water-and-lava.md))
+
+An island file lists `rivers`, each `{ "kind": "water" | "lava", "points": [[x, z], …], "width": 0.04 }` in island-radius units, source first and mouth last (`kind` left out is water; `from`, `to` and `tags` work as on props). The river lies on the ground: plateaus, ramps, slopes and mountains (a mountain's faceted cone). Where it crosses a cliff of raised ground it falls as a sheet to the ground below; a last point past the coast takes it into the sea, with foam for water and steam for lava. Lava is drawn with the lit-window material: dull red by day, glowing at night, no extra draw call.
+
+- Island builder: **Lanes** tab › **River** or **Lava river**, click the source, the bends, the mouth, then Enter. The panel switches the kind, the width, the levels and the tags.
+- Command line: `npm run island -- <id> river --points "x,z x,z x,z" --kind lava --width 0.05`, `remove river <n>`.
+- Checks: the source must be on the island, a width above 0; a river that runs uphill between two points is a warning.
+
 ## A new difficulty level ([0113](../decisions/0113-levels-tutorial-and-music-as-data.md))
 
 Add an entry under `levels` in

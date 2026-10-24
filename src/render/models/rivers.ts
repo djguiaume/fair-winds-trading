@@ -16,7 +16,7 @@ export const RIVER_COLORS = {
   white: '#e4f4f6',
   lava: '#ff6a2a',
   crust: '#4a1c14',
-  steam: '#e8e4e0',
+  steam: '#f4f2ee',
 };
 
 /** How far a river lies above the land. */
@@ -157,10 +157,10 @@ function splash(
     const foam = new THREE.CircleGeometry(width * 0.9, 7).rotateX(-Math.PI / 2);
     return [paint(foam.translate(x, y + LIFT * 1.5, z), RIVER_COLORS.white)];
   }
-  const puffs = sea ? 4 : 2;
+  const puffs = sea ? 3 : 2;
   const out: Parts = [];
   for (let i = 0; i < puffs; i++) {
-    const r = width * (0.7 + i * 0.25);
+    const r = width * (0.45 + i * 0.15);
     const g = new THREE.IcosahedronGeometry(r, 0).translate(
       x + (i % 2 ? 0.3 : -0.25) * width,
       y + r * 0.8 + i * width * 0.9,

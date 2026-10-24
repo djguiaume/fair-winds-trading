@@ -402,6 +402,8 @@ async function shootEditor(page, shot) {
     .catch(() => {});
   if (shot.exportOpen) await page.click('#ed-export');
   await pause(Math.min(shot.wait, 600));
+  // Clicks work in the editors too (e.g. open the island builder and pick a tool).
+  await act(page, shot);
 }
 
 /** The pad's steps, then the clicks, as a player would. */

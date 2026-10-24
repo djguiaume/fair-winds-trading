@@ -1,4 +1,11 @@
-import type { GroundDef, IslandDesign, LaneDef, Point, RampDef, RiverDef } from '../../data/islands';
+import type {
+  GroundDef,
+  IslandDesign,
+  LaneDef,
+  Point,
+  RampDef,
+  RiverDef,
+} from '../../data/islands';
 import { insetOutline } from '../../sim/coast';
 import { BEACH } from '../../sim/islandLayout';
 import { createRng } from '../../sim/rng';
@@ -387,7 +394,10 @@ export function addRiver(
   level: Level = 1,
   width = RIVER_WIDTH,
 ): number {
-  const river: RiverDef = { points: points.map((p) => [pos(p[0]!), pos(p[1]!)]), width: pos(width) };
+  const river: RiverDef = {
+    points: points.map((p) => [pos(p[0]!), pos(p[1]!)]),
+    width: pos(width),
+  };
   if (kind !== 'water') river.kind = kind;
   if (level > 1) river.from = level;
   design.rivers ??= [];
