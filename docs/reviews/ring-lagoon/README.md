@@ -1,6 +1,6 @@
 # Ring island with an inner lagoon
 
-*Guillaume, 2026-10-24: "with what we currently have is it [possible] to make: a circle island with one opening on the east and another on the west. The middle is sea. Port is at the north. The wind is reduced in the whole middle. Wind can only flow E->W or W->E." Proposal for the wind part: [0143](../../decisions/0143-channel-wind-zone.md).*
+*Guillaume, 2026-10-24: "with what we currently have is it [possible] to make: a circle island with one opening on the east and another on the west. The middle is sea. Port is at the north. The wind is reduced in the whole middle. Wind can only flow E->W or W->E." Proposal for the wind part: [0143](../../decisions/0143-lagoon-wind-axis.md).*
 
 ## Short answer
 
@@ -39,38 +39,35 @@ Port facing **out** (waypoint north, pier into the open sea):
 
 Smaller things to know:
 
-- **In or out matters for play, not for the code.** Facing **in** makes the lagoon and its gaps the way in, so the channel wind becomes part of every visit: you come in through the gap with or against it. Facing **out**, the harbour is on open sea and the lagoon is optional scenery. My recommendation is **in**.
+- **In or out matters for play, not for the code.** Facing **in** makes the lagoon and its gaps the way in, so the lagoon wind becomes part of every visit: you come in through the gap with or against it. Facing **out**, the harbour is on open sea and the lagoon is optional scenery. My recommendation is **in**.
 - **The ring is big.** The lagoon has to be roughly 2 × the port island radius + 22 units deep in front of an inward-facing harbour (the harbour check). Each gap needs about 30 units of clear water for the route check. In the game, the camera never shows the whole ring at once, but the chart does.
 - **Where to put it.** Today's ring (sea radius 440) has no free space this size. It fits in a Phase 4 biome, or after the map grows ([0115](../../decisions/0115-bigger-map-engine-rules.md)).
-- **Route checks would ignore the zone.** `sailRoute` uses the map's base wind and its opposite. Once a channel zone exists, it should ask the zone's wind too. Otherwise the check believes you can sail north–south across the lagoon at full speed.
+- **Route checks would ignore the zone.** `sailRoute` uses the map's base wind and its opposite. Once the lagoon zone exists, it should ask the zone's wind too. Otherwise the check believes you can sail north–south across the lagoon at full speed.
 
-## Smallest change for the wind (proposal, [0143](../../decisions/0143-channel-wind-zone.md))
+## Smallest change for the wind (proposal, [0143](../../decisions/0143-lagoon-wind-axis.md))
 
-This is data first and fits the 0140 format. Add one zone kind, `channel`, with a per-zone axis:
+This is data first and uses the 0140 format. The "Build wind zones" thread is adding a `sheltered` kind for this lagoon: `strength` 0.55, `gusts` 0.6, `pull` 0.9 and `axis: true`, where `headingDeg` is read as a line and the wind pulls to whichever end is nearer the sea wind. The lagoon is then one zone:
 
 ```json
 "windZones": [
   {
     "id": "ring-lagoon",
     "name": "Ringhaven Sound",
-    "kind": "channel",
-    "axisDeg": 90,
+    "kind": "sheltered",
+    "headingDeg": 90,
     "outline": [[-130, -590], [-90, -505], [0, -478], [90, -505], [130, -590], [90, -675], [0, -702], [-90, -675]]
   }
 ]
 ```
 
-In `tuning/weather.json › zones`:
+- **Direction:** inside the zone the wind blows along the E–W line, from whichever end is nearer the sea wind. A sea wind from NE gives an E→W wind, and a sea wind from SW gives W→E.
+- **Strength:** × 0.55 across the whole middle, with gusts softened.
+- **Edges:** it fades in over the shared `fadeUnits` (40) like every zone, so sailing in through a gap you feel the wind swing round.
+- **Editor:** the 0140 "Add wind zone" tool. The panel lists the kind's numbers as per-zone overrides, so nothing new is needed there.
 
-```json
-"channel": { "pull": 1, "strength": 0.5, "acrossFloor": 0.3 }
-```
+Two small additions on top (0143):
 
-- **Direction:** inside the zone the wind blows along the axis, from whichever end is nearer the sea wind (`pull` 1 = fully). A sea wind from NE gives an E→W wind, and a sea wind from SW gives W→E.
-- **Strength:** × `strength` (0.5, "reduced in the whole middle") × max(`acrossFloor`, |cos(sea wind − axis)|). When the sea wind blows straight across the channel (from N or S), it is at its lightest, so the flip from E→W to W→E happens in a near-calm and never as a sudden swing.
-- **Edges:** fades in over the shared `fadeUnits` (40) like every zone, so sailing in through a gap you feel the wind swing round.
-- **Order:** sea wind → zone → island shelter, with the shelter rays using the zone's direction. The arms then add their lee near the shore, and the gaps funnel a little, as they do today.
-- **Editor:** the 0140 "Add wind zone" tool, with "Channel" in the kind picker and an axis dial (one line, both ends) instead of the trade belt's heading dial.
-- **Checks:** a `channel` zone must have an `axisDeg`. Route checks sample the zone's wind ([0143](../../decisions/0143-channel-wind-zone.md) point 4).
+1. **`acrossFloor` 0.3:** the speed is also × max(`acrossFloor`, |cos(sea wind − axis)|). When the sea wind blows straight across the line (from N or S), the lagoon is at its lightest, so the flip from E→W to W→E happens in a near-calm, never as a sudden 180° swing at full strength.
+2. **Route checks sample zone wind**, so they don't assume full-speed sailing across the lagoon.
 
-This is one kind, one optional field and one weather.json block. Everything else rides on the 0140 base (zone lookup through `SpatialGrid`, the Settings switch, the editor's outline tool), which the "Build ocean currents" thread is starting.
+Zone first, island shelter second, with the shelter rays using the zone's direction: the arms still add their lee near the shore, and the gaps funnel a little, as they do today.
