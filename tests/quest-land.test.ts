@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PHASE1_SOURCE, prepareMap } from '../src/data/maps';
 import { grownMap } from '../src/data/grownMap';
+import { questShown } from '../src/data/islands';
 import { TUNING } from '../src/data/tuning';
 import { HighlandIslands } from '../src/render/models/highlandIslands';
 import { resolveCollisions } from '../src/sim/collision';
@@ -169,7 +170,7 @@ describe('checks on land that waits on a quest (0166)', () => {
     const m = ring();
     const westholm = m.islands.find((i) => i.id === 'westholm')!;
     westholm.tags = [`before:${QUEST}`];
-    expect(questLandProblems(m).join()).toMatch(/clears after a quest/);
+    expect(questLandProblems(m).join()).toMatch(/clears with a quest/);
     westholm.tags = [`after:${QUEST}`];
     expect(questLandProblems(m).join()).toMatch(/make it a site/);
     m.ports.find((p) => p.islandId === 'westholm')!.site = true;
@@ -205,5 +206,45 @@ describe('the view of land that waits on a quest (0166)', () => {
     islands.setLandOut(new Set());
     expect(group('island:bell-rock').visible).toBe(true);
     islands.dispose();
+  });
+});
+
+describe('land that stands only while a quest runs (0166)', () => {
+  const running = new Set([QUEST]);
+  it('reads during: and except: from the quests running', () => {
+    expect(questShown({ tags: [`during:${QUEST}`] }, new Set(), running)).toBe(true);
+    expect(questShown({ tags: [`during:${QUEST}`] }, new Set(), new Set())).toBe(false);
+    expect(questShown({ tags: [`during:${QUEST}`] }, new Set([QUEST]))).toBe(false);
+    expect(questShown({ tags: [`except:${QUEST}`] }, new Set(), running)).toBe(false);
+    expect(questShown({ tags: [`except:${QUEST}`] }, new Set([QUEST]))).toBe(true);
+  });
+
+  it('raises an island while its quest runs and clears it once done, out of sight', () => {
+    const m = prepareMap(grownMap(PHASE1_SOURCE));
+    m.islands.find((i) => i.id === 'lone-palm')!.tags = [`during:${QUEST}`];
+    const world = createWorld(m, SLOOP);
+    world.dynamicWeather = false;
+    world.trade.dockedAt = null;
+    at(world, m.start.x, m.start.y);
+    lie(world, 1);
+    expect(stands(world, 'lone-palm')).toBe(false);
+    world.trade.quests.byId[QUEST] = { step: 'gulls', counts: [], chose: {} };
+    lie(world, 1);
+    expect(stands(world, 'lone-palm')).toBe(true);
+    finish(world);
+    lie(world, 1);
+    expect(stands(world, 'lone-palm')).toBe(false);
+  });
+
+  it('route-checks the sea while the quests run, and keeps marks and ports off it', () => {
+    const m = structuredClone(prepareMap(PHASE1_SOURCE));
+    m.islands.find((i) => i.id === 'bell-rock')!.tags = [`except:${QUEST}`];
+    const ids = routeChecks(m).map((c) => c.id);
+    expect(ids).toEqual(expect.arrayContaining(['reach-before', 'reach-during', 'reach-after']));
+    m.islands.find((i) => i.id === 'westholm')!.tags = [`during:${QUEST}`];
+    expect(questLandProblems(m).join()).toMatch(/clears with a quest/);
+    m.islands.find((i) => i.id === 'westholm')!.tags = undefined;
+    m.marks = [{ type: 'buoy-red', x: 0, y: 0, tags: [`during:${QUEST}`] }];
+    expect(questLandProblems(m).join()).toMatch(/during:\/except: is for land/);
   });
 });
