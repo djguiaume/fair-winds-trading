@@ -20,12 +20,17 @@ Where
   --sea ring|stress|phase4|file.json   the sea (a file: a map editor export, played as ?map=edited)
   --island a.json,b.json        island files to play instead of the shipped ones (builder exports)
   --at x,y                      boat at sea there (default: docked at the start port)
+  --prologue                    a new voyage as a player who skips the tutorial meets it: alone at
+                                sea, sails down, the rescue to play (0160); without it the tools
+                                drop that story and start at the map's start, as before
   --heading deg                 boat heading, compass degrees (default: wind on the beam)
   --sail 0|1|2                  sails furled, half, full (default 2)
   --speed kn                    starting speed (default 5)
   --ship id                     sail this ship (sloop, schooner, fluyt, …)
   --hold Key:ms                 hold a key that long before the shot (e.g. ArrowUp:2500)
   --port id                     docked at this port, port screen open
+  --moor island                 moored at one of her islands' piers (owned first, decision 0159)
+  --quest id:step               a quest started at that step, earlier steps paid (as a quest test)
   --tab market|orders|quay|shipyard   the port screen's tab
   --zoom z                      camera distance, 1 = default, larger = farther (no game limit)
   --look x,y                    camera on this map point instead of the boat
@@ -49,6 +54,8 @@ Look
   --no-zones  --no-currents     wind zones, currents off (default on, like the game)
   --cards                       keep quest cards and dialogs open (default: closed, kept in a quest test)
   --wait ms                     settle time before the shot (default 1500)
+  --click selector              click this before the shot (after the wait), e.g. a card's button,
+                                then wait 800 ms
 Output
   --sizes desktop,landscape,portrait   (default desktop)
   --name name                   file name, written as <name>-<size>.png (default: from the scene)
@@ -89,6 +96,8 @@ export function normalise(opts) {
     ship: o.ship ?? null,
     hold: o.hold ? keyHold(o.hold) : null,
     port: o.port ?? null,
+    moor: o.moor ?? null,
+    quest: o.quest ? String(o.quest).split(':') : null,
     tab: o.tab ?? null,
     zoom: o.zoom ?? null,
     look: o.look !== undefined ? pair(o.look) : null,
@@ -98,6 +107,7 @@ export function normalise(opts) {
     chartPan: o['chart-pan'] ? keyHold(o['chart-pan']) : null,
     chartPanel: o['chart-panel'] ?? null,
     charted: !!o.charted,
+    prologue: !!o.prologue,
     towns: list(o.town ?? []).map((t) => {
       const [id, level] = String(t).split(':');
       if (!id || !(Number(level) >= 1)) throw new Error(`not id:level: ${t}`);
@@ -112,6 +122,7 @@ export function normalise(opts) {
     currents: !o['no-currents'],
     cards: o.cards ?? !!o.url,
     wait: o.wait ?? 1500,
+    click: o.click ?? null,
     sizes: list(o.sizes ?? 'desktop'),
     url: o.url ?? null,
     editor: o.editor === true ? 'ring' : (o.editor ?? null),
@@ -122,7 +133,8 @@ export function normalise(opts) {
   };
   for (const s of shot.sizes)
     if (!SIZES[s]) throw new Error(`unknown size ${s} (${Object.keys(SIZES)})`);
-  if (shot.at && shot.port) throw new Error('--at and --port: pick one');
+  if ([shot.at, shot.port, shot.moor].filter(Boolean).length > 1)
+    throw new Error('--at, --port and --moor: pick one');
   if (shot.editor && !['ring', 'phase4'].includes(shot.editor))
     throw new Error(`--editor ring|phase4, not ${shot.editor}`);
   shot.name = o.name ?? defaultName(shot);
@@ -215,8 +227,11 @@ const visible = (page, sel) =>
     .catch(() => false);
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/** Past the title menu, the level card and the tutorial offer, as a player would click. */
-async function enter(page) {
+/**
+ * Past the title menu, the level card and the tutorial offer, as a player would click; then, unless
+ * the shot is of the prologue, back to plain free play (decision 0160).
+ */
+async function enter(page, shot) {
   await page.waitForFunction(() => !!window.fwt, null, { timeout: 30000 });
   if (await visible(page, '#menu-play')) await page.click('#menu-play');
   await page
@@ -229,10 +244,11 @@ async function enter(page) {
     .waitFor({ state: 'visible', timeout: 2000 })
     .catch(() => {});
   if (await visible(page, '#tutorial-free')) await page.click('#tutorial-free');
+  if (!shot.prologue && !shot.url) await page.evaluate(() => window.fwt.freePlay?.());
 }
 
 async function setScene(page, shot) {
-  if ((shot.at || (shot.port && !shot.url)) && (await visible(page, '#tp-undock')))
+  if ((shot.at || shot.moor || (shot.port && !shot.url)) && (await visible(page, '#tp-undock')))
     await page.click('#tp-undock');
   const problem = await page.evaluate((s) => {
     const { world, view, trade } = window.fwt;
@@ -245,6 +261,7 @@ async function setScene(page, shot) {
       captain.activeShip = s.ship;
       world.ship = trade.activeShip(world.trade);
     }
+    if (s.quest) window.fwt.quests.testStart(s.quest[0], s.quest[1]);
     if (s.charted) world.trade.progress.zones = world.map.windZones.map((z) => z.id);
     for (const [id, level] of s.towns)
       if (!window.fwt.town(id, level)) return `no town ${id} on this sea`;
@@ -255,6 +272,11 @@ async function setScene(page, shot) {
     }
     if (s.port && !s.url && world.trade.dockedAt !== s.port && !window.fwt.dock(s.port))
       return `could not dock at ${s.port}`;
+    if (s.moor) {
+      const home = (world.trade.home.islands[s.moor] ??= { owned: true, offered: [], built: {} });
+      home.owned = true;
+      if (!window.fwt.moor(s.moor)) return `no pier to moor at on ${s.moor}`;
+    }
     if (s.tab && world.trade.dockedAt) window.fwt.tradePanel.open(s.tab);
     if (s.zoom !== null) view.zoom = s.zoom;
     if (s.look) view.setFocus({ x: s.look[0], y: s.look[1] });
@@ -315,7 +337,7 @@ async function shootEditor(page, shot) {
 
 /** The game entered and the scene set, ready for the shot. */
 async function shootScene(page, shot) {
-  await enter(page);
+  await enter(page, shot);
   await setScene(page, shot);
   if (shot.hold) {
     await page.keyboard.down(shot.hold.key);
@@ -323,6 +345,10 @@ async function shootScene(page, shot) {
     await page.keyboard.up(shot.hold.key);
   }
   await pause(shot.wait);
+  if (shot.click) {
+    await page.click(shot.click);
+    await pause(800);
+  }
   if (!shot.cards) await closeCards(page);
   if (shot.chart) {
     await closeCards(page);

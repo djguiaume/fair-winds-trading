@@ -33,6 +33,7 @@ const TUTORIAL = 'first-voyage';
  * Retaken by decision 0151: the tutorial is an ordinary quest, so the random player now moves the
  * voyage (course, dock, cargo, chart open, helm) and the quest book watches it; the session also
  * saves and loads the lesson with the voyage.
+ * Retaken by decision 0159: Rook's island lesson names Skerry and where it lies.
  */
 
 afterEach(() => {
@@ -95,7 +96,7 @@ describe('plays the same after moving levels, tutorial and music to data (decisi
     const lines: string[] = [];
     for (let run = 0; run < 300; run++) lines.push(...tutorialSession(run));
     expect(lines.length).toBeGreaterThan(60000);
-    expect(hash(lines.join('\n'))).toBe('fcc35170');
+    expect(hash(lines.join('\n'))).toBe('b4584ee2');
   });
 });
 

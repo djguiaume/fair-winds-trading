@@ -401,7 +401,8 @@ quests.onEvent = (e) => {
   checkFounded();
   if (quest?.lesson) {
     // A lesson speaks in its own bubble, and its last one says it is done (decision 0151).
-    if (e.type === 'finished') {
+    // Without its coach (the tutorial skipped, decision 0160) it ends without a word.
+    if (e.type === 'finished' && quests.isCoached(e.quest)) {
       coach.finished = e.quest;
       if (e.quest === TUTORIAL_QUEST) tutorialChoice.set('completed');
     }
@@ -691,7 +692,8 @@ coach.onOption = (quest, option) => {
   autosave();
 };
 coach.onSkip = (quest) => {
-  if (!quests.drop(quest)) return;
+  // Skip leaves the lessons, not the story: the rescue and Rook's ride home (decision 0160).
+  quests.coachOff(quest);
   if (quest === TUTORIAL_QUEST) tutorialChoice.set('skipped');
   coach.render();
   refreshMenuTutorial();
@@ -718,9 +720,22 @@ $('tutorial-start').addEventListener('click', () => {
   tutorialOffer.close();
   refreshPause();
 });
-/** "Free sailing": the tutorial is not taken (and stops, if it was running). */
+/**
+ * "Skip the lessons" (was "Free sailing", renamed by decision 0160): no lessons. A fresh voyage still plays the prologue's story without the coach
+ * (decision 0160): alone at sea, sails down, the foghorn, the rescue, Rook's ride home. Otherwise
+ * the tutorial stops, if it was running.
+ */
 function declineTutorial() {
-  quests.drop(TUTORIAL_QUEST);
+  if (
+    !resumedVoyage &&
+    world.time < 60 &&
+    !quests.progress(TUTORIAL_QUEST) &&
+    startAtPrologue(world)
+  ) {
+    sailStep = world.boat.sailStep;
+    quests.ask(TUTORIAL_QUEST);
+    quests.coachOff(TUTORIAL_QUEST);
+  } else quests.drop(TUTORIAL_QUEST);
   tutorialChoice.set('skipped');
   coach.render();
   refreshMenuTutorial();
@@ -1468,6 +1483,19 @@ if (new URLSearchParams(location.search).has('debug')) {
     hud.onPortClick(portId);
     return world.trade.dockedAt === portId;
   };
+  /**
+   * Moor at one of her islands' piers, as a player would (`npm run shots -- --moor skerry`,
+   * decision 0159): the boat waits stopped by the pier and moors on the next step.
+   */
+  const moor = (islandId: string) => {
+    const berth = testBerth(world.map, world.trade, world.piers, islandId, world.ship.id);
+    if (!berth) return false;
+    world.boat = createBoat(berth.x, berth.y, (berth.headingDeg * Math.PI) / 180);
+    world.boat.sailStep = sailStep = 0;
+    world.boat.sail = SAIL_STEPS[0]!;
+    world.destination = null;
+    return true;
+  };
   /** Put the boat at sea at a point, heading in degrees, sails at a step (0 furled … 2 full). */
   const place = (x: number, y: number, headingDeg: number, step = SAIL_STEPS.length - 1) => {
     world.boat = createBoat(x, y, (headingDeg * Math.PI) / 180);
@@ -1490,6 +1518,16 @@ if (new URLSearchParams(location.search).has('debug')) {
     view.setSettlementLevels(townLevels(world.map, world.trade));
     return true;
   };
+  /**
+   * Free play as before decision 0160, for the tools (`npm run shots`, the performance run): the
+   * prologue a skipped tutorial still plays is dropped and the boat goes back to the map's start.
+   */
+  const freePlay = () => {
+    if (!quests.isRunning(TUTORIAL_QUEST)) return;
+    quests.drop(TUTORIAL_QUEST);
+    resetBoat(world);
+    sailStep = world.boat.sailStep;
+  };
   Object.assign(window, {
     fwt: {
       world,
@@ -1502,8 +1540,10 @@ if (new URLSearchParams(location.search).has('debug')) {
       chart,
       newGame,
       dock,
+      moor,
       place,
       town,
+      freePlay,
     },
   });
 }

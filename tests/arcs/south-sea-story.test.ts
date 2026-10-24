@@ -78,7 +78,13 @@ describe('the south sea story (decision 0155)', () => {
     expect(book.active.map((a) => a.quest.id)).not.toContain('watchman-passage');
 
     // After the four arcs and the epilogue: Port Calda saws planks and Westholm bakes bread.
-    for (const id of ['calda-slipway', 'saltmere-shoals', 'westholm-mill', 'stonehaven-light'])
+    for (const id of [
+      'rooks-thanks',
+      'calda-slipway',
+      'saltmere-shoals',
+      'westholm-mill',
+      'stonehaven-light',
+    ])
       world.trade.quests.byId[id] = { step: 'done', counts: [], chose: {} };
     world.trade.quests.byId['fair-winds'] = { step: 'done', counts: [], chose: {} };
     world.trade.settlements.byPort.westholm!.level = 3;

@@ -6,7 +6,7 @@ import { landmarkSpot } from '../src/sim/landmarks';
 import { pointOf } from '../src/sim/questLibrary';
 import { SLOOP } from '../src/sim/ship';
 import { DEG } from '../src/sim/math';
-import { questGoal, trackedMarkers } from '../src/ui/questView';
+import { questGoal, questTarget, trackedMarkers } from '../src/ui/questView';
 import { createWorld, startAtPrologue, stepWorld } from '../src/sim/world';
 import { TUTORIAL, tutorialVoyage } from './helpers/tutorial';
 
@@ -105,10 +105,28 @@ describe("Rook's thanks: the island (decision 0127)", () => {
     expect(v.step).toBe('island');
     expect(v.quests.isAt(TUTORIAL, 'island')).toBe(true);
     v.check();
-    expect(v.quests.isDone('rooks-thanks')).toBe(true);
+    // The island is hers at once; Rook's last step sends her to see it (decision 0159).
+    expect(v.quests.progress('rooks-thanks')?.step).toBe('skerry');
     expect(v.world.trade.home.islands.skerry?.owned ?? false).toBe(true);
     // The lesson stays the tracked quest.
     expect(v.quests.tracked).toBe(TUTORIAL);
+  });
+
+  it('ends when she first moors at Skerry, where Rook explains the plots (decision 0159)', () => {
+    const v = tutorialVoyage();
+    v.skip();
+    v.dock('saltmere');
+    expect(v.quests.isAt('rooks-thanks', 'skerry')).toBe(true);
+    expect(questTarget(v.quests, PHASE1_MAP)).toEqual({ point: { x: -60, y: -150 } });
+    // The arcs open as soon as the island is hers, not only once she has seen it.
+    expect(v.quests.offered.map((q) => q.id)).toContain('saltmere-shoals');
+    v.world.trade.dockedAt = null;
+    v.world.trade.home.docked = 'skerry';
+    v.check();
+    // Two cards one after the other (Guillaume, 0159): the plots, then what the buildings do.
+    expect(v.quests.progress('rooks-thanks')?.step).toBe('plots');
+    v.quests.choose('rooks-thanks', 'continue');
+    expect(v.quests.isDone('rooks-thanks')).toBe(true);
   });
 
   it('waits for the next Saltmere dock when the tutorial is skipped', () => {
@@ -122,9 +140,9 @@ describe("Rook's thanks: the island (decision 0127)", () => {
     expect(v.quests.isAt('rooks-thanks', 'home')).toBe(true);
     expect(v.quests.isDone('rooks-thanks')).toBe(false);
     v.dock('calda');
-    expect(v.quests.isDone('rooks-thanks')).toBe(false);
+    expect(v.quests.isAt('rooks-thanks', 'skerry')).toBe(false);
     v.dock('saltmere');
-    expect(v.quests.isDone('rooks-thanks')).toBe(true);
+    expect(v.quests.isAt('rooks-thanks', 'skerry')).toBe(true);
     expect(v.world.trade.home.islands.skerry?.owned ?? false).toBe(true);
   });
 
