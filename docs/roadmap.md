@@ -152,6 +152,8 @@ Still in code after that, by choice ([0108](decisions/0108-goods-and-weather-kin
 
 Goal: growth pushes you outward into tougher navigation.
 
+**Scope under review (2026-10-24):** [Phase 4 scope review](reviews/phase-4-scope/README.md) realigns this phase with [0097](decisions/0097-progression-candidates-and-later-extensions.md) and [0120](decisions/0120-communities-and-home-island.md). It proposes keeping today's ring as the centre of the 5x sea with fogged outer waters, replacing relay hubs with buildable outposts on manual voyages, and moving seeded maps to a later sandbox mode. The questions are open; nothing below changes until they are answered.
+
 - Larger, explorable map with fog of war; discover new islands and settlements.
 - Regional wind patterns: trade-wind belts, doldrums with almost no wind, variable stormy zones, seasonal shifts.
 - Currents, reefs and shallows that block bigger ships.
