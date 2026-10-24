@@ -22,6 +22,7 @@ import {
 import { settlementLevels } from './settlement';
 import { DIFFICULTIES, knobs, weatherFor } from './difficulty';
 import { mapZones, zoneField } from './windZones';
+import { smoothOutline } from './flowShapes';
 import { DEG, bearingTo, clamp, distance } from './math';
 import { type ShipClass, noGoAngle } from './ship';
 import {
@@ -483,7 +484,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
           : weather,
     stormsFrom: world.stormsFrom,
     // Wind zones (decision 0140) sit on top of the weather, with their own Settings switch.
-    zones: world.windZones ? zoneField(mapZones(world.map)) : null,
+    zones: world.windZones ? zoneField(mapZones(world.map), smoothOutline) : null,
     easiest: world.trade.difficulty === DIFFICULTIES[0],
   };
   world.seaWind = seaWindAt(world, cfg);

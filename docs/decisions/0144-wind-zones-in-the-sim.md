@@ -1,6 +1,6 @@
 # 0144. Wind zones in the sim
 
-**Status:** Implemented, part 1 (2026-10-24): the sim, its tests and the Settings switch. Part 2 follows once the shared base PR of [0140](0140-wind-zones-and-currents.md) (map format, map checks, editor tools, the `zones` block in `weather.json`) has merged: the game then reads the map's `windZones`, the smoothed outlines, and the route and balance checks sample the zones' wind.
+**Status:** Implemented (2026-10-24). Part 1 (PR #136): the sim, its tests and the Settings switch. Part 2 (below) came once the shared base PR of [0140](0140-wind-zones-and-currents.md) (map format, map checks, editor tools, the `zones` block in `weather.json`) merged ([0145](0145-building-currents.md), PR #137).
 
 ## Context
 
@@ -30,3 +30,14 @@ Guillaume also asked, in another thread, for a ring island with a lagoon where "
 - Cost: one grid lookup and a point-in-outline test per zone near the boat, per wind sample. The forecast takes five samples, only with a weather glass.
 - Until the shared base merges, `zonesTuning()` falls back to the numbers of 0140 and this decision, and `mapZones()` reads `windZones` without the `MapDef` type. Part 2 removes both stand-ins.
 - Still to do in part 2 and later: smoothed outlines (`smoothOutline` from the base PR), route and balance checks that sample zone wind, a calm-water look for the doldrums, and the biome zones themselves when the Phase 4 map is authored.
+
+## Part 2 (2026-10-24)
+
+After the shared base (PR #137) merged:
+
+- `WindZoneDef` and `MapDef.windZones` come from `map.ts`, and the numbers come from `weather.json` › `zones`. The stand-ins of part 1 are gone.
+- The game sails the **smoothed outline** (`smoothOutline` from `flowShapes.ts`), the same one the editor draws.
+- **Route checks** (`sailRoute`, used by the map checks in the editor and the tests) and the **balance check's legs** (`legSeconds`) plan with the zones' **average** wind: no puffs or shifts, and the doldrums at the middle of their range. A leg is cut into stretches of 40 units, each sailed in the wind at its middle. Legs are cached per weather list, and only maps with zones take this path, so today's ring times are unchanged. The route planner's estimate allows for the strongest zone, so it stays optimistic.
+- Changing a zone number in the `?tune` panel clears the prepared zones with the other weather caches.
+- Still to come: a calm-water look for the doldrums, after the currents' sea look lands in `ocean.ts` (both change the same shader). The biome zones themselves come when the Phase 4 map is authored.
+
