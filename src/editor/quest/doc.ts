@@ -4,7 +4,8 @@ import { PHASE1_SOURCE, prepareMap } from '../../data/maps';
 import { formatJson, formatQuestJson } from '../../data/jsonFormat';
 import en from '../../i18n/en.json';
 import fr from '../../i18n/fr.json';
-import type { MapDef } from '../../sim/map';
+import type { MapDef, SeaMarkDef, SeaMarkType } from '../../sim/map';
+import type { StepWind } from '../../sim/stepEffects';
 import { clearAt } from '../../sim/mapChecks';
 import {
   CONDITIONS,
@@ -304,6 +305,52 @@ export function addPlace(step: QuestStep, x: number, y: number): Path | null {
 }
 
 export const round1 = (v: number) => Math.round(v * 10) / 10;
+
+// --- The quest's own sea (decision 0164): the builder's edits, and `npm run quest`'s -----------
+
+/** Where the step takes the boat when it begins (`moveTo`); null clears it. */
+export function setStepMove(
+  step: QuestStep,
+  at: QuestPoint | null,
+  headingDeg = step.moveTo?.headingDeg,
+) {
+  if (!at) {
+    delete step.moveTo;
+    return;
+  }
+  step.moveTo = { x: round1(at.x), y: round1(at.y) };
+  if (headingDeg !== undefined) step.moveTo.headingDeg = headingDeg;
+}
+
+/** A sea mark of the quest's own (a yellow practice buoy by default); returns its index. */
+export function addQuestMark(
+  quest: QuestDef,
+  at: QuestPoint,
+  type: SeaMarkType = 'buoy-yellow',
+  name?: string,
+): number {
+  const mark: SeaMarkDef = { type, x: round1(at.x), y: round1(at.y) };
+  if (name) mark.name = name;
+  quest.marks = [...(quest.marks ?? []), mark];
+  return quest.marks.length - 1;
+}
+
+/** Removes the quest's mark `i` (0-based); false when there is none. */
+export function removeQuestMark(quest: QuestDef, i: number): boolean {
+  if (!quest.marks?.[i]) return false;
+  quest.marks.splice(i, 1);
+  if (!quest.marks.length) delete quest.marks;
+  return true;
+}
+
+/** A held breeze on a quest or a step; no speed clears it, no bearing keeps the sea's. */
+export function setWind(target: { wind?: StepWind }, speedKn?: number, fromDeg?: number) {
+  if (speedKn === undefined) {
+    delete target.wind;
+    return;
+  }
+  target.wind = fromDeg === undefined ? { speedKn } : { speedKn, fromDeg };
+}
 
 // --- Play from a step ------------------------------------------------------------------------
 
@@ -623,6 +670,14 @@ export type ShippedFiles = Record<string, string>;
  * Prettier style), and `en.json` / `fr.json` with the edited keys, new keys after the quest's
  * other keys. Paths are the repo's.
  */
+/** A quest file's text as the builder exports it, keeping the layout of the file it replaces. */
+export function questFileText(q: QuestDef, before: string | undefined): string {
+  // A file written with objects broken open stays that way; new files keep objects on one line.
+  return before !== undefined && formatJson(JSON.parse(before)) === before
+    ? formatJson(q)
+    : formatQuestJson(q);
+}
+
 export function exportFiles(
   doc: QuestDoc,
   shipped: ShippedFiles,
@@ -630,11 +685,7 @@ export function exportFiles(
   const out: { path: string; text: string }[] = [];
   for (const q of doc.quests) {
     const before = shipped[q.id];
-    // A file written with objects broken open stays that way; new files keep objects on one line.
-    const text =
-      before !== undefined && formatJson(JSON.parse(before)) === before
-        ? formatJson(q)
-        : formatQuestJson(q);
+    const text = questFileText(q, before);
     if (text !== before) out.push({ path: `src/data/quests/${q.id}.json`, text });
   }
   for (const lang of LANGS) {

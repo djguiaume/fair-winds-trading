@@ -1,5 +1,13 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
+import {
+  addQuestMark,
+  questFileText,
+  removeQuestMark,
+  setStepMove,
+  setWind,
+} from '../src/editor/quest/doc';
 import { DEG } from '../src/sim/math';
 import { QUESTS, QuestBook, type QuestDef } from '../src/sim/quests';
 import { SLOOP } from '../src/sim/ship';
@@ -127,5 +135,30 @@ describe('the sailing lessons quest (decision 0164)', () => {
     expect(book.runningMarks).toEqual([]);
     expect(book.trackedWind).toBeUndefined();
     expect(world.boat.x).toBe(300);
+  });
+});
+
+describe("the quest's own sea in the builder and npm run quest (decision 0164)", () => {
+  const fresh = () => structuredClone(QUESTS.find((q) => q.id === 'sailing-lessons')!);
+
+  it('moves, adds and removes buoys, holds and clears the wind', () => {
+    const q = fresh();
+    setStepMove(q.steps[0]!, { x: 10.04, y: -3.06 });
+    expect(q.steps[0]!.moveTo).toEqual({ x: 10, y: -3.1, headingDeg: 300 });
+    setStepMove(q.steps[0]!, null);
+    expect(q.steps[0]!.moveTo).toBeUndefined();
+    expect(addQuestMark(q, { x: 1, y: 2 }, 'buoy-yellow', 'C')).toBe(2);
+    expect(removeQuestMark(q, 5)).toBe(false);
+    for (let i = 0; i < 3; i++) expect(removeQuestMark(q, 0)).toBe(true);
+    expect(q.marks).toBeUndefined();
+    setWind(q.steps[1]!, 8);
+    expect(q.steps[1]!.wind).toEqual({ speedKn: 8 });
+    setWind(q, undefined);
+    expect(q.wind).toBeUndefined();
+  });
+
+  it('writes the file byte for byte as shipped when nothing changed', () => {
+    const before = readFileSync('src/data/quests/sailing-lessons.json', 'utf8');
+    expect(questFileText(fresh(), before)).toBe(before);
   });
 });

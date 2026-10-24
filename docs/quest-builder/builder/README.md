@@ -86,3 +86,7 @@ The quests and steps on top, then the chart, then the fields. It works, but the 
 ## Code
 
 `src/editor/quest/`: `doc.ts` (the document and its pure edits: words, places, story columns, renames, text checks, export; tested in `tests/quest-builder.test.ts`), `form.ts` (condition and reward forms from the library), `builder.ts` (the page), `quest.css`. `formatQuestJson` in `src/data/jsonFormat.ts` writes quest files like the repo's. Play from a step: `seaStart`, `playUrl` and `stepPort` in `doc.ts`; in the game `src/sim/questTest.ts` (the address, `testBerth`, `sailableHeading`), `QuestBook.testStart`, `skipStep`, `restartStep` and `routeTo` in `src/sim/quests.ts`, `src/ui/questTestBar.ts`, and `startQuestTest` in `main.ts`; tested in `tests/quest-test.test.ts`.
+
+## From the command line
+
+`npm run quest` makes the same edits to a quest's own sea as the builder (decision [0164](../../decisions/0164-sailing-lessons-quest.md)): `quest move`, `quest buoy`, `quest wind`, then runs the checks. `npm run quest -- --help` lists them.

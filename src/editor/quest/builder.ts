@@ -24,6 +24,10 @@ import {
   type Place,
   type QuestDoc,
   addPlace,
+  addQuestMark,
+  removeQuestMark,
+  setStepMove,
+  setWind,
   clock,
   conditionWords,
   exportFiles,
@@ -1067,19 +1071,14 @@ function questSeaRows(q: QuestDef): HTMLElement[] {
   const out: HTMLElement[] = [
     row(
       'Wind (kn)',
-      windPair(q.wind, (w) => (w ? (q.wind = w) : delete q.wind)),
+      windPair(q.wind, (w) => setWind(q, w?.speedKn, w?.fromDeg)),
     ),
   ];
   const list = h('div', { class: 'ed-list' });
   (q.marks ?? []).forEach((m, i) => {
     const line = h('span', { class: 'ed-pair' });
     const drop = h('button', { type: 'button', title: 'Remove this mark' }, '✕');
-    drop.addEventListener('click', () =>
-      edit(() => {
-        q.marks!.splice(i, 1);
-        if (!q.marks!.length) delete q.marks;
-      }),
-    );
+    drop.addEventListener('click', () => edit(() => removeQuestMark(q, i)));
     line.append(
       select([...SEA_MARK_TYPES], m.type, (v) => v && edit(() => (m.type = v as SeaMarkType))),
       numberInput(m.x, (n) => n !== undefined && edit(() => (m.x = n)), 'x'),
@@ -1164,7 +1163,7 @@ function seaPanel(s: QuestStep): HTMLElement[] {
   out.push(
     row(
       'Wind (kn)',
-      windPair(s.wind, (w) => (w ? (s.wind = w) : delete s.wind)),
+      windPair(s.wind, (w) => setWind(s, w?.speedKn, w?.fromDeg)),
     ),
   );
   // Where the boat is taken when the step begins (decision 0164).
@@ -1459,14 +1458,12 @@ function setupChart() {
     const s = step();
     const q = quest();
     if (q && tool === 'buoy') {
-      const mark = { type: 'buoy-yellow' as const, x: round1(p.x), y: round1(p.y) };
-      edit(() => (q.marks = [...(q.marks ?? []), mark]));
+      edit(() => addQuestMark(q, p));
       return;
     }
     if (s && tool !== 'select' && !kind.startsWith('q')) {
       if (tool === 'compass') edit(() => (s.compass = { x: round1(p.x), y: round1(p.y) }));
-      else if (tool === 'move')
-        edit(() => (s.moveTo = { ...s.moveTo, x: round1(p.x), y: round1(p.y) }));
+      else if (tool === 'move') edit(() => setStepMove(s, p));
       else {
         history.record(doc);
         if (addPlace(s, p.x, p.y)) commit();

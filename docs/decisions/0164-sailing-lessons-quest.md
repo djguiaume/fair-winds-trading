@@ -15,6 +15,7 @@ Since the tutorial became the rescue prologue ([0127](0127-prologue-rescue-tutor
   - Quest **`marks`**: the quest's own sea marks (the existing `SeaMarkDef`, with a new `buoy-yellow` practice buoy, larger than a channel buoy, with a yellow X top mark), drawn at sea and on the chart **only while the quest runs**.
   - Quest **`wind`** `{ speedKn, fromDeg? }`: a steady breeze held over every step without its own `wind` while the quest is tracked; the sea's wind comes back as soon as it is not. The lessons hold 10 kn from 30°.
   - Conditions **`point-of-sail`** `{ point, holdSec }` (in-irons, close-hauled, beam-reach, broad-reach, running, the HUD's own `pointOfSail`) and **`tacked`** `{ count }`: the bow crossing the wind while within 90° of it; bearing away past abeam forgets the side, so a gybe round is no tack.
+- **`npm run quest`** (Guillaume's rule: every editor feature has a CLI): `quest move <id> --step N --at x,y [--heading]`, `quest buoy <id> --at x,y [--name --type]` (or `<n> --at|--name|--type|--remove`), `quest wind <id> [--step N] --speed kn [--from deg]` (`--clear`), `--dry`. The edits are the builder's own (`setStepMove`, `addQuestMark`, `removeQuestMark`, `setWind` in `src/editor/quest/doc.ts`); the file is written as the builder exports it, then the quest's checks run.
 - **Quest builder**: quest Wind and Sea marks rows (+ buoy tool on the map), a step's "Move boat to" row (+ boat tool), the marks and the boat start drawn on the chart. `npm run shots` `click` takes a list in `--list` entries (menu, then a row).
 
 ## Consequences
