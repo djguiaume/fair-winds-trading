@@ -54,6 +54,8 @@ try {
       if (await page.locator('#set-sail').isVisible()) await page.locator('#set-sail').click();
       if (await page.locator('#tutorial-free').isVisible())
         await page.locator('#tutorial-free').click();
+      // Plain free play, not the prologue a skipped tutorial still plays (decision 0160).
+      await page.evaluate(() => window.fwt?.freePlay?.());
       // A fresh browser context prevents settings, adaptive quality and saves leaking between runs.
       await page.waitForTimeout(config.warmupMs);
       await page.evaluate(() => {

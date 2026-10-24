@@ -126,6 +126,11 @@ export interface QuestStep extends StepEffects {
   next?: string;
   /** Touching a reef or a shore (hull damage) starts the step over, at no other cost. */
   clean?: boolean;
+  /**
+   * A lesson's teaching-only step (decision 0160): passed by when the lesson runs without its coach
+   * (the tutorial skipped), so only the story steps are played.
+   */
+  teach?: boolean;
   /** Where the step happens, for the interface. */
   port?: string;
   /** A rough circle the chart draws around a place to find, for the interface. */
@@ -240,6 +245,11 @@ export interface QuestState {
    * journal lists them and can take one up again.
    */
   ignored?: string[];
+  /**
+   * Lessons running without their coach (decision 0160: the tutorial skipped, its story still
+   * played): no bubble, and their `teach` steps are passed by. JSON save only, not FW2.
+   */
+  uncoached?: string[];
 }
 
 /** Every quest file, the tutorial's too (decision 0151), in file name order. */
@@ -381,6 +391,10 @@ export function checkQuests(
     if (q.lesson !== undefined && typeof q.lesson !== 'boolean')
       out.push(`${at}: lesson is true or false`);
     if (q.storms !== undefined && q.storms !== false) out.push(`${at}: storms is only ever false`);
+    if (q.steps?.some((s) => s.teach !== undefined) && !q.lesson)
+      out.push(`${at}: only a lesson has teach steps`);
+    if (q.lesson && Array.isArray(q.steps) && q.steps.length && q.steps.every((s) => s.teach))
+      out.push(`${at}: a lesson needs a step that is not teach (its story without the coach)`);
     for (const [name, kind] of Object.entries(q.vars ?? {}))
       if (!/^\w+$/.test(name) || !VAR_KINDS.includes(kind))
         out.push(`${at} › vars.${name}: a word, holding one of ${VAR_KINDS.join(', ')}`);
@@ -442,6 +456,7 @@ export function checkQuests(
         out.push(`${where}: marker is one of ${STEP_MARKER_STYLES.join(', ')}`);
       if (s.chart && !(typeof s.chart.radius === 'number' && s.chart.radius > 0))
         out.push(`${where} › chart: needs a radius`);
+      if (s.teach !== undefined && s.teach !== true) out.push(`${where}: teach is only ever true`);
       const later = (next: string | undefined, from: string) => {
         if (next === undefined || next === QUEST_DONE) return;
         // Only forward, so a quest always ends and its progress is one step number.
@@ -787,6 +802,9 @@ export class QuestBook {
     const quest = this.quests.find((q) => q.id === id);
     if (!quest || !isAsked(quest)) return [];
     delete this.state.byId[id];
+    // Asked again, a lesson speaks again (decision 0160).
+    this.state.uncoached = this.state.uncoached?.filter((q) => q !== id);
+    if (!this.state.uncoached?.length) delete this.state.uncoached;
     const events: QuestEvent[] = [{ type: 'started', quest: id }];
     this.enter(quest, quest.steps[0]!, events);
     this.state.tracked = id;
@@ -816,6 +834,31 @@ export class QuestBook {
     this.state.byId[id] = { step: QUEST_DONE, counts: [], chose: p.chose };
     this.afterChange([]);
     return true;
+  }
+
+  /** Whether a lesson speaks in its coach bubble (decision 0160): not after `coachOff`. */
+  isCoached(id: string): boolean {
+    return !this.state.uncoached?.includes(id);
+  }
+
+  /**
+   * The lesson goes on without its coach (decision 0160: the tutorial skipped): no bubble, its
+   * `teach` steps passed by, so the captain still plays its story. Returns what happened.
+   */
+  coachOff(id: string): QuestEvent[] {
+    const quest = this.quests.find((q) => q.id === id);
+    if (!quest?.lesson || !this.isCoached(id)) return [];
+    this.state.uncoached = [...(this.state.uncoached ?? []), id];
+    const events: QuestEvent[] = [];
+    const step = findStep(quest, this.progress(id)?.step);
+    if (step?.teach) this.finishStep(quest, step, undefined, events);
+    this.afterChange(events);
+    return [...events, ...this.check()];
+  }
+
+  /** A step this quest passes by now: a teaching step of a lesson without its coach (0160). */
+  private passesBy(quest: QuestDef, step: QuestStep): boolean {
+    return !!step.teach && !this.isCoached(quest.id);
   }
 
   private context(quest?: QuestDef): ConditionContext {
@@ -887,7 +930,11 @@ export class QuestBook {
           continue;
         }
         if (wentBack.has(quest.id)) continue;
-        const way = step.unless?.find((w) => testCondition(w.if, ctx));
+        // A way back to a step passed by is not taken (decision 0160): it would only come back.
+        const way = step.unless?.find((w) => {
+          const back = findStep(quest, w.to);
+          return !(back && this.passesBy(quest, back)) && testCondition(w.if, ctx);
+        });
         const to = way && findStep(quest, way.to);
         if (!way || !to) continue;
         wentBack.add(quest.id);
@@ -1051,8 +1098,9 @@ export class QuestBook {
       ...(was?.vars ? { vars: was.vars } : {}),
     };
     if (step.charts) chartAreas(this.world.map, this.trade.progress, step.charts);
-    // A step about a place this map lacks (the prologue's wreck) is passed by (decision 0151).
-    if (missesPlace(step, this.world.map)) {
+    // A step about a place this map lacks (the prologue's wreck) is passed by (decision 0151), and
+    // a teaching step while its lesson runs without the coach (decision 0160).
+    if (missesPlace(step, this.world.map) || this.passesBy(quest, step)) {
       this.finishStep(quest, step, undefined, events);
       return;
     }
@@ -1192,10 +1240,11 @@ export function readQuests(
 ): QuestState {
   const out: QuestState = { byId: {} };
   if (typeof raw !== 'object' || raw === null) return out;
-  const { byId, tracked, ignored } = raw as {
+  const { byId, tracked, ignored, uncoached } = raw as {
     byId?: unknown;
     tracked?: unknown;
     ignored?: unknown;
+    uncoached?: unknown;
   };
   if (typeof byId !== 'object' || byId === null) return out;
   const fitting = questsFor(map, quests);
@@ -1226,6 +1275,12 @@ export function readQuests(
         ignored.indexOf(id) === i && fitting.some((q) => q.id === id && q.offer && !out.byId[id]),
     ) as string[];
     if (offers.length) out.ignored = offers;
+  }
+  if (Array.isArray(uncoached)) {
+    const lessons = uncoached.filter(
+      (id, i) => uncoached.indexOf(id) === i && fitting.some((q) => q.id === id && q.lesson),
+    ) as string[];
+    if (lessons.length) out.uncoached = lessons;
   }
   const hold = questHold(out, fitting);
   if (hold) out.hold = hold;

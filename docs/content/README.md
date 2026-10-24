@@ -163,7 +163,14 @@ builder like any other. What makes it a lesson is data at the top of the file: `
 "asked" }` (the game asks for it: a fresh voyage's offer or the menu), `lesson: true` (the coach
 bubble instead of a card, always tracked, other cards wait), `storms: false`, and `vars` for the
 harbours and cargo the player picks. Its text keys are `lesson.<step>.title`, `.copy` and
-`lesson.<step>.continue.title`, plus `lesson.done.title`/`.copy`. Skip counts it as done, unpaid.
+`lesson.<step>.continue.title`, plus `lesson.done.title`/`.copy`.
+
+Skipping keeps the story ([0160](../decisions/0160-skipping-the-tutorial-keeps-its-story.md)): Free
+sailing on a fresh voyage, or Skip on the bubble, runs the lesson *without its coach*: no bubble, and
+the steps marked `"teach": true` are passed by. The tutorial's story steps (`foghorn`, `wreck`,
+`home`) still play, guided by the sea's objective arrow, the foghorn and the wreck's ring; then Rook's
+thanks follows as after the full tutorial. A lesson needs at least one step without `teach`. Asked
+again from the menu, the lesson speaks from its first step.
 
 - The prologue's places are in the map file: `prologue.start` (`x`, `y`, `headingDeg`: where a fresh
   voyage that takes the tutorial begins) and `prologue.wreck` (the reef or sandbank whose wreck is
@@ -227,6 +234,7 @@ Any quest can use what the tutorial needed:
 | `vars` | quest | `{ "name": "port" or "good" }`, picked in play; conditions, `port` and `coach` read `$name`; text says `{name}`, `{nameMakes}` (a port's own good) and `{nameBuyer}` (a good's buyer, key `<text>.<name>Buyer`) |
 | `set` | step | `{ "name": source }` when the step ends: `course`, `docked`, `aboard`, `home`, an id or `$var` |
 | `unless` | step | `[{ "if": condition, "to": step, "set"? }]`: ways back, tested after the goal, one per check |
+| `teach` | step | `true` (lessons only): a teaching step, passed by when the lesson runs without its coach (the tutorial skipped, 0160) |
 | `coach` | step | `sea`, `chart`, `market`: the element ringed on each screen (`chart-button`, `sail-lever`, `wind-compass`, `port-marker`, `dock-button`, `chart-port`, `close-chart`, `buy-button`, `sell-button`); `port` (id, `home`, `$var`, `nearest`, `buyer:$var`); `good` (id, `$var`, `makes:$var`); `action` (the bubble's button: `chart`, `market`, `tips`) |
 
 **The person and their card ([0124](../decisions/0124-characters-look.md)).** `giver` is an id in
