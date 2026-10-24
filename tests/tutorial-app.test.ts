@@ -3,7 +3,8 @@ import { afterEach, expect, it, vi } from 'vitest';
 import html from '../index.html?raw';
 import type { World } from '../src/sim/world';
 import type { Input } from '../src/input/input';
-import type { Tutorial } from '../src/sim/tutorial';
+import type { QuestBook } from '../src/sim/quests';
+import { pointOf } from '../src/sim/questLibrary';
 
 // Exercise real app wiring and native-dialog lifecycle without needing a WebGL renderer.
 vi.mock('../src/render/view', () => ({
@@ -49,9 +50,11 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
     .spyOn(HTMLCanvasElement.prototype, 'getContext')
     .mockReturnValue({} as WebGL2RenderingContext);
   await import('../src/main');
-  const { world, input, tutorial } = (
-    window as unknown as { fwt: { world: World; input: Input; tutorial: Tutorial } }
+  const { world, input, quests } = (
+    window as unknown as { fwt: { world: World; input: Input; quests: QuestBook } }
   ).fwt;
+  // The tutorial is an ordinary quest (decision 0151).
+  const step = () => quests.progress('first-voyage')?.step;
   const click = (id: string) => {
     const el = document.querySelector<HTMLButtonElement>(id)!;
     expect(el, id).not.toBeNull();
@@ -89,13 +92,12 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   await flushClose();
   expect(input.isEnabled).toBe(true);
   click('#tutorial-continue');
-  expect(tutorial.step).toBe('foghorn');
-  // Come alongside the wreck slowly; the sim loop would call this every step.
-  const wreck = tutorial.wreck!;
+  expect(step()).toBe('foghorn');
+  // Come alongside the wreck slowly; the sim loop would check every quarter second.
+  const wreck = pointOf(world.map, 'wreck')!;
   Object.assign(world.boat, { x: wreck.x + 12, y: wreck.y, speedKn: 0.5 });
-  tutorial.observe();
-  for (let n = 0; n < 7; n++) tutorial.observe({ sailStep: 0, steer: 0 }, 0.5);
-  expect(tutorial.step).toBe('chart');
+  for (let n = 0; n < 8; n++) quests.check(0.5);
+  expect(step()).toBe('chart');
   // The coach mark rings the Map button; tapping it opens the chart, and Rook asks for home.
   click('#chart-btn');
   expect(chart.open).toBe(true);
@@ -108,9 +110,9 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   Object.assign(world.boat, { x: 252, y: -134, speedKn: 0 });
   click('.port-marker[data-port-id="saltmere"]');
   expect(world.trade.dockedAt).toBe('saltmere');
-  expect(tutorial.step).toBe('island');
+  expect(step()).toBe('island');
   click('#tutorial-continue');
-  expect(tutorial.step).toBe('buy');
+  expect(step()).toBe('buy');
   expect(input.isEnabled).toBe(false);
   click('[data-action="buy"][data-good="fish"][data-qty="1"]');
   expect(world.trade.captain.cargo.fish).toBe(1);
@@ -127,7 +129,7 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   click('.port-marker[data-port-id="calda"]');
   click('#tp-sell-all');
   expect(world.trade.captain.cargo.fish).toBe(0);
-  expect(world.destination).toBeNull();
+  expect(quests.isDone('first-voyage')).toBe(true);
   expect(document.querySelector('#tutorial-market .tutorial-card')!.textContent).toContain(
     'First delivery complete',
   );

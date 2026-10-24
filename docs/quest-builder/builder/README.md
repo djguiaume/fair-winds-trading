@@ -9,7 +9,7 @@ Open the map editor (`editor.html`) and press **Quests** in its top bar. **← M
 ## Quests and steps (left)
 
 - **Chart · Card & text · Story** pick what the middle shows.
-- The quest files are listed in story order, with the giver's face, `main` for the story spine and `new` for a quest made here. The tutorial is listed but cannot be edited yet: it keeps its own lesson format for now, and must later move to the same quest format (Guillaume, 2026-10-24).
+- The quest files are listed in story order, with the giver's face, `main` for the story spine and `new` for a quest made here. The tutorial, First voyage, is an ordinary quest tagged `lesson` ([0151](../../decisions/0151-tutorial-as-ordinary-quest-steps.md)); its ways back, picks and coach marks (`unless`, `set`, `coach`, and the quest's `lesson`, `storms`, `vars`) are edited in the **Lesson (JSON)** fields.
 - Under the open quest: **Starts** (pick it to edit the quest itself), then its steps as cards (the ask, the goal in plain words, the gold and the flags), **↑** to move a step up, **✕** to delete it, **+ Add step**, and **Done** with the thanks card and the final reward.
 
 ## The chart (middle)
@@ -61,7 +61,7 @@ Every edit is kept in this browser (`fwt.editor.quests.v1`) with undo and redo; 
 - **From step**: any step of the quest (the one picked on the left first).
 - **Start**: **Docked at a port** (the step's port, else the quest's; any port can be picked) or **At sea, near the place**: in clear water about 30 short of the step's first place (a point, a spot, else its compass or chart circle), heading for it, turned off the wind if it blows from there.
 
-The game starts a **fresh Captain voyage kept only in that tab** (nothing is saved, your real voyage and the editor's Play this map save are untouched) with the tutorial skipped. The quests this one waits on count as done (their rewards paid, the option a `chose` needs picked), and the quest's earlier steps pay their rewards, so gold, the home island and the building spots are as they would be. Start conditions other than quests (gold, a town level) are not made true.
+The game starts a **fresh Captain voyage kept only in that tab** (nothing is saved, your real voyage and the editor's Play this map save are untouched). The quests this one waits on count as done (their rewards paid, the option a `chose` needs picked), and the quest's earlier steps pay their rewards, so gold, the home island and the building spots are as they would be. Start conditions other than quests (gold, a town level) are not made true.
 
 ![At sea](play-sea.png)
 

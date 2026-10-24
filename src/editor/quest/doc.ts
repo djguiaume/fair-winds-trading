@@ -80,7 +80,17 @@ export function conditionWords(c: Condition | undefined): string {
     case 'chose':
       return `chose ${String(v.option)} in ${String(v.quest)}`;
     case 'docked':
-      return `docked at ${String(v.port)}`;
+      return v.port === undefined ? 'docked anywhere' : `docked at ${String(v.port)}`;
+    case 'course':
+      return v.port === undefined ? 'a course set' : `a course to ${String(v.port)}`;
+    case 'screen':
+      return `the ${String(v.screen)} open`;
+    case 'asked':
+      return 'when the game asks (tutorial)';
+    case 'bought':
+      return `buy ${String(v.qty)} ${v.good === undefined ? 'goods' : String(v.good)} at ${String(v.port)}`;
+    case 'sails-practised':
+      return 'sails lowered and raised, steered, under way';
     case 'discovered':
       return `${String(v.port)} on the chart`;
     case 'town-level':
@@ -92,7 +102,7 @@ export function conditionWords(c: Condition | undefined): string {
     case 'gold':
       return `${String(v.atLeast)} gold`;
     case 'has-cargo':
-      return `${String(v.qty)} ${String(v.good)} aboard`;
+      return `${String(v.qty ?? 1)} ${v.good === undefined ? 'goods' : String(v.good)} aboard`;
     case 'built':
       return `${String(v.building)} built${v.island ? ` on ${String(v.island)}` : ''}`;
     case 'moored':
@@ -169,17 +179,20 @@ export function stepPlaces(step: QuestStep, map: MapDef): Place[] {
     if (cond.is === 'not') walk(cond.of, [...path, 'of']);
     if (cond.is === 'reach' && Array.isArray(cond.points)) {
       const within = typeof cond.within === 'number' ? cond.within : 0;
-      (cond.points as QuestPoint[]).forEach((p, i) =>
-        out.push({
-          kind: 'point',
-          x: p.x,
-          y: p.y,
-          within,
-          path: [...path, 'points', i],
-          radiusPath: [...path, 'within'],
-          no: i + 1,
-          ordered: cond.order === 'in-order',
-        }),
+      (cond.points as (QuestPoint | string)[]).forEach(
+        (p, i) =>
+          // A map place (the prologue's wreck, decision 0151) is where the map puts it: not dragged.
+          typeof p === 'object' &&
+          out.push({
+            kind: 'point',
+            x: p.x,
+            y: p.y,
+            within,
+            path: [...path, 'points', i],
+            radiusPath: [...path, 'within'],
+            no: i + 1,
+            ordered: cond.order === 'in-order',
+          }),
       );
     }
     if (cond.is === 'timed' && Array.isArray(cond.via)) {
@@ -214,7 +227,7 @@ export function stepPlaces(step: QuestStep, map: MapDef): Place[] {
       });
   };
   walk(step.goal, ['goal']);
-  if (step.compass)
+  if (step.compass && typeof step.compass === 'object')
     out.push({
       kind: 'compass',
       x: step.compass.x,
@@ -257,7 +270,7 @@ export function addPlace(step: QuestStep, x: number, y: number): Path | null {
   };
   const list = find(step.goal, ['goal']);
   if (!list) return null;
-  const points = (getAt(step, list) as QuestPoint[] | undefined) ?? [];
+  const points = (getAt(step, list) as (QuestPoint | string)[] | undefined) ?? [];
   setAt(step, list, [...points, { x: round1(x), y: round1(y) }]);
   return [...list, points.length];
 }
@@ -354,6 +367,8 @@ export function defaultParam(type: Param, map: MapDef, questIds: string[]): unkn
       return 'any';
     case 'par':
       return 120;
+    case 'screen':
+      return 'chart';
     case 'condition':
       return { is: 'always' };
     case 'conditions':

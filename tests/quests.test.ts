@@ -20,7 +20,6 @@ import { packSave, unpackSave } from '../src/sim/saveCode';
 import { toBase64Url } from '../src/sim/saveTransfer';
 import { SLOOP } from '../src/sim/ship';
 import { buy, capacity, cargoUsed, sell } from '../src/sim/trade';
-import { TUTORIAL_QUEST } from '../src/sim/tutorial';
 import { questTarget } from '../src/ui/questView';
 import { type World, createWorld } from '../src/sim/world';
 import pier from './fixtures/quests/test-pier.json';
@@ -51,7 +50,7 @@ function dock(world: World, port: string) {
 
 function book(world: World, tutorialDone = true, quests = TEST_QUESTS, night = false) {
   return new QuestBook(world, quests, {
-    doneElsewhere: (id) => tutorialDone && id === TUTORIAL_QUEST.id,
+    doneElsewhere: (id) => tutorialDone && id === 'first-voyage',
     nightOk: () => night,
   });
 }
@@ -70,11 +69,11 @@ function sailTo(world: World, quests: QuestBook, x: number, y: number, kn = 6, s
 
 describe('quest engine (decision 0125)', () => {
   it('the shipped quest files and the test files pass the checks', () => {
-    expect(checkQuests(QUESTS, PHASE1_MAP, [TUTORIAL_QUEST.id])).toEqual([]);
-    expect(checkQuests(TEST_QUESTS, PHASE1_MAP, [TUTORIAL_QUEST.id])).toEqual([]);
+    expect(checkQuests(QUESTS, PHASE1_MAP)).toEqual([]);
+    expect(checkQuests(TEST_QUESTS, PHASE1_MAP, ['first-voyage'])).toEqual([]);
     expect(checkQuests(SAILING, PHASE1_MAP)).toEqual([]);
-    // The tutorial stays on its own runner.
-    expect(QUESTS.map((q) => q.id)).not.toContain(TUTORIAL_QUEST.id);
+    // The tutorial is a quest like the others (decision 0151).
+    expect(QUESTS.map((q) => q.id)).toContain('first-voyage');
   });
 
   it('the checks catch unknown kinds, ids and unreachable or backward steps', () => {
@@ -82,7 +81,7 @@ describe('quest engine (decision 0125)', () => {
     bad.start = { is: 'moon-phase' };
     bad.steps[0]!.goal = { is: 'delivered', port: 'atlantis', good: 'gold-bars', qty: 1.5 };
     bad.steps[1]!.next = 'timber';
-    bad.steps[2]!.choose = [{ id: 'only' }];
+    bad.steps[2]!.choose = [];
     bad.steps[1]!.reward = { building: 'x' } as never;
     bad.reward = { gold: -1 };
     bad.giver = 'nobody';
@@ -94,7 +93,7 @@ describe('quest engine (decision 0125)', () => {
     expect(problems).toContain('no good "gold-bars"');
     expect(problems).toContain('needs a whole number');
     expect(problems).toContain('not a later step');
-    expect(problems).toContain('two options or more');
+    expect(problems).toContain('an option or more');
     expect(problems).toContain('unknown reward "building"');
     expect(problems).toContain('no person "nobody"');
     expect(problems).toContain('no person "ghost"');
@@ -105,9 +104,7 @@ describe('quest engine (decision 0125)', () => {
     );
     const skipped = structuredClone(pier) as unknown as QuestDef;
     skipped.steps[0]!.next = 'build';
-    expect(checkQuests([skipped], PHASE1_MAP, ['first-voyage']).join()).toContain(
-      'visit: no step leads here',
-    );
+    expect(checkQuests([skipped], PHASE1_MAP).join()).toContain('visit: no step leads here');
   });
 
   it('starts on its condition, counts deliveries, pays rewards and waits for a choice', () => {

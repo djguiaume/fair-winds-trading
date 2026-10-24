@@ -4,7 +4,6 @@ import { setLanguage, tOptional } from '../../src/i18n';
 import { QUESTS, QuestBook, checkQuests } from '../../src/sim/quests';
 import { SLOOP } from '../../src/sim/ship';
 import { sell } from '../../src/sim/trade';
-import { TUTORIAL_QUEST } from '../../src/sim/tutorial';
 import { type World, createWorld } from '../../src/sim/world';
 import { cardFor, dueCard } from '../../src/ui/questView';
 
@@ -17,7 +16,7 @@ function setup() {
   const world: World = createWorld(PHASE1_MAP, SLOOP);
   world.trade.captain.gold = 10_000;
   const book = new QuestBook(world, QUESTS, {
-    doneElsewhere: (id) => id === TUTORIAL_QUEST.id,
+    doneElsewhere: (id) => id === 'first-voyage',
     nightOk: () => false,
   });
   return { world, book };
@@ -40,7 +39,7 @@ function dock(world: World, book: QuestBook, port: string) {
 
 describe('A light on the Teeth (decision 0133)', () => {
   it('passes the checks, with every card written in both languages', () => {
-    expect(checkQuests(QUESTS, PHASE1_MAP, [TUTORIAL_QUEST.id])).toEqual([]);
+    expect(checkQuests(QUESTS, PHASE1_MAP)).toEqual([]);
     const quest = QUESTS.find((q) => q.id === ID)!;
     for (const lang of ['en', 'fr'] as const) {
       setLanguage(lang);

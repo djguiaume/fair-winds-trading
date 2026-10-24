@@ -1,15 +1,25 @@
-import { t, tOptional } from '../i18n';
+import { goodSome, goodThe, t, tOptional } from '../i18n';
+import { isGood, type GoodId } from '../sim/goods';
 import type { MapDef } from '../sim/map';
 import {
   CONDITIONS,
   type Condition,
   type QuestPoint,
   type QuestReward,
+  deref,
   isSpot,
+  pointOf,
   resolvePort,
   slotLayout,
 } from '../sim/questLibrary';
-import { QUEST_DONE, type QuestBook, type QuestDef, type QuestStep } from '../sim/quests';
+import {
+  type CoachTarget,
+  QUEST_DONE,
+  type QuestBook,
+  type QuestDef,
+  type QuestStep,
+} from '../sim/quests';
+import { isDiscovered } from '../sim/shipyards';
 import { findPort } from '../sim/trade';
 import { type Character, type Mood, MOODS, character } from './portraits';
 
@@ -58,6 +68,7 @@ export interface QuestCardModel {
 }
 
 const isMood = (m: unknown): m is Mood => MOODS.includes(m as Mood);
+const goodOf = (g: unknown): GoodId | undefined => (isGood(g) ? g : undefined);
 
 export function arcName(quest: QuestDef): string {
   return tOptional(`${quest.text}.name`) ?? quest.name;
@@ -86,10 +97,46 @@ export function parClock(secs: number): string {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
-/** What a step's title and copy can name: `{par}`, its timed run's par for the voyage's level. */
-export function stepParams(book: QuestBook, step: QuestStep | undefined): Record<string, string> {
+/**
+ * What a step's title and copy can name: `{par}`, its timed run's par for the voyage's level; and
+ * with its quest, the quest's vars (decision 0151): `{name}` (the port's name, or "the fish"),
+ * `{nameMakes}` for a port (what it makes, "some fish") and `{nameBuyer}` for a good (the line
+ * `<text>.nameBuyer` naming a charted port that wants it, or nothing). An unset var reads
+ * `<text>.var.<name>` ("your chosen port").
+ */
+export function stepParams(
+  book: QuestBook,
+  step: QuestStep | undefined,
+  quest?: QuestDef,
+): Record<string, string> {
   const par = book.parSeconds(step);
-  return par === undefined ? {} : { par: parClock(par) };
+  const out: Record<string, string> = par === undefined ? {} : { par: parClock(par) };
+  if (!quest?.vars) return out;
+  const map = book.map;
+  const unset = (name: string) => tOptional(`${quest.text}.var.${name}`) ?? '';
+  for (const [name, kind] of Object.entries(quest.vars)) {
+    const value = book.varOf(quest.id, name);
+    if (kind === 'port') {
+      out[name] = (value && findPort(map, value)?.name) || unset(name);
+      const makes = value ? findPort(map, value)?.produces[0] : undefined;
+      out[`${name}Makes`] = makes ? goodSome(makes) : unset(`${name}Makes`);
+    } else {
+      out[name] = isGood(value) ? goodThe(value) : unset(name);
+      const buyer = isGood(value) ? buyerOf(book, value) : null;
+      out[`${name}Buyer`] = buyer
+        ? (tOptional(`${quest.text}.${name}Buyer`, { name: buyer.name, cargo: out[name]! }) ?? '')
+        : '';
+    }
+  }
+  return out;
+}
+
+/** A charted harbour that wants `good`, other than the one alongside, for lesson hints. */
+export function buyerOf(book: QuestBook, good: GoodId) {
+  const { trade } = book.world;
+  return book.map.ports.find(
+    (p) => p.id !== trade.dockedAt && p.wants.includes(good) && isDiscovered(trade, p.id),
+  );
 }
 
 /** A reward in the card's words: its gold, and the rest ("a building for your island"). */
@@ -166,10 +213,10 @@ export function cardFor(
     arc: arcName(quest),
     stepNo: step ? quest.steps.indexOf(step) + 1 : quest.steps.length,
     steps: quest.steps.length,
-    speech: tOptional(`${key}.copy`, stepParams(book, step)),
-    ask: tOptional(`${key}.title`, stepParams(book, step)),
+    speech: tOptional(`${key}.copy`, stepParams(book, step, quest)),
+    ask: tOptional(`${key}.title`, stepParams(book, step, quest)),
     progress: kind === 'step' ? stepProgress(step?.goal, p?.counts ?? []) : undefined,
-    good: typeof step?.goal?.good === 'string' ? step.goal.good : undefined,
+    good: goodOf(deref(step?.goal?.good, p?.vars)),
     main: !!quest.main,
   };
   if (kind === 'offer' || kind === 'step') {
@@ -179,7 +226,7 @@ export function cardFor(
     if (kind === 'offer' && quest.steps.length > 1) card.moreSteps = quest.steps.length - 1;
   }
   if (kind === 'choice')
-    card.options = (step?.choose ?? []).map((o) => ({
+    card.options = book.options(quest.id).map((o) => ({
       id: o.id,
       title: tOptional(`${key}.${o.id}.title`) ?? o.id,
       copy: tOptional(`${key}.${o.id}.copy`),
@@ -311,7 +358,7 @@ export function journal(book: QuestBook, map: MapDef): JournalEntry[] {
     if (tracked) {
       const p = book.progress(quest.id);
       const title = (s: QuestStep) =>
-        tOptional(`${quest.text}.${s.id}.title`, stepParams(book, s)) ?? s.id;
+        tOptional(`${quest.text}.${s.id}.title`, stepParams(book, s, quest)) ?? s.id;
       for (const s of quest.steps.slice(0, i)) entry.lines.push({ title: title(s), state: 'done' });
       entry.lines.push({
         title: title(step),
@@ -393,7 +440,7 @@ export function questTarget(book: QuestBook, map: MapDef): QuestTarget | null {
         : goal.from
       : (goal?.port ?? step.port ?? quest.port);
   if (isSpot(id)) return { point: { x: id.x, y: id.y }, radius: id.within };
-  const port = resolvePort(map, id);
+  const port = book.portOf(quest.id, id);
   return port ? { port } : null;
 }
 
@@ -412,9 +459,9 @@ export function questGoal(
   if (!active) return null;
   const ask = tOptional(
     `${active.quest.text}.${active.step.id}.title`,
-    stepParams(book, active.step),
+    stepParams(book, active.step, active.quest),
   );
-  const point = active.step.compass ?? target?.point;
+  const point = book.compassOf(active.step) ?? target?.point;
   if (point) return { x: point.x, y: point.y, label: ask ?? active.quest.name };
   const port = target?.port ? findPort(map, target.port) : undefined;
   const island = port && map.islands.find((i) => i.id === port.islandId);
@@ -436,14 +483,21 @@ export interface StepMarker extends QuestPoint {
  * `via` points, and quest cargo's spot at sea (where to load it, then where to bring it). Places
  * that are ports are not markers: the chart's ring and route show them.
  */
-export function stepMarkers(goal: Condition | undefined, counts: readonly number[]): StepMarker[] {
+export function stepMarkers(
+  goal: Condition | undefined,
+  counts: readonly number[],
+  map?: MapDef,
+): StepMarker[] {
   const out: StepMarker[] = [];
   for (const [c, at] of slotLayout(goal).at) {
     const s = counts.slice(at, at + (CONDITIONS[c.is]?.slots ?? 0));
     const first = s[0] ?? 0;
     if (c.is === 'reach' && Array.isArray(c.points)) {
       const inOrder = c.order === 'in-order';
-      (c.points as QuestPoint[]).forEach((p, i) => {
+      (c.points as unknown[]).forEach((at, i) => {
+        // A map place (the prologue's wreck) where this map has it (decision 0151).
+        const p = map ? pointOf(map, at) : typeof at === 'object' ? (at as QuestPoint) : null;
+        if (!p) return;
         const reached = inOrder ? i < first : (first & (1 << i)) !== 0;
         const within = typeof c.within === 'number' ? c.within : 0;
         out.push({ x: p.x, y: p.y, within, reached, next: inOrder ? i === first : !reached });
@@ -469,6 +523,120 @@ export function stepMarkers(goal: Condition | undefined, counts: readonly number
 export function trackedMarkers(book: QuestBook): { style: string; points: StepMarker[] } | null {
   const active = book.active.find((a) => a.quest.id === book.tracked);
   if (!active) return null;
-  const points = stepMarkers(active.step.goal, book.progress(active.quest.id)?.counts ?? []);
+  const points = stepMarkers(
+    active.step.goal,
+    book.progress(active.quest.id)?.counts ?? [],
+    book.map,
+  );
   return points.length ? { style: active.step.marker ?? 'ring', points } : null;
+}
+
+/** A lesson's coach bubble (decision 0151): the running lesson's step, its words and its mark. */
+export interface LessonModel {
+  quest: string;
+  step: string;
+  /** The step's number on the lesson's main line (1-based), or 0 for a way back off it. */
+  stepNo: number;
+  /** Steps on the main line. */
+  steps: number;
+  title: string;
+  copy: string;
+  /** The bubble's button: open the chart, the market, or the sailing tips. */
+  action: 'chart' | 'market' | 'tips' | null;
+  /** The step's options offered now ("Continue"), with their words. */
+  options: { id: string; title: string }[];
+  /** What the coach mark points at on each surface. */
+  targets: Partial<Record<'sea' | 'chart' | 'market', CoachTarget>>;
+  /** The harbour the port marker and the chart point at. */
+  port: string | null;
+  /** The good whose market button the mark points at. */
+  good: GoodId | null;
+}
+
+/**
+ * A lesson's main line (decision 0151): from its first step, each step's goal (or, with none, its
+ * first option) to the next. Steps off it are only reached by ways back and are not numbered.
+ */
+export function mainLine(quest: QuestDef): string[] {
+  const out: string[] = [];
+  let step = quest.steps[0];
+  while (step && !out.includes(step.id)) {
+    out.push(step.id);
+    const next =
+      (step.goal ? step.next : (step.choose?.[0]?.next ?? step.next)) ??
+      quest.steps[quest.steps.indexOf(step) + 1]?.id;
+    step = quest.steps.find((s) => s.id === next);
+  }
+  return out;
+}
+
+/** The nearest charted harbour to the boat: the easiest first trip. */
+function nearestPort(book: QuestBook, harbours: Record<string, { x: number; y: number }>) {
+  const { boat, map, trade } = book.world;
+  let best: string | null = null;
+  let bestDistance = Infinity;
+  for (const port of map.ports) {
+    if (!isDiscovered(trade, port.id)) continue;
+    const at = harbours[port.id] ?? map.islands.find((i) => i.id === port.islandId);
+    if (!at) continue;
+    const distance = Math.hypot(at.x - boat.x, at.y - boat.y);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = port.id;
+    }
+  }
+  return best;
+}
+
+/** The running lesson's bubble, if a lesson runs. */
+export function lessonFor(
+  book: QuestBook,
+  harbours: Record<string, { x: number; y: number }>,
+): LessonModel | null {
+  const running = book.lesson;
+  if (!running) return null;
+  const { quest, step } = running;
+  const vars = book.progress(quest.id)?.vars;
+  const coach = step.coach ?? {};
+  const params = stepParams(book, step, quest);
+  const key = `${quest.text}.${step.id}`;
+  const line = mainLine(quest);
+  const portRef = coach.port ?? step.port;
+  let port: string | null;
+  if (portRef === 'nearest') port = nearestPort(book, harbours);
+  else if (portRef?.startsWith('buyer:')) {
+    const good = deref(portRef.slice(6), vars);
+    port = isGood(good) ? (buyerOf(book, good)?.id ?? null) : null;
+  } else port = book.portOf(quest.id, portRef);
+  let good: GoodId | null;
+  if (coach.good?.startsWith('makes:')) {
+    const from = book.portOf(quest.id, coach.good.slice(6));
+    good = (from && findPort(book.map, from)?.produces[0]) || null;
+  } else good = goodOf(deref(coach.good, vars)) ?? null;
+  return {
+    quest: quest.id,
+    step: step.id,
+    stepNo: line.indexOf(step.id) + 1,
+    steps: line.length,
+    title: tOptional(`${key}.title`, params) ?? step.id,
+    copy: tOptional(`${key}.copy`, params) ?? '',
+    action: coach.action ?? null,
+    options: book.options(quest.id).map((o) => ({
+      id: o.id,
+      title: tOptional(`${key}.${o.id}.title`, params) ?? o.id,
+    })),
+    targets: { sea: coach.sea, chart: coach.chart, market: coach.market },
+    port,
+    good,
+  };
+}
+
+/** A finished lesson's last bubble: `<text>.done.title` and `.copy`. */
+export function lessonDone(book: QuestBook, questId: string): { title: string; copy: string } {
+  const quest = book.quests.find((q) => q.id === questId);
+  const key = `${quest?.text ?? questId}.${QUEST_DONE}`;
+  return {
+    title: tOptional(`${key}.title`) ?? (quest ? arcName(quest) : questId),
+    copy: tOptional(`${key}.copy`) ?? '',
+  };
 }
