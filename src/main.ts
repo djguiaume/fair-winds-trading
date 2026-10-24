@@ -709,7 +709,7 @@ $('tutorial-start').addEventListener('click', () => {
   refreshPause();
 });
 /**
- * "Free sailing": no lessons. A fresh voyage still plays the prologue's story without the coach
+ * "Skip the lessons" (was "Free sailing", renamed by decision 0160): no lessons. A fresh voyage still plays the prologue's story without the coach
  * (decision 0160): alone at sea, sails down, the foghorn, the rescue, Rook's ride home. Otherwise
  * the tutorial stops, if it was running.
  */
