@@ -1,4 +1,4 @@
-/* global console, window, document, localStorage, setTimeout, URL, URLSearchParams, structuredClone */
+/* global console, window, document, localStorage, setTimeout, URL, URLSearchParams, structuredClone, Event */
 // `npm run shots` (decision 0153): standard screenshots of the real game, instead of a Playwright
 // script per review. It starts Vite itself, opens the game with `?debug`, gets past the menu, the
 // level card, the tutorial offer and the harbour, sets the scene through `window.fwt` (the boat's
@@ -28,6 +28,9 @@ Where
   --speed kn                    starting speed (default 5)
   --ship id                     sail this ship (sloop, schooner, fluyt, …)
   --hold Key:ms                 hold a key that long before the shot (e.g. ArrowUp:2500)
+  --pad steps                   a fake game controller (0162): after the wait, connected, then
+                                each step held in turn: button:ms or axis=value:ms
+                                (e.g. "lx=0.8:1500,rb:100,y:100"); buttons a b x y lb rb lt rt view menu ls rs up down left right
   --port id                     docked at this port, port screen open
   --moor island                 moored at one of her islands' piers (owned first, decision 0159)
   --quest id:step               a quest started at that step, earlier steps paid (as a quest test)
@@ -55,7 +58,7 @@ Look
   --cards                       keep quest cards and dialogs open (default: closed, kept in a quest test)
   --wait ms                     settle time before the shot (default 1500)
   --click selector              click this before the shot (after the wait), e.g. a card's button,
-                                then wait 800 ms; in a --list entry, a list clicks each in turn
+                                then wait 800 ms; several in turn with ; (e.g. "#menu-btn;#menu-help")
 Output
   --sizes desktop,landscape,portrait   (default desktop)
   --name name                   file name, written as <name>-<size>.png (default: from the scene)
@@ -75,6 +78,18 @@ const pair = (v) => {
   return out;
 };
 const list = (v) => (Array.isArray(v) ? v : String(v).split(',').filter(Boolean));
+/** The standard controller layout's buttons in the browser's order (src/input/gamepad.ts). */
+const PAD_BUTTONS = 'a b x y lb rb lt rt view menu ls rs up down left right home'.split(' ');
+const PAD_AXES = ['lx', 'ly', 'rx', 'ry'];
+const padSteps = (v) =>
+  list(v).map((step) => {
+    const [what, ms] = String(step).split(':');
+    const [name, value] = what.split('=');
+    const axis = PAD_AXES.indexOf(name);
+    const button = PAD_BUTTONS.indexOf(name);
+    if (axis < 0 && button < 0) throw new Error(`no pad button or axis "${name}"`);
+    return { axis, button, value: value === undefined ? 1 : Number(value), n: Number(ms) || 100 };
+  });
 const keyHold = (v) => {
   const [key, n] = String(v).split(':');
   return { key, n: Number(n) || 1 };
@@ -95,6 +110,7 @@ export function normalise(opts) {
     speed: o.speed ?? 5,
     ship: o.ship ?? null,
     hold: o.hold ? keyHold(o.hold) : null,
+    pad: o.pad ? padSteps(o.pad) : null,
     port: o.port ?? null,
     moor: o.moor ?? null,
     quest: o.quest ? String(o.quest).split(':') : null,
@@ -285,9 +301,10 @@ async function setScene(page, shot) {
   if (problem) throw new Error(problem);
 }
 
+/** Close quest cards and dialogs; the chart stays open if a step (a pad's Y) opened it. */
 const closeCards = (page) =>
   page.evaluate(() => {
-    for (const d of document.querySelectorAll('dialog[open]')) d.close();
+    for (const d of document.querySelectorAll('dialog[open]')) if (d.id !== 'chart') d.close();
   });
 
 async function shootOne(browser, base, shot, size, file) {
@@ -305,6 +322,21 @@ async function shootOne(browser, base, shot, size, file) {
       if (window.top !== window) return;
       for (const [k, v] of Object.entries(items)) localStorage.setItem(k, v);
     }, seedStorage(shot));
+    if (shot.pad)
+      await page.addInitScript(() => {
+        // A standard pad the test drives through window.__fwPad (decision 0162).
+        const pad = {
+          id: 'fake standard pad',
+          index: 0,
+          connected: true,
+          mapping: 'standard',
+          timestamp: 0,
+          axes: [0, 0, 0, 0],
+          buttons: Array.from({ length: 17 }, () => ({ pressed: false, touched: false, value: 0 })),
+        };
+        window.__fwPad = pad;
+        Object.defineProperty(window.navigator, 'getGamepads', { value: () => [pad] });
+      });
     await page.goto(base + shotPath(shot));
     if (shot.editor) await shootEditor(page, shot);
     else if (shot.menu) {
@@ -316,6 +348,26 @@ async function shootOne(browser, base, shot, size, file) {
     await context.close();
   }
   if (errors.length) throw new Error(`page error: ${errors[0]}`);
+}
+
+/** Connect the fake pad, then hold each step's button or stick for its time. */
+async function drivePad(page, steps) {
+  await page.evaluate(() => window.dispatchEvent(new Event('gamepadconnected')));
+  for (const step of steps) {
+    const set = (on) =>
+      page.evaluate(
+        ({ axis, button, value, on }) => {
+          const pad = window.__fwPad;
+          if (axis >= 0) pad.axes[axis] = on ? value : 0;
+          else pad.buttons[button] = { pressed: on, touched: on, value: on ? value : 0 };
+        },
+        { ...step, on },
+      );
+    await set(true);
+    await pause(step.n);
+    await set(false);
+    await pause(100);
+  }
 }
 
 /** The map editor framed, the selection made and its checks run, ready for the shot. */
@@ -345,11 +397,17 @@ async function shootScene(page, shot) {
     await page.keyboard.up(shot.hold.key);
   }
   await pause(shot.wait);
-  // One selector, or (in a --list entry) several clicked in turn, e.g. the menu then a row.
-  for (const sel of [shot.click ?? []].flat()) {
-    await page.click(sel);
-    await pause(800);
+  if (shot.pad) {
+    // The pad plays the game, not a card left open over it.
+    if (!shot.cards) await closeCards(page);
+    await drivePad(page, shot.pad);
+    await pause(600);
   }
+  if (shot.click)
+    for (const selector of shot.click.split(';')) {
+      await page.click(selector.trim());
+      await pause(800);
+    }
   if (!shot.cards) await closeCards(page);
   if (shot.chart) {
     await closeCards(page);

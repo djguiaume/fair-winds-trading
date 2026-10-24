@@ -1,0 +1,6 @@
+[
+  { "name": "1-sea-toast", "at": [320, 40], "heading": 200, "pad": "lx=-0.9:1500,lb:120", "wait": 1500, "sizes": ["desktop", "landscape", "portrait"] },
+  { "name": "2-chart", "at": [320, 40], "pad": "y:120,rt:120,rt:120,lx=-0.8:600", "wait": 1500, "sizes": ["desktop", "landscape", "portrait"] },
+  { "name": "3-help", "at": [320, 40], "pad": "menu:120", "click": "#menu-help", "wait": 1500, "sizes": ["desktop", "landscape", "portrait"] },
+  { "name": "3-help-fr", "lang": "fr", "at": [320, 40], "pad": "menu:120", "click": "#menu-help", "wait": 1500, "sizes": ["desktop"] }
+]
