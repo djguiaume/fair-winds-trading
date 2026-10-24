@@ -3,6 +3,7 @@
   "name": "West cardinal mark",
   "group": "landmarks",
   "internal": true,
+  "scale": 1.6,
   "parts": [
     {
       "cyl": [0.95, 1.05, 0.5, 8],

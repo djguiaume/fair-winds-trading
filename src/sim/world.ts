@@ -446,13 +446,14 @@ function stepCurrent(world: World, dt: number): WorldEvent[] {
   boat.x += water.east * k;
   boat.y += water.north * k;
   const charted = (world.trade.progress.charted ??= []);
-  if (charted.includes(water.id) || Math.hypot(water.east, water.north) < chartAtKn) return [];
+  if (
+    charted.includes(water.id) ||
+    Math.hypot(water.east, water.north) < TUNING.weather.currents.chartAtKn
+  )
+    return [];
   charted.push(water.id);
   return [{ type: 'current-charted', id: water.id }];
 }
-
-/** A current is charted once she feels it at this speed (well inside it, past its soft edge). */
-const chartAtKn = 0.4;
 
 /**
  * A named wind zone goes on the chart once she is well inside it, past its soft edge, like a
@@ -460,13 +461,12 @@ const chartAtKn = 0.4;
  */
 function chartZone(world: World): WorldEvent[] {
   const { zone, zoneWeight = 0 } = world.weather;
-  if (!zone || zoneWeight < chartZoneAt) return [];
+  if (!zone || zoneWeight < TUNING.weather.zones.chartWeight) return [];
   const zones = (world.trade.progress.zones ??= []);
   if (zones.includes(zone) || !world.map.windZones?.some((z) => z.id === zone && z.name)) return [];
   zones.push(zone);
   return [{ type: 'zone-charted', id: zone }];
 }
-const chartZoneAt = 0.9;
 
 /**
  * Holds storms back for a reason (decision 0072), or lets that reason go. Storms never blow during

@@ -1,11 +1,15 @@
 import type { MapDef } from '../sim/map';
+import grown from './seas/grown.json';
 import south from './seas/south.json';
 
 /** Local storage prefix of the grown sea's own voyage, so the real one is never touched. */
 export const PHASE4_PREFIX = 'fwt.phase4.';
 
-/** The radius the sea grows to in Phase 4: five times today's area (decisions 0115, 0137). */
-export const GROWN_SEA_RADIUS = 985;
+/**
+ * The radius the sea grows to in Phase 4, from `seas/grown.json`: five times today's area
+ * (decisions 0115, 0137).
+ */
+export const GROWN_SEA_RADIUS = grown.boundsRadius;
 
 /**
  * One of the Phase 4 seas (decision 0137): the islands, shapes, ports, buoys and wind zones a

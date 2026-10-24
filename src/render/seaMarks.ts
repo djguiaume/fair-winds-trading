@@ -8,8 +8,6 @@ import { ISLAND_SCALE } from './models/highlandIslands';
 
 /** Island props stand at this scale; Saltmere's moored boats are drawn 1.55 times a 2-unit hull. */
 const BOAT_SCALE = 1.55 * ISLAND_SCALE;
-/** Cardinal marks stand taller than channel buoys, so their top marks read from the camera. */
-const CARDINAL_SCALE = 1.6;
 
 /** A channel buoy (decision 0130): a can with a white band and a top mark, red or green. */
 function buoy(color: string): THREE.BufferGeometry {
@@ -24,11 +22,12 @@ function buoy(color: string): THREE.BufferGeometry {
 function model(type: SeaMarkDef['type']): THREE.BufferGeometry | null {
   if (type === 'buoy-red') return buoy('#d93a2b');
   if (type === 'buoy-green') return buoy('#2f9a55');
-  // Cardinal danger marks (decision 0152): one recipe each in src/data/props/mark-cardinal-*.json.
+  // Cardinal danger marks (decision 0152): one recipe each in src/data/props/mark-cardinal-*.json,
+  // whose `scale` stands them taller than channel buoys so their top marks read from the camera.
   if (type.startsWith('cardinal-'))
     return mergeAll(
       buildProp(`mark-${type}`, { R: 1, style: 'fish', variant: 0, shape: 0.5, size: 1 }),
-    ).scale(CARDINAL_SCALE, CARDINAL_SCALE, CARDINAL_SCALE);
+    );
   if (type === 'fishing-boat')
     return mergeAll(fishingBoat()).scale(BOAT_SCALE, BOAT_SCALE, BOAT_SCALE);
   // A harbour pilot's boat (decision 0131): the same small hull, painted black like a pilot cutter.

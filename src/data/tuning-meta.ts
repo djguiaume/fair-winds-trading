@@ -963,6 +963,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     'kn',
     'Map check: largest current allowed at a pier head or harbour approach.',
   ),
+  'weather.currents.chartAtKn': num(
+    'Charted at',
+    0,
+    2,
+    0.05,
+    'kn',
+    'A current goes on the chart once the boat feels it at this speed, past its soft edge.',
+  ),
   'weather.currents.speedKn': num(
     'Current speeds',
     0,
@@ -978,6 +986,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     5,
     'units',
     'A wind zone fades in over this distance inside its outline.',
+  ),
+  'weather.zones.chartWeight': num(
+    'Charted at',
+    0,
+    1,
+    0.05,
+    '',
+    'A named wind zone goes on the chart once the boat is this far inside it (0 edge, 1 well in).',
   ),
   'weather.zones.kinds.*.pull': num(
     'Pull to heading',
