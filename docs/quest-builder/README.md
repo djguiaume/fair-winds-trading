@@ -1,6 +1,6 @@
 # Quest builder: mockup and plan
 
-*Decision [0142](../decisions/0142-quest-builder.md), proposed (2026-10-24): Guillaume asked "Should there be a quest editor/builder tool?". Yes: this page is the proposal and its static mockups, for his answers before anything is built.*
+*Decision [0142](../decisions/0142-quest-builder.md), accepted (2026-10-24): Guillaume asked "Should there be a quest editor/builder tool?", then said go. This page is the mockup and the plan.*
 
 ![Steps](steps.png)
 
@@ -66,9 +66,9 @@ The checks are the test suite's: `checkQuests` (ids, kinds, rewards, people, por
 3. **Play from a step**: the setup in the game (`?map=edited&quest=<id>&step=<id>`) and the quest test bar.
 4. Later, if wanted: the tutorial's lessons, and a "(new)" sailing check that sails a step's places with the default ships at the base wind.
 
-## Questions for Guillaume
+## Guillaume's answers (2026-10-24)
 
-1. **Go?** A Quests mode in `editor.html`, in the three steps above. Or not now.
-2. **The story view** (picture 5): worth it in the first PR, or later?
-3. **The tutorial**: keep it out of the builder (it has its own lesson format and coach marks), or make its lessons editable too, later?
-4. **Play from a step**: in a new tab like Play this map (proposed), or inside the editor page?
+1. **Go.**
+2. Story view: "don't care", build and merge in any order, in parallel where possible.
+3. **Tutorial: out of the builder for now**, but it must use the same quest format as everything else (everything is data). Converting its lessons into ordinary quest steps is a later step.
+4. Play-testing in a **new tab**.
