@@ -22,8 +22,7 @@ All of it is quest data or generic code that other quests can use too (the data-
   the sea's objective panel.
 - **Rook explains the island on first mooring** (Guillaume, 20:45Z; storyteller the same): the
   quest has no `port`, so its thanks card shows where it ends, at Skerry's pier: *"Bare plots and a
-  sound pier. Help the people of the islands, Kit, Ines, Maren and Ada, and each will give you a
-  plot to build on."* No buildings named (the plots reveal them), no new characters.
+  sound pier. Help the people of the islands, Kit, Ines, Maren and Ada, and each will give you a plot, with a building of your choice for it."* Guillaume asked (20:59Z) whether they give a plot or a building: both, so the line says so. No building is named (the plots reveal them), no new characters.
 - **The arcs open as soon as the island is hers**: their start is `quest-at rooks-thanks skerry`
   (it holds once the step is reached or the quest is done), so seeing Skerry first is never a gate.
 - **A `moored` step leads the chart and the sea to its island**: `questTarget` returns the island
