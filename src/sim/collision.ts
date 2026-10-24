@@ -16,12 +16,13 @@ import { DEFAULT_START_LEVEL } from './settlement';
  * What the boat ran into; hulls fare worst on reefs, then piers, moored boats and rocky shores
  * (decisions 0038 and 0082).
  */
-export type Surface = 'reef' | 'pier' | 'boat' | 'shore' | 'sandbank' | 'shallows' | 'edge';
+export type Surface = 'reef' | 'pier' | 'boat' | 'shore' | 'ice' | 'sandbank' | 'shallows' | 'edge';
 const HARDNESS: Record<Surface, number> = {
   reef: 4,
   pier: 3,
   boat: 3,
   shore: 2,
+  ice: 2,
   sandbank: 1,
   shallows: 1,
   edge: 0,

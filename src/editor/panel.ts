@@ -426,6 +426,7 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
       reef: 'reef',
       sandbank: 'sandbank',
       shallows: 'shallows (deep ships go round)',
+      ice: 'ice (pack ice, floes)',
     };
     heading(shape.name ?? shape.id, kinds[shape.kind]);
     seaRow();

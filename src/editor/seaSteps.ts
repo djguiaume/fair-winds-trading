@@ -30,7 +30,7 @@ import { RING, type SeaDoc, addSea, claimNew, moveToSea, ownerOf, seaIds, select
  * the editor would have made. Positions are map units (x east, y north).
  */
 
-/** What a step adds or points at. `shape` is any reef, sandbank, shallows or barrier island. */
+/** What a step adds or points at. `shape` is any reef, sandbank, shallows, ice or barrier island. */
 export type SeaThing =
   'island' | 'shape' | 'port' | 'waypoint' | 'mark' | 'current' | 'zone' | 'area';
 export type SeaAdd =
@@ -38,6 +38,7 @@ export type SeaAdd =
   | 'reef'
   | 'sandbank'
   | 'shallows'
+  | 'ice'
   | 'ridge'
   | 'mark'
   | 'current'
@@ -151,6 +152,7 @@ export function applySeaSteps(doc: SeaDoc, steps: readonly SeaStep[]): string[] 
         reef: 'reef',
         sandbank: 'sandbank',
         shallows: 'shallows',
+        ice: 'ice',
         ridge: 'island',
       } as const;
       if (step.what === 'island') {

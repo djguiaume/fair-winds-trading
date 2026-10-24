@@ -22,7 +22,7 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
   new <id> --name "The Ice"             a new sea file src/data/seas/<id>.json, listed in grown.json
   add <what> --sea <id> --at x,y [--outline "x,y x,y …"] [fields]
         island   [--radius 12 --name … --design <island file>]
-        reef | sandbank | shallows [--max-draft 1.2] | ridge   (an oval at --at, or --outline)
+        reef | sandbank | shallows [--max-draft 1.2] | ice | ridge   (an oval at --at, or --outline)
         mark     --type buoy-red|buoy-green|cardinal-north|-east|-south|-west|fishing-boat|pilot-cutter|light
                  [--name … --chart --turn deg]
         current  --path "x,y,w x,y,w …" [--speed 1.5 --name …]   (points in the direction it flows)

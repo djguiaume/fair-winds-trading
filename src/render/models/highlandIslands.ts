@@ -8,6 +8,7 @@ import {
   isGlowing,
   mergeAll,
   paint,
+  paintGroups,
   slab,
   vertexColorMaterial,
   windowPanes,
@@ -352,6 +353,49 @@ function extrudeOutline(outline: TerrainDef['outline'], bottom: number, top: num
   return geometry.translate(0, bottom, 0);
 }
 
+/** Floe colours: snow on top, the pale sea ice at the edges, blue where it is thick (0170). */
+const FLOE_TOPS = ['#eef4f8', '#e3ecf3', '#f6f9fb', '#dcebf2'];
+const FLOE_SIDE = '#a8dde8';
+
+/**
+ * A field of ice (decision 0170): a thin pale sheet over the whole outline, so nothing shows
+ * through, then flat floes of several sizes laid across it, a few tilted slabs where floes press
+ * together, and the odd grounded berg on a big field. Low-poly and merged like the rest of the
+ * terrain, so a field is one batch whatever its size.
+ */
+export function iceField(feature: TerrainDef, seed: number): Parts {
+  const parts: Parts = [paint(extrudeOutline(feature.outline, -0.5, 0.25), '#d8ecf3')];
+  const rng = createRng(seed);
+  const occupied: Spot[] = [];
+  const xs = feature.outline.map((p) => p[0]),
+    ys = feature.outline.map((p) => p[1]);
+  const area = (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys));
+  const floes = Math.min(140, Math.round(area / 55));
+  for (let i = 0; i < floes; i++) {
+    const r = range(rng, 2, 6.5);
+    const p = sampleInside(rng, feature.outline, r * 0.8, occupied);
+    if (!p) continue;
+    const h = range(rng, 0.35, 0.8);
+    const floe = new THREE.CylinderGeometry(r, r * 1.05, h, 5 + (i % 3))
+      .scale(1, 1, range(rng, 0.6, 1))
+      .rotateY(rng() * 6)
+      .translate(p.x, 0.2 + h / 2, -p.y);
+    const top = FLOE_TOPS[i % FLOE_TOPS.length]!;
+    parts.push(paintGroups(floe, [FLOE_SIDE, top, FLOE_SIDE]));
+  }
+  // Pressure ridges: slabs pushed up on edge where the floes meet.
+  for (let i = 0; i < Math.min(30, floes / 4); i++) {
+    const p = sampleInside(rng, feature.outline, 1.5, []);
+    if (!p) continue;
+    const slab = new THREE.BoxGeometry(range(rng, 2, 4), range(rng, 0.9, 1.8), 0.5)
+      .rotateZ(range(rng, -0.5, 0.5))
+      .rotateY(rng() * 6)
+      .translate(p.x, 0.7, -p.y);
+    parts.push(paint(slab, i % 2 ? '#c5e4ee' : '#eef4f8'));
+  }
+  return parts;
+}
+
 /** Detail geometry only, anchored inside the exact solid shoreline. */
 export function terrainProps(feature: TerrainDef, seed: number): Parts {
   const parts: Parts = [];
@@ -477,6 +521,12 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
       const parts: Parts = [];
       // Shallows are water: ShallowsWater tints them at sea (decision 0152), nothing stands there.
       if (feature.kind === 'shallows') continue;
+      if (feature.kind === 'ice') {
+        const group = this.batch(iceField(feature, terrainSeed(map, feature)));
+        group.name = `terrain:${feature.id}`;
+        this.add(group);
+        continue;
+      }
       if (feature.kind === 'sandbank') {
         parts.push(paint(extrudeOutline(feature.outline, -0.4, 0.8), B2.sand));
       } else if (feature.kind === 'island') {

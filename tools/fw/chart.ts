@@ -385,6 +385,7 @@ function legendEntries(
   const kinds = new Set((map.terrain ?? []).map((t) => t.kind));
   if (kinds.has('reef')) out.push({ text: 'reef', swatch: box('c-reef') });
   if (kinds.has('sandbank')) out.push({ text: 'sandbank', swatch: box('c-bank') });
+  if (kinds.has('ice')) out.push({ text: 'ice: pack ice, grounded floes', swatch: box('c-ice') });
   if (kinds.has('shallows'))
     out.push({ text: 'shallows: shallow keels only', swatch: box('c-shallows') });
   if (layers.flow) {

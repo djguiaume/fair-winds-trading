@@ -283,6 +283,7 @@
   "toast.crash": "Ran aground! Hull {pct}%, repair in port",
   "toast.crashPier": "Rammed the pier! Hull {pct}%, repair in port",
   "toast.crashBoat": "Rammed a moored boat! Hull {pct}%, repair in port",
+  "toast.crashIce": "Ran into the ice! Hull {pct}%, repair in port",
   "toast.bump": "Bump! Mind the shore",
   "toast.tooShallow": "Too shallow for her keel: only shallow ships cross here. Go round",
   "toast.discovered": "New port on the chart: {name}. Its shipwright builds ships",

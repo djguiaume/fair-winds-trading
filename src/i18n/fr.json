@@ -283,6 +283,7 @@
   "toast.crash": "Échoué sur la côte ! Coque à {pct} %, réparez au port",
   "toast.crashPier": "Choc contre le quai ! Coque à {pct} %, réparez au port",
   "toast.crashBoat": "Choc contre un bateau au mouillage ! Coque à {pct} %, réparez au port",
+  "toast.crashIce": "Choc contre la glace ! Coque à {pct} %, réparez au port",
   "toast.bump": "Bong ! Attention au rivage",
   "toast.tooShallow": "Trop peu d’eau pour sa quille : seuls les navires à faible tirant d’eau passent ici. Faites le tour",
   "toast.discovered": "Nouveau port sur la carte : {name}. Son chantier construit des navires",

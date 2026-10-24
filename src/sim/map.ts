@@ -50,13 +50,14 @@ export interface IslandDef {
  * Reefs are rocks and coral just awash: solid to the hull like a shore, drawn without land
  * (decision 0031). Shallows are a sandy passage under water: ships of draft `maxDraft` or less
  * sail across, slowed a little, and deeper ships are refused, softly, as by a sandbank
- * (decisions 0137, 0152).
+ * (decisions 0137, 0152). Ice is a field of floes, pack ice or grounded bergs (the north sea,
+ * decision 0170): solid to every ship, a knock like running aground.
  */
 export interface TerrainDef {
   id: string;
   /** Shown on the sea chart. */
   name?: string;
-  kind: 'island' | 'sandbank' | 'reef' | 'shallows';
+  kind: 'island' | 'sandbank' | 'reef' | 'shallows' | 'ice';
   outline: [number, number][];
   /** Shallows only: the deepest draft that crosses (a ship file's `draft`). */
   maxDraft?: number;

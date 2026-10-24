@@ -222,6 +222,13 @@ dialog.chart::backdrop {
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
+.chart-ice {
+  fill: #f2f8fb;
+  fill-opacity: 0.85;
+  stroke: #9fd3e2;
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
 .chart-bank {
   fill: #f7e3ad;
   fill-opacity: 0.6;

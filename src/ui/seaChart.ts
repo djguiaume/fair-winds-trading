@@ -934,7 +934,9 @@ export class SeaChart {
               ? 'chart-reef'
               : terrain.kind === 'shallows'
                 ? 'chart-shallows'
-                : 'chart-bank',
+                : terrain.kind === 'ice'
+                  ? 'chart-ice'
+                  : 'chart-bank',
         });
       const xs = terrain.outline.map((p) => p[0]);
       const ys = terrain.outline.map((p) => -p[1]);
@@ -942,6 +944,9 @@ export class SeaChart {
       if (terrain.kind === 'island') landBoxes.push({ x0, x1, y0, y1 });
       const known = chartedAt(map, this.world.trade.progress, (x0 + x1) / 2, -(y0 + y1) / 2);
       if (terrain.name && terrain.kind === 'island' && known)
+        places.push({ name: terrain.name, x: (x0 + x1) / 2, top: y0, bottom: y1 });
+      // Named ice (decision 0170): the pack that locks a cove, the floes of a barrier.
+      if (terrain.name && terrain.kind === 'ice' && known)
         places.push({ name: terrain.name, x: (x0 + x1) / 2, top: y0, bottom: y1 });
       // The chart says which ships cross a sandy passage (decisions 0137, 0152).
       if (terrain.name && terrain.kind === 'shallows' && known)

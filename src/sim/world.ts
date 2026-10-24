@@ -159,7 +159,7 @@ export type WorldEvent =
   /** Shallows refused her: her draft is too deep for them (decisions 0137, 0152). */
   | { type: 'too-shallow' }
   | { type: 'reef-strike'; damage: number }
-  | { type: 'crash'; damage: number; surface: 'shore' | 'pier' | 'boat' }
+  | { type: 'crash'; damage: number; surface: 'shore' | 'ice' | 'pier' | 'boat' }
   | { type: 'waypoint'; label: string; seconds: number; next: string }
   | { type: 'storm-near'; bearing: number }
   | { type: 'overboard'; good: GoodId; qty: number }
@@ -584,7 +584,10 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
     );
     if (surface === 'shallows') events.push({ type: 'too-shallow' });
     else if (damage >= 1 && surface === 'reef') events.push({ type: 'reef-strike', damage });
-    else if (damage >= 1 && (surface === 'shore' || surface === 'pier' || surface === 'boat'))
+    else if (
+      damage >= 1 &&
+      (surface === 'shore' || surface === 'ice' || surface === 'pier' || surface === 'boat')
+    )
       events.push({ type: 'crash', damage, surface });
     else events.push({ type: 'bump' });
   }

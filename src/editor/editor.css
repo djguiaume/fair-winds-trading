@@ -245,6 +245,14 @@ input:focus-visible {
   stroke-width: 1px;
   vector-effect: non-scaling-stroke;
 }
+/* Pack ice and grounded floes (decision 0170). */
+.c-ice {
+  fill: #f2f8fb;
+  fill-opacity: 0.85;
+  stroke: #9fd3e2;
+  stroke-width: 1.2px;
+  vector-effect: non-scaling-stroke;
+}
 /* Shallows only shallow ships cross (decision 0152). */
 .c-shallows {
   fill: #b9ecdf;

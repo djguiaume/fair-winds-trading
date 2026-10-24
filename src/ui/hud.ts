@@ -396,7 +396,9 @@ export class Hud {
               ? 'toast.crashPier'
               : e.surface === 'boat'
                 ? 'toast.crashBoat'
-                : 'toast.crash',
+                : e.surface === 'ice'
+                  ? 'toast.crashIce'
+                  : 'toast.crash',
             { pct },
           ),
           2.5,
