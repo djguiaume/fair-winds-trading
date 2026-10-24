@@ -27,14 +27,18 @@ export interface Shot {
   currents: boolean;
   cards: boolean;
   wait: number;
-  click: string[] | null;
+  click: string | null;
   focus: string | null;
-  pad: string[] | null;
   style: string | null;
   script: string | null;
   sizes: string[];
   url: string | null;
   storage: Record<string, string>;
+  /** The map editor instead of the game (decision 0161). */
+  editor: 'ring' | 'phase4' | null;
+  select: string | null;
+  exportOpen: boolean;
+  draft: string | null;
   [more: string]: unknown;
 }
 export const SIZES: Record<string, { width: number; height: number; touch?: boolean }>;

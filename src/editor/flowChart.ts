@@ -9,6 +9,7 @@ import {
   laneEdges,
   smoothOutline,
 } from '../sim/flowShapes';
+import type { ChartAreaDef } from '../sim/fog';
 import type { CurrentDef, MapDef, WindZoneDef } from '../sim/map';
 import { knotToUnits } from '../sim/boat';
 import type { Selection } from './model';
@@ -146,13 +147,16 @@ export function flowLabels(
 
 /** Handles of the selected current or zone: points, widths and insert rings. */
 export function drawFlowSelection(el: El, map: MapDef, selection: Selection, px: number) {
-  if (selection?.kind !== 'current' && selection?.kind !== 'zone') return;
+  if (selection?.kind !== 'current' && selection?.kind !== 'zone' && selection?.kind !== 'area')
+    return;
   const isCurrent = selection.kind === 'current';
-  const shape: CurrentDef | WindZoneDef | undefined = isCurrent
+  const shape: CurrentDef | WindZoneDef | ChartAreaDef | undefined = isCurrent
     ? map.currents?.find((c) => c.id === selection.id)
-    : map.windZones?.find((z) => z.id === selection.id);
+    : selection.kind === 'zone'
+      ? map.windZones?.find((z) => z.id === selection.id)
+      : map.fog?.areas.find((a) => a.id === selection.id);
   if (!shape) return;
-  const prefix = isCurrent ? 'c' : 'z';
+  const prefix = selection.kind[0]!;
   const id = shape.id;
   const path = 'path' in shape ? shape.path : undefined;
   const points: readonly (readonly number[])[] = path ?? shape.outline ?? [];
@@ -164,7 +168,7 @@ export function drawFlowSelection(el: El, map: MapDef, selection: Selection, px:
       const { left, right } = laneEdges(lane.points);
       el('polygon', { points: pts([...left, ...right.reverse()]), class: 'c-selected' });
     }
-  } else
+  } else if (selection.kind === 'zone')
     el('polygon', { points: pts(smoothOutline(points as OutlinePoint[])), class: 'c-selected' });
   if (closed && points.length) el('polygon', { points: pts(points), class: 'c-selected c-dashed' });
   const n = points.length;

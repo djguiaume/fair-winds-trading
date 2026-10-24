@@ -1,4 +1,12 @@
-import type { CurrentDef, IslandDef, MapDef, PortDef, TerrainDef, WindZoneDef } from '../sim/map';
+import type {
+  CurrentDef,
+  IslandDef,
+  MapDef,
+  PortDef,
+  SeaMarkType,
+  TerrainDef,
+  WindZoneDef,
+} from '../sim/map';
 
 /**
  * The map editor's document (decision 0095): the authored map JSON exactly as it is saved in
@@ -13,6 +21,8 @@ export type Selection =
   | { kind: 'start' }
   | { kind: 'current'; id: string; point?: number }
   | { kind: 'zone'; id: string; point?: number }
+  | { kind: 'mark'; index: number }
+  | { kind: 'area'; id: string; point?: number }
   | null;
 
 export type ShapeKind = TerrainDef['kind'];
@@ -30,6 +40,10 @@ export function findCurrent(map: MapDef, id: string): CurrentDef | undefined {
 }
 export function findZone(map: MapDef, id: string): WindZoneDef | undefined {
   return map.windZones?.find((z) => z.id === id);
+}
+/** A fog of war chart area (decision 0156). */
+export function findArea(map: MapDef, id: string) {
+  return map.fog?.areas.find((a) => a.id === id);
 }
 export function portOn(map: MapDef, islandId: string): PortDef | undefined {
   return map.ports.find((p) => p.islandId === islandId);
@@ -88,6 +102,18 @@ export function moveWaypoint(map: MapDef, index: number, x: number, y: number) {
   if (wp) [wp.x, wp.y] = [round(x), round(y)];
 }
 
+export function moveMark(map: MapDef, index: number, x: number, y: number) {
+  const mark = map.marks?.[index];
+  if (mark) [mark.x, mark.y] = [round(x), round(y)];
+}
+
+/** A sea mark (decision 0130) where you click; returns its index. */
+export function addMark(map: MapDef, x: number, y: number, type: SeaMarkType): number {
+  map.marks ??= [];
+  map.marks.push({ type, x: round(x), y: round(y) });
+  return map.marks.length - 1;
+}
+
 export function moveStart(map: MapDef, x: number, y: number) {
   [map.start.x, map.start.y] = [round(x), round(y)];
 }
@@ -144,6 +170,7 @@ function flowPoints(map: MapDef, sel: Selection): number[][] | undefined {
     return c?.path ?? c?.outline;
   }
   if (sel?.kind === 'zone') return findZone(map, sel.id)?.outline;
+  if (sel?.kind === 'area') return findArea(map, sel.id)?.outline;
 }
 
 /** Starts a lane current at (x, y); `addLanePoint` lays the rest. */
@@ -216,14 +243,28 @@ export function addZone(map: MapDef, x: number, y: number, kind: string): string
   return id;
 }
 
+/**
+ * A chart area (decision 0156): an oval named stretch of the new waters, charted all at once when
+ * sailed into. Only a map with fog of war has them; returns null on one without.
+ */
+export function addChartArea(map: MapDef, x: number, y: number): string | null {
+  if (!map.fog) return null;
+  const id = freeId(
+    map.fog.areas.map((a) => a.id),
+    'area',
+  );
+  map.fog.areas.push({ id, name: 'New waters', outline: oval(x, y, 140, 100) });
+  return id;
+}
+
 /** Moves a whole current or zone. */
 export function moveFlow(map: MapDef, sel: Selection, dx: number, dy: number) {
   if (sel?.kind === 'current') {
     const c = findCurrent(map, sel.id);
     if (c?.path) c.path = c.path.map(([x, y, w]) => [round(x + dx), round(y + dy), w]);
     if (c?.outline) c.outline = c.outline.map(([x, y]) => [round(x + dx), round(y + dy)]);
-  } else if (sel?.kind === 'zone') {
-    const z = findZone(map, sel.id);
+  } else if (sel?.kind === 'zone' || sel?.kind === 'area') {
+    const z = sel.kind === 'zone' ? findZone(map, sel.id) : findArea(map, sel.id);
     if (z) z.outline = z.outline.map(([x, y]) => [round(x + dx), round(y + dy)]);
   }
 }
@@ -349,13 +390,17 @@ export function deleteSelection(map: MapDef, sel: Selection): Selection {
     map.course.splice(sel.index, 1);
     return null;
   }
-  if (sel.kind === 'current' || sel.kind === 'zone') {
+  if (sel.kind === 'mark') {
+    map.marks?.splice(sel.index, 1);
+    return null;
+  }
+  if (sel.kind === 'current' || sel.kind === 'zone' || sel.kind === 'area') {
     if (sel.point !== undefined) {
       deleteFlowPoint(map, sel, sel.point);
       return { kind: sel.kind, id: sel.id };
     }
     const list: { id: string }[] | undefined =
-      sel.kind === 'current' ? map.currents : map.windZones;
+      sel.kind === 'current' ? map.currents : sel.kind === 'zone' ? map.windZones : map.fog?.areas;
     const at = list?.findIndex((x) => x.id === sel.id) ?? -1;
     if (at >= 0) list!.splice(at, 1);
     return null;
@@ -410,9 +455,69 @@ export class History<T = MapDef> {
  * file drops into the repo and passes `npm run lint` with a clean diff: objects one key per line,
  * except small level tables; arrays on one line when they fit, except lists of points.
  */
-export function formatMapJson(map: MapDef): string {
+export function formatMapJson(map: unknown, original?: string): string {
   // Level tables ({ "3": ["grain"] }) stay on one line when they fit, as in the file.
-  return formatJson(map, (x) => Array.isArray(x) && x.every(isPlain));
+  return formatJson(
+    map,
+    (x) => Array.isArray(x) && x.every(isPlain),
+    original ? openObjects(original) : undefined,
+  );
+}
+
+/**
+ * The objects a JSON file writes over several lines although they would fit on one: Prettier
+ * keeps an object open when its file has a line break after the `{`, so a sea file written by a
+ * script keeps its layout through the editor (decision 0161). Each is keyed by its own JSON.
+ */
+const SCALAR = /"(?:[^"\\]|\\.)*"|[^,\]}\s]+/y;
+export function openObjects(text: string): Set<string> {
+  const open = new Set<string>();
+  let i = 0;
+  const space = () => {
+    while (/\s/.test(text[i] ?? '')) i++;
+  };
+  const value = (): unknown => {
+    space();
+    const c = text[i];
+    if (c === '{') {
+      i++;
+      const broken = /^[ \t]*\r?\n/.test(text.slice(i, i + 80));
+      const obj: Record<string, unknown> = {};
+      space();
+      if (text[i] === '}') i++;
+      else
+        for (;;) {
+          space();
+          const key = value() as string;
+          space();
+          i++; // :
+          obj[key] = value();
+          space();
+          if (text[i++] === '}') break;
+        }
+      if (broken && Object.keys(obj).length) open.add(JSON.stringify(obj));
+      return obj;
+    }
+    if (c === '[') {
+      i++;
+      const list: unknown[] = [];
+      space();
+      if (text[i] === ']') i++;
+      else
+        for (;;) {
+          list.push(value());
+          space();
+          if (text[i++] === ']') break;
+        }
+      return list;
+    }
+    SCALAR.lastIndex = i;
+    const m = SCALAR.exec(text)!;
+    i += m[0].length;
+    return JSON.parse(m[0]);
+  };
+  value();
+  return open;
 }
 
 /**
@@ -430,7 +535,7 @@ const isPlain = (v: unknown) => v === null || typeof v !== 'object';
  * two or more points or objects; objects one key per line unless every value passes `flat` and
  * the object fits.
  */
-function formatJson(value: unknown, flat: (v: unknown) => boolean): string {
+function formatJson(value: unknown, flat: (v: unknown) => boolean, keepOpen?: Set<string>): string {
   const WIDTH = 100;
   const inline = (v: unknown): string =>
     Array.isArray(v)
@@ -471,7 +576,12 @@ function formatJson(value: unknown, flat: (v: unknown) => boolean): string {
     if (v && typeof v === 'object') {
       const entries = Object.entries(v);
       if (!entries.length) return `${prefix}{}`;
-      if (!breaks(v) && indent.length + one.length + tail <= WIDTH) return one;
+      if (
+        !breaks(v) &&
+        indent.length + one.length + tail <= WIDTH &&
+        !keepOpen?.has(JSON.stringify(v))
+      )
+        return one;
       const inner = indent + '  ';
       const kept = entries.filter(([, x]) => x !== undefined);
       const lines = kept.map(

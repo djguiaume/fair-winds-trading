@@ -261,7 +261,7 @@
   "pos.running": "Running",
   "toast.courseSet": "Course set for {name}",
   "toast.docked": "Docked at {name}",
-  "toast.padConnected": "Controller connected: left stick steers, LB/RB sails, Y map",
+  "toast.padConnected": "Controller ready: stick steers, LB/RB sails",
   "toast.departed": "Departed {name}",
   "toast.windShifts": "The wind shifts…",
   "toast.waypoint": "{label} reached in {time}! Next: {next}",

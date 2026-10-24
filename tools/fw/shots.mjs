@@ -1,4 +1,4 @@
-/* global console, window, document, navigator, localStorage, setTimeout, requestAnimationFrame, Event, URL, URLSearchParams, structuredClone */
+/* global console, window, document, localStorage, setTimeout, URL, URLSearchParams, structuredClone, Event */
 // `npm run shots` (decision 0153): standard screenshots of the real game, instead of a Playwright
 // script per review. It starts Vite itself, opens the game with `?debug`, gets past the menu, the
 // level card, the tutorial offer and the harbour, sets the scene through `window.fwt` (the boat's
@@ -28,6 +28,9 @@ Where
   --speed kn                    starting speed (default 5)
   --ship id                     sail this ship (sloop, schooner, fluyt, …)
   --hold Key:ms                 hold a key that long before the shot (e.g. ArrowUp:2500)
+  --pad steps                   a fake game controller (0162): after the wait, connected, then
+                                each step held in turn: button:ms or axis=value:ms
+                                (e.g. "lx=0.8:1500,rb:100,y:100"); buttons a b x y lb rb lt rt view menu ls rs up down left right
   --port id                     docked at this port, port screen open
   --moor island                 moored at one of her islands' piers (owned first, decision 0159)
   --quest id:step               a quest started at that step, earlier steps paid (as a quest test)
@@ -40,6 +43,13 @@ Where
   --charted                     every wind zone already sailed (named on the chart)
   --town id:level,…             towns at these levels; an empty island to found is founded first
                                 (0157), so --town palm-key:1 shows Palm Key just founded
+Map editor (editor.html instead of the game)
+  --editor ring|phase4          the map editor on the ring, or the sea editor on the Phase 4 sea
+  --select hit                  select what the chart tags so: island:sunreach, shape:coral-line-east,
+                                area:sugar-bar, zone:the-trades, current:id, mark:3, waypoint:2, start
+  --look x,y --zoom upp         centre the chart there, map units per pixel (default: the whole sea)
+  --draft file.json             an editor draft to load (a map export, or a stored sea draft)
+  --export                      the export dialog open (phase4: every file, changed or same)
 Look
   --lang en|fr                  language (default en)
   --night  | --time s           night, or this game time in seconds (default 300, day)
@@ -48,12 +58,10 @@ Look
   --cards                       keep quest cards and dialogs open (default: closed, kept in a quest test)
   --wait ms                     settle time before the shot (default 1500)
   --click selector              click this before the shot (after the wait), e.g. a card's button,
-                                then wait 800 ms; several clicks in a row: "a ; b" (or a list)
-  --focus selector              this element focused as by the controller (decision 0163): the page
-                                set to controller input, so the focus highlight and button hints show
-  --pad a,down,down,a           press these game controller buttons, in order, before the shot (a
-                                pretend standard pad: a b x y lb rb lt rt view menu up down left
-                                right; decisions 0162, 0163); the focus ring shows the pad's focus
+                                then wait 800 ms; several in turn with ; (e.g. "#menu-btn;#menu-help")
+                                (--pad and --click also work on --menu)
+  --focus selector              this control focused as by the controller (decision 0163): the page
+                                set to controller input, so the focus ring and button hints show
   --style a.css,b.css           these stylesheets added to the page before the shot (a mockup's look)
   --script a.js,b.js            these scripts run in the page, in order, after the focus is set
                                 (a mockup's extra parts)
@@ -76,6 +84,18 @@ const pair = (v) => {
   return out;
 };
 const list = (v) => (Array.isArray(v) ? v : String(v).split(',').filter(Boolean));
+/** The standard controller layout's buttons in the browser's order (src/input/gamepad.ts). */
+const PAD_BUTTONS = 'a b x y lb rb lt rt view menu ls rs up down left right home'.split(' ');
+const PAD_AXES = ['lx', 'ly', 'rx', 'ry'];
+const padSteps = (v) =>
+  list(v).map((step) => {
+    const [what, ms] = String(step).split(':');
+    const [name, value] = what.split('=');
+    const axis = PAD_AXES.indexOf(name);
+    const button = PAD_BUTTONS.indexOf(name);
+    if (axis < 0 && button < 0) throw new Error(`no pad button or axis "${name}"`);
+    return { axis, button, value: value === undefined ? 1 : Number(value), n: Number(ms) || 100 };
+  });
 const readAll = (v) =>
   list(v)
     .map((f) => readFileSync(resolve(ROOT, f), 'utf8'))
@@ -100,6 +120,7 @@ export function normalise(opts) {
     speed: o.speed ?? 5,
     ship: o.ship ?? null,
     hold: o.hold ? keyHold(o.hold) : null,
+    pad: o.pad ? padSteps(o.pad) : null,
     port: o.port ?? null,
     moor: o.moor ?? null,
     quest: o.quest ? String(o.quest).split(':') : null,
@@ -127,24 +148,33 @@ export function normalise(opts) {
     currents: !o['no-currents'],
     cards: o.cards ?? !!o.url,
     wait: o.wait ?? 1500,
-    click: o.click ? (Array.isArray(o.click) ? o.click : String(o.click).split(' ; ')) : null,
+    click: o.click ? (Array.isArray(o.click) ? o.click.join(';') : String(o.click)) : null,
     focus: o.focus ?? null,
-    pad: o.pad ? list(o.pad) : null,
     style: o.style ? readAll(o.style) : null,
     script: o.script ? readAll(o.script) : null,
     sizes: list(o.sizes ?? 'desktop'),
     url: o.url ?? null,
+    editor: o.editor === true ? 'ring' : (o.editor ?? null),
+    select: o.select ?? null,
+    exportOpen: !!o.export,
+    draft: o.draft ? resolve(ROOT, o.draft) : null,
     storage: o.storage ?? {},
   };
   for (const s of shot.sizes)
     if (!SIZES[s]) throw new Error(`unknown size ${s} (${Object.keys(SIZES)})`);
   if ([shot.at, shot.port, shot.moor].filter(Boolean).length > 1)
     throw new Error('--at, --port and --moor: pick one');
+  if (shot.editor && !['ring', 'phase4'].includes(shot.editor))
+    throw new Error(`--editor ring|phase4, not ${shot.editor}`);
   shot.name = o.name ?? defaultName(shot);
   return shot;
 }
 
 function defaultName(s) {
+  if (s.editor)
+    return ['editor', s.editor, s.select?.replace(/[:]/g, '-'), s.exportOpen && 'export']
+      .filter(Boolean)
+      .join('-');
   const sea = s.seaFile ? basename(s.seaFile, extname(s.seaFile)) : s.sea;
   const where = s.port ?? (s.at ? `${s.at[0]}_${s.at[1]}` : 'start');
   return [
@@ -173,6 +203,7 @@ export function planShots(args) {
 
 /** The game's address for a shot: the sea, `?debug`, and a quest test's own parameters. */
 export function shotPath(shot) {
+  if (shot.editor) return `/editor.html?debug${shot.editor === 'phase4' ? '&sea=phase4' : ''}`;
   if (shot.url) {
     const u = new URL(shot.url, 'http://x/');
     u.searchParams.set('debug', '');
@@ -204,6 +235,11 @@ export function seedStorage(shot) {
     ...shot.storage,
   };
   if (shot.seaFile) items['fwt.editor.map.v1'] = readFileSync(shot.seaFile, 'utf8');
+  if (shot.draft)
+    items[shot.editor === 'phase4' ? 'fwt.editor.seas.v1' : 'fwt.editor.map.v1'] = readFileSync(
+      shot.draft,
+      'utf8',
+    );
   if (shot.islands.length) {
     const designs = shot.islands.map((f) => JSON.parse(readFileSync(f, 'utf8')));
     items['fwt.editor.islands.v1'] = JSON.stringify(
@@ -278,9 +314,10 @@ async function setScene(page, shot) {
   if (problem) throw new Error(problem);
 }
 
+/** Close quest cards and dialogs; the chart stays open if a step (a pad's Y) opened it. */
 const closeCards = (page) =>
   page.evaluate(() => {
-    for (const d of document.querySelectorAll('dialog[open]')) d.close();
+    for (const d of document.querySelectorAll('dialog[open]')) if (d.id !== 'chart') d.close();
   });
 
 async function shootOne(browser, base, shot, size, file) {
@@ -294,18 +331,33 @@ async function shootOne(browser, base, shot, size, file) {
   try {
     const page = await context.newPage();
     page.on('pageerror', (e) => errors.push(String(e)));
-    if (shot.pad) await page.addInitScript(fakePad);
     await page.addInitScript((items) => {
       if (window.top !== window) return;
       for (const [k, v] of Object.entries(items)) localStorage.setItem(k, v);
     }, seedStorage(shot));
+    if (shot.pad)
+      await page.addInitScript(() => {
+        // A standard pad the test drives through window.__fwPad (decision 0162).
+        const pad = {
+          id: 'fake standard pad',
+          index: 0,
+          connected: true,
+          mapping: 'standard',
+          timestamp: 0,
+          axes: [0, 0, 0, 0],
+          buttons: Array.from({ length: 17 }, () => ({ pressed: false, touched: false, value: 0 })),
+        };
+        window.__fwPad = pad;
+        Object.defineProperty(window.navigator, 'getGamepads', { value: () => [pad] });
+      });
     await page.goto(base + shotPath(shot));
-    if (shot.menu) {
+    if (shot.editor) await shootEditor(page, shot);
+    else if (shot.menu) {
       await page.locator('#menu-play').waitFor({ state: 'visible', timeout: 30000 });
       await pause(shot.wait);
-      await clicks(page, shot);
+      await act(page, shot);
     } else await shootScene(page, shot);
-    await dress(page, shot);
+    if (!shot.editor) await dress(page, shot);
     await page.screenshot({ path: file });
   } finally {
     await context.close();
@@ -313,62 +365,59 @@ async function shootOne(browser, base, shot, size, file) {
   if (errors.length) throw new Error(`page error: ${errors[0]}`);
 }
 
-async function clicks(page, shot) {
-  for (const sel of shot.click ?? []) {
-    await page.click(sel);
-    await pause(800);
-  }
-}
-
-/** A pretend standard game controller, there from the start; `window.__pad` holds its buttons. */
-function fakePad() {
-  const names = 'a b x y lb rb lt rt view menu ls rs up down left right home'.split(' ');
-  const pad = {
-    connected: true,
-    mapping: 'standard',
-    id: 'shots pad',
-    index: 0,
-    axes: [0, 0, 0, 0],
-    buttons: names.map(() => ({ pressed: false, touched: false, value: 0 })),
-  };
-  window.__pad = { pad, names };
-  navigator.getGamepads = () => [pad];
-}
-
-/** A few drawn frames, so the game's once-a-frame pad poll sees a change however slow it runs. */
-const frames = (page) =>
-  page.evaluate(
-    () =>
-      new Promise((done) =>
-        requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(done))),
-      ),
-  );
-
-/** Press and release each button in turn, a few frames apart, as a player would. */
-async function pressPad(page, buttons) {
+/** Connect the fake pad, then hold each step's button or stick for its time. */
+async function drivePad(page, steps) {
   await page.evaluate(() => window.dispatchEvent(new Event('gamepadconnected')));
-  for (const name of buttons) {
-    const ok = await page.evaluate((n) => {
-      const b = window.__pad.pad.buttons[window.__pad.names.indexOf(n)];
-      if (!b) return false;
-      b.pressed = true;
-      b.value = 1;
-      return true;
-    }, name);
-    if (!ok) throw new Error(`no pad button ${name}`);
-    await frames(page);
-    await page.evaluate((n) => {
-      const b = window.__pad.pad.buttons[window.__pad.names.indexOf(n)];
-      b.pressed = false;
-      b.value = 0;
-    }, name);
-    await frames(page);
-    await pause(150);
+  for (const step of steps) {
+    const set = (on) =>
+      page.evaluate(
+        ({ axis, button, value, on }) => {
+          const pad = window.__fwPad;
+          if (axis >= 0) pad.axes[axis] = on ? value : 0;
+          else pad.buttons[button] = { pressed: on, touched: on, value: on ? value : 0 };
+        },
+        { ...step, on },
+      );
+    await set(true);
+    await pause(step.n);
+    await set(false);
+    await pause(100);
   }
-  await pause(300);
 }
 
-/** A mockup's stylesheet and script, then the controller's focus on an element. */
+/** The map editor framed, the selection made and its checks run, ready for the shot. */
+async function shootEditor(page, shot) {
+  await page.waitForFunction(() => !!window.fwtEditor, null, { timeout: 30000 });
+  await page.evaluate((s) => {
+    if (s.look) window.fwtEditor.focus(s.look[0], s.look[1], s.zoom ?? undefined);
+    if (s.select) window.fwtEditor.select(s.select);
+  }, shot);
+  // The sailing route checks run in a worker: wait for them (a few seconds on the grown sea).
+  await page
+    .waitForFunction(() => !document.querySelector('#ed-checks .pending'), null, {
+      timeout: 60000,
+    })
+    .catch(() => {});
+  if (shot.exportOpen) await page.click('#ed-export');
+  await pause(Math.min(shot.wait, 600));
+}
+
+/** The pad's steps, then the clicks, as a player would. */
+async function act(page, shot) {
+  if (shot.pad) {
+    // The pad plays the game, not a card left open over it.
+    if (!shot.cards) await closeCards(page);
+    await drivePad(page, shot.pad);
+    await pause(600);
+  }
+  if (shot.click)
+    for (const selector of shot.click.split(';')) {
+      await page.click(selector.trim());
+      await pause(800);
+    }
+}
+
+/** A mockup's stylesheets, the controller's focus on a control, then the mockup's scripts. */
 async function dress(page, shot) {
   if (shot.style) await page.addStyleTag({ content: shot.style });
   if (shot.focus) {
@@ -376,14 +425,13 @@ async function dress(page, shot) {
       const el = document.querySelector(sel);
       if (!el) return false;
       document.documentElement.dataset.input = 'pad';
-      el.focus({ preventScroll: false });
+      el.focus();
       el.scrollIntoView({ block: 'nearest' });
       return true;
     }, shot.focus);
     if (!found) throw new Error(`no element ${shot.focus} to focus`);
   }
   if (shot.script) await page.evaluate(shot.script);
-  if (shot.pad) await pressPad(page, shot.pad);
   if (shot.style || shot.script || shot.focus) await pause(300);
 }
 
@@ -397,7 +445,7 @@ async function shootScene(page, shot) {
     await page.keyboard.up(shot.hold.key);
   }
   await pause(shot.wait);
-  await clicks(page, shot);
+  await act(page, shot);
   if (!shot.cards) await closeCards(page);
   if (shot.chart) {
     await closeCards(page);

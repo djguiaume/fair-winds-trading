@@ -261,7 +261,7 @@
   "pos.running": "Vent arrière",
   "toast.courseSet": "Cap sur {name}",
   "toast.docked": "Amarré à {name}",
-  "toast.padConnected": "Manette connectée : stick gauche pour barrer, LB/RB voiles, Y carte",
+  "toast.padConnected": "Manette prête : stick pour barrer, LB/RB voiles",
   "toast.departed": "Départ de {name}",
   "toast.windShifts": "Le vent tourne…",
   "toast.waypoint": "{label} atteint en {time} ! Suivant : {next}",
