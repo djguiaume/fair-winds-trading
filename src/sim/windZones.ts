@@ -57,6 +57,12 @@ export interface ZoneKind {
   squallRadius?: number;
   /** How fast the squalls march, map units per second (a sloop at 8 kn sails 12.8). */
   squallSpeed?: number;
+  /** 0..1: dark choppy water with whitecaps and a foam edge (a storm belt's look, 0167). */
+  rough?: number;
+  /** The rough water's colours (CSS colours). */
+  water?: string;
+  waterLight?: string;
+  foam?: string;
 }
 
 export interface ZonesTuning {

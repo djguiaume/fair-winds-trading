@@ -490,6 +490,10 @@ body.is-docked .objective {
 .weather-text.belt {
   color: var(--ink);
 }
+.weather-text.belt span {
+  display: block;
+  white-space: normal;
+}
 .weather-text.belt[data-squalls] {
   color: #ffb36b;
 }

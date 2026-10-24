@@ -101,7 +101,7 @@ const EDGE = 6;
  * fade straddles the outline like the wind's: half outside, half inside. Squares wholly outside
  * are left out.
  */
-function zoneGeometry(zone: WindZoneDef, glassy: number, fade: number) {
+export function zoneGeometry(zone: WindZoneDef, glassy: number, fade: number) {
   if (zone.outline.length < 3) return null;
   const outline = smoothOutline(zone.outline);
   const xs = outline.map((p) => p[0]),

@@ -1100,6 +1100,20 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     undefined,
     'How smooth and pale the water looks in this zone (0 = like open sea), 0144.',
   ),
+  'weather.zones.kinds.*.rough': num(
+    'Rough water',
+    0,
+    1,
+    0.05,
+    undefined,
+    'Dark choppy water with whitecaps and a foam edge in this zone (0 = like open sea), 0167.',
+  ),
+  'weather.zones.kinds.*.water': text('Rough water colour', 'Deep colour of the rough water.'),
+  'weather.zones.kinds.*.waterLight': text(
+    'Rough water light',
+    'Light colour of the rough water’s chop.',
+  ),
+  'weather.zones.kinds.*.foam': text('Foam colour', 'Whitecaps and the foam edge.'),
   'weather.zones.kinds.*.axis': toggle(
     'Along an axis',
     'Pull towards the nearer end of the heading line (heading or heading + 180°), not one way.',

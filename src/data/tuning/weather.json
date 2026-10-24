@@ -129,7 +129,11 @@
         "squallShare": 0.5,
         "squallGapSec": 28,
         "squallRadius": 60,
-        "squallSpeed": 7
+        "squallSpeed": 7,
+        "rough": 1,
+        "water": "#2b5266",
+        "waterLight": "#3e6a7c",
+        "foam": "#e6eef2"
       }
     }
   }

@@ -442,7 +442,7 @@ export class Hud {
   /** The storm belt near the boat (decision 0167): squalls or a lull there, and for how long. */
   private showBelt() {
     const belt = this.world.belt;
-    this.beltText.hidden = !belt;
+    if (this.beltText.hidden !== !belt) this.beltText.hidden = !belt;
     if (!belt) return;
     // About a minute or two; seconds by tens only in the last minute and a half.
     const s = belt.changeSec;
@@ -451,10 +451,22 @@ export class Hud {
         ? t('unit.minutes', { n: Math.round(s / 60) })
         : t('unit.seconds', { n: Math.max(10, Math.round(s / 10) * 10) });
     this.beltText.toggleAttribute('data-squalls', belt.squalls);
-    this.beltText.textContent = t(belt.squalls ? 'hud.beltSqualls' : 'hud.beltLull', {
+    // Two short lines, split at the dot, so it fits the compass panel even on a phone.
+    const text = t(belt.squalls ? 'hud.beltSqualls' : 'hud.beltLull', {
       name: zoneName(this.world, belt.zone),
-      time,
+      time: time.replace(' ', '\u00a0'),
     });
+    // Keep "30 s" and "2 min" on one line.
+    if (this.beltText.dataset.text !== text) {
+      this.beltText.dataset.text = text;
+      this.beltText.replaceChildren(
+        ...text.split(' · ').map((line) => {
+          const span = document.createElement('span');
+          span.textContent = line;
+          return span;
+        }),
+      );
+    }
   }
 
   setTiller(drag: { x: number; y: number; steer: number } | null) {
@@ -497,7 +509,6 @@ export class Hud {
     this.sinceForecast += dt;
     if (this.sinceForecast < 0.5) return;
     this.sinceForecast = 0;
-    this.showBelt();
     const f = windForecast(this.world);
     this.forecastText.hidden = !f;
     if (!f) return;
@@ -610,6 +621,7 @@ export class Hud {
         this.weatherText.textContent = weatherName(kind);
       }
       this.showForecast(dt);
+      this.showBelt();
 
       document.body.classList.toggle('is-docked', Boolean(this.world.trade.dockedAt));
       // Captain stats & dock button

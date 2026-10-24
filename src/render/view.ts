@@ -19,6 +19,7 @@ import {
 import { HEEL_FEEL, Heel, heelFactor } from './heel';
 import { Ocean, ShoreTextureCache, waveHeight } from './ocean';
 import { CalmWater } from './calmWater';
+import { RoughWater } from './roughWater';
 import { CurrentWater } from './currentWater';
 import { ShallowsWater } from './shallowsWater';
 import { PALETTE } from './palette';
@@ -105,6 +106,7 @@ export class GameView {
   /** Darker current water with drifting crests (decision 0140). */
   private currentWater?: CurrentWater;
   private calmWater?: CalmWater;
+  private roughWater?: RoughWater;
   private shallowsWater?: ShallowsWater;
   private readonly shores = new ShoreTextureCache();
   private streaks!: WindStreaks;
@@ -189,6 +191,11 @@ export class GameView {
       this.shores.get(world.map.islands, world.map.terrain),
     );
     this.scene.add(this.calmWater.root);
+    this.roughWater = new RoughWater(
+      world.map.windZones ?? [],
+      this.shores.get(world.map.islands, world.map.terrain),
+    );
+    this.scene.add(this.roughWater.root);
     this.shallowsWater = new ShallowsWater(world.map.terrain);
     this.scene.add(this.shallowsWater.root);
   }
@@ -270,6 +277,7 @@ export class GameView {
     for (const effects of this.qualityEffects.values()) effects.ocean.setShore(shore);
     this.currentWater?.setShore(shore);
     this.calmWater?.setShore(shore);
+    this.roughWater?.setShore(shore);
     let effects = this.qualityEffects.get(level);
     if (!effects) {
       // Ocean shader source depends on fancyWater, not the grid resolution. Share the
@@ -303,6 +311,7 @@ export class GameView {
       // including an expensive water program whose shader never samples shadows.
     }
     this.boat.setLowDetail?.(level === 'low');
+    this.stormClouds.curtains = profile.rainCurtains;
     this.profile = profile;
     this.resize(this.width, this.height);
   }
@@ -463,7 +472,7 @@ export class GameView {
       windStrength01(wind.speedKn),
     );
     const { weather } = this.world;
-    this.stormClouds.update(weather.storms, time);
+    this.stormClouds.update(weather.storms, time, this.world.boat, this.scene.fog);
     // Showers fall everywhere; a storm's downpour only under its cloud.
     const kn = wind.speedKn * TUNING.seamanship.boat.knotToUnits * 0.6;
     this.rain.update(
@@ -495,6 +504,7 @@ export class GameView {
     this.ocean.update(time, this.target);
     this.currentWater?.update(time, this.ocean, this.world.currentsOn);
     this.calmWater?.update(time, this.ocean, this.world.windZones);
+    this.roughWater?.update(time, this.ocean, this.world.windZones);
     this.shallowsWater?.update(time, this.ocean);
     this.edgeBuoys.update(time, (x, z) => waveHeight(x, z, time), this.camera);
     this.seaMarks.setQuestMarks(this.questMarks());
@@ -542,6 +552,7 @@ export class GameView {
     this.wake.dispose();
     this.currentWater?.dispose();
     this.calmWater?.dispose();
+    this.roughWater?.dispose();
     this.shallowsWater?.dispose();
     this.buoy.dispose();
     this.edgeBuoys.dispose();

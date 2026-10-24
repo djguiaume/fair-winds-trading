@@ -1,0 +1,17 @@
+{
+  "about": "Scratch east sea for the storm belt review (decision 0167): only the Stormbreak. The real east.json comes from the east fog sea thread.",
+  "id": "east",
+  "name": "East (scratch)",
+  "islands": [],
+  "ports": [],
+  "course": [],
+  "windZones": [
+    {
+      "id": "stormbreak",
+      "name": "Stormbreak",
+      "kind": "storm-belt",
+      "headingDeg": 90,
+      "outline": [[600, 230], [760, 226], [940, 232], [930, 285], [905, 340], [760, 344], [600, 340], [585, 285]]
+    }
+  ]
+}

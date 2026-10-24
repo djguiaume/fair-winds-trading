@@ -57,6 +57,7 @@ Look
   --weather  --storms           weather spells, moving storms (default off: steady breeze)
   --no-zones  --no-currents     wind zones, currents off (default on, like the game)
   --no-belt                     Settings › Storm belt off (0167)
+  --quality low|medium|high     Settings › Quality (default: the game's auto guess)
   --cards                       keep quest cards and dialogs open (default: closed, kept in a quest test)
   --wait ms                     settle time before the shot (default 1500)
   --click selector              click this before the shot (after the wait), e.g. a card's button,
@@ -148,6 +149,7 @@ export function normalise(opts) {
     storms: !!o.storms,
     zones: !o['no-zones'],
     belt: !o['no-belt'],
+    quality: o.quality ?? null,
     currents: !o['no-currents'],
     cards: o.cards ?? !!o.url,
     wait: o.wait ?? 1500,
@@ -234,6 +236,7 @@ export function seedStorage(shot) {
       storms: shot.storms,
       windZones: shot.zones,
       stormBelt: shot.belt ?? true,
+      ...(shot.quality ? { quality: shot.quality } : {}),
       currents: shot.currents,
     }),
     ...shot.storage,
