@@ -2,8 +2,9 @@ import { SAIL_STEPS, type BoatState, createBoat } from './boat';
 import { type ContractState, readContracts } from './contracts';
 import { resolveCollisions } from './collision';
 import { type Difficulty, DEFAULT_DIFFICULTY, isDifficulty } from './difficulty';
-import { GOODS, type GoodAmounts, emptyAmounts } from './goods';
+import { GOODS, type GoodAmounts, type GoodId, emptyAmounts, isGood } from './goods';
 import { type IslandHome, readHome } from './home';
+import type { MapDef } from './map';
 import { wrapPositive } from './math';
 import { type SettlementState, readSettlements } from './settlement';
 import { SHIP_CLASSES } from './ship';
@@ -41,6 +42,11 @@ export interface SaveData {
   dockedAt: string | null;
   /** Port id → current stock per good. */
   markets: Record<string, GoodAmounts>;
+  /**
+   * Port id → far goods its workshop has crafted and not yet sold (decision 0146). Optional:
+   * older saves and ports without a far workshop have none.
+   */
+  workshops?: Record<string, Partial<Record<GoodId, number>>>;
   /** Delivery orders (decision 0028). Optional: older saves get fresh orders. */
   contracts?: ContractState;
   /** Discovered ports and shipwright standing (decision 0048). Optional: older saves start fresh. */
@@ -66,7 +72,11 @@ export type SaveStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 export function serializeWorld(world: World): SaveData {
   const { captain, markets, dockedAt } = world.trade;
   const stocks: Record<string, GoodAmounts> = {};
-  for (const [id, m] of Object.entries(markets)) stocks[id] = { ...m.stock };
+  const workshops: Record<string, Partial<Record<GoodId, number>>> = {};
+  for (const [id, m] of Object.entries(markets)) {
+    stocks[id] = { ...m.stock };
+    if (m.workshop) workshops[id] = { ...m.workshop };
+  }
   const ships: Record<string, UpgradeLevels> = {};
   for (const [id, levels] of Object.entries(captain.ships)) ships[id] = { ...levels };
   return {
@@ -88,6 +98,7 @@ export function serializeWorld(world: World): SaveData {
     hullDamage: { ...captain.hullDamage },
     dockedAt,
     markets: stocks,
+    ...(Object.keys(workshops).length ? { workshops } : {}),
     contracts: structuredClone(world.trade.contracts),
     progress: structuredClone(world.trade.progress),
     settlements: structuredClone(world.trade.settlements),
@@ -111,6 +122,21 @@ function readAmounts(v: unknown, integers: boolean): GoodAmounts | null {
     out[g] = n;
   }
   return out;
+}
+
+/** Far workshops' crafted units (decision 0146): known ports and goods, whole units ≥ 0. */
+function readWorkshops(v: unknown, map: MapDef): SaveData['workshops'] {
+  if (!isObj(v)) return undefined;
+  const out: NonNullable<SaveData['workshops']> = {};
+  for (const port of map.ports) {
+    const w = v[port.id];
+    if (!isObj(w)) continue;
+    const goods: Partial<Record<GoodId, number>> = {};
+    for (const [g, n] of Object.entries(w))
+      if (isGood(g) && isNum(n) && n > 0) goods[g] = Math.floor(n);
+    out[port.id] = goods;
+  }
+  return Object.keys(out).length ? out : undefined;
 }
 
 function readLevels(v: unknown): UpgradeLevels | null {
@@ -167,6 +193,7 @@ export function validateSave(raw: unknown, world: World): SaveData | null {
       if (stock) markets[port.id] = stock;
     }
   }
+  const workshops = readWorkshops(raw.workshops, world.map);
   const settlements = readSettlements(raw.settlements, world.map);
   const difficulty = isDifficulty(raw.difficulty) ? raw.difficulty : DEFAULT_DIFFICULTY;
   return {
@@ -197,6 +224,7 @@ export function validateSave(raw: unknown, world: World): SaveData | null {
     hullDamage: readHullDamage(raw.hullDamage, ships),
     dockedAt: dockedAt as string | null,
     markets,
+    ...(workshops ? { workshops } : {}),
     contracts: readContracts(raw.contracts, world.map, settlements),
     progress: readProgress(raw.progress, world.map),
     settlements,
@@ -246,6 +274,11 @@ export function applySave(world: World, data: SaveData): void {
   for (const [id, stock] of Object.entries(data.markets)) {
     const market = trade.markets[id];
     if (market) market.stock = { ...stock };
+  }
+  // Only goods the workshop still crafts come back (decision 0146).
+  for (const [id, crafted] of Object.entries(data.workshops ?? {})) {
+    const workshop = trade.markets[id]?.workshop;
+    if (workshop) for (const g of Object.keys(workshop) as GoodId[]) workshop[g] = crafted[g] ?? 0;
   }
   trade.dockedAt = data.dockedAt;
   if (data.contracts) trade.contracts = readContracts(data.contracts, world.map, trade.settlements);

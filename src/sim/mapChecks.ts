@@ -4,7 +4,7 @@ import { piersOf, solidTo } from './collision';
 import { CurrentField, laneShape } from './currents';
 import { outlineCrosses, smoothOutline } from './flowShapes';
 import { TUNING } from '../data/tuning';
-import { isGood } from './goods';
+import { isFar, isGood } from './goods';
 import { islandCoasts, islandPoint } from './islandLayout';
 import { landmarkOf } from '../data/islands';
 import { type IslandDef, type MapDef, type PortDef, SEA_MARK_TYPES } from './map';
@@ -238,7 +238,9 @@ const list = (names: string[]) =>
 function portGoods(port: PortDef) {
   // What a quest can change it to counts too (decision 0130).
   const all = [port, ...Object.values(port.afterQuest ?? {})];
-  const lw = all.flatMap((p) => Object.values(p.levelWants ?? {}).flat());
+  const lw = all.flatMap((p) =>
+    [p.levelWants, p.levelWantsMade].flatMap((byLevel) => Object.values(byLevel ?? {}).flat()),
+  );
   const lp = all.flatMap((p) => Object.values(p.levelProduces ?? {}).flat());
   return {
     made: [...all.flatMap((p) => p.produces ?? []), ...lp] as string[],
@@ -265,6 +267,13 @@ export function quickChecks(map: MapDef): MapCheck[] {
       problems.push(`${port.name} sits on missing island "${port.islandId}"`);
     if (port.level !== undefined && !(port.level >= 1 && port.level <= MAX_SETTLEMENT_LEVEL))
       problems.push(`${port.name} level ${port.level} (1 to ${MAX_SETTLEMENT_LEVEL})`);
+    if (
+      port.maxLevel !== undefined &&
+      !(port.maxLevel >= (port.level ?? 1) && port.maxLevel <= MAX_SETTLEMENT_LEVEL)
+    )
+      problems.push(
+        `${port.name} top level ${port.maxLevel} (its level to ${MAX_SETTLEMENT_LEVEL})`,
+      );
     const { made, wanted } = portGoods(port);
     for (const good of [...made, ...wanted])
       if (!isGood(good)) problems.push(`${port.name}: unknown good "${good}"`);
@@ -307,10 +316,11 @@ export function quickChecks(map: MapDef): MapCheck[] {
       : pass('marks', 'sea marks in clear water', 'warning'),
   );
 
-  // Trade: every good someone wants is made somewhere and every good made has a buyer.
+  // Trade: every good someone wants is made somewhere and every good made has a buyer. The ring's
+  // port towns may wait for far goods from seas this map doesn't have yet (decision 0146).
   const made = new Set(map.ports.flatMap((p) => portGoods(p).made));
   const wanted = new Set(map.ports.flatMap((p) => portGoods(p).wanted));
-  const noMaker = [...wanted].filter((g) => !made.has(g));
+  const noMaker = [...wanted].filter((g) => !made.has(g) && !(isGood(g) && isFar(g)));
   const noBuyer = [...made].filter((g) => !wanted.has(g));
   out.push(
     noMaker.length || noBuyer.length
@@ -493,16 +503,24 @@ export function flowChecks(map: MapDef): MapCheck[] {
 
 /**
  * The slow checks: a sloop can reach every port from the start with the wind from the map's
- * prevailing direction and from the opposite side, and every pair of charted ports connects.
+ * prevailing direction and from the opposite side, and every pair of charted ports connects. With
+ * currents, at the strongest level's speed (decision 0149): a current can only make a route harder
+ * to find, never easier, so a route found there is there on every level and with them off.
  */
 export function routeChecks(map: MapDef): MapCheck[] {
   const winds = [map.wind.fromDeg, (map.wind.fromDeg + 180) % 360];
+  const strongest = Math.max(0, ...Object.values(TUNING.difficulty.levels).map((l) => l.currents));
+  const field = map.currents?.length && strongest > 0 ? new CurrentField(map) : null;
+  const sample = { east: 0, north: 0, id: '' };
+  const water = field ? (x: number, y: number) => field.at(x, y, strongest, sample) : undefined;
+  const route = (a: Point, b: Point, wind: number) => sailRoute(map, a, b, wind, 11, water);
+  const withCurrents = field ? ', against the strongest currents' : '';
   const ports = map.ports.filter((p) => map.islands.some((i) => i.id === p.islandId));
   const unreachable: string[] = [];
   let slowest = 0;
   for (const port of ports)
     for (const wind of winds) {
-      const plan = sailRoute(map, map.start, harbourApproach(map, port), wind);
+      const plan = route(map.start, harbourApproach(map, port), wind);
       if (!plan) unreachable.push(`${port.name} (wind ${wind}°)`);
       else slowest = Math.max(slowest, plan.seconds);
     }
@@ -510,16 +528,19 @@ export function routeChecks(map: MapDef): MapCheck[] {
   const cut: string[] = [];
   for (const a of charted)
     for (const b of charted)
-      if (a !== b && !sailRoute(map, harbourApproach(map, a), harbourApproach(map, b), winds[0]!))
+      if (a !== b && !route(harbourApproach(map, a), harbourApproach(map, b), winds[0]!))
         cut.push(`${a.name} → ${b.name}`);
   return [
     unreachable.length
       ? fail('reach', `no sloop route from the start to ${list(unreachable)}`)
-      : pass('reach', `every port reachable by a sloop (longest ${Math.round(slowest)} s)`),
+      : pass(
+          'reach',
+          `every port reachable by a sloop${withCurrents} (longest ${Math.round(slowest)} s)`,
+        ),
     cut.length
-      ? fail('pairs', `no route ${list(cut)}`)
-      : pass('pairs', 'every pair of charted ports connects'),
-    ...deepChecks(map, ports),
+      ? fail('pairs', `no route ${list(cut)}${withCurrents}`)
+      : pass('pairs', `every pair of charted ports connects${withCurrents}`),
+    ...deepChecks(map, ports, water),
   ];
 }
 
@@ -531,12 +552,16 @@ export const DEEPEST_SHIP = Object.values(SHIP_CLASSES).reduce((a, b) => (b.draf
  * ship the long way round, so no story step or trade ever needs a shallow keel. The hull is the
  * deepest ship's draft with a sloop's turning room: the check is about the passages, not width.
  */
-function deepChecks(map: MapDef, ports: PortDef[]): MapCheck[] {
+function deepChecks(
+  map: MapDef,
+  ports: PortDef[],
+  water?: (x: number, y: number) => { east: number; north: number },
+): MapCheck[] {
   if (!(map.terrain ?? []).some((t) => t.kind === 'shallows')) return [];
   const hull = { radius: SLOOP.radius, draft: DEEPEST_SHIP.draft };
   const wind = map.wind.fromDeg;
   const cut = ports
-    .filter((p) => !sailRoute(map, map.start, harbourApproach(map, p), wind, 11, undefined, hull))
+    .filter((p) => !sailRoute(map, map.start, harbourApproach(map, p), wind, 11, water, hull))
     .map((p) => p.name);
   return [
     cut.length

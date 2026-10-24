@@ -19,7 +19,9 @@ import {
   quoteSell,
   setMarketLevel,
   stepMarket,
+  takeStock,
   trades,
+  workshopReceives,
 } from './market';
 import { createRng } from './rng';
 import {
@@ -515,7 +517,7 @@ export function buy(trade: TradeState, good: GoodId, qty: number): TradeResult {
   if (cost > trade.captain.gold) return fail('not-enough-gold');
   trade.captain.gold -= cost;
   trade.captain.cargo[good] += qty;
-  market.stock[good] -= qty;
+  takeStock(market, good, qty);
   return { ok: true, gold: cost };
 }
 
@@ -533,6 +535,7 @@ export function sell(trade: TradeState, good: GoodId, qty: number, map?: MapDef)
   trade.captain.gold += income;
   trade.captain.cargo[good] -= qty;
   market.stock[good] += qty;
+  workshopReceives(market, good, qty);
   if (map && wantsAt(map, trade, market.portId).includes(good)) {
     addGrowth(trade, market.portId, qty);
     addRare(trade, market.portId, good, qty);

@@ -101,6 +101,13 @@ export interface PortDef {
   /** Specialized goods the town buys once some town makes them (decision 0063). */
   wantsMade?: GoodId[];
   /**
+   * Made goods the town buys from a level on, once some port makes them, keyed like `levelWants`:
+   * the ring's port towns buy the far goods crafted in the biomes (decision 0146).
+   */
+  levelWantsMade?: Partial<Record<string, GoodId[]>>;
+  /** The highest level the town grows to; default the top level. Outposts stop at 3 (0146). */
+  maxLevel?: number;
+  /**
    * What the town trades once a quest is done (decision 0130), by quest id: each field given takes
    * the place of the port's own (e.g. `levelProduces` with its specialty a level earlier).
    */
@@ -109,7 +116,16 @@ export interface PortDef {
 
 /** The trade fields a quest can change in a port (decision 0130). */
 export type PortTradeChange = Partial<
-  Pick<PortDef, 'produces' | 'wants' | 'levelProduces' | 'levelWants' | 'wantsMade'>
+  Pick<
+    PortDef,
+    | 'produces'
+    | 'wants'
+    | 'levelProduces'
+    | 'levelWants'
+    | 'wantsMade'
+    | 'levelWantsMade'
+    | 'maxLevel'
+  >
 >;
 
 /** The kinds of sea mark (decisions 0130, 0131): channel buoys, boats, a light on the chart. */

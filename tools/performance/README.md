@@ -24,3 +24,7 @@ Each report includes per-run median/p95/p99/max frame intervals, renderer-call C
 Setup frames are reported separately in `eventFrameMs`; steady distributions exclude setup and the first partial frame. Event intervals include browser automation scheduling overhead, so use the explicit synchronous change timings to interpret spikes. `npm run perf:test` checks the reporting statistics.
 
 Timings and budgets are **reporting only**; they do not fail CI. Missing scenarios, browser errors and broken selectors do fail the command, with completed runs retained in the output. Compare repeat distributions, not one lucky maximum. GPU, browser version, drawing buffer, quality settings and revision are recorded. Headless desktop results establish a regression baseline and do not predict tablet frame rates: repeat on target hardware.
+
+## On a real device
+
+This tool cannot drive a tablet. Open the game with `?perf` (or `?map=stress&perf`) on the device instead, sail for a few minutes and press **Copy** on the readout (decision 0148). The report labels every number; thresholds are in `src/data/perf-readout.json`.
