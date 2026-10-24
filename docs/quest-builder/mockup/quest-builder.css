@@ -1,0 +1,736 @@
+/* Quest builder mockup (decision 0142): the map editor's look (editor.css) with a quest layout. */
+:root {
+  --navy-solid: #123246;
+  --brass-lo: #a8802e;
+  --green: #7fd18f;
+}
+body {
+  height: 100vh;
+  overflow: hidden;
+}
+.icon-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-height: 0;
+}
+.qb-dim {
+  color: var(--ink-dim);
+}
+.qb-edited {
+  color: var(--amber);
+}
+.qb-short {
+  display: none;
+}
+code {
+  font-size: 12px;
+  color: var(--brass-hi);
+}
+.qb-k {
+  font: 700 13px/1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-right: 4px;
+}
+
+/* --- Desk layout: quests and steps | chart | panel --------------------------------------- */
+.qb-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 300px 1fr 380px;
+}
+.qb-left {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  border-right: 1px solid rgba(232, 196, 106, 0.25);
+  padding: 8px 12px 12px;
+}
+.qb-modes {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.qb-modes button {
+  flex: 1;
+  font-size: 14px;
+  padding: 4px;
+}
+.qb-modes button[aria-pressed='true'],
+.qb-tabs button[aria-pressed='true'],
+.qb-seg button[aria-pressed='true'],
+.qb-rail button[aria-pressed='true'],
+.qb-moods button[aria-pressed='true'] {
+  background: #2b5a73;
+  border-color: var(--brass-hi);
+  color: var(--brass-hi);
+}
+.qb-left h2,
+.qb-dialog h2 {
+  margin: 6px 0;
+  font: 700 17px/1 var(--display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+.qb-left h2 small {
+  font: 500 13px var(--body);
+  text-transform: none;
+  color: var(--ink-dim);
+  margin-left: 6px;
+}
+.qb-quests ul,
+.qb-steps ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.qb-quests li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 6px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+.qb-quests li.on {
+  background: #183e55;
+  border-color: var(--brass-line);
+}
+.qb-quests li.dim,
+.qb-node.dim {
+  opacity: 0.55;
+}
+.qb-quests li b {
+  display: block;
+  font-size: 14px;
+}
+.qb-quests li small,
+.qb-node small {
+  display: block;
+  color: var(--ink-dim);
+  font-size: 12px;
+}
+.qb-face {
+  flex: none;
+  display: grid;
+  place-items: center;
+}
+.qb-face svg {
+  display: block;
+}
+.qb-face i {
+  font-style: normal;
+  width: 30px;
+  text-align: center;
+  color: var(--brass);
+}
+.qb-tag {
+  margin-left: auto;
+  font: 700 11px/1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 6px;
+  border-radius: 6px;
+  font-style: normal;
+}
+.qb-tag.main {
+  background: var(--brass);
+  color: var(--outline);
+}
+.qb-tag.tutorial {
+  border: 1px solid var(--ink-dim);
+  color: var(--ink-dim);
+}
+.qb-add {
+  margin: 6px 0 4px;
+  width: 100%;
+  border-style: dashed;
+  background: transparent;
+  font-size: 14px;
+}
+.qb-steps {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(232, 196, 106, 0.25);
+}
+.qb-start {
+  font-size: 13px;
+  color: var(--ink-dim);
+  padding: 6px 8px;
+  border-left: 3px solid var(--brass-line);
+  margin: 6px 0;
+}
+.qb-start b {
+  color: var(--ink);
+}
+.qb-done {
+  border-left-color: var(--green-ink);
+}
+.qb-after {
+  font-size: 12.5px;
+  color: var(--ink-dim);
+  padding: 4px 8px;
+}
+.qb-steps li {
+  display: flex;
+  gap: 8px;
+  padding: 7px 8px;
+  margin: 5px 0;
+  border: 1px solid rgba(238, 243, 244, 0.18);
+  border-radius: 10px;
+  background: #0f2a3b;
+}
+.qb-steps li.on {
+  border-color: var(--brass-hi);
+  background: #183e55;
+  box-shadow: 0 0 0 1px var(--brass-hi) inset;
+}
+.qb-no {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--brass);
+  color: var(--outline);
+  font: 700 15px/1 var(--display);
+}
+.qb-steps li b {
+  display: block;
+  font-size: 14px;
+}
+.qb-goal {
+  display: block;
+  color: var(--ink-dim);
+  font-size: 12px;
+  margin: 2px 0 4px;
+}
+.qb-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.qb-flags em,
+.qb-gold {
+  font: 500 11.5px/1 var(--body);
+  font-style: normal;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: #24506a;
+}
+.qb-gold {
+  background: #4a3b12;
+  color: var(--brass-hi);
+}
+
+/* --- Chart ---------------------------------------------------------------------------------- */
+.qb-centre {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  min-width: 0;
+  min-height: 0;
+}
+.qb-centre .ed-chart {
+  grid-column: 2;
+}
+.qb-tools {
+  padding: 10px 6px;
+}
+.qb-map {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.qb-chart .ed-toggles {
+  left: 10px;
+}
+.qb-overlay .qb-ghost {
+  fill: rgba(255, 255, 255, 0.08);
+  stroke: rgba(255, 255, 255, 0.45);
+  stroke-dasharray: 2 1.5;
+  stroke-width: 0.6;
+}
+.qb-overlay .qb-run {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.4);
+  stroke-width: 0.8;
+  stroke-dasharray: 3 2;
+}
+.qb-overlay .qb-order {
+  fill: none;
+  stroke: var(--brass-hi);
+  stroke-width: 1.3;
+  stroke-dasharray: 3 2;
+}
+.qb-overlay .qb-ring {
+  fill: rgba(232, 196, 106, 0.18);
+  stroke: var(--brass-hi);
+  stroke-width: 1.4;
+}
+.qb-overlay .qb-ring.pick {
+  fill: rgba(232, 196, 106, 0.32);
+  stroke: #fff;
+  stroke-width: 1.8;
+}
+.qb-overlay .qb-handle {
+  fill: #fff;
+  stroke: var(--outline);
+  stroke-width: 0.4;
+}
+.qb-overlay .qb-size {
+  fill: var(--brass);
+  stroke: var(--outline);
+  stroke-width: 0.4;
+}
+.qb-overlay .qb-mark {
+  stroke: var(--outline);
+  stroke-width: 0.6;
+}
+.qb-mark.buoy-red {
+  fill: #e5533f;
+}
+.qb-mark.buoy-green {
+  fill: #3fb36a;
+}
+.qb-mark.boat {
+  fill: #c98a4a;
+}
+.qb-l {
+  font-family: var(--display);
+  font-weight: 700;
+  fill: #fff;
+  stroke: var(--outline);
+  paint-order: stroke;
+  text-anchor: middle;
+}
+.qb-l.ghost {
+  fill: rgba(255, 255, 255, 0.75);
+}
+.qb-l.num {
+  fill: var(--brass-hi);
+}
+.qb-l.tip {
+  text-anchor: start;
+  fill: #fff;
+}
+.qb-l.giver {
+  fill: var(--brass-hi);
+}
+
+/* --- Panel ---------------------------------------------------------------------------------- */
+.qb-panel {
+  min-width: 0;
+}
+.qb-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 10px 14px 0;
+}
+.qb-tabs button {
+  flex: 1;
+  border-radius: 8px 8px 0 0;
+}
+.qb-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 12px 14px;
+  border-top: 1px solid var(--brass-line);
+}
+.qb-scroll h2:first-child {
+  margin-top: 0;
+}
+.qb-scroll .ed-row {
+  grid-template-columns: 92px 1fr;
+}
+.qb-cond {
+  border: 1px solid var(--brass-line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin: 8px 0;
+  background: #0f2a3b;
+}
+.qb-cond-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.qb-kind {
+  flex: 1;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--brass-line);
+  background: var(--field);
+}
+.qb-pt {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 4px 0;
+  color: var(--ink-dim);
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+.qb-pt.on {
+  background: #24506a;
+}
+.qb-pt b {
+  color: var(--brass-hi);
+  width: 14px;
+}
+.qb-pt input {
+  width: 58px;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: 5px;
+  background: var(--field);
+}
+.qb-pt button {
+  padding: 1px 6px;
+  font-size: 13px;
+}
+.qb-seg {
+  display: inline-flex;
+}
+.qb-seg button {
+  border-radius: 0;
+  font-size: 14px;
+  padding: 3px 10px;
+}
+.qb-seg button:first-child {
+  border-radius: 8px 0 0 8px;
+}
+.qb-seg button:last-child {
+  border-radius: 0 8px 8px 0;
+}
+.qb-checks {
+  max-height: 32%;
+}
+.qb-moods {
+  display: flex;
+  gap: 6px;
+  margin: 6px 0;
+}
+.qb-moods button {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 2px;
+  font-size: 13px;
+}
+
+/* --- Card preview -------------------------------------------------------------------------- */
+.qb-preview {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(circle at 50% 30%, #2a7f99, #12455c);
+  padding: 54px 18px 14px;
+}
+.qb-pv-toggles {
+  justify-content: flex-start;
+  gap: 10px;
+}
+.qb-card-host {
+  position: relative;
+  padding-top: 70px;
+}
+dialog.quest-card.qb-card {
+  position: relative;
+  inset: auto;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  max-height: none;
+  border-radius: 14px;
+  border-bottom: 1.5px solid var(--brass-line);
+}
+.qb-card .quest-body {
+  max-height: none;
+}
+.qb-text {
+  margin-top: 16px;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 6px;
+  background: rgba(9, 28, 41, 0.92);
+  border: 1px solid var(--brass-line);
+  border-radius: 12px;
+  padding: 6px;
+}
+.qb-text th {
+  font: 700 14px/1 var(--display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--brass);
+  text-align: left;
+  vertical-align: top;
+  padding-top: 6px;
+}
+.qb-text td {
+  width: 45%;
+}
+.qb-text input,
+.qb-text textarea {
+  width: 100%;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--field);
+  color: var(--ink);
+  font: 500 14px/1.35 var(--body);
+  resize: none;
+}
+
+/* --- Story graph ---------------------------------------------------------------------------- */
+.qb-story {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px) 0 0 / 22px 22px,
+    #12384c;
+}
+.qb-links {
+  position: absolute;
+  left: 6px;
+  top: 40px;
+  width: 900px;
+  height: 640px;
+  overflow: visible;
+}
+.qb-links path {
+  fill: none;
+  stroke: var(--brass-line);
+  stroke-width: 2.5;
+}
+.qb-node {
+  position: absolute;
+  margin-left: 6px;
+  margin-top: 40px;
+  width: 160px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(238, 243, 244, 0.25);
+  border-radius: 12px;
+  background: #0d2433;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+.qb-node.on {
+  border-color: var(--brass-hi);
+  box-shadow: 0 0 0 2px var(--brass-hi);
+}
+.qb-node b {
+  font-size: 14px;
+  display: block;
+}
+.qb-node .qb-tag {
+  position: absolute;
+  top: -9px;
+  right: 8px;
+}
+.qb-pips {
+  display: flex;
+  gap: 3px;
+  margin-top: 4px;
+}
+.qb-pips i {
+  width: 14px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--brass);
+}
+.qb-end {
+  position: absolute;
+  left: 552px;
+  top: 285px;
+}
+.qb-legend {
+  position: absolute;
+  left: 30px;
+  right: 30px;
+  bottom: 10px;
+  color: var(--ink-dim);
+  font-size: 13px;
+}
+
+/* --- Play dialog ---------------------------------------------------------------------------- */
+.qb-veil {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 14, 20, 0.6);
+}
+.qb-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 560px;
+  padding: 18px 22px;
+  border: 1.5px solid var(--brass-line);
+  border-radius: 14px;
+  background: #0d2433;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+.qb-dialog h3 {
+  margin: 12px 0 4px;
+  font: 700 15px/1 var(--display);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--brass);
+}
+.qb-pick label {
+  display: block;
+  padding: 5px 8px;
+  border-radius: 8px;
+}
+.qb-pick label.on {
+  background: #183e55;
+  outline: 1px solid var(--brass-line);
+}
+.qb-pick b {
+  color: var(--brass-hi);
+}
+.qb-setup {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 6px;
+  color: var(--green-ink);
+}
+.qb-bar-demo {
+  margin-top: 10px;
+}
+.qb-testbar {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #3a2a07;
+  border: 1px dashed var(--brass);
+  font: 700 13px/1.2 var(--display);
+  letter-spacing: 0.04em;
+}
+.qb-testbar button {
+  padding: 2px 8px;
+  font-size: 13px;
+}
+.qb-testbar button:first-of-type {
+  margin-left: auto;
+}
+.qb-right {
+  justify-content: flex-end;
+}
+
+/* --- Phone landscape ------------------------------------------------------------------------ */
+.qb-land {
+  grid-template-columns: 46px 1fr 300px;
+}
+.qb-land .qb-centre {
+  grid-template-columns: 1fr;
+}
+.qb-land .ed-chart {
+  grid-column: 1;
+}
+.qb-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 5px;
+  border-right: 1px solid rgba(232, 196, 106, 0.25);
+}
+.qb-rail button {
+  height: 34px;
+  padding: 0;
+}
+
+/* --- Phone portrait ------------------------------------------------------------------------- */
+.qb-pickers {
+  display: flex;
+  gap: 6px;
+  padding: 6px 10px;
+}
+.qb-pickers select {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--brass-line);
+  background: var(--field);
+}
+.qb-port-chart {
+  height: 340px;
+  flex: none;
+  grid-template-columns: 1fr;
+}
+.qb-port-chart .ed-chart {
+  grid-column: 1;
+}
+.qb-port-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  border-left: 0;
+}
+.qb-port-card {
+  flex: none;
+  padding: 10px 8px 10px;
+}
+.qb-port-card .qb-card-host {
+  padding-top: 64px;
+}
+body[data-view='portrait-card'] .qb-port-panel .qb-moods svg {
+  width: 52px;
+  height: 52px;
+}
+@media (max-width: 960px) {
+  .qb-long {
+    display: none;
+  }
+  .qb-short {
+    display: inline;
+  }
+  .ed-top {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+  .ed-top h1 {
+    font-size: 18px;
+  }
+  .ed-actions button {
+    padding: 4px 8px;
+    font-size: 14px;
+  }
+  .ed-zoom {
+    display: none;
+  }
+}
+@media (max-width: 500px) {
+  .ed-file {
+    display: none;
+  }
+  .qb-tabs {
+    padding: 6px 10px 0;
+  }
+}
+.qb-l.gull {
+  fill: #fff;
+}

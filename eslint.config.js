@@ -11,6 +11,7 @@ export default tseslint.config(
       'docs/reviews/*/src',
       'docs/reviews/**/src',
       'docs/art',
+      'docs/quest-builder/mockup',
       'docs/roadmap-image',
       'tools/ship-models',
     ],
