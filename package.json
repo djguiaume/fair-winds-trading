@@ -16,6 +16,7 @@
     "format": "prettier --write .",
     "fw": "node tools/fw/fw.mjs",
     "check": "node tools/fw/fw.mjs check",
+    "balance": "node tools/fw/fw.mjs balance",
     "adr": "node tools/fw/fw.mjs adr"
   },
   "dependencies": {
