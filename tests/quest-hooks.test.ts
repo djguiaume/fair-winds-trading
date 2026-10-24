@@ -15,7 +15,6 @@ import { type QuestDef, QUESTS, QuestBook, checkQuestHooks, checkQuests } from '
 import { madeGoods, portNow, producesAt } from '../src/sim/settlement';
 import { SLOOP, SHIP_CLASSES } from '../src/sim/ship';
 import { checkIsland } from '../src/sim/islandChecks';
-import { TUTORIAL_QUEST } from '../src/sim/tutorial';
 import { createWorld } from '../src/sim/world';
 import { islandCheckKit } from '../src/render/models/towns';
 import { stepMarkers } from '../src/ui/questView';
@@ -99,10 +98,8 @@ describe('after:/before: tags', () => {
   });
 
   it('the shipped quests, islands and map hold together', () => {
-    expect(
-      checkQuestHooks(PHASE1_MAP, Object.values(ISLAND_DESIGNS), QUESTS, [TUTORIAL_QUEST.id]),
-    ).toEqual([]);
-    expect(checkQuests(QUESTS, PHASE1_MAP, [TUTORIAL_QUEST.id])).toEqual([]);
+    expect(checkQuestHooks(PHASE1_MAP, Object.values(ISLAND_DESIGNS), QUESTS)).toEqual([]);
+    expect(checkQuests(QUESTS, PHASE1_MAP)).toEqual([]);
   });
 });
 

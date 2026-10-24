@@ -5,11 +5,19 @@ import { resetTuning } from '../src/data/tuning';
 import { setLanguage, t } from '../src/i18n';
 import { DEFAULT_WEATHER } from '../src/sim/wind';
 import { DIFFICULTIES, easier, isDifficulty, knobs, weatherFor } from '../src/sim/difficulty';
-import { GOODS, type GoodId } from '../src/sim/goods';
+import { GOODS as ALL_GOODS, type GoodId, isFar } from '../src/sim/goods';
+
+// The far goods (decision 0146) came after this check and trade nowhere on the ring: the random
+// player picks from the goods it picked from before.
+const GOODS = ALL_GOODS.filter((g) => !isFar(g));
 import { createRng } from '../src/sim/rng';
 import { SLOOP } from '../src/sim/ship';
-import { Tutorial } from '../src/sim/tutorial';
+import { pointOf, type Screen } from '../src/sim/questLibrary';
+import { QUESTS, QuestBook, readQuests } from '../src/sim/quests';
 import { createWorld } from '../src/sim/world';
+import { lessonFor } from '../src/ui/questView';
+
+const TUTORIAL = 'first-voyage';
 
 /*
  * Decision 0113 moved the town levels, the difficulty list, the tutorial steps and the music theme
@@ -22,6 +30,9 @@ import { createWorld } from '../src/sim/world';
  * before the chart, Rook taken home to Saltmere), so the random sessions now walk new lessons.
  * Retaken again by decision 0139: coming alongside the wreck counts from 20 units instead of 16 and
  * not while grinding on the reef, and the sails lesson's text changed (raise, then steer).
+ * Retaken by decision 0151: the tutorial is an ordinary quest, so the random player now moves the
+ * voyage (course, dock, cargo, chart open, helm) and the quest book watches it; the session also
+ * saves and loads the lesson with the voyage.
  */
 
 afterEach(() => {
@@ -84,20 +95,14 @@ describe('plays the same after moving levels, tutorial and music to data (decisi
     const lines: string[] = [];
     for (let run = 0; run < 300; run++) lines.push(...tutorialSession(run));
     expect(lines.length).toBeGreaterThan(60000);
-    expect(hash(lines.join('\n'))).toBe('d852a308');
+    expect(hash(lines.join('\n'))).toBe('fcc35170');
   });
 });
 
-/** A random player poking at the tutorial: every call it reacts to, in random order. */
+/** A random player poking at the tutorial: every move it reacts to, in random order. */
 function tutorialSession(seed: number): string[] {
   const rng = createRng(1000 + seed);
   const pick = <T>(list: readonly T[]): T => list[Math.floor(rng() * list.length)]!;
-  const values = new Map<string, string>();
-  const storage = {
-    getItem: (k: string) => values.get(k) ?? null,
-    setItem: (k: string, v: string) => void values.set(k, v),
-    removeItem: (k: string) => void values.delete(k),
-  };
   const world = createWorld(PHASE1_MAP, SLOOP);
   const harbours = Object.fromEntries(
     PHASE1_MAP.ports.map((p) => {
@@ -106,69 +111,71 @@ function tutorialSession(seed: number): string[] {
     }),
   );
   const ports = PHASE1_MAP.ports.map((p) => p.id);
-  let tutorial = new Tutorial(world, harbours, storage, rng() < 0.5);
+  let screen: Screen = 'sea';
+  const bookFor = () => new QuestBook(world, QUESTS, { nightOk: () => true, screen: () => screen });
+  let quests = bookFor();
+  const wreck = pointOf(PHASE1_MAP, 'wreck');
   const out: string[] = [];
   const snap = (what: string) => {
-    const l = tutorial.isActive || tutorial.status === 'completed' ? tutorial.lesson : null;
+    const p = quests.progress(TUTORIAL);
     out.push(
       JSON.stringify([
         what,
-        tutorial.status,
-        tutorial.step,
-        tutorial.origin,
-        tutorial.delivery,
-        tutorial.good,
-        tutorial.pointerPort,
-        tutorial.pointerGood,
-        tutorial.finishedNotice,
-        l,
+        p?.step ?? null,
+        p?.vars ?? null,
+        lessonFor(quests, harbours),
         world.destination?.portId ?? null,
-        world.stormHolds,
+        quests.holdsStorms,
+        quests.tracked ?? null,
       ]),
     );
   };
   // The ports the lesson is about, so a random player often does the right thing.
   const lessonPorts = () =>
-    [tutorial.origin, tutorial.delivery, tutorial.pointerPort].filter((p): p is string => !!p);
+    [
+      ...Object.values(quests.progress(TUTORIAL)?.vars ?? {}),
+      lessonFor(quests, harbours)?.port,
+    ].filter((p): p is string => !!p && ports.includes(p));
   const cargoGood = (): GoodId | null =>
     GOODS.find((g) => world.trade.captain.cargo[g] > 0) ?? null;
   for (let i = 0; i < 220; i++) {
     const r = rng();
     let what: string;
-    if (r < 0.015 || (r < 0.08 && !tutorial.isActive)) {
-      tutorial.start();
+    if (r < 0.015 || (r < 0.08 && !quests.isRunning(TUTORIAL))) {
+      quests.ask(TUTORIAL);
       what = 'start';
     } else if (r < 0.018) {
-      tutorial.skip();
+      quests.drop(TUTORIAL);
       what = 'skip';
     } else if (r < 0.07) {
-      const resumed = rng() < 0.7;
-      tutorial = new Tutorial(world, harbours, storage, resumed);
-      tutorial.resume();
-      what = `reload ${resumed}`;
+      // Saved and loaded: the lesson is part of the voyage.
+      world.trade.quests = readQuests(JSON.parse(JSON.stringify(world.trade.quests)), world.map);
+      quests = bookFor();
+      quests.check();
+      what = 'reload';
     } else if (r < 0.12) {
-      tutorial.chartOpened();
-      what = 'chart';
+      screen = screen === 'chart' ? 'sea' : 'chart';
+      quests.check();
+      what = `screen ${screen}`;
     } else if (r < 0.24) {
       if (rng() < 0.2) world.destination = null;
       else {
         const id = rng() < 0.05 ? 'nowhere' : pick([...ports, ...lessonPorts()]);
         world.destination = { portId: id, label: id, x: 0, y: 0 };
       }
-      tutorial.destinationSelected();
+      quests.check();
       what = `pick ${world.destination?.portId ?? '-'}`;
     } else if (r < 0.32) {
-      tutorial.continueLesson();
+      quests.choose(TUTORIAL, 'continue');
       what = 'continue';
     } else if (r < 0.44) {
       world.trade.dockedAt =
         rng() < 0.3 ? null : pick([...ports, ...lessonPorts(), ...lessonPorts()]);
-      tutorial.observe();
+      quests.check();
       what = `dock ${world.trade.dockedAt}`;
     } else if (r < 0.62) {
       world.boat.speedKn = rng() * 3;
       // The prologue (decision 0127): often somewhere near the wreck.
-      const wreck = tutorial.wreck;
       const nearWreck = wreck !== null && rng() < 0.4;
       if (nearWreck) {
         world.boat.x = wreck.x + rng() * 40;
@@ -176,27 +183,23 @@ function tutorialSession(seed: number): string[] {
         world.boat.speedKn = rng() * 2.5;
       }
       const controls = { steer: rng() * 2 - 1, sailStep: Math.floor(rng() * 4) };
-      tutorial.observe(controls, rng() * (nearWreck ? 4 : 0.5));
+      const seconds = rng() * (nearWreck ? 4 : 0.5);
+      for (let t = 0; t < seconds; t += 1 / 30) quests.update(1 / 30, controls);
       what = `sail ${controls.sailStep}`;
     } else if (r < 0.76) {
       const good = pick(GOODS);
       world.trade.captain.cargo[good] += 1 + Math.floor(rng() * 3);
-      const told = rng() < 0.9 ? good : null;
-      tutorial.traded('buy', told);
-      what = `buy ${told}`;
+      quests.check();
+      what = `buy ${good}`;
     } else if (r < 0.9) {
       const good = rng() < 0.7 ? (cargoGood() ?? pick(GOODS)) : pick(GOODS);
       world.trade.captain.cargo[good] =
         rng() < 0.6 ? 0 : Math.max(0, world.trade.captain.cargo[good] - 1);
-      const told = rng() < 0.85 ? good : null;
-      tutorial.traded('sell', told);
-      what = `sell ${told}`;
-    } else if (r < 0.95) {
-      tutorial.resume();
-      what = 'resume';
+      quests.check();
+      what = `sell ${good}`;
     } else {
-      tutorial.dismissFinished();
-      what = 'dismiss';
+      quests.check(rng());
+      what = 'check';
     }
     snap(what);
   }

@@ -4,6 +4,9 @@ import {
   type GoodAmounts,
   type GoodId,
   emptyAmounts,
+  CRAFTED_FROM,
+  isCrafted,
+  isFar,
   isMadeGood,
   isRare,
 } from './goods';
@@ -40,6 +43,11 @@ export interface Market {
   equilibrium: GoodAmounts;
   /** The port's cut at the voyage's difficulty level (decision 0083); none = Captain's. */
   spread?: number;
+  /**
+   * Units of each far good the port's workshop has crafted and not yet sold (decision 0146): one
+   * per raw unit received. Only the goods it crafts are listed; you can buy no more than this.
+   */
+  workshop?: Partial<Record<GoodId, number>>;
 }
 
 /** What `good` is to the port at settlement `level` (default: the level it starts at). */
@@ -59,12 +67,13 @@ export function equilibriumFor(role: GoodRole, level: number, good?: GoodId): nu
   const towns = TUNING.economy.towns;
   const i = Math.min(Math.max(Math.round(level), 1), towns.wantsEquilibrium.length) - 1;
   if (role === 'wants') return towns.wantsEquilibrium[i]!;
-  if (role === 'produces')
-    return good && isMadeGood(good)
-      ? Math.round(
-          towns.producesEquilibrium[i]! * (isRare(good) ? towns.rareShare : towns.specialtyShare),
-        )
-      : towns.producesEquilibrium[i]!;
+  if (role === 'produces') {
+    // An outpost gathers its raw far good like bulk (0146); crafted far goods stock like rare ones.
+    if (!good || !isMadeGood(good) || (isFar(good) && !isCrafted(good)))
+      return towns.producesEquilibrium[i]!;
+    const share = isRare(good) || isCrafted(good) ? towns.rareShare : towns.specialtyShare;
+    return Math.round(towns.producesEquilibrium[i]! * share);
+  }
   return marketTuning().equilibrium[role];
 }
 
@@ -82,7 +91,32 @@ export function createMarket(
     // Untraded goods draw nothing, so the seeded variety of the other goods stays as it was.
     stock[g] = equilibrium[g] > 0 ? equilibrium[g] * (rng ? range(rng, 0.85, 1.15) : 1) : 0;
   }
-  return { portId: port.id, stock, equilibrium };
+  const market: Market = { portId: port.id, stock, equilibrium };
+  syncWorkshop(market, port, level);
+  return market;
+}
+
+/**
+ * List the far goods the port's workshop crafts at `level` (decision 0146). A workshop that just
+ * opened has crafted nothing yet; one that stopped (a quest changed the port) is dropped.
+ */
+function syncWorkshop(market: Market, port: PortDef, level: number): void {
+  const crafts = portProduces(port, clampLevel(level)).filter(isCrafted);
+  const was = market.workshop ?? {};
+  const now: Partial<Record<GoodId, number>> = {};
+  for (const g of crafts) now[g] = was[g] ?? 0;
+  if (crafts.length) market.workshop = now;
+  else delete market.workshop;
+}
+
+/**
+ * Raw goods arrived (sold or delivered): each unit of a raw far good becomes one unit of what the
+ * workshop crafts from it (decision 0146). No raw goods, no crafting.
+ */
+export function workshopReceives(market: Market, good: GoodId, qty: number): void {
+  if (!market.workshop || qty <= 0) return;
+  for (const g of Object.keys(market.workshop) as GoodId[])
+    if (CRAFTED_FROM[g] === good) market.workshop[g]! += qty;
 }
 
 /**
@@ -102,6 +136,7 @@ export function setMarketLevel(
     // usual stock rather than empty, so the first prices are not at the ceiling (0063).
     if (was <= 0 && market.equilibrium[g] > 0) market.stock[g] = market.equilibrium[g];
   }
+  syncWorkshop(market, port, level);
 }
 
 /** Whether the port trades `good` at all (specialized goods only where made or wanted, 0063). */
@@ -134,9 +169,21 @@ export function unitSellPrice(
   return Math.max(1, Math.floor(midPrice(good, stock) * (1 - spread)));
 }
 
-/** Whole units the port can sell right now. */
+/**
+ * Whole units the port can sell right now. A workshop's far goods are also capped by what it has
+ * crafted from raw goods received (decision 0146): the stock sets the price, the workshop the count.
+ */
 export function available(market: Market, good: GoodId): number {
-  return Math.max(0, Math.floor(market.stock[good]));
+  const stock = Math.max(0, Math.floor(market.stock[good]));
+  const crafted = market.workshop?.[good];
+  return crafted === undefined ? stock : Math.min(stock, Math.max(0, Math.floor(crafted)));
+}
+
+/** The player bought `qty` units: they leave the stock, and the workshop's count (0146). */
+export function takeStock(market: Market, good: GoodId, qty: number): void {
+  market.stock[good] -= qty;
+  if (market.workshop?.[good] !== undefined)
+    market.workshop[good] = Math.max(0, market.workshop[good]! - qty);
 }
 
 /** Total cost of buying `qty` units, pricing each unit after the previous one left the stock. */

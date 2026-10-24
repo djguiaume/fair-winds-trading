@@ -4,7 +4,7 @@
   "start": {
     "is": "any",
     "of": [
-      { "is": "quest-done", "quest": "first-voyage" },
+      { "is": "not", "of": { "is": "quest-at", "quest": "first-voyage", "step": "sails" } },
       { "is": "quest-at", "quest": "first-voyage", "step": "island" }
     ]
   },

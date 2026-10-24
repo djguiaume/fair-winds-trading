@@ -155,50 +155,29 @@ fails until every table has one entry per level.
 - Its look: give props `from: 5` in the island builder; until then it looks like a port town.
 - Name: `settlement.level.5` in `src/i18n/en.json` and `fr.json`; until then the game shows `name`.
 
-## The tutorial's lessons ([0113](../decisions/0113-levels-tutorial-and-music-as-data.md))
+## The tutorial's lessons ([0151](../decisions/0151-tutorial-as-ordinary-quest-steps.md))
 
-The tutorial is the first quest, [`src/data/quests/first-voyage.json`](../../src/data/quests/first-voyage.json).
-At the top: `id`, `name`, `start` (`offered`: offered on a fresh voyage and from the menu),
-`text` (the prefix of its text keys, `lesson`), `reward` (`gold` paid once when it is finished)
-and `steps`, the lessons in order. Later quests use the same file format ([below](#quests-0125)).
-
-Each step:
-
-| Field         | What                                                                                                                         |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `id`          | stored in the player's tutorial progress; its text is `<text>.<id>.title`, `.copy` and `.continue`                          |
-| `action`      | the card's button: `chart`, `market` or `tips`                                                                               |
-| `port`        | the harbour the lesson is about: `origin` (where cargo is bought) or `delivery` (where it is sold)                          |
-| `picks`       | which of the two a harbour picked on the chart sets                                                                          |
-| `cargo`       | `true`: the lesson follows the cargo aboard                                                                                  |
-| `continue`    | when the card shows Continue: `always` or `with-cargo`                                                                       |
-| `pointer`     | the harbour the coach mark points at: `nearest-port`, `buyer`, `origin` or `delivery` (default: `port`)                     |
-| `pointerGood` | the good whose market button it points at: `produced` (the origin's own) or `cargo`                                         |
-| `origin`      | `home`: the lesson's harbour is the map's home port, and only it counts as the pick (taking Rook home, [0127](../decisions/0127-prologue-rescue-tutorial.md)) |
-| `mark`        | a lesson about the map's prologue wreck: `within` (distance), and to come alongside `maxKn` and `holdSec`; the compass marks the wreck. Skipped on a map without a `prologue` |
-| `passenger`   | `true`: Rook is aboard (no hold space)                                                                                       |
-| `wind`, `sound` | what the lesson does to the sea, the same fields as a quest step (below, [0139](../decisions/0139-gentler-prologue-and-quest-cards.md)) |
-| `coach`       | what it points at per surface (`sea`, `chart`, `market`): `chart-button`, `sail-lever`, `wind-compass`, `port-marker`, `dock-button`, `chart-port`, `close-chart`, `buy-button`, `sell-button` |
-| `on`          | the step each event leads to (`done` finishes the tutorial)                                                                  |
-
-Events: `chart-opened`, `port-picked`, `destination-cleared`, `sails-practised`, `continue`,
-`reached-mark`, `alongside-mark` (a hull hit, or grinding on the reef, starts the hold again),
-`docked`, `left-port`, `bought`, `sold`, `cargo-gone`, `cargo-sold` (what each one watches:
-`src/sim/tutorial.ts`). Lesson text can use `{origin}`, `{delivery}`, `{cargo}`, `{good}` and
-`{buyer}`. `tests/tutorial-data.test.ts` checks every event, target and text exists.
+The tutorial is an ordinary quest, [`src/data/quests/first-voyage.json`](../../src/data/quests/first-voyage.json),
+written with the step fields of the [Quests](#quests-0125) section below and edited in the quest
+builder like any other. What makes it a lesson is data at the top of the file: `start: { "is":
+"asked" }` (the game asks for it: a fresh voyage's offer or the menu), `lesson: true` (the coach
+bubble instead of a card, always tracked, other cards wait), `storms: false`, and `vars` for the
+harbours and cargo the player picks. Its text keys are `lesson.<step>.title`, `.copy` and
+`lesson.<step>.continue.title`, plus `lesson.done.title`/`.copy`. Skip counts it as done, unpaid.
 
 - The prologue's places are in the map file: `prologue.start` (`x`, `y`, `headingDeg`: where a fresh
   voyage that takes the tutorial begins) and `prologue.wreck` (the reef or sandbank whose wreck is
-  Rook's boat; the boat starts there lying still with the sails down). Rook's thanks, the home island, is the quest
+  Rook's boat; the boat starts there lying still with the sails down). Steps name it `"wreck"`; on a
+  map without a prologue they are passed by. Rook's thanks, the home island, is the quest
   [`rooks-thanks.json`](../../src/data/quests/rooks-thanks.json).
-- Not from data yet: a lesson that waits for something no event watches (reefing in a gale, say)
-  needs one new event in code.
+- A lesson that waits for something no condition watches (reefing in a gale, say) needs one new
+  condition in `src/sim/questLibrary.ts`, then data.
 
 ## Quests ([0125](../decisions/0125-quest-engine.md))
 
 The **quest builder** in the map editor (`editor.html` › Quests, [how to use](../quest-builder/builder/README.md), [0142](../decisions/0142-quest-builder.md)) edits all of this with forms, places on the chart and text side by side, and exports the files.
 
-Every other file in `src/data/quests/` is a quest the engine runs (`src/sim/quests.ts`), several at
+Every file in `src/data/quests/` is a quest the engine runs (`src/sim/quests.ts`), several at
 once, saved with the voyage. Example (a test file: [`tests/fixtures/quests/test-pier.json`](../../tests/fixtures/quests/test-pier.json)):
 
 ```json
@@ -221,10 +200,11 @@ At the top: `id`, `name`, `start` (a condition), `text` (prefix of the text keys
 piece, 0 for a passenger), `giver`, `port`, `offer` (`true`: the card asks first, and the
 quest starts on the player's yes; the captain can also say "don't offer again"), `main` (`true`:
 a story quest, whose cards greet the captain on arrival before the harbour screen; every other
-quest speaks on the harbour screen's Quay tab and with a small note at sea, decision 0141). Each step: `id`, then `goal` (a condition) **or** `choose` (two or more
-options: `id`, `reward`, `next`); optional `reward`, `next` (a later step or `done`; default the
-next one), `clean` (touching a reef or shore starts the step over), `port`, `chart`
-(`{ "port", "radius" }`: the rough circle on the chart), `compass` (`{ "x", "y" }`: a
+quest speaks on the harbour screen's Quay tab and with a small note at sea, decision 0141). Each step: `id`, then `goal` (a condition), `choose` (one or more
+options: `id`, `reward`, `next`, and `if`: shown only while that condition holds) or both (either
+ends the step); optional `reward`, `next` (a later step or `done`; default the
+next one), `clean` (touching or grinding on a reef or shore starts the step over), `port`, `chart`
+(`{ "port", "radius" }`: the rough circle on the chart), `compass` (`{ "x", "y" }` or `"wreck"`: a
 direction mark on the compass, and where the sea's objective arrow points, for a foghorn or a
 wreck), `wind` (`{ "speedKn", "fromDeg"? }`: a light, steady breeze instead of the sea's wind;
 direction default the map's), `sound` (`{ "effect", "everySec" }`: an `audio.json` effect played
@@ -236,6 +216,18 @@ step's card: `neutral`, `pleased` or `worried`), `look` (a named look from
 **tracked** quest's step: its `compass`, `wind` and `sound` ([0139](../decisions/0139-gentler-prologue-and-quest-cards.md)), and with no course set an
 objective arrow to its compass point, spot or harbour. The tutorial's lessons use the same `wind`
 and `sound` fields.
+
+**Lessons, picks and ways back ([0151](../decisions/0151-tutorial-as-ordinary-quest-steps.md)).**
+Any quest can use what the tutorial needed:
+
+| Field | Where | What |
+| --- | --- | --- |
+| `lesson` | quest | `true`: the coach bubble instead of a card; always tracked while it runs |
+| `storms` | quest | `false`: no storms while it runs |
+| `vars` | quest | `{ "name": "port" or "good" }`, picked in play; conditions, `port` and `coach` read `$name`; text says `{name}`, `{nameMakes}` (a port's own good) and `{nameBuyer}` (a good's buyer, key `<text>.<name>Buyer`) |
+| `set` | step | `{ "name": source }` when the step ends: `course`, `docked`, `aboard`, `home`, an id or `$var` |
+| `unless` | step | `[{ "if": condition, "to": step, "set"? }]`: ways back, tested after the goal, one per check |
+| `coach` | step | `sea`, `chart`, `market`: the element ringed on each screen (`chart-button`, `sail-lever`, `wind-compass`, `port-marker`, `dock-button`, `chart-port`, `close-chart`, `buy-button`, `sell-button`); `port` (id, `home`, `$var`, `nearest`, `buyer:$var`); `good` (id, `$var`, `makes:$var`); `action` (the bubble's button: `chart`, `market`, `tips`) |
 
 **The person and their card ([0124](../decisions/0124-characters-look.md)).** `giver` is an id in
 [`src/data/characters.json`](../../src/data/characters.json) (name, role, home port and a few
@@ -254,17 +246,23 @@ level, as a clock ("Rush bread to Saltmere in {par}" shows "2:20" on Captain,
 | `always` | | anywhere |
 | `all`, `any` | `of`: list of conditions | anywhere |
 | `not` | `of`: a condition | anywhere |
+| `asked` | the game starts it (the tutorial) | start only |
 | `quest-done` | `quest` (also `first-voyage`: finished or skipped) | anywhere |
 | `chose` | `quest`, `option` | anywhere |
-| `docked`, `discovered` | `port` | anywhere |
+| `docked` | `port` (optional: any harbour) | anywhere |
+| `discovered` | `port` | anywhere |
+| `course` | `port` (optional): a course set on the chart | anywhere |
+| `screen` | `screen`: `sea`, `chart` or `market` on screen | anywhere |
 | `town-level`, `standing` | `port`, `atLeast` | anywhere |
 | `orders-done`, `gold` | `atLeast` | anywhere |
-| `has-cargo` | `good`, `qty` | anywhere |
+| `has-cargo` | `good`, `qty` (both optional: anything aboard) | anywhere |
 | `owns-ship` | `ship` | anywhere |
 | `moored` | `island` (optional; default the home island): moored at its pier | anywhere |
 | `delivered` | `port`, `good`, `qty`: sold or for an order there since the step began | goal |
 | `carried` | `item`, `qty`, `from`, `to`: quest cargo, loaded as the hold allows; `from`/`to` is a port or a spot at sea `{ "x", "y", "within", "maxKn", "holdSec" }`, held slowly there ([0131](../decisions/0131-calda-slipway-and-cargo-at-a-spot.md)) | goal |
-| `reach` | `points` (`[{ "x", "y" }]`), `within`, `order` (`any`/`in-order`), `maxKn` + `holdSec`, `atNight` | goal |
+| `bought` | `port`, `good` (optional), `qty`: bought there since the step began | goal |
+| `sails-practised` | lowered and raised the sails, steered, got under way | goal |
+| `reach` | `points` (`[{ "x", "y" }]` or `"wreck"`), `within`, `order` (`any`/`in-order`), `maxKn` + `holdSec`, `atNight` | goal |
 | `timed` | `from`, `to` (default `from`), `via` (points in order), `within`, `par` (seconds, or `{ "fair": …, "captain": …, "salt": … }`) | goal |
 
 `port` can be `"home"`. Rewards: `gold`, `standing` (`{ "port": n }`), `discover` and `levelUp`

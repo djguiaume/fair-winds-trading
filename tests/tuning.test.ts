@@ -10,6 +10,7 @@ import {
   RARE_GOODS,
   RAW_GOODS,
   SPECIALTY_GOODS,
+  type GoodId,
 } from '../src/sim/goods';
 import { SHIP_CLASSES, SHIP_IDS, SLOOP, noGoAngle, polarFraction, turnRate } from '../src/sim/ship';
 import { DIFFICULTIES, DIFFICULTY } from '../src/sim/difficulty';
@@ -50,6 +51,9 @@ describe('tuning files', () => {
       const from = TUNING.goods[g]!.madeFrom;
       if ((SPECIALTY_GOODS as readonly string[]).includes(g))
         expect(RAW_GOODS as readonly string[]).toContain(from);
+      // A crafted far good comes from a raw far good (decision 0146).
+      else if (TUNING.goods[g]!.kind === 'far' && from)
+        expect(TUNING.goods[from]?.kind === 'far' && !TUNING.goods[from]!.madeFrom).toBe(true);
       else expect(from).toBeUndefined();
     }
     expect(Object.keys(TUNING.difficulty.levels)).toEqual([...DIFFICULTIES]);
@@ -288,8 +292,11 @@ describe('moved values equal the old constants (decision 0094)', () => {
     ).toEqual({ calm: 0, breeze: 0, rain: 0, gale: 0.25 });
     const without = <T extends object>(o: T, ...keys: string[]) =>
       Object.fromEntries(Object.entries(o).filter(([k]) => !keys.includes(k)));
+    // The far goods (decision 0146) are new, not moved.
     const goodDefs = Object.fromEntries(
-      Object.entries(GOOD_DEFS).map(([id, def]) => [id, without(def, 'kind')]),
+      Object.entries(GOOD_DEFS)
+        .filter(([, def]) => def.kind !== 'far')
+        .map(([id, def]) => [id, without(def, 'kind')]),
     );
     const weather = {
       ...DEFAULT_WEATHER,
@@ -311,7 +318,9 @@ describe('moved values equal the old constants (decision 0094)', () => {
         ]),
       ),
     );
-    expect(GOOD_ICONS).toEqual(OLD_GOOD_ICONS);
+    expect(
+      Object.fromEntries(Object.keys(goodDefs).map((g) => [g, GOOD_ICONS[g as GoodId]])),
+    ).toEqual(OLD_GOOD_ICONS);
     expect(MADE_FROM).toEqual(OLD_MADE_FROM);
     // Decision 0113 added each level's name and card look, 0140 its current strength; the knobs
     // are the same.

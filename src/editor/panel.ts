@@ -269,6 +269,16 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
       TOWN_LEVELS.map((l, i) => [String(i + 1), `${i + 1} · ${l.name.toLowerCase()}`]),
       (v) => (port.level = Number(v)),
     );
+    // Outposts stop growing at town (decision 0146).
+    select(
+      'Top level',
+      String(port.maxLevel ?? TOWN_LEVELS.length),
+      TOWN_LEVELS.map((l, i) => [String(i + 1), `${i + 1} · ${l.name.toLowerCase()}`]),
+      (v) => {
+        if (Number(v) < TOWN_LEVELS.length) port.maxLevel = Number(v);
+        else delete port.maxLevel;
+      },
+    );
     const goodList = (items: string[] | undefined) => (items ?? []).filter(isGood);
     chips('Makes', port.produces, goods, (v) => (port.produces = v as GoodId[]));
     chips('Wants', port.wants, goods, (v) => (port.wants = v as GoodId[]));
@@ -282,6 +292,12 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
         port.levelWants = { ...port.levelWants, [level]: v as GoodId[] };
         if (!v.length) delete port.levelWants[level];
         if (!Object.keys(port.levelWants).length) delete port.levelWants;
+      });
+      // Far goods the ring's port towns buy once a main port crafts them (decision 0146).
+      chips(`Wants made at L${level}`, goodList(port.levelWantsMade?.[level]), goods, (v) => {
+        port.levelWantsMade = { ...port.levelWantsMade, [level]: v as GoodId[] };
+        if (!v.length) delete port.levelWantsMade[level];
+        if (!Object.keys(port.levelWantsMade).length) delete port.levelWantsMade;
       });
     }
     chips('Wants made', port.wantsMade ?? [], goods, (v) => {

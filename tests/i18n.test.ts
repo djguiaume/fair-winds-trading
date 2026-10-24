@@ -16,7 +16,8 @@ import {
 } from '../src/i18n';
 import { GOODS } from '../src/sim/goods';
 import { SHIP_CLASSES, SLOOP } from '../src/sim/ship';
-import { Tutorial } from '../src/sim/tutorial';
+import { QUESTS, QuestBook } from '../src/sim/quests';
+import { lessonFor } from '../src/ui/questView';
 import { createWorld } from '../src/sim/world';
 import { SeaChart } from '../src/ui/seaChart';
 import { loadSettings } from '../src/ui/settings';
@@ -117,9 +118,9 @@ describe('translations (decision 0037)', () => {
     );
     chart.close();
 
-    const tutorial = new Tutorial(world, {}, null);
-    tutorial.start();
-    expect(tutorial.lesson.title).toBe(fr['lesson.sails.title']);
+    const quests = new QuestBook(world, QUESTS);
+    quests.ask('first-voyage');
+    expect(lessonFor(quests, {})!.title).toBe(fr['lesson.sails.title']);
   });
 
   it('keeps French punctuation on its word with a no-break space (decision 0091)', () => {
@@ -142,7 +143,7 @@ describe('translations (decision 0037)', () => {
     expect(t('lesson.deliver.title', { cargo: goodThe('fish'), delivery: 'Saltmere' })).toBe(
       'Portez le poisson à Saltmere',
     );
-    expect(t('lesson.buy.copy', { origin: 'Port Calda', good: goodSome('lampOil') })).toBe(
+    expect(t('lesson.buy.copy', { origin: 'Port Calda', originMakes: goodSome('lampOil') })).toBe(
       'Port Calda produit de l’huile à lampe\u00a0: c’est bon marché ici. Achetez un lot.',
     );
     expect(t('fleet.switchTo', { ship: shipThe(SHIP_CLASSES.schooner!) })).toBe(
