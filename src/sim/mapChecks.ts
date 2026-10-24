@@ -11,6 +11,7 @@ import { type IslandDef, type MapDef, type PortDef, SEA_MARK_TYPES } from './map
 import { DEG, bearingTo, wrapAngle } from './math';
 import { CUTTER, SLOOP, noGoAngle, polarFraction } from './ship';
 import { MAX_SETTLEMENT_LEVEL } from './settlement';
+import { NO_ZONE, type ZoneEffect, zoneField, zoneMaxGain, zoneMeanAt } from './windZones';
 
 /**
  * Map checks (decision 0095): the rules the map tests apply to the Windward Ring, written for any
@@ -87,6 +88,8 @@ export interface SailRoute {
   seconds: number;
 }
 
+const routeZone: ZoneEffect = { ...NO_ZONE };
+
 /** Fastest sloop route between two points with the wind from `windDeg`, or null if none. */
 export function sailRoute(
   map: MapDef,
@@ -106,8 +109,12 @@ export function sailRoute(
   const dist = new Map<string, number>([[key(first), 0]]),
     prev = new Map<string, string>();
   const points = new Map<string, Point>([[key(first), first]]);
+  // Wind zones (decision 0140) bend and weaken the wind along the way; the planner uses their
+  // average effect. The fastest a zone can make the wind keeps the estimate optimistic.
+  const zones = zoneField(map.windZones, smoothOutline);
+  const gain = zones ? zoneMaxGain(zones) : 1;
   const heuristic = (p: Point) =>
-    Math.hypot(p.x - last.x, p.y - last.y) / (14 * SLOOP.speedRatio * knotToUnits());
+    Math.hypot(p.x - last.x, p.y - last.y) / (14 * gain * SLOOP.speedRatio * knotToUnits());
   const queue = [{ p: first, cost: 0, priority: heuristic(first) }];
   while (queue.length) {
     queue.sort((a, b) => b.priority - a.priority);
@@ -132,7 +139,14 @@ export function sailRoute(
     }
     for (const [dx, dy] of DIRS) {
       const q = { x: p.x + dx * STEP, y: p.y + dy * STEP };
-      const angle = Math.abs(wrapAngle(bearingTo(p, q) - windDeg * DEG));
+      let from = windDeg * DEG,
+        strength = 1;
+      if (zones) {
+        const z = zoneMeanAt(zones, (p.x + q.x) / 2, (p.y + q.y) / 2, from, false, routeZone);
+        from += z.turn;
+        strength = z.strength;
+      }
+      const angle = Math.abs(wrapAngle(bearingTo(p, q) - from));
       if (angle < noGoAngle(SLOOP) + 10 * DEG) continue;
       const length = Math.hypot(q.x - p.x, q.y - p.y),
         samples = Math.ceil(length / 3);
@@ -151,7 +165,8 @@ export function sailRoute(
         }
       if (!free) continue;
       const next =
-        cost + length / (14 * SLOOP.speedRatio * polarFraction(SLOOP, angle) * knotToUnits());
+        cost +
+        length / (14 * strength * SLOOP.speedRatio * polarFraction(SLOOP, angle) * knotToUnits());
       const nk = key(q);
       if (next >= (dist.get(nk) ?? Infinity)) continue;
       dist.set(nk, next);
