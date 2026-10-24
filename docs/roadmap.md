@@ -152,6 +152,8 @@ Still in code after that, by choice ([0108](decisions/0108-goods-and-weather-kin
 
 Goal: growth pushes you outward into tougher navigation.
 
+**Scope decided (2026-10-24, [0137](decisions/0137-phase-4-biomes-and-founded-outposts.md), [review](reviews/phase-4-scope/README.md)):** today's Windward Ring stays the centre of the 5x sea, and four biomes grow around it: north ice (icebergs), south tropical (sand reefs, shallows, trade winds), west fire (volcano, ash) and east fog and storm coast. Each biome has an inhabited main port and an outpost you found and grow; outposts replace the relay hubs below, and voyages stay manual. The biomes make the second rare set. Shallow passages hard-block deep ships. Seeded maps and seasons move later. The list below is the original scope, kept for history.
+
 - Larger, explorable map with fog of war; discover new islands and settlements.
 - Regional wind patterns: trade-wind belts, doldrums with almost no wind, variable stormy zones, seasonal shifts.
 - Currents, reefs and shallows that block bigger ships.
