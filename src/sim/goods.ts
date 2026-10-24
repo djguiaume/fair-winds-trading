@@ -8,18 +8,22 @@ import shippedGoods from '../data/tuning/goods.json';
  * - `raw`: bulk goods (Phase 1); each settlement produces one and wants others (decision 0015).
  * - `made`: a town's workshop makes it from the raw good in `madeFrom` (decision 0063).
  * - `rare`: made only at the far shipyards and bought across the map (decision 0065).
- * Made and rare goods trade only where they are made or wanted. Base prices are the "fair" price
+ * - `far`: the biomes' goods (decision 0146). A far good without `madeFrom` is gathered raw at an
+ *   outpost; one with `madeFrom` is crafted at a main port's workshop, only from raw units it has
+ *   received, and bought by the ring's port towns. Far goods never count toward the 0065 gate.
+ * Made, rare and far goods trade only where they are made or wanted. Base prices are the "fair" price
  * at a port that neither makes nor needs the good; supply and demand move it from there (see
  * `market.ts`). Which port makes or wants a good is set per port in the map file.
  */
 export type GoodId = keyof typeof shippedGoods;
-export type GoodKind = 'raw' | 'made' | 'rare';
+export type GoodKind = 'raw' | 'made' | 'rare' | 'far';
 /** Every good, in the file's order (the order of the harbour and chart lists). */
 export const GOODS = Object.keys(shippedGoods) as [GoodId, ...GoodId[]];
 const ofKind = (kind: GoodKind) => GOODS.filter((g) => shippedGoods[g].kind === kind);
 export const RAW_GOODS = ofKind('raw');
 export const SPECIALTY_GOODS = ofKind('made');
 export const RARE_GOODS = ofKind('rare');
+export const FAR_GOODS = ofKind('far');
 export type SpecialtyGood = GoodId;
 export type RareGood = GoodId;
 
@@ -36,9 +40,26 @@ export function isRare(good: GoodId): boolean {
   return RARE_GOODS.includes(good);
 }
 
-/** Made goods (specialties and rare goods) trade only where some port makes or wants them. */
+export function isFar(good: GoodId): boolean {
+  return FAR_GOODS.includes(good);
+}
+
+/** Far goods a main port's workshop crafts, each from the raw far good it is made from (0146). */
+export const CRAFTED_FROM = Object.fromEntries(
+  FAR_GOODS.flatMap((g) => {
+    const raw = TUNING.goods[g]!.madeFrom;
+    return raw ? [[g, raw]] : [];
+  }),
+) as Partial<Record<GoodId, GoodId>>;
+
+/** A far good crafted only from raw units received (decision 0146). */
+export function isCrafted(good: GoodId): boolean {
+  return CRAFTED_FROM[good] !== undefined;
+}
+
+/** Made goods (specialties, rare and far goods) trade only where some port makes or wants them. */
 export function isMadeGood(good: GoodId): boolean {
-  return isSpecialty(good) || isRare(good);
+  return isSpecialty(good) || isRare(good) || isFar(good);
 }
 
 export interface GoodDef {

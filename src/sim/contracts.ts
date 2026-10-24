@@ -2,6 +2,7 @@ import { GOOD_DEFS, type GoodId, isGood } from './goods';
 import type { MapDef, PortDef } from './map';
 import { applyPerks } from './perks';
 import { distance } from './math';
+import { workshopReceives } from './market';
 import { createRng } from './rng';
 import {
   MAX_SETTLEMENT_LEVEL,
@@ -172,6 +173,9 @@ export function deliverContract(trade: TradeState, map: MapDef): DeliverResult {
   );
   if (c.help) trade.contracts.helpIn = orderTuning().helpCooldown;
   addRare(trade, portId, c.good, c.qty);
+  // Raw far goods handed over feed the main port's workshop too (decision 0146).
+  const market = trade.markets[portId];
+  if (market) workshopReceives(market, c.good, c.qty);
   trade.contracts.byPort[portId] = makeContract(
     map,
     portNow(port, trade),

@@ -1,5 +1,5 @@
 import { DIFFICULTIES } from './difficulty';
-import { GOODS } from './goods';
+import { GOODS, type GoodId, isFar } from './goods';
 import { BUILDING_IDS, buildableIslands, homeSpots } from './home';
 import type { MapDef } from './map';
 import { slotLayout } from './questLibrary';
@@ -31,12 +31,18 @@ import { UPGRADE_TRACKS } from './upgrades';
 
 const TAU = 2 * Math.PI;
 
+/**
+ * The goods list before the far goods (decision 0146) were added at its end: codes made with it
+ * still read, with no far goods in them.
+ */
+const GOODS_BEFORE_FAR: readonly GoodId[] = GOODS.filter((g) => !isFar(g));
+
 /** Every id list the layout depends on, in order. */
-function layoutIds(map: MapDef): string[] {
+function layoutIds(map: MapDef, goods: readonly string[]): string[] {
   return [
     map.name,
     ...map.ports.map((p) => p.id),
-    ...GOODS,
+    ...goods,
     ...SHIP_IDS,
     ...UPGRADE_TRACKS,
     ...DIFFICULTIES,
@@ -44,8 +50,8 @@ function layoutIds(map: MapDef): string[] {
 }
 
 /** 16-bit FNV-1a of the layout lists: different lists give a different fingerprint. */
-export function layoutFingerprint(map: MapDef): number {
-  return fingerprint(layoutIds(map));
+export function layoutFingerprint(map: MapDef, goods: readonly string[] = GOODS): number {
+  return fingerprint(layoutIds(map, goods));
 }
 
 /**
@@ -73,6 +79,12 @@ function homeFingerprintV1(map: MapDef): number {
  * each. A game from before it reads the number as a newer code.
  */
 const CHARTED_SECTION = 10;
+/**
+ * The far workshops' section (decision 0146), after the charted currents and only when a workshop
+ * holds crafted goods: its number, how many ports, then per port its index, how many goods and
+ * each good's index and units.
+ */
+const WORKSHOP_SECTION = 11;
 /** No section left to read (sections are numbered from 1). */
 const NO_SECTION = -1;
 const currentIds = (map: MapDef) => (map.currents ?? []).map((c) => c.id);
@@ -261,6 +273,22 @@ export function packSave(
     w.uint(ids.length);
     w.flags(charted);
   }
+  const shops = ports.flatMap((id, k) => {
+    const goods = GOODS.filter((g) => (save.workshops?.[id]?.[g] ?? 0) > 0);
+    return goods.length ? [{ k, id, goods }] : [];
+  });
+  if (shops.length) {
+    w.uint(WORKSHOP_SECTION);
+    w.uint(shops.length);
+    for (const { k, id, goods } of shops) {
+      w.uint(k);
+      w.uint(goods.length);
+      for (const g of goods) {
+        w.uint(GOODS.indexOf(g));
+        w.uint(save.workshops![id]![g]!);
+      }
+    }
+  }
   return Uint8Array.from(w.bytes);
 }
 
@@ -356,9 +384,14 @@ export function unpackSave(
   const version = r.uint();
   if (version > saveVersion) return { ok: false, problem: 'newer' };
   const fingerprint = r.uint();
-  const withQuests = fingerprint === (layoutFingerprint(map) ^ questFingerprint(quests));
-  if (fingerprint !== layoutFingerprint(map) && !withQuests)
-    return { ok: false, problem: 'otherVersion' };
+  // A code from before the far goods (0146) reads with the goods list it was written with.
+  const goods = [GOODS, GOODS_BEFORE_FAR].find(
+    (list) =>
+      fingerprint === layoutFingerprint(map, list) ||
+      fingerprint === (layoutFingerprint(map, list) ^ questFingerprint(quests)),
+  );
+  if (!goods) return { ok: false, problem: 'otherVersion' };
+  const withQuests = fingerprint !== layoutFingerprint(map, goods);
   const pick = (list: readonly string[], n: number) => (n > 0 ? list[n - 1] : undefined);
 
   const time = r.uint();
@@ -382,21 +415,21 @@ export function unpackSave(
     const damage = r.uint();
     if (damage) hullDamage[id] = damage;
   });
-  const cargo = Object.fromEntries(GOODS.map((g) => [g, r.uint()])) as SaveData['cargo'];
+  const cargo = Object.fromEntries(goods.map((g) => [g, r.uint()])) as SaveData['cargo'];
   const dockedAt = pick(ports, r.uint()) ?? null;
 
   const hasMarket = r.flags(ports.length);
   const markets: SaveData['markets'] = {};
   ports.forEach((id, k) => {
     if (hasMarket[k])
-      markets[id] = Object.fromEntries(GOODS.map((g) => [g, r.uint()])) as SaveData['cargo'];
+      markets[id] = Object.fromEntries(goods.map((g) => [g, r.uint()])) as SaveData['cargo'];
   });
 
   const byPort: NonNullable<SaveData['contracts']>['byPort'] = {};
   for (const id of ports) {
     const head = r.uint();
     if (!head) continue;
-    const good = GOODS[Math.floor(head / 2) - 1];
+    const good = goods[Math.floor(head / 2) - 1];
     const qty = r.uint();
     const reward = r.uint();
     const readyIn = r.uint();
@@ -459,7 +492,7 @@ export function unpackSave(
       const stored: Partial<Record<(typeof GOODS)[number], number>> = {};
       if (section >= 3)
         for (let n = r.uint(); n > 0; n--) {
-          const good = GOODS[r.uint()];
+          const good = goods[r.uint()];
           const qty = r.uint();
           if (good && qty > 0) stored[good] = qty;
         }
@@ -480,9 +513,26 @@ export function unpackSave(
     const n = r.uint();
     const flags = r.flags(n);
     if (same && n === ids.length) charted = ids.filter((_, k) => flags[k]);
-  } else if (section > HOME_SECTION) return { ok: false, problem: 'newer' };
-  else if (section !== NO_SECTION) return { ok: false, problem: 'unreadable' };
-  if (!r.done) return { ok: false, problem: 'unreadable' };
+    section = r.done ? NO_SECTION : r.uint();
+  }
+  // Far workshops' crafted goods (decision 0146).
+  let workshops: SaveData['workshops'];
+  if (section === WORKSHOP_SECTION) {
+    workshops = {};
+    for (let n = r.uint(); n > 0; n--) {
+      const id = ports[r.uint()];
+      const crafted: Partial<Record<GoodId, number>> = {};
+      for (let m = r.uint(); m > 0; m--) {
+        const good = goods[r.uint()];
+        const qty = r.uint();
+        if (good && qty > 0) crafted[good] = qty;
+      }
+      if (id) workshops[id] = crafted;
+    }
+    section = r.done ? NO_SECTION : r.uint();
+  }
+  if (section > HOME_SECTION) return { ok: false, problem: 'newer' };
+  if (section !== NO_SECTION || !r.done) return { ok: false, problem: 'unreadable' };
 
   return {
     ok: true,
@@ -500,6 +550,7 @@ export function unpackSave(
       hullDamage,
       dockedAt,
       markets,
+      ...(workshops ? { workshops } : {}),
       contracts: { byPort, completed, ...(helpIn ? { helpIn } : {}) },
       progress: { discovered, standing, ...(charted?.length ? { charted } : {}) },
       settlements: { byPort: towns, ...(pendingSupply ? { pendingSupply } : {}) },
