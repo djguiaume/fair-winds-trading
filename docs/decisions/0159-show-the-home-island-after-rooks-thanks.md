@@ -1,6 +1,6 @@
 # 0159. Show the home island after Rook's thanks
 
-**Status:** Proposed (2026-10-24), waiting on Guillaume's look at the screenshots.
+**Status:** Accepted (2026-10-24, Guillaume: "everything good for me", 21:09Z).
 
 ## Context
 
