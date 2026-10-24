@@ -88,8 +88,11 @@ void main() {
   float whitecap = smoothstep(0.56, 0.68, caps) * uRough;
   // A thin line of broken foam just inside the outline: the edge to steer by.
   float rim = vEdge - uFade * 0.5;
-  float line = smoothstep(0.0, 1.0, rim) * (1.0 - smoothstep(uEdge * 0.3, uEdge * 0.6, rim));
-  float broken = smoothstep(0.35, 0.6, noise(p * 0.6 + vec2(uTime * 0.5, 0.0)));
+  // Pieces of varied length and width, like the surf on a reef: two scales of noise.
+  float n = noise(p * 0.21 + vec2(uTime * 0.25, 0.0)) * 0.6 + noise(p * 0.9 - vec2(0.0, uTime * 0.5)) * 0.4;
+  float width = uEdge * (0.2 + 0.6 * noise(p * 0.07 + 9.0));
+  float line = smoothstep(0.0, 1.0, rim) * (1.0 - smoothstep(width * 0.5, width, rim));
+  float broken = smoothstep(0.42, 0.62, n);
   float foam = max(whitecap * inside, line * broken);
   col = mix(col, uFoam, foam * 0.9);
   // The foam keeps more of its brightness at night, so the edge still reads under the blue night.

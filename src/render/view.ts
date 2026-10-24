@@ -311,7 +311,6 @@ export class GameView {
       // including an expensive water program whose shader never samples shadows.
     }
     this.boat.setLowDetail?.(level === 'low');
-    this.stormClouds.curtains = profile.rainCurtains;
     this.profile = profile;
     this.resize(this.width, this.height);
   }
@@ -472,7 +471,7 @@ export class GameView {
       windStrength01(wind.speedKn),
     );
     const { weather } = this.world;
-    this.stormClouds.update(weather.storms, time, this.world.boat, this.scene.fog);
+    this.stormClouds.update(weather.storms, time, this.world.boat);
     // Showers fall everywhere; a storm's downpour only under its cloud.
     const kn = wind.speedKn * TUNING.seamanship.boat.knotToUnits * 0.6;
     this.rain.update(

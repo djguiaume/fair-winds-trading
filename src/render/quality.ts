@@ -19,8 +19,6 @@ export interface QualityProfile {
   shadows: boolean;
   /** Smooth foam animation and second wave layer in the ocean shader. */
   fancyWater: boolean;
-  /** Rain curtains under a storm belt's squalls (decision 0167); the dark disc alone on Low. */
-  rainCurtains: boolean;
   /** Fog of war's edge on the chart blurred (decision 0156); else a cheap stepped soft rim. */
   chartFogBlur: boolean;
 }
@@ -34,7 +32,6 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
     rainDrops: 160,
     shadows: false,
     fancyWater: false,
-    rainCurtains: false,
     chartFogBlur: false,
   },
   medium: {
@@ -45,7 +42,6 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
     rainDrops: 260,
     shadows: false,
     fancyWater: true,
-    rainCurtains: true,
     chartFogBlur: false,
   },
   high: {
@@ -56,7 +52,6 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
     rainDrops: 400,
     shadows: true,
     fancyWater: true,
-    rainCurtains: true,
     chartFogBlur: true,
   },
 };
