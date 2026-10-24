@@ -1,0 +1,57 @@
+import audio from '../data/audio.json';
+import type { MapDef } from './map';
+import { DEG, wrapPositive } from './math';
+import type { Wind } from './wind';
+
+/*
+ * What a step does to the sea while it runs (decision 0139), the same data for the tutorial's
+ * lessons and every quest's steps: a held breeze, and a sound that calls the captain towards the
+ * step's place. A quest step counts while its quest is the tracked one.
+ */
+
+/** A light, steady breeze instead of the sea's wind; the direction defaults to the map's. */
+export interface StepWind {
+  speedKn: number;
+  fromDeg?: number;
+}
+
+/**
+ * An effect of `audio.json` › `effects` played every `everySec` seconds while the step runs, the
+ * first at once. The line `toast.<effect>` (if any) says it in words, with `{dir}` the direction
+ * of the step's place, for a muted phone.
+ */
+export interface StepSound {
+  effect: string;
+  everySec: number;
+}
+
+/** The step fields of this file. */
+export interface StepEffects {
+  wind?: StepWind;
+  sound?: StepSound;
+}
+
+/** The breeze a step holds on this map, or null. */
+export function heldWind(wind: StepWind | undefined, map: MapDef): Wind | null {
+  if (!wind) return null;
+  return { from: wrapPositive((wind.fromDeg ?? map.wind.fromDeg) * DEG), speedKn: wind.speedKn };
+}
+
+/** Problems with a step's `wind` and `sound`, for the quest checks. */
+export function checkStepEffects(step: StepEffects, where: string): string[] {
+  const out: string[] = [];
+  const { wind, sound } = step;
+  if (wind !== undefined) {
+    if (!(typeof wind.speedKn === 'number' && wind.speedKn > 0 && wind.speedKn <= 40))
+      out.push(`${where} › wind: speedKn between 0 and 40`);
+    if (wind.fromDeg !== undefined && !Number.isFinite(wind.fromDeg))
+      out.push(`${where} › wind: fromDeg is a number of degrees`);
+  }
+  if (sound !== undefined) {
+    if (!(sound.effect in audio.effects))
+      out.push(`${where} › sound: no effect "${sound.effect}" in audio.json`);
+    if (!(typeof sound.everySec === 'number' && sound.everySec >= 2))
+      out.push(`${where} › sound: everySec of 2 or more`);
+  }
+  return out;
+}

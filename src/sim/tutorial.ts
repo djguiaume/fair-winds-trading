@@ -4,6 +4,8 @@ import { GOODS, isGood, type GoodId } from './goods';
 import { type BoatControls } from './boat';
 import { type SaveStorage } from './save';
 import { landmarkSpot } from './landmarks';
+import { type StepEffects, heldWind } from './stepEffects';
+import { type Wind } from './wind';
 import { homePort, isDiscovered } from './shipyards';
 import { findPort, cargoUsed } from './trade';
 import { type World, holdStorms } from './world';
@@ -65,7 +67,7 @@ export type CoachTarget =
   | 'buy-button'
   | 'sell-button';
 
-export interface TutorialStepDef {
+export interface TutorialStepDef extends StepEffects {
   id: string;
   /** The button the lesson card offers: open the chart, the market, or the sailing tips. */
   action?: 'chart' | 'market' | 'tips';
@@ -278,6 +280,10 @@ export class Tutorial {
   get mark(): { x: number; y: number } | null {
     return this.isActive && this.def.mark ? this.wreck : null;
   }
+  /** The lesson's held breeze (its `wind`, decision 0139), while the tutorial runs. */
+  get heldWind(): Wind | null {
+    return this.isActive ? heldWind(this.def.wind, this.world.map) : null;
+  }
   /** Harbourmaster Rook rides along. */
   get passenger(): boolean {
     return this.isActive && this.def.passenger === true;
@@ -356,7 +362,7 @@ export class Tutorial {
       const near = Math.hypot(boat.x - this.wreck.x, boat.y - this.wreck.y) <= mark.within;
       const damage = trade.captain.hullDamage[trade.captain.activeShip] ?? 0;
       // A touch of the reef starts the approach again; nothing else is lost.
-      if (damage > this.hullDamage) this.alongsideSeconds = 0;
+      if (damage > this.hullDamage || boat.sinceBump < 0.5) this.alongsideSeconds = 0;
       this.hullDamage = damage;
       if (on['reached-mark'] && near) this.go(on['reached-mark']);
       else if (on['alongside-mark']) {

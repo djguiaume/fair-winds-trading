@@ -16,7 +16,7 @@ import { GameView } from './render/view';
 import { SAIL_STEPS } from './sim/boat';
 import { isRare, isSpecialty } from './sim/goods';
 import { portNow, questsDone, settlementLevels } from './sim/settlement';
-import { clamp } from './sim/math';
+import { bearingTo, clamp } from './sim/math';
 import { type SaveStorage, clearSave, loadGame, saveGame } from './sim/save';
 import { LINK_KEY } from './sim/saveTransfer';
 import { SLOOP } from './sim/ship';
@@ -24,8 +24,17 @@ import * as trade from './sim/trade';
 import { type Difficulty, isDifficulty, knobs } from './sim/difficulty';
 import { daylightAt } from './sim/daylight';
 import { QuestBook } from './sim/quests';
+import { type StepEffects, heldWind } from './sim/stepEffects';
 import { QuestCard } from './ui/questCard';
-import { cardFor, dueCard, journal, questPins, questTarget, trackedMarkers } from './ui/questView';
+import {
+  cardFor,
+  dueCard,
+  journal,
+  questGoal,
+  questPins,
+  questTarget,
+  trackedMarkers,
+} from './ui/questView';
 import { TUTORIAL_QUEST, TUTORIAL_STEPS, Tutorial } from './sim/tutorial';
 import { TutorialCoach } from './ui/tutorial';
 import {
@@ -232,6 +241,11 @@ const tutorialOffer = $<HTMLDialogElement>('tutorial-offer');
 const questCard = new QuestCard($<HTMLDialogElement>('quest-card'));
 const questSeen = new Set<string>();
 const questThanks = new Set<string>();
+/**
+ * A thanks card was shown in this harbour: a new offer waits for the next visit instead of
+ * following it straight away (decision 0139), so one person speaks per call.
+ */
+let offersWait = false;
 function showDueCard() {
   // While the tutorial runs, its lesson cards speak: an arc offered meanwhile (Kit's, at
   // Saltmere) waits for the next visit after it (decision 0130).
@@ -239,8 +253,11 @@ function showDueCard() {
   const due = dueCard(quests, world.map, world.trade.dockedAt, questSeen, questThanks);
   const card = due && cardFor(quests, world.map, due.quest, due.kind);
   if (!due || !card) return;
-  if (due.kind === 'finished') questThanks.delete(due.quest);
-  else if (due.kind === 'offer') questSeen.add(`${due.quest}:offer`);
+  if (due.kind === 'offer' && offersWait) return;
+  if (due.kind === 'finished') {
+    questThanks.delete(due.quest);
+    offersWait = true;
+  } else if (due.kind === 'offer') questSeen.add(`${due.quest}:offer`);
   else questSeen.add(`${due.quest}:${quests.progress(due.quest)!.step}`);
   input.releaseAll();
   questCard.show(card);
@@ -268,7 +285,12 @@ questCard.onClose = () => {
   showDueCard();
 };
 // The tracked step's places at sea: gates, spots, landings (decision 0130).
-view.stepMarkers = () => trackedMarkers(quests);
+// The prologue's wreck gets the same ring and beam while a lesson is about it (decision 0139).
+view.stepMarkers = () => {
+  const mark = tutorial.mark;
+  if (!mark) return trackedMarkers(quests);
+  return { style: 'ring', points: [{ ...mark, within: 12, reached: false, next: true }] };
+};
 chart.quests = {
   markers: () => trackedMarkers(quests)?.points ?? [],
   pins: () => questPins(quests, world.map, questSeen),
@@ -851,6 +873,9 @@ function handleEvents(events: WorldEvent[]) {
       autosave();
       // "Not now" lasts one call: the offer comes back the next time you dock there.
       for (const key of questSeen) if (key.endsWith(':offer')) questSeen.delete(key);
+      offersWait = false;
+      // A step this dock finishes (Rook's "call at Saltmere") is thanked for, not asked again.
+      quests.check();
       showDueCard();
     } else if (e.type === 'discovered') {
       const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
@@ -928,12 +953,35 @@ function handleEvents(events: WorldEvent[]) {
 }
 window.addEventListener('pagehide', autosave);
 
+/**
+ * Where to head when no course is set (decision 0139): the wreck while a lesson is about it, else
+ * the tracked quest's place, at sea only. The tutorial's other lessons set their own course.
+ */
+function seaGoal(): { x: number; y: number; label: string } | null {
+  const mark = tutorial.mark;
+  if (mark) return { ...mark, label: t('hud.goalWreck') };
+  if (tutorial.isActive || world.trade.dockedAt) return null;
+  return questGoal(quests, world.map, view.harbours);
+}
+
+/**
+ * The lesson, or else the tracked quest's step, whose `wind` and `sound` the sea plays (decision
+ * 0139): the same step data for the tutorial and every quest.
+ */
+function seaStep(): { key: string; step: StepEffects } | null {
+  if (tutorial.isActive) return { key: `tutorial:${tutorial.step}`, step: tutorial.def };
+  const step = quests.trackedStep;
+  return step ? { key: `${quests.tracked}:${step.id}`, step } : null;
+}
+
 // --- Main loop: fixed-step simulation, render once per frame ----------------------------------
 let accumulator = 0;
 let last = performance.now();
 let frame = 0;
 let coachTick = 0;
-let foghornIn = 1.5;
+/** The step whose sound plays, and the seconds until it sounds again. */
+let soundKey: string | undefined;
+let soundIn = 0;
 
 function tick(now: number) {
   frame = requestAnimationFrame(tick);
@@ -949,14 +997,22 @@ function tick(now: number) {
     let steps = 0;
     while (!paused && accumulator >= SIM_STEP && steps < 6) {
       const controls = { steer: input.steer, sailStep };
+      const sea = seaStep();
+      world.calmWind = heldWind(sea?.step.wind, world.map);
       handleEvents(stepWorld(world, controls, SIM_STEP));
       tutorial.observe(controls, SIM_STEP);
       if (quests.update(SIM_STEP).length) showDueCard();
-      // The foghorn sounds every few seconds until the wreck is in sight (decision 0127).
-      foghornIn -= SIM_STEP;
-      if (tutorial.isActive && tutorial.step === 'foghorn' && foghornIn <= 0) {
-        music.foghorn();
-        foghornIn = 9;
+      // A step's sound (the prologue's foghorn) calls every few seconds, the first at once.
+      if (sea?.key !== soundKey) {
+        soundKey = sea?.key;
+        soundIn = 0;
+      }
+      const sound = sea?.step.sound;
+      if (sound && (soundIn -= SIM_STEP) <= 0) {
+        music.effectNamed(sound.effect);
+        const place = seaGoal();
+        if (place) hud.stepSound(sound.effect, bearingTo(world.boat, place));
+        soundIn = sound.everySec;
       }
       accumulator -= SIM_STEP;
       steps++;
@@ -968,8 +1024,9 @@ function tick(now: number) {
   // Pause menus and translucent sheets leave sea instruments visible. Only the title's
   // CSS rule and the opaque, full-screen chart cover the entire HUD.
   const hudVisible = !(mode === 'menu' && !started) && !chart.isOpen;
-  hud.mark = tutorial.mark;
+  hud.mark = tutorial.mark ?? (tutorial.isActive ? null : (quests.trackedStep?.compass ?? null));
   view.castawayWaiting = tutorial.mark !== null;
+  hud.goal = seaGoal();
   hud.update(dt, (x, y) => view.project(x, y), size, !paused, hudVisible);
   homePanel.update((x, y) => view.project(x, y));
   // Coach marks follow moving targets (port signs) about ten times a second.

@@ -1,3 +1,4 @@
+import { type StepEffects, checkStepEffects } from './stepEffects';
 import characterData from '../data/characters.json';
 import { daylightAt } from './daylight';
 import type { GoodAmounts } from './goods';
@@ -39,7 +40,7 @@ export interface QuestOption {
   next?: string;
 }
 
-export interface QuestStep {
+export interface QuestStep extends StepEffects {
   /** Stored in saves: never rename a shipped step. */
   id: string;
   /** The step is done when this holds. */
@@ -56,7 +57,10 @@ export interface QuestStep {
   port?: string;
   /** A rough circle the chart draws around a place to find, for the interface. */
   chart?: { port: string; radius: number };
-  /** A point the compass shows the direction of (a foghorn, a wreck), for the interface. */
+  /**
+   * A point the compass marks and the sea's objective points at while the step is tracked (a
+   * foghorn, a wreck), for the interface. `wind` and `sound` are in `stepEffects.ts` (0139).
+   */
   compass?: QuestPoint;
   /** The giver's face on this step's card: `neutral`, `pleased` or `worried` (decision 0124). */
   mood?: string;
@@ -249,6 +253,7 @@ export function checkQuests(
         out.push(`${where}: ${face} has no look "${s.look}"`);
       if (s.compass && !(Number.isFinite(s.compass.x) && Number.isFinite(s.compass.y)))
         out.push(`${where} › compass: needs { "x", "y" }`);
+      out.push(...checkStepEffects(s, where));
       if (s.marker !== undefined && !STEP_MARKER_STYLES.includes(s.marker))
         out.push(`${where}: marker is one of ${STEP_MARKER_STYLES.join(', ')}`);
       if (s.chart && !(typeof s.chart.radius === 'number' && s.chart.radius > 0))
@@ -421,6 +426,10 @@ export class QuestBook {
     return out;
   }
   /** Quests offered and not yet accepted (their start holds). */
+  /** The tracked quest's step now, whose `compass`, `wind` and `sound` the sea shows (0139). */
+  get trackedStep(): QuestStep | undefined {
+    return this.active.find((a) => a.quest.id === this.tracked)?.step;
+  }
   get offered(): QuestDef[] {
     return this.quests.filter(
       (q) => q.offer && !this.progress(q.id) && testCondition(q.start, this.context()),

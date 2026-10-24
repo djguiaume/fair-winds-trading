@@ -20,6 +20,8 @@ import { createWorld } from '../src/sim/world';
  *
  * Retaken on purpose by decision 0127: the tutorial became the prologue rescue (new lessons at sea
  * before the chart, Rook taken home to Saltmere), so the random sessions now walk new lessons.
+ * Retaken again by decision 0139: coming alongside the wreck counts from 20 units instead of 16 and
+ * not while grinding on the reef, and the sails lesson's text changed (raise, then steer).
  */
 
 afterEach(() => {
@@ -82,7 +84,7 @@ describe('plays the same after moving levels, tutorial and music to data (decisi
     const lines: string[] = [];
     for (let run = 0; run < 300; run++) lines.push(...tutorialSession(run));
     expect(lines.length).toBeGreaterThan(60000);
-    expect(hash(lines.join('\n'))).toBe('39da415a');
+    expect(hash(lines.join('\n'))).toBe('d852a308');
   });
 });
 

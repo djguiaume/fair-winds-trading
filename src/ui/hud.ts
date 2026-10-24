@@ -21,7 +21,7 @@ import { capacity, cargoUsed, findPort } from '../sim/trade';
 import { PortLabels } from './portLabels';
 import { type HazardKind, hazardBadge } from './hazardMarker';
 import { screenBearing } from './screenBearing';
-import { formatNumber, goodName, t, weatherName } from '../i18n';
+import { formatNumber, goodName, t, tOptional, weatherName } from '../i18n';
 
 const POINT_OF_SAIL_TONE: Record<PointOfSail, '' | 'good' | 'bad'> = {
   'in-irons': '',
@@ -108,6 +108,11 @@ export class Hud {
   private readonly cMark = $('c-mark');
   /** A place the compass marks the direction of: the prologue's wreck (decision 0127). */
   mark: { x: number; y: number } | null = null;
+  /**
+   * Where to head when no course is set (decision 0139): the wreck during the prologue, else the
+   * tracked quest's place. The objective panel and the edge arrow show it like a course.
+   */
+  goal: { x: number; y: number; label: string } | null = null;
   private readonly wpArrow = $('wp-arrow');
   private readonly toast = $('toast');
   private readonly tiller = $('tiller');
@@ -353,6 +358,11 @@ export class Hud {
     this.cargoTooltip.hidden = false;
   }
 
+  /** A step's sound plays (decision 0139): said in words too, for a muted phone, if it has words. */
+  stepSound(effect: string, bearing: number) {
+    const line = tOptional(`toast.${effect}`, { dir: compassWords(bearing) });
+    if (line) this.showToast(line, 3);
+  }
   showToast(text: string, seconds = 2.5, hazard?: HazardKind) {
     this.toast.textContent = text;
     // Hazard warnings carry the same badge as the chart (decision 0070).
@@ -442,7 +452,7 @@ export class Hud {
     visible = true,
   ) {
     const { boat, wind, ship } = this.world;
-    const wp = navigationTarget(this.world);
+    const wp = navigationTarget(this.world) ?? this.goal;
     // Time-dependent cues still advance while the opaque chart or title hides the HUD.
     if (this.toastTimer > 0) {
       this.toastTimer -= dt;
