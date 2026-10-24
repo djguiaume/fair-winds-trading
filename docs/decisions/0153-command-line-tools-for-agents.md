@@ -1,6 +1,6 @@
 # 0153. Command-line tools for agents, built on the editors' code
 
-**Status:** Accepted (2026-10-24); Guillaume picked all seven tools. Part 1 built: `fw` entry, `check`, `adr`.
+**Status:** Accepted (2026-10-24); Guillaume picked all seven tools. Part 1 built: `fw` entry, `check`, `adr`, `balance`.
 
 ## Context
 
@@ -60,6 +60,7 @@ Built first, as the base the others use:
 - `tools/fw/fw.mjs` (`npm run fw`) lists and runs the tools; `tools/fw/lib.mjs` holds the Vite loader and the argument parser.
 - `npm run check` (`tools/fw/check.ts`): map quick checks on the ring and the stress sea, route sailing on the first sea (about 7 s; `--all-routes`, `--fast`), island checks for each island file at its size on the map, the quest builder's checks and the perks. The whole run takes about 10 s. The quest builder's checks moved into `questProblems` in `src/editor/quest/doc.ts`, which the builder's Checks panel now calls too.
 - `npm run adr` (`tools/fw/adr.mjs`): next free number across origin/main and every pushed branch; `new "Title"` writes the file and README line.
+- `npm run balance` (`tools/fw/balance.ts`): `economyRun`/`economyChecks` and `difficultyRun`/`difficultyChecks` of `src/sim/balance.ts`, one line per level and the failing checks, about 10 s; `--legs` prints only leg times.
 - `CLAUDE.md` tells agents when to use them; `tests/fw-tools.test.ts` covers them.
 
-The other five (shots, chart, balance, island, quest) are built in parallel threads on top of this base.
+The other four (shots, chart, island, quest) are built in parallel threads on top of this base.

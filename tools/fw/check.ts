@@ -3,6 +3,7 @@
 import { readFileSync } from 'node:fs';
 import { ISLAND_DESIGNS } from '../../src/data/islands';
 import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../../src/data/maps';
+import { grownMap } from '../../src/data/grownMap';
 import { stressMap } from '../../src/data/stressMap';
 import { questProblems } from '../../src/editor/quest/doc';
 import { ISLAND_SCALE } from '../../src/render/models/highlandIslands';
@@ -36,9 +37,13 @@ export interface CheckOptions {
   routes?: 'first' | 'all' | 'none';
 }
 
-/** The seas checked by default: the ring and the bigger-map test sea. */
+/** The seas checked by default: the ring, the grown Phase 4 sea (`?map=phase4`) and the stress sea. */
 export function defaultSeas(): Record<string, MapDef> {
-  return { ring: PHASE1_MAP, stress: prepareMap(stressMap(PHASE1_SOURCE)) };
+  return {
+    ring: PHASE1_MAP,
+    phase4: prepareMap(grownMap(PHASE1_SOURCE)),
+    stress: prepareMap(stressMap(PHASE1_SOURCE)),
+  };
 }
 
 /** Every problem in the content, with a count of what was checked per area. */
