@@ -65,9 +65,9 @@ This is data first and uses the 0140 format. The "Build wind zones" thread is ad
 - **Edges:** it fades in over the shared `fadeUnits` (40) like every zone, so sailing in through a gap you feel the wind swing round.
 - **Editor:** the 0140 "Add wind zone" tool. The panel lists the kind's numbers as per-zone overrides, so nothing new is needed there.
 
-Two small additions on top (0143):
+Two additions, agreed with the wind zones thread (built into `sheltered`, ADR 0144):
 
-1. **`acrossFloor` 0.3:** the speed is also × max(`acrossFloor`, |cos(sea wind − axis)|). When the sea wind blows straight across the line (from N or S), the lagoon is at its lightest, so the flip from E→W to W→E happens in a near-calm, never as a sudden 180° swing at full strength.
+1. **`acrossFloor` 0.3:** the speed is also × max(`acrossFloor`, |cos(sea wind − axis)|). When the sea wind blows straight across the line (from N or S), the lagoon is at its lightest (0.55 × 0.3 of the sea wind), and the pull eases by the same |cos|, so the flip from E→W to W→E happens in a near-calm, never as a sudden 180° swing at full strength.
 2. **Route checks sample zone wind**, so they don't assume full-speed sailing across the lagoon.
 
 Zone first, island shelter second, with the shelter rays using the zone's direction: the arms still add their lee near the shore, and the gaps funnel a little, as they do today.

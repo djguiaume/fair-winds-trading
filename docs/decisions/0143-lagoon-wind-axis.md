@@ -13,8 +13,8 @@ Guillaume asked whether today's tools can make a ring island with openings to th
 ## Decision (proposed)
 
 1. **The lagoon is one `sheltered` zone with `headingDeg` 90** (the east–west line) over the inside of the ring. It is data only, uses 0140's outline and fade, and its numbers live in `tuning/weather.json › zones.sheltered` ([0093](0093-data-driven-content-and-authoring-tools.md)).
-2. **On top: `acrossFloor`** (0.3) for axis zones. The speed is also multiplied by max(`acrossFloor`, |cos(sea wind − axis)|). A sea wind straight across the line is the lightest, so the E→W / W→E flip happens in a near-calm, not as a sudden 180° swing at full strength. This is a small PR on the wind zones base, unless that thread already handles the flip another way.
-3. **On top: the route checks sample zone wind.** `sailRoute` uses the zone's wind where it crosses one, so the check doesn't assume full-speed sailing across the lagoon.
+2. **No flip at full strength.** The "Build wind zones" thread built this into `sheltered` itself (its ADR 0144). With `acrossFloor` 0.3, the speed is also multiplied by max(`acrossFloor`, |cos(sea wind − axis)|), and the pull is scaled by |cos| too, so the direction eases. Turning the sea wind through straight-across gives a smooth wind vector. Straight across, the lagoon gets 0.55 × 0.3 of the sea wind.
+3. **The route and balance checks sample zone wind.** The wind zones thread will add this once the shared base lands, so the check doesn't assume full-speed sailing across the lagoon.
 4. Zone shelter applies before island shelter, and the shelter rays use the zone's direction. Like all of 0140, it is a pure function of seed, time and place, with no save change, and it is switched off with the Wind zones setting.
 
 ## Consequences
