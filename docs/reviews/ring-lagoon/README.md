@@ -76,7 +76,7 @@ Zone first, island shelter second, with the shelter rays using the zone's direct
 
 Guillaume, 2026-10-24, with a reference picture: he wants this kind of island for the tropical main port, harbour facing in, and asked for a review of the suggestion "slightly stagger the two halves so the headlands overlap, creating gentle bends at both entrances. Keep enough space for boats to tack and turn."
 
-**Verdict: good idea, with a minimum slot width.** [make-staggered.py](make-staggered.py) builds it: two equal arms (radius 110, 30 wide) whose centres sit 42 units apart, each running 28° past the other's start. At the west, the north arm's headland passes outside the south arm's tip, and at the east the reverse.
+**Verdict: good idea, with a minimum slot width.** The arcs below are a geometry test drawn by a script (Guillaume: "ugly, not thick enough, no personality, too geometric"). The real island is hand-drawn in the island builder, keeping only the layout: two arms, harbour facing in, staggered entrances, slot at least 50 units. [make-staggered.py](make-staggered.py) builds it: two equal arms (radius 110, 30 wide) whose centres sit 42 units apart, each running 28° past the other's start. At the west, the north arm's headland passes outside the south arm's tip, and at the east the reverse.
 
 ![Editor, staggered ring](editor-staggered.png)
 
