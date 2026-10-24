@@ -1,7 +1,6 @@
 import type { ChartAreaDef } from '../sim/fog';
 import type { MapDef } from '../sim/map';
 import grown from './seas/grown.json';
-import south from './seas/south.json';
 
 /** Local storage prefix of the grown sea's own voyage, so the real one is never touched. */
 export const PHASE4_PREFIX = 'fwt.phase4.';
@@ -24,8 +23,25 @@ export type SeaDef = Pick<MapDef, 'islands' | 'ports' | 'course'> &
     chartAreas?: ChartAreaDef[];
   };
 
-/** The seas laid out so far, in the order they open (decision 0147): the south first. */
-export const SEAS = [south as unknown as SeaDef];
+/** Every sea file in `src/data/seas/` but `grown.json`, by file name (decision 0161). */
+export const SEA_FILES: Record<string, SeaDef> = Object.fromEntries(
+  Object.entries(
+    import.meta.glob<SeaDef>(['./seas/*.json', '!./seas/grown.json'], {
+      eager: true,
+      import: 'default',
+    }),
+  ).map(([path, sea]) => [path.slice('./seas/'.length, -'.json'.length), sea]),
+);
+
+/**
+ * The seas laid out so far, in the order they open (decision 0147): the south first. The order is
+ * `seas` in `grown.json`, so a new sea is a data file and one line there (decision 0161).
+ */
+export const SEAS: SeaDef[] = grown.seas.map((id) => {
+  const sea = SEA_FILES[id];
+  if (!sea) throw new Error(`grown.json lists sea "${id}" but seas/${id}.json is missing`);
+  return sea;
+});
 
 /**
  * The Phase 4 sea as laid out so far (decision 0152): today's Windward Ring unchanged in the

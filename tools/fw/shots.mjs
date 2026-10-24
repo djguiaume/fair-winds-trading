@@ -43,6 +43,13 @@ Where
   --charted                     every wind zone already sailed (named on the chart)
   --town id:level,…             towns at these levels; an empty island to found is founded first
                                 (0157), so --town palm-key:1 shows Palm Key just founded
+Map editor (editor.html instead of the game)
+  --editor ring|phase4          the map editor on the ring, or the sea editor on the Phase 4 sea
+  --select hit                  select what the chart tags so: island:sunreach, shape:coral-line-east,
+                                area:sugar-bar, zone:the-trades, current:id, mark:3, waypoint:2, start
+  --look x,y --zoom upp         centre the chart there, map units per pixel (default: the whole sea)
+  --draft file.json             an editor draft to load (a map export, or a stored sea draft)
+  --export                      the export dialog open (phase4: every file, changed or same)
 Look
   --lang en|fr                  language (default en)
   --night  | --time s           night, or this game time in seconds (default 300, day)
@@ -134,17 +141,27 @@ export function normalise(opts) {
     click: o.click ?? null,
     sizes: list(o.sizes ?? 'desktop'),
     url: o.url ?? null,
+    editor: o.editor === true ? 'ring' : (o.editor ?? null),
+    select: o.select ?? null,
+    exportOpen: !!o.export,
+    draft: o.draft ? resolve(ROOT, o.draft) : null,
     storage: o.storage ?? {},
   };
   for (const s of shot.sizes)
     if (!SIZES[s]) throw new Error(`unknown size ${s} (${Object.keys(SIZES)})`);
   if ([shot.at, shot.port, shot.moor].filter(Boolean).length > 1)
     throw new Error('--at, --port and --moor: pick one');
+  if (shot.editor && !['ring', 'phase4'].includes(shot.editor))
+    throw new Error(`--editor ring|phase4, not ${shot.editor}`);
   shot.name = o.name ?? defaultName(shot);
   return shot;
 }
 
 function defaultName(s) {
+  if (s.editor)
+    return ['editor', s.editor, s.select?.replace(/[:]/g, '-'), s.exportOpen && 'export']
+      .filter(Boolean)
+      .join('-');
   const sea = s.seaFile ? basename(s.seaFile, extname(s.seaFile)) : s.sea;
   const where = s.port ?? (s.at ? `${s.at[0]}_${s.at[1]}` : 'start');
   return [
@@ -173,6 +190,7 @@ export function planShots(args) {
 
 /** The game's address for a shot: the sea, `?debug`, and a quest test's own parameters. */
 export function shotPath(shot) {
+  if (shot.editor) return `/editor.html?debug${shot.editor === 'phase4' ? '&sea=phase4' : ''}`;
   if (shot.url) {
     const u = new URL(shot.url, 'http://x/');
     u.searchParams.set('debug', '');
@@ -204,6 +222,11 @@ export function seedStorage(shot) {
     ...shot.storage,
   };
   if (shot.seaFile) items['fwt.editor.map.v1'] = readFileSync(shot.seaFile, 'utf8');
+  if (shot.draft)
+    items[shot.editor === 'phase4' ? 'fwt.editor.seas.v1' : 'fwt.editor.map.v1'] = readFileSync(
+      shot.draft,
+      'utf8',
+    );
   if (shot.islands.length) {
     const designs = shot.islands.map((f) => JSON.parse(readFileSync(f, 'utf8')));
     items['fwt.editor.islands.v1'] = JSON.stringify(
@@ -315,7 +338,8 @@ async function shootOne(browser, base, shot, size, file) {
         Object.defineProperty(window.navigator, 'getGamepads', { value: () => [pad] });
       });
     await page.goto(base + shotPath(shot));
-    if (shot.menu) {
+    if (shot.editor) await shootEditor(page, shot);
+    else if (shot.menu) {
       await page.locator('#menu-play').waitFor({ state: 'visible', timeout: 30000 });
       await pause(shot.wait);
     } else await shootScene(page, shot);
@@ -344,6 +368,23 @@ async function drivePad(page, steps) {
     await set(false);
     await pause(100);
   }
+}
+
+/** The map editor framed, the selection made and its checks run, ready for the shot. */
+async function shootEditor(page, shot) {
+  await page.waitForFunction(() => !!window.fwtEditor, null, { timeout: 30000 });
+  await page.evaluate((s) => {
+    if (s.look) window.fwtEditor.focus(s.look[0], s.look[1], s.zoom ?? undefined);
+    if (s.select) window.fwtEditor.select(s.select);
+  }, shot);
+  // The sailing route checks run in a worker: wait for them (a few seconds on the grown sea).
+  await page
+    .waitForFunction(() => !document.querySelector('#ed-checks .pending'), null, {
+      timeout: 60000,
+    })
+    .catch(() => {});
+  if (shot.exportOpen) await page.click('#ed-export');
+  await pause(Math.min(shot.wait, 600));
 }
 
 /** The game entered and the scene set, ready for the shot. */

@@ -4,7 +4,9 @@ import { STRESS_PREFIX, stressMap } from './data/stressMap';
 import { PHASE4_PREFIX, grownMap } from './data/grownMap';
 import {
   EDITED_PREFIX,
+  EDITED_SEA_PREFIX,
   editedMap,
+  editedSea,
   editedQuests,
   memoryStorage,
   prefixedStorage,
@@ -165,6 +167,8 @@ const browserStorage: SaveStorage | null = (() => {
 // The bigger-map test sea (decision 0115), `?map=stress`, and the Phase 4 sea as laid out so far
 // (decision 0152), `?map=phase4`: each sails its own voyage too.
 const mapParam = new URLSearchParams(location.search).get('map');
+// The sea editor's grown sea (decision 0161): `?map=edited&sea=phase4`.
+const editedPhase4 = mapParam === 'edited' && editedSea(location.search);
 const phase4Sea = mapParam === 'phase4';
 const stressTest = mapParam === 'stress';
 const devSea = stressTest || phase4Sea;
@@ -210,21 +214,29 @@ const voyageStorage =
     : playtestMap && browserStorage
       ? prefixedStorage(
           browserStorage,
-          phase4Sea ? PHASE4_PREFIX : stressTest ? STRESS_PREFIX : EDITED_PREFIX,
+          phase4Sea
+            ? PHASE4_PREFIX
+            : stressTest
+              ? STRESS_PREFIX
+              : editedPhase4
+                ? EDITED_SEA_PREFIX
+                : EDITED_PREFIX,
         )
       : browserStorage;
 const storage =
   tuneMode && voyageStorage ? prefixedStorage(voyageStorage, TUNE_PREFIX) : voyageStorage;
 const world = createWorld(playtestMap ?? PHASE1_MAP, SLOOP);
 if (playtestMap) {
-  document.title = `${phase4Sea ? 'Phase 4 sea' : stressTest ? 'Stress test' : questTest ? 'Quest test' : 'Edited map'} · ${document.title}`;
+  document.title = `${phase4Sea ? 'Phase 4 sea' : stressTest ? 'Stress test' : questTest ? 'Quest test' : editedPhase4 ? 'Edited Phase 4 sea' : 'Edited map'} · ${document.title}`;
   const badge = document.createElement('a');
-  badge.href = './editor.html';
+  badge.href = editedPhase4 ? './editor.html?sea=phase4' : './editor.html';
   badge.textContent = phase4Sea
     ? 'Phase 4 sea (south laid out)'
     : stressTest
       ? 'Stress test sea'
-      : 'Edited map · back to editor';
+      : editedPhase4
+        ? 'Edited Phase 4 sea · back to editor'
+        : 'Edited map · back to editor';
   badge.style.cssText =
     'position:fixed;left:50%;bottom:6px;transform:translateX(-50%);z-index:50;padding:3px 10px;' +
     'border-radius:10px;background:#123246e6;color:#f3d37e;font:600 12px sans-serif;' +

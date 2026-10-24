@@ -11,6 +11,10 @@ const TOOLS = {
   shots: { about: 'standard screenshots of the real game', file: './shots.mjs' },
   balance: { about: 'balance bots on all three difficulty levels', module: '/tools/fw/balance.ts' },
   island: { about: 'make and change island files, check them', module: '/tools/fw/island.ts' },
+  sea: {
+    about: "change the Phase 4 sea's files (sea editor), check them",
+    module: '/tools/fw/sea.ts',
+  },
   chart: {
     about: 'labelled map of a sea, PNG + SVG, with an overlay',
     module: '/tools/fw/chart.ts',
