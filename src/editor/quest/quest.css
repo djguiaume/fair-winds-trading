@@ -830,3 +830,15 @@ input.qb-small {
   gap: 8px;
   margin-top: 12px;
 }
+
+/* Fields the forms do not draw yet, as JSON (decision 0148). */
+.qb-json {
+  width: 100%;
+  font:
+    12px/1.35 ui-monospace,
+    monospace;
+  resize: vertical;
+}
+.qb-json.bad {
+  outline: 2px solid #c0392b;
+}

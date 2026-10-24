@@ -6,14 +6,15 @@ import {
   CONDITIONS,
   CONDITION_ABOUT,
   type Condition,
+  MAP_PLACES,
   type Param,
   type QuestPoint,
   type QuestReward,
+  SCREENS,
   isSpot,
 } from '../../sim/questLibrary';
 import type { QuestDef } from '../../sim/quests';
 import { SHIP_CLASSES } from '../../sim/ship';
-import { TUTORIAL_QUEST } from '../../sim/tutorial';
 import { REWARD_FIELDS, defaultParam, newCondition, round1 } from './doc';
 
 /*
@@ -92,6 +93,36 @@ export function checkbox(value: boolean, onSet: (v: boolean) => void, text = '')
   return h('span', { class: 'qb-check' }, box, text ? ` ${text}` : '');
 }
 
+/**
+ * Fields the forms do not draw yet, as JSON (decision 0148: a lesson's ways back, vars and coach
+ * marks): `{}` for none. A text that does not parse is marked and not applied.
+ */
+export function jsonField(
+  label: string,
+  value: Record<string, unknown>,
+  apply: (v: Record<string, unknown>) => void,
+  edit: (change: () => void) => void,
+): HTMLElement {
+  const shown = Object.fromEntries(Object.entries(value).filter(([, v]) => v !== undefined));
+  const area = h('textarea', { rows: String(Math.min(14, 2 + JSON.stringify(shown).length / 50)) });
+  area.className = 'qb-json';
+  area.value = Object.keys(shown).length ? JSON.stringify(shown, null, 2) : '{}';
+  area.addEventListener('change', () => {
+    try {
+      const v: unknown = JSON.parse(area.value || '{}');
+      if (typeof v !== 'object' || v === null || Array.isArray(v)) throw new Error('an object');
+      area.classList.remove('bad');
+      edit(() =>
+        apply({ ...Object.fromEntries(Object.keys(value).map((k) => [k, undefined])), ...v }),
+      );
+    } catch (e) {
+      area.classList.add('bad');
+      area.title = `Not applied: ${(e as Error).message}`;
+    }
+  });
+  return row(label, area);
+}
+
 /** Buttons where one is on, like the map editor's toggles. */
 export function segmented(
   options: [string, string][],
@@ -117,23 +148,31 @@ const buildableIslands = (map: MapDef) =>
   map.islands.filter((i) => homeSpots(map, i.id).length).map((i) => i.id);
 
 function questIds(ctx: FormContext): string[] {
-  return [TUTORIAL_QUEST.id, ...ctx.quests.map((q) => q.id)];
+  return ctx.quests.map((q) => q.id);
 }
-/** A quest's steps and options, the tutorial's too, for the step and option lists. */
+/** A quest's steps and options, for the step and option lists. */
 function questOf(
   ctx: FormContext,
   id: unknown,
 ): { steps: { id: string; choose?: { id: string }[] }[] } | undefined {
-  return id === TUTORIAL_QUEST.id ? TUTORIAL_QUEST : ctx.quests.find((q) => q.id === id);
+  return ctx.quests.find((q) => q.id === id);
 }
+/** The quest's vars of a kind, as `$name` choices (decision 0148). */
+const varOptions = (ctx: FormContext, kind: 'port' | 'good'): [string, string][] =>
+  Object.entries(ctx.quest.vars ?? {})
+    .filter(([, k]) => k === kind)
+    .map(([name]): [string, string] => [`$${name}`, `$${name} (picked in play)`]);
 
 // --- Conditions -----------------------------------------------------------------------------
 
 /** Kinds a condition may be: the ones with slots only in a step's goal. */
 function kindsFor(inGoal: boolean): [string, string][] {
-  return Object.keys(CONDITIONS)
-    .filter((k) => inGoal || !CONDITIONS[k]!.slots)
-    .map((k) => [k, `${k} · ${CONDITION_ABOUT[k] ?? ''}`]);
+  return (
+    Object.keys(CONDITIONS)
+      // `asked` only starts a quest (the tutorial, decision 0148).
+      .filter((k) => (inGoal ? k !== 'asked' : !CONDITIONS[k]!.slots))
+      .map((k) => [k, `${k} · ${CONDITION_ABOUT[k] ?? ''}`])
+  );
 }
 
 /**
@@ -242,9 +281,14 @@ function paramField(
   const blank = optional ? '—' : undefined;
   switch (t) {
     case 'port':
-      return row(name, select(portOptions(ctx.map), v as string, set, blank));
+      return row(
+        name,
+        select([...portOptions(ctx.map), ...varOptions(ctx, 'port')], v as string, set, blank),
+      );
     case 'good':
-      return row(name, select([...GOODS], v as string, set, blank));
+      return row(name, select([...GOODS, ...varOptions(ctx, 'good')], v as string, set, blank));
+    case 'screen':
+      return row(name, select([...SCREENS], v as string, set, blank));
     case 'ship':
       return row(name, select(Object.keys(SHIP_CLASSES), v as string, set, blank));
     case 'building':
@@ -313,7 +357,7 @@ function paramField(
     case 'place':
       return placeField(name, v, ctx, set);
     case 'points':
-      return pointsField(name, v as QuestPoint[] | undefined, ctx, optional, set);
+      return pointsField(name, v as (QuestPoint | string)[] | undefined, ctx, optional, set);
     default:
       return row(name, String(v ?? ''));
   }
@@ -366,7 +410,7 @@ function placeField(
   const box = h('div', { class: 'qb-place' });
   box.append(
     select(
-      [...portOptions(ctx.map), ['@spot', 'a spot at sea…']],
+      [...portOptions(ctx.map), ...varOptions(ctx, 'port'), ['@spot', 'a spot at sea…']],
       spot ? '@spot' : (v as string),
       (p) => {
         if (p !== '@spot') set(p);
@@ -408,7 +452,7 @@ function placeField(
 
 function pointsField(
   name: string,
-  points: QuestPoint[] | undefined,
+  points: (QuestPoint | string)[] | undefined,
   ctx: FormContext,
   optional: boolean,
   set: (v: unknown) => void,
@@ -416,11 +460,21 @@ function pointsField(
   const box = h('div', { class: 'qb-points' });
   (points ?? []).forEach((p, i) => {
     const line = h('div', { class: 'qb-pt' }, h('b', {}, String(i + 1)));
-    for (const key of ['x', 'y'] as const)
-      line.append(
-        key,
-        numberInput(p[key], (n) => n !== undefined && ctx.edit(() => (p[key] = n))),
-      );
+    // A map place by its word (decision 0148), or a point: each map puts the place itself.
+    line.append(
+      select(
+        Object.keys(MAP_PLACES).map((k): [string, string] => [k, `the map’s ${k}`]),
+        typeof p === 'string' ? p : '',
+        (v) => ctx.edit(() => (points![i] = v || { x: 0, y: 0 })),
+        'a point',
+      ),
+    );
+    if (typeof p !== 'string')
+      for (const key of ['x', 'y'] as const)
+        line.append(
+          key,
+          numberInput(p[key], (n) => n !== undefined && ctx.edit(() => (p[key] = n))),
+        );
     const up = h('button', { type: 'button', title: 'Earlier' }, '↑');
     up.disabled = i === 0;
     up.addEventListener('click', () =>
@@ -440,7 +494,9 @@ function pointsField(
   const add = h('button', { type: 'button', class: 'qb-add' }, '+ point (or ◎ on the chart)');
   add.addEventListener('click', () =>
     ctx.edit(() => {
-      const last = points?.[points.length - 1];
+      const last = [...(points ?? [])]
+        .reverse()
+        .find((o): o is QuestPoint => typeof o !== 'string');
       const p = last
         ? { x: round1(last.x + 15), y: round1(last.y) }
         : (defaultParam('points', ctx.map, []) as QuestPoint[])[0]!;

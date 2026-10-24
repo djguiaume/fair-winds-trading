@@ -1,243 +1,203 @@
 {
   "id": "first-voyage",
   "name": "First voyage",
-  "start": "offered",
+  "start": { "is": "asked" },
   "text": "lesson",
-  "reward": {
-    "gold": 0
-  },
+  "lesson": true,
+  "storms": false,
+  "vars": { "origin": "port", "delivery": "port", "cargo": "good" },
   "steps": [
     {
       "id": "sails",
-      "continue": "always",
-      "wind": {
-        "speedKn": 8
-      },
-      "coach": {
-        "sea": "sail-lever",
-        "chart": "close-chart"
-      },
-      "on": {
-        "sails-practised": "wind",
-        "continue": "wind"
-      }
+      "goal": { "is": "sails-practised" },
+      "choose": [{ "id": "continue" }],
+      "wind": { "speedKn": 8 },
+      "coach": { "sea": "sail-lever", "chart": "close-chart" }
     },
     {
       "id": "wind",
-      "action": "tips",
-      "continue": "always",
-      "wind": {
-        "speedKn": 8
-      },
-      "coach": {
-        "sea": "wind-compass",
-        "chart": "close-chart"
-      },
-      "on": {
-        "continue": "foghorn"
-      }
+      "choose": [{ "id": "continue" }],
+      "wind": { "speedKn": 8 },
+      "coach": { "sea": "wind-compass", "chart": "close-chart", "action": "tips" }
     },
     {
       "id": "foghorn",
-      "mark": {
-        "within": 45
-      },
-      "wind": {
-        "speedKn": 8
-      },
-      "sound": {
-        "effect": "foghorn",
-        "everySec": 9
-      },
-      "coach": {
-        "sea": "wind-compass",
-        "chart": "close-chart"
-      },
-      "on": {
-        "reached-mark": "wreck"
-      }
+      "goal": { "is": "reach", "points": ["wreck"], "within": 45 },
+      "compass": "wreck",
+      "wind": { "speedKn": 8 },
+      "sound": { "effect": "foghorn", "everySec": 9 },
+      "coach": { "sea": "wind-compass", "chart": "close-chart" }
     },
     {
       "id": "wreck",
-      "mark": {
-        "within": 20,
-        "maxKn": 2,
-        "holdSec": 3
-      },
-      "wind": {
-        "speedKn": 8
-      },
-      "coach": {
-        "sea": "sail-lever",
-        "chart": "close-chart"
-      },
-      "on": {
-        "alongside-mark": "chart"
-      }
+      "goal": { "is": "reach", "points": ["wreck"], "within": 20, "maxKn": 2, "holdSec": 3 },
+      "clean": true,
+      "set": { "origin": "home" },
+      "compass": "wreck",
+      "wind": { "speedKn": 8 },
+      "coach": { "sea": "sail-lever", "chart": "close-chart" }
     },
     {
       "id": "chart",
-      "action": "chart",
-      "origin": "home",
-      "picks": "origin",
-      "passenger": true,
-      "pointer": "origin",
-      "wind": {
-        "speedKn": 8
+      "goal": {
+        "is": "any",
+        "of": [
+          { "is": "screen", "screen": "chart" },
+          { "is": "course", "port": "home" },
+          { "is": "docked", "port": "home" }
+        ]
       },
-      "coach": {
-        "sea": "chart-button",
-        "chart": "chart-port"
-      },
-      "on": {
-        "chart-opened": "home-port",
-        "port-picked": "home"
-      }
+      "wind": { "speedKn": 8 },
+      "coach": { "sea": "chart-button", "chart": "chart-port", "port": "home", "action": "chart" }
     },
     {
       "id": "home-port",
-      "action": "chart",
-      "origin": "home",
-      "picks": "origin",
-      "passenger": true,
-      "pointer": "origin",
-      "wind": {
-        "speedKn": 8
+      "goal": {
+        "is": "any",
+        "of": [
+          { "is": "course", "port": "home" },
+          { "is": "docked", "port": "home" }
+        ]
       },
-      "coach": {
-        "sea": "chart-button",
-        "chart": "chart-port"
-      },
-      "on": {
-        "port-picked": "home"
-      }
+      "wind": { "speedKn": 8 },
+      "coach": { "sea": "chart-button", "chart": "chart-port", "port": "home", "action": "chart" }
     },
     {
       "id": "home",
-      "action": "chart",
-      "port": "origin",
-      "picks": "origin",
-      "origin": "home",
-      "passenger": true,
-      "wind": {
-        "speedKn": 8
-      },
-      "coach": {
-        "sea": "port-marker",
-        "chart": "chart-port"
-      },
-      "on": {
-        "docked": "island",
-        "destination-cleared": "home-port"
-      }
+      "port": "home",
+      "goal": { "is": "docked", "port": "home" },
+      "unless": [{ "if": { "is": "not", "of": { "is": "course" } }, "to": "home-port" }],
+      "wind": { "speedKn": 8 },
+      "coach": { "sea": "port-marker", "chart": "chart-port", "port": "home", "action": "chart" }
     },
     {
       "id": "island",
-      "port": "origin",
-      "continue": "always",
-      "coach": {},
-      "on": {
-        "continue": "buy",
-        "left-port": "dock"
-      }
-    },
-    {
-      "id": "buy",
-      "action": "market",
-      "port": "origin",
-      "continue": "with-cargo",
-      "pointerGood": "produced",
-      "coach": {
-        "sea": "dock-button",
-        "chart": "chart-port",
-        "market": "buy-button"
-      },
-      "on": {
-        "bought": "choose-delivery",
-        "continue": "choose-delivery",
-        "left-port": "dock"
-      }
-    },
-    {
-      "id": "choose-delivery",
-      "action": "chart",
-      "picks": "delivery",
-      "cargo": true,
-      "pointer": "buyer",
-      "coach": {
-        "sea": "chart-button",
-        "chart": "chart-port"
-      },
-      "on": {
-        "port-picked": "deliver",
-        "cargo-gone": "choose-port",
-        "cargo-sold": "buy"
-      }
-    },
-    {
-      "id": "deliver",
-      "action": "chart",
-      "port": "delivery",
-      "picks": "delivery",
-      "cargo": true,
-      "coach": {
-        "sea": "port-marker",
-        "chart": "chart-port"
-      },
-      "on": {
-        "docked": "sell",
-        "port-picked": "deliver",
-        "destination-cleared": "choose-delivery",
-        "cargo-gone": "choose-port",
-        "cargo-sold": "buy"
-      }
-    },
-    {
-      "id": "sell",
-      "action": "market",
-      "port": "delivery",
-      "picks": "delivery",
-      "cargo": true,
-      "pointerGood": "cargo",
-      "coach": {
-        "sea": "dock-button",
-        "chart": "chart-port",
-        "market": "sell-button"
-      },
-      "on": {
-        "sold": "done",
-        "left-port": "deliver",
-        "port-picked": "deliver",
-        "destination-cleared": "choose-delivery",
-        "cargo-gone": "choose-port",
-        "cargo-sold": "buy"
-      }
+      "port": "home",
+      "choose": [{ "id": "continue", "next": "buy" }],
+      "set": { "origin": "home" },
+      "unless": [{ "if": { "is": "not", "of": { "is": "docked", "port": "home" } }, "to": "dock" }],
+      "coach": {}
     },
     {
       "id": "choose-port",
-      "action": "chart",
-      "picks": "origin",
-      "pointer": "nearest-port",
+      "goal": { "is": "course" },
+      "set": { "origin": "course" },
       "coach": {
         "sea": "chart-button",
-        "chart": "chart-port"
-      },
-      "on": {
-        "port-picked": "dock"
+        "chart": "chart-port",
+        "port": "nearest",
+        "action": "chart"
       }
     },
     {
       "id": "dock",
-      "action": "chart",
-      "port": "origin",
-      "picks": "origin",
+      "port": "$origin",
+      "goal": { "is": "docked", "port": "$origin" },
+      "coach": { "sea": "port-marker", "chart": "chart-port", "port": "$origin", "action": "chart" }
+    },
+    {
+      "id": "buy",
+      "port": "$origin",
+      "goal": { "is": "bought", "port": "$origin", "qty": 1 },
+      "choose": [{ "id": "continue", "if": { "is": "has-cargo" } }],
+      "set": { "cargo": "aboard" },
+      "unless": [
+        { "if": { "is": "not", "of": { "is": "docked", "port": "$origin" } }, "to": "dock" }
+      ],
+      "coach": {
+        "sea": "dock-button",
+        "chart": "chart-port",
+        "market": "buy-button",
+        "port": "$origin",
+        "good": "makes:$origin",
+        "action": "market"
+      }
+    },
+    {
+      "id": "choose-delivery",
+      "goal": {
+        "is": "all",
+        "of": [{ "is": "course" }, { "is": "not", "of": { "is": "course", "port": "$origin" } }]
+      },
+      "set": { "delivery": "course" },
+      "unless": [
+        {
+          "if": {
+            "is": "all",
+            "of": [
+              { "is": "not", "of": { "is": "has-cargo", "good": "$cargo" } },
+              { "is": "docked" }
+            ]
+          },
+          "to": "buy",
+          "set": { "origin": "docked" }
+        },
+        {
+          "if": { "is": "not", "of": { "is": "has-cargo", "good": "$cargo" } },
+          "to": "choose-port"
+        }
+      ],
+      "coach": {
+        "sea": "chart-button",
+        "chart": "chart-port",
+        "port": "buyer:$cargo",
+        "action": "chart"
+      }
+    },
+    {
+      "id": "deliver",
+      "port": "$delivery",
+      "goal": { "is": "docked", "port": "$delivery" },
+      "unless": [
+        {
+          "if": {
+            "is": "all",
+            "of": [
+              { "is": "not", "of": { "is": "has-cargo", "good": "$cargo" } },
+              { "is": "docked" }
+            ]
+          },
+          "to": "buy",
+          "set": { "origin": "docked" }
+        },
+        {
+          "if": { "is": "not", "of": { "is": "has-cargo", "good": "$cargo" } },
+          "to": "choose-port"
+        },
+        { "if": { "is": "not", "of": { "is": "course" } }, "to": "choose-delivery" },
+        {
+          "if": {
+            "is": "all",
+            "of": [
+              { "is": "not", "of": { "is": "course", "port": "$delivery" } },
+              { "is": "not", "of": { "is": "course", "port": "$origin" } }
+            ]
+          },
+          "to": "deliver",
+          "set": { "delivery": "course" }
+        }
+      ],
       "coach": {
         "sea": "port-marker",
-        "chart": "chart-port"
-      },
-      "on": {
-        "docked": "buy",
-        "destination-cleared": "choose-port"
+        "chart": "chart-port",
+        "port": "$delivery",
+        "action": "chart"
+      }
+    },
+    {
+      "id": "sell",
+      "port": "$delivery",
+      "goal": { "is": "delivered", "port": "$delivery", "good": "$cargo", "qty": 1 },
+      "unless": [
+        { "if": { "is": "not", "of": { "is": "docked", "port": "$delivery" } }, "to": "deliver" }
+      ],
+      "coach": {
+        "sea": "dock-button",
+        "chart": "chart-port",
+        "market": "sell-button",
+        "port": "$delivery",
+        "good": "$cargo",
+        "action": "market"
       }
     }
   ]

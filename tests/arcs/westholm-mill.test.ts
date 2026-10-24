@@ -4,7 +4,6 @@ import { QUESTS, QUEST_DONE, QuestBook, checkQuests } from '../../src/sim/quests
 import { giveHomeIsland, islandHome } from '../../src/sim/home';
 import { SLOOP } from '../../src/sim/ship';
 import { buy, cargoUsed, sell } from '../../src/sim/trade';
-import { TUTORIAL_QUEST } from '../../src/sim/tutorial';
 import { type World, createWorld } from '../../src/sim/world';
 import { cardFor, parClock } from '../../src/ui/questView';
 import { islandDesign, questDesign } from '../../src/data/islands';
@@ -27,13 +26,13 @@ function start(difficulty?: string) {
   world.trade.captain.gold = 10_000;
   world.trade.quests.byId['rooks-thanks'] = { step: QUEST_DONE, counts: [], chose: {} };
   giveHomeIsland(world.trade, PHASE1_MAP);
-  const quests = new QuestBook(world, QUESTS, { doneElsewhere: (id) => id === TUTORIAL_QUEST.id });
+  const quests = new QuestBook(world, QUESTS, { doneElsewhere: (id) => id === 'first-voyage' });
   return { world, quests };
 }
 
 describe('the Westholm mill arc (0129, 0132)', () => {
   it('is a sound quest file, offered by Maren at Westholm once Rook has given the island', () => {
-    expect(checkQuests(QUESTS, PHASE1_MAP, [TUTORIAL_QUEST.id])).toEqual([]);
+    expect(checkQuests(QUESTS, PHASE1_MAP)).toEqual([]);
     expect(quest.giver).toBe('maren');
     expect(quest.steps.map((s) => s.id)).toEqual(['sails', 'millstones', 'bread']);
     const { quests } = start();

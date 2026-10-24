@@ -5,7 +5,6 @@ import { setLanguage } from '../src/i18n';
 import { type QuestDef, QuestBook } from '../src/sim/quests';
 import { SLOOP } from '../src/sim/ship';
 import { homePort } from '../src/sim/shipyards';
-import { TUTORIAL_QUEST } from '../src/sim/tutorial';
 import { type World, createWorld } from '../src/sim/world';
 import { QuestCard } from '../src/ui/questCard';
 import { cardFor, dueCard, journal, questPins, questTarget } from '../src/ui/questView';
@@ -26,7 +25,7 @@ function setup() {
   setLanguage('en');
   const world: World = createWorld(PHASE1_MAP, SLOOP);
   const book = new QuestBook(world, [ROOK], {
-    doneElsewhere: (id) => id === TUTORIAL_QUEST.id,
+    doneElsewhere: (id) => id === 'first-voyage',
     nightOk: () => false,
   });
   book.check();
@@ -62,7 +61,7 @@ describe('quest cards (decision 0124)', () => {
       steps: ROOK.steps.map((s, i) => (i === 0 ? { ...s, speaker: 'kit', mood: 'pleased' } : s)),
     };
     const book = new QuestBook(world, [quest], {
-      doneElsewhere: (id) => id === TUTORIAL_QUEST.id,
+      doneElsewhere: (id) => id === 'first-voyage',
       nightOk: () => false,
     });
     book.check();

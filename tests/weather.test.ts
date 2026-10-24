@@ -25,7 +25,7 @@ import {
   stepWorld,
 } from '../src/sim/world';
 import type { MapDef } from '../src/sim/map';
-import { Tutorial } from '../src/sim/tutorial';
+import { QUESTS, QuestBook } from '../src/sim/quests';
 import { stockLevels } from '../src/sim/upgrades';
 import { TUNING } from '../src/data/tuning';
 
@@ -189,14 +189,6 @@ describe('weather switched off (0067)', () => {
 });
 
 describe('storms held back (0072)', () => {
-  const memory = () => {
-    const values = new Map<string, string>();
-    return {
-      getItem: (k: string) => values.get(k) ?? null,
-      setItem: (k: string, v: string) => void values.set(k, v),
-      removeItem: (k: string) => void values.delete(k),
-    };
-  };
   const still = { steer: 0, sailStep: 0 };
 
   it('blows no storm while held, and the one under way does not pop up when let go', () => {
@@ -228,17 +220,18 @@ describe('storms held back (0072)', () => {
 
   it('holds storms through the tutorial, whatever the Settings say', () => {
     const world = createWorld(PHASE1_MAP, SLOOP);
-    const tutorial = new Tutorial(world, {}, memory());
-    tutorial.start();
-    tutorial.observe();
-    expect(world.stormHolds).toContain('tutorial');
+    // The tutorial quest says `storms: false`; the game holds them while it runs (decision 0148).
+    const quests = new QuestBook(world, QUESTS);
+    quests.ask('first-voyage');
+    holdStorms(world, 'quest', quests.holdsStorms);
+    expect(world.stormHolds).toContain('quest');
     const { t } = firstStorm();
     world.time = t;
     stepWorld(world, still, 0.1);
     expect(world.weather.storms).toHaveLength(0);
-    tutorial.skip();
-    tutorial.observe();
-    expect(world.stormHolds).not.toContain('tutorial');
+    quests.drop('first-voyage');
+    holdStorms(world, 'quest', quests.holdsStorms);
+    expect(world.stormHolds).not.toContain('quest');
   });
 });
 

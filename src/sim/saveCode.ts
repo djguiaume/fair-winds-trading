@@ -229,7 +229,7 @@ export function packSave(
 
   w.uint(indexOrNone(DIFFICULTIES, save.difficulty));
   w.uint(indexOrNone(DIFFICULTIES, save.easiestDifficulty));
-  if (withQuests) packQuests(w, save.quests!, quests);
+  if (withQuests) packQuests(w, save.quests!, quests, ports);
 
   // Per island with spots: is it hers; then for each of hers, offered flags and one building
   // number per spot.
@@ -267,9 +267,15 @@ export function packSave(
 /**
  * The quest section (decision 0125), written only when a quest has progress, so a code without
  * quests is what it was before: per quest 0 (not started), 1 (done) or 2 + its step, the step's
- * numbers, and per choice step the option picked + 1; then the tracked quest + 1.
+ * numbers, per choice step the option picked + 1, and per var (decision 0148) its port or good
+ * + 1; then the tracked quest + 1.
  */
-function packQuests(w: Writer, state: QuestState, quests: readonly QuestDef[]) {
+function packQuests(
+  w: Writer,
+  state: QuestState,
+  quests: readonly QuestDef[],
+  ports: readonly string[],
+) {
   for (const quest of quests) {
     const p = state.byId[quest.id];
     if (!p) {
@@ -287,6 +293,8 @@ function packQuests(w: Writer, state: QuestState, quests: readonly QuestDef[]) {
             p.chose[step.id],
           ),
         );
+    for (const [name, kind] of Object.entries(quest.vars ?? {}))
+      w.uint(indexOrNone(kind === 'port' ? ports : GOODS, p.vars?.[name]));
   }
   w.uint(
     indexOrNone(
@@ -296,7 +304,11 @@ function packQuests(w: Writer, state: QuestState, quests: readonly QuestDef[]) {
   );
 }
 
-function unpackQuests(r: Reader, quests: readonly QuestDef[]): QuestState {
+function unpackQuests(
+  r: Reader,
+  quests: readonly QuestDef[],
+  ports: readonly string[],
+): QuestState {
   const byId: QuestState['byId'] = {};
   for (const quest of quests) {
     const head = r.uint();
@@ -310,7 +322,17 @@ function unpackQuests(r: Reader, quests: readonly QuestDef[]): QuestState {
       const option = s.choose[r.uint() - 1];
       if (option) chose[s.id] = option.id;
     }
-    byId[quest.id] = { step: step?.id ?? QUEST_DONE, counts, chose };
+    const vars: Record<string, string> = {};
+    for (const [name, kind] of Object.entries(quest.vars ?? {})) {
+      const v = (kind === 'port' ? ports : GOODS)[r.uint() - 1];
+      if (v) vars[name] = v;
+    }
+    byId[quest.id] = {
+      step: step?.id ?? QUEST_DONE,
+      counts,
+      chose,
+      ...(Object.keys(vars).length ? { vars } : {}),
+    };
   }
   const tracked = quests[r.uint() - 1]?.id;
   return { byId, ...(tracked ? { tracked } : {}) };
@@ -414,7 +436,7 @@ export function unpackSave(
 
   const difficulty = pick(DIFFICULTIES, r.uint());
   const easiestDifficulty = pick(DIFFICULTIES, r.uint());
-  const questState = withQuests ? unpackQuests(r, quests) : undefined;
+  const questState = withQuests ? unpackQuests(r, quests, ports) : undefined;
 
   // Only islands that are the captain's are written; a code without the section has none.
   let home: SaveData['home'];

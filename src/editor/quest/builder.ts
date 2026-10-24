@@ -3,7 +3,7 @@ import { ISLAND_DESIGNS } from '../../data/islands';
 import { setLanguage } from '../../i18n';
 import type { MapDef } from '../../sim/map';
 import { clearAt } from '../../sim/mapChecks';
-import type { Condition, QuestPoint } from '../../sim/questLibrary';
+import { type Condition, MAP_PLACES, type QuestPoint } from '../../sim/questLibrary';
 import {
   QUESTS,
   QUEST_DONE,
@@ -13,7 +13,6 @@ import {
   checkQuestHooks,
   checkQuests,
 } from '../../sim/quests';
-import { TUTORIAL_QUEST } from '../../sim/tutorial';
 import { CHARACTERS, MOODS, type Mood, portraitSvg } from '../../ui/portraits';
 import { questCardBody } from '../../ui/questCard';
 import type { QuestCardModel } from '../../ui/questView';
@@ -61,6 +60,7 @@ import {
   row,
   segmented,
   select,
+  jsonField,
   textInput,
 } from './form';
 import '../../ui/quests.css';
@@ -100,7 +100,6 @@ const SHIPPED_RAW: Record<string, string> = Object.fromEntries(
   ]),
 );
 const SHIPPED_STEPS = new Map(SHIPPED_QUESTS.map((q) => [q.id, new Set(q.steps.map((s) => s.id))]));
-const TUTORIAL_STEPS = { [TUTORIAL_QUEST.id]: TUTORIAL_QUEST.steps.map((s) => s.id) };
 
 const shippedDoc = (): QuestDoc => ({
   quests: structuredClone(SHIPPED_QUESTS),
@@ -473,6 +472,7 @@ function drawQuestList() {
       ),
     );
     if (q.main) li.append(h('em', { class: 'qb-tag main' }, 'main'));
+    if (q.lesson) li.append(h('em', { class: 'qb-tag main' }, 'lesson'));
     if (!shippedQuest(q.id)) li.append(h('em', { class: 'qb-tag new' }, 'new'));
     const pick = () => {
       questId = q.id;
@@ -484,15 +484,6 @@ function drawQuestList() {
     li.addEventListener('keydown', (e) => e.key === 'Enter' && pick());
     list.append(li);
   }
-  const tut = h('li', {
-    class: 'dim',
-    title: 'The tutorial keeps its own lesson format for now (decision 0142)',
-  });
-  tut.innerHTML = '<span class="qb-face"><i>⚓</i></span>';
-  tut.append(
-    h('span', {}, h('b', {}, 'First voyage'), h('small', {}, 'tutorial · not editable yet')),
-  );
-  list.append(tut);
   const add = h('button', { type: 'button', class: 'qb-add' }, '+ New quest');
   add.addEventListener('click', () =>
     edit(() => {
@@ -690,6 +681,20 @@ function questPanel(q: QuestDef): HTMLElement[] {
       textInput(q.name, (v) => v && edit(() => (q.name = v))),
     ),
   );
+  // A lesson, its storms and its vars (decision 0148): edited as JSON for now.
+  out.push(
+    jsonField(
+      'Lesson (JSON)',
+      { lesson: q.lesson, storms: q.storms, vars: q.vars },
+      (v) => {
+        for (const key of ['lesson', 'storms', 'vars'] as const) {
+          if (v[key] === undefined) delete q[key];
+          else (q as unknown as Record<string, unknown>)[key] = v[key];
+        }
+      },
+      edit,
+    ),
+  );
   out.push(
     row(
       'Giver',
@@ -812,23 +817,37 @@ function goalPanel(q: QuestDef, s: QuestStep): HTMLElement[] {
         [
           ['goal', 'a goal'],
           ['choose', 'a choice'],
+          ['both', 'goal + buttons'],
         ],
-        s.choose ? 'choose' : 'goal',
+        s.choose && s.goal ? 'both' : s.choose ? 'choose' : 'goal',
         (v) =>
           edit(() => {
-            if (v === 'choose' && !s.choose) {
-              delete s.goal;
-              s.choose = [{ id: 'one' }, { id: 'two' }];
-            } else if (v === 'goal' && !s.goal) {
-              delete s.choose;
-              s.goal = { is: 'docked', port: q.port ?? 'home' };
-            }
+            if (v !== 'goal' && !s.choose)
+              s.choose = v === 'both' ? [{ id: 'continue' }] : [{ id: 'one' }, { id: 'two' }];
+            if (v !== 'choose' && !s.goal) s.goal = { is: 'docked', port: q.port ?? 'home' };
+            if (v === 'goal') delete s.choose;
+            if (v === 'choose') delete s.goal;
           }),
       ),
     ),
   );
   if (s.goal) out.push(conditionForm(s.goal, ctx, true, (c) => (s.goal = c), 'Done when'));
-  else out.push(...choiceForm(q, s, ctx));
+  if (s.choose) out.push(...choiceForm(q, s, ctx));
+  // Ways back, vars filled and a lesson's coach mark (decision 0148): edited as JSON for now.
+  out.push(
+    jsonField(
+      'Lesson (JSON)',
+      { unless: s.unless, set: s.set, coach: s.coach },
+      (v) => {
+        for (const key of ['unless', 'set', 'coach'] as const) {
+          const next = v[key];
+          if (next === undefined) delete s[key];
+          else (s as unknown as Record<string, unknown>)[key] = next;
+        }
+      },
+      edit,
+    ),
+  );
   const later = q.steps.slice(i + 1).map((o) => o.id);
   out.push(
     row(
@@ -907,6 +926,23 @@ function choiceForm(q: QuestDef, s: QuestStep, ctx: FormContext): HTMLElement[] 
       ),
     );
     box.append(rewardForm(o.reward, ctx, (r) => (r ? (o.reward = r) : delete o.reward)));
+    // An option shown only while a condition holds (decision 0148).
+    if (o.if)
+      box.append(
+        conditionForm(
+          o.if,
+          ctx,
+          false,
+          (c) => (o.if = c),
+          'Shown when',
+          () => delete o.if,
+        ),
+      );
+    else {
+      const only = h('button', { type: 'button', class: 'qb-add' }, '+ shown only when…');
+      only.addEventListener('click', () => edit(() => (o.if = { is: 'has-cargo' })));
+      box.append(only);
+    }
     out.push(box);
   });
   const add = h('button', { type: 'button', class: 'qb-add' }, '+ option');
@@ -974,18 +1010,30 @@ function seaPanel(s: QuestStep): HTMLElement[] {
     ),
   );
   const compass = h('span', { class: 'ed-pair' });
-  for (const key of ['x', 'y'] as const)
-    compass.append(
-      numberInput(
-        s.compass?.[key],
-        (n) =>
-          edit(() => {
-            if (n === undefined) delete s.compass;
-            else s.compass = { x: s.compass?.x ?? n, y: s.compass?.y ?? n, [key]: n };
-          }),
-        key,
-      ),
-    );
+  // A map place by its word (the prologue's wreck, decision 0148), or a point.
+  const place = typeof s.compass === 'string' ? s.compass : undefined;
+  const point = typeof s.compass === 'object' ? s.compass : undefined;
+  compass.append(
+    select(
+      Object.keys(MAP_PLACES),
+      place,
+      (v) => edit(() => (v ? (s.compass = v) : delete s.compass)),
+      'a point',
+    ),
+  );
+  if (!place)
+    for (const key of ['x', 'y'] as const)
+      compass.append(
+        numberInput(
+          point?.[key],
+          (n) =>
+            edit(() => {
+              if (n === undefined) delete s.compass;
+              else s.compass = { x: point?.x ?? n, y: point?.y ?? n, [key]: n };
+            }),
+          key,
+        ),
+      );
   const pick = h('button', { type: 'button', title: 'Click the chart to place it' }, '⌖');
   pick.addEventListener('click', () => {
     centre = 'chart';
@@ -1057,8 +1105,8 @@ function drawChecks() {
   let problems: string[];
   try {
     problems = [
-      ...checkQuests(doc.quests, map, TUTORIAL_STEPS),
-      ...checkQuestHooks(map, Object.values(ISLAND_DESIGNS), doc.quests, [TUTORIAL_QUEST.id]),
+      ...checkQuests(doc.quests, map),
+      ...checkQuestHooks(map, Object.values(ISLAND_DESIGNS), doc.quests),
       ...checkText(doc),
       ...checkPlaces(doc, map, (x, y) => clearAt(map, x, y, 0)),
     ];
@@ -1452,10 +1500,7 @@ function drawCardView() {
 function drawStory() {
   const box = $('.qb-story');
   box.replaceChildren();
-  const quests = [
-    { id: TUTORIAL_QUEST.id, start: { is: 'always' } as Condition },
-    ...doc.quests.map((q) => ({ id: q.id, start: q.start })),
-  ];
+  const quests = doc.quests.map((q) => ({ id: q.id, start: q.start }));
   const columns = storyColumns(quests);
   // Columns as wide as fit the view (the story scrolls past five or so).
   const GAP = 30,
@@ -1502,14 +1547,14 @@ function drawStory() {
       style: `left:${p.x}px;top:${p.y}px;width:${W}px;height:${H}px`,
     });
     node.innerHTML = `<span class="qb-face">${faceOf(q?.giver, 46)}</span>`;
-    const info = h('div', {}, h('b', {}, q?.name ?? 'First voyage'));
+    const info = h('div', {}, h('b', {}, q?.name ?? id));
     info.append(
       h(
         'small',
         {},
         q
-          ? [q.giver, q.port, rewardWords(q)].filter(Boolean).join(' · ')
-          : 'tutorial · its own format',
+          ? [q.lesson ? 'lesson' : q.giver, q.port, rewardWords(q)].filter(Boolean).join(' · ')
+          : '',
       ),
     );
     const pips = h('span', { class: 'qb-pips' });

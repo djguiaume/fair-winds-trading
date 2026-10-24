@@ -1,19 +1,22 @@
 import { t } from '../i18n';
-import { type CoachTarget, TUTORIAL_STEPS, type Tutorial } from '../sim/tutorial';
+import type { QuestBook } from '../sim/quests';
+import { type LessonModel, lessonDone, lessonFor } from './questView';
 
 type Surface = 'sea' | 'chart' | 'market' | null;
 type Side = 'top' | 'bottom' | 'left' | 'right' | 'none';
 
+/** The tutorial: the quest the title menu and the first-voyage offer start (decision 0148). */
+export const TUTORIAL_QUEST = 'first-voyage';
+
 /**
  * The element a lesson points at on the open surface (decision 0061). Selectors only, so the
  * sea HUD, chart and port screen keep their own markup; null leaves the bubble unpinned. Which
- * target each step uses is its `coach` entry in `src/data/quests/first-voyage.json` (decision 0113).
+ * target each step uses is its `coach` entry in the lesson's quest file (decision 0148).
  */
-function lessonTarget(tutorial: Tutorial, surface: Surface): string | null {
+function lessonTarget(lesson: LessonModel, surface: Surface): string | null {
   if (!surface) return null;
-  const port = tutorial.pointerPort;
-  const good = tutorial.pointerGood;
-  const target: CoachTarget | undefined = tutorial.def.coach[surface];
+  const { port, good } = lesson;
+  const target = lesson.targets[surface];
   switch (target) {
     case 'chart-button':
       return '#chart-btn';
@@ -52,9 +55,68 @@ const PAD = 6;
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
 /**
+ * Whether the tutorial was offered on this map's voyages before (decision 0025): a fresh voyage
+ * offers it only while it is `unseen`; `skipped` and `completed` are remembered across voyages.
+ * Kept in the browser like a setting; the lesson's progress is the voyage's (decision 0148).
+ */
+export class TutorialChoice {
+  status: 'unseen' | 'skipped' | 'completed' = 'unseen';
+  readonly key: string;
+  constructor(
+    mapName: string,
+    private readonly storage: Pick<Storage, 'getItem' | 'setItem'> | null,
+  ) {
+    this.key = `fwt.tutorial.v1.${mapName}`;
+    try {
+      const raw = JSON.parse(storage?.getItem(this.key) ?? 'null') as { status?: string } | null;
+      // An `active` status is from before 0148, when the lesson kept its progress here: like an
+      // unfinished lesson then, a fresh voyage offers the tutorial again.
+      if (raw?.status === 'skipped' || raw?.status === 'completed') this.status = raw.status;
+    } catch {
+      /* Private storage or malformed state: offer it again. */
+    }
+  }
+  /**
+   * A lesson under way in the browser's storage from before decision 0148: its step and picks, to
+   * move into the voyage's quest progress once.
+   */
+  legacy(): { step: string; vars: Record<string, string> } | null {
+    try {
+      const raw = JSON.parse(this.storage?.getItem(this.key) ?? 'null') as Record<
+        string,
+        unknown
+      > | null;
+      if (raw?.status !== 'active' || typeof raw.step !== 'string') return null;
+      const vars: Record<string, string> = {};
+      for (const [from, to] of [
+        ['origin', 'origin'],
+        ['delivery', 'delivery'],
+        ['good', 'cargo'],
+      ] as const)
+        if (typeof raw[from] === 'string') vars[to] = raw[from] as string;
+      return { step: raw.step, vars };
+    } catch {
+      return null;
+    }
+  }
+  shouldOffer(resumedVoyage: boolean) {
+    return !resumedVoyage && this.status === 'unseen';
+  }
+  set(status: 'skipped' | 'completed') {
+    this.status = status;
+    try {
+      this.storage?.setItem(this.key, JSON.stringify({ status }));
+    } catch {
+      /* optional */
+    }
+  }
+}
+
+/**
  * Coach marks: one small bubble and a brass ring on the element to tap, moved into whichever
  * surface is open (sea, chart or port). No timers: the game calls `place()` at HUD rate and it
- * only writes to the DOM when a target moves.
+ * only writes to the DOM when a target moves. It shows the running lesson of the quest book
+ * (decision 0148), and a finished lesson's last bubble until it is dismissed.
  */
 export class TutorialCoach {
   private surface: Surface = null;
@@ -70,7 +132,16 @@ export class TutorialCoach {
   onChart: () => void = () => {};
   onMarket: () => void = () => {};
   onTips: () => void = () => {};
-  constructor(private readonly tutorial: Tutorial) {
+  /** A button of the lesson's step ("Continue") was pressed. */
+  onOption: (quest: string, option: string) => void = () => {};
+  /** Skip: the lesson stops. */
+  onSkip: (quest: string) => void = () => {};
+  /** A lesson that finished: its last bubble shows until "Sail freely". */
+  finished: string | null = null;
+  constructor(
+    private readonly book: QuestBook,
+    private readonly harbours: Record<string, { x: number; y: number }>,
+  ) {
     this.card.className = 'coach tutorial-card';
     this.card.setAttribute('aria-label', t('tutorial.cardLabel'));
     this.ring.className = 'coach-ring';
@@ -81,9 +152,13 @@ export class TutorialCoach {
     this.surface = surface;
     this.render();
   }
+  private get lesson(): LessonModel | null {
+    return lessonFor(this.book, this.harbours);
+  }
   render() {
     const host = this.surface ? document.getElementById(`tutorial-${this.surface}`) : null;
-    const show = Boolean(host) && (this.tutorial.isActive || this.tutorial.finishedNotice);
+    const lesson = this.lesson;
+    const show = Boolean(host) && (lesson !== null || this.finished !== null);
     this.card.hidden = !show;
     if (!host) {
       this.ring.hidden = true;
@@ -105,16 +180,13 @@ export class TutorialCoach {
       }
       return;
     }
-    const { tutorial } = this;
-    const finished = tutorial.finishedNotice;
-    this.target = finished || this.collapsed ? null : lessonTarget(tutorial, this.surface);
+    const finished = !lesson;
+    this.target = !lesson || this.collapsed ? null : lessonTarget(lesson, this.surface);
     const targetFound = Boolean(
       visibleRect(this.target ? document.querySelector(this.target) : null),
     );
-    const lesson = tutorial.lesson;
     const signature = JSON.stringify([
-      tutorial.status,
-      tutorial.step,
+      finished && this.finished,
       lesson,
       this.collapsed,
       this.surface,
@@ -123,16 +195,15 @@ export class TutorialCoach {
     if (signature !== this.signature) {
       this.signature = signature;
       this.pinned = targetFound;
-      this.build(targetFound);
+      this.build(lesson, targetFound);
     }
     this.placement = '';
     this.place();
   }
 
-  private build(targetFound: boolean) {
-    const { tutorial } = this;
-    const lesson = tutorial.lesson;
-    const finished = tutorial.finishedNotice;
+  private build(lesson: LessonModel | null, targetFound: boolean) {
+    const done = lesson ? null : lessonDone(this.book, this.finished ?? '');
+    const finished = done !== null;
     const focusedId = this.card.contains(document.activeElement)
       ? document.activeElement?.id
       : null;
@@ -156,11 +227,13 @@ export class TutorialCoach {
 
     const head = document.createElement('div');
     head.className = 'coach-head';
-    const step = TUTORIAL_STEPS.indexOf(tutorial.step);
+    // A step off the main line (a way back) keeps the dots of the last one passed.
+    const step = (lesson?.stepNo ?? 0) - 1;
+    const steps = lesson?.steps ?? 0;
     const dots = document.createElement('span');
     dots.className = 'coach-dots';
     dots.setAttribute('aria-hidden', 'true');
-    for (let i = 0; i < TUTORIAL_STEPS.length; i++) {
+    for (let i = 0; i < steps; i++) {
       const dot = document.createElement('i');
       if (finished || i < step) dot.className = 'done';
       else if (i === step) dot.className = 'now';
@@ -168,9 +241,11 @@ export class TutorialCoach {
     }
     const title = document.createElement('h3');
     title.setAttribute('role', 'status');
-    title.textContent = finished
-      ? t('tutorial.complete')
-      : `${step + 1}/${TUTORIAL_STEPS.length} · ${lesson.title}`;
+    title.textContent = done
+      ? done.title
+      : step >= 0
+        ? `${step + 1}/${steps} · ${lesson!.title}`
+        : lesson!.title;
     head.append(dots, title);
     this.card.append(head);
     if (!finished)
@@ -187,21 +262,30 @@ export class TutorialCoach {
     if (this.collapsed) return this.refocus(focusedId);
 
     const copy = document.createElement('p');
-    copy.textContent = finished ? t('tutorial.completeCopy') : lesson.copy;
+    copy.textContent = done ? done.copy : lesson!.copy;
     this.card.append(copy);
     const actions = document.createElement('div');
     actions.className = 'coach-actions';
     this.card.append(actions);
-    if (finished) {
-      button(actions, 'tutorial-finish', t('tutorial.free'), 'd-btn brass', () =>
-        tutorial.dismissFinished(),
-      );
+    if (done) {
+      button(actions, 'tutorial-finish', t('tutorial.free'), 'd-btn brass', () => {
+        this.finished = null;
+        this.render();
+      });
       return this.refocus(focusedId);
     }
-    if (lesson.continueText)
-      button(actions, 'tutorial-continue', lesson.continueText, 'd-btn brass', () =>
-        tutorial.continueLesson(),
-      );
+    lesson = lesson!;
+    const quest = lesson.quest;
+    // The step's options: the first keeps the id the tests and the focus know ("Continue").
+    lesson.options.forEach((o, i) =>
+      button(
+        actions,
+        i ? `tutorial-option-${o.id}` : 'tutorial-continue',
+        o.title,
+        'd-btn brass',
+        () => this.onOption(quest, o.id),
+      ),
+    );
     // The ring already shows what to tap; a button only when nothing is pinned, or for tips.
     const offSurface = lesson.action === 'chart' && this.surface === 'chart';
     if (lesson.action && !offSurface && (lesson.action === 'tips' || !targetFound)) {
@@ -210,14 +294,15 @@ export class TutorialCoach {
         market: t('tutorial.openMarket'),
         tips: t('tutorial.showTips'),
       }[lesson.action];
+      const action = lesson.action;
       button(actions, 'tutorial-action', label, 'd-btn', () => {
-        if (lesson.action === 'chart') this.onChart();
-        else if (lesson.action === 'market') this.onMarket();
+        if (action === 'chart') this.onChart();
+        else if (action === 'market') this.onMarket();
         else this.onTips();
       });
     }
     const skip = button(actions, 'tutorial-skip', t('tutorial.skip'), 'coach-text-btn', () =>
-      tutorial.skip(),
+      this.onSkip(quest),
     );
     skip.style.marginLeft = 'auto';
     skip.insertAdjacentHTML(

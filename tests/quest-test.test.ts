@@ -7,7 +7,6 @@ import { type QuestDef, QUESTS, QuestBook, routeTo } from '../src/sim/quests';
 import { questTestFrom, sailableHeading, testBerth } from '../src/sim/questTest';
 import { SLOOP } from '../src/sim/ship';
 import { tryDock } from '../src/sim/trade';
-import { TUTORIAL_QUEST } from '../src/sim/tutorial';
 import { createWorld } from '../src/sim/world';
 import pier from './fixtures/quests/test-pier.json';
 import after from './fixtures/quests/test-after.json';
@@ -20,7 +19,7 @@ const book = (quests: readonly QuestDef[] = TEST_QUESTS) => {
   world.trade.captain.gold = 0;
   return {
     world,
-    quests: new QuestBook(world, quests, { doneElsewhere: (id) => id === TUTORIAL_QUEST.id }),
+    quests: new QuestBook(world, quests, { doneElsewhere: (id) => id === 'first-voyage' }),
   };
 };
 
