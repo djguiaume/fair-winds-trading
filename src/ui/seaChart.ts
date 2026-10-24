@@ -115,6 +115,7 @@ export class SeaChart {
   private center = { x: 0, y: 0 };
   private panel: string | null = null;
   private dragged = false;
+  private settleTimer: ReturnType<typeof setTimeout> | undefined;
   private drag: { id: number; x: number; y: number; cx: number; cy: number; unit: number } | null =
     null;
   // No animation loop: redraw only on open, edits, zoom or a viewport resize.
@@ -206,6 +207,7 @@ export class SeaChart {
       else return;
       event.preventDefault();
       this.updateViewBox();
+      this.settleLabels();
     });
     // A drag must never select a port on pointer release.
     svg.addEventListener(
@@ -243,6 +245,7 @@ export class SeaChart {
     });
     for (const type of ['pointerup', 'pointercancel', 'lostpointercapture'])
       svg.addEventListener(type, () => {
+        if (this.drag && this.dragged) this.settleLabels();
         this.drag = null;
       });
     // Reuse the Sea HUD instrument geometry; the chart snapshot has no pulses or help dialog.
@@ -553,6 +556,17 @@ export class SeaChart {
     const unit = this.unitsPerPixel();
     this.center = { x: this.center.x + dx * unit, y: this.center.y + dy * unit };
     this.updateViewBox();
+    this.settleLabels();
+  }
+  /**
+   * Names are kept on screen when the chart is drawn, so after a pan they are placed again, once
+   * the view stops moving (a whole redraw per frame would cost old tablets).
+   */
+  private settleLabels() {
+    clearTimeout(this.settleTimer);
+    this.settleTimer = setTimeout(() => {
+      if (this.isOpen) this.draw();
+    }, 150);
   }
   /** Back, like Esc: an open side panel first, then the chart. */
   back() {

@@ -37,7 +37,7 @@ left right home`); sticks are `lx ly rx ry`. A press is reported once, then repe
   `GamepadPoller.onMenuPress(press, context)` for the menus thread's focus code; other code can
   also listen with `onPress` and `onUsingPad` (the last input came from a pad: show focus rings
   only then). Keyboard, mouse and touch are unchanged; keys still win over the stick.
-- **Hints**: a toast "Controller connected: left stick steers, LB/RB sails, Y map" when a pad is
+- **Hints**: a toast "Controller ready: stick steers, LB/RB sails" when a pad is
   connected, and a "Controller" line in How to play, shown only once a pad has been seen
   (`body.has-gamepad`).
 
