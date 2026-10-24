@@ -217,7 +217,9 @@ once, saved with the voyage. Example (a test file: [`tests/fixtures/quests/test-
 At the top: `id`, `name`, `start` (a condition), `text` (prefix of the text keys:
 `<text>.<step>.title` and `.copy`), optional `reward`, `items` (quest cargo: hold `space` per
 piece, 0 for a passenger), `giver`, `port`, `offer` (`true`: the card asks first, and the
-quest starts on the player's yes). Each step: `id`, then `goal` (a condition) **or** `choose` (two or more
+quest starts on the player's yes; the captain can also say "don't offer again"), `main` (`true`:
+a story quest, whose cards greet the captain on arrival before the harbour screen; every other
+quest speaks on the harbour screen's Quay tab and with a small note at sea, decision 0141). Each step: `id`, then `goal` (a condition) **or** `choose` (two or more
 options: `id`, `reward`, `next`); optional `reward`, `next` (a later step or `done`; default the
 next one), `clean` (touching a reef or shore starts the step over), `port`, `chart`
 (`{ "port", "radius" }`: the rough circle on the chart), `compass` (`{ "x", "y" }`: a

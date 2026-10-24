@@ -1,5 +1,7 @@
 # Quest cards: clearer, ignorable, not on top of the harbour (proposal)
 
+**Decided (2026-10-24):** Guillaume picked **B** (the Quay tab), with **C** (the arrival card) for main quests like the tutorial's follow-up, all as quest data. Built as [0141](../../decisions/0141-quay-tab-and-arrival-card.md); see [as built](#as-built-decision-0141) at the end.
+
 Guillaume's playtest (2026-10-24): when you dock, the person's card opens **on top of the harbour
 screen** and players don't understand why. A second quest card popped up straight after with no
 explanation. Quest cards should be clearer and should be possible to ignore.
@@ -69,3 +71,20 @@ opens after it.
 **A**, with the common changes. It answers both complaints (no card on top of the harbour screen,
 and you can ignore it by simply trading or with ✕) and keeps people visible. C's arrival card stays
 for the few big story moments (Rook's island, the epilogue) through `notify: "card"`.
+
+## As built (decision 0141)
+
+The live game in French after the prologue (skipped), from `src/built.cjs` (run from the repo root
+against `npx vite --port 5199`). Rook's thanks is a main quest, so it greets the captain on arrival;
+Kit's offer waits on the Quay tab.
+
+| | Desktop 1280x720 | Phone landscape 915x412 | Phone portrait 412x915 |
+| --- | --- | --- | --- |
+| 1. Docking at Saltmere: the arrival card | ![](built/1-arrival-desktop.jpg) | ![](built/1-arrival-landscape.jpg) | ![](built/1-arrival-portrait.jpg) |
+| 2. "Aller au marché": the badge and the footer line | ![](built/2-badge-desktop.jpg) | ![](built/2-badge-landscape.jpg) | ![](built/2-badge-portrait.jpg) |
+| 3. The Quay tab | ![](built/3-quay-desktop.jpg) | ![](built/3-quay-landscape.jpg) | ![](built/3-quay-portrait.jpg) |
+| 4. At sea, Kit's step moves on: a note | ![](built/4-sea-note-desktop.jpg) | ![](built/4-sea-note-landscape.jpg) | ![](built/4-sea-note-portrait.jpg) |
+
+Left out of the build for now: the step `notify` field and the Settings switch "People's jobs: ask
+me / journal only" from the common changes; with nothing popping up any more they can wait for a
+playtest.

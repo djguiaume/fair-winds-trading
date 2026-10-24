@@ -39,6 +39,8 @@ export interface ChartQuests {
   markers?(): StepMarker[];
   journal(): JournalEntry[];
   track(quest: string): void;
+  /** Offer an ignored quest again (decision 0141). */
+  takeUp?(quest: string): void;
 }
 
 const escapeHtml = (s: string) =>
@@ -109,9 +111,10 @@ export class SeaChart {
   }
   private setupTools() {
     this.dialog.querySelector('#chart-journal-list')?.addEventListener('click', (e) => {
-      const row = (e.target as Element).closest<HTMLElement>('[data-track]');
+      const row = (e.target as Element).closest<HTMLElement>('[data-track], [data-take-up]');
       if (!row || !this.quests) return;
-      this.quests.track(row.dataset.track!);
+      if (row.dataset.track) this.quests.track(row.dataset.track);
+      else this.quests.takeUp?.(row.dataset.takeUp!);
       this.draw();
     });
     for (const id of ['legend', 'market', 'journal']) {
@@ -540,15 +543,19 @@ export class SeaChart {
         const line =
           e.state === 'offered'
             ? t('journal.asks')
-            : e.state === 'done'
-              ? e.chose.length
-                ? t('journal.doneChose', { option: e.chose.join(', ') })
-                : t('journal.done')
-              : `${e.arc} · ${t('journal.step', { n: e.stepNo, total: e.steps })}`;
+            : e.state === 'ignored'
+              ? t('journal.ignored')
+              : e.state === 'done'
+                ? e.chose.length
+                  ? t('journal.doneChose', { option: e.chose.join(', ') })
+                  : t('journal.done')
+                : `${e.arc} · ${t('journal.step', { n: e.stepNo, total: e.steps })}`;
         const attrs =
           e.state === 'active'
             ? ` data-track="${escapeHtml(e.quest)}" role="button" tabindex="0"`
-            : '';
+            : e.state === 'ignored'
+              ? ` data-take-up="${escapeHtml(e.quest)}" role="button" tabindex="0"`
+              : '';
         html.push(
           `<div class="journal-row is-${e.state}"${attrs}><span class="journal-face">${face(e, 34)}${
             e.state === 'offered' ? '<i class="journal-alert">!</i>' : ''

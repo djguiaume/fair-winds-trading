@@ -23,6 +23,7 @@
     ]
   },
   "text": "quest.fair-winds",
+  "main": true,
   "giver": "rook",
   "reward": {
     "gold": 200

@@ -100,6 +100,12 @@ export interface QuestDef {
    * it" / "Not now") and begins on `accept`. "Not now" needs nothing: it stays offered.
    */
   offer?: boolean;
+  /**
+   * A main quest (the story's spine: Rook's thanks, the epilogue; decision 0141): its cards greet
+   * the captain on arrival, before the harbour screen, or at sea. Every other quest speaks on the
+   * harbour screen's Quay tab and with a small note at sea, and never pops up.
+   */
+  main?: boolean;
   steps: QuestStep[];
 }
 
@@ -133,6 +139,11 @@ export interface QuestState {
   tracked?: string;
   /** Hold spaces the quest cargo aboard takes (worked out from `byId` on load). */
   hold?: number;
+  /**
+   * Offers the captain said "don't offer again" to (decision 0141): no card, no badge; the
+   * journal lists them and can take one up again.
+   */
+  ignored?: string[];
 }
 
 /** Every quest file but the tutorial's, in file name order. */
@@ -228,6 +239,9 @@ export function checkQuests(
     if (q.giver !== undefined && !PEOPLE.has(q.giver)) out.push(`${at}: no person "${q.giver}"`);
     if (q.offer !== undefined && typeof q.offer !== 'boolean')
       out.push(`${at}: offer is true or false`);
+    if (q.main !== undefined && typeof q.main !== 'boolean')
+      out.push(`${at}: main is true or false`);
+    if (q.main && q.offer) out.push(`${at}: a main quest is not offered (it cannot be ignored)`);
     out.push(...checkCondition(q.start, scope, false, `${at} › start`));
     out.push(...checkReward(q.reward, scope, `${at} › reward`));
     if (!Array.isArray(q.steps) || q.steps.length === 0) {
@@ -431,9 +445,32 @@ export class QuestBook {
     return this.active.find((a) => a.quest.id === this.tracked)?.step;
   }
   get offered(): QuestDef[] {
+    return this.waiting.filter((q) => !this.isIgnored(q.id));
+  }
+  /** Offers the captain said "don't offer again" to, whose start still holds (decision 0141). */
+  get ignoredOffers(): QuestDef[] {
+    return this.waiting.filter((q) => this.isIgnored(q.id));
+  }
+  private get waiting(): QuestDef[] {
     return this.quests.filter(
       (q) => q.offer && !this.progress(q.id) && testCondition(q.start, this.context()),
     );
+  }
+  isIgnored(id: string): boolean {
+    return this.state.ignored?.includes(id) ?? false;
+  }
+  /** "Don't offer again": the offer leaves the cards and the badges, the journal keeps it. */
+  ignore(id: string): boolean {
+    if (!this.offered.some((q) => q.id === id)) return false;
+    this.state.ignored = [...(this.state.ignored ?? []), id];
+    return true;
+  }
+  /** Take an ignored offer up again: it is offered as before, at its port. */
+  unignore(id: string): boolean {
+    if (!this.isIgnored(id)) return false;
+    this.state.ignored = this.state.ignored!.filter((q) => q !== id);
+    if (!this.state.ignored.length) delete this.state.ignored;
+    return true;
   }
   /** The player's yes to an offered quest. */
   accept(id: string): QuestEvent[] {
@@ -488,7 +525,8 @@ export class QuestBook {
             continue;
           }
           if (quest.offer) {
-            if (!this.announced.has(quest.id)) events.push({ type: 'offered', quest: quest.id });
+            if (!this.announced.has(quest.id) && !this.isIgnored(quest.id))
+              events.push({ type: 'offered', quest: quest.id });
             this.announced.add(quest.id);
             continue;
           }
@@ -626,7 +664,11 @@ export function readQuests(
 ): QuestState {
   const out: QuestState = { byId: {} };
   if (typeof raw !== 'object' || raw === null) return out;
-  const { byId, tracked } = raw as { byId?: unknown; tracked?: unknown };
+  const { byId, tracked, ignored } = raw as {
+    byId?: unknown;
+    tracked?: unknown;
+    ignored?: unknown;
+  };
   if (typeof byId !== 'object' || byId === null) return out;
   const fitting = questsFor(map, quests);
   for (const quest of fitting) {
@@ -647,6 +689,13 @@ export function readQuests(
   }
   if (typeof tracked === 'string' && out.byId[tracked] && out.byId[tracked].step !== QUEST_DONE)
     out.tracked = tracked;
+  if (Array.isArray(ignored)) {
+    const offers = ignored.filter(
+      (id, i) =>
+        ignored.indexOf(id) === i && fitting.some((q) => q.id === id && q.offer && !out.byId[id]),
+    ) as string[];
+    if (offers.length) out.ignored = offers;
+  }
   const hold = questHold(out, fitting);
   if (hold) out.hold = hold;
   return out;

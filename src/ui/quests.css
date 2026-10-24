@@ -197,6 +197,314 @@ dialog.quest-card::backdrop {
   }
 }
 
+/* --- What every card says (decision 0141): tag, the ask boxed with where, the reward ------- */
+.quest-tag {
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--brass);
+  color: #14202a;
+  font: 700 13px/1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.quest-tag.is-next {
+  background: #7fc8ff;
+}
+.quest-tag.is-done {
+  background: var(--green);
+}
+.quest-pin {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--brass);
+  color: #14202a;
+  font: 700 13px/1 var(--display);
+}
+.quest-where {
+  color: var(--ink-dim);
+  font: 500 15px/1.2 var(--body);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.quest-reward {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin-top: 8px;
+  color: var(--ink-dim);
+  font: 600 15px/1.2 var(--body);
+}
+.quest-reward b {
+  color: var(--brass);
+}
+.quest-reward .icon {
+  width: 16px;
+  height: 16px;
+}
+.d-btn.ghost {
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+  color: var(--ink-dim);
+}
+
+/* --- The arrival card: a main quest greets the captain before the harbour screen ---------- */
+dialog.quest-card.is-arrival {
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+}
+dialog.quest-card.is-arrival::backdrop {
+  background: radial-gradient(ellipse at center, rgba(6, 20, 28, 0.78), rgba(6, 20, 28, 0.94));
+}
+.quest-arrival {
+  position: absolute;
+  bottom: calc(100% + var(--face) * 0.35 + 14px);
+  left: 0;
+  right: 0;
+  text-align: center;
+  pointer-events: none;
+}
+.quest-arrival h1 {
+  margin: 0;
+  text-shadow: 0 2px 10px rgba(6, 20, 28, 0.9);
+  font: 700 34px/1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.quest-arrival small {
+  display: block;
+  margin-top: 4px;
+  color: var(--brass);
+  font: 700 15px/1.3 var(--display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.quest-to-market {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: 700 16px/1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* --- The Quay tab: the people of this harbour -------------------------------------------- */
+.quay-people {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 22px;
+}
+.quay-person {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 18px;
+  padding: 12px 16px;
+  border: 1.5px solid var(--brass-line);
+  border-radius: 12px;
+  background: rgba(18, 50, 70, 0.55);
+}
+.quay-person.is-new {
+  border-color: var(--brass);
+  box-shadow: 0 0 0 3px rgba(232, 196, 106, 0.12);
+}
+.quay-face svg {
+  display: block;
+  width: 96px;
+  height: 96px;
+}
+.quay-body .quest-head h2 {
+  font-size: 24px;
+}
+.quay-body .quest-speech {
+  margin-top: 6px;
+  font-size: 16px;
+}
+.quay-body .quest-ask {
+  margin-top: 8px;
+  padding: 8px 10px;
+  font-size: 16px;
+}
+.quay-body .quest-actions {
+  justify-content: flex-start;
+  margin-top: 10px;
+}
+.quay-empty {
+  padding: 24px;
+  text-align: center;
+}
+.quay-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: 600 15px/1.2 var(--body);
+  text-align: left;
+  cursor: pointer;
+}
+.quay-hint svg {
+  flex: none;
+  width: 40px;
+  height: 40px;
+}
+.quay-hint b,
+.quay-hint em {
+  color: var(--brass);
+  font-style: normal;
+}
+.tab-badge.is-quay {
+  box-shadow: 0 0 0 4px rgba(232, 196, 106, 0.25);
+}
+
+/* --- The note at sea: a step moved on away from the person's harbour ---------------------- */
+.quest-note {
+  position: fixed;
+  left: max(12px, env(safe-area-inset-left));
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(360px, calc(100vw - 24px));
+  padding: 8px 14px 8px 8px;
+  border: 1.5px solid var(--brass-line);
+  border-radius: 12px;
+  background: var(--navy);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: opacity 0.9s;
+}
+.quest-note[hidden] {
+  display: none;
+}
+.quest-note.is-fading {
+  opacity: 0;
+}
+.quest-note-face svg {
+  display: block;
+  width: 52px;
+  height: 52px;
+}
+.quest-note-text b {
+  display: block;
+  color: var(--brass);
+  font: 700 15px/1.1 var(--display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.quest-note-text span {
+  display: block;
+  font: 500 15px/1.25 var(--body);
+}
+.quest-note-text small {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink-dim);
+  font: 600 13px/1.2 var(--body);
+}
+
+/* Short landscape phones and portrait: smaller faces, tighter lists. */
+@media (max-height: 450px) {
+  .quest-arrival {
+    bottom: calc(100% + 6px);
+    left: calc(var(--face) + 30px);
+    text-align: left;
+  }
+  .quest-arrival h1 {
+    font-size: 22px;
+  }
+  .quest-arrival small {
+    display: inline;
+    margin-left: 10px;
+  }
+  dialog.quest-card.is-arrival {
+    margin-top: auto;
+    margin-bottom: 40px;
+  }
+  .quest-to-market {
+    top: calc(100% + 4px);
+  }
+  .quay-people {
+    gap: 8px;
+    padding: 10px 16px;
+  }
+  .quay-face svg {
+    width: 56px;
+    height: 56px;
+  }
+  .quay-body .quest-speech {
+    display: none;
+  }
+}
+@media (orientation: portrait) {
+  dialog.quest-card.is-arrival {
+    inset: auto 0 0 0;
+    margin: 0;
+  }
+  .quest-arrival {
+    bottom: calc(100% + var(--face) * 0.5 + 12px);
+  }
+  .quest-card .quest-tag {
+    display: table;
+    margin: 0 auto 6px;
+  }
+  .quest-arrival h1 {
+    font-size: 28px;
+  }
+  .quest-to-market {
+    position: static;
+    display: block;
+    margin: 0 auto max(14px, env(safe-area-inset-bottom));
+    transform: none;
+  }
+  .quay-people {
+    padding: 12px;
+  }
+  .quay-person {
+    position: relative;
+    grid-template-columns: 1fr;
+    padding: 10px 12px;
+  }
+  .quay-face {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+  }
+  .quay-face svg {
+    width: 64px;
+    height: 64px;
+  }
+  .quay-body .quest-head,
+  .quay-body .quest-arc {
+    justify-content: flex-start;
+    padding-right: 70px;
+    text-align: left;
+  }
+  .quay-body .quest-actions {
+    flex-direction: column;
+  }
+}
+
 /* --- On the chart: the tracked step's place and people's faces -------------------------- */
 .chart-quest-route {
   stroke: var(--brass-hi);
@@ -394,6 +702,12 @@ dialog.quest-card::backdrop {
 }
 .journal-row.is-done {
   opacity: 0.6;
+}
+.journal-row[data-take-up] {
+  cursor: pointer;
+}
+.journal-row.is-ignored {
+  opacity: 0.75;
 }
 .journal-face {
   position: relative;

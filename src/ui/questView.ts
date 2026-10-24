@@ -1,9 +1,10 @@
-import { tOptional } from '../i18n';
+import { t, tOptional } from '../i18n';
 import type { MapDef } from '../sim/map';
 import {
   CONDITIONS,
   type Condition,
   type QuestPoint,
+  type QuestReward,
   isSpot,
   resolvePort,
   slotLayout,
@@ -21,6 +22,11 @@ import { type Character, type Mood, MOODS, character } from './portraits';
  */
 
 export type CardKind = 'offer' | 'step' | 'choice' | 'finished';
+
+/** What kind of message a card is, said on its tag (decision 0141). */
+export type CardTag = 'new' | 'next' | 'done';
+export const cardTag = (kind: CardKind): CardTag =>
+  kind === 'offer' ? 'new' : kind === 'finished' ? 'done' : 'next';
 
 export interface QuestCardModel {
   quest: string;
@@ -41,6 +47,14 @@ export interface QuestCardModel {
   /** The good the ask is about, for its icon. */
   good?: string;
   options?: { id: string; title: string; copy?: string }[];
+  /** A story quest (`main`): its card greets the captain before the harbour screen (0141). */
+  main: boolean;
+  /** Where the ask happens, "3 places, marked on the chart". */
+  where?: string;
+  /** What the ask pays: gold, and the rest in words ("a building for your island"). */
+  reward?: { gold: number; more: string[] };
+  /** Steps after this one, on an offer: "then 2 more steps". */
+  moreSteps?: number;
 }
 
 const isMood = (m: unknown): m is Mood => MOODS.includes(m as Mood);
@@ -76,6 +90,35 @@ export function parClock(secs: number): string {
 export function stepParams(book: QuestBook, step: QuestStep | undefined): Record<string, string> {
   const par = book.parSeconds(step);
   return par === undefined ? {} : { par: parClock(par) };
+}
+
+/** A reward in the card's words: its gold, and the rest ("a building for your island"). */
+export function rewardWords(
+  map: MapDef,
+  rewards: (QuestReward | undefined)[],
+): { gold: number; more: string[] } | undefined {
+  let gold = 0;
+  const more: string[] = [];
+  for (const r of rewards) {
+    if (!r) continue;
+    gold += r.gold ?? 0;
+    if (r.homeIsland) more.push(t('quest.rewardIsland'));
+    if (r.homeSpot?.length) more.push(t('quest.rewardBuilding'));
+    for (const id of r.levelUp ?? [])
+      more.push(t('quest.rewardGrows', { name: portName(map, id) ?? id }));
+    for (const id of r.discover ?? [])
+      more.push(t('quest.rewardDiscover', { name: portName(map, id) ?? id }));
+  }
+  return gold || more.length ? { gold, more } : undefined;
+}
+
+/** Where a step's ask happens, when the chart shows it: its markers, or its rough circle. */
+export function stepWhere(step: QuestStep | undefined): string | undefined {
+  const goal = step?.goal;
+  const points = goal?.is === 'reach' && Array.isArray(goal.points) ? goal.points.length : 0;
+  if (points > 1) return t('quest.whereMarks', { n: points });
+  if (points || step?.chart || step?.compass) return t('quest.whereChart');
+  return undefined;
 }
 
 /** "4 / 12" for a step that counts goods or quest cargo; nothing for the others. */
@@ -127,7 +170,14 @@ export function cardFor(
     ask: tOptional(`${key}.title`, stepParams(book, step)),
     progress: kind === 'step' ? stepProgress(step?.goal, p?.counts ?? []) : undefined,
     good: typeof step?.goal?.good === 'string' ? step.goal.good : undefined,
+    main: !!quest.main,
   };
+  if (kind === 'offer' || kind === 'step') {
+    card.where = stepWhere(step);
+    const last = step === quest.steps.at(-1);
+    card.reward = rewardWords(map, [step?.reward, last ? quest.reward : undefined]);
+    if (kind === 'offer' && quest.steps.length > 1) card.moreSteps = quest.steps.length - 1;
+  }
   if (kind === 'choice')
     card.options = (step?.choose ?? []).map((o) => ({
       id: o.id,
@@ -140,7 +190,8 @@ export function cardFor(
 /**
  * The card to show now, if any: an offer at its port, a step (or choice) not seen yet where it
  * happens, or the thanks for a finished quest. `seen` holds `<quest>:<step>` keys already shown;
- * `finished` the quests whose thanks are waiting.
+ * `finished` the quests whose thanks are waiting. `only` keeps the quests it holds for (the main
+ * ones, for the arrival card, decision 0141).
  */
 export function dueCard(
   book: QuestBook,
@@ -148,22 +199,67 @@ export function dueCard(
   docked: string | null,
   seen: ReadonlySet<string>,
   finished: ReadonlySet<string>,
+  only: (quest: QuestDef) => boolean = () => true,
 ): { quest: string; kind: CardKind } | null {
   for (const id of finished) {
     const quest = book.quests.find((q) => q.id === id);
-    const port = quest && cardPort(map, quest);
-    if (quest && (!port || port === docked)) return { quest: id, kind: 'finished' };
+    if (!quest || !only(quest)) continue;
+    const port = cardPort(map, quest);
+    if (!port || port === docked) return { quest: id, kind: 'finished' };
   }
   for (const { quest, step } of book.active) {
-    if (seen.has(`${quest.id}:${step.id}`)) continue;
+    if (!only(quest) || seen.has(`${quest.id}:${step.id}`)) continue;
     const port = cardPort(map, quest, step);
     if (!port || port === docked) return { quest: quest.id, kind: step.choose ? 'choice' : 'step' };
   }
   if (docked)
     for (const quest of book.offered)
-      if (!seen.has(`${quest.id}:offer`) && cardPort(map, quest) === docked)
+      if (only(quest) && !seen.has(`${quest.id}:offer`) && cardPort(map, quest) === docked)
         return { quest: quest.id, kind: 'offer' };
   return null;
+}
+
+/** One person on the Quay tab (decision 0141): their card, and whether it is news this call. */
+export interface QuayItem {
+  /** The `seen` key: `<quest>:<step>`, `<quest>:offer` or `<quest>:done`. */
+  key: string;
+  card: QuestCardModel;
+  fresh: boolean;
+}
+
+/**
+ * The harbour screen's Quay tab (decision 0141): everyone in this harbour with something to say,
+ * other than the main quests' arrival cards. The thanks first, then the steps under way here, then
+ * the offers; `fresh` ones count on the tab's badge until the tab is seen.
+ */
+export function quayItems(
+  book: QuestBook,
+  map: MapDef,
+  docked: string | null,
+  seen: ReadonlySet<string>,
+  finished: ReadonlySet<string>,
+): QuayItem[] {
+  if (!docked) return [];
+  const out: QuayItem[] = [];
+  const add = (quest: QuestDef, kind: CardKind, key: string) => {
+    const card = cardFor(book, map, quest.id, kind);
+    if (card) out.push({ key, card, fresh: !seen.has(key) });
+  };
+  for (const id of finished) {
+    const quest = book.quests.find((q) => q.id === id);
+    if (quest && !quest.main && (cardPort(map, quest) ?? docked) === docked)
+      add(quest, 'finished', `${id}:done`);
+  }
+  for (const { quest, step } of book.active) {
+    if (quest.main) continue;
+    const key = `${quest.id}:${step.id}`;
+    const port = cardPort(map, quest, step);
+    if (port === docked || (!port && !seen.has(key)))
+      add(quest, step.choose ? 'choice' : 'step', key);
+  }
+  for (const quest of book.offered)
+    if (!quest.main && cardPort(map, quest) === docked) add(quest, 'offer', `${quest.id}:offer`);
+  return out;
 }
 
 export interface JournalStep {
@@ -178,7 +274,8 @@ export interface JournalEntry {
   /** "Rook · Saltmere". */
   who?: string;
   arc: string;
-  state: 'tracked' | 'active' | 'offered' | 'done';
+  /** `ignored`: an offer the captain said "don't offer again" to (decision 0141). */
+  state: 'tracked' | 'active' | 'offered' | 'ignored' | 'done';
   stepNo: number;
   steps: number;
   /** The tracked quest's steps: done ones, the one now, and one line for what is still hidden. */
@@ -227,6 +324,7 @@ export function journal(book: QuestBook, map: MapDef): JournalEntry[] {
     else out.push(entry);
   }
   for (const quest of book.offered) out.push({ ...base(quest), state: 'offered', stepNo: 0 });
+  for (const quest of book.ignoredOffers) out.push({ ...base(quest), state: 'ignored', stepNo: 0 });
   for (const quest of book.quests) {
     const p = book.progress(quest.id);
     if (p?.step !== QUEST_DONE) continue;

@@ -26,10 +26,12 @@ import { daylightAt } from './sim/daylight';
 import { QuestBook } from './sim/quests';
 import { type StepEffects, heldWind } from './sim/stepEffects';
 import { QuestCard } from './ui/questCard';
+import { QuestNote } from './ui/questNote';
 import {
   cardFor,
   dueCard,
   journal,
+  quayItems,
   questGoal,
   questPins,
   questTarget,
@@ -246,43 +248,96 @@ const questThanks = new Set<string>();
  * following it straight away (decision 0139), so one person speaks per call.
  */
 let offersWait = false;
-function showDueCard() {
+/** The main quest's card due now (decision 0141): the others speak on the Quay tab and in notes. */
+function dueMainCard() {
   // While the tutorial runs, its lesson cards speak: an arc offered meanwhile (Kit's, at
   // Saltmere) waits for the next visit after it (decision 0130).
-  if (questCard.isOpen || tutorialOffer.open || tutorial.isActive) return;
-  const due = dueCard(quests, world.map, world.trade.dockedAt, questSeen, questThanks);
+  if (tutorial.isActive) return null;
+  const docked = world.trade.dockedAt;
+  return dueCard(quests, world.map, docked, questSeen, questThanks, (q) => !!q.main);
+}
+/**
+ * A main quest's card, if one is due (decision 0141): docked, it is the arrival card, shown before
+ * the harbour screen; it never covers the harbour screen, and waits for the next arrival instead.
+ */
+function showDueCard(): boolean {
+  if (questCard.isOpen || tutorialOffer.open || tradePanel.isOpen) return false;
+  const due = dueMainCard();
   const card = due && cardFor(quests, world.map, due.quest, due.kind);
-  if (!due || !card) return;
-  if (due.kind === 'offer' && offersWait) return;
+  if (!due || !card) return false;
+  if (due.kind === 'offer' && offersWait) return false;
   if (due.kind === 'finished') {
     questThanks.delete(due.quest);
     offersWait = true;
   } else if (due.kind === 'offer') questSeen.add(`${due.quest}:offer`);
   else questSeen.add(`${due.quest}:${quests.progress(due.quest)!.step}`);
   input.releaseAll();
-  questCard.show(card);
+  const docked = world.trade.dockedAt;
+  questCard.show(card, docked ? trade.findPort(world.map, docked)?.name : undefined);
   music.speak(card.giver?.voice, wordCount(card.ask ?? card.speech), card.mood);
   refreshPause();
+  return true;
 }
+/** Docked: the arrival card if a main quest has one, else straight to the harbour screen. */
+function openHarbour() {
+  if (!showDueCard()) tradePanel.open('market');
+  refreshPause();
+}
+// Every other quest's news away from its harbour: a small note at sea (decision 0141).
+const questNote = new QuestNote($<HTMLButtonElement>('quest-note'), $('captain-stats'));
+questNote.onOpen = () => chart.open();
 quests.onEvent = (e) => {
   // While the tutorial runs, its own lesson card speaks for Rook's thanks (decision 0127).
   if (e.type === 'finished' && !tutorial.isActive) questThanks.add(e.quest);
   if (e.type === 'finished') view.setQuestsDone(questsDone(world.trade));
+  const quest = quests.quests.find((q) => q.id === e.quest);
+  if (quest?.main || tutorial.isActive) return;
+  if (e.type === 'step' || e.type === 'choice' || e.type === 'finished') {
+    const step = quests.progress(e.quest)?.step;
+    const kind = e.type === 'finished' ? 'finished' : e.type;
+    const card = step && cardFor(quests, world.map, e.quest, kind);
+    if (card) questNote.push(`${e.quest}:${step}`, card);
+  }
 };
-questCard.onAccept = (id) => {
+/** The captain's yes to an offer, on a card or on the Quay tab. */
+function acceptQuest(id: string) {
   // The offer already said what the first step asks.
   const first = quests.quests.find((q) => q.id === id)?.steps[0];
   if (first) questSeen.add(`${id}:${first.id}`);
   quests.accept(id);
   autosave();
+}
+questCard.onAccept = acceptQuest;
+questCard.onIgnore = (id) => {
+  if (quests.ignore(id)) autosave();
+};
+tradePanel.quay = {
+  items: () =>
+    tutorial.isActive
+      ? []
+      : quayItems(quests, world.map, world.trade.dockedAt, questSeen, questThanks),
+  seen: (keys) => {
+    for (const key of keys) questSeen.add(key);
+  },
+  act: (id, act, option) => {
+    if (act === 'accept') acceptQuest(id);
+    else if (act === 'later') questSeen.add(`${id}:offer`);
+    else if (act === 'ignore') {
+      if (quests.ignore(id)) autosave();
+    } else if (act === 'choose' && option) {
+      quests.choose(id, option);
+      autosave();
+    }
+  },
 };
 questCard.onChoose = (id, option) => {
   quests.choose(id, option);
   autosave();
 };
 questCard.onClose = () => {
+  // After the arrival card (or "To the market"), the harbour screen.
+  if (!showDueCard() && world.trade.dockedAt && !tradePanel.isOpen) tradePanel.open('market');
   refreshPause();
-  showDueCard();
 };
 // The tracked step's places at sea: gates, spots, landings (decision 0130).
 // The prologue's wreck gets the same ring and beam while a lesson is about it (decision 0139).
@@ -298,6 +353,11 @@ chart.quests = {
   journal: () => journal(quests, world.map),
   track: (id) => {
     if (quests.track(id)) autosave();
+  },
+  takeUp: (id) => {
+    if (!quests.unignore(id)) return;
+    questSeen.delete(`${id}:offer`);
+    autosave();
   },
 };
 tradePanel.uiMode = settings.uiMode;
@@ -320,20 +380,17 @@ tradePanel.onAction = () => {
 };
 tradePanel.onClose = () => {
   refreshPause();
+  // A main quest's card that came due in the harbour (or at sea meanwhile).
+  if (!world.trade.dockedAt) showDueCard();
 };
 
 hud.onDockClick = () => {
-  if (world.trade.dockedAt) {
-    tradePanel.open('market');
-    refreshPause();
-  }
+  if (world.trade.dockedAt) openHarbour();
 };
 
 hud.onPortClick = (portId: string) => {
-  if (world.trade.dockedAt === portId) {
-    tradePanel.open('market');
-    refreshPause();
-  } else if (trade.tryDock(world.trade, world.map, world.boat, portId)) {
+  if (world.trade.dockedAt === portId) openHarbour();
+  else if (trade.tryDock(world.trade, world.map, world.boat, portId)) {
     handleEvents([...trade.flushEconomy(world.trade, world.map), { type: 'docked', portId }]);
     tutorial.observe();
   } else {
@@ -868,15 +925,14 @@ function handleEvents(events: WorldEvent[]) {
       // Ramming the pier also stops you in range: keep the damage toast, the harbour shows repair.
       const hurt = events.some((x) => x.type === 'crash' || x.type === 'reef-strike');
       if (!hurt) hud.showToast(t('toast.docked', { name: portName }), 2.5);
-      tradePanel.open('market');
-      refreshPause();
       autosave();
       // "Not now" lasts one call: the offer comes back the next time you dock there.
       for (const key of questSeen) if (key.endsWith(':offer')) questSeen.delete(key);
       offersWait = false;
       // A step this dock finishes (Rook's "call at Saltmere") is thanked for, not asked again.
       quests.check();
-      showDueCard();
+      questNote.hide();
+      openHarbour();
     } else if (e.type === 'discovered') {
       const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
       hud.showToast(t('toast.discovered', { name: portName }), 4);
@@ -942,6 +998,8 @@ function handleEvents(events: WorldEvent[]) {
     } else if (e.type === 'undocked') {
       const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
       hud.showToast(t('toast.departed', { name: portName }), 1.5);
+      // Thanks read on the Quay tab are said.
+      for (const id of questThanks) if (questSeen.has(`${id}:done`)) questThanks.delete(id);
       if (tradePanel.isOpen) {
         tradePanel.close();
         refreshPause();
@@ -1028,6 +1086,7 @@ function tick(now: number) {
   view.castawayWaiting = tutorial.mark !== null;
   hud.goal = seaGoal();
   hud.update(dt, (x, y) => view.project(x, y), size, !paused, hudVisible);
+  questNote.update(dt, mode === 'play' && !paused && hudVisible, (key) => questSeen.has(key));
   homePanel.update((x, y) => view.project(x, y));
   // Coach marks follow moving targets (port signs) about ten times a second.
   if (++coachTick % 6 === 0) coach.place();
