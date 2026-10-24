@@ -1,6 +1,6 @@
 # Winds and currents for Phase 4 (proposal, 2026-10-24)
 
-**Status:** Proposal for Guillaume, revised twice after his comments (no arrows; not everything on today's ring; then his own current through the middle gap, visuals only, smooth, with crests showing the direction). Nothing is decided or built. It follows [0137](../../decisions/0137-phase-4-biomes-and-founded-outposts.md) point 6 ("wind zones and currents become authored, per biome") and the [Phase 4 map](../phase-4-map/README.md) (layout B). The code was read with graphify: `windAt` in `src/sim/wind.ts`, `stepBoat` in `src/sim/boat.ts`, `stepWorld` in `src/sim/world.ts`, and the HUD in `src/ui/hud.ts`.
+**Status:** Decided in [0140](../../decisions/0140-wind-zones-and-currents.md): Guillaume answered "ok" (2026-10-24) to this proposal and its recommendations, after four rounds of comments (no arrows; not everything on today's ring; his own current through the middle gap, visuals only; crests for direction and a smooth curve). It follows [0137](../../decisions/0137-phase-4-biomes-and-founded-outposts.md) point 6 and the [Phase 4 map](../phase-4-map/README.md) (layout B). The code was read with graphify: `windAt` in `src/sim/wind.ts`, `stepBoat` in `src/sim/boat.ts`, `stepWorld` in `src/sim/world.ts`, and the HUD in `src/ui/hud.ts`.
 
 The mockups are real game captures with the proposed readouts drawn on top. The yellow tag marks what is new. `src/capture.cjs` makes them.
 
@@ -107,7 +107,7 @@ Guillaume's rule is that every hazard or annoyance can be switched off. Proposal
 
 Everything waits for the v0.3.x release. The data format can be drafted earlier, since nothing in the game reads it until then.
 
-## Questions for Guillaume
+## Questions for Guillaume (answered: "ok" to the recommendations, see 0140)
 
 1. **Current water look:** smooth darker blue water with soft edges and drifting crests showing the direction, plus small "SOG" and "Current 1.8 kn E" readouts. Is that right?
 2. **On today's ring:** your current through the middle gap, flowing east at about 1.8 kn. Right direction and strength?
