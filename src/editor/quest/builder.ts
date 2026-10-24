@@ -1,5 +1,4 @@
 import { strToU8, zipSync } from 'fflate';
-import { ISLAND_DESIGNS } from '../../data/islands';
 import { setLanguage } from '../../i18n';
 import type { MapDef } from '../../sim/map';
 import { clearAt } from '../../sim/mapChecks';
@@ -10,8 +9,6 @@ import {
   STEP_MARKER_STYLES,
   type QuestDef,
   type QuestStep,
-  checkQuestHooks,
-  checkQuests,
 } from '../../sim/quests';
 import { CHARACTERS, MOODS, type Mood, portraitSvg } from '../../ui/portraits';
 import { questCardBody } from '../../ui/questCard';
@@ -26,8 +23,6 @@ import {
   type Place,
   type QuestDoc,
   addPlace,
-  checkPlaces,
-  checkText,
   clock,
   conditionWords,
   exportFiles,
@@ -36,6 +31,7 @@ import {
   newQuest,
   newStep,
   playUrl,
+  questProblems,
   questsNamed,
   renameQuest,
   renameStep,
@@ -1102,17 +1098,7 @@ function seaPanel(s: QuestStep): HTMLElement[] {
 
 function drawChecks() {
   const map = host.prepared();
-  let problems: string[];
-  try {
-    problems = [
-      ...checkQuests(doc.quests, map),
-      ...checkQuestHooks(map, Object.values(ISLAND_DESIGNS), doc.quests),
-      ...checkText(doc),
-      ...checkPlaces(doc, map, (x, y) => clearAt(map, x, y, 0)),
-    ];
-  } catch (e) {
-    problems = [`the checks stopped: ${String(e)}`];
-  }
+  const problems = questProblems(doc, map);
   const list = $('.qb-checks ul');
   list.replaceChildren();
   if (!problems.length) {
@@ -1135,7 +1121,14 @@ function drawChecks() {
 // --- Chart ------------------------------------------------------------------------------------
 
 const NS = 'http://www.w3.org/2000/svg';
-const layers: Layers = { names: true, course: false, harbours: true, grid: false, flow: true };
+const layers: Layers = {
+  names: true,
+  course: false,
+  harbours: true,
+  grid: false,
+  flow: true,
+  marks: true,
+};
 const svg = () => $<SVGSVGElement>('.qb-map');
 
 const HINTS: Record<Tool, string> = {

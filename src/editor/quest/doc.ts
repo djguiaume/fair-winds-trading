@@ -1,7 +1,9 @@
+import { ISLAND_DESIGNS } from '../../data/islands';
 import { formatJson, formatQuestJson } from '../../data/jsonFormat';
 import en from '../../i18n/en.json';
 import fr from '../../i18n/fr.json';
 import type { MapDef } from '../../sim/map';
+import { clearAt } from '../../sim/mapChecks';
 import {
   CONDITIONS,
   type Condition,
@@ -10,7 +12,13 @@ import {
   type QuestReward,
   isSpot,
 } from '../../sim/questLibrary';
-import { type QuestDef, type QuestStep, QUEST_DONE } from '../../sim/quests';
+import {
+  type QuestDef,
+  type QuestStep,
+  QUEST_DONE,
+  checkQuestHooks,
+  checkQuests,
+} from '../../sim/quests';
 
 /*
  * The quest builder's document (decision 0142): every quest file and the quest text, as pure
@@ -568,6 +576,23 @@ export function checkPlaces(
             `quest ${q.id} › ${s.id}: ${p.kind} at (${Math.round(p.x)}, ${Math.round(p.y)}) is not in clear water`,
           );
   return out;
+}
+
+/**
+ * Every problem the quest builder lists (its Checks panel), also run by `npm run check`
+ * (decision 0153): quest files, hooks on island files, text and places.
+ */
+export function questProblems(doc: QuestDoc, map: MapDef): string[] {
+  try {
+    return [
+      ...checkQuests(doc.quests, map),
+      ...checkQuestHooks(map, Object.values(ISLAND_DESIGNS), doc.quests),
+      ...checkText(doc),
+      ...checkPlaces(doc, map, (x, y) => clearAt(map, x, y, 0)),
+    ];
+  } catch (e) {
+    return [`the checks stopped: ${String(e)}`];
+  }
 }
 
 // --- Export --------------------------------------------------------------------------------

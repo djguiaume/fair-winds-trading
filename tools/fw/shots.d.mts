@@ -1,0 +1,39 @@
+// Types of `shots.mjs` for the TypeScript tools and tests (decision 0153).
+export interface Shot {
+  name: string;
+  sea: string;
+  seaFile: string | null;
+  islands: string[];
+  at: [number, number] | null;
+  heading: number | null;
+  sail: number;
+  speed: number;
+  ship: string | null;
+  port: string | null;
+  tab: string | null;
+  zoom: number | null;
+  look: [number, number] | null;
+  chart: boolean;
+  charted: boolean;
+  lang: string;
+  night: boolean;
+  time: number | null;
+  weather: boolean;
+  storms: boolean;
+  zones: boolean;
+  currents: boolean;
+  cards: boolean;
+  wait: number;
+  sizes: string[];
+  url: string | null;
+  storage: Record<string, string>;
+  [more: string]: unknown;
+}
+export const SIZES: Record<string, { width: number; height: number; touch?: boolean }>;
+export const HELP: string;
+export function normalise(opts: Record<string, unknown>): Shot;
+export function planShots(args: Record<string, unknown>): Shot[];
+export function shotPath(shot: Shot): string;
+export function seedStorage(shot: Shot): Record<string, string>;
+export function takeShots(shots: Shot[], out: string): Promise<string[]>;
+export function run(args: Record<string, unknown>): Promise<number>;

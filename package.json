@@ -13,7 +13,15 @@
     "perf": "node tools/performance/run.mjs",
     "perf:test": "node --test tools/performance/stats.test.mjs",
     "lint": "eslint . && prettier --check .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "fw": "node tools/fw/fw.mjs",
+    "check": "node tools/fw/fw.mjs check",
+    "balance": "node tools/fw/fw.mjs balance",
+    "island": "node tools/fw/fw.mjs island",
+    "adr": "node tools/fw/fw.mjs adr",
+    "shots": "node tools/fw/fw.mjs shots",
+    "quest": "node tools/fw/fw.mjs quest",
+    "chart": "node tools/fw/fw.mjs chart"
   },
   "dependencies": {
     "fflate": "^0.8.3",

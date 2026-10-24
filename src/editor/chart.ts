@@ -4,6 +4,7 @@ import { GOOD_ICONS, isGood } from '../sim/goods';
 import { islandCoasts, islandLake } from '../sim/islandLayout';
 import type { MapDef } from '../sim/map';
 import { DEG } from '../sim/math';
+import { seaMarkShape } from '../ui/chartMarks';
 import { drawFlow, drawFlowSelection, flowLabels } from './flowChart';
 import type { Selection } from './model';
 import { findIsland, findShape, waypointOf } from './model';
@@ -23,6 +24,8 @@ export interface Layers {
   grid: boolean;
   /** Currents and wind zones (decision 0140). */
   flow: boolean;
+  /** Buoys, cardinal marks, boats and lights (decision 0130). */
+  marks: boolean;
 }
 
 export interface View {
@@ -43,18 +46,20 @@ export interface ChartScene {
   selection: Selection;
   layers: Layers;
   view: View;
+  /** Chart size in pixels; the SVG's own size when left out (`npm run chart` has no layout). */
+  size?: { width: number; height: number };
 }
 
 export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
   const { map, prepared, shipped, selection, layers, view } = scene;
-  const rect = svg.getBoundingClientRect();
+  const rect = scene.size ?? svg.getBoundingClientRect();
   const w = Math.max(1, rect.width) * view.upp,
     h = Math.max(1, rect.height) * view.upp;
   svg.setAttribute('viewBox', `${view.cx - w / 2} ${-view.cy - h / 2} ${w} ${h}`);
   svg.replaceChildren();
   const px = view.upp;
   const el = (tag: string, attrs: Record<string, string | number>, parent: Element = svg) => {
-    const node = document.createElementNS(NS, tag);
+    const node = svg.ownerDocument.createElementNS(NS, tag);
     for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, String(v));
     parent.append(node);
     return node;
@@ -164,6 +169,12 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
     });
   }
 
+  if (layers.marks)
+    for (const mark of map.marks ?? []) {
+      const { tag, attrs } = seaMarkShape(mark, px);
+      el(tag, attrs);
+    }
+
   // Start position: the boat icon pointing along the start heading.
   const s = map.start;
   const boat = el('g', {
@@ -232,17 +243,18 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
       if (!island.name) continue;
       const port = map.ports.find((p) => p.islandId === island.id);
       const icon = port?.produces.find(isGood);
-      label(
-        `${island.name}${icon ? ` ${GOOD_ICONS[icon]}` : ''}`,
-        island.x,
-        -island.y - island.radius - 8 * px,
-        15,
-      );
+      // Above the coast's highest point: a ring-lagoon island's radius is far above its land.
+      const shaped = prepared.islands.find((i) => i.id === island.id);
+      const coasts = shaped && islandCoasts(shaped);
+      const north = coasts
+        ? Math.max(...coasts.flatMap((c) => c.map((p) => p[1])))
+        : island.y + island.radius;
+      label(`${island.name}${icon ? ` ${GOOD_ICONS[icon]}` : ''}`, island.x, -north - 8 * px, 15);
       if (port?.hidden)
         label(
           port.builds?.length ? 'hidden yard' : 'hidden',
           island.x,
-          -island.y - island.radius + 4 * px,
+          -north + 4 * px,
           11,
           'yard',
         );
@@ -259,6 +271,9 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
         'small',
       );
     }
+    if (layers.marks)
+      for (const mark of map.marks ?? [])
+        if (mark.name) label(mark.name, mark.x, -mark.y - 10 * px, 11, 'small');
     if (layers.flow) flowLabels(map, label);
     label('start', s.x, -s.y + 22 * px, 11, 'small');
   }

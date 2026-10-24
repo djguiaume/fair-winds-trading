@@ -442,15 +442,28 @@ function formatJson(value: unknown, flat: (v: unknown) => boolean): string {
               .join(', ')} }`
           : '{}'
         : JSON.stringify(v);
+  /**
+   * Whether a value can never sit on one line: Prettier always breaks a list of two or more
+   * non-empty lists or objects (the outlines), objects here break unless every value is `flat`,
+   * and whatever holds a value that breaks breaks too.
+   */
+  const breaks = (v: unknown): boolean => {
+    if (Array.isArray(v))
+      return (
+        (v.length > 1 &&
+          v.every((x) => x && typeof x === 'object' && Object.keys(x as object).length > 1)) ||
+        v.some(breaks)
+      );
+    if (!v || typeof v !== 'object') return false;
+    const values = Object.values(v).filter((x) => x !== undefined);
+    return values.length > 0 && (!values.every(flat) || values.some(breaks));
+  };
   /** `tail`: the comma after it, which Prettier counts in the width. */
   const write = (v: unknown, indent: string, prefix: string, tail = 0): string => {
     const one = prefix + inline(v);
     if (Array.isArray(v)) {
       // Prettier always breaks a list of two or more non-empty lists or objects (the outlines).
-      const nested =
-        v.length > 1 &&
-        v.every((x) => x && typeof x === 'object' && Object.keys(x as object).length > 1);
-      if (!v.length || (!nested && indent.length + one.length + tail <= WIDTH)) return one;
+      if (!v.length || (!breaks(v) && indent.length + one.length + tail <= WIDTH)) return one;
       const inner = indent + '  ';
       const items = v.map((x, i) => inner + write(x, inner, '', i < v.length - 1 ? 1 : 0));
       return `${prefix}[\n${items.join(',\n')}\n${indent}]`;
@@ -458,8 +471,7 @@ function formatJson(value: unknown, flat: (v: unknown) => boolean): string {
     if (v && typeof v === 'object') {
       const entries = Object.entries(v);
       if (!entries.length) return `${prefix}{}`;
-      if (entries.every(([, x]) => flat(x)) && indent.length + one.length + tail <= WIDTH)
-        return one;
+      if (!breaks(v) && indent.length + one.length + tail <= WIDTH) return one;
       const inner = indent + '  ';
       const kept = entries.filter(([, x]) => x !== undefined);
       const lines = kept.map(
