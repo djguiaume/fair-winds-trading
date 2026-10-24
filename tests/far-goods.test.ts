@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
-import { difficultyWeather, legSeconds } from '../src/sim/balance';
+import { seaLegSeconds, seaOf } from '../src/sim/balance';
 import { deliverContract } from '../src/sim/contracts';
 import { DIFFICULTIES, type Difficulty } from '../src/sim/difficulty';
 import { CRAFTED_FROM, FAR_GOODS, GOOD_DEFS, type GoodId, isMadeGood } from '../src/sim/goods';
@@ -300,7 +300,13 @@ describe('a far round pays on every difficulty (0146)', () => {
     const got = sell(w.trade, good, qty, MAP);
     expect(got.ok, `${good} at ${to}`).toBe(true);
     const gold = (got.ok ? got.gold : 0) - (paid.ok ? paid.gold : 0);
-    const seconds = legSeconds(MAP, ship, from, to, difficultyWeather(MAP, level));
+    // The level's real wind (decision 0149), averaged over a few voyages' weather.
+    const seeds = [1, 2, 3, 4, 5, 6];
+    const seconds =
+      seeds.reduce(
+        (sum, seed) => sum + seaLegSeconds(seaOf(MAP, { level, seed }), ship, from, to, 0),
+        0,
+      ) / seeds.length;
     return { gold, seconds };
   }
   // The main port's workshop holds a full load, crafted from raw goods brought earlier.

@@ -1,4 +1,4 @@
-# 0149. Building far goods: the goods, the workshop rule and the port town buyers
+# 0150. Building far goods: the goods, the workshop rule and the port town buyers
 
 **Status:** Implemented (2026-10-24). Builds [0146](0146-far-goods-from-the-biome-outposts.md) (far goods, accepted). Guillaume asked for it to be built now (item 3 of the coordinator's list, "ok for 3, 4, 5"), with balance and leg times checked on all three difficulty levels, since the wind shifts a lot on Captain and Old salt.
 
@@ -22,14 +22,14 @@
 
 ## Balance on the three levels
 
-`tests/far-goods.test.ts` prices each leg with the real market and that level's cut, and times it with the balance simulation's leg model in that level's wind (steady on Fair winds, shifting on Captain and Old salt). Maxed cutter, 30 units, south sea test sites:
+`tests/far-goods.test.ts` prices each leg with the real market and that level's cut, and times it in that level's real wind, wind zones and currents (`seaLegSeconds`, [0149](0149-balance-in-each-levels-real-wind-and-currents.md)), averaged over six voyages' weather. Maxed cutter, 30 units, south sea test sites:
 
 | Leg | Fair winds | Captain | Old salt |
 |---|---|---|---|
-| Honey today, Abbey Head → Saltmere (for comparison) | 786 in 57 s | 668 in 60 s | 521 in 60 s |
-| Honey out, Abbey Head → Sunreach | 936 in 88 s | 811 in 90 s | 656 in 90 s |
-| Spice, Palm Key → Sunreach | 453 in 46 s | 415 in 48 s | 364 in 48 s |
-| Spiced tea, Sunreach → Port Calda / Westholm | 2,120 in 111 / 73 s | 1,919 in 103 / 77 s | 1,660 in 103 / 77 s |
+| Honey today, Abbey Head → Saltmere (for comparison) | 786 in 53 s | 668 in 58 s | 521 in 58 s |
+| Honey out, Abbey Head → Sunreach | 936 in 83 s | 811 in 87 s | 656 in 87 s |
+| Spice, Palm Key → Sunreach | 453 in 44 s | 415 in 46 s | 364 in 46 s |
+| Spiced tea, Sunreach → Port Calda / Westholm | 2,120 in 105 / 70 s | 1,919 in 103 / 73 s | 1,660 in 103 / 73 s |
 | One round (honey out, spice, tea home) | 3,509 | 3,145 | 2,680 |
 
 The test holds on every level: every leg pays, the crafted leg pays more than twice today's honey run and more gold per second, and no leg takes three minutes. The numbers sit inside 0146's estimate (round 2,900 to 3,700 on Captain).
@@ -37,5 +37,5 @@ The test holds on every level: every leg pays, the crafted leg pays more than tw
 ## Consequences
 
 - The south sea thread fills Sunreach and Palm Key with these fields (Sunreach: `level: 3`, `wants: ["spice"]`, `wantsMade` honey and ring specialties, `levelProduces: { "3": ["spicedTea"] }`; Palm Key: `maxLevel: 3`, the spice from its founding quest). The other seas follow the same pattern with their goods.
-- The balance bots (0114) don't sail the far seas yet; Phase 4 targets go into `balance-targets.json` with the real 5x map.
+- The balance bots (0114, 0149) don't sail the far seas yet; Phase 4 targets go into `balance-targets.json` with the real 5x map.
 - Old save codes still read. New codes carry 8 more numbers per market, mostly zeros that compress away; the 1,000-character link test still passes.

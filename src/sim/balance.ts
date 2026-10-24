@@ -1,7 +1,8 @@
 import { TUNING } from '../data/tuning';
 import TARGETS from '../data/balance-targets.json';
 import { deliverContract, stepContracts, syncHelpOrder } from './contracts';
-import { DIFFICULTIES, type Difficulty, knobs } from './difficulty';
+import { CurrentField } from './currents';
+import { DEFAULT_DIFFICULTY, DIFFICULTIES, type Difficulty, knobs, weatherFor } from './difficulty';
 import { GOODS, type GoodId } from './goods';
 import { damageHull, repairHull } from './hazards';
 import type { MapDef } from './map';
@@ -28,12 +29,17 @@ import {
 } from './trade';
 import { type UpgradeTrack, effectiveShip, upgradePrice } from './upgrades';
 import { createWorld } from './world';
+import { drivingWind } from './boat';
+import { type WindConfig, windAt, withoutStorms } from './wind';
 
 /**
  * The balance simulation (decisions 0046, 0083, 0114). Simulated captains trade on a map for a
  * while: a sharp one always takes the best paying leg; a relaxed one sails slower, often settles
  * for the second or third best load and strikes something now and then. Leg times come from the
- * ship polars over the shifting (or steady) wind's range, so they follow sailing changes too.
+ * ship polars in the game's own wind at that moment of the voyage (decision 0149): the level's
+ * weather walk (steady on Fair winds, wandering round the compass on Captain and Old salt), its
+ * calms and gales, the regions, the wind zones and the currents at the level's strength. So they
+ * follow sailing, weather and map changes too.
  *
  * Shared by `tests/economy-balance.test.ts`, `tests/difficulty-balance.test.ts` and the `?tune`
  * panel's balance check, which runs it in a worker on edited values. The targets are in
@@ -59,70 +65,122 @@ function weathers(map: MapDef, spread: number): Weather[] {
   );
 }
 
-/** ±50° for the shifting wind (0026); the steady trade wind stays within about ±10° (0083). */
+/** ±50° round the prevailing wind, for the averaged leg times of the "about a minute" check. */
 const SHIFTING_SPREAD = 50;
-const STEADY_SPREAD = 10;
-
-/** The wind range a difficulty level sails in: steady on Fair winds, shifting above (0083). */
-export function difficultyWeather(map: MapDef, level?: Difficulty): Weather[] {
-  const steady = level ? knobs(level).steadyWind : false;
-  return weathers(map, steady ? STEADY_SPREAD : SHIFTING_SPREAD);
-}
 
 function islandOfPort(map: MapDef, portId: string) {
   const port = map.ports.find((p) => p.id === portId)!;
   return map.islands.find((i) => i.id === port.islandId)!;
 }
 
-/** Best speed made good along `bearing` (kn), sailing straight or tacking, averaged over the weather. */
+/** Best speed made good along `bearing` (kn), sailing straight or tacking, in one wind. */
+function madeGoodIn(ship: ShipClass, bearing: number, from: number, kn: number): number {
+  const drive = drivingWind(kn) * ship.speedRatio;
+  let best = 0;
+  for (let a = -180; a <= 180; a += 2)
+    best = Math.max(
+      best,
+      polarFraction(ship, from - bearing - a * DEG) * drive * Math.cos(a * DEG),
+    );
+  return best;
+}
+
+/** Best speed made good along `bearing` (kn), averaged over the weather. */
 function madeGood(ship: ShipClass, bearing: number, weather: Weather[]): number {
   let sum = 0;
-  for (const w of weather) {
-    let best = 0;
-    for (let a = -180; a <= 180; a += 2) {
-      const speed = polarFraction(ship, w.from - bearing - a * DEG) * w.kn * ship.speedRatio;
-      best = Math.max(best, speed * Math.cos(a * DEG));
-    }
-    sum += best;
-  }
+  for (const w of weather) sum += madeGoodIn(ship, bearing, w.from, w.kn);
   return sum / weather.length;
 }
 
-/** Seconds from one port to another: 15 % detour round islands and reefs, manoeuvring losses. */
+/** A leg cut into stretches of at most `ZONE_STRETCH` units, each timed in its own wind and water. */
+interface LegPath {
+  bearing: number;
+  /** Units of each stretch. */
+  stretch: number;
+  /** Middle of each stretch. */
+  points: Array<[number, number]>;
+}
+
+const legPaths = new WeakMap<MapDef, Map<string, LegPath>>();
+
+function legPath(map: MapDef, from: string, to: string): LegPath {
+  let byMap = legPaths.get(map);
+  if (!byMap) legPaths.set(map, (byMap = new Map()));
+  const key = `${from}>${to}`;
+  const known = byMap.get(key);
+  if (known) return known;
+  const a = islandOfPort(map, from);
+  const b = islandOfPort(map, to);
+  const centres = Math.hypot(b.x - a.x, b.y - a.y);
+  const d = centres - a.radius - b.radius;
+  const ux = (b.x - a.x) / centres,
+    uy = (b.y - a.y) / centres;
+  const n = Math.min(16, Math.max(1, Math.ceil(d / ZONE_STRETCH)));
+  const points = Array.from({ length: n }, (_, i): [number, number] => {
+    const along = a.radius + (d * (i + 0.5)) / n;
+    return [a.x + ux * along, a.y + uy * along];
+  });
+  const path = { bearing: Math.atan2(b.x - a.x, b.y - a.y), stretch: d / n, points };
+  byMap.set(key, path);
+  return path;
+}
+
+const fields = new WeakMap<MapDef, CurrentField>();
+
+/** The map's currents (decision 0140), built once per map. */
+function currentField(map: MapDef): CurrentField {
+  let field = fields.get(map);
+  if (!field) fields.set(map, (field = new CurrentField(map)));
+  return field;
+}
+
+/** The current along `bearing` at a point (kn, negative against her), at `scale` strength. */
+function currentAlong(map: MapDef, x: number, y: number, bearing: number, scale: number): number {
+  if (scale <= 0 || !map.currents?.length) return 0;
+  const v = currentField(map).at(x, y, scale, water);
+  return v.east * Math.sin(bearing) + v.north * Math.cos(bearing);
+}
+const water = { east: 0, north: 0, id: '' };
+
+/** Slowest speed over the ground a stretch is timed at, so a calm against a current still ends. */
+const CRAWL_KN = 0.5;
+
+/** Seconds of one stretch: 15 % detour round islands and reefs, 10 % manoeuvring losses. */
+const stretchSeconds = (units: number, madeGoodKn: number, currentKn: number) =>
+  (units * 1.15) /
+  (Math.max(CRAWL_KN, madeGoodKn * 0.9 + currentKn) * TUNING.seamanship.boat.knotToUnits);
+
+/**
+ * Seconds from one port to another averaged over a range of winds, in the zones' average wind and
+ * the currents at `currents` strength (Captain's by default). For the "about a minute" check.
+ */
 export function legSeconds(
   map: MapDef,
   ship: ShipClass,
   from: string,
   to: string,
   weather = weathers(map, SHIFTING_SPREAD),
+  currents = 1,
 ): number {
-  const a = islandOfPort(map, from);
-  const b = islandOfPort(map, to);
-  const d = Math.hypot(b.x - a.x, b.y - a.y) - a.radius - b.radius;
-  const bearing = Math.atan2(b.x - a.x, b.y - a.y);
-  const knotToUnits = TUNING.seamanship.boat.knotToUnits;
   const zones = zoneField(map.windZones, smoothOutline);
-  if (!zones) return (d * 1.15) / (madeGood(ship, bearing, weather) * 0.9 * knotToUnits) + 8;
-  // Wind zones (decision 0140): the leg is cut into stretches, each sailed in the zones' average
-  // wind at its middle. Cached per weather list, since the bots ask for the same legs again.
-  let byWeather = zoneLegs.get(weather);
-  if (!byWeather) zoneLegs.set(weather, (byWeather = new Map()));
-  const key = `${map.name}:${ship.id}:${ship.speedRatio}:${from}:${to}`;
+  // Cached per weather list, since the checks ask for the same legs again.
+  let byWeather = averageLegs.get(weather);
+  if (!byWeather) averageLegs.set(weather, (byWeather = new Map()));
+  const key = `${map.name}:${ship.id}:${ship.speedRatio}:${from}:${to}:${currents}`;
   const known = byWeather.get(key);
   if (known !== undefined) return known;
-  const n = Math.min(16, Math.max(1, Math.ceil(d / ZONE_STRETCH)));
-  const ux = (b.x - a.x) / Math.hypot(b.x - a.x, b.y - a.y),
-    uy = (b.y - a.y) / Math.hypot(b.x - a.x, b.y - a.y);
+  const path = legPath(map, from, to);
   let seconds = 8;
-  for (let i = 0; i < n; i++) {
-    const along = a.radius + (d * (i + 0.5)) / n;
-    const x = a.x + ux * along,
-      y = a.y + uy * along;
-    const local = weather.map((w) => {
-      const z = zoneMeanAt(zones, x, y, w.from, false, legZone);
-      return { from: w.from + z.turn, kn: w.kn * z.strength };
-    });
-    seconds += ((d / n) * 1.15) / (madeGood(ship, bearing, local) * 0.9 * knotToUnits);
+  for (const [x, y] of path.points) {
+    // Wind zones (decision 0140): each stretch sailed in the zones' average wind at its middle.
+    const local = !zones
+      ? weather
+      : weather.map((w) => {
+          const z = zoneMeanAt(zones, x, y, w.from, false, legZone);
+          return { from: w.from + z.turn, kn: w.kn * z.strength };
+        });
+    const current = currentAlong(map, x, y, path.bearing, currents);
+    seconds += stretchSeconds(path.stretch, madeGood(ship, path.bearing, local), current);
   }
   byWeather.set(key, seconds);
   return seconds;
@@ -131,7 +189,76 @@ export function legSeconds(
 /** Length of one stretch of a leg sailed in one zone wind (units). */
 const ZONE_STRETCH = 40;
 const legZone: ZoneEffect = { ...NO_ZONE };
-const zoneLegs = new WeakMap<Weather[], Map<string, number>>();
+const averageLegs = new WeakMap<Weather[], Map<string, number>>();
+
+/**
+ * The sea of one voyage as the game has it (decision 0149): the level's weather without the
+ * moving storms, the wind zones, and the currents at the level's strength.
+ */
+export interface Sea {
+  map: MapDef;
+  wind: WindConfig;
+  seed: number;
+  currents: number;
+}
+
+export interface SeaOptions {
+  level?: Difficulty;
+  /** Weather seed; each seed is another voyage's weather. */
+  seed?: number;
+  /** Settings › Currents (decision 0145); on by default. */
+  currents?: boolean;
+  /** Settings › Wind zones (decision 0144); on by default. */
+  zones?: boolean;
+  /** Settings › Wind steady; by default what the level starts with. */
+  steadyWind?: boolean;
+}
+
+export function seaOf(map: MapDef, opts: SeaOptions = {}): Sea {
+  const level = opts.level ?? DEFAULT_DIFFICULTY;
+  const k = knobs(level);
+  const base = map.wind.weather;
+  const weather = base && withoutStorms(weatherFor(base, level, opts.steadyWind ?? k.steadyWind));
+  return {
+    map,
+    wind: {
+      ...map.wind,
+      weather,
+      zones: opts.zones === false ? null : zoneField(map.windZones, smoothOutline),
+      easiest: level === DIFFICULTIES[0],
+    },
+    seed: (map.seed ^ Math.imul(opts.seed ?? 0, 0x9e3779b1)) >>> 0,
+    currents: opts.currents === false ? 0 : k.currents,
+  };
+}
+
+/**
+ * Seconds from one port to another leaving at `t` (seconds into the voyage): each stretch is
+ * sailed in the wind blowing there when she gets there, plus the current along her course.
+ */
+export function seaLegSeconds(
+  sea: Sea,
+  ship: ShipClass,
+  from: string,
+  to: string,
+  t: number,
+): number {
+  const path = legPath(sea.map, from, to);
+  let seconds = 8;
+  for (const [x, y] of path.points) {
+    spot.x = x;
+    spot.y = y;
+    const wind = windAt(sea.wind, t + seconds, sea.seed, spot);
+    const current = currentAlong(sea.map, x, y, path.bearing, sea.currents);
+    seconds += stretchSeconds(
+      path.stretch,
+      madeGoodIn(ship, path.bearing, wind.from, wind.speedKn),
+      current,
+    );
+  }
+  return seconds;
+}
+const spot = { x: 0, y: 0 };
 
 /** The charted ports: the hidden shipwright yards stay out of a first session (decision 0048). */
 export const chartedPorts = (map: MapDef) => map.ports.filter((p) => !p.hidden);
@@ -150,14 +277,15 @@ function legOptions(
   trade: TradeState,
   from: string,
   contracts: boolean,
-  weather: Weather[],
+  sea: Sea,
+  t: number,
 ): Leg[] {
   const ship = effectiveShip(activeShip(trade), trade.captain.ships[trade.captain.activeShip]!);
   const here = trade.markets[from]!;
   const legs: Leg[] = [];
   for (const dest of chartedPorts(map)) {
     if (dest.id === from) continue;
-    const seconds = legSeconds(map, ship, from, dest.id, weather) + DOCK_SECONDS;
+    const seconds = seaLegSeconds(sea, ship, from, dest.id, t) + DOCK_SECONDS;
     const there = trade.markets[dest.id]!;
     const order = trade.contracts.byPort[dest.id]!;
     legs.push({ to: dest.id, good: null, qty: 0, gain: 0, seconds });
@@ -215,6 +343,8 @@ export interface VoyageOptions {
   /** Start the voyage on this difficulty level; without one, the 0046 game as created. */
   level?: Difficulty;
   seed?: number;
+  /** Settings › Currents (decision 0145); on by default. */
+  currents?: boolean;
 }
 
 function must(ok: boolean, what: string) {
@@ -228,7 +358,7 @@ export function sailVoyage(opts: VoyageOptions): Voyage {
   const world = createWorld(map, SLOOP);
   const trade = world.trade;
   if (opts.level) startVoyage(trade, opts.level);
-  const weather = difficultyWeather(map, opts.level);
+  const sea = seaOf(map, { level: opts.level, seed: opts.seed ?? 7, currents: opts.currents });
   const damage = opts.level ? knobs(opts.level).damage : 1;
   const rng = createRng(opts.seed ?? 7);
   const v: Voyage = {
@@ -296,7 +426,7 @@ export function sailVoyage(opts: VoyageOptions): Voyage {
       item === 'cutter' ||
       upgradeAllowed(trade, map, trade.captain.ships[trade.captain.activeShip]![item] + 1);
     const goHome = at !== home && want !== null && allowed && trade.captain.gold >= want + 80;
-    const all = legOptions(map, trade, at, opts.contracts, weather);
+    const all = legOptions(map, trade, at, opts.contracts, sea, t);
     const options = goHome ? all.filter((o) => o.to === home) : all;
     let leg = options[0]!;
     if (opts.relaxed) {
@@ -353,18 +483,42 @@ export interface EconomyRun {
   relaxed: Voyage;
   /** Shortest and longest sloop leg between charted ports, seconds. */
   legRange: [number, number];
+  /** Busiest route's share of the legs and how many routes, each sharp voyage (with and without orders). */
+  routes: Array<{ top: number; count: number }>;
 }
+
+const routeShare = (v: Voyage) => ({
+  top: Math.max(...Object.values(v.routes)) / v.legs,
+  count: Object.keys(v.routes).length,
+});
+
+/**
+ * The voyage whose cutter came at the median minute over the seeds: each seed is another
+ * voyage's weather, so one seed alone could be a lucky or an unlucky one (decision 0149).
+ */
+export function medianVoyage(runs: readonly Voyage[]): Voyage {
+  return [...runs].sort((a, b) => (a.bought.cutter ?? Infinity) - (b.bought.cutter ?? Infinity))[
+    Math.floor(runs.length / 2)
+  ]!;
+}
+
+const medianOf = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)]!;
 
 export function economyRun(map: MapDef): EconomyRun {
   const ports = chartedPorts(map);
   const legs = ports.flatMap((a) =>
     ports.filter((b) => b !== a).map((b) => legSeconds(map, SLOOP, a.id, b.id)),
   );
+  const sail = (contracts: boolean, relaxed: boolean) =>
+    TARGETS.economy.seeds.map((seed) => sailVoyage({ map, contracts, relaxed, seed }));
+  const sharpRuns = sail(true, false);
+  const marketRuns = sail(false, false);
   return {
-    sharp: sailVoyage({ map, contracts: true, relaxed: false }),
-    sharpMarket: sailVoyage({ map, contracts: false, relaxed: false }),
-    relaxed: sailVoyage({ map, contracts: true, relaxed: true }),
+    sharp: medianVoyage(sharpRuns),
+    sharpMarket: medianVoyage(marketRuns),
+    relaxed: medianVoyage(sail(true, true)),
     legRange: [Math.min(...legs), Math.max(...legs)],
+    routes: [...sharpRuns, ...marketRuns].map(routeShare),
   };
 }
 
@@ -373,12 +527,16 @@ export function economyChecks(r: EconomyRun): BalanceCheck[] {
   const { sharp, sharpMarket, relaxed } = r;
   const orderShare = sharp.contractGold / (sharp.contractGold + sharp.marketGold);
   const relaxedIncome = relaxed.marketGold + relaxed.contractGold;
-  const routes = (v: Voyage) => ({
-    top: Math.max(...Object.values(v.routes)) / v.legs,
-    count: Object.keys(v.routes).length,
-  });
-  const sr = routes(sharp);
-  const mr = routes(sharpMarket);
+  // Median over the seeds: one voyage's weather can favour one route (decision 0149).
+  const half = r.routes.length / 2;
+  const top = Math.max(
+    medianOf(r.routes.slice(0, half).map((x) => x.top)),
+    medianOf(r.routes.slice(half).map((x) => x.top)),
+  );
+  const count = Math.min(
+    medianOf(r.routes.slice(0, half).map((x) => x.count)),
+    medianOf(r.routes.slice(half).map((x) => x.count)),
+  );
   return [
     {
       id: 'legs',
@@ -442,11 +600,9 @@ export function economyChecks(r: EconomyRun): BalanceCheck[] {
     {
       id: 'routes',
       label: 'No single route is the only good one',
-      actual: `top route ${pct(Math.max(sr.top, mr.top))}, ${Math.min(sr.count, mr.count)} routes`,
+      actual: `top route ${pct(top)}, ${count} routes`,
       target: `< ${pct(T.topRouteShareMax)}, ≥ ${T.routesMin}`,
-      ok:
-        Math.max(sr.top, mr.top) < T.topRouteShareMax &&
-        Math.min(sr.count, mr.count) >= T.routesMin,
+      ok: top < T.topRouteShareMax && count >= T.routesMin,
     },
     {
       id: 'repairs',
@@ -469,11 +625,11 @@ export interface Pace {
   repairs: number;
 }
 
-/** Median milestones of a captain over a few seeds (one run for the sharp one: no randomness). */
-export function pace(map: MapDef, level: Difficulty, relaxed: boolean): Pace {
+/** Median milestones of a captain over a few seeds, each its own weather (and luck if relaxed). */
+export function pace(map: MapDef, level: Difficulty, relaxed: boolean, currents = true): Pace {
   const T = TARGETS.difficulty;
-  const runs = (relaxed ? T.seeds : [7]).map((seed) =>
-    sailVoyage({ map, contracts: true, relaxed, minutes: T.minutes, level, seed }),
+  const runs = T.seeds.map((seed) =>
+    sailVoyage({ map, contracts: true, relaxed, minutes: T.minutes, level, seed, currents }),
   );
   const median = (f: (v: Voyage) => number | undefined) => {
     const xs = runs.map((v) => f(v) ?? Infinity).sort((a, b) => a - b);
@@ -495,13 +651,60 @@ export function pace(map: MapDef, level: Difficulty, relaxed: boolean): Pace {
   };
 }
 
-export type DifficultyRun = Record<Difficulty, { sharp: Pace; relaxed: Pace }>;
+/** Sloop leg times on one level, seconds, over every charted pair at many moments (0149). */
+export interface LegTimes {
+  median: number;
+  /** Nine legs in ten are quicker than this. */
+  slow: number;
+}
 
-export function difficultyRun(map: MapDef, onLevel?: (level: Difficulty) => void): DifficultyRun {
+/**
+ * Sloop legs between every pair of charted ports, leaving every few minutes of each seed's two
+ * hours, in that level's wind and currents.
+ */
+export function legTimes(map: MapDef, level: Difficulty, currents = true): LegTimes {
+  const T = TARGETS.difficulty;
+  const ports = chartedPorts(map);
+  const legs: number[] = [];
+  for (const seed of T.seeds) {
+    const sea = seaOf(map, { level, seed, currents });
+    for (let t = 0; t < T.minutes * 60; t += T.legEverySec)
+      for (const a of ports)
+        for (const b of ports) if (a !== b) legs.push(seaLegSeconds(sea, SLOOP, a.id, b.id, t));
+  }
+  legs.sort((a, b) => a - b);
+  const at = (q: number) => legs[Math.floor(q * (legs.length - 1))] ?? NaN;
+  return { median: at(0.5), slow: at(0.9) };
+}
+
+export interface LevelRun {
+  sharp: Pace;
+  relaxed: Pace;
+  legs: LegTimes;
+  /** The relaxed captain with Settings › Currents off, to see what the currents change. */
+  stillWater?: Pace;
+}
+
+export type DifficultyRun = Record<Difficulty, LevelRun>;
+
+/**
+ * Every level (decision 0083) in its own wind and currents (0149). `stillWater` also sails the
+ * relaxed captain with the currents off, for the "currents do not tip the balance" check.
+ */
+export function difficultyRun(
+  map: MapDef,
+  onLevel?: (level: Difficulty) => void,
+  stillWater = true,
+): DifficultyRun {
   const out = {} as DifficultyRun;
   for (const level of DIFFICULTIES) {
     onLevel?.(level);
-    out[level] = { sharp: pace(map, level, false), relaxed: pace(map, level, true) };
+    out[level] = {
+      sharp: pace(map, level, false),
+      relaxed: pace(map, level, true),
+      legs: legTimes(map, level),
+      ...(stillWater && map.currents?.length ? { stillWater: pace(map, level, true, false) } : {}),
+    };
   }
   return out;
 }
@@ -512,7 +715,11 @@ export const levelName = (id: Difficulty) => TUNING.difficulty.levels[id]?.name 
 export function difficultyChecks(by: DifficultyRun): BalanceCheck[] {
   const T = TARGETS.difficulty;
   // The targets name the three shipped levels; a missing one fails its checks.
-  const none = { sharp: { repairs: NaN }, relaxed: { repairs: NaN } };
+  const none: LevelRun = {
+    sharp: { repairs: NaN },
+    relaxed: { repairs: NaN },
+    legs: { median: NaN, slow: NaN },
+  };
   const [fair, captain, salt] = ['fair', 'captain', 'salt'].map((id) => by[id] ?? none) as [
     DifficultyRun[string],
     DifficultyRun[string],
@@ -564,6 +771,44 @@ export function difficultyChecks(by: DifficultyRun): BalanceCheck[] {
       target: `> ${pct(captain.relaxed.repairs * T.saltRepairsVsCaptainMin)}`,
       ok: salt.relaxed.repairs > captain.relaxed.repairs * T.saltRepairsVsCaptainMin,
     },
+    {
+      id: 'legs-every-level',
+      label: 'Sloop legs take about a minute on every level, in its wind and currents',
+      actual: DIFFICULTIES.map(
+        (l) => `${Math.round(by[l]!.legs.median)} s (${Math.round(by[l]!.legs.slow)} s)`,
+      ).join(' / '),
+      target: `median ${T.legMedian[0]}–${T.legMedian[1]} s, 9 in 10 under ${T.legSlowMax} s`,
+      ok: DIFFICULTIES.every(
+        (l) =>
+          by[l]!.legs.median >= T.legMedian[0]! &&
+          by[l]!.legs.median <= T.legMedian[1]! &&
+          by[l]!.legs.slow <= T.legSlowMax,
+      ),
+    },
+    ...(DIFFICULTIES.some((l) => by[l]!.stillWater)
+      ? [
+          {
+            id: 'currents-shift',
+            label: 'Currents change the pace a little, not the balance (relaxed captain, cutter)',
+            actual: DIFFICULTIES.map((l) => {
+              const still = by[l]!.stillWater?.cutter;
+              const now = by[l]!.relaxed.cutter;
+              return still === undefined || now === undefined
+                ? 'never'
+                : `${now - still >= 0 ? '+' : '−'}${Math.abs(now - still).toFixed(1)} min`;
+            }).join(' / '),
+            target: `within ${pct(T.currentsShiftMax)} of still water`,
+            ok: DIFFICULTIES.every((l) => {
+              const still = by[l]!.stillWater;
+              return (
+                !still ||
+                Math.abs(n(by[l]!.relaxed.cutter) - n(still.cutter)) <=
+                  n(still.cutter) * T.currentsShiftMax
+              );
+            }),
+          },
+        ]
+      : []),
     {
       id: 'sharp-every-level',
       label: 'A sharp captain reaches the cutter early on every level',

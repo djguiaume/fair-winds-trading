@@ -487,16 +487,24 @@ export function flowChecks(map: MapDef): MapCheck[] {
 
 /**
  * The slow checks: a sloop can reach every port from the start with the wind from the map's
- * prevailing direction and from the opposite side, and every pair of charted ports connects.
+ * prevailing direction and from the opposite side, and every pair of charted ports connects. With
+ * currents, at the strongest level's speed (decision 0149): a current can only make a route harder
+ * to find, never easier, so a route found there is there on every level and with them off.
  */
 export function routeChecks(map: MapDef): MapCheck[] {
   const winds = [map.wind.fromDeg, (map.wind.fromDeg + 180) % 360];
+  const strongest = Math.max(0, ...Object.values(TUNING.difficulty.levels).map((l) => l.currents));
+  const field = map.currents?.length && strongest > 0 ? new CurrentField(map) : null;
+  const sample = { east: 0, north: 0, id: '' };
+  const water = field ? (x: number, y: number) => field.at(x, y, strongest, sample) : undefined;
+  const route = (a: Point, b: Point, wind: number) => sailRoute(map, a, b, wind, 11, water);
+  const withCurrents = field ? ', against the strongest currents' : '';
   const ports = map.ports.filter((p) => map.islands.some((i) => i.id === p.islandId));
   const unreachable: string[] = [];
   let slowest = 0;
   for (const port of ports)
     for (const wind of winds) {
-      const plan = sailRoute(map, map.start, harbourApproach(map, port), wind);
+      const plan = route(map.start, harbourApproach(map, port), wind);
       if (!plan) unreachable.push(`${port.name} (wind ${wind}°)`);
       else slowest = Math.max(slowest, plan.seconds);
     }
@@ -504,15 +512,18 @@ export function routeChecks(map: MapDef): MapCheck[] {
   const cut: string[] = [];
   for (const a of charted)
     for (const b of charted)
-      if (a !== b && !sailRoute(map, harbourApproach(map, a), harbourApproach(map, b), winds[0]!))
+      if (a !== b && !route(harbourApproach(map, a), harbourApproach(map, b), winds[0]!))
         cut.push(`${a.name} → ${b.name}`);
   return [
     unreachable.length
       ? fail('reach', `no sloop route from the start to ${list(unreachable)}`)
-      : pass('reach', `every port reachable by a sloop (longest ${Math.round(slowest)} s)`),
+      : pass(
+          'reach',
+          `every port reachable by a sloop${withCurrents} (longest ${Math.round(slowest)} s)`,
+        ),
     cut.length
-      ? fail('pairs', `no route ${list(cut)}`)
-      : pass('pairs', 'every pair of charted ports connects'),
+      ? fail('pairs', `no route ${list(cut)}${withCurrents}`)
+      : pass('pairs', `every pair of charted ports connects${withCurrents}`),
   ];
 }
 
