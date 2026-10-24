@@ -64,3 +64,10 @@ Built first, as the base the others use:
 - `CLAUDE.md` tells agents when to use them; `tests/fw-tools.test.ts` covers them.
 
 The other four (shots, chart, island, quest) are built in parallel threads on top of this base.
+
+## Update (2026-10-24): shots and quest built
+
+- `npm run shots` (`tools/fw/shots.mjs`, types in `shots.d.mts`): starts Vite listening and Chromium with SwiftShader, one fresh browser context per shot and size, seeds `fwt.settings.v1` (hints seen, music and voices off, language, night, weather, storms, wind zones, currents; by default a steady day breeze with zones and currents on, like the game), opens `?debug` and clicks through `#menu-play`, `#set-sail`, `#tutorial-free` and `#tp-undock` as a player would. A sea file is played through `?map=edited` with the file in `fwt.editor.map.v1`, island files through `fwt.editor.islands.v1`, so a thread shoots its edits before they are committed. Sizes: desktop 1280×800, landscape 844×390 and portrait 390×844 (touch). A `--list` JSON file holds many shots; command-line options are their defaults. Measured: about 7 s per shot.
+- Two helpers joined the `?debug` object in `src/main.ts`, so the tool sets the scene with the game's own code rather than copying it: `fwt.place(x, y, headingDeg, sailStep)` (keeps the game's sail control in step) and `fwt.dock(portId)` (the quest test's berth, `testBerth`, then the same docking a click on the port does). `fwt.chart` is exposed too.
+- `npm run quest` (`tools/fw/quest.ts`): `list`, `check <id>` (filters `questProblems` to that quest and the hooks naming it), `play <id> --step N|id` (the builder's `stepPort`, `seaStart` and `playUrl` from `src/editor/quest/doc.ts`), `--shots` (the quest test through `takeShots`, the Quay tab when docked; quest cards are kept).
+- The old capture scripts in `docs/reviews/*/src` stay as records; new reviews use `npm run shots`.

@@ -8,6 +8,8 @@ import { DIFFICULTIES } from '../src/sim/difficulty';
 import { parseArgs } from '../tools/fw/lib.mjs';
 // @ts-expect-error plain JavaScript module without types
 import { nextFree } from '../tools/fw/adr.mjs';
+import { normalise, planShots, seedStorage, shotPath } from '../tools/fw/shots.mjs';
+import { problemsOf, questDoc, questPlay } from '../tools/fw/quest';
 
 describe('command-line tools for agents (decision 0153)', () => {
   it('reads --name value, --name=value, flags and positional arguments', () => {
@@ -64,5 +66,69 @@ describe('command-line tools for agents (decision 0153)', () => {
     expect(rows).toHaveLength(DIFFICULTIES.length + 1);
     expect(rows[1]).toContain('64 s (130 s)');
     expect(rows[1]).toContain('5.0 / 20.6 / never min / 1 %');
+  });
+});
+
+describe('npm run shots and npm run quest (decision 0153)', () => {
+  it('reads a shot from the command line, with the game’s defaults', () => {
+    const shot = planShots({
+      _: [],
+      at: '150,-30',
+      zoom: '1.5',
+      night: true,
+      sizes: 'desktop,portrait',
+    })[0]!;
+    expect(shot).toMatchObject({
+      sea: 'ring',
+      at: [150, -30],
+      heading: null,
+      sail: 2,
+      zoom: 1.5,
+      night: true,
+      zones: true,
+      storms: false,
+      sizes: ['desktop', 'portrait'],
+      name: 'ring-150_-30-night',
+    });
+    expect(shotPath(shot)).toBe('/?debug=');
+    expect(JSON.parse(seedStorage(shot)['fwt.settings.v1']!)).toMatchObject({
+      dayNight: true,
+      weather: false,
+      language: 'en',
+      seenHelp: true,
+    });
+  });
+
+  it('plays a dev sea or a map file, and refuses what cannot be shot', () => {
+    expect(shotPath(normalise({ sea: 'phase4' }))).toBe('/?debug=&map=phase4');
+    const file = normalise({ sea: 'src/data/phase1-map.json', 'no-zones': true });
+    expect(shotPath(file)).toBe('/?debug=&map=edited');
+    expect(file.zones).toBe(false);
+    expect(seedStorage(file)['fwt.editor.map.v1']).toContain('"boundsRadius"');
+    expect(() => normalise({ sizes: 'tv' })).toThrow(/unknown size/);
+    expect(() => normalise({ at: '1,2', port: 'saltmere' })).toThrow(/pick one/);
+    expect(shotPath(normalise({ url: './?map=edited&quest=q&step=s&port=p' }))).toBe(
+      '/?map=edited&quest=q&step=s&port=p&debug=',
+    );
+  });
+
+  it('checks one quest and gives its play-from-step link', () => {
+    const doc = questDoc();
+    expect(problemsOf(doc, PHASE1_MAP, ['saltmere-shoals'])).toEqual([]);
+    const broken = questDoc();
+    broken.quests.find((q) => q.id === 'saltmere-shoals')!.port = 'atlantis';
+    expect(problemsOf(broken, PHASE1_MAP, ['saltmere-shoals'])).toContainEqual(
+      expect.stringMatching(/^quest saltmere-shoals: no port "atlantis"/),
+    );
+    expect(problemsOf(broken, PHASE1_MAP, ['calda-slipway'])).toEqual([]);
+    const play = questPlay(doc, PHASE1_MAP, 'saltmere-shoals', { step: '2' });
+    expect(play).toMatchObject({ step: 'channel', start: { port: 'saltmere' } });
+    expect(typeof play !== 'string' && play.path).toBe(
+      './?map=edited&quest=saltmere-shoals&step=channel&port=saltmere',
+    );
+    expect(questPlay(doc, PHASE1_MAP, 'saltmere-shoals', { step: '9' })).toMatch(/has no step 9/);
+    expect(
+      questPlay(doc, PHASE1_MAP, 'saltmere-shoals', { step: 'channel', sea: true }),
+    ).toMatchObject({ start: { headingDeg: expect.any(Number) } });
   });
 });

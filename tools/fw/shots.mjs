@@ -1,4 +1,4 @@
-/* global console, window, document, localStorage, setTimeout */
+/* global console, window, document, localStorage, setTimeout, URL, URLSearchParams, structuredClone */
 // `npm run shots` (decision 0153): standard screenshots of the real game, instead of a Playwright
 // script per review. It starts Vite itself, opens the game with `?debug`, gets past the menu, the
 // level card, the tutorial offer and the harbour, sets the scene through `window.fwt` (the boat's
@@ -100,7 +100,8 @@ export function normalise(opts) {
     url: o.url ?? null,
     storage: o.storage ?? {},
   };
-  for (const s of shot.sizes) if (!SIZES[s]) throw new Error(`unknown size ${s} (${Object.keys(SIZES)})`);
+  for (const s of shot.sizes)
+    if (!SIZES[s]) throw new Error(`unknown size ${s} (${Object.keys(SIZES)})`);
   if (shot.at && shot.port) throw new Error('--at and --port: pick one');
   shot.name = o.name ?? defaultName(shot);
   return shot;
@@ -162,21 +163,33 @@ export function seedStorage(shot) {
   if (shot.seaFile) items['fwt.editor.map.v1'] = readFileSync(shot.seaFile, 'utf8');
   if (shot.islands.length) {
     const designs = shot.islands.map((f) => JSON.parse(readFileSync(f, 'utf8')));
-    items['fwt.editor.islands.v1'] = JSON.stringify(Object.fromEntries(designs.map((d) => [d.id, d])));
+    items['fwt.editor.islands.v1'] = JSON.stringify(
+      Object.fromEntries(designs.map((d) => [d.id, d])),
+    );
   }
   return items;
 }
 
-const visible = (page, sel) => page.locator(sel).isVisible().catch(() => false);
+const visible = (page, sel) =>
+  page
+    .locator(sel)
+    .isVisible()
+    .catch(() => false);
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /** Past the title menu, the level card and the tutorial offer, as a player would click. */
 async function enter(page) {
   await page.waitForFunction(() => !!window.fwt, null, { timeout: 30000 });
   if (await visible(page, '#menu-play')) await page.click('#menu-play');
-  await page.locator('#set-sail').waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
+  await page
+    .locator('#set-sail')
+    .waitFor({ state: 'visible', timeout: 3000 })
+    .catch(() => {});
   if (await visible(page, '#set-sail')) await page.click('#set-sail');
-  await page.locator('#tutorial-free').waitFor({ state: 'visible', timeout: 2000 }).catch(() => {});
+  await page
+    .locator('#tutorial-free')
+    .waitFor({ state: 'visible', timeout: 2000 })
+    .catch(() => {});
   if (await visible(page, '#tutorial-free')) await page.click('#tutorial-free');
 }
 
