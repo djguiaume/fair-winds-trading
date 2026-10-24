@@ -45,7 +45,7 @@ Built once by the north sea thread, used by all three seas:
 - **A style picks its grounds** for beach, cliff tiers and cap. An ice island's "grass" cap is snow and its beach shingle without the file saying so, while a ground or ramp in the file can still name a ground explicitly (a moss patch on a lava field).
 - The island builder lists the grounds of the island's style; `npm run island -- plateau … --material basalt` takes the same names.
 
-Ground names in use: ring `sand`, `grass`, `rock`; south `coralsand`, `jungle`, `ochre` ([0172](../decisions/0172-south-sea-look-polish-tropic-grounds-jungle-woods-night-lamp.md)); north `snow`, `ice`, `slate`, `shingle`, `moor`; west `basalt`, `lavafield`, `blacksand`, `moss`, `ash`; east `turf`, `darkcliff`, `shingle`, `dune`.
+Ground names in use: ring `sand`, `grass`, `rock`; south `coralsand`, `jungle`, `terrace`, `ochre` ([0172](../decisions/0172-south-sea-look-polish-tropic-grounds-jungle-woods-night-lamp.md)); north `snow`, `ice`, `slate`, `shingle`, `moor`; west `basalt`, `lavafield`, `blacksand`, `moss`, `ash`; east `turf`, `darkcliff`, `shingle`, `dune`.
 
 **Snow and ice "texture"** (mandatory, Guillaume) is per-face jitter between a few close colours, with blue shadow on steep faces. Facets stay readable; it is never noise. If that does not read as snow on the screenshots, the fallback is one shared 128 px world-projected detail texture for snow and ice only, decided with Guillaume after a measured test.
 
@@ -71,7 +71,7 @@ B2 as shipped: sandstone tiers, bright grass, red and blue roofs, sunny turquois
 
 ### South: tropical (Sunreach, Palm Key) — built
 
-Crater-rim lagoon, white beaches, palms, tea gardens, `tropic` house palette (white and peach walls, thatch and terracotta roofs, one teal roof), paler lagoon water ([0152](../decisions/0152-south-sea-sunreach-layout.md)). Grounds ([0172](../decisions/0172-south-sea-look-polish-tropic-grounds-jungle-woods-night-lamp.md)): `coralsand` beaches, `jungle` caps over warm ochre and red-brown crater cliffs, bare `ochre` summits; `woodland-jungle` woods (palms and low broadleaf); Juno's tea house roof `teaRoof`, a jade that stands out from the jungle.
+Crater-rim lagoon, white beaches, palms, tea gardens, `tropic` house palette (white and peach walls, thatch and terracotta roofs, one teal roof), paler lagoon water ([0152](../decisions/0152-south-sea-sunreach-layout.md)). Grounds ([0172](../decisions/0172-south-sea-look-polish-tropic-grounds-jungle-woods-night-lamp.md)): `coralsand` beaches, `jungle` caps over warm ochre and red-brown crater cliffs, the lighter-ochre `terrace` risers between the town's house terraces (so the roofs stand out), bare `ochre` summits; `woodland-jungle` woods (palms and low broadleaf); Juno's tea house roof `teaRoof`, a jade that stands out from the jungle.
 
 ### West: fire (Emberhold, Cinder Isle) — inspiration Iceland
 

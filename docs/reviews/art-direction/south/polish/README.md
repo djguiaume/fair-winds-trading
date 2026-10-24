@@ -24,7 +24,7 @@ Every shot after the change in desktop, landscape and portrait: `<shot>-<size>.j
 
 ## What changed
 
-1. Tropic grounds: whiter coral sand, deeper warmer jungle green, ochre and red-brown crater cliffs, bare ochre summits.
+1. Tropic grounds: whiter coral sand, deeper warmer jungle green, ochre and red-brown crater cliffs, lighter ochre risers between the town terraces (art director), bare ochre summits.
 2. Jungle woods (palms and low broadleaf crowns), denser on the arms and summits; town terraces stay open.
 3. Palm Key's hill: two jungle tiers and an ochre rock peak, wooded.
 4. Tea house a little bigger, its roof a brighter jade that stands out from the jungle.

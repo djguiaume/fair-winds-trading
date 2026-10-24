@@ -148,6 +148,11 @@
       "top": ["#5aa63a", "#62ad3c", "#539e38"],
       "side": ["#b8743f", "#a8603a", "#c08048"]
     },
+    "terrace": {
+      "name": "Jungle terrace",
+      "top": ["#5aa63a", "#62ad3c", "#539e38"],
+      "side": ["#c08048", "#c88c55"]
+    },
     "ochre": {
       "name": "Ochre rock",
       "top": ["#c8925a", "#b98250"],
