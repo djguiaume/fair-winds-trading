@@ -24,6 +24,7 @@ import {
 import { renderPanel } from './panel';
 import { hasIslandFile, islandOpen, openIsland, setupIslandBuilder } from './island/builder';
 import { giveIslandFile } from './island/fromLook';
+import { openQuests, questsOpen, setupQuestBuilder } from './quest/builder';
 
 /**
  * Map editor page (decision 0095), published next to the game like the model sheet. It edits the
@@ -153,6 +154,14 @@ setupIslandBuilder({
     commit(true);
   },
 });
+setupQuestBuilder({
+  map: () => map,
+  prepared: () => prepared,
+  shipped: () => PHASE1_SOURCE,
+  mapName: () => map.name,
+  close: () => commit(true),
+});
+$('ed-quests').addEventListener('click', openQuests);
 svg.addEventListener('dblclick', (e) => {
   const hit = (e.target as Element).closest('[data-hit]')?.getAttribute('data-hit') ?? '';
   const [kind, id] = hit.split(':');
@@ -440,7 +449,7 @@ function nudge(dx: number, dy: number) {
 }
 
 document.addEventListener('keydown', (e) => {
-  if (islandOpen()) return;
+  if (islandOpen() || questsOpen()) return;
   const target = e.target as HTMLElement;
   if (target.closest('input, select, textarea')) return;
   const mod = e.ctrlKey || e.metaKey;

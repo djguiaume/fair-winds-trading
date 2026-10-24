@@ -196,6 +196,8 @@ Events: `chart-opened`, `port-picked`, `destination-cleared`, `sails-practised`,
 
 ## Quests ([0125](../decisions/0125-quest-engine.md))
 
+The **quest builder** in the map editor (`editor.html` › Quests, [how to use](../quest-builder/builder/README.md), [0142](../decisions/0142-quest-builder.md)) edits all of this with forms, places on the chart and text side by side, and exports the files.
+
 Every other file in `src/data/quests/` is a quest the engine runs (`src/sim/quests.ts`), several at
 once, saved with the voyage. Example (a test file: [`tests/fixtures/quests/test-pier.json`](../../tests/fixtures/quests/test-pier.json)):
 
