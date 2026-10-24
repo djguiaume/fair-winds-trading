@@ -1,6 +1,6 @@
 # 0163. Game controller in the menus and the port screen
 
-**Status:** Proposed (2026-10-24): mockups waiting for Guillaume's pick.
+**Status:** Proposed (2026-10-24): built with look A (recommended); waiting for Guillaume's pick and OK on the screenshots.
 
 ## Context
 
@@ -10,7 +10,7 @@ screen's tabs, quest cards on the Quay, the arrival and dialogue cards, the jour
 spot's choice, is made for mouse and touch. With a pad in hand the player must be able to reach
 every control, see which one is picked, and go back.
 
-## Decision (proposed)
+## Decision
 
 - One **focus manager** for every open screen: the D-pad or left stick moves a real DOM focus to
   the nearest control in that direction (spatial navigation over the visible buttons, tabs, switches
@@ -30,4 +30,15 @@ every control, see which one is picked, and go back.
 
 ## Consequences
 
-To be filled in once the look is picked and built.
+- Built in `src/ui/padFocus.ts` (`PadFocus`: spatial moves, A, B, tabs, Start, hints; pure parts
+  tested in `tests/padFocus.test.ts`). `main.ts` lists the screens (`padScreen`) and shares Esc's
+  `goBack` with B; on a modal dialog B sends `cancel` as Esc does. Sliders take left/right as
+  value steps; switches and choice buttons are pressed with A.
+- The focus starts on a screen's brass (main) button, never on its close button or tabs, and is
+  found again by its likeness when a screen redraws (the market after a sale). The pad's first
+  move or A only shows where the focus is.
+- The hints pill is a popover so it shows over a modal card; it fades after
+  `menu.hintsSeconds` (4 s), so in portrait it only briefly covers the language switch.
+- Not covered yet: the chart's own panels (journal, market) stay with the chart's pad controls of
+  0162; coach bubbles at sea have no pad button.
+- Review shots: `docs/reviews/controller-menus/` from its `shots.json` (`npm run shots --pad`).

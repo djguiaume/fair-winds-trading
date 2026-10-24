@@ -1,0 +1,10 @@
+[
+  { "name": "1-title-menu", "menu": true, "pad": "down:300,down:300", "sizes": ["desktop", "portrait"] },
+  { "name": "2-pause-menu", "pad": "menu:300,down:300,down:300", "sizes": ["desktop"] },
+  { "name": "3-settings-fr", "menu": true, "lang": "fr", "pad": "down:300,down:300,down:300,down:300,down:300,a:300,right:300", "sizes": ["desktop", "portrait"] },
+  { "name": "4-market-bought", "port": "saltmere", "tab": "market", "pad": "a:300,down:300,a:300", "sizes": ["desktop", "landscape"] },
+  { "name": "5-quay-by-rb", "port": "saltmere", "tab": "market", "pad": "a:300,rb:300,rb:300", "sizes": ["desktop", "landscape"] },
+  { "name": "6-quest-card", "quest": "saltmere-shoals:1", "port": "saltmere", "cards": true, "pad": "a:300", "sizes": ["desktop", "portrait"] },
+  { "name": "7-build-choice-fr", "moor": "skerry", "lang": "fr", "script": "docs/mockups/controller-menus/src/build-spot.js", "sizes": ["desktop", "landscape"] },
+  { "name": "8-transfer-tabs", "menu": true, "pad": "down:300,down:300,down:300,down:300,a:300,rb:300", "sizes": ["desktop"] }
+]
