@@ -34,7 +34,7 @@ npm run lint     # ESLint + Prettier
 npm run build    # static site in dist/
 ```
 
-Every push to `main` is tested and published to GitHub Pages by `.github/workflows/deploy.yml`. Add `?debug` to the URL to get the game objects as `fwt` in the browser console. Add `?perf` for a frame-rate readout with a Copy button for device tests (decision 0148).
+Every push to `main` is tested and published to GitHub Pages by `.github/workflows/deploy.yml`. Add `?debug` to the URL to get the game objects as `fwt` in the browser console. Add `?perf` for a frame-rate readout with a Copy button for device tests (decision 0148). `?bench` runs the automatic device benchmark (decision 0153).
 
 ### Layout
 

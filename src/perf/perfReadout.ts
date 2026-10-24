@@ -18,6 +18,8 @@ export interface PerfFrame {
 export interface PerfContext {
   version: string;
   sea: string;
+  /** `?bench` only: what was run, for the report's benchmark heading. */
+  bench?: string;
   /** Hazard switches as they are now, for the report (e.g. "currents on"). */
   switches: () => string;
 }
@@ -27,6 +29,13 @@ const fixed = (n: number, d = 0) => (Number.isFinite(n) ? n.toFixed(d) : '-');
 function clock(seconds: number) {
   const s = Math.floor(seconds);
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+function passLine(p: { label: string; summary: FrameSummary | null }) {
+  const s = p.summary;
+  return s
+    ? `${p.label}: ${fixed(s.avgFps)} fps · 1% ${fixed(s.lowFps)} · worst ${fixed(s.worstMs)} ms`
+    : `${p.label}: -`;
 }
 
 /**
@@ -46,6 +55,15 @@ export class PerfReadout {
   private lastLevel = '';
   private drops: string[] = [];
   private last: PerfFrame | null = null;
+  /** `?bench` (decision 0153): finished passes, the running one, and a status line. */
+  private passes: {
+    label: string;
+    summary: FrameSummary | null;
+    drops: number;
+    canvas: string;
+  }[] = [];
+  private passLabel: string | null = null;
+  private benchLine = '';
 
   constructor(
     private readonly context: PerfContext,
@@ -95,11 +113,50 @@ export class PerfReadout {
     this.draw();
   }
 
+  /** A benchmark pass begins: the previous one's numbers are kept, the running ones restart. */
+  startPass(label: string) {
+    this.endPass();
+    this.passLabel = label;
+    this.stats.reset();
+    this.drops = [];
+  }
+
+  /** The benchmark is over: keep the last pass and show the results until Copy. */
+  finishBench() {
+    this.endPass();
+    this.benchLine = 'Benchmark done · press Copy';
+    this.box.classList.remove('folded');
+    this.box.classList.add('done');
+    this.draw();
+  }
+
+  setBenchLine(text: string) {
+    this.benchLine = text;
+  }
+
+  private endPass() {
+    if (this.passLabel === null) return;
+    this.passes.push({
+      label: this.passLabel,
+      summary: this.stats.summary(),
+      drops: this.drops.length,
+      canvas: this.last
+        ? `${this.last.canvas.width}×${this.last.canvas.height} ${this.last.level}`
+        : '?',
+    });
+    this.passLabel = null;
+  }
+
   private draw() {
     const f = this.last;
     if (!f) return;
     const s = this.stats.summary();
+    if (this.passes.length && this.passLabel === null) {
+      this.body.textContent = [this.benchLine, ...this.passes.map(passLine)].join('\n');
+      return;
+    }
     const lines = [
+      this.benchLine,
       `${fixed(this.liveFps)} fps now · ${f.level}${f.qualitySetting === 'auto' ? ' (auto)' : ''}`,
       s
         ? `avg ${fixed(s.avgFps)} · 1% low ${fixed(s.lowFps)} · ${clock(s.seconds)}`
@@ -125,6 +182,21 @@ export class PerfReadout {
         : 'No frame yet',
       `Switches: ${this.context.switches()}`,
     ];
+    if (this.passes.length) {
+      const c2 = this.config;
+      lines.push(
+        `Benchmark ${this.context.bench ?? ''}`.trim(),
+        ...this.passes.map(
+          (p) =>
+            `${p.label} (${p.canvas}): ` +
+            (p.summary
+              ? `avg ${fixed(p.summary.avgFps, 1)} · 1% low ${fixed(p.summary.lowFps, 1)} · p50 ${fixed(p.summary.p50Ms, 1)} · p95 ${fixed(p.summary.p95Ms, 1)} · worst ${fixed(p.summary.worstMs, 1)} ms · slow ${p.summary.slow}/${p.summary.frames} · hitches ${p.summary.hitches} · drops ${p.drops}`
+              : 'no frames counted'),
+        ),
+        `(first ${c2.warmupSec} s of each pass skipped; slow ≥${c2.slowFrameMs} ms, hitches ≥${c2.hitchFrameMs} ms)`,
+      );
+      return lines.join('\n');
+    }
     if (summary) {
       lines.push(
         `Sailed ${clock(summary.seconds)} (${summary.frames} frames, first ${c.warmupSec} s skipped)`,

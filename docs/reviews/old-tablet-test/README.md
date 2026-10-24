@@ -23,11 +23,13 @@ Canvas 719×1042 at 0.90, which is the Low cap of 750 000 pixels.
 
 ### Next
 
-Round 2 checks the fill-rate guess with the `?perf` test aids (0148): `scale` lowers the drawing resolution, `fps` caps the frame rate. If `scale=0.7` brings the average near 50–60 fps, fill rate is the limit and the fix is a lower level ("Very low" with a smaller pixel cap) and/or a steady 30 fps cap on weak devices.
+Guillaume asked for a test that plays itself, so round 2 uses the automatic benchmark (decision 0153) instead of free sailing. It sails the same route three times (full, 0.7 and 0.5 resolution). If the 0.7 and 0.5 passes run clearly faster, fill rate is the limit and the fix is a lower level ("Very low" with a smaller pixel cap) and/or a steady 30 fps cap on weak devices.
 
-Links for round 2 (sail at least 2 minutes each, no card open, then Copy):
+## Round 2 links
 
-1. https://djguiaume.github.io/fair-winds-trading/?perf (today's sea again)
-2. https://djguiaume.github.io/fair-winds-trading/?perf&scale=0.7
-3. https://djguiaume.github.io/fair-winds-trading/?perf&scale=0.5
-4. https://djguiaume.github.io/fair-winds-trading/?perf&fps=30
+Open each link, keep the tablet awake and don't touch it for about 4 minutes, then press **Copy** and paste the report:
+
+1. https://djguiaume.github.io/fair-winds-trading/?bench (today's sea)
+2. https://djguiaume.github.io/fair-winds-trading/?bench&map=stress (stress sea)
+
+For comparison, headless desktop Chromium with a software GPU (not a device result) at 800×1280, level High: full 11.6 fps, 0.7 → 18.0, 0.5 → 25.0 on today's sea.
