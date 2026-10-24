@@ -123,6 +123,9 @@ describe("Rook's thanks: the island (decision 0127)", () => {
     v.world.trade.dockedAt = null;
     v.world.trade.home.docked = 'skerry';
     v.check();
+    // Two cards one after the other (Guillaume, 0159): the plots, then what the buildings do.
+    expect(v.quests.progress('rooks-thanks')?.step).toBe('plots');
+    v.quests.choose('rooks-thanks', 'continue');
     expect(v.quests.isDone('rooks-thanks')).toBe(true);
   });
 

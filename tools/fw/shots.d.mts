@@ -27,6 +27,7 @@ export interface Shot {
   currents: boolean;
   cards: boolean;
   wait: number;
+  click: string | null;
   sizes: string[];
   url: string | null;
   storage: Record<string, string>;

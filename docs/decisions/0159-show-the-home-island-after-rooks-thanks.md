@@ -20,9 +20,16 @@ All of it is quest data or generic code that other quests can use too (the data-
   Rook at Saltmere: *"There's an old island just west of Saltmere, Skerry... Go and have a look:
   moor at its pier and see what's there."* Its title, "Sail to Skerry", shows in the journal and on
   the sea's objective panel.
-- **Rook explains the island on first mooring** (Guillaume, 20:45Z; storyteller the same): the
-  quest has no `port`, so its thanks card shows where it ends, at Skerry's pier: *"Bare plots and a
-  sound pier. Help the people of the islands, Kit, Ines, Maren and Ada, and each will give you a plot, with a building of your choice for it."* Guillaume asked (20:59Z) whether they give a plot or a building: both, so the line says so. No building is named (the plots reveal them), no new characters.
+- **Rook explains the island on first mooring** (Guillaume, 20:45Z; storyteller the same), in two
+  cards one after the other so neither is crowded (Guillaume, 21:02Z): the quest has no `port`, so
+  its cards show where it is, at Skerry's pier. Step `plots` (a choice step with one option, "What
+  are they for?"): *"Bare plots and a sound pier, captain. Help the people of the islands, Kit,
+  Ines, Maren and Ada, and each will give you a plot, with a building of your choice for it."* Then
+  the thanks card: *"Each building makes life at sea easier: cheaper repairs, room to keep cargo, a
+  look at the wind ahead. Come back once you've helped someone, and choose."* Guillaume chose to
+  tell the player now, lightly, that the buildings help (21:02Z); arc offers also read "a building
+  for your island, with a lasting perk". No building is named (the plots reveal them), no new
+  characters.
 - **The arcs open as soon as the island is hers**: their start is `quest-at rooks-thanks skerry`
   (it holds once the step is reached or the quest is done), so seeing Skerry first is never a gate.
 - **A `moored` step leads the chart and the sea to its island**: `questTarget` returns the island
@@ -32,8 +39,8 @@ All of it is quest data or generic code that other quests can use too (the data-
   style with "your island" / "votre île" underneath, for every owned island without a port
   (`chart.yourIsland`, symbol `#i-home`).
 - Rook's tutorial line names Skerry and its side ("just west of Saltmere"; Skerry is due west).
-- `npm run shots` gains `--quest id:step` (a quest started at a step, earlier rewards paid) and
-  `--moor island` (moored at one of her islands' piers, owned first); `fwt.moor()` and
+- `npm run shots` gains `--quest id:step` (a quest started at a step, earlier rewards paid),
+  `--moor island` (moored at one of her islands' piers, owned first) and `--click selector`; `fwt.moor()` and
   `testBerth()` accept an island id.
 
 Wording: Head storyteller thread, within its lines (dry Rook, no urgency, vous, non-breaking space

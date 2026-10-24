@@ -43,6 +43,8 @@ Look
   --no-zones  --no-currents     wind zones, currents off (default on, like the game)
   --cards                       keep quest cards and dialogs open (default: closed, kept in a quest test)
   --wait ms                     settle time before the shot (default 1500)
+  --click selector              click this before the shot (after the wait), e.g. a card's button,
+                                then wait 800 ms
 Output
   --sizes desktop,landscape,portrait   (default desktop)
   --name name                   file name, written as <name>-<size>.png (default: from the scene)
@@ -107,6 +109,7 @@ export function normalise(opts) {
     currents: !o['no-currents'],
     cards: o.cards ?? !!o.url,
     wait: o.wait ?? 1500,
+    click: o.click ?? null,
     sizes: list(o.sizes ?? 'desktop'),
     url: o.url ?? null,
     storage: o.storage ?? {},
@@ -272,6 +275,10 @@ async function shootOne(browser, base, shot, size, file) {
       await page.keyboard.up(shot.hold.key);
     }
     await pause(shot.wait);
+    if (shot.click) {
+      await page.click(shot.click);
+      await pause(800);
+    }
     if (!shot.cards) await closeCards(page);
     if (shot.chart) {
       await closeCards(page);
