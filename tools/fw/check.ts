@@ -1,7 +1,7 @@
 // `npm run check` (decision 0153): the editors' own checks on every content file, in seconds,
 // without the test suite. Short output: one line per area, one line per problem.
 import { readFileSync } from 'node:fs';
-import { ISLAND_DESIGNS } from '../../src/data/islands';
+import { ISLAND_DESIGNS, type IslandDesign } from '../../src/data/islands';
 import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../../src/data/maps';
 import { grownMap } from '../../src/data/grownMap';
 import { stressMap } from '../../src/data/stressMap';
@@ -46,6 +46,34 @@ export function defaultSeas(): Record<string, MapDef> {
   };
 }
 
+/** Where each island file is placed: its size and harbour on the first sea that uses it. */
+export function islandPlacements(seas: Record<string, MapDef>) {
+  const placed = new Map<string, IslandPlace>();
+  for (const map of Object.values(seas))
+    for (const i of map.islands)
+      if (i.look?.design && !placed.has(i.look.design))
+        placed.set(i.look.design, { R: i.radius / ISLAND_SCALE, harbour: !!i.look.dock });
+  return placed;
+}
+
+export interface IslandPlace {
+  /** Radius in reference units (the map radius / ISLAND_SCALE). */
+  R: number;
+  harbour: boolean;
+}
+
+/** The island builder's checks on one design at a size, with a file that does not build as an error. */
+export function islandProblems(design: IslandDesign, at: IslandPlace) {
+  try {
+    return checkIsland(design, islandCheckKit(design, at.R, at.harbour)).map((i) => ({
+      severity: i.severity,
+      message: `${i.check}: ${i.message}`,
+    }));
+  } catch (e) {
+    return [{ severity: 'error' as const, message: `does not build: ${String(e)}` }];
+  }
+}
+
 /** Every problem in the content, with a count of what was checked per area. */
 export function checkAll(opts: CheckOptions = {}) {
   const want = (area: string) => !opts.only?.length || opts.only.includes(area);
@@ -75,12 +103,7 @@ export function checkAll(opts: CheckOptions = {}) {
   }
 
   if (want('islands')) {
-    // An island file is checked at the size its island has on the first sea that uses it.
-    const placed = new Map<string, { R: number; harbour: boolean }>();
-    for (const map of Object.values(seas))
-      for (const i of map.islands)
-        if (i.look?.design && !placed.has(i.look.design))
-          placed.set(i.look.design, { R: i.radius / ISLAND_SCALE, harbour: !!i.look.dock });
+    const placed = islandPlacements(seas);
     const ids = opts.islands ?? Object.keys(ISLAND_DESIGNS);
     for (const id of ids) {
       const design = ISLAND_DESIGNS[id];
@@ -103,22 +126,8 @@ export function checkAll(opts: CheckOptions = {}) {
         });
         continue;
       }
-      try {
-        for (const i of checkIsland(design, islandCheckKit(design, at.R, at.harbour)))
-          problems.push({
-            area: 'islands',
-            where: id,
-            severity: i.severity,
-            message: `${i.check}: ${i.message}`,
-          });
-      } catch (e) {
-        problems.push({
-          area: 'islands',
-          where: id,
-          severity: 'error',
-          message: `does not build: ${String(e)}`,
-        });
-      }
+      for (const i of islandProblems(design, at))
+        problems.push({ area: 'islands', where: id, severity: i.severity, message: i.message });
     }
     counted.islands = `${ids.length} files`;
   }
