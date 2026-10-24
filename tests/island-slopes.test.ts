@@ -61,8 +61,13 @@ describe('sloped ground (decision 0096 §4)', () => {
     // The ramp adds some triangles (a band and a fan per edge), and lanes may gain pieces.
     expect(extra).toBeGreaterThan(10);
     expect(extra).toBeLessThan(200);
+    // The north's ice islands (decision 0170) are the first to use slopes on purpose.
     for (const d of Object.values(ISLAND_DESIGNS))
-      expect(d.ground.some((g) => g.slope)).toBe(false);
+      if (d.style !== 'ice')
+        expect(
+          d.ground.some((g) => g.slope),
+          d.id,
+        ).toBe(false);
   });
 
   it('lets small props stand on a slope but not buildings', () => {

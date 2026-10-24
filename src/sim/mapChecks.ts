@@ -1,3 +1,4 @@
+import { bergFields, prepareField } from './bergs';
 import { knotToUnits } from './boat';
 import { coastDistance } from './coast';
 import { piersOf, solidTo } from './collision';
@@ -6,7 +7,8 @@ import { outlineCrosses, smoothOutline } from './flowShapes';
 import { TUNING } from '../data/tuning';
 import { isFar, isGood } from './goods';
 import { islandCoasts, islandPoint } from './islandLayout';
-import { landmarkOf, questTagIds } from '../data/islands';
+import { designOf, landmarkOf, questTagIds } from '../data/islands';
+import { PROP_RECIPES } from '../data/props';
 import { hasQuestLand, standingMap } from './questLand';
 import { type IslandDef, type MapDef, type PortDef, SEA_MARK_TYPES, type TerrainDef } from './map';
 import { DEG, bearingTo, wrapAngle } from './math';
@@ -688,9 +690,24 @@ export function quickChecks(map: MapDef): MapCheck[] {
 
   out.push(...flowChecks(map));
 
-  // Scenery islands are landmarks you steer by.
+  // Drifting bergs (decision 0170): every berg asked for fits round its field's loop.
+  const crowded = bergFields(map).flatMap((def, index) => {
+    const dropped = prepareField(def, index).dropped;
+    return dropped ? [`${def.name ?? def.id} (${dropped} of ${def.count} do not fit)`] : [];
+  });
+  out.push(
+    crowded.length
+      ? fail('bergs', `berg field too small for its bergs: ${list(crowded)}`, 'warning')
+      : pass('bergs', 'every berg field holds its bergs', 'warning'),
+  );
+
+  // Scenery islands are landmarks you steer by: a lighthouse, ruins, a wreck or a beacon, or any
+  // prop of the `landmarks` group in its file (decision 0170: a cairn, a grounded berg).
   const portIslands = new Set(map.ports.map((p) => p.islandId));
-  const plain = map.islands.filter((i) => !portIslands.has(i.id) && !landmarkOf(i));
+  const steersBy = (i: IslandDef) =>
+    !!landmarkOf(i) ||
+    !!designOf(i)?.props.some((p) => PROP_RECIPES[p.type]?.group === 'landmarks');
+  const plain = map.islands.filter((i) => !portIslands.has(i.id) && !steersBy(i));
   out.push(
     plain.length
       ? fail(
@@ -794,8 +811,14 @@ export function routeChecks(map: MapDef): MapCheck[] {
     ['before its quests', new Set()],
     ['after its quests', quests],
   ];
+  // A port still to be founded (a `site`, 0157) is founded by a quest, so before the quests it
+  // need not be reachable: Snowberry Isle lies behind pack ice until rimewick-jam (0170).
+  const sea = (done: ReadonlySet<string>) => {
+    const standing = standingMap(map, done);
+    return done.size ? standing : { ...standing, ports: standing.ports.filter((p) => !p.site) };
+  };
   return states.flatMap(([state, done]) =>
-    routeChecksOn(standingMap(map, done)).map((c) => ({
+    routeChecksOn(sea(done)).map((c) => ({
       ...c,
       id: `${c.id}-${done.size ? 'after' : 'before'}`,
       message: `${c.message} (land ${state})`,

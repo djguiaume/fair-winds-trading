@@ -1178,6 +1178,55 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     'Haze: Settings switch',
     'The Settings switch that turns this haze off (fog, ash); kinds may share one (0169).',
   ),
+  'weather.zones.kinds.*.tint.water': text(
+    'Sea tint: water',
+    'The water’s colour deep inside, #rrggbb (0170).',
+  ),
+  'weather.zones.kinds.*.tint.waterLight': text(
+    'Sea tint: water light',
+    'The lit water’s colour deep inside, #rrggbb (0170).',
+  ),
+  'weather.zones.kinds.*.tint.shallow': text(
+    'Sea tint: shallows',
+    'The shallows’ colour deep inside, #rrggbb (0170).',
+  ),
+  'weather.zones.kinds.*.tint.sky': text(
+    'Sea tint: sky',
+    'The sky and distance colour, #rrggbb (0170).',
+  ),
+  'weather.zones.kinds.*.tint.fade': num(
+    'Sea tint: blends over',
+    0,
+    400,
+    5,
+    'units',
+    'The tint blends in over this width across the zone edge (0170).',
+  ),
+  // --- weather.json bergs: drifting icebergs (decision 0170) ---
+  'weather.bergs.driftKn': num(
+    'Berg drift',
+    0,
+    2,
+    0.05,
+    'kn',
+    'How fast the bergs drift round their field’s loop.',
+  ),
+  'weather.bergs.size': num(
+    'Berg size',
+    1,
+    30,
+    0.5,
+    'units',
+    'Berg radius range, when a field gives none.',
+  ),
+  'weather.bergs.margin': num(
+    'Berg margin',
+    0,
+    20,
+    0.5,
+    'units',
+    'Room a berg keeps from its field’s edge, and between bergs.',
+  ),
   'weather.zones.kinds.*.chart': text(
     'Chart tint',
     'The kind’s tint on the editor map and the labelled chart, #rrggbb (0169).',

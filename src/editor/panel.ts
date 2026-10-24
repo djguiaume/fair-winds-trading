@@ -482,7 +482,7 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     // Sandy passages refuse ships deeper than this (decision 0152); the sloop draws 0.7.
     if (shape.kind === 'shallows')
       number('Max draft', shape.maxDraft, (v) => (shape.maxDraft = v), { min: 0, optional: true });
-    // Drifting icebergs (decision 0170): how many, and how big (radius, map units).
+    // Drifting icebergs (decision 0170): how many, how big (radius, map units), which way round.
     if (shape.kind === 'bergs') {
       number('Icebergs', shape.count, (v) => (shape.count = v ?? 0), { min: 0 });
       number('Smallest', shape.size?.[0], (v) => (shape.size = [v ?? 5, shape.size?.[1] ?? 11]), {
@@ -493,6 +493,18 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
         min: 1,
         optional: true,
       });
+      select(
+        'Drift',
+        shape.spin ?? 'ccw',
+        [
+          ['ccw', 'anticlockwise'],
+          ['cw', 'clockwise'],
+        ],
+        (v) => {
+          if (v === 'cw') shape.spin = 'cw';
+          else delete shape.spin;
+        },
+      );
     }
     const look = () => (shape.look ??= {});
     number('Trees', shape.look?.trees, (v) => (look().trees = v), { min: 0, optional: true });

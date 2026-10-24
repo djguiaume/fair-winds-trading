@@ -1,6 +1,7 @@
 import { groundColors } from '../data/grounds';
 import { ISLAND_DESIGNS } from '../data/islands';
 import { TUNING } from '../data/tuning';
+import { bergChart, bergFields } from '../sim/bergs';
 import { piersOf } from '../sim/collision';
 import { GOOD_ICONS, isGood } from '../sim/goods';
 import { islandCoasts, islandLake } from '../sim/islandLayout';
@@ -123,6 +124,26 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
     if (before && JSON.stringify(before.outline) !== JSON.stringify(t.outline))
       el('polygon', { points: pts(before.outline), class: 'c-ghost' });
   }
+  // Drifting icebergs (decision 0170), with the flow layer: the loop the bergs drift round, which
+  // way (arrows), and each berg where it is now, so a field's drift can be read and tuned.
+  if (layers.flow)
+    bergFields(map).forEach((def, index) => {
+      const chart = bergChart(def, index);
+      el('polygon', { points: pts(chart.loop), class: 'c-berg-track' });
+      for (const a of chart.arrows) {
+        const s = 7 * px;
+        const tip = [a.x + a.dx * s, a.y + a.dy * s];
+        const back = (side: number) => [
+          a.x - a.dx * s + a.dy * s * 0.8 * side,
+          a.y - a.dy * s - a.dx * s * 0.8 * side,
+        ];
+        el('polygon', {
+          points: pts([back(1), tip, back(-1)] as [number, number][]),
+          class: 'c-berg-arrow',
+        });
+      }
+      for (const b of chart.bergs) el('circle', { cx: b.x, cy: -b.y, r: b.r, class: 'c-berg' });
+    });
 
   const portIslands = new Set(map.ports.map((p) => p.islandId));
   for (const island of prepared.islands) {
@@ -368,7 +389,9 @@ export function drawCompass(svg: SVGSVGElement, fromDeg: number) {
  * The chart's beach and land colours for an island whose style swaps its grounds (decision 0170:
  * an ice island is snow on shingle, not green on sand); empty for the usual look.
  */
-export function landStyles(design: string | undefined): [Record<string, string>, Record<string, string>] {
+export function landStyles(
+  design: string | undefined,
+): [Record<string, string>, Record<string, string>] {
   const style = design ? ISLAND_DESIGNS[design]?.style : undefined;
   if (!style) return [{}, {}];
   const land = groundColors('grass', style);

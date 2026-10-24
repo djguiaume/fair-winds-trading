@@ -21,7 +21,7 @@ export class DriftingBergs {
   constructor(private readonly map: MapDef) {
     this.root.name = 'drifting-bergs';
     bergFields(map).forEach((def, index) => {
-      for (const path of prepareField(def, index).paths) {
+      for (const path of prepareField(def, index).bergs) {
         const variant = path.variant % 2;
         const size = path.r / MODEL_RADIUS;
         const key = `${variant}:${size.toFixed(2)}`;

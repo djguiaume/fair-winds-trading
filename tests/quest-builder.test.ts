@@ -102,11 +102,11 @@ describe('quest builder (decision 0142)', () => {
     const doc = shipped();
     expect(checkText(doc)).toEqual([]);
     expect(
-      checkPlaces({ ...doc, quests: questsFor(PHASE1_MAP, doc.quests) }, PHASE1_MAP, (x, y) =>
-        clearAt(PHASE1_MAP, x, y, 0),
+      checkPlaces({ ...doc, quests: questsFor(PHASE1_MAP, doc.quests) }, PHASE1_MAP, (x, y, sea) =>
+        clearAt(sea, x, y, 0),
       ),
     ).toEqual([]);
-    expect(checkPlaces(doc, PHASE4_MAP, (x, y) => clearAt(PHASE4_MAP, x, y, 0))).toEqual([]);
+    expect(checkPlaces(doc, PHASE4_MAP, (x, y, sea) => clearAt(sea, x, y, 0))).toEqual([]);
     setText(doc, 'fr', 'quest.saltmere-shoals.catch.title', 'Portez la pêche');
     expect(checkText(doc).join()).toContain('the {…} differ');
   });

@@ -398,6 +398,11 @@ function legendEntries(
   if (kinds.has('sandbank')) out.push({ text: 'sandbank', swatch: box('c-bank') });
   if (kinds.has('ice')) out.push({ text: 'ice: pack ice, grounded floes', swatch: box('c-ice') });
   if (kinds.has('bergs')) out.push({ text: 'drifting icebergs', swatch: box('c-bergs') });
+  if (kinds.has('bergs') && layers.flow)
+    out.push({
+      text: 'iceberg (now) and the loop the bergs drift round',
+      swatch: stroke('c-berg-track'),
+    });
   if (kinds.has('shallows'))
     out.push({ text: 'shallows: shallow keels only', swatch: box('c-shallows') });
   if (layers.flow) {

@@ -71,6 +71,8 @@ export interface TerrainDef {
   /** Bergs only: how many drift in it, and their radius range in map units. */
   count?: number;
   size?: [number, number];
+  /** Bergs only: which way they drift round the field, `ccw` (the default) or `cw` (0170). */
+  spin?: 'cw' | 'ccw';
   look?: {
     trees?: number;
     landmark?: LandmarkKind;

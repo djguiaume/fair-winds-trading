@@ -143,4 +143,11 @@ const GOLDEN: Record<string, string[]> = {
   'sunreach-south': ['336:9dd11960', '361:49fa96bd', '371:810eea4b', '371:810eea4b'],
   'palm-key': ['156:f382bcb1', '165:a95e4a6c', '178:e846448d', '178:e846448d'],
   'lone-palm': Array(4).fill('13:531edc15'),
+  // The north sea's islands (decision 0170).
+  'cairn-holm': ['7:9d0087f4', '7:9d0087f4', '7:9d0087f4', '7:9d0087f4'],
+  'lead-rock': ['19:3b67111f', '19:3b67111f', '19:3b67111f', '19:3b67111f'],
+  rimewick: ['294:4d72ef0a', '345:8ea285', '414:56d4efbc', '440:3e9395b2'],
+  'seal-rocks': ['19:36ac3049', '19:36ac3049', '19:36ac3049', '19:36ac3049'],
+  'snowberry-isle': ['158:3622eb7f', '175:acf4ce33', '178:7f8c2b59', '178:7f8c2b59'],
+  whitefell: ['17:8f988367', '17:8f988367', '17:8f988367', '17:8f988367'],
 };

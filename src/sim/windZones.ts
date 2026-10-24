@@ -80,8 +80,6 @@ export interface ZoneTint {
   waterLight: string;
   shallow: string;
   sky?: string;
-  /** 0..1: how far toward these colours, deep inside (left out: all the way). */
-  amount?: number;
   /** It blends in over this many units across the edge (left out: the zones' `fadeUnits`). */
   fade?: number;
 }
@@ -378,7 +376,7 @@ export function zoneVisualAt(
     const kind = kinds[z.def.kind];
     const tint = kind && (value(z.def, kind, 'tint') as ZoneTint | undefined);
     if (tint) {
-      const w = weightAt(z, x, y, tint.fade ?? zonesTuning().fadeUnits) * (tint.amount ?? 1);
+      const w = weightAt(z, x, y, tint.fade ?? zonesTuning().fadeUnits);
       if (w > out.tint) {
         out.tint = w;
         out.tintKind = tint;

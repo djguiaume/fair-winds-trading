@@ -37,7 +37,8 @@
     { "type": "seal", "x": 0.3, "z": 0.5, "turn": 40, "size": 1.4, "from": 1 },
     { "type": "seal", "x": -0.35, "z": 0.45, "turn": 40, "size": 1.4, "from": 1 },
     { "type": "seal", "x": 0.6, "z": 0.1, "turn": 40, "size": 1.4, "from": 1 },
-    { "type": "seal", "x": -0.1, "z": 0.6, "turn": -70, "size": 1.2, "variant": 1, "from": 1 }
+    { "type": "seal", "x": -0.1, "z": 0.6, "turn": -70, "size": 1.2, "variant": 1, "from": 1 },
+    { "type": "iceberg", "x": -2.3, "z": -0.5, "size": 0.8, "variant": 1, "from": 1 }
   ],
   "woods": {
     "tree": "woodland-snowfir",

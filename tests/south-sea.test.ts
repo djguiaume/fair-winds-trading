@@ -33,7 +33,10 @@ describe('the south sea, Sunreach (decision 0152)', () => {
     for (const p of PHASE1_MAP.ports) expect(port(p.id)).toEqual(p);
     for (const t of PHASE1_MAP.terrain ?? [])
       expect(map.terrain!.find((s) => s.id === t.id)).toEqual(t);
-    expect(map.windZones?.map((z) => z.kind).sort()).toEqual([
+    // The south's three kinds, and the north's cold gale and cold sea (decision 0170).
+    expect([...new Set(map.windZones?.map((z) => z.kind))].sort()).toEqual([
+      'cold-gale',
+      'cold-sea',
       'doldrums',
       'sheltered',
       'trade-belt',

@@ -31,6 +31,22 @@
       "vowels": "oau",
       "moods": { "pleased": { "pitch": 0.88, "wobble": 0.14 }, "worried": { "speed": 0.9 } }
     },
+    "sigrun": {
+      "synth": "babble",
+      "pitch": 0.92,
+      "speed": 0.85,
+      "wobble": 0.1,
+      "vowels": "oeu",
+      "moods": { "pleased": { "pitch": 0.98 }, "worried": { "speed": 0.8 } }
+    },
+    "nell": {
+      "synth": "babble",
+      "pitch": 1.18,
+      "speed": 1.4,
+      "wobble": 0.16,
+      "vowels": "oai",
+      "moods": { "pleased": { "pitch": 1.26 }, "worried": { "speed": 1.25 } }
+    },
     "kit": {
       "synth": "babble",
       "pitch": 1,
