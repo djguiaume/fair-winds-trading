@@ -4,7 +4,7 @@
 // `npx vite --port 5199`:   node docs/reviews/south-sea/src/capture.cjs [name ...]
 const path = require('path');
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
-const OUT = path.join(__dirname, '..');
+const OUT = process.env.OUT ?? path.join(__dirname, '..');
 const URL = 'http://localhost:5199/?map=phase4&debug';
 
 // name, width, height, what: chart | sea {x, y, zoom, heading, ship}
@@ -13,6 +13,7 @@ const SHOTS = [
   ['chart-portrait', 390, 844, { chart: true }],
   ['sunreach-desktop', 1280, 800, { x: -60, y: -735, zoom: 4.2, boat: [-104, -700, 95] }],
   ['sunreach-town', 1280, 800, { x: -96, y: -640, zoom: 1.7, boat: [-104, -705, 20] }],
+  ['sunreach-tea-gardens', 1280, 800, { x: -40, y: -862, zoom: 1.55, boat: [-20, -800, 200] }],
   ['sunreach-west-entrance', 1280, 800, { x: -230, y: -700, zoom: 2.2, boat: [-300, -690, 100] }],
   ['sunreach-landscape', 844, 390, { x: -60, y: -735, zoom: 4.2, boat: [-104, -700, 95] }],
   ['sunreach-portrait', 390, 844, { x: -60, y: -735, zoom: 2.6, boat: [-104, -700, 95] }],

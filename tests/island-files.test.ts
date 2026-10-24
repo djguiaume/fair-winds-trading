@@ -139,8 +139,8 @@ const GOLDEN: Record<string, string[]> = {
   skerry: ['176:5e30be68', '180:f1a016d7', '183:c8300615', '183:c8300615'],
   'watchman-key': ['43:fbfd2fb9', '73:4bfeb4dd', '92:3e8fc1dd', '99:ac0414a9'],
   // The south sea (decision 0152).
-  sunreach: ['349:3b6f1e94', '446:3954ffd5', '560:cf96505c', '610:5da7b948'],
-  'sunreach-south': Array(4).fill('185:12b311cc'),
+  sunreach: ['415:9430d8cc', '549:8423e762', '665:21f835c6', '712:b89c552e'],
+  'sunreach-south': ['287:f37c39c5', '312:5483e68', '322:740f27c6', '322:740f27c6'],
   'palm-key': Array(4).fill('147:9fbbf881'),
   'lone-palm': Array(4).fill('13:531edc15'),
 };

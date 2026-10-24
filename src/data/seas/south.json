@@ -337,6 +337,26 @@
   "marks": [
     {
       "type": "buoy-red",
+      "x": -186.8,
+      "y": -780.2
+    },
+    {
+      "type": "buoy-green",
+      "x": -161.9,
+      "y": -790.1
+    },
+    {
+      "type": "buoy-red",
+      "x": 32.5,
+      "y": -683
+    },
+    {
+      "type": "buoy-green",
+      "x": 65.9,
+      "y": -689.8
+    },
+    {
+      "type": "buoy-red",
       "x": 167.7,
       "y": -471,
       "chart": true
@@ -384,6 +404,9 @@
       "name": "Sunreach Sound",
       "kind": "sheltered",
       "headingDeg": 90,
+      "tune": {
+        "glassy": 0.35
+      },
       "outline": [
         [29.3, -757.3],
         [22.2, -713.1],
