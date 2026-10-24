@@ -25,5 +25,5 @@ Guillaume started a new game and took the tutorial:
 
 - The prologue is slower and safer; a player who ignores the lessons and keeps going still reaches the wreck in under a minute.
 - The random tutorial sessions of `tests/plays-the-same.test.ts` walk the lessons at slightly different moments (the alongside rule) and read the new sails text, so their hash is retaken on purpose.
-- The story text is unchanged except the sails lesson's control hint. Rook's thanks on the skip path ("You've a feel for the wind") was written for the rescue; whether it needs its own wording is a question for the storyteller.
+- The story text is unchanged except the sails lesson's control hint, and Rook's thanks gets a translated name ("Les remerciements de Rook"; the French card showed the English "Rook's thanks"). Rook's thanks on the skip path ("You've a feel for the wind") was written for the rescue; whether it needs its own wording is a question for the storyteller.
 - Screenshots: [docs/reviews/gentler-prologue](../reviews/gentler-prologue/).
