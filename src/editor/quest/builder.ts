@@ -538,6 +538,7 @@ function drawSteps() {
       s.reward?.gold ? `<span class="qb-gold">+${s.reward.gold}</span>` : '',
       ...[
         s.clean && 'clean',
+        s.teach && 'teach',
         s.marker,
         s.mood,
         s.speaker && `by ${s.speaker}`,
@@ -892,6 +893,17 @@ function goalPanel(q: QuestDef, s: QuestStep): HTMLElement[] {
       ),
     ),
   );
+  if (q.lesson)
+    out.push(
+      row(
+        'Teach',
+        checkbox(
+          !!s.teach,
+          (on) => edit(() => (on ? (s.teach = true) : delete s.teach)),
+          'teaching only: passed by when the tutorial is skipped',
+        ),
+      ),
+    );
   out.push(
     row(
       'Where',

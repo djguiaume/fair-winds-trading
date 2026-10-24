@@ -622,7 +622,8 @@ export function lessonFor(
   harbours: Record<string, { x: number; y: number }>,
 ): LessonModel | null {
   const running = book.lesson;
-  if (!running) return null;
+  // A lesson without its coach plays its story in silence (decision 0160).
+  if (!running || !book.isCoached(running.quest.id)) return null;
   const { quest, step } = running;
   const vars = book.progress(quest.id)?.vars;
   const coach = step.coach ?? {};
