@@ -67,6 +67,17 @@ function homeFingerprintV1(map: MapDef): number {
   return fingerprint([...spotIds(map), ...BUILDING_IDS]);
 }
 
+/**
+ * The charted currents' section (decision 0140), after the home islands' one and only when a
+ * current is charted: its number, a fingerprint of the map's current ids, their count and a flag
+ * each. A game from before it reads the number as a newer code.
+ */
+const CHARTED_SECTION = 10;
+/** No section left to read (sections are numbered from 1). */
+const NO_SECTION = -1;
+const currentIds = (map: MapDef) => (map.currents ?? []).map((c) => c.id);
+const currentsFingerprint = (map: MapDef) => fingerprint(currentIds(map));
+
 function fingerprint(ids: string[]): number {
   let h = 0x811c9dc5;
   for (const ch of ids.join('|')) {
@@ -242,6 +253,14 @@ export function packSave(
       }
     }
   }
+  const ids = currentIds(map);
+  const charted = ids.map((id) => !!save.progress?.charted?.includes(id));
+  if (charted.some(Boolean)) {
+    w.uint(CHARTED_SECTION);
+    w.uint(currentsFingerprint(map));
+    w.uint(ids.length);
+    w.flags(charted);
+  }
   return Uint8Array.from(w.bytes);
 }
 
@@ -399,9 +418,8 @@ export function unpackSave(
 
   // Only islands that are the captain's are written; a code without the section has none.
   let home: SaveData['home'];
-  if (!r.done) {
-    const section = r.uint();
-    if (section > HOME_SECTION) return { ok: false, problem: 'newer' };
+  let section = r.done ? NO_SECTION : r.uint();
+  if (section >= 1 && section <= HOME_SECTION) {
     const v1 = section === 1;
     if (r.uint() !== (v1 ? homeFingerprintV1(map) : homeFingerprint(map)))
       return { ok: false, problem: 'otherVersion' };
@@ -430,7 +448,18 @@ export function unpackSave(
         ...(Object.keys(stored).length ? { stored } : {}),
       };
     }
+    section = r.done ? NO_SECTION : r.uint();
   }
+  // Charted currents (decision 0140): a code from a map whose currents changed just forgets them.
+  let charted: string[] | undefined;
+  if (section === CHARTED_SECTION) {
+    const ids = currentIds(map);
+    const same = r.uint() === currentsFingerprint(map);
+    const n = r.uint();
+    const flags = r.flags(n);
+    if (same && n === ids.length) charted = ids.filter((_, k) => flags[k]);
+  } else if (section > HOME_SECTION) return { ok: false, problem: 'newer' };
+  else if (section !== NO_SECTION) return { ok: false, problem: 'unreadable' };
   if (!r.done) return { ok: false, problem: 'unreadable' };
 
   return {
@@ -450,7 +479,7 @@ export function unpackSave(
       dockedAt,
       markets,
       contracts: { byPort, completed, ...(helpIn ? { helpIn } : {}) },
-      progress: { discovered, standing },
+      progress: { discovered, standing, ...(charted?.length ? { charted } : {}) },
       settlements: { byPort: towns, ...(pendingSupply ? { pendingSupply } : {}) },
       ...(difficulty ? { difficulty } : {}),
       ...(easiestDifficulty ? { easiestDifficulty } : {}),

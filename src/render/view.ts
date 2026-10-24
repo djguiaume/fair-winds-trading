@@ -18,6 +18,7 @@ import {
 } from './models';
 import { HEEL_FEEL, Heel, heelFactor } from './heel';
 import { Ocean, ShoreTextureCache, waveHeight } from './ocean';
+import { CurrentWater } from './currentWater';
 import { PALETTE } from './palette';
 import { BuoyMarker, EdgeBuoys, createBlobShadow } from './props';
 import { renderPixelRatio, QUALITY, type QualityLevel, type QualityProfile } from './quality';
@@ -94,6 +95,8 @@ export class GameView {
   private readonly beaconLights: BeaconLights;
   private readonly edgeBuoys: EdgeBuoys;
   private ocean!: Ocean;
+  /** Darker current water with drifting crests (decision 0140). */
+  private currentWater?: CurrentWater;
   private readonly shores = new ShoreTextureCache();
   private streaks!: WindStreaks;
   private profile!: QualityProfile;
@@ -175,6 +178,11 @@ export class GameView {
     toScene(world.boat.x, world.boat.y, this.target);
     this.buildLanterns();
     this.setQuality(level);
+    this.currentWater = new CurrentWater(
+      world.map.currents ?? [],
+      this.shores.get(world.map.islands, world.map.terrain),
+    );
+    this.scene.add(this.currentWater.root);
   }
 
   /** Harbour lanterns (decision 0068): one on each pier head and a town glow a little inland. */
@@ -250,6 +258,7 @@ export class GameView {
     // ShoreTextureCache releases its previous bake on a live map edit. Rebind inactive
     // quality levels too, so returning to one never revives a disposed texture.
     for (const effects of this.qualityEffects.values()) effects.ocean.setShore(shore);
+    this.currentWater?.setShore(shore);
     let effects = this.qualityEffects.get(level);
     if (!effects) {
       // Ocean shader source depends on fancyWater, not the grid resolution. Share the
@@ -459,6 +468,7 @@ export class GameView {
     windows?.color.copy(WINDOWS_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
     this.boat.setNightLighting?.(day.night);
     this.ocean.update(time, this.target);
+    this.currentWater?.update(time, this.ocean, this.world.currentsOn);
     this.edgeBuoys.update(time, (x, z) => waveHeight(x, z, time), this.camera);
     this.seaMarks.update(time, (x, z) => waveHeight(x, z, time));
     this.questMarkers.update(this.stepMarkers(), time, (x, z) => waveHeight(x, z, time));
@@ -502,6 +512,7 @@ export class GameView {
     this.stormClouds.dispose();
     this.lanterns.dispose();
     this.wake.dispose();
+    this.currentWater?.dispose();
     this.buoy.dispose();
     this.edgeBuoys.dispose();
     this.seaMarks.dispose();

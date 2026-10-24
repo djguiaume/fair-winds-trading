@@ -15,6 +15,7 @@
       "growth": 0.75,
       "galeWeight": 0.08,
       "stormEverySec": 900,
+      "currents": 0.6,
       "steadyWind": true
     },
     "captain": {
@@ -31,6 +32,7 @@
       "growth": 1,
       "galeWeight": 0.15,
       "stormEverySec": 600,
+      "currents": 1,
       "steadyWind": false
     },
     "salt": {
@@ -47,6 +49,7 @@
       "growth": 1.25,
       "galeWeight": 0.22,
       "stormEverySec": 420,
+      "currents": 1.2,
       "steadyWind": false
     }
   },

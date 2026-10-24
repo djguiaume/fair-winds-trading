@@ -7,6 +7,8 @@ import { damageHull, repairHull } from './hazards';
 import type { MapDef } from './map';
 import { quoteBuy, quoteSell, stepMarket } from './market';
 import { DEG } from './math';
+import { smoothOutline } from './flowShapes';
+import { NO_ZONE, type ZoneEffect, zoneField, zoneMeanAt } from './windZones';
 import { createRng } from './rng';
 import { stepSettlements } from './settlement';
 import { CUTTER, SLOOP, type ShipClass, polarFraction } from './ship';
@@ -93,8 +95,37 @@ export function legSeconds(
   const d = Math.hypot(b.x - a.x, b.y - a.y) - a.radius - b.radius;
   const bearing = Math.atan2(b.x - a.x, b.y - a.y);
   const knotToUnits = TUNING.seamanship.boat.knotToUnits;
-  return (d * 1.15) / (madeGood(ship, bearing, weather) * 0.9 * knotToUnits) + 8;
+  const zones = zoneField(map.windZones, smoothOutline);
+  if (!zones) return (d * 1.15) / (madeGood(ship, bearing, weather) * 0.9 * knotToUnits) + 8;
+  // Wind zones (decision 0140): the leg is cut into stretches, each sailed in the zones' average
+  // wind at its middle. Cached per weather list, since the bots ask for the same legs again.
+  let byWeather = zoneLegs.get(weather);
+  if (!byWeather) zoneLegs.set(weather, (byWeather = new Map()));
+  const key = `${map.name}:${ship.id}:${ship.speedRatio}:${from}:${to}`;
+  const known = byWeather.get(key);
+  if (known !== undefined) return known;
+  const n = Math.min(16, Math.max(1, Math.ceil(d / ZONE_STRETCH)));
+  const ux = (b.x - a.x) / Math.hypot(b.x - a.x, b.y - a.y),
+    uy = (b.y - a.y) / Math.hypot(b.x - a.x, b.y - a.y);
+  let seconds = 8;
+  for (let i = 0; i < n; i++) {
+    const along = a.radius + (d * (i + 0.5)) / n;
+    const x = a.x + ux * along,
+      y = a.y + uy * along;
+    const local = weather.map((w) => {
+      const z = zoneMeanAt(zones, x, y, w.from, false, legZone);
+      return { from: w.from + z.turn, kn: w.kn * z.strength };
+    });
+    seconds += ((d / n) * 1.15) / (madeGood(ship, bearing, local) * 0.9 * knotToUnits);
+  }
+  byWeather.set(key, seconds);
+  return seconds;
 }
+
+/** Length of one stretch of a leg sailed in one zone wind (units). */
+const ZONE_STRETCH = 40;
+const legZone: ZoneEffect = { ...NO_ZONE };
+const zoneLegs = new WeakMap<Weather[], Map<string, number>>();
 
 /** The charted ports: the hidden shipwright yards stay out of a first session (decision 0048). */
 export const chartedPorts = (map: MapDef) => map.ports.filter((p) => !p.hidden);

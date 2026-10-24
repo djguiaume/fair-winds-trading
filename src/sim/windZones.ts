@@ -3,7 +3,10 @@ import { coastDistance } from './coast';
 import { DEG, TAU, clamp, wrapAngle } from './math';
 import { createRng } from './rng';
 import { SpatialGrid } from './spatial';
+import type { MapDef, WindZoneDef } from './map';
 import type { Storm, StormConfig } from './storms';
+
+export type { WindZoneDef };
 
 /**
  * Wind zones (decision 0140): areas painted on the map where the wind blows differently, on top of
@@ -14,20 +17,6 @@ import type { Storm, StormConfig } from './storms';
  * Like the rest of the weather this is a pure function of the seed, the time and the place, so the
  * save does not change. Lookups only happen where a boat asks, through a `SpatialGrid` (0117).
  */
-
-/** One zone as the map file has it. */
-export interface WindZoneDef {
-  id: string;
-  name?: string;
-  /** A key of `weather.json` › `zones.kinds`. */
-  kind: string;
-  /** Bearing the wind blows FROM in a trade belt or along a sheltered axis, like `wind.fromDeg`. */
-  headingDeg?: number;
-  /** Closed outline, map units. */
-  outline: [number, number][];
-  /** Numbers of the kind this zone overrides, e.g. `{ "strength": 0.3 }`. */
-  tune?: Record<string, number | [number, number] | boolean>;
-}
 
 /**
  * What one kind does (`weather.json` › `zones.kinds.<kind>`). Every number is optional: a kind
@@ -61,24 +50,10 @@ export interface ZonesTuning {
   kinds: Record<string, ZoneKind>;
 }
 
-/**
- * The live zone numbers. Until the shared base of 0140 adds the `zones` block to `weather.json`,
- * the values of the decision stand in for it.
- */
+/** The live zone numbers, `weather.json` › `zones` (decision 0094). */
 export function zonesTuning(): ZonesTuning {
-  return (TUNING.weather as unknown as { zones?: ZonesTuning }).zones ?? DECIDED_ZONES;
+  return (TUNING.weather as unknown as { zones: ZonesTuning }).zones;
 }
-
-const DECIDED_ZONES: ZonesTuning = {
-  fadeUnits: 40,
-  kinds: {
-    'trade-belt': { pull: 0.7, gusts: 0.5 },
-    doldrums: { strength: [0.25, 0.4], fairFloor: 0.6, shiftDeg: 30 },
-    'stormy-coast': { gusts: 1.5, stormBirth: 2 },
-    'cold-gale': { strength: 1.2, gusts: 0.8 },
-    sheltered: { strength: 0.55, gusts: 0.6, pull: 0.9, axis: true, acrossFloor: 0.3 },
-  },
-};
 
 /** A zone ready for lookups: its outline, bounding circle (with the fade) and centre. */
 interface PreparedZone {
@@ -103,8 +78,8 @@ export interface ZoneField {
 }
 
 /** The wind zones of a map (its `windZones` list), or none. */
-export function mapZones(map: object): readonly WindZoneDef[] | undefined {
-  return (map as { windZones?: WindZoneDef[] }).windZones;
+export function mapZones(map: MapDef): readonly WindZoneDef[] | undefined {
+  return map.windZones;
 }
 
 let fields = new WeakMap<readonly WindZoneDef[], ZoneField>();
@@ -202,6 +177,7 @@ export function zoneEffectAt(
   from: number,
   easiest = false,
   out: ZoneEffect = { ...NO_ZONE },
+  mean = false,
 ): ZoneEffect {
   out.strength = 1;
   out.gusts = 1;
@@ -221,7 +197,11 @@ export function zoneEffectAt(
     }
     const strength = value(z.def, kind, 'strength');
     if (strength !== undefined) {
-      const s = Array.isArray(strength) ? puffs(strength, seed, z.index, t, x, y) : strength;
+      const s = !Array.isArray(strength)
+        ? strength
+        : mean
+          ? (strength[0] + strength[1]) / 2
+          : puffs(strength, seed, z.index, t, x, y);
       out.strength *= 1 + (s - 1) * w;
     }
     const gusts = value(z.def, kind, 'gusts');
@@ -244,12 +224,39 @@ export function zoneEffectAt(
       out.turn += wrapAngle(target - now) * share * w;
     }
     const shift = value(z.def, kind, 'shiftDeg');
-    if (shift) out.turn += shiftAt(seed, z.index, t, x, y) * shift * DEG * w;
+    if (shift && !mean) out.turn += shiftAt(seed, z.index, t, x, y) * shift * DEG * w;
     const fair = value(z.def, kind, 'fairFloor');
     if (easiest && fair) floor = Math.max(floor, 1 + (fair - 1) * w);
   }
   if (floor > 0 && out.strength < floor) out.strength = floor;
   return out;
+}
+
+/**
+ * The zones' average effect at a spot, without the puffs and shifts of the moment: what the route
+ * and balance checks plan with (decisions 0114, 0140).
+ */
+export function zoneMeanAt(
+  field: ZoneField,
+  x: number,
+  y: number,
+  from: number,
+  easiest = false,
+  out: ZoneEffect = { ...NO_ZONE },
+): ZoneEffect {
+  return zoneEffectAt(field, 0, 0, x, y, from, easiest, out, true);
+}
+
+/** The largest strength factor any zone of the field can give: keeps route estimates optimistic. */
+export function zoneMaxGain(field: ZoneField): number {
+  const kinds = zonesTuning().kinds;
+  let gain = 1;
+  for (const z of field.zones) {
+    const kind = kinds[z.def.kind];
+    const s = kind && value(z.def, kind, 'strength');
+    if (s !== undefined) gain = Math.max(gain, ...(Array.isArray(s) ? s : [s]));
+  }
+  return gain;
 }
 
 /** A strength that wanders slowly between `lo` and `hi`, different in different spots: light puffs. */

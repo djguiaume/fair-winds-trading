@@ -97,3 +97,13 @@ Time for a sloop to reach the harbour from 280 units outside the west or east en
 - **It looks better too.** The lagoon reads as a closed harbour from most angles, as in the reference picture, and the two headlands are natural places for the two lighthouses.
 - **To do when the tropical port is built:** the arms use the generated look. Shaping their coasts (bays, rocks, sand spits) and spreading the town along the inner shore, as in the picture, is island builder work on the port's file.
 
+### First shaped pass
+
+Same layout and rules, with the arms drawn to swell and pinch: thicker (35 to 60 units), bays on both shores, rounded headlands, rocks off both entrances, and the `sheltered` zone (Ringhaven Sound, along the E–W line) placed over the lagoon. [make-shaped.py](make-shaped.py) writes the shapes, and the editor then adds the zone and the two reefs. Every map check passes, zones included.
+
+![Editor, shaped ring with the lagoon zone](editor-shaped.png)
+
+![In the game, shaped ring](game-shaped.png)
+
+The coastline now has character. The land on top is still the generic generated look of a barrier island: one plateau, sparse trees, no palms or hills. Giving it its tropical look (hills, palms, beaches, the town along the inner shore) is island builder work on the arms' own files.
+

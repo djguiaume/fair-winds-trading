@@ -491,6 +491,9 @@
             ><small data-i18n="hud.hdg">HDG</small> <span id="heading">0°</span></span
           >
           <span id="point-of-sail" class="pos">&nbsp;</span>
+          <span id="log-sog" class="log-sog" hidden
+            ><small data-i18n="hud.sog">SOG</small> <span id="sog">0.0</span></span
+          >
         </div>
 
         <div id="wind-compass" class="panel compass">
@@ -541,6 +544,7 @@
             <span id="wind-gust" class="wind-gust" hidden data-i18n="wind.gust">gust</span>
             <span id="wind-text">&nbsp;</span>
             <span id="weather-text" class="weather-text" hidden></span>
+            <span id="current-text" class="weather-text current-text" hidden></span>
             <span id="wind-forecast" class="weather-text forecast" hidden></span>
           </span>
           <button
@@ -1176,6 +1180,15 @@
               ></span
             >
             <input type="checkbox" id="wind-zones" class="switch" role="switch" />
+          </label>
+          <label class="set-row">
+            <span class="set-name"
+              ><span data-i18n="settings.currents">Currents</span
+              ><small data-i18n="settings.currentsNote"
+                >Off: still water, no current carries the boat</small
+              ></span
+            >
+            <input type="checkbox" id="currents" class="switch" role="switch" />
           </label>
           <label class="set-row">
             <span class="set-name"
