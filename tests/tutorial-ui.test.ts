@@ -20,7 +20,7 @@ const click = (selector: string) => {
   b.focus();
   b.click();
 };
-/** The coach on the real sea, chart and harbour screen, wired like the game (decision 0148). */
+/** The coach on the real sea, chart and harbour screen, wired like the game (decision 0151). */
 function setup(mode: 'adult' | 'kids' = 'adult') {
   const v = tutorialVoyage();
   const { world, quests } = v;

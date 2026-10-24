@@ -10,7 +10,7 @@ import { createWorld } from '../src/sim/world';
 import { stepParams } from '../src/ui/questView';
 
 /*
- * Decision 0148: what the tutorial needed, as step data any quest can use: vars picked in play,
+ * Decision 0151: what the tutorial needed, as step data any quest can use: vars picked in play,
  * ways back, a goal with buttons, options shown only when a condition holds, the chart, the
  * course and buying as conditions, map places by word, and quests the game asks for.
  */
@@ -63,7 +63,7 @@ function voyage(quests: QuestDef[] = [errand], map = PHASE1_MAP) {
   return { world, book, course, show, step: () => book.progress(errand.id)?.step };
 }
 
-describe('step data for lessons (decision 0148)', () => {
+describe('step data for lessons (decision 0151)', () => {
   it('is checked like the rest of a quest', () => {
     expect(checkQuests([errand], PHASE1_MAP)).toEqual([]);
     const bad = structuredClone(errand) as QuestDef;

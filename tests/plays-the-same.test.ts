@@ -30,7 +30,7 @@ const TUTORIAL = 'first-voyage';
  * before the chart, Rook taken home to Saltmere), so the random sessions now walk new lessons.
  * Retaken again by decision 0139: coming alongside the wreck counts from 20 units instead of 16 and
  * not while grinding on the reef, and the sails lesson's text changed (raise, then steer).
- * Retaken by decision 0148: the tutorial is an ordinary quest, so the random player now moves the
+ * Retaken by decision 0151: the tutorial is an ordinary quest, so the random player now moves the
  * voyage (course, dock, cargo, chart open, helm) and the quest book watches it; the session also
  * saves and loads the lesson with the voyage.
  */

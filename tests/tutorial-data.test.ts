@@ -6,10 +6,10 @@ import { COACH_TARGETS, QUESTS, type QuestDef, checkQuests } from '../src/sim/qu
 import { mainLine } from '../src/ui/questView';
 import { TUTORIAL, tutorialVoyage } from './helpers/tutorial';
 
-// Decision 0113 made the tutorial data; decision 0148 made it an ordinary quest file.
+// Decision 0113 made the tutorial data; decision 0151 made it an ordinary quest file.
 const shipped = QUESTS.find((q) => q.id === TUTORIAL)!;
 
-describe('the tutorial as an ordinary quest (decision 0148)', () => {
+describe('the tutorial as an ordinary quest (decision 0151)', () => {
   it('the shipped file is sound: a lesson, known coach marks, every text in both languages', () => {
     expect(shipped).toMatchObject({ start: { is: 'asked' }, text: 'lesson', lesson: true });
     expect(checkQuests(QUESTS, PHASE1_MAP)).toEqual([]);

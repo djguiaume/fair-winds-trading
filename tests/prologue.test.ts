@@ -10,7 +10,7 @@ import { questGoal, trackedMarkers } from '../src/ui/questView';
 import { createWorld, startAtPrologue, stepWorld } from '../src/sim/world';
 import { TUTORIAL, tutorialVoyage } from './helpers/tutorial';
 
-// Decision 0127: the tutorial is the prologue rescue, and Rook's thanks is the island. Since 0148 it
+// Decision 0127: the tutorial is the prologue rescue, and Rook's thanks is the island. Since 0151 it
 // runs as an ordinary quest.
 
 const TUTORIAL_QUEST = QUESTS.find((q) => q.id === TUTORIAL)!;
@@ -41,7 +41,7 @@ describe('the prologue at sea (decision 0127)', () => {
     const reef = PHASE1_MAP.terrain!.find((t) => t.id === 'east-reef')!;
     expect(reef.kind).toBe('reef');
     expect(Number.isFinite(wreck.x) && Number.isFinite(wreck.y)).toBe(true);
-    // The quest names it by word; each map puts it (decision 0148).
+    // The quest names it by word; each map puts it (decision 0151).
     expect(pointOf(PHASE1_MAP, 'wreck')).toEqual(wreck);
     expect(pointOf(PHASE0_MAP, 'wreck')).toBeNull();
   });

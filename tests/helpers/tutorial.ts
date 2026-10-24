@@ -6,7 +6,7 @@ import { SLOOP } from '../../src/sim/ship';
 import { createWorld, type World } from '../../src/sim/world';
 import { lessonFor } from '../../src/ui/questView';
 
-/** The tutorial's quest (decision 0148). */
+/** The tutorial's quest (decision 0151). */
 export const TUTORIAL = 'first-voyage';
 
 /** A pier off each port's island, like the game's harbours. */
@@ -21,7 +21,7 @@ export function harboursOf(map: MapDef = PHASE1_MAP) {
 
 /**
  * A voyage with the quest book the game runs, and the player's moves the tutorial watches: the
- * chart, a course, docking, the helm (decision 0148: the tutorial is an ordinary quest).
+ * chart, a course, docking, the helm (decision 0151: the tutorial is an ordinary quest).
  */
 export function tutorialVoyage(
   map: MapDef = PHASE1_MAP,

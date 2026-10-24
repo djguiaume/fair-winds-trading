@@ -53,7 +53,7 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   const { world, input, quests } = (
     window as unknown as { fwt: { world: World; input: Input; quests: QuestBook } }
   ).fwt;
-  // The tutorial is an ordinary quest (decision 0148).
+  // The tutorial is an ordinary quest (decision 0151).
   const step = () => quests.progress('first-voyage')?.step;
   const click = (id: string) => {
     const el = document.querySelector<HTMLButtonElement>(id)!;

@@ -181,7 +181,7 @@ export function stepPlaces(step: QuestStep, map: MapDef): Place[] {
       const within = typeof cond.within === 'number' ? cond.within : 0;
       (cond.points as (QuestPoint | string)[]).forEach(
         (p, i) =>
-          // A map place (the prologue's wreck, decision 0148) is where the map puts it: not dragged.
+          // A map place (the prologue's wreck, decision 0151) is where the map puts it: not dragged.
           typeof p === 'object' &&
           out.push({
             kind: 'point',

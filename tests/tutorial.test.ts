@@ -7,7 +7,7 @@ import { saveGame, loadGame, SAVE_KEY, serializeWorld } from '../src/sim/save';
 import { TutorialChoice } from '../src/ui/tutorial';
 import { TUTORIAL, tutorialVoyage } from './helpers/tutorial';
 
-// Decision 0148: the tutorial is an ordinary quest, run by the quest book and saved with the voyage.
+// Decision 0151: the tutorial is an ordinary quest, run by the quest book and saved with the voyage.
 
 function memory() {
   const values = new Map<string, string>();
@@ -72,7 +72,7 @@ describe('optional tutorial and save compatibility', () => {
     expect(storage.getItem(SAVE_KEY)).toBeTruthy();
   });
 
-  it('moves a lesson kept in the browser before 0148 into the voyage once', () => {
+  it('moves a lesson kept in the browser before 0151 into the voyage once', () => {
     const storage = memory();
     const choice = new TutorialChoice(PHASE1_MAP.name, storage);
     storage.setItem(

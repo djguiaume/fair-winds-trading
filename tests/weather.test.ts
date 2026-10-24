@@ -220,7 +220,7 @@ describe('storms held back (0072)', () => {
 
   it('holds storms through the tutorial, whatever the Settings say', () => {
     const world = createWorld(PHASE1_MAP, SLOOP);
-    // The tutorial quest says `storms: false`; the game holds them while it runs (decision 0148).
+    // The tutorial quest says `storms: false`; the game holds them while it runs (decision 0151).
     const quests = new QuestBook(world, QUESTS);
     quests.ask('first-voyage');
     holdStorms(world, 'quest', quests.holdsStorms);

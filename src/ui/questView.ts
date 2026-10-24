@@ -99,7 +99,7 @@ export function parClock(secs: number): string {
 
 /**
  * What a step's title and copy can name: `{par}`, its timed run's par for the voyage's level; and
- * with its quest, the quest's vars (decision 0148): `{name}` (the port's name, or "the fish"),
+ * with its quest, the quest's vars (decision 0151): `{name}` (the port's name, or "the fish"),
  * `{nameMakes}` for a port (what it makes, "some fish") and `{nameBuyer}` for a good (the line
  * `<text>.nameBuyer` naming a charted port that wants it, or nothing). An unset var reads
  * `<text>.var.<name>` ("your chosen port").
@@ -495,7 +495,7 @@ export function stepMarkers(
     if (c.is === 'reach' && Array.isArray(c.points)) {
       const inOrder = c.order === 'in-order';
       (c.points as unknown[]).forEach((at, i) => {
-        // A map place (the prologue's wreck) where this map has it (decision 0148).
+        // A map place (the prologue's wreck) where this map has it (decision 0151).
         const p = map ? pointOf(map, at) : typeof at === 'object' ? (at as QuestPoint) : null;
         if (!p) return;
         const reached = inOrder ? i < first : (first & (1 << i)) !== 0;
@@ -531,7 +531,7 @@ export function trackedMarkers(book: QuestBook): { style: string; points: StepMa
   return points.length ? { style: active.step.marker ?? 'ring', points } : null;
 }
 
-/** A lesson's coach bubble (decision 0148): the running lesson's step, its words and its mark. */
+/** A lesson's coach bubble (decision 0151): the running lesson's step, its words and its mark. */
 export interface LessonModel {
   quest: string;
   step: string;
@@ -554,7 +554,7 @@ export interface LessonModel {
 }
 
 /**
- * A lesson's main line (decision 0148): from its first step, each step's goal (or, with none, its
+ * A lesson's main line (decision 0151): from its first step, each step's goal (or, with none, its
  * first option) to the next. Steps off it are only reached by ways back and are not numbered.
  */
 export function mainLine(quest: QuestDef): string[] {

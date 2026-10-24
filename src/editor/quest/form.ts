@@ -94,7 +94,7 @@ export function checkbox(value: boolean, onSet: (v: boolean) => void, text = '')
 }
 
 /**
- * Fields the forms do not draw yet, as JSON (decision 0148: a lesson's ways back, vars and coach
+ * Fields the forms do not draw yet, as JSON (decision 0151: a lesson's ways back, vars and coach
  * marks): `{}` for none. A text that does not parse is marked and not applied.
  */
 export function jsonField(
@@ -157,7 +157,7 @@ function questOf(
 ): { steps: { id: string; choose?: { id: string }[] }[] } | undefined {
   return ctx.quests.find((q) => q.id === id);
 }
-/** The quest's vars of a kind, as `$name` choices (decision 0148). */
+/** The quest's vars of a kind, as `$name` choices (decision 0151). */
 const varOptions = (ctx: FormContext, kind: 'port' | 'good'): [string, string][] =>
   Object.entries(ctx.quest.vars ?? {})
     .filter(([, k]) => k === kind)
@@ -169,7 +169,7 @@ const varOptions = (ctx: FormContext, kind: 'port' | 'good'): [string, string][]
 function kindsFor(inGoal: boolean): [string, string][] {
   return (
     Object.keys(CONDITIONS)
-      // `asked` only starts a quest (the tutorial, decision 0148).
+      // `asked` only starts a quest (the tutorial, decision 0151).
       .filter((k) => (inGoal ? k !== 'asked' : !CONDITIONS[k]!.slots))
       .map((k) => [k, `${k} · ${CONDITION_ABOUT[k] ?? ''}`])
   );
@@ -460,7 +460,7 @@ function pointsField(
   const box = h('div', { class: 'qb-points' });
   (points ?? []).forEach((p, i) => {
     const line = h('div', { class: 'qb-pt' }, h('b', {}, String(i + 1)));
-    // A map place by its word (decision 0148), or a point: each map puts the place itself.
+    // A map place by its word (decision 0151), or a point: each map puts the place itself.
     line.append(
       select(
         Object.keys(MAP_PLACES).map((k): [string, string] => [k, `the map’s ${k}`]),

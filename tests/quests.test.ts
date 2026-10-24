@@ -72,7 +72,7 @@ describe('quest engine (decision 0125)', () => {
     expect(checkQuests(QUESTS, PHASE1_MAP)).toEqual([]);
     expect(checkQuests(TEST_QUESTS, PHASE1_MAP, ['first-voyage'])).toEqual([]);
     expect(checkQuests(SAILING, PHASE1_MAP)).toEqual([]);
-    // The tutorial is a quest like the others (decision 0148).
+    // The tutorial is a quest like the others (decision 0151).
     expect(QUESTS.map((q) => q.id)).toContain('first-voyage');
   });
 

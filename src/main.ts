@@ -229,7 +229,7 @@ const input = new Input(stage);
 const chart = new SeaChart($('chart') as HTMLDialogElement, world, view.harbours);
 chart.onChange = () => {
   input.releaseAll();
-  // A lesson may wait on the chart opening or closing (decision 0148).
+  // A lesson may wait on the chart opening or closing (decision 0151).
   quests.check();
   refreshPause();
 };
@@ -255,7 +255,7 @@ homePanel.onRepaired = (gold) => {
   autosave();
 };
 homePanel.onStored = () => autosave();
-// Quests (decision 0125), the tutorial too (decision 0148): saved with the voyage.
+// Quests (decision 0125), the tutorial too (decision 0151): saved with the voyage.
 const quests = new QuestBook(world, undefined, {
   // A night step counts at any time when night is switched off (hazards stay optional).
   nightOk: () => !settings.dayNight || daylightAt(world.time).night >= 0.5,
@@ -263,7 +263,7 @@ const quests = new QuestBook(world, undefined, {
 });
 // Whether a fresh voyage offers the tutorial: kept in the browser across voyages.
 const tutorialChoice = new TutorialChoice(world.map.name, storage);
-// A lesson under way in the browser's storage before 0148 moves into the voyage once.
+// A lesson under way in the browser's storage before 0151 moves into the voyage once.
 const legacyLesson = resumedVoyage ? tutorialChoice.legacy() : null;
 if (legacyLesson) quests.restore(TUTORIAL_QUEST, legacyLesson.step, legacyLesson.vars);
 const tutorialRunning = () => quests.isRunning(TUTORIAL_QUEST);
@@ -282,7 +282,7 @@ let offersWait = false;
 /** The main quest's card due now (decision 0141): the others speak on the Quay tab and in notes. */
 function dueMainCard() {
   // While a lesson runs, its bubbles speak: an arc offered meanwhile (Kit's, at Saltmere) waits
-  // for the next visit after it (decisions 0130, 0148).
+  // for the next visit after it (decisions 0130, 0151).
   if (quests.lesson) return null;
   const docked = world.trade.dockedAt;
   return dueCard(quests, world.map, docked, questSeen, questThanks, (q) => !!q.main);
@@ -320,7 +320,7 @@ questNote.onOpen = () => chart.open();
 quests.onEvent = (e) => {
   const quest = quests.quests.find((q) => q.id === e.quest);
   if (quest?.lesson) {
-    // A lesson speaks in its own bubble, and its last one says it is done (decision 0148).
+    // A lesson speaks in its own bubble, and its last one says it is done (decision 0151).
     if (e.type === 'finished') {
       coach.finished = e.quest;
       if (e.quest === TUTORIAL_QUEST) tutorialChoice.set('completed');
@@ -379,7 +379,7 @@ questCard.onClose = () => {
   refreshPause();
 };
 // The tracked step's places at sea: gates, spots, landings (decision 0130), the prologue's wreck
-// too while a lesson is about it (decisions 0139, 0148).
+// too while a lesson is about it (decisions 0139, 0151).
 view.stepMarkers = () => trackedMarkers(quests);
 chart.quests = {
   markers: () => trackedMarkers(quests)?.points ?? [],
@@ -602,7 +602,7 @@ function refreshMenuTutorial() {
       : '';
 }
 refreshMenuTutorial();
-// A course set or cleared on the chart may move a lesson on (decision 0148).
+// A course set or cleared on the chart may move a lesson on (decision 0151).
 chart.onDestinationChange = () => quests.check();
 tradePanel.onRender = () => coach.render();
 coach.onOption = (quest, option) => {
@@ -1142,7 +1142,7 @@ window.addEventListener('pagehide', autosave);
 
 /**
  * Where to head when no course is set (decision 0139): the tracked quest's place, at sea only; a
- * running lesson is the tracked quest (decision 0148), so the wreck while a lesson is about it.
+ * running lesson is the tracked quest (decision 0151), so the wreck while a lesson is about it.
  */
 function seaGoal(): { x: number; y: number; label: string } | null {
   if (world.trade.dockedAt) return null;
@@ -1151,7 +1151,7 @@ function seaGoal(): { x: number; y: number; label: string } | null {
 
 /**
  * The tracked quest's step, whose `wind` and `sound` the sea plays (decision 0139): the same step
- * data for the tutorial (always tracked while it runs, decision 0148) and every quest.
+ * data for the tutorial (always tracked while it runs, decision 0151) and every quest.
  */
 function seaStep(): { key: string; step: StepEffects } | null {
   const step = quests.trackedStep;

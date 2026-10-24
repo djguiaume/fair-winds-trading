@@ -108,7 +108,7 @@ describe('quest builder (decision 0142)', () => {
     expect(conditionWords(shoals(doc).steps[1]!.goal)).toBe(
       'reach 3 places · in order · within 10',
     );
-    // The tutorial is a quest like the others (decision 0148).
+    // The tutorial is a quest like the others (decision 0151).
     const columns = storyColumns(doc.quests);
     expect(columns[0]).toEqual(['first-voyage']);
     expect(columns[1]).toEqual(['rooks-thanks']);

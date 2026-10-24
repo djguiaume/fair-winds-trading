@@ -36,7 +36,7 @@ import type { World } from './world';
 
 /*
  * The quest engine (decision 0125): every file in `src/data/quests/` is a quest in the format of
- * decision 0113, the tutorial too (decision 0148). Each starts when its `start` condition holds
+ * decision 0113, the tutorial too (decision 0151). Each starts when its `start` condition holds
  * (the tutorial when the game asks for it) and runs here, several at once, with its progress saved
  * in the voyage (`trade.quests`). Conditions and rewards are the code library in `questLibrary.ts`.
  * How to write one: docs/content/README.md.
@@ -47,12 +47,12 @@ export interface QuestOption {
   id: string;
   reward?: QuestReward;
   next?: string;
-  /** Offered only while this holds (decision 0148: "Use my existing cargo" needs cargo). */
+  /** Offered only while this holds (decision 0151: "Use my existing cargo" needs cargo). */
   if?: Condition;
 }
 
 /**
- * A way back (decision 0148): while a step runs and its goal does not hold, the first of these
+ * A way back (decision 0151): while a step runs and its goal does not hold, the first of these
  * whose `if` holds moves the quest to `to`, any step, even an earlier one (the lesson's harbour
  * lost, the cargo sold early). `set` fills vars on the way.
  */
@@ -63,7 +63,7 @@ export interface QuestWayBack {
 }
 
 /**
- * Where a lesson's coach mark points (decision 0061, made quest data by 0148), on each surface:
+ * Where a lesson's coach mark points (decision 0061, made quest data by 0151), on each surface:
  * `src/ui/tutorial.ts` has the selectors.
  */
 export const COACH_TARGETS = [
@@ -83,7 +83,7 @@ export type CoachTarget = (typeof COACH_TARGETS)[number];
 export const COACH_ACTIONS = ['chart', 'market', 'tips'] as const;
 
 /**
- * A lesson step's coach mark (decision 0148): what it points at on each surface, the harbour
+ * A lesson step's coach mark (decision 0151): what it points at on each surface, the harbour
  * (`port`: a port, `home`, a `$var`, `nearest` charted harbour or `buyer:$var`, a charted harbour
  * that wants that good) and the good (`good`: a good, a `$var`, or `makes:$var`, what that
  * harbour makes) the port marker and market buttons are for, and its button.
@@ -102,17 +102,17 @@ export interface QuestStep extends StepEffects {
   id: string;
   /** The step is done when this holds. */
   goal?: Condition;
-  /** Or: the player picks one of these (with a goal too: a lesson's "Continue", decision 0148). */
+  /** Or: the player picks one of these (with a goal too: a lesson's "Continue", decision 0151). */
   choose?: QuestOption[];
-  /** Ways back to another step while the goal does not hold (decision 0148). */
+  /** Ways back to another step while the goal does not hold (decision 0151). */
   unless?: QuestWayBack[];
   /**
-   * Vars filled when the step is done (decision 0148): var → a port or good, `home`, another
+   * Vars filled when the step is done (decision 0151): var → a port or good, `home`, another
    * `$var`, or what the voyage holds then: `course` (the course's port), `docked` (the port
    * alongside), `aboard` (the first good in the hold).
    */
   set?: Record<string, string>;
-  /** A lesson step's coach mark (decision 0148). */
+  /** A lesson step's coach mark (decision 0151). */
   coach?: StepCoach;
   /** Paid when the step is done. */
   reward?: QuestReward;
@@ -126,7 +126,7 @@ export interface QuestStep extends StepEffects {
   chart?: { port: string; radius: number };
   /**
    * A point the compass marks and the sea's objective points at while the step is tracked (a
-   * foghorn, a wreck), for the interface; or a map place by its word (`wreck`, decision 0148).
+   * foghorn, a wreck), for the interface; or a map place by its word (`wreck`, decision 0151).
    * `wind` and `sound` are in `stepEffects.ts` (0139).
    */
   compass?: QuestPoint | string;
@@ -153,7 +153,7 @@ export interface QuestDef {
   name: string;
   /**
    * Starts when this holds (checked while it has not started). `{ "is": "asked" }`: when the game
-   * asks for it (the tutorial's offer and the menu, decision 0148), again each time.
+   * asks for it (the tutorial's offer and the menu, decision 0151), again each time.
    */
   start: Condition;
   /** Prefix of the text keys: `<text>.<step>.title` and `.copy`. */
@@ -178,14 +178,14 @@ export interface QuestDef {
    */
   main?: boolean;
   /**
-   * A lesson (decision 0148): its steps speak in a coach bubble pinned to the control to use, not on
+   * A lesson (decision 0151): its steps speak in a coach bubble pinned to the control to use, not on
    * cards; while it runs it is the tracked quest and the other quests' cards wait.
    */
   lesson?: boolean;
   /** `false`: no storm forms while the quest runs (the tutorial, decision 0072). */
   storms?: false;
   /**
-   * Ports and goods picked in play (decision 0148), name → `port` or `good`: steps fill them
+   * Ports and goods picked in play (decision 0151), name → `port` or `good`: steps fill them
    * (`set`) and read them as `$name` in their conditions, coach marks and text (`{name}`).
    */
   vars?: Record<string, VarKind>;
@@ -214,7 +214,7 @@ export interface QuestProgress {
   counts: number[];
   /** Choice step id → option id. */
   chose: Record<string, string>;
-  /** The quest's vars set so far (decision 0148). */
+  /** The quest's vars set so far (decision 0151). */
   vars?: Record<string, string>;
 }
 
@@ -231,7 +231,7 @@ export interface QuestState {
   ignored?: string[];
 }
 
-/** Every quest file, the tutorial's too (decision 0148), in file name order. */
+/** Every quest file, the tutorial's too (decision 0151), in file name order. */
 export const QUESTS: readonly QuestDef[] = Object.entries(
   import.meta.glob<QuestDef>('../data/quests/*.json', { eager: true, import: 'default' }),
 )
@@ -263,11 +263,11 @@ function placesNamed(step: QuestStep): string[] {
   return out;
 }
 
-/** Whether a step names a map place this map does not have: it is passed by (decision 0148). */
+/** Whether a step names a map place this map does not have: it is passed by (decision 0151). */
 export const missesPlace = (step: QuestStep, map: MapDef) =>
   placesNamed(step).some((p) => !pointOf(map, p));
 
-/** Whether a quest is started by the game asking for it (the tutorial, decision 0148). */
+/** Whether a quest is started by the game asking for it (the tutorial, decision 0151). */
 export const isAsked = (quest: QuestDef) => quest.start?.is === 'asked';
 
 /** A port reference outside a condition: a port id, `home` or a `$var` (not a map port id). */
@@ -467,7 +467,7 @@ export function checkQuests(
   return out;
 }
 
-/** Problems with a step's `set` (decision 0148): known vars, and values that fit them. */
+/** Problems with a step's `set` (decision 0151): known vars, and values that fit them. */
 function checkSet(set: unknown, vars: Record<string, VarKind>, map: MapDef, at: string): string[] {
   if (set === undefined) return [];
   if (typeof set !== 'object' || set === null || Array.isArray(set)) return [`${at}: var → value`];
@@ -488,7 +488,7 @@ function checkSet(set: unknown, vars: Record<string, VarKind>, map: MapDef, at: 
   return out;
 }
 
-/** Problems with a lesson step's coach mark (decision 0148). */
+/** Problems with a lesson step's coach mark (decision 0151). */
 function checkCoach(
   coach: StepCoach | undefined,
   vars: Record<string, VarKind>,
@@ -579,7 +579,7 @@ export interface QuestBookOptions {
   atElsewhere?: (id: string, step: string) => boolean;
   /** Whether night counts now; the game passes "night, or night switched off". */
   nightOk?: () => boolean;
-  /** What is open now, for `screen` (decision 0148); default the sea. */
+  /** What is open now, for `screen` (decision 0151); default the sea. */
   screen?: () => Screen;
 }
 
@@ -606,7 +606,7 @@ export class QuestBook {
   private readonly atElsewhere: (id: string, step: string) => boolean;
   private readonly nightOk: () => boolean;
   private readonly screen: () => Screen;
-  /** The helm since the last check (decision 0148). */
+  /** The helm since the last check (decision 0151). */
   private helm: Helm = { sails: [], steerSec: 0, movingSec: 0 };
   onEvent: (e: QuestEvent) => void = () => {};
 
@@ -678,7 +678,7 @@ export class QuestBook {
   get trackedStep(): QuestStep | undefined {
     return this.active.find((a) => a.quest.id === this.tracked)?.step;
   }
-  /** The lesson running now (decision 0148: the tutorial), with its step. */
+  /** The lesson running now (decision 0151: the tutorial), with its step. */
   get lesson(): { quest: QuestDef; step: QuestStep } | undefined {
     return this.active.find((a) => a.quest.lesson);
   }
@@ -694,7 +694,7 @@ export class QuestBook {
   compassOf(step: QuestStep | undefined): QuestPoint | null {
     return step?.compass === undefined ? null : pointOf(this.world.map, step.compass);
   }
-  /** A quest's var (decision 0148), if set. */
+  /** A quest's var (decision 0151), if set. */
   varOf(questId: string, name: string): string | undefined {
     return this.progress(questId)?.vars?.[name];
   }
@@ -702,7 +702,7 @@ export class QuestBook {
   portOf(questId: string, ref: unknown): string | null {
     return resolvePort(this.world.map, deref(ref, this.progress(questId)?.vars));
   }
-  /** The options of a quest's current step offered now (each option's `if`, decision 0148). */
+  /** The options of a quest's current step offered now (each option's `if`, decision 0151). */
   options(questId: string): QuestOption[] {
     const quest = this.quests.find((q) => q.id === questId);
     const step = quest && findStep(quest, this.progress(questId)?.step);
@@ -749,7 +749,7 @@ export class QuestBook {
   get tracked(): string | undefined {
     return this.state.tracked;
   }
-  /** Show this quest in the journal and at sea. A running lesson keeps the sea (decision 0148). */
+  /** Show this quest in the journal and at sea. A running lesson keeps the sea (decision 0151). */
   track(id: string): boolean {
     if (!this.active.some((a) => a.quest.id === id)) return false;
     if (this.lesson && this.lesson.quest.id !== id) return false;
@@ -758,7 +758,7 @@ export class QuestBook {
   }
 
   /**
-   * The game asks for a quest that starts `asked` (decision 0148: Start tutorial, the menu's
+   * The game asks for a quest that starts `asked` (decision 0151: Start tutorial, the menu's
    * Tutorial): it starts from its first step, again if it ran before, and is tracked.
    */
   ask(id: string): QuestEvent[] {
@@ -774,7 +774,7 @@ export class QuestBook {
 
   /**
    * Puts a quest that has no progress at one of its steps, paying nothing: for progress kept
-   * elsewhere before (the tutorial's own storage before decision 0148). Returns whether it did.
+   * elsewhere before (the tutorial's own storage before decision 0151). Returns whether it did.
    */
   restore(id: string, stepId: string, vars: Record<string, string> = {}): boolean {
     const quest = this.quests.find((q) => q.id === id);
@@ -811,7 +811,7 @@ export class QuestBook {
   }
 
   /**
-   * Called every simulation step, with the helm when the game has it (decision 0148); checks a few
+   * Called every simulation step, with the helm when the game has it (decision 0151); checks a few
    * times a second.
    */
   update(dt: number, controls?: { sailStep: number; steer: number }): QuestEvent[] {
@@ -832,7 +832,7 @@ export class QuestBook {
   check(dt = 0): QuestEvent[] {
     const events: QuestEvent[] = [];
     this.updateSteps(dt, events);
-    // A quest takes one way back per check (decision 0148), so two that point at each other
+    // A quest takes one way back per check (decision 0151), so two that point at each other
     // cannot spin.
     const wentBack = new Set<string>();
     // Each pass can only start a quest or move one forward (or back, once), so this ends.
@@ -878,7 +878,7 @@ export class QuestBook {
     return events;
   }
 
-  /** Fills a quest's vars from a `set` (decision 0148), with what the voyage holds now. */
+  /** Fills a quest's vars from a `set` (decision 0151), with what the voyage holds now. */
   private applySet(quest: QuestDef, set: Record<string, string> | undefined) {
     const p = this.progress(quest.id);
     if (!set || !p) return;
@@ -1006,7 +1006,7 @@ export class QuestBook {
     this.state.hold = questHold(this.state, this.quests);
     if (!this.state.hold) delete this.state.hold;
     const active = this.active.map((a) => a.quest.id);
-    // A running lesson is always the one tracked (decision 0148).
+    // A running lesson is always the one tracked (decision 0151).
     const lesson = this.lesson?.quest.id;
     if (lesson) this.state.tracked = lesson;
     // A started quest is tracked when nothing is; a finished one hands over to the next.
@@ -1028,7 +1028,7 @@ export class QuestBook {
       chose: was?.chose ?? {},
       ...(was?.vars ? { vars: was.vars } : {}),
     };
-    // A step about a place this map lacks (the prologue's wreck) is passed by (decision 0148).
+    // A step about a place this map lacks (the prologue's wreck) is passed by (decision 0151).
     if (missesPlace(step, this.world.map)) {
       this.finishStep(quest, step, undefined, events);
       return;
@@ -1205,7 +1205,7 @@ export function readQuests(
   return out;
 }
 
-/** A quest's saved vars that still fit it (decision 0148), or undefined for none. */
+/** A quest's saved vars that still fit it (decision 0151), or undefined for none. */
 export function readVars(
   quest: QuestDef,
   map: MapDef,

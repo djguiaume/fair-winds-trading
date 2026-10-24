@@ -5,13 +5,13 @@ import { type LessonModel, lessonDone, lessonFor } from './questView';
 type Surface = 'sea' | 'chart' | 'market' | null;
 type Side = 'top' | 'bottom' | 'left' | 'right' | 'none';
 
-/** The tutorial: the quest the title menu and the first-voyage offer start (decision 0148). */
+/** The tutorial: the quest the title menu and the first-voyage offer start (decision 0151). */
 export const TUTORIAL_QUEST = 'first-voyage';
 
 /**
  * The element a lesson points at on the open surface (decision 0061). Selectors only, so the
  * sea HUD, chart and port screen keep their own markup; null leaves the bubble unpinned. Which
- * target each step uses is its `coach` entry in the lesson's quest file (decision 0148).
+ * target each step uses is its `coach` entry in the lesson's quest file (decision 0151).
  */
 function lessonTarget(lesson: LessonModel, surface: Surface): string | null {
   if (!surface) return null;
@@ -57,7 +57,7 @@ const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v
 /**
  * Whether the tutorial was offered on this map's voyages before (decision 0025): a fresh voyage
  * offers it only while it is `unseen`; `skipped` and `completed` are remembered across voyages.
- * Kept in the browser like a setting; the lesson's progress is the voyage's (decision 0148).
+ * Kept in the browser like a setting; the lesson's progress is the voyage's (decision 0151).
  */
 export class TutorialChoice {
   status: 'unseen' | 'skipped' | 'completed' = 'unseen';
@@ -69,7 +69,7 @@ export class TutorialChoice {
     this.key = `fwt.tutorial.v1.${mapName}`;
     try {
       const raw = JSON.parse(storage?.getItem(this.key) ?? 'null') as { status?: string } | null;
-      // An `active` status is from before 0148, when the lesson kept its progress here: like an
+      // An `active` status is from before 0151, when the lesson kept its progress here: like an
       // unfinished lesson then, a fresh voyage offers the tutorial again.
       if (raw?.status === 'skipped' || raw?.status === 'completed') this.status = raw.status;
     } catch {
@@ -77,7 +77,7 @@ export class TutorialChoice {
     }
   }
   /**
-   * A lesson under way in the browser's storage from before decision 0148: its step and picks, to
+   * A lesson under way in the browser's storage from before decision 0151: its step and picks, to
    * move into the voyage's quest progress once.
    */
   legacy(): { step: string; vars: Record<string, string> } | null {
@@ -116,7 +116,7 @@ export class TutorialChoice {
  * Coach marks: one small bubble and a brass ring on the element to tap, moved into whichever
  * surface is open (sea, chart or port). No timers: the game calls `place()` at HUD rate and it
  * only writes to the DOM when a target moves. It shows the running lesson of the quest book
- * (decision 0148), and a finished lesson's last bubble until it is dismissed.
+ * (decision 0151), and a finished lesson's last bubble until it is dismissed.
  */
 export class TutorialCoach {
   private surface: Surface = null;

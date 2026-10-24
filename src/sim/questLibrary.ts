@@ -69,7 +69,7 @@ export interface QuestSpot extends QuestPoint {
 }
 
 /**
- * Places a quest names by word because each map puts them somewhere else (decision 0148): `wreck`
+ * Places a quest names by word because each map puts them somewhere else (decision 0151): `wreck`
  * is the wreck of the map's prologue (decision 0127). A `reach` point or a step's `compass` may be
  * one of these words; a step whose place is not on the map is passed by.
  */
@@ -84,7 +84,7 @@ export function pointOf(map: MapDef, p: unknown): QuestPoint | null {
 }
 
 /**
- * A quest's own words for a port or a good chosen in play (decision 0148): `"$origin"` names the
+ * A quest's own words for a port or a good chosen in play (decision 0151): `"$origin"` names the
  * quest's var `origin` (its `vars`), else the value is itself. An unset var is undefined.
  */
 export function deref(v: unknown, vars: Readonly<Record<string, string>> | undefined): unknown {
@@ -108,7 +108,7 @@ export interface ConditionContext {
   chose(questId: string, option: string): boolean;
   /** Whether a quest has reached `step` (or a later one) or is done. */
   isAt(questId: string, step: string): boolean;
-  /** The checked quest's vars (decision 0148): `$name` in a parameter reads them. */
+  /** The checked quest's vars (decision 0151): `$name` in a parameter reads them. */
   vars?: Readonly<Record<string, string>>;
   /** The port of the course set on the chart, if any. */
   course?: string | null;
@@ -121,7 +121,7 @@ export const SCREENS = ['sea', 'chart', 'market'] as const;
 export type Screen = (typeof SCREENS)[number];
 
 /**
- * The helm since the last check (decision 0148), for `sails-practised`: the sail settings in the
+ * The helm since the last check (decision 0151), for `sails-practised`: the sail settings in the
  * order they were set, and the seconds spent steering and making way.
  */
 export interface Helm {
@@ -306,7 +306,7 @@ function updateTimed(c: Condition, ctx: StepContext, s: number[]) {
 }
 
 /**
- * The sails drill (`sails-practised`, decision 0148): sails lowered all the way and raised again, a
+ * The sails drill (`sails-practised`, decision 0151): sails lowered all the way and raised again, a
  * touch of steering and a little way on. Slots: lowered, raised (0 or 1), hundredths of a second
  * steering, hundredths of a second making way.
  */
@@ -352,7 +352,7 @@ export const CONDITIONS: Record<string, ConditionKind> = {
     params: { quest: 'quest', option: 'option' },
     test: (c, ctx) => ctx.chose(c.quest as string, c.option as string),
   },
-  /** Never holds by itself: the game starts the quest when asked for it (the tutorial, 0148). */
+  /** Never holds by itself: the game starts the quest when asked for it (the tutorial, 0151). */
   asked: { params: {}, test: () => false },
   /** Alongside `port`, or any port when it names none. */
   docked: {
@@ -654,11 +654,11 @@ export interface CheckScope {
   steps: Map<string, string[]>;
   /** The checked quest's items. */
   items: string[];
-  /** The checked quest's vars (decision 0148): name → what it holds. */
+  /** The checked quest's vars (decision 0151): name → what it holds. */
   vars?: Record<string, VarKind>;
 }
 
-/** What a quest var holds (decision 0148). */
+/** What a quest var holds (decision 0151). */
 export const VAR_KINDS = ['port', 'good'] as const;
 export type VarKind = (typeof VAR_KINDS)[number];
 

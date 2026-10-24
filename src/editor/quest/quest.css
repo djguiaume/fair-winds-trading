@@ -831,7 +831,7 @@ input.qb-small {
   margin-top: 12px;
 }
 
-/* Fields the forms do not draw yet, as JSON (decision 0148). */
+/* Fields the forms do not draw yet, as JSON (decision 0151). */
 .qb-json {
   width: 100%;
   font:

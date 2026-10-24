@@ -681,7 +681,7 @@ function questPanel(q: QuestDef): HTMLElement[] {
       textInput(q.name, (v) => v && edit(() => (q.name = v))),
     ),
   );
-  // A lesson, its storms and its vars (decision 0148): edited as JSON for now.
+  // A lesson, its storms and its vars (decision 0151): edited as JSON for now.
   out.push(
     jsonField(
       'Lesson (JSON)',
@@ -833,7 +833,7 @@ function goalPanel(q: QuestDef, s: QuestStep): HTMLElement[] {
   );
   if (s.goal) out.push(conditionForm(s.goal, ctx, true, (c) => (s.goal = c), 'Done when'));
   if (s.choose) out.push(...choiceForm(q, s, ctx));
-  // Ways back, vars filled and a lesson's coach mark (decision 0148): edited as JSON for now.
+  // Ways back, vars filled and a lesson's coach mark (decision 0151): edited as JSON for now.
   out.push(
     jsonField(
       'Lesson (JSON)',
@@ -926,7 +926,7 @@ function choiceForm(q: QuestDef, s: QuestStep, ctx: FormContext): HTMLElement[] 
       ),
     );
     box.append(rewardForm(o.reward, ctx, (r) => (r ? (o.reward = r) : delete o.reward)));
-    // An option shown only while a condition holds (decision 0148).
+    // An option shown only while a condition holds (decision 0151).
     if (o.if)
       box.append(
         conditionForm(
@@ -1010,7 +1010,7 @@ function seaPanel(s: QuestStep): HTMLElement[] {
     ),
   );
   const compass = h('span', { class: 'ed-pair' });
-  // A map place by its word (the prologue's wreck, decision 0148), or a point.
+  // A map place by its word (the prologue's wreck, decision 0151), or a point.
   const place = typeof s.compass === 'string' ? s.compass : undefined;
   const point = typeof s.compass === 'object' ? s.compass : undefined;
   compass.append(
