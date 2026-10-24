@@ -1,5 +1,6 @@
 import { islandCoasts, islandLake } from '../sim/islandLayout';
 import type { World } from '../sim/world';
+import type { SeaMarkDef } from '../sim/map';
 import { WIND_FORCES, windForce } from '../sim/windStrength';
 import { GOODS, type GoodId, isMadeGood } from '../sim/goods';
 import { madeGoods, questsDone } from '../sim/settlement';
@@ -106,6 +107,8 @@ export class SeaChart {
   /** People's faces on their ports, the tracked step's place and the journal; none: no quests. */
   quests: ChartQuests | null = null;
   onDestinationChange: () => void = () => {};
+  /** The running quests' own sea marks (decision 0164), drawn while they run. */
+  questMarks: () => readonly SeaMarkDef[] = () => [];
   private previousFocus: HTMLElement | null = null;
   /** Good whose prices show under the port names; null shows names only. */
   private good: GoodId | null = null;
@@ -955,6 +958,13 @@ export class SeaChart {
       if (!mark.chart || !questShown(mark, done)) continue;
       if (!chartedAt(map, this.world.trade.progress, mark.x, mark.y)) continue;
       // A named mark (a gateway's light) gets its place name beside it (decision 0152).
+      if (mark.name)
+        places.push({ name: mark.name, x: mark.x, top: -mark.y - 6, bottom: -mark.y + 6 });
+      const { tag, attrs } = seaMarkShape(mark, px);
+      shape(tag, { ...attrs, class: 'chart-mark' });
+    }
+    // A running quest's own marks (decision 0164: the lessons' buoys), named, charted or not.
+    for (const mark of this.questMarks()) {
       if (mark.name)
         places.push({ name: mark.name, x: mark.x, top: -mark.y - 6, bottom: -mark.y + 6 });
       const { tag, attrs } = seaMarkShape(mark, px);

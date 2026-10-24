@@ -11,6 +11,7 @@ import {
   type QuestPoint,
   type QuestReward,
   SCREENS,
+  POINTS_OF_SAIL,
   isSpot,
 } from '../../sim/questLibrary';
 import type { QuestDef } from '../../sim/quests';
@@ -289,6 +290,8 @@ function paramField(
       return row(name, select([...GOODS, ...varOptions(ctx, 'good')], v as string, set, blank));
     case 'screen':
       return row(name, select([...SCREENS], v as string, set, blank));
+    case 'sailing':
+      return row(name, select([...POINTS_OF_SAIL], v as string, set, blank));
     case 'ship':
       return row(name, select(Object.keys(SHIP_CLASSES), v as string, set, blank));
     case 'building':

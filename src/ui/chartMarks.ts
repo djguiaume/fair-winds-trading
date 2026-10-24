@@ -36,7 +36,13 @@ export function seaMarkShape(
       cy: -mark.y,
       r: 2.6 * px,
       fill:
-        mark.type === 'buoy-red' ? '#d93a2b' : mark.type === 'buoy-green' ? '#2f9a55' : '#3f74a8',
+        mark.type === 'buoy-red'
+          ? '#d93a2b'
+          : mark.type === 'buoy-green'
+            ? '#2f9a55'
+            : mark.type === 'buoy-yellow'
+              ? '#f2c230'
+              : '#3f74a8',
       stroke: '#f6f1e4',
       'stroke-width': 1 * px,
     },

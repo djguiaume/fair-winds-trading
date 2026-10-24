@@ -136,12 +136,14 @@ export type PortTradeChange = Partial<
 >;
 
 /**
- * The kinds of sea mark (decisions 0130, 0131, 0152): channel buoys, cardinal danger marks (the
- * safe water lies on the named side of the danger), boats, a light on the chart.
+ * The kinds of sea mark (decisions 0130, 0131, 0152): channel buoys, a yellow practice buoy (0164),
+ * cardinal danger marks (the safe water lies on the named side of the danger), boats, a light on
+ * the chart.
  */
 export const SEA_MARK_TYPES = [
   'buoy-red',
   'buoy-green',
+  'buoy-yellow',
   'cardinal-north',
   'cardinal-east',
   'cardinal-south',

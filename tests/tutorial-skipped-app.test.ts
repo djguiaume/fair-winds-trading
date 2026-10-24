@@ -21,6 +21,7 @@ vi.mock('../src/render/view', () => ({
     setSettlementLevels() {}
     setHomeBuildings() {}
     setQuestsDone() {}
+    jumpToBoat() {}
     setFocus() {}
     setZoom() {}
     getZoom() {
@@ -74,7 +75,9 @@ it('Free sailing on a fresh voyage still plays the prologue, without the coach (
   expect(quests.progress('first-voyage')?.step).toBe('foghorn');
   expect(quests.isCoached('first-voyage')).toBe(false);
   expect(bubble()?.hidden ?? true).toBe(true);
-  expect(document.getElementById('menu-tutorial-label')!.textContent).toBe('Replay tutorial');
+  // The story keeps the sea: the sailing lessons wait until it is over (decision 0164).
+  expect(document.getElementById('menu-tutorial-label')!.textContent).toBe('Sailing lessons');
+  expect(document.querySelector<HTMLButtonElement>('#menu-tutorial')!.disabled).toBe(true);
   const wreck = pointOf(world.map, 'wreck')!;
   Object.assign(world.boat, { x: wreck.x + 12, y: wreck.y, speedKn: 0.5 });
   for (let n = 0; n < 8; n++) quests.check(0.5);

@@ -2,7 +2,7 @@ import { isDifficulty } from './difficulty';
 import { GOODS, isGood, type GoodAmounts, type GoodId } from './goods';
 import { landmarkSpot } from './landmarks';
 import type { MapDef } from './map';
-import { SHIP_CLASSES } from './ship';
+import { SHIP_CLASSES, type PointOfSail } from './ship';
 import {
   buildingById,
   giveHomeIsland,
@@ -134,7 +134,20 @@ export interface Helm {
   sails: number[];
   steerSec: number;
   movingSec: number;
+  /** Seconds on each point of sail (`point-of-sail`, decision 0164). */
+  pointSec?: Partial<Record<PointOfSail, number>>;
+  /** Tacks made: the bow turned across the wind (`tacked`, decision 0164). */
+  tacks?: number;
 }
+
+/** The points of sail a `point-of-sail` condition can ask for, from the wind's eye to dead astern. */
+export const POINTS_OF_SAIL: readonly PointOfSail[] = [
+  'in-irons',
+  'close-hauled',
+  'beam-reach',
+  'broad-reach',
+  'running',
+];
 
 /** What a condition with slots sees at each check while its step runs. */
 export interface StepContext extends ConditionContext {
@@ -179,7 +192,8 @@ export type Param =
   | 'par'
   | 'condition'
   | 'conditions'
-  | 'screen';
+  | 'screen'
+  | 'sailing';
 export type ParamSpec = Param | `${Param}?`;
 
 interface ConditionKind {
@@ -526,6 +540,24 @@ export const CONDITIONS: Record<string, ConditionKind> = {
     },
     test: (c, _ctx, s) => s[1]! >= num(c.qty),
   },
+  /** Seconds on a point of sail (decision 0164: the sailing lessons). Slot: hundredths held. */
+  'point-of-sail': {
+    params: { point: 'sailing', holdSec: 'number' },
+    slots: 1,
+    update(c, ctx, s) {
+      s[0] = s[0]! + Math.round((ctx.helm?.pointSec?.[c.point as PointOfSail] ?? 0) * 100);
+    },
+    test: (c, _ctx, s) => s[0]! >= num(c.holdSec) * 100,
+  },
+  /** Tacks made while the step runs (decision 0164). Slot: tacks. */
+  tacked: {
+    params: { count: 'count' },
+    slots: 1,
+    update(_c, ctx, s) {
+      s[0] = s[0]! + (ctx.helm?.tacks ?? 0);
+    },
+    test: (c, _ctx, s) => s[0]! >= num(c.count),
+  },
   reach: {
     params: {
       points: 'points',
@@ -577,6 +609,8 @@ export const CONDITION_ABOUT: Record<string, string> = {
   bought: 'buy goods at a port',
   'sails-practised': 'lower and raise the sails, steer, get under way',
   carried: 'carry quest cargo from one place to another',
+  'point-of-sail': 'sail on a point of sail for a while (in irons, close-hauled, reaching…)',
+  tacked: 'tack: turn the bow across the wind',
   reach: 'sail to places at sea',
   timed: 'a run against the clock',
 };
@@ -759,6 +793,8 @@ function checkParam(
   if (type === 'number' && !isNumber(v)) bad('needs a number');
   if (type === 'flag' && typeof v !== 'boolean') bad('needs true or false');
   if (type === 'order' && v !== 'any' && v !== 'in-order') bad('needs "any" or "in-order"');
+  if (type === 'sailing' && !POINTS_OF_SAIL.includes(v as PointOfSail))
+    bad(`needs one of ${POINTS_OF_SAIL.join(', ')}`);
   if (type === 'screen' && !SCREENS.includes(v as Screen))
     bad(`needs one of ${SCREENS.join(', ')}`);
   if (type === 'points') {

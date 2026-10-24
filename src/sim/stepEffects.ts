@@ -25,10 +25,22 @@ export interface StepSound {
   everySec: number;
 }
 
+/**
+ * Where the boat is taken when the step begins (decision 0164): the sailing lessons start on
+ * Rook's course wherever the captain was. Sails down, off the pier, no course set.
+ */
+export interface StepMove {
+  x: number;
+  y: number;
+  /** 0 = north, clockwise. */
+  headingDeg?: number;
+}
+
 /** The step fields of this file. */
 export interface StepEffects {
   wind?: StepWind;
   sound?: StepSound;
+  moveTo?: StepMove;
 }
 
 /** The breeze a step holds on this map, or null. */
@@ -40,13 +52,22 @@ export function heldWind(wind: StepWind | undefined, map: MapDef): Wind | null {
 /** Problems with a step's `wind` and `sound`, for the quest checks. */
 export function checkStepEffects(step: StepEffects, where: string): string[] {
   const out: string[] = [];
-  const { wind, sound } = step;
+  const { wind, sound, moveTo } = step;
   if (wind !== undefined) {
     if (!(typeof wind.speedKn === 'number' && wind.speedKn > 0 && wind.speedKn <= 40))
       out.push(`${where} › wind: speedKn between 0 and 40`);
     if (wind.fromDeg !== undefined && !Number.isFinite(wind.fromDeg))
       out.push(`${where} › wind: fromDeg is a number of degrees`);
   }
+  if (
+    moveTo !== undefined &&
+    !(
+      Number.isFinite(moveTo?.x) &&
+      Number.isFinite(moveTo?.y) &&
+      (moveTo.headingDeg === undefined || Number.isFinite(moveTo.headingDeg))
+    )
+  )
+    out.push(`${where} › moveTo: x and y in map units, headingDeg in degrees`);
   if (sound !== undefined) {
     if (!(sound.effect in audio.effects))
       out.push(`${where} › sound: no effect "${sound.effect}" in audio.json`);
