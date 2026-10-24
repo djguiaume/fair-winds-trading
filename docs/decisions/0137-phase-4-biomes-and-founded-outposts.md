@@ -31,3 +31,10 @@ Phase 4, "Expansion and harder seas", was written when the base game was meant t
 - The pirates (Phase 5), steam and the expedition extensions get natural places: coves and passages, outposts as bases, and the east storm coast. Phase 4 does not build any of them.
 - The old-tablet test is repeated on the real 5x map once it is authored (0115 measured only the stress sea).
 - Next preparations, as docs and static mockups only until v0.3.x is released: the 5x layout with the four biomes, a winds and currents design, fog of war chart mockups, and a far goods economy pass.
+
+## Update, 2026-10-24: layout and first biome
+
+After the [layout mockups](../reviews/phase-4-map/README.md), Guillaume chose:
+
+- **Layout B, four island groups.** Each biome is a compact group with open sea between them, and one gateway per side through a broken reef barrier around the ring. The open sea must not feel empty: each stretch gets islets, a sandbar and a landmark.
+- **The south (tropical) opens first**, through Old Ness's chart from the Watchman Key arc. No biome is fixed upwind or downwind, because the wind wanders on Captain and Old salt ([0064](0064-wind-from-every-quarter.md), [0083](0083-difficulty-levels.md)).
