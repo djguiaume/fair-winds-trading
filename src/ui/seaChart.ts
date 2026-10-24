@@ -709,7 +709,7 @@ export class SeaChart {
       if (terrain.kind === 'island') landBoxes.push({ x0, x1, y0, y1 });
       if (terrain.name && terrain.kind === 'island')
         places.push({ name: terrain.name, x: (x0 + x1) / 2, top: y0, bottom: y1 });
-      // The chart says which ships cross a sandy passage (decisions 0137, 0151).
+      // The chart says which ships cross a sandy passage (decisions 0137, 0152).
       if (terrain.name && terrain.kind === 'shallows')
         places.push({
           name: t('chart.shallows', { name: terrain.name }),

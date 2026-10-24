@@ -21,7 +21,7 @@ export type SeaDef = Pick<MapDef, 'islands' | 'ports' | 'course'> &
 export const SEAS = [south as unknown as SeaDef];
 
 /**
- * The Phase 4 sea as laid out so far (decision 0151): today's Windward Ring unchanged in the
+ * The Phase 4 sea as laid out so far (decision 0152): today's Windward Ring unchanged in the
  * middle, the sea grown to its Phase 4 radius and each laid-out sea added round it. A dev sea
  * until fog of war and the far goods are in: it is reached only with `?map=phase4` and sails
  * its own voyage, so the shipped game and its saves never see it.

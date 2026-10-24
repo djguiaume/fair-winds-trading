@@ -474,7 +474,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     // Collision terrain is independent of settlement growth and never rebuilt for a level-up.
     for (const feature of map.terrain ?? []) {
       const parts: Parts = [];
-      // Shallows are water: ShallowsWater tints them at sea (decision 0151), nothing stands there.
+      // Shallows are water: ShallowsWater tints them at sea (decision 0152), nothing stands there.
       if (feature.kind === 'shallows') continue;
       if (feature.kind === 'sandbank') {
         parts.push(paint(extrudeOutline(feature.outline, -0.4, 0.8), B2.sand));

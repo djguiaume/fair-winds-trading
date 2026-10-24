@@ -338,7 +338,7 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
       else delete shape.name;
     });
     select('Kind', shape.kind, Object.entries(kinds), (v) => (shape.kind = v as typeof shape.kind));
-    // Sandy passages refuse ships deeper than this (decision 0151); the sloop draws 0.7.
+    // Sandy passages refuse ships deeper than this (decision 0152); the sloop draws 0.7.
     if (shape.kind === 'shallows')
       number('Max draft', shape.maxDraft, (v) => (shape.maxDraft = v), { min: 0, optional: true });
     const look = () => (shape.look ??= {});

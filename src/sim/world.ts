@@ -154,7 +154,7 @@ export interface World {
 
 export type WorldEvent =
   | { type: 'bump' }
-  /** Shallows refused her: her draft is too deep for them (decisions 0137, 0151). */
+  /** Shallows refused her: her draft is too deep for them (decisions 0137, 0152). */
   | { type: 'too-shallow' }
   | { type: 'reef-strike'; damage: number }
   | { type: 'crash'; damage: number; surface: 'shore' | 'pier' | 'boat' }

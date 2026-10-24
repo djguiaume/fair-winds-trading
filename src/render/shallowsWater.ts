@@ -4,7 +4,7 @@ import type { TerrainDef } from '../sim/map';
 import type { Ocean } from './ocean';
 
 /**
- * Sandy passages at sea (decision 0151): pale turquoise water over a sand floor with faint
+ * Sandy passages at sea (decision 0152): pale turquoise water over a sand floor with faint
  * ripples, soft at the edges, no surf and no outline. One small grid mesh per passage riding the
  * same waves as the ocean (like the currents' water), built once at load.
  */

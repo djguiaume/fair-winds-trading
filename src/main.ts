@@ -136,7 +136,7 @@ const browserStorage: SaveStorage | null = (() => {
 })();
 // "Play this map" from the map editor (decision 0095): its own map, save and tutorial progress.
 // The bigger-map test sea (decision 0115), `?map=stress`, and the Phase 4 sea as laid out so far
-// (decision 0151), `?map=phase4`: each sails its own voyage too.
+// (decision 0152), `?map=phase4`: each sails its own voyage too.
 const mapParam = new URLSearchParams(location.search).get('map');
 const phase4Sea = mapParam === 'phase4';
 const stressTest = mapParam === 'stress';
@@ -195,7 +195,8 @@ if (playtestMap) {
   badge.textContent = phase4Sea
     ? 'Phase 4 sea (south laid out)'
     : stressTest
-      ? 'Stress test sea' : 'Edited map · back to editor';
+      ? 'Stress test sea'
+      : 'Edited map · back to editor';
   badge.style.cssText =
     'position:fixed;left:50%;bottom:6px;transform:translateX(-50%);z-index:50;padding:3px 10px;' +
     'border-radius:10px;background:#123246e6;color:#f3d37e;font:600 12px sans-serif;' +

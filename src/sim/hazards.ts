@@ -60,7 +60,7 @@ export function reefsOf(terrain: readonly TerrainDef[] = []): Reef[] {
 }
 
 /**
- * How shallow the sandy passages under the boat feel (decisions 0137, 0151): `passageShallow`
+ * How shallow the sandy passages under the boat feel (decisions 0137, 0152): `passageShallow`
  * inside shallows she may cross, else 0. Deeper ships never get inside: collisions refuse them.
  */
 export function passageShallowness(

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* global require, process, window, document, localStorage */
-// South sea screenshots (ADR 0151): real captures of the Phase 4 sea, `?map=phase4`. Run against
+// South sea screenshots (ADR 0152): real captures of the Phase 4 sea, `?map=phase4`. Run against
 // `npx vite --port 5199`:   node docs/reviews/south-sea/src/capture.cjs [name ...]
 const path = require('path');
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');

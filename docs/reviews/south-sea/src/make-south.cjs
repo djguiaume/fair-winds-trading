@@ -1,4 +1,4 @@
-// The south sea (Sunreach's sea, ADR 0151): writes the sea's data file and its island files.
+// The south sea (Sunreach's sea, ADR 0152): writes the sea's data file and its island files.
 //   node docs/reviews/south-sea/src/make-south.cjs
 // Writes src/data/seas/south.json and src/data/islands/{sunreach,sunreach-south,palm-key,
 // lone-palm}.json. The shapes are drawn here by script once; after that the files are ordinary
@@ -228,7 +228,7 @@ function bounds(points) {
 }
 
 /**
- * A green hill (decision 0151: grass peaks on the palm islands): a low-poly cone standing on
+ * A green hill (decision 0152: grass peaks on the palm islands): a low-poly cone standing on
  * the arm at angle t, `k` of the way across, `rad` units round and `h` (island-height units)
  * tall. Its woods `clear` circle keeps palms off its slopes.
  */
@@ -381,6 +381,8 @@ const palmKeyFile = smallIsland(
   7103,
   [
     { type: 'boulder', x: -0.55, z: -0.4, turn: 30, size: 0.35, variant: 1, from: 1 },
+    // A stone daymark for the Narrows: the island's landmark until the outpost is founded.
+    { type: 'beacon', x: -0.45, z: 0.35, turn: 0, size: 0.5, variant: 0, from: 1 },
   ],
   { hill: true, tries: 260, spacing: 0.2, stretch: 1.25 },
 );
@@ -538,7 +540,7 @@ const gateA = polar(500, GATE[0] + 2.4),
   gateB = polar(500, GATE[1] - 2.4);
 const sea = {
   about:
-    'The south sea, Sunreach (decisions 0137, 0143, 0151). Merged onto the Windward Ring by src/data/grownMap.ts; play it with ?map=phase4. Written by docs/reviews/south-sea/src/make-south.cjs, then edited as data.',
+    'The south sea, Sunreach (decisions 0137, 0143, 0152). Merged onto the Windward Ring by src/data/grownMap.ts; play it with ?map=phase4. Written by docs/reviews/south-sea/src/make-south.cjs, then edited as data.',
   id: 'south',
   name: 'Sunreach',
   islands: [
@@ -551,13 +553,14 @@ const sea = {
       radius: sunreachSouth.r,
       look: { design: 'sunreach-south', harbourBearing: r4(sunreachSouth.bearing) },
     },
-    { ...palmKey, name: 'Palm Key', look: { design: 'palm-key', dock: true } },
+    { ...palmKey, name: 'Palm Key', look: { design: 'palm-key' } },
     { ...lonePalm, name: 'Lone Palm', look: { design: 'lone-palm', harbourBearing: 0 } },
   ],
   terrain,
   ports: [
     // Trade from the far goods (decision 0150): Sunreach's workshop crafts spiced tea only from
-    // the spice it receives; Palm Key gathers spice once it is founded.
+    // the spice it receives. Palm Key gets its port when outposts can be founded (decision 0137,
+    // outpost-south arc): then maxLevel 3, levelProduces 2: spice through afterQuest.
     {
       id: 'sunreach',
       name: 'Sunreach',
@@ -567,18 +570,6 @@ const sea = {
       wantsMade: ['honey', 'planks', 'bread'],
       level: 3,
       levelProduces: { 3: ['spicedTea'] },
-    },
-    {
-      id: 'palm-key',
-      name: 'Palm Key',
-      islandId: 'palm-key',
-      produces: [],
-      wants: ['grain', 'timber'],
-      level: 2,
-      maxLevel: 3,
-      hidden: true,
-      levelWants: { 3: ['planks', 'stone'] },
-      afterQuest: { 'outpost-south': { levelProduces: { 2: ['spice'] } } },
     },
   ],
   course: [

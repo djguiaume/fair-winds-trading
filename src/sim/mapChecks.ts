@@ -36,7 +36,7 @@ const clearanceCache = new WeakMap<MapDef, Map<string, boolean>>();
 
 /**
  * True when a hull with this margin fits at (x, y): inside the world edge and off every shore.
- * Shallows count as shore only to a hull deeper than they allow (decision 0151); the default
+ * Shallows count as shore only to a hull deeper than they allow (decision 0152); the default
  * draft is a sloop's.
  */
 export function clearAt(
@@ -109,7 +109,7 @@ const routeZone: ZoneEffect = { ...NO_ZONE };
  * Fastest sloop route between two points with the wind from `windDeg`, or null if none. With
  * `water` (knots east and north at a point, e.g. a `CurrentField`), each leg's speed over the
  * ground adds the current along it (decision 0140). `hull` swaps the sloop's size and draft for
- * another ship's, so a deep ship's route goes round the shallows it may not cross (0151); the
+ * another ship's, so a deep ship's route goes round the shallows it may not cross (0152); the
  * speeds stay the sloop's.
  */
 export function sailRoute(
@@ -545,10 +545,12 @@ export function routeChecks(map: MapDef): MapCheck[] {
 }
 
 /** The deepest ship there is: the one shallows refuse first. */
-export const DEEPEST_SHIP = Object.values(SHIP_CLASSES).reduce((a, b) => (b.draft > a.draft ? b : a));
+export const DEEPEST_SHIP = Object.values(SHIP_CLASSES).reduce((a, b) =>
+  b.draft > a.draft ? b : a,
+);
 
 /**
- * With shallows on the map (decision 0151), every port must still be reachable by the deepest
+ * With shallows on the map (decision 0152), every port must still be reachable by the deepest
  * ship the long way round, so no story step or trade ever needs a shallow keel. The hull is the
  * deepest ship's draft with a sloop's turning room: the check is about the passages, not width.
  */

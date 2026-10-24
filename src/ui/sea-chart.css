@@ -249,7 +249,7 @@ dialog.chart::backdrop {
   stroke-width: 3px;
   stroke-linejoin: round;
 }
-/* A sandy passage only shallow ships cross (decision 0151): pale water, dashed teal edge. */
+/* A sandy passage only shallow ships cross (decision 0152): pale water, dashed teal edge. */
 .chart-shallows {
   fill: #b9ecdf;
   fill-opacity: 0.7;

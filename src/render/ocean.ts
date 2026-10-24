@@ -73,7 +73,7 @@ export function shoreTexture(islands: readonly IslandDef[], terrain: readonly Te
     if (coasts) coasts.forEach(add);
     else circles.push(island);
   }
-  // Shallows are water: their sandy floor is drawn by the island models, with no surf (0151).
+  // Shallows are water: their sandy floor is drawn by the island models, with no surf (0152).
   terrain.filter((t) => t.kind !== 'shallows').forEach((t) => add(t.outline));
   const points = edges.flatMap(([x, z, u, v]) => [
     [x, z],

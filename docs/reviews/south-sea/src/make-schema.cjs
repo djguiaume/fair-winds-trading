@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* global require, __dirname */
-// The south sea layout schema (ADR 0151): a labelled plan drawn from the real data
+// The south sea layout schema (ADR 0152): a labelled plan drawn from the real data
 // (src/data/seas/south.json, the island files and today's ring from docs/reviews/phase-4-map).
 // Routes are schematic. Run: node docs/reviews/south-sea/src/make-schema.cjs (needs playwright).
 const fs = require('fs');
@@ -74,7 +74,7 @@ const L = [
   [[150, -600], 'The Glass', 'zonelabel'],
   [[150, -600], 'doldrums', 'note', 16],
   [[560, -650], 'PALM KEY', 'port'],
-  [[560, -650], 'outpost site · gathers spice once founded', 'note', 16],
+  [[560, -650], 'outpost site · port comes with founding', 'note', 16],
   [[300, -880], 'Palm Key Narrows', 'name'],
   [[300, -880], 'shallows: draft 1.2 or less', 'note', 16],
   [[0, -930], 'The Trades', 'zonelabel'],
@@ -89,7 +89,7 @@ for (const [p, t, c, dy] of L) s += text(p, t, c, dy ?? 0);
 const legend = `
 <g transform="translate(10 700)" class="legend">
   <rect width="370" height="300" rx="10"/>
-  <text x="16" y="30" class="lt">South sea · Sunreach (ADR 0151)</text>
+  <text x="16" y="30" class="lt">South sea · Sunreach (ADR 0152)</text>
   <rect x="16" y="48" width="22" height="14" class="land"/><text x="48" y="60">island (palms, hills)</text>
   <rect x="16" y="74" width="22" height="14" class="reef"/><text x="48" y="86">reef (solid)</text>
   <rect x="16" y="100" width="22" height="14" class="bank"/><text x="48" y="112">sandbank (solid, soft)</text>

@@ -16,9 +16,12 @@ import { INDIAMAN, SCHOONER, SLOOP } from '../src/sim/ship';
 
 /** Length of a planned route, in map units. */
 const length = (points: { x: number; y: number }[]) =>
-  points.reduce((n, p, i) => (i ? n + Math.hypot(p.x - points[i - 1]!.x, p.y - points[i - 1]!.y) : 0), 0);
+  points.reduce(
+    (n, p, i) => (i ? n + Math.hypot(p.x - points[i - 1]!.x, p.y - points[i - 1]!.y) : 0),
+    0,
+  );
 
-describe('the south sea, Sunreach (decision 0151)', () => {
+describe('the south sea, Sunreach (decision 0152)', () => {
   const map = prepareMap(grownMap(PHASE1_SOURCE));
   const port = (id: string) => map.ports.find((p) => p.id === id)!;
   const passage = map.terrain!.find((t) => t.kind === 'shallows')!;
@@ -50,7 +53,8 @@ describe('the south sea, Sunreach (decision 0151)', () => {
 
   it('lets shallow keels cut through Palm Key Narrows, and deep ships go round', () => {
     const a = harbourApproach(map, port('sunreach')),
-      b = harbourApproach(map, port('palm-key'));
+      // Palm Key has no port until outposts can be founded: sail to its waypoint.
+      b = map.course.find((w) => w.label === 'Palm Key')!;
     const wind = map.wind.fromDeg;
     const shallow = sailRoute(map, a, b, wind)!;
     const deep = sailRoute(map, a, b, wind, 11, undefined, {
@@ -59,7 +63,7 @@ describe('the south sea, Sunreach (decision 0151)', () => {
     })!;
     expect(shallow).not.toBeNull();
     expect(deep).not.toBeNull();
-    // The long way exists and is longer, without being punishing (ADR 0151 records the numbers).
+    // The long way exists and is longer, without being punishing (ADR 0152 records the numbers).
     expect(length(deep.points)).toBeGreaterThan(length(shallow.points) * 1.1);
     expect(deep.seconds).toBeLessThan(shallow.seconds * 1.6);
   }, 120_000);
@@ -69,7 +73,10 @@ describe('the south sea, Sunreach (decision 0151)', () => {
     expect(INDIAMAN.draft).toBeGreaterThan(passage.maxDraft!);
     const xs = passage.outline.map((p) => p[0]),
       ys = passage.outline.map((p) => p[1]);
-    const mid = { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2 };
+    const mid = {
+      x: (Math.min(...xs) + Math.max(...xs)) / 2,
+      y: (Math.min(...ys) + Math.max(...ys)) / 2,
+    };
     const only: TerrainDef[] = [passage];
     const sloop = createBoat(mid.x, mid.y, 0);
     expect(resolveCollisions(sloop, SLOOP.radius, [], 1e5, only, [], SLOOP.draft)).toBeNull();

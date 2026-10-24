@@ -49,7 +49,7 @@ export interface IslandDef {
  * Reefs are rocks and coral just awash: solid to the hull like a shore, drawn without land
  * (decision 0031). Shallows are a sandy passage under water: ships of draft `maxDraft` or less
  * sail across, slowed a little, and deeper ships are refused, softly, as by a sandbank
- * (decisions 0137, 0151).
+ * (decisions 0137, 0152).
  */
 export interface TerrainDef {
   id: string;

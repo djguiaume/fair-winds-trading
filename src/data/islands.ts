@@ -158,7 +158,7 @@ const DESIGN_FOR_STYLE: Record<IslandStyle, string> = {
   fish: 'saltmere',
   grain: 'westholm',
   stone: 'south-cay',
-  // The south sea's palm islands (decision 0151).
+  // The south sea's palm islands (decision 0152).
   tropic: 'sunreach',
 };
 

@@ -27,7 +27,7 @@ const HARDNESS: Record<Surface, number> = {
   edge: 0,
 };
 
-/** Shallows refuse a ship deeper than their `maxDraft` and let the others cross (0137, 0151). */
+/** Shallows refuse a ship deeper than their `maxDraft` and let the others cross (0137, 0152). */
 export function shallowsRefuse(feature: TerrainDef, draft: number): boolean {
   return feature.kind === 'shallows' && draft > (feature.maxDraft ?? 0);
 }
