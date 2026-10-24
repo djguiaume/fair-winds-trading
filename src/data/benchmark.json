@@ -1,0 +1,26 @@
+{
+  "about": "The ?bench device benchmark (decision 0154): the boat follows this route at a fixed speed, once per pass, from the same game time, so every run measures the same thing. Route points are [x, y] on today's sea; the stress sea keeps today's ring at its centre, so the same route works there too.",
+  "speedKn": 10,
+  "lookAheadSec": 1.5,
+  "startTime": 600,
+  "passes": [
+    { "label": "full", "scale": 1 },
+    { "label": "scale 0.7", "scale": 0.7 },
+    { "label": "scale 0.5", "scale": 0.5 }
+  ],
+  "route": [
+    [225, -100],
+    [215, -20],
+    [271, 65],
+    [155, 84],
+    [103, 52],
+    [-52, 19],
+    [-168, 52],
+    [-195, 0],
+    [-120, -75],
+    [-60, -110],
+    [60, -150],
+    [160, -170],
+    [225, -100]
+  ]
+}
