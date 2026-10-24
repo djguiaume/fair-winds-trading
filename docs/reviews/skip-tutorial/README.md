@@ -10,3 +10,5 @@ Taken with `npm run shots -- --prologue --sizes desktop,landscape,portrait` (new
 | Landscape | ![](new-start-landscape.png) |
 | Portrait | ![](new-start-portrait.png) |
 | The wreck: its ring and beam, the arrow says "Someone on the reef" | ![](wreck-desktop.png) |
+| The offer: "Skip the lessons" (EN desktop) | ![](offer-desktop.png) |
+| The offer in French, portrait | ![](offer-portrait-fr.png) |
