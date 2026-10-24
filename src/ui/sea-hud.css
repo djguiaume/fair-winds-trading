@@ -486,6 +486,17 @@ body.is-docked .objective {
 .weather-text.forecast[data-storm] {
   color: #ffb36b;
 }
+/* The storm belt near the boat (decision 0167): amber while squalls pass, calm in a lull. */
+.weather-text.belt {
+  color: var(--ink);
+}
+.weather-text.belt span {
+  display: block;
+  white-space: normal;
+}
+.weather-text.belt[data-squalls] {
+  color: #ffb36b;
+}
 .wind-gust {
   margin-left: 2px;
   padding: 0 4px;

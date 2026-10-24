@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../src/data/maps';
 import { ISLAND_DESIGNS } from '../src/data/islands';
 import { checkAll } from '../tools/fw/check';
-import { loadSea, renderChart } from '../tools/fw/chart';
+import { renderChart } from '../tools/fw/chart';
+import { loadSea } from '../tools/fw/seas';
 import { levelTable } from '../tools/fw/balance';
 import { DIFFICULTIES } from '../src/sim/difficulty';
 // @ts-expect-error plain JavaScript module without types

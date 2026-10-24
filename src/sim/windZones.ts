@@ -44,6 +44,25 @@ export interface ZoneKind {
   glassy?: number;
   /** Storms are born inside it this many times as often as they cross open sea (1 = no extra). */
   stormBirth?: number;
+  /**
+   * A storm belt (decision 0167): one train of squalls and one lull every this many seconds. The
+   * squalls march across the zone downwind of its `headingDeg`.
+   */
+  squallEverySec?: number;
+  /** 0..1: share of each cycle the train lasts on Captain (the level's `stormBelt` scales it). */
+  squallShare?: number;
+  /** A new squall enters about this often while the train lasts. */
+  squallGapSec?: number;
+  /** Radius of a squall, map units (an open-sea storm's is 95). */
+  squallRadius?: number;
+  /** How fast the squalls march, map units per second (a sloop at 8 kn sails 12.8). */
+  squallSpeed?: number;
+  /** 0..1: dark choppy water with whitecaps and a foam edge (a storm belt's look, 0167). */
+  rough?: number;
+  /** The rough water's colours (CSS colours). */
+  water?: string;
+  waterLight?: string;
+  foam?: string;
   /** Short sight inside it: a fog bank, an ash cloud (decision 0169). */
   haze?: ZoneHaze;
   /** Its tint on the editor's map and the labelled chart, `#rrggbb`. */

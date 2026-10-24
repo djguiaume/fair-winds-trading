@@ -37,6 +37,8 @@ export interface Storm {
   /** Direction of travel, unit vector (sim x east, y north). */
   dx: number;
   dy: number;
+  /** A storm belt's squall (decision 0167): the belt's HUD line warns of it, not a toast. */
+  squall?: boolean;
 }
 
 /*
