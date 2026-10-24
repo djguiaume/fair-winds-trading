@@ -58,7 +58,7 @@ for (const m of sea.marks)
 // Schematic routes.
 s += line([[125, -318], [150, -420], [152, -500], [150, -600], [105, -690], [60, -735], [-20, -735], [-100, -700]], 'route');
 s += line([[-100, -700], [0, -735], [110, -745], [335, -742], [470, -735]], 'route short');
-s += line([[110, -745], [210, -640], [300, -540], [360, -560], [400, -660], [470, -730]], 'route long');
+s += line([[110, -745], [200, -830], [300, -878], [380, -872], [440, -800], [470, -740]], 'route long');
 
 // Labels.
 const L = [
@@ -71,12 +71,13 @@ const L = [
   [[-75, -735], 'sheltered, wind along E–W', 'note', 16],
   [[-100, -545], 'SUNREACH', 'port'],
   [[-100, -545], 'main port · keeper Juno Reyes · spiced tea', 'note', 16],
-  [[150, -600], 'The Glass', 'zonelabel'],
-  [[150, -600], 'doldrums', 'note', 16],
+  [[525, -545], 'The Glass', 'zonelabel'],
+  [[525, -545], 'doldrums', 'note', 16],
   [[560, -650], 'PALM KEY', 'port'],
   [[560, -650], 'outpost site · port comes with founding', 'note', 16],
-  [[300, -880], 'Palm Key Narrows', 'name'],
-  [[300, -880], 'shallows: draft 1.2 or less', 'note', 16],
+  [[250, -660], 'Palm Key Narrows', 'name'],
+  [[250, -660], 'shallows: draft 1.2 or less', 'note', 16],
+  [[430, -905], 'deep channel', 'note'],
   [[0, -930], 'The Trades', 'zonelabel'],
   [[0, -930], 'steady trade wind from ENE', 'note', 16],
   [[-470, -700], 'Lone Palm', 'name'],
@@ -99,7 +100,7 @@ const legend = `
   <rect x="16" y="204" width="22" height="14" class="zone trades"/><text x="48" y="216">trade-wind belt</text>
   <line x1="16" y1="236" x2="38" y2="236" class="route"/><text x="48" y="240">way in from the ring</text>
   <line x1="16" y1="258" x2="38" y2="258" class="route short"/><text x="48" y="262">shortcut, shallow ships</text>
-  <line x1="16" y1="280" x2="38" y2="280" class="route long"/><text x="48" y="284">long way, every ship</text>
+  <line x1="16" y1="280" x2="38" y2="280" class="route long"/><text x="48" y="284">long way, every ship (rides The Trades)</text>
 </g>`;
 
 const css = `

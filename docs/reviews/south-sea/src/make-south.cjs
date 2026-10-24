@@ -369,7 +369,7 @@ const southFile = designFile('sunreach-south', 'Sunreach South Arm', sunreachSou
     margin: 0.07,
     spacing: 0.15,
     clear: [
-      clearAt(sunreachSouth, south, 99, 0.45, 30),
+      clearAt(sunreachSouth, south, 99, 0.5, 20),
       clearAt(sunreachSouth, south, 80, 0.4, 14),
       clearAt(sunreachSouth, south, 118, 0.4, 14),
     ],
@@ -497,10 +497,10 @@ const terrain = [
 ];
 // Palm Key Narrows: a reef chain between Sunreach and Palm Key, from the open sea down to the
 // edge of the sea, broken once by a sandy passage that only shallow ships cross (ADR 0137
-// point 7). Deep ships go round its north end.
+// point 7). Deep ships go round its north end, or through the deep channel at its south end.
 const NARROWS_X = 335,
-  PASS = [-715, -770];
-const chainTip = Math.sqrt((SEA - 7) ** 2 - NARROWS_X ** 2);
+  PASS = [-715, -770],
+  CHANNEL_TOP = -838;
 terrain.push(
   {
     id: 'narrows-north',
@@ -520,21 +520,17 @@ terrain.push(
   {
     id: 'narrows-south',
     kind: 'reef',
-    outline: (() => {
-      const pts = lineBand(
-        [
-          [NARROWS_X, PASS[1] - 4],
-          [NARROWS_X + 8, -830],
-          [NARROWS_X - 4, -880],
-          [NARROWS_X, -chainTip + 30],
-        ],
-        22,
-        22,
-      );
-      // Close the gap to the edge of the sea with a pointed tip.
-      pts.splice(4, 0, [NARROWS_X, r1(-chainTip)]);
-      return pts;
-    })(),
+    // It stops short of the sea's edge: the deep-water channel below it lies inside The Trades,
+    // so deep ships ride the trade wind round (design review, decision 0152).
+    outline: lineBand(
+      [
+        [NARROWS_X, PASS[1] - 4],
+        [NARROWS_X + 8, -805],
+        [NARROWS_X - 2, CHANNEL_TOP],
+      ],
+      22,
+      18,
+    ),
   },
   {
     id: 'narrows-passage',
@@ -563,7 +559,7 @@ terrain.push(
   { id: 'sugar-bar-spit', kind: 'sandbank', outline: blob(-470, -430, 14, 42, 9, 0.4, 1.6, -60) },
   { id: 'palm-islet-west', kind: 'island', outline: blob(-330, -585, 13, 51, 10, 0.3, 1.3, 20), look: { trees: 6 } },
   { id: 'palm-islet-south', kind: 'island', outline: blob(190, -900, 11, 52, 10, 0.3, 1.4, -10), look: { trees: 5 } },
-  { id: 'glass-shoal', kind: 'sandbank', outline: blob(240, -640, 12, 53, 9, 0.35, 1.8, 50) },
+  { id: 'glass-shoal', kind: 'sandbank', outline: blob(560, -575, 12, 53, 9, 0.35, 1.8, 50) },
 );
 
 // ---------------------------------------------------------------- wind zones
@@ -586,7 +582,8 @@ const windZones = [
     tune: { glassy: 0.35 },
     outline: ellipse(CX, CY, 92, 70, PHI, 10),
   },
-  { id: 'the-glass', name: 'The Glass', kind: 'doldrums', outline: ellipse(150, -600, 80, 46, 30, 10) },
+  // South of Wreck Reef, on the open water between the ring's east side and Palm Key.
+  { id: 'the-glass', name: 'The Glass', kind: 'doldrums', outline: ellipse(525, -545, 115, 72, 25, 12) },
   { id: 'the-trades', name: 'The Trades', kind: 'trade-belt', headingDeg: 70, outline: trades },
 ];
 
@@ -644,6 +641,8 @@ const sea = {
     { type: 'buoy-green', x: NARROWS_X + 22, y: PASS[0] - 2, chart: true },
     { type: 'buoy-red', x: NARROWS_X - 22, y: PASS[1] + 2, chart: true },
     { type: 'buoy-green', x: NARROWS_X + 22, y: PASS[1] + 2, chart: true },
+    // The deep channel round the reef's south end.
+    { type: 'buoy-red', x: NARROWS_X, y: CHANNEL_TOP - 26, chart: true },
   ],
   windZones,
 };

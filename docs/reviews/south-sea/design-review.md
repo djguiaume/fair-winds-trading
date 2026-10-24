@@ -1,5 +1,7 @@
 # Design review: Sunreach, The Glass and The Trades
 
+**Guillaume chose "All three" (2026-10-24 17:58Z):** the crater Sunreach, The Glass moved south of Wreck Reef, and the deep channel through The Trades are now in the data. New captures: [The Glass](the-glass.png), [the deep channel](deep-channel.png), and the Sunreach shots below (green-roofed tea house, more palms round the gardens). Measured after the change: deep ships 115 s out and 90 s home, against 104 s and 82 s for a sloop through the Narrows.
+
 _Guillaume, 2026-10-24: "Is the doldrums too close? Should it be under Wreck Reef where it's empty? Sunreach is not finished at all. It's empty and looks bad. Besides the shape there are no features. Should it be completely flat? Should there be buildings on the south island? Should there be bigger beaches on one of the islands? Perform a real design review: how it fits the game universe and the island's role." Also: "The Trades wind is cut by reefs. Is it on purpose?"_
 
 Decision record: [0152](../../decisions/0152-south-sea-sunreach-layout.md). Earlier screenshots: [README](README.md).

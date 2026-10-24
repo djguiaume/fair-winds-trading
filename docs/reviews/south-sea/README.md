@@ -32,6 +32,12 @@ Drawn from the data (`src/make-schema.cjs`); routes are schematic.
 
 ## Around the sea
 
+![The Glass, doldrums south of Wreck Reef](the-glass.png)
+![The deep channel round the Narrows reef, inside The Trades](deep-channel.png)
+![The tea gardens across the Sound](sunreach-tea-gardens.png)
+
+The [design review](design-review.md) explains the look.
+
 ![Palm Key, the outpost site, with its daymark](palm-key.png)
 ![Lone Palm](lone-palm.png)
 ![Wreck Reef](wreck-reef.png)

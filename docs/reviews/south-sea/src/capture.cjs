@@ -20,6 +20,8 @@ const SHOTS = [
   ['keepers-passage', 1280, 800, { x: 150, y: -500, zoom: 3.2, boat: [146, -470, 175] }],
   ['narrows-sloop', 1280, 800, { x: 335, y: -742, zoom: 2.0, boat: [352, -745, 250], ship: 'sloop' }],
   ['narrows-indiaman', 1280, 800, { x: 335, y: -742, zoom: 2.0, boat: [300, -742, 90], ship: 'indiaman', push: true }],
+  ['the-glass', 1280, 800, { x: 520, y: -520, zoom: 3.6, boat: [400, -470, 120] }],
+  ['deep-channel', 1280, 800, { x: 335, y: -870, zoom: 1.6, boat: [300, -878, 90], ship: 'indiaman' }],
   ['palm-key', 1280, 800, { x: 505, y: -735, zoom: 1.4, boat: [420, -770, 80] }],
   ['lone-palm', 1280, 800, { x: -470, y: -665, zoom: 1.0, boat: [-450, -650, 250] }],
   ['wreck-reef', 1280, 800, { x: 556, y: -330, zoom: 1.6, boat: [520, -300, 120] }],
