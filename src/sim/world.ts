@@ -25,7 +25,7 @@ import {
 import { townLevels } from './founding';
 import { settlementLevels } from './settlement';
 import { DIFFICULTIES, knobs, weatherFor } from './difficulty';
-import { mapZones, zoneField } from './windZones';
+import { type ZoneVisual, CLEAR, mapZones, zoneField, zoneVisualAt } from './windZones';
 import { smoothOutline } from './flowShapes';
 import { DEG, bearingTo, clamp, distance } from './math';
 import { type ShipClass, noGoAngle } from './ship';
@@ -118,6 +118,8 @@ export interface World {
   storms: boolean;
   /** The map's wind zones on (decision 0140): Settings › Weather › Wind zones. */
   windZones: boolean;
+  /** Haze switches turned off in Settings (`fog`, `ash`, decision 0169): those zones stay clear. */
+  hazeOff: string[];
   /**
    * The steady trade wind (decision 0083): small, slow shifts close to the prevailing wind. A
    * Settings choice whose default follows the difficulty level (on for Fair winds).
@@ -191,6 +193,7 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     dynamicWeather: true,
     storms: true,
     windZones: true,
+    hazeOff: [],
     steadyWind: false,
     windConfig: null,
     windBlend: null,
@@ -475,13 +478,23 @@ function stepCurrent(world: World, dt: number): WorldEvent[] {
  * current (decision 0152). Unnamed zones are tuning, not places, and stay off it.
  */
 function chartZone(world: World): WorldEvent[] {
-  const { zone, zoneWeight = 0 } = world.weather;
+  let { zone, zoneWeight = 0 } = world.weather;
+  // A fog bank is charted by its haze too, so it is with Settings › Wind zones off (0169).
+  const field = zoneField(mapZones(world.map), smoothOutline);
+  const haze = field
+    ? zoneVisualAt(field, world.boat.x, world.boat.y, world.hazeOff, hazeScratch)
+    : CLEAR;
+  if (haze.zone && haze.zone !== zone && (!zone || haze.haze > zoneWeight)) {
+    zone = haze.zone;
+    zoneWeight = haze.haze;
+  }
   if (!zone || zoneWeight < TUNING.weather.zones.chartWeight) return [];
   const zones = (world.trade.progress.zones ??= []);
   if (zones.includes(zone) || !world.map.windZones?.some((z) => z.id === zone && z.name)) return [];
   zones.push(zone);
   return [{ type: 'zone-charted', id: zone }];
 }
+const hazeScratch: ZoneVisual = { ...CLEAR };
 
 /**
  * Holds storms back for a reason (decision 0072), or lets that reason go. Storms never blow during

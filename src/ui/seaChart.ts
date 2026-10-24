@@ -15,6 +15,7 @@ import { laneShape } from '../sim/currents';
 import { knobs } from '../sim/difficulty';
 import { coastDistance } from '../sim/coast';
 import { areaCrests, laneCrests, laneEdges, smoothOutline } from '../sim/flowShapes';
+import { zoneHazy } from '../sim/windZones';
 import { TUNING } from '../data/tuning';
 import { goodName, t, zoneKindName } from '../i18n';
 import { icon, COIN } from './icons';
@@ -436,8 +437,14 @@ export class SeaChart {
   ): ZoneLabel[] {
     const { map, trade } = this.world;
     const charted = trade.progress.zones ?? [];
-    const zones = (map.windZones ?? []).filter((z) => z.name && charted.includes(z.id));
-    if (!zones.length || !this.world.windZones) return [];
+    // With Settings › Wind zones off, fog banks still show while their haze is on (0169).
+    const zones = (map.windZones ?? []).filter(
+      (z) =>
+        z.name &&
+        charted.includes(z.id) &&
+        (this.world.windZones || zoneHazy(z, this.world.hazeOff)),
+    );
+    if (!zones.length) return [];
     return zones.map((z) => {
       const outline = smoothOutline(z.outline);
       const kind = z.kind.replace(/[^a-z-]/g, '');

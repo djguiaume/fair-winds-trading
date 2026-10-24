@@ -40,6 +40,8 @@ export interface Settings {
   currents: boolean;
   /** Drifting icebergs in the north (decision 0170); a hazard, so it can be off. */
   bergs: boolean;
+  /** Haze switches (`fog`, `ash`, decision 0169): false turns that haze off. Left out = on. */
+  haze: Record<string, boolean>;
   /** The first current met has shown its one-time hint (decision 0140). */
   seenCurrentHint: boolean;
   /** The steady trade wind (decision 0083); picking a difficulty level sets its default. */
@@ -65,6 +67,7 @@ const DEFAULTS: Settings = {
   windZones: true,
   currents: true,
   bergs: true,
+  haze: {},
   seenCurrentHint: false,
   steadyWind: false,
 };
@@ -81,6 +84,7 @@ export function loadSettings(): Settings {
     const voices = Number(settings.voiceVolume);
     settings.voiceVolume = Number.isFinite(voices) ? Math.min(1, Math.max(0, voices)) : 0.7;
     settings.voices = settings.voices !== false;
+    if (typeof settings.haze !== 'object' || !settings.haze) settings.haze = {};
     if (!KIDS_MODE_AVAILABLE) settings.uiMode = 'adult';
     return settings;
   } catch {

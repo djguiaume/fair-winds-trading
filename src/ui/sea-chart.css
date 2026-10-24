@@ -742,3 +742,8 @@ dialog.chart::backdrop {
   letter-spacing: 0.08em;
   stroke: rgba(234, 223, 198, 0.8);
 }
+/* A fog bank (decision 0169): grey edge, pale ink. */
+.chart-zone-fog-bank {
+  --zone: #6d7a80;
+  --zone-ink: #eef2f3;
+}

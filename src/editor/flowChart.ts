@@ -1,4 +1,5 @@
 import { TUNING } from '../data/tuning';
+import { zonesTuning } from '../sim/windZones';
 import { laneShape } from '../sim/currents';
 import {
   type Crest,
@@ -43,7 +44,10 @@ const ZONE_NAMES: Record<string, string> = {
   'cold-gale': 'cold gale',
   sheltered: 'sheltered',
 };
-export const zoneKindName = (kind: string) => ZONE_NAMES[kind] ?? kind;
+export const zoneKindName = (kind: string) => ZONE_NAMES[kind] ?? kind.replace(/-/g, ' ');
+/** A kind's tint: its `chart` colour in weather.json (decision 0169), else the built-in one. */
+export const zoneTint = (kind: string) =>
+  zonesTuning().kinds[kind]?.chart ?? ZONE_TINT[kind] ?? '#888';
 
 /** The soft-edge blur, in map units. */
 function softFilter(el: El) {
@@ -65,7 +69,7 @@ export function drawFlow(el: El, map: MapDef, px: number) {
     el('polygon', {
       points: pts(outline),
       class: 'c-zone',
-      fill: ZONE_TINT[z.kind] ?? '#888',
+      fill: zoneTint(z.kind),
       filter: 'url(#c-soft)',
     });
     el('polygon', { points: pts(outline), class: 'c-hit', 'data-hit': `zone:${z.id}` });

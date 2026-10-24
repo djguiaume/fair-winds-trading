@@ -157,6 +157,8 @@
   "settings.currentsNote": "Off: still water, no current carries the boat",
   "settings.bergs": "Drifting icebergs",
   "settings.bergsNote": "Off: no icebergs drift in the northern sea",
+  "settings.haze.fog": "Fog banks",
+  "settings.haze.fogNote": "Off: clear sight inside fog banks",
   "settings.speedLogNote": "Speed, heading, point of sail",
   "settings.fpsNote": "Frames per second",
   "settings.soundLanguage": "Sound · Language",
@@ -802,5 +804,6 @@
   "zone.doldrums": "doldrums",
   "zone.stormy-coast": "stormy coast",
   "zone.cold-gale": "cold gales",
-  "zone.sheltered": "sheltered water"
+  "zone.sheltered": "sheltered water",
+  "zone.fog-bank": "fog bank"
 }
