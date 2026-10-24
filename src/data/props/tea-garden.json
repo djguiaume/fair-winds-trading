@@ -1,0 +1,29 @@
+{
+  "id": "tea-garden",
+  "name": "Tea garden",
+  "group": "farm",
+  "fitRadius": 0.07,
+  "parts": [
+    {
+      "box": ["R * 0.3", 0.06, "R * 0.24"],
+      "at": [0, 0.03, 0],
+      "color": "teaSoil"
+    },
+    {
+      "repeat": {
+        "row": [-2, -1, 0, 1, 2]
+      },
+      "box": ["R * 0.28", 0.34, "R * 0.03"],
+      "at": [0, 0.2, "row * R * 0.046"],
+      "color": "tea[variant]"
+    },
+    {
+      "repeat": {
+        "row": [-2, -1, 0, 1, 2]
+      },
+      "box": ["R * 0.27", 0.12, "R * 0.018"],
+      "at": [0, 0.42, "row * R * 0.046"],
+      "color": "teaTip"
+    }
+  ]
+}

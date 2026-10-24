@@ -1,7 +1,7 @@
 import { DIFFICULTIES } from './difficulty';
 import { GOODS, type GoodId, isFar } from './goods';
 import { BUILDING_IDS, buildableIslands, homeSpots } from './home';
-import type { MapDef } from './map';
+import { chartableZoneIds, type MapDef } from './map';
 import { slotLayout } from './questLibrary';
 import {
   type QuestDef,
@@ -85,10 +85,16 @@ const CHARTED_SECTION = 10;
  * each good's index and units.
  */
 const WORKSHOP_SECTION = 11;
+/**
+ * The charted wind zones' section (decision 0152), after the workshops and only when a named zone
+ * is charted: its number, a fingerprint of the map's named zone ids, their count and a flag each.
+ */
+const ZONES_SECTION = 12;
 /** No section left to read (sections are numbered from 1). */
 const NO_SECTION = -1;
 const currentIds = (map: MapDef) => (map.currents ?? []).map((c) => c.id);
 const currentsFingerprint = (map: MapDef) => fingerprint(currentIds(map));
+const zonesFingerprint = (map: MapDef) => fingerprint(chartableZoneIds(map));
 
 function fingerprint(ids: string[]): number {
   let h = 0x811c9dc5;
@@ -288,6 +294,14 @@ export function packSave(
         w.uint(save.workshops![id]![g]!);
       }
     }
+  }
+  const zoneIds = chartableZoneIds(map);
+  const zones = zoneIds.map((id) => !!save.progress?.zones?.includes(id));
+  if (zones.some(Boolean)) {
+    w.uint(ZONES_SECTION);
+    w.uint(zonesFingerprint(map));
+    w.uint(zoneIds.length);
+    w.flags(zones);
   }
   return Uint8Array.from(w.bytes);
 }
@@ -531,6 +545,16 @@ export function unpackSave(
     }
     section = r.done ? NO_SECTION : r.uint();
   }
+  // Charted wind zones (decision 0152): like the currents, forgotten if the map's zones changed.
+  let zones: string[] | undefined;
+  if (section === ZONES_SECTION) {
+    const ids = chartableZoneIds(map);
+    const same = r.uint() === zonesFingerprint(map);
+    const n = r.uint();
+    const flags = r.flags(n);
+    if (same && n === ids.length) zones = ids.filter((_, k) => flags[k]);
+    section = r.done ? NO_SECTION : r.uint();
+  }
   if (section > HOME_SECTION) return { ok: false, problem: 'newer' };
   if (section !== NO_SECTION || !r.done) return { ok: false, problem: 'unreadable' };
 
@@ -552,7 +576,12 @@ export function unpackSave(
       markets,
       ...(workshops ? { workshops } : {}),
       contracts: { byPort, completed, ...(helpIn ? { helpIn } : {}) },
-      progress: { discovered, standing, ...(charted?.length ? { charted } : {}) },
+      progress: {
+        discovered,
+        standing,
+        ...(charted?.length ? { charted } : {}),
+        ...(zones?.length ? { zones } : {}),
+      },
       settlements: { byPort: towns, ...(pendingSupply ? { pendingSupply } : {}) },
       ...(difficulty ? { difficulty } : {}),
       ...(easiestDifficulty ? { easiestDifficulty } : {}),

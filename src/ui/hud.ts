@@ -21,7 +21,7 @@ import { capacity, cargoUsed, findPort } from '../sim/trade';
 import { PortLabels } from './portLabels';
 import { type HazardKind, hazardBadge } from './hazardMarker';
 import { screenBearing } from './screenBearing';
-import { formatNumber, goodName, t, tOptional, weatherName } from '../i18n';
+import { formatNumber, goodName, t, tOptional, weatherName, zoneKindName } from '../i18n';
 
 const POINT_OF_SAIL_TONE: Record<PointOfSail, '' | 'good' | 'bad'> = {
   'in-irons': '',
@@ -412,6 +412,15 @@ export class Hud {
           this.onCurrentHintSeen();
           this.showToast(t('toast.currentHint'), 6);
         } else this.showToast(t('toast.currentCharted', { name }), 3);
+      } else if (e.type === 'zone-charted') {
+        const zone = this.world.map.windZones?.find((z) => z.id === e.id);
+        if (zone?.name)
+          this.showToast(
+            t('toast.zoneCharted', { name: zone.name, kind: zoneKindName(zone.kind) }),
+            3,
+          );
+      } else if (e.type === 'too-shallow' && this.toastTimer <= 0) {
+        this.showToast(t('toast.tooShallow'), 3);
       } else if (e.type === 'bump' && this.toastTimer <= 0) {
         this.showToast(t('toast.bump'), 1.2);
       }

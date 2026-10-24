@@ -16,15 +16,26 @@ import { DEFAULT_START_LEVEL } from './settlement';
  * What the boat ran into; hulls fare worst on reefs, then piers, moored boats and rocky shores
  * (decisions 0038 and 0082).
  */
-export type Surface = 'reef' | 'pier' | 'boat' | 'shore' | 'sandbank' | 'edge';
+export type Surface = 'reef' | 'pier' | 'boat' | 'shore' | 'sandbank' | 'shallows' | 'edge';
 const HARDNESS: Record<Surface, number> = {
   reef: 4,
   pier: 3,
   boat: 3,
   shore: 2,
   sandbank: 1,
+  shallows: 1,
   edge: 0,
 };
+
+/** Shallows refuse a ship deeper than their `maxDraft` and let the others cross (0137, 0152). */
+export function shallowsRefuse(feature: TerrainDef, draft: number): boolean {
+  return feature.kind === 'shallows' && draft > (feature.maxDraft ?? 0);
+}
+
+/** Is this shape solid to a ship of this draft? Shallows are solid only to deeper ships. */
+export function solidTo(feature: TerrainDef, draft: number): boolean {
+  return feature.kind !== 'shallows' || shallowsRefuse(feature, draft);
+}
 
 const coastBounds = new WeakMap<
   TerrainDef['outline'],
@@ -195,7 +206,8 @@ export function piersOf(
 
 /**
  * Keep the boat out of circular islands, polygon coastlines and piers, and inside the sea.
- * Returns the hardest surface the boat hit this step, or null when it hit nothing.
+ * Returns the hardest surface the boat hit this step, or null when it hit nothing. Shallows
+ * stop only a ship whose `draft` is deeper than theirs.
  */
 export function resolveCollisions(
   boat: BoatState,
@@ -204,6 +216,7 @@ export function resolveCollisions(
   boundsRadius: number,
   terrain: readonly TerrainDef[] = [],
   piers: readonly Pier[] = [],
+  draft = 0,
 ): Surface | null {
   let hit: Surface | null = null;
   const touch = (surface: Surface) => {
@@ -246,6 +259,7 @@ export function resolveCollisions(
     }
   }
   for (const feature of terrain) {
+    if (!solidTo(feature, draft)) continue;
     // Same box early-out as island coasts: per-step work stays flat as the map grows (0115).
     if (outsideCoast(boat, radius, feature.outline)) continue;
     // At a concave corner, clearing one edge can leave overlap with its neighbor.

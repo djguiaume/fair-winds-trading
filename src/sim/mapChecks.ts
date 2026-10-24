@@ -1,6 +1,6 @@
 import { knotToUnits } from './boat';
 import { coastDistance } from './coast';
-import { piersOf } from './collision';
+import { piersOf, solidTo } from './collision';
 import { CurrentField, laneShape } from './currents';
 import { outlineCrosses, smoothOutline } from './flowShapes';
 import { TUNING } from '../data/tuning';
@@ -9,7 +9,7 @@ import { islandCoasts, islandPoint } from './islandLayout';
 import { landmarkOf } from '../data/islands';
 import { type IslandDef, type MapDef, type PortDef, SEA_MARK_TYPES } from './map';
 import { DEG, bearingTo, wrapAngle } from './math';
-import { CUTTER, SLOOP, noGoAngle, polarFraction } from './ship';
+import { CUTTER, SHIP_CLASSES, SLOOP, noGoAngle, polarFraction } from './ship';
 import { MAX_SETTLEMENT_LEVEL } from './settlement';
 import { NO_ZONE, type ZoneEffect, zoneField, zoneMaxGain, zoneMeanAt } from './windZones';
 
@@ -34,14 +34,24 @@ export interface MapCheck {
 
 const clearanceCache = new WeakMap<MapDef, Map<string, boolean>>();
 
-/** True when a hull with this margin fits at (x, y): inside the world edge and off every shore. */
-export function clearAt(map: MapDef, x: number, y: number, margin: number): boolean {
+/**
+ * True when a hull with this margin fits at (x, y): inside the world edge and off every shore.
+ * Shallows count as shore only to a hull deeper than they allow (decision 0152); the default
+ * draft is a sloop's.
+ */
+export function clearAt(
+  map: MapDef,
+  x: number,
+  y: number,
+  margin: number,
+  draft = SLOOP.draft,
+): boolean {
   let cache = clearanceCache.get(map);
   if (!cache) {
     cache = new Map();
     clearanceCache.set(map, cache);
   }
-  const key = `${x.toFixed(4)},${y.toFixed(4)},${margin}`;
+  const key = `${x.toFixed(4)},${y.toFixed(4)},${margin},${draft}`;
   const prior = cache.get(key);
   if (prior !== undefined) return prior;
   const result =
@@ -52,7 +62,9 @@ export function clearAt(map: MapDef, x: number, y: number, margin: number): bool
         ? coasts.every((c) => coastDistance(x, y, c).distance > margin)
         : Math.hypot(x - i.x, y - i.y) > i.radius + margin;
     }) &&
-    (map.terrain ?? []).every((t) => coastDistance(x, y, t.outline).distance > margin);
+    (map.terrain ?? []).every(
+      (t) => !solidTo(t, draft) || coastDistance(x, y, t.outline).distance > margin,
+    );
   cache.set(key, result);
   return result;
 }
@@ -96,7 +108,9 @@ const routeZone: ZoneEffect = { ...NO_ZONE };
 /**
  * Fastest sloop route between two points with the wind from `windDeg`, or null if none. With
  * `water` (knots east and north at a point, e.g. a `CurrentField`), each leg's speed over the
- * ground adds the current along it (decision 0140).
+ * ground adds the current along it (decision 0140). `hull` swaps the sloop's size and draft for
+ * another ship's, so a deep ship's route goes round the shallows it may not cross (0152); the
+ * speeds stay the sloop's.
  */
 export function sailRoute(
   map: MapDef,
@@ -105,6 +119,7 @@ export function sailRoute(
   windDeg: number,
   turningClearance = 11,
   water?: (x: number, y: number) => { east: number; north: number },
+  hull: { radius: number; draft: number } = SLOOP,
 ): SailRoute | null {
   const key = (p: Point) => `${p.x},${p.y}`;
   const snap = (p: Point) => ({
@@ -166,7 +181,8 @@ export function sailRoute(
             map,
             p.x + ((q.x - p.x) * i) / samples,
             p.y + ((q.y - p.y) * i) / samples,
-            SLOOP.radius + turningClearance,
+            hull.radius + turningClearance,
+            hull.draft,
           )
         ) {
           free = false;
@@ -524,6 +540,35 @@ export function routeChecks(map: MapDef): MapCheck[] {
     cut.length
       ? fail('pairs', `no route ${list(cut)}${withCurrents}`)
       : pass('pairs', `every pair of charted ports connects${withCurrents}`),
+    ...deepChecks(map, ports, water),
+  ];
+}
+
+/** The deepest ship there is: the one shallows refuse first. */
+export const DEEPEST_SHIP = Object.values(SHIP_CLASSES).reduce((a, b) =>
+  b.draft > a.draft ? b : a,
+);
+
+/**
+ * With shallows on the map (decision 0152), every port must still be reachable by the deepest
+ * ship the long way round, so no story step or trade ever needs a shallow keel. The hull is the
+ * deepest ship's draft with a sloop's turning room: the check is about the passages, not width.
+ */
+function deepChecks(
+  map: MapDef,
+  ports: PortDef[],
+  water?: (x: number, y: number) => { east: number; north: number },
+): MapCheck[] {
+  if (!(map.terrain ?? []).some((t) => t.kind === 'shallows')) return [];
+  const hull = { radius: SLOOP.radius, draft: DEEPEST_SHIP.draft };
+  const wind = map.wind.fromDeg;
+  const cut = ports
+    .filter((p) => !sailRoute(map, map.start, harbourApproach(map, p), wind, 11, water, hull))
+    .map((p) => p.name);
+  return [
+    cut.length
+      ? fail('deep', `the ${DEEPEST_SHIP.id} cannot reach ${list(cut)}: shallows close every way`)
+      : pass('deep', `every port reachable by the ${DEEPEST_SHIP.id} the long way round`),
   ];
 }
 

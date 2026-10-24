@@ -128,6 +128,12 @@ export function weatherName(kind: string): string {
 }
 
 /** True when the text files have this key (content added in data may not be translated yet). */
+/** A wind zone kind in words ("doldrums"), or the kind's id when it has no text (decision 0152). */
+export function zoneKindName(kind: string): string {
+  const key = `zone.${kind}` as MessageKey;
+  return key in en ? t(key) : kind;
+}
+
 export function hasText(key: string): key is MessageKey {
   return key in en;
 }
