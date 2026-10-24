@@ -1,0 +1,11 @@
+[
+  {"name": "sunreach-over", "at": [-95, -500], "heading": 180, "look": [-95, -620], "zoom": 5},
+  {"name": "sunreach-rim", "at": [-60, -530], "heading": 200, "zoom": 2.2},
+  {"name": "sunreach-town", "at": [-95, -682], "heading": 0, "zoom": 1.1, "sail": 0, "speed": 0},
+  {"name": "sunreach-town-night", "at": [-95, -682], "heading": 0, "zoom": 1.1, "night": true, "sail": 0, "speed": 0},
+  {"name": "sunreach-far", "at": [-95, -720], "heading": 0, "zoom": 2.4, "sail": 0, "speed": 0},
+  {"name": "sunreach-far-night", "at": [-95, -720], "heading": 0, "zoom": 2.4, "sail": 0, "speed": 0, "night": true},
+  {"name": "south-arm", "at": [-40, -800], "heading": 180, "zoom": 2.4, "sail": 0, "speed": 0},
+  {"name": "palmkey-over", "at": [520, -680], "heading": 180, "zoom": 2.2, "town": "palm-key:2"},
+  {"name": "palmkey-low", "at": [580, -690], "heading": 225, "zoom": 1.6, "town": "palm-key:2", "sail": 0, "speed": 0, "look": [522, -728]}
+]
