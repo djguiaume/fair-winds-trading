@@ -7,7 +7,6 @@ import { QUESTS, QuestBook, checkQuestHooks, checkQuests } from '../../src/sim/q
 import { producesAt } from '../../src/sim/settlement';
 import { SLOOP } from '../../src/sim/ship';
 import { sell } from '../../src/sim/trade';
-import { TUTORIAL_QUEST } from '../../src/sim/tutorial';
 import { createWorld } from '../../src/sim/world';
 import { cardFor, questTarget } from '../../src/ui/questView';
 
@@ -21,7 +20,7 @@ function play() {
   const world = createWorld(PHASE1_MAP, SLOOP);
   world.trade.captain.gold = 10_000;
   const quests = new QuestBook(world, QUESTS, {
-    doneElsewhere: (id) => id === TUTORIAL_QUEST.id,
+    doneElsewhere: (id) => id === 'first-voyage',
     nightOk: () => true,
   });
   return { world, quests };
@@ -43,10 +42,8 @@ function dock(p: ReturnType<typeof play>, port: string) {
 
 describe('arc: calda-slipway, "The last keel"', () => {
   it('passes the checks and follows the brief', () => {
-    expect(checkQuests(QUESTS, PHASE1_MAP, [TUTORIAL_QUEST.id])).toEqual([]);
-    expect(
-      checkQuestHooks(PHASE1_MAP, Object.values(ISLAND_DESIGNS), QUESTS, [TUTORIAL_QUEST.id]),
-    ).toEqual([]);
+    expect(checkQuests(QUESTS, PHASE1_MAP)).toEqual([]);
+    expect(checkQuestHooks(PHASE1_MAP, Object.values(ISLAND_DESIGNS), QUESTS)).toEqual([]);
     expect(ARC).toMatchObject({
       giver: 'ines',
       port: 'calda',

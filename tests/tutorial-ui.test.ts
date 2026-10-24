@@ -2,12 +2,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import html from '../index.html?raw';
 import { PHASE1_MAP } from '../src/data/maps';
-import { SLOOP } from '../src/sim/ship';
-import { Tutorial } from '../src/sim/tutorial';
-import { createWorld } from '../src/sim/world';
 import { TutorialCoach } from '../src/ui/tutorial';
 import { TradePanel } from '../src/ui/tradePanel';
 import { SeaChart } from '../src/ui/seaChart';
+import { TUTORIAL, tutorialVoyage } from './helpers/tutorial';
 
 beforeEach(() => {
   localStorage.clear();
@@ -22,102 +20,106 @@ const click = (selector: string) => {
   b.focus();
   b.click();
 };
+/** The coach on the real sea, chart and harbour screen, wired like the game (decision 0151). */
 function setup(mode: 'adult' | 'kids' = 'adult') {
-  const world = createWorld(PHASE1_MAP, SLOOP);
-  const tutorial = new Tutorial(world, {}, localStorage);
-  const card = new TutorialCoach(tutorial);
+  const v = tutorialVoyage();
+  const { world, quests } = v;
+  const card = new TutorialCoach(quests, v.harbours);
   const panel = new TradePanel(document.getElementById('trade-panel')!, world);
   panel.uiMode = mode;
-  tutorial.onChange = () => card.render();
+  quests.onEvent = (e) => {
+    if (e.type === 'finished' && e.quest === TUTORIAL) card.finished = e.quest;
+    card.render();
+  };
   panel.onRender = () => card.render();
-  panel.onTrade = (kind, good) => tutorial.traded(kind, good);
+  panel.onAction = () => {
+    quests.check();
+    card.render();
+  };
+  card.onOption = (quest, option) => quests.choose(quest, option);
+  card.onSkip = (quest) => {
+    quests.drop(quest);
+    card.render();
+  };
   const chart = new SeaChart(document.getElementById('chart') as HTMLDialogElement, world, {});
-  chart.onDestinationChange = () => tutorial.destinationSelected();
-  tutorial.start();
-  /** The prologue at sea (decision 0127): to the chart lesson, with Rook aboard. */
-  const rescue = () => {
-    tutorial.continueLesson();
-    tutorial.continueLesson();
-    const wreck = tutorial.wreck!;
-    Object.assign(world.boat, { x: wreck.x + 12, y: wreck.y, speedKn: 0.5 });
-    tutorial.observe();
-    for (let n = 0; n < 7; n++) tutorial.observe({ sailStep: 0, steer: 0 }, 0.5);
-    expect(tutorial.step).toBe('chart');
-  };
-  /** Rook home to Saltmere, then the first market lesson there. */
-  const reachMarket = () => {
-    rescue();
-    world.destination = { portId: 'saltmere', label: 'Saltmere', x: 0, y: 0 };
-    tutorial.destinationSelected();
-    world.trade.dockedAt = 'saltmere';
-    tutorial.observe();
-    expect(tutorial.step).toBe('island');
-    tutorial.continueLesson();
-    expect(tutorial.step).toBe('buy');
-  };
-  return { world, tutorial, card, panel, chart, rescue, reachMarket };
+  chart.onDestinationChange = () => quests.check();
+  v.start();
+  return { ...v, v, card, panel, chart };
 }
 
 describe('tutorial coach marks in real UI surfaces', () => {
   it('moves one card between sea and chart; port selection and clearing drive the lesson', () => {
-    const { tutorial, card, chart, rescue } = setup();
-    rescue();
+    const { v, card, chart } = setup();
+    v.rescue();
     card.setSurface('sea');
     expect(document.querySelectorAll('.tutorial-card')).toHaveLength(1);
     chart.open();
-    tutorial.chartOpened();
+    v.screen('chart');
     card.setSurface('chart');
+    expect(v.step).toBe('home-port');
     // Rook asks for home: another harbour is not the pick.
     click('[data-compare="calda"]');
-    expect(tutorial.step).toBe('home-port');
+    expect(v.step).toBe('home-port');
     click('[data-compare="saltmere"]');
-    expect(tutorial.step).toBe('home');
+    expect(v.step).toBe('home');
     expect(document.querySelectorAll('.tutorial-card')).toHaveLength(1);
     expect(document.querySelector('#tutorial-chart .tutorial-card')).not.toBeNull();
     click('#chart-clear-target');
-    expect(tutorial.step).toBe('home-port');
+    expect(v.step).toBe('home-port');
     chart.close();
+    v.screen('sea');
     card.setSurface('sea');
     expect(document.querySelector('#tutorial-sea .tutorial-card')).not.toBeNull();
   });
+
   it('collapses without pausing play and gives focus back when skipped', () => {
-    const { tutorial, card } = setup();
+    const { v, card } = setup();
     card.setSurface('sea');
     click('#tutorial-collapse');
     expect(document.getElementById('tutorial-collapse')!.getAttribute('aria-expanded')).toBe(
       'false',
     );
     expect(document.getElementById('tutorial-action')).toBeNull();
-    expect(tutorial.isActive).toBe(true);
+    expect(v.running).toBe(true);
     click('#tutorial-collapse');
     click('#tutorial-skip');
+    expect(v.running).toBe(false);
     expect(document.querySelector<HTMLElement>('.tutorial-card')!.hidden).toBe(true);
     expect(document.activeElement?.id).toBe('menu-btn');
   });
+
+  it('shows the step number of the main line, and the Continue button the step offers', () => {
+    const { v, card } = setup();
+    card.setSurface('sea');
+    expect(document.querySelector('.coach h3')!.textContent).toBe('1/12 · Sails and steering');
+    click('#tutorial-continue');
+    expect(v.step).toBe('wind');
+    expect(document.querySelector('.coach h3')!.textContent).toBe('2/12 · Let the wind help');
+  });
+
   for (const mode of ['adult', 'kids'] as const) {
     it(`${mode}: real market buys and Sell All complete the tutorial; failed buys do not advance`, () => {
-      const { world, tutorial, card, panel, reachMarket } = setup(mode);
-      reachMarket();
+      const { v, world, card, panel } = setup(mode);
+      v.reachMarket();
       panel.open();
+      v.screen('market');
       card.setSurface('market');
-      expect(tutorial.step).toBe('buy');
+      expect(v.step).toBe('buy');
       world.trade.captain.gold = 0;
       // Stale button still invokes the real API and must not advance the lesson.
       click('[data-action="buy"][data-good="fish"][data-qty="1"]');
-      expect(tutorial.step).toBe('buy');
+      expect(v.step).toBe('buy');
       world.trade.captain.gold = 120;
       panel.render();
       click('[data-action="buy"][data-good="fish"][data-qty="1"]');
-      expect(tutorial.step).toBe('choose-delivery');
+      expect(v.step).toBe('choose-delivery');
       expect(document.querySelector('#tutorial-market .tutorial-card')).not.toBeNull();
-      world.destination = { portId: 'calda', label: 'Port Calda', x: 0, y: 0 };
-      tutorial.destinationSelected();
-      world.trade.dockedAt = 'calda';
-      tutorial.observe();
+      v.course('calda');
+      world.trade.dockedAt = null;
+      v.dock('calda');
       panel.render();
       click('#tp-sell-all');
-      expect(tutorial.status).toBe('completed');
-      expect(world.destination).toBeNull();
+      expect(v.quests.isDone(TUTORIAL)).toBe(true);
       expect(document.querySelector('#tutorial-market .tutorial-card')!.textContent).toContain(
         'First delivery complete',
       );
@@ -129,8 +131,8 @@ describe('tutorial coach marks in real UI surfaces', () => {
 
 describe('coach marks (decision 0061)', () => {
   it('rings the element to tap and puts the bubble beside it', () => {
-    const { card, rescue } = setup();
-    rescue();
+    const { v, card } = setup();
+    v.rescue();
     const target = document.getElementById('chart-btn')!;
     target.getBoundingClientRect = () => new DOMRect(80, 600, 120, 48);
     card.setSurface('sea');
@@ -142,35 +144,37 @@ describe('coach marks (decision 0061)', () => {
     // The ring replaces the bubble's own "Open map" button.
     expect(document.getElementById('tutorial-action')).toBeNull();
   });
+
   it('falls back to an unpinned bubble with its action button when nothing is on screen', () => {
-    const { card, rescue } = setup();
-    rescue();
+    const { v, card } = setup();
+    v.rescue();
     card.setSurface('sea');
     expect(document.querySelector<HTMLElement>('.coach-ring')!.hidden).toBe(true);
     expect(document.querySelector<HTMLElement>('.coach')!.dataset.side).toBe('none');
     expect(document.getElementById('tutorial-action')).not.toBeNull();
   });
+
   it('points at home for Rook, the cheap good in the market, then the nearest harbour', () => {
-    const { world, tutorial, rescue } = setup();
-    rescue();
-    expect(tutorial.pointerPort).toBe('saltmere');
-    world.destination = { portId: 'saltmere', label: 'Saltmere', x: 0, y: 0 };
-    tutorial.destinationSelected();
-    world.trade.dockedAt = 'saltmere';
-    tutorial.observe();
-    tutorial.continueLesson();
-    expect(tutorial.step).toBe('buy');
-    expect(tutorial.pointerGood).toBe('fish');
-    // Sailing off before buying: the lesson asks for a harbour again, the nearest one.
+    const { v, world } = setup();
+    v.rescue();
+    expect(v.lesson!.port).toBe('saltmere');
+    v.course('saltmere');
+    v.dock('saltmere');
+    v.cont();
+    expect(v.step).toBe('buy');
+    expect(v.lesson!.good).toBe('fish');
+    // Buying, then losing the cargo at sea: the lesson asks for a harbour, the nearest one.
+    world.trade.captain.cargo.fish = 1;
+    v.check();
+    v.course(null);
     world.trade.dockedAt = null;
-    tutorial.observe();
-    world.destination = null;
-    tutorial.destinationSelected();
-    expect(tutorial.step).toBe('choose-port');
+    world.trade.captain.cargo.fish = 0;
+    v.check();
+    expect(v.step).toBe('choose-port');
     const calda = PHASE1_MAP.islands.find(
       (i) => i.id === PHASE1_MAP.ports.find((p) => p.id === 'calda')!.islandId,
     )!;
     Object.assign(world.boat, { x: calda.x + 5, y: calda.y });
-    expect(tutorial.pointerPort).toBe('calda');
+    expect(v.lesson!.port).toBe('calda');
   });
 });

@@ -4,7 +4,6 @@ import { PHASE1_MAP } from '../src/data/maps';
 import { setLanguage } from '../src/i18n';
 import { QUESTS, type QuestDef, QuestBook, checkQuests, readQuests } from '../src/sim/quests';
 import { SLOOP } from '../src/sim/ship';
-import { TUTORIAL_QUEST } from '../src/sim/tutorial';
 import { type World, createWorld } from '../src/sim/world';
 import { QuestCard } from '../src/ui/questCard';
 import { cardFor, dueCard, journal, quayItems } from '../src/ui/questView';
@@ -25,7 +24,7 @@ function setup(quests: QuestDef[] = [OFFER, MAIN]) {
   setLanguage('en');
   const world: World = createWorld(PHASE1_MAP, SLOOP);
   const book = new QuestBook(world, quests, {
-    doneElsewhere: (id) => id === TUTORIAL_QUEST.id,
+    doneElsewhere: (id) => id === 'first-voyage',
     nightOk: () => false,
   });
   book.check();

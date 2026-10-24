@@ -42,11 +42,11 @@ import {
   quayItems,
   questGoal,
   questPins,
+  lessonFor,
   questTarget,
   trackedMarkers,
 } from './ui/questView';
-import { TUTORIAL_QUEST, TUTORIAL_STEPS, Tutorial } from './sim/tutorial';
-import { TutorialCoach } from './ui/tutorial';
+import { TUTORIAL_QUEST, TutorialChoice, TutorialCoach } from './ui/tutorial';
 import {
   type WorldEvent,
   createWorld,
@@ -54,6 +54,7 @@ import {
   refreshPiers,
   resetBoat,
   startAtPrologue,
+  holdStorms,
   stepWorld,
 } from './sim/world';
 import {
@@ -228,7 +229,8 @@ const input = new Input(stage);
 const chart = new SeaChart($('chart') as HTMLDialogElement, world, view.harbours);
 chart.onChange = () => {
   input.releaseAll();
-  if (chart.isOpen) tutorial.chartOpened();
+  // A lesson may wait on the chart opening or closing (decision 0151).
+  quests.check();
   refreshPause();
 };
 const tradePanel = new TradePanel($('trade-panel'), world);
@@ -253,18 +255,19 @@ homePanel.onRepaired = (gold) => {
   autosave();
 };
 homePanel.onStored = () => autosave();
-const tutorial = new Tutorial(world, view.harbours, storage, resumedVoyage);
-// Quests (decision 0125): every quest file but the tutorial's, saved with the voyage. The
-// tutorial counts as done for them once it is finished or skipped.
+// Quests (decision 0125), the tutorial too (decision 0151): saved with the voyage.
 const quests = new QuestBook(world, undefined, {
-  // The tutorial counts as done unless it is running: finished, skipped, or never offered (a
-  // voyage from before it), so Rook's thanks and the arcs reach every voyage (decision 0127).
-  doneElsewhere: (id) => id === TUTORIAL_QUEST.id && !tutorial.isActive,
-  atElsewhere: (id, step) => id === TUTORIAL_QUEST.id && tutorial.reached(step),
   // A night step counts at any time when night is switched off (hazards stay optional).
   nightOk: () => !settings.dayNight || daylightAt(world.time).night >= 0.5,
+  screen: () => (chart.isOpen ? 'chart' : tradePanel.isOpen ? 'market' : 'sea'),
 });
-const coach = new TutorialCoach(tutorial);
+// Whether a fresh voyage offers the tutorial: kept in the browser across voyages.
+const tutorialChoice = new TutorialChoice(world.map.name, storage);
+// A lesson under way in the browser's storage before 0151 moves into the voyage once.
+const legacyLesson = resumedVoyage ? tutorialChoice.legacy() : null;
+if (legacyLesson) quests.restore(TUTORIAL_QUEST, legacyLesson.step, legacyLesson.vars);
+const tutorialRunning = () => quests.isRunning(TUTORIAL_QUEST);
+const coach = new TutorialCoach(quests, view.harbours);
 const tutorialOffer = $<HTMLDialogElement>('tutorial-offer');
 // People's cards and the journal (decision 0124). `questSeen` holds the cards already shown this
 // session (`<quest>:<step>`, `<quest>:offer`); `questThanks` the finished quests still to thank for.
@@ -278,9 +281,9 @@ const questThanks = new Set<string>();
 let offersWait = false;
 /** The main quest's card due now (decision 0141): the others speak on the Quay tab and in notes. */
 function dueMainCard() {
-  // While the tutorial runs, its lesson cards speak: an arc offered meanwhile (Kit's, at
-  // Saltmere) waits for the next visit after it (decision 0130).
-  if (tutorial.isActive) return null;
+  // While a lesson runs, its bubbles speak: an arc offered meanwhile (Kit's, at Saltmere) waits
+  // for the next visit after it (decisions 0130, 0151).
+  if (quests.lesson) return null;
   const docked = world.trade.dockedAt;
   return dueCard(quests, world.map, docked, questSeen, questThanks, (q) => !!q.main);
 }
@@ -315,11 +318,21 @@ function openHarbour() {
 const questNote = new QuestNote($<HTMLButtonElement>('quest-note'), $('captain-stats'));
 questNote.onOpen = () => chart.open();
 quests.onEvent = (e) => {
-  // While the tutorial runs, its own lesson card speaks for Rook's thanks (decision 0127).
-  if (e.type === 'finished' && !tutorial.isActive) questThanks.add(e.quest);
-  if (e.type === 'finished') view.setQuestsDone(questsDone(world.trade));
   const quest = quests.quests.find((q) => q.id === e.quest);
-  if (quest?.main || tutorial.isActive) return;
+  if (quest?.lesson) {
+    // A lesson speaks in its own bubble, and its last one says it is done (decision 0151).
+    if (e.type === 'finished') {
+      coach.finished = e.quest;
+      if (e.quest === TUTORIAL_QUEST) tutorialChoice.set('completed');
+    }
+    coach.render();
+    refreshMenuTutorial();
+    return;
+  }
+  // While a lesson runs, its bubble speaks for Rook's thanks (decision 0127).
+  if (e.type === 'finished' && !quests.lesson) questThanks.add(e.quest);
+  if (e.type === 'finished') view.setQuestsDone(questsDone(world.trade));
+  if (quest?.main || quests.lesson) return;
   if (e.type === 'step' || e.type === 'choice' || e.type === 'finished') {
     const step = quests.progress(e.quest)?.step;
     const kind = e.type === 'finished' ? 'finished' : e.type;
@@ -341,9 +354,7 @@ questCard.onIgnore = (id) => {
 };
 tradePanel.quay = {
   items: () =>
-    tutorial.isActive
-      ? []
-      : quayItems(quests, world.map, world.trade.dockedAt, questSeen, questThanks),
+    quests.lesson ? [] : quayItems(quests, world.map, world.trade.dockedAt, questSeen, questThanks),
   seen: (keys) => {
     for (const key of keys) questSeen.add(key);
   },
@@ -367,13 +378,9 @@ questCard.onClose = () => {
   if (!showDueCard() && world.trade.dockedAt && !tradePanel.isOpen) tradePanel.open('market');
   refreshPause();
 };
-// The tracked step's places at sea: gates, spots, landings (decision 0130).
-// The prologue's wreck gets the same ring and beam while a lesson is about it (decision 0139).
-view.stepMarkers = () => {
-  const mark = tutorial.mark;
-  if (!mark) return trackedMarkers(quests);
-  return { style: 'ring', points: [{ ...mark, within: 12, reached: false, next: true }] };
-};
+// The tracked step's places at sea: gates, spots, landings (decision 0130), the prologue's wreck
+// too while a lesson is about it (decisions 0139, 0151).
+view.stepMarkers = () => trackedMarkers(quests);
 chart.quests = {
   markers: () => trackedMarkers(quests)?.points ?? [],
   pins: () => questPins(quests, world.map, questSeen),
@@ -406,6 +413,7 @@ tradePanel.onAction = () => {
   world.ship = trade.activeShip(world.trade);
   // Goods handed over move a quest on while the market is still open.
   if (quests.check().length) showDueCard();
+  coach.render();
   autosave();
 };
 tradePanel.onClose = () => {
@@ -422,12 +430,12 @@ hud.onPortClick = (portId: string) => {
   if (world.trade.dockedAt === portId) openHarbour();
   else if (trade.tryDock(world.trade, world.map, world.boat, portId)) {
     handleEvents([...trade.flushEconomy(world.trade, world.map), { type: 'docked', portId }]);
-    tutorial.observe();
+    quests.check();
   } else {
     if (setPortDestination(world, portId)) {
       const anchor = view.harbours[portId];
       if (anchor) Object.assign(world.destination!, anchor);
-      tutorial.destinationSelected();
+      quests.check();
       hud.showToast(t('toast.courseSet', { name: world.destination!.label }), 2);
     }
   }
@@ -556,8 +564,7 @@ function play() {
   started = true;
   document.body.classList.remove('in-menu', 'at-title');
   menu.hidden = true;
-  tutorial.resume();
-  if (tutorial.shouldOffer(resumedVoyage)) tutorialOffer.showModal();
+  if (tutorialChoice.shouldOffer(resumedVoyage) && !tutorialRunning()) tutorialOffer.showModal();
   refreshPause();
 }
 
@@ -575,26 +582,41 @@ function closeHelp() {
   refreshPause();
 }
 
-tutorial.onChange = () => {
-  coach.render();
-  $('menu-tutorial-label').textContent = tutorial.isActive
+/** The title menu's tutorial line: start, continue at a step, or replay. */
+function refreshMenuTutorial() {
+  const lesson = lessonFor(quests, view.harbours);
+  const running = lesson?.quest === TUTORIAL_QUEST ? lesson : null;
+  const unseen = tutorialChoice.status === 'unseen';
+  $('menu-tutorial-label').textContent = running
     ? t('menu.tutorialContinue')
-    : tutorial.status === 'unseen'
+    : unseen
       ? t('menu.tutorial')
       : t('menu.tutorialReplay');
-  $('menu-tutorial-note').textContent = tutorial.isActive
+  $('menu-tutorial-note').textContent = running
     ? t('menu.tutorialStep', {
-        step: String(TUTORIAL_STEPS.indexOf(tutorial.step) + 1),
-        total: String(TUTORIAL_STEPS.length),
+        step: String(Math.max(1, running.stepNo)),
+        total: String(running.steps),
       })
-    : tutorial.status === 'unseen'
+    : unseen
       ? t('menu.tutorialNote')
       : '';
-};
-tutorial.onChange();
-chart.onDestinationChange = () => tutorial.destinationSelected();
-tradePanel.onTrade = (kind, good) => tutorial.traded(kind, good);
+}
+refreshMenuTutorial();
+// A course set or cleared on the chart may move a lesson on (decision 0151).
+chart.onDestinationChange = () => quests.check();
 tradePanel.onRender = () => coach.render();
+coach.onOption = (quest, option) => {
+  quests.choose(quest, option);
+  coach.render();
+  autosave();
+};
+coach.onSkip = (quest) => {
+  if (!quests.drop(quest)) return;
+  if (quest === TUTORIAL_QUEST) tutorialChoice.set('skipped');
+  coach.render();
+  refreshMenuTutorial();
+  autosave();
+};
 coach.onChart = () => {
   if (tradePanel.isOpen) tradePanel.close();
   chart.open();
@@ -611,16 +633,24 @@ $('tutorial-start').addEventListener('click', () => {
     startAtPrologue(world);
     sailStep = world.boat.sailStep;
   }
-  tutorial.start();
+  coach.finished = null;
+  quests.ask(TUTORIAL_QUEST);
   tutorialOffer.close();
   refreshPause();
 });
+/** "Free sailing": the tutorial is not taken (and stops, if it was running). */
+function declineTutorial() {
+  quests.drop(TUTORIAL_QUEST);
+  tutorialChoice.set('skipped');
+  coach.render();
+  refreshMenuTutorial();
+}
 $('tutorial-free').addEventListener('click', () => {
-  tutorial.skip();
+  declineTutorial();
   tutorialOffer.close();
   refreshPause();
 });
-tutorialOffer.addEventListener('cancel', () => tutorial.skip());
+tutorialOffer.addEventListener('cancel', declineTutorial);
 tutorialOffer.addEventListener('close', () => {
   refreshPause();
   $('menu-btn').focus({ preventScroll: true });
@@ -631,8 +661,7 @@ $('menu-tutorial').addEventListener('click', () => {
   started = true;
   document.body.classList.remove('in-menu', 'at-title');
   menu.hidden = true;
-  if (tutorial.isActive) tutorial.resume();
-  else tutorialOffer.showModal();
+  if (!tutorialRunning()) tutorialOffer.showModal();
   refreshPause();
 });
 playButton.addEventListener('click', play);
@@ -699,7 +728,6 @@ function startQuestTest(test: NonNullable<typeof questTest>) {
   applyLevelWind('captain');
   markDifficulty();
   levelPicked = true;
-  tutorial.skip();
   const bar = new QuestTestBar(quests, test.quest);
   const started = quests.testStart(test.quest, test.step).length > 0;
   trade.syncMarketLevels(world.trade, world.map);
@@ -1113,22 +1141,19 @@ function handleEvents(events: WorldEvent[]) {
 window.addEventListener('pagehide', autosave);
 
 /**
- * Where to head when no course is set (decision 0139): the wreck while a lesson is about it, else
- * the tracked quest's place, at sea only. The tutorial's other lessons set their own course.
+ * Where to head when no course is set (decision 0139): the tracked quest's place, at sea only; a
+ * running lesson is the tracked quest (decision 0151), so the wreck while a lesson is about it.
  */
 function seaGoal(): { x: number; y: number; label: string } | null {
-  const mark = tutorial.mark;
-  if (mark) return { ...mark, label: t('hud.goalWreck') };
-  if (tutorial.isActive || world.trade.dockedAt) return null;
+  if (world.trade.dockedAt) return null;
   return questGoal(quests, world.map, view.harbours);
 }
 
 /**
- * The lesson, or else the tracked quest's step, whose `wind` and `sound` the sea plays (decision
- * 0139): the same step data for the tutorial and every quest.
+ * The tracked quest's step, whose `wind` and `sound` the sea plays (decision 0139): the same step
+ * data for the tutorial (always tracked while it runs, decision 0151) and every quest.
  */
 function seaStep(): { key: string; step: StepEffects } | null {
-  if (tutorial.isActive) return { key: `tutorial:${tutorial.step}`, step: tutorial.def };
   const step = quests.trackedStep;
   return step ? { key: `${quests.tracked}:${step.id}`, step } : null;
 }
@@ -1159,9 +1184,10 @@ function tick(now: number) {
       const controls = { steer: input.steer, sailStep };
       const sea = seaStep();
       world.calmWind = heldWind(sea?.step.wind, world.map);
+      // No storms while a quest that holds them runs: the tutorial (decision 0072).
+      holdStorms(world, 'quest', quests.holdsStorms);
       handleEvents(stepWorld(world, controls, SIM_STEP));
-      tutorial.observe(controls, SIM_STEP);
-      if (quests.update(SIM_STEP).length) showDueCard();
+      if (quests.update(SIM_STEP, controls).length) showDueCard();
       // A step's sound (the prologue's foghorn) calls every few seconds, the first at once.
       if (sea?.key !== soundKey) {
         soundKey = sea?.key;
@@ -1184,8 +1210,10 @@ function tick(now: number) {
   // Pause menus and translucent sheets leave sea instruments visible. Only the title's
   // CSS rule and the opaque, full-screen chart cover the entire HUD.
   const hudVisible = !(mode === 'menu' && !started) && !chart.isOpen;
-  hud.mark = tutorial.mark ?? (tutorial.isActive ? null : (quests.trackedStep?.compass ?? null));
-  view.castawayWaiting = tutorial.mark !== null;
+  const compass = quests.trackedStep?.compass;
+  hud.mark = quests.compassOf(quests.trackedStep);
+  // Rook waits on the wreck while a step points at it (decision 0127).
+  view.castawayWaiting = compass === 'wreck';
   hud.goal = seaGoal();
   hud.update(dt, (x, y) => view.project(x, y), size, !paused, hudVisible);
   questNote.update(dt, mode === 'play' && !paused && hudVisible, (key) => questSeen.has(key));
@@ -1272,7 +1300,7 @@ if (new URLSearchParams(location.search).has('debug')) {
     location.reload();
   };
   Object.assign(window, {
-    fwt: { world, view, input, trade, tradePanel, quests, tutorial, newGame },
+    fwt: { world, view, input, trade, tradePanel, quests, coach, newGame },
   });
 }
 

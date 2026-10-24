@@ -1,5 +1,6 @@
 import { isDifficulty } from './difficulty';
-import { isGood, type GoodAmounts, type GoodId } from './goods';
+import { GOODS, isGood, type GoodAmounts, type GoodId } from './goods';
+import { landmarkSpot } from './landmarks';
 import type { MapDef } from './map';
 import { SHIP_CLASSES } from './ship';
 import {
@@ -67,6 +68,32 @@ export interface QuestSpot extends QuestPoint {
   holdSec?: number;
 }
 
+/**
+ * Places a quest names by word because each map puts them somewhere else (decision 0151): `wreck`
+ * is the wreck of the map's prologue (decision 0127). A `reach` point or a step's `compass` may be
+ * one of these words; a step whose place is not on the map is passed by.
+ */
+export const MAP_PLACES: Record<string, (map: MapDef) => QuestPoint | null> = {
+  wreck: (map) => (map.prologue ? landmarkSpot(map, map.prologue.wreck) : null),
+};
+
+/** A point, or a map place by its word (null when the map has no such place). */
+export function pointOf(map: MapDef, p: unknown): QuestPoint | null {
+  if (typeof p === 'string') return MAP_PLACES[p]?.(map) ?? null;
+  return typeof p === 'object' && p !== null ? (p as QuestPoint) : null;
+}
+
+/**
+ * A quest's own words for a port or a good chosen in play (decision 0151): `"$origin"` names the
+ * quest's var `origin` (its `vars`), else the value is itself. An unset var is undefined.
+ */
+export function deref(v: unknown, vars: Readonly<Record<string, string>> | undefined): unknown {
+  return typeof v === 'string' && v.startsWith('$') ? vars?.[v.slice(1)] : v;
+}
+
+/** Whether a value names one of the quest's vars (`$name`). */
+export const isVarRef = (v: unknown): v is string => typeof v === 'string' && v.startsWith('$');
+
 /** Whether a `place` parameter is a spot at sea (else it is a port id). */
 export const isSpot = (v: unknown): v is QuestSpot =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -81,6 +108,26 @@ export interface ConditionContext {
   chose(questId: string, option: string): boolean;
   /** Whether a quest has reached `step` (or a later one) or is done. */
   isAt(questId: string, step: string): boolean;
+  /** The checked quest's vars (decision 0151): `$name` in a parameter reads them. */
+  vars?: Readonly<Record<string, string>>;
+  /** The port of the course set on the chart, if any. */
+  course?: string | null;
+  /** What is open: the sea, the chart or the market (the harbour screen). */
+  screen?: Screen;
+}
+
+/** The surfaces the captain can have open, for `screen` and lesson coach marks. */
+export const SCREENS = ['sea', 'chart', 'market'] as const;
+export type Screen = (typeof SCREENS)[number];
+
+/**
+ * The helm since the last check (decision 0151), for `sails-practised`: the sail settings in the
+ * order they were set, and the seconds spent steering and making way.
+ */
+export interface Helm {
+  sails: number[];
+  steerSec: number;
+  movingSec: number;
 }
 
 /** What a condition with slots sees at each check while its step runs. */
@@ -100,6 +147,8 @@ export interface StepContext extends ConditionContext {
   freeSpace: number;
   /** Hold spaces one piece of a quest item takes. */
   itemSpace(item: string): number;
+  /** The helm since the last check (empty when the game passed no controls). */
+  helm?: Helm;
 }
 
 /** What a parameter holds, for the checks and the quest builder; a trailing `?` makes it optional. */
@@ -121,7 +170,8 @@ export type Param =
   | 'order'
   | 'par'
   | 'condition'
-  | 'conditions';
+  | 'conditions'
+  | 'screen';
 export type ParamSpec = Param | `${Param}?`;
 
 interface ConditionKind {
@@ -141,7 +191,16 @@ export function resolvePort(map: MapDef, id: unknown): string | null {
 }
 
 const num = (v: unknown, fallback = 0) => (typeof v === 'number' ? v : fallback);
-const port = (c: Condition, ctx: ConditionContext, key = 'port') => resolvePort(ctx.map, c[key]);
+const port = (c: Condition, ctx: ConditionContext, key = 'port') =>
+  resolvePort(ctx.map, deref(c[key], ctx.vars));
+/** A `good` parameter (or a `$var` holding one); null when unset or not a good. */
+const goodOf = (c: Condition, ctx: ConditionContext): GoodId | null => {
+  const g = deref(c.good, ctx.vars);
+  return isGood(g) ? g : null;
+};
+/** A `reach` condition's points on this map (a map place it lacks is left out). */
+const pointsOf = (c: Condition, map: MapDef): (QuestPoint | null)[] =>
+  ((c.points as unknown[]) ?? []).map((p) => pointOf(map, p));
 
 /** Distance from `p` to the segment a→b: a marker passed between two checks still counts. */
 function passDistance(a: QuestPoint, b: QuestPoint, p: QuestPoint): number {
@@ -159,7 +218,7 @@ function passDistance(a: QuestPoint, b: QuestPoint, p: QuestPoint): number {
  * order), and hundredths of a second held at the current one.
  */
 function updateReach(c: Condition, ctx: StepContext, s: number[]) {
-  const points = c.points as QuestPoint[];
+  const points = pointsOf(c, ctx.map);
   const within = num(c.within);
   const inOrder = c.order === 'in-order';
   if (c.atNight && !ctx.nightOk) {
@@ -172,7 +231,7 @@ function updateReach(c: Condition, ctx: StepContext, s: number[]) {
   const next = s[0]!;
   points.forEach((p, i) => {
     const reached = inOrder ? i < next : (s[0]! & (1 << i)) !== 0;
-    if (reached || (inOrder && i !== next)) return;
+    if (!p || reached || (inOrder && i !== next)) return;
     if (!holding) {
       if (passDistance(ctx.from, ctx.boat, p) <= within)
         s[0] = inOrder ? s[0]! + 1 : s[0]! | (1 << i);
@@ -191,7 +250,7 @@ function updateReach(c: Condition, ctx: StepContext, s: number[]) {
 }
 
 const reachDone = (c: Condition, s: number[]) => {
-  const n = (c.points as QuestPoint[]).length;
+  const n = (c.points as unknown[]).length;
   return c.order === 'in-order' ? s[0]! >= n : s[0] === 2 ** n - 1;
 };
 
@@ -246,6 +305,30 @@ function updateTimed(c: Condition, ctx: StepContext, s: number[]) {
   } else if (docked === to && s[2]! >= via.length) s[0] = RUN_MADE;
 }
 
+/**
+ * The sails drill (`sails-practised`, decision 0151): sails lowered all the way and raised again, a
+ * touch of steering and a little way on. Slots: lowered, raised (0 or 1), hundredths of a second
+ * steering, hundredths of a second making way.
+ */
+function updateSailsPractised(_c: Condition, ctx: StepContext, s: number[]) {
+  const helm = ctx.helm;
+  if (!helm) return;
+  for (const sail of helm.sails) {
+    if (sail === 0) s[0] = 1;
+    else if (s[0]) s[1] = 1;
+  }
+  s[2] = s[2]! + Math.round(helm.steerSec * 100);
+  s[3] = s[3]! + Math.round(helm.movingSec * 100);
+}
+
+/** The goods bought alongside a port since the last check: good → how many more aboard. */
+function boughtSince(ctx: StepContext, good: GoodId | null): number {
+  let n = 0;
+  for (const g of good ? [good] : GOODS)
+    n += Math.max(0, ctx.trade.captain.cargo[g] - ctx.cargoBefore[g]);
+  return n;
+}
+
 export const CONDITIONS: Record<string, ConditionKind> = {
   always: { params: {}, test: () => true },
   all: {
@@ -269,7 +352,26 @@ export const CONDITIONS: Record<string, ConditionKind> = {
     params: { quest: 'quest', option: 'option' },
     test: (c, ctx) => ctx.chose(c.quest as string, c.option as string),
   },
-  docked: { params: { port: 'port' }, test: (c, ctx) => ctx.trade.dockedAt === port(c, ctx) },
+  /** Never holds by itself: the game starts the quest when asked for it (the tutorial, 0151). */
+  asked: { params: {}, test: () => false },
+  /** Alongside `port`, or any port when it names none. */
+  docked: {
+    params: { port: 'port?' },
+    test: (c, ctx) => {
+      const at = ctx.trade.dockedAt;
+      return c.port === undefined ? at !== null : at !== null && at === port(c, ctx);
+    },
+  },
+  /** A course set on the chart to `port`, or to any port when it names none. */
+  course: {
+    params: { port: 'port?' },
+    test: (c, ctx) => {
+      const to = ctx.course ?? null;
+      return c.port === undefined ? to !== null : to !== null && to === port(c, ctx);
+    },
+  },
+  /** The chart or the market is open (or the sea, with nothing over it). */
+  screen: { params: { screen: 'screen' }, test: (c, ctx) => (ctx.screen ?? 'sea') === c.screen },
   discovered: {
     params: { port: 'port' },
     test: (c, ctx) => isDiscovered(ctx.trade, port(c, ctx) ?? ''),
@@ -290,9 +392,16 @@ export const CONDITIONS: Record<string, ConditionKind> = {
     params: { atLeast: 'count' },
     test: (c, ctx) => ctx.trade.captain.gold >= num(c.atLeast),
   },
+  /** At least `qty` (default 1) of a good aboard; with no `good`, of goods of any kind. */
   'has-cargo': {
-    params: { good: 'good', qty: 'count' },
-    test: (c, ctx) => ctx.trade.captain.cargo[c.good as GoodId] >= num(c.qty),
+    params: { good: 'good?', qty: 'count?' },
+    test: (c, ctx) => {
+      const qty = num(c.qty, 1);
+      if (c.good === undefined)
+        return GOODS.reduce((n, g) => n + ctx.trade.captain.cargo[g], 0) >= qty;
+      const good = goodOf(c, ctx);
+      return good !== null && ctx.trade.captain.cargo[good] >= qty;
+    },
   },
   /**
    * A building stands on one of the captain's islands, or on `island` (decisions 0126, 0128): a
@@ -323,12 +432,35 @@ export const CONDITIONS: Record<string, ConditionKind> = {
     params: { port: 'port', good: 'good', qty: 'count' },
     slots: 1,
     update(c, ctx, s) {
-      if (ctx.trade.dockedAt !== port(c, ctx)) return;
-      const good = c.good as GoodId;
+      const at = port(c, ctx);
+      const good = goodOf(c, ctx);
+      if (!at || !good || ctx.trade.dockedAt !== at) return;
       const handed = ctx.cargoBefore[good] - ctx.trade.captain.cargo[good];
       s[0] = Math.min(num(c.qty), Math.max(0, s[0]! + handed));
     },
     test: (c, _ctx, s) => s[0]! >= num(c.qty),
+  },
+  /**
+   * Goods bought alongside `port` since the step began (with no `good`, of any kind); a good taken
+   * aboard there any other way counts too. Slot: how many.
+   */
+  bought: {
+    params: { port: 'port', good: 'good?', qty: 'count' },
+    slots: 1,
+    update(c, ctx, s) {
+      const at = port(c, ctx);
+      if (!at || ctx.trade.dockedAt !== at) return;
+      if (c.good !== undefined && !goodOf(c, ctx)) return;
+      s[0] = Math.min(num(c.qty), s[0]! + boughtSince(ctx, goodOf(c, ctx)));
+    },
+    test: (c, _ctx, s) => s[0]! >= num(c.qty),
+  },
+  /** The sails drill: lower, raise, steer and get under way (the first lesson). */
+  'sails-practised': {
+    params: {},
+    slots: 4,
+    update: updateSailsPractised,
+    test: (_c, _ctx, s) => !!s[0] && !!s[1] && s[2]! >= 30 && s[3]! >= 100,
   },
   /**
    * Quest cargo (`carried`): pieces of the quest's `item`, loaded at `from` as far as the hold has
@@ -393,7 +525,10 @@ export const CONDITION_ABOUT: Record<string, string> = {
   'quest-done': 'a quest is finished',
   'quest-at': 'a quest has reached a step',
   chose: 'an option was picked in a quest',
+  asked: 'the game asks for it (the tutorial)',
   docked: 'alongside a port',
+  course: 'a course set on the chart',
+  screen: 'the chart or the market is open',
   discovered: 'a port is on the chart',
   'town-level': 'a town has grown to a level',
   standing: 'standing with a shipwright',
@@ -404,6 +539,8 @@ export const CONDITION_ABOUT: Record<string, string> = {
   moored: 'moored at an island’s pier',
   'owns-ship': 'owns a ship',
   delivered: 'hand over goods at a port',
+  bought: 'buy goods at a port',
+  'sails-practised': 'lower and raise the sails, steer, get under way',
   carried: 'carry quest cargo from one place to another',
   reach: 'sail to places at sea',
   timed: 'a run against the clock',
@@ -488,7 +625,13 @@ export function portsIn(c: Condition | undefined): string[] {
   for (const [name, spec] of Object.entries(kind.params)) {
     const type = spec.replace('?', '');
     const v = c[name];
-    if ((type === 'port' || type === 'place') && typeof v === 'string' && v !== 'home') out.push(v);
+    if (
+      (type === 'port' || type === 'place') &&
+      typeof v === 'string' &&
+      v !== 'home' &&
+      !isVarRef(v)
+    )
+      out.push(v);
     if (type === 'condition') out.push(...portsIn(v as Condition));
     if (type === 'conditions' && Array.isArray(v))
       out.push(...v.flatMap((m) => portsIn(m as Condition)));
@@ -498,7 +641,7 @@ export function portsIn(c: Condition | undefined): string[] {
 
 export function rewardPorts(r: QuestReward | undefined): string[] {
   return [...Object.keys(r?.standing ?? {}), ...(r?.discover ?? []), ...(r?.levelUp ?? [])].filter(
-    (p) => p !== 'home',
+    (p) => p !== 'home' && !isVarRef(p),
   );
 }
 
@@ -511,7 +654,13 @@ export interface CheckScope {
   steps: Map<string, string[]>;
   /** The checked quest's items. */
   items: string[];
+  /** The checked quest's vars (decision 0151): name → what it holds. */
+  vars?: Record<string, VarKind>;
 }
+
+/** What a quest var holds (decision 0151). */
+export const VAR_KINDS = ['port', 'good'] as const;
+export type VarKind = (typeof VAR_KINDS)[number];
 
 const isCount = (v: unknown) => typeof v === 'number' && Number.isInteger(v) && v >= 0;
 const isNumber = (v: unknown) => typeof v === 'number' && Number.isFinite(v) && v >= 0;
@@ -531,6 +680,12 @@ function checkParam(
 ): string[] {
   const out: string[] = [];
   const bad = (what: string) => out.push(`${where}: ${what}`);
+  if (isVarRef(v) && (type === 'port' || type === 'place' || type === 'good')) {
+    const kind = scope.vars?.[v.slice(1)];
+    const want = type === 'good' ? 'good' : 'port';
+    if (kind !== want) bad(`no ${want} var "${v.slice(1)}" in the quest's vars`);
+    return out;
+  }
   if (type === 'port' && !resolvePort(scope.map, v)) bad(`no port "${String(v)}"`);
   if (type === 'place') {
     if (!isSpot(v)) {
@@ -566,9 +721,15 @@ function checkParam(
   if (type === 'number' && !isNumber(v)) bad('needs a number');
   if (type === 'flag' && typeof v !== 'boolean') bad('needs true or false');
   if (type === 'order' && v !== 'any' && v !== 'in-order') bad('needs "any" or "in-order"');
+  if (type === 'screen' && !SCREENS.includes(v as Screen))
+    bad(`needs one of ${SCREENS.join(', ')}`);
   if (type === 'points') {
-    if (!Array.isArray(v) || v.length === 0 || !v.every(isPoint))
-      bad('needs a list of { "x", "y" }');
+    if (
+      !Array.isArray(v) ||
+      v.length === 0 ||
+      !v.every((p) => isPoint(p) || (typeof p === 'string' && p in MAP_PLACES))
+    )
+      bad(`needs a list of { "x", "y" } or map places (${Object.keys(MAP_PLACES).join(', ')})`);
     else if (v.length > 30) bad('at most 30 points');
   }
   if (type === 'par') {
@@ -601,6 +762,7 @@ export function checkCondition(
   if (!kind) return [`${at}: unknown condition "${String(cond.is)}"`];
   const out: string[] = [];
   if (kind.slots && !inGoal) out.push(`${at}: "${cond.is}" only works in a step's goal`);
+  if (cond.is === 'asked' && inGoal) out.push(`${at}: "asked" only works as a quest's start`);
   for (const key of Object.keys(cond))
     if (key !== 'is' && !(key in kind.params)) out.push(`${at}: "${cond.is}" has no "${key}"`);
   for (const [name, spec] of Object.entries(kind.params)) {

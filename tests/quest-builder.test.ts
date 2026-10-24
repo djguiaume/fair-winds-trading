@@ -21,7 +21,6 @@ import {
 import { clearAt } from '../src/sim/mapChecks';
 import { CONDITIONS, CONDITION_ABOUT, checkCondition } from '../src/sim/questLibrary';
 import { QUESTS, type QuestDef, checkQuests } from '../src/sim/quests';
-import { TUTORIAL_QUEST } from '../src/sim/tutorial';
 
 /** The quest builder's document (decision 0142). */
 
@@ -109,10 +108,8 @@ describe('quest builder (decision 0142)', () => {
     expect(conditionWords(shoals(doc).steps[1]!.goal)).toBe(
       'reach 3 places · in order · within 10',
     );
-    const columns = storyColumns([
-      { id: TUTORIAL_QUEST.id, start: { is: 'always' } },
-      ...doc.quests,
-    ]);
+    // The tutorial is a quest like the others (decision 0151).
+    const columns = storyColumns(doc.quests);
     expect(columns[0]).toEqual(['first-voyage']);
     expect(columns[1]).toEqual(['rooks-thanks']);
     expect(columns[2]).toHaveLength(4);
@@ -130,7 +127,8 @@ describe('quest builder (decision 0142)', () => {
   it('every condition kind has words for the kind picker, and a new one checks clean', () => {
     const scope = {
       map: PHASE1_MAP,
-      quests: new Map([[TUTORIAL_QUEST.id, []]]),
+      quests: new Map([['first-voyage', []]]),
+      vars: {},
       steps: new Map<string, string[]>(),
       items: [],
     };
@@ -138,14 +136,14 @@ describe('quest builder (decision 0142)', () => {
       expect(CONDITION_ABOUT[kind], kind).toBeTruthy();
       // Kinds naming a step, option or item need the author to pick one first.
       if (['quest-at', 'chose', 'carried'].includes(kind)) continue;
-      const c = newCondition(kind, PHASE1_MAP, [TUTORIAL_QUEST.id]);
-      expect(checkCondition(c, scope, true, kind), kind).toEqual([]);
+      const c = newCondition(kind, PHASE1_MAP, ['first-voyage']);
+      expect(checkCondition(c, scope, kind !== 'asked', kind), kind).toEqual([]);
     }
   });
 
   it('a new quest from the builder passes the engine’s checks', () => {
     const doc = shipped();
     doc.quests.push(newQuest(doc, PHASE1_MAP));
-    expect(checkQuests(doc.quests, PHASE1_MAP, [TUTORIAL_QUEST.id])).toEqual([]);
+    expect(checkQuests(doc.quests, PHASE1_MAP)).toEqual([]);
   });
 });

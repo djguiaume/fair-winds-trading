@@ -23,7 +23,7 @@ Guillaume asked whether there should be a quest editor or builder. Quests are da
 - Adding a quest no longer needs a thread or hand-typed coordinates; the review of its text and places happens in the tool.
 - The condition and reward kinds gain parameter descriptions (small code change in `questLibrary.ts`), shared by the builder and the checks.
 - The game learns a test start (`?map=edited&quest=…&step=…`) on a fresh voyage kept in memory (see As built, part 2).
-- The tutorial's own lesson format (`first-voyage.json`: `coach`, `on`, `mark`, `continue`) is now a debt: it must become ordinary quest steps.
+- The tutorial's own lesson format (`first-voyage.json`: `coach`, `on`, `mark`, `continue`) is now a debt: it must become ordinary quest steps. **Paid** in [0151](0151-tutorial-as-ordinary-quest-steps.md).
 
 ## As built (part 1)
 
@@ -35,7 +35,7 @@ Guillaume asked whether there should be a quest editor or builder. Quests are da
 ## As built (part 2): play from a step
 
 - **▶ Play from step…** in the builder's top bar: pick a step of the open quest and a start, **docked at a port** (default the step's `port`, else the quest's) or **at sea** about 30 short of the step's first place, heading for it. The game opens in a new tab: `?map=edited&quest=<id>&step=<id>` with `&port=<id>` or `&x=…&y=…&h=…`.
-- The test is a **fresh Captain voyage kept in memory only** (not the editor's play-test save the plan named), so a test never leaves a save behind and Restart is a reload. The tutorial is skipped.
+- The test is a **fresh Captain voyage kept in memory only** (not the editor's play-test save the plan named), so a test never leaves a save behind and Restart is a reload. The tutorial is skipped (since [0151](0151-tutorial-as-ordinary-quest-steps.md) it is a quest like the others).
 - `QuestBook.testStart` finishes the quests the start condition names (`quest-done`, `chose` through the named option, `quest-at` up to that step; the first member of an `any`), paying their rewards, then pays the quest's own earlier steps on the way to the step (`routeTo` finds the way through choices). Other start conditions (gold, a town level) are not made true: the quest is simply entered.
 - At sea she starts off the wind when the heading asked for points into it (`sailableHeading`); docked, `testBerth` finds clear water in docking range by the pier.
 - A **quest test bar** (bottom; under the quest note in portrait) shows the quest and step, with **↺ Restart**, **⏭ Skip step** (`QuestBook.skipStep`; a choice takes its first option) and **✕ Editor**. Editor-only English, like the map editor.

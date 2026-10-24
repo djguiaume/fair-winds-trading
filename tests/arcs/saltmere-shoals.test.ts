@@ -12,7 +12,6 @@ import {
 } from '../../src/sim/quests';
 import { producesAt } from '../../src/sim/settlement';
 import { SLOOP } from '../../src/sim/ship';
-import { TUTORIAL_QUEST } from '../../src/sim/tutorial';
 import { type World, createWorld } from '../../src/sim/world';
 import { stepMarkers } from '../../src/ui/questView';
 import { t } from '../../src/i18n';
@@ -31,7 +30,7 @@ function voyage() {
   const world = createWorld(PHASE1_MAP, SLOOP);
   world.trade.quests.byId['rooks-thanks'] = { step: 'done', counts: [], chose: {} };
   const book = new QuestBook(world, QUESTS, {
-    doneElsewhere: (id) => id === TUTORIAL_QUEST.id,
+    doneElsewhere: (id) => id === 'first-voyage',
     nightOk: () => true,
   });
   book.check();
@@ -60,10 +59,8 @@ function visit(world: World, book: QuestBook, at: Point) {
 
 describe('saltmere-shoals', () => {
   it('passes the quest checks and its hooks name it', () => {
-    expect(checkQuests(QUESTS, PHASE1_MAP, [TUTORIAL_QUEST.id])).toEqual([]);
-    expect(
-      checkQuestHooks(PHASE1_MAP, Object.values(ISLAND_DESIGNS), QUESTS, [TUTORIAL_QUEST.id]),
-    ).toEqual([]);
+    expect(checkQuests(QUESTS, PHASE1_MAP)).toEqual([]);
+    expect(checkQuestHooks(PHASE1_MAP, Object.values(ISLAND_DESIGNS), QUESTS)).toEqual([]);
     expect(QUESTS.some((q) => q.id === ID)).toBe(true);
   });
 
