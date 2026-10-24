@@ -1,6 +1,6 @@
 # 0135. Buildings and props as data
 
-**Status:** Proposed (2026-10-24), awaiting Guillaume's review. Nothing is built yet. Asked by Guillaume after the ship files of [0109](0109-one-file-per-ship.md): "a list of buildings with each building's geometry, colour etc", first checking the best way. Full comparison, prototype and before/after picture: [reviews/props-as-data](../reviews/props-as-data/README.md).
+**Status:** Accepted (2026-10-24): Guillaume chose the hybrid (JSON recipes + palette) on the decision card. Nothing is built yet. Asked by Guillaume after the ship files of [0109](0109-one-file-per-ship.md): "a list of buildings with each building's geometry, colour etc", first checking the best way. Full comparison, prototype and before/after picture: [reviews/props-as-data](../reviews/props-as-data/README.md).
 
 ## Context
 
@@ -8,7 +8,7 @@ The 43 prop types the island files place (homes, town buildings, workshops, farm
 
 Options weighed: a recipe file per prop (primitive shapes + a palette), the ship pattern (numbers into one builder + named code parts), glTF files, or a hybrid. glTF is the standard for artist-made meshes, but this project builds its assets in code and has no 3D modeller; it would also break the island golden hashes and complicate palettes and variants.
 
-## Decision (proposed)
+## Decision
 
 1. **Hybrid recipes.** One file per prop, `src/data/props/<id>.json`, loaded with `import.meta.glob`, holding its catalogue flags (`group`, `home`, `building`, `water`, `edge`, `fit`…) and a list of **parts**: shapes (`box`, `cyl`, `gable`, `hip`, `dome`, `ico`, `dodeca`, `torus`, `plane`, `windows`, `use` another prop, `part` = a named code part), placement (`at`, or ordered `ops`), and colour by name.
 2. **Colours in `src/data/palette.json`**: named colours and walls/roofs per island style. A recipe uses the island's style unless it fixes one.

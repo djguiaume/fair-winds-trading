@@ -1,6 +1,7 @@
 import buildingsFile from '../data/buildings.json';
 import { type HomeSpotDef, type IslandDesign, type PropDef, designOf } from '../data/islands';
 import { TUNING } from '../data/tuning';
+import { GOODS, type GoodId } from './goods';
 import type { IslandDef, MapDef } from './map';
 
 /**
@@ -8,23 +9,14 @@ import type { IslandDef, MapDef } from './map';
  * spots, the home island of the base game and any island with spots in its file (extensions).
  * Each community arc ends by offering one arc spot, where the captain picks one building of its
  * pair for free; a building passed over can come back later on a spare spot, for gold (the
- * provisional rule of 0120). Buildings carry one small modifier each. Plain data, no DOM.
+ * provisional rule of 0120). Buildings carry small perks (`perks.ts`, decision 0136). Plain
+ * data, no DOM.
  *
- * Content: the buildings, their pairs, prices and modifiers in `src/data/buildings.json`; the
+ * Content: the buildings, their pairs, prices and perk ids in `src/data/buildings.json`, the
+ * perks in `src/data/perks.json`; the
  * spots in the home island's file (`homeSpots`), and where each building stands as props tagged
  * `home:<building>`; the later price factor in `economy.json` › `home`.
  */
-
-/** What a building changes. Factors multiply; `homeStorage` and `windForecast` are amounts. */
-export type EffectKind =
-  | 'homeRepair'
-  | 'sailUpgradePrice'
-  | 'homeStorage'
-  | 'helpReward'
-  | 'discoverRange'
-  | 'hullDamage'
-  | 'windForecast'
-  | 'shipPrice';
 
 export interface BuildingDef {
   id: string;
@@ -32,7 +24,8 @@ export interface BuildingDef {
   pair: string;
   /** Gold, before the later price factor; an arc's own building is free. */
   price: number;
-  effect: { kind: EffectKind; value: number };
+  /** Perk ids from `src/data/perks.json`. */
+  perks: string[];
 }
 
 export const BUILDINGS: BuildingDef[] = buildingsFile.buildings as BuildingDef[];
@@ -47,6 +40,8 @@ export interface IslandHome {
   offered: string[];
   /** Spot id → building id. */
   built: Record<string, string>;
+  /** Crates kept in its warehouse between voyages (decision 0136); none: left out. */
+  stored?: Partial<Record<GoodId, number>>;
 }
 
 /**
@@ -221,31 +216,6 @@ export function hasBuilding(
   return ids.some((id) => Object.values(islandHome(home, id).built).includes(buildingId));
 }
 
-function effectOn(built: Record<string, string>, kind: EffectKind): number | undefined {
-  for (const id of Object.values(built)) {
-    const b = buildingById(id);
-    if (b?.effect.kind === kind) return b.effect.value;
-  }
-  return undefined;
-}
-
-/**
- * The value of an effect: a built building's on any of the captain's islands, else `fallback`
- * (1 for a factor, 0 for an amount). The same kind on two islands does not add up.
- */
-export function homeEffect(home: HomeState | undefined, kind: EffectKind, fallback = 1): number {
-  for (const id of ownedIslands(home)) {
-    const v = effectOn(islandHome(home, id).built, kind);
-    if (v !== undefined) return v;
-  }
-  return fallback;
-}
-
-/** An effect that works only alongside its island (home repairs): the moored island's, if any. */
-export function dockedEffect(home: HomeState | undefined, kind: EffectKind): number | undefined {
-  return home?.docked ? effectOn(islandHome(home, home.docked).built, kind) : undefined;
-}
-
 const isObj = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
 
@@ -265,6 +235,14 @@ function readIsland(raw: unknown, map: MapDef, islandId: string): IslandHome | n
     out.offered = spots
       .filter((s) => s.pair && !out.built[s.id] && (raw.offered as unknown[]).includes(s.id))
       .map((s) => s.id);
+  if (isObj(raw.stored)) {
+    const stored: Partial<Record<GoodId, number>> = {};
+    for (const g of GOODS) {
+      const n = raw.stored[g];
+      if (typeof n === 'number' && Number.isInteger(n) && n > 0) stored[g] = n;
+    }
+    if (Object.keys(stored).length) out.stored = stored;
+  }
   return out;
 }
 

@@ -1,0 +1,22 @@
+{
+  "hooks": {
+    "repairPrice": "Gold per hull point repaired. A perk on it at an island also lets the hull be repaired there.",
+    "sailUpgradePrice": "Gold for a sail upgrade at a shipyard.",
+    "shipPrice": "Gold for a new ship at a shipyard.",
+    "helpReward": "Help orders' reward factor (a town asking for help pays this times the usual).",
+    "discoverRange": "How close a hidden island must be to show on the chart, in map units.",
+    "hullDamage": "Hull points lost when striking a reef, a shore or a pier.",
+    "storageRoom": "Crates the captain can keep at an island between voyages (0: none).",
+    "forecastSec": "How far ahead the wind is shown under the compass, in seconds (0: no forecast)."
+  },
+  "perks": [
+    { "id": "home-repairs", "hook": "repairPrice", "multiply": 0.75, "where": "island" },
+    { "id": "cheaper-sails", "hook": "sailUpgradePrice", "multiply": 0.9 },
+    { "id": "warehouse-room", "hook": "storageRoom", "add": 10, "where": "island" },
+    { "id": "better-help-pay", "hook": "helpReward", "multiply": 1.1 },
+    { "id": "farther-sight", "hook": "discoverRange", "multiply": 1.3 },
+    { "id": "softer-knocks", "hook": "hullDamage", "multiply": 0.8 },
+    { "id": "wind-forecast", "hook": "forecastSec", "add": 60 },
+    { "id": "cheaper-ships", "hook": "shipPrice", "multiply": 0.9 }
+  ]
+}

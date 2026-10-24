@@ -3,6 +3,7 @@ import { trueWindAngle } from '../sim/boat';
 import { DEG, bearingTo, distance, wrapPositive } from '../sim/math';
 import { type PointOfSail, noGoAngle, pointOfSail } from '../sim/ship';
 import { hullCondition } from '../sim/hazards';
+import { windForecast } from '../sim/forecast';
 import { USUAL_WEATHER, windTo } from '../sim/wind';
 import { WIND_FORCES, createWindGauge, updateWindGauge } from '../sim/windStrength';
 import { windFeedback } from './windFeedback';
@@ -87,6 +88,8 @@ export class Hud {
   private readonly objDist = $('obj-dist');
   private readonly windText = $('wind-text');
   private readonly weatherText = $('weather-text');
+  private readonly forecastText = $('wind-forecast');
+  private sinceForecast = Infinity;
   private readonly cNoGo = $('c-nogo');
   private readonly cBand = $('c-band');
   private readonly cWind = $('c-wind');
@@ -407,6 +410,30 @@ export class Hud {
 
   /** `project` maps sim positions to pixels; `size` is the viewport. `active` controls
    * sailing cues; `visible` controls rendering. Paused instruments can still be visible. */
+
+  /** The weather glass's forecast under the wind (decision 0136), twice a second. */
+  private showForecast(dt: number) {
+    this.sinceForecast += dt;
+    if (this.sinceForecast < 0.5) return;
+    this.sinceForecast = 0;
+    const f = windForecast(this.world);
+    this.forecastText.hidden = !f;
+    if (!f) return;
+    const minutes = f.aheadSec % 60 === 0;
+    const time = t(minutes ? 'unit.minutes' : 'unit.seconds', {
+      n: minutes ? f.aheadSec / 60 : Math.round(f.aheadSec),
+    });
+    const storm = f.storm > 0.15;
+    const weather = storm ? 'storm' : f.kind;
+    const extra = weather === USUAL_WEATHER ? '' : ` · ${weatherName(weather)}`;
+    this.forecastText.toggleAttribute('data-storm', storm);
+    this.forecastText.textContent = t('hud.forecast', {
+      time,
+      dir: compassPoint(f.from),
+      kn: f.speedKn.toFixed(0),
+      extra,
+    });
+  }
   update(
     dt: number,
     project: (x: number, y: number) => ScreenPoint,
@@ -499,6 +526,7 @@ export class Hud {
         this.weatherText.dataset.kind = kind;
         this.weatherText.textContent = weatherName(kind);
       }
+      this.showForecast(dt);
 
       document.body.classList.toggle('is-docked', Boolean(this.world.trade.dockedAt));
       // Captain stats & dock button

@@ -1,6 +1,6 @@
 # Buildings and props as data: review
 
-**Date:** 2026-10-24. **Asked by:** Guillaume ("there's also a list of buildings somewhere with each building geometry, colour etc? … check the best way to do that first and propose it to me"). **Decision:** [0135](../../decisions/0135-props-as-data.md) (proposed). Nothing in the game is changed by this review.
+**Date:** 2026-10-24. **Asked by:** Guillaume ("there's also a list of buildings somewhere with each building geometry, colour etc? … check the best way to do that first and propose it to me"). **Decision:** [0135](../../decisions/0135-props-as-data.md) (accepted 2026-10-24: Guillaume chose the hybrid). Nothing in the game is changed by this review.
 
 ![Before and after: one prop from code and from data](before-after.png)
 
