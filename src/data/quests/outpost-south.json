@@ -1,0 +1,49 @@
+{
+  "id": "outpost-south",
+  "name": "Palm Key",
+  "start": { "is": "quest-done", "quest": "sunreach-tea" },
+  "text": "quest.outpost-south",
+  "giver": "juno",
+  "doneSpeaker": "tam",
+  "port": "sunreach",
+  "offer": true,
+  "items": { "tam": { "space": 0 } },
+  "steps": [
+    {
+      "id": "supplies",
+      "mood": "worried",
+      "goal": {
+        "is": "all",
+        "of": [
+          {
+            "is": "landed",
+            "place": { "x": 487, "y": -738, "within": 10, "maxKn": 2, "holdSec": 3 },
+            "good": "timber",
+            "qty": 10
+          },
+          {
+            "is": "landed",
+            "place": { "x": 487, "y": -738, "within": 10, "maxKn": 2, "holdSec": 3 },
+            "good": "planks",
+            "qty": 6
+          }
+        ]
+      },
+      "reward": { "gold": 300 }
+    },
+    {
+      "id": "settler",
+      "speaker": "tam",
+      "port": "watchman-key",
+      "goal": {
+        "is": "carried",
+        "item": "tam",
+        "qty": 1,
+        "from": "watchman-key",
+        "to": { "x": 487, "y": -738, "within": 10, "maxKn": 2, "holdSec": 3 }
+      },
+      "reward": { "gold": 450 }
+    }
+  ],
+  "reward": { "found": ["palm-key"] }
+}

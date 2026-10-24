@@ -212,7 +212,7 @@ at once and then every few seconds, with the line `toast.<effect>` if there is o
 direction of the step's place), `mood` (the giver's face on this
 step's card: `neutral`, `pleased` or `worried`), `look` (a named look from
 `characters.json`, e.g. Rook `soaked`) and `speaker` (someone else speaks this step's card, a
-`characters.json` id; `mood` and `look` are then theirs: [0133](../decisions/0133-stonehaven-light-arc.md)). The sea shows the
+`characters.json` id; `mood` and `look` are then theirs: [0133](../decisions/0133-stonehaven-light-arc.md)); the quest's own `doneSpeaker` does the same for the done card (the settler thanks the captain, [0158](../decisions/0158-founding-palm-key.md)). The sea shows the
 **tracked** quest's step: its `compass`, `wind` and `sound` ([0139](../decisions/0139-gentler-prologue-and-quest-cards.md)), and with no course set an
 objective arrow to its compass point, spot or harbour. The tutorial's lessons use the same `wind`
 and `sound` fields.

@@ -207,8 +207,8 @@ export function cardFor(
         ? undefined
         : quest.steps.find((s) => s.id === p?.step);
   if (kind !== 'finished' && !step) return null;
-  // A step's `speaker` talks on its card instead of the giver.
-  const who = step?.speaker ?? quest.giver;
+  // A step's `speaker` talks on its card instead of the giver, and `doneSpeaker` on the done card.
+  const who = step ? (step.speaker ?? quest.giver) : (quest.doneSpeaker ?? quest.giver);
   const giver = who ? character(who) : undefined;
   const key = `${quest.text}.${step?.id ?? QUEST_DONE}`;
   const card: QuestCardModel = {
