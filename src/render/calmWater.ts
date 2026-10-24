@@ -50,7 +50,7 @@ uniform vec3 uFogColor;
 uniform float uFogNear;
 uniform float uFogFar;
 uniform float uFade;
-uniform float uStyle;
+uniform float uEdge;
 varying float vEdge;
 varying float vGlassy;
 varying vec3 vWorld;
@@ -66,36 +66,25 @@ float noise(vec2 p) {
 
 void main() {
   float shore = smoothstep(1.5, 6.0, shoreDistance(vWorld.xz));
-  float body = smoothstep(0.0, uFade, vEdge) * shore * vGlassy;
   vec2 p = vWorld.xz;
-  vec3 col;
-  float alpha;
-  if (uStyle < 0.5) {
-    // A: mirror. A bright, sky-pale sheet with long soft bands of reflected light.
-    float band = 0.5 + 0.5 * sin(dot(p, vec2(0.022, 0.009)) + uTime * 0.12);
-    vec3 sky = mix(uWaterLight, vec3(0.80, 0.93, 0.95), 0.3);
-    col = mix(uWaterLight * 1.08, sky, band);
-    alpha = body;
-  } else if (uStyle < 1.5) {
-    // B: cat's paws. Smooth still water, with darker ruffled patches where a puff touches it,
-    // drifting slowly with the light air.
-    vec3 still = mix(uWater, uWaterLight, 0.75) * 1.12;
-    float n = noise(p * 0.045 + vec2(uTime * 0.05, uTime * 0.03));
-    n += 0.5 * noise(p * 0.11 - vec2(uTime * 0.04, 0.0));
-    float paw = smoothstep(0.9, 1.15, n);
-    float ripple = smoothstep(0.6, 0.95, sin(p.x * 0.9 + p.y * 0.5 + uTime * 1.6 + n * 6.0));
-    col = mix(still, mix(uWater * 0.95, uWaterLight * 1.1, ripple * 0.6), paw * 0.9);
-    alpha = body;
-  } else {
-    // C: slick swell. Deep, still, darker water with long pale swell lines rolling through.
-    vec3 deep = uWater * vec3(0.78, 0.9, 0.95);
-    float s = sin(dot(p, vec2(0.06, 0.035)) - uTime * 0.35);
-    float line = smoothstep(0.55, 0.95, s) * (1.0 - smoothstep(0.95, 1.0, s) * 0.5);
-    col = mix(deep, uWaterLight * 1.2, line * 0.75);
-    alpha = body;
-  }
+  // vEdge is fade / 2 on the outline itself. The glass starts sharply just inside it, so the patch
+  // has an edge you can steer by; the wind still eases over the whole fade.
+  float inside = smoothstep(uFade * 0.5, uFade * 0.5 + uEdge, vEdge);
+  // Where the breeze dies, a band of ruffled water: small bright ripples, densest at the line.
+  float out_ = uFade * 0.5 - vEdge;
+  float band = (1.0 - smoothstep(0.0, uEdge * 2.5, out_)) * step(0.0, out_ + uEdge * 0.5);
+  float rough = noise(p * 0.55 + vec2(uTime * 0.6, -uTime * 0.4));
+  rough *= 0.5 + 0.5 * sin(p.x * 1.7 - p.y * 1.1 + uTime * 3.0);
+  float ruffle = band * smoothstep(0.35, 0.6, rough) * (1.0 - inside);
+
+  // The glass: a bright, sky-pale mirror with long soft bands of reflected light.
+  float sheen = 0.5 + 0.5 * sin(dot(p, vec2(0.022, 0.009)) + uTime * 0.12);
+  vec3 sky = mix(uWaterLight, vec3(0.80, 0.95, 0.97), 0.28);
+  vec3 glass = mix(sky * 1.08, uWaterLight * 0.95, sheen * 0.5);
+  vec3 col = mix(uWaterLight * 1.35, glass, inside);
+  float alpha = max(inside * 0.88, ruffle * 0.85) * shore * vGlassy / 0.7;
   col = mix(col, uFogColor, smoothstep(uFogNear, uFogFar, vFogDepth));
-  alpha = clamp(alpha * 1.25, 0.0, 0.9);
+  alpha = clamp(alpha, 0.0, 0.95);
   alpha *= 1.0 - smoothstep(uFogNear, uFogFar, vFogDepth) * 0.6;
   gl_FragColor = vec4(col, alpha);
   #include <colorspace_fragment>
@@ -104,6 +93,8 @@ void main() {
 
 /** Grid spacing of a zone's sheet (units): fine enough to ride the waves, as the currents do. */
 const STEP = 3;
+/** The glass's own edge (units): sharp enough to steer by, ruffled water just outside it. */
+const EDGE = 6;
 
 /**
  * The zone's sheet: a grid over the zone, each point knowing how far inside the fade it is. The
@@ -173,7 +164,7 @@ export class CalmWater {
         uFogNear: { value: 120 },
         uFogFar: { value: 210 },
         uFade: { value: tuning.fadeUnits },
-        uStyle: { value: 0 },
+        uEdge: { value: EDGE },
       },
     });
     for (const z of zones) {

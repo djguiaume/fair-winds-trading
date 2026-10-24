@@ -18,14 +18,13 @@ for (let i = 0; i < 16; i++) {
 map.windZones = [{ id: 'glass-calm', name: 'The Glass', kind: 'doldrums', outline }];
 
 const SHOTS = [
-  // name, w, h, boat x, y, zones on, look (0 mirror, 1 cat's paws, 2 slick swell)
-  ['look-A-mirror-desktop', 1280, 720, 200, -30, true, 0],
-  ['look-B-catspaws-desktop', 1280, 720, 200, -30, true, 1],
-  ['look-C-swell-desktop', 1280, 720, 200, -30, true, 2],
-  ['look-A-mirror-portrait', 390, 844, 200, -40, true, 0],
-  ['look-B-catspaws-portrait', 390, 844, 200, -40, true, 1],
-  ['look-C-swell-portrait', 390, 844, 200, -40, true, 2],
-  ['doldrums-off-desktop', 1280, 720, 200, -30, false, 0],
+  // name, w, h, boat x, y, zones on
+  ['glass-approach-desktop', 1280, 720, 150, -30, true],
+  ['glass-edge-desktop', 1280, 720, 182, -30, true],
+  ['glass-inside-desktop', 1280, 720, 240, -30, true],
+  ['glass-approach-portrait', 390, 844, 160, -30, true],
+  ['glass-edge-landscape', 844, 390, 182, -30, true],
+  ['doldrums-off-desktop', 1280, 720, 182, -30, false],
 ];
 
 (async () => {
@@ -33,7 +32,7 @@ const SHOTS = [
     executablePath: '/opt/pw-browsers/chromium',
     args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
   });
-  for (const [name, w, h, x, y, on, look] of SHOTS) {
+  for (const [name, w, h, x, y, on] of SHOTS) {
     const p = await b.newPage({ viewport: { width: w, height: h } });
     await p.addInitScript(
       ([m, on]) => {
@@ -61,10 +60,8 @@ const SHOTS = [
     await p.click('#tp-undock', { timeout: 1500 }).catch(() => {});
     await p.waitForTimeout(300);
     await p.evaluate(
-      ([x, y, look]) => {
-        const { world, view } = window.fwt;
-        // The look being compared (decision 0144 review): a uniform of the calm water.
-        if (view.calmWater) view.calmWater.material.uniforms.uStyle.value = look;
+      ([x, y]) => {
+        const { world } = window.fwt;
         world.time = 260;
         world.boat.x = x;
         world.boat.y = y;
@@ -73,7 +70,7 @@ const SHOTS = [
         world.boat.sailStep = 2;
         world.boat.sail = 1;
       },
-      [x, y, look],
+      [x, y],
     );
     await p.waitForTimeout(2500);
     await p.screenshot({ path: path.join(OUT, `${name}.png`) });

@@ -43,7 +43,7 @@ After the shared base (PR #137) merged:
 
 ## Part 3 (2026-10-24): calm water
 
-- **`src/render/calmWater.ts`** draws glassy water over zones whose kind has `glassy` (0..1) in `weather.json`: doldrums 0.7, sheltered 0.3. It is a paler, smooth sheet with slow faint swells, fading in across the zone's edge over `fadeUnits` like the wind, and fading near shores.
+- **`src/render/calmWater.ts`** draws glassy water over zones whose kind has `glassy` (0..1) in `weather.json`: doldrums 0.7, sheltered 0.3. After Guillaume's review ("not really visible", then "still not identifiable enough, do we see the edge clearly?"), it is a bright, sky-pale mirror with soft bands of reflected light. It has a **sharp edge** (6 units) on the outline, with a band of **ruffled ripples** just outside it where the breeze dies, so you can steer by it. The wind still eases over the full `fadeUnits`. The sheet is a 3-unit grid that rides the waves, so no chop pokes through it, and it fades near shores.
 - It works like the currents' water ([0145](0145-building-currents.md)): one mesh per zone, built at load, riding the ocean's waves, and copying the ocean's colours and fog each frame (day, night, weather). It is hidden when Settings › Wind zones is off.
 - A zone can set its own `glassy` with `tune`, including 0 to turn the look off.
 - Captures are in [docs/reviews/wind-zones](../reviews/wind-zones/README.md).
