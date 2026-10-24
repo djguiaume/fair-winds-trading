@@ -8,7 +8,7 @@ Real captures of the Phase 4 dev sea (`?map=phase4`), taken with `npm run shots`
 
 The whole Phase 4 sea, for where the east sits: [chart-wide.png](chart-wide.png).
 
-`npm run chart -- --sea phase4 --view 380,-200,1000,620 --route saltmere,fogwatch`. The Stepping Stones (basalt skerries) close the sea at about 520 from the centre, from 46° round to the Coral Line; the one gateway is **Gannet Sound** (78.5° to 85.5°, a red and a green buoy and a light). Inside: Fogwatch with its sheltered voe facing the ring, the Giant and his Wife (two sea stacks), Lamb Holm, Puffin Holm in the Haar, Amber Strand (the outpost site) north beyond the Grey Murk, and the Race, a 2 kn north-going current with Broch Isle beyond it. The storm belt's band (y 230 to 340, x 600 to the edge) is left open for its own thread.
+`npm run chart -- --sea phase4 --view 380,-200,1000,620 --route saltmere,fogwatch`. The Stepping Stones (basalt skerries) close the sea at about 520 from the centre, from 46° round to the Coral Line; the one gateway is **Gannet Sound** (78.5° to 85.5°, a red and a green buoy and a light). Inside: Fogwatch with its sheltered voe facing the ring, the Giant and his Wife (two sea stacks), Lamb Holm, Puffin Holm in the Haar, Amber Strand (the outpost site) north beyond the Grey Murk, and the Race, a 2 kn north-going current with Broch Isle beyond it. The Stormbreak storm belt ([0167](../../decisions/0167-east-storm-belt.md)) crosses the band y 230 to 340 east of x 600.
 
 | Leg (sloop, Fair winds) | Time |
 |---|---|
@@ -17,6 +17,8 @@ The whole Phase 4 sea, for where the east sits: [chart-wide.png](chart-wide.png)
 | Fogwatch → Sunreach | 132 s |
 
 ## Fogwatch
+
+Second round after the Art director and Guillaume: the high fells moved to the north side in stepped tiers (the south is low, so the town stays in view), one even turf green, lighter turf roofs with a dark eave, narrow wandering lanes, lit windows and quay lamps at night, dry-stone walls and more sheep.
 
 A Faroese harbour town: tarred black and whitewashed turf-roofed houses with red frames, boathouses and drying sheds on the quay, a foghorn tower on the north point, sheep and standing stones on the fells.
 
@@ -36,7 +38,7 @@ A Faroese harbour town: tarred black and whitewashed turf-roofed houses with red
 
 ## Amber Strand (outpost site, before founding)
 
-Dune sand and marram grass, amber on the beach. Its port opens with the `outpost-east` arc (not written yet).
+Pale dune sand with marram tufts, low dunes, driftwood, and bigger amber on the beach. Its port opens with the `outpost-east` arc (not written yet).
 
 ![Amber Strand](amber-strand-desktop.png)
 

@@ -43,6 +43,7 @@ describe('wind zones charted once sailed (0152)', () => {
       'the-haar',
       'the-grey-murk',
       'fogwatch-voe',
+      'stormbreak',
     ]);
   });
 

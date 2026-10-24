@@ -167,6 +167,8 @@ A style's `colors` may also give `reefRock` and `coral` (lists of colours): a re
 
 So an island file of style `ice` that says `grass` is snow, and a file can still name `snow` or `ice` outright. Pick the style in the island builder (the island's panel) or `npm run island -- <id> set --style ice`; a ground with the builder's Ground picker or `npm run island -- <id> ground 2 --material ice`. `tests/grounds.test.ts` checks every ground in every style.
 
+A lane or path may give a `width` in radius units (default 0.04 for a lane, 0.055 for a path): narrow, wandering lanes for a village ([0172](../decisions/0172-east-sea-fogwatch-the-stepping-stones-and-fog-banks.md)). The island builder's lane panel has a Width field; `npm run island -- <id> lane --points "x,z x,z" --width 0.024`.
+
 ## A new difficulty level ([0113](../decisions/0113-levels-tutorial-and-music-as-data.md))
 
 Add an entry under `levels` in

@@ -22,6 +22,11 @@
       "color": "walls[variant]"
     },
     {
+      "gable": ["w + 0.28", 1.1, 0.5],
+      "y": "h + 0.14",
+      "color": "#2f3035"
+    },
+    {
       "gable": ["w + 0.2", 1.02, 0.5],
       "y": "h + 0.18",
       "color": "roofs[variant]"
@@ -32,7 +37,7 @@
       "color": "trim"
     },
     {
-      "windows": ["w", 0.82, "h * 0.6 + 0.18", 2, 0],
+      "windows": ["w", 0.82, "h * 0.6 + 0.18", 3, 1],
       "seed": "variant"
     }
   ]

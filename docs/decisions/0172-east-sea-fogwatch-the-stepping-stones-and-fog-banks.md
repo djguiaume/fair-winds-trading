@@ -17,14 +17,16 @@ Phase 4's east is the fog and storm coast ([0137](0137-phase-4-biomes-and-founde
 - **Fog banks**: the Haar south of Fogwatch and the Grey Murk on the way to Amber Strand (kind `fog-bank`).
 - **The Race**: a 2 kn north-going current about 790 east.
 - Four chart areas for the fog of war: the Stepping Stones, Fogwatch Waters, the Race, Amber Reach.
-- The storm belt's band (y 230 to 340, from x 600 to the edge) is left for the storm belt thread; whichever PR merges second adds the `stormbreak` zone to `east.json`.
+- The **Stormbreak** (storm belt, [0167](0167-east-storm-belt.md)) lies across the band y 230 to 340 from x 600 to the edge; x 440 to 600 stays open water so a route can skirt it.
 
 **Look, as data:**
 
 - Two island styles in `palette.json`: `fog` (turf for grass, basalt for rock, grey shingle beaches; tarred black, whitewashed and oxblood walls, turf roofs, red trim) and `strand` (dune sand and marram).
 - New grounds: `turf`, `basalt`, `greyshingle`, `dune`, `marram`.
-- New props: turf house, boathouse, drying shed, foghorn tower, broch, standing stones, sheep, amber, marram (and the cairn becomes a landmark).
+- Fogwatch's high ground is on its **north** side, in stepped tiers with basalt bands between them, so it never hides the town from the camera (which looks north); the south side stays low. Turf is one even green.
+- New props: turf house (light olive turf roof over a dark eave, lit windows), boathouse, drying shed, dry-stone wall, driftwood, foghorn tower, broch, standing stones, sheep, amber, marram (and the cairn becomes a landmark).
 - **Reef rock style**: a reef's `look.style` names a palette style whose `colors.reefRock` and `colors.coral` its rocks take (an empty coral list, none). Picked in the map editor (a reef's Rock style) or `npm run sea -- set shape <id> --style fog`; the map checks refuse an unknown style.
+- **Lanes take a `width`** (radius units, default 0.04; a path 0.055): Fogwatch's lanes are narrow and wander. Set in the island builder (a lane's Width) or `npm run island -- <id> lane --points … --width 0.024`.
 - **Landmarks are any prop of the `landmarks` group**: a scenery island with a cairn, broch or standing stones has its landmark without a special case.
 - Scenery props on an unfounded site are `from: 0`, so Amber Strand is not bare before its port opens.
 
