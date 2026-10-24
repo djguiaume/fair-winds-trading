@@ -1,3 +1,4 @@
+import type { FogDef } from './fog';
 import type { GoodId } from './goods';
 import type { WindConfig } from './wind';
 
@@ -240,6 +241,8 @@ export interface MapDef {
   currents?: CurrentDef[];
   /** Wind zones on top of the wandering wind (decision 0140). */
   windZones?: WindZoneDef[];
+  /** Fog of war (decision 0156): what starts uncharted, and its named areas. */
+  fog?: FogDef;
 }
 
 /** The wind zones that go on the chart once sailed: the named ones (decision 0152). */

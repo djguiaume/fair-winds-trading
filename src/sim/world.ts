@@ -1,3 +1,4 @@
+import { type FogEvent, stepFog } from './fog';
 import { TUNING } from '../data/tuning';
 import {
   type BoatControls,
@@ -166,6 +167,8 @@ export type WorldEvent =
   | { type: 'current-charted'; id: string }
   /** The boat sailed well into a named wind zone she had not charted yet (decision 0152). */
   | { type: 'zone-charted'; id: string }
+  /** Fog of war (decision 0156): she sailed into an uncharted area, or sighted a fogged island. */
+  | FogEvent
   | DockEvent;
 
 export function createWorld(map: MapDef, ship: ShipClass): World {
@@ -542,6 +545,14 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   )
     moor(world.boat, dt);
   events.push(...stepCurrent(world, dt));
+  events.push(
+    ...stepFog(
+      world.map,
+      world.trade.progress,
+      world.boat,
+      applyPerks(world.trade.home, 'discoverRange', TUNING.economy.discoverRange),
+    ),
+  );
   // Shallows drag at the hull near reefs; deeper hulls feel it more (decision 0032).
   const nearReef = reefDistance(world.reefs, world.boat);
   world.shallow = Math.max(

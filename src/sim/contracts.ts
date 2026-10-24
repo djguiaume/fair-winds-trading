@@ -21,7 +21,7 @@ import {
 } from './settlement';
 import { knobs } from './difficulty';
 import { TUNING } from '../data/tuning';
-import { addStanding, homePort, isDiscovered } from './shipyards';
+import { addStanding, homePort, portCharted } from './shipyards';
 import { type TradeState, capacity } from './trade';
 import { MAX_UPGRADE_LEVEL, UPGRADE_TRACKS } from './upgrades';
 
@@ -210,7 +210,7 @@ export function helpPortId(map: MapDef, trade: TradeState): string | null {
   let longest = TUNING.economy.towns.stallSeconds;
   for (const port of map.ports) {
     const s = trade.settlements.byPort[port.id];
-    if (!s || s.level >= MAX_SETTLEMENT_LEVEL || !isDiscovered(trade, port.id)) continue;
+    if (!s || s.level >= MAX_SETTLEMENT_LEVEL || !portCharted(map, trade, port)) continue;
     if (s.sinceSupply >= longest && (best === null || s.sinceSupply > longest)) {
       best = port.id;
       longest = s.sinceSupply;

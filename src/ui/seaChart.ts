@@ -7,6 +7,7 @@ import { questShown } from '../data/islands';
 import { type PortQuote, quoteAcross } from '../sim/market';
 import { DEG, distance } from '../sim/math';
 import { discoveredPorts } from '../sim/shipyards';
+import { chartedAt, islandCharted } from '../sim/fog';
 import { noGoAngle } from '../sim/ship';
 import { laneShape } from '../sim/currents';
 import { knobs } from '../sim/difficulty';
@@ -31,6 +32,15 @@ const box = (cx: number, cy: number, w: number, h: number): Box => ({
 });
 /** Chart scale (map units per pixel) beyond which secondary names are left out. */
 const MAX_UNITS_PER_PIXEL_FOR_NAMES = 3;
+/** Fog of war's rim (decision 0156): stroke half-widths in pixels and mask greys, outer first. */
+const FOG_RIM: [number, string][] = [
+  [10, 'rgb(170,170,170)'],
+  [5, 'rgb(85,85,85)'],
+];
+/** Fog of war's blurred edge on High quality, in pixels (decision 0156). */
+const FOG_BLUR = 8;
+/** How far round a sighted island its patch of chart reaches, in map units (plus the blur). */
+const SIGHTED_MARGIN = 12;
 
 /** Overlapping area of two boxes, used to choose the clearest side for a label. */
 const overlap = (a: Box, b: Box) =>
@@ -89,6 +99,8 @@ const escapeHtml = (s: string) =>
 
 /** An event-driven DOM/SVG chart; no second WebGL scene or animation loop. */
 export class SeaChart {
+  /** Blur fog of war's edge (High quality only, decision 0156). */
+  fogBlur = false;
   onChange: () => void = () => {};
   /** People's faces on their ports, the tracked step's place and the journal; none: no quests. */
   quests: ChartQuests | null = null;
@@ -311,6 +323,109 @@ export class SeaChart {
         n: (c.speedKn * scale).toFixed(1),
       });
     }
+  }
+
+  /**
+   * Fog of war (decision 0156): the uncharted waters as blank parchment with a faint pencil grid
+   * (Guillaume's pick, look A), one layer with holes where the ring, the charted areas and the
+   * sighted islands are. The holes' edges are two grey strokes in the mask, a soft rim without a
+   * blur filter, which old tablets draw slowly. Returns an "Uncharted waters" label per fogged
+   * area, placed with the zones' names so it never covers a port, a place or the boat.
+   */
+  private drawFog(
+    shape: (tag: string, attrs: Record<string, string | number>, parent?: Element) => Element,
+    px: number,
+  ): ZoneLabel[] {
+    const { map, trade } = this.world;
+    const fog = map.fog;
+    if (!fog) return [];
+    const R = map.boundsRadius;
+    const progress = trade.progress;
+    const defs = shape('defs', {});
+    const mask = shape(
+      'mask',
+      {
+        id: 'chart-fog-mask',
+        maskUnits: 'userSpaceOnUse',
+        x: -R,
+        y: -R,
+        width: 2 * R,
+        height: 2 * R,
+      },
+      defs,
+    );
+    shape('circle', { r: R + 2, fill: '#fff' }, mask);
+    const polygon = (outline: [number, number][]) => ({
+      tag: 'polygon',
+      attrs: { points: outline.map(([x, y]) => `${x},${-y}`).join(' ') },
+    });
+    // A blur eats into small holes, so a sighted island's patch grows by the blur.
+    const margin = SIGHTED_MARGIN + (this.fogBlur ? 2 * FOG_BLUR * px : 0);
+    const holes: { tag: string; attrs: Record<string, number | string> }[] = [
+      { tag: 'circle', attrs: { r: fog.chartedRadius } },
+      ...fog.areas.filter((a) => progress.areas?.includes(a.id)).map((a) => polygon(a.outline)),
+      ...map.islands
+        .filter((i) => progress.sighted?.includes(i.id))
+        .map((i) => ({ tag: 'circle', attrs: { cx: i.x, cy: -i.y, r: i.radius + margin } })),
+    ];
+    // The rim: on High quality a blur; else mask greys, lighter (less fog) nearer the hole.
+    let target: Element = mask;
+    if (this.fogBlur) {
+      const filter = shape(
+        'filter',
+        {
+          id: 'chart-fog-blur',
+          x: -R,
+          y: -R,
+          width: 2 * R,
+          height: 2 * R,
+          filterUnits: 'userSpaceOnUse',
+        },
+        defs,
+      );
+      shape('feGaussianBlur', { stdDeviation: FOG_BLUR * px }, filter);
+      target = shape('g', { filter: 'url(#chart-fog-blur)' }, mask);
+      shape('circle', { r: R + 2, fill: '#fff' }, target);
+    } else
+      for (const [width, grey] of FOG_RIM)
+        for (const h of holes)
+          shape(
+            h.tag,
+            {
+              ...h.attrs,
+              fill: 'none',
+              stroke: grey,
+              'stroke-width': width * px * 2,
+              'stroke-linejoin': 'round',
+            },
+            mask,
+          );
+    for (const h of holes) shape(h.tag, { ...h.attrs, fill: '#000' }, target);
+    const tile = 60 * px;
+    const pattern = shape(
+      'pattern',
+      { id: 'chart-fog-pattern', patternUnits: 'userSpaceOnUse', width: tile, height: tile },
+      defs,
+    );
+    shape('rect', { width: tile, height: tile, class: 'chart-fog-paper' }, pattern);
+    shape(
+      'path',
+      { d: `M0 0H${tile}M0 0V${tile}`, class: 'chart-fog-grid', 'stroke-width': px },
+      pattern,
+    );
+    shape('circle', { r: R, fill: 'url(#chart-fog-pattern)', mask: 'url(#chart-fog-mask)' });
+    return fog.areas
+      .filter((a) => !progress.areas?.includes(a.id))
+      .map((a) => {
+        const deep = deepestPoint(a.outline);
+        return {
+          text: t('chart.uncharted'),
+          kind: 'fog',
+          x: deep.x,
+          y: -deep.y,
+          outline: a.outline,
+        };
+      });
   }
 
   /**
@@ -753,7 +868,11 @@ export class SeaChart {
           y1: Math.max(...ps.map((p) => -p[1])),
         });
       } else landBoxes.push(box(island.x, -island.y, island.radius * 2, island.radius * 2));
-      if (island.name && !charted.some((p) => p.islandId === island.id))
+      if (
+        island.name &&
+        !charted.some((p) => p.islandId === island.id) &&
+        islandCharted(map, this.world.trade.progress, island)
+      )
         places.push({
           name: island.name,
           x: island.x,
@@ -778,10 +897,11 @@ export class SeaChart {
       const ys = terrain.outline.map((p) => -p[1]);
       const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
       if (terrain.kind === 'island') landBoxes.push({ x0, x1, y0, y1 });
-      if (terrain.name && terrain.kind === 'island')
+      const known = chartedAt(map, this.world.trade.progress, (x0 + x1) / 2, -(y0 + y1) / 2);
+      if (terrain.name && terrain.kind === 'island' && known)
         places.push({ name: terrain.name, x: (x0 + x1) / 2, top: y0, bottom: y1 });
       // The chart says which ships cross a sandy passage (decisions 0137, 0152).
-      if (terrain.name && terrain.kind === 'shallows')
+      if (terrain.name && terrain.kind === 'shallows' && known)
         places.push({
           name: t('chart.shallows', { name: terrain.name }),
           x: (x0 + x1) / 2,
@@ -793,12 +913,14 @@ export class SeaChart {
     const done = questsDone(this.world.trade);
     for (const mark of map.marks ?? []) {
       if (!mark.chart || !questShown(mark, done)) continue;
+      if (!chartedAt(map, this.world.trade.progress, mark.x, mark.y)) continue;
       // A named mark (a gateway's light) gets its place name beside it (decision 0152).
       if (mark.name)
         places.push({ name: mark.name, x: mark.x, top: -mark.y - 6, bottom: -mark.y + 6 });
       const { tag, attrs } = seaMarkShape(mark, px);
       shape(tag, { ...attrs, class: 'chart-mark' });
     }
+    zoneLabels.push(...this.drawFog(shape, px));
     // Storms (decisions 0067 and 0070): a hazard badge over a soft cloud, chevrons for the drift.
     for (const storm of this.world.weather.storms) {
       if (storm.intensity < 0.05) continue;
