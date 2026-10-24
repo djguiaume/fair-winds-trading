@@ -1,6 +1,6 @@
 # 0163. Game controller in the menus and the port screen
 
-**Status:** Proposed (2026-10-24): built with look A (recommended); waiting for Guillaume's pick and OK on the screenshots.
+**Status:** Accepted (2026-10-24): Guillaume, "do all that then merge", look A.
 
 ## Context
 
@@ -22,9 +22,13 @@ every control, see which one is picked, and go back.
   (`html[data-input=pad]`); mouse or touch hides it again. Three looks were mocked up in the real
   game (`docs/mockups/controller-menus/`): A brass ring with a soft glow, B lifted plate with a
   brass edge, C thin line plus a sliding brass pointer.
-- A small **button hints** pill (A Choose, B Back, LB RB Tabs where there are tabs), EN and FR,
-  bottom centre, shown when a screen opens with the pad and faded after a few seconds so it never
-  hides a control for long.
+- A small **button hints** pill (A Choose, B Back), EN and FR, bottom centre, shown when a screen
+  opens with the pad and faded after a few seconds so it never hides a control for long.
+- **Glyphs beside what they do**, as console games show them (Guillaume's question): LB and RB at
+  the two ends of a tab bar (port screen, transfer), and **X** on the screen's one extra action,
+  marked `data-pad="secondary"`: Sell all on the port screen. Shown only in pad mode (`.pad-only`).
+- **Map on View only** (changes 0162, where Y and View both opened it): View is the usual console
+  map button; Y is kept free for later (the quest note, the coach bubbles at sea).
 - `npm run shots` gains `--focus` (a control focused as by the pad), `--style`, `--script` and
   several `--click`s, so mockups and reviews of this are drawn by the tool.
 
@@ -38,7 +42,8 @@ every control, see which one is picked, and go back.
   found again by its likeness when a screen redraws (the market after a sale). The pad's first
   move or A only shows where the focus is.
 - The hints pill is a popover so it shows over a modal card; it fades after
-  `menu.hintsSeconds` (4 s), so in portrait it only briefly covers the language switch.
+  `menu.hintsSeconds` (4 s), and it is left out on portrait phones (it would sit on the bottom buttons; the glyphs on the
+  tab bar and Sell all stay).
 - Not covered yet: the chart's own panels (journal, market) stay with the chart's pad controls of
   0162; coach bubbles at sea have no pad button.
 - Review shots: `docs/reviews/controller-menus/` from its `shots.json` (`npm run shots --pad`).

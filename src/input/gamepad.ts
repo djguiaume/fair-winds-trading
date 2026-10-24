@@ -66,7 +66,16 @@ export type ChartAction =
   'panLeft' | 'panRight' | 'panUp' | 'panDown' | 'zoomIn' | 'zoomOut' | 'fit' | 'close';
 /** Menus, the port screen, cards (decision 0163): move the focus, press it, back, tabs, resume. */
 export type MenuAction =
-  'up' | 'down' | 'left' | 'right' | 'press' | 'back' | 'tabPrev' | 'tabNext' | 'resume';
+  | 'up'
+  | 'down'
+  | 'left'
+  | 'right'
+  | 'press'
+  | 'back'
+  | 'secondary'
+  | 'tabPrev'
+  | 'tabNext'
+  | 'resume';
 
 export interface PadControls extends PadConfig {
   sea: {

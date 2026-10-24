@@ -1407,7 +1407,7 @@ html[data-input='pad'] [role='dialog']:focus {
   box-shadow: none !important;
 }
 
-/* The pad's button hints: A Choose, B Back, LB RB Tabs where there are tabs. */
+/* The pad's button hints: A Choose, B Back (tabs and extra actions show their own glyphs). */
 .pad-hints {
   position: fixed;
   z-index: 2147483000;
@@ -1443,11 +1443,19 @@ html[data-input='pad'] .pad-hints.show {
   align-items: center;
   gap: 6px;
 }
-.pad-hints .pad-tabs {
-  display: none;
+/* Button glyphs beside what they do: LB / RB at the tab bar's ends, X on Sell all. */
+.pad-only {
+  display: none !important;
 }
-.pad-hints.has-tabs .pad-tabs {
-  display: inline-flex;
+html[data-input='pad'] .pad-only {
+  display: inline-grid !important;
+}
+.pad-only.bumper {
+  align-self: center;
+  margin: 0 6px;
+}
+.pad-only.x {
+  margin-right: 6px;
 }
 .pad-key {
   display: inline-grid;
@@ -1465,6 +1473,9 @@ html[data-input='pad'] .pad-hints.show {
 .pad-key.b {
   background: var(--red);
 }
+.pad-key.x {
+  background: #4aa3ff;
+}
 .pad-key.bumper {
   min-width: 28px;
   height: 18px;
@@ -1478,5 +1489,11 @@ html[data-input='pad'] .pad-hints.show {
     gap: 10px;
     padding: 5px 10px;
     font-size: 13px;
+  }
+}
+/* Portrait phones: no room above the bottom buttons, and A / B need no reminder there. */
+@media (max-width: 640px) {
+  .pad-hints {
+    display: none;
   }
 }

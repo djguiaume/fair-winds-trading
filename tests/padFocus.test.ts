@@ -34,7 +34,8 @@ describe('game controller in the menus (decision 0163)', () => {
     expect(menuAction(press('rb'))).toBe('tabNext');
     expect(menuAction(press('lb'))).toBe('tabPrev');
     expect(menuAction(press('menu'))).toBe('resume');
-    expect(menuAction(press('x'))).toBeNull();
+    expect(menuAction(press('x'))).toBe('secondary');
+    expect(menuAction(press('y'))).toBeNull();
   });
 
   it('follows a column down and up, and a row across', () => {

@@ -15,7 +15,7 @@
         "sailDown": ["lb", "lt", "down"],
         "strike": ["b"],
         "harbour": ["a"],
-        "chart": ["y", "view"],
+        "chart": ["view"],
         "pause": ["menu"]
       }
     },
@@ -32,7 +32,7 @@
         "zoomIn": ["rt", "rb"],
         "zoomOut": ["lt", "lb"],
         "fit": ["x"],
-        "close": ["b", "y", "view"]
+        "close": ["b", "view"]
       }
     },
     "menu": {
@@ -47,6 +47,7 @@
         "right": ["right"],
         "press": ["a"],
         "back": ["b"],
+        "secondary": ["x"],
         "tabPrev": ["lb"],
         "tabNext": ["rb"],
         "resume": ["menu"]

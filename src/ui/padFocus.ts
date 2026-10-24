@@ -11,7 +11,7 @@ import {
 /**
  * A game controller in the menus, the port screen and on cards (decision 0163). The D-pad or the
  * left stick moves a real DOM focus to the nearest control in that direction, A presses it, B goes
- * back (like Esc), LB/RB switch tabs and Start resumes from the pause menu; the buttons are the
+ * back (like Esc), X does the screen's extra action (Sell all), LB/RB switch tabs and Start resumes from the pause menu; the buttons are the
  * `menu` section of `src/data/controls.json`. The focus highlight (brass ring, `menus.css`) and the
  * button hints only show while the pad is the last input: `html[data-input=pad]`.
  */
@@ -209,6 +209,14 @@ export class PadFocus {
       case 'back':
         screen.back();
         break;
+      case 'secondary': {
+        // The screen's one extra action (Sell all), marked `data-pad="secondary"` with its glyph.
+        const extra = [...screen.root.querySelectorAll<HTMLElement>('[data-pad="secondary"]')].find(
+          shown,
+        );
+        extra?.click();
+        break;
+      }
       case 'tabPrev':
       case 'tabNext':
         this.tab(screen, action === 'tabNext' ? 1 : -1);
@@ -314,7 +322,6 @@ export class PadFocus {
       if (hints.classList.contains('show')) hide();
       return;
     }
-    hints.classList.toggle('has-tabs', !!root.querySelector(TABS));
     if (popover) {
       // Shown again, so it lands above whatever card opened last.
       if (hints.matches(':popover-open')) hints.hidePopover();
