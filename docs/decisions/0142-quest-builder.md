@@ -1,6 +1,6 @@
 # 0142. A quest builder in the editor
 
-**Status:** Accepted (2026-10-24). Guillaume: "1 go, 2 don't care, you build it and merge it, in the order you want and as parallel as you want, 3 keep [the tutorial] out for the moment but it must use the same quest format as everything is data, 4 new tab". [Mockup and plan](../quest-builder/README.md). **Part 1 built** (2026-10-24, [how to use](../quest-builder/builder/README.md)): the Quests page with editing, card and text, story, checks and export; play from a step is next. Builds on the quest engine [0125](0125-quest-engine.md), the step data of [0139](0139-gentler-prologue-and-quest-cards.md) and the cards of [0141](0141-quay-tab-and-arrival-card.md); the third authoring tool after the map editor [0095](0095-map-editor.md) and the island builder [0105](0105-island-builder-props.md).
+**Status:** Accepted (2026-10-24). Guillaume: "1 go, 2 don't care, you build it and merge it, in the order you want and as parallel as you want, 3 keep [the tutorial] out for the moment but it must use the same quest format as everything is data, 4 new tab". [Mockup and plan](../quest-builder/README.md). **Part 1 built** (2026-10-24, [how to use](../quest-builder/builder/README.md)): the Quests page with editing, card and text, story, checks and export. **Part 2 built** (2026-10-24): play from a step in a new tab. Builds on the quest engine [0125](0125-quest-engine.md), the step data of [0139](0139-gentler-prologue-and-quest-cards.md) and the cards of [0141](0141-quay-tab-and-arrival-card.md); the third authoring tool after the map editor [0095](0095-map-editor.md) and the island builder [0105](0105-island-builder-props.md).
 
 ## Context
 
@@ -22,7 +22,7 @@ Guillaume asked whether there should be a quest editor or builder. Quests are da
 
 - Adding a quest no longer needs a thread or hand-typed coordinates; the review of its text and places happens in the tool.
 - The condition and reward kinds gain parameter descriptions (small code change in `questLibrary.ts`), shared by the builder and the checks.
-- The game learns a test start (`?map=edited&quest=…&step=…`) on the editor's isolated save.
+- The game learns a test start (`?map=edited&quest=…&step=…`) on a fresh voyage kept in memory (see As built, part 2).
 - The tutorial's own lesson format (`first-voyage.json`: `coach`, `on`, `mark`, `continue`) is now a debt: it must become ordinary quest steps.
 
 ## As built (part 1)
@@ -31,3 +31,12 @@ Guillaume asked whether there should be a quest editor or builder. Quests are da
 - Condition fields come from each kind's `params` (exported `Param`/`ParamSpec`), and the kind picker reads `CONDITION_ABOUT` in `questLibrary.ts`; a test fails if a kind has no line there.
 - Quest files export byte for byte like the repo: `formatQuestJson` keeps objects on one line where they fit, and a file written with objects open (`fair-winds.json`) keeps the plain `formatJson`.
 - Not built from the mockup: dragging between quests in the story view to link them (the start condition is edited on the right instead), and the portrait quest/step pickers (portrait stacks the lists, the chart and the fields).
+
+## As built (part 2): play from a step
+
+- **▶ Play from step…** in the builder's top bar: pick a step of the open quest and a start, **docked at a port** (default the step's `port`, else the quest's) or **at sea** about 30 short of the step's first place, heading for it. The game opens in a new tab: `?map=edited&quest=<id>&step=<id>` with `&port=<id>` or `&x=…&y=…&h=…`.
+- The test is a **fresh Captain voyage kept in memory only** (not the editor's play-test save the plan named), so a test never leaves a save behind and Restart is a reload. The tutorial is skipped.
+- `QuestBook.testStart` finishes the quests the start condition names (`quest-done`, `chose` through the named option, `quest-at` up to that step; the first member of an `any`), paying their rewards, then pays the quest's own earlier steps on the way to the step (`routeTo` finds the way through choices). Other start conditions (gold, a town level) are not made true: the quest is simply entered.
+- At sea she starts off the wind when the heading asked for points into it (`sailableHeading`); docked, `testBerth` finds clear water in docking range by the pier.
+- A **quest test bar** (bottom; under the quest note in portrait) shows the quest and step, with **↺ Restart**, **⏭ Skip step** (`QuestBook.skipStep`; a choice takes its first option) and **✕ Editor**. Editor-only English, like the map editor.
+- `?map=edited` now also plays the builder's quests and text (`editedQuests`, `useEditedQuests`, `useTextEdits`), for Play this map too: the edited quests replace the shipped ones for that page only.

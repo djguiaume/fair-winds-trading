@@ -34,7 +34,7 @@ The panel's checks are the code the test suite runs (`src/sim/mapChecks.ts`). Qu
 
 ## Play it, then commit it
 
-1. **▶ Play this map** opens the game on your edited map in a new tab. That voyage has its own save: your real voyage is never touched. A small "Edited map · back to editor" link sits at the bottom.
+1. **▶ Play this map** opens the game on your edited map in a new tab. That voyage has its own save: your real voyage is never touched. A small "Edited map · back to editor" link sits at the bottom. It also sails with the quests and text edited in the quest builder, whose **▶ Play from step…** starts a quest at any step ([how to](../quest-builder/builder/README.md#play-from-a-step)).
 2. Your edits stay in this browser (reloading the editor keeps them). **Reset** goes back to the shipped map, **Import** opens a map file.
 3. **Export map.json** downloads `phase1-map.json`, formatted exactly like the repository's file. On GitHub, open `src/data/`, *Add file › Upload files*, drop it, commit to a new branch and open a pull request: CI runs every test. Or drop the file in the chat.
 

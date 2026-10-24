@@ -1,4 +1,5 @@
 import type { MapDef } from '../sim/map';
+import type { QuestDef } from '../sim/quests';
 import type { SaveStorage } from '../sim/save';
 import { type IslandDesign, isIslandShape, useIslandDesign } from './islands';
 import { PHASE1_SOURCE, prepareMap } from './maps';
@@ -13,6 +14,41 @@ export const EDITED_MAP_KEY = 'fwt.editor.map.v1';
 export const EDITED_PREFIX = 'fwt.editor.play.';
 /** The island builder's edited island files (decision 0105), by island id. */
 export const EDITED_ISLANDS_KEY = 'fwt.editor.islands.v1';
+/** The quest builder's working copy (decision 0142): the quests and the text edited there. */
+export const EDITED_QUESTS_KEY = 'fwt.editor.quests.v1';
+
+/** What the quest builder keeps: every quest, and the text keys changed from the shipped files. */
+export interface EditedQuests {
+  quests: QuestDef[];
+  text: { en: Record<string, string>; fr: Record<string, string> };
+}
+
+/** Enough of the quest builder's copy to load it (the builder's checks say what else is wrong). */
+export function isEditedQuests(raw: unknown): raw is EditedQuests {
+  const doc = raw as EditedQuests | null;
+  return (
+    !!doc &&
+    typeof doc === 'object' &&
+    Array.isArray(doc.quests) &&
+    doc.quests.every((q) => typeof q?.id === 'string' && Array.isArray(q.steps)) &&
+    typeof doc.text?.en === 'object' &&
+    typeof doc.text?.fr === 'object'
+  );
+}
+
+/**
+ * The quests edited in the quest builder, for `?map=edited` (decision 0142), or null when the
+ * address does not ask for the edited map or nothing was edited.
+ */
+export function editedQuests(search: string, storage: SaveStorage | null): EditedQuests | null {
+  if (new URLSearchParams(search).get('map') !== 'edited' || !storage) return null;
+  try {
+    const raw: unknown = JSON.parse(storage.getItem(EDITED_QUESTS_KEY) ?? 'null');
+    return isEditedQuests(raw) ? raw : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * The edited map to sail, or null when the address does not ask for one or it is unreadable.
@@ -74,5 +110,15 @@ export function prefixedStorage(storage: SaveStorage, prefix: string): SaveStora
     getItem: (key) => storage.getItem(prefix + key),
     setItem: (key, value) => storage.setItem(prefix + key, value),
     removeItem: (key) => storage.removeItem(prefix + key),
+  };
+}
+
+/** A storage that keeps nothing past this page: a quest test's fresh voyage (decision 0142). */
+export function memoryStorage(): SaveStorage {
+  const items = new Map<string, string>();
+  return {
+    getItem: (key) => items.get(key) ?? null,
+    setItem: (key, value) => void items.set(key, value),
+    removeItem: (key) => void items.delete(key),
   };
 }

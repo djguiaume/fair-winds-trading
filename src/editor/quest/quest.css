@@ -799,3 +799,34 @@ input.qb-small {
 .qb-story .qb-node b {
   font-size: 13.5px;
 }
+
+/* Play from a step (decision 0142, part 2). */
+.qb-play {
+  width: min(420px, calc(100vw - 32px));
+  padding: 14px 16px;
+  border: 1px solid var(--line, #ffffff33);
+  border-radius: 12px;
+  background: #102a3b;
+  color: #eaf2f6;
+}
+.qb-play::backdrop {
+  background: #0008;
+}
+.qb-play h2 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+.qb-play .ed-row {
+  margin-bottom: 8px;
+}
+.qb-note {
+  margin: 8px 0;
+  font-size: 12px;
+  opacity: 0.8;
+}
+.qb-play-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}

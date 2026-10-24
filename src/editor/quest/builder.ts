@@ -36,13 +36,16 @@ import {
   isQuestDoc,
   newQuest,
   newStep,
+  playUrl,
   questsNamed,
   renameQuest,
   renameStep,
   round1,
+  seaStart,
   setAt,
   setText,
   stepPlaces,
+  stepPort,
   storyColumns,
   textKeys,
   textOf,
@@ -139,6 +142,7 @@ export function setupQuestBuilder(h: QuestHost) {
         <button data-act="undo" title="Undo (Ctrl+Z)">↶<span class="qb-long"> Undo</span></button>
         <button data-act="redo" title="Redo (Ctrl+Shift+Z)">↷<span class="qb-long"> Redo</span></button>
         <button data-act="reset" title="Back to the quests shipped with the game">Reset</button>
+        <button data-act="play" title="Play the open quest from one of its steps, in a new tab">▶<span class="qb-long"> Play from step…</span></button>
         <button data-act="export" class="primary" title="Download the changed quest and text files">Export</button>
       </nav>
     </header>
@@ -173,7 +177,8 @@ export function setupQuestBuilder(h: QuestHost) {
           <ul class="ed-checks"></ul>
         </div>
       </aside>
-    </main>`;
+    </main>
+    <dialog class="qb-play" aria-label="Play from a step"></dialog>`;
   root.addEventListener('click', (e) => {
     const b = (e.target as Element).closest<HTMLButtonElement>('button[data-act]');
     if (!b) return;
@@ -183,6 +188,7 @@ export function setupQuestBuilder(h: QuestHost) {
     else if (act === 'redo') redo();
     else if (act === 'reset') reset();
     else if (act === 'export') exportDoc();
+    else if (act === 'play') openPlay();
   });
   for (const b of root.querySelectorAll<HTMLButtonElement>('[data-zoom]'))
     b.addEventListener('click', () => {
@@ -297,6 +303,90 @@ function exportDoc() {
       zipSync(Object.fromEntries(files.map((f) => [f.path, strToU8(f.text)]))),
       'application/zip',
     );
+}
+
+// --- Play from a step (part 2) -------------------------------------------------------------------
+
+/**
+ * The Play dialog: pick the open quest's step and where the boat starts (docked at a port, or at
+ * sea short of the step's first place), then the game opens in a new tab on the edited map with
+ * these quests, on a fresh voyage that keeps nothing (decision 0142).
+ */
+function openPlay() {
+  const q = quest();
+  const dialog = $<HTMLDialogElement>('.qb-play');
+  if (!q) return;
+  const map = host.prepared();
+  let at = stepId ?? q.steps[0]?.id ?? '';
+  let where: 'port' | 'sea' = 'port';
+  let port = stepPort(
+    q,
+    q.steps.find((s) => s.id === at),
+    map,
+  );
+  const draw = () => {
+    const s = q.steps.find((x) => x.id === at);
+    const sea = s ? seaStart(s, map, (x, y) => clearAt(map, x, y, 4)) : null;
+    if (!sea && where === 'sea') where = 'port';
+    const go = h('button', { type: 'button', class: 'primary' }, '▶ Play in a new tab');
+    go.addEventListener('click', () => {
+      const start = where === 'sea' && sea ? sea : { port };
+      window.open(playUrl(q.id, at, start), '_blank');
+      dialog.close();
+    });
+    const cancel = h('button', { type: 'button' }, 'Cancel');
+    cancel.addEventListener('click', () => dialog.close());
+    const starts: [string, string][] = [['port', 'Docked at a port']];
+    if (sea) starts.push(['sea', 'At sea, near the place']);
+    dialog.replaceChildren(
+      h('h2', {}, `Play “${q.name}”`),
+      row(
+        'From step',
+        select(
+          q.steps.map((x, i): [string, string] => [x.id, `${i + 1}. ${x.id}`]),
+          at,
+          (v) => {
+            at = v;
+            port = stepPort(
+              q,
+              q.steps.find((x) => x.id === v),
+              map,
+            );
+            draw();
+          },
+        ),
+      ),
+      row(
+        'Start',
+        segmented(starts, where, (v) => {
+          where = v as 'port' | 'sea';
+          draw();
+        }),
+      ),
+      where === 'port'
+        ? row(
+            'Port',
+            select(
+              map.ports.map((x): [string, string] => [x.id, x.name]),
+              port,
+              (v) => (port = v),
+            ),
+          )
+        : h(
+            'p',
+            { class: 'qb-note' },
+            `At ${sea!.x}, ${sea!.y}, about 30 short of the step's first place, heading for it (or off the wind if it blows from there).`,
+          ),
+      h(
+        'p',
+        { class: 'qb-note' },
+        'A fresh Captain voyage with the tutorial skipped: the quests this one waits on count as done, and the earlier steps pay their rewards. Nothing is saved. The test bar at the bottom restarts or skips the step.',
+      ),
+      h('div', { class: 'qb-play-actions' }, cancel, go),
+    );
+  };
+  draw();
+  dialog.showModal();
 }
 
 /** Keys while the builder is open; the map editor's own handler steps aside. */

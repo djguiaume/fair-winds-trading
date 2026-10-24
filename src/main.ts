@@ -1,7 +1,13 @@
 import { renderDifficultyButtons, renderLevelCards } from './ui/levelCards';
 import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from './data/maps';
 import { STRESS_PREFIX, stressMap } from './data/stressMap';
-import { EDITED_PREFIX, editedMap, prefixedStorage } from './data/editedMap';
+import {
+  EDITED_PREFIX,
+  editedMap,
+  editedQuests,
+  memoryStorage,
+  prefixedStorage,
+} from './data/editedMap';
 import {
   TUNE_LINK_KEY,
   TUNE_PREFIX,
@@ -13,17 +19,19 @@ import {
 import { Input } from './input/input';
 import { FrameMonitor, type QualityLevel, guessQuality, lowerQuality } from './render/quality';
 import { GameView } from './render/view';
-import { SAIL_STEPS } from './sim/boat';
+import { SAIL_STEPS, createBoat } from './sim/boat';
 import { isRare, isSpecialty } from './sim/goods';
 import { portNow, questsDone, settlementLevels } from './sim/settlement';
 import { bearingTo, clamp } from './sim/math';
 import { type SaveStorage, clearSave, loadGame, saveGame } from './sim/save';
 import { LINK_KEY } from './sim/saveTransfer';
-import { SLOOP } from './sim/ship';
+import { SLOOP, noGoAngle } from './sim/ship';
 import * as trade from './sim/trade';
 import { type Difficulty, isDifficulty, knobs } from './sim/difficulty';
 import { daylightAt } from './sim/daylight';
-import { QuestBook } from './sim/quests';
+import { QuestBook, useEditedQuests } from './sim/quests';
+import { questTestFrom, sailableHeading, testBerth } from './sim/questTest';
+import { QuestTestBar } from './ui/questTestBar';
 import { type StepEffects, heldWind } from './sim/stepEffects';
 import { QuestCard } from './ui/questCard';
 import { QuestNote } from './ui/questNote';
@@ -43,6 +51,7 @@ import {
   type WorldEvent,
   createWorld,
   setPortDestination,
+  refreshPiers,
   resetBoat,
   startAtPrologue,
   stepWorld,
@@ -71,6 +80,7 @@ import {
   t,
   townLevelName,
   translateDom,
+  useTextEdits,
 } from './i18n';
 import { TradePanel } from './ui/tradePanel';
 import { HomePanel, buildingName, effectLine } from './ui/homePanel';
@@ -128,6 +138,15 @@ const stressTest = new URLSearchParams(location.search).get('map') === 'stress';
 const playtestMap =
   editedMap(location.search, browserStorage) ??
   (stressTest ? prepareMap(stressMap(PHASE1_SOURCE)) : null);
+// The quest builder's quests and text sail with the edited map (decision 0142). A quest played
+// from one of its steps (`&quest=…&step=…`) starts a fresh voyage kept in memory only.
+const playtestQuests =
+  playtestMap && !stressTest ? editedQuests(location.search, browserStorage) : null;
+if (playtestQuests) {
+  useEditedQuests(playtestQuests.quests);
+  useTextEdits(playtestQuests.text);
+}
+const questTest = playtestMap && !stressTest ? questTestFrom(location.search) : null;
 // The `?tune` panel (decision 0114): the edits kept in this browser apply before the world is
 // built, and tune mode sails its own test voyage so the real one is never touched. A shared link
 // (`?tune#tune=…`) asks before it replaces them.
@@ -148,15 +167,16 @@ if (tuneMode) {
   }
   applyChanges(loadTuneChanges(browserStorage));
 }
-const voyageStorage =
-  playtestMap && browserStorage
+const voyageStorage = questTest
+  ? memoryStorage()
+  : playtestMap && browserStorage
     ? prefixedStorage(browserStorage, stressTest ? STRESS_PREFIX : EDITED_PREFIX)
     : browserStorage;
 const storage =
   tuneMode && voyageStorage ? prefixedStorage(voyageStorage, TUNE_PREFIX) : voyageStorage;
 const world = createWorld(playtestMap ?? PHASE1_MAP, SLOOP);
 if (playtestMap) {
-  document.title = `${stressTest ? 'Stress test' : 'Edited map'} · ${document.title}`;
+  document.title = `${stressTest ? 'Stress test' : questTest ? 'Quest test' : 'Edited map'} · ${document.title}`;
   const badge = document.createElement('a');
   badge.href = './editor.html';
   badge.textContent = stressTest ? 'Stress test sea' : 'Edited map · back to editor';
@@ -169,7 +189,8 @@ if (playtestMap) {
     badge.removeAttribute('href');
     badge.style.pointerEvents = 'none';
   }
-  document.body.append(badge);
+  // The quest test bar says it all (and links back) instead.
+  if (!questTest) document.body.append(badge);
 }
 const resumedVoyage = storage ? loadGame(storage, world) : false;
 let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
@@ -659,6 +680,59 @@ if (location.hash.startsWith(`#${LINK_KEY}=`)) {
   refreshPause();
 }
 
+/**
+ * Play a quest from one of its steps (decision 0142): a fresh Captain voyage with the tutorial
+ * skipped, the quests before it finished, the boat docked at the asked port or at the asked spot
+ * at sea, and the quest test bar on top. Restart reloads the page: the voyage is in memory only.
+ */
+function startQuestTest(test: NonNullable<typeof questTest>) {
+  trade.startVoyage(world.trade, 'captain');
+  applyLevelWind('captain');
+  markDifficulty();
+  levelPicked = true;
+  tutorial.skip();
+  const bar = new QuestTestBar(quests, test.quest);
+  const started = quests.testStart(test.quest, test.step).length > 0;
+  trade.syncMarketLevels(world.trade, world.map);
+  refreshPiers(world);
+  view.setHomeBuildings(builtByIsland(world.trade.home));
+  view.setQuestsDone(questsDone(world.trade));
+  const berth = test.port
+    ? testBerth(world.map, world.trade, world.piers, test.port, world.ship.id)
+    : null;
+  const at = test.at ?? berth;
+  if (at) {
+    // At sea she lies off the wind, so the test can start straight away.
+    const asked = (at.headingDeg * Math.PI) / 180;
+    const heading = berth ? asked : sailableHeading(asked, world.wind.from, noGoAngle(world.ship));
+    world.boat = createBoat(at.x, at.y, heading);
+    world.destination = null;
+    sailStep = world.boat.sailStep;
+  }
+  play();
+  if (berth && test.port && trade.tryDock(world.trade, world.map, world.boat, test.port)) {
+    handleEvents([
+      ...trade.flushEconomy(world.trade, world.map),
+      { type: 'docked', portId: test.port },
+    ]);
+  } else if (started) showDueCard();
+  bar.update();
+  bar.onRestart = () => {
+    leaving = true;
+    location.reload();
+  };
+  bar.onSkip = () => {
+    quests.skipStep();
+    showDueCard();
+    bar.update();
+  };
+  const onEvent = quests.onEvent;
+  quests.onEvent = (e) => {
+    onEvent(e);
+    bar.update();
+  };
+}
+
 // --- Fullscreen --------------------------------------------------------------------------------
 const fsSupport = classifySupport(probeSupport());
 const fsMenuButton = $('menu-fullscreen');
@@ -1142,3 +1216,6 @@ if (new URLSearchParams(location.search).has('debug')) {
     fwt: { world, view, input, trade, tradePanel, quests, tutorial, newGame },
   });
 }
+
+// A quest played from one of its steps (decision 0142): last, once everything above is set up.
+if (questTest) startQuestTest(questTest);

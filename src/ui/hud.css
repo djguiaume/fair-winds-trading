@@ -957,3 +957,45 @@ button.primary {
     transition: none;
   }
 }
+
+/* The quest test bar (decision 0142): editor-only, while a quest is played from a step. */
+.quest-test-bar {
+  position: fixed;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: calc(100vw - 16px);
+  padding: 4px 6px 4px 12px;
+  border-radius: 12px;
+  background: #123246ee;
+  color: #f3d37e;
+  font: 600 12px sans-serif;
+  white-space: nowrap;
+}
+.quest-test-bar span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.quest-test-bar button,
+.quest-test-bar a {
+  flex: none;
+  padding: 3px 8px;
+  border: 1px solid #f3d37e66;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+/* Portrait: the Map button and the sails take the bottom corners, so it sits under the quest note. */
+@media (orientation: portrait) {
+  .quest-test-bar {
+    top: 180px;
+    bottom: auto;
+  }
+}
