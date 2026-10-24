@@ -1,0 +1,39 @@
+{
+  "id": "turf-house",
+  "name": "Turf-roofed house",
+  "group": "homes",
+  "home": true,
+  "building": true,
+  "fit": 0.9,
+  "style": "fog",
+  "vars": {
+    "h": { "range": [0.7, 1] },
+    "w": { "range": [1, 1.35] }
+  },
+  "parts": [
+    {
+      "box": ["w + 0.1", 0.18, 0.95],
+      "at": [0, 0.09, 0],
+      "color": "#7d7f7c"
+    },
+    {
+      "box": ["w", "h", 0.82],
+      "at": [0, "h / 2 + 0.18", 0],
+      "color": "walls[variant]"
+    },
+    {
+      "gable": ["w + 0.2", 1.02, 0.5],
+      "y": "h + 0.18",
+      "color": "roofs[variant]"
+    },
+    {
+      "box": [0.24, 0.48, 0.04],
+      "at": [-0.2, 0.42, 0.42],
+      "color": "trim"
+    },
+    {
+      "windows": ["w", 0.82, "h * 0.6 + 0.18", 2, 0],
+      "seed": "variant"
+    }
+  ]
+}

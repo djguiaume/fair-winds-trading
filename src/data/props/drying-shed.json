@@ -1,0 +1,26 @@
+{
+  "id": "drying-shed",
+  "name": "Slatted drying shed (hjallur)",
+  "group": "fish",
+  "building": true,
+  "fit": 0.6,
+  "style": "fog",
+  "parts": [
+    {
+      "repeat": { "i": { "count": 5 } },
+      "box": [0.08, 0.95, 0.75],
+      "at": ["-0.36 + i * 0.18", 0.6, 0],
+      "color": "#3a332c"
+    },
+    {
+      "box": [0.85, 0.12, 0.8],
+      "at": [0, 0.12, 0],
+      "color": "#7d7f7c"
+    },
+    {
+      "gable": [1.05, 1, 0.38],
+      "y": 1.07,
+      "color": "roofs[variant]"
+    }
+  ]
+}

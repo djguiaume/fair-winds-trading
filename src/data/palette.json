@@ -70,6 +70,36 @@
       "colors": {
         "path": "#d4dbe2"
       }
+    },
+    "fog": {
+      "walls": ["#2f3035", "#eeeae2", "#2f3035", "#eeeae2", "#8a3a32"],
+      "roofs": ["#6f9a4a", "#5e8a44", "#679245", "#2f3035"],
+      "grounds": {
+        "grass": "turf",
+        "rock": "basalt",
+        "sand": "greyshingle"
+      },
+      "colors": {
+        "path": "#8c8f88",
+        "trim": "#b8433a",
+        "reefRock": ["#4f535a", "#61666d", "#474a50"],
+        "coral": ["#4f6b3a", "#5e7a3a"]
+      }
+    },
+    "strand": {
+      "walls": ["#2f3035", "#eeeae2", "#2f3035", "#eeeae2", "#8a3a32"],
+      "roofs": ["#6f9a4a", "#5e8a44", "#679245", "#2f3035"],
+      "grounds": {
+        "grass": "marram",
+        "rock": "basalt",
+        "sand": "dune"
+      },
+      "colors": {
+        "path": "#d8c99a",
+        "trim": "#b8433a",
+        "reefRock": ["#4f535a", "#61666d", "#474a50"],
+        "coral": ["#4f6b3a", "#5e7a3a"]
+      }
     }
   },
   "grounds": {
@@ -126,6 +156,36 @@
       "name": "Cloudberry moor",
       "top": ["#8a8a4a", "#9a6a3a", "#8f8450"],
       "side": ["#5b6068", "#6e747c"]
+    },
+    "turf": {
+      "name": "Turf",
+      "top": ["#6f9a4a", "#5e8a44", "#679245"],
+      "side": ["#4f535a", "#61666d", "#4f535a", "#5e8a44"],
+      "peak": ["#5e8a44", "#6f9a4a", "#61666d"]
+    },
+    "basalt": {
+      "name": "Basalt",
+      "top": ["#61666d", "#4f535a"],
+      "side": ["#4f535a", "#61666d", "#474a50"],
+      "trees": false
+    },
+    "greyshingle": {
+      "name": "Grey shingle",
+      "top": ["#8a8c88", "#7d7f7c"],
+      "side": ["#8a8c88", "#7d7f7c"],
+      "beach": true
+    },
+    "dune": {
+      "name": "Dune sand",
+      "top": ["#e6d6a8", "#ecdcb0"],
+      "side": ["#e6d6a8", "#d9c898"],
+      "beach": true
+    },
+    "marram": {
+      "name": "Marram dunes",
+      "top": ["#a8aa6a", "#b4b474", "#9ea062"],
+      "side": ["#e6d6a8", "#d9c898"],
+      "trees": false
     }
   }
 }

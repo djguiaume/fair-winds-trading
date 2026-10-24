@@ -73,6 +73,12 @@ export interface TerrainDef {
      * details take. Pins a wreck the prologue sails to when the outline is reshaped.
      */
     landmarkAt?: { x: number; y: number };
+    /**
+     * A palette style (`src/data/palette.json`) whose `reefRock` and `coral` colours its rocks
+     * take: the east sea's basalt skerries with weed instead of coral. Left out, the warm rocks
+     * and coral of the ring.
+     */
+    style?: string;
   };
   /** Seeds its rocks, coral and trees; left out, its place in the list does (decision 0110). */
   seed?: number;

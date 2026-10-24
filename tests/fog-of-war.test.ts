@@ -47,14 +47,30 @@ describe('fog of war (0156)', () => {
     expect(islandCharted(map, fresh, island('palm-key'))).toBe(false);
   });
 
-  it('names the south sea’s four areas', () => {
+  it('names the south sea’s four areas, then the east sea’s (0172)', () => {
     expect(chartAreaIds(map)).toEqual([
       'coral-line',
       'sugar-bar',
       'sunreach-waters',
       'palm-key-narrows',
+      'stepping-stones',
+      'fogwatch-waters',
+      'the-race',
+      'amber-reach',
     ]);
-    expect(fogIslandIds(map)).toEqual(['sunreach', 'sunreach-south', 'palm-key', 'lone-palm']);
+    expect(fogIslandIds(map)).toEqual([
+      'sunreach',
+      'sunreach-south',
+      'palm-key',
+      'lone-palm',
+      'fogwatch',
+      'the-giant',
+      'his-wife',
+      'amber-strand',
+      'puffin-holm',
+      'lamb-holm',
+      'broch-isle',
+    ]);
   });
 
   it('hides a fogged port until its island is charted', () => {
@@ -128,7 +144,8 @@ describe('fog of war (0156)', () => {
       expect(read.save.progress?.sighted).toEqual(['lone-palm']);
     }
     const before = encodeSaveCode(serializeWorld(createWorld(map, SLOOP)), map);
-    expect(code.length - before.length).toBeLessThan(12);
+    // One flag per area and fogged island: each new sea adds a character or two (0172).
+    expect(code.length - before.length).toBeLessThan(16);
   });
 
   it('drops ids the map no longer has', () => {

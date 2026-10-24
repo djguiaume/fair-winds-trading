@@ -163,6 +163,8 @@ A style has `walls` and `roofs` (house colours), and may swap grounds and overri
 }
 ```
 
+A style's `colors` may also give `reefRock` and `coral` (lists of colours): a reef whose `look.style` names that style takes them, so the east sea's skerries are dark basalt with green weed instead of the ring's warm rock and coral ([0172](../decisions/0172-east-sea-fogwatch-the-stepping-stones-and-fog-banks.md)). An empty `coral` list draws no coral. Pick it in the map editor (a reef's **Rock style**) or `npm run sea -- set reef <id> --style fog`.
+
 So an island file of style `ice` that says `grass` is snow, and a file can still name `snow` or `ice` outright. Pick the style in the island builder (the island's panel) or `npm run island -- <id> set --style ice`; a ground with the builder's Ground picker or `npm run island -- <id> ground 2 --material ice`. `tests/grounds.test.ts` checks every ground in every style.
 
 ## A new difficulty level ([0113](../decisions/0113-levels-tutorial-and-music-as-data.md))

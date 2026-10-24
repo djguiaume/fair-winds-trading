@@ -33,11 +33,13 @@ describe('the south sea, Sunreach (decision 0152)', () => {
     for (const p of PHASE1_MAP.ports) expect(port(p.id)).toEqual(p);
     for (const t of PHASE1_MAP.terrain ?? [])
       expect(map.terrain!.find((s) => s.id === t.id)).toEqual(t);
-    expect(map.windZones?.map((z) => z.kind).sort()).toEqual([
-      'doldrums',
-      'sheltered',
-      'trade-belt',
-    ]);
+    const south = ['sunreach-sound', 'the-glass', 'the-trades'];
+    expect(
+      map.windZones
+        ?.filter((z) => south.includes(z.id))
+        .map((z) => z.kind)
+        .sort(),
+    ).toEqual(['doldrums', 'sheltered', 'trade-belt']);
   });
 
   it('has no map-check errors or warnings', () => {
