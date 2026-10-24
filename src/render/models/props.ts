@@ -156,8 +156,11 @@ export const PROP_TYPES: Record<string, PropType> = Object.fromEntries(
 
 /** Woodland model preparers draw seeded size and colour without building rejected candidates. */
 export const WOODLAND_TREES: Record<string, (rng: Rng) => () => Parts> = Object.fromEntries(
-  ['woodland-pine', 'woodland-fir', 'woodland-broadleaf'].map((id) => [
-    id,
-    (rng: Rng) => prepareProp(id, { R: 1, style: 'fish', variant: 0, shape: 0.5, size: 1, rng }),
-  ]),
+  // Every `woodland-*` recipe is a tree an island file's woods can grow (the palms, 0152).
+  Object.keys(PROP_RECIPES)
+    .filter((id) => id.startsWith('woodland-'))
+    .map((id) => [
+      id,
+      (rng: Rng) => prepareProp(id, { R: 1, style: 'fish', variant: 0, shape: 0.5, size: 1, rng }),
+    ]),
 );

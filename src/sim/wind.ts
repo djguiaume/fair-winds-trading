@@ -293,6 +293,8 @@ export interface LocalWeather {
   storms: Storm[];
   /** Id of the wind zone that counts most here (decision 0140), or null at open sea. */
   zone?: string | null;
+  /** 0..1: how far inside that zone, past its soft edge. */
+  zoneWeight?: number;
 }
 
 const NO_STORMS: Storm[] = [];
@@ -368,6 +370,7 @@ export function windAt(
     out.storm = storm;
     out.storms = storms;
     out.zone = zone.zone;
+    out.zoneWeight = zone.weight;
   }
   return { from: wrapPositive(from), speedKn };
 }
