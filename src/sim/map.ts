@@ -158,6 +158,8 @@ export interface SeaMarkDef {
   turn?: number;
   tags?: string[];
   chart?: boolean;
+  /** A charted mark's place name, written small beside it on the chart (decision 0152). */
+  name?: string;
 }
 
 /**

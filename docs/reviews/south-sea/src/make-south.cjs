@@ -635,7 +635,7 @@ const sea = {
     // The Keeper's Passage: a red and a green buoy each side, and its light on the chart.
     { type: 'buoy-red', x: r1(gateA[0]), y: r1(gateA[1]), chart: true },
     { type: 'buoy-green', x: r1(gateB[0]), y: r1(gateB[1]), chart: true },
-    { type: 'light', x: r1(gateMid[0]), y: r1(gateMid[1]), chart: true },
+    { type: 'light', name: "The Keeper's Passage", x: r1(gateMid[0]), y: r1(gateMid[1]), chart: true },
     // Palm Key Narrows: the sandy passage between the reefs.
     { type: 'buoy-red', x: NARROWS_X - 22, y: PASS[0] - 2, chart: true },
     { type: 'buoy-green', x: NARROWS_X + 22, y: PASS[0] - 2, chart: true },

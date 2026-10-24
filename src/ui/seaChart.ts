@@ -722,6 +722,9 @@ export class SeaChart {
     const done = questsDone(this.world.trade);
     for (const mark of map.marks ?? []) {
       if (!mark.chart || !questShown(mark, done)) continue;
+      // A named mark (a gateway's light) gets its place name beside it (decision 0152).
+      if (mark.name)
+        places.push({ name: mark.name, x: mark.x, top: -mark.y - 6, bottom: -mark.y + 6 });
       if (mark.type === 'light')
         shape('path', {
           d: star(mark.x, -mark.y, 6 * px),
