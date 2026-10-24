@@ -1,6 +1,6 @@
 # Phase 4 scope review (2026-10-24)
 
-**Status:** Review, partly answered (see below). Guillaume asked what in Phase 4 can be analysed, brainstormed or reviewed while Phase 3 finishes. He then picked this scope review as the first step. The answers to the questions at the end will become an ADR and a roadmap update.
+**Status:** Answered; decided in [0137](../../decisions/0137-phase-4-biomes-and-founded-outposts.md). Guillaume asked what in Phase 4 can be analysed, brainstormed or reviewed while Phase 3 finishes. He then picked this scope review as the first step. The answers to the questions at the end will become an ADR and a roadmap update.
 
 **Read for this review:** the Phase 4 section of the [roadmap](../../roadmap.md) on main, plus [0097](../../decisions/0097-progression-candidates-and-later-extensions.md) (automation deferred), [0120](../../decisions/0120-communities-and-home-island.md) (community arcs and the home island), [0065](../../decisions/0065-rare-goods-from-the-far-yards.md) (outer islands), [0018](../../decisions/0018-map-proposals-and-unlocks.md) (selectable maps, seeded maps), [0064](../../decisions/0064-wind-from-every-quarter.md) (regional wind), [0115](../../decisions/0115-bigger-map-engine-rules.md) (5x map engine rules), [0128](../../decisions/0128-build-spots-on-any-island.md) (build spots on any island) and the [extensions plan](../progression/extensions.md). The code was checked with graphify (`graphify update .`, then `graphify explain`).
 
@@ -128,7 +128,4 @@ Repairs and shelter alone are thin. Proposal: an outpost is a **new small settle
 5. **Shallows:** should a passage hard-block deep ships, or slow and damage them so it stays possible?
 6. **Story in the new waters:** should the outer islands get small arcs of their own (a story reason to explore), or stay trade-only until the expedition?
 
-Still open:
-
-- Is "an outpost is a settlement you found" what you want?
-- Which east biome: fog and storm coast, or kelp and whale grounds?
+Final answers (2026-10-24 06:31Z): an outpost as a settlement you found, yes; the east is the fog and storm coast; and each biome also has an inhabited main island, besides the outpost site.
