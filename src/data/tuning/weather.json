@@ -102,7 +102,8 @@
       "doldrums": {
         "strength": [0.25, 0.4],
         "fairFloor": 0.6,
-        "shiftDeg": 30
+        "shiftDeg": 30,
+        "glassy": 0.7
       },
       "stormy-coast": {
         "gusts": 1.5,
@@ -117,7 +118,8 @@
         "gusts": 0.6,
         "pull": 0.9,
         "axis": true,
-        "acrossFloor": 0.3
+        "acrossFloor": 0.3,
+        "glassy": 0.3
       }
     }
   }

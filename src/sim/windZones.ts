@@ -40,6 +40,8 @@ export interface ZoneKind {
   shiftDeg?: number;
   /** On the easiest level the strength never drops below this (the doldrums never strand you). */
   fairFloor?: number;
+  /** 0..1: how glassy and pale its water looks (the doldrums' calm sea); 0 = like open sea. */
+  glassy?: number;
   /** Storms are born inside it this many times as often as they cross open sea (1 = no extra). */
   stormBirth?: number;
 }
