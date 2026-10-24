@@ -1,6 +1,6 @@
 # 0153. Command-line tools for agents, built on the editors' code
 
-**Status:** Proposed (2026-10-24).
+**Status:** Accepted (2026-10-24); Guillaume picked all seven tools. Part 1 built: `fw` entry, `check`, `adr`.
 
 ## Context
 
@@ -52,3 +52,14 @@ Not proposed: driving the editors' pages in a browser (most expensive, as above)
 ## Consequences
 
 Threads write a command line instead of a script, so they spend fewer tokens, finish sooner and produce screenshots that look alike from one thread to the next. The editors and the tools share one code base, so a new check or a new prop type shows up in both. The one-off scripts in `docs/reviews` stay as records of past reviews; new reviews use the tools. The tools are one more thing to maintain: each has a test, and the entry point stays small. Agents still read and write the JSON data files directly; the tools do not hide them.
+
+## Update (2026-10-24): Guillaume picked all seven; part 1 built
+
+Built first, as the base the others use:
+
+- `tools/fw/fw.mjs` (`npm run fw`) lists and runs the tools; `tools/fw/lib.mjs` holds the Vite loader and the argument parser.
+- `npm run check` (`tools/fw/check.ts`): map quick checks on the ring and the stress sea, route sailing on the first sea (about 7 s; `--all-routes`, `--fast`), island checks for each island file at its size on the map, the quest builder's checks and the perks. The whole run takes about 10 s. The quest builder's checks moved into `questProblems` in `src/editor/quest/doc.ts`, which the builder's Checks panel now calls too.
+- `npm run adr` (`tools/fw/adr.mjs`): next free number across origin/main and every pushed branch; `new "Title"` writes the file and README line.
+- `CLAUDE.md` tells agents when to use them; `tests/fw-tools.test.ts` covers them.
+
+The other five (shots, chart, balance, island, quest) are built in parallel threads on top of this base.
