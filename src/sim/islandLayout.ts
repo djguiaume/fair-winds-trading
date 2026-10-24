@@ -36,7 +36,9 @@ export interface IslandLayout {
  * The island's ground at a level, built from its island file (decision 0101): coasts, the lake
  * and raised ground. Shared by models, collision, chart and water.
  */
-function createIslandLayout(design: IslandDesign, level: number): IslandLayout {
+function createIslandLayout(design: IslandDesign, town: number): IslandLayout {
+  // An empty island to found (level 0, decision 0155) has the ground of a hamlet's island.
+  const level = Math.max(town, 1);
   return {
     coasts: design.coasts,
     lake: design.lake,

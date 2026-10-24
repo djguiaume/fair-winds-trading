@@ -22,7 +22,8 @@ import { FrameMonitor, type QualityLevel, guessQuality, lowerQuality } from './r
 import { GameView } from './render/view';
 import { SAIL_STEPS, createBoat } from './sim/boat';
 import { isFar, isRare, isSpecialty } from './sim/goods';
-import { portNow, questsDone, settlementLevels } from './sim/settlement';
+import { portNow, questsDone } from './sim/settlement';
+import { foundedSites, townLevels } from './sim/founding';
 import { bearingTo, clamp } from './sim/math';
 import { type SaveStorage, clearSave, loadGame, saveGame } from './sim/save';
 import { LINK_KEY } from './sim/saveTransfer';
@@ -339,8 +340,26 @@ function openHarbour() {
 // Every other quest's news away from its harbour: a small note at sea (decision 0141).
 const questNote = new QuestNote($<HTMLButtonElement>('quest-note'), $('captain-stats'));
 questNote.onOpen = () => chart.open();
+/** Sites founded so far (decision 0155): a new one opens its harbour and goes on the chart. */
+let founded = foundedSites(world.map, world.trade).join();
+function checkFounded() {
+  const now = foundedSites(world.map, world.trade);
+  if (now.join() === founded) return;
+  const was = founded.split(',');
+  founded = now.join();
+  view.setSettlementLevels(townLevels(world.map, world.trade));
+  hud.portLabels.rebuild();
+  for (const id of now.filter((p) => !was.includes(p)))
+    hud.showToast(t('toast.founded', { name: trade.findPort(world.map, id)?.name ?? id }), 5);
+  autosave();
+}
 quests.onEvent = (e) => {
   const quest = quests.quests.find((q) => q.id === e.quest);
+  if (e.type === 'landed') {
+    hud.showToast(t('toast.landed', { qty: e.qty, good: goodName(e.good).toLowerCase() }), 3);
+    return;
+  }
+  checkFounded();
   if (quest?.lesson) {
     // A lesson speaks in its own bubble, and its last one says it is done (decision 0151).
     if (e.type === 'finished') {
@@ -1125,7 +1144,7 @@ function handleEvents(events: WorldEvent[]) {
             : t('toast.levelUp', { name: portName, level: townLevelName(e.level) }),
         5,
       );
-      view.setSettlementLevels(settlementLevels(world.trade));
+      view.setSettlementLevels(townLevels(world.map, world.trade));
       hud.portLabels.rebuild();
       if (tradePanel.isOpen) tradePanel.render();
       autosave();

@@ -35,7 +35,6 @@ import {
   DEFAULT_START_LEVEL,
   portNow,
   settlementLevel,
-  settlementLevels,
   stepSettlements,
   upgradeNeedsLevel,
   wantsAt,
@@ -46,8 +45,10 @@ import {
   createProgress,
   discoverNear,
   homePort,
+  isFounded,
   shipOffer,
 } from './shipyards';
+import { townLevels } from './founding';
 import {
   type UpgradeLevels,
   type UpgradeTrack,
@@ -303,14 +304,10 @@ export function portInRange(
   let best: PortDef | null = null;
   let bestD = range;
   for (const port of map.ports) {
-    const d = distanceToPort(
-      map,
-      pos,
-      port,
-      levels[port.id] ?? port.level ?? DEFAULT_START_LEVEL,
-      shipId,
-      bestD,
-    );
+    const level = levels[port.id] ?? (port.site ? 0 : (port.level ?? DEFAULT_START_LEVEL));
+    // Level 0: an empty island not founded yet, with no harbour (decision 0155).
+    if (level === 0) continue;
+    const d = distanceToPort(map, pos, port, level, shipId, bestD);
     if (d <= bestD) {
       best = port;
       bestD = d;
@@ -329,6 +326,7 @@ export function tryDock(
   const port = findPort(map, portId);
   if (
     !port ||
+    !isFounded(trade, port) ||
     boat.speedKn >= harbour().dockSpeedKn ||
     distanceToPort(
       map,
@@ -393,7 +391,7 @@ export function stepTrade(
       map,
       boat,
       harbour().dockRange,
-      settlementLevels(trade),
+      townLevels(map, trade),
       activeShip(trade).id,
     );
     if (port && tryDock(trade, map, boat, port.id)) {

@@ -1,0 +1,41 @@
+{
+  "id": "test-founding",
+  "name": "Found an outpost",
+  "start": { "is": "always" },
+  "text": "quest.test-founding",
+  "port": "sunreach",
+  "items": { "settler": { "space": 0 } },
+  "steps": [
+    {
+      "id": "supplies",
+      "goal": {
+        "is": "all",
+        "of": [
+          {
+            "is": "landed",
+            "place": { "x": 487, "y": -738, "within": 10, "maxKn": 2, "holdSec": 3 },
+            "good": "timber",
+            "qty": 10
+          },
+          {
+            "is": "landed",
+            "place": { "x": 487, "y": -738, "within": 10, "maxKn": 2, "holdSec": 3 },
+            "good": "planks",
+            "qty": 6
+          }
+        ]
+      }
+    },
+    {
+      "id": "settler",
+      "goal": {
+        "is": "carried",
+        "item": "settler",
+        "qty": 1,
+        "from": "watchman-key",
+        "to": { "x": 487, "y": -738, "within": 10, "maxKn": 2, "holdSec": 3 }
+      }
+    }
+  ],
+  "reward": { "gold": 100, "found": ["palm-key"] }
+}

@@ -92,6 +92,12 @@ export interface PortDef {
   builds?: string[];
   /** Off the chart until the boat sails near it (decision 0048). */
   hidden?: boolean;
+  /**
+   * An empty island to found (decision 0155): not a port until a quest reward `found` names it.
+   * Until then it has no pier, market or place on the chart, and she cannot dock there; then it
+   * opens at its `level` and grows like any town.
+   */
+  site?: boolean;
   /** Settlement level at the start of a voyage, 1 (hamlet) to 4 (port town); default 2, a village (decision 0059). */
   level?: number;
   /** Extra goods the town wants once it reaches a level, keyed by level ("2" up to the top level) (decision 0059). */

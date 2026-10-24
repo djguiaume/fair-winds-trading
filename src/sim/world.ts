@@ -20,6 +20,7 @@ import {
   shallowDrag,
   shallowness,
 } from './hazards';
+import { townLevels } from './founding';
 import { settlementLevels } from './settlement';
 import { DIFFICULTIES, knobs, weatherFor } from './difficulty';
 import { mapZones, zoneField } from './windZones';
@@ -274,6 +275,8 @@ interface PierVersion {
   map: MapDef;
   levels: ReturnType<typeof settlementLevels>;
   count: number;
+  /** Ports on the chart: founding a site (decision 0155) builds its pier. */
+  charted: number;
 }
 
 const pierVersions = new WeakMap<World, PierVersion>();
@@ -293,10 +296,15 @@ export function refreshPiers(world: World) {
     )
       changed = true;
   }
-  if (!changed && previous?.count === count) return;
-  const levels = settlementLevels(world.trade);
-  world.piers = piersOf(world.map, levels);
-  pierVersions.set(world, { map: world.map, levels, count });
+  const charted = world.trade.progress.discovered.length;
+  if (!changed && previous?.count === count && previous.charted === charted) return;
+  world.piers = piersOf(world.map, townLevels(world.map, world.trade));
+  pierVersions.set(world, {
+    map: world.map,
+    levels: settlementLevels(world.trade),
+    count,
+    charted,
+  });
 }
 
 /*
@@ -523,7 +531,13 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   if (
     world.boat.sailStep === 0 &&
     world.boat.speedKn < harbour().moorMaxKn &&
-    (portInRange(world.map, world.boat, undefined, settlementLevels(world.trade), world.ship.id) ||
+    (portInRange(
+      world.map,
+      world.boat,
+      undefined,
+      townLevels(world.map, world.trade),
+      world.ship.id,
+    ) ||
       homeInRange(world.trade, world.map, world.boat))
   )
     moor(world.boat, dt);

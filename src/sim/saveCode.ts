@@ -37,21 +37,32 @@ const TAU = 2 * Math.PI;
  */
 const GOODS_BEFORE_FAR: readonly GoodId[] = GOODS.filter((g) => !isFar(g));
 
+/**
+ * The port lists a code may have been written with: the map's, and the map's before its empty
+ * islands to found were added (decision 0155), so a code from before a sea had its site still reads.
+ */
+function portLists(map: MapDef): string[][] {
+  const all = map.ports.map((p) => p.id);
+  const open = map.ports.filter((p) => !p.site).map((p) => p.id);
+  return open.length === all.length ? [all] : [all, open];
+}
+
 /** Every id list the layout depends on, in order. */
-function layoutIds(map: MapDef, goods: readonly string[]): string[] {
-  return [
-    map.name,
-    ...map.ports.map((p) => p.id),
-    ...goods,
-    ...SHIP_IDS,
-    ...UPGRADE_TRACKS,
-    ...DIFFICULTIES,
-  ];
+function layoutIds(
+  map: MapDef,
+  goods: readonly string[],
+  ports: readonly string[] = map.ports.map((p) => p.id),
+): string[] {
+  return [map.name, ...ports, ...goods, ...SHIP_IDS, ...UPGRADE_TRACKS, ...DIFFICULTIES];
 }
 
 /** 16-bit FNV-1a of the layout lists: different lists give a different fingerprint. */
-export function layoutFingerprint(map: MapDef, goods: readonly string[] = GOODS): number {
-  return fingerprint(layoutIds(map, goods));
+export function layoutFingerprint(
+  map: MapDef,
+  goods: readonly string[] = GOODS,
+  ports?: readonly string[],
+): number {
+  return fingerprint(layoutIds(map, goods, ports));
 }
 
 /**
@@ -393,19 +404,22 @@ export function unpackSave(
   saveVersion: number,
   quests: readonly QuestDef[] = questsFor(map),
 ): { ok: true; raw: SaveData } | { ok: false; problem: UnpackProblem } {
-  const ports = map.ports.map((p) => p.id);
   const r = new Reader(bytes);
   const version = r.uint();
   if (version > saveVersion) return { ok: false, problem: 'newer' };
   const fingerprint = r.uint();
-  // A code from before the far goods (0146) reads with the goods list it was written with.
-  const goods = [GOODS, GOODS_BEFORE_FAR].find(
-    (list) =>
-      fingerprint === layoutFingerprint(map, list) ||
-      fingerprint === (layoutFingerprint(map, list) ^ questFingerprint(quests)),
-  );
-  if (!goods) return { ok: false, problem: 'otherVersion' };
-  const withQuests = fingerprint !== layoutFingerprint(map, goods);
+  // A code from before the far goods (0146), or from before a sea's empty island to found (0155),
+  // reads with the goods and ports lists it was written with.
+  const layout = portLists(map)
+    .flatMap((ports) => [GOODS, GOODS_BEFORE_FAR].map((goods) => ({ goods, ports })))
+    .find(
+      ({ goods, ports }) =>
+        fingerprint === layoutFingerprint(map, goods, ports) ||
+        fingerprint === (layoutFingerprint(map, goods, ports) ^ questFingerprint(quests)),
+    );
+  if (!layout) return { ok: false, problem: 'otherVersion' };
+  const { goods, ports } = layout;
+  const withQuests = fingerprint !== layoutFingerprint(map, goods, ports);
   const pick = (list: readonly string[], n: number) => (n > 0 ? list[n - 1] : undefined);
 
   const time = r.uint();

@@ -5,7 +5,7 @@ import { DEG, approach, bearingVector, clamp, wrapAngle } from '../sim/math';
 import { windTo } from '../sim/wind';
 import { windStrength01 } from '../sim/windStrength';
 import { type World, currentWaypoint } from '../sim/world';
-import { settlementLevels } from '../sim/settlement';
+import { townLevels } from '../sim/founding';
 import { TUNING } from '../data/tuning';
 import {
   type IslandModel,
@@ -83,6 +83,8 @@ export class GameView {
   private readonly stormClouds = new StormClouds();
   private rain!: Rain;
   private islands: IslandModel;
+  /** Town levels the islands were built at, 0 for a site not founded yet (decision 0155). */
+  private levels: Record<string, TownLevel> = {};
   private boat: BoatModel;
   /** Ship class and upgrade levels the boat model was built for; rebuilt when they change. */
   private boatKey = '';
@@ -147,19 +149,11 @@ export class GameView {
     });
     this.scene.add(this.sun, this.sun.target);
 
-    this.islands = buildIslands(world.map, {
-      shadows: true,
-      levels: settlementLevels(world.trade),
-    });
-    this.lighthouseBeams = new LighthouseBeams(
-      world.map.islands,
-      this.islandLevels(settlementLevels(world.trade)),
-    );
+    this.levels = townLevels(world.map, world.trade);
+    this.islands = buildIslands(world.map, { shadows: true, levels: this.levels });
+    this.lighthouseBeams = new LighthouseBeams(world.map.islands, this.islandLevels(this.levels));
     this.scene.add(this.lighthouseBeams.root);
-    this.beaconLights = new BeaconLights(
-      world.map.islands,
-      this.islandLevels(settlementLevels(world.trade)),
-    );
+    this.beaconLights = new BeaconLights(world.map.islands, this.islandLevels(this.levels));
     this.scene.add(this.beaconLights.points);
     this.level = level;
     this.boat = this.buildBoat();
@@ -204,6 +198,8 @@ export class GameView {
     }
     const spots: THREE.Vector3[] = [];
     for (const port of this.world.map.ports) {
+      // No light on an empty island not founded yet (decision 0155).
+      if (this.levels[port.id] === 0) continue;
       const pier = this.harbours[port.id];
       const island = this.world.map.islands.find((i) => i.id === port.islandId);
       if (!pier || !island) continue;
@@ -342,7 +338,10 @@ export class GameView {
   }
 
   setSettlementLevels(levels: Record<string, TownLevel>) {
+    const founded = Object.keys(levels).some((id) => this.levels[id] === 0 && levels[id] !== 0);
+    this.levels = { ...levels };
     this.islands.setSettlementLevels(levels);
+    if (founded) this.buildLanterns();
     this.lighthouseBeams.setLevels(this.islandLevels(levels));
     this.beaconLights.setLevels(this.islandLevels(levels));
   }

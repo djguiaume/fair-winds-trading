@@ -259,6 +259,7 @@ level, as a clock ("Rush bread to Saltmere in {par}" shows "2:20" on Captain,
 | `owns-ship` | `ship` | anywhere |
 | `moored` | `island` (optional; default the home island): moored at its pier | anywhere |
 | `delivered` | `port`, `good`, `qty`: sold or for an order there since the step began | goal |
+| `landed` | `place`, `good`, `qty`: goods taken out of the hold at a port alongside, or at a spot at sea held slowly there, as many as she has aboard up to `qty`; nothing paid; founding goods ([0155](../decisions/0155-founding-an-outpost.md)) | goal |
 | `carried` | `item`, `qty`, `from`, `to`: quest cargo, loaded as the hold allows; `from`/`to` is a port or a spot at sea `{ "x", "y", "within", "maxKn", "holdSec" }`, held slowly there ([0131](../decisions/0131-calda-slipway-and-cargo-at-a-spot.md)) | goal |
 | `bought` | `port`, `good` (optional), `qty`: bought there since the step began | goal |
 | `sails-practised` | lowered and raised the sails, steered, got under way | goal |
@@ -266,9 +267,17 @@ level, as a clock ("Rush bread to Saltmere in {par}" shows "2:20" on Captain,
 | `timed` | `from`, `to` (default `from`), `via` (points in order), `within`, `par` (seconds, or `{ "fair": …, "captain": …, "salt": … }`) | goal |
 
 `port` can be `"home"`. Rewards: `gold`, `standing` (`{ "port": n }`), `discover` and `levelUp`
-(lists of ports). `tests/quests.test.ts` checks every shipped quest file; `checkQuests` says
+(lists of ports), and `found` (a list of sites to found, below). `tests/quests.test.ts` checks every shipped quest file; `checkQuests` says
 what is wrong in plain words. Never rename a shipped quest, step or option: old saves would
 start it again.
+
+**An outpost to found ([0155](../decisions/0155-founding-an-outpost.md)).** Give the port entry
+`"site": true` and its `level` (the level it opens at) and `maxLevel`. Until a quest reward
+`"found": ["<port>"]` names it, it is an empty island: no pier, market, chart entry or docking.
+Its island file shows level 0 before founding: give a prop `"from": 0` to have it stand then
+too (a daymark); everything from level 1 appears on the day it is founded (the flagpole and
+name board, the first homes). Founding goods are `landed` at a spot off its beach, the settler
+is a `carried` item (space 0) to the same spot. `discover` and `levelUp` never name a site.
 
 **A step's places at sea ([0130](../decisions/0130-after-a-quest-and-the-saltmere-shoals.md)).**
 The tracked step's `reach` points, a timed run's `via` points and quest cargo's spot are drawn

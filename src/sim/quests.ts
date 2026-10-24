@@ -1,7 +1,7 @@
 import { type StepEffects, checkStepEffects } from './stepEffects';
 import characterData from '../data/characters.json';
 import { daylightAt } from './daylight';
-import { GOODS, type GoodAmounts, isGood } from './goods';
+import { GOODS, type GoodAmounts, type GoodId, isGood } from './goods';
 import { type IslandDesign, questTagIds } from '../data/islands';
 import type { MapDef } from './map';
 import {
@@ -567,6 +567,8 @@ export type QuestEvent =
   | { type: 'choice'; quest: string; step: string }
   /** A `clean` step touched a reef or shore and starts over. */
   | { type: 'reset'; quest: string; step: string }
+  /** Goods taken out of the hold for a step (`landed`, decision 0155). */
+  | { type: 'landed'; quest: string; good: GoodId; qty: number }
   | { type: 'finished'; quest: string };
 
 /** How often the conditions are checked, in seconds of play. */
@@ -1112,6 +1114,10 @@ export class QuestBook {
             nightOk,
             freeSpace: freeSpace(trade),
             itemSpace: (item) => quest.items?.[item]?.space ?? 1,
+            land: (good, qty) => {
+              trade.captain.cargo[good] -= qty;
+              events.push({ type: 'landed', quest: quest.id, good, qty });
+            },
           },
           p.counts,
         );

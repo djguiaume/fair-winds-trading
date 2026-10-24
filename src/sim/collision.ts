@@ -113,6 +113,9 @@ export function piersOf(
     // An island with build spots (decisions 0126, 0128) has no course buoy: its file faces its
     // harbour bearing.
     const home = island.look?.profile && !!designOf(island)?.homeSpots?.length;
+    const port = map.ports?.find((p) => p.islandId === island.id);
+    // An empty island to found has no pier yet (decision 0155).
+    if (port && (levels[port.id] ?? (port.site ? 0 : 1)) === 0) continue;
     if (island.look?.dock && (wp || home))
       piers.push(
         pierAt(
@@ -120,7 +123,6 @@ export function piersOf(
           island.look?.profile ? (island.look.harbourBearing ?? 0) : bearingTo(island, wp!),
         ),
       );
-    const port = map.ports?.find((p) => p.islandId === island.id);
     if (island.look?.dock && wp && !island.look.profile && port) {
       // A hidden yard grows the plain town dock (townIslandParts): a T-head from level 3 and a
       // second pier with its quay at level 4, in the same harbour frame as its main pier (0082).

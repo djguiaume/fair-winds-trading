@@ -11,6 +11,7 @@ import {
   offerHomeSpot,
   resolveSpot,
 } from './home';
+import { foundSite } from './founding';
 import { MAX_SETTLEMENT_LEVEL, settlementLevel } from './settlement';
 import { homePort, isDiscovered, standingAt } from './shipyards';
 import type { TradeState } from './trade';
@@ -39,6 +40,11 @@ export interface QuestReward {
   discover?: string[];
   /** Ports that go up one town level at once (decision 0120's "step up"). */
   levelUp?: string[];
+  /**
+   * Empty islands founded (decision 0155): ports marked `site` in the map open at their start
+   * level and go on the chart.
+   */
+  found?: string[];
   /**
    * An island becomes the captain's: `true` for the map's home island (the prologue's reward,
    * decision 0126), or the id of another island with build spots (decision 0128).
@@ -149,6 +155,8 @@ export interface StepContext extends ConditionContext {
   itemSpace(item: string): number;
   /** The helm since the last check (empty when the game passed no controls). */
   helm?: Helm;
+  /** Take goods out of the hold for the quest (`landed`, decision 0155); the game says so. */
+  land?(good: GoodId, qty: number): void;
 }
 
 /** What a parameter holds, for the checks and the quest builder; a trailing `?` makes it optional. */
@@ -455,6 +463,32 @@ export const CONDITIONS: Record<string, ConditionKind> = {
     },
     test: (c, _ctx, s) => s[0]! >= num(c.qty),
   },
+  /**
+   * Goods landed for the quest at `place` (decision 0155): alongside a port, or held slowly at a
+   * spot at sea, they come out of the hold by themselves, as many as she has aboard up to `qty`,
+   * so a short load lands what it can and the rest comes later. Nothing is paid; founding goods
+   * for an empty island land this way. Slots: how many landed, hundredths of a second held.
+   */
+  landed: {
+    params: { place: 'place', good: 'good', qty: 'count' },
+    slots: 2,
+    update(c, ctx, s) {
+      const good = goodOf(c, ctx);
+      const place = c.place;
+      let at: boolean;
+      if (isSpot(place)) {
+        // Held up to the spot's time, then kept there while the boat stays: "alongside".
+        s[1] = inSpot(place, ctx) ? Math.min(s[1]! + Math.round(ctx.dt * 100), holdOf(place)) : 0;
+        at = inSpot(place, ctx) && s[1]! >= holdOf(place);
+      } else at = ctx.trade.dockedAt !== null && ctx.trade.dockedAt === port(c, ctx, 'place');
+      if (!at || !good || !ctx.land) return;
+      const n = Math.min(num(c.qty) - s[0]!, ctx.trade.captain.cargo[good]);
+      if (n <= 0) return;
+      ctx.land(good, n);
+      s[0] = s[0]! + n;
+    },
+    test: (c, _ctx, s) => s[0]! >= num(c.qty),
+  },
   /** The sails drill: lower, raise, steer and get under way (the first lesson). */
   'sails-practised': {
     params: {},
@@ -539,6 +573,7 @@ export const CONDITION_ABOUT: Record<string, string> = {
   moored: 'moored at an island’s pier',
   'owns-ship': 'owns a ship',
   delivered: 'hand over goods at a port',
+  landed: 'land goods from the hold at a port or a spot (founding goods)',
   bought: 'buy goods at a port',
   'sails-practised': 'lower and raise the sails, steer, get under way',
   carried: 'carry quest cargo from one place to another',
@@ -640,9 +675,12 @@ export function portsIn(c: Condition | undefined): string[] {
 }
 
 export function rewardPorts(r: QuestReward | undefined): string[] {
-  return [...Object.keys(r?.standing ?? {}), ...(r?.discover ?? []), ...(r?.levelUp ?? [])].filter(
-    (p) => p !== 'home' && !isVarRef(p),
-  );
+  return [
+    ...Object.keys(r?.standing ?? {}),
+    ...(r?.discover ?? []),
+    ...(r?.levelUp ?? []),
+    ...(r?.found ?? []),
+  ].filter((p) => p !== 'home' && !isVarRef(p));
 }
 
 /** What the checks need to know beyond the condition. */
@@ -798,7 +836,9 @@ export function checkReward(r: unknown, scope: CheckScope, at: string): string[]
   const reward = r as Record<string, unknown>;
   const out: string[] = [];
   for (const key of Object.keys(reward))
-    if (!['gold', 'standing', 'discover', 'levelUp', 'homeIsland', 'homeSpot'].includes(key))
+    if (
+      !['gold', 'standing', 'discover', 'levelUp', 'found', 'homeIsland', 'homeSpot'].includes(key)
+    )
       out.push(`${at}: unknown reward "${key}"`);
   if (reward.gold !== undefined && !isCount(reward.gold))
     out.push(`${at}.gold: needs a whole number`);
@@ -812,13 +852,19 @@ export function checkReward(r: unknown, scope: CheckScope, at: string): string[]
         if (!isCount(n)) out.push(`${at}.standing.${p}: needs a whole number`);
       }
   }
-  for (const key of ['discover', 'levelUp']) {
+  const isSite = (p: unknown) => scope.map.ports.some((port) => port.id === p && port.site);
+  for (const key of ['discover', 'levelUp', 'found']) {
     const list = reward[key];
     if (list === undefined) continue;
     if (!Array.isArray(list)) out.push(`${at}.${key}: needs a list of ports`);
     else
       for (const p of list)
         if (!resolvePort(scope.map, p)) out.push(`${at}.${key}: no port "${String(p)}"`);
+        // A site opens by being founded, never by a chart or a level (decision 0155).
+        else if (key === 'found' && !isSite(p))
+          out.push(`${at}.found: "${String(p)}" is no empty island (a port with "site": true)`);
+        else if (key !== 'found' && isSite(p))
+          out.push(`${at}.${key}: "${String(p)}" is an empty island: found it with "found"`);
   }
   const island = reward.homeIsland === true ? scope.map.homeIsland : reward.homeIsland;
   if (reward.homeIsland !== undefined && !homeSpots(scope.map, island as string).length)
@@ -851,6 +897,7 @@ export function payReward(
     if (p && !trade.progress.discovered.includes(p)) trade.progress.discovered.push(p);
   }
   let up = false;
+  for (const id of r.found ?? []) if (foundSite(trade, map, id)) up = true;
   for (const id of r.levelUp ?? []) {
     const town = trade.settlements.byPort[resolvePort(map, id) ?? ''];
     if (!town || town.level >= MAX_SETTLEMENT_LEVEL) continue;

@@ -111,6 +111,8 @@ export function conditionWords(c: Condition | undefined): string {
       return `owns a ${String(v.ship)}`;
     case 'delivered':
       return `deliver ${String(v.qty)} ${String(v.good)} at ${String(v.port)}`;
+    case 'landed':
+      return `land ${String(v.qty)} ${String(v.good)} ${placeWords(v.place)}`;
     case 'carried':
       return `carry ${String(v.qty)} ${String(v.item)} ${placeWords(v.from)} → ${placeWords(v.to)}`;
     case 'reach': {
@@ -224,6 +226,17 @@ export function stepPlaces(step: QuestStep, map: MapDef): Place[] {
             no: i + 1,
             ordered: false,
           });
+      });
+    if (cond.is === 'landed' && isSpot(cond.place))
+      out.push({
+        kind: 'spot',
+        x: cond.place.x,
+        y: cond.place.y,
+        within: cond.place.within,
+        path: [...path, 'place'],
+        radiusPath: [...path, 'place', 'within'],
+        no: 1,
+        ordered: false,
       });
   };
   walk(step.goal, ['goal']);
@@ -617,6 +630,7 @@ export const REWARD_FIELDS: { key: keyof QuestReward; label: string }[] = [
   { key: 'standing', label: 'Standing' },
   { key: 'discover', label: 'On the chart' },
   { key: 'levelUp', label: 'Level up' },
+  { key: 'found', label: 'Found an outpost' },
   { key: 'homeIsland', label: 'An island' },
   { key: 'homeSpot', label: 'Building spots' },
 ];
