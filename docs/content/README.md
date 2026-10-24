@@ -361,8 +361,20 @@ at sea (a ring as wide as `within`, the next one pulsing) and on the chart, with
   models are recipes in `src/data/props/mark-cardinal-*.json`, a yellow and black diamond on
   the chart). `turn` is a heading in degrees; `"chart": true` draws it on the chart too. Not solid;
   the map checks keep them off land and reefs.
+- **Islands and shapes ([0166](../decisions/0166-land-that-rises-or-clears-after-a-quest.md)):**
+  an island entry or a terrain entry (reef, sandbank, shallows, barrier island, ice) in a map or
+  sea file takes the same `"tags": ["after:<quest>"]` (it rises once the quest is done) or
+  `"tags": ["before:<quest>"]` (it clears then). Land, collision, wind shelter, reef drag, piers,
+  sighting, the chart and the shore foam all follow. It swaps only out of the boat's sight
+  (`seamanship.json` › `questLand`: farther than `changeDistance`, or docked and `dockedClear`
+  from it), never under her. One quest per feature; a port on rising land must be a `site`
+  founded after it rises; no port on land that clears; the home port, the captain's island and
+  the prologue wreck always stand. The route checks run with the land before and after its
+  quests. Sea editor: **Stands** and **Quest** on an island, shape or mark (a dashed ring on the
+  chart); command line: `npm run sea -- set island <id> --after <quest>` (`--before`, `--always`).
 - `checkQuestHooks` (run by `tests/quest-hooks.test.ts`) refuses a tag or `afterQuest` naming a
-  quest that does not exist.
+  quest that does not exist; the `quest-tags` map check does the same for islands, shapes and
+  marks in the editor, `npm run sea` and `npm run check`.
 
 A reef's or bank's landmark can be set by hand with `"look": { "landmark": "wreck",
 "landmarkAt": { "x", "y" } }`, so reshaping the outline does not move it (the prologue wreck).

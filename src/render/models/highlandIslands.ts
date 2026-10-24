@@ -607,6 +607,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
         old.remove(oldTerrain);
         next.add(oldTerrain);
       }
+      next.visible = old.visible;
       this.remove(old);
       disposeGeometry(old);
       this.batches.set(island.id, next);
@@ -637,9 +638,17 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     }
   }
 
+  setLandOut(out: ReadonlySet<string>) {
+    for (const child of this.children) {
+      const id = /^(?:island|terrain):(.+)$/.exec(child.name)?.[1];
+      if (id !== undefined) child.visible = !out.has(id);
+    }
+  }
+
   private rebuild(island: IslandDef, index: number) {
     const old = this.batches.get(island.id)!;
     const next = this.buildIsland(island, index);
+    next.visible = old.visible;
     this.remove(old);
     disposeGeometry(old);
     this.batches.set(island.id, next);

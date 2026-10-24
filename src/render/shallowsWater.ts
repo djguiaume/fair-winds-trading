@@ -132,6 +132,13 @@ export class ShallowsWater {
     this.root.visible = this.root.children.length > 0;
   }
 
+  /** Shallows out of the sea for now are not tinted (decision 0166). */
+  setLandOut(out: ReadonlySet<string>) {
+    for (const mesh of this.root.children)
+      mesh.visible = !out.has(mesh.name.slice('shallows:'.length));
+    this.root.visible = this.root.children.some((mesh) => mesh.visible);
+  }
+
   /** Once a frame: the ocean's light colour, fog and clock. */
   update(time: number, ocean: Ocean) {
     if (!this.root.children.length) return;

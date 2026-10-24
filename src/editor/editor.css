@@ -330,6 +330,23 @@ input:focus-visible {
   vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
+/* Land that rises (gold) or clears (blue-white) after a quest (decision 0166). */
+.c-quest {
+  fill: none;
+  stroke-width: 2px;
+  stroke-dasharray: 6 4;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.c-quest-after {
+  stroke: #f3d37e;
+}
+.c-quest-before {
+  stroke: #cfe8ff;
+}
+.c-quest-label {
+  fill: #f3d37e;
+}
 .c-selected {
   fill: none;
   stroke: var(--brass-hi);

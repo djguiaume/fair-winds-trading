@@ -194,16 +194,40 @@ export class GameView {
     this.setQuality(level);
     this.currentWater = new CurrentWater(
       world.map.currents ?? [],
-      this.shores.get(world.map.islands, world.map.terrain),
+      this.shores.get(world.land.islands, world.land.terrain),
     );
     this.scene.add(this.currentWater.root);
     this.calmWater = new CalmWater(
       world.map.windZones ?? [],
-      this.shores.get(world.map.islands, world.map.terrain),
+      this.shores.get(world.land.islands, world.land.terrain),
     );
     this.scene.add(this.calmWater.root);
     this.shallowsWater = new ShallowsWater(world.map.terrain);
     this.scene.add(this.shallowsWater.root);
+    this.followLand();
+  }
+
+  /** The land version the scene shows (decision 0166). */
+  private landVersion = -1;
+  /**
+   * Shows the islands and shapes standing now and hides those a quest has not raised yet or has
+   * cleared (decision 0166). The sim swaps them only out of sight, so nothing pops in view.
+   */
+  private followLand() {
+    const { land } = this.world;
+    if (land.version === this.landVersion) return;
+    const first = this.landVersion < 0;
+    this.landVersion = land.version;
+    if (first && !land.out.size) return;
+    this.islands.setLandOut(land.out);
+    this.lighthouseBeams.setLandOut(land.out);
+    this.beaconLights.setLandOut(land.out);
+    this.shallowsWater?.setLandOut(land.out);
+    if (!first) {
+      // The shore foam and tint around the land, and the harbour lanterns, follow it.
+      this.setQuality(this.level);
+      this.buildLanterns();
+    }
   }
 
   /** Harbour lanterns (decision 0068): one on each pier head and a town glow a little inland. */
@@ -217,7 +241,7 @@ export class GameView {
       // No light on an empty island not founded yet (decision 0157).
       if (this.levels[port.id] === 0) continue;
       const pier = this.harbours[port.id];
-      const island = this.world.map.islands.find((i) => i.id === port.islandId);
+      const island = this.world.land.islands.find((i) => i.id === port.islandId);
       if (!pier || !island) continue;
       spots.push(toScene(pier.x, pier.y, new THREE.Vector3()).setY(4));
       const town = toScene(
@@ -277,7 +301,7 @@ export class GameView {
     this.wake.setQuality(level);
     const profile = QUALITY[level];
     if (this.ocean) this.scene.remove(this.ocean.mesh, this.streaks.mesh, this.rain.mesh);
-    const shore = this.shores.get(this.world.map.islands, this.world.map.terrain);
+    const shore = this.shores.get(this.world.land.islands, this.world.land.terrain);
     // ShoreTextureCache releases its previous bake on a live map edit. Rebind inactive
     // quality levels too, so returning to one never revives a disposed texture.
     for (const effects of this.qualityEffects.values()) effects.ocean.setShore(shore);
@@ -292,11 +316,11 @@ export class GameView {
       )?.ocean.mesh.material;
       effects = {
         ocean: new Ocean(
-          this.world.map.islands,
+          this.world.land.islands,
           profile.oceanSegments,
           profile.fancyWater,
           480,
-          this.world.map.terrain,
+          this.world.land.terrain,
           shore,
           waterMaterial,
         ),
@@ -411,6 +435,7 @@ export class GameView {
   }
 
   render(dt: number) {
+    this.followLand();
     const { boat, wind, ship, time } = this.world;
     this.castaway.update(this.castawayWaiting, time);
     const dir = bearingVector(boat.heading);
