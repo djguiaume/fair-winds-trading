@@ -827,6 +827,15 @@ const syncWeather = () => {
   storms.disabled = !settings.weather;
 };
 syncWeather();
+// Wind zones (decision 0140) have their own switch, like every hazard.
+const windZones = $<HTMLInputElement>('wind-zones');
+world.windZones = settings.windZones;
+windZones.checked = settings.windZones;
+windZones.addEventListener('change', () => {
+  world.windZones = windZones.checked;
+  settings.windZones = windZones.checked;
+  saveSettings(settings);
+});
 // Wind: steady trade wind or the shifting wind (decision 0083); the level sets its default.
 const windButtons = [...$('wind-choice').querySelectorAll<HTMLButtonElement>('[data-wind]')];
 const syncWind = () => {

@@ -1,5 +1,9 @@
 import { knotToUnits } from './boat';
 import { coastDistance } from './coast';
+import { piersOf } from './collision';
+import { CurrentField, laneShape } from './currents';
+import { outlineCrosses, smoothOutline } from './flowShapes';
+import { TUNING } from '../data/tuning';
 import { isGood } from './goods';
 import { islandCoasts, islandPoint } from './islandLayout';
 import { landmarkOf } from '../data/islands';
@@ -350,6 +354,8 @@ export function quickChecks(map: MapDef): MapCheck[] {
       : pass('facing', 'every port faces its waypoint', 'warning'),
   );
 
+  out.push(...flowChecks(map));
+
   // Scenery islands are landmarks you steer by.
   const portIslands = new Set(map.ports.map((p) => p.islandId));
   const plain = map.islands.filter((i) => !portIslands.has(i.id) && !landmarkOf(i));
@@ -362,6 +368,82 @@ export function quickChecks(map: MapDef): MapCheck[] {
         )
       : pass('landmarks', 'every scenery island has a landmark', 'warning'),
   );
+  return out;
+}
+
+/**
+ * Currents and wind zones (decision 0140): sound shapes inside the sea, known zone kinds, lanes
+ * wide enough, speeds in range, and still water at every pier head and harbour approach.
+ */
+export function flowChecks(map: MapDef): MapCheck[] {
+  const tune = TUNING.weather.currents;
+  const currents = map.currents ?? [];
+  const zones = map.windZones ?? [];
+  const problems: string[] = [];
+  const dupes = (ids: string[]) => ids.filter((id, k) => ids.indexOf(id) !== k);
+  for (const id of dupes(currents.map((c) => c.id))) problems.push(`two currents "${id}"`);
+  for (const id of dupes(zones.map((z) => z.id))) problems.push(`two wind zones "${id}"`);
+  const outside = (points: readonly (readonly number[])[]) =>
+    points.some((p) => Math.hypot(p[0]!, p[1]!) > map.boundsRadius);
+  const [slowest, fastest] = tune.speedKn as [number, number];
+  for (const c of currents) {
+    const name = c.name ?? c.id;
+    if (!(c.speedKn >= slowest && c.speedKn <= fastest))
+      problems.push(`${name}: speed ${c.speedKn} kn (${slowest} to ${fastest})`);
+    if (c.path) {
+      if (c.path.length < 2) problems.push(`${name} has fewer than 2 points`);
+      const lane = laneShape(c);
+      if (lane && lane.narrowest < tune.minWidthUnits - 1e-6)
+        problems.push(`${name} narrower than ${tune.minWidthUnits} units`);
+      if (outside(c.path)) problems.push(`${name} leaves the sea`);
+    } else if (c.outline) {
+      if (c.outline.length < 3) problems.push(`${name} has fewer than 3 points`);
+      else if (outlineCrosses(smoothOutline(c.outline))) problems.push(`${name} crosses itself`);
+      if (c.towardDeg === undefined) problems.push(`${name}: an area current needs towardDeg`);
+      if (outside(c.outline)) problems.push(`${name} leaves the sea`);
+    } else problems.push(`${name}: needs a path (lane) or an outline (area)`);
+  }
+  const kinds = TUNING.weather.zones.kinds as Record<string, unknown>;
+  for (const z of zones) {
+    const name = z.name ?? z.id;
+    if (!(z.kind in kinds))
+      problems.push(`${name}: kind "${z.kind}" is one of ${Object.keys(kinds).join(', ')}`);
+    if (z.kind in kinds && 'pull' in (kinds[z.kind] as object) && z.headingDeg === undefined)
+      problems.push(`${name}: a ${z.kind} zone needs headingDeg`);
+    if (z.outline.length < 3) problems.push(`${name} has fewer than 3 points`);
+    else if (outlineCrosses(smoothOutline(z.outline))) problems.push(`${name} crosses itself`);
+    if (outside(z.outline)) problems.push(`${name} leaves the sea`);
+  }
+  const out: MapCheck[] = [
+    problems.length
+      ? fail('flow', problems.join('; '))
+      : pass('flow', 'currents and wind zones sound and inside the sea'),
+  ];
+
+  // Harbours stay still: the current at every pier head and harbour approach is a trickle.
+  if (currents.length) {
+    const field = new CurrentField(map);
+    const moving: string[] = [];
+    const speedAt = (x: number, y: number) => {
+      const v = field.at(x, y);
+      return Math.hypot(v.east, v.north);
+    };
+    const portIslands = new Set(map.ports.map((p) => p.islandId));
+    if (map.homeIsland) portIslands.add(map.homeIsland);
+    for (const pier of piersOf(map))
+      if (portIslands.has(pier.islandId) && speedAt(pier.x1, pier.y1) > tune.harbourTrickleKn)
+        moving.push(map.islands.find((i) => i.id === pier.islandId)?.name ?? pier.islandId);
+    for (const port of map.ports) {
+      if (!map.islands.some((i) => i.id === port.islandId)) continue;
+      const p = harbourApproach(map, port);
+      if (speedAt(p.x, p.y) > tune.harbourTrickleKn) moving.push(`${port.name} approach`);
+    }
+    out.push(
+      moving.length
+        ? fail('still-harbours', `current at ${list([...new Set(moving)])}`)
+        : pass('still-harbours', 'harbours in still water'),
+    );
+  }
   return out;
 }
 

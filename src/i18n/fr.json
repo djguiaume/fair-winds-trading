@@ -122,6 +122,8 @@
   "settings.weatherNote": "Désactivé : brise régulière, ni pluie ni tempête",
   "settings.storms": "Tempêtes",
   "settings.stormsNote": "Désactivé : aucune tempête en mer",
+  "settings.windZones": "Zones de vent",
+  "settings.windZonesNote": "Désactivé : ni alizés, ni pot-au-noir, ni côte orageuse",
   "settings.speedLogNote": "Vitesse, cap et allure",
   "settings.fpsNote": "Images par seconde",
   "settings.soundLanguage": "Son · Langue",

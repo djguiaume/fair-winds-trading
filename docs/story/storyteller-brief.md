@@ -1,6 +1,6 @@
 # Storyteller brief: how the community arcs are written and built
 
-**Status:** written by the head storyteller after Guillaume's answers (2026-10-23). It is binding for the four arc threads. **Recorded in:** [0129](../decisions/0129-storyteller-brief.md). **Builds on:** the approved story ([community arcs](community-arcs.md), [0122](../decisions/0122-community-arcs-story.md)), the quest engine ([0125](../decisions/0125-quest-engine.md), how-to in [content README › Quests](../content/README.md#quests-0125)), the home island ([0126](../decisions/0126-home-island-build-spots.md)) and the prologue ([0127](../decisions/0127-prologue-rescue-tutorial.md)).
+**Status:** written by the head storyteller after Guillaume's answers (2026-10-23). It is binding for the four arc threads. The [Phase 4 section](#phase-4-the-four-seas) (2026-10-24, [0147](../decisions/0147-phase-4-story.md)) is binding for the Phase 4 arc threads. **Recorded in:** [0129](../decisions/0129-storyteller-brief.md). **Builds on:** the approved story ([community arcs](community-arcs.md), [0122](../decisions/0122-community-arcs-story.md)), the quest engine ([0125](../decisions/0125-quest-engine.md), how-to in [content README › Quests](../content/README.md#quests-0125)), the home island ([0126](../decisions/0126-home-island-build-spots.md)) and the prologue ([0127](../decisions/0127-prologue-rescue-tutorial.md)).
 
 **Who decides.** The head storyteller thread decides anything about the story: tone, people, lines, step design, and how the arcs fit together. Arc threads ask the storyteller, not Guillaume (his rule, 2026-10-23). When something here doesn't fit what the engine or the map can do, ask the storyteller before you change the story to fit.
 
@@ -156,3 +156,62 @@ Each shared piece has **one owner thread**, so the four arcs don't build it four
 4. Write the quest file, the text in both languages, the port change, and a test that plays the arc through on the engine (`tests/arcs/<id>.test.ts`) and passes `checkQuests`.
 5. Post static screenshots of every card (desktop, phone landscape and portrait), since Guillaume prefers images to demos.
 6. Send the storyteller your card text before you merge, and the storyteller answers in your thread. If anything here clashes with the engine or the map, ask the storyteller; don't pick on your own.
+
+## Phase 4: the four seas
+
+**Status:** written by the head storyteller (2026-10-24), recorded in [0147](../decisions/0147-phase-4-story.md). It builds on the biomes ([0137](../decisions/0137-phase-4-biomes-and-founded-outposts.md)), the far goods ([0146](../decisions/0146-far-goods-from-the-biome-outposts.md)) and the epilogue ([0134](../decisions/0134-fair-winds-epilogue.md)). Everything above still applies: the voice, the card rules, the moods, babble voices, everything as data, one owner per shared piece, and how an arc thread works. Phase 4 arc threads ask the storyteller, not Guillaume.
+
+### The story in one paragraph
+
+The ring is busy now, and the company has a name. Letters start to arrive from people who went beyond the reef long ago: a great-nephew, a brother, a sister, a cousin. Each sea has an old port that knows a craft but has nobody left to gather what the craft needs. The captain carries home goods out, helps the port's keeper, then brings the relative from the ring to found an outpost on an empty island. The outpost gathers, the port crafts, and the ring buys. Nothing is lost or in danger: the hard seas (ice, ash, fog) are the only thing working against you, and each hazard has its own Settings switch, so no line may need one.
+
+### The pattern for every sea
+
+Every sea is the same three arcs, in this order. The second sea's letter only starts once the first sea's outpost is founded, so the seas open one by one, from the easiest to the hardest:
+
+1. **The letter (or chart)**, one step, given at a ring port by a person the player knows. A relative has written from beyond the reef. Goal: sail through the sea's gateway and reach its main port (discover it). This lifts the sea's chart (0137 point 1).
+2. **The keeper's arc**, three steps at the main port, given by its **keeper of the craft**. It tells why the workshop stands idle: the keeper still has the craft, but nobody gathers any more. The steps help the port itself (bring home goods, one sailing step that shows off the sea, one delivery that brings the port back to life). The port's look changes after it (`after:` props). The done card says the gathering ground is empty and points to the relative.
+3. **The outpost**, given by the keeper, with the relative speaking on the steps (`speaker`). Bring founding goods from the ring, then carry the relative (item, space 0) from their ring port to the empty island. It ends with the epilogue's **flagpole and name board** on the outpost (`after:outpost-<biome>`), and the outpost starts gathering. The relative's done card says, in plain words, where the raw goods go: "Bring what we gather to <keeper> at <port>, and the workshop will do the rest." That is the story's explanation of "no raw goods, no craft" (0146 point 4).
+
+Rewards grow with the seas, but the amounts are content for the balance pass (0146), written in the quest files.
+
+### Places and people
+
+Map names stay in English in French too (as for Teeth Rock). A map or balance thread may change a place name only with the storyteller's OK. The cast stays balanced: two women and two men among the keepers, and the same among the relatives.
+
+| Order | Sea | Main port | Keeper of the craft (port's voice) | Opened by | Relative who founds the outpost | Outpost island |
+|---|---|---|---|---|---|---|
+| 1st | South, tropical | **Sunreach** | **Juno Reyes**, tea blender (woman) | **Old Ness**, with his old chart: the planned Watchman Key arc "The keeper's passage" | **Tam Ness**, Ness's great-nephew (man) | **Palm Key** |
+| 2nd | West, fire | **Emberhold** | **Bram Kettle**, glassworker and mirror maker (man) | **Ines Calder** (Port Calda): a letter from her brother | **Oskar Calder** (man) | **Cinder Isle** |
+| 3rd | North, ice | **Rimewick** | **Sigrun Vale**, jam maker (woman) | **Kit Marlow** (Saltmere): a letter from his sister | **Nell Marlow** (woman) | **Snowberry Isle** |
+| 4th | East, fog and storm | **Fogwatch** | **Elias Morrow**, amber carver (man) | **Maren Holt** (Westholm): a letter from her cousin | **Pip Holt** (woman) | **Amber Strand** |
+
+How they speak (same rules as the ring: word choice, never dialect spelling):
+
+| Person | Habit | English sample | French sample |
+|---|---|---|---|
+| **Juno Reyes** | unhurried; everything is a recipe | "A pinch of patience, captain, and let it steep." | « Une pincée de patience, capitaine, et on laisse infuser. » |
+| **Bram Kettle** | proud of his work, talks about light and fire | "Good glass shows you the truth. Even before breakfast." | « Un bon miroir dit la vérité. Même avant le petit-déjeuner. » |
+| **Sigrun Vale** | dry humour, counts everything in winters | "Three winters I've waited for berries. One more won't hurt." | « Trois hivers que j’attends des baies. Un de plus, ça ne fera pas de mal. » |
+| **Elias Morrow** | quiet, speaks softly, notices small things | "Listen. The fog has a sound, if you wait." | « Écoutez. Le brouillard a un bruit, si on attend. » |
+| **Tam Ness** | eager, a little clumsy, quotes his great-uncle | "Uncle Ness says… well, he says a lot. But he's right!" | « L’oncle Ness dit… enfin, il dit beaucoup de choses. Mais il a raison ! » |
+| **Oskar Calder** | like his sister, a boatyard saying for everything | "Fair wind, firm keel, full hold. That's the order." | « Bon vent, quille solide, cale pleine. Dans cet ordre. » |
+| **Nell Marlow** | like her brother, short and teasing | "Kit wrote, did he? First letter in six years." | « Kit vous a écrit ? Première lettre en six ans. » |
+| **Pip Holt** | like her cousin, cheerful, strings things with "and" | "Amber on the beach and nobody to pick it up, can you believe it?" | « De l’ambre sur la plage et personne pour le ramasser, vous imaginez ? » |
+
+### Quest ids
+
+Ids follow `<port>-<slug>` and `outpost-<biome>`. Keepers and relatives go in `characters.json` with their `voice`, look and port. The opener's letter is a quest of its own, so a ring arc never changes after it is merged.
+
+| Sea | Letter (giver, port) | Keeper's arc (giver) | Outpost (giver, speaker) | Starts when |
+|---|---|---|---|---|
+| South | `watchman-passage` (Ness, Watchman Key) | `sunreach-tea` (Juno) | `outpost-south` (Juno, Tam) | `fair-winds` done |
+| West | `calda-letter` (Ines, Port Calda) | `emberhold-glass` (Bram) | `outpost-west` (Bram, Oskar) | `outpost-south` done |
+| North | `saltmere-letter` (Kit, Saltmere) | `rimewick-jam` (Sigrun) | `outpost-north` (Sigrun, Nell) | `outpost-west` done |
+| East | `westholm-letter` (Maren, Westholm) | `fogwatch-amber` (Elias) | `outpost-east` (Elias, Pip) | `outpost-north` done |
+
+Each keeper's arc starts when its letter is done, and each outpost starts when its keeper's arc is done. A ship's draft or class must never block a step outright: a step in the south suits the shallow ships, and its card says so ("she'll want a shallow keel"), but a deep ship can still reach the main port by the long way if the map has one. If not, the thread asks the storyteller.
+
+### One mention across, in Phase 4
+
+Every letter card mentions the ring person's own arc once (Kit's shoals, Ines's slipway, Maren's mill, and Ness's lens), and every keeper names the relative once before they meet. Rook stays at Saltmere. He may close each outpost with a single line in the book on the relative's done card ("Rook will want that in the book"), never with a card of his own.

@@ -133,6 +133,43 @@ export interface SeaMarkDef {
   chart?: boolean;
 }
 
+/**
+ * A current (decision 0140): water that moves, painted in the map editor. A **lane** has a `path`
+ * of control points `[x, y, width]` in flow order (the water runs from the first point to the
+ * last), smoothed by `smoothPath` so the editor shows exactly what the game sails. An **area** has
+ * a closed `outline` and the bearing it flows towards. The numbers every current shares (edge
+ * fade, slowdown where a lane widens) live in `weather.json`, `currents`.
+ */
+export interface CurrentDef {
+  id: string;
+  /** Shown on the chart once charted. */
+  name?: string;
+  /** Speed in knots at the lane's narrowest point (an area's everywhere inside). */
+  speedKn: number;
+  /** Lane: control points `[x, y, width]` in flow order. */
+  path?: [number, number, number][];
+  /** Area: a closed outline… */
+  outline?: [number, number][];
+  /** …and the bearing the water flows towards, in degrees (0 = north, clockwise). */
+  towardDeg?: number;
+}
+
+/**
+ * A wind zone (decision 0140): an area painted in the editor where the wind behaves its way, on
+ * top of the wandering wind. The `kind`'s numbers live in `weather.json`, `zones.kinds`; `tune`
+ * overrides some of them for this zone only.
+ */
+export interface WindZoneDef {
+  id: string;
+  name?: string;
+  /** A key of `weather.json` `zones.kinds`: `trade-belt`, `doldrums`, `stormy-coast`… */
+  kind: string;
+  /** Where the zone's wind blows from, degrees (like the map wind's `fromDeg`). */
+  headingDeg?: number;
+  outline: [number, number][];
+  tune?: Record<string, number | [number, number] | boolean>;
+}
+
 export interface MapDef {
   name: string;
   /** Explicit compatible predecessor maps; never accept arbitrary other-map saves. */
@@ -164,4 +201,8 @@ export interface MapDef {
   prologue?: { start: { x: number; y: number; headingDeg: number }; wreck: string };
   /** Buoys, boats and lights at sea (decision 0130). */
   marks?: SeaMarkDef[];
+  /** Currents: lanes and areas of moving water (decision 0140). */
+  currents?: CurrentDef[];
+  /** Wind zones on top of the wandering wind (decision 0140). */
+  windZones?: WindZoneDef[];
 }

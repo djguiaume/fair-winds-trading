@@ -71,3 +71,29 @@ Two additions, agreed with the wind zones thread (built into `sheltered`, ADR 01
 2. **Route checks sample zone wind**, so they don't assume full-speed sailing across the lagoon.
 
 Zone first, island shelter second, with the shelter rays using the zone's direction: the arms still add their lee near the shore, and the gaps funnel a little, as they do today.
+
+## Staggered entrances (the tropical main island)
+
+Guillaume, 2026-10-24, with a reference picture: he wants this kind of island for the tropical main port, harbour facing in, and asked for a review of the suggestion "slightly stagger the two halves so the headlands overlap, creating gentle bends at both entrances. Keep enough space for boats to tack and turn."
+
+**Verdict: good idea, with a minimum slot width.** [make-staggered.py](make-staggered.py) builds it: two equal arms (radius 110, 30 wide) whose centres sit 42 units apart, each running 28° past the other's start. At the west, the north arm's headland passes outside the south arm's tip, and at the east the reverse.
+
+![Editor, staggered ring](editor-staggered.png)
+
+![In the game, staggered ring](game-staggered.png)
+
+Time for a sloop to reach the harbour from 280 units outside the west or east entrance (route check, base wind only, no zone yet), in seconds:
+
+| Wind from | N | NE | E | SE | S | SW | W | NW |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Straight gaps, from W | 26 | 62 | **100** | 43 | 22 | 26 | 28 | 23 |
+| Straight gaps, from E | 26 | 23 | 28 | 26 | 22 | 43 | **101** | 62 |
+| Staggered, 52-unit slot, from W | 71 | 65 | 60 | 55 | 33 | 31 | 31 | 72 |
+| Staggered, 52-unit slot, from E | 40 | 30 | 32 | 53 | 64 | 53 | 59 | 72 |
+| Staggered, 28-unit slot | no route in any wind | | | | | | | |
+
+- **The bend evens it out.** With straight gaps the wind blowing straight out of the entrance makes it a long beat (100 s), and every other wind makes it a free run (22 to 28 s). Staggered, every wind takes 30 to 72 s. You always have a turn to make but are never stuck dead upwind in a narrow cut. That suits the south, which opens first and should sail gently.
+- **Width is what matters.** At 52 units every map check passes. At 28 units no sloop route exists at all, because the hull plus turning room doesn't fit through the bend. Keep the slot at **50 units or more**, and wider for the bigger ships if the reef passage of 0137 isn't meant to be here.
+- **It looks better too.** The lagoon reads as a closed harbour from most angles, as in the reference picture, and the two headlands are natural places for the two lighthouses.
+- **To do when the tropical port is built:** the arms use the generated look. Shaping their coasts (bays, rocks, sand spits) and spreading the town along the inner shore, as in the picture, is island builder work on the port's file.
+
