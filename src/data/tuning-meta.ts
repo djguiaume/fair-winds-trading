@@ -1028,6 +1028,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     '× wind',
     'Strength floor when the sea wind blows straight across the axis.',
   ),
+  'weather.zones.kinds.*.glassy': num(
+    'Glassy water',
+    0,
+    1,
+    0.05,
+    undefined,
+    'How smooth and pale the water looks in this zone (0 = like open sea), 0144.',
+  ),
   'weather.zones.kinds.*.axis': toggle(
     'Along an axis',
     'Pull towards the nearer end of the heading line (heading or heading + 180°), not one way.',

@@ -18,6 +18,7 @@ import {
 } from './models';
 import { HEEL_FEEL, Heel, heelFactor } from './heel';
 import { Ocean, ShoreTextureCache, waveHeight } from './ocean';
+import { CalmWater } from './calmWater';
 import { CurrentWater } from './currentWater';
 import { PALETTE } from './palette';
 import { BuoyMarker, EdgeBuoys, createBlobShadow } from './props';
@@ -97,6 +98,7 @@ export class GameView {
   private ocean!: Ocean;
   /** Darker current water with drifting crests (decision 0140). */
   private currentWater?: CurrentWater;
+  private calmWater?: CalmWater;
   private readonly shores = new ShoreTextureCache();
   private streaks!: WindStreaks;
   private profile!: QualityProfile;
@@ -183,6 +185,11 @@ export class GameView {
       this.shores.get(world.map.islands, world.map.terrain),
     );
     this.scene.add(this.currentWater.root);
+    this.calmWater = new CalmWater(
+      world.map.windZones ?? [],
+      this.shores.get(world.map.islands, world.map.terrain),
+    );
+    this.scene.add(this.calmWater.root);
   }
 
   /** Harbour lanterns (decision 0068): one on each pier head and a town glow a little inland. */
@@ -259,6 +266,7 @@ export class GameView {
     // quality levels too, so returning to one never revives a disposed texture.
     for (const effects of this.qualityEffects.values()) effects.ocean.setShore(shore);
     this.currentWater?.setShore(shore);
+    this.calmWater?.setShore(shore);
     let effects = this.qualityEffects.get(level);
     if (!effects) {
       // Ocean shader source depends on fancyWater, not the grid resolution. Share the
@@ -469,6 +477,7 @@ export class GameView {
     this.boat.setNightLighting?.(day.night);
     this.ocean.update(time, this.target);
     this.currentWater?.update(time, this.ocean, this.world.currentsOn);
+    this.calmWater?.update(time, this.ocean, this.world.windZones);
     this.edgeBuoys.update(time, (x, z) => waveHeight(x, z, time), this.camera);
     this.seaMarks.update(time, (x, z) => waveHeight(x, z, time));
     this.questMarkers.update(this.stepMarkers(), time, (x, z) => waveHeight(x, z, time));
@@ -513,6 +522,7 @@ export class GameView {
     this.lanterns.dispose();
     this.wake.dispose();
     this.currentWater?.dispose();
+    this.calmWater?.dispose();
     this.buoy.dispose();
     this.edgeBuoys.dispose();
     this.seaMarks.dispose();
