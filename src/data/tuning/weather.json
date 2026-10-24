@@ -90,10 +90,12 @@
     "coastFadeUnits": 24,
     "minWidthUnits": 20,
     "harbourTrickleKn": 0.3,
+    "chartAtKn": 0.4,
     "speedKn": [0.5, 2.5]
   },
   "zones": {
     "fadeUnits": 40,
+    "chartWeight": 0.9,
     "kinds": {
       "trade-belt": {
         "pull": 0.7,

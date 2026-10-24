@@ -152,10 +152,11 @@ export class CurrentField {
       });
     }
     for (const t of map.terrain ?? [])
-      land.push({
-        ...boundingCircle(t.outline),
-        distance: (x, y) => coastDistance(x, y, t.outline).distance,
-      });
+      if (t.kind !== 'shallows')
+        land.push({
+          ...boundingCircle(t.outline),
+          distance: (x, y) => coastDistance(x, y, t.outline).distance,
+        });
     this.land = new SpatialGrid(land);
     const n = this.currents.length;
     this.best = new Float64Array(n);

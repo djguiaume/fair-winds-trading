@@ -25,7 +25,7 @@ export interface IslandDef {
      * Producer style of a designed island, set by `prepareMap` (from the island file); an island
      * with only a style is built from that style's shipped island file.
      */
-    profile?: 'fish' | 'timber' | 'grain' | 'stone';
+    profile?: 'fish' | 'timber' | 'grain' | 'stone' | 'tropic';
     /** Harbour bearing in radians, shared with coastline transforms. */
     harbourBearing?: number;
     /**
@@ -47,14 +47,18 @@ export interface IslandDef {
 /** A coastline shared by rendering and collision; coordinates are world x east / y north.
  * Sandbanks are permanently above-water obstacles for now, not a new depth/damage system.
  * Reefs are rocks and coral just awash: solid to the hull like a shore, drawn without land
- * (decision 0031).
+ * (decision 0031). Shallows are a sandy passage under water: ships of draft `maxDraft` or less
+ * sail across, slowed a little, and deeper ships are refused, softly, as by a sandbank
+ * (decisions 0137, 0152).
  */
 export interface TerrainDef {
   id: string;
   /** Shown on the sea chart. */
   name?: string;
-  kind: 'island' | 'sandbank' | 'reef';
+  kind: 'island' | 'sandbank' | 'reef' | 'shallows';
   outline: [number, number][];
+  /** Shallows only: the deepest draft that crosses (a ship file's `draft`). */
+  maxDraft?: number;
   look?: {
     trees?: number;
     landmark?: LandmarkKind;
@@ -124,10 +128,17 @@ export type PortTradeChange = Partial<
   >
 >;
 
-/** The kinds of sea mark (decisions 0130, 0131): channel buoys, boats, a light on the chart. */
+/**
+ * The kinds of sea mark (decisions 0130, 0131, 0152): channel buoys, cardinal danger marks (the
+ * safe water lies on the named side of the danger), boats, a light on the chart.
+ */
 export const SEA_MARK_TYPES = [
   'buoy-red',
   'buoy-green',
+  'cardinal-north',
+  'cardinal-east',
+  'cardinal-south',
+  'cardinal-west',
   'fishing-boat',
   'pilot-cutter',
   'light',
@@ -147,6 +158,8 @@ export interface SeaMarkDef {
   turn?: number;
   tags?: string[];
   chart?: boolean;
+  /** A charted mark's place name, written small beside it on the chart (decision 0152). */
+  name?: string;
 }
 
 /**
@@ -222,3 +235,7 @@ export interface MapDef {
   /** Wind zones on top of the wandering wind (decision 0140). */
   windZones?: WindZoneDef[];
 }
+
+/** The wind zones that go on the chart once sailed: the named ones (decision 0152). */
+export const chartableZoneIds = (map: MapDef) =>
+  (map.windZones ?? []).filter((z) => z.name).map((z) => z.id);

@@ -10,9 +10,10 @@ import { discoveredPorts } from '../sim/shipyards';
 import { noGoAngle } from '../sim/ship';
 import { laneShape } from '../sim/currents';
 import { knobs } from '../sim/difficulty';
+import { coastDistance } from '../sim/coast';
 import { areaCrests, laneCrests, laneEdges, smoothOutline } from '../sim/flowShapes';
 import { TUNING } from '../data/tuning';
-import { goodName, t } from '../i18n';
+import { goodName, t, zoneKindName } from '../i18n';
 import { icon, COIN } from './icons';
 import { drawHazard } from './hazardMarker';
 import { portraitSvg } from './portraits';
@@ -34,6 +35,41 @@ const MAX_UNITS_PER_PIXEL_FOR_NAMES = 3;
 const overlap = (a: Box, b: Box) =>
   Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0)) *
   Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0));
+
+/** A charted wind zone's name, placed with the other labels (decision 0152). */
+interface ZoneLabel {
+  text: string;
+  kind: string;
+  /** Chart coordinates (y down) of the spot deepest inside the zone. */
+  x: number;
+  y: number;
+  /** The zone's edge in map coordinates: the name only shows where it fits inside. */
+  outline: [number, number][];
+}
+
+/** The spot deepest inside an outline, on a coarse grid: where its name fits best. */
+function deepestPoint(outline: [number, number][]) {
+  let x0 = Infinity,
+    x1 = -Infinity,
+    y0 = Infinity,
+    y1 = -Infinity;
+  for (const [x, y] of outline) {
+    x0 = Math.min(x0, x);
+    x1 = Math.max(x1, x);
+    y0 = Math.min(y0, y);
+    y1 = Math.max(y1, y);
+  }
+  let best = { x: (x0 + x1) / 2, y: (y0 + y1) / 2, depth: 0 };
+  const steps = 24;
+  for (let i = 0; i <= steps; i++)
+    for (let j = 0; j <= steps; j++) {
+      const x = x0 + ((x1 - x0) * i) / steps,
+        y = y0 + ((y1 - y0) * j) / steps;
+      const d = -coastDistance(x, y, outline).distance;
+      if (d > best.depth) best = { x, y, depth: d };
+    }
+  return best;
+}
 
 /** What the chart shows of the quests (decision 0124); see `questView.ts`. */
 export interface ChartQuests {
@@ -274,6 +310,39 @@ export class SeaChart {
         n: (c.speedKn * scale).toFixed(1),
       });
     }
+  }
+
+  /**
+   * Charted wind zones (decision 0152): once she has sailed well inside a named zone, its edge as
+   * a faint dashed line in its kind's colour, under the land. Returns the labels ("The Glass ·
+   * doldrums"), each at the spot deepest inside its zone, to place over everything else.
+   */
+  private drawZones(
+    shape: (tag: string, attrs: Record<string, string | number>, parent?: Element) => Element,
+    unit: number,
+  ): ZoneLabel[] {
+    const { map, trade } = this.world;
+    const charted = trade.progress.zones ?? [];
+    const zones = (map.windZones ?? []).filter((z) => z.name && charted.includes(z.id));
+    if (!zones.length || !this.world.windZones) return [];
+    return zones.map((z) => {
+      const outline = smoothOutline(z.outline);
+      const kind = z.kind.replace(/[^a-z-]/g, '');
+      shape('polygon', {
+        points: outline.map(([x, y]) => `${x},${-y}`).join(' '),
+        class: `chart-zone chart-zone-${kind}`,
+        'stroke-width': 1.4 * unit,
+        'stroke-dasharray': `${6 * unit} ${4 * unit}`,
+      });
+      const deep = deepestPoint(outline);
+      return {
+        text: t('chart.zone', { name: z.name!, kind: zoneKindName(z.kind) }),
+        kind,
+        x: deep.x,
+        y: -deep.y,
+        outline,
+      };
+    });
   }
 
   private unitsPerPixel() {
@@ -645,6 +714,7 @@ export class SeaChart {
       return el;
     };
     shape('circle', { r: map.boundsRadius, class: 'chart-boundary' });
+    const zoneLabels = this.drawZones(shape, unit);
     this.drawCurrents(shape, unit);
     // Land reads like the 3D islands: an ink outline, a sand shore and a grass top.
     const land = (tag: string, attrs: Record<string, string | number>) => {
@@ -694,23 +764,51 @@ export class SeaChart {
       const points = terrain.outline.map(([x, y]) => `${x},${-y}`).join(' ');
       if (terrain.kind === 'island') land('polygon', { points });
       else
-        shape('polygon', { points, class: terrain.kind === 'reef' ? 'chart-reef' : 'chart-bank' });
+        shape('polygon', {
+          points,
+          class:
+            terrain.kind === 'reef'
+              ? 'chart-reef'
+              : terrain.kind === 'shallows'
+                ? 'chart-shallows'
+                : 'chart-bank',
+        });
       const xs = terrain.outline.map((p) => p[0]);
       const ys = terrain.outline.map((p) => -p[1]);
       const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
       if (terrain.kind === 'island') landBoxes.push({ x0, x1, y0, y1 });
       if (terrain.name && terrain.kind === 'island')
         places.push({ name: terrain.name, x: (x0 + x1) / 2, top: y0, bottom: y1 });
+      // The chart says which ships cross a sandy passage (decisions 0137, 0152).
+      if (terrain.name && terrain.kind === 'shallows')
+        places.push({
+          name: t('chart.shallows', { name: terrain.name }),
+          x: (x0 + x1) / 2,
+          top: y0,
+          bottom: y1,
+        });
     }
     // Sea marks on the chart (decision 0130): channel buoys and lights, once their quest says so.
     const done = questsDone(this.world.trade);
     for (const mark of map.marks ?? []) {
       if (!mark.chart || !questShown(mark, done)) continue;
+      // A named mark (a gateway's light) gets its place name beside it (decision 0152).
+      if (mark.name)
+        places.push({ name: mark.name, x: mark.x, top: -mark.y - 6, bottom: -mark.y + 6 });
       if (mark.type === 'light')
         shape('path', {
           d: star(mark.x, -mark.y, 6 * px),
           fill: '#ffd76a',
           stroke: '#5a3d24',
+          'stroke-width': 1.2 * px,
+          class: 'chart-mark',
+        });
+      else if (mark.type.startsWith('cardinal-'))
+        // A cardinal mark: a yellow and black diamond, as on real charts.
+        shape('path', {
+          d: `M${mark.x} ${-mark.y - 4 * px}l${3 * px} ${4 * px}l${-3 * px} ${4 * px}l${-3 * px} ${-4 * px}z`,
+          fill: '#f2c230',
+          stroke: '#22252a',
           'stroke-width': 1.2 * px,
           class: 'chart-mark',
         });
@@ -917,6 +1015,29 @@ export class SeaChart {
         style: `font-size: ${size}px`,
       });
       label.textContent = place.name;
+    }
+    // Charted wind zones' names: only where the zone is wide enough to hold one, and never over a
+    // port, a place name or the boat (decision 0152). Zooming in shows the small ones.
+    for (const z of zoneLabels) {
+      const size = 11 * px;
+      const w = z.text.length * size * 0.5,
+        h = size * 1.2;
+      const b = box(z.x, z.y, w, h);
+      // The name may run a little past a zone's edge, but not over a zone much narrower than it.
+      const inside = (dx: number) => coastDistance(z.x + dx, -z.y, z.outline).distance < 0;
+      let chord = 0;
+      for (const side of [-1, 1])
+        for (let dx = 0; dx < w && inside(side * dx); dx += w / 20) chord += w / 20;
+      const fits = w <= chord * 1.7;
+      if (!fits || overlap(b, boatBox) > 0 || placed.some((p) => overlap(b, p) > 0)) continue;
+      placed.push(b);
+      const label = shape('text', {
+        x: z.x,
+        y: z.y + size * 0.35,
+        class: `chart-zone-label chart-zone-${z.kind}`,
+        style: `font-size: ${size}px`,
+      });
+      label.textContent = z.text;
     }
     this.drawMarket(market);
     if (this.quests) this.drawQuests(shape, unit, px);
