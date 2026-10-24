@@ -213,6 +213,7 @@ homePanel.onRepaired = (gold) => {
   hud.showToast(t('trade.repaired', { gold }), 2.5);
   autosave();
 };
+homePanel.onStored = () => autosave();
 const tutorial = new Tutorial(world, view.harbours, storage, resumedVoyage);
 // Quests (decision 0125): every quest file but the tutorial's, saved with the voyage. The
 // tutorial counts as done for them once it is finished or skipped.

@@ -52,9 +52,9 @@ export function layoutFingerprint(map: MapDef): number {
  * The home islands' section (decisions 0126, 0128) comes last, with its own layout number and a
  * fingerprint of the islands, spots and buildings, so codes made before it still read and a code
  * whose spots or buildings differ is refused rather than misread. Section 1 was the first shape
- * (the home island only), still read.
+ * (the home island only), section 2 had no warehouse goods (decision 0136); both still read.
  */
-const HOME_SECTION = 2;
+const HOME_SECTION = 3;
 const spotIds = (map: MapDef, islandId?: string) =>
   homeSpots(map, islandId).map((s) => `${s.id}:${s.pair ?? ''}`);
 export function homeFingerprint(map: MapDef): number {
@@ -233,6 +233,13 @@ export function packSave(
       const spots = homeSpots(map, island.id);
       w.flags(spots.map((s) => h.offered.includes(s.id)));
       for (const s of spots) w.uint(indexOrNone(BUILDING_IDS, h.built[s.id]));
+      // Warehouse goods: how many kinds, then each good's index and crates.
+      const stored = GOODS.filter((g) => (h.stored?.[g] ?? 0) > 0);
+      w.uint(stored.length);
+      for (const g of stored) {
+        w.uint(GOODS.indexOf(g));
+        w.uint(h.stored![g]!);
+      }
     }
   }
   return Uint8Array.from(w.bytes);
@@ -409,10 +416,18 @@ export function unpackSave(
         const b = pick(BUILDING_IDS, r.uint());
         if (b) built[s.id] = b;
       }
+      const stored: Partial<Record<(typeof GOODS)[number], number>> = {};
+      if (section >= 3)
+        for (let n = r.uint(); n > 0; n--) {
+          const good = GOODS[r.uint()];
+          const qty = r.uint();
+          if (good && qty > 0) stored[good] = qty;
+        }
       home.islands[island.id] = {
         owned: true,
         offered: spots.filter((_, k) => offered[k]).map((s) => s.id),
         built,
+        ...(Object.keys(stored).length ? { stored } : {}),
       };
     }
   }

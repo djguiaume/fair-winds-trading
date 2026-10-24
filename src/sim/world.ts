@@ -24,7 +24,7 @@ import {
   portInRange,
   stepTrade,
 } from './trade';
-import { homeEffect } from './home';
+import { applyPerks } from './perks';
 import { GOODS, type GoodId } from './goods';
 import type { SpatialGrid } from './spatial';
 import { heelFactor, pointOfSailHeel } from './heel';
@@ -468,7 +468,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
     // The pilot house takes a share off every knock (decision 0126).
     const damage = damageHull(
       world.trade,
-      hit * knobs(world.trade.difficulty).damage * homeEffect(world.trade.home, 'hullDamage'),
+      applyPerks(world.trade.home, 'hullDamage', hit * knobs(world.trade.difficulty).damage),
     );
     if (damage >= 1 && surface === 'reef') events.push({ type: 'reef-strike', damage });
     else if (damage >= 1 && (surface === 'shore' || surface === 'pier' || surface === 'boat'))
