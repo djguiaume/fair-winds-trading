@@ -419,6 +419,8 @@ export class Hud {
             t('toast.zoneCharted', { name: zone.name, kind: zoneKindName(zone.kind) }),
             3,
           );
+      } else if (e.type === 'area-charted') {
+        this.showToast(t('toast.areaCharted', { name: e.name }), 3);
       } else if (e.type === 'too-shallow' && this.toastTimer <= 0) {
         this.showToast(t('toast.tooShallow'), 3);
       } else if (e.type === 'bump' && this.toastTimer <= 0) {

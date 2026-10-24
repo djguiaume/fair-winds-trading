@@ -18,7 +18,13 @@ import {
   saveTuneChanges,
 } from './data/tuningEdits';
 import { Input } from './input/input';
-import { FrameMonitor, type QualityLevel, guessQuality, lowerQuality } from './render/quality';
+import {
+  FrameMonitor,
+  QUALITY,
+  type QualityLevel,
+  guessQuality,
+  lowerQuality,
+} from './render/quality';
 import { GameView } from './render/view';
 import { SAIL_STEPS, createBoat, knotToUnits } from './sim/boat';
 import { isFar, isRare, isSpecialty } from './sim/goods';
@@ -268,6 +274,7 @@ hud.onPressDanger = () => {
 };
 const input = new Input(stage);
 const chart = new SeaChart($('chart') as HTMLDialogElement, world, view.harbours);
+chart.fogBlur = QUALITY[level].chartFogBlur;
 chart.onChange = () => {
   input.releaseAll();
   // A lesson may wait on the chart opening or closing (decision 0151).
@@ -1065,6 +1072,7 @@ function setLevel(next: QualityLevel) {
   if (next === level) return;
   level = next;
   view.setQuality(level);
+  chart.fogBlur = QUALITY[level].chartFogBlur;
   describeQuality();
 }
 

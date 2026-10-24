@@ -690,3 +690,17 @@ dialog.chart::backdrop {
     height: 18px;
   }
 }
+
+/* Fog of war (decision 0156): blank parchment with a faint pencil grid, "Uncharted waters" in ink. */
+.chart-fog-paper {
+  fill: #eadfc6;
+}
+.chart-fog-grid {
+  fill: none;
+  stroke: #cdbb98;
+}
+.chart-zone-label.chart-zone-fog {
+  --zone-ink: rgba(110, 86, 52, 0.8);
+  letter-spacing: 0.08em;
+  stroke: rgba(234, 223, 198, 0.8);
+}

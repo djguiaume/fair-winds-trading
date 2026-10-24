@@ -1,4 +1,5 @@
 import { TUNING } from '../data/tuning';
+import { chartAreaIds, fogIslandIds, islandCharted } from './fog';
 import { chartableZoneIds, type MapDef, type PortDef } from './map';
 import { applyPerks } from './perks';
 import { distance } from './math';
@@ -22,6 +23,10 @@ export interface ShipyardProgress {
   charted?: string[];
   /** Named wind zone ids on the chart: sailed well inside at least once (decision 0152). */
   zones?: string[];
+  /** Fog of war (decision 0156): chart area ids sailed into or given by a quest… */
+  areas?: string[];
+  /** …and islands in the fog sighted one by one. */
+  sighted?: string[];
 }
 
 /** The home port: the map's choice, else the port nearest the start. */
@@ -62,9 +67,17 @@ export function isDiscovered(trade: TradeState, portId: string): boolean {
   return trade.progress.discovered.includes(portId);
 }
 
+/** A port on the chart: found, and not out in the fog (decision 0156). */
+export function portCharted(map: MapDef, trade: TradeState, port: PortDef): boolean {
+  if (!isDiscovered(trade, port.id)) return false;
+  if (!map.fog) return true;
+  const island = map.islands.find((i) => i.id === port.islandId);
+  return !island || islandCharted(map, trade.progress, island);
+}
+
 /** Ports on the chart, in map order. */
 export function discoveredPorts(map: MapDef, trade: TradeState): PortDef[] {
-  return map.ports.filter((p) => isDiscovered(trade, p.id));
+  return map.ports.filter((p) => portCharted(map, trade, p));
 }
 
 /** Put hidden ports near `pos` on the chart. Returns the ones found just now. */
@@ -166,6 +179,16 @@ export function readProgress(raw: unknown, map: MapDef): ShipyardProgress {
   if (Array.isArray(zones)) {
     const known = chartableZoneIds(map).filter((id) => zones.includes(id));
     if (known.length) fresh.zones = known;
+  }
+  const areas = (raw as { areas?: unknown }).areas;
+  if (Array.isArray(areas)) {
+    const known = chartAreaIds(map).filter((id) => areas.includes(id));
+    if (known.length) fresh.areas = known;
+  }
+  const sighted = (raw as { sighted?: unknown }).sighted;
+  if (Array.isArray(sighted)) {
+    const known = fogIslandIds(map).filter((id) => sighted.includes(id));
+    if (known.length) fresh.sighted = known;
   }
   if (typeof r.standing === 'object' && r.standing !== null) {
     const saved = r.standing as Record<string, unknown>;
