@@ -1,5 +1,12 @@
 import { MAX_SETTLEMENT_LEVEL, SETTLEMENT_LEVELS, TOWN_LEVELS } from '../../sim/settlement';
-import { ISLAND_DESIGNS, atLevel, type IslandDesign, type PropDef } from '../../data/islands';
+import {
+  ISLAND_DESIGNS,
+  atLevel,
+  type IslandDesign,
+  type IslandStyle,
+  type Point,
+  type PropDef,
+} from '../../data/islands';
 import { PROP_RECIPES } from '../../data/props';
 
 /**
@@ -20,6 +27,54 @@ const round = (v: number, places: number) => Number(v.toFixed(places));
 const pos = (v: number) => round(v, 6);
 /** Degrees in -180 to 180, so a file never grows 900° turns. */
 const angle = (deg: number) => round(((((deg + 180) % 360) + 360) % 360) - 180, 1);
+
+/**
+ * A new island file: one coast with its low ground (the beach inset at `low`), no props, and
+ * the woods off (`tries` 0) over the coast's bounds. The woods' tree, size and spacing are the
+ * ones the shipped islands of the style use most, else the pine.
+ */
+export function newDesign(
+  id: string,
+  coast: Point[],
+  { name = id, style = 'timber' as IslandStyle, seed = 1, low = 0.06 } = {},
+): IslandDesign {
+  const same = Object.values(ISLAND_DESIGNS).filter((d) => d.style === style && d.woods.tries);
+  const most = <T>(values: T[]) => {
+    const counts = new Map<string, [T, number]>();
+    for (const v of values) {
+      const k = JSON.stringify(v);
+      counts.set(k, [v, (counts.get(k)?.[1] ?? 0) + 1]);
+    }
+    return [...counts.values()].sort((a, b) => b[1] - a[1])[0]?.[0];
+  };
+  const xs = coast.map((p) => p[0]),
+    zs = coast.map((p) => p[1]);
+  const edge = (v: number) => round(v, 2);
+  return {
+    id,
+    name,
+    style,
+    seed,
+    coasts: [coast.map((p): Point => [pos(p[0]), pos(p[1])])],
+    ground: [{ coast: 0, height: pos(low), material: 'grass' }],
+    lanes: [],
+    piers: [],
+    props: [],
+    woods: {
+      tree: most(same.map((d) => d.woods.tree)) ?? 'woodland-pine',
+      tries: 0,
+      area: [
+        edge(Math.min(...xs) - 0.1),
+        edge(Math.min(...zs) - 0.1),
+        edge(Math.max(...xs) + 0.1),
+        edge(Math.max(...zs) + 0.1),
+      ],
+      size: most(same.map((d) => d.woods.size)) ?? 1.8,
+      margin: 0.1,
+      spacing: most(same.map((d) => d.woods.spacing)) ?? 0.2,
+    },
+  };
+}
 
 /** A prop type's name in the palette and the panel: its recipe's `name`, else made from the id. */
 export const propName = (type: string) =>

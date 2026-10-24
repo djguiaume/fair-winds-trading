@@ -10,6 +10,7 @@ const TOOLS = {
   check: { about: 'every content check: seas, island files, quests', module: '/tools/fw/check.ts' },
   shots: { about: 'standard screenshots of the real game', file: './shots.mjs' },
   balance: { about: 'balance bots on all three difficulty levels', module: '/tools/fw/balance.ts' },
+  island: { about: 'make and change island files, check them', module: '/tools/fw/island.ts' },
   chart: {
     about: 'labelled map of a sea, PNG + SVG, with an overlay',
     module: '/tools/fw/chart.ts',

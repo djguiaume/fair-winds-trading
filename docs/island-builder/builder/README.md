@@ -90,3 +90,7 @@ The island on top with the preview in its corner, then tabs: **Select** (the pan
 ## Code
 
 `src/editor/island/`: `doc.ts` and `shapes.ts` (the edits, tested in `tests/island-builder.test.ts`), `shapePanel.ts` (ground, lanes, woods), `scene.ts` (top view, preview, thumbnails), `overlay.ts` (SVG), `panel.ts`, `builder.ts`, `checks.worker.ts`, `island.css`. Export uses `formatIslandJson` in `src/editor/model.ts`; play-test loading is in `src/data/editedMap.ts`.
+
+## From the command line
+
+Agents (and anyone at a terminal) can make and change island files with the builder's own edits: `npm run island -- --help`. Each step (`plateau`, `mountain`, `lake`, `islet`, `ramp`, `lane`, `path`, `stairs`, `woods`, `spot`, `prop`, `pier`, `remove`) is the same edit as the builder's tool of that name, the file is written as the builder exports it and checked with the builder's checks ([0153](../../decisions/0153-command-line-tools-for-agents.md)).
