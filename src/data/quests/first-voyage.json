@@ -9,6 +9,7 @@
   "steps": [
     {
       "id": "sails",
+      "teach": true,
       "goal": { "is": "sails-practised" },
       "choose": [{ "id": "continue" }],
       "wind": { "speedKn": 8 },
@@ -16,6 +17,7 @@
     },
     {
       "id": "wind",
+      "teach": true,
       "choose": [{ "id": "continue" }],
       "wind": { "speedKn": 8 },
       "coach": { "sea": "wind-compass", "chart": "close-chart", "action": "tips" }
@@ -39,6 +41,7 @@
     },
     {
       "id": "chart",
+      "teach": true,
       "goal": {
         "is": "any",
         "of": [
@@ -52,6 +55,7 @@
     },
     {
       "id": "home-port",
+      "teach": true,
       "goal": {
         "is": "any",
         "of": [
@@ -72,6 +76,7 @@
     },
     {
       "id": "island",
+      "teach": true,
       "port": "home",
       "choose": [{ "id": "continue", "next": "buy" }],
       "set": { "origin": "home" },
@@ -80,6 +85,7 @@
     },
     {
       "id": "choose-port",
+      "teach": true,
       "goal": { "is": "course" },
       "set": { "origin": "course" },
       "coach": {
@@ -91,12 +97,14 @@
     },
     {
       "id": "dock",
+      "teach": true,
       "port": "$origin",
       "goal": { "is": "docked", "port": "$origin" },
       "coach": { "sea": "port-marker", "chart": "chart-port", "port": "$origin", "action": "chart" }
     },
     {
       "id": "buy",
+      "teach": true,
       "port": "$origin",
       "goal": { "is": "bought", "port": "$origin", "qty": 1 },
       "choose": [{ "id": "continue", "if": { "is": "has-cargo" } }],
@@ -115,6 +123,7 @@
     },
     {
       "id": "choose-delivery",
+      "teach": true,
       "goal": {
         "is": "all",
         "of": [{ "is": "course" }, { "is": "not", "of": { "is": "course", "port": "$origin" } }]
@@ -146,6 +155,7 @@
     },
     {
       "id": "deliver",
+      "teach": true,
       "port": "$delivery",
       "goal": { "is": "docked", "port": "$delivery" },
       "unless": [
@@ -186,6 +196,7 @@
     },
     {
       "id": "sell",
+      "teach": true,
       "port": "$delivery",
       "goal": { "is": "delivered", "port": "$delivery", "good": "$cargo", "qty": 1 },
       "unless": [

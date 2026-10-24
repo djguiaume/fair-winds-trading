@@ -20,6 +20,9 @@ Where
   --sea ring|stress|phase4|file.json   the sea (a file: a map editor export, played as ?map=edited)
   --island a.json,b.json        island files to play instead of the shipped ones (builder exports)
   --at x,y                      boat at sea there (default: docked at the start port)
+  --prologue                    a new voyage as a player who skips the tutorial meets it: alone at
+                                sea, sails down, the rescue to play (0160); without it the tools
+                                drop that story and start at the map's start, as before
   --heading deg                 boat heading, compass degrees (default: wind on the beam)
   --sail 0|1|2                  sails furled, half, full (default 2)
   --speed kn                    starting speed (default 5)
@@ -91,6 +94,7 @@ export function normalise(opts) {
     chartPan: o['chart-pan'] ? keyHold(o['chart-pan']) : null,
     chartPanel: o['chart-panel'] ?? null,
     charted: !!o.charted,
+    prologue: !!o.prologue,
     towns: list(o.town ?? []).map((t) => {
       const [id, level] = String(t).split(':');
       if (!id || !(Number(level) >= 1)) throw new Error(`not id:level: ${t}`);
@@ -192,8 +196,11 @@ const visible = (page, sel) =>
     .catch(() => false);
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/** Past the title menu, the level card and the tutorial offer, as a player would click. */
-async function enter(page) {
+/**
+ * Past the title menu, the level card and the tutorial offer, as a player would click; then, unless
+ * the shot is of the prologue, back to plain free play (decision 0160).
+ */
+async function enter(page, shot) {
   await page.waitForFunction(() => !!window.fwt, null, { timeout: 30000 });
   if (await visible(page, '#menu-play')) await page.click('#menu-play');
   await page
@@ -206,6 +213,7 @@ async function enter(page) {
     .waitFor({ state: 'visible', timeout: 2000 })
     .catch(() => {});
   if (await visible(page, '#tutorial-free')) await page.click('#tutorial-free');
+  if (!shot.prologue && !shot.url) await page.evaluate(() => window.fwt.freePlay?.());
 }
 
 async function setScene(page, shot) {
@@ -274,7 +282,7 @@ async function shootOne(browser, base, shot, size, file) {
 
 /** The game entered and the scene set, ready for the shot. */
 async function shootScene(page, shot) {
-  await enter(page);
+  await enter(page, shot);
   await setScene(page, shot);
   if (shot.hold) {
     await page.keyboard.down(shot.hold.key);
