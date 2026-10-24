@@ -155,6 +155,8 @@
   "settings.windZonesNote": "Désactivé : ni alizés, ni pot-au-noir, ni côte orageuse",
   "settings.currents": "Courants",
   "settings.currentsNote": "Désactivé : eau calme, aucun courant n’entraîne le bateau",
+  "settings.haze.fog": "Bancs de brouillard",
+  "settings.haze.fogNote": "Désactivé : on voit clair dans les bancs de brouillard",
   "settings.speedLogNote": "Vitesse, cap et allure",
   "settings.fpsNote": "Images par seconde",
   "settings.soundLanguage": "Son · Langue",
@@ -798,5 +800,6 @@
   "zone.doldrums": "pot-au-noir",
   "zone.stormy-coast": "côte à tempêtes",
   "zone.cold-gale": "coups de vent froids",
-  "zone.sheltered": "eaux abritées"
+  "zone.sheltered": "eaux abritées",
+  "zone.fog-bank": "banc de brouillard"
 }

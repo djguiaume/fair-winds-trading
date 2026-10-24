@@ -24,6 +24,17 @@ body {
   width: 100%;
   height: 100%;
 }
+/*
+ * Inside a fog bank or ash cloud (decision 0169): the sea round the boat stays clear and the haze
+ * thickens toward the screen's edges. Only its opacity changes per frame (no repaint), and its
+ * colour when the light changes.
+ */
+.haze-veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
 #hud {
   position: fixed;
   inset: 0;
