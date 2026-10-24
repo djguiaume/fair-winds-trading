@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { insetOutline } from '../sim/coast';
+import { coastDistance } from '../sim/coast';
 import { smoothOutline } from '../sim/flowShapes';
 import type { WindZoneDef } from '../sim/map';
 import { zonesTuning } from '../sim/windZones';
@@ -50,52 +50,98 @@ uniform vec3 uFogColor;
 uniform float uFogNear;
 uniform float uFogFar;
 uniform float uFade;
+uniform float uStyle;
 varying float vEdge;
 varying float vGlassy;
 varying vec3 vWorld;
 varying float vFogDepth;
 
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float noise(vec2 p) {
+  vec2 i = floor(p), f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+             mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+}
+
 void main() {
   float shore = smoothstep(1.5, 6.0, shoreDistance(vWorld.xz));
   float body = smoothstep(0.0, uFade, vEdge) * shore * vGlassy;
-  // A smooth, pale sheet that hides the flat-shaded chop, with long slow swells of sheen.
-  float swell = 0.5 + 0.5 * sin(dot(vWorld.xz, vec2(0.031, 0.019)) + uTime * 0.25)
-                    * sin(dot(vWorld.xz, vec2(-0.013, 0.027)) - uTime * 0.18);
-  vec3 col = mix(uWaterLight, mix(uWater, uWaterLight, 0.7) * 1.18, swell);
+  vec2 p = vWorld.xz;
+  vec3 col;
+  float alpha;
+  if (uStyle < 0.5) {
+    // A: mirror. A bright, sky-pale sheet with long soft bands of reflected light.
+    float band = 0.5 + 0.5 * sin(dot(p, vec2(0.022, 0.009)) + uTime * 0.12);
+    vec3 sky = mix(uWaterLight, vec3(0.80, 0.93, 0.95), 0.3);
+    col = mix(uWaterLight * 1.08, sky, band);
+    alpha = body;
+  } else if (uStyle < 1.5) {
+    // B: cat's paws. Smooth still water, with darker ruffled patches where a puff touches it,
+    // drifting slowly with the light air.
+    vec3 still = mix(uWater, uWaterLight, 0.75) * 1.12;
+    float n = noise(p * 0.045 + vec2(uTime * 0.05, uTime * 0.03));
+    n += 0.5 * noise(p * 0.11 - vec2(uTime * 0.04, 0.0));
+    float paw = smoothstep(0.9, 1.15, n);
+    float ripple = smoothstep(0.6, 0.95, sin(p.x * 0.9 + p.y * 0.5 + uTime * 1.6 + n * 6.0));
+    col = mix(still, mix(uWater * 0.95, uWaterLight * 1.1, ripple * 0.6), paw * 0.9);
+    alpha = body;
+  } else {
+    // C: slick swell. Deep, still, darker water with long pale swell lines rolling through.
+    vec3 deep = uWater * vec3(0.78, 0.9, 0.95);
+    float s = sin(dot(p, vec2(0.06, 0.035)) - uTime * 0.35);
+    float line = smoothstep(0.55, 0.95, s) * (1.0 - smoothstep(0.95, 1.0, s) * 0.5);
+    col = mix(deep, uWaterLight * 1.2, line * 0.75);
+    alpha = body;
+  }
   col = mix(col, uFogColor, smoothstep(uFogNear, uFogFar, vFogDepth));
-  float alpha = body * (0.62 + 0.12 * swell);
+  alpha = clamp(alpha * 1.25, 0.0, 0.9);
   alpha *= 1.0 - smoothstep(uFogNear, uFogFar, vFogDepth) * 0.6;
   gl_FragColor = vec4(col, alpha);
   #include <colorspace_fragment>
 }
 `;
 
-/** The zone's sheet: a fade ring from the outline in to `fade`, then the inset filled. */
+/** Grid spacing of a zone's sheet (units): fine enough to ride the waves, as the currents do. */
+const STEP = 3;
+
+/**
+ * The zone's sheet: a grid over the zone, each point knowing how far inside the fade it is. The
+ * fade straddles the outline like the wind's: half outside, half inside. Squares wholly outside
+ * are left out.
+ */
 function zoneGeometry(zone: WindZoneDef, glassy: number, fade: number) {
   if (zone.outline.length < 3) return null;
-  // The fade straddles the outline like the wind's: half outside, half inside.
-  const outer = insetOutline(smoothOutline(zone.outline), -fade / 2);
-  const inner = insetOutline(outer, fade);
-  if (inner.length < 3) return null;
+  const outline = smoothOutline(zone.outline);
+  const xs = outline.map((p) => p[0]),
+    ys = outline.map((p) => p[1]);
+  const x0 = Math.min(...xs) - fade / 2,
+    y0 = Math.min(...ys) - fade / 2;
+  const nx = Math.ceil((Math.max(...xs) + fade / 2 - x0) / STEP) + 1,
+    ny = Math.ceil((Math.max(...ys) + fade / 2 - y0) / STEP) + 1;
   const position: number[] = [],
     edge: number[] = [],
     glass: number[] = [];
-  const add = ([x, y]: [number, number], e: number) => {
-    position.push(x, 0, -y);
-    edge.push(e);
-    glass.push(glassy);
-  };
-  outer.forEach((p) => add(p, 0));
-  inner.forEach((p) => add(p, fade));
-  const n = outer.length;
+  for (let j = 0; j < ny; j++)
+    for (let i = 0; i < nx; i++) {
+      const x = x0 + i * STEP,
+        y = y0 + j * STEP;
+      const d = coastDistance(x, y, outline).distance;
+      position.push(x, 0, -y);
+      edge.push(Math.min(fade, Math.max(0, fade / 2 - d)));
+      glass.push(glassy);
+    }
   const index: number[] = [];
-  for (let i = 0; i < n; i++) {
-    const j = (i + 1) % n;
-    index.push(i, n + i, j, j, n + i, n + j);
-  }
-  const vectors = inner.map(([x, y]) => new THREE.Vector2(x, y));
-  for (const [p, q, r] of THREE.ShapeUtils.triangulateShape(vectors, []))
-    index.push(n + p!, n + q!, n + r!);
+  for (let j = 0; j + 1 < ny; j++)
+    for (let i = 0; i + 1 < nx; i++) {
+      const a = j * nx + i,
+        b = a + 1,
+        c = a + nx,
+        d = c + 1;
+      if (!edge[a] && !edge[b] && !edge[c] && !edge[d]) continue;
+      index.push(a, b, c, b, d, c);
+    }
+  if (!index.length) return null;
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(position, 3));
   g.setAttribute('aEdge', new THREE.Float32BufferAttribute(edge, 1));
@@ -127,6 +173,7 @@ export class CalmWater {
         uFogNear: { value: 120 },
         uFogFar: { value: 210 },
         uFade: { value: tuning.fadeUnits },
+        uStyle: { value: 0 },
       },
     });
     for (const z of zones) {

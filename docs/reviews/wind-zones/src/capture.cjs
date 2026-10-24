@@ -11,17 +11,21 @@ const map = JSON.parse(fs.readFileSync(path.join(__dirname, '../../../../src/dat
 
 // An oval of doldrums in the open water east of the middle (where 0140's mockup sat).
 const outline = [];
-for (let i = 0; i < 12; i++) {
-  const a = (i / 12) * Math.PI * 2;
-  outline.push([Math.round(262 + Math.cos(a) * 62), Math.round(-12 + Math.sin(a) * 44)]);
+for (let i = 0; i < 16; i++) {
+  const a = (i / 16) * Math.PI * 2;
+  outline.push([Math.round(270 + Math.cos(a) * 95), Math.round(-40 + Math.sin(a) * 70)]);
 }
 map.windZones = [{ id: 'glass-calm', name: 'The Glass', kind: 'doldrums', outline }];
 
 const SHOTS = [
-  // name, w, h, boat x, y, zones on
-  ['doldrums-desktop', 1280, 720, 200, 10, true],
-  ['doldrums-portrait', 390, 844, 230, -6, true],
-  ['doldrums-off-desktop', 1280, 720, 200, 10, false],
+  // name, w, h, boat x, y, zones on, look (0 mirror, 1 cat's paws, 2 slick swell)
+  ['look-A-mirror-desktop', 1280, 720, 200, -30, true, 0],
+  ['look-B-catspaws-desktop', 1280, 720, 200, -30, true, 1],
+  ['look-C-swell-desktop', 1280, 720, 200, -30, true, 2],
+  ['look-A-mirror-portrait', 390, 844, 200, -40, true, 0],
+  ['look-B-catspaws-portrait', 390, 844, 200, -40, true, 1],
+  ['look-C-swell-portrait', 390, 844, 200, -40, true, 2],
+  ['doldrums-off-desktop', 1280, 720, 200, -30, false, 0],
 ];
 
 (async () => {
@@ -29,7 +33,7 @@ const SHOTS = [
     executablePath: '/opt/pw-browsers/chromium',
     args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
   });
-  for (const [name, w, h, x, y, on] of SHOTS) {
+  for (const [name, w, h, x, y, on, look] of SHOTS) {
     const p = await b.newPage({ viewport: { width: w, height: h } });
     await p.addInitScript(
       ([m, on]) => {
@@ -57,17 +61,19 @@ const SHOTS = [
     await p.click('#tp-undock', { timeout: 1500 }).catch(() => {});
     await p.waitForTimeout(300);
     await p.evaluate(
-      ([x, y]) => {
-        const { world } = window.fwt;
+      ([x, y, look]) => {
+        const { world, view } = window.fwt;
+        // The look being compared (decision 0144 review): a uniform of the calm water.
+        if (view.calmWater) view.calmWater.material.uniforms.uStyle.value = look;
         world.time = 260;
         world.boat.x = x;
         world.boat.y = y;
         world.boat.heading = (world.seaWind.from + Math.PI / 2) % (Math.PI * 2);
-        window.fwt.view.setZoom?.(0.8);
+        window.fwt.view.setZoom(1.5);
         world.boat.sailStep = 2;
         world.boat.sail = 1;
       },
-      [x, y],
+      [x, y, look],
     );
     await p.waitForTimeout(2500);
     await p.screenshot({ path: path.join(OUT, `${name}.png`) });
