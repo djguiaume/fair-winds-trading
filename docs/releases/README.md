@@ -9,6 +9,7 @@ worth remembering.
 |---|---|---|
 | [v0.1.50](v0.1.50.md) | `5f8a574` | Phase 1 complete: one-captain trading |
 | [v0.2.73](v0.2.73.md) | `0963490` | Phase 2 complete: living settlements |
+| [v0.3.129](v0.3.129.md) | `1fee60c` | Phase 3 complete: people, stories and your own island |
 
 ## How to cut a release
 
