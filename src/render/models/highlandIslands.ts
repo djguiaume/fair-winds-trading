@@ -339,6 +339,8 @@ const RIDGE_TIERS = [
 ] as const;
 const RIDGE_TOP = 8;
 const CORAL = ['#e08a6a', '#f0a580', '#d9707a'];
+/** Shallows (decision 0151): clear water over sand, then the sand bar itself. */
+const SHALLOWS = { water: '#7fd3c6', sand: '#b9e2c9' };
 
 function extrudeOutline(outline: TerrainDef['outline'], bottom: number, top: number) {
   const shape = new THREE.Shape(outline.map(([x, y]) => new THREE.Vector2(x, y)));
@@ -474,7 +476,14 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     // Collision terrain is independent of settlement growth and never rebuilt for a level-up.
     for (const feature of map.terrain ?? []) {
       const parts: Parts = [];
-      if (feature.kind === 'sandbank') {
+      if (feature.kind === 'shallows') {
+        // A sandy floor seen through clear water (decision 0151): pale water over the passage,
+        // a paler sand bar down its middle, no surf and no rocks.
+        parts.push(paint(extrudeOutline(feature.outline, -0.4, 0.06), SHALLOWS.water));
+        parts.push(
+          paint(extrudeOutline(insetOutline(feature.outline, 7), -0.4, 0.09), SHALLOWS.sand),
+        );
+      } else if (feature.kind === 'sandbank') {
         parts.push(paint(extrudeOutline(feature.outline, -0.4, 0.8), B2.sand));
       } else if (feature.kind === 'island') {
         for (const tier of RIDGE_TIERS) {
@@ -482,7 +491,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
           parts.push(paint(extrudeOutline(outline, tier.bottom, tier.top), tier.color));
         }
       }
-      parts.push(...terrainProps(feature, terrainSeed(map, feature)));
+      if (feature.kind !== 'shallows') parts.push(...terrainProps(feature, terrainSeed(map, feature)));
       const group = this.batch(parts);
       group.name = `terrain:${feature.id}`;
       this.add(group);

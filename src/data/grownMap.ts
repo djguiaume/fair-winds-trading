@@ -1,0 +1,45 @@
+import type { MapDef } from '../sim/map';
+import south from './seas/south.json';
+
+/** Local storage prefix of the grown sea's own voyage, so the real one is never touched. */
+export const PHASE4_PREFIX = 'fwt.phase4.';
+
+/** The radius the sea grows to in Phase 4: five times today's area (decisions 0115, 0137). */
+export const GROWN_SEA_RADIUS = 985;
+
+/**
+ * One of the Phase 4 seas (decision 0137): the islands, shapes, ports, buoys and wind zones a
+ * biome adds around the Windward Ring, kept in its own file in `src/data/seas/`.
+ */
+export type SeaDef = Pick<MapDef, 'islands' | 'ports' | 'course'> &
+  Partial<Pick<MapDef, 'terrain' | 'marks' | 'currents' | 'windZones'>> & {
+    id: string;
+    name: string;
+  };
+
+/** The seas laid out so far, in the order they open (decision 0147): the south first. */
+export const SEAS = [south as unknown as SeaDef];
+
+/**
+ * The Phase 4 sea as laid out so far (decision 0151): today's Windward Ring unchanged in the
+ * middle, the sea grown to its Phase 4 radius and each laid-out sea added round it. A dev sea
+ * until fog of war and the far goods are in: it is reached only with `?map=phase4` and sails
+ * its own voyage, so the shipped game and its saves never see it.
+ */
+export function grownMap(source: MapDef, seas: readonly SeaDef[] = SEAS): MapDef {
+  const map = structuredClone(source);
+  map.name = `${source.name} (Phase 4 sea)`;
+  map.compatibleSaveMaps = [];
+  map.boundsRadius = GROWN_SEA_RADIUS;
+  for (const sea of seas) {
+    const add = structuredClone(sea);
+    map.islands.push(...add.islands);
+    map.ports.push(...add.ports);
+    map.course.push(...add.course);
+    (map.terrain ??= []).push(...(add.terrain ?? []));
+    (map.marks ??= []).push(...(add.marks ?? []));
+    (map.currents ??= []).push(...(add.currents ?? []));
+    (map.windZones ??= []).push(...(add.windZones ?? []));
+  }
+  return map;
+}

@@ -6,7 +6,7 @@ import type { IslandDef, LandmarkKind } from '../sim/map';
  * and x to the right seen from the sea, so a file scales with the radius set in the map. Heights
  * (`height`, `y`, `base`) are radius units too.
  */
-export type IslandStyle = 'fish' | 'timber' | 'grain' | 'stone';
+export type IslandStyle = 'fish' | 'timber' | 'grain' | 'stone' | 'tropic';
 export type Point = [number, number];
 
 /**
@@ -158,6 +158,8 @@ const DESIGN_FOR_STYLE: Record<IslandStyle, string> = {
   fish: 'saltmere',
   grain: 'westholm',
   stone: 'south-cay',
+  // The south sea's palm islands (decision 0151).
+  tropic: 'sunreach',
 };
 
 /** A design by id, or the shipped design of a style ('timber' is Port Calda). */

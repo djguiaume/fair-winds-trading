@@ -412,6 +412,8 @@ export class Hud {
           this.onCurrentHintSeen();
           this.showToast(t('toast.currentHint'), 6);
         } else this.showToast(t('toast.currentCharted', { name }), 3);
+      } else if (e.type === 'too-shallow' && this.toastTimer <= 0) {
+        this.showToast(t('toast.tooShallow'), 3);
       } else if (e.type === 'bump' && this.toastTimer <= 0) {
         this.showToast(t('toast.bump'), 1.2);
       }

@@ -152,7 +152,8 @@ export class CurrentField {
       });
     }
     for (const t of map.terrain ?? [])
-      land.push({
+      if (t.kind !== 'shallows')
+        land.push({
         ...boundingCircle(t.outline),
         distance: (x, y) => coastDistance(x, y, t.outline).distance,
       });

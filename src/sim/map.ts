@@ -25,7 +25,7 @@ export interface IslandDef {
      * Producer style of a designed island, set by `prepareMap` (from the island file); an island
      * with only a style is built from that style's shipped island file.
      */
-    profile?: 'fish' | 'timber' | 'grain' | 'stone';
+    profile?: 'fish' | 'timber' | 'grain' | 'stone' | 'tropic';
     /** Harbour bearing in radians, shared with coastline transforms. */
     harbourBearing?: number;
     /**
@@ -47,14 +47,18 @@ export interface IslandDef {
 /** A coastline shared by rendering and collision; coordinates are world x east / y north.
  * Sandbanks are permanently above-water obstacles for now, not a new depth/damage system.
  * Reefs are rocks and coral just awash: solid to the hull like a shore, drawn without land
- * (decision 0031).
+ * (decision 0031). Shallows are a sandy passage under water: ships of draft `maxDraft` or less
+ * sail across, slowed a little, and deeper ships are refused, softly, as by a sandbank
+ * (decisions 0137, 0151).
  */
 export interface TerrainDef {
   id: string;
   /** Shown on the sea chart. */
   name?: string;
-  kind: 'island' | 'sandbank' | 'reef';
+  kind: 'island' | 'sandbank' | 'reef' | 'shallows';
   outline: [number, number][];
+  /** Shallows only: the deepest draft that crosses (a ship file's `draft`). */
+  maxDraft?: number;
   look?: {
     trees?: number;
     landmark?: LandmarkKind;

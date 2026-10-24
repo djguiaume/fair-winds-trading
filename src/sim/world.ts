@@ -16,6 +16,7 @@ import {
   impactDamage,
   reefDistance,
   reefsOf,
+  passageShallowness,
   shallowDrag,
   shallowness,
 } from './hazards';
@@ -153,6 +154,8 @@ export interface World {
 
 export type WorldEvent =
   | { type: 'bump' }
+  /** Shallows refused her: her draft is too deep for them (decisions 0137, 0151). */
+  | { type: 'too-shallow' }
   | { type: 'reef-strike'; damage: number }
   | { type: 'crash'; damage: number; surface: 'shore' | 'pier' | 'boat' }
   | { type: 'waypoint'; label: string; seconds: number; next: string }
@@ -510,7 +513,10 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   events.push(...stepCurrent(world, dt));
   // Shallows drag at the hull near reefs; deeper hulls feel it more (decision 0032).
   const nearReef = reefDistance(world.reefs, world.boat);
-  world.shallow = shallowness(nearReef, world.ship.radius);
+  world.shallow = Math.max(
+    shallowness(nearReef, world.ship.radius),
+    passageShallowness(world.map.terrain, world.boat),
+  );
   if (world.shallow > 0) world.boat.speedKn *= shallowDrag(world.shallow, world.ship, dt);
   world.sogKn = dt > 0 ? distance(before, world.boat) / (knotToUnits() * dt) : 0;
   const sinceBump = world.boat.sinceBump;
@@ -522,6 +528,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
     world.map.boundsRadius,
     world.map.terrain,
     world.piers,
+    world.ship.draft,
   );
   // Report a new hit, not every frame spent grinding along a shore.
   if (surface && world.boat.sinceBump === 0 && sinceBump > 0.5) {
@@ -533,7 +540,8 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
       world.trade,
       applyPerks(world.trade.home, 'hullDamage', hit * knobs(world.trade.difficulty).damage),
     );
-    if (damage >= 1 && surface === 'reef') events.push({ type: 'reef-strike', damage });
+    if (surface === 'shallows') events.push({ type: 'too-shallow' });
+    else if (damage >= 1 && surface === 'reef') events.push({ type: 'reef-strike', damage });
     else if (damage >= 1 && (surface === 'shore' || surface === 'pier' || surface === 'boat'))
       events.push({ type: 'crash', damage, surface });
     else events.push({ type: 'bump' });

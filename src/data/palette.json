@@ -15,6 +15,8 @@
     "trunk": "#5a3d24",
     "pine": ["#2f7a45", "#3a8a4c", "#2a6e3e"],
     "leaves": ["#4aa04f", "#5cae4a", "#3f8f45"],
+    "palm": ["#3f9e4c", "#58b04a", "#2f8c4a"],
+    "palmTrunk": "#8a6a44",
     "crops": ["#e8c547", "#c9d65a", "#e2b53e", "#a6c64a", "#d9a63a"],
     "furrow": "#8f7a30",
     "hay": "#e2c160",
@@ -40,6 +42,10 @@
     "stone": {
       "walls": ["#d6cdbd", "#c9bfae", "#e0d8c8"],
       "roofs": ["#5f6f7d", "#6f7f8d", "#4f5f6d"]
+    },
+    "tropic": {
+      "walls": ["#f8f3ea", "#f6dcc0", "#d6ece0", "#f3d0c4"],
+      "roofs": ["#c9a35a", "#d0603e", "#b8904c", "#2f8a8a"]
     },
     "yard": {
       "walls": ["#f4ede0", "#ece2cf", "#f8f3ea"],

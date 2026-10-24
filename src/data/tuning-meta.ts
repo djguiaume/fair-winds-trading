@@ -1074,6 +1074,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     '/s',
     "Extra braking at a reef's edge for a ship of draft 1.",
   ),
+  'seamanship.hazards.passageShallow': num(
+    'Passage drag',
+    0,
+    1,
+    0.05,
+    'share',
+    'How shallow a sandy passage feels to a ship that may cross it (1 = a reef edge).',
+  ),
   'seamanship.hazards.strikeDamage': num(
     'Reef damage',
     0,

@@ -694,13 +694,29 @@ export class SeaChart {
       const points = terrain.outline.map(([x, y]) => `${x},${-y}`).join(' ');
       if (terrain.kind === 'island') land('polygon', { points });
       else
-        shape('polygon', { points, class: terrain.kind === 'reef' ? 'chart-reef' : 'chart-bank' });
+        shape('polygon', {
+          points,
+          class:
+            terrain.kind === 'reef'
+              ? 'chart-reef'
+              : terrain.kind === 'shallows'
+                ? 'chart-shallows'
+                : 'chart-bank',
+        });
       const xs = terrain.outline.map((p) => p[0]);
       const ys = terrain.outline.map((p) => -p[1]);
       const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
       if (terrain.kind === 'island') landBoxes.push({ x0, x1, y0, y1 });
       if (terrain.name && terrain.kind === 'island')
         places.push({ name: terrain.name, x: (x0 + x1) / 2, top: y0, bottom: y1 });
+      // The chart says which ships cross a sandy passage (decisions 0137, 0151).
+      if (terrain.name && terrain.kind === 'shallows')
+        places.push({
+          name: t('chart.shallows', { name: terrain.name }),
+          x: (x0 + x1) / 2,
+          top: y0,
+          bottom: y1,
+        });
     }
     // Sea marks on the chart (decision 0130): channel buoys and lights, once their quest says so.
     const done = questsDone(this.world.trade);
