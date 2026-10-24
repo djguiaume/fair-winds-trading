@@ -1,4 +1,12 @@
-import type { CurrentDef, IslandDef, MapDef, PortDef, TerrainDef, WindZoneDef } from '../sim/map';
+import type {
+  CurrentDef,
+  IslandDef,
+  MapDef,
+  PortDef,
+  SeaMarkType,
+  TerrainDef,
+  WindZoneDef,
+} from '../sim/map';
 
 /**
  * The map editor's document (decision 0095): the authored map JSON exactly as it is saved in
@@ -13,6 +21,7 @@ export type Selection =
   | { kind: 'start' }
   | { kind: 'current'; id: string; point?: number }
   | { kind: 'zone'; id: string; point?: number }
+  | { kind: 'mark'; index: number }
   | null;
 
 export type ShapeKind = TerrainDef['kind'];
@@ -86,6 +95,18 @@ export function deletePoint(map: MapDef, id: string, index: number): boolean {
 export function moveWaypoint(map: MapDef, index: number, x: number, y: number) {
   const wp = map.course[index];
   if (wp) [wp.x, wp.y] = [round(x), round(y)];
+}
+
+export function moveMark(map: MapDef, index: number, x: number, y: number) {
+  const mark = map.marks?.[index];
+  if (mark) [mark.x, mark.y] = [round(x), round(y)];
+}
+
+/** A sea mark (decision 0130) where you click; returns its index. */
+export function addMark(map: MapDef, x: number, y: number, type: SeaMarkType): number {
+  map.marks ??= [];
+  map.marks.push({ type, x: round(x), y: round(y) });
+  return map.marks.length - 1;
 }
 
 export function moveStart(map: MapDef, x: number, y: number) {
@@ -349,6 +370,10 @@ export function deleteSelection(map: MapDef, sel: Selection): Selection {
     map.course.splice(sel.index, 1);
     return null;
   }
+  if (sel.kind === 'mark') {
+    map.marks?.splice(sel.index, 1);
+    return null;
+  }
   if (sel.kind === 'current' || sel.kind === 'zone') {
     if (sel.point !== undefined) {
       deleteFlowPoint(map, sel, sel.point);
@@ -410,9 +435,69 @@ export class History<T = MapDef> {
  * file drops into the repo and passes `npm run lint` with a clean diff: objects one key per line,
  * except small level tables; arrays on one line when they fit, except lists of points.
  */
-export function formatMapJson(map: MapDef): string {
+export function formatMapJson(map: unknown, original?: string): string {
   // Level tables ({ "3": ["grain"] }) stay on one line when they fit, as in the file.
-  return formatJson(map, (x) => Array.isArray(x) && x.every(isPlain));
+  return formatJson(
+    map,
+    (x) => Array.isArray(x) && x.every(isPlain),
+    original ? openObjects(original) : undefined,
+  );
+}
+
+/**
+ * The objects a JSON file writes over several lines although they would fit on one: Prettier
+ * keeps an object open when its file has a line break after the `{`, so a sea file written by a
+ * script keeps its layout through the editor (decision 0156). Each is keyed by its own JSON.
+ */
+const SCALAR = /"(?:[^"\\]|\\.)*"|[^,\]}\s]+/y;
+export function openObjects(text: string): Set<string> {
+  const open = new Set<string>();
+  let i = 0;
+  const space = () => {
+    while (/\s/.test(text[i] ?? '')) i++;
+  };
+  const value = (): unknown => {
+    space();
+    const c = text[i];
+    if (c === '{') {
+      i++;
+      const broken = /^[ \t]*\r?\n/.test(text.slice(i, i + 80));
+      const obj: Record<string, unknown> = {};
+      space();
+      if (text[i] === '}') i++;
+      else
+        for (;;) {
+          space();
+          const key = value() as string;
+          space();
+          i++; // :
+          obj[key] = value();
+          space();
+          if (text[i++] === '}') break;
+        }
+      if (broken && Object.keys(obj).length) open.add(JSON.stringify(obj));
+      return obj;
+    }
+    if (c === '[') {
+      i++;
+      const list: unknown[] = [];
+      space();
+      if (text[i] === ']') i++;
+      else
+        for (;;) {
+          list.push(value());
+          space();
+          if (text[i++] === ']') break;
+        }
+      return list;
+    }
+    SCALAR.lastIndex = i;
+    const m = SCALAR.exec(text)!;
+    i += m[0].length;
+    return JSON.parse(m[0]);
+  };
+  value();
+  return open;
 }
 
 /**
@@ -430,7 +515,7 @@ const isPlain = (v: unknown) => v === null || typeof v !== 'object';
  * two or more points or objects; objects one key per line unless every value passes `flat` and
  * the object fits.
  */
-function formatJson(value: unknown, flat: (v: unknown) => boolean): string {
+function formatJson(value: unknown, flat: (v: unknown) => boolean, keepOpen?: Set<string>): string {
   const WIDTH = 100;
   const inline = (v: unknown): string =>
     Array.isArray(v)
@@ -471,7 +556,12 @@ function formatJson(value: unknown, flat: (v: unknown) => boolean): string {
     if (v && typeof v === 'object') {
       const entries = Object.entries(v);
       if (!entries.length) return `${prefix}{}`;
-      if (!breaks(v) && indent.length + one.length + tail <= WIDTH) return one;
+      if (
+        !breaks(v) &&
+        indent.length + one.length + tail <= WIDTH &&
+        !keepOpen?.has(JSON.stringify(v))
+      )
+        return one;
       const inner = indent + '  ';
       const kept = entries.filter(([, x]) => x !== undefined);
       const lines = kept.map(

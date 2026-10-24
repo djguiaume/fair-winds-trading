@@ -46,6 +46,8 @@ export interface ChartScene {
   selection: Selection;
   layers: Layers;
   view: View;
+  /** The Windward Ring's own sea radius, drawn dashed on the grown sea (decision 0156). */
+  ringRadius?: number;
   /** Chart size in pixels; the SVG's own size when left out (`npm run chart` has no layout). */
   size?: { width: number; height: number };
 }
@@ -75,6 +77,7 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
     }).textContent = text);
 
   el('circle', { r: map.boundsRadius, class: 'c-sea', 'data-hit': 'sea' });
+  if (scene.ringRadius) el('circle', { r: scene.ringRadius, class: 'c-ring-edge' });
   if (layers.grid) {
     const g = el('g', { class: 'c-grid' });
     const r = map.boundsRadius;
@@ -170,10 +173,18 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
   }
 
   if (layers.marks)
-    for (const mark of map.marks ?? []) {
+    (map.marks ?? []).forEach((mark, index) => {
       const { tag, attrs } = seaMarkShape(mark, px);
-      el(tag, attrs);
-    }
+      el(tag, { ...attrs, 'data-hit': `mark:${index}` });
+      // A bigger invisible target: a buoy is a few pixels across.
+      el('circle', {
+        cx: mark.x,
+        cy: -mark.y,
+        r: 7 * px,
+        class: 'c-hit',
+        'data-hit': `mark:${index}`,
+      });
+    });
 
   // Start position: the boat icon pointing along the start heading.
   const s = map.start;
@@ -234,6 +245,10 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
   if (selection?.kind === 'waypoint') {
     const wp = map.course[selection.index];
     if (wp) el('circle', { cx: wp.x, cy: -wp.y, r: 9 * px, class: 'c-selected' });
+  }
+  if (selection?.kind === 'mark') {
+    const mark = map.marks?.[selection.index];
+    if (mark) el('circle', { cx: mark.x, cy: -mark.y, r: 9 * px, class: 'c-selected' });
   }
   if (selection?.kind === 'start')
     el('circle', { cx: s.x, cy: -s.y, r: 15 * px, class: 'c-selected' });

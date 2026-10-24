@@ -1,3 +1,4 @@
 {
-  "boundsRadius": 985
+  "boundsRadius": 985,
+  "seas": ["south"]
 }

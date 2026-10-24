@@ -1,5 +1,5 @@
 import { GOODS, GOOD_DEFS, GOOD_ICONS, type GoodId, isGood } from '../sim/goods';
-import type { LandmarkKind, MapDef, PortDef } from '../sim/map';
+import { type LandmarkKind, type MapDef, type PortDef, SEA_MARK_TYPES } from '../sim/map';
 import { SHIP_CLASSES } from '../sim/ship';
 import { DEFAULT_START_LEVEL, SETTLEMENT_LEVELS, TOWN_LEVELS } from '../sim/settlement';
 import { TUNING } from '../data/tuning';
@@ -33,7 +33,37 @@ export interface PanelHost {
   remove(): void;
   /** Opens the island builder on an island, making its file first if needed (0105, 0110). */
   editIsland(id: string): void;
+  /** The sea editor's controls (decision 0156); left out when editing the ring alone. */
+  seas?: SeaPanel;
 }
+
+/** What the panel needs from the sea editor (decision 0156). */
+export interface SeaPanel {
+  /** Every file's owner id and name, the ring first. */
+  seas: [string, string][];
+  /** The sea new things go into. */
+  active: string;
+  /** The file the selection belongs to. */
+  owner?: string;
+  radius: number;
+  ringRadius: number;
+  setActive(id: string): void;
+  moveTo(id: string): void;
+  rename(id: string, name: string): void;
+  add(): void;
+}
+
+const MARK_NAMES: Record<string, string> = {
+  'buoy-red': 'red buoy (port)',
+  'buoy-green': 'green buoy (starboard)',
+  'cardinal-north': 'north cardinal',
+  'cardinal-east': 'east cardinal',
+  'cardinal-south': 'south cardinal',
+  'cardinal-west': 'west cardinal',
+  'fishing-boat': 'fishing boat',
+  'pilot-cutter': 'pilot cutter',
+  light: 'light',
+};
 
 const LANDMARKS: (LandmarkKind | '')[] = ['', 'lighthouse', 'ruins', 'wreck', 'beacon'];
 /** Levels a town can grow into (all but the first), from `town-levels.json` (decision 0113). */
@@ -154,14 +184,65 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
   const goods: [string, string][] = GOODS.map((g) => [g, `${GOOD_ICONS[g]} ${GOOD_DEFS[g].name}`]);
   const ships: [string, string][] = Object.keys(SHIP_CLASSES).map((id) => [id, id]);
 
-  if (!selection) {
-    heading(map.name, 'map');
-    text('Name', map.name, (v) => (map.name = v || map.name));
-    number('Seed', map.seed, (v) => (map.seed = v ?? map.seed));
+  const seas = host.seas;
+  const fileOf = (owner: string) => (owner === 'ring' ? 'phase1-map.json' : `seas/${owner}.json`);
+  /** Which sea file the selection is written to, and a picker to move it to another. */
+  const seaRow = () => {
+    if (!seas?.owner) return;
+    const input = node('select', { title: 'The file this is saved in' }, row('Sea file'));
+    for (const [id, name] of seas.seas)
+      node(
+        'option',
+        { value: id, textContent: `${name} · ${fileOf(id)}`, selected: id === seas.owner },
+        input,
+      );
+    input.addEventListener('change', () => seas.moveTo(input.value));
+  };
+
+  if (!selection && seas) {
+    heading('Phase 4 sea', 'the ring + every sea file');
     number('Sea radius', map.boundsRadius, (v) => (map.boundsRadius = v ?? map.boundsRadius), {
-      min: 100,
-      step: 10,
+      min: seas.ringRadius,
+      step: 5,
     });
+    node('p', {
+      className: 'ed-note',
+      textContent: `In seas/grown.json. The dashed circle is the Windward Ring's own edge (${seas.ringRadius}).`,
+    });
+    const active = node('select', {}, row('New things go into'));
+    for (const [id, name] of seas.seas)
+      node(
+        'option',
+        { value: id, textContent: `${name} · ${fileOf(id)}`, selected: id === seas.active },
+        active,
+      );
+    active.addEventListener('change', () => seas.setActive(active.value));
+    node('hr');
+    heading('Sea files', 'in the order they open');
+    for (const [id, name] of seas.seas.slice(1)) {
+      const input = node('input', { value: name }, row(`seas/${id}.json`));
+      input.addEventListener('change', () => seas.rename(id, input.value.trim()));
+    }
+    button(buttons(), '＋ New sea', () => seas.add());
+    node('p', {
+      className: 'ed-note',
+      textContent:
+        'A new sea is a new file in src/data/seas/ and one line in grown.json: no code. Pick it above, then add its islands, reefs, marks, currents and zones.',
+    });
+    node('hr');
+    heading('Windward Ring', 'phase1-map.json');
+  }
+  if (!selection) {
+    if (!seas) {
+      heading(map.name, 'map');
+      text('Name', map.name, (v) => (map.name = v || map.name));
+    }
+    number('Seed', map.seed, (v) => (map.seed = v ?? map.seed));
+    if (!seas)
+      number('Sea radius', map.boundsRadius, (v) => (map.boundsRadius = v ?? map.boundsRadius), {
+        min: 100,
+        step: 10,
+      });
     node('hr');
     heading('Base wind');
     number(
@@ -205,6 +286,7 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     if (!island) return;
     const port = portOn(map, island.id);
     heading(island.name ?? island.id, port ? 'island + port' : 'island');
+    seaRow();
     const file = island.look?.design;
     const edit = buttons();
     button(edit, file ? `✎ Edit island · ${file}.json` : '✎ Edit island (makes its file)', () =>
@@ -328,6 +410,7 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
       shallows: 'shallows (deep ships go round)',
     };
     heading(shape.name ?? shape.id, kinds[shape.kind]);
+    seaRow();
     if (shape.kind === 'island') {
       const b = buttons();
       button(b, '✎ Edit island (makes its file)', () => host.editIsland(shape.id));
@@ -378,6 +461,7 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     if (!c) return;
     const lane = !!c.path;
     heading(c.name ?? c.id, lane ? `current lane · ${c.id}` : `area current · ${c.id}`);
+    seaRow();
     text('Name', c.name ?? '', (v) => {
       if (v) c.name = v;
       else delete c.name;
@@ -434,6 +518,7 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     const z = findZone(map, selection.id);
     if (!z) return;
     heading(z.name ?? z.id, `wind zone · ${z.id}`);
+    seaRow();
     text('Name', z.name ?? '', (v) => {
       if (v) z.name = v;
       else delete z.name;
@@ -517,6 +602,7 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     const wp = map.course[selection.index];
     if (!wp) return;
     heading(wp.label || 'Waypoint', 'harbour waypoint');
+    seaRow();
     text('Label', wp.label, (v) => (wp.label = v));
     xy('Position', wp.x, wp.y, (x, y) => ([wp.x, wp.y] = [x, y]));
     node('p', {
@@ -525,6 +611,44 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
         'The port island with this exact name turns its harbour and pier to face this point.',
     });
     button(buttons(), 'Delete waypoint', () => host.remove());
+    return;
+  }
+
+  if (selection.kind === 'mark') {
+    const mark = map.marks?.[selection.index];
+    if (!mark) return;
+    heading(mark.name ?? MARK_NAMES[mark.type] ?? mark.type, 'sea mark');
+    seaRow();
+    select(
+      'Type',
+      mark.type,
+      SEA_MARK_TYPES.map((t): [string, string] => [t, MARK_NAMES[t] ?? t]),
+      (v) => (mark.type = v as typeof mark.type),
+    );
+    text('Name', mark.name ?? '', (v) => {
+      if (v) mark.name = v;
+      else delete mark.name;
+    });
+    xy('Position', mark.x, mark.y, (x, y) => ([mark.x, mark.y] = [x, y]));
+    number(
+      'Turn (°)',
+      mark.turn,
+      (v) => {
+        if (v === undefined) delete mark.turn;
+        else mark.turn = ((v % 360) + 360) % 360;
+      },
+      { step: 5, optional: true },
+    );
+    check('On the chart', !!mark.chart, (v) => {
+      if (v) mark.chart = true;
+      else delete mark.chart;
+    });
+    node('p', {
+      className: 'ed-note',
+      textContent:
+        'A charted mark shows on the sea chart, with its name small beside it. Cardinal marks stand on the side of the danger they are named for: pass north of a north cardinal.',
+    });
+    button(buttons(), 'Delete mark', () => host.remove());
     return;
   }
 
