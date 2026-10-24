@@ -23,7 +23,7 @@ import { GameView } from './render/view';
 import { SAIL_STEPS, createBoat, knotToUnits } from './sim/boat';
 import { isFar, isRare, isSpecialty } from './sim/goods';
 import { portNow, questsDone } from './sim/settlement';
-import { foundedSites, townLevels } from './sim/founding';
+import { foundSite, foundedSites, townLevels } from './sim/founding';
 import { bearingTo, clamp } from './sim/math';
 import { type SaveStorage, clearSave, loadGame, saveGame } from './sim/save';
 import { LINK_KEY } from './sim/saveTransfer';
@@ -1455,8 +1455,36 @@ if (new URLSearchParams(location.search).has('debug')) {
     world.boat.sail = SAIL_STEPS[sailStep]!;
     world.destination = null;
   };
+  /**
+   * A town as the shots need it (`npm run shots -- --town palm-key:2`, decision 0155): an empty
+   * island founded first, as the `found` reward does, then grown to the level.
+   */
+  const town = (portId: string, level: number) => {
+    foundSite(world.trade, world.map, portId);
+    const s = world.trade.settlements.byPort[portId];
+    if (!s) return false;
+    s.level = level;
+    trade.syncMarketLevels(world.trade, world.map);
+    refreshPiers(world);
+    checkFounded();
+    view.setSettlementLevels(townLevels(world.map, world.trade));
+    return true;
+  };
   Object.assign(window, {
-    fwt: { world, view, input, trade, tradePanel, quests, coach, chart, newGame, dock, place },
+    fwt: {
+      world,
+      view,
+      input,
+      trade,
+      tradePanel,
+      quests,
+      coach,
+      chart,
+      newGame,
+      dock,
+      place,
+      town,
+    },
   });
 }
 

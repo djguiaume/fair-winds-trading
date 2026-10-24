@@ -32,6 +32,8 @@ Where
   --chart                       the sea chart open; --chart-zoom n, --chart-pan Key:n,
                                 --chart-panel legend|market|journal (default none)
   --charted                     every wind zone already sailed (named on the chart)
+  --town id:level,…             towns at these levels; an empty island to found is founded first
+                                (0155), so --town palm-key:1 shows Palm Key just founded
 Look
   --lang en|fr                  language (default en)
   --night  | --time s           night, or this game time in seconds (default 300, day)
@@ -87,6 +89,11 @@ export function normalise(opts) {
     chartPan: o['chart-pan'] ? keyHold(o['chart-pan']) : null,
     chartPanel: o['chart-panel'] ?? null,
     charted: !!o.charted,
+    towns: list(o.town ?? []).map((t) => {
+      const [id, level] = String(t).split(':');
+      if (!id || !(Number(level) >= 1)) throw new Error(`not id:level: ${t}`);
+      return [id, Number(level)];
+    }),
     lang: o.lang ?? 'en',
     night: !!o.night,
     time: o.time ?? null,
@@ -208,6 +215,8 @@ async function setScene(page, shot) {
       world.ship = trade.activeShip(world.trade);
     }
     if (s.charted) world.trade.progress.zones = world.map.windZones.map((z) => z.id);
+    for (const [id, level] of s.towns)
+      if (!window.fwt.town(id, level)) return `no town ${id} on this sea`;
     if (s.at) {
       const beam = ((world.seaWind.from * 180) / Math.PI + 90) % 360;
       window.fwt.place(s.at[0], s.at[1], s.heading ?? beam, s.sail);
