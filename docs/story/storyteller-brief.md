@@ -171,7 +171,7 @@ Every sea is the same three arcs, in this order. The second sea's letter only st
 
 1. **The letter (or chart)**, one step, given at a ring port by a person the player knows. A relative has written from beyond the reef. Goal: sail through the sea's gateway and reach its main port (discover it). This lifts the sea's chart (0137 point 1).
 2. **The keeper's arc**, three steps at the main port, given by its **keeper of the craft**. It tells why the workshop stands idle: the keeper still has the craft, but nobody gathers any more. The steps help the port itself (bring home goods, one sailing step that shows off the sea, one delivery that brings the port back to life). The port's look changes after it (`after:` props). The done card says the gathering ground is empty and points to the relative.
-3. **The outpost**, given by the keeper, with the relative speaking on the steps (`speaker`). Bring founding goods from the ring, then carry the relative (item, space 0) from where they live to the empty island. Tam Ness lives at Watchman Key with his great-uncle. The other three relatives went beyond the reef long ago and live at their sea's main port, which is why the letters come from them. It ends with the epilogue's **flagpole and name board** on the outpost (`after:outpost-<biome>`), and the outpost starts gathering. The relative's done card says, in plain words, where the raw goods go: "Bring what we gather to <keeper> at <port>, and the workshop will do the rest." That is the story's explanation of "no raw goods, no craft" (0146 point 4).
+3. **The outpost**, given by the keeper, with the relative speaking on the steps (`speaker`). Bring founding goods from the ring, then carry the relative (item, space 0) from where they live to the empty island. Tam Ness lives at Watchman Key with his great-uncle. The other three relatives went beyond the reef long ago and live at their sea's main port, which is why the letters come from them. It ends with the epilogue's **flagpole and name board** on the outpost (`after:outpost-<biome>`), and the outpost starts gathering. The relative's done card says, in plain words, where the raw goods go: "Bring what we gather to <keeper> at <port>, and the workshop will do the rest." That is the story's explanation of "no raw goods, no craft" (0146 point 4). The relative speaks that done card through the quest field `doneSpeaker` (0158), and the card shows at the keeper's port. The south's `outpost-south` is the worked example: land founding goods at the island's landing spot (`landed`), then carry the relative, reward `found`.
 
 Rewards grow with the seas, but the amounts are content for the balance pass (0146), written in the quest files.
 
@@ -225,3 +225,17 @@ Each keeper's arc starts when its letter is done, and each outpost starts when i
 ### One mention across, in Phase 4
 
 Every letter card mentions the ring person's own arc once (Kit's shoals, Ines's slipway, Maren's mill, and Ness's lens), and every keeper names the relative once before they meet. Rook stays at Saltmere. He may close each outpost with a single line in the book on the relative's done card ("Rook will want that in the book"), never with a card of his own.
+
+## Rulings for other threads (2026-10-24)
+
+Story calls made for threads outside the arcs. They stand unless Guillaume changes them.
+
+- **Rook's thanks on the skip path** (0139): written for a stranger, since the player skipped the rescue: "I hear you handle a boat well…", "I've a proposal for you".
+- **Finding the home island after the tutorial** (0159): Rook names Skerry, "just west of Saltmere", and a "Sail to Skerry" step with a chart mark takes the captain there. Rook speaks the arrival card: bare plots and a sound pier, and the people of the islands (Kit, Ines, Maren, Ada) will each give a plot. In French say "les îles", not "l'anneau". No building names, deadlines or dialect.
+- **Sailing lessons** (the menu's "Replay tutorial", Guillaume 2026-10-24): a separate navigation-only quest that never replays the rescue. Rook runs a buoy course near Saltmere. His lines stay story-neutral, because it can be played before the rescue or long after: no gratitude, Skerry or arcs. No reward (replayable, no farming); the buoys only show while the lesson runs; no dock speed written into text. Done card: "Neatly sailed, captain. The course is here whenever you want it." Titles: "Hoist and lower sails", "Find the no-go zone", "Tack up to buoy A", "Reach to buoy C", "Run home and dock". French uses real terms (virer de bord, vent de travers, vent arrière) and whatever word the HUD already uses for the no-go zone.
+
+## Status (2026-10-24)
+
+- Phase 3 story: prologue, the four ring arcs and the epilogue are built and merged.
+- Phase 4, south: all three arcs built and merged (`watchman-passage`, `sunreach-tea`, `outpost-south`; 0155, 0158).
+- Phase 4, west, north and east: designed above, not built. They need the engine's island `after` and terrain `before` (Cinder Isle rising, Snowberry Isle's pack ice) and their seas laid out first.
