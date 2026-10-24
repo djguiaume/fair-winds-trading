@@ -51,8 +51,21 @@ import type { World } from '../sim/world';
 import { KIDS_MODE_AVAILABLE, type UiMode } from './settings';
 import { formatNumber, goodName, shipName, shipThe, t, townLevelName } from '../i18n';
 import { COIN, crateIcon, icon } from './icons';
+import { portraitSvg } from './portraits';
+import { questCardBody } from './questCard';
+import type { QuayItem } from './questView';
 
-export type TradePanelTab = 'market' | 'orders' | 'shipyard';
+export type TradePanelTab = 'market' | 'orders' | 'quay' | 'shipyard';
+
+/**
+ * The people of the harbour, on the Quay tab (decision 0141); see `quayItems` in `questView.ts`.
+ * `seen` is told the fresh ones once the tab has shown them; `act` the captain's answers.
+ */
+export interface PortQuay {
+  items(): QuayItem[];
+  seen(keys: string[]): void;
+  act(quest: string, act: 'accept' | 'later' | 'ignore' | 'choose', option?: string): void;
+}
 
 /** Lot sizes for one tap on Buy or Sell (decision 0049); clamped to what the hold, stock and gold allow. */
 const LOTS = [1, 5, 10] as const;
@@ -78,6 +91,8 @@ export class TradePanel {
   onTrade: (kind: 'buy' | 'sell', good: GoodId | null) => void = () => {};
   onRender: () => void = () => {};
   onClose: () => void = () => {};
+  /** The Quay tab's people; none: no tab. */
+  quay: PortQuay | null = null;
   onUiModeChange: (mode: UiMode) => void = () => {};
 
   constructor(
@@ -192,6 +207,9 @@ export class TradePanel {
       goods.map((g) => `<span title="${goodName(g)}">${icon(g)}</span>`).join('');
     const makes = producesAt(map, trade, port.id);
     const orders = this.openOrderCount();
+    const people = this.quay?.items() ?? [];
+    const fresh = people.filter((p) => p.fresh);
+    if (!this.quay && this.tab === 'quay') this.tab = 'market';
     const tabBtn = (tab: TradePanelTab, label: string, extra = '') =>
       `<button id="tp-tab-${tab}" class="tab-btn ${this.tab === tab ? 'active' : ''}" aria-pressed="${this.tab === tab}">${label}${extra}</button>`;
 
@@ -226,6 +244,7 @@ export class TradePanel {
         <nav class="trade-tabs">
           ${tabBtn('market', isKid ? t('kids.tabMarket') : t('trade.tabMarket'))}
           ${isKid ? '' : tabBtn('orders', t('trade.tabOrders'), orders ? ` <span class="tab-badge">${orders}</span>` : '')}
+          ${this.quay ? tabBtn('quay', t('trade.tabQuay'), fresh.length && this.tab !== 'quay' ? ` <span class="tab-badge is-quay">${fresh.length}</span>` : '') : ''}
           ${tabBtn('shipyard', isKid ? t('kids.tabShipyard') : t('trade.tabShipyard'))}
           ${
             this.tab === 'market' && !isKid
@@ -246,14 +265,17 @@ export class TradePanel {
                 : this.renderAdultMarket(market)
               : this.tab === 'orders'
                 ? this.renderContracts(isKid)
-                : isKid
-                  ? this.renderKidsShipyard()
-                  : this.renderAdultShipyard()
+                : this.tab === 'quay'
+                  ? this.renderQuay(people)
+                  : isKid
+                    ? this.renderKidsShipyard()
+                    : this.renderAdultShipyard()
           }
         </main>
 
         <p class="trade-status" role="status">${this.message}</p>
         <footer class="trade-footer">
+          ${this.tab !== 'quay' && fresh.length ? this.renderQuayHint(fresh) : ''}
           ${this.renderRepair(isKid)}
           <span class="footer-gap"></span>
           ${
@@ -269,6 +291,7 @@ export class TradePanel {
     this.container.innerHTML = html;
     this.attachListeners();
     this.onRender();
+    if (this.tab === 'quay' && fresh.length) this.quay?.seen(fresh.map((p) => p.key));
     const modal = this.container.querySelector('.trade-modal');
     if (modal) modal.scrollTop = scrollTop;
     if (focusKey) {
@@ -278,6 +301,30 @@ export class TradePanel {
         : this.container.querySelector<HTMLButtonElement>('#tp-close')
       )?.focus({ preventScroll: true });
     }
+  }
+
+  /** The Quay tab (decision 0141): everyone in this harbour with something to say. */
+  private renderQuay(people: QuayItem[]): string {
+    if (!people.length) return `<p class="muted quay-empty">${t('trade.quayEmpty')}</p>`;
+    return `<div class="quay-people">${people
+      .map(
+        ({ card, fresh }) =>
+          `<article class="quay-person${fresh ? ' is-new' : ''}">${
+            card.giver
+              ? `<span class="quay-face">${portraitSvg(card.giver, { size: 96, mood: card.mood, variant: card.look })}</span>`
+              : ''
+          }<div class="quay-body">${questCardBody(card, true)}</div></article>`,
+      )
+      .join('')}</div>`;
+  }
+
+  /** "Kit Marlow would like a word → Quay", in the footer of the other tabs. */
+  private renderQuayHint(fresh: QuayItem[]): string {
+    const first = fresh[0]!.card;
+    const name = (first.giver?.name ?? first.arc).replace(/[&<>"]/g, '');
+    return `<button id="tp-quay-hint" class="quay-hint">${
+      first.giver ? portraitSvg(first.giver, { size: 40, mood: first.mood }) : ''
+    }<span>${t('trade.quayHint', { name })} <em>${t('trade.quayGo')}</em></span></button>`;
   }
 
   /** Hull repair after reef strikes (decision 0032); shown only when the hull is damaged. */
@@ -981,6 +1028,21 @@ export class TradePanel {
       this.tab = 'orders';
       this.render();
     });
+
+    for (const id of ['#tp-tab-quay', '#tp-quay-hint'])
+      this.container.querySelector(id)?.addEventListener('click', () => {
+        this.tab = 'quay';
+        this.render();
+      });
+    this.container
+      .querySelectorAll<HTMLButtonElement>('.quay-people button[data-act]')
+      .forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const act = btn.dataset.act as 'accept' | 'later' | 'ignore' | 'choose';
+          this.quay?.act(btn.dataset.quest!, act, btn.dataset.option);
+          this.render();
+        });
+      });
 
     this.container.querySelectorAll<HTMLButtonElement>('[data-lot]').forEach((btn) => {
       btn.addEventListener('click', () => {
