@@ -1,6 +1,6 @@
 # 0164. Sailing lessons quest
 
-**Status:** Proposed (2026-10-24).
+**Status:** Accepted (2026-10-24, Guillaume OK on the screenshots).
 
 ## Context
 
