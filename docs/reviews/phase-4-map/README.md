@@ -40,7 +40,7 @@ At the start of Phase 4 only the ring is charted. Each named area lifts when you
 |---|---|---|
 | North, ice | Glacier island, ice port, outpost, icebergs that drift with the wind | Drifting icebergs |
 | East, fog and storm coast | Cliff port, cliffs, fog banks, strong current, storms (where the expedition belt can start) | Fog visibility, currents |
-| South, tropical | Palm port, outpost, sand shallows, a reef passage that blocks deep ships, doldrums, steady trade-wind belt | Hard-block passages, wind zones |
+| South, tropical | Palm port on a ring island with a lagoon, harbour facing in, staggered entrances ([0143](../../decisions/0143-lagoon-wind-axis.md)), outpost, sand shallows, a reef passage that blocks deep ships, doldrums, steady trade-wind belt | Hard-block passages, wind zones (`sheltered` lagoon) |
 | West, fire | Volcano island with ash drifting downwind, fire port, outpost, basalt stacks, warm current | Ash visibility, currents |
 
 Each biome hazard gets a Settings switch, and every story step must work with it off (0137 point 5).

@@ -92,6 +92,7 @@ Two new lists sit next to `terrain` in the map JSON (for example `phase1-map.jso
   - `doldrums` has `strength` [0.25, 0.4] and `fairFloor` 0.6.
   - `stormy-coast` has `gusts` 1.5 and `stormBirth` 2.
   - `cold-gale` has `strength` 1.2 and `gusts` 0.8.
+  - `sheltered` (added for a ring island's lagoon, [0143](0143-lagoon-wind-axis.md), built in [0144](0144-wind-zones-in-the-sim.md)) has `strength` 0.55, `gusts` 0.6, `pull` 0.9, `axis` and `acrossFloor` 0.3: `headingDeg` is a line, and the wind blows from whichever end is nearer the sea wind.
   - All of them share one `fadeUnits` of 40.
 - **Map checks** (the editor and the tests run the same ones):
   - Ids are unique, and each `kind` exists in `weather.json`.
