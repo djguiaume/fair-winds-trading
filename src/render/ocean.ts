@@ -5,7 +5,7 @@ import { designOf } from '../data/islands';
 import { PALETTE } from './palette';
 
 /** Baked shoreline distance: constant shader cost as authored coast complexity grows. */
-const shoreShader = /* glsl */ `
+export const shoreShader = /* glsl */ `
 uniform sampler2D uShoreMap;
 uniform vec4 uShoreBounds;
 float shoreDistance(vec2 p) {

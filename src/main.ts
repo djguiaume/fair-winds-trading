@@ -213,6 +213,12 @@ hud.onPressHintSeen = () => {
   settings.seenPressHint = true;
   saveSettings(settings);
 };
+// The first current met (decision 0140): a one-time hint, then a short "charted" line.
+hud.seenCurrentHint = settings.seenCurrentHint;
+hud.onCurrentHintSeen = () => {
+  settings.seenCurrentHint = true;
+  saveSettings(settings);
+};
 hud.onPressDanger = () => {
   navigator.vibrate?.([70, 50, 70]);
   music.creak();
@@ -834,6 +840,15 @@ windZones.checked = settings.windZones;
 windZones.addEventListener('change', () => {
   world.windZones = windZones.checked;
   settings.windZones = windZones.checked;
+  saveSettings(settings);
+});
+// Currents (decision 0140): their own switch too.
+const currentsSwitch = $<HTMLInputElement>('currents');
+world.currentsOn = settings.currents;
+currentsSwitch.checked = settings.currents;
+currentsSwitch.addEventListener('change', () => {
+  world.currentsOn = currentsSwitch.checked;
+  settings.currents = currentsSwitch.checked;
   saveSettings(settings);
 });
 // Wind: steady trade wind or the shifting wind (decision 0083); the level sets its default.

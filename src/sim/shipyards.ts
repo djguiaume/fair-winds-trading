@@ -18,6 +18,8 @@ export interface ShipyardProgress {
   discovered: string[];
   /** Orders delivered per port id: a shipwright's trust in the captain. */
   standing: Record<string, number>;
+  /** Current ids on the chart: sailed in at least once (decision 0140). */
+  charted?: string[];
 }
 
 /** The home port: the map's choice, else the port nearest the start. */
@@ -152,6 +154,11 @@ export function readProgress(raw: unknown, map: MapDef): ShipyardProgress {
     for (const port of map.ports)
       if (r.discovered.includes(port.id) && !fresh.discovered.includes(port.id))
         fresh.discovered.push(port.id);
+  }
+  const charted = (raw as { charted?: unknown }).charted;
+  if (Array.isArray(charted)) {
+    const known = (map.currents ?? []).map((c) => c.id).filter((id) => charted.includes(id));
+    if (known.length) fresh.charted = known;
   }
   if (typeof r.standing === 'object' && r.standing !== null) {
     const saved = r.standing as Record<string, unknown>;

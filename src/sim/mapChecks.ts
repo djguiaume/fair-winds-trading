@@ -82,6 +82,9 @@ const DIRS = [
   [1, 2],
 ] as const;
 
+/** Above any current's speed, so the route search's estimate never overshoots (decision 0140). */
+const FASTEST_CURRENT_KN = 3.5;
+
 export interface SailRoute {
   points: Point[];
   /** Estimated steady sailing time, seconds. */
@@ -90,13 +93,18 @@ export interface SailRoute {
 
 const routeZone: ZoneEffect = { ...NO_ZONE };
 
-/** Fastest sloop route between two points with the wind from `windDeg`, or null if none. */
+/**
+ * Fastest sloop route between two points with the wind from `windDeg`, or null if none. With
+ * `water` (knots east and north at a point, e.g. a `CurrentField`), each leg's speed over the
+ * ground adds the current along it (decision 0140).
+ */
 export function sailRoute(
   map: MapDef,
   start: Point,
   goal: Point,
   windDeg: number,
   turningClearance = 11,
+  water?: (x: number, y: number) => { east: number; north: number },
 ): SailRoute | null {
   const key = (p: Point) => `${p.x},${p.y}`;
   const snap = (p: Point) => ({
@@ -114,7 +122,8 @@ export function sailRoute(
   const zones = zoneField(map.windZones, smoothOutline);
   const gain = zones ? zoneMaxGain(zones) : 1;
   const heuristic = (p: Point) =>
-    Math.hypot(p.x - last.x, p.y - last.y) / (14 * gain * SLOOP.speedRatio * knotToUnits());
+    Math.hypot(p.x - last.x, p.y - last.y) /
+    ((14 * gain * SLOOP.speedRatio + (water ? FASTEST_CURRENT_KN : 0)) * knotToUnits());
   const queue = [{ p: first, cost: 0, priority: heuristic(first) }];
   while (queue.length) {
     queue.sort((a, b) => b.priority - a.priority);
@@ -164,9 +173,13 @@ export function sailRoute(
           break;
         }
       if (!free) continue;
-      const next =
-        cost +
-        length / (14 * strength * SLOOP.speedRatio * polarFraction(SLOOP, angle) * knotToUnits());
+      let knots = 14 * strength * SLOOP.speedRatio * polarFraction(SLOOP, angle);
+      if (water) {
+        const v = water((p.x + q.x) / 2, (p.y + q.y) / 2);
+        knots += (v.east * (q.x - p.x) + v.north * (q.y - p.y)) / length;
+      }
+      if (knots <= 0.5) continue;
+      const next = cost + length / (knots * knotToUnits());
       const nk = key(q);
       if (next >= (dist.get(nk) ?? Infinity)) continue;
       dist.set(nk, next);

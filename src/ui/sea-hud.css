@@ -279,6 +279,26 @@ body.is-docked .objective {
   grid-column: 1 / -1;
   white-space: nowrap;
 }
+.log-sog {
+  grid-column: 1 / -1;
+  white-space: nowrap;
+  color: #9fe3ff;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.log-sog[hidden] {
+  display: none;
+}
+.log-sog small {
+  color: var(--brass);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+/* The current under the wind (decision 0140): the same blue as SOG. */
+.weather-text.current-text {
+  color: #9fe3ff;
+}
 .log-hdg {
   margin-top: 2px;
   font-size: 17px;

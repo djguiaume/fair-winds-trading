@@ -36,6 +36,10 @@ export interface Settings {
   storms: boolean;
   /** Wind zones such as trade belts and doldrums (decision 0140); a hazard, so it can be off. */
   windZones: boolean;
+  /** Currents (decision 0140): water that carries the boat; off = still water everywhere. */
+  currents: boolean;
+  /** The first current met has shown its one-time hint (decision 0140). */
+  seenCurrentHint: boolean;
   /** The steady trade wind (decision 0083); picking a difficulty level sets its default. */
   steadyWind: boolean;
 }
@@ -57,6 +61,8 @@ const DEFAULTS: Settings = {
   weather: true,
   storms: true,
   windZones: true,
+  currents: true,
+  seenCurrentHint: false,
   steadyWind: false,
 };
 
