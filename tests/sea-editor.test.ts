@@ -221,7 +221,7 @@ describe('sea steps, as npm run sea applies them (0161)', () => {
     ).toThrow('no sea');
   });
 
-  it("sets a reef's rock style into its look, keeping the rest (0172)", async () => {
+  it("sets a reef's rock style into its look, keeping the rest (0173)", async () => {
     const { applySeaSteps } = await import('../src/editor/seaSteps');
     const doc = fresh();
     const reef = doc.terrain!.find((t) => t.id === 'stepping-stones-1')!;

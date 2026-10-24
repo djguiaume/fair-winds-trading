@@ -1,4 +1,4 @@
-# 0172. East sea: Fogwatch, the Stepping Stones and fog banks
+# 0173. East sea: Fogwatch, the Stepping Stones and fog banks
 
 **Status:** Proposed (2026-10-24). Waiting on Guillaume's look at the [review](../reviews/east-sea/README.md).
 

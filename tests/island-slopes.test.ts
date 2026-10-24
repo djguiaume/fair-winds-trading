@@ -61,7 +61,7 @@ describe('sloped ground (decision 0096 §4)', () => {
     // The ramp adds some triangles (a band and a fan per edge), and lanes may gain pieces.
     expect(extra).toBeGreaterThan(10);
     expect(extra).toBeLessThan(200);
-    // Only the east sea's dunes and grazing holm slope (decision 0172); the rest keep cliffs.
+    // Only the east sea's dunes and grazing holm slope (decision 0173); the rest keep cliffs.
     const sloping = Object.values(ISLAND_DESIGNS)
       .filter((d) => d.ground.some((g) => g.slope))
       .map((d) => d.id)

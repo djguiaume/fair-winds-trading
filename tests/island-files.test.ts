@@ -143,7 +143,7 @@ const GOLDEN: Record<string, string[]> = {
   'sunreach-south': ['336:9dd11960', '361:49fa96bd', '371:810eea4b', '371:810eea4b'],
   'palm-key': ['156:f382bcb1', '165:a95e4a6c', '178:e846448d', '178:e846448d'],
   'lone-palm': Array(4).fill('13:531edc15'),
-  // The east sea (decision 0172).
+  // The east sea (decision 0173).
   fogwatch: ['517:cdf085b3', '610:c6461e2d', '658:7e84bf20', '684:5a25428b'],
   'the-giant': Array(4).fill('6:7ba70ca5'),
   'his-wife': Array(4).fill('6:22f5c239'),

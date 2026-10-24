@@ -96,7 +96,7 @@ function fieldsOf(args: Args): Record<string, unknown> {
     if (typeof quest === 'string') fields.tags = quest === 'none' ? null : [`${when}:${quest}`];
   }
   if (args.always) fields.tags = null;
-  // An island's file is its look's design; a reef's rock style is its look's style (0172).
+  // An island's file is its look's design; a reef's rock style is its look's style (0173).
   if (typeof fields.design === 'string') {
     fields.look = { design: fields.design };
     delete fields.design;
