@@ -1,17 +1,24 @@
 // `npm run quest` (decision 0153): the quest builder's checks on one quest, and its "Play from
-// step" link, with screenshots of that test through `npm run shots`.
-import { readFileSync } from 'node:fs';
+// step" link, with screenshots of that test through `npm run shots`. Since decision 0164 it also
+// changes a quest's own sea with the builder's edits (doc.ts): where a step takes the boat, the
+// quest's buoys and its held wind, and writes the file the way the builder exports it.
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { isMapShape } from '../../src/data/editedMap';
 import { PHASE1_MAP, prepareMap } from '../../src/data/maps';
 import {
   type QuestDoc,
+  addQuestMark,
   playUrl,
+  questFileText,
   questProblems,
+  removeQuestMark,
   seaStart,
+  setStepMove,
+  setWind,
   stepPort,
 } from '../../src/editor/quest/doc';
-import type { MapDef } from '../../src/sim/map';
+import { type MapDef, SEA_MARK_TYPES, type SeaMarkType } from '../../src/sim/map';
 import { clearAt } from '../../src/sim/mapChecks';
 import { QUESTS, type QuestDef } from '../../src/sim/quests';
 
@@ -29,6 +36,16 @@ export const HELP = `npm run quest -- <command> [options]
                                 step's place (as the builder does), or there
        --shots                  screenshots of the test (npm run shots options apply: --sizes,
                                 --wait, --lang, --cards, --out, --name)
+
+The quest's own sea (decision 0164), with the builder's edits; writes the quest file, checks it:
+  move <id> --step N|step-id --at x,y [--heading deg]   where the step takes the boat as it begins
+  move <id> --step N --clear
+  buoy <id> --at x,y [--name A] [--type buoy-yellow|buoy-red|…]   a mark shown while it runs
+  buoy <id> <n> --at x,y | --name B | --type …           change mark n (1 = first)
+  buoy <id> <n> --remove
+  wind <id> [--step N] --speed kn [--from deg]           a held breeze (the quest's, or a step's)
+  wind <id> [--step N] --clear
+       --dry                    write nothing, print what would change
 Options
   --file quest.json             a quest file to use instead of (or besides) the shipped one
   --map file.json               a map editor export instead of the ring
@@ -199,6 +216,114 @@ export async function run(args: Args): Promise<number> {
     return 0;
   }
 
+  if (cmd === 'move' || cmd === 'buoy' || cmd === 'wind') return edit(cmd, ids, args, doc, map);
+
   console.log(`unknown command "${cmd}"\n${HELP}`);
   return 1;
+}
+
+const xy = (v: unknown) => {
+  const p = typeof v === 'string' ? v.split(',').map(Number) : [];
+  return p.length === 2 && p.every(Number.isFinite) ? { x: p[0]!, y: p[1]! } : null;
+};
+const num = (v: unknown) => (typeof v === 'string' && v !== '' ? Number(v) : undefined);
+
+/** `move`, `buoy` and `wind`: one edit to a quest file, then its checks, one line. */
+function edit(cmd: string, ids: string[], args: Args, doc: QuestDoc, map: MapDef): number {
+  const [id, which] = ids;
+  const q = doc.quests.find((x) => x.id === id);
+  if (!q) {
+    console.log(id ? `no quest "${id}"` : `quest ${cmd} <id> …`);
+    return 1;
+  }
+  const stepOf = () => {
+    const n = Number(args.step);
+    const step =
+      Number.isInteger(n) && n >= 1 ? q.steps[n - 1] : q.steps.find((s) => s.id === args.step);
+    if (!step)
+      throw new Error(
+        `quest ${id} has no step ${String(args.step)} (${q.steps.map((s) => s.id).join(', ')})`,
+      );
+    return step;
+  };
+  const type = args.type;
+  if (typeof type === 'string' && !(SEA_MARK_TYPES as readonly string[]).includes(type)) {
+    console.log(`--type is one of ${SEA_MARK_TYPES.join(', ')}`);
+    return 1;
+  }
+  let said: string;
+  try {
+    if (cmd === 'move') {
+      const step = stepOf();
+      const at = xy(args.at);
+      if (!args.clear && !at)
+        throw new Error('quest move <id> --step N --at x,y [--heading deg] (or --clear)');
+      setStepMove(step, args.clear ? null : at, num(args.heading) ?? step.moveTo?.headingDeg);
+      said = step.moveTo
+        ? `${id} › ${step.id} takes the boat to ${step.moveTo.x},${step.moveTo.y}${step.moveTo.headingDeg === undefined ? '' : ` heading ${step.moveTo.headingDeg}°`}`
+        : `${id} › ${step.id} no longer moves the boat`;
+    } else if (cmd === 'buoy') {
+      if (which === undefined) {
+        const at = xy(args.at);
+        if (!at) throw new Error('quest buoy <id> --at x,y [--name A --type buoy-yellow]');
+        const name = typeof args.name === 'string' ? args.name : undefined;
+        const i = addQuestMark(q, at, (type as SeaMarkType | undefined) ?? 'buoy-yellow', name);
+        said = `${id}: mark ${i + 1} (${q.marks![i]!.type}${name ? ` ${name}` : ''}) at ${q.marks![i]!.x},${q.marks![i]!.y}`;
+      } else {
+        const i = Number(which) - 1;
+        const mark = q.marks?.[i];
+        if (!mark) throw new Error(`quest ${id} has ${q.marks?.length ?? 0} mark(s)`);
+        if (args.remove) {
+          removeQuestMark(q, i);
+          said = `${id}: mark ${i + 1} removed`;
+        } else {
+          const at = xy(args.at);
+          if (at) Object.assign(mark, { x: at.x, y: at.y });
+          if (typeof args.name === 'string') mark.name = args.name;
+          if (typeof type === 'string') mark.type = type as SeaMarkType;
+          said = `${id}: mark ${i + 1} (${mark.type}${mark.name ? ` ${mark.name}` : ''}) at ${mark.x},${mark.y}`;
+        }
+      }
+    } else {
+      const target = args.step === undefined ? q : stepOf();
+      const where = args.step === undefined ? id : `${id} › ${(target as { id: string }).id}`;
+      const speed = num(args.speed);
+      if (!args.clear && speed === undefined)
+        throw new Error('quest wind <id> [--step N] --speed kn [--from deg] (or --clear)');
+      setWind(target, args.clear ? undefined : speed, num(args.from));
+      said = target.wind
+        ? `${where} holds ${target.wind.speedKn} kn${target.wind.fromDeg === undefined ? '' : ` from ${target.wind.fromDeg}°`}`
+        : `${where}: no held wind`;
+    }
+  } catch (e) {
+    console.log((e as Error).message);
+    return 1;
+  }
+  const problems = problemsOf(doc, map, [q.id]);
+  const given = files(args.file).find((f) => {
+    try {
+      return (JSON.parse(readFileSync(resolve(f), 'utf8')) as QuestDef).id === q.id;
+    } catch {
+      return false;
+    }
+  });
+  const path = resolve(given ?? `src/data/quests/${q.id}.json`);
+  const before = existsSync(path) ? readFileSync(path, 'utf8') : undefined;
+  const text = questFileText(q, before);
+  if (!args.dry && text !== before) writeFileSync(path, text);
+  if (args.json)
+    console.log(
+      JSON.stringify(
+        { quest: q.id, change: said, file: path, written: !args.dry && text !== before, problems },
+        null,
+        2,
+      ),
+    );
+  else {
+    for (const p of problems) console.log(p);
+    console.log(
+      `${said}${args.dry ? ' (dry run)' : ''} · ${problems.length ? `${problems.length} problem(s)` : 'checks ok'}`,
+    );
+  }
+  return problems.length ? 1 : 0;
 }

@@ -1,6 +1,6 @@
 import { strToU8, zipSync } from 'fflate';
 import { setLanguage } from '../../i18n';
-import type { MapDef } from '../../sim/map';
+import { type MapDef, SEA_MARK_TYPES, type SeaMarkType } from '../../sim/map';
 import { clearAt } from '../../sim/mapChecks';
 import { type Condition, MAP_PLACES, type QuestPoint } from '../../sim/questLibrary';
 import {
@@ -11,6 +11,7 @@ import {
   type QuestStep,
 } from '../../sim/quests';
 import { CHARACTERS, MOODS, type Mood, portraitSvg } from '../../ui/portraits';
+import { seaMarkShape } from '../../ui/chartMarks';
 import { questCardBody } from '../../ui/questCard';
 import type { QuestCardModel } from '../../ui/questView';
 import audio from '../../data/audio.json';
@@ -23,6 +24,10 @@ import {
   type Place,
   type QuestDoc,
   addPlace,
+  addQuestMark,
+  removeQuestMark,
+  setStepMove,
+  setWind,
   clock,
   conditionWords,
   exportFiles,
@@ -104,7 +109,7 @@ const shippedDoc = (): QuestDoc => ({
 
 type Tab = 'goal' | 'card' | 'sea' | 'reward';
 type Centre = 'chart' | 'card' | 'story';
-type Tool = 'select' | 'add' | 'compass';
+type Tool = 'select' | 'add' | 'compass' | 'move' | 'buoy';
 
 let host: QuestHost;
 let open = false;
@@ -544,6 +549,7 @@ function drawSteps() {
         s.speaker && `by ${s.speaker}`,
         s.compass && 'compass',
         s.wind && 'wind',
+        s.moveTo && 'moves boat',
         s.sound && 'sound',
       ]
         .filter(Boolean)
@@ -757,6 +763,7 @@ function questPanel(q: QuestDef): HTMLElement[] {
       ),
     ),
   );
+  out.push(...questSeaRows(q));
   out.push(conditionForm(q.start, ctx, false, (c) => (q.start = c), 'Starts when'));
   out.push(h('h2', {}, 'Quest cargo'));
   const items = h('div', { class: 'qb-items' });
@@ -1028,6 +1035,70 @@ function cardPanel(q: QuestDef, s: QuestStep): HTMLElement[] {
   return out;
 }
 
+/** A breeze editor: knots (blank: none) and the bearing it blows from (blank: the sea's). */
+function windPair(
+  wind: { speedKn: number; fromDeg?: number } | undefined,
+  set: (w: { speedKn: number; fromDeg?: number } | undefined) => void,
+): HTMLElement {
+  const pair = h('span', { class: 'ed-pair' });
+  pair.append(
+    numberInput(
+      wind?.speedKn,
+      (n) => edit(() => set(n === undefined ? undefined : { ...wind, speedKn: n })),
+      'the sea’s',
+    ),
+    numberInput(
+      wind?.fromDeg,
+      (n) =>
+        wind &&
+        edit(() => {
+          const next = { ...wind };
+          if (n === undefined) delete next.fromDeg;
+          else next.fromDeg = n;
+          set(next);
+        }),
+      'from °',
+    ),
+  );
+  return pair;
+}
+
+/**
+ * The quest's own sea (decision 0164): a breeze held over its steps that have none, and its sea
+ * marks, shown at sea and on the chart only while it runs.
+ */
+function questSeaRows(q: QuestDef): HTMLElement[] {
+  const out: HTMLElement[] = [
+    row(
+      'Wind (kn)',
+      windPair(q.wind, (w) => setWind(q, w?.speedKn, w?.fromDeg)),
+    ),
+  ];
+  const list = h('div', { class: 'ed-list' });
+  (q.marks ?? []).forEach((m, i) => {
+    const line = h('span', { class: 'ed-pair' });
+    const drop = h('button', { type: 'button', title: 'Remove this mark' }, '✕');
+    drop.addEventListener('click', () => edit(() => removeQuestMark(q, i)));
+    line.append(
+      select([...SEA_MARK_TYPES], m.type, (v) => v && edit(() => (m.type = v as SeaMarkType))),
+      numberInput(m.x, (n) => n !== undefined && edit(() => (m.x = n)), 'x'),
+      numberInput(m.y, (n) => n !== undefined && edit(() => (m.y = n)), 'y'),
+      textInput(m.name ?? '', (v) => edit(() => (v ? (m.name = v) : delete m.name))),
+      drop,
+    );
+    list.append(line);
+  });
+  const pick = h('button', { type: 'button', title: 'Click the chart to add a buoy' }, '+ buoy ⌖');
+  pick.addEventListener('click', () => {
+    centre = 'chart';
+    setTool('buoy');
+    render();
+  });
+  list.append(pick);
+  out.push(row('Sea marks', list));
+  return out;
+}
+
 function seaPanel(s: QuestStep): HTMLElement[] {
   const out: HTMLElement[] = [h('h2', {}, 'At sea ', h('small', {}, 'while the step is tracked'))];
   out.push(
@@ -1089,25 +1160,38 @@ function seaPanel(s: QuestStep): HTMLElement[] {
     ),
   );
   out.push(row('Chart circle', chart));
-  const wind = h('span', { class: 'ed-pair' });
-  wind.append(
-    numberInput(
-      s.wind?.speedKn,
-      (n) => edit(() => (n === undefined ? delete s.wind : (s.wind = { ...s.wind, speedKn: n }))),
-      'the sea’s',
-    ),
-    numberInput(
-      s.wind?.fromDeg,
-      (n) =>
-        s.wind &&
-        edit(() => {
-          if (n === undefined) delete s.wind!.fromDeg;
-          else s.wind!.fromDeg = n;
-        }),
-      'from °',
+  out.push(
+    row(
+      'Wind (kn)',
+      windPair(s.wind, (w) => setWind(s, w?.speedKn, w?.fromDeg)),
     ),
   );
-  out.push(row('Wind (kn)', wind));
+  // Where the boat is taken when the step begins (decision 0164).
+  const move = h('span', { class: 'ed-pair' });
+  for (const key of ['x', 'y', 'headingDeg'] as const)
+    move.append(
+      numberInput(
+        s.moveTo?.[key],
+        (n) =>
+          edit(() => {
+            if (key !== 'headingDeg' && n === undefined) delete s.moveTo;
+            else if (key === 'headingDeg' && s.moveTo) {
+              if (n === undefined) delete s.moveTo.headingDeg;
+              else s.moveTo.headingDeg = n;
+            } else if (n !== undefined)
+              s.moveTo = { x: s.moveTo?.x ?? n, y: s.moveTo?.y ?? n, [key]: n };
+          }),
+        key === 'headingDeg' ? 'heading °' : key,
+      ),
+    );
+  const movePick = h('button', { type: 'button', title: 'Click the chart to place the boat' }, '⌖');
+  movePick.addEventListener('click', () => {
+    centre = 'chart';
+    setTool('move');
+    render();
+  });
+  move.append(movePick);
+  out.push(row('Move boat to', move));
   const sound = h('span', { class: 'ed-pair' });
   sound.append(
     select(
@@ -1171,11 +1255,15 @@ const HINTS: Record<Tool, string> = {
     'Drag a ring to move it, its gold handle to size it · drag the sea to pan, wheel or pinch to zoom',
   add: 'Click the sea to add a place to this step’s reach points (or a timed run’s via points)',
   compass: 'Click the sea to put the step’s compass point there',
+  move: 'Click the sea where the step takes the boat when it begins',
+  buoy: 'Click the sea to add a buoy the quest shows while it runs',
 };
 const TOOLS: [Tool, string, string][] = [
   ['select', '✥', 'Select and drag'],
   ['add', '◎', 'Add a place to reach'],
   ['compass', '✶', 'Put the compass point'],
+  ['move', '⛵', 'Where the step takes the boat'],
+  ['buoy', '◍', 'Add a quest buoy'],
 ];
 
 function setTool(next: Tool) {
@@ -1259,6 +1347,21 @@ function drawChartView() {
         if (p.kind !== 'chart') label(`${k + 1}.${p.no || '✶'}`, p.x, p.y - 1.5 * px, 'ghost', 11);
       }
     });
+  // The quest's own sea marks (decision 0164), on every step: they show while it runs.
+  for (const m of q?.marks ?? []) {
+    const { tag, attrs } = seaMarkShape(m, px * 1.6);
+    add(tag, attrs);
+    if (m.name) label(m.name, m.x, m.y + 8 * px, 'num', 13);
+  }
+  // Where the step takes the boat, bow pointing her heading.
+  if (s?.moveTo) {
+    const { x, y } = s.moveTo;
+    const a = ((s.moveTo.headingDeg ?? 0) * Math.PI) / 180;
+    const pt = (f: number, side: number) =>
+      `${x + Math.sin(a) * f * px + Math.cos(a) * side * px},${-(y + Math.cos(a) * f * px - Math.sin(a) * side * px)}`;
+    add('path', { d: `M${pt(9, 0)}L${pt(-6, 5)}L${pt(-6, -5)}Z`, class: 'qb-compass' });
+    label('boat starts', x, y + 12 * px, 'tip', 12);
+  }
   places = s ? stepPlaces(s, prepared) : [];
   // Lines join points in order (reach in-order, a timed run's via).
   for (const kind of ['point', 'via'] as const) {
@@ -1353,8 +1456,14 @@ function setupChart() {
     const hit = (e.target as Element).closest('[data-hit]')?.getAttribute('data-hit') ?? '';
     const [kind = '', n] = hit.split(':');
     const s = step();
+    const q = quest();
+    if (q && tool === 'buoy') {
+      edit(() => addQuestMark(q, p));
+      return;
+    }
     if (s && tool !== 'select' && !kind.startsWith('q')) {
       if (tool === 'compass') edit(() => (s.compass = { x: round1(p.x), y: round1(p.y) }));
+      else if (tool === 'move') edit(() => setStepMove(s, p));
       else {
         history.record(doc);
         if (addPlace(s, p.x, p.y)) commit();

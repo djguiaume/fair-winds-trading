@@ -1,10 +1,11 @@
-import { type StepEffects, checkStepEffects } from './stepEffects';
+import { createBoat, trueWindAngle } from './boat';
+import { type StepEffects, type StepWind, checkStepEffects } from './stepEffects';
 import characterData from '../data/characters.json';
 import { daylightAt } from './daylight';
 import { chartAreaIds, chartAreas } from './fog';
 import { GOODS, type GoodAmounts, type GoodId, isGood } from './goods';
 import { type IslandDesign, questTagIds } from '../data/islands';
-import type { MapDef } from './map';
+import { type MapDef, SEA_MARK_TYPES, type SeaMarkDef } from './map';
 import {
   type CheckScope,
   type Condition,
@@ -33,6 +34,7 @@ import {
   updateGoal,
 } from './questLibrary';
 import { freeSpace, syncMarketLevels, type TradeState } from './trade';
+import { pointOfSail } from './ship';
 import type { World } from './world';
 
 /*
@@ -200,6 +202,16 @@ export interface QuestDef {
   lesson?: boolean;
   /** `false`: no storm forms while the quest runs (the tutorial, decision 0072). */
   storms?: false;
+  /**
+   * A steady breeze held over every step that has no `wind` of its own while the quest is tracked
+   * (decision 0164); the sea's own wind comes back once it is not.
+   */
+  wind?: StepWind;
+  /**
+   * The quest's own sea marks (decision 0164: the lessons' buoys), at sea and on the chart only
+   * while the quest runs: not before it starts, not after it ends.
+   */
+  marks?: SeaMarkDef[];
   /**
    * Ports and goods picked in play (decision 0151), name → `port` or `good`: steps fill them
    * (`set`) and read them as `$name` in their conditions, coach marks and text (`{name}`).
@@ -400,6 +412,15 @@ export function checkQuests(
         out.push(`${at} › vars.${name}: a word, holding one of ${VAR_KINDS.join(', ')}`);
     out.push(...checkCondition(q.start, scope, false, `${at} › start`));
     out.push(...checkReward(q.reward, scope, `${at} › reward`));
+    out.push(...checkStepEffects({ wind: q.wind }, at));
+    if (q.marks !== undefined && !Array.isArray(q.marks)) out.push(`${at} › marks: a list`);
+    else
+      (q.marks ?? []).forEach((m, i) => {
+        if (!(SEA_MARK_TYPES as readonly string[]).includes(m?.type))
+          out.push(`${at} › marks ${i + 1}: type is one of ${SEA_MARK_TYPES.join(', ')}`);
+        if (!Number.isFinite(m?.x) || !Number.isFinite(m?.y))
+          out.push(`${at} › marks ${i + 1}: x and y in map units`);
+      });
     if (!Array.isArray(q.steps) || q.steps.length === 0) {
       out.push(`${at}: needs steps`);
       continue;
@@ -604,6 +625,8 @@ export type QuestEvent =
   | { type: 'reset'; quest: string; step: string }
   /** Goods taken out of the hold for a step (`landed`, decision 0157). */
   | { type: 'landed'; quest: string; good: GoodId; qty: number }
+  /** The boat was taken to a step's `moveTo` (decision 0164). */
+  | { type: 'moved'; quest: string; step: string }
   | { type: 'finished'; quest: string };
 
 /** How often the conditions are checked, in seconds of play. */
@@ -645,6 +668,8 @@ export class QuestBook {
   private readonly screen: () => Screen;
   /** The helm since the last check (decision 0151). */
   private helm: Helm = { sails: [], steerSec: 0, movingSec: 0 };
+  /** Which side the wind was on, upwind, for counting tacks (decision 0164); 0 not yet known. */
+  private windSide = 0;
   onEvent: (e: QuestEvent) => void = () => {};
 
   constructor(
@@ -714,6 +739,15 @@ export class QuestBook {
   /** The tracked quest's step now, whose `compass`, `wind` and `sound` the sea shows (0139). */
   get trackedStep(): QuestStep | undefined {
     return this.active.find((a) => a.quest.id === this.tracked)?.step;
+  }
+  /** The tracked step's breeze: its own `wind`, else its quest's (decision 0164). */
+  get trackedWind(): StepWind | undefined {
+    const a = this.active.find((a) => a.quest.id === this.tracked);
+    return a && (a.step.wind ?? a.quest.wind);
+  }
+  /** The sea marks of the quests running now (decision 0164). */
+  get runningMarks(): SeaMarkDef[] {
+    return this.active.flatMap((a) => a.quest.marks ?? []);
   }
   /** The lesson running now (decision 0151: the tutorial), with its step. */
   get lesson(): { quest: QuestDef; step: QuestStep } | undefined {
@@ -885,6 +919,18 @@ export class QuestBook {
       if (helm.sails.at(-1) !== controls.sailStep) helm.sails.push(controls.sailStep);
       if (Math.abs(controls.steer) > 0.15) helm.steerSec += dt;
       if (this.world.boat.speedKn > 0.7) helm.movingSec += dt;
+      // The point of sail and the tacks (decision 0164): a tack is the bow crossing the wind.
+      const { boat, wind, ship } = this.world;
+      const twa = trueWindAngle(boat.heading, wind);
+      const point = pointOfSail(ship, twa);
+      helm.pointSec = { ...helm.pointSec, [point]: (helm.pointSec?.[point] ?? 0) + dt };
+      // Bearing away past abeam forgets the side, so a gybe round to the other tack is no tack.
+      if (Math.abs(twa) >= Math.PI / 2) this.windSide = 0;
+      else if (twa !== 0) {
+        const side = Math.sign(twa);
+        if (this.windSide && side !== this.windSide) helm.tacks = (helm.tacks ?? 0) + 1;
+        this.windSide = side;
+      }
     }
     this.since += dt;
     if (this.since < QUEST_CHECK_SEC) return [];
@@ -1103,6 +1149,16 @@ export class QuestBook {
     if (missesPlace(step, this.world.map) || this.passesBy(quest, step)) {
       this.finishStep(quest, step, undefined, events);
       return;
+    }
+    if (step.moveTo) {
+      // The boat is taken to the step's place (decision 0164): sails down, off the pier.
+      const { x, y, headingDeg } = step.moveTo;
+      const heading =
+        headingDeg === undefined ? this.world.boat.heading : (headingDeg * Math.PI) / 180;
+      this.world.boat = { ...createBoat(x, y, heading), sailStep: 0 };
+      this.world.destination = null;
+      this.trade.dockedAt = null;
+      events.push({ type: 'moved', quest: quest.id, step: step.id });
     }
     events.push({
       type: step.choose && !step.goal ? 'choice' : 'step',

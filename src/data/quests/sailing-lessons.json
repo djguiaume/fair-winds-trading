@@ -1,0 +1,56 @@
+{
+  "id": "sailing-lessons",
+  "name": "Sailing lessons",
+  "start": { "is": "asked" },
+  "text": "lessons",
+  "lesson": true,
+  "storms": false,
+  "wind": { "speedKn": 10, "fromDeg": 30 },
+  "marks": [
+    { "type": "buoy-yellow", "x": 380, "y": -31, "name": "A" },
+    { "type": "buoy-yellow", "x": 319, "y": 4, "name": "B" }
+  ],
+  "steps": [
+    {
+      "id": "sails",
+      "moveTo": { "x": 300, "y": -85, "headingDeg": 300 },
+      "goal": { "is": "sails-practised" },
+      "coach": { "sea": "sail-lever", "chart": "close-chart" }
+    },
+    {
+      "id": "no-go",
+      "goal": { "is": "point-of-sail", "point": "in-irons", "holdSec": 3 },
+      "coach": { "sea": "wind-compass", "chart": "close-chart", "action": "tips" }
+    },
+    {
+      "id": "tack",
+      "goal": {
+        "is": "all",
+        "of": [
+          { "is": "reach", "points": [{ "x": 380, "y": -31 }], "within": 12 },
+          { "is": "tacked", "count": 2 }
+        ]
+      },
+      "compass": { "x": 380, "y": -31 },
+      "coach": { "sea": "wind-compass", "chart": "close-chart", "action": "tips" }
+    },
+    {
+      "id": "reach",
+      "goal": {
+        "is": "all",
+        "of": [
+          { "is": "reach", "points": [{ "x": 319, "y": 4 }], "within": 12 },
+          { "is": "point-of-sail", "point": "beam-reach", "holdSec": 6 }
+        ]
+      },
+      "compass": { "x": 319, "y": 4 },
+      "coach": { "sea": "wind-compass", "chart": "close-chart" }
+    },
+    {
+      "id": "home",
+      "port": "home",
+      "goal": { "is": "docked", "port": "home" },
+      "coach": { "sea": "port-marker", "chart": "chart-port", "port": "home", "action": "chart" }
+    }
+  ]
+}
