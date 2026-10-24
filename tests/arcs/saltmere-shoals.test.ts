@@ -9,6 +9,7 @@ import {
   QuestBook,
   checkQuestHooks,
   checkQuests,
+  questsFor,
 } from '../../src/sim/quests';
 import { producesAt } from '../../src/sim/settlement';
 import { SLOOP } from '../../src/sim/ship';
@@ -59,7 +60,7 @@ function visit(world: World, book: QuestBook, at: Point) {
 
 describe('saltmere-shoals', () => {
   it('passes the quest checks and its hooks name it', () => {
-    expect(checkQuests(QUESTS, PHASE1_MAP)).toEqual([]);
+    expect(checkQuests(questsFor(PHASE1_MAP), PHASE1_MAP)).toEqual([]);
     expect(checkQuestHooks(PHASE1_MAP, Object.values(ISLAND_DESIGNS), QUESTS)).toEqual([]);
     expect(QUESTS.some((q) => q.id === ID)).toBe(true);
   });

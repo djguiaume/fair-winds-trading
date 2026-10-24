@@ -780,6 +780,53 @@
       "turn": 47,
       "from": 1,
       "size": 0.9
+    },
+    {
+      "type": "drying-rack",
+      "x": -0.25,
+      "z": -0.27,
+      "turn": -34,
+      "size": 1,
+      "tags": ["after:sunreach-tea"],
+      "from": 1
+    },
+    {
+      "type": "drying-rack",
+      "x": 0.15,
+      "z": -0.3,
+      "turn": -10,
+      "size": 1,
+      "tags": ["after:sunreach-tea"],
+      "from": 1
+    },
+    {
+      "type": "drying-rack",
+      "x": 1.1,
+      "z": -0.27,
+      "turn": 23,
+      "size": 1,
+      "tags": ["after:sunreach-tea"],
+      "from": 1
+    },
+    {
+      "type": "tea-garden",
+      "x": 0.66,
+      "z": -0.22,
+      "turn": 0,
+      "from": 1,
+      "size": 0.6,
+      "variant": 2,
+      "tags": ["after:sunreach-tea"]
+    },
+    {
+      "type": "tea-garden",
+      "x": 0.86,
+      "z": -0.26,
+      "turn": 6,
+      "from": 1,
+      "size": 0.6,
+      "variant": 0,
+      "tags": ["after:sunreach-tea"]
     }
   ],
   "woods": {

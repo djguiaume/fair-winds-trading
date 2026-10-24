@@ -3,7 +3,7 @@ import { ISLAND_DESIGNS, islandDesign, questDesign, questShown } from '../../src
 import { PHASE1_MAP } from '../../src/data/maps';
 import { coastDistance } from '../../src/sim/coast';
 import { islandCoasts } from '../../src/sim/islandLayout';
-import { QUESTS, QuestBook, checkQuestHooks, checkQuests } from '../../src/sim/quests';
+import { QUESTS, QuestBook, checkQuestHooks, checkQuests, questsFor } from '../../src/sim/quests';
 import { producesAt } from '../../src/sim/settlement';
 import { SLOOP } from '../../src/sim/ship';
 import { sell } from '../../src/sim/trade';
@@ -42,7 +42,7 @@ function dock(p: ReturnType<typeof play>, port: string) {
 
 describe('arc: calda-slipway, "The last keel"', () => {
   it('passes the checks and follows the brief', () => {
-    expect(checkQuests(QUESTS, PHASE1_MAP)).toEqual([]);
+    expect(checkQuests(questsFor(PHASE1_MAP), PHASE1_MAP)).toEqual([]);
     expect(checkQuestHooks(PHASE1_MAP, Object.values(ISLAND_DESIGNS), QUESTS)).toEqual([]);
     expect(ARC).toMatchObject({
       giver: 'ines',
