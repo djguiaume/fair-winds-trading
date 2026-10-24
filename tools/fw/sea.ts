@@ -37,6 +37,8 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
   set sea <id> --name …          set grown --radius 985 --charted 445
   --after <quest> | --before <quest> | --always   on add or set: an island, shape or mark stands
         once that quest is done, or until it is (decision 0166: land swaps out of the boat's sight)
+  --during <quest> | --except <quest>   an island or shape stands only while that quest runs,
+        or all but then
   remove <what> <id|index>       (what: island shape port waypoint mark current zone area)
   check                          the checks only
 
@@ -88,7 +90,7 @@ function fieldsOf(args: Args): Record<string, unknown> {
             : v;
   }
   // Stands once a quest is done, or until it is (decisions 0130, 0166); `--always` clears it.
-  for (const when of ['after', 'before'] as const) {
+  for (const when of ['after', 'before', 'during', 'except'] as const) {
     const quest = args[when];
     if (typeof quest === 'string') fields.tags = quest === 'none' ? null : [`${when}:${quest}`];
   }

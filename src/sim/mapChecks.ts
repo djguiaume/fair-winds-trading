@@ -6,7 +6,7 @@ import { outlineCrosses, smoothOutline } from './flowShapes';
 import { TUNING } from '../data/tuning';
 import { isFar, isGood } from './goods';
 import { islandCoasts, islandPoint } from './islandLayout';
-import { landmarkOf, questTagIds } from '../data/islands';
+import { landmarkOf, questTagIds, runningTag } from '../data/islands';
 import { hasQuestLand, standingMap } from './questLand';
 import { type IslandDef, type MapDef, type PortDef, SEA_MARK_TYPES, type TerrainDef } from './map';
 import { DEG, bearingTo, wrapAngle } from './math';
@@ -459,9 +459,9 @@ function portGoods(port: PortDef) {
 }
 
 /**
- * Land that rises or clears after a quest (decision 0166): its tags are `after:` or `before:` one
- * quest, its id names it alone (an island and a shape share none), a port on it is an empty
- * island to found once it has risen, and the home port, the captain's island and the prologue's
+ * Land that rises or clears with a quest (decision 0166): its tags are `after:`, `before:`,
+ * `during:` or `except:` one quest, its id names it alone (an island and a shape share none), a
+ * port on it is an empty island to found once it has risen `after:` a quest, and the home port, the captain's island and the prologue's
  * wreck always stand.
  */
 export function questLandProblems(map: MapDef): string[] {
@@ -475,8 +475,8 @@ export function questLandProblems(map: MapDef): string[] {
     if (!('radius' in f) && islandIds.has(f.id))
       problems.push(`${name}: an island has the same id, so it cannot rise or clear alone`);
     const port = 'radius' in f ? map.ports.find((p) => p.islandId === f.id) : undefined;
-    if (port && f.tags?.some((t) => t.startsWith('before:')))
-      problems.push(`${name} clears after a quest, so it cannot carry ${port.name}`);
+    if (port && !f.tags?.some((t) => t.startsWith('after:')))
+      problems.push(`${name} clears with a quest, so it cannot carry ${port.name}`);
     else if (port && !port.site)
       problems.push(
         `${port.name} stands on land that rises after a quest: make it a site to found`,
@@ -485,6 +485,10 @@ export function questLandProblems(map: MapDef): string[] {
     if (f.id === map.homeIsland) problems.push(`${name} is the captain's island`);
     if (f.id === map.prologue?.wreck) problems.push(`${name} holds the prologue's wreck`);
   }
+  // A mark follows quests done only; a quest's own marks show while it runs (decision 0164).
+  for (const [i, mark] of (map.marks ?? []).entries())
+    if (mark.tags?.some(runningTag))
+      problems.push(`mark ${i}: during:/except: is for land; use the quest's own marks`);
   return problems;
 }
 
@@ -796,17 +800,30 @@ export function flowChecks(map: MapDef): MapCheck[] {
  */
 export function routeChecks(map: MapDef): MapCheck[] {
   if (!hasQuestLand(map)) return routeChecksOn(map);
-  // Land that rises or clears after a quest (decision 0166): the routes must hold before any of
-  // those quests and after all of them, each check once per state.
-  const quests = new Set([...map.islands, ...(map.terrain ?? [])].flatMap((f) => questTagIds(f)));
-  const states: [string, ReadonlySet<string>][] = [
-    ['before its quests', new Set()],
-    ['after its quests', quests],
+  // Land that rises or clears with a quest (decision 0166): the routes must hold before any of
+  // those quests, while they run (when land waits on a running quest) and after all of them,
+  // each check once per state.
+  const features = [...map.islands, ...(map.terrain ?? [])];
+  const quests = new Set(features.flatMap((f) => questTagIds(f)));
+  const none = new Set<string>();
+  const states: [string, string, ReadonlySet<string>, ReadonlySet<string>][] = [
+    ['before', 'before its quests', none, none],
+    ...(features.some((f) => f.tags?.some(runningTag))
+      ? [
+          ['during', 'while its quests run', none, quests] as [
+            string,
+            string,
+            typeof none,
+            typeof none,
+          ],
+        ]
+      : []),
+    ['after', 'after its quests', quests, none],
   ];
-  return states.flatMap(([state, done]) =>
-    routeChecksOn(standingMap(map, done)).map((c) => ({
+  return states.flatMap(([id, state, done, running]) =>
+    routeChecksOn(standingMap(map, done, running)).map((c) => ({
       ...c,
-      id: `${c.id}-${done.size ? 'after' : 'before'}`,
+      id: `${c.id}-${id}`,
       message: `${c.message} (land ${state})`,
     })),
   );

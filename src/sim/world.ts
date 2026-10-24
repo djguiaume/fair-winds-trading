@@ -22,7 +22,7 @@ import {
   shallowness,
 } from './hazards';
 import { townLevels } from './founding';
-import { questsDone, settlementLevels } from './settlement';
+import { questsDone, questsRunning, settlementLevels } from './settlement';
 import { type LandState, hasQuestLand, landOut, landWith, syncLand } from './questLand';
 import { DIFFICULTIES, knobs, weatherFor } from './difficulty';
 import { type ZoneVisual, CLEAR, mapZones, zoneField, zoneVisualAt } from './windZones';
@@ -269,6 +269,7 @@ export function syncWorldLand(world: World, loading = false): string[] {
     world.boat,
     world.trade.dockedAt !== null,
     loading,
+    questsRunning(world.trade),
   );
   if (swapped.length) landChanged(world);
   return swapped;

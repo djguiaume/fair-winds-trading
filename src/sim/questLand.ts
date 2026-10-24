@@ -6,6 +6,7 @@ import type { IslandDef, MapDef, TerrainDef } from './map';
  * Land that rises or clears after a quest (decision 0166): an island or a shape (reef, bank,
  * shallows, ice) tagged `after:<quest>` stands in the sea once that quest is done, one tagged
  * `before:<quest>` until then, the same rule as island props and sea marks (0130, `questShown`).
+ * `during:<quest>` stands only while that quest runs, `except:<quest>` all but then.
  *
  * The sea never changes under the boat or in her sight: a feature swaps only while she is
  * `changeDistance` from it, or docked and `dockedClear` from it (the port screen covers the sea).
@@ -29,10 +30,18 @@ export const hasQuestLand = (map: MapDef) =>
   map.islands.some((i) => questTagIds(i).length) ||
   (map.terrain ?? []).some((t) => questTagIds(t).length);
 
-/** The ids that should be out of the sea with these quests done, ignoring where the boat is. */
-export function landOut(map: MapDef, done: ReadonlySet<string>): Set<string> {
+/**
+ * The ids that should be out of the sea with these quests done and these running (`during:`,
+ * `except:`), ignoring where the boat is.
+ */
+export function landOut(
+  map: MapDef,
+  done: ReadonlySet<string>,
+  running: ReadonlySet<string> = new Set(),
+): Set<string> {
   const out = new Set<string>();
-  for (const f of [...map.islands, ...(map.terrain ?? [])]) if (!questShown(f, done)) out.add(f.id);
+  for (const f of [...map.islands, ...(map.terrain ?? [])])
+    if (!questShown(f, done, running)) out.add(f.id);
   return out;
 }
 
@@ -47,8 +56,12 @@ export function landWith(map: MapDef, out: ReadonlySet<string>, version = 0): La
 }
 
 /** The map as it stands: its islands and shapes, less those out of the sea. */
-export function standingMap(map: MapDef, done: ReadonlySet<string>): MapDef {
-  const land = landWith(map, landOut(map, done));
+export function standingMap(
+  map: MapDef,
+  done: ReadonlySet<string>,
+  running: ReadonlySet<string> = new Set(),
+): MapDef {
+  const land = landWith(map, landOut(map, done, running));
   return { ...map, islands: land.islands, terrain: land.terrain };
 }
 
@@ -86,8 +99,9 @@ export function syncLand(
   boat: { x: number; y: number },
   docked: boolean,
   loading = false,
+  running: ReadonlySet<string> = new Set(),
 ): string[] {
-  const want = landOut(map, done);
+  const want = landOut(map, done, running);
   const { changeDistance, dockedClear } = questLand();
   const swapped: string[] = [];
   for (const f of [...map.islands, ...(map.terrain ?? [])]) {
