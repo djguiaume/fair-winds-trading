@@ -5,3 +5,4 @@ A test island (not shipped) made with `npm run island -- new river-demo --steps 
 - `day.png`: the lava river runs from the mountain's top down its flank, over the low ground and into the sea with steam; the stream falls off the plateau's cliff (white sheet and foam) and runs into the sea.
 - `night.png`: the same at night; lava glows like lit windows.
 - `builder.png`: the island builder's Lanes tab with the River and Lava river tools.
+- `close.png`: closer, the lava crossing the low ground and the beach.

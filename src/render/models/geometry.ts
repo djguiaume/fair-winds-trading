@@ -24,6 +24,9 @@ export function paint(geometry: THREE.BufferGeometry, color: THREE.ColorRepresen
   return g;
 }
 
+/** Sand top of every designed island's beach, in reference units. */
+export const BEACH_TOP = 0.3;
+
 /** Window glass: most windows are lit at night, a few stay dark (decision 0068). */
 const LIT_GLASS = '#ffd98a';
 const DARK_GLASS = '#2e3a46';

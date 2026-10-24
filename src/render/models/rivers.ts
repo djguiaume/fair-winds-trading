@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { RiverDef } from '../../data/islands';
 import { type IslandLayout, fallsBetween, surfaceHeight } from '../../sim/islandLayout';
-import { glowing, paint } from './geometry';
+import { BEACH_TOP, glowing, paint } from './geometry';
 
 /**
  * Rivers of water and lava (decision 0167), in reference units round the island's origin: a
@@ -71,7 +71,8 @@ export function riverParts(layout: IslandLayout, river: RiverDef, R: number): Pa
         { half: river.width * 0.42, lift: LIFT, color: RIVER_COLORS.lava, glow: true },
       ]
     : [{ half: river.width * 0.5, lift: LIFT, color: RIVER_COLORS.water, glow: false }];
-  const y = (h: number | null) => (h === null ? -0.15 : h * R);
+  // On the beach the land's top is the sand's, above the sea.
+  const y = (h: number | null) => (h === null ? -0.15 : Math.max(h * R, BEACH_TOP));
   // Falls at cliff edges, and off the land into the sea when the ground meets the water high.
   const drops = samples.map((b, i) => {
     const a = samples[i - 1];
