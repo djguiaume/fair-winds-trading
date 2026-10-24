@@ -1,5 +1,6 @@
 import { atLevel, type IslandDesign } from '../../data/islands';
 import { PROP_TYPES } from '../../render/models/props';
+import { STYLE_IDS } from '../../data/grounds';
 import { TRIANGLE_BUDGET, type IslandIssue } from '../../sim/islandChecks';
 import {
   LEVEL_NAMES,
@@ -98,6 +99,11 @@ export function renderIslandPanel(root: HTMLElement, host: IslandPanelHost) {
     // The island itself.
     const h = node('h2', { textContent: design.name });
     node('small', { textContent: `${design.id}.json · ${design.style}` }, h);
+    // Walls, roofs and grounds come with the style (palette.json › styles, decision 0168).
+    const style = node('select', { title: 'Walls, roofs and grounds' }, div('Style'));
+    for (const id of STYLE_IDS)
+      node('option', { value: id, textContent: id, selected: id === design.style }, style);
+    style.addEventListener('change', () => host.change((d) => (d.style = style.value)));
     const homes = homesPerLevel(design, isHome);
     div('Props').append(
       `${design.props.filter((q) => atLevel(q, host.level)).length} at level ${host.level} · ${design.props.length} in the file`,

@@ -28,7 +28,8 @@
     "flag": "#c8603e",
     "sail": "#f4ead2",
     "cream": "#f4ede0",
-    "dark": "#6b4a2a"
+    "dark": "#6b4a2a",
+    "path": "#c1af7c"
   },
   "styles": {
     "fish": {
@@ -45,7 +46,10 @@
     },
     "stone": {
       "walls": ["#d6cdbd", "#c9bfae", "#e0d8c8"],
-      "roofs": ["#5f6f7d", "#6f7f8d", "#4f5f6d"]
+      "roofs": ["#5f6f7d", "#6f7f8d", "#4f5f6d"],
+      "grounds": {
+        "rock": "cut"
+      }
     },
     "tropic": {
       "walls": ["#f8f3ea", "#f6dcc0", "#d6ece0", "#f3d0c4"],
@@ -54,6 +58,74 @@
     "yard": {
       "walls": ["#f4ede0", "#ece2cf", "#f8f3ea"],
       "roofs": ["#c8603e", "#3f74a8", "#8a4a2a"]
+    },
+    "ice": {
+      "walls": ["#a8403a", "#d9a83a", "#3f6a9a", "#4f7f5a"],
+      "roofs": ["#33373d", "#3a3f46", "#2e3238"],
+      "grounds": {
+        "grass": "snow",
+        "rock": "slate",
+        "sand": "shingle"
+      },
+      "colors": {
+        "path": "#d4dbe2"
+      }
+    }
+  },
+  "grounds": {
+    "sand": {
+      "name": "Sand",
+      "top": "sand",
+      "side": "sand",
+      "beach": true
+    },
+    "grass": {
+      "name": "Grass",
+      "top": "grass",
+      "side": "rock"
+    },
+    "rock": {
+      "name": "Rock",
+      "top": "rock2",
+      "side": "rock",
+      "trees": false
+    },
+    "cut": {
+      "name": "Cut stone",
+      "top": "cut",
+      "side": "rock",
+      "peak": "rock2",
+      "trees": false
+    },
+    "snow": {
+      "name": "Snow",
+      "top": ["#eef4f8", "#e3ecf3", "#f6f9fb"],
+      "side": ["#6e747c", "#5b6068", "#c5d6e6", "#6e747c"]
+    },
+    "ice": {
+      "name": "Glacier ice",
+      "top": ["#e8f6fa", "#d8eff5"],
+      "side": ["#a8dde8", "#6cbcd2"],
+      "trees": false
+    },
+    "slate": {
+      "name": "Slate",
+      "top": ["#6e747c", "#5b6068"],
+      "side": ["#5b6068", "#6e747c"],
+      "cap": ["#eef4f8", "#e3ecf3"],
+      "capAbove": 0.6,
+      "trees": false
+    },
+    "shingle": {
+      "name": "Shingle",
+      "top": ["#a9aaa6", "#9d9e9a"],
+      "side": ["#a9aaa6", "#9d9e9a"],
+      "beach": true
+    },
+    "moor": {
+      "name": "Cloudberry moor",
+      "top": ["#8a8a4a", "#9a6a3a", "#8f8450"],
+      "side": ["#5b6068", "#6e747c"]
     }
   }
 }
