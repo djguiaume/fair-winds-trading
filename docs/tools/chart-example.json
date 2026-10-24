@@ -1,0 +1,28 @@
+{
+  "title": "South sea · Sunreach (ADR 0152)",
+  "lines": [
+    {
+      "points": [[125, -318], [150, -420], [152, -500], [150, -600], [105, -690], [60, -735], [-20, -735], [-100, -700]],
+      "style": "route",
+      "label": "way in from the ring",
+      "arrow": true
+    },
+    {
+      "points": [[-100, -700], [0, -735], [110, -745], [335, -742], [470, -735]],
+      "style": "short",
+      "label": "shortcut, shallow ships"
+    },
+    {
+      "points": [[110, -745], [200, -830], [300, -878], [380, -872], [440, -800], [470, -740]],
+      "style": "long",
+      "label": "long way, every ship"
+    }
+  ],
+  "islands": [{ "x": 620, "y": -560, "radius": 28, "name": "proposed islet", "style": "proposed" }],
+  "labels": [
+    { "at": [-100, -480], "text": "SUNREACH", "note": "main port · keeper Juno Reyes · spiced tea", "style": "port" },
+    { "at": [560, -650], "text": "PALM KEY", "note": "outpost site · port comes with founding", "style": "port" },
+    { "at": [-380, -470], "text": "Coral Line", "note": "broken reef barrier" },
+    { "at": [-200, -150], "text": "TODAY'S WINDWARD RING", "style": "big" }
+  ]
+}

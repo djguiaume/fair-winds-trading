@@ -1,6 +1,7 @@
 import type { GroundDef, IslandDesign, LaneDef, Point, RampDef } from '../../data/islands';
 import { insetOutline } from '../../sim/coast';
 import { BEACH } from '../../sim/islandLayout';
+import { createRng } from '../../sim/rng';
 import type { Level } from './doc';
 
 /**
@@ -172,6 +173,76 @@ function ring(x: number, z: number, rx: number, rz: number, n: number): Point[] 
   });
 }
 
+/**
+ * A seeded irregular outline round (x, z): `points` corners at radius `r` (times `stretch`
+ * along x), each pushed in or out by up to `rough / 2`, then turned `turn` degrees. The same seed
+ * gives the same outline, so a generated coast can be drawn again.
+ */
+export function blobOutline(
+  x: number,
+  z: number,
+  r: number,
+  seed: number,
+  { points = 12, rough = 0.3, stretch = 1, turn = 0 } = {},
+): Point[] {
+  const rng = createRng(seed);
+  const t = (turn * Math.PI) / 180;
+  return Array.from({ length: points }, (_, i) => {
+    const a = (i / points) * Math.PI * 2;
+    const k = 1 - rough / 2 + rng() * rough;
+    const px = Math.cos(a) * r * k * stretch,
+      pz = Math.sin(a) * r * k;
+    return [
+      pos(x + px * Math.cos(t) - pz * Math.sin(t)),
+      pos(z + px * Math.sin(t) + pz * Math.cos(t)),
+    ];
+  });
+}
+
+/**
+ * The outline, height and look of new ground. Left out, the builder's defaults: a ring of the
+ * default size, at the default rise above the ground under it.
+ */
+export interface GroundShape {
+  outline?: Point[];
+  /** Half widths across x and z of the default ring, and its number of corners. */
+  rx?: number;
+  rz?: number;
+  points?: number;
+  /** Height of the top; left out, the ground under it plus `rise`. */
+  height?: number;
+  rise?: number;
+  material?: GroundDef['material'];
+  /** Every edge a slope of this width instead of a cliff. */
+  slope?: number;
+}
+
+function newGround(
+  x: number,
+  z: number,
+  under: number,
+  level: Level,
+  shape: GroundShape,
+  d: {
+    rx: number;
+    rz: number;
+    points: number;
+    rise: number;
+    material: GroundDef['material'];
+  },
+): GroundDef {
+  const g: GroundDef = {
+    outline:
+      shape.outline?.map((p): Point => [pos(p[0]), pos(p[1])]) ??
+      ring(x, z, shape.rx ?? d.rx, shape.rz ?? d.rz, shape.points ?? d.points),
+    height: pos(shape.height ?? under + (shape.rise ?? d.rise)),
+    material: shape.material ?? d.material,
+  };
+  if (shape.slope) g.slope = pos(shape.slope);
+  if (level > 1) g.from = level;
+  return g;
+}
+
 /** Raised ground: a hexagon, `rise` above the ground under it, from the level it is drawn on. */
 export function addPlateau(
   design: IslandDesign,
@@ -179,14 +250,10 @@ export function addPlateau(
   z: number,
   under: number,
   level: Level,
+  shape: GroundShape = {},
 ): number {
-  const g: GroundDef = {
-    outline: ring(x, z, 0.22, 0.16, 6),
-    height: pos(under + 0.2),
-    material: 'grass',
-  };
-  if (level > 1) g.from = level;
-  design.ground.push(g);
+  const d = { rx: 0.22, rz: 0.16, points: 6, rise: 0.2, material: 'grass' as const };
+  design.ground.push(newGround(x, z, under, level, shape, d));
   return design.ground.length - 1;
 }
 
@@ -197,24 +264,40 @@ export function addMountain(
   z: number,
   under: number,
   level: Level,
+  shape: Omit<GroundShape, 'slope'> = {},
 ): number {
-  const g: GroundDef = {
-    outline: ring(x, z, 0.26, 0.2, 10),
-    height: pos(under + 0.6),
-    material: 'rock',
-    shape: 'peak',
-    base: pos(under),
-  };
-  if (level > 1) g.from = level;
+  const d = { rx: 0.26, rz: 0.2, points: 10, rise: 0.6, material: 'rock' as const };
+  const ground = newGround(x, z, under, level, shape, d);
+  const { from, ...rest } = ground;
+  const g: GroundDef = { ...rest, shape: 'peak', base: pos(under) };
+  if (from) g.from = from;
   design.ground.push(g);
   return design.ground.length - 1;
 }
 
 /** The lake, if the island has none yet. */
-export function addLake(design: IslandDesign, x: number, z: number): boolean {
+export function addLake(
+  design: IslandDesign,
+  x: number,
+  z: number,
+  shape: Pick<GroundShape, 'outline' | 'rx' | 'rz' | 'points'> = {},
+): boolean {
   if (design.lake) return false;
-  design.lake = ring(x, z, 0.2, 0.14, 10);
+  design.lake =
+    shape.outline?.map((p): Point => [pos(p[0]), pos(p[1])]) ??
+    ring(x, z, shape.rx ?? 0.2, shape.rz ?? 0.14, shape.points ?? 10);
   return true;
+}
+
+/**
+ * Another coast (an islet) with its low ground, the beach inset of the coast at `height`.
+ * Returns the coast's index.
+ */
+export function addIslet(design: IslandDesign, outline: Point[], height = 0.06): number {
+  design.coasts.push(outline.map((p): Point => [pos(p[0]), pos(p[1])]));
+  const coast = design.coasts.length - 1;
+  design.ground.push({ coast, height: pos(height), material: 'grass' });
+  return coast;
 }
 
 /** Every edge a cliff, or every edge a slope of the given width. */
