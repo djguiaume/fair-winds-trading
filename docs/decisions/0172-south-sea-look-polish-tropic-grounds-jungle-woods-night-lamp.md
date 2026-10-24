@@ -1,6 +1,6 @@
 # 0172. South sea look polish: tropic grounds, jungle woods, night lamps
 
-**Status:** Proposed (2026-10-24). The polish pass the art director asked for in its [south sea review](../reviews/art-direction/south/README.md), approved by Guillaume; screenshots in [docs/reviews/art-direction/south/polish](../reviews/art-direction/south/polish/README.md).
+**Status:** Accepted (2026-10-24, Guillaume: "so much better"). The polish pass the art director asked for in its [south sea review](../reviews/art-direction/south/README.md), approved by Guillaume; screenshots in [docs/reviews/art-direction/south/polish](../reviews/art-direction/south/polish/README.md).
 
 ## Context
 
