@@ -48,7 +48,12 @@ Look
   --cards                       keep quest cards and dialogs open (default: closed, kept in a quest test)
   --wait ms                     settle time before the shot (default 1500)
   --click selector              click this before the shot (after the wait), e.g. a card's button,
-                                then wait 800 ms
+                                then wait 800 ms; several clicks in a row: "a ; b" (or a list)
+  --focus selector              this element focused as by the controller (decision 0163): the page
+                                set to controller input, so the focus highlight and button hints show
+  --style a.css,b.css           these stylesheets added to the page before the shot (a mockup's look)
+  --script a.js,b.js            these scripts run in the page, in order, after the focus is set
+                                (a mockup's extra parts)
 Output
   --sizes desktop,landscape,portrait   (default desktop)
   --name name                   file name, written as <name>-<size>.png (default: from the scene)
@@ -68,6 +73,10 @@ const pair = (v) => {
   return out;
 };
 const list = (v) => (Array.isArray(v) ? v : String(v).split(',').filter(Boolean));
+const readAll = (v) =>
+  list(v)
+    .map((f) => readFileSync(resolve(ROOT, f), 'utf8'))
+    .join('\n;\n');
 const keyHold = (v) => {
   const [key, n] = String(v).split(':');
   return { key, n: Number(n) || 1 };
@@ -115,7 +124,10 @@ export function normalise(opts) {
     currents: !o['no-currents'],
     cards: o.cards ?? !!o.url,
     wait: o.wait ?? 1500,
-    click: o.click ?? null,
+    click: o.click ? (Array.isArray(o.click) ? o.click : String(o.click).split(' ; ')) : null,
+    focus: o.focus ?? null,
+    style: o.style ? readAll(o.style) : null,
+    script: o.script ? readAll(o.script) : null,
     sizes: list(o.sizes ?? 'desktop'),
     url: o.url ?? null,
     storage: o.storage ?? {},
@@ -286,12 +298,39 @@ async function shootOne(browser, base, shot, size, file) {
     if (shot.menu) {
       await page.locator('#menu-play').waitFor({ state: 'visible', timeout: 30000 });
       await pause(shot.wait);
+      await clicks(page, shot);
     } else await shootScene(page, shot);
+    await dress(page, shot);
     await page.screenshot({ path: file });
   } finally {
     await context.close();
   }
   if (errors.length) throw new Error(`page error: ${errors[0]}`);
+}
+
+async function clicks(page, shot) {
+  for (const sel of shot.click ?? []) {
+    await page.click(sel);
+    await pause(800);
+  }
+}
+
+/** A mockup's stylesheet and script, then the controller's focus on an element. */
+async function dress(page, shot) {
+  if (shot.style) await page.addStyleTag({ content: shot.style });
+  if (shot.focus) {
+    const found = await page.evaluate((sel) => {
+      const el = document.querySelector(sel);
+      if (!el) return false;
+      document.documentElement.dataset.input = 'pad';
+      el.focus({ preventScroll: false });
+      el.scrollIntoView({ block: 'nearest' });
+      return true;
+    }, shot.focus);
+    if (!found) throw new Error(`no element ${shot.focus} to focus`);
+  }
+  if (shot.script) await page.evaluate(shot.script);
+  if (shot.style || shot.script || shot.focus) await pause(300);
 }
 
 /** The game entered and the scene set, ready for the shot. */
@@ -304,10 +343,7 @@ async function shootScene(page, shot) {
     await page.keyboard.up(shot.hold.key);
   }
   await pause(shot.wait);
-  if (shot.click) {
-    await page.click(shot.click);
-    await pause(800);
-  }
+  await clicks(page, shot);
   if (!shot.cards) await closeCards(page);
   if (shot.chart) {
     await closeCards(page);

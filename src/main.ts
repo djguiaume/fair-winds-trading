@@ -1523,6 +1523,7 @@ if (new URLSearchParams(location.search).has('debug')) {
       input,
       trade,
       tradePanel,
+      homePanel,
       quests,
       coach,
       chart,
