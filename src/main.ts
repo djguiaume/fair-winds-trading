@@ -24,6 +24,7 @@ import * as trade from './sim/trade';
 import { type Difficulty, isDifficulty, knobs } from './sim/difficulty';
 import { daylightAt } from './sim/daylight';
 import { QuestBook } from './sim/quests';
+import { type StepEffects, heldWind } from './sim/stepEffects';
 import { QuestCard } from './ui/questCard';
 import {
   cardFor,
@@ -963,12 +964,24 @@ function seaGoal(): { x: number; y: number; label: string } | null {
   return questGoal(quests, world.map, view.harbours);
 }
 
+/**
+ * The lesson, or else the tracked quest's step, whose `wind` and `sound` the sea plays (decision
+ * 0139): the same step data for the tutorial and every quest.
+ */
+function seaStep(): { key: string; step: StepEffects } | null {
+  if (tutorial.isActive) return { key: `tutorial:${tutorial.step}`, step: tutorial.def };
+  const step = quests.trackedStep;
+  return step ? { key: `${quests.tracked}:${step.id}`, step } : null;
+}
+
 // --- Main loop: fixed-step simulation, render once per frame ----------------------------------
 let accumulator = 0;
 let last = performance.now();
 let frame = 0;
 let coachTick = 0;
-let foghornIn = 1.5;
+/** The step whose sound plays, and the seconds until it sounds again. */
+let soundKey: string | undefined;
+let soundIn = 0;
 
 function tick(now: number) {
   frame = requestAnimationFrame(tick);
@@ -984,15 +997,22 @@ function tick(now: number) {
     let steps = 0;
     while (!paused && accumulator >= SIM_STEP && steps < 6) {
       const controls = { steer: input.steer, sailStep };
+      const sea = seaStep();
+      world.calmWind = heldWind(sea?.step.wind, world.map);
       handleEvents(stepWorld(world, controls, SIM_STEP));
       tutorial.observe(controls, SIM_STEP);
       if (quests.update(SIM_STEP).length) showDueCard();
-      // The foghorn sounds every few seconds until the wreck is in sight (decision 0127).
-      foghornIn -= SIM_STEP;
-      if (tutorial.isActive && tutorial.step === 'foghorn' && foghornIn <= 0) {
-        music.foghorn();
-        if (tutorial.mark) hud.foghorn(bearingTo(world.boat, tutorial.mark));
-        foghornIn = 9;
+      // A step's sound (the prologue's foghorn) calls every few seconds, the first at once.
+      if (sea?.key !== soundKey) {
+        soundKey = sea?.key;
+        soundIn = 0;
+      }
+      const sound = sea?.step.sound;
+      if (sound && (soundIn -= SIM_STEP) <= 0) {
+        music.effectNamed(sound.effect);
+        const place = seaGoal();
+        if (place) hud.stepSound(sound.effect, bearingTo(world.boat, place));
+        soundIn = sound.everySec;
       }
       accumulator -= SIM_STEP;
       steps++;
@@ -1004,7 +1024,7 @@ function tick(now: number) {
   // Pause menus and translucent sheets leave sea instruments visible. Only the title's
   // CSS rule and the opaque, full-screen chart cover the entire HUD.
   const hudVisible = !(mode === 'menu' && !started) && !chart.isOpen;
-  hud.mark = tutorial.mark;
+  hud.mark = tutorial.mark ?? (tutorial.isActive ? null : (quests.trackedStep?.compass ?? null));
   view.castawayWaiting = tutorial.mark !== null;
   hud.goal = seaGoal();
   hud.update(dt, (x, y) => view.project(x, y), size, !paused, hudVisible);

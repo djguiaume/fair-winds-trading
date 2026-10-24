@@ -107,8 +107,8 @@ export interface World {
    */
   stormHolds: string[];
   /**
-   * A light, steady breeze that replaces the sea's wind while set (decision 0139): the tutorial's
-   * first lessons at sea. Not saved; the tutorial sets it on every step.
+   * A light, steady breeze that replaces the sea's wind while set (decision 0139): a lesson's or
+   * the tracked quest step's `wind`. Not saved; the game sets it before every step.
    */
   calmWind: Wind | null;
   /** Only storms that form at or after this time; set when storms come back (decision 0072). */

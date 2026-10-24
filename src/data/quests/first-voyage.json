@@ -10,7 +10,9 @@
     {
       "id": "sails",
       "continue": "always",
-      "calm": true,
+      "wind": {
+        "speedKn": 8
+      },
       "coach": {
         "sea": "sail-lever",
         "chart": "close-chart"
@@ -24,7 +26,9 @@
       "id": "wind",
       "action": "tips",
       "continue": "always",
-      "calm": true,
+      "wind": {
+        "speedKn": 8
+      },
       "coach": {
         "sea": "wind-compass",
         "chart": "close-chart"
@@ -38,7 +42,13 @@
       "mark": {
         "within": 45
       },
-      "calm": true,
+      "wind": {
+        "speedKn": 8
+      },
+      "sound": {
+        "effect": "foghorn",
+        "everySec": 9
+      },
       "coach": {
         "sea": "wind-compass",
         "chart": "close-chart"
@@ -54,7 +64,9 @@
         "maxKn": 2,
         "holdSec": 3
       },
-      "calm": true,
+      "wind": {
+        "speedKn": 8
+      },
       "coach": {
         "sea": "sail-lever",
         "chart": "close-chart"
@@ -70,7 +82,9 @@
       "picks": "origin",
       "passenger": true,
       "pointer": "origin",
-      "calm": true,
+      "wind": {
+        "speedKn": 8
+      },
       "coach": {
         "sea": "chart-button",
         "chart": "chart-port"
@@ -87,7 +101,9 @@
       "picks": "origin",
       "passenger": true,
       "pointer": "origin",
-      "calm": true,
+      "wind": {
+        "speedKn": 8
+      },
       "coach": {
         "sea": "chart-button",
         "chart": "chart-port"
@@ -103,7 +119,9 @@
       "picks": "origin",
       "origin": "home",
       "passenger": true,
-      "calm": true,
+      "wind": {
+        "speedKn": 8
+      },
       "coach": {
         "sea": "port-marker",
         "chart": "chart-port"

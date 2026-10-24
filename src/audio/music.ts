@@ -131,11 +131,11 @@ export class Music {
     this.effect(EFFECTS.creak, this.level);
   }
 
-  /** A foghorn far off, for the prologue (decision 0127). */
-  foghorn(): void {
+  /** An effect of the sound list by name: a step's `sound`, such as the prologue's foghorn (0139). */
+  effectNamed(id: string): void {
     const { ctx } = this;
     if (!ctx || !this.audible || ctx.state !== 'running') return;
-    this.effect(EFFECTS.foghorn, this.level);
+    this.effect(EFFECTS[id], this.level);
   }
 
   /**

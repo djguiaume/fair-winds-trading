@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PHASE0_MAP, PHASE1_MAP } from '../src/data/maps';
-import { QUESTS, QuestBook } from '../src/sim/quests';
+import { QUESTS, QuestBook, type QuestDef, checkQuests } from '../src/sim/quests';
+import { checkStepEffects, heldWind } from '../src/sim/stepEffects';
 import { landmarkSpot } from '../src/sim/landmarks';
 import { SLOOP } from '../src/sim/ship';
 import { TUTORIAL_QUEST, Tutorial } from '../src/sim/tutorial';
@@ -163,12 +164,16 @@ describe('a gentler prologue (decision 0139)', () => {
     const tutorial = new Tutorial(world, harbours, null);
     startAtPrologue(world);
     tutorial.start();
-    const prologueWind = PHASE1_MAP.prologue!.wind!;
-    for (let n = 0; n < 600; n++) {
-      stepWorld(world, { sailStep: 0, steer: 0 }, 0.1);
-      tutorial.observe({ sailStep: 0, steer: 0 }, 0.1);
-    }
-    expect(world.seaWind.speedKn).toBe(prologueWind.speedKn);
+    // As the game does: the lesson's `wind` is held before every step.
+    const sail = (seconds: number) => {
+      for (let n = 0; n < seconds * 10; n++) {
+        world.calmWind = tutorial.heldWind;
+        stepWorld(world, { sailStep: 0, steer: 0 }, 0.1);
+        tutorial.observe({ sailStep: 0, steer: 0 }, 0.1);
+      }
+    };
+    sail(60);
+    expect(world.seaWind.speedKn).toBe(TUTORIAL_QUEST.steps[0]!.wind!.speedKn);
     expect(world.seaWind.from).toBeCloseTo(PHASE1_MAP.wind.fromDeg * DEG);
     // Still calm while taking Rook home; the trading lessons sail in the sea's own wind.
     toChart(world, tutorial);
@@ -176,14 +181,61 @@ describe('a gentler prologue (decision 0139)', () => {
     tutorial.destinationSelected();
     tutorial.observe();
     expect(tutorial.step).toBe('home');
-    expect(world.calmWind).not.toBeNull();
+    expect(tutorial.heldWind).not.toBeNull();
     world.trade.dockedAt = 'saltmere';
     tutorial.observe();
     expect(tutorial.step).toBe('island');
-    expect(world.calmWind).toBeNull();
+    expect(tutorial.heldWind).toBeNull();
     tutorial.skip();
-    tutorial.observe();
-    expect(world.calmWind).toBeNull();
+    expect(tutorial.heldWind).toBeNull();
+  });
+
+  it('sounds the foghorn from step data any quest can use, and checks it', () => {
+    const foghorn = TUTORIAL_QUEST.steps.find((s) => s.id === 'foghorn')!;
+    expect(foghorn.sound).toEqual({ effect: 'foghorn', everySec: 9 });
+    for (const step of TUTORIAL_QUEST.steps) expect(checkStepEffects(step, step.id)).toEqual([]);
+    expect(checkStepEffects({ sound: { effect: 'kazoo', everySec: 1 } }, 'x')).toEqual([
+      'x › sound: no effect "kazoo" in audio.json',
+      'x › sound: everySec of 2 or more',
+    ]);
+    expect(checkStepEffects({ wind: { speedKn: 0 } }, 'x')).toEqual([
+      'x › wind: speedKn between 0 and 40',
+    ]);
+    expect(heldWind({ speedKn: 6, fromDeg: 90 }, PHASE1_MAP)).toEqual({
+      from: 90 * DEG,
+      speedKn: 6,
+    });
+    expect(heldWind(undefined, PHASE1_MAP)).toBeNull();
+  });
+
+  it("holds a tracked quest step's wind and points the sea at its compass", () => {
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    const quest = {
+      id: 'test-calm',
+      name: 'Test: a calm search',
+      start: { is: 'always' },
+      text: 'quest.test-calm',
+      steps: [
+        {
+          id: 'listen',
+          goal: { is: 'docked', port: 'calda' },
+          compass: { x: 10, y: 20 },
+          wind: { speedKn: 5 },
+          sound: { effect: 'foghorn', everySec: 6 },
+        },
+      ],
+    } as unknown as QuestDef;
+    expect(checkQuests([quest], PHASE1_MAP)).toEqual([]);
+    const quests = new QuestBook(world, [quest]);
+    quests.check();
+    quests.track('test-calm');
+    expect(quests.trackedStep?.wind).toEqual({ speedKn: 5 });
+    expect(heldWind(quests.trackedStep?.wind, PHASE1_MAP)?.speedKn).toBe(5);
+    expect(questGoal(quests, PHASE1_MAP, {})).toEqual({
+      x: 10,
+      y: 20,
+      label: 'Test: a calm search',
+    });
   });
 
   it('starts far from the reef: a minute at full sail on the start heading touches nothing', () => {
@@ -197,6 +249,7 @@ describe('a gentler prologue (decision 0139)', () => {
     const full = { sailStep: 2, steer: 0 };
     let bumped = false;
     for (let n = 0; n < 600; n++) {
+      world.calmWind = tutorial.heldWind;
       const events = stepWorld(world, full, 0.1);
       tutorial.observe(full, 0.1);
       if (events.some((e) => e.type === 'crash' || e.type === 'reef-strike')) bumped = true;

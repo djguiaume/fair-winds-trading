@@ -301,8 +301,8 @@ export function questTarget(book: QuestBook, map: MapDef): QuestTarget | null {
 
 /**
  * Where the tracked step leads, for the sea's objective panel and edge arrow when no course is set
- * (decision 0139): the harbour's pier (`harbours`) or the island, else the spot at sea, named by
- * the port or the step's ask.
+ * (decision 0139): the step's `compass` point, else its spot at sea, else the harbour's pier
+ * (`harbours`) or the island; named by the step's ask or the port.
  */
 export function questGoal(
   book: QuestBook,
@@ -311,13 +311,14 @@ export function questGoal(
 ): { x: number; y: number; label: string } | null {
   const target = questTarget(book, map);
   const active = book.active.find((a) => a.quest.id === book.tracked);
-  if (!target || !active) return null;
+  if (!active) return null;
   const ask = tOptional(
     `${active.quest.text}.${active.step.id}.title`,
     stepParams(book, active.step),
   );
-  if (target.point) return { ...target.point, label: ask ?? active.quest.name };
-  const port = target.port ? findPort(map, target.port) : undefined;
+  const point = active.step.compass ?? target?.point;
+  if (point) return { x: point.x, y: point.y, label: ask ?? active.quest.name };
+  const port = target?.port ? findPort(map, target.port) : undefined;
   const island = port && map.islands.find((i) => i.id === port.islandId);
   const at = (port && harbours[port.id]) ?? island;
   return port && at ? { x: at.x, y: at.y, label: port.name } : null;

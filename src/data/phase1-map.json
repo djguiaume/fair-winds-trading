@@ -21,10 +21,7 @@
       "y": 40,
       "headingDeg": 300
     },
-    "wreck": "east-reef",
-    "wind": {
-      "speedKn": 8
-    }
+    "wreck": "east-reef"
   },
   "islands": [
     {

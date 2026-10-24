@@ -4,7 +4,8 @@ import { GOODS, isGood, type GoodId } from './goods';
 import { type BoatControls } from './boat';
 import { type SaveStorage } from './save';
 import { landmarkSpot } from './landmarks';
-import { DEG, wrapPositive } from './math';
+import { type StepEffects, heldWind } from './stepEffects';
+import { type Wind } from './wind';
 import { homePort, isDiscovered } from './shipyards';
 import { findPort, cargoUsed } from './trade';
 import { type World, holdStorms } from './world';
@@ -66,7 +67,7 @@ export type CoachTarget =
   | 'buy-button'
   | 'sell-button';
 
-export interface TutorialStepDef {
+export interface TutorialStepDef extends StepEffects {
   id: string;
   /** The button the lesson card offers: open the chart, the market, or the sailing tips. */
   action?: 'chart' | 'market' | 'tips';
@@ -95,8 +96,6 @@ export interface TutorialStepDef {
   mark?: { within: number; maxKn?: number; holdSec?: number };
   /** Harbourmaster Rook is aboard (a passenger: no hold space). */
   passenger?: boolean;
-  /** The map's prologue breeze blows instead of the sea's wind (decision 0139). */
-  calm?: boolean;
 }
 
 /** A quest file: its steps, when it starts and what finishing it pays. */
@@ -227,7 +226,6 @@ export class Tutorial {
   }
 
   private publish() {
-    this.world.calmWind = this.calmWind;
     try {
       this.storage?.setItem(this.key, JSON.stringify(this.progress));
     } catch {
@@ -282,14 +280,9 @@ export class Tutorial {
   get mark(): { x: number; y: number } | null {
     return this.isActive && this.def.mark ? this.wreck : null;
   }
-  /** The light, steady breeze of the first lessons at sea, if the map's prologue has one. */
-  get calmWind(): { from: number; speedKn: number } | null {
-    const wind = this.world.map.prologue?.wind;
-    if (!this.isActive || !this.def.calm || !wind) return null;
-    return {
-      from: wrapPositive((wind.fromDeg ?? this.world.map.wind.fromDeg) * DEG),
-      speedKn: wind.speedKn,
-    };
+  /** The lesson's held breeze (its `wind`, decision 0139), while the tutorial runs. */
+  get heldWind(): Wind | null {
+    return this.isActive ? heldWind(this.def.wind, this.world.map) : null;
   }
   /** Harbourmaster Rook rides along. */
   get passenger(): boolean {
@@ -350,7 +343,6 @@ export class Tutorial {
   observe(controls?: BoatControls, dt = 0) {
     // No storms while the lesson runs (decision 0072).
     holdStorms(this.world, 'tutorial', this.isActive);
-    this.world.calmWind = this.calmWind;
     if (!this.isActive) return;
     const { boat, trade } = this.world;
     if (this.def.cargo) {

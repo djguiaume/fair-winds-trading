@@ -21,7 +21,7 @@ import { capacity, cargoUsed, findPort } from '../sim/trade';
 import { PortLabels } from './portLabels';
 import { type HazardKind, hazardBadge } from './hazardMarker';
 import { screenBearing } from './screenBearing';
-import { formatNumber, goodName, t, weatherName } from '../i18n';
+import { formatNumber, goodName, t, tOptional, weatherName } from '../i18n';
 
 const POINT_OF_SAIL_TONE: Record<PointOfSail, '' | 'good' | 'bad'> = {
   'in-irons': '',
@@ -358,9 +358,10 @@ export class Hud {
     this.cargoTooltip.hidden = false;
   }
 
-  /** The prologue's foghorn sounds (decision 0139): said in words too, for a muted phone. */
-  foghorn(bearing: number) {
-    this.showToast(t('toast.foghorn', { dir: compassWords(bearing) }), 3);
+  /** A step's sound plays (decision 0139): said in words too, for a muted phone, if it has words. */
+  stepSound(effect: string, bearing: number) {
+    const line = tOptional(`toast.${effect}`, { dir: compassWords(bearing) });
+    if (line) this.showToast(line, 3);
   }
   showToast(text: string, seconds = 2.5, hazard?: HazardKind) {
     this.toast.textContent = text;
