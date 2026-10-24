@@ -25,7 +25,8 @@
     { "type": "basalt-columns", "x": 0.45, "z": 0.1, "size": 1.4, "from": 1 },
     { "type": "basalt-columns", "x": -0.45, "z": -0.1, "size": 1.4, "from": 1 },
     { "type": "sea-stack", "x": 1.9, "z": 0.3, "size": 1.1, "from": 1 },
-    { "type": "sea-stack", "x": -1.9, "z": -0.4, "size": 1.1, "from": 1 }
+    { "type": "sea-stack", "x": -1.9, "z": -0.4, "size": 1.1, "from": 1 },
+    { "type": "lighthouse", "x": 0.15, "z": -0.2, "from": 1 }
   ],
   "woods": {
     "tree": "woodland-pine",

@@ -53,8 +53,20 @@ describe('fog of war (0156)', () => {
       'sugar-bar',
       'sunreach-waters',
       'palm-key-narrows',
+      'forge-gap',
+      'emberhold-waters',
+      'cinder-reach',
     ]);
-    expect(fogIslandIds(map)).toEqual(['sunreach', 'sunreach-south', 'palm-key', 'lone-palm']);
+    expect(fogIslandIds(map)).toEqual([
+      'sunreach',
+      'sunreach-south',
+      'palm-key',
+      'lone-palm',
+      'emberhold',
+      'the-smoulder',
+      'organ-pipes',
+      'cinder-isle',
+    ]);
   });
 
   it('hides a fogged port until its island is charted', () => {
@@ -77,9 +89,9 @@ describe('fog of war (0156)', () => {
   it('charts a fogged island alone when she sails past it in uncharted water', () => {
     const world = at(-470, -665);
     world.trade.progress.areas = ['coral-line'];
-    // Outside every area (west of the south sea), within sight of nothing: nothing new.
-    world.boat.x = -900;
-    world.boat.y = 0;
+    // Outside every area (north of the ring, where no sea is drawn yet), within sight of nothing.
+    world.boat.x = -150;
+    world.boat.y = 900;
     expect(lie(world, 0.2)).toEqual([]);
     // Within sight of Lone Palm, in the Sugar Bar area: the area and the island.
     world.trade.progress.areas = [];
@@ -128,7 +140,7 @@ describe('fog of war (0156)', () => {
       expect(read.save.progress?.sighted).toEqual(['lone-palm']);
     }
     const before = encodeSaveCode(serializeWorld(createWorld(map, SLOOP)), map);
-    expect(code.length - before.length).toBeLessThan(12);
+    expect(code.length - before.length).toBeLessThan(16);
   });
 
   it('drops ids the map no longer has', () => {

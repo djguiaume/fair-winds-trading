@@ -1,0 +1,49 @@
+{
+  "id": "outpost-west",
+  "name": "Cinder Isle",
+  "start": { "is": "quest-done", "quest": "emberhold-glass" },
+  "text": "quest.outpost-west",
+  "giver": "bram",
+  "doneSpeaker": "oskar",
+  "port": "emberhold",
+  "offer": true,
+  "items": { "oskar": { "space": 0 } },
+  "steps": [
+    {
+      "id": "supplies",
+      "mood": "worried",
+      "goal": {
+        "is": "all",
+        "of": [
+          {
+            "is": "landed",
+            "place": { "x": -659, "y": 535, "within": 10, "maxKn": 2, "holdSec": 3 },
+            "good": "planks",
+            "qty": 10
+          },
+          {
+            "is": "landed",
+            "place": { "x": -659, "y": 535, "within": 10, "maxKn": 2, "holdSec": 3 },
+            "good": "timber",
+            "qty": 6
+          }
+        ]
+      },
+      "reward": { "gold": 300 }
+    },
+    {
+      "id": "settler",
+      "speaker": "oskar",
+      "port": "emberhold",
+      "goal": {
+        "is": "carried",
+        "item": "oskar",
+        "qty": 1,
+        "from": "emberhold",
+        "to": { "x": -659, "y": 535, "within": 10, "maxKn": 2, "holdSec": 3 }
+      },
+      "reward": { "gold": 450 }
+    }
+  ],
+  "reward": { "found": ["cinder-isle"] }
+}

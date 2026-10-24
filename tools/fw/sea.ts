@@ -32,7 +32,8 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
         area     --name … [--id …] [--outline …]                    (a chart area, fog of war)
         port     --island <id> [--name …]                           (makes the island a port)
   move <what> <id|index> --at x,y | --by dx,dy | --to-sea <id>
-  set <what> <id|index> --name … (and any field: --kind, --max-draft, --type, --speed, --level …)
+  set <what> <id|index> --name … (and any field: --kind, --max-draft, --type, --speed, --level …;
+        a port's --produces, --wants, --wants-made a,b,c)
   set sea <id> --name …          set grown --radius 985 --charted 445
   --after <quest> | --before <quest> | --always   on add or set: an island, shape or mark stands
         once that quest is done, or until it is (decision 0166: land swaps out of the boat's sight)
@@ -94,6 +95,15 @@ function fieldsOf(args: Args): Record<string, unknown> {
     if (typeof quest === 'string') fields.tags = quest === 'none' ? null : [`${when}:${quest}`];
   }
   if (args.always) fields.tags = null;
+  // A port's goods, comma separated: `--wants timber,obsidian`.
+  for (const [flag, key] of [
+    ['produces', 'produces'],
+    ['wants', 'wants'],
+    ['wants-made', 'wantsMade'],
+  ] as const) {
+    const v = args[flag];
+    if (typeof v === 'string') fields[key] = v === 'none' ? [] : v.split(',').map((g) => g.trim());
+  }
   // An island's file is its look's design.
   if (typeof fields.design === 'string') {
     fields.look = { design: fields.design };

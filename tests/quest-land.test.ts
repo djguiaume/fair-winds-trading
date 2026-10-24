@@ -145,8 +145,9 @@ describe('land that rises or clears after a quest (0166)', () => {
   });
 
   it('lists the land out for a set of quests done', () => {
-    expect([...landOut(map, new Set())]).toEqual(['lone-palm']);
-    expect([...landOut(map, new Set([QUEST]))]).toEqual(['coral-line-east']);
+    // Cinder Isle (0171) waits on the west's own quest.
+    expect([...landOut(map, new Set())]).toEqual(['lone-palm', 'cinder-isle']);
+    expect([...landOut(map, new Set([QUEST]))]).toEqual(['cinder-isle', 'coral-line-east']);
     const after = standingMap(map, new Set([QUEST]));
     expect(after.islands).toContain(palm);
     expect(after.terrain).not.toContain(reef);

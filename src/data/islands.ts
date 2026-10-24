@@ -210,6 +210,10 @@ export function landmarkOf(island: IslandDef): LandmarkKind | undefined {
   );
 }
 
+/** A volcano you steer by: a peak with a crater on the island's file (decision 0171). */
+export const hasVolcano = (island: IslandDef) =>
+  !!designOf(island)?.ground.some((g) => g.shape === 'peak' && g.crater);
+
 /** Is this element present at a level? */
 export const atLevel = (e: { from?: number; to?: number }, level: number) =>
   (e.from ?? 1) <= level && level <= (e.to ?? 4);

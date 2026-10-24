@@ -34,6 +34,7 @@ describe('the south sea, Sunreach (decision 0152)', () => {
     for (const t of PHASE1_MAP.terrain ?? [])
       expect(map.terrain!.find((s) => s.id === t.id)).toEqual(t);
     expect(map.windZones?.map((z) => z.kind).sort()).toEqual([
+      'ash',
       'doldrums',
       'sheltered',
       'trade-belt',

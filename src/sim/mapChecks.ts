@@ -6,7 +6,7 @@ import { outlineCrosses, smoothOutline } from './flowShapes';
 import { TUNING } from '../data/tuning';
 import { isFar, isGood } from './goods';
 import { islandCoasts, islandPoint } from './islandLayout';
-import { landmarkOf, questTagIds, runningTag } from '../data/islands';
+import { hasVolcano, landmarkOf, questTagIds, runningTag } from '../data/islands';
 import { hasQuestLand, standingMap } from './questLand';
 import { type IslandDef, type MapDef, type PortDef, SEA_MARK_TYPES, type TerrainDef } from './map';
 import { DEG, bearingTo, wrapAngle } from './math';
@@ -677,9 +677,11 @@ export function quickChecks(map: MapDef): MapCheck[] {
 
   out.push(...flowChecks(map));
 
-  // Scenery islands are landmarks you steer by.
+  // Scenery islands are landmarks you steer by; a smoking volcano is one of its own.
   const portIslands = new Set(map.ports.map((p) => p.islandId));
-  const plain = map.islands.filter((i) => !portIslands.has(i.id) && !landmarkOf(i));
+  const plain = map.islands.filter(
+    (i) => !portIslands.has(i.id) && !landmarkOf(i) && !hasVolcano(i),
+  );
   out.push(
     plain.length
       ? fail(

@@ -124,6 +124,7 @@ describe('sea editor (0161)', () => {
     });
     expect(JSON.parse(out.find((f) => f.path === GROWN_PATH)!.text).seas).toEqual([
       'south',
+      'west',
       'north',
     ]);
   });

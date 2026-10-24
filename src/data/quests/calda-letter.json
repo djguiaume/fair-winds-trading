@@ -1,0 +1,19 @@
+{
+  "id": "calda-letter",
+  "name": "A letter from Emberhold",
+  "start": { "is": "quest-done", "quest": "outpost-south" },
+  "text": "quest.calda-letter",
+  "giver": "ines",
+  "port": "calda",
+  "offer": true,
+  "steps": [
+    {
+      "id": "chart",
+      "port": "calda",
+      "chart": { "port": "emberhold", "radius": 140 },
+      "charts": ["forge-gap", "emberhold-waters"],
+      "goal": { "is": "docked", "port": "emberhold" },
+      "reward": { "gold": 300 }
+    }
+  ]
+}
