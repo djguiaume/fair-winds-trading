@@ -10,15 +10,26 @@ import {
   spotPosition,
 } from '../sim/home';
 import type { World } from '../sim/world';
-import { type MessageKey, t } from '../i18n';
+import { type MessageKey, goodName, t } from '../i18n';
+import { GOODS, type GoodId } from '../sim/goods';
+import { storageRoom, storeGoods, storedGoods, storedTotal, takeGoods } from '../sim/storage';
+import { buildingPerks } from '../sim/perks';
+
+/** `openSpot` while the warehouse card is open. */
+const STORAGE = '#warehouse';
 
 const COIN = '<svg class="icon coin" aria-hidden="true"><use href="#i-coin" /></svg>';
 
-/** A building's modifier in one line, in the player's words (decision 0126). */
+/** A building's perks in the player's words, one sentence each (decisions 0126, 0136). */
 export function effectLine(b: BuildingDef): string {
-  const { kind, value } = b.effect;
-  const pct = Math.round(Math.abs(1 - value) * 100);
-  return t(`effect.${kind}` as MessageKey, { pct, n: value });
+  return buildingPerks(b.id)
+    .map((p) =>
+      t(`perk.${p.id}` as MessageKey, {
+        pct: Math.round(Math.abs(1 - (p.multiply ?? 1)) * 100),
+        n: p.add ?? 0,
+      }),
+    )
+    .join(' ');
 }
 
 export const buildingName = (b: BuildingDef) => t(`building.${b.id}` as MessageKey);
@@ -41,6 +52,8 @@ export class HomePanel {
   onBuilt: (building: BuildingDef) => void = () => {};
   onRepaired: (gold: number) => void = () => {};
   onChange: () => void = () => {};
+  /** After crates moved between the hold and the warehouse: save. */
+  onStored: () => void = () => {};
 
   constructor(
     root: HTMLElement,
@@ -147,6 +160,85 @@ export class HomePanel {
       });
       this.bar.append(repair);
     }
+    // The warehouse (decision 0136): crates kept here between voyages.
+    const room = storageRoom(trade);
+    if (room > 0 || storedTotal(trade) > 0) {
+      const store = document.createElement('button');
+      store.className = 'port-btn';
+      store.textContent = t('home.warehouse', { n: storedTotal(trade), max: room });
+      store.addEventListener('click', () => this.openStorage());
+      this.bar.append(store);
+    }
+  }
+
+  /** The warehouse card: each good aboard or kept, with buttons to store and take. */
+  openStorage() {
+    const { trade } = this.world;
+    if (!this.islandId) return;
+    this.openSpot = STORAGE;
+    for (const el of this.markers.values()) el.classList.remove('selected');
+    this.card.innerHTML = '';
+    const room = storageRoom(trade);
+    const head = this.head(t('home.warehouse', { n: storedTotal(trade), max: room }));
+    const list = document.createElement('div');
+    list.className = 'home-store';
+    const kept = storedGoods(trade);
+    const goods = GOODS.filter((g) => trade.captain.cargo[g] > 0 || (kept[g] ?? 0) > 0);
+    const button = (text: string, disabled: boolean, run: () => void) => {
+      const b = document.createElement('button');
+      b.className = 'port-btn small';
+      b.textContent = text;
+      b.disabled = disabled;
+      b.addEventListener('click', () => {
+        run();
+        this.render();
+        this.openStorage();
+        this.onStored();
+      });
+      return b;
+    };
+    const full = storedTotal(trade) >= room;
+    for (const good of goods) {
+      const row = document.createElement('div');
+      row.className = 'home-store-row';
+      const name = document.createElement('div');
+      name.className = 'home-store-name';
+      name.textContent = goodName(good as GoodId);
+      const counts = document.createElement('div');
+      counts.className = 'home-store-counts';
+      counts.textContent = `${t('home.aboard', { n: trade.captain.cargo[good] })} · ${t('home.kept', { n: kept[good] ?? 0 })}`;
+      const aboard = trade.captain.cargo[good];
+      const here = kept[good] ?? 0;
+      row.append(
+        name,
+        counts,
+        button(t('home.store'), !aboard || full, () => storeGoods(trade, good, 1)),
+        button(t('home.storeAll'), !aboard || full, () => storeGoods(trade, good, aboard)),
+        button(t('home.take'), !here, () => takeGoods(trade, good, 1)),
+        button(t('home.takeAll'), !here, () => takeGoods(trade, good, here)),
+      );
+      list.append(row);
+    }
+    const note = document.createElement('p');
+    note.className = 'home-note';
+    note.textContent = t(goods.length ? 'home.warehouseNote' : 'home.warehouseEmpty');
+    this.card.append(head, list, note);
+    this.card.hidden = false;
+    this.onChange();
+  }
+
+  private head(text: string) {
+    const head = document.createElement('div');
+    head.className = 'home-card-head';
+    const h = document.createElement('h2');
+    h.textContent = text;
+    const close = document.createElement('button');
+    close.className = 'home-close';
+    close.textContent = '✕';
+    close.setAttribute('aria-label', t('home.close'));
+    close.addEventListener('click', () => this.close());
+    head.append(h, close);
+    return head;
   }
 
   open(spotId: string) {
@@ -160,16 +252,9 @@ export class HomePanel {
     this.openSpot = spotId;
     for (const [id, el] of this.markers) el.classList.toggle('selected', id === spotId);
     this.card.innerHTML = '';
-    const head = document.createElement('div');
-    head.className = 'home-card-head';
-    const h = document.createElement('h2');
-    h.textContent = `${t('home.spot', { n: index + 1 })} · ${t(spare ? 'home.chooseSpare' : 'home.choose')}`;
-    const close = document.createElement('button');
-    close.className = 'home-close';
-    close.textContent = '✕';
-    close.setAttribute('aria-label', t('home.close'));
-    close.addEventListener('click', () => this.close());
-    head.append(h, close);
+    const head = this.head(
+      `${t('home.spot', { n: index + 1 })} · ${t(spare ? 'home.chooseSpare' : 'home.choose')}`,
+    );
     const list = document.createElement('div');
     list.className = 'home-options';
     for (const { building, price } of choices) {
@@ -177,7 +262,9 @@ export class HomePanel {
       opt.className = 'home-option';
       const kind = document.createElement('div');
       kind.className = 'home-kind';
-      kind.textContent = t(`effectKind.${building.effect.kind}` as MessageKey);
+      kind.textContent = t(
+        `hook.${buildingPerks(building.id)[0]?.hook ?? 'repairPrice'}` as MessageKey,
+      );
       const name = document.createElement('div');
       name.className = 'home-name';
       name.textContent = buildingName(building);

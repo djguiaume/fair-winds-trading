@@ -459,6 +459,13 @@ body.is-docked .objective {
 .weather-text[data-kind='storm'] {
   color: #ffb36b;
 }
+/* The weather glass's forecast (decision 0136): quieter than the wind now. */
+.weather-text.forecast {
+  color: var(--ink-dim);
+}
+.weather-text.forecast[data-storm] {
+  color: #ffb36b;
+}
 .wind-gust {
   margin-left: 2px;
   padding: 0 4px;

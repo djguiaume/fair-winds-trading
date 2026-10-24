@@ -461,6 +461,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     '×',
     'A building passed over in an arc, built later on a spare spot, costs its price times this (0126).',
   ),
+  'economy.home.forecastSmoothSec': num(
+    'Forecast smoothing',
+    0,
+    60,
+    1,
+    's',
+    'The weather glass averages the wind over this many seconds around its forecast time, so a gust does not swing it (0136).',
+  ),
 
   // --- difficulty.json (decisions 0083, 0113) ---
   'difficulty.default': text(

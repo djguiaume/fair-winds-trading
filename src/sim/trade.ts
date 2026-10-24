@@ -7,7 +7,8 @@ import { coastDistance } from './coast';
 import { type ContractState, createContracts, stepContracts, syncHelpOrder } from './contracts';
 import { type Difficulty, DEFAULT_DIFFICULTY, easier, knobs } from './difficulty';
 import { leakFactor } from './hazards';
-import { type HomeState, createHomeState, homeEffect, ownedIslands } from './home';
+import { type HomeState, createHomeState, ownedIslands } from './home';
+import { applyPerks } from './perks';
 import { GOODS, type GoodAmounts, type GoodId, emptyAmounts, totalAmount } from './goods';
 import type { MapDef, PortDef } from './map';
 import {
@@ -464,12 +465,12 @@ function stepHomeDock(
 
 /** A sail upgrade's price, less the rigging loft's share (decision 0126). */
 export function upgradeCost(trade: TradeState, price: number, track: UpgradeTrack): number {
-  return track === 'sails' ? Math.round(price * homeEffect(trade.home, 'sailUpgradePrice')) : price;
+  return track === 'sails' ? Math.round(applyPerks(trade.home, 'sailUpgradePrice', price)) : price;
 }
 
 /** A new ship's price, less the boathouse's share (decision 0126). */
 export function shipCost(trade: TradeState, cls: ShipClass): number {
-  return Math.round(cls.price * homeEffect(trade.home, 'shipPrice'));
+  return Math.round(applyPerks(trade.home, 'shipPrice', cls.price));
 }
 
 /** Apply all elapsed economy time before a paused dock panel opens, returning its events. */
