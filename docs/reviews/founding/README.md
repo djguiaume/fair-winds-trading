@@ -1,6 +1,6 @@
 # Founding an outpost: Palm Key
 
-**Decision:** [0155](../../decisions/0155-founding-an-outpost.md) (Proposed until Guillaume has seen these). Real captures of the south sea (`?map=phase4`), made with `npm run shots -- --sea phase4 --list docs/reviews/founding/shots.json --out docs/reviews/founding` (the new `--town palm-key:1` option founds the site first). The outpost's town is placed with existing props only (beach houses, drying racks, crates, lamp post, warehouse, the epilogue's flagpole and name board); its layout is new.
+**Decision:** [0155](../../decisions/0155-founding-an-outpost.md) (Accepted: Guillaume said "Ok"). Real captures of the south sea (`?map=phase4`), made with `npm run shots -- --sea phase4 --list docs/reviews/founding/shots.json --out docs/reviews/founding` (the new `--town palm-key:1` option founds the site first). The outpost's town is placed with existing props only (beach houses, drying racks, crates, lamp post, warehouse, the epilogue's flagpole and name board); its layout is new.
 
 ## Before founding: an empty island
 

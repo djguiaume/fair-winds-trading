@@ -112,6 +112,42 @@
         "backdrop": "#8fb8d8",
         "stripes": "#f4f1e8"
       }
+    },
+    {
+      "id": "juno",
+      "name": "Juno Reyes",
+      "voice": "juno",
+      "role": "Tea blender",
+      "port": "sunreach",
+      "look": {
+        "skin": "#8d5a3b",
+        "hair": "#2a1d17",
+        "hairStyle": "bun",
+        "hat": "scarf",
+        "hatColor": "#3f9a6b",
+        "clothes": "#f0e2c4",
+        "apron": "#5b8f4a",
+        "item": "none",
+        "backdrop": "#e8b86a"
+      }
+    },
+    {
+      "id": "tam",
+      "name": "Tam Ness",
+      "voice": "tam",
+      "role": "Settler",
+      "port": "watchman-key",
+      "look": {
+        "skin": "#e8b896",
+        "hair": "#c8743a",
+        "hairStyle": "short",
+        "hat": "cap",
+        "hatColor": "#b23a30",
+        "clothes": "#2f6f9a",
+        "stripes": "#f4f1e8",
+        "item": "none",
+        "backdrop": "#8fb8d8"
+      }
     }
   ]
 }

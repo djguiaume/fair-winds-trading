@@ -1,6 +1,6 @@
 # 0155. Founding an outpost: empty islands, landed goods and the `found` reward
 
-**Status:** Proposed (2026-10-24). The code and data are built and tested; the outpost's look on Palm Key waits for Guillaume to see the [screenshots](../reviews/founding/README.md). Builds [0137](0137-phase-4-biomes-and-founded-outposts.md) point 3 (outposts you found), [0146](0146-far-goods-from-the-biome-outposts.md)/[0150](0150-building-far-goods.md) (the outpost gathers a raw far good, stops at town) and [0152](0152-south-sea-sunreach-layout.md) point 7 (Palm Key has no port until it is founded). The field names were agreed with the head storyteller, who writes `outpost-south` ([0147](0147-phase-4-story.md), [brief](../story/storyteller-brief.md#phase-4-the-four-seas)).
+**Status:** Accepted (2026-10-24). Guillaume saw the [screenshots](../reviews/founding/README.md) and said "Ok". Builds [0137](0137-phase-4-biomes-and-founded-outposts.md) point 3 (outposts you found), [0146](0146-far-goods-from-the-biome-outposts.md)/[0150](0150-building-far-goods.md) (the outpost gathers a raw far good, stops at town) and [0152](0152-south-sea-sunreach-layout.md) point 7 (Palm Key has no port until it is founded). The field names were agreed with the head storyteller, who writes `outpost-south` ([0147](0147-phase-4-story.md), [brief](../story/storyteller-brief.md#phase-4-the-four-seas)).
 
 ## Context
 

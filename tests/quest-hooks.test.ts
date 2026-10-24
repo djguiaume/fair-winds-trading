@@ -11,7 +11,14 @@ import {
 import type { MapDef } from '../src/sim/map';
 import { clearAt, quickChecks } from '../src/sim/mapChecks';
 import { landmarkSpot } from '../src/sim/landmarks';
-import { type QuestDef, QUESTS, QuestBook, checkQuestHooks, checkQuests } from '../src/sim/quests';
+import {
+  type QuestDef,
+  QUESTS,
+  QuestBook,
+  checkQuestHooks,
+  checkQuests,
+  questsFor,
+} from '../src/sim/quests';
 import { madeGoods, portNow, producesAt } from '../src/sim/settlement';
 import { SLOOP, SHIP_CLASSES } from '../src/sim/ship';
 import { checkIsland } from '../src/sim/islandChecks';
@@ -99,7 +106,7 @@ describe('after:/before: tags', () => {
 
   it('the shipped quests, islands and map hold together', () => {
     expect(checkQuestHooks(PHASE1_MAP, Object.values(ISLAND_DESIGNS), QUESTS)).toEqual([]);
-    expect(checkQuests(QUESTS, PHASE1_MAP)).toEqual([]);
+    expect(checkQuests(questsFor(PHASE1_MAP), PHASE1_MAP)).toEqual([]);
   });
 });
 

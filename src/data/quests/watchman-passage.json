@@ -1,0 +1,23 @@
+{
+  "id": "watchman-passage",
+  "name": "The keeper's passage",
+  "start": {
+    "is": "all",
+    "of": [
+      { "is": "quest-done", "quest": "fair-winds" },
+      { "is": "docked", "port": "watchman-key" }
+    ]
+  },
+  "text": "quest.watchman-passage",
+  "giver": "ness",
+  "steps": [
+    {
+      "id": "chart",
+      "port": "watchman-key",
+      "mood": "worried",
+      "chart": { "port": "sunreach", "radius": 140 },
+      "goal": { "is": "docked", "port": "sunreach" },
+      "reward": { "gold": 300 }
+    }
+  ]
+}
