@@ -6,7 +6,8 @@ import type { IslandDef, LandmarkKind } from '../sim/map';
  * and x to the right seen from the sea, so a file scales with the radius set in the map. Heights
  * (`height`, `y`, `base`) are radius units too.
  */
-export type IslandStyle = 'fish' | 'timber' | 'grain' | 'stone' | 'tropic';
+/** An island style: a key of `palette.json` › `styles` (walls, roofs, grounds; decision 0168). */
+export type IslandStyle = string;
 export type Point = [number, number];
 
 /**
@@ -19,7 +20,8 @@ export interface GroundDef {
   outline?: Point[];
   holes?: Point[][];
   height: number;
-  material: 'grass' | 'rock';
+  /** A ground of `palette.json` › `grounds`, which the style may swap (decision 0168). */
+  material: string;
   /** A rock cone over the outline instead of a flat top, rising from `base`. */
   shape?: 'peak';
   base?: number;
@@ -51,7 +53,7 @@ export interface RampDef {
   width: number;
   start: number;
   end: number;
-  material: 'grass' | 'rock';
+  material: string;
   from?: number;
   to?: number;
 }
@@ -153,7 +155,7 @@ export const ISLAND_DESIGNS: Record<string, IslandDesign> = Object.fromEntries(
 );
 
 /** Islands and tests that only name a producer style get that style's shipped island. */
-const DESIGN_FOR_STYLE: Record<IslandStyle, string> = {
+const DESIGN_FOR_STYLE: Record<string, string> = {
   timber: 'calda',
   fish: 'saltmere',
   grain: 'westholm',
@@ -164,8 +166,7 @@ const DESIGN_FOR_STYLE: Record<IslandStyle, string> = {
 
 /** A design by id, or the shipped design of a style ('timber' is Port Calda). */
 export function islandDesign(idOrStyle: string): IslandDesign {
-  const design =
-    ISLAND_DESIGNS[idOrStyle] ?? ISLAND_DESIGNS[DESIGN_FOR_STYLE[idOrStyle as IslandStyle]];
+  const design = ISLAND_DESIGNS[idOrStyle] ?? ISLAND_DESIGNS[DESIGN_FOR_STYLE[idOrStyle] ?? ''];
   if (!design) throw new Error(`No island file for "${idOrStyle}"`);
   return design;
 }
