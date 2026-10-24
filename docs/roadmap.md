@@ -164,7 +164,7 @@ Goal: growth pushes you outward into tougher navigation.
 
 **Story decided (2026-10-24, [0147](decisions/0147-phase-4-story.md)):** each sea is three arcs: a letter from a ring person's relative, the keeper's arc at the main port, and founding the outpost with that relative. The seas open south (Sunreach), west (Emberhold), north (Rimewick), east (Fogwatch). People, names and ids are in the [storyteller brief](story/storyteller-brief.md#phase-4-the-four-seas).
 
-**South sea laid out (2026-10-24, [0152](decisions/0152-south-sea-sunreach-layout.md), [review](reviews/south-sea/README.md)), awaiting Guillaume's review:** a dev sea at `?map=phase4`: the Coral Line with one gateway, Sunreach (ring-lagoon port, tropic town), Palm Key outpost site, wind zones, and shallows that refuse deep ships (Palm Key Narrows) with the long way always open. Palm Key's port comes with founding (the `outpost-south` arc).
+**South sea laid out (2026-10-24, [0152](decisions/0152-south-sea-sunreach-layout.md), [review](reviews/south-sea/README.md)), accepted by Guillaume:** a dev sea at `?map=phase4`: the Coral Line with one gateway, Sunreach (ring-lagoon port, tropic town), Palm Key outpost site, wind zones charted once sailed, cardinal marks, and shallows that refuse deep ships (Palm Key Narrows) with the long way always open. Palm Key's port comes with founding (the `outpost-south` arc).
 
 - Larger, explorable map with fog of war; discover new islands and settlements.
 - Regional wind patterns: trade-wind belts, doldrums with almost no wind, variable stormy zones, seasonal shifts.

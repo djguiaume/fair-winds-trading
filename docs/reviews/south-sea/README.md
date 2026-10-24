@@ -1,6 +1,6 @@
 # South sea review: Sunreach (ADR 0152)
 
-Real captures of the Phase 4 dev sea (`?map=phase4`), for Guillaume's review before anything is merged. Decision: [0152](../../decisions/0152-south-sea-sunreach-layout.md).
+Real captures of the Phase 4 dev sea (`?map=phase4`), reviewed by Guillaume ("Ok for all", 2026-10-24). Decision: [0152](../../decisions/0152-south-sea-sunreach-layout.md).
 
 ## The plan
 

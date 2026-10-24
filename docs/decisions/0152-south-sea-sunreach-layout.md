@@ -1,6 +1,6 @@
 # 0152. The south sea: Sunreach, the Coral Line and shallows that refuse deep ships
 
-**Status:** Proposed (2026-10-24), awaiting Guillaume's review of the [screenshots and the labelled map](../reviews/south-sea/README.md). Lays out the first Phase 4 sea from [0137](0137-phase-4-biomes-and-founded-outposts.md) (layout B, one reef gateway, "don't make it too empty"), with the wind zones of [0140](0140-wind-zones-and-currents.md)/[0144](0144-wind-zones-in-the-sim.md), the ring-lagoon main port of [0143](0143-lagoon-wind-axis.md), the far goods of [0146](0146-far-goods-from-the-biome-outposts.md)/[0150](0150-building-far-goods.md) and the names of the [storyteller brief](../story/storyteller-brief.md#phase-4-the-four-seas) ([0147](0147-phase-4-story.md)).
+**Status:** Accepted (2026-10-24). Guillaume reviewed the [screenshots and the labelled map](../reviews/south-sea/README.md) and said "Ok for all". Lays out the first Phase 4 sea from [0137](0137-phase-4-biomes-and-founded-outposts.md) (layout B, one reef gateway, "don't make it too empty"), with the wind zones of [0140](0140-wind-zones-and-currents.md)/[0144](0144-wind-zones-in-the-sim.md), the ring-lagoon main port of [0143](0143-lagoon-wind-axis.md), the far goods of [0146](0146-far-goods-from-the-biome-outposts.md)/[0150](0150-building-far-goods.md) and the names of the [storyteller brief](../story/storyteller-brief.md#phase-4-the-four-seas) ([0147](0147-phase-4-story.md)).
 
 ## Context
 
