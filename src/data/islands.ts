@@ -56,6 +56,23 @@ export interface RampDef {
   to?: number;
 }
 
+/**
+ * A river (decision 0167): a ribbon `width` wide along `points`, source first, mouth last, that
+ * lies on the ground (plateaus, ramps, slopes, mountains). Where the ground drops at a cliff it
+ * falls as a sheet to the ground below; a mouth past the coast falls into the sea. `water` is
+ * drawn in the lake's colour; `lava` glows at night like lit windows, with a dark crust and steam
+ * where it meets the sea. Points are [x, z], or [x, z, height] to pin a point's height.
+ */
+export interface RiverDef {
+  kind?: 'water' | 'lava';
+  points: number[][];
+  width: number;
+  from?: number;
+  to?: number;
+  /** `after:<quest>` and `before:<quest>`, like props (decision 0130). */
+  tags?: string[];
+}
+
 /** A side pier from a level; the arrival pier stays the simulation's (x 0.08). */
 export interface PierDef {
   x: number;
@@ -136,6 +153,8 @@ export interface IslandDesign {
   lake?: Point[];
   ground: GroundDef[];
   lanes: LaneDef[];
+  /** Rivers of water or lava (decision 0167); left out, none. */
+  rivers?: RiverDef[];
   /** Ramps that climb along their length (decision 0123); left out, none. */
   ramps?: RampDef[];
   piers: PierDef[];
@@ -220,10 +239,19 @@ export function questApart(a: { tags?: readonly string[] }, b: { tags?: readonly
   );
 }
 
-/** The island file as it stands with these quests done: its props filtered by `questShown`. */
+/** The quests an island file's props and rivers name in `after:` and `before:` tags. */
+export function designQuestIds(design: IslandDesign): string[] {
+  return [...design.props, ...(design.rivers ?? [])].flatMap(questTagIds);
+}
+
+/** The island file as it stands with these quests done: props and rivers by `questShown`. */
 export function questDesign(design: IslandDesign, done: ReadonlySet<string>): IslandDesign {
-  if (!design.props.some((p) => questTagIds(p).length)) return design;
-  return { ...design, props: design.props.filter((p) => questShown(p, done)) };
+  if (!designQuestIds(design).length) return design;
+  return {
+    ...design,
+    props: design.props.filter((p) => questShown(p, done)),
+    ...(design.rivers && { rivers: design.rivers.filter((r) => questShown(r, done)) }),
+  };
 }
 
 /**

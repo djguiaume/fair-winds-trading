@@ -17,7 +17,7 @@ import { landmarkParts } from './landmarks';
 import { type Spot, landmarkRadius, sampleInside, terrainSeed } from '../../sim/landmarks';
 import { insetOutline } from '../../sim/coast';
 import { type TownLevel, townIslandParts } from './towns';
-import { designOf, questTagIds } from '../../data/islands';
+import { designOf, designQuestIds } from '../../data/islands';
 
 /**
  * B2 "Bright highlands" islands (decision 0012), ported from the reference builder in
@@ -581,7 +581,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     this.questsDone = new Set(done);
     for (const [index, island] of this.map.islands.entries()) {
       const design = designOf(island);
-      const quests = new Set(design?.props.flatMap(questTagIds));
+      const quests = new Set(design ? designQuestIds(design) : []);
       if (![...quests].some((q) => previous.has(q) !== done.has(q))) continue;
       this.rebuild(island, index);
     }
