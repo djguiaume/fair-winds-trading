@@ -56,6 +56,28 @@
   "piers": [],
   "props": [
     {
+      "type": "flagpole",
+      "x": -0.2,
+      "z": 0.54,
+      "turn": 180,
+      "size": 1.5,
+      "variant": 0,
+      "shape": 0.5,
+      "tags": ["after:fair-winds"],
+      "from": 1
+    },
+    {
+      "type": "name-board",
+      "x": 0.13,
+      "z": 0.42,
+      "turn": 0,
+      "size": 1.3,
+      "variant": 0,
+      "shape": 0.5,
+      "tags": ["after:fair-winds"],
+      "from": 1
+    },
+    {
       "type": "beacon",
       "x": 0.3,
       "z": -0.5,
