@@ -17,6 +17,7 @@ import {
   loadTuneChanges,
   saveTuneChanges,
 } from './data/tuningEdits';
+import { GamepadPoller, chartPad, padInUse, seaPad, type PadContext } from './input/gamepad';
 import { Input } from './input/input';
 import {
   FrameMonitor,
@@ -911,6 +912,46 @@ for (const [group, short] of [
 input.onDrag = (d) => hud.setTiller(d);
 input.onZoom = (f) => view.setZoom(view.getZoom() * f);
 hud.onSailStep = (step) => input.setSail(step);
+
+/*
+ * Game controller (decision 0162): one poller, read once a frame in `tick` and only after a pad
+ * has been seen. At sea and on the chart the buttons do what `src/data/controls.json` says; the
+ * rest (menus, the harbour, cards) goes to `pad.onMenuPress`.
+ */
+const pad = new GamepadPoller();
+pad.onConnect = (connected) => {
+  document.body.classList.toggle('has-gamepad', connected);
+  if (connected) hud.showToast(t('toast.padConnected'), 3);
+};
+/** Where pad presses go: the boat, the open chart, or a menu, dialog or card on top. */
+function padContext(): PadContext {
+  if (chart.isOpen && !questCard.isOpen && !tutorialOffer.open && !windHelp.open) return 'chart';
+  return paused ? 'menu' : 'sea';
+}
+function readPad(now: number, dt: number) {
+  const frame = pad.poll(now);
+  if (!frame) return;
+  const context = padContext();
+  if (context === 'sea') {
+    const sea = seaPad(frame, dt);
+    input.setPadSteer(sea.steer);
+    if (sea.sail) input.pressSail(sea.sail);
+    if (sea.strike) input.setSail(0);
+    if (sea.zoom !== 1) view.setZoom(view.getZoom() * sea.zoom);
+    if (sea.harbour && world.trade.dockedAt) openHarbour();
+    else if (sea.chart) chart.open();
+    else if (sea.pause) showMenu();
+    if (padInUse(frame)) input.onActivity();
+    for (const p of sea.other) pad.onMenuPress(p, context);
+  } else if (context === 'chart') {
+    const c = chartPad(frame, dt);
+    chart.panBy(c.panX, c.panY);
+    if (c.zoom !== 1) chart.zoomBy(c.zoom);
+    if (c.fit) chart.fit();
+    if (c.close) chart.back();
+    for (const p of c.other) pad.onMenuPress(p, context);
+  } else for (const p of frame.presses) pad.onMenuPress(p, context);
+}
 const showLog = $<HTMLInputElement>('show-log');
 hud.onLogToggle = (shown) => {
   settings.showLog = shown;
@@ -1259,6 +1300,7 @@ function tick(now: number) {
   const dt = Math.min(0.1, rawMs / 1000);
   last = now;
 
+  readPad(now, dt);
   const sailDelta = input.takeSailDelta();
   const sailTarget = input.takeSailTarget();
   if (bench && !paused) driveBench(rawMs / 1000);
