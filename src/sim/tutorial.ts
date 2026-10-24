@@ -4,6 +4,7 @@ import { GOODS, isGood, type GoodId } from './goods';
 import { type BoatControls } from './boat';
 import { type SaveStorage } from './save';
 import { landmarkSpot } from './landmarks';
+import { DEG, wrapPositive } from './math';
 import { homePort, isDiscovered } from './shipyards';
 import { findPort, cargoUsed } from './trade';
 import { type World, holdStorms } from './world';
@@ -94,6 +95,8 @@ export interface TutorialStepDef {
   mark?: { within: number; maxKn?: number; holdSec?: number };
   /** Harbourmaster Rook is aboard (a passenger: no hold space). */
   passenger?: boolean;
+  /** The map's prologue breeze blows instead of the sea's wind (decision 0139). */
+  calm?: boolean;
 }
 
 /** A quest file: its steps, when it starts and what finishing it pays. */
@@ -224,6 +227,7 @@ export class Tutorial {
   }
 
   private publish() {
+    this.world.calmWind = this.calmWind;
     try {
       this.storage?.setItem(this.key, JSON.stringify(this.progress));
     } catch {
@@ -277,6 +281,15 @@ export class Tutorial {
   /** The wreck, while a lesson is about it: the compass marks its direction. */
   get mark(): { x: number; y: number } | null {
     return this.isActive && this.def.mark ? this.wreck : null;
+  }
+  /** The light, steady breeze of the first lessons at sea, if the map's prologue has one. */
+  get calmWind(): { from: number; speedKn: number } | null {
+    const wind = this.world.map.prologue?.wind;
+    if (!this.isActive || !this.def.calm || !wind) return null;
+    return {
+      from: wrapPositive((wind.fromDeg ?? this.world.map.wind.fromDeg) * DEG),
+      speedKn: wind.speedKn,
+    };
   }
   /** Harbourmaster Rook rides along. */
   get passenger(): boolean {
@@ -337,6 +350,7 @@ export class Tutorial {
   observe(controls?: BoatControls, dt = 0) {
     // No storms while the lesson runs (decision 0072).
     holdStorms(this.world, 'tutorial', this.isActive);
+    this.world.calmWind = this.calmWind;
     if (!this.isActive) return;
     const { boat, trade } = this.world;
     if (this.def.cargo) {
@@ -356,7 +370,7 @@ export class Tutorial {
       const near = Math.hypot(boat.x - this.wreck.x, boat.y - this.wreck.y) <= mark.within;
       const damage = trade.captain.hullDamage[trade.captain.activeShip] ?? 0;
       // A touch of the reef starts the approach again; nothing else is lost.
-      if (damage > this.hullDamage) this.alongsideSeconds = 0;
+      if (damage > this.hullDamage || boat.sinceBump < 0.5) this.alongsideSeconds = 0;
       this.hullDamage = damage;
       if (on['reached-mark'] && near) this.go(on['reached-mark']);
       else if (on['alongside-mark']) {

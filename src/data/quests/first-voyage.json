@@ -10,6 +10,7 @@
     {
       "id": "sails",
       "continue": "always",
+      "calm": true,
       "coach": {
         "sea": "sail-lever",
         "chart": "close-chart"
@@ -23,6 +24,7 @@
       "id": "wind",
       "action": "tips",
       "continue": "always",
+      "calm": true,
       "coach": {
         "sea": "wind-compass",
         "chart": "close-chart"
@@ -36,6 +38,7 @@
       "mark": {
         "within": 45
       },
+      "calm": true,
       "coach": {
         "sea": "wind-compass",
         "chart": "close-chart"
@@ -47,10 +50,11 @@
     {
       "id": "wreck",
       "mark": {
-        "within": 16,
+        "within": 20,
         "maxKn": 2,
         "holdSec": 3
       },
+      "calm": true,
       "coach": {
         "sea": "sail-lever",
         "chart": "close-chart"
@@ -66,6 +70,7 @@
       "picks": "origin",
       "passenger": true,
       "pointer": "origin",
+      "calm": true,
       "coach": {
         "sea": "chart-button",
         "chart": "chart-port"
@@ -82,6 +87,7 @@
       "picks": "origin",
       "passenger": true,
       "pointer": "origin",
+      "calm": true,
       "coach": {
         "sea": "chart-button",
         "chart": "chart-port"
@@ -97,6 +103,7 @@
       "picks": "origin",
       "origin": "home",
       "passenger": true,
+      "calm": true,
       "coach": {
         "sea": "port-marker",
         "chart": "chart-port"

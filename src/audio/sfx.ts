@@ -32,13 +32,15 @@ export function playCreak(ctx: BaseAudioContext, destination: AudioNode, level: 
 
 /**
  * A foghorn far off (decision 0127): two low reedy tones a fifth apart, swelling and fading over
- * about two and a half seconds, through a low-pass so it sounds distant.
+ * about two and a half seconds, through a low-pass so it sounds distant. Pitched at G3 and D4 with
+ * the reed's overtones let through (decision 0139): a phone speaker plays almost nothing below
+ * 200 Hz, so the first, lower horn was silent on phones.
  */
 export function playFoghorn(ctx: BaseAudioContext, destination: AudioNode, level: number) {
   const t = ctx.currentTime + 0.02;
   const low = ctx.createBiquadFilter();
   low.type = 'lowpass';
-  low.frequency.value = 420;
+  low.frequency.value = 1400;
   low.Q.value = 0.7;
   const gain = ctx.createGain();
   gain.gain.setValueAtTime(0, t);
@@ -47,8 +49,8 @@ export function playFoghorn(ctx: BaseAudioContext, destination: AudioNode, level
   gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.6);
   low.connect(gain).connect(destination);
   for (const [freq, share] of [
-    [98, 1],
-    [147, 0.55],
+    [196, 1],
+    [294, 0.55],
   ] as const) {
     const osc = ctx.createOscillator();
     osc.type = 'sawtooth';

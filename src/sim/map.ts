@@ -160,8 +160,14 @@ export interface MapDef {
   /**
    * The tutorial's prologue (decision 0127): where a voyage that takes it begins, and the terrain
    * feature whose wreck landmark is the boat to rescue. Without it the tutorial starts at the chart.
+   * `wind` is the light, steady breeze held while the sea lessons run (decision 0139); the
+   * direction defaults to the map's prevailing wind.
    */
-  prologue?: { start: { x: number; y: number; headingDeg: number }; wreck: string };
+  prologue?: {
+    start: { x: number; y: number; headingDeg: number };
+    wreck: string;
+    wind?: { speedKn: number; fromDeg?: number };
+  };
   /** Buoys, boats and lights at sea (decision 0130). */
   marks?: SeaMarkDef[];
 }

@@ -299,6 +299,30 @@ export function questTarget(book: QuestBook, map: MapDef): QuestTarget | null {
   return port ? { port } : null;
 }
 
+/**
+ * Where the tracked step leads, for the sea's objective panel and edge arrow when no course is set
+ * (decision 0139): the harbour's pier (`harbours`) or the island, else the spot at sea, named by
+ * the port or the step's ask.
+ */
+export function questGoal(
+  book: QuestBook,
+  map: MapDef,
+  harbours: Record<string, { x: number; y: number }>,
+): { x: number; y: number; label: string } | null {
+  const target = questTarget(book, map);
+  const active = book.active.find((a) => a.quest.id === book.tracked);
+  if (!target || !active) return null;
+  const ask = tOptional(
+    `${active.quest.text}.${active.step.id}.title`,
+    stepParams(book, active.step),
+  );
+  if (target.point) return { ...target.point, label: ask ?? active.quest.name };
+  const port = target.port ? findPort(map, target.port) : undefined;
+  const island = port && map.islands.find((i) => i.id === port.islandId);
+  const at = (port && harbours[port.id]) ?? island;
+  return port && at ? { x: at.x, y: at.y, label: port.name } : null;
+}
+
 /** A place at sea the tracked step asks the boat to reach (decision 0130). */
 export interface StepMarker extends QuestPoint {
   within: number;

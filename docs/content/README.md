@@ -177,18 +177,20 @@ Each step:
 | `origin`      | `home`: the lesson's harbour is the map's home port, and only it counts as the pick (taking Rook home, [0127](../decisions/0127-prologue-rescue-tutorial.md)) |
 | `mark`        | a lesson about the map's prologue wreck: `within` (distance), and to come alongside `maxKn` and `holdSec`; the compass marks the wreck. Skipped on a map without a `prologue` |
 | `passenger`   | `true`: Rook is aboard (no hold space)                                                                                       |
+| `calm`        | `true`: the map's `prologue.wind` blows instead of the sea's wind while this lesson runs ([0139](../decisions/0139-gentler-prologue-and-quest-cards.md)) |
 | `coach`       | what it points at per surface (`sea`, `chart`, `market`): `chart-button`, `sail-lever`, `wind-compass`, `port-marker`, `dock-button`, `chart-port`, `close-chart`, `buy-button`, `sell-button` |
 | `on`          | the step each event leads to (`done` finishes the tutorial)                                                                  |
 
 Events: `chart-opened`, `port-picked`, `destination-cleared`, `sails-practised`, `continue`,
-`reached-mark`, `alongside-mark` (a hull hit starts the hold again),
+`reached-mark`, `alongside-mark` (a hull hit, or grinding on the reef, starts the hold again),
 `docked`, `left-port`, `bought`, `sold`, `cargo-gone`, `cargo-sold` (what each one watches:
 `src/sim/tutorial.ts`). Lesson text can use `{origin}`, `{delivery}`, `{cargo}`, `{good}` and
 `{buyer}`. `tests/tutorial-data.test.ts` checks every event, target and text exists.
 
 - The prologue's places are in the map file: `prologue.start` (`x`, `y`, `headingDeg`: where a fresh
   voyage that takes the tutorial begins) and `prologue.wreck` (the reef or sandbank whose wreck is
-  Rook's boat). Rook's thanks, the home island, is the quest
+  Rook's boat) and `prologue.wind` (`speedKn`, optional `fromDeg`: the light, steady breeze of the
+  `calm` lessons; the boat starts there lying still with the sails down). Rook's thanks, the home island, is the quest
   [`rooks-thanks.json`](../../src/data/quests/rooks-thanks.json).
 - Not from data yet: a lesson that waits for something no event watches (reefing in a gale, say)
   needs one new event in code.

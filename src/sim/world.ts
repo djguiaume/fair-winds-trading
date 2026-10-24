@@ -106,6 +106,11 @@ export interface World {
    * a delivery race with fixed weather. Any entry holds them; see `holdStorms`.
    */
   stormHolds: string[];
+  /**
+   * A light, steady breeze that replaces the sea's wind while set (decision 0139): the tutorial's
+   * first lessons at sea. Not saved; the tutorial sets it on every step.
+   */
+  calmWind: Wind | null;
   /** Only storms that form at or after this time; set when storms come back (decision 0072). */
   stormsFrom: number;
   /** Whether storms could blow on the last step, to notice when they come back. */
@@ -155,6 +160,7 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     windConfig: null,
     windBlend: null,
     stormHolds: [],
+    calmWind: null,
     stormsFrom: 0,
     stormsOn: true,
     shelter: 0,
@@ -181,14 +187,14 @@ export function resetBoat(world: World): void {
 
 /**
  * A voyage that takes the tutorial begins at the prologue's spot at sea (decision 0127), when the
- * map has one. Returns whether the boat moved.
+ * map has one, lying still with the sails down so the first lesson is raising them (decision 0139).
+ * Returns whether the boat moved.
  */
 export function startAtPrologue(world: World): boolean {
   const start = world.map.prologue?.start;
   if (!start) return false;
-  const { sailStep } = world.boat;
   world.boat = createBoat(start.x, start.y, start.headingDeg * DEG);
-  world.boat.sailStep = sailStep;
+  world.boat.sailStep = 0;
   world.destination = null;
   world.trade.dockedAt = null;
   return true;
@@ -429,6 +435,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
     stormsFrom: world.stormsFrom,
   };
   world.seaWind = seaWindAt(world, cfg);
+  if (world.calmWind) world.seaWind = { ...world.calmWind };
   const effect = windEffectAt(world.windBlockers, world.boat, world.seaWind);
   world.shelter = effect.shelter;
   world.funnel = effect.funnel;

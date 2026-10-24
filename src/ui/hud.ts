@@ -108,6 +108,11 @@ export class Hud {
   private readonly cMark = $('c-mark');
   /** A place the compass marks the direction of: the prologue's wreck (decision 0127). */
   mark: { x: number; y: number } | null = null;
+  /**
+   * Where to head when no course is set (decision 0139): the wreck during the prologue, else the
+   * tracked quest's place. The objective panel and the edge arrow show it like a course.
+   */
+  goal: { x: number; y: number; label: string } | null = null;
   private readonly wpArrow = $('wp-arrow');
   private readonly toast = $('toast');
   private readonly tiller = $('tiller');
@@ -353,6 +358,10 @@ export class Hud {
     this.cargoTooltip.hidden = false;
   }
 
+  /** The prologue's foghorn sounds (decision 0139): said in words too, for a muted phone. */
+  foghorn(bearing: number) {
+    this.showToast(t('toast.foghorn', { dir: compassWords(bearing) }), 3);
+  }
   showToast(text: string, seconds = 2.5, hazard?: HazardKind) {
     this.toast.textContent = text;
     // Hazard warnings carry the same badge as the chart (decision 0070).
@@ -442,7 +451,7 @@ export class Hud {
     visible = true,
   ) {
     const { boat, wind, ship } = this.world;
-    const wp = navigationTarget(this.world);
+    const wp = navigationTarget(this.world) ?? this.goal;
     // Time-dependent cues still advance while the opaque chart or title hides the HUD.
     if (this.toastTimer > 0) {
       this.toastTimer -= dt;
