@@ -1,0 +1,16 @@
+{
+  "id": "rail",
+  "name": "Quarry rail",
+  "group": "stone",
+  "edge": true,
+  "defaults": {
+    "length": 0.32
+  },
+  "parts": [
+    {
+      "box": ["R * length", 0.035, 0.035],
+      "at": [0, 0.03, 0],
+      "color": "post"
+    }
+  ]
+}

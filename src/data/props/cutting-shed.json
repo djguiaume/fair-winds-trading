@@ -1,0 +1,79 @@
+{
+  "id": "cutting-shed",
+  "group": "timber",
+  "building": true,
+  "vars": {
+    "store": 0
+  },
+  "parts": [
+    {
+      "if": "store",
+      "gable": [3.5, 2.3, 0.7],
+      "y": 1.9,
+      "color": "#6e7f45",
+      "tag": {
+        "timberWorkshop": "lumber-store"
+      }
+    },
+    {
+      "if": "!store",
+      "gable": [3.5, 2.3, 0.7],
+      "y": 1.9,
+      "color": "#a65c35",
+      "tag": {
+        "timberWorkshop": "cutting-shed"
+      }
+    },
+    {
+      "repeat": {
+        "x": [-1.5, 1.5],
+        "z": [-0.9, 0.9]
+      },
+      "box": [0.16, 1.9, 0.16],
+      "at": ["x", 0.95, "z"],
+      "color": "post"
+    },
+    {
+      "if": "store",
+      "parts": [
+        {
+          "use": "lumber",
+          "ops": [
+            ["scale", 1.4],
+            ["turnY", 0],
+            ["move", -0.7, 0, 0]
+          ]
+        },
+        {
+          "use": "lumber",
+          "ops": [
+            ["scale", 1.2],
+            ["turnY", 0],
+            ["move", 0.8, 0, 0.2]
+          ]
+        }
+      ]
+    },
+    {
+      "if": "!store",
+      "parts": [
+        {
+          "box": [2.8, 0.65, 0.8],
+          "at": [0, 0.325, 0],
+          "color": "wood"
+        },
+        {
+          "box": [0.15, 2.2, 0.15],
+          "at": [0.5, 1.1, 0],
+          "color": "#b3c6cf"
+        },
+        {
+          "cyl": [0.22, 0.22, 3.1, 6],
+          "ops": [["turnZ", "pi / 2"]],
+          "at": [0, 0.88, 0],
+          "color": "#c0905c"
+        }
+      ]
+    }
+  ]
+}

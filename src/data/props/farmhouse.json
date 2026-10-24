@@ -1,0 +1,24 @@
+{
+  "id": "farmhouse",
+  "group": "homes",
+  "home": true,
+  "building": true,
+  "fit": 1.125,
+  "style": "grain",
+  "parts": [
+    {
+      "box": [1.6, 0.75, 0.85],
+      "at": [0, 0.375, 0],
+      "color": "walls[variant]"
+    },
+    {
+      "hip": [1.85, 1.1, 0.75],
+      "y": 0.75,
+      "color": "roofs[variant]"
+    },
+    {
+      "windows": [1.6, 0.85, 0.42, 3, 1],
+      "seed": "variant"
+    }
+  ]
+}

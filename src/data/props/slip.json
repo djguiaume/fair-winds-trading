@@ -1,0 +1,47 @@
+{
+  "id": "slip",
+  "name": "Old slip",
+  "group": "timber",
+  "internal": true,
+  "edge": true,
+  "vars": {
+    "planked": 0
+  },
+  "parts": [
+    {
+      "box": [0.8, 0.1, 4.2],
+      "at": [0, 0.05, 0],
+      "color": "wood"
+    },
+    {
+      "if": "planked",
+      "cyl": [1, 0.5, 3.8, 8, 0, "pi / 2", "pi"],
+      "ops": [
+        ["turnX", "pi / 2"],
+        ["turnZ", "pi"]
+      ],
+      "at": [0, 1.05, 0],
+      "color": "#8a5a32"
+    },
+    {
+      "if": "!planked",
+      "repeat": {
+        "i": {
+          "count": 7
+        }
+      },
+      "parts": [
+        {
+          "box": [0.08, 0.9, 0.08],
+          "at": ["-(0.5 + sin(i / 6 * pi) * 0.5)", 0.55, "-1.6 + i * 0.53"],
+          "color": "plank"
+        },
+        {
+          "box": [0.08, 0.9, 0.08],
+          "at": ["0.5 + sin(i / 6 * pi) * 0.5", 0.55, "-1.6 + i * 0.53"],
+          "color": "plank"
+        }
+      ]
+    }
+  ]
+}

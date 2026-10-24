@@ -28,7 +28,6 @@ import {
 import {
   C,
   PROP_TYPES,
-  STYLE,
   WOODLAND_TREES,
   barn,
   blocks,
@@ -57,7 +56,7 @@ import {
   smokehouse,
   spireChurch,
   stoneHouse,
-  warehouse,
+  warehouseOf,
   windmill,
   yardHouse,
   bakery,
@@ -246,9 +245,8 @@ export function townIslandParts(spec: TownIslandSpec): Parts {
     2,
     1.2,
   );
-  const roof = STYLE[kind].roofs[1]!;
-  if (level >= 2 && wh[0]) put(out, warehouse(roof), wh[0].x, wh[0].y, wh[0].z, 0.1, S);
-  if (level >= 4 && wh[1]) put(out, warehouse(roof), wh[1].x, wh[1].y, wh[1].z, -0.1, S);
+  if (level >= 2 && wh[0]) put(out, warehouseOf(kind), wh[0].x, wh[0].y, wh[0].z, 0.1, S);
+  if (level >= 4 && wh[1]) put(out, warehouseOf(kind), wh[1].x, wh[1].y, wh[1].z, -0.1, S);
 
   if (kind === 'fish') {
     // A crescent of tall houses facing the sea, a second row behind from level 3.

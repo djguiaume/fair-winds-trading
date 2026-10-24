@@ -1,0 +1,34 @@
+{
+  "id": "moored-boat",
+  "name": "Fishing boat",
+  "group": "fish",
+  "water": true,
+  "parts": [
+    {
+      "use": "fishing-boat",
+      "tag": {
+        "solid": "boat"
+      }
+    },
+    {
+      "box": [1.2, 0.07, 0.07],
+      "at": [0, 1.7, -0.2],
+      "color": "post"
+    },
+    {
+      "repeat": {
+        "n": {
+          "count": 4
+        }
+      },
+      "cyl": [0.07, 0.07, 0.18, 5],
+      "at": ["-0.4 + n * 0.25", 0.5, 0.35],
+      "color": "#e2c160"
+    },
+    {
+      "box": [0.5, 0.16, 0.6],
+      "at": [0, 0.43, 0.55],
+      "color": "#aaa88b"
+    }
+  ]
+}

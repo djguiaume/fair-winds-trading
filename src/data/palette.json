@@ -1,0 +1,49 @@
+{
+  "colors": {
+    "sand": "#f2d9a0",
+    "grass": "#7cc04f",
+    "meadow": "#8fcc5a",
+    "rock": "#c2ad8c",
+    "rock2": "#d6c4a4",
+    "cut": "#ece3d2",
+    "wood": "#9b6b3d",
+    "post": "#6b4a2a",
+    "plank": "#b08a5a",
+    "stone": "#d9cbb0",
+    "stoneDark": "#b49e7c",
+    "chimney": "#8a8174",
+    "trunk": "#5a3d24",
+    "pine": ["#2f7a45", "#3a8a4c", "#2a6e3e"],
+    "leaves": ["#4aa04f", "#5cae4a", "#3f8f45"],
+    "crops": ["#e8c547", "#c9d65a", "#e2b53e", "#a6c64a", "#d9a63a"],
+    "furrow": "#8f7a30",
+    "hay": "#e2c160",
+    "lamp": "#ffe3a0",
+    "flag": "#c8603e",
+    "sail": "#f4ead2",
+    "cream": "#f4ede0",
+    "dark": "#6b4a2a"
+  },
+  "styles": {
+    "fish": {
+      "walls": ["#f8f3ea", "#e2ecf0", "#f4e0c4", "#f0d6cf"],
+      "roofs": ["#3f74a8", "#c8603e", "#2f5f8a", "#d98a4a"]
+    },
+    "timber": {
+      "walls": ["#9a6a3c", "#8a5a32", "#a87a4a"],
+      "roofs": ["#4f6b3a", "#5a3d24", "#6e7f45"]
+    },
+    "grain": {
+      "walls": ["#f8f3ea", "#f1e4c8", "#ece2cf"],
+      "roofs": ["#d9b45a", "#c9a24a", "#e0bf66"]
+    },
+    "stone": {
+      "walls": ["#d6cdbd", "#c9bfae", "#e0d8c8"],
+      "roofs": ["#5f6f7d", "#6f7f8d", "#4f5f6d"]
+    },
+    "yard": {
+      "walls": ["#f4ede0", "#ece2cf", "#f8f3ea"],
+      "roofs": ["#c8603e", "#3f74a8", "#8a4a2a"]
+    }
+  }
+}

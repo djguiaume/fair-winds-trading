@@ -1,0 +1,8 @@
+{
+  "id": "lumber-store",
+  "extends": "cutting-shed",
+  "group": "timber",
+  "vars": {
+    "store": 1
+  }
+}

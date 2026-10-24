@@ -1,0 +1,23 @@
+{
+  "id": "field",
+  "group": "farm",
+  "fitRadius": 0.17,
+  "parts": [
+    {
+      "box": ["R * 0.28", 0.07, "R * 0.28"],
+      "at": [0, 0.035, 0],
+      "color": "crops[variant]"
+    },
+    {
+      "repeat": {
+        "row": [-2, -1, 0, 1, 2]
+      },
+      "plane": ["R * 0.26", 0.035],
+      "ops": [
+        ["turnX", "-pi / 2"],
+        ["move", 0, 0.085, "row * R * 0.045"]
+      ],
+      "color": "furrow"
+    }
+  ]
+}

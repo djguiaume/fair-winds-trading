@@ -1,0 +1,16 @@
+{
+  "id": "paving",
+  "group": "town",
+  "edge": true,
+  "defaults": {
+    "length": 0.28
+  },
+  "parts": [
+    {
+      "plane": ["R * length", "R * 0.055"],
+      "ops": [["turnX", "-pi / 2"]],
+      "at": [0, 0.015, 0],
+      "color": "#c1af7c"
+    }
+  ]
+}

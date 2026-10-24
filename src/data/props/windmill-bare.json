@@ -1,0 +1,9 @@
+{
+  "id": "windmill-bare",
+  "name": "Windmill, bare sails",
+  "extends": "windmill",
+  "group": "farm",
+  "vars": {
+    "bare": 1
+  }
+}
