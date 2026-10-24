@@ -165,7 +165,9 @@ export function flowLabels(
   for (const z of map.windZones ?? []) {
     const { x, y } = boundingCircle(z.outline);
     const heading = z.headingDeg !== undefined ? ` · from ${z.headingDeg}°` : '';
-    label(`${z.name ?? z.id} (${zoneKindName(z.kind)}${heading})`, x, -y, 12, 'small');
+    // A storm belt's name goes just above its band, clear of the chevrons.
+    const top = isBeltKind(z.kind) ? Math.max(...z.outline.map((p) => p[1])) + 10 : y;
+    label(`${z.name ?? z.id} (${zoneKindName(z.kind)}${heading})`, x, -top, 12, 'small');
   }
   for (const c of map.currents ?? []) {
     const lane = laneShape(c);
