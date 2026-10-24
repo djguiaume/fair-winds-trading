@@ -33,6 +33,7 @@ import { BeaconLights } from './beaconLights';
 import { Lanterns } from './lanterns';
 import { Castaway } from './castaway';
 import { SeaMarks } from './seaMarks';
+import { DriftingBergs } from './driftingBergs';
 import type { SeaMarkDef } from '../sim/map';
 import { QuestMarkers } from './questMarkers';
 import type { StepMarker } from '../ui/questView';
@@ -76,6 +77,7 @@ export class GameView {
   private readonly castaway: Castaway;
   /** Buoys and boats at sea, some only before or after a quest (decision 0130). */
   private readonly seaMarks: SeaMarks;
+  private readonly bergs: DriftingBergs;
   /** The tracked quest step's places at sea (decision 0130). */
   private readonly questMarkers = new QuestMarkers();
   /** What the tracked step marks at sea; the game sets it once the quests run. */
@@ -163,7 +165,9 @@ export class GameView {
     this.edgeBuoys = new EdgeBuoys(world.map.boundsRadius);
     this.castaway = new Castaway(world.map);
     this.seaMarks = new SeaMarks(world.map);
+    this.bergs = new DriftingBergs(world.map);
     this.scene.add(
+      this.bergs.root,
       this.castaway.root,
       this.seaMarks.root,
       this.questMarkers.root,
@@ -499,6 +503,7 @@ export class GameView {
     this.edgeBuoys.update(time, (x, z) => waveHeight(x, z, time), this.camera);
     this.seaMarks.setQuestMarks(this.questMarks());
     this.seaMarks.update(time, (x, z) => waveHeight(x, z, time));
+    this.bergs.update(this.world.time, this.world.bergsOn, (x, z) => waveHeight(x, z, time));
     this.questMarkers.update(this.stepMarkers(), time, (x, z) => waveHeight(x, z, time));
 
     this.buoy.root.visible = Boolean(this.world.map.practiceCourse && !this.world.destination);
@@ -541,6 +546,7 @@ export class GameView {
     this.lanterns.dispose();
     this.wake.dispose();
     this.currentWater?.dispose();
+    this.bergs.dispose();
     this.calmWater?.dispose();
     this.shallowsWater?.dispose();
     this.buoy.dispose();

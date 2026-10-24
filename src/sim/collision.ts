@@ -35,6 +35,8 @@ export function shallowsRefuse(feature: TerrainDef, draft: number): boolean {
 
 /** Is this shape solid to a ship of this draft? Shallows are solid only to deeper ships. */
 export function solidTo(feature: TerrainDef, draft: number): boolean {
+  // A berg field is open water; its bergs are solid on their own (decision 0170).
+  if (feature.kind === 'bergs') return false;
   return feature.kind !== 'shallows' || shallowsRefuse(feature, draft);
 }
 
@@ -220,6 +222,8 @@ export function resolveCollisions(
   terrain: readonly TerrainDef[] = [],
   piers: readonly Pier[] = [],
   draft = 0,
+  /** Round obstacles that move, drifting icebergs (decision 0170): solid like ice. */
+  bergs: readonly { x: number; y: number; r: number }[] = [],
 ): Surface | null {
   let hit: Surface | null = null;
   const touch = (surface: Surface) => {
@@ -272,7 +276,7 @@ export function resolveCollisions(
       boat.x += coast.nx * (radius - coast.distance + 1e-6);
       boat.y += coast.ny * (radius - coast.distance + 1e-6);
       bump(boat, coast.nx, coast.ny);
-      touch(feature.kind === 'island' ? 'shore' : feature.kind);
+      touch(feature.kind === 'island' ? 'shore' : (feature.kind as Surface));
     }
   }
   for (const pier of piers) {
@@ -293,6 +297,20 @@ export function resolveCollisions(
       boat.y += ny * overlap;
       bump(boat, nx, ny);
       touch(pier.boat ? 'boat' : 'pier');
+    }
+  }
+  for (const berg of bergs) {
+    const dx = boat.x - berg.x;
+    const dy = boat.y - berg.y;
+    const dist = Math.hypot(dx, dy) || 1e-6;
+    const overlap = berg.r + radius - dist;
+    if (overlap > 0) {
+      const nx = dx / dist;
+      const ny = dy / dist;
+      boat.x += nx * overlap;
+      boat.y += ny * overlap;
+      bump(boat, nx, ny);
+      touch('ice');
     }
   }
   const fromCenter = Math.hypot(boat.x, boat.y);

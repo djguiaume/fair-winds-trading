@@ -51,16 +51,21 @@ export interface IslandDef {
  * (decision 0031). Shallows are a sandy passage under water: ships of draft `maxDraft` or less
  * sail across, slowed a little, and deeper ships are refused, softly, as by a sandbank
  * (decisions 0137, 0152). Ice is a field of floes, pack ice or grounded bergs (the north sea,
- * decision 0170): solid to every ship, a knock like running aground.
+ * decision 0170): solid to every ship, a knock like running aground. A `bergs` shape is open
+ * water where `count` icebergs drift (0170, `src/sim/bergs.ts`): the shape is not solid, its
+ * bergs are, and Settings › Drifting icebergs off removes them.
  */
 export interface TerrainDef {
   id: string;
   /** Shown on the sea chart. */
   name?: string;
-  kind: 'island' | 'sandbank' | 'reef' | 'shallows' | 'ice';
+  kind: 'island' | 'sandbank' | 'reef' | 'shallows' | 'ice' | 'bergs';
   outline: [number, number][];
   /** Shallows only: the deepest draft that crosses (a ship file's `draft`). */
   maxDraft?: number;
+  /** Bergs only: how many drift in it, and their radius range in map units. */
+  count?: number;
+  size?: [number, number];
   look?: {
     trees?: number;
     landmark?: LandmarkKind;

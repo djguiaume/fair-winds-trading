@@ -936,7 +936,9 @@ export class SeaChart {
                 ? 'chart-shallows'
                 : terrain.kind === 'ice'
                   ? 'chart-ice'
-                  : 'chart-bank',
+                  : terrain.kind === 'bergs'
+                    ? 'chart-bergs'
+                    : 'chart-bank',
         });
       const xs = terrain.outline.map((p) => p[0]);
       const ys = terrain.outline.map((p) => -p[1]);
@@ -948,6 +950,13 @@ export class SeaChart {
       // Named ice (decision 0170): the pack that locks a cove, the floes of a barrier.
       if (terrain.name && terrain.kind === 'ice' && known)
         places.push({ name: terrain.name, x: (x0 + x1) / 2, top: y0, bottom: y1 });
+      if (terrain.name && terrain.kind === 'bergs' && known)
+        places.push({
+          name: t('chart.bergs', { name: terrain.name }),
+          x: (x0 + x1) / 2,
+          top: y0,
+          bottom: y1,
+        });
       // The chart says which ships cross a sandy passage (decisions 0137, 0152).
       if (terrain.name && terrain.kind === 'shallows' && known)
         places.push({

@@ -253,6 +253,15 @@ input:focus-visible {
   stroke-width: 1.2px;
   vector-effect: non-scaling-stroke;
 }
+/* Where icebergs drift (decision 0170): open water, a dashed pale edge. */
+.c-bergs {
+  fill: #e9f6fa;
+  fill-opacity: 0.25;
+  stroke: #cfeaf2;
+  stroke-width: 1.4px;
+  stroke-dasharray: 5 4;
+  vector-effect: non-scaling-stroke;
+}
 /* Shallows only shallow ships cross (decision 0152). */
 .c-shallows {
   fill: #b9ecdf;

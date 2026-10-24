@@ -520,7 +520,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     for (const feature of map.terrain ?? []) {
       const parts: Parts = [];
       // Shallows are water: ShallowsWater tints them at sea (decision 0152), nothing stands there.
-      if (feature.kind === 'shallows') continue;
+      if (feature.kind === 'shallows' || feature.kind === 'bergs') continue;
       if (feature.kind === 'ice') {
         const group = this.batch(iceField(feature, terrainSeed(map, feature)));
         group.name = `terrain:${feature.id}`;

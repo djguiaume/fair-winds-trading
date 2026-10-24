@@ -39,6 +39,7 @@ export type SeaAdd =
   | 'sandbank'
   | 'shallows'
   | 'ice'
+  | 'bergs'
   | 'ridge'
   | 'mark'
   | 'current'
@@ -153,6 +154,7 @@ export function applySeaSteps(doc: SeaDoc, steps: readonly SeaStep[]): string[] 
         sandbank: 'sandbank',
         shallows: 'shallows',
         ice: 'ice',
+        bergs: 'bergs',
         ridge: 'island',
       } as const;
       if (step.what === 'island') {

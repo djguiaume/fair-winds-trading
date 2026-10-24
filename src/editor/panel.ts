@@ -427,6 +427,7 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
       sandbank: 'sandbank',
       shallows: 'shallows (deep ships go round)',
       ice: 'ice (pack ice, floes)',
+      bergs: 'drifting icebergs (open water)',
     };
     heading(shape.name ?? shape.id, kinds[shape.kind]);
     seaRow();
@@ -443,6 +444,18 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     // Sandy passages refuse ships deeper than this (decision 0152); the sloop draws 0.7.
     if (shape.kind === 'shallows')
       number('Max draft', shape.maxDraft, (v) => (shape.maxDraft = v), { min: 0, optional: true });
+    // Drifting icebergs (decision 0170): how many, and how big (radius, map units).
+    if (shape.kind === 'bergs') {
+      number('Icebergs', shape.count, (v) => (shape.count = v ?? 0), { min: 0 });
+      number('Smallest', shape.size?.[0], (v) => (shape.size = [v ?? 5, shape.size?.[1] ?? 11]), {
+        min: 1,
+        optional: true,
+      });
+      number('Largest', shape.size?.[1], (v) => (shape.size = [shape.size?.[0] ?? 5, v ?? 11]), {
+        min: 1,
+        optional: true,
+      });
+    }
     const look = () => (shape.look ??= {});
     number('Trees', shape.look?.trees, (v) => (look().trees = v), { min: 0, optional: true });
     select(

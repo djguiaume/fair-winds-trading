@@ -1085,6 +1085,15 @@ currentsSwitch.addEventListener('change', () => {
   settings.currents = currentsSwitch.checked;
   keepSettings();
 });
+// Drifting icebergs (decision 0170): their own switch, like every hazard.
+const bergsSwitch = $<HTMLInputElement>('bergs');
+world.bergsOn = settings.bergs;
+bergsSwitch.checked = settings.bergs;
+bergsSwitch.addEventListener('change', () => {
+  world.bergsOn = bergsSwitch.checked;
+  settings.bergs = bergsSwitch.checked;
+  keepSettings();
+});
 // Wind: steady trade wind or the shifting wind (decision 0083); the level sets its default.
 const windButtons = [...$('wind-choice').querySelectorAll<HTMLButtonElement>('[data-wind]')];
 const syncWind = () => {

@@ -22,7 +22,8 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
   new <id> --name "The Ice"             a new sea file src/data/seas/<id>.json, listed in grown.json
   add <what> --sea <id> --at x,y [--outline "x,y x,y …"] [fields]
         island   [--radius 12 --name … --design <island file>]
-        reef | sandbank | shallows [--max-draft 1.2] | ice | ridge   (an oval at --at, or --outline)
+        reef | sandbank | shallows [--max-draft 1.2] | ice | bergs [--count 6 --size 5,11] | ridge
+                                                                  (an oval at --at, or --outline)
         mark     --type buoy-red|buoy-green|cardinal-north|-east|-south|-west|fishing-boat|pilot-cutter|light
                  [--name … --chart --turn deg]
         current  --path "x,y,w x,y,w …" [--speed 1.5 --name …]   (points in the direction it flows)
@@ -68,6 +69,9 @@ const FIELD_NAMES: Record<string, string> = {
   'max-level': 'maxLevel',
   site: 'site',
   hidden: 'hidden',
+  count: 'count',
+  size: 'size',
+  seed: 'seed',
 };
 function fieldsOf(args: Args): Record<string, unknown> {
   const fields: Record<string, unknown> = {};
@@ -83,6 +87,8 @@ function fieldsOf(args: Args): Record<string, unknown> {
             ? Number(v)
             : v;
   }
+  // A berg field's radius range (decision 0170): "5,11".
+  if (typeof fields.size === 'string') fields.size = fields.size.split(',').map(Number);
   // An island's file is its look's design.
   if (typeof fields.design === 'string') {
     fields.look = { design: fields.design };

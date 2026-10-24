@@ -112,7 +112,9 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
               ? 'c-shallows'
               : t.kind === 'ice'
                 ? 'c-ice'
-                : 'c-bank',
+                : t.kind === 'bergs'
+                  ? 'c-bergs'
+                  : 'c-bank',
         'data-hit': hit,
       });
     const before = shipped.terrain?.find((s) => s.id === t.id);

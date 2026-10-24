@@ -1,3 +1,4 @@
+import { bergsAt } from './bergs';
 import { type FogEvent, stepFog } from './fog';
 import { TUNING } from '../data/tuning';
 import {
@@ -89,6 +90,8 @@ export interface World {
   currents: CurrentField;
   /** Currents on (Settings › Weather, decision 0140); off = still water everywhere. */
   currentsOn: boolean;
+  /** Drifting icebergs (decision 0170): a hazard with its own Settings switch. */
+  bergsOn: boolean;
   /** The water at the boat on the last step, knots (east, north), after the switch and level. */
   water: CurrentSample;
   /** Speed over the ground on the last step, knots: through the water, leeway and current. */
@@ -203,6 +206,7 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     shallow: 0,
     currents: new CurrentField(map),
     currentsOn: true,
+    bergsOn: true,
     water: { east: 0, north: 0, id: '' },
     sogKn: 0,
     windOffsetDeg: 0,
@@ -571,6 +575,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
     world.map.terrain,
     world.piers,
     world.ship.draft,
+    world.bergsOn ? bergsAt(world.map, world.time, { ...world.boat, range: 40 }) : [],
   );
   // Report a new hit, not every frame spent grinding along a shore.
   if (surface && world.boat.sinceBump === 0 && sinceBump > 0.5) {

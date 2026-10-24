@@ -38,6 +38,8 @@ export interface Settings {
   windZones: boolean;
   /** Currents (decision 0140): water that carries the boat; off = still water everywhere. */
   currents: boolean;
+  /** Drifting icebergs in the north (decision 0170); a hazard, so it can be off. */
+  bergs: boolean;
   /** The first current met has shown its one-time hint (decision 0140). */
   seenCurrentHint: boolean;
   /** The steady trade wind (decision 0083); picking a difficulty level sets its default. */
@@ -62,6 +64,7 @@ const DEFAULTS: Settings = {
   storms: true,
   windZones: true,
   currents: true,
+  bergs: true,
   seenCurrentHint: false,
   steadyWind: false,
 };

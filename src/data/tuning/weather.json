@@ -82,6 +82,11 @@
     "duskEnd": 480,
     "nightEnd": 660
   },
+  "bergs": {
+    "driftKn": 0.35,
+    "size": [5, 11],
+    "margin": 4
+  },
   "currents": {
     "smoothRounds": 4,
     "edgeFadeUnits": 14,
