@@ -31,7 +31,8 @@
       "radius": 22,
       "name": "Palm Key",
       "look": {
-        "design": "palm-key"
+        "design": "palm-key",
+        "dock": true
       }
     },
     {
@@ -317,6 +318,17 @@
       "levelProduces": {
         "3": ["spicedTea"]
       }
+    },
+    {
+      "id": "palm-key",
+      "name": "Palm Key",
+      "islandId": "palm-key",
+      "site": true,
+      "produces": ["spice"],
+      "wants": ["timber"],
+      "wantsMade": ["bread", "planks"],
+      "level": 1,
+      "maxLevel": 3
     }
   ],
   "course": [

@@ -33,9 +33,11 @@ export interface ShipyardProgress {
 export function homePort(map: MapDef): PortDef {
   const named = map.ports.find((p) => p.id === map.homePort);
   if (named) return named;
-  let best = map.ports[0]!;
+  // An empty island to found (decision 0157) is never the home port.
+  const ports = map.ports.filter((p) => !p.site);
+  let best = ports[0] ?? map.ports[0]!;
   let bestD = Infinity;
-  for (const port of map.ports) {
+  for (const port of ports) {
     const island = map.islands.find((i) => i.id === port.islandId);
     const d = island ? distance(island, map.start) : Infinity;
     if (d < bestD) {
@@ -60,11 +62,23 @@ export function yardOf(map: MapDef, classId: string): PortDef | null {
 }
 
 export function createProgress(map: MapDef): ShipyardProgress {
-  return { discovered: map.ports.filter((p) => !p.hidden).map((p) => p.id), standing: {} };
+  return {
+    discovered: map.ports.filter((p) => !p.hidden && !p.site).map((p) => p.id),
+    standing: {},
+  };
 }
 
 export function isDiscovered(trade: TradeState, portId: string): boolean {
   return trade.progress.discovered.includes(portId);
+}
+
+/**
+ * Whether a port is open (decision 0157): every port is, except an empty island to found (`site`)
+ * until a quest founds it. A site goes on the chart only when founded, so the chart's list is
+ * also the record of the sites founded, saved with the rest of the voyage.
+ */
+export function isFounded(trade: TradeState, port: PortDef): boolean {
+  return !port.site || isDiscovered(trade, port.id);
 }
 
 /** A port on the chart: found, and not out in the fog (decision 0156). */
@@ -88,7 +102,8 @@ export function discoverNear(
 ): PortDef[] {
   const found: PortDef[] = [];
   for (const port of map.ports) {
-    if (isDiscovered(trade, port.id)) continue;
+    // A site goes on the chart when it is founded, not when seen (decision 0157).
+    if (port.site || isDiscovered(trade, port.id)) continue;
     const island = map.islands.find((i) => i.id === port.islandId);
     // The lookout sees farther (decision 0126).
     const range = applyPerks(trade.home, 'discoverRange', TUNING.economy.discoverRange);

@@ -15,6 +15,7 @@ export interface Shot {
   look: [number, number] | null;
   chart: boolean;
   charted: boolean;
+  towns: [string, number][];
   lang: string;
   night: boolean;
   time: number | null;

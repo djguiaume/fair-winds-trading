@@ -155,6 +155,8 @@ export function rewardWords(
       more.push(t('quest.rewardGrows', { name: portName(map, id) ?? id }));
     for (const id of r.discover ?? [])
       more.push(t('quest.rewardDiscover', { name: portName(map, id) ?? id }));
+    for (const id of r.found ?? [])
+      more.push(t('quest.rewardFound', { name: portName(map, id) ?? id }));
   }
   return gold || more.length ? { gold, more } : undefined;
 }
@@ -176,9 +178,15 @@ export function stepProgress(goal: Condition | undefined, counts: readonly numbe
     const n = goal.order === 'in-order' ? s : s.toString(2).replace(/0/g, '').length;
     return `${n} / ${goal.points.length}`;
   }
+  // Founding goods (decision 0157): several goods landed count as one load.
+  const of = goal?.is === 'all' && Array.isArray(goal.of) ? (goal.of as Condition[]) : [];
+  if (of.length && of.every((c) => c.is === 'landed' && typeof c.qty === 'number')) {
+    const landed = of.reduce((n, _c, i) => n + (counts[i * 2] ?? 0), 0);
+    return `${landed} / ${of.reduce((n, c) => n + (c.qty as number), 0)}`;
+  }
   const qty = typeof goal?.qty === 'number' ? goal.qty : null;
   if (qty === null) return undefined;
-  if (goal!.is === 'delivered') return `${counts[0] ?? 0} / ${qty}`;
+  if (goal!.is === 'delivered' || goal!.is === 'landed') return `${counts[0] ?? 0} / ${qty}`;
   if (goal!.is === 'carried') return `${counts[1] ?? 0} / ${qty}`;
   return undefined;
 }
@@ -433,12 +441,21 @@ export function questTarget(book: QuestBook, map: MapDef): QuestTarget | null {
   }
   const goal = step.goal;
   const counts = book.progress(quest.id)?.counts ?? [];
+  // Founding goods (decision 0157): where they land, alone or the first of several.
+  const landed =
+    goal?.is === 'landed'
+      ? goal
+      : goal?.is === 'all'
+        ? (goal.of as Condition[]).find((c) => c.is === 'landed')
+        : undefined;
   const id =
     goal?.is === 'carried'
       ? (counts[0] ?? 0) > 0
         ? goal.to
         : goal.from
-      : (goal?.port ?? step.port ?? quest.port);
+      : landed
+        ? landed.place
+        : (goal?.port ?? step.port ?? quest.port);
   if (isSpot(id)) return { point: { x: id.x, y: id.y }, radius: id.within };
   const port = book.portOf(quest.id, id);
   return port ? { port } : null;
@@ -514,6 +531,12 @@ export function stepMarkers(
       const spot = first > 0 ? c.to : c.from;
       if (isSpot(spot))
         out.push({ x: spot.x, y: spot.y, within: spot.within, reached: false, next: true });
+    }
+    // Founding goods' landing spot (decision 0157), until they are all ashore.
+    if (c.is === 'landed' && isSpot(c.place) && first < (typeof c.qty === 'number' ? c.qty : 0)) {
+      const p = c.place;
+      if (!out.some((m) => m.x === p.x && m.y === p.y))
+        out.push({ x: p.x, y: p.y, within: p.within, reached: false, next: true });
     }
   }
   return out;

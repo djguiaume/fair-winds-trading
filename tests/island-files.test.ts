@@ -141,6 +141,6 @@ const GOLDEN: Record<string, string[]> = {
   // The south sea (decision 0152).
   sunreach: ['415:5f29af5c', '549:b2e40bf2', '665:cdebaf36', '712:28f7bf9e'],
   'sunreach-south': ['336:9dd11960', '361:49fa96bd', '371:810eea4b', '371:810eea4b'],
-  'palm-key': Array(4).fill('147:9fbbf881'),
+  'palm-key': ['156:f382bcb1', '165:a95e4a6c', '178:e846448d', '178:e846448d'],
   'lone-palm': Array(4).fill('13:531edc15'),
 };

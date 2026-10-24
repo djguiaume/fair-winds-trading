@@ -62,9 +62,10 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
     issues.push({ severity: 'warning', check, message, ...extra });
 
   // Known types, kinds and levels.
-  const levelsOk = (e: { from?: number; to?: number }, what: string, extra = {}) => {
-    if (e.from !== undefined && !isLevel(e.from))
-      error('levels', `${what}: "from" must be 1 to ${TOP}`, extra);
+  // A prop `from: 0` stands on an empty island before it is founded too (decision 0157).
+  const levelsOk = (e: { from?: number; to?: number }, what: string, extra = {}, zero = false) => {
+    if (e.from !== undefined && !isLevel(e.from) && !(zero && e.from === 0))
+      error('levels', `${what}: "from" must be ${zero ? 0 : 1} to ${TOP}`, extra);
     else if (e.to !== undefined && !isLevel(e.to))
       error('levels', `${what}: "to" must be 1 to ${TOP}`, extra);
     else if ((e.from ?? 1) > (e.to ?? TOP)) error('levels', `${what}: "from" is after "to"`, extra);
@@ -75,7 +76,7 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
     const extra = { prop: i, at: [p.x, p.z] as [number, number] };
     if (!kit.types[p.type]) error('known', `Unknown prop type "${p.type}"`, extra);
     if (p.from === undefined) error('levels', `${p.type}: no "from" level`, extra);
-    levelsOk(p, p.type, extra);
+    levelsOk(p, p.type, extra, true);
   });
   design.ground.forEach((g, i) => {
     if (g.material !== 'grass' && g.material !== 'rock')

@@ -28,7 +28,8 @@ import {
 import { GameView } from './render/view';
 import { SAIL_STEPS, createBoat, knotToUnits } from './sim/boat';
 import { isFar, isRare, isSpecialty } from './sim/goods';
-import { portNow, questsDone, settlementLevels } from './sim/settlement';
+import { portNow, questsDone } from './sim/settlement';
+import { foundSite, foundedSites, townLevels } from './sim/founding';
 import { bearingTo, clamp } from './sim/math';
 import { type SaveStorage, clearSave, loadGame, saveGame } from './sim/save';
 import { LINK_KEY } from './sim/saveTransfer';
@@ -366,8 +367,26 @@ function openHarbour() {
 // Every other quest's news away from its harbour: a small note at sea (decision 0141).
 const questNote = new QuestNote($<HTMLButtonElement>('quest-note'), $('captain-stats'));
 questNote.onOpen = () => chart.open();
+/** Sites founded so far (decision 0157): a new one opens its harbour and goes on the chart. */
+let founded = foundedSites(world.map, world.trade).join();
+function checkFounded() {
+  const now = foundedSites(world.map, world.trade);
+  if (now.join() === founded) return;
+  const was = founded.split(',');
+  founded = now.join();
+  view.setSettlementLevels(townLevels(world.map, world.trade));
+  hud.portLabels.rebuild();
+  for (const id of now.filter((p) => !was.includes(p)))
+    hud.showToast(t('toast.founded', { name: trade.findPort(world.map, id)?.name ?? id }), 5);
+  autosave();
+}
 quests.onEvent = (e) => {
   const quest = quests.quests.find((q) => q.id === e.quest);
+  if (e.type === 'landed') {
+    hud.showToast(t('toast.landed', { qty: e.qty, good: goodName(e.good).toLowerCase() }), 3);
+    return;
+  }
+  checkFounded();
   if (quest?.lesson) {
     // A lesson speaks in its own bubble, and its last one says it is done (decision 0151).
     if (e.type === 'finished') {
@@ -1153,7 +1172,7 @@ function handleEvents(events: WorldEvent[]) {
             : t('toast.levelUp', { name: portName, level: townLevelName(e.level) }),
         5,
       );
-      view.setSettlementLevels(settlementLevels(world.trade));
+      view.setSettlementLevels(townLevels(world.map, world.trade));
       hud.portLabels.rebuild();
       if (tradePanel.isOpen) tradePanel.render();
       autosave();
@@ -1444,8 +1463,36 @@ if (new URLSearchParams(location.search).has('debug')) {
     world.boat.sail = SAIL_STEPS[sailStep]!;
     world.destination = null;
   };
+  /**
+   * A town as the shots need it (`npm run shots -- --town palm-key:2`, decision 0157): an empty
+   * island founded first, as the `found` reward does, then grown to the level.
+   */
+  const town = (portId: string, level: number) => {
+    foundSite(world.trade, world.map, portId);
+    const s = world.trade.settlements.byPort[portId];
+    if (!s) return false;
+    s.level = level;
+    trade.syncMarketLevels(world.trade, world.map);
+    refreshPiers(world);
+    checkFounded();
+    view.setSettlementLevels(townLevels(world.map, world.trade));
+    return true;
+  };
   Object.assign(window, {
-    fwt: { world, view, input, trade, tradePanel, quests, coach, chart, newGame, dock, place },
+    fwt: {
+      world,
+      view,
+      input,
+      trade,
+      tradePanel,
+      quests,
+      coach,
+      chart,
+      newGame,
+      dock,
+      place,
+      town,
+    },
   });
 }
 
