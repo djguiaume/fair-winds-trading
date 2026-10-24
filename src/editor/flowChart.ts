@@ -107,7 +107,7 @@ function drawCrests(group: Element, map: MapDef) {
   group.replaceChildren();
   for (const c of map.currents ?? [])
     for (const crest of crestsOf(c, t)) {
-      const path = document.createElementNS(NS, 'path');
+      const path = group.ownerDocument.createElementNS(NS, 'path');
       path.setAttribute(
         'd',
         `M${crest.a[0]},${-crest.a[1]} Q${crest.c[0]},${-crest.c[1]} ${crest.b[0]},${-crest.b[1]}`,

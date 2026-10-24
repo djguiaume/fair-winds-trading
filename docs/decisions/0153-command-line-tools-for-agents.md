@@ -64,3 +64,10 @@ Built first, as the base the others use:
 - `CLAUDE.md` tells agents when to use them; `tests/fw-tools.test.ts` covers them.
 
 The other four (shots, chart, island, quest) are built in parallel threads on top of this base.
+
+## Update (2026-10-24): `npm run chart`
+
+- `npm run chart` (`tools/fw/chart.ts`, [docs/tools/chart.md](../tools/chart.md)) draws a sea with the map editor's own `drawChart` (`src/editor/chart.ts`, run in Node on a happy-dom document) and its CSS, so the picture matches the editor; Chromium only turns the SVG into a PNG. Seas: `ring`, `stress`, `phase4`, an editor export, or a sea file merged round the ring (it replaces the shipped sea with the same id). A side panel holds the title and a legend of what is in view. `--route a,b` sails a leg with `sailRoute` (the route checks' planner) and prints its time; an overlay JSON adds proposed areas, islands, lines and labels.
+- Shared code moved, no copy: sea marks are drawn by `seaMarkShape` in `src/ui/chartMarks.ts`, used by the sea chart, the map editor (new **Sea marks** layer, on) and the quest builder's map. `drawChart` takes an optional size and uses the SVG's own document, so it runs without a browser. Island names on the editor's chart now sit above the coast, not the island's radius (a ring-lagoon island's radius is far above its land).
+- Replaces the drawing scripts `docs/reviews/phase-4-map/src/make.cjs`, `far-goods/src/make.cjs` and `south-sea/src/make-schema.cjs` for new work; they stay as records.
+
