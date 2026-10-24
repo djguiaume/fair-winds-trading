@@ -163,6 +163,33 @@ export function paintGroups(geometry: THREE.BufferGeometry, colors: THREE.ColorR
   return g;
 }
 
+/**
+ * Paints each triangle with a colour from a list, picked by a hash of the triangle's centre so
+ * the same face always takes the same one (ground speckle: snow, shingle, moor). `pick` may name
+ * another list for a face (a snow cap above a height); one colour paints like `paint`.
+ */
+export function paintFaces(
+  geometry: THREE.BufferGeometry,
+  colors: string[],
+  pick?: (cx: number, cy: number, cz: number, face: number) => string[] | undefined,
+) {
+  const g = paint(geometry, colors[0]!);
+  if (colors.length < 2 && !pick) return g;
+  const pos = g.attributes.position!;
+  const col = g.attributes.color!;
+  const c = new THREE.Color();
+  for (let i = 0; i + 2 < pos.count; i += 3) {
+    const cx = (pos.getX(i) + pos.getX(i + 1) + pos.getX(i + 2)) / 3;
+    const cy = (pos.getY(i) + pos.getY(i + 1) + pos.getY(i + 2)) / 3;
+    const cz = (pos.getZ(i) + pos.getZ(i + 1) + pos.getZ(i + 2)) / 3;
+    const list = pick?.(cx, cy, cz, i / 3) ?? colors;
+    const h = Math.abs(Math.sin(cx * 12.9898 + cy * 4.1414 + cz * 78.233) * 43758.5453) % 1;
+    c.set(list[Math.floor(h * list.length)]!);
+    for (let k = 0; k < 3; k++) col.setXYZ(i + k, c.r, c.g, c.b);
+  }
+  return g;
+}
+
 /** New non-indexed geometry holding only one group's triangles (e.g. an extrusion's sides). */
 export function keepGroup(geometry: THREE.BufferGeometry, materialIndex: number) {
   const src = geometry.index ? geometry.toNonIndexed() : geometry;

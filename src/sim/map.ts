@@ -31,7 +31,7 @@ export interface IslandDef {
      * Producer style of a designed island, set by `prepareMap` (from the island file); an island
      * with only a style is built from that style's shipped island file.
      */
-    profile?: 'fish' | 'timber' | 'grain' | 'stone' | 'tropic';
+    profile?: string;
     /** Harbour bearing in radians, shared with coastline transforms. */
     harbourBearing?: number;
     /**
