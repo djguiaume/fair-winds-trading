@@ -12,10 +12,10 @@ const polar = (deg, r) => { const a = (deg * Math.PI) / 180; return [r * Math.si
 
 // Placeholder Phase 4 sites, from docs/reviews/phase-4-map/src/make.cjs.
 const BIOMES = [
-  { id: 'ice', name: 'North · ice', good: 'Cloudberry jam', icon: '❄', color: '#3f8fbf', tint: '#e6f3fb', port: polar(8, 690), outpost: polar(30, 860), bulk: 'fish', wants: 'lamp oil', price: 110, buyers: ['saltmere', 'stonehaven'] },
-  { id: 'tropic', name: 'South · tropical', good: 'Spice', icon: '✿', color: '#d0732a', tint: '#e2f7ef', port: polar(176, 680), outpost: polar(141, 900), bulk: 'timber', wants: 'honey', price: 90, buyers: ['calda', 'westholm'] },
-  { id: 'fire', name: 'West · fire', good: 'Obsidian', icon: '▲', color: '#b23a2e', tint: '#fbe9df', port: polar(300, 650), outpost: polar(245, 880), bulk: 'stone', wants: 'lamp oil', price: 100, buyers: ['calda', 'saltmere'] },
-  { id: 'fog', name: 'East · fog and storm', good: 'Amber', icon: '◆', color: '#c58a12', tint: '#eceff2', port: polar(94, 680), outpost: polar(66, 870), bulk: 'grain', wants: 'honey', price: 110, buyers: ['westholm', 'stonehaven'] },
+  { id: 'ice', name: 'North · ice', good: 'Cloudberry jam', icon: '❄', color: '#3f8fbf', tint: '#e6f3fb', port: polar(8, 690), outpost: polar(30, 860), wants: 'lamp oil', price: 110, buyers: ['saltmere', 'stonehaven'] },
+  { id: 'tropic', name: 'South · tropical', good: 'Spice', icon: '✿', color: '#d0732a', tint: '#e2f7ef', port: polar(176, 680), outpost: polar(141, 900), wants: 'honey', price: 90, buyers: ['calda', 'westholm'] },
+  { id: 'fire', name: 'West · fire', good: 'Obsidian', icon: '▲', color: '#b23a2e', tint: '#fbe9df', port: polar(300, 650), outpost: polar(245, 880), wants: 'lamp oil', price: 100, buyers: ['calda', 'saltmere'] },
+  { id: 'fog', name: 'East · fog and storm', good: 'Amber', icon: '◆', color: '#c58a12', tint: '#eceff2', port: polar(94, 680), outpost: polar(66, 870), wants: 'honey', price: 120, buyers: ['westholm', 'stonehaven'] },
 ];
 const isl = Object.fromEntries(ring.islands.map((i) => [i.id, i]));
 const portIsland = Object.fromEntries(ring.ports.map((p) => [p.id, isl[p.islandId]]));
@@ -64,7 +64,7 @@ for (const b of BIOMES) {
   const [px, py] = P(...b.port), [ox, oy] = P(...b.outpost);
   s += `<circle cx="${px}" cy="${py}" r="16" fill="#f3ead0" stroke="#5c4a2a" stroke-width="2"/>`;
   s += `<text x="${px}" y="${py + 34}" class="lbl" text-anchor="middle">Main port</text>`;
-  s += `<text x="${px}" y="${py + 50}" class="small" text-anchor="middle">makes ${b.bulk}, buys ${b.wants}</text>`;
+  s += `<text x="${px}" y="${py + 50}" class="small" text-anchor="middle">gathers a little ${b.good.toLowerCase()}, buys ${b.wants}</text>`;
   s += `<circle cx="${ox}" cy="${oy}" r="13" fill="#fff" stroke="${b.color}" stroke-width="3"/>`;
   s += `<text x="${ox}" y="${oy + 5}" text-anchor="middle" fill="${b.color}" style="font:700 14px sans-serif">${b.icon}</text>`;
   s += `<text x="${ox}" y="${oy - 20}" class="lbl" text-anchor="middle" fill="${b.color}">Outpost: ${b.good} ${b.price}</text>`;
@@ -80,7 +80,7 @@ lg += `<text x="${L}" y="92" class="small">Second rare set (0065, 0137). Names f
 let y = 140;
 for (const b of BIOMES) {
   lg += `<text x="${L}" y="${y}" style="font:700 20px sans-serif" fill="${b.color}">${b.icon} ${b.good}, base ${b.price}</text>`;
-  lg += `<text x="${L}" y="${y + 26}" class="lg">Made at the ${b.id === 'tropic' ? 'tropical' : b.id} outpost (from village)</text>`;
+  lg += `<text x="${L}" y="${y + 26}" class="lg">A little at the main port, plenty at the outpost</text>`;
   lg += `<text x="${L}" y="${y + 50}" class="lg">Bought by port towns ${b.buyers.map((x) => portName[x]).join(' and ')}</text>`;
   y += 96;
 }
@@ -96,15 +96,18 @@ const rules = [
   '• Each ring port town buys two far goods.',
   '• An outpost makes its good once it is a village,',
   '  like the far yards (0065).',
-  '• Main ports sell a bulk good for founding the',
-  '  outpost nearby, and buy honey or lamp oil.',
+  '• Main ports gather a little of the far good',
+  '  (first trip pays) and buy honey or lamp oil.',
+  '• Main ports make no ring goods.',
   '• Far goods do not count for the honey and lamp oil',
   '  gate, and add no level 5.',
   '',
-  'Estimate, full hold of 30, maxed schooner:',
-  '  honey today      +811 in 52 s',
-  '  spice            +1,640 in 85 s',
-  '  cloudberry jam, amber  +2,011 in 87 to 96 s',
+  'Estimate, maxed cutter, one leg:',
+  '  honey today, 30 units: +811',
+  '  first trip from a main port, 20 units: +690 to +920',
+  '  own outpost, 30 units: +1,640 to +2,190',
+  '',
+  'Order the seas open: south, west, north, east.',
 ];
 for (const r of rules) { lg += `<text x="${L}" y="${y}" class="${r === 'Rules' || r.startsWith('Estimate') ? 'lgb' : 'lg'}">${r}</text>`; y += 28; }
 
