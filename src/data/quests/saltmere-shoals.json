@@ -1,0 +1,63 @@
+{
+  "id": "saltmere-shoals",
+  "name": "Where the shoals went",
+  "start": { "is": "quest-done", "quest": "rooks-thanks" },
+  "offer": true,
+  "text": "quest.saltmere-shoals",
+  "giver": "kit",
+  "port": "saltmere",
+  "items": { "catch": { "space": 1 } },
+  "steps": [
+    {
+      "id": "gulls",
+      "goal": {
+        "is": "reach",
+        "points": [
+          { "x": 205, "y": 8 },
+          { "x": 186, "y": 43 },
+          { "x": 163, "y": 66 }
+        ],
+        "within": 10,
+        "order": "any"
+      },
+      "clean": true,
+      "marker": "gulls",
+      "mood": "worried",
+      "reward": { "gold": 100 }
+    },
+    {
+      "id": "channel",
+      "goal": {
+        "is": "reach",
+        "points": [
+          { "x": 119.2, "y": 52.6 },
+          { "x": 134, "y": 66 },
+          { "x": 148.8, "y": 79.4 }
+        ],
+        "within": 10,
+        "order": "in-order"
+      },
+      "clean": true,
+      "mood": "neutral",
+      "reward": { "gold": 150 }
+    },
+    {
+      "id": "catch",
+      "goal": {
+        "is": "all",
+        "of": [
+          { "is": "carried", "item": "catch", "qty": 6, "from": "saltmere", "to": "calda" },
+          {
+            "is": "timed",
+            "from": "saltmere",
+            "to": "calda",
+            "par": { "fair": 150, "captain": 110, "salt": 90 }
+          }
+        ]
+      },
+      "mood": "neutral",
+      "reward": { "gold": 250 }
+    }
+  ],
+  "reward": { "homeSpot": ["spot-3"] }
+}
