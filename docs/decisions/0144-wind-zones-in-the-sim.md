@@ -1,6 +1,6 @@
 # 0144. Wind zones in the sim
 
-**Status:** Implemented (2026-10-24). Part 1 (PR #136): the sim, its tests and the Settings switch. Part 2 (below) came once the shared base PR of [0140](0140-wind-zones-and-currents.md) (map format, map checks, editor tools, the `zones` block in `weather.json`) merged ([0145](0145-building-currents.md), PR #137).
+**Status:** Implemented (2026-10-24). Part 1 (PR #136): the sim, its tests and the Settings switch. Part 2 came once the shared base PR of [0140](0140-wind-zones-and-currents.md) (map format, map checks, editor tools, the `zones` block in `weather.json`) merged ([0145](0145-building-currents.md), PR #137).
 
 ## Context
 
@@ -39,5 +39,12 @@ After the shared base (PR #137) merged:
 - The game sails the **smoothed outline** (`smoothOutline` from `flowShapes.ts`), the same one the editor draws.
 - **Route checks** (`sailRoute`, used by the map checks in the editor and the tests) and the **balance check's legs** (`legSeconds`) plan with the zones' **average** wind: no puffs or shifts, and the doldrums at the middle of their range. A leg is cut into stretches of 40 units, each sailed in the wind at its middle. Legs are cached per weather list, and only maps with zones take this path, so today's ring times are unchanged. The route planner's estimate allows for the strongest zone, so it stays optimistic.
 - Changing a zone number in the `?tune` panel clears the prepared zones with the other weather caches.
-- Still to come: a calm-water look for the doldrums, after the currents' sea look lands in `ocean.ts` (both change the same shader). The biome zones themselves come when the Phase 4 map is authored.
+- The biome zones themselves come when the Phase 4 map is authored.
+
+## Part 3 (2026-10-24): calm water
+
+- **`src/render/calmWater.ts`** draws glassy water over zones whose kind has `glassy` (0..1) in `weather.json`: doldrums 0.7, sheltered 0.3. After Guillaume's review ("not really visible", then "still not identifiable enough, do we see the edge clearly?"), it is a bright, sky-pale mirror with soft bands of reflected light. It has a **sharp edge** (6 units) on the outline, with a band of **ruffled ripples** just outside it where the breeze dies, so you can steer by it. The wind still eases over the full `fadeUnits`. The sheet is a 3-unit grid that rides the waves, so no chop pokes through it, and it fades near shores.
+- It works like the currents' water ([0145](0145-building-currents.md)): one mesh per zone, built at load, riding the ocean's waves, and copying the ocean's colours and fog each frame (day, night, weather). It is hidden when Settings › Wind zones is off.
+- A zone can set its own `glassy` with `tune`, including 0 to turn the look off.
+- Captures are in [docs/reviews/wind-zones](../reviews/wind-zones/README.md).
 

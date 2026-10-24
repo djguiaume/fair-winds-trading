@@ -265,5 +265,6 @@ describe('wind zones (decision 0140)', () => {
     const slow = sailRoute(still, PHASE1_MAP.start, goal, wind)!;
     const [lo, hi] = kinds().doldrums!.strength as [number, number];
     expect(slow.seconds / open.seconds).toBeCloseTo(2 / (lo + hi), 1);
-  });
+    // Two full route searches: about 4 s alone, more on a loaded CI runner.
+  }, 30000);
 });

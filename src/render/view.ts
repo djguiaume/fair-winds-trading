@@ -18,6 +18,7 @@ import {
 } from './models';
 import { HEEL_FEEL, Heel, heelFactor } from './heel';
 import { Ocean, ShoreTextureCache, waveHeight } from './ocean';
+import { CalmWater } from './calmWater';
 import { CurrentWater } from './currentWater';
 import { ShallowsWater } from './shallowsWater';
 import { PALETTE } from './palette';
@@ -98,6 +99,7 @@ export class GameView {
   private ocean!: Ocean;
   /** Darker current water with drifting crests (decision 0140). */
   private currentWater?: CurrentWater;
+  private calmWater?: CalmWater;
   private shallowsWater?: ShallowsWater;
   private readonly shores = new ShoreTextureCache();
   private streaks!: WindStreaks;
@@ -185,6 +187,11 @@ export class GameView {
       this.shores.get(world.map.islands, world.map.terrain),
     );
     this.scene.add(this.currentWater.root);
+    this.calmWater = new CalmWater(
+      world.map.windZones ?? [],
+      this.shores.get(world.map.islands, world.map.terrain),
+    );
+    this.scene.add(this.calmWater.root);
     this.shallowsWater = new ShallowsWater(world.map.terrain);
     this.scene.add(this.shallowsWater.root);
   }
@@ -263,6 +270,7 @@ export class GameView {
     // quality levels too, so returning to one never revives a disposed texture.
     for (const effects of this.qualityEffects.values()) effects.ocean.setShore(shore);
     this.currentWater?.setShore(shore);
+    this.calmWater?.setShore(shore);
     let effects = this.qualityEffects.get(level);
     if (!effects) {
       // Ocean shader source depends on fancyWater, not the grid resolution. Share the
@@ -473,6 +481,7 @@ export class GameView {
     this.boat.setNightLighting?.(day.night);
     this.ocean.update(time, this.target);
     this.currentWater?.update(time, this.ocean, this.world.currentsOn);
+    this.calmWater?.update(time, this.ocean, this.world.windZones);
     this.shallowsWater?.update(time, this.ocean);
     this.edgeBuoys.update(time, (x, z) => waveHeight(x, z, time), this.camera);
     this.seaMarks.update(time, (x, z) => waveHeight(x, z, time));
@@ -518,6 +527,7 @@ export class GameView {
     this.lanterns.dispose();
     this.wake.dispose();
     this.currentWater?.dispose();
+    this.calmWater?.dispose();
     this.shallowsWater?.dispose();
     this.buoy.dispose();
     this.edgeBuoys.dispose();
