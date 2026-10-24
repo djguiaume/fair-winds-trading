@@ -18,6 +18,7 @@ import {
   QUEST_DONE,
   checkQuestHooks,
   checkQuests,
+  questsFor,
 } from '../../sim/quests';
 
 /*
@@ -571,11 +572,13 @@ export function checkPlaces(
  */
 export function questProblems(doc: QuestDoc, map: MapDef): string[] {
   try {
+    // Quests for a Phase 4 sea this map lacks are left to the grown sea's checks (decision 0155).
+    const here = questsFor(map, doc.quests);
     return [
-      ...checkQuests(doc.quests, map),
+      ...checkQuests(here, map),
       ...checkQuestHooks(map, Object.values(ISLAND_DESIGNS), doc.quests),
       ...checkText(doc),
-      ...checkPlaces(doc, map, (x, y) => clearAt(map, x, y, 0)),
+      ...checkPlaces({ ...doc, quests: here }, map, (x, y) => clearAt(map, x, y, 0)),
     ];
   } catch (e) {
     return [`the checks stopped: ${String(e)}`];
