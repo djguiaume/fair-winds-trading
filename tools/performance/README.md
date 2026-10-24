@@ -27,4 +27,4 @@ Timings and budgets are **reporting only**; they do not fail CI. Missing scenari
 
 ## On a real device
 
-This tool cannot drive a tablet. Open the game with `?perf` (or `?map=stress&perf`) on the device instead, sail for a few minutes and press **Copy** on the readout (decision 0148). The report labels every number; thresholds are in `src/data/perf-readout.json`.
+This tool cannot drive a tablet. Open the game with `?perf` (or `?map=stress&perf`) on the device instead, sail for a few minutes and press **Copy** on the readout (decision 0148). The report labels every number; thresholds are in `src/data/perf-readout.json`. Add `&scale=0.7` to draw fewer pixels or `&fps=30` to cap the frame rate. Results so far: [old-tablet test](../../docs/reviews/old-tablet-test/README.md).

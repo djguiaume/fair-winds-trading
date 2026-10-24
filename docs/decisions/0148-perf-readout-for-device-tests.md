@@ -20,3 +20,7 @@ The thresholds, warm-up, refresh rate and window size live in `src/data/perf-rea
 ## Consequences
 
 A tester opens a link, sails for a few minutes and pastes one block back; results from different devices compare directly. Nothing changes without `?perf`. The readout measures the whole frame (simulation, HUD, render, browser) on the real device, unlike the headless tool. A modal card (quest, port) covers the buttons while it is open; the game is paused then and those frames are not counted.
+
+## Update (2026-10-24): test aids and first results
+
+The first tablet round ([results](../reviews/old-tablet-test/README.md)) showed about 30 fps with dips to 20 on Low, with few draws and triangles, which points at fill rate. To check that without a new build, `?perf` now reads two optional test aids from the link: `scale=0.3…1` multiplies the drawing resolution (the canvas stays full size), and `fps=N` skips animation frames to cap the frame rate. Both appear in the copied report's first line. They are ignored without `?perf`. Auto quality may drop a level under a low `fps` cap, so set the graphics level by hand for cap tests.
