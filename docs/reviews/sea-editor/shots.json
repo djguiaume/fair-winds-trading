@@ -1,0 +1,11 @@
+[
+  { "name": "1-sea", "editor": "phase4", "sizes": ["desktop", "landscape", "portrait"] },
+  { "name": "2-ring", "editor": "ring" },
+  { "name": "3-sunreach", "editor": "phase4", "select": "island:sunreach", "look": [-95, -560], "zoom": 0.45 },
+  { "name": "4-palm-key-site", "editor": "phase4", "select": "island:palm-key", "look": [480, -700], "zoom": 0.4 },
+  { "name": "5-cardinal", "editor": "phase4", "select": "mark:20", "look": [313, -560], "zoom": 0.3 },
+  { "name": "6-chart-area", "editor": "phase4", "select": "area:palm-key-narrows", "look": [500, -560], "zoom": 0.7 },
+  { "name": "7-new-sea", "editor": "phase4", "draft": "docs/reviews/sea-editor/draft-north.json", "sizes": ["desktop", "portrait"] },
+  { "name": "8-new-sea-port", "editor": "phase4", "draft": "docs/reviews/sea-editor/draft-north.json", "select": "island:island-1", "look": [0, 700], "zoom": 0.6 },
+  { "name": "9-export", "editor": "phase4", "draft": "docs/reviews/sea-editor/draft-north.json", "export": true }
+]
