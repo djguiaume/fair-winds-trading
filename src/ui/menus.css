@@ -1388,3 +1388,95 @@ label.set-row {
     align-self: end;
   }
 }
+
+/*
+ * Game controller in the menus (decision 0163): look A, a brass ring with a soft glow round the
+ * control the pad is on, only while the pad is the last input (mouse or touch hides it again).
+ * `!important` because each screen has its own focus and pressed styles underneath.
+ */
+html[data-input='pad'] :focus {
+  outline: 3px solid var(--brass-hi) !important;
+  outline-offset: 3px !important;
+  box-shadow:
+    0 0 0 7px rgba(243, 211, 126, 0.22),
+    0 0 22px 4px rgba(243, 211, 126, 0.55) !important;
+}
+html[data-input='pad'] dialog:focus,
+html[data-input='pad'] [role='dialog']:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* The pad's button hints: A Choose, B Back, LB RB Tabs where there are tabs. */
+.pad-hints {
+  position: fixed;
+  z-index: 2147483000;
+  inset: auto auto var(--bottom, 12px) 50%;
+  margin: 0;
+  overflow: visible;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 6px 14px;
+  border: 1px solid var(--brass-line);
+  border-radius: 999px;
+  background: var(--navy);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  color: var(--ink);
+  font: 700 15px/1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, 8px);
+  transition:
+    opacity 0.4s,
+    transform 0.4s;
+  pointer-events: none;
+}
+html[data-input='pad'] .pad-hints.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.pad-hints > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.pad-hints .pad-tabs {
+  display: none;
+}
+.pad-hints.has-tabs .pad-tabs {
+  display: inline-flex;
+}
+.pad-key {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: #08141b;
+  font: 800 13px/1 var(--body);
+  font-style: normal;
+}
+.pad-key.a {
+  background: var(--green);
+}
+.pad-key.b {
+  background: var(--red);
+}
+.pad-key.bumper {
+  min-width: 28px;
+  height: 18px;
+  margin-right: 2px;
+  border-radius: 6px;
+  background: #c9d6da;
+  font-size: 11px;
+}
+@media (max-width: 600px), (max-height: 450px) {
+  .pad-hints {
+    gap: 10px;
+    padding: 5px 10px;
+    font-size: 13px;
+  }
+}

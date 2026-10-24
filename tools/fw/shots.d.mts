@@ -29,6 +29,7 @@ export interface Shot {
   wait: number;
   click: string[] | null;
   focus: string | null;
+  pad: string[] | null;
   style: string | null;
   script: string | null;
   sizes: string[];

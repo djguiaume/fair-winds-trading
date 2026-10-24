@@ -34,6 +34,23 @@
         "fit": ["x"],
         "close": ["b", "y", "view"]
       }
+    },
+    "menu": {
+      "moveX": "lx",
+      "moveY": "ly",
+      "stickPress": 0.5,
+      "hintsSeconds": 4,
+      "actions": {
+        "up": ["up"],
+        "down": ["down"],
+        "left": ["left"],
+        "right": ["right"],
+        "press": ["a"],
+        "back": ["b"],
+        "tabPrev": ["lb"],
+        "tabNext": ["rb"],
+        "resume": ["menu"]
+      }
     }
   }
 }

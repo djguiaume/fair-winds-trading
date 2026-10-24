@@ -1,4 +1,4 @@
-/* global console, window, document, localStorage, setTimeout, URL, URLSearchParams, structuredClone */
+/* global console, window, document, navigator, localStorage, setTimeout, requestAnimationFrame, Event, URL, URLSearchParams, structuredClone */
 // `npm run shots` (decision 0153): standard screenshots of the real game, instead of a Playwright
 // script per review. It starts Vite itself, opens the game with `?debug`, gets past the menu, the
 // level card, the tutorial offer and the harbour, sets the scene through `window.fwt` (the boat's
@@ -51,6 +51,9 @@ Look
                                 then wait 800 ms; several clicks in a row: "a ; b" (or a list)
   --focus selector              this element focused as by the controller (decision 0163): the page
                                 set to controller input, so the focus highlight and button hints show
+  --pad a,down,down,a           press these game controller buttons, in order, before the shot (a
+                                pretend standard pad: a b x y lb rb lt rt view menu up down left
+                                right; decisions 0162, 0163); the focus ring shows the pad's focus
   --style a.css,b.css           these stylesheets added to the page before the shot (a mockup's look)
   --script a.js,b.js            these scripts run in the page, in order, after the focus is set
                                 (a mockup's extra parts)
@@ -126,6 +129,7 @@ export function normalise(opts) {
     wait: o.wait ?? 1500,
     click: o.click ? (Array.isArray(o.click) ? o.click : String(o.click).split(' ; ')) : null,
     focus: o.focus ?? null,
+    pad: o.pad ? list(o.pad) : null,
     style: o.style ? readAll(o.style) : null,
     script: o.script ? readAll(o.script) : null,
     sizes: list(o.sizes ?? 'desktop'),
@@ -290,6 +294,7 @@ async function shootOne(browser, base, shot, size, file) {
   try {
     const page = await context.newPage();
     page.on('pageerror', (e) => errors.push(String(e)));
+    if (shot.pad) await page.addInitScript(fakePad);
     await page.addInitScript((items) => {
       if (window.top !== window) return;
       for (const [k, v] of Object.entries(items)) localStorage.setItem(k, v);
@@ -315,6 +320,54 @@ async function clicks(page, shot) {
   }
 }
 
+/** A pretend standard game controller, there from the start; `window.__pad` holds its buttons. */
+function fakePad() {
+  const names = 'a b x y lb rb lt rt view menu ls rs up down left right home'.split(' ');
+  const pad = {
+    connected: true,
+    mapping: 'standard',
+    id: 'shots pad',
+    index: 0,
+    axes: [0, 0, 0, 0],
+    buttons: names.map(() => ({ pressed: false, touched: false, value: 0 })),
+  };
+  window.__pad = { pad, names };
+  navigator.getGamepads = () => [pad];
+}
+
+/** A few drawn frames, so the game's once-a-frame pad poll sees a change however slow it runs. */
+const frames = (page) =>
+  page.evaluate(
+    () =>
+      new Promise((done) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(done))),
+      ),
+  );
+
+/** Press and release each button in turn, a few frames apart, as a player would. */
+async function pressPad(page, buttons) {
+  await page.evaluate(() => window.dispatchEvent(new Event('gamepadconnected')));
+  for (const name of buttons) {
+    const ok = await page.evaluate((n) => {
+      const b = window.__pad.pad.buttons[window.__pad.names.indexOf(n)];
+      if (!b) return false;
+      b.pressed = true;
+      b.value = 1;
+      return true;
+    }, name);
+    if (!ok) throw new Error(`no pad button ${name}`);
+    await frames(page);
+    await page.evaluate((n) => {
+      const b = window.__pad.pad.buttons[window.__pad.names.indexOf(n)];
+      b.pressed = false;
+      b.value = 0;
+    }, name);
+    await frames(page);
+    await pause(150);
+  }
+  await pause(300);
+}
+
 /** A mockup's stylesheet and script, then the controller's focus on an element. */
 async function dress(page, shot) {
   if (shot.style) await page.addStyleTag({ content: shot.style });
@@ -330,6 +383,7 @@ async function dress(page, shot) {
     if (!found) throw new Error(`no element ${shot.focus} to focus`);
   }
   if (shot.script) await page.evaluate(shot.script);
+  if (shot.pad) await pressPad(page, shot.pad);
   if (shot.style || shot.script || shot.focus) await pause(300);
 }
 

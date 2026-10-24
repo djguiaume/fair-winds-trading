@@ -1,3 +1,4 @@
+/* global window, document, requestAnimationFrame */
 // Mockup: the controller's button hints, bottom centre, and (with ?pointer) the pointer of mockup C.
 (() => {
   const fr = document.documentElement.lang === 'fr';

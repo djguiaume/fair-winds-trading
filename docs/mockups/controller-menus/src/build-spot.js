@@ -1,3 +1,4 @@
+/* global window, document */
 // Mockup: open the build choice of Skerry's first spot, as after the arc that offers it.
 (() => {
   const home = window.fwt.world.trade.home.islands.skerry;
