@@ -1,6 +1,6 @@
 # 0140. Wind zones and currents
 
-**Status:** Accepted (2026-10-24), to build after the v0.3.x release in Phase 4. It details point 6 of [0137](0137-phase-4-biomes-and-founded-outposts.md) ("wind zones and currents become authored, per biome"). The proposal, mockups and Guillaume's four rounds of comments are in [docs/reviews/winds-currents](../reviews/winds-currents/README.md).
+**Status:** Accepted (2026-10-24), ready to build now that Phase 4 is open (v0.3.129 shipped, [0138](0138-phase-3-release.md)). It details point 6 of [0137](0137-phase-4-biomes-and-founded-outposts.md) ("wind zones and currents become authored, per biome"). The proposal, mockups and Guillaume's four rounds of comments are in [docs/reviews/winds-currents](../reviews/winds-currents/README.md).
 
 ## Context
 

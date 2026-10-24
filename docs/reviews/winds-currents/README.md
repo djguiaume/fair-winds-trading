@@ -105,7 +105,7 @@ Guillaume's rule is that every hazard or annoyance can be switched off. Proposal
 3. Current water look (sea shader band, chart band), SOG readout, first-time hints, Settings switches, en/fr: 1 to 2 PRs.
 4. The balance check's bots learn to aim up-current, and the targets get checked: 1 PR.
 
-Everything waits for the v0.3.x release. The data format can be drafted earlier, since nothing in the game reads it until then.
+Phase 3 shipped as v0.3.129 ([0138](../../decisions/0138-phase-3-release.md)), so this can be built now, starting with the data format.
 
 ## Questions for Guillaume (answered: "ok" to the recommendations, see 0140)
 
