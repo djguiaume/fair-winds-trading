@@ -64,3 +64,13 @@ Built first, as the base the others use:
 - `CLAUDE.md` tells agents when to use them; `tests/fw-tools.test.ts` covers them.
 
 The other four (shots, chart, island, quest) are built in parallel threads on top of this base.
+
+## Update (2026-10-24): `npm run island`
+
+Built in its own thread (brief 3), replacing one-off island generators such as `docs/reviews/south-sea/src/make-south.cjs` and `docs/reviews/home-island/src/home-island.py`:
+
+- **Steps as data** (`src/editor/island/steps.ts`): each step (`islet`, `plateau`, `mountain`, `lake`, `ramp`, `lane`, `path`, `stairs`, `woods`, `spot`, `prop`, `pier`, `remove`, `set`) is one of the island builder's own edits from `doc.ts` and `shapes.ts`, written as a small JSON object, so a whole island can be kept as a list of steps. Heights left out are taken from the ground under the point, as the builder does when you click. An error names the step by number, and nothing is written.
+- **Moved into the builder's modules**, so the builder can use them too: `blobOutline` (a seeded irregular outline), `addIslet`, and sizes, heights, outlines, materials and slopes for `addPlateau`, `addMountain` and `addLake` (shapes.ts; the builder's clicks keep the old defaults); `newDesign` (doc.ts), a new island file whose woods take the tree, size and spacing most used by the shipped islands of its style.
+- **The CLI** (`tools/fw/island.ts`): `new <id>` from `--outline` or `--blob`, then one step per call or `--steps file.json`; `tidy` and `check`. It writes with `tidyDesign` and `formatIslandJson` (the builder's export), runs `checkIsland` at the island's size and harbour on the ring, Phase 4 and stress seas (`islandPlacements` and `islandProblems`, now shared with `npm run check`), or at `--radius`, and prints one line: what the file holds, homes per level, spots, woods, checks.
+- **Fix to the builder's export:** `formatIslandJson` put a one-item list whose object held an outline on one line (Skerry's path), which Prettier then failed. It now breaks whatever holds a value that must break, so every exported file passes `npm run lint`. Every shipped island file writes back with the same data.
+- Tested in `tests/fw-island.test.ts` (a small island made only from steps passes the checks; step errors; command-line parsing; write-back of every shipped file).
