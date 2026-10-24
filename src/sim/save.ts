@@ -12,7 +12,7 @@ import { type QuestState, readQuests } from './quests';
 import { type ShipyardProgress, readProgress } from './shipyards';
 import { activeShip, findPort, setDifficulty, syncMarketLevels } from './trade';
 import { MAX_UPGRADE_LEVEL, UPGRADE_TRACKS, type UpgradeLevels, hullDurability } from './upgrades';
-import { refreshPiers, type World } from './world';
+import { refreshPiers, resetLand, syncWorldLand, type World } from './world';
 
 /**
  * Save and resume (decisions 0009, 0015): the progress that matters is written as small versioned
@@ -287,6 +287,8 @@ export function applySave(world: World, data: SaveData): void {
   setDifficulty(trade, data.difficulty ?? DEFAULT_DIFFICULTY);
   trade.home = readHome(data.home, world.map);
   world.ship = activeShip(trade);
+  // The land as this voyage's quests left it (decision 0166), but none rises on top of the boat.
+  resetLand(world);
   refreshPiers(world);
   // Compatible older-map saves keep all trading progress. The coasts and ports have moved since
   // (decision 0031), so they resume at the known-clear spawn; so does a save whose position a
@@ -296,9 +298,9 @@ export function applySave(world: World, data: SaveData): void {
     resolveCollisions(
       world.boat,
       world.ship.radius,
-      world.map.islands,
+      world.land.islands,
       world.map.boundsRadius,
-      world.map.terrain,
+      world.land.terrain,
       world.piers,
       world.ship.draft,
     )
@@ -306,6 +308,7 @@ export function applySave(world: World, data: SaveData): void {
     const start = world.map.start;
     world.boat = createBoat(start.x, start.y, (start.headingDeg * Math.PI) / 180);
     trade.dockedAt = null;
+    syncWorldLand(world, true);
   }
   resumeSails(world.boat, data.boat.sailStep, trade.dockedAt !== null);
 }

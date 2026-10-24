@@ -4,7 +4,7 @@ import characterData from '../data/characters.json';
 import { daylightAt } from './daylight';
 import { chartAreaIds, chartAreas } from './fog';
 import { GOODS, type GoodAmounts, type GoodId, isGood } from './goods';
-import { type IslandDesign, questTagIds } from '../data/islands';
+import { type IslandDesign, questTagIds, runningTag } from '../data/islands';
 import { type MapDef, SEA_MARK_TYPES, type SeaMarkDef } from './map';
 import {
   type CheckScope,
@@ -583,8 +583,8 @@ function checkCoach(
 }
 
 /**
- * Problems with what waits on a quest (decision 0130), as readable lines: island props and sea
- * marks tagged `after:` or `before:` a quest, and ports whose trade changes after one, must name
+ * Problems with what waits on a quest (decision 0130), as readable lines: island props, sea
+ * marks, islands and shapes (0166) tagged `after:` or `before:` a quest, and ports whose trade changes after one, must name
  * a quest there is (`quests`, or `others` such as the tutorial).
  */
 export function checkQuestHooks(
@@ -605,10 +605,16 @@ export function checkQuestHooks(
       // A moored boat is solid, and the collision does not follow quests.
       if (prop.type === 'moored-boat' && questTagIds(prop).length)
         out.push(`${where}: a moored boat cannot wait on a quest (use a sea mark)`);
+      // Props follow quests done only; land can follow a running quest (decision 0166).
+      if (prop.tags?.some(runningTag))
+        out.push(`${where}: during:/except: is for islands and shapes`);
     });
   (map.marks ?? []).forEach((mark, i) =>
     named(questTagIds(mark), `map › mark ${i} (${mark.type})`),
   );
+  // Land that rises or clears after a quest (decision 0166).
+  for (const island of map.islands) named(questTagIds(island), `map › island ${island.id}`);
+  for (const shape of map.terrain ?? []) named(questTagIds(shape), `map › shape ${shape.id}`);
   for (const port of map.ports)
     named(Object.keys(port.afterQuest ?? {}), `port ${port.id} › afterQuest`);
   return out;

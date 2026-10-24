@@ -22,6 +22,10 @@
     "mooredKn": 0.2,
     "waypointRadius": 12
   },
+  "questLand": {
+    "changeDistance": 500,
+    "dockedClear": 40
+  },
   "boundaryBuoys": {
     "spacing": 28,
     "offset": 6,

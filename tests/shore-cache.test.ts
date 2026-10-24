@@ -135,7 +135,8 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
   const view: GameView = Object.assign(Object.create(GameView.prototype), {
     shores: cache,
     qualityEffects: new Map(),
-    world: { map },
+    // The land standing (decision 0166) is the map's, so an edit to it reaches the shores.
+    world: { map, land: map },
     wake: { setQuality: vi.fn() },
     boat: { setLowDetail: vi.fn() },
     scene: new THREE.Scene(),

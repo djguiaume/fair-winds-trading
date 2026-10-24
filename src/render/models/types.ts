@@ -73,6 +73,8 @@ export interface IslandModel extends THREE.Object3D {
   setHomeBuildings(byIsland: Record<string, Record<string, string>>): void;
   /** Redraw the islands with props shown only before or after a quest (decision 0130). */
   setQuestsDone(done: ReadonlySet<string>): void;
+  /** Hide the islands and shapes out of the sea for now, show the others (decision 0166). */
+  setLandOut(out: ReadonlySet<string>): void;
   dispose(): void;
 }
 

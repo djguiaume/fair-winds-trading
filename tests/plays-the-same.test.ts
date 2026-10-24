@@ -97,7 +97,8 @@ describe('plays the same after moving levels, tutorial and music to data (decisi
     for (let run = 0; run < 300; run++) lines.push(...tutorialSession(run));
     expect(lines.length).toBeGreaterThan(60000);
     expect(hash(lines.join('\n'))).toBe('b4584ee2');
-  });
+    // 300 sessions take about 3.5 s here and over 5 s on a busy CI runner.
+  }, 20000);
 });
 
 /** A random player poking at the tutorial: every move it reacts to, in random order. */
