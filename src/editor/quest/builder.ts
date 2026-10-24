@@ -654,7 +654,7 @@ function drawPanel() {
     );
 }
 
-/** Chart areas the step lifts as soon as it begins (fog of war, decision 0155). */
+/** Chart areas the step lifts as soon as it begins (fog of war, decision 0156). */
 function chartsPanel(s: QuestStep): HTMLElement[] {
   const areas = host.prepared().fog?.areas ?? [];
   if (!areas.length && !s.charts?.length) return [];

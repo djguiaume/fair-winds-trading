@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* global require, __dirname */
-// The fog areas of the south sea as a labelled schema (ADR 0155): node docs/reviews/fog-of-war/src/make-schema.cjs
+// The fog areas of the south sea as a labelled schema (ADR 0156): node docs/reviews/fog-of-war/src/make-schema.cjs
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');

@@ -2,7 +2,7 @@ import type { IslandDef, MapDef } from './map';
 import type { ShipyardProgress } from './shipyards';
 
 /**
- * Fog of war (decision 0155): the new waters of the Phase 4 sea start uncharted. The chart
+ * Fog of war (decision 0156): the new waters of the Phase 4 sea start uncharted. The chart
  * lifts its fog per named area and per island, never per pixel, so the save code stays short
  * (decisions 0118, 0137). Today's Windward Ring, inside `chartedRadius`, is charted from the start.
  */

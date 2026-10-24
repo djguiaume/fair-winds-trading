@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../../src/data/maps';
 import { setLanguage, tOptional } from '../../src/i18n';
-import { QUESTS, QuestBook, checkQuests } from '../../src/sim/quests';
+import { QUESTS, QuestBook, checkQuests, questsFor } from '../../src/sim/quests';
 import { SLOOP } from '../../src/sim/ship';
 import { sell } from '../../src/sim/trade';
 import { type World, createWorld } from '../../src/sim/world';
@@ -39,7 +39,7 @@ function dock(world: World, book: QuestBook, port: string) {
 
 describe('A light on the Teeth (decision 0133)', () => {
   it('passes the checks, with every card written in both languages', () => {
-    expect(checkQuests(QUESTS, PHASE1_MAP)).toEqual([]);
+    expect(checkQuests(questsFor(PHASE1_MAP), PHASE1_MAP)).toEqual([]);
     const quest = QUESTS.find((q) => q.id === ID)!;
     for (const lang of ['en', 'fr'] as const) {
       setLanguage(lang);

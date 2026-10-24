@@ -19,7 +19,7 @@ export interface QualityProfile {
   shadows: boolean;
   /** Smooth foam animation and second wave layer in the ocean shader. */
   fancyWater: boolean;
-  /** Fog of war's edge on the chart blurred (decision 0155); else a cheap stepped soft rim. */
+  /** Fog of war's edge on the chart blurred (decision 0156); else a cheap stepped soft rim. */
   chartFogBlur: boolean;
 }
 

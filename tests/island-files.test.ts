@@ -140,7 +140,7 @@ const GOLDEN: Record<string, string[]> = {
   'watchman-key': ['43:fbfd2fb9', '73:4bfeb4dd', '92:3e8fc1dd', '99:ac0414a9'],
   // The south sea (decision 0152).
   sunreach: ['415:5f29af5c', '549:b2e40bf2', '665:cdebaf36', '712:28f7bf9e'],
-  'sunreach-south': ['287:f37c39c5', '312:dfba008', '322:563e9f46', '322:563e9f46'],
+  'sunreach-south': ['336:9dd11960', '361:49fa96bd', '371:810eea4b', '371:810eea4b'],
   'palm-key': Array(4).fill('147:9fbbf881'),
   'lone-palm': Array(4).fill('13:531edc15'),
 };

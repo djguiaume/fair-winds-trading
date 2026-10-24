@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* global require, process, window, document, localStorage */
-// Fog of war screenshots (ADR 0155): real captures of the Phase 4 sea, `?map=phase4`, in each
+// Fog of war screenshots (ADR 0156): real captures of the Phase 4 sea, `?map=phase4`, in each
 // proposed look (`&fog=a|b|c`, review only; the game draws A since). Run against `npx vite --port 5199`:
 //   node docs/reviews/fog-of-war/src/capture.cjs [name ...]
 const path = require('path');
@@ -73,7 +73,7 @@ async function shoot(browser, style, [name, w, h, what]) {
   if (what.chart) {
     await p.evaluate(
       ([what, style]) => {
-      // `blur`: the High quality look, with a blurred edge (decision 0155).
+      // `blur`: the High quality look, with a blurred edge (decision 0156).
       if (style === 'blur') window.fwt.chart.fogBlur = true;
       else if (style === 'final') window.fwt.chart.fogBlur = false;
       const pr = window.fwt.world.trade.progress;

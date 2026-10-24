@@ -1,4 +1,4 @@
-# Fog of war (ADR 0155)
+# Fog of war (ADR 0156)
 
 Real captures of the Phase 4 dev sea (`?map=phase4`). Remake them with `npx vite --port 5199`, then `node docs/reviews/fog-of-war/src/capture.cjs` and `node docs/reviews/fog-of-war/src/make-schema.cjs`.
 

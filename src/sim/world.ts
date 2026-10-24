@@ -166,7 +166,7 @@ export type WorldEvent =
   | { type: 'current-charted'; id: string }
   /** The boat sailed well into a named wind zone she had not charted yet (decision 0152). */
   | { type: 'zone-charted'; id: string }
-  /** Fog of war (decision 0155): she sailed into an uncharted area, or sighted a fogged island. */
+  /** Fog of war (decision 0156): she sailed into an uncharted area, or sighted a fogged island. */
   | FogEvent
   | DockEvent;
 

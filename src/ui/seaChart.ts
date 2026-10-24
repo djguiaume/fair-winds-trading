@@ -32,12 +32,12 @@ const box = (cx: number, cy: number, w: number, h: number): Box => ({
 });
 /** Chart scale (map units per pixel) beyond which secondary names are left out. */
 const MAX_UNITS_PER_PIXEL_FOR_NAMES = 3;
-/** Fog of war's rim (decision 0155): stroke half-widths in pixels and mask greys, outer first. */
+/** Fog of war's rim (decision 0156): stroke half-widths in pixels and mask greys, outer first. */
 const FOG_RIM: [number, string][] = [
   [10, 'rgb(170,170,170)'],
   [5, 'rgb(85,85,85)'],
 ];
-/** Fog of war's blurred edge on High quality, in pixels (decision 0155). */
+/** Fog of war's blurred edge on High quality, in pixels (decision 0156). */
 const FOG_BLUR = 8;
 /** How far round a sighted island its patch of chart reaches, in map units (plus the blur). */
 const SIGHTED_MARGIN = 12;
@@ -99,7 +99,7 @@ const escapeHtml = (s: string) =>
 
 /** An event-driven DOM/SVG chart; no second WebGL scene or animation loop. */
 export class SeaChart {
-  /** Blur fog of war's edge (High quality only, decision 0155). */
+  /** Blur fog of war's edge (High quality only, decision 0156). */
   fogBlur = false;
   onChange: () => void = () => {};
   /** People's faces on their ports, the tracked step's place and the journal; none: no quests. */
@@ -326,7 +326,7 @@ export class SeaChart {
   }
 
   /**
-   * Fog of war (decision 0155): the uncharted waters as blank parchment with a faint pencil grid
+   * Fog of war (decision 0156): the uncharted waters as blank parchment with a faint pencil grid
    * (Guillaume's pick, look A), one layer with holes where the ring, the charted areas and the
    * sighted islands are. The holes' edges are two grey strokes in the mask, a soft rim without a
    * blur filter, which old tablets draw slowly. Returns an "Uncharted waters" label per fogged

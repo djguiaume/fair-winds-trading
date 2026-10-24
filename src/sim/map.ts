@@ -235,7 +235,7 @@ export interface MapDef {
   currents?: CurrentDef[];
   /** Wind zones on top of the wandering wind (decision 0140). */
   windZones?: WindZoneDef[];
-  /** Fog of war (decision 0155): what starts uncharted, and its named areas. */
+  /** Fog of war (decision 0156): what starts uncharted, and its named areas. */
   fog?: FogDef;
 }
 

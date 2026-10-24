@@ -118,7 +118,7 @@ export interface QuestStep extends StepEffects {
   /** Paid when the step is done. */
   reward?: QuestReward;
   /**
-   * Chart areas (fog of war, decision 0155) lifted as soon as the step begins: a pilot's chart
+   * Chart areas (fog of war, decision 0156) lifted as soon as the step begins: a pilot's chart
    * handed over, before the voyage it is for.
    */
   charts?: string[];

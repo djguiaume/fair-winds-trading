@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import en from '../src/i18n/en.json';
 import fr from '../src/i18n/fr.json';
 import { PHASE1_MAP } from '../src/data/maps';
-import { COACH_TARGETS, QUESTS, type QuestDef, checkQuests } from '../src/sim/quests';
+import { COACH_TARGETS, QUESTS, type QuestDef, checkQuests, questsFor } from '../src/sim/quests';
 import { mainLine } from '../src/ui/questView';
 import { TUTORIAL, tutorialVoyage } from './helpers/tutorial';
 
@@ -12,7 +12,7 @@ const shipped = QUESTS.find((q) => q.id === TUTORIAL)!;
 describe('the tutorial as an ordinary quest (decision 0151)', () => {
   it('the shipped file is sound: a lesson, known coach marks, every text in both languages', () => {
     expect(shipped).toMatchObject({ start: { is: 'asked' }, text: 'lesson', lesson: true });
-    expect(checkQuests(QUESTS, PHASE1_MAP)).toEqual([]);
+    expect(checkQuests(questsFor(PHASE1_MAP), PHASE1_MAP)).toEqual([]);
     // No lesson-only fields are left from the old format.
     for (const step of shipped.steps) {
       for (const key of ['on', 'mark', 'continue', 'action', 'picks', 'pointer', 'passenger'])

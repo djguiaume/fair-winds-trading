@@ -1,4 +1,4 @@
-# 0155. Fog of war: named chart areas, sighted islands, blank parchment
+# 0156. Fog of war: named chart areas, sighted islands, blank parchment
 
 **Status:** Accepted (2026-10-24). Guillaume picked look A, blank parchment, from the [screenshots of three looks](../reviews/fog-of-war/README.md). Builds the fog promised by [0137](0137-phase-4-biomes-and-founded-outposts.md) ("fog per island or named area, so the save link stays under 1000 characters") on the south sea of [0152](0152-south-sea-sunreach-layout.md). Area names and wording checked by the head storyteller ([0129](0129-storyteller-brief.md), [0147](0147-phase-4-story.md)).
 
