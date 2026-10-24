@@ -426,6 +426,29 @@ dialog.chart::backdrop {
 .chart-need.best {
   fill: var(--green);
 }
+.chart-home {
+  pointer-events: none;
+}
+.chart-home-dot {
+  fill: var(--brass);
+  stroke: var(--outline);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+.chart-home-icon {
+  color: var(--outline);
+}
+.chart-home-tag {
+  fill: var(--brass-hi);
+  font-family: var(--body);
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: rgba(6, 20, 28, 0.85);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  text-anchor: middle;
+  vector-effect: non-scaling-stroke;
+}
 .chart-port-target.is-selected .chart-port-name,
 .chart-port-target:hover .chart-port-name {
   fill: var(--brass-hi);

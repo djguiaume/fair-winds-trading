@@ -7,6 +7,7 @@ import { questShown } from '../data/islands';
 import { type PortQuote, quoteAcross } from '../sim/market';
 import { DEG, distance } from '../sim/math';
 import { discoveredPorts } from '../sim/shipyards';
+import { ownedIslands } from '../sim/home';
 import { chartedAt, islandCharted } from '../sim/fog';
 import { noGoAngle } from '../sim/ship';
 import { laneShape } from '../sim/currents';
@@ -844,6 +845,9 @@ export class SeaChart {
     const px = unit * k;
     // Island and reef names are placed after the ports, only where they fit (decision 0058).
     const places: { name: string; x: number; top: number; bottom: number }[] = [];
+    // The captain's own islands (decisions 0126, 0128): a house badge and a name like a port's.
+    const owned = ownedIslands(this.world.trade.home);
+    const homes: typeof map.islands = [];
     const landBoxes: Box[] = [];
     for (const island of map.islands) {
       const coasts = islandCoasts(island);
@@ -868,7 +872,9 @@ export class SeaChart {
           y1: Math.max(...ps.map((p) => -p[1])),
         });
       } else landBoxes.push(box(island.x, -island.y, island.radius * 2, island.radius * 2));
-      if (
+      if (owned.includes(island.id) && !charted.some((p) => p.islandId === island.id))
+        homes.push(island);
+      else if (
         island.name &&
         !charted.some((p) => p.islandId === island.id) &&
         islandCharted(map, this.world.trade.progress, island)
@@ -1088,6 +1094,58 @@ export class SeaChart {
           select();
         }
       });
+    }
+    // Her islands: the badge on the island, the name and "your island" on its free side.
+    for (const island of homes) {
+      const name = island.name ?? island.id;
+      const nameSize = 15 * px,
+        tagSize = 12 * px;
+      const tag = t('chart.yourIsland');
+      const w = Math.max(name.length * nameSize * 0.52, tag.length * tagSize * 0.5);
+      const h = nameSize * 1.15 + tagSize * 1.2;
+      const spot = placeLabel(island.x, -island.y - island.radius, -island.y + island.radius, w, h);
+      placed.push(box(spot.x, spot.y, w, h));
+      const top = spot.y - h / 2;
+      const group = shape('g', {
+        class: 'chart-home',
+        role: 'img',
+        'aria-label': `${name} · ${tag}`,
+      });
+      shape('circle', { cx: island.x, cy: -island.y, r: 10 * px, class: 'chart-home-dot' }, group);
+      shape(
+        'use',
+        {
+          href: '#i-home',
+          x: island.x - 7 * px,
+          y: -island.y - 7 * px,
+          width: 14 * px,
+          height: 14 * px,
+          class: 'chart-home-icon',
+        },
+        group,
+      );
+      const label = shape(
+        'text',
+        {
+          x: spot.x,
+          y: top + nameSize * 0.9,
+          class: 'chart-port-name',
+          style: `font-size: ${nameSize}px`,
+        },
+        group,
+      );
+      label.textContent = name;
+      const line = shape(
+        'text',
+        {
+          x: spot.x,
+          y: top + nameSize * 1.15 + tagSize * 0.95,
+          class: 'chart-home-tag',
+          style: `font-size: ${tagSize}px`,
+        },
+        group,
+      );
+      line.textContent = tag;
     }
     // Secondary names: small and quiet, and left out where they would cover a port or the boat.
     // A big sea seen whole on a small screen leaves them out until zoomed in (decision 0115):

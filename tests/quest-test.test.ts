@@ -83,7 +83,8 @@ describe('play a quest from a step (decision 0142)', () => {
   it('starts the epilogue with every arc done', () => {
     const { world, quests } = book(QUESTS);
     quests.testStart('fair-winds', 'home');
-    for (const id of ['rooks-thanks', 'saltmere-shoals', 'calda-slipway', 'westholm-mill'])
+    expect(quests.isAt('rooks-thanks', 'skerry')).toBe(true);
+    for (const id of ['saltmere-shoals', 'calda-slipway', 'westholm-mill'])
       expect(quests.isDone(id), id).toBe(true);
     expect(Object.values(world.trade.home.islands).some((i) => i.owned)).toBe(true);
     expect(quests.progress('fair-winds')?.step).toBe('home');

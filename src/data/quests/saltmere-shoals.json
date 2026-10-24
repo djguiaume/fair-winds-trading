@@ -1,7 +1,7 @@
 {
   "id": "saltmere-shoals",
   "name": "Where the shoals went",
-  "start": { "is": "quest-done", "quest": "rooks-thanks" },
+  "start": { "is": "quest-at", "quest": "rooks-thanks", "step": "skerry" },
   "offer": true,
   "text": "quest.saltmere-shoals",
   "giver": "kit",

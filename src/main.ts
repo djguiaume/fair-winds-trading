@@ -1471,6 +1471,19 @@ if (new URLSearchParams(location.search).has('debug')) {
     hud.onPortClick(portId);
     return world.trade.dockedAt === portId;
   };
+  /**
+   * Moor at one of her islands' piers, as a player would (`npm run shots -- --moor skerry`,
+   * decision 0159): the boat waits stopped by the pier and moors on the next step.
+   */
+  const moor = (islandId: string) => {
+    const berth = testBerth(world.map, world.trade, world.piers, islandId, world.ship.id);
+    if (!berth) return false;
+    world.boat = createBoat(berth.x, berth.y, (berth.headingDeg * Math.PI) / 180);
+    world.boat.sailStep = sailStep = 0;
+    world.boat.sail = SAIL_STEPS[0]!;
+    world.destination = null;
+    return true;
+  };
   /** Put the boat at sea at a point, heading in degrees, sails at a step (0 furled … 2 full). */
   const place = (x: number, y: number, headingDeg: number, step = SAIL_STEPS.length - 1) => {
     world.boat = createBoat(x, y, (headingDeg * Math.PI) / 180);
@@ -1515,6 +1528,7 @@ if (new URLSearchParams(location.search).has('debug')) {
       chart,
       newGame,
       dock,
+      moor,
       place,
       town,
       freePlay,

@@ -1,7 +1,7 @@
 {
   "id": "westholm-mill",
   "name": "The mill on the hill",
-  "start": { "is": "quest-done", "quest": "rooks-thanks" },
+  "start": { "is": "quest-at", "quest": "rooks-thanks", "step": "skerry" },
   "offer": true,
   "text": "quest.westholm-mill",
   "giver": "maren",

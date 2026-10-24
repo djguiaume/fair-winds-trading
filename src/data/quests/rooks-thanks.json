@@ -11,7 +11,14 @@
   "text": "quest.rooks-thanks",
   "main": true,
   "giver": "rook",
-  "port": "home",
-  "reward": { "homeIsland": true },
-  "steps": [{ "id": "home", "port": "home", "goal": { "is": "docked", "port": "home" } }]
+  "steps": [
+    {
+      "id": "home",
+      "port": "home",
+      "goal": { "is": "docked", "port": "home" },
+      "reward": { "homeIsland": true }
+    },
+    { "id": "skerry", "goal": { "is": "moored" } },
+    { "id": "plots", "choose": [{ "id": "continue" }] }
+  ]
 }

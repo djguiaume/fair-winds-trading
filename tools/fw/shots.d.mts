@@ -10,6 +10,8 @@ export interface Shot {
   speed: number;
   ship: string | null;
   port: string | null;
+  moor: string | null;
+  quest: [string, string] | null;
   tab: string | null;
   zoom: number | null;
   look: [number, number] | null;
@@ -25,6 +27,7 @@ export interface Shot {
   currents: boolean;
   cards: boolean;
   wait: number;
+  click: string | null;
   sizes: string[];
   url: string | null;
   storage: Record<string, string>;

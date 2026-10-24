@@ -49,7 +49,7 @@ describe('arc: calda-slipway, "The last keel"', () => {
       port: 'calda',
       offer: true,
       text: 'quest.calda-slipway',
-      start: { is: 'quest-done', quest: 'rooks-thanks' },
+      start: { is: 'quest-at', quest: 'rooks-thanks', step: 'skerry' },
       reward: { homeSpot: ['spot-1'] },
     });
     expect(ARC.steps.map((s) => s.id)).toEqual(['stone', 'mast', 'launch']);
@@ -82,6 +82,7 @@ describe('arc: calda-slipway, "The last keel"', () => {
       ask: 'Bring 8 stone to Port Calda',
     });
     quests.accept('calda-slipway');
+    quests.track('calda-slipway');
 
     // Stone: eight sold at Port Calda.
     world.trade.captain.cargo.stone = 8;
