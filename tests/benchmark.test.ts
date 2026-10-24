@@ -5,7 +5,7 @@ import { BENCHMARK, Bench, BenchRoute } from '../src/perf/bench';
 import { clearAt } from '../src/sim/mapChecks';
 import { SLOOP } from '../src/sim/ship';
 
-describe('?bench benchmark (decision 0153)', () => {
+describe('?bench benchmark (decision 0154)', () => {
   it('has a route of [x, y] points and passes with a scale', () => {
     expect(BENCHMARK.route.length).toBeGreaterThan(2);
     for (const p of BENCHMARK.route) expect(p).toHaveLength(2);

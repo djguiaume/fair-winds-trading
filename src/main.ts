@@ -105,7 +105,7 @@ const stage = $('stage');
 
 // Language: the player's choice, else the browser's, else English (decision 0037).
 const settings = loadSettings();
-// The `?bench` device benchmark (decision 0153) sails a fresh voyage kept in memory with every
+// The `?bench` device benchmark (decision 0154) sails a fresh voyage kept in memory with every
 // hazard on and the shifting wind, so runs compare; it never saves the player's settings.
 const benchMode = new URLSearchParams(location.search).has('bench');
 if (benchMode)
@@ -333,7 +333,7 @@ function dueMainCard() {
  * the harbour screen; it never covers the harbour screen, and waits for the next arrival instead.
  */
 function showDueCard(): boolean {
-  // The benchmark sails on through every card (decision 0153).
+  // The benchmark sails on through every card (decision 0154).
   if (bench || questCard.isOpen || tutorialOffer.open || tradePanel.isOpen) return false;
   const due = dueMainCard();
   const card = due && cardFor(quests, world.map, due.quest, due.kind);
@@ -1266,7 +1266,7 @@ function tick(now: number) {
   // Coach marks follow moving targets (port signs) about ten times a second.
   if (++coachTick % 6 === 0) coach.place();
 
-  // The benchmark keeps one level throughout so its passes compare (decision 0153).
+  // The benchmark keeps one level throughout so its passes compare (decision 0154).
   if (monitor.sample(dt) && !benchMode && settings.quality === 'auto' && level !== 'low') {
     setLevel(lowerQuality(level));
   }
@@ -1324,7 +1324,7 @@ if (tuneMode) {
 }
 
 /**
- * One benchmark frame (decision 0153): the boat is put on the route (the sim still runs the wind,
+ * One benchmark frame (decision 0154): the boat is put on the route (the sim still runs the wind,
  * weather, towns and wake around it); each pass starts from the same game time at its own
  * drawing resolution.
  */
@@ -1360,7 +1360,7 @@ function driveBench(sec: number) {
   sailStep = SAIL_STEPS.length - 1;
 }
 
-/** `?bench`: a fresh captain's voyage, no tutorial, then the route (decision 0153). */
+/** `?bench`: a fresh captain's voyage, no tutorial, then the route (decision 0154). */
 function startBench(created: Bench) {
   trade.startVoyage(world.trade, 'captain');
   markDifficulty();

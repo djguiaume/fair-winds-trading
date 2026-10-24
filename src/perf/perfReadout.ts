@@ -55,7 +55,7 @@ export class PerfReadout {
   private lastLevel = '';
   private drops: string[] = [];
   private last: PerfFrame | null = null;
-  /** `?bench` (decision 0153): finished passes, the running one, and a status line. */
+  /** `?bench` (decision 0154): finished passes, the running one, and a status line. */
   private passes: {
     label: string;
     summary: FrameSummary | null;

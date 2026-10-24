@@ -2,7 +2,7 @@ import CONFIG from '../data/benchmark.json';
 import { bearingTo } from '../sim/math';
 
 /**
- * The `?bench` device benchmark (decision 0153): the boat follows a fixed route at a fixed speed,
+ * The `?bench` device benchmark (decision 0154): the boat follows a fixed route at a fixed speed,
  * once per pass (each pass at its own drawing resolution), so every run on every device measures
  * the same sailing. Plain TypeScript: the game moves the boat to `pose` each frame.
  */

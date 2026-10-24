@@ -1,4 +1,4 @@
-# 0153. Automatic device benchmark (`?bench`)
+# 0154. Automatic device benchmark (`?bench`)
 
 **Status:** Implemented (2026-10-24).
 

@@ -23,7 +23,7 @@ Canvas 719×1042 at 0.90, which is the Low cap of 750 000 pixels.
 
 ### Next
 
-Guillaume asked for a test that plays itself, so round 2 uses the automatic benchmark (decision 0153) instead of free sailing. It sails the same route three times (full, 0.7 and 0.5 resolution). If the 0.7 and 0.5 passes run clearly faster, fill rate is the limit and the fix is a lower level ("Very low" with a smaller pixel cap) and/or a steady 30 fps cap on weak devices.
+Guillaume asked for a test that plays itself, so round 2 uses the automatic benchmark (decision 0154) instead of free sailing. It sails the same route three times (full, 0.7 and 0.5 resolution). If the 0.7 and 0.5 passes run clearly faster, fill rate is the limit and the fix is a lower level ("Very low" with a smaller pixel cap) and/or a steady 30 fps cap on weak devices.
 
 ## Round 2 links
 
