@@ -65,7 +65,9 @@ import {
   setPortDestination,
   refreshPiers,
   resetBoat,
+  resetLand,
   startAtPrologue,
+  syncWorldLand,
   holdStorms,
   stepWorld,
 } from './sim/world';
@@ -403,6 +405,8 @@ quests.onEvent = (e) => {
   if (e.type === 'moved') {
     // A step took the boat to its place (decision 0164): sails down, camera with her.
     sailStep = world.boat.sailStep;
+    // Land a quest raised or cleared where she arrives is in place before she is seen (0166).
+    syncWorldLand(world, true);
     view.jumpToBoat();
     if (tradePanel.isOpen) tradePanel.close();
   }
@@ -873,6 +877,8 @@ function startQuestTest(test: NonNullable<typeof questTest>) {
     world.destination = null;
     sailStep = world.boat.sailStep;
   }
+  // The quests the test marked done raise or clear their land at once (decision 0166).
+  resetLand(world);
   play();
   if (berth && test.port && trade.tryDock(world.trade, world.map, world.boat, test.port)) {
     handleEvents([
@@ -1590,6 +1596,7 @@ if (new URLSearchParams(location.search).has('debug')) {
     world.boat = createBoat(berth.x, berth.y, (berth.headingDeg * Math.PI) / 180);
     world.destination = null;
     sailStep = world.boat.sailStep;
+    syncWorldLand(world, true);
     hud.onPortClick(portId);
     return world.trade.dockedAt === portId;
   };
@@ -1604,6 +1611,7 @@ if (new URLSearchParams(location.search).has('debug')) {
     world.boat.sailStep = sailStep = 0;
     world.boat.sail = SAIL_STEPS[0]!;
     world.destination = null;
+    syncWorldLand(world, true);
     return true;
   };
   /** Put the boat at sea at a point, heading in degrees, sails at a step (0 furled … 2 full). */
@@ -1612,6 +1620,7 @@ if (new URLSearchParams(location.search).has('debug')) {
     world.boat.sailStep = sailStep = clamp(Math.round(step), 0, SAIL_STEPS.length - 1);
     world.boat.sail = SAIL_STEPS[sailStep]!;
     world.destination = null;
+    syncWorldLand(world, true);
   };
   /**
    * A town as the shots need it (`npm run shots -- --town palm-key:2`, decision 0157): an empty

@@ -886,7 +886,9 @@ export class SeaChart {
     const owned = ownedIslands(this.world.trade.home);
     const homes: typeof map.islands = [];
     const landBoxes: Box[] = [];
-    for (const island of map.islands) {
+    // Only the land standing now: an island a quest has not raised yet is not drawn (0166).
+    const { land: standing } = this.world;
+    for (const island of standing.islands) {
       const coasts = islandCoasts(island);
       if (coasts) {
         for (const outline of coasts)
@@ -923,7 +925,7 @@ export class SeaChart {
           bottom: -island.y + island.radius,
         });
     }
-    for (const terrain of map.terrain ?? []) {
+    for (const terrain of standing.terrain) {
       const points = terrain.outline.map(([x, y]) => `${x},${-y}`).join(' ');
       if (terrain.kind === 'island') land('polygon', { points });
       else

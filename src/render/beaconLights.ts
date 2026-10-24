@@ -90,14 +90,21 @@ export class BeaconLights {
   }
   private levels: Record<string, number> = {};
   private done: ReadonlySet<string> = new Set();
+  private out: ReadonlySet<string> = new Set();
   /** Lights only the beacons standing at each island's town level. */
   setLevels(levels: Record<string, number>) {
     this.levels = levels;
     this.lamps.forEach(({ island, prop }, i) => {
       this.standing[i] =
+        !this.out.has(island.id) &&
         atLevel(prop, levels[island.id] ?? (island.look?.dock ? 1 : 4)) &&
         questShown(prop, this.done);
     });
+  }
+  /** Islands out of the sea for now (decision 0166): their beacons are dark. */
+  setLandOut(out: ReadonlySet<string>) {
+    this.out = new Set(out);
+    this.setLevels(this.levels);
   }
   /** The quests done, for beacons that stand only before or after one (decision 0130). */
   setQuestsDone(done: ReadonlySet<string>) {

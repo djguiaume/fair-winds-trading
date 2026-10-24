@@ -22,7 +22,8 @@ import {
   shallowness,
 } from './hazards';
 import { townLevels } from './founding';
-import { settlementLevels } from './settlement';
+import { questsDone, settlementLevels } from './settlement';
+import { type LandState, hasQuestLand, landOut, landWith, syncLand } from './questLand';
 import { DIFFICULTIES, knobs, weatherFor } from './difficulty';
 import { mapZones, zoneField } from './windZones';
 import { smoothOutline } from './flowShapes';
@@ -79,8 +80,13 @@ export interface World {
   funnel: number;
   /** Land that blocks the wind, derived from the map once, in a grid for nearby lookups (0117). */
   windBlockers: SpatialGrid<WindBlocker>;
-  /** Reefs, derived from the map once (decision 0032). */
+  /** Reefs, derived from the map once (decision 0032), again when land rises or clears (0166). */
   reefs: Reef[];
+  /**
+   * The islands and shapes standing in the sea right now (decision 0166): the map's, less those a
+   * quest has not raised yet or has cleared. Collisions, wind, reefs, piers and sighting use it.
+   */
+  land: LandState;
   /** Harbour piers, solid to the hull (decision 0038). */
   piers: Pier[];
   /** 0 = deep water … 1 = at a reef's edge. */
@@ -173,6 +179,8 @@ export type WorldEvent =
 
 export function createWorld(map: MapDef, ship: ShipClass): World {
   const trade = createTradeState(map, ship);
+  // A new voyage: no quest done yet, so land `after:` one waits and land `before:` one stands.
+  const land = landWith(map, landOut(map, new Set()));
   const world: World = {
     map,
     ship: activeShip(trade),
@@ -197,9 +205,10 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     stormsOn: true,
     shelter: 0,
     funnel: 0,
-    windBlockers: windGrid(windBlockers(map.islands, map.terrain)),
-    reefs: reefsOf(map.terrain),
-    piers: piersOf(map),
+    windBlockers: windGrid(windBlockers(land.islands, land.terrain)),
+    reefs: reefsOf(land.terrain),
+    land,
+    piers: piersOf({ ...map, islands: land.islands }),
     shallow: 0,
     currents: new CurrentField(map),
     currentsOn: true,
@@ -212,6 +221,54 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     trade,
   };
   return world;
+}
+
+/** The map with only the land that stands right now (decision 0166). */
+export function standing(world: World): MapDef {
+  const { map, land } = world;
+  return land.out.size ? { ...map, islands: land.islands, terrain: land.terrain } : map;
+}
+
+const landSyncedAt = new WeakMap<World, number>();
+/** How often the sim looks whether land may rise or clear, seconds. */
+const LAND_SYNC_SEC = 0.5;
+
+/**
+ * Raises or clears the land the quests done call for, where it is safe (decision 0166), and
+ * rebuilds what depends on it. `loading`: a voyage just begun, loaded, or the boat just moved by
+ * a quest, so nothing near her is on screen yet. Returns the ids that swapped.
+ */
+export function syncWorldLand(world: World, loading = false): string[] {
+  if (!hasQuestLand(world.map)) return [];
+  landSyncedAt.set(world, world.time);
+  const swapped = syncLand(
+    world.map,
+    world.land,
+    questsDone(world.trade),
+    world.boat,
+    world.trade.dockedAt !== null,
+    loading,
+  );
+  if (swapped.length) landChanged(world);
+  return swapped;
+}
+
+/**
+ * A loaded voyage's land (decision 0166): back to a new voyage's, then up to date with the quests
+ * it has done, none rising on top of the boat.
+ */
+export function resetLand(world: World) {
+  if (!hasQuestLand(world.map)) return;
+  world.land = landWith(world.map, landOut(world.map, new Set()), world.land.version + 1);
+  syncWorldLand(world, true);
+  landChanged(world);
+}
+
+/** Rebuilds what the sim derives from the standing land. */
+function landChanged(world: World) {
+  world.windBlockers = windGrid(windBlockers(world.land.islands, world.land.terrain));
+  world.reefs = reefsOf(world.land.terrain);
+  refreshPiers(world);
 }
 
 export function resetBoat(world: World): void {
@@ -276,6 +333,8 @@ function moor(boat: BoatState, dt: number): void {
 
 interface PierVersion {
   map: MapDef;
+  /** The land's version (decision 0166): a pier on an island that rises or clears follows it. */
+  land: number;
   levels: ReturnType<typeof settlementLevels>;
   count: number;
   /** Ports on the chart: founding a site (decision 0157) builds its pier. */
@@ -287,7 +346,7 @@ export function refreshPiers(world: World) {
   const previous = pierVersions.get(world);
   const settlements = world.trade.settlements.byPort;
   let count = 0;
-  let changed = !previous || previous.map !== world.map;
+  let changed = !previous || previous.map !== world.map || previous.land !== world.land.version;
   // Scan mutable state directly: ordinary simulation steps allocate no level record or JSON.
   for (const id in settlements) {
     if (!Object.hasOwn(settlements, id)) continue;
@@ -301,9 +360,10 @@ export function refreshPiers(world: World) {
   }
   const charted = world.trade.progress.discovered.length;
   if (!changed && previous?.count === count && previous.charted === charted) return;
-  world.piers = piersOf(world.map, townLevels(world.map, world.trade));
+  world.piers = piersOf(standing(world), townLevels(world.map, world.trade));
   pierVersions.set(world, {
     map: world.map,
+    land: world.land.version,
     levels: settlementLevels(world.trade),
     count,
     charted,
@@ -491,6 +551,9 @@ export function holdStorms(world: World, reason: string, held: boolean) {
 }
 
 export function stepWorld(world: World, controls: BoatControls, dt: number): WorldEvent[] {
+  const synced = landSyncedAt.get(world);
+  if (synced === undefined || world.time - synced >= LAND_SYNC_SEC)
+    syncWorldLand(world, synced === undefined);
   refreshPiers(world);
   const events: WorldEvent[] = [];
   world.time += dt;
@@ -551,13 +614,14 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
       world.trade.progress,
       world.boat,
       applyPerks(world.trade.home, 'discoverRange', TUNING.economy.discoverRange),
+      world.land.islands,
     ),
   );
   // Shallows drag at the hull near reefs; deeper hulls feel it more (decision 0032).
   const nearReef = reefDistance(world.reefs, world.boat);
   world.shallow = Math.max(
     shallowness(nearReef, world.ship.radius),
-    passageShallowness(world.map.terrain, world.boat),
+    passageShallowness(world.land.terrain, world.boat),
   );
   if (world.shallow > 0) world.boat.speedKn *= shallowDrag(world.shallow, world.ship, dt);
   world.sogKn = dt > 0 ? distance(before, world.boat) / (knotToUnits() * dt) : 0;
@@ -566,9 +630,9 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   const surface = resolveCollisions(
     world.boat,
     world.ship.radius,
-    world.map.islands,
+    world.land.islands,
     world.map.boundsRadius,
-    world.map.terrain,
+    world.land.terrain,
     world.piers,
     world.ship.draft,
   );

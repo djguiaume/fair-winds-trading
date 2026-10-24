@@ -15,6 +15,11 @@ export interface IslandDef {
   y: number;
   /** Collision radius of the beach line (units). */
   radius: number;
+  /**
+   * `after:<quest>`: the island rises once that quest is done; `before:<quest>`: it stands until
+   * then (decision 0166, the rule of 0130). It swaps only out of the boat's sight.
+   */
+  tags?: string[];
   /** Visual hints for the island model; the simulation ignores them. */
   look?: {
     /**
@@ -71,6 +76,8 @@ export interface TerrainDef {
   };
   /** Seeds its rocks, coral and trees; left out, its place in the list does (decision 0110). */
   seed?: number;
+  /** `after:<quest>` / `before:<quest>`: the shape rises or clears with a quest (decision 0166). */
+  tags?: string[];
 }
 
 export interface WaypointDef {

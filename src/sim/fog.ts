@@ -88,6 +88,8 @@ export function stepFog(
   progress: ShipyardProgress,
   boat: { x: number; y: number },
   sightRange: number,
+  /** The islands standing now: one a quest has not raised yet is not sighted (decision 0166). */
+  islands: readonly IslandDef[] = map.islands,
 ): FogEvent[] {
   const fog = map.fog;
   if (!fog || Math.hypot(boat.x, boat.y) <= fog.chartedRadius - sightRange) return [];
@@ -97,7 +99,7 @@ export function stepFog(
     (progress.areas ??= []).push(area.id);
     events.push({ type: 'area-charted', id: area.id, name: area.name });
   }
-  for (const island of map.islands) {
+  for (const island of islands) {
     if (progress.sighted?.includes(island.id)) continue;
     if (Math.hypot(boat.x - island.x, boat.y - island.y) - island.radius > sightRange) continue;
     if (islandCharted(map, progress, island)) continue;

@@ -10,7 +10,7 @@ import { ISLAND_SCALE } from '../../src/render/models/highlandIslands';
 import { islandCheckKit } from '../../src/render/models/towns';
 import { checkIsland } from '../../src/sim/islandChecks';
 import type { MapDef } from '../../src/sim/map';
-import { type MapCheck, quickChecks, routeChecks } from '../../src/sim/mapChecks';
+import { type MapCheck, questTagsCheck, quickChecks, routeChecks } from '../../src/sim/mapChecks';
 import { checkPerks } from '../../src/sim/perks';
 import { QUESTS, type QuestDef } from '../../src/sim/quests';
 
@@ -84,7 +84,13 @@ export function checkAll(opts: CheckOptions = {}) {
   if (want('seas')) {
     const routes = opts.routes ?? 'first';
     Object.entries(seas).forEach(([name, map], n) => {
-      const checks: MapCheck[] = [...quickChecks(map)];
+      const checks: MapCheck[] = [
+        ...quickChecks(map),
+        questTagsCheck(
+          map,
+          QUESTS.map((q) => q.id),
+        ),
+      ];
       if (routes === 'all' || (routes === 'first' && n === 0)) checks.push(...routeChecks(map));
       for (const c of checks)
         if (!c.ok)
