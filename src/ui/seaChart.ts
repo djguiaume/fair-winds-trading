@@ -37,7 +37,9 @@ const FOG_RIM: [number, string][] = [
   [10, 'rgb(170,170,170)'],
   [5, 'rgb(85,85,85)'],
 ];
-/** How far round a sighted island its patch of chart reaches, in map units. */
+/** Fog of war's blurred edge on High quality, in pixels (decision 0155). */
+const FOG_BLUR = 8;
+/** How far round a sighted island its patch of chart reaches, in map units (plus the blur). */
 const SIGHTED_MARGIN = 12;
 
 /** Overlapping area of two boxes, used to choose the clearest side for a label. */
@@ -97,6 +99,8 @@ const escapeHtml = (s: string) =>
 
 /** An event-driven DOM/SVG chart; no second WebGL scene or animation loop. */
 export class SeaChart {
+  /** Blur fog of war's edge (High quality only, decision 0155). */
+  fogBlur = false;
   onChange: () => void = () => {};
   /** People's faces on their ports, the tracked step's place and the journal; none: no quests. */
   quests: ChartQuests | null = null;
@@ -355,34 +359,48 @@ export class SeaChart {
       tag: 'polygon',
       attrs: { points: outline.map(([x, y]) => `${x},${-y}`).join(' ') },
     });
-    const holes = [
-      { tag: 'circle', attrs: { r: fog.chartedRadius } as Record<string, number | string> },
+    // A blur eats into small holes, so a sighted island's patch grows by the blur.
+    const margin = SIGHTED_MARGIN + (this.fogBlur ? 2 * FOG_BLUR * px : 0);
+    const holes: { tag: string; attrs: Record<string, number | string> }[] = [
+      { tag: 'circle', attrs: { r: fog.chartedRadius } },
       ...fog.areas.filter((a) => progress.areas?.includes(a.id)).map((a) => polygon(a.outline)),
       ...map.islands
         .filter((i) => progress.sighted?.includes(i.id))
-        .map((i) => ({
-          tag: 'circle',
-          attrs: { cx: i.x, cy: -i.y, r: i.radius + SIGHTED_MARGIN } as Record<
-            string,
-            number | string
-          >,
-        })),
+        .map((i) => ({ tag: 'circle', attrs: { cx: i.x, cy: -i.y, r: i.radius + margin } })),
     ];
-    // The rim: mask greys, lighter (less fog) nearer the hole.
-    for (const [width, grey] of FOG_RIM)
-      for (const h of holes)
-        shape(
-          h.tag,
-          {
-            ...h.attrs,
-            fill: 'none',
-            stroke: grey,
-            'stroke-width': width * px * 2,
-            'stroke-linejoin': 'round',
-          },
-          mask,
-        );
-    for (const h of holes) shape(h.tag, { ...h.attrs, fill: '#000' }, mask);
+    // The rim: on High quality a blur; else mask greys, lighter (less fog) nearer the hole.
+    let target: Element = mask;
+    if (this.fogBlur) {
+      const filter = shape(
+        'filter',
+        {
+          id: 'chart-fog-blur',
+          x: -R,
+          y: -R,
+          width: 2 * R,
+          height: 2 * R,
+          filterUnits: 'userSpaceOnUse',
+        },
+        defs,
+      );
+      shape('feGaussianBlur', { stdDeviation: FOG_BLUR * px }, filter);
+      target = shape('g', { filter: 'url(#chart-fog-blur)' }, mask);
+      shape('circle', { r: R + 2, fill: '#fff' }, target);
+    } else
+      for (const [width, grey] of FOG_RIM)
+        for (const h of holes)
+          shape(
+            h.tag,
+            {
+              ...h.attrs,
+              fill: 'none',
+              stroke: grey,
+              'stroke-width': width * px * 2,
+              'stroke-linejoin': 'round',
+            },
+            mask,
+          );
+    for (const h of holes) shape(h.tag, { ...h.attrs, fill: '#000' }, target);
     const tile = 60 * px;
     const pattern = shape(
       'pattern',

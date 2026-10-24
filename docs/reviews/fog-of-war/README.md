@@ -12,6 +12,10 @@ The ring stays charted. An area is charted at once when she sails into it, or wh
 
 ![Look A as built](sheet-final.png)
 
+On High quality the edge is blurred (Low and Medium keep the cheap stepped rim):
+
+![High quality blur](sheet-blur.png)
+
 At sea, sailing into an area charts it with a toast:
 
 ![At sea](sheet-sea.png)

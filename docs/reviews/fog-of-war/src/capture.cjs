@@ -71,12 +71,18 @@ async function shoot(browser, style, [name, w, h, what]) {
     for (const d of document.querySelectorAll('dialog[open]')) d.close();
   });
   if (what.chart) {
-    await p.evaluate((what) => {
+    await p.evaluate(
+      ([what, style]) => {
+      // `blur`: the High quality look, with a blurred edge (decision 0155).
+      if (style === 'blur') window.fwt.chart.fogBlur = true;
+      else if (style === 'final') window.fwt.chart.fogBlur = false;
       const pr = window.fwt.world.trade.progress;
       pr.areas = [...(what.progress.areas ?? [])];
       pr.sighted = [...(what.progress.sighted ?? [])];
       document.getElementById('chart-btn').click();
-    }, what);
+      },
+      [what, style],
+    );
     await p.waitForTimeout(800);
     for (let i = 0; i < (what.chartZoom ?? 0); i++) {
       await p.click('#chart-zoom-in');

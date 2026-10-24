@@ -19,6 +19,8 @@ export interface QualityProfile {
   shadows: boolean;
   /** Smooth foam animation and second wave layer in the ocean shader. */
   fancyWater: boolean;
+  /** Fog of war's edge on the chart blurred (decision 0155); else a cheap stepped soft rim. */
+  chartFogBlur: boolean;
 }
 
 export const QUALITY: Record<QualityLevel, QualityProfile> = {
@@ -30,6 +32,7 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
     rainDrops: 160,
     shadows: false,
     fancyWater: false,
+    chartFogBlur: false,
   },
   medium: {
     maxRenderPixels: 1_250_000,
@@ -39,6 +42,7 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
     rainDrops: 260,
     shadows: false,
     fancyWater: true,
+    chartFogBlur: false,
   },
   high: {
     maxRenderPixels: 2_500_000,
@@ -48,6 +52,7 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
     rainDrops: 400,
     shadows: true,
     fancyWater: true,
+    chartFogBlur: true,
   },
 };
 
