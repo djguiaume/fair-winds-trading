@@ -4,6 +4,7 @@ import { GOOD_ICONS, isGood } from '../sim/goods';
 import { islandCoasts, islandLake } from '../sim/islandLayout';
 import type { MapDef } from '../sim/map';
 import { DEG } from '../sim/math';
+import { drawFlow, drawFlowSelection, flowLabels } from './flowChart';
 import type { Selection } from './model';
 import { findIsland, findShape, waypointOf } from './model';
 
@@ -20,6 +21,8 @@ export interface Layers {
   course: boolean;
   harbours: boolean;
   grid: boolean;
+  /** Currents and wind zones (decision 0140). */
+  flow: boolean;
 }
 
 export interface View {
@@ -76,6 +79,8 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
       el('line', { y1: v, y2: v, x1: -half, x2: half }, g);
     }
   }
+
+  if (layers.flow) drawFlow(el, map, px);
 
   // Barrier islands, reefs and sandbanks first: port islands sit on top.
   for (const t of map.terrain ?? []) {
@@ -214,6 +219,7 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
       );
     }
   }
+  if (layers.flow) drawFlowSelection(el, map, selection, px);
   if (selection?.kind === 'waypoint') {
     const wp = map.course[selection.index];
     if (wp) el('circle', { cx: wp.x, cy: -wp.y, r: 9 * px, class: 'c-selected' });
@@ -253,6 +259,7 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
         'small',
       );
     }
+    if (layers.flow) flowLabels(map, label);
     label('start', s.x, -s.y + 22 * px, 11, 'small');
   }
 }

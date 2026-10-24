@@ -8,19 +8,32 @@ import { type Layers, type View, drawChart, drawCompass } from './chart';
 import {
   History,
   type Selection,
+  addAreaCurrent,
   addIsland,
+  addLanePoint,
   addShape,
+  addZone,
+  beginLane,
   deleteSelection,
+  findCurrent,
   findIsland,
   findShape,
+  findZone,
+  finishLane,
   formatMapJson,
+  insertFlowPoint,
   insertPoint,
+  moveFlow,
+  moveFlowPoint,
   moveIsland,
   movePoint,
   moveShape,
   moveStart,
   moveWaypoint,
+  setLaneWidth,
 } from './model';
+import { animateCrests } from './flowChart';
+import { TUNING } from '../data/tuning';
 import { renderPanel } from './panel';
 import { hasIslandFile, islandOpen, openIsland, setupIslandBuilder } from './island/builder';
 import { giveIslandFile } from './island/fromLook';
@@ -37,7 +50,8 @@ const $ = <T extends Element = HTMLElement>(id: string) =>
 const svg = $<SVGSVGElement>('ed-map');
 const props = $('ed-props');
 
-type Tool = 'move' | 'island' | 'reef' | 'sandbank' | 'ridge' | 'start';
+type Tool =
+  'move' | 'island' | 'reef' | 'sandbank' | 'ridge' | 'start' | 'current' | 'area' | 'zone';
 const TOOLS: { id: Tool; icon: string; label: string; hint: string }[] = [
   {
     id: 'move',
@@ -60,6 +74,24 @@ const TOOLS: { id: Tool; icon: string; label: string; hint: string }[] = [
     label: 'Move the start',
     hint: 'Click the sea to put the start there',
   },
+  {
+    id: 'current',
+    icon: '🌊',
+    label: 'Add current',
+    hint: 'Click to lay the current’s points in the direction it flows · double-click or Enter to finish',
+  },
+  {
+    id: 'area',
+    icon: '〰️',
+    label: 'Add area current',
+    hint: 'Click the sea to add an area of drifting water, then drag its points and set its direction',
+  },
+  {
+    id: 'zone',
+    icon: '🌬️',
+    label: 'Add wind zone',
+    hint: 'Click the sea to add a wind zone, then drag its points and pick its kind',
+  },
 ];
 
 // --- State ---------------------------------------------------------------------------------
@@ -79,7 +111,10 @@ let prepared = prepareMap(map);
 let selection: Selection = null;
 let tool: Tool = 'move';
 const history = new History();
-const layers: Layers = { names: true, course: true, harbours: true, grid: false };
+const layers: Layers = { names: true, course: true, harbours: true, grid: false, flow: true };
+/** The lane current being laid with the Add current tool, point by point. */
+let laying: string | null = null;
+let lastLayClick: { t: number; x: number; y: number } | null = null;
 const view: View = { cx: 0, cy: 0, upp: 1 };
 const shippedText = JSON.stringify(PHASE1_SOURCE);
 
@@ -163,6 +198,7 @@ setupQuestBuilder({
 });
 $('ed-quests').addEventListener('click', openQuests);
 svg.addEventListener('dblclick', (e) => {
+  if (laying) return finishLaying();
   const hit = (e.target as Element).closest('[data-hit]')?.getAttribute('data-hit') ?? '';
   const [kind, id] = hit.split(':');
   if ((kind === 'island' || kind === 'shape') && id) editIsland(id);
@@ -261,6 +297,9 @@ type Drag =
   | { kind: 'point'; id: string; index: number }
   | { kind: 'waypoint'; index: number }
   | { kind: 'start' }
+  | { kind: 'flow'; x: number; y: number }
+  | { kind: 'fpoint'; index: number }
+  | { kind: 'cwidth'; id: string; index: number }
   | { kind: 'pan'; sx: number; sy: number; cx: number; cy: number };
 let drag: Drag | null = null;
 const pointers = new Map<number, { x: number; y: number }>();
@@ -289,10 +328,42 @@ svg.addEventListener('pointerdown', (e) => {
   }
   const p = toMap(e);
   const hit = (e.target as Element).closest('[data-hit]')?.getAttribute('data-hit') ?? 'sea';
-  const [kind, id = '', arg] = hit.split(':');
+  const [hitKind, id = '', arg] = hit.split(':');
+  // Adding on top of a zone or a current's water is adding on the sea.
+  const kind = tool !== 'move' && (hitKind === 'zone' || hitKind === 'current') ? 'sea' : hitKind;
+  if (tool === 'current') {
+    // Every click lays the next point, wherever it lands. The chart is redrawn after each one, so
+    // the browser's dblclick (two clicks on one element) never fires: a quick second click on the
+    // same spot finishes the lane.
+    const last = lastLayClick;
+    lastLayClick = { t: e.timeStamp, x: e.clientX, y: e.clientY };
+    if (
+      laying &&
+      last &&
+      e.timeStamp - last.t < 400 &&
+      Math.hypot(e.clientX - last.x, e.clientY - last.y) < 8
+    )
+      return finishLaying();
+    history.record(map);
+    if (laying && findCurrent(map, laying)) {
+      const point = addLanePoint(map, laying, p.x, p.y)!;
+      selection = { kind: 'current', id: laying, point };
+    } else {
+      laying = beginLane(map, p.x, p.y);
+      selection = { kind: 'current', id: laying, point: 0 };
+    }
+    commit();
+    return;
+  }
   if (tool !== 'move' && kind === 'sea') {
     history.record(map);
     if (tool === 'island') selection = { kind: 'island', id: addIsland(map, p.x, p.y) };
+    else if (tool === 'area') selection = { kind: 'current', id: addAreaCurrent(map, p.x, p.y) };
+    else if (tool === 'zone')
+      selection = {
+        kind: 'zone',
+        id: addZone(map, p.x, p.y, Object.keys(TUNING.weather.zones.kinds)[0]!),
+      };
     else if (tool === 'start') {
       moveStart(map, p.x, p.y);
       selection = { kind: 'start' };
@@ -305,9 +376,26 @@ svg.addEventListener('pointerdown', (e) => {
     commit();
     return;
   }
+  const pan = () =>
+    (drag = { kind: 'pan', sx: e.clientX, sy: e.clientY, cx: view.cx, cy: view.cy });
   if (kind === 'sea') {
     if (selection) select(null);
-    drag = { kind: 'pan', sx: e.clientX, sy: e.clientY, cx: view.cx, cy: view.cy };
+    pan();
+    return;
+  }
+  if (kind === 'zone' || kind === 'current') {
+    // A first press selects a zone or current and pans (zones can cover much of the sea); once
+    // selected, a press drags it.
+    if (selection?.kind !== kind || selection.id !== id) {
+      select({ kind, id });
+      pan();
+      return;
+    }
+    history.record(map);
+    drag = { kind: 'flow', x: p.x, y: p.y };
+    selection = { kind, id };
+    drawMap();
+    drawPanel();
     return;
   }
   history.record(map);
@@ -323,6 +411,15 @@ svg.addEventListener('pointerdown', (e) => {
     const index = kind === 'insert' ? insertPoint(map, id, Number(arg))! : Number(arg);
     drag = { kind: 'point', id, index };
     selection = { kind: 'shape', id, point: index };
+  } else if (kind === 'cpoint' || kind === 'zpoint' || kind === 'cinsert' || kind === 'zinsert') {
+    const sel = { kind: kind[0] === 'c' ? ('current' as const) : ('zone' as const), id };
+    const index = kind.endsWith('insert') ? insertFlowPoint(map, sel, Number(arg)) : Number(arg);
+    if (index === undefined) return;
+    drag = { kind: 'fpoint', index };
+    selection = { ...sel, point: index };
+  } else if (kind === 'cwidth') {
+    drag = { kind: 'cwidth', id, index: Number(arg) };
+    selection = { kind: 'current', id, point: Number(arg) };
   } else if (kind === 'waypoint') {
     drag = { kind: 'waypoint', index: Number(id) };
     selection = { kind: 'waypoint', index: Number(id) };
@@ -380,6 +477,23 @@ svg.addEventListener('pointermove', (e) => {
     case 'waypoint':
       moveWaypoint(map, drag.index, p.x, p.y);
       break;
+    case 'flow': {
+      const [dx, dy] = [Math.round(p.x - drag.x), Math.round(p.y - drag.y)];
+      if (!dx && !dy) return;
+      moveFlow(map, selection, dx, dy);
+      drag.x += dx;
+      drag.y += dy;
+      break;
+    }
+    case 'fpoint':
+      moveFlowPoint(map, selection, drag.index, p.x, p.y);
+      break;
+    case 'cwidth': {
+      const point = findCurrent(map, drag.id)?.path?.[drag.index];
+      if (point)
+        setLaneWidth(map, drag.id, drag.index, 2 * Math.hypot(p.x - point[0], p.y - point[1]));
+      break;
+    }
     case 'start':
       moveStart(map, p.x, p.y);
       break;
@@ -444,6 +558,12 @@ function nudge(dx: number, dy: number) {
   } else if (selection.kind === 'waypoint') {
     const wp = map.course[selection.index]!;
     moveWaypoint(map, selection.index, wp.x + dx, wp.y + dy);
+  } else if (selection.kind === 'current' || selection.kind === 'zone') {
+    const c = selection.kind === 'current' ? findCurrent(map, selection.id) : undefined;
+    const points = c ? (c.path ?? c.outline) : findZone(map, selection.id)?.outline;
+    const point = selection.point !== undefined ? points?.[selection.point] : undefined;
+    if (point) moveFlowPoint(map, selection, selection.point!, point[0] + dx, point[1] + dy);
+    else moveFlow(map, selection, dx, dy);
   } else moveStart(map, map.start.x + dx, map.start.y + dy);
   commit();
 }
@@ -463,6 +583,9 @@ document.addEventListener('keydown', (e) => {
   } else if (e.key === 'Delete' || e.key === 'Backspace') {
     e.preventDefault();
     remove();
+  } else if (e.key === 'Enter' && laying) {
+    e.preventDefault();
+    finishLaying();
   } else if (e.key === 'Escape') {
     setTool('move');
     select(null);
@@ -481,7 +604,20 @@ document.addEventListener('keydown', (e) => {
 
 // --- Tools, layers and the top bar ---------------------------------------------------------
 
+/** Ends laying a lane: one with a single point is dropped. */
+function finishLaying() {
+  const id = laying;
+  laying = null;
+  if (!id) return;
+  const kept = finishLane(map, id);
+  selection = kept ? { kind: 'current', id } : null;
+  history.discardIfSame(map);
+  setTool('move');
+  commit();
+}
+
 function setTool(next: Tool) {
+  if (laying && next !== 'current') return finishLaying();
   tool = next;
   for (const b of $('ed-tools').querySelectorAll('button'))
     b.setAttribute('aria-pressed', String(b.dataset.tool === tool));
@@ -502,6 +638,7 @@ const LAYER_NAMES: [keyof Layers, string][] = [
   ['course', 'Waypoints'],
   ['harbours', 'Harbour ranges'],
   ['grid', 'Grid 50'],
+  ['flow', 'Currents and zones'],
 ];
 for (const [key, label] of LAYER_NAMES) {
   const b = document.createElement('button');
@@ -520,7 +657,9 @@ function replaceMap(next: MapDef) {
   if (
     (selection?.kind === 'island' && !findIsland(map, selection.id)) ||
     (selection?.kind === 'shape' && !findShape(map, selection.id)) ||
-    (selection?.kind === 'waypoint' && !map.course[selection.index])
+    (selection?.kind === 'waypoint' && !map.course[selection.index]) ||
+    (selection?.kind === 'current' && !findCurrent(map, selection.id)) ||
+    (selection?.kind === 'zone' && !findZone(map, selection.id))
   )
     selection = null;
   commit();
@@ -576,3 +715,14 @@ new ResizeObserver(() => {
 setTool('move');
 fit();
 commit();
+
+// The current crests drift downstream, a few times a second (cheap: a few hundred short paths).
+let lastCrests = 0;
+function tickCrests(now: number) {
+  if (now - lastCrests > 80 && layers.flow && map.currents?.length && !drag) {
+    lastCrests = now;
+    animateCrests(svg, map);
+  }
+  requestAnimationFrame(tickCrests);
+}
+requestAnimationFrame(tickCrests);
