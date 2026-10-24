@@ -213,6 +213,12 @@ if (playtestMap) {
 const resumedVoyage = storage ? loadGame(storage, world) : false;
 let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
 const view = new GameView(canvas, world, level);
+// `?perf` test aids (decision 0148): `scale=0.7` draws fewer pixels, `fps=30` caps the frame rate.
+const perfParams = new URLSearchParams(location.search);
+const perfMode = perfParams.has('perf');
+const perfScale = perfMode ? Math.min(1, Math.max(0.3, Number(perfParams.get('scale')) || 1)) : 1;
+const frameCap = perfMode ? Math.max(0, Number(perfParams.get('fps')) || 0) : 0;
+view.renderScale = perfScale;
 const hud = new Hud(
   world,
   {
@@ -1185,6 +1191,8 @@ let soundIn = 0;
 
 function tick(now: number) {
   frame = requestAnimationFrame(tick);
+  // A few ms of slack so a 30 fps cap lands on every second 60 Hz refresh.
+  if (frameCap && now - last < 1000 / frameCap - 4) return;
   const rawMs = now - last;
   const dt = Math.min(0.1, rawMs / 1000);
   last = now;
@@ -1294,11 +1302,14 @@ if (tuneMode) {
 }
 
 // The `?perf` readout (decision 0148) for device tests: its own chunk, like the tuning panel.
-if (new URLSearchParams(location.search).has('perf')) {
+if (perfMode) {
   void import('./perf/perfReadout').then(({ PerfReadout }) => {
+    const sea = stressTest ? 'stress test sea' : playtestMap ? 'edited map' : "today's sea";
     perf = new PerfReadout({
       version: __APP_VERSION__,
-      sea: stressTest ? 'stress test sea' : playtestMap ? 'edited map' : "today's sea",
+      sea: [sea, perfScale !== 1 ? `scale ${perfScale}` : '', frameCap ? `cap ${frameCap} fps` : '']
+        .filter(Boolean)
+        .join(' · '),
       switches: () =>
         (['weather', 'storms', 'dayNight', 'windZones', 'currents'] as const)
           .map((k) => `${k} ${settings[k] ? 'on' : 'off'}`)

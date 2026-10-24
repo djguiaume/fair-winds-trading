@@ -308,11 +308,15 @@ export class GameView {
     this.resize(this.width, this.height);
   }
 
+  /** Extra drawing-resolution factor, a `?perf` test aid only (decision 0148); 1 = normal. */
+  renderScale = 1;
+
   resize(width: number, height: number) {
     this.width = Math.max(1, width);
     this.height = Math.max(1, height);
     this.renderer.setPixelRatio(
-      renderPixelRatio(width, height, window.devicePixelRatio || 1, this.profile),
+      renderPixelRatio(width, height, window.devicePixelRatio || 1, this.profile) *
+        this.renderScale,
     );
     this.renderer.setSize(this.width, this.height, false);
     this.camera.aspect = this.width / this.height;
