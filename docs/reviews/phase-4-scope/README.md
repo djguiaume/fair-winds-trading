@@ -102,10 +102,10 @@ The 5x sea grows outward from the ring in four directions, each a biome with its
 
 | Side | Biome | Sailing challenge | Outpost island | Rare good (second set, 0065) |
 |---|---|---|---|---|
-| North | Ice | Drifting icebergs (moving hazards), cold gales | Ice island | Furs or whale oil |
+| North | Ice | Drifting icebergs (moving hazards), cold gales | Ice island | Eiderdown or cloudberries |
 | South | Tropical | Sand reefs, shallows that hard-block deep ships, steady trade-wind belt with doldrums | Palm island | Spice |
-| West | Fire | Volcano island, ash clouds that cut visibility, warm currents | Volcano island | Sulphur or obsidian |
-| East | Proposed: fog and storm coast (alternative: kelp and whale grounds) | Fog banks, cliffs, strong currents, frequent storms; where the expedition's storm belt could later start | Cliff island | Open |
+| West | Fire | Volcano island, ash clouds that cut visibility, warm currents | Volcano island | Obsidian or sulphur |
+| East | Proposed: fog and storm coast (alternative: kelp and whale grounds) | Fog banks, cliffs, strong currents, frequent storms; where the expedition's storm belt could later start | Cliff island | Amber |
 
 This replaces 0065's "one upwind, one downwind" outer islands with one per biome. The wind zones (item 2) and currents (item 3) become per-biome data. New code is needed once each for drifting icebergs, ash or fog visibility, and the biome looks (ice, palms, lava), as for any new weather look (0108).
 
@@ -129,3 +129,12 @@ Repairs and shelter alone are thin. Proposal: an outpost is a **new small settle
 6. **Story in the new waters:** should the outer islands get small arcs of their own (a story reason to explore), or stay trade-only until the expedition?
 
 Final answers (2026-10-24 06:31Z): an outpost as a settlement you found, yes; the east is the fog and storm coast; and each biome also has an inhabited main island, besides the outpost site.
+
+## Head storyteller's notes (2026-10-24)
+
+The direction fits the story. The rare-good placeholders were changed, since the game is cozy and the only antagonist is the weather, and point 5 of 0137 gained the story rules. Notes for later, not decisions:
+
+- **Founding an outpost is a small arc.** The settlers are relatives of people the player already knows, and it ends with the epilogue's flagpole and name board ([0134](../../decisions/0134-fair-winds-epilogue.md)).
+- **The link from Phase 3:** the planned Watchman Key arc (Old Ness, "The keeper's passage") is the way into the new waters, through Ness's old charts. Abbey Head's arc fits alongside it.
+- **Ids:** `<port>-<slug>` for arcs and `outpost-<biome>` for outposts.
+- Before any Phase 4 arc starts, the head storyteller writes a Phase 4 section into the [brief](../../story/storyteller-brief.md) covering people, names and the link.
