@@ -562,6 +562,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     's',
     'One storm crosses the sea in each stretch of this many seconds.',
   ),
+  'difficulty.levels.*.currents': num(
+    'Currents',
+    0,
+    2,
+    0.05,
+    '×',
+    'Every current runs at this many times its charted speed (0140).',
+  ),
   'difficulty.levels.*.steadyWind': toggle(
     'Steady wind',
     'Whether a new voyage starts with the steady trade wind (Settings › Wind can change it).',

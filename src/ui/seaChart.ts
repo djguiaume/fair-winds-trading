@@ -8,6 +8,10 @@ import { type PortQuote, quoteAcross } from '../sim/market';
 import { DEG, distance } from '../sim/math';
 import { discoveredPorts } from '../sim/shipyards';
 import { noGoAngle } from '../sim/ship';
+import { laneShape } from '../sim/currents';
+import { knobs } from '../sim/difficulty';
+import { areaCrests, laneCrests, laneEdges, smoothOutline } from '../sim/flowShapes';
+import { TUNING } from '../data/tuning';
 import { goodName, t } from '../i18n';
 import { icon, COIN } from './icons';
 import { drawHazard } from './hazardMarker';
@@ -217,6 +221,61 @@ export class SeaChart {
   private get maxZoom() {
     return Math.max(3, (3 * (this.world.map.boundsRadius + 24)) / (440 + 24));
   }
+  /**
+   * Charted currents (decision 0140): the same darker water with its crests as at sea, and its
+   * speed, once she has sailed in it. Drawn once per chart render, static.
+   */
+  private drawCurrents(
+    shape: (tag: string, attrs: Record<string, string | number>, parent?: Element) => Element,
+    unit: number,
+  ) {
+    const { map, trade } = this.world;
+    const charted = trade.progress.charted ?? [];
+    const currents = (map.currents ?? []).filter((c) => charted.includes(c.id));
+    if (!currents.length || !this.world.currentsOn) return;
+    const defs = shape('defs', {});
+    const blur = shape(
+      'filter',
+      { id: 'chart-soft', x: '-20%', y: '-20%', width: '140%', height: '140%' },
+      defs,
+    );
+    shape('feGaussianBlur', { stdDeviation: TUNING.weather.currents.edgeFadeUnits / 2 }, blur);
+    const pts = (ps: readonly (readonly number[])[]) => ps.map(([x, y]) => `${x},${-y!}`).join(' ');
+    const scale = knobs(trade.difficulty).currents;
+    for (const c of currents) {
+      const lane = laneShape(c);
+      const band = lane
+        ? (({ left, right }) => [...left, ...right.reverse()])(laneEdges(lane.points))
+        : c.outline && smoothOutline(c.outline);
+      if (!band) continue;
+      shape('polygon', { points: pts(band), class: 'chart-current', filter: 'url(#chart-soft)' });
+      const crests = lane
+        ? laneCrests(lane.points, 0, TUNING.weather.currents.endFadeUnits)
+        : areaCrests(band, c.towardDeg ?? 0, 0);
+      const g = shape('g', { class: 'chart-crests', 'stroke-width': 1.6 * unit });
+      for (const k of crests)
+        shape(
+          'path',
+          {
+            d: `M${k.a[0]},${-k.a[1]} Q${k.c[0]},${-k.c[1]} ${k.b[0]},${-k.b[1]}`,
+            'stroke-opacity': (0.7 * k.alpha).toFixed(2),
+          },
+          g,
+        );
+      const mid = lane ? lane.points[Math.floor(lane.points.length / 2)]! : band[0]!;
+      const label = shape('text', {
+        x: mid[0],
+        y: -mid[1] - 10 * unit,
+        class: 'chart-current-label',
+        'font-size': 11 * unit,
+      });
+      label.textContent = t('chart.current', {
+        name: c.name ?? '',
+        n: (c.speedKn * scale).toFixed(1),
+      });
+    }
+  }
+
   private unitsPerPixel() {
     const rect = this.get('chart-map').getBoundingClientRect();
     return (
@@ -586,6 +645,7 @@ export class SeaChart {
       return el;
     };
     shape('circle', { r: map.boundsRadius, class: 'chart-boundary' });
+    this.drawCurrents(shape, unit);
     // Land reads like the 3D islands: an ink outline, a sand shore and a grass top.
     const land = (tag: string, attrs: Record<string, string | number>) => {
       shape(tag, { ...attrs, class: 'chart-shore' });

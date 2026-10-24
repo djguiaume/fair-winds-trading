@@ -38,6 +38,8 @@ export interface DifficultyKnobs {
   galeWeight: number;
   /** One storm crosses the sea in each stretch of this many seconds. */
   stormEverySec: number;
+  /** Every current's speed × this (decision 0140): gentler on Fair winds, stronger on Old salt. */
+  currents: number;
   /** Whether a new voyage starts with the steady trade wind (Settings › Wind can change it). */
   steadyWind: boolean;
 }

@@ -1,6 +1,14 @@
 import { TUNING } from '../data/tuning';
-import { type BoatControls, type BoatState, createBoat, stepBoat, trueWindAngle } from './boat';
+import {
+  type BoatControls,
+  type BoatState,
+  createBoat,
+  knotToUnits,
+  stepBoat,
+  trueWindAngle,
+} from './boat';
 import { type Pier, piersOf, resolveCollisions } from './collision';
+import { CurrentField, type CurrentSample } from './currents';
 import type { MapDef } from './map';
 import {
   type Reef,
@@ -73,6 +81,14 @@ export interface World {
   piers: Pier[];
   /** 0 = deep water … 1 = at a reef's edge. */
   shallow: number;
+  /** Moving water (decision 0140), built from the map once; asked only at the boat. */
+  currents: CurrentField;
+  /** Currents on (Settings › Weather, decision 0140); off = still water everywhere. */
+  currentsOn: boolean;
+  /** The water at the boat on the last step, knots (east, north), after the switch and level. */
+  water: CurrentSample;
+  /** Speed over the ground on the last step, knots: through the water, leeway and current. */
+  sogKn: number;
   /** Weather at the boat: sea-wide state, rain and storm (decision 0067). */
   weather: LocalWeather;
   /**
@@ -141,6 +157,8 @@ export type WorldEvent =
   | { type: 'waypoint'; label: string; seconds: number; next: string }
   | { type: 'storm-near'; bearing: number }
   | { type: 'overboard'; good: GoodId; qty: number }
+  /** The boat sailed into a current she had not charted yet (decision 0140). */
+  | { type: 'current-charted'; id: string }
   | DockEvent;
 
 export function createWorld(map: MapDef, ship: ShipClass): World {
@@ -173,6 +191,10 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     reefs: reefsOf(map.terrain),
     piers: piersOf(map),
     shallow: 0,
+    currents: new CurrentField(map),
+    currentsOn: true,
+    water: { east: 0, north: 0, id: '' },
+    sogKn: 0,
     windOffsetDeg: 0,
     boat: createBoat(map.start.x, map.start.y, map.start.headingDeg * DEG),
     destination: null,
@@ -404,6 +426,29 @@ export function stepHeel(world: World, dt: number): WorldEvent[] {
 }
 
 /**
+ * Current (decision 0140): the water at the boat carries her over the ground, added to her motion
+ * the way leeway is; the polars, heel and press stay "through the water". A moored boat (stopped
+ * with her lines ashore) ignores it. Sailing into a current she has not met charts it.
+ */
+function stepCurrent(world: World, dt: number): WorldEvent[] {
+  const { boat } = world;
+  const scale = world.currentsOn ? knobs(world.trade.difficulty).currents : 0;
+  const water = world.currents.at(boat.x, boat.y, scale, world.water);
+  const moored = boat.speedKn === 0 && boat.sailStep === 0 && !boat.drift.x && !boat.drift.y;
+  if (moored || !water.id) return [];
+  const k = knotToUnits() * dt;
+  boat.x += water.east * k;
+  boat.y += water.north * k;
+  const charted = (world.trade.progress.charted ??= []);
+  if (charted.includes(water.id) || Math.hypot(water.east, water.north) < chartAtKn) return [];
+  charted.push(water.id);
+  return [{ type: 'current-charted', id: water.id }];
+}
+
+/** A current is charted once she feels it at this speed (well inside it, past its soft edge). */
+const chartAtKn = 0.4;
+
+/**
  * Holds storms back for a reason (decision 0072), or lets that reason go. Storms never blow during
  * the tutorial or a special event, whatever the Settings say. Idempotent, so callers can sync it
  * every step.
@@ -450,6 +495,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   // Upgrades and ship purchases change the trade state; the boat picks them up here.
   world.ship = activeShip(world.trade);
 
+  const before = { x: world.boat.x, y: world.boat.y };
   stepBoat(world.boat, controls, world.ship, world.wind, dt);
   // Lowering the sails near a port at a slow speed brings her alongside: the crew throws lines, she stops dead
   // and no longer drifts, so docking is reliable instead of a slow exponential crawl (0041).
@@ -460,10 +506,12 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
       homeInRange(world.trade, world.map, world.boat))
   )
     moor(world.boat, dt);
+  events.push(...stepCurrent(world, dt));
   // Shallows drag at the hull near reefs; deeper hulls feel it more (decision 0032).
   const nearReef = reefDistance(world.reefs, world.boat);
   world.shallow = shallowness(nearReef, world.ship.radius);
   if (world.shallow > 0) world.boat.speedKn *= shallowDrag(world.shallow, world.ship, dt);
+  world.sogKn = dt > 0 ? distance(before, world.boat) / (knotToUnits() * dt) : 0;
   const sinceBump = world.boat.sinceBump;
   const speedBefore = world.boat.speedKn;
   const surface = resolveCollisions(
