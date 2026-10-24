@@ -19,17 +19,19 @@ The map editor's chart with the step's places: `reach` points (numbered, joined 
 - Drag a ring's white handle to move it, its gold handle to change `within`.
 - **◎** then click the sea: a new place at the end of the step's `reach` points (or the timed run's `via` points).
 - **✶** then click the sea: the step's compass point.
+- **⛵** then click the sea: where the step takes the boat when it begins (`moveTo`, [0164](../../decisions/0164-sailing-lessons-quest.md)), drawn as a small boat, "boat starts".
+- **◍** then click the sea: a yellow buoy in the quest's own `marks`, shown in the game only while the quest runs (0164).
 - Drag the sea to pan, wheel or pinch to zoom, **⤢** fits the step.
 
 ## The fields (right)
 
-With **Starts** picked: id (locked once shipped: saves know quests by id), name, giver, where its card shows, **Asks first** (`offer`), **Main**, the start condition, quest cargo (`items`: an id and its hold space, 0 for a passenger) and the final reward. A quest made here can be deleted.
+With **Starts** picked: id (locked once shipped: saves know quests by id), name, giver, where its card shows, **Asks first** (`offer`), **Main**, **Wind (kn)** (the quest's held breeze over steps without their own, and where it blows from) and **Sea marks** (type, x, y, name; **+ buoy ⌖** picks the place on the chart; 0164), the start condition, quest cargo (`items`: an id and its hold space, 0 for a passenger) and the final reward. A quest made here can be deleted.
 
 With a step picked, four tabs:
 
 - **Goal**: id (locked once shipped), **a goal** or **a choice**. A goal is a condition box: the kind picker lists every kind of the quest library (`src/sim/questLibrary.ts`) with a few words each (`CONDITION_ABOUT`), and the fields come from the kind's own `params`, so a new kind shows here with no builder code. **in all / in any / in not** wraps the condition, **unwrap** takes it back out, **+ and / + or** add a member. A choice lists its options (id, next step, reward). Then **Then** (`next`), **Clean** and **Where** (`port`).
 - **Card**: who speaks (`speaker`, default the giver), the mood (their three faces) and a named look.
-- **Sea**: marker (`ring` or `gulls`), compass point, chart circle, a held wind, a sound.
+- **Sea**: marker (`ring` or `gulls`), compass point, chart circle, a held wind, a sound, and **Move boat to** (x, y, heading; ⌖ picks it on the chart, 0164).
 - **Reward**: gold, standing, ports put on the chart, ports levelled up, an island, building spots.
 
 ## Card & text

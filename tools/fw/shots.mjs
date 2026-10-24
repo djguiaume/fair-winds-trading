@@ -48,7 +48,7 @@ Look
   --cards                       keep quest cards and dialogs open (default: closed, kept in a quest test)
   --wait ms                     settle time before the shot (default 1500)
   --click selector              click this before the shot (after the wait), e.g. a card's button,
-                                then wait 800 ms
+                                then wait 800 ms; in a --list entry, a list clicks each in turn
 Output
   --sizes desktop,landscape,portrait   (default desktop)
   --name name                   file name, written as <name>-<size>.png (default: from the scene)
@@ -304,8 +304,9 @@ async function shootScene(page, shot) {
     await page.keyboard.up(shot.hold.key);
   }
   await pause(shot.wait);
-  if (shot.click) {
-    await page.click(shot.click);
+  // One selector, or (in a --list entry) several clicked in turn, e.g. the menu then a row.
+  for (const sel of [shot.click ?? []].flat()) {
+    await page.click(sel);
     await pause(800);
   }
   if (!shot.cards) await closeCards(page);

@@ -7,6 +7,8 @@ type Side = 'top' | 'bottom' | 'left' | 'right' | 'none';
 
 /** The tutorial: the quest the title menu and the first-voyage offer start (decision 0151). */
 export const TUTORIAL_QUEST = 'first-voyage';
+/** The sailing lessons: Rook's course, replayable from the title menu (decision 0164). */
+export const LESSONS_QUEST = 'sailing-lessons';
 
 /**
  * The element a lesson points at on the open surface (decision 0061). Selectors only, so the

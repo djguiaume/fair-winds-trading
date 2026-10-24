@@ -21,6 +21,7 @@ vi.mock('../src/render/view', () => ({
     setSettlementLevels() {}
     setHomeBuildings() {}
     setQuestsDone() {}
+    jumpToBoat() {}
     setFocus() {}
     setZoom() {}
     getZoom() {
@@ -139,13 +140,21 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   expect(input.isEnabled).toBe(true);
   const before = JSON.stringify(world.trade);
   click('#menu-btn');
-  expect(document.getElementById('menu-tutorial-label')!.textContent).toBe('Replay tutorial');
+  // Once the tutorial is done, the menu offers Rook's sailing lessons instead (decision 0164).
+  expect(document.getElementById('menu-tutorial-label')!.textContent).toBe('Sailing lessons');
   click('#menu-tutorial');
-  expect(offer.open).toBe(true);
-  expect(input.isEnabled).toBe(false);
-  click('#tutorial-free');
-  await flushClose();
+  expect(offer.open).toBe(false);
+  expect(quests.isRunning('sailing-lessons')).toBe(true);
+  expect(quests.isRunning('first-voyage')).toBe(false);
+  expect(document.querySelector('.tutorial-card')!.textContent).toMatch(
+    /Sail out to the course|Hoist and lower sails/,
+  );
   expect(input.isEnabled).toBe(true);
-  expect(JSON.stringify(world.trade)).toBe(before);
+  click('#menu-btn');
+  expect(document.getElementById('menu-tutorial-label')!.textContent).toBe('Continue the lessons');
+  // Rook's course off Saltmere: the boat is taken there; the voyage is otherwise untouched.
+  expect([world.boat.x, world.boat.y]).toEqual([300, -85]);
+  const kept = (trade: object) => JSON.stringify({ ...trade, quests: null, dockedAt: null });
+  expect(kept(world.trade)).toBe(kept(JSON.parse(before)));
   context.mockRestore();
 });

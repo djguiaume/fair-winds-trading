@@ -33,6 +33,7 @@ import { BeaconLights } from './beaconLights';
 import { Lanterns } from './lanterns';
 import { Castaway } from './castaway';
 import { SeaMarks } from './seaMarks';
+import type { SeaMarkDef } from '../sim/map';
 import { QuestMarkers } from './questMarkers';
 import type { StepMarker } from '../ui/questView';
 import { daylightAt } from '../sim/daylight';
@@ -79,6 +80,8 @@ export class GameView {
   private readonly questMarkers = new QuestMarkers();
   /** What the tracked step marks at sea; the game sets it once the quests run. */
   stepMarkers: () => { style: string; points: readonly StepMarker[] } | null = () => null;
+  /** The running quests' own sea marks (decision 0164: the lessons' buoys). */
+  questMarks: () => readonly SeaMarkDef[] = () => [];
   private readonly boatLantern = new THREE.Vector3();
   private readonly stormClouds = new StormClouds();
   private rain!: Rain;
@@ -330,6 +333,13 @@ export class GameView {
   }
 
   /** What stands before or after a quest (decision 0130): island props, sea marks, lights. */
+  /** The camera over the boat at once, after a quest took her somewhere (decision 0164). */
+  jumpToBoat() {
+    const pos = toScene(this.world.boat.x, this.world.boat.y, this.tmp);
+    this.target.x = pos.x;
+    this.target.z = pos.z;
+  }
+
   setQuestsDone(done: ReadonlySet<string>) {
     this.islands.setQuestsDone(done);
     this.seaMarks.setQuestsDone(done);
@@ -487,6 +497,7 @@ export class GameView {
     this.calmWater?.update(time, this.ocean, this.world.windZones);
     this.shallowsWater?.update(time, this.ocean);
     this.edgeBuoys.update(time, (x, z) => waveHeight(x, z, time), this.camera);
+    this.seaMarks.setQuestMarks(this.questMarks());
     this.seaMarks.update(time, (x, z) => waveHeight(x, z, time));
     this.questMarkers.update(this.stepMarkers(), time, (x, z) => waveHeight(x, z, time));
 

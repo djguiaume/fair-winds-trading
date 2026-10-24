@@ -134,9 +134,9 @@ export interface Helm {
   sails: number[];
   steerSec: number;
   movingSec: number;
-  /** Seconds on each point of sail (`point-of-sail`, decision 0163). */
+  /** Seconds on each point of sail (`point-of-sail`, decision 0164). */
   pointSec?: Partial<Record<PointOfSail, number>>;
-  /** Tacks made: the bow turned across the wind (`tacked`, decision 0163). */
+  /** Tacks made: the bow turned across the wind (`tacked`, decision 0164). */
   tacks?: number;
 }
 
@@ -540,7 +540,7 @@ export const CONDITIONS: Record<string, ConditionKind> = {
     },
     test: (c, _ctx, s) => s[1]! >= num(c.qty),
   },
-  /** Seconds on a point of sail (decision 0163: the sailing lessons). Slot: hundredths held. */
+  /** Seconds on a point of sail (decision 0164: the sailing lessons). Slot: hundredths held. */
   'point-of-sail': {
     params: { point: 'sailing', holdSec: 'number' },
     slots: 1,
@@ -549,7 +549,7 @@ export const CONDITIONS: Record<string, ConditionKind> = {
     },
     test: (c, _ctx, s) => s[0]! >= num(c.holdSec) * 100,
   },
-  /** Tacks made while the step runs (decision 0163). Slot: tacks. */
+  /** Tacks made while the step runs (decision 0164). Slot: tacks. */
   tacked: {
     params: { count: 'count' },
     slots: 1,

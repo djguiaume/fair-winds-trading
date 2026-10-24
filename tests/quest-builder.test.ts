@@ -118,7 +118,7 @@ describe('quest builder (decision 0142)', () => {
     );
     // The tutorial is a quest like the others (decision 0151).
     const columns = storyColumns(doc.quests);
-    expect(columns[0]).toEqual(['first-voyage']);
+    expect(columns[0]).toEqual(['first-voyage', 'sailing-lessons']);
     expect(columns[1]).toEqual(['rooks-thanks']);
     expect(columns[2]).toHaveLength(4);
     expect(columns[3]).toEqual(['fair-winds']);

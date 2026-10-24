@@ -40,7 +40,7 @@ import { daylightAt } from './sim/daylight';
 import { QuestBook, useEditedQuests } from './sim/quests';
 import { questTestFrom, sailableHeading, testBerth } from './sim/questTest';
 import { QuestTestBar } from './ui/questTestBar';
-import { type StepEffects, heldWind } from './sim/stepEffects';
+import { type StepEffects, type StepWind, heldWind } from './sim/stepEffects';
 import { QuestCard } from './ui/questCard';
 import { QuestNote } from './ui/questNote';
 import {
@@ -54,7 +54,7 @@ import {
   questTarget,
   trackedMarkers,
 } from './ui/questView';
-import { TUTORIAL_QUEST, TutorialChoice, TutorialCoach } from './ui/tutorial';
+import { LESSONS_QUEST, TUTORIAL_QUEST, TutorialChoice, TutorialCoach } from './ui/tutorial';
 import {
   type WorldEvent,
   createWorld,
@@ -386,6 +386,12 @@ quests.onEvent = (e) => {
     hud.showToast(t('toast.landed', { qty: e.qty, good: goodName(e.good).toLowerCase() }), 3);
     return;
   }
+  if (e.type === 'moved') {
+    // A step took the boat to its place (decision 0164): sails down, camera with her.
+    sailStep = world.boat.sailStep;
+    view.jumpToBoat();
+    if (tradePanel.isOpen) tradePanel.close();
+  }
   checkFounded();
   if (quest?.lesson) {
     // A lesson speaks in its own bubble, and its last one says it is done (decision 0151).
@@ -450,6 +456,8 @@ questCard.onClose = () => {
 // The tracked step's places at sea: gates, spots, landings (decision 0130), the prologue's wreck
 // too while a lesson is about it (decisions 0139, 0151).
 view.stepMarkers = () => trackedMarkers(quests);
+view.questMarks = () => quests.runningMarks;
+chart.questMarks = () => quests.runningMarks;
 chart.quests = {
   markers: () => trackedMarkers(quests)?.points ?? [],
   pins: () => questPins(quests, world.map, questSeen),
@@ -651,20 +659,28 @@ function closeHelp() {
   refreshPause();
 }
 
-/** The title menu's tutorial line: start, continue at a step, or replay. */
+/**
+ * The title menu's lessons line: the tutorial until it is seen (start, continue at a step), then
+ * the sailing lessons (decision 0164), which replace "Replay tutorial".
+ */
 function refreshMenuTutorial() {
   const lesson = lessonFor(quests, view.harbours);
-  const running = lesson?.quest === TUTORIAL_QUEST ? lesson : null;
   const unseen = tutorialChoice.status === 'unseen';
-  $('menu-tutorial-label').textContent = running
-    ? t('menu.tutorialContinue')
-    : unseen
-      ? t('menu.tutorial')
-      : t('menu.tutorialReplay');
-  $('menu-tutorial-note').textContent = running
+  const button = $('menu-tutorial') as HTMLButtonElement;
+  // The first voyage's story running without its coach (0160) keeps the sea to itself.
+  button.disabled = !lesson && quests.lesson !== undefined;
+  $('menu-tutorial-label').textContent =
+    lesson?.quest === TUTORIAL_QUEST
+      ? t('menu.tutorialContinue')
+      : lesson?.quest === LESSONS_QUEST
+        ? t('menu.lessonsContinue')
+        : unseen
+          ? t('menu.tutorial')
+          : t('menu.lessons');
+  $('menu-tutorial-note').textContent = lesson
     ? t('menu.tutorialStep', {
-        step: String(Math.max(1, running.stepNo)),
-        total: String(running.steps),
+        step: String(Math.max(1, lesson.stepNo)),
+        total: String(lesson.steps),
       })
     : unseen
       ? t('menu.tutorialNote')
@@ -744,7 +760,17 @@ $('menu-tutorial').addEventListener('click', () => {
   started = true;
   document.body.classList.remove('in-menu', 'at-title');
   menu.hidden = true;
-  if (!tutorialRunning()) tutorialOffer.showModal();
+  if (tutorialRunning() || quests.isRunning(LESSONS_QUEST)) {
+    // Carry on with the lesson under way.
+  } else if (tutorialChoice.status === 'unseen') tutorialOffer.showModal();
+  else {
+    // Seen the tutorial: Rook's sailing lessons, from wherever the boat is (decision 0164).
+    coach.finished = null;
+    quests.ask(LESSONS_QUEST);
+    coach.render();
+    refreshMenuTutorial();
+    autosave();
+  }
   refreshPause();
 });
 playButton.addEventListener('click', play);
@@ -1237,9 +1263,10 @@ function seaGoal(): { x: number; y: number; label: string } | null {
  * The tracked quest's step, whose `wind` and `sound` the sea plays (decision 0139): the same step
  * data for the tutorial (always tracked while it runs, decision 0151) and every quest.
  */
-function seaStep(): { key: string; step: StepEffects } | null {
+function seaStep(): { key: string; step: StepEffects; wind: StepWind | undefined } | null {
   const step = quests.trackedStep;
-  return step ? { key: `${quests.tracked}:${step.id}`, step } : null;
+  // A quest's own breeze holds over its steps that have none (decision 0164).
+  return step ? { key: `${quests.tracked}:${step.id}`, step, wind: quests.trackedWind } : null;
 }
 
 // --- Main loop: fixed-step simulation, render once per frame ----------------------------------
@@ -1270,7 +1297,7 @@ function tick(now: number) {
     while (!paused && accumulator >= SIM_STEP && steps < 6) {
       const controls = { steer: input.steer, sailStep };
       const sea = seaStep();
-      world.calmWind = heldWind(sea?.step.wind, world.map);
+      world.calmWind = heldWind(sea?.wind, world.map);
       // No storms while a quest that holds them runs: the tutorial (decision 0072).
       holdStorms(world, 'quest', quests.holdsStorms);
       handleEvents(stepWorld(world, controls, SIM_STEP));
