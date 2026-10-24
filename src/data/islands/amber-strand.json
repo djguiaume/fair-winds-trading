@@ -101,7 +101,9 @@
     { "type": "marram", "x": 0.3, "z": 0.25, "size": 2.2, "from": 1 },
     { "type": "marram", "x": -0.2, "z": 0.35, "size": 2.2, "from": 1 },
     { "type": "marram", "x": 0.9, "z": -0.3, "size": 2.2, "from": 1 },
-    { "type": "marram", "x": -1.15, "z": -0.55, "size": 2.2, "from": 1 }
+    { "type": "marram", "x": -1.15, "z": -0.55, "size": 2.2, "from": 1 },
+    { "type": "amber", "x": 0.9, "z": 0.42, "size": 3.2, "from": 1 },
+    { "type": "amber", "x": -0.8, "z": 0.62, "size": 3.2, "from": 1 }
   ],
   "woods": {
     "tree": "woodland-pine",

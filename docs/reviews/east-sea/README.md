@@ -18,13 +18,14 @@ The whole Phase 4 sea, for where the east sits: [chart-wide.png](chart-wide.png)
 
 ## Fogwatch
 
-Second round after the Art director and Guillaume: the high fells moved to the north side in stepped tiers (the south is low, so the town stays in view), one even turf green, lighter turf roofs with a dark eave, narrow wandering lanes, lit windows and quay lamps at night, dry-stone walls and more sheep.
+Second round after the Art director and Guillaume: the high fells moved to the north side in stepped tiers (the south is low, so the town stays in view), one even turf green, lighter turf roofs with a dark eave, narrow wandering lanes, lit windows and quay lamps at night, dry-stone walls and more sheep, and (Guillaume) a great ring of standing stones on the east of the southern fell.
 
 A Faroese harbour town: tarred black and whitewashed turf-roofed houses with red frames, boathouses and drying sheds on the quay, a foghorn tower on the north point, sheep and standing stones on the fells.
 
 ![Approach through the voe](fogwatch-overview-desktop.png)
 ![The town and quays](fogwatch-town-desktop.png)
 ![The fells behind the town](fogwatch-fells-desktop.png)
+![The great stone ring on the east of the southern fell](fogwatch-stones-desktop.png)
 ![At night](fogwatch-night-desktop.png)
 ![Portrait](fogwatch-portrait-portrait.png)
 ![Charted on arrival](fogwatch-approach-desktop.png)
