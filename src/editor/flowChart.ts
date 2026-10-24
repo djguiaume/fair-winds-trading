@@ -12,6 +12,7 @@ import {
 import type { ChartAreaDef } from '../sim/fog';
 import type { CurrentDef, MapDef, WindZoneDef } from '../sim/map';
 import { knotToUnits } from '../sim/boat';
+import { isBeltKind } from '../sim/stormBelt';
 import type { Selection } from './model';
 
 /**
@@ -35,6 +36,7 @@ const ZONE_TINT: Record<string, string> = {
   'stormy-coast': '#5b6b8c',
   'cold-gale': '#bfe3ff',
   sheltered: '#7cc04f',
+  'storm-belt': '#3d4766',
 };
 const ZONE_NAMES: Record<string, string> = {
   'trade-belt': 'trade belt',
@@ -42,8 +44,11 @@ const ZONE_NAMES: Record<string, string> = {
   'stormy-coast': 'stormy coast',
   'cold-gale': 'cold gale',
   sheltered: 'sheltered',
+  'storm-belt': 'storm belt',
 };
 export const zoneKindName = (kind: string) => ZONE_NAMES[kind] ?? kind;
+/** A kind's tint on the chart (the command-line chart's legend uses it too). */
+export const zoneTint = (kind: string) => ZONE_TINT[kind] ?? '#888';
 
 /** The soft-edge blur, in map units. */
 function softFilter(el: El) {
@@ -69,6 +74,7 @@ export function drawFlow(el: El, map: MapDef, px: number) {
       filter: 'url(#c-soft)',
     });
     el('polygon', { points: pts(outline), class: 'c-hit', 'data-hit': `zone:${z.id}` });
+    if (isBeltKind(z.kind)) squallArrows(el, outline, z.headingDeg ?? 90, px);
   }
   for (const c of map.currents ?? []) {
     const band = bandOf(c);
@@ -78,6 +84,33 @@ export function drawFlow(el: El, map: MapDef, px: number) {
   }
   const crests = el('g', { class: 'c-crests', 'stroke-width': 2.2 * px });
   drawCrests(crests, map);
+}
+
+/**
+ * A storm belt's squalls march downwind of its heading (decision 0167): a row of chevrons across
+ * its middle shows which way, so the side they roll in from is plain.
+ */
+function squallArrows(el: El, outline: OutlinePoint[], headingDeg: number, px: number) {
+  const to = ((headingDeg + 180) * Math.PI) / 180;
+  const dx = Math.sin(to),
+    dy = Math.cos(to);
+  const along = outline.map(([x, y]) => x * dx + y * dy);
+  const { x: cx, y: cy } = boundingCircle(outline);
+  const c = cx * dx + cy * dy;
+  const half = (Math.max(...along) - Math.min(...along)) / 2;
+  const size = Math.min(26, half / 4);
+  const g = el('g', { class: 'c-squalls', 'stroke-width': 2.5 * px });
+  for (let k = -2; k <= 2; k++) {
+    const s = c + k * half * 0.38;
+    const x = cx + (s - c) * dx,
+      y = cy + (s - c) * dy;
+    // A chevron pointing along (dx, dy): two strokes back from its tip.
+    const bx = x - dx * size,
+      by = y - dy * size;
+    const wx = dy * size * 0.7,
+      wy = -dx * size * 0.7;
+    el('path', { d: `M${bx + wx},${-(by + wy)} L${x},${-y} L${bx - wx},${-(by - wy)}` }, g);
+  }
 }
 
 /** The outline of a current's water: a lane's band, or an area's smoothed outline. */

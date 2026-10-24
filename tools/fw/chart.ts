@@ -6,10 +6,10 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { Window } from 'happy-dom';
 import { type Layers, drawChart } from '../../src/editor/chart';
-import { zoneKindName } from '../../src/editor/flowChart';
-import { type SeaDef, SEAS, grownMap } from '../../src/data/grownMap';
-import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../../src/data/maps';
-import { stressMap } from '../../src/data/stressMap';
+import { zoneKindName, zoneTint } from '../../src/editor/flowChart';
+import { isBeltKind } from '../../src/sim/stormBelt';
+import { PHASE1_SOURCE } from '../../src/data/maps';
+import { loadSea } from './seas';
 import type { MapDef } from '../../src/sim/map';
 import { harbourApproach, sailRoute } from '../../src/sim/mapChecks';
 import { seaMarkShape } from '../../src/ui/chartMarks';
@@ -388,17 +388,10 @@ function legendEntries(
   if (kinds.has('shallows'))
     out.push({ text: 'shallows: shallow keels only', swatch: box('c-shallows') });
   if (layers.flow) {
-    const tint: Record<string, string> = {
-      'trade-belt': '#f2cf7e',
-      doldrums: '#eef3f4',
-      'stormy-coast': '#5b6b8c',
-      'cold-gale': '#bfe3ff',
-      sheltered: '#7cc04f',
-    };
     for (const kind of new Set((map.windZones ?? []).map((z) => z.kind)))
       out.push({
-        text: `wind zone: ${zoneKindName(kind)}`,
-        swatch: box('', { fill: tint[kind] ?? '#888', 'fill-opacity': '0.45' }),
+        text: `wind zone: ${zoneKindName(kind)}${isBeltKind(kind) ? ', squalls march ›' : ''}`,
+        swatch: box('', { fill: zoneTint(kind), 'fill-opacity': '0.45' }),
       });
     if (map.currents?.length) out.push({ text: 'current', swatch: box('c-current') });
   }
@@ -441,25 +434,6 @@ function legendEntries(
         : box(`o-${e.style}`),
     });
   return out;
-}
-
-/** The named seas, an editor export (a whole map) or one sea file merged round the ring. */
-export function loadSea(name: string): { map: MapDef; prepared: MapDef; label: string } {
-  if (name === 'ring') return { map: PHASE1_SOURCE, prepared: PHASE1_MAP, label: 'ring' };
-  if (name === 'stress') {
-    const map = stressMap(PHASE1_SOURCE);
-    return { map, prepared: prepareMap(map), label: 'stress' };
-  }
-  if (name === 'phase4') {
-    const map = grownMap(PHASE1_SOURCE);
-    return { map, prepared: prepareMap(map), label: 'phase4' };
-  }
-  const data = JSON.parse(readFileSync(name, 'utf8')) as MapDef | SeaDef;
-  const label = name.replace(/^.*\//, '').replace(/\.json$/, '');
-  if ('boundsRadius' in data) return { map: data, prepared: prepareMap(data), label };
-  // A sea file (src/data/seas/*.json): it replaces the shipped sea with the same id.
-  const map = grownMap(PHASE1_SOURCE, [...SEAS.filter((s) => s.id !== data.id), data]);
-  return { map, prepared: prepareMap(map), label };
 }
 
 /** `--around id|x,y --radius r`, or `--view west,south,east,north`. */

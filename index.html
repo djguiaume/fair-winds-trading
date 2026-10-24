@@ -743,6 +743,7 @@
             <span id="weather-text" class="weather-text" hidden></span>
             <span id="current-text" class="weather-text current-text" hidden></span>
             <span id="wind-forecast" class="weather-text forecast" hidden></span>
+            <span id="belt-text" class="weather-text belt" hidden></span>
           </span>
           <button
             id="upwind-chip"
@@ -1377,6 +1378,15 @@
               ></span
             >
             <input type="checkbox" id="wind-zones" class="switch" role="switch" />
+          </label>
+          <label class="set-row">
+            <span class="set-name"
+              ><span data-i18n="settings.stormBelt">Storm belt</span
+              ><small data-i18n="settings.stormBeltNote"
+                >Off: no squalls march through the storm belt</small
+              ></span
+            >
+            <input type="checkbox" id="storm-belt" class="switch" role="switch" />
           </label>
           <label class="set-row">
             <span class="set-name"

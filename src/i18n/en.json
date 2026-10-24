@@ -153,6 +153,8 @@
   "settings.stormsNote": "Off: no storms cross the sea",
   "settings.windZones": "Wind zones",
   "settings.windZonesNote": "Off: no trade belts, doldrums or stormy coasts",
+  "settings.stormBelt": "Storm belt",
+  "settings.stormBeltNote": "Off: no squalls march through the storm belt",
   "settings.currents": "Currents",
   "settings.currentsNote": "Off: still water, no current carries the boat",
   "settings.speedLogNote": "Speed, heading, point of sail",
@@ -785,6 +787,9 @@
   "unit.minutes": "{n} min",
   "unit.seconds": "{n} s",
   "hud.forecast": "In {time}: {dir} · {kn} kn{extra}",
+  "hud.beltSqualls": "Squalls in the {name} · lull in about {time}",
+  "hud.beltLull": "Lull in the {name} · squalls in about {time}",
+  "toast.beltHint": "The {name}: squalls march through in trains. Cross in a lull, or sail round its end",
   "home.warehouse": "Warehouse · {n}/{max}",
   "home.store": "Store 1",
   "home.storeAll": "Store all",
@@ -798,5 +803,6 @@
   "zone.doldrums": "doldrums",
   "zone.stormy-coast": "stormy coast",
   "zone.cold-gale": "cold gales",
-  "zone.sheltered": "sheltered water"
+  "zone.sheltered": "sheltered water",
+  "zone.storm-belt": "storm belt"
 }
