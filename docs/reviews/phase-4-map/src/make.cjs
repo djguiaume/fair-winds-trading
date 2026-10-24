@@ -37,7 +37,7 @@ function label(p, text, cls = 'port', dy = 0) {
 }
 function waterBand(points, cls) {
   const d = 'M' + points.map(sx).join(' L');
-  return `<path d="${d}" class="${cls}"/><path d="${d}" class="${cls}-ripple"/>`;
+  return `<path d="${d}" class="${cls}"/>`;
 }
 function arrow(from, to, cls) {
   return `<line x1="${from[0]}" y1="${-from[1]}" x2="${to[0]}" y2="${-to[1]}" class="${cls}" marker-end="url(#${cls}-head)"/>`;
@@ -62,9 +62,7 @@ const STYLE = `
 .note{font:600 32px Arial,sans-serif;fill:#fff;stroke:#0b3c46;stroke-width:8;paint-order:stroke;text-anchor:middle}
 .wind{stroke:#ffffff;stroke-width:4;opacity:.75}.current{stroke:#0b4a8f;stroke-width:5;opacity:.85}.warm{stroke:#ff8b3d;stroke-width:5;opacity:.9}
 .band-cold{fill:none;stroke:#165c93;stroke-width:70;stroke-linecap:round;stroke-linejoin:round;opacity:.5}
-.band-cold-ripple{fill:none;stroke:#cdeeff;stroke-width:3;stroke-dasharray:4 14;opacity:.6;stroke-linecap:round}
 .band-warm{fill:none;stroke:#3fd0b0;stroke-width:70;stroke-linecap:round;stroke-linejoin:round;opacity:.45}
-.band-warm-ripple{fill:none;stroke:#f3fff9;stroke-width:3;stroke-dasharray:4 14;opacity:.6;stroke-linecap:round}
 .drift{stroke:#ffffff;stroke-width:3;stroke-dasharray:6 5}
 .block{stroke:#d7263d;stroke-width:6;stroke-dasharray:10 6}
 .out{fill:#ffd166;stroke:#10303a;stroke-width:3}.anchor{fill:#10303a;stroke:#f3d88a;stroke-width:3}

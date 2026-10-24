@@ -1,6 +1,6 @@
 # Winds and currents for Phase 4 (proposal, 2026-10-24)
 
-**Status:** Proposal for Guillaume, revised after his first comments (no arrows; not everything on today's ring). Nothing is decided or built. It follows [0137](../../decisions/0137-phase-4-biomes-and-founded-outposts.md) point 6 ("wind zones and currents become authored, per biome") and the [Phase 4 map](../phase-4-map/README.md) (layout B). The code was read with graphify: `windAt` in `src/sim/wind.ts`, `stepBoat` in `src/sim/boat.ts`, `stepWorld` in `src/sim/world.ts`, and the HUD in `src/ui/hud.ts`.
+**Status:** Proposal for Guillaume, revised twice after his comments (no arrows; not everything on today's ring; then his own current through the middle gap, visuals only). Nothing is decided or built. It follows [0137](../../decisions/0137-phase-4-biomes-and-founded-outposts.md) point 6 ("wind zones and currents become authored, per biome") and the [Phase 4 map](../phase-4-map/README.md) (layout B). The code was read with graphify: `windAt` in `src/sim/wind.ts`, `stepBoat` in `src/sim/boat.ts`, `stepWorld` in `src/sim/world.ts`, and the HUD in `src/ui/hud.ts`.
 
 The mockups are real game captures with the proposed readouts drawn on top. The yellow tag marks what is new. `src/capture.cjs` makes them.
 
@@ -49,9 +49,11 @@ Guillaume (2026-10-24): **no arrows**. A current is **water that looks different
 
 ![Current at sea](sea-current-desktop.png)
 
-- **On the water:** the current is a band of darker, bluer water with a finer ripple texture than the open sea, and a line of broken water (a tide rip) along its edges. You see where it starts and ends before you sail into it. The direction is felt in the boat's drift and read in the numbers.
-- **Numbers, small:** under today's speed, "**SOG 9.6 kn**" (speed over ground) appears only while you are in a current, and the wind line gets "Current 1.8 kn SE". This follows the sailing-first rule: numbers visible but small, and the log's eye toggle hides them with the rest.
-- **First time only:** "A strong current sets you south-east. Aim a little up-current to hold your course."
+Guillaume (2026-10-24, second round): **no white dashes on its edges, only visuals.**
+
+- **On the water:** the current is a band of darker, deeper blue water, nothing else. It fades softly at its edges (no line, no foam, no dashes), so you see roughly where it runs before you sail into it. Only the water changes colour: boats, reefs, foam and land keep theirs. The direction is felt in the boat's drift and read in the numbers.
+- **Numbers, small:** under today's speed, "**SOG 6.1 kn**" (speed over ground) appears only while you are in a current, and the wind line gets "Current 1.8 kn E". In the shot the boat sails west against the current, so it logs about 7 kn through the water but makes 6.1 over the ground. This follows the sailing-first rule: numbers visible but small, and the log's eye toggle hides them with the rest.
+- **First time only:** "A current runs east through the gap: quick going east, slow coming back. Around Greyback Ridge may be faster."
 
 Phone landscape and portrait:
 
@@ -61,13 +63,31 @@ Phone landscape and portrait:
 
 ![Current on the chart](chart-ring-current-desktop.png)
 
-The chart draws current water the same way, as a darker band with its speed, always on (no layer button). Only charted areas show it, so the fog of war still hides the rest. On the [Phase 4 map](../phase-4-map/README.md) the fire biome's warm current and the fog coast's strong current are drawn the same way.
+The chart draws current water the same way, as a darker band with its speed and no edge marks. On the [Phase 4 map](../phase-4-map/README.md) the fire biome's warm current and the fog coast's strong current are drawn the same way (their dashed centre lines are gone too).
+
+**Should currents be on the chart, and should a building or a quest reveal them?** Three ways:
+
+| | How it works | For | Against |
+|---|---|---|---|
+| A. Always on the chart | Every current is drawn from the start | Simplest; nobody misses the tradeoff | Nothing to discover |
+| **B. Charted once sailed (recommended)** | At sea you always see the darker water. A current goes on the chart the first time you sail in it, with its speed, like an island you discover | Discovery by sailing, which suits a sailing-first game; no new building or quest needed; fits the fog of war of 0137 | You learn the first current the slow way (the first-time hint covers that) |
+| C. Revealed by a perk or a quest | Currents stay off the chart until a building upgrade (for example "current tables" in the pilot house) or a quest reward | A reason to build or play | Hides on the chart what you can already see at sea, which feels odd; one more upgrade to balance |
+
+I recommend **B on today's ring**, plus a **quest reward for Phase 4**: an old pilot's chart that charts the far biomes' currents before you sail them. Old Ness and the planned Watchman Key arc are the natural fit, to be signed off by the head storyteller. No building perk: each building keeps its single effect.
 
 <img src="chart-ring-current-portrait.png" width="220">
 
 ### How much goes on today's ring
 
-Guillaume: today's ring is not big, so it gets **some, not all**. The proposal is **one current** through the passage between Skerry and Gull Hook (shown above, placement to tune) and **no wind zones**. The doldrums, the trade belt, the stormy coast and the cold gales stay in the biomes. A first current close to home also teaches currents before the far waters.
+Guillaume: today's ring is not big, so it gets **some, not all**. He drew the one current himself: from the north-west edge of the sea, north of Westholm, then east through the **middle gap** between Greyback Ridge and Gull Hook, and out towards the reefs north of Saltmere. About 1.8 kn, flowing east. No wind zones on the ring: the doldrums, the trade belt, the stormy coast and the cold gales stay in the biomes.
+
+This makes the middle gap a real tradeoff:
+
+- **Going east** (Westholm towards Saltmere or Port Calda), the gap is the short way and the current adds about 1.8 kn: clearly the fast road.
+- **Coming back west**, the gap is still the shortest, but you lose about 1.8 kn, roughly a fifth of a trader's speed. Going round, north of Greyback Ridge or south past Skerry, is longer but in still water. Which wins depends on your ship and on the wind of the moment, since it wanders on Captain and Old salt.
+- The balance check ([0114](../../decisions/0114-tuning-panel-and-balance-check.md)) confirms that neither way is always best, and that no ring route gets much slower than today.
+
+A first current close to home also teaches currents before the far waters.
 
 ## 3. Settings and difficulty
 
@@ -88,8 +108,9 @@ Everything waits for the v0.3.x release. The data format can be drafted earlier,
 
 ## Questions for Guillaume
 
-1. **Current water look:** darker band, finer ripples, tide-rip edges, plus "SOG" and "Current 1.8 kn SE" in small text. Is that right?
-2. **On today's ring:** one current through the Skerry and Gull Hook passage. Is that the right amount and place?
-3. **Two switches** (Currents, Wind zones), or one switch for both?
-4. **Difficulty:** should currents scale with the level (Fair winds weaker), or stay the same everywhere?
-5. **Tides** (currents that turn slowly over time) left for later? I recommend later.
+1. **Current water look:** darker blue water with soft edges and nothing else, plus small "SOG" and "Current 1.8 kn E" readouts. Is that right?
+2. **On today's ring:** your current through the middle gap, flowing east at about 1.8 kn. Right direction and strength?
+3. **On the chart:** A always, B charted once you've sailed in it (recommended), or C revealed by a building or a quest? And a pilot's chart quest for the far biomes later?
+4. **Two switches** (Currents, Wind zones), or one switch for both?
+5. **Difficulty:** should currents scale with the level (Fair winds weaker), or stay the same everywhere?
+6. **Tides** (currents that turn slowly over time) left for later? I recommend later.

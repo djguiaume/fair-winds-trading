@@ -17,8 +17,8 @@ const SHOTS = [
   ['chart-ring-current-portrait', 390, 844, 'chart'],
 ];
 
-// Set of the current in the mockups: towards the south-east, 1.8 kn.
-const SET_DEG = 135;
+// Set of the current in the mockups: towards the east, 1.8 kn.
+const SET_DEG = 90;
 
 async function scene(p, kind) {
   await p.evaluate(
@@ -26,10 +26,22 @@ async function scene(p, kind) {
       const { world } = window.fwt;
       world.time = 260;
       world.dynamicWeather = false;
-      world.boat.x = 230;
-      world.boat.y = -10;
-      const from = world.seaWind.from;
-      world.boat.heading = (from + Math.PI / 2) % (Math.PI * 2);
+      // Guillaume's current (2026-10-24): from the north-west edge, north of Westholm, east through
+      // the middle gap between Greyback Ridge and Gull Hook, out towards Saltmere's reefs.
+      window.__lane = [
+        [-362, 248],
+        [-330, 200],
+        [-245, 142],
+        [-168, 52],
+        [-52, 19],
+        [103, 52],
+        [155, 84],
+        [271, 65],
+      ];
+      // In the middle gap, sailing west against the current: the slow way home.
+      world.boat.x = kind === 'current' ? -60 : 230;
+      world.boat.y = kind === 'current' ? 22 : -10;
+      world.boat.heading = kind === 'current' ? (275 * Math.PI) / 180 : (world.seaWind.from + Math.PI / 2) % (Math.PI * 2);
       world.boat.speedKn = kind === 'doldrums' ? 1.4 : 8.2;
       world.boat.sailStep = 2;
       world.boat.sail = 1;
@@ -41,11 +53,11 @@ async function scene(p, kind) {
 // Proposed sea readouts, drawn over the live HUD.
 async function seaOverlay(p, kind, setDeg) {
   await p.evaluate(
-    ([kind, setDeg]) => {
+    async ([kind, setDeg]) => {
       const css = document.createElement('style');
       css.textContent = `
         .mock-sog{display:block;font:600 12px system-ui,sans-serif;color:#9fe3ff;letter-spacing:.02em;margin-top:2px}
-        .mock-streaks{position:fixed;inset:0;pointer-events:none;z-index:3}
+        .mock-streaks{position:fixed;inset:0;pointer-events:none}
         .mock-sheen{position:fixed;inset:0;pointer-events:none;z-index:2;background:radial-gradient(ellipse at 50% 60%,rgba(235,250,255,.28),rgba(235,250,255,0) 65%)}
         .mock-tag{position:fixed;z-index:50;font:700 11px system-ui,sans-serif;color:#10303a;background:#ffd166;border-radius:6px;padding:2px 6px}`;
       document.head.appendChild(css);
@@ -53,62 +65,72 @@ async function seaOverlay(p, kind, setDeg) {
       if (kind === 'current') {
         const sog = document.createElement('span');
         sog.className = 'mock-sog';
-        sog.textContent = 'SOG 9.6 kn';
+        sog.textContent = 'SOG 6.1 kn';
         log.appendChild(sog);
-        // No arrows (Guillaume): the current is a band of visibly different water. Darker, bluer,
-        // with a fine ripple texture inside and a line of broken water (a tide rip) along its edges.
+        // Only visuals (Guillaume): the current is water of another colour along its lane, with
+        // soft edges and no outline. Drawn along the real lane, projected through the game camera.
         const cap = document.querySelector('.wind-caption');
         const cur = document.createElement('span');
         cur.className = 'mock-sog';
-        cur.textContent = 'Current 1.8 kn SE';
+        cur.textContent = 'Current 1.8 kn E';
         cap.appendChild(cur);
         const w = window.innerWidth,
           h = window.innerHeight;
-        const ns = 'http://www.w3.org/2000/svg';
-        const s = document.createElementNS(ns, 'svg');
-        s.setAttribute('class', 'mock-streaks');
-        s.setAttribute('viewBox', `0 0 ${w} ${h}`);
-        const a = ((setDeg - 90) * Math.PI) / 180;
-        const dx = Math.cos(a),
-          dy = Math.sin(a);
-        // The band runs along the current through the middle of the screen, the boat inside it.
-        const cx = w * 0.48,
-          cy = h * 0.45,
-          half = Math.min(w, h) * 0.24,
-          len = Math.max(w, h) * 1.2;
-        const nx = -dy,
-          ny = dx;
-        const edge = (side) => {
-          const pts = [];
-          for (let i = -12; i <= 12; i++) {
-            const t = (i / 12) * len;
-            const wob = Math.sin(i * 1.7) * half * 0.12;
-            pts.push([cx + dx * t + nx * (side * half + wob), cy + dy * t + ny * (side * half + wob)]);
-          }
-          return pts;
+        const cam = window.fwt.view.camera;
+        cam.updateMatrixWorld();
+        const mul = (m, v) => [0, 1, 2, 3].map((r) => m[r] * v[0] + m[4 + r] * v[1] + m[8 + r] * v[2] + m[12 + r] * v[3]);
+        // World (x, y) sits at (x, 0, -y) in the scene.
+        const proj = (x, y) => {
+          const c = mul(cam.projectionMatrix.elements, mul(cam.matrixWorldInverse.elements, [x, 0, -y, 1]));
+          return [((c[0] / c[3] + 1) / 2) * w, ((1 - c[1] / c[3]) / 2) * h];
         };
-        const left = edge(-1),
-          right = edge(1);
-        const poly = [...left, ...right.reverse()].map((p) => p.join(',')).join(' ');
-        let html = `<defs><filter id="soft"><feGaussianBlur stdDeviation="${half * 0.12}"/></filter></defs>`;
-        html += `<polygon points="${poly}" fill="rgba(16,70,120,.33)" filter="url(#soft)"/>`;
-        // Ripple texture: short, crossed wavelets, denser than the open sea's.
-        let seed = 7;
-        const r = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
-        for (let i = 0; i < 70; i++) {
-          const t = (r() * 2 - 1) * len * 0.6,
-            o = (r() * 2 - 1) * half * 0.8;
-          const x = cx + dx * t + nx * o,
-            y = cy + dy * t + ny * o;
-          const L = 10 + r() * 14;
-          html += `<path d="M${x - nx * L},${y - ny * L} q${nx * L},${ny * L - 5} ${nx * L * 2},${ny * L * 2}" stroke="rgba(200,240,255,.35)" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+        const lane = window.__lane;
+        const pts = lane.map(([x, y]) => proj(x, y));
+        const [ax, ay] = proj(lane[3][0], lane[3][1]);
+        const [bx, by] = proj(lane[3][0] + 25, lane[3][1]);
+        const halfPx = Math.hypot(bx - ax, by - ay);
+        // Tint only the water pixels of a clean capture of the sea (the boat, reefs, foam and land
+        // keep their colours), with a soft-edged band and no outline, as a sea shader would.
+        const img = new Image();
+        img.src = window.__seaShot;
+        await img.decode();
+        const c = document.createElement('canvas');
+        c.width = img.width;
+        c.height = img.height;
+        const k = img.width / w;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const band = document.createElement('canvas');
+        band.width = c.width;
+        band.height = c.height;
+        const bctx = band.getContext('2d');
+        bctx.filter = `blur(${halfPx * 0.3 * k}px)`;
+        bctx.strokeStyle = '#000';
+        bctx.lineWidth = halfPx * 2 * k;
+        bctx.lineCap = 'round';
+        bctx.lineJoin = 'round';
+        bctx.beginPath();
+        pts.forEach(([x, y], i) => (i ? bctx.lineTo(x * k, y * k) : bctx.moveTo(x * k, y * k)));
+        bctx.stroke();
+        const px = ctx.getImageData(0, 0, c.width, c.height);
+        const m = bctx.getImageData(0, 0, c.width, c.height).data;
+        const d = px.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const a = (m[i + 3] / 255) * 0.62;
+          if (!a) continue;
+          const r = d[i], g = d[i + 1], b = d[i + 2];
+          if (!(b > r + 45 && g > r + 35)) continue; // water only
+          d[i] = r + (8 - r) * a;
+          d[i + 1] = g + (66 - g) * a;
+          d[i + 2] = b + (120 - b) * a;
         }
-        // Tide rips: broken white water along both edges.
-        for (const side of [left, right]) {
-          html += `<polyline points="${side.map((p) => p.join(',')).join(' ')}" fill="none" stroke="rgba(235,250,255,.55)" stroke-width="3" stroke-dasharray="3 9 12 7" stroke-linecap="round"/>`;
-        }
-        s.innerHTML = html;
-        document.body.appendChild(s);
+        ctx.putImageData(px, 0, 0);
+        c.className = 'mock-streaks';
+        c.style.width = w + 'px';
+        c.style.height = h + 'px';
+        // Just after the game canvas, so it covers the sea and the HUD still paints over it.
+        const game = document.querySelector('canvas');
+        game.after(c);
       } else {
         const sheen = document.createElement('div');
         sheen.className = 'mock-sheen';
@@ -134,7 +156,7 @@ async function seaOverlay(p, kind, setDeg) {
       toast.hidden = false;
       toast.textContent =
         kind === 'current'
-          ? 'A strong current sets you south-east. Aim a little up-current to hold your course.'
+          ? 'A current runs east through the gap: quick going east, slow coming back. Around Greyback Ridge may be faster.'
           : 'The doldrums: the wind is light here. Light, swift ships slip through best.';
       const tag = document.createElement('div');
       tag.className = 'mock-tag';
@@ -156,19 +178,11 @@ async function chartOverlay(p) {
     const chev = (x, y, deg, color, size = 9) =>
       `<path transform="translate(${x},${-y}) rotate(${deg})" d="M${-size},${size * 0.7} L0,${-size * 0.7} L${size},${size * 0.7}" fill="none" stroke="${color}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`;
     let html = '';
-    // Guillaume: today's ring can have some of this, not all of it. One current only, through the
-    // passage between Skerry and Gull Hook, drawn as darker water like at sea (no arrows).
-    const lane = [
-      [-170, 40],
-      [-90, -40],
-      [0, -110],
-      [90, -200],
-      [170, -290],
-    ];
+    // Guillaume: today's ring gets one current, along the line he drew, as darker water only.
+    const lane = window.__lane;
     const d = `M${lane.map(([x, y]) => `${x},${-y}`).join(' L')}`;
-    html += `<path d="${d}" stroke="rgba(16,70,120,.38)" stroke-width="44" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
-    html += `<path d="${d}" stroke="rgba(220,245,255,.55)" stroke-width="2" stroke-dasharray="3 10" fill="none" stroke-linecap="round"/>`;
-    html += `<text x="190" y="${290 + 22}" class="mock-label">current 1.8 kn</text>`;
+    html += `<path d="${d}" stroke="rgba(16,70,120,.36)" stroke-width="50" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+    html += `<text x="215" y="${-112}" class="mock-label">current 1.8 kn</text>`;
     g.innerHTML =
       `<style>.mock-label{font:700 15px system-ui,sans-serif;fill:#0b3c55;stroke:#e9fbff;stroke-width:4;paint-order:stroke;text-anchor:middle}</style>` +
       html;
@@ -178,7 +192,7 @@ async function chartOverlay(p) {
     const journal = document.querySelector('#chart-journal-panel');
     if (journal) journal.hidden = true;
     const tag = document.createElement('div');
-    tag.textContent = 'MOCKUP: one example current on today’s sea, as darker water';
+    tag.textContent = 'MOCKUP: Guillaume’s current through the middle gap, darker water only';
     tag.style.cssText =
       'position:fixed;left:8px;bottom:8px;z-index:9999;font:700 11px system-ui,sans-serif;color:#10303a;background:#ffd166;border-radius:6px;padding:2px 6px';
     document.body.appendChild(tag);
@@ -209,12 +223,19 @@ async function chartOverlay(p) {
     await p.click('#tp-undock', { timeout: 1500 }).catch(() => {});
     await p.waitForTimeout(300);
     await scene(p, kind === 'chart' ? 'current' : kind);
+    if (kind === 'current') await p.evaluate(() => window.fwt.view.setZoom(1.6));
     await p.waitForTimeout(1500);
     if (kind === 'chart') {
       await p.click('#chart-btn');
       await p.waitForTimeout(800);
       await chartOverlay(p);
     } else {
+      if (kind === 'current') {
+        // A clean capture of the sea alone (HUD hidden), which the overlay tints.
+        await p.addStyleTag({ content: 'body *{visibility:hidden!important} canvas{visibility:visible!important}' }).then((h) => h.evaluate((el) => (el.id = 'clean-css')));
+        const shot = await p.screenshot();
+        await p.evaluate((u) => { window.__seaShot = u; document.querySelector('#clean-css').remove(); }, 'data:image/png;base64,' + shot.toString('base64'));
+      }
       await seaOverlay(p, kind, SET_DEG);
     }
     await p.waitForTimeout(200);
