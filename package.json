@@ -18,6 +18,7 @@
     "check": "node tools/fw/fw.mjs check",
     "balance": "node tools/fw/fw.mjs balance",
     "island": "node tools/fw/fw.mjs island",
+    "sea": "node tools/fw/fw.mjs sea",
     "adr": "node tools/fw/fw.mjs adr",
     "shots": "node tools/fw/fw.mjs shots",
     "quest": "node tools/fw/fw.mjs quest",

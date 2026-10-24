@@ -2,6 +2,7 @@ import type { MapDef } from '../sim/map';
 import type { QuestDef } from '../sim/quests';
 import type { SaveStorage } from '../sim/save';
 import { type IslandDesign, isIslandShape, useIslandDesign } from './islands';
+import { grownMap } from './grownMap';
 import { PHASE1_SOURCE, prepareMap } from './maps';
 
 /**
@@ -12,6 +13,17 @@ import { PHASE1_SOURCE, prepareMap } from './maps';
  */
 export const EDITED_MAP_KEY = 'fwt.editor.map.v1';
 export const EDITED_PREFIX = 'fwt.editor.play.';
+/**
+ * The sea editor's working copy (decision 0161): the whole Phase 4 sea, played with
+ * `?map=edited&sea=phase4` on its own save (EDITED_SEA_PREFIX).
+ */
+export const EDITED_SEAS_KEY = 'fwt.editor.seas.v1';
+export const EDITED_SEA_PREFIX = 'fwt.editor.play.phase4.';
+
+/** Whether the address asks for the sea editor's Phase 4 sea rather than the edited ring. */
+export function editedSea(search: string): boolean {
+  return new URLSearchParams(search).get('sea') === 'phase4';
+}
 /** The island builder's edited island files (decision 0105), by island id. */
 export const EDITED_ISLANDS_KEY = 'fwt.editor.islands.v1';
 /** The quest builder's working copy (decision 0142): the quests and the text edited there. */
@@ -53,14 +65,19 @@ export function editedQuests(search: string, storage: SaveStorage | null): Edite
 /**
  * The edited map to sail, or null when the address does not ask for one or it is unreadable.
  * Edited island files replace the shipped ones first; with only islands edited, the shipped map
- * is sailed, still on the play-test save.
+ * is sailed, still on the play-test save. With `&sea=phase4` it is the sea editor's grown sea
+ * (decision 0161), whose things carry the sea file they belong to: the game ignores that.
  */
 export function editedMap(search: string, storage: SaveStorage | null): MapDef | null {
   if (new URLSearchParams(search).get('map') !== 'edited' || !storage) return null;
   try {
     for (const design of editedIslands(storage)) useIslandDesign(design);
-    const raw: unknown = JSON.parse(storage.getItem(EDITED_MAP_KEY) ?? 'null');
-    if (raw === null) return prepareMap(structuredClone(PHASE1_SOURCE));
+    const sea = editedSea(search);
+    const raw: unknown = JSON.parse(
+      storage.getItem(sea ? EDITED_SEAS_KEY : EDITED_MAP_KEY) ?? 'null',
+    );
+    if (raw === null)
+      return prepareMap(sea ? grownMap(PHASE1_SOURCE) : structuredClone(PHASE1_SOURCE));
     if (!isMapShape(raw)) return null;
     return prepareMap(raw);
   } catch {

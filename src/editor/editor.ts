@@ -1,7 +1,10 @@
 import './editor.css';
-import { EDITED_MAP_KEY, isMapShape } from '../data/editedMap';
+import { EDITED_MAP_KEY, EDITED_SEAS_KEY, isMapShape } from '../data/editedMap';
+import { SEAS } from '../data/grownMap';
+import grownFile from '../data/seas/grown.json';
 import { ISLAND_DESIGNS, useIslandDesign } from '../data/islands';
 import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../data/maps';
+import phase1Text from '../data/phase1-map.json?raw';
 import type { MapDef } from '../sim/map';
 import { type MapCheck, distanceChanges, quickChecks } from '../sim/mapChecks';
 import { type Layers, type View, drawChart, drawCompass } from './chart';
@@ -9,12 +12,15 @@ import {
   History,
   type Selection,
   addAreaCurrent,
+  addChartArea,
   addIsland,
   addLanePoint,
+  addMark,
   addShape,
   addZone,
   beginLane,
   deleteSelection,
+  findArea,
   findCurrent,
   findIsland,
   findShape,
@@ -26,6 +32,7 @@ import {
   moveFlow,
   moveFlowPoint,
   moveIsland,
+  moveMark,
   movePoint,
   moveShape,
   moveStart,
@@ -38,6 +45,23 @@ import { renderPanel } from './panel';
 import { hasIslandFile, islandOpen, openIsland, setupIslandBuilder } from './island/builder';
 import { giveIslandFile } from './island/fromLook';
 import { openQuests, questsOpen, setupQuestBuilder } from './quest/builder';
+import {
+  type GrownDef,
+  type SeaDoc,
+  RING,
+  addSea,
+  claimNew,
+  importSeaFile,
+  isSeaDoc,
+  mergeSeas,
+  moveToSea,
+  ownerOf,
+  seaExports,
+  seaIds,
+  seaName,
+  selected,
+} from './seas';
+import { showSeaExport } from './seaExport';
 
 /**
  * Map editor page (decision 0095), published next to the game like the model sheet. It edits the
@@ -51,7 +75,18 @@ const svg = $<SVGSVGElement>('ed-map');
 const props = $('ed-props');
 
 type Tool =
-  'move' | 'island' | 'reef' | 'sandbank' | 'ridge' | 'start' | 'current' | 'area' | 'zone';
+  | 'move'
+  | 'island'
+  | 'reef'
+  | 'sandbank'
+  | 'shallows'
+  | 'ridge'
+  | 'mark'
+  | 'start'
+  | 'current'
+  | 'area'
+  | 'zone'
+  | 'chartArea';
 const TOOLS: { id: Tool; icon: string; label: string; hint: string }[] = [
   {
     id: 'move',
@@ -63,10 +98,22 @@ const TOOLS: { id: Tool; icon: string; label: string; hint: string }[] = [
   { id: 'reef', icon: '🪸', label: 'Add reef', hint: 'Click the sea to add a reef' },
   { id: 'sandbank', icon: '🏖️', label: 'Add sandbank', hint: 'Click the sea to add a sandbank' },
   {
+    id: 'shallows',
+    icon: '🫧',
+    label: 'Add shallows',
+    hint: 'Click the sea to add shallows, then set the deepest draft that gets through',
+  },
+  {
     id: 'ridge',
     icon: '⛰️',
     label: 'Add barrier island',
     hint: 'Click the sea to add a long barrier island, then drag its points',
+  },
+  {
+    id: 'mark',
+    icon: '🛟',
+    label: 'Add sea mark',
+    hint: 'Click the sea to add a buoy, then pick its type (cardinal marks, lights, boats) and name',
   },
   {
     id: 'start',
@@ -92,21 +139,54 @@ const TOOLS: { id: Tool; icon: string; label: string; hint: string }[] = [
     label: 'Add wind zone',
     hint: 'Click the sea to add a wind zone, then drag its points and pick its kind',
   },
+  {
+    id: 'chartArea',
+    icon: '🗺️',
+    label: 'Add chart area',
+    hint: 'Click the sea to add a chart area (fog of war): sailing into it charts all of it',
+  },
 ];
 
 // --- State ---------------------------------------------------------------------------------
 
+/**
+ * Which sea the editor works on: today's Windward Ring (`phase1-map.json`), or with `?sea=phase4`
+ * the whole Phase 4 sea, the ring and every sea file round it (decision 0161).
+ */
+const SEA_MODE = new URLSearchParams(location.search).get('sea') === 'phase4';
+const DRAFT_KEY = SEA_MODE ? EDITED_SEAS_KEY : EDITED_MAP_KEY;
+const shippedSea = (): SeaDoc => mergeSeas(PHASE1_SOURCE, SEAS, grownFile as GrownDef);
+/** The map as shipped, for Reset, the dashed outlines and "edited". */
+const SHIPPED: MapDef = SEA_MODE ? shippedSea() : PHASE1_SOURCE;
+const SHIPPED_PREPARED = SEA_MODE ? prepareMap(SHIPPED) : PHASE1_MAP;
+
+/** The shipped text of every file the sea editor writes, to export only what changed. */
+const SHIPPED_FILES: Record<string, string> = {
+  'src/data/phase1-map.json': phase1Text,
+  ...Object.fromEntries(
+    Object.entries(
+      import.meta.glob<string>('../data/seas/*.json', {
+        query: '?raw',
+        import: 'default',
+        eager: true,
+      }),
+    ).map(([path, text]) => [path.replace('../', 'src/'), text]),
+  ),
+};
+
 function loadDraft(): MapDef {
   try {
-    const raw: unknown = JSON.parse(localStorage.getItem(EDITED_MAP_KEY) ?? 'null');
-    if (isMapShape(raw)) return raw;
+    const raw: unknown = JSON.parse(localStorage.getItem(DRAFT_KEY) ?? 'null');
+    if (SEA_MODE ? isSeaDoc(raw) : isMapShape(raw)) return raw as MapDef;
   } catch {
     /* No storage or an unreadable draft: start from the shipped map. */
   }
-  return structuredClone(PHASE1_SOURCE);
+  return structuredClone(SHIPPED);
 }
 
 let map = loadDraft();
+/** The sea editor's document: the same object as `map`, in sea mode only. */
+const seaDoc = () => (SEA_MODE ? (map as SeaDoc) : null);
 let prepared = prepareMap(map);
 let selection: Selection = null;
 let tool: Tool = 'move';
@@ -118,12 +198,13 @@ const layers: Layers = {
   grid: false,
   flow: true,
   marks: true,
+  areas: true,
 };
 /** The lane current being laid with the Add current tool, point by point. */
 let laying: string | null = null;
 let lastLayClick: { t: number; x: number; y: number } | null = null;
 const view: View = { cx: 0, cy: 0, upp: 1 };
-const shippedText = JSON.stringify(PHASE1_SOURCE);
+const shippedText = JSON.stringify(SHIPPED);
 
 /** True while the view is the whole map: it then follows the window's size. */
 let fitted = true;
@@ -151,7 +232,15 @@ svg.parentElement!.append(compassBox);
 const COMPASS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
 
 function drawMap() {
-  drawChart(svg, { map, prepared, shipped: PHASE1_SOURCE, selection, layers, view });
+  drawChart(svg, {
+    map,
+    prepared,
+    shipped: SHIPPED,
+    selection,
+    layers,
+    view,
+    ringRadius: SEA_MODE ? PHASE1_SOURCE.boundsRadius : undefined,
+  });
   drawCompass(compass, map.wind.fromDeg);
   compassText.textContent = `from ${COMPASS[Math.round(map.wind.fromDeg / 45) % 8]} · ${map.wind.speedKn} kn`;
 }
@@ -168,7 +257,51 @@ function drawPanel() {
     select,
     remove,
     editIsland,
+    seas: seaPanel(),
   });
+}
+
+/** The sea editor's part of the panel (decision 0161): which file, the active sea, new seas. */
+function seaPanel() {
+  const doc = seaDoc();
+  if (!doc) return undefined;
+  const change = (edit: (d: SeaDoc) => void) => {
+    history.record(map);
+    edit(doc);
+    commit(true);
+  };
+  return {
+    seas: [RING, ...seaIds(doc)].map((id): [string, string] => [id, seaName(doc, id)]),
+    active: doc.seaEditor.active,
+    owner: ownerOf(selected(doc, selection)),
+    radius: doc.boundsRadius,
+    ringRadius: PHASE1_SOURCE.boundsRadius,
+    setActive: (id: string) => {
+      // Not an edit of any file: no undo step.
+      doc.seaEditor.active = id;
+      commit(true);
+    },
+    moveTo: (id: string) => change((d) => moveToSea(d, selection, id)),
+    rename: (id: string, name: string) =>
+      change((d) => {
+        const sea = d.seaEditor.seas.find((s) => s.values.id === id);
+        if (sea && name) sea.values.name = name;
+      }),
+    add: () => {
+      const id = prompt(
+        'File name of the new sea (lower case, e.g. "north"): it is saved as src/data/seas/<name>.json',
+      );
+      if (!id) return;
+      const name = prompt('Its name on the chart', id) ?? id;
+      history.record(map);
+      if (!addSea(doc, id, name)) {
+        history.discardIfSame(map);
+        alert(`"${id}" is taken or not a usable file name.`);
+        return;
+      }
+      commit(true);
+    },
+  };
 }
 
 /**
@@ -203,6 +336,7 @@ setupQuestBuilder({
   mapName: () => map.name,
   close: () => commit(true),
 });
+setupSeaSwitch();
 $('ed-quests').addEventListener('click', openQuests);
 svg.addEventListener('dblclick', (e) => {
   if (laying) return finishLaying();
@@ -213,6 +347,8 @@ svg.addEventListener('dblclick', (e) => {
 
 /** After any edit: redraw, save the working copy for "Play this map", rerun the checks. */
 function commit(rebuildPanel = true) {
+  const doc = seaDoc();
+  if (doc) claimNew(doc);
   prepared = prepareMap(map);
   drawMap();
   if (rebuildPanel) drawPanel();
@@ -222,8 +358,8 @@ function commit(rebuildPanel = true) {
   const edited = JSON.stringify(map) !== shippedText;
   $('ed-edited').hidden = !edited;
   try {
-    if (edited) localStorage.setItem(EDITED_MAP_KEY, JSON.stringify(map));
-    else localStorage.removeItem(EDITED_MAP_KEY);
+    if (edited) localStorage.setItem(DRAFT_KEY, JSON.stringify(map));
+    else localStorage.removeItem(DRAFT_KEY);
   } catch {
     /* Private mode: the editor still works, Play this map then plays the shipped map. */
   }
@@ -270,7 +406,7 @@ function showChecks() {
 }
 
 function runChecks() {
-  quick = [...quickChecks(prepared), distanceChanges(prepared, PHASE1_MAP)];
+  quick = [...quickChecks(prepared), distanceChanges(prepared, SHIPPED_PREPARED)];
   routes = null;
   showChecks();
   // Route finding takes a few seconds: wait for the edits to settle, run it off the page thread
@@ -303,6 +439,7 @@ type Drag =
   | { kind: 'shape'; id: string; x: number; y: number }
   | { kind: 'point'; id: string; index: number }
   | { kind: 'waypoint'; index: number }
+  | { kind: 'mark'; index: number; dx: number; dy: number }
   | { kind: 'start' }
   | { kind: 'flow'; x: number; y: number }
   | { kind: 'fpoint'; index: number }
@@ -337,7 +474,10 @@ svg.addEventListener('pointerdown', (e) => {
   const hit = (e.target as Element).closest('[data-hit]')?.getAttribute('data-hit') ?? 'sea';
   const [hitKind, id = '', arg] = hit.split(':');
   // Adding on top of a zone or a current's water is adding on the sea.
-  const kind = tool !== 'move' && (hitKind === 'zone' || hitKind === 'current') ? 'sea' : hitKind;
+  const kind =
+    tool !== 'move' && (hitKind === 'zone' || hitKind === 'current' || hitKind === 'area')
+      ? 'sea'
+      : hitKind;
   if (tool === 'current') {
     // Every click lays the next point, wherever it lands. The chart is redrawn after each one, so
     // the browser's dblclick (two clicks on one element) never fires: a quick second click on the
@@ -365,8 +505,13 @@ svg.addEventListener('pointerdown', (e) => {
   if (tool !== 'move' && kind === 'sea') {
     history.record(map);
     if (tool === 'island') selection = { kind: 'island', id: addIsland(map, p.x, p.y) };
+    else if (tool === 'mark')
+      selection = { kind: 'mark', index: addMark(map, p.x, p.y, 'buoy-red') };
     else if (tool === 'area') selection = { kind: 'current', id: addAreaCurrent(map, p.x, p.y) };
-    else if (tool === 'zone')
+    else if (tool === 'chartArea') {
+      const id = addChartArea(map, p.x, p.y);
+      selection = id ? { kind: 'area', id } : null;
+    } else if (tool === 'zone')
       selection = {
         kind: 'zone',
         id: addZone(map, p.x, p.y, Object.keys(TUNING.weather.zones.kinds)[0]!),
@@ -390,7 +535,7 @@ svg.addEventListener('pointerdown', (e) => {
     pan();
     return;
   }
-  if (kind === 'zone' || kind === 'current') {
+  if (kind === 'zone' || kind === 'current' || kind === 'area') {
     // A first press selects a zone or current and pans (zones can cover much of the sea); once
     // selected, a press drags it.
     if (selection?.kind !== kind || selection.id !== id) {
@@ -418,9 +563,10 @@ svg.addEventListener('pointerdown', (e) => {
     const index = kind === 'insert' ? insertPoint(map, id, Number(arg))! : Number(arg);
     drag = { kind: 'point', id, index };
     selection = { kind: 'shape', id, point: index };
-  } else if (kind === 'cpoint' || kind === 'zpoint' || kind === 'cinsert' || kind === 'zinsert') {
-    const sel = { kind: kind[0] === 'c' ? ('current' as const) : ('zone' as const), id };
-    const index = kind.endsWith('insert') ? insertFlowPoint(map, sel, Number(arg)) : Number(arg);
+  } else if (/^[cza](point|insert)$/.test(kind!)) {
+    const flow = { c: 'current', z: 'zone', a: 'area' } as const;
+    const sel = { kind: flow[kind![0] as 'c' | 'z' | 'a'], id };
+    const index = kind!.endsWith('insert') ? insertFlowPoint(map, sel, Number(arg)) : Number(arg);
     if (index === undefined) return;
     drag = { kind: 'fpoint', index };
     selection = { ...sel, point: index };
@@ -430,6 +576,10 @@ svg.addEventListener('pointerdown', (e) => {
   } else if (kind === 'waypoint') {
     drag = { kind: 'waypoint', index: Number(id) };
     selection = { kind: 'waypoint', index: Number(id) };
+  } else if (kind === 'mark') {
+    const mark = map.marks![Number(id)]!;
+    drag = { kind: 'mark', index: Number(id), dx: mark.x - p.x, dy: mark.y - p.y };
+    selection = { kind: 'mark', index: Number(id) };
   } else if (kind === 'start') {
     drag = { kind: 'start' };
     selection = { kind: 'start' };
@@ -483,6 +633,9 @@ svg.addEventListener('pointermove', (e) => {
       break;
     case 'waypoint':
       moveWaypoint(map, drag.index, p.x, p.y);
+      break;
+    case 'mark':
+      moveMark(map, drag.index, p.x + drag.dx, p.y + drag.dy);
       break;
     case 'flow': {
       const [dx, dy] = [Math.round(p.x - drag.x), Math.round(p.y - drag.y)];
@@ -565,9 +718,20 @@ function nudge(dx: number, dy: number) {
   } else if (selection.kind === 'waypoint') {
     const wp = map.course[selection.index]!;
     moveWaypoint(map, selection.index, wp.x + dx, wp.y + dy);
-  } else if (selection.kind === 'current' || selection.kind === 'zone') {
+  } else if (selection.kind === 'mark') {
+    const mark = map.marks?.[selection.index];
+    if (mark) moveMark(map, selection.index, mark.x + dx, mark.y + dy);
+  } else if (
+    selection.kind === 'current' ||
+    selection.kind === 'zone' ||
+    selection.kind === 'area'
+  ) {
     const c = selection.kind === 'current' ? findCurrent(map, selection.id) : undefined;
-    const points = c ? (c.path ?? c.outline) : findZone(map, selection.id)?.outline;
+    const points = c
+      ? (c.path ?? c.outline)
+      : selection.kind === 'zone'
+        ? findZone(map, selection.id)?.outline
+        : findArea(map, selection.id)?.outline;
     const point = selection.point !== undefined ? points?.[selection.point] : undefined;
     if (point) moveFlowPoint(map, selection, selection.point!, point[0] + dx, point[1] + dy);
     else moveFlow(map, selection, dx, dy);
@@ -630,7 +794,8 @@ function setTool(next: Tool) {
     b.setAttribute('aria-pressed', String(b.dataset.tool === tool));
   $('ed-hint').textContent = TOOLS.find((t) => t.id === tool)!.hint;
 }
-for (const t of TOOLS) {
+// Chart areas belong to the sea files: the ring alone has no fog of war (decision 0156).
+for (const t of TOOLS.filter((t) => SEA_MODE || t.id !== 'chartArea')) {
   const b = document.createElement('button');
   b.textContent = t.icon;
   b.title = t.label;
@@ -647,8 +812,9 @@ const LAYER_NAMES: [keyof Layers, string][] = [
   ['grid', 'Grid 50'],
   ['flow', 'Currents and zones'],
   ['marks', 'Sea marks'],
+  ['areas', 'Chart areas'],
 ];
-for (const [key, label] of LAYER_NAMES) {
+for (const [key, label] of LAYER_NAMES.filter(([k]) => SEA_MODE || k !== 'areas')) {
   const b = document.createElement('button');
   b.textContent = label;
   b.setAttribute('aria-pressed', String(layers[key]));
@@ -666,8 +832,10 @@ function replaceMap(next: MapDef) {
     (selection?.kind === 'island' && !findIsland(map, selection.id)) ||
     (selection?.kind === 'shape' && !findShape(map, selection.id)) ||
     (selection?.kind === 'waypoint' && !map.course[selection.index]) ||
+    (selection?.kind === 'mark' && !map.marks?.[selection.index]) ||
     (selection?.kind === 'current' && !findCurrent(map, selection.id)) ||
-    (selection?.kind === 'zone' && !findZone(map, selection.id))
+    (selection?.kind === 'zone' && !findZone(map, selection.id)) ||
+    (selection?.kind === 'area' && !findArea(map, selection.id))
   )
     selection = null;
   commit();
@@ -686,9 +854,11 @@ $('ed-reset').addEventListener('click', () => {
   if (!confirm('Throw away your edits and go back to the map shipped with the game?')) return;
   history.record(map);
   selection = null;
-  replaceMap(structuredClone(PHASE1_SOURCE));
+  replaceMap(structuredClone(SHIPPED));
 });
 $('ed-export').addEventListener('click', () => {
+  const doc = seaDoc();
+  if (doc) return showSeaExport(seaExports(doc, SHIPPED_FILES));
   const blob = new Blob([formatMapJson(map)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -697,7 +867,7 @@ $('ed-export').addEventListener('click', () => {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 });
 $('ed-play').addEventListener('click', () => {
-  window.open('./?map=edited', 'fwt-playtest');
+  window.open(SEA_MODE ? './?map=edited&sea=phase4' : './?map=edited', 'fwt-playtest');
 });
 const fileInput = $<HTMLInputElement>('ed-file');
 $('ed-import').addEventListener('click', () => fileInput.click());
@@ -707,14 +877,36 @@ fileInput.addEventListener('change', async () => {
   if (!file) return;
   try {
     const raw: unknown = JSON.parse(await file.text());
+    const doc = seaDoc();
+    if (doc) {
+      // A sea file, or the ring's map file: it replaces that file's things (decision 0161).
+      const next = structuredClone(doc);
+      if (!importSeaFile(next, raw)) throw new Error('not a sea');
+      history.record(map);
+      selection = null;
+      replaceMap(next);
+      return;
+    }
     if (!isMapShape(raw)) throw new Error('not a map');
     history.record(map);
     selection = null;
     replaceMap(raw);
   } catch {
-    alert(`${file.name} is not a map file.`);
+    alert(`${file.name} is not a ${SEA_MODE ? 'sea or map' : 'map'} file.`);
   }
 });
+
+/** The top bar's sea picker: the ring alone or the whole Phase 4 sea (decision 0161). */
+function setupSeaSwitch() {
+  const pick = $<HTMLSelectElement>('ed-sea');
+  pick.value = SEA_MODE ? 'phase4' : 'ring';
+  pick.addEventListener('change', () => {
+    location.search = pick.value === 'phase4' ? '?sea=phase4' : '';
+  });
+  $('ed-export').textContent = SEA_MODE ? 'Export files' : 'Export map.json';
+  $('ed-play').textContent = SEA_MODE ? '▶ Play this sea' : '▶ Play this map';
+  if (SEA_MODE) $('ed-file-name').textContent = `ring + ${seaIds(map as SeaDoc).length} sea files`;
+}
 
 new ResizeObserver(() => {
   if (fitted) fit();
@@ -734,3 +926,32 @@ function tickCrests(now: number) {
   requestAnimationFrame(tickCrests);
 }
 requestAnimationFrame(tickCrests);
+
+// `?debug`: a handle for `npm run shots -- --editor` (decision 0161) to frame and select.
+if (new URLSearchParams(location.search).has('debug'))
+  (window as unknown as { fwtEditor: unknown }).fwtEditor = {
+    focus(x: number, y: number, upp?: number) {
+      fitted = false;
+      [view.cx, view.cy] = [x, y];
+      if (upp) view.upp = clampZoom(upp);
+      drawMap();
+    },
+    /** A chart hit as the chart tags it: "island:sunreach", "area:sugar-bar", "mark:3", "start". */
+    select(hit: string) {
+      const [kind, id = ''] = hit.split(':');
+      const index = Number(id);
+      select(
+        kind === 'mark' || kind === 'waypoint'
+          ? { kind, index }
+          : kind === 'start'
+            ? { kind }
+            : kind === 'island' ||
+                kind === 'shape' ||
+                kind === 'current' ||
+                kind === 'zone' ||
+                kind === 'area'
+              ? { kind, id }
+              : null,
+      );
+    },
+  };

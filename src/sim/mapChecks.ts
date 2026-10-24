@@ -7,7 +7,7 @@ import { TUNING } from '../data/tuning';
 import { isFar, isGood } from './goods';
 import { islandCoasts, islandPoint } from './islandLayout';
 import { landmarkOf } from '../data/islands';
-import { type IslandDef, type MapDef, type PortDef, SEA_MARK_TYPES } from './map';
+import { type IslandDef, type MapDef, type PortDef, SEA_MARK_TYPES, type TerrainDef } from './map';
 import { DEG, bearingTo, wrapAngle } from './math';
 import { CUTTER, SHIP_CLASSES, SLOOP, noGoAngle, polarFraction } from './ship';
 import { MAX_SETTLEMENT_LEVEL } from './settlement';
@@ -56,17 +56,69 @@ export function clearAt(
   if (prior !== undefined) return prior;
   const result =
     Math.hypot(x, y) < map.boundsRadius - margin &&
-    map.islands.every((i) => {
-      const coasts = islandCoasts(i);
-      return coasts
-        ? coasts.every((c) => coastDistance(x, y, c).distance > margin)
-        : Math.hypot(x - i.x, y - i.y) > i.radius + margin;
-    }) &&
-    (map.terrain ?? []).every(
-      (t) => !solidTo(t, draft) || coastDistance(x, y, t.outline).distance > margin,
+    shoresOf(map).every(
+      (s) =>
+        // Far outside a shore's bounding circle is far from the shore: no edge to measure.
+        Math.hypot(x - s.x, y - s.y) - s.r > margin ||
+        (s.outline
+          ? (s.terrain !== undefined && !solidTo(s.terrain, draft)) ||
+            coastDistance(x, y, s.outline).distance > margin
+          : Math.hypot(x - s.x, y - s.y) > s.r + margin),
     );
   cache.set(key, result);
   return result;
+}
+
+/**
+ * How far (x, y) is from the nearest shore a hull of this draft must keep off, or from the world
+ * edge: `clearAt` is true for any margin below it (and anywhere within it, for a smaller one).
+ */
+export function seaRoom(map: MapDef, x: number, y: number, draft = SLOOP.draft): number {
+  let room = map.boundsRadius - Math.hypot(x, y);
+  for (const s of shoresOf(map)) {
+    const far = Math.hypot(x - s.x, y - s.y) - s.r;
+    if (far >= room) continue;
+    if (!s.outline) room = Math.min(room, far);
+    else if (!s.terrain || solidTo(s.terrain, draft))
+      room = Math.min(room, coastDistance(x, y, s.outline).distance);
+  }
+  return room;
+}
+
+/**
+ * Every shore of a map once: island coasts (or discs), solid terrain outlines, each with its
+ * bounding circle, so `clearAt` measures only the few shores near a point (decision 0161: the
+ * grown sea has hundreds of outline points). Terrain keeps its entry: shallows are shore only to
+ * deeper hulls.
+ */
+interface Shore {
+  x: number;
+  y: number;
+  r: number;
+  outline?: [number, number][];
+  terrain?: TerrainDef;
+}
+const shoreCache = new WeakMap<MapDef, Shore[]>();
+function shoresOf(map: MapDef): Shore[] {
+  let shores = shoreCache.get(map);
+  if (shores) return shores;
+  const around = (outline: [number, number][], terrain?: TerrainDef): Shore => {
+    const xs = outline.map((p) => p[0]),
+      ys = outline.map((p) => p[1]);
+    const x = (Math.min(...xs) + Math.max(...xs)) / 2,
+      y = (Math.min(...ys) + Math.max(...ys)) / 2;
+    const r = Math.max(...outline.map((p) => Math.hypot(p[0] - x, p[1] - y)));
+    return { x, y, r, outline, terrain };
+  };
+  shores = [];
+  for (const i of map.islands) {
+    const coasts = islandCoasts(i);
+    if (coasts) for (const c of coasts) shores.push(around(c));
+    else shores.push({ x: i.x, y: i.y, r: i.radius });
+  }
+  for (const t of map.terrain ?? []) shores.push(around(t.outline, t));
+  shoreCache.set(map, shores);
+  return shores;
 }
 
 // --- Wind-aware route audit ----------------------------------------------------------------
@@ -120,91 +172,244 @@ export function sailRoute(
   turningClearance = 11,
   water?: (x: number, y: number) => { east: number; north: number },
   hull: { radius: number; draft: number } = SLOOP,
+  cache?: RouteCache,
 ): SailRoute | null {
-  const key = (p: Point) => `${p.x},${p.y}`;
-  const snap = (p: Point) => ({
-    x: Math.round(p.x / STEP) * STEP,
-    y: Math.round(p.y / STEP) * STEP,
-  });
-  const first = snap(start),
-    last = snap(goal),
-    end = key(last);
-  const dist = new Map<string, number>([[key(first), 0]]),
-    prev = new Map<string, string>();
-  const points = new Map<string, Point>([[key(first), first]]);
+  return search(map, start, goal, windDeg, turningClearance, water, hull, cache).route;
+}
+
+/**
+ * The quickest time from `start` to every point a sloop can reach there, in one search: what
+ * `sailRoute` would find to each of them, without a search per goal (decision 0161: the grown
+ * sea's route checks went from minutes to seconds). Undefined where it cannot get.
+ */
+export function sailTimes(
+  map: MapDef,
+  start: Point,
+  windDeg: number,
+  turningClearance = 11,
+  water?: (x: number, y: number) => { east: number; north: number },
+  hull: { radius: number; draft: number } = SLOOP,
+  cache?: RouteCache,
+): (to: Point) => number | undefined {
+  return search(map, start, null, windDeg, turningClearance, water, hull, cache).times;
+}
+
+/**
+ * What the route planner remembers between searches on one map (one `routeChecks` run): whether
+ * each leg is clear for a hull, and the zones' (per wind) and currents' effect along it. Only for
+ * a map that does not change while it is used.
+ */
+export interface RouteCache {
+  legs: Map<string, Uint8Array>;
+  room: Map<string, Float32Array>;
+  zones: Map<number, Float32Array>;
+  water: WeakMap<object, Float32Array>;
+}
+export const routeCache = (): RouteCache => ({
+  legs: new Map(),
+  room: new Map(),
+  zones: new Map(),
+  water: new WeakMap(),
+});
+
+/** Each direction's bearing and length, the same for every grid point. */
+const DIR_BEARING = DIRS.map(([dx, dy]) =>
+  bearingTo({ x: 0, y: 0 }, { x: dx * STEP, y: dy * STEP }),
+);
+const DIR_LENGTH = DIRS.map(([dx, dy]) => Math.hypot(dx * STEP, dy * STEP));
+
+/**
+ * A* on the grid to `goal` (the first time it is reached is the quickest), or with no goal every
+ * point. Grid points are numbered and kept in typed arrays: the grown sea has 60,000 of them.
+ */
+function search(
+  map: MapDef,
+  start: Point,
+  goal: Point | null,
+  windDeg: number,
+  turningClearance: number,
+  water: ((x: number, y: number) => { east: number; north: number }) | undefined,
+  hull: { radius: number; draft: number },
+  cache: RouteCache | undefined,
+): { route: SailRoute | null; times: (to: Point) => number | undefined } {
+  const N = Math.ceil(map.boundsRadius / STEP) + 2,
+    W = 2 * N + 1,
+    size = W * W,
+    D = DIRS.length;
+  const cell = (p: Point) => {
+    const gx = Math.round(p.x / STEP),
+      gy = Math.round(p.y / STEP);
+    return Math.abs(gx) <= N && Math.abs(gy) <= N ? (gx + N) * W + gy + N : -1;
+  };
+  const xOf = (i: number) => (Math.floor(i / W) - N) * STEP;
+  const yOf = (i: number) => ((i % W) - N) * STEP;
+  const dist = new Float64Array(size).fill(Infinity);
+  const prev = new Int32Array(size).fill(-1);
+  const first = cell(start),
+    end = goal ? cell(goal) : -2;
+  const times = (to: Point) => {
+    const i = cell(to);
+    return i >= 0 && dist[i] !== Infinity ? dist[i] : undefined;
+  };
+  if (first < 0) return { route: null, times };
+  dist[first] = 0;
   // Wind zones (decision 0140) bend and weaken the wind along the way; the planner uses their
   // average effect. The fastest a zone can make the wind keeps the estimate optimistic.
   const zones = zoneField(map.windZones, smoothOutline);
   const gain = zones ? zoneMaxGain(zones) : 1;
-  const heuristic = (p: Point) =>
-    Math.hypot(p.x - last.x, p.y - last.y) /
-    ((14 * gain * SLOOP.speedRatio + (water ? FASTEST_CURRENT_KN : 0)) * knotToUnits());
-  const queue = [{ p: first, cost: 0, priority: heuristic(first) }];
-  while (queue.length) {
-    queue.sort((a, b) => b.priority - a.priority);
-    const { p, cost } = queue.pop()!;
-    const k = key(p);
-    if (cost !== dist.get(k)) continue;
-    if (k === end) {
+  const top = (14 * gain * SLOOP.speedRatio + (water ? FASTEST_CURRENT_KN : 0)) * knotToUnits();
+  const [ex, ey] = goal && end >= 0 ? [xOf(end), yOf(end)] : [0, 0];
+  const heuristic = (i: number) => (goal ? Math.hypot(xOf(i) - ex, yOf(i) - ey) / top : 0);
+  // Per leg (grid point × direction): 0 not yet known, 1 clear, 2 blocked; the zones' turn and
+  // strength and the current's east and north, NaN until asked.
+  const shared = <T>(
+    m: { get(k: never): T | undefined; set(k: never, v: T): unknown } | undefined,
+    k: unknown,
+    make: () => T,
+  ): T => {
+    let v = m?.get(k as never);
+    if (!v) {
+      v = make();
+      m?.set(k as never, v);
+    }
+    return v;
+  };
+  const margin = hull.radius + turningClearance;
+  const legs = shared(cache?.legs, `${W}:${margin},${hull.draft}`, () => new Uint8Array(size * D));
+  const room = shared(cache?.room, `${W}:${hull.draft}`, () => new Float32Array(size).fill(NaN));
+  // Zones by the leg's middle, on a half-step grid: a leg and its way back share it.
+  const H = 4 * N + 3;
+  const zoneAt = zones
+    ? shared(cache?.zones, windDeg, () => new Float32Array(H * H * 2).fill(NaN))
+    : null;
+  const waterAt = water
+    ? shared(cache?.water, water, () => new Float32Array(size * D * 2).fill(NaN))
+    : null;
+  const wind = windDeg * DEG;
+  const noGo = noGoAngle(SLOOP) + 10 * DEG;
+  const queue = new MinHeap<{ i: number; cost: number; priority: number }>((n) => n.priority);
+  queue.push({ i: first, cost: 0, priority: heuristic(first) });
+  while (queue.size) {
+    const { i, cost } = queue.pop()!;
+    if (cost !== dist[i]) continue;
+    if (i === end) {
       const path: Point[] = [];
-      let at: string | undefined = k;
-      while (at) {
-        path.push(points.get(at)!);
-        at = prev.get(at);
-      }
+      for (let at = i; at >= 0; at = prev[at]!) path.push({ x: xOf(at), y: yOf(at) });
       const ordered = path.reverse();
-      const simplified = ordered.filter((p, i) => {
-        if (i === 0 || i === ordered.length - 1) return true;
-        const a = ordered[i - 1]!,
-          b = ordered[i + 1]!;
+      const simplified = ordered.filter((p, k) => {
+        if (k === 0 || k === ordered.length - 1) return true;
+        const a = ordered[k - 1]!,
+          b = ordered[k + 1]!;
         return (p.x - a.x) * (b.y - p.y) !== (p.y - a.y) * (b.x - p.x);
       });
-      return { points: simplified, seconds: cost };
+      return { route: { points: simplified, seconds: cost }, times };
     }
-    for (const [dx, dy] of DIRS) {
-      const q = { x: p.x + dx * STEP, y: p.y + dy * STEP };
-      let from = windDeg * DEG,
+    const px = xOf(i),
+      py = yOf(i);
+    for (let d = 0; d < D; d++) {
+      const [dx, dy] = DIRS[d]!;
+      const gx = px / STEP + dx,
+        gy = py / STEP + dy;
+      if (Math.abs(gx) > N || Math.abs(gy) > N) continue;
+      const j = (gx + N) * W + gy + N;
+      const qx = gx * STEP,
+        qy = gy * STEP;
+      const e = i * D + d;
+      let from = wind,
         strength = 1;
-      if (zones) {
-        const z = zoneMeanAt(zones, (p.x + q.x) / 2, (p.y + q.y) / 2, from, false, routeZone);
-        from += z.turn;
-        strength = z.strength;
-      }
-      const angle = Math.abs(wrapAngle(bearingTo(p, q) - from));
-      if (angle < noGoAngle(SLOOP) + 10 * DEG) continue;
-      const length = Math.hypot(q.x - p.x, q.y - p.y),
-        samples = Math.ceil(length / 3);
-      let free = true;
-      for (let i = 1; i <= samples; i++)
-        if (
-          !clearAt(
-            map,
-            p.x + ((q.x - p.x) * i) / samples,
-            p.y + ((q.y - p.y) * i) / samples,
-            hull.radius + turningClearance,
-            hull.draft,
-          )
-        ) {
-          free = false;
-          break;
+      if (zones && zoneAt) {
+        const m = 2 * ((2 * gx - dx + 2 * N + 1) * H + 2 * gy - dy + 2 * N + 1);
+        if (Number.isNaN(zoneAt[m]!)) {
+          const z = zoneMeanAt(zones, (px + qx) / 2, (py + qy) / 2, wind, false, routeZone);
+          zoneAt[m] = z.turn;
+          zoneAt[m + 1] = z.strength;
         }
-      if (!free) continue;
+        from += zoneAt[m]!;
+        strength = zoneAt[m + 1]!;
+      }
+      const angle = Math.abs(wrapAngle(DIR_BEARING[d]! - from));
+      if (angle < noGo) continue;
+      const length = DIR_LENGTH[d]!;
+      if (!legs[e] && Number.isNaN(room[i]!)) room[i] = seaRoom(map, px, py, hull.draft);
+      // A leg shorter than the sea room round its start minus the margin is clear all along.
+      if (!legs[e] && room[i]! - length > margin) legs[e] = 1;
+      if (!legs[e]) {
+        const samples = Math.ceil(length / 3);
+        let free = true;
+        for (let k = 1; k <= samples; k++)
+          if (
+            !clearAt(
+              map,
+              px + ((qx - px) * k) / samples,
+              py + ((qy - py) * k) / samples,
+              margin,
+              hull.draft,
+            )
+          ) {
+            free = false;
+            break;
+          }
+        legs[e] = free ? 1 : 2;
+      }
+      if (legs[e] === 2) continue;
       let knots = 14 * strength * SLOOP.speedRatio * polarFraction(SLOOP, angle);
-      if (water) {
-        const v = water((p.x + q.x) / 2, (p.y + q.y) / 2);
-        knots += (v.east * (q.x - p.x) + v.north * (q.y - p.y)) / length;
+      if (water && waterAt) {
+        if (Number.isNaN(waterAt[2 * e]!)) {
+          const v = water((px + qx) / 2, (py + qy) / 2);
+          waterAt[2 * e] = v.east;
+          waterAt[2 * e + 1] = v.north;
+        }
+        knots += (waterAt[2 * e]! * (qx - px) + waterAt[2 * e + 1]! * (qy - py)) / length;
       }
       if (knots <= 0.5) continue;
       const next = cost + length / (knots * knotToUnits());
-      const nk = key(q);
-      if (next >= (dist.get(nk) ?? Infinity)) continue;
-      dist.set(nk, next);
-      points.set(nk, q);
-      prev.set(nk, k);
-      queue.push({ p: q, cost: next, priority: next + heuristic(q) });
+      if (next >= dist[j]!) continue;
+      dist[j] = next;
+      prev[j] = i;
+      queue.push({ i: j, cost: next, priority: next + heuristic(j) });
     }
   }
-  return null;
+  return { route: null, times };
+}
+
+/** A binary min-heap: the route planner's open list (a sorted array was minutes on the 5x sea). */
+class MinHeap<T> {
+  private items: T[] = [];
+  constructor(private readonly score: (item: T) => number) {}
+  get size() {
+    return this.items.length;
+  }
+  push(item: T) {
+    const a = this.items;
+    a.push(item);
+    let i = a.length - 1;
+    while (i > 0) {
+      const up = (i - 1) >> 1;
+      if (this.score(a[up]!) <= this.score(a[i]!)) break;
+      [a[up], a[i]] = [a[i]!, a[up]!];
+      i = up;
+    }
+  }
+  pop(): T | undefined {
+    const a = this.items;
+    const top = a[0];
+    const last = a.pop();
+    if (a.length && last !== undefined) {
+      a[0] = last;
+      let i = 0;
+      for (;;) {
+        const l = 2 * i + 1,
+          r = l + 1;
+        let m = i;
+        if (l < a.length && this.score(a[l]!) < this.score(a[m]!)) m = l;
+        if (r < a.length && this.score(a[r]!) < this.score(a[m]!)) m = r;
+        if (m === i) break;
+        [a[m], a[i]] = [a[i]!, a[m]!];
+        i = m;
+      }
+    }
+    return top;
+  }
 }
 
 /** Where a boat waits off a port: in front of the harbour for profiled islands, else south. */
@@ -519,23 +724,29 @@ export function routeChecks(map: MapDef): MapCheck[] {
   const field = map.currents?.length && strongest > 0 ? new CurrentField(map) : null;
   const sample = { east: 0, north: 0, id: '' };
   const water = field ? (x: number, y: number) => field.at(x, y, strongest, sample) : undefined;
-  const route = (a: Point, b: Point, wind: number) => sailRoute(map, a, b, wind, 11, water);
+  // One search from each place answers every route from it (decision 0161).
+  const cache = routeCache();
+  const times = (from: Point, wind: number) => sailTimes(map, from, wind, 11, water, SLOOP, cache);
   const withCurrents = field ? ', against the strongest currents' : '';
   const ports = map.ports.filter((p) => map.islands.some((i) => i.id === p.islandId));
   const unreachable: string[] = [];
   let slowest = 0;
-  for (const port of ports)
-    for (const wind of winds) {
-      const plan = route(map.start, harbourApproach(map, port), wind);
-      if (!plan) unreachable.push(`${port.name} (wind ${wind}°)`);
-      else slowest = Math.max(slowest, plan.seconds);
+  for (const wind of winds) {
+    const fromStart = times(map.start, wind);
+    for (const port of ports) {
+      const seconds = fromStart(harbourApproach(map, port));
+      if (seconds === undefined) unreachable.push(`${port.name} (wind ${wind}°)`);
+      else slowest = Math.max(slowest, seconds);
     }
+  }
   const charted = ports.filter((p) => !p.hidden);
   const cut: string[] = [];
-  for (const a of charted)
+  for (const a of charted) {
+    const fromA = times(harbourApproach(map, a), winds[0]!);
     for (const b of charted)
-      if (a !== b && !route(harbourApproach(map, a), harbourApproach(map, b), winds[0]!))
+      if (a !== b && fromA(harbourApproach(map, b)) === undefined)
         cut.push(`${a.name} → ${b.name}`);
+  }
   return [
     unreachable.length
       ? fail('reach', `no sloop route from the start to ${list(unreachable)}`)
@@ -546,7 +757,7 @@ export function routeChecks(map: MapDef): MapCheck[] {
     cut.length
       ? fail('pairs', `no route ${list(cut)}${withCurrents}`)
       : pass('pairs', `every pair of charted ports connects${withCurrents}`),
-    ...deepChecks(map, ports, water),
+    ...deepChecks(map, ports, water, cache),
   ];
 }
 
@@ -564,12 +775,14 @@ function deepChecks(
   map: MapDef,
   ports: PortDef[],
   water?: (x: number, y: number) => { east: number; north: number },
+  cache?: RouteCache,
 ): MapCheck[] {
   if (!(map.terrain ?? []).some((t) => t.kind === 'shallows')) return [];
   const hull = { radius: SLOOP.radius, draft: DEEPEST_SHIP.draft };
   const wind = map.wind.fromDeg;
+  const fromStart = sailTimes(map, map.start, wind, 11, water, hull, cache);
   const cut = ports
-    .filter((p) => !sailRoute(map, map.start, harbourApproach(map, p), wind, 11, water, hull))
+    .filter((p) => fromStart(harbourApproach(map, p)) === undefined)
     .map((p) => p.name);
   return [
     cut.length

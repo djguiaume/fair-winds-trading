@@ -9,8 +9,12 @@
   <body>
     <header class="ed-top" id="ed-top">
       <h1>Map editor</h1>
+      <select id="ed-sea" class="ed-sea" title="Which sea to edit (decision 0156)">
+        <option value="ring">Windward Ring</option>
+        <option value="phase4">Phase 4 sea</option>
+      </select>
       <span class="ed-file"
-        ><b id="ed-map-name"></b> · phase1-map.json
+        ><b id="ed-map-name"></b> · <span id="ed-file-name">phase1-map.json</span>
         <span id="ed-edited" hidden>· ● edited</span></span
       >
       <nav class="ed-actions">
