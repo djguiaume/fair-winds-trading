@@ -1228,6 +1228,22 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     '/s',
     "Extra braking at a reef's edge for a ship of draft 1.",
   ),
+  'seamanship.questLand.changeDistance': num(
+    'Land swaps beyond',
+    100,
+    1000,
+    10,
+    'units',
+    'An island or shape that rises or clears after a quest swaps only this far from the boat, past what the camera shows at its widest (0166).',
+  ),
+  'seamanship.questLand.dockedClear': num(
+    'Land swaps when docked beyond',
+    10,
+    200,
+    5,
+    'units',
+    'While she is docked, the swap waits only until she is this far clear of it (0166).',
+  ),
   'seamanship.hazards.passageShallow': num(
     'Passage drag',
     0,

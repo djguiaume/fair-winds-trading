@@ -9,7 +9,8 @@ import { prepareMap } from '../../src/data/maps';
 import { type SeaStep, applySeaSteps, seaSummary } from '../../src/editor/seaSteps';
 import { type GrownDef, GROWN_PATH, mergeSeas, seaExports, seaPath } from '../../src/editor/seas';
 import type { MapDef } from '../../src/sim/map';
-import { quickChecks, routeChecks } from '../../src/sim/mapChecks';
+import { questTagsCheck, quickChecks, routeChecks } from '../../src/sim/mapChecks';
+import { QUESTS } from '../../src/sim/quests';
 
 /** The repository: npm runs the tools from there. */
 const ROOT = process.cwd();
@@ -33,6 +34,8 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
   move <what> <id|index> --at x,y | --by dx,dy | --to-sea <id>
   set <what> <id|index> --name … (and any field: --kind, --max-draft, --type, --speed, --level …)
   set sea <id> --name …          set grown --radius 985 --charted 445
+  --after <quest> | --before <quest> | --always   on add or set: an island, shape or mark stands
+        once that quest is done, or until it is (decision 0166: land swaps out of the boat's sight)
   remove <what> <id|index>       (what: island shape port waypoint mark current zone area)
   check                          the checks only
 
@@ -83,6 +86,12 @@ function fieldsOf(args: Args): Record<string, unknown> {
             ? Number(v)
             : v;
   }
+  // Stands once a quest is done, or until it is (decisions 0130, 0166); `--always` clears it.
+  for (const when of ['after', 'before'] as const) {
+    const quest = args[when];
+    if (typeof quest === 'string') fields.tags = quest === 'none' ? null : [`${when}:${quest}`];
+  }
+  if (args.always) fields.tags = null;
   // An island's file is its look's design.
   if (typeof fields.design === 'string') {
     fields.look = { design: fields.design };
@@ -196,7 +205,14 @@ export function run(args: Args): number {
   const write = !args.dry;
   if (write) for (const f of files) writeFileSync(resolve(ROOT, f.path), f.text);
   const prepared = prepareMap(doc);
-  const checks = [...quickChecks(prepared), ...(args.routes ? routeChecks(prepared) : [])];
+  const checks = [
+    ...quickChecks(prepared),
+    questTagsCheck(
+      prepared,
+      QUESTS.map((q) => q.id),
+    ),
+    ...(args.routes ? routeChecks(prepared) : []),
+  ];
   const failed = checks.filter((c) => !c.ok);
   const errors = failed.filter((c) => c.severity === 'error');
   if (args.json) {

@@ -1,6 +1,7 @@
 import { GOODS, GOOD_DEFS, GOOD_ICONS, type GoodId, isGood } from '../sim/goods';
 import { type LandmarkKind, type MapDef, type PortDef, SEA_MARK_TYPES } from '../sim/map';
 import { SHIP_CLASSES } from '../sim/ship';
+import { QUESTS } from '../sim/quests';
 import { DEFAULT_START_LEVEL, SETTLEMENT_LEVELS, TOWN_LEVELS } from '../sim/settlement';
 import { TUNING } from '../data/tuning';
 import { zoneKindName } from './flowChart';
@@ -145,6 +146,42 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     for (const [v, t] of options)
       node('option', { value: v, textContent: t, selected: v === value }, input);
     input.addEventListener('change', () => host.change(() => set(input.value)));
+  };
+  /**
+   * When it stands (decisions 0130, 0166): always, once a quest is done (`after:`), or until one
+   * is (`before:`). Islands and shapes rise or clear out of the boat's sight; marks just show.
+   */
+  const stands = (target: { tags?: string[] }) => {
+    const tag = target.tags?.find((t) => /^(after|before):/.test(t));
+    const when = tag ? tag.slice(0, tag.indexOf(':')) : '';
+    const quest = tag ? tag.slice(tag.indexOf(':') + 1) : '';
+    const setTag = (w: string, q: string) => {
+      const others = (target.tags ?? []).filter((t) => t !== tag);
+      const tags = w && q ? [...others, `${w}:${q}`] : others;
+      if (tags.length) target.tags = tags;
+      else delete target.tags;
+    };
+    const ids = QUESTS.map((q) => q.id);
+    const pick = node('select', {}, row('Stands'));
+    for (const [v, t] of [
+      ['', 'always'],
+      ['after', 'once a quest is done'],
+      ['before', 'until a quest is done'],
+    ] as const)
+      node('option', { value: v, textContent: t, selected: v === when }, pick);
+    pick.addEventListener('change', () =>
+      host.change(() => setTag(pick.value, quest || ids[0]!), true),
+    );
+    if (!tag) return;
+    select(
+      'Quest',
+      quest,
+      [...(ids.includes(quest) ? [] : [quest]), ...ids].map((id): [string, string] => [
+        id,
+        ids.includes(id) ? id : `${id} ?`,
+      ]),
+      (v) => setTag(when, v),
+    );
   };
   /** A list of ids as chips with ×, plus a "+ add" picker of what is not in it yet. */
   const chips = (
@@ -311,6 +348,7 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     number('Radius', island.radius, (v) => (island.radius = Math.max(3, v ?? island.radius)), {
       min: 3,
     });
+    stands(island);
     const look = () => (island.look ??= {});
     if (file) {
       // Its own file draws it (decision 0110); the radius scales the whole file.
@@ -453,6 +491,7 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
         else delete look().landmark;
       },
     );
+    stands(shape);
     const point = selection.point !== undefined ? shape.outline[selection.point] : undefined;
     node('hr');
     if (point) {
@@ -691,6 +730,7 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
       if (v) mark.chart = true;
       else delete mark.chart;
     });
+    stands(mark);
     node('p', {
       className: 'ed-note',
       textContent:
