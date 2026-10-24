@@ -36,6 +36,17 @@ function label(p, text, cls = 'port', dy = 0) {
   return `<text x="${p[0].toFixed(1)}" y="${(-p[1] + dy).toFixed(1)}" class="${cls}">${text}</text>`;
 }
 function waterBand(points, cls) {
+  // Smooth, natural curves (Guillaume): Chaikin corner cutting, keeping both ends.
+  for (let it = 0; it < 4; it++) {
+    const out = [points[0]];
+    for (let i = 0; i < points.length - 1; i++) {
+      const [ax, ay] = points[i],
+        [bx, by] = points[i + 1];
+      out.push([ax * 0.75 + bx * 0.25, ay * 0.75 + by * 0.25], [ax * 0.25 + bx * 0.75, ay * 0.25 + by * 0.75]);
+    }
+    out.push(points[points.length - 1]);
+    points = out;
+  }
   const d = 'M' + points.map(sx).join(' L');
   return `<path d="${d}" class="${cls}"/>`;
 }

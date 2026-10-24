@@ -1,6 +1,6 @@
 # Winds and currents for Phase 4 (proposal, 2026-10-24)
 
-**Status:** Proposal for Guillaume, revised twice after his comments (no arrows; not everything on today's ring; then his own current through the middle gap, visuals only). Nothing is decided or built. It follows [0137](../../decisions/0137-phase-4-biomes-and-founded-outposts.md) point 6 ("wind zones and currents become authored, per biome") and the [Phase 4 map](../phase-4-map/README.md) (layout B). The code was read with graphify: `windAt` in `src/sim/wind.ts`, `stepBoat` in `src/sim/boat.ts`, `stepWorld` in `src/sim/world.ts`, and the HUD in `src/ui/hud.ts`.
+**Status:** Proposal for Guillaume, revised twice after his comments (no arrows; not everything on today's ring; then his own current through the middle gap, visuals only, smooth, with crests showing the direction). Nothing is decided or built. It follows [0137](../../decisions/0137-phase-4-biomes-and-founded-outposts.md) point 6 ("wind zones and currents become authored, per biome") and the [Phase 4 map](../phase-4-map/README.md) (layout B). The code was read with graphify: `windAt` in `src/sim/wind.ts`, `stepBoat` in `src/sim/boat.ts`, `stepWorld` in `src/sim/world.ts`, and the HUD in `src/ui/hud.ts`.
 
 The mockups are real game captures with the proposed readouts drawn on top. The yellow tag marks what is new. `src/capture.cjs` makes them.
 
@@ -51,7 +51,8 @@ Guillaume (2026-10-24): **no arrows**. A current is **water that looks different
 
 Guillaume (2026-10-24, second round): **no white dashes on its edges, only visuals.**
 
-- **On the water:** the current is a band of darker, deeper blue water, nothing else. It fades softly at its edges (no line, no foam, no dashes), so you see roughly where it runs before you sail into it. Only the water changes colour: boats, reefs, foam and land keep theirs. The direction is felt in the boat's drift and read in the numbers.
+- **On the water:** the current is a band of darker, deeper blue water. It follows smooth, natural curves, it is wider and slacker at its ends and narrower through the gap, and it fades softly at its edges (no line, no foam, no dashes). Only the water changes colour: boats, reefs, foam and land keep theirs.
+- **Direction (Guillaume's third round: "waves or something showing the direction"):** soft wave crests of lighter water lie across the band, bowed downstream like ripples pushed by the flow, and in the game they **drift slowly with the current** (at its speed, scaled down to read well). You see which way it goes without any arrow. They fade with the band, so the open sea keeps today's look.
 - **Numbers, small:** under today's speed, "**SOG 6.1 kn**" (speed over ground) appears only while you are in a current, and the wind line gets "Current 1.8 kn E". In the shot the boat sails west against the current, so it logs about 7 kn through the water but makes 6.1 over the ground. This follows the sailing-first rule: numbers visible but small, and the log's eye toggle hides them with the rest.
 - **First time only:** "A current runs east through the gap: quick going east, slow coming back. Around Greyback Ridge may be faster."
 
@@ -63,7 +64,7 @@ Phone landscape and portrait:
 
 ![Current on the chart](chart-ring-current-desktop.png)
 
-The chart draws current water the same way, as a darker band with its speed and no edge marks. On the [Phase 4 map](../phase-4-map/README.md) the fire biome's warm current and the fog coast's strong current are drawn the same way (their dashed centre lines are gone too).
+The chart draws current water the same way: a darker band with soft edges, the same smooth curve and width, its speed, and the same crests bowed downstream (still on the chart, since it is a drawing). On the [Phase 4 map](../phase-4-map/README.md) the fire biome's warm current and the fog coast's strong current are drawn the same way (their dashed centre lines are gone too).
 
 **Should currents be on the chart, and should a building or a quest reveal them?** Three ways:
 
@@ -108,7 +109,7 @@ Everything waits for the v0.3.x release. The data format can be drafted earlier,
 
 ## Questions for Guillaume
 
-1. **Current water look:** darker blue water with soft edges and nothing else, plus small "SOG" and "Current 1.8 kn E" readouts. Is that right?
+1. **Current water look:** smooth darker blue water with soft edges and drifting crests showing the direction, plus small "SOG" and "Current 1.8 kn E" readouts. Is that right?
 2. **On today's ring:** your current through the middle gap, flowing east at about 1.8 kn. Right direction and strength?
 3. **On the chart:** A always, B charted once you've sailed in it (recommended), or C revealed by a building or a quest? And a pilot's chart quest for the far biomes later?
 4. **Two switches** (Currents, Wind zones), or one switch for both?

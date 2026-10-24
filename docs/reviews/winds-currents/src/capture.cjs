@@ -38,6 +38,37 @@ async function scene(p, kind) {
         [155, 84],
         [271, 65],
       ];
+      // Guillaume: smooth, natural curves, not angular. Chaikin corner cutting keeps the ends.
+      for (let it = 0; it < 4; it++) {
+        const l = window.__lane;
+        const out = [l[0]];
+        for (let i = 0; i < l.length - 1; i++) {
+          const [ax, ay] = l[i],
+            [bx, by] = l[i + 1];
+          out.push([ax * 0.75 + bx * 0.25, ay * 0.75 + by * 0.25], [ax * 0.25 + bx * 0.75, ay * 0.25 + by * 0.75]);
+        }
+        out.push(l[l.length - 1]);
+        window.__lane = out;
+      }
+      // Points every `step` units along the lane with a width factor: 1.3 at the ends, 0.85 mid-way.
+      window.__laneSamples = (step) => {
+        const l = window.__lane;
+        let total = 0;
+        for (let i = 1; i < l.length; i++) total += Math.hypot(l[i][0] - l[i - 1][0], l[i][1] - l[i - 1][1]);
+        const out = [];
+        let done = 0;
+        for (let i = 1; i < l.length; i++) {
+          const [x0, y0] = l[i - 1],
+            [x1, y1] = l[i];
+          const len = Math.hypot(x1 - x0, y1 - y0);
+          for (let t = 0; t < len; t += step) {
+            const u = (done + t) / total;
+            out.push([x0 + ((x1 - x0) * t) / len, y0 + ((y1 - y0) * t) / len, 0.85 + 0.45 * (2 * u - 1) ** 2]);
+          }
+          done += len;
+        }
+        return out;
+      };
       // In the middle gap, sailing west against the current: the slow way home.
       world.boat.x = kind === 'current' ? -60 : 230;
       world.boat.y = kind === 'current' ? 22 : -10;
@@ -86,8 +117,9 @@ async function seaOverlay(p, kind, setDeg) {
         };
         const lane = window.__lane;
         const pts = lane.map(([x, y]) => proj(x, y));
-        const [ax, ay] = proj(lane[3][0], lane[3][1]);
-        const [bx, by] = proj(lane[3][0] + 25, lane[3][1]);
+        const mid = lane[Math.floor(lane.length / 2)];
+        const [ax, ay] = proj(mid[0], mid[1]);
+        const [bx, by] = proj(mid[0] + 25, mid[1]);
         const halfPx = Math.hypot(bx - ax, by - ay);
         // Tint only the water pixels of a clean capture of the sea (the boat, reefs, foam and land
         // keep their colours), with a soft-edged band and no outline, as a sea shader would.
@@ -105,13 +137,53 @@ async function seaOverlay(p, kind, setDeg) {
         band.height = c.height;
         const bctx = band.getContext('2d');
         bctx.filter = `blur(${halfPx * 0.3 * k}px)`;
-        bctx.strokeStyle = '#000';
-        bctx.lineWidth = halfPx * 2 * k;
-        bctx.lineCap = 'round';
-        bctx.lineJoin = 'round';
-        bctx.beginPath();
-        pts.forEach(([x, y], i) => (i ? bctx.lineTo(x * k, y * k) : bctx.moveTo(x * k, y * k)));
-        bctx.stroke();
+        // Natural width: wide and slack at both ends, narrower (and faster) through the gap.
+        bctx.fillStyle = '#000';
+        for (const [x, y, f] of window.__laneSamples(4)) {
+          const [sx, sy] = proj(x, y);
+          bctx.beginPath();
+          bctx.arc(sx * k, sy * k, halfPx * f * k, 0, Math.PI * 2);
+          bctx.fill();
+        }
+        // Direction (Guillaume, round 4): soft wave crests across the flow, bowed downstream, that
+        // would drift slowly with the current in the game. Lighter water, no outline, no arrows.
+        const wave = document.createElement('canvas');
+        wave.width = c.width;
+        wave.height = c.height;
+        const wctx = wave.getContext('2d');
+        wctx.filter = `blur(${halfPx * 0.035 * k}px)`;
+        wctx.strokeStyle = '#000';
+        wctx.lineCap = 'round';
+        wctx.lineWidth = Math.max(1.5, halfPx * 0.05) * k;
+        const step = halfPx * 1.0;
+        let carry = 0,
+          row = 0;
+        for (let j = 1; j < pts.length; j++) {
+          const [x0, y0] = pts[j - 1];
+          const [x1, y1] = pts[j];
+          const len = Math.hypot(x1 - x0, y1 - y0);
+          const tx = (x1 - x0) / len,
+            ty = (y1 - y0) / len;
+          const nx = -ty,
+            ny = tx;
+          for (let t = carry; t < len; t += step, row++) {
+            const offs = row % 2 ? [-0.45, 0.4] : [-0.05, 0.75, -0.8];
+            for (const o of offs) {
+              const jit = Math.sin(row * 12.9898 + o * 78.233) * 0.5;
+              const cx = x0 + tx * (t + jit * step * 0.4) + nx * o * halfPx;
+              const cy = y0 + ty * (t + jit * step * 0.4) + ny * o * halfPx;
+              const half = halfPx * (0.2 + 0.06 * jit);
+              const bow = halfPx * 0.1;
+              wctx.beginPath();
+              wctx.moveTo((cx - nx * half) * k, (cy - ny * half) * k);
+              wctx.quadraticCurveTo((cx + tx * bow) * k, (cy + ty * bow) * k, (cx + nx * half) * k, (cy + ny * half) * k);
+              wctx.stroke();
+            }
+          }
+          carry = (carry - len) % step;
+          if (carry < 0) carry += step;
+        }
+        const wv = wctx.getImageData(0, 0, c.width, c.height).data;
         const px = ctx.getImageData(0, 0, c.width, c.height);
         const m = bctx.getImageData(0, 0, c.width, c.height).data;
         const d = px.data;
@@ -123,6 +195,13 @@ async function seaOverlay(p, kind, setDeg) {
           d[i] = r + (8 - r) * a;
           d[i + 1] = g + (66 - g) * a;
           d[i + 2] = b + (120 - b) * a;
+          // Crests: lighter water where the band is strong, fading out with it.
+          const wa = (wv[i + 3] / 255) * Math.min(1, a / 0.45) * 0.42;
+          if (wa) {
+            d[i] += (150 - d[i]) * wa;
+            d[i + 1] += (205 - d[i + 1]) * wa;
+            d[i + 2] += (225 - d[i + 2]) * wa;
+          }
         }
         ctx.putImageData(px, 0, 0);
         c.className = 'mock-streaks';
@@ -160,7 +239,7 @@ async function seaOverlay(p, kind, setDeg) {
           : 'The doldrums: the wind is light here. Light, swift ships slip through best.';
       const tag = document.createElement('div');
       tag.className = 'mock-tag';
-      tag.textContent = 'MOCKUP: darker current water, readouts and hint are proposals';
+      tag.textContent = 'MOCKUP: darker current water with crests drifting east, readouts and hint are proposals';
       tag.style.left = '8px';
       tag.style.bottom = '8px';
       document.body.appendChild(tag);
@@ -175,13 +254,34 @@ async function chartOverlay(p) {
     const svg = document.querySelector('#chart-map');
     const ns = 'http://www.w3.org/2000/svg';
     const g = document.createElementNS(ns, 'g');
-    const chev = (x, y, deg, color, size = 9) =>
-      `<path transform="translate(${x},${-y}) rotate(${deg})" d="M${-size},${size * 0.7} L0,${-size * 0.7} L${size},${size * 0.7}" fill="none" stroke="${color}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`;
-    let html = '';
+        let html = '';
     // Guillaume: today's ring gets one current, along the line he drew, as darker water only.
     const lane = window.__lane;
-    const d = `M${lane.map(([x, y]) => `${x},${-y}`).join(' L')}`;
-    html += `<path d="${d}" stroke="rgba(16,70,120,.36)" stroke-width="50" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+    // Soft edges and a natural width (wider at the ends, narrower in the gap), no outline.
+    html += `<defs><filter id="cur-soft" filterUnits="userSpaceOnUse" x="-2000" y="-2000" width="4000" height="4000"><feGaussianBlur stdDeviation="6"/></filter></defs>`;
+    html += `<g opacity=".38" filter="url(#cur-soft)">${window
+      .__laneSamples(4)
+      .map(([x, y, f]) => `<circle cx="${x.toFixed(1)}" cy="${(-y).toFixed(1)}" r="${(25 * f).toFixed(1)}" fill="rgb(16,70,120)"/>`)
+      .join('')}</g>`;
+    // The same crests as at sea, bowed downstream (east), so the chart shows the direction too.
+    let carry = 0;
+    for (let j = 1; j < lane.length; j++) {
+      const [x0, y0] = lane[j - 1];
+      const [x1, y1] = lane[j];
+      const len = Math.hypot(x1 - x0, y1 - y0);
+      const tx = (x1 - x0) / len,
+        ty = (y1 - y0) / len;
+      for (let t = carry; t < len; t += 30) {
+        const cx = x0 + tx * t,
+          cy = y0 + ty * t;
+        const a = [cx - ty * 11, -(cy + tx * 11)],
+          q = [cx + tx * 5, -(cy + ty * 5)],
+          b = [cx + ty * 11, -(cy - tx * 11)];
+        html += `<path d="M${a} Q${q} ${b}" fill="none" stroke="rgba(190,235,250,.55)" stroke-width="2.5" stroke-linecap="round"/>`;
+      }
+      carry = (carry - len) % 30;
+      if (carry < 0) carry += 30;
+    }
     html += `<text x="215" y="${-112}" class="mock-label">current 1.8 kn</text>`;
     g.innerHTML =
       `<style>.mock-label{font:700 15px system-ui,sans-serif;fill:#0b3c55;stroke:#e9fbff;stroke-width:4;paint-order:stroke;text-anchor:middle}</style>` +
@@ -192,7 +292,7 @@ async function chartOverlay(p) {
     const journal = document.querySelector('#chart-journal-panel');
     if (journal) journal.hidden = true;
     const tag = document.createElement('div');
-    tag.textContent = 'MOCKUP: Guillaume’s current through the middle gap, darker water only';
+    tag.textContent = 'MOCKUP: Guillaume’s current through the middle gap, darker water with crests';
     tag.style.cssText =
       'position:fixed;left:8px;bottom:8px;z-index:9999;font:700 11px system-ui,sans-serif;color:#10303a;background:#ffd166;border-radius:6px;padding:2px 6px';
     document.body.appendChild(tag);
