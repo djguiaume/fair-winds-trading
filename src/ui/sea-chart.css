@@ -249,6 +249,46 @@ dialog.chart::backdrop {
   stroke-width: 3px;
   stroke-linejoin: round;
 }
+/* A charted wind zone (decision 0152): a faint tint and a dashed edge in its kind's colour, and
+   its name in a light tint of it, quiet like the other place names. */
+.chart-zone {
+  --zone: #6f8fa3;
+  fill: var(--zone);
+  fill-opacity: 0.1;
+  stroke: var(--zone);
+  stroke-opacity: 0.8;
+  pointer-events: none;
+}
+.chart-zone-label {
+  --zone-ink: #e3eef2;
+  fill: var(--zone-ink);
+  font-family: var(--body);
+  font-style: italic;
+  font-weight: 600;
+  text-anchor: middle;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: rgba(12, 52, 64, 0.6);
+  stroke-width: 2.5px;
+  stroke-linejoin: round;
+}
+.chart-zone-doldrums {
+  --zone: #b07a2c;
+  --zone-ink: #ffe0a6;
+}
+.chart-zone-trade-belt {
+  --zone: #1f6f5e;
+  --zone-ink: #c6f3df;
+}
+.chart-zone-stormy-coast,
+.chart-zone-cold-gale {
+  --zone: #5a4a80;
+  --zone-ink: #ddd3f5;
+}
+.chart-zone-sheltered {
+  --zone: #2f6f90;
+  --zone-ink: #d3ecf7;
+}
 /* A sandy passage only shallow ships cross (decision 0152): pale water, dashed teal edge. */
 .chart-shallows {
   fill: #b9ecdf;

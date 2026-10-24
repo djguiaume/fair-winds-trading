@@ -14,6 +14,16 @@ Drawn from the data (`src/make-schema.cjs`); routes are schematic.
 |---|---|
 | ![](chart-desktop.png) | ![](chart-portrait.png) |
 
+### Wind zones charted once sailed
+
+After sailing in all three named zones: a dashed edge in the kind's colour and the name with its kind. In portrait (whole sea) the names stay off until you zoom in, like the other place names; Sunreach Sound's name shows once zoomed in.
+
+| Desktop | Portrait |
+|---|---|
+| ![](chart-zones-desktop.png) | ![](chart-zones-portrait.png) |
+
+![Zoomed in on Sunreach: Sunreach Sound, sheltered water](chart-zones-zoomed.png)
+
 ## Sunreach
 
 ![Sunreach from above](sunreach-desktop.png)

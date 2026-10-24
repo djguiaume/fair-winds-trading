@@ -235,3 +235,7 @@ export interface MapDef {
   /** Wind zones on top of the wandering wind (decision 0140). */
   windZones?: WindZoneDef[];
 }
+
+/** The wind zones that go on the chart once sailed: the named ones (decision 0152). */
+export const chartableZoneIds = (map: MapDef) =>
+  (map.windZones ?? []).filter((z) => z.name).map((z) => z.id);

@@ -246,6 +246,7 @@
   "hud.hdg": "CAP",
   "hud.sog": "FOND",
   "chart.current": "{name} · {n} nd",
+  "chart.zone": "{name} · {kind}",
   "hud.current": "Courant {n} nd {dir}",
   "hud.showLog": "Afficher la vitesse et le cap",
   "pos.in-irons": "Vent debout",
@@ -263,6 +264,7 @@
   "toast.stormNear": "Tempête {dir} ! Choquez ou réduisez la toile, sinon la cargaison risque de passer par-dessus bord",
   "toast.currentHint": "Un courant ! L’eau vous porte : rapide avec lui, lent contre lui. FOND est votre vitesse sur le fond",
   "toast.currentCharted": "Courant porté sur la carte : {name}",
+  "toast.zoneCharted": "Cartographié : {name}, {kind}",
   "toast.pressHint": "Vent fort ! Choquez les voiles ou la cargaison passe par-dessus bord",
   "toast.overboard": "Trop de gîte ! Par-dessus bord : {good} × {n}. Choquez les voiles",
   "weather.calm": "Calme",
@@ -737,5 +739,10 @@
   "home.aboard": "{n} à bord",
   "home.kept": "{n} ici",
   "home.warehouseNote": "Les caisses gardées ici vous attendent entre deux voyages : pas de prix, rien ne se gâte. Pour les reprendre, il faut de la place dans la cale.",
-  "home.warehouseEmpty": "Rien à bord à garder, et rien de gardé pour l’instant."
+  "home.warehouseEmpty": "Rien à bord à garder, et rien de gardé pour l’instant.",
+  "zone.trade-belt": "alizés",
+  "zone.doldrums": "pot-au-noir",
+  "zone.stormy-coast": "côte à tempêtes",
+  "zone.cold-gale": "coups de vent froids",
+  "zone.sheltered": "eaux abritées"
 }

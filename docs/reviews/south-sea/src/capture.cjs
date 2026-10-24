@@ -11,6 +11,9 @@ const URL = 'http://localhost:5199/?map=phase4&debug';
 const SHOTS = [
   ['chart-desktop', 1280, 800, { chart: true }],
   ['chart-portrait', 390, 844, { chart: true }],
+  ['chart-zones-desktop', 1280, 800, { chart: true, zones: true }],
+  ['chart-zones-portrait', 390, 844, { chart: true, zones: true }],
+  ['chart-zones-zoomed', 1280, 800, { chart: true, zones: true, chartZoom: 4, chartPan: [['ArrowDown', 12]], boat: [60, -760, 90] }],
   ['sunreach-desktop', 1280, 800, { x: -60, y: -735, zoom: 4.2, boat: [-104, -700, 95] }],
   ['sunreach-town', 1280, 800, { x: -96, y: -640, zoom: 1.7, boat: [-104, -705, 20] }],
   ['sunreach-tea-gardens', 1280, 800, { x: -40, y: -862, zoom: 1.55, boat: [-20, -800, 200] }],
@@ -56,6 +59,8 @@ async function shoot(browser, [name, w, h, what]) {
     world.time = 300;
     world.dynamicWeather = false;
     world.storms = false;
+    // Every named wind zone sailed already, as after a few voyages (decision 0152).
+    if (what.zones) world.trade.progress.zones = world.map.windZones.map((z) => z.id);
     if (what.ship) {
       world.trade.captain.ships[what.ship] ??= structuredClone(world.trade.captain.ships.sloop);
       world.trade.captain.activeShip = what.ship;
@@ -90,6 +95,18 @@ async function shoot(browser, [name, w, h, what]) {
       document.getElementById('chart-btn').click();
     });
     await p.waitForTimeout(800);
+    for (let i = 0; i < (what.chartZoom ?? 0); i++) {
+      await p.click('#chart-zoom-in');
+      await p.waitForTimeout(200);
+    }
+    // Pan the zoomed chart with the arrow keys (the first zoom step keeps the sea in view).
+    for (const [key, n] of what.chartPan ?? []) {
+      await p.focus('#chart-map');
+      for (let i = 0; i < n; i++) await p.keyboard.press(key);
+    }
+    await p.waitForTimeout(300);
+    // The journal card would cover part of the chart.
+    await p.evaluate(() => document.querySelector('#chart-journal-close, .journal-close')?.click());
   }
   await p.screenshot({ path: path.join(OUT, `${name}.png`) });
   await p.close();

@@ -163,6 +163,8 @@ export type WorldEvent =
   | { type: 'overboard'; good: GoodId; qty: number }
   /** The boat sailed into a current she had not charted yet (decision 0140). */
   | { type: 'current-charted'; id: string }
+  /** The boat sailed well into a named wind zone she had not charted yet (decision 0152). */
+  | { type: 'zone-charted'; id: string }
   | DockEvent;
 
 export function createWorld(map: MapDef, ship: ShipClass): World {
@@ -453,6 +455,20 @@ function stepCurrent(world: World, dt: number): WorldEvent[] {
 const chartAtKn = 0.4;
 
 /**
+ * A named wind zone goes on the chart once she is well inside it, past its soft edge, like a
+ * current (decision 0152). Unnamed zones are tuning, not places, and stay off it.
+ */
+function chartZone(world: World): WorldEvent[] {
+  const { zone, zoneWeight = 0 } = world.weather;
+  if (!zone || zoneWeight < chartZoneAt) return [];
+  const zones = (world.trade.progress.zones ??= []);
+  if (zones.includes(zone) || !world.map.windZones?.some((z) => z.id === zone && z.name)) return [];
+  zones.push(zone);
+  return [{ type: 'zone-charted', id: zone }];
+}
+const chartZoneAt = 0.9;
+
+/**
  * Holds storms back for a reason (decision 0072), or lets that reason go. Storms never blow during
  * the tutorial or a special event, whatever the Settings say. Idempotent, so callers can sync it
  * every step.
@@ -491,6 +507,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
     easiest: world.trade.difficulty === DIFFICULTIES[0],
   };
   world.seaWind = seaWindAt(world, cfg);
+  events.push(...chartZone(world));
   if (world.calmWind) world.seaWind = { ...world.calmWind };
   const effect = windEffectAt(world.windBlockers, world.boat, world.seaWind);
   world.shelter = effect.shelter;
