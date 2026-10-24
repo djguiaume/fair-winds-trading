@@ -1419,8 +1419,25 @@ if (new URLSearchParams(location.search).has('debug')) {
     if (storage) clearSave(storage);
     location.reload();
   };
+  /** Dock at a port as a player would, from the berth a quest test uses (`npm run shots`, 0153). */
+  const dock = (portId: string) => {
+    const berth = testBerth(world.map, world.trade, world.piers, portId, world.ship.id);
+    if (!berth) return false;
+    world.boat = createBoat(berth.x, berth.y, (berth.headingDeg * Math.PI) / 180);
+    world.destination = null;
+    sailStep = world.boat.sailStep;
+    hud.onPortClick(portId);
+    return world.trade.dockedAt === portId;
+  };
+  /** Put the boat at sea at a point, heading in degrees, sails at a step (0 furled … 2 full). */
+  const place = (x: number, y: number, headingDeg: number, step = SAIL_STEPS.length - 1) => {
+    world.boat = createBoat(x, y, (headingDeg * Math.PI) / 180);
+    world.boat.sailStep = sailStep = clamp(Math.round(step), 0, SAIL_STEPS.length - 1);
+    world.boat.sail = SAIL_STEPS[sailStep]!;
+    world.destination = null;
+  };
   Object.assign(window, {
-    fwt: { world, view, input, trade, tradePanel, quests, coach, newGame },
+    fwt: { world, view, input, trade, tradePanel, quests, coach, chart, newGame, dock, place },
   });
 }
 
