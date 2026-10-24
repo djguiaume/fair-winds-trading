@@ -18,7 +18,7 @@ Open the game with `?tune` at the end of the address: <https://djguiaume.github.
 
 ![Balance check](balance-check.png)
 
-Under the values: the same simulation the tests run, on your numbers, a moment after each change (about two seconds). A green tick means every target holds; red says how many are missed. Tap it for every check with its result and target. The targets are in `src/data/balance-targets.json`. Every level is sailed in its own wind and currents, five weather seeds each ([0148](../decisions/0148-balance-in-each-levels-real-wind-and-currents.md)), so a run now takes about five seconds; weather, wind zone and current edits move the result too.
+Under the values: the same simulation the tests run, on your numbers, a moment after each change (about two seconds). A green tick means every target holds; red says how many are missed. Tap it for every check with its result and target. The targets are in `src/data/balance-targets.json`. Every level is sailed in its own wind and currents, five weather seeds each ([0149](../decisions/0149-balance-in-each-levels-real-wind-and-currents.md)), so a run now takes about five seconds; weather, wind zone and current edits move the result too.
 
 ## Sharing and export
 

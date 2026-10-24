@@ -1,4 +1,4 @@
-# 0148. Balance checks sail each level's real wind, wind zones and currents
+# 0149. Balance checks sail each level's real wind, wind zones and currents
 
 **Status:** Implemented (2026-10-24). Follows [0046](0046-phase-1-economy-tuning.md), [0083](0083-difficulty-levels.md), [0114](0114-tuning-panel-and-balance-check.md), [0144](0144-wind-zones-in-the-sim.md) and [0145](0145-building-currents.md).
 

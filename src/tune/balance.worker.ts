@@ -8,7 +8,7 @@ import type { BalanceMessage } from './balanceCheck';
  * `tests/economy-balance.test.ts` and `tests/difficulty-balance.test.ts`, run here on the edited
  * values so the panel stays smooth. The worker has its own copy of `TUNING`: it starts from the
  * shipped files and applies the panel's edit set. It always uses the Windward Ring, the map the
- * targets were set on, sailed in each level's own wind and currents (decision 0148).
+ * targets were set on, sailed in each level's own wind and currents (decision 0149).
  */
 const scope = self as unknown as Worker;
 const post = (m: BalanceMessage) => scope.postMessage(m);

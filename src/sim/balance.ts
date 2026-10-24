@@ -36,7 +36,7 @@ import { type WindConfig, windAt, withoutStorms } from './wind';
  * The balance simulation (decisions 0046, 0083, 0114). Simulated captains trade on a map for a
  * while: a sharp one always takes the best paying leg; a relaxed one sails slower, often settles
  * for the second or third best load and strikes something now and then. Leg times come from the
- * ship polars in the game's own wind at that moment of the voyage (decision 0148): the level's
+ * ship polars in the game's own wind at that moment of the voyage (decision 0149): the level's
  * weather walk (steady on Fair winds, wandering round the compass on Captain and Old salt), its
  * calms and gales, the regions, the wind zones and the currents at the level's strength. So they
  * follow sailing, weather and map changes too.
@@ -192,7 +192,7 @@ const legZone: ZoneEffect = { ...NO_ZONE };
 const averageLegs = new WeakMap<Weather[], Map<string, number>>();
 
 /**
- * The sea of one voyage as the game has it (decision 0148): the level's weather without the
+ * The sea of one voyage as the game has it (decision 0149): the level's weather without the
  * moving storms, the wind zones, and the currents at the level's strength.
  */
 export interface Sea {
@@ -494,7 +494,7 @@ const routeShare = (v: Voyage) => ({
 
 /**
  * The voyage whose cutter came at the median minute over the seeds: each seed is another
- * voyage's weather, so one seed alone could be a lucky or an unlucky one (decision 0148).
+ * voyage's weather, so one seed alone could be a lucky or an unlucky one (decision 0149).
  */
 export function medianVoyage(runs: readonly Voyage[]): Voyage {
   return [...runs].sort((a, b) => (a.bought.cutter ?? Infinity) - (b.bought.cutter ?? Infinity))[
@@ -527,7 +527,7 @@ export function economyChecks(r: EconomyRun): BalanceCheck[] {
   const { sharp, sharpMarket, relaxed } = r;
   const orderShare = sharp.contractGold / (sharp.contractGold + sharp.marketGold);
   const relaxedIncome = relaxed.marketGold + relaxed.contractGold;
-  // Median over the seeds: one voyage's weather can favour one route (decision 0148).
+  // Median over the seeds: one voyage's weather can favour one route (decision 0149).
   const half = r.routes.length / 2;
   const top = Math.max(
     medianOf(r.routes.slice(0, half).map((x) => x.top)),
@@ -651,7 +651,7 @@ export function pace(map: MapDef, level: Difficulty, relaxed: boolean, currents 
   };
 }
 
-/** Sloop leg times on one level, seconds, over every charted pair at many moments (0148). */
+/** Sloop leg times on one level, seconds, over every charted pair at many moments (0149). */
 export interface LegTimes {
   median: number;
   /** Nine legs in ten are quicker than this. */
@@ -688,7 +688,7 @@ export interface LevelRun {
 export type DifficultyRun = Record<Difficulty, LevelRun>;
 
 /**
- * Every level (decision 0083) in its own wind and currents (0148). `stillWater` also sails the
+ * Every level (decision 0083) in its own wind and currents (0149). `stillWater` also sails the
  * relaxed captain with the currents off, for the "currents do not tip the balance" check.
  */
 export function difficultyRun(

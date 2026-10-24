@@ -478,7 +478,7 @@ export function flowChecks(map: MapDef): MapCheck[] {
 /**
  * The slow checks: a sloop can reach every port from the start with the wind from the map's
  * prevailing direction and from the opposite side, and every pair of charted ports connects. With
- * currents, at the strongest level's speed (decision 0148): a current can only make a route harder
+ * currents, at the strongest level's speed (decision 0149): a current can only make a route harder
  * to find, never easier, so a route found there is there on every level and with them off.
  */
 export function routeChecks(map: MapDef): MapCheck[] {

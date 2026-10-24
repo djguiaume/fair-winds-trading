@@ -2,7 +2,7 @@
  * Difficulty levels on the Windward Ring (decision 0083). The 0046 balance simulation, run on each
  * level with the game's own knobs: start gold, the port's cut, order rewards, damage, repair price
  * and town growth all come from the difficulty tuning. Every level sails in its own weather, as the
- * game makes it (decision 0148): the steady trade wind on Fair winds, the wind wandering round the
+ * game makes it (decision 0149): the steady trade wind on Fair winds, the wind wandering round the
  * compass on Captain and Old salt, with calms and gales, wind zones and the currents at the level's
  * strength; each run is the median of a few seeds. Captain must stay the 0046 game.
  * Simulation and targets: `src/sim/balance.ts`, `src/data/balance-targets.json` (decision 0114).

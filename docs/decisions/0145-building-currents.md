@@ -36,7 +36,7 @@ Guillaume asked how currents and wind zones are described in the map file to sta
    - Calda → Westholm (west) is never quicker.
    - In at least one wind, the fastest way west leaves the gap for the way round.
 
-   The economy balance bots still used straight-line leg times here; since [0148](0148-balance-in-each-levels-real-wind-and-currents.md) they sail the currents and each level's real wind.
+   The economy balance bots still used straight-line leg times here; since [0149](0149-balance-in-each-levels-real-wind-and-currents.md) they sail the currents and each level's real wind.
 8. **Cost:** one lookup per frame at the boat (about 2 µs) and one extra transparent mesh of a few hundred triangles when the current is in view. Nothing runs for currents out of view.
 
 ## Consequences
