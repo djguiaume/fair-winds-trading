@@ -177,18 +177,19 @@ Each step:
 | `origin`      | `home`: the lesson's harbour is the map's home port, and only it counts as the pick (taking Rook home, [0127](../decisions/0127-prologue-rescue-tutorial.md)) |
 | `mark`        | a lesson about the map's prologue wreck: `within` (distance), and to come alongside `maxKn` and `holdSec`; the compass marks the wreck. Skipped on a map without a `prologue` |
 | `passenger`   | `true`: Rook is aboard (no hold space)                                                                                       |
+| `wind`, `sound` | what the lesson does to the sea, the same fields as a quest step (below, [0139](../decisions/0139-gentler-prologue-and-quest-cards.md)) |
 | `coach`       | what it points at per surface (`sea`, `chart`, `market`): `chart-button`, `sail-lever`, `wind-compass`, `port-marker`, `dock-button`, `chart-port`, `close-chart`, `buy-button`, `sell-button` |
 | `on`          | the step each event leads to (`done` finishes the tutorial)                                                                  |
 
 Events: `chart-opened`, `port-picked`, `destination-cleared`, `sails-practised`, `continue`,
-`reached-mark`, `alongside-mark` (a hull hit starts the hold again),
+`reached-mark`, `alongside-mark` (a hull hit, or grinding on the reef, starts the hold again),
 `docked`, `left-port`, `bought`, `sold`, `cargo-gone`, `cargo-sold` (what each one watches:
 `src/sim/tutorial.ts`). Lesson text can use `{origin}`, `{delivery}`, `{cargo}`, `{good}` and
 `{buyer}`. `tests/tutorial-data.test.ts` checks every event, target and text exists.
 
 - The prologue's places are in the map file: `prologue.start` (`x`, `y`, `headingDeg`: where a fresh
   voyage that takes the tutorial begins) and `prologue.wreck` (the reef or sandbank whose wreck is
-  Rook's boat). Rook's thanks, the home island, is the quest
+  Rook's boat; the boat starts there lying still with the sails down). Rook's thanks, the home island, is the quest
   [`rooks-thanks.json`](../../src/data/quests/rooks-thanks.json).
 - Not from data yet: a lesson that waits for something no event watches (reefing in a gale, say)
   needs one new event in code.
@@ -220,10 +221,17 @@ quest starts on the player's yes). Each step: `id`, then `goal` (a condition) **
 options: `id`, `reward`, `next`); optional `reward`, `next` (a later step or `done`; default the
 next one), `clean` (touching a reef or shore starts the step over), `port`, `chart`
 (`{ "port", "radius" }`: the rough circle on the chart), `compass` (`{ "x", "y" }`: a
-direction mark on the compass, for a foghorn or a wreck), `mood` (the giver's face on this
+direction mark on the compass, and where the sea's objective arrow points, for a foghorn or a
+wreck), `wind` (`{ "speedKn", "fromDeg"? }`: a light, steady breeze instead of the sea's wind;
+direction default the map's), `sound` (`{ "effect", "everySec" }`: an `audio.json` effect played
+at once and then every few seconds, with the line `toast.<effect>` if there is one, `{dir}` the
+direction of the step's place), `mood` (the giver's face on this
 step's card: `neutral`, `pleased` or `worried`), `look` (a named look from
 `characters.json`, e.g. Rook `soaked`) and `speaker` (someone else speaks this step's card, a
-`characters.json` id; `mood` and `look` are then theirs: [0133](../decisions/0133-stonehaven-light-arc.md)).
+`characters.json` id; `mood` and `look` are then theirs: [0133](../decisions/0133-stonehaven-light-arc.md)). The sea shows the
+**tracked** quest's step: its `compass`, `wind` and `sound` ([0139](../decisions/0139-gentler-prologue-and-quest-cards.md)), and with no course set an
+objective arrow to its compass point, spot or harbour. The tutorial's lessons use the same `wind`
+and `sound` fields.
 
 **The person and their card ([0124](../decisions/0124-characters-look.md)).** `giver` is an id in
 [`src/data/characters.json`](../../src/data/characters.json) (name, role, home port and a few
