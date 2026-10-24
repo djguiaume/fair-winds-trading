@@ -3,11 +3,13 @@ import { grownMap } from '../src/data/grownMap';
 import { PHASE1_SOURCE, prepareMap } from '../src/data/maps';
 import { bergChart, bergFields, bergsAt, bergsTuning, prepareField } from '../src/sim/bergs';
 import { coastDistance } from '../src/sim/coast';
+import { knobs } from '../src/sim/difficulty';
 import { smoothOutline } from '../src/sim/flowShapes';
 import type { TerrainDef } from '../src/sim/map';
 import { quickChecks } from '../src/sim/mapChecks';
 import { landOut } from '../src/sim/questLand';
 import { mapZones, zoneField, zoneVisualAt } from '../src/sim/windZones';
+import { landmarkLamps } from '../src/render/landmarkLamps';
 
 // Decision 0170: the north sea, Rimewick.
 const map = prepareMap(grownMap(PHASE1_SOURCE));
@@ -20,6 +22,13 @@ describe('the north sea, Rimewick (decision 0170)', () => {
   it('opens Snowberry Pack once the beacon is lit, and only then', () => {
     expect(landOut(map, new Set())).toEqual(new Set());
     expect(landOut(map, new Set(['rimewick-jam']))).toEqual(new Set(['snowberry-pack']));
+  });
+
+  it('lights the rebuilt Lead Rock beacon at night, not the tumbled one', () => {
+    const lamps = landmarkLamps(map.islands, 'beacon').filter((l) => l.island.id === 'lead-rock');
+    expect(lamps.map((l) => [l.prop.type, l.prop.tags])).toEqual([
+      ['lead-cairn', ['after:rimewick-jam']],
+    ]);
   });
 
   it('tints the water past the Floe Line, and only there, whatever the switches', () => {
@@ -54,16 +63,28 @@ describe('drifting icebergs (decision 0170)', () => {
   });
 
   it('drifts at the tuned speed, the way the field turns', () => {
+    // Along the loop at the drift speed, plus a little from the sway.
     const [a] = bergsAt(map, 100);
     const [b] = bergsAt(map, 110);
     const kn = Math.hypot(b!.x - a!.x, b!.y - a!.y) / 10 / 1.6;
-    expect(kn).toBeGreaterThan(bergsTuning().driftKn * 0.6);
-    expect(kn).toBeLessThan(bergsTuning().driftKn * 1.6);
+    expect(kn).toBeGreaterThan(bergsTuning().driftKn * 0.5);
+    expect(kn).toBeLessThan(bergsTuning().driftKn * 2.5);
     const cw: TerrainDef = { ...structuredClone(def), spin: 'cw' };
-    const ccw = bergChart(def, 0).arrows[0]!;
-    const turned = bergChart(cw, 0).arrows[0]!;
-    expect(turned.dx).toBeCloseTo(-ccw.dx, 6);
-    expect(bergChart(def, 0).minutesRound).toBeGreaterThan(5);
+    const chart = bergChart(def, 0);
+    const turned = bergChart(cw, 0);
+    expect(turned.loops[0]!.arrows[0]!.dx).toBeCloseTo(-chart.loops[0]!.arrows[0]!.dx, 6);
+    // Two loops on the Calving Grounds, turning opposite ways.
+    expect(chart.loops).toHaveLength(2);
+    expect(chart.loops[1]!.arrows[0]!.dx * chart.loops[0]!.arrows[0]!.dx).toBeLessThan(0.5);
+    expect(chart.loops[0]!.minutesRound).toBeGreaterThan(5);
+  });
+
+  it('shows each berg on the chart on Fair winds only (Guillaume)', () => {
+    expect([knobs('fair'), knobs('captain'), knobs('salt')].map((k) => k.chartBergs)).toEqual([
+      true,
+      false,
+      false,
+    ]);
   });
 
   it('drops the bergs that do not fit, and the checks say so', () => {

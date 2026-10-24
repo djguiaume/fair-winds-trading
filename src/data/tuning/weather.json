@@ -85,7 +85,9 @@
   "bergs": {
     "driftKn": 0.35,
     "size": [5, 11],
-    "margin": 4
+    "margin": 4,
+    "sway": 8,
+    "swaySec": 160
   },
   "currents": {
     "smoothRounds": 4,

@@ -16,7 +16,8 @@
       "galeWeight": 0.08,
       "stormEverySec": 900,
       "currents": 0.6,
-      "steadyWind": true
+      "steadyWind": true,
+      "chartBergs": true
     },
     "captain": {
       "name": "Captain",
@@ -33,7 +34,8 @@
       "galeWeight": 0.15,
       "stormEverySec": 600,
       "currents": 1,
-      "steadyWind": false
+      "steadyWind": false,
+      "chartBergs": false
     },
     "salt": {
       "name": "Old salt",
@@ -50,7 +52,8 @@
       "galeWeight": 0.22,
       "stormEverySec": 420,
       "currents": 1.2,
-      "steadyWind": false
+      "steadyWind": false,
+      "chartBergs": false
     }
   },
   "steadyWind": {

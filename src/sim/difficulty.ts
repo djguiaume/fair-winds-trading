@@ -42,6 +42,8 @@ export interface DifficultyKnobs {
   currents: number;
   /** Whether a new voyage starts with the steady trade wind (Settings › Wind can change it). */
   steadyWind: boolean;
+  /** Whether the chart shows where each drifting berg is now (decision 0170: Fair winds only). */
+  chartBergs: boolean;
 }
 
 /** A level as its file entry has it: the knobs plus how its card looks. */

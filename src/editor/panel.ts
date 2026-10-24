@@ -493,6 +493,10 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
         min: 1,
         optional: true,
       });
+      number('Loops', shape.loops, (v) => (v && v > 1 ? (shape.loops = 2) : delete shape.loops), {
+        min: 1,
+        optional: true,
+      });
       select(
         'Drift',
         shape.spin ?? 'ccw',

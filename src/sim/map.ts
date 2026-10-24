@@ -73,6 +73,8 @@ export interface TerrainDef {
   size?: [number, number];
   /** Bergs only: which way they drift round the field, `ccw` (the default) or `cw` (0170). */
   spin?: 'cw' | 'ccw';
+  /** Bergs only: 2 adds an inner loop turning the other way, room allowing (decision 0170). */
+  loops?: number;
   look?: {
     trees?: number;
     landmark?: LandmarkKind;

@@ -400,7 +400,7 @@ function legendEntries(
   if (kinds.has('bergs')) out.push({ text: 'drifting icebergs', swatch: box('c-bergs') });
   if (kinds.has('bergs') && layers.flow)
     out.push({
-      text: 'iceberg (now) and the loop the bergs drift round',
+      text: 'iceberg now, the loops they drift round and the band they sway across',
       swatch: stroke('c-berg-track'),
     });
   if (kinds.has('shallows'))

@@ -570,6 +570,10 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     '×',
     'Every current runs at this many times its charted speed (0140).',
   ),
+  'difficulty.levels.*.chartBergs': toggle(
+    'Bergs on the chart',
+    'Whether the chart shows where each drifting berg is now (0170: Fair winds only).',
+  ),
   'difficulty.levels.*.steadyWind': toggle(
     'Steady wind',
     'Whether a new voyage starts with the steady trade wind (Settings › Wind can change it).',
@@ -1219,6 +1223,15 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     'units',
     'Berg radius range, when a field gives none.',
   ),
+  'weather.bergs.sway': num(
+    'Berg sway',
+    0,
+    30,
+    0.5,
+    'units',
+    'How far a berg sways to either side of its loop.',
+  ),
+  'weather.bergs.swaySec': num('Berg sway time', 20, 600, 5, 's', 'One sway out and back.'),
   'weather.bergs.margin': num(
     'Berg margin',
     0,

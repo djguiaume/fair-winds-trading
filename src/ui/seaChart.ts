@@ -12,6 +12,7 @@ import { ownedIslands } from '../sim/home';
 import { chartedAt, islandCharted } from '../sim/fog';
 import { noGoAngle } from '../sim/ship';
 import { laneShape } from '../sim/currents';
+import { bergsAt } from '../sim/bergs';
 import { knobs } from '../sim/difficulty';
 import { coastDistance } from '../sim/coast';
 import { areaCrests, laneCrests, laneEdges, smoothOutline } from '../sim/flowShapes';
@@ -959,6 +960,16 @@ export class SeaChart {
       // Named ice (decision 0170): the pack that locks a cove, the floes of a barrier.
       if (terrain.name && terrain.kind === 'ice' && known)
         places.push({ name: terrain.name, x: (x0 + x1) / 2, top: y0, bottom: y1 });
+      // Where each berg is now: only on a level whose chart shows them (Fair winds, 0170).
+      if (
+        terrain.kind === 'bergs' &&
+        known &&
+        this.world.bergsOn &&
+        knobs(this.world.trade.difficulty).chartBergs
+      )
+        for (const b of bergsAt(this.world.map, this.world.time))
+          if (b.field === terrain.id)
+            shape('circle', { cx: b.x, cy: -b.y, r: b.r, class: 'chart-berg' });
       if (terrain.name && terrain.kind === 'bergs' && known)
         places.push({
           name: t('chart.bergs', { name: terrain.name }),

@@ -124,23 +124,30 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
     if (before && JSON.stringify(before.outline) !== JSON.stringify(t.outline))
       el('polygon', { points: pts(before.outline), class: 'c-ghost' });
   }
-  // Drifting icebergs (decision 0170), with the flow layer: the loop the bergs drift round, which
-  // way (arrows), and each berg where it is now, so a field's drift can be read and tuned.
+  // Drifting icebergs (decision 0170), with the flow layer: the loops the bergs drift round, the
+  // band they sway across, which way (arrows), and each berg where it is now.
   if (layers.flow)
     bergFields(map).forEach((def, index) => {
       const chart = bergChart(def, index);
-      el('polygon', { points: pts(chart.loop), class: 'c-berg-track' });
-      for (const a of chart.arrows) {
-        const s = 7 * px;
-        const tip = [a.x + a.dx * s, a.y + a.dy * s];
-        const back = (side: number) => [
-          a.x - a.dx * s + a.dy * s * 0.8 * side,
-          a.y - a.dy * s - a.dx * s * 0.8 * side,
-        ];
+      for (const loop of chart.loops) {
         el('polygon', {
-          points: pts([back(1), tip, back(-1)] as [number, number][]),
-          class: 'c-berg-arrow',
+          points: pts(loop.points),
+          class: 'c-berg-band',
+          style: `stroke-width:${2 * chart.sway}`,
         });
+        el('polygon', { points: pts(loop.points), class: 'c-berg-track' });
+        for (const a of loop.arrows) {
+          const s = 7 * px;
+          const tip = [a.x + a.dx * s, a.y + a.dy * s];
+          const back = (side: number) => [
+            a.x - a.dx * s + a.dy * s * 0.8 * side,
+            a.y - a.dy * s - a.dx * s * 0.8 * side,
+          ];
+          el('polygon', {
+            points: pts([back(1), tip, back(-1)] as [number, number][]),
+            class: 'c-berg-arrow',
+          });
+        }
       }
       for (const b of chart.bergs) el('circle', { cx: b.x, cy: -b.y, r: b.r, class: 'c-berg' });
     });

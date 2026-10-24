@@ -4,6 +4,7 @@
   "group": "landmarks",
   "sizedInModel": true,
   "scale": "size",
+  "lamp": { "y": 2.4, "color": "#ffd98a" },
   "vars": {
     "tumbled": 0
   },
