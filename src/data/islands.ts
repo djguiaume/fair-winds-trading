@@ -25,6 +25,11 @@ export interface GroundDef {
   /** A rock cone over the outline instead of a flat top, rising from `base`. */
   shape?: 'peak';
   base?: number;
+  /**
+   * A peak's open top (a volcano, decision 0171): the crater's radius as a share of the peak's
+   * size, 0.05 to 0.8. A ground that glows fills it with lava.
+   */
+  crater?: number;
   /** A ramp of this width (radius units) down from the edges, outward, instead of a cliff. */
   slope?: number;
   /** Which edges slope, as runs of edge indices [first, last]; left out, every edge. */

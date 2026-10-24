@@ -12,6 +12,8 @@ export interface LandSurface {
   material: string;
   shape?: 'peak';
   base?: number;
+  /** A peak's crater: its radius as a share of the peak's size (decision 0171). */
+  crater?: number;
   /** Ramp width outward from the sloped edges (decision 0096 §4), and which edges slope. */
   slope?: number;
   slopeEdges?: [number, number][];
@@ -53,6 +55,7 @@ function createIslandLayout(design: IslandDesign, town: number): IslandLayout {
         material: g.material,
         shape: g.shape,
         base: g.base,
+        crater: g.crater,
         slope: g.slope,
         slopeEdges: g.slopeEdges,
       })),
@@ -186,7 +189,9 @@ export function peakHeight(s: LandSurface, x: number, z: number): number | null 
   const k = rho / reach;
   if (k > 1) return null;
   const base = s.base ?? 0;
-  return base + (s.height - base) * (1 - k);
+  // A crater's rim is the top: the flanks climb from the foot to it, the crater floor is level.
+  const rim = s.crater ?? 0;
+  return base + (s.height - base) * Math.min(1, (1 - k) / (1 - rim));
 }
 
 /**
