@@ -130,6 +130,19 @@
         "acrossFloor": 0.3,
         "glassy": 0.3
       },
+      "storm-belt": {
+        "gusts": 1.5,
+        "squallEverySec": 240,
+        "squallShare": 0.5,
+        "squallGapSec": 28,
+        "squallRadius": 60,
+        "squallSpeed": 7,
+        "rough": 1,
+        "water": "#2b5266",
+        "waterLight": "#3e6a7c",
+        "foam": "#e6eef2",
+        "chart": "#3d4766"
+      },
       "fog-bank": {
         "strength": 0.8,
         "gusts": 0.6,

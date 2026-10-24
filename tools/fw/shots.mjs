@@ -17,7 +17,8 @@ export const SIZES = {
 export const HELP = `npm run shots -- [options]          screenshots of the real game, PNG in --out
 
 Where
-  --sea ring|stress|phase4|file.json   the sea (a file: a map editor export, played as ?map=edited)
+  --sea ring|stress|phase4|file.json   the sea (a file: a map editor export, or a sea file merged
+                                round the ring; played as ?map=edited)
   --island a.json,b.json        island files to play instead of the shipped ones (builder exports)
   --at x,y                      boat at sea there (default: docked at the start port)
   --prologue                    a new voyage as a player who skips the tutorial meets it: alone at
@@ -55,6 +56,8 @@ Look
   --night  | --time s           night, or this game time in seconds (default 300, day)
   --weather  --storms           weather spells, moving storms (default off: steady breeze)
   --no-zones  --no-currents     wind zones, currents off (default on, like the game)
+  --no-belt                     Settings › Storm belt off (0167)
+  --quality low|medium|high     Settings › Quality (default: the game's auto guess)
   --cards                       keep quest cards and dialogs open (default: closed, kept in a quest test)
   --wait ms                     settle time before the shot (default 1500)
   --click selector              click this before the shot (after the wait), e.g. a card's button,
@@ -145,6 +148,8 @@ export function normalise(opts) {
     weather: !!o.weather || !!o.storms,
     storms: !!o.storms,
     zones: !o['no-zones'],
+    belt: !o['no-belt'],
+    quality: o.quality ?? null,
     currents: !o['no-currents'],
     cards: o.cards ?? !!o.url,
     wait: o.wait ?? 1500,
@@ -230,11 +235,13 @@ export function seedStorage(shot) {
       weather: shot.weather,
       storms: shot.storms,
       windZones: shot.zones,
+      stormBelt: shot.belt ?? true,
+      ...(shot.quality ? { quality: shot.quality } : {}),
       currents: shot.currents,
     }),
     ...shot.storage,
   };
-  if (shot.seaFile) items['fwt.editor.map.v1'] = readFileSync(shot.seaFile, 'utf8');
+  if (shot.seaFile) items['fwt.editor.map.v1'] = shot.seaMap ?? readFileSync(shot.seaFile, 'utf8');
   if (shot.draft)
     items[shot.editor === 'phase4' ? 'fwt.editor.seas.v1' : 'fwt.editor.map.v1'] = readFileSync(
       shot.draft,
@@ -479,6 +486,12 @@ export async function takeShots(shots, out) {
   mkdirSync(out, { recursive: true });
   const server = await startVite(true);
   const base = server.resolvedUrls.local[0].replace(/\/$/, '');
+  // A sea file (src/data/seas/*.json or a copy) is played merged round the ring, like the chart's.
+  for (const shot of shots)
+    if (shot.seaFile && !('boundsRadius' in JSON.parse(readFileSync(shot.seaFile, 'utf8')))) {
+      const { loadSea } = await server.ssrLoadModule('/tools/fw/seas.ts');
+      shot.seaMap = JSON.stringify(loadSea(shot.seaFile).map);
+    }
   const browser = await chromium.launch({
     executablePath: '/opt/pw-browsers/chromium',
     args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],

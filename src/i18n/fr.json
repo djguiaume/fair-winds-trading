@@ -152,7 +152,9 @@
   "settings.storms": "Tempêtes",
   "settings.stormsNote": "Désactivé : aucune tempête en mer",
   "settings.windZones": "Zones de vent",
-  "settings.windZonesNote": "Désactivé : ni alizés, ni pot-au-noir, ni côte orageuse, ni coups de vent froids",
+  "settings.windZonesNote": "Désactivé : ni alizés, ni pot-au-noir, ni côte orageuse",
+  "settings.stormBelt": "Ceinture de grains",
+  "settings.stormBeltNote": "Désactivé : aucun grain ne traverse la ceinture",
   "settings.currents": "Courants",
   "settings.currentsNote": "Désactivé : eau calme, aucun courant n’entraîne le bateau",
   "settings.bergs": "Icebergs à la dérive",
@@ -814,6 +816,9 @@
   "unit.minutes": "{n} min",
   "unit.seconds": "{n} s",
   "hud.forecast": "Dans {time} : {dir} · {kn} nd{extra}",
+  "hud.beltSqualls": "Grains dans le {name} · accalmie dans {time} environ",
+  "hud.beltLull": "Accalmie dans le {name} · grains dans {time} environ",
+  "toast.beltHint": "Le {name} : les grains passent en trains. Traversez pendant une accalmie, ou contournez-le par son extrémité",
   "home.warehouse": "Entrepôt · {n}/{max}",
   "home.store": "Ranger 1",
   "home.storeAll": "Tout ranger",
@@ -828,5 +833,6 @@
   "zone.stormy-coast": "côte à tempêtes",
   "zone.cold-gale": "coups de vent froids",
   "zone.sheltered": "eaux abritées",
+  "zone.storm-belt": "ceinture de grains",
   "zone.fog-bank": "banc de brouillard"
 }

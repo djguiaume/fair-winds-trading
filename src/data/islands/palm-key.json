@@ -22,56 +22,55 @@
     ]
   ],
   "ground": [
+    { "coast": 0, "height": 0.07, "material": "grass" },
     {
-      "coast": 0,
-      "height": 0.07,
+      "outline": [
+        [0.38, -0.24],
+        [0.105, 0.167032],
+        [-0.445, 0.167032],
+        [-0.72, -0.24],
+        [-0.445, -0.647032],
+        [0.105, -0.647032]
+      ],
+      "height": 0.3,
       "material": "grass"
     },
     {
       "outline": [
-        [0.3, -0.2],
-        [0.2, 0.1],
-        [-0.1, 0.2],
-        [-0.5, 0.1],
-        [-0.6, -0.2],
-        [-0.4, -0.5],
-        [-0.2, -0.6],
-        [0.2, -0.5]
+        [0.18, -0.26],
+        [-0.01, 0.034449],
+        [-0.39, 0.034449],
+        [-0.58, -0.26],
+        [-0.39, -0.554449],
+        [-0.01, -0.554449]
       ],
-      "height": 0.9,
-      "material": "grass",
+      "height": 0.52,
+      "material": "grass"
+    },
+    {
+      "outline": [
+        [0, -0.3],
+        [-0.042016, -0.182443],
+        [-0.152016, -0.109789],
+        [-0.287984, -0.109789],
+        [-0.397984, -0.182443],
+        [-0.44, -0.3],
+        [-0.397984, -0.417557],
+        [-0.287984, -0.490211],
+        [-0.152016, -0.490211],
+        [-0.042016, -0.417557]
+      ],
+      "height": 1,
+      "material": "rock",
       "shape": "peak",
-      "base": 0.07
+      "base": 0.52
     }
   ],
   "lanes": [],
-  "piers": [
-    {
-      "x": 0.78,
-      "z": 0.66,
-      "length": 0.28,
-      "from": 3
-    }
-  ],
+  "piers": [{ "x": 0.78, "z": 0.66, "length": 0.28, "from": 3 }],
   "props": [
-    {
-      "type": "boulder",
-      "x": -0.55,
-      "z": -0.4,
-      "turn": 30,
-      "size": 0.35,
-      "variant": 1,
-      "from": 0
-    },
-    {
-      "type": "beacon",
-      "x": -0.45,
-      "z": 0.35,
-      "turn": 0,
-      "size": 0.5,
-      "variant": 0,
-      "from": 0
-    },
+    { "type": "boulder", "x": -0.55, "z": -0.4, "turn": 30, "size": 0.35, "variant": 1, "from": 0 },
+    { "type": "beacon", "x": -0.45, "z": 0.35, "turn": 0, "size": 0.5, "variant": 0, "from": 0 },
     {
       "type": "flagpole",
       "x": 0.3,
@@ -112,31 +111,9 @@
       "shape": 0.6,
       "from": 1
     },
-    {
-      "type": "crates",
-      "x": 0.22,
-      "z": 0.68,
-      "turn": 10,
-      "size": 0.8,
-      "variant": 1,
-      "from": 1
-    },
-    {
-      "type": "drying-rack",
-      "x": 0.15,
-      "z": 0.3,
-      "turn": 175,
-      "size": 0.9,
-      "from": 1
-    },
-    {
-      "type": "lamp-post",
-      "x": 0.42,
-      "z": 0.6,
-      "turn": 180,
-      "size": 0.9,
-      "from": 1
-    },
+    { "type": "crates", "x": 0.22, "z": 0.68, "turn": 10, "size": 0.8, "variant": 1, "from": 1 },
+    { "type": "drying-rack", "x": 0.15, "z": 0.3, "turn": 175, "size": 0.9, "from": 1 },
+    { "type": "lamp-post", "x": 0.42, "z": 0.6, "turn": 180, "size": 0.9, "from": 1 },
     {
       "type": "beach-house",
       "x": 0.85,
@@ -157,14 +134,7 @@
       "shape": 0.2,
       "from": 2
     },
-    {
-      "type": "drying-rack",
-      "x": 0.55,
-      "z": 0,
-      "turn": 160,
-      "size": 0.9,
-      "from": 2
-    },
+    { "type": "drying-rack", "x": 0.55, "z": 0, "turn": 160, "size": 0.9, "from": 2 },
     {
       "type": "beach-house",
       "x": 0.5,
@@ -185,22 +155,14 @@
       "shape": 0.4,
       "from": 3
     },
-    {
-      "type": "warehouse",
-      "x": 0.9,
-      "z": 0.48,
-      "turn": 160,
-      "size": 1,
-      "from": 3
-    }
+    { "type": "warehouse", "x": 0.9, "z": 0.48, "turn": 160, "size": 1, "from": 3 }
   ],
   "woods": {
-    "tree": "woodland-palm",
-    "tries": 260,
+    "tree": "woodland-jungle",
+    "tries": 1400,
     "area": [-1.2, -1.2, 1.2, 1.2],
     "size": 1.7,
-    "margin": 0.1,
-    "spacing": 0.2,
-    "clear": [[-0.15, -0.2, 0.5]]
+    "margin": 0.06,
+    "spacing": 0.11
   }
 }

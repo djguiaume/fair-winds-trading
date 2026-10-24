@@ -149,10 +149,11 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
   };
   /**
    * When it stands (decisions 0130, 0166): always, once a quest is done (`after:`), or until one
-   * is (`before:`). Islands and shapes rise or clear out of the boat's sight; marks just show.
+   * is (`before:`); land also only while a quest runs (`during:`) or all but then (`except:`).
+   * Islands and shapes rise or clear out of the boat's sight; marks just show.
    */
-  const stands = (target: { tags?: string[] }) => {
-    const tag = target.tags?.find((t) => /^(after|before):/.test(t));
+  const stands = (target: { tags?: string[] }, land = true) => {
+    const tag = target.tags?.find((t) => /^(after|before|during|except):/.test(t));
     const when = tag ? tag.slice(0, tag.indexOf(':')) : '';
     const quest = tag ? tag.slice(tag.indexOf(':') + 1) : '';
     const setTag = (w: string, q: string) => {
@@ -167,6 +168,12 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
       ['', 'always'],
       ['after', 'once a quest is done'],
       ['before', 'until a quest is done'],
+      ...(land || when === 'during' || when === 'except'
+        ? ([
+            ['during', 'only while a quest runs'],
+            ['except', 'except while a quest runs'],
+          ] as const)
+        : []),
     ] as const)
       node('option', { value: v, textContent: t, selected: v === when }, pick);
     pick.addEventListener('change', () =>
@@ -760,7 +767,7 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
       if (v) mark.chart = true;
       else delete mark.chart;
     });
-    stands(mark);
+    stands(mark, false);
     node('p', {
       className: 'ed-note',
       textContent:

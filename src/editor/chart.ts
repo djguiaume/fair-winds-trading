@@ -187,9 +187,10 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
 
   // Land that rises or clears after a quest (decision 0166): a dashed ring and its quest.
   for (const f of [...prepared.islands, ...(map.terrain ?? [])]) {
-    const tag = f.tags?.find((t) => /^(after|before):/.test(t));
+    const tag = f.tags?.find((t) => /^(after|before|during|except):/.test(t));
     if (!tag) continue;
-    const cls = `c-quest c-quest-${tag.startsWith('after:') ? 'after' : 'before'}`;
+    // Gold where it rises (after, during), pale where it clears (before, except).
+    const cls = `c-quest c-quest-${/^(after|during):/.test(tag) ? 'after' : 'before'}`;
     // Its quest under it, clear of the name above.
     let x: number, below: number;
     if ('radius' in f) {

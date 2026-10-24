@@ -139,10 +139,10 @@ const GOLDEN: Record<string, string[]> = {
   skerry: ['176:5e30be68', '180:f1a016d7', '183:c8300615', '183:c8300615'],
   'watchman-key': ['43:fbfd2fb9', '73:4bfeb4dd', '92:3e8fc1dd', '99:ac0414a9'],
   // The south sea (decision 0152).
-  sunreach: ['415:5f29af5c', '549:b2e40bf2', '665:cdebaf36', '712:28f7bf9e'],
-  'sunreach-south': ['336:9dd11960', '361:49fa96bd', '371:810eea4b', '371:810eea4b'],
-  'palm-key': ['156:f382bcb1', '165:a95e4a6c', '178:e846448d', '178:e846448d'],
-  'lone-palm': Array(4).fill('13:531edc15'),
+  sunreach: ['606:780ca76b', '739:2be703f5', '842:84de71a', '877:b4741162'],
+  'sunreach-south': ['457:f03cd670', '482:cee9291', '491:b2dd7f07', '491:b2dd7f07'],
+  'palm-key': ['296:5af31071', '270:7e77b63a', '266:18f30d17', '266:18f30d17'],
+  'lone-palm': Array(4).fill('13:2bd589f4'),
   // The north sea's islands (decision 0170).
   'cairn-holm': ['7:9d0087f4', '7:9d0087f4', '7:9d0087f4', '7:9d0087f4'],
   'lead-rock': ['19:3b67111f', '19:3b67111f', '19:3b67111f', '19:3b67111f'],

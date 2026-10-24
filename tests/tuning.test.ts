@@ -322,13 +322,13 @@ describe('moved values equal the old constants (decision 0094)', () => {
       Object.fromEntries(Object.keys(goodDefs).map((g) => [g, GOOD_ICONS[g as GoodId]])),
     ).toEqual(OLD_GOOD_ICONS);
     expect(MADE_FROM).toEqual(OLD_MADE_FROM);
-    // Decision 0113 added each level's name and card look, 0140 its current strength, 0170 whether
-    // its chart shows the drifting bergs; the knobs are the same.
+    // Decision 0113 added each level's name and card look, 0140 its current strength, 0167 its
+    // storm belt, 0170 whether its chart shows the drifting bergs; the knobs are the same.
     expect(
       Object.fromEntries(
         Object.entries(DIFFICULTY).map(([id, l]) => [
           id,
-          without(l, 'name', 'tag', 'color', 'waves', 'currents', 'chartBergs'),
+          without(l, 'name', 'tag', 'color', 'waves', 'currents', 'stormBelt', 'chartBergs'),
         ]),
       ),
     ).toEqual(OLD_DIFFICULTY);

@@ -85,6 +85,9 @@ export class Hud {
   /** The first current's hint was shown (decision 0140); main.ts keeps it in the settings. */
   seenCurrentHint = false;
   onCurrentHintSeen: () => void = () => {};
+  /** The storm belt's one-time hint has shown (decision 0167). */
+  seenBeltHint = false;
+  onBeltHintSeen: () => void = () => {};
   onPressHintSeen: () => void = () => {};
   /** She just crossed into red: main buzzes the phone and plays a creak. */
   onPressDanger: () => void = () => {};
@@ -96,6 +99,7 @@ export class Hud {
   private readonly windText = $('wind-text');
   private readonly weatherText = $('weather-text');
   private readonly forecastText = $('wind-forecast');
+  private readonly beltText = $('belt-text');
   private sinceForecast = Infinity;
   private readonly cNoGo = $('c-nogo');
   private readonly cBand = $('c-band');
@@ -405,6 +409,12 @@ export class Hud {
         );
       } else if (e.type === 'storm-near') {
         this.showToast(t('toast.stormNear', { dir: compassWords(e.bearing) }), 4, 'storm');
+      } else if (e.type === 'belt-near') {
+        if (!this.seenBeltHint) {
+          this.seenBeltHint = true;
+          this.onBeltHintSeen();
+          this.showToast(t('toast.beltHint', { name: zoneName(this.world, e.zone) }), 7, 'storm');
+        }
       } else if (e.type === 'overboard') {
         this.showToast(t('toast.overboard', { n: e.qty, good: goodName(e.good).toLowerCase() }), 3);
       } else if (e.type === 'current-charted') {
@@ -428,6 +438,36 @@ export class Hud {
       } else if (e.type === 'bump' && this.toastTimer <= 0) {
         this.showToast(t('toast.bump'), 1.2);
       }
+    }
+  }
+
+  /** The storm belt near the boat (decision 0167): squalls or a lull there, and for how long. */
+  private showBelt() {
+    const belt = this.world.belt;
+    if (this.beltText.hidden !== !belt) this.beltText.hidden = !belt;
+    if (!belt) return;
+    // About a minute or two; seconds by tens only in the last minute and a half.
+    const s = belt.changeSec;
+    const time =
+      s >= 90
+        ? t('unit.minutes', { n: Math.round(s / 60) })
+        : t('unit.seconds', { n: Math.max(10, Math.round(s / 10) * 10) });
+    this.beltText.toggleAttribute('data-squalls', belt.squalls);
+    // Two short lines, split at the dot, so it fits the compass panel even on a phone.
+    const text = t(belt.squalls ? 'hud.beltSqualls' : 'hud.beltLull', {
+      name: zoneName(this.world, belt.zone),
+      time: time.replace(' ', '\u00a0'),
+    });
+    // Keep "30 s" and "2 min" on one line.
+    if (this.beltText.dataset.text !== text) {
+      this.beltText.dataset.text = text;
+      this.beltText.replaceChildren(
+        ...text.split(' · ').map((line) => {
+          const span = document.createElement('span');
+          span.textContent = line;
+          return span;
+        }),
+      );
     }
   }
 
@@ -583,6 +623,7 @@ export class Hud {
         this.weatherText.textContent = weatherName(kind);
       }
       this.showForecast(dt);
+      this.showBelt();
 
       document.body.classList.toggle('is-docked', Boolean(this.world.trade.dockedAt));
       // Captain stats & dock button
@@ -638,4 +679,9 @@ export class Hud {
       (this.wpArrow.firstElementChild as HTMLElement).style.transform = `rotate(${targetAngle}rad)`;
     }
   }
+}
+
+/** A wind zone's name for the HUD, its id when it has none. */
+function zoneName(world: World, id: string): string {
+  return world.map.windZones?.find((z) => z.id === id)?.name ?? id;
 }

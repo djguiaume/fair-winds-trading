@@ -7,13 +7,14 @@ import { outlineCrosses, smoothOutline } from './flowShapes';
 import { TUNING } from '../data/tuning';
 import { isFar, isGood } from './goods';
 import { islandCoasts, islandPoint } from './islandLayout';
-import { designOf, landmarkOf, questTagIds } from '../data/islands';
+import { designOf, landmarkOf, questTagIds, runningTag } from '../data/islands';
 import { PROP_RECIPES } from '../data/props';
 import { hasQuestLand, standingMap } from './questLand';
 import { type IslandDef, type MapDef, type PortDef, SEA_MARK_TYPES, type TerrainDef } from './map';
 import { DEG, bearingTo, wrapAngle } from './math';
 import { CUTTER, SHIP_CLASSES, SLOOP, noGoAngle, polarFraction } from './ship';
 import { MAX_SETTLEMENT_LEVEL } from './settlement';
+import { isBeltKind } from './stormBelt';
 import { NO_ZONE, type ZoneEffect, zoneField, zoneMaxGain, zoneMeanAt } from './windZones';
 
 /**
@@ -460,9 +461,9 @@ function portGoods(port: PortDef) {
 }
 
 /**
- * Land that rises or clears after a quest (decision 0166): its tags are `after:` or `before:` one
- * quest, its id names it alone (an island and a shape share none), a port on it is an empty
- * island to found once it has risen, and the home port, the captain's island and the prologue's
+ * Land that rises or clears with a quest (decision 0166): its tags are `after:`, `before:`,
+ * `during:` or `except:` one quest, its id names it alone (an island and a shape share none), a
+ * port on it is an empty island to found once it has risen `after:` a quest, and the home port, the captain's island and the prologue's
  * wreck always stand.
  */
 export function questLandProblems(map: MapDef): string[] {
@@ -476,8 +477,8 @@ export function questLandProblems(map: MapDef): string[] {
     if (!('radius' in f) && islandIds.has(f.id))
       problems.push(`${name}: an island has the same id, so it cannot rise or clear alone`);
     const port = 'radius' in f ? map.ports.find((p) => p.islandId === f.id) : undefined;
-    if (port && f.tags?.some((t) => t.startsWith('before:')))
-      problems.push(`${name} clears after a quest, so it cannot carry ${port.name}`);
+    if (port && !f.tags?.some((t) => t.startsWith('after:')))
+      problems.push(`${name} clears with a quest, so it cannot carry ${port.name}`);
     else if (port && !port.site)
       problems.push(
         `${port.name} stands on land that rises after a quest: make it a site to found`,
@@ -486,6 +487,10 @@ export function questLandProblems(map: MapDef): string[] {
     if (f.id === map.homeIsland) problems.push(`${name} is the captain's island`);
     if (f.id === map.prologue?.wreck) problems.push(`${name} holds the prologue's wreck`);
   }
+  // A mark follows quests done only; a quest's own marks show while it runs (decision 0164).
+  for (const [i, mark] of (map.marks ?? []).entries())
+    if (mark.tags?.some(runningTag))
+      problems.push(`mark ${i}: during:/except: is for land; use the quest's own marks`);
   return problems;
 }
 
@@ -757,7 +762,8 @@ export function flowChecks(map: MapDef): MapCheck[] {
     const name = z.name ?? z.id;
     if (!(z.kind in kinds))
       problems.push(`${name}: kind "${z.kind}" is one of ${Object.keys(kinds).join(', ')}`);
-    if (z.kind in kinds && 'pull' in (kinds[z.kind] as object) && z.headingDeg === undefined)
+    const kind = (kinds[z.kind] ?? {}) as object;
+    if (('pull' in kind || 'squallEverySec' in kind) && z.headingDeg === undefined)
       problems.push(`${name}: a ${z.kind} zone needs headingDeg`);
     if (z.outline.length < 3) problems.push(`${name} has fewer than 3 points`);
     else if (outlineCrosses(smoothOutline(z.outline))) problems.push(`${name} crosses itself`);
@@ -768,6 +774,28 @@ export function flowChecks(map: MapDef): MapCheck[] {
       ? fail('flow', problems.join('; '))
       : pass('flow', 'currents and wind zones sound and inside the sea'),
   ];
+
+  // Storm belts (decision 0167) keep a squall's width clear of every harbour.
+  const belts = zones.filter((z) => isBeltKind(z.kind) && z.outline.length >= 3);
+  if (belts.length) {
+    const kindOf = (z: (typeof belts)[number]) =>
+      (TUNING.weather.zones.kinds as Record<string, { squallRadius?: number }>)[z.kind]!;
+    const stormy: string[] = [];
+    for (const port of map.ports) {
+      if (!map.islands.some((i) => i.id === port.islandId)) continue;
+      const p = harbourApproach(map, port);
+      for (const z of belts) {
+        const clear = Number(z.tune?.squallRadius ?? kindOf(z).squallRadius ?? 60);
+        if (coastDistance(p.x, p.y, smoothOutline(z.outline)).distance < clear)
+          stormy.push(`${port.name} (${z.name ?? z.id})`);
+      }
+    }
+    out.push(
+      stormy.length
+        ? fail('calm-harbours', `storm belt squalls reach ${list(stormy)}`)
+        : pass('calm-harbours', 'harbours clear of the storm belts'),
+    );
+  }
 
   // Harbours stay still: the current at every pier head and harbour approach is a trickle.
   if (currents.length) {
@@ -804,23 +832,36 @@ export function flowChecks(map: MapDef): MapCheck[] {
  */
 export function routeChecks(map: MapDef): MapCheck[] {
   if (!hasQuestLand(map)) return routeChecksOn(map);
-  // Land that rises or clears after a quest (decision 0166): the routes must hold before any of
-  // those quests and after all of them, each check once per state.
-  const quests = new Set([...map.islands, ...(map.terrain ?? [])].flatMap((f) => questTagIds(f)));
-  const states: [string, ReadonlySet<string>][] = [
-    ['before its quests', new Set()],
-    ['after its quests', quests],
+  // Land that rises or clears with a quest (decision 0166): the routes must hold before any of
+  // those quests, while they run (when land waits on a running quest) and after all of them,
+  // each check once per state.
+  const features = [...map.islands, ...(map.terrain ?? [])];
+  const quests = new Set(features.flatMap((f) => questTagIds(f)));
+  const none = new Set<string>();
+  const states: [string, string, ReadonlySet<string>, ReadonlySet<string>][] = [
+    ['before', 'before its quests', none, none],
+    ...(features.some((f) => f.tags?.some(runningTag))
+      ? [
+          ['during', 'while its quests run', none, quests] as [
+            string,
+            string,
+            typeof none,
+            typeof none,
+          ],
+        ]
+      : []),
+    ['after', 'after its quests', quests, none],
   ];
   // A port still to be founded (a `site`, 0157) is founded by a quest, so before the quests it
   // need not be reachable: Snowberry Isle lies behind pack ice until rimewick-jam (0170).
-  const sea = (done: ReadonlySet<string>) => {
-    const standing = standingMap(map, done);
+  const sea = (done: ReadonlySet<string>, running: Parameters<typeof standingMap>[2]) => {
+    const standing = standingMap(map, done, running);
     return done.size ? standing : { ...standing, ports: standing.ports.filter((p) => !p.site) };
   };
-  return states.flatMap(([state, done]) =>
-    routeChecksOn(sea(done)).map((c) => ({
+  return states.flatMap(([id, state, done, running]) =>
+    routeChecksOn(sea(done, running)).map((c) => ({
       ...c,
-      id: `${c.id}-${done.size ? 'after' : 'before'}`,
+      id: `${c.id}-${id}`,
       message: `${c.message} (land ${state})`,
     })),
   );
@@ -866,6 +907,45 @@ function routeChecksOn(map: MapDef): MapCheck[] {
       ? fail('pairs', `no route ${list(cut)}${withCurrents}`)
       : pass('pairs', `every pair of charted ports connects${withCurrents}`),
     ...deepChecks(map, ports, water, cache),
+    ...skirtChecks(map, charted, winds[0]!, water),
+  ];
+}
+
+/**
+ * Storm belts (decision 0167) can always be skirted: every pair of charted ports still connects
+ * with each belt as solid as an island, so timing a lull is a shortcut, never the only way.
+ */
+function skirtChecks(
+  map: MapDef,
+  charted: readonly PortDef[],
+  wind: number,
+  water?: (x: number, y: number) => { east: number; north: number },
+): MapCheck[] {
+  const belts = (map.windZones ?? []).filter((z) => isBeltKind(z.kind) && z.outline.length >= 3);
+  if (!belts.length) return [];
+  const walled: MapDef = {
+    ...map,
+    terrain: [
+      ...(map.terrain ?? []),
+      ...belts.map((z): TerrainDef => ({
+        id: `belt:${z.id}`,
+        kind: 'island',
+        outline: smoothOutline(z.outline),
+      })),
+    ],
+  };
+  const cache = routeCache();
+  const cut: string[] = [];
+  for (const a of charted) {
+    const fromA = sailTimes(walled, harbourApproach(map, a), wind, 11, water, SLOOP, cache);
+    for (const b of charted)
+      if (a !== b && fromA(harbourApproach(map, b)) === undefined)
+        cut.push(`${a.name} → ${b.name}`);
+  }
+  return [
+    cut.length
+      ? fail('skirt-belt', `only through a storm belt: ${list(cut)}`)
+      : pass('skirt-belt', 'every pair of charted ports connects round the storm belts'),
   ];
 }
 

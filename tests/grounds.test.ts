@@ -50,7 +50,13 @@ describe('ground materials and island styles as data (decision 0168)', () => {
     expect(groundColors('rock', 'timber')).toMatchObject({ top: [c.rock2], trees: false });
     // The quarry island's rock is cut stone, its peaks bare rock.
     expect(groundColors('rock', 'stone')).toMatchObject({ top: [c.cut], peak: [c.rock2] });
-    expect(groundColors('sand', 'tropic').top).toEqual([c.sand]);
+    expect(groundColors('sand', 'fish').top).toEqual([c.sand]);
+  });
+
+  it('gives the south its own grounds: coral sand, jungle, ochre crater rock', () => {
+    expect(groundColors('sand', 'tropic').id).toBe('coralsand');
+    expect(groundColors('grass', 'tropic').id).toBe('jungle');
+    expect(groundColors('rock', 'tropic')).toMatchObject({ id: 'ochre', trees: false });
   });
 
   it('lets a style swap grounds: an ice island is snow, slate and shingle', () => {

@@ -38,6 +38,11 @@ export interface DifficultyKnobs {
   galeWeight: number;
   /** One storm crosses the sea in each stretch of this many seconds. */
   stormEverySec: number;
+  /**
+   * Storm belts (decision 0167): the share of each cycle their squall trains last × this, so the
+   * lulls are longer on Fair winds and shorter on Old salt.
+   */
+  stormBelt: number;
   /** Every current's speed × this (decision 0140): gentler on Fair winds, stronger on Old salt. */
   currents: number;
   /** Whether a new voyage starts with the steady trade wind (Settings › Wind can change it). */

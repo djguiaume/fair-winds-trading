@@ -129,6 +129,14 @@ export function topLevel(port: PortDef): SettlementLevel {
   return port.maxLevel === undefined ? MAX_SETTLEMENT_LEVEL : clampLevel(port.maxLevel);
 }
 
+/** The quests started and not done yet (decision 0166: land that stands only while one runs). */
+export function questsRunning(state: HasSettlements): Set<string> {
+  const running = new Set<string>();
+  for (const [id, p] of Object.entries(state.quests?.byId ?? {}))
+    if (p.step !== 'done') running.add(id);
+  return running;
+}
+
 /** The quests a voyage has finished (decision 0130); none for a bare settlement store. */
 export function questsDone(state: HasSettlements): Set<string> {
   const done = new Set<string>();

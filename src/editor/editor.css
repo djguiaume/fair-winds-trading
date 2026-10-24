@@ -308,6 +308,14 @@ input:focus-visible {
   pointer-events: none;
 }
 /* A current is darker, deeper water (decision 0140): no outline, no arrows. */
+.c-squalls path {
+  fill: none;
+  stroke: #ffb36b;
+  stroke-opacity: 0.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
 .c-current {
   fill: #13607e;
   fill-opacity: 0.55;

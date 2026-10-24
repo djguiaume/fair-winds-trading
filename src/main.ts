@@ -287,6 +287,12 @@ hud.onCurrentHintSeen = () => {
   settings.seenCurrentHint = true;
   keepSettings();
 };
+// The first storm belt met (decision 0167): a one-time hint; its HUD line says the rest.
+hud.seenBeltHint = settings.seenBeltHint;
+hud.onBeltHintSeen = () => {
+  settings.seenBeltHint = true;
+  keepSettings();
+};
 hud.onPressDanger = () => {
   navigator.vibrate?.([70, 50, 70]);
   music.creak();
@@ -1073,15 +1079,26 @@ const syncWeather = () => {
   weatherSwitch.checked = settings.weather;
   storms.checked = settings.storms;
   storms.disabled = !settings.weather;
+  // The storm belt's squalls (decision 0167) are storms in a wind zone: they need all three.
+  world.stormBelt = settings.stormBelt;
+  stormBelt.checked = settings.stormBelt;
+  stormBelt.disabled = !settings.weather || !settings.storms || !settings.windZones;
 };
-syncWeather();
 // Wind zones (decision 0140) have their own switch, like every hazard.
 const windZones = $<HTMLInputElement>('wind-zones');
+const stormBelt = $<HTMLInputElement>('storm-belt');
+syncWeather();
 world.windZones = settings.windZones;
 windZones.checked = settings.windZones;
 windZones.addEventListener('change', () => {
   world.windZones = windZones.checked;
   settings.windZones = windZones.checked;
+  syncWeather();
+  keepSettings();
+});
+stormBelt.addEventListener('change', () => {
+  settings.stormBelt = stormBelt.checked;
+  syncWeather();
   keepSettings();
 });
 // Currents (decision 0140): their own switch too.
@@ -1621,9 +1638,9 @@ if (perfMode) {
           : undefined,
         switches: () =>
           [
-            ...(['weather', 'storms', 'dayNight', 'windZones', 'currents'] as const).map(
-              (k) => `${k} ${settings[k] ? 'on' : 'off'}`,
-            ),
+            ...(
+              ['weather', 'storms', 'dayNight', 'windZones', 'stormBelt', 'currents'] as const
+            ).map((k) => `${k} ${settings[k] ? 'on' : 'off'}`),
             ...hazeSwitches().map((id) => `${id} ${settings.haze[id] !== false ? 'on' : 'off'}`),
           ].join(', '),
       });
