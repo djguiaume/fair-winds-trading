@@ -28,20 +28,7 @@ export interface QuestDoc {
 }
 
 /** The builder's working copy in this browser; `?map=edited` plays it (decision 0142). */
-export const EDITED_QUESTS_KEY = 'fwt.editor.quests.v1';
-
-/** Enough of a document's shape to load it. */
-export function isQuestDoc(raw: unknown): raw is QuestDoc {
-  const doc = raw as QuestDoc | null;
-  return (
-    !!doc &&
-    typeof doc === 'object' &&
-    Array.isArray(doc.quests) &&
-    doc.quests.every((q) => typeof q?.id === 'string' && Array.isArray(q.steps)) &&
-    typeof doc.text?.en === 'object' &&
-    typeof doc.text?.fr === 'object'
-  );
-}
+export { EDITED_QUESTS_KEY, isEditedQuests as isQuestDoc } from '../../data/editedMap';
 
 /** A text in a language: the edited one, else the shipped one. */
 export function textOf(doc: QuestDoc, lang: Lang, key: string): string | undefined {
@@ -276,6 +263,59 @@ export function addPlace(step: QuestStep, x: number, y: number): Path | null {
 }
 
 export const round1 = (v: number) => Math.round(v * 10) / 10;
+
+// --- Play from a step ------------------------------------------------------------------------
+
+/**
+ * Where a quest test starts at sea (decision 0142): in clear water about `back` short of the
+ * step's first place (its goal's first point or spot, else its compass, else its chart circle),
+ * on the side of the map's centre, heading for the place. Null for a step with no place.
+ */
+export function seaStart(
+  step: QuestStep,
+  map: MapDef,
+  clear: (x: number, y: number) => boolean,
+  back = 30,
+): { x: number; y: number; headingDeg: number } | null {
+  const places = stepPlaces(step, map);
+  const place = places.find((p) => p.kind !== 'compass' && p.kind !== 'chart') ?? places[0];
+  if (!place) return null;
+  const out = Math.atan2(-place.x, -place.y);
+  const reach = back + (place.kind === 'chart' ? place.within : 0);
+  // Try further round and further off until the water is clear.
+  for (let r = reach; r < reach + 60; r += 10)
+    for (const turn of [0, 30, -30, 60, -60, 90, -90, 135, -135, 180]) {
+      const a = out + (turn * Math.PI) / 180;
+      const x = place.x + r * Math.sin(a);
+      const y = place.y + r * Math.cos(a);
+      if (!clear(x, y)) continue;
+      const heading = (Math.atan2(place.x - x, place.y - y) * 180) / Math.PI;
+      return { x: round1(x), y: round1(y), headingDeg: Math.round((heading + 360) % 360) };
+    }
+  return null;
+}
+
+/** The game's address that plays a quest from a step, docked at a port or at sea (0142). */
+export function playUrl(
+  questId: string,
+  stepId: string,
+  start: { port: string } | { x: number; y: number; headingDeg: number },
+): string {
+  const q = new URLSearchParams({ map: 'edited', quest: questId, step: stepId });
+  if ('port' in start) q.set('port', start.port);
+  else {
+    q.set('x', String(start.x));
+    q.set('y', String(start.y));
+    q.set('h', String(start.headingDeg));
+  }
+  return `./?${q.toString()}`;
+}
+
+/** The port a step happens at, for a test that starts docked: the step's, else the quest's. */
+export function stepPort(quest: QuestDef, step: QuestStep | undefined, map: MapDef): string {
+  const known = (id: string | undefined) => (id && map.ports.some((p) => p.id === id) ? id : '');
+  return known(step?.port) || known(quest.port) || (map.ports[0]?.id ?? '');
+}
 
 // --- New things ----------------------------------------------------------------------------
 

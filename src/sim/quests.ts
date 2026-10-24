@@ -154,6 +154,14 @@ export const QUESTS: readonly QuestDef[] = Object.entries(
   .map(([, file]) => file)
   .filter((file) => file.start !== 'offered') as unknown as QuestDef[];
 
+/**
+ * The quest builder's play-test (decision 0142): the edited quests take the shipped ones' place for
+ * this page only, so the quest book, saves and save codes all follow.
+ */
+export function useEditedQuests(quests: readonly QuestDef[]) {
+  (QUESTS as QuestDef[]).splice(0, QUESTS.length, ...quests);
+}
+
 const stepIndex = (def: QuestDef, id: string) => def.steps.findIndex((s) => s.id === id);
 const findStep = (def: QuestDef, id: string | undefined) => def.steps.find((s) => s.id === id);
 
@@ -560,6 +568,96 @@ export class QuestBook {
     return [...events, ...this.check()];
   }
 
+  // --- Play-testing from the quest builder (decision 0142) ---------------------------------------
+
+  /**
+   * Starts a quest at one of its steps on a fresh voyage, for play-testing: the quests its start
+   * names are finished first (their rewards paid, the options they need picked), then the quest's
+   * earlier steps on the way to `stepId` pay their rewards. Other start conditions (gold, a town
+   * level) are not made true: the quest is simply entered.
+   */
+  testStart(questId: string, stepId: string): QuestEvent[] {
+    const quest = this.quests.find((q) => q.id === questId);
+    if (!quest || !findStep(quest, stepId)) return [];
+    const trail = new Set([questId]);
+    this.reachCondition(quest.start, trail);
+    const route = routeTo(quest, stepId) ?? [];
+    const chose: Record<string, string> = {};
+    for (const { step, option } of route) {
+      this.pay(step.reward);
+      this.pay(option?.reward);
+      if (option) chose[step.id] = option.id;
+    }
+    this.state.byId[questId] = { step: stepId, counts: [], chose };
+    const events: QuestEvent[] = [{ type: 'started', quest: questId }];
+    this.enter(quest, findStep(quest, stepId)!, events);
+    this.state.tracked = questId;
+    this.seen = null;
+    this.afterChange(events);
+    return events;
+  }
+
+  /** Play-testing: the tracked quest's step counts as done (a choice takes its first option). */
+  skipStep(): QuestEvent[] {
+    const at = this.active.find((a) => a.quest.id === this.tracked);
+    if (!at) return [];
+    const option = at.step.choose?.[0];
+    if (option) this.progress(at.quest.id)!.chose[at.step.id] = option.id;
+    const events: QuestEvent[] = [];
+    this.finishStep(at.quest, at.step, option, events);
+    this.afterChange(events);
+    return [...events, ...this.check()];
+  }
+
+  /** Play-testing: the tracked quest's step starts over (its numbers back to nothing). */
+  restartStep(): QuestEvent[] {
+    const at = this.active.find((a) => a.quest.id === this.tracked);
+    if (!at) return [];
+    const events: QuestEvent[] = [];
+    this.enter(at.quest, at.step, events);
+    this.seen = null;
+    this.afterChange(events);
+    return events;
+  }
+
+  /** Makes the quest conditions in `c` true by finishing or moving on the quests they name. */
+  private reachCondition(c: Condition | undefined, trail: Set<string>) {
+    if (!c) return;
+    if (c.is === 'all') for (const m of c.of as Condition[]) this.reachCondition(m, trail);
+    if (c.is === 'any') this.reachCondition((c.of as Condition[])[0], trail);
+    const quest = this.quests.find((q) => q.id === c.quest);
+    if (!quest || trail.has(quest.id) || this.isDone(quest.id)) return;
+    if (c.is === 'quest-done') this.testFinish(quest, trail);
+    if (c.is === 'chose') this.testFinish(quest, trail, c.option as string);
+    if (c.is === 'quest-at' && findStep(quest, c.step as string)) {
+      trail.add(quest.id);
+      this.reachCondition(quest.start, trail);
+      const chose: Record<string, string> = {};
+      for (const { step, option } of routeTo(quest, c.step as string) ?? []) {
+        this.pay(step.reward);
+        this.pay(option?.reward);
+        if (option) chose[step.id] = option.id;
+      }
+      const counts = new Array<number>(slotLayout(findStep(quest, c.step as string)!.goal).size);
+      this.state.byId[quest.id] = { step: c.step as string, counts: counts.fill(0), chose };
+    }
+  }
+
+  /** Finishes a quest at once, paying all its rewards, through `option` when one is named. */
+  private testFinish(quest: QuestDef, trail: Set<string>, option?: string) {
+    trail.add(quest.id);
+    this.reachCondition(quest.start, trail);
+    const chose: Record<string, string> = {};
+    for (const at of routeTo(quest, QUEST_DONE, option) ?? []) {
+      this.pay(at.step.reward);
+      this.pay(at.option?.reward);
+      if (at.option) chose[at.step.id] = at.option.id;
+    }
+    this.state.byId[quest.id] = { step: QUEST_DONE, counts: [], chose };
+    this.pay(quest.reward);
+    syncMarketLevels(this.trade, this.world.map);
+  }
+
   private afterChange(events: QuestEvent[]) {
     this.state.hold = questHold(this.state, this.quests);
     if (!this.state.hold) delete this.state.hold;
@@ -649,6 +747,37 @@ export class QuestBook {
       this.state.hold = questHold(this.state, this.quests);
     }
   }
+}
+
+/**
+ * The steps from a quest's first step to `to` (a step id or `done`), with the option picked on each
+ * choice; through `need` when it is named. Undefined when no route leads there.
+ */
+export function routeTo(
+  quest: QuestDef,
+  to: string,
+  need?: string,
+): { step: QuestStep; option?: QuestOption }[] | undefined {
+  const walk = (
+    step: QuestStep | undefined,
+    seen: Set<string>,
+    met: boolean,
+  ): { step: QuestStep; option?: QuestOption }[] | undefined => {
+    if (!step) return to === QUEST_DONE && met ? [] : undefined;
+    if (step.id === to) return met ? [] : undefined;
+    if (seen.has(step.id)) return undefined;
+    const next = new Set(seen).add(step.id);
+    for (const option of step.choose ?? [undefined]) {
+      const rest = walk(
+        findStep(quest, nextOf(quest, step, option)),
+        next,
+        met || option?.id === need,
+      );
+      if (rest) return [option ? { step, option } : { step }, ...rest];
+    }
+    return undefined;
+  };
+  return walk(quest.steps[0], new Set(), !need);
 }
 
 const isCount = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0;

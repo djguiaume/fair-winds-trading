@@ -89,6 +89,16 @@ export function tOptional(
 }
 
 /**
+ * The quest builder's play-test (decision 0142): text edited there replaces or adds keys for this
+ * page only. `en` decides which keys exist, so a key new in French alone is left out.
+ */
+export function useTextEdits(edits: { en: Record<string, string>; fr: Record<string, string> }) {
+  Object.assign(en, edits.en);
+  for (const [key, text] of Object.entries(edits.fr))
+    if (key in en) Object.assign(fr, { [key]: text });
+}
+
+/**
  * Fill static markup: `data-i18n="key"` sets the text, `data-i18n-html="key"` sets trusted markup
  * from our own dictionaries, and `data-i18n-attr="aria-label:key;title:key2"` sets attributes.
  */

@@ -1,6 +1,6 @@
 # Quest builder: how to use
 
-*Decision [0142](../../decisions/0142-quest-builder.md). The [mockup and plan](../README.md) came first. Play from a step comes in the next part.*
+*Decision [0142](../../decisions/0142-quest-builder.md). The [mockup and plan](../README.md) came first.*
 
 Open the map editor (`editor.html`) and press **Quests** in its top bar. **← Map** (or Esc) goes back.
 
@@ -52,6 +52,29 @@ Under the fields, live: the engine's `checkQuests` and `checkQuestHooks` (the sa
 
 Every edit is kept in this browser (`fwt.editor.quests.v1`) with undo and redo; **Reset** goes back to the shipped quests. **Export** downloads what changed: one file, or a zip with the repo's paths (`src/data/quests/<id>.json`, `src/i18n/en.json`, `src/i18n/fr.json`). The files are written the way the repo has them (Prettier style, objects on one line where the file had them so), so a pull request shows only the changes. New text keys go after their quest's other keys.
 
+## Play from a step
+
+<img src="play-dialog.png" width="420" alt="Play from a step">
+
+**▶ Play from step…** (top bar) plays the open quest from one of its steps, with the builder's edits, in a new tab:
+
+- **From step**: any step of the quest (the one picked on the left first).
+- **Start**: **Docked at a port** (the step's port, else the quest's; any port can be picked) or **At sea, near the place**: in clear water about 30 short of the step's first place (a point, a spot, else its compass or chart circle), heading for it, turned off the wind if it blows from there.
+
+The game starts a **fresh Captain voyage kept only in that tab** (nothing is saved, your real voyage and the editor's Play this map save are untouched) with the tutorial skipped. The quests this one waits on count as done (their rewards paid, the option a `chose` needs picked), and the quest's earlier steps pay their rewards, so gold, the home island and the building spots are as they would be. Start conditions other than quests (gold, a town level) are not made true.
+
+![At sea](play-sea.png)
+
+The **quest test bar** at the bottom shows the quest and step (3/3 when it is the last), with:
+
+- **↺ Restart**: the same test again from the start (a reload).
+- **⏭ Skip step**: the step counts as done (a choice takes its first option); the next step's card and note show as in play.
+- **✕ Editor**: back to the map editor.
+
+<img src="play-portrait.png" width="300" alt="Quest test in portrait">
+
+In portrait the bar sits under the quest note. The address is `?map=edited&quest=<id>&step=<id>` with `&port=<id>`, or `&x=…&y=…&h=…` (heading in degrees); `?map=edited` alone (**▶ Play this map**) also sails with the builder's quests and text.
+
 ## Phone portrait
 
 <img src="portrait.png" width="300" alt="Portrait">
@@ -60,4 +83,4 @@ The quests and steps on top, then the chart, then the fields. It works, but the 
 
 ## Code
 
-`src/editor/quest/`: `doc.ts` (the document and its pure edits: words, places, story columns, renames, text checks, export; tested in `tests/quest-builder.test.ts`), `form.ts` (condition and reward forms from the library), `builder.ts` (the page), `quest.css`. `formatQuestJson` in `src/data/jsonFormat.ts` writes quest files like the repo's.
+`src/editor/quest/`: `doc.ts` (the document and its pure edits: words, places, story columns, renames, text checks, export; tested in `tests/quest-builder.test.ts`), `form.ts` (condition and reward forms from the library), `builder.ts` (the page), `quest.css`. `formatQuestJson` in `src/data/jsonFormat.ts` writes quest files like the repo's. Play from a step: `seaStart`, `playUrl` and `stepPort` in `doc.ts`; in the game `src/sim/questTest.ts` (the address, `testBerth`, `sailableHeading`), `QuestBook.testStart`, `skipStep`, `restartStep` and `routeTo` in `src/sim/quests.ts`, `src/ui/questTestBar.ts`, and `startQuestTest` in `main.ts`; tested in `tests/quest-test.test.ts`.
