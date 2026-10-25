@@ -1,4 +1,4 @@
-"""Stonehaven's ring pass (decision 0208): run once on the shipped files, then `npm run island -- south-cay tidy`
+"""Stonehaven's ring pass (decision 0214): run once on the shipped files, then `npm run island -- south-cay tidy`
 and `npm run island -- teeth-rock tidy`. Kept for the record; later changes go through `npm run island`."""
 import json, math, sys, os
 sys.path.insert(0, os.path.dirname(__file__)); from rough import roughen

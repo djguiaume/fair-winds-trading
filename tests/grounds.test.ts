@@ -44,7 +44,7 @@ describe('ground materials and island styles as data (decision 0168)', () => {
       }
   });
 
-  it('keeps the shipped grounds as they were, the ring with its own (decision 0208)', () => {
+  it('keeps the shipped grounds as they were, the ring with its own (decision 0214)', () => {
     const c = PALETTE.colors as Record<string, string>;
     expect(GROUNDS.grass).toMatchObject({ top: 'grass', side: 'rock' });
     // The ring's styles: mottled downs over sandstone bands, ring sand, cut stone at the quarry.
