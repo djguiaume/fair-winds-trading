@@ -32,11 +32,13 @@ import {
   clock,
   conditionWords,
   exportFiles,
+  fillWords,
   getAt,
   isQuestDoc,
   newQuest,
   newStep,
   playUrl,
+  plotWords,
   questProblems,
   questsNamed,
   renameQuest,
@@ -1541,8 +1543,9 @@ function cardModel(q: QuestDef, s: QuestStep | undefined, l: Lang): QuestCardMod
   const role = giver && (textOf(doc, l, `character.${giver.id}.role`) ?? giver.role);
   const i = s ? q.steps.indexOf(s) : q.steps.length;
   const par = parOf(s?.goal);
+  const words = plotWords(doc, map, q, l);
   const fill = (text: string | undefined) =>
-    text?.replace('{par}', par === undefined ? '{par}' : clock(par));
+    text && fillWords(text.replace('{par}', par === undefined ? '{par}' : clock(par)), words);
   const key = s ? `${q.text}.${s.id}` : `${q.text}.done`;
   const kind = !s ? 'finished' : s.choose ? 'choice' : i === 0 && q.offer ? 'offer' : 'step';
   const gold = (s ? s.reward?.gold : q.reward?.gold) ?? 0;

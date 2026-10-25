@@ -1,0 +1,89 @@
+[
+  {
+    "name": "1-done-card",
+    "port": "westholm",
+    "cards": true,
+    "script": "docs/reviews/skerry-build/mockup/done-card.js"
+  },
+  {
+    "name": "2-arrival-card",
+    "moor": "skerry",
+    "island": "docs/reviews/skerry-build/mockup/skerry-staked.json",
+    "cards": true,
+    "script": "docs/reviews/skerry-build/mockup/arrival-card.js"
+  },
+  {
+    "name": "3-island-tab",
+    "moor": "skerry",
+    "island": "docs/reviews/skerry-build/mockup/skerry-staked.json",
+    "script": "docs/reviews/skerry-build/mockup/island-tab.js"
+  },
+  {
+    "name": "4-plot-chosen",
+    "sizes": [
+      "desktop",
+      "landscape"
+    ],
+    "moor": "skerry",
+    "island": "docs/reviews/skerry-build/mockup/skerry-chosen.json",
+    "look": [
+      -44,
+      -156.8
+    ],
+    "zoom": 0.5,
+    "script": "docs/reviews/skerry-build/mockup/half.js,docs/reviews/skerry-build/mockup/island-tab.js"
+  },
+  {
+    "name": "4-plot-chosen",
+    "sizes": [
+      "portrait"
+    ],
+    "moor": "skerry",
+    "island": "docs/reviews/skerry-build/mockup/skerry-chosen.json",
+    "look": [
+      -52.4,
+      -171
+    ],
+    "zoom": 0.5,
+    "script": "docs/reviews/skerry-build/mockup/half.js,docs/reviews/skerry-build/mockup/island-tab.js"
+  },
+  {
+    "name": "5-staked-from-sea",
+    "sizes": [
+      "desktop"
+    ],
+    "at": [
+      -60,
+      -178
+    ],
+    "heading": 0,
+    "sail": 0,
+    "speed": 0,
+    "island": "docs/reviews/skerry-build/mockup/skerry-staked.json",
+    "look": [
+      -60,
+      -150
+    ],
+    "zoom": 1.1
+  },
+  {
+    "name": "6-staked-night",
+    "sizes": [
+      "desktop"
+    ],
+    "at": [
+      -60,
+      -178
+    ],
+    "heading": 0,
+    "sail": 0,
+    "speed": 0,
+    "island": "docs/reviews/skerry-build/mockup/skerry-staked.json",
+    "night": true,
+    "look": [
+      -60,
+      -150
+    ],
+    "zoom": 1.1
+  }
+]

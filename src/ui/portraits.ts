@@ -51,6 +51,9 @@ export interface Look {
   wet?: boolean;
 }
 
+/** A person's first name, as the cast call each other ("Maren"). */
+export const firstName = (name: string) => name.split(' ')[0] ?? name;
+
 export interface Character {
   id: string;
   name: string;

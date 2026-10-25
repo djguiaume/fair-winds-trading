@@ -1,0 +1,10 @@
+[
+  { "name": "1-done-card", "port": "westholm", "cards": true, "script": "docs/reviews/skerry-build/done-card.js" },
+  { "name": "2-arrival-card", "moor": "skerry", "offer": "spot-2", "cards": true },
+  { "name": "3-island-tab", "moor": "skerry", "offer": "spot-2", "island-tab": true },
+  { "name": "4-plot-chosen", "moor": "skerry", "offer": "spot-2", "choose": "spot-2" },
+  { "name": "5-staked-from-sea", "sizes": ["desktop"], "offer": "spot-2", "at": [-60, -178], "heading": 0, "sail": 0, "speed": 0, "look": [-60, -150], "zoom": 1.1 },
+  { "name": "6-staked-night", "sizes": ["desktop"], "moor": "skerry", "offer": "spot-2", "night": true, "zoom": 1.1 },
+  { "name": "7-built", "moor": "skerry", "built": "spot-2=warehouse", "offer": "spot-3", "island-tab": true },
+  { "name": "8-warehouse-built-from-sea", "sizes": ["desktop"], "moor": "skerry", "built": "spot-2=warehouse,spot-3=lookout" }
+]

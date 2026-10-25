@@ -32,7 +32,7 @@
 9. **Hazards stay optional.** No line needs night or a storm to be switched on. Say "when the light's lit", not "tonight".
 10. **One mention across.** Each arc mentions at least one other person by name, once, so the islands feel like neighbours. Already in the story: Ada's millstones (Westholm), Rook at the launch (Calda), Old Ness and his lens (Stonehaven). Kit mentions Rook, who went looking for the shoals on the East Reef and ended up on it (that's the prologue's wreck).
 11. **Moods:** `worried` on the hook (the first step), `neutral` on the middle steps, and `pleased` on the done card.
-12. **The done card does two things in two lines:** thanks, and an invitation to "pick" the building on your island. Don't name the two buildings there, because the island's spot card shows them.
+12. **The done card thanks, then names the plot and the two buildings with placeholders, and sends the captain to Skerry to choose** (`{spotA}`, `{spotB}`: the building names with their article). The giver then speaks once more by the stake at Skerry (`<text>.plot.copy`), decision [0210](../decisions/0210-skerrys-build-choice-staked-plots-and-the-island-tab.md).
 
 ### Each person's way of speaking
 
