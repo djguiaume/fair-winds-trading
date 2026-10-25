@@ -18,6 +18,7 @@ import {
 import type { MapDef } from '../../src/sim/map';
 import { questTagsCheck, quickChecks, routeChecks } from '../../src/sim/mapChecks';
 import { QUESTS } from '../../src/sim/quests';
+import { densityLines, seaDensity } from '../../src/sim/seaDensity';
 import { type Sectors, sectorChecks } from '../../src/sim/seaSectors';
 
 /** The repository: npm runs the tools from there. */
@@ -57,6 +58,9 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
         or all but then
   remove <what> <id|index>       (what: island shape port waypoint mark current zone area)
   check                          the checks only
+  density [--sight 160 --cell 10] how full each sea's slice of the outer ring is (decision 0180):
+        islands, shapes, marks, zones per open water, share of empty water and the biggest
+        empty discs; \`npm run chart -- --sea phase4 --density\` draws them
 
 options: --steps steps.json (or '[{"do":"add","what":"reef",…}]': steps as data, src/editor/seaSteps.ts)
          --routes  also the sailing route checks (about 6 s on the grown sea)
@@ -211,6 +215,7 @@ export function seaStepFromArgs(args: Args): SeaStep | null {
       return { do: 'remove', what: what as never, id };
     case 'list':
     case 'check':
+    case 'density':
     case undefined:
       return null;
     default:
@@ -256,6 +261,17 @@ export function run(args: Args): number {
     return 1;
   }
   const { doc, texts } = sea;
+  if (args._[0] === 'density') {
+    const sectors = doc.seaEditor.grown.sectors as Sectors | undefined;
+    if (!sectors) {
+      console.log('✗ grown.json has no sectors');
+      return 1;
+    }
+    const rows = seaDensity(doc, sectors, { sight: num(args.sight), cell: num(args.cell) });
+    if (args.json) console.log(JSON.stringify(rows, null, 1));
+    else for (const line of densityLines(rows)) console.log(line);
+    return 0;
+  }
   if (args._[0] === 'list' || (!args._.length && !steps.length)) {
     if (!args._.length) console.log(HELP + '\n');
     for (const line of seaSummary(doc)) console.log(line);
