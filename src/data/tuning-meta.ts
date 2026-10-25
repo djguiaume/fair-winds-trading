@@ -1258,7 +1258,7 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     'Eruption: puff rise',
     1,
     5,
-    0.1,
+    0.05,
     '×',
     'Puff climb at full strength, times the quiet rise.',
   ),
