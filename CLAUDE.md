@@ -1,5 +1,16 @@
 # Working on Fair Winds Trading
 
+## Use graphify first (decision 0176)
+
+Guillaume's rule: graphify saves tokens, so every thread uses it.
+
+- Start with `graphify update .` (the SessionStart hook in `.claude/` also runs it in the background).
+- Before grepping or reading many files, ask the graph: `graphify query "<question>"`, `graphify explain <node>`, `graphify path <a> <b>`.
+- Re-run `graphify update .` after big changes.
+- Missing? `npm install -g graphifyy` (binary `/opt/node22/bin/graphify`). The graph lives in `.graphify/`, which git ignores.
+
+## Rules
+
 - Everything lives in this repo: code, assets, planning docs and decisions. Always document.
 - Record each decision as a new file in `docs/decisions/NNNN-short-title.md` (context, decision, consequences) and link it from `docs/decisions/README.md`.
 - Keep `docs/roadmap.md` up to date when scope or phases change.
