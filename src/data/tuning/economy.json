@@ -36,7 +36,8 @@
     "cooldown": 90,
     "helpRewardFactor": 1.5,
     "helpGrowthFactor": 2,
-    "helpCooldown": 240
+    "helpCooldown": 240,
+    "standingDockings": 3
   },
   "credit": {
     "loadUnits": 4,

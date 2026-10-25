@@ -93,10 +93,16 @@ export function questCardBody(c: QuestCardModel, inline = false): string {
         c.plot
           ? ''
           : `<div class="quest-arc"><span>${esc(
-              c.kind === 'finished'
-                ? t('quest.arcDone', { name: c.arc })
-                : t('quest.arcStep', { name: c.arc, n: c.stepNo, total: c.steps }),
-            )}</span><span class="quest-pips" aria-hidden="true">${pips}</span></div>`
+              c.round !== undefined
+                ? t('quest.arcRound', { name: c.arc, n: c.round })
+                : c.kind === 'finished'
+                  ? t('quest.arcDone', { name: c.arc })
+                  : t('quest.arcStep', { name: c.arc, n: c.stepNo, total: c.steps }),
+            )}</span>${
+              c.round === undefined
+                ? `<span class="quest-pips" aria-hidden="true">${pips}</span>`
+                : ''
+            }</div>`
       }
       ${c.speech ? `<p class="quest-speech">${esc(c.speech)}</p>` : ''}
       ${ask}${reward}

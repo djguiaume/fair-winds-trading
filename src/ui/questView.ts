@@ -18,6 +18,8 @@ import {
   QUEST_DONE,
   type QuestBook,
   type QuestDef,
+  lastRoundStep,
+  roundStep,
   type QuestStep,
 } from '../sim/quests';
 import { BUILDINGS, homeSpots, resolveSpot } from '../sim/home';
@@ -67,6 +69,8 @@ export interface QuestCardModel {
   reward?: { gold: number; more: string[] };
   /** Steps after this one, on an offer: "then 2 more steps". */
   moreSteps?: number;
+  /** A standing order's ask (decision 0214): its number, shown instead of the steps. */
+  round?: number;
   /**
    * What just happened for this quest where the boat is (decision 0213): "1 millstone aboard for
    * Maren, 1 left on the quay…", or "Done! +150 gold." for the step finished here.
@@ -320,11 +324,13 @@ export function cardFor(
   const p = book.progress(questId);
   const step =
     kind === 'offer'
-      ? quest.steps[0]
+      ? roundStep(quest, p)
       : kind === 'finished'
         ? undefined
         : quest.steps.find((s) => s.id === p?.step);
   if (kind !== 'finished' && !step) return null;
+  // A standing order thanks for the ask just delivered, in its own words (decision 0214).
+  const last = kind === 'finished' ? lastRoundStep(quest, p) : undefined;
   // A step's `speaker` talks on its card instead of the giver, and `doneSpeaker` on the done card.
   const who = step ? (step.speaker ?? quest.giver) : (quest.doneSpeaker ?? quest.giver);
   const giver = who ? character(who) : undefined;
@@ -346,17 +352,33 @@ export function cardFor(
     arc: arcName(quest),
     stepNo: step ? lineNo(step.id) : line.length,
     steps: line.length,
-    speech: tOptional(`${key}.copy`, stepParams(book, step, quest)),
-    ask: tOptional(`${key}.title`, stepParams(book, step, quest)),
-    progress: kind === 'step' ? stepProgress(step?.goal, p?.counts ?? []) : undefined,
+    speech: last
+      ? tOptional(`${quest.text}.${last.id}.thanks`)
+      : tOptional(`${key}.copy`, stepParams(book, step, quest)),
+    ask: last
+      ? tOptional(`${quest.text}.${last.id}.title`)
+      : tOptional(`${key}.title`, stepParams(book, step, quest)),
+    // A standing order's ask never says how many in words: its offer shows the count (0214).
+    progress:
+      kind === 'step' || (kind === 'offer' && quest.repeat)
+        ? stepProgress(step?.goal, kind === 'step' ? (p?.counts ?? []) : [])
+        : undefined,
     good: goodOf(deref(step?.goal?.good, p?.vars)),
     main: !!quest.main,
   };
+  if (quest.repeat) {
+    card.round = (p?.rounds ?? 0) + (kind === 'finished' ? 0 : 1);
+    if (last) card.good = goodOf(last.goal?.good);
+  }
   if (kind === 'offer' || kind === 'step') {
     card.where = stepWhere(step);
-    const last = step === quest.steps.at(-1);
-    card.reward = rewardWords(map, [step?.reward, last ? quest.reward : undefined]);
-    if (kind === 'offer' && quest.steps.length > 1) card.moreSteps = quest.steps.length - 1;
+    const end = step === quest.steps.at(-1) && !quest.repeat;
+    card.reward = rewardWords(map, [step?.reward, end ? quest.reward : undefined]);
+    // A step paid like a help order says what it pays now (decision 0214).
+    const order = book.orderGold(step);
+    if (order !== undefined) card.reward = { gold: order, more: card.reward?.more ?? [] };
+    if (kind === 'offer' && quest.steps.length > 1 && !quest.repeat)
+      card.moreSteps = quest.steps.length - 1;
   }
   if (kind === 'choice')
     card.options = book.options(quest.id).map((o) => ({

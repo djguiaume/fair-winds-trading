@@ -74,6 +74,8 @@
     "seeds": [1, 2, 3, 4, 5],
     "lateMinutes": 60,
     "lateVsRing": [1.5, 5],
+    "lateVsRingTopByLevel": { "fair": 6 },
+    "lateVsRingTopWhy": "Standing orders (0214) keep far prices up on Fair winds, the generous level",
     "farShareMin": 0.25,
     "ringLegsMin": 0.3,
     "craftedSoldMin": 10,

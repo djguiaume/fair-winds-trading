@@ -139,12 +139,14 @@ export async function run(args: Args): Promise<number> {
       steps: q.steps.length,
       start: q.start.is ?? '',
       port: q.port ?? '',
+      // A standing order asks again (decision 0214).
+      ...(q.repeat ? { standing: true } : {}),
     }));
     if (args.json) console.log(JSON.stringify(rows, null, 2));
     else
       for (const r of rows)
         console.log(
-          `${r.id.padEnd(24)} ${String(r.steps).padStart(2)} steps  ${r.start} ${r.port}`,
+          `${r.id.padEnd(24)} ${String(r.steps).padStart(2)} ${r.standing ? 'asks ' : 'steps'}  ${r.start} ${r.port}${r.standing ? ' (standing order)' : ''}`,
         );
     return 0;
   }

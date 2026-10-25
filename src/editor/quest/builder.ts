@@ -465,7 +465,8 @@ function drawQuestList() {
   const box = $('.qb-quests');
   box.replaceChildren(h('h2', {}, 'Quests ', h('small', {}, `${doc.quests.length} files`)));
   const list = h('ul');
-  const order = storyColumns(doc.quests).flat();
+  // The story in order, then the standing orders (decision 0214).
+  const order = [...storyColumns(doc.quests).flat(), ...doc.quests.map((q) => q.id)];
   const sorted = [...doc.quests].sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
   for (const q of sorted) {
     const li = h('li', { class: q.id === questId ? 'on' : '', tabindex: '0' });
@@ -475,11 +476,16 @@ function drawQuestList() {
         'span',
         {},
         h('b', {}, q.name),
-        h('small', {}, `${q.steps.length} step${q.steps.length === 1 ? '' : 's'}`),
+        h(
+          'small',
+          {},
+          `${q.steps.length} ${q.repeat ? 'ask' : 'step'}${q.steps.length === 1 ? '' : 's'}`,
+        ),
       ),
     );
     if (q.main) li.append(h('em', { class: 'qb-tag main' }, 'main'));
     if (q.lesson) li.append(h('em', { class: 'qb-tag main' }, 'lesson'));
+    if (q.repeat) li.append(h('em', { class: 'qb-tag' }, 'standing'));
     if (!shippedQuest(q.id)) li.append(h('em', { class: 'qb-tag new' }, 'new'));
     const pick = () => {
       questId = q.id;
@@ -547,6 +553,7 @@ function drawSteps() {
     const li = h('li', { class: s.id === stepId ? 'on' : '', tabindex: '0' });
     const flags = [
       s.reward?.gold ? `<span class="qb-gold">+${s.reward.gold}</span>` : '',
+      s.reward?.order ? '<span class="qb-gold">+order</span>' : '',
       ...[
         s.clean && 'clean',
         s.teach && 'teach',
@@ -608,7 +615,10 @@ function drawSteps() {
   const done = h('div', { class: 'qb-start qb-done' });
   done.append(
     h('span', { class: 'qb-k' }, 'Done'),
-    ` ${textOf(doc, 'en', `${q.text}.done.title`) ?? 'no thanks card'}${q.reward ? ` · pays ${rewardWords(q)}` : ''}`,
+    // A standing order thanks on each ask, and asks again (decision 0214).
+    q.repeat
+      ? ' each ask thanks in its own words, then the next ask in turn after calls elsewhere'
+      : ` ${textOf(doc, 'en', `${q.text}.done.title`) ?? 'no thanks card'}${q.reward ? ` · pays ${rewardWords(q)}` : ''}`,
   );
   box.append(list, add, done);
 }
@@ -761,6 +771,21 @@ function questPanel(q: QuestDef): HTMLElement[] {
   );
   out.push(
     row(
+      'Standing order',
+      checkbox(
+        !!q.repeat,
+        (on) =>
+          edit(() => {
+            if (!on) return delete q.repeat;
+            q.repeat = true;
+            q.offer = true;
+          }),
+        'asks again: one step per ask, in turn, after calls elsewhere (0214)',
+      ),
+    ),
+  );
+  out.push(
+    row(
       'Main',
       checkbox(
         !!q.main,
@@ -882,20 +907,22 @@ function goalPanel(q: QuestDef, s: QuestStep): HTMLElement[] {
     ),
   );
   const later = q.steps.slice(i + 1).map((o) => o.id);
-  out.push(
-    row(
-      'Then',
-      select(
-        [
-          ...later.map((o): [string, string] => [o, `step ${o}`]),
-          [QUEST_DONE, 'the quest is done'],
-        ],
-        s.next,
-        (v) => edit(() => (v ? (s.next = v) : delete s.next)),
-        later[0] ? `the next step (${later[0]})` : 'the quest is done',
+  // A standing order's ask ends the round (decision 0214).
+  if (!q.repeat)
+    out.push(
+      row(
+        'Then',
+        select(
+          [
+            ...later.map((o): [string, string] => [o, `step ${o}`]),
+            [QUEST_DONE, 'the quest is done'],
+          ],
+          s.next,
+          (v) => edit(() => (v ? (s.next = v) : delete s.next)),
+          later[0] ? `the next step (${later[0]})` : 'the quest is done',
+        ),
       ),
-    ),
-  );
+    );
   out.push(
     row(
       'Clean',
@@ -1547,7 +1574,14 @@ function cardModel(q: QuestDef, s: QuestStep | undefined, l: Lang): QuestCardMod
   const fill = (text: string | undefined) =>
     text && fillWords(text.replace('{par}', par === undefined ? '{par}' : clock(par)), words);
   const key = s ? `${q.text}.${s.id}` : `${q.text}.done`;
-  const kind = !s ? 'finished' : s.choose ? 'choice' : i === 0 && q.offer ? 'offer' : 'step';
+  // Each ask of a standing order is offered on its own, and thanked in its own words (0214).
+  const kind = !s
+    ? 'finished'
+    : s.choose
+      ? 'choice'
+      : (i === 0 || q.repeat) && q.offer
+        ? 'offer'
+        : 'step';
   const gold = (s ? s.reward?.gold : q.reward?.gold) ?? 0;
   return {
     quest: q.id,
@@ -1559,6 +1593,8 @@ function cardModel(q: QuestDef, s: QuestStep | undefined, l: Lang): QuestCardMod
     arc: textOf(doc, l, `${q.text}.name`) ?? q.name,
     stepNo: Math.min(i + 1, q.steps.length),
     steps: q.steps.length,
+    round: q.repeat && s ? i + 1 : undefined,
+    progress: q.repeat && typeof s?.goal?.qty === 'number' ? `0 / ${s.goal.qty}` : undefined,
     // The version for the way of playing picked under the speech, else the default (0184).
     speech: fill(
       (speechWay && textOf(doc, l, `${key}.copy@${speechWay}`)) || textOf(doc, l, `${key}.copy`),
@@ -1571,7 +1607,7 @@ function cardModel(q: QuestDef, s: QuestStep | undefined, l: Lang): QuestCardMod
     })),
     main: !!q.main,
     reward: gold ? { gold, more: [] } : undefined,
-    moreSteps: kind === 'offer' ? q.steps.length - 1 : undefined,
+    moreSteps: kind === 'offer' && !q.repeat ? q.steps.length - 1 : undefined,
   };
 }
 
@@ -1602,13 +1638,28 @@ function drawCardView() {
       ),
     ),
   );
-  const model = cardModel(q, s, lang);
-  setLanguage(lang);
-  const body = questCardBody(model, !q.main);
-  setLanguage('en');
-  const card = h('div', { class: 'quest-card qb-card' });
-  card.innerHTML = `${model.giver ? `<div class="quest-face">${portraitSvg(model.giver, { mood: model.mood, variant: model.look, size: 168 })}</div>` : ''}<div class="quest-body">${body}</div>`;
-  box.append(h('div', { class: 'qb-card-host' }, card));
+  // A standing order's ask has its own thanks card under it (decision 0214).
+  const models = [cardModel(q, s, lang)];
+  if (q.repeat && s) {
+    const ask = models[0]!;
+    models.push({
+      ...ask,
+      kind: 'finished',
+      mood: 'pleased',
+      speech: textOf(doc, lang, `${q.text}.${s.id}.thanks`),
+      progress: undefined,
+      reward: undefined,
+      round: ask.round,
+    });
+  }
+  for (const model of models) {
+    setLanguage(lang);
+    const body = questCardBody(model, !q.main);
+    setLanguage('en');
+    const card = h('div', { class: 'quest-card qb-card' });
+    card.innerHTML = `${model.giver ? `<div class="quest-face">${portraitSvg(model.giver, { mood: model.mood, variant: model.look, size: 168 })}</div>` : ''}<div class="quest-body">${body}</div>`;
+    box.append(h('div', { class: 'qb-card-host' }, card));
+  }
   // The text keys of this step (or the quest's name and thanks), English and French side by side.
   const keys = textKeys(q).filter(({ key }) =>
     s
@@ -1683,7 +1734,8 @@ function drawCardView() {
 function drawStory() {
   const box = $('.qb-story');
   box.replaceChildren();
-  const quests = doc.quests.map((q) => ({ id: q.id, start: q.start }));
+  // The standing orders (decision 0214) are listed under the story, not in it.
+  const quests = doc.quests.filter((q) => !q.repeat).map((q) => ({ id: q.id, start: q.start }));
   const columns = storyColumns(quests);
   // Columns as wide as fit the view (the story scrolls past five or so).
   const GAP = 30,
@@ -1753,6 +1805,28 @@ function drawStory() {
       });
     canvas.append(node);
   }
+  const standing = h('div', { class: 'qb-standing' });
+  for (const q of doc.quests.filter((o) => o.repeat)) {
+    const chip = h('button', {
+      type: 'button',
+      class: `qb-node is-standing${q.id === questId ? ' on' : ''}`,
+    });
+    chip.innerHTML = `<span class="qb-face">${faceOf(q.giver, 30)}</span>`;
+    chip.append(
+      h(
+        'span',
+        {},
+        h('b', {}, q.name),
+        h('small', {}, `${q.port} · after ${conditionWords(q.start)}`),
+      ),
+    );
+    chip.addEventListener('click', () => {
+      questId = q.id;
+      stepId = null;
+      render();
+    });
+    standing.append(chip);
+  }
   box.append(
     canvas,
     h(
@@ -1760,5 +1834,8 @@ function drawStory() {
       { class: 'qb-legend' },
       'A line is a start condition: the quest on the right starts once the one on the left is done (quest-done, quest-at, chose). Pick a quest to edit when it starts, on the right.',
     ),
+    ...(standing.childElementCount
+      ? [h('h3', { class: 'qb-legend' }, 'Standing orders: they ask again (0214)'), standing]
+      : []),
   );
 }

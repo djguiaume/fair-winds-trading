@@ -3,8 +3,11 @@ import { chartAreaIds, chartAreas } from './fog';
 import { foundSite } from './founding';
 import type { MapDef } from './map';
 import type { Condition } from './questLibrary';
-import { QUESTS, type QuestDef } from './quests';
+import { QUESTS, type QuestDef, roundStep } from './quests';
 import type { TradeState } from './trade';
+import { payStandingOrder } from './contracts';
+import { isGood } from './goods';
+import { TUNING } from '../data/tuning';
 
 /*
  * The story order for the balance bots on a sea with fog (decision 0195). The game opens the outer
@@ -319,3 +322,44 @@ function done(trade: TradeState, id: string) {
 
 /** What ends the ring's early game for the bots: buying this (the cutter). */
 export const STORY_OPENS_AFTER = STORY.opensAfter;
+
+/**
+ * The standing orders for the balance bots (decision 0214): once a person's arc is done, docking
+ * at their port with the goods of the ask due there hands them over and is paid like a help order,
+ * one ask at a time per port, the next after calls elsewhere, as in the game. The bot never buys
+ * for an ask: it hands over what it carries there to sell anyway, so this is the most a captain who
+ * just trades gets from them.
+ */
+export class StandingOrders {
+  private readonly asks: { def: QuestDef; port: string; rounds: number; wait: number }[];
+  /** Gold the asks paid. */
+  gold = 0;
+
+  constructor(map: MapDef, quests: readonly QuestDef[] = QUESTS) {
+    this.asks = quests
+      .filter((q) => q.repeat && map.ports.some((p) => p.id === q.port))
+      .map((def) => ({ def, port: def.port!, rounds: 0, wait: 0 }));
+  }
+
+  /** Docked at `port` with these quests done: hand over the ask due, if aboard. Returns its gold. */
+  dock(map: MapDef, trade: TradeState, port: string, done: Record<string, number>): number {
+    for (const a of this.asks) if (a.port !== port && a.wait) a.wait -= 1;
+    const ready = this.asks.filter(
+      (a) => a.port === port && !a.wait && startHolds(a.def.start, done),
+    );
+    const ask = ready.reduce<(typeof ready)[number] | undefined>(
+      (best, a) => (!best || a.rounds < best.rounds ? a : best),
+      undefined,
+    );
+    const goal =
+      ask && roundStep(ask.def, { step: '', counts: [], chose: {}, rounds: ask.rounds }).goal;
+    if (!ask || !goal || !isGood(goal.good) || typeof goal.qty !== 'number') return 0;
+    if (trade.captain.cargo[goal.good] < goal.qty) return 0;
+    trade.captain.cargo[goal.good] -= goal.qty;
+    const gold = payStandingOrder(map, trade, port, goal.good, goal.qty);
+    ask.rounds += 1;
+    ask.wait = TUNING.economy.orders.standingDockings;
+    this.gold += gold;
+    return gold;
+  }
+}

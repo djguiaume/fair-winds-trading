@@ -1,0 +1,51 @@
+{
+  "id": "standing-bram",
+  "name": "Bram's standing order",
+  "start": {
+    "is": "quest-done",
+    "quest": "outpost-west"
+  },
+  "text": "quest.standing-bram",
+  "giver": "bram",
+  "port": "emberhold",
+  "offer": true,
+  "repeat": true,
+  "steps": [
+    {
+      "id": "ask-1",
+      "goal": {
+        "is": "landed",
+        "place": "emberhold",
+        "good": "obsidian",
+        "qty": 4
+      },
+      "reward": {
+        "order": true
+      }
+    },
+    {
+      "id": "ask-2",
+      "goal": {
+        "is": "landed",
+        "place": "emberhold",
+        "good": "timber",
+        "qty": 5
+      },
+      "reward": {
+        "order": true
+      }
+    },
+    {
+      "id": "ask-3",
+      "goal": {
+        "is": "landed",
+        "place": "emberhold",
+        "good": "obsidian",
+        "qty": 6
+      },
+      "reward": {
+        "order": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "id": "standing-ada",
+  "name": "Ada's standing order",
+  "start": {
+    "is": "quest-done",
+    "quest": "stonehaven-light"
+  },
+  "text": "quest.standing-ada",
+  "giver": "ada",
+  "port": "stonehaven",
+  "offer": true,
+  "repeat": true,
+  "steps": [
+    {
+      "id": "ask-1",
+      "goal": {
+        "is": "landed",
+        "place": "stonehaven",
+        "good": "timber",
+        "qty": 6
+      },
+      "reward": {
+        "order": true
+      }
+    },
+    {
+      "id": "ask-2",
+      "goal": {
+        "is": "landed",
+        "place": "stonehaven",
+        "good": "grain",
+        "qty": 5
+      },
+      "reward": {
+        "order": true
+      }
+    },
+    {
+      "id": "ask-3",
+      "goal": {
+        "is": "landed",
+        "place": "stonehaven",
+        "good": "fish",
+        "qty": 8
+      },
+      "reward": {
+        "order": true
+      }
+    }
+  ]
+}

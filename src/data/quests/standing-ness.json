@@ -1,0 +1,63 @@
+{
+  "id": "standing-ness",
+  "name": "Ness's standing order",
+  "start": {
+    "is": "quest-done",
+    "quest": "watchman-passage"
+  },
+  "text": "quest.standing-ness",
+  "giver": "ness",
+  "port": "watchman-key",
+  "offer": true,
+  "repeat": true,
+  "steps": [
+    {
+      "id": "ask-1",
+      "goal": {
+        "is": "landed",
+        "place": "watchman-key",
+        "good": "timber",
+        "qty": 6
+      },
+      "reward": {
+        "order": true
+      }
+    },
+    {
+      "id": "ask-2",
+      "goal": {
+        "is": "landed",
+        "place": "watchman-key",
+        "good": "grain",
+        "qty": 5
+      },
+      "reward": {
+        "order": true
+      }
+    },
+    {
+      "id": "ask-3",
+      "goal": {
+        "is": "landed",
+        "place": "watchman-key",
+        "good": "fish",
+        "qty": 8
+      },
+      "reward": {
+        "order": true
+      }
+    },
+    {
+      "id": "ask-4",
+      "goal": {
+        "is": "landed",
+        "place": "watchman-key",
+        "good": "stone",
+        "qty": 6
+      },
+      "reward": {
+        "order": true
+      }
+    }
+  ]
+}
