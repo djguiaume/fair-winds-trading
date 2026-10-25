@@ -57,7 +57,7 @@ export interface BoatModelOptions {
   /** Thin rigging lines (default true); can also be toggled later with setLowDetail. */
   rigging?: boolean;
   /** Visible damage (decision 0208): 0 sound, 1 scuffed, 2 patched sails and a broken rail,
-   * 3 torn sails, a list and the pump going. */
+   * 3 torn sails and a list. */
   damage?: 0 | 1 | 2 | 3;
 }
 

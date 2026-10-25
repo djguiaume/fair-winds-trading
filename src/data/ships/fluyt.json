@@ -144,11 +144,8 @@
           "v": 0.2
         }
       ],
-      "listDeg": 4,
-      "spout": {
-        "z": 0.08,
-        "side": 1
-      }
+      "listDeg": 5,
+      "listSide": 1
     }
   }
 }

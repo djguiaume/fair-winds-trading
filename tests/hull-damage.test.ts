@@ -34,7 +34,7 @@ describe('visible hull damage (decision 0208)', () => {
     expect(shipDamageProblems(bad)).toHaveLength(2);
   });
 
-  it('changes the model at each step, with no extra draw until the pump runs', () => {
+  it('changes the model at each step, with no extra draw', () => {
     for (const file of SHIP_FILES) {
       const boats = ([0, 1, 2, 3] as const).map((damage) => shipModel(file.id, { damage }));
       const [sound, scuffed, patched, torn] = boats.map((b) => b.stats);
@@ -43,10 +43,8 @@ describe('visible hull damage (decision 0208)', () => {
       expect(patched!.triangles, file.id).not.toBe(scuffed!.triangles);
       expect(scuffed!.meshes).toBe(sound!.meshes);
       expect(patched!.meshes).toBe(sound!.meshes);
-      // Torn: holes in the main canvas, a pump spout (one small mesh) and a list.
-      expect(torn!.meshes, file.id).toBe(sound!.meshes + 1);
-      expect(boats[3]!.root.getObjectByName('PumpSpout'), file.id).toBeTruthy();
-      expect(boats[2]!.root.getObjectByName('PumpSpout')).toBeUndefined();
+      // Torn: holes in the main canvas and a list, still no extra draw.
+      expect(torn!.meshes, file.id).toBe(sound!.meshes);
       const main = (b: (typeof boats)[number]) =>
         b.root.getObjectByName(
           file.model.squareMasts

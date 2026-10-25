@@ -19,8 +19,7 @@
     "tornBelow": 0.25,
     "planks": 6,
     "splash": 6,
-    "debrisSeconds": 4,
-    "spoutSeconds": 1.5
+    "debrisSeconds": 4
   },
   "harbour": {
     "dockRange": 16,

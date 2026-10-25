@@ -96,8 +96,8 @@ Copy a ship file in [`src/data/ships/`](../../src/data/ships/), rename it to the
   -1 (the outline's +x or -x side). `scuffs` (below 75 %: darker patches on the band, the strake
   under it and the deck), `rail` (below 50 %: a broken stretch of gunwale; keep it off a stern
   castle), `tears` (below 25 %: holes in the main sail or each lowest course, `u` along the foot
-  and `v` up the luff, 0 to 1), `listDeg` (below 25 %: her list toward the pump, 0 to 10) and
-  `spout` (below 25 %: where the pump gushes over the side). Left out, `DEFAULT_DAMAGE` in
+  and `v` up the luff, 0 to 1; four cells together make one big hole), `listDeg` and `listSide`
+  (below 25 %: her list, 0 to 10 degrees, toward side 1 or -1). Left out, `DEFAULT_DAMAGE` in
   `src/data/ships.ts` places them. The steps are `seamanship.damage` in the tuning files.
   `npm run check` checks the block; `models.html?view=damage&ship=ketch` shows the four steps.
 - **Names:** `ship.ketch` and `shipThe.ketch` in `src/i18n/en.json` and `fr.json`; until then the

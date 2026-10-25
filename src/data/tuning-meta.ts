@@ -1770,7 +1770,7 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     1,
     0.05,
     'share',
-    'Hull condition under which a sail is torn, she lists and the pump runs (0208).',
+    'Hull condition under which a sail is torn and she lists (0208).',
   ),
   'seamanship.damage.planks': num(
     'Planks per crash',
@@ -1795,14 +1795,6 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     0.5,
     's',
     'How long the planks drift before they have sunk (0208).',
-  ),
-  'seamanship.damage.spoutSeconds': num(
-    'Pump stroke',
-    0.5,
-    4,
-    0.1,
-    's',
-    'Seconds between two gushes of the pump on a badly damaged hull (0208).',
   ),
   'seamanship.harbour.dockRange': num(
     'Dock range',

@@ -20,22 +20,26 @@ needs this) is unreadable without it, and reef and coast crashes get it for free
      charcoal `#2e2219`, never grey) on the band, the strake under it and the deck inside the rail.
      The art director suggested a quarter; it did not read at the sailing camera, so 40 %. The
      deck patches are there because the game camera looks down on her and sees little topside.
-  2. **Patched** (below 50 %): every sail takes the stock patched canvas plus extra patch squares
-     (so it changes even on stock sails); a sails-3 racing stripe stays, as the ship's identity.
+  2. **Patched** (below 50 %): every sail takes the stock patched canvas plus four big patches
+     (two panels each way) of warm, plank-toned canvas that shows about 30 % darker
+     (`STYLE_D.damagePatches`, written darker than it looks because the sails' material adds a
+     flat glow), so the step reads at the sailing camera even on stock sails; a sails-3 racing
+     stripe stays, as the ship's identity.
      One stretch of gunwale on the `rail` station is broken off, its ends in bare wood.
   3. **Torn** (below 25 %): holes in the main sail (or each mast's lowest course) at the `tears`
-     cells, showing the sea or night sky through them, no transparency; a standing list of
-     `listDeg` (4°, 3° on the big ships) toward the pump's side; and the pump spout, a short arc
-     of four foam-coloured chunks over the side that swells every `spoutSeconds` (1.5 s).
+     cells, showing the sea or night sky through them, no transparency: one big four-panel hole
+     on the small ships (several small ones were lost at the camera), three on the fluyt and
+     indiaman; and a standing list of `listDeg` toward `listSide` (6°, 5° on the fluyt and
+     indiaman). A pump spout was tried and dropped: it only read on the model sheet.
   Repair clears it: the step follows the condition, so the model is rebuilt clean.
 - **Damage places are data per ship file**: a `model.damage` block in each `src/data/ships/*.json`
-  (`scuffs`, `rail`, `tears`, `listDeg`, `spout`; stations along the hull as fractions of length,
+  (`scuffs`, `rail`, `tears`, `listDeg`, `listSide`; stations along the hull as fractions of length,
   and a side). A file without one gets `DEFAULT_DAMAGE` (`src/data/ships.ts`). `npm run check`
   checks the blocks (a new `ships` area); docs/content/README.md says how to write one.
 - **The model is rebuilt on a new step**, not swapped per frame: the step is part of the boat's
   key in `GameView`, like the upgrade levels, so a crash that crosses a threshold (or a repair)
   rebuilds once. Scuffs, patches, holes and the broken rail are merged into the existing hull and
-  sail meshes (no extra draw call); only the pump spout is one small extra mesh, at step 3.
+  sail meshes: no extra draw call at any step.
 - **On impact** (a `crash` or `reef-strike` event): a chunky splash of foam-coloured
   (`PALETTE.foam`, never pure white) icosahedra that rise at her bow and fall back, and planks a
   little darker than the palette's `plank` that drift off both sides on the swell and sink over
@@ -54,13 +58,12 @@ needs this) is unreadable without it, and reef and coast crashes get it for free
 
 ## Consequences
 
-- No new draw calls while sound or scuffed or patched; one small mesh while torn; two instanced
-  draws for a few seconds after a crash. A rebuild costs one boat build (a shipyard purchase does
+- No new draw calls at any step; two instanced draws for a few seconds after a crash. A rebuild costs one boat build (a shipyard purchase does
   the same) only when a step changes.
 - The model is not a per-point gauge: within a step it looks the same, by design.
 - A new ship file works without a `damage` block, but should get one so the rail break misses its
-  castle and the spout misses its leeboards or gun ports.
+  castle and its holes suit its sails.
 - The list is a look only; the sim's heel and speed are unchanged (the leak penalty already slows
   a damaged hull).
-- Open for the art director and Guillaume: whether 4° of list reads on a phone (6° is the
-  fallback) and whether the pump spout reads or should be dropped.
+- Reviewed with the art director in one round (2026-10-25): 40 % scuffs and deck scrapes, 6°/5°
+  list, no pump spout, bolder patches and one big hole on small ships.

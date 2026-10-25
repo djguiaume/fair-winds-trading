@@ -4,7 +4,6 @@ import { BOAT_SCALE, STYLE_D as ST } from './boatStyle';
 import { isGlowing, mergeAll, paint, triangleCount, vertexColorMaterial } from './geometry';
 import type { BoatCargo, BoatDetails } from './boatDetails';
 import { DEFAULT_DAMAGE, type ShipDamageData } from '../../data/ships';
-import { TUNING } from '../../data/tuning';
 import { DEG } from '../../sim/math';
 import {
   STOCK_UPGRADES,
@@ -233,8 +232,13 @@ function scuffed(color: string) {
   return '#' + new THREE.Color(color).lerp(SCUFF, 0.4).getHexString();
 }
 const SCUFF = new THREE.Color('#2e2219');
-/** Sea foam, never pure white (art bible rule 3). */
-const FOAM = '#e6fbff';
+/** Where a damaged sail's patches sit, as fractions along the foot and up the luff (0208). */
+const PATCH_SPOTS = [
+  [0.2, 0.25],
+  [0.78, 0.3],
+  [0.22, 0.78],
+  [0.8, 0.8],
+] as const;
 
 /** Deck outline in ship-local coordinates (+Z bow), shared by the hull and the stern castle. */
 function deckOutline(rig: RefinedRig) {
@@ -350,6 +354,21 @@ function cloth(
   const f = new Faces();
   // A patched sail (decision 0208) takes the stock canvas look, keeping a racing stripe.
   const worn = level === 1 || wear.patched;
+  // Damage patches (decision 0208): four big squares of darker, warmer canvas, two panels each
+  // way, clear of the middle where a torn sail has its hole.
+  const patched = new Set<string>();
+  if (wear.patched)
+    for (const [u, v] of PATCH_SPOTS) {
+      const i0 = Math.max(0, Math.min(nu - 2, Math.round(u * nu - 1)));
+      const j0 = Math.max(0, Math.min(nv - 2, Math.round(v * nv - 1)));
+      for (const [di, dj] of [
+        [0, 0],
+        [1, 0],
+        [0, 1],
+        [1, 1],
+      ])
+        patched.add(`${i0 + di!}:${j0 + dj!}`);
+    }
   const torn = new Set(
     (wear.tears ?? []).map(
       (t) => `${Math.min(nu - 1, Math.floor(t.u * nu))}:${Math.min(nv - 1, Math.floor(t.v * nv))}`,
@@ -365,8 +384,9 @@ function cloth(
   for (let j = 0; j < nv; j++)
     for (let i = 0; i < nu; i++) {
       if (torn.has(`${i}:${j}`)) continue;
-      const color =
-        (worn && (i * 7 + j * 3) % 8 === 1) || (wear.patched && (i * 5 + j * 2) % 7 === 3)
+      const color = patched.has(`${i}:${j}`)
+        ? ST.damagePatches[(i + j) % 2]!
+        : worn && (i * 7 + j * 3) % 8 === 1
           ? ST.patches[(i + j) % 2]!
           : level === 3 && (j === stripe - 1 || j === stripe)
             ? band
@@ -452,10 +472,8 @@ export class RefinedBoat implements BoatModel {
   private readonly tmp = new THREE.Vector3();
   private readonly jibSheetAnchor: THREE.Vector3;
   private readonly disposables: Array<THREE.BufferGeometry | THREE.Material> = [];
-  /** A standing list toward the pump's side at the worst damage (decision 0208), in radians. */
+  /** A standing list at the worst damage (decision 0208), in radians. */
   private readonly list: number;
-  /** The pump's gush over the side at the worst damage (decision 0208). */
-  private readonly spout?: THREE.Mesh;
 
   constructor(rig: RefinedRig, options: BoatModelOptions = {}) {
     const { length: L, mastZ: MAST_Z, band: BAND } = rig;
@@ -506,7 +524,7 @@ export class RefinedBoat implements BoatModel {
     const marks = rig.damage ?? DEFAULT_DAMAGE;
     const patched: ClothWear = { patched: damage >= 2 };
     const torn: ClothWear = { ...patched, tears: damage >= 3 ? marks.tears : [] };
-    this.list = damage >= 3 ? marks.spout.side * marks.listDeg * DEG : 0;
+    this.list = damage >= 3 ? marks.listSide * marks.listDeg * DEG : 0;
     const parts = [hullGeometry(upg.hull, rig, damage)];
     if (rig.castle && !rig.replaceDeckDetails) parts.push(castleGeometry(upg.hull, rig));
     const box = (w: number, h: number, l: number, x: number, y: number, z: number, color: string) =>
@@ -876,25 +894,6 @@ export class RefinedBoat implements BoatModel {
     this.rigging.frustumCulled = false; // tiny mutable line buffer; the endpoints move during tacks
     this.ship.add(this.rigging);
 
-    if (damage >= 3) {
-      // The pump spout: a short arc of foam chunks from the rail down to the sea (decision 0208).
-      const z = marks.spout.z * L;
-      const side = marks.spout.side;
-      const x0 = halfBeamAt(outline, z) * 1.02;
-      const y0 = deckAt(z) + 0.05;
-      const chunks = [0, 1, 2, 3].map((k) => {
-        const t = k / 3;
-        const g = new THREE.IcosahedronGeometry(0.17 + 0.09 * t, 0);
-        return paint(g.translate(side * (0.15 + 0.75 * t), 0.12 - (y0 + 0.1) * t * t, 0), FOAM);
-      });
-      const foam = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
-      this.disposables.push(foam);
-      this.spout = mesh(mergeAll(chunks), foam, 'PumpSpout');
-      this.spout.castShadow = false;
-      this.spout.position.set(side * x0, y0, z);
-      this.ship.add(this.spout);
-    }
-
     const flagGeo = new THREE.BufferGeometry().setFromPoints([
       V(0, 0, 0),
       V(0, -0.5, 0),
@@ -935,11 +934,6 @@ export class RefinedBoat implements BoatModel {
 
   update(p: BoatPose) {
     this.body.rotation.z = p.heel + this.list;
-    if (this.spout) {
-      // A gush every pump stroke: it swells out over the side, then falls back to a trickle.
-      const stroke = (p.time / TUNING.seamanship.damage.spoutSeconds) % 1;
-      this.spout.scale.setScalar(0.6 + 0.4 * Math.sin(Math.PI * Math.min(1, stroke * 1.6)));
-    }
     const side = p.boomAngle < 0 ? -1 : 1;
     const fill = side * Math.max(0.08, 1 - p.luff) + p.luff * Math.sin(p.time * 26) * 0.35;
     for (const gaff of this.gaffSails) {

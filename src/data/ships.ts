@@ -68,15 +68,15 @@ export interface ShipModelData {
  * length, -0.5 at the stern to 0.5 at the bow, like the hull `outline`; `side` is 1 or -1 (the
  * outline's +x or -x side). Below `seamanship.damage.scuffedBelow` the `scuffs` show; below
  * `patchedBelow` the sails are patched and the rail at `rail` is broken; below `tornBelow` the
- * sails have holes at `tears` (u along the foot, v up the luff, 0 to 1), she lists `listDeg`
- * toward the pump's side and the pump spouts at `spout`.
+ * sails have holes at `tears` (u along the foot, v up the luff, 0 to 1) and she lists `listDeg`
+ * toward `listSide`.
  */
 export interface ShipDamageData {
   scuffs: { z: number; side: number }[];
   rail: { z: number; side: number };
   tears: { u: number; v: number }[];
   listDeg: number;
-  spout: { z: number; side: number };
+  listSide: number;
 }
 
 /** Damage for a ship file without its own `damage` block. */
@@ -87,12 +87,15 @@ export const DEFAULT_DAMAGE: ShipDamageData = {
     { z: -0.32, side: 1 },
   ],
   rail: { z: 0.12, side: 1 },
+  // One big hole, four panels, in the middle of the sail: small sails lose several small ones.
   tears: [
-    { u: 0.4, v: 0.3 },
-    { u: 0.6, v: 0.65 },
+    { u: 0.45, v: 0.4 },
+    { u: 0.6, v: 0.4 },
+    { u: 0.45, v: 0.55 },
+    { u: 0.6, v: 0.55 },
   ],
-  listDeg: 4,
-  spout: { z: -0.05, side: 1 },
+  listDeg: 6,
+  listSide: 1,
 };
 
 /** What is wrong with a ship file's `damage` block (decision 0208), for `npm run check`. */
@@ -107,7 +110,7 @@ export function shipDamageProblems(file: ShipFile): string[] {
   };
   (d.scuffs ?? []).forEach((s, i) => station(`scuffs[${i}]`, s));
   station('rail', d.rail);
-  station('spout', d.spout);
+  if (d.listSide !== 1 && d.listSide !== -1) out.push(`${where}: listSide must be 1 or -1`);
   for (const [i, t] of (d.tears ?? []).entries())
     if (!(t.u >= 0 && t.u <= 1 && t.v >= 0 && t.v <= 1))
       out.push(`${where}: tears[${i}] u and v must be 0 to 1`);
