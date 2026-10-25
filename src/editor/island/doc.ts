@@ -2,6 +2,7 @@ import { MAX_SETTLEMENT_LEVEL, SETTLEMENT_LEVELS, TOWN_LEVELS } from '../../sim/
 import {
   ISLAND_DESIGNS,
   atLevel,
+  type HarbourViewDef,
   type IslandDesign,
   type IslandStyle,
   type Point,
@@ -229,6 +230,7 @@ export function tidyDesign(design: IslandDesign): IslandDesign {
     'props',
     'homeSpots',
     'woods',
+    'harbourView',
   ]);
   return {
     ...d,
@@ -273,7 +275,28 @@ export function tidyDesign(design: IslandDesign): IslandDesign {
       'clear',
       'areas',
     ]),
+    ...(d.harbourView && {
+      harbourView: ordered(d.harbourView, ['from', 'look', 'height', 'lookHeight', 'accent']),
+    }),
   };
+}
+
+/**
+ * The harbour screen's picture of this island's port (decision 0211): the camera's place, where it
+ * looks and its heights, and the port's accent colour. `null` clears a field; nothing left, none.
+ */
+export function setHarbourView(
+  design: IslandDesign,
+  view: { [K in keyof HarbourViewDef]?: HarbourViewDef[K] | null },
+) {
+  const next: Record<string, unknown> = { ...design.harbourView };
+  for (const [k, v] of Object.entries(view)) {
+    if (v === undefined) continue;
+    if (v === null) delete next[k];
+    else next[k] = Array.isArray(v) ? v.map((n) => Number(Number(n).toFixed(6))) : v;
+  }
+  if (Object.keys(next).length) design.harbourView = next as HarbourViewDef;
+  else delete design.harbourView;
 }
 
 // --- Build spots (decisions 0126, 0128) ---------------------------------------------------

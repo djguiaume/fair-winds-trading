@@ -1,0 +1,21 @@
+{
+  "picture": {
+    "width": 1440,
+    "height": 300,
+    "supersample": 1.5,
+    "fovDeg": 20,
+    "quality": 0.82,
+    "shift": 0.15
+  },
+  "camera": {
+    "out": 2.4,
+    "side": 0.8,
+    "height": 0.9,
+    "look": 0.25,
+    "lookHeight": 0.3
+  },
+  "light": {
+    "nightFrom": 0.5,
+    "goldenFrom": 0.5
+  }
+}

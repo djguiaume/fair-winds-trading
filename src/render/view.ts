@@ -45,6 +45,15 @@ import { stormRain } from '../sim/storms';
 import { seaShape } from '../sim/seaEdge';
 import { CLEAR, type ZoneVisual, mapZones, zoneField, zoneVisualAt } from '../sim/windZones';
 import { smoothOutline } from '../sim/flowShapes';
+import { designOf } from '../data/islands';
+import {
+  HARBOUR_VIEW,
+  type HarbourLight,
+  harbourLight,
+  harbourLightTime,
+  harbourPictureKey,
+  harbourShot,
+} from './harbourView';
 
 /** Game time whose light is kept when day and night is off: early afternoon. */
 const ALWAYS_DAY = 200;
@@ -387,6 +396,7 @@ export class GameView {
   }
 
   setHomeBuildings(byIsland: Record<string, Record<string, string>>) {
+    this.townVersion++;
     this.islands.setHomeBuildings(byIsland);
     this.volcanoes.setCraters(this.islands.craters);
   }
@@ -400,6 +410,7 @@ export class GameView {
   }
 
   setQuestsDone(done: ReadonlySet<string>) {
+    this.townVersion++;
     this.islands.setQuestsDone(done);
     this.volcanoes.setCraters(this.islands.craters);
     this.seaMarks.setQuestsDone(done);
@@ -410,6 +421,7 @@ export class GameView {
   setSettlementLevels(levels: Record<string, TownLevel>) {
     const founded = Object.keys(levels).some((id) => this.levels[id] === 0 && levels[id] !== 0);
     this.levels = { ...levels };
+    this.townVersion++;
     this.islands.setSettlementLevels(levels);
     this.volcanoes.setCraters(this.islands.craters);
     if (founded) this.buildLanterns();
@@ -637,6 +649,122 @@ export class GameView {
     }
 
     this.renderer.render(this.scene, this.camera);
+  }
+
+  /** Bumped whenever a town's look may change: its pictures are taken again (decision 0211). */
+  private townVersion = 0;
+  private readonly pictures = new Map<string, string>();
+  private picturesLook = '';
+  private pictureCamera?: THREE.PerspectiveCamera;
+
+  /**
+   * The harbour screen's picture of a port (decision 0211): the real scene from a fixed camera off
+   * its harbour, in the given light, with no fog, rain or storm, the sea's own tint kept. Taken once
+   * and cached per port, light and town look, as a JPEG object URL; null if the port has no pier.
+   */
+  harbourPicture(
+    portId: string,
+    light: HarbourLight = harbourLight(daylightAt(this.dayNight ? this.world.time : ALWAYS_DAY)),
+  ): string | null {
+    const look = `${this.townVersion}/${this.landVersion}/${this.level}`;
+    // A town or the land changed: every picture is old. The screen may still be loading one, so
+    // they are let go a little later.
+    if (this.picturesLook !== look) {
+      const old = [...this.pictures.values()];
+      setTimeout(() => old.forEach((url) => URL.revokeObjectURL(url)), 10_000);
+      this.pictures.clear();
+    }
+    this.picturesLook = look;
+    const key = harbourPictureKey(portId, light, look);
+    const cached = this.pictures.get(key);
+    if (cached) return cached;
+    const port = this.world.map.ports.find((p) => p.id === portId);
+    const island = port && this.world.land.islands.find((i) => i.id === port.islandId);
+    const pier = this.harbours[portId];
+    if (!port || !island || !pier) return null;
+    const shot = harbourShot(island, pier, designOf(island)?.harbourView);
+    const pic = HARBOUR_VIEW.picture;
+    const w = Math.round(pic.width * pic.supersample);
+    const h = Math.round(pic.height * pic.supersample);
+
+    const camera = (this.pictureCamera ??= new THREE.PerspectiveCamera(pic.fovDeg, 1, 1, 2000));
+    camera.fov = pic.fovDeg;
+    camera.aspect = w / h;
+    // The town sits right of the middle, clear of the name and the shade on the left.
+    camera.setViewOffset(w, h, -pic.shift * w, 0, w, h);
+    toScene(shot.from.x, shot.from.y, camera.position).setY(shot.fromHeight);
+    const aim = toScene(shot.look.x, shot.look.y, new THREE.Vector3()).setY(shot.lookHeight);
+    camera.lookAt(aim);
+
+    // The light of that time of day, without the weather; the sea keeps its colour, not its fog.
+    const time = harbourLightTime(light);
+    const day = daylightAt(time);
+    const zones = zoneField(mapZones(this.world.map), smoothOutline);
+    const tint = zones ? zoneVisualAt(zones, aim.x, -aim.z, [], { ...CLEAR }) : { ...CLEAR };
+    tint.haze = 0;
+    tint.kind = null;
+    const gloom = this.atmosphere.gloom;
+    this.atmosphere.gloom = 0;
+    this.atmosphere.update(0, day, this.world.weather, this.ocean, aim, tint);
+    this.atmosphere.gloom = gloom;
+    const fog = this.scene.fog as THREE.Fog;
+    const { near, far } = fog;
+    fog.near = 1e4;
+    fog.far = 2e4;
+    this.ocean.setFog(fog.near, fog.far);
+    this.ocean.update(this.world.time, aim);
+    const glow = day.night;
+    this.lanterns.update(glow, this.boatLantern, time);
+    this.lighthouseBeams.update(time, glow);
+    this.beaconLights.update(time, glow);
+    const windows = this.islands.userData.windows as THREE.MeshBasicMaterial | undefined;
+    windows?.color.copy(WINDOWS_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
+    const lava = this.islands.userData.lava as THREE.MeshBasicMaterial | undefined;
+    lava?.color.copy(LAVA_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
+    this.boat.setNightLighting?.(day.night);
+    const hidden = [
+      this.rain.mesh,
+      this.streaks.mesh,
+      this.stormClouds.root,
+      this.questMarkers.root,
+      this.buoy.root,
+    ].filter((o) => o.visible);
+    for (const o of hidden) o.visible = false;
+
+    const target = new THREE.WebGLRenderTarget(w, h, { depthBuffer: true });
+    target.texture.colorSpace = THREE.SRGBColorSpace;
+    const pixels = new Uint8Array(w * h * 4);
+    this.renderer.setRenderTarget(target);
+    this.renderer.render(this.scene, camera);
+    this.renderer.readRenderTargetPixels(target, 0, 0, w, h, pixels);
+    this.renderer.setRenderTarget(null);
+    target.dispose();
+    for (const o of hidden) o.visible = true;
+    fog.near = near;
+    fog.far = far;
+    this.ocean.setFog(near, far);
+
+    // WebGL rows run bottom up; the supersampled picture is drawn down to its size, which smooths it.
+    const full = document.createElement('canvas');
+    full.width = w;
+    full.height = h;
+    const image = full.getContext('2d')!.createImageData(w, h);
+    for (let row = 0; row < h; row++)
+      image.data.set(pixels.subarray((h - 1 - row) * w * 4, (h - row) * w * 4), row * w * 4);
+    full.getContext('2d')!.putImageData(image, 0, 0);
+    const out = document.createElement('canvas');
+    out.width = pic.width;
+    out.height = pic.height;
+    const ctx = out.getContext('2d')!;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(full, 0, 0, pic.width, pic.height);
+    // An object URL keeps the screen's markup short; the cache lets it go when the towns change.
+    const data = atob(out.toDataURL('image/jpeg', pic.quality).split(',')[1]!);
+    const bytes = new Uint8Array(data.length);
+    for (let i = 0; i < data.length; i++) bytes[i] = data.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([bytes], { type: 'image/jpeg' }));
+    this.pictures.set(key, url);
+    return url;
   }
 
   /** Where a sim position lands on screen (for HUD markers). */

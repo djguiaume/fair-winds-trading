@@ -702,3 +702,153 @@
     flex-basis: 100%;
   }
 }
+
+/* --- The port's picture (decision 0211) ------------------------------------------------- */
+/* The real town at its level behind the header, the panel's navy over its left side so the name,
+ * chips and gold stay readable, and the port's signature colour as a line under it. */
+.port-screen .trade-header.has-view {
+  flex-shrink: 0;
+  min-height: clamp(96px, 19vh, 150px);
+  align-items: flex-start;
+  border-bottom: 4px solid var(--port-accent, var(--brass-line));
+}
+/* The pad's focus scrolls into view clear of the taller header. */
+.trade-modal.port-screen:has(.has-view) {
+  scroll-padding-top: calc(clamp(96px, 19vh, 150px) + 20px);
+}
+.port-screen .trade-header:not(.has-view) {
+  border-bottom-color: var(--port-accent, var(--brass-line));
+}
+.port-screen .port-view {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #0b2230 center 62% / cover no-repeat;
+}
+.port-screen .port-view::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    #0b2230 0%,
+    rgba(11, 34, 48, 0.86) 22%,
+    rgba(11, 34, 48, 0) 45%
+  );
+}
+.port-screen .trade-header.has-view {
+  isolation: isolate;
+}
+
+/* The keeper under the Market rows (decision 0211): their portrait framed like the Quay's, one
+ * line in their voice, the town's level and what it grows into next. */
+.keeper-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 4px 18px;
+  margin: 18px 0 8px;
+  padding: 12px 16px;
+  border: 1.5px solid var(--brass-line);
+  border-radius: 12px;
+  background: rgba(18, 50, 70, 0.55);
+}
+.keeper-card.no-keeper {
+  grid-template-columns: 1fr;
+}
+.keeper-body p {
+  margin: 0;
+}
+.keeper-name b {
+  color: var(--ink);
+  font: 700 22px/1.1 var(--display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.keeper-name small {
+  margin-left: 8px;
+  color: var(--brass);
+  font: 700 14px/1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.keeper-line {
+  margin-top: 6px !important;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.4;
+}
+.keeper-town {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin-top: 8px !important;
+  color: var(--ink-dim, #a9bccb);
+  font: 700 14px/1.2 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.keeper-town .icon {
+  width: 18px;
+  height: 18px;
+  vertical-align: -4px;
+}
+.keeper-growth {
+  padding: 3px 8px;
+  border: 1px solid var(--brass-line);
+  border-radius: 6px;
+  color: var(--ink);
+}
+
+/* The Quay with nobody on it shows the quay itself. */
+.quay-empty.has-view {
+  display: grid;
+  gap: 12px;
+  padding: 16px 22px;
+}
+.quay-view {
+  aspect-ratio: 1440 / 300;
+  border: 1.5px solid var(--brass-line);
+  border-radius: 12px;
+  background: #0b2230 center / cover no-repeat;
+}
+.port-screen .trade-header.has-view .port-chip,
+.port-screen .trade-header.has-view .role-tag {
+  background: rgba(11, 34, 48, 0.82);
+}
+
+/* Short landscape screens and portrait phones: a strip, the picture behind the name and chips. */
+@media (max-height: 480px), (max-width: 640px) {
+  .port-screen .trade-header.has-view {
+    min-height: auto;
+  }
+  .trade-modal.port-screen:has(.has-view) {
+    scroll-padding-top: 84px;
+  }
+}
+@media (max-width: 640px) {
+  .port-screen .port-view::after {
+    background: linear-gradient(
+      90deg,
+      #0b2230 0%,
+      rgba(11, 34, 48, 0.8) 40%,
+      rgba(11, 34, 48, 0.2) 75%
+    );
+  }
+  .keeper-card {
+    gap: 4px 12px;
+    padding: 10px 12px;
+  }
+  .keeper-card .quay-face {
+    position: static;
+  }
+  .keeper-card .quay-face svg {
+    width: 64px;
+    height: 64px;
+  }
+  .keeper-name small {
+    display: block;
+    margin: 4px 0 0;
+  }
+}
