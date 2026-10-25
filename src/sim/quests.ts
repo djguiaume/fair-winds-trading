@@ -650,7 +650,7 @@ export type QuestEvent =
   /** Goods taken out of the hold for a step (`landed`, decision 0157). */
   | { type: 'landed'; quest: string; good: GoodId; qty: number }
   /**
-   * A timed run (decision 0210) got under way, ran over its par (back to the start) or was made;
+   * A timed run (decision 0213) got under way, ran over its par (back to the start) or was made;
    * `sec` the run's time so far, `par` its par, seconds.
    */
   | {
@@ -663,7 +663,7 @@ export type QuestEvent =
       from: string;
       to: string;
     }
-  /** A step done paid gold (decision 0210): its own, its option's, and the quest's at the end. */
+  /** A step done paid gold (decision 0213): its own, its option's, and the quest's at the end. */
   | { type: 'paid'; quest: string; step: string; gold: number }
   /** The boat was taken to a step's `moveTo` (decision 0164). */
   | { type: 'moved'; quest: string; step: string }
@@ -704,7 +704,7 @@ export class QuestBook {
   /** Offered quests already announced, so `offered` is sent once each. */
   private announced = new Set<string>();
   private since = 0;
-  /** A check made again after a step began (decision 0210). */
+  /** A check made again after a step began (decision 0213). */
   private again = false;
   private readonly doneElsewhere: (id: string) => boolean;
   private readonly atElsewhere: (id: string, step: string) => boolean;
@@ -1034,7 +1034,7 @@ export class QuestBook {
       }
     }
     this.afterChange(events);
-    // A step begun at a stop does its part there at once (decision 0210): the bread Maren gives
+    // A step begun at a stop does its part there at once (decision 0213): the bread Maren gives
     // as the millstones come ashore is aboard before the harbour screen says so.
     if (!this.again && events.some((e) => e.type === 'step' || e.type === 'started')) {
       this.again = true;
@@ -1047,7 +1047,7 @@ export class QuestBook {
     return events;
   }
 
-  /** A timed run that changed state in this check (decision 0210), said as a `run` event. */
+  /** A timed run that changed state in this check (decision 0213), said as a `run` event. */
   private runEvents(
     quest: QuestDef,
     step: QuestStep,
@@ -1069,7 +1069,7 @@ export class QuestBook {
     }
   }
 
-  /** Quest cargo aboard (decision 0210): what fills the hold besides goods, for the hold lists. */
+  /** Quest cargo aboard (decision 0213): what fills the hold besides goods, for the hold lists. */
   cargo(): { quest: string; item: string; n: number; space: number }[] {
     const out: { quest: string; item: string; n: number; space: number }[] = [];
     for (const { quest, step } of this.active)
@@ -1079,7 +1079,7 @@ export class QuestBook {
     return out;
   }
 
-  /** Timed runs under way (decision 0210): for the clock at sea. */
+  /** Timed runs under way (decision 0213): for the clock at sea. */
   runs(): { quest: string; step: string; sec: number; par: number; to: string }[] {
     const out: { quest: string; step: string; sec: number; par: number; to: string }[] = [];
     for (const { quest, step } of this.active) {
@@ -1102,7 +1102,7 @@ export class QuestBook {
   }
 
   /**
-   * What the started quests say where the boat is now (decision 0210): quest cargo loaded or left
+   * What the started quests say where the boat is now (decision 0213): quest cargo loaded or left
    * on the quay, cargo unloaded, goods handed over so far. Read after a check; changes nothing.
    */
   news(): (StepNews & { quest: string; step: string })[] {

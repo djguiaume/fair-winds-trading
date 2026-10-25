@@ -245,7 +245,7 @@ describe('quest engine (decision 0125)', () => {
     expect(questsFor(PHASE0_MAP, [after]).map((q) => q.id)).toEqual(['test-after']);
   });
 
-  it('quest cargo goes on deck, apart from the hold, in as many trips as the deck takes (0210)', () => {
+  it('quest cargo goes on deck, apart from the hold, in as many trips as the deck takes (0213)', () => {
     const world = createWorld(PHASE1_MAP, SLOOP);
     const quests = book(world, true, SAILING);
     quests.check();
@@ -331,7 +331,7 @@ describe('quest engine (decision 0125)', () => {
     expect(quests.progress('test-landing')!.counts).toEqual([0, 0, 0]);
     sailTo(world, quests, 42, 40, 1.5, 2);
     expect(quests.progress('test-landing')!.counts[0]).toBe(0);
-    // Three seconds held slowly: one log of five fits on a sloop's deck of eight (0210).
+    // Three seconds held slowly: one log of five fits on a sloop's deck of eight (0213).
     sailTo(world, quests, 42, 40, 1.5, 1);
     expect(quests.progress('test-landing')!.counts.slice(0, 2)).toEqual([1, 0]);
     expect(questTarget(quests, PHASE1_MAP)).toEqual({ port: 'calda' });

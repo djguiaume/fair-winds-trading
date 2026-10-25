@@ -237,12 +237,12 @@ export function capacity(trade: TradeState): number {
   return holdCapacity(SHIP_CLASSES[captain.activeShip]!, captain.ships[captain.activeShip]!);
 }
 
-/** Goods aboard. Quest cargo goes on deck, apart from the hold (decision 0210). */
+/** Goods aboard. Quest cargo goes on deck, apart from the hold (decision 0213). */
 export function cargoUsed(trade: TradeState): number {
   return totalAmount(trade.captain.cargo);
 }
 
-/** Room for quest cargo on deck (decision 0210): the ship's `deck`, less what is lashed there. */
+/** Room for quest cargo on deck (decision 0213): the ship's `deck`, less what is lashed there. */
 export function deckFree(trade: TradeState): number {
   const ship = SHIP_CLASSES[trade.captain.activeShip]!;
   return Math.max(0, ship.deck - (trade.quests.hold ?? 0));

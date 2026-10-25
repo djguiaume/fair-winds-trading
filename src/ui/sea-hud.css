@@ -143,22 +143,16 @@ button.captain-stat:active {
 .hull-stat.is-low b {
   color: var(--red);
 }
-/* The hold list stays above a quest note that slides in under the gold (decision 0210). */
+/* The hold list stays above a quest note that slides in under the gold (decision 0213). */
 #captain-stats:has(.cargo-tooltip:not([hidden])) {
   z-index: 13;
 }
-/* A timed run's clock (decision 0210): "Run to Saltmere 1:23 / 3:00", amber near par. */
-.run-stat span {
+/* Quest cargo on deck (decision 0213): "Deck 6/8", its lashed crate apart from the hold's. */
+.deck-stat span {
   color: var(--brass);
   font-size: 15px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-}
-.run-stat b {
-  font-variant-numeric: tabular-nums;
-}
-.run-stat.is-close b {
-  color: var(--amber);
 }
 .captain-stat[hidden],
 .cargo-tooltip[hidden] {
@@ -232,6 +226,28 @@ body.is-docked .objective {
   flex: none;
   color: var(--ink-dim);
   font-weight: 600;
+}
+/* A timed run's clock in the course pill (decision 0213): the time against par, red with a slow
+   pulse in the last 20 s, like the hull bar when low (amber means a storm, art bible §8). */
+.obj-clock {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  padding-left: 8px;
+  border-left: 1px solid var(--brass-line);
+  font-variant-numeric: tabular-nums;
+}
+.obj-clock[hidden] {
+  display: none;
+}
+#hud .obj-clock .icon {
+  width: 18px;
+  height: 18px;
+}
+.obj-clock.is-close b {
+  color: var(--red);
+  animation: mark-pulse 1.6s ease-in-out infinite;
 }
 
 /* --- Instrument cluster: speed log + wind compass, top right ----------------------------- */
@@ -1071,6 +1087,10 @@ button.captain-stat:focus-visible {
 @media (orientation: portrait) and (max-width: 600px) {
   #captain-stats {
     flex-direction: column;
+  }
+  /* A run's clock takes the distance's place on a phone (decision 0213). */
+  .objective:has(.obj-clock:not([hidden])) .obj-dist {
+    display: none;
   }
   .compass {
     width: 108px;

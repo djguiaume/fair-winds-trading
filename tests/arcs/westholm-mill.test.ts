@@ -63,7 +63,7 @@ describe('the Westholm mill arc (0129, 0132)', () => {
     expect(quests.progress(ID)!.step).toBe('millstones');
     expect(gold() - paid - sale).toBe(100);
 
-    // Millstones: space 6 each, the sloop's deck of 8 takes one a trip (decision 0210).
+    // Millstones: space 6 each, the sloop's deck of 8 takes one a trip (decision 0213).
     for (let trip = 1; trip <= 2; trip++) {
       dock(world, 'stonehaven');
       quests.check();

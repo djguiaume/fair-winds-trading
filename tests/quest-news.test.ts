@@ -8,7 +8,7 @@ import { type World, createWorld } from '../src/sim/world';
 import { cargoLines, newsLine, quayItems } from '../src/ui/questView';
 import { setLanguage } from '../src/i18n';
 
-// Dock news (decision 0210): every stop of a quest under way says what just happened there, and a
+// Dock news (decision 0213): every stop of a quest under way says what just happened there, and a
 // timed run says when its clock starts, runs over par or is made.
 const MILL = 'westholm-mill';
 
@@ -26,7 +26,7 @@ function start(step: string, counts: number[]) {
 const lines = (world: World, quests: QuestBook) =>
   quests.news().map((n) => newsLine(quests, world.map, n));
 
-describe('dock news (0210)', () => {
+describe('dock news (0213)', () => {
   it('says what was loaded at the pick-up, and what is left on the quay for want of deck', () => {
     const { world, quests } = start('millstones', [0, 0, 0]);
     world.trade.dockedAt = 'stonehaven';
@@ -151,7 +151,7 @@ describe('dock news (0210)', () => {
     expect(cargoLines(quests)).toEqual([]);
     world.trade.dockedAt = 'stonehaven';
     quests.check();
-    expect(cargoLines(quests)).toEqual(['Maren’s millstones: 1 (6 space)']);
+    expect(cargoLines(quests)).toEqual(['Maren’s millstones ×1 · 6 deck space']);
   });
 
   it('speaks French with the item’s own agreement', () => {

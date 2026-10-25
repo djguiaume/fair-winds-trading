@@ -2,7 +2,7 @@ import { formatNumber, t } from '../i18n';
 import { type MenuAction, PAD } from '../input/gamepad';
 import { COIN, icon } from './icons';
 import { padGlyph } from './padGlyphs';
-import { portraitSvg } from './portraits';
+import { firstName, portraitSvg } from './portraits';
 import { type QuestCardModel, cardTag } from './questView';
 
 const esc = (s: string) =>
@@ -68,23 +68,28 @@ export function questCardBody(c: QuestCardModel, inline = false): string {
           `<button type="button" class="d-btn quest-option" data-act="choose" data-option="${esc(o.id)}"${q}><b>${press}${esc(o.title)}</b>${o.copy ? `<span>${esc(o.copy)}</span>` : ''}</button>`,
       )
       .join('');
-  else if (!inline)
+  else if (!inline && !c.plot)
     actions = `<button type="button" class="d-btn brass" data-act="close">${press}${esc(t('quest.close'))}</button>`;
   else if (c.toMarket)
     actions = `<button type="button" class="d-btn brass" data-act="market"${q}>${esc(t('quest.news.toMarket'))}</button>`;
-  // What just happened here (decision 0210), above everything the person says.
+  // What just happened here (decision 0213), above everything the person says.
   const news = c.news
     ? `<p class="quest-news" role="status"><span class="quest-pin" aria-hidden="true">!</span>${esc(c.news)}</p>`
     : '';
-  return `<span class="quest-tag is-${tag}">${esc(t(TAG_KEY[tag]))}</span>${news}
+  const tagText = c.plot ? t('home.plotCard.tag') : t(TAG_KEY[tag]);
+  return `<span class="quest-tag is-${tag}">${esc(tagText)}</span>${news}
       <header class="quest-head"><h2>${esc(c.giver?.name ?? c.arc)}</h2>${
         c.role ? `<span class="quest-role">${esc(c.role)}</span>` : ''
       }</header>
-      <div class="quest-arc"><span>${esc(
-        c.kind === 'finished'
-          ? t('quest.arcDone', { name: c.arc })
-          : t('quest.arcStep', { name: c.arc, n: c.stepNo, total: c.steps }),
-      )}</span><span class="quest-pips" aria-hidden="true">${pips}</span></div>
+      ${
+        c.plot
+          ? ''
+          : `<div class="quest-arc"><span>${esc(
+              c.kind === 'finished'
+                ? t('quest.arcDone', { name: c.arc })
+                : t('quest.arcStep', { name: c.arc, n: c.stepNo, total: c.steps }),
+            )}</span><span class="quest-pips" aria-hidden="true">${pips}</span></div>`
+      }
       ${c.speech ? `<p class="quest-speech">${esc(c.speech)}</p>` : ''}
       ${ask}${reward}
       ${actions ? `<div class="quest-actions${c.kind === 'choice' ? ' is-choice' : ''}">${actions}</div>` : ''}`;
@@ -131,8 +136,15 @@ export class QuestCard {
     return this.card;
   }
 
-  /** `arrival`: the harbour's name, when the card greets the captain on docking. */
+  /**
+   * `arrival`: the harbour's name, when the card greets the captain on docking. A plot's card at
+   * the captain's island (0210) says who waits there and goes on to the island instead.
+   */
   show(card: QuestCardModel, arrival?: string) {
+    const toIsland = !!card.plot;
+    const sub = toIsland
+      ? t('home.plotCard.arrival', { name: firstName(card.giver?.name ?? '') })
+      : t('quest.arrival');
     this.card = card;
     this.dialog.dataset.kind = card.kind;
     this.dialog.classList.toggle('is-arrival', !!arrival);
@@ -141,15 +153,19 @@ export class QuestCard {
       : '';
     this.dialog.innerHTML = `${
       arrival
-        ? `<header class="quest-arrival"><h1>${esc(arrival)}</h1><small>${esc(t('quest.arrival'))}</small></header>`
+        ? `<header class="quest-arrival"><h1>${esc(arrival)}</h1><small>${esc(sub)}</small></header>`
         : ''
     }${face}<div class="quest-body">${questCardBody(card)}</div>${
       arrival
-        ? `<button type="button" class="quest-to-market" data-act="market">${card.kind === 'offer' ? '' : padFor('back')}${esc(t('quest.toMarket'))}</button>`
+        ? toIsland
+          ? `<button type="button" class="quest-to-market d-btn brass" data-act="market">${padFor('press')}${esc(t('home.toIsland'))}</button>`
+          : `<button type="button" class="quest-to-market" data-act="market">${card.kind === 'offer' ? '' : padFor('back')}${esc(t('quest.toMarket'))}</button>`
         : ''
     }`;
     if (!this.dialog.open) this.dialog.showModal();
-    this.dialog.querySelector<HTMLButtonElement>('.quest-actions button')?.focus();
+    this.dialog
+      .querySelector<HTMLButtonElement>('.quest-actions button, .quest-to-market.d-btn')
+      ?.focus();
   }
 
   close() {

@@ -74,7 +74,7 @@ describe('A light on the Teeth (decision 0133)', () => {
     book.check();
     expect(book.progress(ID)!.step).toBe('stone');
 
-    // 2. Three blocks of five spaces: a sloop's deck of eight takes one a trip (decision 0210).
+    // 2. Three blocks of five spaces: a sloop's deck of eight takes one a trip (decision 0213).
     book.check();
     expect(book.progress(ID)!.counts[0]).toBe(1);
     expect(world.trade.quests.hold).toBe(5);

@@ -168,7 +168,7 @@ export interface StepContext extends ConditionContext {
   cargoBefore: GoodAmounts;
   /** Whether night counts now: night, or any time when night is switched off. */
   nightOk: boolean;
-  /** Deck room free for quest cargo (decision 0210). */
+  /** Deck room free for quest cargo (decision 0213). */
   freeSpace: number;
   /** Hold spaces one piece of a quest item takes. */
   itemSpace(item: string): number;
@@ -211,14 +211,14 @@ interface ConditionKind {
   /** `s`: its own numbers; `goal`: the step's whole goal, for `all`, `any` and `not`. */
   test(c: Condition, ctx: ConditionContext, s: number[], goal: Condition): boolean;
   /**
-   * What the captain should hear where the boat is now (decision 0210): quest cargo loaded or
+   * What the captain should hear where the boat is now (decision 0213): quest cargo loaded or
    * left on the quay, goods handed over so far. Null when this place says nothing for the step.
    */
   news?(c: Condition, ctx: StepContext, s: number[]): StepNews | null;
 }
 
 /**
- * The kinds of dock news (decision 0210), each a line of text (`quest.news.<kind>`):
+ * The kinds of dock news (decision 0213), each a line of text (`quest.news.<kind>`):
  * `loaded` quest cargo aboard, all of it (`loadedOne` a single piece, `loadedPassenger` a person);
  * `loadedShort` some aboard, the rest left for want of room; `noRoom` none aboard for want of room;
  * `nothingAboard` at the drop-off with nothing for it; `unloaded` some, not all, unloaded there;
@@ -243,7 +243,7 @@ export type NewsKind = (typeof NEWS_KINDS)[number];
 /** A place in dock news: a port id, or `spot` for a spot at sea. */
 export type NewsPlace = string;
 
-/** Dock news for one step (decision 0210), in numbers: the interface words it. */
+/** Dock news for one step (decision 0213), in numbers: the interface words it. */
 export interface StepNews {
   kind: NewsKind;
   /** Quest cargo (`carried`), or a good (`delivered`). */
@@ -791,7 +791,7 @@ export function updateGoal(goal: Condition, ctx: StepContext, s: number[]): void
   }
 }
 
-/** A step's dock news where the boat is now (decision 0210), one per condition that has some. */
+/** A step's dock news where the boat is now (decision 0213), one per condition that has some. */
 export function goalNews(goal: Condition, ctx: StepContext, s: readonly number[]): StepNews[] {
   const out: StepNews[] = [];
   for (const [c, at] of slotLayout(goal).at) {

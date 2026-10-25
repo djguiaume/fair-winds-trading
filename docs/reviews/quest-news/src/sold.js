@@ -1,4 +1,4 @@
-// The timber sold on the market: the step is paid while the harbour screen is open (0210).
+// The timber sold on the market: the step is paid while the harbour screen is open (0213).
 (async () => {
   const f = window.fwt;
   // The quest test's own card closes first: its close event comes a moment later.

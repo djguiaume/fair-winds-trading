@@ -44,7 +44,7 @@ export class QuestNote {
   update(dt: number, free: boolean, skip: (key: string) => boolean = () => false) {
     if (this.left > 0) {
       this.left -= dt;
-      // The stats above can grow while it shows (the deck chip, a run's clock, decision 0210).
+      // The stats above can grow while it shows (the deck chip, a run's clock, decision 0213).
       this.place();
       this.el.classList.toggle('is-fading', this.left < 1);
       if (this.left <= 0) this.hide();

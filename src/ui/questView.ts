@@ -20,6 +20,7 @@ import {
   type QuestDef,
   type QuestStep,
 } from '../sim/quests';
+import { BUILDINGS, homeSpots, resolveSpot } from '../sim/home';
 import { isDiscovered } from '../sim/shipyards';
 import { findPort } from '../sim/trade';
 import { type Character, type Mood, MOODS, character } from './portraits';
@@ -67,12 +68,17 @@ export interface QuestCardModel {
   /** Steps after this one, on an offer: "then 2 more steps". */
   moreSteps?: number;
   /**
-   * What just happened for this quest where the boat is (decision 0210): "1 millstone aboard for
+   * What just happened for this quest where the boat is (decision 0213): "1 millstone aboard for
    * Maren, 1 left on the quay…", or "Done! +150 gold." for the step finished here.
    */
   news?: string;
   /** The news asks for the market (goods to hand over here): the card offers the way there. */
   toMarket?: boolean;
+  /**
+   * A plot's card at the captain's island (decision 0210): the giver by their stake, with its own
+   * tag and no arc line; the arrival button opens the Island tab on this plot.
+   */
+  plot?: { island: string; spot: string };
 }
 
 const isMood = (m: unknown): m is Mood => MOODS.includes(m as Mood);
@@ -99,7 +105,7 @@ function placeName(map: MapDef, place: string | undefined): string {
 }
 
 /**
- * Dock news in words (decision 0210): the line `quest.news.<kind>` with the quest's person, its
+ * Dock news in words (decision 0213): the line `quest.news.<kind>` with the quest's person, its
  * cargo's name in the right form (`quest.item.<id>.one|many|the|own|unloadedOne|unloadedMany`,
  * or a passenger's name) and the places.
  */
@@ -136,7 +142,7 @@ export function newsLine(book: QuestBook, map: MapDef, news: StepNews & { quest:
 }
 
 /**
- * Quest cargo in the hold lists (decision 0210): "Maren’s millstones: 1 (6 space)", a passenger
+ * Quest cargo in the hold lists (decision 0213): "Maren’s millstones: 1 (6 space)", a passenger
  * "Pip, passenger".
  */
 export function cargoLines(book: QuestBook): string[] {
@@ -178,7 +184,9 @@ export function parClock(secs: number): string {
  * with its quest, the quest's vars (decision 0151): `{name}` (the port's name, or "the fish"),
  * `{nameMakes}` for a port (what it makes, "some fish") and `{nameBuyer}` for a good (the line
  * `<text>.nameBuyer` naming a charted port that wants it, or nothing). An unset var reads
- * `<text>.var.<name>` ("your chosen port").
+ * `<text>.var.<name>` ("your chosen port"). A quest that gives a plot on the captain's island
+ * (`homeSpot`) names its two buildings, `{spotA}` and `{spotB}` ("a warehouse", "l’entrepôt",
+ * decision 0210).
  */
 export function stepParams(
   book: QuestBook,
@@ -187,6 +195,7 @@ export function stepParams(
 ): Record<string, string> {
   const par = book.parSeconds(step);
   const out: Record<string, string> = par === undefined ? {} : { par: parClock(par) };
+  if (quest) Object.assign(out, plotParams(book.map, quest));
   if (!quest?.vars) return out;
   const map = book.map;
   const unset = (name: string) => tOptional(`${quest.text}.var.${name}`) ?? '';
@@ -205,6 +214,36 @@ export function stepParams(
     }
   }
   return out;
+}
+
+/** The plot a quest gives on one of the captain's islands (its reward's first `homeSpot`). */
+export function questPlot(map: MapDef, quest: QuestDef): { island: string; spot: string } | null {
+  const ref = (quest.reward as { homeSpot?: unknown } | undefined)?.homeSpot;
+  return resolveSpot(map, Array.isArray(ref) ? ref[0] : ref);
+}
+
+/** The quest that gives a plot, if any (decision 0210): whose plot it is. */
+export function plotQuest(
+  quests: readonly QuestDef[],
+  map: MapDef,
+  island: string,
+  spot: string,
+): QuestDef | undefined {
+  return quests.find((q) => {
+    const plot = questPlot(map, q);
+    return plot?.island === island && plot.spot === spot;
+  });
+}
+
+/** `{spotA}` and `{spotB}`: the two buildings of a plot's pair, with their article. */
+export function plotParams(map: MapDef, quest: QuestDef): Record<string, string> {
+  const plot = questPlot(map, quest);
+  const pair = plot && homeSpots(map, plot.island).find((s) => s.id === plot.spot)?.pair;
+  if (!pair) return {};
+  const [a, b] = BUILDINGS.filter((x) => x.pair === pair).map((x) =>
+    t(`building.${x.id}.a` as MessageKey),
+  );
+  return { spotA: a ?? '', spotB: b ?? '' };
 }
 
 /** A charted harbour that wants `good`, other than the one alongside, for lesson hints. */
@@ -364,7 +403,7 @@ export interface QuayItem {
   card: QuestCardModel;
   fresh: boolean;
   /**
-   * The `seen` key of the card's dock news (decision 0210), `news:<quest>:<step>@<port>:<line>`:
+   * The `seen` key of the card's dock news (decision 0213), `news:<quest>:<step>@<port>:<line>`:
    * the same news is told once, new news (more aboard, more handed over) again.
    */
   newsKey?: string;
@@ -375,7 +414,7 @@ export interface QuayItem {
  * other than the main quests' arrival cards. The thanks first, then the steps under way here, then
  * the offers; `fresh` ones count on the tab's badge until the tab is seen.
  *
- * Every stop of a started quest speaks here too (decision 0210): where its cargo is loaded or
+ * Every stop of a started quest speaks here too (decision 0213): where its cargo is loaded or
  * unloaded, or its goods handed over, the step's card is listed with its dock news on top, and
  * `paid` (quest → gold, for steps done during this call) tops the next card with "Done! +150 gold".
  */

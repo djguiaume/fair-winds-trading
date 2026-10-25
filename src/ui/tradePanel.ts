@@ -117,7 +117,7 @@ export class TradePanel {
   onTrade: (kind: 'buy' | 'sell', good: GoodId | null) => void = () => {};
   onRender: () => void = () => {};
   onClose: () => void = () => {};
-  /** Quest cargo aboard, a line each (decision 0210). */
+  /** Quest cargo aboard, a line each (decision 0213). */
   questCargo: () => string[] = () => [];
   /** The Quay tab's people; none: no tab. */
   quay: PortQuay | null = null;
@@ -360,7 +360,7 @@ export class TradePanel {
     return `<button id="tp-quay-hint" class="quay-hint">${
       first.giver ? portraitSvg(first.giver, { size: 40, mood: first.mood }) : ''
     }<span>${
-      // Dock news says itself (decision 0210): "Done! +100 gold." after the timber sold.
+      // Dock news says itself (decision 0213): "Done! +100 gold." after the timber sold.
       first.news
         ? `<b>${name}</b> · ${first.news.replace(/[&<>"]/g, '')}`
         : t('trade.quayHint', { name })
@@ -752,16 +752,16 @@ export class TradePanel {
     `;
   }
 
-  /** Quest cargo on deck (decision 0210), next to the hold, while there is some. */
+  /** Quest cargo on deck (decision 0213), next to the hold, while there is some. */
   private renderDeckChip(): string {
     const { trade } = this.world;
     const onDeck = trade.quests.hold ?? 0;
     if (onDeck <= 0) return '';
     const deck = SHIP_CLASSES[trade.captain.activeShip]!.deck;
-    return `<span class="port-chip deck-chip" title="${t('hud.onDeck')}"><small>${t('hud.deck')}</small><b>${onDeck}/${deck}</b></span>`;
+    return `<span class="port-chip deck-chip" title="${t('hud.onDeck')}"><svg class="icon" aria-hidden="true"><use href="#i-deck" /></svg><small>${t('hud.deck')}</small><b>${onDeck}/${deck}</b></span>`;
   }
 
-  /** Quest cargo on deck (decision 0210): it is not for sale and not in the hold, so say whose. */
+  /** Quest cargo on deck (decision 0213): it is not for sale and not in the hold, so say whose. */
   private renderQuestCargo(): string {
     const lines = this.questCargo();
     if (!lines.length) return '';
@@ -1192,7 +1192,7 @@ export class TradePanel {
       .forEach((btn) => {
         btn.addEventListener('click', () => {
           const act = btn.dataset.act as 'accept' | 'later' | 'ignore' | 'choose' | 'market';
-          // Dock news that asks for goods here (decision 0210): "To the market".
+          // Dock news that asks for goods here (decision 0213): "To the market".
           if (act === 'market') this.tab = 'market';
           else this.quay?.act(btn.dataset.quest!, act, btn.dataset.option);
           this.render();

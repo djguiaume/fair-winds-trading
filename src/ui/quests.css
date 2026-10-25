@@ -210,7 +210,7 @@ dialog.quest-card::backdrop {
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
-/* Dock news (decision 0210): what just happened here, a strip above the person's words. */
+/* Dock news (decision 0213): what just happened here, a strip above the person's words. */
 .quest-news {
   display: flex;
   align-items: flex-start;
@@ -227,7 +227,10 @@ dialog.quest-card::backdrop {
   margin-top: 1px;
 }
 .quest-tag.is-next {
-  background: #7fc8ff;
+  /* Brass on navy, in the palette (art director, decision 0213). */
+  box-shadow: inset 0 0 0 1.5px var(--brass);
+  background: var(--navy);
+  color: var(--brass);
 }
 .quest-tag.is-done {
   background: var(--green);

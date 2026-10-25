@@ -50,7 +50,7 @@ export interface ShipClass {
   /** Cargo capacity in units of goods, before hold upgrades. */
   hold: number;
   /**
-   * Quest cargo lashed on deck (decision 0210), in the quest items' `space` units, apart from the
+   * Quest cargo lashed on deck (decision 0213), in the quest items' `space` units, apart from the
    * hold; upgrades do not change it.
    */
   deck: number;

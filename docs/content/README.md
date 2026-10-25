@@ -370,7 +370,7 @@ The tracked step's `reach` points, a timed run's `via` points and quest cargo's 
 at sea (a ring as wide as `within`, the next one pulsing) and on the chart, with no extra field.
 `"marker": "gulls"` on a step adds a flock diving over each spot.
 
-### Dock news, quest cargo on deck ([0210](../decisions/0210-quest-news-at-each-stop.md))
+### Dock news, quest cargo on deck ([0213](../decisions/0213-quest-news-at-each-stop.md))
 
 - Every stop of a quest under way says what happened there, from the step's goal: no file field needed. The lines are `quest.news.<kind>` in `src/i18n/*.json`.
 - A quest item that takes room (`items.<id>.space` over 0) needs its names: `quest.item.<id>.one`, `.many`, `.the`, `.own`, `.unloadedOne`, `.unloadedMany`, in English and French. The quest builder lists them on the quest's page; `npm run check` says when one is missing. A passenger (space 0) uses the person's name from `characters.json` (`short` when not their first word).

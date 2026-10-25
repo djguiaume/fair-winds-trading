@@ -175,7 +175,7 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     100,
     1,
     'units',
-    'Quest cargo carried on deck, apart from the hold (0210); upgrades leave it.',
+    'Quest cargo carried on deck, apart from the hold (0213); upgrades leave it.',
   ),
   'ships.*.price': num('Price', 0, 50000, 50, 'gold', 'Shipyard price (0 for the starter).'),
   'ships.*.upgradePrices': num(

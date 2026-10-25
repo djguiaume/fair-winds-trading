@@ -264,7 +264,11 @@ function displayed() {
     const all = design.props.map((_, i) => i);
     return { design, from: all, moved: all.map(() => false) };
   }
-  return homeView(design, showHome === 'first' ? {} : chosen);
+  if (showHome === 'first') return homeView(design, {});
+  // A plot with no building picked shows staked, as the captain sees a plot given (0210).
+  const staked: Record<string, string> = {};
+  for (const spot of design.homeSpots) if (spot.pair) staked[spot.id] = 'plot:open';
+  return homeView(design, { ...staked, ...chosen });
 }
 
 /** Builds the island at the level and shows it in both views. */
@@ -630,7 +634,8 @@ function runChecks() {
         for (const issue of issues)
           if (issue.prop !== undefined) {
             const index = from[issue.prop];
-            if (index === undefined || moved[issue.prop]) delete issue.prop;
+            // A plot's stakes are drawn, not in the file (-1).
+            if (index === undefined || index < 0 || moved[issue.prop]) delete issue.prop;
             else issue.prop = index;
           }
         triangles = e.data.triangles;
