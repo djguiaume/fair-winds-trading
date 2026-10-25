@@ -56,7 +56,7 @@ describe('full-screen chart planning', () => {
     expect(get<HTMLDialogElement>('chart').open).toBe(false);
   });
 
-  it('lists the hold and the deck on the Hold tab (0213)', () => {
+  it('lists the hold and the deck on the Cargo tab (0213)', () => {
     const world = createWorld(PHASE1_MAP, SLOOP);
     world.trade.captain.cargo.grain = 5;
     world.trade.quests.hold = 6;

@@ -377,7 +377,7 @@
   "chart.boatLabel": "Vous · cap {deg}°",
   "chart.windLabel": "Vent du {deg}° · {kn} nd · {force}",
   "chart.tabMap": "Carte",
-  "chart.tabHold": "Cale",
+  "chart.tabHold": "Cargaison",
   "chart.holdAboard": "À bord",
   "chart.holdTitle": "Dans la cale",
   "chart.holdNone": "Rien à bord.",

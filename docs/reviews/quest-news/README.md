@@ -13,8 +13,8 @@ Real-game screenshots, taken with `npm run shots -- --list docs/reviews/quest-ne
 | 7 | Shot 1 in French |
 | 8 | The hold list at sea, with the deck chip and "On deck" |
 | 9 | The market's "On deck" card and the deck chip in the harbour header |
-| 10 | The chart's Hold tab: the hold and the deck (desktop, portrait) |
-| 11 | The Hold tab on a TV with a controller (LB/RB to reach it) |
+| 10 | The chart's Cargo tab: the hold and the deck (desktop, portrait) |
+| 11 | The Cargo tab on a TV with a controller (LB/RB to reach it) |
 | 12 | Shot 4 in French: « Remettre 8 bois · +90 » |
 
 Before: the same dock as shot 1 opened on the market with nothing about Maren, the hold at 6/10 and its list saying "Hold empty".

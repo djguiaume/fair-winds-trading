@@ -117,7 +117,7 @@ export class SeaChart {
   /** People's faces on their ports, the tracked step's place and the journal; none: no quests. */
   quests: ChartQuests | null = null;
   onDestinationChange: () => void = () => {};
-  /** Quest cargo on deck, one line each (decision 0213), for the Hold tab. */
+  /** Quest cargo on deck, one line each (decision 0213), for the Cargo tab. */
   questCargo: () => string[] = () => [];
   /** The running quests' own sea marks (decision 0164), drawn while they run. */
   questMarks: () => readonly SeaMarkDef[] = () => [];
@@ -921,7 +921,7 @@ export class SeaChart {
   }
 
   /**
-   * The Hold tab (decision 0213): what she carries, goods in the hold and quest cargo on deck, for
+   * The Cargo tab (decision 0213): what she carries, goods in the hold and quest cargo on deck, for
    * a controller or a phone that has no cargo tooltip to hover.
    */
   private drawHold() {
