@@ -722,7 +722,9 @@ export class GameView {
     const lava = this.islands.userData.lava as THREE.MeshBasicMaterial | undefined;
     lava?.color.copy(LAVA_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
     this.boat.setNightLighting?.(day.night);
+    // The lanterns' glow is sized for the sea camera: this close it would hide the town.
     const hidden = [
+      this.lanterns.points,
       this.rain.mesh,
       this.streaks.mesh,
       this.stormClouds.root,
