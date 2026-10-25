@@ -10,7 +10,7 @@
  */
 import { composeTune, EIGHTHS_PER_BAR, type Theme, type Tune } from './composer';
 import { createBand, playNote, type Band } from './synth';
-import { playCreak, playFoghorn } from './sfx';
+import { playCreak, playFoghorn, playThud } from './sfx';
 import { babblePlan, MAX_SECONDS, playBabble, playClip, voiceFiles, voiceFor } from './babble';
 import {
   EFFECTS,
@@ -108,6 +108,7 @@ export class Music {
     if ('synth' in effect) {
       if (effect.synth === 'creak') playCreak(ctx, ctx.destination, volume);
       if (effect.synth === 'foghorn') playFoghorn(ctx, ctx.destination, volume);
+      if (effect.synth === 'thud') playThud(ctx, ctx.destination, volume);
       return;
     }
     void loadSound(ctx, effect.file).then((buffer) => {
@@ -129,6 +130,11 @@ export class Music {
     const { ctx } = this;
     if (!ctx || !this.audible || ctx.state !== 'running') return;
     this.effect(EFFECTS.creak, this.level);
+  }
+
+  /** The hull strikes a shore, a pier, ice, a boat or a reef (decision 0208). */
+  thud(): void {
+    this.effectNamed('thud');
   }
 
   /** An effect of the sound list by name: a step's `sound`, such as the prologue's foghorn (0139). */

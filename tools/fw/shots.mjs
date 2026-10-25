@@ -39,6 +39,10 @@ Where
   --sail 0|1|2                  sails furled, half, full (default 2)
   --speed kn                    starting speed (default 5)
   --ship id                     sail this ship (sloop, schooner, fluyt, …)
+  --hull pct                    her hull at this condition, 0 to 100 (decision 0208: the model
+                                shows scuffs below 75, patches below 50, torn sails below 25)
+  --crash ms                    a crash's splash and planks at her bow this long before the shot
+                                (after the wait; e.g. --crash 250 for the splash in the air)
   --hold Key:ms                 hold a key that long before the shot (e.g. ArrowUp:2500)
   --pad steps                   a fake game controller (0162): after the wait, connected, then
                                 each step held in turn: button:ms or axis=value:ms
@@ -95,7 +99,7 @@ Output
 
 // The game's own sea is the grown one (decision 0198): `phase4` (or `game`) needs no `?map=`.
 const SEAS = { phase4: '', game: '', ring: 'ring', stress: 'stress' };
-const NUMBERS = ['heading', 'sail', 'speed', 'zoom', 'time', 'wait', 'chart-zoom'];
+const NUMBERS = ['heading', 'sail', 'speed', 'zoom', 'time', 'wait', 'chart-zoom', 'hull', 'crash'];
 
 const pair = (v) => {
   if (Array.isArray(v)) return v.map(Number);
@@ -139,6 +143,8 @@ export function normalise(opts) {
     sail: o.sail ?? 2,
     speed: o.speed ?? 5,
     ship: o.ship ?? null,
+    hull: o.hull ?? null,
+    crash: o.crash ?? null,
     hold: o.hold ? keyHold(o.hold) : null,
     pad: o.pad ? padSteps(o.pad) : null,
     port: o.port ?? null,
@@ -328,6 +334,7 @@ async function setScene(page, shot) {
       captain.activeShip = s.ship;
       world.ship = trade.activeShip(world.trade);
     }
+    if (s.hull !== null) window.fwt.hull(s.hull);
     if (s.quest && !window.fwt.questAt(s.quest[0], s.quest[1]))
       return `no quest step ${s.quest.join(':')}`;
     if (s.charted) {
@@ -502,6 +509,10 @@ async function shootScene(page, shot) {
     await page.keyboard.up(shot.hold.key);
   }
   await pause(shot.wait);
+  if (shot.crash !== null) {
+    await page.evaluate(() => window.fwt.impact());
+    await pause(shot.crash);
+  }
   // Mooring by an island of hers turns the camera and leaving it frees it (0128): look again.
   if (shot.look && !shot.editor && !shot.url) await page.evaluate(lookAt, shot.look);
   // With the chart, the pad plays on the chart (moves its cross), so it acts once it is open.

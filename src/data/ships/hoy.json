@@ -89,6 +89,41 @@
     "hatchZ": 1.95,
     "cargoZ": -0.2,
     "cargoX": 0.46,
-    "parts": ["hoy-deck", "leeboards"]
+    "parts": ["hoy-deck", "leeboards"],
+    "damage": {
+      "scuffs": [
+        {
+          "z": 0.3,
+          "side": 1
+        },
+        {
+          "z": -0.1,
+          "side": -1
+        },
+        {
+          "z": -0.32,
+          "side": 1
+        }
+      ],
+      "rail": {
+        "z": -0.15,
+        "side": 1
+      },
+      "tears": [
+        {
+          "u": 0.4,
+          "v": 0.3
+        },
+        {
+          "u": 0.6,
+          "v": 0.65
+        }
+      ],
+      "listDeg": 3,
+      "spout": {
+        "z": -0.2,
+        "side": 1
+      }
+    }
   }
 }

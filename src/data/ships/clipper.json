@@ -101,6 +101,45 @@
     "hatchZ": 4,
     "cargoZ": 1.5,
     "cargoX": 0.42,
-    "parts": ["clipper-deck"]
+    "parts": ["clipper-deck"],
+    "damage": {
+      "scuffs": [
+        {
+          "z": 0.32,
+          "side": 1
+        },
+        {
+          "z": 0.1,
+          "side": -1
+        },
+        {
+          "z": -0.25,
+          "side": 1
+        },
+        {
+          "z": -0.05,
+          "side": -1
+        }
+      ],
+      "rail": {
+        "z": 0.12,
+        "side": 1
+      },
+      "tears": [
+        {
+          "u": 0.4,
+          "v": 0.3
+        },
+        {
+          "u": 0.6,
+          "v": 0.65
+        }
+      ],
+      "listDeg": 3,
+      "spout": {
+        "z": -0.05,
+        "side": 1
+      }
+    }
   }
 }

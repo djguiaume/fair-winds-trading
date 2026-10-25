@@ -4,7 +4,8 @@
   },
   "effects": {
     "creak": { "synth": "creak", "volume": 1.6 },
-    "foghorn": { "synth": "foghorn", "volume": 1.6 }
+    "foghorn": { "synth": "foghorn", "volume": 1.6 },
+    "thud": { "synth": "thud", "volume": 1.2 }
   },
   "voices": {
     "juno": {
