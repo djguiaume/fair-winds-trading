@@ -10,7 +10,8 @@ import { DEG, distance } from '../sim/math';
 import { discoveredPorts, farGoodsOnChart } from '../sim/shipyards';
 import { ownedIslands } from '../sim/home';
 import { chartedAt, islandCharted } from '../sim/fog';
-import { noGoAngle } from '../sim/ship';
+import { SHIP_CLASSES, noGoAngle } from '../sim/ship';
+import { capacity, cargoUsed } from '../sim/trade';
 import { laneShape } from '../sim/currents';
 import { bergsAt } from '../sim/bergs';
 import { knobs } from '../sim/difficulty';
@@ -91,7 +92,7 @@ function deepestPoint(outline: [number, number][]) {
 
 /** What the chart shows of the quests (decision 0124); see `questView.ts`. */
 /** The chart's tabs (decision 0196), as the port screen's: the sea, then full pages. */
-export const CHART_TABS = ['map', 'journal', 'market', 'legend'] as const;
+export const CHART_TABS = ['map', 'journal', 'hold', 'market', 'legend'] as const;
 export type ChartTab = (typeof CHART_TABS)[number];
 
 export interface ChartQuests {
@@ -116,6 +117,8 @@ export class SeaChart {
   /** People's faces on their ports, the tracked step's place and the journal; none: no quests. */
   quests: ChartQuests | null = null;
   onDestinationChange: () => void = () => {};
+  /** Quest cargo on deck, one line each (decision 0213), for the Hold tab. */
+  questCargo: () => string[] = () => [];
   /** The running quests' own sea marks (decision 0164), drawn while they run. */
   questMarks: () => readonly SeaMarkDef[] = () => [];
   private previousFocus: HTMLElement | null = null;
@@ -917,6 +920,39 @@ export class SeaChart {
     this.drawJournal(quests.journal());
   }
 
+  /**
+   * The Hold tab (decision 0213): what she carries, goods in the hold and quest cargo on deck, for
+   * a controller or a phone that has no cargo tooltip to hover.
+   */
+  private drawHold() {
+    const list = this.dialog.querySelector<HTMLElement>('#chart-hold-list');
+    if (!list) return;
+    const { trade } = this.world;
+    const { cargo } = trade.captain;
+    const goods = GOODS.filter((g) => cargo[g] > 0);
+    const deck = this.questCargo();
+    const section = (title: string, room: string, rows: string[]) =>
+      `<section class="hold-section"><h4><span>${escapeHtml(title)}</span><b>${escapeHtml(room)}</b></h4>${
+        rows.length
+          ? `<ul>${rows.join('')}</ul>`
+          : `<p class="muted">${escapeHtml(t('chart.holdNone'))}</p>`
+      }</section>`;
+    list.innerHTML =
+      section(
+        t('chart.holdTitle'),
+        `${cargoUsed(trade)}/${capacity(trade)}`,
+        goods.map(
+          (g) =>
+            `<li><span class="hold-good">${icon(g)}${escapeHtml(goodName(g))}</span><b>×${cargo[g]}</b></li>`,
+        ),
+      ) +
+      section(
+        t('quest.cargoTitle'),
+        `${trade.quests.hold ?? 0}/${SHIP_CLASSES[trade.captain.activeShip]!.deck}`,
+        deck.map((l) => `<li><span>${escapeHtml(l)}</span></li>`),
+      );
+  }
+
   private drawJournal(entries: JournalEntry[]) {
     const toggle = this.dialog.querySelector<HTMLElement>('#chart-tab-journal');
     const list = this.dialog.querySelector<HTMLElement>('#chart-journal-list');
@@ -1410,6 +1446,7 @@ export class SeaChart {
       label.textContent = z.text;
     }
     this.drawMarket(market);
+    this.drawHold();
     if (this.quests) this.drawQuests(shape, unit, px);
     svg.append(player);
     const course = this.dialog.querySelector<HTMLElement>('#chart-course');

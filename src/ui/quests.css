@@ -720,3 +720,62 @@ dialog.quest-card.is-arrival::backdrop {
   margin-right: 8px;
   vertical-align: middle;
 }
+
+/* --- Hold: a page of the sea chart (decision 0213) ----------------------------------------- */
+.chart-hold-sheet h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hold-section h4 {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 14px 0 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(238, 243, 244, 0.15);
+  color: var(--brass);
+  font: 700 14px/1 var(--display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.hold-section:first-child h4 {
+  border-top: 0;
+  padding-top: 0;
+}
+.hold-section h4 b {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.hold-section ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hold-section li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(238, 243, 244, 0.08);
+}
+.hold-good {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.hold-good .icon {
+  width: 20px;
+  height: 20px;
+}
+.hold-section li b {
+  font-variant-numeric: tabular-nums;
+}
+/* "Hand over" on a person's card (decision 0213): the gold it pays, with its coin. */
+.quest-hand .icon {
+  width: 16px;
+  height: 16px;
+  margin-left: 3px;
+  vertical-align: -3px;
+}

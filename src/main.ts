@@ -31,7 +31,7 @@ import {
 } from './render/quality';
 import { GameView } from './render/view';
 import { SAIL_STEPS, createBoat, knotToUnits } from './sim/boat';
-import { isFar, isRare, isSpecialty } from './sim/goods';
+import { isFar, isGood, isRare, isSpecialty } from './sim/goods';
 import { portNow, questsDone } from './sim/settlement';
 import { foundSite, foundedSites, townLevels } from './sim/founding';
 import { bearingTo, clamp } from './sim/math';
@@ -98,6 +98,7 @@ import {
   language,
   goodName,
   workshopName,
+  formatNumber,
   goodSome,
   hasText,
   setLanguage,
@@ -640,8 +641,24 @@ questCard.onAccept = acceptQuest;
 questCard.onIgnore = (id) => {
   if (quests.ignore(id)) autosave();
 };
+/**
+ * Goods handed straight to a quest's person (decision 0213): paid as a sale here, then the quest
+ * counts them like any goods leaving the hold alongside.
+ */
+function handOverGoods(id: string, good: string, n: number) {
+  if (!isGood(good)) return;
+  const res = trade.handOver(world.trade, good, n, world.map);
+  if (!res.ok) return;
+  const who = cardFor(quests, world.map, id, 'step')?.giver?.name ?? '';
+  hud.showToast(t('quest.handedToast', { who: firstName(who), gold: formatNumber(res.gold) }), 3);
+  world.ship = trade.activeShip(world.trade);
+  quests.check();
+  coach.render();
+  autosave();
+}
+questCard.onHandOver = handOverGoods;
 // Quest cargo in the hold lists, at sea and in harbour (decision 0213).
-hud.questCargo = tradePanel.questCargo = () => cargoLines(quests);
+hud.questCargo = tradePanel.questCargo = chart.questCargo = () => cargoLines(quests);
 tradePanel.quay = {
   items: quayNow,
   seen: (fresh) => {
@@ -663,6 +680,8 @@ tradePanel.quay = {
       autosave();
     }
   },
+  // The Quay shows the news inline as it renders again.
+  hand: handOverGoods,
 };
 questCard.onChoose = (id, option) => {
   quests.choose(id, option);

@@ -6,7 +6,7 @@
   await new Promise((r) => setTimeout(r, 200));
   // Rook's thanks done, as it is by the time Maren asks (the quest test only reaches its step).
   f.world.trade.quests.byId['rooks-thanks'] = { step: 'done', counts: [], chose: {} };
-  f.world.trade.captain.cargo.timber = 8;
+  f.world.trade.captain.cargo.timber = 10;
   document.documentElement.dataset.input = 'pad';
   f.dock('westholm');
 })();

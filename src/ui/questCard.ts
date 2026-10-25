@@ -1,4 +1,4 @@
-import { formatNumber, t } from '../i18n';
+import { formatNumber, goodMany, t } from '../i18n';
 import { type MenuAction, PAD } from '../input/gamepad';
 import { COIN, icon } from './icons';
 import { padGlyph } from './padGlyphs';
@@ -54,7 +54,7 @@ export function questCardBody(c: QuestCardModel, inline = false): string {
   // inline cards share their screen with others, so they keep the focus ring alone.
   // A presses the focused answer, so its glyph shows on that one only (quests.css).
   const press = inline ? '' : `<span class="pad-press">${padFor('press')}</span>`;
-  let actions = '';
+  let actions: string;
   if (c.kind === 'offer')
     actions = `<button type="button" class="d-btn brass" data-act="accept"${q}>${press}${icon('anchor')}${esc(t('quest.accept'))}</button><button type="button" class="d-btn" data-act="later"${q}>${inline ? '' : padFor('back')}${esc(t('quest.notNow'))}</button>${
       c.main
@@ -68,10 +68,18 @@ export function questCardBody(c: QuestCardModel, inline = false): string {
           `<button type="button" class="d-btn quest-option" data-act="choose" data-option="${esc(o.id)}"${q}><b>${press}${esc(o.title)}</b>${o.copy ? `<span>${esc(o.copy)}</span>` : ''}</button>`,
       )
       .join('');
-  else if (!inline && !c.plot)
-    actions = `<button type="button" class="d-btn brass" data-act="close">${press}${esc(t('quest.close'))}</button>`;
-  else if (c.toMarket)
-    actions = `<button type="button" class="d-btn brass" data-act="market"${q}>${esc(t('quest.news.toMarket'))}</button>`;
+  else {
+    // Goods wanted here and aboard (decision 0213): handed straight over, paid as at the market.
+    const h = c.handOver;
+    const hand = h
+      ? `<button type="button" class="d-btn brass quest-hand" data-act="hand" data-good="${esc(h.good)}" data-n="${h.n}"${q}>${press}${esc(
+          t('quest.handOver', { n: h.n, good: goodMany(h.good), gold: formatNumber(h.gold) }),
+        )}${COIN}</button>`
+      : '';
+    if (!inline && !c.plot)
+      actions = `${hand}<button type="button" class="d-btn${h ? '' : ' brass'}" data-act="close">${h ? '' : press}${esc(t('quest.close'))}</button>`;
+    else actions = hand;
+  }
   // What just happened here (decision 0213), above everything the person says.
   const news = c.news
     ? `<p class="quest-news" role="status"><span class="quest-pin" aria-hidden="true">!</span>${esc(c.news)}</p>`
@@ -105,6 +113,8 @@ export class QuestCard {
   onAccept: (quest: string) => void = () => {};
   onChoose: (quest: string, option: string) => void = () => {};
   onIgnore: (quest: string) => void = () => {};
+  /** "Hand over": `n` of `good` to the card's person, paid (decision 0213). */
+  onHandOver: (quest: string, good: string, n: number) => void = () => {};
   onClose: (card: QuestCardModel) => void = () => {};
   private card: QuestCardModel | null = null;
 
@@ -119,6 +129,8 @@ export class QuestCard {
       if (act === 'accept') this.onAccept(card.quest);
       else if (act === 'choose') this.onChoose(card.quest, button.dataset.option!);
       else if (act === 'ignore') this.onIgnore(card.quest);
+      else if (act === 'hand')
+        this.onHandOver(card.quest, button.dataset.good!, Number(button.dataset.n));
       this.close();
     });
     dialog.addEventListener('close', () => {

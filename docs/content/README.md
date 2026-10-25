@@ -375,6 +375,7 @@ at sea (a ring as wide as `within`, the next one pulsing) and on the chart, with
 - Every stop of a quest under way says what happened there, from the step's goal: no file field needed. The lines are `quest.news.<kind>` in `src/i18n/*.json`.
 - A quest item that takes room (`items.<id>.space` over 0) needs its names: `quest.item.<id>.one`, `.many`, `.the`, `.own`, `.unloadedOne`, `.unloadedMany`, in English and French. The quest builder lists them on the quest's page; `npm run check` says when one is missing. A passenger (space 0) uses the person's name from `characters.json` (`short` when not their first word).
 - Quest cargo rides on deck, apart from the hold: a ship file's `deck` is how much, in the items' `space` units (sloop 8 … indiaman 30).
+- A `delivered` step gets a "Hand over" button on the person's card by itself, paying the docked market's price for the goods (the good's base price where that port does not trade it). A good whose French name needs a plural after a count adds `goodMany.<good>` (« pierres »).
 
 ### What changes after a quest ([0130](../decisions/0130-after-a-quest-and-the-saltmere-shoals.md))
 

@@ -1,4 +1,4 @@
-import { type MessageKey, formatNumber, goodName, goodSome, goodThe, t, tOptional } from '../i18n';
+import { type MessageKey, formatNumber, goodMany, goodSome, goodThe, t, tOptional } from '../i18n';
 import { isGood, type GoodId } from '../sim/goods';
 import type { MapDef } from '../sim/map';
 import {
@@ -22,7 +22,7 @@ import {
 } from '../sim/quests';
 import { BUILDINGS, homeSpots, resolveSpot } from '../sim/home';
 import { isDiscovered } from '../sim/shipyards';
-import { findPort } from '../sim/trade';
+import { findPort, quoteHandOver } from '../sim/trade';
 import { type Character, type Mood, MOODS, character } from './portraits';
 
 /*
@@ -72,8 +72,11 @@ export interface QuestCardModel {
    * Maren, 1 left on the quay…", or "Done! +150 gold." for the step finished here.
    */
   news?: string;
-  /** The news asks for the market (goods to hand over here): the card offers the way there. */
-  toMarket?: boolean;
+  /**
+   * Goods this person wants here and the hold has (decision 0213): the card hands them over,
+   * paid at the market price, instead of sending the captain to the market.
+   */
+  handOver?: { good: GoodId; n: number; gold: number };
   /**
    * A plot's card at the captain's island (decision 0210): the giver by their stake, with its own
    * tag and no arc line; the arrival button opens the Island tab on this plot.
@@ -119,7 +122,7 @@ export function newsLine(book: QuestBook, map: MapDef, news: StepNews & { quest:
       : (tOptional(`quest.item.${news.item}.${f}`) ?? news.item ?? '');
   const count = news.n;
   let item: string;
-  if (news.good) item = goodName(news.good).toLowerCase();
+  if (news.good) item = goodMany(news.good);
   else if (news.kind === 'noRoom') item = form('own');
   else if (news.kind === 'nothingAboard' || news.kind === 'loadedOne') item = form('the');
   else if (news.kind === 'loadedPassenger') item = form('the');
@@ -428,13 +431,15 @@ export function quayItems(
 ): QuayItem[] {
   if (!docked) return [];
   const out: QuayItem[] = [];
-  const add = (quest: QuestDef, kind: CardKind, key: string, news?: string, toMarket = false) => {
+  const add = (quest: QuestDef, kind: CardKind, key: string, news?: string, hand?: StepNews) => {
     const card = cardFor(book, map, quest.id, kind);
     if (!card) return;
     const gold = paid.get(quest.id);
     const done = gold ? t('quest.news.paid', { gold: formatNumber(gold) }) : undefined;
     card.news = [done, news].filter(Boolean).join(' ') || undefined;
-    if (toMarket) card.toMarket = true;
+    const n = hand?.good ? Math.min(hand.left, book.world.trade.captain.cargo[hand.good]) : 0;
+    const pay = n > 0 ? quoteHandOver(book.world.trade, hand!.good!, n) : null;
+    if (pay !== null) card.handOver = { good: hand!.good!, n, gold: pay };
     const newsKey = card.news ? `news:${key}@${docked}:${card.news}` : undefined;
     const fresh = !seen.has(key) || (newsKey !== undefined && !seen.has(newsKey));
     out.push({ key, card, fresh, ...(newsKey ? { newsKey } : {}) });
@@ -456,7 +461,7 @@ export function quayItems(
         step.choose ? 'choice' : 'step',
         key,
         here.map((n) => newsLine(book, map, n)).join(' ') || undefined,
-        here.some((n) => n.kind === 'handHere'),
+        here.find((n) => n.kind === 'handHere'),
       );
   }
   for (const quest of book.offered)

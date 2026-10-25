@@ -88,7 +88,10 @@ export interface PortQuay {
   items(): QuayItem[];
   seen(fresh: QuayItem[]): void;
   act(quest: string, act: 'accept' | 'later' | 'ignore' | 'choose', option?: string): void;
+  /** "Hand over" on a person's card (decision 0213): `n` of `good`, paid. */
+  hand(quest: string, good: string, n: number): void;
 }
+type QuayAct = 'accept' | 'later' | 'ignore' | 'choose' | 'hand';
 
 /** Lot sizes for one tap on Buy or Sell (decision 0049); clamped to what the hold, stock and gold allow. */
 const LOTS = [1, 5, 10] as const;
@@ -1191,9 +1194,10 @@ export class TradePanel {
       .querySelectorAll<HTMLButtonElement>('.quay-people button[data-act]')
       .forEach((btn) => {
         btn.addEventListener('click', () => {
-          const act = btn.dataset.act as 'accept' | 'later' | 'ignore' | 'choose' | 'market';
-          // Dock news that asks for goods here (decision 0213): "To the market".
-          if (act === 'market') this.tab = 'market';
+          const act = btn.dataset.act as QuayAct;
+          // Goods handed over from the person's card (decision 0213): paid, the quest moves on.
+          if (act === 'hand')
+            this.quay?.hand(btn.dataset.quest!, btn.dataset.good!, Number(btn.dataset.n));
           else this.quay?.act(btn.dataset.quest!, act, btn.dataset.option);
           this.render();
         });

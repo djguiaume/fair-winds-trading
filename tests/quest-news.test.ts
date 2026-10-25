@@ -3,10 +3,11 @@ import { PHASE1_MAP } from '../src/data/maps';
 import { QUESTS, QUEST_DONE, QuestBook, type QuestEvent } from '../src/sim/quests';
 import { giveHomeIsland } from '../src/sim/home';
 import { SHIP_CLASSES, SLOOP } from '../src/sim/ship';
-import { buy, cargoUsed } from '../src/sim/trade';
+import { buy, cargoUsed, handOver, quoteHandOver, sell } from '../src/sim/trade';
 import { type World, createWorld } from '../src/sim/world';
 import { cargoLines, newsLine, quayItems } from '../src/ui/questView';
 import { setLanguage } from '../src/i18n';
+import { questCardBody } from '../src/ui/questCard';
 
 // Dock news (decision 0213): every stop of a quest under way says what just happened there, and a
 // timed run says when its clock starts, runs over par or is made.
@@ -144,6 +145,44 @@ describe('dock news (0213)', () => {
     quests.check(0.25);
     expect(runs.at(-1)).toMatchObject({ state: 'made' });
     expect(quests.progress(MILL)!.step).toBe(QUEST_DONE);
+  });
+
+  it('hands goods straight over from the card, paid as a sale there', () => {
+    const { world, quests } = start('sails', [0]);
+    world.trade.dockedAt = 'calda';
+    expect(buy(world.trade, 'timber', 10).ok).toBe(true);
+    world.trade.dockedAt = 'westholm';
+    quests.check();
+    const item = quayItems(quests, world.map, 'westholm', new Set(), new Set()).find(
+      (i) => i.key === `${MILL}:sails`,
+    )!;
+    expect(item.card.news).toBe('Maren needs 8 timber here.');
+    // As many as she wants, not all aboard; the gold the market would pay for them.
+    const gold = quoteHandOver(world.trade, 'timber', 8)!;
+    expect(item.card.handOver).toEqual({ good: 'timber', n: 8, gold });
+    expect(questCardBody(item.card)).toContain(`Hand over 8 timber · +${gold}`);
+    const before = world.trade.captain.gold;
+    const events: QuestEvent[] = [];
+    quests.onEvent = (e) => events.push(e);
+    expect(handOver(world.trade, 'timber', 8, world.map)).toEqual({ ok: true, gold });
+    quests.check();
+    expect(world.trade.captain.cargo.timber).toBe(2);
+    expect(events).toContainEqual({ type: 'paid', quest: MILL, step: 'sails', gold: 100 });
+    expect(world.trade.captain.gold).toBe(before + gold + 100);
+  });
+
+  it('pays the base price where the market does not trade the good', () => {
+    const { world } = start('sails', [0]);
+    world.trade.dockedAt = 'calda';
+    expect(buy(world.trade, 'timber', 4).ok).toBe(true);
+    const market = world.trade.markets.westholm!;
+    market.equilibrium.timber = 0;
+    world.trade.dockedAt = 'westholm';
+    expect(sell(world.trade, 'timber', 4).ok).toBe(false);
+    const base = quoteHandOver(world.trade, 'timber', 4)!;
+    expect(handOver(world.trade, 'timber', 4).ok).toBe(true);
+    expect(base).toBeGreaterThan(0);
+    expect(world.trade.captain.cargo.timber).toBe(0);
   });
 
   it('names quest cargo in the hold lists, whose and how much room', () => {

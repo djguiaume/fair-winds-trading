@@ -981,6 +981,16 @@
             <span class="tab-badge chart-journal-badge" hidden></span>
           </button>
           <button
+            id="chart-tab-hold"
+            class="tab-btn"
+            type="button"
+            data-chart-tab="hold"
+            aria-pressed="false"
+            data-i18n="chart.tabHold"
+          >
+            Hold
+          </button>
+          <button
             id="chart-tab-market"
             class="tab-btn"
             type="button"
@@ -1130,6 +1140,20 @@
             </h3>
           </header>
           <div id="chart-journal-list" class="journal-list"></div>
+        </section>
+        <section
+          id="chart-hold-panel"
+          class="chart-sheet chart-hold-sheet"
+          aria-labelledby="chart-hold-title"
+          hidden
+        >
+          <header>
+            <h3 id="chart-hold-title">
+              <svg class="icon" aria-hidden="true"><use href="#i-deck" /></svg>
+              <span data-i18n="chart.holdAboard">Aboard</span>
+            </h3>
+          </header>
+          <div id="chart-hold-list" class="hold-list"></div>
         </section>
         <section
           id="chart-market-panel"

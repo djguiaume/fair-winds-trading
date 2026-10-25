@@ -3,9 +3,12 @@
   {"name": "2-westholm-one-of-two", "quest": "westholm-mill:millstones", "at": [-60, -60], "script": "docs/reviews/quest-news/src/partial.js", "cards": true, "sizes": ["desktop"]},
   {"name": "3-westholm-step-done", "quest": "westholm-mill:millstones", "at": [-60, -60], "script": "docs/reviews/quest-news/src/done.js", "cards": true, "sizes": ["desktop", "portrait"]},
   {"name": "4-westholm-hand-over-pad", "quest": "westholm-mill:sails", "at": [-60, -60], "script": "docs/reviews/quest-news/src/hand.js", "cards": true, "sizes": ["desktop", "tv"]},
-  {"name": "5-sold-in-market", "quest": "westholm-mill:sails", "at": [-60, -60], "script": "docs/reviews/quest-news/src/sold.js", "cards": true, "sizes": ["desktop"]},
+  {"name": "5-handed-over", "quest": "westholm-mill:sails", "at": [-60, -60], "script": "docs/reviews/quest-news/src/handed.js", "cards": true, "sizes": ["desktop", "portrait"]},
   {"name": "6-run-clock", "quest": "westholm-mill:bread", "at": [-120, -40], "script": "docs/reviews/quest-news/src/clock.js", "sizes": ["desktop", "portrait"]},
   {"name": "7-stonehaven-pickup-fr", "quest": "westholm-mill:millstones", "at": [-60, -60], "script": "docs/reviews/quest-news/src/pickup.js", "lang": "fr", "cards": true, "sizes": ["desktop"]},
   {"name": "8-hold-list", "quest": "westholm-mill:millstones", "at": [-60, -60], "script": "docs/reviews/quest-news/src/hold.js", "sizes": ["desktop", "portrait"], "cards": true},
-  {"name": "9-market-quest-cargo", "quest": "westholm-mill:millstones", "at": [-60, -60], "script": "docs/reviews/quest-news/src/market.js", "cards": true, "sizes": ["desktop"]}
+  {"name": "9-market-quest-cargo", "quest": "westholm-mill:millstones", "at": [-60, -60], "script": "docs/reviews/quest-news/src/market.js", "cards": true, "sizes": ["desktop"]},
+  {"name": "10-chart-hold-tab", "quest": "westholm-mill:millstones", "at": [-60, -60], "script": "docs/reviews/quest-news/src/hold-tab.js", "sizes": ["desktop", "portrait"], "cards": true},
+  {"name": "11-chart-hold-tab-pad", "quest": "westholm-mill:millstones", "at": [-60, -60], "script": "docs/reviews/quest-news/src/hold-tab.js", "pad": "y:100", "sizes": ["tv"], "cards": true},
+  {"name": "12-hand-over-fr", "quest": "westholm-mill:sails", "at": [-60, -60], "script": "docs/reviews/quest-news/src/hand.js", "lang": "fr", "cards": true, "sizes": ["desktop"]}
 ]
