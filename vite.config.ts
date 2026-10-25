@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 const git = (args: string) => execSync(`git ${args}`, { encoding: 'utf8' }).trim();
 const revision = git('rev-parse --short HEAD');
 
-// Player-facing version (decision 0042): "0.<phase>" comes from package.json, the last number
+// Player-facing version (decision 0042): "0.<phase>" (since 1.0, "<major>.<update>", 0219) comes from package.json, the last number
 // counts the merges on main (first-parent commits), so every deploy goes up by itself.
 const { version } = JSON.parse(readFileSync('package.json', 'utf8')) as { version: string };
 const [major, minor] = version.split('.');
