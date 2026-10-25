@@ -13,6 +13,15 @@
     "crashDamage": 5,
     "leakPenalty": 0.25
   },
+  "damage": {
+    "scuffedBelow": 0.75,
+    "patchedBelow": 0.5,
+    "tornBelow": 0.25,
+    "planks": 6,
+    "splash": 6,
+    "debrisSeconds": 4,
+    "spoutSeconds": 1.5
+  },
   "harbour": {
     "dockRange": 16,
     "berthReach": 24,
