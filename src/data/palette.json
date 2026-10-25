@@ -190,6 +190,12 @@
       "capAbove": 0.6,
       "trees": false
     },
+    "paleslate": {
+      "name": "Pale slate",
+      "top": ["#878d94", "#7c8289"],
+      "side": ["#71777f", "#7c8289"],
+      "trees": false
+    },
     "shingle": {
       "name": "Shingle",
       "top": ["#7d7f7c", "#8a8c88", "#74777a"],

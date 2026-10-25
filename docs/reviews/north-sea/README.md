@@ -19,7 +19,7 @@ Screenshots from the real game (`npm run shots -- --list src/final.json`) and th
 The density plan ([0180](../../decisions/0180-even-density-across-the-four-seas.md)) asked for one piece or two in each north corner, named by the storyteller. Made with `bash src/mk-corners.sh` (`npm run island` and `npm run sea`), shots from `src/corners.json`:
 
 - **The Strays** (about 320°): three grounded floes, `ice` terrain, well clear of the Snowberry Pack and the cove.
-- **Selkie Rock** (about 32°): a slate skerry in two steps with an irregular snow cap, loose snow patches, shore boulders and four seals, 468 triangles.
+- **Selkie Rock** (about 32°): a slate skerry in two steps (a new `paleslate` ground for the lower one) with a drifted snow cap on the lee, loose snow patches, shore boulders and four seals, 468 triangles.
 - **Old Blue** (about 37°): a grounded berg, two peaks in the new `bergice` ground (palette.json: blue faces low down, white above a third of the height) on a thin waterline ring, 229 triangles.
 
 All three lie inside the north's chart areas, so its fog of war lifts as before. `npm run sea -- density`: north 3% empty water, biggest gap r142 at 3° (the open reach under the Whistle, kept on purpose), against a target of no gap over r150. Checks, routes and balance on all three levels pass.

@@ -163,6 +163,6 @@ const GOLDEN: Record<string, string[]> = {
   'snowberry-isle': ['238:30aaab39', '408:a4f7aef7', '437:cc204c39', '437:cc204c39'],
   whitefell: Array(4).fill('17:90d719e7'),
   // The north's corner pieces (decision 0180).
-  'selkie-rock': Array(4).fill('26:6a1e73ff'),
+  'selkie-rock': Array(4).fill('26:c7676022'),
   'old-blue': Array(4).fill('8:57804bba'),
 };
