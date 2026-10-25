@@ -29,7 +29,8 @@
     "brake": 1.6,
     "moorMaxKn": 3,
     "mooredKn": 0.2,
-    "waypointRadius": 12
+    "waypointRadius": 12,
+    "markReach": 14
   },
   "questLand": {
     "changeDistance": 500,
