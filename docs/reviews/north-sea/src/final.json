@@ -1,0 +1,14 @@
+[
+ {"name":"rimewick","sea":"phase4","at":[-110,690],"heading":0,"look":[-130,752],"zoom":1.4,"sizes":["desktop","landscape","portrait"]},
+ {"name":"rimewick-near","sea":"phase4","at":[-110,690],"heading":0,"look":[-130,765],"zoom":0.8},
+ {"name":"rimewick-night","sea":"phase4","at":[-60,650],"heading":90,"sail":0,"look":[-130,760],"zoom":1.1,"night":true},
+ {"name":"sunreach-same-camera","sea":"phase4","at":[-40,-600],"heading":0,"look":[-80,-640],"zoom":1.4},
+ {"name":"snowberry-pack","sea":"phase4","at":[-330,720],"heading":270,"sail":0,"look":[-395,740],"zoom":0.9},
+ {"name":"snowberry-founded","sea":"phase4","at":[-362,728],"heading":270,"sail":0,"look":[-398,740],"zoom":0.9,"quest":"outpost-north:supplies","town":"snowberry-isle:2"},
+ {"name":"lead-rock-tumbled","sea":"phase4","at":[-268,718],"heading":0,"sail":0,"look":[-282,738],"zoom":0.6},
+ {"name":"lead-rock-lit-night","sea":"phase4","at":[-268,718],"heading":0,"sail":0,"look":[-282,738],"zoom":0.6,"night":true,"quest":"outpost-north:supplies"},
+ {"name":"rime-gate","sea":"phase4","at":[69,500],"heading":10,"zoom":1.6},
+ {"name":"calving-grounds","sea":"phase4","at":[200,610],"heading":60,"look":[240,665],"zoom":1.8},
+ {"name":"whitefell","sea":"phase4","at":[200,730],"heading":60,"look":[250,795],"zoom":1.3},
+ {"name":"chart-fair-winds","sea":"phase4","at":[150,600],"heading":0,"chart":true,"charted":true}
+]

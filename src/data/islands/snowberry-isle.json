@@ -33,9 +33,22 @@
         [-0.2, -0.72],
         [-0.65, -0.55]
       ],
-      "height": 0.18,
-      "material": "grass",
-      "slope": 0.06
+      "height": 0.1,
+      "material": "rock"
+    },
+    {
+      "outline": [
+        [-0.642, -0.072],
+        [-0.275, -0.137],
+        [0.232, -0.118],
+        [0.6, -0.072],
+        [0.645, -0.394],
+        [0.37, -0.624],
+        [-0.182, -0.689],
+        [-0.597, -0.532]
+      ],
+      "height": 0.2,
+      "material": "grass"
     },
     {
       "outline": [
@@ -53,7 +66,7 @@
       "height": 0.7,
       "material": "slate",
       "shape": "peak",
-      "base": 0.18
+      "base": 0.2
     },
     {
       "outline": [
@@ -71,7 +84,7 @@
       "height": 0.5,
       "material": "rock",
       "shape": "peak",
-      "base": 0.18
+      "base": 0.2
     },
     {
       "outline": [
@@ -88,7 +101,23 @@
       "slope": 0.05
     }
   ],
-  "lanes": [],
+  "lanes": [
+    {
+      "points": [
+        [0.3, 0.72],
+        [0.35, 0.5],
+        [0.55, 0.3],
+        [0.7, 0.15]
+      ]
+    },
+    {
+      "points": [
+        [0.35, 0.5],
+        [0.1, 0.65],
+        [-0.4, 0.68]
+      ]
+    }
+  ],
   "piers": [],
   "props": [
     { "type": "warm-spring", "x": -0.35, "z": 0.32, "size": 1.3, "from": 0 },
@@ -100,7 +129,7 @@
     {
       "type": "weather-station-shut",
       "x": 0.1,
-      "z": -0.27,
+      "z": -0.29,
       "turn": -15,
       "size": 1.3,
       "tags": ["before:outpost-north"],
@@ -109,7 +138,7 @@
     {
       "type": "weather-station",
       "x": 0.1,
-      "z": -0.27,
+      "z": -0.29,
       "turn": -15,
       "size": 1.3,
       "tags": ["after:outpost-north"],
@@ -127,15 +156,38 @@
     { "type": "flagpole", "x": 0.42, "z": 0.72, "size": 0.9, "from": 1 },
     { "type": "name-board", "x": -0.2, "z": 0.75, "size": 0.9, "from": 1 },
     { "type": "nordic-house", "x": -0.82, "z": 0.1, "size": 1.3, "variant": 0, "from": 1 },
-    { "type": "nordic-house", "x": 0.7, "z": 0.45, "size": 1.3, "variant": 1, "from": 2 }
+    { "type": "nordic-house", "x": 0.7, "z": 0.45, "size": 1.3, "variant": 1, "from": 2 },
+    { "type": "snow-rock", "x": -0.75, "z": -0.2, "size": 1.1, "from": 0 },
+    { "type": "snow-rock", "x": 0.55, "z": -0.25, "size": 1.1, "from": 0 },
+    { "type": "snow-rock", "x": -0.05, "z": -0.6, "size": 1.1, "from": 0 },
+    { "type": "snow-rock", "x": 0.85, "z": -0.2, "size": 1.1, "from": 0 },
+    { "type": "snow-rock", "x": -0.82, "z": 0.42, "size": 1.1, "from": 0 },
+    { "type": "snow-fir", "x": 0.32, "z": -0.22, "size": 1.4, "from": 0 },
+    { "type": "snow-fir", "x": 0.05, "z": -0.52, "size": 1.4, "from": 0 },
+    { "type": "snow-fir", "x": -0.85, "z": -0.05, "size": 1.4, "from": 0 },
+    { "type": "seal", "x": 0.95, "z": 0.55, "from": 0 },
+    { "type": "lamp-post", "x": 0.42, "z": 0.55, "size": 0.9, "from": 1 },
+    { "type": "lamp-post", "x": 0.6, "z": 0.32, "size": 0.9, "from": 1 },
+    { "type": "lamp-post", "x": -0.15, "z": 0.66, "size": 0.9, "from": 2 },
+    { "type": "lamp-post", "x": -0.3, "z": 0.72, "size": 0.9, "from": 2 },
+    { "type": "woodshed", "x": -0.8, "z": 0.62, "size": 0.9, "from": 1 },
+    { "type": "sledge", "x": 0.45, "z": 0.74, "turn": 40, "from": 1 },
+    { "type": "snowman", "x": 0.25, "z": 0.6, "from": 1 },
+    { "type": "picket-fence", "x": -0.1, "z": 0.08, "turn": 0, "length": 0.14, "from": 1 },
+    { "type": "picket-fence", "x": 0.38, "z": 0.2, "turn": 0, "length": 0.14, "from": 1 },
+    { "type": "nordic-house", "x": -0.25, "z": 0.82, "size": 1.3, "variant": 2, "from": 2 },
+    { "type": "snow-garden", "x": 0.82, "z": 0.32, "size": 0.85, "from": 2 },
+    { "type": "nordic-house", "x": -0.5, "z": 0.82, "size": 1.3, "variant": 3, "from": 3 },
+    { "type": "nordic-house", "x": -0.85, "z": 0.3, "size": 1.3, "variant": 4, "from": 3 },
+    { "type": "moored-boat", "x": 0.78, "z": 1.05, "turn": 90, "size": 0.9, "from": 2 }
   ],
   "woods": {
     "tree": "woodland-snowfir",
-    "tries": 260,
+    "tries": 1500,
     "area": [-1.18, -1.04, 1.3, 1.17],
     "size": 1.5,
-    "margin": 0.1,
-    "spacing": 0.16,
+    "margin": 0.035,
+    "spacing": 0.12,
     "areas": [[0, -0.5, 0.45]]
   }
 }

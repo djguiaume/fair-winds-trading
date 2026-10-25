@@ -283,6 +283,14 @@ async function enter(page, shot) {
   if (!shot.prologue && !shot.url) await page.evaluate(() => window.fwt.freePlay?.());
 }
 
+/** The camera on a map point at once, not gliding there from the boat (runs in the page). */
+function lookAt(at) {
+  const { view } = window.fwt;
+  view.setFocus({ x: at[0], y: at[1] });
+  view.target.x = at[0];
+  view.target.z = -at[1];
+}
+
 async function setScene(page, shot) {
   if ((shot.at || shot.moor || (shot.port && !shot.url)) && (await visible(page, '#tp-undock')))
     await page.click('#tp-undock');
@@ -316,7 +324,12 @@ async function setScene(page, shot) {
     }
     if (s.tab && world.trade.dockedAt) window.fwt.tradePanel.open(s.tab);
     if (s.zoom !== null) view.zoom = s.zoom;
-    if (s.look) view.setFocus({ x: s.look[0], y: s.look[1] });
+    if (s.look) {
+      // At once, not gliding there from the boat.
+      view.setFocus({ x: s.look[0], y: s.look[1] });
+      view.target.x = s.look[0];
+      view.target.z = -s.look[1];
+    }
     return null;
   }, shot);
   if (problem) throw new Error(problem);
@@ -453,6 +466,8 @@ async function shootScene(page, shot) {
     await page.keyboard.up(shot.hold.key);
   }
   await pause(shot.wait);
+  // Mooring by an island of hers turns the camera and leaving it frees it (0128): look again.
+  if (shot.look && !shot.editor && !shot.url) await page.evaluate(lookAt, shot.look);
   await act(page, shot);
   if (!shot.cards) await closeCards(page);
   if (shot.chart) {
