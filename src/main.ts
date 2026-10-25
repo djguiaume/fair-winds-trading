@@ -486,8 +486,11 @@ questCard.onIgnore = (id) => {
 tradePanel.quay = {
   items: () =>
     quests.lesson ? [] : quayItems(quests, world.map, world.trade.dockedAt, questSeen, questThanks),
-  seen: (keys) => {
-    for (const key of keys) questSeen.add(key);
+  seen: (fresh) => {
+    for (const { key } of fresh) questSeen.add(key);
+    // The first new face on the Quay speaks as their card shows, like a main quest's card (0197).
+    const { card } = fresh[0]!;
+    music.speak(card.giver?.voice, wordCount(card.ask ?? card.speech), card.mood);
   },
   act: (id, act, option) => {
     if (act === 'accept') acceptQuest(id);
