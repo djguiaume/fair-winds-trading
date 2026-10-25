@@ -113,7 +113,7 @@ export type IslandStep =
       ramp?: boolean;
       material?: string;
       height?: number;
-      /** A coast ground's beach width (decision 0174). */
+      /** A coast ground's beach width (decision 0175). */
       beach?: number;
     };
 

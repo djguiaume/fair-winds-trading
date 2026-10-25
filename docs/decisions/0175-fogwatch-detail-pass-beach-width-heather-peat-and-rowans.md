@@ -1,6 +1,6 @@
-# 0174. Fogwatch detail pass: beach width, heather, peat and rowans
+# 0175. Fogwatch detail pass: beach width, heather, peat and rowans
 
-**Status:** Accepted (2026-10-25): the Art director and Guillaume OKed the [review](../reviews/east-sea/README.md#detail-pass-0174).
+**Status:** Accepted (2026-10-25): the Art director and Guillaume OKed the [review](../reviews/east-sea/README.md#detail-pass-0175).
 
 ## Context
 
