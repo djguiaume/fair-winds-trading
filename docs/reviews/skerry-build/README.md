@@ -25,3 +25,22 @@ npm run shots -- --list docs/reviews/skerry-build/mockup/shots.json \
 | 3 | Skerry's harbour screen, Island tab: every plot, the free one first, who gives the others | [desktop](mockup/shots/3-island-tab-desktop.jpg), [landscape](mockup/shots/3-island-tab-landscape.jpg), [portrait](mockup/shots/3-island-tab-portrait.jpg) |
 | 4 | Choosing: the screen halves, the camera turns to the plot, a brass ring on the ground | [desktop](mockup/shots/4-plot-chosen-desktop.jpg), [landscape](mockup/shots/4-plot-chosen-landscape.jpg), [portrait](mockup/shots/4-plot-chosen-portrait.jpg) |
 | 5, 6 | From the sea, day and night: staked plots replace the circles; the free plot has a pennant and a numbered sign | [day](mockup/shots/5-staked-from-sea-desktop.jpg), [night](mockup/shots/6-staked-night-desktop.jpg) |
+
+## Built (decision [0210](../../decisions/0210-skerrys-build-choice-staked-plots-and-the-island-tab.md))
+
+The same frames from the game as built, with no mockup parts:
+
+```
+npm run shots -- --list docs/reviews/skerry-build/shots.json --sizes desktop,landscape,portrait \
+  --out docs/reviews/skerry-build/built
+```
+
+| # | What | Shots |
+|---|---|---|
+| 1 | Maren's thanks (the real `done.copy` with `{spotA}`, `{spotB}`) | [desktop](built/1-done-card-desktop.jpg), [portrait](built/1-done-card-portrait.jpg), [French](built/1-done-card-desktop-fr.jpg) |
+| 2 | Mooring at Skerry: Maren by her stake | [desktop](built/2-arrival-card-desktop.jpg), [landscape](built/2-arrival-card-landscape.jpg), [portrait](built/2-arrival-card-portrait.jpg), [French](built/2-arrival-card-desktop-fr.jpg) |
+| 3 | The Island tab | [desktop](built/3-island-tab-desktop.jpg), [landscape](built/3-island-tab-landscape.jpg), [portrait](built/3-island-tab-portrait.jpg), [French](built/3-island-tab-desktop-fr.jpg) |
+| 4 | Plot 2 chosen | [desktop](built/4-plot-chosen-desktop.jpg), [landscape](built/4-plot-chosen-landscape.jpg), [portrait](built/4-plot-chosen-portrait.jpg) |
+| 5, 6 | From the sea, day and night | [day](built/5-staked-from-sea-desktop.jpg), [night](built/6-staked-night-desktop.jpg) |
+| 7 | Later: the warehouse built, Kit's plot given, the spares open for the bakehouse | [desktop](built/7-built-desktop.jpg), [portrait](built/7-built-portrait.jpg) |
+| 8 | The warehouse and lookout standing, the other plots staked | [desktop](built/8-warehouse-built-from-sea-desktop.jpg) |
