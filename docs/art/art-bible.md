@@ -66,6 +66,8 @@ Each sea (or named area) may carry a **look** in its sea file: water, light wate
 
 ## 8. The four seas
 
+**Where seas meet** (equal quarters: north 315–45°, east 45–135°, south 135–225°, west 225–315°): a barrier changes look only at a gap (a passage or open water), never mid-reef, and coral and basalt are never mixed along one reef (an optional transition skerry at the gap is fine). Islands never straddle a border, and an island's style follows its quarter. The water and sky tint blends over about 60–100 units centred on the line, while night stays the same blue. Each border gap gets a light, mark or rock, so the change of sea reads as a landmark rather than a seam.
+
 ### Ring (Windward Ring): the home waters
 
 B2 as shipped: sandstone tiers, bright grass, red and blue roofs, sunny turquoise. The reference every biome is compared with.
