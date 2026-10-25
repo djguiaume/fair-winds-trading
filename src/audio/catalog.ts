@@ -222,7 +222,7 @@ export function audioProblems(
   }
   for (const id of ['sea'])
     if (!music[id]) problems.push(`music ${id}: missing (the game plays it)`);
-  for (const id of ['creak', 'foghorn'])
+  for (const id of ['creak', 'foghorn', 'thud', 'race-horn'])
     if (!effects[id]) problems.push(`effect ${id}: missing (the game plays it)`);
   return problems;
 }

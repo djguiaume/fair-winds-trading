@@ -6,6 +6,7 @@ import {
   findArea,
   findCurrent,
   findEdge,
+  findFleet,
   findIsland,
   findShape,
   findZone,
@@ -42,6 +43,7 @@ export const SEA_LISTS = [
   'windZones',
   'chartAreas',
   'edges',
+  'traffic',
 ] as const;
 type ListKey = (typeof SEA_LISTS)[number];
 const LIST_KEYS = new Set<string>(SEA_LISTS);
@@ -176,6 +178,7 @@ export function selected(doc: MapDef, sel: Selection): object | undefined {
   if (sel.kind === 'mark') return doc.marks?.[sel.index];
   if (sel.kind === 'area') return findArea(doc, sel.id);
   if (sel.kind === 'edge') return findEdge(doc, sel.id);
+  if (sel.kind === 'fleet') return findFleet(doc, sel.id);
 }
 
 /** Moves the selection into another sea file; an island takes its port and waypoint along. */

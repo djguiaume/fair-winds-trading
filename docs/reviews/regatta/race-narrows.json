@@ -1,0 +1,78 @@
+{
+  "title": "The Narrows Run · The sea races",
+  "legend": [
+    {
+      "style": "route",
+      "text": "the course, mark to mark (boats sail round land)"
+    }
+  ],
+  "lines": [
+    {
+      "points": [
+        [
+          150,
+          -672.5
+        ],
+        [
+          520,
+          -678
+        ],
+        [
+          578,
+          -735
+        ],
+        [
+          520,
+          -792
+        ],
+        [
+          150,
+          -672.5
+        ]
+      ],
+      "style": "route",
+      "label": "The Narrows Run",
+      "arrow": true
+    },
+    {
+      "points": [
+        [
+          150,
+          -650
+        ],
+        [
+          150,
+          -695
+        ]
+      ],
+      "style": "short",
+      "label": "start and finish"
+    }
+  ],
+  "labels": [
+    {
+      "at": [
+        520,
+        -664
+      ],
+      "text": "mark 1",
+      "style": "note"
+    },
+    {
+      "at": [
+        578,
+        -721
+      ],
+      "text": "mark 2",
+      "style": "note"
+    },
+    {
+      "at": [
+        520,
+        -778
+      ],
+      "text": "mark 3",
+      "style": "note"
+    }
+  ]
+}

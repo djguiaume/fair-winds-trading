@@ -42,6 +42,13 @@ import {
   stepTrade,
 } from './trade';
 import { applyPerks } from './perks';
+import {
+  type TrafficBoat,
+  type TrafficState,
+  createTraffic,
+  stepRival,
+  stepTraffic,
+} from './traffic';
 import { GOODS, type GoodId } from './goods';
 import type { SpatialGrid } from './spatial';
 import { heelFactor, pointOfSailHeel } from './heel';
@@ -164,7 +171,7 @@ export interface World {
   /** Degrees added to the map's wind direction (the "new wind" button). */
   windOffsetDeg: number;
   boat: BoatState;
-  destination: { portId: string; label: string; x: number; y: number } | null;
+  destination: Destination | null;
   course: {
     index: number;
     /** Time the current leg started. */
@@ -175,10 +182,30 @@ export interface World {
   };
   /** Gold, ships, cargo, markets and docking (Phase 1). */
   trade: TradeState;
+  /** Other boats on the sea (decision 0215); `traffic.on` is Settings › Other ships. */
+  traffic: TrafficState;
+  /** A race's rival (decision 0217): Kestrel, while a race runs and until she is done. */
+  rival: TrafficBoat | null;
+}
+
+/**
+ * Where the player set a course (decisions 0058, 0212): a port's pier, the tracked quest's place
+ * (it follows the quest's next place) or a mark of her own dropped on the chart.
+ */
+export interface Destination {
+  /** The port, for a port course. */
+  portId?: string;
+  /** Unset: a port. */
+  kind?: 'quest' | 'mark';
+  label: string;
+  x: number;
+  y: number;
 }
 
 export type WorldEvent =
   | { type: 'bump' }
+  /** She reached her own mark (decision 0212); the course is cleared. */
+  | { type: 'mark-reached' }
   /** Shallows refused her: her draft is too deep for them (decisions 0137, 0152). */
   | { type: 'too-shallow' }
   | { type: 'reef-strike'; damage: number }
@@ -245,6 +272,8 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     destination: null,
     course: { index: 0, legStart: 0, reached: 0, lastLegSeconds: null },
     trade,
+    traffic: createTraffic(map, land),
+    rival: null,
   };
   return world;
 }
@@ -574,13 +603,12 @@ function stepCurrent(world: World, dt: number): WorldEvent[] {
   const k = knotToUnits() * dt;
   boat.x += water.east * k;
   boat.y += water.north * k;
-  const charted = (world.trade.progress.charted ??= []);
   if (
-    charted.includes(water.id) ||
+    world.trade.progress.charted?.includes(water.id) ||
     Math.hypot(water.east, water.north) < TUNING.weather.currents.chartAtKn
   )
     return [];
-  charted.push(water.id);
+  (world.trade.progress.charted ??= []).push(water.id);
   return [{ type: 'current-charted', id: water.id }];
 }
 
@@ -730,11 +758,19 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
     else events.push({ type: 'bump' });
   }
 
+  // Other boats sail after her, in the same wind, and give way (decision 0215).
+  events.push(...stepTraffic(world, dt));
+  events.push(...stepRival(world, dt));
   events.push(...stepTrade(world.trade, world.map, world.boat, dt));
   refreshPiers(world);
   events.push(...stepStorms(world));
   events.push(...stepHeel(world, dt));
 
+  const mark = world.destination;
+  if (mark?.kind === 'mark' && distance(world.boat, mark) < harbour().markReach) {
+    world.destination = null;
+    events.push({ type: 'mark-reached' });
+  }
   const wp = currentWaypoint(world);
   if (
     world.map.practiceCourse &&

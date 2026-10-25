@@ -3,6 +3,7 @@
  * redesign. Run from the repository root with playwright available:
  *   node tools/ship-models/capture.cjs compare            -> docs/art/game-models/ship-compare.png
  *   node tools/ship-models/capture.cjs hoy [out-dir]      -> one ship at each upgrade/quality
+ *   node tools/ship-models/capture.cjs damage [out-dir]   -> every ship at the 4 damage steps (0208)
  * CHROMIUM_PATH optionally selects a local Chromium binary.
  */
 const { chromium } = require('playwright');
@@ -37,20 +38,30 @@ const SHIP_CASES = [
   const results = [];
   try {
     const compare = target === 'compare';
+    const damage = target === 'damage';
     const dir = path.resolve(
       process.argv[3] ||
-        (compare ? 'docs/art/game-models' : `docs/art/game-models/refined-${target}`),
+        (compare
+          ? 'docs/art/game-models'
+          : damage
+            ? 'docs/art/game-models/damage'
+            : `docs/art/game-models/refined-${target}`),
     );
     mkdirSync(dir, { recursive: true });
     const page = await browser.newPage({
-      viewport: compare ? { width: 1920, height: 760 } : { width: 1280, height: 720 },
+      viewport: compare || damage ? { width: 1920, height: 760 } : { width: 1280, height: 720 },
     });
     const cases = compare
       ? [
           ['ship-compare-stock', 'level=1'],
           ['ship-compare-level3', 'level=3'],
         ]
-      : SHIP_CASES;
+      : damage
+        ? ['sloop', 'cutter', 'schooner', 'clipper', 'hoy', 'fluyt', 'indiaman'].map((id) => [
+            id,
+            `ship=${id}&level=2`,
+          ])
+        : SHIP_CASES;
     for (const [name, query] of cases) {
       const errors = [];
       const onError = (e) => errors.push(e.message ?? e.text());
@@ -64,7 +75,7 @@ const SHIP_CASES = [
       page.off('pageerror', onError);
       results.push({ name, query, stats: await page.locator('#stats').textContent(), errors });
     }
-    if (!compare)
+    if (!compare && !damage)
       writeFileSync(path.join(dir, 'render-results.json'), JSON.stringify(results, null, 2) + '\n');
     console.log(JSON.stringify(results, null, 2));
   } finally {

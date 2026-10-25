@@ -362,6 +362,8 @@ function paramField(
       return placeField(name, v, ctx, set);
     case 'points':
       return pointsField(name, v as (QuestPoint | string)[] | undefined, ctx, optional, set);
+    case 'gate':
+      return gateField(name, v as QuestPoint[] | undefined, ctx, set);
     default:
       return row(name, String(v ?? ''));
   }
@@ -512,6 +514,38 @@ function pointsField(
   return row(name, box);
 }
 
+/**
+ * A race's start or finish line (decision 0217): the committee boat's end, then the pin's. Both
+ * ends are dragged on the chart too.
+ */
+function gateField(
+  name: string,
+  gate: QuestPoint[] | undefined,
+  ctx: FormContext,
+  set: (v: unknown) => void,
+): HTMLElement {
+  const ends = gate?.length === 2 ? gate : (defaultParam('gate', ctx.map, []) as QuestPoint[]);
+  const box = h('div', { class: 'qb-points' });
+  ends.forEach((p, i) => {
+    const line = h('div', { class: 'qb-pt' }, h('b', {}, i ? 'pin' : 'boat'));
+    for (const key of ['x', 'y'] as const)
+      line.append(
+        key,
+        numberInput(
+          p[key],
+          (n) =>
+            n !== undefined &&
+            ctx.edit(() => {
+              if (gate?.length === 2) gate[i]![key] = n;
+              else set(ends.map((e, k) => (k === i ? { ...e, [key]: n } : e)));
+            }),
+        ),
+      );
+    box.append(line);
+  });
+  return row(name, box);
+}
+
 // --- Rewards --------------------------------------------------------------------------------
 
 /** A reward's fields; an empty reward is removed. */
@@ -617,6 +651,17 @@ export function rewardForm(
       }),
   );
   box.append(row('Building spots', chips('homeSpot', spots)));
+  // A standing order's ask (decision 0214): the goods it lands paid like a help order there.
+  box.append(
+    row(
+      'Paid like an order',
+      checkbox(
+        r.order === true,
+        (on) => change('order', on ? true : undefined),
+        'a help order’s gold and growth for the goods landed',
+      ),
+    ),
+  );
   // Volcanoes: islands whose file has a peak with a crater (decision 0178).
   const volcanoes: [string, string][] = ctx.map.islands
     .filter(hasVolcano)

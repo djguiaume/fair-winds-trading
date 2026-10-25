@@ -1,8 +1,8 @@
 import { knobs } from '../sim/difficulty';
 import { trueWindAngle } from '../sim/boat';
 import { DEG, bearingTo, distance, wrapPositive } from '../sim/math';
-import { type PointOfSail, noGoAngle, pointOfSail } from '../sim/ship';
-import { hullCondition } from '../sim/hazards';
+import { type PointOfSail, SHIP_CLASSES, noGoAngle, pointOfSail } from '../sim/ship';
+import { damageStage, hullCondition } from '../sim/hazards';
 import { windForecast } from '../sim/forecast';
 import { USUAL_WEATHER, windTo } from '../sim/wind';
 import { WIND_FORCES, createWindGauge, updateWindGauge } from '../sim/windStrength';
@@ -21,6 +21,7 @@ import type { ScreenPoint } from '../render/view';
 import { GOODS } from '../sim/goods';
 import { capacity, cargoUsed, findPort } from '../sim/trade';
 import { PortLabels } from './portLabels';
+import { BoatLabels } from './boatLabels';
 import { type HazardKind, hazardBadge } from './hazardMarker';
 import { screenBearing } from './screenBearing';
 import { formatNumber, goodName, t, tOptional, weatherName, zoneKindName } from '../i18n';
@@ -61,6 +62,12 @@ function formatTime(seconds: number): string {
 }
 
 /** Plain-DOM heads-up display with trading stats and port labels. */
+/** Seconds as a clock, "1:45". */
+const clock = (secs: number) => {
+  const s = Math.max(0, Math.floor(secs));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+};
+
 export class Hud {
   private readonly speed = $('speed');
   private readonly heading = $('heading');
@@ -126,6 +133,19 @@ export class Hud {
    * tracked quest's place. The objective panel and the edge arrow show it like a course.
    */
   goal: { x: number; y: number; label: string } | null = null;
+  /** A timed run under way (decision 0213): its clock shows in the course pill. */
+  run: { sec: number; par: number; to: string } | null = null;
+  private readonly objClock = $('obj-clock');
+  /**
+   * A race under way (decision 0217): its line in the course pill ("Horn in 7", "Mark 2 of 3")
+   * and its clock once the horn has gone; the pill's × gives it up (`onRetire`).
+   */
+  race: { label: string; short: string; sec: number | null } | null = null;
+  private readonly upright = matchMedia('(orientation: portrait) and (max-width: 600px)');
+  onRetire: () => void = () => {};
+  private readonly objRetire = $('obj-retire');
+  /** Quest cargo aboard, a line each, for the hold list (decision 0213). */
+  questCargo: () => string[] = () => [];
   private readonly wpArrow = $('wp-arrow');
   private readonly toast = $('toast');
   private readonly tiller = $('tiller');
@@ -138,11 +158,14 @@ export class Hud {
   private readonly hudHullBox = $('hud-hull-box');
   private readonly hullBar = $('hull-bar');
   private readonly cargoFill = $('hud-cargo-fill');
+  private readonly deckBox = $('hud-deck-box');
+  private readonly deckText = $('hud-deck');
   private readonly cargoBox = $('hud-cargo-box');
   private readonly cargoTooltip = $('hud-cargo-tooltip');
   private readonly dockBtn = $('dock-btn');
   private readonly dockPortName = $('dock-port-name');
   readonly portLabels: PortLabels;
+  private readonly boatLabels: BoatLabels;
 
   onDockClick: () => void = () => {};
   /** The player picked a sail step on the lever (0 = down). */
@@ -197,8 +220,10 @@ export class Hud {
 
     this.portLabels = new PortLabels($('port-labels'), this.world, harbours);
     this.portLabels.onPortClick = (portId) => this.onPortClick(portId);
+    this.boatLabels = new BoatLabels($('boat-labels'), this.world);
 
     this.seaGlyphs();
+    this.objRetire.addEventListener('click', () => this.onRetire());
     this.dockBtn.addEventListener('click', () => {
       this.onDockClick();
     });
@@ -356,6 +381,27 @@ export class Hud {
     }
   }
 
+  /** "1:45 / 2:20", red near par (decision 0213). */
+  private showRunClock() {
+    const run = this.run;
+    const race = this.race;
+    this.objRetire.hidden = !race;
+    this.objClock.hidden = !run && race?.sec == null;
+    if (race) {
+      if (race.sec === null) return;
+      const b = this.objClock.querySelector('b')!;
+      const text = clock(race.sec);
+      if (b.textContent !== text) b.textContent = text;
+      this.objClock.classList.remove('is-close');
+      return;
+    }
+    if (!run) return;
+    const text = `${clock(run.sec)} / ${clock(run.par)}`;
+    const b = this.objClock.querySelector('b')!;
+    if (b.textContent !== text) b.textContent = text;
+    this.objClock.classList.toggle('is-close', run.par - run.sec < 20);
+  }
+
   private toggleCargoTooltip() {
     if (!this.cargoTooltip.hidden) {
       this.cargoTooltip.hidden = true;
@@ -364,6 +410,13 @@ export class Hud {
     const { captain } = this.world.trade;
     const items = GOODS.filter((g) => captain.cargo[g] > 0)
       .map((g) => `${goodName(g)}: <b>${captain.cargo[g]}</b>`)
+      // Quest cargo on deck (decision 0213): say whose it is.
+      .concat(
+        this.questCargo().map(
+          (l, i) =>
+            `${i ? '' : `<small>${t('hud.onDeck')}</small><br>`}${l.replace(/[&<>"]/g, '')}`,
+        ),
+      )
       .join('<br>');
 
     this.cargoTooltip.innerHTML = items
@@ -385,9 +438,16 @@ export class Hud {
     this.toastTimer = seconds;
   }
 
+  /** Clears the toast now: a card opening over it says what comes next (decision 0217). */
+  hideToast() {
+    this.toast.hidden = true;
+    this.toastTimer = 0;
+  }
+
   handleEvents(events: WorldEvent[]) {
     for (const e of events) {
-      if (e.type === 'waypoint') {
+      if (e.type === 'mark-reached') this.showToast(t('toast.markReached'), 2.5);
+      else if (e.type === 'waypoint') {
         this.showToast(
           t('toast.waypoint', { label: e.label, time: formatTime(e.seconds), next: e.next }),
           3.5,
@@ -582,13 +642,18 @@ export class Hud {
     rot(this.cWind, windTo(wind));
     rot(this.cBoat, boat.heading);
     this.cWp.style.display = wp ? '' : 'none';
-    this.objective.hidden = !wp;
+    this.objective.hidden = !wp && !this.run && !this.race;
+    this.showRunClock();
     if (wp) rot(this.cWp, bearingTo(boat, wp));
     this.cMark.style.display = this.mark ? '' : 'none';
     if (this.mark) rot(this.cMark, bearingTo(boat, this.mark));
     const targetAngle = wp ? screenBearing(project, boat, wp) : 0;
     if (wp) this.objArrow.style.transform = `rotate(${targetAngle}rad)`;
-    const targetName = wp?.label ?? '';
+    // No course set during a run: the pill names the run (decision 0213).
+    const runTo = this.run && findPort(this.world.map, this.run.to)?.name;
+    this.objective.classList.toggle('is-race', !!this.race);
+    const race = this.race && (this.upright.matches ? this.race.short : this.race.label);
+    const targetName = race ?? wp?.label ?? (runTo ? t('quest.run.clock', { to: runTo }) : '');
     if (this.objName.textContent !== targetName) this.objName.textContent = targetName;
 
     this.compass.classList.toggle('is-upwind', cue.amber);
@@ -640,12 +705,24 @@ export class Hud {
       this.cargoFill.setAttribute('y', (20 - fill).toFixed(1));
       this.cargoFill.setAttribute('height', fill.toFixed(1));
       this.cargoBox.classList.toggle('is-full', used >= cap);
-      const hull = Math.round(hullCondition(trade) * 100);
+      // Quest cargo lashed on deck (decision 0213), shown while there is some.
+      const deck = SHIP_CLASSES[trade.captain.activeShip]!.deck;
+      const onDeck = trade.quests.hold ?? 0;
+      this.deckBox.hidden = onDeck <= 0;
+      if (onDeck > 0) this.deckText.textContent = `${onDeck}/${deck}`;
+      const condition = hullCondition(trade);
+      const hull = Math.round(condition * 100);
+      // The colour steps with the damage the model shows (decision 0208): brass when scuffed,
+      // red once the sails are patched, a deeper red when torn.
+      const stage = damageStage(condition);
       this.hudHullBox.hidden = hull >= 100;
       this.hudHull.textContent = t('unit.percent', { n: hull });
-      this.hudHullBox.classList.toggle('is-low', hull < 50);
+      for (const box of [this.hudHullBox, this.hullBar]) {
+        box.classList.toggle('is-worn', stage === 1);
+        box.classList.toggle('is-low', stage >= 2);
+        box.classList.toggle('is-wrecked', stage === 3);
+      }
       this.hullBar.hidden = hull >= 100;
-      this.hullBar.classList.toggle('is-low', hull < 50);
       (this.hullBar.firstElementChild as HTMLElement).style.width = `${hull}%`;
 
       if (trade.dockedAt) {
@@ -660,6 +737,7 @@ export class Hud {
     }
 
     this.portLabels.update(project, dt, resumed);
+    this.boatLabels.update(project);
     // One Trade button at a time: the port sign's, or this one when the sign is off screen.
     const dockedAt = this.world.trade.dockedAt;
     const showDock = dockedAt !== null && !this.portLabels.dockShown(dockedAt);

@@ -6,7 +6,9 @@ import fr from '../../i18n/fr.json';
 import { TEXT_VARIANTS, type TextVariant } from '../../i18n';
 import type { MapDef, SeaMarkDef, SeaMarkType } from '../../sim/map';
 import type { StepWind } from '../../sim/stepEffects';
+import { BUILDINGS, homeSpots, resolveSpot } from '../../sim/home';
 import { clearAt } from '../../sim/mapChecks';
+import { REGATTA } from '../../sim/regatta';
 import { hasQuestLand, standingMap } from '../../sim/questLand';
 import {
   CONDITIONS,
@@ -170,6 +172,9 @@ export interface Place {
   /** Number shown by the ring (1-based), and whether a line joins them in order. */
   no: number;
   ordered: boolean;
+  /** Its own label instead of its number ("start pin"), and the line it ends (a race's, 0217). */
+  name?: string;
+  line?: string;
 }
 
 export function getAt(root: unknown, path: Path): unknown {
@@ -227,6 +232,40 @@ export function stepPlaces(step: QuestStep, map: MapDef): Place[] {
           no: i + 1,
           ordered: true,
         }),
+      );
+    }
+    // A race (decision 0217): its marks in order, and each end of its start and finish lines.
+    if (cond.is === 'raced') {
+      const within = typeof cond.within === 'number' ? cond.within : REGATTA.within;
+      ((cond.marks as QuestPoint[]) ?? []).forEach((p, i) =>
+        out.push({
+          kind: 'point',
+          x: p.x,
+          y: p.y,
+          within,
+          path: [...path, 'marks', i],
+          radiusPath: [...path, 'within'],
+          no: i + 1,
+          ordered: true,
+        }),
+      );
+      // One line for both when the race finishes where it starts.
+      const same = JSON.stringify(cond.start) === JSON.stringify(cond.finish);
+      (['start', 'finish'] as const).forEach((key) =>
+        ((same && key === 'finish' ? [] : (cond[key] as QuestPoint[])) ?? []).forEach((p, i) =>
+          out.push({
+            kind: 'via',
+            x: p.x,
+            y: p.y,
+            within: 0,
+            path: [...path, key, i],
+            radiusPath: null,
+            no: 0,
+            ordered: false,
+            name: `${same ? 'line' : key} ${i ? 'pin' : 'boat'}`,
+            line: key,
+          }),
+        ),
       );
     }
     if (cond.is === 'carried')
@@ -291,6 +330,7 @@ export function addPlace(step: QuestStep, x: number, y: number): Path | null {
     const cond = c as Condition;
     if (cond.is === 'reach') return [...path, 'points'];
     if (cond.is === 'timed') return [...path, 'via'];
+    if (cond.is === 'raced') return [...path, 'marks'];
     if (cond.is === 'all' || cond.is === 'any')
       for (const [i, m] of ((cond.of as Condition[]) ?? []).entries()) {
         const found = find(m, [...path, 'of', i]);
@@ -351,6 +391,62 @@ export function setWind(target: { wind?: StepWind }, speedKn?: number, fromDeg?:
     return;
   }
   target.wind = fromDeg === undefined ? { speedKn } : { speedKn, fromDeg };
+}
+
+// --- Races (decision 0217) ----------------------------------------------------------------------
+
+/** A race's `raced` goal (its one step's), or null for a quest that is no race. */
+export function raceGoal(quest: QuestDef): Condition | null {
+  const goal = quest.race ? quest.steps[0]?.goal : undefined;
+  return goal?.is === 'raced' ? goal : null;
+}
+
+/** A race's start or finish line: the committee boat's end, then the pin's. */
+export function setRaceLine(
+  quest: QuestDef,
+  which: 'start' | 'finish',
+  a: QuestPoint,
+  b: QuestPoint,
+): boolean {
+  const goal = raceGoal(quest);
+  if (!goal) return false;
+  goal[which] = [
+    { x: round1(a.x), y: round1(a.y) },
+    { x: round1(b.x), y: round1(b.y) },
+  ];
+  return true;
+}
+
+/** Adds a race mark at `at` (after mark `after`, 0-based; at the end by default); its index. */
+export function addRaceMark(quest: QuestDef, at: QuestPoint, after?: number): number {
+  const goal = raceGoal(quest);
+  if (!goal) return -1;
+  const marks = [...((goal.marks as QuestPoint[]) ?? [])];
+  const i = after === undefined ? marks.length : Math.min(marks.length, after + 1);
+  marks.splice(i, 0, { x: round1(at.x), y: round1(at.y) });
+  goal.marks = marks;
+  return i;
+}
+
+/** Moves race mark `i` (0-based); false when there is none. */
+export function moveRaceMark(quest: QuestDef, i: number, at: QuestPoint): boolean {
+  const marks = raceGoal(quest)?.marks as QuestPoint[] | undefined;
+  if (!marks?.[i]) return false;
+  marks[i] = { x: round1(at.x), y: round1(at.y) };
+  return true;
+}
+
+/** Removes race mark `i` (0-based); a race keeps at least one. */
+export function removeRaceMark(quest: QuestDef, i: number): boolean {
+  const marks = raceGoal(quest)?.marks as QuestPoint[] | undefined;
+  if (!marks?.[i] || marks.length < 2) return false;
+  marks.splice(i, 1);
+  return true;
+}
+
+/** A race's pars (ship class → level → seconds), from `npm run race -- pars` or the builder. */
+export function setRacePars(quest: QuestDef, pars: Record<string, Record<string, number>>) {
+  if (quest.race) quest.race.pars = pars;
 }
 
 // --- Play from a step ------------------------------------------------------------------------
@@ -439,6 +535,14 @@ export function defaultParam(type: Param, map: MapDef, questIds: string[]): unkn
     case 'points': {
       const s = map.start;
       return [{ x: round1(s.x), y: round1(s.y + 40) }];
+    }
+    // A race's line (decision 0217): the committee boat's end, then the pin's, across the course.
+    case 'gate': {
+      const s = map.start;
+      return [
+        { x: round1(s.x - 20), y: round1(s.y + 20) },
+        { x: round1(s.x + 20), y: round1(s.y + 20) },
+      ];
     }
     case 'order':
       return 'any';
@@ -553,8 +657,14 @@ export function questsNamed(c: Condition | undefined): string[] {
   return typeof c.quest === 'string' ? [c.quest] : [];
 }
 
-/** Columns for the story view: a quest sits one column right of the last quest it waits on. */
-export function storyColumns(quests: readonly { id: string; start: Condition }[]): string[][] {
+/**
+ * Columns for the story view: a quest sits one column right of the last quest it waits on. The
+ * standing orders (decision 0214) stay out of it: the view lists them on their own.
+ */
+export function storyColumns(
+  all: readonly { id: string; start: Condition; repeat?: boolean }[],
+): string[][] {
+  const quests = all.filter((q) => !q.repeat);
   const byId = new Map(quests.map((q) => [q.id, q]));
   const depth = new Map<string, number>();
   const visit = (id: string, trail: Set<string>): number => {
@@ -606,10 +716,60 @@ export function textKeys(quest: QuestDef): TextLine[] {
       });
     }
   }
-  out.push({ key: `${t}.done.title`, label: 'Thanks · title', long: false });
-  out.push({ key: `${t}.done.copy`, label: 'Thanks · speech', long: true, variants: true });
+  // A standing order thanks for each ask in its own words (decision 0214).
+  if (quest.repeat)
+    for (const s of quest.steps)
+      out.push({ key: `${t}.${s.id}.thanks`, label: `${s.id} · thanks`, long: true });
+  else {
+    out.push({ key: `${t}.done.title`, label: 'Thanks · title', long: false });
+    out.push({ key: `${t}.done.copy`, label: 'Thanks · speech', long: true, variants: true });
+  }
+  // Quest cargo's names for the dock news (decision 0213); a passenger (space 0) is a person.
+  for (const [id, item] of Object.entries(quest.items ?? {}))
+    if (item.space > 0)
+      for (const [form, what] of ITEM_FORMS)
+        out.push({ key: `quest.item.${id}.${form}`, label: `item ${id} · ${what}`, long: false });
+  // A plot given (decision 0210): the giver by their stake, on the next mooring at the island.
+  if (givesPlot(quest))
+    out.push({ key: `${t}.plot.copy`, label: 'Plot · speech at the island', long: true });
   return out;
 }
+
+/** The forms of a quest item's name the dock news reads (decision 0213). */
+export const ITEM_FORMS = [
+  ['one', 'one ("millstone")'],
+  ['many', 'several ("millstones")'],
+  ['the', 'the load ("the millstones")'],
+  ['own', 'someone’s ("Maren’s millstones" / « les meules »)'],
+  ['unloadedOne', '"unloaded", one (FR « déchargée »)'],
+  ['unloadedMany', '"unloaded", several (FR « déchargées »)'],
+] as const;
+
+const givesPlot = (q: QuestDef) => !!(q.reward as QuestReward | undefined)?.homeSpot;
+
+/**
+ * `{spotA}` and `{spotB}` in a language (decision 0210): the two buildings of the plot a quest
+ * gives, with their article, as the game fills them; none for a quest that gives no plot.
+ */
+export function plotWords(
+  doc: QuestDoc,
+  map: MapDef,
+  q: QuestDef,
+  lang: Lang,
+): Record<string, string> {
+  const ref = (q.reward as QuestReward | undefined)?.homeSpot;
+  const plot = resolveSpot(map, Array.isArray(ref) ? ref[0] : ref);
+  const pair = plot && homeSpots(map, plot.island).find((x) => x.id === plot.spot)?.pair;
+  if (!pair) return {};
+  const [a, b] = BUILDINGS.filter((x) => x.pair === pair).map(
+    (x) => textOf(doc, lang, `building.${x.id}.a`) ?? x.id,
+  );
+  return { spotA: a ?? '', spotB: b ?? '' };
+}
+
+/** A text with its `{name}`s filled in. */
+export const fillWords = (text: string, words: Record<string, string>) =>
+  text.replace(/\{(\w+)\}/g, (all, name: string) => words[name] ?? all);
 
 /** Every key of a line: the default, then its controls versions (decision 0184). */
 export function lineKeys(line: TextLine): { key: string; label: string; way?: TextVariant }[] {
@@ -639,13 +799,25 @@ export function checkText(doc: QuestDoc): string[] {
       const [a, b] = LANGS.map((l) => textOf(doc, l, key));
       const isAsk =
         /\.title$/.test(key) && !key.endsWith('.done.title') && key.split('.').length === 4;
-      if (isAsk && a === undefined && b === undefined)
+      if ((isAsk || key.startsWith('quest.item.')) && a === undefined && b === undefined)
         out.push(`quest ${q.id} › ${label}: no text`);
       else if ((a === undefined) !== (b === undefined))
         out.push(`quest ${q.id} › ${label}: no ${a === undefined ? 'English' : 'French'}`);
       else if (a !== undefined && placeholders(a).join() !== placeholders(b!).join())
         out.push(`quest ${q.id} › ${label}: the {…} differ between English and French`);
     }
+  // A plot given (decision 0210): the thanks names its two buildings, and the giver speaks at
+  // the island.
+  for (const q of doc.quests) {
+    if (!givesPlot(q)) continue;
+    const thanks = textOf(doc, 'en', `${q.text}.done.copy`) ?? '';
+    if (!thanks.includes('{spotA}') || !thanks.includes('{spotB}'))
+      out.push(
+        `quest ${q.id} › Thanks · speech: a plot given, name its buildings with {spotA} and {spotB}`,
+      );
+    if (textOf(doc, 'en', `${q.text}.plot.copy`) === undefined)
+      out.push(`quest ${q.id} › Plot · speech at the island: no text`);
+  }
   return out;
 }
 
@@ -785,4 +957,5 @@ export const REWARD_FIELDS: { key: keyof QuestReward; label: string }[] = [
   { key: 'homeIsland', label: 'An island' },
   { key: 'homeSpot', label: 'Building spots' },
   { key: 'erupt', label: 'Eruption' },
+  { key: 'order', label: 'Paid like a help order' },
 ];

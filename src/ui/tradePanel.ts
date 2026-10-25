@@ -18,6 +18,7 @@ import {
   MAX_SETTLEMENT_LEVEL,
   portTownGate,
   madeGoods,
+  topLevel,
   portNow,
   producesAt,
   settlementLevel,
@@ -60,14 +61,25 @@ import {
 } from '../sim/upgrades';
 import type { World } from '../sim/world';
 import { KIDS_MODE_AVAILABLE, type UiMode } from './settings';
-import { formatNumber, goodName, shipName, shipThe, t, townLevelName } from '../i18n';
+import {
+  formatNumber,
+  goodName,
+  goodSome,
+  shipName,
+  shipThe,
+  t,
+  tOptional,
+  townLevelName,
+} from '../i18n';
 import { COIN, crateIcon, icon } from './icons';
-import { portraitSvg } from './portraits';
+import { character, portraitSvg } from './portraits';
+import { keeperState } from '../sim/keeper';
 import { questCardBody } from './questCard';
 import type { QuayItem } from './questView';
 import { askConfirm } from './confirmDialog';
 import { guardSoftDisabled, softDisable } from './padFocus';
 import { padGlyph } from './padGlyphs';
+import { harbourAccent } from '../render/harbourView';
 
 /** A game controller's button glyphs, shown only while the pad is in use (decision 0163). */
 // Button glyphs named for the pad in use (decision 0186), built when the panel draws.
@@ -76,7 +88,6 @@ const PAD_RB = () => padGlyph('rb', 'bumper');
 const PAD_X = () => padGlyph('x');
 const PAD_LT = () => padGlyph('lt', 'bumper');
 const PAD_RT = () => padGlyph('rt', 'bumper');
-
 export type TradePanelTab = 'market' | 'orders' | 'quay' | 'shipyard';
 
 /**
@@ -87,8 +98,15 @@ export type TradePanelTab = 'market' | 'orders' | 'quay' | 'shipyard';
 export interface PortQuay {
   items(): QuayItem[];
   seen(fresh: QuayItem[]): void;
-  act(quest: string, act: 'accept' | 'later' | 'ignore' | 'choose', option?: string): void;
+  act(
+    quest: string,
+    act: 'accept' | 'later' | 'ignore' | 'choose' | 'again',
+    option?: string,
+  ): void;
+  /** "Hand over" on a person's card (decision 0213): `n` of `good`, paid. */
+  hand(quest: string, good: string, n: number): void;
 }
+type QuayAct = 'accept' | 'later' | 'ignore' | 'choose' | 'hand' | 'again';
 
 /** Lot sizes for one tap on Buy or Sell (decision 0049); clamped to what the hold, stock and gold allow. */
 const LOTS = [1, 5, 10] as const;
@@ -98,6 +116,12 @@ export class TradePanel {
   private tab: TradePanelTab = 'market';
   private returnFocus: HTMLElement | null = null;
   private message = '';
+
+  /** Each port's town level when she last docked there, and her visits: the keeper's line (0211). */
+  private readonly seenLevels: Record<string, number> = {};
+  private readonly visits: Record<string, number> = {};
+  /** This docking's keeper line, kept while the screen redraws. */
+  private keeperLine: { port: string; key: string } | null = null;
 
   /** "Not now" on the load on credit (decision 0200): hidden until she docks again. */
   private creditLater = false;
@@ -117,6 +141,10 @@ export class TradePanel {
   onTrade: (kind: 'buy' | 'sell', good: GoodId | null) => void = () => {};
   onRender: () => void = () => {};
   onClose: () => void = () => {};
+  /** Quest cargo aboard, a line each (decision 0213). */
+  questCargo: () => string[] = () => [];
+  /** The port's picture for the header, from the game's renderer (decision 0211); null: none. */
+  harbourPicture: (portId: string) => string | null = () => null;
   /** The Quay tab's people; none: no tab. */
   quay: PortQuay | null = null;
   onUiModeChange: (mode: UiMode) => void = () => {};
@@ -175,6 +203,7 @@ export class TradePanel {
     if (!this.isOpen) this.returnFocus = document.activeElement as HTMLElement | null;
     this.message = '';
     this.creditLater = false;
+    this.pickKeeperLine();
     this.tab = tab;
     this.container.hidden = false;
     this.render();
@@ -238,6 +267,9 @@ export class TradePanel {
     const orders = this.openOrderCount();
     const people = this.quay?.items() ?? [];
     const fresh = people.filter((p) => p.fresh);
+    // The port's own picture and colour (decision 0211).
+    const picture = this.harbourPicture(port.id);
+    const accent = harbourAccent(map, port.id);
     if (!this.quay && this.tab === 'quay') this.tab = 'market';
     const tabBtn = (tab: TradePanelTab, label: string, extra = '') =>
       `<button id="tp-tab-${tab}" class="tab-btn ${this.tab === tab ? 'active' : ''}" aria-pressed="${this.tab === tab}">${label}${extra}</button>`;
@@ -245,7 +277,8 @@ export class TradePanel {
     // Full-screen port (decision 0049): header, tabs, one screen of content, actions along the bottom.
     const html = `
       <div class="trade-modal port-screen ${isKid ? 'kids-view' : 'captain-view'}">
-        <header class="trade-header">
+        <header class="trade-header${picture ? ' has-view' : ''}"${accent ? ` style="--port-accent: ${accent}"` : ''}>
+          ${picture ? `<div class="port-view" aria-hidden="true" style="background-image: url('${picture}')"></div>` : ''}
           <div class="port-title-area">
             <h2 class="port-name">${port.name}</h2>
             <div class="port-roles-summary">
@@ -259,6 +292,7 @@ export class TradePanel {
           <div class="header-controls">
             <span class="port-chip" title="${t('hud.gold')}">${COIN}<b>${formatNumber(captain.gold)}</b></span>
             <span class="port-chip" title="${t('hud.cargo')}">${crateIcon(holdCap > 0 ? holdUsed / holdCap : 0)}<b>${holdUsed}/${holdCap}</b></span>
+            ${this.renderDeckChip()}
             ${
               KIDS_MODE_AVAILABLE
                 ? `<button id="tp-toggle-mode" class="mode-toggle-btn" title="${t('trade.switchMode')}">
@@ -337,7 +371,13 @@ export class TradePanel {
 
   /** The Quay tab (decision 0141): everyone in this harbour with something to say. */
   private renderQuay(people: QuayItem[]): string {
-    if (!people.length) return `<p class="muted quay-empty">${t('trade.quayEmpty')}</p>`;
+    if (!people.length) {
+      // The quay itself, in the header's picture (decision 0211).
+      const picture = this.world.trade.dockedAt && this.harbourPicture(this.world.trade.dockedAt);
+      return `<div class="quay-empty${picture ? ' has-view' : ''}">${
+        picture ? `<div class="quay-view" style="background-image: url('${picture}')"></div>` : ''
+      }<p class="muted">${t('trade.quayEmpty')}</p></div>`;
+    }
     return `<div class="quay-people">${people
       .map(
         ({ card, fresh }) =>
@@ -350,13 +390,89 @@ export class TradePanel {
       .join('')}</div>`;
   }
 
+  /**
+   * The keeper's line for this docking (decision 0211): `grew` once after the town grew a level,
+   * else how the port's arc stands; the two lines of a state take turns from one visit to the next.
+   */
+  private pickKeeperLine() {
+    const { trade, map } = this.world;
+    const port = trade.dockedAt ? findPort(map, trade.dockedAt) : null;
+    this.keeperLine = null;
+    if (!port) return;
+    const level = settlementLevel(trade, port.id);
+    const grew = this.seenLevels[port.id] !== undefined && level > this.seenLevels[port.id]!;
+    this.seenLevels[port.id] = level;
+    const visit = (this.visits[port.id] = (this.visits[port.id] ?? 0) + 1);
+    if (!port.keeper) return;
+    const lines = (state: string) => {
+      const out: string[] = [];
+      for (let n = 1; tOptional(`keeper.${port.keeper}.${state}.${n}`) !== undefined; n++)
+        out.push(`keeper.${port.keeper}.${state}.${n}`);
+      return out;
+    };
+    // An outpost has no `before` or `running` lines: it speaks as done.
+    let options = lines(keeperState(port, trade, grew));
+    if (!options.length) options = lines('done');
+    if (options.length)
+      this.keeperLine = { port: port.id, key: options[(visit - 1) % options.length]! };
+  }
+
+  /** Under the Market rows: the keeper with a line, the town's level and what it grows into. */
+  private renderKeeper(portId: string): string {
+    const { trade, map } = this.world;
+    const port = findPort(map, portId);
+    const s = trade.settlements.byPort[portId];
+    if (!port || !s) return '';
+    const level = townLevelName(s.level);
+    const top = topLevel(port);
+    let next: string;
+    if (s.level >= top) next = t('trade.keeperTop', { level });
+    else {
+      const nextLevel = s.level + 1;
+      const makes = portNow(port, trade).levelProduces?.[String(nextLevel) as '2'] ?? [];
+      const upgrade = Object.entries(TUNING.upgrades.homePortLevel).find(
+        ([, at]) => at === nextLevel,
+      )?.[0];
+      const name = townLevelName(nextLevel);
+      next = makes.length
+        ? t('trade.keeperNextMakes', {
+            level: name,
+            goods: makes.map((g) => `${icon(g)} ${goodSome(g)}`).join(', '),
+          })
+        : upgrade && port.id === homePort(map).id
+          ? t('trade.keeperNextShipyard', { level: name, n: upgrade })
+          : t('trade.keeperNext', { level: name });
+    }
+    const growth =
+      s.level >= top
+        ? ''
+        : `<span class="keeper-growth">${t('trade.keeperGrowth', {
+            level,
+            pct: Math.round(growthProgress(trade, portId) * 100),
+          })}</span>`;
+    const who = port.keeper ? character(port.keeper) : undefined;
+    const line = this.keeperLine?.port === portId ? tOptional(this.keeperLine.key) : undefined;
+    return `<section class="keeper-card${who ? '' : ' no-keeper'}">${
+      who ? `<span class="quay-face">${portraitSvg(who, { size: 96 })}</span>` : ''
+    }<div class="keeper-body">${
+      who
+        ? `<p class="keeper-name"><b>${who.name}</b> <small>${tOptional(`character.${who.id}.role`) ?? who.role} · ${port.name}</small></p>`
+        : ''
+    }${line ? `<p class="keeper-line">${line}</p>` : ''}<p class="keeper-town">${growth}<span>${next}</span></p></div></section>`;
+  }
+
   /** "Kit Marlow would like a word → Quay", in the footer of the other tabs. */
   private renderQuayHint(fresh: QuayItem[]): string {
     const first = fresh[0]!.card;
     const name = (first.giver?.name ?? first.arc).replace(/[&<>"]/g, '');
     return `<button id="tp-quay-hint" class="quay-hint">${
       first.giver ? portraitSvg(first.giver, { size: 40, mood: first.mood }) : ''
-    }<span>${t('trade.quayHint', { name })} <em>${t('trade.quayGo')}</em></span></button>`;
+    }<span>${
+      // Dock news says itself (decision 0213): "Done! +100 gold." after the timber sold.
+      first.news
+        ? `<b>${name}</b> · ${first.news.replace(/[&<>"]/g, '')}`
+        : t('trade.quayHint', { name })
+    } <em>${t('trade.quayGo')}</em></span></button>`;
   }
 
   /** Hull repair after reef strikes (decision 0032); shown only when the hull is damaged. */
@@ -730,9 +846,10 @@ export class TradePanel {
 
     return `
       <div class="market-section adult-layout">
-        <div class="goods-list">${rowsHtml}</div>
+        <div class="goods-list">${rowsHtml}${this.renderKeeper(port.id)}</div>
         <aside class="port-side">
           ${this.renderCredit()}
+          ${this.renderQuestCargo()}
           <section class="side-card">
             <h3>${t('trade.orderHere')}</h3>
             ${orderHtml}
@@ -741,6 +858,24 @@ export class TradePanel {
         </aside>
       </div>
     `;
+  }
+
+  /** Quest cargo on deck (decision 0213), next to the hold, while there is some. */
+  private renderDeckChip(): string {
+    const { trade } = this.world;
+    const onDeck = trade.quests.hold ?? 0;
+    if (onDeck <= 0) return '';
+    const deck = SHIP_CLASSES[trade.captain.activeShip]!.deck;
+    return `<span class="port-chip deck-chip" title="${t('hud.onDeck')}"><svg class="icon" aria-hidden="true"><use href="#i-deck" /></svg><small>${t('hud.deck')}</small><b>${onDeck}/${deck}</b></span>`;
+  }
+
+  /** Quest cargo on deck (decision 0213): it is not for sale and not in the hold, so say whose. */
+  private renderQuestCargo(): string {
+    const lines = this.questCargo();
+    if (!lines.length) return '';
+    return `<section class="side-card quest-cargo"><h3>${t('quest.cargoTitle')}</h3><ul>${lines
+      .map((l) => `<li>${l.replace(/[&<>"]/g, '')}</li>`)
+      .join('')}</ul></section>`;
   }
 
   /**
@@ -1164,8 +1299,11 @@ export class TradePanel {
       .querySelectorAll<HTMLButtonElement>('.quay-people button[data-act]')
       .forEach((btn) => {
         btn.addEventListener('click', () => {
-          const act = btn.dataset.act as 'accept' | 'later' | 'ignore' | 'choose';
-          this.quay?.act(btn.dataset.quest!, act, btn.dataset.option);
+          const act = btn.dataset.act as QuayAct;
+          // Goods handed over from the person's card (decision 0213): paid, the quest moves on.
+          if (act === 'hand')
+            this.quay?.hand(btn.dataset.quest!, btn.dataset.good!, Number(btn.dataset.n));
+          else this.quay?.act(btn.dataset.quest!, act, btn.dataset.option);
           this.render();
         });
       });

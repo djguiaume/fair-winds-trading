@@ -1,0 +1,7 @@
+{
+  "id": "plot-stakes-bare",
+  "name": "Staked plot (not yet given)",
+  "group": "town",
+  "extends": "plot-stakes",
+  "vars": { "open": 0 }
+}

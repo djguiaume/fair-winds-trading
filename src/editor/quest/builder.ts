@@ -12,6 +12,7 @@ import {
   type QuestStep,
 } from '../../sim/quests';
 import { CHARACTERS, MOODS, type Mood, portraitSvg } from '../../ui/portraits';
+import { MEDALS, REGATTA } from '../../sim/regatta';
 import { seaMarkShape } from '../../ui/chartMarks';
 import { questCardBody } from '../../ui/questCard';
 import type { QuestCardModel } from '../../ui/questView';
@@ -32,11 +33,14 @@ import {
   clock,
   conditionWords,
   exportFiles,
+  fillWords,
   getAt,
   isQuestDoc,
+  newCondition,
   newQuest,
   newStep,
   playUrl,
+  plotWords,
   questProblems,
   questsNamed,
   renameQuest,
@@ -463,7 +467,8 @@ function drawQuestList() {
   const box = $('.qb-quests');
   box.replaceChildren(h('h2', {}, 'Quests ', h('small', {}, `${doc.quests.length} files`)));
   const list = h('ul');
-  const order = storyColumns(doc.quests).flat();
+  // The story in order, then the standing orders (decision 0214).
+  const order = [...storyColumns(doc.quests).flat(), ...doc.quests.map((q) => q.id)];
   const sorted = [...doc.quests].sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
   for (const q of sorted) {
     const li = h('li', { class: q.id === questId ? 'on' : '', tabindex: '0' });
@@ -473,11 +478,17 @@ function drawQuestList() {
         'span',
         {},
         h('b', {}, q.name),
-        h('small', {}, `${q.steps.length} step${q.steps.length === 1 ? '' : 's'}`),
+        h(
+          'small',
+          {},
+          `${q.steps.length} ${q.repeat ? 'ask' : 'step'}${q.steps.length === 1 ? '' : 's'}`,
+        ),
       ),
     );
     if (q.main) li.append(h('em', { class: 'qb-tag main' }, 'main'));
     if (q.lesson) li.append(h('em', { class: 'qb-tag main' }, 'lesson'));
+    if (q.repeat) li.append(h('em', { class: 'qb-tag' }, 'standing'));
+    if (q.race) li.append(h('em', { class: 'qb-tag' }, 'race'));
     if (!shippedQuest(q.id)) li.append(h('em', { class: 'qb-tag new' }, 'new'));
     const pick = () => {
       questId = q.id;
@@ -545,6 +556,7 @@ function drawSteps() {
     const li = h('li', { class: s.id === stepId ? 'on' : '', tabindex: '0' });
     const flags = [
       s.reward?.gold ? `<span class="qb-gold">+${s.reward.gold}</span>` : '',
+      s.reward?.order ? '<span class="qb-gold">+order</span>' : '',
       ...[
         s.clean && 'clean',
         s.teach && 'teach',
@@ -607,7 +619,10 @@ function drawSteps() {
   const done = h('div', { class: 'qb-start qb-done' });
   done.append(
     h('span', { class: 'qb-k' }, 'Done'),
-    ` ${textOf(doc, 'en', `${q.text}.done.title`) ?? 'no thanks card'}${q.reward ? ` · pays ${rewardWords(q)}` : ''}`,
+    // A standing order thanks on each ask, and asks again (decision 0214).
+    q.repeat
+      ? ' each ask thanks in its own words, then the next ask in turn after calls elsewhere'
+      : ` ${textOf(doc, 'en', `${q.text}.done.title`) ?? 'no thanks card'}${q.reward ? ` · pays ${rewardWords(q)}` : ''}`,
   );
   box.append(list, add, done);
 }
@@ -760,6 +775,21 @@ function questPanel(q: QuestDef): HTMLElement[] {
   );
   out.push(
     row(
+      'Standing order',
+      checkbox(
+        !!q.repeat,
+        (on) =>
+          edit(() => {
+            if (!on) return delete q.repeat;
+            q.repeat = true;
+            q.offer = true;
+          }),
+        'asks again: one step per ask, in turn, after calls elsewhere (0214)',
+      ),
+    ),
+  );
+  out.push(
+    row(
       'Main',
       checkbox(
         !!q.main,
@@ -768,6 +798,7 @@ function questPanel(q: QuestDef): HTMLElement[] {
       ),
     ),
   );
+  out.push(...raceRows(q, ctx, edit));
   out.push(...questSeaRows(q));
   out.push(conditionForm(q.start, ctx, false, (c) => (q.start = c), 'Starts when'));
   out.push(h('h2', {}, 'Quest cargo'));
@@ -881,20 +912,22 @@ function goalPanel(q: QuestDef, s: QuestStep): HTMLElement[] {
     ),
   );
   const later = q.steps.slice(i + 1).map((o) => o.id);
-  out.push(
-    row(
-      'Then',
-      select(
-        [
-          ...later.map((o): [string, string] => [o, `step ${o}`]),
-          [QUEST_DONE, 'the quest is done'],
-        ],
-        s.next,
-        (v) => edit(() => (v ? (s.next = v) : delete s.next)),
-        later[0] ? `the next step (${later[0]})` : 'the quest is done',
+  // A standing order's ask ends the round (decision 0214).
+  if (!q.repeat)
+    out.push(
+      row(
+        'Then',
+        select(
+          [
+            ...later.map((o): [string, string] => [o, `step ${o}`]),
+            [QUEST_DONE, 'the quest is done'],
+          ],
+          s.next,
+          (v) => edit(() => (v ? (s.next = v) : delete s.next)),
+          later[0] ? `the next step (${later[0]})` : 'the quest is done',
+        ),
       ),
-    ),
-  );
+    );
   out.push(
     row(
       'Clean',
@@ -1385,6 +1418,12 @@ function drawChartView() {
     if (run.length > 1)
       add('polyline', { points: run.map((p) => `${p.x},${-p.y}`).join(' '), class: 'qb-order' });
   }
+  // A race's start and finish lines (decision 0217), from the committee boat to the pin.
+  for (const line of ['start', 'finish']) {
+    const ends = places.filter((p) => p.line === line);
+    if (ends.length === 2)
+      add('polyline', { points: ends.map((p) => `${p.x},${-p.y}`).join(' '), class: 'qb-order' });
+  }
   places.forEach((p, i) => {
     if (p.kind === 'compass') {
       add('path', { d: star(p.x, p.y, 9 * px), class: 'qb-compass', 'data-hit': `qp:${i}` });
@@ -1401,7 +1440,7 @@ function drawChartView() {
     if (p.kind !== 'chart') {
       add('circle', { cx: p.x, cy: -p.y, r: 5 * px, class: 'qb-handle', 'data-hit': `qp:${i}` });
       label(
-        p.kind === 'spot' ? (p.no === 1 ? 'load' : 'unload') : String(p.no),
+        p.name ?? (p.kind === 'spot' ? (p.no === 1 ? 'load' : 'unload') : String(p.no)),
         p.x,
         p.y + p.within + 6 * px,
         'num',
@@ -1553,10 +1592,18 @@ function cardModel(q: QuestDef, s: QuestStep | undefined, l: Lang): QuestCardMod
   const role = giver && (textOf(doc, l, `character.${giver.id}.role`) ?? giver.role);
   const i = s ? q.steps.indexOf(s) : q.steps.length;
   const par = parOf(s?.goal);
+  const words = plotWords(doc, map, q, l);
   const fill = (text: string | undefined) =>
-    text?.replace('{par}', par === undefined ? '{par}' : clock(par));
+    text && fillWords(text.replace('{par}', par === undefined ? '{par}' : clock(par)), words);
   const key = s ? `${q.text}.${s.id}` : `${q.text}.done`;
-  const kind = !s ? 'finished' : s.choose ? 'choice' : i === 0 && q.offer ? 'offer' : 'step';
+  // Each ask of a standing order is offered on its own, and thanked in its own words (0214).
+  const kind = !s
+    ? 'finished'
+    : s.choose
+      ? 'choice'
+      : (i === 0 || q.repeat) && q.offer
+        ? 'offer'
+        : 'step';
   const gold = (s ? s.reward?.gold : q.reward?.gold) ?? 0;
   return {
     quest: q.id,
@@ -1568,6 +1615,8 @@ function cardModel(q: QuestDef, s: QuestStep | undefined, l: Lang): QuestCardMod
     arc: textOf(doc, l, `${q.text}.name`) ?? q.name,
     stepNo: Math.min(i + 1, q.steps.length),
     steps: q.steps.length,
+    round: q.repeat && s ? i + 1 : undefined,
+    progress: q.repeat && typeof s?.goal?.qty === 'number' ? `0 / ${s.goal.qty}` : undefined,
     // The version for the way of playing picked under the speech, else the default (0184).
     speech: fill(
       (speechWay && textOf(doc, l, `${key}.copy@${speechWay}`)) || textOf(doc, l, `${key}.copy`),
@@ -1580,7 +1629,7 @@ function cardModel(q: QuestDef, s: QuestStep | undefined, l: Lang): QuestCardMod
     })),
     main: !!q.main,
     reward: gold ? { gold, more: [] } : undefined,
-    moreSteps: kind === 'offer' ? q.steps.length - 1 : undefined,
+    moreSteps: kind === 'offer' && !q.repeat ? q.steps.length - 1 : undefined,
   };
 }
 
@@ -1611,18 +1660,36 @@ function drawCardView() {
       ),
     ),
   );
-  const model = cardModel(q, s, lang);
-  setLanguage(lang);
-  const body = questCardBody(model, !q.main);
-  setLanguage('en');
-  const card = h('div', { class: 'quest-card qb-card' });
-  card.innerHTML = `${model.giver ? `<div class="quest-face">${portraitSvg(model.giver, { mood: model.mood, variant: model.look, size: 168 })}</div>` : ''}<div class="quest-body">${body}</div>`;
-  box.append(h('div', { class: 'qb-card-host' }, card));
+  // A standing order's ask has its own thanks card under it (decision 0214).
+  const models = [cardModel(q, s, lang)];
+  if (q.repeat && s) {
+    const ask = models[0]!;
+    models.push({
+      ...ask,
+      kind: 'finished',
+      mood: 'pleased',
+      speech: textOf(doc, lang, `${q.text}.${s.id}.thanks`),
+      progress: undefined,
+      reward: undefined,
+      round: ask.round,
+    });
+  }
+  for (const model of models) {
+    setLanguage(lang);
+    const body = questCardBody(model, !q.main);
+    setLanguage('en');
+    const card = h('div', { class: 'quest-card qb-card' });
+    card.innerHTML = `${model.giver ? `<div class="quest-face">${portraitSvg(model.giver, { mood: model.mood, variant: model.look, size: 168 })}</div>` : ''}<div class="quest-body">${body}</div>`;
+    box.append(h('div', { class: 'qb-card-host' }, card));
+  }
   // The text keys of this step (or the quest's name and thanks), English and French side by side.
   const keys = textKeys(q).filter(({ key }) =>
     s
       ? key.startsWith(`${q.text}.${s.id}.`)
-      : key === `${q.text}.name` || key.startsWith(`${q.text}.done.`),
+      : key === `${q.text}.name` ||
+        key.startsWith(`${q.text}.done.`) ||
+        // The quest cargo's names, for the dock news (decision 0213).
+        key.startsWith('quest.item.'),
   );
   const table = h('table', { class: 'qb-text' });
   table.append(
@@ -1689,7 +1756,8 @@ function drawCardView() {
 function drawStory() {
   const box = $('.qb-story');
   box.replaceChildren();
-  const quests = doc.quests.map((q) => ({ id: q.id, start: q.start }));
+  // The standing orders (decision 0214) are listed under the story, not in it.
+  const quests = doc.quests.filter((q) => !q.repeat).map((q) => ({ id: q.id, start: q.start }));
   const columns = storyColumns(quests);
   // Columns as wide as fit the view (the story scrolls past five or so).
   const GAP = 30,
@@ -1759,6 +1827,28 @@ function drawStory() {
       });
     canvas.append(node);
   }
+  const standing = h('div', { class: 'qb-standing' });
+  for (const q of doc.quests.filter((o) => o.repeat)) {
+    const chip = h('button', {
+      type: 'button',
+      class: `qb-node is-standing${q.id === questId ? ' on' : ''}`,
+    });
+    chip.innerHTML = `<span class="qb-face">${faceOf(q.giver, 30)}</span>`;
+    chip.append(
+      h(
+        'span',
+        {},
+        h('b', {}, q.name),
+        h('small', {}, `${q.port} · after ${conditionWords(q.start)}`),
+      ),
+    );
+    chip.addEventListener('click', () => {
+      questId = q.id;
+      stepId = null;
+      render();
+    });
+    standing.append(chip);
+  }
   box.append(
     canvas,
     h(
@@ -1766,5 +1856,91 @@ function drawStory() {
       { class: 'qb-legend' },
       'A line is a start condition: the quest on the right starts once the one on the left is done (quest-done, quest-at, chose). Pick a quest to edit when it starts, on the right.',
     ),
+    ...(standing.childElementCount
+      ? [h('h3', { class: 'qb-legend' }, 'Standing orders: they ask again (0214)'), standing]
+      : []),
   );
+}
+
+/**
+ * A race of the regatta (decision 0217): its series, the gold of each medal the first time, who
+ * starts it, and its pars by ship class and level. The pars come from the balance bots
+ * (`npm run race -- <id> --pars --write`); the line and the marks are its one step's `raced` goal,
+ * dragged on the chart like any place.
+ */
+function raceRows(q: QuestDef, ctx: FormContext, edit: (fn: () => void) => void): HTMLElement[] {
+  const out: HTMLElement[] = [
+    row(
+      'Race',
+      checkbox(
+        !!q.race,
+        (on) =>
+          edit(() => {
+            if (!on) return delete q.race;
+            q.race = {
+              series: REGATTA.series[0]!.id,
+              gold: { bronze: 60, silver: 120, gold: 200 },
+              pars: {},
+            };
+            q.offer = true;
+            delete q.reward;
+            const s = ctx.map.start;
+            q.steps = [
+              {
+                id: 'race',
+                goal: newCondition('raced', ctx.map, []),
+                moveTo: { x: round1(s.x), y: round1(s.y), headingDeg: 0 },
+              },
+            ];
+          }),
+        'a race of the regatta: one raced step, medals, Race again (0217)',
+      ),
+    ),
+  ];
+  const race = q.race;
+  if (!race) return out;
+  out.push(
+    row(
+      'Series',
+      select(
+        REGATTA.series.map((s) => [s.id, s.name] as [string, string]),
+        race.series,
+        (v) => edit(() => (race.series = v)),
+      ),
+    ),
+    row(
+      'Medal gold',
+      ...MEDALS.map((m) =>
+        h(
+          'span',
+          { class: 'qb-medal' },
+          `${m} `,
+          numberInput(
+            race.gold[m],
+            (n) => n !== undefined && edit(() => (race.gold[m] = Math.max(0, Math.round(n)))),
+          ),
+        ),
+      ),
+    ),
+    row(
+      'Starter',
+      select(
+        characterOptions(),
+        q.starter,
+        (v) => edit(() => (v ? (q.starter = v) : delete q.starter)),
+        '—',
+      ),
+    ),
+  );
+  const ships = Object.keys(race.pars);
+  const pars = ships.length
+    ? ships
+        .map(
+          (ship) =>
+            `${ship} ${['fair', 'captain', 'salt'].map((l) => clock(race.pars[ship]![l] ?? 0)).join(' / ')}`,
+        )
+        .join(' · ')
+    : 'none yet';
+  out.push(row('Pars', h('small', {}, `${pars} — npm run race -- ${q.id} --pars --write`)));
+  return out;
 }

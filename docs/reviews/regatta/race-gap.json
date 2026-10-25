@@ -1,0 +1,66 @@
+{
+  "title": "Round the Gap · The ring series",
+  "legend": [
+    {
+      "style": "route",
+      "text": "the course, mark to mark (boats sail round land)"
+    }
+  ],
+  "lines": [
+    {
+      "points": [
+        [
+          233.5,
+          -50
+        ],
+        [
+          160,
+          92
+        ],
+        [
+          110,
+          40
+        ],
+        [
+          233.5,
+          -50
+        ]
+      ],
+      "style": "route",
+      "label": "Round the Gap",
+      "arrow": true
+    },
+    {
+      "points": [
+        [
+          215,
+          -62
+        ],
+        [
+          252,
+          -38
+        ]
+      ],
+      "style": "short",
+      "label": "start and finish"
+    }
+  ],
+  "labels": [
+    {
+      "at": [
+        160,
+        106
+      ],
+      "text": "mark 1",
+      "style": "note"
+    },
+    {
+      "at": [
+        110,
+        54
+      ],
+      "text": "mark 2",
+      "style": "note"
+    }
+  ]
+}

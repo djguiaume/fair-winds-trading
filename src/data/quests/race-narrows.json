@@ -1,0 +1,119 @@
+{
+  "id": "race-narrows",
+  "name": "The Narrows Run",
+  "start": {
+    "is": "all",
+    "of": [
+      {
+        "is": "quest-done",
+        "quest": "outpost-south"
+      },
+      {
+        "is": "quest-done",
+        "quest": "race-gap"
+      }
+    ]
+  },
+  "text": "quest.race-narrows",
+  "giver": "wren",
+  "starter": "juno",
+  "port": "sunreach",
+  "offer": true,
+  "storms": false,
+  "wind": {
+    "speedKn": 12,
+    "fromDeg": 80
+  },
+  "race": {
+    "series": "regatta-seas",
+    "gold": {
+      "bronze": 120,
+      "silver": 240,
+      "gold": 400
+    },
+    "pars": {
+      "sloop": {
+        "fair": 193,
+        "captain": 193,
+        "salt": 193
+      },
+      "cutter": {
+        "fair": 163,
+        "captain": 163,
+        "salt": 163
+      },
+      "schooner": {
+        "fair": 129,
+        "captain": 129,
+        "salt": 129
+      },
+      "clipper": {
+        "fair": 116,
+        "captain": 116,
+        "salt": 116
+      },
+      "hoy": {
+        "fair": 462,
+        "captain": 462,
+        "salt": 462
+      },
+      "fluyt": {
+        "fair": 490,
+        "captain": 490,
+        "salt": 490
+      },
+      "indiaman": {
+        "fair": 463,
+        "captain": 463,
+        "salt": 463
+      }
+    }
+  },
+  "steps": [
+    {
+      "id": "race",
+      "moveTo": {
+        "x": 130,
+        "y": -672,
+        "headingDeg": 90
+      },
+      "goal": {
+        "is": "raced",
+        "start": [
+          {
+            "x": 150,
+            "y": -650
+          },
+          {
+            "x": 150,
+            "y": -695
+          }
+        ],
+        "marks": [
+          {
+            "x": 520,
+            "y": -678
+          },
+          {
+            "x": 578,
+            "y": -735
+          },
+          {
+            "x": 520,
+            "y": -792
+          }
+        ],
+        "finish": [
+          {
+            "x": 150,
+            "y": -650
+          },
+          {
+            "x": 150,
+            "y": -695
+          }
+        ]
+      }
+    }
+  ]
+}

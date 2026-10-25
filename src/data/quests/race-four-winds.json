@@ -1,0 +1,123 @@
+{
+  "id": "race-four-winds",
+  "name": "The Four Winds Cup",
+  "start": {
+    "is": "all",
+    "of": [
+      {
+        "is": "quest-done",
+        "quest": "four-winds"
+      },
+      {
+        "is": "quest-done",
+        "quest": "race-gap"
+      }
+    ]
+  },
+  "text": "quest.race-four-winds",
+  "giver": "wren",
+  "starter": "rook",
+  "port": "saltmere",
+  "offer": true,
+  "storms": false,
+  "wind": {
+    "speedKn": 13,
+    "fromDeg": 60
+  },
+  "race": {
+    "series": "regatta-cup",
+    "gold": {
+      "bronze": 250,
+      "silver": 500,
+      "gold": 800
+    },
+    "pars": {
+      "sloop": {
+        "fair": 342,
+        "captain": 342,
+        "salt": 341
+      },
+      "cutter": {
+        "fair": 281,
+        "captain": 281,
+        "salt": 281
+      },
+      "schooner": {
+        "fair": 237,
+        "captain": 237,
+        "salt": 237
+      },
+      "clipper": {
+        "fair": 212,
+        "captain": 211,
+        "salt": 212
+      },
+      "hoy": {
+        "fair": 555,
+        "captain": 556,
+        "salt": 555
+      },
+      "fluyt": {
+        "fair": 589,
+        "captain": 590,
+        "salt": 589
+      },
+      "indiaman": {
+        "fair": 556,
+        "captain": 557,
+        "salt": 556
+      }
+    }
+  },
+  "steps": [
+    {
+      "id": "race",
+      "moveTo": {
+        "x": 312,
+        "y": -100,
+        "headingDeg": 60
+      },
+      "goal": {
+        "is": "raced",
+        "start": [
+          {
+            "x": 330,
+            "y": -80
+          },
+          {
+            "x": 330,
+            "y": -120
+          }
+        ],
+        "marks": [
+          {
+            "x": 480,
+            "y": 75
+          },
+          {
+            "x": 69,
+            "y": 480
+          },
+          {
+            "x": -420,
+            "y": -218
+          },
+          {
+            "x": 146,
+            "y": -430
+          }
+        ],
+        "finish": [
+          {
+            "x": -85,
+            "y": -116
+          },
+          {
+            "x": -40,
+            "y": -116
+          }
+        ]
+      }
+    }
+  ]
+}

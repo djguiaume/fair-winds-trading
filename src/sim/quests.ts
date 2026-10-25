@@ -33,10 +33,33 @@ import {
   slotLayout,
   testCondition,
   updateGoal,
+  goalNews,
+  type StepNews,
+  RUN_GOING,
+  RUN_MADE,
+  RACE_FINISHED,
+  RACE_GOING,
+  RACE_HORN,
 } from './questLibrary';
-import { freeSpace, syncMarketLevels, type TradeState } from './trade';
+import {
+  REGATTA,
+  type MedalRank,
+  type RaceCourse,
+  type RaceDef,
+  checkRaceDef,
+  courseOf,
+  medalFor,
+  medalGold,
+  raceMarks,
+  seriesWon,
+} from './regatta';
+import { createRival, endRival, releaseRival, rivalTime } from './rival';
+import { deckFree, syncMarketLevels, type TradeState } from './trade';
 import { pointOfSail } from './ship';
 import type { World } from './world';
+import { payStandingOrder, standingOrderGold } from './contracts';
+import { MAX_SETTLEMENT_LEVEL, portWants } from './settlement';
+import { TUNING } from '../data/tuning';
 
 /*
  * The quest engine (decision 0125): every file in `src/data/quests/` is a quest in the format of
@@ -214,10 +237,26 @@ export interface QuestDef {
    */
   marks?: SeaMarkDef[];
   /**
+   * A standing order (decision 0214): a person whose arc is done asks again and again. Each step is
+   * one ask, taken in turn (the first round asks the first step, the next round the second, and
+   * round again); a round ends with its step, and the next ask comes once the captain has docked
+   * `economy.orders.standingDockings` times at other ports. Always offered, at the quest's `port`,
+   * one ask at a time per port. Its step thanks with `<text>.<step>.thanks`.
+   */
+  repeat?: boolean;
+  /**
    * Ports and goods picked in play (decision 0151), name → `port` or `good`: steps fill them
    * (`set`) and read them as `$name` in their conditions, coach marks and text (`{name}`).
    */
   vars?: Record<string, VarKind>;
+  /**
+   * A race of the Saltmere Regatta (decision 0217): its series, the gold its medals pay the first
+   * time and its pars. Its one step's goal is `raced`; it is offered, tracked while it runs, and
+   * once finished it can be sailed again (`raceAgain`), keeping the best time and medal.
+   */
+  race?: RaceDef;
+  /** Who speaks at a race's line before the horn (`<text>.race.start`, decision 0217). */
+  starter?: string;
   steps: QuestStep[];
 }
 
@@ -245,6 +284,14 @@ export interface QuestProgress {
   chose: Record<string, string>;
   /** The quest's vars set so far (decision 0151). */
   vars?: Record<string, string>;
+  /** A standing order's rounds delivered (decision 0214). */
+  rounds?: number;
+  /** A standing order between rounds: dockings at other ports before it asks again (0214). */
+  wait?: number;
+  /** A race's best time so far, hundredths of a second (decision 0217). */
+  best?: number;
+  /** A race's best medal so far: 1 bronze, 2 silver, 3 gold (decision 0217). */
+  medal?: number;
 }
 
 export interface QuestState {
@@ -263,6 +310,8 @@ export interface QuestState {
    * played): no bubble, and their `teach` steps are passed by. JSON save only, not FW2.
    */
   uncoached?: string[];
+  /** Regatta series won (decision 0217), worked out from the races' medals on load. */
+  won?: string[];
 }
 
 /** Every quest file, the tutorial's too (decision 0151), in file name order. */
@@ -301,6 +350,20 @@ function placesNamed(step: QuestStep): string[] {
 export const missesPlace = (step: QuestStep, map: MapDef) =>
   placesNamed(step).some((p) => !pointOf(map, p));
 
+/** The step a standing order asks next, or asks now (decision 0214): the steps in turn. */
+export function roundStep(quest: QuestDef, p: QuestProgress | undefined): QuestStep {
+  return quest.repeat ? quest.steps[(p?.rounds ?? 0) % quest.steps.length]! : quest.steps[0]!;
+}
+
+/** The step a standing order's last round asked (decision 0214), for its thanks. */
+export function lastRoundStep(
+  quest: QuestDef,
+  p: QuestProgress | undefined,
+): QuestStep | undefined {
+  const n = p?.rounds ?? 0;
+  return quest.repeat && n > 0 ? quest.steps[(n - 1) % quest.steps.length] : undefined;
+}
+
 /** Whether a quest is started by the game asking for it (the tutorial, decision 0151). */
 export const isAsked = (quest: QuestDef) => quest.start?.is === 'asked';
 
@@ -310,6 +373,8 @@ const portRefs = (...refs: (string | undefined)[]) =>
 
 /** The step after `step` (its own `next`, or a picked option's). */
 function nextOf(def: QuestDef, step: QuestStep, option?: QuestOption): string {
+  // A standing order's round is one step (decision 0214).
+  if (def.repeat) return QUEST_DONE;
   const next = option?.next ?? step.next;
   if (next) return next;
   return def.steps[stepIndex(def, step.id) + 1]?.id ?? QUEST_DONE;
@@ -410,6 +475,12 @@ export function checkQuests(
     if (q.main !== undefined && typeof q.main !== 'boolean')
       out.push(`${at}: main is true or false`);
     if (q.main && q.offer) out.push(`${at}: a main quest is not offered (it cannot be ignored)`);
+    if (q.repeat !== undefined && typeof q.repeat !== 'boolean')
+      out.push(`${at}: repeat is true or false`);
+    if (q.repeat) out.push(...checkRepeat(q, map, at));
+    if (q.race !== undefined) out.push(...checkRace(q, at));
+    else if (q.steps?.some((st) => st.goal?.is === 'raced'))
+      out.push(`${at}: a "raced" goal belongs to a race (a quest with "race")`);
     if (q.lesson !== undefined && typeof q.lesson !== 'boolean')
       out.push(`${at}: lesson is true or false`);
     if (q.storms !== undefined && q.storms !== false) out.push(`${at}: storms is only ever false`);
@@ -528,8 +599,58 @@ export function checkQuests(
           }
       }
     }
-    for (const id of stepIds) if (!reached.has(id)) out.push(`${at} › ${id}: no step leads here`);
+    // Each of a standing order's steps is a round of its own (decision 0214).
+    if (!q.repeat)
+      for (const id of stepIds) if (!reached.has(id)) out.push(`${at} › ${id}: no step leads here`);
   }
+  return out;
+}
+
+/**
+ * Problems with a standing order (decision 0214): offered at a port of its own, never a main quest
+ * or a lesson; each step one ask, with no way on but the end of the round; a step paid like a help
+ * order (`order`) lands a good its port wants there.
+ */
+function checkRepeat(q: QuestDef, map: MapDef, at: string): string[] {
+  const out: string[] = [];
+  if (!q.offer) out.push(`${at}: a standing order is offered (offer: true)`);
+  if (q.main || q.lesson) out.push(`${at}: a standing order is not a main quest or a lesson`);
+  if (!q.port || isVarRef(q.port) || !resolvePort(map, q.port))
+    out.push(`${at}: a standing order needs its port`);
+  if (q.reward !== undefined) out.push(`${at}: a standing order pays on its steps, not the quest`);
+  for (const s of q.steps ?? []) {
+    const where = `${at} › ${s.id}`;
+    if (s.next !== undefined || s.choose !== undefined || s.unless !== undefined)
+      out.push(`${where}: a standing order's step is one ask (no next, choose or unless)`);
+    if (s.reward?.order === undefined) continue;
+    const g = s.goal;
+    const port = resolvePort(map, typeof g?.place === 'string' ? g.place : undefined);
+    if (g?.is !== 'landed' || !port || !isGood(g.good) || typeof g.qty !== 'number') {
+      out.push(`${where} › reward.order: the goal lands a good at a port (landed)`);
+      continue;
+    }
+    const town = map.ports.find((p) => p.id === port);
+    if (town && !portWants(town, MAX_SETTLEMENT_LEVEL).includes(g.good))
+      out.push(`${where}: ${town.id} never wants ${g.good}`);
+  }
+  return out;
+}
+
+/**
+ * Problems with a race (decision 0217): its `race` block, offered, never a main quest, a lesson or
+ * a standing order, and one step whose goal is `raced`.
+ */
+function checkRace(q: QuestDef, at: string): string[] {
+  const out = checkRaceDef(q.race, `${at} › race`);
+  if (!q.offer) out.push(`${at}: a race is offered (offer: true)`);
+  if (q.main || q.lesson || q.repeat)
+    out.push(`${at}: a race is not a main quest, a lesson or a standing order`);
+  if (q.steps?.length !== 1 || q.steps[0]!.goal?.is !== 'raced')
+    out.push(`${at}: a race has one step, its goal "raced"`);
+  if (q.reward !== undefined)
+    out.push(`${at}: a race pays by its medals (race.gold), not a reward`);
+  if (q.starter !== undefined && !PEOPLE.has(q.starter))
+    out.push(`${at}: no person "${q.starter}"`);
   return out;
 }
 
@@ -603,7 +724,12 @@ export function checkQuestHooks(
   quests: readonly QuestDef[],
   others: string[] = [],
 ): string[] {
-  const known = new Set([...quests.map((q) => q.id), ...others]);
+  // A regatta series won counts as done (decision 0217): the Cup stands on Skerry's pier.
+  const known = new Set([
+    ...quests.map((q) => q.id),
+    ...REGATTA.series.map((s) => s.id),
+    ...others,
+  ]);
   const out: string[] = [];
   const named = (ids: string[], where: string) => {
     for (const id of ids) if (!known.has(id)) out.push(`${where}: no quest "${id}"`);
@@ -645,10 +771,48 @@ export type QuestEvent =
   | { type: 'reset'; quest: string; step: string }
   /** Goods taken out of the hold for a step (`landed`, decision 0157). */
   | { type: 'landed'; quest: string; good: GoodId; qty: number }
+  /**
+   * A timed run (decision 0213) got under way, ran over its par (back to the start) or was made;
+   * `sec` the run's time so far, `par` its par, seconds.
+   */
+  | {
+      type: 'run';
+      quest: string;
+      step: string;
+      state: 'started' | 'late' | 'made';
+      sec: number;
+      par: number;
+      from: string;
+      to: string;
+    }
+  /** A step done paid gold (decision 0213): its own, its option's, and the quest's at the end. */
+  | { type: 'paid'; quest: string; step: string; gold: number }
   /** The boat was taken to a step's `moveTo` (decision 0164). */
   | { type: 'moved'; quest: string; step: string }
   /** A reward's volcano erupts (decision 0178): the view plays it, nothing else changes. */
   | { type: 'erupt'; quest: string; island: string }
+  /** A race's horn (decision 0217): the sequence is over and the clock runs. */
+  | { type: 'horn'; quest: string }
+  /**
+   * A race finished (decision 0217): its time, the medal won, the best medal before, whether the
+   * time is a new best, the gold for medals won the first time, and series won by it.
+   */
+  | {
+      type: 'raced';
+      quest: string;
+      sec: number;
+      medal: MedalRank;
+      had: number;
+      best: boolean;
+      /** The race's first finish: no best before it. */
+      first: boolean;
+      gold: number;
+      won: string[];
+      /** The rival's time, seconds, if she finished first. */
+      rival?: number;
+    }
+  /** A race given up (decision 0217): docked mid-race, or the captain retired. */
+  | { type: 'retired'; quest: string }
   | { type: 'finished'; quest: string };
 
 /** How often the conditions are checked, in seconds of play. */
@@ -684,6 +848,8 @@ export class QuestBook {
   /** Offered quests already announced, so `offered` is sent once each. */
   private announced = new Set<string>();
   private since = 0;
+  /** A check made again after a step began (decision 0213). */
+  private again = false;
   private readonly doneElsewhere: (id: string) => boolean;
   private readonly atElsewhere: (id: string, step: string) => boolean;
   private readonly nightOk: () => boolean;
@@ -720,7 +886,9 @@ export class QuestBook {
     return this.state.byId[id];
   }
   isDone(id: string): boolean {
-    return this.progress(id)?.step === QUEST_DONE || this.doneElsewhere(id);
+    const p = this.progress(id);
+    // A race finished once is done, sailed again or not (decision 0217).
+    return p?.step === QUEST_DONE || p?.best !== undefined || this.doneElsewhere(id);
   }
   /**
    * The par of a step's timed run (`timed`, also inside `all` / `any`) for the voyage's difficulty
@@ -769,7 +937,49 @@ export class QuestBook {
   }
   /** The sea marks of the quests running now (decision 0164). */
   get runningMarks(): SeaMarkDef[] {
-    return this.active.flatMap((a) => a.quest.marks ?? []);
+    return this.active.flatMap((a) => {
+      const course = a.quest.race && courseOf(a.step.goal);
+      return [...(a.quest.marks ?? []), ...(course ? raceMarks(course) : [])];
+    });
+  }
+  /**
+   * The race under way (decision 0217), for the clock at sea: the sequence's seconds left, the
+   * clock, the marks rounded, the course.
+   */
+  race():
+    | {
+        quest: QuestDef;
+        state: 'sequence' | 'racing' | 'finished';
+        left: number;
+        sec: number;
+        started: boolean;
+        rounded: number;
+        course: RaceCourse;
+      }
+    | undefined {
+    for (const { quest, step } of this.active) {
+      const course = quest.race && courseOf(step.goal);
+      if (!course) continue;
+      const [state, t, done] = this.progress(quest.id)!.counts;
+      return {
+        quest,
+        state: state === RACE_HORN ? 'sequence' : state === RACE_GOING ? 'racing' : 'finished',
+        left: state === RACE_HORN ? Math.max(0, REGATTA.countdownSec - (t ?? 0) / 100) : 0,
+        sec: state === RACE_HORN ? 0 : (t ?? 0) / 100,
+        started: (done ?? 0) > 0,
+        rounded: Math.max(0, (done ?? 0) - 1),
+        course,
+      };
+    }
+    return undefined;
+  }
+  /** The races finished at least once, for Rook's book and "Race again" (decision 0217). */
+  get raced(): QuestDef[] {
+    return this.quests.filter((q) => q.race && this.progress(q.id)?.best !== undefined);
+  }
+  /** Regatta series won (decision 0217). */
+  get won(): string[] {
+    return this.state.won ?? [];
   }
   /** The lesson running now (decision 0151: the tutorial), with its step. */
   get lesson(): { quest: QuestDef; step: QuestStep } | undefined {
@@ -810,9 +1020,41 @@ export class QuestBook {
     return this.waiting.filter((q) => this.isIgnored(q.id));
   }
   private get waiting(): QuestDef[] {
-    return this.quests.filter(
-      (q) => q.offer && !this.progress(q.id) && testCondition(q.start, this.context()),
+    const ready = this.quests.filter(
+      (q) => q.offer && this.mayStart(q) && testCondition(q.start, this.context()),
     );
+    return ready.filter((q) => !q.repeat || this.asksAt(q, ready));
+  }
+  /** No progress yet, or a standing order between rounds whose wait is over (decision 0214). */
+  private mayStart(quest: QuestDef): boolean {
+    const p = this.progress(quest.id);
+    return !p || (!!quest.repeat && p.step === QUEST_DONE && !p.wait);
+  }
+  /**
+   * Whether this standing order is the one its port asks now (decision 0214): one ask at a time per
+   * port, none while one runs there; of those ready, the one asked fewest times, then file order.
+   * An ask the captain said "don't offer again" to leaves the port to the next.
+   */
+  private asksAt(quest: QuestDef, ready: readonly QuestDef[]): boolean {
+    const port = resolvePort(this.world.map, quest.port);
+    const here = (q: QuestDef) => q.repeat && resolvePort(this.world.map, q.port) === port;
+    if (this.active.some((a) => here(a.quest))) return false;
+    const rounds = (q: QuestDef) => this.progress(q.id)?.rounds ?? 0;
+    const first = ready
+      .filter((q) => here(q) && !this.isIgnored(q.id))
+      .reduce<QuestDef | undefined>((a, q) => (!a || rounds(q) < rounds(a) ? q : a), undefined);
+    return !first || first.id === quest.id || this.isIgnored(quest.id);
+  }
+  /**
+   * What a step paid like a help order pays now (`order`, decision 0214): the goods it lands at
+   * its port, on the voyage's level. Undefined for any other step.
+   */
+  orderGold(step: QuestStep | undefined): number | undefined {
+    const g = step?.goal;
+    if (!step?.reward?.order || g?.is !== 'landed' || !isGood(g.good)) return undefined;
+    const port = resolvePort(this.world.map, g.place);
+    if (!port || typeof g.qty !== 'number') return undefined;
+    return standingOrderGold(this.world.map, this.trade, port, g.good, g.qty);
   }
   isIgnored(id: string): boolean {
     return this.state.ignored?.includes(id) ?? false;
@@ -835,9 +1077,51 @@ export class QuestBook {
     const quest = this.offered.find((q) => q.id === id);
     if (!quest) return [];
     const events: QuestEvent[] = [{ type: 'started', quest: id }];
-    this.enter(quest, quest.steps[0]!, events);
+    this.enter(quest, roundStep(quest, this.progress(id)), events);
+    // A race holds its wind while it runs: it is the one tracked (decision 0217).
+    if (quest.race && !this.lesson) this.state.tracked = id;
     this.afterChange(events);
     return [...events, ...this.check()];
+  }
+
+  /** A race finished before, sailed again from its start (decision 0217). */
+  raceAgain(id: string): QuestEvent[] {
+    const quest = this.quests.find((q) => q.id === id);
+    if (!quest?.race || !this.isDone(id) || this.isRunning(id) || this.lesson) return [];
+    if (this.active.some((a) => a.quest.race)) return [];
+    const events: QuestEvent[] = [{ type: 'started', quest: id }];
+    this.enter(quest, quest.steps[0]!, events);
+    this.state.tracked = id;
+    this.afterChange(events);
+    return [...events, ...this.check()];
+  }
+
+  /**
+   * The race under way is given up (decision 0217): one finished before goes back to its record,
+   * one never finished is offered again. Nothing else is lost.
+   */
+  retire(id: string): QuestEvent[] {
+    const events = this.dropRace(id);
+    this.afterChange(events);
+    return events;
+  }
+
+  private dropRace(id: string): QuestEvent[] {
+    const quest = this.quests.find((q) => q.id === id);
+    const p = this.progress(id);
+    if (!quest?.race || !p || p.step === QUEST_DONE) return [];
+    if (p.best !== undefined)
+      this.state.byId[id] = {
+        step: QUEST_DONE,
+        counts: [],
+        chose: {},
+        best: p.best,
+        ...(p.medal ? { medal: p.medal } : {}),
+      };
+    else delete this.state.byId[id];
+    this.announced.delete(id);
+    releaseRival(this.world, false);
+    return [{ type: 'retired', quest: id }];
   }
   get tracked(): string | undefined {
     return this.state.tracked;
@@ -973,12 +1257,17 @@ export class QuestBook {
       changed = false;
       for (const quest of this.quests) {
         const p = this.progress(quest.id);
-        if (!p) {
+        if (!p || this.mayStart(quest)) {
           if (!testCondition(quest.start, this.context(quest))) {
             this.announced.delete(quest.id);
             continue;
           }
           if (quest.offer) {
+            // A standing order waits while another person at its port asks (decision 0214).
+            if (quest.repeat && !this.offered.some((q) => q.id === quest.id)) {
+              this.announced.delete(quest.id);
+              continue;
+            }
             if (!this.announced.has(quest.id) && !this.isIgnored(quest.id))
               events.push({ type: 'offered', quest: quest.id });
             this.announced.add(quest.id);
@@ -1012,7 +1301,98 @@ export class QuestBook {
       }
     }
     this.afterChange(events);
+    // A step begun at a stop does its part there at once (decision 0213): the bread Maren gives
+    // as the millstones come ashore is aboard before the harbour screen says so.
+    if (!this.again && events.some((e) => e.type === 'step' || e.type === 'started')) {
+      this.again = true;
+      try {
+        return [...events, ...this.check()];
+      } finally {
+        this.again = false;
+      }
+    }
     return events;
+  }
+
+  /** A timed run that changed state in this check (decision 0213), said as a `run` event. */
+  private runEvents(
+    quest: QuestDef,
+    step: QuestStep,
+    before: readonly number[],
+    after: readonly number[],
+    events: QuestEvent[],
+  ) {
+    for (const [c, at] of slotLayout(step.goal).at) {
+      if (c.is !== 'timed' || before[at] === after[at]) continue;
+      const state = after[at] === RUN_GOING ? 'started' : after[at] === RUN_MADE ? 'made' : 'late';
+      const map = this.world.map;
+      const vars = this.progress(quest.id)?.vars;
+      const from = resolvePort(map, deref(c.from, vars)) ?? '';
+      const to = resolvePort(map, deref(c.to, vars)) ?? from;
+      // A late run's clock is already back to nothing: it said par when it gave up.
+      const sec = state === 'made' ? (after[at + 1] ?? 0) / 100 : (before[at + 1] ?? 0) / 100;
+      const par = parFor(c.par, this.trade);
+      events.push({ type: 'run', quest: quest.id, step: step.id, state, sec, par, from, to });
+    }
+  }
+
+  /** Quest cargo aboard (decision 0213): what fills the hold besides goods, for the hold lists. */
+  cargo(): { quest: string; item: string; n: number; space: number }[] {
+    const out: { quest: string; item: string; n: number; space: number }[] = [];
+    for (const { quest, step } of this.active)
+      for (const [item, n] of itemsAboard(step.goal, this.progress(quest.id)!.counts))
+        if (n > 0)
+          out.push({ quest: quest.id, item, n, space: n * (quest.items?.[item]?.space ?? 1) });
+    return out;
+  }
+
+  /** Timed runs under way (decision 0213): for the clock at sea. */
+  runs(): { quest: string; step: string; sec: number; par: number; to: string }[] {
+    const out: { quest: string; step: string; sec: number; par: number; to: string }[] = [];
+    for (const { quest, step } of this.active) {
+      const counts = this.progress(quest.id)!.counts;
+      for (const [c, at] of slotLayout(step.goal).at) {
+        if (c.is !== 'timed' || counts[at] !== RUN_GOING) continue;
+        const vars = this.progress(quest.id)?.vars;
+        const map = this.world.map;
+        const from = resolvePort(map, deref(c.from, vars)) ?? '';
+        out.push({
+          quest: quest.id,
+          step: step.id,
+          sec: (counts[at + 1] ?? 0) / 100,
+          par: parFor(c.par, this.trade),
+          to: resolvePort(map, deref(c.to, vars)) ?? from,
+        });
+      }
+    }
+    return out;
+  }
+
+  /**
+   * What the started quests say where the boat is now (decision 0213): quest cargo loaded or left
+   * on the quay, cargo unloaded, goods handed over so far. Read after a check; changes nothing.
+   */
+  news(): (StepNews & { quest: string; step: string })[] {
+    const { boat, trade } = this.world;
+    const out: (StepNews & { quest: string; step: string })[] = [];
+    for (const { quest, step } of this.active) {
+      if (!step.goal) continue;
+      const p = this.progress(quest.id)!;
+      const ctx = {
+        ...this.context(quest),
+        dt: 0,
+        boat: { x: boat.x, y: boat.y, speedKn: boat.speedKn },
+        from: boat,
+        wasDocked: trade.dockedAt,
+        cargoBefore: trade.captain.cargo,
+        nightOk: true,
+        freeSpace: deckFree(trade),
+        itemSpace: (item: string) => quest.items?.[item]?.space ?? 1,
+      };
+      for (const news of goalNews(step.goal, ctx, p.counts))
+        out.push({ ...news, quest: quest.id, step: step.id });
+    }
+    return out;
   }
 
   /** Fills a quest's vars from a `set` (decision 0151), with what the voyage holds now. */
@@ -1062,6 +1442,15 @@ export class QuestBook {
     if (!quest || !findStep(quest, stepId)) return [];
     const trail = new Set([questId]);
     this.reachCondition(quest.start, trail);
+    // A standing order's ask is played from its offer (decision 0214): the asks before it done.
+    if (quest.repeat) {
+      const n = quest.steps.findIndex((s) => s.id === stepId);
+      if (n > 0) this.state.byId[questId] = { step: QUEST_DONE, counts: [], chose: {}, rounds: n };
+      else delete this.state.byId[questId];
+      this.seen = null;
+      this.afterChange([]);
+      return this.check();
+    }
     const route = routeTo(quest, stepId) ?? [];
     const chose: Record<string, string> = {};
     for (const { step, option } of route) {
@@ -1164,6 +1553,9 @@ export class QuestBook {
       counts,
       chose: was?.chose ?? {},
       ...(was?.vars ? { vars: was.vars } : {}),
+      ...(was?.rounds ? { rounds: was.rounds } : {}),
+      ...(was?.best !== undefined ? { best: was.best } : {}),
+      ...(was?.medal ? { medal: was.medal } : {}),
     };
     if (step.charts) chartAreas(this.world.map, this.trade.progress, step.charts);
     // A step about a place this map lacks (the prologue's wreck) is passed by (decision 0151), and
@@ -1182,11 +1574,22 @@ export class QuestBook {
       this.trade.dockedAt = null;
       events.push({ type: 'moved', quest: quest.id, step: step.id });
     }
+    // The rival comes to the line beside the boat and waits for the horn (decision 0217).
+    const course = quest.race && courseOf(step.goal);
+    if (course && quest.race) createRival(this.world, quest.race, course);
     events.push({
       type: step.choose && !step.goal ? 'choice' : 'step',
       quest: quest.id,
       step: step.id,
     });
+  }
+
+  /** A step paid like a help order (decision 0214): the goods it landed, at its port. */
+  private payOrder(step: QuestStep) {
+    const g = step.goal;
+    if (this.orderGold(step) === undefined || !isGood(g?.good)) return;
+    const port = resolvePort(this.world.map, g.place)!;
+    payStandingOrder(this.world.map, this.trade, port, g.good, g.qty as number);
   }
 
   private pay(r: QuestReward | undefined) {
@@ -1205,12 +1608,16 @@ export class QuestBook {
     option: QuestOption | undefined,
     events: QuestEvent[],
   ) {
+    if (quest.race) this.finishRace(quest, step, events);
     this.pay(step.reward);
     this.pay(option?.reward);
+    this.payOrder(step);
     this.erupt(quest, [step.reward, option?.reward], events);
     this.applySet(quest, step.set);
     const to = findStep(quest, nextOf(quest, step, option));
+    const gold = (step.reward?.gold ?? 0) + (option?.reward?.gold ?? 0);
     if (to) {
+      if (gold) events.push({ type: 'paid', quest: quest.id, step: step.id, gold });
       this.enter(quest, to, events);
       return;
     }
@@ -1220,13 +1627,78 @@ export class QuestBook {
       counts: [],
       chose: p.chose,
       ...(p.vars ? { vars: p.vars } : {}),
+      // A standing order asks again after a few calls elsewhere (decision 0214).
+      ...(quest.repeat
+        ? { rounds: (p.rounds ?? 0) + 1, wait: TUNING.economy.orders.standingDockings }
+        : {}),
+      ...(p.best !== undefined ? { best: p.best } : {}),
+      ...(p.medal ? { medal: p.medal } : {}),
     };
+    if (quest.repeat) this.announced.delete(quest.id);
     this.pay(quest.reward);
     this.erupt(quest, [quest.reward], events);
+    const all = gold + (quest.reward?.gold ?? 0);
+    if (all) events.push({ type: 'paid', quest: quest.id, step: step.id, gold: all });
     // A port that trades differently after this quest has its market follow at once (0130).
     if (this.world.map.ports.some((port) => port.afterQuest?.[quest.id]))
       syncMarketLevels(this.trade, this.world.map);
     events.push({ type: 'finished', quest: quest.id });
+  }
+
+  /**
+   * A race's finish (decision 0217): its time against the pars of the captain's ship on the
+   * voyage's level, the best time and medal kept, gold for each medal won the first time, and the
+   * series this finish wins.
+   */
+  private finishRace(quest: QuestDef, step: QuestStep, events: QuestEvent[]) {
+    const p = this.progress(quest.id)!;
+    const race = quest.race!;
+    const at = slotLayout(step.goal).at.get(step.goal!) ?? 0;
+    if (p.counts[at] !== RACE_FINISHED) return;
+    const hundredths = p.counts[at + 1] ?? 0;
+    const sec = hundredths / 100;
+    const medal = medalFor(race, this.trade.captain.activeShip, this.trade.difficulty, sec);
+    const had = p.medal ?? 0;
+    const first = p.best === undefined;
+    const best = first || hundredths < p.best!;
+    if (best) p.best = hundredths;
+    if (medal > had) p.medal = medal;
+    const gold = medalGold(race, had, medal);
+    this.trade.captain.gold += gold;
+    const before = new Set(this.state.won ?? []);
+    this.updateWon();
+    const won = (this.state.won ?? []).filter((s) => !before.has(s));
+    const rival = rivalTime(this.world);
+    endRival(this.world);
+    events.push({
+      type: 'raced',
+      quest: quest.id,
+      sec,
+      medal,
+      had,
+      best,
+      first,
+      gold,
+      won,
+      ...(rival !== undefined ? { rival } : {}),
+    });
+  }
+
+  /** The series won, from the races' medals (decision 0217). */
+  private updateWon() {
+    const won = seriesWon(this.quests, (id) => this.progress(id)?.medal ?? 0);
+    if (won.length) this.state.won = won;
+    else delete this.state.won;
+  }
+
+  /** A call at a port: standing orders of other ports wait one docking less (decision 0214). */
+  private dockedAt(portId: string) {
+    for (const quest of this.quests) {
+      const p = this.progress(quest.id);
+      if (!quest.repeat || !p?.wait || resolvePort(this.world.map, quest.port) === portId) continue;
+      p.wait -= 1;
+      if (!p.wait) delete p.wait;
+    }
   }
 
   /** The conditions that keep numbers see what changed since the last check. */
@@ -1245,6 +1717,12 @@ export class QuestBook {
     this.helm = { sails: helm.sails.slice(-1), steerSec: 0, movingSec: 0 };
     // The first check after loading only takes note: nothing happened "since" yet.
     if (!seen) return;
+    if (trade.dockedAt && trade.dockedAt !== seen.docked) {
+      this.dockedAt(trade.dockedAt);
+      // Alongside mid-race, the race is given up (decision 0217).
+      for (const { quest } of [...this.active])
+        if (quest.race) events.push(...this.dropRace(quest.id));
+    }
     // A new knock, or the hull still grinding on a reef or a shore (decision 0139).
     const hit = damage > seen.damage || boat.sinceBump < 0.5;
     const nightOk = this.nightOk();
@@ -1255,7 +1733,8 @@ export class QuestBook {
         if (p.counts.some((n) => n > 0))
           events.push({ type: 'reset', quest: quest.id, step: step.id });
         p.counts = p.counts.map(() => 0);
-      } else
+      } else {
+        const before = [...p.counts];
         updateGoal(
           step.goal,
           {
@@ -1267,7 +1746,7 @@ export class QuestBook {
             wasDocked: seen.docked,
             cargoBefore: seen.cargo,
             nightOk,
-            freeSpace: freeSpace(trade),
+            freeSpace: deckFree(trade),
             itemSpace: (item) => quest.items?.[item]?.space ?? 1,
             land: (good, qty) => {
               trade.captain.cargo[good] -= qty;
@@ -1276,6 +1755,12 @@ export class QuestBook {
           },
           p.counts,
         );
+        this.runEvents(quest, step, before, p.counts, events);
+        if (quest.race && before[0] === RACE_HORN && p.counts[0] !== RACE_HORN) {
+          releaseRival(this.world, true);
+          events.push({ type: 'horn', quest: quest.id });
+        }
+      }
       // Quest cargo just loaded takes its room before the next quest loads any.
       this.state.hold = questHold(this.state, this.quests);
     }
@@ -1349,6 +1834,14 @@ export function readQuests(
     }
     if (!ok) continue;
     out.byId[quest.id] = { step: p.step as string, counts: [...counts], chose };
+    // A standing order's rounds and wait (decision 0214).
+    if (quest.repeat && isCount(p.rounds) && p.rounds > 0) out.byId[quest.id]!.rounds = p.rounds;
+    if (quest.repeat && p.step === QUEST_DONE && isCount(p.wait) && p.wait > 0)
+      out.byId[quest.id]!.wait = Math.min(p.wait, TUNING.economy.orders.standingDockings);
+    // A race's record (decision 0217).
+    if (quest.race && isCount(p.best)) out.byId[quest.id]!.best = p.best;
+    if (quest.race && isCount(p.medal) && p.medal > 0 && p.medal <= 3)
+      out.byId[quest.id]!.medal = p.medal;
     // Vars that no longer fit (a port gone from the map) are dropped: the steps find them again.
     const vars = readVars(quest, map, p.vars);
     if (vars) out.byId[quest.id]!.vars = vars;
@@ -1370,6 +1863,8 @@ export function readQuests(
   }
   const hold = questHold(out, fitting);
   if (hold) out.hold = hold;
+  const won = seriesWon(fitting, (id) => out.byId[id]?.medal ?? 0);
+  if (won.length) out.won = won;
   return out;
 }
 
@@ -1406,6 +1901,8 @@ export function questFingerprint(quests: readonly QuestDef[]): number {
       ...(s.choose ?? []).map((o) => o.id),
     ]),
     ...Object.keys(q.vars ?? {}).map((name) => `$${name}`),
+    ...(q.repeat ? ['~repeat'] : []),
+    ...(q.race ? ['~race'] : []),
   ]);
   let h = 0x811c9dc5;
   for (const ch of ids.join('|')) {

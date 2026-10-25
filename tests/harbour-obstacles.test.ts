@@ -38,7 +38,8 @@ describe('solid harbour obstacles (0082)', () => {
     for (const level of [1, 2, 3, 4]) {
       const solid = piersOf(PHASE1_MAP, levelsAt(level));
       const drawn = drawnObstacles(level);
-      expect(drawn.filter((d) => d.kind === 'boat')).toHaveLength(level + 2);
+      // Saltmere's moored boats, and Westholm's in its bay (decision 0216).
+      expect(drawn.filter((d) => d.kind === 'boat')).toHaveLength(level + 3);
       for (const d of drawn) {
         const hit = resolveCollisions(createBoat(d.x, d.y, 0), 0.01, [], 1e5, [], solid);
         expect(hit, `${d.islandId} ${d.kind} L${level}`).toBe(d.kind);

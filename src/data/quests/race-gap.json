@@ -1,0 +1,106 @@
+{
+  "id": "race-gap",
+  "name": "Round the Gap",
+  "start": {
+    "is": "quest-done",
+    "quest": "fair-winds"
+  },
+  "text": "quest.race-gap",
+  "giver": "wren",
+  "starter": "rook",
+  "port": "saltmere",
+  "offer": true,
+  "storms": false,
+  "wind": {
+    "speedKn": 12,
+    "fromDeg": 20
+  },
+  "race": {
+    "series": "regatta-ring",
+    "gold": {
+      "bronze": 60,
+      "silver": 120,
+      "gold": 200
+    },
+    "pars": {
+      "sloop": {
+        "fair": 62,
+        "captain": 62,
+        "salt": 62
+      },
+      "cutter": {
+        "fair": 61,
+        "captain": 62,
+        "salt": 61
+      },
+      "schooner": {
+        "fair": 51,
+        "captain": 50,
+        "salt": 51
+      },
+      "clipper": {
+        "fair": 45,
+        "captain": 46,
+        "salt": 46
+      },
+      "hoy": {
+        "fair": 121,
+        "captain": 118,
+        "salt": 119
+      },
+      "indiaman": {
+        "fair": 318,
+        "captain": 220,
+        "salt": 182
+      },
+      "fluyt": {
+        "fair": 338,
+        "captain": 234,
+        "salt": 193
+      }
+    }
+  },
+  "steps": [
+    {
+      "id": "race",
+      "moveTo": {
+        "x": 238,
+        "y": -78,
+        "headingDeg": 330
+      },
+      "goal": {
+        "is": "raced",
+        "start": [
+          {
+            "x": 215,
+            "y": -62
+          },
+          {
+            "x": 252,
+            "y": -38
+          }
+        ],
+        "marks": [
+          {
+            "x": 160,
+            "y": 92
+          },
+          {
+            "x": 110,
+            "y": 40
+          }
+        ],
+        "finish": [
+          {
+            "x": 215,
+            "y": -62
+          },
+          {
+            "x": 252,
+            "y": -38
+          }
+        ]
+      }
+    }
+  ]
+}

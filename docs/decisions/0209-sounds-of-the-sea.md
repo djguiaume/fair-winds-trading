@@ -83,8 +83,11 @@ game: about nine nodes a second created (the music's notes as before, plus calls
 
 - The sea has sound everywhere, and each sea its own, from data. A new sea needs one `seas` line;
   a new call, bell pitch or variation is data; only a new kind of synthesiser needs code.
-- The regatta thread (part 6) plays `horn` and `gun` with a step's `sound` and sets `music: "regatta"`
-  on its race steps. Hull damage (part 9) can reuse `thud`; other ships (part 4) can ring bells.
+- The regatta ([0217](0217-the-saltmere-regatta.md)) plays `race-horn` (now the horn synthesiser,
+  not the foghorn) at the start and `gun` as she finishes, and the regatta theme holds while a race
+  is under way. Hull damage ([0208](0208-visible-hull-damage.md)) keeps its splash and planks; the
+  thud is now this decision's, played once by the sea listener and louder the harder she hit.
+  Other ships (part 4) can ring bells.
 - The art director's level round (EBU R128 on every render): near foghorns to about -20 LUFS, the
   far one -27, the regatta horn -19, gulls and sheep up to about -31, terns and kittiwakes -35;
   rain on deck down so a squall sits about 5 dB over the bed (-29.6 against -34). Beds sit at -33

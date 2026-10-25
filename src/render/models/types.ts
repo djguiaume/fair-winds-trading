@@ -1,3 +1,4 @@
+import type { FlagDef } from '../../sim/regatta';
 import type * as THREE from 'three';
 import type { MapDef } from '../../sim/map';
 import type { TownLevel } from './towns';
@@ -56,6 +57,13 @@ export interface BoatModelOptions {
   upgrades?: ShipUpgrades;
   /** Thin rigging lines (default true); can also be toggled later with setLowDetail. */
   rigging?: boolean;
+  /** Visible damage (decision 0208): 0 sound, 1 scuffed, 2 patched sails and a broken rail,
+   * 3 torn sails and a list. */
+  damage?: 0 | 1 | 2 | 3;
+  /** The masthead flag (decision 0217): a regatta pennant won, Kestrel's burgee; else the stock one. */
+  flag?: FlagDef;
+  /** A racing number painted on the mainsail (decision 0217): Kestrel's "K 7". */
+  sailNumber?: string;
 }
 
 export type BoatModelFactory = (shipClassId: string, options?: BoatModelOptions) => BoatModel;

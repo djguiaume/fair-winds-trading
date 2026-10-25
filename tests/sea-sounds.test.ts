@@ -34,7 +34,8 @@ describe('sounds of the sea (decision 0209)', () => {
       expect('theme' in track && THEMES[track.theme], sea).toBeTruthy();
     }
     expect(MUSIC.regatta).toBeDefined();
-    for (const id of ['bell', 'flap', 'thud', 'horn', 'gun']) expect(EFFECTS[id], id).toBeDefined();
+    for (const id of ['bell', 'flap', 'thud', 'race-horn', 'gun'])
+      expect(EFFECTS[id], id).toBeDefined();
     for (const e of Object.values(EFFECTS))
       if ('synth' in e) expect(SYNTHS[e.synth], e.synth).toBeTypeOf('function');
   });

@@ -1,0 +1,92 @@
+{
+  "title": "Round Greyback · The ring series",
+  "legend": [
+    {
+      "style": "route",
+      "text": "the course, mark to mark (boats sail round land)"
+    }
+  ],
+  "lines": [
+    {
+      "points": [
+        [
+          112,
+          197
+        ],
+        [
+          -110,
+          250
+        ],
+        [
+          -280,
+          205
+        ],
+        [
+          -110,
+          76
+        ],
+        [
+          233.5,
+          -50
+        ]
+      ],
+      "style": "route",
+      "label": "Round Greyback",
+      "arrow": true
+    },
+    {
+      "points": [
+        [
+          112,
+          218
+        ],
+        [
+          112,
+          176
+        ]
+      ],
+      "style": "short",
+      "label": "start"
+    },
+    {
+      "points": [
+        [
+          215,
+          -62
+        ],
+        [
+          252,
+          -38
+        ]
+      ],
+      "style": "long",
+      "label": "finish"
+    }
+  ],
+  "labels": [
+    {
+      "at": [
+        -110,
+        264
+      ],
+      "text": "mark 1",
+      "style": "note"
+    },
+    {
+      "at": [
+        -280,
+        219
+      ],
+      "text": "mark 2",
+      "style": "note"
+    },
+    {
+      "at": [
+        -110,
+        90
+      ],
+      "text": "mark 3",
+      "style": "note"
+    }
+  ]
+}

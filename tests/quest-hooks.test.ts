@@ -70,7 +70,7 @@ describe('after:/before: tags', () => {
     expect(after.props.includes(design.props[slip]!)).toBe(false);
     expect(questApart(design.props[slip]!, hull)).toBe(true);
     // An untagged file is the same object: nothing to rebuild.
-    expect(questDesign(islandDesign('saltmere'), new Set())).toBe(islandDesign('saltmere'));
+    expect(questDesign(islandDesign('watchman-key'), new Set())).toBe(islandDesign('watchman-key'));
     // A building and its replacement on one spot: the island checks know they never stand together.
     const R = 26 / 2.2;
     const shed = design.props.findIndex((p) => p.type === 'cutting-shed');

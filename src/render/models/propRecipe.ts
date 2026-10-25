@@ -183,6 +183,28 @@ export const CODE_PARTS: Record<string, (scope: Scope) => THREE.BufferGeometry> 
     hull.computeVertexNormals();
     return hull;
   },
+  /**
+   * A fore-and-aft sail (decision 0215's other boats): flat, in the boat's centre plane, its luff
+   * up the mast from the origin and its foot aft along −Z. `foot` and `luff` long, the head
+   * `head` long, peaked up `peak` at the leech: a gaff or lug sail, or a jib-headed one at 0.
+   */
+  sail: (s) => {
+    const foot = s.foot ?? 2;
+    const luff = s.luff ?? 2;
+    const head = s.head ?? 0;
+    const peak = s.peak ?? 0;
+    const p = [
+      [0, 0, 0],
+      [0, 0, -foot],
+      [0, luff + peak, -Math.max(head, 0.01)],
+      [0, luff, 0],
+    ];
+    const v = [0, 1, 2, 0, 2, 3].flatMap((k) => p[k]!);
+    const sail = new THREE.BufferGeometry();
+    sail.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
+    sail.computeVertexNormals();
+    return sail;
+  },
 };
 
 // ---------------------------------------------------------------- shapes
@@ -334,7 +356,9 @@ export function prepareProp(id: string, args: PropBuildArgs): () => Parts {
       }
       if (p.windows) {
         const [w, d, y, front, side, cx, cz] = p.windows.map((v) => num(v, s));
-        out.push(...windowPanes(w!, d!, y!, front!, side!, num(p.seed, s), cx, cz));
+        out.push(
+          ...windowPanes(w!, d!, y!, front!, side!, num(p.seed, s), cx, cz, num(p.pane ?? 1, s)),
+        );
         return;
       }
       if (p.use) {
@@ -393,7 +417,7 @@ const RECIPE_KEYS = new Set([
 ]);
 const PART_KEYS = new Set([
   ...SHAPE_KEYS,
-  ...['seed', 'y', 'ops', 'at', 'color', 'glow', 'faces', 'tag', 'if', 'repeat', 'vars'],
+  ...['seed', 'pane', 'y', 'ops', 'at', 'color', 'glow', 'faces', 'tag', 'if', 'repeat', 'vars'],
 ]);
 
 /** The triangles of a set of parts. */

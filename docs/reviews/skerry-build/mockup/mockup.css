@@ -1,0 +1,63 @@
+/* Mockup only (decision 0163 way): the old floating spot circles are gone. */
+.home-layer, .home-bar { display: none !important; }
+#mk-island { position: fixed; inset: 0; z-index: 40; pointer-events: none; }
+#mk-island .trade-modal { pointer-events: auto; }
+.mk-plots { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; max-width: 980px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+.mk-plot { display: grid; grid-template-columns: 56px 1fr; gap: 6px 14px; align-items: center; padding: 12px 14px; border: 1px solid var(--brass-line); border-radius: 10px; background: rgba(255,255,255,0.03); }
+.mk-plot.is-open { border-color: #e8c46a; background: rgba(232,196,106,0.08); }
+.mk-plot.is-locked { opacity: 0.55; }
+.mk-num { grid-row: span 2; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 8px; background: #b08a5a; color: #3b2814; font: 700 28px/1 var(--display); box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2); }
+.mk-plot.is-locked .mk-num { background: #4a5b66; color: #c9d3d8; }
+.mk-plot h3 { margin: 0; font: 700 20px/1.1 var(--display); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink); }
+.mk-plot h3 small { margin-left: 8px; color: #e8c46a; font-size: 14px; letter-spacing: 0.06em; }
+.mk-sub { margin: 0; color: rgba(244,237,224,0.75); font: 500 15px/1.3 var(--body); }
+.mk-choices { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+.mk-choice { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 8px; background: #0b2230; border: 1px solid var(--brass-line); }
+.mk-choice .mk-kind { color: #e8c46a; font: 700 12px/1 var(--display); letter-spacing: 0.08em; text-transform: uppercase; }
+.mk-choice b { font: 700 19px/1.1 var(--display); text-transform: uppercase; letter-spacing: 0.04em; }
+.mk-choice p { margin: 0 0 4px; color: #f4ede0; font: 500 15px/1.3 var(--body); flex: 1; }
+.mk-see { justify-self: end; }
+.mk-empty { margin: 30px auto; text-align: center; color: rgba(244,237,224,0.8); }
+/* Chosen: the screen drops to half height so the plot shows above it. */
+#mk-island.is-half .trade-modal.port-screen { position: absolute; left: 0; right: 0; bottom: 0; top: auto; height: 50%; border-top: 2px solid #e8c46a; }
+#mk-island.is-half .trade-content { overflow: auto; }
+@media (orientation: landscape) and (min-width: 700px) {
+  #mk-island.is-half .trade-modal.port-screen { left: auto; top: 0; width: 50%; height: 100%; border-top: 0; border-left: 2px solid #e8c46a; }
+}
+@media (max-width: 600px) {
+  .mk-choices { grid-template-columns: 1fr; }
+  .mk-plots { padding: 10px; }
+}
+.mk-back { margin-right: auto; }
+#mk-island.is-half { background: none; }
+/* The arrival card replaces the "Home at Skerry" toast. */
+#toast { display: none !important; }
+/* The edited-sea badge the mockup's island file brings. */
+body > a[href*="editor.html"] { display: none !important; }
+#mk-island.is-half .mk-choices { grid-template-columns: 1fr 1fr; }
+@media (orientation: portrait) {
+  #mk-island.is-half .mk-sub { display: none; }
+  #mk-island.is-half .mk-plots { padding: 8px 10px; }
+  #mk-island.is-half .mk-choice p { font-size: 13px; }
+  #mk-island.is-half .mk-choice b { font-size: 16px; }
+  #mk-island.is-half .mk-choice .port-btn { font-size: 14px; padding: 0 8px; }
+}
+@media (max-height: 500px) {
+  #mk-island.is-half .mk-sub { display: none; }
+  #mk-island.is-half .mk-plots { padding: 6px 10px; }
+  #mk-island.is-half .mk-plot { padding: 8px 10px; }
+  #mk-island.is-half .mk-choice p { font-size: 13px; }
+  #mk-island.is-half .mk-choice b { font-size: 16px; }
+}
+#mk-island.is-half .mk-choice { padding: 8px 10px; gap: 4px; }
+#mk-island.is-half .mk-choice .port-btn { min-height: 38px; height: 38px; }
+/* Round 1 (art director): nothing of the sea HUD shows through or beside the screen. */
+#mk-island .trade-modal.port-screen { background: #091c29; }
+body.mk-half #hud > *:not(#home-ui) { visibility: hidden; }
+@media (orientation: portrait) {
+  #mk-island.is-half .trade-modal.port-screen { height: 60%; }
+  #mk-island.is-half .port-roles-summary { display: none; }
+  #mk-island.is-half .trade-header { padding-top: 8px; padding-bottom: 8px; }
+  #mk-island.is-half .mk-num { width: 36px; height: 36px; font-size: 22px; grid-row: auto; }
+  #mk-island.is-half .mk-plot { grid-template-columns: 40px 1fr; }
+}

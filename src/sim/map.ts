@@ -1,3 +1,4 @@
+import type { TrafficDef } from './traffic';
 import type { FogDef } from './fog';
 import type { GoodId } from './goods';
 import type { SeaEdgeDef } from './seaEdge';
@@ -119,6 +120,11 @@ export interface PortDef {
   wants: GoodId[];
   /** Ship classes its shipwright builds (decision 0048). */
   builds?: string[];
+  /**
+   * The person on its harbour screen, a `characters.json` id (decision 0211); left out, nobody
+   * (Abbey Head, Skerry). An outpost's keeper is its settler.
+   */
+  keeper?: string;
   /** Off the chart until the boat sails near it (decision 0048). */
   hidden?: boolean;
   /**
@@ -178,7 +184,14 @@ export const SEA_MARK_TYPES = [
   'cardinal-west',
   'fishing-boat',
   'pilot-cutter',
+  /** An old, empty hull aground on a reef (decision 0216): a mark that waits on a quest. */
+  'wreck',
   'light',
+  // The regatta's marks (decision 0217), put on the water by a running race.
+  'race-mark',
+  'race-pin',
+  'race-committee',
+  'race-finish',
 ] as const;
 export type SeaMarkType = (typeof SEA_MARK_TYPES)[number];
 
@@ -278,6 +291,8 @@ export interface MapDef {
   windZones?: WindZoneDef[];
   /** Fog of war (decision 0156): what starts uncharted, and its named areas. */
   fog?: FogDef;
+  /** Other boats (decision 0215): fishing fleets, coasters and far-sea visitors. */
+  traffic?: TrafficDef[];
 }
 
 /** The wind zones that go on the chart once sailed: the named ones (decision 0152). */

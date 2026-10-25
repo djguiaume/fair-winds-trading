@@ -5,9 +5,14 @@ import { mergeAll, paint, place, vertexColorMaterial } from './models/geometry';
 import { fishingBoat } from './models/props';
 import { buildProp } from './models/propRecipe';
 import { ISLAND_SCALE } from './models/highlandIslands';
+import { landmarkParts } from './models/landmarks';
 
 /** Island props stand at this scale; Saltmere's moored boats are drawn 1.55 times a 2-unit hull. */
 const BOAT_SCALE = 1.55 * ISLAND_SCALE;
+
+/** A race line's dashes on the water (decision 0217): length and the step from one to the next. */
+const DASH = 2.2;
+const DASH_STEP = 4.5;
 
 /** A channel buoy (decision 0130): a can with a white band and a top mark, red or green. */
 function buoy(color: string): THREE.BufferGeometry {
@@ -46,6 +51,11 @@ function model(type: SeaMarkDef['type']): THREE.BufferGeometry | null {
     return mergeAll(
       buildProp(`mark-${type}`, { R: 1, style: 'fish', variant: 0, shape: 0.5, size: 1 }),
     );
+  // The regatta's marks (decision 0217): a recipe each in src/data/props/mark-race*.json.
+  if (type.startsWith('race-')) {
+    const id = type === 'race-mark' ? 'mark-race' : `mark-${type}`;
+    return mergeAll(buildProp(id, { R: 1, style: 'fish', variant: 0, shape: 0.5, size: 1 }));
+  }
   if (type === 'fishing-boat')
     return mergeAll(fishingBoat()).scale(BOAT_SCALE, BOAT_SCALE, BOAT_SCALE);
   // A harbour pilot's boat (decision 0131): the same small hull, painted black like a pilot cutter.
@@ -54,6 +64,8 @@ function model(type: SeaMarkDef['type']): THREE.BufferGeometry | null {
     parts[0] = paint(parts[0]!, '#26282c');
     return mergeAll(parts).scale(BOAT_SCALE, BOAT_SCALE, BOAT_SCALE);
   }
+  // Aground on a reef, at the size a reef's own wreck is drawn (decision 0216).
+  if (type === 'wreck') return mergeAll(landmarkParts('wreck', 1.15));
   // A `light` is a mark on the chart only.
   return null;
 }
@@ -71,6 +83,10 @@ export class SeaMarks {
   private readonly marks: { def: SeaMarkDef; mesh: THREE.Mesh; phase: number }[] = [];
   private questMarks: { def: SeaMarkDef; mesh: THREE.Mesh; phase: number }[] = [];
   private questKey = '';
+  /** The running race's start and finish lines: a cream dash every few units, boat to pin. */
+  private readonly dashGeometry = new THREE.BoxGeometry(0.5, 0.08, DASH);
+  private readonly dashMaterial = new THREE.MeshBasicMaterial({ color: '#f4f1e8' });
+  private lines: THREE.InstancedMesh[] = [];
 
   constructor(map: MapDef) {
     this.root.name = 'sea-marks';
@@ -110,19 +126,63 @@ export class SeaMarks {
       const mesh = this.mesh(def);
       if (mesh) this.questMarks.push({ def, mesh, phase: 0.6 + i * 1.3 });
     });
+    for (const line of this.lines) {
+      this.root.remove(line);
+      line.dispose();
+    }
+    this.lines = [];
+    // A race's line runs from its committee or finish boat to the pin listed after it.
+    defs.forEach((def, i) => {
+      const pin = defs[i + 1];
+      if ((def.type === 'race-committee' || def.type === 'race-finish') && pin?.type === 'race-pin')
+        this.lines.push(this.line(def, pin));
+    });
+  }
+
+  /** Dashes from a boat to its pin, clear of both ends, each turned along the line. */
+  private line(a: SeaMarkDef, b: SeaMarkDef): THREE.InstancedMesh {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const length = Math.hypot(dx, dy);
+    const count = Math.max(1, Math.floor((length - 8) / DASH_STEP));
+    const mesh = new THREE.InstancedMesh(this.dashGeometry, this.dashMaterial, count);
+    const turn = Math.atan2(dx, dy);
+    const m = new THREE.Matrix4();
+    for (let k = 0; k < count; k++) {
+      const t = (length / 2 + (k - (count - 1) / 2) * DASH_STEP) / length;
+      m.makeRotationY(-turn).setPosition(a.x + dx * t, 0, -(a.y + dy * t));
+      mesh.setMatrixAt(k, m);
+    }
+    this.root.add(mesh);
+    return mesh;
   }
 
   update(time: number, waterY: (x: number, z: number) => number) {
-    for (const { mesh, phase } of [...this.marks, ...this.questMarks]) {
-      if (!mesh.visible) continue;
+    for (const { def, mesh, phase } of [...this.marks, ...this.questMarks]) {
+      if (!mesh.visible || def.type === 'wreck') continue;
       mesh.position.y = waterY(mesh.position.x, mesh.position.z);
       mesh.rotation.x = Math.sin(time * 1.3 + phase) * 0.06;
       mesh.rotation.z = Math.cos(time * 1.1 + phase) * 0.06;
+    }
+    // The dashes ride the waves, just above them.
+    const m = new THREE.Matrix4();
+    const p = new THREE.Vector3();
+    for (const line of this.lines) {
+      for (let k = 0; k < line.count; k++) {
+        line.getMatrixAt(k, m);
+        p.setFromMatrixPosition(m);
+        m.elements[13] = waterY(p.x, p.z) + 0.12;
+        line.setMatrixAt(k, m);
+      }
+      line.instanceMatrix.needsUpdate = true;
     }
   }
 
   dispose() {
     for (const geometry of this.geometries.values()) geometry.dispose();
     this.material.dispose();
+    for (const line of this.lines) line.dispose();
+    this.dashGeometry.dispose();
+    this.dashMaterial.dispose();
   }
 }

@@ -16,6 +16,7 @@ import { MAX_SETTLEMENT_LEVEL, settlementLevel } from './settlement';
 import { homePort, isDiscovered, standingAt } from './shipyards';
 import type { TradeState } from './trade';
 import { hasVolcano } from '../data/islands';
+import { REGATTA, crossesForward, crossesGate, type Gate } from './regatta';
 
 /*
  * The quest engine's code library (decision 0125), like ship parts: the kinds of condition a quest
@@ -61,6 +62,11 @@ export interface QuestReward {
    * only: it plays whatever the Eruptions switch says, once the boat is in sight.
    */
   erupt?: string[];
+  /**
+   * A standing order's pay (decision 0214): the step's goal lands goods at a port, and they are
+   * paid and grow the town like a help order there, on the voyage's level.
+   */
+  order?: true;
 }
 
 /** A point at sea, in map units. */
@@ -168,7 +174,7 @@ export interface StepContext extends ConditionContext {
   cargoBefore: GoodAmounts;
   /** Whether night counts now: night, or any time when night is switched off. */
   nightOk: boolean;
-  /** Hold space free for quest cargo. */
+  /** Deck room free for quest cargo (decision 0213). */
   freeSpace: number;
   /** Hold spaces one piece of a quest item takes. */
   itemSpace(item: string): number;
@@ -196,6 +202,7 @@ export type Param =
   | 'points'
   | 'order'
   | 'par'
+  | 'gate'
   | 'condition'
   | 'conditions'
   | 'screen'
@@ -210,6 +217,59 @@ interface ConditionKind {
   update?(c: Condition, ctx: StepContext, s: number[]): void;
   /** `s`: its own numbers; `goal`: the step's whole goal, for `all`, `any` and `not`. */
   test(c: Condition, ctx: ConditionContext, s: number[], goal: Condition): boolean;
+  /**
+   * What the captain should hear where the boat is now (decision 0213): quest cargo loaded or
+   * left on the quay, goods handed over so far. Null when this place says nothing for the step.
+   */
+  news?(c: Condition, ctx: StepContext, s: number[]): StepNews | null;
+}
+
+/**
+ * The kinds of dock news (decision 0213), each a line of text (`quest.news.<kind>`):
+ * `loaded` quest cargo aboard, all of it (`loadedOne` a single piece, `loadedPassenger` a person);
+ * `loadedShort` some aboard, the rest left for want of room; `noRoom` none aboard for want of room;
+ * `nothingAboard` at the drop-off with nothing for it; `unloaded` some, not all, unloaded there;
+ * `handHere` alongside a hand-over port with the goods aboard; `handedOver` some handed over;
+ * `runReady` alongside the start of a timed run, `runAgain` at its end with the run not made.
+ */
+export const NEWS_KINDS = [
+  'loaded',
+  'loadedOne',
+  'loadedPassenger',
+  'loadedShort',
+  'noRoom',
+  'nothingAboard',
+  'unloaded',
+  'handHere',
+  'handedOver',
+  'runReady',
+  'runAgain',
+] as const;
+export type NewsKind = (typeof NEWS_KINDS)[number];
+
+/** A place in dock news: a port id, or `spot` for a spot at sea. */
+export type NewsPlace = string;
+
+/** Dock news for one step (decision 0213), in numbers: the interface words it. */
+export interface StepNews {
+  kind: NewsKind;
+  /** Quest cargo (`carried`), or a good (`delivered`). */
+  item?: string;
+  good?: GoodId;
+  /** Pieces aboard, or unloaded at this call. */
+  n: number;
+  /** Still to fetch or hand over. */
+  left: number;
+  /** Delivered so far, and of how many. */
+  done: number;
+  total: number;
+  /** Hold space to free for one more piece. */
+  space: number;
+  /** Where the cargo goes, and where it comes from. */
+  to?: NewsPlace;
+  from?: NewsPlace;
+  /** A timed run's par, seconds. */
+  par?: number;
 }
 
 /** `port` may be `"home"`, the map's home port. */
@@ -300,9 +360,9 @@ export function parFor(par: unknown, trade: TradeState): number {
 }
 
 /** Run states in the first slot of `timed`. */
-const RUN_READY = 0;
-const RUN_GOING = 1;
-const RUN_MADE = 2;
+export const RUN_READY = 0;
+export const RUN_GOING = 1;
+export const RUN_MADE = 2;
 
 /**
  * A timed run (`timed`): the clock starts when the boat leaves `from`, passes `via` in order and
@@ -331,6 +391,51 @@ function updateTimed(c: Condition, ctx: StepContext, s: number[]) {
     s[1] = 0;
     s[2] = 0;
   } else if (docked === to && s[2]! >= via.length) s[0] = RUN_MADE;
+}
+
+/** Race states in the first slot of `raced` (decision 0217). */
+export const RACE_HORN = 0;
+export const RACE_GOING = 1;
+export const RACE_FINISHED = 2;
+
+/**
+ * A race (`raced`, decision 0217): the horn sequence counts down while the sea is on screen, then
+ * the clock runs from the horn. The boat crosses the start line toward the course (one over the
+ * line at the horn comes back and crosses again), rounds the marks in order and crosses the
+ * finish line. Nothing fails: the clock runs until she finishes. Slots: the race's state,
+ * hundredths of a second (of the sequence, then on the clock), and the progress: 0 before the
+ * start, then 1 + the marks rounded.
+ */
+function updateRaced(c: Condition, ctx: StepContext, s: number[]) {
+  if (s[0] === RACE_FINISHED) return;
+  const dt = Math.round(ctx.dt * 100);
+  if (s[0] === RACE_HORN) {
+    if ((ctx.screen ?? 'sea') !== 'sea') return;
+    s[1] = s[1]! + dt;
+    if (s[1]! >= REGATTA.countdownSec * 100) {
+      s[0] = RACE_GOING;
+      s[1] = 0;
+    }
+    return;
+  }
+  s[1] = s[1]! + dt;
+  const marks = (c.marks as QuestPoint[]) ?? [];
+  const start = c.start as Gate;
+  const finish = c.finish as Gate;
+  if (s[2] === 0) {
+    const toward = marks[0] ?? {
+      x: (finish[0].x + finish[1].x) / 2,
+      y: (finish[0].y + finish[1].y) / 2,
+    };
+    if (crossesForward(start, ctx.from, ctx.boat, toward)) s[2] = 1;
+    return;
+  }
+  const next = marks[s[2]! - 1];
+  if (next) {
+    if (passDistance(ctx.from, ctx.boat, next) <= num(c.within, REGATTA.within)) s[2] = s[2]! + 1;
+    return;
+  }
+  if (crossesGate(finish, ctx.from, ctx.boat)) s[0] = RACE_FINISHED;
 }
 
 /**
@@ -467,6 +572,16 @@ export const CONDITIONS: Record<string, ConditionKind> = {
       s[0] = Math.min(num(c.qty), Math.max(0, s[0]! + handed));
     },
     test: (c, _ctx, s) => s[0]! >= num(c.qty),
+    news(c, ctx, s) {
+      const at = port(c, ctx);
+      const good = goodOf(c, ctx);
+      const total = num(c.qty);
+      const done = s[0]!;
+      if (!at || !good || ctx.trade.dockedAt !== at || done >= total) return null;
+      const news = { good, n: done, left: total - done, done, total, space: 0 };
+      if (ctx.trade.captain.cargo[good] > 0) return { ...news, kind: 'handHere' };
+      return done ? { ...news, kind: 'handedOver' } : null;
+    },
   },
   /**
    * Goods bought alongside `port` since the step began (with no `good`, of any kind); a good taken
@@ -545,6 +660,45 @@ export const CONDITIONS: Record<string, ConditionKind> = {
       }
     },
     test: (c, _ctx, s) => s[1]! >= num(c.qty),
+    news(c, ctx, s) {
+      const place = (key: 'from' | 'to') => (isSpot(c[key]) ? 'spot' : port(c, ctx, key)!);
+      const at = (key: 'from' | 'to') =>
+        isSpot(c[key])
+          ? inSpot(c[key] as QuestSpot, ctx) && s[2]! >= holdOf(c[key] as QuestSpot)
+          : ctx.trade.dockedAt !== null && ctx.trade.dockedAt === port(c, ctx, key);
+      const total = num(c.qty);
+      const [aboard, done] = [s[0]!, s[1]!];
+      const left = Math.max(0, total - aboard - done);
+      if (done >= total) return null;
+      const item = c.item as string;
+      const space = Math.max(0, ctx.itemSpace(item) - ctx.freeSpace);
+      const news = {
+        item,
+        n: aboard,
+        left,
+        done,
+        total,
+        space,
+        to: place('to'),
+        from: place('from'),
+      };
+      if (at('from')) {
+        if (!left)
+          return {
+            ...news,
+            kind:
+              ctx.itemSpace(item) === 0 ? 'loadedPassenger' : total === 1 ? 'loadedOne' : 'loaded',
+          };
+        // Room enough: the rest comes aboard at the next check.
+        if (!space) return null;
+        return { ...news, kind: aboard ? 'loadedShort' : 'noRoom' };
+      }
+      if (at('to')) {
+        if (done) return { ...news, kind: 'unloaded', n: done };
+        if (!aboard) return { ...news, kind: 'nothingAboard' };
+      }
+      return null;
+    },
   },
   /** Seconds on a point of sail (decision 0164: the sailing lessons). Slot: hundredths held. */
   'point-of-sail': {
@@ -577,11 +731,27 @@ export const CONDITIONS: Record<string, ConditionKind> = {
     update: updateReach,
     test: (c, _ctx, s) => reachDone(c, s),
   },
+  raced: {
+    params: { start: 'gate', marks: 'points', finish: 'gate', within: 'number?' },
+    slots: 3,
+    update: updateRaced,
+    test: (_c, _ctx, s) => s[0] === RACE_FINISHED,
+  },
   timed: {
     params: { from: 'port', to: 'port?', via: 'points?', within: 'number?', par: 'par' },
     slots: 3,
     update: updateTimed,
     test: (_c, _ctx, s) => s[0] === RUN_MADE,
+    news(c, ctx, s) {
+      if (s[0] !== RUN_READY || !ctx.trade.dockedAt) return null;
+      const from = port(c, ctx, 'from')!;
+      const to = port(c, ctx, 'to') ?? from;
+      const kind =
+        ctx.trade.dockedAt === from ? 'runReady' : ctx.trade.dockedAt === to ? 'runAgain' : null;
+      if (!kind) return null;
+      const par = parFor(c.par, ctx.trade);
+      return { kind, n: 0, left: 0, done: 0, total: 0, space: 0, from, to, par };
+    },
   },
 };
 
@@ -619,6 +789,7 @@ export const CONDITION_ABOUT: Record<string, string> = {
   tacked: 'tack: turn the bow across the wind',
   reach: 'sail to places at sea',
   timed: 'a run against the clock',
+  raced: 'a race: a start line, numbered marks in order, a finish line (decision 0217)',
 };
 
 /**
@@ -677,6 +848,17 @@ export function updateGoal(goal: Condition, ctx: StepContext, s: number[]): void
     kind.update?.(c, ctx, mine);
     mine.forEach((v, i) => (s[at + i] = v));
   }
+}
+
+/** A step's dock news where the boat is now (decision 0213), one per condition that has some. */
+export function goalNews(goal: Condition, ctx: StepContext, s: readonly number[]): StepNews[] {
+  const out: StepNews[] = [];
+  for (const [c, at] of slotLayout(goal).at) {
+    const kind = CONDITIONS[c.is]!;
+    const news = kind.news?.(c, ctx, s.slice(at, at + kind.slots!));
+    if (news) out.push(news);
+  }
+  return out;
 }
 
 /** The quest cargo aboard in a goal: item → pieces. */
@@ -829,6 +1011,8 @@ function checkParam(
       bad(`needs a list of { "x", "y" } or map places (${Object.keys(MAP_PLACES).join(', ')})`);
     else if (v.length > 30) bad('at most 30 points');
   }
+  if (type === 'gate' && !(Array.isArray(v) && v.length === 2 && v.every(isPoint)))
+    bad("needs two points: the committee boat's end, then the pin's");
   if (type === 'par') {
     const ok =
       (isNumber(v) && (v as number) > 0) ||
@@ -905,9 +1089,11 @@ export function checkReward(r: unknown, scope: CheckScope, at: string): string[]
         'homeIsland',
         'homeSpot',
         'erupt',
+        'order',
       ].includes(key)
     )
       out.push(`${at}: unknown reward "${key}"`);
+  if (reward.order !== undefined && reward.order !== true) out.push(`${at}.order: only ever true`);
   if (reward.gold !== undefined && !isCount(reward.gold))
     out.push(`${at}.gold: needs a whole number`);
   if (reward.standing !== undefined) {

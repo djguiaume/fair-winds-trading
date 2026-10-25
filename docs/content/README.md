@@ -83,7 +83,7 @@ Copy a ship file in [`src/data/ships/`](../../src/data/ships/), rename it to the
 | `unlock`  | `standing` (orders to deliver at the yard before it is on sale), `price`, `upgradePrices` (level 2 and 3)                                                                                                                                           |
 | `sailing` | polar, no-go angle, speed, turning, leeway, hold, draft, collision radius ([sailing model](../sailing-model.md)) and `heel` (how readily she leans, 1 = sloop)                                                                                       |
 | `hull`    | `length`, `beam`, `depth` in reference units and the authored sections: `outline` (deck plan, x and z from -0.5 to 0.5, bow at +z) and `rings` (how the hull narrows going down)                                                                    |
-| `model`   | `hullColor`, `bandColor`, the main mast (`mastZ`, `mastHeight`, `boom`, `gaff`), optional `foremast` / `mizzen` / `squareMasts`, jibs, cargo spots, `castle`, and `parts`: named pieces from `src/render/models/shipParts.ts` |
+| `model`   | `hullColor`, `bandColor`, the main mast (`mastZ`, `mastHeight`, `boom`, `gaff`), optional `foremast` / `mizzen` / `squareMasts`, jibs, cargo spots, `castle`, `parts`: named pieces from `src/render/models/shipParts.ts`, and `damage`: where her damage shows (below) |
 
 - **Where it is built** is set per map: a port's `builds` list in the map editor. A ship no port
   builds is never on sale.
@@ -91,6 +91,15 @@ Copy a ship file in [`src/data/ships/`](../../src/data/ships/), rename it to the
   `indiaman-stern`, `gun-ports`. A new kind of part (lateen rig, paddle wheel) needs code once.
 - **Look at it** on the model sheet before playing: `models.html?view=ketch&level=3` (also
   `?view=boats` for all ships side by side).
+- **Damage** (decision 0208): `model.damage` places what shows as her hull wears. Stations are
+  `{ "z", "side" }`, `z` along her length (-0.5 stern to 0.5 bow, like the `outline`), `side` 1 or
+  -1 (the outline's +x or -x side). `scuffs` (below 75 %: darker patches on the band, the strake
+  under it and the deck), `rail` (below 50 %: a broken stretch of gunwale; keep it off a stern
+  castle), `tears` (below 25 %: holes in the main sail or each lowest course, `u` along the foot
+  and `v` up the luff, 0 to 1; four cells together make one big hole), `listDeg` and `listSide`
+  (below 25 %: her list, 0 to 10 degrees, toward side 1 or -1). Left out, `DEFAULT_DAMAGE` in
+  `src/data/ships.ts` places them. The steps are `seamanship.damage` in the tuning files.
+  `npm run check` checks the block; `models.html?view=damage&ship=ketch` shows the four steps.
 - **Names:** `ship.ketch` and `shipThe.ketch` in `src/i18n/en.json` and `fr.json`; until then the
   game shows `name`.
 
@@ -285,7 +294,11 @@ At the top: `id`, `name`, `start` (a condition), `text` (prefix of the text keys
 piece, 0 for a passenger), `giver`, `port`, `offer` (`true`: the card asks first, and the
 quest starts on the player's yes; the captain can also say "don't offer again"), `main` (`true`:
 a story quest, whose cards greet the captain on arrival before the harbour screen; every other
-quest speaks on the harbour screen's Quay tab and with a small note at sea, decision 0141). Each step: `id`, then `goal` (a condition), `choose` (one or more
+quest speaks on the harbour screen's Quay tab and with a small note at sea, decision 0141),
+`repeat` (`true`: a standing order, decision 0214: offered again and again at its `port`, each
+step one ask taken in turn, thanked with `<text>.<step>.thanks`, the next ask after
+`economy.orders.standingDockings` calls elsewhere, one ask at a time per port; a step's
+`"reward": { "order": true }` pays the goods it `landed` there like a help order). Each step: `id`, then `goal` (a condition), `choose` (one or more
 options: `id`, `reward`, `next`, and `if`: shown only while that condition holds) or both (either
 ends the step); optional `reward`, `next` (a later step or `done`; default the
 next one), `clean` (touching or grinding on a reef or shore starts the step over), `port`, `chart`
@@ -369,6 +382,13 @@ is a `carried` item (space 0) to the same spot. `discover` and `levelUp` never n
 The tracked step's `reach` points, a timed run's `via` points and quest cargo's spot are drawn
 at sea (a ring as wide as `within`, the next one pulsing) and on the chart, with no extra field.
 `"marker": "gulls"` on a step adds a flock diving over each spot.
+
+### Dock news, quest cargo on deck ([0213](../decisions/0213-quest-news-at-each-stop.md))
+
+- Every stop of a quest under way says what happened there, from the step's goal: no file field needed. The lines are `quest.news.<kind>` in `src/i18n/*.json`.
+- A quest item that takes room (`items.<id>.space` over 0) needs its names: `quest.item.<id>.one`, `.many`, `.the`, `.own`, `.unloadedOne`, `.unloadedMany`, in English and French. The quest builder lists them on the quest's page; `npm run check` says when one is missing. A passenger (space 0) uses the person's name from `characters.json` (`short` when not their first word).
+- Quest cargo rides on deck, apart from the hold: a ship file's `deck` is how much, in the items' `space` units (sloop 8 … indiaman 30).
+- A `delivered` step gets a "Hand over" button on the person's card by itself, paying the docked market's price for the goods (the good's base price where that port does not trade it). A good whose French name needs a plural after a count adds `goodMany.<good>` (« pierres »).
 
 ### What changes after a quest ([0130](../decisions/0130-after-a-quest-and-the-saltmere-shoals.md))
 

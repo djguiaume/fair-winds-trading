@@ -1,0 +1,92 @@
+{
+  "title": "The Calda Dash · The ring series",
+  "legend": [
+    {
+      "style": "route",
+      "text": "the course, mark to mark (boats sail round land)"
+    }
+  ],
+  "lines": [
+    {
+      "points": [
+        [
+          233.5,
+          -50
+        ],
+        [
+          112,
+          42
+        ],
+        [
+          158,
+          90
+        ],
+        [
+          70,
+          165
+        ],
+        [
+          140,
+          194
+        ]
+      ],
+      "style": "route",
+      "label": "The Calda Dash",
+      "arrow": true
+    },
+    {
+      "points": [
+        [
+          215,
+          -62
+        ],
+        [
+          252,
+          -38
+        ]
+      ],
+      "style": "short",
+      "label": "start"
+    },
+    {
+      "points": [
+        [
+          118,
+          198
+        ],
+        [
+          162,
+          190
+        ]
+      ],
+      "style": "long",
+      "label": "finish"
+    }
+  ],
+  "labels": [
+    {
+      "at": [
+        112,
+        56
+      ],
+      "text": "mark 1",
+      "style": "note"
+    },
+    {
+      "at": [
+        158,
+        104
+      ],
+      "text": "mark 2",
+      "style": "note"
+    },
+    {
+      "at": [
+        70,
+        179
+      ],
+      "text": "mark 3",
+      "style": "note"
+    }
+  ]
+}

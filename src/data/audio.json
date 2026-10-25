@@ -14,7 +14,7 @@
     "flap": { "synth": "flap", "volume": 1.4 },
     "thud": { "synth": "thud", "volume": 1 },
     "bump": { "synth": "thud", "volume": 0.6, "pitch": 1.4 },
-    "horn": { "synth": "horn", "volume": 0.4 },
+    "race-horn": { "synth": "horn", "volume": 0.4 },
     "gun": { "synth": "gun", "volume": 0.9 },
     "gull": { "synth": "gull", "volume": 0.95 },
     "tern": { "synth": "gull", "volume": 0.62, "pitch": 1.45 },
@@ -245,6 +245,14 @@
       "wobble": 0.18,
       "vowels": "iae",
       "moods": { "pleased": { "pitch": 1.45, "wobble": 0.24 }, "worried": { "speed": 1.7 } }
+    },
+    "wren": {
+      "synth": "babble",
+      "pitch": 1.25,
+      "speed": 1.7,
+      "wobble": 0.1,
+      "vowels": "ie",
+      "moods": { "pleased": { "pitch": 1.35 }, "worried": { "speed": 1.8 } }
     }
   }
 }

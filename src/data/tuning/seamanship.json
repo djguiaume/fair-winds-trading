@@ -13,6 +13,14 @@
     "crashDamage": 5,
     "leakPenalty": 0.25
   },
+  "damage": {
+    "scuffedBelow": 0.75,
+    "patchedBelow": 0.5,
+    "tornBelow": 0.25,
+    "planks": 6,
+    "splash": 6,
+    "debrisSeconds": 4
+  },
   "harbour": {
     "dockRange": 16,
     "berthReach": 24,
@@ -21,7 +29,8 @@
     "brake": 1.6,
     "moorMaxKn": 3,
     "mooredKn": 0.2,
-    "waypointRadius": 12
+    "waypointRadius": 12,
+    "markReach": 14
   },
   "questLand": {
     "changeDistance": 500,
@@ -46,5 +55,51 @@
     "lurchCooldown": 3,
     "pressAverageSec": 4,
     "pressHysteresisKn": 0.6
+  },
+  "traffic": {
+    "atOnce": {
+      "low": 3,
+      "medium": 6,
+      "high": 10
+    },
+    "activeRange": 340,
+    "hideRange": 280,
+    "arriveRange": 18,
+    "sweepRange": 40,
+    "sweepKn": 2,
+    "beatMarginDeg": 6,
+    "buildDeg": 15,
+    "lookUnits": 24,
+    "tackGain": 5,
+    "turnCost": 2,
+    "fieldPad": 120,
+    "laneRoom": 12,
+    "minTackSec": 12,
+    "crewTurn": 1.4,
+    "stuckSec": 45,
+    "reefKn": 24,
+    "giveWayRange": 32,
+    "touch": 1.2,
+    "labelRange": 30,
+    "dwellSec": [20, 60],
+    "castsPerTrip": [3, 6],
+    "quietDuring": "first-voyage",
+    "kinds": {
+      "fishing": {
+        "ship": "sloop",
+        "speed": 0.7,
+        "scale": 0.5
+      },
+      "coaster": {
+        "ship": "hoy",
+        "speed": 0.85,
+        "scale": 0.8
+      },
+      "visitor": {
+        "ship": "fluyt",
+        "speed": 0.9,
+        "scale": 1
+      }
+    }
   }
 }

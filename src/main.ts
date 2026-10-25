@@ -1,7 +1,9 @@
+import { maxHull } from './sim/hazards';
 import { renderDifficultyButtons, renderLevelCards } from './ui/levelCards';
 import { GAME_MAP, PHASE1_MAP, PHASE1_SOURCE, RING_PREFIX, prepareMap } from './data/maps';
 import { STRESS_PREFIX, stressMap } from './data/stressMap';
 import { PHASE4_PREFIX } from './data/grownMap';
+import { TUNING } from './data/tuning';
 import {
   EDITED_PREFIX,
   EDITED_SEA_PREFIX,
@@ -31,7 +33,7 @@ import {
 } from './render/quality';
 import { GameView } from './render/view';
 import { SAIL_STEPS, createBoat, knotToUnits } from './sim/boat';
-import { isFar, isRare, isSpecialty } from './sim/goods';
+import { isFar, isGood, isRare, isSpecialty } from './sim/goods';
 import { portNow, questsDone } from './sim/settlement';
 import { foundSite, foundedSites, townLevels } from './sim/founding';
 import { bearingTo, clamp } from './sim/math';
@@ -42,7 +44,7 @@ import * as trade from './sim/trade';
 import { type Difficulty, isDifficulty, knobs } from './sim/difficulty';
 import { daylightAt } from './sim/daylight';
 import { hazeSwitches } from './sim/windZones';
-import { QuestBook, useEditedQuests } from './sim/quests';
+import { type QuestEvent, QuestBook, roundStep, useEditedQuests } from './sim/quests';
 import { questTestFrom, sailableHeading, testBerth } from './sim/questTest';
 import { QuestTestBar } from './ui/questTestBar';
 import { type StepEffects, type StepWind, heldWind } from './sim/stepEffects';
@@ -50,15 +52,29 @@ import { QuestCard } from './ui/questCard';
 import { QuestNote } from './ui/questNote';
 import {
   cardFor,
+  cargoLines,
   dueCard,
   journal,
+  newsLine,
+  parClock,
+  type QuayItem,
   quayItems,
   questGoal,
   questPins,
   lessonFor,
+  plotParams,
+  plotQuest,
   questTarget,
   trackedMarkers,
 } from './ui/questView';
+import { gateMid } from './sim/regatta';
+import {
+  flownPennant,
+  raceBookCards,
+  raceHud,
+  raceResultCard,
+  starterLine,
+} from './ui/regattaView';
 import { LESSONS_QUEST, TUTORIAL_QUEST, TutorialChoice, TutorialCoach } from './ui/tutorial';
 import {
   type WorldEvent,
@@ -86,7 +102,7 @@ import type { PerfReadout } from './perf/perfReadout';
 import { Music } from './audio/music';
 import { SeaListener } from './audio/listener';
 import { wordCount } from './audio/babble';
-import { SeaChart } from './ui/seaChart';
+import { SeaChart, questCourse } from './ui/seaChart';
 import {
   LANGUAGES,
   browserLanguages,
@@ -94,18 +110,29 @@ import {
   language,
   goodName,
   workshopName,
+  formatNumber,
   goodSome,
   hasText,
   setLanguage,
   setTextVariant,
   t,
+  tOptional,
   townLevelName,
   translateDom,
   useTextEdits,
 } from './i18n';
 import { TradePanel } from './ui/tradePanel';
 import { HomePanel, buildingName, effectLine } from './ui/homePanel';
-import { builtByIsland, giveHomeIsland, homeSpots, islandHome, offerHomeSpot } from './sim/home';
+import {
+  PLOT_CAMERA,
+  giveHomeIsland,
+  homeLooks,
+  homeSpots,
+  islandHome,
+  offerHomeSpot,
+  spotPosition,
+} from './sim/home';
+import { character, firstName } from './ui/portraits';
 import { TransferPanel } from './ui/transferPanel';
 import { startTvMode } from './input/tv';
 import { PadLog } from './ui/padLog';
@@ -328,19 +355,59 @@ chart.onChange = () => {
   refreshPause();
 };
 const tradePanel = new TradePanel($('trade-panel'), world);
+tradePanel.harbourPicture = (portId) => view.harbourPicture?.(portId) ?? null;
 // The home island (decision 0126). Rook's thanks gives it (decision 0127); `?home` gives it to the
 // voyage being played and offers every arc spot, to try the build spots.
 if (new URLSearchParams(location.search).has('home')) {
   giveHomeIsland(world.trade, world.map);
   for (const spot of homeSpots(world.map)) offerHomeSpot(world.trade, world.map, spot.id);
 }
-view.setHomeBuildings(builtByIsland(world.trade.home));
+const homePanel = new HomePanel($('home-ui'), world);
+/** The captain's islands as they stand: buildings, staked plots, the chosen plot's ring (0210). */
+function showHome() {
+  view.setHomeBuildings(homeLooks(world.trade.home, world.map, homePanel.chosen));
+}
+showHome();
 // What stands only before or after a quest (decision 0130).
 view.setQuestsDone(questsDone(world.trade));
-const homePanel = new HomePanel($('home-ui'), world);
 homePanel.onChange = () => refreshPause();
+homePanel.giverOf = (island, spot) => {
+  const quest = plotQuest(quests.quests, world.map, island, spot);
+  const giver = quest?.giver ? character(quest.giver) : undefined;
+  const port = quest?.port ? trade.findPort(world.map, quest.port)?.name : undefined;
+  // First names, as people say them: "Maren's plot".
+  return giver ? { name: firstName(giver.name), port: port ?? '' } : undefined;
+};
+/** The camera's zoom before a plot was chosen, given back after. */
+let zoomBeforePlot: number | null = null;
+/** Moored at her island: the camera halfway between it and her, so both show. */
+function homeFocus(islandId: string) {
+  const island = world.map.islands.find((i) => i.id === islandId)!;
+  view.setFocus({ x: (island.x * 2 + world.boat.x) / 3, y: (island.y * 2 + world.boat.y) / 3 });
+}
+// A plot chosen on the Island tab (decision 0210): the camera turns to it beside the half
+// screen, closer in, and its ring shows; let go, the island again.
+homePanel.onChosen = (islandId, spotId) => {
+  const island = world.map.islands.find((i) => i.id === islandId);
+  const spot = spotId ? homeSpots(world.map, islandId).find((s) => s.id === spotId) : undefined;
+  if (island && spot) {
+    zoomBeforePlot ??= view.getZoom();
+    view.setZoom(PLOT_CAMERA.zoom);
+    const wide = innerWidth > innerHeight && innerWidth >= 700;
+    view.setFocus(
+      spotPosition(island, spot),
+      false,
+      wide ? { x: -PLOT_CAMERA.side, y: 0 } : { x: 0, y: -PLOT_CAMERA.top },
+    );
+  } else {
+    if (zoomBeforePlot !== null) view.setZoom(zoomBeforePlot);
+    zoomBeforePlot = null;
+    if (world.trade.home.docked) homeFocus(world.trade.home.docked);
+  }
+  showHome();
+};
 homePanel.onBuilt = (building) => {
-  view.setHomeBuildings(builtByIsland(world.trade.home));
+  showHome();
   hud.showToast(t('home.built', { name: buildingName(building), effect: effectLine(building) }), 5);
   autosave();
 };
@@ -355,6 +422,8 @@ const quests = new QuestBook(world, undefined, {
   nightOk: () => !settings.dayNight || daylightAt(world.time).night >= 0.5,
   screen: () => (chart.isOpen ? 'chart' : tradePanel.isOpen ? 'market' : 'sea'),
 });
+// The regatta pennant won flies at her masthead (decision 0217).
+view.setPennant(flownPennant(quests));
 // Whether a fresh voyage offers the tutorial: kept in the browser across voyages.
 const tutorialChoice = new TutorialChoice(world.map.name, storage);
 // A lesson under way in the browser's storage before 0151 moves into the voyage once.
@@ -396,7 +465,7 @@ function showDueCard(): boolean {
   if (bench || questCard.isOpen || tutorialOffer.open || tradePanel.isOpen) return false;
   const due = dueMainCard();
   const card = due && cardFor(quests, world.map, due.quest, due.kind);
-  if (!due || !card) return false;
+  if (!due || !card) return showStopCard();
   if (due.kind === 'offer' && offersWait) return false;
   if (due.kind === 'finished') {
     questThanks.delete(due.quest);
@@ -410,12 +479,103 @@ function showDueCard(): boolean {
   refreshPause();
   return true;
 }
+/**
+ * A quest under way with news at this stop (decision 0213, Guillaume's pick): its card greets the
+ * captain before the harbour screen, like a main quest's, with what just happened on top (cargo
+ * loaded or left on the quay, unloaded, handed over, a step done and paid, a run to start). One
+ * card per quest, in turn; offers still wait on the Quay tab (0141).
+ */
+function showStopCard(): boolean {
+  const docked = world.trade.dockedAt;
+  if (!docked || quests.lesson) return false;
+  const item = quayNow().find((p) => p.fresh && p.card.kind !== 'offer');
+  if (!item) return false;
+  questSeen.add(item.key);
+  if (item.newsKey) questSeen.add(item.newsKey);
+  if (item.card.kind === 'finished') questThanks.delete(item.card.quest);
+  input.releaseAll();
+  questCard.show(item.card, trade.findPort(world.map, docked)?.name);
+  music.speak(item.card.giver?.voice, wordCount(item.card.news ?? item.card.ask), item.card.mood);
+  refreshPause();
+  return true;
+}
+/**
+ * Moored at her island with a plot given and not built (decision 0210): its giver waits by the
+ * stake, once a session, and their card goes on to the Island tab on that plot.
+ */
+function showPlotCard(islandId: string): boolean {
+  if (bench || questCard.isOpen) return false;
+  const spots = homeSpots(world.map, islandId);
+  for (const spot of islandHome(world.trade.home, islandId).offered) {
+    const quest = plotQuest(quests.quests, world.map, islandId, spot);
+    if (!quest || questSeen.has(`${quest.id}:plot`)) continue;
+    const card = cardFor(quests, world.map, quest.id, 'finished');
+    const speech = tOptional(`${quest.text}.plot.copy`, plotParams(world.map, quest));
+    if (!card || !speech) continue;
+    questSeen.add(`${quest.id}:plot`);
+    const n = spots.findIndex((s) => s.id === spot) + 1;
+    Object.assign(card, {
+      kind: 'step',
+      speech,
+      ask: t('home.plotCard.title'),
+      where: t('home.plotCard.where', { n, name: firstName(card.giver?.name ?? '') }),
+      reward: undefined,
+      plot: { island: islandId, spot },
+    });
+    input.releaseAll();
+    const island = world.map.islands.find((i) => i.id === islandId);
+    questCard.show(card, island?.name ?? islandId);
+    music.speak(card.giver?.voice, wordCount(card.speech), card.mood);
+    refreshPause();
+    return true;
+  }
+  return false;
+}
 /** Docked: the arrival card if a main quest has one, else straight to the harbour screen. */
 function openHarbour() {
   // A card already up (Rook's thanks, shown as the dock moved his lesson on) opens the harbour
   // screen itself when it closes (decision 0190).
   if (!questCard.isOpen && !showDueCard()) tradePanel.open('market');
   refreshPause();
+}
+/**
+ * News at a spot at sea (decision 0213): quest cargo loaded at a mooring with no harbour (Ines's
+ * mast) or left there for want of room, as a note with the person's face, once per line.
+ */
+function seaNews() {
+  if (world.trade.dockedAt || quests.lesson) return;
+  for (const news of quests.news()) {
+    const card = cardFor(quests, world.map, news.quest, 'step');
+    if (!card) continue;
+    card.news = newsLine(quests, world.map, news);
+    const key = `news:${news.quest}:${news.step}@sea:${card.news}`;
+    if (questSeen.has(key)) continue;
+    questSeen.add(key);
+    questNote.push(key, card);
+  }
+}
+/** A timed run's clock in the course pill (decision 0213): the time against par. */
+function showRunClock() {
+  const run = world.trade.dockedAt ? undefined : quests.runs()[0];
+  hud.run = run ? { sec: run.sec, par: run.par, to: run.to } : null;
+  // A race's line and clock (decision 0217).
+  hud.race = world.trade.dockedAt ? null : raceHud(quests);
+}
+/** Steps done during this call, quest → gold paid (decision 0213): "Done! +150 gold". */
+const paidHere = new Map<string, number>();
+/** The people of this harbour on the Quay tab, with their dock news (decisions 0141, 0213). */
+function quayNow(): QuayItem[] {
+  if (quests.lesson) return [];
+  const docked = world.trade.dockedAt;
+  return [
+    ...quayItems(quests, world.map, docked, questSeen, questThanks, paidHere),
+    // The regatta book: races sailed from here, to sail again (decision 0217). Never news.
+    ...raceBookCards(quests, world.map, docked).map((card) => ({
+      key: `${card.quest}:book`,
+      card,
+      fresh: false,
+    })),
+  ];
 }
 // Every other quest's news away from its harbour: a small note at sea (decision 0141).
 const questNote = new QuestNote($<HTMLButtonElement>('quest-note'), $('captain-stats'));
@@ -439,6 +599,22 @@ quests.onEvent = (e) => {
     hud.showToast(t('toast.landed', { qty: e.qty, good: goodName(e.good).toLowerCase() }), 3);
     return;
   }
+  if (e.type === 'paid') {
+    // Said on the next card of the Quay while alongside; at sea the note says it (decision 0213).
+    if (world.trade.dockedAt) paidHere.set(e.quest, (paidHere.get(e.quest) ?? 0) + e.gold);
+    return;
+  }
+  if (e.type === 'run') {
+    // A timed run under way, over par or made (decision 0213): a line at once, the clock at sea.
+    const words = {
+      to: trade.findPort(world.map, e.to)?.name ?? e.to,
+      from: trade.findPort(world.map, e.from)?.name ?? e.from,
+      par: parClock(e.par),
+      time: parClock(e.sec),
+    };
+    hud.showToast(t(`quest.run.${e.state}`, words), e.state === 'made' ? 5 : 4);
+    return;
+  }
   if (e.type === 'erupt') {
     // A story eruption (decision 0178): seen once the boat is in sight of the volcano.
     view.erupt(e.island);
@@ -453,6 +629,10 @@ quests.onEvent = (e) => {
     if (tradePanel.isOpen) tradePanel.close();
   }
   checkFounded();
+  if (quest?.race) {
+    raceEvent(e);
+    return;
+  }
   if (quest?.lesson) {
     // Asked again, a lesson's people cards speak again (decision 0185).
     if (e.type === 'started')
@@ -471,7 +651,12 @@ quests.onEvent = (e) => {
   }
   // While a lesson runs, its bubble speaks for Rook's thanks (decision 0127).
   if (e.type === 'finished' && !quests.lesson) questThanks.add(e.quest);
-  if (e.type === 'finished') view.setQuestsDone(questsDone(world.trade));
+  if (e.type === 'finished') {
+    view.setQuestsDone(questsDone(world.trade));
+    view.setPennant(flownPennant(quests));
+    // A plot given is staked on her island at once (decision 0210).
+    showHome();
+  }
   if (quest?.main || quests.lesson) return;
   if (e.type === 'step' || e.type === 'choice' || e.type === 'finished') {
     const step = quests.progress(e.quest)?.step;
@@ -480,10 +665,57 @@ quests.onEvent = (e) => {
     if (card) questNote.push(`${e.quest}:${step}`, card);
   }
 };
+/**
+ * A race's events (decision 0217): the starter's line at the start, the horn, the result card
+ * at once wherever she finishes, a give-up; no thanks card or note, the result card says it all.
+ */
+function raceEvent(e: QuestEvent) {
+  const quest = quests.quests.find((q) => q.id === e.quest)!;
+  if (e.type === 'started') {
+    const line = starterLine(quest);
+    if (line) hud.showToast(line, 6);
+  } else if (e.type === 'horn') {
+    music.effectNamed('race-horn');
+    hud.showToast(t('regatta.hornToast'), 3);
+  } else if (e.type === 'retired') hud.showToast(t('regatta.retired'), 4);
+  else if (e.type === 'raced') {
+    // The committee boat's gun as she crosses the line (decision 0209).
+    music.effectNamed('gun');
+    view.setPennant(flownPennant(quests));
+    const card = raceResultCard(quests, world.map, e);
+    if (card && !bench) {
+      input.releaseAll();
+      hud.hideToast();
+      questCard.show(card);
+      music.speak(card.giver?.voice, wordCount(card.speech), card.mood);
+      refreshPause();
+    }
+  } else if (e.type === 'finished') {
+    view.setQuestsDone(questsDone(world.trade));
+    view.setPennant(flownPennant(quests));
+    // The Cup on her pier once it is won (decision 0217).
+    showHome();
+  }
+  if (e.type !== 'horn') autosave();
+}
+/** "Race again", on the result card or the regatta book (decision 0217). */
+function raceAgain(id: string) {
+  if (!quests.raceAgain(id).length) return;
+  if (tradePanel.isOpen) tradePanel.close();
+}
+questCard.onAgain = raceAgain;
+hud.onRetire = () => {
+  const race = quests.race();
+  if (race) quests.retire(race.quest.id);
+};
 /** The captain's yes to an offer, on a card or on the Quay tab. */
 function acceptQuest(id: string) {
+  const quest = quests.quests.find((q) => q.id === id);
+  // A standing order's new ask is news again, its thanks too (decision 0214).
+  if (quest?.repeat)
+    for (const key of questSeen) if (key.startsWith(`${id}:`)) questSeen.delete(key);
   // The offer already said what the first step asks.
-  const first = quests.quests.find((q) => q.id === id)?.steps[0];
+  const first = quest && roundStep(quest, quests.progress(id));
   if (first) questSeen.add(`${id}:${first.id}`);
   quests.accept(id);
   autosave();
@@ -492,11 +724,31 @@ questCard.onAccept = acceptQuest;
 questCard.onIgnore = (id) => {
   if (quests.ignore(id)) autosave();
 };
+/**
+ * Goods handed straight to a quest's person (decision 0213): paid as a sale here, then the quest
+ * counts them like any goods leaving the hold alongside.
+ */
+function handOverGoods(id: string, good: string, n: number) {
+  if (!isGood(good)) return;
+  const res = trade.handOver(world.trade, good, n, world.map);
+  if (!res.ok) return;
+  const who = cardFor(quests, world.map, id, 'step')?.giver?.name ?? '';
+  hud.showToast(t('quest.handedToast', { who: firstName(who), gold: formatNumber(res.gold) }), 3);
+  world.ship = trade.activeShip(world.trade);
+  quests.check();
+  coach.render();
+  autosave();
+}
+questCard.onHandOver = handOverGoods;
+// Quest cargo in the hold lists, at sea and in harbour (decision 0213).
+hud.questCargo = tradePanel.questCargo = chart.questCargo = () => cargoLines(quests);
 tradePanel.quay = {
-  items: () =>
-    quests.lesson ? [] : quayItems(quests, world.map, world.trade.dockedAt, questSeen, questThanks),
+  items: quayNow,
   seen: (fresh) => {
-    for (const { key } of fresh) questSeen.add(key);
+    for (const { key, newsKey } of fresh) {
+      questSeen.add(key);
+      if (newsKey) questSeen.add(newsKey);
+    }
     // The first new face on the Quay speaks as their card shows, like a main quest's card (0197).
     const { card } = fresh[0]!;
     music.speak(card.giver?.voice, wordCount(card.ask ?? card.speech), card.mood);
@@ -509,8 +761,10 @@ tradePanel.quay = {
     } else if (act === 'choose' && option) {
       quests.choose(id, option);
       autosave();
-    }
+    } else if (act === 'again') raceAgain(id);
   },
+  // The Quay shows the news inline as it renders again.
+  hand: handOverGoods,
 };
 questCard.onChoose = (id, option) => {
   quests.choose(id, option);
@@ -532,6 +786,12 @@ questCard.onClose = (card) => {
       autosave();
     }
   }
+  // A plot's card at her island goes on to the Island tab on that plot (decision 0210).
+  if (card.plot) {
+    if (world.trade.home.docked === card.plot.island) homePanel.open(card.plot.spot);
+    refreshPause();
+    return;
+  }
   // After the arrival card (or "To the market"), the harbour screen.
   if (!showDueCard() && world.trade.dockedAt && !tradePanel.isOpen) tradePanel.open('market');
   refreshPause();
@@ -541,10 +801,17 @@ questCard.onClose = (card) => {
 view.stepMarkers = () => trackedMarkers(quests);
 view.questMarks = () => quests.runningMarks;
 chart.questMarks = () => quests.runningMarks;
+chart.raceCourse = () => {
+  const race = quests.race();
+  if (!race) return null;
+  const { start, marks, finish } = race.course;
+  return [gateMid(start), ...marks, gateMid(finish)];
+};
 chart.quests = {
   markers: () => trackedMarkers(quests)?.points ?? [],
   pins: () => questPins(quests, world.map, questSeen),
   target: () => questTarget(quests, world.map),
+  goal: () => questGoal(quests, world.map, view.harbours),
   journal: () => journal(quests, world.map),
   track: (id) => {
     if (quests.track(id)) autosave();
@@ -908,7 +1175,7 @@ function goBack() {
   if (tradePanel.isOpen) {
     tradePanel.close();
     refreshPause();
-  } else if (homePanel.isOpen) homePanel.close();
+  } else if (homePanel.isOpen) homePanel.back();
   else if (!settingsPanel.hidden) closeSettings();
   else if (transfer.isOpen) transfer.close();
   else if (!help.hidden) closeHelp();
@@ -942,8 +1209,9 @@ function startQuestTest(test: NonNullable<typeof questTest>) {
   const started = quests.testStart(test.quest, test.step).length > 0;
   trade.syncMarketLevels(world.trade, world.map);
   refreshPiers(world);
-  view.setHomeBuildings(builtByIsland(world.trade.home));
+  showHome();
   view.setQuestsDone(questsDone(world.trade));
+  view.setPennant(flownPennant(quests));
   // Land that stands after the quests before this step rises (or sinks) before she is placed.
   syncWorldLand(world, true);
   const berth = test.port
@@ -1103,8 +1371,11 @@ function readPad(now: number, dt: number) {
     if (c.zoom !== 1) chart.zoomBy(c.zoom);
     if (c.fit) chart.fit();
     if (c.close) chart.back();
-    // A: the port under the cross, else the lesson bubble's button; Y skips the lesson (0183).
-    if (c.pick && !chart.pickAtCross(PAD.chart.pickReachPx)) coach.padPress('main');
+    // Y skips the lesson (0183).
+    // A: the port or pin under the cross, else the lesson bubble's button, else her own mark there
+    // (decision 0212).
+    if (c.pick && !chart.pickAtCross(PAD.chart.pickReachPx) && !coach.padPress('main'))
+      chart.markAtCross();
     if (c.skipLesson) coach.padPress('skip');
     if (c.nextGood) chart.nextGood();
     if (c.tab) chart.stepTab(c.tab);
@@ -1131,7 +1402,7 @@ function padScreen(): PadScreen | null {
     return chart.currentTab === 'map' ? null : { root: $('chart'), back: () => chart.back() };
   const screen = (root: HTMLElement | null) => (root ? { root, back: goBack } : null);
   if (tradePanel.isOpen) return screen($('trade-panel'));
-  if (homePanel.isOpen) return screen($('home-ui').querySelector<HTMLElement>('.home-card'));
+  if (homePanel.isOpen) return screen($('home-ui').querySelector<HTMLElement>('.home-screen'));
   if (!settingsPanel.hidden) return screen(settingsPanel);
   if (transfer.isOpen) return screen($('transfer'));
   if (!help.hidden) return screen(help);
@@ -1250,6 +1521,17 @@ bergsSwitch.checked = settings.bergs;
 bergsSwitch.addEventListener('change', () => {
   world.bergsOn = bergsSwitch.checked;
   settings.bergs = bergsSwitch.checked;
+  keepSettings();
+});
+// Other ships (decision 0215): a switch like every hazard, and as many as the quality allows.
+const shipsSwitch = $<HTMLInputElement>('ships');
+world.traffic.on = settings.ships;
+world.traffic.cap = TUNING.seamanship.traffic.atOnce[level];
+shipsSwitch.checked = settings.ships;
+shipsSwitch.addEventListener('change', () => {
+  world.traffic.on = shipsSwitch.checked;
+  if (shipsSwitch.checked) world.traffic.fresh = true;
+  settings.ships = shipsSwitch.checked;
   keepSettings();
 });
 // Fog banks and ash clouds (decision 0169): one switch per haze the zone kinds name, made from
@@ -1449,6 +1731,7 @@ function setLevel(next: QualityLevel) {
   if (next === level) return;
   level = next;
   view.setQuality(level);
+  world.traffic.cap = TUNING.seamanship.traffic.atOnce[level];
   chart.fogBlur = QUALITY[level].chartFogBlur;
   describeQuality();
 }
@@ -1477,6 +1760,11 @@ function handleEvents(events: WorldEvent[]) {
   hud.handleEvents(events);
   seaListener.hear(events);
   for (const e of events) {
+    if (e.type === 'crash' || e.type === 'reef-strike') {
+      // She shows the knock (decision 0208): a splash and planks afloat; the sea listener plays
+      // the thud, louder the harder she hit (decision 0209).
+      view.impact();
+    }
     if (e.type === 'docked') {
       const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
       // Ramming the pier also stops you in range: keep the damage toast, the harbour shows repair.
@@ -1536,17 +1824,10 @@ function handleEvents(events: WorldEvent[]) {
       if (tradePanel.isOpen) tradePanel.render();
       autosave();
     } else if (e.type === 'home-docked') {
-      // Moored at one of your islands (decisions 0126, 0128): its spots show; a new one is said
-      // out loud.
-      const island = world.map.islands.find((i) => i.id === e.islandId)!;
-      const name = island.name ?? island.id;
-      const fresh = islandHome(world.trade.home, e.islandId).offered.length > 0;
-      // The camera turns to the island, halfway between it and her, so both show.
-      view.setFocus({
-        x: (island.x * 2 + world.boat.x) / 3,
-        y: (island.y * 2 + world.boat.y) / 3,
-      });
-      hud.showToast(t(fresh ? 'home.newSpot' : 'home.docked', { name }), fresh ? 4 : 2.5);
+      // Moored at one of your islands (decisions 0126, 0128, 0210): the camera turns to the
+      // island, and its harbour screen opens, after the card of whoever staked a plot there.
+      homeFocus(e.islandId);
+      if (!showPlotCard(e.islandId)) homePanel.open();
       autosave();
     } else if (e.type === 'home-undocked') {
       view.setFocus(null);
@@ -1557,6 +1838,7 @@ function handleEvents(events: WorldEvent[]) {
       hud.showToast(t('toast.departed', { name: portName }), 1.5);
       // Thanks read on the Quay tab are said.
       for (const id of questThanks) if (questSeen.has(`${id}:done`)) questThanks.delete(id);
+      paidHere.clear();
       if (tradePanel.isOpen) {
         tradePanel.close();
         refreshPause();
@@ -1575,6 +1857,18 @@ window.addEventListener('pagehide', autosave);
 function seaGoal(): { x: number; y: number; label: string } | null {
   if (world.trade.dockedAt) return null;
   return questGoal(quests, world.map, view.harbours);
+}
+
+/**
+ * A course set for the quest's place follows it to the step's next place, and ends with the quest
+ * or when another quest is tracked away to nowhere (decision 0212).
+ */
+function followQuestCourse() {
+  const course = world.destination;
+  if (course?.kind !== 'quest') return;
+  const goal = questGoal(quests, world.map, view.harbours);
+  if (goal) world.destination = questCourse(goal);
+  else world.destination = null;
 }
 
 /**
@@ -1626,8 +1920,9 @@ function tick(now: number) {
         soundKey = sea?.key;
         soundIn = 0;
       }
-      // A step's music (the regatta's) holds over the sea's while it runs (decision 0209).
-      music.holdTrack(sea?.step.music ?? null);
+      // A step's music holds over the sea's while it runs, and the regatta's theme while a race is
+      // under way (decision 0209).
+      music.holdTrack(sea?.step.music ?? (quests.race() ? 'regatta' : null));
       const sound = sea?.step.sound;
       if (sound && (soundIn -= SIM_STEP) <= 0) {
         music.effectNamed(sound.effect);
@@ -1651,9 +1946,12 @@ function tick(now: number) {
   // Rook waits on the wreck while a step points at it (decision 0127).
   view.castawayWaiting = compass === 'wreck';
   hud.goal = seaGoal();
+  followQuestCourse();
   hud.update(dt, (x, y) => view.project(x, y), size, !paused, hudVisible);
+  if (coachTick % 15 === 0) seaNews();
+  showRunClock();
   questNote.update(dt, mode === 'play' && !paused && hudVisible, (key) => questSeen.has(key));
-  homePanel.update((x, y) => view.project(x, y));
+  homePanel.update();
   // Coach marks follow moving targets (port signs) about ten times a second.
   if (++coachTick % 6 === 0) coach.place();
 
@@ -1854,6 +2152,8 @@ if (new URLSearchParams(location.search).has('debug')) {
     trade.syncMarketLevels(world.trade, world.map);
     refreshPiers(world);
     view.setQuestsDone(questsDone(world.trade));
+    view.setPennant(flownPennant(quests));
+    showHome();
     // Land that stands after these quests rises now, while the boat is still at her start: moored
     // there next, the land would wait for her to sail out of sight (0166, Phase 4 review).
     syncWorldLand(world, true);
@@ -1892,6 +2192,13 @@ if (new URLSearchParams(location.search).has('debug')) {
     resetBoat(world);
     sailStep = world.boat.sailStep;
   };
+  /** Her hull at `percent` condition, as after so many knocks (`npm run shots -- --hull`, 0208). */
+  const hull = (percent: number) => {
+    const { captain } = world.trade;
+    captain.hullDamage[captain.activeShip] = maxHull(world.trade) * (1 - percent / 100);
+  };
+  /** A crash's splash and planks at her bow, without the damage (`--crash`, decision 0208). */
+  const impact = () => view.impact();
   Object.assign(window, {
     fwt: {
       world,
@@ -1900,6 +2207,7 @@ if (new URLSearchParams(location.search).has('debug')) {
       trade,
       tradePanel,
       homePanel,
+      showHome,
       quests,
       coach,
       chart,
@@ -1911,6 +2219,8 @@ if (new URLSearchParams(location.search).has('debug')) {
       town,
       freePlay,
       music,
+      hull,
+      impact,
     },
   });
 }

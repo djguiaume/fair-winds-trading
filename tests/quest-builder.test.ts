@@ -8,6 +8,8 @@ import {
   addPlace,
   checkPlaces,
   checkText,
+  plotWords,
+  textKeys,
   conditionWords,
   exportFiles,
   mergeText,
@@ -72,7 +74,7 @@ describe('quest builder (decision 0142)', () => {
   it('puts new text after its quest’s keys, and drops an edit set back to the shipped text', () => {
     const merged = Object.keys(mergeText('en', { 'quest.saltmere-shoals.extra.title': 'More' }));
     const at = merged.indexOf('quest.saltmere-shoals.extra.title');
-    expect(merged[at - 1]).toBe('quest.saltmere-shoals.done.copy');
+    expect(merged[at - 1]).toBe('quest.saltmere-shoals.plot.copy');
     const doc = shipped();
     setText(doc, 'en', 'quest.saltmere-shoals.name', 'Changed');
     expect(textOf(doc, 'en', 'quest.saltmere-shoals.name')).toBe('Changed');
@@ -109,6 +111,23 @@ describe('quest builder (decision 0142)', () => {
     expect(checkPlaces(doc, PHASE4_MAP, (x, y, sea) => clearAt(sea, x, y, 0))).toEqual([]);
     setText(doc, 'fr', 'quest.saltmere-shoals.catch.title', 'Portez la pêche');
     expect(checkText(doc).join()).toContain('the {…} differ');
+  });
+
+  it('a plot given names its two buildings, and its giver speaks at the island (0210)', () => {
+    const doc = shipped();
+    const mill = doc.quests.find((q) => q.id === 'westholm-mill')!;
+    expect(plotWords(doc, PHASE1_MAP, mill, 'en')).toEqual({
+      spotA: 'a warehouse',
+      spotB: 'a bakehouse',
+    });
+    expect(plotWords(doc, PHASE1_MAP, mill, 'fr')).toEqual({
+      spotA: 'l’entrepôt',
+      spotB: 'le fournil',
+    });
+    expect(textKeys(mill).map((l) => l.key)).toContain('quest.westholm-mill.plot.copy');
+    setText(doc, 'en', 'quest.westholm-mill.done.copy', 'Thank you, captain!');
+    setText(doc, 'fr', 'quest.westholm-mill.done.copy', 'Merci, capitaine !');
+    expect(checkText(doc).join()).toContain('name its buildings with {spotA} and {spotB}');
   });
 
   it('words, story columns and renames', () => {

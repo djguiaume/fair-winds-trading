@@ -1,0 +1,90 @@
+{
+  "title": "Round the Smoulder · The sea races",
+  "legend": [
+    {
+      "style": "route",
+      "text": "the course, mark to mark (boats sail round land)"
+    }
+  ],
+  "lines": [
+    {
+      "points": [
+        [
+          -660,
+          220
+        ],
+        [
+          -790,
+          118
+        ],
+        [
+          -955,
+          40
+        ],
+        [
+          -880,
+          -105
+        ],
+        [
+          -740,
+          -60
+        ],
+        [
+          -660,
+          220
+        ]
+      ],
+      "style": "route",
+      "label": "Round the Smoulder",
+      "arrow": true
+    },
+    {
+      "points": [
+        [
+          -660,
+          240
+        ],
+        [
+          -660,
+          200
+        ]
+      ],
+      "style": "short",
+      "label": "start and finish"
+    }
+  ],
+  "labels": [
+    {
+      "at": [
+        -790,
+        132
+      ],
+      "text": "mark 1",
+      "style": "note"
+    },
+    {
+      "at": [
+        -955,
+        54
+      ],
+      "text": "mark 2",
+      "style": "note"
+    },
+    {
+      "at": [
+        -880,
+        -91
+      ],
+      "text": "mark 3",
+      "style": "note"
+    },
+    {
+      "at": [
+        -740,
+        -46
+      ],
+      "text": "mark 4",
+      "style": "note"
+    }
+  ]
+}

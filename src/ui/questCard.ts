@@ -1,9 +1,10 @@
-import { formatNumber, t } from '../i18n';
+import { formatNumber, goodMany, t } from '../i18n';
 import { type MenuAction, PAD } from '../input/gamepad';
 import { COIN, icon } from './icons';
 import { padGlyph } from './padGlyphs';
-import { portraitSvg } from './portraits';
+import { firstName, portraitSvg } from './portraits';
 import { type QuestCardModel, cardTag } from './questView';
+import { type RaceCardInfo, raceClock } from './regattaView';
 
 const esc = (s: string) =>
   s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
@@ -15,6 +16,44 @@ const esc = (s: string) =>
 function padFor(action: MenuAction): string {
   const button = PAD.menu.actions[action][0];
   return button ? padGlyph(button) : '';
+}
+
+/**
+ * A race's times on its card (decision 0217): the result just sailed, big, against Kestrel's; then
+ * this ship's three medal times with the gold each pays the first time, the ones won ticked; and
+ * the record.
+ */
+function raceBlock(r: RaceCardInfo): string {
+  const res = r.result;
+  const medal = (m: number) => ['none', 'bronze', 'silver', 'gold'][m] ?? 'none';
+  const result = res
+    ? `<div class="race-result is-${medal(res.medal)}"><span class="race-medal" aria-hidden="true"></span><span><small>${esc(t('regatta.yourTime'))}</small><b>${raceClock(res.sec)}</b></span><span class="race-rival">${esc(
+        res.rival !== undefined
+          ? t('regatta.kestrel', { time: raceClock(res.rival) })
+          : t('regatta.kestrelBehind'),
+      )}</span></div>`
+    : '';
+  const times = r.times
+    .map(
+      (m) =>
+        `<li class="is-${m.medal}${m.won ? ' is-won' : ''}"><span class="race-medal" aria-hidden="true"></span><span class="sr-only">${esc(t(`regatta.medal.${m.medal}`))}</span><b>${raceClock(m.sec)}</b>${
+          m.gold ? `<small>+${formatNumber(m.gold)}${COIN}</small>` : ''
+        }</li>`,
+    )
+    .join('');
+  const best =
+    r.best !== undefined && !res
+      ? `<p class="race-best is-${medal(r.medal ?? 0)}"><span class="race-medal" aria-hidden="true"></span>${esc(t('regatta.best', { time: raceClock(r.best) }))}</p>`
+      : '';
+  return `<div class="race-card">${result}${best}<p class="race-label">${esc(r.label)}</p><ul class="race-times">${times}</ul></div>`;
+}
+
+/** The ask's mark: a race result's medal disc (decision 0217), else the quest pin. */
+function askMark(c: QuestCardModel): string {
+  const medal = c.race?.result?.medal;
+  return medal
+    ? `<span class="race-ask is-${['', 'bronze', 'silver', 'gold'][medal]}"><span class="race-medal" aria-hidden="true"></span></span>`
+    : '<span class="quest-pin" aria-hidden="true">!</span>';
 }
 
 const TAG_KEY = { new: 'quest.tagNew', next: 'quest.tagNext', done: 'quest.tagDone' } as const;
@@ -33,7 +72,7 @@ export function questCardBody(c: QuestCardModel, inline = false): string {
   ).join('');
   const ask =
     c.ask && c.kind !== 'choice'
-      ? `<div class="quest-ask">${c.good ? icon(c.good) : '<span class="quest-pin" aria-hidden="true">!</span>'}<b>${esc(c.ask)}</b>${
+      ? `<div class="quest-ask">${c.good ? icon(c.good) : askMark(c)}<b>${esc(c.ask)}</b>${
           c.progress ? ` <span class="quest-count">${esc(c.progress)}</span>` : ''
         }${c.where ? `<span class="quest-where">· ${esc(c.where)}</span>` : ''}</div>`
       : '';
@@ -54,9 +93,9 @@ export function questCardBody(c: QuestCardModel, inline = false): string {
   // inline cards share their screen with others, so they keep the focus ring alone.
   // A presses the focused answer, so its glyph shows on that one only (quests.css).
   const press = inline ? '' : `<span class="pad-press">${padFor('press')}</span>`;
-  let actions = '';
+  let actions: string;
   if (c.kind === 'offer')
-    actions = `<button type="button" class="d-btn brass" data-act="accept"${q}>${press}${icon('anchor')}${esc(t('quest.accept'))}</button><button type="button" class="d-btn" data-act="later"${q}>${inline ? '' : padFor('back')}${esc(t('quest.notNow'))}</button>${
+    actions = `<button type="button" class="d-btn brass" data-act="accept"${q}>${press}${icon('anchor')}${esc(t(c.race ? 'regatta.enter' : 'quest.accept'))}</button><button type="button" class="d-btn" data-act="later"${q}>${inline ? '' : padFor('back')}${esc(t('quest.notNow'))}</button>${
       c.main
         ? ''
         : `<button type="button" class="d-btn ghost" data-act="ignore"${q}${inline ? '' : ' data-pad="secondary"'}>${inline ? '' : padFor('secondary')}${esc(t('quest.ignore'))}</button>`
@@ -68,19 +107,56 @@ export function questCardBody(c: QuestCardModel, inline = false): string {
           `<button type="button" class="d-btn quest-option" data-act="choose" data-option="${esc(o.id)}"${q}><b>${press}${esc(o.title)}</b>${o.copy ? `<span>${esc(o.copy)}</span>` : ''}</button>`,
       )
       .join('');
-  else if (!inline)
-    actions = `<button type="button" class="d-btn brass" data-act="close">${press}${esc(t('quest.close'))}</button>`;
-  return `<span class="quest-tag is-${tag}">${esc(t(TAG_KEY[tag]))}</span>
+  else if (c.race?.again)
+    actions = `<button type="button" class="d-btn brass" data-act="again"${q}>${press}${icon('anchor')}${esc(t('regatta.again'))}</button>${
+      inline
+        ? ''
+        : `<button type="button" class="d-btn" data-act="close">${padFor('back')}${esc(t('quest.close'))}</button>`
+    }`;
+  else {
+    // Goods wanted here and aboard (decision 0213): handed straight over, paid as at the market.
+    const h = c.handOver;
+    const hand = h
+      ? `<button type="button" class="d-btn brass quest-hand" data-act="hand" data-good="${esc(h.good)}" data-n="${h.n}"${q}>${press}${esc(
+          t('quest.handOver', { n: h.n, good: goodMany(h.good), gold: formatNumber(h.gold) }),
+        )}${COIN}</button>`
+      : '';
+    if (!inline && !c.plot)
+      actions = `${hand}<button type="button" class="d-btn${h ? '' : ' brass'}" data-act="close">${h ? '' : press}${esc(t('quest.close'))}</button>`;
+    else actions = hand;
+  }
+  // What just happened here (decision 0213), above everything the person says.
+  const news = c.news
+    ? `<p class="quest-news" role="status"><span class="quest-pin" aria-hidden="true">!</span>${esc(c.news)}</p>`
+    : '';
+  const tagText = c.plot
+    ? t('home.plotCard.tag')
+    : c.race?.book
+      ? t('regatta.book')
+      : t(TAG_KEY[tag]);
+  return `<span class="quest-tag is-${tag}">${esc(tagText)}</span>${news}
       <header class="quest-head"><h2>${esc(c.giver?.name ?? c.arc)}</h2>${
         c.role ? `<span class="quest-role">${esc(c.role)}</span>` : ''
       }</header>
-      <div class="quest-arc"><span>${esc(
-        c.kind === 'finished'
-          ? t('quest.arcDone', { name: c.arc })
-          : t('quest.arcStep', { name: c.arc, n: c.stepNo, total: c.steps }),
-      )}</span><span class="quest-pips" aria-hidden="true">${pips}</span></div>
+      ${
+        c.plot
+          ? ''
+          : `<div class="quest-arc"><span>${esc(
+              c.race
+                ? `${c.arc} · ${c.race.series}`
+                : c.round !== undefined
+                  ? t('quest.arcRound', { name: c.arc, n: c.round })
+                  : c.kind === 'finished'
+                    ? t('quest.arcDone', { name: c.arc })
+                    : t('quest.arcStep', { name: c.arc, n: c.stepNo, total: c.steps }),
+            )}</span>${
+              c.round === undefined && !c.race
+                ? `<span class="quest-pips" aria-hidden="true">${pips}</span>`
+                : ''
+            }</div>`
+      }
       ${c.speech ? `<p class="quest-speech">${esc(c.speech)}</p>` : ''}
-      ${ask}${reward}
+      ${ask}${c.race ? raceBlock(c.race) : ''}${reward}
       ${actions ? `<div class="quest-actions${c.kind === 'choice' ? ' is-choice' : ''}">${actions}</div>` : ''}`;
 }
 
@@ -94,7 +170,11 @@ export class QuestCard {
   onAccept: (quest: string) => void = () => {};
   onChoose: (quest: string, option: string) => void = () => {};
   onIgnore: (quest: string) => void = () => {};
+  /** "Hand over": `n` of `good` to the card's person, paid (decision 0213). */
+  onHandOver: (quest: string, good: string, n: number) => void = () => {};
   onClose: (card: QuestCardModel) => void = () => {};
+  /** "Race again" on a race's result card (decision 0217). */
+  onAgain: (quest: string) => void = () => {};
   private card: QuestCardModel | null = null;
 
   constructor(private readonly dialog: HTMLDialogElement) {
@@ -108,6 +188,9 @@ export class QuestCard {
       if (act === 'accept') this.onAccept(card.quest);
       else if (act === 'choose') this.onChoose(card.quest, button.dataset.option!);
       else if (act === 'ignore') this.onIgnore(card.quest);
+      else if (act === 'again') this.onAgain(card.quest);
+      else if (act === 'hand')
+        this.onHandOver(card.quest, button.dataset.good!, Number(button.dataset.n));
       this.close();
     });
     dialog.addEventListener('close', () => {
@@ -125,8 +208,15 @@ export class QuestCard {
     return this.card;
   }
 
-  /** `arrival`: the harbour's name, when the card greets the captain on docking. */
+  /**
+   * `arrival`: the harbour's name, when the card greets the captain on docking. A plot's card at
+   * the captain's island (0210) says who waits there and goes on to the island instead.
+   */
   show(card: QuestCardModel, arrival?: string) {
+    const toIsland = !!card.plot;
+    const sub = toIsland
+      ? t('home.plotCard.arrival', { name: firstName(card.giver?.name ?? '') })
+      : t('quest.arrival');
     this.card = card;
     this.dialog.dataset.kind = card.kind;
     this.dialog.classList.toggle('is-arrival', !!arrival);
@@ -135,15 +225,19 @@ export class QuestCard {
       : '';
     this.dialog.innerHTML = `${
       arrival
-        ? `<header class="quest-arrival"><h1>${esc(arrival)}</h1><small>${esc(t('quest.arrival'))}</small></header>`
+        ? `<header class="quest-arrival"><h1>${esc(arrival)}</h1><small>${esc(sub)}</small></header>`
         : ''
     }${face}<div class="quest-body">${questCardBody(card)}</div>${
       arrival
-        ? `<button type="button" class="quest-to-market" data-act="market">${card.kind === 'offer' ? '' : padFor('back')}${esc(t('quest.toMarket'))}</button>`
+        ? toIsland
+          ? `<button type="button" class="quest-to-market d-btn brass" data-act="market">${padFor('press')}${esc(t('home.toIsland'))}</button>`
+          : `<button type="button" class="quest-to-market" data-act="market">${card.kind === 'offer' ? '' : padFor('back')}${esc(t('quest.toMarket'))}</button>`
         : ''
     }`;
     if (!this.dialog.open) this.dialog.showModal();
-    this.dialog.querySelector<HTMLButtonElement>('.quest-actions button')?.focus();
+    this.dialog
+      .querySelector<HTMLButtonElement>('.quest-actions button, .quest-to-market.d-btn')
+      ?.focus();
   }
 
   close() {

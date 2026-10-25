@@ -12,6 +12,7 @@ import { islandCheckKit } from '../../src/render/models/towns';
 import { checkIsland } from '../../src/sim/islandChecks';
 import type { MapDef } from '../../src/sim/map';
 import { type MapCheck, questTagsCheck, quickChecks, routeChecks } from '../../src/sim/mapChecks';
+import { SHIP_FILES, shipDamageProblems } from '../../src/data/ships';
 import { checkPerks } from '../../src/sim/perks';
 import { type AudioData, audioProblems } from '../../src/audio/catalog';
 import { QUESTS, type QuestDef } from '../../src/sim/quests';
@@ -20,7 +21,7 @@ import { sectorChecks } from '../../src/sim/seaSectors';
 type Args = Record<string, string | boolean | undefined> & { _: string[] };
 
 export interface Problem {
-  area: 'seas' | 'islands' | 'quests' | 'perks' | 'controls' | 'audio';
+  area: 'seas' | 'islands' | 'quests' | 'perks' | 'controls' | 'ships' | 'audio';
   where: string;
   severity: 'error' | 'warning';
   message: string;
@@ -166,6 +167,13 @@ export function checkAll(opts: CheckOptions = {}) {
     counted.perks = 'perks.json';
   }
 
+  if (want('ships')) {
+    for (const file of SHIP_FILES)
+      for (const message of shipDamageProblems(file))
+        problems.push({ area: 'ships', where: `${file.id}.json`, severity: 'error', message });
+    counted.ships = `${SHIP_FILES.length} ship files`;
+  }
+
   if (want('controls')) {
     for (const message of controlsProblems(opts.controls ?? shippedControls()))
       problems.push({ area: 'controls', where: 'controls.json', severity: 'error', message });
@@ -186,7 +194,7 @@ const list = (v: unknown) => (typeof v === 'string' ? v.split(',').filter(Boolea
 export function run(args: Args): number {
   if (args.help) {
     console.log(`npm run check [-- options]
-  --only seas,islands,quests,perks,controls,audio   check only these areas
+  --only seas,islands,quests,perks,controls,ships,audio  check only these areas
   --island id[,id]                   only these island files
   --map file.json[,file.json]        check these map files (editor exports) instead of the ring and stress seas
   --controls file.json               check this controls file (a controls page export)

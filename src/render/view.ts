@@ -24,8 +24,11 @@ import { CurrentWater } from './currentWater';
 import { ShallowsWater } from './shallowsWater';
 import { PALETTE } from './palette';
 import { BuoyMarker, EdgeBuoys, createBlobShadow } from './props';
+import { CourseSpar } from './courseSpar';
 import { renderPixelRatio, QUALITY, type QualityLevel, type QualityProfile } from './quality';
 import { Wake } from './wake';
+import { ImpactDebris } from './impactDebris';
+import { damageStage, hullCondition } from '../sim/hazards';
 import { WindStreaks } from './windStreaks';
 import { Rain, rainMayReachArea } from './rain';
 import { Atmosphere, LAVA_BY_DAY, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from './atmosphere';
@@ -35,6 +38,7 @@ import { Lanterns } from './lanterns';
 import { Castaway } from './castaway';
 import { SeaMarks } from './seaMarks';
 import { DriftingBergs } from './driftingBergs';
+import { TrafficView } from './traffic';
 import type { SeaMarkDef } from '../sim/map';
 import { QuestMarkers } from './questMarkers';
 import type { StepMarker } from '../ui/questView';
@@ -44,7 +48,17 @@ import { Volcanoes } from './volcanoes';
 import { stormRain } from '../sim/storms';
 import { seaShape } from '../sim/seaEdge';
 import { CLEAR, type ZoneVisual, mapZones, zoneField, zoneVisualAt } from '../sim/windZones';
+import type { FlagDef } from '../sim/regatta';
 import { smoothOutline } from '../sim/flowShapes';
+import { designOf } from '../data/islands';
+import {
+  HARBOUR_VIEW,
+  type HarbourLight,
+  harbourLight,
+  harbourLightTime,
+  harbourPictureKey,
+  harbourShot,
+} from './harbourView';
 
 /** Game time whose light is kept when day and night is off: early afternoon. */
 const ALWAYS_DAY = 200;
@@ -83,6 +97,8 @@ export class GameView {
   /** Buoys and boats at sea, some only before or after a quest (decision 0130). */
   private readonly seaMarks: SeaMarks;
   private readonly bergs: DriftingBergs;
+  /** Other boats on the sea (decision 0215). */
+  private readonly traffic: TrafficView;
   /** The tracked quest step's places at sea (decision 0130). */
   private readonly questMarkers = new QuestMarkers();
   /** What the tracked step marks at sea; the game sets it once the quests run. */
@@ -108,7 +124,11 @@ export class GameView {
   private heelFactor = 1;
   private readonly boatShadow = createBlobShadow(6.5, 14);
   private readonly wake = new Wake();
+  /** Splash and planks from crashes and reef strikes (decision 0208). */
+  private readonly debris = new ImpactDebris();
   private readonly buoy = new BuoyMarker();
+  /** Where a course to the quest's place or her own mark leads (decision 0212). */
+  private readonly courseSpar = new CourseSpar();
   private readonly lighthouseBeams: LighthouseBeams;
   private readonly beaconLights: BeaconLights;
   private readonly edgeBuoys: EdgeBuoys;
@@ -133,6 +153,8 @@ export class GameView {
   private readonly target = new THREE.Vector3();
   /** A point the camera looks at instead of ahead of the boat (the home island, 0126). */
   private focus: { x: number; y: number } | null = null;
+  /** Where on the screen the focus point sits, from the centre in screen fractions (0210). */
+  private focusShift = { x: 0, y: 0 };
   private readonly tmp = new THREE.Vector3();
   /** The fog bank or ash cloud at the camera's target (decision 0169). */
   private readonly haze: ZoneVisual = { ...CLEAR };
@@ -184,8 +206,10 @@ export class GameView {
     this.castaway = new Castaway(world.map);
     this.seaMarks = new SeaMarks(world.map);
     this.bergs = new DriftingBergs(world.map);
+    this.traffic = new TrafficView(world.map);
     this.scene.add(
       this.bergs.root,
+      this.traffic.root,
       this.castaway.root,
       this.seaMarks.root,
       this.questMarkers.root,
@@ -193,7 +217,10 @@ export class GameView {
       this.boat.root,
       this.boatShadow,
       this.wake.mesh,
+      this.debris.planks,
+      this.debris.splash,
       this.buoy.root,
+      this.courseSpar.root,
       this.edgeBuoys.mesh,
       this.stormClouds.root,
       this.volcanoes.root,
@@ -286,29 +313,58 @@ export class GameView {
       hull: level(lv?.hull),
     };
     const id = captain.activeShip;
-    return { id, upgrades, key: `${id}:${upgrades.sails}${upgrades.hold}${upgrades.hull}` };
+    // The model shows the hull's damage in steps (decision 0208): a new step rebuilds it.
+    const damage = damageStage(hullCondition(this.world.trade));
+    const flag = this.pennant;
+    const key = `${id}:${upgrades.sails}${upgrades.hold}${upgrades.hull}:${damage}:${flag?.id ?? ''}`;
+    return { id, upgrades, damage, flag, key };
   }
 
   /** The model for the ship being sailed, with its upgrade levels visible (decision 0016). */
   private buildBoat(): BoatModel {
-    const { id, upgrades, key } = this.activeBoat();
+    const { id, upgrades, damage, flag, key } = this.activeBoat();
     this.boatKey = key;
     this.heelFactor = heelFactor(id);
     // Quality is a live toggle, not a permanent factory opt-out: Low → Medium must restore ropes.
-    const boat = createBoatModel(id, { upgrades });
+    const boat = createBoatModel(id, { upgrades, damage, ...(flag ? { flag } : {}) });
     boat.setLowDetail?.(this.level === 'low');
     boat.root.rotation.order = 'YXZ';
     return boat;
   }
 
-  /** Rebuild the boat after a shipyard purchase or a ship change. */
+  /** The regatta pennant at her masthead (decision 0217): the latest series won, or none. */
+  private pennant: FlagDef | undefined;
+  setPennant(flag: FlagDef | undefined) {
+    if (flag?.id === this.pennant?.id) return;
+    this.pennant = flag;
+    this.refreshBoat();
+  }
+
+  /** Rebuild the boat after a shipyard purchase, a ship change, a new damage step or a repair. */
   private refreshBoat() {
-    if (this.activeBoat().key === this.boatKey) return;
+    const { id, key } = this.activeBoat();
+    if (key === this.boatKey) return;
+    // Only a new ship starts a fresh wake; a damage step keeps her trail.
+    if (id !== this.boatKey.split(':')[0]) this.wake.reset();
     this.scene.remove(this.boat.root);
     this.boat.dispose();
     this.boat = this.buildBoat();
-    this.wake.reset();
     this.scene.add(this.boat.root);
+  }
+
+  /** A crash or a reef strike (decision 0208): a splash at her bow and planks floating off. */
+  impact() {
+    const { boat } = this.world;
+    const dir = bearingVector(boat.heading);
+    const pos = toScene(boat.x, boat.y, this.tmp);
+    const { length, beam } = this.boat.wakeHull;
+    this.debris.spawn(
+      pos.x + dir.x * length * 0.35,
+      pos.z - dir.y * length * 0.35,
+      dir.x,
+      -dir.y,
+      beam,
+    );
   }
 
   setQuality(level: QualityLevel) {
@@ -377,8 +433,14 @@ export class GameView {
 
   /** Grow only the islands whose port levels changed; anchors and harbour lights stay valid. */
   /** Look at a map point (moored at home: the island and its spots), or follow the boat (null). */
-  setFocus(point: { x: number; y: number } | null, jump = false) {
+  setFocus(
+    point: { x: number; y: number } | null,
+    jump = false,
+    /** Put the point off centre, in screen fractions (x right, y down): beside a half screen. */
+    shift = { x: 0, y: 0 },
+  ) {
     this.focus = point ? { ...point } : null;
+    this.focusShift = { ...shift };
     // At once, without the camera's easing (the screenshot tool's --look).
     if (point && jump) {
       this.target.x = point.x;
@@ -387,6 +449,7 @@ export class GameView {
   }
 
   setHomeBuildings(byIsland: Record<string, Record<string, string>>) {
+    this.townVersion++;
     this.islands.setHomeBuildings(byIsland);
     this.volcanoes.setCraters(this.islands.craters);
   }
@@ -400,6 +463,7 @@ export class GameView {
   }
 
   setQuestsDone(done: ReadonlySet<string>) {
+    this.townVersion++;
     this.islands.setQuestsDone(done);
     this.volcanoes.setCraters(this.islands.craters);
     this.seaMarks.setQuestsDone(done);
@@ -410,6 +474,7 @@ export class GameView {
   setSettlementLevels(levels: Record<string, TownLevel>) {
     const founded = Object.keys(levels).some((id) => this.levels[id] === 0 && levels[id] !== 0);
     this.levels = { ...levels };
+    this.townVersion++;
     this.islands.setSettlementLevels(levels);
     this.volcanoes.setCraters(this.islands.craters);
     if (founded) this.buildLanterns();
@@ -480,14 +545,18 @@ export class GameView {
 
     // Camera: tilted top-down, looking a little ahead of the boat; farther out in portrait.
     const ahead = boat.speedKn * 1.6;
-    const tx = this.focus ? this.focus.x : pos.x + dir.x * ahead;
-    const tz = this.focus ? -this.focus.y : pos.z - dir.y * ahead;
-    this.target.x = approach(this.target.x, tx, 2.5, dt);
-    this.target.z = approach(this.target.z, tz, 2.5, dt);
     const aspect = this.width / this.height;
     // The field of view is vertical, so a tall phone sees a thin strip of sea: pull back until
     // portrait shows about as much water across as a landscape tablet (Guillaume, 2026-10-20).
     const dist = BASE_DISTANCE * this.zoom * (aspect < 1 ? clamp(0.85 / aspect, 1, 1.9) : 1);
+    // A shifted focus: the ground the screen spans around the target, the north-up camera
+    // foreshortening it top to bottom.
+    const spanY = (2 * dist * Math.tan((this.camera.fov * DEG) / 2)) / Math.sin(CAMERA_PITCH);
+    const spanX = 2 * dist * Math.tan((this.camera.fov * DEG) / 2) * aspect;
+    const tx = this.focus ? this.focus.x - this.focusShift.x * spanX : pos.x + dir.x * ahead;
+    const tz = this.focus ? -this.focus.y - this.focusShift.y * spanY : pos.z - dir.y * ahead;
+    this.target.x = approach(this.target.x, tx, 2.5, dt);
+    this.target.z = approach(this.target.z, tz, 2.5, dt);
     this.camera.position.set(
       this.target.x,
       Math.sin(CAMERA_PITCH) * dist,
@@ -565,6 +634,7 @@ export class GameView {
     this.boatShadow.rotation.y = yaw;
 
     this.wake.update(dt, time, pos, dir.x, -dir.y, boat.speedKn, this.boat.wakeHull);
+    this.debris.update(dt, (x, z) => waveHeight(x, z, time));
 
     const to = bearingVector(windTo(wind));
     this.streaks.update(
@@ -628,7 +698,22 @@ export class GameView {
     this.seaMarks.setQuestMarks(this.questMarks());
     this.seaMarks.update(time, (x, z) => waveHeight(x, z, time));
     this.bergs.update(this.world.time, this.world.bergsOn, (x, z) => waveHeight(x, z, time));
+    this.traffic.update(
+      this.world.traffic,
+      time,
+      (x, z) => waveHeight(x, z, time),
+      glow,
+      this.world.boat,
+      this.world.rival,
+    );
     this.questMarkers.update(this.stepMarkers(), time, (x, z) => waveHeight(x, z, time));
+    const course = this.world.destination;
+    this.courseSpar.update(
+      course?.kind && !course.portId ? { x: course.x, y: course.y, kind: course.kind } : null,
+      time,
+      (x, z) => waveHeight(x, z, time),
+      glow,
+    );
 
     this.buoy.root.visible = Boolean(this.world.map.practiceCourse && !this.world.destination);
     if (this.buoy.root.visible) {
@@ -642,6 +727,124 @@ export class GameView {
     }
 
     this.renderer.render(this.scene, this.camera);
+  }
+
+  /** Bumped whenever a town's look may change: its pictures are taken again (decision 0211). */
+  private townVersion = 0;
+  private readonly pictures = new Map<string, string>();
+  private picturesLook = '';
+  private pictureCamera?: THREE.PerspectiveCamera;
+
+  /**
+   * The harbour screen's picture of a port (decision 0211): the real scene from a fixed camera off
+   * its harbour, in the given light, with no fog, rain or storm, the sea's own tint kept. Taken once
+   * and cached per port, light and town look, as a JPEG object URL; null if the port has no pier.
+   */
+  harbourPicture(
+    portId: string,
+    light: HarbourLight = harbourLight(daylightAt(this.dayNight ? this.world.time : ALWAYS_DAY)),
+  ): string | null {
+    const look = `${this.townVersion}/${this.landVersion}/${this.level}`;
+    // A town or the land changed: every picture is old. The screen may still be loading one, so
+    // they are let go a little later.
+    if (this.picturesLook !== look) {
+      const old = [...this.pictures.values()];
+      setTimeout(() => old.forEach((url) => URL.revokeObjectURL(url)), 10_000);
+      this.pictures.clear();
+    }
+    this.picturesLook = look;
+    const key = harbourPictureKey(portId, light, look);
+    const cached = this.pictures.get(key);
+    if (cached) return cached;
+    const port = this.world.map.ports.find((p) => p.id === portId);
+    const island = port && this.world.land.islands.find((i) => i.id === port.islandId);
+    const pier = this.harbours[portId];
+    if (!port || !island || !pier) return null;
+    const shot = harbourShot(island, pier, designOf(island)?.harbourView);
+    const pic = HARBOUR_VIEW.picture;
+    const w = Math.round(pic.width * pic.supersample);
+    const h = Math.round(pic.height * pic.supersample);
+
+    const camera = (this.pictureCamera ??= new THREE.PerspectiveCamera(pic.fovDeg, 1, 1, 2000));
+    camera.fov = pic.fovDeg;
+    camera.aspect = w / h;
+    // The town sits right of the middle, clear of the name and the shade on the left.
+    camera.setViewOffset(w, h, -pic.shift * w, 0, w, h);
+    toScene(shot.from.x, shot.from.y, camera.position).setY(shot.fromHeight);
+    const aim = toScene(shot.look.x, shot.look.y, new THREE.Vector3()).setY(shot.lookHeight);
+    camera.lookAt(aim);
+
+    // The light of that time of day, without the weather; the sea keeps its colour, not its fog.
+    const time = harbourLightTime(light);
+    const day = daylightAt(time);
+    const zones = zoneField(mapZones(this.world.map), smoothOutline);
+    const tint = zones ? zoneVisualAt(zones, aim.x, -aim.z, [], { ...CLEAR }) : { ...CLEAR };
+    tint.haze = 0;
+    tint.kind = null;
+    const gloom = this.atmosphere.gloom;
+    this.atmosphere.gloom = 0;
+    this.atmosphere.update(0, day, this.world.weather, this.ocean, aim, tint);
+    this.atmosphere.gloom = gloom;
+    const fog = this.scene.fog as THREE.Fog;
+    const { near, far } = fog;
+    fog.near = 1e4;
+    fog.far = 2e4;
+    this.ocean.setFog(fog.near, fog.far);
+    this.ocean.update(this.world.time, aim);
+    const glow = day.night;
+    this.lanterns.update(glow, this.boatLantern, time);
+    this.lighthouseBeams.update(time, glow);
+    this.beaconLights.update(time, glow);
+    const windows = this.islands.userData.windows as THREE.MeshBasicMaterial | undefined;
+    windows?.color.copy(WINDOWS_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
+    const lava = this.islands.userData.lava as THREE.MeshBasicMaterial | undefined;
+    lava?.color.copy(LAVA_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
+    this.boat.setNightLighting?.(day.night);
+    // The lanterns' glow is sized for the sea camera: this close it would hide the town.
+    const hidden = [
+      this.lanterns.points,
+      this.rain.mesh,
+      this.streaks.mesh,
+      this.stormClouds.root,
+      this.questMarkers.root,
+      this.buoy.root,
+    ].filter((o) => o.visible);
+    for (const o of hidden) o.visible = false;
+
+    const target = new THREE.WebGLRenderTarget(w, h, { depthBuffer: true });
+    target.texture.colorSpace = THREE.SRGBColorSpace;
+    const pixels = new Uint8Array(w * h * 4);
+    this.renderer.setRenderTarget(target);
+    this.renderer.render(this.scene, camera);
+    this.renderer.readRenderTargetPixels(target, 0, 0, w, h, pixels);
+    this.renderer.setRenderTarget(null);
+    target.dispose();
+    for (const o of hidden) o.visible = true;
+    fog.near = near;
+    fog.far = far;
+    this.ocean.setFog(near, far);
+
+    // WebGL rows run bottom up; the supersampled picture is drawn down to its size, which smooths it.
+    const full = document.createElement('canvas');
+    full.width = w;
+    full.height = h;
+    const image = full.getContext('2d')!.createImageData(w, h);
+    for (let row = 0; row < h; row++)
+      image.data.set(pixels.subarray((h - 1 - row) * w * 4, (h - row) * w * 4), row * w * 4);
+    full.getContext('2d')!.putImageData(image, 0, 0);
+    const out = document.createElement('canvas');
+    out.width = pic.width;
+    out.height = pic.height;
+    const ctx = out.getContext('2d')!;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(full, 0, 0, pic.width, pic.height);
+    // An object URL keeps the screen's markup short; the cache lets it go when the towns change.
+    const data = atob(out.toDataURL('image/jpeg', pic.quality).split(',')[1]!);
+    const bytes = new Uint8Array(data.length);
+    for (let i = 0; i < data.length; i++) bytes[i] = data.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([bytes], { type: 'image/jpeg' }));
+    this.pictures.set(key, url);
+    return url;
   }
 
   /** Where a sim position lands on screen (for HUD markers). */
@@ -670,12 +873,15 @@ export class GameView {
     this.volcanoes.dispose();
     this.lanterns.dispose();
     this.wake.dispose();
+    this.debris.dispose();
     this.currentWater?.dispose();
     this.bergs.dispose();
+    this.traffic.dispose();
     this.calmWater?.dispose();
     this.roughWater?.dispose();
     this.shallowsWater?.dispose();
     this.buoy.dispose();
+    this.courseSpar.dispose();
     this.edgeBuoys.dispose();
     this.seaMarks.dispose();
     this.questMarkers.dispose();

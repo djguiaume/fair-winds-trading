@@ -32,6 +32,7 @@
     "radius": 4.5,
     "draft": 0.7,
     "hold": 10,
+    "deck": 8,
     "heel": 1
   },
   "hull": {
@@ -84,6 +85,46 @@
     "boom": 2.7,
     "gaff": 2,
     "stockJibs": 1,
-    "cargoExtra": 0
+    "cargoExtra": 0,
+    "damage": {
+      "scuffs": [
+        {
+          "z": 0.3,
+          "side": 1
+        },
+        {
+          "z": -0.1,
+          "side": -1
+        },
+        {
+          "z": -0.32,
+          "side": 1
+        }
+      ],
+      "rail": {
+        "z": 0.12,
+        "side": 1
+      },
+      "tears": [
+        {
+          "u": 0.45,
+          "v": 0.4
+        },
+        {
+          "u": 0.6,
+          "v": 0.4
+        },
+        {
+          "u": 0.45,
+          "v": 0.55
+        },
+        {
+          "u": 0.6,
+          "v": 0.55
+        }
+      ],
+      "listDeg": 6,
+      "listSide": 1
+    }
   }
 }

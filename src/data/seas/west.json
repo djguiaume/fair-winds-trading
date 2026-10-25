@@ -249,7 +249,8 @@
       "wants": ["obsidian", "timber"],
       "level": 3,
       "wantsMade": ["bread", "planks", "cutStone"],
-      "levelProduces": { "3": ["obsidianMirrors"] }
+      "levelProduces": { "3": ["obsidianMirrors"] },
+      "keeper": "bram"
     },
     {
       "id": "cinder-isle",
@@ -260,7 +261,8 @@
       "level": 1,
       "site": true,
       "wantsMade": ["bread", "planks"],
-      "maxLevel": 3
+      "maxLevel": 3,
+      "keeper": "oskar"
     }
   ],
   "course": [
@@ -410,6 +412,44 @@
         [-458.7, 321.2],
         [-429, 360],
         [-396, 396]
+      ]
+    }
+  ],
+  "traffic": [
+    {
+      "id": "emberhold-fishing",
+      "kind": "fishing",
+      "home": "emberhold",
+      "names": ["Black Bream"],
+      "grounds": [-402, 160, 35],
+      "path": [[-424, 168]]
+    },
+    {
+      "id": "cinder-obsidian",
+      "kind": "coaster",
+      "home": "emberhold",
+      "names": ["Glassblower"],
+      "to": "cinder-isle",
+      "tags": ["after:outpost-west"],
+      "path": [
+        [-448, 312],
+        [-472, 352]
+      ]
+    },
+    {
+      "id": "emberhold-visitor",
+      "kind": "visitor",
+      "home": "emberhold",
+      "names": ["Ember Rose"],
+      "to": "westholm",
+      "ship": "indiaman",
+      "livery": "west",
+      "tags": ["after:outpost-west"],
+      "path": [
+        [-400, 110],
+        [-398, -24],
+        [-300, -46],
+        [-238, -8]
       ]
     }
   ]
