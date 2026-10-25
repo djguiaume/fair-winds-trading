@@ -237,4 +237,20 @@ describe('sea steps, as npm run sea applies them (0161)', () => {
     ]);
     expect(reef.look).toBeUndefined();
   });
+
+  it('adds an island with its own file drawing from the file alone, under its own id (0180)', async () => {
+    const { applySeaSteps } = await import('../src/editor/seaSteps');
+    const doc = fresh();
+    const made = applySeaSteps(doc, [
+      {
+        do: 'add',
+        what: 'island',
+        sea: 'north',
+        at: [470, 760],
+        fields: { id: 'selkie-test', name: 'Selkie Test', look: { design: 'seal-rocks' } },
+      },
+    ]);
+    expect(made[0]).toContain('island selkie-test');
+    expect(doc.islands.find((i) => i.id === 'selkie-test')!.look).toEqual({ design: 'seal-rocks' });
+  });
 });

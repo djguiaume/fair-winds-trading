@@ -1,0 +1,11 @@
+# The north's corner pieces (decision 0180): Selkie Rock and Old Blue near 35-40°, The Strays near 322°.
+cd /home/user/fair-winds-trading
+npm run -s island -- new selkie-rock --name "Selkie Rock" --style ice --seed 7741 --force --blob r=1,points=9,rough=0.3,stretch=1.35,turn=0.6 --radius 12 >/dev/null 2>&1
+npm run -s island -- selkie-rock --steps '[{"do":"ground","index":0,"material":"rock","beach":0.04},{"do":"plateau","at":[-0.05,-0.1],"size":[0.62,0.48],"height":0.24,"material":"rock"},{"do":"plateau","at":[-0.05,-0.12],"size":[0.5,0.36],"height":0.34,"slope":0.08},{"do":"prop","type":"seal","at":[[0.35,0.5],[-0.5,0.5],[0.62,0.3]],"size":1.3,"turn":30,"level":1},{"do":"prop","type":"seal","at":[[0.05,0.62]],"size":1.1,"turn":-60,"variant":1,"level":1},{"do":"prop","type":"iceberg","at":[1.9,-0.9],"size":0.6,"level":1}]' --radius 12 --no-harbour --warnings 2>&1 | tail -4 | cut -c1-200
+npm run -s island -- new old-blue --name "Old Blue" --style ice --seed 7853 --force --blob r=1,points=8,rough=0.35,stretch=1.2,turn=1.1 --radius 16 >/dev/null 2>&1
+npm run -s island -- old-blue --steps '[{"do":"ground","index":0,"material":"ice","beach":0},{"do":"mountain","at":[-0.08,0.05],"size":[0.72,0.6],"height":1.5,"material":"ice"},{"do":"mountain","at":[0.38,-0.3],"size":[0.38,0.32],"height":0.85,"material":"ice"},{"do":"prop","type":"iceberg","at":[-1.5,1.2],"size":0.55,"variant":1,"level":1}]' --radius 16 --no-harbour --warnings 2>&1 | tail -4 | cut -c1-200
+npm run -s sea -- add island --sea north --at 470,760 --radius 12 --design selkie-rock --name "Selkie Rock" --id selkie-rock 2>&1 | tail -2
+npm run -s sea -- add island --sea north --at 482,642 --radius 16 --design old-blue --name "Old Blue" --id old-blue 2>&1 | tail -2
+npm run -s sea -- add ice --sea north --at -470,620 --name "The Strays" --id the-strays --outline "-452,612 -446,622 -455,634 -472,639 -489,633 -492,620 -480,608 -463,606" 2>&1 | tail -2
+npm run -s sea -- add ice --sea north --at -432,598 --id the-strays-2 --outline "-425,594 -424,602 -432,607 -441,603 -440,594 -433,590" 2>&1 | tail -2
+npm run -s sea -- add ice --sea north --at -503,598 --id the-strays-3 --outline "-496,596 -499,606 -509,607 -513,598 -506,590" 2>&1 | tail -2

@@ -47,7 +47,7 @@ describe('fog of war (0156)', () => {
     expect(islandCharted(map, fresh, island('palm-key'))).toBe(false);
   });
 
-  it('names the south sea’s four areas, the east sea’s (0173), then the north’s (0170)', () => {
+  it('names the south sea’s four areas, the east sea’s (0173), then the north’s (0170, corners 0180)', () => {
     expect(chartAreaIds(map)).toEqual([
       'coral-line',
       'sugar-bar',
@@ -86,6 +86,8 @@ describe('fog of war (0156)', () => {
       'lead-rock',
       'cairn-holm',
       'seal-rocks',
+      'selkie-rock',
+      'old-blue',
     ]);
   });
 

@@ -1,0 +1,6 @@
+[
+ {"name":"corner-the-strays","sea":"phase4","at":[-440,560],"heading":330,"sail":0,"look":[-470,615],"zoom":1.0},
+ {"name":"corner-selkie-rock","sea":"phase4","at":[450,720],"heading":20,"sail":0,"look":[470,760],"zoom":0.8},
+ {"name":"corner-old-blue","sea":"phase4","at":[450,600],"heading":40,"sail":0,"look":[482,642],"zoom":0.9},
+ {"name":"corner-ne-wide","sea":"phase4","at":[420,600],"heading":30,"sail":0,"look":[470,700],"zoom":2.2}
+]
