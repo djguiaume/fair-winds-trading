@@ -96,7 +96,8 @@ describe('plays the same after moving levels, tutorial and music to data (decisi
     const lines: string[] = [];
     for (let run = 0; run < 300; run++) lines.push(...tutorialSession(run));
     expect(lines.length).toBeGreaterThan(60000);
-    expect(hash(lines.join('\n'))).toBe('b4584ee2');
+    expect(hash(lines.join('\n'))).toBe('54f744c6');
+    // 2026-10-25: neutral default texts for the lessons that name controls (decision 0184).
     // 300 sessions take about 3.5 s here and over 5 s on a busy CI runner.
   }, 20000);
 });
