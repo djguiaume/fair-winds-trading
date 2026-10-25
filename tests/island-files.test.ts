@@ -155,6 +155,7 @@ const GOLDEN: Record<string, string[]> = {
   'puffin-holm': Array(4).fill('8:3ff49b4c'),
   'lamb-holm': Array(4).fill('17:85293a40'),
   'broch-isle': Array(4).fill('14:18071749'),
+  // The open-water fills (decision 0181).
   'steam-holm': ['32:f04003ae', '32:f04003ae', '32:f04003ae', '32:f04003ae'],
   'spark-rock': ['18:ac74c365', '18:ac74c365', '18:ac74c365', '18:ac74c365'],
   'the-chimneys': ['10:3c655490', '10:3c655490', '10:3c655490', '10:3c655490'],
@@ -162,4 +163,11 @@ const GOLDEN: Record<string, string[]> = {
   'the-tongs': ['4:46f87531', '4:46f87531', '4:46f87531', '4:46f87531'],
   'the-tongs-2': ['4:fa8ab601', '4:fa8ab601', '4:fa8ab601', '4:fa8ab601'],
   'two-palms': ['23:68f7d454', '23:68f7d454', '23:68f7d454', '23:68f7d454'],
+  // The north sea's islands (decision 0170).
+  'cairn-holm': Array(4).fill('6:cd116a0a'),
+  'lead-rock': Array(4).fill('19:6c8d9003'),
+  rimewick: ['813:13706de2', '981:96ee850a', '1034:20dd1c89', '1042:f649515c'],
+  'seal-rocks': Array(4).fill('19:515ad7d'),
+  'snowberry-isle': ['238:30aaab39', '408:a4f7aef7', '437:cc204c39', '437:cc204c39'],
+  whitefell: Array(4).fill('17:90d719e7'),
 };

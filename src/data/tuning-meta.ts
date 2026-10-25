@@ -578,6 +578,10 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     '×',
     'Every current runs at this many times its charted speed (0140).',
   ),
+  'difficulty.levels.*.chartBergs': toggle(
+    'Bergs on the chart',
+    'Whether the chart shows where each drifting berg is now (0170: Fair winds only).',
+  ),
   'difficulty.levels.*.steadyWind': toggle(
     'Steady wind',
     'Whether a new voyage starts with the steady trade wind (Settings › Wind can change it).',
@@ -1508,6 +1512,97 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
   'weather.zones.kinds.*.haze.switch': text(
     'Haze: Settings switch',
     'The Settings switch that turns this haze off (fog, ash); kinds may share one (0169).',
+  ),
+  'weather.zones.kinds.*.tint.water': text(
+    'Sea tint: water',
+    'The water’s colour deep inside, #rrggbb (0170).',
+  ),
+  'weather.zones.kinds.*.tint.waterLight': text(
+    'Sea tint: water light',
+    'The lit water’s colour deep inside, #rrggbb (0170).',
+  ),
+  'weather.zones.kinds.*.tint.shallow': text(
+    'Sea tint: shallows',
+    'The shallows’ colour deep inside, #rrggbb (0170).',
+  ),
+  'weather.zones.kinds.*.tint.sky': text(
+    'Sea tint: sky',
+    'The sky and distance colour, #rrggbb (0170).',
+  ),
+  'weather.zones.kinds.*.tint.fade': num(
+    'Sea tint: blends over',
+    0,
+    400,
+    5,
+    'units',
+    'The tint blends in over this width across the zone edge (0170).',
+  ),
+  // --- weather.json bergs: drifting icebergs (decision 0170) ---
+  'weather.bergs.driftKn': num(
+    'Berg drift',
+    0,
+    2,
+    0.05,
+    'kn',
+    'How fast the bergs drift round their field’s loop.',
+  ),
+  'weather.bergs.size': num(
+    'Berg size',
+    1,
+    30,
+    0.5,
+    'units',
+    'Berg radius range, when a field gives none.',
+  ),
+  'weather.bergs.sway': num(
+    'Berg sway',
+    0,
+    30,
+    0.5,
+    'units',
+    'How far a berg sways to either side of its loop.',
+  ),
+  'weather.bergs.swaySec': num('Berg sway time', 20, 600, 5, 's', 'One sway out and back.'),
+  'weather.bergs.margin': num(
+    'Berg margin',
+    0,
+    20,
+    0.5,
+    'units',
+    'Room a berg keeps from its field’s edge, and between bergs.',
+  ),
+  // --- weather.json ice: how a field of ice is drawn (decision 0170) ---
+  'weather.ice.floeSize': num(
+    'Floe size',
+    0.5,
+    20,
+    0.5,
+    'units',
+    'Floe radius range on an ice field.',
+  ),
+  'weather.ice.jitter': num(
+    'Floe jitter',
+    0,
+    0.6,
+    0.05,
+    '',
+    'How far each corner of a floe strays from a regular shape, as a share of its radius.',
+  ),
+  'weather.ice.bits': num(
+    'Broken ice',
+    0,
+    2,
+    0.1,
+    '',
+    'Small broken pieces between the floes, per floe.',
+  ),
+  'weather.ice.bitSize': num(
+    'Broken ice size',
+    0.2,
+    4,
+    0.1,
+    'units',
+    'Radius range of the broken pieces.',
   ),
   'weather.zones.kinds.*.chart': text(
     'Chart tint',

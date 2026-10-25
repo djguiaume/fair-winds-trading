@@ -1,0 +1,13 @@
+{
+  "id": "snow-fir",
+  "name": "Snowy fir",
+  "group": "nature",
+  "parts": [
+    {
+      "use": "woodland-snowfir",
+      "vars": {
+        "s": 1.1
+      }
+    }
+  ]
+}

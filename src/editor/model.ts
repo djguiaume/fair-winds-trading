@@ -147,7 +147,7 @@ export function addShape(map: MapDef, kind: ShapeKind, x: number, y: number): st
     map.terrain.map((t) => t.id),
     kind,
   );
-  const r = kind === 'island' ? 40 : 22;
+  const r = kind === 'island' ? 40 : kind === 'bergs' ? 60 : 22;
   const outline: [number, number][] = [];
   for (let k = 0; k < 6; k++) {
     const a = (k / 6) * Math.PI * 2;
@@ -156,7 +156,9 @@ export function addShape(map: MapDef, kind: ShapeKind, x: number, y: number): st
   map.terrain.push(
     kind === 'island'
       ? { id, name: 'New ridge', kind, outline, look: { trees: 12, landmark: 'ruins' } }
-      : { id, kind, outline },
+      : kind === 'bergs'
+        ? { id, kind, outline, count: 4 }
+        : { id, kind, outline },
   );
   return id;
 }

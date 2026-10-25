@@ -55,16 +55,28 @@ export interface IslandDef {
  * Reefs are rocks and coral just awash: solid to the hull like a shore, drawn without land
  * (decision 0031). Shallows are a sandy passage under water: ships of draft `maxDraft` or less
  * sail across, slowed a little, and deeper ships are refused, softly, as by a sandbank
- * (decisions 0137, 0152).
+ * (decisions 0137, 0152). Ice is a field of floes, pack ice or grounded bergs (the north sea,
+ * decision 0170): solid to every ship, a knock like running aground. A `bergs` shape is open
+ * water where `count` icebergs drift (0170, `src/sim/bergs.ts`): the shape is not solid, its
+ * bergs are, and Settings › Drifting icebergs off removes them.
  */
 export interface TerrainDef {
   id: string;
   /** Shown on the sea chart. */
   name?: string;
-  kind: 'island' | 'sandbank' | 'reef' | 'shallows';
+  kind: 'island' | 'sandbank' | 'reef' | 'shallows' | 'ice' | 'bergs';
   outline: [number, number][];
   /** Shallows only: the deepest draft that crosses (a ship file's `draft`). */
   maxDraft?: number;
+  /** Bergs only: how many drift in it, and their radius range in map units. */
+  count?: number;
+  size?: [number, number];
+  /** Bergs only: which way they drift round the field, `ccw` (the default) or `cw` (0170). */
+  spin?: 'cw' | 'ccw';
+  /** Bergs only: how many loops, each inside the last and turning the other way (0170). */
+  loops?: number;
+  /** Bergs only: how far they sway either side of their loop, units (else `weather.json`). */
+  sway?: number;
   look?: {
     trees?: number;
     landmark?: LandmarkKind;

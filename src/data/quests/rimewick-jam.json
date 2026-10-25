@@ -1,0 +1,64 @@
+{
+  "id": "rimewick-jam",
+  "name": "The cold jam house",
+  "start": {
+    "is": "quest-done",
+    "quest": "saltmere-letter"
+  },
+  "text": "quest.rimewick-jam",
+  "giver": "sigrun",
+  "port": "rimewick",
+  "offer": true,
+  "steps": [
+    {
+      "id": "oil",
+      "mood": "worried",
+      "goal": {
+        "is": "delivered",
+        "port": "rimewick",
+        "good": "lampOil",
+        "qty": 8
+      },
+      "reward": {
+        "gold": 350
+      }
+    },
+    {
+      "id": "lead",
+      "goal": {
+        "is": "reach",
+        "points": [
+          {
+            "x": -282,
+            "y": 721
+          }
+        ],
+        "within": 12,
+        "maxKn": 3,
+        "holdSec": 3
+      },
+      "clean": true,
+      "reward": {
+        "gold": 300
+      }
+    },
+    {
+      "id": "beacon",
+      "goal": {
+        "is": "landed",
+        "place": {
+          "x": -282,
+          "y": 721,
+          "within": 10,
+          "maxKn": 2,
+          "holdSec": 3
+        },
+        "good": "cutStone",
+        "qty": 6
+      },
+      "reward": {
+        "gold": 500
+      }
+    }
+  ]
+}

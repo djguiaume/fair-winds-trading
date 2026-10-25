@@ -17,7 +17,8 @@
       "stormEverySec": 900,
       "stormBelt": 0.7,
       "currents": 0.6,
-      "steadyWind": true
+      "steadyWind": true,
+      "chartBergs": true
     },
     "captain": {
       "name": "Captain",
@@ -35,7 +36,8 @@
       "stormEverySec": 600,
       "stormBelt": 1,
       "currents": 1,
-      "steadyWind": false
+      "steadyWind": false,
+      "chartBergs": false
     },
     "salt": {
       "name": "Old salt",
@@ -53,7 +55,8 @@
       "stormEverySec": 420,
       "stormBelt": 1.3,
       "currents": 1.2,
-      "steadyWind": false
+      "steadyWind": false,
+      "chartBergs": false
     }
   },
   "steadyWind": {

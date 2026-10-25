@@ -1,0 +1,8 @@
+{
+  "id": "weather-station-shut",
+  "name": "Weather station (shut)",
+  "extends": "weather-station",
+  "vars": {
+    "shut": 1
+  }
+}

@@ -30,7 +30,7 @@ import { RING, type SeaDoc, addSea, claimNew, moveToSea, ownerOf, seaIds, select
  * the editor would have made. Positions are map units (x east, y north).
  */
 
-/** What a step adds or points at. `shape` is any reef, sandbank, shallows or barrier island. */
+/** What a step adds or points at. `shape` is any reef, sandbank, shallows, ice or barrier island. */
 export type SeaThing =
   'island' | 'shape' | 'port' | 'waypoint' | 'mark' | 'current' | 'zone' | 'area';
 export type SeaAdd =
@@ -38,6 +38,8 @@ export type SeaAdd =
   | 'reef'
   | 'sandbank'
   | 'shallows'
+  | 'ice'
+  | 'bergs'
   | 'ridge'
   | 'mark'
   | 'current'
@@ -84,7 +86,10 @@ export type SeaStep =
     }
   | { do: 'remove'; what: SeaThing; id: string | number };
 
-/** The selection a step points at: an id, or an index for waypoints and marks. */
+/**
+ * The selection a step points at: an id, or for waypoints and marks an index into the whole grown
+ * sea (the ring's first) or their label or name, which is safer (decision 0170).
+ */
 export function seaRef(doc: SeaDoc, what: SeaThing, id: string | number): Selection {
   const index = Number(id);
   const sel: Selection =
@@ -99,7 +104,12 @@ export function seaRef(doc: SeaDoc, what: SeaThing, id: string | number): Select
             : what === 'area'
               ? { kind: 'area', id: String(id) }
               : what === 'mark'
-                ? { kind: 'mark', index }
+                ? {
+                    kind: 'mark',
+                    index: Number.isInteger(index)
+                      ? index
+                      : (doc.marks ?? []).findIndex((m) => m.name === id),
+                  }
                 : what === 'waypoint'
                   ? {
                       kind: 'waypoint',
@@ -163,6 +173,8 @@ export function applySeaSteps(doc: SeaDoc, steps: readonly SeaStep[]): string[] 
         reef: 'reef',
         sandbank: 'sandbank',
         shallows: 'shallows',
+        ice: 'ice',
+        bergs: 'bergs',
         ridge: 'island',
       } as const;
       if (step.what === 'island') {

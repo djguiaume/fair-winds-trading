@@ -1,11 +1,12 @@
 import { type Sectors, sectorSpan } from '../sim/seaSectors';
 import { TUNING } from '../data/tuning';
+import { bergChart, bergFields } from '../sim/bergs';
 import { piersOf } from '../sim/collision';
 import { GOOD_ICONS, isGood } from '../sim/goods';
 import { islandCoasts, islandLake } from '../sim/islandLayout';
 import type { MapDef } from '../sim/map';
 import { DEG } from '../sim/math';
-import { seaMarkShape } from '../ui/chartMarks';
+import { landStyles, seaMarkShape } from '../ui/chartMarks';
 import { drawFlow, drawFlowSelection, flowLabels } from './flowChart';
 import type { Selection } from './model';
 import { findIsland, findShape, waypointOf } from './model';
@@ -109,26 +110,64 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
     } else
       el('polygon', {
         points: pts(t.outline),
-        class: t.kind === 'reef' ? 'c-reef' : t.kind === 'shallows' ? 'c-shallows' : 'c-bank',
+        class:
+          t.kind === 'reef'
+            ? 'c-reef'
+            : t.kind === 'shallows'
+              ? 'c-shallows'
+              : t.kind === 'ice'
+                ? 'c-ice'
+                : t.kind === 'bergs'
+                  ? 'c-bergs'
+                  : 'c-bank',
         'data-hit': hit,
       });
     const before = shipped.terrain?.find((s) => s.id === t.id);
     if (before && JSON.stringify(before.outline) !== JSON.stringify(t.outline))
       el('polygon', { points: pts(before.outline), class: 'c-ghost' });
   }
+  // Drifting icebergs (decision 0170), with the flow layer: the loops the bergs drift round, the
+  // band they sway across, which way (arrows), and each berg where it is now.
+  if (layers.flow)
+    bergFields(map).forEach((def, index) => {
+      const chart = bergChart(def, index);
+      for (const loop of chart.loops) {
+        el('polygon', {
+          points: pts(loop.points),
+          class: 'c-berg-band',
+          style: `stroke-width:${2 * chart.sway}`,
+        });
+        el('polygon', { points: pts(loop.points), class: 'c-berg-track' });
+        for (const a of loop.arrows) {
+          const s = 7 * px;
+          const tip = [a.x + a.dx * s, a.y + a.dy * s];
+          const back = (side: number) => [
+            a.x - a.dx * s + a.dy * s * 0.8 * side,
+            a.y - a.dy * s - a.dx * s * 0.8 * side,
+          ];
+          el('polygon', {
+            points: pts([back(1), tip, back(-1)] as [number, number][]),
+            class: 'c-berg-arrow',
+          });
+        }
+      }
+      for (const b of chart.bergs) el('circle', { cx: b.x, cy: -b.y, r: b.r, class: 'c-berg' });
+    });
 
   const portIslands = new Set(map.ports.map((p) => p.islandId));
   for (const island of prepared.islands) {
     const hit = `island:${island.id}`;
     const coasts = islandCoasts(island);
+    const [shore, land] = landStyles(island.look?.design);
     if (coasts)
       for (const c of coasts) {
-        el('polygon', { points: pts(c), class: 'c-shore' });
-        el('polygon', { points: pts(c), class: 'c-land' });
+        el('polygon', { points: pts(c), class: 'c-shore', ...shore });
+        el('polygon', { points: pts(c), class: 'c-land', ...land });
       }
     else {
-      el('circle', { cx: island.x, cy: -island.y, r: island.radius, class: 'c-shore' });
-      el('circle', { cx: island.x, cy: -island.y, r: island.radius, class: 'c-land' });
+      const disc = { cx: island.x, cy: -island.y, r: island.radius };
+      el('circle', { ...disc, class: 'c-shore', ...shore });
+      el('circle', { ...disc, class: 'c-land', ...land });
     }
     const lake = islandLake(island);
     if (lake) el('polygon', { points: pts(lake), fill: '#2b9eac', 'pointer-events': 'none' });
@@ -308,13 +347,11 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
       if (!t.name) continue;
       const xs = t.outline.map((p) => p[0]),
         ys = t.outline.map((p) => p[1]);
-      label(
-        t.name,
-        (Math.min(...xs) + Math.max(...xs)) / 2,
-        -(Math.min(...ys) + Math.max(...ys)) / 2,
-        12,
-        'small',
-      );
+      const x = (Math.min(...xs) + Math.max(...xs)) / 2;
+      const y = (Math.min(...ys) + Math.max(...ys)) / 2;
+      // A ring of ice round an island would put its name on the island: under the ring instead.
+      const onIsland = map.islands.some((i) => Math.hypot(i.x - x, i.y - y) < i.radius * 2);
+      label(t.name, x, onIsland ? -Math.min(...ys) + 12 * px : -y, 12, 'small');
     }
     if (layers.marks)
       for (const mark of map.marks ?? [])

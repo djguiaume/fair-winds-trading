@@ -1,0 +1,62 @@
+{
+  "id": "lead-rock",
+  "name": "Lead Rock",
+  "style": "ice",
+  "seed": 6411,
+  "coasts": [
+    [
+      [0.886409, 0],
+      [0.730594, 0.613041],
+      [0.154627, 0.876934],
+      [-0.458712, 0.794512],
+      [-0.951157, 0.346193],
+      [-0.996056, -0.362535],
+      [-0.561493, -0.972535],
+      [0.172124, -0.976165],
+      [0.74007, -0.620992]
+    ]
+  ],
+  "ground": [
+    { "coast": 0, "height": 0.06, "material": "grass" },
+    {
+      "outline": [
+        [0.72, 0],
+        [0.36, 0.571577],
+        [-0.36, 0.571577],
+        [-0.72, 0],
+        [-0.36, -0.571577],
+        [0.36, -0.571577]
+      ],
+      "height": 0.25,
+      "material": "rock"
+    }
+  ],
+  "lanes": [],
+  "piers": [],
+  "props": [
+    {
+      "type": "lead-cairn-tumbled",
+      "x": 0,
+      "z": 0,
+      "size": 0.75,
+      "tags": ["before:rimewick-jam"],
+      "from": 1
+    },
+    {
+      "type": "lead-cairn",
+      "x": 0,
+      "z": 0,
+      "size": 0.75,
+      "tags": ["after:rimewick-jam"],
+      "from": 1
+    }
+  ],
+  "woods": {
+    "tree": "woodland-snowfir",
+    "tries": 0,
+    "area": [-1.1, -1.08, 0.99, 0.98],
+    "size": 1.6,
+    "margin": 0.1,
+    "spacing": 0.1
+  }
+}

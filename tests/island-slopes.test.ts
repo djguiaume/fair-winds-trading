@@ -61,10 +61,10 @@ describe('sloped ground (decision 0096 §4)', () => {
     // The ramp adds some triangles (a band and a fan per edge), and lanes may gain pieces.
     expect(extra).toBeGreaterThan(10);
     expect(extra).toBeLessThan(200);
-    // Only the east sea's dunes and grazing holm slope (decision 0173), the fire sea's islands (0171)
-    // and the open-water islets (0181); the rest keep cliffs.
+    // Only the east sea's dunes and grazing holm slope (decision 0173), the fire sea's islands
+    // (0171), the north's ice islands (0170) and the open-water islets (0181); the rest keep cliffs.
     const sloping = Object.values(ISLAND_DESIGNS)
-      .filter((d) => d.ground.some((g) => g.slope))
+      .filter((d) => d.style !== 'ice' && d.ground.some((g) => g.slope))
       .map((d) => d.id)
       .sort();
     expect(sloping).toEqual([

@@ -99,7 +99,7 @@ export function shallowDrag(shallow: number, ship: ShipClass, dt: number): numbe
  */
 export function impactDamage(surface: Surface, speedLost: number): number {
   if (surface === 'reef') return speedLost * hazards().strikeDamage;
-  if (surface === 'shore' || surface === 'pier' || surface === 'boat')
+  if (surface === 'shore' || surface === 'ice' || surface === 'pier' || surface === 'boat')
     return Math.max(0, speedLost - hazards().crashSafeKn) * hazards().crashDamage;
   return 0;
 }
