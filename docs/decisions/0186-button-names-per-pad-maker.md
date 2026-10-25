@@ -35,6 +35,6 @@ platform. Everything stays data driven.
   quest text; a new brand or a renamed button is a data edit.
 - Glyph colours stay the Xbox ones (green A, red B…) for every brand for now; `html[data-pad-brand]`
   is set so a brand's look can be styled later.
-- Not in an editor yet: `controls.json` (button mapping, brands, TV mode) gets a controls editor
-  in a follow-up, with `npm run check` covering it.
+- `controls.json` (button mapping, brands, TV mode) is edited on the editors' Controls page,
+  and `npm run check -- --only controls` checks it (decision 0189).
 - Tests: `tests/wayOfPlaying.test.ts` (brand detection, data check, `{pad:x}` in a text).
