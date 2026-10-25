@@ -62,11 +62,15 @@ export type CallPlace = {
   reefs?: boolean;
 };
 
+/** How the sails sound luffing in irons (`ambience.ts`). */
+export const LUFF_STYLES = ['gusty', 'slat', 'whump'] as const;
+export type LuffStyle = (typeof LUFF_STYLES)[number];
+
 /** The boat's own sounds, wherever she sails: her wash, sails luffing in irons, rain on deck. */
 export interface BoatSounds {
   wash: { level: number; tone: number; fullKn: number };
   /** `rate` is how many times a second the canvas flutters. */
-  luff: { level: number; tone: number; rate: number };
+  luff: { level: number; tone: number; rate: number; style?: LuffStyle };
   rain: { level: number; tone: number };
 }
 
@@ -159,6 +163,8 @@ export function audioProblems(
   if (boat && !(boat.wash.fullKn > 0)) problems.push('boat wash: fullKn above 0');
   if (boat && !(boat.luff.rate > 0 && boat.luff.rate <= 30))
     problems.push('boat luff: rate 1 to 30');
+  if (boat?.luff.style && !LUFF_STYLES.includes(boat.luff.style))
+    problems.push(`boat luff: no style "${boat.luff.style}" (${LUFF_STYLES.join(', ')})`);
   for (const sea of seas) if (!data.seas?.[sea]) problems.push(`seas: no bed for sea "${sea}"`);
   for (const [id, bed] of Object.entries(data.seas ?? {})) {
     const where = `sea ${id}`;

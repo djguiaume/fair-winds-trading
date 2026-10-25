@@ -112,3 +112,9 @@ game: about nine nodes a second created (the music's notes as before, plus calls
   is one deep boom, the thunder a far roll and the calving a far splitting groan, with ragged
   loudness and a soft saturator so phones hear the low end. Measured: creak -27, boom -22, quack
   and baa -32, ice groan -36 and ping -32, calving -33, thunder -30 LUFS.
+- Luffing in irons (Guillaume, 2026-10-25: the first, a band of noise chopped nine times a second,
+  was "a bit weird"; the real sound is heavy canvas, not light rustling fabric, heard with nothing
+  else over it). Two rounds of five tries; he kept three, now `boat.luff.style`: `gusty` (heavy
+  slatting in runs that ease off, the game's), `slat` (steady uneven slatting) and `whump` (low
+  thumps of cloth filling). Each style is trimmed to the same loudness at the same `level`. `npm run
+  sound -- sea ring --luff --only luff` plays the luffing alone, the way he listened to it.

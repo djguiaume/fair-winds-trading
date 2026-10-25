@@ -1,3 +1,4 @@
+import type { BoatSounds, LuffStyle } from './catalog';
 import type { LayerMix } from './seaBed';
 import { noiseBuffer } from './sfx';
 
@@ -7,6 +8,9 @@ import { noiseBuffer } from './sfx';
  * nodes in all, built once, whatever the sea: a new sea only moves their levels and filters,
  * gliding over a few seconds, so crossing into another sea blends rather than cuts.
  */
+/** Per luffing style, the trim that makes them equally loud at the same level. */
+const LUFF_TRIM: Record<LuffStyle, number> = { slat: 2.3, whump: 5, gusty: 4.1 };
+
 export class Ambience {
   private readonly waves: GainNode;
   private readonly wavesFilter: BiquadFilterNode;
@@ -16,14 +20,12 @@ export class Ambience {
   private readonly windFilter: BiquadFilterNode;
   private readonly wash: GainNode;
   private readonly luff: GainNode;
-  private readonly luffRate: OscillatorNode;
   private readonly rain: GainNode;
 
   constructor(
     private readonly ctx: BaseAudioContext,
     destination: AudioNode,
-    luffTone: number,
-    luffRate: number,
+    luff: BoatSounds['luff'],
     rainTone: number,
     washTone: number,
   ) {
@@ -66,20 +68,9 @@ export class Ambience {
     this.wash = this.level(destination);
     sea.connect(this.filter('bandpass', washTone, 2.5)).connect(this.wash);
 
-    // Luffing: the canvas flogging, a band of noise chopped by a fast square wave.
-    const chop = ctx.createGain();
-    chop.gain.value = 0.5;
-    this.luffRate = ctx.createOscillator();
-    this.luffRate.type = 'square';
-    this.luffRate.frequency.value = luffRate;
-    const chopDepth = ctx.createGain();
-    chopDepth.gain.value = 0.5;
-    this.luffRate.connect(chopDepth).connect(chop.gain);
+    // Luffing: the canvas shaking in irons, in the data's `style`.
     this.luff = this.level(destination);
-    air
-      .connect(this.filter('bandpass', luffTone, 1.6))
-      .connect(chop)
-      .connect(this.luff);
+    const luffOscs = this.luffing(air, luff, this.luff);
 
     // Rain on deck: a soft patter, a band of noise ticking unevenly (two fast wobbles out of step).
     const patter = ctx.createGain();
@@ -98,7 +89,101 @@ export class Ambience {
       .connect(patter)
       .connect(this.rain);
 
-    for (const osc of [this.swell, gustOsc, this.luffRate, ...drops]) osc.start();
+    for (const osc of [this.swell, gustOsc, ...luffOscs, ...drops]) osc.start();
+  }
+
+  /**
+   * The sails luffing (Guillaume, 2026-10-25: the first was "a bit weird", five more to choose
+   * from), fed by the air's noise into `out`; the oscillators to start.
+   */
+  private luffing(air: AudioNode, luff: BoatSounds['luff'], level: AudioNode): OscillatorNode[] {
+    const { ctx } = this;
+    const { tone, rate } = luff;
+    const osc = (hz: number, type: OscillatorType = 'sine') => {
+      const o = ctx.createOscillator();
+      o.type = type;
+      o.frequency.value = hz;
+      return o;
+    };
+    /** A gain whose level is `base` moved by each oscillator times its depth. */
+    const moved = (base: number, mods: [OscillatorNode, number][]) => {
+      const g = ctx.createGain();
+      g.gain.value = base;
+      for (const [o, depth] of mods) {
+        const d = ctx.createGain();
+        d.gain.value = depth;
+        o.connect(d).connect(g.gain);
+      }
+      return g;
+    };
+    const style = luff.style ?? 'gusty';
+    // Each style trimmed to sound as loud as the others at the same `level` (measured, EBU R128).
+    const out = ctx.createGain();
+    out.gain.value = LUFF_TRIM[style];
+    out.connect(level);
+    switch (style) {
+      case 'slat': {
+        // Heavy canvas slatting unevenly: three slow wobbles out of step, duller noise.
+        const os = [0.35, 0.53, 0.81].map((k) => osc(rate * k));
+        air
+          .connect(this.filter('lowpass', tone * 0.7, 0.8))
+          .connect(
+            moved(
+              0.45,
+              os.map((o) => [o, 0.22] as [OscillatorNode, number]),
+            ),
+          )
+          .connect(out);
+        return os;
+      }
+      case 'whump': {
+        // Each flap a low "whump" of heavy cloth filling: soft pulses of dull noise, their timing
+        // pushed and pulled by a slow wobble so no two are evenly spaced.
+        const [pulses, drift] = this.pulses(rate * 0.3, 6, 0.4);
+        const g = ctx.createGain();
+        g.gain.value = 0;
+        pulses.connect(g.gain);
+        air
+          .connect(this.filter('lowpass', tone * 0.4, 1))
+          .connect(g)
+          .connect(out);
+        return [pulses, drift];
+      }
+      case 'gusty': {
+        // Slatting in bursts: heavy flaps that come in runs with the gusts, then ease off.
+        const os = [0.33, 0.5].map((k) => osc(rate * k));
+        const gust = osc(0.21);
+        const flaps = moved(
+          0.35,
+          os.map((o) => [o, 0.3] as [OscillatorNode, number]),
+        );
+        const burst = moved(0.55, [[gust, 0.45]]);
+        air
+          .connect(this.filter('lowpass', tone * 0.5, 1))
+          .connect(flaps)
+          .connect(burst)
+          .connect(out);
+        return [...os, gust];
+      }
+    }
+  }
+
+  /**
+   * A train of soft pulses (0 to about 1) at about `hz`, `harmonics` sharp (more is a shorter
+   * pulse), its timing drifting by `drift` of `hz` with a slow wobble; the two oscillators.
+   */
+  private pulses(hz: number, harmonics: number, drift: number): [OscillatorNode, OscillatorNode] {
+    const { ctx } = this;
+    const real = new Float32Array(harmonics + 1).map((_, k) => (k ? 1 - k / (harmonics + 1) : 0));
+    const p = ctx.createOscillator();
+    p.setPeriodicWave(ctx.createPeriodicWave(real, new Float32Array(harmonics + 1)));
+    p.frequency.value = hz;
+    const wobble = ctx.createOscillator();
+    wobble.frequency.value = 0.17;
+    const depth = ctx.createGain();
+    depth.gain.value = hz * drift;
+    wobble.connect(depth).connect(p.frequency);
+    return [p, wobble];
   }
 
   private source(offset: number) {

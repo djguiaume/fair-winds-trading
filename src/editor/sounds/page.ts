@@ -1,4 +1,12 @@
-import { AUDIO, RING, SYNTH_EFFECTS, type AudioData, audioProblems } from '../../audio/catalog';
+import {
+  AUDIO,
+  LUFF_STYLES,
+  type LuffStyle,
+  RING,
+  SYNTH_EFFECTS,
+  type AudioData,
+  audioProblems,
+} from '../../audio/catalog';
 import { DESK_SEA, type DeskSea, LiveSea, playEffect, renderJob } from '../../audio/desk';
 import { formatQuestJson } from '../../data/jsonFormat';
 import { History } from '../model';
@@ -427,7 +435,7 @@ function drawBoat(): HTMLElement[] {
   return [
     heading(
       'The boat',
-      'Her own sounds in every sea: the wash along the hull (full at fullKn), the sails luffing in irons (rate: flutters a second), rain on deck.',
+      'Her own sounds in every sea: the wash along the hull (full at fullKn), the sails luffing in irons (style, and rate: flutters a second; play again after changing the style), rain on deck.',
     ),
     listenPanel(RING),
     row(
@@ -441,6 +449,12 @@ function drawBoat(): HTMLElement[] {
     row(
       'wash full kn',
       num(wash.fullKn, (v) => (wash.fullKn = v)),
+    ),
+    row(
+      'luff style',
+      select([...LUFF_STYLES], luff.style ?? 'gusty', (v) =>
+        edit(() => (luff.style = v as LuffStyle)),
+      ),
     ),
     row(
       'luff level',

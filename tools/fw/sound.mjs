@@ -13,6 +13,7 @@ const HELP = `npm run sound -- <what> [options]
   effect <id> [--pitch 1.2]    one effect (also: bell <port|island>, the dock bell at its pitch)
   sea <id> [--secs 30]         a sea's bed: --wind 12 --speed 5 --luff --rain 0.8 --storm --docked
                                --far (no call's place is near: only the calls heard anywhere)
+                               --only luff,wind (just these layers, no calls: one sound alone)
   mix <sea> [--secs 40]        a sea with its theme over it, at the default Sounds and Music volumes
   music <track> [--secs 60]    a music track, --seed n for another tune
   tour                         every sea (20 s), every effect and every theme (30 s): the review set
@@ -36,6 +37,7 @@ function plan(args, data) {
     },
     near: !args.far,
     storm: !!args.storm,
+    ...(typeof args.only === 'string' ? { only: args.only.split(',') } : {}),
   };
   if (what === 'effect')
     return [
