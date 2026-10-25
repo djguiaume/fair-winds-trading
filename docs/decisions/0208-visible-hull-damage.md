@@ -1,6 +1,6 @@
 # 0208. Visible hull damage
 
-**Status:** Proposed (2026-10-25). Part 9 of the Phase 5 brief ([docs/phase-5/brief.md](../phase-5/brief.md), decision 0207); look from the art director's section 6 ([docs/reviews/art-direction/phase5/README.md](../reviews/art-direction/phase5/README.md)), agreed with the art director on 2026-10-25.
+**Status:** Accepted (2026-10-25, Guillaume after the art director's round). Part 9 of the Phase 5 brief ([docs/phase-5/brief.md](../phase-5/brief.md), decision 0207); look from the art director's section 6 ([docs/reviews/art-direction/phase5/README.md](../reviews/art-direction/phase5/README.md)), agreed with the art director on 2026-10-25.
 
 ## Context
 
