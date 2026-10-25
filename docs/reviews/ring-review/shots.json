@@ -1,0 +1,798 @@
+[
+ {
+  "at": [
+   106,
+   168
+  ],
+  "heading": 32,
+  "look": [
+   170,
+   270
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "calda-over",
+  "zoom": 3
+ },
+ {
+  "at": [
+   106,
+   168
+  ],
+  "heading": 32,
+  "look": [
+   170,
+   270
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "calda-close",
+  "zoom": 1.4
+ },
+ {
+  "at": [
+   106,
+   168
+  ],
+  "heading": 32,
+  "look": [
+   170,
+   270
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "calda-night",
+  "zoom": 1.4,
+  "night": true
+ },
+ {
+  "at": [
+   106,
+   168
+  ],
+  "heading": 32,
+  "look": [
+   170,
+   270
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "calda-L4",
+  "zoom": 1.4,
+  "town": "calda:4"
+ },
+ {
+  "at": [
+   106,
+   168
+  ],
+  "heading": 32,
+  "look": [
+   170,
+   270
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "calda-L4-night",
+  "zoom": 1.4,
+  "town": "calda:4",
+  "night": true
+ },
+ {
+  "at": [
+   178,
+   -88
+  ],
+  "heading": 116,
+  "look": [
+   285,
+   -140
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "saltmere-over",
+  "zoom": 3
+ },
+ {
+  "at": [
+   178,
+   -88
+  ],
+  "heading": 116,
+  "look": [
+   285,
+   -140
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "saltmere-close",
+  "zoom": 1.4
+ },
+ {
+  "at": [
+   178,
+   -88
+  ],
+  "heading": 116,
+  "look": [
+   285,
+   -140
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "saltmere-night",
+  "zoom": 1.4,
+  "night": true
+ },
+ {
+  "at": [
+   178,
+   -88
+  ],
+  "heading": 116,
+  "look": [
+   285,
+   -140
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "saltmere-L4",
+  "zoom": 1.4,
+  "town": "saltmere:4"
+ },
+ {
+  "at": [
+   178,
+   -88
+  ],
+  "heading": 116,
+  "look": [
+   285,
+   -140
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "saltmere-L4-night",
+  "zoom": 1.4,
+  "town": "saltmere:4",
+  "night": true
+ },
+ {
+  "at": [
+   -193,
+   31
+  ],
+  "heading": 279,
+  "look": [
+   -310,
+   50
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "westholm-over",
+  "zoom": 3
+ },
+ {
+  "at": [
+   -193,
+   31
+  ],
+  "heading": 279,
+  "look": [
+   -310,
+   50
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "westholm-close",
+  "zoom": 1.4
+ },
+ {
+  "at": [
+   -193,
+   31
+  ],
+  "heading": 279,
+  "look": [
+   -310,
+   50
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "westholm-night",
+  "zoom": 1.4,
+  "night": true
+ },
+ {
+  "at": [
+   -193,
+   31
+  ],
+  "heading": 279,
+  "look": [
+   -310,
+   50
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "westholm-L4",
+  "zoom": 1.4,
+  "town": "westholm:4"
+ },
+ {
+  "at": [
+   -193,
+   31
+  ],
+  "heading": 279,
+  "look": [
+   -310,
+   50
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "westholm-L4-night",
+  "zoom": 1.4,
+  "town": "westholm:4",
+  "night": true
+ },
+ {
+  "at": [
+   -104,
+   -196
+  ],
+  "heading": 208,
+  "look": [
+   -160,
+   -300
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "south-cay-over",
+  "zoom": 3
+ },
+ {
+  "at": [
+   -104,
+   -196
+  ],
+  "heading": 208,
+  "look": [
+   -160,
+   -300
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "south-cay-close",
+  "zoom": 1.4
+ },
+ {
+  "at": [
+   -104,
+   -196
+  ],
+  "heading": 208,
+  "look": [
+   -160,
+   -300
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "south-cay-night",
+  "zoom": 1.4,
+  "night": true
+ },
+ {
+  "at": [
+   -104,
+   -196
+  ],
+  "heading": 208,
+  "look": [
+   -160,
+   -300
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "south-cay-L4",
+  "zoom": 1.4,
+  "town": "stonehaven:4"
+ },
+ {
+  "at": [
+   -104,
+   -196
+  ],
+  "heading": 208,
+  "look": [
+   -160,
+   -300
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "south-cay-L4-night",
+  "zoom": 1.4,
+  "town": "stonehaven:4",
+  "night": true
+ },
+ {
+  "at": [
+   -18,
+   -45
+  ],
+  "heading": 202,
+  "look": [
+   -60,
+   -150
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "skerry-over",
+  "zoom": 3
+ },
+ {
+  "at": [
+   -18,
+   -45
+  ],
+  "heading": 202,
+  "look": [
+   -60,
+   -150
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "skerry-close",
+  "zoom": 1.4
+ },
+ {
+  "at": [
+   -18,
+   -45
+  ],
+  "heading": 202,
+  "look": [
+   -60,
+   -150
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "skerry-night",
+  "zoom": 1.4,
+  "night": true
+ },
+ {
+  "at": [
+   19,
+   45
+  ],
+  "heading": 23,
+  "look": [
+   60,
+   140
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "bell-rock-over",
+  "zoom": 3
+ },
+ {
+  "at": [
+   19,
+   45
+  ],
+  "heading": 23,
+  "look": [
+   60,
+   140
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "bell-rock-close",
+  "zoom": 1.4
+ },
+ {
+  "at": [
+   19,
+   45
+  ],
+  "heading": 23,
+  "look": [
+   60,
+   140
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "bell-rock-night",
+  "zoom": 1.4,
+  "night": true
+ },
+ {
+  "at": [
+   -175,
+   196
+  ],
+  "heading": 318,
+  "look": [
+   -250,
+   280
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "abbey-head-over",
+  "zoom": 3
+ },
+ {
+  "at": [
+   -175,
+   196
+  ],
+  "heading": 318,
+  "look": [
+   -250,
+   280
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "abbey-head-close",
+  "zoom": 1.4
+ },
+ {
+  "at": [
+   -175,
+   196
+  ],
+  "heading": 318,
+  "look": [
+   -250,
+   280
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "abbey-head-night",
+  "zoom": 1.4,
+  "night": true
+ },
+ {
+  "at": [
+   106,
+   -247
+  ],
+  "heading": 157,
+  "look": [
+   150,
+   -350
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "watchman-key-over",
+  "zoom": 3
+ },
+ {
+  "at": [
+   106,
+   -247
+  ],
+  "heading": 157,
+  "look": [
+   150,
+   -350
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "watchman-key-close",
+  "zoom": 1.4
+ },
+ {
+  "at": [
+   106,
+   -247
+  ],
+  "heading": 157,
+  "look": [
+   150,
+   -350
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "watchman-key-night",
+  "zoom": 1.4,
+  "night": true
+ },
+ {
+  "at": [
+   255,
+   116
+  ],
+  "heading": 65,
+  "look": [
+   350,
+   160
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "lantern-rock-over",
+  "zoom": 3
+ },
+ {
+  "at": [
+   255,
+   116
+  ],
+  "heading": 65,
+  "look": [
+   350,
+   160
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "lantern-rock-close",
+  "zoom": 1.4
+ },
+ {
+  "at": [
+   255,
+   116
+  ],
+  "heading": 65,
+  "look": [
+   350,
+   160
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "lantern-rock-night",
+  "zoom": 1.4,
+  "night": true
+ },
+ {
+  "at": [
+   -50,
+   67
+  ],
+  "heading": 323,
+  "look": [
+   -119,
+   159
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "greyback-ridge-over",
+  "zoom": 3
+ },
+ {
+  "at": [
+   -50,
+   67
+  ],
+  "heading": 323,
+  "look": [
+   -119,
+   159
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "greyback-ridge-close",
+  "zoom": 1.4
+ },
+ {
+  "at": [
+   -50,
+   67
+  ],
+  "heading": 323,
+  "look": [
+   -119,
+   159
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "greyback-ridge-night",
+  "zoom": 1.4,
+  "night": true
+ },
+ {
+  "at": [
+   -28,
+   28
+  ],
+  "heading": 135,
+  "look": [
+   53,
+   -53
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "gull-hook-over",
+  "zoom": 3
+ },
+ {
+  "at": [
+   -28,
+   28
+  ],
+  "heading": 135,
+  "look": [
+   53,
+   -53
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "gull-hook-close",
+  "zoom": 1.4
+ },
+ {
+  "at": [
+   -28,
+   28
+  ],
+  "heading": 135,
+  "look": [
+   53,
+   -53
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "gull-hook-night",
+  "zoom": 1.4,
+  "night": true
+ },
+ {
+  "at": [
+   -128,
+   -45
+  ],
+  "heading": 251,
+  "look": [
+   -226,
+   -80
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "teeth-rock-over",
+  "zoom": 3
+ },
+ {
+  "at": [
+   -128,
+   -45
+  ],
+  "heading": 251,
+  "look": [
+   -226,
+   -80
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "teeth-rock-close",
+  "zoom": 1.4
+ },
+ {
+  "at": [
+   -128,
+   -45
+  ],
+  "heading": 251,
+  "look": [
+   -226,
+   -80
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "teeth-rock-night",
+  "zoom": 1.4,
+  "night": true
+ },
+ {
+  "at": [
+   -95,
+   -500
+  ],
+  "heading": 180,
+  "look": [
+   -95.1,
+   -587.6
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "sunreach-over",
+  "zoom": 3
+ },
+ {
+  "at": [
+   -95,
+   -500
+  ],
+  "heading": 180,
+  "look": [
+   -95.1,
+   -587.6
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "sunreach-close",
+  "zoom": 1.4
+ },
+ {
+  "at": [
+   -95,
+   -500
+  ],
+  "heading": 180,
+  "look": [
+   -95.1,
+   -587.6
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "sunreach-night",
+  "zoom": 1.4,
+  "night": true
+ },
+ {
+  "at": [
+   106,
+   -247
+  ],
+  "heading": 157,
+  "look": [
+   150,
+   -350
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "watchman-key-L4",
+  "zoom": 1.4,
+  "town": "watchman-key:4"
+ },
+ {
+  "at": [
+   106,
+   -247
+  ],
+  "heading": 157,
+  "look": [
+   150,
+   -350
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "watchman-key-L4-night",
+  "zoom": 1.4,
+  "town": "watchman-key:4",
+  "night": true
+ },
+ {
+  "at": [
+   -175,
+   196
+  ],
+  "heading": 318,
+  "look": [
+   -250,
+   280
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "abbey-head-L4",
+  "zoom": 1.4,
+  "town": "abbey-head:4"
+ },
+ {
+  "at": [
+   -175,
+   196
+  ],
+  "heading": 318,
+  "look": [
+   -250,
+   280
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "abbey-head-L4-night",
+  "zoom": 1.4,
+  "town": "abbey-head:4",
+  "night": true
+ }
+]
