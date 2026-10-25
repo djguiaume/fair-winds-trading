@@ -84,8 +84,9 @@ ring and on `--map phase4`, `npm run chart -- --sea phase4`, `npm run shots` on 
   houses, no flagpole). Part of the east sea's work.
 - **Cinder Isle's berth is off its island:** moored at Cinder Isle (founded, levels 1 to 3), the boat
   and the port tag sit in open water with the island out of view. Check the dock position against
-  the risen island.
-- **Snowberry Isle has no pier** (`piers: []`): `npm run shots -- --moor snowberry-isle` finds no
+  the risen island. _Update: a shots-tool artifact, not the game. The tool moored before the island
+  rose; fixed in the tool and the quest tests (PR #206, 0191)._
+- **Snowberry Isle has no pier** (`piers: []`, cove pier and Village/Town looks added in PR #206): `npm run shots -- --moor snowberry-isle` finds no
   berth. Check that docking there works for `outpost-north`'s settler step, then give it a pier.
 
 ## Smaller things seen (to fix with gap 1, art director to confirm)
@@ -125,3 +126,11 @@ The art director's set (outposts at each level, every port at night, Cinder Isle
 | Write the east sea's quests (already running) | gap 2, gap 7, Amber Strand's look | head storyteller, Guillaume sees portraits and cards |
 | Balance the grown sea | gap 3, tool first then tuning | storyteller on prices vs story order |
 | Phase 4 playtest and release | gaps 4 and 5, then v0.4.x notes and ADR like 0138 | Guillaume sees the screenshots |
+
+## Progress (2026-10-25)
+
+- Gap 1, the grown sea as the main game: PR #204 (0190), waiting on Guillaume's screenshots.
+- Gap 6, the art musts except Amber Strand: PR #206 (0191), waiting on the art director and Guillaume.
+- Gaps 2 and 7 (east story, four-winds, Amber Strand's levels): thread "Write the east sea's quests".
+- Gap 3, balance on the grown sea: its own thread; it also switches `npm run balance` and the `?tune`
+  worker to the game's map.
