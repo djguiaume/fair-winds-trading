@@ -22,6 +22,7 @@ import { goodName, t, zoneLabel } from '../i18n';
 import { icon, COIN } from './icons';
 import { drawHazard } from './hazardMarker';
 import { landStyles, seaMarkShape } from './chartMarks';
+import { padGlyph } from './padGlyphs';
 import { portraitSvg } from './portraits';
 import type { JournalEntry, QuestPin, QuestTarget, StepMarker } from './questView';
 
@@ -87,6 +88,10 @@ function deepestPoint(outline: [number, number][]) {
 }
 
 /** What the chart shows of the quests (decision 0124); see `questView.ts`. */
+/** The chart's tabs (decision 0196), as the port screen's: the sea, then full pages. */
+export const CHART_TABS = ['map', 'journal', 'market', 'legend'] as const;
+export type ChartTab = (typeof CHART_TABS)[number];
+
 export interface ChartQuests {
   pins(): QuestPin[];
   target(): QuestTarget | null;
@@ -118,7 +123,7 @@ export class SeaChart {
   private goodPicked = false;
   private zoom = 1;
   private center = { x: 0, y: 0 };
-  private panel: string | null = null;
+  private tab: ChartTab = 'map';
   private dragged = false;
   private settleTimer: ReturnType<typeof setTimeout> | undefined;
   private drag: { id: number; x: number; y: number; cx: number; cy: number; unit: number } | null =
@@ -159,15 +164,32 @@ export class SeaChart {
     });
   }
 
-  private setPanel(name: string | null) {
-    this.panel = name;
-    for (const id of ['legend', 'market', 'journal']) {
+  /** The tab on show: the sea, or one of the full pages over it (decision 0196). */
+  get currentTab(): ChartTab {
+    return this.tab;
+  }
+  setTab(name: ChartTab) {
+    this.tab = name;
+    this.dialog.dataset.tab = name;
+    for (const id of CHART_TABS) {
       const panel = this.dialog.querySelector<HTMLElement>(`#chart-${id}-panel`);
       if (panel) panel.hidden = name !== id;
-      this.dialog
-        .querySelector(`#chart-${id}-toggle`)
-        ?.setAttribute('aria-expanded', String(name === id));
+      const button = this.dialog.querySelector<HTMLElement>(`#chart-tab-${id}`);
+      button?.classList.toggle('active', name === id);
+      button?.setAttribute('aria-pressed', String(name === id));
     }
+    // A controller on the map plays the cross: no focus ring left on a tab or the close button.
+    const active = document.activeElement as HTMLElement | null;
+    if (name === 'map' && document.documentElement.dataset.input === 'pad' && active)
+      if (this.dialog.contains(active)) active.blur();
+  }
+  /** LB / RB on the map tab: the next tab that shows (the journal hides with no quests). */
+  stepTab(step: number) {
+    const shown = CHART_TABS.filter(
+      (id) => !this.dialog.querySelector<HTMLElement>(`#chart-tab-${id}`)?.hidden,
+    );
+    const at = Math.max(0, shown.indexOf(this.tab));
+    this.setTab(shown[(at + step + shown.length) % shown.length]!);
   }
   private setupTools() {
     this.dialog.querySelector('#chart-journal-list')?.addEventListener('click', (e) => {
@@ -177,24 +199,8 @@ export class SeaChart {
       else this.quests.takeUp?.(row.dataset.takeUp!);
       this.draw();
     });
-    for (const id of ['legend', 'market', 'journal']) {
-      this.dialog.querySelector(`#chart-${id}-toggle`)?.addEventListener('click', () => {
-        this.setPanel(this.panel === id ? null : id);
-      });
-    }
-    const closePanel = () => {
-      const previous = this.panel;
-      this.setPanel(null);
-      this.dialog.querySelector<HTMLButtonElement>(`#chart-${previous}-toggle`)?.focus();
-    };
-    for (const button of this.dialog.querySelectorAll('[data-chart-close]'))
-      button.addEventListener('click', closePanel);
-    this.dialog.addEventListener('cancel', (event) => {
-      if (this.panel) {
-        event.preventDefault();
-        closePanel();
-      }
-    });
+    for (const button of this.dialog.querySelectorAll<HTMLElement>('[data-chart-tab]'))
+      button.addEventListener('click', () => this.setTab(button.dataset.chartTab as ChartTab));
     this.dialog.querySelector('#chart-zoom-in')?.addEventListener('click', () => this.zoomBy(1.5));
     this.dialog
       .querySelector('#chart-zoom-out')
@@ -588,16 +594,42 @@ export class SeaChart {
    */
   padMove(dx: number, dy: number, edgePx = 40) {
     if (!dx && !dy) return;
-    const r = this.get('chart-map').getBoundingClientRect();
-    const hx = Math.max(0, r.width / 2 - edgePx),
-      hy = Math.max(0, r.height / 2 - edgePx);
-    const x = Math.max(-hx, Math.min(hx, this.cross.x + dx));
-    const y = Math.max(-hy, Math.min(hy, this.cross.y + dy));
+    const f = this.crossField(edgePx);
+    const x = Math.max(f.left, Math.min(f.right, this.cross.x + dx));
+    const y = Math.max(f.top, Math.min(f.bottom, this.cross.y + dy));
     const spillX = this.cross.x + dx - x,
       spillY = this.cross.y + dy - y;
     this.cross = { x, y };
     this.placeCross();
     if (spillX || spillY) this.panBy(spillX, spillY);
+  }
+  /**
+   * Where the cross may go, in pixels from the chart's middle: the map less `edgePx`, and clear of
+   * the goods along the left and the compass on the right, so it never slides under a button.
+   */
+  private crossField(edgePx: number) {
+    const r = this.get('chart-map').getBoundingClientRect();
+    const cx = r.left + r.width / 2,
+      cy = r.top + r.height / 2;
+    let left = r.left + edgePx,
+      right = r.right - edgePx;
+    const goods = this.dialog.querySelector<HTMLElement>('.chart-footer')?.getBoundingClientRect();
+    const compass = this.get('chart-compass').getBoundingClientRect();
+    // Beside the column only where it stands at the side (in portrait it is a row along the foot).
+    if (goods?.width && goods.height > goods.width) left = Math.max(left, goods.right + edgePx / 2);
+    if (compass.width && compass.left > cx) right = Math.min(right, compass.left - edgePx / 2);
+    const out = {
+      left: left - cx,
+      right: right - cx,
+      top: r.top + edgePx - cy,
+      bottom: r.bottom - edgePx - cy,
+    };
+    // Portrait or the goods row along the foot: keep above it.
+    if (goods?.width && goods.width >= goods.height && goods.top > cy)
+      out.bottom = Math.min(out.bottom, goods.top - edgePx / 2 - cy);
+    if (out.left > out.right) out.left = out.right = (out.left + out.right) / 2;
+    if (out.top > out.bottom) out.top = out.bottom = (out.top + out.bottom) / 2;
+    return out;
   }
   private placeCross() {
     const el = this.dialog.querySelector<HTMLElement>('.chart-cross');
@@ -625,13 +657,9 @@ export class SeaChart {
     best?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     return !!best;
   }
-  /** Back, like Esc: an open side panel first, then the chart. */
+  /** Back, like Esc: the chart closes from any tab, as the port screen does. */
   back() {
-    if (this.panel) {
-      const previous = this.panel;
-      this.setPanel(null);
-      this.dialog.querySelector<HTMLButtonElement>(`#chart-${previous}-toggle`)?.focus();
-    } else this.close();
+    this.close();
   }
   open() {
     if (this.isOpen) return;
@@ -641,13 +669,8 @@ export class SeaChart {
     this.center = { x: 0, y: 0 };
     this.cross = { x: 0, y: 0 };
     this.placeCross();
-    // Wide screens open with the journal beside the sea while a quest is under way.
-    const wide =
-      typeof matchMedia === 'function' &&
-      matchMedia('(min-width: 900px) and (min-height: 500px)').matches;
-    const tracked = this.quests?.journal().some((e) => e.state === 'tracked') ?? false;
-    this.setPanel(wide && tracked ? 'journal' : null);
     this.dialog.showModal();
+    this.setTab('map');
     this.draw();
     this.status('');
     this.onChange();
@@ -679,6 +702,8 @@ export class SeaChart {
     // Use the visible pier as the destination, rather than a legacy practice buoy.
     this.world.destination = { portId: port.id, label: port.name, x: anchor.x, y: anchor.y };
     this.onDestinationChange();
+    // Picked from the price table: back to the sea, with the course on it.
+    this.setTab('map');
     this.draw();
     this.status(t('chart.statusPortSet', { name: port.name }));
   }
@@ -699,15 +724,32 @@ export class SeaChart {
       dearest: Math.max(...quotes.map((q) => q.sell)),
     };
   }
-  /** Goods to compare along the bottom, and the full price table in its sheet. */
+  /** Goods on show: the staples, and made goods once a town makes them or one is aboard. */
+  private goodsInPlay(): GoodId[] {
+    const { map, trade } = this.world;
+    // Specialized goods join once a town makes them, or while one is in the hold (decision 0063).
+    const made = madeGoods(map, trade);
+    return GOODS.filter((g) => !isMadeGood(g) || made.has(g) || trade.captain.cargo[g] > 0);
+  }
+  /** A controller's X on the map (decision 0196): the next good's prices, then names only. */
+  nextGood() {
+    const order: (GoodId | null)[] = [...this.goodsInPlay(), null];
+    this.good = order[(order.indexOf(this.good) + 1) % order.length]!;
+    this.goodPicked = true;
+    this.draw();
+  }
+  /** Goods to compare along the side, and the full price table on the price page. */
   private drawMarket(market: ReturnType<SeaChart['quotes']>) {
     const { good, quotes, cheapest, dearest } = market;
     const { map, trade } = this.world;
     const goods = this.get('chart-goods');
     goods.replaceChildren();
-    // Specialized goods join once a town makes them, or while one is in the hold (decision 0063).
-    const made = madeGoods(map, trade);
-    const inPlay = GOODS.filter((g) => !isMadeGood(g) || made.has(g) || trade.captain.cargo[g] > 0);
+    const inPlay = this.goodsInPlay();
+    // X on a controller steps through these (decision 0196): its glyph heads the column.
+    goods.insertAdjacentHTML('afterbegin', padGlyph('x'));
+    // The price page's own row picks the good for its table (the map's column can clear it).
+    const pageGoods = this.dialog.querySelector<HTMLElement>('#chart-market-goods');
+    pageGoods?.replaceChildren();
     for (const g of inPlay) {
       // Tap a good to show its prices on the chart; tap it again for names only.
       const b = this.button(goods, goodName(g), () => {
@@ -719,6 +761,16 @@ export class SeaChart {
       const on = g === this.good;
       b.setAttribute('aria-pressed', String(on));
       if (on) b.classList.add('active');
+      if (!pageGoods) continue;
+      const p = this.button(pageGoods, goodName(g), () => {
+        this.good = g;
+        this.goodPicked = true;
+        this.draw();
+      });
+      p.insertAdjacentHTML('afterbegin', icon(g));
+      p.dataset.good = g;
+      p.setAttribute('aria-pressed', String(g === good));
+      if (g === good) p.classList.add('active');
     }
     const title = this.dialog.querySelector('#chart-market-title');
     if (title) title.textContent = t('chart.pricesFor', { good: goodName(good) });
@@ -845,9 +897,10 @@ export class SeaChart {
   }
 
   private drawJournal(entries: JournalEntry[]) {
-    const toggle = this.dialog.querySelector<HTMLElement>('#chart-journal-toggle');
+    const toggle = this.dialog.querySelector<HTMLElement>('#chart-tab-journal');
     const list = this.dialog.querySelector<HTMLElement>('#chart-journal-list');
     if (toggle) toggle.hidden = entries.length === 0;
+    if (!entries.length && this.tab === 'journal') this.setTab('map');
     const news = entries.filter((e) => e.state === 'offered').length;
     const badge = toggle?.querySelector<HTMLElement>('.chart-journal-badge');
     if (badge) {
