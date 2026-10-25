@@ -21,7 +21,7 @@ import { TUNING } from '../data/tuning';
 import { goodName, t, zoneKindName } from '../i18n';
 import { icon, COIN } from './icons';
 import { drawHazard } from './hazardMarker';
-import { seaMarkShape } from './chartMarks';
+import { landStyles, seaMarkShape } from './chartMarks';
 import { portraitSvg } from './portraits';
 import type { JournalEntry, QuestPin, QuestTarget, StepMarker } from './questView';
 
@@ -879,9 +879,11 @@ export class SeaChart {
     const zoneLabels = this.drawZones(shape, unit);
     this.drawCurrents(shape, unit);
     // Land reads like the 3D islands: an ink outline, a sand shore and a grass top.
-    const land = (tag: string, attrs: Record<string, string | number>) => {
-      shape(tag, { ...attrs, class: 'chart-shore' });
-      shape(tag, { ...attrs, class: 'chart-land' });
+    // An ice island is snow on shingle (decision 0170), as its style draws it.
+    const land = (tag: string, attrs: Record<string, string | number>, design?: string) => {
+      const [shore, top] = landStyles(design);
+      shape(tag, { ...attrs, ...shore, class: 'chart-shore' });
+      shape(tag, { ...attrs, ...top, class: 'chart-land' });
     };
     const charted = discoveredPorts(map, this.world.trade);
     // Map text needs the same screen size at every zoom and grows a little on large screens.
@@ -900,8 +902,12 @@ export class SeaChart {
       const coasts = islandCoasts(island);
       if (coasts) {
         for (const outline of coasts)
-          land('polygon', { points: outline.map(([x, y]) => `${x},${-y}`).join(' ') });
-      } else land('circle', { cx: island.x, cy: -island.y, r: island.radius });
+          land(
+            'polygon',
+            { points: outline.map(([x, y]) => `${x},${-y}`).join(' ') },
+            island.look?.design,
+          );
+      } else land('circle', { cx: island.x, cy: -island.y, r: island.radius }, island.look?.design);
       const lake = islandLake(island);
       if (lake)
         shape('polygon', {
@@ -953,7 +959,8 @@ export class SeaChart {
       const xs = terrain.outline.map((p) => p[0]);
       const ys = terrain.outline.map((p) => -p[1]);
       const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-      if (terrain.kind === 'island') landBoxes.push({ x0, x1, y0, y1 });
+      // Names keep off land and off ice, the pack's own name included (decision 0170).
+      if (terrain.kind === 'island' || terrain.kind === 'ice') landBoxes.push({ x0, x1, y0, y1 });
       const known = chartedAt(map, this.world.trade.progress, (x0 + x1) / 2, -(y0 + y1) / 2);
       if (terrain.name && terrain.kind === 'island' && known)
         places.push({ name: terrain.name, x: (x0 + x1) / 2, top: y0, bottom: y1 });

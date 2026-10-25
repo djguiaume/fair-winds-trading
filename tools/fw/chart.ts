@@ -5,7 +5,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { Window } from 'happy-dom';
-import { type Layers, drawChart, landStyles } from '../../src/editor/chart';
+import { type Layers, drawChart } from '../../src/editor/chart';
+import { landStyles } from '../../src/ui/chartMarks';
 import { zoneKindName, zoneTint } from '../../src/editor/flowChart';
 import { isBeltKind } from '../../src/sim/stormBelt';
 import { PHASE1_SOURCE } from '../../src/data/maps';

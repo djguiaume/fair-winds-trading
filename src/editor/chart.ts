@@ -1,5 +1,3 @@
-import { groundColors } from '../data/grounds';
-import { ISLAND_DESIGNS } from '../data/islands';
 import { TUNING } from '../data/tuning';
 import { bergChart, bergFields } from '../sim/bergs';
 import { piersOf } from '../sim/collision';
@@ -7,7 +5,7 @@ import { GOOD_ICONS, isGood } from '../sim/goods';
 import { islandCoasts, islandLake } from '../sim/islandLayout';
 import type { MapDef } from '../sim/map';
 import { DEG } from '../sim/math';
-import { seaMarkShape } from '../ui/chartMarks';
+import { landStyles, seaMarkShape } from '../ui/chartMarks';
 import { drawFlow, drawFlowSelection, flowLabels } from './flowChart';
 import type { Selection } from './model';
 import { findIsland, findShape, waypointOf } from './model';
@@ -391,21 +389,4 @@ export function drawCompass(svg: SVGSVGElement, fromDeg: number) {
     fill: '#8fd3e6',
     transform: `translate(${-sx} ${-sy}) rotate(${fromDeg})`,
   });
-}
-
-/**
- * The chart's beach and land colours for an island whose style swaps its grounds (decision 0170:
- * an ice island is snow on shingle, not green on sand); empty for the usual look.
- */
-export function landStyles(
-  design: string | undefined,
-): [Record<string, string>, Record<string, string>] {
-  const style = design ? ISLAND_DESIGNS[design]?.style : undefined;
-  if (!style) return [{}, {}];
-  const land = groundColors('grass', style);
-  const beach = groundColors('sand', style);
-  return [
-    beach.id === 'sand' ? {} : { style: `fill:${beach.top[0]}` },
-    land.id === 'grass' ? {} : { style: `fill:${land.top[0]};stroke:${beach.top[0]}` },
-  ];
 }

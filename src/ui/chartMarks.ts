@@ -1,3 +1,5 @@
+import { groundColors } from '../data/grounds';
+import { ISLAND_DESIGNS } from '../data/islands';
 import type { SeaMarkDef } from '../sim/map';
 
 /**
@@ -57,4 +59,21 @@ export function star(cx: number, cy: number, r: number): string {
     return `${(cx + Math.cos(a) * k).toFixed(2)},${(cy + Math.sin(a) * k).toFixed(2)}`;
   });
   return `M${points.join('L')}Z`;
+}
+
+/**
+ * The chart's beach and land colours for an island whose style swaps its grounds (decision 0170:
+ * an ice island is snow on shingle, not green on sand); empty for the usual look.
+ */
+export function landStyles(
+  design: string | undefined,
+): [Record<string, string>, Record<string, string>] {
+  const style = design ? ISLAND_DESIGNS[design]?.style : undefined;
+  if (!style) return [{}, {}];
+  const land = groundColors('grass', style);
+  const beach = groundColors('sand', style);
+  return [
+    beach.id === 'sand' ? {} : { style: `fill:${beach.top[0]}` },
+    land.id === 'grass' ? {} : { style: `fill:${land.top[0]};stroke:${beach.top[0]}` },
+  ];
 }
