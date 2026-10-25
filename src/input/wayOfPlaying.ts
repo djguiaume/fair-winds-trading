@@ -21,22 +21,18 @@ export function firstWay(media: (query: string) => boolean): Way {
 }
 
 /**
- * Follows the player's last input. The pad comes from the game's poller (`setPad`), which also
- * says when a key or click is the pad's own (Edge on Xbox, decision 0183): those are ignored.
+ * Follows the player's last input. The pad comes from the game's poller (`setPad`), which decides
+ * when a key or click means the player left the pad (decision 0183); until then the pad's texts
+ * stay, and the hands' way is only noted for when the pad goes.
  */
 export class WayOfPlaying {
   private hands: Way;
   private pad = false;
   onChange: (way: Way) => void = () => {};
 
-  constructor(
-    target: Pick<Window, 'addEventListener'>,
-    guess: Way,
-    private readonly padInUse: () => boolean = () => false,
-  ) {
+  constructor(target: Pick<Window, 'addEventListener'>, guess: Way) {
     this.hands = guess;
     const seen = (e: Event) => {
-      if (this.padInUse()) return;
       const way = wayOfEvent(e as PointerEvent & KeyboardEvent);
       if (way && way !== this.hands) {
         this.hands = way;

@@ -202,6 +202,7 @@
   "settings.windShifting": "Shifting",
   "toast.pressHintFair": "Strong wind! Ease the sails: on harder levels cargo goes overboard",
   "settings.resetBoatNote": "Stuck? Back to start brings the boat back to port.",
+  "confirm.cancel": "Cancel",
   "settings.confirmNewGame": "Start a new voyage? Your gold, cargo and upgrades will be reset.",
   "transfer.title": "Move your voyage",
   "transfer.send": "Send",

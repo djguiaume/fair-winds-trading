@@ -37,26 +37,23 @@ describe('texts per way of playing (decision 0184)', () => {
     expect(firstWay(media(false, true))).toBe('keys');
   });
 
-  it('follows touch, mouse and the pad, and ignores the pad’s own clicks', () => {
+  it('follows touch, mouse and the pad; the pad’s texts stay while it is in use', () => {
     const listeners: Record<string, ((e: unknown) => void)[]> = {};
     const target = {
       addEventListener: (type: string, fn: (e: unknown) => void) =>
         (listeners[type] ??= []).push(fn),
     } as unknown as Window;
-    let padHeld = false;
-    const way = new WayOfPlaying(target, 'keys', () => padHeld);
+    const way = new WayOfPlaying(target, 'keys');
     const seen: string[] = [];
     way.onChange = (w) => seen.push(w);
     const fire = (type: string, e: object) => listeners[type]?.forEach((fn) => fn({ type, ...e }));
     fire('pointerdown', { pointerType: 'touch' });
     way.setPad(true);
-    padHeld = true;
     fire('pointerdown', { pointerType: 'mouse' }); // Edge's pointer mode: A clicks too
-    expect(way.way).toBe('pad');
-    padHeld = false;
+    expect(way.way).toBe('pad'); // the poller decides when the pad is left
     way.setPad(false);
     fire('keydown', { key: 'ArrowUp' });
-    expect(seen).toEqual(['touch', 'pad', 'touch', 'keys']);
+    expect(seen).toEqual(['touch', 'pad', 'keys']);
   });
 
   it('gives the quest builder a default and three versions for each speech', () => {

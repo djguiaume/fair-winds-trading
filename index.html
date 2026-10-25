@@ -1205,6 +1205,26 @@
         </button>
       </div>
     </dialog>
+    <!--
+      An in-game question instead of the browser's confirm(), which leaves fullscreen and drops
+      the controller on Xbox (decision 0183). Filled by src/ui/confirmDialog.ts.
+    -->
+    <dialog id="confirm-dialog" class="d-dialog" aria-labelledby="confirm-title">
+      <h2 id="confirm-title"></h2>
+      <p id="confirm-text"></p>
+      <div class="offer-actions">
+        <button
+          id="confirm-cancel"
+          class="d-btn brass"
+          type="button"
+          autofocus
+          data-i18n="confirm.cancel"
+        >
+          Cancel
+        </button>
+        <button id="confirm-ok" class="d-btn red" type="button"></button>
+      </div>
+    </dialog>
     <div id="trade-panel" class="trade-panel-overlay" hidden></div>
     <!-- A person's card for a quest (decision 0124), filled by src/ui/questCard.ts. -->
     <dialog id="quest-card" class="quest-card"></dialog>
