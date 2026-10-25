@@ -13,7 +13,7 @@ Screenshots (v0.5.0 main, desktop, default level, `npm run shots --look … --zo
 2. **The port screen.** A dark navy table: four rows on Market, then half a screen of nothing; the Quay tab is one line of text on empty navy. It carries none of the port's character, though it is where the player spends a third of the time. Fix (cheap, data driven): a port header band with the port's signature drawn from the scene (or a small rendered vignette of the town at its level), the port's house palette as an accent, and the empty space used for the keeper's portrait and the town's level and next build. Style D stays.
 3. **Sound.** Not strictly art, but it is the thinnest part of the presentation: one music theme, creak and foghorn. Each sea deserves an ambient bed (surf, gulls, wind in the rigging, ice creak, lava hiss, sheep) and the harbour a bell. Pirates will need cannon and splash sounds anyway, so it is worth one audio pass with them.
 
-Also seen: the ring's Calda and Abbey Head are closer to the bar (woods, lake, stepped mountain), so the gap is mostly Westholm, Saltmere and Stonehaven.
+Also seen: Port Calda is already closer to the bar (woods, lake, stepped mountain); the gap is widest at Westholm and Saltmere. Abbey Head, Stonehaven and the small ring islands still need the same look at the same camera.
 
 ## 2. Pirates and the storybook look
 
