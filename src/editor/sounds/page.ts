@@ -25,14 +25,15 @@ const SECTIONS: [Section, string][] = [
   ['music', 'Music'],
 ];
 
+const text = (d: AudioData) => formatQuestJson(d);
+const shipped = () => structuredClone(AUDIO);
+
 let root: HTMLElement;
 let onClose = () => {};
 let open = false;
 let section: Section = 'effects';
 let doc: AudioData = loadDoc();
 const history = new History<AudioData>();
-const text = (d: AudioData) => formatQuestJson(d);
-const shipped = () => structuredClone(AUDIO);
 
 let ctx: AudioContext | null = null;
 let live: LiveSea | null = null;
