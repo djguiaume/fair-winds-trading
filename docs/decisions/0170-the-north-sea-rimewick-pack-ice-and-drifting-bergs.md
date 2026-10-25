@@ -1,6 +1,6 @@
 # 0170. The north sea: Rimewick, pack ice and drifting bergs
 
-**Status:** Proposed (2026-10-24). Waiting on Guillaume's look check (art director first).
+**Status:** Accepted (2026-10-25, Guillaume, after the art director and the storyteller).
 
 ## Context
 
