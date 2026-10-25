@@ -154,7 +154,7 @@ Still in code after that, by choice ([0108](decisions/0108-goods-and-weather-kin
 
 Goal: growth pushes you outward into tougher navigation.
 
-**Status (2026-10-24):** open; the menu shows `v0.4.x` since the Phase 3 release ([0138](decisions/0138-phase-3-release.md)).
+**Status (2026-10-25): released as v0.4.226** ([0206](decisions/0206-phase-4-release.md), [notes](releases/v0.4.226.md)); the menu has shown `v0.5.x` since then.
 
 **Release gate (2026-10-25, [0188](decisions/0188-phase-4-review-and-release-gate.md), [review](reviews/phase-4-review/README.md)):** v0.4.x ships once the grown sea is the main game's sea (no `?map=phase4`), the east sea's three arcs are built, the balance bots pass on the grown sea on all three levels, a full playtest is seen by Guillaume, and no Phase 4 PR is open. Outpost build spots, the Xbox follow-ups and the event panel stay for later; Charlotte's tablet test never blocks.
 
@@ -192,6 +192,8 @@ Goal: growth pushes you outward into tougher navigation.
 - Seeded procedural maps: new archipelago from a seed, shareable.
 
 ## Phase 5 — Pirates (planned later extension)
+
+**Status (2026-10-25):** open; the menu shows `v0.5.x` since the Phase 4 release ([0206](decisions/0206-phase-4-release.md)). The storyteller and the art director draft the brief first, with a Settings switch to turn pirates off.
 
 **Scope (2026-10-23):** compatible with all three progression candidates; not required for the base story. See [extension fit, risks and validation](reviews/progression/extensions.md). Retain this phase number for continuity; no release date, paid-DLC decision or ordering against steam is committed. Island raids and armies require a separate scope decision.
 

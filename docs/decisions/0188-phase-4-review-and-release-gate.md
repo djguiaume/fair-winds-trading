@@ -1,7 +1,7 @@
 # 0188. Phase 4 review and release gate
 
-**Status:** Proposed (2026-10-25). Guillaume asked for the Phase 4 review before releasing v0.4.x;
-the gap list waits on his OK.
+**Status:** Accepted (2026-10-25). Every item was met and Phase 4 was released as v0.4.226
+([0206](0206-phase-4-release.md)).
 
 ## Context
 
