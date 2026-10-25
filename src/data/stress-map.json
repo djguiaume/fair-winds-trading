@@ -8,6 +8,6 @@
     { "x": -430, "y": -430, "turnDeg": 216 },
     { "x": 430, "y": -430, "turnDeg": 288 }
   ],
-  "clearance": 30,
+  "clearance": 40,
   "edgeMargin": 40
 }

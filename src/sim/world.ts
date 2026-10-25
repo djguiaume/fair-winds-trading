@@ -603,13 +603,12 @@ function stepCurrent(world: World, dt: number): WorldEvent[] {
   const k = knotToUnits() * dt;
   boat.x += water.east * k;
   boat.y += water.north * k;
-  const charted = (world.trade.progress.charted ??= []);
   if (
-    charted.includes(water.id) ||
+    world.trade.progress.charted?.includes(water.id) ||
     Math.hypot(water.east, water.north) < TUNING.weather.currents.chartAtKn
   )
     return [];
-  charted.push(water.id);
+  (world.trade.progress.charted ??= []).push(water.id);
   return [{ type: 'current-charted', id: water.id }];
 }
 

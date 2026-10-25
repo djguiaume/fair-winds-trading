@@ -356,7 +356,9 @@ export function prepareProp(id: string, args: PropBuildArgs): () => Parts {
       }
       if (p.windows) {
         const [w, d, y, front, side, cx, cz] = p.windows.map((v) => num(v, s));
-        out.push(...windowPanes(w!, d!, y!, front!, side!, num(p.seed, s), cx, cz));
+        out.push(
+          ...windowPanes(w!, d!, y!, front!, side!, num(p.seed, s), cx, cz, num(p.pane ?? 1, s)),
+        );
         return;
       }
       if (p.use) {
@@ -415,7 +417,7 @@ const RECIPE_KEYS = new Set([
 ]);
 const PART_KEYS = new Set([
   ...SHAPE_KEYS,
-  ...['seed', 'y', 'ops', 'at', 'color', 'glow', 'faces', 'tag', 'if', 'repeat', 'vars'],
+  ...['seed', 'pane', 'y', 'ops', 'at', 'color', 'glow', 'faces', 'tag', 'if', 'repeat', 'vars'],
 ]);
 
 /** The triangles of a set of parts. */

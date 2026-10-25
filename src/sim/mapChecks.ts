@@ -593,6 +593,7 @@ export function quickChecks(map: MapDef): MapCheck[] {
     .filter(
       ({ mark }) =>
         mark.type !== 'light' &&
+        mark.type !== 'wreck' &&
         Number.isFinite(mark.x) &&
         Number.isFinite(mark.y) &&
         !clearAt(map, mark.x, mark.y, 1),
