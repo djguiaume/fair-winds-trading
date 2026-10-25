@@ -45,12 +45,37 @@ describe('full-screen chart planning', () => {
     expect(chart.currentTab).toBe('map');
     // LB / RB skip the journal while there are no quests; Back closes from any tab.
     chart.stepTab(1);
+    expect(chart.currentTab).toBe('hold');
+    chart.stepTab(1);
     expect(chart.currentTab).toBe('market');
+    chart.stepTab(-1);
     chart.stepTab(-1);
     chart.stepTab(-1);
     expect(chart.currentTab).toBe('legend');
     chart.back();
     expect(get<HTMLDialogElement>('chart').open).toBe(false);
+  });
+
+  it('lists the hold and the deck on the Cargo tab (0213)', () => {
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    world.trade.captain.cargo.grain = 5;
+    world.trade.quests.hold = 6;
+    const chart = new SeaChart(get<HTMLDialogElement>('chart'), world, {});
+    chart.questCargo = () => ['Maren’s millstones ×1 · 6 deck space'];
+    chart.open();
+    click('chart-tab-hold');
+    expect(get<HTMLElement>('chart-hold-panel').hidden).toBe(false);
+    const sections = [...get('chart-hold-list').querySelectorAll('.hold-section')].map((el) =>
+      el.textContent!.replace(/\s+/g, ' ').trim(),
+    );
+    expect(sections[0]).toBe('In the hold5/10Grain×5');
+    expect(sections[1]).toBe('On deck6/8Maren’s millstones ×1 · 6 deck space');
+    world.trade.captain.cargo.grain = 0;
+    world.trade.quests.hold = 0;
+    chart.questCargo = () => [];
+    chart.close();
+    chart.open();
+    expect(get('chart-hold-list').textContent).toContain('Nothing aboard.');
   });
 
   it('steps through the goods with X, then names only (0196)', () => {

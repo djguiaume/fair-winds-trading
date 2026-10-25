@@ -99,7 +99,10 @@ export interface PortQuay {
   items(): QuayItem[];
   seen(fresh: QuayItem[]): void;
   act(quest: string, act: 'accept' | 'later' | 'ignore' | 'choose', option?: string): void;
+  /** "Hand over" on a person's card (decision 0213): `n` of `good`, paid. */
+  hand(quest: string, good: string, n: number): void;
 }
+type QuayAct = 'accept' | 'later' | 'ignore' | 'choose' | 'hand';
 
 /** Lot sizes for one tap on Buy or Sell (decision 0049); clamped to what the hold, stock and gold allow. */
 const LOTS = [1, 5, 10] as const;
@@ -134,6 +137,8 @@ export class TradePanel {
   onTrade: (kind: 'buy' | 'sell', good: GoodId | null) => void = () => {};
   onRender: () => void = () => {};
   onClose: () => void = () => {};
+  /** Quest cargo aboard, a line each (decision 0213). */
+  questCargo: () => string[] = () => [];
   /** The port's picture for the header, from the game's renderer (decision 0211); null: none. */
   harbourPicture: (portId: string) => string | null = () => null;
   /** The Quay tab's people; none: no tab. */
@@ -283,6 +288,7 @@ export class TradePanel {
           <div class="header-controls">
             <span class="port-chip" title="${t('hud.gold')}">${COIN}<b>${formatNumber(captain.gold)}</b></span>
             <span class="port-chip" title="${t('hud.cargo')}">${crateIcon(holdCap > 0 ? holdUsed / holdCap : 0)}<b>${holdUsed}/${holdCap}</b></span>
+            ${this.renderDeckChip()}
             ${
               KIDS_MODE_AVAILABLE
                 ? `<button id="tp-toggle-mode" class="mode-toggle-btn" title="${t('trade.switchMode')}">
@@ -457,7 +463,12 @@ export class TradePanel {
     const name = (first.giver?.name ?? first.arc).replace(/[&<>"]/g, '');
     return `<button id="tp-quay-hint" class="quay-hint">${
       first.giver ? portraitSvg(first.giver, { size: 40, mood: first.mood }) : ''
-    }<span>${t('trade.quayHint', { name })} <em>${t('trade.quayGo')}</em></span></button>`;
+    }<span>${
+      // Dock news says itself (decision 0213): "Done! +100 gold." after the timber sold.
+      first.news
+        ? `<b>${name}</b> · ${first.news.replace(/[&<>"]/g, '')}`
+        : t('trade.quayHint', { name })
+    } <em>${t('trade.quayGo')}</em></span></button>`;
   }
 
   /** Hull repair after reef strikes (decision 0032); shown only when the hull is damaged. */
@@ -834,6 +845,7 @@ export class TradePanel {
         <div class="goods-list">${rowsHtml}${this.renderKeeper(port.id)}</div>
         <aside class="port-side">
           ${this.renderCredit()}
+          ${this.renderQuestCargo()}
           <section class="side-card">
             <h3>${t('trade.orderHere')}</h3>
             ${orderHtml}
@@ -842,6 +854,24 @@ export class TradePanel {
         </aside>
       </div>
     `;
+  }
+
+  /** Quest cargo on deck (decision 0213), next to the hold, while there is some. */
+  private renderDeckChip(): string {
+    const { trade } = this.world;
+    const onDeck = trade.quests.hold ?? 0;
+    if (onDeck <= 0) return '';
+    const deck = SHIP_CLASSES[trade.captain.activeShip]!.deck;
+    return `<span class="port-chip deck-chip" title="${t('hud.onDeck')}"><svg class="icon" aria-hidden="true"><use href="#i-deck" /></svg><small>${t('hud.deck')}</small><b>${onDeck}/${deck}</b></span>`;
+  }
+
+  /** Quest cargo on deck (decision 0213): it is not for sale and not in the hold, so say whose. */
+  private renderQuestCargo(): string {
+    const lines = this.questCargo();
+    if (!lines.length) return '';
+    return `<section class="side-card quest-cargo"><h3>${t('quest.cargoTitle')}</h3><ul>${lines
+      .map((l) => `<li>${l.replace(/[&<>"]/g, '')}</li>`)
+      .join('')}</ul></section>`;
   }
 
   /**
@@ -1265,8 +1295,11 @@ export class TradePanel {
       .querySelectorAll<HTMLButtonElement>('.quay-people button[data-act]')
       .forEach((btn) => {
         btn.addEventListener('click', () => {
-          const act = btn.dataset.act as 'accept' | 'later' | 'ignore' | 'choose';
-          this.quay?.act(btn.dataset.quest!, act, btn.dataset.option);
+          const act = btn.dataset.act as QuayAct;
+          // Goods handed over from the person's card (decision 0213): paid, the quest moves on.
+          if (act === 'hand')
+            this.quay?.hand(btn.dataset.quest!, btn.dataset.good!, Number(btn.dataset.n));
+          else this.quay?.act(btn.dataset.quest!, act, btn.dataset.option);
           this.render();
         });
       });
