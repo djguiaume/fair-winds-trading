@@ -197,6 +197,8 @@ export class PadFocus {
   private using = false;
   /** The pad just took over: its first move or A only shows where the focus is. */
   private waking = false;
+  /** The control that carries the ring's mark (`data-pad-focus`). */
+  private marked: HTMLElement | null = null;
   private hintsTimer: ReturnType<typeof setTimeout> | undefined;
   /** When the right stick last scrolled (0: it is not leaning). */
   private scrolledAt = 0;
@@ -336,6 +338,7 @@ export class PadFocus {
     if (!screen) {
       this.screen = null;
       this.showHints(false);
+      this.mark(null);
       return null;
     }
     const opened = screen.root !== this.screen;
@@ -351,7 +354,21 @@ export class PadFocus {
       if (target && target !== active) this.focus(target, controls);
     }
     if (opened) this.showHints(true, screen.root);
+    const now = document.activeElement as HTMLElement | null;
+    this.mark(now && now !== screen.root && screen.root.contains(now) ? now : null);
     return screen;
+  }
+
+  /**
+   * The ring's mark (decision 0203): Edge on Xbox's pointer mode can leave the page without the
+   * browser's focus, so `:focus` never matches and the ring did not show although the focus moved
+   * (Guillaume's `?padlog` photo). The control the pad is on carries `data-pad-focus` too.
+   */
+  private mark(el: HTMLElement | null) {
+    if (this.marked === el) return;
+    this.marked?.removeAttribute('data-pad-focus');
+    this.marked = el;
+    el?.setAttribute('data-pad-focus', '');
   }
 
   private move(screen: PadScreen, dir: Direction) {
@@ -408,6 +425,7 @@ export class PadFocus {
 
   private focus(el: HTMLElement, controls: readonly HTMLElement[], reveal = true) {
     el.focus({ preventScroll: true });
+    this.mark(el);
     if (reveal) el.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
     const like = likeness(el);
     this.last = { like, index: controls.filter((c) => likeness(c) === like).indexOf(el) };

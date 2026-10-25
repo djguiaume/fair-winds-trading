@@ -135,4 +135,17 @@ describe('the port screen with a game controller (decision 0192)', () => {
     focus.press(press('a'), 'menu');
     expect(clicked).toEqual(['buy']);
   });
+
+  it('marks the control the pad is on, for a page the browser gives no focus (decision 0203)', () => {
+    const { root, focus } = portScreen();
+    focus.frame(null, 0);
+    const buy = root.querySelector('#buy')!;
+    expect(document.activeElement).toBe(buy);
+    expect(buy.hasAttribute('data-pad-focus')).toBe(true);
+    // The focus moved by other code (a screen focusing its own button): the mark follows.
+    root.querySelector<HTMLElement>('#upgrade')!.focus();
+    focus.frame(null, 16);
+    expect(buy.hasAttribute('data-pad-focus')).toBe(false);
+    expect([...root.querySelectorAll('[data-pad-focus]')].map((e) => e.id)).toEqual(['upgrade']);
+  });
 });
