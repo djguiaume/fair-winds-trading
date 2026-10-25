@@ -1,6 +1,6 @@
 # 0173. East sea: Fogwatch, the Stepping Stones and fog banks
 
-**Status:** Proposed (2026-10-24). Waiting on Guillaume's look at the [review](../reviews/east-sea/README.md).
+**Status:** Accepted (2026-10-25): Guillaume validated the look ([review](../reviews/east-sea/README.md)).
 
 ## Context
 

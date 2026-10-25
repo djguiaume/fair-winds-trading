@@ -1,6 +1,6 @@
 # East sea review: Fogwatch (ADR 0173)
 
-Real captures of the Phase 4 dev sea (`?map=phase4`), taken with `npm run shots` and `npm run chart`. Decision: [0173](../../decisions/0173-east-sea-fogwatch-the-stepping-stones-and-fog-banks.md). The fog banks' haze is [0169](../../decisions/0169-haze-fog-banks-and-ash-clouds-as-wind-zone-kinds.md) ([its review](../haze/README.md)). Waiting on Guillaume's look.
+Real captures of the Phase 4 dev sea (`?map=phase4`), taken with `npm run shots` and `npm run chart`. Decision: [0173](../../decisions/0173-east-sea-fogwatch-the-stepping-stones-and-fog-banks.md). The fog banks' haze is [0169](../../decisions/0169-haze-fog-banks-and-ash-clouds-as-wind-zone-kinds.md) ([its review](../haze/README.md)). Accepted by Guillaume (2026-10-25).
 
 ## The labelled map
 
