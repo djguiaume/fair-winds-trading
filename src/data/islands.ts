@@ -223,6 +223,10 @@ export function landmarkOf(island: IslandDef): string | undefined {
 export const hasVolcano = (island: IslandDef) =>
   !!designOf(island)?.ground.some((g) => g.shape === 'peak' && g.crater);
 
+/** A sea stack you steer by: ground at least twice the island's radius tall (decision 0181). */
+export const isSeaStack = (island: IslandDef) =>
+  !!designOf(island)?.ground.some((g) => (g.height ?? 0) >= 2);
+
 /** Is this element present at a level? */
 export const atLevel = (e: { from?: number; to?: number }, level: number) =>
   (e.from ?? 1) <= level && level <= (e.to ?? 4);

@@ -102,7 +102,9 @@
         "sand": "blacksand"
       },
       "colors": {
-        "path": "#8f8a84"
+        "path": "#8f8a84",
+        "reefRock": ["#36302f", "#45403e", "#2b2726"],
+        "coral": []
       }
     },
     "fog": {
