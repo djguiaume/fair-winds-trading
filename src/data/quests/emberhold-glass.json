@@ -33,5 +33,6 @@
       "goal": { "is": "delivered", "port": "emberhold", "good": "timber", "qty": 12 },
       "reward": { "gold": 600 }
     }
-  ]
+  ],
+  "reward": { "erupt": ["the-smoulder"] }
 }

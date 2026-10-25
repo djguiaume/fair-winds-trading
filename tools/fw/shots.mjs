@@ -60,6 +60,8 @@ Look
   --no-zones  --no-currents     wind zones, currents off (default on, like the game)
   --no-belt                     Settings › Storm belt off (0167)
   --quality low|medium|high     Settings › Quality (default: the game's auto guess)
+  --erupt island                this volcano erupts as the scene is set (0178); give it time to
+                                build, e.g. --wait 6000. --no-eruptions: the Eruptions switch off
   --cards                       keep quest cards and dialogs open (default: closed, kept in a quest test)
   --wait ms                     settle time before the shot (default 1500)
   --click selector              click this before the shot (after the wait), e.g. a card's button,
@@ -153,6 +155,8 @@ export function normalise(opts) {
     belt: !o['no-belt'],
     quality: o.quality ?? null,
     currents: !o['no-currents'],
+    erupt: o.erupt ?? null,
+    eruptions: !o['no-eruptions'],
     cards: o.cards ?? !!o.url,
     wait: o.wait ?? 1500,
     click: o.click ? (Array.isArray(o.click) ? o.click.join(';') : String(o.click)) : null,
@@ -243,6 +247,7 @@ export function seedStorage(shot) {
       stormBelt: shot.belt ?? true,
       ...(shot.quality ? { quality: shot.quality } : {}),
       currents: shot.currents,
+      eruptions: shot.eruptions,
     }),
     ...shot.storage,
   };
@@ -328,6 +333,7 @@ async function setScene(page, shot) {
     if (s.tab && world.trade.dockedAt) window.fwt.tradePanel.open(s.tab);
     if (s.zoom !== null) view.zoom = s.zoom;
     if (s.look) view.setFocus({ x: s.look[0], y: s.look[1] }, true);
+    if (s.erupt && !view.erupt(s.erupt, true)) return `no volcano on ${s.erupt}`;
     return null;
   }, shot);
   if (problem) throw new Error(problem);

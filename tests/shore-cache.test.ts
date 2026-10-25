@@ -203,6 +203,7 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
     'lighthouseBeams',
     'beaconLights',
     'stormClouds',
+    'volcanoes',
     'lanterns',
     'wake',
     'buoy',

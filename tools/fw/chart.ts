@@ -15,6 +15,7 @@ import { ISLAND_DESIGNS } from '../../src/data/islands';
 import type { MapDef } from '../../src/sim/map';
 import { harbourApproach, sailRoute } from '../../src/sim/mapChecks';
 import { seaMarkShape } from '../../src/ui/chartMarks';
+import type { Sectors } from '../../src/sim/seaSectors';
 
 type Args = Record<string, string | boolean | undefined> & { _: string[] };
 type Pt = [number, number];
@@ -59,6 +60,8 @@ export const OVERLAY_STYLES: Record<string, string> = {
 export interface ChartOptions {
   map: MapDef;
   prepared: MapDef;
+  /** The seas' sectors, drawn as spokes on the grown sea (decision 0179). */
+  sectors?: Sectors;
   /** Map shown as dashed ghosts where shapes moved (the editor's "where it was"). */
   shipped?: MapDef;
   layers?: Partial<Layers>;
@@ -186,6 +189,8 @@ export function renderChart(opts: ChartOptions) {
     layers,
     view: { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, upp },
     size: { width, height },
+    sectors: opts.sectors,
+    ringRadius: opts.sectors ? PHASE1_SOURCE.boundsRadius : undefined,
   });
   // The editor shows a hit disc over each island and the start boat; a still chart drops both.
   for (const node of [...chart.querySelectorAll('[data-hit]')]) {
@@ -521,6 +526,7 @@ export async function run(args: Args): Promise<number> {
                                       or names, or start) and draw them with their time
   --layers names,flow,marks           what to draw: names, flow, marks, harbours, course, grid
   --ghosts                            dashed outlines where shapes sat on the shipped ring
+  --sectors none                      no sector spokes on the grown sea (decision 0179)
   --title "…"                         title above the legend
   --legend none                       no side panel (title and legend)
   --width 1600                        PNG width in pixels
@@ -530,7 +536,7 @@ export async function run(args: Args): Promise<number> {
   --json                              what was written, as JSON`);
     return 0;
   }
-  const { map, prepared, label } = loadSea(String(args.sea ?? 'ring'));
+  const { map, prepared, label, sectors } = loadSea(String(args.sea ?? 'ring'));
   const overlay =
     typeof args.overlay === 'string'
       ? (JSON.parse(readFileSync(args.overlay, 'utf8')) as Overlay)
@@ -551,6 +557,7 @@ export async function run(args: Args): Promise<number> {
   const result = renderChart({
     map,
     prepared,
+    sectors: args.sectors === 'none' ? undefined : sectors,
     shipped: args.ghosts ? PHASE1_SOURCE : undefined,
     layers,
     view: parseView(args, map),

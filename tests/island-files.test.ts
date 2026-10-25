@@ -148,7 +148,7 @@ const GOLDEN: Record<string, string[]> = {
   'palm-key': ['296:5af31071', '270:7e77b63a', '266:18f30d17', '266:18f30d17'],
   'lone-palm': Array(4).fill('13:2bd589f4'),
   // The east sea (decision 0173).
-  fogwatch: ['630:a7a31ab1', '751:1036b9b6', '823:4bc333a2', '864:1d37430e'],
+  fogwatch: ['606:fe365570', '727:cd97104f', '799:c7908d01', '840:acc90a91'],
   'the-giant': Array(4).fill('6:c84f56e6'),
   'his-wife': Array(4).fill('6:676eecc4'),
   'amber-strand': ['129:e66b7b39', '133:56673594', '136:e68e96ec', '136:e68e96ec'],
@@ -158,7 +158,7 @@ const GOLDEN: Record<string, string[]> = {
   // The north sea's islands (decision 0170).
   'cairn-holm': Array(4).fill('6:cd116a0a'),
   'lead-rock': Array(4).fill('19:6c8d9003'),
-  rimewick: ['811:e554123c', '979:33ffc674', '1032:e24dd6b', '1040:1b84f5b2'],
+  rimewick: ['813:13706de2', '981:96ee850a', '1034:20dd1c89', '1042:f649515c'],
   'seal-rocks': Array(4).fill('19:515ad7d'),
   'snowberry-isle': ['238:30aaab39', '408:a4f7aef7', '437:cc204c39', '437:cc204c39'],
   whitefell: Array(4).fill('17:90d719e7'),
