@@ -128,10 +128,10 @@ describe('play a quest from a step (decision 0142)', () => {
     expect(seaStart(shoals.steps[0]!, PHASE1_MAP, clear)).not.toBeNull();
     expect(stepPort(shoals, shoals.steps[0], PHASE1_MAP)).toBe('saltmere');
     expect(playUrl('saltmere-shoals', 'gulls', { port: 'saltmere' })).toBe(
-      './?map=edited&quest=saltmere-shoals&step=gulls&port=saltmere',
+      './?map=edited&sea=phase4&quest=saltmere-shoals&step=gulls&port=saltmere',
     );
     expect(playUrl('q', 's', { x: 1.5, y: -2, headingDeg: 45 })).toBe(
-      './?map=edited&quest=q&step=s&x=1.5&y=-2&h=45',
+      './?map=edited&sea=phase4&quest=q&step=s&x=1.5&y=-2&h=45',
     );
   });
 

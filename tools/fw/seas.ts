@@ -1,8 +1,9 @@
-// The seas the tools load by name (decision 0153): the ring, the stress sea, the grown Phase 4
-// sea, an editor export (a whole map) or one sea file merged round the ring.
+// The seas the tools load by name (decision 0153): the game's grown sea (`phase4` or `game`,
+// decision 0198), the ring alone, the stress sea, an editor export (a whole map) or one sea file
+// merged round the ring.
 import { readFileSync } from 'node:fs';
 import { type SeaDef, SEAS, SEA_SECTORS, grownMap } from '../../src/data/grownMap';
-import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../../src/data/maps';
+import { GAME_SOURCE, PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../../src/data/maps';
 import { stressMap } from '../../src/data/stressMap';
 import type { MapDef } from '../../src/sim/map';
 import type { Sectors } from '../../src/sim/seaSectors';
@@ -20,8 +21,8 @@ export function loadSea(name: string): {
     const map = stressMap(PHASE1_SOURCE);
     return { map, prepared: prepareMap(map), label: 'stress' };
   }
-  if (name === 'phase4') {
-    const map = grownMap(PHASE1_SOURCE);
+  if (name === 'phase4' || name === 'game') {
+    const map = structuredClone(GAME_SOURCE);
     return { map, prepared: prepareMap(map), label: 'phase4', sectors: SEA_SECTORS };
   }
   const data = JSON.parse(readFileSync(name, 'utf8')) as MapDef | SeaDef;

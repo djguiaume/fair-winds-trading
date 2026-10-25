@@ -112,7 +112,7 @@ describe('npm run shots and npm run quest (decision 0153)', () => {
       sizes: 'desktop,portrait',
     })[0]!;
     expect(shot).toMatchObject({
-      sea: 'ring',
+      sea: 'phase4',
       at: [150, -30],
       heading: null,
       sail: 2,
@@ -121,7 +121,7 @@ describe('npm run shots and npm run quest (decision 0153)', () => {
       zones: true,
       storms: false,
       sizes: ['desktop', 'portrait'],
-      name: 'ring-150_-30-night',
+      name: 'phase4-150_-30-night',
     });
     expect(shotPath(shot)).toBe('/?debug=');
     expect(JSON.parse(seedStorage(shot)['fwt.settings.v1']!)).toMatchObject({
@@ -133,7 +133,10 @@ describe('npm run shots and npm run quest (decision 0153)', () => {
   });
 
   it('plays a dev sea or a map file, and refuses what cannot be shot', () => {
-    expect(shotPath(normalise({ sea: 'phase4' }))).toBe('/?debug=&map=phase4');
+    // The grown sea is the game's own (decision 0198); the ring alone is a test sea now.
+    expect(shotPath(normalise({ sea: 'phase4' }))).toBe('/?debug=');
+    expect(shotPath(normalise({ sea: 'game' }))).toBe('/?debug=');
+    expect(shotPath(normalise({ sea: 'ring' }))).toBe('/?debug=&map=ring');
     const file = normalise({ sea: 'src/data/phase1-map.json', 'no-zones': true });
     expect(shotPath(file)).toBe('/?debug=&map=edited');
     expect(file.zones).toBe(false);
@@ -163,7 +166,7 @@ describe('npm run shots and npm run quest (decision 0153)', () => {
     const play = questPlay(doc, PHASE1_MAP, 'saltmere-shoals', { step: '2' });
     expect(play).toMatchObject({ step: 'channel', start: { port: 'saltmere' } });
     expect(typeof play !== 'string' && play.path).toBe(
-      './?map=edited&quest=saltmere-shoals&step=channel&port=saltmere',
+      './?map=edited&sea=phase4&quest=saltmere-shoals&step=channel&port=saltmere',
     );
     expect(questPlay(doc, PHASE1_MAP, 'saltmere-shoals', { step: '9' })).toMatch(/has no step 9/);
     expect(
@@ -220,9 +223,10 @@ describe('npm run sea and shots --editor (decision 0161)', () => {
 
   it('shoots the map editor on a sea, with a selection', () => {
     const shot = normalise({ editor: 'phase4', select: 'area:sugar-bar' });
-    expect(shotPath(shot)).toBe('/editor.html?debug&sea=phase4');
+    expect(shotPath(shot)).toBe('/editor.html?debug');
     expect(shot.name).toBe('editor-phase4-area-sugar-bar');
     expect(shotPath(normalise({ editor: true }))).toBe('/editor.html?debug');
+    expect(shotPath(normalise({ editor: 'ring' }))).toBe('/editor.html?debug&sea=ring');
     expect(() => normalise({ editor: 'north' })).toThrow('--editor ring|phase4');
   });
 });
