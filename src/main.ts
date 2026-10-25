@@ -403,7 +403,9 @@ function showDueCard(): boolean {
 }
 /** Docked: the arrival card if a main quest has one, else straight to the harbour screen. */
 function openHarbour() {
-  if (!showDueCard()) tradePanel.open('market');
+  // A card already up (Rook's thanks, shown as the dock moved his lesson on) opens the harbour
+  // screen itself when it closes (decision 0190).
+  if (!questCard.isOpen && !showDueCard()) tradePanel.open('market');
   refreshPause();
 }
 // Every other quest's news away from its harbour: a small note at sea (decision 0141).
@@ -443,6 +445,9 @@ quests.onEvent = (e) => {
   }
   checkFounded();
   if (quest?.lesson) {
+    // Asked again, a lesson's people cards speak again (decision 0185).
+    if (e.type === 'started')
+      for (const key of questSeen) if (key.startsWith(`${e.quest}:`)) questSeen.delete(key);
     // A lesson speaks in its own bubble, and its last one says it is done (decision 0151).
     // Without its coach (the tutorial skipped, decision 0160) it ends without a word.
     if (e.type === 'finished' && quests.isCoached(e.quest)) {
@@ -500,17 +505,21 @@ questCard.onChoose = (id, option) => {
   autosave();
 };
 questCard.onClose = (card) => {
-  // Rook's card at the rescue closed without its answer (Esc): the lesson goes on as if answered,
-  // since nothing else would show that step again (decision 0185).
-  queueMicrotask(() => {
-    const lesson = quests.lesson;
-    if (lesson?.quest.id !== card.quest || !lesson.step.speaker) return;
+  // A lesson's people card closed without its answer (Esc, To the market): the lesson goes on as
+  // if answered, since nothing else would show that step again (decision 0185). Its next card,
+  // if any, is then due below.
+  const lesson = quests.lesson;
+  if (
+    lesson?.quest.id === card.quest &&
+    lesson.step.speaker &&
+    questSeen.has(`${card.quest}:${lesson.step.id}`)
+  ) {
     const first = quests.options(card.quest)[0];
     if (first) {
       quests.choose(card.quest, first.id);
       autosave();
     }
-  });
+  }
   // After the arrival card (or "To the market"), the harbour screen.
   if (!showDueCard() && world.trade.dockedAt && !tradePanel.isOpen) tradePanel.open('market');
   refreshPause();

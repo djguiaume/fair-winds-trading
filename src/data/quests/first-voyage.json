@@ -42,8 +42,9 @@
     {
       "id": "aboard",
       "speaker": "rook",
+      "look": "soaked",
       "mood": "pleased",
-      "choose": [{ "id": "continue" }],
+      "choose": [{ "id": "welcome" }],
       "wind": { "speedKn": 8 }
     },
     {
@@ -80,6 +81,14 @@
       "unless": [{ "if": { "is": "not", "of": { "is": "course" } }, "to": "home-port" }],
       "wind": { "speedKn": 8 },
       "coach": { "sea": "port-marker", "chart": "chart-port", "port": "home", "action": "chart" }
+    },
+    {
+      "id": "thanks",
+      "port": "home",
+      "speaker": "rook",
+      "look": "soaked",
+      "mood": "pleased",
+      "choose": [{ "id": "continue" }]
     },
     {
       "id": "island",

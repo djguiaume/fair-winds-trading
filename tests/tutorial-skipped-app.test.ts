@@ -89,16 +89,24 @@ it('Free sailing on a fresh voyage still plays the prologue, without the coach (
   expect(card.querySelector('.quest-speech')!.textContent).toContain(
     'Harbourmaster Rook, of Saltmere',
   );
-  click('#quest-card [data-option="continue"]');
+  click('#quest-card [data-option="welcome"]');
   expect(card.open).toBe(false);
   expect(quests.progress('first-voyage')?.step).toBe('home');
   Object.assign(world.boat, { x: 252, y: -134, speedKn: 0 });
   click('.port-marker[data-port-id="saltmere"]');
   expect(world.trade.dockedAt).toBe('saltmere');
+  // Rook thanks her on the quay (decision 0190); Esc on his card counts as the answer.
+  expect(quests.progress('first-voyage')?.step).toBe('thanks');
+  expect(card.open).toBe(true);
+  expect(card.querySelector('.quest-speech')!.textContent).toContain('swimming for it');
+  card.dispatchEvent(new Event('cancel', { cancelable: true }));
+  card.close();
   expect(quests.isDone('first-voyage')).toBe(true);
-  // No "First delivery complete" bubble; Rook's thanks speaks on its own card.
+  // No "First delivery complete" bubble; Rook's thanks goes on, on its own card, with the
+  // rescue's words, not a stranger's.
   expect(bubble()?.hidden ?? true).toBe(true);
-  expect(quests.progress('rooks-thanks')).toBeDefined();
-  expect((document.getElementById('quest-card') as HTMLDialogElement).open).toBe(true);
+  expect(quests.progress('rooks-thanks')?.step).toBe('skerry');
+  expect(card.open).toBe(true);
+  expect(card.querySelector('.quest-speech')!.textContent).toContain('about that debt');
   context.mockRestore();
 });
