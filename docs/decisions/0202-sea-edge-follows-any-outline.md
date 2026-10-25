@@ -1,6 +1,6 @@
 # 0202. Sea edge follows any outline
 
-**Status:** Proposed (2026-10-25). Asked by Guillaume for future extensions (steam, pirates, …) that may add a sea section sticking out one way. Look approved by the art director ([0165](0165-art-bible-and-the-phase-4-biome-looks.md)). [Screenshots of a test section](../reviews/sea-edge/README.md).
+**Status:** Accepted (2026-10-25). Guillaume OK on the screenshots. Asked by Guillaume for future extensions (steam, pirates, …) that may add a sea section sticking out one way. Look approved by the art director ([0165](0165-art-bible-and-the-phase-4-biome-looks.md)). [Screenshots of a test section](../reviews/sea-edge/README.md).
 
 ## Context
 
