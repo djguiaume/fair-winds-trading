@@ -43,7 +43,7 @@ export function pointsOf(design: IslandDesign, shape: Shape): number[][] | undef
 
 /** The outline drawn for a ground entry: its own, or its coast's inset by the beach. */
 export function groundOutline(design: IslandDesign, g: GroundDef): Point[] {
-  return g.outline ?? insetOutline(design.coasts[g.coast ?? 0]!, BEACH);
+  return g.outline ?? insetOutline(design.coasts[g.coast ?? 0]!, g.beach ?? BEACH);
 }
 
 export function shapeName(design: IslandDesign, shape: Shape): string {

@@ -18,6 +18,8 @@ export type Point = [number, number];
 export interface GroundDef {
   /** Index of a coast whose outline, inset by the beach width, this ground covers. */
   coast?: number;
+  /** With `coast`: the beach's width in radius units (default `BEACH`); a narrow stony shore. */
+  beach?: number;
   outline?: Point[];
   holes?: Point[][];
   height: number;
