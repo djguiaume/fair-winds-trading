@@ -211,8 +211,13 @@ export function cardFor(
   const who = step ? (step.speaker ?? quest.giver) : (quest.doneSpeaker ?? quest.giver);
   const giver = who ? character(who) : undefined;
   const key = `${quest.text}.${step?.id ?? QUEST_DONE}`;
-  // A lesson counts its steps along its main line, as its bubble does (decision 0185).
-  const line = quest.lesson ? mainLine(quest) : quest.steps.map((s) => s.id);
+  // A card counts the steps along the quest's main line, as a lesson's bubble does (decision
+  // 0185); a step off it (Rook's offer to a stranger, 0190) counts as the step that leads there.
+  const line = mainLine(quest);
+  const lineNo = (id: string) =>
+    line.indexOf(id) + 1 ||
+    line.findIndex((l) => quest.steps.find((s) => s.id === l)?.unless?.some((w) => w.to === id)) +
+      1;
   const card: QuestCardModel = {
     quest: quest.id,
     kind,
@@ -221,7 +226,7 @@ export function cardFor(
     look: step?.look,
     role: roleLine(map, giver),
     arc: arcName(quest),
-    stepNo: step ? line.indexOf(step.id) + 1 : line.length,
+    stepNo: step ? lineNo(step.id) : line.length,
     steps: line.length,
     speech: tOptional(`${key}.copy`, stepParams(book, step, quest)),
     ask: tOptional(`${key}.title`, stepParams(book, step, quest)),

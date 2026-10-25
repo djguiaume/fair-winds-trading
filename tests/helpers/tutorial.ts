@@ -90,13 +90,15 @@ export function tutorialVoyage(
       Object.assign(world.boat, { x: wreck.x + 12, y: wreck.y, speedKn: 0.5, sinceBump: Infinity });
       for (let n = 0; n < 8; n++) book.check(0.5);
       // Rook's card at the rescue (decision 0185): "Welcome aboard".
-      if (v.step === 'aboard') v.cont();
+      if (v.step === 'aboard') v.cont('welcome');
     },
     /** Rook home to Saltmere, the island, and alongside for the first trade. */
     reachMarket() {
       v.rescue();
       v.course('saltmere');
       v.dock('saltmere');
+      // Rook's thanks on the quay (decision 0190), then the island.
+      if (v.step === 'thanks') v.cont();
       v.cont();
     },
   };

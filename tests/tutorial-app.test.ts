@@ -101,7 +101,7 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   // Rook's card at the rescue (decision 0185), then the chart lesson's bubble.
   expect(step()).toBe('aboard');
   expect((document.getElementById('quest-card') as HTMLDialogElement).open).toBe(true);
-  click('#quest-card [data-option="continue"]');
+  click('#quest-card [data-option="welcome"]');
   expect(step()).toBe('chart');
   // The coach mark rings the Map button; tapping it opens the chart, and Rook asks for home.
   click('#chart-btn');
@@ -115,6 +115,13 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   Object.assign(world.boat, { x: 252, y: -134, speedKn: 0 });
   click('.port-marker[data-port-id="saltmere"]');
   expect(world.trade.dockedAt).toBe('saltmere');
+  // Rook thanks her on the quay, on his card (decision 0190), then the island lesson.
+  expect(step()).toBe('thanks');
+  const card = document.getElementById('quest-card') as HTMLDialogElement;
+  expect(card.open).toBe(true);
+  expect(card.querySelector('.quest-speech')!.textContent).toContain('swimming for it');
+  click('#quest-card [data-option="continue"]');
+  expect(card.open).toBe(false);
   expect(step()).toBe('island');
   click('#tutorial-continue');
   expect(step()).toBe('buy');
