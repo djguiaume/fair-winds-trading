@@ -48,6 +48,7 @@ import { Volcanoes } from './volcanoes';
 import { stormRain } from '../sim/storms';
 import { seaShape } from '../sim/seaEdge';
 import { CLEAR, type ZoneVisual, mapZones, zoneField, zoneVisualAt } from '../sim/windZones';
+import type { FlagDef } from '../sim/regatta';
 import { smoothOutline } from '../sim/flowShapes';
 import { designOf } from '../data/islands';
 import {
@@ -314,20 +315,29 @@ export class GameView {
     const id = captain.activeShip;
     // The model shows the hull's damage in steps (decision 0208): a new step rebuilds it.
     const damage = damageStage(hullCondition(this.world.trade));
-    const key = `${id}:${upgrades.sails}${upgrades.hold}${upgrades.hull}:${damage}`;
-    return { id, upgrades, damage, key };
+    const flag = this.pennant;
+    const key = `${id}:${upgrades.sails}${upgrades.hold}${upgrades.hull}:${damage}:${flag?.id ?? ''}`;
+    return { id, upgrades, damage, flag, key };
   }
 
   /** The model for the ship being sailed, with its upgrade levels visible (decision 0016). */
   private buildBoat(): BoatModel {
-    const { id, upgrades, damage, key } = this.activeBoat();
+    const { id, upgrades, damage, flag, key } = this.activeBoat();
     this.boatKey = key;
     this.heelFactor = heelFactor(id);
     // Quality is a live toggle, not a permanent factory opt-out: Low → Medium must restore ropes.
-    const boat = createBoatModel(id, { upgrades, damage });
+    const boat = createBoatModel(id, { upgrades, damage, ...(flag ? { flag } : {}) });
     boat.setLowDetail?.(this.level === 'low');
     boat.root.rotation.order = 'YXZ';
     return boat;
+  }
+
+  /** The regatta pennant at her masthead (decision 0216): the latest series won, or none. */
+  private pennant: FlagDef | undefined;
+  setPennant(flag: FlagDef | undefined) {
+    if (flag?.id === this.pennant?.id) return;
+    this.pennant = flag;
+    this.refreshBoat();
   }
 
   /** Rebuild the boat after a shipyard purchase, a ship change, a new damage step or a repair. */
@@ -689,6 +699,7 @@ export class GameView {
       (x, z) => waveHeight(x, z, time),
       glow,
       this.world.boat,
+      this.world.rival,
     );
     this.questMarkers.update(this.stepMarkers(), time, (x, z) => waveHeight(x, z, time));
     const course = this.world.destination;

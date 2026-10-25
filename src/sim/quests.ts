@@ -724,7 +724,12 @@ export function checkQuestHooks(
   quests: readonly QuestDef[],
   others: string[] = [],
 ): string[] {
-  const known = new Set([...quests.map((q) => q.id), ...others]);
+  // A regatta series won counts as done (decision 0216): the Cup stands on Skerry's pier.
+  const known = new Set([
+    ...quests.map((q) => q.id),
+    ...REGATTA.series.map((s) => s.id),
+    ...others,
+  ]);
   const out: string[] = [];
   const named = (ids: string[], where: string) => {
     for (const id of ids) if (!known.has(id)) out.push(`${where}: no quest "${id}"`);
@@ -799,6 +804,8 @@ export type QuestEvent =
       medal: MedalRank;
       had: number;
       best: boolean;
+      /** The race's first finish: no best before it. */
+      first: boolean;
       gold: number;
       won: string[];
       /** The rival's time, seconds, if she finished first. */
@@ -1652,7 +1659,8 @@ export class QuestBook {
     const sec = hundredths / 100;
     const medal = medalFor(race, this.trade.captain.activeShip, this.trade.difficulty, sec);
     const had = p.medal ?? 0;
-    const best = p.best === undefined || hundredths < p.best;
+    const first = p.best === undefined;
+    const best = first || hundredths < p.best!;
     if (best) p.best = hundredths;
     if (medal > had) p.medal = medal;
     const gold = medalGold(race, had, medal);
@@ -1669,6 +1677,7 @@ export class QuestBook {
       medal,
       had,
       best,
+      first,
       gold,
       won,
       ...(rival !== undefined ? { rival } : {}),

@@ -136,6 +136,14 @@ export class Hud {
   /** A timed run under way (decision 0213): its clock shows in the course pill. */
   run: { sec: number; par: number; to: string } | null = null;
   private readonly objClock = $('obj-clock');
+  /**
+   * A race under way (decision 0216): its line in the course pill ("Horn in 7", "Mark 2 of 3")
+   * and its clock once the horn has gone; the pill's × gives it up (`onRetire`).
+   */
+  race: { label: string; short: string; sec: number | null } | null = null;
+  private readonly upright = matchMedia('(orientation: portrait) and (max-width: 600px)');
+  onRetire: () => void = () => {};
+  private readonly objRetire = $('obj-retire');
   /** Quest cargo aboard, a line each, for the hold list (decision 0213). */
   questCargo: () => string[] = () => [];
   private readonly wpArrow = $('wp-arrow');
@@ -215,6 +223,7 @@ export class Hud {
     this.boatLabels = new BoatLabels($('boat-labels'), this.world);
 
     this.seaGlyphs();
+    this.objRetire.addEventListener('click', () => this.onRetire());
     this.dockBtn.addEventListener('click', () => {
       this.onDockClick();
     });
@@ -375,7 +384,17 @@ export class Hud {
   /** "1:45 / 2:20", red near par (decision 0213). */
   private showRunClock() {
     const run = this.run;
-    this.objClock.hidden = !run;
+    const race = this.race;
+    this.objRetire.hidden = !race;
+    this.objClock.hidden = !run && race?.sec == null;
+    if (race) {
+      if (race.sec === null) return;
+      const b = this.objClock.querySelector('b')!;
+      const text = clock(race.sec);
+      if (b.textContent !== text) b.textContent = text;
+      this.objClock.classList.remove('is-close');
+      return;
+    }
     if (!run) return;
     const text = `${clock(run.sec)} / ${clock(run.par)}`;
     const b = this.objClock.querySelector('b')!;
@@ -617,7 +636,7 @@ export class Hud {
     rot(this.cWind, windTo(wind));
     rot(this.cBoat, boat.heading);
     this.cWp.style.display = wp ? '' : 'none';
-    this.objective.hidden = !wp && !this.run;
+    this.objective.hidden = !wp && !this.run && !this.race;
     this.showRunClock();
     if (wp) rot(this.cWp, bearingTo(boat, wp));
     this.cMark.style.display = this.mark ? '' : 'none';
@@ -626,7 +645,9 @@ export class Hud {
     if (wp) this.objArrow.style.transform = `rotate(${targetAngle}rad)`;
     // No course set during a run: the pill names the run (decision 0213).
     const runTo = this.run && findPort(this.world.map, this.run.to)?.name;
-    const targetName = wp?.label ?? (runTo ? t('quest.run.clock', { to: runTo }) : '');
+    this.objective.classList.toggle('is-race', !!this.race);
+    const race = this.race && (this.upright.matches ? this.race.short : this.race.label);
+    const targetName = race ?? wp?.label ?? (runTo ? t('quest.run.clock', { to: runTo }) : '');
     if (this.objName.textContent !== targetName) this.objName.textContent = targetName;
 
     this.compass.classList.toggle('is-upwind', cue.amber);

@@ -98,11 +98,15 @@ export type TradePanelTab = 'market' | 'orders' | 'quay' | 'shipyard';
 export interface PortQuay {
   items(): QuayItem[];
   seen(fresh: QuayItem[]): void;
-  act(quest: string, act: 'accept' | 'later' | 'ignore' | 'choose', option?: string): void;
+  act(
+    quest: string,
+    act: 'accept' | 'later' | 'ignore' | 'choose' | 'again',
+    option?: string,
+  ): void;
   /** "Hand over" on a person's card (decision 0213): `n` of `good`, paid. */
   hand(quest: string, good: string, n: number): void;
 }
-type QuayAct = 'accept' | 'later' | 'ignore' | 'choose' | 'hand';
+type QuayAct = 'accept' | 'later' | 'ignore' | 'choose' | 'hand' | 'again';
 
 /** Lot sizes for one tap on Buy or Sell (decision 0049); clamped to what the hold, stock and gold allow. */
 const LOTS = [1, 5, 10] as const;

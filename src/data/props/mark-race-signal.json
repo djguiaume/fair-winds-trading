@@ -1,0 +1,18 @@
+{
+  "id": "mark-race-signal",
+  "name": "Race committee signal mast",
+  "group": "landmarks",
+  "internal": true,
+  "vars": { "finish": 0 },
+  "parts": [
+    { "cyl": [0.05, 0.06, 2.6, 4], "at": [0, 1.3, 0], "color": "#22252a" },
+    {
+      "box": [0.04, 0.45, 0.7],
+      "at": [0, 2.35, -0.36],
+      "color": { "pick": "finish", "of": ["#ef7d2a", "#2f6fd0"] }
+    },
+    { "box": [0.04, 0.12, 0.7], "at": [0, 2.35, -0.36], "color": "#f4f1e8" },
+    { "box": [0.03, 0.3, 0.45], "at": [0, 1.8, -0.24], "color": "#f2c230" },
+    { "box": [0.03, 0.3, 0.45], "at": [0, 1.4, -0.24], "color": "#d2462f" }
+  ]
+}

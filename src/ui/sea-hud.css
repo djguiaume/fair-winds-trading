@@ -1103,6 +1103,10 @@ button.captain-stat:focus-visible {
   .objective:has(.obj-clock:not([hidden])) .obj-dist {
     display: none;
   }
+  /* A race's clock drops its icon on a phone, for the mark's number (decision 0216). */
+  .objective.is-race .obj-clock .icon {
+    display: none;
+  }
   .compass {
     width: 108px;
   }
@@ -1208,5 +1212,25 @@ html[data-input='pad'] #dock-btn:focus {
   will-change: transform, opacity;
 }
 .boat-label[hidden] {
+  display: none;
+}
+/* A race's give-up button in the course pill (decision 0216). */
+.obj-retire {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-right: -8px;
+  padding: 0;
+  border: 1px solid var(--brass-line);
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-dim);
+  font: 700 16px/1 var(--body);
+  cursor: pointer;
+  pointer-events: auto;
+}
+.obj-retire[hidden] {
   display: none;
 }

@@ -13,15 +13,7 @@ export const MOODS: readonly Mood[] = ['neutral', 'pleased', 'worried'];
 export type HairStyle = 'short' | 'braid' | 'bun' | 'bald';
 export type Hat = 'none' | 'cap' | 'scarf' | 'souwester';
 export type Item =
-  | 'none'
-  | 'pipe'
-  | 'pencil'
-  | 'chisel'
-  | 'flour'
-  | 'spyglass'
-  | 'net'
-  | 'ledger'
-  | 'stopwatch';
+  'none' | 'pipe' | 'pencil' | 'chisel' | 'flour' | 'spyglass' | 'net' | 'ledger' | 'stopwatch';
 export const HAIR_STYLES: readonly HairStyle[] = ['short', 'braid', 'bun', 'bald'];
 export const HATS: readonly Hat[] = ['none', 'cap', 'scarf', 'souwester'];
 export const ITEMS: readonly Item[] = [
@@ -523,7 +515,9 @@ function face(l: Look, mood: Mood): string {
   // A racing skipper's stopwatch (decision 0216): a brass case on its chain, held up to read.
   if (item === 'stopwatch') {
     s.push(`<path d="M150 150L160 128" stroke="#b5873a" stroke-width="3" fill="none"/>`);
-    s.push(`<circle cx="148" cy="166" r="17" fill="#c9a24a"/><circle cx="148" cy="166" r="13" fill="#f4f1e8"/>`);
+    s.push(
+      `<circle cx="148" cy="166" r="17" fill="#c9a24a"/><circle cx="148" cy="166" r="13" fill="#f4f1e8"/>`,
+    );
     s.push(`<rect x="145" y="144" width="6" height="6" fill="#b5873a"/>`);
     s.push(`<path d="M148 166L148 156M148 166L155 169" stroke="#22252a" stroke-width="2"/>`);
   }

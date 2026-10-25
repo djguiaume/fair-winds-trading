@@ -3,7 +3,13 @@ import { describe, expect, it } from 'vitest';
 import { GAME_MAP } from '../src/data/maps';
 import { setLanguage } from '../src/i18n';
 import { RACE_FINISHED, RACE_GOING } from '../src/sim/questLibrary';
-import { type QuestDef, type QuestEvent, QuestBook, checkQuests, readQuests } from '../src/sim/quests';
+import {
+  type QuestDef,
+  type QuestEvent,
+  QuestBook,
+  checkQuests,
+  readQuests,
+} from '../src/sim/quests';
 import {
   REGATTA,
   type Gate,

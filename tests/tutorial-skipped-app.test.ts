@@ -21,6 +21,7 @@ vi.mock('../src/render/view', () => ({
     setSettlementLevels() {}
     setHomeBuildings() {}
     setQuestsDone() {}
+    setPennant() {}
     jumpToBoat() {}
     setFocus() {}
     setZoom() {}

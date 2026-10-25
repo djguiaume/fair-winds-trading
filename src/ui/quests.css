@@ -779,3 +779,98 @@ dialog.quest-card.is-arrival::backdrop {
   margin-left: 3px;
   vertical-align: -3px;
 }
+
+/* --- A race of the regatta (decision 0216): the result, the medal times, the record -------- */
+.race-card {
+  --gold-medal: #e8c46a;
+  --silver-medal: #c9d3d8;
+  --bronze-medal: #c98a52;
+  margin-top: 10px;
+}
+.race-medal {
+  display: inline-block;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--outline, #0b1f2b);
+  border-radius: 50%;
+  background: var(--medal, rgba(238, 243, 244, 0.25));
+  vertical-align: middle;
+}
+.is-gold > .race-medal {
+  --medal: var(--gold-medal);
+}
+.is-silver > .race-medal {
+  --medal: var(--silver-medal);
+}
+.is-bronze > .race-medal {
+  --medal: var(--bronze-medal);
+}
+.race-result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--brass-line);
+  border-radius: 10px;
+  background: rgba(9, 28, 41, 0.5);
+}
+.race-result .race-medal {
+  width: 34px;
+  height: 34px;
+  border-width: 3px;
+}
+.race-result small {
+  display: block;
+  color: var(--ink-dim);
+  font: 600 13px/1.2 var(--body);
+}
+.race-result b {
+  font: 700 28px/1 var(--display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+.race-rival {
+  margin-left: auto;
+  color: var(--ink-dim);
+  font: 600 14px/1.2 var(--body);
+  text-align: right;
+}
+.race-best {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font: 700 16px/1.2 var(--body);
+}
+.race-label {
+  margin: 8px 0 4px;
+  color: var(--ink-dim);
+  font: 600 13px/1.2 var(--body);
+}
+.race-times {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.race-times li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 700 16px/1 var(--body);
+  font-variant-numeric: tabular-nums;
+}
+.race-times small {
+  color: var(--brass);
+  font-weight: 600;
+}
+.race-times .icon {
+  width: 14px;
+  height: 14px;
+}
+.race-times li.is-won .race-medal {
+  box-shadow: 0 0 0 2px var(--brass);
+}

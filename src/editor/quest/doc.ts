@@ -497,6 +497,14 @@ export function defaultParam(type: Param, map: MapDef, questIds: string[]): unkn
       const s = map.start;
       return [{ x: round1(s.x), y: round1(s.y + 40) }];
     }
+    // A race's line (decision 0216): the committee boat's end, then the pin's, across the course.
+    case 'gate': {
+      const s = map.start;
+      return [
+        { x: round1(s.x - 20), y: round1(s.y + 20) },
+        { x: round1(s.x + 20), y: round1(s.y + 20) },
+      ];
+    }
     case 'order':
       return 'any';
     case 'par':

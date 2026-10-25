@@ -304,6 +304,15 @@
       "size": 1.3,
       "tags": ["after:four-winds"],
       "from": 1
+    },
+    {
+      "type": "regatta-cup",
+      "x": -0.2,
+      "z": 0.6,
+      "turn": 20,
+      "size": 1.3,
+      "tags": ["after:regatta-cup"],
+      "from": 1
     }
   ],
   "homeSpots": [

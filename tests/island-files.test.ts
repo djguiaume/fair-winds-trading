@@ -140,7 +140,7 @@ const GOLDEN: Record<string, string[]> = {
   // The home island (decision 0126): bigger, every building of its spots drawn at once.
   // Teeth Rock (decision 0133): the Stonehaven arc's lighthouse rock.
   'teeth-rock': Array(4).fill('25:593e9317'),
-  skerry: ['187:42c44309', '191:c2795664', '194:e46e8f5a', '194:e46e8f5a'],
+  skerry: ['195:919c214d', '199:977d540', '202:c779ee86', '202:c779ee86'],
   'watchman-key': ['43:fbfd2fb9', '73:4bfeb4dd', '92:3e8fc1dd', '99:ac0414a9'],
   // The south sea (decision 0152).
   sunreach: ['606:780ca76b', '739:2be703f5', '842:84de71a', '877:b4741162'],

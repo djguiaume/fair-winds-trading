@@ -1,9 +1,33 @@
 {
   "about": "Flags as data (decision 0216): what a masthead pennant looks like. `shape`: pennant (a long triangle), swallowtail (a forked fly) or burgee (a short triangle). `bands`: colours from the mast to the fly. `length` and `height` in the masthead flag's own units (the stock pennant is 1 by 0.5).",
   "flags": [
-    { "id": "pennant-saltmere", "shape": "pennant", "bands": ["#d93a2b", "#f4f1e8", "#d93a2b", "#f4f1e8"], "length": 1.7, "height": 0.55 },
-    { "id": "pennant-far-seas", "shape": "swallowtail", "bands": ["#e8eef4", "#2f9a55", "#c2552a", "#7a8a96"], "length": 1.6, "height": 0.6 },
-    { "id": "pennant-four-winds", "shape": "pennant", "bands": ["#f2c230", "#e0a91c", "#f2c230"], "length": 1.9, "height": 0.6 },
-    { "id": "kestrel", "shape": "burgee", "bands": ["#d2462f", "#f4f1e8"], "length": 1.1, "height": 0.6 }
+    {
+      "id": "pennant-saltmere",
+      "shape": "pennant",
+      "bands": ["#d93a2b", "#f4f1e8", "#d93a2b", "#f4f1e8"],
+      "length": 1.7,
+      "height": 0.55
+    },
+    {
+      "id": "pennant-far-seas",
+      "shape": "swallowtail",
+      "bands": ["#e8eef4", "#2f9a55", "#c2552a", "#7a8a96"],
+      "length": 1.6,
+      "height": 0.6
+    },
+    {
+      "id": "pennant-four-winds",
+      "shape": "pennant",
+      "bands": ["#f2c230", "#e0a91c", "#f2c230"],
+      "length": 1.9,
+      "height": 0.6
+    },
+    {
+      "id": "kestrel",
+      "shape": "burgee",
+      "bands": ["#d2462f", "#f4f1e8"],
+      "length": 1.1,
+      "height": 0.6
+    }
   ]
 }

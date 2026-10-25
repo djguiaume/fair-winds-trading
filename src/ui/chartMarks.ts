@@ -31,6 +31,20 @@ export function seaMarkShape(
         'stroke-width': 1.2 * px,
       },
     };
+  // The regatta's marks (decision 0216): a yellow mark to round, an orange pin, a committee boat.
+  if (mark.type.startsWith('race-'))
+    return {
+      tag: 'circle',
+      attrs: {
+        cx: mark.x,
+        cy: -mark.y,
+        r: (mark.type === 'race-mark' ? 4 : 3) * px,
+        fill:
+          mark.type === 'race-mark' ? '#f2c230' : mark.type === 'race-pin' ? '#ef7d2a' : '#f4f1e8',
+        stroke: '#22252a',
+        'stroke-width': 1.2 * px,
+      },
+    };
   return {
     tag: 'circle',
     attrs: {

@@ -5,6 +5,7 @@ import { isGlowing, mergeAll, paint, triangleCount, vertexColorMaterial } from '
 import type { BoatCargo, BoatDetails } from './boatDetails';
 import { DEFAULT_DAMAGE, type ShipDamageData } from '../../data/ships';
 import { DEG } from '../../sim/math';
+import { flagGeometry } from './flag';
 import {
   STOCK_UPGRADES,
   type BoatModel,
@@ -894,13 +895,16 @@ export class RefinedBoat implements BoatModel {
     this.rigging.frustumCulled = false; // tiny mutable line buffer; the endpoints move during tacks
     this.ship.add(this.rigging);
 
-    const flagGeo = new THREE.BufferGeometry().setFromPoints([
-      V(0, 0, 0),
-      V(0, -0.5, 0),
-      V(0, -0.25, -1),
-    ]);
+    // A regatta pennant won flies instead of the stock one (decision 0216).
+    const flagGeo = options.flag
+      ? flagGeometry(options.flag)
+      : new THREE.BufferGeometry().setFromPoints([V(0, 0, 0), V(0, -0.5, 0), V(0, -0.25, -1)]);
     flagGeo.computeVertexNormals();
-    const flagMat = new THREE.MeshBasicMaterial({ color: BAND, side: THREE.DoubleSide });
+    const flagMat = new THREE.MeshBasicMaterial({
+      color: options.flag ? 0xffffff : BAND,
+      vertexColors: !!options.flag,
+      side: THREE.DoubleSide,
+    });
     this.disposables.push(flagMat);
     this.flag = mesh(flagGeo, flagMat, 'Pennant');
     const tallest = squareMasts.reduce<(typeof squareMasts)[number] | undefined>(

@@ -1,0 +1,8 @@
+{
+  "id": "mark-race-finish",
+  "name": "Race finish boat",
+  "group": "landmarks",
+  "internal": true,
+  "extends": "mark-race-committee",
+  "vars": { "finish": 1 }
+}

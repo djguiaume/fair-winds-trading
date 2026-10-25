@@ -352,7 +352,8 @@ function edit(cmd: string, ids: string[], args: Args, doc: QuestDoc, map: MapDef
   return problems.length ? 1 : 0;
 }
 
-const fmt = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}`;
+const fmt = (sec: number) =>
+  `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}`;
 
 /** Writes a quest file the way the builder exports it; whether it changed. */
 function writeQuest(q: QuestDef, args: Args): boolean {
@@ -384,8 +385,7 @@ function race(ids: string[], args: Args, doc: QuestDoc, map: MapDef): number {
     return 1;
   }
   if (args.pars) {
-    const ships =
-      typeof args.ships === 'string' ? args.ships.split(',').filter(Boolean) : SHIP_IDS;
+    const ships = typeof args.ships === 'string' ? args.ships.split(',').filter(Boolean) : SHIP_IDS;
     let bad = 0;
     const out: Record<string, unknown> = {};
     for (const q of chosen) {
@@ -479,14 +479,19 @@ function race(ids: string[], args: Args, doc: QuestDoc, map: MapDef): number {
     console.log(`  mark ${i + 1} ${m.x},${m.y}`),
   );
   console.log(`  finish ${line(goal.finish)}`);
-  console.log(`  wind   ${q.wind ? `${q.wind.speedKn} kn from ${q.wind.fromDeg ?? 'the map'}°` : 'the sea\'s'}`);
+  console.log(
+    `  wind   ${q.wind ? `${q.wind.speedKn} kn from ${q.wind.fromDeg ?? 'the map'}°` : "the sea's"}`,
+  );
   console.log(`  gold   ${MEDALS.map((m) => `${m} ${q.race!.gold[m]}`).join(', ')}`);
   for (const level of DIFFICULTIES) {
     console.log(`  ${level}: ${MEDALS.slice().reverse().join(' / ')}`);
     for (const ship of SHIP_IDS) {
       const t = medalTimes(q.race!, ship, level);
       console.log(
-        `    ${ship.padEnd(9)} ${MEDALS.slice().reverse().map((m) => (Number.isFinite(t[m]) ? fmt(t[m]) : '—')).join('  ')}${q.race!.pars[ship] ? '' : '  (no par: the slowest)'}`,
+        `    ${ship.padEnd(9)} ${MEDALS.slice()
+          .reverse()
+          .map((m) => (Number.isFinite(t[m]) ? fmt(t[m]) : '—'))
+          .join('  ')}${q.race!.pars[ship] ? '' : '  (no par: the slowest)'}`,
       );
     }
   }

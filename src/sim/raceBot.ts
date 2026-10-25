@@ -33,7 +33,12 @@ export interface BotRun {
 const GIVE_UP_SEC = 3600;
 
 /** One bot round a race: a ship class on a level. */
-export function sailRace(map: MapDef, quest: QuestDef, ship: string, difficulty: Difficulty): BotRun {
+export function sailRace(
+  map: MapDef,
+  quest: QuestDef,
+  ship: string,
+  difficulty: Difficulty,
+): BotRun {
   const step = quest.steps[0];
   const course = courseOf(step?.goal);
   if (!course) return { ship, difficulty, sec: null, stuck: 0, legs: [], gaveUp: [] };

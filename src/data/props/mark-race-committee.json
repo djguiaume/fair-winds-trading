@@ -1,0 +1,23 @@
+{
+  "id": "mark-race-committee",
+  "name": "Race committee boat",
+  "group": "landmarks",
+  "internal": true,
+  "water": true,
+  "scale": 3.4,
+  "vars": { "finish": 0 },
+  "parts": [
+    {
+      "cyl": [0.55, 0.38, 2.2, 6],
+      "ops": [
+        ["turnX", "pi / 2"],
+        ["scale", 1, 0.5, 1],
+        ["move", 0, 0.1, 0]
+      ],
+      "color": "#f4f1e8"
+    },
+    { "box": [0.66, 0.06, 1.7], "at": [0, 0.34, 0], "color": "plank" },
+    { "box": [0.5, 0.35, 0.6], "at": [0, 0.55, 0.35], "color": "#24496b" },
+    { "use": "mark-race-signal", "vars": { "finish": "finish" }, "at": [0, 0.35, -0.3] }
+  ]
+}

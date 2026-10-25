@@ -17,10 +17,7 @@
     "band": "#d2462f",
     "flag": "kestrel",
     "pace": "silver",
-    "paceRange": [
-      0.45,
-      1.4
-    ]
+    "paceRange": [0.45, 1.4]
   },
   "series": [
     {
