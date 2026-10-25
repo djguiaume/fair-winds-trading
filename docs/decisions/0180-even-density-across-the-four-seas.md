@@ -1,6 +1,6 @@
 # 0180. Even density across the four seas
 
-**Status:** Proposed (2026-10-25). Waiting on Guillaume's OK of the plan before the build threads start.
+**Status:** Accepted (2026-10-25, Guillaume: "Yes, start all four").
 
 ## Context
 
