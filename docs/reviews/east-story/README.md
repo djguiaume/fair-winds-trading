@@ -27,14 +27,14 @@ Decision [0193](../../decisions/0193-the-east-seas-story-and-the-four-winds-clos
 | `outpost-east.supplies.title` | Bring timber to Amber Strand | Apportez du bois à Amber Strand |
 | `outpost-east.supplies.copy` | Pip’s packing already, captain. The strand wants a hut out of the wind, and racks to dry what the sea brings. Eight timber and six planks to the landing on Amber Strand. Come in slow. | Pip fait déjà ses bagages, capitaine. La grève veut une cabane à l’abri du vent, et des claies pour sécher ce que la mer apporte. Huit bois et six planches au débarcadère d’Amber Strand. Doucement en arrivant. |
 | `outpost-east.settler.title` | Bring Pip to Amber Strand | Emmenez Pip à Amber Strand |
-| `outpost-east.settler.copy` | Amber on the beach and nobody to pick it up, can you believe it? And Maren wrote, and her mill has its sails again, and now it’s my turn! Two baskets and my boots, captain, and off we go! | De l’ambre sur la plage et personne pour le ramasser, vous imaginez ? Et Maren m’a écrit, et son moulin a retrouvé ses ailes, et maintenant c’est mon tour ! Deux paniers et mes bottes, capitaine, et en route ! |
+| `outpost-east.settler.copy` | Amber on the beach and nobody to pick it up, can you believe it? And Maren’s mill has its sails again, you say, and now it’s my turn! Two baskets and my boots, captain, and off we go! | De l’ambre sur la plage et personne pour le ramasser, vous imaginez ? Et le moulin de Maren a retrouvé ses ailes, vous dites, et maintenant c’est mon tour ! Deux paniers et mes bottes, capitaine, et en route ! |
 | `outpost-east.done.title` | Amber Strand is founded | Amber Strand est fondée |
 | `outpost-east.done.copy` | The flag’s up and the baskets are out already! Bring what we gather to Elias at Fogwatch, captain, and the workshop will do the rest. Rook will want that in the book. | Le drapeau flotte et les paniers sont déjà sortis ! Portez ce qu’on ramasse à Elias, à Fogwatch, capitaine, et l’atelier fera le reste. Rook voudra l’inscrire au registre. |
 | `four-winds.name` | Four winds | Quatre vents |
 | `four-winds.home.title` | Sail home to Skerry | Rentrez à Skerry |
 | `four-winds.home.copy` | Four seas, four outposts, four crafts, captain. That’s a full page in the book, and a full page wants a signature. Sail home to Skerry. I’ll be on the pier. | Quatre mers, quatre comptoirs, quatre métiers, capitaine. Ça fait une page pleine au registre, et une page pleine veut une signature. Rentrez à Skerry. Je serai sur le quai. |
 | `four-winds.done.title` | A full page | Une page pleine |
-| `four-winds.done.copy` | Entered in the book, in good order: tea, mirrors, jam and amber, and a signpost on your pier pointing to all four. Fair winds from every quarter, captain. | C’est noté au registre, en bonne et due forme : thé, miroirs, confiture et ambre, et un poteau indicateur sur votre quai qui montre les quatre. Bon vent de tous les côtés, capitaine. |
+| `four-winds.done.copy` | Entered in the book, in good order: tea, mirrors, jam and amber, and a signpost on your pier pointing to all four. Fair winds from every quarter, captain. | C’est noté au registre, en bonne et due forme : thé, miroirs, confiture et ambre, et un poteau indicateur sur votre quai qui montre les quatre. Bon vent, d’où qu’il souffle, capitaine. |
 
 ## Card screenshots
 

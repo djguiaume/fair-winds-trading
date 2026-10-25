@@ -1,6 +1,6 @@
 # 0193. The east sea's story and the Four winds closing beat
 
-**Status:** Proposed (2026-10-25). Waits for the storyteller's review of every card and for Guillaume's look at the portraits, cards and new looks.
+**Status:** Proposed (2026-10-25). Storyteller approved the cards (2026-10-25); waits for the art director and Guillaume's look at the portraits, cards and new looks.
 
 ## Context
 
