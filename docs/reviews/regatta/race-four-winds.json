@@ -1,0 +1,104 @@
+{
+  "title": "The Four Winds Cup · The Four Winds Cup",
+  "legend": [
+    {
+      "style": "route",
+      "text": "the course, mark to mark (boats sail round land)"
+    }
+  ],
+  "lines": [
+    {
+      "points": [
+        [
+          330,
+          -100
+        ],
+        [
+          480,
+          75
+        ],
+        [
+          69,
+          480
+        ],
+        [
+          -420,
+          -218
+        ],
+        [
+          146,
+          -430
+        ],
+        [
+          -62.5,
+          -116
+        ]
+      ],
+      "style": "route",
+      "label": "The Four Winds Cup",
+      "arrow": true
+    },
+    {
+      "points": [
+        [
+          330,
+          -80
+        ],
+        [
+          330,
+          -120
+        ]
+      ],
+      "style": "short",
+      "label": "start"
+    },
+    {
+      "points": [
+        [
+          -85,
+          -116
+        ],
+        [
+          -40,
+          -116
+        ]
+      ],
+      "style": "long",
+      "label": "finish"
+    }
+  ],
+  "labels": [
+    {
+      "at": [
+        480,
+        89
+      ],
+      "text": "mark 1",
+      "style": "note"
+    },
+    {
+      "at": [
+        69,
+        494
+      ],
+      "text": "mark 2",
+      "style": "note"
+    },
+    {
+      "at": [
+        -420,
+        -204
+      ],
+      "text": "mark 3",
+      "style": "note"
+    },
+    {
+      "at": [
+        146,
+        -416
+      ],
+      "text": "mark 4",
+      "style": "note"
+    }
+  ]
+}

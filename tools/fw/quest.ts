@@ -26,9 +26,10 @@ import {
 } from '../../src/editor/quest/doc';
 import { type MapDef, SEA_MARK_TYPES, type SeaMarkType } from '../../src/sim/map';
 import { clearAt } from '../../src/sim/mapChecks';
+import type { Condition } from '../../src/sim/questLibrary';
 import { QUESTS, type QuestDef } from '../../src/sim/quests';
 import { racePars } from '../../src/sim/raceBot';
-import { MEDALS, medalTimes } from '../../src/sim/regatta';
+import { MEDALS, medalTimes, seriesById } from '../../src/sim/regatta';
 import { DIFFICULTIES } from '../../src/sim/difficulty';
 import { SHIP_IDS } from '../../src/sim/ship';
 
@@ -67,6 +68,8 @@ Races of the Saltmere Regatta (decision 0217; also \`npm run race -- …\`):
   race <id> --finish "x,y x,y"  the finish line
   race <id> --add --at x,y [--after N]   a mark (numbered in order), after mark N
   race <id> --mark N --at x,y | --remove move or remove mark N (1 = first)
+  race <id> --overlay file.json writes the course as a chart overlay and prints the view:
+                                npm run chart -- --overlay file.json --view w,s,e,n
 Options
   --file quest.json             a quest file to use instead of (or besides) the shipped one
   --map file.json               a map editor export instead of the ring
@@ -471,6 +474,7 @@ function race(ids: string[], args: Args, doc: QuestDoc, map: MapDef): number {
   }
   // The course and each medal's time.
   const goal = raceGoal(q)!;
+  if (typeof args.overlay === 'string') return raceOverlay(q, goal, args.overlay);
   const line = (g: unknown) =>
     (g as { x: number; y: number }[]).map((p) => `${p.x},${p.y}`).join(' to ');
   console.log(`${q.id} (${q.name}), ${q.race!.series}, at ${q.port}`);
@@ -495,5 +499,50 @@ function race(ids: string[], args: Args, doc: QuestDoc, map: MapDef): number {
       );
     }
   }
+  return 0;
+}
+
+/**
+ * A race's course as a `npm run chart` overlay (decision 0217): the line from the start round
+ * each mark to the finish, the marks numbered, the lines named; prints the view that frames it.
+ */
+function raceOverlay(q: QuestDef, goal: Condition, file: string): number {
+  type P = { x: number; y: number };
+  const start = goal.start as P[];
+  const finish = goal.finish as P[];
+  const marks = goal.marks as P[];
+  const mid = (g: P[]): [number, number] => [(g[0]!.x + g[1]!.x) / 2, (g[0]!.y + g[1]!.y) / 2];
+  const same = JSON.stringify(start) === JSON.stringify(finish);
+  const overlay = {
+    title: `${q.name} · ${seriesById(q.race!.series)?.name ?? q.race!.series}`,
+    legend: [{ style: 'route', text: 'the course, mark to mark (boats sail round land)' }],
+    lines: [
+      {
+        points: [mid(start), ...marks.map((m) => [m.x, m.y]), mid(finish)],
+        style: 'route',
+        label: q.name,
+        arrow: true,
+      },
+      {
+        points: start.map((p) => [p.x, p.y]),
+        style: 'short',
+        label: same ? 'start and finish' : 'start',
+      },
+      ...(same ? [] : [{ points: finish.map((p) => [p.x, p.y]), style: 'long', label: 'finish' }]),
+    ],
+    labels: marks.map((m, i) => ({ at: [m.x, m.y + 14], text: `mark ${i + 1}`, style: 'note' })),
+  };
+  writeFileSync(file, `${JSON.stringify(overlay, null, 2)}\n`);
+  const all = [...start, ...finish, ...marks];
+  const pad = 90;
+  const view = [
+    Math.min(...all.map((p) => p.x)) - pad,
+    Math.min(...all.map((p) => p.y)) - pad,
+    Math.max(...all.map((p) => p.x)) + pad,
+    Math.max(...all.map((p) => p.y)) + pad,
+  ].map(Math.round);
+  console.log(
+    `${file}: ${q.id}'s course · npm run chart -- --overlay ${file} --view ${view.join(',')}`,
+  );
   return 0;
 }

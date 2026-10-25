@@ -27,6 +27,9 @@ import { serializeWorld } from '../src/sim/save';
 import { questsDone } from '../src/sim/settlement';
 import { SLOOP } from '../src/sim/ship';
 import { type World, createWorld } from '../src/sim/world';
+import { QUESTS } from '../src/sim/quests';
+import { cardFor } from '../src/ui/questView';
+import { raceBookCards, raceClock, raceHud, raceResultCard } from '../src/ui/regattaView';
 
 // Decision 0217: the Saltmere Regatta. A race is a quest with a `race` block and one `raced`
 // step: the horn sequence, a start line crossed toward the course, marks in order, a finish line.
@@ -221,5 +224,71 @@ describe('regatta (decision 0217)', () => {
     expect(seriesWon(races, (id) => (id === 'a' ? 3 : 1))).toEqual([]);
     expect(seriesWon(races, () => 2)).toEqual(['regatta-seas']);
     expect(RACE_FINISHED).toBe(2);
+  });
+
+  it('the shipped races: eight, all sound, and their gold a small share of the game', () => {
+    const races = QUESTS.filter((q) => q.race);
+    expect(races.map((q) => q.id).sort()).toEqual(
+      [
+        'race-calda',
+        'race-floe',
+        'race-four-winds',
+        'race-gap',
+        'race-greyback',
+        'race-narrows',
+        'race-smoulder',
+        'race-stormbreak',
+      ].sort(),
+    );
+    // Every series has its races: the ring 3, the seas 4, the Cup 1.
+    const count = (s: string) => races.filter((q) => q.race!.series === s).length;
+    expect([count('regatta-ring'), count('regatta-seas'), count('regatta-cup')]).toEqual([3, 4, 1]);
+    // Every medal the first time comes to under 6,000 gold: pride, not power (storyteller).
+    const all = races.reduce((n, q) => n + medalGold(q.race!, 0, 3), 0);
+    expect(all).toBeLessThanOrEqual(6000);
+    // Every ship class has a par on every level.
+    for (const q of races)
+      for (const ship of ['sloop', 'cutter', 'schooner', 'clipper', 'hoy', 'fluyt', 'indiaman'])
+        expect(Object.keys(q.race!.pars[ship] ?? {}).sort(), `${q.id} ${ship}`).toEqual([
+          'captain',
+          'fair',
+          'salt',
+        ]);
+  });
+
+  it('the race screens: the course pill, the offer, the result card, the regatta book', () => {
+    const { world, book } = setup();
+    expect(raceClock(62.44)).toBe('1:02.4');
+    world.boat.x = 20;
+    world.boat.y = -10;
+    const offer = cardFor(book, GAME_MAP, 'test-race', 'offer')!;
+    expect(offer.reward).toBeUndefined();
+    expect(offer.race?.times.map((m) => [m.medal, m.gold])).toEqual([
+      ['gold', 30],
+      ['silver', 20],
+      ['bronze', 10],
+    ]);
+    book.accept('test-race');
+    expect(raceHud(book)).toMatchObject({ label: 'Horn in 10', sec: null });
+    horn(world, book);
+    expect(raceHud(book)?.label).toBe('Cross the start line');
+    sail(world, book, 20, 5);
+    expect(raceHud(book)).toMatchObject({ label: 'Mark 1 of 1', short: '1/1' });
+    sail(world, book, 20, 98, 40);
+    expect(raceHud(book)?.label).toBe('To the finish line');
+    const events = sail(world, book, 20, -5, 40);
+    expect(raceHud(book)).toBeNull();
+    const raced = events.find((e) => e.type === 'raced')!;
+    const card = raceResultCard(book, GAME_MAP, raced as never)!;
+    expect(card.ask).toBe('Gold medal');
+    expect(card.race?.result?.medal).toBe(3);
+    expect(card.race?.again).toBe(true);
+    // The ring series is won: Wren's pennant line, and the pennant said to fly.
+    expect(card.speech).toContain('Saltmere pennant');
+    expect(card.news).toContain('masthead');
+    const bookCards = raceBookCards(book, GAME_MAP, 'saltmere');
+    expect(bookCards.map((c) => [c.quest, c.race?.book, c.race?.again])).toEqual([
+      ['test-race', true, true],
+    ]);
   });
 });

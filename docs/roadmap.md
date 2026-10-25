@@ -51,7 +51,9 @@ store plan of [0204](decisions/0204-selling-on-android-iphone-and-xbox.md) comes
    Built in [0215](decisions/0215-other-boats-on-the-sea.md) (21 fleets, 26 boats).
 4. **Sounds of the sea:** waves, wind in the sails, luffing, gulls, a harbour bell, a bed per sea.
 5. **Regattas in the story** (Guillaume: with an NPC and rewards): races against a friendly rival
-   captain, unlocked through the story, with medals and prizes.
+   captain, unlocked through the story, with medals and prizes. Built in
+   [0217](decisions/0217-the-saltmere-regatta.md): Wren Tally and *Kestrel*, 3 ring races, 4 sea
+   races and the Four Winds Cup, pennants and the Cup on Skerry.
 6. **Standing orders** ([0214](decisions/0214-standing-orders-people-ask-again.md)): small repeatable asks from people whose arc is done, so the cast keeps
    talking after the story.
 7. **Visible hull damage** at each quarter of the hull lost, cleared by repair.

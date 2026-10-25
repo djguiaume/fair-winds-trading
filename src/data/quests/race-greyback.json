@@ -24,37 +24,37 @@
     },
     "pars": {
       "schooner": {
-        "fair": 139,
+        "fair": 140,
         "captain": 138,
         "salt": 137
       },
       "clipper": {
         "fair": 123,
-        "captain": 122,
+        "captain": 123,
         "salt": 122
       },
       "sloop": {
-        "fair": 229,
-        "captain": 225,
+        "fair": 233,
+        "captain": 224,
         "salt": 223
       },
       "cutter": {
         "fair": 172,
         "captain": 170,
-        "salt": 169
+        "salt": 168
       },
       "hoy": {
-        "fair": 377,
+        "fair": 378,
         "captain": 374,
         "salt": 373
       },
       "fluyt": {
-        "fair": 400,
+        "fair": 401,
         "captain": 397,
         "salt": 396
       },
       "indiaman": {
-        "fair": 378,
+        "fair": 379,
         "captain": 375,
         "salt": 374
       }
