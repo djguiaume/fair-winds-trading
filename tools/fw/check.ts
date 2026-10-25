@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs';
 import { ISLAND_DESIGNS, type IslandDesign } from '../../src/data/islands';
 import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../../src/data/maps';
-import { grownMap } from '../../src/data/grownMap';
+import { SEAS, SEA_SECTORS, grownMap } from '../../src/data/grownMap';
 import { stressMap } from '../../src/data/stressMap';
 import { questProblems } from '../../src/editor/quest/doc';
 import { ISLAND_SCALE } from '../../src/render/models/highlandIslands';
@@ -13,6 +13,7 @@ import type { MapDef } from '../../src/sim/map';
 import { type MapCheck, questTagsCheck, quickChecks, routeChecks } from '../../src/sim/mapChecks';
 import { checkPerks } from '../../src/sim/perks';
 import { QUESTS, type QuestDef } from '../../src/sim/quests';
+import { sectorChecks } from '../../src/sim/seaSectors';
 
 type Args = Record<string, string | boolean | undefined> & { _: string[] };
 
@@ -91,6 +92,8 @@ export function checkAll(opts: CheckOptions = {}) {
           QUESTS.map((q) => q.id),
         ),
       ];
+      // Each Phase 4 sea in its own slice of the outer ring (decision 0179), on the shipped files.
+      if (name === 'phase4' && !opts.seas) checks.push(...sectorChecks(SEAS, SEA_SECTORS));
       if (routes === 'all' || (routes === 'first' && n === 0)) checks.push(...routeChecks(map));
       for (const c of checks)
         if (!c.ok)

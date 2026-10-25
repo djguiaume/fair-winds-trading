@@ -14,13 +14,13 @@ import { type World, type WorldEvent, createWorld, stepWorld } from '../src/sim/
 
 const map = prepareMap(grownMap(PHASE1_SOURCE));
 
-/** A boat lying in the middle of The Glass. */
+/** A boat lying in the middle of The Glass (turned 8° into the south's quarter, 0179). */
 function inTheGlass(setup: (w: World) => void = () => {}) {
   const world = createWorld(map, SLOOP);
   world.dynamicWeather = false;
   world.trade.dockedAt = null;
-  world.boat.x = 525;
-  world.boat.y = -545;
+  world.boat.x = 444;
+  world.boat.y = -613;
   world.boat.sailStep = 0;
   world.boat.sail = 0;
   setup(world);

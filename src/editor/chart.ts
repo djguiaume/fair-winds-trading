@@ -1,3 +1,4 @@
+import { type Sectors, sectorSpan } from '../sim/seaSectors';
 import { TUNING } from '../data/tuning';
 import { piersOf } from '../sim/collision';
 import { GOOD_ICONS, isGood } from '../sim/goods';
@@ -50,6 +51,8 @@ export interface ChartScene {
   view: View;
   /** The Windward Ring's own sea radius, drawn dashed on the grown sea (decision 0161). */
   ringRadius?: number;
+  /** Each sea's slice of the outer ring (decision 0179), drawn as spokes from the ring's edge. */
+  sectors?: Sectors;
   /** Chart size in pixels; the SVG's own size when left out (`npm run chart` has no layout). */
   size?: { width: number; height: number };
 }
@@ -80,6 +83,7 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
 
   el('circle', { r: map.boundsRadius, class: 'c-sea', 'data-hit': 'sea' });
   if (scene.ringRadius) el('circle', { r: scene.ringRadius, class: 'c-ring-edge' });
+  if (scene.sectors) drawSectors(el, label, scene.sectors, scene.ringRadius ?? 0, map, px);
   if (layers.grid) {
     const g = el('g', { class: 'c-grid' });
     const r = map.boundsRadius;
@@ -352,4 +356,53 @@ export function drawCompass(svg: SVGSVGElement, fromDeg: number) {
     fill: '#8fd3e6',
     transform: `translate(${-sx} ${-sy}) rotate(${fromDeg})`,
   });
+}
+
+/**
+ * The seas' sectors (decision 0179): a dashed spoke at each border, from the ring's edge to the
+ * rim, and each sea's name and span just inside the rim in the middle of its slice.
+ */
+function drawSectors(
+  el: (tag: string, attrs: Record<string, string | number>, parent?: Element) => Element,
+  label: (text: string, x: number, y: number, size: number, cls?: string) => void,
+  sectors: Sectors,
+  inner: number,
+  map: MapDef,
+  px: number,
+) {
+  const outer = map.boundsRadius;
+  const g = el('g', { class: 'c-sector' });
+  const at = (deg: number, r: number) => {
+    const a = (deg * Math.PI) / 180;
+    return [Math.sin(a) * r, -Math.cos(a) * r] as const;
+  };
+  const borders = new Set<number>();
+  for (const [from, to] of Object.values(sectors)) borders.add(from % 360).add(to % 360);
+  for (const deg of borders) {
+    const [x1, y1] = at(deg, inner);
+    const [x2, y2] = at(deg, outer);
+    el('line', { x1, y1, x2, y2 }, g);
+  }
+  // Each sea's name just inside the rim, in the middle of its slice or as near it as is clear of
+  // islands and their names.
+  const r = outer - 34 * px;
+  const clear = (deg: number) => {
+    const [x, y] = at(deg, r);
+    return (
+      map.islands.every((i) => Math.hypot(i.x - x, -i.y - y) > i.radius + 70 * px) &&
+      (map.terrain ?? []).every((t) =>
+        t.outline.every(([tx, ty]) => Math.hypot(tx - x, -ty - y) > 70 * px),
+      )
+    );
+  };
+  for (const [id, s] of Object.entries(sectors)) {
+    const span = sectorSpan(s);
+    const mid = s[0] + span / 2;
+    const offsets = [0, 6, -6, 12, -12, 18, -18, 24, -24, 30, -30].filter(
+      (o) => Math.abs(o) < span / 2 - 8,
+    );
+    const deg = mid + (offsets.find((o) => clear(mid + o)) ?? 0);
+    const [x, y] = at(deg, r);
+    label(`${id} · ${s[0]}–${s[1]}°`, x, y, 13, 'c-sector-label');
+  }
 }

@@ -195,10 +195,24 @@ describe('npm run sea and shots --editor (decision 0161)', () => {
     expect(seaStepFromArgs(parseArgs(['set', 'grown', '--radius', '1000']))).toEqual({
       do: 'set',
       what: 'grown',
-      fields: { boundsRadius: 1000, chartedRadius: undefined },
+      fields: { boundsRadius: 1000, chartedRadius: undefined, sectors: undefined },
     });
+    expect(
+      seaStepFromArgs(parseArgs(['set', 'grown', '--sector', 'east=45,135;west=none'])),
+    ).toMatchObject({ fields: { sectors: { east: [45, 135], west: null } } });
+    expect(
+      seaStepFromArgs(parseArgs(['move', 'shape', 'wreck-reef', '--turn', '20'])),
+    ).toMatchObject({ do: 'move', id: 'wreck-reef', turn: 20 });
     expect(seaStepFromArgs(parseArgs(['move', 'island', 'palm-key', '--to-sea', 'north']))).toEqual(
-      { do: 'move', what: 'island', id: 'palm-key', at: undefined, by: undefined, toSea: 'north' },
+      {
+        do: 'move',
+        what: 'island',
+        id: 'palm-key',
+        at: undefined,
+        by: undefined,
+        turn: undefined,
+        toSea: 'north',
+      },
     );
     expect(seaStepFromArgs(parseArgs(['list']))).toBeNull();
     expect(() => seaStepFromArgs(parseArgs(['bogus']))).toThrow('unknown command');

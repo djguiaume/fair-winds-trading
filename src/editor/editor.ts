@@ -7,6 +7,7 @@ import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../data/maps';
 import phase1Text from '../data/phase1-map.json?raw';
 import type { MapDef } from '../sim/map';
 import { type MapCheck, distanceChanges, questTagsCheck, quickChecks } from '../sim/mapChecks';
+import { type Sectors, sectorChecks } from '../sim/seaSectors';
 import { QUESTS } from '../sim/quests';
 import { type Layers, type View, drawChart, drawCompass } from './chart';
 import {
@@ -67,6 +68,7 @@ import {
   seaIds,
   seaName,
   selected,
+  splitSeas,
 } from './seas';
 import { showSeaExport } from './seaExport';
 
@@ -247,6 +249,9 @@ function drawMap() {
     layers,
     view,
     ringRadius: SEA_MODE ? PHASE1_SOURCE.boundsRadius : undefined,
+    sectors: SEA_MODE
+      ? ((map as SeaDoc).seaEditor.grown.sectors as Sectors | undefined)
+      : undefined,
   });
   drawCompass(compass, map.wind.fromDeg);
   compassText.textContent = `from ${COMPASS[Math.round(map.wind.fromDeg / 45) % 8]} · ${map.wind.speedKn} kn`;
@@ -293,6 +298,14 @@ function seaPanel() {
       change((d) => {
         const sea = d.seaEditor.seas.find((s) => s.values.id === id);
         if (sea && name) sea.values.name = name;
+      }),
+    sectors: { ...(doc.seaEditor.grown.sectors as Record<string, [number, number]> | undefined) },
+    setSector: (id: string, sector: [number, number] | null) =>
+      change((d) => {
+        const sectors = { ...(d.seaEditor.grown.sectors as Record<string, [number, number]>) };
+        if (sector) sectors[id] = sector;
+        else delete sectors[id];
+        d.seaEditor.grown.sectors = sectors;
       }),
     add: () => {
       const id = prompt(
@@ -420,6 +433,13 @@ function runChecks() {
       QUESTS.map((q) => q.id),
     ),
     distanceChanges(prepared, SHIPPED_PREPARED),
+    // Each sea in its own slice of the outer ring (decision 0179).
+    ...(SEA_MODE
+      ? sectorChecks(
+          splitSeas(map as SeaDoc).seas,
+          (map as SeaDoc).seaEditor.grown.sectors as Sectors | undefined,
+        )
+      : []),
   ];
   routes = null;
   showChecks();
