@@ -313,6 +313,17 @@ input:focus-visible {
   vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
+.c-sector line {
+  stroke: rgba(238, 243, 244, 0.6);
+  stroke-width: 1.5;
+  stroke-dasharray: 14 10;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.c-label.c-sector-label {
+  fill: rgba(238, 243, 244, 0.85);
+  font-style: italic;
+}
 .c-ghost {
   fill: none;
   stroke: rgba(238, 243, 244, 0.55);

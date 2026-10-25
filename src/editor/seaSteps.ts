@@ -65,12 +65,21 @@ export type SeaStep =
       /** Any other field, set on what was added (`name`, `kind`, `maxDraft`, `type`, …). */
       fields?: Record<string, unknown>;
     }
-  | { do: 'move'; what: SeaThing; id: string | number; at?: XY; by?: XY; toSea?: string }
+  | {
+      do: 'move';
+      what: SeaThing;
+      id: string | number;
+      at?: XY;
+      by?: XY;
+      /** Turns it round the middle of the map, degrees clockwise: it keeps its distance (0178). */
+      turn?: number;
+      toSea?: string;
+    }
   | {
       do: 'set';
       what: SeaThing | 'sea' | 'grown';
       id?: string | number;
-      /** Fields to set; `null` removes one. Grown: `boundsRadius`, `chartedRadius`. */
+      /** Fields to set; `null` removes one. Grown: `boundsRadius`, `chartedRadius`, `sectors`. */
       fields: Record<string, unknown>;
     }
   | { do: 'remove'; what: SeaThing; id: string | number };
@@ -222,6 +231,13 @@ export function applySeaSteps(doc: SeaDoc, steps: readonly SeaStep[]): string[] 
       const f = step.fields;
       if (typeof f.boundsRadius === 'number') doc.boundsRadius = f.boundsRadius;
       if (typeof f.chartedRadius === 'number' && doc.fog) doc.fog.chartedRadius = f.chartedRadius;
+      // Each sea's slice of the outer ring (decision 0178); null removes one.
+      if (f.sectors && typeof f.sectors === 'object') {
+        const grown = doc.seaEditor.grown;
+        const sectors = { ...(grown.sectors as Record<string, unknown> | undefined) };
+        assign(sectors, f.sectors as Record<string, unknown>);
+        grown.sectors = sectors;
+      }
       made.push('grown');
       continue;
     }
@@ -239,6 +255,7 @@ export function applySeaSteps(doc: SeaDoc, steps: readonly SeaStep[]): string[] 
           throw new Error(`cannot move ${step.what} ${step.id} to "${step.toSea}"`);
       }
       if (step.at || step.by) moveBy(doc, sel, step.at, step.by);
+      if (step.turn) turnBy(doc, sel, step.turn);
       made.push(`moved ${step.what} ${step.id}`);
       continue;
     }
@@ -297,6 +314,37 @@ function moveBy(doc: SeaDoc, sel: Selection, at?: XY, by?: XY) {
   else if (sel.kind === 'waypoint') moveWaypoint(doc, sel.index, from[0] + dx, from[1] + dy);
   else if (sel.kind === 'shape') moveShape(doc, sel.id, dx, dy);
   else moveFlow(doc, sel, dx, dy);
+}
+
+/**
+ * Turns a thing round the middle of the map by `deg` clockwise (a compass bearing grows), so it
+ * keeps its distance from the ring: how a sea's things move from one sector to the next (0178).
+ */
+function turnBy(doc: SeaDoc, sel: Selection, deg: number) {
+  if (!sel) return;
+  const a = (deg * Math.PI) / 180;
+  const turn = ([x, y]: readonly number[]): XY => [
+    Math.round((x! * Math.cos(a) + y! * Math.sin(a)) * 10) / 10,
+    Math.round((-x! * Math.sin(a) + y! * Math.cos(a)) * 10) / 10,
+  ];
+  const point = (p: { x: number; y: number }) => turn([p.x, p.y]);
+  if (sel.kind === 'island') return moveBy(doc, sel, point(findIsland(doc, sel.id)!));
+  if (sel.kind === 'mark') return moveBy(doc, sel, point(doc.marks![sel.index]!));
+  if (sel.kind === 'waypoint') return moveBy(doc, sel, point(doc.course[sel.index]!));
+  const item =
+    sel.kind === 'shape'
+      ? findShape(doc, sel.id)
+      : sel.kind === 'current'
+        ? findCurrent(doc, sel.id)
+        : sel.kind === 'zone'
+          ? findZone(doc, sel.id)
+          : sel.kind === 'area'
+            ? findArea(doc, sel.id)
+            : undefined;
+  if (!item) return;
+  const holder = item as { outline?: XY[]; path?: [number, number, number][] };
+  if (holder.outline) holder.outline = holder.outline.map(turn);
+  if (holder.path) holder.path = holder.path.map(([x, y, w]) => [...turn([x, y]), w]);
 }
 
 /** One line per sea file: what is in it. */

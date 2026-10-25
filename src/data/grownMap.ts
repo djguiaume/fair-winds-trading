@@ -1,5 +1,6 @@
 import type { ChartAreaDef } from '../sim/fog';
 import type { MapDef } from '../sim/map';
+import type { Sectors } from '../sim/seaSectors';
 import grown from './seas/grown.json';
 
 /** Local storage prefix of the grown sea's own voyage, so the real one is never touched. */
@@ -10,6 +11,9 @@ export const PHASE4_PREFIX = 'fwt.phase4.';
  * (decisions 0115, 0137).
  */
 export const GROWN_SEA_RADIUS = grown.boundsRadius;
+
+/** Each sea's slice of the outer ring, compass bearings `[from, to]` (decision 0178). */
+export const SEA_SECTORS = grown.sectors as unknown as Sectors;
 
 /**
  * One of the Phase 4 seas (decision 0137): the islands, shapes, ports, buoys and wind zones a

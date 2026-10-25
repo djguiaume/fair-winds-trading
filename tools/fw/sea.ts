@@ -7,10 +7,18 @@ import { resolve } from 'node:path';
 import type { SeaDef } from '../../src/data/grownMap';
 import { prepareMap } from '../../src/data/maps';
 import { type SeaStep, applySeaSteps, seaSummary } from '../../src/editor/seaSteps';
-import { type GrownDef, GROWN_PATH, mergeSeas, seaExports, seaPath } from '../../src/editor/seas';
+import {
+  type GrownDef,
+  GROWN_PATH,
+  mergeSeas,
+  seaExports,
+  seaPath,
+  splitSeas,
+} from '../../src/editor/seas';
 import type { MapDef } from '../../src/sim/map';
 import { questTagsCheck, quickChecks, routeChecks } from '../../src/sim/mapChecks';
 import { QUESTS } from '../../src/sim/quests';
+import { type Sectors, sectorChecks } from '../../src/sim/seaSectors';
 
 /** The repository: npm runs the tools from there. */
 const ROOT = process.cwd();
@@ -32,11 +40,15 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
                  (storm-belt: squalls march downwind of --heading; --outline for its band)
         area     --name … [--id …] [--outline …]                    (a chart area, fog of war)
         port     --island <id> [--name …]                           (makes the island a port)
-  move <what> <id|index> --at x,y | --by dx,dy | --to-sea <id>
+  move <what> <id|index> --at x,y | --by dx,dy | --turn deg | --to-sea <id>
+        (--turn: round the middle of the map, degrees clockwise, keeping its distance)
   set <what> <id|index> --name … (and any field: --kind, --max-draft, --type, --speed, --level …;
         a port's --produces, --wants, --wants-made a,b,c; a sandbank's --color #b8b2a8)
   set shape <id> --style fog     a reef's rock style (a palette style's reefRock and coral; none = warm)
+  set <what> <id> --outline "x,y x,y …"   a new outline for a shape, zone, area or area current
   set sea <id> --name …          set grown --radius 985 --charted 445
+  set grown --sector east=45,135 a sea's slice of the outer ring, compass degrees (decision 0178;
+        several with ';', none removes it); every sea's things must stay inside its own
   --after <quest> | --before <quest> | --always   on add or set: an island, shape or mark stands
         once that quest is done, or until it is (decision 0166: land swaps out of the boat's sight)
   --during <quest> | --except <quest>   an island or shape stands only while that quest runs,
@@ -123,6 +135,21 @@ function fieldsOf(args: Args): Record<string, unknown> {
   return fields;
 }
 
+/** `east=45,135;west=225,315` (or `east=none`) as `{ east: [45, 135], west: [225, 315] }`. */
+function sectorsOf(text: string): Record<string, [number, number] | null> {
+  const out: Record<string, [number, number] | null> = {};
+  for (const part of text.split(';').filter(Boolean)) {
+    const [sea, value] = part.split('=');
+    const range = value?.split(',').map(Number);
+    if (!sea || !value) throw new Error(`--sector ${part}: sea=from,to`);
+    if (value === 'none') out[sea.trim()] = null;
+    else if (range?.length === 2 && range.every(Number.isFinite))
+      out[sea.trim()] = [range[0]!, range[1]!];
+    else throw new Error(`--sector ${part}: sea=from,to in compass degrees`);
+  }
+  return out;
+}
+
 /** The step a command line asks for, as data. */
 export function seaStepFromArgs(args: Args): SeaStep | null {
   const [command, what, id] = args._;
@@ -151,6 +178,7 @@ export function seaStepFromArgs(args: Args): SeaStep | null {
         id,
         at: xy(args.at),
         by: xy(args.by),
+        turn: args.turn !== undefined ? Number(args.turn) : undefined,
         toSea: typeof args['to-sea'] === 'string' ? args['to-sea'] : undefined,
       };
     case 'set':
@@ -158,9 +186,15 @@ export function seaStepFromArgs(args: Args): SeaStep | null {
         return {
           do: 'set',
           what: 'grown',
-          fields: { boundsRadius: num(args.radius), chartedRadius: num(args.charted) },
+          fields: {
+            boundsRadius: num(args.radius),
+            chartedRadius: num(args.charted),
+            sectors: typeof args.sector === 'string' ? sectorsOf(args.sector) : undefined,
+          },
         };
       if (!what || id === undefined) throw new Error('set <what> <id|index> --field value');
+      // A new outline for a shape, zone, area or area current (trimming a reef to its sector).
+      if (typeof args.outline === 'string') fields.outline = points(args.outline);
       return { do: 'set', what: what as never, id, fields };
     case 'remove':
       if (!what || id === undefined) throw new Error('remove <what> <id|index>');
@@ -234,6 +268,7 @@ export function run(args: Args): number {
       prepared,
       QUESTS.map((q) => q.id),
     ),
+    ...sectorChecks(splitSeas(doc).seas, doc.seaEditor.grown.sectors as Sectors | undefined),
     ...(args.routes ? routeChecks(prepared) : []),
   ];
   const failed = checks.filter((c) => !c.ok);
