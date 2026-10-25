@@ -2,8 +2,11 @@
   "id": "saltmere-letter",
   "name": "A letter for the north",
   "start": {
-    "is": "quest-done",
-    "quest": "outpost-west"
+    "is": "all",
+    "of": [
+      { "is": "quest-done", "quest": "saltmere-shoals" },
+      { "is": "quest-done", "quest": "watchman-passage" }
+    ]
   },
   "text": "quest.saltmere-letter",
   "giver": "kit",
@@ -13,13 +16,9 @@
   "steps": [
     {
       "id": "chart",
-      "goal": {
-        "is": "docked",
-        "port": "rimewick"
-      },
-      "reward": {
-        "gold": 300
-      }
+      "charts": ["floe-line", "rimewick-fjord"],
+      "goal": { "is": "docked", "port": "rimewick" },
+      "reward": { "gold": 300 }
     }
   ]
 }
