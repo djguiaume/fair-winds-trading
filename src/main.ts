@@ -107,6 +107,7 @@ import { HomePanel, buildingName, effectLine } from './ui/homePanel';
 import { builtByIsland, giveHomeIsland, homeSpots, islandHome, offerHomeSpot } from './sim/home';
 import { TransferPanel } from './ui/transferPanel';
 import { startTvMode } from './input/tv';
+import { WayOfPlaying, firstWay } from './input/wayOfPlaying';
 
 declare const __APP_VERSION__: string;
 declare const __BUILD_REVISION__: string;
@@ -118,6 +119,9 @@ if (release) release.textContent = __BUILD_REVISION__;
 // A console's browser on a TV (decision 0183): hand the pad to the game, keep clear of the
 // screen's edges, keep Back in the game. Before any screen is built.
 startTvMode();
+// The first guess at the way of playing, before any input, for texts that name controls (0184).
+const firstGuess = firstWay((q) => typeof matchMedia === 'function' && matchMedia(q).matches);
+setTextVariant(firstGuess);
 
 const SIM_STEP = 1 / 60;
 
@@ -1059,11 +1063,15 @@ function padScreen(): PadScreen | null {
 }
 const padFocus = new PadFocus(padScreen, document.getElementById('pad-hints'));
 pad.onMenuPress = (p, context) => padFocus.press(p, context);
+// Texts that name controls follow the way of playing: touch, keys or pad (decision 0184).
+const way = new WayOfPlaying(window, firstGuess, () => pad.usingPad);
+way.onChange = (w) => {
+  setTextVariant(w);
+  coach.render();
+};
 pad.onUsingPad((using) => {
   padFocus.setUsing(using);
-  // Lesson texts that name controls say "press A" while the pad is in use (decision 0183).
-  setTextVariant(using ? 'pad' : null);
-  coach.render();
+  way.setPad(using);
 });
 // Start in the pause menu sets sail again, as the menu's own button does.
 padFocus.onResume = () => {

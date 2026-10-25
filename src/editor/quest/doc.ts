@@ -4,6 +4,7 @@ import { PHASE1_SOURCE, prepareMap } from '../../data/maps';
 import { formatJson, formatQuestJson } from '../../data/jsonFormat';
 import en from '../../i18n/en.json';
 import fr from '../../i18n/fr.json';
+import { TEXT_VARIANTS, type TextVariant } from '../../i18n';
 import type { MapDef, SeaMarkDef, SeaMarkType } from '../../sim/map';
 import type { StepWind } from '../../sim/stepEffects';
 import { clearAt } from '../../sim/mapChecks';
@@ -577,15 +578,25 @@ export function storyColumns(quests: readonly { id: string; start: Condition }[]
 
 // --- Text ----------------------------------------------------------------------------------
 
+/** A text line the builder edits: its key, what it is, and whether it has controls versions. */
+export interface TextLine {
+  key: string;
+  label: string;
+  long: boolean;
+  /**
+   * Speech that can name controls (decision 0184): besides the default `key`, optional
+   * `key@touch`, `key@keys` and `key@pad` for a touch screen, keyboard and mouse, a controller.
+   */
+  variants?: boolean;
+}
+
 /** The text keys a quest's card and journal read (decision 0124), with what each one is. */
-export function textKeys(quest: QuestDef): { key: string; label: string; long: boolean }[] {
+export function textKeys(quest: QuestDef): TextLine[] {
   const t = quest.text;
-  const out = [{ key: `${t}.name`, label: 'Quest name', long: false }];
+  const out: TextLine[] = [{ key: `${t}.name`, label: 'Quest name', long: false }];
   for (const s of quest.steps) {
     out.push({ key: `${t}.${s.id}.title`, label: `${s.id} · ask`, long: false });
-    out.push({ key: `${t}.${s.id}.copy`, label: `${s.id} · speech`, long: true });
-    // Optional: the speech while playing with a game controller (decision 0183).
-    out.push({ key: `${t}.${s.id}.copy@pad`, label: `${s.id} · speech · controller`, long: true });
+    out.push({ key: `${t}.${s.id}.copy`, label: `${s.id} · speech`, long: true, variants: true });
     for (const o of s.choose ?? []) {
       out.push({ key: `${t}.${s.id}.${o.id}.title`, label: `${s.id} › ${o.id}`, long: false });
       out.push({
@@ -596,9 +607,27 @@ export function textKeys(quest: QuestDef): { key: string; label: string; long: b
     }
   }
   out.push({ key: `${t}.done.title`, label: 'Thanks · title', long: false });
-  out.push({ key: `${t}.done.copy`, label: 'Thanks · speech', long: true });
+  out.push({ key: `${t}.done.copy`, label: 'Thanks · speech', long: true, variants: true });
   return out;
 }
+
+/** Every key of a line: the default, then its controls versions (decision 0184). */
+export function lineKeys(line: TextLine): { key: string; label: string; way?: TextVariant }[] {
+  const out: { key: string; label: string; way?: TextVariant }[] = [
+    { key: line.key, label: line.label },
+  ];
+  if (line.variants)
+    for (const way of TEXT_VARIANTS)
+      out.push({ key: `${line.key}@${way}`, label: `${line.label} · ${WAY_NAMES[way]}`, way });
+  return out;
+}
+
+/** The builder's names for the ways of playing. */
+export const WAY_NAMES: Record<TextVariant, string> = {
+  touch: 'touch',
+  keys: 'keyboard & mouse',
+  pad: 'controller',
+};
 
 const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
 
@@ -606,7 +635,7 @@ const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1
 export function checkText(doc: QuestDoc): string[] {
   const out: string[] = [];
   for (const q of doc.quests)
-    for (const { key, label } of textKeys(q)) {
+    for (const { key, label } of textKeys(q).flatMap(lineKeys)) {
       const [a, b] = LANGS.map((l) => textOf(doc, l, key));
       const isAsk =
         /\.title$/.test(key) && !key.endsWith('.done.title') && key.split('.').length === 4;

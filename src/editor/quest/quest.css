@@ -469,6 +469,33 @@ dialog.quest-card.qb-card {
   font: 500 14px/1.35 var(--body);
   resize: none;
 }
+/* A speech's versions per way of playing (decision 0184): default, touch, keys, controller. */
+.qb-ways {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 6px;
+}
+.qb-ways button {
+  padding: 3px 7px;
+  border: 1px solid var(--brass-line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-dim);
+  font: 600 11px/1.2 var(--body);
+  text-align: left;
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+.qb-ways button.written::after {
+  content: ' ●';
+  color: var(--green-ink);
+}
+.qb-ways button[aria-selected='true'] {
+  background: var(--brass);
+  color: #08141b;
+}
 
 /* --- Story graph ---------------------------------------------------------------------------- */
 .qb-story {

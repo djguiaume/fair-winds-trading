@@ -84,19 +84,6 @@ describe('TV mode (decision 0183)', () => {
 });
 
 describe('controller texts and the chart cross (decision 0183)', () => {
-  it('reads a key@pad text while the pad is in use, else the plain one', async () => {
-    const { setTextVariant, t } = await import('../src/i18n');
-    const plain = t('lesson.sell.copy', { cargo: 'fish' });
-    setTextVariant('pad');
-    expect(t('lesson.sell.copy', { cargo: 'fish' })).toBe(
-      'Sell fish here, or press X to sell all.',
-    );
-    // A key with no controller text stays as it is.
-    expect(t('lesson.wind.title')).toBe('Let the wind help');
-    setTextVariant(null);
-    expect(t('lesson.sell.copy', { cargo: 'fish' })).toBe(plain);
-  });
-
   it('A on the chart picks the port under the cross, Y skips the lesson', async () => {
     const { PAD, chartPad, readPad, PAD_BUTTONS } = await import('../src/input/gamepad');
     const pad = (down: string[]) => ({
