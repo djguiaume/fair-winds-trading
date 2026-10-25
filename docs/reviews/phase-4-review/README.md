@@ -63,8 +63,15 @@ ring and on `--map phase4`, `npm run chart -- --sea phase4`, `npm run shots` on 
      The Trades), hide them until charted; "cold-sea" is a raw id; the Stormbreak label is cut by the
      chart edge; the Cold Sea and Calving Grounds labels collide.
    - The dev badge, and the "<port> · your island" label under the quest pill (with gap 1).
-   - The outposts once founded at each level, Cinder Isle risen and each port at night: shot in
-     [art-set/](art-set/), waiting on the art director's look.
+   - From the [art set](art-set/) (art director, 2026-10-25): **Cinder Isle's port and berth sit in
+     open water** (likely left behind when the island moved in the equal-quarters PR #188): move them
+     onto the island and reshoot. **Amber Strand never grows**: build levels 1 to 3 (drying racks and
+     an amber hut, then houses, then a small quay). **Snowberry Isle needs a pier** on the cove side,
+     and its levels 1 to 3 must look different. These three are the only visual blockers; the art
+     director sees them again once fixed.
+   - Approved from the set: Emberhold, Fogwatch and Rimewick at night, Palm Key at night and at
+     levels 2 and 3, Cinder Isle risen. Nice to have, after release: a clear level-3 step at Palm Key,
+     more lit windows on Sunreach's upper lane.
    Approved as they are: Rimewick ("the best town in the game now"), Emberhold, Sunreach, the
    eruption, the waterfall and the density fills.
 7. **The closing beat "four-winds"** (head storyteller): Rook at Skerry once all four outposts are
@@ -114,7 +121,7 @@ The art director's set (outposts at each level, every port at night, Cinder Isle
 | Thread | Does | Asks |
 |---|---|---|
 | Make the grown sea the main game | gap 1 + the small UI things + the chart labels | art director for the label overlap |
-| Fogwatch south tier and outpost fixes | Fogwatch's tier, Cinder Isle's berth, Snowberry's pier | art director |
+| Fogwatch south tier and outpost fixes | Fogwatch's tier, the chart labels, Cinder Isle's berth, Snowberry's pier and levels | art director |
 | Write the east sea's quests (already running) | gap 2, gap 7, Amber Strand's look | head storyteller, Guillaume sees portraits and cards |
 | Balance the grown sea | gap 3, tool first then tuning | storyteller on prices vs story order |
 | Phase 4 playtest and release | gaps 4 and 5, then v0.4.x notes and ADR like 0138 | Guillaume sees the screenshots |
