@@ -731,6 +731,7 @@ export function sailVoyage(opts: VoyageOptions): Voyage {
     for (let q = story.play(timer, at, t); q && t < minutes * 60; q = story.play(timer, at, t)) {
       pass(q.seconds);
       story.land(trade, t / 60, q.seconds);
+      story.step(trade, t / 60);
       at = q.at;
       trade.dockedAt = at;
     }

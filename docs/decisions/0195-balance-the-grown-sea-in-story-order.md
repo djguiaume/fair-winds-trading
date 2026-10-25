@@ -35,9 +35,11 @@ Running the bots in story order showed what else held the far goods back:
 
 | Level | Ring alone → last hour (relaxed) | Far goods, last hour | Seas open (relaxed, min): S / W / N / E | All four outposts: relaxed / sharp |
 |---|---|---|---|---|
-| Fair winds | 155 → 691 gold/min (4.5×) | 94 % | 22 / 27 / 87 / 92 | 2 h 09 / 1 h 14 |
-| Captain | 133 → 372 (2.8×) | 76 % | 30 / 34 / 43 / 103 | 2 h 30 / 1 h 36 |
-| Old salt | 120 → 259 (2.2×) | 65 % | 40 / 44 / 47 / 59 | 2 h 30 / 1 h 37 |
+| Fair winds | 155 → 669 gold/min (4.3×) | 94 % | 22 / 27 / 32 / 36 | 2 h 12 / 1 h 19 |
+| Captain | 133 → 420 (3.2×) | 78 % | 30 / 34 / 38 / 46 | 2 h 28 / 1 h 39 |
+| Old salt | 120 → 245 (2.0×) | 49 % | 40 / 44 / 47 / 51 | 2 h 30 / 1 h 38 |
+
+A sea "opens" when the bot starts its letter. The bots start the far quests only once the cutter is theirs (relaxed 21 / 28 / 38 min, sharp 9 / 14 / 14), even though 0194 offers Ness's chart as soon as Ada's arc is done. Sharp captains start the four letters at 11–15 / 17–18 / 21–22 / 25–26 min. The cutter is fully upgraded at 2 h 41 / 3 h 07 / 3 h 02 (relaxed) and 1 h 34 / 2 h 03 / 2 h 04 (sharp). In 8 hours almost no town reaches its top level, so the bots never "finish everything"
 
 Minutes of sailing each sea's three quests take, relaxed (sharp): ring arcs 34 (23), south 36–41 (17–26), west 26–31 (20–23), north 16–21 (11–12), east 26–30 (15–20).
 
