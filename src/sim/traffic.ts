@@ -672,11 +672,12 @@ export function pilot(world: World, b: TrafficBoat, wind: Wind): BoatControls {
   // By a harbour, slow, she takes to the sweeps (the long oars) and rows clear of the quays.
   const lane = laneOf(world.map, b.fleet);
   const ends = b.fleet.kind === 'fishing' ? [lane[0]!] : [lane[0]!, lane[lane.length - 1]!];
-  // Pinned on a lee shore anywhere, she rows off it the same way. A racer sails it out.
+  // Pinned on a lee shore anywhere, she rows off it the same way; a racer only then (her course's
+  // ends are marks at sea, not quays).
   b.sweeps =
-    !b.racer &&
     boat.speedKn < t.sweepKn * 1.5 &&
-    (boat.sinceBump < 2 || ends.some((p) => Math.hypot(p.x - boat.x, p.y - boat.y) < t.sweepRange));
+    (boat.sinceBump < 2 ||
+      (!b.racer && ends.some((p) => Math.hypot(p.x - boat.x, p.y - boat.y) < t.sweepRange)));
   if (b.sweeps) {
     let best = Infinity;
     let want = bearingTo(boat, target);

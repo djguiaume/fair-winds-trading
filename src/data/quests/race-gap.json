@@ -22,7 +22,43 @@
       "silver": 120,
       "gold": 200
     },
-    "pars": {}
+    "pars": {
+      "sloop": {
+        "fair": 62,
+        "captain": 62,
+        "salt": 62
+      },
+      "cutter": {
+        "fair": 61,
+        "captain": 62,
+        "salt": 61
+      },
+      "schooner": {
+        "fair": 51,
+        "captain": 50,
+        "salt": 51
+      },
+      "clipper": {
+        "fair": 45,
+        "captain": 46,
+        "salt": 46
+      },
+      "hoy": {
+        "fair": 121,
+        "captain": 118,
+        "salt": 119
+      },
+      "indiaman": {
+        "fair": 318,
+        "captain": 220,
+        "salt": 182
+      },
+      "fluyt": {
+        "fair": 338,
+        "captain": 234,
+        "salt": 193
+      }
+    }
   },
   "steps": [
     {

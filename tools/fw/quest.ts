@@ -9,6 +9,12 @@ import { GAME_MAP, prepareMap } from '../../src/data/maps';
 import {
   type QuestDoc,
   addQuestMark,
+  addRaceMark,
+  moveRaceMark,
+  raceGoal,
+  removeRaceMark,
+  setRaceLine,
+  setRacePars,
   playUrl,
   questFileText,
   questProblems,
@@ -21,6 +27,10 @@ import {
 import { type MapDef, SEA_MARK_TYPES, type SeaMarkType } from '../../src/sim/map';
 import { clearAt } from '../../src/sim/mapChecks';
 import { QUESTS, type QuestDef } from '../../src/sim/quests';
+import { racePars } from '../../src/sim/raceBot';
+import { MEDALS, medalTimes } from '../../src/sim/regatta';
+import { DIFFICULTIES } from '../../src/sim/difficulty';
+import { SHIP_IDS } from '../../src/sim/ship';
 
 type Args = Record<string, string | boolean | undefined> & { _: string[] };
 
@@ -46,6 +56,17 @@ The quest's own sea (decision 0164), with the builder's edits; writes the quest 
   wind <id> [--step N] --speed kn [--from deg]           a held breeze (the quest's, or a step's)
   wind <id> [--step N] --clear
        --dry                    write nothing, print what would change
+
+Races of the Saltmere Regatta (decision 0216; also \`npm run race -- …\`):
+  race                          every race: series, marks, pars
+  race <id>                     its course and each medal's time per ship class
+  race <id> --pars [--write]    the balance bots sail it with every ship class on all three
+       [--ships sloop,cutter]   levels (pinned wind, each level's currents): the pars
+  race --all --pars --write     every race
+  race <id> --start "x,y x,y"   the start line: committee boat's end, then the pin's
+  race <id> --finish "x,y x,y"  the finish line
+  race <id> --add --at x,y [--after N]   a mark (numbered in order), after mark N
+  race <id> --mark N --at x,y | --remove move or remove mark N (1 = first)
 Options
   --file quest.json             a quest file to use instead of (or besides) the shipped one
   --map file.json               a map editor export instead of the ring
@@ -219,6 +240,7 @@ export async function run(args: Args): Promise<number> {
   }
 
   if (cmd === 'move' || cmd === 'buoy' || cmd === 'wind') return edit(cmd, ids, args, doc, map);
+  if (cmd === 'race') return race(ids, args, doc, map);
 
   console.log(`unknown command "${cmd}"\n${HELP}`);
   return 1;
@@ -328,4 +350,145 @@ function edit(cmd: string, ids: string[], args: Args, doc: QuestDoc, map: MapDef
     );
   }
   return problems.length ? 1 : 0;
+}
+
+const fmt = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}`;
+
+/** Writes a quest file the way the builder exports it; whether it changed. */
+function writeQuest(q: QuestDef, args: Args): boolean {
+  const path = resolve(`src/data/quests/${q.id}.json`);
+  const before = existsSync(path) ? readFileSync(path, 'utf8') : undefined;
+  const text = questFileText(q, before);
+  if (args.dry || text === before) return false;
+  writeFileSync(path, text);
+  return true;
+}
+
+/** `race`: the regatta's courses, their pars from the bots, and the builder's course edits. */
+function race(ids: string[], args: Args, doc: QuestDoc, map: MapDef): number {
+  const races = doc.quests.filter((q) => q.race);
+  const [id] = ids;
+  if (!id && !args.all) {
+    for (const q of races) {
+      const goal = raceGoal(q);
+      const classes = Object.keys(q.race!.pars).length;
+      console.log(
+        `${q.id.padEnd(18)} ${q.race!.series.padEnd(13)} ${String((goal?.marks as unknown[])?.length ?? 0).padStart(2)} marks  pars for ${classes}/${SHIP_IDS.length} ships  at ${q.port ?? ''}`,
+      );
+    }
+    return 0;
+  }
+  const chosen = args.all ? races : races.filter((q) => q.id === id);
+  if (!chosen.length) {
+    console.log(`no race "${id}" (${races.map((q) => q.id).join(', ')})`);
+    return 1;
+  }
+  if (args.pars) {
+    const ships =
+      typeof args.ships === 'string' ? args.ships.split(',').filter(Boolean) : SHIP_IDS;
+    let bad = 0;
+    const out: Record<string, unknown> = {};
+    for (const q of chosen) {
+      const { pars, runs, estimated } = racePars(map, q, ships);
+      const lost = runs.filter((r) => r.sec === null || r.stuck);
+      // A big hull the bots could not get round has an estimated par; the smallest must finish.
+      if (lost.some((r) => r.ship === 'sloop' || r.ship === 'cutter')) bad++;
+      out[q.id] = { pars, lost, estimated };
+      if (!args.json) {
+        console.log(`${q.id}: ${DIFFICULTIES.join(' / ')}`);
+        for (const ship of ships)
+          console.log(
+            `  ${ship.padEnd(9)} ${DIFFICULTIES.map((l) => (pars[ship]?.[l] ? fmt(pars[ship][l]!) : '  —')).join('  ')}${estimated.includes(ship) ? '  (estimated by speed: the bot did not get round)' : ''}`,
+          );
+        for (const r of lost)
+          console.log(
+            `  ${r.ship} on ${r.difficulty}: ${r.sec === null ? 'did not finish' : `gave up ${r.stuck} mark(s)`} (route points given up: ${r.gaveUp.join(', ') || 'none'}; 0 the start, last the finish; legs at ${r.legs.join(', ')} s)`,
+          );
+      }
+      if (args.write) {
+        // A partial run keeps the other classes' pars.
+        setRacePars(q, { ...q.race!.pars, ...pars });
+        writeQuest(q, args);
+      }
+    }
+    if (args.json) console.log(JSON.stringify(out, null, 2));
+    console.log(
+      `${chosen.length} race(s) sailed${args.write && !args.dry ? ', pars written' : ''}${bad ? ` · ${bad} race(s) the sloop or cutter could not sail` : ''}`,
+    );
+    return bad ? 1 : 0;
+  }
+  const q = chosen[0]!;
+  const pts = (v: unknown) => {
+    const p = typeof v === 'string' ? v.split(/[\s;]+/).map(xy) : [];
+    return p.length === 2 && p[0] && p[1] ? (p as { x: number; y: number }[]) : null;
+  };
+  let said = '';
+  if (typeof args.start === 'string' || typeof args.finish === 'string') {
+    for (const which of ['start', 'finish'] as const) {
+      if (args[which] === undefined) continue;
+      const line = pts(args[which]);
+      if (!line) {
+        console.log(`--${which} "x,y x,y" (the committee boat's end, then the pin's)`);
+        return 1;
+      }
+      setRaceLine(q, which, line[0]!, line[1]!);
+      said += `${q.id}: ${which} line ${line.map((p) => `${p.x},${p.y}`).join(' to ')}. `;
+    }
+  } else if (args.add) {
+    const at = xy(args.at);
+    if (!at) {
+      console.log('race <id> --add --at x,y [--after N]');
+      return 1;
+    }
+    const after = num(args.after);
+    const i = addRaceMark(q, at, after === undefined ? undefined : after - 1);
+    said = `${q.id}: mark ${i + 1} at ${at.x},${at.y}`;
+  } else if (args.mark !== undefined) {
+    const i = Number(args.mark) - 1;
+    if (args.remove) {
+      if (!removeRaceMark(q, i)) {
+        console.log(`no mark ${args.mark} to remove (a race keeps one)`);
+        return 1;
+      }
+      said = `${q.id}: mark ${i + 1} removed`;
+    } else {
+      const at = xy(args.at);
+      if (!at || !moveRaceMark(q, i, at)) {
+        console.log('race <id> --mark N --at x,y');
+        return 1;
+      }
+      said = `${q.id}: mark ${i + 1} at ${at.x},${at.y}`;
+    }
+  }
+  if (said) {
+    const problems = problemsOf(doc, map, [q.id]);
+    const written = writeQuest(q, args);
+    for (const p of problems) console.log(p);
+    console.log(
+      `${said.trim()}${written ? '' : ' (not written)'} · ${problems.length ? `${problems.length} problem(s)` : 'checks ok'} · sail it again with --pars --write`,
+    );
+    return problems.length ? 1 : 0;
+  }
+  // The course and each medal's time.
+  const goal = raceGoal(q)!;
+  const line = (g: unknown) =>
+    (g as { x: number; y: number }[]).map((p) => `${p.x},${p.y}`).join(' to ');
+  console.log(`${q.id} (${q.name}), ${q.race!.series}, at ${q.port}`);
+  console.log(`  start  ${line(goal.start)}`);
+  (goal.marks as { x: number; y: number }[]).forEach((m, i) =>
+    console.log(`  mark ${i + 1} ${m.x},${m.y}`),
+  );
+  console.log(`  finish ${line(goal.finish)}`);
+  console.log(`  wind   ${q.wind ? `${q.wind.speedKn} kn from ${q.wind.fromDeg ?? 'the map'}°` : 'the sea\'s'}`);
+  console.log(`  gold   ${MEDALS.map((m) => `${m} ${q.race!.gold[m]}`).join(', ')}`);
+  for (const level of DIFFICULTIES) {
+    console.log(`  ${level}: ${MEDALS.slice().reverse().join(' / ')}`);
+    for (const ship of SHIP_IDS) {
+      const t = medalTimes(q.race!, ship, level);
+      console.log(
+        `    ${ship.padEnd(9)} ${MEDALS.slice().reverse().map((m) => (Number.isFinite(t[m]) ? fmt(t[m]) : '—')).join('  ')}${q.race!.pars[ship] ? '' : '  (no par: the slowest)'}`,
+      );
+    }
+  }
+  return 0;
 }

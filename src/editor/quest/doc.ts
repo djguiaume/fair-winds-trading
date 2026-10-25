@@ -354,6 +354,62 @@ export function setWind(target: { wind?: StepWind }, speedKn?: number, fromDeg?:
   target.wind = fromDeg === undefined ? { speedKn } : { speedKn, fromDeg };
 }
 
+// --- Races (decision 0216) ----------------------------------------------------------------------
+
+/** A race's `raced` goal (its one step's), or null for a quest that is no race. */
+export function raceGoal(quest: QuestDef): Condition | null {
+  const goal = quest.race ? quest.steps[0]?.goal : undefined;
+  return goal?.is === 'raced' ? goal : null;
+}
+
+/** A race's start or finish line: the committee boat's end, then the pin's. */
+export function setRaceLine(
+  quest: QuestDef,
+  which: 'start' | 'finish',
+  a: QuestPoint,
+  b: QuestPoint,
+): boolean {
+  const goal = raceGoal(quest);
+  if (!goal) return false;
+  goal[which] = [
+    { x: round1(a.x), y: round1(a.y) },
+    { x: round1(b.x), y: round1(b.y) },
+  ];
+  return true;
+}
+
+/** Adds a race mark at `at` (after mark `after`, 0-based; at the end by default); its index. */
+export function addRaceMark(quest: QuestDef, at: QuestPoint, after?: number): number {
+  const goal = raceGoal(quest);
+  if (!goal) return -1;
+  const marks = [...((goal.marks as QuestPoint[]) ?? [])];
+  const i = after === undefined ? marks.length : Math.min(marks.length, after + 1);
+  marks.splice(i, 0, { x: round1(at.x), y: round1(at.y) });
+  goal.marks = marks;
+  return i;
+}
+
+/** Moves race mark `i` (0-based); false when there is none. */
+export function moveRaceMark(quest: QuestDef, i: number, at: QuestPoint): boolean {
+  const marks = raceGoal(quest)?.marks as QuestPoint[] | undefined;
+  if (!marks?.[i]) return false;
+  marks[i] = { x: round1(at.x), y: round1(at.y) };
+  return true;
+}
+
+/** Removes race mark `i` (0-based); a race keeps at least one. */
+export function removeRaceMark(quest: QuestDef, i: number): boolean {
+  const marks = raceGoal(quest)?.marks as QuestPoint[] | undefined;
+  if (!marks?.[i] || marks.length < 2) return false;
+  marks.splice(i, 1);
+  return true;
+}
+
+/** A race's pars (ship class → level → seconds), from `npm run race -- pars` or the builder. */
+export function setRacePars(quest: QuestDef, pars: Record<string, Record<string, number>>) {
+  if (quest.race) quest.race.pars = pars;
+}
+
 // --- Play from a step ------------------------------------------------------------------------
 
 /**

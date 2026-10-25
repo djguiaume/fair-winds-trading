@@ -42,48 +42,30 @@ function startPoint(course: RaceCourse) {
 }
 
 /**
- * Kestrel at the line, a boat's length or two to leeward of the captain on the course side's far
- * edge, sails down until the horn.
+ * A boat that sails a course as a racer (decision 0216): Kestrel, or the balance bots that set the
+ * pars. `pace` scales her speed. She turns like a captain's ship of her class, so the pars are
+ * times a captain can sail. Lies with her sails down until released.
  */
-export function createRival(world: World, race: RaceDef, course: RaceCourse): TrafficBoat {
-  const rival = REGATTA.rival;
-  const base = TUNING.ships[rival.ship] ?? TUNING.ships.sloop!;
-  const pace = rivalPace(race, world.trade.captain.activeShip, world.trade.difficulty);
-  const ship = {
-    ...base,
-    speedRatio: base.speedRatio * pace,
-    turnRateDeg: base.turnRateDeg * TUNING.seamanship.traffic.crewTurn,
-    ironsDecel: base.decel,
-  };
-  const me = world.boat;
-  // Along the line from the boat toward whichever end leaves her more room, on the boat's side.
-  const [a, b] = course.start;
-  const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
-  const along = { x: (b.x - a.x) / len, y: (b.y - a.y) / len };
-  const toA = Math.hypot(me.x - a.x, me.y - a.y);
-  const toB = Math.hypot(me.x - b.x, me.y - b.y);
-  const k = toB > toA ? 1 : -1;
-  const gap = (base.radius + 5) * 2.5;
-  let x = me.x + along.x * gap * k;
-  let y = me.y + along.y * gap * k;
-  // Never over the line before the horn.
-  const course0 = course.marks[0] ?? gateMid(course.finish);
-  if (Math.sign(gateSide(course.start, { x, y })) === Math.sign(gateSide(course.start, course0))) {
-    x = me.x;
-    y = me.y;
-  }
+export function makeRacer(
+  world: World,
+  course: RaceCourse,
+  shipId: string,
+  pace: number,
+  at: { x: number; y: number; heading: number },
+): TrafficBoat {
+  const base = TUNING.ships[shipId] ?? TUNING.ships.sloop!;
+  const ship = { ...base, speedRatio: base.speedRatio * pace };
   const route = [startPoint(course), ...course.marks, gateMid(course.finish)];
-  const boat = createBoat(x, y, me.heading);
-  const out: TrafficBoat = {
+  return {
     fleet: fleetOf(course),
-    name: rival.name,
+    name: REGATTA.rival.name,
     fleetIndex: -1,
     index: 0,
     ship,
-    boat,
+    boat: createBoat(at.x, at.y, at.heading),
     route,
     leg: 0,
-    legFrom: { x, y },
+    legFrom: { x: at.x, y: at.y },
     outbound: true,
     casts: 0,
     waitUntil: Infinity,
@@ -106,6 +88,33 @@ export function createRival(world: World, race: RaceDef, course: RaceCourse): Tr
       over: false,
     },
   };
+}
+
+/**
+ * Kestrel at the line, a couple of boat lengths along it from the captain toward the end with
+ * more room, on the same side, sails down until the horn.
+ */
+export function createRival(world: World, race: RaceDef, course: RaceCourse): TrafficBoat {
+  const rival = REGATTA.rival;
+  const base = TUNING.ships[rival.ship] ?? TUNING.ships.sloop!;
+  const pace = rivalPace(race, world.trade.captain.activeShip, world.trade.difficulty);
+  const me = world.boat;
+  const [a, b] = course.start;
+  const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+  const along = { x: (b.x - a.x) / len, y: (b.y - a.y) / len };
+  const toA = Math.hypot(me.x - a.x, me.y - a.y);
+  const toB = Math.hypot(me.x - b.x, me.y - b.y);
+  const k = toB > toA ? 1 : -1;
+  const gap = (base.radius + 5) * 2.5;
+  let x = me.x + along.x * gap * k;
+  let y = me.y + along.y * gap * k;
+  // Never over the line before the horn.
+  const course0 = course.marks[0] ?? gateMid(course.finish);
+  if (Math.sign(gateSide(course.start, { x, y })) === Math.sign(gateSide(course.start, course0))) {
+    x = me.x;
+    y = me.y;
+  }
+  const out = makeRacer(world, course, rival.ship, pace, { x, y, heading: me.heading });
   world.rival = out;
   return out;
 }
