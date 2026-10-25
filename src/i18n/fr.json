@@ -1347,7 +1347,7 @@
   "regatta.retire": "Abandonner la course",
   "regatta.retired": "Course abandonnée. Vous pouvez la refaire depuis le quai quand vous voulez.",
   "regatta.leaveTitle": "Quitter la course ?",
-  "regatta.leaveText": "Accoster ici abandonne la course. Vous pourrez la refaire depuis le quai quand vous voulez.",
+  "regatta.leaveText": "Accoster ici met fin à la course. Vous pourrez la refaire depuis le quai quand vous voulez.",
   "regatta.leaveOk": "Quitter et accoster",
   "regatta.book": "Le registre des régates",
   "regatta.shortStart": "Départ",
