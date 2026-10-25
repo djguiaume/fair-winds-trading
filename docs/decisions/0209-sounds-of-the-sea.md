@@ -91,4 +91,10 @@ game: about nine nodes a second created (the music's notes as before, plus calls
   levels were balanced by measuring the renders (peak and mean loudness) and by the spectra,
   not by ear: the first listen by the art director and Guillaume may move them, in the Sounds page
   or `audio.json`.
+- Storybook, not recordings (Guillaume, 2026-10-25: some sounds were "chill like the theme", some
+  "hyper realistic"; he liked the bells). The tonal sounds (bells, horns, birds, sheep) already
+  matched the music; the noise ones were moved towards them: the waves lap (quick in, slow out)
+  through two low-passes, the wind is a narrow soft whistle, the wash narrower, rain a soft patter,
+  the rumble and thunder a timpani roll, the lava hiss bubbles as little rising blips, calving a
+  hollow knock of ice, surf and palms rounder. Levels re-measured to the same targets.
 - On phones, low sounds were raised into the low mids (the rumble, as the foghorn in 0139).

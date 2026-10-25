@@ -22,11 +22,11 @@
     "eider": { "synth": "coo", "volume": 0.3 },
     "ice": { "synth": "creak", "volume": 0.7, "pitch": 0.55 },
     "calving": { "synth": "crack", "volume": 1 },
-    "rumble": { "synth": "rumble", "volume": 1.8 },
-    "thunder": { "synth": "rumble", "volume": 0.8, "pitch": 1.7 },
-    "lava-hiss": { "synth": "hiss", "volume": 0.25 },
-    "surf": { "synth": "surf", "volume": 0.6 },
-    "palms": { "synth": "rustle", "volume": 0.3 },
+    "rumble": { "synth": "rumble", "volume": 0.95 },
+    "thunder": { "synth": "rumble", "volume": 0.52, "pitch": 1.7 },
+    "lava-hiss": { "synth": "hiss", "volume": 0.62 },
+    "surf": { "synth": "surf", "volume": 0.85 },
+    "palms": { "synth": "rustle", "volume": 0.33 },
     "sheep": { "synth": "bleat", "volume": 0.8 },
     "fogwatch-horn": { "synth": "foghorn", "volume": 0.87, "pitch": 0.8 },
     "far-foghorn": { "synth": "foghorn", "volume": 0.38, "pitch": 1.12 },
@@ -35,13 +35,13 @@
   "boat": {
     "wash": { "level": 0.16, "tone": 1100, "fullKn": 8 },
     "luff": { "level": 0.3, "tone": 750, "rate": 9 },
-    "rain": { "level": 0.08, "tone": 2600 }
+    "rain": { "level": 0.22, "tone": 2600 }
   },
   "seas": {
     "ring": {
       "music": "sea",
-      "waves": { "level": 0.4, "tone": 520, "swellSec": 7 },
-      "wind": { "level": 0.22, "tone": 850 },
+      "waves": { "level": 0.52, "tone": 520, "swellSec": 7 },
+      "wind": { "level": 0.35, "tone": 850 },
       "calls": [
         { "effect": "gull", "every": [14, 32] },
         { "effect": "bell-buoy", "every": [20, 45] }
@@ -49,8 +49,8 @@
     },
     "south": {
       "music": "south",
-      "waves": { "level": 0.34, "tone": 760, "swellSec": 6 },
-      "wind": { "level": 0.18, "tone": 1100 },
+      "waves": { "level": 0.44, "tone": 760, "swellSec": 6 },
+      "wind": { "level": 0.29, "tone": 1100 },
       "calm": [{ "island": "sunreach", "within": 0.7, "waves": 0.35 }],
       "calls": [
         { "effect": "tern", "every": [10, 24] },
@@ -60,8 +60,8 @@
     },
     "north": {
       "music": "north",
-      "waves": { "level": 0.37, "tone": 380, "swellSec": 10 },
-      "wind": { "level": 0.3, "tone": 1500 },
+      "waves": { "level": 0.48, "tone": 380, "swellSec": 10 },
+      "wind": { "level": 0.48, "tone": 1500 },
       "calls": [
         { "effect": "ice", "every": [9, 22] },
         { "effect": "calving", "every": [25, 60], "near": { "bergs": true, "range": 220 } },
@@ -75,8 +75,8 @@
     },
     "west": {
       "music": "west",
-      "waves": { "level": 0.46, "tone": 440, "swellSec": 9 },
-      "wind": { "level": 0.22, "tone": 800 },
+      "waves": { "level": 0.6, "tone": 440, "swellSec": 9 },
+      "wind": { "level": 0.35, "tone": 800 },
       "calls": [
         { "effect": "gull", "every": [20, 45] },
         { "effect": "lava-hiss", "every": [4, 9], "near": { "vents": true, "range": 70 } }
@@ -84,8 +84,8 @@
     },
     "east": {
       "music": "east",
-      "waves": { "level": 0.35, "tone": 330, "swellSec": 8 },
-      "wind": { "level": 0.26, "tone": 700 },
+      "waves": { "level": 0.45, "tone": 330, "swellSec": 8 },
+      "wind": { "level": 0.42, "tone": 700 },
       "calls": [
         {
           "effect": "fogwatch-horn",

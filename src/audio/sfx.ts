@@ -245,62 +245,64 @@ export const playCoo: Play = (ctx, destination, level, pitch = 1) => {
     .connect(destination);
 };
 
-/** A glacier calving far off: a sharp crack, then the ice going in with a low wash. */
+/** A glacier calving far off: a hollow knock of ice, then the ice going in with a soft wash. */
 export const playCrack: Play = (ctx, destination, level, pitch = 1) => {
   const t = ctx.currentTime + 0.02;
-  noise(ctx, t, t + 0.2)
-    .connect(filter(ctx, 'bandpass', 1800 * pitch, 1.2))
-    .connect(envelope(ctx, t, level * 0.7, 0.002, t + 0.15))
-    .connect(destination);
-  const fall = t + 0.35;
-  noise(ctx, fall, fall + 2.4)
-    .connect(filter(ctx, 'lowpass', 300 * pitch, 0.7))
-    .connect(envelope(ctx, fall, level, 0.4, fall + 2.3))
+  for (const [at, f] of [
+    [0, 880],
+    [0.09, 660],
+  ] as const) {
+    tone(ctx, 'sine', f * pitch, t + at, t + at + 0.2)
+      .connect(envelope(ctx, t + at, level * 0.5, 0.002, t + at + 0.15))
+      .connect(destination);
+  }
+  const fall = t + 0.4;
+  noise(ctx, fall, fall + 2.2)
+    .connect(filter(ctx, 'lowpass', 260 * pitch, 0.7))
+    .connect(envelope(ctx, fall, level * 0.8, 0.4, fall + 2.1))
     .connect(destination);
 };
 
 /**
  * A low roll: a volcano waking (tied to its eruption, decision 0178) or, pitched up, thunder in a
- * storm. Short and rounded, never a sustained drone (art bible rule 3).
+ * storm. A soft timpani roll under a little dull noise, storybook rather than a recording, and
+ * short: never a sustained drone (art bible rule 3).
  */
 export const playRumble: Play = (ctx, destination, level, pitch = 1) => {
   const t = ctx.currentTime + 0.02;
-  const low = ctx.createBiquadFilter();
-  low.type = 'lowpass';
   // Up to the low mids: a phone speaker plays next to nothing under 200 Hz (decision 0139).
-  low.frequency.setValueAtTime(160 * pitch, t);
-  low.frequency.linearRampToValueAtTime(320 * pitch, t + 0.6);
-  low.frequency.linearRampToValueAtTime(130 * pitch, t + 2.6);
-  low.Q.value = 1.2;
-  const g = ctx.createGain();
-  g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(level, t + 0.35);
-  g.gain.linearRampToValueAtTime(level * 0.6, t + 1.2);
-  g.gain.linearRampToValueAtTime(level * 0.8, t + 1.6);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 2.8);
-  noise(ctx, t, t + 3)
-    .connect(low)
-    .connect(g)
+  const hits = 9;
+  for (let k = 0; k < hits; k++) {
+    const at = t + k * 0.16 + Math.random() * 0.04;
+    const swell = Math.sin((Math.PI * (k + 1)) / (hits + 1));
+    const f = (110 + Math.random() * 12) * pitch;
+    const drum = tone(ctx, 'triangle', f, at, at + 0.7);
+    drum.frequency.exponentialRampToValueAtTime(f * 0.8, at + 0.5);
+    drum
+      .connect(filter(ctx, 'lowpass', 600 * pitch, 0.7))
+      .connect(envelope(ctx, at, level * 0.55 * swell, 0.01, at + 0.6))
+      .connect(destination);
+  }
+  noise(ctx, t, t + 2.2)
+    .connect(filter(ctx, 'lowpass', 220 * pitch, 0.7))
+    .connect(envelope(ctx, t, level * 0.35, 0.5, t + 2.1))
     .connect(destination);
 };
 
-/** Lava meeting the sea at a vent: a hiss with bubbles popping in it. */
+/** Lava meeting the sea at a vent: a soft hiss with bubbles popping in it, each a little rising blip. */
 export const playHiss: Play = (ctx, destination, level, pitch = 1) => {
   const t = ctx.currentTime + 0.02;
-  const g = ctx.createGain();
-  g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(level * 0.5, t + 0.15);
-  // Bubbles: the hiss jumps up and back a dozen times.
-  for (let k = 0; k < 12; k++) {
-    const at = t + 0.2 + k * 0.1 + Math.random() * 0.05;
-    g.gain.setValueAtTime(level * (0.5 + Math.random() * 0.5), at);
-    g.gain.linearRampToValueAtTime(level * 0.4, at + 0.05);
-  }
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 1.8);
   noise(ctx, t, t + 1.9)
-    .connect(filter(ctx, 'highpass', 2400 * pitch, 0.7))
-    .connect(g)
+    .connect(filter(ctx, 'bandpass', 1800 * pitch, 1.5))
+    .connect(envelope(ctx, t, level * 0.35, 0.2, t + 1.8))
     .connect(destination);
+  for (let k = 0; k < 10; k++) {
+    const at = t + 0.15 + k * 0.13 + Math.random() * 0.06;
+    const f = (320 + Math.random() * 260) * pitch;
+    const blip = tone(ctx, 'sine', f, at, at + 0.1);
+    blip.frequency.exponentialRampToValueAtTime(f * 1.8, at + 0.07);
+    blip.connect(envelope(ctx, at, level * 0.5, 0.005, at + 0.08)).connect(destination);
+  }
 };
 
 /** One wave breaking on a reef or a beach: the wash rises, brightens and draws back. */
@@ -308,9 +310,9 @@ export const playSurf: Play = (ctx, destination, level, pitch = 1) => {
   const t = ctx.currentTime + 0.02;
   const low = ctx.createBiquadFilter();
   low.type = 'lowpass';
-  low.frequency.setValueAtTime(350 * pitch, t);
-  low.frequency.linearRampToValueAtTime(1600 * pitch, t + 0.7);
-  low.frequency.linearRampToValueAtTime(500 * pitch, t + 2.2);
+  low.frequency.setValueAtTime(300 * pitch, t);
+  low.frequency.linearRampToValueAtTime(900 * pitch, t + 0.7);
+  low.frequency.linearRampToValueAtTime(400 * pitch, t + 2.2);
   noise(ctx, t, t + 2.4)
     .connect(low)
     .connect(envelope(ctx, t, level, 0.6, t + 2.3))
@@ -326,7 +328,7 @@ export const playRustle: Play = (ctx, destination, level, pitch = 1) => {
     g.gain.linearRampToValueAtTime(level * (0.4 + Math.random() * 0.6), t + 0.15 + k * 0.22);
   g.gain.exponentialRampToValueAtTime(0.0001, t + 2);
   noise(ctx, t, t + 2.1)
-    .connect(filter(ctx, 'bandpass', 3200 * pitch, 0.6))
+    .connect(filter(ctx, 'bandpass', 2600 * pitch, 2))
     .connect(g)
     .connect(destination);
 };
