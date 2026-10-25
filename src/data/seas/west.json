@@ -249,7 +249,8 @@
       "wants": ["obsidian", "timber"],
       "level": 3,
       "wantsMade": ["bread", "planks", "cutStone"],
-      "levelProduces": { "3": ["obsidianMirrors"] }
+      "levelProduces": { "3": ["obsidianMirrors"] },
+      "keeper": "bram"
     },
     {
       "id": "cinder-isle",
@@ -260,7 +261,8 @@
       "level": 1,
       "site": true,
       "wantsMade": ["bread", "planks"],
-      "maxLevel": 3
+      "maxLevel": 3,
+      "keeper": "oskar"
     }
   ],
   "course": [

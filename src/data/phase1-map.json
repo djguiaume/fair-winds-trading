@@ -216,7 +216,8 @@
         "calda-slipway": {
           "levelProduces": { "2": ["planks"] }
         }
-      }
+      },
+      "keeper": "ines"
     },
     {
       "id": "saltmere",
@@ -233,7 +234,8 @@
         "saltmere-shoals": {
           "levelProduces": { "2": ["smokedFish"] }
         }
-      }
+      },
+      "keeper": "rook"
     },
     {
       "id": "westholm",
@@ -245,7 +247,8 @@
       "levelWants": { "3": ["timber"] },
       "levelProduces": { "3": ["bread"] },
       "wantsMade": ["cutStone", "planks", "lampOil"],
-      "levelWantsMade": { "3": ["spicedTea", "amberBeads"] }
+      "levelWantsMade": { "3": ["spicedTea", "amberBeads"] },
+      "keeper": "maren"
     },
     {
       "id": "stonehaven",
@@ -257,7 +260,8 @@
       "levelWants": { "3": ["fish"] },
       "levelProduces": { "3": ["cutStone"] },
       "wantsMade": ["bread", "smokedFish", "honey"],
-      "levelWantsMade": { "3": ["cloudberryJam", "amberBeads"] }
+      "levelWantsMade": { "3": ["cloudberryJam", "amberBeads"] },
+      "keeper": "ada"
     },
     {
       "id": "watchman-key",
@@ -270,7 +274,8 @@
       "levelProduces": { "2": ["lampOil"] },
       "wantsMade": ["planks", "bread"],
       "builds": ["schooner", "clipper"],
-      "hidden": true
+      "hidden": true,
+      "keeper": "ness"
     },
     {
       "id": "abbey-head",

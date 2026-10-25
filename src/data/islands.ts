@@ -131,6 +131,23 @@ export interface PropDef {
  * A fixed build spot of the home island (decision 0126). An arc spot takes one building of its
  * `pair` (src/data/buildings.json); a spot without a pair is a spare, for a building passed over.
  */
+/**
+ * How the harbour screen pictures this island's port (decision 0211); left out, the camera stands
+ * off the harbour pier and the accent is the town style's first roof colour.
+ */
+export interface HarbourViewDef {
+  /** Where the camera stands, in this file's coordinates. */
+  from?: Point;
+  /** Where it looks. */
+  look?: Point;
+  /** Camera height, in radius units. */
+  height?: number;
+  /** Height of the point it looks at, in radius units. */
+  lookHeight?: number;
+  /** The port's signature colour: the accent line under the header. */
+  accent?: string;
+}
+
 export interface HomeSpotDef {
   id: string;
   x: number;
@@ -178,6 +195,8 @@ export interface IslandDesign {
   /** The home island's build spots (decision 0126); props tagged `home:<building>` stand on them. */
   homeSpots?: HomeSpotDef[];
   woods: WoodsDef;
+  /** The harbour screen's picture and accent (decision 0211); left out, the defaults. */
+  harbourView?: HarbourViewDef;
 }
 
 /** Every file in src/data/islands/, by id: one per island (decision 0110). */

@@ -18,6 +18,7 @@ import {
   runningTag,
 } from '../data/islands';
 import { PROP_RECIPES } from '../data/props';
+import characterData from '../data/characters.json';
 import { STYLES } from '../data/grounds';
 import { hasQuestLand, standingMap } from './questLand';
 import { type IslandDef, type MapDef, type PortDef, SEA_MARK_TYPES, type TerrainDef } from './map';
@@ -552,6 +553,8 @@ export function quickChecks(map: MapDef): MapCheck[] {
       problems.push(
         `${port.name} top level ${port.maxLevel} (its level to ${MAX_SETTLEMENT_LEVEL})`,
       );
+    if (port.keeper && !characterData.characters.some((c) => c.id === port.keeper))
+      problems.push(`${port.name}: unknown keeper "${port.keeper}"`);
     const { made, wanted } = portGoods(port);
     for (const good of [...made, ...wanted])
       if (!isGood(good)) problems.push(`${port.name}: unknown good "${good}"`);
