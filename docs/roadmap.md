@@ -49,7 +49,7 @@ store plan of [0204](decisions/0204-selling-on-android-iphone-and-xbox.md) comes
 3. **Other sails on the water:** fishing boats, coasters and far-sea visitors that sail by the same
    wind as the player, few and capped per quality level, as data in the sea editor and `npm run sea`.
    Built in [0215](decisions/0215-other-boats-on-the-sea.md) (21 fleets, 26 boats).
-4. **Sounds of the sea:** waves, wind in the sails, luffing, gulls, a harbour bell, a bed per sea.
+4. **Sounds of the sea:** waves, wind in the sails, luffing, gulls, a harbour bell, a bed per sea. Built in [0209](decisions/0209-sounds-of-the-sea.md).
 5. **Regattas in the story** (Guillaume: with an NPC and rewards): races against a friendly rival
    captain, unlocked through the story, with medals and prizes. Built in
    [0217](decisions/0217-the-saltmere-regatta.md): Wren Tally and *Kestrel*, 3 ring races, 4 sea
@@ -61,6 +61,8 @@ store plan of [0204](decisions/0204-selling-on-android-iphone-and-xbox.md) comes
 
 ## Next, after v1.0 (not scheduled)
 
+- **v1.1, "The Sailing Club"** ([plan](v1.1/plan.md)): bug fixes, and Wren's sailing club at
+  Saltmere with new races (some with a squall in a fixed place to sail round) and a best-times board.
 - **The store plan** ([0204](decisions/0204-selling-on-android-iphone-and-xbox.md)): phones first,
   Xbox after asking ID@Xbox.
 - **Polish and extras:** ship cosmetics (sail colours, flags, figureheads), achievements, a real

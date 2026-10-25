@@ -1,20 +1,28 @@
 /**
- * In-game background music player (decision 0045). Plays the `sea` track of `src/data/audio.json`
- * (decision 0113): a theme is composed tune after tune and scheduled a little ahead on a Web Audio
- * clock; a recorded file loops. Effects come from the same list.
+ * In-game background music player (decision 0045), and the game's sounds. Plays the tracks of
+ * `src/data/audio.json` (decision 0113): a theme is composed tune after tune and scheduled a little
+ * ahead on a Web Audio clock; a recorded file loops. Each sea picks its own theme, which takes over
+ * at the next tune (decision 0209). Effects and the sea's bed come from the same list and have
+ * their own Sounds volume.
  *
  * - Browsers only allow sound after a tap or key press, so `unlock()` is called from the first
  *   one; until then nothing is created.
- * - Music and voices both at 0 suspend the audio context, so silence costs nothing.
+ * - Music, sounds and voices all at 0 suspend the audio context, so silence costs nothing.
  * - The game suspends it too while the tab is hidden (battery on phones).
  */
 import { composeTune, EIGHTHS_PER_BAR, type Theme, type Tune } from './composer';
 import { createBand, playNote, type Band } from './synth';
-import { playCreak, playFoghorn, playThud } from './sfx';
+import { SYNTHS } from './sfx';
+import { Ambience } from './ambience';
+import { CallClock, layerMix, type PlaceDistances, type SoundsHere } from './seaBed';
+import { createRng } from '../sim/rng';
 import { babblePlan, MAX_SECONDS, playBabble, playClip, voiceFiles, voiceFor } from './babble';
 import {
+  BOAT_SOUNDS,
   EFFECTS,
   MUSIC,
+  RING,
+  SEA_BEDS,
   THEMES,
   VOICES,
   soundUrl,
@@ -53,11 +61,21 @@ export class Music {
   private barTime = 0;
   private hidden = false;
   private readonly track: MusicTrack | undefined = MUSIC.sea;
-  private readonly theme: Theme | undefined =
+  /** The theme the next tune is composed in: the sea's, or a step's (the regatta's). */
+  private theme: Theme | undefined =
     this.track && 'theme' in this.track ? THEMES[this.track.theme] : undefined;
+  /** The music track the sea asks for, and one a quest step holds over it (decision 0209). */
+  private seaTrack = 'sea';
+  private heldTrack: string | null = null;
 
   /** People's babble on the cards (decision 0132): its own switch and volume in Settings. */
   private voiceVolume = 0;
+
+  /** Effects and the sea's bed (decision 0209): the Sounds volume in Settings. */
+  private soundVolume = 0;
+  private sounds: GainNode | null = null;
+  private ambience: Ambience | null = null;
+  private readonly calls = new CallClock(createRng(Math.floor(Math.random() * 2 ** 31)));
 
   constructor(
     private volume: number,
@@ -67,8 +85,7 @@ export class Music {
   /** Create the audio graph; call from a user gesture. Safe to call again. */
   unlock(): void {
     if (this.ctx) {
-      if (this.ctx.state === 'suspended' && (this.audible || this.voiceVolume > 0))
-        void this.ctx.resume();
+      if (this.ctx.state === 'suspended' && this.awake) void this.ctx.resume();
       return;
     }
     const Ctor =
@@ -78,6 +95,11 @@ export class Music {
     this.ctx = new Ctor();
     this.band = createBand(this.ctx, this.ctx.destination, this.theme?.echo);
     this.band.out.gain.value = this.level;
+    this.sounds = this.ctx.createGain();
+    this.sounds.gain.value = this.soundLevel;
+    this.sounds.connect(this.ctx.destination);
+    const { luff, rain, wash } = BOAT_SOUNDS;
+    this.ambience = new Ambience(this.ctx, this.sounds, luff.tone, luff.rate, rain.tone, wash.tone);
     this.barTime = this.ctx.currentTime + 0.3;
     if (this.track && 'file' in this.track) void this.loop(this.ctx, this.band, this.track);
     for (const effect of Object.values(EFFECTS))
@@ -100,15 +122,13 @@ export class Music {
     source.start();
   }
 
-  /** Play an effect of the sound list at `level` (before its own volume). */
-  private effect(effect: SoundEffect | undefined, level: number) {
-    const { ctx } = this;
-    if (!ctx || !effect) return;
+  /** Play an effect of the sound list at `level` (before its own volume), `pitch` times its own. */
+  private effect(effect: SoundEffect | undefined, level: number, pitch = 1) {
+    const { ctx, sounds } = this;
+    if (!ctx || !sounds || !effect) return;
     const volume = level * (effect.volume ?? 1);
     if ('synth' in effect) {
-      if (effect.synth === 'creak') playCreak(ctx, ctx.destination, volume);
-      if (effect.synth === 'foghorn') playFoghorn(ctx, ctx.destination, volume);
-      if (effect.synth === 'thud') playThud(ctx, ctx.destination, volume);
+      SYNTHS[effect.synth]?.(ctx, sounds, volume, pitch * (effect.pitch ?? 1));
       return;
     }
     void loadSound(ctx, effect.file).then((buffer) => {
@@ -117,31 +137,60 @@ export class Music {
       source.buffer = buffer;
       const gain = ctx.createGain();
       gain.gain.value = volume;
-      source.connect(gain).connect(ctx.destination);
+      source.connect(gain).connect(sounds);
       source.start();
     });
   }
 
-  /**
-   * The hull creaks when she is pressed too hard (decision 0078). Effects share the sound slider
-   * with the music for now, so muted music means a silent creak too.
-   */
+  /** The hull creaks when she is pressed too hard (decision 0078). */
   creak(): void {
-    const { ctx } = this;
-    if (!ctx || !this.audible || ctx.state !== 'running') return;
-    this.effect(EFFECTS.creak, this.level);
+    this.effectNamed('creak');
   }
 
-  /** The hull strikes a shore, a pier, ice, a boat or a reef (decision 0208). */
-  thud(): void {
-    this.effectNamed('thud');
+  /**
+   * An effect of the sound list by name: a step's `sound`, such as the prologue's foghorn (0139),
+   * or a game event's (decision 0209). `level` 0 to 1 for a far one, `pitch` for a port's bell.
+   */
+  effectNamed(id: string, level = 1, pitch = 1): void {
+    const { ctx } = this;
+    if (!ctx || !this.soundsOn || ctx.state !== 'running') return;
+    this.effect(EFFECTS[id], level, pitch);
   }
 
-  /** An effect of the sound list by name: a step's `sound`, such as the prologue's foghorn (0139). */
-  effectNamed(id: string): void {
-    const { ctx } = this;
-    if (!ctx || !this.audible || ctx.state !== 'running') return;
-    this.effect(EFFECTS[id], this.level);
+  /**
+   * The sea where the boat is (decision 0209), a few times a second: the bed of `sea` glides in,
+   * its calls come when due, and its theme takes the next tune.
+   */
+  sea(dt: number, sea: string, here: SoundsHere, where: PlaceDistances): void {
+    const bed = SEA_BEDS[sea] ?? SEA_BEDS[RING];
+    if (!bed) return;
+    this.seaTrack = bed.music ?? 'sea';
+    this.pickTheme();
+    const { ctx, ambience } = this;
+    if (!ctx || !ambience || !this.soundsOn || ctx.state !== 'running') return;
+    ambience.set(layerMix(bed, BOAT_SOUNDS, here));
+    for (const call of this.calls.step(dt, sea, bed, where))
+      this.effectNamed(call.effect, call.level);
+  }
+
+  /** A track a quest step holds while it runs (the regatta's, decision 0209); null lets it go. */
+  holdTrack(id: string | null): void {
+    this.heldTrack = id && MUSIC[id] ? id : null;
+    this.pickTheme();
+  }
+
+  /** The theme of the held track, else the sea's; a recorded track keeps the base one. */
+  private pickTheme() {
+    const track = MUSIC[this.heldTrack ?? this.seaTrack] ?? this.track;
+    if (track && 'theme' in track && THEMES[track.theme]) this.theme = THEMES[track.theme];
+  }
+
+  /** 0 (off) to 1, from Settings › Sounds. */
+  setSoundVolume(volume: number): void {
+    this.soundVolume = volume;
+    if (this.sounds && this.ctx)
+      this.sounds.gain.setTargetAtTime(this.soundLevel, this.ctx.currentTime, 0.05);
+    this.apply();
   }
 
   /**
@@ -196,16 +245,28 @@ export class Music {
     return MAX_GAIN * this.volume * this.volume;
   }
 
+  private get soundLevel() {
+    return MAX_GAIN * this.soundVolume * this.soundVolume;
+  }
+
   private get audible() {
     return this.volume > 0 && !this.hidden;
+  }
+
+  private get soundsOn() {
+    return this.soundVolume > 0 && !this.hidden;
+  }
+
+  /** Anything to hear: the music, the sounds or the voices. */
+  private get awake() {
+    return !this.hidden && (this.volume > 0 || this.soundVolume > 0 || this.voiceVolume > 0);
   }
 
   private apply() {
     const ctx = this.ctx;
     if (!ctx) return;
-    // Voices keep the context awake with the music muted; the tunes only play with music on.
-    if (!this.hidden && (this.audible || this.voiceVolume > 0) && ctx.state === 'suspended')
-      void ctx.resume();
+    // Sounds and voices keep the context awake with the music muted; tunes need music on.
+    if (this.awake && ctx.state === 'suspended') void ctx.resume();
     if (this.audible) {
       if (!this.timer) {
         // Don't try to catch up on bars missed while suspended.
@@ -216,7 +277,7 @@ export class Music {
     } else {
       if (this.timer) window.clearInterval(this.timer);
       this.timer = 0;
-      if (ctx.state === 'running' && (this.hidden || this.voiceVolume <= 0)) void ctx.suspend();
+      if (ctx.state === 'running' && !this.awake) void ctx.suspend();
     }
   }
 
@@ -227,6 +288,7 @@ export class Music {
       if (!this.tune || this.bar * EIGHTHS_PER_BAR >= this.tune.length) {
         this.tune = composeTune(this.seed++, theme);
         this.bar = 0;
+        band.echo.gain.setTargetAtTime(theme.echo, this.barTime, 1);
       }
       const tune = this.tune;
       const from = this.bar * EIGHTHS_PER_BAR;

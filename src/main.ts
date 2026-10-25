@@ -100,6 +100,7 @@ import { loadSettings, saveSettings } from './ui/settings';
 import type { Bench } from './perf/bench';
 import type { PerfReadout } from './perf/perfReadout';
 import { Music } from './audio/music';
+import { SeaListener } from './audio/listener';
 import { wordCount } from './audio/babble';
 import { SeaChart, questCourse } from './ui/seaChart';
 import {
@@ -298,6 +299,12 @@ if (playtestMap) {
 const resumedVoyage = storage ? loadGame(storage, world) : false;
 let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
 const view = new GameView(canvas, world, level);
+// The sea's sound where she sails, and the effects of what happens (decision 0209).
+const seaListener = new SeaListener(
+  music,
+  (x, y) => view.volcanoSounds(x, y),
+  () => world.hazeOff.includes('ash'),
+);
 // `?perf` test aids (decision 0148): `scale=0.7` draws fewer pixels, `fps=30` caps the frame rate.
 const perfParams = new URLSearchParams(location.search);
 const perfMode = perfParams.has('perf') || benchMode;
@@ -672,6 +679,9 @@ function raceEvent(e: QuestEvent) {
     hud.showToast(t('regatta.hornToast'), 3);
   } else if (e.type === 'retired') hud.showToast(t('regatta.retired'), 4);
   else if (e.type === 'raced') {
+    // The committee boat's horn as she crosses the line: a horn, never a gun (no weapons in
+    // the game, the storyteller's rule for the regatta, decision 0217).
+    music.effectNamed('finish-horn');
     view.setPennant(flownPennant(quests));
     const card = raceResultCard(quests, world.map, e);
     if (card && !bench) {
@@ -1661,6 +1671,19 @@ musicVolume.addEventListener('input', () => {
   music.setVolume(settings.musicVolume);
 });
 musicVolume.addEventListener('change', () => keepSettings());
+// Effects and the sea's bed (decision 0209): their own volume.
+const soundVolume = $<HTMLInputElement>('sound-volume');
+const soundValue = $('sound-volume-value');
+soundVolume.value = String(Math.round(settings.soundVolume * 100));
+soundValue.textContent = `${soundVolume.value}%`;
+music.setSoundVolume(settings.soundVolume);
+soundVolume.addEventListener('input', () => {
+  soundValue.textContent = `${soundVolume.value}%`;
+  settings.soundVolume = Number(soundVolume.value) / 100;
+  music.unlock();
+  music.setSoundVolume(settings.soundVolume);
+});
+soundVolume.addEventListener('change', () => keepSettings());
 // People's babble on their cards (decision 0132): a switch and a volume of their own.
 const voices = $<HTMLInputElement>('voices');
 const voiceVolume = $<HTMLInputElement>('voice-volume');
@@ -1747,11 +1770,12 @@ function autosave() {
 }
 function handleEvents(events: WorldEvent[]) {
   hud.handleEvents(events);
+  seaListener.hear(events);
   for (const e of events) {
     if (e.type === 'crash' || e.type === 'reef-strike') {
-      // She shows the knock (decision 0208): a splash, planks afloat and a thud.
+      // She shows the knock (decision 0208): a splash and planks afloat; the sea listener plays
+      // the thud, louder the harder she hit (decision 0209).
       view.impact();
-      music.thud();
     }
     if (e.type === 'docked') {
       const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
@@ -1910,6 +1934,9 @@ function tick(now: number) {
         soundKey = sea?.key;
         soundIn = 0;
       }
+      // A step's music holds over the sea's while it runs, and the regatta's theme while a race is
+      // under way (decision 0209).
+      music.holdTrack(sea?.step.music ?? (quests.race() ? 'regatta' : null));
       const sound = sea?.step.sound;
       if (sound && (soundIn -= SIM_STEP) <= 0) {
         music.effectNamed(sound.effect);
@@ -1924,6 +1951,7 @@ function tick(now: number) {
   }
 
   if (!chart.isOpen && !tutorialOffer.open) view.render(dt);
+  if (!paused) seaListener.update(world, dt);
   // Pause menus and translucent sheets leave sea instruments visible. Only the title's
   // CSS rule and the opaque, full-screen chart cover the entire HUD.
   const hudVisible = !(mode === 'menu' && !started) && !chart.isOpen;
@@ -2204,6 +2232,7 @@ if (new URLSearchParams(location.search).has('debug')) {
       questAt,
       town,
       freePlay,
+      music,
       hull,
       impact,
       /** The voyage as a save code, as Move your voyage sends it (`npm run shots -- --save-link`). */

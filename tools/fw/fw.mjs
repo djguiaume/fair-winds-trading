@@ -20,6 +20,7 @@ const TOOLS = {
     module: '/tools/fw/chart.ts',
   },
   quest: { about: 'quest checks, play a quest from a step', module: '/tools/fw/quest.ts' },
+  sound: { about: "the game's sounds into files: effects, sea beds, music", file: './sound.mjs' },
   adr: { about: 'next free decision number, new decision file', file: './adr.mjs' },
 };
 

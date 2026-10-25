@@ -17,7 +17,7 @@ describe('sounds and music as data (decision 0113)', () => {
   it('the sound list is sound', () => {
     expect(audioProblems()).toEqual([]);
     expect(MUSIC.sea).toEqual({ theme: 'fair-winds' });
-    expect(EFFECTS.creak).toEqual({ synth: 'creak', volume: 1.6 });
+    expect(EFFECTS.creak).toEqual({ synth: 'creak', volume: 1.4 });
     expect(THEMES['fair-winds']).toBe(THEME);
     expect(soundUrl('audio/creak.ogg')).toMatch(/\/audio\/creak\.ogg$/);
   });

@@ -16,6 +16,8 @@ export interface Band {
   bass: AudioNode;
   flute: AudioNode;
   vibrato: AudioNode;
+  /** The flute's echo send: each sea's theme sets its own (decision 0209). */
+  echo: GainNode;
 }
 
 /** Build the shared mixing desk: one filtered bus per instrument, an echo on the flute. */
@@ -64,7 +66,7 @@ export function createBand(
   vibratoOsc.connect(vibrato);
   vibratoOsc.start();
 
-  return { ctx, out, pad: bus(0.1, 900), bass: bus(0.3, 500), flute, vibrato };
+  return { ctx, out, pad: bus(0.1, 900), bass: bus(0.3, 500), flute, vibrato, echo: wet };
 }
 
 /** Schedule one note, starting `time` seconds on the context clock, `secs` long. */

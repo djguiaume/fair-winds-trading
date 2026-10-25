@@ -1,0 +1,56 @@
+/* Sounds page (decision 0209): the controls page's layout, with play buttons and a listen bar. */
+.sd-grid {
+  display: grid;
+  grid-template-columns: minmax(110px, max-content) 120px 80px 80px 40px;
+  gap: 6px 10px;
+  align-items: center;
+}
+.sd-bells {
+  grid-template-columns: minmax(110px, max-content) 80px 40px;
+}
+.sd-grid input,
+.sd-grid select {
+  width: 100%;
+}
+.sd-play {
+  padding: 2px 8px;
+}
+.sd-listen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  margin: 0 0 14px;
+  padding: 10px;
+  border: 1px solid var(--brass-line);
+  border-radius: 6px;
+}
+.sd-slider {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.sd-slider output {
+  min-width: 2.5em;
+}
+.sd-calls {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.sd-json {
+  width: 100%;
+  max-width: 560px;
+  font:
+    12px/1.35 ui-monospace,
+    monospace;
+}
+.sd-bad {
+  outline: 2px solid var(--amber);
+}
+@media (max-width: 700px) {
+  .sd-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
