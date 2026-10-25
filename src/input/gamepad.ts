@@ -61,9 +61,26 @@ export interface PadConfig {
 }
 
 export type SeaAction =
-  'steerLeft' | 'steerRight' | 'sailUp' | 'sailDown' | 'strike' | 'harbour' | 'chart' | 'pause';
+  | 'steerLeft'
+  | 'steerRight'
+  | 'sailUp'
+  | 'sailDown'
+  | 'strike'
+  | 'harbour'
+  | 'chart'
+  | 'pause'
+  | 'skipLesson';
 export type ChartAction =
-  'panLeft' | 'panRight' | 'panUp' | 'panDown' | 'zoomIn' | 'zoomOut' | 'fit' | 'close';
+  | 'panLeft'
+  | 'panRight'
+  | 'panUp'
+  | 'panDown'
+  | 'zoomIn'
+  | 'zoomOut'
+  | 'fit'
+  | 'close'
+  | 'pick'
+  | 'skipLesson';
 /** Menus, the port screen, cards (decision 0163): move the focus, press it, back, tabs, resume. */
 export type MenuAction =
   | 'up'
@@ -90,6 +107,8 @@ export interface PadControls extends PadConfig {
     panPxPerSec: number;
     /** Zoom factor per trigger press (and per hold repeat). */
     zoomStep: number;
+    /** How near the middle cross (screen px) a port must be for A to pick it. */
+    pickReachPx: number;
     actions: Record<ChartAction, PadButton[]>;
   };
   menu: {
@@ -188,6 +207,36 @@ export function readPad(pad: PadLike, since: HeldSince, now: number, c: PadConfi
   return { axes: { lx: axis(0), ly: axis(1), rx: axis(2), ry: axis(3) }, held, presses };
 }
 
+/**
+ * Pad buttons as the keys Edge sends for them (on Xbox, decision 0183): `KeyboardEvent.key`.
+ * The thumbsticks' keys move like the D-pad.
+ */
+export const KEY_BUTTONS: Readonly<Record<string, PadButton>> = {
+  GamepadA: 'a',
+  GamepadB: 'b',
+  GamepadX: 'x',
+  GamepadY: 'y',
+  GamepadLeftShoulder: 'lb',
+  GamepadRightShoulder: 'rb',
+  GamepadLeftTrigger: 'lt',
+  GamepadRightTrigger: 'rt',
+  GamepadView: 'view',
+  GamepadMenu: 'menu',
+  GamepadLeftThumbstickButton: 'ls',
+  GamepadRightThumbstickButton: 'rs',
+  GamepadDPadUp: 'up',
+  GamepadDPadDown: 'down',
+  GamepadDPadLeft: 'left',
+  GamepadDPadRight: 'right',
+  GamepadLeftThumbstickUp: 'up',
+  GamepadLeftThumbstickDown: 'down',
+  GamepadLeftThumbstickLeft: 'left',
+  GamepadLeftThumbstickRight: 'right',
+};
+
+/** How often `poll` looks for a pad no `gamepadconnected` event announced (ms). */
+const LOOK_EVERY_MS = 1000;
+
 /** Whether a frame shows the player using the pad (a button or a stick past the dead zone). */
 export const padInUse = (f: PadFrame) => f.held.size > 0 || PAD_AXES.some((a) => f.axes[a] !== 0);
 
@@ -199,6 +248,11 @@ export const padInUse = (f: PadFrame) => f.held.size > 0 || PAD_AXES.some((a) =>
 export class GamepadPoller {
   private seen = false;
   private since: HeldSince = new Map();
+  /** When `poll` last looked for a pad no event announced (ms). */
+  private lookedAt = -Infinity;
+  /** Pad buttons that came as keys ("GamepadA"): presses for the next frame, and those held. */
+  private keyPresses: PadPress[] = [];
+  private keyHeld = new Set<PadButton>();
   private pressListeners: ((press: PadPress) => void)[] = [];
   private usingListeners: ((using: boolean) => void)[] = [];
   private using = false;
@@ -216,10 +270,7 @@ export class GamepadPoller {
     private readonly config: PadConfig = PAD,
   ) {
     if (!target) return;
-    target.addEventListener('gamepadconnected', () => {
-      this.seen = true;
-      this.onConnect(true);
-    });
+    target.addEventListener('gamepadconnected', () => this.found());
     target.addEventListener('gamepaddisconnected', () => {
       if (!this.pad()) {
         this.since.clear();
@@ -227,10 +278,33 @@ export class GamepadPoller {
         this.onConnect(false);
       }
     });
-    // Back on the keyboard, mouse or a finger: menus drop their pad focus ring.
-    const away = () => this.setUsing(false);
-    target.addEventListener('keydown', away, true);
-    target.addEventListener('pointerdown', away, true);
+    // Back on the keyboard, mouse or a finger: menus drop their pad focus ring. Not when the
+    // event comes from the pad itself: Edge on Xbox also turns pad buttons into keys ("GamepadA")
+    // or a pointer click (decision 0183), and dropping the ring on those swallowed every press.
+    target.addEventListener(
+      'keydown',
+      (e) => {
+        const button = KEY_BUTTONS[(e as KeyboardEvent).key];
+        if (button) return this.keyButton(button, true, e as KeyboardEvent);
+        if (!this.padHeld()) this.setUsing(false);
+      },
+      true,
+    );
+    target.addEventListener(
+      'keyup',
+      (e) => {
+        const button = KEY_BUTTONS[(e as KeyboardEvent).key];
+        if (button) this.keyButton(button, false, e as KeyboardEvent);
+      },
+      true,
+    );
+    target.addEventListener(
+      'pointerdown',
+      () => {
+        if (!this.padHeld()) this.setUsing(false);
+      },
+      true,
+    );
   }
 
   /** A pad is plugged in and has been seen this session. */
@@ -255,13 +329,57 @@ export class GamepadPoller {
   }
 
   poll(now: number): PadFrame | null {
-    if (!this.seen) return null;
-    const pad = this.pad();
-    if (!pad) return null;
-    const frame = readPad(pad, this.since, now, this.config);
-    if (padInUse(frame)) this.setUsing(true);
+    // Some browsers (Edge on Xbox) never send `gamepadconnected` for a pad that was already
+    // there: look for one once a second until one is seen.
+    if (!this.seen && now - this.lookedAt >= LOOK_EVERY_MS) {
+      this.lookedAt = now;
+      if (this.pad()) this.found();
+    }
+    const pad = this.seen ? this.pad() : null;
+    const keys = this.keyPresses.splice(0);
+    if (!pad && !keys.length && !this.keyHeld.size) return null;
+    const frame: PadFrame = pad
+      ? readPad(pad, this.since, now, this.config)
+      : { axes: { lx: 0, ly: 0, rx: 0, ry: 0 }, held: new Set(), presses: [] };
+    if (keys.length || this.keyHeld.size) {
+      const held = new Set(frame.held);
+      for (const b of this.keyHeld) held.add(b);
+      frame.held = held;
+      frame.presses.push(...keys);
+    }
+    if (padInUse(frame) || keys.length) this.setUsing(true);
     for (const press of frame.presses) for (const l of this.pressListeners) l(press);
     return frame;
+  }
+
+  private found() {
+    if (this.seen) return;
+    this.seen = true;
+    this.onConnect(true);
+  }
+
+  /** A pad button the browser sent as a key: a press for the next frame, unless the pad has it. */
+  private keyButton(button: PadButton, down: boolean, e: KeyboardEvent) {
+    // Keep the browser from acting on it (GamepadB is its Back).
+    e.preventDefault?.();
+    if (!down) {
+      this.keyHeld.delete(button);
+      return;
+    }
+    // The Gamepad API reports the same button: the frame has it already.
+    if (this.padHeld()) return;
+    this.keyHeld.add(button);
+    this.keyPresses.push({ button, repeat: !!e.repeat });
+  }
+
+  /** Whether a pad has a button down or a stick leaning right now (its own key or click). */
+  private padHeld(): boolean {
+    const pad = this.pad();
+    if (!pad) return false;
+    return (
+      pad.buttons.some((b) => b?.pressed || (b?.value ?? 0) >= this.config.triggerPress) ||
+      pad.axes.some((a) => Math.abs(a) > 0.5)
+    );
   }
 
   private pad(): PadLike | null {
@@ -294,6 +412,8 @@ export interface SeaPad {
   harbour: boolean;
   chart: boolean;
   pause: boolean;
+  /** Skip the lesson whose card is up (decision 0183). */
+  skipLesson: boolean;
   /** Camera zoom factor (< 1 closer), like the mouse wheel. */
   zoom: number;
   /** Presses no sea action took, for the menus' focus code. */
@@ -310,6 +430,7 @@ export function seaPad(f: PadFrame, dt: number, c: PadControls['sea'] = PAD.sea)
     harbour: false,
     chart: false,
     pause: false,
+    skipLesson: false,
     zoom: Math.exp(f.axes[c.zoomAxis] * c.zoomPerSec * dt),
     other: [],
   };
@@ -322,6 +443,7 @@ export function seaPad(f: PadFrame, dt: number, c: PadControls['sea'] = PAD.sea)
     else if (isFor(p, a.harbour)) out.harbour = true;
     else if (isFor(p, a.chart)) out.chart = true;
     else if (isFor(p, a.pause)) out.pause = true;
+    else if (isFor(p, a.skipLesson)) out.skipLesson = true;
     else out.other.push(p);
   }
   return out;
@@ -336,6 +458,10 @@ export interface ChartPad {
   zoom: number;
   fit: boolean;
   close: boolean;
+  /** Set a course to the port under the cross in the middle (decision 0183). */
+  pick: boolean;
+  /** Skip the lesson whose bubble is up. */
+  skipLesson: boolean;
   other: PadPress[];
 }
 
@@ -350,6 +476,8 @@ export function chartPad(f: PadFrame, dt: number, c: PadControls['chart'] = PAD.
     zoom: 1,
     fit: false,
     close: false,
+    pick: false,
+    skipLesson: false,
     other: [],
   };
   for (const p of f.presses) {
@@ -359,6 +487,8 @@ export function chartPad(f: PadFrame, dt: number, c: PadControls['chart'] = PAD.
       continue;
     else if (isFor(p, a.fit)) out.fit = true;
     else if (isFor(p, a.close)) out.close = true;
+    else if (isFor(p, a.pick)) out.pick = true;
+    else if (isFor(p, a.skipLesson)) out.skipLesson = true;
     else out.other.push(p);
   }
   return out;

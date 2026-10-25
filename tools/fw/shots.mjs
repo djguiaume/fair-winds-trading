@@ -7,11 +7,21 @@ import { readFileSync, mkdirSync } from 'node:fs';
 import { resolve, basename, extname, join } from 'node:path';
 import { ROOT, startVite } from './lib.mjs';
 
-/** The three sizes every look review shows (desktop first, must look good in portrait). */
+/**
+ * The three sizes every look review shows (desktop first, must look good in portrait), and `tv`:
+ * Edge on an Xbox at 1080p, whose user agent turns on TV mode (decision 0183).
+ */
 export const SIZES = {
   desktop: { width: 1280, height: 800 },
   landscape: { width: 844, height: 390, touch: true },
   portrait: { width: 390, height: 844, touch: true },
+  tv: {
+    width: 1920,
+    height: 1080,
+    userAgent:
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox Series X) AppleWebKit/537.36 ' +
+      '(KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0',
+  },
 };
 
 export const HELP = `npm run shots -- [options]          screenshots of the real game, PNG in --out
@@ -73,7 +83,7 @@ Look
   --script a.js,b.js            these scripts run in the page, in order, after the focus is set
                                 (a mockup's extra parts)
 Output
-  --sizes desktop,landscape,portrait   (default desktop)
+  --sizes desktop,landscape,portrait,tv   (default desktop; tv = Xbox Edge at 1080p)
   --name name                   file name, written as <name>-<size>.png (default: from the scene)
   --list shots.json             a JSON list of shots; each entry takes the options above as keys
                                 (at: [x, y], sizes: [...]); options on the line are the defaults
@@ -346,11 +356,12 @@ const closeCards = (page) =>
   });
 
 async function shootOne(browser, base, shot, size, file) {
-  const { width, height, touch } = SIZES[size];
+  const { width, height, touch, userAgent } = SIZES[size];
   const context = await browser.newContext({
     viewport: { width, height },
     deviceScaleFactor: 1,
     hasTouch: !!touch,
+    ...(userAgent ? { userAgent } : {}),
   });
   const errors = [];
   try {

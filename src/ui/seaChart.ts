@@ -579,6 +579,28 @@ export class SeaChart {
       if (this.isOpen) this.draw();
     }, 150);
   }
+  /**
+   * A controller's A (decision 0183): set a course to the port nearest the cross in the middle of
+   * the chart, if one lies within `reachPx` screen pixels. True when a port was picked.
+   */
+  pickNearCentre(reachPx: number): boolean {
+    const r = this.get('chart-map').getBoundingClientRect();
+    const cx = r.left + r.width / 2,
+      cy = r.top + r.height / 2;
+    let best: Element | null = null;
+    let bestD = reachPx * reachPx;
+    for (const g of this.dialog.querySelectorAll('.chart-port-target[data-chart-target]')) {
+      const b = g.getBoundingClientRect();
+      const dx = Math.max(b.left - cx, 0, cx - b.right),
+        dy = Math.max(b.top - cy, 0, cy - b.bottom);
+      if (dx * dx + dy * dy < bestD) {
+        bestD = dx * dx + dy * dy;
+        best = g;
+      }
+    }
+    best?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    return !!best;
+  }
   /** Back, like Esc: an open side panel first, then the chart. */
   back() {
     if (this.panel) {

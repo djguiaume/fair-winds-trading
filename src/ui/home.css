@@ -95,7 +95,7 @@
 /* The choice: a side card in landscape, a bottom sheet in portrait. */
 .home-card {
   position: absolute;
-  right: max(10px, env(safe-area-inset-right));
+  right: max(10px, var(--safe-right, env(safe-area-inset-right)));
   top: 50%;
   transform: translateY(-50%);
   width: min(560px, 46vw);
@@ -183,7 +183,7 @@
     left: 8px;
     right: 8px;
     top: auto;
-    bottom: max(8px, env(safe-area-inset-bottom));
+    bottom: max(8px, var(--safe-bottom, env(safe-area-inset-bottom)));
     transform: none;
     width: auto;
     max-height: 60%;
