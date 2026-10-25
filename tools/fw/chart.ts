@@ -14,6 +14,7 @@ import type { MapDef } from '../../src/sim/map';
 import { harbourApproach, sailRoute } from '../../src/sim/mapChecks';
 import { seaMarkShape } from '../../src/ui/chartMarks';
 import type { Sectors } from '../../src/sim/seaSectors';
+import { type SectorDensity, seaDensity } from '../../src/sim/seaDensity';
 
 type Args = Record<string, string | boolean | undefined> & { _: string[] };
 type Pt = [number, number];
@@ -48,6 +49,8 @@ export const OVERLAY_STYLES: Record<string, string> = {
   ice: 'ice',
   warm: 'warm water',
   tint: 'area',
+  empty: 'empty water: no land, reef or mark in sight',
+  gap: 'biggest empty discs (radius, map units)',
   route: 'route',
   short: 'shortcut',
   long: 'long way',
@@ -126,6 +129,8 @@ svg.fw-chart { background: #1b7f8c; }
 .o-ice { fill: #eef8ff; fill-opacity: .8; stroke: #2c5b72; stroke-width: 2px; vector-effect: non-scaling-stroke; }
 .o-warm { fill: #ff8a4a; fill-opacity: .2; stroke: #ff8a4a; stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
 .o-tint { fill: #fff; fill-opacity: .12; stroke: #fff; stroke-width: 1.5px; stroke-dasharray: 6 6; vector-effect: non-scaling-stroke; }
+.o-empty { fill: #d7263d; fill-opacity: .3; stroke: none; }
+.o-gap { fill: none; stroke: #ffd23f; stroke-width: 2.5px; stroke-dasharray: 8 5; vector-effect: non-scaling-stroke; }
 .o-line { fill: none; stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .o-route { stroke: #fff; stroke-dasharray: 10 6; }
 .o-short { stroke: #6fe3c6; stroke-dasharray: 10 6; }
@@ -372,6 +377,69 @@ interface Entry {
   swatch: (g: Element, make: Make) => void;
 }
 
+/** Empty water as shaded runs of grid cells, the biggest empty discs, stats in the legend. */
+function densityOverlay(rows: SectorDensity[], cell: number): Overlay {
+  const areas: NonNullable<Overlay['areas']> = [];
+  for (const r of rows) {
+    // Join cells side by side on one row of the grid into one strip.
+    const byY = new Map<number, number[]>();
+    for (const [x, y] of r.emptyCells ?? []) byY.set(y, [...(byY.get(y) ?? []), x]);
+    for (const [y, xs] of byY) {
+      xs.sort((a, b) => a - b);
+      let start = xs[0]!;
+      for (let k = 1; k <= xs.length; k++)
+        if (k === xs.length || xs[k]! - xs[k - 1]! > cell + 0.01) {
+          const end = xs[k - 1]!;
+          const h = cell / 2;
+          areas.push({
+            outline: [
+              [start - h, y - h],
+              [end + h, y - h],
+              [end + h, y + h],
+              [start - h, y + h],
+            ],
+            style: 'empty',
+          });
+          if (k < xs.length) start = xs[k]!;
+        }
+    }
+  }
+  const pct = (v: number) => `${Math.round(v * 100)}%`;
+  return {
+    areas,
+    islands: biggestSpots(rows).map((s) => ({
+      x: s.x,
+      y: s.y,
+      radius: s.radius,
+      style: 'gap',
+      name: `r${s.radius}`,
+    })),
+    legend: rows.map((r) => ({
+      style: 'tint',
+      text: `${r.id}: ${r.islands} islands, ${r.shapes} shapes, ${r.marks} marks, ${r.zones} zones; ${r.perArea} per 100k; ${pct(r.empty)} empty`,
+    })),
+  };
+}
+
+/** Two biggest empty discs per sea; a disc mostly inside a bigger one (on a border) is left out. */
+function biggestSpots(rows: SectorDensity[]) {
+  const all = rows.flatMap((r) => r.spots.slice(0, 2)).sort((a, b) => b.radius - a.radius);
+  const out: typeof all = [];
+  for (const s of all)
+    if (!out.some((o) => Math.hypot(o.x - s.x, o.y - s.y) < o.radius)) out.push(s);
+  return out;
+}
+
+function mergeOverlays(a: Overlay | undefined, b: Overlay): Overlay {
+  if (!a) return b;
+  return {
+    ...a,
+    areas: [...(b.areas ?? []), ...(a.areas ?? [])],
+    islands: [...(a.islands ?? []), ...(b.islands ?? [])],
+    legend: [...(a.legend ?? []), ...(b.legend ?? [])],
+  };
+}
+
 /** One legend line per kind of thing on the map, then the overlay's styles and lines. */
 function legendEntries(
   map: MapDef,
@@ -508,6 +576,8 @@ export async function run(args: Args): Promise<number> {
   --layers names,flow,marks           what to draw: names, flow, marks, harbours, course, grid
   --ghosts                            dashed outlines where shapes sat on the shipped ring
   --sectors none                      no sector spokes on the grown sea (decision 0179)
+  --density [--sight 160]             shade empty water (nothing in sight) and ring the biggest
+                                      empty discs per sea, stats in the legend (decision 0180)
   --title "…"                         title above the legend
   --legend none                       no side panel (title and legend)
   --width 1600                        PNG width in pixels
@@ -518,10 +588,20 @@ export async function run(args: Args): Promise<number> {
     return 0;
   }
   const { map, prepared, label, sectors } = loadSea(String(args.sea ?? 'ring'));
-  const overlay =
+  let overlay =
     typeof args.overlay === 'string'
       ? (JSON.parse(readFileSync(args.overlay, 'utf8')) as Overlay)
       : undefined;
+  if (args.density) {
+    if (!sectors) throw new Error('--density wants the grown sea (--sea phase4 or a sea file)');
+    const cell = 10;
+    const rows = seaDensity(map, sectors, {
+      sight: args.sight ? Number(args.sight) : undefined,
+      cell,
+      keepCells: true,
+    });
+    overlay = mergeOverlays(overlay, densityOverlay(rows, cell));
+  }
   const layers =
     typeof args.layers === 'string'
       ? Object.fromEntries(
