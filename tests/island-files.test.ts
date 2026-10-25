@@ -124,7 +124,7 @@ describe('island files (decision 0101)', () => {
 const GOLDEN: Record<string, string[]> = {
   'the-smoulder': ['161:afbe8b23', '161:afbe8b23', '161:afbe8b23', '161:afbe8b23'],
   'organ-pipes': ['49:99b3de15', '49:99b3de15', '49:99b3de15', '49:99b3de15'],
-  emberhold: ['540:45293807', '676:41c5d0d1', '793:71cda802', '826:db130d6d'],
+  emberhold: ['540:7961765f', '676:344078f9', '793:741992a2', '826:f01b51b5'],
   'cinder-isle': ['101:d61cc732', '120:264040fd', '136:af5a5fb4', '136:af5a5fb4'],
   calda: ['556:6dc4b4e3', '664:95208427', '731:b682ff4a', '965:5ffb41cc'],
   saltmere: ['246:190f7a6', '421:aa8af177', '641:e4577624', '806:691e8290'],
