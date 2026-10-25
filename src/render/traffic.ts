@@ -64,7 +64,7 @@ export class TrafficView {
   private readonly batches = new Map<string, Batch>();
   private readonly styles: Map<string, string>;
   private visitor: Visitor | null = null;
-  /** Kestrel, the regatta's rival (decision 0216): her own model, built at her first race. */
+  /** Kestrel, the regatta's rival (decision 0217): her own model, built at her first race. */
   private rival: RefinedBoat | null = null;
   private readonly matrix = new THREE.Matrix4();
   private readonly sailMatrix = new THREE.Matrix4();
@@ -189,7 +189,7 @@ export class TrafficView {
     return model;
   }
 
-  /** Kestrel's model (decision 0216): a cutter in Wren's white and racing red, her burgee aloft. */
+  /** Kestrel's model (decision 0217): a cutter in Wren's white and racing red, her burgee aloft. */
   private rivalModel(): RefinedBoat | null {
     if (this.rival) return this.rival;
     const r = REGATTA.rival;
@@ -287,7 +287,7 @@ export class TrafficView {
       }
     }
 
-    // The regatta's rival, racing beside the captain (decision 0216).
+    // The regatta's rival, racing beside the captain (decision 0217).
     const kestrel = rival ? this.rivalModel() : this.rival;
     if (kestrel) kestrel.root.visible = !!rival;
     if (kestrel && rival) {

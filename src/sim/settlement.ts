@@ -141,9 +141,9 @@ export function questsRunning(state: HasSettlements): Set<string> {
 export function questsDone(state: HasSettlements): Set<string> {
   const done = new Set<string>();
   for (const [id, p] of Object.entries(state.quests?.byId ?? {}))
-    // A race finished once stays done while it is sailed again (decision 0216).
+    // A race finished once stays done while it is sailed again (decision 0217).
     if (p.step === 'done' || p.best !== undefined) done.add(id);
-  // A regatta series won counts as done, for what waits on it: the Cup on Skerry's pier (0216).
+  // A regatta series won counts as done, for what waits on it: the Cup on Skerry's pier (0217).
   for (const id of state.quests?.won ?? []) done.add(id);
   return done;
 }

@@ -250,12 +250,12 @@ export interface QuestDef {
    */
   vars?: Record<string, VarKind>;
   /**
-   * A race of the Saltmere Regatta (decision 0216): its series, the gold its medals pay the first
+   * A race of the Saltmere Regatta (decision 0217): its series, the gold its medals pay the first
    * time and its pars. Its one step's goal is `raced`; it is offered, tracked while it runs, and
    * once finished it can be sailed again (`raceAgain`), keeping the best time and medal.
    */
   race?: RaceDef;
-  /** Who speaks at a race's line before the horn (`<text>.race.start`, decision 0216). */
+  /** Who speaks at a race's line before the horn (`<text>.race.start`, decision 0217). */
   starter?: string;
   steps: QuestStep[];
 }
@@ -288,9 +288,9 @@ export interface QuestProgress {
   rounds?: number;
   /** A standing order between rounds: dockings at other ports before it asks again (0214). */
   wait?: number;
-  /** A race's best time so far, hundredths of a second (decision 0216). */
+  /** A race's best time so far, hundredths of a second (decision 0217). */
   best?: number;
-  /** A race's best medal so far: 1 bronze, 2 silver, 3 gold (decision 0216). */
+  /** A race's best medal so far: 1 bronze, 2 silver, 3 gold (decision 0217). */
   medal?: number;
 }
 
@@ -310,7 +310,7 @@ export interface QuestState {
    * played): no bubble, and their `teach` steps are passed by. JSON save only, not FW2.
    */
   uncoached?: string[];
-  /** Regatta series won (decision 0216), worked out from the races' medals on load. */
+  /** Regatta series won (decision 0217), worked out from the races' medals on load. */
   won?: string[];
 }
 
@@ -637,7 +637,7 @@ function checkRepeat(q: QuestDef, map: MapDef, at: string): string[] {
 }
 
 /**
- * Problems with a race (decision 0216): its `race` block, offered, never a main quest, a lesson or
+ * Problems with a race (decision 0217): its `race` block, offered, never a main quest, a lesson or
  * a standing order, and one step whose goal is `raced`.
  */
 function checkRace(q: QuestDef, at: string): string[] {
@@ -724,7 +724,7 @@ export function checkQuestHooks(
   quests: readonly QuestDef[],
   others: string[] = [],
 ): string[] {
-  // A regatta series won counts as done (decision 0216): the Cup stands on Skerry's pier.
+  // A regatta series won counts as done (decision 0217): the Cup stands on Skerry's pier.
   const known = new Set([
     ...quests.map((q) => q.id),
     ...REGATTA.series.map((s) => s.id),
@@ -791,10 +791,10 @@ export type QuestEvent =
   | { type: 'moved'; quest: string; step: string }
   /** A reward's volcano erupts (decision 0178): the view plays it, nothing else changes. */
   | { type: 'erupt'; quest: string; island: string }
-  /** A race's horn (decision 0216): the sequence is over and the clock runs. */
+  /** A race's horn (decision 0217): the sequence is over and the clock runs. */
   | { type: 'horn'; quest: string }
   /**
-   * A race finished (decision 0216): its time, the medal won, the best medal before, whether the
+   * A race finished (decision 0217): its time, the medal won, the best medal before, whether the
    * time is a new best, the gold for medals won the first time, and series won by it.
    */
   | {
@@ -811,7 +811,7 @@ export type QuestEvent =
       /** The rival's time, seconds, if she finished first. */
       rival?: number;
     }
-  /** A race given up (decision 0216): docked mid-race, or the captain retired. */
+  /** A race given up (decision 0217): docked mid-race, or the captain retired. */
   | { type: 'retired'; quest: string }
   | { type: 'finished'; quest: string };
 
@@ -887,7 +887,7 @@ export class QuestBook {
   }
   isDone(id: string): boolean {
     const p = this.progress(id);
-    // A race finished once is done, sailed again or not (decision 0216).
+    // A race finished once is done, sailed again or not (decision 0217).
     return p?.step === QUEST_DONE || p?.best !== undefined || this.doneElsewhere(id);
   }
   /**
@@ -943,7 +943,7 @@ export class QuestBook {
     });
   }
   /**
-   * The race under way (decision 0216), for the clock at sea: the sequence's seconds left, the
+   * The race under way (decision 0217), for the clock at sea: the sequence's seconds left, the
    * clock, the marks rounded, the course.
    */
   race():
@@ -973,11 +973,11 @@ export class QuestBook {
     }
     return undefined;
   }
-  /** The races finished at least once, for Rook's book and "Race again" (decision 0216). */
+  /** The races finished at least once, for Rook's book and "Race again" (decision 0217). */
   get raced(): QuestDef[] {
     return this.quests.filter((q) => q.race && this.progress(q.id)?.best !== undefined);
   }
-  /** Regatta series won (decision 0216). */
+  /** Regatta series won (decision 0217). */
   get won(): string[] {
     return this.state.won ?? [];
   }
@@ -1078,13 +1078,13 @@ export class QuestBook {
     if (!quest) return [];
     const events: QuestEvent[] = [{ type: 'started', quest: id }];
     this.enter(quest, roundStep(quest, this.progress(id)), events);
-    // A race holds its wind while it runs: it is the one tracked (decision 0216).
+    // A race holds its wind while it runs: it is the one tracked (decision 0217).
     if (quest.race && !this.lesson) this.state.tracked = id;
     this.afterChange(events);
     return [...events, ...this.check()];
   }
 
-  /** A race finished before, sailed again from its start (decision 0216). */
+  /** A race finished before, sailed again from its start (decision 0217). */
   raceAgain(id: string): QuestEvent[] {
     const quest = this.quests.find((q) => q.id === id);
     if (!quest?.race || !this.isDone(id) || this.isRunning(id) || this.lesson) return [];
@@ -1097,7 +1097,7 @@ export class QuestBook {
   }
 
   /**
-   * The race under way is given up (decision 0216): one finished before goes back to its record,
+   * The race under way is given up (decision 0217): one finished before goes back to its record,
    * one never finished is offered again. Nothing else is lost.
    */
   retire(id: string): QuestEvent[] {
@@ -1574,7 +1574,7 @@ export class QuestBook {
       this.trade.dockedAt = null;
       events.push({ type: 'moved', quest: quest.id, step: step.id });
     }
-    // The rival comes to the line beside the boat and waits for the horn (decision 0216).
+    // The rival comes to the line beside the boat and waits for the horn (decision 0217).
     const course = quest.race && courseOf(step.goal);
     if (course && quest.race) createRival(this.world, quest.race, course);
     events.push({
@@ -1646,7 +1646,7 @@ export class QuestBook {
   }
 
   /**
-   * A race's finish (decision 0216): its time against the pars of the captain's ship on the
+   * A race's finish (decision 0217): its time against the pars of the captain's ship on the
    * voyage's level, the best time and medal kept, gold for each medal won the first time, and the
    * series this finish wins.
    */
@@ -1684,7 +1684,7 @@ export class QuestBook {
     });
   }
 
-  /** The series won, from the races' medals (decision 0216). */
+  /** The series won, from the races' medals (decision 0217). */
   private updateWon() {
     const won = seriesWon(this.quests, (id) => this.progress(id)?.medal ?? 0);
     if (won.length) this.state.won = won;
@@ -1719,7 +1719,7 @@ export class QuestBook {
     if (!seen) return;
     if (trade.dockedAt && trade.dockedAt !== seen.docked) {
       this.dockedAt(trade.dockedAt);
-      // Alongside mid-race, the race is given up (decision 0216).
+      // Alongside mid-race, the race is given up (decision 0217).
       for (const { quest } of [...this.active])
         if (quest.race) events.push(...this.dropRace(quest.id));
     }
@@ -1838,7 +1838,7 @@ export function readQuests(
     if (quest.repeat && isCount(p.rounds) && p.rounds > 0) out.byId[quest.id]!.rounds = p.rounds;
     if (quest.repeat && p.step === QUEST_DONE && isCount(p.wait) && p.wait > 0)
       out.byId[quest.id]!.wait = Math.min(p.wait, TUNING.economy.orders.standingDockings);
-    // A race's record (decision 0216).
+    // A race's record (decision 0217).
     if (quest.race && isCount(p.best)) out.byId[quest.id]!.best = p.best;
     if (quest.race && isCount(p.medal) && p.medal > 0 && p.medal <= 3)
       out.byId[quest.id]!.medal = p.medal;

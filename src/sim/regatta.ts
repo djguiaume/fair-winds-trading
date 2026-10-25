@@ -5,7 +5,7 @@ import type { SeaMarkDef } from './map';
 import { SHIP_CLASSES } from './ship';
 
 /*
- * The Saltmere Regatta (decision 0216, Phase 5 parts 6 and 7). A race is a quest with a `race`
+ * The Saltmere Regatta (decision 0217, Phase 5 parts 6 and 7). A race is a quest with a `race`
  * block (its series, the gold its medals pay the first time, its pars) and one step whose goal is
  * `raced`: a start line, numbered marks to round in order and a finish line. The horn sequence,
  * the clock and the marks are the quest engine's (`questLibrary.ts`); this file holds the numbers
@@ -131,7 +131,7 @@ export function medalGold(race: RaceDef, had: number, won: number): number {
 }
 
 /**
- * The series won (decision 0216): every race of a series has its `winMedal` or better. `races`
+ * The series won (decision 0217): every race of a series has its `winMedal` or better. `races`
  * are the race quests, `medal` a race's best medal so far.
  */
 export function seriesWon(
@@ -154,7 +154,7 @@ export function pennantFor(won: readonly string[]): FlagDef | undefined {
 }
 
 /**
- * How fast the rival sails (decision 0216): a share of her ship's speed so she finishes about on
+ * How fast the rival sails (decision 0217): a share of her ship's speed so she finishes about on
  * the captain's `pace` medal time, on the captain's ship and level.
  */
 export function rivalPace(race: RaceDef, ship: string, difficulty: Difficulty): number {
@@ -212,7 +212,7 @@ export interface RaceCourse {
 }
 
 /**
- * What a race puts on the water while it runs (decision 0216): the committee boat and pin of the
+ * What a race puts on the water while it runs (decision 0217): the committee boat and pin of the
  * start line, numbered yellow marks, and the finish line's boat with its chequered flag (one boat
  * when the race starts and finishes on the same line).
  */

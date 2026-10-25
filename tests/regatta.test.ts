@@ -28,7 +28,7 @@ import { questsDone } from '../src/sim/settlement';
 import { SLOOP } from '../src/sim/ship';
 import { type World, createWorld } from '../src/sim/world';
 
-// Decision 0216: the Saltmere Regatta. A race is a quest with a `race` block and one `raced`
+// Decision 0217: the Saltmere Regatta. A race is a quest with a `race` block and one `raced`
 // step: the horn sequence, a start line crossed toward the course, marks in order, a finish line.
 
 const START: Gate = [
@@ -82,7 +82,7 @@ function horn(world: World, book: QuestBook): QuestEvent[] {
   return out;
 }
 
-describe('regatta (decision 0216)', () => {
+describe('regatta (decision 0217)', () => {
   it('the data and the shipped races are sound', () => {
     expect(checkRegattaData()).toEqual([]);
     const { book } = setup();

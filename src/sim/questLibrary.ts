@@ -393,13 +393,13 @@ function updateTimed(c: Condition, ctx: StepContext, s: number[]) {
   } else if (docked === to && s[2]! >= via.length) s[0] = RUN_MADE;
 }
 
-/** Race states in the first slot of `raced` (decision 0216). */
+/** Race states in the first slot of `raced` (decision 0217). */
 export const RACE_HORN = 0;
 export const RACE_GOING = 1;
 export const RACE_FINISHED = 2;
 
 /**
- * A race (`raced`, decision 0216): the horn sequence counts down while the sea is on screen, then
+ * A race (`raced`, decision 0217): the horn sequence counts down while the sea is on screen, then
  * the clock runs from the horn. The boat crosses the start line toward the course (one over the
  * line at the horn comes back and crosses again), rounds the marks in order and crosses the
  * finish line. Nothing fails: the clock runs until she finishes. Slots: the race's state,
@@ -789,7 +789,7 @@ export const CONDITION_ABOUT: Record<string, string> = {
   tacked: 'tack: turn the bow across the wind',
   reach: 'sail to places at sea',
   timed: 'a run against the clock',
-  raced: 'a race: a start line, numbered marks in order, a finish line (decision 0216)',
+  raced: 'a race: a start line, numbered marks in order, a finish line (decision 0217)',
 };
 
 /**

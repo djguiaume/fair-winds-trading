@@ -141,7 +141,7 @@ export class SeaChart {
   questCargo: () => string[] = () => [];
   /** The running quests' own sea marks (decision 0164), drawn while they run. */
   questMarks: () => readonly SeaMarkDef[] = () => [];
-  /** The race under way's course (decision 0216): its line, its marks in order, its finish. */
+  /** The race under way's course (decision 0217): its line, its marks in order, its finish. */
   raceCourse: () => readonly { x: number; y: number }[] | null = () => null;
   private previousFocus: HTMLElement | null = null;
   /** Good whose prices show under the port names; null shows names only. */
@@ -1344,7 +1344,7 @@ export class SeaChart {
       const { tag, attrs } = seaMarkShape(mark, px);
       shape(tag, { ...attrs, class: 'chart-mark' });
     }
-    // The race's course (decision 0216), under its marks: from the line round each mark in turn.
+    // The race's course (decision 0217), under its marks: from the line round each mark in turn.
     const race = this.raceCourse();
     if (race && race.length > 1)
       shape('polyline', {

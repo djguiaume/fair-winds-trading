@@ -137,7 +137,7 @@ export class Hud {
   run: { sec: number; par: number; to: string } | null = null;
   private readonly objClock = $('obj-clock');
   /**
-   * A race under way (decision 0216): its line in the course pill ("Horn in 7", "Mark 2 of 3")
+   * A race under way (decision 0217): its line in the course pill ("Horn in 7", "Mark 2 of 3")
    * and its clock once the horn has gone; the pill's × gives it up (`onRetire`).
    */
   race: { label: string; short: string; sec: number | null } | null = null;

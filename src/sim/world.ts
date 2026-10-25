@@ -184,7 +184,7 @@ export interface World {
   trade: TradeState;
   /** Other boats on the sea (decision 0215); `traffic.on` is Settings › Other ships. */
   traffic: TrafficState;
-  /** A race's rival (decision 0216): Kestrel, while a race runs and until she is done. */
+  /** A race's rival (decision 0217): Kestrel, while a race runs and until she is done. */
   rival: TrafficBoat | null;
 }
 

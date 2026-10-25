@@ -1,5 +1,5 @@
 {
-  "about": "The Saltmere Regatta (decision 0216): how a race starts, what a medal takes, what it pays and what a series won flies. Each race's course and pars are in its quest file (`race`, and its step's `raced` goal).",
+  "about": "The Saltmere Regatta (decision 0217): how a race starts, what a medal takes, what it pays and what a series won flies. Each race's course and pars are in its quest file (`race`, and its step's `raced` goal).",
   "countdownSec": 10,
   "within": 16,
   "medals": {

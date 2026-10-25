@@ -515,7 +515,7 @@ function pointsField(
 }
 
 /**
- * A race's start or finish line (decision 0216): the committee boat's end, then the pin's. Both
+ * A race's start or finish line (decision 0217): the committee boat's end, then the pin's. Both
  * ends are dragged on the chart too.
  */
 function gateField(

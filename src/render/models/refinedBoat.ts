@@ -895,7 +895,7 @@ export class RefinedBoat implements BoatModel {
     this.rigging.frustumCulled = false; // tiny mutable line buffer; the endpoints move during tacks
     this.ship.add(this.rigging);
 
-    // A regatta pennant won flies instead of the stock one (decision 0216).
+    // A regatta pennant won flies instead of the stock one (decision 0217).
     const flagGeo = options.flag
       ? flagGeometry(options.flag)
       : new THREE.BufferGeometry().setFromPoints([V(0, 0, 0), V(0, -0.5, 0), V(0, -0.25, -1)]);

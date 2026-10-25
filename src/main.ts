@@ -415,7 +415,7 @@ const quests = new QuestBook(world, undefined, {
   nightOk: () => !settings.dayNight || daylightAt(world.time).night >= 0.5,
   screen: () => (chart.isOpen ? 'chart' : tradePanel.isOpen ? 'market' : 'sea'),
 });
-// The regatta pennant won flies at her masthead (decision 0216).
+// The regatta pennant won flies at her masthead (decision 0217).
 view.setPennant(flownPennant(quests));
 // Whether a fresh voyage offers the tutorial: kept in the browser across voyages.
 const tutorialChoice = new TutorialChoice(world.map.name, storage);
@@ -551,7 +551,7 @@ function seaNews() {
 function showRunClock() {
   const run = world.trade.dockedAt ? undefined : quests.runs()[0];
   hud.run = run ? { sec: run.sec, par: run.par, to: run.to } : null;
-  // A race's line and clock (decision 0216).
+  // A race's line and clock (decision 0217).
   hud.race = world.trade.dockedAt ? null : raceHud(quests);
 }
 /** Steps done during this call, quest → gold paid (decision 0213): "Done! +150 gold". */
@@ -562,7 +562,7 @@ function quayNow(): QuayItem[] {
   const docked = world.trade.dockedAt;
   return [
     ...quayItems(quests, world.map, docked, questSeen, questThanks, paidHere),
-    // The regatta book: races sailed from here, to sail again (decision 0216). Never news.
+    // The regatta book: races sailed from here, to sail again (decision 0217). Never news.
     ...raceBookCards(quests, world.map, docked).map((card) => ({
       key: `${card.quest}:book`,
       card,
@@ -659,7 +659,7 @@ quests.onEvent = (e) => {
   }
 };
 /**
- * A race's events (decision 0216): the starter's line at the start, the horn, the result card
+ * A race's events (decision 0217): the starter's line at the start, the horn, the result card
  * at once wherever she finishes, a give-up; no thanks card or note, the result card says it all.
  */
 function raceEvent(e: QuestEvent) {
@@ -683,12 +683,12 @@ function raceEvent(e: QuestEvent) {
   } else if (e.type === 'finished') {
     view.setQuestsDone(questsDone(world.trade));
     view.setPennant(flownPennant(quests));
-    // The Cup on her pier once it is won (decision 0216).
+    // The Cup on her pier once it is won (decision 0217).
     showHome();
   }
   if (e.type !== 'horn') autosave();
 }
-/** "Race again", on the result card or the regatta book (decision 0216). */
+/** "Race again", on the result card or the regatta book (decision 0217). */
 function raceAgain(id: string) {
   if (!quests.raceAgain(id).length) return;
   if (tradePanel.isOpen) tradePanel.close();

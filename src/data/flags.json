@@ -1,5 +1,5 @@
 {
-  "about": "Flags as data (decision 0216): what a masthead pennant looks like. `shape`: pennant (a long triangle), swallowtail (a forked fly) or burgee (a short triangle). `bands`: colours from the mast to the fly. `length` and `height` in the masthead flag's own units (the stock pennant is 1 by 0.5).",
+  "about": "Flags as data (decision 0217): what a masthead pennant looks like. `shape`: pennant (a long triangle), swallowtail (a forked fly) or burgee (a short triangle). `bands`: colours from the mast to the fly. `length` and `height` in the masthead flag's own units (the stock pennant is 1 by 0.5).",
   "flags": [
     {
       "id": "pennant-saltmere",

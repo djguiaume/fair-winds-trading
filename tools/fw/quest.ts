@@ -57,7 +57,7 @@ The quest's own sea (decision 0164), with the builder's edits; writes the quest 
   wind <id> [--step N] --clear
        --dry                    write nothing, print what would change
 
-Races of the Saltmere Regatta (decision 0216; also \`npm run race -- …\`):
+Races of the Saltmere Regatta (decision 0217; also \`npm run race -- …\`):
   race                          every race: series, marks, pars
   race <id>                     its course and each medal's time per ship class
   race <id> --pars [--write]    the balance bots sail it with every ship class on all three

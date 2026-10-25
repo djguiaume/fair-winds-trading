@@ -7,7 +7,7 @@ import type { TrafficBoat, TrafficDef } from './traffic';
 import type { World } from './world';
 
 /*
- * The race's rival (decision 0216): Wren's cutter Kestrel sails the course beside the captain as a
+ * The race's rival (decision 0217): Wren's cutter Kestrel sails the course beside the captain as a
  * living-sea boat (decision 0215): the same sailing model and helm as the other boats, in the
  * race's pinned wind, round the same marks. Her speed is scaled so she finishes about on the
  * captain's silver time (`regatta.json` › `rival.pace`), so beating her is a silver medal on any
@@ -42,7 +42,7 @@ function startPoint(course: RaceCourse) {
 }
 
 /**
- * A boat that sails a course as a racer (decision 0216): Kestrel, or the balance bots that set the
+ * A boat that sails a course as a racer (decision 0217): Kestrel, or the balance bots that set the
  * pars. `pace` scales her speed. She turns like a captain's ship of her class, so the pars are
  * times a captain can sail. Lies with her sails down until released.
  */
@@ -133,7 +133,7 @@ export function releaseRival(world: World, started: boolean) {
   b.bestAt = world.time;
 }
 
-/** The captain's race has ended: she finishes hers, then goes (decision 0216). */
+/** The captain's race has ended: she finishes hers, then goes (decision 0217). */
 export function endRival(world: World) {
   if (world.rival?.racer) world.rival.racer.over = true;
 }

@@ -60,7 +60,7 @@ export interface BoatModelOptions {
   /** Visible damage (decision 0208): 0 sound, 1 scuffed, 2 patched sails and a broken rail,
    * 3 torn sails and a list. */
   damage?: 0 | 1 | 2 | 3;
-  /** The masthead flag (decision 0216): a regatta pennant won, Kestrel's burgee; else the stock one. */
+  /** The masthead flag (decision 0217): a regatta pennant won, Kestrel's burgee; else the stock one. */
   flag?: FlagDef;
 }
 

@@ -17,7 +17,7 @@ import { character, firstName } from './portraits';
 import { type QuestCardModel, cardFor } from './questView';
 
 /*
- * What the Saltmere Regatta shows (decision 0216), read from the quest engine like the quest
+ * What the Saltmere Regatta shows (decision 0217), read from the quest engine like the quest
  * cards: the race's line in the course pill, the medal times on its offer, the result card with
  * "Race again", and the regatta book on the Quay. Words: `regatta.*`, and each race's
  * `<text>.race.title` / `.copy` (Wren's offer) and `<text>.race.start` (the starter at the line).
@@ -33,7 +33,7 @@ export function raceClock(sec: number): string {
   return `${m}:${s.toFixed(1).padStart(4, '0')}`;
 }
 
-/** What a race card shows besides the person's words (decision 0216). */
+/** What a race card shows besides the person's words (decision 0217). */
 export interface RaceCardInfo {
   /** This ship's medal times on this level, gold first, and the gold each pays the first time. */
   times: { medal: Medal; sec: number; gold: number; won: boolean }[];
@@ -75,7 +75,7 @@ export function raceInfo(book: QuestBook, quest: QuestDef, again = false): RaceC
 }
 
 /**
- * The result card (decision 0216): Wren's line for the medal (two lines each, by the time's last
+ * The result card (decision 0217): Wren's line for the medal (two lines each, by the time's last
  * digit), the time against Kestrel's, the new best, a series won and its pennant, "Race again".
  */
 export function raceResultCard(book: QuestBook, map: MapDef, e: RaceEvent): QuestCardModel | null {
@@ -113,7 +113,7 @@ export function raceResultCard(book: QuestBook, map: MapDef, e: RaceEvent): Ques
 }
 
 /**
- * The regatta book on the Quay (decision 0216): each race of this harbour finished before, with
+ * The regatta book on the Quay (decision 0217): each race of this harbour finished before, with
  * its record and "Race again"; at Saltmere, Rook's line for the Cup once it is won.
  */
 export function raceBookCards(book: QuestBook, map: MapDef, docked: string | null) {
@@ -136,7 +136,7 @@ export function raceBookCards(book: QuestBook, map: MapDef, docked: string | nul
 }
 
 /**
- * The race's line in the course pill (decision 0216): "Horn in 7", the next mark, the clock once
+ * The race's line in the course pill (decision 0217): "Horn in 7", the next mark, the clock once
  * the horn has gone; `short` for a phone held upright ("1/3", "Finish").
  */
 export function raceHud(
@@ -174,7 +174,7 @@ export function starterLine(quest: QuestDef): string | undefined {
   return who ? `${firstName(who.name)}: ${line}` : line;
 }
 
-/** The pennant the captain flies, the latest series won (decision 0216). */
+/** The pennant the captain flies, the latest series won (decision 0217). */
 export const flownPennant = (book: QuestBook) => pennantFor(book.won);
 
 /** A series' name, "The Saltmere Regatta". */

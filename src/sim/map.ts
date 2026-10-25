@@ -185,7 +185,7 @@ export const SEA_MARK_TYPES = [
   'fishing-boat',
   'pilot-cutter',
   'light',
-  // The regatta's marks (decision 0216), put on the water by a running race.
+  // The regatta's marks (decision 0217), put on the water by a running race.
   'race-mark',
   'race-pin',
   'race-committee',

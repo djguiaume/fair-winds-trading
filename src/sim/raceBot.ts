@@ -10,7 +10,7 @@ import { sailAlone } from './traffic';
 import { createWorld } from './world';
 
 /*
- * The balance bots of the regatta (decision 0216): a boat of each ship class sails a race's course
+ * The balance bots of the regatta (decision 0217): a boat of each ship class sails a race's course
  * from its start, in its pinned wind, with the currents of each difficulty level, on the helm of
  * the other boats (decision 0215). Its time is the race's par for that class and level: the gold
  * medal's time; silver and bronze are shares more (`regatta.json` › `medals`).
@@ -90,7 +90,7 @@ export function sailRace(
 }
 
 /**
- * The pars of a race (decision 0216): every ship class on every level, rounded up to whole
+ * The pars of a race (decision 0217): every ship class on every level, rounded up to whole
  * seconds. A class whose bot does not get round (a big hull in a narrow gap: the bots' grid is
  * coarser than the captain's helm) gets a par worked out from the others by speed: the slowest of
  * their times × their speed over hers, listed in `estimated`.

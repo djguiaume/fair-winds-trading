@@ -172,7 +172,7 @@ export interface Place {
   /** Number shown by the ring (1-based), and whether a line joins them in order. */
   no: number;
   ordered: boolean;
-  /** Its own label instead of its number ("start pin"), and the line it ends (a race's, 0216). */
+  /** Its own label instead of its number ("start pin"), and the line it ends (a race's, 0217). */
   name?: string;
   line?: string;
 }
@@ -234,7 +234,7 @@ export function stepPlaces(step: QuestStep, map: MapDef): Place[] {
         }),
       );
     }
-    // A race (decision 0216): its marks in order, and each end of its start and finish lines.
+    // A race (decision 0217): its marks in order, and each end of its start and finish lines.
     if (cond.is === 'raced') {
       const within = typeof cond.within === 'number' ? cond.within : REGATTA.within;
       ((cond.marks as QuestPoint[]) ?? []).forEach((p, i) =>
@@ -393,7 +393,7 @@ export function setWind(target: { wind?: StepWind }, speedKn?: number, fromDeg?:
   target.wind = fromDeg === undefined ? { speedKn } : { speedKn, fromDeg };
 }
 
-// --- Races (decision 0216) ----------------------------------------------------------------------
+// --- Races (decision 0217) ----------------------------------------------------------------------
 
 /** A race's `raced` goal (its one step's), or null for a quest that is no race. */
 export function raceGoal(quest: QuestDef): Condition | null {
@@ -536,7 +536,7 @@ export function defaultParam(type: Param, map: MapDef, questIds: string[]): unkn
       const s = map.start;
       return [{ x: round1(s.x), y: round1(s.y + 40) }];
     }
-    // A race's line (decision 0216): the committee boat's end, then the pin's, across the course.
+    // A race's line (decision 0217): the committee boat's end, then the pin's, across the course.
     case 'gate': {
       const s = map.start;
       return [

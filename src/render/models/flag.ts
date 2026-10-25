@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { FlagDef } from '../../sim/regatta';
 
 /*
- * A masthead flag from `flags.json` (decision 0216): a regatta pennant the captain has won, or
+ * A masthead flag from `flags.json` (decision 0217): a regatta pennant the captain has won, or
  * Kestrel's burgee. Flat triangles in the stock pennant's frame: the luff hangs from the masthead
  * down -Y, the fly streams out along -Z. Its bands run from the mast out, one colour each, as
  * vertex colours, so the flag stays one mesh and one draw call.

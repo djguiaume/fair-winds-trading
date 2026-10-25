@@ -88,7 +88,7 @@ export interface QuestCardModel {
    * tag and no arc line; the arrival button opens the Island tab on this plot.
    */
   plot?: { island: string; spot: string };
-  /** A race of the regatta (decision 0216): its medal times, record and result. */
+  /** A race of the regatta (decision 0217): its medal times, record and result. */
   race?: RaceCardInfo;
 }
 
@@ -384,7 +384,7 @@ export function cardFor(
     if (kind === 'offer' && quest.steps.length > 1 && !quest.repeat)
       card.moreSteps = quest.steps.length - 1;
   }
-  // A race's offer shows its medal times and what each pays the first time (decision 0216).
+  // A race's offer shows its medal times and what each pays the first time (decision 0217).
   if (quest.race && kind === 'offer') {
     card.reward = undefined;
     card.race = raceInfo(book, quest);
@@ -618,7 +618,7 @@ export function questTarget(book: QuestBook, map: MapDef): QuestTarget | null {
   const active = book.active.find((a) => a.quest.id === book.tracked);
   if (!active) return null;
   const { step, quest } = active;
-  // A race leads to its line, then each mark in turn, then its finish (decision 0216).
+  // A race leads to its line, then each mark in turn, then its finish (decision 0217).
   const next = quest.race ? raceNext(book) : null;
   if (next) return { point: next };
   if (step.chart) {
@@ -738,7 +738,7 @@ export function stepMarkers(
         out.push({ x: p.x, y: p.y, within, reached: i < passed, next: i === passed }),
       );
     }
-    // A race's marks (decision 0216): rounded behind, the next one to make for.
+    // A race's marks (decision 0217): rounded behind, the next one to make for.
     if (c.is === 'raced' && Array.isArray(c.marks) && first !== 0) {
       const rounded = Math.max(0, (s[2] ?? 0) - 1);
       const within = typeof c.within === 'number' ? c.within : REGATTA.within;

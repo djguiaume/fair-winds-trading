@@ -332,7 +332,7 @@ export class GameView {
     return boat;
   }
 
-  /** The regatta pennant at her masthead (decision 0216): the latest series won, or none. */
+  /** The regatta pennant at her masthead (decision 0217): the latest series won, or none. */
   private pennant: FlagDef | undefined;
   setPennant(flag: FlagDef | undefined) {
     if (flag?.id === this.pennant?.id) return;

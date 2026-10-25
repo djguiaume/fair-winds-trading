@@ -46,7 +46,7 @@ function model(type: SeaMarkDef['type']): THREE.BufferGeometry | null {
     return mergeAll(
       buildProp(`mark-${type}`, { R: 1, style: 'fish', variant: 0, shape: 0.5, size: 1 }),
     );
-  // The regatta's marks (decision 0216): a recipe each in src/data/props/mark-race*.json.
+  // The regatta's marks (decision 0217): a recipe each in src/data/props/mark-race*.json.
   if (type.startsWith('race-')) {
     const id = type === 'race-mark' ? 'mark-race' : `mark-${type}`;
     return mergeAll(buildProp(id, { R: 1, style: 'fish', variant: 0, shape: 0.5, size: 1 }));

@@ -1406,7 +1406,7 @@ function drawChartView() {
     if (run.length > 1)
       add('polyline', { points: run.map((p) => `${p.x},${-p.y}`).join(' '), class: 'qb-order' });
   }
-  // A race's start and finish lines (decision 0216), from the committee boat to the pin.
+  // A race's start and finish lines (decision 0217), from the committee boat to the pin.
   for (const line of ['start', 'finish']) {
     const ends = places.filter((p) => p.line === line);
     if (ends.length === 2)
@@ -1851,7 +1851,7 @@ function drawStory() {
 }
 
 /**
- * A race of the regatta (decision 0216): its series, the gold of each medal the first time, who
+ * A race of the regatta (decision 0217): its series, the gold of each medal the first time, who
  * starts it, and its pars by ship class and level. The pars come from the balance bots
  * (`npm run race -- <id> --pars --write`); the line and the marks are its one step's `raced` goal,
  * dragged on the chart like any place.
@@ -1881,7 +1881,7 @@ function raceRows(q: QuestDef, ctx: FormContext, edit: (fn: () => void) => void)
               },
             ];
           }),
-        'a race of the regatta: one raced step, medals, Race again (0216)',
+        'a race of the regatta: one raced step, medals, Race again (0217)',
       ),
     ),
   ];

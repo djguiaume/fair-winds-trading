@@ -19,7 +19,7 @@ function padFor(action: MenuAction): string {
 }
 
 /**
- * A race's times on its card (decision 0216): the result just sailed, big, against Kestrel's; then
+ * A race's times on its card (decision 0217): the result just sailed, big, against Kestrel's; then
  * this ship's three medal times with the gold each pays the first time, the ones won ticked; and
  * the record.
  */
@@ -165,7 +165,7 @@ export class QuestCard {
   /** "Hand over": `n` of `good` to the card's person, paid (decision 0213). */
   onHandOver: (quest: string, good: string, n: number) => void = () => {};
   onClose: (card: QuestCardModel) => void = () => {};
-  /** "Race again" on a race's result card (decision 0216). */
+  /** "Race again" on a race's result card (decision 0217). */
   onAgain: (quest: string) => void = () => {};
   private card: QuestCardModel | null = null;
 

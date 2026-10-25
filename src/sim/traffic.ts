@@ -103,7 +103,7 @@ export interface TrafficBoat {
   sweeps: boolean;
   rng: Rng;
   /**
-   * A race's rival (decision 0216): she sails the course and stops at the finish, never rows and
+   * A race's rival (decision 0217): she sails the course and stops at the finish, never rows and
    * never gives way. `gunAt` the horn's time (null before it), `finishedAt` hers, `arrive` how
    * close she rounds a mark, `over` once the captain's race has ended.
    */
@@ -910,7 +910,7 @@ export function stepTraffic(world: World, dt: number): WorldEvent[] {
 }
 
 /**
- * The race's rival (decision 0216), after the player: she waits at the line until the horn, sails
+ * The race's rival (decision 0217), after the player: she waits at the line until the horn, sails
  * the course, and once the captain's race has ended she goes when she is done or out of sight.
  */
 export function stepRival(world: World, dt: number): WorldEvent[] {

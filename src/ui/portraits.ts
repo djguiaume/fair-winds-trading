@@ -512,7 +512,7 @@ function face(l: Look, mood: Mood): string {
         '#b5873a',
       ),
     );
-  // A racing skipper's stopwatch (decision 0216): a brass case on its chain, held up to read.
+  // A racing skipper's stopwatch (decision 0217): a brass case on its chain, held up to read.
   if (item === 'stopwatch') {
     s.push(`<path d="M150 150L160 128" stroke="#b5873a" stroke-width="3" fill="none"/>`);
     s.push(
