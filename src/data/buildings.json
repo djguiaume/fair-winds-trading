@@ -1,4 +1,14 @@
 {
+  "plots": {
+    "open": "plot-stakes",
+    "bare": "plot-stakes-bare",
+    "chosen": "plot-ring"
+  },
+  "plotCamera": {
+    "zoom": 0.6,
+    "side": 0.25,
+    "top": 0.3
+  },
   "buildings": [
     {
       "id": "workshop",

@@ -72,7 +72,11 @@ export function renderSpotPanel(root: HTMLElement, host: SpotPanelHost) {
   for (const [value, text, title] of [
     ['all', 'Everything', 'Every building and run-down prop at once, as the file has them'],
     ['first', 'First look', 'As the captain first finds it: run-down props, no buildings'],
-    ['chosen', 'As chosen', 'With the buildings picked below for each spot'],
+    [
+      'chosen',
+      'As chosen',
+      'With the buildings picked below for each spot; a spot with none shows its plot staked (0210)',
+    ],
   ] as const) {
     const b = node('button', { textContent: text, title }, seg);
     b.setAttribute('aria-pressed', String(host.show === value));
