@@ -130,8 +130,8 @@ describe('sounds of the sea (decision 0209)', () => {
     delete (bad.seas as Record<string, unknown>).east;
     bad.effects.gull = { synth: 'gull', pitch: 9 };
     const problems = audioProblems(undefined, bad);
-    expect(problems).toContain('sea north call 5: no effect "walrus"');
-    expect(problems).toContain('sea north call 5: every [min, max] seconds, min 1 or more');
+    expect(problems).toContain('sea north call 6: no effect "walrus"');
+    expect(problems).toContain('sea north call 6: every [min, max] seconds, min 1 or more');
     expect(problems).toContain('seas: no bed for sea "east"');
     expect(problems).toContain('effect gull: pitch from 0.25 to 4');
   });

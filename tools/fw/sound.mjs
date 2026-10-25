@@ -38,7 +38,12 @@ function plan(args, data) {
     storm: !!args.storm,
   };
   if (what === 'effect')
-    return [{ name: `effect-${id}`, job: { kind: 'effect', id, pitch: num(args.pitch, 1), secs: num(args.secs, 4) } }];
+    return [
+      {
+        name: `effect-${id}`,
+        job: { kind: 'effect', id, pitch: num(args.pitch, 1), secs: num(args.secs, 4) },
+      },
+    ];
   if (what === 'bell') {
     const pitch = data.events.dock.pitch?.[id] ?? 1;
     return [{ name: `bell-${id}`, job: { kind: 'effect', id: data.events.dock.effect, pitch } }];
@@ -64,7 +69,8 @@ function plan(args, data) {
     for (const sea of Object.keys(data.seas))
       jobs.push({ name: `sea-${sea}`, job: { kind: 'sea', sea, secs: secs(20), state } });
     for (const [e, def] of Object.entries(data.effects))
-      if ('synth' in def) jobs.push({ name: `effect-${e}`, job: { kind: 'effect', id: e } });
+      if ('synth' in def)
+        jobs.push({ name: `effect-${e}`, job: { kind: 'effect', id: e, secs: 6 } });
     for (const [port, pitch] of Object.entries(data.events.dock.pitch ?? {}))
       jobs.push({
         name: `bell-${port}`,

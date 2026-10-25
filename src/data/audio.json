@@ -8,7 +8,7 @@
     "regatta": { "theme": "regatta" }
   },
   "effects": {
-    "creak": { "synth": "creak", "volume": 1.6 },
+    "creak": { "synth": "creak", "volume": 1.4 },
     "foghorn": { "synth": "foghorn", "volume": 0.86 },
     "bell": { "synth": "bell", "volume": 0.8 },
     "flap": { "synth": "flap", "volume": 1.4 },
@@ -19,15 +19,16 @@
     "gull": { "synth": "gull", "volume": 0.95 },
     "tern": { "synth": "gull", "volume": 0.62, "pitch": 1.45 },
     "kittiwake": { "synth": "gull", "volume": 0.68, "pitch": 1.25 },
-    "eider": { "synth": "coo", "volume": 0.3 },
-    "ice": { "synth": "creak", "volume": 0.7, "pitch": 0.55 },
-    "calving": { "synth": "crack", "volume": 1 },
-    "rumble": { "synth": "rumble", "volume": 0.95 },
-    "thunder": { "synth": "rumble", "volume": 0.52, "pitch": 1.7 },
+    "eider": { "synth": "quack", "volume": 1 },
+    "ice": { "synth": "ice-groan", "volume": 2.75 },
+    "ice-ping": { "synth": "ice-ping", "volume": 0.33 },
+    "calving": { "synth": "calving", "volume": 0.6 },
+    "rumble": { "synth": "boom", "volume": 0.6 },
+    "thunder": { "synth": "thunder", "volume": 1.2 },
     "lava-hiss": { "synth": "hiss", "volume": 0.62 },
     "surf": { "synth": "surf", "volume": 0.85 },
     "palms": { "synth": "rustle", "volume": 0.33 },
-    "sheep": { "synth": "bleat", "volume": 0.8 },
+    "sheep": { "synth": "baa", "volume": 0.47 },
     "fogwatch-horn": { "synth": "foghorn", "volume": 0.87, "pitch": 0.8 },
     "far-foghorn": { "synth": "foghorn", "volume": 0.38, "pitch": 1.12 },
     "bell-buoy": { "synth": "bell", "volume": 0.3, "pitch": 1.35 }
@@ -63,7 +64,8 @@
       "waves": { "level": 0.48, "tone": 380, "swellSec": 10 },
       "wind": { "level": 0.48, "tone": 1500 },
       "calls": [
-        { "effect": "ice", "every": [9, 22] },
+        { "effect": "ice", "every": [14, 32] },
+        { "effect": "ice-ping", "every": [12, 28] },
         { "effect": "calving", "every": [25, 60], "near": { "bergs": true, "range": 220 } },
         { "effect": "eider", "every": [6, 16], "near": { "islands": ["rimewick"], "range": 160 } },
         {

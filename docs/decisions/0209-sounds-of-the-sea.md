@@ -31,11 +31,12 @@ brightest); each sea's music still recognisably Fair Winds.
 recorded file stays possible for any sound (`file` instead of `synth`, as since
 [0113](0113-levels-tutorial-and-music-as-data.md)).
 
-**Effects** (`src/audio/sfx.ts`): fifteen small synthesisers (creak, foghorn, bell, flap, thud, horn,
-gun, gull, coo, crack, rumble, hiss, surf, rustle, bleat), each a handful of nodes for a second or
-two over one shared noise buffer. Every effect line in `audio.json` takes a `volume` and a `pitch`,
-so 23 effects come from 15 synthesisers: a gull pitched up is a tern or a kittiwake, the press creak
-pitched down is far-off ice, the foghorn lower is Fogwatch's own, the bell higher is a bell buoy.
+**Effects** (`src/audio/sfx.ts`): eighteen small synthesisers (creak, foghorn, bell, flap, thud, horn,
+gun, gull, quack, ice-groan, ice-ping, calving, boom, thunder, hiss, surf, rustle, baa), each a
+handful of nodes for a few seconds over one shared noise buffer. Every effect line in `audio.json`
+takes a `volume` and a `pitch`, so 24 effects come from 18 synthesisers: a gull pitched up is a tern
+or a kittiwake, the foghorn lower is Fogwatch's own, the bell higher is a bell buoy, the thud higher
+is a bump.
 
 **A bed per sea** (`audio.json` › `seas`, one per sea id: `ring` and each sea file): waves (level,
 filter tone, swell period) and wind (level, tone), the music track the sea plays, `calm` places
@@ -95,6 +96,15 @@ game: about nine nodes a second created (the music's notes as before, plus calls
   "hyper realistic"; he liked the bells). The tonal sounds (bells, horns, birds, sheep) already
   matched the music; the noise ones were moved towards them: the waves lap (quick in, slow out)
   through two low-passes, the wind is a narrow soft whistle, the wash narrower, rain a soft patter,
-  the rumble and thunder a timpani roll, the lava hiss bubbles as little rising blips, calving a
-  hollow knock of ice, surf and palms rounder. Levels re-measured to the same targets.
+  the lava hiss bubbles as little rising blips, surf and palms rounder. Levels re-measured to the
+  same targets.
 - On phones, low sounds were raised into the low mids (the rumble, as the foghorn in 0139).
+- Second listen (Guillaume, 2026-10-25, 57 sounds: 50 OK, 7 KO). The creak, volcano rumble, eider,
+  ice, calving, sheep and thunder did not sound like what they were. Each was rebuilt from what
+  makes the real sound, two tries each, and he picked: the creak and the ice groan are stick-slip
+  friction (a train of tiny clicks whose rate glides, rung through the wood's or the ice's
+  resonances); the ice also pings now and then (sharp ringing snaps, a second north call);
+  the duck quacks and the sheep baas through formant filters (the vowel's resonances); the volcano
+  is one deep boom, the thunder a far roll and the calving a far splitting groan, with ragged
+  loudness and a soft saturator so phones hear the low end. Measured: creak -27, boom -22, quack
+  and baa -32, ice groan -36 and ping -32, calving -33, thunder -30 LUFS.
