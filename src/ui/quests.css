@@ -885,3 +885,55 @@ dialog.quest-card.is-arrival::backdrop {
 .race-times li.is-won .race-medal {
   box-shadow: 0 0 0 2px var(--brass);
 }
+
+/* A finished quest, opened in the journal and told again. */
+.journal-row[data-open] {
+  cursor: pointer;
+}
+.journal-chevron {
+  margin-left: auto;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--brass);
+  border-bottom: 2px solid var(--brass);
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+}
+.journal-row.is-open .journal-chevron {
+  transform: rotate(45deg);
+}
+.journal-story {
+  margin: 2px 0 10px 44px;
+  padding: 0 0 0 12px;
+  border-left: 2px solid rgba(232, 196, 106, 0.35);
+  list-style: none;
+}
+.journal-story li {
+  display: flex;
+  gap: 8px;
+  padding: 6px 0;
+}
+.journal-story b {
+  display: block;
+  font: 700 14px/1.2 var(--display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.journal-said {
+  margin: 3px 0 0;
+  color: var(--ink-dim);
+  font-size: 14px;
+  line-height: 1.4;
+}
+.journal-story .is-thanks .journal-said {
+  color: var(--ink);
+  font-style: italic;
+}
+.journal-chose {
+  margin: 4px 0 0;
+  color: var(--brass);
+  font-size: 13px;
+}
+.journal-chose::before {
+  content: '→ ';
+}

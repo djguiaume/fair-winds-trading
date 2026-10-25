@@ -237,3 +237,35 @@ describe('real course marks (decision 0212)', () => {
     expect(svg.querySelector('.chart-flag-quest')!.classList.contains('is-selected')).toBe(true);
   });
 });
+
+describe('journal: finished quests told again', () => {
+  it('names the quest and opens it to its steps, what was said, the answer and the thanks', async () => {
+    const { QUESTS, QUEST_DONE, QuestBook } = await import('../src/sim/quests');
+    const { journal } = await import('../src/ui/questView');
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    world.trade.quests.byId['westholm-mill'] = { step: QUEST_DONE, counts: [], chose: {} };
+    const book = new QuestBook(world, QUESTS);
+    const chart = new SeaChart(get<HTMLDialogElement>('chart'), world, {});
+    chart.quests = {
+      pins: () => [],
+      target: () => null,
+      journal: () => journal(book, world.map),
+      track: () => {},
+    };
+    chart.open();
+    click('chart-tab-journal');
+    const row = get('chart-journal-list').querySelector<HTMLElement>(
+      '[data-open="westholm-mill"]',
+    )!;
+    expect(row.textContent).toContain('The mill on the hill · Done');
+    expect(row.getAttribute('aria-expanded')).toBe('false');
+    row.click();
+    const story = get('chart-journal-list').querySelector('.journal-story')!;
+    const steps = story.querySelectorAll('li');
+    expect(steps.length).toBe(4);
+    expect(story.textContent).toContain('Flour on my hands');
+    expect(steps[3]!.classList.contains('is-thanks')).toBe(true);
+    get('chart-journal-list').querySelector<HTMLElement>('[data-open="westholm-mill"]')!.click();
+    expect(get('chart-journal-list').querySelector('.journal-story')).toBeNull();
+  });
+});

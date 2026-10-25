@@ -64,14 +64,18 @@ describe('portraitSvg', () => {
 
   it('is the same for the same input, and moods and looks change it', () => {
     const rook = character('rook')!;
-    expect(portraitSvg(rook)).toBe(portraitSvg(rook));
-    expect(portraitSvg(rook, { mood: 'pleased' })).not.toBe(portraitSvg(rook));
-    const soaked = portraitSvg(rook, { variant: 'soaked' });
-    expect(soaked).not.toBe(portraitSvg(rook));
+    // Each portrait has its own clip id (several in a page); the face itself is the same.
+    const svg = (o?: Parameters<typeof portraitSvg>[1]) =>
+      portraitSvg(rook, o).replace(/fw-portrait-hex-\d+/g, 'clip');
+    expect(svg()).toBe(svg());
+    expect(portraitSvg(rook)).not.toBe(portraitSvg(rook));
+    expect(svg({ mood: 'pleased' })).not.toBe(svg());
+    const soaked = svg({ variant: 'soaked' });
+    expect(soaked).not.toBe(svg());
     // Soaked after the wreck: no cap, no pipe.
     expect(lookOf(rook, 'soaked').hat).toBe('none');
     expect(lookOf(rook, 'soaked').item).toBe('none');
     // An unknown look falls back to the usual one.
-    expect(portraitSvg(rook, { variant: 'nope' })).toBe(portraitSvg(rook));
+    expect(svg({ variant: 'nope' })).toBe(svg());
   });
 });

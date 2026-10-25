@@ -550,10 +550,16 @@ function face(l: Look, mood: Mood): string {
  * One portrait as an SVG string, `size` px square. Same person, look and mood give the same SVG,
  * so callers can cache it.
  */
+/**
+ * Each portrait clips by its own id: with one shared id, a browser resolves the clip from the
+ * first copy in the page, and when that one sits in a hidden screen every face draws empty.
+ */
+let clipIds = 0;
 export function portraitSvg(
   c: Character,
   opts: { mood?: Mood; variant?: string; size?: number } = {},
 ): string {
   const { mood = 'neutral', variant, size = 96 } = opts;
-  return `<svg class="portrait" xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 204 204" width="${size}" height="${size}" role="img" aria-label="${c.name}"><defs><clipPath id="fw-portrait-hex"><path d="${HEX}"/></clipPath></defs><g clip-path="url(#fw-portrait-hex)">${face(lookOf(c, variant), mood)}</g><path d="${HEX}" fill="none" stroke="#e8c46a" stroke-width="7" stroke-linejoin="round"/></svg>`;
+  const clip = `fw-portrait-hex-${++clipIds}`;
+  return `<svg class="portrait" xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 204 204" width="${size}" height="${size}" role="img" aria-label="${c.name}"><defs><clipPath id="${clip}"><path d="${HEX}"/></clipPath></defs><g clip-path="url(#${clip})">${face(lookOf(c, variant), mood)}</g><path d="${HEX}" fill="none" stroke="#e8c46a" stroke-width="7" stroke-linejoin="round"/></svg>`;
 }

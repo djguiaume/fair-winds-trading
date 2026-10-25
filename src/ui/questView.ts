@@ -520,6 +520,20 @@ export interface JournalEntry {
   lines: JournalStep[];
   /** The options picked, for a finished quest. */
   chose: string[];
+  /**
+   * A finished quest told again, opened from the journal: each step of its main line, what the
+   * person said and the answer picked, then their thanks. Words only where they were written.
+   */
+  story?: JournalStory[];
+}
+
+export interface JournalStory {
+  title?: string;
+  copy?: string;
+  /** The answer the captain picked at this step. */
+  chose?: string;
+  /** The thanks, last. */
+  thanks?: boolean;
 }
 
 /** The journal: the tracked quest first, then the other started ones, offers, then done ones. */
@@ -569,6 +583,24 @@ export function journal(book: QuestBook, map: MapDef): JournalEntry[] {
     const entry: JournalEntry = { ...base(quest), state: 'done', stepNo: quest.steps.length };
     for (const [step, option] of Object.entries(p.chose))
       entry.chose.push(tOptional(`${quest.text}.${step}.${option}.title`) ?? option);
+    entry.story = [];
+    for (const id of mainLine(quest)) {
+      const step = quest.steps.find((s) => s.id === id);
+      if (!step) continue;
+      const params = stepParams(book, step, quest);
+      const option = p.chose[id];
+      const line: JournalStory = {
+        title: tOptional(`${quest.text}.${id}.title`, params),
+        copy: tOptional(`${quest.text}.${id}.copy`, params),
+      };
+      if (option) line.chose = tOptional(`${quest.text}.${id}.${option}.title`) ?? option;
+      if (line.title || line.copy) entry.story.push(line);
+    }
+    const thanks = tOptional(
+      `${quest.text}.${QUEST_DONE}.copy`,
+      stepParams(book, undefined, quest),
+    );
+    if (thanks) entry.story.push({ copy: thanks, thanks: true });
     out.push(entry);
   }
   return out;
