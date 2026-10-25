@@ -627,7 +627,7 @@ export function questGoal(
   book: QuestBook,
   map: MapDef,
   harbours: Record<string, { x: number; y: number }>,
-): { x: number; y: number; label: string } | null {
+): { x: number; y: number; label: string; portId?: string; place?: string } | null {
   const target = questTarget(book, map);
   const active = book.active.find((a) => a.quest.id === book.tracked);
   if (!active) return null;
@@ -636,11 +636,31 @@ export function questGoal(
     stepParams(book, active.step, active.quest),
   );
   const point = book.compassOf(active.step) ?? target?.point;
-  if (point) return { x: point.x, y: point.y, label: ask ?? active.quest.name };
+  if (point) {
+    const place = placeBy(map, point);
+    return { x: point.x, y: point.y, label: ask ?? active.quest.name, ...(place ? { place } : {}) };
+  }
   const port = target?.port ? findPort(map, target.port) : undefined;
   const island = port && map.islands.find((i) => i.id === port.islandId);
   const at = (port && harbours[port.id]) ?? island;
-  return port && at ? { x: at.x, y: at.y, label: port.name } : null;
+  return port && at ? { x: at.x, y: at.y, label: port.name, portId: port.id } : null;
+}
+
+/** How near a named island a spot at sea is said to be by it (decision 0212). */
+const PLACE_REACH = 25;
+
+/** The named island a spot at sea lies by, for a course's name ("To Teeth Rock"), if any. */
+export function placeBy(map: MapDef, at: { x: number; y: number }): string | undefined {
+  let best: string | undefined;
+  let bestGap = PLACE_REACH;
+  for (const island of map.islands) {
+    const gap = Math.hypot(island.x - at.x, island.y - at.y) - island.radius;
+    if (island.name && gap < bestGap) {
+      best = island.name;
+      bestGap = gap;
+    }
+  }
+  return best;
 }
 
 /** A place at sea the tracked step asks the boat to reach (decision 0130). */

@@ -188,3 +188,52 @@ describe('full-screen chart planning', () => {
         expect(a.x1 <= b.x0 || b.x1 <= a.x0 || a.y1 <= b.y0 || b.y1 <= a.y0).toBe(true);
   });
 });
+
+describe('real course marks (decision 0212)', () => {
+  it('drops her own mark on open water, makes it the course, and removes it when tapped', () => {
+    const { world } = setup();
+    const svg = get('chart-map');
+    svg.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: 40, clientY: 20 }));
+    expect(world.destination?.kind).toBe('mark');
+    expect(get<HTMLElement>('chart-course').hidden).toBe(false);
+    expect(get('chart-course-text').textContent).toMatch(/your mark/i);
+    const flag = svg.querySelector<SVGElement>('.chart-flag-mark')!;
+    expect(flag.getAttribute('data-chart-target')).toBe('mark');
+    flag.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(world.destination).toBeNull();
+    expect(svg.querySelector('.chart-flag-mark')).toBeNull();
+  });
+
+  it('a tap on a port still sets the port course, not a mark', () => {
+    const { world } = setup();
+    const port = get('chart-map').querySelector<SVGElement>('.chart-port-target')!;
+    port.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(world.destination?.portId).toBe(port.getAttribute('data-chart-target'));
+    expect(world.destination?.kind).toBeUndefined();
+  });
+
+  it("shows the quest's place at sea as a brass flag that sets a course for it", () => {
+    const { world, chart } = setup();
+    const goal = { x: world.boat.x + 120, y: world.boat.y + 40, label: 'Teeth Rock' };
+    chart.close();
+    chart.quests = {
+      pins: () => [],
+      target: () => ({ point: { x: goal.x, y: goal.y }, radius: 6 }),
+      goal: () => goal,
+      journal: () => [],
+      track: () => {},
+    };
+    chart.open();
+    const svg = get('chart-map');
+    // No course: the faint quest route shows, as the sea's arrow follows the quest.
+    expect(svg.querySelector('.chart-quest-route')).not.toBeNull();
+    const flag = svg.querySelector<SVGElement>('.chart-flag-quest')!;
+    expect(flag.textContent).toContain('Teeth Rock');
+    flag.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(world.destination).toMatchObject({ kind: 'quest', label: 'Teeth Rock', x: goal.x });
+    // Now the one brass course line, no second faint route.
+    expect(svg.querySelector('.chart-quest-route')).toBeNull();
+    expect(svg.querySelector('.chart-course')).not.toBeNull();
+    expect(svg.querySelector('.chart-flag-quest')!.classList.contains('is-selected')).toBe(true);
+  });
+});

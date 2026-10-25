@@ -1103,5 +1103,15 @@
   "home.choosePlot": "Choose · see it on the island →",
   "home.allPlots": "← All plots",
   "home.empty": "No plots to build on yet. Help the people of the islands, and each will give you one.",
-  "home.buildFree": "Build · free"
+  "home.buildFree": "Build · free",
+  "chart.yourMark": "Your mark",
+  "chart.removeMark": "Remove your mark",
+  "chart.statusMarkSet": "Course set for your mark. Close the chart when ready.",
+  "chart.statusMarkRemoved": "Mark removed.",
+  "chart.keyQuestPlace": "Quest place",
+  "chart.keyMark": "Your mark",
+  "toast.markReached": "Mark reached",
+  "chart.instructions@touch": "Tap a port or a flag to set a course. Tap the sea to drop a mark. Pick a good at the bottom to compare its prices at every port.",
+  "chart.instructions@keys": "Click a port or a flag to set a course. Click the sea to drop a mark. Pick a good at the bottom to compare its prices at every port.",
+  "chart.instructions@pad": "Move the cross with the left stick. {pad:a} on a port or a flag sets a course; on open sea it drops a mark."
 }

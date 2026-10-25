@@ -1868,6 +1868,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     'units',
     'Distance at which a course buoy counts as reached.',
   ),
+  'seamanship.harbour.markReach': num(
+    'Mark reached',
+    2,
+    60,
+    1,
+    'units',
+    'Distance at which her own chart mark counts as reached and is cleared (0212).',
+  ),
   'seamanship.cargo.overpressedKn': num(
     'Overpressed',
     5,
