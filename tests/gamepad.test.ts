@@ -81,10 +81,11 @@ describe('game controller (decision 0162)', () => {
     expect(f.pause).toBe(true);
     // X is free at sea: it goes on to the menus.
     expect(f.other).toEqual([{ button: 'x', repeat: false }]);
-    // Y is kept free for later (decision 0163): the map is on View, as in most console games.
+    // The map is on View, as in most console games; Y skips a lesson's bubble (decision 0183).
     expect(seaPad(readPad(fakePad(['y']), new Map(), 0, PAD), 1 / 60)).toMatchObject({
       chart: false,
-      other: [{ button: 'y', repeat: false }],
+      skipLesson: true,
+      other: [],
     });
     // Right stick up zooms the camera in.
     expect(seaPad(readPad(fakePad([], [0, 0, 0, -1]), new Map(), 0, PAD), 0.5).zoom).toBeLessThan(
@@ -101,35 +102,160 @@ describe('game controller (decision 0162)', () => {
   });
 
   it('polls nothing until a pad is seen, then tells listeners', () => {
-    const listeners: Record<string, (() => void)[]> = {};
-    const target = {
-      addEventListener: (type: string, fn: () => void) => (listeners[type] ??= []).push(fn),
-    } as unknown as Window;
-    let reads = 0;
-    let pads: (PadLike | null)[] = [fakePad(['a'])];
-    const poller = new GamepadPoller(
-      {
-        getGamepads: () => {
-          reads++;
-          return pads;
-        },
-      },
-      target,
-    );
+    const { poller, fire, reads, setPads } = rig([]);
     expect(poller.poll(0)).toBeNull();
-    expect(reads).toBe(0);
+    expect(reads()).toBe(1); // one look for a pad no event announced
+    expect(poller.poll(500)).toBeNull();
+    expect(reads()).toBe(1); // and not again within the second
+    setPads([fakePad(['a'])]);
     const presses: string[] = [];
     const using: boolean[] = [];
     poller.onPress((p) => presses.push(p.button));
     poller.onUsingPad((u) => using.push(u));
-    for (const fn of listeners.gamepadconnected ?? []) fn();
-    expect(poller.poll(16)?.held.has('a')).toBe(true);
+    fire('gamepadconnected');
+    expect(poller.poll(516)?.held.has('a')).toBe(true);
     expect(presses).toEqual(['a']);
     expect(using).toEqual([true]);
-    for (const fn of listeners.keydown ?? []) fn();
+    setPads([fakePad()]);
+    fire('keydown', { key: 'ArrowUp' });
+    // The pad gets a moment to show it made the key (Edge on Xbox), then the ring goes.
+    poller.poll(600);
+    expect(poller.usingPad).toBe(true);
+    poller.poll(1000);
     expect(poller.usingPad).toBe(false);
-    pads = [null];
-    for (const fn of listeners.gamepaddisconnected ?? []) fn();
-    expect(poller.poll(32)).toBeNull();
+    setPads([null]);
+    fire('gamepaddisconnected');
+    expect(poller.poll(1032)).toBeNull();
+  });
+
+  it('finds a pad the browser never announced (Edge on Xbox, decision 0183)', () => {
+    const { poller } = rig([fakePad(['a'])]);
+    const connected: boolean[] = [];
+    poller.onConnect = (c) => connected.push(c);
+    expect(poller.poll(0)?.presses.map((p) => p.button)).toEqual(['a']);
+    expect(connected).toEqual([true]);
+  });
+
+  it("keeps the pad's focus when the pad's own key or click arrives", () => {
+    const { poller, fire, setPads } = rig([fakePad()]);
+    fire('gamepadconnected');
+    setPads([fakePad(['a'])]);
+    poller.poll(0);
+    expect(poller.usingPad).toBe(true);
+    fire('pointerdown'); // Edge's pointer mode clicks with A too
+    fire('keydown', { key: 'Enter' });
+    expect(poller.usingPad).toBe(true);
+  });
+
+  it('takes pad buttons sent as keys once, and not twice with the Gamepad API', () => {
+    const { poller, fire, setPads } = rig([]);
+    let prevented = 0;
+    const key = (k: string, extra = {}) => ({
+      key: k,
+      preventDefault: () => prevented++,
+      ...extra,
+    });
+    fire('keydown', key('GamepadDPadDown'));
+    const f = poller.poll(0)!;
+    expect(f.presses).toEqual([{ button: 'down', repeat: false }]);
+    expect(f.held.has('down')).toBe(true);
+    expect(poller.usingPad).toBe(true);
+    fire('keyup', key('GamepadDPadDown'));
+    expect(poller.poll(16)).toBeNull();
+    fire('keydown', key('GamepadB'));
+    expect(prevented).toBe(3); // the browser does not go Back
+    poller.poll(32);
+    // Both at once: the Gamepad API's frame has the press, the key adds nothing.
+    setPads([fakePad()]);
+    fire('gamepadconnected');
+    poller.poll(48);
+    setPads([fakePad(['a'])]);
+    fire('keydown', key('GamepadA'));
+    expect(poller.poll(64)!.presses.map((p) => p.button)).toEqual(['a']);
+  });
+
+  it('moves once when Edge sends the D-pad as a key before the Gamepad API shows it', () => {
+    const { poller, fire, setPads } = rig([fakePad()]);
+    fire('gamepadconnected');
+    poller.poll(0);
+    const key = { key: 'GamepadDPadDown', preventDefault: () => {} };
+    fire('keydown', key); // the key first…
+    expect(poller.poll(16)!.presses.map((p) => p.button)).toEqual(['down']);
+    setPads([fakePad(['down'])]); // …then the API: the same press, not a second one
+    expect(poller.poll(32)!.presses).toEqual([]);
+    setPads([fakePad()]);
+    poller.poll(48);
+    // The API reports presses now: later keys for pad buttons are only echoes.
+    fire('keydown', key);
+    expect(poller.poll(64)!.presses).toEqual([]);
+  });
+
+  it('keeps the focus ring when an arrow key comes just before the pad shows the D-pad', () => {
+    const { poller, fire, setPads } = rig([fakePad(['a'])]);
+    fire('gamepadconnected');
+    poller.poll(0);
+    setPads([fakePad()]);
+    poller.poll(16);
+    fire('keydown', { key: 'ArrowDown' }); // Edge's key for the D-pad
+    setPads([fakePad(['down'])]);
+    poller.poll(32);
+    poller.poll(600);
+    expect(poller.usingPad).toBe(true);
+  });
+
+  it("stops Edge's pointer click that comes with the pad's A (decision 0183)", () => {
+    const { poller, fire, setPads } = rig([fakePad()]);
+    fire('gamepadconnected');
+    poller.poll(0);
+    setPads([fakePad(['a'])]);
+    poller.poll(16); // the API reports A
+    let stopped = 0;
+    const click = (isTrusted: boolean) => ({
+      isTrusted,
+      preventDefault: () => {},
+      stopImmediatePropagation: () => stopped++,
+    });
+    fire('pointerdown', click(true));
+    fire('click', click(true));
+    expect(stopped).toBe(2);
+    fire('click', click(false)); // the game's own el.click() goes through
+    expect(stopped).toBe(2);
+    expect(poller.usingPad).toBe(true);
+  });
+
+  it('catches a tap shorter than a frame by reading between frames (decision 0183)', () => {
+    const { poller, fire, setPads } = rig([fakePad()]);
+    fire('gamepadconnected');
+    poller.poll(0);
+    setPads([fakePad(['a'])]);
+    poller.sample(8); // down…
+    setPads([fakePad()]);
+    poller.sample(16); // …and up again before the frame
+    const f = poller.poll(33)!;
+    expect(f.presses).toEqual([{ button: 'a', repeat: false }]);
+    expect(f.held.size).toBe(0);
+    expect(poller.poll(50)!.presses).toEqual([]); // once
   });
 });
+
+/** A poller over fake pads, with the events it listens to. */
+function rig(start: (PadLike | null)[]) {
+  const listeners: Record<string, ((e?: unknown) => void)[]> = {};
+  let pads = start;
+  let reads = 0;
+  const target = {
+    addEventListener: (type: string, fn: (e?: unknown) => void) =>
+      (listeners[type] ??= []).push(fn),
+  } as unknown as Window;
+  const poller = new GamepadPoller(
+    {
+      getGamepads: () => {
+        reads++;
+        return pads;
+      },
+    },
+    target,
+  );
+  const fire = (type: string, e: unknown = {}) => listeners[type]?.forEach((fn) => fn(e));
+  return { poller, fire, reads: () => reads, setPads: (p: (PadLike | null)[]) => (pads = p) };
+}

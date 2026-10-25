@@ -19,7 +19,7 @@ import {
   loadTuneChanges,
   saveTuneChanges,
 } from './data/tuningEdits';
-import { GamepadPoller, chartPad, padInUse, seaPad, type PadContext } from './input/gamepad';
+import { GamepadPoller, PAD, chartPad, padInUse, seaPad, type PadContext } from './input/gamepad';
 import { PadFocus, type PadScreen } from './ui/padFocus';
 import { Input } from './input/input';
 import {
@@ -96,6 +96,7 @@ import {
   goodSome,
   hasText,
   setLanguage,
+  setTextVariant,
   t,
   townLevelName,
   translateDom,
@@ -105,6 +106,10 @@ import { TradePanel } from './ui/tradePanel';
 import { HomePanel, buildingName, effectLine } from './ui/homePanel';
 import { builtByIsland, giveHomeIsland, homeSpots, islandHome, offerHomeSpot } from './sim/home';
 import { TransferPanel } from './ui/transferPanel';
+import { startTvMode } from './input/tv';
+import { usePadBrand } from './ui/padGlyphs';
+import { askConfirm } from './ui/confirmDialog';
+import { WayOfPlaying, firstWay } from './input/wayOfPlaying';
 
 declare const __APP_VERSION__: string;
 declare const __BUILD_REVISION__: string;
@@ -112,6 +117,13 @@ const appVersion = document.getElementById('app-version');
 if (appVersion) appVersion.textContent = `v${__APP_VERSION__}`;
 const release = document.getElementById('build-revision');
 if (release) release.textContent = __BUILD_REVISION__;
+
+// A console's browser on a TV (decision 0183): hand the pad to the game, keep clear of the
+// screen's edges, keep Back in the game. Before any screen is built.
+startTvMode();
+// The first guess at the way of playing, before any input, for texts that name controls (0184).
+const firstGuess = firstWay((q) => typeof matchMedia === 'function' && matchMedia(q).matches);
+setTextVariant(firstGuess);
 
 const SIM_STEP = 1 / 60;
 
@@ -355,8 +367,14 @@ let offersWait = false;
 /** The main quest's card due now (decision 0141): the others speak on the Quay tab and in notes. */
 function dueMainCard() {
   // While a lesson runs, its bubbles speak: an arc offered meanwhile (Kit's, at Saltmere) waits
-  // for the next visit after it (decisions 0130, 0151).
-  if (quests.lesson) return null;
+  // for the next visit after it (decisions 0130, 0151). A lesson step someone speaks (Rook at the
+  // rescue) is their card, with the coach or without (decision 0185).
+  const lesson = quests.lesson;
+  if (lesson) {
+    const { quest, step } = lesson;
+    if (!step.speaker || questSeen.has(`${quest.id}:${step.id}`)) return null;
+    return { quest: quest.id, kind: step.choose ? ('choice' as const) : ('step' as const) };
+  }
   const docked = world.trade.dockedAt;
   return dueCard(quests, world.map, docked, questSeen, questThanks, (q) => !!q.main);
 }
@@ -433,6 +451,8 @@ quests.onEvent = (e) => {
     }
     coach.render();
     refreshMenuTutorial();
+    // A lesson step someone speaks shows their card at once, wherever the step came from (0185).
+    if ((e.type === 'step' || e.type === 'choice') && quests.lesson?.step.speaker) showDueCard();
     return;
   }
   // While a lesson runs, its bubble speaks for Rook's thanks (decision 0127).
@@ -479,7 +499,18 @@ questCard.onChoose = (id, option) => {
   quests.choose(id, option);
   autosave();
 };
-questCard.onClose = () => {
+questCard.onClose = (card) => {
+  // Rook's card at the rescue closed without its answer (Esc): the lesson goes on as if answered,
+  // since nothing else would show that step again (decision 0185).
+  queueMicrotask(() => {
+    const lesson = quests.lesson;
+    if (lesson?.quest.id !== card.quest || !lesson.step.speaker) return;
+    const first = quests.options(card.quest)[0];
+    if (first) {
+      quests.choose(card.quest, first.id);
+      autosave();
+    }
+  });
   // After the arrival card (or "To the market"), the harbour screen.
   if (!showDueCard() && world.trade.dockedAt && !tradePanel.isOpen) tradePanel.open('market');
   refreshPause();
@@ -659,6 +690,9 @@ $('set-sail').addEventListener('click', () => {
   markDifficulty();
   levelPicked = true;
   newVoyage.hidden = true;
+  // The tutorial seen on an earlier voyage (New game in Settings) is not offered again, but the
+  // fresh voyage still starts with the prologue's story, without the coach (decisions 0160, 0185).
+  if (tutorialChoice.status !== 'unseen') startUncoachedPrologue();
   autosave();
   play();
 });
@@ -761,19 +795,30 @@ $('tutorial-start').addEventListener('click', () => {
  * the tutorial stops, if it was running.
  */
 function declineTutorial() {
-  if (
-    !resumedVoyage &&
-    world.time < 60 &&
-    !quests.progress(TUTORIAL_QUEST) &&
-    startAtPrologue(world)
-  ) {
-    sailStep = world.boat.sailStep;
-    quests.ask(TUTORIAL_QUEST);
-    quests.coachOff(TUTORIAL_QUEST);
-  } else quests.drop(TUTORIAL_QUEST);
+  if (!startUncoachedPrologue()) quests.drop(TUTORIAL_QUEST);
   tutorialChoice.set('skipped');
   coach.render();
   refreshMenuTutorial();
+}
+/**
+ * A fresh voyage's prologue without the coach (decision 0160): alone at sea at the map's
+ * prologue start, sails down. False on a voyage under way or a map without a prologue.
+ */
+function startUncoachedPrologue(): boolean {
+  if (
+    resumedVoyage ||
+    world.time >= 60 ||
+    quests.progress(TUTORIAL_QUEST) ||
+    quests.isDone(TUTORIAL_QUEST) ||
+    !startAtPrologue(world)
+  )
+    return false;
+  sailStep = world.boat.sailStep;
+  quests.ask(TUTORIAL_QUEST);
+  quests.coachOff(TUTORIAL_QUEST);
+  coach.render();
+  refreshMenuTutorial();
+  return true;
 }
 $('tutorial-free').addEventListener('click', () => {
   declineTutorial();
@@ -981,6 +1026,14 @@ hud.onSailStep = (step) => input.setSail(step);
  * rest (menus, the harbour, cards) goes to `pad.onMenuPress`.
  */
 const pad = new GamepadPoller();
+// The pad's own button names on glyphs and in texts: A on Xbox, ✕ on PlayStation (decision 0186).
+usePadBrand(pad.brand);
+// Buttons are read between frames too, so a quick tap is never missed (decision 0183).
+if (PAD.sampleEveryMs) setInterval(() => pad.sample(performance.now()), PAD.sampleEveryMs);
+pad.onBrand = (brand) => {
+  usePadBrand(brand);
+  coach.render();
+};
 pad.onConnect = (connected) => {
   document.body.classList.toggle('has-gamepad', connected);
   if (connected) hud.showToast(t('toast.padConnected'), 3);
@@ -1003,17 +1056,25 @@ function readPad(now: number, dt: number) {
     if (sea.sail) input.pressSail(sea.sail);
     if (sea.strike) input.setSail(0);
     if (sea.zoom !== 1) view.setZoom(view.getZoom() * sea.zoom);
-    if (sea.harbour && world.trade.dockedAt) openHarbour();
+    // A presses the tutorial bubble's main button first, Y skips its lesson (decision 0183).
+    if (sea.harbour && coach.padPress('main')) {
+      /* the bubble took it */
+    } else if (sea.skipLesson && coach.padPress('skip')) {
+      /* the lesson stops */
+    } else if (sea.harbour && world.trade.dockedAt) openHarbour();
     else if (sea.chart) chart.open();
     else if (sea.pause) showMenu();
     if (padInUse(frame)) input.onActivity();
     for (const p of sea.other) pad.onMenuPress(p, context);
   } else if (context === 'chart') {
     const c = chartPad(frame, dt);
-    chart.panBy(c.panX, c.panY);
+    chart.padMove(c.panX, c.panY);
     if (c.zoom !== 1) chart.zoomBy(c.zoom);
     if (c.fit) chart.fit();
     if (c.close) chart.back();
+    // A: the port under the cross, else the lesson bubble's button; Y skips the lesson (0183).
+    if (c.pick && !chart.pickAtCross(PAD.chart.pickReachPx)) coach.padPress('main');
+    if (c.skipLesson) coach.padPress('skip');
     for (const p of c.other) pad.onMenuPress(p, context);
   } else for (const p of frame.presses) pad.onMenuPress(p, context);
 }
@@ -1045,7 +1106,16 @@ function padScreen(): PadScreen | null {
 }
 const padFocus = new PadFocus(padScreen, document.getElementById('pad-hints'));
 pad.onMenuPress = (p, context) => padFocus.press(p, context);
-pad.onUsingPad((using) => padFocus.setUsing(using));
+// Texts that name controls follow the way of playing: touch, keys or pad (decision 0184).
+const way = new WayOfPlaying(window, firstGuess);
+way.onChange = (w) => {
+  setTextVariant(w);
+  coach.render();
+};
+pad.onUsingPad((using) => {
+  padFocus.setUsing(using);
+  way.setPad(using);
+});
 // Start in the pause menu sets sail again, as the menu's own button does.
 padFocus.onResume = () => {
   if (started && !menu.hidden) playButton.click();
@@ -1300,8 +1370,14 @@ $('reset-boat').addEventListener('click', () => {
   refreshPause();
 });
 const resetSaveBtn = document.getElementById('reset-save');
-resetSaveBtn?.addEventListener('click', () => {
-  if (window.confirm(t('settings.confirmNewGame'))) {
+resetSaveBtn?.addEventListener('click', async () => {
+  // The game's own question: the browser's box leaves fullscreen on Xbox (decision 0183).
+  const yes = await askConfirm({
+    title: t('settings.newGame'),
+    text: t('settings.confirmNewGame'),
+    ok: t('settings.newGame'),
+  });
+  if (yes) {
     leaving = true;
     if (storage) clearSave(storage);
     window.location.reload();

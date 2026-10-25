@@ -69,12 +69,55 @@ export function formatNumber(n: number, digits?: number): string {
   );
 }
 
+/**
+ * The ways of playing a text can be written for (decision 0184): a phone or tablet's touch
+ * screen, keyboard and mouse, a game controller. The plain `key` is the default every player
+ * reads when no version for their way of playing exists.
+ */
+export const TEXT_VARIANTS = ['touch', 'keys', 'pad'] as const;
+export type TextVariant = (typeof TEXT_VARIANTS)[number];
+
+let variant: TextVariant | null = null;
+
+/**
+ * The way of playing now (the last input, decisions 0183, 0184): `t('key')` reads
+ * `key@touch`, `key@keys` or `key@pad` where that text exists and is not empty, else `key`.
+ */
+export function setTextVariant(v: TextVariant | null): void {
+  variant = v;
+}
+
+export function textVariant(): TextVariant | null {
+  return variant;
+}
+
+/** The key to read: its version for the current way of playing when there is one. */
+function variantOf(key: string): string {
+  if (!variant) return key;
+  const k = `${key}@${variant}`;
+  // An empty version (cleared in the quest builder) leaves the default text.
+  return (en as Record<string, string>)[k] ? k : key;
+}
+
+let padNames: Record<string, string> = {};
+
+/**
+ * The pad's own button names (decision 0186, `controls.json` › `padBrands`): a text writes
+ * `{pad:a}` and reads "A" on an Xbox pad, "✕" on a PlayStation pad, "B" on a Switch pad.
+ */
+export function setPadNames(names: Record<string, string>): void {
+  padNames = names;
+}
+
 /** Translate `key`, replacing `{name}` with `params.name`. Falls back to English, then the key. */
 export function t(key: MessageKey, params: Record<string, string | number> = {}): string {
+  key = variantOf(key) as MessageKey;
   const text = current.messages[key] ?? (en as Messages)[key] ?? key;
-  return text.replace(/\{(\w+)\}/g, (match, name: string) =>
-    name in params ? String(params[name]) : match,
-  );
+  return text
+    .replace(/\{pad:(\w+)\}/g, (match, button: string) => padNames[button] ?? match)
+    .replace(/\{(\w+)\}/g, (match, name: string) =>
+      name in params ? String(params[name]) : match,
+    );
 }
 
 /**

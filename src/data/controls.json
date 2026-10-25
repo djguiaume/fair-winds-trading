@@ -1,6 +1,7 @@
 {
   "gamepad": {
     "deadZone": 0.2,
+    "sampleEveryMs": 8,
     "triggerPress": 0.5,
     "repeatDelayMs": 420,
     "repeatEveryMs": 140,
@@ -16,7 +17,8 @@
         "strike": ["b"],
         "harbour": ["a"],
         "chart": ["view"],
-        "pause": ["menu"]
+        "pause": ["menu"],
+        "skipLesson": ["y"]
       }
     },
     "chart": {
@@ -24,6 +26,7 @@
       "panY": "ly",
       "panPxPerSec": 700,
       "zoomStep": 1.5,
+      "pickReachPx": 90,
       "actions": {
         "panLeft": ["left"],
         "panRight": ["right"],
@@ -32,7 +35,9 @@
         "zoomIn": ["rt", "rb"],
         "zoomOut": ["lt", "lb"],
         "fit": ["x"],
-        "close": ["b", "view"]
+        "close": ["b", "view"],
+        "pick": ["a"],
+        "skipLesson": ["y"]
       }
     },
     "menu": {
@@ -51,6 +56,73 @@
         "tabPrev": ["lb"],
         "tabNext": ["rb"],
         "resume": ["menu"]
+      }
+    }
+  },
+  "tv": {
+    "userAgents": ["Xbox"],
+    "gamepadInputEmulation": "gamepad",
+    "safeMargin": {
+      "x": 0.05,
+      "y": 0.05
+    },
+    "stayOnBack": true
+  },
+  "padBrands": {
+    "xbox": {
+      "match": [],
+      "names": {
+        "a": "A",
+        "b": "B",
+        "x": "X",
+        "y": "Y",
+        "lb": "LB",
+        "rb": "RB",
+        "lt": "LT",
+        "rt": "RT",
+        "view": "View",
+        "menu": "Menu",
+        "ls": "LS",
+        "rs": "RS"
+      },
+      "lang": {
+        "fr": {
+          "view": "Affichage"
+        }
+      }
+    },
+    "playstation": {
+      "match": ["054c", "playstation", "dualsense", "dualshock"],
+      "names": {
+        "a": "✕",
+        "b": "○",
+        "x": "□",
+        "y": "△",
+        "lb": "L1",
+        "rb": "R1",
+        "lt": "L2",
+        "rt": "R2",
+        "view": "Create",
+        "menu": "Options",
+        "ls": "L3",
+        "rs": "R3"
+      }
+    },
+    "nintendo": {
+      "match": ["057e", "nintendo", "pro controller"],
+      "names": {
+        "a": "B",
+        "b": "A",
+        "x": "Y",
+        "y": "X",
+        "lb": "L",
+        "rb": "R",
+        "lt": "ZL",
+        "rt": "ZR",
+        "view": "−",
+        "menu": "+",
+        "ls": "LS",
+        "rs": "RS"
       }
     }
   }

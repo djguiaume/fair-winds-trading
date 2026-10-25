@@ -7,11 +7,21 @@ import { readFileSync, mkdirSync } from 'node:fs';
 import { resolve, basename, extname, join } from 'node:path';
 import { ROOT, startVite } from './lib.mjs';
 
-/** The three sizes every look review shows (desktop first, must look good in portrait). */
+/**
+ * The three sizes every look review shows (desktop first, must look good in portrait), and `tv`:
+ * Edge on an Xbox at 1080p, whose user agent turns on TV mode (decision 0183).
+ */
 export const SIZES = {
   desktop: { width: 1280, height: 800 },
   landscape: { width: 844, height: 390, touch: true },
   portrait: { width: 390, height: 844, touch: true },
+  tv: {
+    width: 1920,
+    height: 1080,
+    userAgent:
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox Series X) AppleWebKit/537.36 ' +
+      '(KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0',
+  },
 };
 
 export const HELP = `npm run shots -- [options]          screenshots of the real game, PNG in --out
@@ -39,7 +49,7 @@ Where
   --zoom z                      camera distance, 1 = default, larger = farther (no game limit)
   --look x,y                    camera on this map point instead of the boat
   --menu                        the title menu, before Set sail (the scene options are ignored)
-  --chart                       the sea chart open; --chart-zoom n, --chart-pan Key:n,
+  --chart                       the sea chart open (--pad then plays on it); --chart-zoom n, --chart-pan Key:n,
                                 --chart-panel legend|market|journal (default none)
   --charted                     every wind zone already sailed (named on the chart)
   --town id:level,…             towns at these levels; an empty island to found is founded first
@@ -73,7 +83,7 @@ Look
   --script a.js,b.js            these scripts run in the page, in order, after the focus is set
                                 (a mockup's extra parts)
 Output
-  --sizes desktop,landscape,portrait   (default desktop)
+  --sizes desktop,landscape,portrait,tv   (default desktop; tv = Xbox Edge at 1080p)
   --name name                   file name, written as <name>-<size>.png (default: from the scene)
   --list shots.json             a JSON list of shots; each entry takes the options above as keys
                                 (at: [x, y], sizes: [...]); options on the line are the defaults
@@ -346,11 +356,12 @@ const closeCards = (page) =>
   });
 
 async function shootOne(browser, base, shot, size, file) {
-  const { width, height, touch } = SIZES[size];
+  const { width, height, touch, userAgent } = SIZES[size];
   const context = await browser.newContext({
     viewport: { width, height },
     deviceScaleFactor: 1,
     hasTouch: !!touch,
+    ...(userAgent ? { userAgent } : {}),
   });
   const errors = [];
   try {
@@ -382,7 +393,8 @@ async function shootOne(browser, base, shot, size, file) {
       await pause(shot.wait);
       await act(page, shot);
     } else await shootScene(page, shot);
-    if (!shot.editor) await dress(page, shot);
+    // Editors too: a script can open the quest builder on a step (decision 0184).
+    await dress(page, shot);
     await page.screenshot({ path: file });
   } finally {
     await context.close();
@@ -483,7 +495,8 @@ async function shootScene(page, shot) {
   await pause(shot.wait);
   // Mooring by an island of hers turns the camera and leaving it frees it (0128): look again.
   if (shot.look && !shot.editor && !shot.url) await page.evaluate(lookAt, shot.look);
-  await act(page, shot);
+  // With the chart, the pad plays on the chart (moves its cross), so it acts once it is open.
+  await act(page, shot.chart ? { ...shot, pad: null } : shot);
   if (!shot.cards) await closeCards(page);
   if (shot.chart) {
     await closeCards(page);
@@ -501,6 +514,10 @@ async function shootScene(page, shot) {
       if (panel) document.getElementById(`chart-${panel}-toggle`)?.click();
     }, shot.chartPanel);
     await pause(400);
+    if (shot.pad) {
+      await drivePad(page, shot.pad);
+      await pause(600);
+    }
   }
 }
 

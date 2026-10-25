@@ -38,6 +38,7 @@ describe('the tutorial as an ordinary quest (decision 0151)', () => {
       'wind',
       'foghorn',
       'wreck',
+      'aboard',
       'chart',
       'home-port',
       'home',

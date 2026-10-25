@@ -1,6 +1,7 @@
 import { t } from '../i18n';
 import type { QuestBook } from '../sim/quests';
 import { type LessonModel, lessonDone, lessonFor } from './questView';
+import { padGlyph } from './padGlyphs';
 
 type Surface = 'sea' | 'chart' | 'market' | null;
 type Side = 'top' | 'bottom' | 'left' | 'right' | 'none';
@@ -159,7 +160,8 @@ export class TutorialCoach {
   }
   render() {
     const host = this.surface ? document.getElementById(`tutorial-${this.surface}`) : null;
-    const lesson = this.lesson;
+    // A step someone speaks has their card instead of the bubble, coach or not (decision 0185).
+    const lesson = this.book.lesson?.step.speaker ? null : this.lesson;
     const show = Boolean(host) && (lesson !== null || this.finished !== null);
     this.card.hidden = !show;
     if (!host) {
@@ -273,21 +275,22 @@ export class TutorialCoach {
       button(actions, 'tutorial-finish', t('tutorial.free'), 'd-btn brass', () => {
         this.finished = null;
         this.render();
-      });
+      }).insertAdjacentHTML('afterbegin', padGlyph('a'));
       return this.refocus(focusedId);
     }
     lesson = lesson!;
     const quest = lesson.quest;
     // The step's options: the first keeps the id the tests and the focus know ("Continue").
-    lesson.options.forEach((o, i) =>
-      button(
+    lesson.options.forEach((o, i) => {
+      const b = button(
         actions,
         i ? `tutorial-option-${o.id}` : 'tutorial-continue',
         o.title,
         'd-btn brass',
         () => this.onOption(quest, o.id),
-      ),
-    );
+      );
+      if (!i) b.insertAdjacentHTML('afterbegin', padGlyph('a'));
+    });
     // The ring already shows what to tap; a button only when nothing is pinned, or for tips.
     const offSurface = lesson.action === 'chart' && this.surface === 'chart';
     if (lesson.action && !offSurface && (lesson.action === 'tips' || !targetFound)) {
@@ -297,21 +300,44 @@ export class TutorialCoach {
         tips: t('tutorial.showTips'),
       }[lesson.action];
       const action = lesson.action;
-      button(actions, 'tutorial-action', label, 'd-btn', () => {
+      const go = button(actions, 'tutorial-action', label, 'd-btn', () => {
         if (action === 'chart') this.onChart();
         else if (action === 'market') this.onMarket();
         else this.onTips();
       });
+      if (!lesson.options.length) go.insertAdjacentHTML('afterbegin', padGlyph('a'));
     }
     const skip = button(actions, 'tutorial-skip', t('tutorial.skip'), 'coach-text-btn', () =>
       this.onSkip(quest),
     );
+    skip.insertAdjacentHTML('afterbegin', padGlyph('y'));
     skip.style.marginLeft = 'auto';
     skip.insertAdjacentHTML(
       'beforeend',
       '<svg class="icon" aria-hidden="true"><use href="#i-close" /></svg>',
     );
     this.refocus(focusedId);
+  }
+
+  /**
+   * A game controller at sea (decision 0183), where the pad steers and the bubble is not a menu:
+   * A presses the bubble's main button (Continue, the step's action, Sail freely), Y skips the
+   * lesson. True when the bubble took the press.
+   */
+  padPress(kind: 'main' | 'skip'): boolean {
+    if (this.card.hidden || !this.card.isConnected) return false;
+    const ids =
+      kind === 'skip'
+        ? ['tutorial-skip']
+        : ['tutorial-continue', 'tutorial-finish', 'tutorial-action'];
+    for (const id of ids) {
+      const b = this.card.querySelector<HTMLButtonElement>(`#${id}`);
+      if (b && !b.disabled) {
+        b.click();
+        return true;
+      }
+    }
+    return false;
   }
 
   // Keep keyboard focus inside the bubble when a lesson replaces its current button.
