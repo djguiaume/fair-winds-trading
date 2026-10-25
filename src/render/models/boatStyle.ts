@@ -11,6 +11,10 @@ export const STYLE_D = {
   sail: '#fbf6e8',
   patchedSail: '#d9c9a2',
   patches: ['#b8a27a', '#a89068'],
+  /** A damaged sail's big patches (decision 0208): warm plank-toned canvas that shows about
+   * 30 % darker than the sail. The sails' material adds a flat white glow (emissive 0.22), which
+   * lifts dark colours a lot, so these are written much darker than they look in the game. */
+  damagePatches: ['#7c5226', '#6c4520'],
   deck: '#d4a466',
   mast: '#5b3a1e',
   crate: '#c4914e',

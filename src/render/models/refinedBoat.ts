@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { BOAT_SCALE, STYLE_D as ST } from './boatStyle';
 import { isGlowing, mergeAll, paint, triangleCount, vertexColorMaterial } from './geometry';
 import type { BoatCargo, BoatDetails } from './boatDetails';
+import { DEFAULT_DAMAGE, type ShipDamageData } from '../../data/ships';
+import { DEG } from '../../sim/math';
 import {
   STOCK_UPGRADES,
   type BoatModel,
@@ -67,6 +69,8 @@ export interface RefinedRig {
   boatDetails?: BoatDetails;
   replaceDeckDetails?: boolean;
   cargo?: BoatCargo;
+  /** Where her damage shows (decision 0208), from the ship file. */
+  damage?: ShipDamageData;
   /** Authored quarterdeck and rear rig heights; foot is above the original main deck. */
   sternLayout?: { deck: number; foot: number; aft: number; sheet: { z: number; y: number } };
 }
@@ -125,7 +129,8 @@ class Faces {
 /** Class-specific deck outline and depth sections, with shared gunwale construction. */
 export function hullGeometry(
   level: number,
-  rig: Pick<RefinedRig, 'length' | 'beam' | 'depth' | 'hull' | 'band' | 'hullShape'>,
+  rig: Pick<RefinedRig, 'length' | 'beam' | 'depth' | 'hull' | 'band' | 'hullShape' | 'damage'>,
+  damage = 0,
 ) {
   const { length: L, band: BAND, hull: HULL } = rig;
   const B = rig.beam * ST.B;
@@ -138,29 +143,102 @@ export function hullGeometry(
     outline.map((p) => V(p.x * beam, deckAt(p.z * length) - H * t, p.z * length)),
   );
   const f = new Faces();
+  const strake = (r: number) =>
+    r === 0 && level >= 2 ? BAND : r === 2 && level >= 3 ? ST.copper : HULL;
+  const marks = rig.damage ?? DEFAULT_DAMAGE;
+  // The outline segment nearest a damage station (decision 0208), on its side of the hull.
+  const segmentAt = (p: { z: number; side: number }) => {
+    let best = 0;
+    let gap = Infinity;
+    for (let i = 0; i < outline.length; i++) {
+      const a = outline[i]!;
+      const b = outline[(i + 1) % outline.length]!;
+      if (Math.sign(a.x + b.x) !== p.side) continue;
+      const d = Math.abs((a.z + b.z) / 2 - p.z * L);
+      if (d < gap) [best, gap] = [i, d];
+    }
+    return best;
+  };
+  const brokenRail = damage >= 2 ? segmentAt(marks.rail) : -1;
   for (let i = 0; i < outline.length; i++) {
     const j = (i + 1) % outline.length;
     f.tri(V(0, DECK, 0), outline[i]!, outline[j]!, ST.deck);
-    for (let r = 0; r < rings.length - 1; r++) {
-      const color = r === 0 && level >= 2 ? BAND : r === 2 && level >= 3 ? ST.copper : HULL;
-      f.quad(rings[r]![i]!, rings[r + 1]![i]!, rings[r + 1]![j]!, rings[r]![j]!, color);
-    }
+    for (let r = 0; r < rings.length - 1; r++)
+      f.quad(rings[r]![i]!, rings[r + 1]![i]!, rings[r + 1]![j]!, rings[r]![j]!, strake(r));
     f.tri(V(0, DECK - H, 0), rings[3]![j]!, rings[3]![i]!, HULL);
     // A solid raised gunwale: outer face, cap and inner face follow the same sheer as the deck.
-    const a = outline[i]!;
-    const b = outline[j]!;
-    const ai = V(a.x * 0.93, a.y, a.z * 0.98);
-    const bi = V(b.x * 0.93, b.y, b.z * 0.98);
-    const at = a.clone().add(V(0, 0.16, 0));
-    const bt = b.clone().add(V(0, 0.16, 0));
-    const ait = ai.clone().add(V(0, 0.16, 0));
-    const bit = bi.clone().add(V(0, 0.16, 0));
-    f.quad(a, b, bt, at, HULL);
-    f.quad(at, bt, bit, ait, ST.deck);
-    f.quad(ai, ait, bit, bi, HULL);
+    // A badly knocked hull has lost its middle stretch on one side (decision 0208).
+    const spans =
+      i === brokenRail
+        ? [
+            [0, 0.3],
+            [0.72, 1],
+          ]
+        : [[0, 1]];
+    for (const [from, to] of spans) {
+      const a = outline[i]!.clone().lerp(outline[j]!, from!);
+      const b = outline[i]!.clone().lerp(outline[j]!, to!);
+      const ai = V(a.x * 0.93, a.y, a.z * 0.98);
+      const bi = V(b.x * 0.93, b.y, b.z * 0.98);
+      const at = a.clone().add(V(0, 0.16, 0));
+      const bt = b.clone().add(V(0, 0.16, 0));
+      const ait = ai.clone().add(V(0, 0.16, 0));
+      const bit = bi.clone().add(V(0, 0.16, 0));
+      f.quad(a, b, bt, at, HULL);
+      f.quad(at, bt, bit, ait, ST.deck);
+      f.quad(ai, ait, bit, bi, HULL);
+      if (spans.length > 1) {
+        // The broken ends: the gunwale's cut section, in bare wood.
+        const end = from === 0 ? [b, bi, bit, bt] : [a, at, ait, ai];
+        f.quad(end[0]!, end[1]!, end[2]!, end[3]!, ST.deck);
+        f.quad(end[3]!, end[2]!, end[1]!, end[0]!, ST.deck);
+      }
+    }
   }
+  // Scuffs: warm darker patches laid just proud of the topsides at each station, a big one on the
+  // top strake (the band from hull 2) and a smaller one on the strake below (decision 0208).
+  if (damage >= 1)
+    for (const mark of marks.scuffs) {
+      const i = segmentAt(mark);
+      const j = (i + 1) % outline.length;
+      const at = (r: number, u: number, v: number) => {
+        const top = rings[r]![i]!.clone().lerp(rings[r]![j]!, u);
+        const p = top.lerp(rings[r + 1]![i]!.clone().lerp(rings[r + 1]![j]!, u), v);
+        return p.add(V(mark.side * 0.035, 0, 0));
+      };
+      for (const [r, u0, u1, v0, v1] of [
+        [0, 0.08, 0.62, 0.04, 0.9],
+        [0, 0.5, 0.86, 0.3, 0.97],
+        [1, 0.3, 0.7, 0.02, 0.55],
+      ] as const)
+        f.quad(at(r, u0, v0), at(r, u0, v1), at(r, u1, v1), at(r, u1, v0), scuffed(strake(r)));
+      // The game camera looks down on her, so the knocks show on the deck inside the rail too:
+      // scraped planks, laid on the deck's own fan triangle just above it.
+      const deck = (u: number, w: number) =>
+        V(0, DECK, 0)
+          .lerp(outline[i]!.clone().lerp(outline[j]!, u), w)
+          .add(V(0, 0.015, 0));
+      for (const [u0, u1, w0, w1] of [
+        [0.12, 0.58, 0.62, 0.9],
+        [0.46, 0.8, 0.7, 0.94],
+      ] as const)
+        f.quad(deck(u0, w0), deck(u0, w1), deck(u1, w1), deck(u1, w0), scuffed(ST.deck));
+    }
   return f.geometry();
 }
+
+/** A colour scuffed: mixed 40 % toward warm charcoal, never grey (decision 0208; a quarter was too faint). */
+function scuffed(color: string) {
+  return '#' + new THREE.Color(color).lerp(SCUFF, 0.4).getHexString();
+}
+const SCUFF = new THREE.Color('#2e2219');
+/** Where a damaged sail's patches sit, as fractions along the foot and up the luff (0208). */
+const PATCH_SPOTS = [
+  [0.2, 0.25],
+  [0.78, 0.3],
+  [0.22, 0.78],
+  [0.8, 0.8],
+] as const;
 
 /** Deck outline in ship-local coordinates (+Z bow), shared by the hull and the stern castle. */
 function deckOutline(rig: RefinedRig) {
@@ -271,8 +349,31 @@ function cloth(
   band: string,
   nu = 6,
   nv = 6,
+  wear: ClothWear = {},
 ) {
   const f = new Faces();
+  // A patched sail (decision 0208) takes the stock canvas look, keeping a racing stripe.
+  const worn = level === 1 || wear.patched;
+  // Damage patches (decision 0208): four big squares of darker, warmer canvas, two panels each
+  // way, clear of the middle where a torn sail has its hole.
+  const patched = new Set<string>();
+  if (wear.patched)
+    for (const [u, v] of PATCH_SPOTS) {
+      const i0 = Math.max(0, Math.min(nu - 2, Math.round(u * nu - 1)));
+      const j0 = Math.max(0, Math.min(nv - 2, Math.round(v * nv - 1)));
+      for (const [di, dj] of [
+        [0, 0],
+        [1, 0],
+        [0, 1],
+        [1, 1],
+      ])
+        patched.add(`${i0 + di!}:${j0 + dj!}`);
+    }
+  const torn = new Set(
+    (wear.tears ?? []).map(
+      (t) => `${Math.min(nu - 1, Math.floor(t.u * nu))}:${Math.min(nv - 1, Math.floor(t.v * nv))}`,
+    ),
+  );
   const at = (u: number, v: number) =>
     V(
       -belly * Math.sin(Math.PI * u) * Math.sin(Math.PI * v),
@@ -282,12 +383,14 @@ function cloth(
   const stripe = nv / 2;
   for (let j = 0; j < nv; j++)
     for (let i = 0; i < nu; i++) {
-      const color =
-        level === 1 && (i * 7 + j * 3) % 8 === 1
+      if (torn.has(`${i}:${j}`)) continue;
+      const color = patched.has(`${i}:${j}`)
+        ? ST.damagePatches[(i + j) % 2]!
+        : worn && (i * 7 + j * 3) % 8 === 1
           ? ST.patches[(i + j) % 2]!
           : level === 3 && (j === stripe - 1 || j === stripe)
             ? band
-            : level === 1
+            : worn
               ? ST.patchedSail
               : (i + j) % 3 === 0
                 ? '#eee6d4'
@@ -301,6 +404,12 @@ function cloth(
       );
     }
   return f.geometry();
+}
+
+/** Damage on a sail (decision 0208): patched canvas, and holes in the panels at `tears`. */
+interface ClothWear {
+  patched?: boolean;
+  tears?: ReadonlyArray<{ u: number; v: number }>;
 }
 
 interface GaffSail {
@@ -363,6 +472,8 @@ export class RefinedBoat implements BoatModel {
   private readonly tmp = new THREE.Vector3();
   private readonly jibSheetAnchor: THREE.Vector3;
   private readonly disposables: Array<THREE.BufferGeometry | THREE.Material> = [];
+  /** A standing list at the worst damage (decision 0208), in radians. */
+  private readonly list: number;
 
   constructor(rig: RefinedRig, options: BoatModelOptions = {}) {
     const { length: L, mastZ: MAST_Z, band: BAND } = rig;
@@ -408,7 +519,13 @@ export class RefinedBoat implements BoatModel {
       m.castShadow = true;
       return m;
     };
-    const parts = [hullGeometry(upg.hull, rig)];
+    // Visible damage (decision 0208): 0 sound to 3 torn and listing, from the hull's condition.
+    const damage = options.damage ?? 0;
+    const marks = rig.damage ?? DEFAULT_DAMAGE;
+    const patched: ClothWear = { patched: damage >= 2 };
+    const torn: ClothWear = { ...patched, tears: damage >= 3 ? marks.tears : [] };
+    this.list = damage >= 3 ? marks.listSide * marks.listDeg * DEG : 0;
+    const parts = [hullGeometry(upg.hull, rig, damage)];
     if (rig.castle && !rig.replaceDeckDetails) parts.push(castleGeometry(upg.hull, rig));
     const box = (w: number, h: number, l: number, x: number, y: number, z: number, color: string) =>
       paint(new THREE.BoxGeometry(w, h, l).translate(x, y, z), color);
@@ -539,10 +656,13 @@ export class RefinedBoat implements BoatModel {
               : 'ForeBoomAndGaff',
         ),
       );
-      const sails = [cloth(V(0, 0, 0), clew, throat, peak, upg.sails, 0.32, BAND)];
+      const main = z === MAST_Z;
+      const sails = [
+        cloth(V(0, 0, 0), clew, throat, peak, upg.sails, 0.32, BAND, 6, 6, main ? torn : patched),
+      ];
       if (topsail && upg.sails >= 3) {
         const top = V(0, height - 0.85, 0);
-        sails.push(cloth(throat, peak, top, top, upg.sails, 0.13, BAND));
+        sails.push(cloth(throat, peak, top, top, upg.sails, 0.13, BAND, 6, 6, patched));
         this.stats.topsail = true;
       }
       const sail = mesh(mergeAll(sails), canvas, name);
@@ -623,6 +743,7 @@ export class RefinedBoat implements BoatModel {
           BAND,
           5,
           4,
+          k === 0 ? torn : patched,
         ).rotateY(Math.PI / 2);
         const p = g.getAttribute('position');
         const c = g.getAttribute('color');
@@ -709,7 +830,7 @@ export class RefinedBoat implements BoatModel {
       // Exact zeroes on the luff prevent even float conversion error at attachment vertices.
       h.set(0, h.y, 0);
       const c = local(clew);
-      const g = cloth(V(0, 0, 0), c, h, h, upg.sails, 0.22, BAND);
+      const g = cloth(V(0, 0, 0), c, h, h, upg.sails, 0.22, BAND, 6, 6, patched);
       const sail = mesh(g, canvas, `Jib${j + 1}`);
       axis.add(sail);
       this.ship.add(axis);
@@ -812,7 +933,7 @@ export class RefinedBoat implements BoatModel {
   }
 
   update(p: BoatPose) {
-    this.body.rotation.z = p.heel;
+    this.body.rotation.z = p.heel + this.list;
     const side = p.boomAngle < 0 ? -1 : 1;
     const fill = side * Math.max(0.08, 1 - p.luff) + p.luff * Math.sin(p.time * 26) * 0.35;
     for (const gaff of this.gaffSails) {

@@ -118,6 +118,18 @@ export function hullCondition(trade: TradeState): number {
   return clamp(1 - hullDamage(trade) / maxHull(trade), 0, 1);
 }
 
+/** How damaged she looks (decision 0208): 0 sound, 1 scuffed, 2 patched, 3 torn and listing. */
+export type DamageStage = 0 | 1 | 2 | 3;
+
+/** The look for a hull condition, by the `seamanship.damage` steps (every 25 % shipped). */
+export function damageStage(condition: number): DamageStage {
+  const d = TUNING.seamanship.damage;
+  if (condition < d.tornBelow) return 3;
+  if (condition < d.patchedBelow) return 2;
+  if (condition < d.scuffedBelow) return 1;
+  return 0;
+}
+
 /** Speed factor from leaks. */
 export function leakFactor(condition: number): number {
   return 1 - hazards().leakPenalty * (1 - condition);

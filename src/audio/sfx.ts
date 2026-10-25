@@ -63,3 +63,37 @@ export function playFoghorn(ctx: BaseAudioContext, destination: AudioNode, level
     osc.stop(t + 2.7);
   }
 }
+
+/**
+ * A hull striking hard (decision 0208): a short low knock with a splintering crack of filtered
+ * noise on top. The knock sits at 110 Hz and its overtones, and the crack at about 700 Hz, so a
+ * phone speaker still plays it (decision 0139). About half a second long.
+ */
+export function playThud(ctx: BaseAudioContext, destination: AudioNode, level: number) {
+  const t = ctx.currentTime + 0.02;
+  const knock = ctx.createOscillator();
+  knock.type = 'triangle';
+  knock.frequency.setValueAtTime(150, t);
+  knock.frequency.exponentialRampToValueAtTime(70, t + 0.3);
+  const body = ctx.createGain();
+  body.gain.setValueAtTime(0, t);
+  body.gain.linearRampToValueAtTime(level, t + 0.01);
+  body.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
+  knock.connect(body).connect(destination);
+  knock.start(t);
+  knock.stop(t + 0.5);
+  const length = Math.ceil(ctx.sampleRate * 0.25);
+  const noise = ctx.createBuffer(1, length, ctx.sampleRate);
+  const data = noise.getChannelData(0);
+  for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / length) ** 2;
+  const source = ctx.createBufferSource();
+  source.buffer = noise;
+  const band = ctx.createBiquadFilter();
+  band.type = 'bandpass';
+  band.frequency.value = 700;
+  band.Q.value = 1.4;
+  const crack = ctx.createGain();
+  crack.gain.value = level * 0.8;
+  source.connect(band).connect(crack).connect(destination);
+  source.start(t);
+}

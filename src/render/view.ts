@@ -26,6 +26,8 @@ import { PALETTE } from './palette';
 import { BuoyMarker, EdgeBuoys, createBlobShadow } from './props';
 import { renderPixelRatio, QUALITY, type QualityLevel, type QualityProfile } from './quality';
 import { Wake } from './wake';
+import { ImpactDebris } from './impactDebris';
+import { damageStage, hullCondition } from '../sim/hazards';
 import { WindStreaks } from './windStreaks';
 import { Rain, rainMayReachArea } from './rain';
 import { Atmosphere, LAVA_BY_DAY, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from './atmosphere';
@@ -108,6 +110,8 @@ export class GameView {
   private heelFactor = 1;
   private readonly boatShadow = createBlobShadow(6.5, 14);
   private readonly wake = new Wake();
+  /** Splash and planks from crashes and reef strikes (decision 0208). */
+  private readonly debris = new ImpactDebris();
   private readonly buoy = new BuoyMarker();
   private readonly lighthouseBeams: LighthouseBeams;
   private readonly beaconLights: BeaconLights;
@@ -195,6 +199,8 @@ export class GameView {
       this.boat.root,
       this.boatShadow,
       this.wake.mesh,
+      this.debris.planks,
+      this.debris.splash,
       this.buoy.root,
       this.edgeBuoys.mesh,
       this.stormClouds.root,
@@ -288,29 +294,49 @@ export class GameView {
       hull: level(lv?.hull),
     };
     const id = captain.activeShip;
-    return { id, upgrades, key: `${id}:${upgrades.sails}${upgrades.hold}${upgrades.hull}` };
+    // The model shows the hull's damage in steps (decision 0208): a new step rebuilds it.
+    const damage = damageStage(hullCondition(this.world.trade));
+    const key = `${id}:${upgrades.sails}${upgrades.hold}${upgrades.hull}:${damage}`;
+    return { id, upgrades, damage, key };
   }
 
   /** The model for the ship being sailed, with its upgrade levels visible (decision 0016). */
   private buildBoat(): BoatModel {
-    const { id, upgrades, key } = this.activeBoat();
+    const { id, upgrades, damage, key } = this.activeBoat();
     this.boatKey = key;
     this.heelFactor = heelFactor(id);
     // Quality is a live toggle, not a permanent factory opt-out: Low → Medium must restore ropes.
-    const boat = createBoatModel(id, { upgrades });
+    const boat = createBoatModel(id, { upgrades, damage });
     boat.setLowDetail?.(this.level === 'low');
     boat.root.rotation.order = 'YXZ';
     return boat;
   }
 
-  /** Rebuild the boat after a shipyard purchase or a ship change. */
+  /** Rebuild the boat after a shipyard purchase, a ship change, a new damage step or a repair. */
   private refreshBoat() {
-    if (this.activeBoat().key === this.boatKey) return;
+    const { id, key } = this.activeBoat();
+    if (key === this.boatKey) return;
+    // Only a new ship starts a fresh wake; a damage step keeps her trail.
+    if (id !== this.boatKey.split(':')[0]) this.wake.reset();
     this.scene.remove(this.boat.root);
     this.boat.dispose();
     this.boat = this.buildBoat();
-    this.wake.reset();
     this.scene.add(this.boat.root);
+  }
+
+  /** A crash or a reef strike (decision 0208): a splash at her bow and planks floating off. */
+  impact() {
+    const { boat } = this.world;
+    const dir = bearingVector(boat.heading);
+    const pos = toScene(boat.x, boat.y, this.tmp);
+    const { length, beam } = this.boat.wakeHull;
+    this.debris.spawn(
+      pos.x + dir.x * length * 0.35,
+      pos.z - dir.y * length * 0.35,
+      dir.x,
+      -dir.y,
+      beam,
+    );
   }
 
   setQuality(level: QualityLevel) {
@@ -572,6 +598,7 @@ export class GameView {
     this.boatShadow.rotation.y = yaw;
 
     this.wake.update(dt, time, pos, dir.x, -dir.y, boat.speedKn, this.boat.wakeHull);
+    this.debris.update(dt, (x, z) => waveHeight(x, z, time));
 
     const to = bearingVector(windTo(wind));
     this.streaks.update(
@@ -677,6 +704,7 @@ export class GameView {
     this.volcanoes.dispose();
     this.lanterns.dispose();
     this.wake.dispose();
+    this.debris.dispose();
     this.currentWater?.dispose();
     this.bergs.dispose();
     this.calmWater?.dispose();
