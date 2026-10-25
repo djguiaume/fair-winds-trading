@@ -163,6 +163,8 @@ const GOLDEN: Record<string, string[]> = {
   'the-tongs': ['7:78575b7d', '7:78575b7d', '7:78575b7d', '7:78575b7d'],
   'the-tongs-2': ['7:cbe478f3', '7:cbe478f3', '7:cbe478f3', '7:cbe478f3'],
   'two-palms': ['23:74ab6e0d', '23:74ab6e0d', '23:74ab6e0d', '23:74ab6e0d'],
+  'the-kittiwakes': Array(4).fill('56:f643c38e'),
+  'sandwick-holm': Array(4).fill('27:2fd20df'),
   // The north sea's islands (decision 0170).
   'cairn-holm': Array(4).fill('6:cd116a0a'),
   'lead-rock': Array(4).fill('19:6c8d9003'),
@@ -170,4 +172,7 @@ const GOLDEN: Record<string, string[]> = {
   'seal-rocks': Array(4).fill('19:515ad7d'),
   'snowberry-isle': ['238:30aaab39', '408:a4f7aef7', '437:cc204c39', '437:cc204c39'],
   whitefell: Array(4).fill('17:90d719e7'),
+  // The north's corner pieces (decision 0180).
+  'selkie-rock': Array(4).fill('26:c7676022'),
+  'old-blue': Array(4).fill('8:57804bba'),
 };

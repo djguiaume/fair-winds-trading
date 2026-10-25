@@ -179,14 +179,18 @@ export function applySeaSteps(doc: SeaDoc, steps: readonly SeaStep[]): string[] 
       } as const;
       if (step.what === 'island') {
         const id = addIsland(doc, at![0], at![1]);
-        assign(findIsland(doc, id)!, step.fields);
-        what = `island ${id}`;
+        const island = findIsland(doc, id)!;
+        // An island with its own file draws from the file alone: no scenery trees or beacon.
+        const look = step.fields?.look as { design?: string } | undefined;
+        if (look?.design) island.look = {};
+        assign(island, step.fields);
+        what = `island ${island.id}`;
       } else if (step.what in shapeKind) {
         const id = addShape(doc, shapeKind[step.what as keyof typeof shapeKind], at![0], at![1]);
         const shape = findShape(doc, id)!;
         if (step.outline) shape.outline = step.outline;
         assign(shape, step.fields);
-        what = `${step.what} ${id}`;
+        what = `${step.what} ${shape.id}`;
       } else if (step.what === 'mark') {
         const type = (step.fields?.type as SeaMarkType | undefined) ?? 'buoy-red';
         if (!SEA_MARK_TYPES.includes(type)) throw new Error(`unknown mark type ${type}`);

@@ -70,6 +70,26 @@
         "harbourBearing": 3.1416
       },
       "name": "Seal Rocks"
+    },
+    {
+      "id": "selkie-rock",
+      "x": 470,
+      "y": 760,
+      "radius": 12,
+      "look": {
+        "design": "selkie-rock"
+      },
+      "name": "Selkie Rock"
+    },
+    {
+      "id": "old-blue",
+      "x": 482,
+      "y": 642,
+      "radius": 16,
+      "look": {
+        "design": "old-blue"
+      },
+      "name": "Old Blue"
     }
   ],
   "terrain": [
@@ -307,6 +327,44 @@
       "name": "The Calving Grounds",
       "loops": 2,
       "size": [5, 9]
+    },
+    {
+      "id": "the-strays",
+      "kind": "ice",
+      "outline": [
+        [-452, 612],
+        [-446, 622],
+        [-455, 634],
+        [-472, 639],
+        [-489, 633],
+        [-492, 620],
+        [-480, 608],
+        [-463, 606]
+      ],
+      "name": "The Strays"
+    },
+    {
+      "id": "the-strays-2",
+      "kind": "ice",
+      "outline": [
+        [-425, 594],
+        [-424, 602],
+        [-432, 607],
+        [-441, 603],
+        [-440, 594],
+        [-433, 590]
+      ]
+    },
+    {
+      "id": "the-strays-3",
+      "kind": "ice",
+      "outline": [
+        [-496, 596],
+        [-499, 606],
+        [-509, 607],
+        [-513, 598],
+        [-506, 590]
+      ]
     }
   ],
   "ports": [

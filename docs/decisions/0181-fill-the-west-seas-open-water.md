@@ -1,6 +1,6 @@
 # 0181. Fill the west sea's open water
 
-**Status:** Proposed (2026-10-25).
+**Status:** Accepted (2026-10-25, Guillaume OK after the art director's second round).
 
 ## Context
 

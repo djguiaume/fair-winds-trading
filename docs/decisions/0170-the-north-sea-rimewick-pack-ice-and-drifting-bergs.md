@@ -47,4 +47,4 @@ Phase 4's north sea ([0137](0137-phase-4-biomes-and-founded-outposts.md), story 
 - The north plays from the ring through the Rime Gate. Balance was checked on all three levels (every check passes): Saltmere to Rimewick takes about 108 s, Watchman Key 149 s.
 - The `ice`, `bergs` and `cold-sea` kinds and prop `lamp` are available to every sea. Bergs cost one batched mesh per field, drawn only near the boat.
 - The map checks run each site's harbour on the map as it stands once its quests are done. An island ringed by ice passes if it has an opening of 60° or more.
-- A thread making the four seas equal quarters may clip the Cold Sea's outline to 45°.
+- The Cold Sea keeps inside the north quarter, 315..45° ([0179](0179-four-equal-sea-quarters.md)). The density plan ([0180](0180-even-density-across-the-four-seas.md)) adds The Strays, Selkie Rock and Old Blue in the corners. `npm run sea -- add island --design …` gives an island with its own file a clean look (no scenery trees or beacon) and takes `--id`.

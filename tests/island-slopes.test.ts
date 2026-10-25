@@ -71,8 +71,10 @@ describe('sloped ground (decision 0096 §4)', () => {
       'amber-strand',
       'emberhold',
       'lamb-holm',
+      'sandwick-holm',
       'spark-rock',
       'steam-holm',
+      'the-kittiwakes',
       'the-smoulder',
       'two-palms',
     ]);
