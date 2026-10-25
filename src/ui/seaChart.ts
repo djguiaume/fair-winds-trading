@@ -12,6 +12,7 @@ import { ownedIslands } from '../sim/home';
 import { chartedAt, islandCharted } from '../sim/fog';
 import { noGoAngle } from '../sim/ship';
 import { laneShape } from '../sim/currents';
+import { bergsAt } from '../sim/bergs';
 import { knobs } from '../sim/difficulty';
 import { coastDistance } from '../sim/coast';
 import { areaCrests, laneCrests, laneEdges, smoothOutline } from '../sim/flowShapes';
@@ -20,7 +21,7 @@ import { TUNING } from '../data/tuning';
 import { goodName, t, zoneKindName } from '../i18n';
 import { icon, COIN } from './icons';
 import { drawHazard } from './hazardMarker';
-import { seaMarkShape } from './chartMarks';
+import { landStyles, seaMarkShape } from './chartMarks';
 import { portraitSvg } from './portraits';
 import type { JournalEntry, QuestPin, QuestTarget, StepMarker } from './questView';
 
@@ -878,9 +879,11 @@ export class SeaChart {
     const zoneLabels = this.drawZones(shape, unit);
     this.drawCurrents(shape, unit);
     // Land reads like the 3D islands: an ink outline, a sand shore and a grass top.
-    const land = (tag: string, attrs: Record<string, string | number>) => {
-      shape(tag, { ...attrs, class: 'chart-shore' });
-      shape(tag, { ...attrs, class: 'chart-land' });
+    // An ice island is snow on shingle (decision 0170), as its style draws it.
+    const land = (tag: string, attrs: Record<string, string | number>, design?: string) => {
+      const [shore, top] = landStyles(design);
+      shape(tag, { ...attrs, ...shore, class: 'chart-shore' });
+      shape(tag, { ...attrs, ...top, class: 'chart-land' });
     };
     const charted = discoveredPorts(map, this.world.trade);
     // Map text needs the same screen size at every zoom and grows a little on large screens.
@@ -899,8 +902,12 @@ export class SeaChart {
       const coasts = islandCoasts(island);
       if (coasts) {
         for (const outline of coasts)
-          land('polygon', { points: outline.map(([x, y]) => `${x},${-y}`).join(' ') });
-      } else land('circle', { cx: island.x, cy: -island.y, r: island.radius });
+          land(
+            'polygon',
+            { points: outline.map(([x, y]) => `${x},${-y}`).join(' ') },
+            island.look?.design,
+          );
+      } else land('circle', { cx: island.x, cy: -island.y, r: island.radius }, island.look?.design);
       const lake = islandLake(island);
       if (lake)
         shape('polygon', {
@@ -943,15 +950,40 @@ export class SeaChart {
               ? 'chart-reef'
               : terrain.kind === 'shallows'
                 ? 'chart-shallows'
-                : 'chart-bank',
+                : terrain.kind === 'ice'
+                  ? 'chart-ice'
+                  : terrain.kind === 'bergs'
+                    ? 'chart-bergs'
+                    : 'chart-bank',
         });
       const xs = terrain.outline.map((p) => p[0]);
       const ys = terrain.outline.map((p) => -p[1]);
       const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-      if (terrain.kind === 'island') landBoxes.push({ x0, x1, y0, y1 });
+      // Names keep off land and off ice, the pack's own name included (decision 0170).
+      if (terrain.kind === 'island' || terrain.kind === 'ice') landBoxes.push({ x0, x1, y0, y1 });
       const known = chartedAt(map, this.world.trade.progress, (x0 + x1) / 2, -(y0 + y1) / 2);
       if (terrain.name && terrain.kind === 'island' && known)
         places.push({ name: terrain.name, x: (x0 + x1) / 2, top: y0, bottom: y1 });
+      // Named ice (decision 0170): the pack that locks a cove, the floes of a barrier.
+      if (terrain.name && terrain.kind === 'ice' && known)
+        places.push({ name: terrain.name, x: (x0 + x1) / 2, top: y0, bottom: y1 });
+      // Where each berg is now: only on a level whose chart shows them (Fair winds, 0170).
+      if (
+        terrain.kind === 'bergs' &&
+        known &&
+        this.world.bergsOn &&
+        knobs(this.world.trade.difficulty).chartBergs
+      )
+        for (const b of bergsAt(this.world.map, this.world.time))
+          if (b.field === terrain.id)
+            shape('circle', { cx: b.x, cy: -b.y, r: b.r, class: 'chart-berg' });
+      if (terrain.name && terrain.kind === 'bergs' && known)
+        places.push({
+          name: t('chart.bergs', { name: terrain.name }),
+          x: (x0 + x1) / 2,
+          top: y0,
+          bottom: y1,
+        });
       // The chart says which ships cross a sandy passage (decisions 0137, 0152).
       if (terrain.name && terrain.kind === 'shallows' && known)
         places.push({

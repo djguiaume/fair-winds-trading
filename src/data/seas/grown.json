@@ -1,7 +1,7 @@
 {
   "boundsRadius": 985,
   "chartedRadius": 445,
-  "seas": ["south", "west", "east"],
+  "seas": ["south", "west", "east", "north"],
   "sectors": {
     "north": [315, 45],
     "east": [45, 135],

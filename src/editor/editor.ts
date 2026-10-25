@@ -89,6 +89,8 @@ type Tool =
   | 'reef'
   | 'sandbank'
   | 'shallows'
+  | 'ice'
+  | 'bergs'
   | 'ridge'
   | 'mark'
   | 'start'
@@ -111,6 +113,18 @@ const TOOLS: { id: Tool; icon: string; label: string; hint: string }[] = [
     icon: '🫧',
     label: 'Add shallows',
     hint: 'Click the sea to add shallows, then set the deepest draft that gets through',
+  },
+  {
+    id: 'ice',
+    icon: '🧊',
+    label: 'Add ice',
+    hint: 'Click the sea to add pack ice or grounded floes (solid to every ship)',
+  },
+  {
+    id: 'bergs',
+    icon: '🏔️',
+    label: 'Add drifting icebergs',
+    hint: 'Click the sea to add a field where icebergs drift, then set how many',
   },
   {
     id: 'ridge',

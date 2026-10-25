@@ -74,6 +74,11 @@ export interface PropRecipe {
   home?: boolean;
   building?: boolean;
   water?: boolean;
+  /**
+   * A night lamp (decision 0170): it flashes with the beacons (0121), `y` above the prop's foot at
+   * size 1, in `color` (default the beacons' warm white). The Lead Rock cairn has one.
+   */
+  lamp?: { y: number; color?: string };
   sizedInModel?: boolean;
   fit?: number;
   fitRadius?: number;
@@ -126,6 +131,8 @@ function resolved(
     ...from,
     ...file,
     internal: file.internal,
+    // A lamp is the base's own: the tumbled cairn is dark (decision 0170).
+    lamp: file.lamp,
     vars: { ...from.vars, ...file.vars },
     parts: file.parts ?? from.parts,
   };

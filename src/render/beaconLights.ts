@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { IslandDef } from '../sim/map';
 import { atLevel, type PropDef, questShown } from '../data/islands';
+import { PROP_RECIPES } from '../data/props';
 import { landmarkLamps } from './landmarkLamps';
 
 /** Light colour by the beacon prop's variant (decision 0121); variant 1 is an unlit day mark. */
@@ -60,11 +61,15 @@ export class BeaconLights {
   private readonly texture = glowTexture();
   /** `levels`: town level by island id, as for the lighthouse beams. */
   constructor(islands: readonly IslandDef[], levels: Record<string, number> = {}) {
-    const lit = landmarkLamps(islands, 'beacon').filter((l) => COLOR[l.prop.variant ?? 0]);
+    const colorOf = (prop: PropDef) => {
+      const lamp = PROP_RECIPES[prop.type]?.lamp;
+      return lamp ? new THREE.Color(lamp.color ?? '#fff6e0') : COLOR[prop.variant ?? 0];
+    };
+    const lit = landmarkLamps(islands, 'beacon').filter((l) => colorOf(l.prop));
     const positions = new Float32Array(lit.length * 3);
     lit.forEach((l, i) => {
       positions.set(l.position.toArray(), i * 3);
-      this.lamps.push({ island: l.island, prop: l.prop, color: COLOR[l.prop.variant ?? 0]! });
+      this.lamps.push({ island: l.island, prop: l.prop, color: colorOf(l.prop)! });
     });
     this.colors = new Float32Array(lit.length * 3);
     this.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));

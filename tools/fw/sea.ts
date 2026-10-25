@@ -31,7 +31,8 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
   new <id> --name "The Ice"             a new sea file src/data/seas/<id>.json, listed in grown.json
   add <what> --sea <id> --at x,y [--outline "x,y x,y …"] [fields]
         island   [--radius 12 --name … --design <island file>]
-        reef | sandbank | shallows [--max-draft 1.2] | ridge   (an oval at --at, or --outline)
+        reef | sandbank | shallows [--max-draft 1.2] | ice | bergs [--count 6 --size 5,11 --spin cw|ccw --loops 2 --sway 8] | ridge
+                                                                  (an oval at --at, or --outline)
         mark     --type buoy-red|buoy-green|cardinal-north|-east|-south|-west|fishing-boat|pilot-cutter|light
                  [--name … --chart --turn deg]
         current  --path "x,y,w x,y,w …" [--speed 1.5 --name …]   (points in the direction it flows)
@@ -41,7 +42,8 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
         area     --name … [--id …] [--outline …]                    (a chart area, fog of war)
         port     --island <id> [--name …]                           (makes the island a port)
   move <what> <id|index> --at x,y | --by dx,dy | --turn deg | --to-sea <id>
-        (--turn: round the middle of the map, degrees clockwise, keeping its distance)
+        (a mark or waypoint: index or name; --turn: round the middle of the map, degrees
+        clockwise, keeping its distance)
   set <what> <id|index> --name … (and any field: --kind, --max-draft, --type, --speed, --level …;
         a port's --produces, --wants, --wants-made a,b,c; a sandbank's --color #b8b2a8)
   set shape <id> --style fog     a reef's rock style (a palette style's reefRock and coral; none = warm)
@@ -88,6 +90,12 @@ const FIELD_NAMES: Record<string, string> = {
   'max-level': 'maxLevel',
   site: 'site',
   hidden: 'hidden',
+  count: 'count',
+  size: 'size',
+  seed: 'seed',
+  spin: 'spin',
+  loops: 'loops',
+  sway: 'sway',
 };
 function fieldsOf(args: Args): Record<string, unknown> {
   const fields: Record<string, unknown> = {};
@@ -103,6 +111,8 @@ function fieldsOf(args: Args): Record<string, unknown> {
             ? Number(v)
             : v;
   }
+  // A berg field's radius range (decision 0170): "5,11".
+  if (typeof fields.size === 'string') fields.size = fields.size.split(',').map(Number);
   // Stands once a quest is done, or until it is (decisions 0130, 0166); `--always` clears it.
   for (const when of ['after', 'before', 'during', 'except'] as const) {
     const quest = args[when];

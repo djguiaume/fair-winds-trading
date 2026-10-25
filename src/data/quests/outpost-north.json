@@ -1,0 +1,80 @@
+{
+  "id": "outpost-north",
+  "name": "Snowberry Isle",
+  "start": {
+    "is": "quest-done",
+    "quest": "rimewick-jam"
+  },
+  "text": "quest.outpost-north",
+  "giver": "sigrun",
+  "doneSpeaker": "nell",
+  "port": "rimewick",
+  "offer": true,
+  "items": {
+    "nell": {
+      "space": 0
+    }
+  },
+  "steps": [
+    {
+      "id": "supplies",
+      "mood": "worried",
+      "goal": {
+        "is": "all",
+        "of": [
+          {
+            "is": "landed",
+            "place": {
+              "x": -364,
+              "y": 740,
+              "within": 10,
+              "maxKn": 2,
+              "holdSec": 3
+            },
+            "good": "planks",
+            "qty": 8
+          },
+          {
+            "is": "landed",
+            "place": {
+              "x": -364,
+              "y": 740,
+              "within": 10,
+              "maxKn": 2,
+              "holdSec": 3
+            },
+            "good": "cutStone",
+            "qty": 4
+          }
+        ]
+      },
+      "reward": {
+        "gold": 400
+      }
+    },
+    {
+      "id": "settler",
+      "speaker": "nell",
+      "port": "rimewick",
+      "goal": {
+        "is": "carried",
+        "item": "nell",
+        "qty": 1,
+        "from": "rimewick",
+        "to": {
+          "x": -364,
+          "y": 740,
+          "within": 10,
+          "maxKn": 2,
+          "holdSec": 3
+        }
+      },
+      "reward": {
+        "gold": 550
+      }
+    }
+  ],
+  "reward": {
+    "found": ["snowberry-isle"]
+  }
+}

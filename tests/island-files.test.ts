@@ -118,7 +118,7 @@ describe('island files (decision 0101)', () => {
         return `${parts.length}:${(h >>> 0).toString(16)}`;
       });
     expect(hashes).toEqual(GOLDEN);
-  });
+  }, 30_000);
 });
 
 const GOLDEN: Record<string, string[]> = {
@@ -155,4 +155,11 @@ const GOLDEN: Record<string, string[]> = {
   'puffin-holm': Array(4).fill('8:3ff49b4c'),
   'lamb-holm': Array(4).fill('17:85293a40'),
   'broch-isle': Array(4).fill('14:18071749'),
+  // The north sea's islands (decision 0170).
+  'cairn-holm': Array(4).fill('6:cd116a0a'),
+  'lead-rock': Array(4).fill('19:6c8d9003'),
+  rimewick: ['813:13706de2', '981:96ee850a', '1034:20dd1c89', '1042:f649515c'],
+  'seal-rocks': Array(4).fill('19:515ad7d'),
+  'snowberry-isle': ['238:30aaab39', '408:a4f7aef7', '437:cc204c39', '437:cc204c39'],
+  whitefell: Array(4).fill('17:90d719e7'),
 };

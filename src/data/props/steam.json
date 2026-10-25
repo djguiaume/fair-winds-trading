@@ -1,0 +1,18 @@
+{
+  "id": "steam",
+  "name": "Steam",
+  "group": "nature",
+  "edge": true,
+  "parts": [
+    {
+      "repeat": {
+        "i": {
+          "count": 3
+        }
+      },
+      "ico": ["0.22 + i * 0.1", 0],
+      "at": ["sin(i * 2.1) * 0.12", "0.3 + i * 0.45", "cos(i * 2.1) * 0.1"],
+      "color": "#f4f7f9"
+    }
+  ]
+}
