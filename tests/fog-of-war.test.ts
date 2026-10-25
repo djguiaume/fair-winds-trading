@@ -47,7 +47,7 @@ describe('fog of war (0156)', () => {
     expect(islandCharted(map, fresh, island('palm-key'))).toBe(false);
   });
 
-  it('names the south sea’s four areas, the east sea’s (0173), then the north’s (0170)', () => {
+  it('names the south sea’s four areas, the east sea’s (0173), then the north’s (0170, corners 0180)', () => {
     expect(chartAreaIds(map)).toEqual([
       'coral-line',
       'sugar-bar',
@@ -69,10 +69,17 @@ describe('fog of war (0156)', () => {
       'sunreach-south',
       'palm-key',
       'lone-palm',
+      'two-palms',
       'emberhold',
       'the-smoulder',
       'organ-pipes',
       'cinder-isle',
+      'steam-holm',
+      'spark-rock',
+      'the-chimneys',
+      'the-chimneys-2',
+      'the-tongs',
+      'the-tongs-2',
       'fogwatch',
       'the-giant',
       'his-wife',
@@ -80,12 +87,16 @@ describe('fog of war (0156)', () => {
       'puffin-holm',
       'lamb-holm',
       'broch-isle',
+      'the-kittiwakes',
+      'sandwick-holm',
       'rimewick',
       'snowberry-isle',
       'whitefell',
       'lead-rock',
       'cairn-holm',
       'seal-rocks',
+      'selkie-rock',
+      'old-blue',
     ]);
   });
 
@@ -131,7 +142,7 @@ describe('fog of war (0156)', () => {
     const world = createWorld(bare, SLOOP);
     world.trade.progress.areas = undefined;
     const lone = island('lone-palm');
-    const near = { x: lone.x + lone.radius + 60, y: lone.y };
+    const near = { x: lone.x - lone.radius - 60, y: lone.y };
     expect(stepFog(bare, world.trade.progress, near, 90)).toEqual([
       { type: 'island-sighted', id: 'lone-palm' },
     ]);
@@ -139,7 +150,7 @@ describe('fog of war (0156)', () => {
     expect(stepFog(bare, world.trade.progress, near, 90)).toEqual([]);
     // Too far off: nothing.
     const far = createWorld(bare, SLOOP).trade.progress;
-    expect(stepFog(bare, far, { x: lone.x + 200, y: lone.y }, 90)).toEqual([]);
+    expect(stepFog(bare, far, { x: lone.x - 200, y: lone.y }, 90)).toEqual([]);
   });
 
   it('keeps charted areas and sighted islands in the save and the FW2 code', () => {

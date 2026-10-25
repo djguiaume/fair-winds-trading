@@ -46,6 +46,64 @@
       },
       "name": "Cinder Isle",
       "tags": ["after:emberhold-glass"]
+    },
+    {
+      "id": "steam-holm",
+      "x": -650,
+      "y": -305,
+      "radius": 24,
+      "name": "Steam Holm",
+      "look": {
+        "design": "steam-holm"
+      }
+    },
+    {
+      "id": "spark-rock",
+      "x": -722,
+      "y": -492,
+      "radius": 12,
+      "name": "Spark Rock",
+      "look": {
+        "design": "spark-rock"
+      }
+    },
+    {
+      "id": "the-chimneys",
+      "x": -800,
+      "y": 285,
+      "radius": 12,
+      "name": "The Chimneys",
+      "look": {
+        "design": "the-chimneys"
+      }
+    },
+    {
+      "id": "the-chimneys-2",
+      "x": -770,
+      "y": 330,
+      "radius": 9,
+      "look": {
+        "design": "the-chimneys-2"
+      }
+    },
+    {
+      "id": "the-tongs",
+      "x": -538,
+      "y": 462,
+      "radius": 11,
+      "name": "The Tongs",
+      "look": {
+        "design": "the-tongs"
+      }
+    },
+    {
+      "id": "the-tongs-2",
+      "x": -522,
+      "y": 486,
+      "radius": 8,
+      "look": {
+        "design": "the-tongs-2"
+      }
     }
   ],
   "terrain": [
@@ -72,7 +130,10 @@
         [-361.1, 309.8],
         [-351.1, 327.4]
       ],
-      "name": "Forge Reef"
+      "name": "Forge Reef",
+      "look": {
+        "style": "volcano"
+      }
     },
     {
       "id": "forge-reef-south",
@@ -102,7 +163,10 @@
         [-461.1, 101.8],
         [-457.4, 120.2],
         [-459.3, 140.4]
-      ]
+      ],
+      "look": {
+        "style": "volcano"
+      }
     },
     {
       "id": "pumice-bank",
@@ -124,6 +188,55 @@
       "name": "Pumice Bank",
       "look": {
         "color": "#b8b2a8"
+      }
+    },
+    {
+      "id": "clinkers-south",
+      "kind": "reef",
+      "outline": [
+        [-385.6, -343.6],
+        [-403, -331.3],
+        [-415.6, -314.7],
+        [-425.6, -296.3],
+        [-438.5, -280.1],
+        [-448.1, -261.7],
+        [-454.7, -241.7],
+        [-450.7, -239.6],
+        [-439.5, -256.6],
+        [-430.1, -274.7],
+        [-417.4, -290.6],
+        [-407.6, -308.6],
+        [-395.3, -324.9],
+        [-382.3, -340.6]
+      ],
+      "name": "The Clinkers",
+      "look": {
+        "style": "volcano"
+      }
+    },
+    {
+      "id": "clinkers-north",
+      "kind": "reef",
+      "outline": [
+        [-472.6, -205.5],
+        [-481, -187],
+        [-481.2, -165.6],
+        [-482.8, -145.1],
+        [-484, -124.9],
+        [-485.1, -105],
+        [-484.6, -85.1],
+        [-481.1, -65.1],
+        [-476.7, -64.4],
+        [-474.8, -83.3],
+        [-475.3, -102.9],
+        [-474.3, -122.4],
+        [-473.2, -142.2],
+        [-471.7, -162.3],
+        [-471.7, -183.4],
+        [-468.5, -203.7]
+      ],
+      "look": {
+        "style": "volcano"
       }
     }
   ],
@@ -172,6 +285,25 @@
       "type": "buoy-red",
       "x": -457,
       "y": 148
+    },
+    {
+      "type": "buoy-red",
+      "x": -458,
+      "y": -236,
+      "chart": true
+    },
+    {
+      "type": "buoy-green",
+      "x": -470,
+      "y": -211,
+      "name": "Bellows Pass",
+      "chart": true
+    },
+    {
+      "type": "cardinal-east",
+      "x": -382,
+      "y": -347,
+      "chart": true
     }
   ],
   "currents": [

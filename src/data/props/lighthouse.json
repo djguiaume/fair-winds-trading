@@ -13,12 +13,12 @@
     {
       "cyl": [0.85, 1.05, 3.6, 8],
       "at": [0, 2.3, 0],
-      "color": "cream"
+      "color": "lighthouse"
     },
     {
       "cyl": [0.89, 0.94, 0.6, 8],
       "at": [0, 2.5, 0],
-      "color": "#c8603e"
+      "color": "lighthouseBand"
     },
     {
       "cyl": [1.15, 1.15, 0.25, 8],
@@ -43,7 +43,7 @@
     {
       "cyl": [0, 1.3, 0.9, 8],
       "at": [0, 5.75, 0],
-      "color": "#3f74a8"
+      "color": "lighthouseRoof"
     },
     {
       "box": [0.45, 0.9, 0.12],

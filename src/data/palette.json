@@ -31,7 +31,10 @@
     "sail": "#f4ead2",
     "cream": "#f4ede0",
     "dark": "#6b4a2a",
-    "path": "#c1af7c"
+    "path": "#c1af7c",
+    "lighthouse": "#f4ede0",
+    "lighthouseBand": "#c8603e",
+    "lighthouseRoof": "#3f74a8"
   },
   "styles": {
     "fish": {
@@ -103,7 +106,12 @@
         "sand": "blacksand"
       },
       "colors": {
-        "path": "#8f8a84"
+        "path": "#8f8a84",
+        "lighthouse": "#e8742a",
+        "lighthouseBand": "#f4ede0",
+        "lighthouseRoof": "#b8402e",
+        "reefRock": ["#36302f", "#45403e", "#2b2726"],
+        "coral": []
       }
     },
     "fog": {
@@ -173,12 +181,27 @@
       "side": ["#dceef4", "#c2dfea"],
       "trees": false
     },
+    "bergice": {
+      "name": "Berg ice",
+      "top": ["#eef7fa", "#e3f1f6"],
+      "side": ["#a8dde8", "#6cbcd2"],
+      "peak": ["#a8dde8", "#8fcfdf", "#6cbcd2"],
+      "cap": ["#f4fafc", "#e8f6fa", "#dceef4"],
+      "capAbove": 0.35,
+      "trees": false
+    },
     "slate": {
       "name": "Slate",
       "top": ["#6e747c", "#5b6068"],
       "side": ["#5b6068", "#6e747c"],
       "cap": ["#eef4f8", "#e3ecf3"],
       "capAbove": 0.6,
+      "trees": false
+    },
+    "paleslate": {
+      "name": "Pale slate",
+      "top": ["#878d94", "#7c8289"],
+      "side": ["#71777f", "#7c8289"],
       "trees": false
     },
     "shingle": {
@@ -232,6 +255,12 @@
       "top": ["#6f9848", "#668c42", "#78a04e"],
       "side": ["#3d3839", "#4b4547", "#363132"],
       "specks": "#3a3536"
+    },
+    "ashrock": {
+      "name": "Weathered basalt (moss ledge)",
+      "top": ["#7fa852", "#6f9848"],
+      "side": ["#6e625a", "#7a6d64", "#655a53"],
+      "trees": false
     },
     "turf": {
       "name": "Turf",

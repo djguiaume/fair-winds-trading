@@ -79,6 +79,11 @@ export interface PropRecipe {
    * size 1, in `color` (default the beacons' warm white). The Lead Rock cairn has one.
    */
   lamp?: { y: number; color?: string };
+  /**
+   * A steam vent (decision 0181): a small live plume rises `y` above the prop's foot at size 1,
+   * with the volcano smoke (0178) at `weather.volcano.smoke.ventScale`. It never erupts.
+   */
+  vent?: { y: number };
   sizedInModel?: boolean;
   fit?: number;
   fitRadius?: number;
@@ -133,6 +138,7 @@ function resolved(
     internal: file.internal,
     // A lamp is the base's own: the tumbled cairn is dark (decision 0170).
     lamp: file.lamp,
+    vent: file.vent,
     vars: { ...from.vars, ...file.vars },
     parts: file.parts ?? from.parts,
   };

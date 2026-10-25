@@ -259,6 +259,39 @@ Lamp oil (Watchman Key) and cut stone (Stonehaven) are both made goods on the ri
 
 The names are English in French too. The barrier of skerries is **The Stepping Stones**, not "The Skerries", which is too close to Skerry, the home island. Its gateway is **Gannet Sound**, with a light on its north skerry. Fogwatch's sheltered bay is **Fogwatch Voe**. The two sea stacks off its north tip are **The Giant and his Wife** ("Carlin" is too obscure for kids). The current is **The Race**, and the fog banks are **The Haar** and **The Grey Murk**. The islets are **Puffin Holm**, with a beacon to steer by (not "Gull Holm", which is too close to Gull Hook); **Lamb Holm**, with sheep grazing and nobody hunting; and **Broch Isle**, with an old round tower and standing stones, empty for ages. The chart areas are **The Stepping Stones**, **Fogwatch Waters**, **The Race** and **Amber Reach**.
 
+### The east sea, step by step (head storyteller, 2026-10-25)
+
+This section is for the thread that writes the east arcs. It follows the same pattern as the west and the north. The gold amounts are first guesses, for `npm run balance` to settle. The east starts last: `westholm-letter` starts after `outpost-north`.
+
+**People.** Elias Morrow (amber carver, a man) and Pip Holt (Maren's cousin, a woman) go into `characters.json`. Each gets their own voice in `audio.json`.
+- **Elias** is quiet and slow, with a soft, low voice. Make it different from Rook's and Bram's: vowels such as `"eu"`, low `wobble`.
+- **Pip** is quick and bright, close to Maren (the same port family), but not the same.
+- Elias's workshop on Fogwatch's quay is the port's signature: shutters closed before his arc, a lamp in the window `after:fogwatch-amber`. The foghorn tower gets its light `after:fogwatch-amber`.
+
+| Quest | Step | Goal | Card |
+|---|---|---|---|
+| `westholm-letter` (Maren, Westholm) | `chart` | dock at Fogwatch, `charts: ["stepping-stones", "fogwatch-waters"]` | Maren has a letter from her cousin Pip and mentions her mill once ("and the mill's turning, tell her that"). On the done card, Elias is named (Maren speaks from the letter, as Ines does): the carver's workshop is shut. |
+| `fogwatch-amber` (Elias) | `fish` (worried) | deliver 8 smoked fish to Fogwatch | Few boats go out in the fog any more, so the town eats what comes in. He speaks softly, about small things. |
+| | `strand` | reach a point off Amber Strand's beach (under 3 kn, hold), `charts: ["amber-reach"]` | Look at the strand from the sea: either round the Stormbreak's end, or wait for a lull. The card says both ways; with storms off it's just a gusty belt. His Stormbreak line ("Out past the fog the weather comes in breaths…") goes here. |
+| | `light` | deliver 8 lamp oil to Fogwatch | Amber on the beach, then. Now a light in the foghorn tower, so boats find the Voe in the Haar. |
+| | done | tower lit, workshop opens (`after:fogwatch-amber`) | Thanks, and the strand needs a gatherer. Names Pip Holt, who walks that beach every summer. |
+| `outpost-east` (Elias, speaker and `doneSpeaker` Pip) | `supplies` (worried) | land 8 timber and 6 planks at Amber Strand | Elias: a hut out of the wind, and racks to dry what the sea brings. |
+| | `settler` | carry `pip` (space 0) from Fogwatch to Amber Strand | Pip strings things together with "and", like her cousin, and mentions Maren once. |
+| | done | `found: ["amber-strand"]` | Pip: "Bring what we gather to Elias at Fogwatch, captain, and the workshop will do the rest. Rook will want that in the book." |
+
+Smoked fish (Saltmere), lamp oil (Watchman Key) and planks (Port Calda) are made goods that Fogwatch already wants, so the deliveries pass the `wantsMade` rule. Amber Strand already wants timber and planks. The fog and the Stormbreak keep their switches, and no card needs either one.
+
+### The closing beat: "Four winds" (head storyteller, 2026-10-25)
+
+Once all four outposts are founded, a short epilogue closes Phase 4, like `fair-winds` closes the ring:
+- **The quest:** `four-winds` (giver Rook, `pleased`). It starts when `outpost-east` is done and has one step: dock at Skerry.
+- **Rook's card:** the company's book is full, with four seas, four outposts and four crafts. His line keeps to his ledger habit, and names no one beyond the ring.
+- **What changes:** a signpost on Skerry's pier points to Sunreach, Emberhold, Rimewick and Fogwatch (an `after:four-winds` prop). A new look, so Guillaume sees screenshots.
+- **Reward:** a little gold, then the sandbox carries on.
+- **Who builds it:** the east thread, after the east arcs. It is one quest, its text and one prop.
+
+**Outposts beyond trading** are not part of this release. Build spots on outposts (0157), and the weather station's small weather perk on Snowberry Isle, stay later ideas in the roadmap.
+
 ### The east storm belt: The Stormbreak (head storyteller, 2026-10-24)
 
 The belt of squall lines beside the fog coast is **The Stormbreak** (English in French: « le Stormbreak »). Its HUD hint is interface text, not a card, so it may give the timing: "Squalls in the Stormbreak · lull in about 1 min" / « Grains dans le Stormbreak · accalmie dans 1 min environ », and "Lull in the Stormbreak · squalls in about 2 min" / « Accalmie dans le Stormbreak · grains dans 2 min environ ». With its switch off, the hint goes. Elias may mention it once in `fogwatch-amber`, in words that still hold with the switch off: "Out past the fog the weather comes in breaths. Wait for the quiet one, captain." / « Au-delà du brouillard, le temps vient par souffles. Attendez le calme, capitaine. »
@@ -305,4 +338,4 @@ Story calls made for threads outside the arcs. They stand unless Guillaume chang
 - Phase 4, south: all three arcs built and merged (`watchman-passage`, `sunreach-tea`, `outpost-south`; 0155, 0158).
 - Phase 4, west: step design and names above. The west sea thread has written its three arcs (branch `claude/project-thread-xrzh5u`). The storyteller's review is in project files `plan/west-sea/storyteller-review.md`, and Guillaume sees the portraits and cards before merge.
 - Phase 4, north: step design and names above (2026-10-24); the "Build the north ice sea" thread builds the sea and its three arcs.
-- Phase 4, west, north and east: designed above, not built. They need the engine's island `after` and terrain `before` (Cinder Isle rising, Snowberry Isle's pack ice) and their seas laid out first.
+- Phase 4, east: step design above (2026-10-25), with the closing beat `four-winds`; still to build. They need the engine's island `after` and terrain `before` (Cinder Isle rising, Snowberry Isle's pack ice) and their seas laid out first.

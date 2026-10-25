@@ -138,7 +138,7 @@ describe('npm run shots and npm run quest (decision 0153)', () => {
     expect(shotPath(file)).toBe('/?debug=&map=edited');
     expect(file.zones).toBe(false);
     expect(seedStorage(file)['fwt.editor.map.v1']).toContain('"boundsRadius"');
-    expect(() => normalise({ sizes: 'tv' })).toThrow(/unknown size/);
+    expect(() => normalise({ sizes: 'watch' })).toThrow(/unknown size/);
     expect(() => normalise({ at: '1,2', port: 'saltmere' })).toThrow(/pick one/);
     // Towns at a level, an empty island founded first (decision 0157).
     expect(normalise({ town: 'palm-key:1,calda:4' }).towns).toEqual([

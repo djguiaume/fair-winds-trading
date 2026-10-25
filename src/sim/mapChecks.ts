@@ -7,7 +7,14 @@ import { outlineCrosses, smoothOutline } from './flowShapes';
 import { TUNING } from '../data/tuning';
 import { isFar, isGood } from './goods';
 import { islandCoasts, islandPoint } from './islandLayout';
-import { designOf, hasVolcano, landmarkOf, questTagIds, runningTag } from '../data/islands';
+import {
+  designOf,
+  hasVolcano,
+  isSeaStack,
+  landmarkOf,
+  questTagIds,
+  runningTag,
+} from '../data/islands';
 import { PROP_RECIPES } from '../data/props';
 import { STYLES } from '../data/grounds';
 import { hasQuestLand, standingMap } from './questLand';
@@ -711,11 +718,13 @@ export function quickChecks(map: MapDef): MapCheck[] {
   );
 
   // Scenery islands are landmarks you steer by: a lighthouse, ruins, a wreck or a beacon, or any
-  // prop of the `landmarks` group in its file (decision 0170: a cairn, a grounded berg).
+  // prop of the `landmarks` group in its file (decision 0170: a cairn, a grounded berg), a volcano
+  // or a sea stack (decision 0181).
   const portIslands = new Set(map.ports.map((p) => p.islandId));
   const steersBy = (i: IslandDef) =>
     !!landmarkOf(i) ||
     hasVolcano(i) ||
+    isSeaStack(i) ||
     !!designOf(i)?.props.some((p) => PROP_RECIPES[p.type]?.group === 'landmarks');
   const plain = map.islands.filter((i) => !portIslands.has(i.id) && !steersBy(i));
   out.push(

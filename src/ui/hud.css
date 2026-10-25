@@ -1,6 +1,17 @@
 * {
   box-sizing: border-box;
 }
+/*
+ * The screen's safe insets: a phone's notch and rounded corners, and on a TV (decision 0183) the
+ * edges an overscanning set may crop. TV mode sets `--tv-safe-x/y` from `controls.json` › `tv`;
+ * the UI reads `--safe-*` (with the bare `env()` as fallback where this file is not loaded).
+ */
+:root {
+  --safe-top: max(env(safe-area-inset-top, 0px), var(--tv-safe-y, 0px));
+  --safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--tv-safe-y, 0px));
+  --safe-left: max(env(safe-area-inset-left, 0px), var(--tv-safe-x, 0px));
+  --safe-right: max(env(safe-area-inset-right, 0px), var(--tv-safe-x, 0px));
+}
 html,
 body {
   margin: 0;
@@ -40,7 +51,7 @@ body {
   inset: 0;
   pointer-events: none;
   text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
-  --gap: max(12px, env(safe-area-inset-left));
+  --gap: max(12px, var(--safe-left, env(safe-area-inset-left)));
 }
 #hud button,
 #hud select,
@@ -137,8 +148,10 @@ button.primary {
   display: grid;
   place-items: center;
   z-index: 100;
-  padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
-    max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  padding: max(14px, var(--safe-top, env(safe-area-inset-top)))
+    max(14px, var(--safe-right, env(safe-area-inset-right)))
+    max(14px, var(--safe-bottom, env(safe-area-inset-bottom)))
+    max(14px, var(--safe-left, env(safe-area-inset-left)));
   touch-action: pan-y;
 }
 
