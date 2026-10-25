@@ -8,7 +8,7 @@ import { USUAL_WEATHER, windTo } from '../sim/wind';
 import { WIND_FORCES, createWindGauge, updateWindGauge } from '../sim/windStrength';
 import { windFeedback } from './windFeedback';
 import { PAD, type PadButton, type SeaAction } from '../input/gamepad';
-import { padGlyphFor } from './padGlyphs';
+import { padGlyphFor, padSymbol } from './padGlyphs';
 import {
   type PressLevel,
   type World,
@@ -685,9 +685,10 @@ export class Hud {
 
   /**
    * The pad's buttons on the sea's own buttons (decision 0199), as console games show them, only
-   * while the pad is in use: A on Trade, View on Map, Menu on the menu button, the bumpers on the
-   * sail lever. From `controls.json` › `gamepad.sea`; the D-pad is left out (it is not a button
-   * a player looks for).
+   * while the pad is in use: A on Trade, the bumpers on the sail lever, and View's symbol in place
+   * of the Map button's icon (decision 0201). The menu button's icon already is the Menu
+   * button's, so it gets none. From `controls.json` › `gamepad.sea`; the D-pad is left out (it is
+   * not a button a player looks for).
    */
   private seaGlyphs() {
     const first = (action: SeaAction): PadButton | undefined =>
@@ -697,8 +698,8 @@ export class Hud {
       if (button) $(id).insertAdjacentHTML(where, padGlyphFor(button));
     };
     put('dock-btn', 'harbour');
-    put('chart-btn', 'chart');
-    put('menu-btn', 'pause', 'beforeend');
+    const chart = first('chart');
+    if (chart) $('chart-btn').insertAdjacentHTML('afterbegin', padSymbol(chart));
     put('sail-full', 'sailUp', 'beforeend');
     put('sail-none', 'sailDown', 'beforeend');
   }
