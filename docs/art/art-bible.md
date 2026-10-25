@@ -84,6 +84,8 @@ Each sea (or named area) may carry a **look** in its sea file: water, light wate
 
 **Where seas meet** (equal quarters: north 315–45°, east 45–135°, south 135–225°, west 225–315°): a barrier changes look only at a gap (a passage or open water), never mid-reef, and coral and basalt are never mixed along one reef (an optional transition skerry at the gap is fine). Islands never straddle a border, and an island's style follows its quarter. The water and sky tint blends over about 60–100 units centred on the line, while night stays the same blue. Each border gap gets a light, mark or rock, so the change of sea reads as a landmark rather than a seam.
 
+**The sea's edge** (decision [0202](../decisions/0202-sea-edge-follows-any-outline.md)): the playable edge is the end of the charted sea, not a wall or a gate. The rim of red edge buoys follows the round sea and any `edges` section joined to it as one smooth line. Every corner is filleted by at least 60 units, convex corners and seams alike (`seamanship.boundaryBuoys.round`). Between three buoys in a row the line turns at most 30° (`maxTurnDeg`); `npm run check` and `npm run sea` warn when it doesn't. A seam gets no marker, no bigger buoy and no pair, and on the charts the rim is one continuous line. A zone that hugs the old rim continues into a new section or fades out at the seam; it never stops dead in open water.
+
 ### Ring (Windward Ring): the home waters
 
 B2 as shipped: sandstone tiers, bright grass, red and blue roofs, sunny turquoise. The reference every biome is compared with.
