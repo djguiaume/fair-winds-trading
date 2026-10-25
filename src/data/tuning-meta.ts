@@ -462,6 +462,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     's',
     'Seconds after a help order is delivered before the next one is asked.',
   ),
+  'economy.orders.standingDockings': num(
+    'Standing order again after',
+    0,
+    20,
+    1,
+    'calls',
+    'A person whose arc is done asks again once the captain has docked this many times at other ports (0214).',
+  ),
   'economy.discoverRange': num(
     'Discover range',
     10,

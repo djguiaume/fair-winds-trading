@@ -554,8 +554,14 @@ export function questsNamed(c: Condition | undefined): string[] {
   return typeof c.quest === 'string' ? [c.quest] : [];
 }
 
-/** Columns for the story view: a quest sits one column right of the last quest it waits on. */
-export function storyColumns(quests: readonly { id: string; start: Condition }[]): string[][] {
+/**
+ * Columns for the story view: a quest sits one column right of the last quest it waits on. The
+ * standing orders (decision 0214) stay out of it: the view lists them on their own.
+ */
+export function storyColumns(
+  all: readonly { id: string; start: Condition; repeat?: boolean }[],
+): string[][] {
+  const quests = all.filter((q) => !q.repeat);
   const byId = new Map(quests.map((q) => [q.id, q]));
   const depth = new Map<string, number>();
   const visit = (id: string, trail: Set<string>): number => {
@@ -607,8 +613,14 @@ export function textKeys(quest: QuestDef): TextLine[] {
       });
     }
   }
-  out.push({ key: `${t}.done.title`, label: 'Thanks · title', long: false });
-  out.push({ key: `${t}.done.copy`, label: 'Thanks · speech', long: true, variants: true });
+  // A standing order thanks for each ask in its own words (decision 0214).
+  if (quest.repeat)
+    for (const s of quest.steps)
+      out.push({ key: `${t}.${s.id}.thanks`, label: `${s.id} · thanks`, long: true });
+  else {
+    out.push({ key: `${t}.done.title`, label: 'Thanks · title', long: false });
+    out.push({ key: `${t}.done.copy`, label: 'Thanks · speech', long: true, variants: true });
+  }
   // A plot given (decision 0210): the giver by their stake, on the next mooring at the island.
   if (givesPlot(quest))
     out.push({ key: `${t}.plot.copy`, label: 'Plot · speech at the island', long: true });
@@ -827,4 +839,5 @@ export const REWARD_FIELDS: { key: keyof QuestReward; label: string }[] = [
   { key: 'homeIsland', label: 'An island' },
   { key: 'homeSpot', label: 'Building spots' },
   { key: 'erupt', label: 'Eruption' },
+  { key: 'order', label: 'Paid like a help order' },
 ];

@@ -165,17 +165,8 @@ export function deliverContract(trade: TradeState, map: MapDef): DeliverResult {
   trade.captain.cargo[c.good] -= c.qty;
   trade.captain.gold += c.reward;
   trade.contracts.completed += 1;
-  addStanding(trade, portId);
-  addGrowth(
-    trade,
-    portId,
-    (c.qty + TUNING.economy.towns.orderGrowthBonus) * (c.help ? orderTuning().helpGrowthFactor : 1),
-  );
+  handOver(trade, portId, c.good, c.qty, !!c.help);
   if (c.help) trade.contracts.helpIn = orderTuning().helpCooldown;
-  addRare(trade, portId, c.good, c.qty);
-  // Raw far goods handed over feed the main port's workshop too (decision 0146).
-  const market = trade.markets[portId];
-  if (market) workshopReceives(market, c.good, c.qty);
   trade.contracts.byPort[portId] = makeContract(
     map,
     portNow(port, trade),
@@ -188,6 +179,61 @@ export function deliverContract(trade: TradeState, map: MapDef): DeliverResult {
   );
   settleCredit(trade);
   return { ok: true, gold: c.reward };
+}
+
+/**
+ * What an order handed over does for its port, besides the gold: the shipwright's standing, the
+ * town's growth (a help order's counts `helpGrowthFactor` times), rare goods and the workshop.
+ */
+function handOver(trade: TradeState, portId: string, good: GoodId, qty: number, help: boolean) {
+  addStanding(trade, portId);
+  addGrowth(
+    trade,
+    portId,
+    (qty + TUNING.economy.towns.orderGrowthBonus) * (help ? orderTuning().helpGrowthFactor : 1),
+  );
+  addRare(trade, portId, good, qty);
+  // Raw far goods handed over feed the main port's workshop too (decision 0146).
+  const market = trade.markets[portId];
+  if (market) workshopReceives(market, good, qty);
+}
+
+/**
+ * A standing order's pay (decision 0214): what a help order for these goods would pay at this port
+ * on the voyage's level, the bakehouse's share included. Undefined for a port not on the map.
+ */
+export function standingOrderGold(
+  map: MapDef,
+  trade: TradeState,
+  portId: string,
+  good: GoodId,
+  qty: number,
+): number | undefined {
+  const port = map.ports.find((p) => p.id === portId);
+  if (!port) return undefined;
+  const plain = contractReward(map, port, good, qty, knobs(trade.difficulty).orderFactor);
+  const factor = applyPerks(trade.home, 'helpReward', orderTuning().helpRewardFactor);
+  return Math.round((plain * factor) / 5) * 5;
+}
+
+/**
+ * A standing order delivered (decision 0214): the goods are already ashore (the quest landed
+ * them); it pays like a help order and grows the town like one, but asks for no help order's pause
+ * and is no port order (`completed` counts those). Returns the gold paid.
+ */
+export function payStandingOrder(
+  map: MapDef,
+  trade: TradeState,
+  portId: string,
+  good: GoodId,
+  qty: number,
+): number {
+  const gold = standingOrderGold(map, trade, portId, good, qty);
+  if (gold === undefined) return 0;
+  trade.captain.gold += gold;
+  handOver(trade, portId, good, qty, true);
+  settleCredit(trade);
+  return gold;
 }
 
 /**

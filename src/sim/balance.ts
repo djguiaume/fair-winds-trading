@@ -32,7 +32,13 @@ import {
 import { CUTTER, SLOOP, type ShipClass, polarFraction } from './ship';
 import { discoverNear, discoveredPorts, homePort } from './shipyards';
 import { islandCharted, stepFog } from './fog';
-import { type QuestTimer, StoryClock, questVisits, storyChapters } from './balanceStory';
+import {
+  type QuestTimer,
+  StandingOrders,
+  StoryClock,
+  questVisits,
+  storyChapters,
+} from './balanceStory';
 import {
   type TradeState,
   activeShip,
@@ -623,6 +629,8 @@ export interface Voyage {
   opened: Record<string, number>;
   /** Gold the story's quests paid (decision 0195). */
   storyGold: number;
+  /** Gold the standing orders paid (decision 0214). */
+  standingGold: number;
   /** Minute each story quest was done, and the minutes each sea's quests took (ring: its arcs). */
   questsDone: Record<string, number>;
   storyMinutes: Record<string, number>;
@@ -657,6 +665,8 @@ export interface VoyageOptions {
    * 0083 checks hold.
    */
   story?: boolean;
+  /** `false`: she never takes the standing orders (decision 0214), for comparing. */
+  standing?: boolean;
 }
 
 function must(ok: boolean, what: string) {
@@ -684,6 +694,7 @@ export function sailVoyage(opts: VoyageOptions): Voyage {
     levels: {},
     opened: {},
     storyGold: 0,
+    standingGold: 0,
     questsDone: {},
     storyMinutes: {},
     farGold: 0,
@@ -698,6 +709,7 @@ export function sailVoyage(opts: VoyageOptions): Voyage {
   const story = new StoryClock(map, opts.story ? storyChapters(map) : [], opts.relaxed ? 1.4 : 1);
   const timer = questTimer(map, trade, sea);
   if (story.active) story.ringMinutes(timer, home);
+  const standing = new StandingOrders(map);
   const sight = TUNING.economy.discoverRange;
   const startPorts = new Set(chartedPorts(map).map((p) => p.id));
   let at = home;
@@ -724,6 +736,9 @@ export function sailVoyage(opts: VoyageOptions): Voyage {
       const r = deliverContract(trade, map);
       if (r.ok) v.contractGold += r.gold;
     }
+    // People whose arc is done ask again (decision 0214).
+    if (story.active && opts.standing !== false)
+      v.standingGold += standing.dock(map, trade, at, story.done);
     // The story (decision 0195): once the cutter is hers and the ring's arcs could be sailed, she
     // plays each sea's quests as soon as each starts.
     if (v.bought.cutter !== undefined) story.begin(t / 60);
@@ -819,7 +834,7 @@ export function sailVoyage(opts: VoyageOptions): Voyage {
     ]);
     at = leg.to;
     v.legs++;
-    v.income.push([t / 60, v.marketGold + v.contractGold]);
+    v.income.push([t / 60, v.marketGold + v.contractGold + v.standingGold]);
   }
   v.opened = story.opened;
   v.questsDone = story.done;
@@ -1219,6 +1234,8 @@ export interface StoryPace {
   craftedSold: Partial<Record<GoodId, number>>;
   /** Share of the quests' gold in the relaxed captain's income. */
   storyShare: number;
+  /** Share of the standing orders' gold in the relaxed captain's last hour of income (0214). */
+  standingShare: number;
   /** Busiest route's share of the relaxed captain's legs in the last hour. */
   lateTopRoute: number;
 }
@@ -1302,6 +1319,11 @@ export function storyRun(map: MapDef, onLevel?: (level: Difficulty) => void): St
       storyShare: med(
         relaxed.map((v) => v.storyGold / (v.storyGold + v.marketGold + v.contractGold)),
       ),
+      standingShare: med(
+        relaxed.map(
+          (v) => v.standingGold / Math.max(1, v.standingGold + v.marketGold + v.contractGold),
+        ),
+      ),
       lateTopRoute: med(
         relaxed.map((v) => {
           const n: Record<string, number> = {};
@@ -1320,6 +1342,9 @@ export function storyRun(map: MapDef, onLevel?: (level: Difficulty) => void): St
 
 export function storyChecks(by: StoryRun): BalanceCheck[] {
   const T = TARGETS.story;
+  // A level may go higher: Fair winds, where standing orders keep far prices up (decision 0214).
+  const lateTop = (l: Difficulty) =>
+    (T.lateVsRingTopByLevel as Record<string, number | undefined>)[l] ?? T.lateVsRing[1]!;
   const levels = DIFFICULTIES.map((l) => by[l]!);
   const each = (f: (p: StoryPace) => string) => levels.map(f).join(' / ');
   const x = (r: number) => `${r.toFixed(1)}×`;
@@ -1336,12 +1361,11 @@ export function storyChecks(by: StoryRun): BalanceCheck[] {
       id: 'far-pays',
       label: 'The far seas pay more than the ring (relaxed, last hour vs the ring alone)',
       actual: each((p) => x(p.lateRate / p.ringRate)),
-      target: `${x(T.lateVsRing[0]!)}–${x(T.lateVsRing[1]!)}`,
-      ok: levels.every(
-        (p) =>
-          p.lateRate / p.ringRate >= T.lateVsRing[0]! &&
-          p.lateRate / p.ringRate <= T.lateVsRing[1]!,
-      ),
+      target: `${x(T.lateVsRing[0]!)}–${DIFFICULTIES.map((l) => x(lateTop(l))).join(' / ')}`,
+      ok: DIFFICULTIES.every((l) => {
+        const r = by[l]!.lateRate / by[l]!.ringRate;
+        return r >= T.lateVsRing[0]! && r <= lateTop(l);
+      }),
     },
     {
       id: 'far-share',

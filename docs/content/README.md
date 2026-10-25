@@ -285,7 +285,11 @@ At the top: `id`, `name`, `start` (a condition), `text` (prefix of the text keys
 piece, 0 for a passenger), `giver`, `port`, `offer` (`true`: the card asks first, and the
 quest starts on the player's yes; the captain can also say "don't offer again"), `main` (`true`:
 a story quest, whose cards greet the captain on arrival before the harbour screen; every other
-quest speaks on the harbour screen's Quay tab and with a small note at sea, decision 0141). Each step: `id`, then `goal` (a condition), `choose` (one or more
+quest speaks on the harbour screen's Quay tab and with a small note at sea, decision 0141),
+`repeat` (`true`: a standing order, decision 0214: offered again and again at its `port`, each
+step one ask taken in turn, thanked with `<text>.<step>.thanks`, the next ask after
+`economy.orders.standingDockings` calls elsewhere, one ask at a time per port; a step's
+`"reward": { "order": true }` pays the goods it `landed` there like a help order). Each step: `id`, then `goal` (a condition), `choose` (one or more
 options: `id`, `reward`, `next`, and `if`: shown only while that condition holds) or both (either
 ends the step); optional `reward`, `next` (a later step or `done`; default the
 next one), `clean` (touching or grinding on a reef or shore starts the step over), `port`, `chart`

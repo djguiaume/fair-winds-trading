@@ -42,7 +42,7 @@ import * as trade from './sim/trade';
 import { type Difficulty, isDifficulty, knobs } from './sim/difficulty';
 import { daylightAt } from './sim/daylight';
 import { hazeSwitches } from './sim/windZones';
-import { QuestBook, useEditedQuests } from './sim/quests';
+import { QuestBook, roundStep, useEditedQuests } from './sim/quests';
 import { questTestFrom, sailableHeading, testBerth } from './sim/questTest';
 import { QuestTestBar } from './ui/questTestBar';
 import { type StepEffects, type StepWind, heldWind } from './sim/stepEffects';
@@ -562,8 +562,12 @@ quests.onEvent = (e) => {
 };
 /** The captain's yes to an offer, on a card or on the Quay tab. */
 function acceptQuest(id: string) {
+  const quest = quests.quests.find((q) => q.id === id);
+  // A standing order's new ask is news again, its thanks too (decision 0214).
+  if (quest?.repeat)
+    for (const key of questSeen) if (key.startsWith(`${id}:`)) questSeen.delete(key);
   // The offer already said what the first step asks.
-  const first = quests.quests.find((q) => q.id === id)?.steps[0];
+  const first = quest && roundStep(quest, quests.progress(id));
   if (first) questSeen.add(`${id}:${first.id}`);
   quests.accept(id);
   autosave();

@@ -61,6 +61,11 @@ export interface QuestReward {
    * only: it plays whatever the Eruptions switch says, once the boat is in sight.
    */
   erupt?: string[];
+  /**
+   * A standing order's pay (decision 0214): the step's goal lands goods at a port, and they are
+   * paid and grow the town like a help order there, on the voyage's level.
+   */
+  order?: true;
 }
 
 /** A point at sea, in map units. */
@@ -905,9 +910,11 @@ export function checkReward(r: unknown, scope: CheckScope, at: string): string[]
         'homeIsland',
         'homeSpot',
         'erupt',
+        'order',
       ].includes(key)
     )
       out.push(`${at}: unknown reward "${key}"`);
+  if (reward.order !== undefined && reward.order !== true) out.push(`${at}.order: only ever true`);
   if (reward.gold !== undefined && !isCount(reward.gold))
     out.push(`${at}.gold: needs a whole number`);
   if (reward.standing !== undefined) {

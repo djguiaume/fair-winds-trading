@@ -44,7 +44,7 @@ export function levelTable(by: DifficultyRun): string[] {
 /** One line per level for the grown sea's story run (decision 0195). */
 export function storyTable(by: StoryRun): string[] {
   const rows = [
-    'level        seas open (relaxed, min)        ring → last hour gold/min   far goods  far legs',
+    'level        seas open (relaxed, min)        ring → last hour gold/min   far goods  far legs  standing',
   ];
   for (const l of DIFFICULTIES) {
     const r = by[l]!;
@@ -52,7 +52,7 @@ export function storyTable(by: StoryRun): string[] {
       .map(([sea, m]) => `${sea[0]} ${Number.isFinite(m) ? Math.round(m) : '–'}`)
       .join(' ');
     rows.push(
-      `${levelName(l).padEnd(13)}${open.padEnd(32)}${`${Math.round(r.ringRate)} → ${Math.round(r.lateRate)}`.padEnd(28)}${`${Math.round(100 * r.farShare)} %`.padEnd(11)}${Math.round(r.farLegs)} s`,
+      `${levelName(l).padEnd(13)}${open.padEnd(32)}${`${Math.round(r.ringRate)} → ${Math.round(r.lateRate)}`.padEnd(28)}${`${Math.round(100 * r.farShare)} %`.padEnd(11)}${`${Math.round(r.farLegs)} s`.padEnd(10)}${Math.round(100 * r.standingShare)} %`,
     );
   }
   return rows;
