@@ -5,6 +5,7 @@ import { ISLAND_DESIGNS, type IslandDesign } from '../../src/data/islands';
 import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../../src/data/maps';
 import { SEAS, SEA_SECTORS, grownMap } from '../../src/data/grownMap';
 import { stressMap } from '../../src/data/stressMap';
+import { type ControlsDoc, controlsProblems, shippedControls } from '../../src/editor/controls/doc';
 import { questProblems } from '../../src/editor/quest/doc';
 import { ISLAND_SCALE } from '../../src/render/models/highlandIslands';
 import { islandCheckKit } from '../../src/render/models/towns';
@@ -18,7 +19,7 @@ import { sectorChecks } from '../../src/sim/seaSectors';
 type Args = Record<string, string | boolean | undefined> & { _: string[] };
 
 export interface Problem {
-  area: 'seas' | 'islands' | 'quests' | 'perks';
+  area: 'seas' | 'islands' | 'quests' | 'perks' | 'controls';
   where: string;
   severity: 'error' | 'warning';
   message: string;
@@ -36,6 +37,8 @@ export interface CheckOptions {
    * `all` seas (the stress sea takes minutes) or `none`.
    */
   routes?: 'first' | 'all' | 'none';
+  /** A controls file to check instead of `src/data/controls.json` (a controls page export). */
+  controls?: ControlsDoc;
 }
 
 /** The seas checked by default: the ring, the grown Phase 4 sea (`?map=phase4`) and the stress sea. */
@@ -159,6 +162,12 @@ export function checkAll(opts: CheckOptions = {}) {
       problems.push({ area: 'perks', where: 'perks.json', severity: 'error', message });
     counted.perks = 'perks.json';
   }
+
+  if (want('controls')) {
+    for (const message of controlsProblems(opts.controls ?? shippedControls()))
+      problems.push({ area: 'controls', where: 'controls.json', severity: 'error', message });
+    counted.controls = 'controls.json';
+  }
   return { problems, counted };
 }
 
@@ -167,9 +176,10 @@ const list = (v: unknown) => (typeof v === 'string' ? v.split(',').filter(Boolea
 export function run(args: Args): number {
   if (args.help) {
     console.log(`npm run check [-- options]
-  --only seas,islands,quests,perks   check only these areas
+  --only seas,islands,quests,perks,controls   check only these areas
   --island id[,id]                   only these island files
   --map file.json[,file.json]        check these map files (editor exports) instead of the ring and stress seas
+  --controls file.json               check this controls file (a controls page export)
   --fast                             skip the sailing route checks (about 7 s on the ring)
   --all-routes                       route checks on every sea, not just the first (minutes)
   --warnings                         list warnings too (counted otherwise)
@@ -187,6 +197,10 @@ export function run(args: Args): number {
     islands: list(args.island),
     seas,
     routes: args.fast ? 'none' : args['all-routes'] ? 'all' : 'first',
+    controls:
+      typeof args.controls === 'string'
+        ? (JSON.parse(readFileSync(args.controls, 'utf8')) as ControlsDoc)
+        : undefined,
   });
   if (args.json) {
     console.log(JSON.stringify({ counted, problems }, null, 1));
@@ -198,7 +212,7 @@ export function run(args: Args): number {
     const warnings = mine.length - errors.length;
     const tail = warnings ? `, ${warnings} warning${warnings > 1 ? 's' : ''}` : '';
     console.log(
-      `${area.padEnd(8)}${errors.length ? `${errors.length} error(s)` : 'ok'}${tail} (${what})`,
+      `${area.padEnd(9)}${errors.length ? `${errors.length} error(s)` : 'ok'}${tail} (${what})`,
     );
     for (const p of mine)
       if (p.severity === 'error' || args.warnings)
