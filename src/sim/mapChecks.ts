@@ -771,7 +771,7 @@ function segmentDistance(
 }
 
 /**
- * Berths (decision 0203): every port docks only at its harbour. Each port, at its first and top
+ * Berths (decision 0205): every port docks only at its harbour. Each port, at its first and top
  * level, needs a pier, clear water where a sloop docks, and one dock zone round its piers: not
  * the whole coast, and not a second patch past a spit or across a lagoon.
  */

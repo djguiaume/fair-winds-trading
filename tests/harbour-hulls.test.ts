@@ -77,7 +77,7 @@ describe('real hull harbour clearance', () => {
                 piers,
               );
               trade.dockedAt = null;
-              // Against the shore she docks only beside the piers (decision 0203), never round
+              // Against the shore she docks only beside the piers (decision 0205), never round
               // the far side of the island.
               const fromPiers = Math.min(...targets.map((p) => pointSegment(boat.x, boat.y, p)));
               const docked = tryDock(trade, map, boat, port.id);

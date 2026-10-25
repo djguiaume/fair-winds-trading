@@ -67,7 +67,7 @@ import {
 /*
  * `src/data/tuning/seamanship.json` › `harbour` (decision 0094): `dockRange`, the maximum
  * hull-to-shore/pier gap, with two extra units for forgiving approaches; the shore counts only
- * within `berthReach` of the harbour's piers (decision 0203); dock below `dockSpeedKn`
+ * within `berthReach` of the harbour's piers (decision 0205); dock below `dockSpeedKn`
  * (lower the sails near a port to dock); leave the port once `undockMargin` farther than the dock
  * range (avoids flicker at the edge). Gold at the start is the difficulty level's `startGold`.
  */
@@ -315,7 +315,7 @@ export function distanceToPort(
       ),
     ),
   );
-  // The shore is a berth only beside the harbour's piers (decision 0203): not the whole coast
+  // The shore is a berth only beside the harbour's piers (decision 0205): not the whole coast
   // of a big island, Sunreach's arm or the far side of a ring town.
   if (piers.length && pier > harbour().berthReach) return pier;
   const shore = coasts

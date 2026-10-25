@@ -1762,7 +1762,7 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     80,
     1,
     'units',
-    "How far from the harbour's piers the shore still counts as a berth (decision 0203).",
+    "How far from the harbour's piers the shore still counts as a berth (decision 0205).",
   ),
   'seamanship.harbour.dockSpeedKn': num(
     'Dock below',

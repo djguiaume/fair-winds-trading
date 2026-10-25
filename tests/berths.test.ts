@@ -7,7 +7,7 @@ import { islandCoasts } from '../src/sim/islandLayout';
 import { berthChecks } from '../src/sim/mapChecks';
 import { distanceToPort } from '../src/sim/trade';
 
-// Decision 0203: a port docks only at its harbour, not along its island's whole coast.
+// Decision 0205: a port docks only at its harbour, not along its island's whole coast.
 describe('berths', () => {
   const phase4 = prepareMap(grownMap(PHASE1_SOURCE));
 
