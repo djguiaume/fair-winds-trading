@@ -21,6 +21,7 @@ import type { ScreenPoint } from '../render/view';
 import { GOODS } from '../sim/goods';
 import { capacity, cargoUsed, findPort } from '../sim/trade';
 import { PortLabels } from './portLabels';
+import { BoatLabels } from './boatLabels';
 import { type HazardKind, hazardBadge } from './hazardMarker';
 import { screenBearing } from './screenBearing';
 import { formatNumber, goodName, t, tOptional, weatherName, zoneKindName } from '../i18n';
@@ -143,6 +144,7 @@ export class Hud {
   private readonly dockBtn = $('dock-btn');
   private readonly dockPortName = $('dock-port-name');
   readonly portLabels: PortLabels;
+  private readonly boatLabels: BoatLabels;
 
   onDockClick: () => void = () => {};
   /** The player picked a sail step on the lever (0 = down). */
@@ -197,6 +199,7 @@ export class Hud {
 
     this.portLabels = new PortLabels($('port-labels'), this.world, harbours);
     this.portLabels.onPortClick = (portId) => this.onPortClick(portId);
+    this.boatLabels = new BoatLabels($('boat-labels'), this.world);
 
     this.seaGlyphs();
     this.dockBtn.addEventListener('click', () => {
@@ -660,6 +663,7 @@ export class Hud {
     }
 
     this.portLabels.update(project, dt, resumed);
+    this.boatLabels.update(project);
     // One Trade button at a time: the port sign's, or this one when the sign is off screen.
     const dockedAt = this.world.trade.dockedAt;
     const showDock = dockedAt !== null && !this.portLabels.dockShown(dockedAt);

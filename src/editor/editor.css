@@ -714,3 +714,43 @@ input:focus-visible {
 .c-area-label {
   fill: #f3d37e;
 }
+
+/* Other boats' fleets (decision 0214): dotted lanes, grounds as rings. */
+.c-fleet {
+  fill: none;
+  stroke: #f4ead2;
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.75;
+  pointer-events: none;
+}
+.c-fleet-coaster {
+  stroke: #e8c48a;
+}
+.c-fleet-visitor {
+  stroke: #d98a7a;
+}
+.c-fleet.on {
+  stroke: var(--brass-hi);
+  opacity: 1;
+}
+.c-fleet-grounds {
+  fill: rgba(244, 234, 210, 0.08);
+  pointer-events: all;
+  cursor: pointer;
+}
+.c-fleet-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 10px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+.c-fleet-label {
+  fill: #f4ead2;
+  paint-order: stroke;
+  stroke: rgba(15, 35, 50, 0.8);
+  stroke-width: 3px;
+  pointer-events: none;
+}

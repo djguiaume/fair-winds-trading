@@ -1,3 +1,4 @@
+import type { TrafficDef, TrafficKind } from '../sim/traffic';
 import type {
   CurrentDef,
   IslandDef,
@@ -24,6 +25,8 @@ export type Selection =
   | { kind: 'mark'; index: number }
   | { kind: 'area'; id: string; point?: number }
   | { kind: 'edge'; id: string; point?: number }
+  /** Other boats (decision 0214): a fleet, or one mark of its lane. */
+  | { kind: 'fleet'; id: string; point?: number }
   | null;
 
 export type ShapeKind = TerrainDef['kind'];
@@ -49,6 +52,10 @@ export function findArea(map: MapDef, id: string) {
 /** One of the sea's own edges: water joined to the round sea (decision 0202). */
 export function findEdge(map: MapDef, id: string) {
   return map.edges?.find((e) => e.id === id);
+}
+/** A fleet of other boats (decision 0214). */
+export function findFleet(map: MapDef, id: string): TrafficDef | undefined {
+  return map.traffic?.find((f) => f.id === id);
 }
 export function portOn(map: MapDef, islandId: string): PortDef | undefined {
   return map.ports.find((p) => p.islandId === islandId);
@@ -179,6 +186,7 @@ function flowPoints(map: MapDef, sel: Selection): number[][] | undefined {
   if (sel?.kind === 'zone') return findZone(map, sel.id)?.outline;
   if (sel?.kind === 'area') return findArea(map, sel.id)?.outline;
   if (sel?.kind === 'edge') return findEdge(map, sel.id)?.outline;
+  if (sel?.kind === 'fleet') return findFleet(map, sel.id)?.path;
 }
 
 /** Starts a lane current at (x, y); `addLanePoint` lays the rest. */
@@ -279,6 +287,31 @@ export function addSeaEdge(map: MapDef, x: number, y: number): string {
   return id;
 }
 
+/**
+ * A fleet of other boats (decision 0214) from a port: fishing boats with grounds a little off its
+ * harbour (at `x`, `y`), or coasters on a lane to the port `to`. One boat to begin with; its lane
+ * runs straight until marks are added (or the planner routes it, `routeLane`).
+ */
+export function addFleet(
+  map: MapDef,
+  kind: TrafficKind,
+  home: string,
+  x: number,
+  y: number,
+  to?: string,
+): string {
+  map.traffic ??= [];
+  const id = freeId(
+    map.traffic.map((f) => f.id),
+    `${home}-${kind}`,
+  );
+  const fleet: TrafficDef = { id, kind, home, names: ['New boat'] };
+  if (kind === 'fishing') fleet.grounds = [round(x), round(y), 40];
+  else fleet.to = to ?? map.ports.find((p) => p.id !== home)?.id ?? home;
+  map.traffic.push(fleet);
+  return id;
+}
+
 /** Moves a whole current or zone. */
 export function moveFlow(map: MapDef, sel: Selection, dx: number, dy: number) {
   if (sel?.kind === 'current') {
@@ -293,6 +326,11 @@ export function moveFlow(map: MapDef, sel: Selection, dx: number, dy: number) {
           ? findArea(map, sel.id)
           : findEdge(map, sel.id);
     if (z) z.outline = z.outline.map(([x, y]) => [round(x + dx), round(y + dy)]);
+  } else if (sel?.kind === 'fleet') {
+    // A fleet moves its lane's marks and its grounds; its harbours stay with their ports.
+    const f = findFleet(map, sel.id);
+    if (f?.path) f.path = f.path.map(([x, y]) => [round(x + dx), round(y + dy)]);
+    if (f?.grounds) f.grounds = [round(f.grounds[0] + dx), round(f.grounds[1] + dy), f.grounds[2]];
   }
 }
 
@@ -317,7 +355,8 @@ export function setLaneWidth(map: MapDef, id: string, index: number, width: numb
 export function insertFlowPoint(map: MapDef, sel: Selection, index: number): number | undefined {
   const points = flowPoints(map, sel);
   if (!points) return;
-  const open = sel?.kind === 'current' && !!findCurrent(map, sel.id)?.path;
+  const open =
+    (sel?.kind === 'current' && !!findCurrent(map, sel.id)?.path) || sel?.kind === 'fleet';
   if (open && index >= points.length - 1) return;
   const a = points[index % points.length]!,
     b = points[(index + 1) % points.length]!;
@@ -332,8 +371,11 @@ export function insertFlowPoint(map: MapDef, sel: Selection, index: number): num
 /** Removes a point; a lane keeps two, an outline three. */
 export function deleteFlowPoint(map: MapDef, sel: Selection, index: number): boolean {
   const points = flowPoints(map, sel);
-  const open = sel?.kind === 'current' && !!findCurrent(map, sel.id)?.path;
-  if (!points || points.length <= (open ? 2 : 3)) return false;
+  const open =
+    (sel?.kind === 'current' && !!findCurrent(map, sel.id)?.path) || sel?.kind === 'fleet';
+  // A fleet's lane may lose every mark: it then runs straight between its harbours.
+  const keep = sel?.kind === 'fleet' ? 0 : open ? 2 : 3;
+  if (!points || points.length <= keep) return false;
   points.splice(index, 1);
   return true;
 }
@@ -419,6 +461,15 @@ export function deleteSelection(map: MapDef, sel: Selection): Selection {
   }
   if (sel.kind === 'mark') {
     map.marks?.splice(sel.index, 1);
+    return null;
+  }
+  if (sel.kind === 'fleet') {
+    if (sel.point !== undefined) {
+      deleteFlowPoint(map, sel, sel.point);
+      return { kind: 'fleet', id: sel.id };
+    }
+    const at = map.traffic?.findIndex((f) => f.id === sel.id) ?? -1;
+    if (at >= 0) map.traffic!.splice(at, 1);
     return null;
   }
   if (sel.kind === 'current' || sel.kind === 'zone' || sel.kind === 'area' || sel.kind === 'edge') {

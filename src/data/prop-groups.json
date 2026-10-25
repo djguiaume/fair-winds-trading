@@ -8,6 +8,7 @@
     "stone": { "budget": 200 },
     "nature": { "budget": 60 },
     "rocks": { "budget": 200 },
-    "landmarks": { "budget": 300 }
+    "landmarks": { "budget": 300 },
+    "boats": { "budget": 900 }
   }
 }

@@ -44,6 +44,8 @@ export interface Settings {
   currents: boolean;
   /** Drifting icebergs in the north (decision 0170); a hazard, so it can be off. */
   bergs: boolean;
+  /** Other boats on the sea (decision 0214): fishing boats, coasters and visitors; off, none. */
+  ships: boolean;
   /** Haze switches (`fog`, `ash`, decision 0169): false turns that haze off. Left out = on. */
   haze: Record<string, boolean>;
   /** The first current met has shown its one-time hint (decision 0140). */
@@ -75,6 +77,7 @@ const DEFAULTS: Settings = {
   stormBelt: true,
   currents: true,
   bergs: true,
+  ships: true,
   haze: {},
   seenCurrentHint: false,
   seenBeltHint: false,

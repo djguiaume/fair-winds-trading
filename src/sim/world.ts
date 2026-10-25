@@ -42,6 +42,7 @@ import {
   stepTrade,
 } from './trade';
 import { applyPerks } from './perks';
+import { type TrafficState, createTraffic, stepTraffic } from './traffic';
 import { GOODS, type GoodId } from './goods';
 import type { SpatialGrid } from './spatial';
 import { heelFactor, pointOfSailHeel } from './heel';
@@ -175,6 +176,8 @@ export interface World {
   };
   /** Gold, ships, cargo, markets and docking (Phase 1). */
   trade: TradeState;
+  /** Other boats on the sea (decision 0214); `traffic.on` is Settings › Other ships. */
+  traffic: TrafficState;
 }
 
 export type WorldEvent =
@@ -245,6 +248,7 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     destination: null,
     course: { index: 0, legStart: 0, reached: 0, lastLegSeconds: null },
     trade,
+    traffic: createTraffic(map, land),
   };
   return world;
 }
@@ -730,6 +734,8 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
     else events.push({ type: 'bump' });
   }
 
+  // Other boats sail after her, in the same wind, and give way (decision 0214).
+  events.push(...stepTraffic(world, dt));
   events.push(...stepTrade(world.trade, world.map, world.boat, dt));
   refreshPiers(world);
   events.push(...stepStorms(world));

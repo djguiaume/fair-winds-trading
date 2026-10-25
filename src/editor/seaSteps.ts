@@ -1,4 +1,7 @@
 import { SEA_MARK_TYPES, type SeaMarkType } from '../sim/map';
+import { TRAFFIC_KINDS, type TrafficDef, type TrafficKind } from '../sim/traffic';
+import { routeLane } from '../sim/trafficChecks';
+import { prepareMap } from '../data/maps';
 import {
   type Selection,
   addAreaCurrent,
@@ -9,10 +12,12 @@ import {
   addPort,
   addShape,
   addZone,
+  addFleet,
   deleteSelection,
   findArea,
   findCurrent,
   findEdge,
+  findFleet,
   findIsland,
   findShape,
   findZone,
@@ -34,7 +39,16 @@ import { RING, type SeaDoc, addSea, claimNew, moveToSea, ownerOf, seaIds, select
 
 /** What a step adds or points at. `shape` is any reef, sandbank, shallows, ice or barrier island. */
 export type SeaThing =
-  'island' | 'shape' | 'port' | 'waypoint' | 'mark' | 'current' | 'zone' | 'area' | 'edge';
+  | 'island'
+  | 'shape'
+  | 'port'
+  | 'waypoint'
+  | 'mark'
+  | 'current'
+  | 'zone'
+  | 'area'
+  | 'edge'
+  | 'fleet';
 export type SeaAdd =
   | 'island'
   | 'reef'
@@ -49,7 +63,8 @@ export type SeaAdd =
   | 'zone'
   | 'area'
   | 'edge'
-  | 'port';
+  | 'port'
+  | 'fleet';
 
 type XY = [number, number];
 
@@ -67,6 +82,8 @@ export type SeaStep =
       path?: [number, number, number][];
       /** The island a port goes on. */
       island?: string;
+      /** A fleet's lane from the route planner (decision 0214) instead of `fields.path`. */
+      route?: boolean;
       /** Any other field, set on what was added (`name`, `kind`, `maxDraft`, `type`, …). */
       fields?: Record<string, unknown>;
     }
@@ -108,21 +125,23 @@ export function seaRef(doc: SeaDoc, what: SeaThing, id: string | number): Select
               ? { kind: 'area', id: String(id) }
               : what === 'edge'
                 ? { kind: 'edge', id: String(id) }
-                : what === 'mark'
-                  ? {
-                      kind: 'mark',
-                      index: Number.isInteger(index)
-                        ? index
-                        : (doc.marks ?? []).findIndex((m) => m.name === id),
-                    }
-                  : what === 'waypoint'
+                : what === 'fleet'
+                  ? { kind: 'fleet', id: String(id) }
+                  : what === 'mark'
                     ? {
-                        kind: 'waypoint',
+                        kind: 'mark',
                         index: Number.isInteger(index)
                           ? index
-                          : doc.course.findIndex((w) => w.label === id),
+                          : (doc.marks ?? []).findIndex((m) => m.name === id),
                       }
-                    : null;
+                    : what === 'waypoint'
+                      ? {
+                          kind: 'waypoint',
+                          index: Number.isInteger(index)
+                            ? index
+                            : doc.course.findIndex((w) => w.label === id),
+                        }
+                      : null;
   if (what === 'port') {
     const port = doc.ports.find((p) => p.id === id);
     return port ? { kind: 'island', id: port.islandId } : null;
@@ -172,7 +191,8 @@ export function applySeaSteps(doc: SeaDoc, steps: readonly SeaStep[]): string[] 
         doc.seaEditor.active = step.sea;
       }
       const at = step.at ?? step.outline?.[0] ?? (step.path?.[0]?.slice(0, 2) as XY | undefined);
-      if (!at && step.what !== 'port') throw new Error(`add ${step.what} needs --at`);
+      if (!at && step.what !== 'port' && step.what !== 'fleet')
+        throw new Error(`add ${step.what} needs --at`);
       let what: string;
       const shapeKind = {
         reef: 'reef',
@@ -242,6 +262,26 @@ export function applySeaSteps(doc: SeaDoc, steps: readonly SeaStep[]): string[] 
         if (!port) throw new Error(`no island "${step.island}", or it has a port already`);
         assign(port, step.fields);
         what = `port ${port.id}`;
+      } else if (step.what === 'fleet') {
+        // Other boats (decision 0214): from a port, to a port or to fishing grounds.
+        const f = step.fields ?? {};
+        const kind = (f.kind as TrafficKind | undefined) ?? 'coaster';
+        if (!TRAFFIC_KINDS.includes(kind)) throw new Error(`unknown fleet kind ${kind}`);
+        const home = f.home as string | undefined;
+        if (!home || !doc.ports.some((p) => p.id === home))
+          throw new Error('add fleet needs --home <port id>');
+        const id = addFleet(doc, kind, home, at?.[0] ?? 0, at?.[1] ?? 0, f.to as string);
+        const fleet = findFleet(doc, id)!;
+        assign(fleet, { ...f, kind, home });
+        if (kind === 'fishing' && !f.grounds && !at)
+          throw new Error('add fishing fleet needs --at');
+        if (step.route) {
+          const path = routeLane(prepareMap(doc), fleet);
+          if (!path) throw new Error(`no sailing route for fleet ${id}`);
+          if (path.length) fleet.path = path;
+          else delete fleet.path;
+        }
+        what = `fleet ${fleet.id}`;
       } else throw new Error(`cannot add "${step.what}"`);
       claimNew(doc);
       doc.seaEditor.active = before;
@@ -288,6 +328,17 @@ export function applySeaSteps(doc: SeaDoc, steps: readonly SeaStep[]): string[] 
       continue;
     }
     // set
+    if (step.what === 'fleet' && step.fields.route) {
+      const fleet = selected(doc, sel) as TrafficDef;
+      const { route: _, ...fields } = step.fields;
+      assign(fleet, fields);
+      const path = routeLane(prepareMap(doc), fleet);
+      if (!path) throw new Error(`no sailing route for fleet ${fleet.id}`);
+      if (path.length) fleet.path = path;
+      else delete fleet.path;
+      made.push(`set fleet ${fleet.id}`);
+      continue;
+    }
     const item =
       step.what === 'port' ? doc.ports.find((p) => p.id === step.id) : selected(doc, sel);
     const { name, ...rest } = step.fields;
@@ -336,7 +387,10 @@ function moveBy(doc: SeaDoc, sel: Selection, at?: XY, by?: XY) {
                   ? findArea(doc, sel.id)!.outline[0]
                   : sel.kind === 'edge'
                     ? findEdge(doc, sel.id)!.outline[0]
-                    : undefined;
+                    : sel.kind === 'fleet'
+                      ? (findFleet(doc, sel.id)!.path?.[0] ??
+                        (findFleet(doc, sel.id)!.grounds?.slice(0, 2) as XY | undefined))
+                      : undefined;
   if (!from) return;
   const [dx, dy] = at ? [at[0] - from[0], at[1] - from[1]] : by!;
   if (sel.kind === 'island') moveIsland(doc, sel.id, from[0] + dx, from[1] + dy);
@@ -372,11 +426,18 @@ function turnBy(doc: SeaDoc, sel: Selection, deg: number) {
             ? findArea(doc, sel.id)
             : sel.kind === 'edge'
               ? findEdge(doc, sel.id)
-              : undefined;
+              : sel.kind === 'fleet'
+                ? findFleet(doc, sel.id)
+                : undefined;
   if (!item) return;
-  const holder = item as { outline?: XY[]; path?: [number, number, number][] };
+  const holder = item as {
+    outline?: XY[];
+    path?: number[][];
+    grounds?: [number, number, number];
+  };
   if (holder.outline) holder.outline = holder.outline.map(turn);
-  if (holder.path) holder.path = holder.path.map(([x, y, w]) => [...turn([x, y]), w]);
+  if (holder.path) holder.path = holder.path.map(([x, y, ...w]) => [...turn([x!, y!]), ...w]);
+  if (holder.grounds) holder.grounds = [...turn(holder.grounds), holder.grounds[2]];
 }
 
 /** One line per sea file: what is in it. */
@@ -393,6 +454,7 @@ export function seaSummary(doc: SeaDoc): string[] {
       ['zones', count(doc.windZones)],
       ['chart areas', count(doc.fog?.areas)],
       ['sea edges', count(doc.edges)],
+      ['fleets', count(doc.traffic)],
     ];
     const name =
       owner === RING

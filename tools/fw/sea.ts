@@ -44,6 +44,11 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
         port     --island <id> [--name …]                           (makes the island a port)
         edge     [--outline …] [--id …]   open water joined to the round sea (decision 0202): the
                  playable sea grows by it and the edge buoys follow its outer edge
+        fleet    --home <port> --kind fishing|coaster|visitor --names "A,B" [--id …]
+                 coaster/visitor: --to <port> [--route | --path "x,y x,y"] [--ship fluyt --livery north]
+                 fishing: --at x,y (the grounds) [--radius 40] [--route | --path …]
+                 other boats (decision 0214): one boat per name; --route lays the lane with the
+                 route planner round land; --after <quest> shows the fleet once that quest is done
   move <what> <id|index> --at x,y | --by dx,dy | --turn deg | --to-sea <id>
         (a mark or waypoint: index or name; --turn: round the middle of the map, degrees
         clockwise, keeping its distance)
@@ -58,7 +63,7 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
         once that quest is done, or until it is (decision 0166: land swaps out of the boat's sight)
   --during <quest> | --except <quest>   an island or shape stands only while that quest runs,
         or all but then
-  remove <what> <id|index>       (what: island shape port waypoint mark current zone area edge)
+  remove <what> <id|index>       (what: island shape port waypoint mark current zone area edge fleet)
   check                          the checks only
   density [--sight 160 --cell 10] how full each sea's slice of the outer ring is (decision 0180):
         islands, shapes, marks, zones per open water, share of empty water and the biggest
@@ -102,6 +107,10 @@ const FIELD_NAMES: Record<string, string> = {
   spin: 'spin',
   loops: 'loops',
   sway: 'sway',
+  home: 'home',
+  to: 'to',
+  ship: 'ship',
+  livery: 'livery',
 };
 function fieldsOf(args: Args): Record<string, unknown> {
   const fields: Record<string, unknown> = {};
@@ -125,6 +134,22 @@ function fieldsOf(args: Args): Record<string, unknown> {
     if (typeof quest === 'string') fields.tags = quest === 'none' ? null : [`${when}:${quest}`];
   }
   if (args.always) fields.tags = null;
+  // A fleet's boats, one per name (decision 0214), and its lane's marks or fishing grounds.
+  if (typeof args.names === 'string')
+    fields.names = args.names
+      .split(',')
+      .map((n) => n.trim())
+      .filter(Boolean);
+  if (args._[1] === 'fleet') {
+    const lane = points(args.path);
+    if (lane) fields.path = lane.map((p) => p.slice(0, 2));
+    const at = xy(args.at);
+    if (fields.kind === 'fishing' && at) fields.grounds = [...at, num(args.radius) ?? 40];
+    else if (args._[0] === 'set' && at && typeof args.radius === 'string')
+      fields.grounds = [...at, Number(args.radius)];
+    delete fields.radius;
+    if (args.route) fields.route = true;
+  }
   // A port's goods, comma separated: `--wants timber,obsidian`.
   for (const [flag, key] of [
     ['produces', 'produces'],
@@ -184,7 +209,8 @@ export function seaStepFromArgs(args: Args): SeaStep | null {
         outline: points(args.outline) as [number, number][] | undefined,
         path: points(args.path) as [number, number, number][] | undefined,
         island: typeof args.island === 'string' ? args.island : undefined,
-        fields,
+        route: args.route ? true : undefined,
+        fields: (({ route: _, ...rest }) => rest)(fields),
       };
     case 'move':
       if (!what || id === undefined) throw new Error('move <what> <id|index>');

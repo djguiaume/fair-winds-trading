@@ -26,6 +26,7 @@ import { CUTTER, SHIP_CLASSES, SLOOP, noGoAngle, polarFraction } from './ship';
 import { DEFAULT_START_LEVEL, MAX_SETTLEMENT_LEVEL } from './settlement';
 import { atSea, seaDistance, seaReach, seaShape, sharpestTurn } from './seaEdge';
 import { isBeltKind } from './stormBelt';
+import { trafficQuickChecks, trafficSailChecks } from './trafficChecks';
 import { NO_ZONE, type ZoneEffect, zoneField, zoneMaxGain, zoneMeanAt } from './windZones';
 
 /**
@@ -752,6 +753,8 @@ export function quickChecks(map: MapDef): MapCheck[] {
       : pass('landmarks', 'every scenery island has a landmark', 'warning'),
   );
   out.push(...berthChecks(map));
+  // Other boats (decision 0214): their ports, names and lanes in open water.
+  out.push(...trafficQuickChecks(map));
   return out;
 }
 
@@ -1018,6 +1021,11 @@ export function flowChecks(map: MapDef): MapCheck[] {
  * to find, never easier, so a route found there is there on every level and with them off.
  */
 export function routeChecks(map: MapDef): MapCheck[] {
+  // Other boats sail their lanes out and home (decision 0214), with every quest's land standing.
+  return [...routeChecksByLand(map), ...trafficSailChecks(map)];
+}
+
+function routeChecksByLand(map: MapDef): MapCheck[] {
   if (!hasQuestLand(map)) return routeChecksOn(map);
   // Land that rises or clears with a quest (decision 0166): the routes must hold before any of
   // those quests, while they run (when land waits on a running quest) and after all of them,

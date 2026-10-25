@@ -26,7 +26,7 @@ export const SEA_SECTORS = grown.sectors as unknown as Sectors;
  * biome adds around the Windward Ring, kept in its own file in `src/data/seas/`.
  */
 export type SeaDef = Pick<MapDef, 'islands' | 'ports' | 'course'> &
-  Partial<Pick<MapDef, 'terrain' | 'marks' | 'currents' | 'windZones' | 'edges'>> & {
+  Partial<Pick<MapDef, 'terrain' | 'marks' | 'currents' | 'windZones' | 'edges' | 'traffic'>> & {
     id: string;
     name: string;
     /** The sea's named areas, each charted at once when sailed into (decision 0156). */
@@ -74,6 +74,7 @@ export function grownMap(source: MapDef, seas: readonly SeaDef[] = SEAS): MapDef
     (map.marks ??= []).push(...(add.marks ?? []));
     (map.currents ??= []).push(...(add.currents ?? []));
     (map.windZones ??= []).push(...(add.windZones ?? []));
+    (map.traffic ??= []).push(...(add.traffic ?? []));
     map.fog.areas.push(...(add.chartAreas ?? []));
     // A section sticking out of the round sea moves its edge (decision 0202).
     if (add.edges?.length) (map.edges ??= []).push(...add.edges);
