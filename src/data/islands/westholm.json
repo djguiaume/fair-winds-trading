@@ -26,7 +26,7 @@
     ]
   ],
   "ground": [
-    { "coast": 0, "height": 0.065, "material": "grass" },
+    { "coast": 0, "height": 0.13, "material": "grass" },
     {
       "outline": [
         [-0.947522, -0.47],
@@ -484,18 +484,7 @@
     },
     { "type": "haystack", "x": -1.5, "z": -0.25, "from": 1 },
     { "type": "haystack", "x": 0.6, "z": -0.9, "from": 1 },
-    { "type": "haystack", "x": 1.2, "z": 0.4, "from": 1 },
-    { "type": "rowan", "x": 0.077, "z": -0.151, "from": 1, "to": 2 },
-    { "type": "rowan", "x": 0.291, "z": -0.055, "from": 1, "to": 2 },
-    { "type": "rowan", "x": 0.24, "z": -0.212, "from": 1, "to": 2 },
-    { "type": "rowan", "x": 0.252, "z": 0.517, "from": 1, "to": 2 },
-    { "type": "rowan", "x": 0.413, "z": 0.355, "from": 1, "to": 2 },
-    { "type": "rowan", "x": 0.467, "z": 0.201, "from": 1, "to": 2 },
-    { "type": "rowan", "x": 0, "z": -0.37, "from": 1, "to": 2 },
-    { "type": "rowan", "x": 0.196, "z": -0.404, "from": 1, "to": 2 },
-    { "type": "rowan", "x": 0.358, "z": -0.335, "from": 1, "to": 2 },
-    { "type": "rowan", "x": 0.562, "z": 0.043, "from": 1, "to": 2 },
-    { "type": "rowan", "x": 0.6, "z": -0.12, "from": 1, "to": 2 }
+    { "type": "haystack", "x": 1.2, "z": 0.4, "from": 1 }
   ],
   "woods": {
     "tree": "woodland-broadleaf",

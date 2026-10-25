@@ -794,5 +794,95 @@
   "zoom": 1.4,
   "town": "abbey-head:4",
   "night": true
+ },
+ {
+  "at": [
+   106,
+   168
+  ],
+  "heading": 32,
+  "look": [
+   170,
+   270
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "calda-town",
+  "zoom": 1.0
+ },
+ {
+  "at": [
+   178,
+   -88
+  ],
+  "heading": 116,
+  "look": [
+   285,
+   -140
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "saltmere-town",
+  "zoom": 1.0
+ },
+ {
+  "at": [
+   -193,
+   31
+  ],
+  "heading": 279,
+  "look": [
+   -310,
+   50
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "westholm-town",
+  "zoom": 1.0
+ },
+ {
+  "at": [
+   -104,
+   -196
+  ],
+  "heading": 208,
+  "look": [
+   -160,
+   -300
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "south-cay-town",
+  "zoom": 1.0
+ },
+ {
+  "at": [
+   -175,
+   196
+  ],
+  "heading": 318,
+  "look": [
+   -250,
+   280
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "abbey-head-town",
+  "zoom": 1.0
+ },
+ {
+  "at": [
+   106,
+   -247
+  ],
+  "heading": 157,
+  "look": [
+   150,
+   -350
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "watchman-key-town",
+  "zoom": 1.0
  }
 ]

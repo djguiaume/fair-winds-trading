@@ -32,6 +32,8 @@ export interface RecipePart {
   plane?: [Num, Num];
   /** Window panes on a w × d house: width, depth, height, front, side panes, centre x, z. */
   windows?: Num[];
+  /** Size of each window pane, 1 = the usual (decision 0208: small ring houses need bigger panes to read at night). */
+  pane?: Num;
   /** Which windows stay dark at night. */
   seed?: Num;
   /** Another prop type's parts, with `vars` set for it. */

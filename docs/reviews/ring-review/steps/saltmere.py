@@ -33,4 +33,10 @@ for (x, z, t) in [(-1.4, 0.5, -60), (-1.33, 0.1, -80)]: add('beached-boat', x, z
 for (x, z, l) in [(-1.0, 0.45, 1), (-0.6, 0.45, 1), (-0.1, 0.3, 1), (0.35, 0.35, 1), (0.7, 0.15, 1),
                   (-0.95, -0.05, 2), (-0.5, -0.3, 2), (0.0, -0.55, 2), (0.5, -0.48, 2), (-0.08, 0.15, 2)]:
     add('lamp-post', x, z, l, size=1.3)
+# Higher coast, so the sandstone bands show as a cliff ring.
+d['ground'][0]['height'] = 0.13
+d['ground'][3]['height'] = 0.13
+d['ground'][2]['height'] = 0.18
+# Woods in four clumps instead of lone trees.
+d['woods'].update(spacing=0.12, tries=1400, areas=[[-0.95, -0.55, 0.32], [0.55, -0.62, 0.25], [-1.3, -0.2, 0.18], [0.95, -0.5, 0.18]])
 json.dump(d, open(p, 'w'))

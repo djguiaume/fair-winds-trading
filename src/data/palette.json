@@ -180,7 +180,7 @@
     },
     "downs": {
       "name": "Ring downs",
-      "top": ["#7cc04f", "#79bd4c", "#7fc352"],
+      "top": ["#7cc04f", "#6aab43", "#84c858"],
       "side": ["#c2ad8c", "#b29c7a", "#cdb894", "#a8916f"]
     },
     "sandstone": {

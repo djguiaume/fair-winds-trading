@@ -65,12 +65,15 @@ export function windowPanes(
   seed: number,
   cx = 0,
   cz = 0,
+  paneSize = 1,
 ): THREE.BufferGeometry[] {
   const out: THREE.BufferGeometry[] = [];
   let k = 0;
   const pane = (rotY: number, x: number, z: number) => {
     const lit = (seed * 7 + k++ * 3) % 10 < 7;
-    const g = new THREE.PlaneGeometry(0.2, 0.26).rotateY(rotY).translate(cx + x, y, cz + z);
+    const g = new THREE.PlaneGeometry(0.2 * paneSize, 0.26 * paneSize)
+      .rotateY(rotY)
+      .translate(cx + x, y, cz + z);
     out.push(glowing(paint(g, lit ? LIT_GLASS : DARK_GLASS)));
   };
   const along = (n: number, len: number) =>

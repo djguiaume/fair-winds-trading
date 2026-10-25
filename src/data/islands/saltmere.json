@@ -65,7 +65,7 @@
     ]
   ],
   "ground": [
-    { "coast": 0, "height": 0.065, "material": "grass" },
+    { "coast": 0, "height": 0.13, "material": "grass" },
     {
       "outline": [
         [-0.4, -0.45],
@@ -92,8 +92,8 @@
       "height": 0.28,
       "material": "grass"
     },
-    { "coast": 1, "height": 0.12, "material": "grass" },
-    { "coast": 2, "height": 0.065, "material": "grass" }
+    { "coast": 1, "height": 0.18, "material": "grass" },
+    { "coast": 2, "height": 0.13, "material": "grass" }
   ],
   "lanes": [
     {
@@ -754,11 +754,17 @@
   ],
   "woods": {
     "tree": "woodland-broadleaf",
-    "tries": 1100,
+    "tries": 1400,
     "area": [-1.7, -1.3, 1.7, 0.72],
     "size": 1.7,
     "margin": 0.09,
-    "spacing": 0.27,
-    "clear": [[1.95, -0.65, 0.23]]
+    "spacing": 0.12,
+    "clear": [[1.95, -0.65, 0.23]],
+    "areas": [
+      [-0.95, -0.55, 0.32],
+      [0.55, -0.62, 0.25],
+      [-1.3, -0.2, 0.18],
+      [0.95, -0.5, 0.18]
+    ]
   }
 }
