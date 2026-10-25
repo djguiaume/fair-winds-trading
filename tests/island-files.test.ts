@@ -144,11 +144,11 @@ const GOLDEN: Record<string, string[]> = {
   'palm-key': ['296:5af31071', '270:7e77b63a', '266:18f30d17', '266:18f30d17'],
   'lone-palm': Array(4).fill('13:2bd589f4'),
   // The east sea (decision 0173).
-  fogwatch: ['627:8aecde02', '748:5c1fb58b', '820:1802c667', '861:600bb021'],
-  'the-giant': Array(4).fill('6:bb1431f9'),
-  'his-wife': Array(4).fill('6:ccc0f0d7'),
+  fogwatch: ['630:a7a31ab1', '751:1036b9b6', '823:4bc333a2', '864:1d37430e'],
+  'the-giant': Array(4).fill('6:c84f56e6'),
+  'his-wife': Array(4).fill('6:676eecc4'),
   'amber-strand': ['129:e66b7b39', '133:56673594', '136:e68e96ec', '136:e68e96ec'],
-  'puffin-holm': Array(4).fill('8:9eada24b'),
-  'lamb-holm': Array(4).fill('17:2a66e241'),
-  'broch-isle': Array(4).fill('14:c3697752'),
+  'puffin-holm': Array(4).fill('8:3ff49b4c'),
+  'lamb-holm': Array(4).fill('17:85293a40'),
+  'broch-isle': Array(4).fill('14:18071749'),
 };
