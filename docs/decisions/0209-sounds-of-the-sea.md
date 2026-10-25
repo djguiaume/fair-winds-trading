@@ -31,12 +31,12 @@ brightest); each sea's music still recognisably Fair Winds.
 recorded file stays possible for any sound (`file` instead of `synth`, as since
 [0113](0113-levels-tutorial-and-music-as-data.md)).
 
-**Effects** (`src/audio/sfx.ts`): eighteen small synthesisers (creak, foghorn, bell, flap, thud, horn,
-gun, gull, quack, ice-groan, ice-ping, calving, boom, thunder, hiss, surf, rustle, baa), each a
+**Effects** (`src/audio/sfx.ts`): seventeen small synthesisers (creak, foghorn, bell, flap, thud, horn,
+gull, quack, ice-groan, ice-ping, calving, boom, thunder, hiss, surf, rustle, baa), each a
 handful of nodes for a few seconds over one shared noise buffer. Every effect line in `audio.json`
-takes a `volume` and a `pitch`, so 24 effects come from 18 synthesisers: a gull pitched up is a tern
+takes a `volume` and a `pitch`, so 24 effects come from 17 synthesisers: a gull pitched up is a tern
 or a kittiwake, the foghorn lower is Fogwatch's own, the bell higher is a bell buoy, the thud higher
-is a bump.
+is a bump, the regatta horn higher is the finish horn.
 
 **A bed per sea** (`audio.json` › `seas`, one per sea id: `ring` and each sea file): waves (level,
 filter tone, swell period) and wind (level, tone), the music track the sea plays, `calm` places
@@ -84,7 +84,8 @@ game: about nine nodes a second created (the music's notes as before, plus calls
 - The sea has sound everywhere, and each sea its own, from data. A new sea needs one `seas` line;
   a new call, bell pitch or variation is data; only a new kind of synthesiser needs code.
 - The regatta ([0217](0217-the-saltmere-regatta.md)) plays `race-horn` (now the horn synthesiser,
-  not the foghorn) at the start and `gun` as she finishes, and the regatta theme holds while a race
+  not the foghorn) at the start and `finish-horn` as she finishes (a horn, not the
+  brief's gun: the game has no weapons, the storyteller's rule for the regatta), and the regatta theme holds while a race
   is under way. Hull damage ([0208](0208-visible-hull-damage.md)) keeps its splash and planks; the
   thud is now this decision's, played once by the sea listener and louder the harder she hit.
   Other ships (part 4) can ring bells.

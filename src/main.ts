@@ -679,8 +679,9 @@ function raceEvent(e: QuestEvent) {
     hud.showToast(t('regatta.hornToast'), 3);
   } else if (e.type === 'retired') hud.showToast(t('regatta.retired'), 4);
   else if (e.type === 'raced') {
-    // The committee boat's gun as she crosses the line (decision 0209).
-    music.effectNamed('gun');
+    // The committee boat's horn as she crosses the line: a horn, never a gun (no weapons in
+    // the game, the storyteller's rule for the regatta, decision 0217).
+    music.effectNamed('finish-horn');
     view.setPennant(flownPennant(quests));
     const card = raceResultCard(quests, world.map, e);
     if (card && !bench) {

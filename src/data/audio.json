@@ -15,7 +15,7 @@
     "thud": { "synth": "thud", "volume": 1 },
     "bump": { "synth": "thud", "volume": 0.6, "pitch": 1.4 },
     "race-horn": { "synth": "horn", "volume": 0.4 },
-    "gun": { "synth": "gun", "volume": 0.9 },
+    "finish-horn": { "synth": "horn", "volume": 0.4, "pitch": 1.25 },
     "gull": { "synth": "gull", "volume": 0.95 },
     "tern": { "synth": "gull", "volume": 0.62, "pitch": 1.45 },
     "kittiwake": { "synth": "gull", "volume": 0.68, "pitch": 1.25 },

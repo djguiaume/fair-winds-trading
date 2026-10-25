@@ -169,22 +169,6 @@ export const playHorn: Play = (ctx, destination, level, pitch = 1) => {
   for (const f of [440 * pitch, 554 * pitch]) tone(ctx, 'square', f, t, t + 1.4).connect(low);
 };
 
-/** The committee boat's gun at the start and finish: a crack, then the bang rolling away. */
-export const playGun: Play = (ctx, destination, level, pitch = 1) => {
-  const t = ctx.currentTime + 0.02;
-  const low = ctx.createBiquadFilter();
-  low.type = 'lowpass';
-  low.frequency.setValueAtTime(2200 * pitch, t);
-  low.frequency.exponentialRampToValueAtTime(260 * pitch, t + 0.5);
-  noise(ctx, t, t + 1.2)
-    .connect(low)
-    .connect(envelope(ctx, t, level, 0.002, t + 1.1))
-    .connect(destination);
-  const thump = tone(ctx, 'sine', 70 * pitch, t, t + 0.4);
-  thump.frequency.exponentialRampToValueAtTime(40, t + 0.3);
-  thump.connect(envelope(ctx, t, level * 0.8, 0.002, t + 0.35)).connect(destination);
-};
-
 /**
  * A gull's cry, "kee-ow" two to four times. Higher `pitch` is a tern or a kittiwake (decision
  * 0208): a reedy tone through a nasal band, gliding down.
@@ -490,7 +474,6 @@ export const SYNTHS = {
   flap: playFlap,
   thud: playThud,
   horn: playHorn,
-  gun: playGun,
   gull: playGull,
   quack: playQuack,
   'ice-groan': playIceGroan,
