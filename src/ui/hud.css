@@ -571,7 +571,7 @@ button.primary {
   color: #ffe680;
 }
 
-.trade-act-btn.buy-btn:not([disabled]):active {
+.trade-act-btn.buy-btn:not(:disabled, [aria-disabled='true']):active {
   background: #f2c230;
   color: #5a3d00;
 }
@@ -582,12 +582,12 @@ button.primary {
   color: #9be37d;
 }
 
-.trade-act-btn.sell-btn:not([disabled]):active {
+.trade-act-btn.sell-btn:not(:disabled, [aria-disabled='true']):active {
   background: #9be37d;
   color: #1a4d10;
 }
 
-.trade-act-btn[disabled] {
+.trade-act-btn:is(:disabled, [aria-disabled='true']) {
   opacity: 0.42;
   cursor: not-allowed;
   border-color: rgba(255, 255, 255, 0.2);
@@ -730,7 +730,7 @@ button.primary {
   background: #ffd75a;
 }
 
-.upgrade-btn[disabled] {
+.upgrade-btn:is(:disabled, [aria-disabled='true']) {
   opacity: 0.45;
   cursor: not-allowed;
 }
@@ -803,7 +803,7 @@ button.primary {
   border-color: #fff3c4;
 }
 
-.ship-btn[disabled] {
+.ship-btn:is(:disabled, [aria-disabled='true']) {
   opacity: 0.45;
   cursor: not-allowed;
 }
@@ -897,7 +897,7 @@ button.primary {
   margin: 0;
 }
 
-.deliver-btn:disabled {
+.deliver-btn:is(:disabled, [aria-disabled='true']) {
   opacity: 0.55;
   cursor: default;
 }
@@ -923,7 +923,7 @@ button.primary {
   margin-bottom: 12px;
 }
 
-.repair-bar button:disabled {
+.repair-bar button:is(:disabled, [aria-disabled='true']) {
   opacity: 0.55;
   cursor: default;
 }
