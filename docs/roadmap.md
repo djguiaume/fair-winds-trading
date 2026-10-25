@@ -166,6 +166,8 @@ Goal: growth pushes you outward into tougher navigation.
 
 **South sea laid out (2026-10-24, [0152](decisions/0152-south-sea-sunreach-layout.md), [review](reviews/south-sea/README.md)), accepted by Guillaume:** a dev sea at `?map=phase4`: the Coral Line with one gateway, Sunreach (ring-lagoon port, tropic town), Palm Key outpost site, wind zones charted once sailed, cardinal marks, and shallows that refuse deep ships (Palm Key Narrows) with the long way always open. Palm Key's port comes with founding (the `outpost-south` arc). **Founding built** ([0157](decisions/0157-founding-an-outpost.md), [screenshots](reviews/founding/README.md), accepted by Guillaume): ports marked `site` stay empty islands until a quest's `found` reward opens them; founding goods land with the `landed` goal; Palm Key opens as a spice hamlet that grows to town.
 
+**West fire sea laid out (2026-10-25, [0171](decisions/0171-the-west-fire-sea-emberhold.md)), waiting on Guillaume's OK:** Emberhold (main port, Bram's glassworks), the Smoulder volcano with lava rivers ([0167](decisions/0167-rivers-of-water-and-lava.md)), the Organ Pipes, and Cinder Isle, founded with Oskar; black sand, basalt, moss, an ash zone and a warm current, all data. Eruptions are built separately.
+
 **Game controller (2026-10-24, [0162](decisions/0162-game-controller-for-sailing-and-the-chart.md), [screenshots](reviews/controller/README.md)):** an Xbox or any standard pad sails the boat and works the chart (mapping in `src/data/controls.json`); menus, the harbour screen and quest cards follow with focus navigation.
 
 - Larger, explorable map with fog of war; discover new islands and settlements.
