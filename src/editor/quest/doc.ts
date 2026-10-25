@@ -8,6 +8,7 @@ import type { MapDef, SeaMarkDef, SeaMarkType } from '../../sim/map';
 import type { StepWind } from '../../sim/stepEffects';
 import { BUILDINGS, homeSpots, resolveSpot } from '../../sim/home';
 import { clearAt } from '../../sim/mapChecks';
+import { REGATTA } from '../../sim/regatta';
 import { hasQuestLand, standingMap } from '../../sim/questLand';
 import {
   CONDITIONS,
@@ -171,6 +172,9 @@ export interface Place {
   /** Number shown by the ring (1-based), and whether a line joins them in order. */
   no: number;
   ordered: boolean;
+  /** Its own label instead of its number ("start pin"), and the line it ends (a race's, 0216). */
+  name?: string;
+  line?: string;
 }
 
 export function getAt(root: unknown, path: Path): unknown {
@@ -228,6 +232,40 @@ export function stepPlaces(step: QuestStep, map: MapDef): Place[] {
           no: i + 1,
           ordered: true,
         }),
+      );
+    }
+    // A race (decision 0216): its marks in order, and each end of its start and finish lines.
+    if (cond.is === 'raced') {
+      const within = typeof cond.within === 'number' ? cond.within : REGATTA.within;
+      ((cond.marks as QuestPoint[]) ?? []).forEach((p, i) =>
+        out.push({
+          kind: 'point',
+          x: p.x,
+          y: p.y,
+          within,
+          path: [...path, 'marks', i],
+          radiusPath: [...path, 'within'],
+          no: i + 1,
+          ordered: true,
+        }),
+      );
+      // One line for both when the race finishes where it starts.
+      const same = JSON.stringify(cond.start) === JSON.stringify(cond.finish);
+      (['start', 'finish'] as const).forEach((key) =>
+        ((same && key === 'finish' ? [] : (cond[key] as QuestPoint[])) ?? []).forEach((p, i) =>
+          out.push({
+            kind: 'via',
+            x: p.x,
+            y: p.y,
+            within: 0,
+            path: [...path, key, i],
+            radiusPath: null,
+            no: 0,
+            ordered: false,
+            name: `${same ? 'line' : key} ${i ? 'pin' : 'boat'}`,
+            line: key,
+          }),
+        ),
       );
     }
     if (cond.is === 'carried')
@@ -292,6 +330,7 @@ export function addPlace(step: QuestStep, x: number, y: number): Path | null {
     const cond = c as Condition;
     if (cond.is === 'reach') return [...path, 'points'];
     if (cond.is === 'timed') return [...path, 'via'];
+    if (cond.is === 'raced') return [...path, 'marks'];
     if (cond.is === 'all' || cond.is === 'any')
       for (const [i, m] of ((cond.of as Condition[]) ?? []).entries()) {
         const found = find(m, [...path, 'of', i]);

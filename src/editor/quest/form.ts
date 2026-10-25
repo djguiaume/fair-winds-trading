@@ -362,6 +362,8 @@ function paramField(
       return placeField(name, v, ctx, set);
     case 'points':
       return pointsField(name, v as (QuestPoint | string)[] | undefined, ctx, optional, set);
+    case 'gate':
+      return gateField(name, v as QuestPoint[] | undefined, ctx, set);
     default:
       return row(name, String(v ?? ''));
   }
@@ -509,6 +511,38 @@ function pointsField(
     }),
   );
   box.append(add);
+  return row(name, box);
+}
+
+/**
+ * A race's start or finish line (decision 0216): the committee boat's end, then the pin's. Both
+ * ends are dragged on the chart too.
+ */
+function gateField(
+  name: string,
+  gate: QuestPoint[] | undefined,
+  ctx: FormContext,
+  set: (v: unknown) => void,
+): HTMLElement {
+  const ends = gate?.length === 2 ? gate : (defaultParam('gate', ctx.map, []) as QuestPoint[]);
+  const box = h('div', { class: 'qb-points' });
+  ends.forEach((p, i) => {
+    const line = h('div', { class: 'qb-pt' }, h('b', {}, i ? 'pin' : 'boat'));
+    for (const key of ['x', 'y'] as const)
+      line.append(
+        key,
+        numberInput(
+          p[key],
+          (n) =>
+            n !== undefined &&
+            ctx.edit(() => {
+              if (gate?.length === 2) gate[i]![key] = n;
+              else set(ends.map((e, k) => (k === i ? { ...e, [key]: n } : e)));
+            }),
+        ),
+      );
+    box.append(line);
+  });
   return row(name, box);
 }
 
