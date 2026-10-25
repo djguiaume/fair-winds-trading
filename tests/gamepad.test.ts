@@ -223,6 +223,56 @@ describe('game controller (decision 0162)', () => {
     expect(poller.usingPad).toBe(true);
   });
 
+  it('takes the D-pad as keys when only the bumpers come through the API (decision 0199)', () => {
+    // Edge on Xbox in pointer mode: LB/RB/LT/RT reach the Gamepad API, the D-pad and A only
+    // come as keys. A bumper once pressed must not make every later D-pad key an "echo".
+    const { poller, fire, setPads } = rig([fakePad()]);
+    fire('gamepadconnected');
+    poller.poll(0);
+    setPads([fakePad(['rb'])]);
+    expect(poller.poll(16)!.presses.map((p) => p.button)).toEqual(['rb']);
+    setPads([fakePad()]);
+    poller.poll(32);
+    fire('keydown', { key: 'GamepadDPadDown', preventDefault: () => {} });
+    expect(poller.poll(48)!.presses.map((p) => p.button)).toEqual(['down']);
+    fire('keyup', { key: 'GamepadDPadDown', preventDefault: () => {} });
+    poller.poll(64);
+    fire('keydown', { key: 'GamepadA', preventDefault: () => {} });
+    expect(poller.poll(80)!.presses.map((p) => p.button)).toEqual(['a']);
+  });
+
+  it('on a TV: arrows and Enter are the pad, always in use, its cursor clicks stopped', () => {
+    const { poller, fire } = rig([fakePad()], true);
+    expect(poller.usingPad).toBe(true);
+    fire('gamepadconnected');
+    poller.poll(0);
+    let stopped = 0;
+    const key = (k: string) => ({
+      key: k,
+      preventDefault: () => {},
+      stopImmediatePropagation: () => stopped++,
+    });
+    fire('keydown', key('ArrowDown'));
+    expect(poller.poll(16)!.presses.map((p) => p.button)).toEqual(['down']);
+    expect(stopped).toBe(1); // the arrow does not also steer the boat as a key
+    fire('keyup', key('ArrowDown'));
+    poller.poll(32);
+    fire('keydown', key('Enter'));
+    expect(poller.poll(48)!.presses.map((p) => p.button)).toEqual(['a']);
+    // The cursor's click that came with A is the pad's: stopped, the focus stays.
+    const click = {
+      isTrusted: true,
+      preventDefault: () => {},
+      stopImmediatePropagation: () => stopped++,
+    };
+    fire('pointerdown', click);
+    expect(stopped).toBe(4); // arrow down and up, Enter, the click
+    fire('keyup', key('Enter'));
+    fire('keydown', { key: 'q' });
+    poller.poll(2000);
+    expect(poller.usingPad).toBe(true);
+  });
+
   it('catches a tap shorter than a frame by reading between frames (decision 0183)', () => {
     const { poller, fire, setPads } = rig([fakePad()]);
     fire('gamepadconnected');
@@ -239,7 +289,7 @@ describe('game controller (decision 0162)', () => {
 });
 
 /** A poller over fake pads, with the events it listens to. */
-function rig(start: (PadLike | null)[]) {
+function rig(start: (PadLike | null)[], tv = false) {
   const listeners: Record<string, ((e?: unknown) => void)[]> = {};
   let pads = start;
   let reads = 0;
@@ -255,6 +305,8 @@ function rig(start: (PadLike | null)[]) {
       },
     },
     target,
+    PAD,
+    tv,
   );
   const fire = (type: string, e: unknown = {}) => listeners[type]?.forEach((fn) => fn(e));
   return { poller, fire, reads: () => reads, setPads: (p: (PadLike | null)[]) => (pads = p) };

@@ -122,4 +122,17 @@ describe('the port screen with a game controller (decision 0192)', () => {
     expect(startOf(all)?.id).toBe('up');
     expect(startOf(all.slice(1))?.id).toBe('sail');
   });
+
+  it('on a TV a screen gets its focus with no pad frame, and the first A presses (0199)', () => {
+    document.body.innerHTML = `<div id="screen"><button id="buy" class="brass">Buy</button></div>`;
+    const root = document.getElementById('screen')!;
+    const clicked: string[] = [];
+    root.addEventListener('click', (e) => clicked.push((e.target as HTMLElement).id));
+    const focus = new PadFocus(() => ({ root, back: () => {} }), null);
+    focus.setUsing(true, false);
+    focus.frame(null, 0);
+    expect(document.activeElement?.id).toBe('buy');
+    focus.press(press('a'), 'menu');
+    expect(clicked).toEqual(['buy']);
+  });
 });

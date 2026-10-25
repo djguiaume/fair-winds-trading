@@ -45,7 +45,7 @@ describe('bounded port label queries', () => {
     labels.update(project);
     expect(marker.hidden).toBe(false);
     expect(labels.dockShown(port.id)).toBe(true);
-    expect(marker.querySelector('.port-marker-dock')!.textContent!.trim()).toBe('Trade');
+    expect(marker.querySelector('.port-marker-dock-text')!.textContent).toBe('Trade');
   });
 
   for (const [mode, kidMode, range] of [
