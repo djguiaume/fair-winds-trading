@@ -22,6 +22,7 @@
     "adr": "node tools/fw/fw.mjs adr",
     "shots": "node tools/fw/fw.mjs shots",
     "quest": "node tools/fw/fw.mjs quest",
+    "race": "node tools/fw/fw.mjs quest race",
     "chart": "node tools/fw/fw.mjs chart"
   },
   "dependencies": {

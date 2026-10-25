@@ -8,6 +8,7 @@ import type { MapDef, SeaMarkDef, SeaMarkType } from '../../sim/map';
 import type { StepWind } from '../../sim/stepEffects';
 import { BUILDINGS, homeSpots, resolveSpot } from '../../sim/home';
 import { clearAt } from '../../sim/mapChecks';
+import { REGATTA } from '../../sim/regatta';
 import { hasQuestLand, standingMap } from '../../sim/questLand';
 import {
   CONDITIONS,
@@ -171,6 +172,9 @@ export interface Place {
   /** Number shown by the ring (1-based), and whether a line joins them in order. */
   no: number;
   ordered: boolean;
+  /** Its own label instead of its number ("start pin"), and the line it ends (a race's, 0217). */
+  name?: string;
+  line?: string;
 }
 
 export function getAt(root: unknown, path: Path): unknown {
@@ -228,6 +232,40 @@ export function stepPlaces(step: QuestStep, map: MapDef): Place[] {
           no: i + 1,
           ordered: true,
         }),
+      );
+    }
+    // A race (decision 0217): its marks in order, and each end of its start and finish lines.
+    if (cond.is === 'raced') {
+      const within = typeof cond.within === 'number' ? cond.within : REGATTA.within;
+      ((cond.marks as QuestPoint[]) ?? []).forEach((p, i) =>
+        out.push({
+          kind: 'point',
+          x: p.x,
+          y: p.y,
+          within,
+          path: [...path, 'marks', i],
+          radiusPath: [...path, 'within'],
+          no: i + 1,
+          ordered: true,
+        }),
+      );
+      // One line for both when the race finishes where it starts.
+      const same = JSON.stringify(cond.start) === JSON.stringify(cond.finish);
+      (['start', 'finish'] as const).forEach((key) =>
+        ((same && key === 'finish' ? [] : (cond[key] as QuestPoint[])) ?? []).forEach((p, i) =>
+          out.push({
+            kind: 'via',
+            x: p.x,
+            y: p.y,
+            within: 0,
+            path: [...path, key, i],
+            radiusPath: null,
+            no: 0,
+            ordered: false,
+            name: `${same ? 'line' : key} ${i ? 'pin' : 'boat'}`,
+            line: key,
+          }),
+        ),
       );
     }
     if (cond.is === 'carried')
@@ -292,6 +330,7 @@ export function addPlace(step: QuestStep, x: number, y: number): Path | null {
     const cond = c as Condition;
     if (cond.is === 'reach') return [...path, 'points'];
     if (cond.is === 'timed') return [...path, 'via'];
+    if (cond.is === 'raced') return [...path, 'marks'];
     if (cond.is === 'all' || cond.is === 'any')
       for (const [i, m] of ((cond.of as Condition[]) ?? []).entries()) {
         const found = find(m, [...path, 'of', i]);
@@ -352,6 +391,62 @@ export function setWind(target: { wind?: StepWind }, speedKn?: number, fromDeg?:
     return;
   }
   target.wind = fromDeg === undefined ? { speedKn } : { speedKn, fromDeg };
+}
+
+// --- Races (decision 0217) ----------------------------------------------------------------------
+
+/** A race's `raced` goal (its one step's), or null for a quest that is no race. */
+export function raceGoal(quest: QuestDef): Condition | null {
+  const goal = quest.race ? quest.steps[0]?.goal : undefined;
+  return goal?.is === 'raced' ? goal : null;
+}
+
+/** A race's start or finish line: the committee boat's end, then the pin's. */
+export function setRaceLine(
+  quest: QuestDef,
+  which: 'start' | 'finish',
+  a: QuestPoint,
+  b: QuestPoint,
+): boolean {
+  const goal = raceGoal(quest);
+  if (!goal) return false;
+  goal[which] = [
+    { x: round1(a.x), y: round1(a.y) },
+    { x: round1(b.x), y: round1(b.y) },
+  ];
+  return true;
+}
+
+/** Adds a race mark at `at` (after mark `after`, 0-based; at the end by default); its index. */
+export function addRaceMark(quest: QuestDef, at: QuestPoint, after?: number): number {
+  const goal = raceGoal(quest);
+  if (!goal) return -1;
+  const marks = [...((goal.marks as QuestPoint[]) ?? [])];
+  const i = after === undefined ? marks.length : Math.min(marks.length, after + 1);
+  marks.splice(i, 0, { x: round1(at.x), y: round1(at.y) });
+  goal.marks = marks;
+  return i;
+}
+
+/** Moves race mark `i` (0-based); false when there is none. */
+export function moveRaceMark(quest: QuestDef, i: number, at: QuestPoint): boolean {
+  const marks = raceGoal(quest)?.marks as QuestPoint[] | undefined;
+  if (!marks?.[i]) return false;
+  marks[i] = { x: round1(at.x), y: round1(at.y) };
+  return true;
+}
+
+/** Removes race mark `i` (0-based); a race keeps at least one. */
+export function removeRaceMark(quest: QuestDef, i: number): boolean {
+  const marks = raceGoal(quest)?.marks as QuestPoint[] | undefined;
+  if (!marks?.[i] || marks.length < 2) return false;
+  marks.splice(i, 1);
+  return true;
+}
+
+/** A race's pars (ship class → level → seconds), from `npm run race -- pars` or the builder. */
+export function setRacePars(quest: QuestDef, pars: Record<string, Record<string, number>>) {
+  if (quest.race) quest.race.pars = pars;
 }
 
 // --- Play from a step ------------------------------------------------------------------------
@@ -440,6 +535,14 @@ export function defaultParam(type: Param, map: MapDef, questIds: string[]): unkn
     case 'points': {
       const s = map.start;
       return [{ x: round1(s.x), y: round1(s.y + 40) }];
+    }
+    // A race's line (decision 0217): the committee boat's end, then the pin's, across the course.
+    case 'gate': {
+      const s = map.start;
+      return [
+        { x: round1(s.x - 20), y: round1(s.y + 20) },
+        { x: round1(s.x + 20), y: round1(s.y + 20) },
+      ];
     }
     case 'order':
       return 'any';

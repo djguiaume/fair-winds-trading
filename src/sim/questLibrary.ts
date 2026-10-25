@@ -16,6 +16,7 @@ import { MAX_SETTLEMENT_LEVEL, settlementLevel } from './settlement';
 import { homePort, isDiscovered, standingAt } from './shipyards';
 import type { TradeState } from './trade';
 import { hasVolcano } from '../data/islands';
+import { REGATTA, crossesForward, crossesGate, type Gate } from './regatta';
 
 /*
  * The quest engine's code library (decision 0125), like ship parts: the kinds of condition a quest
@@ -201,6 +202,7 @@ export type Param =
   | 'points'
   | 'order'
   | 'par'
+  | 'gate'
   | 'condition'
   | 'conditions'
   | 'screen'
@@ -389,6 +391,51 @@ function updateTimed(c: Condition, ctx: StepContext, s: number[]) {
     s[1] = 0;
     s[2] = 0;
   } else if (docked === to && s[2]! >= via.length) s[0] = RUN_MADE;
+}
+
+/** Race states in the first slot of `raced` (decision 0217). */
+export const RACE_HORN = 0;
+export const RACE_GOING = 1;
+export const RACE_FINISHED = 2;
+
+/**
+ * A race (`raced`, decision 0217): the horn sequence counts down while the sea is on screen, then
+ * the clock runs from the horn. The boat crosses the start line toward the course (one over the
+ * line at the horn comes back and crosses again), rounds the marks in order and crosses the
+ * finish line. Nothing fails: the clock runs until she finishes. Slots: the race's state,
+ * hundredths of a second (of the sequence, then on the clock), and the progress: 0 before the
+ * start, then 1 + the marks rounded.
+ */
+function updateRaced(c: Condition, ctx: StepContext, s: number[]) {
+  if (s[0] === RACE_FINISHED) return;
+  const dt = Math.round(ctx.dt * 100);
+  if (s[0] === RACE_HORN) {
+    if ((ctx.screen ?? 'sea') !== 'sea') return;
+    s[1] = s[1]! + dt;
+    if (s[1]! >= REGATTA.countdownSec * 100) {
+      s[0] = RACE_GOING;
+      s[1] = 0;
+    }
+    return;
+  }
+  s[1] = s[1]! + dt;
+  const marks = (c.marks as QuestPoint[]) ?? [];
+  const start = c.start as Gate;
+  const finish = c.finish as Gate;
+  if (s[2] === 0) {
+    const toward = marks[0] ?? {
+      x: (finish[0].x + finish[1].x) / 2,
+      y: (finish[0].y + finish[1].y) / 2,
+    };
+    if (crossesForward(start, ctx.from, ctx.boat, toward)) s[2] = 1;
+    return;
+  }
+  const next = marks[s[2]! - 1];
+  if (next) {
+    if (passDistance(ctx.from, ctx.boat, next) <= num(c.within, REGATTA.within)) s[2] = s[2]! + 1;
+    return;
+  }
+  if (crossesGate(finish, ctx.from, ctx.boat)) s[0] = RACE_FINISHED;
 }
 
 /**
@@ -684,6 +731,12 @@ export const CONDITIONS: Record<string, ConditionKind> = {
     update: updateReach,
     test: (c, _ctx, s) => reachDone(c, s),
   },
+  raced: {
+    params: { start: 'gate', marks: 'points', finish: 'gate', within: 'number?' },
+    slots: 3,
+    update: updateRaced,
+    test: (_c, _ctx, s) => s[0] === RACE_FINISHED,
+  },
   timed: {
     params: { from: 'port', to: 'port?', via: 'points?', within: 'number?', par: 'par' },
     slots: 3,
@@ -736,6 +789,7 @@ export const CONDITION_ABOUT: Record<string, string> = {
   tacked: 'tack: turn the bow across the wind',
   reach: 'sail to places at sea',
   timed: 'a run against the clock',
+  raced: 'a race: a start line, numbered marks in order, a finish line (decision 0217)',
 };
 
 /**
@@ -957,6 +1011,8 @@ function checkParam(
       bad(`needs a list of { "x", "y" } or map places (${Object.keys(MAP_PLACES).join(', ')})`);
     else if (v.length > 30) bad('at most 30 points');
   }
+  if (type === 'gate' && !(Array.isArray(v) && v.length === 2 && v.every(isPoint)))
+    bad("needs two points: the committee boat's end, then the pin's");
   if (type === 'par') {
     const ok =
       (isNumber(v) && (v as number) > 0) ||

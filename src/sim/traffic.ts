@@ -19,6 +19,7 @@ import type { World, WorldEvent } from './world';
 import { townLevels } from './founding';
 import { questsDone, questsRunning } from './settlement';
 import { knobs } from './difficulty';
+import { crossesGate } from './regatta';
 
 /*
  * Other boats on the sea (decision 0215, Phase 5 part 4): fishing boats near their port, coasters
@@ -101,6 +102,19 @@ export interface TrafficBoat {
   /** Under sweeps by a harbour, sails down: where the wind would pin her to the quay. */
   sweeps: boolean;
   rng: Rng;
+  /**
+   * A race's rival (decision 0217): she sails the course and stops at the finish, never rows and
+   * never gives way. `gunAt` the horn's time (null before it), `finishedAt` hers, `arrive` how
+   * close she rounds a mark, `over` once the captain's race has ended.
+   */
+  racer?: {
+    gunAt: number | null;
+    finishedAt: number | null;
+    arrive: number;
+    over: boolean;
+    /** The finish line: crossing it anywhere on the last leg finishes her. */
+    finish?: [Point, Point];
+  };
 }
 
 export interface TrafficState {
@@ -666,10 +680,12 @@ export function pilot(world: World, b: TrafficBoat, wind: Wind): BoatControls {
   // By a harbour, slow, she takes to the sweeps (the long oars) and rows clear of the quays.
   const lane = laneOf(world.map, b.fleet);
   const ends = b.fleet.kind === 'fishing' ? [lane[0]!] : [lane[0]!, lane[lane.length - 1]!];
-  // Pinned on a lee shore anywhere, she rows off it the same way.
+  // Pinned on a lee shore anywhere, she rows off it the same way; a racer only then (her course's
+  // ends are marks at sea, not quays).
   b.sweeps =
     boat.speedKn < t.sweepKn * 1.5 &&
-    (boat.sinceBump < 2 || ends.some((p) => Math.hypot(p.x - boat.x, p.y - boat.y) < t.sweepRange));
+    (boat.sinceBump < 2 ||
+      (!b.racer && ends.some((p) => Math.hypot(p.x - boat.x, p.y - boat.y) < t.sweepRange)));
   if (b.sweeps) {
     let best = Infinity;
     let want = bearingTo(boat, target);
@@ -755,7 +771,7 @@ export function pilot(world: World, b: TrafficBoat, wind: Wind): BoatControls {
   // Give way: the player close ahead, she eases her sails and bears away from her.
   const me = world.boat;
   const pd = Math.hypot(me.x - boat.x, me.y - boat.y);
-  if (pd < t.giveWayRange) {
+  if (pd < t.giveWayRange && !b.racer) {
     const toMe = wrapAngle(bearingTo(boat, me) - boat.heading);
     if (Math.abs(toMe) < 70 * DEG) {
       sailStep = 1;
@@ -772,6 +788,7 @@ function stepOne(world: World, b: TrafficBoat, dt: number) {
   const wind = windFor(world, b);
   const controls = pilot(world, b, wind);
   const { boat } = b;
+  const was = { x: boat.x, y: boat.y };
   stepBoat(boat, controls, b.ship, wind, dt);
   if (b.sweeps && world.time >= b.waitUntil) {
     // Rowing: a steady way through the water, wind or none, and the hull held to her course.
@@ -815,9 +832,16 @@ function stepOne(world: World, b: TrafficBoat, dt: number) {
   }
   const stuck = world.time - b.bestAt > t.stuckSec;
   if (stuck) b.stuck++;
-  if (d < t.arriveRange || stuck) {
+  const line = b.leg === b.route.length - 1 ? b.racer?.finish : undefined;
+  const over = !!line && crossesGate(line, was, boat);
+  if (d < (b.racer?.arrive ?? t.arriveRange) || stuck || over) {
     if (b.leg + 1 < b.route.length) startLeg(b, b.leg + 1, world.time);
-    else nextTrip(world.map, world.land, b, world.time);
+    else if (b.racer) {
+      // Over the finish line: she lies there with her sails down.
+      b.racer.finishedAt = world.time;
+      b.waitUntil = Infinity;
+      b.route = [];
+    } else nextTrip(world.map, world.land, b, world.time);
   }
 }
 const flow = { east: 0, north: 0, id: '' };
@@ -883,6 +907,23 @@ export function stepTraffic(world: World, dt: number): WorldEvent[] {
   for (let i = 0; i < awake.length; i++)
     for (let j = i + 1; j < awake.length; j++) separate(awake[i]!, awake[j]!);
   return events;
+}
+
+/**
+ * The race's rival (decision 0217), after the player: she waits at the line until the horn, sails
+ * the course, and once the captain's race has ended she goes when she is done or out of sight.
+ */
+export function stepRival(world: World, dt: number): WorldEvent[] {
+  const b = world.rival;
+  if (!b?.racer) return [];
+  const far = Math.hypot(b.boat.x - world.boat.x, b.boat.y - world.boat.y) > tuning().activeRange;
+  if (b.racer.over && (b.racer.finishedAt !== null || far)) {
+    world.rival = null;
+    return [];
+  }
+  stepOne(world, b, dt);
+  const e = bumpPlayer(world, b);
+  return e ? [e] : [];
 }
 
 /** Sails one boat alone for `seconds` (the checks and tests), with the world's wind. */

@@ -136,7 +136,7 @@ const GOLDEN: Record<string, string[]> = {
   'gull-hook': ['130:ca8ed3fd', '130:ca8ed3fd', '130:ca8ed3fd', '130:ca8ed3fd'],
   'lantern-rock': ['23:33c034ce', '23:33c034ce', '23:33c034ce', '23:33c034ce'],
   'teeth-rock': ['25:d7a4208f', '25:d7a4208f', '25:d7a4208f', '25:d7a4208f'],
-  skerry: ['187:5aa7f67f', '191:8a29c0be', '194:49537bb4', '194:49537bb4'],
+  skerry: ['195:8561dde0', '199:c7a7270d', '202:8ddd0957', '202:8ddd0957'],
   'watchman-key': ['43:76dcfa49', '73:1979e55b', '92:1214bfbb', '99:c4c56bcf'],
   sunreach: ['606:780ca76b', '739:2be703f5', '842:84de71a', '877:b4741162'],
   'sunreach-south': ['457:f03cd670', '482:cee9291', '491:b2dd7f07', '491:b2dd7f07'],

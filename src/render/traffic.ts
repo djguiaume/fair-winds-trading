@@ -15,6 +15,7 @@ import { buildProp } from './models/propRecipe';
 import { RefinedBoat } from './models/refinedBoat';
 import { rigOf } from './models/shipModels';
 import { PALETTE } from '../data/props';
+import { REGATTA, flagById } from '../sim/regatta';
 
 /** The recipe each small kind is drawn from (src/data/props); visitors are ship models. */
 const RECIPES: Partial<Record<TrafficKind, string>> = {
@@ -63,6 +64,8 @@ export class TrafficView {
   private readonly batches = new Map<string, Batch>();
   private readonly styles: Map<string, string>;
   private visitor: Visitor | null = null;
+  /** Kestrel, the regatta's rival (decision 0217): her own model, built at her first race. */
+  private rival: RefinedBoat | null = null;
   private readonly matrix = new THREE.Matrix4();
   private readonly sailMatrix = new THREE.Matrix4();
   private readonly quaternion = new THREE.Quaternion();
@@ -186,6 +189,26 @@ export class TrafficView {
     return model;
   }
 
+  /** Kestrel's model (decision 0217): a cutter in Wren's white and racing red, her burgee aloft. */
+  private rivalModel(): RefinedBoat | null {
+    if (this.rival) return this.rival;
+    const r = REGATTA.rival;
+    const file = SHIP_FILES.find((f) => f.id === r.ship);
+    if (!file) return null;
+    const flag = flagById(r.flag);
+    this.rival = new RefinedBoat(
+      { ...rigOf(file), hull: r.hull, band: r.band },
+      {
+        upgrades: { sails: 2, hold: 1, hull: 2 },
+        rigging: false,
+        sailNumber: r.sailNumber,
+        ...(flag ? { flag } : {}),
+      },
+    );
+    this.root.add(this.rival.root);
+    return this.rival;
+  }
+
   /**
    * Draws the boats awake now. `wave` is the sea's height at a scene point; `glow` the night's
    * (and a storm's) 0..1 for the lanterns; `near` the player, whose nearest visitor is drawn.
@@ -196,6 +219,7 @@ export class TrafficView {
     wave: (x: number, z: number) => number,
     glow: number,
     near: { x: number; y: number },
+    rival: TrafficBoat | null = null,
   ) {
     for (const batch of this.batches.values()) batch.count = 0;
     let lights = 0;
@@ -268,6 +292,24 @@ export class TrafficView {
       }
     }
 
+    // The regatta's rival, racing beside the captain (decision 0217).
+    const kestrel = rival ? this.rivalModel() : this.rival;
+    if (kestrel) kestrel.root.visible = !!rival;
+    if (kestrel && rival) {
+      const pose = this.pose(rival, wave);
+      kestrel.update({
+        sail: pose.sail,
+        boomAngle: pose.boom,
+        luff: pose.luff,
+        heel: pose.heel,
+        windRelative: wrapAngle(windTo(rival.wind) - rival.boat.heading),
+        time,
+      });
+      kestrel.root.position.copy(this.position);
+      kestrel.root.rotation.set(pose.pitch, -rival.boat.heading, 0);
+      kestrel.setNightLighting?.(glow);
+    }
+
     this.lights.visible = glow > 0.02 && lights > 0;
     if (this.lights.visible) {
       this.lightGeometry.setDrawRange(0, lights);
@@ -314,6 +356,7 @@ export class TrafficView {
       for (const sail of batch.sails) sail.geometry.dispose();
     }
     this.visitor?.model.dispose();
+    this.rival?.dispose();
     this.hullMaterial.dispose();
     this.sailMaterial.dispose();
     this.lightGeometry.dispose();

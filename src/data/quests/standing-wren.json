@@ -1,0 +1,64 @@
+{
+  "id": "standing-wren",
+  "name": "Wren's standing order",
+  "start": {
+    "is": "all",
+    "of": [
+      {
+        "is": "quest-done",
+        "quest": "race-gap"
+      },
+      {
+        "is": "quest-done",
+        "quest": "race-calda"
+      },
+      {
+        "is": "quest-done",
+        "quest": "race-greyback"
+      }
+    ]
+  },
+  "text": "quest.standing-wren",
+  "giver": "wren",
+  "port": "saltmere",
+  "offer": true,
+  "repeat": true,
+  "steps": [
+    {
+      "id": "ask-1",
+      "goal": {
+        "is": "landed",
+        "place": "saltmere",
+        "good": "timber",
+        "qty": 5
+      },
+      "reward": {
+        "order": true
+      }
+    },
+    {
+      "id": "ask-2",
+      "goal": {
+        "is": "landed",
+        "place": "saltmere",
+        "good": "grain",
+        "qty": 5
+      },
+      "reward": {
+        "order": true
+      }
+    },
+    {
+      "id": "ask-3",
+      "goal": {
+        "is": "landed",
+        "place": "saltmere",
+        "good": "stone",
+        "qty": 6
+      },
+      "reward": {
+        "order": true
+      }
+    }
+  ]
+}

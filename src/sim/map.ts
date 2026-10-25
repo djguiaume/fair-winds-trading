@@ -187,6 +187,11 @@ export const SEA_MARK_TYPES = [
   /** An old, empty hull aground on a reef (decision 0216): a mark that waits on a quest. */
   'wreck',
   'light',
+  // The regatta's marks (decision 0217), put on the water by a running race.
+  'race-mark',
+  'race-pin',
+  'race-committee',
+  'race-finish',
 ] as const;
 export type SeaMarkType = (typeof SEA_MARK_TYPES)[number];
 

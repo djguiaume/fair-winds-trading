@@ -1,0 +1,66 @@
+{
+  "title": "The Floe Line Race · The sea races",
+  "legend": [
+    {
+      "style": "route",
+      "text": "the course, mark to mark (boats sail round land)"
+    }
+  ],
+  "lines": [
+    {
+      "points": [
+        [
+          -40,
+          640
+        ],
+        [
+          -270,
+          560
+        ],
+        [
+          40,
+          560
+        ],
+        [
+          -40,
+          640
+        ]
+      ],
+      "style": "route",
+      "label": "The Floe Line Race",
+      "arrow": true
+    },
+    {
+      "points": [
+        [
+          -60,
+          640
+        ],
+        [
+          -20,
+          640
+        ]
+      ],
+      "style": "short",
+      "label": "start and finish"
+    }
+  ],
+  "labels": [
+    {
+      "at": [
+        -270,
+        574
+      ],
+      "text": "mark 1",
+      "style": "note"
+    },
+    {
+      "at": [
+        40,
+        574
+      ],
+      "text": "mark 2",
+      "style": "note"
+    }
+  ]
+}

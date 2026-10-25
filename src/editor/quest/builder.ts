@@ -12,6 +12,7 @@ import {
   type QuestStep,
 } from '../../sim/quests';
 import { CHARACTERS, MOODS, type Mood, portraitSvg } from '../../ui/portraits';
+import { MEDALS, REGATTA } from '../../sim/regatta';
 import { seaMarkShape } from '../../ui/chartMarks';
 import { questCardBody } from '../../ui/questCard';
 import type { QuestCardModel } from '../../ui/questView';
@@ -35,6 +36,7 @@ import {
   fillWords,
   getAt,
   isQuestDoc,
+  newCondition,
   newQuest,
   newStep,
   playUrl,
@@ -486,6 +488,7 @@ function drawQuestList() {
     if (q.main) li.append(h('em', { class: 'qb-tag main' }, 'main'));
     if (q.lesson) li.append(h('em', { class: 'qb-tag main' }, 'lesson'));
     if (q.repeat) li.append(h('em', { class: 'qb-tag' }, 'standing'));
+    if (q.race) li.append(h('em', { class: 'qb-tag' }, 'race'));
     if (!shippedQuest(q.id)) li.append(h('em', { class: 'qb-tag new' }, 'new'));
     const pick = () => {
       questId = q.id;
@@ -794,6 +797,7 @@ function questPanel(q: QuestDef): HTMLElement[] {
       ),
     ),
   );
+  out.push(...raceRows(q, ctx, edit));
   out.push(...questSeaRows(q));
   out.push(conditionForm(q.start, ctx, false, (c) => (q.start = c), 'Starts when'));
   out.push(h('h2', {}, 'Quest cargo'));
@@ -1402,6 +1406,12 @@ function drawChartView() {
     if (run.length > 1)
       add('polyline', { points: run.map((p) => `${p.x},${-p.y}`).join(' '), class: 'qb-order' });
   }
+  // A race's start and finish lines (decision 0217), from the committee boat to the pin.
+  for (const line of ['start', 'finish']) {
+    const ends = places.filter((p) => p.line === line);
+    if (ends.length === 2)
+      add('polyline', { points: ends.map((p) => `${p.x},${-p.y}`).join(' '), class: 'qb-order' });
+  }
   places.forEach((p, i) => {
     if (p.kind === 'compass') {
       add('path', { d: star(p.x, p.y, 9 * px), class: 'qb-compass', 'data-hit': `qp:${i}` });
@@ -1418,7 +1428,7 @@ function drawChartView() {
     if (p.kind !== 'chart') {
       add('circle', { cx: p.x, cy: -p.y, r: 5 * px, class: 'qb-handle', 'data-hit': `qp:${i}` });
       label(
-        p.kind === 'spot' ? (p.no === 1 ? 'load' : 'unload') : String(p.no),
+        p.name ?? (p.kind === 'spot' ? (p.no === 1 ? 'load' : 'unload') : String(p.no)),
         p.x,
         p.y + p.within + 6 * px,
         'num',
@@ -1838,4 +1848,87 @@ function drawStory() {
       ? [h('h3', { class: 'qb-legend' }, 'Standing orders: they ask again (0214)'), standing]
       : []),
   );
+}
+
+/**
+ * A race of the regatta (decision 0217): its series, the gold of each medal the first time, who
+ * starts it, and its pars by ship class and level. The pars come from the balance bots
+ * (`npm run race -- <id> --pars --write`); the line and the marks are its one step's `raced` goal,
+ * dragged on the chart like any place.
+ */
+function raceRows(q: QuestDef, ctx: FormContext, edit: (fn: () => void) => void): HTMLElement[] {
+  const out: HTMLElement[] = [
+    row(
+      'Race',
+      checkbox(
+        !!q.race,
+        (on) =>
+          edit(() => {
+            if (!on) return delete q.race;
+            q.race = {
+              series: REGATTA.series[0]!.id,
+              gold: { bronze: 60, silver: 120, gold: 200 },
+              pars: {},
+            };
+            q.offer = true;
+            delete q.reward;
+            const s = ctx.map.start;
+            q.steps = [
+              {
+                id: 'race',
+                goal: newCondition('raced', ctx.map, []),
+                moveTo: { x: round1(s.x), y: round1(s.y), headingDeg: 0 },
+              },
+            ];
+          }),
+        'a race of the regatta: one raced step, medals, Race again (0217)',
+      ),
+    ),
+  ];
+  const race = q.race;
+  if (!race) return out;
+  out.push(
+    row(
+      'Series',
+      select(
+        REGATTA.series.map((s) => [s.id, s.name] as [string, string]),
+        race.series,
+        (v) => edit(() => (race.series = v)),
+      ),
+    ),
+    row(
+      'Medal gold',
+      ...MEDALS.map((m) =>
+        h(
+          'span',
+          { class: 'qb-medal' },
+          `${m} `,
+          numberInput(
+            race.gold[m],
+            (n) => n !== undefined && edit(() => (race.gold[m] = Math.max(0, Math.round(n)))),
+          ),
+        ),
+      ),
+    ),
+    row(
+      'Starter',
+      select(
+        characterOptions(),
+        q.starter,
+        (v) => edit(() => (v ? (q.starter = v) : delete q.starter)),
+        '—',
+      ),
+    ),
+  );
+  const ships = Object.keys(race.pars);
+  const pars = ships.length
+    ? ships
+        .map(
+          (ship) =>
+            `${ship} ${['fair', 'captain', 'salt'].map((l) => clock(race.pars[ship]![l] ?? 0)).join(' / ')}`,
+        )
+        .join(' · ')
+    : 'none yet';
+  out.push(row('Pars', h('small', {}, `${pars} — npm run race -- ${q.id} --pars --write`)));
+  return out;
 }

@@ -44,7 +44,7 @@ import * as trade from './sim/trade';
 import { type Difficulty, isDifficulty, knobs } from './sim/difficulty';
 import { daylightAt } from './sim/daylight';
 import { hazeSwitches } from './sim/windZones';
-import { QuestBook, roundStep, useEditedQuests } from './sim/quests';
+import { type QuestEvent, QuestBook, roundStep, useEditedQuests } from './sim/quests';
 import { questTestFrom, sailableHeading, testBerth } from './sim/questTest';
 import { QuestTestBar } from './ui/questTestBar';
 import { type StepEffects, type StepWind, heldWind } from './sim/stepEffects';
@@ -57,6 +57,7 @@ import {
   journal,
   newsLine,
   parClock,
+  type QuayItem,
   quayItems,
   questGoal,
   questPins,
@@ -66,6 +67,14 @@ import {
   questTarget,
   trackedMarkers,
 } from './ui/questView';
+import { gateMid } from './sim/regatta';
+import {
+  flownPennant,
+  raceBookCards,
+  raceHud,
+  raceResultCard,
+  starterLine,
+} from './ui/regattaView';
 import { LESSONS_QUEST, TUTORIAL_QUEST, TutorialChoice, TutorialCoach } from './ui/tutorial';
 import {
   type WorldEvent,
@@ -406,6 +415,8 @@ const quests = new QuestBook(world, undefined, {
   nightOk: () => !settings.dayNight || daylightAt(world.time).night >= 0.5,
   screen: () => (chart.isOpen ? 'chart' : tradePanel.isOpen ? 'market' : 'sea'),
 });
+// The regatta pennant won flies at her masthead (decision 0217).
+view.setPennant(flownPennant(quests));
 // Whether a fresh voyage offers the tutorial: kept in the browser across voyages.
 const tutorialChoice = new TutorialChoice(world.map.name, storage);
 // A lesson under way in the browser's storage before 0151 moves into the voyage once.
@@ -540,14 +551,24 @@ function seaNews() {
 function showRunClock() {
   const run = world.trade.dockedAt ? undefined : quests.runs()[0];
   hud.run = run ? { sec: run.sec, par: run.par, to: run.to } : null;
+  // A race's line and clock (decision 0217).
+  hud.race = world.trade.dockedAt ? null : raceHud(quests);
 }
 /** Steps done during this call, quest → gold paid (decision 0213): "Done! +150 gold". */
 const paidHere = new Map<string, number>();
 /** The people of this harbour on the Quay tab, with their dock news (decisions 0141, 0213). */
-function quayNow() {
-  return quests.lesson
-    ? []
-    : quayItems(quests, world.map, world.trade.dockedAt, questSeen, questThanks, paidHere);
+function quayNow(): QuayItem[] {
+  if (quests.lesson) return [];
+  const docked = world.trade.dockedAt;
+  return [
+    ...quayItems(quests, world.map, docked, questSeen, questThanks, paidHere),
+    // The regatta book: races sailed from here, to sail again (decision 0217). Never news.
+    ...raceBookCards(quests, world.map, docked).map((card) => ({
+      key: `${card.quest}:book`,
+      card,
+      fresh: false,
+    })),
+  ];
 }
 // Every other quest's news away from its harbour: a small note at sea (decision 0141).
 const questNote = new QuestNote($<HTMLButtonElement>('quest-note'), $('captain-stats'));
@@ -601,6 +622,10 @@ quests.onEvent = (e) => {
     if (tradePanel.isOpen) tradePanel.close();
   }
   checkFounded();
+  if (quest?.race) {
+    raceEvent(e);
+    return;
+  }
   if (quest?.lesson) {
     // Asked again, a lesson's people cards speak again (decision 0185).
     if (e.type === 'started')
@@ -621,6 +646,7 @@ quests.onEvent = (e) => {
   if (e.type === 'finished' && !quests.lesson) questThanks.add(e.quest);
   if (e.type === 'finished') {
     view.setQuestsDone(questsDone(world.trade));
+    view.setPennant(flownPennant(quests));
     // A plot given is staked on her island at once (decision 0210).
     showHome();
   }
@@ -631,6 +657,47 @@ quests.onEvent = (e) => {
     const card = step && cardFor(quests, world.map, e.quest, kind);
     if (card) questNote.push(`${e.quest}:${step}`, card);
   }
+};
+/**
+ * A race's events (decision 0217): the starter's line at the start, the horn, the result card
+ * at once wherever she finishes, a give-up; no thanks card or note, the result card says it all.
+ */
+function raceEvent(e: QuestEvent) {
+  const quest = quests.quests.find((q) => q.id === e.quest)!;
+  if (e.type === 'started') {
+    const line = starterLine(quest);
+    if (line) hud.showToast(line, 6);
+  } else if (e.type === 'horn') {
+    music.effectNamed('race-horn');
+    hud.showToast(t('regatta.hornToast'), 3);
+  } else if (e.type === 'retired') hud.showToast(t('regatta.retired'), 4);
+  else if (e.type === 'raced') {
+    view.setPennant(flownPennant(quests));
+    const card = raceResultCard(quests, world.map, e);
+    if (card && !bench) {
+      input.releaseAll();
+      hud.hideToast();
+      questCard.show(card);
+      music.speak(card.giver?.voice, wordCount(card.speech), card.mood);
+      refreshPause();
+    }
+  } else if (e.type === 'finished') {
+    view.setQuestsDone(questsDone(world.trade));
+    view.setPennant(flownPennant(quests));
+    // The Cup on her pier once it is won (decision 0217).
+    showHome();
+  }
+  if (e.type !== 'horn') autosave();
+}
+/** "Race again", on the result card or the regatta book (decision 0217). */
+function raceAgain(id: string) {
+  if (!quests.raceAgain(id).length) return;
+  if (tradePanel.isOpen) tradePanel.close();
+}
+questCard.onAgain = raceAgain;
+hud.onRetire = () => {
+  const race = quests.race();
+  if (race) quests.retire(race.quest.id);
 };
 /** The captain's yes to an offer, on a card or on the Quay tab. */
 function acceptQuest(id: string) {
@@ -685,7 +752,7 @@ tradePanel.quay = {
     } else if (act === 'choose' && option) {
       quests.choose(id, option);
       autosave();
-    }
+    } else if (act === 'again') raceAgain(id);
   },
   // The Quay shows the news inline as it renders again.
   hand: handOverGoods,
@@ -725,6 +792,12 @@ questCard.onClose = (card) => {
 view.stepMarkers = () => trackedMarkers(quests);
 view.questMarks = () => quests.runningMarks;
 chart.questMarks = () => quests.runningMarks;
+chart.raceCourse = () => {
+  const race = quests.race();
+  if (!race) return null;
+  const { start, marks, finish } = race.course;
+  return [gateMid(start), ...marks, gateMid(finish)];
+};
 chart.quests = {
   markers: () => trackedMarkers(quests)?.points ?? [],
   pins: () => questPins(quests, world.map, questSeen),
@@ -1129,6 +1202,7 @@ function startQuestTest(test: NonNullable<typeof questTest>) {
   refreshPiers(world);
   showHome();
   view.setQuestsDone(questsDone(world.trade));
+  view.setPennant(flownPennant(quests));
   // Land that stands after the quests before this step rises (or sinks) before she is placed.
   syncWorldLand(world, true);
   const berth = test.port
@@ -2051,6 +2125,7 @@ if (new URLSearchParams(location.search).has('debug')) {
     trade.syncMarketLevels(world.trade, world.map);
     refreshPiers(world);
     view.setQuestsDone(questsDone(world.trade));
+    view.setPennant(flownPennant(quests));
     showHome();
     // Land that stands after these quests rises now, while the boat is still at her start: moored
     // there next, the land would wait for her to sail out of sight (0166, Phase 4 review).

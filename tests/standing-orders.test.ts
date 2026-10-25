@@ -183,6 +183,7 @@ describe('standing orders (decision 0214)', () => {
         'rook',
         'sigrun',
         'tam',
+        'wren',
       ].sort(),
     );
     expect(
@@ -192,7 +193,7 @@ describe('standing orders (decision 0214)', () => {
         QUESTS.filter((q) => !q.repeat).map((q) => q.id),
       ),
     ).toEqual([]);
-    expect(questsFor(GAME_MAP).filter((q) => q.repeat)).toHaveLength(14);
+    expect(questsFor(GAME_MAP).filter((q) => q.repeat)).toHaveLength(15);
     for (const q of standing) {
       expect(q.steps.length).toBeGreaterThanOrEqual(3);
       for (const s of q.steps) expect(s.goal?.place).toBe(q.port);
