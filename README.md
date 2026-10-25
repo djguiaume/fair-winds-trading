@@ -14,7 +14,7 @@ Set sail across a world of low-poly islands. Carry goods between harbours, watch
 
 ![Sailing a regatta course alongside a rival boat among the Windward Ring's reefs and sea marks](docs/reviews/regatta/shots/2-racing-desktop.png)
 
-*Sailing the Saltmere Regatta: read the wind and pick your passage.*
+_Sailing the Saltmere Regatta: read the wind and pick your passage._
 
 ## A sea of small adventures
 
@@ -30,8 +30,8 @@ The base game is a gentle adventure without combat. Choose **Fair winds**, **Cap
 
 ## A look at life ashore
 
-| Trading in Saltmere | Your home on Skerry |
-| --- | --- |
+| Trading in Saltmere                                                                                     | Your home on Skerry                                                                                                                 |
+| ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | ![Saltmere market with goods, prices, and delivery orders](docs/reviews/whole-game/saltmere-market.png) | ![Skerry with building plots, a harbour, and the regatta cup and pennant](docs/reviews/regatta/shots/6-cup-and-pennant-desktop.png) |
 
 ## Playing
