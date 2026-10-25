@@ -33,7 +33,7 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
         port     --island <id> [--name …]                           (makes the island a port)
   move <what> <id|index> --at x,y | --by dx,dy | --to-sea <id>
   set <what> <id|index> --name … (and any field: --kind, --max-draft, --type, --speed, --level …;
-        a port's --produces, --wants, --wants-made a,b,c)
+        a port's --produces, --wants, --wants-made a,b,c; a sandbank's --color #b8b2a8)
   set sea <id> --name …          set grown --radius 985 --charted 445
   --after <quest> | --before <quest> | --always   on add or set: an island, shape or mark stands
         once that quest is done, or until it is (decision 0166: land swaps out of the boat's sight)
@@ -104,6 +104,8 @@ function fieldsOf(args: Args): Record<string, unknown> {
     const v = args[flag];
     if (typeof v === 'string') fields[key] = v === 'none' ? [] : v.split(',').map((g) => g.trim());
   }
+  // A sandbank's colour (decision 0171: a pumice bank is grey).
+  if (typeof args.color === 'string') fields.look = { color: args.color };
   // An island's file is its look's design.
   if (typeof fields.design === 'string') {
     fields.look = { design: fields.design };

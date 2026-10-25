@@ -122,10 +122,10 @@ describe('island files (decision 0101)', () => {
 });
 
 const GOLDEN: Record<string, string[]> = {
-  'the-smoulder': ['133:b4494466', '133:b4494466', '133:b4494466', '133:b4494466'],
+  'the-smoulder': ['155:295a6424', '155:295a6424', '155:295a6424', '155:295a6424'],
   'organ-pipes': ['49:702078f5', '49:702078f5', '49:702078f5', '49:702078f5'],
-  emberhold: ['318:80cc1582', '341:d176e9b7', '381:14332e7a', '381:14332e7a'],
-  'cinder-isle': ['98:a0150c2c', '117:4f3b2c2b', '133:d0ae3a3e', '133:d0ae3a3e'],
+  emberhold: ['521:af46e863', '702:2d746a90', '770:a1538092', '817:be247234'],
+  'cinder-isle': ['101:d61cc732', '120:264040fd', '136:af5a5fb4', '136:af5a5fb4'],
   calda: ['556:6dc4b4e3', '664:95208427', '731:b682ff4a', '965:5ffb41cc'],
   saltmere: ['246:190f7a6', '421:aa8af177', '641:e4577624', '806:691e8290'],
   // The mason's crane on the quay, after the Stonehaven arc (decision 0133).

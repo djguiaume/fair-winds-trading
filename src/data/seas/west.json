@@ -121,7 +121,10 @@
         [-849.9, 132],
         [-848, 147]
       ],
-      "name": "Pumice Bank"
+      "name": "Pumice Bank",
+      "look": {
+        "color": "#b8b2a8"
+      }
     }
   ],
   "ports": [
@@ -131,9 +134,8 @@
       "islandId": "emberhold",
       "produces": [],
       "wants": ["obsidian", "timber"],
-      "level": 2,
+      "level": 3,
       "wantsMade": ["bread", "planks", "cutStone"],
-      "maxLevel": 3,
       "levelProduces": { "3": ["obsidianMirrors"] }
     },
     {

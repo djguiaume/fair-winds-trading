@@ -40,6 +40,18 @@ export function glowing(geometry: THREE.BufferGeometry) {
 export const isGlowing = (geometry: THREE.BufferGeometry) => geometry.userData.window === true;
 
 /**
+ * Marks a part as molten lava (decision 0171): glowing like the windows at night, but drawn by
+ * its own mesh whose day tint stays orange, so lava reads as lava in sunlight too.
+ */
+export function molten(geometry: THREE.BufferGeometry) {
+  geometry.userData.window = true;
+  geometry.userData.lava = true;
+  return geometry;
+}
+
+export const isMolten = (geometry: THREE.BufferGeometry) => geometry.userData.lava === true;
+
+/**
  * Window panes on the walls of a w × d house whose windows sit at height y, centred on (cx, cz):
  * `front` panes on the front (+Z) and back walls and `side` on each end. `seed` picks which stay
  * dark at night.

@@ -73,6 +73,8 @@ export interface TerrainDef {
      * details take. Pins a wreck the prologue sails to when the outline is reshaped.
      */
     landmarkAt?: { x: number; y: number };
+    /** A sandbank's colour, `#rrggbb` (decision 0171: pumice grey); left out, sand. */
+    color?: string;
   };
   /** Seeds its rocks, coral and trees; left out, its place in the list does (decision 0110). */
   seed?: number;

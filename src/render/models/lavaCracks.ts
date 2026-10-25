@@ -8,7 +8,7 @@ import {
   surfaceHeight,
 } from '../../sim/islandLayout';
 import { createRng } from '../../sim/rng';
-import { BEACH_TOP, glowing, paint } from './geometry';
+import { BEACH_TOP, glowing, molten, paint } from './geometry';
 
 /**
  * Glowing cracks on a ground that has a `glow` colour (decision 0171, lava fields): a seeded
@@ -167,5 +167,5 @@ export function craterPool(s: LandSurface, R: number, color: string, glow: boole
     .scale(rx, 1, rz)
     .translate(cx * R, s.height * R + 0.02, cz * R);
   const pool = paint(g, color);
-  return glow ? glowing(pool) : pool;
+  return glow ? molten(pool) : pool;
 }

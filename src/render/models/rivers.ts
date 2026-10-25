@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { RiverDef } from '../../data/islands';
 import { type IslandLayout, fallsBetween, surfaceHeight } from '../../sim/islandLayout';
-import { BEACH_TOP, glowing, paint } from './geometry';
+import { BEACH_TOP, molten, paint } from './geometry';
 
 /**
  * Rivers of water and lava (decision 0167), in reference units round the island's origin: a
@@ -132,10 +132,10 @@ export function riverParts(layout: IslandLayout, river: RiverDef, R: number): Pa
       out.push(...splash(lava, B[0]!, bottom, B[1]!, b.w * R, band.glow));
     }
     const ribbon = paint(mesh(flat, true), band.color);
-    out.push(band.glow ? glowing(ribbon) : ribbon);
+    out.push(band.glow ? molten(ribbon) : ribbon);
     if (falls.length) {
       const sheet = paint(mesh(falls, false), lava ? band.color : RIVER_COLORS.white);
-      out.push(band.glow ? glowing(sheet) : sheet);
+      out.push(band.glow ? molten(sheet) : sheet);
     }
   }
   const mouth = samples[samples.length - 1]!;
