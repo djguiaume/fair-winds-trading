@@ -21,6 +21,8 @@ export const RIVER_COLORS = {
 
 /** How far a river lies above the land. */
 const LIFT = 0.05;
+/** How much wider than the stream a waterfall's sheet is. */
+const FALL_WIDE = 1.5;
 /** Samples per island-radius unit along the river. */
 const SAMPLES = 90;
 
@@ -85,10 +87,20 @@ export function riverParts(layout: IslandLayout, river: RiverDef, R: number): Pa
     return a.h !== null && fallsBetween(layout, a.x, a.z, b.x, b.z);
   });
   const fallsAt = (i: number) => drops[i]!;
+  // A water fall that lands on the beach just above the sea spills on over the shingle and off
+  // its edge into the sea, so it never seems to stop in mid-air: from `spill` on, the river is
+  // white foam on the beach, falls again at the water's edge, and its foam lies on the sea.
+  let spill = samples.length;
+  if (!lava && samples[samples.length - 1]!.h === null) {
+    let k = samples.length - 1;
+    while (k > 1 && samples[k - 1]!.h !== null && samples[k - 1]!.h! * R <= 0.01) k--;
+    if (k < samples.length - 1 && fallsAt(k)) spill = k;
+  }
   const out: Parts = [];
   for (const band of bands) {
     const flat: P3[] = [];
     const falls: P3[] = [];
+    const lips: P3[] = [];
     const side = (i: number) => {
       const a = samples[Math.max(0, i - 1)]!,
         b = samples[Math.min(samples.length - 1, i + 1)]!;
@@ -101,17 +113,32 @@ export function riverParts(layout: IslandLayout, river: RiverDef, R: number): Pa
         b = samples[i]!;
       const [ax, az] = side(i - 1),
         [bx, bz] = side(i);
-      const ya = y(a.h) + band.lift,
+      let ya = y(a.h) + band.lift,
         yb = y(b.h) + band.lift;
+      if (i > spill) ya = yb = BEACH_TOP + band.lift;
       const A = [a.x * R, a.z * R],
         B = [b.x * R, b.z * R];
-      const quad = (p: number[], q: number[], yp: number, yq: number) => {
-        const pl: P3 = [p[0]! + ax, yp, p[1]! + az],
-          pr: P3 = [p[0]! - ax, yp, p[1]! - az],
-          ql: P3 = [q[0]! + bx, yq, q[1]! + bz],
-          qr: P3 = [q[0]! - bx, yq, q[1]! - bz];
-        flat.push(pl, pr, qr, pl, qr, ql);
+      const quad = (p: number[], q: number[], yp: number, yq: number, to = flat, k = 1) => {
+        const pl: P3 = [p[0]! + ax * k, yp, p[1]! + az * k],
+          pr: P3 = [p[0]! - ax * k, yp, p[1]! - az * k],
+          ql: P3 = [q[0]! + bx * k, yq, q[1]! + bz * k],
+          qr: P3 = [q[0]! - bx * k, yq, q[1]! - bz * k];
+        to.push(pl, pr, qr, pl, qr, ql);
       };
+      if (i > spill && b.h !== null) {
+        quad(A, B, ya, yb, lips);
+        continue;
+      }
+      if (i > spill) {
+        // Off the beach's edge into the sea.
+        const M = [(A[0]! + B[0]!) / 2, (A[1]! + B[1]!) / 2];
+        quad(A, M, ya, ya, lips);
+        const [mx, mz] = [((ax + bx) / 2) * FALL_WIDE, ((az + bz) / 2) * FALL_WIDE];
+        const l: P3 = [M[0]! + mx, ya, M[1]! + mz],
+          r: P3 = [M[0]! - mx, ya, M[1]! - mz];
+        falls.push(l, r, [r[0], 0, r[2]], l, [r[0], 0, r[2]], [l[0], 0, l[2]]);
+        continue;
+      }
       if (!fallsAt(i)) {
         quad(A, B, ya, yb);
         continue;
@@ -120,16 +147,22 @@ export function riverParts(layout: IslandLayout, river: RiverDef, R: number): Pa
       const M = [(A[0]! + B[0]!) / 2, (A[1]! + B[1]!) / 2];
       quad(A, M, ya, ya);
       quad(M, B, yb, yb);
-      const [mx, mz] = [(ax + bx) / 2, (az + bz) / 2];
+      // Water falls as a sheet wider than the stream, with a white lip where it tips over.
+      const wide = lava ? 1 : FALL_WIDE;
+      const [mx, mz] = [((ax + bx) / 2) * wide, ((az + bz) / 2) * wide];
       const top = Math.max(ya, yb),
         bottom = Math.min(ya, yb);
+      if (!lava) {
+        const L = [A[0]! + (M[0]! - A[0]!) * 0.4, A[1]! + (M[1]! - A[1]!) * 0.4];
+        quad(L, M, top + LIFT * 0.2, top + LIFT * 0.2, lips, wide);
+      }
       const l: P3 = [M[0]! + mx, top, M[1]! + mz],
         r: P3 = [M[0]! - mx, top, M[1]! - mz];
       const lb: P3 = [l[0], bottom, l[2]],
         rb: P3 = [r[0], bottom, r[2]];
       falls.push(l, r, rb, l, rb, lb);
-      // Foam or steam where it lands.
-      out.push(...splash(lava, B[0]!, bottom, B[1]!, b.w * R, band.glow));
+      // Foam or steam where it lands (a spill takes its foam down to the sea).
+      if (i !== spill) out.push(...splash(lava, B[0]!, bottom, B[1]!, b.w * R, band.glow));
     }
     const ribbon = paint(mesh(flat, true), band.color);
     out.push(band.glow ? molten(ribbon) : ribbon);
@@ -137,6 +170,7 @@ export function riverParts(layout: IslandLayout, river: RiverDef, R: number): Pa
       const sheet = paint(mesh(falls, false), lava ? band.color : RIVER_COLORS.white);
       out.push(band.glow ? molten(sheet) : sheet);
     }
+    if (lips.length) out.push(paint(mesh(lips, true), RIVER_COLORS.white));
   }
   const mouth = samples[samples.length - 1]!;
   if (mouth.h === null)
@@ -160,8 +194,22 @@ function splash(
 ): Parts {
   if (lava && core) return [];
   if (!lava) {
-    const foam = new THREE.CircleGeometry(width * 0.9, 7).rotateX(-Math.PI / 2);
-    return [paint(foam.translate(x, y + LIFT * 1.5, z), RIVER_COLORS.white)];
+    // A low spill on a ledge; on the sea, three ragged patches of foam lying on the water.
+    if (!sea) {
+      const foam = new THREE.CircleGeometry(width * 0.75, 7).rotateX(-Math.PI / 2);
+      return [paint(foam.translate(x, y + LIFT * 1.1, z), RIVER_COLORS.white)];
+    }
+    return [
+      [0, 0, 0.6, 0],
+      [0.55, 0.35, 0.4, 1],
+      [-0.45, 0.45, 0.35, 2],
+    ].map(([dx, dz, r, turn]) => {
+      const foam = new THREE.CircleGeometry(width * r!, 5, turn!).rotateX(-Math.PI / 2);
+      return paint(
+        foam.translate(x + dx! * width, y + LIFT * 1.5, z + dz! * width),
+        RIVER_COLORS.white,
+      );
+    });
   }
   const puffs = sea ? 3 : 2;
   const out: Parts = [];
