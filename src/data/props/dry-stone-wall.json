@@ -1,0 +1,20 @@
+{
+  "id": "dry-stone-wall",
+  "name": "Dry-stone wall",
+  "group": "nature",
+  "defaults": {
+    "length": 0.3
+  },
+  "parts": [
+    {
+      "box": ["R * length", 0.3, 0.24],
+      "at": [0, 0.15, 0],
+      "color": { "pick": "variant % 2", "of": ["#6b6e6a", "#7d807a"] }
+    },
+    {
+      "box": ["R * length * 0.96", 0.12, 0.18],
+      "at": [0.04, 0.36, 0.01],
+      "color": "#5c5f5b"
+    }
+  ]
+}

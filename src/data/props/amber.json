@@ -1,0 +1,13 @@
+{
+  "id": "amber",
+  "name": "Amber on the beach",
+  "group": "nature",
+  "parts": [
+    {
+      "repeat": { "i": { "count": 3 } },
+      "ico": ["0.12 + (i % 2) * 0.06", 0],
+      "ops": [["move", "i * 0.32 - 0.32", 0.06, "(i % 2) * 0.25 - 0.1"]],
+      "color": { "pick": "(i + variant) % 2", "of": ["#e89a2a", "#f0b24a"] }
+    }
+  ]
+}

@@ -69,7 +69,7 @@ export type IslandStep =
       material?: string;
       level?: Level;
     }
-  | { do: 'lane' | 'path' | 'stairs'; points: number[][] }
+  | { do: 'lane' | 'path' | 'stairs'; points: number[][]; width?: number }
   | {
       do: 'woods';
       at?: At;
@@ -207,7 +207,10 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
         step.do === 'stairs'
           ? step.points.map((p) => [p[0]!, p[1]!, p[2] ?? groundHeightAt(design, p[0]!, p[1]!)])
           : step.points;
-      return `lane ${addLane(design, step.do, points)}`;
+      const index = addLane(design, step.do, points);
+      if (step.width !== undefined && step.do !== 'stairs')
+        design.lanes[index]!.width = pos(step.width);
+      return `lane ${index}`;
     }
     case 'woods': {
       const w = design.woods;

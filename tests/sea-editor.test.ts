@@ -124,6 +124,7 @@ describe('sea editor (0161)', () => {
     });
     expect(JSON.parse(out.find((f) => f.path === GROWN_PATH)!.text).seas).toEqual([
       'south',
+      'east',
       'north',
     ]);
   });
@@ -218,5 +219,20 @@ describe('sea steps, as npm run sea applies them (0161)', () => {
     expect(() =>
       applySeaSteps(fresh(), [{ do: 'add', what: 'reef', sea: 'nowhere', at: [0, 0] }]),
     ).toThrow('no sea');
+  });
+
+  it("sets a reef's rock style into its look, keeping the rest (0173)", async () => {
+    const { applySeaSteps } = await import('../src/editor/seaSteps');
+    const doc = fresh();
+    const reef = doc.terrain!.find((t) => t.id === 'stepping-stones-1')!;
+    reef.look = { ...reef.look, landmark: 'wreck' };
+    applySeaSteps(doc, [
+      { do: 'set', what: 'shape', id: reef.id, fields: { look: { style: 'strand' } } },
+    ]);
+    expect(reef.look).toEqual({ style: 'strand', landmark: 'wreck' });
+    applySeaSteps(doc, [
+      { do: 'set', what: 'shape', id: reef.id, fields: { look: { style: null, landmark: null } } },
+    ]);
+    expect(reef.look).toBeUndefined();
   });
 });
