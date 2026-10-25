@@ -155,6 +155,8 @@ const GOLDEN: Record<string, string[]> = {
   'puffin-holm': Array(4).fill('8:3ff49b4c'),
   'lamb-holm': Array(4).fill('17:85293a40'),
   'broch-isle': Array(4).fill('14:18071749'),
+  'the-kittiwakes': Array(4).fill('56:f643c38e'),
+  'sandwick-holm': Array(4).fill('27:2fd20df'),
   // The north sea's islands (decision 0170).
   'cairn-holm': Array(4).fill('6:cd116a0a'),
   'lead-rock': Array(4).fill('19:6c8d9003'),

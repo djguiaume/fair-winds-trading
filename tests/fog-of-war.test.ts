@@ -80,6 +80,8 @@ describe('fog of war (0156)', () => {
       'puffin-holm',
       'lamb-holm',
       'broch-isle',
+      'the-kittiwakes',
+      'sandwick-holm',
       'rimewick',
       'snowberry-isle',
       'whitefell',
