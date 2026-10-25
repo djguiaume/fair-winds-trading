@@ -163,9 +163,15 @@ A style has `walls` and `roofs` (house colours), and may swap grounds and overri
 }
 ```
 
+A style's `colors` may also give `reefRock` and `coral` (lists of colours): a reef whose `look.style` names that style takes them, so the east sea's skerries are dark basalt with green weed instead of the ring's warm rock and coral ([0173](../decisions/0173-east-sea-fogwatch-the-stepping-stones-and-fog-banks.md)). An empty `coral` list draws no coral. Pick it in the map editor (a reef's **Rock style**) or `npm run sea -- set reef <id> --style fog`.
+
 So an island file of style `ice` that says `grass` is snow, and a file can still name `snow` or `ice` outright. Pick the style in the island builder (the island's panel) or `npm run island -- <id> set --style ice`; a ground with the builder's Ground picker or `npm run island -- <id> ground 2 --material ice`. `tests/grounds.test.ts` checks every ground in every style.
 
-## A river or a lava river ([0167](../decisions/0167-rivers-of-water-and-lava.md))
+The ground that follows a coast may give a `beach` width in radius units (default 0.085): Fogwatch's narrow stony shore is 0.05 ([0175](../decisions/0175-fogwatch-detail-pass-beach-width-heather-peat-and-rowans.md)). The island builder's coast ground has a Beach width field; `npm run island -- <id> ground 0 --beach 0.05`.
+
+A lane or path may give a `width` in radius units (default 0.04 for a lane, 0.055 for a path): narrow, wandering lanes for a village ([0173](../decisions/0173-east-sea-fogwatch-the-stepping-stones-and-fog-banks.md)). The island builder's lane panel has a Width field; `npm run island -- <id> lane --points "x,z x,z" --width 0.024`.
+
+## A river or a lava river ([0176](../decisions/0176-rivers-of-water-and-lava.md))
 
 An island file lists `rivers`, each `{ "kind": "water" | "lava", "points": [[x, z], …], "width": 0.04 }` in island-radius units, source first and mouth last (`kind` left out is water; `from`, `to` and `tags` work as on props). The river lies on the ground: plateaus, ramps, slopes and mountains (a mountain's faceted cone). Where it crosses a cliff of raised ground it falls as a sheet to the ground below; a last point past the coast takes it into the sea, with foam for water and steam for lava. Lava has its own material: orange by day, glowing at night, one draw call on islands with lava ([0171](../decisions/0171-the-west-fire-sea-emberhold.md)). A point may carry its own width, `[x, z, width]`.
 

@@ -1,0 +1,32 @@
+{
+  "id": "boathouse",
+  "name": "Boathouse (naust)",
+  "group": "fish",
+  "building": true,
+  "fit": 1,
+  "style": "fog",
+  "parts": [
+    {
+      "box": [0.9, 0.5, 1.6],
+      "at": [0, 0.25, 0],
+      "color": "#7d7f7c"
+    },
+    {
+      "gable": [1.13, 1.83, 0.55],
+      "y": 0.46,
+      "ops": [["turnY", 1.5708]],
+      "color": "#2f3035"
+    },
+    {
+      "gable": [1.05, 1.75, 0.55],
+      "y": 0.5,
+      "ops": [["turnY", 1.5708]],
+      "color": "roofs[variant]"
+    },
+    {
+      "box": [0.55, 0.62, 0.04],
+      "at": [0, 0.32, 0.81],
+      "color": "#2f3035"
+    }
+  ]
+}

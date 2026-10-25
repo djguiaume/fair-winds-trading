@@ -133,7 +133,7 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
       if (out) error('ground', `Raised ground ${i} reaches past the coast`, { at: out, level });
     });
   }
-  // A river rises on land (decision 0167); only its mouth may reach past the coast.
+  // A river rises on land (decision 0176); only its mouth may reach past the coast.
   (design.rivers ?? []).forEach((r, i) => {
     const [x, z] = r.points[0] as [number, number];
     if (!design.coasts.some((c) => inside(x, z, c)))

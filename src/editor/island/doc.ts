@@ -235,6 +235,7 @@ export function tidyDesign(design: IslandDesign): IslandDesign {
     ground: d.ground.map((g) =>
       ordered(g, [
         'coast',
+        'beach',
         'outline',
         'holes',
         'height',
@@ -248,7 +249,7 @@ export function tidyDesign(design: IslandDesign): IslandDesign {
         'to',
       ]),
     ),
-    lanes: d.lanes.map((l) => ordered(l, ['kind', 'points', 'y', 'base'])),
+    lanes: d.lanes.map((l) => ordered(l, ['kind', 'points', 'width', 'y', 'base'])),
     ...(d.rivers && {
       rivers: d.rivers.map((r) => ordered(r, ['kind', 'points', 'width', 'from', 'to', 'tags'])),
     }),

@@ -382,7 +382,7 @@
   stroke-opacity: 0.3;
   pointer-events: none;
 }
-/* Rivers (decision 0167): a band as wide as the river. */
+/* Rivers (decision 0176): a band as wide as the river. */
 .i-river {
   fill: none;
   stroke-linecap: round;

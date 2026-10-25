@@ -29,7 +29,7 @@ export type Shape =
 export const SLOPE_WIDTH = 0.15;
 /** The width of a new ramp (decision 0123), in island-radius units. */
 export const RAMP_WIDTH = 0.1;
-/** The width of a new river (decision 0167), in island-radius units. */
+/** The width of a new river (decision 0176), in island-radius units. */
 export const RIVER_WIDTH = 0.04;
 
 const pos = (v: number) => Number(v.toFixed(6));
@@ -56,7 +56,7 @@ export function pointsOf(design: IslandDesign, shape: Shape): number[][] | undef
 
 /** The outline drawn for a ground entry: its own, or its coast's inset by the beach. */
 export function groundOutline(design: IslandDesign, g: GroundDef): Point[] {
-  return g.outline ?? insetOutline(design.coasts[g.coast ?? 0]!, BEACH);
+  return g.outline ?? insetOutline(design.coasts[g.coast ?? 0]!, g.beach ?? BEACH);
 }
 
 export function shapeName(design: IslandDesign, shape: Shape): string {
@@ -130,7 +130,7 @@ export function insertPoint(design: IslandDesign, shape: Shape, index: number): 
   if (!closed(shape) && index >= n - 1) return -1;
   const a = pts[index % n]!,
     b = pts[(index + 1) % n]!;
-  // A river point without its own width has the river's (decision 0167).
+  // A river point without its own width has the river's (decision 0176).
   const width = shape.kind === 'river' ? design.rivers![shape.index]!.width : undefined;
   const p =
     width !== undefined && a.length !== b.length
@@ -389,7 +389,7 @@ export function addLane(
   return design.lanes.length - 1;
 }
 
-// --- Rivers (decision 0167) -----------------------------------------------------------------
+// --- Rivers (decision 0176) -----------------------------------------------------------------
 
 /** A new river of water or lava through the points, source first, from a level. */
 export function addRiver(
@@ -412,7 +412,7 @@ export function addRiver(
 
 /**
  * A river point's own width, or with `undefined` back to the river's width (a point's third
- * value, decision 0167).
+ * value, decision 0176).
  */
 export function setRiverPointWidth(
   design: IslandDesign,

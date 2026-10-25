@@ -28,12 +28,14 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
                  [--name … --chart --turn deg]
         current  --path "x,y,w x,y,w …" [--speed 1.5 --name …]   (points in the direction it flows)
         drift    [--outline …] --toward deg [--speed 0.8]          (an area current)
-        zone     --kind trade-belt|doldrums|stormy-coast|cold-gale|sheltered [--heading deg --name …]
+        zone     --kind trade-belt|doldrums|stormy-coast|cold-gale|sheltered|storm-belt [--heading deg --name …]
+                 (storm-belt: squalls march downwind of --heading; --outline for its band)
         area     --name … [--id …] [--outline …]                    (a chart area, fog of war)
         port     --island <id> [--name …]                           (makes the island a port)
   move <what> <id|index> --at x,y | --by dx,dy | --to-sea <id>
   set <what> <id|index> --name … (and any field: --kind, --max-draft, --type, --speed, --level …;
         a port's --produces, --wants, --wants-made a,b,c; a sandbank's --color #b8b2a8)
+  set shape <id> --style fog     a reef's rock style (a palette style's reefRock and coral; none = warm)
   set sea <id> --name …          set grown --radius 985 --charted 445
   --after <quest> | --before <quest> | --always   on add or set: an island, shape or mark stands
         once that quest is done, or until it is (decision 0166: land swaps out of the boat's sight)
@@ -106,10 +108,17 @@ function fieldsOf(args: Args): Record<string, unknown> {
   }
   // A sandbank's colour (decision 0171: a pumice bank is grey).
   if (typeof args.color === 'string') fields.look = { color: args.color };
-  // An island's file is its look's design.
+  // An island's file is its look's design; a reef's rock style is its look's style (0173).
   if (typeof fields.design === 'string') {
     fields.look = { design: fields.design };
     delete fields.design;
+  }
+  if (typeof fields.style === 'string') {
+    fields.look = {
+      ...(fields.look as object),
+      style: fields.style === 'none' ? null : fields.style,
+    };
+    delete fields.style;
   }
   return fields;
 }

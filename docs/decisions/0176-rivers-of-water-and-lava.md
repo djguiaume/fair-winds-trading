@@ -1,4 +1,4 @@
-# 0167. Rivers of water and lava
+# 0176. Rivers of water and lava
 
 **Status:** Proposed (2026-10-24).
 

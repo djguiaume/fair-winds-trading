@@ -26,6 +26,7 @@ import { questsDone, questsRunning, settlementLevels } from './settlement';
 import { type LandState, hasQuestLand, landOut, landWith, syncLand } from './questLand';
 import { DIFFICULTIES, knobs, weatherFor } from './difficulty';
 import { type ZoneVisual, CLEAR, mapZones, zoneField, zoneVisualAt } from './windZones';
+import { type BeltNow, beltNow } from './stormBelt';
 import { smoothOutline } from './flowShapes';
 import { DEG, bearingTo, clamp, distance } from './math';
 import { type ShipClass, noGoAngle } from './ship';
@@ -121,6 +122,16 @@ export interface World {
   storms: boolean;
   /** The map's wind zones on (decision 0140): Settings › Weather › Wind zones. */
   windZones: boolean;
+  /** Storm belts' squalls on (decision 0167): Settings › Storm belt. */
+  stormBelt: boolean;
+  /** Only squalls born at or after this time; set when the Storm belt switch comes back on. */
+  beltFrom: number;
+  /** Whether squalls could blow on the last step, to notice when they come back. */
+  beltOn: boolean;
+  /** The storm belt near the boat, squalls or a lull and for how long (0167); null when none. */
+  belt: BeltNow | null;
+  /** Belt zone ids the captain has been told about on this approach (0167). */
+  beltsWarned: string[];
   /** Haze switches turned off in Settings (`fog`, `ash`, decision 0169): those zones stay clear. */
   hazeOff: string[];
   /**
@@ -170,6 +181,8 @@ export type WorldEvent =
   | { type: 'crash'; damage: number; surface: 'shore' | 'pier' | 'boat' }
   | { type: 'waypoint'; label: string; seconds: number; next: string }
   | { type: 'storm-near'; bearing: number }
+  /** She came within warning range of a storm belt (decision 0167): squalls or a lull now. */
+  | { type: 'belt-near'; zone: string; squalls: boolean; changeSec: number }
   | { type: 'overboard'; good: GoodId; qty: number }
   /** The boat sailed into a current she had not charted yet (decision 0140). */
   | { type: 'current-charted'; id: string }
@@ -198,6 +211,11 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     dynamicWeather: true,
     storms: true,
     windZones: true,
+    stormBelt: true,
+    beltFrom: 0,
+    beltOn: true,
+    belt: null,
+    beltsWarned: [],
     hazeOff: [],
     steadyWind: false,
     windConfig: null,
@@ -410,11 +428,42 @@ export function pressLevel(world: World, previous: PressLevel): PressLevel {
   return 0;
 }
 
-/** Storm warnings (decision 0067). */
+/**
+ * The level's `stormBelt` knob while squalls can blow (decision 0167), else 0: with the Storm belt,
+ * Weather or Storms switch off, during the tutorial's hold, and without wind zones.
+ */
+function beltLevel(world: World): number {
+  return world.stormBelt && world.stormsOn && world.windZones
+    ? knobs(world.trade.difficulty).stormBelt
+    : 0;
+}
+
+/** Storm warnings (decision 0067), and the storm belt near the boat (0167). */
 export function stepStorms(world: World): WorldEvent[] {
   const events: WorldEvent[] = [];
   const { boat, weather } = world;
+  const zones = world.windConfig?.zones;
+  const level = beltLevel(world);
+  world.belt =
+    zones && level > 0 && !world.calmWind
+      ? beltNow(
+          zones,
+          world.map.seed,
+          world.time,
+          boat.x,
+          boat.y,
+          Math.max(world.stormsFrom, world.beltFrom),
+          level,
+        )
+      : null;
+  const belt = world.belt;
+  if (belt && !world.beltsWarned.includes(belt.zone)) {
+    world.beltsWarned = [...world.beltsWarned, belt.zone];
+    events.push({ type: 'belt-near', ...belt });
+  } else if (!belt && world.beltsWarned.length) world.beltsWarned = [];
   for (const s of weather.storms) {
+    // A belt's squalls are told by its HUD line, not one toast each.
+    if (s.squall) continue;
     if (world.stormsWarned.includes(s.id)) continue;
     if (distance(boat, s) - s.radius > TUNING.weather.storms.warningRange) continue;
     world.stormsWarned = [...world.stormsWarned.slice(-4), s.id];
@@ -579,6 +628,8 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   const stormsOn = world.dynamicWeather && world.storms && world.stormHolds.length === 0;
   if (stormsOn && !world.stormsOn) world.stormsFrom = world.time;
   world.stormsOn = stormsOn;
+  if (world.stormBelt && !world.beltOn) world.beltFrom = world.time;
+  world.beltOn = world.stormBelt;
   const cfg = {
     ...world.map.wind,
     fromDeg: world.map.wind.fromDeg + world.windOffsetDeg,
@@ -593,6 +644,9 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
     // Wind zones (decision 0140) sit on top of the weather, with their own Settings switch.
     zones: world.windZones ? zoneField(mapZones(world.map), smoothOutline) : null,
     easiest: world.trade.difficulty === DIFFICULTIES[0],
+    // Storm belts' squalls (decision 0167): the level's share, or none with their switch off.
+    stormBelt: beltLevel(world),
+    beltFrom: world.beltFrom,
   };
   world.seaWind = seaWindAt(world, cfg);
   events.push(...chartZone(world));

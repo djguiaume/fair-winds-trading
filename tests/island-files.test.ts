@@ -143,8 +143,16 @@ const GOLDEN: Record<string, string[]> = {
   skerry: ['176:5e30be68', '180:f1a016d7', '183:c8300615', '183:c8300615'],
   'watchman-key': ['43:fbfd2fb9', '73:4bfeb4dd', '92:3e8fc1dd', '99:ac0414a9'],
   // The south sea (decision 0152).
-  sunreach: ['415:5f29af5c', '549:b2e40bf2', '665:cdebaf36', '712:28f7bf9e'],
-  'sunreach-south': ['336:9dd11960', '361:49fa96bd', '371:810eea4b', '371:810eea4b'],
-  'palm-key': ['156:f382bcb1', '165:a95e4a6c', '178:e846448d', '178:e846448d'],
-  'lone-palm': Array(4).fill('13:531edc15'),
+  sunreach: ['606:780ca76b', '739:2be703f5', '842:84de71a', '877:b4741162'],
+  'sunreach-south': ['457:f03cd670', '482:cee9291', '491:b2dd7f07', '491:b2dd7f07'],
+  'palm-key': ['296:5af31071', '270:7e77b63a', '266:18f30d17', '266:18f30d17'],
+  'lone-palm': Array(4).fill('13:2bd589f4'),
+  // The east sea (decision 0173).
+  fogwatch: ['630:a7a31ab1', '751:1036b9b6', '823:4bc333a2', '864:1d37430e'],
+  'the-giant': Array(4).fill('6:c84f56e6'),
+  'his-wife': Array(4).fill('6:676eecc4'),
+  'amber-strand': ['129:e66b7b39', '133:56673594', '136:e68e96ec', '136:e68e96ec'],
+  'puffin-holm': Array(4).fill('8:3ff49b4c'),
+  'lamb-holm': Array(4).fill('17:85293a40'),
+  'broch-isle': Array(4).fill('14:18071749'),
 };

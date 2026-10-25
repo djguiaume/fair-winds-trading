@@ -75,6 +75,12 @@ export interface TerrainDef {
     landmarkAt?: { x: number; y: number };
     /** A sandbank's colour, `#rrggbb` (decision 0171: pumice grey); left out, sand. */
     color?: string;
+    /**
+     * A palette style (`src/data/palette.json`) whose `reefRock` and `coral` colours its rocks
+     * take: the east sea's basalt skerries with weed instead of coral. Left out, the warm rocks
+     * and coral of the ring.
+     */
+    style?: string;
   };
   /** Seeds its rocks, coral and trees; left out, its place in the list does (decision 0110). */
   seed?: number;

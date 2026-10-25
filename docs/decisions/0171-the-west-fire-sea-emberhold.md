@@ -4,7 +4,7 @@
 
 ## Context
 
-Phase 4 opens the seas in the order south, west, north, east (0147). The west is the fire biome (0137): a volcano, ash, black ground. Guillaume's brief (2026-10-24): "be creative with the islands, they represent their biome. Do the volcano, I'd love lava rivers and some ground black with red fractures glowing a bit red at night like the lava. And black rocks and some black beaches if it looks good. Iceland is the main inspiration. Everything is data. Editors must be able to do everything. Lava river can be a variation of normal river." The art bible (0165) sets the shared mechanisms, the rivers are 0167, the grounds 0168, the ash haze 0169, and the storyteller's brief names the people: Ines's brother Oskar Calder, and Bram Kettle the glassworker.
+Phase 4 opens the seas in the order south, west, north, east (0147). The west is the fire biome (0137): a volcano, ash, black ground. Guillaume's brief (2026-10-24): "be creative with the islands, they represent their biome. Do the volcano, I'd love lava rivers and some ground black with red fractures glowing a bit red at night like the lava. And black rocks and some black beaches if it looks good. Iceland is the main inspiration. Everything is data. Editors must be able to do everything. Lava river can be a variation of normal river." The art bible (0165) sets the shared mechanisms, the rivers are 0176, the grounds 0168, the ash haze 0169, and the storyteller's brief names the people: Ines's brother Oskar Calder, and Bram Kettle the glassworker.
 
 ## Decision
 
@@ -28,7 +28,7 @@ Phase 4 opens the seas in the order south, west, north, east (0147). The west is
    - A peak may have a **`crater`**: an open top with a glowing pool. `hasVolcano` counts such an island as a landmark in the map checks.
    - A ground may have **`specks`**: a colour for a few flat dark lava-rock stones on its tops, at most 36 per surface.
    - New props: glassworks, iron house, turf house, tin shed, turf wall, greenhouse, basalt columns, sea stack, steam vent, sulphur patch, hot spring, birch woodland.
-4. **Lava has its own material.** It is marked `molten()` in the model and drawn with one extra material per island that has lava. This covers lava rivers, crater pools and lava cracks. By day it is tinted orange (`LAVA_BY_DAY`), and at night it glows at full strength. On the art director's notes this replaces 0167's "lit-window material" (dull red by day looked like rust). It costs one draw call on islands with lava, and nothing on the others.
+4. **Lava has its own material.** It is marked `molten()` in the model and drawn with one extra material per island that has lava. This covers lava rivers, crater pools and lava cracks. By day it is tinted orange (`LAVA_BY_DAY`), and at night it glows at full strength. On the art director's notes this replaces 0176's "lit-window material" (dull red by day looked like rust). It costs one draw call on islands with lava, and nothing on the others.
 5. **Rivers have a width per point.** A river point can be `[x, z, width]`, and the river's own `width` fills in the points that don't have one. You can set it in the builder (the river's point panel, *Point N width*), with `npm run island -- <id> widen <river> --point n --width w|none`, or as the `widen` step. The checks want a width above 0.
 6. **Sandbanks take a `look.color`.** You can set it with the sea editor's *Colour* field or `npm run sea -- set sandbank <id> --color #rrggbb`. `npm run sea` also gains `--produces`, `--wants` and `--wants-made` for port goods.
 7. **Tools:**

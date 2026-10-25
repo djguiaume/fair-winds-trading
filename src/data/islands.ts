@@ -1,4 +1,5 @@
-import type { IslandDef, LandmarkKind } from '../sim/map';
+import type { IslandDef } from '../sim/map';
+import { PROP_RECIPES } from './props';
 
 /**
  * Island files (decisions 0096 and 0101): one JSON per designed port island in
@@ -17,6 +18,8 @@ export type Point = [number, number];
 export interface GroundDef {
   /** Index of a coast whose outline, inset by the beach width, this ground covers. */
   coast?: number;
+  /** With `coast`: the beach's width in radius units (default `BEACH`); a narrow stony shore. */
+  beach?: number;
   outline?: Point[];
   holes?: Point[][];
   height: number;
@@ -46,7 +49,12 @@ export interface LaneDef {
   /** Paths: the height they lie at. Stairs: the ground their masonry stands on. */
   y?: number;
   base?: number;
+  /** Lanes and paths: width in radius units (default `LANE_WIDTH`, a path 0.055); narrow village lanes (0173). */
+  width?: number;
 }
+
+/** A lane's or path's width when its file gives none (radius units). */
+export const LANE_WIDTH = 0.04;
 
 /**
  * A ramp (decision 0123): a band `width` wide along `points` (straight runs, at least two), rising
@@ -64,7 +72,7 @@ export interface RampDef {
 }
 
 /**
- * A river (decision 0167): a ribbon `width` wide along `points`, source first, mouth last, that
+ * A river (decision 0176): a ribbon `width` wide along `points`, source first, mouth last, that
  * lies on the ground (plateaus, ramps, slopes, mountains). Where the ground drops at a cliff it
  * falls as a sheet to the ground below; a mouth past the coast falls into the sea. `water` is
  * drawn in the lake's colour; `lava` glows at night like lit windows, with a dark crust and steam
@@ -161,7 +169,7 @@ export interface IslandDesign {
   lake?: Point[];
   ground: GroundDef[];
   lanes: LaneDef[];
-  /** Rivers of water or lava (decision 0167); left out, none. */
+  /** Rivers of water or lava (decision 0176); left out, none. */
   rivers?: RiverDef[];
   /** Ramps that climb along their length (decision 0123); left out, none. */
   ramps?: RampDef[];
@@ -203,11 +211,11 @@ export function designOf(island: IslandDef): IslandDesign | null {
 }
 
 /** An island's landmark: its look's, or the first landmark prop of its file (decision 0110). */
-export function landmarkOf(island: IslandDef): LandmarkKind | undefined {
-  const landmarks: string[] = ['lighthouse', 'ruins', 'wreck', 'beacon'] satisfies LandmarkKind[];
+export function landmarkOf(island: IslandDef): string | undefined {
+  // Any prop of the `landmarks` group counts: a broch, a foghorn tower, a cairn (decision 0173).
   return (
     island.look?.landmark ??
-    (designOf(island)?.props.find((p) => landmarks.includes(p.type))?.type as LandmarkKind)
+    designOf(island)?.props.find((p) => PROP_RECIPES[p.type]?.group === 'landmarks')?.type
   );
 }
 

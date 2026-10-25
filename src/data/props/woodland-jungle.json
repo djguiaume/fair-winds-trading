@@ -1,0 +1,55 @@
+{
+  "id": "woodland-jungle",
+  "group": "nature",
+  "vars": {
+    "s": {
+      "range": [0.85, 1.25]
+    },
+    "lean": {
+      "range": [-0.28, 0.28]
+    },
+    "leaf": {
+      "range": [0, 1]
+    },
+    "kind": {
+      "range": [0, 1]
+    }
+  },
+  "parts": [
+    {
+      "if": "kind < 0.55",
+      "cyl": ["0.045 * s", "0.08 * s", "1.35 * s", 4, 1],
+      "ops": [
+        ["move", 0, "0.675 * s", 0],
+        ["turnZ", "lean"]
+      ],
+      "color": "palmTrunk"
+    },
+    {
+      "if": "kind < 0.55",
+      "repeat": {
+        "i": {
+          "count": 5
+        }
+      },
+      "plane": ["0.32 * s", "0.95 * s"],
+      "ops": [
+        ["move", 0, "0.475 * s", 0],
+        ["turnX", "-1.95"],
+        ["turnY", "i * 1.2566 + leaf * 1.2"],
+        ["move", 0, "1.33 * s", 0],
+        ["turnZ", "lean"]
+      ],
+      "color": "palm[floor(leaf * 3)]"
+    },
+    {
+      "if": "kind >= 0.55",
+      "ico": ["0.62 * s", 0],
+      "ops": [
+        ["scale", 1.25, 0.7, 1.25],
+        ["move", 0, "0.42 * s", 0]
+      ],
+      "color": "jungle[floor(leaf * 3)]"
+    }
+  ]
+}

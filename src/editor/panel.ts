@@ -1,3 +1,4 @@
+import { STYLES } from '../data/grounds';
 import { GOODS, GOOD_DEFS, GOOD_ICONS, type GoodId, isGood } from '../sim/goods';
 import { type LandmarkKind, type MapDef, type PortDef, SEA_MARK_TYPES } from '../sim/map';
 import { SHIP_CLASSES } from '../sim/ship';
@@ -504,6 +505,17 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
         else delete look().landmark;
       },
     );
+    // A reef's rocks take a palette style's colours (the east's basalt skerries).
+    if (shape.kind === 'reef')
+      select(
+        'Rock style',
+        shape.look?.style ?? '',
+        [['', 'warm rock and coral'], ...Object.keys(STYLES).map((k): [string, string] => [k, k])],
+        (v) => {
+          if (v) look().style = v;
+          else delete look().style;
+        },
+      );
     stands(shape);
     const point = selection.point !== undefined ? shape.outline[selection.point] : undefined;
     node('hr');

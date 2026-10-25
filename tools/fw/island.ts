@@ -46,7 +46,7 @@ steps (island-radius units, harbour toward +z; --level n = from that town level)
   pier      --at x,z [--length 0.26] [--level n]
   remove    prop|ground|lane|ramp|river|spot|coast|pier <index>, or remove lake
   set       --name … --style … --seed …
-  ground    <index> [--ramp] --material <palette.json ground: grass, rock, snow, ice…> [--height h]
+  ground    <index> [--ramp] --material <palette.json ground: grass, rock, snow, ice…> [--height h] [--beach w (a coast ground: its beach width)]
   tidy      rewrite the file in the builder's format (any step does)
 options: --steps steps.json (or '[{"do":"prop",…}]': a list of steps as data, see src/editor/island/steps.ts)
          --radius r  map radius to check at (default: the island's size on the ring or the Phase 4 sea)
@@ -127,7 +127,11 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
     case 'lane':
     case 'path':
     case 'stairs':
-      return { do: kind, points: need(pointList(args.points), '--points "x,z x,z"') };
+      return clean({
+        do: kind,
+        points: need(pointList(args.points), '--points "x,z x,z"'),
+        width: num(args.width),
+      });
     case 'river':
       return clean({
         do: 'river',
@@ -203,6 +207,7 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
         ramp: args.ramp ? true : undefined,
         material: typeof args.material === 'string' ? args.material : undefined,
         height: num(args.height),
+        beach: num(args.beach),
       });
     case 'set':
       return clean({

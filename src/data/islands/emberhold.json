@@ -251,7 +251,7 @@
       "from": 1
     },
     {
-      "type": "turf-house",
+      "type": "turf-cottage",
       "x": 0.37,
       "z": 0.57,
       "turn": 170,
@@ -269,7 +269,7 @@
       "from": 1
     },
     {
-      "type": "turf-house",
+      "type": "turf-cottage",
       "x": 0.63,
       "z": 0.46,
       "turn": 150,
@@ -286,7 +286,7 @@
       "variant": 2,
       "from": 3
     },
-    { "type": "turf-house", "x": 0.27, "z": 0.82, "turn": 0, "size": 1.5, "variant": 2, "from": 2 },
+    { "type": "turf-cottage", "x": 0.27, "z": 0.82, "turn": 0, "size": 1.5, "variant": 2, "from": 2 },
     {
       "type": "iron-house",
       "x": 0.66,
@@ -297,7 +297,7 @@
       "from": 3
     },
     {
-      "type": "turf-house",
+      "type": "turf-cottage",
       "x": 0.79,
       "z": 0.58,
       "turn": -35,
@@ -315,7 +315,7 @@
       "from": 1
     },
     {
-      "type": "turf-house",
+      "type": "turf-cottage",
       "x": -0.58,
       "z": 0.56,
       "turn": -180,
@@ -333,7 +333,7 @@
       "from": 3
     },
     {
-      "type": "turf-house",
+      "type": "turf-cottage",
       "x": -0.6,
       "z": 0.75,
       "turn": 30,
@@ -342,7 +342,7 @@
       "from": 4
     },
     {
-      "type": "turf-house",
+      "type": "turf-cottage",
       "x": 0.34,
       "z": 0.46,
       "turn": -90,
@@ -359,9 +359,9 @@
       "variant": 6,
       "from": 1
     },
-    { "type": "turf-house", "x": -0.34, "z": 0.2, "turn": 0, "size": 1.5, "variant": 7, "from": 2 },
+    { "type": "turf-cottage", "x": -0.34, "z": 0.2, "turn": 0, "size": 1.5, "variant": 7, "from": 2 },
     { "type": "iron-house", "x": -0.2, "z": 0.22, "turn": 0, "size": 1.5, "variant": 7, "from": 2 },
-    { "type": "turf-house", "x": 0.22, "z": 0.18, "turn": 0, "size": 1.5, "variant": 8, "from": 3 },
+    { "type": "turf-cottage", "x": 0.22, "z": 0.18, "turn": 0, "size": 1.5, "variant": 8, "from": 3 },
     {
       "type": "iron-house",
       "x": 0.34,
@@ -372,7 +372,7 @@
       "from": 3
     },
     {
-      "type": "turf-house",
+      "type": "turf-cottage",
       "x": -0.5,
       "z": -0.07,
       "turn": -180,
@@ -390,7 +390,7 @@
       "from": 3
     },
     {
-      "type": "turf-house",
+      "type": "turf-cottage",
       "x": -0.24,
       "z": -0.03,
       "turn": -180,
@@ -408,7 +408,7 @@
       "from": 4
     },
     {
-      "type": "turf-house",
+      "type": "turf-cottage",
       "x": -0.06,
       "z": 0.25,
       "turn": 0,

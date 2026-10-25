@@ -37,7 +37,7 @@ function riverIsland(): IslandDesign {
 }
 const R = 60 / 2.2;
 
-describe('rivers (decision 0167)', () => {
+describe('rivers (decision 0176)', () => {
   it('are made by the island steps, with the default width and kind left out for water', () => {
     const d = riverIsland();
     expect(d.rivers).toHaveLength(2);

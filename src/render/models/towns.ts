@@ -25,6 +25,7 @@ import {
   atLevel,
   islandDesign,
   type IslandDesign,
+  LANE_WIDTH,
   type LaneDef,
   type PropDef,
   questDesign,
@@ -630,7 +631,7 @@ export function designedTownParts(
           b = p[i]!;
         const len = a.distanceTo(b) * R;
         const g = paint(
-          new THREE.PlaneGeometry(len + 0.02, R * 0.055).rotateX(-Math.PI / 2),
+          new THREE.PlaneGeometry(len + 0.02, R * (lane.width ?? 0.055)).rotateX(-Math.PI / 2),
           pathColor,
         );
         let y = lane.y;
@@ -667,7 +668,7 @@ export function designedTownParts(
     g.userData.islandTerrain = true;
     out.push(g);
   }
-  // Rivers of water or lava (decision 0167) lie on the ground built above.
+  // Rivers of water or lava (decision 0176) lie on the ground built above.
   for (const river of design.rivers ?? [])
     if (atLevel(river, level) && river.points.length >= 2)
       out.push(...riverParts(layout, river, R));
@@ -739,7 +740,9 @@ export function designedTownParts(
       clearedLanes.push({ x, z });
       const len = a.distanceTo(b) * R;
       const g = paint(
-        new THREE.PlaneGeometry(len + 0.01, R * 0.04).rotateX(-Math.PI / 2).translate(0, 0.012, 0),
+        new THREE.PlaneGeometry(len + 0.01, R * (lane.width ?? LANE_WIDTH))
+          .rotateX(-Math.PI / 2)
+          .translate(0, 0.012, 0),
         pathColor,
       );
       if (!flat) g.rotateZ(Math.atan2((hb! - ha!) * R, len));

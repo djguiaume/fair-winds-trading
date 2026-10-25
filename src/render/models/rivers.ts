@@ -4,7 +4,7 @@ import { type IslandLayout, fallsBetween, surfaceHeight } from '../../sim/island
 import { BEACH_TOP, molten, paint } from './geometry';
 
 /**
- * Rivers of water and lava (decision 0167), in reference units round the island's origin: a
+ * Rivers of water and lava (decision 0176), in reference units round the island's origin: a
  * ribbon that lies on the land, falls as a sheet where the ground drops at a cliff, and ends in the
  * sea with foam (water) or steam (lava). Lava is drawn as glowing parts, so it shares the lit
  * windows' material: dull red by day, bright at night, with no extra draw call.

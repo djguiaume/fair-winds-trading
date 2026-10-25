@@ -106,11 +106,7 @@
     ]
   ],
   "ground": [
-    {
-      "coast": 0,
-      "height": 0.06,
-      "material": "grass"
-    },
+    { "coast": 0, "height": 0.06, "material": "grass" },
     {
       "outline": [
         [1.4018, 0.825],
@@ -175,7 +171,7 @@
         [1.3376, 0.8915]
       ],
       "height": 0.16,
-      "material": "grass"
+      "material": "terrace"
     },
     {
       "outline": [
@@ -271,7 +267,7 @@
         [1.3232, 0.5829]
       ],
       "height": 0.28,
-      "material": "grass"
+      "material": "terrace"
     },
     {
       "outline": [
@@ -437,18 +433,8 @@
     }
   ],
   "piers": [
-    {
-      "x": 0.5746,
-      "z": 0.8546,
-      "length": 0.26,
-      "from": 3
-    },
-    {
-      "x": -0.6352,
-      "z": 0.85,
-      "length": 0.26,
-      "from": 4
-    }
+    { "x": 0.5746, "z": 0.8546, "length": 0.26, "from": 3 },
+    { "x": -0.6352, "z": 0.85, "length": 0.26, "from": 4 }
   ],
   "props": [
     {
@@ -456,386 +442,274 @@
       "x": 0.4785,
       "z": 0.6082,
       "turn": 158,
-      "from": 1,
       "size": 1.55,
       "variant": 0,
-      "shape": 0
+      "shape": 0,
+      "from": 1
     },
     {
       "type": "beach-house",
       "x": -0.369,
       "z": 0.5408,
       "turn": -168,
-      "from": 1,
       "size": 1.55,
       "variant": 1,
-      "shape": 0.37
+      "shape": 0.37,
+      "from": 1
     },
     {
       "type": "beach-house",
       "x": 0.6305,
       "z": 0.7163,
       "turn": 164,
-      "from": 1,
       "size": 1.55,
       "variant": 2,
-      "shape": 0.74
+      "shape": 0.74,
+      "from": 1
     },
     {
       "type": "beach-house",
       "x": -0.5386,
       "z": 0.619,
       "turn": -168,
-      "from": 1,
       "size": 1.55,
       "variant": 3,
-      "shape": 0.11
+      "shape": 0.11,
+      "from": 1
     },
     {
       "type": "beach-house",
       "x": 0.7618,
       "z": 0.8439,
       "turn": 152,
-      "from": 2,
       "size": 1.55,
       "variant": 0,
-      "shape": 0.48
+      "shape": 0.48,
+      "from": 2
     },
     {
       "type": "beach-house",
       "x": -0.6849,
       "z": 0.7384,
       "turn": -150,
-      "from": 2,
       "size": 1.55,
       "variant": 1,
-      "shape": 0.85
+      "shape": 0.85,
+      "from": 2
     },
     {
       "type": "beach-house",
       "x": 0.8924,
       "z": 0.9537,
       "turn": 140,
-      "from": 2,
       "size": 1.55,
       "variant": 2,
-      "shape": 0.22
+      "shape": 0.22,
+      "from": 2
     },
     {
       "type": "beach-house",
       "x": -0.8445,
       "z": 0.814,
       "turn": -150,
-      "from": 3,
       "size": 1.55,
       "variant": 3,
-      "shape": 0.59
+      "shape": 0.59,
+      "from": 3
     },
     {
       "type": "beach-house",
       "x": 1.0511,
       "z": 1.024,
       "turn": 146,
-      "from": 3,
       "size": 1.55,
       "variant": 0,
-      "shape": 0.96
+      "shape": 0.96,
+      "from": 3
     },
     {
       "type": "beach-house",
       "x": -1.0238,
       "z": 0.8677,
       "turn": -150,
-      "from": 3,
       "size": 1.55,
       "variant": 1,
-      "shape": 0.33
+      "shape": 0.33,
+      "from": 3
     },
     {
       "type": "beach-house",
       "x": 1.2306,
       "z": 1.0883,
       "turn": 134,
-      "from": 4,
       "size": 1.55,
       "variant": 2,
-      "shape": 0.7
+      "shape": 0.7,
+      "from": 4
     },
     {
       "type": "beach-house",
       "x": -1.149,
       "z": 0.9075,
       "turn": -134,
-      "from": 4,
       "size": 1.55,
       "variant": 3,
-      "shape": 0.07
+      "shape": 0.07,
+      "from": 4
     },
     {
       "type": "beach-house",
       "x": 0.288,
       "z": 0.2272,
       "turn": 166,
-      "from": 1,
       "size": 1.55,
       "variant": 0,
-      "shape": 0.44
+      "shape": 0.44,
+      "from": 1
     },
     {
       "type": "beach-house",
       "x": -0.2852,
       "z": 0.2478,
       "turn": -172,
-      "from": 2,
       "size": 1.55,
       "variant": 1,
-      "shape": 0.81
+      "shape": 0.81,
+      "from": 2
     },
     {
       "type": "beach-house",
       "x": 0.5553,
       "z": 0.34,
       "turn": 170,
-      "from": 2,
       "size": 1.55,
       "variant": 2,
-      "shape": 0.18
+      "shape": 0.18,
+      "from": 2
     },
     {
       "type": "beach-house",
       "x": -0.5376,
       "z": 0.402,
       "turn": -170,
-      "from": 2,
       "size": 1.55,
       "variant": 3,
-      "shape": 0.55
+      "shape": 0.55,
+      "from": 2
     },
     {
       "type": "beach-house",
       "x": 0.7861,
       "z": 0.511,
       "turn": 156,
-      "from": 3,
       "size": 1.55,
       "variant": 0,
-      "shape": 0.92
+      "shape": 0.92,
+      "from": 3
     },
     {
       "type": "beach-house",
       "x": -0.7677,
       "z": 0.5525,
       "turn": -150,
-      "from": 3,
       "size": 1.55,
       "variant": 1,
-      "shape": 0.29
+      "shape": 0.29,
+      "from": 3
     },
     {
       "type": "beach-house",
       "x": 1.0012,
       "z": 0.6744,
       "turn": 142,
-      "from": 3,
       "size": 1.55,
       "variant": 2,
-      "shape": 0.66
+      "shape": 0.66,
+      "from": 3
     },
     {
       "type": "beach-house",
       "x": -1.0438,
       "z": 0.6064,
       "turn": -148,
-      "from": 4,
       "size": 1.55,
       "variant": 3,
-      "shape": 0.03
+      "shape": 0.03,
+      "from": 4
     },
     {
       "type": "beach-house",
       "x": -0.0001,
       "z": 0.0918,
       "turn": -174,
-      "from": 4,
       "size": 1.55,
       "variant": 0,
-      "shape": 0.4
+      "shape": 0.4,
+      "from": 4
     },
-    {
-      "type": "tea-house",
-      "x": 0.3136,
-      "z": 0.4983,
-      "turn": 171,
-      "from": 1,
-      "size": 1.45
-    },
-    {
-      "type": "market-hall",
-      "x": 0,
-      "z": 0.2235,
-      "turn": -180,
-      "from": 2,
-      "size": 1.15
-    },
-    {
-      "type": "warehouse",
-      "x": -1.3857,
-      "z": 1.0292,
-      "turn": -132,
-      "from": 2,
-      "size": 1.15
-    },
+    { "type": "tea-house", "x": 0.3136, "z": 0.4983, "turn": 171, "size": 1.6, "from": 1 },
+    { "type": "market-hall", "x": 0, "z": 0.2235, "turn": -180, "size": 1.15, "from": 2 },
+    { "type": "warehouse", "x": -1.3857, "z": 1.0292, "turn": -132, "size": 1.15, "from": 2 },
     {
       "type": "crates",
       "x": -0.2439,
       "z": 0.5414,
       "turn": -172,
-      "from": 1,
       "size": 1,
-      "variant": 1
+      "variant": 1,
+      "from": 1
     },
-    {
-      "type": "lamp-post",
-      "x": 0.0989,
-      "z": 0.3896,
-      "turn": 177,
-      "from": 1,
-      "size": 1
-    },
-    {
-      "type": "lamp-post",
-      "x": -0.294,
-      "z": 0.4208,
-      "turn": -171,
-      "from": 2,
-      "size": 1
-    },
-    {
-      "type": "lamp-post",
-      "x": 0.6136,
-      "z": 0.5909,
-      "turn": 160,
-      "from": 3,
-      "size": 1
-    },
-    {
-      "type": "lamp-post",
-      "x": -0.6312,
-      "z": 0.6325,
-      "turn": -159,
-      "from": 3,
-      "size": 1
-    },
-    {
-      "type": "drying-rack",
-      "x": 0.214,
-      "z": 0.2404,
-      "turn": 174,
-      "from": 2,
-      "size": 1
-    },
-    {
-      "type": "drying-rack",
-      "x": -0.2128,
-      "z": 0.2524,
-      "turn": -174,
-      "from": 3,
-      "size": 1
-    },
-    {
-      "type": "palm",
-      "x": 0.3969,
-      "z": 0.5575,
-      "turn": 0,
-      "from": 1,
-      "size": 1.1
-    },
-    {
-      "type": "palm",
-      "x": 0.6958,
-      "z": 0.7846,
-      "turn": 67,
-      "from": 1,
-      "size": 1.25
-    },
+    { "type": "lamp-post", "x": 0.0989, "z": 0.3896, "turn": 177, "size": 1, "from": 1 },
+    { "type": "lamp-post", "x": -0.294, "z": 0.4208, "turn": -171, "size": 1, "from": 2 },
+    { "type": "lamp-post", "x": 0.6136, "z": 0.5909, "turn": 160, "size": 1, "from": 3 },
+    { "type": "lamp-post", "x": -0.6312, "z": 0.6325, "turn": -159, "size": 1, "from": 3 },
+    { "type": "drying-rack", "x": 0.214, "z": 0.2404, "turn": 174, "size": 1, "from": 2 },
+    { "type": "drying-rack", "x": -0.2128, "z": 0.2524, "turn": -174, "size": 1, "from": 3 },
+    { "type": "palm", "x": 0.3969, "z": 0.5575, "turn": 0, "size": 1.1, "from": 1 },
+    { "type": "palm", "x": 0.6958, "z": 0.7846, "turn": 67, "size": 1.25, "from": 1 },
     {
       "type": "palm",
       "x": 0.9679,
       "z": 0.9922,
       "turn": 134,
-      "from": 1,
-      "size": 1.4000000000000001
+      "size": 1.4000000000000001,
+      "from": 1
     },
-    {
-      "type": "palm",
-      "x": -0.9323,
-      "z": 0.8412,
-      "turn": 201,
-      "from": 1,
-      "size": 1.1
-    },
-    {
-      "type": "palm",
-      "x": 0.4346,
-      "z": 0.2317,
-      "turn": 268,
-      "from": 1,
-      "size": 1.25
-    },
+    { "type": "palm", "x": -0.9323, "z": 0.8412, "turn": 201, "size": 1.1, "from": 1 },
+    { "type": "palm", "x": 0.4346, "z": 0.2317, "turn": 268, "size": 1.25, "from": 1 },
     {
       "type": "palm",
       "x": -0.4248,
       "z": 0.2785,
       "turn": 335,
-      "from": 1,
-      "size": 1.4000000000000001
+      "size": 1.4000000000000001,
+      "from": 1
     },
-    {
-      "type": "palm",
-      "x": 0.6856,
-      "z": 0.3931,
-      "turn": 42,
-      "from": 1,
-      "size": 1.1
-    },
-    {
-      "type": "palm",
-      "x": -0.6578,
-      "z": 0.4695,
-      "turn": 109,
-      "from": 1,
-      "size": 1.25
-    },
-    {
-      "type": "moored-boat",
-      "x": 0.4907,
-      "z": 0.9288,
-      "turn": 160,
-      "from": 2
-    },
-    {
-      "type": "moored-boat",
-      "x": -0.5367,
-      "z": 0.8784,
-      "turn": -159,
-      "from": 3
-    },
-    {
-      "type": "lighthouse",
-      "x": -1.7024,
-      "z": 3.0352,
-      "turn": 0,
-      "from": 1,
-      "size": 1
-    }
+    { "type": "palm", "x": 0.6856, "z": 0.3931, "turn": 42, "size": 1.1, "from": 1 },
+    { "type": "palm", "x": -0.6578, "z": 0.4695, "turn": 109, "size": 1.25, "from": 1 },
+    { "type": "moored-boat", "x": 0.4907, "z": 0.9288, "turn": 160, "from": 2 },
+    { "type": "moored-boat", "x": -0.5367, "z": 0.8784, "turn": -159, "from": 3 },
+    { "type": "lighthouse", "x": -1.7024, "z": 3.0352, "turn": 0, "size": 1, "from": 1 },
+    { "type": "lamp-post", "x": 1.008, "z": 0.88, "size": 1.3, "from": 1 },
+    { "type": "lamp-post", "x": 0.825, "z": 0.745, "size": 1.3, "from": 1 },
+    { "type": "lamp-post", "x": 0.403, "z": 0.421, "size": 1.3, "from": 1 },
+    { "type": "lamp-post", "x": -0.137, "z": 0.356, "size": 1.3, "from": 1 },
+    { "type": "lamp-post", "x": -0.404, "z": 0.425, "size": 1.3, "from": 1 },
+    { "type": "lamp-post", "x": -0.835, "z": 0.699, "size": 1.3, "from": 1 },
+    { "type": "lamp-post", "x": -1.079, "z": 0.773, "size": 1.3, "from": 1 },
+    { "type": "lamp-post", "x": 0.831, "z": 0.435, "size": 1.3, "from": 1 },
+    { "type": "lamp-post", "x": 0.527, "z": 0.209, "size": 1.3, "from": 1 },
+    { "type": "lamp-post", "x": 0.157, "z": 0.083, "size": 1.3, "from": 1 },
+    { "type": "lamp-post", "x": -0.162, "z": 0.098, "size": 1.3, "from": 1 },
+    { "type": "lamp-post", "x": -0.801, "z": 0.481, "size": 1.3, "from": 1 }
   ],
   "woods": {
-    "tree": "woodland-palm",
-    "tries": 900,
+    "tree": "woodland-jungle",
+    "tries": 4000,
     "area": [-2.262, -0.3178, 2.0743, 3.4316],
     "size": 1.8,
-    "margin": 0.07,
-    "spacing": 0.15,
+    "margin": 0.05,
+    "spacing": 0.11,
     "clear": [[0, 0.3652, 0.3667]]
   }
 }
