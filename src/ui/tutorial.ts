@@ -160,7 +160,8 @@ export class TutorialCoach {
   }
   render() {
     const host = this.surface ? document.getElementById(`tutorial-${this.surface}`) : null;
-    const lesson = this.lesson;
+    // A step someone speaks has their card instead of the bubble, coach or not (decision 0185).
+    const lesson = this.book.lesson?.step.speaker ? null : this.lesson;
     const show = Boolean(host) && (lesson !== null || this.finished !== null);
     this.card.hidden = !show;
     if (!host) {

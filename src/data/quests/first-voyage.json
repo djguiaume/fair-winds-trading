@@ -40,6 +40,13 @@
       "coach": { "sea": "sail-lever", "chart": "close-chart" }
     },
     {
+      "id": "aboard",
+      "speaker": "rook",
+      "mood": "pleased",
+      "choose": [{ "id": "continue" }],
+      "wind": { "speedKn": 8 }
+    },
+    {
       "id": "chart",
       "teach": true,
       "goal": {

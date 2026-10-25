@@ -98,6 +98,10 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   const wreck = pointOf(world.map, 'wreck')!;
   Object.assign(world.boat, { x: wreck.x + 12, y: wreck.y, speedKn: 0.5 });
   for (let n = 0; n < 8; n++) quests.check(0.5);
+  // Rook's card at the rescue (decision 0185), then the chart lesson's bubble.
+  expect(step()).toBe('aboard');
+  expect((document.getElementById('quest-card') as HTMLDialogElement).open).toBe(true);
+  click('#quest-card [data-option="continue"]');
   expect(step()).toBe('chart');
   // The coach mark rings the Map button; tapping it opens the chart, and Rook asks for home.
   click('#chart-btn');

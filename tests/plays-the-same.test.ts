@@ -34,6 +34,8 @@ const TUTORIAL = 'first-voyage';
  * voyage (course, dock, cargo, chart open, helm) and the quest book watches it; the session also
  * saves and loads the lesson with the voyage.
  * Retaken by decision 0159: Rook's island lesson names Skerry and where it lies.
+ * Retaken by decision 0185: Rook speaks on his card at the rescue (a new `aboard` step), and the
+ * chart lesson no longer repeats his words.
  */
 
 afterEach(() => {
@@ -96,8 +98,9 @@ describe('plays the same after moving levels, tutorial and music to data (decisi
     const lines: string[] = [];
     for (let run = 0; run < 300; run++) lines.push(...tutorialSession(run));
     expect(lines.length).toBeGreaterThan(60000);
-    expect(hash(lines.join('\n'))).toBe('54f744c6');
-    // 2026-10-25: neutral default texts for the lessons that name controls (decision 0184).
+    expect(hash(lines.join('\n'))).toBe('72a1c31c');
+    // 2026-10-25: neutral default texts for the lessons that name controls (decision 0184), then
+    // Rook's card at the rescue (decision 0185).
     // 300 sessions take about 3.5 s here and over 5 s on a busy CI runner.
   }, 20000);
 });
