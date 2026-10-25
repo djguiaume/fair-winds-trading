@@ -390,7 +390,7 @@ export function playUrl(
   stepId: string,
   start: { port: string } | { x: number; y: number; headingDeg: number },
 ): string {
-  // On the grown sea, the game's own (decision 0193), with the sea editor's working copy if any.
+  // On the grown sea, the game's own (decision 0197), with the sea editor's working copy if any.
   const q = new URLSearchParams({ map: 'edited', sea: 'phase4', quest: questId, step: stepId });
   if ('port' in start) q.set('port', start.port);
   else {
@@ -703,9 +703,9 @@ export function questProblems(doc: QuestDoc, map: MapDef): string[] {
   try {
     // Quests for a Phase 4 sea this map lacks are left to the game sea's checks (decision 0155);
     // a quest naming a port no sea has is still checked here, so a misspelt port shows.
-    const here = doc.quests.filter(
-      (q) => questsFor(map, [q]).length > 0 || questsFor(GAME_MAP, [q]).length === 0,
-    );
+    const runsHere = new Set(questsFor(map, doc.quests).map((q) => q.id));
+    const runsGrown = new Set(questsFor(GAME_MAP, doc.quests).map((q) => q.id));
+    const here = doc.quests.filter((q) => runsHere.has(q.id) || !runsGrown.has(q.id));
     return [
       ...checkQuests(here, map),
       ...checkQuestHooks(map, Object.values(ISLAND_DESIGNS), doc.quests),

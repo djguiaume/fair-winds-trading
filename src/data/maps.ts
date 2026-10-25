@@ -43,7 +43,7 @@ export function prepareMap(source: MapDef): MapDef {
 export const PHASE1_MAP: MapDef = prepareMap(PHASE1_SOURCE);
 
 /**
- * The game's sea (decision 0193): the Windward Ring in the middle and the four seas round it,
+ * The game's sea (decision 0197): the Windward Ring in the middle and the four seas round it,
  * as authored. `PHASE1_SOURCE` and `PHASE1_MAP` stay the ring alone (`?map=ring`, the tests).
  */
 export const GAME_SOURCE: MapDef = grownMap(PHASE1_SOURCE);

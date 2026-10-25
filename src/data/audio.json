@@ -65,11 +65,11 @@
     },
     "bram": {
       "synth": "babble",
-      "pitch": 0.85,
+      "pitch": 0.74,
       "speed": 0.95,
       "wobble": 0.1,
-      "vowels": "oau",
-      "moods": { "pleased": { "pitch": 0.95, "wobble": 0.16 }, "worried": { "speed": 0.85 } }
+      "vowels": "aeo",
+      "moods": { "pleased": { "pitch": 0.82, "wobble": 0.16 }, "worried": { "speed": 0.85 } }
     },
     "oskar": {
       "synth": "babble",
@@ -103,6 +103,23 @@
       "vowels": "aeo",
       "volume": 0.9,
       "moods": { "pleased": { "pitch": 0.76 } }
+    },
+    "elias": {
+      "synth": "babble",
+      "pitch": 0.9,
+      "speed": 0.7,
+      "wobble": 0.04,
+      "vowels": "eu",
+      "volume": 0.8,
+      "moods": { "pleased": { "pitch": 0.96 }, "worried": { "speed": 0.62 } }
+    },
+    "pip": {
+      "synth": "babble",
+      "pitch": 1.35,
+      "speed": 1.55,
+      "wobble": 0.18,
+      "vowels": "iae",
+      "moods": { "pleased": { "pitch": 1.45, "wobble": 0.24 }, "worried": { "speed": 1.7 } }
     }
   }
 }

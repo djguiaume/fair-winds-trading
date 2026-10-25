@@ -14,7 +14,7 @@ describe('?bench benchmark (decision 0154)', () => {
   });
 
   it.each([
-    ['the grown sea, the game since decision 0193', GAME_MAP],
+    ['the grown sea, the game since decision 0197', GAME_MAP],
     ['the ring alone', PHASE1_MAP],
     ['the stress sea', prepareMap(stressMap(PHASE1_SOURCE))],
   ])('sails in open water on %s', (_, map) => {

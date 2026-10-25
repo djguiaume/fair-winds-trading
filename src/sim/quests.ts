@@ -27,6 +27,7 @@ import {
   parFor,
   payReward,
   portsIn,
+  questsIn,
   resolvePort,
   rewardPorts,
   slotLayout,
@@ -331,7 +332,16 @@ function questPorts(def: QuestDef): string[] {
 
 /** The quests that can run on `map`, in order. */
 export function questsFor(map: MapDef, quests: readonly QuestDef[] = QUESTS): QuestDef[] {
-  return quests.filter((q) => questPorts(q).every((p) => resolvePort(map, p)));
+  let out = quests.filter((q) => questPorts(q).every((p) => resolvePort(map, p)));
+  // A quest that starts after one this map can't run (the Phase 4 closing beat on the ring sea)
+  // can't run either, however few ports it names.
+  for (let n = out.length; ; n = out.length) {
+    const ids = new Set(out.map((q) => q.id));
+    out = out.filter((q) =>
+      questsIn(q.start).every((id) => ids.has(id) || !quests.some((o) => o.id === id)),
+    );
+    if (out.length === n) return out;
+  }
 }
 
 /** Hold spaces the quest cargo aboard takes. */

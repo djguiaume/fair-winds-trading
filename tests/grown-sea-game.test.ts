@@ -9,7 +9,7 @@ import { farGoodsOnChart } from '../src/sim/shipyards';
 import { type World, createWorld, stepWorld } from '../src/sim/world';
 
 /*
- * The grown sea is the main game (decision 0193): the Windward Ring in the middle keeps its name,
+ * The grown sea is the main game (decision 0197): the Windward Ring in the middle keeps its name,
  * ports and places, so a voyage from before resumes where it was, with the new waters fogged, and
  * its save codes still read.
  */
@@ -41,7 +41,7 @@ function ringVoyage(): World {
   return w;
 }
 
-describe('the grown sea is the main game (decision 0193)', () => {
+describe('the grown sea is the main game (decision 0197)', () => {
   it('keeps the ring: same name, its ports first and in order, the new waters fogged', () => {
     expect(GAME_MAP.name).toBe(PHASE1_MAP.name);
     expect(GAME_MAP.boundsRadius).toBeGreaterThan(PHASE1_MAP.boundsRadius * 2);
@@ -79,7 +79,7 @@ describe('the grown sea is the main game (decision 0193)', () => {
     expect(islandCharted(GAME_MAP, game.trade.progress, sunreach)).toBe(false);
   });
 
-  it('reads a ring FW2 code, written before 0193, with the ring as the earlier map', () => {
+  it('reads a ring FW2 code, written before 0197, with the ring as the earlier map', () => {
     const ring = ringVoyage();
     const code = encodeSaveCode(serializeWorld(ring), PHASE1_MAP);
     const game = createWorld(GAME_MAP, SLOOP);

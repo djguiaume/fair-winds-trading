@@ -181,9 +181,9 @@ const browserStorage: SaveStorage | null = (() => {
   }
 })();
 // The game sails the grown sea: the Windward Ring in the middle, the four seas round it (decision
-// 0193). "Play this map" from the map editor (decision 0095) sails its own map, save and tutorial
+// 0197). "Play this map" from the map editor (decision 0095) sails its own map, save and tutorial
 // progress; so do the bigger-map test sea (decision 0115), `?map=stress`, and the ring alone
-// (`?map=ring`, how the game was before 0193). `?map=phase4` still opens the voyage sailed there
+// (`?map=ring`, how the game was before 0197). `?map=phase4` still opens the voyage sailed there
 // while the grown sea was a dev sea (decision 0152), on the game's own sea.
 const mapParam = new URLSearchParams(location.search).get('map');
 // The sea editor's grown sea (decision 0161): `?map=edited&sea=phase4`.

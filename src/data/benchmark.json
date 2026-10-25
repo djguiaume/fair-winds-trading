@@ -1,5 +1,5 @@
 {
-  "about": "The ?bench device benchmark (decision 0154): the boat follows this route at a fixed speed, once per pass, from the same game time, so every run measures the same thing. Route points are [x, y] round the Windward Ring; the game's grown sea (decision 0193) and the stress sea keep the ring at their centre, so the same route works on each.",
+  "about": "The ?bench device benchmark (decision 0154): the boat follows this route at a fixed speed, once per pass, from the same game time, so every run measures the same thing. Route points are [x, y] round the Windward Ring; the game's grown sea (decision 0197) and the stress sea keep the ring at their centre, so the same route works on each.",
   "speedKn": 10,
   "lookAheadSec": 1.5,
   "startTime": 600,

@@ -46,7 +46,11 @@ function fakeDialog(): HTMLDialogElement {
 
 describe('main quests and the Quay tab (decision 0141)', () => {
   it('marks the story quests main, and checks the flag', () => {
-    expect(QUESTS.filter((q) => q.main).map((q) => q.id)).toEqual(['fair-winds', 'rooks-thanks']);
+    expect(QUESTS.filter((q) => q.main).map((q) => q.id)).toEqual([
+      'fair-winds',
+      'four-winds',
+      'rooks-thanks',
+    ]);
     expect(QUESTS.filter((q) => q.main && q.offer)).toEqual([]);
     expect(checkQuests([{ ...MAIN, main: 'yes' as unknown as boolean }], PHASE1_MAP)).toContain(
       'quest test-main: main is true or false',

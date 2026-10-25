@@ -1,0 +1,39 @@
+{
+  "id": "westholm-letter",
+  "name": "A letter from Fogwatch",
+  "start": {
+    "is": "all",
+    "of": [
+      {
+        "is": "quest-done",
+        "quest": "westholm-mill"
+      },
+      {
+        "is": "quest-done",
+        "quest": "watchman-passage"
+      }
+    ]
+  },
+  "text": "quest.westholm-letter",
+  "giver": "maren",
+  "port": "westholm",
+  "offer": true,
+  "steps": [
+    {
+      "id": "chart",
+      "port": "westholm",
+      "chart": {
+        "port": "fogwatch",
+        "radius": 140
+      },
+      "charts": ["stepping-stones", "fogwatch-waters"],
+      "goal": {
+        "is": "docked",
+        "port": "fogwatch"
+      },
+      "reward": {
+        "gold": 350
+      }
+    }
+  ]
+}
