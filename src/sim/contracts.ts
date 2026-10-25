@@ -22,7 +22,7 @@ import {
 import { knobs } from './difficulty';
 import { TUNING } from '../data/tuning';
 import { addStanding, homePort, portCharted } from './shipyards';
-import { type TradeState, capacity } from './trade';
+import { type TradeState, capacity, settleCredit } from './trade';
 import { MAX_UPGRADE_LEVEL, UPGRADE_TRACKS } from './upgrades';
 
 /**
@@ -186,6 +186,7 @@ export function deliverContract(trade: TradeState, map: MapDef): DeliverResult {
     madeGoods(map, trade),
     knobs(trade.difficulty).orderFactor,
   );
+  settleCredit(trade);
   return { ok: true, gold: c.reward };
 }
 

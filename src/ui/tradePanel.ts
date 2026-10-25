@@ -1,6 +1,7 @@
 import { TUNING } from '../data/tuning';
 import { topSpeedKn } from '../sim/boat';
 import { type Contract, deliverContract, openContracts } from '../sim/contracts';
+import { creditOffer, leavesShort, takeCredit } from '../sim/credit';
 import { GOODS, GOOD_DEFS, GOOD_ICONS, type GoodId } from '../sim/goods';
 import { hullCondition, repairHull, repairPrice } from '../sim/hazards';
 import {
@@ -42,9 +43,11 @@ import {
   maxBuy,
   sell,
   sellAll,
+  shipCost,
   switchShip,
   type TradeResult,
   upgradeAllowed,
+  upgradeCost,
 } from '../sim/trade';
 import {
   MAX_UPGRADE_LEVEL,
@@ -62,6 +65,7 @@ import { COIN, crateIcon, icon } from './icons';
 import { portraitSvg } from './portraits';
 import { questCardBody } from './questCard';
 import type { QuayItem } from './questView';
+import { askConfirm } from './confirmDialog';
 import { guardSoftDisabled, softDisable } from './padFocus';
 import { padGlyph } from './padGlyphs';
 
@@ -94,6 +98,9 @@ export class TradePanel {
   private tab: TradePanelTab = 'market';
   private returnFocus: HTMLElement | null = null;
   private message = '';
+
+  /** "Not now" on the load on credit (decision 0200): hidden until she docks again. */
+  private creditLater = false;
 
   private finish(result: TradeResult, transaction?: { kind: 'buy' | 'sell'; good: GoodId | null }) {
     this.message = result.ok ? t('trade.done') : t(`trade.err.${result.error}`);
@@ -167,6 +174,7 @@ export class TradePanel {
   open(tab: TradePanelTab = 'market') {
     if (!this.isOpen) this.returnFocus = document.activeElement as HTMLElement | null;
     this.message = '';
+    this.creditLater = false;
     this.tab = tab;
     this.container.hidden = false;
     this.render();
@@ -724,6 +732,7 @@ export class TradePanel {
       <div class="market-section adult-layout">
         <div class="goods-list">${rowsHtml}</div>
         <aside class="port-side">
+          ${this.renderCredit()}
           <section class="side-card">
             <h3>${t('trade.orderHere')}</h3>
             ${orderHtml}
@@ -732,6 +741,58 @@ export class TradePanel {
         </aside>
       </div>
     `;
+  }
+
+  /**
+   * A load on credit (decision 0200): the harbour office's offer while she is broke with an empty
+   * hold, or what she owes while a loan is open.
+   */
+  private renderCredit(): string {
+    const { trade, map } = this.world;
+    const portName = (id: string) => findPort(map, id)?.name ?? id;
+    const loan = trade.captain.loan;
+    if (loan)
+      return `<section class="side-card credit-card owed"><p>${icon(loan.good)} ${t('trade.creditOwed', { price: loan.owed, good: goodName(loan.good).toLowerCase(), port: portName(loan.port) })}</p></section>`;
+    const offer = this.creditLater ? null : creditOffer(map, trade);
+    if (!offer) return '';
+    const text = t('trade.creditText', {
+      goods: t('trade.contractGoods', { qty: offer.qty, good: goodName(offer.good).toLowerCase() }),
+      port: portName(offer.port),
+      price: offer.price,
+    });
+    return `
+      <section class="side-card credit-card">
+        <h3>${t('trade.creditTitle')}</h3>
+        <p>${icon(offer.good)} ${text}</p>
+        <div class="credit-actions">
+          <button id="tp-credit-take" class="port-btn green">${t('trade.creditTake')}</button>
+          <button id="tp-credit-later" class="port-btn later">${t('trade.creditLater')}</button>
+        </div>
+      </section>`;
+  }
+
+  /**
+   * Spend `gold` here, asking first if it would leave her with an empty hold and less than the
+   * cheapest load (decision 0200).
+   */
+  private async spend(gold: number, act: () => void) {
+    const trade = this.world.trade;
+    if (leavesShort(trade, gold)) {
+      const yes = await askConfirm({
+        title: t('trade.shortTitle'),
+        text: t('trade.shortText', { gold: formatNumber(Math.max(0, trade.captain.gold - gold)) }),
+        ok: t('trade.shortOk'),
+      });
+      if (!yes || !this.isOpen) return;
+    }
+    act();
+  }
+
+  /** After a sale or a delivery: the gold paid back if it cleared her loan (decision 0200). */
+  private repaidNote(before: { gold: number; owed: boolean }, earned: number) {
+    if (!before.owed || this.world.trade.captain.loan) return;
+    const paid = before.gold + earned - this.world.trade.captain.gold;
+    if (paid > 0) this.message += ` ${t('trade.creditRepaid', { gold: paid })}`;
   }
 
   // --- KIDS SHIPYARD RENDERER ---
@@ -994,6 +1055,18 @@ export class TradePanel {
     `;
   }
 
+  private loanState() {
+    const { captain } = this.world.trade;
+    return { gold: captain.gold, owed: !!captain.loan };
+  }
+
+  /** A sale's note, with the loan paid back if it cleared (decision 0200). */
+  private afterSale(before: { gold: number; owed: boolean }, res: TradeResult) {
+    if (!res.ok) return;
+    this.repaidNote(before, res.gold);
+    this.render();
+  }
+
   private attachListeners() {
     const closeBtn = this.container.querySelector('#tp-close');
     closeBtn?.addEventListener('click', () => this.close());
@@ -1023,25 +1096,53 @@ export class TradePanel {
     // Sell all
     const sellAllBtn = this.container.querySelector('#tp-sell-all');
     sellAllBtn?.addEventListener('click', () => {
+      const before = this.loanState();
       const res = sellAll(this.world.trade, this.world.map);
       this.finish(res, { kind: 'sell', good: null });
+      this.afterSale(before, res);
     });
 
     this.container.querySelector('#tp-repair')?.addEventListener('click', () => {
-      const res = repairHull(this.world.trade);
-      if (res.ok) {
-        this.message = t('trade.repaired', { gold: res.gold });
+      const trade = this.world.trade;
+      // Repairs take what she can pay for (decision 0032).
+      const cost = Math.min(repairPrice(trade), trade.captain.gold);
+      void this.spend(cost, () => {
+        const res = repairHull(trade);
+        if (res.ok) {
+          this.message = t('trade.repaired', { gold: res.gold });
+          this.onAction();
+        } else {
+          this.message = res.error === 'not-enough-gold' ? t('trade.err.not-enough-gold') : '';
+        }
+        this.render();
+      });
+    });
+
+    this.container.querySelector('#tp-credit-take')?.addEventListener('click', () => {
+      const offer = takeCredit(this.world.map, this.world.trade);
+      if (offer) {
+        this.message = t('trade.creditTaken', {
+          goods: t('trade.contractGoods', {
+            qty: offer.qty,
+            good: goodName(offer.good).toLowerCase(),
+          }),
+          port: findPort(this.world.map, offer.port)?.name ?? offer.port,
+        });
         this.onAction();
-      } else {
-        this.message = res.error === 'not-enough-gold' ? t('trade.err.not-enough-gold') : '';
       }
+      this.render();
+    });
+    this.container.querySelector('#tp-credit-later')?.addEventListener('click', () => {
+      this.creditLater = true;
       this.render();
     });
 
     this.container.querySelector('#tp-deliver')?.addEventListener('click', () => {
+      const before = this.loanState();
       const res = deliverContract(this.world.trade, this.world.map);
       if (res.ok) {
         this.message = t('trade.delivered', { gold: res.gold });
+        this.repaidNote(before, res.gold);
         this.onAction();
       } else {
         this.message = t('trade.needFullOrder');
@@ -1090,8 +1191,10 @@ export class TradePanel {
             const res = buy(this.world.trade, good, qty);
             this.finish(res, { kind: 'buy', good });
           } else if (action === 'sell') {
+            const before = this.loanState();
             const res = sell(this.world.trade, good, qty, this.world.map);
             this.finish(res, { kind: 'sell', good });
+            this.afterSale(before, res);
           }
         });
       });
@@ -1103,8 +1206,13 @@ export class TradePanel {
         btn.addEventListener('click', () => {
           const track = btn.dataset.track as UpgradeTrack;
           if (!track) return;
-          const res = buyUpgrade(this.world.trade, this.world.map, track);
-          this.finish(res);
+          const { trade, map } = this.world;
+          const base = SHIP_CLASSES[trade.captain.activeShip]!;
+          const listed = upgradePrice(base, trade.captain.ships[trade.captain.activeShip]!, track);
+          const cost = listed === null ? 0 : upgradeCost(trade, listed, track);
+          void this.spend(cost <= trade.captain.gold ? cost : 0, () =>
+            this.finish(buyUpgrade(trade, map, track)),
+          );
         });
       });
 
@@ -1112,9 +1220,13 @@ export class TradePanel {
     this.container.querySelectorAll<HTMLButtonElement>('[data-ship-buy]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const shipId = btn.dataset.shipBuy;
-        if (!shipId) return;
-        const res = buyShip(this.world.trade, this.world.map, shipId);
-        this.finish(res);
+        const cls = shipId ? SHIP_CLASSES[shipId] : undefined;
+        if (!shipId || !cls) return;
+        const { trade, map } = this.world;
+        const cost = shipCost(trade, cls);
+        void this.spend(cost <= trade.captain.gold ? cost : 0, () =>
+          this.finish(buyShip(trade, map, shipId)),
+        );
       });
     });
 
