@@ -1,6 +1,6 @@
 # 0214. Windward Ring catch-up pass
 
-**Status:** Proposed (2026-10-25). Waiting on Guillaume's look at the screenshots and his call on growing the ring ports.
+**Status:** Proposed (2026-10-25). Guillaume chose to grow the ring ports (16:21Z); waiting on his look at the screenshots.
 
 ## Context
 
@@ -31,6 +31,11 @@ cameras).
   Bell Rock is named (`npm run sea -- --steps`).
 - **Shapes.** Abbey Head, Watchman Key, Lantern Rock, Bell Rock, Teeth Rock, Greyback Ridge and Gull Hook get ragged coasts
   and offset, ragged tiers instead of rings and straight bands.
+- **Bigger ring ports** (Guillaume's choice): Saltmere, Stonehaven and Port Calda go to radius 36, Westholm to 34
+  (36 put one balance check on its line in the ring-alone bots). Props keep their size while the island grows, so the
+  ring's homes get bigger (`size` 1.1–1.35), the woods closer together, and Stonehaven six more homes on its plateau
+  (steps in `docs/reviews/ring-review/steps/stonehaven-grown.json`). Port Calda's pilot cutter moves off the new coast;
+  the stress sea keeps 40 units between copies instead of 30.
 - **Budget check.** The island checks count a town's triangles as a new voyage finds it and with all its quests done, and
   keep the larger, instead of counting before- and after-quest props together.
 
@@ -38,4 +43,7 @@ cameras).
 
 - Island hashes in `tests/island-files.test.ts` are re-recorded; Westholm's moored boat adds one solid hull.
 - Every image goes to Guillaume before merge ([rule](../roadmap.md#rules-that-hold-in-every-phase)).
-- Growing the ring ports, if Guillaume picks it, is a map change on top: routes, prologue and balance on all three levels.
+- Growing the ports shortens legs a little (median sloop leg 64 s → 61 s on Fair winds); every balance check passes on
+  all three levels, on the ring alone and on the game's sea, and the route checks pass.
+- Heights are in island-radius units, so the grown ports' cliffs are taller too.
+- A current too weak to chart no longer leaves an empty `charted` list in the save (found by the save-code test).

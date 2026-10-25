@@ -1,0 +1,338 @@
+[
+ {
+  "at": [
+   106,
+   168
+  ],
+  "heading": 32,
+  "look": [
+   170,
+   270
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "calda-over",
+  "zoom": 3
+ },
+ {
+  "at": [
+   106,
+   168
+  ],
+  "heading": 32,
+  "look": [
+   170,
+   270
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "calda-close",
+  "zoom": 1.4
+ },
+ {
+  "at": [
+   106,
+   168
+  ],
+  "heading": 32,
+  "look": [
+   170,
+   270
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "calda-done-L4",
+  "zoom": 1.4,
+  "town": "calda:4",
+  "quest": "fair-winds:home",
+  "cards": false,
+  "click": "[data-act=\"close\"]"
+ },
+ {
+  "at": [
+   106,
+   168
+  ],
+  "heading": 32,
+  "look": [
+   170,
+   270
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "calda-done-L4-night",
+  "zoom": 1.4,
+  "town": "calda:4",
+  "quest": "fair-winds:home",
+  "cards": false,
+  "click": "[data-act=\"close\"]",
+  "night": true
+ },
+ {
+  "at": [
+   178,
+   -88
+  ],
+  "heading": 116,
+  "look": [
+   285,
+   -140
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "saltmere-over",
+  "zoom": 3
+ },
+ {
+  "at": [
+   178,
+   -88
+  ],
+  "heading": 116,
+  "look": [
+   285,
+   -140
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "saltmere-close",
+  "zoom": 1.4
+ },
+ {
+  "at": [
+   178,
+   -88
+  ],
+  "heading": 116,
+  "look": [
+   285,
+   -140
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "saltmere-done-L4",
+  "zoom": 1.4,
+  "town": "saltmere:4",
+  "quest": "fair-winds:home",
+  "cards": false,
+  "click": "[data-act=\"close\"]"
+ },
+ {
+  "at": [
+   178,
+   -88
+  ],
+  "heading": 116,
+  "look": [
+   285,
+   -140
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "saltmere-done-L4-night",
+  "zoom": 1.4,
+  "town": "saltmere:4",
+  "quest": "fair-winds:home",
+  "cards": false,
+  "click": "[data-act=\"close\"]",
+  "night": true
+ },
+ {
+  "at": [
+   -193,
+   31
+  ],
+  "heading": 279,
+  "look": [
+   -310,
+   50
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "westholm-over",
+  "zoom": 3
+ },
+ {
+  "at": [
+   -193,
+   31
+  ],
+  "heading": 279,
+  "look": [
+   -310,
+   50
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "westholm-close",
+  "zoom": 1.4
+ },
+ {
+  "at": [
+   -193,
+   31
+  ],
+  "heading": 279,
+  "look": [
+   -310,
+   50
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "westholm-done-L4",
+  "zoom": 1.4,
+  "town": "westholm:4",
+  "quest": "fair-winds:home",
+  "cards": false,
+  "click": "[data-act=\"close\"]"
+ },
+ {
+  "at": [
+   -193,
+   31
+  ],
+  "heading": 279,
+  "look": [
+   -310,
+   50
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "westholm-done-L4-night",
+  "zoom": 1.4,
+  "town": "westholm:4",
+  "quest": "fair-winds:home",
+  "cards": false,
+  "click": "[data-act=\"close\"]",
+  "night": true
+ },
+ {
+  "at": [
+   -104,
+   -196
+  ],
+  "heading": 208,
+  "look": [
+   -160,
+   -300
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "south-cay-over",
+  "zoom": 3
+ },
+ {
+  "at": [
+   -104,
+   -196
+  ],
+  "heading": 208,
+  "look": [
+   -160,
+   -300
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "south-cay-close",
+  "zoom": 1.4
+ },
+ {
+  "at": [
+   -104,
+   -196
+  ],
+  "heading": 208,
+  "look": [
+   -160,
+   -300
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "south-cay-done-L4",
+  "zoom": 1.4,
+  "town": "stonehaven:4",
+  "quest": "fair-winds:home",
+  "cards": false,
+  "click": "[data-act=\"close\"]"
+ },
+ {
+  "at": [
+   -104,
+   -196
+  ],
+  "heading": 208,
+  "look": [
+   -160,
+   -300
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "south-cay-done-L4-night",
+  "zoom": 1.4,
+  "town": "stonehaven:4",
+  "quest": "fair-winds:home",
+  "cards": false,
+  "click": "[data-act=\"close\"]",
+  "night": true
+ },
+ {
+  "at": [
+   106,
+   168
+  ],
+  "heading": 32,
+  "look": [
+   170,
+   270
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "calda-town",
+  "zoom": 1.0
+ },
+ {
+  "at": [
+   178,
+   -88
+  ],
+  "heading": 116,
+  "look": [
+   285,
+   -140
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "saltmere-town",
+  "zoom": 1.0
+ },
+ {
+  "at": [
+   -193,
+   31
+  ],
+  "heading": 279,
+  "look": [
+   -310,
+   50
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "westholm-town",
+  "zoom": 1.0
+ },
+ {
+  "at": [
+   -104,
+   -196
+  ],
+  "heading": 208,
+  "look": [
+   -160,
+   -300
+  ],
+  "sail": 0,
+  "speed": 0,
+  "name": "south-cay-town",
+  "zoom": 1.0
+ }
+]

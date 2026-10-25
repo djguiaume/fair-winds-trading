@@ -83,4 +83,8 @@ How each island was changed is in [steps/](steps/) (island builder steps and the
 The art director's round on Westholm and Saltmere asked for: no rowan orchard, bigger lit windows on every ring house,
 higher coasts so the sandstone bands show, Saltmere's trees in clumps, a zoom-1 town camera; all done.
 
-Open: Guillaume's call on growing the ring ports (radius ~32–36, a map change with routes, prologue and balance).
+## The ports grown (Guillaume's choice)
+
+Saltmere, Stonehaven and Port Calda at radius 36, Westholm at 34. Sheets in [grown/](grown/): the chart before and after,
+a sailing approach to each port, the towns as a new voyage finds them, and at level 4 with the arcs done, by day and night.
+Checks, route checks and balance on all three levels pass (ring alone and the game's sea).
