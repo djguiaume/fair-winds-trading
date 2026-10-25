@@ -1,0 +1,66 @@
+{
+  "id": "fogwatch-amber",
+  "name": "The quiet workshop",
+  "start": {
+    "is": "quest-done",
+    "quest": "westholm-letter"
+  },
+  "text": "quest.fogwatch-amber",
+  "giver": "elias",
+  "port": "fogwatch",
+  "offer": true,
+  "steps": [
+    {
+      "id": "fish",
+      "mood": "worried",
+      "goal": {
+        "is": "delivered",
+        "port": "fogwatch",
+        "good": "smokedFish",
+        "qty": 8
+      },
+      "reward": {
+        "gold": 400
+      }
+    },
+    {
+      "id": "way",
+      "choose": [
+        {
+          "id": "continue"
+        }
+      ]
+    },
+    {
+      "id": "strand",
+      "charts": ["amber-reach"],
+      "goal": {
+        "is": "reach",
+        "points": [
+          {
+            "x": 692,
+            "y": 452
+          }
+        ],
+        "within": 14,
+        "maxKn": 3,
+        "holdSec": 3
+      },
+      "reward": {
+        "gold": 450
+      }
+    },
+    {
+      "id": "light",
+      "goal": {
+        "is": "delivered",
+        "port": "fogwatch",
+        "good": "lampOil",
+        "qty": 8
+      },
+      "reward": {
+        "gold": 650
+      }
+    }
+  ]
+}

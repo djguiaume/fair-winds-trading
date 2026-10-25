@@ -1,0 +1,23 @@
+{
+  "id": "four-winds",
+  "name": "Four winds",
+  "start": {
+    "is": "quest-done",
+    "quest": "outpost-east"
+  },
+  "text": "quest.four-winds",
+  "main": true,
+  "giver": "rook",
+  "reward": {
+    "gold": 300
+  },
+  "steps": [
+    {
+      "id": "home",
+      "mood": "pleased",
+      "goal": {
+        "is": "moored"
+      }
+    }
+  ]
+}

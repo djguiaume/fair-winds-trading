@@ -234,8 +234,10 @@ describe('quest engine (decision 0125)', () => {
       'test-pier',
       'test-after',
     ]);
-    // The first test sea has no Abbey Head.
-    expect(questsFor(PHASE0_MAP, TEST_QUESTS).map((q) => q.id)).toEqual(['test-after']);
+    // The first test sea has no Abbey Head, so the pier quest can't run there, and neither can
+    // the quest that starts after it.
+    expect(questsFor(PHASE0_MAP, TEST_QUESTS).map((q) => q.id)).toEqual([]);
+    expect(questsFor(PHASE0_MAP, [after]).map((q) => q.id)).toEqual(['test-after']);
   });
 
   it('quest cargo takes hold space, cannot be sold, and goes in as many trips as it takes', () => {

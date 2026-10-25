@@ -140,7 +140,7 @@ const GOLDEN: Record<string, string[]> = {
   // The home island (decision 0126): bigger, every building of its spots drawn at once.
   // Teeth Rock (decision 0133): the Stonehaven arc's lighthouse rock.
   'teeth-rock': Array(4).fill('25:593e9317'),
-  skerry: ['176:5e30be68', '180:f1a016d7', '183:c8300615', '183:c8300615'],
+  skerry: ['187:42c44309', '191:c2795664', '194:e46e8f5a', '194:e46e8f5a'],
   'watchman-key': ['43:fbfd2fb9', '73:4bfeb4dd', '92:3e8fc1dd', '99:ac0414a9'],
   // The south sea (decision 0152).
   sunreach: ['606:780ca76b', '739:2be703f5', '842:84de71a', '877:b4741162'],
@@ -148,10 +148,10 @@ const GOLDEN: Record<string, string[]> = {
   'palm-key': ['296:5af31071', '270:7e77b63a', '266:18f30d17', '266:18f30d17'],
   'lone-palm': Array(4).fill('13:2bd589f4'),
   // The east sea (decision 0173).
-  fogwatch: ['606:fe365570', '727:cd97104f', '799:c7908d01', '840:acc90a91'],
+  fogwatch: ['619:644eee3c', '740:9e73d52f', '812:bc749a59', '853:68f796d7'],
   'the-giant': Array(4).fill('6:c84f56e6'),
   'his-wife': Array(4).fill('6:676eecc4'),
-  'amber-strand': ['129:e66b7b39', '133:56673594', '136:e68e96ec', '136:e68e96ec'],
+  'amber-strand': ['172:d2f08c8a', '214:25877637', '253:69fee500', '253:69fee500'],
   'puffin-holm': Array(4).fill('8:3ff49b4c'),
   'lamb-holm': Array(4).fill('17:85293a40'),
   'broch-isle': Array(4).fill('14:18071749'),
