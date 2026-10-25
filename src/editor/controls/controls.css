@@ -130,3 +130,32 @@
     overflow: visible;
   }
 }
+
+/* The Regatta page (decision 0217) shares this page's layout. */
+.rg-colour {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.rg-colour input[type='color'] {
+  width: 32px;
+  height: 26px;
+  padding: 0;
+}
+.rg-colour input[type='text'] {
+  width: 90px;
+}
+.rg-bands {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.rg-flag {
+  display: inline-block;
+  margin: 4px 0 8px;
+}
+.rg-add {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}

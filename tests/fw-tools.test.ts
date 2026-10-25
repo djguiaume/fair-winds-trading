@@ -48,6 +48,7 @@ describe('command-line tools for agents (decision 0153)', () => {
       'ships',
       'controls',
       'audio',
+      'regatta',
     ]);
   }, 60000);
 

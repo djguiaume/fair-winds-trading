@@ -29,6 +29,17 @@ import { clearAt } from '../../src/sim/mapChecks';
 import type { Condition } from '../../src/sim/questLibrary';
 import { QUESTS, type QuestDef } from '../../src/sim/quests';
 import { racePars } from '../../src/sim/raceBot';
+import {
+  flagsText,
+  isFlagShape,
+  regattaProblems,
+  regattaText,
+  removeFlag,
+  setFlag,
+  setRule,
+  setSeries,
+  shippedRegattaDoc,
+} from '../../src/editor/regatta/doc';
 import { MEDALS, medalTimes, seriesById } from '../../src/sim/regatta';
 import { DIFFICULTIES } from '../../src/sim/difficulty';
 import { SHIP_IDS } from '../../src/sim/ship';
@@ -68,6 +79,13 @@ Races of the Saltmere Regatta (decision 0217; also \`npm run race -- …\`):
   race <id> --finish "x,y x,y"  the finish line
   race <id> --add --at x,y [--after N]   a mark (numbered in order), after mark N
   race <id> --mark N --at x,y | --remove move or remove mark N (1 = first)
+  race rules                    regatta.json and flags.json: the rules, Kestrel, series, flags
+  race set <path> <value>       a value of regatta.json, e.g. set medals.silver 1.2,
+                                set rival.hull "#f4f1e8", set rival.paceRange 0.45,1.4
+  race series <id> [--name "…"] [--pennant flag]   a series (a new id adds one)
+  race flag <id> [--shape pennant|swallowtail|burgee] [--bands "#a,#b"] [--length n]
+                 [--height n] | --remove        a flag (a new id adds one)
+                                (the editor's Regatta page makes the same edits; --dry)
   race <id> --overlay file.json writes the course as a chart overlay and prints the view:
                                 npm run chart -- --overlay file.json --view w,s,e,n
 Options
@@ -370,6 +388,7 @@ function writeQuest(q: QuestDef, args: Args): boolean {
 
 /** `race`: the regatta's courses, their pars from the bots, and the builder's course edits. */
 function race(ids: string[], args: Args, doc: QuestDoc, map: MapDef): number {
+  if (['rules', 'set', 'series', 'flag'].includes(ids[0] ?? '')) return regattaFiles(ids, args);
   const races = doc.quests.filter((q) => q.race);
   const [id] = ids;
   if (!id && !args.all) {
@@ -499,6 +518,98 @@ function race(ids: string[], args: Args, doc: QuestDoc, map: MapDef): number {
       );
     }
   }
+  return 0;
+}
+
+/**
+ * `race rules|set|series|flag` (decision 0217): regatta.json and flags.json with the Regatta
+ * page's own edits, written byte for byte as the page exports them, then checked.
+ */
+function regattaFiles(ids: string[], args: Args): number {
+  const [cmd, id, value] = ids;
+  const doc = shippedRegattaDoc();
+  const r = doc.regatta;
+  if (cmd === 'rules') {
+    const k = r.rival;
+    console.log(
+      `horn ${r.countdownSec} s · marks within ${r.within} · lines at least ${r.minLine} · medals ${MEDALS.map((m) => `${m} ×${r.medals[m]}`).join(', ')} · series won with ${r.winMedal}`,
+    );
+    console.log(
+      `${k.name}: ${k.ship} "${k.sailNumber}", hull ${k.hull}, band ${k.band}, burgee ${k.flag}, sails to ${k.pace} (×${k.paceRange.join('–')}), room ${k.berth}, runs out ${k.runOut}`,
+    );
+    for (const s of r.series) console.log(`series ${s.id}: ${s.name}, pennant ${s.pennant}`);
+    for (const f of doc.flags.flags)
+      console.log(`flag ${f.id}: ${f.shape} ${f.length}×${f.height}, bands ${f.bands.join(' ')}`);
+    const problems = regattaProblems(doc);
+    console.log(problems.length ? problems.map((p) => `✗ ${p}`).join('\n') : 'checks ok');
+    return problems.length ? 1 : 0;
+  }
+  let did: string;
+  if (cmd === 'set') {
+    if (!id || value === undefined) {
+      console.log('race set <path> <value>');
+      return 1;
+    }
+    const problem = setRule(doc, id, value);
+    if (problem) {
+      console.log(problem);
+      return 1;
+    }
+    did = `${id} = ${value}`;
+  } else if (cmd === 'series') {
+    if (!id) {
+      console.log('race series <id> [--name "…"] [--pennant flag]');
+      return 1;
+    }
+    setSeries(doc, id, {
+      ...(typeof args.name === 'string' ? { name: args.name } : {}),
+      ...(typeof args.pennant === 'string' ? { pennant: args.pennant } : {}),
+    });
+    did = `series ${id}`;
+  } else {
+    if (!id) {
+      console.log(
+        'race flag <id> [--shape …] [--bands "#a,#b"] [--length n] [--height n] | --remove',
+      );
+      return 1;
+    }
+    if (args.remove) {
+      if (!removeFlag(doc, id)) {
+        console.log(`no flag "${id}"`);
+        return 1;
+      }
+      did = `flag ${id} removed`;
+    } else {
+      const change: Parameters<typeof setFlag>[2] = {};
+      if (typeof args.shape === 'string') {
+        if (!isFlagShape(args.shape)) {
+          console.log('--shape pennant|swallowtail|burgee');
+          return 1;
+        }
+        change.shape = args.shape;
+      }
+      if (typeof args.bands === 'string') change.bands = args.bands.split(',').map((c) => c.trim());
+      if (args.length !== undefined) change.length = Number(args.length);
+      if (args.height !== undefined) change.height = Number(args.height);
+      setFlag(doc, id, change);
+      did = `flag ${id}`;
+    }
+  }
+  const problems = regattaProblems(doc);
+  if (problems.length) {
+    console.log(`${did} · not written:\n${problems.map((p) => `  ✗ ${p}`).join('\n')}`);
+    return 1;
+  }
+  const shipped = shippedRegattaDoc();
+  const files: [string, string, string][] = [
+    ['src/data/regatta.json', regattaText(doc), regattaText(shipped)],
+    ['src/data/flags.json', flagsText(doc), flagsText(shipped)],
+  ];
+  const changed = files.filter(([, text, before]) => text !== before);
+  if (!args.dry) for (const [path, text] of changed) writeFileSync(resolve(path), text);
+  console.log(
+    `${did} · ${changed.length ? changed.map(([p]) => p).join(', ') : 'nothing changed'}${args.dry ? ' (dry)' : ''} · checks ok`,
+  );
   return 0;
 }
 

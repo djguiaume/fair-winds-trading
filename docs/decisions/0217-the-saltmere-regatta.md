@@ -77,7 +77,10 @@ helm (0215) and standing orders (0214).
   pars), the gate fields, and the marks and both lines' ends dragged on its chart. CLI:
   `npm run race` (list; `<id>` course and medal times; `--pars [--write]`, `--all`; `--start`,
   `--finish`, `--add --at`, `--mark N --at|--remove`; `--overlay file.json` for `npm run chart`).
-  `npm run check` runs the race checks with the quest checks.
+  `npm run check` runs the race checks with the quest checks. `regatta.json` and `flags.json`
+  have the editor's Regatta page (rules, Kestrel, series, flags drawn as the game draws them,
+  each file exported byte for byte) and `npm run race -- rules|set|series|flag`, sharing
+  `src/editor/regatta/doc.ts`; `npm run check` has a `regatta` area.
 
 ## Consequences
 
