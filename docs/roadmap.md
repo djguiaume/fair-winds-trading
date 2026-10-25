@@ -33,8 +33,9 @@ and reviewed after Phase 4 in [0207](decisions/0207-the-roadmap-after-phase-4.md
 | 2 | Living settlements: town levels, workshops, rare goods, weather, storms, day and night, difficulty levels, save transfer | [v0.2.73](releases/v0.2.73.md) |
 | 3 | Story and tools: the rescue prologue, Skerry, four community arcs, the epilogue; content as data, editors, tuning panel, quest engine | [v0.3.129](releases/v0.3.129.md) |
 | 4 | Four seas round the ring (tropic, fire, ice, fog and storm), founded outposts, wind zones, currents, fog of war, far goods, twelve new arcs and four-winds; Xbox and pads; the agent tools | [v0.4.226](releases/v0.4.226.md) |
+| 5 | A living sea, the base game finished: Skerry's build choice, the ring caught up, the port in the harbour screen, other boats, sounds of the sea, the Saltmere Regatta, standing orders, hull damage | [v1.0.253](releases/v1.0.253.md) (1.0) |
 
-## Now: Phase 5 — A living sea, to v1.0
+## Phase 5 — A living sea: released as 1.0 ([v1.0.253](releases/v1.0.253.md), [0219](decisions/0219-version-1-0-release.md))
 
 Chosen by Guillaume on 2026-10-25 ([0207](decisions/0207-the-roadmap-after-phase-4.md)). Brief:
 [phase-5/brief.md](phase-5/brief.md). Phase 5 ends with **v1.0**, the base game finished; then the
@@ -59,7 +60,7 @@ store plan of [0204](decisions/0204-selling-on-android-iphone-and-xbox.md) comes
 7. **Visible hull damage** at each quarter of the hull lost, cleared by repair.
 8. **Release v1.0:** a full playtest on all three levels and the old-tablet test.
 
-## Next, after v1.0 (not scheduled)
+## Now and next, after 1.0 (not scheduled)
 
 - **v1.1, "The Sailing Club"** ([plan](v1.1/plan.md)): bug fixes, and Wren's sailing club at
   Saltmere with new races (some with a squall in a fixed place to sail round) and a best-times board.

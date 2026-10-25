@@ -11,6 +11,7 @@ worth remembering.
 | [v0.2.73](v0.2.73.md) | `0963490` | Phase 2 complete: living settlements |
 | [v0.3.129](v0.3.129.md) | `1fee60c` | Phase 3 complete: people, stories and your own island |
 | [v0.4.226](v0.4.226.md) | `901b25c` | Phase 4 complete: four new seas beyond the reef |
+| [v1.0.253](v1.0.253.md) | merge of the 1.0 PR | 1.0: the base game finished, a living sea |
 
 ## How to cut a release
 
@@ -20,4 +21,6 @@ worth remembering.
    (or push the tag). It creates and pushes the tag on that commit, then publishes the notes as the
    release. Tags are only made this way, one per release: no tags for ordinary deploys.
 3. When a phase ends, the next PR sets `package.json` to the next `0.<phase>.0` and updates the
-   "Phase N" menu label (`menu.version` in `src/i18n/`).
+   "Phase N" menu label (`menu.version` in `src/i18n/`). Since 1.0 ([0219](../decisions/0219-version-1-0-release.md))
+   the middle number counts updates: the 1.0 release PR set `1.0.0` and the label "1.0"; an update
+   sets the next `1.<minor>.0` and its label.
