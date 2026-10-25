@@ -60,6 +60,22 @@ House windows already use one unlit material that is dark by day and bright at n
 
 Lava needs a brighter day tint than windows (lava glows by day too), so the material gets a second pair of day/night tints for **ember** faces, as data in `palette.json`. A slow pulse of that tint is allowed (one uniform, no per-vertex work).
 
+### Smoke and steam (decision [0178](../decisions/0178-volcano-smoke-and-eruptions.md))
+
+Volcano plumes, vents and eruptions (two review rounds, Guillaume OK 2026-10-25). Every value lives in `src/data/tuning/weather.json` > `volcano` and in `?tune`. Any new smoke (chimneys, a burning wreck, geysers) follows the same rules.
+
+- **Opaque puffs, never sprites.** Smoke is made of flat-shaded low-poly puffs in one instanced batch, with no transparency (rule 8).
+- **Self-lit so they read as cloud, not rock.** Give the material a strong self-lit part (`selfLit` 0.6 by day, 0.2 at night) so the faces barely differ in brightness. Hard facet shading makes puffs look like boulders.
+- **Colours.**
+  - Steam is a warm off-white, `#ece8e1`, lighter than anything on the island.
+  - Ash is a warm dark grey-brown, `#5f5953`: darker than the rock, never blue.
+  - At night, eruption ash mixes 40% toward lava orange (`#ff7a3a`) for the lower part of its life. That is the glow from below. A quiet plume gets no glow.
+- **Size over life.** A puff starts small at the vent and grows as it drifts, then shrinks away from 60% of its life (`shrinkFrom`). Sizes vary by ±35% and puffs are squashed a little. The column thins out before it passes the shore.
+- **Shape.** One leaning column downwind, low (about 20 units above the rim), never a heap on the rim. Ash stays at or above the rim; it never runs down a slope.
+- **Camera guard.** A puff shrinks out when its top gets within 12 units of the camera height (`cameraGap`), and a puff's end size is capped. Smoke never fills the screen in the sailing view.
+- **Lava bombs are the punctuation, not the show.** 8–12 glowing pieces per burst, on short arcs that land on the upper cone within about 1.2 crater radii. A bomb landing on the sea makes a steam puff.
+- **Scale with the vent.** Small craters such as Emberhold's get a smaller plume, about half as long, and never erupt.
+
 ## 7. Biome tints
 
 Each sea (or named area) may carry a **look** in its sea file: water, light water, shallows, foam and sky tints, and for the east a fog density, blended over the gateway like wind zones. One mechanism for all seas (built first by the north, extended with fog by the east), editable in the sea editor. The day, golden hour and night cycle still runs on top: a biome shifts the colours, it never replaces the night's deep blue.
