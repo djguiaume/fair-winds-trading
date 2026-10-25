@@ -38,7 +38,7 @@ function plan(args, data) {
     storm: !!args.storm,
   };
   if (what === 'effect')
-    return [{ name: `effect-${id}`, job: { kind: 'effect', id, pitch: num(args.pitch, 1) } }];
+    return [{ name: `effect-${id}`, job: { kind: 'effect', id, pitch: num(args.pitch, 1), secs: num(args.secs, 4) } }];
   if (what === 'bell') {
     const pitch = data.events.dock.pitch?.[id] ?? 1;
     return [{ name: `bell-${id}`, job: { kind: 'effect', id: data.events.dock.effect, pitch } }];

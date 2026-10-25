@@ -348,6 +348,389 @@ export const playBleat: Play = (ctx, destination, level, pitch = 1) => {
     .connect(destination);
 };
 
+// --- Round 2 (Guillaume's listen, 2026-10-25): sounds built from what makes the real one -------
+
+/** A soft saturator, so low sounds grow overtones a phone speaker can play (decision 0139). */
+function warm(ctx: BaseAudioContext, amount = 2.5): WaveShaperNode {
+  const shaper = ctx.createWaveShaper();
+  const curve = new Float32Array(1024);
+  for (let i = 0; i < curve.length; i++) {
+    const x = (i / (curve.length - 1)) * 2 - 1;
+    curve[i] = Math.tanh(amount * x) / Math.tanh(amount);
+  }
+  shaper.curve = curve;
+  return shaper;
+}
+
+/**
+ * Stick-slip friction, what a creak really is: a train of tiny clicks whose rate glides (wood
+ * grabbing and slipping), rung through the body's resonances. `rate` is clicks a second at the
+ * start, middle and end; `bodies` the resonances in Hz.
+ */
+function stickSlip(
+  ctx: BaseAudioContext,
+  destination: AudioNode,
+  level: number,
+  secs: number,
+  rate: [number, number, number],
+  bodies: number[],
+  q: number,
+) {
+  const t = ctx.currentTime + 0.02;
+  const n = Math.round(ctx.sampleRate * secs);
+  const buffer = ctx.createBuffer(1, n, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  let at = 0;
+  while (at < n) {
+    const k = at / n;
+    const r =
+      k < 0.5
+        ? rate[0] + (rate[1] - rate[0]) * k * 2
+        : rate[1] + (rate[2] - rate[1]) * (k - 0.5) * 2;
+    // Louder in the middle of the creak, each click a little different.
+    const amp = Math.sin(Math.PI * k) ** 0.6 * (0.6 + Math.random() * 0.4);
+    data[at] = amp;
+    if (at + 1 < n) data[at + 1] = -amp * 0.6;
+    at += Math.max(2, Math.round((ctx.sampleRate / r) * (0.85 + Math.random() * 0.3)));
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = buffer;
+  const out = ctx.createGain();
+  out.gain.value = level * 18;
+  out.connect(destination);
+  for (const f of bodies) src.connect(filter(ctx, 'bandpass', f, q)).connect(out);
+  src.start(t);
+}
+
+/** A wooden creak, A: the mast working in its step, rising then easing (stick-slip). */
+export const playCreakWood: Play = (ctx, destination, level, pitch = 1) =>
+  stickSlip(
+    ctx,
+    destination,
+    level,
+    0.7,
+    [35 * pitch, 90 * pitch, 50 * pitch],
+    [420 * pitch, 980 * pitch, 1900 * pitch],
+    6,
+  );
+
+/** A wooden creak, B: a slower, deeper groan of the hull, two pulls. */
+export const playCreakHull: Play = (ctx, destination, level, pitch = 1) => {
+  stickSlip(
+    ctx,
+    destination,
+    level,
+    0.55,
+    [22 * pitch, 55 * pitch, 30 * pitch],
+    [300 * pitch, 720 * pitch, 1400 * pitch],
+    7,
+  );
+  // The second pull, a little higher, starts as the first dies.
+  stickSlipAt(
+    ctx,
+    destination,
+    level * 0.8,
+    0.5,
+    0.6,
+    [30 * pitch, 70 * pitch, 40 * pitch],
+    [340 * pitch, 800 * pitch, 1600 * pitch],
+    7,
+  );
+};
+
+/** `stickSlip` starting `delay` seconds later. */
+function stickSlipAt(
+  ctx: BaseAudioContext,
+  destination: AudioNode,
+  level: number,
+  delay: number,
+  secs: number,
+  rate: [number, number, number],
+  bodies: number[],
+  q: number,
+) {
+  const d = ctx.createDelay(Math.max(1, delay + 0.1));
+  d.delayTime.value = delay;
+  d.connect(destination);
+  stickSlip(ctx, d, level, secs, rate, bodies, q);
+}
+
+/** Sea ice, A: a long slow groan of floes pressing (very slow stick-slip, low, ringing). */
+export const playIceGroan: Play = (ctx, destination, level, pitch = 1) =>
+  stickSlip(
+    ctx,
+    destination,
+    level,
+    1.6,
+    [8 * pitch, 18 * pitch, 6 * pitch],
+    [180 * pitch, 520 * pitch, 1300 * pitch],
+    12,
+  );
+
+/** Sea ice, B: far-off ice cracking: a few sharp snaps that ring, like a frozen lake singing. */
+export const playIcePing: Play = (ctx, destination, level, pitch = 1) => {
+  const snaps = 3 + Math.floor(Math.random() * 3);
+  for (let k = 0; k < snaps; k++) {
+    const t = ctx.currentTime + 0.02 + k * (0.12 + Math.random() * 0.25);
+    // The snap: a click of noise; the ring: a falling, metallic chirp ("pew") as in lake ice.
+    noise(ctx, t, t + 0.03)
+      .connect(filter(ctx, 'highpass', 2500, 0.7))
+      .connect(envelope(ctx, t, level * 0.6, 0.001, t + 0.025))
+      .connect(destination);
+    const f = (2400 + Math.random() * 1200) * pitch;
+    const chirp = tone(ctx, 'sine', f, t, t + 0.45);
+    chirp.frequency.exponentialRampToValueAtTime(f * 0.18, t + 0.4);
+    chirp.connect(envelope(ctx, t, level * 0.35, 0.002, t + 0.4)).connect(destination);
+  }
+};
+
+/** Formant filters for a voiced sound: parallel band-passes at a vowel's resonances. */
+function vowel(
+  ctx: BaseAudioContext,
+  input: AudioNode,
+  out: AudioNode,
+  formants: [number, number, number][],
+) {
+  for (const [f, q, gain] of formants) {
+    const g = ctx.createGain();
+    g.gain.value = gain;
+    input
+      .connect(filter(ctx, 'bandpass', f, q))
+      .connect(g)
+      .connect(out);
+  }
+}
+
+/** Ducks, A: a mallard's "quack quack": short nasal buzzes with a falling pitch. */
+export const playQuack: Play = (ctx, destination, level, pitch = 1) => {
+  const quacks = 2 + Math.floor(Math.random() * 2);
+  for (let k = 0; k < quacks; k++) {
+    const t = ctx.currentTime + 0.02 + k * 0.26;
+    const f = 300 * pitch * (1 - k * 0.05);
+    const osc = tone(ctx, 'sawtooth', f, t, t + 0.2);
+    osc.frequency.linearRampToValueAtTime(f * 1.08, t + 0.03);
+    osc.frequency.exponentialRampToValueAtTime(f * 0.78, t + 0.17);
+    const env = envelope(ctx, t, level * 1.6, 0.012, t + 0.18);
+    vowel(ctx, osc, env, [
+      [900 * pitch, 6, 1],
+      [1600 * pitch, 8, 0.8],
+      [2700 * pitch, 8, 0.4],
+    ]);
+    env.connect(destination);
+  }
+};
+
+/** Ducks, B: an eider's real call, a crooning "ah-OOO" (rising then falling, through an "oo"). */
+export const playEiderCroon: Play = (ctx, destination, level, pitch = 1) => {
+  const t = ctx.currentTime + 0.02;
+  const osc = tone(ctx, 'sawtooth', 210 * pitch, t, t + 0.9);
+  osc.frequency.linearRampToValueAtTime(330 * pitch, t + 0.35);
+  osc.frequency.linearRampToValueAtTime(250 * pitch, t + 0.8);
+  const env = ctx.createGain();
+  env.gain.setValueAtTime(0, t);
+  env.gain.linearRampToValueAtTime(level * 0.8, t + 0.08);
+  env.gain.linearRampToValueAtTime(level * 0.5, t + 0.2);
+  env.gain.linearRampToValueAtTime(level * 1.1, t + 0.4);
+  env.gain.exponentialRampToValueAtTime(0.0001, t + 0.85);
+  // "ah" then "oo": the first formant falls as the call rises.
+  const f1 = filter(ctx, 'bandpass', 800 * pitch, 5);
+  f1.frequency.setValueAtTime(800 * pitch, t);
+  f1.frequency.linearRampToValueAtTime(380 * pitch, t + 0.4);
+  const f2 = filter(ctx, 'bandpass', 1200 * pitch, 6);
+  f2.frequency.setValueAtTime(1200 * pitch, t);
+  f2.frequency.linearRampToValueAtTime(800 * pitch, t + 0.4);
+  osc.connect(f1).connect(env);
+  osc.connect(f2).connect(env);
+  env.connect(destination);
+};
+
+/** A sheep, A: "baa-aa": a buzzy voice through an "a" vowel, its loudness shaking 7 times a second. */
+export const playBaa: Play = (ctx, destination, level, pitch = 1) => {
+  const t = ctx.currentTime + 0.02;
+  const end = t + 0.95;
+  const osc = tone(ctx, 'sawtooth', 190 * pitch, t, end);
+  osc.frequency.linearRampToValueAtTime(215 * pitch, t + 0.12);
+  osc.frequency.linearRampToValueAtTime(175 * pitch, t + 0.9);
+  const shake = ctx.createGain();
+  shake.gain.value = 0.6;
+  const lfo = tone(ctx, 'sine', 7.5, t, end);
+  const depth = ctx.createGain();
+  depth.gain.value = 0.4;
+  lfo.connect(depth).connect(shake.gain);
+  const env = ctx.createGain();
+  env.gain.setValueAtTime(0, t);
+  // The "b": a closed mouth opening.
+  env.gain.linearRampToValueAtTime(level * 1.4, t + 0.09);
+  env.gain.setValueAtTime(level * 1.4, t + 0.6);
+  env.gain.exponentialRampToValueAtTime(0.0001, t + 0.92);
+  const open = filter(ctx, 'lowpass', 400, 0.7);
+  open.frequency.setValueAtTime(400, t);
+  open.frequency.linearRampToValueAtTime(4000, t + 0.1);
+  osc.connect(open).connect(shake);
+  vowel(ctx, shake, env, [
+    [750 * pitch, 5, 1],
+    [1250 * pitch, 6, 0.7],
+    [2600 * pitch, 8, 0.35],
+  ]);
+  env.connect(destination);
+};
+
+/** A sheep, B: a lamb's higher, shakier "meh-eh-eh", the voice itself wobbling. */
+export const playMeh: Play = (ctx, destination, level, pitch = 1) => {
+  const t = ctx.currentTime + 0.02;
+  const end = t + 0.75;
+  const osc = tone(ctx, 'sawtooth', 300 * pitch, t, end);
+  const wobble = tone(ctx, 'square', 9, t, end);
+  const depth = ctx.createGain();
+  depth.gain.value = 18 * pitch;
+  wobble.connect(depth).connect(osc.frequency);
+  const env = envelope(ctx, t, level * 1.4, 0.05, t + 0.72);
+  vowel(ctx, osc, env, [
+    [550 * pitch, 5, 1],
+    [1800 * pitch, 7, 0.7],
+    [2600 * pitch, 8, 0.3],
+  ]);
+  env.connect(destination);
+};
+
+/** Ragged loudness: random steps every `step` seconds, for rolling thunder and earth rumble. */
+function ragged(g: GainNode, t: number, secs: number, step: number, level: number, decay: number) {
+  g.gain.setValueAtTime(0, t);
+  for (let at = 0; at < secs; at += step * (0.6 + Math.random() * 0.8)) {
+    const fade = Math.exp(-at / decay);
+    g.gain.linearRampToValueAtTime(level * fade * (0.35 + Math.random() * 0.65), t + at);
+  }
+  g.gain.linearRampToValueAtTime(0, t + secs);
+}
+
+/** A volcano, A: a deep boom from the cone, then the earth rolling, warmed so phones hear it. */
+export const playBoom: Play = (ctx, destination, level, pitch = 1) => {
+  const t = ctx.currentTime + 0.02;
+  const shaper = warm(ctx, 3);
+  const out = ctx.createGain();
+  out.gain.value = 0.8;
+  shaper.connect(out).connect(destination);
+  const thump = tone(ctx, 'sine', 70 * pitch, t, t + 1.4);
+  thump.frequency.exponentialRampToValueAtTime(32 * pitch, t + 1.2);
+  thump.connect(envelope(ctx, t, level * 1.2, 0.01, t + 1.3)).connect(shaper);
+  const roll = ctx.createGain();
+  ragged(roll, t + 0.1, 3.4, 0.07, level * 0.9, 1.6);
+  noise(ctx, t, t + 3.6)
+    .connect(filter(ctx, 'lowpass', 180 * pitch, 0.9))
+    .connect(roll)
+    .connect(shaper);
+};
+
+/** A volcano, B: a long grinding rumble that swells and fades, like the ground shaking. */
+export const playQuake: Play = (ctx, destination, level, pitch = 1) => {
+  const t = ctx.currentTime + 0.02;
+  const shaper = warm(ctx, 4);
+  const out = ctx.createGain();
+  out.gain.value = 0.7;
+  shaper.connect(out).connect(destination);
+  const shake = ctx.createGain();
+  ragged(shake, t, 3.8, 0.045, level, 2.5);
+  const swell = ctx.createGain();
+  swell.gain.setValueAtTime(0.2, t);
+  swell.gain.linearRampToValueAtTime(1, t + 1.2);
+  swell.gain.linearRampToValueAtTime(0.2, t + 3.8);
+  noise(ctx, t, t + 4)
+    .connect(filter(ctx, 'lowpass', 140 * pitch, 1.2))
+    .connect(shake)
+    .connect(swell)
+    .connect(shaper);
+};
+
+/** Thunder, A (close): a tearing crack overhead, then the roll grumbling away. */
+export const playThunderClose: Play = (ctx, destination, level, pitch = 1) => {
+  const t = ctx.currentTime + 0.02;
+  const crack = ctx.createGain();
+  ragged(crack, t, 0.5, 0.012, level * 1.2, 0.3);
+  noise(ctx, t, t + 0.55)
+    .connect(filter(ctx, 'highpass', 900 * pitch, 0.6))
+    .connect(crack)
+    .connect(destination);
+  const shaper = warm(ctx, 2.5);
+  shaper.connect(destination);
+  const roll = ctx.createGain();
+  ragged(roll, t + 0.15, 4.5, 0.09, level * 1.1, 1.8);
+  const low = ctx.createBiquadFilter();
+  low.type = 'lowpass';
+  low.frequency.setValueAtTime(900 * pitch, t);
+  low.frequency.exponentialRampToValueAtTime(160 * pitch, t + 3);
+  noise(ctx, t, t + 4.7)
+    .connect(low)
+    .connect(roll)
+    .connect(shaper);
+};
+
+/** Thunder, B (far): no crack, only a long low roll a few miles off. */
+export const playThunderFar: Play = (ctx, destination, level, pitch = 1) => {
+  const t = ctx.currentTime + 0.02;
+  const shaper = warm(ctx, 2.5);
+  shaper.connect(destination);
+  const roll = ctx.createGain();
+  ragged(roll, t, 4.5, 0.12, level, 2);
+  const swell = ctx.createGain();
+  swell.gain.setValueAtTime(0.3, t);
+  swell.gain.linearRampToValueAtTime(1, t + 0.8);
+  swell.gain.linearRampToValueAtTime(0.2, t + 4.5);
+  noise(ctx, t, t + 4.6)
+    .connect(filter(ctx, 'lowpass', 260 * pitch, 0.8))
+    .connect(roll)
+    .connect(swell)
+    .connect(shaper);
+};
+
+/** Calving, A: the ice face cracking (a rattle of snaps), then the slab going in: whoomp and a roar of water. */
+export const playCalving: Play = (ctx, destination, level, pitch = 1) => {
+  const t = ctx.currentTime + 0.02;
+  for (let k = 0; k < 7; k++) {
+    const at = t + k * (0.05 + Math.random() * 0.09);
+    noise(ctx, at, at + 0.05)
+      .connect(filter(ctx, 'bandpass', (1200 + Math.random() * 1500) * pitch, 1.5))
+      .connect(envelope(ctx, at, level * (0.4 + Math.random() * 0.5), 0.001, at + 0.045))
+      .connect(destination);
+  }
+  const fall = t + 0.9;
+  const shaper = warm(ctx, 2.5);
+  shaper.connect(destination);
+  const thump = tone(ctx, 'sine', 80 * pitch, fall, fall + 0.9);
+  thump.frequency.exponentialRampToValueAtTime(35, fall + 0.7);
+  thump.connect(envelope(ctx, fall, level * 1.2, 0.01, fall + 0.8)).connect(shaper);
+  const water = ctx.createBiquadFilter();
+  water.type = 'lowpass';
+  water.frequency.setValueAtTime(300 * pitch, fall);
+  water.frequency.linearRampToValueAtTime(1800 * pitch, fall + 0.4);
+  water.frequency.exponentialRampToValueAtTime(250 * pitch, fall + 2.8);
+  noise(ctx, fall, fall + 3)
+    .connect(water)
+    .connect(envelope(ctx, fall, level * 0.9, 0.08, fall + 2.9))
+    .connect(destination);
+};
+
+/** Calving, B: far off across the water: one long splitting groan, then a distant boom and wash. */
+export const playCalvingFar: Play = (ctx, destination, level, pitch = 1) => {
+  stickSlip(
+    ctx,
+    destination,
+    level * 0.8,
+    0.9,
+    [15 * pitch, 40 * pitch, 70 * pitch],
+    [250 * pitch, 700 * pitch, 1500 * pitch],
+    9,
+  );
+  const fall = ctx.currentTime + 1.1;
+  const shaper = warm(ctx, 3);
+  shaper.connect(destination);
+  const roll = ctx.createGain();
+  ragged(roll, fall, 2.6, 0.08, level, 1.2);
+  noise(ctx, fall, fall + 2.7)
+    .connect(filter(ctx, 'lowpass', 400 * pitch, 0.8))
+    .connect(roll)
+    .connect(shaper);
+};
+
 /** The effects made in code, by the name `audio.json` gives them in `synth`. */
 export const SYNTHS = {
   creak: playCreak,
@@ -365,4 +748,18 @@ export const SYNTHS = {
   surf: playSurf,
   rustle: playRustle,
   bleat: playBleat,
+  'creak-wood': playCreakWood,
+  'creak-hull': playCreakHull,
+  'ice-groan': playIceGroan,
+  'ice-ping': playIcePing,
+  quack: playQuack,
+  'eider-croon': playEiderCroon,
+  baa: playBaa,
+  meh: playMeh,
+  boom: playBoom,
+  quake: playQuake,
+  'thunder-close': playThunderClose,
+  'thunder-far': playThunderFar,
+  calving: playCalving,
+  'calving-far': playCalvingFar,
 } satisfies Record<string, Play>;
