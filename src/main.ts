@@ -933,8 +933,10 @@ function startQuestTest(test: NonNullable<typeof questTest>) {
   refreshPiers(world);
   view.setHomeBuildings(builtByIsland(world.trade.home));
   view.setQuestsDone(questsDone(world.trade));
+  // Land that stands after the quests before this step rises (or sinks) before she is placed.
+  syncWorldLand(world, true);
   const berth = test.port
-    ? testBerth(world.map, world.trade, world.piers, test.port, world.ship.id)
+    ? testBerth(world.map, world.trade, world.piers, test.port, world.ship.id, world.land)
     : null;
   const at = test.at ?? berth;
   if (at) {
@@ -1760,7 +1762,7 @@ if (new URLSearchParams(location.search).has('debug')) {
   };
   /** Dock at a port as a player would, from the berth a quest test uses (`npm run shots`, 0153). */
   const dock = (portId: string) => {
-    const berth = testBerth(world.map, world.trade, world.piers, portId, world.ship.id);
+    const berth = testBerth(world.map, world.trade, world.piers, portId, world.ship.id, world.land);
     if (!berth) return false;
     world.boat = createBoat(berth.x, berth.y, (berth.headingDeg * Math.PI) / 180);
     world.destination = null;
@@ -1774,7 +1776,14 @@ if (new URLSearchParams(location.search).has('debug')) {
    * decision 0159): the boat waits stopped by the pier and moors on the next step.
    */
   const moor = (islandId: string) => {
-    const berth = testBerth(world.map, world.trade, world.piers, islandId, world.ship.id);
+    const berth = testBerth(
+      world.map,
+      world.trade,
+      world.piers,
+      islandId,
+      world.ship.id,
+      world.land,
+    );
     if (!berth) return false;
     world.boat = createBoat(berth.x, berth.y, (berth.headingDeg * Math.PI) / 180);
     world.boat.sailStep = sailStep = 0;
@@ -1792,6 +1801,9 @@ if (new URLSearchParams(location.search).has('debug')) {
     trade.syncMarketLevels(world.trade, world.map);
     refreshPiers(world);
     view.setQuestsDone(questsDone(world.trade));
+    // Land that stands after these quests rises now, while the boat is still at her start: moored
+    // there next, the land would wait for her to sail out of sight (0166, Phase 4 review).
+    syncWorldLand(world, true);
     return started;
   };
   /** Put the boat at sea at a point, heading in degrees, sails at a step (0 furled … 2 full). */

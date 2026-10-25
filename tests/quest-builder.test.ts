@@ -121,7 +121,8 @@ describe('quest builder (decision 0142)', () => {
     expect(columns[0]).toEqual(['first-voyage', 'sailing-lessons']);
     expect(columns[1]).toEqual(['rooks-thanks']);
     expect(columns[2]).toHaveLength(4);
-    expect(columns[3]).toEqual(['fair-winds']);
+    // Ness's chart opens after Ada's lens, beside the epilogue (decision 0194).
+    expect(columns[3]).toEqual(['fair-winds', 'watchman-passage']);
     const q = newQuest(doc, PHASE1_MAP);
     doc.quests.push(q);
     setText(doc, 'en', `${q.text}.name`, 'A test');

@@ -1,6 +1,6 @@
 # 0193. The grown sea is the main game
 
-**Status:** Accepted (2026-10-25). Guillaume OK on the screenshots. Gap 1 of the [Phase 4 review](../reviews/phase-4-review/README.md) ([0188](0188-phase-4-review-and-release-gate.md)). [Screenshots](../reviews/grown-sea-main/README.md) for Guillaume before merge.
+**Status:** Accepted (2026-10-25). Guillaume OK on the screenshots. Gap 1 of the [Phase 4 review](../reviews/phase-4-review/README.md) ([0188](0188-phase-4-review-and-release-gate.md)). [Screenshots](../reviews/grown-sea-main/README.md).
 
 ## Context
 
@@ -9,7 +9,7 @@ Since [0152](0152-south-sea-sunreach-layout.md) the four Phase 4 seas round the 
 ## Decision
 
 1. **The game sails the grown sea.** `GAME_MAP` (`src/data/maps.ts`) is the ring with every sea file round it (`grownMap`, the sea files listed in `seas/grown.json`). The game opens on it with no `?map=`; there is no badge.
-2. **It keeps the ring's name** (`Windward Ring`). The ring is unchanged in the middle, so a ring voyage resumes exactly where it was: same position, docked where it was, every port, market, quest, island and building kept. The new waters start fogged ([0156](0156-fog-of-war.md)); the seas open through the story as before (the south's letter after "Fair winds" and Watchman Key). The tutorial choice and the chart's view, keyed by the map's name, carry over too.
+2. **It keeps the ring's name** (`Windward Ring`). The ring is unchanged in the middle, so a ring voyage resumes exactly where it was: same position, docked where it was, every port, market, quest, island and building kept. The new waters start fogged ([0156](0156-fog-of-war.md)); the seas open through the story as for a new voyage ([0194](0194-open-the-edge-seas-after-each-ring-arc.md)). The tutorial choice and the chart's view, keyed by the map's name, carry over too.
 3. **The dev voyages still load.** `compatibleSaveMaps` lists `Windward Ring (Phase 4 sea)`; `?map=phase4` still opens the voyage kept under `fwt.phase4.`, now on the game's own sea (it resumes at the start, like any migrated save).
 4. **Ring save codes still read.** An FW2 code holds lists (ports, quests, islands, currents) in the map's order with a fingerprint; the grown sea's lists are longer, so a ring code does not fit them. `readSaveCode` takes the maps the world's map grew from under the same name (`PHASE1_MAP` from the transfer panel): when the grown sea cannot place a code, it is read with the ring's lists and then checked against the grown sea, which has every id it names. New codes are written with the grown sea's lists.
 5. **The ring alone stays as a test sea:** `?map=ring`, its own save (`fwt.ring.`), a "The Windward Ring alone (test)" badge. `PHASE1_MAP` stays the ring for the tests.
