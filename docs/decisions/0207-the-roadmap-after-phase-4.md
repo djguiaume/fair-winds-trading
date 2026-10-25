@@ -1,7 +1,8 @@
 # 0207. The roadmap after Phase 4
 
-**Status:** Proposed (2026-10-25). Waits on Guillaume's pick of a Phase 5 option and his answers to
-the questions in the [review](../reviews/whole-game/README.md#questions-for-guillaume).
+**Status:** Accepted (2026-10-25). Guillaume picked Option B at 14:50Z ("B but regatta must fit on
+the story with some NPC for it and rewards"), Phase 5 ends at v1.0 ("Yes"), and the roadmap is
+rewritten short ("Yes"). Pirates left the base game at 14:37Z.
 
 ## Context
 
@@ -67,6 +68,15 @@ Rejected for now: Option A (pirates as written) for the reasons above; Option C 
 phase first) because it leaves the empty sea, the main weak point, in place. Its polish items join
 Phase 5 instead.
 
+## Guillaume's answers (2026-10-25)
+
+1. **Option B**, with regattas that fit the story: an NPC who runs them and rewards. Rovers are not
+   in Phase 5 (pirates only in a later extension sea).
+2. **Phase 5 ends at v1.0**, the base game finished; then the store plan (0204) comes back.
+3. **The roadmap is rewritten short**: [roadmap.md](../roadmap.md) is now Done / Now / Next / Later;
+   the old text is kept unchanged in [roadmap-history.md](../roadmap-history.md); the picture is
+   redrawn.
+
 ## Consequences
 
 - The ring review and the home island fix can start as soon as Guillaume says go, before the rest
@@ -77,4 +87,4 @@ Phase 5 instead.
 - The performance budget must be measured with other ships on the old tablet's Low quality before
   their number is set ([0116](0116-performance-priorities.md)).
 - Every rover quest must play with the Pirates switch off (storyteller rule).
-- The roadmap edits wait for Guillaume's answers; nothing in `docs/roadmap.md` changes in this PR.
+- The Phase 5 brief is [docs/phase-5/brief.md](../phase-5/brief.md).

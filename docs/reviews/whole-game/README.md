@@ -191,7 +191,13 @@ art director's rules keep them cozy, and rovers can still be the first chapter.
    link to its decisions; the long history moves to `docs/roadmap-history.md` unchanged; the
    roadmap picture is redrawn.
 
-## Questions for Guillaume
+## Guillaume's answers (2026-10-25, 14:50Z)
+
+"B but regatta must fit on the story with some NPC for it and rewards. Yes. Yes." So: Option B
+without rovers, regattas with an NPC and rewards in the story, Phase 5 ends at v1.0, and the roadmap
+is rewritten short. Decision [0207](../../decisions/0207-the-roadmap-after-phase-4.md) is Accepted.
+
+## Questions for Guillaume (answered)
 
 1. Phase 5: **A**, **B** (recommended) or **C**?
 2. Pirates only in an extension with its own sea (your 14:37Z message): agreed, so Phase 5 has
