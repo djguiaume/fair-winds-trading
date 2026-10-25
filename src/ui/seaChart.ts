@@ -24,6 +24,8 @@ import { drawHazard } from './hazardMarker';
 import { landStyles, seaMarkShape } from './chartMarks';
 import { padGlyph } from './padGlyphs';
 import { portraitSvg } from './portraits';
+import { seaSvg } from './seaOutline';
+import { seaBox, seaReach, seaShape } from '../sim/seaEdge';
 import type { JournalEntry, QuestPin, QuestTarget, StepMarker } from './questView';
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -273,7 +275,7 @@ export class SeaChart {
    * bigger map zooms in further rather than drawing its islands smaller (decision 0115).
    */
   private get maxZoom() {
-    return Math.max(3, (3 * (this.world.map.boundsRadius + 24)) / (440 + 24));
+    return Math.max(3, (3 * (seaReach(seaShape(this.world.map)) + 24)) / (440 + 24));
   }
   /**
    * Charted currents (decision 0140): the same darker water with its crests as at sea, and its
@@ -344,7 +346,24 @@ export class SeaChart {
     const { map, trade } = this.world;
     const fog = map.fog;
     if (!fog) return [];
-    const R = map.boundsRadius;
+    // The fog covers the whole sea, a section sticking out of the round sea too (decision 0202).
+    const sea = seaShape(map);
+    const [bx0, by0, bx1, by1] = seaBox(sea);
+    const region = { x: bx0 - 4, y: -by1 - 4, width: bx1 - bx0 + 8, height: by1 - by0 + 8 };
+    const water = seaSvg(sea, 4);
+    // The mask's white: the water and 2 units round it.
+    const whole = (parent: Element) =>
+      shape(
+        water.tag,
+        {
+          ...water.attrs,
+          fill: '#fff',
+          stroke: '#fff',
+          'stroke-width': 4,
+          'stroke-linejoin': 'round',
+        },
+        parent,
+      );
     const progress = trade.progress;
     const defs = shape('defs', {});
     const mask = shape(
@@ -352,14 +371,11 @@ export class SeaChart {
       {
         id: 'chart-fog-mask',
         maskUnits: 'userSpaceOnUse',
-        x: -R,
-        y: -R,
-        width: 2 * R,
-        height: 2 * R,
+        ...region,
       },
       defs,
     );
-    shape('circle', { r: R + 2, fill: '#fff' }, mask);
+    whole(mask);
     const polygon = (outline: [number, number][]) => ({
       tag: 'polygon',
       attrs: { points: outline.map(([x, y]) => `${x},${-y}`).join(' ') },
@@ -380,17 +396,14 @@ export class SeaChart {
         'filter',
         {
           id: 'chart-fog-blur',
-          x: -R,
-          y: -R,
-          width: 2 * R,
-          height: 2 * R,
+          ...region,
           filterUnits: 'userSpaceOnUse',
         },
         defs,
       );
       shape('feGaussianBlur', { stdDeviation: FOG_BLUR * px }, filter);
       target = shape('g', { filter: 'url(#chart-fog-blur)' }, mask);
-      shape('circle', { r: R + 2, fill: '#fff' }, target);
+      whole(target);
     } else
       for (const [width, grey] of FOG_RIM)
         for (const h of holes)
@@ -418,7 +431,11 @@ export class SeaChart {
       { d: `M0 0H${tile}M0 0V${tile}`, class: 'chart-fog-grid', 'stroke-width': px },
       pattern,
     );
-    shape('circle', { r: R, fill: 'url(#chart-fog-pattern)', mask: 'url(#chart-fog-mask)' });
+    shape(water.tag, {
+      ...water.attrs,
+      fill: 'url(#chart-fog-pattern)',
+      mask: 'url(#chart-fog-mask)',
+    });
     return fog.areas
       .filter((a) => !progress.areas?.includes(a.id))
       .map((a) => {
@@ -475,7 +492,7 @@ export class SeaChart {
   private unitsPerPixel() {
     const rect = this.get('chart-map').getBoundingClientRect();
     return (
-      ((this.world.map.boundsRadius + 24) * 2) /
+      ((seaReach(seaShape(this.world.map)) + 24) * 2) /
       this.zoom /
       // In landscape the goods column and the compass sit beside the round sea, not over it.
       Math.max(
@@ -493,7 +510,7 @@ export class SeaChart {
     const unit = this.unitsPerPixel();
     const hw = ((rect.width || 600) * unit) / 2,
       hh = ((rect.height || 600) * unit) / 2;
-    const extent = this.world.map.boundsRadius + 24;
+    const extent = seaReach(seaShape(this.world.map)) + 24;
     this.center.x = Math.max(
       -Math.max(0, extent - hw),
       Math.min(Math.max(0, extent - hw), this.center.x),
@@ -980,7 +997,9 @@ export class SeaChart {
       parent.append(el);
       return el;
     };
-    shape('circle', { r: map.boundsRadius, class: 'chart-boundary' });
+    // The water and its edge, a section joined to the round sea included (decision 0202).
+    const water = seaSvg(seaShape(map), 4 * unit);
+    shape(water.tag, { ...water.attrs, class: 'chart-boundary' });
     const zoneLabels = this.drawZones(shape, unit);
     this.drawCurrents(shape, unit);
     // Land reads like the 3D islands: an ink outline, a sand shore and a grass top.
@@ -1364,7 +1383,10 @@ export class SeaChart {
       const w = z.text.length * size * 0.5,
         h = size * 1.2;
       // Slid in from the sea's rim so the chart's edge never cuts the name (Phase 4 review).
-      const rim = Math.sqrt(Math.max(0, map.boundsRadius ** 2 - (Math.abs(z.y) + h / 2) ** 2));
+      // Out in a section past the round sea (decision 0202), only the sea's reach bounds it.
+      const R =
+        Math.hypot(z.x, z.y) < map.boundsRadius ? map.boundsRadius : seaReach(seaShape(map));
+      const rim = Math.sqrt(Math.max(0, R ** 2 - (Math.abs(z.y) + h / 2) ** 2));
       const room = rim - 6 * unit - w / 2;
       if (room < 0) continue;
       const x = Math.min(Math.max(z.x, -room), room);

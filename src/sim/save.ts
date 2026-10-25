@@ -1,6 +1,7 @@
 import { SAIL_STEPS, type BoatState, createBoat } from './boat';
 import { type ContractState, readContracts } from './contracts';
 import { resolveCollisions } from './collision';
+import { seaShape } from './seaEdge';
 import { type Difficulty, DEFAULT_DIFFICULTY, isDifficulty } from './difficulty';
 import { GOODS, type GoodAmounts, type GoodId, emptyAmounts, isGood } from './goods';
 import { type IslandHome, readHome } from './home';
@@ -313,7 +314,7 @@ export function applySave(world: World, data: SaveData): void {
       world.boat,
       world.ship.radius,
       world.land.islands,
-      world.map.boundsRadius,
+      seaShape(world.map),
       world.land.terrain,
       world.piers,
       world.ship.draft,

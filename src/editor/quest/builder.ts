@@ -1,3 +1,4 @@
+import { seaReach, seaShape } from '../../sim/seaEdge';
 import { strToU8, zipSync } from 'fflate';
 import { TEXT_VARIANTS, setLanguage, type TextVariant } from '../../i18n';
 import { type MapDef, SEA_MARK_TYPES, type SeaMarkType } from '../../sim/map';
@@ -1288,7 +1289,7 @@ function fit() {
   if (!places.length) {
     view.cx = 0;
     view.cy = 0;
-    view.upp = ((map.boundsRadius + 20) * 2) / size;
+    view.upp = ((seaReach(seaShape(map)) + 20) * 2) / size;
     return;
   }
   const xs = places.flatMap((p) => [p.x - p.within, p.x + p.within]);

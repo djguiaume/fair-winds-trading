@@ -23,6 +23,7 @@ export type Selection =
   | { kind: 'zone'; id: string; point?: number }
   | { kind: 'mark'; index: number }
   | { kind: 'area'; id: string; point?: number }
+  | { kind: 'edge'; id: string; point?: number }
   | null;
 
 export type ShapeKind = TerrainDef['kind'];
@@ -44,6 +45,10 @@ export function findZone(map: MapDef, id: string): WindZoneDef | undefined {
 /** A fog of war chart area (decision 0156). */
 export function findArea(map: MapDef, id: string) {
   return map.fog?.areas.find((a) => a.id === id);
+}
+/** One of the sea's own edges: water joined to the round sea (decision 0202). */
+export function findEdge(map: MapDef, id: string) {
+  return map.edges?.find((e) => e.id === id);
 }
 export function portOn(map: MapDef, islandId: string): PortDef | undefined {
   return map.ports.find((p) => p.islandId === islandId);
@@ -173,6 +178,7 @@ function flowPoints(map: MapDef, sel: Selection): number[][] | undefined {
   }
   if (sel?.kind === 'zone') return findZone(map, sel.id)?.outline;
   if (sel?.kind === 'area') return findArea(map, sel.id)?.outline;
+  if (sel?.kind === 'edge') return findEdge(map, sel.id)?.outline;
 }
 
 /** Starts a lane current at (x, y); `addLanePoint` lays the rest. */
@@ -259,14 +265,33 @@ export function addChartArea(map: MapDef, x: number, y: number): string | null {
   return id;
 }
 
+/**
+ * A sea edge (decision 0202): an oval of open water round (x, y), joined to the round sea when it
+ * overlaps its rim. The playable sea is the round sea and every edge together.
+ */
+export function addSeaEdge(map: MapDef, x: number, y: number): string {
+  map.edges ??= [];
+  const id = freeId(
+    map.edges.map((e) => e.id),
+    'edge',
+  );
+  map.edges.push({ id, outline: oval(x, y, 200, 140, 10) });
+  return id;
+}
+
 /** Moves a whole current or zone. */
 export function moveFlow(map: MapDef, sel: Selection, dx: number, dy: number) {
   if (sel?.kind === 'current') {
     const c = findCurrent(map, sel.id);
     if (c?.path) c.path = c.path.map(([x, y, w]) => [round(x + dx), round(y + dy), w]);
     if (c?.outline) c.outline = c.outline.map(([x, y]) => [round(x + dx), round(y + dy)]);
-  } else if (sel?.kind === 'zone' || sel?.kind === 'area') {
-    const z = sel.kind === 'zone' ? findZone(map, sel.id) : findArea(map, sel.id);
+  } else if (sel?.kind === 'zone' || sel?.kind === 'area' || sel?.kind === 'edge') {
+    const z =
+      sel.kind === 'zone'
+        ? findZone(map, sel.id)
+        : sel.kind === 'area'
+          ? findArea(map, sel.id)
+          : findEdge(map, sel.id);
     if (z) z.outline = z.outline.map(([x, y]) => [round(x + dx), round(y + dy)]);
   }
 }
@@ -396,15 +421,22 @@ export function deleteSelection(map: MapDef, sel: Selection): Selection {
     map.marks?.splice(sel.index, 1);
     return null;
   }
-  if (sel.kind === 'current' || sel.kind === 'zone' || sel.kind === 'area') {
+  if (sel.kind === 'current' || sel.kind === 'zone' || sel.kind === 'area' || sel.kind === 'edge') {
     if (sel.point !== undefined) {
       deleteFlowPoint(map, sel, sel.point);
       return { kind: sel.kind, id: sel.id };
     }
     const list: { id: string }[] | undefined =
-      sel.kind === 'current' ? map.currents : sel.kind === 'zone' ? map.windZones : map.fog?.areas;
+      sel.kind === 'current'
+        ? map.currents
+        : sel.kind === 'zone'
+          ? map.windZones
+          : sel.kind === 'area'
+            ? map.fog?.areas
+            : map.edges;
     const at = list?.findIndex((x) => x.id === sel.id) ?? -1;
     if (at >= 0) list!.splice(at, 1);
+    if (sel.kind === 'edge' && !map.edges?.length) delete map.edges;
     return null;
   }
   return sel;

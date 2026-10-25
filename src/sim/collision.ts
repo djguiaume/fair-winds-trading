@@ -1,6 +1,7 @@
 import type { BoatState } from './boat';
 import type { IslandDef, MapDef, TerrainDef } from './map';
 import { coastDistance } from './coast';
+import { type SeaShape, asSeaShape, keepAtSea } from './seaEdge';
 import { bearingTo, bearingVector } from './math';
 import {
   islandCoasts,
@@ -218,7 +219,8 @@ export function resolveCollisions(
   boat: BoatState,
   radius: number,
   islands: readonly IslandDef[],
-  boundsRadius: number,
+  /** The sea's edge: its shape (decision 0202), or a bare radius for a round sea. */
+  sea: number | SeaShape,
   terrain: readonly TerrainDef[] = [],
   piers: readonly Pier[] = [],
   draft = 0,
@@ -313,13 +315,9 @@ export function resolveCollisions(
       touch('ice');
     }
   }
-  const fromCenter = Math.hypot(boat.x, boat.y);
-  if (fromCenter > boundsRadius) {
-    const nx = -boat.x / fromCenter;
-    const ny = -boat.y / fromCenter;
-    boat.x += -nx * (boundsRadius - fromCenter);
-    boat.y += -ny * (boundsRadius - fromCenter);
-    bump(boat, nx, ny);
+  const pushed = keepAtSea(asSeaShape(sea), boat);
+  if (pushed) {
+    bump(boat, pushed.nx, pushed.ny);
     touch('edge');
   }
   return hit;

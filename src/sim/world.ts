@@ -10,6 +10,7 @@ import {
   trueWindAngle,
 } from './boat';
 import { type Pier, piersOf, resolveCollisions } from './collision';
+import { seaShape } from './seaEdge';
 import { CurrentField, type CurrentSample } from './currents';
 import type { MapDef } from './map';
 import {
@@ -703,7 +704,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
     world.boat,
     world.ship.radius,
     world.land.islands,
-    world.map.boundsRadius,
+    seaShape(world.map),
     world.land.terrain,
     world.piers,
     world.ship.draft,

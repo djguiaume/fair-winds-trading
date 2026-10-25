@@ -11,6 +11,7 @@ import {
   type Selection,
   addPort,
   findArea,
+  findEdge,
   findCurrent,
   findIsland,
   findShape,
@@ -747,6 +748,35 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
         'The port island with this exact name turns its harbour and pier to face this point.',
     });
     button(buttons(), 'Delete waypoint', () => host.remove());
+    return;
+  }
+
+  if (selection.kind === 'edge') {
+    const edge = findEdge(map, selection.id);
+    if (!edge) return;
+    heading('Sea edge', edge.id);
+    seaRow();
+    text('Id', edge.id, (v) => {
+      if (v && !map.edges!.some((e) => e !== edge && e.id === v)) edge.id = v;
+    });
+    const point = selection.point !== undefined ? edge.outline[selection.point] : undefined;
+    node('hr');
+    if (point) {
+      heading(`Point ${selection.point! + 1}`, `of ${edge.outline.length}`);
+      xy('Position', point[0], point[1], (x, y) => {
+        edge.outline[selection.point!] = [x, y];
+      });
+    } else
+      node('p', {
+        className: 'ed-note',
+        textContent: `${edge.outline.length} points. Open water joined to the round sea (decision 0202): the boat may sail anywhere in the round sea or in any sea edge, and the red edge buoys follow the outer edge, none where it joins. It must overlap the sea's rim or another edge that does.`,
+      });
+    const b = buttons();
+    if (point && edge.outline.length > 3) button(b, 'Delete point', () => host.remove());
+    button(b, 'Delete sea edge', () => {
+      host.select({ kind: 'edge', id: edge.id });
+      host.remove();
+    });
     return;
   }
 

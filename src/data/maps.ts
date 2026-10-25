@@ -1,3 +1,4 @@
+import { seaReach, seaShape } from '../sim/seaEdge';
 import type { MapDef } from '../sim/map';
 import { DEFAULT_WEATHER } from '../sim/wind';
 import phase0 from './phase0-map.json';
@@ -21,7 +22,8 @@ export function prepareMap(source: MapDef): MapDef {
   const raw = structuredClone(source);
   const map: MapDef = {
     ...raw,
-    wind: { weather: DEFAULT_WEATHER, ...raw.wind, seaRadius: raw.boundsRadius },
+    // Storms cross the whole sea, a section sticking out included (decision 0202).
+    wind: { weather: DEFAULT_WEATHER, ...raw.wind, seaRadius: seaReach(seaShape(raw)) },
   };
   for (const island of map.islands) {
     const port = map.ports.find((p) => p.islandId === island.id && !p.hidden);

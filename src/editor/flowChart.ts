@@ -11,6 +11,7 @@ import {
   smoothOutline,
 } from '../sim/flowShapes';
 import type { ChartAreaDef } from '../sim/fog';
+import type { SeaEdgeDef } from '../sim/seaEdge';
 import type { CurrentDef, MapDef, WindZoneDef } from '../sim/map';
 import { knotToUnits } from '../sim/boat';
 import { isBeltKind } from '../sim/stormBelt';
@@ -191,14 +192,21 @@ export function flowLabels(
 
 /** Handles of the selected current or zone: points, widths and insert rings. */
 export function drawFlowSelection(el: El, map: MapDef, selection: Selection, px: number) {
-  if (selection?.kind !== 'current' && selection?.kind !== 'zone' && selection?.kind !== 'area')
+  if (
+    selection?.kind !== 'current' &&
+    selection?.kind !== 'zone' &&
+    selection?.kind !== 'area' &&
+    selection?.kind !== 'edge'
+  )
     return;
   const isCurrent = selection.kind === 'current';
-  const shape: CurrentDef | WindZoneDef | ChartAreaDef | undefined = isCurrent
+  const shape: CurrentDef | WindZoneDef | ChartAreaDef | SeaEdgeDef | undefined = isCurrent
     ? map.currents?.find((c) => c.id === selection.id)
     : selection.kind === 'zone'
       ? map.windZones?.find((z) => z.id === selection.id)
-      : map.fog?.areas.find((a) => a.id === selection.id);
+      : selection.kind === 'area'
+        ? map.fog?.areas.find((a) => a.id === selection.id)
+        : map.edges?.find((e) => e.id === selection.id);
   if (!shape) return;
   const prefix = selection.kind[0]!;
   const id = shape.id;

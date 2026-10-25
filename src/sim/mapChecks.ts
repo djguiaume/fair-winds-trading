@@ -22,6 +22,7 @@ import { type IslandDef, type MapDef, type PortDef, SEA_MARK_TYPES, type Terrain
 import { DEG, bearingTo, wrapAngle } from './math';
 import { CUTTER, SHIP_CLASSES, SLOOP, noGoAngle, polarFraction } from './ship';
 import { MAX_SETTLEMENT_LEVEL } from './settlement';
+import { atSea, seaDistance, seaReach, seaShape, sharpestTurn } from './seaEdge';
 import { isBeltKind } from './stormBelt';
 import { NO_ZONE, type ZoneEffect, zoneField, zoneMaxGain, zoneMeanAt } from './windZones';
 
@@ -67,7 +68,7 @@ export function clearAt(
   const prior = cache.get(key);
   if (prior !== undefined) return prior;
   const result =
-    Math.hypot(x, y) < map.boundsRadius - margin &&
+    atSea(seaShape(map), x, y, margin + 1e-9) &&
     shoresOf(map).every(
       (s) =>
         // Far outside a shore's bounding circle is far from the shore: no edge to measure.
@@ -86,7 +87,7 @@ export function clearAt(
  * edge: `clearAt` is true for any margin below it (and anywhere within it, for a smaller one).
  */
 export function seaRoom(map: MapDef, x: number, y: number, draft = SLOOP.draft): number {
-  let room = map.boundsRadius - Math.hypot(x, y);
+  let room = seaDistance(seaShape(map), x, y).distance;
   for (const s of shoresOf(map)) {
     const far = Math.hypot(x - s.x, y - s.y) - s.r;
     if (far >= room) continue;
@@ -244,7 +245,7 @@ function search(
   hull: { radius: number; draft: number },
   cache: RouteCache | undefined,
 ): { route: SailRoute | null; times: (to: Point) => number | undefined } {
-  const N = Math.ceil(map.boundsRadius / STEP) + 2,
+  const N = Math.ceil(seaReach(seaShape(map)) / STEP) + 2,
     W = 2 * N + 1,
     size = W * W,
     D = DIRS.length;
@@ -571,9 +572,9 @@ export function quickChecks(map: MapDef): MapCheck[] {
       problems.push(`${name}: type is one of ${SEA_MARK_TYPES.join(', ')}`);
     if (!Number.isFinite(mark.x) || !Number.isFinite(mark.y))
       problems.push(`${name}: needs x and y`);
-    else if (Math.hypot(mark.x, mark.y) > map.boundsRadius)
-      problems.push(`${name} is outside the sea`);
+    else if (!atSea(seaShape(map), mark.x, mark.y)) problems.push(`${name} is outside the sea`);
   }
+  problems.push(...edgeProblems(map));
   out.push(
     problems.length
       ? fail('links', problems.join('; '))
@@ -618,14 +619,13 @@ export function quickChecks(map: MapDef): MapCheck[] {
   );
 
   // Land inside the world edge, with room to sail round it.
+  const sea = seaShape(map);
   const outside = [
     ...map.islands
-      .filter((i) => Math.hypot(i.x, i.y) + i.radius + SLOOP.radius + 20 >= map.boundsRadius)
+      .filter((i) => seaDistance(sea, i.x, i.y).distance <= i.radius + SLOOP.radius + 20)
       .map(islandName),
     ...(map.terrain ?? [])
-      .filter((t) =>
-        t.outline.some(([x, y]) => Math.hypot(x, y) + SLOOP.radius >= map.boundsRadius),
-      )
+      .filter((t) => t.outline.some(([x, y]) => seaDistance(sea, x, y).distance <= SLOOP.radius))
       .map((t) => t.name ?? t.id),
   ];
   out.push(
@@ -633,6 +633,19 @@ export function quickChecks(map: MapDef): MapCheck[] {
       ? fail('edge', `too close to the world edge: ${list(outside)}`)
       : pass('edge', 'all land inside the world edge'),
   );
+  // The edge buoy line turns gently, never a box corner (decision 0202, the art director's rule).
+  if (sea.rim) {
+    const { spacing, maxTurnDeg } = TUNING.seamanship.boundaryBuoys;
+    const turn = sharpestTurn(sea, spacing);
+    if (turn.deg > maxTurnDeg)
+      out.push(
+        fail(
+          'edge-turn',
+          `the edge buoys turn ${Math.round(turn.deg)}° near (${Math.round(turn.x)}, ${Math.round(turn.y)}), more than ${maxTurnDeg}°: widen the sea edge there`,
+          'warning',
+        ),
+      );
+  }
 
   // Start position: room for a cutter to turn.
   out.push(
@@ -740,6 +753,45 @@ export function quickChecks(map: MapDef): MapCheck[] {
 }
 
 /**
+ * The sea's own edges (decision 0202): each outline has an id, three points or more, and joins
+ * the round sea, directly or through another outline that does, so no water floats apart.
+ */
+export function edgeProblems(map: MapDef): string[] {
+  const problems: string[] = [];
+  const edges = map.edges ?? [];
+  const ids = edges.map((e) => e.id);
+  for (const [k, id] of ids.entries())
+    if (!id) problems.push(`sea edge ${k} needs an id`);
+    else if (ids.indexOf(id) !== k) problems.push(`two sea edges "${id}"`);
+  const usable = edges.filter((e) => e.outline.length >= 3);
+  for (const e of edges)
+    if (e.outline.length < 3) problems.push(`sea edge ${e.id} has fewer than 3 points`);
+  // Joined: a point of it in the round sea, or in (or holding a point of) a joined outline.
+  const joined = new Set<string>();
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const e of usable) {
+      if (joined.has(e.id)) continue;
+      const linked =
+        e.outline.some(([x, y]) => Math.hypot(x, y) < map.boundsRadius) ||
+        usable.some(
+          (o) =>
+            joined.has(o.id) &&
+            (e.outline.some(([x, y]) => coastDistance(x, y, o.outline).distance < 0) ||
+              o.outline.some(([x, y]) => coastDistance(x, y, e.outline).distance < 0)),
+        );
+      if (linked) {
+        joined.add(e.id);
+        grew = true;
+      }
+    }
+  }
+  for (const e of usable)
+    if (!joined.has(e.id)) problems.push(`sea edge ${e.id} does not join the sea`);
+  return problems;
+}
+
+/**
  * Currents and wind zones (decision 0140): sound shapes inside the sea, known zone kinds, lanes
  * wide enough, speeds in range, and still water at every pier head and harbour approach.
  */
@@ -752,7 +804,7 @@ export function flowChecks(map: MapDef): MapCheck[] {
   for (const id of dupes(currents.map((c) => c.id))) problems.push(`two currents "${id}"`);
   for (const id of dupes(zones.map((z) => z.id))) problems.push(`two wind zones "${id}"`);
   const outside = (points: readonly (readonly number[])[]) =>
-    points.some((p) => Math.hypot(p[0]!, p[1]!) > map.boundsRadius);
+    points.some((p) => !atSea(seaShape(map), p[0]!, p[1]!));
   const [slowest, fastest] = tune.speedKn as [number, number];
   for (const c of currents) {
     const name = c.name ?? c.id;
