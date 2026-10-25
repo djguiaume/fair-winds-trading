@@ -16,7 +16,7 @@ describe('texts per way of playing (decision 0184)', () => {
     expect(sell('keys')).toBe('Sell fish here, or click Sell all.');
     setPadNames({ x: 'X' });
     expect(sell('pad')).toBe('Sell fish here, or press X to sell all.');
-    setPadNames({ x: '□' }); // a PlayStation pad (decision 0185)
+    setPadNames({ x: '□' }); // a PlayStation pad (decision 0186)
     expect(sell('pad')).toBe('Sell fish here, or press □ to sell all.');
     // A line with no versions reads the same for everyone.
     setTextVariant('touch');
@@ -76,7 +76,7 @@ describe('texts per way of playing (decision 0184)', () => {
     expect(lineKeys(ask)).toHaveLength(1);
   });
 
-  it('names the buttons after the pad’s maker (decision 0185)', () => {
+  it('names the buttons after the pad’s maker (decision 0186)', () => {
     expect(brandProblems()).toEqual([]);
     expect(padBrand('Xbox Wireless Controller (STANDARD GAMEPAD Vendor: 045e Product: 0b13)')).toBe(
       'xbox',

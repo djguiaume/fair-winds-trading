@@ -992,7 +992,7 @@ hud.onSailStep = (step) => input.setSail(step);
  * rest (menus, the harbour, cards) goes to `pad.onMenuPress`.
  */
 const pad = new GamepadPoller();
-// The pad's own button names on glyphs and in texts: A on Xbox, ✕ on PlayStation (decision 0185).
+// The pad's own button names on glyphs and in texts: A on Xbox, ✕ on PlayStation (decision 0186).
 usePadBrand(pad.brand);
 pad.onBrand = (brand) => {
   usePadBrand(brand);

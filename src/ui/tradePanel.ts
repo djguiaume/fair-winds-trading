@@ -65,7 +65,7 @@ import type { QuayItem } from './questView';
 import { padGlyph } from './padGlyphs';
 
 /** A game controller's button glyphs, shown only while the pad is in use (decision 0163). */
-// Button glyphs named for the pad in use (decision 0185), built when the panel draws.
+// Button glyphs named for the pad in use (decision 0186), built when the panel draws.
 const PAD_LB = () => padGlyph('lb', 'bumper');
 const PAD_RB = () => padGlyph('rb', 'bumper');
 const PAD_X = () => padGlyph('x');

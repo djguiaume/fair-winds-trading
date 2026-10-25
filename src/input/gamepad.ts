@@ -125,7 +125,7 @@ export interface PadControls extends PadConfig {
 export const PAD = controls.gamepad as PadControls;
 
 /**
- * Pad makers and their buttons' names (decision 0185): the standard layout numbers buttons by
+ * Pad makers and their buttons' names (decision 0186): the standard layout numbers buttons by
  * place, so the bottom face button is "A" on an Xbox pad, "✕" on a PlayStation pad and "B" on a
  * Switch pad. A pad whose id (its USB vendor or name) has a `match` word gets that brand's names;
  * the first brand is the default. Data: `controls.json` › `padBrands`.
@@ -306,7 +306,7 @@ export class GamepadPoller {
   /** The pad's brand (`padBrands`), known once a pad is seen; changes with the pad. */
   brand = Object.keys(PAD_BRANDS)[0]!;
   private padId: string | undefined;
-  /** Called when the pad in use is of another brand than before (decision 0185). */
+  /** Called when the pad in use is of another brand than before (decision 0186). */
   onBrand: (brand: string) => void = () => {};
   /**
    * Presses the boat and the chart leave alone, and every press while a menu, dialog, the
