@@ -148,7 +148,7 @@ const GOLDEN: Record<string, string[]> = {
   'palm-key': ['296:5af31071', '270:7e77b63a', '266:18f30d17', '266:18f30d17'],
   'lone-palm': Array(4).fill('13:2bd589f4'),
   // The east sea (decision 0173).
-  fogwatch: ['604:1677a5ab', '725:b60877e6', '797:ec776322', '838:e62dfee8'],
+  fogwatch: ['604:eef2b453', '725:4a16efe', '797:9ba9cf9a', '838:1bad57b0'],
   'the-giant': Array(4).fill('6:c84f56e6'),
   'his-wife': Array(4).fill('6:676eecc4'),
   'amber-strand': ['129:e66b7b39', '133:56673594', '136:e68e96ec', '136:e68e96ec'],
