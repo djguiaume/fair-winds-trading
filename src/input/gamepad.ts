@@ -82,7 +82,10 @@ export type ChartAction =
   | 'fit'
   | 'close'
   | 'pick'
-  | 'skipLesson';
+  | 'skipLesson'
+  | 'nextGood'
+  | 'tabPrev'
+  | 'tabNext';
 /** Menus, the port screen, cards (decision 0163): move the focus, press it, back, tabs, resume. */
 export type MenuAction =
   | 'up'
@@ -609,6 +612,10 @@ export interface ChartPad {
   pick: boolean;
   /** Skip the lesson whose bubble is up. */
   skipLesson: boolean;
+  /** Show the next good's prices on the ports (decision 0194). */
+  nextGood: boolean;
+  /** The previous (-1) or next (1) tab, 0 for none (decision 0194). */
+  tab: number;
   other: PadPress[];
 }
 
@@ -625,6 +632,8 @@ export function chartPad(f: PadFrame, dt: number, c: PadControls['chart'] = PAD.
     close: false,
     pick: false,
     skipLesson: false,
+    nextGood: false,
+    tab: 0,
     other: [],
   };
   for (const p of f.presses) {
@@ -636,6 +645,9 @@ export function chartPad(f: PadFrame, dt: number, c: PadControls['chart'] = PAD.
     else if (isFor(p, a.close)) out.close = true;
     else if (isFor(p, a.pick)) out.pick = true;
     else if (isFor(p, a.skipLesson)) out.skipLesson = true;
+    else if (isFor(p, a.nextGood)) out.nextGood = true;
+    else if (isFor(p, a.tabPrev)) out.tab = -1;
+    else if (isFor(p, a.tabNext)) out.tab = 1;
     else out.other.push(p);
   }
   return out;

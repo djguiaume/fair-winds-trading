@@ -25,22 +25,43 @@ beforeEach(() => {
 });
 
 describe('full-screen chart planning', () => {
-  it('opens quietly, toggles only one sheet, and Escape closes the sheet before the map', () => {
-    setup();
+  it('opens on the map tab, shows one page per tab, and a port picked from the prices goes back to the map (0194)', () => {
+    const { world, chart } = setup();
     expect(document.querySelectorAll('.chart-sheet:not([hidden])')).toHaveLength(0);
     expect(get('chart-status').textContent).toBe('');
-    click('chart-legend-toggle');
+    expect(chart.currentTab).toBe('map');
+    click('chart-tab-legend');
     expect(get<HTMLElement>('chart-legend-panel').hidden).toBe(false);
-    click('chart-market-toggle');
+    expect(get('chart-tab-legend').getAttribute('aria-pressed')).toBe('true');
+    click('chart-tab-market');
     expect(get<HTMLElement>('chart-legend-panel').hidden).toBe(true);
     expect(get<HTMLElement>('chart-market-panel').hidden).toBe(false);
-    const cancel = new Event('cancel', { cancelable: true });
-    get('chart').dispatchEvent(cancel);
-    expect(cancel.defaultPrevented).toBe(true);
-    expect(get<HTMLDialogElement>('chart').open).toBe(true);
-    expect(get('chart-market-toggle').getAttribute('aria-expanded')).toBe('false');
-    expect(document.activeElement).toBe(get('chart-market-toggle'));
-    expect(get('chart').dispatchEvent(new Event('cancel', { cancelable: true }))).toBe(true);
+    expect(get('chart').dataset.tab).toBe('market');
+    // The page's own goods row picks the table's good.
+    get('chart-market-goods').querySelector<HTMLButtonElement>('[data-good="grain"]')!.click();
+    expect(get('chart-market-title').textContent).toMatch(/grain/i);
+    get('chart-prices').querySelector<HTMLButtonElement>('button[data-compare]')!.click();
+    expect(world.destination).not.toBeNull();
+    expect(chart.currentTab).toBe('map');
+    // LB / RB skip the journal while there are no quests; Back closes from any tab.
+    chart.stepTab(1);
+    expect(chart.currentTab).toBe('market');
+    chart.stepTab(-1);
+    chart.stepTab(-1);
+    expect(chart.currentTab).toBe('legend');
+    chart.back();
+    expect(get<HTMLDialogElement>('chart').open).toBe(false);
+  });
+
+  it('steps through the goods with X, then names only (0194)', () => {
+    const { chart } = setup();
+    const pressed = () =>
+      get('chart-goods').querySelector('button[aria-pressed="true"]')?.textContent?.trim() ?? null;
+    expect(pressed()).toBeNull();
+    chart.nextGood();
+    expect(pressed()).toMatch(/fish/i);
+    for (let i = 0; i < 10 && pressed(); i++) chart.nextGood();
+    expect(pressed()).toBeNull();
   });
 
   it('uses the actual local wind and ship no-go angle in an isolated compass snapshot', () => {

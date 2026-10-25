@@ -50,7 +50,7 @@ Where
   --look x,y                    camera on this map point instead of the boat
   --menu                        the title menu, before Set sail (the scene options are ignored)
   --chart                       the sea chart open (--pad then plays on it); --chart-zoom n, --chart-pan Key:n,
-                                --chart-panel legend|market|journal (default none)
+                                --chart-panel journal|market|legend: that tab (default the map)
   --charted                     every wind zone sailed and every chart area handed over (all named)
   --town id:level,…             towns at these levels; an empty island to found is founded first
                                 (0157), so --town palm-key:1 shows Palm Key just founded
@@ -511,11 +511,9 @@ async function shootScene(page, shot) {
       await page.focus('#chart-map');
       for (let i = 0; i < shot.chartPan.n; i++) await page.keyboard.press(shot.chartPan.key);
     }
-    // The panel beside the sea: none by default, so the whole sea shows.
-    await page.evaluate((panel) => {
-      for (const b of document.querySelectorAll('#chart [data-chart-close]'))
-        if (b.offsetParent) b.click();
-      if (panel) document.getElementById(`chart-${panel}-toggle`)?.click();
+    // The chart's tab (decision 0194): the map by default.
+    await page.evaluate((tab) => {
+      if (tab) document.getElementById(`chart-tab-${tab}`)?.click();
     }, shot.chartPanel);
     await pause(400);
     if (shot.pad) {

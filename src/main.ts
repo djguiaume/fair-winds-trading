@@ -1051,7 +1051,9 @@ pad.onConnect = (connected) => {
 };
 /** Where pad presses go: the boat, the open chart, or a menu, dialog or card on top. */
 function padContext(): PadContext {
-  if (chart.isOpen && !questCard.isOpen && !tutorialOffer.open && !windHelp.open) return 'chart';
+  // The chart's map tab plays the cross; its pages (journal, prices, legend) are menus (0194).
+  if (chart.isOpen && !questCard.isOpen && !tutorialOffer.open && !windHelp.open)
+    return chart.currentTab === 'map' ? 'chart' : 'menu';
   return paused ? 'menu' : 'sea';
 }
 function readPad(now: number, dt: number) {
@@ -1086,6 +1088,8 @@ function readPad(now: number, dt: number) {
     // A: the port under the cross, else the lesson bubble's button; Y skips the lesson (0183).
     if (c.pick && !chart.pickAtCross(PAD.chart.pickReachPx)) coach.padPress('main');
     if (c.skipLesson) coach.padPress('skip');
+    if (c.nextGood) chart.nextGood();
+    if (c.tab) chart.stepTab(c.tab);
     for (const p of c.other) pad.onMenuPress(p, context);
   } else for (const p of frame.presses) pad.onMenuPress(p, context);
 }
@@ -1104,7 +1108,9 @@ function padScreen(): PadScreen | null {
         if (dialog.dispatchEvent(new Event('cancel', { cancelable: true }))) dialog.close();
       },
     };
-  if (chart.isOpen) return null;
+  // The chart's pages take the focus like the port screen's tabs; the map tab has the cross.
+  if (chart.isOpen)
+    return chart.currentTab === 'map' ? null : { root: $('chart'), back: () => chart.back() };
   const screen = (root: HTMLElement | null) => (root ? { root, back: goBack } : null);
   if (tradePanel.isOpen) return screen($('trade-panel'));
   if (homePanel.isOpen) return screen($('home-ui').querySelector<HTMLElement>('.home-card'));
@@ -1126,6 +1132,8 @@ way.onChange = (w) => {
 pad.onUsingPad((using) => {
   padFocus.setUsing(using);
   way.setPad(using);
+  // The chart's map tab plays the cross: no ring left on its close button (decision 0194).
+  if (using && chart.isOpen && chart.currentTab === 'map') chart.setTab('map');
 });
 // Start in the pause menu sets sail again, as the menu's own button does.
 padFocus.onResume = () => {
