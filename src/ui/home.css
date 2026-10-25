@@ -1,87 +1,31 @@
-/* The home island at the pier (decision 0126): build spots over the island, the choice card. */
-.home-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-.home-spot {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: 3px dashed rgba(255, 255, 255, 0.55);
-  background: rgba(9, 28, 41, 0.35);
-  color: rgba(255, 255, 255, 0.8);
-  font: 700 22px/1 var(--display);
-  cursor: pointer;
-  touch-action: manipulation;
-}
-.home-spot:disabled {
-  cursor: default;
-}
-.home-spot[data-state='offer'],
-.home-spot[data-state='spare'] {
-  border: 3px solid var(--brass-hi);
-  background: rgba(243, 211, 126, 0.4);
-  color: #2a1c00;
-  font-size: 28px;
-  animation: home-glow 1.6s ease-in-out infinite;
-}
-.home-spot[data-state='spare'] {
-  border-style: dashed;
-  animation: none;
-}
-.home-spot.selected {
-  border: 3px solid var(--green);
-  background: rgba(89, 211, 107, 0.35);
-  animation: none;
-}
-.home-spot-tip {
-  position: absolute;
-  left: 50%;
-  top: calc(100% + 6px);
-  transform: translateX(-50%);
-  padding: 3px 8px;
-  border: 1px solid var(--brass-line);
-  border-radius: 6px;
-  background: var(--navy);
-  color: var(--ink);
-  font: 700 13px/1.2 var(--display);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-@keyframes home-glow {
-  50% {
-    box-shadow:
-      0 0 0 7px rgba(243, 211, 126, 0.35),
-      0 0 26px 8px rgba(243, 211, 126, 0.55);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .home-spot {
-    animation: none !important;
-  }
-}
+/*
+ * The captain's island at its pier (decisions 0126, 0210): a harbour screen like a port's, with
+ * the Island and Warehouse tabs (port-screen.css draws the frame, header, tabs and footer). The
+ * plots stand on the island itself as stakes; nothing floats over the sea.
+ */
 
+/* Moored and the screen closed: the island's name, which opens it again. */
 .home-bar {
   position: absolute;
   top: var(--top, 10px);
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  /* Between the stats and the speed panel; the buttons wrap under the name on a phone. */
-  max-width: min(40vw, 640px);
-  gap: 6px 10px;
-  align-items: center;
+  padding: 6px 12px;
+  border: 1.5px solid var(--brass-line);
+  border-radius: 10px;
+  background: var(--navy);
+  color: var(--brass);
+  font: 700 17px/1.1 var(--display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
   pointer-events: auto;
 }
-/* While the destination pill holds the top centre, the island's name sits under it. Narrow screens
-   move the pill to the bottom, and portrait already drops the bar below the instruments. */
+.home-bar[hidden] {
+  display: none;
+}
+/* While the destination pill holds the top centre, the island's name sits under it. */
 @media (min-width: 761px) and (orientation: landscape) {
   body:has(.objective:not([hidden])) .home-bar {
     top: calc(var(--top, 10px) + 48px);
@@ -92,138 +36,227 @@
     top: calc(var(--top, 10px) + 56px);
   }
 }
-.home-title {
-  padding: 6px 12px;
-  border: 1.5px solid var(--brass-line);
-  border-radius: 10px;
-  background: var(--navy);
-  color: var(--brass);
-  font: 700 17px/1.1 var(--display);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  white-space: nowrap;
+@media (orientation: portrait) {
+  .home-bar {
+    top: calc(var(--top, 10px) + 150px);
+  }
 }
 
-/* The choice: a side card in landscape, a bottom sheet in portrait. */
-.home-card {
-  position: absolute;
-  right: max(10px, var(--safe-right, env(safe-area-inset-right)));
-  top: 50%;
-  transform: translateY(-50%);
-  width: min(560px, 46vw);
-  max-height: calc(100% - 20px);
-  overflow: auto;
+.home-screen .trade-modal.port-screen {
+  background: #091c29;
+}
+.home-plots {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
   padding: 14px 16px;
-  border: 1.5px solid var(--brass-line);
-  border-radius: 16px;
-  background: var(--navy);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
-  pointer-events: auto;
-  /* Above the sea instruments: the game is paused while it is open. */
-  z-index: 30;
+  box-sizing: border-box;
 }
-.home-card[hidden] {
+.home-plot {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  align-items: center;
+  gap: 6px 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--brass-line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.home-plot.is-open {
+  border-color: var(--brass);
+  background: rgba(232, 196, 106, 0.08);
+}
+/* Not given yet: dimmed like the Market's unavailable buttons (art director, 0210). */
+.home-plot.is-locked {
+  opacity: 0.55;
+}
+/* The number painted on the plot's sign. */
+.home-num {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: #b08a5a;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2);
+  color: #3b2814;
+  font: 700 28px/1 var(--display);
+}
+.home-plot.is-locked .home-num {
+  background: #4a5b66;
+  color: #c9d3d8;
+}
+.home-plot h3 {
+  margin: 0;
+  color: var(--ink);
+  font: 700 20px/1.1 var(--display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.home-plot h3 small {
+  margin-left: 8px;
+  color: var(--brass);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+}
+.home-line {
+  margin: 0;
+  color: var(--ink-dim);
+  font: 500 15px/1.3 var(--body);
+}
+.home-see {
+  grid-column: 1 / -1;
+  justify-self: end;
+}
+.home-choices {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+.home-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--brass-line);
+  border-radius: 8px;
+  background: #0b2230;
+}
+.home-choice b {
+  color: var(--ink);
+  font: 700 19px/1.1 var(--display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.home-choice p {
+  flex: 1;
+  margin: 0 0 4px;
+  color: var(--ink);
+  font: 500 15px/1.3 var(--body);
+}
+.home-kind {
+  color: var(--brass);
+  font: 700 12px/1 var(--display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.home-empty {
+  margin: 30px auto;
+  text-align: center;
+}
+.home-screen .footer-gap {
+  flex: 1;
+}
+
+/*
+ * A plot chosen: the screen drops to half so the island shows with the plot's ring (the camera
+ * turns to it, main.ts). Right half in landscape, the bottom 60 % in portrait; the sea HUD hides.
+ */
+.home-screen.is-half {
+  background: none;
+  pointer-events: none;
+}
+.home-screen.is-half .trade-modal.port-screen {
+  position: absolute;
+  inset: auto 0 0;
+  height: 60%;
+  border-top: 2px solid var(--brass);
+  pointer-events: auto;
+}
+.home-screen.is-half .port-roles-summary,
+.home-screen.is-half .home-line {
   display: none;
 }
-.home-card-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
+.home-screen.is-half .home-plot {
+  grid-template-columns: 40px 1fr;
 }
-.home-card h2 {
+.home-screen.is-half .home-num {
+  grid-row: auto;
+  width: 36px;
+  height: 36px;
+  font-size: 22px;
+}
+.home-screen.is-half .home-choice {
+  padding: 8px 10px;
+  gap: 4px;
+}
+.home-screen.is-half .home-choice .port-btn {
+  height: 40px;
+  min-height: 40px;
+}
+@media (orientation: landscape) and (min-width: 700px) {
+  .home-screen.is-half .trade-modal.port-screen {
+    inset: 0 0 0 auto;
+    width: 50%;
+    height: 100%;
+    border-top: 0;
+    border-left: 2px solid var(--brass);
+  }
+  .home-screen.is-half .port-roles-summary,
+  .home-screen.is-half .home-line {
+    display: flex;
+  }
+  .home-screen.is-half .home-line {
+    display: block;
+  }
+  .home-screen.is-half .home-plot {
+    grid-template-columns: 56px 1fr;
+  }
+  .home-screen.is-half .home-num {
+    grid-row: span 2;
+    width: 48px;
+    height: 48px;
+    font-size: 28px;
+  }
+}
+@media (max-height: 500px) {
+  .home-screen.is-half .home-line,
+  .home-screen.is-half .port-roles-summary {
+    display: none;
+  }
+  .home-screen.is-half .home-plots {
+    padding: 6px 10px;
+  }
+  .home-screen.is-half .home-choice p {
+    font-size: 13px;
+  }
+  .home-screen.is-half .home-choice b {
+    font-size: 16px;
+  }
+}
+@media (max-width: 600px) {
+  .home-plots {
+    padding: 10px;
+  }
+  .home-choice p {
+    font-size: 13px;
+  }
+  .home-choice b {
+    font-size: 16px;
+  }
+  .home-choice .port-btn {
+    padding: 0 8px;
+    font-size: 14px;
+  }
+}
+body.home-half #hud > :not(#home-ui) {
+  visibility: hidden;
+}
+
+/* The warehouse (decision 0136): one row per good, store and take. */
+.home-store-title {
   margin: 0;
   color: var(--brass);
   font: 700 18px/1.15 var(--display);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
-.home-close {
-  flex: none;
-  width: 40px;
-  height: 40px;
-  border: 1.5px solid rgba(238, 243, 244, 0.35);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--ink);
-  font-size: 18px;
-  cursor: pointer;
-}
-.home-options {
-  display: flex;
-  gap: 10px;
-}
-.home-option {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 12px;
-  border: 1.5px solid rgba(238, 243, 244, 0.25);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
-}
-.home-option .port-btn {
-  margin-top: auto;
-}
-.home-kind {
-  color: var(--brass);
-  font: 700 13px/1 var(--display);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.home-name {
-  color: var(--ink);
-  font: 700 24px/1.1 var(--display);
-  text-transform: uppercase;
-}
-.home-effect {
-  margin: 0 0 4px;
-  color: var(--ink);
-  font: 600 15px/1.3 var(--body);
-}
-.home-note {
-  margin: 0;
-  color: var(--ink-dim);
-  font: 500 13px/1.35 var(--body);
-}
-@media (orientation: portrait) {
-  .home-card {
-    left: 8px;
-    right: 8px;
-    top: auto;
-    bottom: max(8px, var(--safe-bottom, env(safe-area-inset-bottom)));
-    transform: none;
-    width: auto;
-    max-height: 60%;
-  }
-  .home-options {
-    flex-direction: column;
-  }
-  /* The speed and wind panels fill the top of a narrow screen: the title goes below them. */
-  .home-bar {
-    top: calc(var(--top, 10px) + 150px);
-    max-width: calc(100vw - 20px);
-  }
-}
-@media (max-height: 460px) and (orientation: landscape) {
-  .home-card {
-    width: min(420px, 50vw);
-    padding: 10px 12px;
-    gap: 6px;
-  }
-  .home-name {
-    font-size: 19px;
-  }
-  .home-effect {
-    font-size: 13px;
-  }
-}
-
-/* The warehouse (decision 0136): one row per good, store and take. */
 .home-store {
   display: flex;
   flex-direction: column;
@@ -258,4 +291,9 @@
   min-height: 40px;
   padding: 6px 10px;
   font-size: 14px;
+}
+.home-note {
+  margin: 0;
+  color: var(--ink-dim);
+  font: 500 13px/1.35 var(--body);
 }
