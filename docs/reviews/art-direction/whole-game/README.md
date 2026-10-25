@@ -31,3 +31,28 @@ What it needs: three warship models (one file each, decision 0077); a pirate dre
 - **Before or at the start of Phase 5:** the ring catch-up pass and the port screen header (§1). They are small, they touch the first impression, and they do not depend on the pirate design.
 - **Keep later:** seasons (they touch every island and the palette; Phase 7), ship cosmetics beyond flags (sail colours, figureheads; Phase 7, once flags exist), kids-mode art.
 - From the handover, still open and worth doing with the ring pass: Fogwatch's lantern room and the main-port 7,500-triangle budget (needs a `?bench` run), Sunreach's upper-lane windows, Palm Key's level-3 step, Emberhold's boulder clusters.
+
+## 4. The central sea and Skerry's build view (Guillaume's must-haves, 2026-10-25 14:34Z)
+
+[sheet-ring.jpg](sheet-ring.jpg): Abbey Head and Lantern Rock (top), the ring's middle at zoom 4 and Skerry moored with its build spots (middle), Skerry from above and Watchman Key (bottom).
+
+### What the ring review should cover
+
+The same review the outer seas got, island by island at the same cameras (town `--zoom 1.4`, overview 2–4, `--night`), at town level 1 and level 4, with Sunreach beside it:
+
+- **Shape:** coast outlines, tiers and ridges against the bible's "no regular polygons" flaw list.
+- **Detail level (rule 10):** woods, cliff bands, lanes with lamp posts, gardens, boats, fields, walls; no empty planes.
+- **Night:** lit windows on every ring house recipe.
+- **Signatures and story:** one nameable landmark per port, agreed with the head storyteller (Westholm's mill, Stonehaven's light, Abbey Head's abbey; Saltmere and Port Calda need theirs named), and the arcs' payoffs visible on the island.
+- **Open water:** density per decision 0180 (no empty disc over r150), reef and shallows look, the ring's borders with the four seas (§8 of the bible).
+- **Budget:** triangles per port and island (6,000 now; the 7,500 main-port budget needs a `?bench` run).
+
+### Top three ring gaps against Sunreach
+
+1. **Man-made shapes.** Abbey Head, Lantern Rock and Watchman Key are stacked octagons; Greyback Ridge and the long ring islands are straight extrusions with parallel tiers. Sunreach is an organic crater. The ring needs ragged outlines, offset tiers, bays and headlands.
+2. **Thin, dark towns.** A few small houses, no lanes with lamp posts, no gardens or boats; Westholm is dark at night.
+3. **Empty planes and one-tone ground.** Flat green caps with lone round trees and plain sandstone tiers, where the seas have woods, cliff bands and props. Reefs read as scattered pebbles.
+
+### Skerry's build view
+
+**Move the choice into the harbour screen as an "Island" tab**, and keep the 3D island for the result. The tab lists the free plots and the buildings you have earned, in the same style D and navigation as the rest of the port screen (Guillaume's rule: one menu style everywhere). Picking a plot in the tab turns the camera to that plot on the island behind the half-height panel, so the player still sees where it goes. On the island itself the numbered UI circles become in-world markers (a staked plot with a small sign), which read as "something can be built here" without a mode of their own. An arc reward then ends with "Build it at Skerry", and docking at Skerry opens the Island tab directly. This is a UI and flow change: the art side is the plot marker prop and the camera move; the head storyteller words the reward line.
