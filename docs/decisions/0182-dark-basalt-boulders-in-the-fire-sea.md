@@ -1,6 +1,6 @@
 # 0182. Dark basalt boulders in the fire sea
 
-**Status:** Proposed (2026-10-25).
+**Status:** Accepted (2026-10-25, art director and Guillaume OK).
 
 ## Context
 
