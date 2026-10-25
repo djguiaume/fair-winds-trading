@@ -18,7 +18,21 @@
       "goal": { "is": "docked", "port": "home" },
       "reward": { "homeIsland": true }
     },
-    { "id": "skerry", "goal": { "is": "moored" } },
+    {
+      "id": "skerry",
+      "goal": { "is": "moored" },
+      "unless": [
+        {
+          "if": {
+            "is": "not",
+            "of": { "is": "chose", "quest": "first-voyage", "option": "welcome" }
+          },
+          "to": "skerry-stranger"
+        }
+      ],
+      "next": "plots"
+    },
+    { "id": "skerry-stranger", "goal": { "is": "moored" } },
     { "id": "plots", "choose": [{ "id": "continue" }] }
   ]
 }
