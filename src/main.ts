@@ -1682,6 +1682,17 @@ if (new URLSearchParams(location.search).has('debug')) {
     syncWorldLand(world, true);
     return true;
   };
+  /**
+   * A quest started at a step as a quest test starts it (`npm run shots -- --quest id:step`):
+   * the quests before it done, and the props, marks and lights that stand after them shown.
+   */
+  const questAt = (questId: string, stepId: string) => {
+    const started = quests.testStart(questId, stepId).length > 0;
+    trade.syncMarketLevels(world.trade, world.map);
+    refreshPiers(world);
+    view.setQuestsDone(questsDone(world.trade));
+    return started;
+  };
   /** Put the boat at sea at a point, heading in degrees, sails at a step (0 furled … 2 full). */
   const place = (x: number, y: number, headingDeg: number, step = SAIL_STEPS.length - 1) => {
     world.boat = createBoat(x, y, (headingDeg * Math.PI) / 180);
@@ -1730,6 +1741,7 @@ if (new URLSearchParams(location.search).has('debug')) {
       dock,
       moor,
       place,
+      questAt,
       town,
       freePlay,
     },

@@ -297,7 +297,8 @@ async function setScene(page, shot) {
       captain.activeShip = s.ship;
       world.ship = trade.activeShip(world.trade);
     }
-    if (s.quest) window.fwt.quests.testStart(s.quest[0], s.quest[1]);
+    if (s.quest && !window.fwt.questAt(s.quest[0], s.quest[1]))
+      return `no quest step ${s.quest.join(':')}`;
     if (s.charted) world.trade.progress.zones = world.map.windZones.map((z) => z.id);
     for (const [id, level] of s.towns)
       if (!window.fwt.town(id, level)) return `no town ${id} on this sea`;
