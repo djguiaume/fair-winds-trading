@@ -318,7 +318,8 @@ export class PadFocus {
       hints.classList.remove('show');
       if (popover) this.hintsTimer = setTimeout(() => hints.hidePopover(), 400);
     };
-    if (!show || !root) {
+    // A screen whose controls carry their own glyphs (a quest card) needs no pill over them.
+    if (!show || !root || root.dataset.padHints === 'off') {
       if (hints.classList.contains('show')) hide();
       return;
     }
