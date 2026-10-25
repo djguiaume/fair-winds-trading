@@ -41,18 +41,22 @@ function mesh(tris: P3[], up: boolean) {
   return g;
 }
 
-/** Where a river runs, in island-radius units: points along it and the land's height there. */
+/**
+ * Where a river runs, in island-radius units: points along it, the land's height there and the
+ * river's width (a point's own width, or the river's, eased between points along the curve).
+ */
 export function riverSamples(layout: IslandLayout, river: RiverDef) {
-  const pts = river.points.map(([x, z]) => new THREE.Vector3(x, 0, z));
+  // The width rides the curve as its y, so it eases smoothly from point to point.
+  const pts = river.points.map(([x, z, w]) => new THREE.Vector3(x, w ?? river.width, z));
   const curve =
     pts.length > 2
       ? new THREE.CatmullRomCurve3(pts, false, 'centripetal')
       : new THREE.LineCurve3(pts[0]!, pts[1]!);
   const n = Math.max(2, Math.ceil(curve.getLength() * SAMPLES));
-  const out: { x: number; z: number; h: number | null }[] = [];
+  const out: { x: number; z: number; h: number | null; w: number }[] = [];
   for (const p of curve.getSpacedPoints(n)) {
     const h = surfaceHeight(layout, p.x, p.z);
-    out.push({ x: p.x, z: p.z, h });
+    out.push({ x: p.x, z: p.z, h, w: Math.max(0.002, p.y) });
     // The river ends where it first reaches the sea or the lake.
     if (h === null) break;
   }
@@ -64,13 +68,13 @@ export function riverParts(layout: IslandLayout, river: RiverDef, R: number): Pa
   const samples = riverSamples(layout, river);
   if (samples.length < 2) return [];
   const lava = river.kind === 'lava';
-  // Lava's crust shows as a dark edge either side of the glowing core.
+  // Lava's crust shows as a dark edge either side of the glowing core. `half`: of the width.
   const bands = lava
     ? [
-        { half: river.width * 0.75, lift: LIFT * 0.6, color: RIVER_COLORS.crust, glow: false },
-        { half: river.width * 0.42, lift: LIFT, color: RIVER_COLORS.lava, glow: true },
+        { half: 0.75, lift: LIFT * 0.6, color: RIVER_COLORS.crust, glow: false },
+        { half: 0.42, lift: LIFT, color: RIVER_COLORS.lava, glow: true },
       ]
-    : [{ half: river.width * 0.5, lift: LIFT, color: RIVER_COLORS.water, glow: false }];
+    : [{ half: 0.5, lift: LIFT, color: RIVER_COLORS.water, glow: false }];
   // On the beach the land's top is the sand's, above the sea.
   const y = (h: number | null) => (h === null ? -0.15 : Math.max(h * R, BEACH_TOP));
   // Falls at cliff edges, and off the land into the sea when the ground meets the water high.
@@ -89,7 +93,8 @@ export function riverParts(layout: IslandLayout, river: RiverDef, R: number): Pa
       const a = samples[Math.max(0, i - 1)]!,
         b = samples[Math.min(samples.length - 1, i + 1)]!;
       const l = Math.hypot(b.x - a.x, b.z - a.z) || 1;
-      return [(-(b.z - a.z) / l) * band.half * R, ((b.x - a.x) / l) * band.half * R] as const;
+      const half = samples[i]!.w * band.half * R;
+      return [(-(b.z - a.z) / l) * half, ((b.x - a.x) / l) * half] as const;
     };
     for (let i = 1; i < samples.length; i++) {
       const a = samples[i - 1]!,
@@ -124,7 +129,7 @@ export function riverParts(layout: IslandLayout, river: RiverDef, R: number): Pa
         rb: P3 = [r[0], bottom, r[2]];
       falls.push(l, r, rb, l, rb, lb);
       // Foam or steam where it lands.
-      out.push(...splash(lava, B[0]!, bottom, B[1]!, river.width * R, band.glow));
+      out.push(...splash(lava, B[0]!, bottom, B[1]!, b.w * R, band.glow));
     }
     const ribbon = paint(mesh(flat, true), band.color);
     out.push(band.glow ? glowing(ribbon) : ribbon);
@@ -135,7 +140,7 @@ export function riverParts(layout: IslandLayout, river: RiverDef, R: number): Pa
   }
   const mouth = samples[samples.length - 1]!;
   if (mouth.h === null)
-    out.push(...splash(lava, mouth.x * R, 0, mouth.z * R, river.width * R, false, true));
+    out.push(...splash(lava, mouth.x * R, 0, mouth.z * R, mouth.w * R, false, true));
   for (const g of out) if (!g.userData.window) g.userData.islandTerrain = true;
   return out;
 }

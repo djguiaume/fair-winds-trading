@@ -111,6 +111,10 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
       error('known', `River ${i}: unknown kind "${String(r.kind)}"`);
     if (r.points.length < 2) error('known', `River ${i}: needs two points or more`);
     if (!(r.width > 0)) error('known', `River ${i}: needs a width`);
+    r.points.forEach((p, k) => {
+      if (p.length > 2 && !(p[2]! > 0))
+        error('known', `River ${i}: point ${k}'s width must be above 0`);
+    });
     levelsOk(r, `River ${i}`);
   });
   design.piers.forEach((p, i) => {

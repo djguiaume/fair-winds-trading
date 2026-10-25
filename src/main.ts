@@ -1,7 +1,7 @@
 import { renderDifficultyButtons, renderLevelCards } from './ui/levelCards';
 import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from './data/maps';
 import { STRESS_PREFIX, stressMap } from './data/stressMap';
-import { PHASE4_PREFIX, grownMap } from './data/grownMap';
+import { PHASE4_PREFIX, SEAS, grownMap } from './data/grownMap';
 import {
   EDITED_PREFIX,
   EDITED_SEA_PREFIX,
@@ -236,7 +236,7 @@ if (playtestMap) {
   const badge = document.createElement('a');
   badge.href = editedPhase4 ? './editor.html?sea=phase4' : './editor.html';
   badge.textContent = phase4Sea
-    ? 'Phase 4 sea (south laid out)'
+    ? `Phase 4 sea (${SEAS.map((s) => s.id).join(', ')} laid out)`
     : stressTest
       ? 'Stress test sea'
       : editedPhase4

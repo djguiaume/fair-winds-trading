@@ -310,7 +310,7 @@ async function setScene(page, shot) {
     }
     if (s.tab && world.trade.dockedAt) window.fwt.tradePanel.open(s.tab);
     if (s.zoom !== null) view.zoom = s.zoom;
-    if (s.look) view.setFocus({ x: s.look[0], y: s.look[1] });
+    if (s.look) view.setFocus({ x: s.look[0], y: s.look[1] }, true);
     return null;
   }, shot);
   if (problem) throw new Error(problem);

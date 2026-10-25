@@ -11,6 +11,7 @@ import {
   layoutGround,
   characterPiers,
   crossesCliff,
+  flatLayout,
   isSloped,
   PEAK_SEGMENTS,
   peakBox,
@@ -853,7 +854,9 @@ function ramp(layout: IslandLayout, s: LandSurface, R: number, colors: string[])
     const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
     return [((b[1] - a[1]) / l) * out, (-(b[0] - a[0]) / l) * out] as const;
   };
-  const foot = (x: number, z: number) => (layoutGround(layout, x, z) ?? 0) * R;
+  // Down to the ground below, not up a mountain's flat outline (its cone stands over the foot).
+  const flat = flatLayout(layout);
+  const foot = (x: number, z: number) => (layoutGround(flat, x, z) ?? 0) * R;
   const positions: number[] = [];
   const v = (x: number, y: number, z: number) => positions.push(x * R, y, z * R);
   /** One triangle, wound to face up. */

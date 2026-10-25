@@ -218,7 +218,7 @@ export function fallsBetween(layout: IslandLayout, ax: number, az: number, bx: n
 
 const flatLayouts = new WeakMap<IslandLayout, IslandLayout>();
 /** The layout without its mountains, whose flat outlines `layoutGround` treats as plateaus. */
-function flatLayout(layout: IslandLayout) {
+export function flatLayout(layout: IslandLayout) {
   let flat = flatLayouts.get(layout);
   if (!flat) {
     flat = { ...layout, surfaces: layout.surfaces.filter((s) => s.shape !== 'peak') };

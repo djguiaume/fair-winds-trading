@@ -130,7 +130,12 @@ export function insertPoint(design: IslandDesign, shape: Shape, index: number): 
   if (!closed(shape) && index >= n - 1) return -1;
   const a = pts[index % n]!,
     b = pts[(index + 1) % n]!;
-  const p = a.map((v, k) => pos((v + b[k]!) / 2));
+  // A river point without its own width has the river's (decision 0167).
+  const width = shape.kind === 'river' ? design.rivers![shape.index]!.width : undefined;
+  const p =
+    width !== undefined && a.length !== b.length
+      ? [0, 1, 2].map((k) => pos(((a[k] ?? width) + (b[k] ?? width)) / 2))
+      : a.map((v, k) => pos((v + b[k]!) / 2));
   const g = shape.kind === 'ground' ? design.ground[shape.index] : undefined;
   const flags = g ? slopeFlags(g) : undefined;
   pts.splice(index + 1, 0, p);
@@ -395,7 +400,7 @@ export function addRiver(
   width = RIVER_WIDTH,
 ): number {
   const river: RiverDef = {
-    points: points.map((p) => [pos(p[0]!), pos(p[1]!)]),
+    points: points.map((p) => (p[2] === undefined ? [pos(p[0]!), pos(p[1]!)] : p.map(pos))),
     width: pos(width),
   };
   if (kind !== 'water') river.kind = kind;
@@ -403,6 +408,22 @@ export function addRiver(
   design.rivers ??= [];
   design.rivers.push(river);
   return design.rivers.length - 1;
+}
+
+/**
+ * A river point's own width, or with `undefined` back to the river's width (a point's third
+ * value, decision 0167).
+ */
+export function setRiverPointWidth(
+  design: IslandDesign,
+  index: number,
+  point: number,
+  width: number | undefined,
+) {
+  const p = design.rivers?.[index]?.points[point];
+  if (!p) throw new Error(`no point ${point} on river ${index}`);
+  if (width === undefined) p.length = 2;
+  else p[2] = pos(width);
 }
 
 /** Turns a river into water or lava. */

@@ -24,6 +24,7 @@ import {
   addPlateau,
   addRamp,
   addRiver,
+  setRiverPointWidth,
   blobOutline,
   deleteShape,
   paintWoods,
@@ -118,6 +119,8 @@ export type IslandStep =
       index?: number;
     }
   | { do: 'set'; name?: string; style?: IslandStyle; seed?: number }
+  /** A river point's own width (decision 0167); no `width`: back to the river's. */
+  | { do: 'widen'; river: number; point: number; width?: number }
   /** Changes a raised ground (or with `ramp`, a ramp): its material or height (decision 0168). */
   | { do: 'ground'; index: number; ramp?: boolean; material?: string; height?: number };
 
@@ -137,6 +140,7 @@ export const STEP_KINDS = [
   'pier',
   'remove',
   'set',
+  'widen',
   'ground',
 ] as const;
 
@@ -302,6 +306,10 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
       if (step.style) design.style = step.style;
       if (step.seed !== undefined) design.seed = step.seed;
       return 'set';
+    }
+    case 'widen': {
+      setRiverPointWidth(design, step.river, step.point, step.width);
+      return `river ${step.river} point ${step.point}`;
     }
     case 'ground': {
       const what = step.ramp ? 'ramp' : 'ground';

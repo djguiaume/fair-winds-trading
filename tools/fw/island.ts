@@ -37,6 +37,8 @@ steps (island-radius units, harbour toward +z; --level n = from that town level)
   lane | path | stairs   --points "x,z x,z …" (stairs take the ground's height at each point)
   river     --points "x,z x,z …" (source first, mouth last; past the coast it falls into the sea)
             [--kind water|lava] [--width 0.04] [--level n --to n --tags after:quest]
+            a point "x,z,w" has its own width; the river eases between widths
+  widen     <river> --point n --width w   one point's own width (--width none: the river's)
   woods     --at x,z [--r 0.2] [--clear]  paint (turns woods on); --tree --tries --size --spacing --margin
   spot      --at x,z [--pair id] [--y h]
   prop      <type> --at "x,z[ x,z …]" [--turn deg --size s --variant v --shape s --length l --y h --fit r --clear r]
@@ -186,6 +188,13 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
         do: 'remove',
         what: need(rest[0], 'what to remove') as 'prop',
         index: rest[1] !== undefined ? Number(rest[1]) : num(args.index),
+      });
+    case 'widen':
+      return clean({
+        do: 'widen',
+        river: Number(need(rest[0] ?? args.river, 'which river (an index)')),
+        point: Number(need(args.point, '--point n')),
+        width: args.width === 'none' ? undefined : need(num(args.width), '--width w (or none)'),
       });
     case 'ground':
       return clean({

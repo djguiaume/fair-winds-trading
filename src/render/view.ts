@@ -357,8 +357,13 @@ export class GameView {
 
   /** Grow only the islands whose port levels changed; anchors and harbour lights stay valid. */
   /** Look at a map point (moored at home: the island and its spots), or follow the boat (null). */
-  setFocus(point: { x: number; y: number } | null) {
+  setFocus(point: { x: number; y: number } | null, jump = false) {
     this.focus = point ? { ...point } : null;
+    // At once, without the camera's easing (the screenshot tool's --look).
+    if (point && jump) {
+      this.target.x = point.x;
+      this.target.z = -point.y;
+    }
   }
 
   setHomeBuildings(byIsland: Record<string, Record<string, string>>) {

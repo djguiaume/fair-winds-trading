@@ -13,6 +13,7 @@ import {
   setEdges,
   setLaneKind,
   setRiverKind,
+  setRiverPointWidth,
   shapeName,
 } from './shapes';
 
@@ -235,12 +236,21 @@ export function renderShapePanel(root: HTMLElement, host: ShapePanelHost) {
       (k) => setRiverKind(design, shape.index, k),
     );
     number('Width', r.width, (v) => (r.width = v ?? RIVER_WIDTH), { step: 0.005, min: 0.01 });
+    const point = sel.point;
+    if (point !== undefined && r.points[point])
+      number(
+        `Point ${point + 1} width`,
+        r.points[point]![2],
+        (v) => setRiverPointWidth(design, shape.index, point, v),
+        { step: 0.005, min: 0.005, placeholder: `${r.width} (the river's)` },
+      );
     levels(r);
     tagsField(r);
     note(
       'Runs from its first point (the source) to its last (the mouth), lying on the ground: ' +
         'down slopes and mountains, falling as a sheet at a cliff. A mouth past the coast falls ' +
-        'into the sea, with foam for water and steam for lava. Lava glows at night like windows.',
+        'into the sea, with foam for water and steam for lava. Lava glows at night like windows. ' +
+        'Click a point to give it its own width: the river widens and narrows smoothly.',
     );
     button(buttons(), '🗑 Delete', () => host.remove(), 'danger');
     return;

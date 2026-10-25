@@ -97,6 +97,26 @@ describe('rivers (decision 0167)', () => {
     expect(errors.map((e) => e.message).join(' ')).toMatch(/needs a width/);
   });
 
+  it('widen and narrow smoothly between points that carry their own width', () => {
+    const d = riverIsland();
+    applySteps(d, [{ do: 'widen', river: 1, point: 2, width: 0.12 }]);
+    expect(d.rivers![1]!.points[2]).toEqual([0.95, 0.6, 0.12]);
+    const w = riverSamples(islandLayout(d), d.rivers![1]!).map((s) => s.w);
+    expect(w[0]).toBeCloseTo(0.04, 3);
+    expect(w[w.length - 1]!).toBeGreaterThan(0.06);
+    for (let i = 1; i < w.length; i++) expect(w[i]!).toBeGreaterThanOrEqual(w[i - 1]! - 0.002);
+    // Clearing goes back to the river's width.
+    applySteps(d, [{ do: 'widen', river: 1, point: 2 }]);
+    expect(d.rivers![1]!.points[2]).toEqual([0.95, 0.6]);
+    const kit = islandCheckKit(d, R, false);
+    d.rivers![1]!.points[1] = [0.4, 0.05, 0];
+    expect(
+      checkIsland(d, kit)
+        .map((i) => i.message)
+        .join(' '),
+    ).toMatch(/width must be above 0/);
+  });
+
   it('follow after:/before: quest tags like props', () => {
     const d = riverIsland();
     d.rivers![0]!.tags = ['after:emberhold-glass'];
