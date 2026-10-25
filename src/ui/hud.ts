@@ -2,7 +2,7 @@ import { knobs } from '../sim/difficulty';
 import { trueWindAngle } from '../sim/boat';
 import { DEG, bearingTo, distance, wrapPositive } from '../sim/math';
 import { type PointOfSail, noGoAngle, pointOfSail } from '../sim/ship';
-import { hullCondition } from '../sim/hazards';
+import { damageStage, hullCondition } from '../sim/hazards';
 import { windForecast } from '../sim/forecast';
 import { USUAL_WEATHER, windTo } from '../sim/wind';
 import { WIND_FORCES, createWindGauge, updateWindGauge } from '../sim/windStrength';
@@ -641,12 +641,19 @@ export class Hud {
       this.cargoFill.setAttribute('y', (20 - fill).toFixed(1));
       this.cargoFill.setAttribute('height', fill.toFixed(1));
       this.cargoBox.classList.toggle('is-full', used >= cap);
-      const hull = Math.round(hullCondition(trade) * 100);
+      const condition = hullCondition(trade);
+      const hull = Math.round(condition * 100);
+      // The colour steps with the damage the model shows (decision 0208): brass when scuffed,
+      // red once the sails are patched, a deeper red when torn.
+      const stage = damageStage(condition);
       this.hudHullBox.hidden = hull >= 100;
       this.hudHull.textContent = t('unit.percent', { n: hull });
-      this.hudHullBox.classList.toggle('is-low', hull < 50);
+      for (const box of [this.hudHullBox, this.hullBar]) {
+        box.classList.toggle('is-worn', stage === 1);
+        box.classList.toggle('is-low', stage >= 2);
+        box.classList.toggle('is-wrecked', stage === 3);
+      }
       this.hullBar.hidden = hull >= 100;
-      this.hullBar.classList.toggle('is-low', hull < 50);
       (this.hullBar.firstElementChild as HTMLElement).style.width = `${hull}%`;
 
       if (trade.dockedAt) {

@@ -1,4 +1,4 @@
-import { goodSome, goodThe, t, tOptional } from '../i18n';
+import { type MessageKey, goodSome, goodThe, t, tOptional } from '../i18n';
 import { isGood, type GoodId } from '../sim/goods';
 import type { MapDef } from '../sim/map';
 import {
@@ -19,6 +19,7 @@ import {
   type QuestDef,
   type QuestStep,
 } from '../sim/quests';
+import { BUILDINGS, homeSpots, resolveSpot } from '../sim/home';
 import { isDiscovered } from '../sim/shipyards';
 import { findPort } from '../sim/trade';
 import { type Character, type Mood, MOODS, character } from './portraits';
@@ -65,6 +66,11 @@ export interface QuestCardModel {
   reward?: { gold: number; more: string[] };
   /** Steps after this one, on an offer: "then 2 more steps". */
   moreSteps?: number;
+  /**
+   * A plot's card at the captain's island (decision 0210): the giver by their stake, with its own
+   * tag and no arc line; the arrival button opens the Island tab on this plot.
+   */
+  plot?: { island: string; spot: string };
 }
 
 const isMood = (m: unknown): m is Mood => MOODS.includes(m as Mood);
@@ -102,7 +108,9 @@ export function parClock(secs: number): string {
  * with its quest, the quest's vars (decision 0151): `{name}` (the port's name, or "the fish"),
  * `{nameMakes}` for a port (what it makes, "some fish") and `{nameBuyer}` for a good (the line
  * `<text>.nameBuyer` naming a charted port that wants it, or nothing). An unset var reads
- * `<text>.var.<name>` ("your chosen port").
+ * `<text>.var.<name>` ("your chosen port"). A quest that gives a plot on the captain's island
+ * (`homeSpot`) names its two buildings, `{spotA}` and `{spotB}` ("a warehouse", "l’entrepôt",
+ * decision 0210).
  */
 export function stepParams(
   book: QuestBook,
@@ -111,6 +119,7 @@ export function stepParams(
 ): Record<string, string> {
   const par = book.parSeconds(step);
   const out: Record<string, string> = par === undefined ? {} : { par: parClock(par) };
+  if (quest) Object.assign(out, plotParams(book.map, quest));
   if (!quest?.vars) return out;
   const map = book.map;
   const unset = (name: string) => tOptional(`${quest.text}.var.${name}`) ?? '';
@@ -129,6 +138,36 @@ export function stepParams(
     }
   }
   return out;
+}
+
+/** The plot a quest gives on one of the captain's islands (its reward's first `homeSpot`). */
+export function questPlot(map: MapDef, quest: QuestDef): { island: string; spot: string } | null {
+  const ref = (quest.reward as { homeSpot?: unknown } | undefined)?.homeSpot;
+  return resolveSpot(map, Array.isArray(ref) ? ref[0] : ref);
+}
+
+/** The quest that gives a plot, if any (decision 0210): whose plot it is. */
+export function plotQuest(
+  quests: readonly QuestDef[],
+  map: MapDef,
+  island: string,
+  spot: string,
+): QuestDef | undefined {
+  return quests.find((q) => {
+    const plot = questPlot(map, q);
+    return plot?.island === island && plot.spot === spot;
+  });
+}
+
+/** `{spotA}` and `{spotB}`: the two buildings of a plot's pair, with their article. */
+export function plotParams(map: MapDef, quest: QuestDef): Record<string, string> {
+  const plot = questPlot(map, quest);
+  const pair = plot && homeSpots(map, plot.island).find((s) => s.id === plot.spot)?.pair;
+  if (!pair) return {};
+  const [a, b] = BUILDINGS.filter((x) => x.pair === pair).map((x) =>
+    t(`building.${x.id}.a` as MessageKey),
+  );
+  return { spotA: a ?? '', spotB: b ?? '' };
 }
 
 /** A charted harbour that wants `good`, other than the one alongside, for lesson hints. */

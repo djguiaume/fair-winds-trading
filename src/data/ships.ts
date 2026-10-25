@@ -59,6 +59,63 @@ export interface ShipModelData {
   gooseneck?: number;
   /** Named pieces from the code library `src/render/models/shipParts.ts` (leeboards, gun ports…). */
   parts?: string[];
+  /** Where her damage shows (decision 0208); left out, `DEFAULT_DAMAGE` places it. */
+  damage?: ShipDamageData;
+}
+
+/**
+ * Where a ship's visible damage sits (decision 0208). Stations along the hull are fractions of her
+ * length, -0.5 at the stern to 0.5 at the bow, like the hull `outline`; `side` is 1 or -1 (the
+ * outline's +x or -x side). Below `seamanship.damage.scuffedBelow` the `scuffs` show; below
+ * `patchedBelow` the sails are patched and the rail at `rail` is broken; below `tornBelow` the
+ * sails have holes at `tears` (u along the foot, v up the luff, 0 to 1) and she lists `listDeg`
+ * toward `listSide`.
+ */
+export interface ShipDamageData {
+  scuffs: { z: number; side: number }[];
+  rail: { z: number; side: number };
+  tears: { u: number; v: number }[];
+  listDeg: number;
+  listSide: number;
+}
+
+/** Damage for a ship file without its own `damage` block. */
+export const DEFAULT_DAMAGE: ShipDamageData = {
+  scuffs: [
+    { z: 0.3, side: 1 },
+    { z: -0.1, side: -1 },
+    { z: -0.32, side: 1 },
+  ],
+  rail: { z: 0.12, side: 1 },
+  // One big hole, four panels, in the middle of the sail: small sails lose several small ones.
+  tears: [
+    { u: 0.45, v: 0.4 },
+    { u: 0.6, v: 0.4 },
+    { u: 0.45, v: 0.55 },
+    { u: 0.6, v: 0.55 },
+  ],
+  listDeg: 6,
+  listSide: 1,
+};
+
+/** What is wrong with a ship file's `damage` block (decision 0208), for `npm run check`. */
+export function shipDamageProblems(file: ShipFile): string[] {
+  const d = file.model.damage;
+  if (!d) return [];
+  const out: string[] = [];
+  const where = `src/data/ships/${file.id}.json model.damage`;
+  const station = (what: string, p: { z: number; side: number } | undefined) => {
+    if (!p || !(p.z >= -0.5 && p.z <= 0.5)) out.push(`${where}: ${what} z must be -0.5 to 0.5`);
+    if (p && p.side !== 1 && p.side !== -1) out.push(`${where}: ${what} side must be 1 or -1`);
+  };
+  (d.scuffs ?? []).forEach((s, i) => station(`scuffs[${i}]`, s));
+  station('rail', d.rail);
+  if (d.listSide !== 1 && d.listSide !== -1) out.push(`${where}: listSide must be 1 or -1`);
+  for (const [i, t] of (d.tears ?? []).entries())
+    if (!(t.u >= 0 && t.u <= 1 && t.v >= 0 && t.v <= 1))
+      out.push(`${where}: tears[${i}] u and v must be 0 to 1`);
+  if (!(d.listDeg >= 0 && d.listDeg <= 10)) out.push(`${where}: listDeg must be 0 to 10`);
+  return out;
 }
 
 const LINES: ShipLine[] = ['starter', 'swift', 'hauler', 'warship'];

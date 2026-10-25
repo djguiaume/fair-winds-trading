@@ -48,7 +48,9 @@ Guillaume's next round of photos found four more chart and HUD bugs, fixed here 
   making for the boat.
 - **The goods column** in landscape is centred on the map under the header and tabs (the chart sets
   `--chart-top`), and a long list runs on into a second column instead of over the tabs.
-- **The home island bar** gets `.home-bar[hidden] { display: none }`.
+- **The home island bar**: the same `.home-bar[hidden] { display: none }` fix reached main with
+  Skerry's Island tab ([0210](0210-skerrys-build-choice-staked-plots-and-the-island-tab.md)), so
+  this branch takes main's version.
 - `npm run shots`: with `--chart`, `--click` now acts on the open chart (its flags), like `--pad`;
   `--port` with `--chart` leaves the port screen first.
 

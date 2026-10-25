@@ -91,6 +91,46 @@
     },
     "stockJibs": 2,
     "cargoExtra": 2,
-    "parts": ["schooner-deck"]
+    "parts": ["schooner-deck"],
+    "damage": {
+      "scuffs": [
+        {
+          "z": 0.3,
+          "side": 1
+        },
+        {
+          "z": -0.1,
+          "side": -1
+        },
+        {
+          "z": -0.32,
+          "side": 1
+        }
+      ],
+      "rail": {
+        "z": 0.18,
+        "side": 1
+      },
+      "tears": [
+        {
+          "u": 0.45,
+          "v": 0.4
+        },
+        {
+          "u": 0.6,
+          "v": 0.4
+        },
+        {
+          "u": 0.45,
+          "v": 0.55
+        },
+        {
+          "u": 0.6,
+          "v": 0.55
+        }
+      ],
+      "listDeg": 6,
+      "listSide": 1
+    }
   }
 }
