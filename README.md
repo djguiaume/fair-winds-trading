@@ -14,9 +14,9 @@ Sailing is at the heart of the adventure: read the wind, tack into a headwind, t
 
 > **Preparing for v1.0.** The base game is nearly ready for release, with two bug fixes remaining. The play link follows the latest successful deployment from `main`; the release badge points to the latest published milestone.
 
-![Saltmere's island and docks, seen in the game's own harbour header](docs/images/readme/windward-ring.jpg)
+![Illustrated cover art of a trading sloop sailing past an island harbour toward distant seas](docs/images/readme/cover.png)
 
-_Your adventure begins in the Windward Ring, among green islands and welcoming harbours._
+_Illustrated cover art inspired by the game. The dock views and gameplay screenshots below are captured from the game itself._
 
 ## A sea of small adventures
 
