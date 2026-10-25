@@ -210,6 +210,22 @@ dialog.quest-card::backdrop {
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
+/* Dock news (decision 0210): what just happened here, a strip above the person's words. */
+.quest-news {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 2px 0 8px;
+  padding: 8px 12px;
+  border-left: 3px solid var(--brass);
+  border-radius: 6px;
+  background: rgba(232, 196, 106, 0.12);
+  color: var(--ink);
+  font: 600 16px/1.3 var(--body);
+}
+.quest-news .quest-pin {
+  margin-top: 1px;
+}
 .quest-tag.is-next {
   background: #7fc8ff;
 }

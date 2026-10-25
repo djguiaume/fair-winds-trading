@@ -51,7 +51,7 @@ describe('A light on the Teeth (decision 0133)', () => {
     setLanguage('en');
   });
 
-  it('plays through in a sloop: timber, two trips of stone, then the lens from Old Ness', () => {
+  it('plays through in a sloop: timber, three trips of stone, then the lens from Old Ness', () => {
     const { world, book } = setup();
     book.check();
     expect(book.offered.map((q) => q.id)).not.toContain(ID);
@@ -74,28 +74,26 @@ describe('A light on the Teeth (decision 0133)', () => {
     book.check();
     expect(book.progress(ID)!.step).toBe('stone');
 
-    // 2. Three blocks of five spaces: a sloop (hold 10) takes two, then one.
+    // 2. Three blocks of five spaces: a sloop's deck of eight takes one a trip (decision 0210).
     book.check();
-    expect(book.progress(ID)!.counts[0]).toBe(2);
-    expect(world.trade.quests.hold).toBe(10);
+    expect(book.progress(ID)!.counts[0]).toBe(1);
+    expect(world.trade.quests.hold).toBe(5);
     // Too fast at the landing: nothing comes off.
     hold(world, book, LANDING.x, LANDING.y, 4, 4);
-    expect(book.progress(ID)!.counts.slice(0, 2)).toEqual([2, 0]);
+    expect(book.progress(ID)!.counts.slice(0, 2)).toEqual([1, 0]);
     hold(world, book, LANDING.x, LANDING.y, 1, 3.5);
-    expect(book.progress(ID)!.counts.slice(0, 2)).toEqual([0, 2]);
+    expect(book.progress(ID)!.counts.slice(0, 2)).toEqual([0, 1]);
     // Touching the reef on the way starts the step over.
     dock(world, book, 'stonehaven');
     expect(book.progress(ID)!.counts[0]).toBe(1);
     world.trade.captain.hullDamage[world.trade.captain.activeShip] = 5;
     hold(world, book, -200, -90, 5, 0.5);
     expect(book.progress(ID)!.counts).toEqual([0, 0, 0]);
-    dock(world, book, 'stonehaven');
-    dock(world, book, 'stonehaven');
-    expect(book.progress(ID)!.counts[0]).toBe(2);
-    hold(world, book, LANDING.x + 2, LANDING.y, 1, 3.5);
-    dock(world, book, 'stonehaven');
-    expect(book.progress(ID)!.counts.slice(0, 2)).toEqual([1, 2]);
-    hold(world, book, LANDING.x, LANDING.y - 2, 0, 3.5);
+    for (let trip = 1; trip <= 3; trip++) {
+      dock(world, book, 'stonehaven');
+      expect(book.progress(ID)!.counts[0]).toBe(1);
+      hold(world, book, LANDING.x + (trip === 2 ? 2 : 0), LANDING.y, 1, 3.5);
+    }
     expect(book.progress(ID)!.step).toBe('lens');
 
     // 3. Old Ness speaks the lens card at Watchman Key.

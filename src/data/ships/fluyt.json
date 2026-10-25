@@ -32,6 +32,7 @@
     "radius": 8.5,
     "draft": 1.5,
     "hold": 60,
+    "deck": 24,
     "heel": 0.6
   },
   "hull": {

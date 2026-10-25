@@ -19,7 +19,7 @@ import {
 import { packSave, unpackSave } from '../src/sim/saveCode';
 import { toBase64Url } from '../src/sim/saveTransfer';
 import { SLOOP } from '../src/sim/ship';
-import { buy, capacity, cargoUsed, sell } from '../src/sim/trade';
+import { buy, capacity, cargoUsed, deckFree, sell } from '../src/sim/trade';
 import { questTarget } from '../src/ui/questView';
 import { type World, createWorld } from '../src/sim/world';
 import pier from './fixtures/quests/test-pier.json';
@@ -136,6 +136,7 @@ describe('quest engine (decision 0125)', () => {
     const sale = world.trade.captain.gold - gold;
     // Five delivered: the timber step pays, and alongside home the visit is done at once.
     expect(quests.check()).toEqual([
+      { type: 'paid', quest: 'test-pier', step: 'timber', gold: 100 },
       { type: 'step', quest: 'test-pier', step: 'visit' },
       { type: 'choice', quest: 'test-pier', step: 'build' },
     ]);
@@ -146,6 +147,7 @@ describe('quest engine (decision 0125)', () => {
     expect(world.trade.progress.discovered).not.toContain('abbey-head');
     const before = world.trade.captain.gold;
     expect(quests.choose('test-pier', 'workshop')).toEqual([
+      { type: 'paid', quest: 'test-pier', step: 'build', gold: 10 },
       { type: 'finished', quest: 'test-pier' },
       { type: 'started', quest: 'test-after' },
       { type: 'step', quest: 'test-after', step: 'both' },
@@ -187,7 +189,10 @@ describe('quest engine (decision 0125)', () => {
     // Both delivered, but grain aboard: the `not` holds it back.
     expect(quests.check()).toEqual([]);
     world.trade.captain.cargo.grain = 0;
-    expect(quests.check()).toEqual([{ type: 'finished', quest: 'test-after' }]);
+    expect(quests.check()).toEqual([
+      { type: 'paid', quest: 'test-after', step: 'both', gold: 7 },
+      { type: 'finished', quest: 'test-after' },
+    ]);
   });
 
   it('progress is saved with the voyage and checked on load', () => {
@@ -240,35 +245,36 @@ describe('quest engine (decision 0125)', () => {
     expect(questsFor(PHASE0_MAP, [after]).map((q) => q.id)).toEqual(['test-after']);
   });
 
-  it('quest cargo takes hold space, cannot be sold, and goes in as many trips as it takes', () => {
+  it('quest cargo goes on deck, apart from the hold, in as many trips as the deck takes (0210)', () => {
     const world = createWorld(PHASE1_MAP, SLOOP);
     const quests = book(world, true, SAILING);
     quests.check();
     expect(quests.tracked).toBe('test-sailing');
-    world.trade.captain.cargo.fish = 5;
+    world.trade.captain.cargo.fish = 10;
     dock(world, 'stonehaven');
     quests.check();
-    // Ten spaces, five of fish: one millstone of four fits.
+    // A full hold leaves the deck free: a sloop's deck of eight takes one millstone of five.
     expect(quests.progress('test-sailing')!.counts).toEqual([1, 0, 0]);
-    expect(cargoUsed(world.trade)).toBe(9);
+    expect(cargoUsed(world.trade)).toBe(10);
+    expect(world.trade.quests.hold).toBe(5);
+    expect(deckFree(world.trade)).toBe(3);
     expect(quests.check()).toEqual([]);
     expect(quests.progress('test-sailing')!.counts).toEqual([1, 0, 0]);
     dock(world, 'westholm');
     quests.check();
     expect(quests.progress('test-sailing')!.counts).toEqual([0, 1, 0]);
-    expect(cargoUsed(world.trade)).toBe(5);
-    world.trade.captain.cargo.fish = 0;
+    expect(world.trade.quests.hold ?? 0).toBe(0);
     dock(world, 'stonehaven');
     quests.check();
-    expect(cargoUsed(world.trade)).toBe(4);
+    expect(world.trade.quests.hold).toBe(5);
     expect(capacity(world.trade)).toBe(10);
-    // Saved with it aboard, the room is still taken on the other side.
+    // Saved with it aboard, the deck is still taken on the other side.
     const resumed = createWorld(PHASE1_MAP, SLOOP);
     resumed.trade.quests = readQuests(serializeWorld(world).quests, PHASE1_MAP, SAILING);
-    expect(cargoUsed(resumed.trade)).toBe(4);
+    expect(resumed.trade.quests.hold).toBe(5);
     dock(world, 'westholm');
     expect(quests.check()).toEqual([{ type: 'step', quest: 'test-sailing', step: 'sound' }]);
-    expect(cargoUsed(world.trade)).toBe(0);
+    expect(world.trade.quests.hold ?? 0).toBe(0);
   });
 
   it('a passenger (quest cargo of no space) comes aboard with a full hold', () => {
@@ -307,7 +313,7 @@ describe('quest engine (decision 0125)', () => {
       name: 'Test: cargo at a spot',
       start: { is: 'always' },
       text: 'quest.test-landing',
-      items: { log: { space: 4 } },
+      items: { log: { space: 5 } },
       steps: [
         { id: 'logs', goal: { is: 'carried', item: 'log', qty: 2, from: landing, to: 'calda' } },
         { id: 'back', goal: { is: 'carried', item: 'log', qty: 1, from: 'calda', to: landing } },
@@ -325,7 +331,7 @@ describe('quest engine (decision 0125)', () => {
     expect(quests.progress('test-landing')!.counts).toEqual([0, 0, 0]);
     sailTo(world, quests, 42, 40, 1.5, 2);
     expect(quests.progress('test-landing')!.counts[0]).toBe(0);
-    // Three seconds held slowly: one log of four fits beside five fish.
+    // Three seconds held slowly: one log of five fits on a sloop's deck of eight (0210).
     sailTo(world, quests, 42, 40, 1.5, 1);
     expect(quests.progress('test-landing')!.counts.slice(0, 2)).toEqual([1, 0]);
     expect(questTarget(quests, PHASE1_MAP)).toEqual({ port: 'calda' });
@@ -436,7 +442,19 @@ describe('quest engine (decision 0125)', () => {
     quests.check(0.25);
     sailTo(world, quests, 300, 300, 6, 60);
     world.trade.dockedAt = 'calda';
-    expect(quests.check(0.25)).toEqual([{ type: 'step', quest: 'test-sailing', step: 'light' }]);
+    expect(quests.check(0.25)).toEqual([
+      {
+        type: 'run',
+        quest: 'test-sailing',
+        step: 'trial',
+        state: 'made',
+        sec: 60.25,
+        par: 200,
+        from: 'calda',
+        to: 'calda',
+      },
+      { type: 'step', quest: 'test-sailing', step: 'light' },
+    ]);
   });
 
   it('a night step waits for night (or night switched off) and the reward puts a town up a level', () => {
@@ -449,7 +467,10 @@ describe('quest engine (decision 0125)', () => {
     const night = book(world, true, SAILING, true);
     night.check();
     const level = world.trade.settlements.byPort.westholm!.level;
-    expect(sailTo(world, night, -45, -50)).toEqual([{ type: 'finished', quest: 'test-sailing' }]);
+    expect(sailTo(world, night, -45, -50)).toEqual([
+      { type: 'paid', quest: 'test-sailing', step: 'light', gold: 50 },
+      { type: 'finished', quest: 'test-sailing' },
+    ]);
     expect(world.trade.settlements.byPort.westholm!.level).toBe(level + 1);
     expect(world.trade.quests.tracked).toBeUndefined();
   });

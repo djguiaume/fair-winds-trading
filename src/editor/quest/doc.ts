@@ -608,8 +608,23 @@ export function textKeys(quest: QuestDef): TextLine[] {
   }
   out.push({ key: `${t}.done.title`, label: 'Thanks · title', long: false });
   out.push({ key: `${t}.done.copy`, label: 'Thanks · speech', long: true, variants: true });
+  // Quest cargo's names for the dock news (decision 0210); a passenger (space 0) is a person.
+  for (const [id, item] of Object.entries(quest.items ?? {}))
+    if (item.space > 0)
+      for (const [form, what] of ITEM_FORMS)
+        out.push({ key: `quest.item.${id}.${form}`, label: `item ${id} · ${what}`, long: false });
   return out;
 }
+
+/** The forms of a quest item's name the dock news reads (decision 0210). */
+export const ITEM_FORMS = [
+  ['one', 'one ("millstone")'],
+  ['many', 'several ("millstones")'],
+  ['the', 'the load ("the millstones")'],
+  ['own', 'someone’s ("Maren’s millstones" / « les meules »)'],
+  ['unloadedOne', '"unloaded", one (FR « déchargée »)'],
+  ['unloadedMany', '"unloaded", several (FR « déchargées »)'],
+] as const;
 
 /** Every key of a line: the default, then its controls versions (decision 0184). */
 export function lineKeys(line: TextLine): { key: string; label: string; way?: TextVariant }[] {
@@ -639,7 +654,7 @@ export function checkText(doc: QuestDoc): string[] {
       const [a, b] = LANGS.map((l) => textOf(doc, l, key));
       const isAsk =
         /\.title$/.test(key) && !key.endsWith('.done.title') && key.split('.').length === 4;
-      if (isAsk && a === undefined && b === undefined)
+      if ((isAsk || key.startsWith('quest.item.')) && a === undefined && b === undefined)
         out.push(`quest ${q.id} › ${label}: no text`);
       else if ((a === undefined) !== (b === undefined))
         out.push(`quest ${q.id} › ${label}: no ${a === undefined ? 'English' : 'French'}`);

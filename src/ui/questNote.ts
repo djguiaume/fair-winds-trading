@@ -44,6 +44,8 @@ export class QuestNote {
   update(dt: number, free: boolean, skip: (key: string) => boolean = () => false) {
     if (this.left > 0) {
       this.left -= dt;
+      // The stats above can grow while it shows (the deck chip, a run's clock, decision 0210).
+      this.place();
       this.el.classList.toggle('is-fading', this.left < 1);
       if (this.left <= 0) this.hide();
       return;
@@ -65,12 +67,17 @@ export class QuestNote {
         ? `<span class="quest-note-face">${portraitSvg(c.giver, { size: 52, mood: c.mood })}</span>`
         : ''
     }<span class="quest-note-text"><b>${esc(`${who} · ${step}`)}</b>${
-      c.ask ? `<span>${esc(c.ask)}</span>` : ''
+      (c.news ?? c.ask) ? `<span>${esc(c.news ?? c.ask!)}</span>` : ''
     }<small>${esc(t('quest.noteHint'))}</small></span>`;
-    this.el.style.top = `${Math.round(this.under.getBoundingClientRect().bottom + 8)}px`;
+    this.place();
     this.el.classList.remove('is-fading');
     this.el.hidden = false;
     this.left = NOTE_SEC;
+  }
+
+  private place() {
+    const top = `${Math.round(this.under.getBoundingClientRect().bottom + 8)}px`;
+    if (this.el.style.top !== top) this.el.style.top = top;
   }
 
   hide() {

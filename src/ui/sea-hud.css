@@ -143,6 +143,23 @@ button.captain-stat:active {
 .hull-stat.is-low b {
   color: var(--red);
 }
+/* The hold list stays above a quest note that slides in under the gold (decision 0210). */
+#captain-stats:has(.cargo-tooltip:not([hidden])) {
+  z-index: 13;
+}
+/* A timed run's clock (decision 0210): "Run to Saltmere 1:23 / 3:00", amber near par. */
+.run-stat span {
+  color: var(--brass);
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.run-stat b {
+  font-variant-numeric: tabular-nums;
+}
+.run-stat.is-close b {
+  color: var(--amber);
+}
 .captain-stat[hidden],
 .cargo-tooltip[hidden] {
   display: none;

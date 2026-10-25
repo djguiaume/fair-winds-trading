@@ -33,8 +33,12 @@ import {
   slotLayout,
   testCondition,
   updateGoal,
+  goalNews,
+  type StepNews,
+  RUN_GOING,
+  RUN_MADE,
 } from './questLibrary';
-import { freeSpace, syncMarketLevels, type TradeState } from './trade';
+import { deckFree, syncMarketLevels, type TradeState } from './trade';
 import { pointOfSail } from './ship';
 import type { World } from './world';
 
@@ -645,6 +649,22 @@ export type QuestEvent =
   | { type: 'reset'; quest: string; step: string }
   /** Goods taken out of the hold for a step (`landed`, decision 0157). */
   | { type: 'landed'; quest: string; good: GoodId; qty: number }
+  /**
+   * A timed run (decision 0210) got under way, ran over its par (back to the start) or was made;
+   * `sec` the run's time so far, `par` its par, seconds.
+   */
+  | {
+      type: 'run';
+      quest: string;
+      step: string;
+      state: 'started' | 'late' | 'made';
+      sec: number;
+      par: number;
+      from: string;
+      to: string;
+    }
+  /** A step done paid gold (decision 0210): its own, its option's, and the quest's at the end. */
+  | { type: 'paid'; quest: string; step: string; gold: number }
   /** The boat was taken to a step's `moveTo` (decision 0164). */
   | { type: 'moved'; quest: string; step: string }
   /** A reward's volcano erupts (decision 0178): the view plays it, nothing else changes. */
@@ -684,6 +704,8 @@ export class QuestBook {
   /** Offered quests already announced, so `offered` is sent once each. */
   private announced = new Set<string>();
   private since = 0;
+  /** A check made again after a step began (decision 0210). */
+  private again = false;
   private readonly doneElsewhere: (id: string) => boolean;
   private readonly atElsewhere: (id: string, step: string) => boolean;
   private readonly nightOk: () => boolean;
@@ -1012,7 +1034,98 @@ export class QuestBook {
       }
     }
     this.afterChange(events);
+    // A step begun at a stop does its part there at once (decision 0210): the bread Maren gives
+    // as the millstones come ashore is aboard before the harbour screen says so.
+    if (!this.again && events.some((e) => e.type === 'step' || e.type === 'started')) {
+      this.again = true;
+      try {
+        return [...events, ...this.check()];
+      } finally {
+        this.again = false;
+      }
+    }
     return events;
+  }
+
+  /** A timed run that changed state in this check (decision 0210), said as a `run` event. */
+  private runEvents(
+    quest: QuestDef,
+    step: QuestStep,
+    before: readonly number[],
+    after: readonly number[],
+    events: QuestEvent[],
+  ) {
+    for (const [c, at] of slotLayout(step.goal).at) {
+      if (c.is !== 'timed' || before[at] === after[at]) continue;
+      const state = after[at] === RUN_GOING ? 'started' : after[at] === RUN_MADE ? 'made' : 'late';
+      const map = this.world.map;
+      const vars = this.progress(quest.id)?.vars;
+      const from = resolvePort(map, deref(c.from, vars)) ?? '';
+      const to = resolvePort(map, deref(c.to, vars)) ?? from;
+      // A late run's clock is already back to nothing: it said par when it gave up.
+      const sec = state === 'made' ? (after[at + 1] ?? 0) / 100 : (before[at + 1] ?? 0) / 100;
+      const par = parFor(c.par, this.trade);
+      events.push({ type: 'run', quest: quest.id, step: step.id, state, sec, par, from, to });
+    }
+  }
+
+  /** Quest cargo aboard (decision 0210): what fills the hold besides goods, for the hold lists. */
+  cargo(): { quest: string; item: string; n: number; space: number }[] {
+    const out: { quest: string; item: string; n: number; space: number }[] = [];
+    for (const { quest, step } of this.active)
+      for (const [item, n] of itemsAboard(step.goal, this.progress(quest.id)!.counts))
+        if (n > 0)
+          out.push({ quest: quest.id, item, n, space: n * (quest.items?.[item]?.space ?? 1) });
+    return out;
+  }
+
+  /** Timed runs under way (decision 0210): for the clock at sea. */
+  runs(): { quest: string; step: string; sec: number; par: number; to: string }[] {
+    const out: { quest: string; step: string; sec: number; par: number; to: string }[] = [];
+    for (const { quest, step } of this.active) {
+      const counts = this.progress(quest.id)!.counts;
+      for (const [c, at] of slotLayout(step.goal).at) {
+        if (c.is !== 'timed' || counts[at] !== RUN_GOING) continue;
+        const vars = this.progress(quest.id)?.vars;
+        const map = this.world.map;
+        const from = resolvePort(map, deref(c.from, vars)) ?? '';
+        out.push({
+          quest: quest.id,
+          step: step.id,
+          sec: (counts[at + 1] ?? 0) / 100,
+          par: parFor(c.par, this.trade),
+          to: resolvePort(map, deref(c.to, vars)) ?? from,
+        });
+      }
+    }
+    return out;
+  }
+
+  /**
+   * What the started quests say where the boat is now (decision 0210): quest cargo loaded or left
+   * on the quay, cargo unloaded, goods handed over so far. Read after a check; changes nothing.
+   */
+  news(): (StepNews & { quest: string; step: string })[] {
+    const { boat, trade } = this.world;
+    const out: (StepNews & { quest: string; step: string })[] = [];
+    for (const { quest, step } of this.active) {
+      if (!step.goal) continue;
+      const p = this.progress(quest.id)!;
+      const ctx = {
+        ...this.context(quest),
+        dt: 0,
+        boat: { x: boat.x, y: boat.y, speedKn: boat.speedKn },
+        from: boat,
+        wasDocked: trade.dockedAt,
+        cargoBefore: trade.captain.cargo,
+        nightOk: true,
+        freeSpace: deckFree(trade),
+        itemSpace: (item: string) => quest.items?.[item]?.space ?? 1,
+      };
+      for (const news of goalNews(step.goal, ctx, p.counts))
+        out.push({ ...news, quest: quest.id, step: step.id });
+    }
+    return out;
   }
 
   /** Fills a quest's vars from a `set` (decision 0151), with what the voyage holds now. */
@@ -1210,7 +1323,9 @@ export class QuestBook {
     this.erupt(quest, [step.reward, option?.reward], events);
     this.applySet(quest, step.set);
     const to = findStep(quest, nextOf(quest, step, option));
+    const gold = (step.reward?.gold ?? 0) + (option?.reward?.gold ?? 0);
     if (to) {
+      if (gold) events.push({ type: 'paid', quest: quest.id, step: step.id, gold });
       this.enter(quest, to, events);
       return;
     }
@@ -1223,6 +1338,8 @@ export class QuestBook {
     };
     this.pay(quest.reward);
     this.erupt(quest, [quest.reward], events);
+    const all = gold + (quest.reward?.gold ?? 0);
+    if (all) events.push({ type: 'paid', quest: quest.id, step: step.id, gold: all });
     // A port that trades differently after this quest has its market follow at once (0130).
     if (this.world.map.ports.some((port) => port.afterQuest?.[quest.id]))
       syncMarketLevels(this.trade, this.world.map);
@@ -1255,7 +1372,8 @@ export class QuestBook {
         if (p.counts.some((n) => n > 0))
           events.push({ type: 'reset', quest: quest.id, step: step.id });
         p.counts = p.counts.map(() => 0);
-      } else
+      } else {
+        const before = [...p.counts];
         updateGoal(
           step.goal,
           {
@@ -1267,7 +1385,7 @@ export class QuestBook {
             wasDocked: seen.docked,
             cargoBefore: seen.cargo,
             nightOk,
-            freeSpace: freeSpace(trade),
+            freeSpace: deckFree(trade),
             itemSpace: (item) => quest.items?.[item]?.space ?? 1,
             land: (good, qty) => {
               trade.captain.cargo[good] -= qty;
@@ -1276,6 +1394,8 @@ export class QuestBook {
           },
           p.counts,
         );
+        this.runEvents(quest, step, before, p.counts, events);
+      }
       // Quest cargo just loaded takes its room before the next quest loads any.
       this.state.hold = questHold(this.state, this.quests);
     }

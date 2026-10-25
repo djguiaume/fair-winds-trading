@@ -49,6 +49,11 @@ export interface ShipClass {
   draft: number;
   /** Cargo capacity in units of goods, before hold upgrades. */
   hold: number;
+  /**
+   * Quest cargo lashed on deck (decision 0210), in the quest items' `space` units, apart from the
+   * hold; upgrades do not change it.
+   */
+  deck: number;
   /** Shipyard price in gold (0 for the starter ship). */
   price: number;
   /** Shipyard price of upgrade level 2 and level 3, the same for each track (decision 0011). */

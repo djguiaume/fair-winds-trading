@@ -1,7 +1,7 @@
 import { knobs } from '../sim/difficulty';
 import { trueWindAngle } from '../sim/boat';
 import { DEG, bearingTo, distance, wrapPositive } from '../sim/math';
-import { type PointOfSail, noGoAngle, pointOfSail } from '../sim/ship';
+import { type PointOfSail, SHIP_CLASSES, noGoAngle, pointOfSail } from '../sim/ship';
 import { hullCondition } from '../sim/hazards';
 import { windForecast } from '../sim/forecast';
 import { USUAL_WEATHER, windTo } from '../sim/wind';
@@ -126,6 +126,8 @@ export class Hud {
    * tracked quest's place. The objective panel and the edge arrow show it like a course.
    */
   goal: { x: number; y: number; label: string } | null = null;
+  /** Quest cargo aboard, a line each, for the hold list (decision 0210). */
+  questCargo: () => string[] = () => [];
   private readonly wpArrow = $('wp-arrow');
   private readonly toast = $('toast');
   private readonly tiller = $('tiller');
@@ -138,6 +140,8 @@ export class Hud {
   private readonly hudHullBox = $('hud-hull-box');
   private readonly hullBar = $('hull-bar');
   private readonly cargoFill = $('hud-cargo-fill');
+  private readonly deckBox = $('hud-deck-box');
+  private readonly deckText = $('hud-deck');
   private readonly cargoBox = $('hud-cargo-box');
   private readonly cargoTooltip = $('hud-cargo-tooltip');
   private readonly dockBtn = $('dock-btn');
@@ -364,6 +368,13 @@ export class Hud {
     const { captain } = this.world.trade;
     const items = GOODS.filter((g) => captain.cargo[g] > 0)
       .map((g) => `${goodName(g)}: <b>${captain.cargo[g]}</b>`)
+      // Quest cargo on deck (decision 0210): say whose it is.
+      .concat(
+        this.questCargo().map(
+          (l, i) =>
+            `${i ? '' : `<small>${t('hud.onDeck')}</small><br>`}${l.replace(/[&<>"]/g, '')}`,
+        ),
+      )
       .join('<br>');
 
     this.cargoTooltip.innerHTML = items
@@ -640,6 +651,11 @@ export class Hud {
       this.cargoFill.setAttribute('y', (20 - fill).toFixed(1));
       this.cargoFill.setAttribute('height', fill.toFixed(1));
       this.cargoBox.classList.toggle('is-full', used >= cap);
+      // Quest cargo lashed on deck (decision 0210), shown while there is some.
+      const deck = SHIP_CLASSES[trade.captain.activeShip]!.deck;
+      const onDeck = trade.quests.hold ?? 0;
+      this.deckBox.hidden = onDeck <= 0;
+      if (onDeck > 0) this.deckText.textContent = `${onDeck}/${deck}`;
       const hull = Math.round(hullCondition(trade) * 100);
       this.hudHullBox.hidden = hull >= 100;
       this.hudHull.textContent = t('unit.percent', { n: hull });

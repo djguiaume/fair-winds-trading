@@ -70,7 +70,13 @@ export function questCardBody(c: QuestCardModel, inline = false): string {
       .join('');
   else if (!inline)
     actions = `<button type="button" class="d-btn brass" data-act="close">${press}${esc(t('quest.close'))}</button>`;
-  return `<span class="quest-tag is-${tag}">${esc(t(TAG_KEY[tag]))}</span>
+  else if (c.toMarket)
+    actions = `<button type="button" class="d-btn brass" data-act="market"${q}>${esc(t('quest.news.toMarket'))}</button>`;
+  // What just happened here (decision 0210), above everything the person says.
+  const news = c.news
+    ? `<p class="quest-news" role="status"><span class="quest-pin" aria-hidden="true">!</span>${esc(c.news)}</p>`
+    : '';
+  return `<span class="quest-tag is-${tag}">${esc(t(TAG_KEY[tag]))}</span>${news}
       <header class="quest-head"><h2>${esc(c.giver?.name ?? c.arc)}</h2>${
         c.role ? `<span class="quest-role">${esc(c.role)}</span>` : ''
       }</header>

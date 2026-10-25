@@ -3,7 +3,7 @@ import { PHASE1_MAP } from '../../src/data/maps';
 import { QUESTS, QUEST_DONE, QuestBook, checkQuests, questsFor } from '../../src/sim/quests';
 import { giveHomeIsland, islandHome } from '../../src/sim/home';
 import { SLOOP } from '../../src/sim/ship';
-import { buy, cargoUsed, sell } from '../../src/sim/trade';
+import { buy, sell } from '../../src/sim/trade';
 import { type World, createWorld } from '../../src/sim/world';
 import { cardFor, parClock } from '../../src/ui/questView';
 import { islandDesign, questDesign } from '../../src/data/islands';
@@ -63,11 +63,11 @@ describe('the Westholm mill arc (0129, 0132)', () => {
     expect(quests.progress(ID)!.step).toBe('millstones');
     expect(gold() - paid - sale).toBe(100);
 
-    // Millstones: space 6 each, the sloop's hold of 10 takes one a trip.
+    // Millstones: space 6 each, the sloop's deck of 8 takes one a trip (decision 0210).
     for (let trip = 1; trip <= 2; trip++) {
       dock(world, 'stonehaven');
       quests.check();
-      expect(cargoUsed(world.trade)).toBe(6);
+      expect(world.trade.quests.hold).toBe(6);
       dock(world, 'westholm');
       quests.check();
     }
@@ -75,14 +75,14 @@ describe('the Westholm mill arc (0129, 0132)', () => {
 
     // Bread: four baskets loaded at Westholm, the run timed to Saltmere.
     quests.check();
-    expect(cargoUsed(world.trade)).toBe(4);
+    expect(world.trade.quests.hold).toBe(4);
     world.trade.dockedAt = null;
     quests.check(0.25);
     for (let t = 0; t < 90; t += 1) quests.check(1);
     const level = world.trade.settlements.byPort.westholm!.level;
     dock(world, 'saltmere');
     expect(quests.check(0.25)).toContainEqual({ type: 'finished', quest: ID });
-    expect(cargoUsed(world.trade)).toBe(0);
+    expect(world.trade.quests.hold ?? 0).toBe(0);
     expect(world.trade.settlements.byPort.westholm!.level).toBe(level + 1);
     // About 500 gold over the arc, and the stores spot on Skerry offered.
     expect(gold() - before - sale).toBe(500);

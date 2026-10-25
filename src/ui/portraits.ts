@@ -54,6 +54,8 @@ export interface Look {
 export interface Character {
   id: string;
   name: string;
+  /** The name dock news uses (decision 0210), when not the first word of `name` ("Ness"). */
+  short?: string;
   /** English role; the UI translates it when a key exists. */
   role: string;
   /** Id of their home port in the map. */

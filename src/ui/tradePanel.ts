@@ -117,6 +117,8 @@ export class TradePanel {
   onTrade: (kind: 'buy' | 'sell', good: GoodId | null) => void = () => {};
   onRender: () => void = () => {};
   onClose: () => void = () => {};
+  /** Quest cargo aboard, a line each (decision 0210). */
+  questCargo: () => string[] = () => [];
   /** The Quay tab's people; none: no tab. */
   quay: PortQuay | null = null;
   onUiModeChange: (mode: UiMode) => void = () => {};
@@ -259,6 +261,7 @@ export class TradePanel {
           <div class="header-controls">
             <span class="port-chip" title="${t('hud.gold')}">${COIN}<b>${formatNumber(captain.gold)}</b></span>
             <span class="port-chip" title="${t('hud.cargo')}">${crateIcon(holdCap > 0 ? holdUsed / holdCap : 0)}<b>${holdUsed}/${holdCap}</b></span>
+            ${this.renderDeckChip()}
             ${
               KIDS_MODE_AVAILABLE
                 ? `<button id="tp-toggle-mode" class="mode-toggle-btn" title="${t('trade.switchMode')}">
@@ -356,7 +359,12 @@ export class TradePanel {
     const name = (first.giver?.name ?? first.arc).replace(/[&<>"]/g, '');
     return `<button id="tp-quay-hint" class="quay-hint">${
       first.giver ? portraitSvg(first.giver, { size: 40, mood: first.mood }) : ''
-    }<span>${t('trade.quayHint', { name })} <em>${t('trade.quayGo')}</em></span></button>`;
+    }<span>${
+      // Dock news says itself (decision 0210): "Done! +100 gold." after the timber sold.
+      first.news
+        ? `<b>${name}</b> · ${first.news.replace(/[&<>"]/g, '')}`
+        : t('trade.quayHint', { name })
+    } <em>${t('trade.quayGo')}</em></span></button>`;
   }
 
   /** Hull repair after reef strikes (decision 0032); shown only when the hull is damaged. */
@@ -733,6 +741,7 @@ export class TradePanel {
         <div class="goods-list">${rowsHtml}</div>
         <aside class="port-side">
           ${this.renderCredit()}
+          ${this.renderQuestCargo()}
           <section class="side-card">
             <h3>${t('trade.orderHere')}</h3>
             ${orderHtml}
@@ -741,6 +750,24 @@ export class TradePanel {
         </aside>
       </div>
     `;
+  }
+
+  /** Quest cargo on deck (decision 0210), next to the hold, while there is some. */
+  private renderDeckChip(): string {
+    const { trade } = this.world;
+    const onDeck = trade.quests.hold ?? 0;
+    if (onDeck <= 0) return '';
+    const deck = SHIP_CLASSES[trade.captain.activeShip]!.deck;
+    return `<span class="port-chip deck-chip" title="${t('hud.onDeck')}"><small>${t('hud.deck')}</small><b>${onDeck}/${deck}</b></span>`;
+  }
+
+  /** Quest cargo on deck (decision 0210): it is not for sale and not in the hold, so say whose. */
+  private renderQuestCargo(): string {
+    const lines = this.questCargo();
+    if (!lines.length) return '';
+    return `<section class="side-card quest-cargo"><h3>${t('quest.cargoTitle')}</h3><ul>${lines
+      .map((l) => `<li>${l.replace(/[&<>"]/g, '')}</li>`)
+      .join('')}</ul></section>`;
   }
 
   /**
@@ -1164,8 +1191,10 @@ export class TradePanel {
       .querySelectorAll<HTMLButtonElement>('.quay-people button[data-act]')
       .forEach((btn) => {
         btn.addEventListener('click', () => {
-          const act = btn.dataset.act as 'accept' | 'later' | 'ignore' | 'choose';
-          this.quay?.act(btn.dataset.quest!, act, btn.dataset.option);
+          const act = btn.dataset.act as 'accept' | 'later' | 'ignore' | 'choose' | 'market';
+          // Dock news that asks for goods here (decision 0210): "To the market".
+          if (act === 'market') this.tab = 'market';
+          else this.quay?.act(btn.dataset.quest!, act, btn.dataset.option);
           this.render();
         });
       });
