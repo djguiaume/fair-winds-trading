@@ -56,7 +56,10 @@ export function testBerth(
   piers: readonly Pier[],
   portId: string,
   shipId: string,
+  /** The land standing now (decision 0166): ice or rocks gone after a quest leave clear water. */
+  land?: { islands: MapDef['islands']; terrain: NonNullable<MapDef['terrain']> },
 ): { x: number; y: number; headingDeg: number } | null {
+  const sea = land ? { ...map, islands: land.islands, terrain: land.terrain } : map;
   const home = map.islands.find((i) => i.id === portId);
   const port =
     findPort(map, portId) ??
@@ -78,7 +81,7 @@ export function testBerth(
     for (let a = 0; a < 360; a += 10) {
       const x = from.x + r * Math.cos((a * Math.PI) / 180);
       const y = from.y + r * Math.sin((a * Math.PI) / 180);
-      if (!clearAt(map, x, y, 3) || piers.some((p) => dist(x, y, p) < 4)) continue;
+      if (!clearAt(sea, x, y, 3) || piers.some((p) => dist(x, y, p) < 4)) continue;
       // Radians, bow towards (sin, cos): pointing out to sea.
       const heading = Math.atan2(x - island.x, y - island.y);
       const d = distanceToPort(map, { x, y, heading }, port, level, shipId, range);

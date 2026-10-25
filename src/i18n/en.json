@@ -886,5 +886,6 @@
   "zone.sheltered": "sheltered water",
   "zone.ash": "ash cloud",
   "zone.storm-belt": "storm belt",
-  "zone.fog-bank": "fog bank"
+  "zone.fog-bank": "fog bank",
+  "zone.cold-sea": "cold sea"
 }
