@@ -29,24 +29,24 @@ dialog.chart::backdrop {
 }
 
 /* --- Floating controls ------------------------------------------------------------------ */
-.chart-header {
-  position: absolute;
+/* The port screen's header and tab bar on top (decision 0196): `port-screen.css` styles them. */
+.chart-top {
+  position: relative;
   z-index: 3;
-  top: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: max(10px, var(--safe-top, env(safe-area-inset-top)))
-    max(12px, var(--safe-right, env(safe-area-inset-right))) 0
-    max(12px, var(--safe-left, env(safe-area-inset-left)));
-  pointer-events: none;
+  flex: none;
+  background: rgba(9, 28, 41, 0.97);
 }
-.chart-header > * {
-  pointer-events: auto;
+.chart .chart-top h2 {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
 }
-/* The title is for screen readers; the map speaks for itself. */
+.chart-tabs .tab-btn[hidden] {
+  display: none;
+}
+/* Other titles are for screen readers; the map speaks for itself. */
 .chart h2 {
   position: absolute;
   width: 1px;
@@ -93,7 +93,7 @@ dialog.chart::backdrop {
 }
 
 /* Buttons: navy with a brass line; the picked good in brass; Close in red, as in the port. */
-.chart button {
+.chart :is(.chart-viewport, .chart-footer, .chart-chip) button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -111,14 +111,11 @@ dialog.chart::backdrop {
   cursor: pointer;
   touch-action: manipulation;
 }
-.chart button[aria-expanded='true'] {
-  background: #1c4456;
-}
-.chart button:disabled {
+.chart :is(.chart-viewport, .chart-footer) button:disabled {
   opacity: 0.45;
   cursor: default;
 }
-.chart button:focus-visible {
+.chart :is(.chart-viewport, .chart-footer) button:focus-visible {
   outline: 2px solid var(--brass-hi);
   outline-offset: 2px;
 }
@@ -126,26 +123,6 @@ dialog.chart::backdrop {
   width: 22px;
   height: 22px;
   flex: none;
-}
-#chart-legend-toggle {
-  width: 46px;
-  padding: 0;
-}
-.chart-legend-label {
-  display: none;
-}
-.chart .chart-close {
-  width: 46px;
-  min-height: 46px;
-  padding: 0;
-  border: 2px solid var(--outline);
-  border-radius: 10px;
-  background: linear-gradient(#ff8a73, #ec5a43);
-  box-shadow:
-    inset 0 -3px 0 #b8261a,
-    0 3px 8px rgba(0, 0, 0, 0.35);
-  color: #fff;
-  font-size: 20px;
 }
 
 /* Goods to price along the left side (a row along the bottom in portrait). */
@@ -169,8 +146,7 @@ dialog.chart::backdrop {
   flex-direction: column;
   gap: 6px;
 }
-.chart .chart-goods button,
-.chart #chart-market-toggle {
+.chart .chart-goods button {
   justify-content: flex-start;
   min-height: 40px;
   font-size: 15px;
@@ -181,8 +157,9 @@ dialog.chart::backdrop {
   box-shadow: inset 0 -3px 0 var(--brass-lo);
   color: #2a1c00;
 }
-.chart #chart-market-toggle {
-  margin-top: 6px;
+/* A controller's X steps through the goods (decision 0196). */
+.chart .chart-goods > .pad-key {
+  align-self: center;
 }
 
 /* --- The map ---------------------------------------------------------------------------- */
@@ -523,7 +500,7 @@ html[data-input='pad'] .chart-cross {
 .chart-compass.compass {
   position: absolute;
   z-index: 2;
-  top: calc(max(10px, var(--safe-top, env(safe-area-inset-top))) + 54px);
+  top: 12px;
   right: max(12px, var(--safe-right, env(safe-area-inset-right)));
   width: 96px;
   padding: 4px;
@@ -704,12 +681,11 @@ html[data-input='pad'] .chart-cross {
 /* --- Sizes ------------------------------------------------------------------------------ */
 /* Short landscape phones: smaller controls, so the round sea keeps the full height. */
 @media (max-height: 450px) {
-  .chart button {
+  .chart :is(.chart-viewport, .chart-footer) button {
     min-height: 38px;
     font-size: 14px;
   }
-  .chart .chart-goods button,
-  .chart #chart-market-toggle {
+  .chart .chart-goods button {
     min-height: 36px;
     font-size: 14px;
   }
@@ -718,7 +694,7 @@ html[data-input='pad'] .chart-cross {
     font-size: 14px;
   }
   .chart-compass.compass {
-    top: calc(max(10px, var(--safe-top, env(safe-area-inset-top))) + 50px);
+    top: 8px;
     width: 84px;
   }
   .chart-compass.compass svg {
@@ -744,9 +720,6 @@ html[data-input='pad'] .chart-cross {
     flex-direction: row;
     flex-wrap: wrap;
   }
-  .chart #chart-market-toggle {
-    margin-top: 0;
-  }
   .chart-chip {
     max-width: calc(100vw - 150px);
   }
@@ -762,10 +735,6 @@ html[data-input='pad'] .chart-cross {
     gap: 4px;
     padding: 0 4px;
     font-size: 13px;
-  }
-  .chart #chart-market-toggle {
-    padding: 0 10px;
-    font-size: 14px;
   }
   .chart .chart-goods .icon {
     width: 18px;
@@ -790,4 +759,43 @@ html[data-input='pad'] .chart-cross {
 .chart-zone-fog-bank {
   --zone: #6d7a80;
   --zone-ink: #eef2f3;
+}
+
+/* --- Tab pages (decision 0196): the journal, prices and legend fill the screen below the tabs,
+   as the port screen's tabs do; the sea and its controls wait on the map tab. -------------- */
+.chart[data-tab]:not([data-tab='map']) .chart-viewport > :not(.chart-sheet),
+.chart[data-tab]:not([data-tab='map']) .chart-footer {
+  visibility: hidden;
+}
+.chart[data-tab]:not([data-tab='map']) .chart-sheet:not([hidden]) {
+  inset: 0;
+  width: auto;
+  max-height: none;
+  padding: 16px max(16px, var(--safe-right, env(safe-area-inset-right)))
+    max(72px, var(--safe-bottom, env(safe-area-inset-bottom)))
+    max(16px, var(--safe-left, env(safe-area-inset-left)));
+  border: 0;
+  border-radius: 0;
+  background: rgba(9, 28, 41, 0.97);
+  box-shadow: none;
+  font-size: 18px;
+}
+.chart[data-tab]:not([data-tab='map']) .chart-sheet > * {
+  max-width: 1100px;
+}
+.chart-market-goods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0;
+}
+.chart .chart-market-goods button.active {
+  border-color: var(--outline);
+  background: linear-gradient(var(--brass-hi), var(--brass));
+  box-shadow: inset 0 -3px 0 var(--brass-lo);
+  color: #2a1c00;
+}
+/* With a controller, LT / RT zoom and the stick moves the cross: no zoom buttons to cover. */
+html[data-input='pad'] .chart-zoom {
+  display: none;
 }
