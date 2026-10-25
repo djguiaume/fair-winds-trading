@@ -1,4 +1,9 @@
 {
+  "plots": {
+    "open": "plot-stakes",
+    "bare": "plot-stakes-bare",
+    "chosen": "plot-ring"
+  },
   "buildings": [
     {
       "id": "workshop",
