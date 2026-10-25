@@ -73,3 +73,14 @@ everything drawn on it; it moves coasts, piers and leg times, so it is Guillaume
 
 Each step: `npm run island` / `npm run sea`, `npm run check`, before/after at the same cameras, the art
 director's sign-off, Guillaume sees every image before merge.
+
+## The pass (decision 0214)
+
+Sheets in [after/](after/): before, after on a new voyage, after the ring arcs are done (town zoom 1 and 1.4, night,
+level 4, level 4 at night) for Westholm, Saltmere, Stonehaven and Port Calda; before and after for the small islands;
+the Teeth's wreck before and after `stonehaven-light`. The chart after: [chart-ring-after.jpg](chart-ring-after.jpg).
+How each island was changed is in [steps/](steps/) (island builder steps and the scripts that ran once on the files).
+The art director's round on Westholm and Saltmere asked for: no rowan orchard, bigger lit windows on every ring house,
+higher coasts so the sandstone bands show, Saltmere's trees in clumps, a zoom-1 town camera; all done.
+
+Open: Guillaume's call on growing the ring ports (radius ~32–36, a map change with routes, prologue and balance).
