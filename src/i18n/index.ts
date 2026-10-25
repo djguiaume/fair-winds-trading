@@ -102,7 +102,7 @@ function variantOf(key: string): string {
 let padNames: Record<string, string> = {};
 
 /**
- * The pad's own button names (decision 0185, `controls.json` › `padBrands`): a text writes
+ * The pad's own button names (decision 0186, `controls.json` › `padBrands`): a text writes
  * `{pad:a}` and reads "A" on an Xbox pad, "✕" on a PlayStation pad, "B" on a Switch pad.
  */
 export function setPadNames(names: Record<string, string>): void {

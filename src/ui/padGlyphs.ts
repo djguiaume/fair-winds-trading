@@ -2,7 +2,7 @@ import { PAD_BRANDS, type PadButton } from '../input/gamepad';
 import { language, setPadNames } from '../i18n';
 
 /**
- * The pad's button names on screen (decision 0185): glyphs (`data-pad-key`), hints and texts
+ * The pad's button names on screen (decision 0186): glyphs (`data-pad-key`), hints and texts
  * (`{pad:a}`) say "A" on an Xbox pad, "✕" on a PlayStation pad and "B" on a Switch pad, from
  * `controls.json` › `padBrands`.
  */

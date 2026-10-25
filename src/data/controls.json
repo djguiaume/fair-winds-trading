@@ -1,6 +1,7 @@
 {
   "gamepad": {
     "deadZone": 0.2,
+    "sampleEveryMs": 8,
     "triggerPress": 0.5,
     "repeatDelayMs": 420,
     "repeatEveryMs": 140,

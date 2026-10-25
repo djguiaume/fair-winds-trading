@@ -18,7 +18,7 @@ bubble already does ([0183](0183-play-in-the-xbox-browser.md): A Continue, Y Ski
   as Esc does); `secondary` (X) on "Don't offer again", which is marked `data-pad="secondary"` so
   the pad's X clicks it, like Sell all.
 - The buttons come from `controls.json` › `menu.actions` (the first button of each), drawn with
-  `padGlyph`, so they follow the pad's brand names (the pad brands decision of the Xbox thread).
+  `padGlyph`, so they follow the pad's brand names ([0186](0186-button-names-per-pad-maker.md)).
 - The card dialog sets `data-pad-hints="off"`: a screen whose controls show their own buttons gets
   no A / B pill over them.
 - The Quay tab's inline cards stay without glyphs: they share one screen, where B leaves the

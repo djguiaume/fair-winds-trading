@@ -108,6 +108,7 @@ import { builtByIsland, giveHomeIsland, homeSpots, islandHome, offerHomeSpot } f
 import { TransferPanel } from './ui/transferPanel';
 import { startTvMode } from './input/tv';
 import { usePadBrand } from './ui/padGlyphs';
+import { askConfirm } from './ui/confirmDialog';
 import { WayOfPlaying, firstWay } from './input/wayOfPlaying';
 
 declare const __APP_VERSION__: string;
@@ -1025,8 +1026,10 @@ hud.onSailStep = (step) => input.setSail(step);
  * rest (menus, the harbour, cards) goes to `pad.onMenuPress`.
  */
 const pad = new GamepadPoller();
-// The pad's own button names on glyphs and in texts: A on Xbox, ✕ on PlayStation (decision 0185).
+// The pad's own button names on glyphs and in texts: A on Xbox, ✕ on PlayStation (decision 0186).
 usePadBrand(pad.brand);
+// Buttons are read between frames too, so a quick tap is never missed (decision 0183).
+if (PAD.sampleEveryMs) setInterval(() => pad.sample(performance.now()), PAD.sampleEveryMs);
 pad.onBrand = (brand) => {
   usePadBrand(brand);
   coach.render();
@@ -1065,12 +1068,12 @@ function readPad(now: number, dt: number) {
     for (const p of sea.other) pad.onMenuPress(p, context);
   } else if (context === 'chart') {
     const c = chartPad(frame, dt);
-    chart.panBy(c.panX, c.panY);
+    chart.padMove(c.panX, c.panY);
     if (c.zoom !== 1) chart.zoomBy(c.zoom);
     if (c.fit) chart.fit();
     if (c.close) chart.back();
     // A: the port under the cross, else the lesson bubble's button; Y skips the lesson (0183).
-    if (c.pick && !chart.pickNearCentre(PAD.chart.pickReachPx)) coach.padPress('main');
+    if (c.pick && !chart.pickAtCross(PAD.chart.pickReachPx)) coach.padPress('main');
     if (c.skipLesson) coach.padPress('skip');
     for (const p of c.other) pad.onMenuPress(p, context);
   } else for (const p of frame.presses) pad.onMenuPress(p, context);
@@ -1104,7 +1107,7 @@ function padScreen(): PadScreen | null {
 const padFocus = new PadFocus(padScreen, document.getElementById('pad-hints'));
 pad.onMenuPress = (p, context) => padFocus.press(p, context);
 // Texts that name controls follow the way of playing: touch, keys or pad (decision 0184).
-const way = new WayOfPlaying(window, firstGuess, () => pad.usingPad);
+const way = new WayOfPlaying(window, firstGuess);
 way.onChange = (w) => {
   setTextVariant(w);
   coach.render();
@@ -1367,8 +1370,14 @@ $('reset-boat').addEventListener('click', () => {
   refreshPause();
 });
 const resetSaveBtn = document.getElementById('reset-save');
-resetSaveBtn?.addEventListener('click', () => {
-  if (window.confirm(t('settings.confirmNewGame'))) {
+resetSaveBtn?.addEventListener('click', async () => {
+  // The game's own question: the browser's box leaves fullscreen on Xbox (decision 0183).
+  const yes = await askConfirm({
+    title: t('settings.newGame'),
+    text: t('settings.confirmNewGame'),
+    ok: t('settings.newGame'),
+  });
+  if (yes) {
     leaving = true;
     if (storage) clearSave(storage);
     window.location.reload();

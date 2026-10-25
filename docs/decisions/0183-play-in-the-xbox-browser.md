@@ -60,6 +60,36 @@ differ on a console on a TV:
 - `controls.json` › `tv` is data (decision 0093); `tvProblems()` checks it.
 - `npm run shots -- --sizes tv` shoots Edge on Xbox at 1080p (its user agent turns TV mode on).
 
+## Second Xbox test (2026-10-25)
+
+Guillaume, on the merged build: the D-pad, A and B worked only some of the time (the left stick
+always), and New game used the browser's own box, which left fullscreen and the controller.
+
+- **Every tap counts**: the buttons were read once per drawn frame, so a tap shorter than a frame
+  (the Xbox draws about 30 frames a second) was sometimes missed; the stick, which is held, never
+  was. `GamepadPoller.sample()` now reads the buttons every `gamepad.sampleEveryMs` (8 ms, data)
+  between frames, and the presses it finds join the next frame's.
+- **One press, not two**: Edge can send a pad button as a key a moment before the Gamepad API
+  shows it. The key counted and then the API counted again, so the D-pad sometimes moved twice.
+  Now a press the API reports within `KEY_ECHO_MS` (300 ms) of the same button's key is dropped,
+  and once the API has reported a press, keys for pad buttons are ignored.
+- **The ring stays**: a key or click from the pad (an arrow, Edge's click) arriving before the API
+  shows the button dropped the pad focus, and the next press only showed the focus again. A key or
+  click now waits `KEY_ECHO_MS` for the pad before the game decides the player left it.
+- **A presses once**: in Edge's pointer mode, A is also a mouse click wherever the cursor is,
+  which moved the focus or pressed another control. Once the API reports presses, real pointer
+  events while a pad button is down or just released are stopped; the game's own `el.click()` is
+  not affected.
+- **No browser boxes**: New game asks in an in-game dialog (`src/ui/confirmDialog.ts`,
+  `askConfirm`), which the pad's focus reaches and B answers no. The page still reloads for the
+  new voyage, so fullscreen must be entered again after it (browsers end fullscreen on reload).
+- A menu line that can't be picked now (the lessons while the first voyage runs) is greyed out.
+- **The chart's cross moves**: the map used to slide under a cross fixed in the middle, but zoomed
+  all the way out the whole sea shows and the map can't slide, so the cross never reached a port.
+  Now the left stick (or D-pad) moves the cross itself (`SeaChart.padMove`), the map slides only
+  when the cross reaches an edge, and **A** picks the port nearest the cross (`pickAtCross`).
+  `npm run shots -- --chart --pad "lx=0.8:900"` plays the pad on the open chart.
+
 ## Consequences
 
 - With the switch honoured, the Xbox pad plays the whole game; the screen's edges stay clear on
