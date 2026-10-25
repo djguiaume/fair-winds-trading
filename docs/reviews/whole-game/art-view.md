@@ -24,3 +24,14 @@ shots are in `docs/reviews/art-direction/whole-game/README.md` (PR #225). Short 
    a fight is unreadable without it; flags as data in Phase 5, which makes cosmetics cheap later.
    First of all: the ring pass and the port header (small, the first impression, independent of
    pirates). Keep later: seasons, sail colours and figureheads, kids art.
+
+4. **Guillaume's two must-haves** (§4 of the art director's notes, with `sheet-ring.jpg`):
+   - **Ring review:** island by island at the seas' cameras (town zoom 1.4, overview 2 to 4, night), at
+     town levels 1 and 4, Sunreach beside it: shapes, detail per rule 10, lit windows at night, one
+     signature per port (Saltmere and Port Calda still need theirs named), arc payoffs visible,
+     density per 0180, reefs, borders with the four seas, triangle budget. Top gaps: stacked-octagon
+     and straight-extrusion islands; thin, dark towns; flat green caps with lone ball trees, one-tone
+     tiers, pebble reefs.
+   - **Skerry:** move the choice into the harbour screen as an Island tab; picking a plot turns the
+     camera to it behind a half-height panel; the numbered circles become staked plots with a small
+     sign; arc rewards end with "Build it at Skerry"; docking at Skerry opens the Island tab.

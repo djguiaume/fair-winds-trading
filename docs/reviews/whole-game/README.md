@@ -41,6 +41,10 @@ Whatever option is picked, Phase 5 includes these two:
    ("Ada's plot by the water is yours, captain: {spotA} or {spotB}. Choose at Skerry."); on the next
    docking at Skerry with an unchosen plot, a short arrival card in the giver's voice opens the build
    view straight on that spot.
+   **Art director (2026-10-25):** yes, an Island tab in the harbour screen (same style and pad
+   navigation as the other tabs). Picking a plot turns the camera to it behind a half-height panel, so
+   you still see where it goes; the numbered circles become staked plots in the world with a small
+   sign. Docking at Skerry opens the Island tab.
 2. **Review the central sea like the outer seas.** The Windward Ring (Saltmere, Port Calda, Westholm,
    Stonehaven, Abbey Head, Watchman Key, Skerry and the islets) was laid out in Phase 1 and never
    raised to the art bible's rule 10 or the seas' density and story checks. The art director: Westholm
@@ -53,6 +57,14 @@ Whatever option is picked, Phase 5 includes these two:
    Check that the story's places read right on the grown map (East Reef gap, Greyback Ridge, Teeth
    Rock, Watchman Key), that each ring port shows its winter damage before its arc and mended after,
    and that the five ring people don't go silent after their arcs (standing orders cover it).
+   **Art director:** island by island at the seas' cameras (town, overview, night), at town levels 1
+   and 4 with Sunreach beside it: outlines, tiers and ridges; detail per rule 10; lit windows at
+   night; one signature per port (Saltmere and Port Calda still need theirs named, with the
+   storyteller) and arc payoffs visible; density, reefs and borders with the four seas; the triangle
+   budget. Top gaps: man-made shapes (Abbey Head, Lantern Rock, Watchman Key are stacked octagons;
+   Greyback Ridge and the long islands are straight extrusions), thin dark towns (few small houses, no
+   lit lanes, gardens or boats), and flat green caps with lone ball trees, one-tone tiers and reefs
+   that read as scattered pebbles. Sheet: `docs/reviews/art-direction/whole-game/` (PR #225).
 
 ## What works
 
