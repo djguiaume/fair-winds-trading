@@ -1,5 +1,5 @@
 import { strToU8, zipSync } from 'fflate';
-import { setLanguage } from '../../i18n';
+import { TEXT_VARIANTS, setLanguage, type TextVariant } from '../../i18n';
 import { type MapDef, SEA_MARK_TYPES, type SeaMarkType } from '../../sim/map';
 import { clearAt } from '../../sim/mapChecks';
 import { type Condition, MAP_PLACES, type QuestPoint } from '../../sim/questLibrary';
@@ -48,6 +48,7 @@ import {
   stepPort,
   storyColumns,
   textKeys,
+  WAY_NAMES,
   textOf,
 } from './doc';
 import {
@@ -122,6 +123,8 @@ let centre: Centre = 'chart';
 let tool: Tool = 'select';
 let lang: Lang = 'en';
 let showAll = true;
+/** Which version of the speech the text table edits and the card shows (decision 0184). */
+let speechWay: TextVariant | null = null;
 const view: View = { cx: 0, cy: 0, upp: 1 };
 
 let root: HTMLElement;
@@ -1552,7 +1555,10 @@ function cardModel(q: QuestDef, s: QuestStep | undefined, l: Lang): QuestCardMod
     arc: textOf(doc, l, `${q.text}.name`) ?? q.name,
     stepNo: Math.min(i + 1, q.steps.length),
     steps: q.steps.length,
-    speech: fill(textOf(doc, l, `${key}.copy`)),
+    // The version for the way of playing picked under the speech, else the default (0184).
+    speech: fill(
+      (speechWay && textOf(doc, l, `${key}.copy@${speechWay}`)) || textOf(doc, l, `${key}.copy`),
+    ),
     ask: fill(textOf(doc, l, `${key}.title`)),
     options: s?.choose?.map((o) => ({
       id: o.id,
@@ -1610,12 +1616,45 @@ function drawCardView() {
     h('thead', {}, h('tr', {}, h('th'), h('th', {}, 'English'), h('th', {}, 'Français'))),
   );
   const body2 = h('tbody');
-  for (const { key, label, long } of keys) {
-    const tr = h('tr', {}, h('th', { title: key }, label));
+  for (const line of keys) {
+    const { label, long } = line;
+    // Speech has a default and a version per way of playing (decision 0184): tabs pick which one
+    // the two languages edit, and the card above shows it.
+    const way = line.variants ? speechWay : null;
+    const key = way ? `${line.key}@${way}` : line.key;
+    const head = h('th', { title: key }, label);
+    if (line.variants) {
+      const tabs = h('div', { class: 'qb-ways', role: 'tablist' });
+      for (const w of [null, ...TEXT_VARIANTS]) {
+        const k = w ? `${line.key}@${w}` : line.key;
+        const written = LANGS.some((l) => !!textOf(doc, l, k));
+        const b = h(
+          'button',
+          {
+            type: 'button',
+            role: 'tab',
+            'aria-selected': String(w === way),
+            class: written ? 'written' : '',
+            title: w
+              ? `What a player on ${WAY_NAMES[w]} reads; empty = the default`
+              : 'What every player reads when no version for their way of playing is written',
+          },
+          w ? WAY_NAMES[w] : 'default',
+        );
+        b.addEventListener('click', () => {
+          speechWay = w;
+          drawCardView();
+        });
+        tabs.append(b);
+      }
+      head.append(tabs);
+    }
+    const tr = h('tr', {}, head);
     for (const l of LANGS) {
       const value = textOf(doc, l, key) ?? '';
       const input = long ? h('textarea', { rows: '4' }) : h('input', { type: 'text' });
       input.value = value;
+      if (way) input.placeholder = textOf(doc, l, line.key) ?? '';
       input.addEventListener('change', () => edit(() => setText(doc, l, key, input.value.trim())));
       tr.append(h('td', {}, input));
     }

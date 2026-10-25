@@ -1,6 +1,7 @@
 # 0183. Play in the Xbox browser
 
-**Status:** Accepted (2026-10-25); waiting on Guillaume's test on his Xbox.
+**Status:** Accepted (2026-10-25); waiting on Guillaume's test on his Xbox. Texts per control
+scheme widened by decision 0184.
 
 ## Context
 

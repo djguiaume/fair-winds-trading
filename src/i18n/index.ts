@@ -69,26 +69,33 @@ export function formatNumber(n: number, digits?: number): string {
   );
 }
 
-let variant: 'pad' | null = null;
+/**
+ * The ways of playing a text can be written for (decision 0184): a phone or tablet's touch
+ * screen, keyboard and mouse, a game controller. The plain `key` is the default every player
+ * reads when no version for their way of playing exists.
+ */
+export const TEXT_VARIANTS = ['touch', 'keys', 'pad'] as const;
+export type TextVariant = (typeof TEXT_VARIANTS)[number];
+
+let variant: TextVariant | null = null;
 
 /**
- * Text written for one way of playing (decision 0183): while the game controller is the last
- * input, `t('key')` reads `key@pad` where that key exists ("press A" instead of "tap"), else
- * `key`. Quest and lesson texts get these in the quest builder like any other line.
+ * The way of playing now (the last input, decisions 0183, 0184): `t('key')` reads
+ * `key@touch`, `key@keys` or `key@pad` where that text exists and is not empty, else `key`.
  */
-export function setTextVariant(v: 'pad' | null): void {
+export function setTextVariant(v: TextVariant | null): void {
   variant = v;
 }
 
-export function textVariant(): 'pad' | null {
+export function textVariant(): TextVariant | null {
   return variant;
 }
 
-/** The key to read: its variant for the current way of playing when there is one. */
+/** The key to read: its version for the current way of playing when there is one. */
 function variantOf(key: string): string {
   if (!variant) return key;
   const k = `${key}@${variant}`;
-  // An empty variant (cleared in the quest builder) leaves the plain text.
+  // An empty version (cleared in the quest builder) leaves the default text.
   return (en as Record<string, string>)[k] ? k : key;
 }
 

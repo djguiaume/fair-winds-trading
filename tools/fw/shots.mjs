@@ -393,7 +393,8 @@ async function shootOne(browser, base, shot, size, file) {
       await pause(shot.wait);
       await act(page, shot);
     } else await shootScene(page, shot);
-    if (!shot.editor) await dress(page, shot);
+    // Editors too: a script can open the quest builder on a step (decision 0184).
+    await dress(page, shot);
     await page.screenshot({ path: file });
   } finally {
     await context.close();
