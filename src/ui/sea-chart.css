@@ -38,8 +38,9 @@ dialog.chart::backdrop {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 0
-    max(12px, env(safe-area-inset-left));
+  padding: max(10px, var(--safe-top, env(safe-area-inset-top)))
+    max(12px, var(--safe-right, env(safe-area-inset-right))) 0
+    max(12px, var(--safe-left, env(safe-area-inset-left)));
   pointer-events: none;
 }
 .chart-header > * {
@@ -151,7 +152,7 @@ dialog.chart::backdrop {
 .chart-footer {
   position: absolute;
   z-index: 3;
-  left: max(12px, env(safe-area-inset-left));
+  left: max(12px, var(--safe-left, env(safe-area-inset-left)));
   top: 50%;
   transform: translateY(-50%);
   display: flex;
@@ -197,6 +198,43 @@ dialog.chart::backdrop {
   height: 100%;
   touch-action: none;
   user-select: none;
+}
+/* A controller's cross in the middle (decision 0183): A picks the port under it. */
+.chart-cross {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
+  pointer-events: none;
+  border: 2px solid var(--brass-hi);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(9, 28, 41, 0.6);
+}
+.chart-cross::before,
+.chart-cross::after {
+  content: '';
+  position: absolute;
+  background: var(--brass-hi);
+}
+.chart-cross::before {
+  left: 50%;
+  top: -10px;
+  bottom: -10px;
+  width: 2px;
+  margin-left: -1px;
+}
+.chart-cross::after {
+  top: 50%;
+  left: -10px;
+  right: -10px;
+  height: 2px;
+  margin-top: -1px;
+}
+html[data-input='pad'] .chart-cross {
+  display: block;
 }
 .chart #chart-map:focus-visible {
   outline: 2px solid var(--brass-hi);
@@ -485,8 +523,8 @@ dialog.chart::backdrop {
 .chart-compass.compass {
   position: absolute;
   z-index: 2;
-  top: calc(max(10px, env(safe-area-inset-top)) + 54px);
-  right: max(12px, env(safe-area-inset-right));
+  top: calc(max(10px, var(--safe-top, env(safe-area-inset-top))) + 54px);
+  right: max(12px, var(--safe-right, env(safe-area-inset-right)));
   width: 96px;
   padding: 4px;
   border: 1px solid var(--brass-line);
@@ -510,8 +548,8 @@ dialog.chart::backdrop {
 .chart-zoom {
   position: absolute;
   z-index: 2;
-  bottom: max(12px, env(safe-area-inset-bottom));
-  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, var(--safe-bottom, env(safe-area-inset-bottom)));
+  right: max(12px, var(--safe-right, env(safe-area-inset-right)));
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -541,7 +579,7 @@ dialog.chart::backdrop {
   z-index: 4;
   top: 8px;
   bottom: 8px;
-  left: max(12px, env(safe-area-inset-left));
+  left: max(12px, var(--safe-left, env(safe-area-inset-left)));
   width: min(320px, calc(100% - 24px));
   padding: 12px;
   box-sizing: border-box;
@@ -680,7 +718,7 @@ dialog.chart::backdrop {
     font-size: 14px;
   }
   .chart-compass.compass {
-    top: calc(max(10px, env(safe-area-inset-top)) + 50px);
+    top: calc(max(10px, var(--safe-top, env(safe-area-inset-top))) + 50px);
     width: 84px;
   }
   .chart-compass.compass svg {
@@ -696,8 +734,8 @@ dialog.chart::backdrop {
 @media (orientation: portrait) {
   .chart-footer {
     top: auto;
-    bottom: max(12px, env(safe-area-inset-bottom));
-    right: calc(max(12px, env(safe-area-inset-right)) + 56px);
+    bottom: max(12px, var(--safe-bottom, env(safe-area-inset-bottom)));
+    right: calc(max(12px, var(--safe-right, env(safe-area-inset-right))) + 56px);
     transform: none;
     flex-direction: row;
     flex-wrap: wrap;

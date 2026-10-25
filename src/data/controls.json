@@ -16,7 +16,8 @@
         "strike": ["b"],
         "harbour": ["a"],
         "chart": ["view"],
-        "pause": ["menu"]
+        "pause": ["menu"],
+        "skipLesson": ["y"]
       }
     },
     "chart": {
@@ -24,6 +25,7 @@
       "panY": "ly",
       "panPxPerSec": 700,
       "zoomStep": 1.5,
+      "pickReachPx": 90,
       "actions": {
         "panLeft": ["left"],
         "panRight": ["right"],
@@ -32,7 +34,9 @@
         "zoomIn": ["rt", "rb"],
         "zoomOut": ["lt", "lb"],
         "fit": ["x"],
-        "close": ["b", "view"]
+        "close": ["b", "view"],
+        "pick": ["a"],
+        "skipLesson": ["y"]
       }
     },
     "menu": {
@@ -53,5 +57,14 @@
         "resume": ["menu"]
       }
     }
+  },
+  "tv": {
+    "userAgents": ["Xbox"],
+    "gamepadInputEmulation": "gamepad",
+    "safeMargin": {
+      "x": 0.05,
+      "y": 0.05
+    },
+    "stayOnBack": true
   }
 }

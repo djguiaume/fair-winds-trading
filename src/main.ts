@@ -19,7 +19,7 @@ import {
   loadTuneChanges,
   saveTuneChanges,
 } from './data/tuningEdits';
-import { GamepadPoller, chartPad, padInUse, seaPad, type PadContext } from './input/gamepad';
+import { GamepadPoller, PAD, chartPad, padInUse, seaPad, type PadContext } from './input/gamepad';
 import { PadFocus, type PadScreen } from './ui/padFocus';
 import { Input } from './input/input';
 import {
@@ -96,6 +96,7 @@ import {
   goodSome,
   hasText,
   setLanguage,
+  setTextVariant,
   t,
   townLevelName,
   translateDom,
@@ -105,6 +106,7 @@ import { TradePanel } from './ui/tradePanel';
 import { HomePanel, buildingName, effectLine } from './ui/homePanel';
 import { builtByIsland, giveHomeIsland, homeSpots, islandHome, offerHomeSpot } from './sim/home';
 import { TransferPanel } from './ui/transferPanel';
+import { startTvMode } from './input/tv';
 
 declare const __APP_VERSION__: string;
 declare const __BUILD_REVISION__: string;
@@ -112,6 +114,10 @@ const appVersion = document.getElementById('app-version');
 if (appVersion) appVersion.textContent = `v${__APP_VERSION__}`;
 const release = document.getElementById('build-revision');
 if (release) release.textContent = __BUILD_REVISION__;
+
+// A console's browser on a TV (decision 0183): hand the pad to the game, keep clear of the
+// screen's edges, keep Back in the game. Before any screen is built.
+startTvMode();
 
 const SIM_STEP = 1 / 60;
 
@@ -1003,7 +1009,12 @@ function readPad(now: number, dt: number) {
     if (sea.sail) input.pressSail(sea.sail);
     if (sea.strike) input.setSail(0);
     if (sea.zoom !== 1) view.setZoom(view.getZoom() * sea.zoom);
-    if (sea.harbour && world.trade.dockedAt) openHarbour();
+    // A presses the tutorial bubble's main button first, Y skips its lesson (decision 0183).
+    if (sea.harbour && coach.padPress('main')) {
+      /* the bubble took it */
+    } else if (sea.skipLesson && coach.padPress('skip')) {
+      /* the lesson stops */
+    } else if (sea.harbour && world.trade.dockedAt) openHarbour();
     else if (sea.chart) chart.open();
     else if (sea.pause) showMenu();
     if (padInUse(frame)) input.onActivity();
@@ -1014,6 +1025,9 @@ function readPad(now: number, dt: number) {
     if (c.zoom !== 1) chart.zoomBy(c.zoom);
     if (c.fit) chart.fit();
     if (c.close) chart.back();
+    // A: the port under the cross, else the lesson bubble's button; Y skips the lesson (0183).
+    if (c.pick && !chart.pickNearCentre(PAD.chart.pickReachPx)) coach.padPress('main');
+    if (c.skipLesson) coach.padPress('skip');
     for (const p of c.other) pad.onMenuPress(p, context);
   } else for (const p of frame.presses) pad.onMenuPress(p, context);
 }
@@ -1045,7 +1059,12 @@ function padScreen(): PadScreen | null {
 }
 const padFocus = new PadFocus(padScreen, document.getElementById('pad-hints'));
 pad.onMenuPress = (p, context) => padFocus.press(p, context);
-pad.onUsingPad((using) => padFocus.setUsing(using));
+pad.onUsingPad((using) => {
+  padFocus.setUsing(using);
+  // Lesson texts that name controls say "press A" while the pad is in use (decision 0183).
+  setTextVariant(using ? 'pad' : null);
+  coach.render();
+});
 // Start in the pause menu sets sail again, as the menu's own button does.
 padFocus.onResume = () => {
   if (started && !menu.hidden) playButton.click();
