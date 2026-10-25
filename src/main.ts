@@ -107,6 +107,8 @@ import { HomePanel, buildingName, effectLine } from './ui/homePanel';
 import { builtByIsland, giveHomeIsland, homeSpots, islandHome, offerHomeSpot } from './sim/home';
 import { TransferPanel } from './ui/transferPanel';
 import { startTvMode } from './input/tv';
+import { usePadBrand } from './ui/padGlyphs';
+import { askConfirm } from './ui/confirmDialog';
 import { WayOfPlaying, firstWay } from './input/wayOfPlaying';
 
 declare const __APP_VERSION__: string;
@@ -401,7 +403,9 @@ function showDueCard(): boolean {
 }
 /** Docked: the arrival card if a main quest has one, else straight to the harbour screen. */
 function openHarbour() {
-  if (!showDueCard()) tradePanel.open('market');
+  // A card already up (Rook's thanks, shown as the dock moved his lesson on) opens the harbour
+  // screen itself when it closes (decision 0190).
+  if (!questCard.isOpen && !showDueCard()) tradePanel.open('market');
   refreshPause();
 }
 // Every other quest's news away from its harbour: a small note at sea (decision 0141).
@@ -441,6 +445,9 @@ quests.onEvent = (e) => {
   }
   checkFounded();
   if (quest?.lesson) {
+    // Asked again, a lesson's people cards speak again (decision 0185).
+    if (e.type === 'started')
+      for (const key of questSeen) if (key.startsWith(`${e.quest}:`)) questSeen.delete(key);
     // A lesson speaks in its own bubble, and its last one says it is done (decision 0151).
     // Without its coach (the tutorial skipped, decision 0160) it ends without a word.
     if (e.type === 'finished' && quests.isCoached(e.quest)) {
@@ -498,17 +505,21 @@ questCard.onChoose = (id, option) => {
   autosave();
 };
 questCard.onClose = (card) => {
-  // Rook's card at the rescue closed without its answer (Esc): the lesson goes on as if answered,
-  // since nothing else would show that step again (decision 0185).
-  queueMicrotask(() => {
-    const lesson = quests.lesson;
-    if (lesson?.quest.id !== card.quest || !lesson.step.speaker) return;
+  // A lesson's people card closed without its answer (Esc, To the market): the lesson goes on as
+  // if answered, since nothing else would show that step again (decision 0185). Its next card,
+  // if any, is then due below.
+  const lesson = quests.lesson;
+  if (
+    lesson?.quest.id === card.quest &&
+    lesson.step.speaker &&
+    questSeen.has(`${card.quest}:${lesson.step.id}`)
+  ) {
     const first = quests.options(card.quest)[0];
     if (first) {
       quests.choose(card.quest, first.id);
       autosave();
     }
-  });
+  }
   // After the arrival card (or "To the market"), the harbour screen.
   if (!showDueCard() && world.trade.dockedAt && !tradePanel.isOpen) tradePanel.open('market');
   refreshPause();
@@ -921,8 +932,10 @@ function startQuestTest(test: NonNullable<typeof questTest>) {
   refreshPiers(world);
   view.setHomeBuildings(builtByIsland(world.trade.home));
   view.setQuestsDone(questsDone(world.trade));
+  // Land that stands after the quests before this step rises (or sinks) before she is placed.
+  syncWorldLand(world, true);
   const berth = test.port
-    ? testBerth(world.map, world.trade, world.piers, test.port, world.ship.id)
+    ? testBerth(world.map, world.trade, world.piers, test.port, world.ship.id, world.land)
     : null;
   const at = test.at ?? berth;
   if (at) {
@@ -1024,6 +1037,14 @@ hud.onSailStep = (step) => input.setSail(step);
  * rest (menus, the harbour, cards) goes to `pad.onMenuPress`.
  */
 const pad = new GamepadPoller();
+// The pad's own button names on glyphs and in texts: A on Xbox, ✕ on PlayStation (decision 0186).
+usePadBrand(pad.brand);
+// Buttons are read between frames too, so a quick tap is never missed (decision 0183).
+if (PAD.sampleEveryMs) setInterval(() => pad.sample(performance.now()), PAD.sampleEveryMs);
+pad.onBrand = (brand) => {
+  usePadBrand(brand);
+  coach.render();
+};
 pad.onConnect = (connected) => {
   document.body.classList.toggle('has-gamepad', connected);
   if (connected) hud.showToast(t('toast.padConnected'), 3);
@@ -1058,12 +1079,12 @@ function readPad(now: number, dt: number) {
     for (const p of sea.other) pad.onMenuPress(p, context);
   } else if (context === 'chart') {
     const c = chartPad(frame, dt);
-    chart.panBy(c.panX, c.panY);
+    chart.padMove(c.panX, c.panY);
     if (c.zoom !== 1) chart.zoomBy(c.zoom);
     if (c.fit) chart.fit();
     if (c.close) chart.back();
     // A: the port under the cross, else the lesson bubble's button; Y skips the lesson (0183).
-    if (c.pick && !chart.pickNearCentre(PAD.chart.pickReachPx)) coach.padPress('main');
+    if (c.pick && !chart.pickAtCross(PAD.chart.pickReachPx)) coach.padPress('main');
     if (c.skipLesson) coach.padPress('skip');
     for (const p of c.other) pad.onMenuPress(p, context);
   } else for (const p of frame.presses) pad.onMenuPress(p, context);
@@ -1097,7 +1118,7 @@ function padScreen(): PadScreen | null {
 const padFocus = new PadFocus(padScreen, document.getElementById('pad-hints'));
 pad.onMenuPress = (p, context) => padFocus.press(p, context);
 // Texts that name controls follow the way of playing: touch, keys or pad (decision 0184).
-const way = new WayOfPlaying(window, firstGuess, () => pad.usingPad);
+const way = new WayOfPlaying(window, firstGuess);
 way.onChange = (w) => {
   setTextVariant(w);
   coach.render();
@@ -1360,8 +1381,14 @@ $('reset-boat').addEventListener('click', () => {
   refreshPause();
 });
 const resetSaveBtn = document.getElementById('reset-save');
-resetSaveBtn?.addEventListener('click', () => {
-  if (window.confirm(t('settings.confirmNewGame'))) {
+resetSaveBtn?.addEventListener('click', async () => {
+  // The game's own question: the browser's box leaves fullscreen on Xbox (decision 0183).
+  const yes = await askConfirm({
+    title: t('settings.newGame'),
+    text: t('settings.confirmNewGame'),
+    ok: t('settings.newGame'),
+  });
+  if (yes) {
     leaving = true;
     if (storage) clearSave(storage);
     window.location.reload();
@@ -1734,7 +1761,7 @@ if (new URLSearchParams(location.search).has('debug')) {
   };
   /** Dock at a port as a player would, from the berth a quest test uses (`npm run shots`, 0153). */
   const dock = (portId: string) => {
-    const berth = testBerth(world.map, world.trade, world.piers, portId, world.ship.id);
+    const berth = testBerth(world.map, world.trade, world.piers, portId, world.ship.id, world.land);
     if (!berth) return false;
     world.boat = createBoat(berth.x, berth.y, (berth.headingDeg * Math.PI) / 180);
     world.destination = null;
@@ -1748,7 +1775,14 @@ if (new URLSearchParams(location.search).has('debug')) {
    * decision 0159): the boat waits stopped by the pier and moors on the next step.
    */
   const moor = (islandId: string) => {
-    const berth = testBerth(world.map, world.trade, world.piers, islandId, world.ship.id);
+    const berth = testBerth(
+      world.map,
+      world.trade,
+      world.piers,
+      islandId,
+      world.ship.id,
+      world.land,
+    );
     if (!berth) return false;
     world.boat = createBoat(berth.x, berth.y, (berth.headingDeg * Math.PI) / 180);
     world.boat.sailStep = sailStep = 0;
@@ -1766,6 +1800,9 @@ if (new URLSearchParams(location.search).has('debug')) {
     trade.syncMarketLevels(world.trade, world.map);
     refreshPiers(world);
     view.setQuestsDone(questsDone(world.trade));
+    // Land that stands after these quests rises now, while the boat is still at her start: moored
+    // there next, the land would wait for her to sail out of sight (0166, Phase 4 review).
+    syncWorldLand(world, true);
     return started;
   };
   /** Put the boat at sea at a point, heading in degrees, sails at a step (0 furled … 2 full). */

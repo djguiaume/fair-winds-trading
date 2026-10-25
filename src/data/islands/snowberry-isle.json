@@ -127,7 +127,10 @@
       ]
     }
   ],
-  "piers": [],
+  "piers": [
+    { "x": 0.12, "z": 0.98, "length": 0.3, "from": 1 },
+    { "x": 0.5, "z": 0.82, "length": 0.22, "from": 3 }
+  ],
   "props": [
     { "type": "warm-spring", "x": -0.35, "z": 0.32, "size": 1.3, "from": 0 },
     { "type": "cloudberry-patch", "x": 0, "z": 0.3, "size": 1.1, "from": 0 },
@@ -188,7 +191,13 @@
     { "type": "snow-garden", "x": 0.82, "z": 0.32, "size": 0.85, "from": 2 },
     { "type": "nordic-house", "x": -0.48, "z": 0.75, "size": 1.3, "variant": 3, "from": 3 },
     { "type": "nordic-house", "x": -0.85, "z": 0.3, "size": 1.3, "variant": 4, "from": 3 },
-    { "type": "moored-boat", "x": 0.78, "z": 1.05, "turn": 90, "size": 0.9, "from": 2 }
+    { "type": "moored-boat", "x": 0.78, "z": 1.05, "turn": 90, "size": 0.9, "from": 2 },
+    { "type": "warehouse", "x": 0.27, "z": 0.8, "turn": 0, "size": 0.8, "from": 2 },
+    { "type": "drying-rack", "x": -0.6, "z": 0.6, "turn": 20, "size": 1.2, "from": 2 },
+    { "type": "nordic-house", "x": 0.45, "z": 0.05, "size": 1.3, "variant": 5, "from": 3 },
+    { "type": "nordic-house", "x": 0.55, "z": 0.62, "size": 1.3, "variant": 2, "from": 3 },
+    { "type": "lamp-post", "x": -0.6, "z": 0.42, "size": 0.9, "from": 3 },
+    { "type": "lamp-post", "x": 0.3, "z": 0.48, "size": 0.9, "from": 3 }
   ],
   "woods": {
     "tree": "woodland-snowfir",

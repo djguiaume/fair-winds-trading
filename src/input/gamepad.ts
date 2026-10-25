@@ -54,6 +54,8 @@ export interface PadFrame {
 
 export interface PadConfig {
   deadZone: number;
+  /** How often the buttons are read between frames (ms), so a quick tap is never missed. */
+  sampleEveryMs?: number;
   /** How far an analog trigger goes down before it counts as pressed. */
   triggerPress: number;
   repeatDelayMs: number;
@@ -124,12 +126,57 @@ export interface PadControls extends PadConfig {
 
 export const PAD = controls.gamepad as PadControls;
 
+/**
+ * Pad makers and their buttons' names (decision 0186): the standard layout numbers buttons by
+ * place, so the bottom face button is "A" on an Xbox pad, "✕" on a PlayStation pad and "B" on a
+ * Switch pad. A pad whose id (its USB vendor or name) has a `match` word gets that brand's names;
+ * the first brand is the default. Data: `controls.json` › `padBrands`.
+ */
+export interface PadBrand {
+  match: string[];
+  names: Partial<Record<PadButton, string>>;
+  /** Names that differ in a language (`fr`: the Xbox View button is "Affichage"). */
+  lang?: Record<string, Partial<Record<PadButton, string>>>;
+}
+export const PAD_BRANDS = controls.padBrands as Record<string, PadBrand>;
+
+/** The brand a pad's id names (case does not matter), else the first brand. */
+export function padBrand(id: string, brands: Record<string, PadBrand> = PAD_BRANDS): string {
+  const lower = id.toLowerCase();
+  const names = Object.keys(brands);
+  return (
+    names.find((b) => brands[b]!.match.some((w) => lower.includes(w.toLowerCase()))) ?? names[0]!
+  );
+}
+
+/** Problems in `padBrands`: none, unknown buttons, empty names, a brand without names. */
+export function brandProblems(brands: Record<string, PadBrand> = PAD_BRANDS): string[] {
+  const out: string[] = [];
+  const buttons = new Set<string>(PAD_BUTTONS);
+  if (!Object.keys(brands).length) out.push('padBrands: needs at least one brand');
+  for (const [name, b] of Object.entries(brands)) {
+    for (const [button, label] of Object.entries(b.names)) {
+      if (!buttons.has(button)) out.push(`padBrands.${name}: no button "${button}"`);
+      if (!label?.trim()) out.push(`padBrands.${name}.${button}: empty name`);
+    }
+    for (const button of ['a', 'b', 'x', 'y'] as const)
+      if (!b.names[button]) out.push(`padBrands.${name}: no name for ${button}`);
+    if (b.match.some((w) => !w.trim())) out.push(`padBrands.${name}.match: an empty word`);
+    for (const [lang, names] of Object.entries(b.lang ?? {}))
+      for (const button of Object.keys(names))
+        if (!buttons.has(button)) out.push(`padBrands.${name}.lang.${lang}: no button "${button}"`);
+  }
+  return out;
+}
+
 /** Problems in a controls file: unknown buttons or axes, actions with no button, bad numbers. */
 export function controlProblems(c: PadControls = PAD): string[] {
   const out: string[] = [];
   const buttons = new Set<string>(PAD_BUTTONS);
   const axes = new Set<string>(PAD_AXES);
   if (!(c.deadZone >= 0 && c.deadZone < 1)) out.push('deadZone must be 0..1');
+  if (c.sampleEveryMs !== undefined && !(c.sampleEveryMs >= 0 && c.sampleEveryMs <= 50))
+    out.push('sampleEveryMs must be 0..50 (0: once a frame only)');
   if (!(c.triggerPress > 0 && c.triggerPress <= 1)) out.push('triggerPress must be 0..1');
   if (!(c.repeatDelayMs > 0 && c.repeatEveryMs > 0)) out.push('repeat timings must be > 0');
   if (!(c.menu.stickPress > 0 && c.menu.stickPress <= 1)) out.push('menu.stickPress must be 0..1');
@@ -165,6 +212,8 @@ export function shapeAxis(value: number, deadZone: number): number {
 
 /** The slice of the browser's Gamepad this code reads (easy to fake in tests). */
 export interface PadLike {
+  /** The browser's name for the pad, with its USB vendor (`054c` is Sony). */
+  id?: string;
   connected: boolean;
   mapping: string;
   axes: readonly number[];
@@ -234,6 +283,9 @@ export const KEY_BUTTONS: Readonly<Record<string, PadButton>> = {
   GamepadLeftThumbstickRight: 'right',
 };
 
+/** How soon after a pad button's key the Gamepad API's report of it is the same press (ms). */
+const KEY_ECHO_MS = 300;
+
 /** How often `poll` looks for a pad no `gamepadconnected` event announced (ms). */
 const LOOK_EVERY_MS = 1000;
 
@@ -253,11 +305,27 @@ export class GamepadPoller {
   /** Pad buttons that came as keys ("GamepadA"): presses for the next frame, and those held. */
   private keyPresses: PadPress[] = [];
   private keyHeld = new Set<PadButton>();
+  /** Presses `sample` found since the last frame. */
+  private sampled: PadPress[] = [];
+  /** When each button last came as a key (the last frame's time), to drop the API's echo. */
+  private keyAt = new Map<PadButton, number>();
+  private lastNow = 0;
+  /** When a pad button was last down (for `padClick`). */
+  private lastHeldAt = -Infinity;
+  /** A key or click that may mean the player left the pad, waiting to see (`away`). */
+  private awayAt: number | null = null;
+  /** The Gamepad API has reported a press: keys for pad buttons are echoes from then on. */
+  private apiPresses = false;
   private pressListeners: ((press: PadPress) => void)[] = [];
   private usingListeners: ((using: boolean) => void)[] = [];
   private using = false;
   /** Called when a pad is connected or the last one goes. */
   onConnect: (connected: boolean) => void = () => {};
+  /** The pad's brand (`padBrands`), known once a pad is seen; changes with the pad. */
+  brand = Object.keys(PAD_BRANDS)[0]!;
+  private padId: string | undefined;
+  /** Called when the pad in use is of another brand than before (decision 0186). */
+  onBrand: (brand: string) => void = () => {};
   /**
    * Presses the boat and the chart leave alone, and every press while a menu, dialog, the
    * harbour or a card is up: the menus' focus code takes them (main.ts calls this).
@@ -286,7 +354,7 @@ export class GamepadPoller {
       (e) => {
         const button = KEY_BUTTONS[(e as KeyboardEvent).key];
         if (button) return this.keyButton(button, true, e as KeyboardEvent);
-        if (!this.padHeld()) this.setUsing(false);
+        this.away();
       },
       true,
     );
@@ -300,11 +368,14 @@ export class GamepadPoller {
     );
     target.addEventListener(
       'pointerdown',
-      () => {
-        if (!this.padHeld()) this.setUsing(false);
+      (e) => {
+        if (!this.padClick(e)) this.away();
       },
       true,
     );
+    // The rest of the pad's pointer click (Edge on Xbox) is stopped too.
+    for (const type of ['pointerup', 'mousedown', 'mouseup', 'click'])
+      target.addEventListener(type, (e) => this.padClick(e), true);
   }
 
   /** A pad is plugged in and has been seen this session. */
@@ -336,11 +407,36 @@ export class GamepadPoller {
       if (this.pad()) this.found();
     }
     const pad = this.seen ? this.pad() : null;
+    if (pad && pad.id !== this.padId) this.noteBrand(pad);
     const keys = this.keyPresses.splice(0);
     if (!pad && !keys.length && !this.keyHeld.size) return null;
     const frame: PadFrame = pad
       ? readPad(pad, this.since, now, this.config)
       : { axes: { lx: 0, ly: 0, rx: 0, ry: 0 }, held: new Set(), presses: [] };
+    // Presses `sample` caught between frames come first, in the order they happened.
+    frame.presses.unshift(...this.sampled.splice(0));
+    this.lastNow = now;
+    if (frame.held.size) this.lastHeldAt = now;
+    if (this.awayAt !== null) {
+      if (padInUse(frame)) this.awayAt = null;
+      else if (now - this.awayAt > KEY_ECHO_MS) {
+        this.awayAt = null;
+        this.setUsing(false);
+      }
+    }
+    if (frame.presses.some((p) => !p.repeat)) {
+      // A button the browser sent as a key a moment ago, and the Gamepad API only now: the key
+      // already counted it, so the D-pad does not move twice (Guillaume: "random" on Xbox).
+      frame.presses = frame.presses.filter((p) => {
+        const at = this.keyAt.get(p.button);
+        if (p.repeat || at === undefined || now - at > KEY_ECHO_MS) return true;
+        this.keyAt.delete(p.button);
+        return false;
+      });
+      // The Gamepad API reports presses: from now on it alone counts, the keys are echoes.
+      this.apiPresses = true;
+    }
+    for (const [b, at] of this.keyAt) if (now - at > KEY_ECHO_MS) this.keyAt.delete(b);
     if (keys.length || this.keyHeld.size) {
       const held = new Set(frame.held);
       for (const b of this.keyHeld) held.add(b);
@@ -352,10 +448,59 @@ export class GamepadPoller {
     return frame;
   }
 
+  /**
+   * Read the pad's buttons between frames (decision 0183): the browser only shows a button's
+   * state when asked, so a tap shorter than a frame (Xbox at 30 fps) was sometimes missed while
+   * the stick, which is held, always worked. `main.ts` calls this every `sampleEveryMs`; the
+   * presses it finds join the next frame's.
+   */
+  sample(now: number) {
+    if (!this.seen) return;
+    const pad = this.pad();
+    if (pad) this.sampled.push(...readPad(pad, this.since, now, this.config).presses);
+  }
+
   private found() {
     if (this.seen) return;
     this.seen = true;
+    const pad = this.pad();
+    if (pad) this.noteBrand(pad);
     this.onConnect(true);
+  }
+
+  private noteBrand(pad: PadLike) {
+    this.padId = pad.id;
+    const brand = padBrand(pad.id ?? '');
+    if (brand === this.brand) return;
+    this.brand = brand;
+    this.onBrand(brand);
+  }
+
+  /**
+   * Edge on Xbox's pointer mode clicks where its cursor is when A is pressed, while the Gamepad
+   * API also reports A (decision 0183): the click moved the focus or pressed a second control,
+   * and A felt unreliable. Once the API reports presses, a real pointer event while a pad button
+   * is down or just released is the pad's: it is stopped. True when it was.
+   */
+  private padClick(e: Event): boolean {
+    if (!e.isTrusted || !this.apiPresses) return false;
+    const now = typeof performance === 'undefined' ? this.lastNow : performance.now();
+    if (!this.padHeld() && now - this.lastHeldAt > KEY_ECHO_MS) return false;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    return true;
+  }
+
+  /**
+   * A key or a click: back on the keyboard, mouse or a finger, unless the pad made it. Edge on
+   * Xbox can send the pad's key (an arrow) or click a moment before the Gamepad API shows the
+   * button, so the switch waits `KEY_ECHO_MS` for the pad; dropping the focus ring at once made
+   * the next pad press only show the focus again, and the D-pad felt random.
+   */
+  private away() {
+    if (!this.using || this.padHeld()) return;
+    if (!this.seen) return this.setUsing(false);
+    this.awayAt ??= this.lastNow;
   }
 
   /** A pad button the browser sent as a key: a press for the next frame, unless the pad has it. */
@@ -366,9 +511,11 @@ export class GamepadPoller {
       this.keyHeld.delete(button);
       return;
     }
-    // The Gamepad API reports the same button: the frame has it already.
-    if (this.padHeld()) return;
+    // The Gamepad API reports the same button (now, or since it first reported a press): the
+    // frame has it already.
+    if (this.apiPresses || this.padHeld()) return;
     this.keyHeld.add(button);
+    this.keyAt.set(button, this.lastNow);
     this.keyPresses.push({ button, repeat: !!e.repeat });
   }
 

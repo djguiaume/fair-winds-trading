@@ -49,6 +49,11 @@ export interface RecipePart {
   color?: string | { pick: Num; of: string[] };
   /** Lit glass: drawn by the window mesh that lights up at night. */
   glow?: boolean;
+  /**
+   * Each face takes a colour from the whole list `color` names (a style's list, decision 0182):
+   * a moss fleck on a boulder. A single colour paints as without it.
+   */
+  faces?: boolean;
   /** Game hooks set on the part (`{ "solid": "boat" }`). */
   tag?: Record<string, unknown>;
   /** Only when this is not 0. */

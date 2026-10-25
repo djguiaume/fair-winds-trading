@@ -8,7 +8,7 @@ describe('the tutorial without its coach', () => {
   const story = (v: ReturnType<typeof tutorialVoyage>) => {
     const seen: string[] = [];
     v.quests.onEvent = (e) => {
-      if (e.quest === TUTORIAL && e.type === 'step') seen.push(e.step);
+      if (e.quest === TUTORIAL && (e.type === 'step' || e.type === 'choice')) seen.push(e.step);
     };
     return seen;
   };
@@ -27,8 +27,11 @@ describe('the tutorial without its coach', () => {
     v.check();
     expect(v.step).toBe('home');
     v.dock('saltmere');
+    // Rook's card on the quay speaks without the coach too (decision 0190).
+    expect(v.step).toBe('thanks');
+    v.cont();
     expect(v.quests.isDone(TUTORIAL)).toBe(true);
-    expect(seen).toEqual(['foghorn', 'wreck', 'home']);
+    expect(seen).toEqual(['foghorn', 'wreck', 'aboard', 'home', 'thanks']);
     // Rook's thanks follows as it does after the tutorial, with the island.
     expect(v.quests.progress('rooks-thanks')).toBeDefined();
   });
@@ -84,6 +87,7 @@ describe('the tutorial without its coach', () => {
       'wreck',
       'aboard',
       'home',
+      'thanks',
     ]);
     const errand: QuestDef = {
       id: 'errand',
