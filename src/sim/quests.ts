@@ -609,6 +609,10 @@ export function checkQuestHooks(
       if (prop.tags?.some(runningTag))
         out.push(`${where}: during:/except: is for islands and shapes`);
     });
+  for (const design of designs)
+    (design.rivers ?? []).forEach((river, i) =>
+      named(questTagIds(river), `island ${design.id} › river ${i}`),
+    );
   (map.marks ?? []).forEach((mark, i) =>
     named(questTagIds(mark), `map › mark ${i} (${mark.type})`),
   );

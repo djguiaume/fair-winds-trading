@@ -1,5 +1,5 @@
 #!/bin/bash
-# SessionStart hook (decision 0176): make graphify ready in every session.
+# SessionStart hook (decision 0177): make graphify ready in every session.
 # Installs graphify if it is missing (cloud sessions only), then rebuilds the
 # code graph in .graphify/. Runs async so the session starts at once, and
 # never fails the session.

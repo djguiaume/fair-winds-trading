@@ -1,4 +1,4 @@
-# 0176. Graphify ready in every session
+# 0177. Graphify ready in every session
 
 **Status:** Accepted (2026-10-25): Guillaume asked for the rule in `CLAUDE.md` and a startup hook.
 

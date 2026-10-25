@@ -1,6 +1,6 @@
 # Working on Fair Winds Trading
 
-## Use graphify first (decision 0176)
+## Use graphify first (decision 0177)
 
 Guillaume's rule: graphify saves tokens, so every thread uses it.
 

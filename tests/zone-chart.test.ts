@@ -40,6 +40,7 @@ describe('wind zones charted once sailed (0152)', () => {
       'sunreach-sound',
       'the-glass',
       'the-trades',
+      'ashfall-reach',
       'the-haar',
       'the-grey-murk',
       'fogwatch-voe',

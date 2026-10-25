@@ -24,6 +24,8 @@ export interface GroundLook {
    * thread that gives the ground its cracks.
    */
   glow?: string;
+  /** Small dark rocks scattered over its flat tops (decision 0171: moss over old lava). */
+  specks?: string;
   /** Woods may grow on it (default true). */
   trees?: boolean;
   /** A beach: what a style's `sand` may become. */
@@ -76,6 +78,7 @@ export interface GroundColors {
   cap?: string[];
   capAbove?: number;
   glow?: string;
+  specks?: string;
   trees: boolean;
 }
 
@@ -92,6 +95,7 @@ export function groundColors(material: string, style: string): GroundColors {
     cap: g.cap ? hexes(g.cap, style) : undefined,
     capAbove: g.capAbove,
     glow: g.glow ? hexes(g.glow, style)[0] : undefined,
+    specks: g.specks ? hexes(g.specks, style)[0] : undefined,
     trees: g.trees ?? true,
   };
 }

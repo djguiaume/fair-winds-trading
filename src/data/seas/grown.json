@@ -1,5 +1,5 @@
 {
   "boundsRadius": 985,
   "chartedRadius": 445,
-  "seas": ["south", "east"]
+  "seas": ["south", "west", "east"]
 }

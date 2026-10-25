@@ -28,7 +28,7 @@ import { renderPixelRatio, QUALITY, type QualityLevel, type QualityProfile } fro
 import { Wake } from './wake';
 import { WindStreaks } from './windStreaks';
 import { Rain, rainMayReachArea } from './rain';
-import { Atmosphere, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from './atmosphere';
+import { Atmosphere, LAVA_BY_DAY, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from './atmosphere';
 import { LighthouseBeams } from './lighthouseBeams';
 import { BeaconLights } from './beaconLights';
 import { Lanterns } from './lanterns';
@@ -365,8 +365,13 @@ export class GameView {
 
   /** Grow only the islands whose port levels changed; anchors and harbour lights stay valid. */
   /** Look at a map point (moored at home: the island and its spots), or follow the boat (null). */
-  setFocus(point: { x: number; y: number } | null) {
+  setFocus(point: { x: number; y: number } | null, jump = false) {
     this.focus = point ? { ...point } : null;
+    // At once, without the camera's easing (the screenshot tool's --look).
+    if (point && jump) {
+      this.target.x = point.x;
+      this.target.z = -point.y;
+    }
   }
 
   setHomeBuildings(byIsland: Record<string, Record<string, string>>) {
@@ -571,6 +576,8 @@ export class GameView {
     // Lit windows and street lamps in the towns.
     const windows = this.islands.userData.windows as THREE.MeshBasicMaterial | undefined;
     windows?.color.copy(WINDOWS_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
+    const lava = this.islands.userData.lava as THREE.MeshBasicMaterial | undefined;
+    lava?.color.copy(LAVA_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
     this.boat.setNightLighting?.(day.night);
     this.ocean.update(time, this.target);
     this.currentWater?.update(time, this.ocean, this.world.currentsOn);

@@ -7,6 +7,7 @@
     "farm": { "budget": 200 },
     "stone": { "budget": 200 },
     "nature": { "budget": 60 },
+    "rocks": { "budget": 200 },
     "landmarks": { "budget": 300 }
   }
 }

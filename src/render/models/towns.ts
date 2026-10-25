@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { LandmarkKind } from '../../sim/map';
 import { homeDesign } from '../../sim/home';
 import { type Rng, createRng, range } from '../../sim/rng';
-import { blobShape, paint, paintFaces, slab } from './geometry';
+import { BEACH_TOP, blobShape, isGlowing, paint, paintFaces, slab } from './geometry';
 import { type GroundColors, groundColors, styleColor } from '../../data/grounds';
 import { coastDistance, insetOutline } from '../../sim/coast';
 import { landmarkParts } from './landmarks';
@@ -11,7 +11,10 @@ import {
   layoutGround,
   characterPiers,
   crossesCliff,
+  flatLayout,
   isSloped,
+  PEAK_SEGMENTS,
+  peakBox,
   type IslandLayout,
   type IslandTheme,
   type LandSurface,
@@ -66,6 +69,8 @@ import {
   type Parts,
 } from './props';
 import type { IslandCheckKit } from '../../sim/islandChecks';
+import { riverParts } from './rivers';
+import { craterPool, groundSpecks, lavaCracks } from './lavaCracks';
 
 /**
  * Settlement growth (decision 0060): a port island's town grows in four steps, hamlet, village,
@@ -491,9 +496,6 @@ function quarry(
   }
 }
 
-/** Sand top of every port island's beach, in reference units. */
-const BEACH_TOP = 0.3;
-
 /** Height a prop stands at, in reference units: the ground under it, else the sand, else the sea. */
 export function standHeight(layout: IslandLayout, x: number, z: number, R: number) {
   const h = layoutGround(layout, x, z, 0);
@@ -588,20 +590,22 @@ export function designedTownParts(
   for (const s of layout.surfaces) {
     const look = ground(s.material);
     if (s.shape === 'peak') {
-      const xs = s.outline.map((p) => p[0]),
-        zs = s.outline.map((p) => p[1]);
-      const cx = (Math.min(...xs) + Math.max(...xs)) / 2,
-        cz = (Math.min(...zs) + Math.max(...zs)) / 2;
-      const rx = (Math.max(...xs) - Math.min(...xs)) / 2,
-        rz = (Math.max(...zs) - Math.min(...zs)) / 2;
+      const { cx, cz, rx, rz } = peakBox(s);
       const mountainBase = (s.base ?? 0) * R;
       const height = s.height * R - mountainBase;
-      // A snow line (capAbove) needs rings up the cone to fall on; plain peaks keep one.
-      const g = new THREE.ConeGeometry(R, height, 10, look.cap ? 4 : 1)
+      // A snow line (capAbove) needs rings up the cone to fall on; plain peaks keep one. A
+      // volcano's cone is cut off at its crater's rim (decision 0171).
+      const rings = look.cap ? 4 : 1;
+      const g = (
+        s.crater
+          ? new THREE.CylinderGeometry(R * s.crater, R, height, PEAK_SEGMENTS, rings)
+          : new THREE.ConeGeometry(R, height, PEAK_SEGMENTS, rings)
+      )
         .scale(rx, 1, rz)
         .translate(cx * R, (s.height * R + mountainBase) / 2, cz * R);
       const line = mountainBase + height * (look.capAbove ?? 1);
       out.push(paintFaces(g, look.peak, (_x, y) => (look.cap && y > line ? look.cap : undefined)));
+      if (s.crater) out.push(craterPool(s, R, look.glow ?? look.side[0]!, !!look.glow));
     } else terrain(s.outline, BEACH_TOP, s.height * R, look, s.holes);
   }
   // Sloped edges (decision 0096 §4): a ramp down from the top, outward, to the ground below.
@@ -609,7 +613,8 @@ export function designedTownParts(
     if (s.slope && s.shape !== 'peak') out.push(ramp(layout, s, R, ground(s.material).top));
   // Ramps that climb along their length (decision 0123).
   for (const r of layout.ramps) out.push(...rampBand(r, R, ground(r.material)));
-  for (const g of out) g.userData.islandTerrain = true;
+  // Glowing parts (a crater's lava) go to the windows' mesh, not the terrain's.
+  for (const g of out) if (!isGlowing(g)) g.userData.islandTerrain = true;
   const pathColor = styleColor('path', design.style) as string;
   for (const lane of design.lanes) {
     if (lane.kind === 'stairs') stairs(out, lane, R);
@@ -657,6 +662,16 @@ export function designedTownParts(
     out.push(paint(water, '#319eae'));
     for (const g of out.slice(lakeStart)) g.userData.islandTerrain = true;
   }
+  // Glowing cracks on lava fields and down a volcano's flanks (decision 0171).
+  out.push(...lavaCracks(layout, (m) => ground(m).glow, design.seed, R));
+  for (const g of groundSpecks(layout, (m) => ground(m).specks, design.seed, R)) {
+    g.userData.islandTerrain = true;
+    out.push(g);
+  }
+  // Rivers of water or lava (decision 0176) lie on the ground built above.
+  for (const river of design.rivers ?? [])
+    if (atLevel(river, level) && river.points.length >= 2)
+      out.push(...riverParts(layout, river, R));
 
   const standing = design.props.filter((p) => atLevel(p, level));
   /** Places a prop's parts (into `into`) and returns how far it clears the woods. */
@@ -846,7 +861,9 @@ function ramp(layout: IslandLayout, s: LandSurface, R: number, colors: string[])
     const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
     return [((b[1] - a[1]) / l) * out, (-(b[0] - a[0]) / l) * out] as const;
   };
-  const foot = (x: number, z: number) => (layoutGround(layout, x, z) ?? 0) * R;
+  // Down to the ground below, not up a mountain's flat outline (its cone stands over the foot).
+  const flat = flatLayout(layout);
+  const foot = (x: number, z: number) => (layoutGround(flat, x, z) ?? 0) * R;
   const positions: number[] = [];
   const v = (x: number, y: number, z: number) => positions.push(x * R, y, z * R);
   /** One triangle, wound to face up. */

@@ -28,6 +28,11 @@ export interface GroundDef {
   /** A rock cone over the outline instead of a flat top, rising from `base`. */
   shape?: 'peak';
   base?: number;
+  /**
+   * A peak's open top (a volcano, decision 0171): the crater's radius as a share of the peak's
+   * size, 0.05 to 0.8. A ground that glows fills it with lava.
+   */
+  crater?: number;
   /** A ramp of this width (radius units) down from the edges, outward, instead of a cliff. */
   slope?: number;
   /** Which edges slope, as runs of edge indices [first, last]; left out, every edge. */
@@ -64,6 +69,24 @@ export interface RampDef {
   material: string;
   from?: number;
   to?: number;
+}
+
+/**
+ * A river (decision 0176): a ribbon `width` wide along `points`, source first, mouth last, that
+ * lies on the ground (plateaus, ramps, slopes, mountains). Where the ground drops at a cliff it
+ * falls as a sheet to the ground below; a mouth past the coast falls into the sea. `water` is
+ * drawn in the lake's colour; `lava` glows at night like lit windows, with a dark crust and steam
+ * where it meets the sea. Points are [x, z] in radius units, or [x, z, width] for a point that
+ * is wider or narrower than `width`: the river widens and narrows smoothly between points.
+ */
+export interface RiverDef {
+  kind?: 'water' | 'lava';
+  points: number[][];
+  width: number;
+  from?: number;
+  to?: number;
+  /** `after:<quest>` and `before:<quest>`, like props (decision 0130). */
+  tags?: string[];
 }
 
 /** A side pier from a level; the arrival pier stays the simulation's (x 0.08). */
@@ -146,6 +169,8 @@ export interface IslandDesign {
   lake?: Point[];
   ground: GroundDef[];
   lanes: LaneDef[];
+  /** Rivers of water or lava (decision 0176); left out, none. */
+  rivers?: RiverDef[];
   /** Ramps that climb along their length (decision 0123); left out, none. */
   ramps?: RampDef[];
   piers: PierDef[];
@@ -194,6 +219,10 @@ export function landmarkOf(island: IslandDef): string | undefined {
   );
 }
 
+/** A volcano you steer by: a peak with a crater on the island's file (decision 0171). */
+export const hasVolcano = (island: IslandDef) =>
+  !!designOf(island)?.ground.some((g) => g.shape === 'peak' && g.crater);
+
 /** Is this element present at a level? */
 export const atLevel = (e: { from?: number; to?: number }, level: number) =>
   (e.from ?? 1) <= level && level <= (e.to ?? 4);
@@ -241,10 +270,19 @@ export function questApart(a: { tags?: readonly string[] }, b: { tags?: readonly
   );
 }
 
-/** The island file as it stands with these quests done: its props filtered by `questShown`. */
+/** The quests an island file's props and rivers name in `after:` and `before:` tags. */
+export function designQuestIds(design: IslandDesign): string[] {
+  return [...design.props, ...(design.rivers ?? [])].flatMap(questTagIds);
+}
+
+/** The island file as it stands with these quests done: props and rivers by `questShown`. */
 export function questDesign(design: IslandDesign, done: ReadonlySet<string>): IslandDesign {
-  if (!design.props.some((p) => questTagIds(p).length)) return design;
-  return { ...design, props: design.props.filter((p) => questShown(p, done)) };
+  if (!designQuestIds(design).length) return design;
+  return {
+    ...design,
+    props: design.props.filter((p) => questShown(p, done)),
+    ...(design.rivers && { rivers: design.rivers.filter((r) => questShown(r, done)) }),
+  };
 }
 
 /**

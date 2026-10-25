@@ -12,6 +12,8 @@ export interface LandSurface {
   material: string;
   shape?: 'peak';
   base?: number;
+  /** A peak's crater: its radius as a share of the peak's size (decision 0171). */
+  crater?: number;
   /** Ramp width outward from the sloped edges (decision 0096 §4), and which edges slope. */
   slope?: number;
   slopeEdges?: [number, number][];
@@ -56,6 +58,7 @@ function createIslandLayout(design: IslandDesign, town: number): IslandLayout {
         material: g.material,
         shape: g.shape,
         base: g.base,
+        crater: g.crater,
         slope: g.slope,
         slopeEdges: g.slopeEdges,
       })),
@@ -155,6 +158,76 @@ export function layoutGround(
     }
   }
   return height;
+}
+
+/** Sides of a mountain's cone (decision 0096): the model and the height under it share them. */
+export const PEAK_SEGMENTS = 10;
+
+/** A mountain's centre and half-sizes: the box round its outline. */
+export function peakBox(s: { outline: Outline }) {
+  const xs = s.outline.map((p) => p[0]),
+    zs = s.outline.map((p) => p[1]);
+  const x0 = Math.min(...xs),
+    x1 = Math.max(...xs),
+    z0 = Math.min(...zs),
+    z1 = Math.max(...zs);
+  return { cx: (x0 + x1) / 2, cz: (z0 + z1) / 2, rx: (x1 - x0) / 2, rz: (z1 - z0) / 2 };
+}
+
+/**
+ * The height of a mountain's faceted cone over a point (radius units), or null off its foot. The
+ * cone has PEAK_SEGMENTS flat sides, its corners where three.js puts them (x = sin, z = cos).
+ */
+export function peakHeight(s: LandSurface, x: number, z: number): number | null {
+  const { cx, cz, rx, rz } = peakBox(s);
+  if (!rx || !rz) return null;
+  const u = (x - cx) / rx,
+    v = (z - cz) / rz;
+  const rho = Math.hypot(u, v);
+  const side = (Math.PI * 2) / PEAK_SEGMENTS;
+  const theta = Math.atan2(u, v);
+  const mid = (Math.floor(theta / side) + 0.5) * side;
+  // Distance from the axis to the cone's flat foot edge, along this point's direction.
+  const reach = Math.cos(side / 2) / Math.cos(theta - mid);
+  const k = rho / reach;
+  if (k > 1) return null;
+  const base = s.base ?? 0;
+  // A crater's rim is the top: the flanks climb from the foot to it, the crater floor is level.
+  const rim = s.crater ?? 0;
+  return base + (s.height - base) * Math.min(1, (1 - k) / (1 - rim));
+}
+
+/**
+ * The height of the land's top over a point, in radius units, for things that lie on it (rivers,
+ * decision 0176): raised ground, ramps and slopes as `layoutGround` has them, mountains as their
+ * cones, the beach 0; null at sea or in the lake.
+ */
+export function surfaceHeight(layout: IslandLayout, x: number, z: number): number | null {
+  if (!layout.coasts.some((c) => coastDistance(x, z, c).distance <= 0)) return null;
+  if (layout.lake && coastDistance(x, z, layout.lake).distance < 0) return null;
+  let height = layoutGround(flatLayout(layout), x, z, 0) ?? 0;
+  for (const s of layout.surfaces)
+    if (s.shape === 'peak') height = Math.max(height, peakHeight(s, x, z) ?? 0);
+  return height;
+}
+
+/**
+ * Does a river between two points fall here (decision 0176)? Where it crosses a cliff of raised
+ * ground; a mountain's flanks are steep but never a cliff.
+ */
+export function fallsBetween(layout: IslandLayout, ax: number, az: number, bx: number, bz: number) {
+  return crossesCliff(flatLayout(layout), ax, az, bx, bz);
+}
+
+const flatLayouts = new WeakMap<IslandLayout, IslandLayout>();
+/** The layout without its mountains, whose flat outlines `layoutGround` treats as plateaus. */
+export function flatLayout(layout: IslandLayout) {
+  let flat = flatLayouts.get(layout);
+  if (!flat) {
+    flat = { ...layout, surfaces: layout.surfaces.filter((s) => s.shape !== 'peak') };
+    flatLayouts.set(layout, flat);
+  }
+  return flat;
 }
 
 /** Inside a surface's outline and out of its holes. */
