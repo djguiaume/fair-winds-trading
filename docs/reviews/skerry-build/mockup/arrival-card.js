@@ -1,3 +1,4 @@
+/* global fwt, window, document */
 // Mockup: docking at Skerry with Maren's plot not chosen. Maren speaks; the button opens the Island tab.
 (async () => {
   const { QuestCard } = await import('/src/ui/questCard.ts');

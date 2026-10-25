@@ -1,3 +1,4 @@
+/* global fwt, window, document */
 // Maren's thanks as the game builds it (cardFor › finished, the real words with {spotA} and {spotB}).
 (async () => {
   const { QuestCard } = await import('/src/ui/questCard.ts');

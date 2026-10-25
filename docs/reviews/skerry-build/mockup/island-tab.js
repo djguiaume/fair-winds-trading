@@ -1,3 +1,4 @@
+/* global fwt, window, document */
 // Mockup: Skerry's harbour screen with the Island tab (after Maren's arc: plot 2 given, plots 1, 3, 4 to come).
 // window.mkHalf: the plot is chosen, the screen at half height beside it.
 (async () => {
