@@ -61,6 +61,8 @@ store plan of [0204](decisions/0204-selling-on-android-iphone-and-xbox.md) comes
 
 ## Next, after v1.0 (not scheduled)
 
+- **v1.1, "The Sailing Club"** (working title, [plan](v1.1/plan.md)): bug fixes plus new races,
+  some with storms in fixed places to sail round.
 - **The store plan** ([0204](decisions/0204-selling-on-android-iphone-and-xbox.md)): phones first,
   Xbox after asking ID@Xbox.
 - **Polish and extras:** ship cosmetics (sail colours, flags, figureheads), achievements, a real
