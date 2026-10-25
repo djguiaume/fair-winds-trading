@@ -88,7 +88,7 @@ function deepestPoint(outline: [number, number][]) {
 }
 
 /** What the chart shows of the quests (decision 0124); see `questView.ts`. */
-/** The chart's tabs (decision 0194), as the port screen's: the sea, then full pages. */
+/** The chart's tabs (decision 0196), as the port screen's: the sea, then full pages. */
 export const CHART_TABS = ['map', 'journal', 'market', 'legend'] as const;
 export type ChartTab = (typeof CHART_TABS)[number];
 
@@ -164,7 +164,7 @@ export class SeaChart {
     });
   }
 
-  /** The tab on show: the sea, or one of the full pages over it (decision 0194). */
+  /** The tab on show: the sea, or one of the full pages over it (decision 0196). */
   get currentTab(): ChartTab {
     return this.tab;
   }
@@ -731,7 +731,7 @@ export class SeaChart {
     const made = madeGoods(map, trade);
     return GOODS.filter((g) => !isMadeGood(g) || made.has(g) || trade.captain.cargo[g] > 0);
   }
-  /** A controller's X on the map (decision 0194): the next good's prices, then names only. */
+  /** A controller's X on the map (decision 0196): the next good's prices, then names only. */
   nextGood() {
     const order: (GoodId | null)[] = [...this.goodsInPlay(), null];
     this.good = order[(order.indexOf(this.good) + 1) % order.length]!;
@@ -745,7 +745,7 @@ export class SeaChart {
     const goods = this.get('chart-goods');
     goods.replaceChildren();
     const inPlay = this.goodsInPlay();
-    // X on a controller steps through these (decision 0194): its glyph heads the column.
+    // X on a controller steps through these (decision 0196): its glyph heads the column.
     goods.insertAdjacentHTML('afterbegin', padGlyph('x'));
     // The price page's own row picks the good for its table (the map's column can clear it).
     const pageGoods = this.dialog.querySelector<HTMLElement>('#chart-market-goods');

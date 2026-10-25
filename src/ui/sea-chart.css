@@ -29,7 +29,7 @@ dialog.chart::backdrop {
 }
 
 /* --- Floating controls ------------------------------------------------------------------ */
-/* The port screen's header and tab bar on top (decision 0194): `port-screen.css` styles them. */
+/* The port screen's header and tab bar on top (decision 0196): `port-screen.css` styles them. */
 .chart-top {
   position: relative;
   z-index: 3;
@@ -157,7 +157,7 @@ dialog.chart::backdrop {
   box-shadow: inset 0 -3px 0 var(--brass-lo);
   color: #2a1c00;
 }
-/* A controller's X steps through the goods (decision 0194). */
+/* A controller's X steps through the goods (decision 0196). */
 .chart .chart-goods > .pad-key {
   align-self: center;
 }
@@ -761,7 +761,7 @@ html[data-input='pad'] .chart-cross {
   --zone-ink: #eef2f3;
 }
 
-/* --- Tab pages (decision 0194): the journal, prices and legend fill the screen below the tabs,
+/* --- Tab pages (decision 0196): the journal, prices and legend fill the screen below the tabs,
    as the port screen's tabs do; the sea and its controls wait on the map tab. -------------- */
 .chart[data-tab]:not([data-tab='map']) .chart-viewport > :not(.chart-sheet),
 .chart[data-tab]:not([data-tab='map']) .chart-footer {

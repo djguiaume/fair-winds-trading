@@ -612,9 +612,9 @@ export interface ChartPad {
   pick: boolean;
   /** Skip the lesson whose bubble is up. */
   skipLesson: boolean;
-  /** Show the next good's prices on the ports (decision 0194). */
+  /** Show the next good's prices on the ports (decision 0196). */
   nextGood: boolean;
-  /** The previous (-1) or next (1) tab, 0 for none (decision 0194). */
+  /** The previous (-1) or next (1) tab, 0 for none (decision 0196). */
   tab: number;
   other: PadPress[];
 }

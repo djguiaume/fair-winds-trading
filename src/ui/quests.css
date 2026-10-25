@@ -550,7 +550,7 @@ dialog.quest-card.is-arrival::backdrop {
   text-anchor: middle;
 }
 
-/* --- Journal: a page of the sea chart (decision 0194) -------------------------------------- */
+/* --- Journal: a page of the sea chart (decision 0196) -------------------------------------- */
 .chart-journal-badge[hidden] {
   display: none;
 }

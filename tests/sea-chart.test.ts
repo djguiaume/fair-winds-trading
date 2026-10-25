@@ -25,7 +25,7 @@ beforeEach(() => {
 });
 
 describe('full-screen chart planning', () => {
-  it('opens on the map tab, shows one page per tab, and a port picked from the prices goes back to the map (0194)', () => {
+  it('opens on the map tab, shows one page per tab, and a port picked from the prices goes back to the map (0196)', () => {
     const { world, chart } = setup();
     expect(document.querySelectorAll('.chart-sheet:not([hidden])')).toHaveLength(0);
     expect(get('chart-status').textContent).toBe('');
@@ -53,7 +53,7 @@ describe('full-screen chart planning', () => {
     expect(get<HTMLDialogElement>('chart').open).toBe(false);
   });
 
-  it('steps through the goods with X, then names only (0194)', () => {
+  it('steps through the goods with X, then names only (0196)', () => {
     const { chart } = setup();
     const pressed = () =>
       get('chart-goods').querySelector('button[aria-pressed="true"]')?.textContent?.trim() ?? null;

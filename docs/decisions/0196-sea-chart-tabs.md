@@ -1,4 +1,4 @@
-# 0194. Sea chart tabs
+# 0196. Sea chart tabs
 
 **Status:** Accepted (2026-10-25).
 

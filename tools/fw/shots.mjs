@@ -511,7 +511,7 @@ async function shootScene(page, shot) {
       await page.focus('#chart-map');
       for (let i = 0; i < shot.chartPan.n; i++) await page.keyboard.press(shot.chartPan.key);
     }
-    // The chart's tab (decision 0194): the map by default.
+    // The chart's tab (decision 0196): the map by default.
     await page.evaluate((tab) => {
       if (tab) document.getElementById(`chart-tab-${tab}`)?.click();
     }, shot.chartPanel);

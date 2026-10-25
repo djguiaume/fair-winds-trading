@@ -1051,7 +1051,7 @@ pad.onConnect = (connected) => {
 };
 /** Where pad presses go: the boat, the open chart, or a menu, dialog or card on top. */
 function padContext(): PadContext {
-  // The chart's map tab plays the cross; its pages (journal, prices, legend) are menus (0194).
+  // The chart's map tab plays the cross; its pages (journal, prices, legend) are menus (0196).
   if (chart.isOpen && !questCard.isOpen && !tutorialOffer.open && !windHelp.open)
     return chart.currentTab === 'map' ? 'chart' : 'menu';
   return paused ? 'menu' : 'sea';
@@ -1132,7 +1132,7 @@ way.onChange = (w) => {
 pad.onUsingPad((using) => {
   padFocus.setUsing(using);
   way.setPad(using);
-  // The chart's map tab plays the cross: no ring left on its close button (decision 0194).
+  // The chart's map tab plays the cross: no ring left on its close button (decision 0196).
   if (using && chart.isOpen && chart.currentTab === 'map') chart.setTab('map');
 });
 // Start in the pause menu sets sail again, as the menu's own button does.
