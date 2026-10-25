@@ -20,8 +20,10 @@ import { landmarkParts } from './landmarks';
 import { type Spot, landmarkRadius, sampleInside, terrainSeed } from '../../sim/landmarks';
 import { insetOutline } from '../../sim/coast';
 import { PALETTE } from '../../data/props';
-import { type TownLevel, townIslandParts } from './towns';
-import { designOf, designQuestIds } from '../../data/islands';
+import { type TownLevel, standHeight, townIslandParts } from './towns';
+import { atLevel, designOf, designQuestIds } from '../../data/islands';
+import { PROP_RECIPES } from '../../data/props';
+import { islandLayout, islandPoint } from '../../sim/islandLayout';
 
 /**
  * B2 "Bright highlands" islands (decision 0012), ported from the reference builder in
@@ -639,6 +641,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
       this.questsDone,
     );
     this.findCraters(island.id, parts);
+    this.findVents(island, port ? (this.levels[port.id] ?? 1) : 4);
     const group = this.batch(parts);
     group.name = `island:${island.id}`;
     return group;
@@ -662,6 +665,34 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
       });
     }
     this.craters.splice(0, this.craters.length, ...craters);
+  }
+
+  /** The steam vent props of an island's file at its town level (decision 0181): small plumes. */
+  private findVents(island: IslandDef, level: TownLevel) {
+    const design = designOf(island);
+    const R = island.radius / ISLAND_SCALE;
+    const vents: Crater[] = [];
+    for (const prop of design?.props ?? []) {
+      const vent = PROP_RECIPES[prop.type]?.vent;
+      if (!vent || !atLevel(prop, level)) continue;
+      const p = islandPoint(island, prop.x, prop.z);
+      const ground =
+        prop.y !== undefined
+          ? prop.y * R
+          : standHeight(islandLayout(design!, level), prop.x, prop.z, R);
+      const size = prop.size ?? 1;
+      vents.push({
+        island: island.id,
+        x: p.x,
+        y: (ground + vent.y * size) * ISLAND_SCALE,
+        z: -p.y,
+        r: 0.4 * size,
+        slope: 0,
+        vent: true,
+      });
+    }
+    const others = this.craters.filter((c) => !(c.vent && c.island === island.id));
+    this.craters.splice(0, this.craters.length, ...others, ...vents);
   }
 
   setSettlementLevels(levels: Record<string, TownLevel>) {

@@ -162,10 +162,12 @@ export class Volcanoes {
 
   /** The craters as the islands now stand (rebuilt islands keep their running eruptions). */
   setCraters(craters: readonly Crater[]) {
-    const old = new Map(this.states.map((s) => [s.crater.island, s]));
+    // A volcano by its island; a vent (0181) by its place, so an island may have several.
+    const key = (c: Crater) => (c.vent ? `${c.island}@${c.x},${c.z}` : c.island);
+    const old = new Map(this.states.map((s) => [key(s.crater), s]));
     this.states.length = 0;
     for (const crater of craters) {
-      const was = old.get(crater.island);
+      const was = old.get(key(crater));
       this.states.push(
         was
           ? { ...was, crater }
@@ -181,7 +183,7 @@ export class Volcanoes {
    * `now` starts it at once wherever the boat is (the screenshot tool).
    */
   erupt(island: string, now = false) {
-    const state = this.states.find((s) => s.crater.island === island);
+    const state = this.states.find((s) => s.crater.island === island && !s.crater.vent);
     if (!state) return false;
     if (now) this.start(state, TUNING.weather.volcano.eruptions.storyHoldSec);
     else this.story.push({ island, age: 0 });
@@ -216,13 +218,13 @@ export class Volcanoes {
       const dist = Math.hypot(crater.x - target.x, crater.z - target.z);
       const inSight = dist < tuning.sightUnits;
       // A story eruption waits until the volcano is in sight.
-      const waiting = this.story.findIndex((s) => s.island === crater.island);
+      const waiting = crater.vent ? -1 : this.story.findIndex((s) => s.island === crater.island);
       if (waiting >= 0 && inSight) {
         this.story.splice(waiting, 1);
         this.start(state, e.storyHoldSec);
       }
       // Now and then while the boat is near, with the switch on; a small vent only smokes.
-      const near = frame.eruptions && dist < e.nearUnits && crater.r >= e.minCrater;
+      const near = frame.eruptions && !crater.vent && dist < e.nearUnits && crater.r >= e.minCrater;
       if (near && !state.near) state.wait = e.firstSec;
       state.near = near;
       if (near && !state.eruption) {
@@ -298,7 +300,12 @@ export class Volcanoes {
       i * 3,
     );
     // A small crater's plume is smaller, lower and shorter, in proportion.
-    const scale = at ? 0.25 : Math.min(1.2, Math.max(0.25, c.r / smoke.craterRadius));
+    // A steam vent (0181) has its own small scale.
+    const scale = at
+      ? 0.25
+      : c.vent
+        ? smoke.ventScale
+        : Math.min(1.2, Math.max(0.25, c.r / smoke.craterRadius));
     const spread = smoke.spread * (1 + k) * scale;
     P.wander.set([(rng() - 0.5) * 2 * spread, (rng() - 0.5) * 2 * spread], i * 2);
     P.top[i] = smoke.top * (1 + (e.smokeTop - 1) * k) * scale * (0.8 + rng() * 0.4);

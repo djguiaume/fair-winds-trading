@@ -123,7 +123,7 @@ describe('island files (decision 0101)', () => {
 
 const GOLDEN: Record<string, string[]> = {
   'the-smoulder': ['161:afbe8b23', '161:afbe8b23', '161:afbe8b23', '161:afbe8b23'],
-  'organ-pipes': ['49:702078f5', '49:702078f5', '49:702078f5', '49:702078f5'],
+  'organ-pipes': ['49:99b3de15', '49:99b3de15', '49:99b3de15', '49:99b3de15'],
   emberhold: ['540:45293807', '676:41c5d0d1', '793:71cda802', '826:db130d6d'],
   'cinder-isle': ['101:d61cc732', '120:264040fd', '136:af5a5fb4', '136:af5a5fb4'],
   calda: ['556:6dc4b4e3', '664:95208427', '731:b682ff4a', '965:5ffb41cc'],
@@ -155,6 +155,14 @@ const GOLDEN: Record<string, string[]> = {
   'puffin-holm': Array(4).fill('8:3ff49b4c'),
   'lamb-holm': Array(4).fill('17:85293a40'),
   'broch-isle': Array(4).fill('14:18071749'),
+  // The open-water fills (decision 0181).
+  'steam-holm': ['35:f930960c', '35:f930960c', '35:f930960c', '35:f930960c'],
+  'spark-rock': ['18:b3591ec5', '18:b3591ec5', '18:b3591ec5', '18:b3591ec5'],
+  'the-chimneys': ['13:6d3cc715', '13:6d3cc715', '13:6d3cc715', '13:6d3cc715'],
+  'the-chimneys-2': ['7:b1a0088d', '7:b1a0088d', '7:b1a0088d', '7:b1a0088d'],
+  'the-tongs': ['7:78575b7d', '7:78575b7d', '7:78575b7d', '7:78575b7d'],
+  'the-tongs-2': ['7:cbe478f3', '7:cbe478f3', '7:cbe478f3', '7:cbe478f3'],
+  'two-palms': ['23:74ab6e0d', '23:74ab6e0d', '23:74ab6e0d', '23:74ab6e0d'],
   'the-kittiwakes': Array(4).fill('56:f643c38e'),
   'sandwick-holm': Array(4).fill('27:2fd20df'),
   // The north sea's islands (decision 0170).

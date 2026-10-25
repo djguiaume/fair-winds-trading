@@ -45,6 +45,16 @@
         "design": "lone-palm",
         "harbourBearing": 0
       }
+    },
+    {
+      "id": "two-palms",
+      "x": -330,
+      "y": -740,
+      "radius": 14,
+      "name": "Two Palms",
+      "look": {
+        "design": "two-palms"
+      }
     }
   ],
   "terrain": [
