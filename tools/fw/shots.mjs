@@ -95,6 +95,8 @@ Look
   --script a.js,b.js            these scripts run in the page, in order, after the focus is set
                                 (a mockup's extra parts)
 Output
+  --save-link                   also print the scene as a save link on the Pages game, to play
+                                from there (e.g. --script a test save's set-up, then --save-link)
   --sizes desktop,landscape,portrait,tv   (default desktop; tv = Xbox Edge at 1080p)
   --name name                   file name, written as <name>-<size>.png (default: from the scene)
   --list shots.json             a JSON list of shots; each entry takes the options above as keys
@@ -102,6 +104,8 @@ Output
   --out dir                     (default shots/)
   --json                        print the files as JSON
 `;
+
+const PAGES = 'https://djguiaume.github.io/fair-winds-trading/';
 
 // The game's own sea is the grown one (decision 0198): `phase4` (or `game`) needs no `?map=`.
 const SEAS = { phase4: '', game: '', ring: 'ring', stress: 'stress' };
@@ -193,6 +197,7 @@ export function normalise(opts) {
     focus: o.focus ?? null,
     style: o.style ? readAll(o.style) : null,
     script: o.script ? readAll(o.script) : null,
+    saveLink: !!o['save-link'],
     sizes: list(o.sizes ?? 'desktop'),
     url: o.url ?? null,
     editor: o.editor === true ? 'phase4' : (o.editor ?? null),
@@ -429,6 +434,12 @@ async function shootOne(browser, base, shot, size, file) {
     // Editors too: a script can open the quest builder on a step (decision 0184).
     await dress(page, shot);
     await page.screenshot({ path: file });
+    // The voyage as set for the shot, as a save link to play from (Menu › Move your voyage, 0066).
+    if (shot.saveLink && !shot.linked) {
+      shot.linked = true;
+      const code = await page.evaluate(() => window.fwt.saveCode());
+      console.log(`${shot.name}: ${PAGES}#voyage=${code}`);
+    }
   } finally {
     await context.close();
   }
