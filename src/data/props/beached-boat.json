@@ -1,0 +1,14 @@
+{
+  "id": "beached-boat",
+  "name": "Boat pulled up on the shore",
+  "group": "fish",
+  "parts": [
+    {
+      "use": "fishing-boat",
+      "ops": [
+        ["turnZ", 0.18],
+        ["move", 0, 0.05, 0]
+      ]
+    }
+  ]
+}

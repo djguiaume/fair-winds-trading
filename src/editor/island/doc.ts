@@ -234,6 +234,7 @@ export function tidyDesign(design: IslandDesign): IslandDesign {
     ground: d.ground.map((g) =>
       ordered(g, [
         'coast',
+        'beach',
         'outline',
         'holes',
         'height',

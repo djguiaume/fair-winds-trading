@@ -170,7 +170,7 @@
     "turf": {
       "name": "Turf",
       "top": "#6a9548",
-      "side": ["#4f535a", "#5a5e65", "#4f535a"],
+      "side": ["#3f4248", "#4f535a", "#5a5e65", "#6b6f75"],
       "peak": "#6a9548"
     },
     "basalt": {
@@ -181,8 +181,8 @@
     },
     "greyshingle": {
       "name": "Grey shingle",
-      "top": ["#8a8c88", "#7d7f7c"],
-      "side": ["#8a8c88", "#7d7f7c"],
+      "top": ["#5f625f", "#686b67"],
+      "side": ["#4f524f", "#5f625f"],
       "beach": true
     },
     "dune": {
