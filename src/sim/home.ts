@@ -29,6 +29,25 @@ export interface BuildingDef {
 }
 
 export const BUILDINGS: BuildingDef[] = buildingsFile.buildings as BuildingDef[];
+
+/**
+ * How a plot with no building shows on the island (decision 0210): staked with a pennant and its
+ * numbered sign when the captain can build there (`open`), short stakes for a plot still to be
+ * given (`bare`), and the ring on the ground while the Island tab has it chosen (`chosen`). Prop
+ * types from `buildings.json` › `plots`.
+ */
+export type PlotState = 'open' | 'bare' | 'chosen';
+export const PLOT_PROPS: Record<PlotState, string> = buildingsFile.plots;
+/**
+ * The camera on a chosen plot: its zoom, and how far off centre the plot sits beside the half
+ * screen (screen fractions: left of centre in landscape, above it in portrait).
+ */
+export const PLOT_CAMERA: { zoom: number; side: number; top: number } = buildingsFile.plotCamera;
+/** A plot's state in a home look, where a built spot holds its building id. */
+const PLOT = 'plot:';
+const plotOf = (v: string | undefined): PlotState | null =>
+  v?.startsWith(PLOT) ? (v.slice(PLOT.length) as PlotState) : null;
+const isBuilding = (v: string | undefined) => !!v && !v.startsWith(PLOT);
 export const BUILDING_IDS: string[] = BUILDINGS.map((b) => b.id);
 export const buildingById = (id: string) => BUILDINGS.find((b) => b.id === id);
 
@@ -265,15 +284,51 @@ export function readHome(raw: unknown, map: MapDef): HomeState {
   return home;
 }
 
-/** Spot id → building id per island, for drawing. */
-export function builtByIsland(home: HomeState): Record<string, Record<string, string>> {
-  return Object.fromEntries(Object.entries(home.islands).map(([id, h]) => [id, { ...h.built }]));
+/**
+ * An island as it looks (decision 0210): spot id → building id, or a plot's state for a spot with
+ * none (`plot:open` and so on, see `PlotState`). The captain's own island shows its plots staked:
+ * an offered arc plot, or a spare one while a building passed over waits, is open; an arc plot
+ * still to be given is bare. `chosen`: the plot the Island tab has picked.
+ */
+export function islandLook(
+  home: HomeState,
+  map: MapDef,
+  islandId: string,
+  chosen?: string,
+): Record<string, string> {
+  const h = islandHome(home, islandId);
+  const out: Record<string, string> = { ...h.built };
+  if (!h.owned) return out;
+  const spare = passedOver(home, map, islandId).length > 0;
+  for (const spot of homeSpots(map, islandId)) {
+    if (h.built[spot.id]) continue;
+    const open = spot.pair ? h.offered.includes(spot.id) : spare;
+    if (open && spot.id === chosen) out[spot.id] = `${PLOT}chosen`;
+    else if (open) out[spot.id] = `${PLOT}open`;
+    else if (spot.pair) out[spot.id] = `${PLOT}bare`;
+  }
+  return out;
+}
+
+/** `islandLook` for every island with a home state, for drawing. */
+export function homeLooks(
+  home: HomeState,
+  map: MapDef,
+  chosen?: { island: string; spot: string } | null,
+): Record<string, Record<string, string>> {
+  return Object.fromEntries(
+    Object.keys(home.islands).map((id) => [
+      id,
+      islandLook(home, map, id, chosen?.island === id ? chosen.spot : undefined),
+    ]),
+  );
 }
 
 /**
  * The island file as it stands for a home state: each building's props (`home:<building>`) on
  * its arc spot, or moved to the spare spot it was built on; run-down props (`home-empty:<spot>`)
- * only while their spot is empty. With no state, the island as the captain first finds it.
+ * only while their spot is empty; a plot's stakes (and ring) on a spot without a building
+ * (`islandLook`, decision 0210). With no state, the island as the captain first finds it.
  */
 export function homeDesign(design: IslandDesign, built: Record<string, string> = {}): IslandDesign {
   return homeView(design, built).design;
@@ -297,7 +352,7 @@ export function homeView(
   design.props.forEach((prop, index) => {
     const tags = prop.tags ?? [];
     const empty = tags.find((t) => t.startsWith('home-empty:'));
-    if (empty && built[empty.slice('home-empty:'.length)]) return;
+    if (empty && isBuilding(built[empty.slice('home-empty:'.length)])) return;
     const owner = tags.find((t) => t.startsWith('home:'));
     if (!owner) {
       props.push(prop);
@@ -318,6 +373,28 @@ export function homeView(
     });
     from.push(index);
     moved.push(arc !== spot);
+  });
+  // The plots: generated, not in the file, so they map back to no prop (-1).
+  spots.forEach((spot, index) => {
+    const state = plotOf(built[spot.id]);
+    if (!state) return;
+    const types = state === 'chosen' ? [PLOT_PROPS.open, PLOT_PROPS.chosen] : [PLOT_PROPS[state]];
+    for (const type of types) {
+      props.push({
+        type,
+        x: spot.x,
+        z: spot.z,
+        turn: 0,
+        size: 1,
+        // The sign's number is the plot's.
+        variant: index,
+        shape: 0.5,
+        from: 0,
+        ...(spot.y !== undefined ? { y: spot.y } : {}),
+      });
+      from.push(-1);
+      moved.push(false);
+    }
   });
   return { design: { ...design, props }, from, moved };
 }

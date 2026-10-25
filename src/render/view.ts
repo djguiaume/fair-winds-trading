@@ -26,6 +26,8 @@ import { PALETTE } from './palette';
 import { BuoyMarker, EdgeBuoys, createBlobShadow } from './props';
 import { renderPixelRatio, QUALITY, type QualityLevel, type QualityProfile } from './quality';
 import { Wake } from './wake';
+import { ImpactDebris } from './impactDebris';
+import { damageStage, hullCondition } from '../sim/hazards';
 import { WindStreaks } from './windStreaks';
 import { Rain, rainMayReachArea } from './rain';
 import { Atmosphere, LAVA_BY_DAY, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from './atmosphere';
@@ -108,6 +110,8 @@ export class GameView {
   private heelFactor = 1;
   private readonly boatShadow = createBlobShadow(6.5, 14);
   private readonly wake = new Wake();
+  /** Splash and planks from crashes and reef strikes (decision 0208). */
+  private readonly debris = new ImpactDebris();
   private readonly buoy = new BuoyMarker();
   private readonly lighthouseBeams: LighthouseBeams;
   private readonly beaconLights: BeaconLights;
@@ -133,6 +137,8 @@ export class GameView {
   private readonly target = new THREE.Vector3();
   /** A point the camera looks at instead of ahead of the boat (the home island, 0126). */
   private focus: { x: number; y: number } | null = null;
+  /** Where on the screen the focus point sits, from the centre in screen fractions (0210). */
+  private focusShift = { x: 0, y: 0 };
   private readonly tmp = new THREE.Vector3();
   /** The fog bank or ash cloud at the camera's target (decision 0169). */
   private readonly haze: ZoneVisual = { ...CLEAR };
@@ -193,6 +199,8 @@ export class GameView {
       this.boat.root,
       this.boatShadow,
       this.wake.mesh,
+      this.debris.planks,
+      this.debris.splash,
       this.buoy.root,
       this.edgeBuoys.mesh,
       this.stormClouds.root,
@@ -286,29 +294,49 @@ export class GameView {
       hull: level(lv?.hull),
     };
     const id = captain.activeShip;
-    return { id, upgrades, key: `${id}:${upgrades.sails}${upgrades.hold}${upgrades.hull}` };
+    // The model shows the hull's damage in steps (decision 0208): a new step rebuilds it.
+    const damage = damageStage(hullCondition(this.world.trade));
+    const key = `${id}:${upgrades.sails}${upgrades.hold}${upgrades.hull}:${damage}`;
+    return { id, upgrades, damage, key };
   }
 
   /** The model for the ship being sailed, with its upgrade levels visible (decision 0016). */
   private buildBoat(): BoatModel {
-    const { id, upgrades, key } = this.activeBoat();
+    const { id, upgrades, damage, key } = this.activeBoat();
     this.boatKey = key;
     this.heelFactor = heelFactor(id);
     // Quality is a live toggle, not a permanent factory opt-out: Low → Medium must restore ropes.
-    const boat = createBoatModel(id, { upgrades });
+    const boat = createBoatModel(id, { upgrades, damage });
     boat.setLowDetail?.(this.level === 'low');
     boat.root.rotation.order = 'YXZ';
     return boat;
   }
 
-  /** Rebuild the boat after a shipyard purchase or a ship change. */
+  /** Rebuild the boat after a shipyard purchase, a ship change, a new damage step or a repair. */
   private refreshBoat() {
-    if (this.activeBoat().key === this.boatKey) return;
+    const { id, key } = this.activeBoat();
+    if (key === this.boatKey) return;
+    // Only a new ship starts a fresh wake; a damage step keeps her trail.
+    if (id !== this.boatKey.split(':')[0]) this.wake.reset();
     this.scene.remove(this.boat.root);
     this.boat.dispose();
     this.boat = this.buildBoat();
-    this.wake.reset();
     this.scene.add(this.boat.root);
+  }
+
+  /** A crash or a reef strike (decision 0208): a splash at her bow and planks floating off. */
+  impact() {
+    const { boat } = this.world;
+    const dir = bearingVector(boat.heading);
+    const pos = toScene(boat.x, boat.y, this.tmp);
+    const { length, beam } = this.boat.wakeHull;
+    this.debris.spawn(
+      pos.x + dir.x * length * 0.35,
+      pos.z - dir.y * length * 0.35,
+      dir.x,
+      -dir.y,
+      beam,
+    );
   }
 
   setQuality(level: QualityLevel) {
@@ -377,8 +405,14 @@ export class GameView {
 
   /** Grow only the islands whose port levels changed; anchors and harbour lights stay valid. */
   /** Look at a map point (moored at home: the island and its spots), or follow the boat (null). */
-  setFocus(point: { x: number; y: number } | null, jump = false) {
+  setFocus(
+    point: { x: number; y: number } | null,
+    jump = false,
+    /** Put the point off centre, in screen fractions (x right, y down): beside a half screen. */
+    shift = { x: 0, y: 0 },
+  ) {
     this.focus = point ? { ...point } : null;
+    this.focusShift = { ...shift };
     // At once, without the camera's easing (the screenshot tool's --look).
     if (point && jump) {
       this.target.x = point.x;
@@ -475,14 +509,18 @@ export class GameView {
 
     // Camera: tilted top-down, looking a little ahead of the boat; farther out in portrait.
     const ahead = boat.speedKn * 1.6;
-    const tx = this.focus ? this.focus.x : pos.x + dir.x * ahead;
-    const tz = this.focus ? -this.focus.y : pos.z - dir.y * ahead;
-    this.target.x = approach(this.target.x, tx, 2.5, dt);
-    this.target.z = approach(this.target.z, tz, 2.5, dt);
     const aspect = this.width / this.height;
     // The field of view is vertical, so a tall phone sees a thin strip of sea: pull back until
     // portrait shows about as much water across as a landscape tablet (Guillaume, 2026-10-20).
     const dist = BASE_DISTANCE * this.zoom * (aspect < 1 ? clamp(0.85 / aspect, 1, 1.9) : 1);
+    // A shifted focus: the ground the screen spans around the target, the north-up camera
+    // foreshortening it top to bottom.
+    const spanY = (2 * dist * Math.tan((this.camera.fov * DEG) / 2)) / Math.sin(CAMERA_PITCH);
+    const spanX = 2 * dist * Math.tan((this.camera.fov * DEG) / 2) * aspect;
+    const tx = this.focus ? this.focus.x - this.focusShift.x * spanX : pos.x + dir.x * ahead;
+    const tz = this.focus ? -this.focus.y - this.focusShift.y * spanY : pos.z - dir.y * ahead;
+    this.target.x = approach(this.target.x, tx, 2.5, dt);
+    this.target.z = approach(this.target.z, tz, 2.5, dt);
     this.camera.position.set(
       this.target.x,
       Math.sin(CAMERA_PITCH) * dist,
@@ -560,6 +598,7 @@ export class GameView {
     this.boatShadow.rotation.y = yaw;
 
     this.wake.update(dt, time, pos, dir.x, -dir.y, boat.speedKn, this.boat.wakeHull);
+    this.debris.update(dt, (x, z) => waveHeight(x, z, time));
 
     const to = bearingVector(windTo(wind));
     this.streaks.update(
@@ -665,6 +704,7 @@ export class GameView {
     this.volcanoes.dispose();
     this.lanterns.dispose();
     this.wake.dispose();
+    this.debris.dispose();
     this.currentWater?.dispose();
     this.bergs.dispose();
     this.calmWater?.dispose();

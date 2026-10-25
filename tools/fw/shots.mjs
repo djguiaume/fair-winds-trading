@@ -39,12 +39,22 @@ Where
   --sail 0|1|2                  sails furled, half, full (default 2)
   --speed kn                    starting speed (default 5)
   --ship id                     sail this ship (sloop, schooner, fluyt, …)
+  --hull pct                    her hull at this condition, 0 to 100 (decision 0208: the model
+                                shows scuffs below 75, patches below 50, torn sails below 25)
+  --crash ms                    a crash's splash and planks at her bow this long before the shot
+                                (after the wait; e.g. --crash 250 for the splash in the air)
   --hold Key:ms                 hold a key that long before the shot (e.g. ArrowUp:2500)
   --pad steps                   a fake game controller (0162): after the wait, connected, then
                                 each step held in turn: button:ms or axis=value:ms
                                 (e.g. "lx=0.8:1500,rb:100,y:100"); buttons a b x y lb rb lt rt view menu ls rs up down left right
   --port id                     docked at this port, port screen open
-  --moor island                 moored at one of her islands' piers (owned first, decision 0159)
+  --moor island                 moored at one of her islands' piers (owned first, decision 0159),
+                                at sea with its harbour screen closed
+  --offer spot-2,…              plots given on the --moor island and not built: staked, their
+                                giver's card on mooring (with --cards), decision 0210
+  --built spot-1=workshop,…     buildings standing on the --moor island
+  --island-tab                  its harbour screen open on the Island tab; --choose spot-2: that
+                                plot chosen (half screen, the camera on the plot, its ring)
   --quest id:step               a quest started at that step, earlier steps paid (as a quest test)
   --tab market|orders|quay|shipyard   the port screen's tab
   --zoom z                      camera distance, 1 = default, larger = farther (no game limit)
@@ -95,7 +105,7 @@ Output
 
 // The game's own sea is the grown one (decision 0198): `phase4` (or `game`) needs no `?map=`.
 const SEAS = { phase4: '', game: '', ring: 'ring', stress: 'stress' };
-const NUMBERS = ['heading', 'sail', 'speed', 'zoom', 'time', 'wait', 'chart-zoom'];
+const NUMBERS = ['heading', 'sail', 'speed', 'zoom', 'time', 'wait', 'chart-zoom', 'hull', 'crash'];
 
 const pair = (v) => {
   if (Array.isArray(v)) return v.map(Number);
@@ -139,10 +149,16 @@ export function normalise(opts) {
     sail: o.sail ?? 2,
     speed: o.speed ?? 5,
     ship: o.ship ?? null,
+    hull: o.hull ?? null,
+    crash: o.crash ?? null,
     hold: o.hold ? keyHold(o.hold) : null,
     pad: o.pad ? padSteps(o.pad) : null,
     port: o.port ?? null,
     moor: o.moor ?? null,
+    offer: list(o.offer ?? []),
+    built: list(o.built ?? []).map((b) => String(b).split('=')),
+    islandTab: !!o['island-tab'] || !!o.choose,
+    choose: o.choose ?? null,
     quest: o.quest ? String(o.quest).split(':') : null,
     tab: o.tab ?? null,
     zoom: o.zoom ?? null,
@@ -328,6 +344,7 @@ async function setScene(page, shot) {
       captain.activeShip = s.ship;
       world.ship = trade.activeShip(world.trade);
     }
+    if (s.hull !== null) window.fwt.hull(s.hull);
     if (s.quest && !window.fwt.questAt(s.quest[0], s.quest[1]))
       return `no quest step ${s.quest.join(':')}`;
     if (s.charted) {
@@ -344,9 +361,16 @@ async function setScene(page, shot) {
     }
     if (s.port && !s.url && world.trade.dockedAt !== s.port && !window.fwt.dock(s.port))
       return `could not dock at ${s.port}`;
-    if (s.moor) {
-      const home = (world.trade.home.islands[s.moor] ??= { owned: true, offered: [], built: {} });
+    // Plots given and buildings standing: on the --moor island, else the home island (0210).
+    const own = s.moor ?? (s.offer.length || s.built.length ? world.map.homeIsland : null);
+    if (own) {
+      const home = (world.trade.home.islands[own] ??= { owned: true, offered: [], built: {} });
       home.owned = true;
+      for (const spot of s.offer) if (!home.offered.includes(spot)) home.offered.push(spot);
+      for (const [spot, building] of s.built) home.built[spot] = building;
+      window.fwt.showHome();
+    }
+    if (s.moor) {
       if (!window.fwt.moor(s.moor)) return `no pier to moor at on ${s.moor}`;
     }
     if (s.tab && world.trade.dockedAt) window.fwt.tradePanel.open(s.tab);
@@ -502,11 +526,33 @@ async function shootScene(page, shot) {
     await page.keyboard.up(shot.hold.key);
   }
   await pause(shot.wait);
+  if (shot.crash !== null) {
+    await page.evaluate(() => window.fwt.impact());
+    await pause(shot.crash);
+  }
   // Mooring by an island of hers turns the camera and leaving it frees it (0128): look again.
   if (shot.look && !shot.editor && !shot.url) await page.evaluate(lookAt, shot.look);
   // With the chart, the pad plays on the chart (moves its cross), so it acts once it is open.
   await act(page, shot.chart ? { ...shot, pad: null } : shot);
   if (!shot.cards) await closeCards(page);
+  // Moored at her island (decision 0210): its harbour screen, or the island at sea. A plot's
+  // card closed above opens the Island tab as its close event lands, so that comes first.
+  if (!shot.cards && !shot.editor && !shot.url) {
+    await pause(300);
+    const moved = await page.evaluate((s) => {
+      const { homePanel, world } = window.fwt;
+      if (!world.trade.home.docked) return false;
+      if (s.islandTab) {
+        homePanel.open(s.choose ?? undefined);
+        return !!s.choose;
+      }
+      const open = homePanel.isOpen;
+      homePanel.close();
+      return open;
+    }, shot);
+    // The camera glides to the chosen plot, or back to the island.
+    if (moved) await pause(1800);
+  }
   if (shot.chart) {
     await closeCards(page);
     await page.click('#chart-btn');

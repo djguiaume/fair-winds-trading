@@ -6,7 +6,7 @@ import { damageHull, repairPrice } from '../src/sim/hazards';
 import {
   BUILDINGS,
   buildableIslands,
-  builtByIsland,
+  islandLook,
   buildChoices,
   buildOnSpot,
   giveHomeIsland,
@@ -217,6 +217,38 @@ describe('home island (decision 0126)', () => {
     expect(moved.z).toBeCloseTo(original.z - spot3.z + spot5.z);
   });
 
+  it('stakes the plots: open when given, bare until then, a ring on the chosen one (0210)', () => {
+    const { trade } = world();
+    expect(islandLook(trade.home, MAP, 'skerry')).toEqual({}); // not hers: as first found
+    giveHomeIsland(trade, MAP);
+    offerHomeSpot(trade, MAP, 'spot-2');
+    expect(islandLook(trade.home, MAP, 'skerry', 'spot-2')).toEqual({
+      'spot-1': 'plot:bare',
+      'spot-2': 'plot:chosen',
+      'spot-3': 'plot:bare',
+      'spot-4': 'plot:bare',
+    });
+    buildOnSpot(trade, MAP, 'spot-2', 'warehouse');
+    // The bakehouse passed over: the spares are open, for gold.
+    const look = islandLook(trade.home, MAP, 'skerry');
+    expect(look).toMatchObject({
+      'spot-2': 'warehouse',
+      'spot-5': 'plot:open',
+      'spot-6': 'plot:open',
+    });
+
+    const design = designOf(homeIsland(MAP)!)!;
+    const drawn = homeDesign(design, { 'spot-1': 'plot:bare', 'spot-2': 'plot:chosen' });
+    const plots = drawn.props.filter((p) => p.type.startsWith('plot-'));
+    expect(plots.map((p) => [p.type, p.variant])).toEqual([
+      ['plot-stakes-bare', 0],
+      ['plot-stakes', 1],
+      ['plot-ring', 1],
+    ]);
+    // A staked plot keeps its run-down cabin until it is built.
+    expect(drawn.props.some((p) => p.tags?.includes('home-empty:spot-1'))).toBe(true);
+  });
+
   it('knows when she is moored at her island (decision 0134)', () => {
     const w = world();
     const ctx = { trade: w.trade, map: MAP } as Parameters<typeof testCondition>[1];
@@ -271,7 +303,9 @@ describe('home island (decision 0126)', () => {
     expect(buildOnSpot(trade, sea, 'spot-3', 'lookout', 'far-rock')).toEqual({ ok: true, gold: 0 });
     payReward(trade, sea, { homeIsland: true, homeSpot: ['spot-3'] }, () => {});
     expect(buildOnSpot(trade, sea, 'spot-3', 'pilot-house')).toEqual({ ok: true, gold: 0 });
-    expect(builtByIsland(trade.home)).toEqual({
+    expect(
+      Object.fromEntries(Object.entries(trade.home.islands).map(([id, h]) => [id, h.built])),
+    ).toEqual({
       'far-rock': { 'spot-3': 'lookout' },
       skerry: { 'spot-3': 'pilot-house' },
     });

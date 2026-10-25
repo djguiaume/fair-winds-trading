@@ -83,7 +83,7 @@ Copy a ship file in [`src/data/ships/`](../../src/data/ships/), rename it to the
 | `unlock`  | `standing` (orders to deliver at the yard before it is on sale), `price`, `upgradePrices` (level 2 and 3)                                                                                                                                           |
 | `sailing` | polar, no-go angle, speed, turning, leeway, hold, draft, collision radius ([sailing model](../sailing-model.md)) and `heel` (how readily she leans, 1 = sloop)                                                                                       |
 | `hull`    | `length`, `beam`, `depth` in reference units and the authored sections: `outline` (deck plan, x and z from -0.5 to 0.5, bow at +z) and `rings` (how the hull narrows going down)                                                                    |
-| `model`   | `hullColor`, `bandColor`, the main mast (`mastZ`, `mastHeight`, `boom`, `gaff`), optional `foremast` / `mizzen` / `squareMasts`, jibs, cargo spots, `castle`, and `parts`: named pieces from `src/render/models/shipParts.ts` |
+| `model`   | `hullColor`, `bandColor`, the main mast (`mastZ`, `mastHeight`, `boom`, `gaff`), optional `foremast` / `mizzen` / `squareMasts`, jibs, cargo spots, `castle`, `parts`: named pieces from `src/render/models/shipParts.ts`, and `damage`: where her damage shows (below) |
 
 - **Where it is built** is set per map: a port's `builds` list in the map editor. A ship no port
   builds is never on sale.
@@ -91,6 +91,15 @@ Copy a ship file in [`src/data/ships/`](../../src/data/ships/), rename it to the
   `indiaman-stern`, `gun-ports`. A new kind of part (lateen rig, paddle wheel) needs code once.
 - **Look at it** on the model sheet before playing: `models.html?view=ketch&level=3` (also
   `?view=boats` for all ships side by side).
+- **Damage** (decision 0208): `model.damage` places what shows as her hull wears. Stations are
+  `{ "z", "side" }`, `z` along her length (-0.5 stern to 0.5 bow, like the `outline`), `side` 1 or
+  -1 (the outline's +x or -x side). `scuffs` (below 75 %: darker patches on the band, the strake
+  under it and the deck), `rail` (below 50 %: a broken stretch of gunwale; keep it off a stern
+  castle), `tears` (below 25 %: holes in the main sail or each lowest course, `u` along the foot
+  and `v` up the luff, 0 to 1; four cells together make one big hole), `listDeg` and `listSide`
+  (below 25 %: her list, 0 to 10 degrees, toward side 1 or -1). Left out, `DEFAULT_DAMAGE` in
+  `src/data/ships.ts` places them. The steps are `seamanship.damage` in the tuning files.
+  `npm run check` checks the block; `models.html?view=damage&ship=ketch` shows the four steps.
 - **Names:** `ship.ketch` and `shipThe.ketch` in `src/i18n/en.json` and `fr.json`; until then the
   game shows `name`.
 

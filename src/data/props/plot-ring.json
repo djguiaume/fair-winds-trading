@@ -1,0 +1,13 @@
+{
+  "id": "plot-ring",
+  "name": "Chosen plot ring",
+  "group": "town",
+  "parts": [
+    {
+      "torus": [1.65, 0.13, 3, 20],
+      "ops": [["turnX", "pi / 2"]],
+      "at": [0, 0.06, 0],
+      "color": "#e8c46a"
+    }
+  ]
+}

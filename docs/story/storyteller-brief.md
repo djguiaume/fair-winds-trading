@@ -32,7 +32,7 @@
 9. **Hazards stay optional.** No line needs night or a storm to be switched on. Say "when the light's lit", not "tonight".
 10. **One mention across.** Each arc mentions at least one other person by name, once, so the islands feel like neighbours. Already in the story: Ada's millstones (Westholm), Rook at the launch (Calda), Old Ness and his lens (Stonehaven). Kit mentions Rook, who went looking for the shoals on the East Reef and ended up on it (that's the prologue's wreck).
 11. **Moods:** `worried` on the hook (the first step), `neutral` on the middle steps, and `pleased` on the done card.
-12. **The done card does two things in two lines:** thanks, and an invitation to "pick" the building on your island. Don't name the two buildings there, because the island's spot card shows them.
+12. **The done card thanks, then names the plot and the two buildings with placeholders, and sends the captain to Skerry to choose** (`{spotA}`, `{spotB}`: the building names with their article). The giver then speaks once more by the stake at Skerry (`<text>.plot.copy`), decision [0210](../decisions/0210-skerrys-build-choice-staked-plots-and-the-island-tab.md).
 
 ### Each person's way of speaking
 
@@ -127,6 +127,13 @@ Steps and situations are as in the [approved story](community-arcs.md). What's a
 ### Places at sea
 
 The engine's markers are map coordinates in the quest file (0125). Landing spots and gates are chosen by the thread that owns them, written in the quest file, and named in that thread's ADR. Moving an island later means moving its markers.
+
+**The ring's names and what each port shows** (head storyteller, 2026-10-25, built in [0214](../decisions/0214-windward-ring-catch-up-pass.md)):
+
+- Reefs: only two have names in the story, the **East Reef** (by Saltmere, with Kit's gap) and **the Teeth** (off Teeth Rock). The storyteller named the rest: **The Combs** (the narrows reef near Gull Hook), **Mackerel Ledge** (south of Gull Hook), **The Friars** (by Abbey Head). "Gull" is never a leading word again (taken). French keeps the English name with an article: « les Combs », « le Mackerel Ledge », « les Friars ». **Bell Rock** keeps its name.
+- Signatures: Saltmere's smokehouse row and net-drying green, with Rook's harbour office facing the quay (Fogwatch asks for "smoked fish from Saltmere"); Port Calda's slipway with a hull on it.
+- Before and after: Saltmere's story is empty nets, not damage: before `saltmere-shoals` boats pulled up on the shore, empty drying racks, cold smokehouse chimneys; after it full racks, smoke, boats out and buoys on the East Reef gap. Stonehaven before `stonehaven-light`: an idle quarry, uncut blocks stacked on the quay, Teeth Rock bare and one old, empty hull on the Teeth (wrecks are always old and empty, never people); after it the tower and light on Teeth Rock, the hull gone. Watchman Key and Abbey Head show nothing before or after.
+- Greyback Ridge keeps its tall pines in sight: the mast in `calda-slipway` comes from there.
 
 ## Who builds the shared pieces
 
