@@ -1,7 +1,7 @@
 # 0212. Real course marks on the chart: the quest's place and your own mark
 
-**Status:** Implemented for review (2026-10-25). Look agreed with the art director, words with the
-head storyteller; waiting for Guillaume to see the screenshots.
+**Status:** Accepted (2026-10-25). Look agreed with the art director, words with the head
+storyteller; Guillaume saw the screenshots and said to merge.
 
 ## Context
 

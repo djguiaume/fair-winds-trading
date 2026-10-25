@@ -46,6 +46,8 @@ steps (island-radius units, harbour toward +z; --level n = from that town level)
   pier      --at x,z [--length 0.26] [--level n]
   remove    prop|ground|lane|ramp|river|spot|coast|pier <index>, or remove lake
   set       --name … --style … --seed …
+  view      --from x,z --look x,z [--height h --look-height h] [--accent #hex]   the harbour screen's
+            picture of its port (decision 0211; heights in radius units; none clears one, --clear all)
   ground    <index> [--ramp] --material <palette.json ground: grass, rock, snow, ice…> [--height h] [--beach w (a coast ground: its beach width)]
   tidy      rewrite the file in the builder's format (any step does)
 options: --steps steps.json (or '[{"do":"prop",…}]': a list of steps as data, see src/editor/island/steps.ts)
@@ -216,6 +218,18 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
         style: typeof args.style === 'string' ? (args.style as IslandStyle) : undefined,
         seed: num(args.seed),
       });
+    case 'view': {
+      const orNone = <T>(v: unknown, read: (v: unknown) => T) => (v === 'none' ? null : read(v));
+      return clean({
+        do: 'view',
+        from: orNone(args.from, pair),
+        look: orNone(args.look, pair),
+        height: orNone(args.height, num),
+        lookHeight: orNone(args['look-height'], num),
+        accent: orNone(args.accent, (v) => (typeof v === 'string' ? v : undefined)),
+        clear: args.clear ? true : undefined,
+      });
+    }
     default:
       throw new Error(`unknown step "${kind}" (${STEP_KINDS.join(', ')}, tidy)`);
   }
