@@ -1,0 +1,31 @@
+{
+  "id": "woodshed",
+  "name": "Woodshed",
+  "group": "homes",
+  "building": true,
+  "fit": 0.7,
+  "parts": [
+    {
+      "box": [0.8, 0.55, 0.55],
+      "at": [0, 0.28, 0],
+      "color": "walls[variant + 1]"
+    },
+    {
+      "gable": [0.95, 0.7, 0.32],
+      "y": 0.55,
+      "color": "roofs[variant]"
+    },
+    {
+      "gable": [0.97, 0.38, 0.18],
+      "y": 0.72,
+      "color": "#eef4f8"
+    },
+    {
+      "repeat": { "i": { "count": 3 } },
+      "cyl": [0.07, 0.07, 0.5, 5],
+      "ops": [["turnZ", "pi / 2"]],
+      "at": [0, "0.08 + i * 0.13", 0.36],
+      "color": { "pick": "i % 2", "of": ["#8a6040", "#a07850"] }
+    }
+  ]
+}

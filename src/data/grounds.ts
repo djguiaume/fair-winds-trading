@@ -37,6 +37,8 @@ export interface StyleLook {
   roofs: string[];
   /** Grounds this style swaps: `{ "grass": "snow" }`. */
   grounds?: Record<string, string>;
+  /** How wide its beach is, in island-radius units (decision 0170: the ice style's is narrow). */
+  beachWidth?: number;
   /** Palette colours this style overrides for its props and paths (`path`, `pine`…). */
   colors?: Record<string, string | string[]>;
 }

@@ -77,6 +77,7 @@
         "rock": "slate",
         "sand": "shingle"
       },
+      "beachWidth": 0.05,
       "colors": {
         "path": "#d4dbe2"
       }
@@ -163,13 +164,13 @@
     },
     "snow": {
       "name": "Snow",
-      "top": ["#eef4f8", "#e3ecf3", "#f6f9fb"],
-      "side": ["#6e747c", "#5b6068", "#c5d6e6", "#6e747c"]
+      "top": ["#e3ecf3", "#f6f9fb", "#e9f1f6", "#dfe9f1", "#f6f9fb", "#c5d6e6"],
+      "side": ["#c5d6e6", "#6e747c", "#b5c8da", "#5b6068", "#c5d6e6"]
     },
     "ice": {
       "name": "Glacier ice",
       "top": ["#e8f6fa", "#d8eff5"],
-      "side": ["#a8dde8", "#6cbcd2"],
+      "side": ["#dceef4", "#c2dfea"],
       "trees": false
     },
     "slate": {
@@ -182,8 +183,8 @@
     },
     "shingle": {
       "name": "Shingle",
-      "top": ["#a9aaa6", "#9d9e9a"],
-      "side": ["#a9aaa6", "#9d9e9a"],
+      "top": ["#7d7f7c", "#8a8c88", "#74777a"],
+      "side": ["#e3ecf3", "#d4e2ec"],
       "beach": true
     },
     "moor": {

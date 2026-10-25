@@ -42,6 +42,8 @@ export interface Settings {
   stormBelt: boolean;
   /** Currents (decision 0140): water that carries the boat; off = still water everywhere. */
   currents: boolean;
+  /** Drifting icebergs in the north (decision 0170); a hazard, so it can be off. */
+  bergs: boolean;
   /** Haze switches (`fog`, `ash`, decision 0169): false turns that haze off. Left out = on. */
   haze: Record<string, boolean>;
   /** The first current met has shown its one-time hint (decision 0140). */
@@ -72,6 +74,7 @@ const DEFAULTS: Settings = {
   windZones: true,
   stormBelt: true,
   currents: true,
+  bergs: true,
   haze: {},
   seenCurrentHint: false,
   seenBeltHint: false,

@@ -7,6 +7,7 @@ import fr from '../../i18n/fr.json';
 import type { MapDef, SeaMarkDef, SeaMarkType } from '../../sim/map';
 import type { StepWind } from '../../sim/stepEffects';
 import { clearAt } from '../../sim/mapChecks';
+import { hasQuestLand, standingMap } from '../../sim/questLand';
 import {
   CONDITIONS,
   type Condition,
@@ -621,16 +622,45 @@ export function checkText(doc: QuestDoc): string[] {
 export function checkPlaces(
   doc: QuestDoc,
   map: MapDef,
-  clear: (x: number, y: number) => boolean,
+  clear: (x: number, y: number, sea: MapDef) => boolean,
 ): string[] {
   const out: string[] = [];
-  for (const q of doc.quests)
+  for (const q of doc.quests) {
+    // Land that rises or clears after a quest (decision 0166): a quest's places are looked at
+    // with the quests it waits on done (0170: Snowberry's landing lies where the pack was).
+    const before = questsBefore(q, doc.quests);
+    const sea = before.size && hasQuestLand(map) ? standingMap(map, before) : map;
     for (const s of q.steps)
       for (const p of stepPlaces(s, map))
-        if (p.kind !== 'chart' && !clear(p.x, p.y))
+        if (p.kind !== 'chart' && !clear(p.x, p.y, sea))
           out.push(
             `quest ${q.id} › ${s.id}: ${p.kind} at (${Math.round(p.x)}, ${Math.round(p.y)}) is not in clear water`,
           );
+  }
+  return out;
+}
+
+/** Every quest a quest waits on to start, through its start condition, and theirs in turn. */
+export function questsBefore(quest: QuestDef, quests: readonly QuestDef[]): Set<string> {
+  const out = new Set<string>();
+  const named = (v: unknown): string[] =>
+    !v || typeof v !== 'object'
+      ? []
+      : Array.isArray(v)
+        ? v.flatMap(named)
+        : [
+            ...(typeof (v as { quest?: unknown }).quest === 'string'
+              ? [(v as { quest: string }).quest]
+              : []),
+            ...Object.values(v).flatMap(named),
+          ];
+  const todo = named(quest.start);
+  while (todo.length) {
+    const id = todo.pop()!;
+    if (out.has(id)) continue;
+    out.add(id);
+    todo.push(...named(quests.find((q) => q.id === id)?.start));
+  }
   return out;
 }
 
@@ -653,7 +683,7 @@ export function questProblems(doc: QuestDoc, map: MapDef): string[] {
       ...checkQuests(here, map),
       ...checkQuestHooks(map, Object.values(ISLAND_DESIGNS), doc.quests),
       ...checkText(doc),
-      ...checkPlaces({ ...doc, quests: here }, map, (x, y) => clearAt(map, x, y, 0)),
+      ...checkPlaces({ ...doc, quests: here }, map, (x, y, sea) => clearAt(sea, x, y, 0)),
     ];
   } catch (e) {
     return [`the checks stopped: ${String(e)}`];

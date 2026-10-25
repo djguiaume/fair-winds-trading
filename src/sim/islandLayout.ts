@@ -1,3 +1,4 @@
+import { STYLES } from '../data/grounds';
 import type { IslandDef, TerrainDef } from './map';
 import { coastDistance, insetOutline } from './coast';
 import { atLevel, designOf, islandDesign, type IslandDesign, type RampDef } from '../data/islands';
@@ -51,7 +52,7 @@ function createIslandLayout(design: IslandDesign, town: number): IslandLayout {
         // Explicit sandy shores: building height checks use the very same inset as the model.
         outline:
           g.coast !== undefined
-            ? insetOutline(design.coasts[g.coast]!, g.beach ?? BEACH)
+            ? insetOutline(design.coasts[g.coast]!, g.beach ?? beachWidth(design.style))
             : g.outline!,
         holes: g.holes,
         height: g.height,
@@ -113,6 +114,8 @@ function rampHeight(layout: IslandLayout, x: number, z: number, margin = 0) {
 
 /** Width of the sand between a coast and the ground it carries, in radius units. */
 export const BEACH = 0.085;
+/** A style's beach width (its `beachWidth` in palette.json), else the usual one. */
+export const beachWidth = (style?: string) => (style && STYLES[style]?.beachWidth) || BEACH;
 
 const layouts = new WeakMap<IslandDesign, IslandLayout[]>();
 /** The layout of an island file (by id, or the shipped island of a style) at a level. */

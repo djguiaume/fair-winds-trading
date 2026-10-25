@@ -105,17 +105,17 @@ describe('sea editor (0161)', () => {
 
   it('starts a new sea file and lists it in grown.json', () => {
     const doc = fresh();
-    expect(addSea(doc, 'north', 'The Ice')).toBe('north');
-    expect(addSea(doc, 'north', 'Again')).toBeNull();
+    expect(addSea(doc, 'polar', 'The Ice')).toBe('polar');
+    expect(addSea(doc, 'polar', 'Again')).toBeNull();
     expect(addSea(doc, 'grown', 'No')).toBeNull();
     expect(addSea(doc, 'Bad id!', 'No')).toBeNull();
     addIsland(doc, 0, 800);
     claimNew(doc);
     const out = seaExports(doc, shipped());
-    const north = out.find((f) => f.path === 'src/data/seas/north.json')!;
-    expect(north.changed).toBe(true);
-    expect(JSON.parse(north.text)).toMatchObject({
-      id: 'north',
+    const polar = out.find((f) => f.path === 'src/data/seas/polar.json')!;
+    expect(polar.changed).toBe(true);
+    expect(JSON.parse(polar.text)).toMatchObject({
+      id: 'polar',
       name: 'The Ice',
       islands: [{ id: 'island-1', x: 0, y: 800 }],
       terrain: [],
@@ -127,6 +127,7 @@ describe('sea editor (0161)', () => {
       'west',
       'east',
       'north',
+      'polar',
     ]);
   });
 
@@ -173,17 +174,17 @@ describe('sea steps, as npm run sea applies them (0161)', () => {
     const { applySeaSteps } = await import('../src/editor/seaSteps');
     const doc = fresh();
     const made = applySeaSteps(doc, [
-      { do: 'new', sea: 'north', name: 'The Ice' },
-      { do: 'add', what: 'area', sea: 'north', at: [0, 780], fields: { id: 'ice', name: 'Ice' } },
-      { do: 'add', what: 'zone', sea: 'north', at: [100, 820], fields: { kind: 'cold-gale' } },
-      { do: 'add', what: 'mark', sea: 'north', at: [30, 700], fields: { type: 'light' } },
+      { do: 'new', sea: 'polar', name: 'The Ice' },
+      { do: 'add', what: 'area', sea: 'polar', at: [0, 780], fields: { id: 'ice', name: 'Ice' } },
+      { do: 'add', what: 'zone', sea: 'polar', at: [100, 820], fields: { kind: 'cold-gale' } },
+      { do: 'add', what: 'mark', sea: 'polar', at: [30, 700], fields: { type: 'light' } },
       { do: 'add', what: 'shallows', sea: 'south', at: [300, -640], fields: { maxDraft: 1 } },
       { do: 'move', what: 'mark', id: doc.marks!.length, by: [5, 0] },
     ]);
     expect(made).toHaveLength(6);
     const out = seaExports(doc, shipped());
-    const north = JSON.parse(out.find((f) => f.path === 'src/data/seas/north.json')!.text);
-    expect(Object.keys(north)).toEqual([
+    const polar = JSON.parse(out.find((f) => f.path === 'src/data/seas/polar.json')!.text);
+    expect(Object.keys(polar)).toEqual([
       'id',
       'name',
       'islands',
@@ -194,8 +195,8 @@ describe('sea steps, as npm run sea applies them (0161)', () => {
       'windZones',
       'chartAreas',
     ]);
-    expect(north.marks).toEqual([{ type: 'light', x: 35, y: 700 }]);
-    expect(north.chartAreas[0].id).toBe('ice');
+    expect(polar.marks).toEqual([{ type: 'light', x: 35, y: 700 }]);
+    expect(polar.chartAreas[0].id).toBe('ice');
     const south = JSON.parse(out.find((f) => f.path === 'src/data/seas/south.json')!.text);
     expect(south.terrain.at(-1)).toMatchObject({ kind: 'shallows', maxDraft: 1 });
     expect(quickChecks(prepareMap(doc)).filter((c) => !c.ok && c.severity === 'error')).toEqual([]);

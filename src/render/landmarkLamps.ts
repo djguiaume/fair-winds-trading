@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { IslandDef } from '../sim/map';
 import { islandLayout, islandPoint } from '../sim/islandLayout';
 import { designOf, type PropDef } from '../data/islands';
+import { PROP_RECIPES } from '../data/props';
 import { ISLAND_SCALE } from './models/highlandIslands';
 import { standHeight } from './models/towns';
 
@@ -26,11 +27,13 @@ export function landmarkLamps(
     if (!design) continue;
     const R = island.radius / ISLAND_SCALE;
     for (const prop of design.props) {
-      if (prop.type !== type) continue;
+      // Any prop whose recipe has a lamp shines with the beacons (decision 0170).
+      const lamp = type === 'beacon' ? PROP_RECIPES[prop.type]?.lamp : undefined;
+      if (prop.type !== type && !lamp) continue;
       const p = islandPoint(island, prop.x, prop.z),
         layout = islandLayout(design, prop.from ?? 1),
         ground = prop.y !== undefined ? prop.y * R : standHeight(layout, prop.x, prop.z, R),
-        y = (ground + LAMP_Y[type] * (prop.size ?? 1)) * ISLAND_SCALE;
+        y = (ground + (lamp?.y ?? LAMP_Y[type]) * (prop.size ?? 1)) * ISLAND_SCALE;
       out.push({ position: new THREE.Vector3(p.x, y, -p.y), island, prop });
     }
   }

@@ -180,6 +180,14 @@ An island file lists `rivers`, each `{ "kind": "water" | "lava", "points": [[x, 
 - A mountain (peak) may have a `crater`, its open top's radius as a share of its size (0.05 to 0.8), with a glowing pool: the builder's peak panel or the `mountain` step.
 - Checks: the source must be on the island, a width above 0; a river that runs uphill between two points is a warning.
 
+## Ice, drifting bergs and a cold sea ([0170](../decisions/0170-the-north-sea-rimewick-pack-ice-and-drifting-bergs.md))
+
+- **Ice:** a terrain shape of kind `ice` (sea editor or `npm run sea -- add ice`) is solid floes. Tag it `before:<quest>` to clear it after a quest (the Snowberry Pack). How floes look is in `weather.json` › `ice` (`floeSize`, `jitter`, `bits`, `bitSize`).
+- **Berg field:** kind `bergs`, with `count`, `size` [min, max], `loops` (1, 2, 3…, each inner one turning the other way), `spin` (`ccw` or `cw`) and `sway` (units either side of the loop). Defaults and the drift speed are in `weather.json` › `bergs`. `npm run sea -- add bergs --sea north --at x,y --count 6 --loops 2 --sway 8`. A map check warns when bergs do not fit. The player's chart shows each berg only on levels with `chartBergs` (difficulty.json; Fair winds).
+- **Cold water:** a wind-zone kind with a `tint` (`water`, `waterLight`, `shallow`, optional `sky`, `fade`) colours the sea inside its zones, as `cold-sea` does. It has no switch.
+- **Ice islands:** style `ice` swaps grass for snow, rock for slate and sand for shingle, and has a narrower beach (`beachWidth` in the style). Put a `rock` tier under a snow tier to band the cliffs.
+- **A light on a prop:** `"lamp": { "y": 2.4, "color": "#ffd98a" }` in a prop recipe lights it at night as a beacon (Lead Rock's cairn). It is not inherited through `extends`.
+
 ## A new difficulty level ([0113](../decisions/0113-levels-tutorial-and-music-as-data.md))
 
 Add an entry under `levels` in
