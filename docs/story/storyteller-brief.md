@@ -263,6 +263,17 @@ The names are English in French too. The barrier of skerries is **The Stepping S
 
 The belt of squall lines beside the fog coast is **The Stormbreak** (English in French: « le Stormbreak »). Its HUD hint is interface text, not a card, so it may give the timing: "Squalls in the Stormbreak · lull in about 1 min" / « Grains dans le Stormbreak · accalmie dans 1 min environ », and "Lull in the Stormbreak · squalls in about 2 min" / « Accalmie dans le Stormbreak · grains dans 2 min environ ». With its switch off, the hint goes. Elias may mention it once in `fogwatch-amber`, in words that still hold with the switch off: "Out past the fog the weather comes in breaths. Wait for the quiet one, captain." / « Au-delà du brouillard, le temps vient par souffles. Attendez le calme, capitaine. »
 
+### Town levels in the new seas (head storyteller, 2026-10-25)
+
+Guillaume asked whether the new seas' ports have levels. They do, and they follow one rule:
+
+- **Main ports** (Sunreach, Emberhold, Rimewick, Fogwatch) are old ports gone quiet, not new ones. They start as a **Town** (level 3) with no `maxLevel`, so they can grow to **Port town** (level 4) with trade, like the ring ports. Their workshop opens at level 3 (`levelProduces: { "3": ["<crafted good>"] }`), so it crafts as soon as the outpost's raw goods arrive (0150 point 4).
+- **Outposts** (Palm Key, Cinder Isle, Snowberry Isle, Amber Strand) are sites (`site: true`, 0157). They are founded as a **Hamlet** (level 1), gather their raw good from that day, and grow to Town at most (`maxLevel: 3`).
+
+### French map names
+
+Map names stay in English. In French prose, drop "The" and give the name an article, as `le Keeper's Passage` and `la Coral Line` already do: « le Forge Gap », « du Smoulder », « la Floe Line ». Never write « de The Smoulder ». In English prose, write "the Smoulder" mid-sentence, as with "the Teeth", and keep the map name in titles.
+
 ### Quest ids
 
 Ids follow `<port>-<slug>` and `outpost-<biome>`. Keepers and relatives go in `characters.json` with their `voice`, look and port. The opener's letter is a quest of its own, so a ring arc never changes after it is merged.
@@ -286,12 +297,12 @@ Story calls made for threads outside the arcs. They stand unless Guillaume chang
 
 - **Rook's thanks on the skip path** (0139): written for a stranger, since the player skipped the rescue: "I hear you handle a boat well…", "I've a proposal for you".
 - **Finding the home island after the tutorial** (0159): Rook names Skerry, "just west of Saltmere", and a "Sail to Skerry" step with a chart mark takes the captain there. Rook speaks the arrival card: bare plots and a sound pier, and the people of the islands (Kit, Ines, Maren, Ada) will each give a plot. In French say "les îles", not "l'anneau". No building names, deadlines or dialect.
-- **Sailing lessons** (the menu's "Replay tutorial", Guillaume 2026-10-24): a separate navigation-only quest that never replays the rescue. Rook runs a buoy course near Saltmere. His lines stay story-neutral, because it can be played before the rescue or long after: no gratitude, Skerry or arcs. No reward (replayable, no farming); the buoys only show while the lesson runs; no dock speed written into text. Done card: "Neatly sailed, captain. The course is here whenever you want it." Titles: "Hoist and lower sails", "Find the no-go zone", "Tack up to buoy A", "Reach to buoy C", "Run home and dock". French uses real terms (virer de bord, vent de travers, vent arrière) and whatever word the HUD already uses for the no-go zone.
+- **Sailing lessons** (the menu's "Replay tutorial", Guillaume 2026-10-24): a separate navigation-only quest that never replays the rescue. Rook runs a buoy course near Saltmere. His lines stay story-neutral, because it can be played before the rescue or long after: no gratitude, Skerry or arcs. No reward (replayable, no farming); the buoys only show while the lesson runs; no dock speed written into text. Done card: "Neatly sailed, captain. The course is here whenever you want it." Titles: "Hoist and lower sails", "Find the no-go zone", "Tack up to buoy A", "Reach to buoy C", "Run home and dock". French uses real terms (virer de bord, vent de travers, vent arrière) and whatever word the HUD already uses for the no-go zone. The HUD says **« zone de vent debout »** (not « zone interdite »). Buoy letters follow the order the player reaches them, as in the quest file. Coach cards may quote Rook (“ ”, « » with a non-breaking space inside), like `lesson.island.copy`. The full French lines: project files `plan/sailing-lessons/storyteller-ruling-2.md`.
 
-## Status (2026-10-24)
+## Status (2026-10-25)
 
 - Phase 3 story: prologue, the four ring arcs and the epilogue are built and merged.
 - Phase 4, south: all three arcs built and merged (`watchman-passage`, `sunreach-tea`, `outpost-south`; 0155, 0158).
-- Phase 4, west: step design and names above (2026-10-24); the west sea thread builds the sea and its three arcs.
+- Phase 4, west: step design and names above. The west sea thread has written its three arcs (branch `claude/project-thread-xrzh5u`). The storyteller's review is in project files `plan/west-sea/storyteller-review.md`, and Guillaume sees the portraits and cards before merge.
 - Phase 4, north: step design and names above (2026-10-24); the "Build the north ice sea" thread builds the sea and its three arcs.
 - Phase 4, west, north and east: designed above, not built. They need the engine's island `after` and terrain `before` (Cinder Isle rising, Snowberry Isle's pack ice) and their seas laid out first.

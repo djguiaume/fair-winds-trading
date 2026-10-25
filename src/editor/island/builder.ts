@@ -860,7 +860,7 @@ function drawTools() {
 
 /**
  * For `npm run shots -- --builder`: a tab and a shape picked as a click would, e.g. "lanes" and
- * "river:0" with point 2 (decision 0167).
+ * "river:0" with point 2 (decision 0176).
  */
 export function builderSelectForShots(tab: Mode, shape?: string, point?: number) {
   setMode(tab);

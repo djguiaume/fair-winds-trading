@@ -17,6 +17,8 @@
     "leaves": ["#4aa04f", "#5cae4a", "#3f8f45"],
     "palm": ["#3f9e4c", "#58b04a", "#2f8c4a"],
     "palmTrunk": "#8a6a44",
+    "jungle": ["#3d8a3a", "#4a9838", "#35803c"],
+    "teaRoof": "#2a8f6e",
     "tea": ["#3c7a3a", "#468a3c", "#356c34"],
     "teaTip": "#7bb554",
     "teaSoil": "#a8875a",
@@ -53,7 +55,15 @@
     },
     "tropic": {
       "walls": ["#f8f3ea", "#f6dcc0", "#d6ece0", "#f3d0c4"],
-      "roofs": ["#c9a35a", "#d0603e", "#b8904c", "#2f8a8a"]
+      "roofs": ["#c9a35a", "#d0603e", "#b8904c", "#2f8a8a"],
+      "grounds": {
+        "grass": "jungle",
+        "rock": "ochre",
+        "sand": "coralsand"
+      },
+      "colors": {
+        "path": "#dccb9c"
+      }
     },
     "yard": {
       "walls": ["#f4ede0", "#ece2cf", "#f8f3ea"],
@@ -76,7 +86,7 @@
       "roofs": ["#b8402e", "#4f7f4a", "#c8503a", "#3f6a4a"],
       "grounds": {
         "grass": "moss",
-        "rock": "basalt",
+        "rock": "blackbasalt",
         "sand": "shingle"
       },
       "colors": {
@@ -88,11 +98,41 @@
       "roofs": ["#b8402e", "#4f7f4a", "#c8503a", "#3f6a4a"],
       "grounds": {
         "grass": "moss",
-        "rock": "basalt",
+        "rock": "blackbasalt",
         "sand": "blacksand"
       },
       "colors": {
         "path": "#8f8a84"
+      }
+    },
+    "fog": {
+      "walls": ["#2f3035", "#eeeae2", "#2f3035", "#eeeae2", "#8a3a32"],
+      "roofs": ["#8fae55", "#9ab85e", "#86a54e", "#2f3035"],
+      "grounds": {
+        "grass": "turf",
+        "rock": "basalt",
+        "sand": "greyshingle"
+      },
+      "colors": {
+        "path": "#8c8f88",
+        "trim": "#b8433a",
+        "reefRock": ["#4f535a", "#61666d", "#474a50"],
+        "coral": ["#4f6b3a", "#5e7a3a"]
+      }
+    },
+    "strand": {
+      "walls": ["#2f3035", "#eeeae2", "#2f3035", "#eeeae2", "#8a3a32"],
+      "roofs": ["#6f9a4a", "#5e8a44", "#679245", "#2f3035"],
+      "grounds": {
+        "grass": "marram",
+        "rock": "basalt",
+        "sand": "dune"
+      },
+      "colors": {
+        "path": "#d8c99a",
+        "trim": "#b8433a",
+        "reefRock": ["#4f535a", "#61666d", "#474a50"],
+        "coral": ["#4f6b3a", "#5e7a3a"]
       }
     }
   },
@@ -151,8 +191,8 @@
       "top": ["#8a8a4a", "#9a6a3a", "#8f8450"],
       "side": ["#5b6068", "#6e747c"]
     },
-    "basalt": {
-      "name": "Basalt",
+    "blackbasalt": {
+      "name": "Black basalt",
       "top": ["#4b4547", "#433e40", "#4f494b"],
       "side": ["#3d3839", "#4b4547", "#363132"],
       "trees": false
@@ -182,8 +222,67 @@
     },
     "moss": {
       "name": "Moss",
-      "top": ["#7fa852", "#76a04c", "#88b05a"],
-      "side": ["#3d3839", "#4b4547", "#363132"]
+      "top": ["#7fa852", "#6f9848", "#86b05a"],
+      "side": ["#3d3839", "#4b4547", "#363132"],
+      "specks": "#3a3536"
+    },
+    "moss-dark": {
+      "name": "Dark moss",
+      "top": ["#6f9848", "#668c42", "#78a04e"],
+      "side": ["#3d3839", "#4b4547", "#363132"],
+      "specks": "#3a3536"
+    },
+    "turf": {
+      "name": "Turf",
+      "top": "#6a9548",
+      "side": ["#3f434a", "#4f535a", "#61666d", "#74787e"],
+      "peak": "#6a9548"
+    },
+    "basalt": {
+      "name": "Basalt",
+      "top": ["#61666d", "#4f535a"],
+      "side": ["#4f535a", "#61666d", "#474a50"],
+      "trees": false
+    },
+    "greyshingle": {
+      "name": "Grey shingle",
+      "top": ["#5f625f", "#686b67"],
+      "side": ["#4f524f", "#5f625f"],
+      "beach": true
+    },
+    "dune": {
+      "name": "Dune sand",
+      "top": ["#e6d6a8", "#ecdcb0"],
+      "side": ["#e6d6a8", "#d9c898"],
+      "beach": true
+    },
+    "marram": {
+      "name": "Marram dunes",
+      "top": ["#a8aa6a", "#b4b474", "#9ea062"],
+      "side": ["#e6d6a8", "#d9c898"],
+      "trees": false
+    },
+    "coralsand": {
+      "name": "Coral sand",
+      "top": ["#f5ecd4", "#f1e6c8"],
+      "side": ["#f1e6c8", "#ebdcba"],
+      "beach": true
+    },
+    "jungle": {
+      "name": "Jungle",
+      "top": ["#5aa63a", "#62ad3c", "#539e38"],
+      "side": ["#b8743f", "#a8603a", "#c08048"]
+    },
+    "terrace": {
+      "name": "Jungle terrace",
+      "top": ["#5aa63a", "#62ad3c", "#539e38"],
+      "side": ["#c08048", "#c88c55"]
+    },
+    "ochre": {
+      "name": "Ochre rock",
+      "top": ["#c8925a", "#b98250"],
+      "side": ["#a8603a", "#b8703f", "#9a5838"],
+      "trees": false
     }
   }
 }

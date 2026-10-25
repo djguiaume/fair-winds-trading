@@ -1,4 +1,4 @@
-# Rivers of water and lava (decision 0167)
+# Rivers of water and lava (decision 0176)
 
 A test island (not shipped) made with `npm run island -- new river-demo --steps demo-steps.json`, played on the Phase 4 sea in place of Sunreach South with `npm run shots -- --sea phase4 --island …`.
 

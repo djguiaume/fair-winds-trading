@@ -1,4 +1,4 @@
-# 0167. Rivers of water and lava
+# 0176. Rivers of water and lava
 
 **Status:** Proposed (2026-10-24).
 
@@ -19,3 +19,8 @@ Island files had no rivers. Guillaume wants lava rivers on the west sea's volcan
 - The west sea's lava rivers and the east sea's waterfall are data in island files, editable in the builder and the CLI.
 - Rivers are not water for the boat: they are on land. Collision, the chart and the ocean are unchanged.
 - The glow follows the windows' day/night tint; a slow pulse would need its own material and is left out for now.
+
+## Amended (2026-10-25, [0171](0171-the-west-fire-sea-emberhold.md))
+
+- A point may carry its own width, `[x, z, width]`; the river's `width` fills the rest. Builder: the selected river point's *Point N width*; CLI: `npm run island -- <id> widen <river> --point n --width w|none`; step `widen`.
+- Lava is drawn with its own material (orange by day, full glow at night), one draw call on islands that have lava, instead of the lit-window material, which looked like rust by day.

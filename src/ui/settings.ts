@@ -34,16 +34,20 @@ export interface Settings {
   weather: boolean;
   /** Moving storms (decision 0067); hazards can be turned off (Guillaume). */
   storms: boolean;
-  /** Volcanoes erupt now and then near the boat (decision 0176); off, they only smoke. */
+  /** Volcanoes erupt now and then near the boat (decision 0178); off, they only smoke. */
   eruptions: boolean;
   /** Wind zones such as trade belts and doldrums (decision 0140); a hazard, so it can be off. */
   windZones: boolean;
+  /** Storm belts' squalls (decision 0167); off leaves a belt a gusty band with no squalls. */
+  stormBelt: boolean;
   /** Currents (decision 0140): water that carries the boat; off = still water everywhere. */
   currents: boolean;
   /** Haze switches (`fog`, `ash`, decision 0169): false turns that haze off. Left out = on. */
   haze: Record<string, boolean>;
   /** The first current met has shown its one-time hint (decision 0140). */
   seenCurrentHint: boolean;
+  /** The first storm belt met has shown its one-time hint (decision 0167). */
+  seenBeltHint: boolean;
   /** The steady trade wind (decision 0083); picking a difficulty level sets its default. */
   steadyWind: boolean;
 }
@@ -66,9 +70,11 @@ const DEFAULTS: Settings = {
   storms: true,
   eruptions: true,
   windZones: true,
+  stormBelt: true,
   currents: true,
   haze: {},
   seenCurrentHint: false,
+  seenBeltHint: false,
   steadyWind: false,
 };
 

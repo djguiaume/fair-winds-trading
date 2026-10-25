@@ -61,10 +61,12 @@ describe('sloped ground (decision 0096 §4)', () => {
     // The ramp adds some triangles (a band and a fan per edge), and lanes may gain pieces.
     expect(extra).toBeGreaterThan(10);
     expect(extra).toBeLessThan(200);
-    // The fire sea's islands (0171) are the first drawn with slopes; the older ones stay without.
-    for (const d of Object.values(ISLAND_DESIGNS))
-      if (!['emberhold', 'the-smoulder'].includes(d.id))
-        expect(d.ground.some((g) => g.slope)).toBe(false);
+    // Only the east sea's dunes and grazing holm slope (decision 0173) and the fire sea's islands (0171); the rest keep cliffs.
+    const sloping = Object.values(ISLAND_DESIGNS)
+      .filter((d) => d.ground.some((g) => g.slope))
+      .map((d) => d.id)
+      .sort();
+    expect(sloping).toEqual(['amber-strand', 'emberhold', 'lamb-holm', 'the-smoulder']);
   });
 
   it('lets small props stand on a slope but not buildings', () => {

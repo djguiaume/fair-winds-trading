@@ -25,6 +25,7 @@ import {
   atLevel,
   islandDesign,
   type IslandDesign,
+  LANE_WIDTH,
   type LaneDef,
   type PropDef,
   questDesign,
@@ -69,7 +70,7 @@ import {
 } from './props';
 import type { IslandCheckKit } from '../../sim/islandChecks';
 import { riverParts } from './rivers';
-import { craterPool, lavaCracks } from './lavaCracks';
+import { craterPool, groundSpecks, lavaCracks } from './lavaCracks';
 
 /**
  * Settlement growth (decision 0060): a port island's town grows in four steps, hamlet, village,
@@ -630,7 +631,7 @@ export function designedTownParts(
           b = p[i]!;
         const len = a.distanceTo(b) * R;
         const g = paint(
-          new THREE.PlaneGeometry(len + 0.02, R * 0.055).rotateX(-Math.PI / 2),
+          new THREE.PlaneGeometry(len + 0.02, R * (lane.width ?? 0.055)).rotateX(-Math.PI / 2),
           pathColor,
         );
         let y = lane.y;
@@ -663,7 +664,11 @@ export function designedTownParts(
   }
   // Glowing cracks on lava fields and down a volcano's flanks (decision 0171).
   out.push(...lavaCracks(layout, (m) => ground(m).glow, design.seed, R));
-  // Rivers of water or lava (decision 0167) lie on the ground built above.
+  for (const g of groundSpecks(layout, (m) => ground(m).specks, design.seed, R)) {
+    g.userData.islandTerrain = true;
+    out.push(g);
+  }
+  // Rivers of water or lava (decision 0176) lie on the ground built above.
   for (const river of design.rivers ?? [])
     if (atLevel(river, level) && river.points.length >= 2)
       out.push(...riverParts(layout, river, R));
@@ -735,7 +740,9 @@ export function designedTownParts(
       clearedLanes.push({ x, z });
       const len = a.distanceTo(b) * R;
       const g = paint(
-        new THREE.PlaneGeometry(len + 0.01, R * 0.04).rotateX(-Math.PI / 2).translate(0, 0.012, 0),
+        new THREE.PlaneGeometry(len + 0.01, R * (lane.width ?? LANE_WIDTH))
+          .rotateX(-Math.PI / 2)
+          .translate(0, 0.012, 0),
         pathColor,
       );
       if (!flat) g.rotateZ(Math.atan2((hb! - ha!) * R, len));

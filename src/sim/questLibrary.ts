@@ -57,7 +57,7 @@ export interface QuestReward {
    */
   homeSpot?: string[];
   /**
-   * Volcanoes that erupt (decision 0176): islands whose file has a peak with a crater. Spectacle
+   * Volcanoes that erupt (decision 0178): islands whose file has a peak with a crater. Spectacle
    * only: it plays whatever the Eruptions switch says, once the boat is in sight.
    */
   erupt?: string[];

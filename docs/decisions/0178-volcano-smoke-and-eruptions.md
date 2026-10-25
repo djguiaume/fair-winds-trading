@@ -1,4 +1,4 @@
-# 0176. Volcano smoke and eruptions
+# 0178. Volcano smoke and eruptions
 
 **Status:** Proposed (2026-10-25). Waiting for the art director's look pass and Guillaume's OK on the screenshots ([docs/reviews/volcano](../reviews/volcano/README.md)). Split from the west fire sea ([0171](0171-the-west-fire-sea-emberhold.md)), which points here.
 

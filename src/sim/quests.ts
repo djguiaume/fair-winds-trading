@@ -637,7 +637,7 @@ export type QuestEvent =
   | { type: 'landed'; quest: string; good: GoodId; qty: number }
   /** The boat was taken to a step's `moveTo` (decision 0164). */
   | { type: 'moved'; quest: string; step: string }
-  /** A reward's volcano erupts (decision 0176): the view plays it, nothing else changes. */
+  /** A reward's volcano erupts (decision 0178): the view plays it, nothing else changes. */
   | { type: 'erupt'; quest: string; island: string }
   | { type: 'finished'; quest: string };
 
@@ -1183,7 +1183,7 @@ export class QuestBook {
     payReward(this.trade, this.world.map, r, () => syncMarketLevels(this.trade, this.world.map));
   }
 
-  /** A reward's eruptions (decision 0176), played in the game and never in a quest test's skip. */
+  /** A reward's eruptions (decision 0178), played in the game and never in a quest test's skip. */
   private erupt(quest: QuestDef, rewards: (QuestReward | undefined)[], events: QuestEvent[]) {
     for (const r of rewards)
       for (const island of r?.erupt ?? []) events.push({ type: 'erupt', quest: quest.id, island });

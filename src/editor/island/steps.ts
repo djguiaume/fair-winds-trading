@@ -73,7 +73,7 @@ export type IslandStep =
       material?: string;
       level?: Level;
     }
-  | { do: 'lane' | 'path' | 'stairs'; points: number[][] }
+  | { do: 'lane' | 'path' | 'stairs'; points: number[][]; width?: number }
   | {
       do: 'river';
       points: number[][];
@@ -119,10 +119,18 @@ export type IslandStep =
       index?: number;
     }
   | { do: 'set'; name?: string; style?: IslandStyle; seed?: number }
-  /** A river point's own width (decision 0167); no `width`: back to the river's. */
+  /** A river point's own width (decision 0176); no `width`: back to the river's. */
   | { do: 'widen'; river: number; point: number; width?: number }
   /** Changes a raised ground (or with `ramp`, a ramp): its material or height (decision 0168). */
-  | { do: 'ground'; index: number; ramp?: boolean; material?: string; height?: number };
+  | {
+      do: 'ground';
+      index: number;
+      ramp?: boolean;
+      material?: string;
+      height?: number;
+      /** A coast ground's beach width (decision 0175). */
+      beach?: number;
+    };
 
 export const STEP_KINDS = [
   'islet',
@@ -229,7 +237,10 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
         step.do === 'stairs'
           ? step.points.map((p) => [p[0]!, p[1]!, p[2] ?? groundHeightAt(design, p[0]!, p[1]!)])
           : step.points;
-      return `lane ${addLane(design, step.do, points)}`;
+      const index = addLane(design, step.do, points);
+      if (step.width !== undefined && step.do !== 'stairs')
+        design.lanes[index]!.width = pos(step.width);
+      return `lane ${index}`;
     }
     case 'river': {
       if (step.points.length < 2) throw new Error('a river needs two points or more');
@@ -317,6 +328,7 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
       if (!g) throw new Error(`no ${what} ${step.index}`);
       if (step.material) g.material = step.material;
       if (step.height !== undefined && 'height' in g) g.height = pos(step.height);
+      if (step.beach !== undefined && 'coast' in g) g.beach = pos(step.beach);
       return `${what} ${step.index}`;
     }
     default:

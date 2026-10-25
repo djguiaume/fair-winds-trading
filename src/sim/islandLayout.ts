@@ -49,7 +49,10 @@ function createIslandLayout(design: IslandDesign, town: number): IslandLayout {
       .filter((g) => atLevel(g, level))
       .map((g) => ({
         // Explicit sandy shores: building height checks use the very same inset as the model.
-        outline: g.coast !== undefined ? insetOutline(design.coasts[g.coast]!, BEACH) : g.outline!,
+        outline:
+          g.coast !== undefined
+            ? insetOutline(design.coasts[g.coast]!, g.beach ?? BEACH)
+            : g.outline!,
         holes: g.holes,
         height: g.height,
         material: g.material,
@@ -196,7 +199,7 @@ export function peakHeight(s: LandSurface, x: number, z: number): number | null 
 
 /**
  * The height of the land's top over a point, in radius units, for things that lie on it (rivers,
- * decision 0167): raised ground, ramps and slopes as `layoutGround` has them, mountains as their
+ * decision 0176): raised ground, ramps and slopes as `layoutGround` has them, mountains as their
  * cones, the beach 0; null at sea or in the lake.
  */
 export function surfaceHeight(layout: IslandLayout, x: number, z: number): number | null {
@@ -209,7 +212,7 @@ export function surfaceHeight(layout: IslandLayout, x: number, z: number): numbe
 }
 
 /**
- * Does a river between two points fall here (decision 0167)? Where it crosses a cliff of raised
+ * Does a river between two points fall here (decision 0176)? Where it crosses a cliff of raised
  * ground; a mountain's flanks are steep but never a cliff.
  */
 export function fallsBetween(layout: IslandLayout, ax: number, az: number, bx: number, bz: number) {

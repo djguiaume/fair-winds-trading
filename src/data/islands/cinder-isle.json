@@ -50,9 +50,9 @@
     { "type": "steam-vent", "x": 0.2, "z": 0.05, "size": 1.1, "from": 1 },
     { "type": "flagpole", "x": 0.32, "z": 0.42, "size": 0.9, "from": 1 },
     { "type": "name-board", "x": -0.12, "z": 0.55, "size": 0.9, "from": 1 },
-    { "type": "turf-house", "x": 0.45, "z": 0.2, "variant": 0, "from": 1 },
+    { "type": "turf-cottage", "x": 0.45, "z": 0.2, "variant": 0, "from": 1 },
     { "type": "crates", "x": -0.25, "z": 0.42, "from": 1 },
-    { "type": "turf-house", "x": -0.5, "z": 0.3, "variant": 1, "from": 2 },
+    { "type": "turf-cottage", "x": -0.5, "z": 0.3, "variant": 1, "from": 2 },
     { "type": "greenhouse", "x": 0.55, "z": -0.05, "from": 2 },
     { "type": "iron-house", "x": -0.35, "z": 0.12, "variant": 2, "from": 3 },
     { "type": "warehouse", "x": 0.1, "z": 0.3, "size": 1.1, "from": 3 }

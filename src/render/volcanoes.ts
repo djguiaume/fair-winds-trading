@@ -54,7 +54,7 @@ export function eruptionStrength(e: Eruption): number | null {
 }
 
 /**
- * Volcano smoke and eruptions (decision 0176). Every crater in the islands' files lets go a thin
+ * Volcano smoke and eruptions (decision 0178). Every crater in the islands' files lets go a thin
  * plume of low-poly puffs that rise, drift with the wind and shrink away; no transparency, so no
  * sorting or overdraw on the old tablet. With the Eruptions switch on, a volcano erupts every few
  * minutes while the boat is near: darker, bigger smoke and glowing lava bombs on arcs, and the

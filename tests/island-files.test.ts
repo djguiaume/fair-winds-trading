@@ -122,9 +122,9 @@ describe('island files (decision 0101)', () => {
 });
 
 const GOLDEN: Record<string, string[]> = {
-  'the-smoulder': ['155:295a6424', '155:295a6424', '155:295a6424', '155:295a6424'],
+  'the-smoulder': ['161:afbe8b23', '161:afbe8b23', '161:afbe8b23', '161:afbe8b23'],
   'organ-pipes': ['49:702078f5', '49:702078f5', '49:702078f5', '49:702078f5'],
-  emberhold: ['521:af46e863', '702:2d746a90', '770:a1538092', '817:be247234'],
+  emberhold: ['540:45293807', '676:41c5d0d1', '793:71cda802', '826:db130d6d'],
   'cinder-isle': ['101:d61cc732', '120:264040fd', '136:af5a5fb4', '136:af5a5fb4'],
   calda: ['556:6dc4b4e3', '664:95208427', '731:b682ff4a', '965:5ffb41cc'],
   saltmere: ['246:190f7a6', '421:aa8af177', '641:e4577624', '806:691e8290'],
@@ -143,8 +143,16 @@ const GOLDEN: Record<string, string[]> = {
   skerry: ['176:5e30be68', '180:f1a016d7', '183:c8300615', '183:c8300615'],
   'watchman-key': ['43:fbfd2fb9', '73:4bfeb4dd', '92:3e8fc1dd', '99:ac0414a9'],
   // The south sea (decision 0152).
-  sunreach: ['415:5f29af5c', '549:b2e40bf2', '665:cdebaf36', '712:28f7bf9e'],
-  'sunreach-south': ['336:9dd11960', '361:49fa96bd', '371:810eea4b', '371:810eea4b'],
-  'palm-key': ['156:f382bcb1', '165:a95e4a6c', '178:e846448d', '178:e846448d'],
-  'lone-palm': Array(4).fill('13:531edc15'),
+  sunreach: ['606:780ca76b', '739:2be703f5', '842:84de71a', '877:b4741162'],
+  'sunreach-south': ['457:f03cd670', '482:cee9291', '491:b2dd7f07', '491:b2dd7f07'],
+  'palm-key': ['296:5af31071', '270:7e77b63a', '266:18f30d17', '266:18f30d17'],
+  'lone-palm': Array(4).fill('13:2bd589f4'),
+  // The east sea (decision 0173).
+  fogwatch: ['630:a7a31ab1', '751:1036b9b6', '823:4bc333a2', '864:1d37430e'],
+  'the-giant': Array(4).fill('6:c84f56e6'),
+  'his-wife': Array(4).fill('6:676eecc4'),
+  'amber-strand': ['129:e66b7b39', '133:56673594', '136:e68e96ec', '136:e68e96ec'],
+  'puffin-holm': Array(4).fill('8:3ff49b4c'),
+  'lamb-holm': Array(4).fill('17:85293a40'),
+  'broch-isle': Array(4).fill('14:18071749'),
 };

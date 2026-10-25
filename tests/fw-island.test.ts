@@ -48,7 +48,7 @@ describe('npm run island: island files from steps (decision 0153)', () => {
       blob: { r: 1, points: 14, rough: 0.22, stretch: 1.25 },
       low: 0.07,
     });
-    expect(design.woods.tree).toBe('woodland-palm');
+    expect(design.woods.tree).toBe('woodland-jungle');
     const made = applySteps(design, STEPS);
     expect(made).toEqual(['ground 1', 'ground 2', 'prop 0', 'props 1-2', 'woods', 'spot-1']);
     // The mountain stands on the low ground; the plateau rises 0.2 above it.

@@ -15,7 +15,7 @@ import {
 } from '../../src/editor/island/steps';
 import { formatIslandJson } from '../../src/editor/model';
 import { ISLAND_SCALE } from '../../src/render/models/highlandIslands';
-import { isResidence } from '../../src/render/models/towns';
+import { isResidence, islandCheckKit } from '../../src/render/models/towns';
 import { type IslandPlace, defaultSeas, islandPlacements, islandProblems } from './check';
 
 /** The repository: npm runs the tools from there. */
@@ -46,7 +46,7 @@ steps (island-radius units, harbour toward +z; --level n = from that town level)
   pier      --at x,z [--length 0.26] [--level n]
   remove    prop|ground|lane|ramp|river|spot|coast|pier <index>, or remove lake
   set       --name … --style … --seed …
-  ground    <index> [--ramp] --material <palette.json ground: grass, rock, snow, ice…> [--height h]
+  ground    <index> [--ramp] --material <palette.json ground: grass, rock, snow, ice…> [--height h] [--beach w (a coast ground: its beach width)]
   tidy      rewrite the file in the builder's format (any step does)
 options: --steps steps.json (or '[{"do":"prop",…}]': a list of steps as data, see src/editor/island/steps.ts)
          --radius r  map radius to check at (default: the island's size on the ring or the Phase 4 sea)
@@ -127,7 +127,11 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
     case 'lane':
     case 'path':
     case 'stairs':
-      return { do: kind, points: need(pointList(args.points), '--points "x,z x,z"') };
+      return clean({
+        do: kind,
+        points: need(pointList(args.points), '--points "x,z x,z"'),
+        width: num(args.width),
+      });
     case 'river':
       return clean({
         do: 'river',
@@ -203,6 +207,7 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
         ramp: args.ramp ? true : undefined,
         material: typeof args.material === 'string' ? args.material : undefined,
         height: num(args.height),
+        beach: num(args.beach),
       });
     case 'set':
       return clean({
@@ -284,9 +289,20 @@ export function run(args: Args): number {
   const place = at ?? { R: 20 / ISLAND_SCALE, harbour: false };
   const problems = islandProblems(design, place);
   const errors = problems.filter((p) => p.severity === 'error');
-  const summary = islandSummary(design, isResidence);
+  // Triangles at the top level, against the old phones' budget (0117).
+  let triangles: number | undefined;
+  try {
+    triangles = islandCheckKit(design, place.R, place.harbour).triangles?.(4);
+  } catch {
+    triangles = undefined;
+  }
+  const summary = `${islandSummary(design, isResidence)}${
+    triangles !== undefined ? `, ${triangles} triangles at level 4` : ''
+  }`;
   if (args.json) {
-    console.log(JSON.stringify({ summary, file, written: write, made, place, problems }, null, 1));
+    console.log(
+      JSON.stringify({ summary, file, written: write, made, place, triangles, problems }, null, 1),
+    );
     return errors.length ? 1 : 0;
   }
   const warnings = problems.length - errors.length;

@@ -17,6 +17,7 @@ import type { Crater, IslandModel, IslandsBuilder } from './types';
 import { landmarkParts } from './landmarks';
 import { type Spot, landmarkRadius, sampleInside, terrainSeed } from '../../sim/landmarks';
 import { insetOutline } from '../../sim/coast';
+import { PALETTE } from '../../data/props';
 import { type TownLevel, townIslandParts } from './towns';
 import { designOf, designQuestIds } from '../../data/islands';
 
@@ -376,6 +377,14 @@ export function terrainProps(feature: TerrainDef, seed: number): Parts {
   }
   if (reef) {
     // Rocks and coral heads just awash; the ocean shader paints the shallows and foam around them.
+    // A styled reef takes its style's rock and coral colours (an empty `coral` list: none).
+    const own = feature.look?.style
+      ? (PALETTE.styles[feature.look.style] as { colors?: Record<string, string | string[]> })
+          ?.colors
+      : undefined;
+    const list = (v: string | string[] | undefined) => (v === undefined ? undefined : [v].flat());
+    const rocks = list(own?.reefRock) ?? [B2.rock2, B2.rock, B2.rock];
+    const coral = list(own?.coral) ?? CORAL;
     for (let i = 0; i < 26; i++) {
       const size = range(rng, 1.1, 2.2);
       const p = sample(size + 1.2);
@@ -386,16 +395,16 @@ export function terrainProps(feature: TerrainDef, seed: number): Parts {
             .scale(1, 0.6, 1)
             .rotateY(rng() * 6)
             .translate(p.x, size * 0.35, -p.y),
-          i % 3 ? B2.rock : B2.rock2,
+          rocks[i % rocks.length]!,
         ),
       );
-      if (i % 2) {
-        const coral = new THREE.ConeGeometry(0.8, 1.6, 5).translate(
+      if (i % 2 && coral.length) {
+        const cone = new THREE.ConeGeometry(0.8, 1.6, 5).translate(
           p.x + size * 0.6,
           0.7,
           -p.y + size * 0.3,
         );
-        parts.push(paint(coral, CORAL[i % 3]!));
+        parts.push(paint(cone, coral[i % coral.length]!));
       }
     }
     return parts;
@@ -454,7 +463,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
   /** Molten lava (decision 0171): glows like the windows, tinted orange by day. */
   private readonly lava = new THREE.MeshBasicMaterial({ vertexColors: true });
   private readonly batches = new Map<string, THREE.Group>();
-  /** Every volcano's crater in the scene (decision 0176), kept up as islands are rebuilt. */
+  /** Every volcano's crater in the scene (decision 0178), kept up as islands are rebuilt. */
   readonly craters: Crater[] = [];
   private levels: Record<string, TownLevel>;
   /** Island id → spot id → building id (decisions 0126, 0128). */
@@ -550,7 +559,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     return group;
   }
 
-  /** Where each crater's pool sits in the scene, for the volcano smoke (decision 0176). */
+  /** Where each crater's pool sits in the scene, for the volcano smoke (decision 0178). */
   private findCraters(islandId: string, parts: Parts) {
     const craters = this.craters.filter((c) => c.island !== islandId);
     const box = new THREE.Box3();

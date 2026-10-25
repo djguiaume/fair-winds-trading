@@ -10,7 +10,7 @@ import { SLOOP } from '../src/sim/ship';
 import { createWorld } from '../src/sim/world';
 import * as THREE from 'three';
 
-// Decision 0176: volcano smoke, eruptions near the boat, and a quest's story eruption.
+// Decision 0178: volcano smoke, eruptions near the boat, and a quest's story eruption.
 const MAP = grownMap(PHASE1_SOURCE);
 const E = TUNING.weather.volcano.eruptions;
 
@@ -24,7 +24,7 @@ const quest = (reward: unknown): QuestDef =>
     reward,
   }) as unknown as QuestDef;
 
-describe('volcano smoke and eruptions (0176)', () => {
+describe('volcano smoke and eruptions (0178)', () => {
   it('finds The Smoulder’s crater in the islands it builds', () => {
     const smoulder = MAP.islands.find((i) => i.id === 'the-smoulder')!;
     expect(hasVolcano(smoulder)).toBe(true);

@@ -617,7 +617,7 @@ export function rewardForm(
       }),
   );
   box.append(row('Building spots', chips('homeSpot', spots)));
-  // Volcanoes: islands whose file has a peak with a crater (decision 0176).
+  // Volcanoes: islands whose file has a peak with a crater (decision 0178).
   const volcanoes: [string, string][] = ctx.map.islands
     .filter(hasVolcano)
     .map((i) => [i.id, i.name ?? i.id]);

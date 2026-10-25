@@ -158,6 +158,50 @@ export function lavaCracks(
   return out;
 }
 
+/**
+ * Small dark rocks over the flat tops of the surfaces whose ground has `specks` (decision 0171:
+ * moss grown over old lava): flat seeded pentagons, about one per 0.012 square radius units.
+ */
+export function groundSpecks(
+  layout: IslandLayout,
+  specksOf: (material: string) => string | undefined,
+  seed: number,
+  R: number,
+): Parts {
+  const out: Parts = [];
+  layout.surfaces.forEach((s, i) => {
+    const color = specksOf(s.material);
+    if (!color || s.shape === 'peak') return;
+    const rng = createRng(seed * 17 + i * 104729);
+    const xs = s.outline.map((p) => p[0]),
+      zs = s.outline.map((p) => p[1]);
+    const [x0, x1, z0, z1] = [Math.min(...xs), Math.max(...xs), Math.min(...zs), Math.max(...zs)];
+    const count = Math.min(36, Math.round(((x1 - x0) * (z1 - z0)) / 0.012));
+    const positions: number[] = [];
+    for (let k = 0, tries = 0; k < count && tries < count * 4; tries++) {
+      const x = x0 + rng() * (x1 - x0),
+        z = z0 + rng() * (z1 - z0);
+      if (!onTop(layout, s, x, z)) continue;
+      k++;
+      const r = (0.008 + rng() * 0.012) * R,
+        turn = rng() * Math.PI;
+      const y = Math.max(s.height * R, BEACH_TOP) + LIFT;
+      const corner = (j: number) => {
+        const a = turn + (j / 5) * Math.PI * 2;
+        const rr = r * (0.7 + ((j * 7 + k) % 3) * 0.15);
+        return [x * R + Math.cos(a) * rr, y, z * R + Math.sin(a) * rr];
+      };
+      // A fan of three triangles, wound to face up.
+      for (const j of [1, 2, 3]) positions.push(...corner(0), ...corner(j + 1), ...corner(j));
+    }
+    if (!positions.length) return;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    out.push(paint(g, color));
+  });
+  return out;
+}
+
 /** A crater's pool of lava (or dark rock), level with its rim, in reference units. */
 export function craterPool(s: LandSurface, R: number, color: string, glow: boolean) {
   const { cx, cz, rx, rz } = peakBox(s);
@@ -167,7 +211,7 @@ export function craterPool(s: LandSurface, R: number, color: string, glow: boole
     .scale(rx, 1, rz)
     .translate(cx * R, s.height * R + 0.02, cz * R);
   const pool = paint(g, color);
-  // Marked so the islands can tell where smoke rises and lava bombs land (decision 0176): the
+  // Marked so the islands can tell where smoke rises and lava bombs land (decision 0178): the
   // cone's slope, rise over run, the same at any scale.
   const run = ((rx + rz) / 2) * (1 - (s.crater ?? 0));
   pool.userData.crater = { slope: (s.height - (s.base ?? 0)) / Math.max(run, 0.01) };

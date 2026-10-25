@@ -265,7 +265,7 @@ function drawShapes(s: OverlayScene, el: El, label: (x: number, z: number, t: st
       'data-hit': s.mode === 'lanes' ? hit({ kind: 'lane', index }) : 'sea',
     }),
   );
-  // Rivers (decision 0167): a band as wide as the river, water blue or lava orange.
+  // Rivers (decision 0176): a band as wide as the river, water blue or lava orange.
   (design.rivers ?? []).forEach((r, index) => {
     if (!atLevel(r, s.level)) return;
     el('polyline', {
