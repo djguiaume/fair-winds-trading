@@ -567,6 +567,7 @@ function drawSteps() {
         s.wind && 'wind',
         s.moveTo && 'moves boat',
         s.sound && 'sound',
+        s.music && 'music',
       ]
         .filter(Boolean)
         .map((f) => `<em>${String(f)}</em>`),
@@ -1247,6 +1248,17 @@ function seaPanel(s: QuestStep): HTMLElement[] {
     ),
   );
   out.push(row('Sound', sound));
+  out.push(
+    row(
+      'Music',
+      select(
+        Object.keys(audio.music),
+        s.music,
+        (v) => edit(() => (v ? (s.music = v) : delete s.music)),
+        '— the sea’s',
+      ),
+    ),
+  );
   return out;
 }
 

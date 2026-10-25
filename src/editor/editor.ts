@@ -60,6 +60,7 @@ import {
 import { giveIslandFile } from './island/fromLook';
 import { openQuests, questsOpen, setupQuestBuilder } from './quest/builder';
 import { controlsOpen, openControls, setupControlsPage } from './controls/page';
+import { openSounds, setupSoundsPage, soundsOpen } from './sounds/page';
 import {
   type GrownDef,
   type SeaDoc,
@@ -396,6 +397,8 @@ setupSeaSwitch();
 $('ed-quests').addEventListener('click', openQuests);
 setupControlsPage(() => commit(true));
 $('ed-controls').addEventListener('click', openControls);
+setupSoundsPage(() => commit(true));
+$('ed-sounds').addEventListener('click', openSounds);
 svg.addEventListener('dblclick', (e) => {
   if (laying) return finishLaying();
   const hit = (e.target as Element).closest('[data-hit]')?.getAttribute('data-hit') ?? '';
@@ -838,7 +841,7 @@ function nudge(dx: number, dy: number) {
 }
 
 document.addEventListener('keydown', (e) => {
-  if (islandOpen() || questsOpen() || controlsOpen()) return;
+  if (islandOpen() || questsOpen() || controlsOpen() || soundsOpen()) return;
   const target = e.target as HTMLElement;
   if (target.closest('input, select, textarea')) return;
   const mod = e.ctrlKey || e.metaKey;

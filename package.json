@@ -23,7 +23,8 @@
     "shots": "node tools/fw/fw.mjs shots",
     "quest": "node tools/fw/fw.mjs quest",
     "race": "node tools/fw/fw.mjs quest race",
-    "chart": "node tools/fw/fw.mjs chart"
+    "chart": "node tools/fw/fw.mjs chart",
+    "sound": "node tools/fw/fw.mjs sound"
   },
   "dependencies": {
     "fflate": "^0.8.3",
