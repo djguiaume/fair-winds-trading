@@ -1,4 +1,4 @@
-"""Port Calda's ring pass (decision 0215): lamp posts along its lanes, from level 2 (the town
+"""Port Calda's ring pass (decision 0216): lamp posts along its lanes, from level 2 (the town
 already has woods, a lake and its mountain). A lamp the checks refuse is left out. Run once on the
 shipped file; later changes go through `npm run island`."""
 import json, math, re, subprocess

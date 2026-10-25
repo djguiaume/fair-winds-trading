@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 /** A soft round glow, drawn once into a small canvas texture. */
-function glowTexture(): THREE.Texture {
+export function glowTexture(): THREE.Texture {
   const size = 64;
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = size;

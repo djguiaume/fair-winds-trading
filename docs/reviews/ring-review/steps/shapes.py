@@ -1,4 +1,4 @@
-"""The ring's small islands lose their stacked octagons and straight ridges (decision 0215).
+"""The ring's small islands lose their stacked octagons and straight ridges (decision 0216).
 Each coast gets ragged midpoints (outward only), each raised ground ragged points and a small
 seeded offset that grows with its height, so tiers no longer sit in perfect rings. A prop the new
 edges leave on a cliff is nudged off it (scenery: pines and boulders are dropped instead). Run once

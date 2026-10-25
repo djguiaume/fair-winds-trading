@@ -1,4 +1,4 @@
-# 0215. Windward Ring catch-up pass
+# 0216. Windward Ring catch-up pass
 
 **Status:** Accepted (2026-10-25). Guillaume chose to grow the ring ports (16:21Z) and approved the screenshots (18:16Z).
 
@@ -35,7 +35,9 @@ cameras).
   (36 put one balance check on its line in the ring-alone bots). Props keep their size while the island grows, so the
   ring's homes get bigger (`size` 1.1–1.35) and Stonehaven six more homes at level 4 on its plateau
   (steps in `docs/reviews/ring-review/steps/stonehaven-grown.json`). Port Calda's pilot cutter moves off the new coast;
-  the stress sea keeps 40 units between copies instead of 30. Denser woods were tried and left out: they put the
+  the stress sea keeps 40 units between copies instead of 30. The four ports' approach points (`course`) move out
+  with their coasts, and four other-boat lanes ([0215](0215-other-boats-on-the-sea.md)) are re-laid clear of the bigger
+  Westholm and Saltmere (`emberhold-visitor`, `watchman-oil`, `fogwatch-visitor`, `rimewick-visitor`, `abbey-honey`). Denser woods were tried and left out: they put the
   whole ring at a new voyage's start over its 21,000-triangle cap (0073).
 - **Budget check.** The island checks count a town's triangles as a new voyage finds it and with all its quests done, and
   keep the larger, instead of counting before- and after-quest props together.

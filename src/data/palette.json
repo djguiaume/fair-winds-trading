@@ -36,7 +36,18 @@
     "boulder2": "#d6c4a4",
     "lighthouse": "#f4ede0",
     "lighthouseBand": "#c8603e",
-    "lighthouseRoof": "#3f74a8"
+    "lighthouseRoof": "#3f74a8",
+    "boatHull": "#5b3a1e",
+    "boatSail": "#efe0bf",
+    "boatBand": ["#c8443a", "#3f74a8"],
+    "boatDeck": "#d4a466",
+    "cargo": "#c4914e",
+    "barrel": "#8a5a30",
+    "fishBox": "#aaa88b",
+    "liveryNorth": "#a8403a",
+    "liverySouth": "#2a8f6e",
+    "liveryWest": "#8a3a2a",
+    "liveryEast": "#2f3035"
   },
   "styles": {
     "fish": {
@@ -84,7 +95,8 @@
         "sand": "coralsand"
       },
       "colors": {
-        "path": "#dccb9c"
+        "path": "#dccb9c",
+        "boatBand": ["#2a8f6e", "#2f8a8a"]
       }
     },
     "yard": {
@@ -101,7 +113,8 @@
       },
       "beachWidth": 0.05,
       "colors": {
-        "path": "#d4dbe2"
+        "path": "#d4dbe2",
+        "boatBand": ["#a8403a", "#3f6a9a"]
       }
     },
     "fire": {
@@ -113,7 +126,8 @@
         "sand": "shingle"
       },
       "colors": {
-        "path": "#8f8a84"
+        "path": "#8f8a84",
+        "boatBand": ["#8a3a2a", "#2e2a2a"]
       }
     },
     "volcano": {
@@ -132,7 +146,8 @@
         "lighthouseBand": "#f4ede0",
         "lighthouseRoof": "#b8402e",
         "reefRock": ["#36302f", "#45403e", "#2b2726"],
-        "coral": []
+        "coral": [],
+        "boatBand": ["#8a3a2a", "#2e2a2a"]
       }
     },
     "fog": {
@@ -147,7 +162,9 @@
         "path": "#8c8f88",
         "trim": "#b8433a",
         "reefRock": ["#4f535a", "#61666d", "#474a50"],
-        "coral": ["#4f6b3a", "#5e7a3a"]
+        "coral": ["#4f6b3a", "#5e7a3a"],
+        "boatBand": ["#2f3035", "#8a3a32"],
+        "boatSail": "#a5603f"
       }
     },
     "strand": {
@@ -162,7 +179,9 @@
         "path": "#d8c99a",
         "trim": "#b8433a",
         "reefRock": ["#4f535a", "#61666d", "#474a50"],
-        "coral": ["#4f6b3a", "#5e7a3a"]
+        "coral": ["#4f6b3a", "#5e7a3a"],
+        "boatBand": ["#2f3035", "#8a3a32"],
+        "boatSail": "#a5603f"
       }
     }
   },

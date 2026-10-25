@@ -38,6 +38,7 @@ import { Lanterns } from './lanterns';
 import { Castaway } from './castaway';
 import { SeaMarks } from './seaMarks';
 import { DriftingBergs } from './driftingBergs';
+import { TrafficView } from './traffic';
 import type { SeaMarkDef } from '../sim/map';
 import { QuestMarkers } from './questMarkers';
 import type { StepMarker } from '../ui/questView';
@@ -95,6 +96,8 @@ export class GameView {
   /** Buoys and boats at sea, some only before or after a quest (decision 0130). */
   private readonly seaMarks: SeaMarks;
   private readonly bergs: DriftingBergs;
+  /** Other boats on the sea (decision 0215). */
+  private readonly traffic: TrafficView;
   /** The tracked quest step's places at sea (decision 0130). */
   private readonly questMarkers = new QuestMarkers();
   /** What the tracked step marks at sea; the game sets it once the quests run. */
@@ -202,8 +205,10 @@ export class GameView {
     this.castaway = new Castaway(world.map);
     this.seaMarks = new SeaMarks(world.map);
     this.bergs = new DriftingBergs(world.map);
+    this.traffic = new TrafficView(world.map);
     this.scene.add(
       this.bergs.root,
+      this.traffic.root,
       this.castaway.root,
       this.seaMarks.root,
       this.questMarkers.root,
@@ -678,6 +683,13 @@ export class GameView {
     this.seaMarks.setQuestMarks(this.questMarks());
     this.seaMarks.update(time, (x, z) => waveHeight(x, z, time));
     this.bergs.update(this.world.time, this.world.bergsOn, (x, z) => waveHeight(x, z, time));
+    this.traffic.update(
+      this.world.traffic,
+      time,
+      (x, z) => waveHeight(x, z, time),
+      glow,
+      this.world.boat,
+    );
     this.questMarkers.update(this.stepMarkers(), time, (x, z) => waveHeight(x, z, time));
     const course = this.world.destination;
     this.courseSpar.update(
@@ -848,6 +860,7 @@ export class GameView {
     this.debris.dispose();
     this.currentWater?.dispose();
     this.bergs.dispose();
+    this.traffic.dispose();
     this.calmWater?.dispose();
     this.roughWater?.dispose();
     this.shallowsWater?.dispose();

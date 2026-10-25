@@ -32,7 +32,7 @@ export interface RecipePart {
   plane?: [Num, Num];
   /** Window panes on a w × d house: width, depth, height, front, side panes, centre x, z. */
   windows?: Num[];
-  /** Size of each window pane, 1 = the usual (decision 0215: small ring houses need bigger panes to read at night). */
+  /** Size of each window pane, 1 = the usual (decision 0216: small ring houses need bigger panes to read at night). */
   pane?: Num;
   /** Which windows stay dark at night. */
   seed?: Num;
@@ -117,7 +117,16 @@ export interface Palette {
 export const PALETTE: Palette = paletteFile;
 
 export type PropGroup =
-  'homes' | 'town' | 'timber' | 'fish' | 'farm' | 'stone' | 'nature' | 'rocks' | 'landmarks';
+  | 'homes'
+  | 'town'
+  | 'timber'
+  | 'fish'
+  | 'farm'
+  | 'stone'
+  | 'nature'
+  | 'rocks'
+  | 'landmarks'
+  | 'boats';
 
 /** The prop groups in the builder's order, each with its triangle budget per prop. */
 export const PROP_GROUPS = groupsFile.groups as Record<PropGroup, { budget: number }>;

@@ -1068,7 +1068,7 @@ export function islandCheckKit(design: IslandDesign, R: number, harbour = true):
       return hull;
     },
     // Props shown before or after a quest never stand together: count the town as a new voyage
-    // finds it and with every one of its quests done, and keep the bigger (decision 0215).
+    // finds it and with every one of its quests done, and keep the bigger (decision 0216).
     triangles: (level) => {
       const count = (d: IslandDesign) => {
         const parts = designedTownParts(d, R, level as TownLevel, harbour);

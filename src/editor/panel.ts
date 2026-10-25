@@ -7,6 +7,9 @@ import { SHIP_CLASSES } from '../sim/ship';
 import { QUESTS } from '../sim/quests';
 import { DEFAULT_START_LEVEL, SETTLEMENT_LEVELS, TOWN_LEVELS } from '../sim/settlement';
 import { TUNING } from '../data/tuning';
+import { prepareMap } from '../data/maps';
+import { TRAFFIC_KINDS, type TrafficKind } from '../sim/traffic';
+import { routeLane } from '../sim/trafficChecks';
 import { zoneKindName } from './flowChart';
 import {
   type Selection,
@@ -14,6 +17,7 @@ import {
   findArea,
   findEdge,
   findCurrent,
+  findFleet,
   findIsland,
   findShape,
   findZone,
@@ -73,6 +77,12 @@ const MARK_NAMES: Record<string, string> = {
   'pilot-cutter': 'pilot cutter',
   wreck: 'wreck (aground)',
   light: 'light',
+};
+
+const FLEET_KINDS: Record<TrafficKind, string> = {
+  fishing: 'fishing boats',
+  coaster: 'coaster',
+  visitor: 'far-sea visitor',
 };
 
 const LANDMARKS: (LandmarkKind | '')[] = ['', 'lighthouse', 'ruins', 'wreck', 'beacon'];
@@ -661,6 +671,90 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     if (point && points.length > (lane ? 2 : 3)) button(b, 'Delete point', () => host.remove());
     button(b, 'Delete current', () => {
       host.select({ kind: 'current', id: c.id });
+      host.remove();
+    });
+    return;
+  }
+
+  if (selection.kind === 'fleet') {
+    const f = findFleet(map, selection.id);
+    if (!f) return;
+    heading(f.names.join(', '), `other boats · ${f.kind} · ${f.id}`);
+    seaRow();
+    const ports = map.ports.map((p): [string, string] => [p.id, p.name]);
+    select(
+      'Kind',
+      f.kind,
+      TRAFFIC_KINDS.map((k): [string, string] => [k, FLEET_KINDS[k]]),
+      (v) => {
+        f.kind = v as TrafficKind;
+        if (f.kind === 'fishing') {
+          delete f.to;
+          delete f.ship;
+          delete f.livery;
+          const at = f.path?.[f.path.length - 1] ?? [map.start.x, map.start.y];
+          f.grounds ??= [at[0], at[1], 40];
+        } else {
+          delete f.grounds;
+          f.to ??= map.ports.find((p) => p.id !== f.home)?.id ?? f.home;
+        }
+      },
+    );
+    select('Home port', f.home, ports, (v) => (f.home = v));
+    if (f.kind !== 'fishing') select('Sails to', f.to ?? '', ports, (v) => (f.to = v));
+    text('Boats', f.names.join(', '), (v) => {
+      const names = v
+        .split(',')
+        .map((n) => n.trim())
+        .filter(Boolean);
+      if (names.length) f.names = names;
+    });
+    if (f.kind === 'visitor') {
+      select('Ship', f.ship ?? '', [['', 'the kind’s'], ...ships], (v) => {
+        if (v) f.ship = v;
+        else delete f.ship;
+      });
+      select(
+        'Livery',
+        f.livery ?? '',
+        ['', 'north', 'south', 'east', 'west'].map((l): [string, string] => [l, l || 'none']),
+        (v) => {
+          if (v) f.livery = v;
+          else delete f.livery;
+        },
+      );
+    }
+    if (f.grounds)
+      number('Grounds radius', f.grounds[2], (v) => (f.grounds![2] = Math.max(10, v ?? 40)), {
+        min: 10,
+        step: 5,
+      });
+    stands(f, false);
+    const path = f.path ?? [];
+    const point = selection.point !== undefined ? path[selection.point] : undefined;
+    node('hr');
+    if (point) {
+      heading(`Mark ${selection.point! + 1}`, `of ${path.length}`);
+      xy('Position', point[0], point[1], (x, y) => {
+        point[0] = x;
+        point[1] = y;
+      });
+    } else
+      node('p', {
+        className: 'ed-note',
+        textContent: `${path.length} ${path.length === 1 ? 'mark' : 'marks'} between the harbours${f.grounds ? ' and the grounds' : ''}. Route lays them by the route planner, round land with room to tack; drag a dot to move one, a small ring to add one. npm run check sails the lane in winds from every quarter.`,
+      });
+    const b = buttons();
+    button(b, '🧭 Route', () =>
+      host.change((m) => {
+        const fleet = findFleet(m, f.id);
+        const lane = fleet && routeLane(prepareMap(m), fleet);
+        if (fleet && lane) fleet.path = lane;
+      }, true),
+    );
+    if (point) button(b, 'Delete mark', () => host.remove());
+    button(b, 'Delete fleet', () => {
+      host.select({ kind: 'fleet', id: f.id });
       host.remove();
     });
     return;

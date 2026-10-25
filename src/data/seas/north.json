@@ -627,5 +627,56 @@
         [144.9, 540.9]
       ]
     }
+  ],
+  "traffic": [
+    {
+      "id": "watchman-oil",
+      "kind": "coaster",
+      "home": "watchman-key",
+      "names": ["Wick"],
+      "to": "rimewick",
+      "tags": ["after:rimewick-jam"],
+      "path": [
+        [116, -210],
+        [160, -80],
+        [124, 20],
+        [136, 80],
+        [112, 140],
+        [40, 560]
+      ]
+    },
+    {
+      "id": "rimewick-fishing",
+      "kind": "fishing",
+      "home": "rimewick",
+      "names": ["Little Auk", "Frostfern"],
+      "grounds": [-130, 607, 35]
+    },
+    {
+      "id": "snowberry-berries",
+      "kind": "coaster",
+      "home": "rimewick",
+      "names": ["Snow Bunting"],
+      "to": "snowberry-isle",
+      "tags": ["after:outpost-north"],
+      "path": [
+        [-128, 656],
+        [-168, 648]
+      ]
+    },
+    {
+      "id": "rimewick-visitor",
+      "kind": "visitor",
+      "home": "rimewick",
+      "names": ["Cloudberry Queen"],
+      "to": "calda",
+      "ship": "fluyt",
+      "livery": "north",
+      "tags": ["after:outpost-north"],
+      "path": [
+        [48, 552],
+        [96, 256]
+      ]
+    }
   ]
 }

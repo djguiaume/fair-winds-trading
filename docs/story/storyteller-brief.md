@@ -128,7 +128,7 @@ Steps and situations are as in the [approved story](community-arcs.md). What's a
 
 The engine's markers are map coordinates in the quest file (0125). Landing spots and gates are chosen by the thread that owns them, written in the quest file, and named in that thread's ADR. Moving an island later means moving its markers.
 
-**The ring's names and what each port shows** (head storyteller, 2026-10-25, built in [0215](../decisions/0215-windward-ring-catch-up-pass.md)):
+**The ring's names and what each port shows** (head storyteller, 2026-10-25, built in [0216](../decisions/0216-windward-ring-catch-up-pass.md)):
 
 - Reefs: only two have names in the story, the **East Reef** (by Saltmere, with Kit's gap) and **the Teeth** (off Teeth Rock). The storyteller named the rest: **The Combs** (the narrows reef near Gull Hook), **Mackerel Ledge** (south of Gull Hook), **The Friars** (by Abbey Head). "Gull" is never a leading word again (taken). French keeps the English name with an article: « les Combs », « le Mackerel Ledge », « les Friars ». **Bell Rock** keeps its name.
 - Signatures: Saltmere's smokehouse row and net-drying green, with Rook's harbour office facing the quay (Fogwatch asks for "smoked fish from Saltmere"); Port Calda's slipway with a hull on it.

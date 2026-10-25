@@ -67,7 +67,7 @@ Where
                                 (0157), so --town palm-key:1 shows Palm Key just founded
 Map editor (editor.html instead of the game)
   --editor phase4|ring          the sea editor on the game's sea (default), or the ring alone
-  --select hit                  select what the chart tags so: island:sunreach, shape:coral-line-east,
+  --select hit                  select what the chart tags so: island:sunreach, shape:coral-line-east, fleet:kits-boats,
                                 area:sugar-bar, zone:the-trades, current:id, mark:3, waypoint:2, start
   --look x,y --zoom upp         centre the chart there, map units per pixel (default: the whole sea)
   --draft file.json             an editor draft to load (a map export, or a stored sea draft)
