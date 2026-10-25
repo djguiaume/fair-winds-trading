@@ -155,4 +155,11 @@ const GOLDEN: Record<string, string[]> = {
   'puffin-holm': Array(4).fill('8:3ff49b4c'),
   'lamb-holm': Array(4).fill('17:85293a40'),
   'broch-isle': Array(4).fill('14:18071749'),
+  'steam-holm': ['32:f04003ae', '32:f04003ae', '32:f04003ae', '32:f04003ae'],
+  'spark-rock': ['18:ac74c365', '18:ac74c365', '18:ac74c365', '18:ac74c365'],
+  'the-chimneys': ['10:3c655490', '10:3c655490', '10:3c655490', '10:3c655490'],
+  'the-chimneys-2': ['4:7952fc09', '4:7952fc09', '4:7952fc09', '4:7952fc09'],
+  'the-tongs': ['4:46f87531', '4:46f87531', '4:46f87531', '4:46f87531'],
+  'the-tongs-2': ['4:fa8ab601', '4:fa8ab601', '4:fa8ab601', '4:fa8ab601'],
+  'two-palms': ['23:68f7d454', '23:68f7d454', '23:68f7d454', '23:68f7d454'],
 };
