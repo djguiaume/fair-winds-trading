@@ -4,7 +4,7 @@
   "start": {
     "is": "all",
     "of": [
-      { "is": "quest-done", "quest": "fair-winds" },
+      { "is": "quest-done", "quest": "stonehaven-light" },
       { "is": "docked", "port": "watchman-key" }
     ]
   },
