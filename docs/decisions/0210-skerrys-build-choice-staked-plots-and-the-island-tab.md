@@ -1,6 +1,6 @@
 # 0210. Skerry's build choice: staked plots and the Island tab
 
-**Status:** Proposed (2026-10-25). Mockups agreed by the art director and the head storyteller; waiting on Guillaume's OK of the [mockups](../reviews/skerry-build/README.md) and the real screenshots.
+**Status:** Accepted (2026-10-25). Guillaume OK on the mockups and the built screenshots ("Ok", 15:39Z); the art director and the head storyteller agreed.
 
 ## Context
 
