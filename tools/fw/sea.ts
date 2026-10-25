@@ -34,7 +34,7 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
         island   [--radius 12 --name … --design <island file>]
         reef | sandbank | shallows [--max-draft 1.2] | ice | bergs [--count 6 --size 5,11 --spin cw|ccw --loops 2 --sway 8] | ridge
                                                                   (an oval at --at, or --outline)
-        mark     --type buoy-red|buoy-green|cardinal-north|-east|-south|-west|fishing-boat|pilot-cutter|light
+        mark     --type buoy-red|buoy-green|cardinal-north|-east|-south|-west|fishing-boat|pilot-cutter|wreck|light
                  [--name … --chart --turn deg]
         current  --path "x,y,w x,y,w …" [--speed 1.5 --name …]   (points in the direction it flows)
         drift    [--outline …] --toward deg [--speed 0.8]          (an area current)

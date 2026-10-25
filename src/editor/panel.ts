@@ -70,6 +70,7 @@ const MARK_NAMES: Record<string, string> = {
   'cardinal-west': 'west cardinal',
   'fishing-boat': 'fishing boat',
   'pilot-cutter': 'pilot cutter',
+  wreck: 'wreck (aground)',
   light: 'light',
 };
 

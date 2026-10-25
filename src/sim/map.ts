@@ -178,6 +178,8 @@ export const SEA_MARK_TYPES = [
   'cardinal-west',
   'fishing-boat',
   'pilot-cutter',
+  /** An old, empty hull aground on a reef (decision 0208): a mark that waits on a quest. */
+  'wreck',
   'light',
 ] as const;
 export type SeaMarkType = (typeof SEA_MARK_TYPES)[number];
