@@ -162,6 +162,50 @@
       }
     }
   },
+  "volcano": {
+    "sightUnits": 320,
+    "smoke": {
+      "perSec": 2,
+      "lifeSec": 9,
+      "shrinkFrom": 0.6,
+      "rise": 4,
+      "top": 20,
+      "drift": 0.6,
+      "size": [1, 4],
+      "sizeJitter": 0.35,
+      "spread": 0.6,
+      "craterRadius": 8,
+      "color": "#ece8e1",
+      "selfLit": 0.6,
+      "nightSelfLit": 0.2,
+      "cameraGap": 12
+    },
+    "eruptions": {
+      "nearUnits": 220,
+      "minCrater": 5,
+      "everySec": [150, 300],
+      "firstSec": 40,
+      "rampSec": 3,
+      "holdSec": 14,
+      "fadeSec": 10,
+      "storyHoldSec": 30,
+      "storyWaitSec": 900,
+      "smokeRate": 3,
+      "smokeSize": 1.3,
+      "smokeTop": 1.25,
+      "smokeColor": "#5f5953",
+      "hotColor": "#ff7a3a",
+      "hotMix": 0.4,
+      "bombBurst": [8, 12],
+      "burstSec": 2.5,
+      "bombUp": [12, 18],
+      "bombLand": [0.1, 1.2],
+      "gravity": 14,
+      "bombSize": [0.8, 1.4],
+      "bombColor": "#ffb040",
+      "lavaGain": 1.7
+    }
+  },
   "sight": {
     "near": 1.3,
     "far": 2.4,

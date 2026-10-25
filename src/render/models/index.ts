@@ -11,6 +11,7 @@ import type { BoatModelFactory, IslandsBuilder } from './types';
 export const createBoatModel: BoatModelFactory = createShipModel;
 export const buildIslands: IslandsBuilder = buildHighlandIslands;
 export type {
+  Crater,
   IslandModel,
   BoatModel,
   BoatModelOptions,

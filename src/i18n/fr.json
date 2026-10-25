@@ -151,6 +151,8 @@
   "settings.weatherNote": "Désactivé : brise régulière, ni pluie ni tempête",
   "settings.storms": "Tempêtes",
   "settings.stormsNote": "Désactivé : aucune tempête en mer",
+  "settings.eruptions": "Éruptions",
+  "settings.eruptionsNote": "Désactivé : les volcans fument seulement",
   "settings.windZones": "Zones de vent",
   "settings.windZonesNote": "Désactivé : ni alizés, ni pot-au-noir, ni côte orageuse",
   "settings.stormBelt": "Ceinture de grains",

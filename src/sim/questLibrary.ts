@@ -15,6 +15,7 @@ import { foundSite } from './founding';
 import { MAX_SETTLEMENT_LEVEL, settlementLevel } from './settlement';
 import { homePort, isDiscovered, standingAt } from './shipyards';
 import type { TradeState } from './trade';
+import { hasVolcano } from '../data/islands';
 
 /*
  * The quest engine's code library (decision 0125), like ship parts: the kinds of condition a quest
@@ -55,6 +56,11 @@ export interface QuestReward {
    * the home island, `<island>:spot-2` on another one (0128).
    */
   homeSpot?: string[];
+  /**
+   * Volcanoes that erupt (decision 0178): islands whose file has a peak with a crater. Spectacle
+   * only: it plays whatever the Eruptions switch says, once the boat is in sight.
+   */
+  erupt?: string[];
 }
 
 /** A point at sea, in map units. */
@@ -873,7 +879,16 @@ export function checkReward(r: unknown, scope: CheckScope, at: string): string[]
   const out: string[] = [];
   for (const key of Object.keys(reward))
     if (
-      !['gold', 'standing', 'discover', 'levelUp', 'found', 'homeIsland', 'homeSpot'].includes(key)
+      ![
+        'gold',
+        'standing',
+        'discover',
+        'levelUp',
+        'found',
+        'homeIsland',
+        'homeSpot',
+        'erupt',
+      ].includes(key)
     )
       out.push(`${at}: unknown reward "${key}"`);
   if (reward.gold !== undefined && !isCount(reward.gold))
@@ -911,6 +926,16 @@ export function checkReward(r: unknown, scope: CheckScope, at: string): string[]
       for (const ref of reward.homeSpot)
         if (!resolveSpot(scope.map, ref))
           out.push(`${at}.homeSpot: no arc spot "${String(ref)}" (spot-2 or <island>:spot-2)`);
+  }
+  if (reward.erupt !== undefined) {
+    if (!Array.isArray(reward.erupt)) out.push(`${at}.erupt: needs a list of islands`);
+    else
+      for (const id of reward.erupt) {
+        const island = scope.map.islands.find((i) => i.id === id);
+        if (!island) out.push(`${at}.erupt: no island "${String(id)}"`);
+        else if (!hasVolcano(island))
+          out.push(`${at}.erupt: "${String(id)}" has no volcano (a peak with a crater)`);
+      }
   }
   return out;
 }
