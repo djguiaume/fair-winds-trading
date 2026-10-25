@@ -124,6 +124,49 @@ export interface PadControls extends PadConfig {
 
 export const PAD = controls.gamepad as PadControls;
 
+/**
+ * Pad makers and their buttons' names (decision 0185): the standard layout numbers buttons by
+ * place, so the bottom face button is "A" on an Xbox pad, "✕" on a PlayStation pad and "B" on a
+ * Switch pad. A pad whose id (its USB vendor or name) has a `match` word gets that brand's names;
+ * the first brand is the default. Data: `controls.json` › `padBrands`.
+ */
+export interface PadBrand {
+  match: string[];
+  names: Partial<Record<PadButton, string>>;
+  /** Names that differ in a language (`fr`: the Xbox View button is "Affichage"). */
+  lang?: Record<string, Partial<Record<PadButton, string>>>;
+}
+export const PAD_BRANDS = controls.padBrands as Record<string, PadBrand>;
+
+/** The brand a pad's id names (case does not matter), else the first brand. */
+export function padBrand(id: string, brands: Record<string, PadBrand> = PAD_BRANDS): string {
+  const lower = id.toLowerCase();
+  const names = Object.keys(brands);
+  return (
+    names.find((b) => brands[b]!.match.some((w) => lower.includes(w.toLowerCase()))) ?? names[0]!
+  );
+}
+
+/** Problems in `padBrands`: none, unknown buttons, empty names, a brand without names. */
+export function brandProblems(brands: Record<string, PadBrand> = PAD_BRANDS): string[] {
+  const out: string[] = [];
+  const buttons = new Set<string>(PAD_BUTTONS);
+  if (!Object.keys(brands).length) out.push('padBrands: needs at least one brand');
+  for (const [name, b] of Object.entries(brands)) {
+    for (const [button, label] of Object.entries(b.names)) {
+      if (!buttons.has(button)) out.push(`padBrands.${name}: no button "${button}"`);
+      if (!label?.trim()) out.push(`padBrands.${name}.${button}: empty name`);
+    }
+    for (const button of ['a', 'b', 'x', 'y'] as const)
+      if (!b.names[button]) out.push(`padBrands.${name}: no name for ${button}`);
+    if (b.match.some((w) => !w.trim())) out.push(`padBrands.${name}.match: an empty word`);
+    for (const [lang, names] of Object.entries(b.lang ?? {}))
+      for (const button of Object.keys(names))
+        if (!buttons.has(button)) out.push(`padBrands.${name}.lang.${lang}: no button "${button}"`);
+  }
+  return out;
+}
+
 /** Problems in a controls file: unknown buttons or axes, actions with no button, bad numbers. */
 export function controlProblems(c: PadControls = PAD): string[] {
   const out: string[] = [];
@@ -165,6 +208,8 @@ export function shapeAxis(value: number, deadZone: number): number {
 
 /** The slice of the browser's Gamepad this code reads (easy to fake in tests). */
 export interface PadLike {
+  /** The browser's name for the pad, with its USB vendor (`054c` is Sony). */
+  id?: string;
   connected: boolean;
   mapping: string;
   axes: readonly number[];
@@ -258,6 +303,11 @@ export class GamepadPoller {
   private using = false;
   /** Called when a pad is connected or the last one goes. */
   onConnect: (connected: boolean) => void = () => {};
+  /** The pad's brand (`padBrands`), known once a pad is seen; changes with the pad. */
+  brand = Object.keys(PAD_BRANDS)[0]!;
+  private padId: string | undefined;
+  /** Called when the pad in use is of another brand than before (decision 0185). */
+  onBrand: (brand: string) => void = () => {};
   /**
    * Presses the boat and the chart leave alone, and every press while a menu, dialog, the
    * harbour or a card is up: the menus' focus code takes them (main.ts calls this).
@@ -336,6 +386,7 @@ export class GamepadPoller {
       if (this.pad()) this.found();
     }
     const pad = this.seen ? this.pad() : null;
+    if (pad && pad.id !== this.padId) this.noteBrand(pad);
     const keys = this.keyPresses.splice(0);
     if (!pad && !keys.length && !this.keyHeld.size) return null;
     const frame: PadFrame = pad
@@ -355,7 +406,17 @@ export class GamepadPoller {
   private found() {
     if (this.seen) return;
     this.seen = true;
+    const pad = this.pad();
+    if (pad) this.noteBrand(pad);
     this.onConnect(true);
+  }
+
+  private noteBrand(pad: PadLike) {
+    this.padId = pad.id;
+    const brand = padBrand(pad.id ?? '');
+    if (brand === this.brand) return;
+    this.brand = brand;
+    this.onBrand(brand);
   }
 
   /** A pad button the browser sent as a key: a press for the next frame, unless the pad has it. */
