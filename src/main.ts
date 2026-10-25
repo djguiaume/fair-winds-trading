@@ -181,9 +181,9 @@ const browserStorage: SaveStorage | null = (() => {
   }
 })();
 // The game sails the grown sea: the Windward Ring in the middle, the four seas round it (decision
-// 0197). "Play this map" from the map editor (decision 0095) sails its own map, save and tutorial
+// 0198). "Play this map" from the map editor (decision 0095) sails its own map, save and tutorial
 // progress; so do the bigger-map test sea (decision 0115), `?map=stress`, and the ring alone
-// (`?map=ring`, how the game was before 0197). `?map=phase4` still opens the voyage sailed there
+// (`?map=ring`, how the game was before 0198). `?map=phase4` still opens the voyage sailed there
 // while the grown sea was a dev sea (decision 0152), on the game's own sea.
 const mapParam = new URLSearchParams(location.search).get('map');
 // The sea editor's grown sea (decision 0161): `?map=edited&sea=phase4`.
@@ -487,8 +487,11 @@ questCard.onIgnore = (id) => {
 tradePanel.quay = {
   items: () =>
     quests.lesson ? [] : quayItems(quests, world.map, world.trade.dockedAt, questSeen, questThanks),
-  seen: (keys) => {
-    for (const key of keys) questSeen.add(key);
+  seen: (fresh) => {
+    for (const { key } of fresh) questSeen.add(key);
+    // The first new face on the Quay speaks as their card shows, like a main quest's card (0197).
+    const { card } = fresh[0]!;
+    music.speak(card.giver?.voice, wordCount(card.ask ?? card.speech), card.mood);
   },
   act: (id, act, option) => {
     if (act === 'accept') acceptQuest(id);

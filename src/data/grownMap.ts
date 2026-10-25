@@ -5,7 +5,7 @@ import grown from './seas/grown.json';
 
 /**
  * Local storage prefix of the voyages sailed at `?map=phase4` while the grown sea was a dev sea
- * (decision 0152). The address still opens them (decision 0197).
+ * (decision 0152). The address still opens them (decision 0198).
  */
 export const PHASE4_PREFIX = 'fwt.phase4.';
 
@@ -54,8 +54,8 @@ export const SEAS: SeaDef[] = grown.seas.map((id) => {
 });
 
 /**
- * The grown sea (decisions 0152, 0197): today's Windward Ring unchanged in the middle, the sea
- * grown to its Phase 4 radius and each sea file added round it. The game's own sea since 0197.
+ * The grown sea (decisions 0152, 0198): today's Windward Ring unchanged in the middle, the sea
+ * grown to its Phase 4 radius and each sea file added round it. The game's own sea since 0198.
  * It keeps the ring's name, so a ring voyage resumes where it was with every port and quest
  * (the new waters start fogged), and the grown sea's dev voyages still load.
  */

@@ -77,11 +77,12 @@ export type TradePanelTab = 'market' | 'orders' | 'quay' | 'shipyard';
 
 /**
  * The people of the harbour, on the Quay tab (decision 0141); see `quayItems` in `questView.ts`.
- * `seen` is told the fresh ones once the tab has shown them; `act` the captain's answers.
+ * `seen` is told the fresh ones once the tab has shown them (the first of them speaks, decision
+ * 0197); `act` the captain's answers.
  */
 export interface PortQuay {
   items(): QuayItem[];
-  seen(keys: string[]): void;
+  seen(fresh: QuayItem[]): void;
   act(quest: string, act: 'accept' | 'later' | 'ignore' | 'choose', option?: string): void;
 }
 
@@ -314,7 +315,7 @@ export class TradePanel {
     softDisable(this.container);
     this.attachListeners();
     this.onRender();
-    if (this.tab === 'quay' && fresh.length) this.quay?.seen(fresh.map((p) => p.key));
+    if (this.tab === 'quay' && fresh.length) this.quay?.seen(fresh);
     const modal = this.container.querySelector('.trade-modal');
     if (modal) modal.scrollTop = scrollTop;
     if (focusKey) {

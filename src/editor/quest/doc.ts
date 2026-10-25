@@ -390,7 +390,7 @@ export function playUrl(
   stepId: string,
   start: { port: string } | { x: number; y: number; headingDeg: number },
 ): string {
-  // On the grown sea, the game's own (decision 0197), with the sea editor's working copy if any.
+  // On the grown sea, the game's own (decision 0198), with the sea editor's working copy if any.
   const q = new URLSearchParams({ map: 'edited', sea: 'phase4', quest: questId, step: stepId });
   if ('port' in start) q.set('port', start.port);
   else {

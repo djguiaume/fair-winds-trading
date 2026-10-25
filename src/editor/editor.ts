@@ -175,7 +175,7 @@ const TOOLS: { id: Tool; icon: string; label: string; hint: string }[] = [
 
 /**
  * Which sea the editor works on: the game's grown sea, the ring and every sea file round it
- * (decisions 0161, 0197), or with `?sea=ring` the Windward Ring alone (`phase1-map.json`).
+ * (decisions 0161, 0198), or with `?sea=ring` the Windward Ring alone (`phase1-map.json`).
  */
 const SEA_MODE = new URLSearchParams(location.search).get('sea') !== 'ring';
 const DRAFT_KEY = SEA_MODE ? EDITED_SEAS_KEY : EDITED_MAP_KEY;
