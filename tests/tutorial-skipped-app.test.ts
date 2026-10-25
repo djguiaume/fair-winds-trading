@@ -81,6 +81,16 @@ it('Free sailing on a fresh voyage still plays the prologue, without the coach (
   const wreck = pointOf(world.map, 'wreck')!;
   Object.assign(world.boat, { x: wreck.x + 12, y: wreck.y, speedKn: 0.5 });
   for (let n = 0; n < 8; n++) quests.check(0.5);
+  // Rook speaks at the rescue on his own card, even without the coach (decision 0184).
+  const card = document.getElementById('quest-card') as HTMLDialogElement;
+  expect(quests.progress('first-voyage')?.step).toBe('aboard');
+  expect(card.open).toBe(true);
+  expect(card.querySelector('h2')!.textContent).toBe('Rook');
+  expect(card.querySelector('.quest-speech')!.textContent).toContain(
+    'Harbourmaster Rook, of Saltmere',
+  );
+  click('#quest-card [data-option="continue"]');
+  expect(card.open).toBe(false);
   expect(quests.progress('first-voyage')?.step).toBe('home');
   Object.assign(world.boat, { x: 252, y: -134, speedKn: 0 });
   click('.port-marker[data-port-id="saltmere"]');

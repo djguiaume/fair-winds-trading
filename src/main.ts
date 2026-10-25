@@ -355,8 +355,14 @@ let offersWait = false;
 /** The main quest's card due now (decision 0141): the others speak on the Quay tab and in notes. */
 function dueMainCard() {
   // While a lesson runs, its bubbles speak: an arc offered meanwhile (Kit's, at Saltmere) waits
-  // for the next visit after it (decisions 0130, 0151).
-  if (quests.lesson) return null;
+  // for the next visit after it (decisions 0130, 0151). A lesson step someone speaks (Rook at the
+  // rescue) is their card, with the coach or without (decision 0184).
+  const lesson = quests.lesson;
+  if (lesson) {
+    const { quest, step } = lesson;
+    if (!step.speaker || questSeen.has(`${quest.id}:${step.id}`)) return null;
+    return { quest: quest.id, kind: step.choose ? ('choice' as const) : ('step' as const) };
+  }
   const docked = world.trade.dockedAt;
   return dueCard(quests, world.map, docked, questSeen, questThanks, (q) => !!q.main);
 }
@@ -433,6 +439,8 @@ quests.onEvent = (e) => {
     }
     coach.render();
     refreshMenuTutorial();
+    // A lesson step someone speaks shows their card at once, wherever the step came from (0184).
+    if ((e.type === 'step' || e.type === 'choice') && quests.lesson?.step.speaker) showDueCard();
     return;
   }
   // While a lesson runs, its bubble speaks for Rook's thanks (decision 0127).
@@ -479,7 +487,18 @@ questCard.onChoose = (id, option) => {
   quests.choose(id, option);
   autosave();
 };
-questCard.onClose = () => {
+questCard.onClose = (card) => {
+  // Rook's card at the rescue closed without its answer (Esc): the lesson goes on as if answered,
+  // since nothing else would show that step again (decision 0184).
+  queueMicrotask(() => {
+    const lesson = quests.lesson;
+    if (lesson?.quest.id !== card.quest || !lesson.step.speaker) return;
+    const first = quests.options(card.quest)[0];
+    if (first) {
+      quests.choose(card.quest, first.id);
+      autosave();
+    }
+  });
   // After the arrival card (or "To the market"), the harbour screen.
   if (!showDueCard() && world.trade.dockedAt && !tradePanel.isOpen) tradePanel.open('market');
   refreshPause();
@@ -659,6 +678,9 @@ $('set-sail').addEventListener('click', () => {
   markDifficulty();
   levelPicked = true;
   newVoyage.hidden = true;
+  // The tutorial seen on an earlier voyage (New game in Settings) is not offered again, but the
+  // fresh voyage still starts with the prologue's story, without the coach (decisions 0160, 0184).
+  if (tutorialChoice.status !== 'unseen') startUncoachedPrologue();
   autosave();
   play();
 });
@@ -761,19 +783,30 @@ $('tutorial-start').addEventListener('click', () => {
  * the tutorial stops, if it was running.
  */
 function declineTutorial() {
-  if (
-    !resumedVoyage &&
-    world.time < 60 &&
-    !quests.progress(TUTORIAL_QUEST) &&
-    startAtPrologue(world)
-  ) {
-    sailStep = world.boat.sailStep;
-    quests.ask(TUTORIAL_QUEST);
-    quests.coachOff(TUTORIAL_QUEST);
-  } else quests.drop(TUTORIAL_QUEST);
+  if (!startUncoachedPrologue()) quests.drop(TUTORIAL_QUEST);
   tutorialChoice.set('skipped');
   coach.render();
   refreshMenuTutorial();
+}
+/**
+ * A fresh voyage's prologue without the coach (decision 0160): alone at sea at the map's
+ * prologue start, sails down. False on a voyage under way or a map without a prologue.
+ */
+function startUncoachedPrologue(): boolean {
+  if (
+    resumedVoyage ||
+    world.time >= 60 ||
+    quests.progress(TUTORIAL_QUEST) ||
+    quests.isDone(TUTORIAL_QUEST) ||
+    !startAtPrologue(world)
+  )
+    return false;
+  sailStep = world.boat.sailStep;
+  quests.ask(TUTORIAL_QUEST);
+  quests.coachOff(TUTORIAL_QUEST);
+  coach.render();
+  refreshMenuTutorial();
+  return true;
 }
 $('tutorial-free').addEventListener('click', () => {
   declineTutorial();

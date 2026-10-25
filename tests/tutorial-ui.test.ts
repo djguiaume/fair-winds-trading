@@ -91,10 +91,10 @@ describe('tutorial coach marks in real UI surfaces', () => {
   it('shows the step number of the main line, and the Continue button the step offers', () => {
     const { v, card } = setup();
     card.setSurface('sea');
-    expect(document.querySelector('.coach h3')!.textContent).toBe('1/12 · Sails and steering');
+    expect(document.querySelector('.coach h3')!.textContent).toBe('1/13 · Sails and steering');
     click('#tutorial-continue');
     expect(v.step).toBe('wind');
-    expect(document.querySelector('.coach h3')!.textContent).toBe('2/12 · Let the wind help');
+    expect(document.querySelector('.coach h3')!.textContent).toBe('2/13 · Let the wind help');
   });
 
   for (const mode of ['adult', 'kids'] as const) {
