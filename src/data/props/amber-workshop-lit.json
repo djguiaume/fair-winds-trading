@@ -1,0 +1,6 @@
+{
+  "id": "amber-workshop-lit",
+  "name": "Amber workshop, lit",
+  "extends": "amber-workshop",
+  "lamp": { "y": 0.9, "color": "#ffb24a" }
+}
