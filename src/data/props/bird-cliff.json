@@ -1,0 +1,29 @@
+{
+  "id": "bird-cliff",
+  "name": "Bird cliff",
+  "group": "landmarks",
+  "sizedInModel": true,
+  "scale": "size",
+  "parts": [
+    {
+      "repeat": { "i": { "count": 10 } },
+      "box": [0.32, 0.22, 0.26],
+      "ops": [
+        ["turnY", "i * 1.3"],
+        ["move", "sin(i * 2.4) * 2.6", 0.11, "0.9 + cos(i * 1.7) * 0.7"]
+      ],
+      "color": { "pick": "i % 3", "of": ["#f4f2ee", "#eeeae2", "#dcd8cf"] }
+    },
+    {
+      "repeat": { "i": { "count": 3 }, "side": [-1, 1] },
+      "box": [0.7, 0.05, 0.16],
+      "ops": [
+        ["move", 0.32, 0, 0],
+        ["turnZ", 0.35],
+        ["turnY", "side > 0 ? 0 : pi"],
+        ["move", "-2.4 + i * 1.6", "3 + (i % 2) * 1.5", "2.6 + (i % 3) * 0.8"]
+      ],
+      "color": "#f4f2ee"
+    }
+  ]
+}
