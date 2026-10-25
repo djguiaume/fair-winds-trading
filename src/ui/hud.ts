@@ -390,7 +390,8 @@ export class Hud {
 
   handleEvents(events: WorldEvent[]) {
     for (const e of events) {
-      if (e.type === 'waypoint') {
+      if (e.type === 'mark-reached') this.showToast(t('toast.markReached'), 2.5);
+      else if (e.type === 'waypoint') {
         this.showToast(
           t('toast.waypoint', { label: e.label, time: formatTime(e.seconds), next: e.next }),
           3.5,

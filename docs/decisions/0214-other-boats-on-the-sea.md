@@ -1,6 +1,6 @@
 # 0214. Other boats on the sea
 
-**Status:** Proposed (2026-10-25).
+**Status:** Accepted (2026-10-25, Guillaume after the screenshots).
 
 ## Context
 

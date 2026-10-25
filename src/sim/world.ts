@@ -165,7 +165,7 @@ export interface World {
   /** Degrees added to the map's wind direction (the "new wind" button). */
   windOffsetDeg: number;
   boat: BoatState;
-  destination: { portId: string; label: string; x: number; y: number } | null;
+  destination: Destination | null;
   course: {
     index: number;
     /** Time the current leg started. */
@@ -180,8 +180,24 @@ export interface World {
   traffic: TrafficState;
 }
 
+/**
+ * Where the player set a course (decisions 0058, 0212): a port's pier, the tracked quest's place
+ * (it follows the quest's next place) or a mark of her own dropped on the chart.
+ */
+export interface Destination {
+  /** The port, for a port course. */
+  portId?: string;
+  /** Unset: a port. */
+  kind?: 'quest' | 'mark';
+  label: string;
+  x: number;
+  y: number;
+}
+
 export type WorldEvent =
   | { type: 'bump' }
+  /** She reached her own mark (decision 0212); the course is cleared. */
+  | { type: 'mark-reached' }
   /** Shallows refused her: her draft is too deep for them (decisions 0137, 0152). */
   | { type: 'too-shallow' }
   | { type: 'reef-strike'; damage: number }
@@ -741,6 +757,11 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   events.push(...stepStorms(world));
   events.push(...stepHeel(world, dt));
 
+  const mark = world.destination;
+  if (mark?.kind === 'mark' && distance(world.boat, mark) < harbour().markReach) {
+    world.destination = null;
+    events.push({ type: 'mark-reached' });
+  }
   const wp = currentWaypoint(world);
   if (
     world.map.practiceCourse &&

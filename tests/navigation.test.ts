@@ -58,13 +58,13 @@ describe('on-demand chart', () => {
     click('#chart-clear-target');
     expect(navigationTarget(world)).toBeNull();
   });
-  it('has no markers any more and forgets what older versions stored (decision 0058)', () => {
+  it('forgets what older versions stored (0058); a tap on the sea drops her one mark (0212)', () => {
     localStorage.setItem(`fwt.chart.v1.${PHASE1_MAP.name}`, '[{"x":0,"y":0,"label":"Marker 1"}]');
     const { world } = setup();
     expect(localStorage.getItem(`fwt.chart.v1.${PHASE1_MAP.name}`)).toBeNull();
-    // Tapping the sea no longer drops a marker or sets a course.
+    // Tapping the sea drops her own mark, which is the course (decision 0212).
     document.getElementById('chart-map')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    expect(navigationTarget(world)).toBeNull();
+    expect(navigationTarget(world)).toMatchObject({ kind: 'mark' });
   });
 });
 

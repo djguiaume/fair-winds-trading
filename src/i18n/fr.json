@@ -1040,5 +1040,15 @@
   "home.choosePlot": "Choisir · le voir sur l’île →",
   "home.allPlots": "← Tous les terrains",
   "home.empty": "Pas encore de terrain à bâtir. Aidez les gens des îles, et chacun vous en donnera un.",
-  "home.buildFree": "Bâtir · gratuit"
+  "home.buildFree": "Bâtir · gratuit",
+  "chart.yourMark": "Votre repère",
+  "chart.removeMark": "Retirer votre repère",
+  "chart.statusMarkSet": "Cap sur votre repère. Fermez la carte quand vous êtes prêt.",
+  "chart.statusMarkRemoved": "Repère retiré.",
+  "chart.keyQuestPlace": "Lieu de quête",
+  "chart.keyMark": "Votre repère",
+  "toast.markReached": "Repère atteint",
+  "chart.instructions@touch": "Touchez un port ou un drapeau pour mettre le cap. Touchez la mer pour poser un repère. Choisissez une marchandise en bas pour comparer ses prix dans chaque port.",
+  "chart.instructions@keys": "Cliquez sur un port ou un drapeau pour mettre le cap. Cliquez sur la mer pour poser un repère. Choisissez une marchandise en bas pour comparer ses prix dans chaque port.",
+  "chart.instructions@pad": "Déplacez la croix avec le stick gauche. {pad:a} sur un port ou un drapeau met le cap ; en pleine mer, il pose un repère."
 }

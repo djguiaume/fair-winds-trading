@@ -24,6 +24,7 @@ import { CurrentWater } from './currentWater';
 import { ShallowsWater } from './shallowsWater';
 import { PALETTE } from './palette';
 import { BuoyMarker, EdgeBuoys, createBlobShadow } from './props';
+import { CourseSpar } from './courseSpar';
 import { renderPixelRatio, QUALITY, type QualityLevel, type QualityProfile } from './quality';
 import { Wake } from './wake';
 import { ImpactDebris } from './impactDebris';
@@ -125,6 +126,8 @@ export class GameView {
   /** Splash and planks from crashes and reef strikes (decision 0208). */
   private readonly debris = new ImpactDebris();
   private readonly buoy = new BuoyMarker();
+  /** Where a course to the quest's place or her own mark leads (decision 0212). */
+  private readonly courseSpar = new CourseSpar();
   private readonly lighthouseBeams: LighthouseBeams;
   private readonly beaconLights: BeaconLights;
   private readonly edgeBuoys: EdgeBuoys;
@@ -216,6 +219,7 @@ export class GameView {
       this.debris.planks,
       this.debris.splash,
       this.buoy.root,
+      this.courseSpar.root,
       this.edgeBuoys.mesh,
       this.stormClouds.root,
       this.volcanoes.root,
@@ -687,6 +691,13 @@ export class GameView {
       this.world.boat,
     );
     this.questMarkers.update(this.stepMarkers(), time, (x, z) => waveHeight(x, z, time));
+    const course = this.world.destination;
+    this.courseSpar.update(
+      course?.kind && !course.portId ? { x: course.x, y: course.y, kind: course.kind } : null,
+      time,
+      (x, z) => waveHeight(x, z, time),
+      glow,
+    );
 
     this.buoy.root.visible = Boolean(this.world.map.practiceCourse && !this.world.destination);
     if (this.buoy.root.visible) {
@@ -854,6 +865,7 @@ export class GameView {
     this.roughWater?.dispose();
     this.shallowsWater?.dispose();
     this.buoy.dispose();
+    this.courseSpar.dispose();
     this.edgeBuoys.dispose();
     this.seaMarks.dispose();
     this.questMarkers.dispose();
