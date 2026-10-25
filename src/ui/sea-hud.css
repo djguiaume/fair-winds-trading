@@ -53,6 +53,8 @@
   --green: #59d36b;
   --green-ink: #8fe3a4;
   --red: #ff6a55;
+  /* The hull at its worst (decision 0208). */
+  --red-deep: #d8402e;
   --amber: #ffb36b;
   --outline: #06141c;
   --display: 'Barlow Condensed', 'Arial Narrow', 'Roboto Condensed', sans-serif;
@@ -138,10 +140,13 @@ button.captain-stat:active {
   color: var(--amber);
 }
 .hull-stat b {
-  color: var(--amber);
+  color: var(--brass);
 }
 .hull-stat.is-low b {
   color: var(--red);
+}
+.hull-stat.is-wrecked b {
+  color: var(--red-deep);
 }
 .captain-stat[hidden],
 .cargo-tooltip[hidden] {
@@ -760,8 +765,14 @@ button.captain-stat:focus-visible {
   height: 100%;
   background: var(--green);
 }
+.hull-bar.is-worn i {
+  background: var(--brass);
+}
 .hull-bar.is-low i {
   background: var(--red);
+}
+.hull-bar.is-wrecked i {
+  background: var(--red-deep);
 }
 .wp-arrow {
   position: absolute;
