@@ -97,6 +97,8 @@ const STORM = look(
 /** Window glass tint: dark panes by day, the vertex colours (warm or dark) at night. */
 export const WINDOWS_BY_DAY = new THREE.Color('#5c6470');
 export const WINDOWS_AT_NIGHT = new THREE.Color('#ffffff');
+/** Lava's tint by day (decision 0171): still orange in sunlight, dimmer than at night. */
+export const LAVA_BY_DAY = new THREE.Color('#d8a49a');
 
 function mix(out: Look, a: Look, b: Look, k: number): Look {
   out.sky.copy(a.sky).lerp(b.sky, k);

@@ -51,6 +51,8 @@ Map editor (editor.html instead of the game)
   --look x,y --zoom upp         centre the chart there, map units per pixel (default: the whole sea)
   --draft file.json             an editor draft to load (a map export, or a stored sea draft)
   --export                      the export dialog open (phase4: every file, changed or same)
+  --builder id[:tab[:shape[:point]]]  the island builder on that island, e.g.
+                                the-smoulder:lanes:river:0:2 (tab props|ground|lanes|spots)
 Look
   --lang en|fr                  language (default en)
   --night  | --time s           night, or this game time in seconds (default 300, day)
@@ -161,6 +163,7 @@ export function normalise(opts) {
     url: o.url ?? null,
     editor: o.editor === true ? 'ring' : (o.editor ?? null),
     select: o.select ?? null,
+    builder: o.builder ? String(o.builder).split(':') : null,
     exportOpen: !!o.export,
     draft: o.draft ? resolve(ROOT, o.draft) : null,
     storage: o.storage ?? {},
@@ -217,6 +220,8 @@ export function shotPath(shot) {
   const q = new URLSearchParams({ debug: '' });
   const map = shot.seaFile || shot.islands.length ? 'edited' : SEAS[shot.sea];
   if (map) q.set('map', map);
+  // Island files tried on the Phase 4 sea: the edited map falls back to the grown sea (0161).
+  if (map === 'edited' && !shot.seaFile && shot.sea === 'phase4') q.set('sea', 'phase4');
   return `/?${q}`;
 }
 
@@ -315,7 +320,7 @@ async function setScene(page, shot) {
     }
     if (s.tab && world.trade.dockedAt) window.fwt.tradePanel.open(s.tab);
     if (s.zoom !== null) view.zoom = s.zoom;
-    if (s.look) view.setFocus({ x: s.look[0], y: s.look[1] });
+    if (s.look) view.setFocus({ x: s.look[0], y: s.look[1] }, true);
     return null;
   }, shot);
   if (problem) throw new Error(problem);
@@ -398,6 +403,15 @@ async function shootEditor(page, shot) {
   await page.evaluate((s) => {
     if (s.look) window.fwtEditor.focus(s.look[0], s.look[1], s.zoom ?? undefined);
     if (s.select) window.fwtEditor.select(s.select);
+    if (s.builder) {
+      const [id, tab, kind, index, point] = s.builder;
+      window.fwtEditor.builder(
+        id,
+        tab,
+        kind ? `${kind}:${index}` : undefined,
+        point !== undefined ? Number(point) : undefined,
+      );
+    }
   }, shot);
   // The sailing route checks run in a worker: wait for them (a few seconds on the grown sea).
   await page
@@ -407,6 +421,8 @@ async function shootEditor(page, shot) {
     .catch(() => {});
   if (shot.exportOpen) await page.click('#ed-export');
   await pause(Math.min(shot.wait, 600));
+  // Clicks work in the editors too (e.g. open the island builder and pick a tool).
+  await act(page, shot);
 }
 
 /** The pad's steps, then the clicks, as a player would. */

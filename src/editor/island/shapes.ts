@@ -1,4 +1,11 @@
-import type { GroundDef, IslandDesign, LaneDef, Point, RampDef } from '../../data/islands';
+import type {
+  GroundDef,
+  IslandDesign,
+  LaneDef,
+  Point,
+  RampDef,
+  RiverDef,
+} from '../../data/islands';
 import { insetOutline } from '../../sim/coast';
 import { BEACH } from '../../sim/islandLayout';
 import { createRng } from '../../sim/rng';
@@ -15,15 +22,19 @@ export type Shape =
   | { kind: 'ground'; index: number }
   | { kind: 'lake' }
   | { kind: 'lane'; index: number }
-  | { kind: 'ramp'; index: number };
+  | { kind: 'ramp'; index: number }
+  | { kind: 'river'; index: number };
 
 /** The width a new slope gets, in island-radius units. */
 export const SLOPE_WIDTH = 0.15;
 /** The width of a new ramp (decision 0123), in island-radius units. */
 export const RAMP_WIDTH = 0.1;
+/** The width of a new river (decision 0176), in island-radius units. */
+export const RIVER_WIDTH = 0.04;
 
 const pos = (v: number) => Number(v.toFixed(6));
-const closed = (shape: Shape) => shape.kind !== 'lane' && shape.kind !== 'ramp';
+const closed = (shape: Shape) =>
+  shape.kind !== 'lane' && shape.kind !== 'ramp' && shape.kind !== 'river';
 
 /** The points of a shape (a lane's may carry a height), or undefined for ground on a coast. */
 export function pointsOf(design: IslandDesign, shape: Shape): number[][] | undefined {
@@ -38,6 +49,8 @@ export function pointsOf(design: IslandDesign, shape: Shape): number[][] | undef
       return design.lanes[shape.index]?.points;
     case 'ramp':
       return design.ramps?.[shape.index]?.points;
+    case 'river':
+      return design.rivers?.[shape.index]?.points;
   }
 }
 
@@ -50,6 +63,8 @@ export function shapeName(design: IslandDesign, shape: Shape): string {
   if (shape.kind === 'coast') return shape.index ? `Islet ${shape.index}` : 'Coast';
   if (shape.kind === 'lake') return 'Lake';
   if (shape.kind === 'ramp') return 'Ramp';
+  if (shape.kind === 'river')
+    return design.rivers?.[shape.index]?.kind === 'lava' ? 'Lava river' : 'River';
   if (shape.kind === 'lane') {
     const kind = design.lanes[shape.index]?.kind ?? 'lane';
     return { lane: 'Lane', path: 'Path', stairs: 'Stairs' }[kind];
@@ -115,7 +130,12 @@ export function insertPoint(design: IslandDesign, shape: Shape, index: number): 
   if (!closed(shape) && index >= n - 1) return -1;
   const a = pts[index % n]!,
     b = pts[(index + 1) % n]!;
-  const p = a.map((v, k) => pos((v + b[k]!) / 2));
+  // A river point without its own width has the river's (decision 0176).
+  const width = shape.kind === 'river' ? design.rivers![shape.index]!.width : undefined;
+  const p =
+    width !== undefined && a.length !== b.length
+      ? [0, 1, 2].map((k) => pos(((a[k] ?? width) + (b[k] ?? width)) / 2))
+      : a.map((v, k) => pos((v + b[k]!) / 2));
   const g = shape.kind === 'ground' ? design.ground[shape.index] : undefined;
   const flags = g ? slopeFlags(g) : undefined;
   pts.splice(index + 1, 0, p);
@@ -159,6 +179,9 @@ export function deleteShape(design: IslandDesign, shape: Shape): boolean {
   else if (shape.kind === 'ramp') {
     design.ramps?.splice(shape.index, 1);
     if (!design.ramps?.length) delete design.ramps;
+  } else if (shape.kind === 'river') {
+    design.rivers?.splice(shape.index, 1);
+    if (!design.rivers?.length) delete design.rivers;
   } else design.lanes.splice(shape.index, 1);
   return true;
 }
@@ -364,6 +387,55 @@ export function addLane(
   if (kind === 'stairs') lane.base = Math.min(...lane.points.map((p) => p[2]!));
   design.lanes.push(lane);
   return design.lanes.length - 1;
+}
+
+// --- Rivers (decision 0176) -----------------------------------------------------------------
+
+/** A new river of water or lava through the points, source first, from a level. */
+export function addRiver(
+  design: IslandDesign,
+  kind: NonNullable<RiverDef['kind']>,
+  points: number[][],
+  level: Level = 1,
+  width = RIVER_WIDTH,
+): number {
+  const river: RiverDef = {
+    points: points.map((p) => (p[2] === undefined ? [pos(p[0]!), pos(p[1]!)] : p.map(pos))),
+    width: pos(width),
+  };
+  if (kind !== 'water') river.kind = kind;
+  if (level > 1) river.from = level;
+  design.rivers ??= [];
+  design.rivers.push(river);
+  return design.rivers.length - 1;
+}
+
+/**
+ * A river point's own width, or with `undefined` back to the river's width (a point's third
+ * value, decision 0176).
+ */
+export function setRiverPointWidth(
+  design: IslandDesign,
+  index: number,
+  point: number,
+  width: number | undefined,
+) {
+  const p = design.rivers?.[index]?.points[point];
+  if (!p) throw new Error(`no point ${point} on river ${index}`);
+  if (width === undefined) p.length = 2;
+  else p[2] = pos(width);
+}
+
+/** Turns a river into water or lava. */
+export function setRiverKind(
+  design: IslandDesign,
+  index: number,
+  kind: NonNullable<RiverDef['kind']>,
+) {
+  const river = design.rivers?.[index];
+  if (!river) return;
+  if (kind === 'water') delete river.kind;
+  else river.kind = kind;
 }
 
 // --- Woods -----------------------------------------------------------------------------------

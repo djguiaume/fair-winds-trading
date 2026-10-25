@@ -15,7 +15,7 @@ import {
 } from '../../src/editor/island/steps';
 import { formatIslandJson } from '../../src/editor/model';
 import { ISLAND_SCALE } from '../../src/render/models/highlandIslands';
-import { isResidence } from '../../src/render/models/towns';
+import { isResidence, islandCheckKit } from '../../src/render/models/towns';
 import { type IslandPlace, defaultSeas, islandPlacements, islandProblems } from './check';
 
 /** The repository: npm runs the tools from there. */
@@ -35,12 +35,16 @@ steps (island-radius units, harbour toward +z; --level n = from that town level)
   lake      --at x,z [--size rx,rz | --outline … | --blob …]
   ramp      --points "x,z x,z …" [--start h --end h (default: the ground there)] [--width 0.1] [--rock | --material m] [--level n]
   lane | path | stairs   --points "x,z x,z …" (stairs take the ground's height at each point)
+  river     --points "x,z x,z …" (source first, mouth last; past the coast it falls into the sea)
+            [--kind water|lava] [--width 0.04] [--level n --to n --tags after:quest]
+            a point "x,z,w" has its own width; the river eases between widths
+  widen     <river> --point n --width w   one point's own width (--width none: the river's)
   woods     --at x,z [--r 0.2] [--clear]  paint (turns woods on); --tree --tries --size --spacing --margin
   spot      --at x,z [--pair id] [--y h]
   prop      <type> --at "x,z[ x,z …]" [--turn deg --size s --variant v --shape s --length l --y h --fit r --clear r]
             [--level n --to n --tags a,b]
   pier      --at x,z [--length 0.26] [--level n]
-  remove    prop|ground|lane|ramp|spot|coast|pier <index>, or remove lake
+  remove    prop|ground|lane|ramp|river|spot|coast|pier <index>, or remove lake
   set       --name … --style … --seed …
   ground    <index> [--ramp] --material <palette.json ground: grass, rock, snow, ice…> [--height h] [--beach w (a coast ground: its beach width)]
   tidy      rewrite the file in the builder's format (any step does)
@@ -105,6 +109,7 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
         rise: num(args.rise),
         material,
         slope: num(args.slope),
+        crater: num(args.crater),
         ...shaped,
       });
     case 'lake':
@@ -126,6 +131,21 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
         do: kind,
         points: need(pointList(args.points), '--points "x,z x,z"'),
         width: num(args.width),
+      });
+    case 'river':
+      return clean({
+        do: 'river',
+        points: need(pointList(args.points), '--points "x,z x,z"'),
+        kind:
+          args.kind === 'lava'
+            ? ('lava' as const)
+            : args.kind === 'water'
+              ? ('water' as const)
+              : undefined,
+        width: num(args.width),
+        level,
+        to: num(args.to),
+        tags: typeof args.tags === 'string' ? args.tags.split(',') : undefined,
       });
     case 'woods':
       return clean({
@@ -172,6 +192,13 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
         do: 'remove',
         what: need(rest[0], 'what to remove') as 'prop',
         index: rest[1] !== undefined ? Number(rest[1]) : num(args.index),
+      });
+    case 'widen':
+      return clean({
+        do: 'widen',
+        river: Number(need(rest[0] ?? args.river, 'which river (an index)')),
+        point: Number(need(args.point, '--point n')),
+        width: args.width === 'none' ? undefined : need(num(args.width), '--width w (or none)'),
       });
     case 'ground':
       return clean({
@@ -262,9 +289,20 @@ export function run(args: Args): number {
   const place = at ?? { R: 20 / ISLAND_SCALE, harbour: false };
   const problems = islandProblems(design, place);
   const errors = problems.filter((p) => p.severity === 'error');
-  const summary = islandSummary(design, isResidence);
+  // Triangles at the top level, against the old phones' budget (0117).
+  let triangles: number | undefined;
+  try {
+    triangles = islandCheckKit(design, place.R, place.harbour).triangles?.(4);
+  } catch {
+    triangles = undefined;
+  }
+  const summary = `${islandSummary(design, isResidence)}${
+    triangles !== undefined ? `, ${triangles} triangles at level 4` : ''
+  }`;
   if (args.json) {
-    console.log(JSON.stringify({ summary, file, written: write, made, place, problems }, null, 1));
+    console.log(
+      JSON.stringify({ summary, file, written: write, made, place, triangles, problems }, null, 1),
+    );
     return errors.length ? 1 : 0;
   }
   const warnings = problems.length - errors.length;

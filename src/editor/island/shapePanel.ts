@@ -5,12 +5,15 @@ import { BEACH, isSloped } from '../../sim/islandLayout';
 import { LEVEL_NAMES, LEVELS, type Level, propName } from './doc';
 import {
   RAMP_WIDTH,
+  RIVER_WIDTH,
   SLOPE_WIDTH,
   type Shape,
   clearWoodsPainting,
   pointsOf,
   setEdges,
   setLaneKind,
+  setRiverKind,
+  setRiverPointWidth,
   shapeName,
 } from './shapes';
 
@@ -126,6 +129,26 @@ export function renderShapePanel(root: HTMLElement, host: ShapePanelHost) {
       },
     );
   };
+  /** `after:<quest>` and `before:<quest>` tags (decision 0130), comma separated. */
+  const tagsField = (e: { tags?: string[] }) => {
+    const r = node('label', { className: 'ed-row' });
+    node('span', { textContent: 'Tags' }, r);
+    const input = node(
+      'input',
+      { value: (e.tags ?? []).join(', '), placeholder: 'after:quest, before:quest' },
+      r,
+    );
+    input.addEventListener('change', () =>
+      host.change(() => {
+        const list = input.value
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean);
+        if (list.length) e.tags = list;
+        else delete e.tags;
+      }),
+    );
+  };
   const buttons = () => node('div', { className: 'ed-buttons' });
   const button = (parent: HTMLElement, label: string, action: () => void, cls = '') =>
     node('button', { textContent: label, className: cls }, parent).addEventListener(
@@ -140,12 +163,15 @@ export function renderShapePanel(root: HTMLElement, host: ShapePanelHost) {
   const sel = host.shape;
   if (!sel) {
     if (host.mode === 'lanes') {
-      heading('Lanes', `${design.lanes.length} lanes, paths and stairs`);
+      heading(
+        'Lanes',
+        `${design.lanes.length} lanes, paths and stairs · ${design.rivers?.length ?? 0} rivers`,
+      );
       note(
         'Pick Lane, Path or Stairs, then click the island to add bends; click the last point ' +
           'again (or press Enter) to finish. Lanes show near the homes that stand at each level ' +
           'and follow the ground: they climb slopes, and need stairs only at a cliff. Click a ' +
-          'lane to edit its points.',
+          'lane to edit its points. River and Lava river draw from the source down to the mouth.',
       );
       return;
     }
@@ -204,6 +230,37 @@ export function renderShapePanel(root: HTMLElement, host: ShapePanelHost) {
     button(buttons(), '🗑 Delete', () => host.remove(), 'danger');
     return;
   }
+  if (shape.kind === 'river') {
+    const r = design.rivers![shape.index]!;
+    segment(
+      'Kind',
+      [
+        { value: 'water' as const, text: 'Water', title: 'A stream, white where it falls' },
+        { value: 'lava' as const, text: 'Lava', title: 'Glows at night, steams in the sea' },
+      ],
+      r.kind ?? 'water',
+      (k) => setRiverKind(design, shape.index, k),
+    );
+    number('Width', r.width, (v) => (r.width = v ?? RIVER_WIDTH), { step: 0.005, min: 0.01 });
+    const point = sel.point;
+    if (point !== undefined && r.points[point])
+      number(
+        `Point ${point + 1} width`,
+        r.points[point]![2],
+        (v) => setRiverPointWidth(design, shape.index, point, v),
+        { step: 0.005, min: 0.005, placeholder: `${r.width} (the river's)` },
+      );
+    levels(r);
+    tagsField(r);
+    note(
+      'Runs from its first point (the source) to its last (the mouth), lying on the ground: ' +
+        'down slopes and mountains, falling as a sheet at a cliff. A mouth past the coast falls ' +
+        'into the sea, with foam for water and steam for lava. Lava glows at night like windows. ' +
+        'Click a point to give it its own width: the river widens and narrows smoothly.',
+    );
+    button(buttons(), '🗑 Delete', () => host.remove(), 'danger');
+    return;
+  }
   if (shape.kind === 'ramp') {
     const r = design.ramps![shape.index]!;
     number('Start height', r.start, (v) => (r.start = v ?? r.start), { step: 0.01, min: 0 });
@@ -228,7 +285,16 @@ export function renderShapePanel(root: HTMLElement, host: ShapePanelHost) {
     number('Base', g.base, (v) => (v === undefined ? delete g.base : (g.base = v)), {
       placeholder: '0',
     });
-    note('A peak: a cone over this outline, from its base up to its height, in its ground.');
+    number(
+      'Crater',
+      g.crater,
+      (v) => (v ? (g.crater = Math.min(0.8, Math.max(0.05, v))) : delete g.crater),
+      { step: 0.05, min: 0, placeholder: 'none (a pointed peak)' },
+    );
+    note(
+      'A peak: a cone over this outline, from its base up to its height, in its ground. A crater ' +
+        'cuts its top open (a share of its size); a ground that glows fills it with lava.',
+    );
   } else if (g.outline) {
     edges(g);
   } else {
