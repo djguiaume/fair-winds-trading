@@ -48,7 +48,13 @@ Where
                                 each step held in turn: button:ms or axis=value:ms
                                 (e.g. "lx=0.8:1500,rb:100,y:100"); buttons a b x y lb rb lt rt view menu ls rs up down left right
   --port id                     docked at this port, port screen open
-  --moor island                 moored at one of her islands' piers (owned first, decision 0159)
+  --moor island                 moored at one of her islands' piers (owned first, decision 0159),
+                                at sea with its harbour screen closed
+  --offer spot-2,…              plots given on the --moor island and not built: staked, their
+                                giver's card on mooring (with --cards), decision 0210
+  --built spot-1=workshop,…     buildings standing on the --moor island
+  --island-tab                  its harbour screen open on the Island tab; --choose spot-2: that
+                                plot chosen (half screen, the camera on the plot, its ring)
   --quest id:step               a quest started at that step, earlier steps paid (as a quest test)
   --tab market|orders|quay|shipyard   the port screen's tab
   --zoom z                      camera distance, 1 = default, larger = farther (no game limit)
@@ -149,6 +155,10 @@ export function normalise(opts) {
     pad: o.pad ? padSteps(o.pad) : null,
     port: o.port ?? null,
     moor: o.moor ?? null,
+    offer: list(o.offer ?? []),
+    built: list(o.built ?? []).map((b) => String(b).split('=')),
+    islandTab: !!o['island-tab'] || !!o.choose,
+    choose: o.choose ?? null,
     quest: o.quest ? String(o.quest).split(':') : null,
     tab: o.tab ?? null,
     zoom: o.zoom ?? null,
@@ -351,9 +361,16 @@ async function setScene(page, shot) {
     }
     if (s.port && !s.url && world.trade.dockedAt !== s.port && !window.fwt.dock(s.port))
       return `could not dock at ${s.port}`;
-    if (s.moor) {
-      const home = (world.trade.home.islands[s.moor] ??= { owned: true, offered: [], built: {} });
+    // Plots given and buildings standing: on the --moor island, else the home island (0210).
+    const own = s.moor ?? (s.offer.length || s.built.length ? world.map.homeIsland : null);
+    if (own) {
+      const home = (world.trade.home.islands[own] ??= { owned: true, offered: [], built: {} });
       home.owned = true;
+      for (const spot of s.offer) if (!home.offered.includes(spot)) home.offered.push(spot);
+      for (const [spot, building] of s.built) home.built[spot] = building;
+      window.fwt.showHome();
+    }
+    if (s.moor) {
       if (!window.fwt.moor(s.moor)) return `no pier to moor at on ${s.moor}`;
     }
     if (s.tab && world.trade.dockedAt) window.fwt.tradePanel.open(s.tab);
@@ -518,6 +535,24 @@ async function shootScene(page, shot) {
   // With the chart, the pad plays on the chart (moves its cross), so it acts once it is open.
   await act(page, shot.chart ? { ...shot, pad: null } : shot);
   if (!shot.cards) await closeCards(page);
+  // Moored at her island (decision 0210): its harbour screen, or the island at sea. A plot's
+  // card closed above opens the Island tab as its close event lands, so that comes first.
+  if (!shot.cards && !shot.editor && !shot.url) {
+    await pause(300);
+    const moved = await page.evaluate((s) => {
+      const { homePanel, world } = window.fwt;
+      if (!world.trade.home.docked) return false;
+      if (s.islandTab) {
+        homePanel.open(s.choose ?? undefined);
+        return !!s.choose;
+      }
+      const open = homePanel.isOpen;
+      homePanel.close();
+      return open;
+    }, shot);
+    // The camera glides to the chosen plot, or back to the island.
+    if (moved) await pause(1800);
+  }
   if (shot.chart) {
     await closeCards(page);
     await page.click('#chart-btn');

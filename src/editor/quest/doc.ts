@@ -6,6 +6,7 @@ import fr from '../../i18n/fr.json';
 import { TEXT_VARIANTS, type TextVariant } from '../../i18n';
 import type { MapDef, SeaMarkDef, SeaMarkType } from '../../sim/map';
 import type { StepWind } from '../../sim/stepEffects';
+import { BUILDINGS, homeSpots, resolveSpot } from '../../sim/home';
 import { clearAt } from '../../sim/mapChecks';
 import { hasQuestLand, standingMap } from '../../sim/questLand';
 import {
@@ -608,8 +609,37 @@ export function textKeys(quest: QuestDef): TextLine[] {
   }
   out.push({ key: `${t}.done.title`, label: 'Thanks · title', long: false });
   out.push({ key: `${t}.done.copy`, label: 'Thanks · speech', long: true, variants: true });
+  // A plot given (decision 0210): the giver by their stake, on the next mooring at the island.
+  if (givesPlot(quest))
+    out.push({ key: `${t}.plot.copy`, label: 'Plot · speech at the island', long: true });
   return out;
 }
+
+const givesPlot = (q: QuestDef) => !!(q.reward as QuestReward | undefined)?.homeSpot;
+
+/**
+ * `{spotA}` and `{spotB}` in a language (decision 0210): the two buildings of the plot a quest
+ * gives, with their article, as the game fills them; none for a quest that gives no plot.
+ */
+export function plotWords(
+  doc: QuestDoc,
+  map: MapDef,
+  q: QuestDef,
+  lang: Lang,
+): Record<string, string> {
+  const ref = (q.reward as QuestReward | undefined)?.homeSpot;
+  const plot = resolveSpot(map, Array.isArray(ref) ? ref[0] : ref);
+  const pair = plot && homeSpots(map, plot.island).find((x) => x.id === plot.spot)?.pair;
+  if (!pair) return {};
+  const [a, b] = BUILDINGS.filter((x) => x.pair === pair).map(
+    (x) => textOf(doc, lang, `building.${x.id}.a`) ?? x.id,
+  );
+  return { spotA: a ?? '', spotB: b ?? '' };
+}
+
+/** A text with its `{name}`s filled in. */
+export const fillWords = (text: string, words: Record<string, string>) =>
+  text.replace(/\{(\w+)\}/g, (all, name: string) => words[name] ?? all);
 
 /** Every key of a line: the default, then its controls versions (decision 0184). */
 export function lineKeys(line: TextLine): { key: string; label: string; way?: TextVariant }[] {
@@ -646,6 +676,18 @@ export function checkText(doc: QuestDoc): string[] {
       else if (a !== undefined && placeholders(a).join() !== placeholders(b!).join())
         out.push(`quest ${q.id} › ${label}: the {…} differ between English and French`);
     }
+  // A plot given (decision 0210): the thanks names its two buildings, and the giver speaks at
+  // the island.
+  for (const q of doc.quests) {
+    if (!givesPlot(q)) continue;
+    const thanks = textOf(doc, 'en', `${q.text}.done.copy`) ?? '';
+    if (!thanks.includes('{spotA}') || !thanks.includes('{spotB}'))
+      out.push(
+        `quest ${q.id} › Thanks · speech: a plot given, name its buildings with {spotA} and {spotB}`,
+      );
+    if (textOf(doc, 'en', `${q.text}.plot.copy`) === undefined)
+      out.push(`quest ${q.id} › Plot · speech at the island: no text`);
+  }
   return out;
 }
 
