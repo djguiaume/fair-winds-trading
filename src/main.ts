@@ -1068,12 +1068,12 @@ function readPad(now: number, dt: number) {
     for (const p of sea.other) pad.onMenuPress(p, context);
   } else if (context === 'chart') {
     const c = chartPad(frame, dt);
-    chart.panBy(c.panX, c.panY);
+    chart.padMove(c.panX, c.panY);
     if (c.zoom !== 1) chart.zoomBy(c.zoom);
     if (c.fit) chart.fit();
     if (c.close) chart.back();
     // A: the port under the cross, else the lesson bubble's button; Y skips the lesson (0183).
-    if (c.pick && !chart.pickNearCentre(PAD.chart.pickReachPx)) coach.padPress('main');
+    if (c.pick && !chart.pickAtCross(PAD.chart.pickReachPx)) coach.padPress('main');
     if (c.skipLesson) coach.padPress('skip');
     for (const p of c.other) pad.onMenuPress(p, context);
   } else for (const p of frame.presses) pad.onMenuPress(p, context);

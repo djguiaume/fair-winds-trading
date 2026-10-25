@@ -49,7 +49,7 @@ Where
   --zoom z                      camera distance, 1 = default, larger = farther (no game limit)
   --look x,y                    camera on this map point instead of the boat
   --menu                        the title menu, before Set sail (the scene options are ignored)
-  --chart                       the sea chart open; --chart-zoom n, --chart-pan Key:n,
+  --chart                       the sea chart open (--pad then plays on it); --chart-zoom n, --chart-pan Key:n,
                                 --chart-panel legend|market|journal (default none)
   --charted                     every wind zone already sailed (named on the chart)
   --town id:level,…             towns at these levels; an empty island to found is founded first
@@ -495,7 +495,8 @@ async function shootScene(page, shot) {
   await pause(shot.wait);
   // Mooring by an island of hers turns the camera and leaving it frees it (0128): look again.
   if (shot.look && !shot.editor && !shot.url) await page.evaluate(lookAt, shot.look);
-  await act(page, shot);
+  // With the chart, the pad plays on the chart (moves its cross), so it acts once it is open.
+  await act(page, shot.chart ? { ...shot, pad: null } : shot);
   if (!shot.cards) await closeCards(page);
   if (shot.chart) {
     await closeCards(page);
@@ -513,6 +514,10 @@ async function shootScene(page, shot) {
       if (panel) document.getElementById(`chart-${panel}-toggle`)?.click();
     }, shot.chartPanel);
     await pause(400);
+    if (shot.pad) {
+      await drivePad(page, shot.pad);
+      await pause(600);
+    }
   }
 }
 

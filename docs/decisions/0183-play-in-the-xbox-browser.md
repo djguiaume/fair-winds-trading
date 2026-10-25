@@ -84,6 +84,11 @@ always), and New game used the browser's own box, which left fullscreen and the 
   `askConfirm`), which the pad's focus reaches and B answers no. The page still reloads for the
   new voyage, so fullscreen must be entered again after it (browsers end fullscreen on reload).
 - A menu line that can't be picked now (the lessons while the first voyage runs) is greyed out.
+- **The chart's cross moves**: the map used to slide under a cross fixed in the middle, but zoomed
+  all the way out the whole sea shows and the map can't slide, so the cross never reached a port.
+  Now the left stick (or D-pad) moves the cross itself (`SeaChart.padMove`), the map slides only
+  when the cross reaches an edge, and **A** picks the port nearest the cross (`pickAtCross`).
+  `npm run shots -- --chart --pad "lx=0.8:900"` plays the pad on the open chart.
 
 ## Consequences
 
