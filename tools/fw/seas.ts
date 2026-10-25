@@ -12,7 +12,7 @@ export function loadSea(name: string): {
   map: MapDef;
   prepared: MapDef;
   label: string;
-  /** The grown sea's sectors (decision 0178), on the grown sea only. */
+  /** The grown sea's sectors (decision 0179), on the grown sea only. */
   sectors?: Sectors;
 } {
   if (name === 'ring') return { map: PHASE1_SOURCE, prepared: PHASE1_MAP, label: 'ring' };

@@ -433,7 +433,7 @@ function runChecks() {
       QUESTS.map((q) => q.id),
     ),
     distanceChanges(prepared, SHIPPED_PREPARED),
-    // Each sea in its own slice of the outer ring (decision 0178).
+    // Each sea in its own slice of the outer ring (decision 0179).
     ...(SEA_MODE
       ? sectorChecks(
           splitSeas(map as SeaDoc).seas,

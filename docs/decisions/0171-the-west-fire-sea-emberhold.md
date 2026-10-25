@@ -35,7 +35,7 @@ Phase 4 opens the seas in the order south, west, north, east (0147). The west is
    - `npm run island` prints the island's triangles at level 4.
    - `npm run shots` has `--builder id[:tab[:shape[:point]]]`, which opens the island builder on a shape. `--look` now jumps the camera instead of easing.
    - The slope ramp's foot ignores mountains (`flatLayout`). This fixes a spike beside peaks.
-8. **Eruptions** (a smoke plume, eruptions with a Settings switch, a story eruption as a quest reward) are built in their own thread, "Build volcano smoke and eruptions". Here the volcano is still.
+8. **Eruptions** (a smoke plume, eruptions with a Settings switch, a story eruption as a quest reward) are decision [0178](0178-volcano-smoke-and-eruptions.md), built in their own thread.
 
 ## Consequences
 

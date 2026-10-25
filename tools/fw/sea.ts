@@ -47,7 +47,7 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
   set shape <id> --style fog     a reef's rock style (a palette style's reefRock and coral; none = warm)
   set <what> <id> --outline "x,y x,y …"   a new outline for a shape, zone, area or area current
   set sea <id> --name …          set grown --radius 985 --charted 445
-  set grown --sector east=45,135 a sea's slice of the outer ring, compass degrees (decision 0178;
+  set grown --sector east=45,135 a sea's slice of the outer ring, compass degrees (decision 0179;
         several with ';', none removes it); every sea's things must stay inside its own
   --after <quest> | --before <quest> | --always   on add or set: an island, shape or mark stands
         once that quest is done, or until it is (decision 0166: land swaps out of the boat's sight)

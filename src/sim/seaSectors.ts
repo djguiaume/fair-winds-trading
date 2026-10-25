@@ -3,7 +3,7 @@ import type { MapDef } from './map';
 import type { MapCheck } from './mapChecks';
 
 /**
- * Sea sectors (decision 0178): each Phase 4 sea owns a slice of the outer ring, given in
+ * Sea sectors (decision 0179): each Phase 4 sea owns a slice of the outer ring, given in
  * `seas/grown.json` as compass bearings from the middle of the map (0 = north, 90 = east,
  * clockwise), `[from, to]`. The four biomes get equal quarters centred on the compass points.
  */

@@ -25,6 +25,8 @@ export interface Shot {
   storms: boolean;
   zones: boolean;
   currents: boolean;
+  erupt: string | null;
+  eruptions: boolean;
   cards: boolean;
   wait: number;
   click: string | null;

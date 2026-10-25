@@ -727,4 +727,5 @@ export const REWARD_FIELDS: { key: keyof QuestReward; label: string }[] = [
   { key: 'found', label: 'Found an outpost' },
   { key: 'homeIsland', label: 'An island' },
   { key: 'homeSpot', label: 'Building spots' },
+  { key: 'erupt', label: 'Eruption' },
 ];

@@ -12,7 +12,7 @@ export const PHASE4_PREFIX = 'fwt.phase4.';
  */
 export const GROWN_SEA_RADIUS = grown.boundsRadius;
 
-/** Each sea's slice of the outer ring, compass bearings `[from, to]` (decision 0178). */
+/** Each sea's slice of the outer ring, compass bearings `[from, to]` (decision 0179). */
 export const SEA_SECTORS = grown.sectors as unknown as Sectors;
 
 /**

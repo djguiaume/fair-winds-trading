@@ -92,7 +92,7 @@ export function checkAll(opts: CheckOptions = {}) {
           QUESTS.map((q) => q.id),
         ),
       ];
-      // Each Phase 4 sea in its own slice of the outer ring (decision 0178), on the shipped files.
+      // Each Phase 4 sea in its own slice of the outer ring (decision 0179), on the shipped files.
       if (name === 'phase4' && !opts.seas) checks.push(...sectorChecks(SEAS, SEA_SECTORS));
       if (routes === 'all' || (routes === 'first' && n === 0)) checks.push(...routeChecks(map));
       for (const c of checks)

@@ -71,7 +71,7 @@ export type SeaStep =
       id: string | number;
       at?: XY;
       by?: XY;
-      /** Turns it round the middle of the map, degrees clockwise: it keeps its distance (0178). */
+      /** Turns it round the middle of the map, degrees clockwise: it keeps its distance (0179). */
       turn?: number;
       toSea?: string;
     }
@@ -231,7 +231,7 @@ export function applySeaSteps(doc: SeaDoc, steps: readonly SeaStep[]): string[] 
       const f = step.fields;
       if (typeof f.boundsRadius === 'number') doc.boundsRadius = f.boundsRadius;
       if (typeof f.chartedRadius === 'number' && doc.fog) doc.fog.chartedRadius = f.chartedRadius;
-      // Each sea's slice of the outer ring (decision 0178); null removes one.
+      // Each sea's slice of the outer ring (decision 0179); null removes one.
       if (f.sectors && typeof f.sectors === 'object') {
         const grown = doc.seaEditor.grown;
         const sectors = { ...(grown.sectors as Record<string, unknown> | undefined) };
@@ -318,7 +318,7 @@ function moveBy(doc: SeaDoc, sel: Selection, at?: XY, by?: XY) {
 
 /**
  * Turns a thing round the middle of the map by `deg` clockwise (a compass bearing grows), so it
- * keeps its distance from the ring: how a sea's things move from one sector to the next (0178).
+ * keeps its distance from the ring: how a sea's things move from one sector to the next (0179).
  */
 function turnBy(doc: SeaDoc, sel: Selection, deg: number) {
   if (!sel) return;

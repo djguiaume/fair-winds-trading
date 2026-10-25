@@ -58,7 +58,7 @@ export const OVERLAY_STYLES: Record<string, string> = {
 export interface ChartOptions {
   map: MapDef;
   prepared: MapDef;
-  /** The seas' sectors, drawn as spokes on the grown sea (decision 0178). */
+  /** The seas' sectors, drawn as spokes on the grown sea (decision 0179). */
   sectors?: Sectors;
   /** Map shown as dashed ghosts where shapes moved (the editor's "where it was"). */
   shipped?: MapDef;
@@ -507,7 +507,7 @@ export async function run(args: Args): Promise<number> {
                                       or names, or start) and draw them with their time
   --layers names,flow,marks           what to draw: names, flow, marks, harbours, course, grid
   --ghosts                            dashed outlines where shapes sat on the shipped ring
-  --sectors none                      no sector spokes on the grown sea (decision 0178)
+  --sectors none                      no sector spokes on the grown sea (decision 0179)
   --title "…"                         title above the legend
   --legend none                       no side panel (title and legend)
   --width 1600                        PNG width in pixels

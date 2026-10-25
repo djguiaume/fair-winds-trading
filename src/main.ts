@@ -410,6 +410,11 @@ quests.onEvent = (e) => {
     hud.showToast(t('toast.landed', { qty: e.qty, good: goodName(e.good).toLowerCase() }), 3);
     return;
   }
+  if (e.type === 'erupt') {
+    // A story eruption (decision 0178): seen once the boat is in sight of the volcano.
+    view.erupt(e.island);
+    return;
+  }
   if (e.type === 'moved') {
     // A step took the boat to its place (decision 0164): sails down, camera with her.
     sailStep = world.boat.sailStep;
@@ -1084,6 +1089,16 @@ const syncWeather = () => {
   stormBelt.checked = settings.stormBelt;
   stormBelt.disabled = !settings.weather || !settings.storms || !settings.windZones;
 };
+// Eruptions (decision 0178): spectacle only, but switchable like every annoyance. Off, the
+// volcanoes only smoke; a quest's story eruption plays anyway.
+const eruptions = $<HTMLInputElement>('eruptions');
+view.eruptions = settings.eruptions;
+eruptions.checked = settings.eruptions;
+eruptions.addEventListener('change', () => {
+  view.eruptions = eruptions.checked;
+  settings.eruptions = eruptions.checked;
+  keepSettings();
+});
 // Wind zones (decision 0140) have their own switch, like every hazard.
 const windZones = $<HTMLInputElement>('wind-zones');
 const stormBelt = $<HTMLInputElement>('storm-belt');

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { SEAS, SEA_SECTORS } from '../src/data/grownMap';
 import { bearingOf, inSector, outOfSector, sectorChecks } from '../src/sim/seaSectors';
 
-describe('sea sectors (0178)', () => {
+describe('sea sectors (0179)', () => {
   it('measures compass bearings from the middle, y north', () => {
     expect(bearingOf(0, 100)).toBeCloseTo(0);
     expect(bearingOf(100, 0)).toBeCloseTo(90);

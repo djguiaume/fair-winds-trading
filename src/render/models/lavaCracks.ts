@@ -211,5 +211,9 @@ export function craterPool(s: LandSurface, R: number, color: string, glow: boole
     .scale(rx, 1, rz)
     .translate(cx * R, s.height * R + 0.02, cz * R);
   const pool = paint(g, color);
+  // Marked so the islands can tell where smoke rises and lava bombs land (decision 0178): the
+  // cone's slope, rise over run, the same at any scale.
+  const run = ((rx + rz) / 2) * (1 - (s.crater ?? 0));
+  pool.userData.crater = { slope: (s.height - (s.base ?? 0)) / Math.max(run, 0.01) };
   return glow ? molten(pool) : pool;
 }

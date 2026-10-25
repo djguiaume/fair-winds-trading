@@ -53,7 +53,7 @@ export interface SeaPanel {
   setActive(id: string): void;
   moveTo(id: string): void;
   rename(id: string, name: string): void;
-  /** Each sea's slice of the outer ring, compass degrees `[from, to]` (decision 0178). */
+  /** Each sea's slice of the outer ring, compass degrees `[from, to]` (decision 0179). */
   sectors: Record<string, [number, number]>;
   setSector(id: string, sector: [number, number] | null): void;
   add(): void;
@@ -283,7 +283,7 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     for (const [id, name] of seas.seas.slice(1)) {
       const input = node('input', { value: name }, row(`seas/${id}.json`));
       input.addEventListener('change', () => seas.rename(id, input.value.trim()));
-      // Its quarter of the outer ring (0178): "from, to" in compass degrees, empty for none.
+      // Its quarter of the outer ring (0179): "from, to" in compass degrees, empty for none.
       const sector = seas.sectors[id];
       const range = node(
         'input',
@@ -301,7 +301,7 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
     node('p', {
       className: 'ed-note',
       textContent:
-        'A new sea is a new file in src/data/seas/ and one line in grown.json: no code. Pick it above, then add its islands, reefs, marks, currents and zones. Its sector (compass degrees from the middle, 0 = north) is the slice of the outer ring it owns: the checks flag anything placed outside it (decision 0178).',
+        'A new sea is a new file in src/data/seas/ and one line in grown.json: no code. Pick it above, then add its islands, reefs, marks, currents and zones. Its sector (compass degrees from the middle, 0 = north) is the slice of the outer ring it owns: the checks flag anything placed outside it (decision 0179).',
     });
     node('hr');
     heading('Windward Ring', 'phase1-map.json');

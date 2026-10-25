@@ -14,7 +14,7 @@ npm run chart -- --sea src/data/seas/south.json --view -820,-1000,820,0 \
 - **Layers:** `--layers names,flow,marks` (the default); add `harbours` (piers and dock ranges), `course` (waypoints), `grid` (50 units).
 - **Routes:** `--route start,sunreach;saltmere,westholm` sails each leg with `sailRoute` (the route checks' planner, a sloop in the map's base wind), draws it and prints its time. Exit code 1 when a leg has no way through.
 - **Size:** `--width 1600` PNG pixels for the map; `--scale 1.5` (default) is the text and line size. The legend panel adds 270 × scale pixels on the right; `--legend none` drops it.
-- **Sectors:** on the grown sea (`phase4` or a sea file) a dashed spoke marks each sea's border and the sea's name and span sit near the rim (decision 0178); `--sectors none` hides them.
+- **Sectors:** on the grown sea (`phase4` or a sea file) a dashed spoke marks each sea's border and the sea's name and span sit near the rim (decision 0179); `--sectors none` hides them.
 - `--ghosts` draws dashed outlines where shapes sat on the shipped ring; `--svg` skips the PNG (no Chromium); `--json` prints what was written.
 
 ## Overlay file

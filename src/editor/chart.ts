@@ -51,7 +51,7 @@ export interface ChartScene {
   view: View;
   /** The Windward Ring's own sea radius, drawn dashed on the grown sea (decision 0161). */
   ringRadius?: number;
-  /** Each sea's slice of the outer ring (decision 0178), drawn as spokes from the ring's edge. */
+  /** Each sea's slice of the outer ring (decision 0179), drawn as spokes from the ring's edge. */
   sectors?: Sectors;
   /** Chart size in pixels; the SVG's own size when left out (`npm run chart` has no layout). */
   size?: { width: number; height: number };
@@ -359,7 +359,7 @@ export function drawCompass(svg: SVGSVGElement, fromDeg: number) {
 }
 
 /**
- * The seas' sectors (decision 0178): a dashed spoke at each border, from the ring's edge to the
+ * The seas' sectors (decision 0179): a dashed spoke at each border, from the ring's edge to the
  * rim, and each sea's name and span just inside the rim in the middle of its slice.
  */
 function drawSectors(

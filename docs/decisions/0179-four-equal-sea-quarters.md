@@ -1,6 +1,6 @@
-# 0178. Four equal sea quarters
+# 0179. Four equal sea quarters
 
-**Status:** Proposed (2026-10-25). Agreed by the four sea threads, the storyteller and the art director; waiting on Guillaume's OK.
+**Status:** Accepted (2026-10-25). Agreed by the four sea threads, the storyteller and the art director; Guillaume chose equal quarters (and kept them equal when asked whether the south should get more).
 
 ## Context
 
