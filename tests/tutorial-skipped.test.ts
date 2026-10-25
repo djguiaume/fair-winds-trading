@@ -82,6 +82,7 @@ describe('the tutorial without its coach', () => {
     expect(tutorial.steps.filter((s) => !s.teach).map((s) => s.id)).toEqual([
       'foghorn',
       'wreck',
+      'aboard',
       'home',
     ]);
     const errand: QuestDef = {
