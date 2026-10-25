@@ -9,6 +9,7 @@ import {
   type Level,
   homesPerLevel,
   propName,
+  setHarbourView,
   setLevels,
   setPropValue,
   turnProp,
@@ -113,6 +114,59 @@ export function renderIslandPanel(root: HTMLElement, host: IslandPanelHost) {
       div('Triangles').append(
         `${host.triangles[host.level - 1]!.toLocaleString('en')} here · ${host.triangles[TOP_LEVEL - 1]!.toLocaleString('en')} of ${TRIANGLE_BUDGET.toLocaleString('en')} at level ${TOP_LEVEL}`,
       );
+    // The harbour screen's picture of its port (decision 0211); empty fields keep the defaults.
+    node('h3', { textContent: 'Harbour screen picture' });
+    const view = design.harbourView ?? {};
+    const pointRow = (label: string, key: 'from' | 'look') => {
+      for (const [axis, i] of [
+        ['x', 0],
+        ['z', 1],
+      ] as const)
+        number(
+          `${label} ${axis}`,
+          view[key]?.[i],
+          (v) => {
+            const now = design.harbourView?.[key];
+            const other = now?.[1 - i] ?? 0;
+            setHarbourView(design, {
+              [key]: v === undefined ? null : i === 0 ? [v, other] : [other, v],
+            });
+          },
+          { placeholder: 'default' },
+        );
+    };
+    pointRow('Camera', 'from');
+    pointRow('Looks at', 'look');
+    number('Camera height', view.height, (v) => setHarbourView(design, { height: v ?? null }), {
+      placeholder: 'default',
+    });
+    number(
+      'Look height',
+      view.lookHeight,
+      (v) => setHarbourView(design, { lookHeight: v ?? null }),
+      { placeholder: 'default' },
+    );
+    const accentRow = div('Accent');
+    const accent = node('input', { type: 'color', value: view.accent ?? '#3f74a8' }, accentRow);
+    accent.addEventListener('change', () =>
+      host.change(() => setHarbourView(design, { accent: accent.value })),
+    );
+    if (view.accent) {
+      const clear = node(
+        'button',
+        { textContent: 'Style roof', title: 'Back to the style' },
+        accentRow,
+      );
+      clear.addEventListener('click', () =>
+        host.change(() => setHarbourView(design, { accent: null })),
+      );
+    }
+    node('p', {
+      className: 'ed-note',
+      textContent:
+        'Island units, harbour toward +z; heights in radius units. Empty: the camera stands off ' +
+        'the harbour pier. See it with npm run shots -- --port <id>.',
+    });
     node('p', {
       className: 'ed-note',
       textContent:

@@ -482,5 +482,6 @@
     "size": 1,
     "margin": 0.1,
     "spacing": 0.06
-  }
+  },
+  "harbourView": { "accent": "#d9622b" }
 }

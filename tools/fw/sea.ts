@@ -48,7 +48,7 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
         (a mark or waypoint: index or name; --turn: round the middle of the map, degrees
         clockwise, keeping its distance)
   set <what> <id|index> --name … (and any field: --kind, --max-draft, --type, --speed, --level …;
-        a port's --produces, --wants, --wants-made a,b,c; a sandbank's --color #b8b2a8)
+        a port's --produces, --wants, --wants-made a,b,c, its --keeper (a characters.json id, decision 0211); a sandbank's --color #b8b2a8)
   set shape <id> --style fog     a reef's rock style (a palette style's reefRock and coral; none = warm)
   set <what> <id> --outline "x,y x,y …"   a new outline for a shape, zone, area, area current or edge
   set sea <id> --name …          set grown --radius 985 --charted 445
@@ -96,6 +96,7 @@ const FIELD_NAMES: Record<string, string> = {
   'max-level': 'maxLevel',
   site: 'site',
   hidden: 'hidden',
+  keeper: 'keeper',
   count: 'count',
   size: 'size',
   seed: 'seed',
