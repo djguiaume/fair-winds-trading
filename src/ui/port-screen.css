@@ -431,6 +431,34 @@
   font-size: 14px;
 }
 
+/* A load on credit (decision 0200): the harbour office's offer, then what she owes. */
+.side-card.credit-card {
+  border-color: var(--brass);
+  background: rgba(255, 214, 130, 0.08);
+}
+.side-card.credit-card.owed {
+  border-style: dashed;
+  background: rgba(255, 255, 255, 0.03);
+}
+.side-card.credit-card.owed p {
+  margin: 0;
+  font-size: 14px;
+}
+.credit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.credit-actions .port-btn {
+  flex: 1 1 auto;
+}
+.credit-actions .port-btn.later {
+  border-color: var(--brass-line);
+  background: transparent;
+  box-shadow: none;
+  color: var(--brass);
+}
+
 /* --- Orders tab ------------------------------------------------------------------------ */
 .port-screen .contracts {
   max-width: 720px;

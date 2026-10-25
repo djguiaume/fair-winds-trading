@@ -438,6 +438,22 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     '×',
     'A help order grows the town this many times as much.',
   ),
+  'economy.credit.loadUnits': num(
+    'A load',
+    1,
+    20,
+    1,
+    'units',
+    'The cheapest load is this many units of the cheapest good in port: a captain with less gold and an empty hold is offered a load on credit, and a purchase that leaves less is asked about first (0200).',
+  ),
+  'economy.credit.sailBias': num(
+    'Credit: distance bias',
+    0,
+    2000,
+    10,
+    'units',
+    'The lent load is for the order that gains most per (distance + this): higher favours bigger gains over short hops (0200).',
+  ),
   'economy.orders.helpCooldown': num(
     'Next help order after',
     0,

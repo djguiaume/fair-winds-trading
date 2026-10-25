@@ -1102,3 +1102,32 @@ button.captain-stat:focus-visible {
     animation: none;
   }
 }
+
+/* The pad's buttons on the sea's buttons (decision 0199), only while the pad is in use. */
+#menu-btn {
+  position: relative;
+}
+#menu-btn .pad-key {
+  position: absolute;
+  right: -10px;
+  bottom: -8px;
+}
+.lever-track button .pad-key {
+  position: absolute;
+  top: 50%;
+  left: -40px;
+  margin: 0;
+  transform: translateY(-50%);
+}
+/* On a TV the pad is always in use: no focus ring left on a sea button the pad never moves to. */
+html[data-input='pad'] :is(.top-buttons, .sail-lever) :focus,
+html[data-input='pad'] #dock-btn:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.port-marker-dock .dock-glyph[hidden] {
+  display: none;
+}
+.port-marker-dock .dock-glyph .pad-key {
+  margin-right: 2px;
+}

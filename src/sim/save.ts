@@ -11,7 +11,7 @@ import { type SettlementState, readSettlements } from './settlement';
 import { SHIP_CLASSES } from './ship';
 import { type QuestState, readQuests } from './quests';
 import { type ShipyardProgress, readProgress } from './shipyards';
-import { activeShip, findPort, setDifficulty, syncMarketLevels } from './trade';
+import { type CreditLoan, activeShip, findPort, setDifficulty, syncMarketLevels } from './trade';
 import { MAX_UPGRADE_LEVEL, UPGRADE_TRACKS, type UpgradeLevels, hullDurability } from './upgrades';
 import { refreshPiers, resetLand, syncWorldLand, type World } from './world';
 
@@ -40,6 +40,8 @@ export interface SaveData {
   cargo: GoodAmounts;
   /** Hull damage per ship (decision 0032). Optional: older saves have sound hulls. */
   hullDamage?: Record<string, number>;
+  /** A load on credit (decision 0200). Optional: none owed. */
+  loan?: CreditLoan;
   dockedAt: string | null;
   /** Port id → current stock per good. */
   markets: Record<string, GoodAmounts>;
@@ -97,6 +99,7 @@ export function serializeWorld(world: World): SaveData {
     ships,
     cargo: { ...captain.cargo },
     hullDamage: { ...captain.hullDamage },
+    ...(captain.loan ? { loan: { ...captain.loan } } : {}),
     dockedAt,
     markets: stocks,
     ...(Object.keys(workshops).length ? { workshops } : {}),
@@ -123,6 +126,15 @@ function readAmounts(v: unknown, integers: boolean): GoodAmounts | null {
     out[g] = n;
   }
   return out;
+}
+
+/** A load on credit (decision 0200): a known port and good, whole numbers; anything else is none. */
+function readLoan(v: unknown, map: MapDef): { loan?: CreditLoan } {
+  if (!isObj(v) || typeof v.port !== 'string' || !findPort(map, v.port)) return {};
+  if (!isGood(v.good)) return {};
+  const whole = (n: unknown): n is number => isNum(n) && Number.isInteger(n) && n >= 0;
+  if (!whole(v.qty) || !whole(v.owed)) return {};
+  return { loan: { port: v.port, good: v.good, qty: v.qty, owed: v.owed } };
 }
 
 /** Far workshops' crafted units (decision 0146): known ports and goods, whole units ≥ 0. */
@@ -223,6 +235,7 @@ export function validateSave(raw: unknown, world: World): SaveData | null {
     ships,
     cargo,
     hullDamage: readHullDamage(raw.hullDamage, ships),
+    ...readLoan(raw.loan, world.map),
     dockedAt: dockedAt as string | null,
     markets,
     ...(workshops ? { workshops } : {}),
@@ -260,6 +273,7 @@ export function applySave(world: World, data: SaveData): void {
     ships: data.ships,
     cargo: data.cargo,
     hullDamage: { ...(data.hullDamage ?? {}) },
+    ...(data.loan ? { loan: { ...data.loan } } : {}),
   };
   // Levels first, so the markets that are open match the save before its stocks go in.
   trade.settlements = readSettlements(data.settlements, world.map);
