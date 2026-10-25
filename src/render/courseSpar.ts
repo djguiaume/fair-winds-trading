@@ -48,7 +48,7 @@ export class CourseSpar {
     const markMaterial = new THREE.MeshLambertMaterial({ color: CREAM, side: THREE.DoubleSide });
     this.quest = new THREE.Mesh(pennant, questMaterial);
     this.mark = new THREE.Mesh(pennant, markMaterial);
-    const lampGeometry = paint(new THREE.OctahedronGeometry(0.32, 0).translate(0, 3.3, 0), LAMP);
+    const lampGeometry = paint(new THREE.OctahedronGeometry(0.48, 0).translate(0, 3.4, 0), LAMP);
     const lamp = new THREE.Mesh(lampGeometry, this.lampMaterial);
     this.disposables.push(
       body,
