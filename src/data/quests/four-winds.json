@@ -2,8 +2,25 @@
   "id": "four-winds",
   "name": "Four winds",
   "start": {
-    "is": "quest-done",
-    "quest": "outpost-east"
+    "is": "all",
+    "of": [
+      {
+        "is": "quest-done",
+        "quest": "outpost-south"
+      },
+      {
+        "is": "quest-done",
+        "quest": "outpost-west"
+      },
+      {
+        "is": "quest-done",
+        "quest": "outpost-north"
+      },
+      {
+        "is": "quest-done",
+        "quest": "outpost-east"
+      }
+    ]
   },
   "text": "quest.four-winds",
   "main": true,

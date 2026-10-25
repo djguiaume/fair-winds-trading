@@ -99,13 +99,25 @@ function variantOf(key: string): string {
   return (en as Record<string, string>)[k] ? k : key;
 }
 
+let padNames: Record<string, string> = {};
+
+/**
+ * The pad's own button names (decision 0186, `controls.json` › `padBrands`): a text writes
+ * `{pad:a}` and reads "A" on an Xbox pad, "✕" on a PlayStation pad, "B" on a Switch pad.
+ */
+export function setPadNames(names: Record<string, string>): void {
+  padNames = names;
+}
+
 /** Translate `key`, replacing `{name}` with `params.name`. Falls back to English, then the key. */
 export function t(key: MessageKey, params: Record<string, string | number> = {}): string {
   key = variantOf(key) as MessageKey;
   const text = current.messages[key] ?? (en as Messages)[key] ?? key;
-  return text.replace(/\{(\w+)\}/g, (match, name: string) =>
-    name in params ? String(params[name]) : match,
-  );
+  return text
+    .replace(/\{pad:(\w+)\}/g, (match, button: string) => padNames[button] ?? match)
+    .replace(/\{(\w+)\}/g, (match, name: string) =>
+      name in params ? String(params[name]) : match,
+    );
 }
 
 /**
@@ -163,6 +175,18 @@ export function weatherName(kind: string): string {
 export function zoneKindName(kind: string): string {
   const key = `zone.${kind}` as MessageKey;
   return key in en ? t(key) : kind;
+}
+
+/**
+ * A named wind zone on a chart, "The Glass · doldrums"; just the name when it already says its
+ * kind ("The Cold Sea", not "The Cold Sea · cold sea").
+ */
+export function zoneLabel(name: string, kind: string): string {
+  const kindName = zoneKindName(kind);
+  const words = kindName.replace(/[^\p{L} ]/gu, '');
+  return new RegExp(`(^|[^\\p{L}])${words}($|[^\\p{L}])`, 'iu').test(name)
+    ? name
+    : t('chart.zone', { name, kind: kindName });
 }
 
 export function hasText(key: string): key is MessageKey {

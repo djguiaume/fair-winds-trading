@@ -62,11 +62,13 @@ import { COIN, crateIcon, icon } from './icons';
 import { portraitSvg } from './portraits';
 import { questCardBody } from './questCard';
 import type { QuayItem } from './questView';
+import { padGlyph } from './padGlyphs';
 
 /** A game controller's button glyphs, shown only while the pad is in use (decision 0163). */
-const PAD_LB = '<i class="pad-key bumper pad-only" aria-hidden="true">LB</i>';
-const PAD_RB = '<i class="pad-key bumper pad-only" aria-hidden="true">RB</i>';
-const PAD_X = '<i class="pad-key x pad-only" aria-hidden="true">X</i>';
+// Button glyphs named for the pad in use (decision 0186), built when the panel draws.
+const PAD_LB = () => padGlyph('lb', 'bumper');
+const PAD_RB = () => padGlyph('rb', 'bumper');
+const PAD_X = () => padGlyph('x');
 
 export type TradePanelTab = 'market' | 'orders' | 'quay' | 'shipyard';
 
@@ -255,12 +257,12 @@ export class TradePanel {
         </header>
 
         <nav class="trade-tabs">
-          ${PAD_LB}
+          ${PAD_LB()}
           ${tabBtn('market', isKid ? t('kids.tabMarket') : t('trade.tabMarket'))}
           ${isKid ? '' : tabBtn('orders', t('trade.tabOrders'), orders ? ` <span class="tab-badge">${orders}</span>` : '')}
           ${this.quay ? tabBtn('quay', t('trade.tabQuay'), fresh.length && this.tab !== 'quay' ? ` <span class="tab-badge is-quay">${fresh.length}</span>` : '') : ''}
           ${tabBtn('shipyard', isKid ? t('kids.tabShipyard') : t('trade.tabShipyard'))}
-          ${PAD_RB}
+          ${PAD_RB()}
           ${
             this.tab === 'market' && !isKid
               ? `<span class="lot-picker" role="group" aria-label="${t('trade.lot')}"><small>${t('trade.lot')}</small>${LOTS.map(
@@ -295,7 +297,7 @@ export class TradePanel {
           <span class="footer-gap"></span>
           ${
             totalSellableValue > 0 && !isKid
-              ? `<button id="tp-sell-all" class="port-btn green" data-pad="secondary">${PAD_X}${t('trade.sellAll', { price: totalSellableValue })}${COIN}</button>`
+              ? `<button id="tp-sell-all" class="port-btn green" data-pad="secondary">${PAD_X()}${t('trade.sellAll', { price: totalSellableValue })}${COIN}</button>`
               : ''
           }
           <button id="tp-undock" class="port-btn brass undock-btn">${icon('anchor')}${isKid ? t('kids.undock') : t('trade.undock')}</button>

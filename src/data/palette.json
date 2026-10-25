@@ -32,6 +32,8 @@
     "cream": "#f4ede0",
     "dark": "#6b4a2a",
     "path": "#c1af7c",
+    "boulder": "#c2ad8c",
+    "boulder2": "#d6c4a4",
     "lighthouse": "#f4ede0",
     "lighthouseBand": "#c8603e",
     "lighthouseRoof": "#3f74a8"
@@ -107,6 +109,8 @@
       },
       "colors": {
         "path": "#8f8a84",
+        "boulder": ["#3a3536", "#433e3f", "#3a3536", "#433e3f", "#6f9848"],
+        "boulder2": ["#4b4547", "#3d3839", "#4b4547", "#3d3839", "#7fa852"],
         "lighthouse": "#e8742a",
         "lighthouseBand": "#f4ede0",
         "lighthouseRoof": "#b8402e",

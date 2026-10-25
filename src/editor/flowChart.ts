@@ -47,6 +47,9 @@ const ZONE_NAMES: Record<string, string> = {
   sheltered: 'sheltered',
   'storm-belt': 'storm belt',
 };
+/** Does a zone's name already say its kind ("The Cold Sea", a cold sea), as a whole word? */
+export const namesKind = (name: string, kind: string) =>
+  new RegExp(`\\b${kind.replace(/[^a-z ]/gi, '')}\\b`, 'i').test(name);
 export const zoneKindName = (kind: string) => ZONE_NAMES[kind] ?? kind.replace(/-/g, ' ');
 /** A kind's tint: its `chart` colour in weather.json (decision 0169), else the built-in one. */
 export const zoneTint = (kind: string) =>
@@ -166,10 +169,14 @@ export function flowLabels(
 ) {
   for (const z of map.windZones ?? []) {
     const { x, y } = boundingCircle(z.outline);
-    const heading = z.headingDeg !== undefined ? ` · from ${z.headingDeg}°` : '';
+    const heading = z.headingDeg !== undefined ? `from ${z.headingDeg}°` : '';
     // A storm belt's name goes just above its band, clear of the chevrons.
     const top = isBeltKind(z.kind) ? Math.max(...z.outline.map((p) => p[1])) + 10 : y;
-    label(`${z.name ?? z.id} (${zoneKindName(z.kind)}${heading})`, x, -top, 12, 'small');
+    // "The Cold Sea", not "The Cold Sea (cold sea)": the kind only when the name does not say it.
+    const name = z.name ?? z.id;
+    const kind = namesKind(name, zoneKindName(z.kind)) ? '' : zoneKindName(z.kind);
+    const note = [kind, heading].filter(Boolean).join(' · ');
+    label(note ? `${name} (${note})` : name, x, -top, 12, 'small');
   }
   for (const c of map.currents ?? []) {
     const lane = laneShape(c);

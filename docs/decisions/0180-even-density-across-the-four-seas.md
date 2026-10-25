@@ -22,7 +22,7 @@ The gaps, biggest first: west 225..260° (r247), east 100..135° (r232), the nor
 ## Decision
 
 1. **A density measure in the tools**, shared code in `src/sim/seaDensity.ts`: `npm run sea -- density` prints the table above, the empty share per 15° slice and the biggest empty discs; `npm run chart -- --sea phase4 --density` shades the empty water and rings the biggest discs, with each sea's numbers in the legend.
-2. **The target**, from the art director: in every sea **no empty disc over r150** and **about 8–12% empty water**, with **one deliberate open reach per sea** (r120–150 with a current or a wind zone), because sailing players like open water. Zones never count as landmarks; marks make at most about a third of a sea's fill.
+2. **The target**, from the art director: in every sea **no empty disc over r150**, **empty water at most about 12%** (no minimum: a fuller sea passes), and **at least one deliberate open reach per sea** of about r120–150, ideally with a current or a wind zone through it, because sailing players like open water. A density warning in `npm run check`, if one comes, warns on the ceiling and on a missing open reach, never on a low empty share. (Wording clarified 2026-10-25 by the art director: the north at 3% with its r142 reach under The Whistle passes, and so does the east at 7% with The Race reach.) Zones never count as landmarks; marks make at most about a third of a sea's fill.
 3. **Fill with small scenery, each sea in its own look** (art bible §8 and "Where seas meet"): islets, stacks, skerries, reefs, banks, marks, one wreck. No new ports, people or quests (storyteller). Names from the storyteller:
 
    | Where | Pieces |

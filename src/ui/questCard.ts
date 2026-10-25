@@ -1,10 +1,21 @@
 import { formatNumber, t } from '../i18n';
+import { type MenuAction, PAD } from '../input/gamepad';
 import { COIN, icon } from './icons';
+import { padGlyph } from './padGlyphs';
 import { portraitSvg } from './portraits';
 import { type QuestCardModel, cardTag } from './questView';
 
 const esc = (s: string) =>
   s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+/**
+ * The controller button that does a card's answer, as a glyph shown only while the pad is in use
+ * (decision 0163): the first button `controls.json` › `menu` gives the action, named for the pad.
+ */
+function padFor(action: MenuAction): string {
+  const button = PAD.menu.actions[action][0];
+  return button ? padGlyph(button) : '';
+}
 
 const TAG_KEY = { new: 'quest.tagNew', next: 'quest.tagNext', done: 'quest.tagDone' } as const;
 
@@ -38,22 +49,27 @@ export function questCardBody(c: QuestCardModel, inline = false): string {
         .join('')}</div>`
     : '';
   const q = inline ? ` data-quest="${esc(c.quest)}"` : '';
+  // On the card dialog each answer carries its controller button: A does the focused answer, B is
+  // the dialog's Esc (Not now), X the screen's extra action (Don't offer again). The Quay tab's
+  // inline cards share their screen with others, so they keep the focus ring alone.
+  // A presses the focused answer, so its glyph shows on that one only (quests.css).
+  const press = inline ? '' : `<span class="pad-press">${padFor('press')}</span>`;
   let actions = '';
   if (c.kind === 'offer')
-    actions = `<button type="button" class="d-btn brass" data-act="accept"${q}>${icon('anchor')}${esc(t('quest.accept'))}</button><button type="button" class="d-btn" data-act="later"${q}>${esc(t('quest.notNow'))}</button>${
+    actions = `<button type="button" class="d-btn brass" data-act="accept"${q}>${press}${icon('anchor')}${esc(t('quest.accept'))}</button><button type="button" class="d-btn" data-act="later"${q}>${inline ? '' : padFor('back')}${esc(t('quest.notNow'))}</button>${
       c.main
         ? ''
-        : `<button type="button" class="d-btn ghost" data-act="ignore"${q}>${esc(t('quest.ignore'))}</button>`
+        : `<button type="button" class="d-btn ghost" data-act="ignore"${q}${inline ? '' : ' data-pad="secondary"'}>${inline ? '' : padFor('secondary')}${esc(t('quest.ignore'))}</button>`
     }`;
   else if (c.kind === 'choice')
     actions = (c.options ?? [])
       .map(
         (o) =>
-          `<button type="button" class="d-btn quest-option" data-act="choose" data-option="${esc(o.id)}"${q}><b>${esc(o.title)}</b>${o.copy ? `<span>${esc(o.copy)}</span>` : ''}</button>`,
+          `<button type="button" class="d-btn quest-option" data-act="choose" data-option="${esc(o.id)}"${q}><b>${press}${esc(o.title)}</b>${o.copy ? `<span>${esc(o.copy)}</span>` : ''}</button>`,
       )
       .join('');
   else if (!inline)
-    actions = `<button type="button" class="d-btn brass" data-act="close">${esc(t('quest.close'))}</button>`;
+    actions = `<button type="button" class="d-btn brass" data-act="close">${press}${esc(t('quest.close'))}</button>`;
   return `<span class="quest-tag is-${tag}">${esc(t(TAG_KEY[tag]))}</span>
       <header class="quest-head"><h2>${esc(c.giver?.name ?? c.arc)}</h2>${
         c.role ? `<span class="quest-role">${esc(c.role)}</span>` : ''
@@ -87,10 +103,12 @@ export class QuestCard {
       if (!button || !this.card) return;
       const card = this.card;
       const act = button.dataset.act!;
-      this.close();
+      // The answer first, then the close: what comes next (another card from the same person)
+      // is due by the time `onClose` looks for it.
       if (act === 'accept') this.onAccept(card.quest);
       else if (act === 'choose') this.onChoose(card.quest, button.dataset.option!);
       else if (act === 'ignore') this.onIgnore(card.quest);
+      this.close();
     });
     dialog.addEventListener('close', () => {
       const card = this.card;
@@ -121,7 +139,7 @@ export class QuestCard {
         : ''
     }${face}<div class="quest-body">${questCardBody(card)}</div>${
       arrival
-        ? `<button type="button" class="quest-to-market" data-act="market">${esc(t('quest.toMarket'))}</button>`
+        ? `<button type="button" class="quest-to-market" data-act="market">${card.kind === 'offer' ? '' : padFor('back')}${esc(t('quest.toMarket'))}</button>`
         : ''
     }`;
     if (!this.dialog.open) this.dialog.showModal();

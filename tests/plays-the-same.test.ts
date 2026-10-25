@@ -98,9 +98,9 @@ describe('plays the same after moving levels, tutorial and music to data (decisi
     const lines: string[] = [];
     for (let run = 0; run < 300; run++) lines.push(...tutorialSession(run));
     expect(lines.length).toBeGreaterThan(60000);
-    expect(hash(lines.join('\n'))).toBe('72a1c31c');
+    expect(hash(lines.join('\n'))).toBe('7350ce81');
     // 2026-10-25: neutral default texts for the lessons that name controls (decision 0184), then
-    // Rook's card at the rescue (decision 0185).
+    // Rook's card at the rescue (decision 0185), then his thanks on the quay (decision 0190).
     // 300 sessions take about 3.5 s here and over 5 s on a busy CI runner.
   }, 20000);
 });

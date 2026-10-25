@@ -73,14 +73,56 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
     return node;
   };
   const pts = (outline: [number, number][]) => outline.map(([x, y]) => `${x},${-y}`).join(' ');
-  const label = (text: string, x: number, y: number, size: number, cls = '') =>
-    (el('text', {
+  // Every name's box (text centred on x, baseline at y), so the wind zones' names keep clear.
+  const placed: { x0: number; x1: number; y0: number; y1: number }[] = [];
+  const labelBox = (text: string, x: number, y: number, size: number) => {
+    const w = text.length * size * px * 0.55,
+      h = size * px;
+    return { x0: x - w / 2, x1: x + w / 2, y0: y - h * 1.1, y1: y + h * 0.4 };
+  };
+  const label = (text: string, x: number, y: number, size: number, cls = '') => {
+    placed.push(labelBox(text, x, y, size));
+    el('text', {
       x,
       y,
       class: `c-label ${cls}`,
       'font-size': size * px,
       'stroke-width': 3 * px,
-    }).textContent = text);
+    }).textContent = text;
+  };
+  // A big zone's middle often holds other names (the Cold Sea round the Calving Grounds): the
+  // first free spot stepping up and down from it, slid in from the sea's rim (Phase 4 review).
+  const freeLabel = (text: string, x: number, y: number, size: number, cls = '') => {
+    const step = size * px * 1.4;
+    const width = labelBox(text, 0, 0, size).x1 * 2;
+    // Towards the sea's middle first, where there is more room; then a little to either side.
+    const inward = y < 0 ? 1 : -1;
+    const spots = (k: number) => {
+      const ty = y + Math.ceil(k / 2) * step * (k % 2 ? inward : -inward);
+      const rim =
+        Math.sqrt(Math.max(0, map.boundsRadius ** 2 - (Math.abs(ty) + size * px) ** 2)) -
+        6 * px -
+        width / 2;
+      if (rim <= 0) return [];
+      return [0, -0.6, 0.6].map((f) => ({
+        x: Math.min(Math.max(x + f * width, -rim), rim),
+        y: ty,
+      }));
+    };
+    const free = (c: { x: number; y: number }) => {
+      const b = labelBox(text, c.x, c.y, size);
+      return !placed.some((p) => p.x0 < b.x1 && b.x0 < p.x1 && p.y0 < b.y1 && b.y0 < p.y1);
+    };
+    let best = spots(0)[0] ?? { x, y };
+    for (let k = 0; k <= 12; k++) {
+      const found = spots(k).find(free);
+      if (found) {
+        best = found;
+        break;
+      }
+    }
+    label(text, best.x, best.y, size, cls);
+  };
 
   el('circle', { r: map.boundsRadius, class: 'c-sea', 'data-hit': 'sea' });
   if (scene.ringRadius) el('circle', { r: scene.ringRadius, class: 'c-ring-edge' });
@@ -356,7 +398,15 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
     if (layers.marks)
       for (const mark of map.marks ?? [])
         if (mark.name) label(mark.name, mark.x, -mark.y - 10 * px, 11, 'small');
-    if (layers.flow) flowLabels(map, label);
+    // The zones' names keep off the land too.
+    for (const i of map.islands)
+      placed.push({
+        x0: i.x - i.radius,
+        x1: i.x + i.radius,
+        y0: -i.y - i.radius,
+        y1: -i.y + i.radius,
+      });
+    if (layers.flow) flowLabels(map, freeLabel);
     if (layers.areas)
       for (const a of map.fog?.areas ?? []) {
         const xs = a.outline.map((p) => p[0]),

@@ -42,6 +42,7 @@ describe('the tutorial as an ordinary quest (decision 0151)', () => {
       'chart',
       'home-port',
       'home',
+      'thanks',
       'island',
       'buy',
       'choose-delivery',
@@ -63,6 +64,7 @@ describe('the tutorial as an ordinary quest (decision 0151)', () => {
     v.rescue();
     v.course('saltmere');
     v.dock('saltmere');
+    v.cont();
     v.cont();
     expect(v.step).toBe('buy');
     // Finish it: the quest's reward is paid once.

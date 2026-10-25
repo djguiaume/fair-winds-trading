@@ -258,6 +258,12 @@ body.at-title .in-game {
   cursor: pointer;
   touch-action: manipulation;
 }
+/* A line that can't be picked now (the lessons while the first voyage's story runs). */
+.menu-row:disabled {
+  opacity: 0.45;
+  cursor: default;
+  filter: grayscale(0.6);
+}
 .menu-row:active {
   background: rgba(232, 196, 106, 0.14);
 }

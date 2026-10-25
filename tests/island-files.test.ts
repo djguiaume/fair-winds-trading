@@ -124,7 +124,7 @@ describe('island files (decision 0101)', () => {
 const GOLDEN: Record<string, string[]> = {
   'the-smoulder': ['161:afbe8b23', '161:afbe8b23', '161:afbe8b23', '161:afbe8b23'],
   'organ-pipes': ['49:99b3de15', '49:99b3de15', '49:99b3de15', '49:99b3de15'],
-  emberhold: ['540:45293807', '676:41c5d0d1', '793:71cda802', '826:db130d6d'],
+  emberhold: ['540:7961765f', '676:344078f9', '793:741992a2', '826:f01b51b5'],
   'cinder-isle': ['101:d61cc732', '120:264040fd', '136:af5a5fb4', '136:af5a5fb4'],
   calda: ['556:6dc4b4e3', '664:95208427', '731:b682ff4a', '965:5ffb41cc'],
   saltmere: ['246:190f7a6', '421:aa8af177', '641:e4577624', '806:691e8290'],
@@ -148,7 +148,7 @@ const GOLDEN: Record<string, string[]> = {
   'palm-key': ['296:5af31071', '270:7e77b63a', '266:18f30d17', '266:18f30d17'],
   'lone-palm': Array(4).fill('13:2bd589f4'),
   // The east sea (decision 0173).
-  fogwatch: ['619:644eee3c', '740:9e73d52f', '812:bc749a59', '853:68f796d7'],
+  fogwatch: ['609:5ce185ac', '730:ccdee369', '828:a1c40537', '882:ceda5e05'],
   'the-giant': Array(4).fill('6:c84f56e6'),
   'his-wife': Array(4).fill('6:676eecc4'),
   'amber-strand': ['172:d2f08c8a', '214:25877637', '253:69fee500', '253:69fee500'],
@@ -170,7 +170,7 @@ const GOLDEN: Record<string, string[]> = {
   'lead-rock': Array(4).fill('19:6c8d9003'),
   rimewick: ['813:13706de2', '981:96ee850a', '1034:20dd1c89', '1042:f649515c'],
   'seal-rocks': Array(4).fill('19:515ad7d'),
-  'snowberry-isle': ['238:30aaab39', '408:a4f7aef7', '437:cc204c39', '437:cc204c39'],
+  'snowberry-isle': ['244:66927c47', '425:d47de293', '553:3d5c09c', '553:3d5c09c'],
   whitefell: Array(4).fill('17:90d719e7'),
   // The north's corner pieces (decision 0180).
   'selkie-rock': Array(4).fill('26:c7676022'),

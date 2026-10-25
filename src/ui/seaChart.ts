@@ -18,7 +18,7 @@ import { coastDistance } from '../sim/coast';
 import { areaCrests, laneCrests, laneEdges, smoothOutline } from '../sim/flowShapes';
 import { zoneHazy } from '../sim/windZones';
 import { TUNING } from '../data/tuning';
-import { goodName, t, zoneKindName } from '../i18n';
+import { goodName, t, zoneLabel } from '../i18n';
 import { icon, COIN } from './icons';
 import { drawHazard } from './hazardMarker';
 import { landStyles, seaMarkShape } from './chartMarks';
@@ -457,7 +457,7 @@ export class SeaChart {
       });
       const deep = deepestPoint(outline);
       return {
-        text: t('chart.zone', { name: z.name!, kind: zoneKindName(z.kind) }),
+        text: zoneLabel(z.name!, z.kind),
         kind,
         x: deep.x,
         y: -deep.y,
@@ -579,14 +579,38 @@ export class SeaChart {
       if (this.isOpen) this.draw();
     }, 150);
   }
+  /** Where the controller's cross is, in screen pixels from the middle of the chart (0183). */
+  private cross = { x: 0, y: 0 };
   /**
-   * A controller's A (decision 0183): set a course to the port nearest the cross in the middle of
-   * the chart, if one lies within `reachPx` screen pixels. True when a port was picked.
+   * A controller's stick on the chart (decision 0183): the cross moves over the chart, and the
+   * view slides only once the cross reaches an edge (zoomed out, the whole sea shows and the view
+   * can't slide, which left the cross stuck in the middle).
    */
-  pickNearCentre(reachPx: number): boolean {
+  padMove(dx: number, dy: number, edgePx = 40) {
+    if (!dx && !dy) return;
     const r = this.get('chart-map').getBoundingClientRect();
-    const cx = r.left + r.width / 2,
-      cy = r.top + r.height / 2;
+    const hx = Math.max(0, r.width / 2 - edgePx),
+      hy = Math.max(0, r.height / 2 - edgePx);
+    const x = Math.max(-hx, Math.min(hx, this.cross.x + dx));
+    const y = Math.max(-hy, Math.min(hy, this.cross.y + dy));
+    const spillX = this.cross.x + dx - x,
+      spillY = this.cross.y + dy - y;
+    this.cross = { x, y };
+    this.placeCross();
+    if (spillX || spillY) this.panBy(spillX, spillY);
+  }
+  private placeCross() {
+    const el = this.dialog.querySelector<HTMLElement>('.chart-cross');
+    if (el) el.style.transform = `translate(${this.cross.x}px, ${this.cross.y}px)`;
+  }
+  /**
+   * A controller's A (decision 0183): set a course to the port nearest the cross, if one lies
+   * within `reachPx` screen pixels. True when a port was picked.
+   */
+  pickAtCross(reachPx: number): boolean {
+    const r = this.get('chart-map').getBoundingClientRect();
+    const cx = r.left + r.width / 2 + this.cross.x,
+      cy = r.top + r.height / 2 + this.cross.y;
     let best: Element | null = null;
     let bestD = reachPx * reachPx;
     for (const g of this.dialog.querySelectorAll('.chart-port-target[data-chart-target]')) {
@@ -615,6 +639,8 @@ export class SeaChart {
     if (!this.goodPicked) this.good = this.defaultGood();
     this.zoom = 1;
     this.center = { x: 0, y: 0 };
+    this.cross = { x: 0, y: 0 };
+    this.placeCross();
     // Wide screens open with the journal beside the sea while a quest is under way.
     const wide =
       typeof matchMedia === 'function' &&
@@ -1280,9 +1306,16 @@ export class SeaChart {
       const size = 11 * px;
       const w = z.text.length * size * 0.5,
         h = size * 1.2;
-      const b = box(z.x, z.y, w, h);
+      // Slid in from the sea's rim so the chart's edge never cuts the name (Phase 4 review).
+      const rim = Math.sqrt(Math.max(0, map.boundsRadius ** 2 - (Math.abs(z.y) + h / 2) ** 2));
+      const room = rim - 6 * unit - w / 2;
+      if (room < 0) continue;
+      const x = Math.min(Math.max(z.x, -room), room);
+      // A zone's name waits for its water to be charted, like the islands in it (decision 0156).
+      if (z.kind !== 'fog' && !chartedAt(map, this.world.trade.progress, x, -z.y)) continue;
+      const b = box(x, z.y, w, h);
       // The name may run a little past a zone's edge, but not over a zone much narrower than it.
-      const inside = (dx: number) => coastDistance(z.x + dx, -z.y, z.outline).distance < 0;
+      const inside = (dx: number) => coastDistance(x + dx, -z.y, z.outline).distance < 0;
       let chord = 0;
       for (const side of [-1, 1])
         for (let dx = 0; dx < w && inside(side * dx); dx += w / 20) chord += w / 20;
@@ -1290,7 +1323,7 @@ export class SeaChart {
       if (!fits || overlap(b, boatBox) > 0 || placed.some((p) => overlap(b, p) > 0)) continue;
       placed.push(b);
       const label = shape('text', {
-        x: z.x,
+        x,
         y: z.y + size * 0.35,
         class: `chart-zone-label chart-zone-${z.kind}`,
         style: `font-size: ${size}px`,
