@@ -108,6 +108,25 @@ describe('harbour UI with real trade state', () => {
     expect(document.activeElement).toBe(opener);
   });
 
+  it('keeps the focus on a Sell button that greys after the last sale (decision 0192)', () => {
+    const { world, panel, container, click } = setup();
+    world.trade.captain.cargo.fish = 1;
+    panel.open();
+    const gold = world.trade.captain.gold;
+    click('[data-action="sell"][data-good="fish"]');
+    const sell = document.activeElement as HTMLButtonElement;
+    // Not the close button: the next A must not leave the port.
+    expect(sell.dataset.action).toBe('sell');
+    expect(sell.getAttribute('aria-disabled')).toBe('true');
+    const after = world.trade.captain.gold;
+    expect(after).toBeGreaterThan(gold);
+    sell.click();
+    expect(world.trade.captain.gold).toBe(after);
+    expect(container.querySelector('[data-pad="steps"] [aria-pressed="true"]')!.textContent).toBe(
+      '×1',
+    );
+  });
+
   it('reports a trade failure if state changed after drawing the quote', () => {
     const { world, panel, container, click } = setup();
     panel.open();

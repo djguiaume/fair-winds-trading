@@ -1106,6 +1106,12 @@ function padScreen(): PadScreen | null {
 }
 const padFocus = new PadFocus(padScreen, document.getElementById('pad-hints'));
 pad.onMenuPress = (p, context) => padFocus.press(p, context);
+// The port screen redraws on each tab and sale: the hints pill follows what it shows (0192).
+const portRendered = tradePanel.onRender;
+tradePanel.onRender = () => {
+  portRendered();
+  padFocus.refreshHints();
+};
 // Texts that name controls follow the way of playing: touch, keys or pad (decision 0184).
 const way = new WayOfPlaying(window, firstGuess);
 way.onChange = (w) => {

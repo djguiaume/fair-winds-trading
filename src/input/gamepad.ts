@@ -92,6 +92,8 @@ export type MenuAction =
   | 'press'
   | 'back'
   | 'secondary'
+  | 'less'
+  | 'more'
   | 'tabPrev'
   | 'tabNext'
   | 'resume';
@@ -118,7 +120,10 @@ export interface PadControls extends PadConfig {
     moveX: PadAxis;
     moveY: PadAxis;
     stickPress: number;
-    /** How long the button hints stay up after a screen opens. */
+    /** The stick that scrolls a long screen (decision 0192), and how fast at full lean. */
+    scrollY: PadAxis;
+    scrollPxPerSec: number;
+    /** How long the button hints stay up after a screen opens; 0: as long as the screen. */
     hintsSeconds: number;
     actions: Record<MenuAction, PadButton[]>;
   };
@@ -180,12 +185,14 @@ export function controlProblems(c: PadControls = PAD): string[] {
   if (!(c.triggerPress > 0 && c.triggerPress <= 1)) out.push('triggerPress must be 0..1');
   if (!(c.repeatDelayMs > 0 && c.repeatEveryMs > 0)) out.push('repeat timings must be > 0');
   if (!(c.menu.stickPress > 0 && c.menu.stickPress <= 1)) out.push('menu.stickPress must be 0..1');
+  if (!(c.menu.hintsSeconds >= 0)) out.push('menu.hintsSeconds must be 0 or more (0: always up)');
+  if (!(c.menu.scrollPxPerSec > 0)) out.push('menu.scrollPxPerSec must be > 0');
   const contexts = { sea: c.sea, chart: c.chart, menu: c.menu } as Record<
     string,
     { actions: Record<string, string[]> } & Record<string, unknown>
   >;
   for (const [name, ctx] of Object.entries(contexts)) {
-    for (const key of ['steerAxis', 'zoomAxis', 'panX', 'panY', 'moveX', 'moveY'])
+    for (const key of ['steerAxis', 'zoomAxis', 'panX', 'panY', 'moveX', 'moveY', 'scrollY'])
       if (key in ctx && !axes.has(ctx[key] as string))
         out.push(`${name}.${key}: no axis "${String(ctx[key])}"`);
     for (const [action, list] of Object.entries(ctx.actions)) {
