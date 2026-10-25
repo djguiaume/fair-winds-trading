@@ -210,7 +210,7 @@ export function seaStepFromArgs(args: Args): SeaStep | null {
         path: points(args.path) as [number, number, number][] | undefined,
         island: typeof args.island === 'string' ? args.island : undefined,
         route: args.route ? true : undefined,
-        fields: (({ route: _, ...rest }) => rest)(fields),
+        fields: Object.fromEntries(Object.entries(fields).filter(([k]) => k !== 'route')),
       };
     case 'move':
       if (!what || id === undefined) throw new Error('move <what> <id|index>');

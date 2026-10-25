@@ -330,7 +330,8 @@ export function applySeaSteps(doc: SeaDoc, steps: readonly SeaStep[]): string[] 
     // set
     if (step.what === 'fleet' && step.fields.route) {
       const fleet = selected(doc, sel) as TrafficDef;
-      const { route: _, ...fields } = step.fields;
+      const fields = { ...step.fields };
+      delete fields.route;
       assign(fleet, fields);
       const path = routeLane(prepareMap(doc), fleet);
       if (!path) throw new Error(`no sailing route for fleet ${fleet.id}`);

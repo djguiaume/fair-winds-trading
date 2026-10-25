@@ -185,21 +185,28 @@ export class TrafficView {
 
   /**
    * Draws the boats awake now. `wave` is the sea's height at a scene point; `glow` the night's
-   * (and a storm's) 0..1 for the lanterns.
+   * (and a storm's) 0..1 for the lanterns; `near` the player, whose nearest visitor is drawn.
    */
   update(
     traffic: TrafficState,
     time: number,
     wave: (x: number, z: number) => number,
     glow: number,
+    near: { x: number; y: number },
   ) {
     for (const batch of this.batches.values()) batch.count = 0;
     let lights = 0;
     let shownVisitor: TrafficBoat | null = null;
+    let visitorD = Infinity;
     const shown = traffic.on ? traffic.boats.filter((b) => b.awake) : [];
     for (const b of shown) {
       if (b.fleet.kind === 'visitor') {
-        shownVisitor ??= b;
+        // The nearest one: only one big model at a time.
+        const d = Math.hypot(b.boat.x - near.x, b.boat.y - near.y);
+        if (!shownVisitor || d < visitorD) {
+          shownVisitor = b;
+          visitorD = d;
+        }
         continue;
       }
       const batch = this.batchOf(b);

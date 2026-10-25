@@ -640,7 +640,13 @@ export class GameView {
     this.seaMarks.setQuestMarks(this.questMarks());
     this.seaMarks.update(time, (x, z) => waveHeight(x, z, time));
     this.bergs.update(this.world.time, this.world.bergsOn, (x, z) => waveHeight(x, z, time));
-    this.traffic.update(this.world.traffic, time, (x, z) => waveHeight(x, z, time), glow);
+    this.traffic.update(
+      this.world.traffic,
+      time,
+      (x, z) => waveHeight(x, z, time),
+      glow,
+      this.world.boat,
+    );
     this.questMarkers.update(this.stepMarkers(), time, (x, z) => waveHeight(x, z, time));
 
     this.buoy.root.visible = Boolean(this.world.map.practiceCourse && !this.world.destination);
