@@ -48,6 +48,9 @@ second pier at Town. `npm run shots -- --moor snowberry-isle` now finds its bert
 
 - A player who sails into a zone before its chart is handed over sees its dashed edge under the fog
   but not its name; the name appears with the chart.
-- Fogwatch has no triangles left: anything more there needs something taken away first, or a higher
-  budget for main ports (a question for the art director, not taken here).
+- Fogwatch has no triangles left. The art director (2026-10-25) keeps the terraces (Fogwatch's Faroe
+  look) and proposes, as a follow-up after the release, about 7,500 triangles for the four main ports
+  only (6,000 stays for every other island), checked with `?bench` first since the tablet is
+  fill-rate bound; the room then goes to two or three more crofts and dykes on the lowest shelf.
+- Art director: approved for v0.4 (2026-10-25). Guillaume's look still to come.
 - Shots and quest tests of land that rises after a quest now show it from the first frame.
