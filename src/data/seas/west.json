@@ -36,8 +36,8 @@
     },
     {
       "id": "cinder-isle",
-      "x": -674,
-      "y": 566,
+      "x": -721,
+      "y": 505,
       "radius": 24,
       "look": {
         "design": "cinder-isle",
@@ -158,8 +158,8 @@
     },
     {
       "label": "Cinder Isle",
-      "x": -652,
-      "y": 521
+      "x": -699,
+      "y": 460
     }
   ],
   "marks": [
