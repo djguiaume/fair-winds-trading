@@ -707,9 +707,9 @@ export function questProblems(doc: QuestDoc, map: MapDef): string[] {
     // Quests for a Phase 4 sea this map lacks are left to the grown sea's checks (decision 0155);
     // a quest naming a port no sea has is still checked here, so a misspelt port shows.
     const grown = (GROWN ??= prepareMap(grownMap(PHASE1_SOURCE)));
-    const here = doc.quests.filter(
-      (q) => questsFor(map, [q]).length > 0 || questsFor(grown, [q]).length === 0,
-    );
+    const runsHere = new Set(questsFor(map, doc.quests).map((q) => q.id));
+    const runsGrown = new Set(questsFor(grown, doc.quests).map((q) => q.id));
+    const here = doc.quests.filter((q) => runsHere.has(q.id) || !runsGrown.has(q.id));
     return [
       ...checkQuests(here, map),
       ...checkQuestHooks(map, Object.values(ISLAND_DESIGNS), doc.quests),
