@@ -297,11 +297,17 @@ export function checkRaceDef(race: unknown, at: string): string[] {
 }
 
 /** Problems with `regatta.json` and `flags.json`. */
-export function checkRegattaData(): string[] {
+export function checkRegattaData(
+  data: RegattaData = REGATTA,
+  flags: readonly FlagDef[] = FLAGS,
+): string[] {
   const out: string[] = [];
-  const { medals, rival, series, winMedal, countdownSec, within } = REGATTA;
+  const { medals, rival, series, winMedal, countdownSec, within, minLine } = data;
+  const flag = (id: string) => flags.some((f) => f.id === id);
+  const colour = (c: unknown) => typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c);
   if (!(countdownSec >= 0)) out.push('regatta.json › countdownSec: seconds');
   if (!(within > 0)) out.push('regatta.json › within: map units');
+  if (!(minLine > 0)) out.push('regatta.json › minLine: map units');
   let last = Infinity;
   for (const m of MEDALS) {
     if (!(medals[m] > 0 && medals[m] <= last))
@@ -311,16 +317,28 @@ export function checkRegattaData(): string[] {
   if (!MEDALS.includes(winMedal)) out.push('regatta.json › winMedal: a medal');
   if (!MEDALS.includes(rival.pace)) out.push('regatta.json › rival.pace: a medal');
   if (!SHIP_CLASSES[rival.ship]) out.push(`regatta.json › rival.ship: no ship "${rival.ship}"`);
-  if (!flagById(rival.flag)) out.push(`regatta.json › rival.flag: no flag "${rival.flag}"`);
-  for (const s of series)
-    if (!flagById(s.pennant)) out.push(`regatta.json › ${s.id}.pennant: no flag "${s.pennant}"`);
+  if (!flag(rival.flag)) out.push(`regatta.json › rival.flag: no flag "${rival.flag}"`);
+  if (!rival.name?.trim()) out.push('regatta.json › rival.name: a name');
+  if (!colour(rival.hull)) out.push('regatta.json › rival.hull: a colour #rrggbb');
+  if (!colour(rival.band)) out.push('regatta.json › rival.band: a colour #rrggbb');
+  const [lo, hi] = rival.paceRange ?? [];
+  if (!(lo! > 0 && hi! >= lo!))
+    out.push('regatta.json › rival.paceRange: [lowest, highest] above 0');
+  if (!(rival.berth >= 0)) out.push('regatta.json › rival.berth: map units');
+  if (!(rival.runOut >= 0)) out.push('regatta.json › rival.runOut: map units');
+  const seen = new Set<string>();
+  for (const s of series) {
+    if (seen.has(s.id)) out.push(`regatta.json › ${s.id}: series id used twice`);
+    seen.add(s.id);
+    if (!flag(s.pennant)) out.push(`regatta.json › ${s.id}.pennant: no flag "${s.pennant}"`);
+  }
   const ids = new Set<string>();
-  for (const f of FLAGS) {
+  for (const f of flags) {
     if (ids.has(f.id)) out.push(`flags.json › ${f.id}: id used twice`);
     ids.add(f.id);
     if (!FLAG_SHAPES.includes(f.shape))
       out.push(`flags.json › ${f.id}.shape: one of ${FLAG_SHAPES.join(', ')}`);
-    if (!f.bands?.length || !f.bands.every((c) => /^#[0-9a-f]{6}$/i.test(c)))
+    if (!f.bands?.length || !f.bands.every(colour))
       out.push(`flags.json › ${f.id}.bands: colours #rrggbb`);
     if (!(f.length > 0 && f.height > 0)) out.push(`flags.json › ${f.id}: length and height`);
   }
