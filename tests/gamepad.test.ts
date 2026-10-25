@@ -118,10 +118,14 @@ describe('game controller (decision 0162)', () => {
     expect(using).toEqual([true]);
     setPads([fakePad()]);
     fire('keydown', { key: 'ArrowUp' });
+    // The pad gets a moment to show it made the key (Edge on Xbox), then the ring goes.
+    poller.poll(600);
+    expect(poller.usingPad).toBe(true);
+    poller.poll(1000);
     expect(poller.usingPad).toBe(false);
     setPads([null]);
     fire('gamepaddisconnected');
-    expect(poller.poll(532)).toBeNull();
+    expect(poller.poll(1032)).toBeNull();
   });
 
   it('finds a pad the browser never announced (Edge on Xbox, decision 0183)', () => {
@@ -168,6 +172,69 @@ describe('game controller (decision 0162)', () => {
     setPads([fakePad(['a'])]);
     fire('keydown', key('GamepadA'));
     expect(poller.poll(64)!.presses.map((p) => p.button)).toEqual(['a']);
+  });
+
+  it('moves once when Edge sends the D-pad as a key before the Gamepad API shows it', () => {
+    const { poller, fire, setPads } = rig([fakePad()]);
+    fire('gamepadconnected');
+    poller.poll(0);
+    const key = { key: 'GamepadDPadDown', preventDefault: () => {} };
+    fire('keydown', key); // the key first…
+    expect(poller.poll(16)!.presses.map((p) => p.button)).toEqual(['down']);
+    setPads([fakePad(['down'])]); // …then the API: the same press, not a second one
+    expect(poller.poll(32)!.presses).toEqual([]);
+    setPads([fakePad()]);
+    poller.poll(48);
+    // The API reports presses now: later keys for pad buttons are only echoes.
+    fire('keydown', key);
+    expect(poller.poll(64)!.presses).toEqual([]);
+  });
+
+  it('keeps the focus ring when an arrow key comes just before the pad shows the D-pad', () => {
+    const { poller, fire, setPads } = rig([fakePad(['a'])]);
+    fire('gamepadconnected');
+    poller.poll(0);
+    setPads([fakePad()]);
+    poller.poll(16);
+    fire('keydown', { key: 'ArrowDown' }); // Edge's key for the D-pad
+    setPads([fakePad(['down'])]);
+    poller.poll(32);
+    poller.poll(600);
+    expect(poller.usingPad).toBe(true);
+  });
+
+  it("stops Edge's pointer click that comes with the pad's A (decision 0183)", () => {
+    const { poller, fire, setPads } = rig([fakePad()]);
+    fire('gamepadconnected');
+    poller.poll(0);
+    setPads([fakePad(['a'])]);
+    poller.poll(16); // the API reports A
+    let stopped = 0;
+    const click = (isTrusted: boolean) => ({
+      isTrusted,
+      preventDefault: () => {},
+      stopImmediatePropagation: () => stopped++,
+    });
+    fire('pointerdown', click(true));
+    fire('click', click(true));
+    expect(stopped).toBe(2);
+    fire('click', click(false)); // the game's own el.click() goes through
+    expect(stopped).toBe(2);
+    expect(poller.usingPad).toBe(true);
+  });
+
+  it('catches a tap shorter than a frame by reading between frames (decision 0183)', () => {
+    const { poller, fire, setPads } = rig([fakePad()]);
+    fire('gamepadconnected');
+    poller.poll(0);
+    setPads([fakePad(['a'])]);
+    poller.sample(8); // down…
+    setPads([fakePad()]);
+    poller.sample(16); // …and up again before the frame
+    const f = poller.poll(33)!;
+    expect(f.presses).toEqual([{ button: 'a', repeat: false }]);
+    expect(f.held.size).toBe(0);
+    expect(poller.poll(50)!.presses).toEqual([]); // once
   });
 });
 

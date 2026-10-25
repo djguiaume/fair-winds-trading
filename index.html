@@ -1205,6 +1205,26 @@
         </button>
       </div>
     </dialog>
+    <!--
+      An in-game question instead of the browser's confirm(), which leaves fullscreen and drops
+      the controller on Xbox (decision 0183). Filled by src/ui/confirmDialog.ts.
+    -->
+    <dialog id="confirm-dialog" class="d-dialog" aria-labelledby="confirm-title">
+      <h2 id="confirm-title"></h2>
+      <p id="confirm-text"></p>
+      <div class="offer-actions">
+        <button
+          id="confirm-cancel"
+          class="d-btn brass"
+          type="button"
+          autofocus
+          data-i18n="confirm.cancel"
+        >
+          Cancel
+        </button>
+        <button id="confirm-ok" class="d-btn red" type="button"></button>
+      </div>
+    </dialog>
     <div id="trade-panel" class="trade-panel-overlay" hidden></div>
     <!-- A person's card for a quest (decision 0124), filled by src/ui/questCard.ts. -->
     <dialog id="quest-card" class="quest-card"></dialog>
@@ -1548,7 +1568,7 @@
       <header class="sheet-head">
         <svg class="icon" aria-hidden="true"><use href="#i-transfer" /></svg>
         <h2 id="transfer-title" data-i18n="transfer.title">Move your voyage</h2>
-        <i class="pad-key bumper pad-only" aria-hidden="true">LB</i>
+        <i class="pad-key bumper pad-only" data-pad-key="lb" aria-hidden="true">LB</i>
         <div id="transfer-tabs" class="seg" role="tablist">
           <button
             id="transfer-tab-send"
@@ -1569,7 +1589,7 @@
             Receive
           </button>
         </div>
-        <i class="pad-key bumper pad-only" aria-hidden="true">RB</i>
+        <i class="pad-key bumper pad-only" data-pad-key="rb" aria-hidden="true">RB</i>
         <button
           id="close-transfer"
           class="d-btn red square"
@@ -1819,9 +1839,9 @@
           >
           <span class="pad"
             ><b data-i18n="help.pad">Controller</b> <kbd>L</kbd>
-            <span data-i18n="help.keySteer">steer</span> · <kbd>LB RB</kbd>
-            <span data-i18n="help.keySails">sails</span> · <kbd>B</kbd>
-            <span data-i18n="help.padStop">stop</span> · <kbd>View</kbd>
+            <span data-i18n="help.keySteer">steer</span> · <kbd data-pad-key="lb rb">LB RB</kbd>
+            <span data-i18n="help.keySails">sails</span> · <kbd data-pad-key="b">B</kbd>
+            <span data-i18n="help.padStop">stop</span> · <kbd data-pad-key="view">View</kbd>
             <span data-i18n="help.keyMap">map</span> · <kbd>☰</kbd>
             <span data-i18n="help.keyMenu">menu</span></span
           >
@@ -1831,8 +1851,10 @@
     <script type="module" src="/src/main.ts"></script>
     <!-- A game controller's button hints in menus and on cards (decision 0163). -->
     <div id="pad-hints" class="pad-hints" popover="manual" aria-hidden="true">
-      <span><i class="pad-key a">A</i><span data-i18n="pad.choose">Choose</span></span>
-      <span><i class="pad-key b">B</i><span data-i18n="pad.back">Back</span></span>
+      <span
+        ><i class="pad-key a" data-pad-key="a">A</i><span data-i18n="pad.choose">Choose</span></span
+      >
+      <span><i class="pad-key b" data-pad-key="b">B</i><span data-i18n="pad.back">Back</span></span>
     </div>
   </body>
 </html>

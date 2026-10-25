@@ -579,14 +579,38 @@ export class SeaChart {
       if (this.isOpen) this.draw();
     }, 150);
   }
+  /** Where the controller's cross is, in screen pixels from the middle of the chart (0183). */
+  private cross = { x: 0, y: 0 };
   /**
-   * A controller's A (decision 0183): set a course to the port nearest the cross in the middle of
-   * the chart, if one lies within `reachPx` screen pixels. True when a port was picked.
+   * A controller's stick on the chart (decision 0183): the cross moves over the chart, and the
+   * view slides only once the cross reaches an edge (zoomed out, the whole sea shows and the view
+   * can't slide, which left the cross stuck in the middle).
    */
-  pickNearCentre(reachPx: number): boolean {
+  padMove(dx: number, dy: number, edgePx = 40) {
+    if (!dx && !dy) return;
     const r = this.get('chart-map').getBoundingClientRect();
-    const cx = r.left + r.width / 2,
-      cy = r.top + r.height / 2;
+    const hx = Math.max(0, r.width / 2 - edgePx),
+      hy = Math.max(0, r.height / 2 - edgePx);
+    const x = Math.max(-hx, Math.min(hx, this.cross.x + dx));
+    const y = Math.max(-hy, Math.min(hy, this.cross.y + dy));
+    const spillX = this.cross.x + dx - x,
+      spillY = this.cross.y + dy - y;
+    this.cross = { x, y };
+    this.placeCross();
+    if (spillX || spillY) this.panBy(spillX, spillY);
+  }
+  private placeCross() {
+    const el = this.dialog.querySelector<HTMLElement>('.chart-cross');
+    if (el) el.style.transform = `translate(${this.cross.x}px, ${this.cross.y}px)`;
+  }
+  /**
+   * A controller's A (decision 0183): set a course to the port nearest the cross, if one lies
+   * within `reachPx` screen pixels. True when a port was picked.
+   */
+  pickAtCross(reachPx: number): boolean {
+    const r = this.get('chart-map').getBoundingClientRect();
+    const cx = r.left + r.width / 2 + this.cross.x,
+      cy = r.top + r.height / 2 + this.cross.y;
     let best: Element | null = null;
     let bestD = reachPx * reachPx;
     for (const g of this.dialog.querySelectorAll('.chart-port-target[data-chart-target]')) {
@@ -615,6 +639,8 @@ export class SeaChart {
     if (!this.goodPicked) this.good = this.defaultGood();
     this.zoom = 1;
     this.center = { x: 0, y: 0 };
+    this.cross = { x: 0, y: 0 };
+    this.placeCross();
     // Wide screens open with the journal beside the sea while a quest is under way.
     const wide =
       typeof matchMedia === 'function' &&
