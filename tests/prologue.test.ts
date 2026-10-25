@@ -76,7 +76,7 @@ describe('the prologue at sea (decision 0127)', () => {
     for (let n = 0; n < 5; n++) v.check(0.5);
     expect(v.step).toBe('wreck');
     v.check(0.5);
-    // Rook speaks on his card (decision 0184), then the chart lesson.
+    // Rook speaks on his card (decision 0185), then the chart lesson.
     expect(v.step).toBe('aboard');
     v.cont();
     expect(v.step).toBe('chart');

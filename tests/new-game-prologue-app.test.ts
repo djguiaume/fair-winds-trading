@@ -35,7 +35,7 @@ vi.mock('../src/render/view', () => ({
 afterEach(() => vi.unstubAllGlobals());
 
 /**
- * New game in Settings (decision 0184): the tutorial seen on an earlier voyage is not offered
+ * New game in Settings (decision 0185): the tutorial seen on an earlier voyage is not offered
  * again, but the new voyage still starts with the prologue's story, without the coach.
  */
 it.each(DIFFICULTIES)(

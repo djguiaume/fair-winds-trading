@@ -1,4 +1,4 @@
-# 0184. A new game always plays the prologue, and Rook speaks at the rescue
+# 0185. A new game always plays the prologue, and Rook speaks at the rescue
 
 **Status:** Accepted (2026-10-25).
 

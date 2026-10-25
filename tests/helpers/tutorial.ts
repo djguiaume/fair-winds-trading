@@ -89,7 +89,7 @@ export function tutorialVoyage(
       const wreck = v.wreck!;
       Object.assign(world.boat, { x: wreck.x + 12, y: wreck.y, speedKn: 0.5, sinceBump: Infinity });
       for (let n = 0; n < 8; n++) book.check(0.5);
-      // Rook's card at the rescue (decision 0184): "Welcome aboard".
+      // Rook's card at the rescue (decision 0185): "Welcome aboard".
       if (v.step === 'aboard') v.cont();
     },
     /** Rook home to Saltmere, the island, and alongside for the first trade. */

@@ -362,7 +362,7 @@ let offersWait = false;
 function dueMainCard() {
   // While a lesson runs, its bubbles speak: an arc offered meanwhile (Kit's, at Saltmere) waits
   // for the next visit after it (decisions 0130, 0151). A lesson step someone speaks (Rook at the
-  // rescue) is their card, with the coach or without (decision 0184).
+  // rescue) is their card, with the coach or without (decision 0185).
   const lesson = quests.lesson;
   if (lesson) {
     const { quest, step } = lesson;
@@ -445,7 +445,7 @@ quests.onEvent = (e) => {
     }
     coach.render();
     refreshMenuTutorial();
-    // A lesson step someone speaks shows their card at once, wherever the step came from (0184).
+    // A lesson step someone speaks shows their card at once, wherever the step came from (0185).
     if ((e.type === 'step' || e.type === 'choice') && quests.lesson?.step.speaker) showDueCard();
     return;
   }
@@ -495,7 +495,7 @@ questCard.onChoose = (id, option) => {
 };
 questCard.onClose = (card) => {
   // Rook's card at the rescue closed without its answer (Esc): the lesson goes on as if answered,
-  // since nothing else would show that step again (decision 0184).
+  // since nothing else would show that step again (decision 0185).
   queueMicrotask(() => {
     const lesson = quests.lesson;
     if (lesson?.quest.id !== card.quest || !lesson.step.speaker) return;
@@ -685,7 +685,7 @@ $('set-sail').addEventListener('click', () => {
   levelPicked = true;
   newVoyage.hidden = true;
   // The tutorial seen on an earlier voyage (New game in Settings) is not offered again, but the
-  // fresh voyage still starts with the prologue's story, without the coach (decisions 0160, 0184).
+  // fresh voyage still starts with the prologue's story, without the coach (decisions 0160, 0185).
   if (tutorialChoice.status !== 'unseen') startUncoachedPrologue();
   autosave();
   play();

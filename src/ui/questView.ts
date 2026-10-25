@@ -211,7 +211,7 @@ export function cardFor(
   const who = step ? (step.speaker ?? quest.giver) : (quest.doneSpeaker ?? quest.giver);
   const giver = who ? character(who) : undefined;
   const key = `${quest.text}.${step?.id ?? QUEST_DONE}`;
-  // A lesson counts its steps along its main line, as its bubble does (decision 0184).
+  // A lesson counts its steps along its main line, as its bubble does (decision 0185).
   const line = quest.lesson ? mainLine(quest) : quest.steps.map((s) => s.id);
   const card: QuestCardModel = {
     quest: quest.id,

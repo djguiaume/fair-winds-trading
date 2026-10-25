@@ -34,7 +34,7 @@ const TUTORIAL = 'first-voyage';
  * voyage (course, dock, cargo, chart open, helm) and the quest book watches it; the session also
  * saves and loads the lesson with the voyage.
  * Retaken by decision 0159: Rook's island lesson names Skerry and where it lies.
- * Retaken by decision 0184: Rook speaks on his card at the rescue (a new `aboard` step), and the
+ * Retaken by decision 0185: Rook speaks on his card at the rescue (a new `aboard` step), and the
  * chart lesson no longer repeats his words.
  */
 
