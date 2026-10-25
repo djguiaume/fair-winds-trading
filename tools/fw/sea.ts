@@ -47,7 +47,7 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
         fleet    --home <port> --kind fishing|coaster|visitor --names "A,B" [--id …]
                  coaster/visitor: --to <port> [--route | --path "x,y x,y"] [--ship fluyt --livery north]
                  fishing: --at x,y (the grounds) [--radius 40] [--route | --path …]
-                 other boats (decision 0214): one boat per name; --route lays the lane with the
+                 other boats (decision 0215): one boat per name; --route lays the lane with the
                  route planner round land; --after <quest> shows the fleet once that quest is done
   move <what> <id|index> --at x,y | --by dx,dy | --turn deg | --to-sea <id>
         (a mark or waypoint: index or name; --turn: round the middle of the map, degrees
@@ -135,7 +135,7 @@ function fieldsOf(args: Args): Record<string, unknown> {
     if (typeof quest === 'string') fields.tags = quest === 'none' ? null : [`${when}:${quest}`];
   }
   if (args.always) fields.tags = null;
-  // A fleet's boats, one per name (decision 0214), and its lane's marks or fishing grounds.
+  // A fleet's boats, one per name (decision 0215), and its lane's marks or fishing grounds.
   if (typeof args.names === 'string')
     fields.names = args.names
       .split(',')

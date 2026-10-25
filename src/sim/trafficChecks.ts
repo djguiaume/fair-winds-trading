@@ -18,7 +18,7 @@ import { createWorld } from './world';
 import { DEG } from './math';
 
 /*
- * The checks on the map's other boats (decision 0214), run by `npm run check`, the sea editor and
+ * The checks on the map's other boats (decision 0215), run by `npm run check`, the sea editor and
  * the tests: every fleet's ports, names and class exist, its lane runs in open water with room to
  * tack, and (the slow part, with the route checks) one of its boats sails the lane out and home
  * in winds from every quarter without giving up a mark.

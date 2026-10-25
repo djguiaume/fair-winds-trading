@@ -33,7 +33,7 @@ import {
 } from './render/quality';
 import { GameView } from './render/view';
 import { SAIL_STEPS, createBoat, knotToUnits } from './sim/boat';
-import { isFar, isRare, isSpecialty } from './sim/goods';
+import { isFar, isGood, isRare, isSpecialty } from './sim/goods';
 import { portNow, questsDone } from './sim/settlement';
 import { foundSite, foundedSites, townLevels } from './sim/founding';
 import { bearingTo, clamp } from './sim/math';
@@ -44,7 +44,7 @@ import * as trade from './sim/trade';
 import { type Difficulty, isDifficulty, knobs } from './sim/difficulty';
 import { daylightAt } from './sim/daylight';
 import { hazeSwitches } from './sim/windZones';
-import { QuestBook, useEditedQuests } from './sim/quests';
+import { QuestBook, roundStep, useEditedQuests } from './sim/quests';
 import { questTestFrom, sailableHeading, testBerth } from './sim/questTest';
 import { QuestTestBar } from './ui/questTestBar';
 import { type StepEffects, type StepWind, heldWind } from './sim/stepEffects';
@@ -52,8 +52,11 @@ import { QuestCard } from './ui/questCard';
 import { QuestNote } from './ui/questNote';
 import {
   cardFor,
+  cargoLines,
   dueCard,
   journal,
+  newsLine,
+  parClock,
   quayItems,
   questGoal,
   questPins,
@@ -97,6 +100,7 @@ import {
   language,
   goodName,
   workshopName,
+  formatNumber,
   goodSome,
   hasText,
   setLanguage,
@@ -443,7 +447,7 @@ function showDueCard(): boolean {
   if (bench || questCard.isOpen || tutorialOffer.open || tradePanel.isOpen) return false;
   const due = dueMainCard();
   const card = due && cardFor(quests, world.map, due.quest, due.kind);
-  if (!due || !card) return false;
+  if (!due || !card) return showStopCard();
   if (due.kind === 'offer' && offersWait) return false;
   if (due.kind === 'finished') {
     questThanks.delete(due.quest);
@@ -454,6 +458,26 @@ function showDueCard(): boolean {
   const docked = world.trade.dockedAt;
   questCard.show(card, docked ? trade.findPort(world.map, docked)?.name : undefined);
   music.speak(card.giver?.voice, wordCount(card.ask ?? card.speech), card.mood);
+  refreshPause();
+  return true;
+}
+/**
+ * A quest under way with news at this stop (decision 0213, Guillaume's pick): its card greets the
+ * captain before the harbour screen, like a main quest's, with what just happened on top (cargo
+ * loaded or left on the quay, unloaded, handed over, a step done and paid, a run to start). One
+ * card per quest, in turn; offers still wait on the Quay tab (0141).
+ */
+function showStopCard(): boolean {
+  const docked = world.trade.dockedAt;
+  if (!docked || quests.lesson) return false;
+  const item = quayNow().find((p) => p.fresh && p.card.kind !== 'offer');
+  if (!item) return false;
+  questSeen.add(item.key);
+  if (item.newsKey) questSeen.add(item.newsKey);
+  if (item.card.kind === 'finished') questThanks.delete(item.card.quest);
+  input.releaseAll();
+  questCard.show(item.card, trade.findPort(world.map, docked)?.name);
+  music.speak(item.card.giver?.voice, wordCount(item.card.news ?? item.card.ask), item.card.mood);
   refreshPause();
   return true;
 }
@@ -496,6 +520,35 @@ function openHarbour() {
   if (!questCard.isOpen && !showDueCard()) tradePanel.open('market');
   refreshPause();
 }
+/**
+ * News at a spot at sea (decision 0213): quest cargo loaded at a mooring with no harbour (Ines's
+ * mast) or left there for want of room, as a note with the person's face, once per line.
+ */
+function seaNews() {
+  if (world.trade.dockedAt || quests.lesson) return;
+  for (const news of quests.news()) {
+    const card = cardFor(quests, world.map, news.quest, 'step');
+    if (!card) continue;
+    card.news = newsLine(quests, world.map, news);
+    const key = `news:${news.quest}:${news.step}@sea:${card.news}`;
+    if (questSeen.has(key)) continue;
+    questSeen.add(key);
+    questNote.push(key, card);
+  }
+}
+/** A timed run's clock in the course pill (decision 0213): the time against par. */
+function showRunClock() {
+  const run = world.trade.dockedAt ? undefined : quests.runs()[0];
+  hud.run = run ? { sec: run.sec, par: run.par, to: run.to } : null;
+}
+/** Steps done during this call, quest → gold paid (decision 0213): "Done! +150 gold". */
+const paidHere = new Map<string, number>();
+/** The people of this harbour on the Quay tab, with their dock news (decisions 0141, 0213). */
+function quayNow() {
+  return quests.lesson
+    ? []
+    : quayItems(quests, world.map, world.trade.dockedAt, questSeen, questThanks, paidHere);
+}
 // Every other quest's news away from its harbour: a small note at sea (decision 0141).
 const questNote = new QuestNote($<HTMLButtonElement>('quest-note'), $('captain-stats'));
 questNote.onOpen = () => chart.open();
@@ -516,6 +569,22 @@ quests.onEvent = (e) => {
   const quest = quests.quests.find((q) => q.id === e.quest);
   if (e.type === 'landed') {
     hud.showToast(t('toast.landed', { qty: e.qty, good: goodName(e.good).toLowerCase() }), 3);
+    return;
+  }
+  if (e.type === 'paid') {
+    // Said on the next card of the Quay while alongside; at sea the note says it (decision 0213).
+    if (world.trade.dockedAt) paidHere.set(e.quest, (paidHere.get(e.quest) ?? 0) + e.gold);
+    return;
+  }
+  if (e.type === 'run') {
+    // A timed run under way, over par or made (decision 0213): a line at once, the clock at sea.
+    const words = {
+      to: trade.findPort(world.map, e.to)?.name ?? e.to,
+      from: trade.findPort(world.map, e.from)?.name ?? e.from,
+      par: parClock(e.par),
+      time: parClock(e.sec),
+    };
+    hud.showToast(t(`quest.run.${e.state}`, words), e.state === 'made' ? 5 : 4);
     return;
   }
   if (e.type === 'erupt') {
@@ -565,8 +634,12 @@ quests.onEvent = (e) => {
 };
 /** The captain's yes to an offer, on a card or on the Quay tab. */
 function acceptQuest(id: string) {
+  const quest = quests.quests.find((q) => q.id === id);
+  // A standing order's new ask is news again, its thanks too (decision 0214).
+  if (quest?.repeat)
+    for (const key of questSeen) if (key.startsWith(`${id}:`)) questSeen.delete(key);
   // The offer already said what the first step asks.
-  const first = quests.quests.find((q) => q.id === id)?.steps[0];
+  const first = quest && roundStep(quest, quests.progress(id));
   if (first) questSeen.add(`${id}:${first.id}`);
   quests.accept(id);
   autosave();
@@ -575,11 +648,31 @@ questCard.onAccept = acceptQuest;
 questCard.onIgnore = (id) => {
   if (quests.ignore(id)) autosave();
 };
+/**
+ * Goods handed straight to a quest's person (decision 0213): paid as a sale here, then the quest
+ * counts them like any goods leaving the hold alongside.
+ */
+function handOverGoods(id: string, good: string, n: number) {
+  if (!isGood(good)) return;
+  const res = trade.handOver(world.trade, good, n, world.map);
+  if (!res.ok) return;
+  const who = cardFor(quests, world.map, id, 'step')?.giver?.name ?? '';
+  hud.showToast(t('quest.handedToast', { who: firstName(who), gold: formatNumber(res.gold) }), 3);
+  world.ship = trade.activeShip(world.trade);
+  quests.check();
+  coach.render();
+  autosave();
+}
+questCard.onHandOver = handOverGoods;
+// Quest cargo in the hold lists, at sea and in harbour (decision 0213).
+hud.questCargo = tradePanel.questCargo = chart.questCargo = () => cargoLines(quests);
 tradePanel.quay = {
-  items: () =>
-    quests.lesson ? [] : quayItems(quests, world.map, world.trade.dockedAt, questSeen, questThanks),
+  items: quayNow,
   seen: (fresh) => {
-    for (const { key } of fresh) questSeen.add(key);
+    for (const { key, newsKey } of fresh) {
+      questSeen.add(key);
+      if (newsKey) questSeen.add(newsKey);
+    }
     // The first new face on the Quay speaks as their card shows, like a main quest's card (0197).
     const { card } = fresh[0]!;
     music.speak(card.giver?.voice, wordCount(card.ask ?? card.speech), card.mood);
@@ -594,6 +687,8 @@ tradePanel.quay = {
       autosave();
     }
   },
+  // The Quay shows the news inline as it renders again.
+  hand: handOverGoods,
 };
 questCard.onChoose = (id, option) => {
   quests.choose(id, option);
@@ -1345,7 +1440,7 @@ bergsSwitch.addEventListener('change', () => {
   settings.bergs = bergsSwitch.checked;
   keepSettings();
 });
-// Other ships (decision 0214): a switch like every hazard, and as many as the quality allows.
+// Other ships (decision 0215): a switch like every hazard, and as many as the quality allows.
 const shipsSwitch = $<HTMLInputElement>('ships');
 world.traffic.on = settings.ships;
 world.traffic.cap = TUNING.seamanship.traffic.atOnce[level];
@@ -1646,6 +1741,7 @@ function handleEvents(events: WorldEvent[]) {
       hud.showToast(t('toast.departed', { name: portName }), 1.5);
       // Thanks read on the Quay tab are said.
       for (const id of questThanks) if (questSeen.has(`${id}:done`)) questThanks.delete(id);
+      paidHere.clear();
       if (tradePanel.isOpen) {
         tradePanel.close();
         refreshPause();
@@ -1751,6 +1847,8 @@ function tick(now: number) {
   hud.goal = seaGoal();
   followQuestCourse();
   hud.update(dt, (x, y) => view.project(x, y), size, !paused, hudVisible);
+  if (coachTick % 15 === 0) seaNews();
+  showRunClock();
   questNote.update(dt, mode === 'play' && !paused && hudVisible, (key) => questSeen.has(key));
   homePanel.update();
   // Coach marks follow moving targets (port signs) about ten times a second.

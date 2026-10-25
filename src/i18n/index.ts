@@ -214,6 +214,15 @@ export function goodThe(id: string): string {
   return key in en ? t(key) : goodName(id);
 }
 
+/**
+ * A good after a count, lower case: "8 stone", « 8 pierres » (decision 0213); a good with no
+ * `goodMany` text is its name in lower case.
+ */
+export function goodMany(id: string): string {
+  const key = `goodMany.${id}` as MessageKey;
+  return key in en ? t(key) : goodName(id).toLowerCase();
+}
+
 export function goodSome(id: string): string {
   const key = `goodSome.${id}` as MessageKey;
   return key in en ? t(key) : goodName(id);

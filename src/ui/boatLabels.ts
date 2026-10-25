@@ -4,7 +4,7 @@ import type { World } from '../sim/world';
 import { t } from '../i18n';
 
 /**
- * The name of the other boat she passes close by (decision 0214): "Adze, out of Calda", in the
+ * The name of the other boat she passes close by (decision 0215): "Adze, out of Calda", in the
  * port signs' style, fading in over the last third of `traffic.labelRange`. One at a time, the
  * nearest; never a boat lying at a harbour or on her nets.
  */

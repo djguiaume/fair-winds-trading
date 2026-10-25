@@ -184,7 +184,7 @@ export const CODE_PARTS: Record<string, (scope: Scope) => THREE.BufferGeometry> 
     return hull;
   },
   /**
-   * A fore-and-aft sail (decision 0214's other boats): flat, in the boat's centre plane, its luff
+   * A fore-and-aft sail (decision 0215's other boats): flat, in the boat's centre plane, its luff
    * up the mast from the origin and its foot aft along −Z. `foot` and `luff` long, the head
    * `head` long, peaked up `peak` at the leech: a gaff or lug sail, or a jib-headed one at 0.
    */

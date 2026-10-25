@@ -756,7 +756,7 @@ export function quickChecks(map: MapDef): MapCheck[] {
       : pass('landmarks', 'every scenery island has a landmark', 'warning'),
   );
   out.push(...berthChecks(map));
-  // Other boats (decision 0214): their ports, names and lanes in open water.
+  // Other boats (decision 0215): their ports, names and lanes in open water.
   out.push(...trafficQuickChecks(map));
   return out;
 }
@@ -1024,7 +1024,7 @@ export function flowChecks(map: MapDef): MapCheck[] {
  * to find, never easier, so a route found there is there on every level and with them off.
  */
 export function routeChecks(map: MapDef): MapCheck[] {
-  // Other boats sail their lanes out and home (decision 0214), with every quest's land standing.
+  // Other boats sail their lanes out and home (decision 0215), with every quest's land standing.
   return [...routeChecksByLand(map), ...trafficSailChecks(map)];
 }
 

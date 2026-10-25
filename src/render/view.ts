@@ -96,7 +96,7 @@ export class GameView {
   /** Buoys and boats at sea, some only before or after a quest (decision 0130). */
   private readonly seaMarks: SeaMarks;
   private readonly bergs: DriftingBergs;
-  /** Other boats on the sea (decision 0214). */
+  /** Other boats on the sea (decision 0215). */
   private readonly traffic: TrafficView;
   /** The tracked quest step's places at sea (decision 0130). */
   private readonly questMarkers = new QuestMarkers();

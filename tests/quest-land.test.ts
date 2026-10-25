@@ -161,7 +161,7 @@ describe('checks on land that waits on a quest (0166)', () => {
   it('runs the route checks before and after the quests', () => {
     const m = ring();
     m.islands.find((i) => i.id === 'bell-rock')!.tags = [`after:${QUEST}`];
-    // The route checks sail the other boats' lanes too (decision 0214): run them once.
+    // The route checks sail the other boats' lanes too (decision 0215): run them once.
     const checks = routeChecks(m);
     const ids = checks.map((c) => c.id);
     expect(ids).toContain('reach-before');

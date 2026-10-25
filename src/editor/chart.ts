@@ -33,7 +33,7 @@ export interface Layers {
   marks: boolean;
   /** Fog of war's chart areas (decision 0156). */
   areas?: boolean;
-  /** Other boats' fleets: lanes and fishing grounds (decision 0214). */
+  /** Other boats' fleets: lanes and fishing grounds (decision 0215). */
   traffic?: boolean;
 }
 

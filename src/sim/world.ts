@@ -176,7 +176,7 @@ export interface World {
   };
   /** Gold, ships, cargo, markets and docking (Phase 1). */
   trade: TradeState;
-  /** Other boats on the sea (decision 0214); `traffic.on` is Settings › Other ships. */
+  /** Other boats on the sea (decision 0215); `traffic.on` is Settings › Other ships. */
   traffic: TrafficState;
 }
 
@@ -750,7 +750,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
     else events.push({ type: 'bump' });
   }
 
-  // Other boats sail after her, in the same wind, and give way (decision 0214).
+  // Other boats sail after her, in the same wind, and give way (decision 0215).
   events.push(...stepTraffic(world, dt));
   events.push(...stepTrade(world.trade, world.map, world.boat, dt));
   refreshPiers(world);

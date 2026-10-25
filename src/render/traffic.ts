@@ -35,7 +35,7 @@ interface Batch {
   count: number;
 }
 
-/** One visitor's model: at most one is drawn, the nearest (decision 0214). */
+/** One visitor's model: at most one is drawn, the nearest (decision 0215). */
 interface Visitor {
   model: RefinedBoat;
   key: string;
@@ -44,7 +44,7 @@ interface Visitor {
 const UP = new THREE.Vector3(0, 1, 0);
 
 /**
- * The other boats on the sea (decision 0214), drawn from the World's traffic, which only the
+ * The other boats on the sea (decision 0215), drawn from the World's traffic, which only the
  * simulation moves. Fishing boats and coasters are instanced: one draw for every hull of a kind
  * and home colour, one for each of its sails, so the cap (Settings › Quality, `atOnce`) costs a
  * handful of draws. A far-sea visitor is the real ship model in her sea's livery, one at a time.

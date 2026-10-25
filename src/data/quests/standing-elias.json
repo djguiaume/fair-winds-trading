@@ -1,0 +1,51 @@
+{
+  "id": "standing-elias",
+  "name": "Elias's standing order",
+  "start": {
+    "is": "quest-done",
+    "quest": "outpost-east"
+  },
+  "text": "quest.standing-elias",
+  "giver": "elias",
+  "port": "fogwatch",
+  "offer": true,
+  "repeat": true,
+  "steps": [
+    {
+      "id": "ask-1",
+      "goal": {
+        "is": "landed",
+        "place": "fogwatch",
+        "good": "amber",
+        "qty": 4
+      },
+      "reward": {
+        "order": true
+      }
+    },
+    {
+      "id": "ask-2",
+      "goal": {
+        "is": "landed",
+        "place": "fogwatch",
+        "good": "amber",
+        "qty": 5
+      },
+      "reward": {
+        "order": true
+      }
+    },
+    {
+      "id": "ask-3",
+      "goal": {
+        "is": "landed",
+        "place": "fogwatch",
+        "good": "amber",
+        "qty": 6
+      },
+      "reward": {
+        "order": true
+      }
+    }
+  ]
+}

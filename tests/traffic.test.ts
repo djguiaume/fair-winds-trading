@@ -16,7 +16,7 @@ function nearSaltmere(map = GAME_MAP) {
   return world;
 }
 
-describe('other boats on the sea (decision 0214)', () => {
+describe('other boats on the sea (decision 0215)', () => {
   it('reads every fleet of the game sea and the ring: ports, names, classes, lanes in open water', () => {
     for (const map of [GAME_MAP, PHASE1_MAP]) {
       const [check] = trafficQuickChecks(map);

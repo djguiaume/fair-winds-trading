@@ -21,7 +21,7 @@ import { questsDone, questsRunning } from './settlement';
 import { knobs } from './difficulty';
 
 /*
- * Other boats on the sea (decision 0214, Phase 5 part 4): fishing boats near their port, coasters
+ * Other boats on the sea (decision 0215, Phase 5 part 4): fishing boats near their port, coasters
  * on lanes between two ports, rare visitors from the far seas. They sail by the same model as the
  * player (`stepBoat`: the polar, the no-go zone, the rudder), in the wind where they are (zones,
  * island shelter, currents), and tack up a lane when the next mark lies upwind. They never ram: a
@@ -335,7 +335,7 @@ export function fleetShown(
   return questShown(fleet, done, running);
 }
 
-/** Wakes the nearest boats the cap allows and puts the far ones to sleep (decision 0214). */
+/** Wakes the nearest boats the cap allows and puts the far ones to sleep (decision 0215). */
 function pick(world: World, traffic: TrafficState) {
   const t = tuning();
   const me = world.boat;
@@ -395,7 +395,7 @@ function windFor(world: World, b: TrafficBoat): Wind {
 }
 
 /**
- * How far a lane mark is by water in this wind (decision 0214): a grid round the fleet's lane,
+ * How far a lane mark is by water in this wind (decision 0215): a grid round the fleet's lane,
  * each cell the time to the mark round land, reefs and the sea's edge for her hull, counted in
  * units sailed at her best speed, 0 at the mark. Upwind a stretch costs what beating up it does,
  * so the grid knows that going round an island off the wind can beat a tack up a channel. Made
@@ -644,7 +644,7 @@ export function fieldAt(f: MarkField, x: number, y: number): number {
 const HEADINGS = Array.from({ length: 36 }, (_, k) => (k * 10 * Math.PI) / 180);
 
 /**
- * The helm of one boat (decision 0214): of the headings she can sail (none inside the no-go
+ * The helm of one boat (decision 0215): of the headings she can sail (none inside the no-go
  * zone), the one whose point a little ahead lies nearest the mark by water. Upwind that is one of
  * the close-hauled courses; she stays on her tack until the other one gains clearly and she has
  * held this one a while, so she beats up a lane in long boards that shorten near the mark, and
@@ -823,7 +823,7 @@ function stepOne(world: World, b: TrafficBoat, dt: number) {
 const flow = { east: 0, north: 0, id: '' };
 
 /**
- * The soft bump (decision 0214): a boat and the player that touch are pushed apart, the other boat
+ * The soft bump (decision 0215): a boat and the player that touch are pushed apart, the other boat
  * most, and the player loses a little way. No damage either way; the toast says "bump".
  */
 function bumpPlayer(world: World, b: TrafficBoat): WorldEvent | null {
@@ -861,7 +861,7 @@ function separate(a: TrafficBoat, b: TrafficBoat) {
   b.boat.y += dy * k;
 }
 
-/** Steps the boats that sail now, after the player's step (decision 0214). */
+/** Steps the boats that sail now, after the player's step (decision 0215). */
 export function stepTraffic(world: World, dt: number): WorldEvent[] {
   const traffic = world.traffic;
   const me = world.boat;

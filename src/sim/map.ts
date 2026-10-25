@@ -284,7 +284,7 @@ export interface MapDef {
   windZones?: WindZoneDef[];
   /** Fog of war (decision 0156): what starts uncharted, and its named areas. */
   fog?: FogDef;
-  /** Other boats (decision 0214): fishing fleets, coasters and far-sea visitors. */
+  /** Other boats (decision 0215): fishing fleets, coasters and far-sea visitors. */
   traffic?: TrafficDef[];
 }
 

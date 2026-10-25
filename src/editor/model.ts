@@ -25,7 +25,7 @@ export type Selection =
   | { kind: 'mark'; index: number }
   | { kind: 'area'; id: string; point?: number }
   | { kind: 'edge'; id: string; point?: number }
-  /** Other boats (decision 0214): a fleet, or one mark of its lane. */
+  /** Other boats (decision 0215): a fleet, or one mark of its lane. */
   | { kind: 'fleet'; id: string; point?: number }
   | null;
 
@@ -53,7 +53,7 @@ export function findArea(map: MapDef, id: string) {
 export function findEdge(map: MapDef, id: string) {
   return map.edges?.find((e) => e.id === id);
 }
-/** A fleet of other boats (decision 0214). */
+/** A fleet of other boats (decision 0215). */
 export function findFleet(map: MapDef, id: string): TrafficDef | undefined {
   return map.traffic?.find((f) => f.id === id);
 }
@@ -288,7 +288,7 @@ export function addSeaEdge(map: MapDef, x: number, y: number): string {
 }
 
 /**
- * A fleet of other boats (decision 0214) from a port: fishing boats with grounds a little off its
+ * A fleet of other boats (decision 0215) from a port: fishing boats with grounds a little off its
  * harbour (at `x`, `y`), or coasters on a lane to the port `to`. One boat to begin with; its lane
  * runs straight until marks are added (or the planner routes it, `routeLane`).
  */

@@ -3,7 +3,7 @@ import { laneOf } from '../sim/traffic';
 import type { Selection } from './model';
 
 /**
- * The other boats' fleets on the editor's chart (decision 0214): each lane as a dotted line from
+ * The other boats' fleets on the editor's chart (decision 0215): each lane as a dotted line from
  * its home harbour through its marks, a fishing fleet's grounds as a ring, the fleet's name by
  * its home end. Handles for the selected one's marks. Hits: `fleet:id`, `fpoint:id:k`,
  * `finsert:id:k` (k counts the marks of `path`).

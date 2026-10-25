@@ -715,7 +715,7 @@ input:focus-visible {
   fill: #f3d37e;
 }
 
-/* Other boats' fleets (decision 0214): dotted lanes, grounds as rings. */
+/* Other boats' fleets (decision 0215): dotted lanes, grounds as rings. */
 .c-fleet {
   fill: none;
   stroke: #f4ead2;

@@ -141,6 +141,7 @@ describe('main quests and the Quay tab (decision 0141)', () => {
         spoke.push(fresh[0]!.card.giver?.voice);
       },
       act,
+      hand: vi.fn(),
     };
     panel.open('market');
     expect(document.querySelector('#tp-tab-quay .tab-badge')!.textContent).toBe('1');

@@ -170,6 +170,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     'How deep the hull sits, relative: scales the drag of shallow water (0032).',
   ),
   'ships.*.hold': num('Hold', 1, 300, 1, 'units', 'Cargo capacity before hold upgrades.'),
+  'ships.*.deck': num(
+    'Deck cargo',
+    0,
+    100,
+    1,
+    'units',
+    'Quest cargo carried on deck, apart from the hold (0213); upgrades leave it.',
+  ),
   'ships.*.price': num('Price', 0, 50000, 50, 'gold', 'Shipyard price (0 for the starter).'),
   'ships.*.upgradePrices': num(
     'Upgrade prices',
@@ -462,6 +470,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     10,
     's',
     'Seconds after a help order is delivered before the next one is asked.',
+  ),
+  'economy.orders.standingDockings': num(
+    'Standing order again after',
+    0,
+    20,
+    1,
+    'calls',
+    'A person whose arc is done asks again once the captain has docked this many times at other ports (0214).',
   ),
   'economy.discoverRange': num(
     'Discover range',
@@ -1926,7 +1942,7 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     'Keeps the press warning from flickering around a line (0078).',
   ),
 
-  // --- seamanship.json › traffic: other boats on the sea (decision 0214) ---
+  // --- seamanship.json › traffic: other boats on the sea (decision 0215) ---
   'seamanship.traffic.atOnce.low': num(
     'Other boats at once, Low',
     0,

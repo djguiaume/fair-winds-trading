@@ -98,6 +98,7 @@
     {
       "id": "ness",
       "name": "Old Ness",
+      "short": "Ness",
       "voice": "ness",
       "role": "Keeper",
       "port": "watchman-key",

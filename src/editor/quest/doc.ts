@@ -554,8 +554,14 @@ export function questsNamed(c: Condition | undefined): string[] {
   return typeof c.quest === 'string' ? [c.quest] : [];
 }
 
-/** Columns for the story view: a quest sits one column right of the last quest it waits on. */
-export function storyColumns(quests: readonly { id: string; start: Condition }[]): string[][] {
+/**
+ * Columns for the story view: a quest sits one column right of the last quest it waits on. The
+ * standing orders (decision 0214) stay out of it: the view lists them on their own.
+ */
+export function storyColumns(
+  all: readonly { id: string; start: Condition; repeat?: boolean }[],
+): string[][] {
+  const quests = all.filter((q) => !q.repeat);
   const byId = new Map(quests.map((q) => [q.id, q]));
   const depth = new Map<string, number>();
   const visit = (id: string, trail: Set<string>): number => {
@@ -607,13 +613,34 @@ export function textKeys(quest: QuestDef): TextLine[] {
       });
     }
   }
-  out.push({ key: `${t}.done.title`, label: 'Thanks · title', long: false });
-  out.push({ key: `${t}.done.copy`, label: 'Thanks · speech', long: true, variants: true });
+  // A standing order thanks for each ask in its own words (decision 0214).
+  if (quest.repeat)
+    for (const s of quest.steps)
+      out.push({ key: `${t}.${s.id}.thanks`, label: `${s.id} · thanks`, long: true });
+  else {
+    out.push({ key: `${t}.done.title`, label: 'Thanks · title', long: false });
+    out.push({ key: `${t}.done.copy`, label: 'Thanks · speech', long: true, variants: true });
+  }
+  // Quest cargo's names for the dock news (decision 0213); a passenger (space 0) is a person.
+  for (const [id, item] of Object.entries(quest.items ?? {}))
+    if (item.space > 0)
+      for (const [form, what] of ITEM_FORMS)
+        out.push({ key: `quest.item.${id}.${form}`, label: `item ${id} · ${what}`, long: false });
   // A plot given (decision 0210): the giver by their stake, on the next mooring at the island.
   if (givesPlot(quest))
     out.push({ key: `${t}.plot.copy`, label: 'Plot · speech at the island', long: true });
   return out;
 }
+
+/** The forms of a quest item's name the dock news reads (decision 0213). */
+export const ITEM_FORMS = [
+  ['one', 'one ("millstone")'],
+  ['many', 'several ("millstones")'],
+  ['the', 'the load ("the millstones")'],
+  ['own', 'someone’s ("Maren’s millstones" / « les meules »)'],
+  ['unloadedOne', '"unloaded", one (FR « déchargée »)'],
+  ['unloadedMany', '"unloaded", several (FR « déchargées »)'],
+] as const;
 
 const givesPlot = (q: QuestDef) => !!(q.reward as QuestReward | undefined)?.homeSpot;
 
@@ -669,7 +696,7 @@ export function checkText(doc: QuestDoc): string[] {
       const [a, b] = LANGS.map((l) => textOf(doc, l, key));
       const isAsk =
         /\.title$/.test(key) && !key.endsWith('.done.title') && key.split('.').length === 4;
-      if (isAsk && a === undefined && b === undefined)
+      if ((isAsk || key.startsWith('quest.item.')) && a === undefined && b === undefined)
         out.push(`quest ${q.id} › ${label}: no text`);
       else if ((a === undefined) !== (b === undefined))
         out.push(`quest ${q.id} › ${label}: no ${a === undefined ? 'English' : 'French'}`);
@@ -827,4 +854,5 @@ export const REWARD_FIELDS: { key: keyof QuestReward; label: string }[] = [
   { key: 'homeIsland', label: 'An island' },
   { key: 'homeSpot', label: 'Building spots' },
   { key: 'erupt', label: 'Eruption' },
+  { key: 'order', label: 'Paid like a help order' },
 ];

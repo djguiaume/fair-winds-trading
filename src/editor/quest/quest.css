@@ -869,3 +869,17 @@ input.qb-small {
 .qb-json.bad {
   outline: 2px solid #c0392b;
 }
+/* The standing orders under the story (decision 0214). */
+.qb-standing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0 16px 16px;
+}
+.qb-story .qb-node.is-standing {
+  position: static;
+  width: 220px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}

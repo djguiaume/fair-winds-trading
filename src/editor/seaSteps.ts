@@ -82,7 +82,7 @@ export type SeaStep =
       path?: [number, number, number][];
       /** The island a port goes on. */
       island?: string;
-      /** A fleet's lane from the route planner (decision 0214) instead of `fields.path`. */
+      /** A fleet's lane from the route planner (decision 0215) instead of `fields.path`. */
       route?: boolean;
       /** Any other field, set on what was added (`name`, `kind`, `maxDraft`, `type`, …). */
       fields?: Record<string, unknown>;
@@ -263,7 +263,7 @@ export function applySeaSteps(doc: SeaDoc, steps: readonly SeaStep[]): string[] 
         assign(port, step.fields);
         what = `port ${port.id}`;
       } else if (step.what === 'fleet') {
-        // Other boats (decision 0214): from a port, to a port or to fishing grounds.
+        // Other boats (decision 0215): from a port, to a port or to fishing grounds.
         const f = step.fields ?? {};
         const kind = (f.kind as TrafficKind | undefined) ?? 'coaster';
         if (!TRAFFIC_KINDS.includes(kind)) throw new Error(`unknown fleet kind ${kind}`);
