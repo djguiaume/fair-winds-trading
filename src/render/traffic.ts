@@ -58,7 +58,7 @@ export class TrafficView {
     side: THREE.DoubleSide,
     flatShading: true,
     emissive: '#ffffff',
-    emissiveIntensity: 0.4,
+    emissiveIntensity: 0.25,
   });
   private readonly batches = new Map<string, Batch>();
   private readonly styles: Map<string, string>;
@@ -89,8 +89,10 @@ export class TrafficView {
       'position',
       new THREE.BufferAttribute(this.lightPositions, 3).setUsage(THREE.DynamicDrawUsage),
     );
+    // Small warm lamps (the lit-window colour), never brighter than the player's own lantern.
     this.lightMaterial = new THREE.PointsMaterial({
-      size: 8,
+      size: 1.6,
+      color: PALETTE.colors.lamp as string,
       map: this.lightTexture,
       transparent: true,
       depthWrite: false,
@@ -145,15 +147,16 @@ export class TrafficView {
       sails,
       pivots,
       scale: HULL_SCALE * kind.scale,
-      lights: [
-        new THREE.Vector3(0, box.max.y * 0.9, box.max.z * 0.9),
-        new THREE.Vector3(0, top, 0),
-      ],
+      // A fishing boat shows one stern lamp; a coaster a stern lamp and a masthead pin.
+      lights:
+        b.fleet.kind === 'fishing'
+          ? [new THREE.Vector3(0, box.max.y * 0.9, box.max.z * 0.9)]
+          : [new THREE.Vector3(0, box.max.y * 0.9, box.max.z * 0.9), new THREE.Vector3(0, top, 0)],
       count: 0,
     };
     // The masthead light over the tallest mast, at its foot's distance from the bow.
     const mast = pivots.reduce((a, p) => (p.y > a.y ? p : a), pivots[0] ?? UP);
-    batch.lights[1]!.z = mast.z;
+    if (batch.lights[1]) batch.lights[1].z = mast.z;
     this.root.add(hulls, ...sails);
     this.batches.set(key, batch);
     return batch;
@@ -218,9 +221,12 @@ export class TrafficView {
       batch.hulls.setMatrixAt(i, this.matrix);
       batch.sails.forEach((sail, k) => {
         const pivot = batch.pivots[k]!;
-        // Furled in harbour: the sail is drawn flat out of sight, folded to nothing.
-        const s = pose.sail > 0.05 ? 1 : 0;
-        this.sailMatrix.makeRotationY(pose.boom).scale(this.tmp.setScalar(s)).setPosition(pivot);
+        // Set and trimmed under way. Lowered (at a harbour, on the nets) she keeps it half up,
+        // streaming downwind, so even a boat at rest shows the wind.
+        const set = pose.sail > 0.05;
+        const s = set ? 1 : 0.6;
+        const boom = set ? pose.boom : pose.stream;
+        this.sailMatrix.makeRotationY(boom).scale(this.tmp.setScalar(s)).setPosition(pivot);
         sail.setMatrixAt(i, this.tmp2.multiplyMatrices(this.matrix, this.sailMatrix));
       });
       for (const light of batch.lights)
@@ -266,7 +272,7 @@ export class TrafficView {
     if (this.lights.visible) {
       this.lightGeometry.setDrawRange(0, lights);
       this.lightGeometry.attributes.position!.needsUpdate = true;
-      this.lightMaterial.opacity = Math.min(1, glow) * (0.9 + 0.1 * Math.sin(time * 6.1));
+      this.lightMaterial.opacity = Math.min(1, glow) * (0.7 + 0.1 * Math.sin(time * 6.1));
     }
   }
 
@@ -297,7 +303,9 @@ export class TrafficView {
     this.position.set(x, (front + back) * 0.4, z);
     this.euler.set(pitch, -boat.heading, heel);
     this.quaternion.setFromEuler(this.euler);
-    return { sail, boom, luff, heel, pitch };
+    // A loose sail swings to leeward as far as the sheet lets it.
+    const stream = lee * boomMag;
+    return { sail, boom, luff, heel, pitch, stream };
   }
 
   dispose() {

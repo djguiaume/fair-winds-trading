@@ -38,6 +38,7 @@
     "lighthouseBand": "#c8603e",
     "lighthouseRoof": "#3f74a8",
     "boatHull": "#5b3a1e",
+    "boatSail": "#efe0bf",
     "boatBand": ["#c8443a", "#3f74a8"],
     "boatDeck": "#d4a466",
     "cargo": "#c4914e",
@@ -145,7 +146,8 @@
         "trim": "#b8433a",
         "reefRock": ["#4f535a", "#61666d", "#474a50"],
         "coral": ["#4f6b3a", "#5e7a3a"],
-        "boatBand": ["#2f3035", "#8a3a32"]
+        "boatBand": ["#2f3035", "#8a3a32"],
+        "boatSail": "#a5603f"
       }
     },
     "strand": {
@@ -161,7 +163,8 @@
         "trim": "#b8433a",
         "reefRock": ["#4f535a", "#61666d", "#474a50"],
         "coral": ["#4f6b3a", "#5e7a3a"],
-        "boatBand": ["#2f3035", "#8a3a32"]
+        "boatBand": ["#2f3035", "#8a3a32"],
+        "boatSail": "#a5603f"
       }
     }
   },

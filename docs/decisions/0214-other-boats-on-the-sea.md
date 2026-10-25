@@ -66,8 +66,12 @@ light at night.
   - They are instanced: one draw for every hull of a kind and colour, one for each of its sails.
     Each sail swings by the player's boom rule.
   - A visitor is her class's real model with the `livery*` band. Only one is drawn at a time.
-  - Boats heel a little and pitch on the waves. At night one additive point cloud draws a stern
-    lantern and a masthead light for each boat.
+  - Sails are a warm cream (`boatSail`), red-brown on the east's fog and strand islands. A boat
+    with her sails down (at a harbour, on her nets) keeps the sail half up, streaming downwind,
+    so every boat shows the wind.
+  - Boats heel a little and pitch on the waves. At night small warm lamps (the lit-window colour,
+    no halo, never brighter than the player's lantern): a fishing boat shows a stern lamp, and a
+    coaster or visitor a stern lamp and a masthead pin.
 - **HUD.** "{name}, out of {port}" (« {name}, de {port} ») fades in within `labelRange` (30) of
   the nearest boat, never on one lying at a harbour or on her nets.
 - **Settings.** Settings › Other ships switches them off. The quality level sets the cap.

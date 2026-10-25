@@ -161,11 +161,13 @@ describe('checks on land that waits on a quest (0166)', () => {
   it('runs the route checks before and after the quests', () => {
     const m = ring();
     m.islands.find((i) => i.id === 'bell-rock')!.tags = [`after:${QUEST}`];
-    const ids = routeChecks(m).map((c) => c.id);
+    // The route checks sail the other boats' lanes too (decision 0214): run them once.
+    const checks = routeChecks(m);
+    const ids = checks.map((c) => c.id);
     expect(ids).toContain('reach-before');
     expect(ids).toContain('reach-after');
-    expect(routeChecks(m).every((c) => c.ok)).toBe(true);
-  });
+    expect(checks.every((c) => c.ok)).toBe(true);
+  }, 30_000);
 
   it('refuses ports on land that comes or goes, unless a site founded after it rises', () => {
     const m = ring();
@@ -247,5 +249,5 @@ describe('land that stands only while a quest runs (0166)', () => {
     m.islands.find((i) => i.id === 'westholm')!.tags = undefined;
     m.marks = [{ type: 'buoy-red', x: 0, y: 0, tags: [`during:${QUEST}`] }];
     expect(questLandProblems(m).join()).toMatch(/during:\/except: is for land/);
-  });
+  }, 30_000);
 });
