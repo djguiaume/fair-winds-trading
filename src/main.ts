@@ -56,6 +56,8 @@ import {
   questGoal,
   questPins,
   lessonFor,
+  plotParams,
+  plotQuest,
   questTarget,
   trackedMarkers,
 } from './ui/questView';
@@ -98,13 +100,23 @@ import {
   setLanguage,
   setTextVariant,
   t,
+  tOptional,
   townLevelName,
   translateDom,
   useTextEdits,
 } from './i18n';
 import { TradePanel } from './ui/tradePanel';
 import { HomePanel, buildingName, effectLine } from './ui/homePanel';
-import { builtByIsland, giveHomeIsland, homeSpots, islandHome, offerHomeSpot } from './sim/home';
+import {
+  PLOT_CAMERA,
+  giveHomeIsland,
+  homeLooks,
+  homeSpots,
+  islandHome,
+  offerHomeSpot,
+  spotPosition,
+} from './sim/home';
+import { character, firstName } from './ui/portraits';
 import { TransferPanel } from './ui/transferPanel';
 import { startTvMode } from './input/tv';
 import { PadLog } from './ui/padLog';
@@ -328,13 +340,52 @@ if (new URLSearchParams(location.search).has('home')) {
   giveHomeIsland(world.trade, world.map);
   for (const spot of homeSpots(world.map)) offerHomeSpot(world.trade, world.map, spot.id);
 }
-view.setHomeBuildings(builtByIsland(world.trade.home));
+const homePanel = new HomePanel($('home-ui'), world);
+/** The captain's islands as they stand: buildings, staked plots, the chosen plot's ring (0210). */
+function showHome() {
+  view.setHomeBuildings(homeLooks(world.trade.home, world.map, homePanel.chosen));
+}
+showHome();
 // What stands only before or after a quest (decision 0130).
 view.setQuestsDone(questsDone(world.trade));
-const homePanel = new HomePanel($('home-ui'), world);
 homePanel.onChange = () => refreshPause();
+homePanel.giverOf = (island, spot) => {
+  const quest = plotQuest(quests.quests, world.map, island, spot);
+  const giver = quest?.giver ? character(quest.giver) : undefined;
+  const port = quest?.port ? trade.findPort(world.map, quest.port)?.name : undefined;
+  // First names, as people say them: "Maren's plot".
+  return giver ? { name: firstName(giver.name), port: port ?? '' } : undefined;
+};
+/** The camera's zoom before a plot was chosen, given back after. */
+let zoomBeforePlot: number | null = null;
+/** Moored at her island: the camera halfway between it and her, so both show. */
+function homeFocus(islandId: string) {
+  const island = world.map.islands.find((i) => i.id === islandId)!;
+  view.setFocus({ x: (island.x * 2 + world.boat.x) / 3, y: (island.y * 2 + world.boat.y) / 3 });
+}
+// A plot chosen on the Island tab (decision 0210): the camera turns to it beside the half
+// screen, closer in, and its ring shows; let go, the island again.
+homePanel.onChosen = (islandId, spotId) => {
+  const island = world.map.islands.find((i) => i.id === islandId);
+  const spot = spotId ? homeSpots(world.map, islandId).find((s) => s.id === spotId) : undefined;
+  if (island && spot) {
+    zoomBeforePlot ??= view.getZoom();
+    view.setZoom(PLOT_CAMERA.zoom);
+    const wide = innerWidth > innerHeight && innerWidth >= 700;
+    view.setFocus(
+      spotPosition(island, spot),
+      false,
+      wide ? { x: -PLOT_CAMERA.side, y: 0 } : { x: 0, y: -PLOT_CAMERA.top },
+    );
+  } else {
+    if (zoomBeforePlot !== null) view.setZoom(zoomBeforePlot);
+    zoomBeforePlot = null;
+    if (world.trade.home.docked) homeFocus(world.trade.home.docked);
+  }
+  showHome();
+};
 homePanel.onBuilt = (building) => {
-  view.setHomeBuildings(builtByIsland(world.trade.home));
+  showHome();
   hud.showToast(t('home.built', { name: buildingName(building), effect: effectLine(building) }), 5);
   autosave();
 };
@@ -404,6 +455,38 @@ function showDueCard(): boolean {
   refreshPause();
   return true;
 }
+/**
+ * Moored at her island with a plot given and not built (decision 0210): its giver waits by the
+ * stake, once a session, and their card goes on to the Island tab on that plot.
+ */
+function showPlotCard(islandId: string): boolean {
+  if (bench || questCard.isOpen) return false;
+  const spots = homeSpots(world.map, islandId);
+  for (const spot of islandHome(world.trade.home, islandId).offered) {
+    const quest = plotQuest(quests.quests, world.map, islandId, spot);
+    if (!quest || questSeen.has(`${quest.id}:plot`)) continue;
+    const card = cardFor(quests, world.map, quest.id, 'finished');
+    const speech = tOptional(`${quest.text}.plot.copy`, plotParams(world.map, quest));
+    if (!card || !speech) continue;
+    questSeen.add(`${quest.id}:plot`);
+    const n = spots.findIndex((s) => s.id === spot) + 1;
+    Object.assign(card, {
+      kind: 'step',
+      speech,
+      ask: t('home.plotCard.title'),
+      where: t('home.plotCard.where', { n, name: firstName(card.giver?.name ?? '') }),
+      reward: undefined,
+      plot: { island: islandId, spot },
+    });
+    input.releaseAll();
+    const island = world.map.islands.find((i) => i.id === islandId);
+    questCard.show(card, island?.name ?? islandId);
+    music.speak(card.giver?.voice, wordCount(card.speech), card.mood);
+    refreshPause();
+    return true;
+  }
+  return false;
+}
 /** Docked: the arrival card if a main quest has one, else straight to the harbour screen. */
 function openHarbour() {
   // A card already up (Rook's thanks, shown as the dock moved his lesson on) opens the harbour
@@ -465,7 +548,11 @@ quests.onEvent = (e) => {
   }
   // While a lesson runs, its bubble speaks for Rook's thanks (decision 0127).
   if (e.type === 'finished' && !quests.lesson) questThanks.add(e.quest);
-  if (e.type === 'finished') view.setQuestsDone(questsDone(world.trade));
+  if (e.type === 'finished') {
+    view.setQuestsDone(questsDone(world.trade));
+    // A plot given is staked on her island at once (decision 0210).
+    showHome();
+  }
   if (quest?.main || quests.lesson) return;
   if (e.type === 'step' || e.type === 'choice' || e.type === 'finished') {
     const step = quests.progress(e.quest)?.step;
@@ -525,6 +612,12 @@ questCard.onClose = (card) => {
       quests.choose(card.quest, first.id);
       autosave();
     }
+  }
+  // A plot's card at her island goes on to the Island tab on that plot (decision 0210).
+  if (card.plot) {
+    if (world.trade.home.docked === card.plot.island) homePanel.open(card.plot.spot);
+    refreshPause();
+    return;
   }
   // After the arrival card (or "To the market"), the harbour screen.
   if (!showDueCard() && world.trade.dockedAt && !tradePanel.isOpen) tradePanel.open('market');
@@ -902,7 +995,7 @@ function goBack() {
   if (tradePanel.isOpen) {
     tradePanel.close();
     refreshPause();
-  } else if (homePanel.isOpen) homePanel.close();
+  } else if (homePanel.isOpen) homePanel.back();
   else if (!settingsPanel.hidden) closeSettings();
   else if (transfer.isOpen) transfer.close();
   else if (!help.hidden) closeHelp();
@@ -936,7 +1029,7 @@ function startQuestTest(test: NonNullable<typeof questTest>) {
   const started = quests.testStart(test.quest, test.step).length > 0;
   trade.syncMarketLevels(world.trade, world.map);
   refreshPiers(world);
-  view.setHomeBuildings(builtByIsland(world.trade.home));
+  showHome();
   view.setQuestsDone(questsDone(world.trade));
   // Land that stands after the quests before this step rises (or sinks) before she is placed.
   syncWorldLand(world, true);
@@ -1125,7 +1218,7 @@ function padScreen(): PadScreen | null {
     return chart.currentTab === 'map' ? null : { root: $('chart'), back: () => chart.back() };
   const screen = (root: HTMLElement | null) => (root ? { root, back: goBack } : null);
   if (tradePanel.isOpen) return screen($('trade-panel'));
-  if (homePanel.isOpen) return screen($('home-ui').querySelector<HTMLElement>('.home-card'));
+  if (homePanel.isOpen) return screen($('home-ui').querySelector<HTMLElement>('.home-screen'));
   if (!settingsPanel.hidden) return screen(settingsPanel);
   if (transfer.isOpen) return screen($('transfer'));
   if (!help.hidden) return screen(help);
@@ -1516,17 +1609,10 @@ function handleEvents(events: WorldEvent[]) {
       if (tradePanel.isOpen) tradePanel.render();
       autosave();
     } else if (e.type === 'home-docked') {
-      // Moored at one of your islands (decisions 0126, 0128): its spots show; a new one is said
-      // out loud.
-      const island = world.map.islands.find((i) => i.id === e.islandId)!;
-      const name = island.name ?? island.id;
-      const fresh = islandHome(world.trade.home, e.islandId).offered.length > 0;
-      // The camera turns to the island, halfway between it and her, so both show.
-      view.setFocus({
-        x: (island.x * 2 + world.boat.x) / 3,
-        y: (island.y * 2 + world.boat.y) / 3,
-      });
-      hud.showToast(t(fresh ? 'home.newSpot' : 'home.docked', { name }), fresh ? 4 : 2.5);
+      // Moored at one of your islands (decisions 0126, 0128, 0210): the camera turns to the
+      // island, and its harbour screen opens, after the card of whoever staked a plot there.
+      homeFocus(e.islandId);
+      if (!showPlotCard(e.islandId)) homePanel.open();
       autosave();
     } else if (e.type === 'home-undocked') {
       view.setFocus(null);
@@ -1630,7 +1716,7 @@ function tick(now: number) {
   hud.goal = seaGoal();
   hud.update(dt, (x, y) => view.project(x, y), size, !paused, hudVisible);
   questNote.update(dt, mode === 'play' && !paused && hudVisible, (key) => questSeen.has(key));
-  homePanel.update((x, y) => view.project(x, y));
+  homePanel.update();
   // Coach marks follow moving targets (port signs) about ten times a second.
   if (++coachTick % 6 === 0) coach.place();
 
@@ -1831,6 +1917,7 @@ if (new URLSearchParams(location.search).has('debug')) {
     trade.syncMarketLevels(world.trade, world.map);
     refreshPiers(world);
     view.setQuestsDone(questsDone(world.trade));
+    showHome();
     // Land that stands after these quests rises now, while the boat is still at her start: moored
     // there next, the land would wait for her to sail out of sight (0166, Phase 4 review).
     syncWorldLand(world, true);
@@ -1877,6 +1964,7 @@ if (new URLSearchParams(location.search).has('debug')) {
       trade,
       tradePanel,
       homePanel,
+      showHome,
       quests,
       coach,
       chart,
