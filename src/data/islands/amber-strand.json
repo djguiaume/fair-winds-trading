@@ -62,7 +62,7 @@
     }
   ],
   "lanes": [],
-  "piers": [],
+  "piers": [{ "x": 0.08, "z": 0.82, "length": 0.26, "from": 3 }],
   "props": [
     { "type": "marram", "x": -1.1, "z": -0.2, "size": 2.2, "from": 0 },
     { "type": "marram", "x": -0.8, "z": 0.05, "size": 2.2, "from": 0 },
@@ -103,7 +103,83 @@
     { "type": "marram", "x": 0.9, "z": -0.3, "size": 2.2, "from": 1 },
     { "type": "marram", "x": -1.15, "z": -0.55, "size": 2.2, "from": 1 },
     { "type": "amber", "x": 0.9, "z": 0.42, "size": 3.2, "from": 1 },
-    { "type": "amber", "x": -0.8, "z": 0.62, "size": 3.2, "from": 1 }
+    { "type": "amber", "x": -0.8, "z": 0.62, "size": 3.2, "from": 1 },
+    {
+      "type": "turf-house",
+      "x": -0.32,
+      "z": 0.58,
+      "turn": 0,
+      "size": 2.2,
+      "variant": 3,
+      "clear": 0.14,
+      "from": 1
+    },
+    {
+      "type": "flagpole",
+      "x": 0.34,
+      "z": 0.7,
+      "turn": -180,
+      "size": 1.4,
+      "clear": 0.08,
+      "from": 1
+    },
+    { "type": "name-board", "x": -0.1, "z": 0.66, "size": 1.5, "clear": 0.08, "from": 1 },
+    { "type": "drying-rack", "x": 0.55, "z": 0.6, "size": 2, "clear": 0.1, "from": 1 },
+    { "type": "drying-rack", "x": -0.62, "z": 0.62, "size": 2, "clear": 0.1, "from": 1 },
+    { "type": "crates", "x": -0.15, "z": 0.52, "size": 1.6, "clear": 0.06, "from": 1 },
+    { "type": "lamp-post", "x": 0.25, "z": 0.58, "size": 1.4, "from": 1 },
+    {
+      "type": "turf-house",
+      "x": 0.8,
+      "z": 0.5,
+      "turn": 0,
+      "size": 2.2,
+      "variant": 6,
+      "clear": 0.14,
+      "from": 2
+    },
+    {
+      "type": "turf-house",
+      "x": 0.2,
+      "z": -0.42,
+      "turn": 0,
+      "size": 2.2,
+      "variant": 6,
+      "clear": 0.14,
+      "from": 2
+    },
+    { "type": "drying-shed", "x": 1, "z": 0.62, "turn": 0, "size": 2, "clear": 0.12, "from": 2 },
+    {
+      "type": "beached-boat",
+      "x": -1.15,
+      "z": 0.55,
+      "turn": -30,
+      "size": 1.6,
+      "clear": 0.08,
+      "from": 2
+    },
+    { "type": "lamp-post", "x": -0.5, "z": 0.5, "size": 1.4, "from": 2 },
+    { "type": "boathouse", "x": 0.62, "z": 0.78, "turn": 0, "size": 2, "clear": 0.1, "from": 3 },
+    {
+      "type": "turf-house",
+      "x": -0.6,
+      "z": -0.32,
+      "turn": -180,
+      "size": 2.2,
+      "variant": 9,
+      "clear": 0.14,
+      "from": 3
+    },
+    {
+      "type": "turf-house",
+      "x": -0.3,
+      "z": -0.4,
+      "turn": -180,
+      "size": 2.2,
+      "variant": 9,
+      "clear": 0.14,
+      "from": 3
+    }
   ],
   "woods": {
     "tree": "woodland-pine",

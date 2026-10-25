@@ -1,0 +1,80 @@
+{
+  "id": "outpost-east",
+  "name": "Amber Strand",
+  "start": {
+    "is": "quest-done",
+    "quest": "fogwatch-amber"
+  },
+  "text": "quest.outpost-east",
+  "giver": "elias",
+  "doneSpeaker": "pip",
+  "port": "fogwatch",
+  "offer": true,
+  "items": {
+    "pip": {
+      "space": 0
+    }
+  },
+  "steps": [
+    {
+      "id": "supplies",
+      "mood": "worried",
+      "goal": {
+        "is": "all",
+        "of": [
+          {
+            "is": "landed",
+            "place": {
+              "x": 688,
+              "y": 465,
+              "within": 10,
+              "maxKn": 2,
+              "holdSec": 3
+            },
+            "good": "timber",
+            "qty": 8
+          },
+          {
+            "is": "landed",
+            "place": {
+              "x": 688,
+              "y": 465,
+              "within": 10,
+              "maxKn": 2,
+              "holdSec": 3
+            },
+            "good": "planks",
+            "qty": 6
+          }
+        ]
+      },
+      "reward": {
+        "gold": 450
+      }
+    },
+    {
+      "id": "settler",
+      "speaker": "pip",
+      "port": "fogwatch",
+      "goal": {
+        "is": "carried",
+        "item": "pip",
+        "qty": 1,
+        "from": "fogwatch",
+        "to": {
+          "x": 688,
+          "y": 465,
+          "within": 10,
+          "maxKn": 2,
+          "holdSec": 3
+        }
+      },
+      "reward": {
+        "gold": 600
+      }
+    }
+  ],
+  "reward": {
+    "found": ["amber-strand"]
+  }
+}

@@ -82,7 +82,10 @@ export type ChartAction =
   | 'fit'
   | 'close'
   | 'pick'
-  | 'skipLesson';
+  | 'skipLesson'
+  | 'nextGood'
+  | 'tabPrev'
+  | 'tabNext';
 /** Menus, the port screen, cards (decision 0163): move the focus, press it, back, tabs, resume. */
 export type MenuAction =
   | 'up'
@@ -92,6 +95,8 @@ export type MenuAction =
   | 'press'
   | 'back'
   | 'secondary'
+  | 'less'
+  | 'more'
   | 'tabPrev'
   | 'tabNext'
   | 'resume';
@@ -118,7 +123,10 @@ export interface PadControls extends PadConfig {
     moveX: PadAxis;
     moveY: PadAxis;
     stickPress: number;
-    /** How long the button hints stay up after a screen opens. */
+    /** The stick that scrolls a long screen (decision 0192), and how fast at full lean. */
+    scrollY: PadAxis;
+    scrollPxPerSec: number;
+    /** How long the button hints stay up after a screen opens; 0: as long as the screen. */
     hintsSeconds: number;
     actions: Record<MenuAction, PadButton[]>;
   };
@@ -180,12 +188,14 @@ export function controlProblems(c: PadControls = PAD): string[] {
   if (!(c.triggerPress > 0 && c.triggerPress <= 1)) out.push('triggerPress must be 0..1');
   if (!(c.repeatDelayMs > 0 && c.repeatEveryMs > 0)) out.push('repeat timings must be > 0');
   if (!(c.menu.stickPress > 0 && c.menu.stickPress <= 1)) out.push('menu.stickPress must be 0..1');
+  if (!(c.menu.hintsSeconds >= 0)) out.push('menu.hintsSeconds must be 0 or more (0: always up)');
+  if (!(c.menu.scrollPxPerSec > 0)) out.push('menu.scrollPxPerSec must be > 0');
   const contexts = { sea: c.sea, chart: c.chart, menu: c.menu } as Record<
     string,
     { actions: Record<string, string[]> } & Record<string, unknown>
   >;
   for (const [name, ctx] of Object.entries(contexts)) {
-    for (const key of ['steerAxis', 'zoomAxis', 'panX', 'panY', 'moveX', 'moveY'])
+    for (const key of ['steerAxis', 'zoomAxis', 'panX', 'panY', 'moveX', 'moveY', 'scrollY'])
       if (key in ctx && !axes.has(ctx[key] as string))
         out.push(`${name}.${key}: no axis "${String(ctx[key])}"`);
     for (const [action, list] of Object.entries(ctx.actions)) {
@@ -609,6 +619,10 @@ export interface ChartPad {
   pick: boolean;
   /** Skip the lesson whose bubble is up. */
   skipLesson: boolean;
+  /** Show the next good's prices on the ports (decision 0196). */
+  nextGood: boolean;
+  /** The previous (-1) or next (1) tab, 0 for none (decision 0196). */
+  tab: number;
   other: PadPress[];
 }
 
@@ -625,6 +639,8 @@ export function chartPad(f: PadFrame, dt: number, c: PadControls['chart'] = PAD.
     close: false,
     pick: false,
     skipLesson: false,
+    nextGood: false,
+    tab: 0,
     other: [],
   };
   for (const p of f.presses) {
@@ -636,6 +652,9 @@ export function chartPad(f: PadFrame, dt: number, c: PadControls['chart'] = PAD.
     else if (isFor(p, a.close)) out.close = true;
     else if (isFor(p, a.pick)) out.pick = true;
     else if (isFor(p, a.skipLesson)) out.skipLesson = true;
+    else if (isFor(p, a.nextGood)) out.nextGood = true;
+    else if (isFor(p, a.tabPrev)) out.tab = -1;
+    else if (isFor(p, a.tabNext)) out.tab = 1;
     else out.other.push(p);
   }
   return out;

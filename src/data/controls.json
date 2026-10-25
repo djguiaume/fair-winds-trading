@@ -32,19 +32,24 @@
         "panRight": ["right"],
         "panUp": ["up"],
         "panDown": ["down"],
-        "zoomIn": ["rt", "rb"],
-        "zoomOut": ["lt", "lb"],
-        "fit": ["x"],
+        "zoomIn": ["rt"],
+        "zoomOut": ["lt"],
+        "fit": ["rs"],
         "close": ["b", "view"],
         "pick": ["a"],
-        "skipLesson": ["y"]
+        "skipLesson": ["y"],
+        "nextGood": ["x"],
+        "tabPrev": ["lb"],
+        "tabNext": ["rb"]
       }
     },
     "menu": {
       "moveX": "lx",
       "moveY": "ly",
       "stickPress": 0.5,
-      "hintsSeconds": 4,
+      "scrollY": "ry",
+      "scrollPxPerSec": 900,
+      "hintsSeconds": 0,
       "actions": {
         "up": ["up"],
         "down": ["down"],
@@ -53,6 +58,8 @@
         "press": ["a"],
         "back": ["b"],
         "secondary": ["x"],
+        "less": ["lt"],
+        "more": ["rt"],
         "tabPrev": ["lb"],
         "tabNext": ["rb"],
         "resume": ["menu"]

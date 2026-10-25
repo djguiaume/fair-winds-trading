@@ -714,6 +714,23 @@ export function portsIn(c: Condition | undefined): string[] {
   return out;
 }
 
+/** The quests a condition names (`quest-done`, `quest-at`…), at any depth. */
+export function questsIn(c: Condition | undefined): string[] {
+  if (!c) return [];
+  const kind = CONDITIONS[c.is];
+  if (!kind) return [];
+  const out: string[] = [];
+  for (const [name, spec] of Object.entries(kind.params)) {
+    const type = spec.replace('?', '');
+    const v = c[name];
+    if (type === 'quest' && typeof v === 'string') out.push(v);
+    if (type === 'condition') out.push(...questsIn(v as Condition));
+    if (type === 'conditions' && Array.isArray(v))
+      out.push(...v.flatMap((m) => questsIn(m as Condition)));
+  }
+  return out;
+}
+
 export function rewardPorts(r: QuestReward | undefined): string[] {
   return [
     ...Object.keys(r?.standing ?? {}),

@@ -1,6 +1,6 @@
 # 0163. Game controller in the menus and the port screen
 
-**Status:** Accepted (2026-10-24): Guillaume, "do all that then merge", look A.
+**Status:** Accepted (2026-10-24): Guillaume, "do all that then merge", look A. Extended by [0192](0192-port-screen-with-a-game-controller.md) (greyed buttons reachable, LT/RT amount, right-stick scroll, hints that stay).
 
 ## Context
 

@@ -220,6 +220,41 @@
         "item": "spyglass",
         "backdrop": "#e0602a"
       }
+    },
+    {
+      "id": "elias",
+      "name": "Elias Morrow",
+      "voice": "elias",
+      "role": "Amber carver",
+      "port": "fogwatch",
+      "look": {
+        "skin": "#e3b493",
+        "hair": "#5c5148",
+        "hairStyle": "short",
+        "beard": true,
+        "clothes": "#34495c",
+        "apron": "#a8642e",
+        "item": "chisel",
+        "backdrop": "#7fb0b4"
+      }
+    },
+    {
+      "id": "pip",
+      "name": "Pip Holt",
+      "voice": "pip",
+      "role": "Settler",
+      "port": "fogwatch",
+      "look": {
+        "skin": "#f1c7a0",
+        "hair": "#b0602e",
+        "hairStyle": "braid",
+        "hat": "scarf",
+        "hatColor": "#e89a2a",
+        "clothes": "#6f9a4a",
+        "stripes": "#f4f1e8",
+        "item": "net",
+        "backdrop": "#e6d6a8"
+      }
     }
   ]
 }

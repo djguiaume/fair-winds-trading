@@ -1,19 +1,25 @@
 import {
   PAD,
   isFor,
+  shapeAxis,
   type MenuAction,
   type PadControls,
   type PadContext,
   type PadFrame,
+  type PadButton,
   type PadPress,
 } from '../input/gamepad';
+import { type MessageKey, t } from '../i18n';
+import { padName } from './padGlyphs';
 
 /**
  * A game controller in the menus, the port screen and on cards (decision 0163). The D-pad or the
  * left stick moves a real DOM focus to the nearest control in that direction, A presses it, B goes
- * back (like Esc), X does the screen's extra action (Sell all), LB/RB switch tabs and Start resumes from the pause menu; the buttons are the
- * `menu` section of `src/data/controls.json`. The focus highlight (brass ring, `menus.css`) and the
- * button hints only show while the pad is the last input: `html[data-input=pad]`.
+ * back (like Esc), X does the screen's extra action (Sell all), LB/RB switch tabs, LT/RT step an
+ * amount (the market's lot, decision 0192), the right stick scrolls a long screen and Start resumes
+ * from the pause menu; the buttons are the `menu` section of `src/data/controls.json`. The focus
+ * highlight (brass ring, `menus.css`) and the button hints only show while the pad is the last
+ * input: `html[data-input=pad]`.
  */
 
 export type Direction = 'up' | 'down' | 'left' | 'right';
@@ -31,6 +37,8 @@ export interface PadScreen {
 }
 
 const DIRECTIONS: readonly MenuAction[] = ['up', 'down', 'left', 'right'];
+/** Actions that repeat while held, like the D-pad. */
+const REPEATING: readonly MenuAction[] = [...DIRECTIONS, 'less', 'more'];
 
 /** What a press asks of the menus, or null for a button they do not use. */
 export function menuAction(press: PadPress, c: PadControls['menu'] = PAD.menu): MenuAction | null {
@@ -108,6 +116,39 @@ export function nearestInDirection(from: Box, boxes: readonly Box[], dir: Direct
 const FOCUSABLE =
   'button, input:not([type="hidden"]), select, textarea, a[href], [tabindex]:not([tabindex="-1"])';
 const TABS = '[role="tab"], .tab-btn';
+/** A row of choices LT/RT step through (the lot ×1 ×5 ×10), the chosen one `aria-pressed`. */
+const STEPS = '[data-pad="steps"]';
+/** A greyed control the pad can still reach and read (decision 0192), but not press. */
+const SOFT_OFF = '[aria-disabled="true"]';
+/** A screen's header and footer bars (the port's are sticky). */
+const BARS = 'header, footer';
+
+/**
+ * Greyed buttons a pad can still reach (decision 0192): a `disabled` button takes no focus, so a
+ * Shipyard where nothing is affordable yet had nothing to move to, and the focus fell off a Sell
+ * button that greyed after the last sale. They become `aria-disabled` (styled the same); a click
+ * on one is stopped by `guardSoftDisabled`.
+ */
+export function softDisable(root: ParentNode) {
+  for (const b of root.querySelectorAll<HTMLButtonElement>('button[disabled]')) {
+    b.disabled = false;
+    b.setAttribute('aria-disabled', 'true');
+  }
+}
+
+/** Stop clicks (pointer, keyboard or pad) on `aria-disabled` controls inside `root`. */
+export function guardSoftDisabled(root: HTMLElement) {
+  root.addEventListener(
+    'click',
+    (e) => {
+      if ((e.target as Element | null)?.closest?.(SOFT_OFF)) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }
+    },
+    true,
+  );
+}
 /** Close buttons: the pad starts elsewhere, B already closes. */
 const CLOSE = '.close-btn, #tp-close, .d-btn.red.square, [data-chart-close], .home-close';
 
@@ -123,10 +164,21 @@ export function reachable(root: HTMLElement): HTMLElement[] {
   return [...root.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(shown);
 }
 
-/** Where the focus starts on a screen: its main (brass) button, else its first control. */
+/**
+ * Where the focus starts on a screen: its main (brass) button, else its first control. A button
+ * marked `data-pad-start="never"` (the port's Set sail, decision 0192) is the last resort, so a
+ * stray A on a Shipyard with nothing affordable yet does not leave port.
+ */
 export function startOf(controls: readonly HTMLElement[]): HTMLElement | null {
   const open = controls.filter((el) => !el.matches(CLOSE) && !el.matches(TABS));
-  return open.find((el) => el.classList.contains('brass')) ?? open[0] ?? controls[0] ?? null;
+  const first = open.filter((el) => el.dataset.padStart !== 'never');
+  return (
+    first.find((el) => el.classList.contains('brass') && !el.matches(SOFT_OFF)) ??
+    first[0] ??
+    open[0] ??
+    controls[0] ??
+    null
+  );
 }
 
 /** A control's likeness, to find it again when its screen redraws (the market after a sale). */
@@ -146,6 +198,8 @@ export class PadFocus {
   /** The pad just took over: its first move or A only shows where the focus is. */
   private waking = false;
   private hintsTimer: ReturnType<typeof setTimeout> | undefined;
+  /** When the right stick last scrolled (0: it is not leaning). */
+  private scrolledAt = 0;
   /** Start in the pause menu: back to the sea. */
   onResume: () => void = () => {};
 
@@ -181,12 +235,54 @@ export class PadFocus {
       this.c.repeatEveryMs,
     );
     if (dir) this.move(screen, dir);
+    const lean = shapeAxis(f.axes[this.c.menu.scrollY] ?? 0, this.c.deadZone);
+    if (lean) this.scroll(screen, lean, now);
+    else this.scrolledAt = 0;
+  }
+
+  /**
+   * The right stick scrolls the screen (decision 0192): the box round the focused control that
+   * scrolls, else the screen's own; the focus follows when it scrolls out of sight.
+   */
+  private scroll(screen: PadScreen, lean: number, now: number) {
+    const dt = this.scrolledAt ? Math.min(0.1, (now - this.scrolledAt) / 1000) : 1 / 60;
+    this.scrolledAt = now;
+    const box = scroller(document.activeElement as HTMLElement | null, screen.root);
+    if (!box) return;
+    const before = reachable(box).map((c) => [c, c.getBoundingClientRect().top] as const);
+    box.scrollTop += lean * this.c.menu.scrollPxPerSec * dt;
+    const el = document.activeElement as HTMLElement | null;
+    if (!el || !box.contains(el) || inSight(el)) return;
+    // The focused control went out of sight: take the nearest one that scrolled into it (not a
+    // header's tab, lot or close button, which stay put).
+    const moved = before
+      .filter(([c, top]) => c.getBoundingClientRect().top !== top && inSight(c))
+      .map(([c]) => c);
+    const next = lean > 0 ? moved[0] : moved[moved.length - 1];
+    if (next) this.focus(next, reachable(screen.root), false);
+  }
+
+  /** LT/RT: a focused slider moves a notch, else the screen's row of choices (the lot). */
+  private step(screen: PadScreen, el: HTMLElement | null, step: number) {
+    if (el instanceof HTMLInputElement && el.type === 'range' && screen.root.contains(el)) {
+      if (step > 0) el.stepUp();
+      else el.stepDown();
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+      return;
+    }
+    const group = [...screen.root.querySelectorAll<HTMLElement>(STEPS)].find(shown);
+    if (!group) return;
+    const choices = [...group.querySelectorAll<HTMLElement>('[aria-pressed]')].filter(shown);
+    const at = choices.findIndex((c) => c.getAttribute('aria-pressed') === 'true');
+    const next = choices[Math.max(0, Math.min(choices.length - 1, at + step))];
+    if (next && next !== choices[at]) next.click();
   }
 
   press(p: PadPress, context: PadContext) {
     if (context === 'chart') return;
     const action = menuAction(p, this.c.menu);
-    if (!action || (p.repeat && !DIRECTIONS.includes(action))) return;
+    if (!action || (p.repeat && !REPEATING.includes(action))) return;
     const screen = this.settle();
     const waking = this.waking;
     this.waking = false;
@@ -202,6 +298,7 @@ export class PadFocus {
         if (
           el &&
           screen.root.contains(el) &&
+          !el.matches(SOFT_OFF) &&
           !(el instanceof HTMLInputElement && el.type === 'range')
         )
           el.click();
@@ -217,6 +314,10 @@ export class PadFocus {
         extra?.click();
         break;
       }
+      case 'less':
+      case 'more':
+        this.step(screen, el, action === 'more' ? 1 : -1);
+        break;
       case 'tabPrev':
       case 'tabNext':
         this.tab(screen, action === 'tabNext' ? 1 : -1);
@@ -264,12 +365,20 @@ export class PadFocus {
       el.dispatchEvent(new Event('change', { bubbles: true }));
       return;
     }
-    const controls = reachable(screen.root).filter((c) => c !== el);
-    const i = nearestInDirection(
-      el.getBoundingClientRect(),
-      controls.map((c) => c.getBoundingClientRect()),
-      dir,
-    );
+    // Never onto a close button (B already closes): up from Set sail landed on ✕ (decision 0192).
+    const all = reachable(screen.root).filter((c) => c !== el && !c.matches(CLOSE));
+    // A screen's own controls before its header and footer bars, which stay on screen while it
+    // scrolls: down from an upgrade went to the footer over the ships below (decision 0192).
+    const inner = el.closest(BARS) ? all : all.filter((c) => !c.closest(BARS));
+    const near = (list: HTMLElement[]) =>
+      nearestInDirection(
+        el.getBoundingClientRect(),
+        list.map((c) => c.getBoundingClientRect()),
+        dir,
+      );
+    let controls = inner;
+    let i = near(inner);
+    if (i < 0 && inner !== all) i = near((controls = all));
     if (i >= 0) this.focus(controls[i]!, reachable(screen.root));
   }
 
@@ -290,12 +399,13 @@ export class PadFocus {
       const controls = reachable(screen.root);
       const start = startOf(controls);
       if (start) this.focus(start, controls);
+      this.refreshHints();
     });
   }
 
-  private focus(el: HTMLElement, controls: readonly HTMLElement[]) {
+  private focus(el: HTMLElement, controls: readonly HTMLElement[], reveal = true) {
     el.focus({ preventScroll: true });
-    el.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+    if (reveal) el.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
     const like = likeness(el);
     this.last = { like, index: controls.filter((c) => likeness(c) === like).indexOf(el) };
   }
@@ -306,8 +416,9 @@ export class PadFocus {
   }
 
   /**
-   * The A / B / LB RB pill: up when a screen opens with the pad, gone after a few seconds. It is a
-   * popover where the browser has them, so it shows above a modal card (both in the top layer).
+   * The button hints pill: up while a screen is open with the pad (or for `hintsSeconds`), listing
+   * what works there (decision 0192): A Choose, B Back, LB RB Tabs, LT RT Amount. It is
+   * a popover where the browser has them, so it shows above a modal card (both in the top layer).
    */
   private showHints(show: boolean, root?: HTMLElement) {
     const hints = this.hints;
@@ -323,12 +434,77 @@ export class PadFocus {
       if (hints.classList.contains('show')) hide();
       return;
     }
+    hints.innerHTML = hintsHtml(hintsFor(root, this.c.menu.actions));
     if (popover) {
       // Shown again, so it lands above whatever card opened last.
       if (hints.matches(':popover-open')) hints.hidePopover();
       hints.showPopover();
     }
     hints.classList.add('show');
-    this.hintsTimer = setTimeout(hide, this.c.menu.hintsSeconds * 1000);
+    if (this.c.menu.hintsSeconds > 0)
+      this.hintsTimer = setTimeout(hide, this.c.menu.hintsSeconds * 1000);
   }
+
+  /** The screen redrew (a tab switched, the lot row came or went): its hints again. */
+  refreshHints() {
+    const hints = this.hints;
+    if (!hints || !this.screen || !hints.classList.contains('show')) return;
+    hints.innerHTML = hintsHtml(hintsFor(this.screen, this.c.menu.actions));
+  }
+}
+
+/** Whether a control's middle can be seen (not scrolled away, not under a footer bar). */
+function inSight(el: HTMLElement): boolean {
+  const r = el.getBoundingClientRect();
+  const hit = document.elementFromPoint?.((r.left + r.right) / 2, (r.top + r.bottom) / 2);
+  return !!hit && el.contains(hit);
+}
+
+/** The nearest box round `el` (or the screen) that scrolls up and down, else null. */
+function scroller(el: HTMLElement | null, root: HTMLElement): HTMLElement | null {
+  const scrolls = (b: HTMLElement) =>
+    b.scrollHeight > b.clientHeight + 1 && /(auto|scroll)/.test(getComputedStyle(b).overflowY);
+  for (let b = el; b && root.contains(b); b = b.parentElement) if (scrolls(b)) return b;
+  return [root, ...root.querySelectorAll<HTMLElement>('*')].find(scrolls) ?? null;
+}
+
+export interface Hint {
+  buttons: PadButton[];
+  /** Also shown beside its control (the LB/RB glyphs at the tab bar's ends): dropped when narrow. */
+  extra?: boolean;
+  label: MessageKey;
+}
+
+/** What the pill lists on a screen: always A and B, then tabs and the lot row when it has them. */
+export function hintsFor(root: HTMLElement, actions: PadControls['menu']['actions']): Hint[] {
+  const first = (a: MenuAction) => actions[a].slice(0, 1);
+  const out: Hint[] = [
+    { buttons: first('press'), label: 'pad.choose' },
+    { buttons: first('back'), label: 'pad.back' },
+  ];
+  if ([...root.querySelectorAll<HTMLElement>(TABS)].filter(shown).length > 1)
+    out.push({
+      buttons: [...first('tabPrev'), ...first('tabNext')],
+      label: 'pad.tabs',
+      extra: true,
+    });
+  if ([...root.querySelectorAll<HTMLElement>(STEPS)].some(shown))
+    out.push({ buttons: [...first('less'), ...first('more')], label: 'pad.amount', extra: true });
+  return out;
+}
+
+const BUMPERS = new Set<string>(['lb', 'rb', 'lt', 'rt']);
+
+function hintsHtml(hints: readonly Hint[]): string {
+  return hints
+    .map(
+      (h) =>
+        `<span${h.extra ? ' class="extra"' : ''}>${h.buttons
+          .map(
+            (b) =>
+              `<i class="pad-key ${BUMPERS.has(b) ? 'bumper' : b}" data-pad-key="${b}">${padName(b)}</i>`,
+          )
+          .join('')}<span>${t(h.label)}</span></span>`,
+    )
+    .join('');
 }

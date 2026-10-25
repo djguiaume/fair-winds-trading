@@ -1,6 +1,6 @@
 # 0195. Balance the grown sea in story order
 
-**Status:** Proposed (2026-10-25). Gap 3 of the [Phase 4 review](../reviews/phase-4-review/README.md) ([0188](0188-phase-4-review-and-release-gate.md)). The head storyteller ruled on the price order and the buyers; which ring towns buy the crafted goods (point 4) is Guillaume's call. Follows [0046](0046-phase-1-economy-tuning.md), [0083](0083-difficulty-levels.md), [0146](0146-far-goods-from-the-biome-outposts.md), [0149](0149-balance-checks-in-real-wind.md), [0150](0150-building-far-goods.md) and [0194](0194-open-the-edge-seas-after-each-ring-arc.md).
+**Status:** Accepted (2026-10-25; Guillaume picked "Towns buy, Port towns pay more" for point 4). Gap 3 of the [Phase 4 review](../reviews/phase-4-review/README.md) ([0188](0188-phase-4-review-and-release-gate.md)). The head storyteller ruled on the price order and the buyers; which ring towns buy the crafted goods (point 4) is Guillaume's call. Follows [0046](0046-phase-1-economy-tuning.md), [0083](0083-difficulty-levels.md), [0146](0146-far-goods-from-the-biome-outposts.md), [0149](0149-balance-checks-in-real-wind.md), [0150](0150-building-far-goods.md) and [0194](0194-open-the-edge-seas-after-each-ring-arc.md).
 
 ## Context
 
@@ -28,7 +28,7 @@ Running the bots in story order showed what else held the far goods back:
    - the quests' gold is at most 30 % of all gold.
 
    `npm run balance` prints them as a third table (`--only story`).
-4. **Towns buy the crafted far goods** (`levelWantsMade` from level 3 in `phase1-map.json`). Port towns pay more, because a level 4 market holds a smaller stock. The storyteller's test was that a buyer of spiced tea is a Port town, or nearly one, by the time Palm Key is founded. That fails on every level, so the storyteller backs Towns as the fallback, and Guillaume decides (decision card in the balance thread).
+4. **Towns buy the crafted far goods** (`levelWantsMade` from level 3 in `phase1-map.json`). Port towns pay more, because a level 4 market holds a smaller stock. The storyteller's test was that a buyer of spiced tea is a Port town, or nearly one, by the time Palm Key is founded. That fails on every level, so the storyteller backed Towns as the fallback, and Guillaume chose it (2026-10-25).
 5. **Far goods cost less, in the same order** (`goods.json`): raw 18 / 19 / 20 / 22 (were 20 / 22 / 25 / 28), crafted 86 / 88 / 95 / 105 (were 90 / 100 / 110 / 120). This keeps the order the seas open in (storyteller). At the old prices the last hour paid 5–6 times the ring. Spiced tea and mirrors sit close together because the south's run pays least per minute (Sunreach's buyers are far), and at a wider gap tea stopped selling.
 
 ## The numbers (grown sea, median of 5 seeds; the east from its stand-in until #207 lands)

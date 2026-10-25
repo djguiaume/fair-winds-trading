@@ -486,8 +486,11 @@ questCard.onIgnore = (id) => {
 tradePanel.quay = {
   items: () =>
     quests.lesson ? [] : quayItems(quests, world.map, world.trade.dockedAt, questSeen, questThanks),
-  seen: (keys) => {
-    for (const key of keys) questSeen.add(key);
+  seen: (fresh) => {
+    for (const { key } of fresh) questSeen.add(key);
+    // The first new face on the Quay speaks as their card shows, like a main quest's card (0197).
+    const { card } = fresh[0]!;
+    music.speak(card.giver?.voice, wordCount(card.ask ?? card.speech), card.mood);
   },
   act: (id, act, option) => {
     if (act === 'accept') acceptQuest(id);
@@ -1051,7 +1054,9 @@ pad.onConnect = (connected) => {
 };
 /** Where pad presses go: the boat, the open chart, or a menu, dialog or card on top. */
 function padContext(): PadContext {
-  if (chart.isOpen && !questCard.isOpen && !tutorialOffer.open && !windHelp.open) return 'chart';
+  // The chart's map tab plays the cross; its pages (journal, prices, legend) are menus (0196).
+  if (chart.isOpen && !questCard.isOpen && !tutorialOffer.open && !windHelp.open)
+    return chart.currentTab === 'map' ? 'chart' : 'menu';
   return paused ? 'menu' : 'sea';
 }
 function readPad(now: number, dt: number) {
@@ -1086,6 +1091,8 @@ function readPad(now: number, dt: number) {
     // A: the port under the cross, else the lesson bubble's button; Y skips the lesson (0183).
     if (c.pick && !chart.pickAtCross(PAD.chart.pickReachPx)) coach.padPress('main');
     if (c.skipLesson) coach.padPress('skip');
+    if (c.nextGood) chart.nextGood();
+    if (c.tab) chart.stepTab(c.tab);
     for (const p of c.other) pad.onMenuPress(p, context);
   } else for (const p of frame.presses) pad.onMenuPress(p, context);
 }
@@ -1104,7 +1111,9 @@ function padScreen(): PadScreen | null {
         if (dialog.dispatchEvent(new Event('cancel', { cancelable: true }))) dialog.close();
       },
     };
-  if (chart.isOpen) return null;
+  // The chart's pages take the focus like the port screen's tabs; the map tab has the cross.
+  if (chart.isOpen)
+    return chart.currentTab === 'map' ? null : { root: $('chart'), back: () => chart.back() };
   const screen = (root: HTMLElement | null) => (root ? { root, back: goBack } : null);
   if (tradePanel.isOpen) return screen($('trade-panel'));
   if (homePanel.isOpen) return screen($('home-ui').querySelector<HTMLElement>('.home-card'));
@@ -1117,6 +1126,12 @@ function padScreen(): PadScreen | null {
 }
 const padFocus = new PadFocus(padScreen, document.getElementById('pad-hints'));
 pad.onMenuPress = (p, context) => padFocus.press(p, context);
+// The port screen redraws on each tab and sale: the hints pill follows what it shows (0192).
+const portRendered = tradePanel.onRender;
+tradePanel.onRender = () => {
+  portRendered();
+  padFocus.refreshHints();
+};
 // Texts that name controls follow the way of playing: touch, keys or pad (decision 0184).
 const way = new WayOfPlaying(window, firstGuess);
 way.onChange = (w) => {
@@ -1126,6 +1141,8 @@ way.onChange = (w) => {
 pad.onUsingPad((using) => {
   padFocus.setUsing(using);
   way.setPad(using);
+  // The chart's map tab plays the cross: no ring left on its close button (decision 0196).
+  if (using && chart.isOpen && chart.currentTab === 'map') chart.setTab('map');
 });
 // Start in the pause menu sets sail again, as the menu's own button does.
 padFocus.onResume = () => {
