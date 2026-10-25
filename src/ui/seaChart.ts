@@ -27,7 +27,7 @@ import { padGlyph } from './padGlyphs';
 import { portraitSvg } from './portraits';
 import { seaSvg } from './seaOutline';
 import { seaBox, seaReach, seaShape } from '../sim/seaEdge';
-import type { JournalEntry, QuestPin, QuestTarget, StepMarker } from './questView';
+import type { JournalEntry, JournalStory, QuestPin, QuestTarget, StepMarker } from './questView';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -129,6 +129,21 @@ export function questCourse(goal: {
 const escapeHtml = (s: string) =>
   s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
+/** A finished quest told again in the journal: its steps, what was said, the answer, the thanks. */
+function storyHtml(story: readonly JournalStory[]): string {
+  return `<ol class="journal-story">${story
+    .map((l) =>
+      l.thanks
+        ? `<li class="is-thanks"><p class="journal-said">${escapeHtml(l.copy!)}</p></li>`
+        : `<li><span class="journal-check" aria-hidden="true">✓</span><div>${
+            l.title ? `<b>${escapeHtml(l.title)}</b>` : ''
+          }${l.copy ? `<p class="journal-said">${escapeHtml(l.copy)}</p>` : ''}${
+            l.chose ? `<p class="journal-chose">${escapeHtml(l.chose)}</p>` : ''
+          }</div></li>`,
+    )
+    .join('')}</ol>`;
+}
+
 /** An event-driven DOM/SVG chart; no second WebGL scene or animation loop. */
 export class SeaChart {
   /** Blur fog of war's edge (High quality only, decision 0156). */
@@ -153,6 +168,8 @@ export class SeaChart {
   /** Where the view would be centred if the sea's edge allowed: her boat, until she pans. */
   private aim: { x: number; y: number } | null = null;
   private tab: ChartTab = 'map';
+  /** The finished quest open in the journal, told again; null: none. */
+  private storyOpen: string | null = null;
   private dragged = false;
   private settleTimer: ReturnType<typeof setTimeout> | undefined;
   private drag: { id: number; x: number; y: number; cx: number; cy: number; unit: number } | null =
@@ -222,11 +239,30 @@ export class SeaChart {
   }
   private setupTools() {
     this.dialog.querySelector('#chart-journal-list')?.addEventListener('click', (e) => {
-      const row = (e.target as Element).closest<HTMLElement>('[data-track], [data-take-up]');
+      const row = (e.target as Element).closest<HTMLElement>(
+        '[data-track], [data-take-up], [data-open]',
+      );
       if (!row || !this.quests) return;
+      // A finished quest opens to its story, and closes again.
+      if (row.dataset.open) {
+        this.storyOpen = this.storyOpen === row.dataset.open ? null : row.dataset.open;
+        this.drawJournal(this.quests.journal());
+        this.dialog
+          .querySelector<HTMLElement>(`[data-open="${CSS.escape(row.dataset.open)}"]`)
+          ?.focus({ preventScroll: true });
+        return;
+      }
       if (row.dataset.track) this.quests.track(row.dataset.track);
       else this.quests.takeUp?.(row.dataset.takeUp!);
       this.draw();
+    });
+    // The journal's rows are buttons to the keyboard too.
+    this.dialog.querySelector('#chart-journal-list')?.addEventListener('keydown', (e) => {
+      const key = (e as KeyboardEvent).key;
+      const row = (e.target as Element).closest<HTMLElement>('[role="button"]');
+      if (!row || (key !== 'Enter' && key !== ' ')) return;
+      e.preventDefault();
+      row.click();
     });
     for (const button of this.dialog.querySelectorAll<HTMLElement>('[data-chart-tab]'))
       button.addEventListener('click', () => this.setTab(button.dataset.chartTab as ChartTab));
@@ -1164,6 +1200,8 @@ export class SeaChart {
           )
           .join('')}</ul></div>`);
     }
+    if (!entries.some((e) => e.quest === this.storyOpen && e.story)) this.storyOpen = null;
+    const open = this.storyOpen;
     const others = entries.filter((e) => e !== tracked);
     if (others.length) {
       html.push(`<h4>${escapeHtml(t(tracked ? 'journal.others' : 'journal.people'))}</h4>`);
@@ -1174,21 +1212,28 @@ export class SeaChart {
             : e.state === 'ignored'
               ? t('journal.ignored')
               : e.state === 'done'
-                ? e.chose.length
-                  ? t('journal.doneChose', { option: e.chose.join(', ') })
-                  : t('journal.done')
+                ? `${e.who ? `${e.arc} · ` : ''}${
+                    e.chose.length
+                      ? t('journal.doneChose', { option: e.chose.join(', ') })
+                      : t('journal.done')
+                  }`
                 : `${e.arc} · ${t('journal.step', { n: e.stepNo, total: e.steps })}`;
         const attrs =
           e.state === 'active'
             ? ` data-track="${escapeHtml(e.quest)}" role="button" tabindex="0"`
             : e.state === 'ignored'
               ? ` data-take-up="${escapeHtml(e.quest)}" role="button" tabindex="0"`
-              : '';
+              : e.story?.length
+                ? ` data-open="${escapeHtml(e.quest)}" role="button" tabindex="0" aria-expanded="${open === e.quest}"`
+                : '';
         html.push(
-          `<div class="journal-row is-${e.state}"${attrs}><span class="journal-face">${face(e, 34)}${
+          `<div class="journal-row is-${e.state}${open === e.quest ? ' is-open' : ''}"${attrs}><span class="journal-face">${face(e, 34)}${
             e.state === 'offered' ? '<i class="journal-alert">!</i>' : ''
-          }</span><span><b>${escapeHtml(e.who ?? e.arc)}</b><small>${escapeHtml(line)}</small></span></div>`,
+          }</span><span><b>${escapeHtml(e.who ?? e.arc)}</b><small>${escapeHtml(line)}</small></span>${
+            e.story?.length ? '<i class="journal-chevron" aria-hidden="true"></i>' : ''
+          }</div>`,
         );
+        if (open === e.quest && e.story) html.push(storyHtml(e.story));
       }
     }
     list.innerHTML = html.join('');
