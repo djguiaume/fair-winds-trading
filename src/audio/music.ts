@@ -99,7 +99,7 @@ export class Music {
     this.sounds.gain.value = this.soundLevel;
     this.sounds.connect(this.ctx.destination);
     const { luff, rain, wash } = BOAT_SOUNDS;
-    this.ambience = new Ambience(this.ctx, this.sounds, luff.tone, luff.rate, rain.tone, wash.tone);
+    this.ambience = new Ambience(this.ctx, this.sounds, luff, rain.tone, wash.tone);
     this.barTime = this.ctx.currentTime + 0.3;
     if (this.track && 'file' in this.track) void this.loop(this.ctx, this.band, this.track);
     for (const effect of Object.values(EFFECTS))

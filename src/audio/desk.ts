@@ -78,7 +78,7 @@ export class LiveSea {
     this.out.gain.value = FULL;
     this.out.connect(ctx.destination);
     const { luff, rain, wash } = data.boat;
-    this.ambience = new Ambience(ctx, this.out, luff.tone, luff.rate, rain.tone, wash.tone);
+    this.ambience = new Ambience(ctx, this.out, luff, rain.tone, wash.tone);
     this.tick();
     this.timer = window.setInterval(() => this.tick(), 250);
   }
@@ -151,7 +151,7 @@ function renderSea(
   out.gain.value = level;
   out.connect(ctx.destination);
   const { luff, rain, wash } = data.boat;
-  const ambience = new Ambience(ctx, out, luff.tone, luff.rate, rain.tone, wash.tone);
+  const ambience = new Ambience(ctx, out, luff, rain.tone, wash.tone);
   ambience.set(layerMix(bed, data.boat, state.here), 0.01);
   // The calls as the game times them: the render stops every quarter second to hear them.
   const clock = new CallClock(createRng(9));
