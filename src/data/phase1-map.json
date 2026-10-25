@@ -211,7 +211,7 @@
       "levelWants": { "3": ["grain"] },
       "levelProduces": { "3": ["planks"] },
       "wantsMade": ["smokedFish", "bread", "lampOil"],
-      "levelWantsMade": { "4": ["spicedTea", "obsidianMirrors"] },
+      "levelWantsMade": { "3": ["spicedTea", "obsidianMirrors"] },
       "afterQuest": {
         "calda-slipway": {
           "levelProduces": { "2": ["planks"] }
@@ -228,7 +228,7 @@
       "levelWants": { "3": ["stone"] },
       "levelProduces": { "3": ["smokedFish"] },
       "wantsMade": ["planks", "cutStone", "honey"],
-      "levelWantsMade": { "4": ["obsidianMirrors", "cloudberryJam"] },
+      "levelWantsMade": { "3": ["obsidianMirrors", "cloudberryJam"] },
       "afterQuest": {
         "saltmere-shoals": {
           "levelProduces": { "2": ["smokedFish"] }
@@ -245,7 +245,7 @@
       "levelWants": { "3": ["timber"] },
       "levelProduces": { "3": ["bread"] },
       "wantsMade": ["cutStone", "planks", "lampOil"],
-      "levelWantsMade": { "4": ["spicedTea", "amberBeads"] }
+      "levelWantsMade": { "3": ["spicedTea", "amberBeads"] }
     },
     {
       "id": "stonehaven",
@@ -257,7 +257,7 @@
       "levelWants": { "3": ["fish"] },
       "levelProduces": { "3": ["cutStone"] },
       "wantsMade": ["bread", "smokedFish", "honey"],
-      "levelWantsMade": { "4": ["cloudberryJam", "amberBeads"] }
+      "levelWantsMade": { "3": ["cloudberryJam", "amberBeads"] }
     },
     {
       "id": "watchman-key",

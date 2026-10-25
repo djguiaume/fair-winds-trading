@@ -11,6 +11,9 @@ import {
   economyRun,
   legTimes,
   levelName,
+  type StoryRun,
+  storyChecks,
+  storyRun,
 } from '../../src/sim/balance';
 import { DIFFICULTIES } from '../../src/sim/difficulty';
 import type { MapDef } from '../../src/sim/map';
@@ -38,6 +41,23 @@ export function levelTable(by: DifficultyRun): string[] {
   return rows;
 }
 
+/** One line per level for the grown sea's story run (decision 0195). */
+export function storyTable(by: StoryRun): string[] {
+  const rows = [
+    'level        seas open (relaxed, min)        ring → last hour gold/min   far goods  far legs',
+  ];
+  for (const l of DIFFICULTIES) {
+    const r = by[l]!;
+    const open = Object.entries(r.opened)
+      .map(([sea, m]) => `${sea[0]} ${Number.isFinite(m) ? Math.round(m) : '–'}`)
+      .join(' ');
+    rows.push(
+      `${levelName(l).padEnd(13)}${open.padEnd(32)}${`${Math.round(r.ringRate)} → ${Math.round(r.lateRate)}`.padEnd(28)}${`${Math.round(100 * r.farShare)} %`.padEnd(11)}${Math.round(r.farLegs)} s`,
+    );
+  }
+  return rows;
+}
+
 const failing = (checks: BalanceCheck[]) =>
   checks.filter((c) => !c.ok).map((c) => `  ✗ ${c.label}: ${c.actual} (target ${c.target})`);
 
@@ -47,7 +67,7 @@ export function run(args: Args): number {
   --map ring|stress|phase4|file.json   the sea (default ring): an editor export, or a sea file
                          merged round the ring (src/data/seas/*.json or a copy)
   --legs                 only sloop leg times per level (seconds, fast)
-  --only economy,levels  run only these parts
+  --only economy,levels,story  run only these parts (story: the grown sea in story order, 0195)
   --all                  list passing checks too
   --json                 runs and checks as JSON`);
     return 0;
@@ -62,7 +82,8 @@ export function run(args: Args): number {
     }
     return 0;
   }
-  const only = typeof args.only === 'string' ? args.only.split(',') : ['economy', 'levels'];
+  const only =
+    typeof args.only === 'string' ? args.only.split(',') : ['economy', 'levels', 'story'];
   const checks: BalanceCheck[] = [];
   const json: Record<string, unknown> = {};
   const lines: string[] = [];
@@ -79,6 +100,15 @@ export function run(args: Args): number {
     checks.push(...c);
     json.levels = by;
     lines.push(...levelTable(by), `levels: ${c.filter((x) => x.ok).length}/${c.length} checks ok`);
+  }
+  if (only.includes('story')) {
+    const by = storyRun(map);
+    if (by) {
+      const c = storyChecks(by);
+      checks.push(...c);
+      json.story = by;
+      lines.push(...storyTable(by), `story: ${c.filter((x) => x.ok).length}/${c.length} checks ok`);
+    }
   }
   const bad = checks.some((c) => !c.ok);
   if (args.json) {

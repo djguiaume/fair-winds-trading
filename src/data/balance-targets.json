@@ -27,5 +27,58 @@
     "saltCutter": [28, 55],
     "saltRepairsVsCaptainMin": 1.5,
     "sharpCutterMax": 20
+  },
+  "story": {
+    "opensAfter": "cutter",
+    "ringQuests": [
+      "stonehaven-light",
+      "calda-slipway",
+      "saltmere-shoals",
+      "westholm-mill",
+      "fair-winds"
+    ],
+    "chapters": [
+      {
+        "sea": "south",
+        "quests": ["watchman-passage", "sunreach-tea", "outpost-south"]
+      },
+      {
+        "sea": "west",
+        "quests": ["calda-letter", "emberhold-glass", "outpost-west"]
+      },
+      {
+        "sea": "north",
+        "quests": ["saltmere-letter", "rimewick-jam", "outpost-north"]
+      },
+      {
+        "sea": "east",
+        "quests": ["westholm-letter", "fogwatch-amber", "outpost-east"],
+        "standIn": {
+          "westholm-letter": {
+            "gold": 300,
+            "charts": ["stepping-stones", "fogwatch-waters"],
+            "after": ["westholm-mill", "watchman-passage"]
+          },
+          "fogwatch-amber": {
+            "gold": 1150,
+            "charts": ["amber-reach"]
+          },
+          "outpost-east": {
+            "gold": 950,
+            "found": ["amber-strand"]
+          }
+        }
+      }
+    ],
+    "minutes": 240,
+    "seeds": [1, 2, 3, 4, 5],
+    "lateMinutes": 60,
+    "lateVsRing": [1.5, 5],
+    "farShareMin": 0.25,
+    "ringLegsMin": 0.3,
+    "craftedSoldMin": 10,
+    "farLegMedianMax": 150,
+    "topRouteShareMax": 0.3,
+    "storyShareMax": 0.3
   }
 }
