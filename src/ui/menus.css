@@ -1418,7 +1418,10 @@ html[data-input='pad'] [role='dialog']:focus {
   box-shadow: none !important;
 }
 
-/* The pad's button hints: A Choose, B Back (tabs and extra actions show their own glyphs). */
+/*
+ * The pad's button hints: A Choose, B Back, and LB RB Tabs / LT RT Amount where the screen has
+ * them (decision 0192); up as long as the screen. Extra actions also show glyphs beside them.
+ */
 .pad-hints {
   position: fixed;
   z-index: 2147483000;
@@ -1508,6 +1511,12 @@ html[data-input='pad'] .pad-only {
     gap: 10px;
     padding: 5px 10px;
     font-size: 13px;
+  }
+}
+/* Narrow screens: A and B only; the tab bar and the lot row carry their own glyphs. */
+@media (max-width: 1100px) {
+  .pad-hints > .extra {
+    display: none;
   }
 }
 /* Portrait phones: no room above the bottom buttons, and A / B need no reminder there. */

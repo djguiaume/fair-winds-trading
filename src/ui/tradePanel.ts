@@ -62,6 +62,7 @@ import { COIN, crateIcon, icon } from './icons';
 import { portraitSvg } from './portraits';
 import { questCardBody } from './questCard';
 import type { QuayItem } from './questView';
+import { guardSoftDisabled, softDisable } from './padFocus';
 import { padGlyph } from './padGlyphs';
 
 /** A game controller's button glyphs, shown only while the pad is in use (decision 0163). */
@@ -69,6 +70,8 @@ import { padGlyph } from './padGlyphs';
 const PAD_LB = () => padGlyph('lb', 'bumper');
 const PAD_RB = () => padGlyph('rb', 'bumper');
 const PAD_X = () => padGlyph('x');
+const PAD_LT = () => padGlyph('lt', 'bumper');
+const PAD_RT = () => padGlyph('rt', 'bumper');
 
 export type TradePanelTab = 'market' | 'orders' | 'quay' | 'shipyard';
 
@@ -118,6 +121,8 @@ export class TradePanel {
     this.container.setAttribute('aria-modal', 'true');
     this.container.setAttribute('aria-label', t('trade.dialogLabel'));
     this.container.tabIndex = -1;
+    // Greyed buttons stay reachable by the pad and the keyboard, but do nothing (decision 0192).
+    guardSoftDisabled(this.container);
     this.container.addEventListener('keydown', (e) => {
       e.stopPropagation();
       if (e.key === 'Escape') {
@@ -265,10 +270,10 @@ export class TradePanel {
           ${PAD_RB()}
           ${
             this.tab === 'market' && !isKid
-              ? `<span class="lot-picker" role="group" aria-label="${t('trade.lot')}"><small>${t('trade.lot')}</small>${LOTS.map(
+              ? `<span class="lot-picker" role="group" data-pad="steps" aria-label="${t('trade.lot')}"><small>${t('trade.lot')}</small>${PAD_LT()}${LOTS.map(
                   (n) =>
                     `<button class="lot-btn" data-lot="${n}" aria-pressed="${this.lot === n}">×${n}</button>`,
-                ).join('')}</span>`
+                ).join('')}${PAD_RT()}</span>`
               : ''
           }
         </nav>
@@ -300,12 +305,13 @@ export class TradePanel {
               ? `<button id="tp-sell-all" class="port-btn green" data-pad="secondary">${PAD_X()}${t('trade.sellAll', { price: totalSellableValue })}${COIN}</button>`
               : ''
           }
-          <button id="tp-undock" class="port-btn brass undock-btn">${icon('anchor')}${isKid ? t('kids.undock') : t('trade.undock')}</button>
+          <button id="tp-undock" class="port-btn brass undock-btn" data-pad-start="never">${icon('anchor')}${isKid ? t('kids.undock') : t('trade.undock')}</button>
         </footer>
       </div>
     `;
 
     this.container.innerHTML = html;
+    softDisable(this.container);
     this.attachListeners();
     this.onRender();
     if (this.tab === 'quay' && fresh.length) this.quay?.seen(fresh.map((p) => p.key));
@@ -313,10 +319,10 @@ export class TradePanel {
     if (modal) modal.scrollTop = scrollTop;
     if (focusKey) {
       const next = this.container.querySelector<HTMLButtonElement>(focusKey);
-      (next && !next.disabled
-        ? next
-        : this.container.querySelector<HTMLButtonElement>('#tp-close')
-      )?.focus({ preventScroll: true });
+      // A greyed button keeps the focus (decision 0192): the next A must not land on Close.
+      (next ?? this.container.querySelector<HTMLButtonElement>('#tp-close'))?.focus({
+        preventScroll: true,
+      });
     }
   }
 

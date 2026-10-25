@@ -24,6 +24,8 @@
   color: var(--ink);
   font-family: var(--body);
   text-shadow: none;
+  /* The pad's focus scrolls into view clear of the sticky header and footer (decision 0192). */
+  scroll-padding: 84px 0 96px;
 }
 
 /* --- Header ---------------------------------------------------------------------------- */
@@ -242,17 +244,17 @@
   width: 17px;
   height: 17px;
 }
-.port-btn:not(:disabled):active,
-.port-screen .sell-all-btn:not(:disabled):active,
-.port-screen .upgrade-btn:not(:disabled):active,
-.port-screen .ship-btn:not(:disabled):active {
+.port-btn:not(:disabled, [aria-disabled='true']):active,
+.port-screen .sell-all-btn:not(:disabled, [aria-disabled='true']):active,
+.port-screen .upgrade-btn:not(:disabled, [aria-disabled='true']):active,
+.port-screen .ship-btn:not(:disabled, [aria-disabled='true']):active {
   transform: translateY(2px);
   box-shadow: inset 0 -1px 0 var(--lo);
 }
-.port-btn:disabled,
-.port-screen .sell-all-btn:disabled,
-.port-screen .upgrade-btn:disabled,
-.port-screen .ship-btn:disabled {
+.port-btn:is(:disabled, [aria-disabled='true']),
+.port-screen .sell-all-btn:is(:disabled, [aria-disabled='true']),
+.port-screen .upgrade-btn:is(:disabled, [aria-disabled='true']),
+.port-screen .ship-btn:is(:disabled, [aria-disabled='true']) {
   border-color: rgba(238, 243, 244, 0.18);
   background: rgba(255, 255, 255, 0.06);
   box-shadow: none;
@@ -352,12 +354,12 @@
   grid-area: sell;
 }
 /* Beat the older .trade-act-btn colours in hud.css. */
-.port-screen .good-row .buy-btn:not(:disabled) {
+.port-screen .good-row .buy-btn:not(:disabled, [aria-disabled='true']) {
   border-color: var(--outline);
   background: linear-gradient(var(--brass-hi), #e0b452);
   color: #2a1c00;
 }
-.port-screen .good-row .sell-btn:not(:disabled) {
+.port-screen .good-row .sell-btn:not(:disabled, [aria-disabled='true']) {
   border-color: var(--outline);
   background: linear-gradient(#7fe08c, #49c45c);
   color: #08240e;
@@ -656,6 +658,13 @@
   .port-screen .undock-btn {
     flex: 1;
     min-width: 0;
+  }
+}
+
+/* With a controller the A / B pill stays up in the footer's middle (0192): the quay hint stops short. */
+@media (min-width: 641px) {
+  html[data-input='pad'] .port-screen .quay-hint {
+    max-width: calc(50% - 150px);
   }
 }
 

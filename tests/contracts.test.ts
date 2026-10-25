@@ -142,7 +142,8 @@ describe('delivery contracts (0028)', () => {
       // Captain mode lists every order on its own tab (decision 0049); Kids mode keeps them on the market.
       panel.open(mode === 'adult' ? 'orders' : 'market');
       const deliver = () => container.querySelector<HTMLButtonElement>('#tp-deliver')!;
-      expect(deliver().disabled).toBe(true);
+      // Greyed, yet still reachable by the pad (decision 0192).
+      expect(deliver().getAttribute('aria-disabled')).toBe('true');
       const others = container.querySelectorAll('.contract-list li');
       // Only charted ports: the hidden yards' orders show once discovered (decision 0048).
       expect(others).toHaveLength(PHASE1_MAP.ports.filter((p) => !p.hidden).length - 1);
