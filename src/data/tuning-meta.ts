@@ -2111,6 +2111,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     '× radii',
     'Two hulls touch at this share of their collision radii added: a soft bump, no damage.',
   ),
+  'seamanship.traffic.abeam': num(
+    'Hull width for bumps',
+    0.2,
+    1,
+    0.02,
+    '× radius',
+    'A hull touches as an oval: its radius along the keel, this share of it abeam.',
+  ),
   'seamanship.traffic.labelRange': num(
     'Name shows within',
     0,

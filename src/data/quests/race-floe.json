@@ -33,39 +33,39 @@
     },
     "pars": {
       "sloop": {
-        "fair": 70,
-        "captain": 70,
-        "salt": 70
+        "fair": 72,
+        "captain": 72,
+        "salt": 72
       },
       "cutter": {
-        "fair": 64,
-        "captain": 64,
-        "salt": 64
+        "fair": 66,
+        "captain": 66,
+        "salt": 66
       },
       "schooner": {
-        "fair": 54,
-        "captain": 54,
-        "salt": 54
+        "fair": 56,
+        "captain": 56,
+        "salt": 56
       },
       "clipper": {
-        "fair": 47,
-        "captain": 47,
-        "salt": 47
+        "fair": 49,
+        "captain": 49,
+        "salt": 49
       },
       "hoy": {
-        "fair": 112,
-        "captain": 112,
-        "salt": 112
+        "fair": 115,
+        "captain": 115,
+        "salt": 115
       },
       "indiaman": {
-        "fair": 290,
-        "captain": 290,
-        "salt": 290
+        "fair": 330,
+        "captain": 330,
+        "salt": 330
       },
       "fluyt": {
-        "fair": 308,
-        "captain": 308,
-        "salt": 308
+        "fair": 350,
+        "captain": 350,
+        "salt": 350
       }
     }
   },
@@ -73,7 +73,7 @@
     {
       "id": "race",
       "moveTo": {
-        "x": -40,
+        "x": -30,
         "y": 656,
         "headingDeg": 220
       },
@@ -85,7 +85,7 @@
             "y": 640
           },
           {
-            "x": -20,
+            "x": 24,
             "y": 640
           }
         ],
@@ -105,7 +105,7 @@
             "y": 640
           },
           {
-            "x": -20,
+            "x": 24,
             "y": 640
           }
         ]

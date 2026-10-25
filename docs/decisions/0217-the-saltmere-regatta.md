@@ -93,3 +93,16 @@ helm (0215) and standing orders (0214).
 - *Kestrel*'s sail number K 7 is block strokes painted through her mainsail
   (`BoatModelOptions.sailNumber`), a child of the sail so it fills and furls with it. UI words not in the storyteller's file (pill lines, "Enter the race", "The regatta
   book", medal names) were written to match and can be changed in the language files.
+
+## Play-test fixes (2026-10-25)
+
+Guillaume's first play-test: the lines were too short for two boats side by side, and *Kestrel*
+sailed through the fishing boats and into the captain. Now every start and finish line is at
+least `regatta.json › minLine` (80) long, which a quest check enforces. The captain starts mid-line.
+*Kestrel* waits along the line with both hulls and `rival.berth` of clear water between them,
+always behind it. Past the finish she sails on `rival.runOut` (40) before lying to. She bears away
+from the captain and the other boats close ahead, is kept apart from them, and a touch slows both
+her and the captain. The Calda Dash finishes 38 units further south, clear of the boats waiting off
+Port Calda's dock. Every other boat (0215) now touches as an oval rather than a circle: its radius
+along the keel and `seamanship.traffic.abeam` (0.42) of it across, at `touch` 1.1. The old round
+circle stood far out from a hull's sides. The pars were sailed again.
