@@ -84,7 +84,11 @@ game: about nine nodes a second created (the music's notes as before, plus calls
   a new call, bell pitch or variation is data; only a new kind of synthesiser needs code.
 - The regatta thread (part 6) plays `horn` and `gun` with a step's `sound` and sets `music: "regatta"`
   on its race steps. Hull damage (part 9) can reuse `thud`; other ships (part 4) can ring bells.
-- The levels were balanced by measuring the renders (peak and mean loudness) and by the spectra,
+- The art director's level round (EBU R128 on every render): near foghorns to about -20 LUFS, the
+  far one -27, the regatta horn -19, gulls and sheep up to about -31, terns and kittiwakes -35;
+  rain on deck down so a squall sits about 5 dB over the bed (-29.6 against -34). Beds sit at -33
+  to -35, bells at -25, the themes within 2 dB of each other. Nobody has listened yet: the
+  levels were balanced by measuring the renders (peak and mean loudness) and by the spectra,
   not by ear: the first listen by the art director and Guillaume may move them, in the Sounds page
   or `audio.json`.
 - On phones, low sounds were raised into the low mids (the rumble, as the foghorn in 0139).
