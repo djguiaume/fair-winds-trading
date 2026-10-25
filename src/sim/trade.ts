@@ -408,6 +408,8 @@ export function stepTrade(
   map: MapDef,
   boat: { x: number; y: number; speedKn: number; heading?: number },
   dt: number,
+  /** No new docking or mooring (a race runs, decision 0217). */
+  held = false,
 ): DockEvent[] {
   const events: DockEvent[] = [];
   const initial = trade.economyPending === undefined;
@@ -432,8 +434,8 @@ export function stepTrade(
       trade.dockedAt = null;
     }
   }
-  events.push(...stepHomeDock(trade, map, boat));
-  if (!trade.dockedAt && !trade.home.docked && boat.speedKn < harbour().dockSpeedKn) {
+  if (!held) events.push(...stepHomeDock(trade, map, boat));
+  if (!held && !trade.dockedAt && !trade.home.docked && boat.speedKn < harbour().dockSpeedKn) {
     const port = portInRange(
       map,
       boat,

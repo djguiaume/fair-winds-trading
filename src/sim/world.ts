@@ -160,6 +160,11 @@ export interface World {
    */
   stormHolds: string[];
   /**
+   * No docking or mooring while set (decision 0217): a race runs, so a pier touched mid-race is
+   * a bump and never the harbour screen. Not saved; the game sets it before every step.
+   */
+  dockHeld: boolean;
+  /**
    * A light, steady breeze that replaces the sea's wind while set (decision 0139): a lesson's or
    * the tracked quest step's `wind`. Not saved; the game sets it before every step.
    */
@@ -252,6 +257,7 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     windConfig: null,
     windBlend: null,
     stormHolds: [],
+    dockHeld: false,
     calmWind: null,
     stormsFrom: 0,
     stormsOn: true,
@@ -761,7 +767,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   // Other boats sail after her, in the same wind, and give way (decision 0215).
   events.push(...stepTraffic(world, dt));
   events.push(...stepRival(world, dt));
-  events.push(...stepTrade(world.trade, world.map, world.boat, dt));
+  events.push(...stepTrade(world.trade, world.map, world.boat, dt, world.dockHeld));
   refreshPiers(world);
   events.push(...stepStorms(world));
   events.push(...stepHeel(world, dt));

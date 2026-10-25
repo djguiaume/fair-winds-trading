@@ -27,8 +27,8 @@ helm (0215) and standing orders (0214).
   A 10 s sequence ends on the horn (`regatta.json › countdownSec`); it only counts down while the
   sea is on screen. The start line counts when crossed toward the course from the far side, after
   the horn; over early, the captain goes back and crosses again. Marks are rounded in order within
-  16 units (`within`), then the finish line is crossed. Docking mid-race, or the pill's ×, gives
-  the race up: a race never finished is offered again, one finished before keeps its record.
+  16 units (`within`), then the finish line is crossed. The pill's × gives the race up (docking is
+  held while a race runs: a pier touched mid-race is a bump, never the harbour screen): a race never finished is offered again, one finished before keeps its record.
 - **Medals and gold** (`src/sim/regatta.ts`, `src/data/regatta.json`). The pars are per ship class
   and level; gold is the par, silver par × 1.15, bronze par × 1.35. A class with no par is held to
   the slowest. Each medal pays its gold the first time it is won (a first gold pays all three):
@@ -105,4 +105,6 @@ from the captain and the other boats close ahead, is kept apart from them, and a
 her and the captain. The Calda Dash finishes 38 units further south, clear of the boats waiting off
 Port Calda's dock. Every other boat (0215) now touches as an oval rather than a circle: its radius
 along the keel and `seamanship.traffic.abeam` (0.42) of it across, at `touch` 1.1. The old round
-circle stood far out from a hull's sides. The pars were sailed again.
+circle stood far out from a hull's sides. Docking and mooring are held while a race runs (`world.dockHeld`): a pier touched
+mid-race is a bump and no longer opens the harbour screen and ends the race. The pars were sailed
+again.

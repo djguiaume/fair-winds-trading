@@ -1890,6 +1890,8 @@ function tick(now: number) {
       world.calmWind = heldWind(sea?.wind, world.map);
       // No storms while a quest that holds them runs: the tutorial (decision 0072).
       holdStorms(world, 'quest', quests.holdsStorms);
+      // A pier touched mid-race is a bump, not the harbour (decision 0217): retire with × first.
+      world.dockHeld = quests.race()?.state === 'sequence' || quests.race()?.state === 'racing';
       handleEvents(stepWorld(world, controls, SIM_STEP));
       if (quests.update(SIM_STEP, controls).length) showDueCard();
       // A step's sound (the prologue's foghorn) calls every few seconds, the first at once.

@@ -27,6 +27,8 @@ import { serializeWorld } from '../src/sim/save';
 import { questsDone } from '../src/sim/settlement';
 import { SLOOP } from '../src/sim/ship';
 import { pilot, stepRival } from '../src/sim/traffic';
+import { testBerth } from '../src/sim/questTest';
+import { stepTrade } from '../src/sim/trade';
 import { releaseRival } from '../src/sim/rival';
 import { type World, createWorld } from '../src/sim/world';
 import { QUESTS } from '../src/sim/quests';
@@ -154,6 +156,19 @@ describe('regatta (decision 0217)', () => {
     stepRival(world, 0.01);
     expect(world.boat.speedKn).toBeLessThan(6);
     expect(kestrel.boat.speedKn).toBeLessThan(6);
+  });
+
+  it('no docking mid-race: a pier touched is a bump, not the harbour', () => {
+    const world = createWorld(GAME_MAP, SLOOP);
+    const berth = testBerth(world.map, world.trade, world.piers, 'saltmere', SLOOP.id)!;
+    const boat = { ...berth, heading: (berth.headingDeg * Math.PI) / 180, speedKn: 0 };
+    expect(
+      stepTrade(world.trade, world.map, boat, 0.1, true).some((e) => e.type === 'docked'),
+    ).toBe(false);
+    expect(world.trade.dockedAt).toBeNull();
+    expect(stepTrade(world.trade, world.map, boat, 0.1).some((e) => e.type === 'docked')).toBe(
+      true,
+    );
   });
 
   it('medals, their first-time gold and the rival pace', () => {
