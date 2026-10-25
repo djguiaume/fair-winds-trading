@@ -44,13 +44,20 @@ describe('ground materials and island styles as data (decision 0168)', () => {
       }
   });
 
-  it('keeps the shipped grounds as they were', () => {
+  it('keeps the shipped grounds as they were, the ring with its own (decision 0208)', () => {
     const c = PALETTE.colors as Record<string, string>;
-    expect(groundColors('grass', 'timber')).toMatchObject({ top: [c.grass], side: [c.rock] });
-    expect(groundColors('rock', 'timber')).toMatchObject({ top: [c.rock2], trees: false });
+    expect(GROUNDS.grass).toMatchObject({ top: 'grass', side: 'rock' });
+    // The ring's styles: mottled downs over sandstone bands, ring sand, cut stone at the quarry.
+    const downs = groundColors('grass', 'timber');
+    expect(downs.id).toBe('downs');
+    expect(downs.top).toContain(c.grass);
+    expect(downs.side).toContain(c.rock);
+    expect(downs.side.length).toBeGreaterThan(2);
+    expect(groundColors('rock', 'timber')).toMatchObject({ id: 'sandstone', trees: false });
+    expect(groundColors('rock', 'timber').top).toContain(c.rock2);
     // The quarry island's rock is cut stone, its peaks bare rock.
     expect(groundColors('rock', 'stone')).toMatchObject({ top: [c.cut], peak: [c.rock2] });
-    expect(groundColors('sand', 'fish').top).toEqual([c.sand]);
+    expect(groundColors('sand', 'fish').top).toContain(c.sand);
   });
 
   it('gives the south its own grounds: coral sand, jungle, ochre crater rock', () => {
