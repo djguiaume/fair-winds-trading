@@ -69,8 +69,32 @@ export function formatNumber(n: number, digits?: number): string {
   );
 }
 
+let variant: 'pad' | null = null;
+
+/**
+ * Text written for one way of playing (decision 0183): while the game controller is the last
+ * input, `t('key')` reads `key@pad` where that key exists ("press A" instead of "tap"), else
+ * `key`. Quest and lesson texts get these in the quest builder like any other line.
+ */
+export function setTextVariant(v: 'pad' | null): void {
+  variant = v;
+}
+
+export function textVariant(): 'pad' | null {
+  return variant;
+}
+
+/** The key to read: its variant for the current way of playing when there is one. */
+function variantOf(key: string): string {
+  if (!variant) return key;
+  const k = `${key}@${variant}`;
+  // An empty variant (cleared in the quest builder) leaves the plain text.
+  return (en as Record<string, string>)[k] ? k : key;
+}
+
 /** Translate `key`, replacing `{name}` with `params.name`. Falls back to English, then the key. */
 export function t(key: MessageKey, params: Record<string, string | number> = {}): string {
+  key = variantOf(key) as MessageKey;
   const text = current.messages[key] ?? (en as Messages)[key] ?? key;
   return text.replace(/\{(\w+)\}/g, (match, name: string) =>
     name in params ? String(params[name]) : match,

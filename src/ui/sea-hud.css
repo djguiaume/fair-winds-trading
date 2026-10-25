@@ -60,9 +60,9 @@
 }
 
 #hud {
-  --top: max(10px, env(safe-area-inset-top));
-  --bottom: max(12px, env(safe-area-inset-bottom));
-  --rgap: max(12px, env(safe-area-inset-right));
+  --top: max(10px, var(--safe-top, env(safe-area-inset-top)));
+  --bottom: max(12px, var(--safe-bottom, env(safe-area-inset-bottom)));
+  --rgap: max(12px, var(--safe-right, env(safe-area-inset-right)));
   font-family: var(--body);
   color: var(--ink);
   text-shadow: none;

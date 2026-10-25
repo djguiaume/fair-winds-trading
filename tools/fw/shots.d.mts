@@ -43,7 +43,10 @@ export interface Shot {
   draft: string | null;
   [more: string]: unknown;
 }
-export const SIZES: Record<string, { width: number; height: number; touch?: boolean }>;
+export const SIZES: Record<
+  string,
+  { width: number; height: number; touch?: boolean; userAgent?: string }
+>;
 export const HELP: string;
 export function normalise(opts: Record<string, unknown>): Shot;
 export function planShots(args: Record<string, unknown>): Shot[];

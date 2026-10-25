@@ -584,6 +584,8 @@ export function textKeys(quest: QuestDef): { key: string; label: string; long: b
   for (const s of quest.steps) {
     out.push({ key: `${t}.${s.id}.title`, label: `${s.id} · ask`, long: false });
     out.push({ key: `${t}.${s.id}.copy`, label: `${s.id} · speech`, long: true });
+    // Optional: the speech while playing with a game controller (decision 0183).
+    out.push({ key: `${t}.${s.id}.copy@pad`, label: `${s.id} · speech · controller`, long: true });
     for (const o of s.choose ?? []) {
       out.push({ key: `${t}.${s.id}.${o.id}.title`, label: `${s.id} › ${o.id}`, long: false });
       out.push({
