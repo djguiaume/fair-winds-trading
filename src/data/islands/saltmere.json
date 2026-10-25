@@ -496,7 +496,6 @@
       "turn": 40.107,
       "size": 1.55,
       "clear": 0,
-      "tags": ["after:saltmere-shoals"],
       "from": 1
     },
     {
@@ -506,7 +505,6 @@
       "turn": -45.8366,
       "size": 1.55,
       "clear": 0,
-      "tags": ["after:saltmere-shoals"],
       "from": 1
     },
     {
@@ -516,7 +514,6 @@
       "turn": 85.9437,
       "size": 1.55,
       "clear": 0,
-      "tags": ["after:saltmere-shoals"],
       "from": 1
     },
     { "type": "warehouse", "x": -0.2, "z": 0.5, "size": 1.1, "from": 2 },
@@ -537,7 +534,6 @@
       "turn": 11.4592,
       "size": 1.55,
       "clear": 0,
-      "tags": ["after:saltmere-shoals"],
       "from": 2
     },
     {
@@ -586,7 +582,6 @@
       "turn": 68.7549,
       "size": 1.55,
       "clear": 0,
-      "tags": ["after:saltmere-shoals"],
       "from": 3
     },
     { "type": "market-hall", "x": 0.15, "z": -0.45, "size": 2, "fit": 0.12, "from": 4 },
@@ -617,7 +612,6 @@
       "turn": -22.9183,
       "size": 1.55,
       "clear": 0,
-      "tags": ["after:saltmere-shoals"],
       "from": 4
     },
     {

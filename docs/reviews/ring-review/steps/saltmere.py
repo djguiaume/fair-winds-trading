@@ -14,8 +14,6 @@ for q in d['props']:
     if q['type'] == 'drying-rack':
         q.setdefault('tags', []).append(S)
         e = {k: v for k, v in q.items() if k != 'tags'}; e['type'] = 'empty-rack'; e['tags'] = [B]; new.append(e)
-    if q['type'] == 'moored-boat':
-        q.setdefault('tags', []).append(S)
 d['props'] += new
 P = d['props']
 def add(t, x, z, frm=1, **k): P.append({"type": t, "x": x, "z": z, **k, "from": frm})
