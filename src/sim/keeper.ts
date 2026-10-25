@@ -15,8 +15,10 @@ export const KEEPER_STATES: readonly KeeperState[] = ['before', 'running', 'done
  * with neither, an outpost, counts as done from its founding.
  */
 export function keeperArc(port: PortDef, quests: readonly QuestDef[] = QUESTS): string[] {
-  const here = quests.filter((q) => q.port === port.id);
-  const own = here.length ? here : quests.filter((q) => port.keeper && q.giver === port.keeper);
+  // A standing order (decision 0214) comes after the arc, never part of it.
+  const arcs = quests.filter((q) => !q.repeat);
+  const here = arcs.filter((q) => q.port === port.id);
+  const own = here.length ? here : arcs.filter((q) => port.keeper && q.giver === port.keeper);
   return own.map((q) => q.id);
 }
 
