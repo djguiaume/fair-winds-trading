@@ -1,4 +1,4 @@
-/* global fwt, window, document */
+/* global fwt, document */
 // Mockup: Maren's done card at Westholm, naming the plot and its two buildings.
 (async () => {
   const { QuestCard } = await import('/src/ui/questCard.ts');

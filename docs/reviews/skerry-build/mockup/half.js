@@ -1,2 +1,2 @@
-/* global fwt, window, document */
+/* global window */
 window.mkHalf = 1;
