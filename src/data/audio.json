@@ -35,7 +35,7 @@
   },
   "boat": {
     "wash": { "level": 0.16, "tone": 1100, "fullKn": 8 },
-    "luff": { "level": 0.3, "tone": 750, "rate": 9 },
+    "luff": { "level": 0.3, "tone": 750, "rate": 9, "style": "gusty" },
     "rain": { "level": 0.22, "tone": 2600 }
   },
   "seas": {

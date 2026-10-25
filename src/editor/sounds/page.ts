@@ -452,7 +452,7 @@ function drawBoat(): HTMLElement[] {
     ),
     row(
       'luff style',
-      select([...LUFF_STYLES], luff.style ?? 'chop', (v) =>
+      select([...LUFF_STYLES], luff.style ?? 'gusty', (v) =>
         edit(() => (luff.style = v as LuffStyle)),
       ),
     ),
