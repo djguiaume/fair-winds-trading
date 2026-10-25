@@ -119,16 +119,18 @@ describe('far goods in the data (0146)', () => {
       amberBeads: 'amber',
     });
     const price = (g: GoodId) => GOOD_DEFS[g].basePrice;
-    expect(FAR_GOODS.map(price)).toEqual([20, 90, 22, 100, 25, 110, 28, 120]);
+    // Rising in story order, tuned on the grown sea's story run (decision 0195).
+    expect(FAR_GOODS.map(price)).toEqual([18, 86, 19, 88, 20, 95, 22, 105]);
     for (const g of FAR_GOODS) expect(isMadeGood(g)).toBe(true);
   });
 
-  it('trade nowhere on the ring alone, though its port towns are ready to buy them', () => {
+  it('trade nowhere on the ring alone, though its towns are ready to buy them', () => {
     const ring = createWorld(PHASE1_MAP, SLOOP);
     for (const m of Object.values(ring.trade.markets))
       for (const g of FAR_GOODS) expect(trades(m, g)).toBe(false);
     const buyers = (g: GoodId) =>
-      PHASE1_MAP.ports.filter((p) => p.levelWantsMade?.['4']?.includes(g)).map((p) => p.id);
+      // Towns buy them from level 3, port towns at a better price (decision 0195).
+      PHASE1_MAP.ports.filter((p) => p.levelWantsMade?.['3']?.includes(g)).map((p) => p.id);
     expect(buyers('spicedTea')).toEqual(['calda', 'westholm']);
     expect(buyers('obsidianMirrors')).toEqual(['calda', 'saltmere']);
     expect(buyers('cloudberryJam')).toEqual(['saltmere', 'stonehaven']);

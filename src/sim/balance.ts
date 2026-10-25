@@ -12,17 +12,27 @@ import {
 } from './difficulty';
 import { coastDistance } from './coast';
 import { beltMeanWait, beltNow, beltNumbers } from './stormBelt';
-import { GOODS, type GoodId } from './goods';
+import { CRAFTED_FROM, GOODS, type GoodId, isCrafted, isFar } from './goods';
 import { damageHull, repairHull } from './hazards';
 import type { MapDef } from './map';
-import { quoteBuy, quoteSell, stepMarket } from './market';
+import { available, quoteBuy, quoteSell, stepMarket, trades } from './market';
 import { DEG } from './math';
 import { smoothOutline } from './flowShapes';
 import { NO_ZONE, type ZoneEffect, type ZoneField, zoneField, zoneMeanAt } from './windZones';
 import { createRng } from './rng';
-import { stepSettlements } from './settlement';
+import {
+  MAX_SETTLEMENT_LEVEL,
+  madeGoods,
+  portTownGate,
+  producesAt,
+  settlementLevel,
+  stepSettlements,
+  wantsAt,
+} from './settlement';
 import { CUTTER, SLOOP, type ShipClass, polarFraction } from './ship';
-import { homePort } from './shipyards';
+import { discoverNear, discoveredPorts, homePort } from './shipyards';
+import { islandCharted, stepFog } from './fog';
+import { type QuestTimer, StoryClock, questVisits, storyChapters } from './balanceStory';
 import {
   type TradeState,
   activeShip,
@@ -299,8 +309,48 @@ export function seaLegSeconds(
 }
 const spot = { x: 0, y: 0 };
 
-/** The charted ports: the hidden shipwright yards stay out of a first session (decision 0048). */
-export const chartedPorts = (map: MapDef) => map.ports.filter((p) => !p.hidden);
+/** A place a leg starts or ends at: a point at sea, or an island's coast (`r`, its radius). */
+export interface Place {
+  x: number;
+  y: number;
+  r: number;
+}
+
+/**
+ * Seconds from one place to another leaving at `t`, as `seaLegSeconds` times a port-to-port leg:
+ * for the quest steps that go to a spot at sea (decision 0195).
+ */
+export function placeSeconds(sea: Sea, ship: ShipClass, a: Place, b: Place, t: number): number {
+  const centres = Math.hypot(b.x - a.x, b.y - a.y);
+  const d = Math.max(0, centres - a.r - b.r);
+  if (d <= 0) return 0;
+  const ux = (b.x - a.x) / centres,
+    uy = (b.y - a.y) / centres;
+  const bearing = Math.atan2(b.x - a.x, b.y - a.y);
+  const n = Math.min(16, Math.max(1, Math.ceil(d / ZONE_STRETCH)));
+  let seconds = 8;
+  for (let i = 0; i < n; i++) {
+    const along = a.r + (d * (i + 0.5)) / n;
+    spot.x = a.x + ux * along;
+    spot.y = a.y + uy * along;
+    const wind = windAt(sea.wind, t + seconds, sea.seed, spot);
+    const current = currentAlong(sea.map, spot.x, spot.y, bearing, sea.currents);
+    seconds += stretchSeconds(d / n, madeGoodIn(ship, bearing, wind.from, wind.speedKn), current);
+  }
+  return seconds;
+}
+
+/**
+ * The ports charted when a voyage starts: the hidden shipwright yards stay out of a first session
+ * (decision 0048), and so do the empty islands to found and the ports out in the fog (0156, 0157):
+ * on the grown sea, the ring's ports. The "about a minute" leg checks hold these.
+ */
+export const chartedPorts = (map: MapDef) =>
+  map.ports.filter((p) => {
+    if (p.hidden || p.site) return false;
+    const island = map.islands.find((i) => i.id === p.islandId);
+    return !island || islandCharted(map, {}, island);
+  });
 
 interface Leg {
   to: string;
@@ -308,6 +358,8 @@ interface Leg {
   qty: number;
   gain: number;
   seconds: number;
+  /** Seconds of the leg after it that `gain` counts too (a workshop run), for ranking only. */
+  thenSeconds?: number;
 }
 
 /** Every load worth carrying from the docked port, best gold per second first. */
@@ -318,17 +370,24 @@ function legOptions(
   contracts: boolean,
   sea: Sea,
   t: number,
+  strict = false,
 ): Leg[] {
   const ship = effectiveShip(activeShip(trade), trade.captain.ships[trade.captain.activeShip]!);
   const here = trade.markets[from]!;
   const legs: Leg[] = [];
-  for (const dest of chartedPorts(map)) {
+  // Only the ports on her chart: on a sea with fog, the seas open in story order (decision 0195).
+  for (const dest of discoveredPorts(map, trade)) {
     if (dest.id === from) continue;
     const seconds = seaLegSeconds(sea, ship, from, dest.id, t) + DOCK_SECONDS;
     const there = trade.markets[dest.id]!;
     const order = trade.contracts.byPort[dest.id]!;
     legs.push({ to: dest.id, good: null, qty: 0, gain: 0, seconds });
     for (const good of GOODS) {
+      // A port buys only what it trades: a far good only at its buyers (decision 0150). The ring's
+      // early game keeps the 0046 bots' old reckoning for the ring's goods for now (a load to a
+      // port that does not buy it rides along until one does), so the ring's tuned checks hold;
+      // the story's voyages count only what sells (decision 0195).
+      if ((strict || isFar(good)) && !trades(there, good)) continue;
       const most = Math.min(maxBuy(trade, good), capacity(trade));
       for (let qty = 1; qty <= most; qty++) {
         const fills =
@@ -342,9 +401,197 @@ function legOptions(
           if (gain > prev.gain) Object.assign(prev, { qty, gain });
         } else legs.push({ to: dest.id, good, qty, gain, seconds });
       }
+      const leg = legs[legs.length - 1]!;
+      if (leg.to === dest.id && leg.good === good) workshopRun(map, trade, leg, sea, ship, t);
+    }
+    // An outpost's raw goods for the workshop, then the crafted goods to a buyer (0146).
+    const gather = outpostRun(map, trade, dest.id, sea, ship, t + seconds);
+    if (gather)
+      for (const leg of legs)
+        if (leg.to === dest.id && !leg.thenSeconds) {
+          leg.gain += gather.gain;
+          leg.thenSeconds = gather.seconds;
+        }
+  }
+  const rank = (l: Leg) => l.gain / (l.seconds + (l.thenSeconds ?? 0));
+  return legs.sort((x, y) => rank(y) - rank(x));
+}
+
+/**
+ * The run from an outpost (decision 0146): a hold of its raw far good to the workshop that crafts
+ * it, and the crafted goods on to their best buyer, as one plan. Null when no part of it pays.
+ */
+function outpostRun(
+  map: MapDef,
+  trade: TradeState,
+  outpost: string,
+  sea: Sea,
+  ship: ShipClass,
+  t: number,
+): { gain: number; seconds: number } | null {
+  const here = trade.markets[outpost]!;
+  let out: { gain: number; seconds: number } | null = null;
+  for (const raw of GOODS) {
+    if (!isFar(raw) || isCrafted(raw) || !trades(here, raw)) continue;
+    const qty = Math.min(available(here, raw), capacity(trade));
+    if (qty <= 0) continue;
+    const leg: Leg = { to: '', good: raw, qty, gain: 0, seconds: 0 };
+    for (const port of discoveredPorts(map, trade)) {
+      const there = trade.markets[port.id]!;
+      if (port.id === outpost || !there.workshop || !trades(there, raw)) continue;
+      const seconds = seaLegSeconds(sea, ship, outpost, port.id, t) + DOCK_SECONDS;
+      const run = { ...leg, to: port.id, seconds };
+      run.gain = quoteSell(there, raw, qty) - quoteBuy(here, raw, qty);
+      workshopRun(map, trade, run, sea, ship, t);
+      const total = run.seconds + (run.thenSeconds ?? 0);
+      if (run.gain > 0 && (!out || run.gain / total > out.gain / out.seconds))
+        out = { gain: run.gain, seconds: total };
     }
   }
-  return legs.sort((x, y) => y.gain / y.seconds - x.gain / x.seconds);
+  return out;
+}
+
+/**
+ * Raw far goods for a workshop (decision 0146): a captain who knows the workshop crafts only from
+ * what she brings counts the crafted goods' next leg too, to the best buyer, as one run.
+ */
+function workshopRun(
+  map: MapDef,
+  trade: TradeState,
+  leg: Leg,
+  sea: Sea,
+  ship: ShipClass,
+  t: number,
+) {
+  const there = trade.markets[leg.to]!;
+  if (!leg.good || !there.workshop) return;
+  let best = 0;
+  let bestSeconds = 0;
+  for (const crafted of Object.keys(there.workshop) as GoodId[]) {
+    if (CRAFTED_FROM[crafted] !== leg.good) continue;
+    for (const buyer of discoveredPorts(map, trade)) {
+      const market = trade.markets[buyer.id]!;
+      if (buyer.id === leg.to || !trades(market, crafted)) continue;
+      const seconds = seaLegSeconds(sea, ship, leg.to, buyer.id, t + leg.seconds) + DOCK_SECONDS;
+      const gain = quoteSell(market, crafted, leg.qty) - quoteBuy(there, crafted, leg.qty);
+      if (gain / seconds > best / Math.max(1, bestSeconds)) {
+        best = gain;
+        bestSeconds = seconds;
+      }
+    }
+  }
+  if (best > 0) {
+    leg.gain += best;
+    leg.thenSeconds = bestSeconds;
+  }
+}
+
+/**
+ * A captain in the late game grows a buyer for a crafted far good no port buys yet, as the town
+ * card asks (decisions 0065, 0146): she carries what a town that would buy it wants, from here.
+ * If the buyers are port towns and the town waits for its rare goods, she fetches them from a
+ * port that makes them, or first supplies a port that will make them until it does. The legs of
+ * that errand, best first, or null.
+ */
+function portTownErrand(map: MapDef, trade: TradeState, at: string, all: Leg[]): Leg[] | null {
+  const charted = discoveredPorts(map, trade);
+  const made = madeGoods(map, trade);
+  // Crafted goods made now that no port on her chart buys yet.
+  const unsold = [...made].filter(
+    (g) => isCrafted(g) && !charted.some((p) => wantsAt(map, trade, p.id).includes(g)),
+  );
+  const pick = (f: (o: Leg) => boolean) => {
+    const legs = all.filter(f);
+    return legs.length ? legs : null;
+  };
+  for (const town of charted) {
+    const buysAt = Object.entries(town.levelWantsMade ?? {})
+      .filter(([, goods]) => goods?.some((g) => unsold.includes(g)))
+      .map(([level]) => Number(level));
+    if (!buysAt.length) continue;
+    const level = settlementLevel(trade, town.id);
+    const gate = portTownGate(map, trade, town.id);
+    if (!gate || level !== MAX_SETTLEMENT_LEVEL - 1 || Math.min(...buysAt) < MAX_SETTLEMENT_LEVEL) {
+      // Not held by the rare goods: she grows the town with what it wants.
+      if (Math.min(...buysAt) <= level) continue;
+      const wants = wantsAt(map, trade, town.id);
+      const legs = pick(
+        (o) => o.to === town.id && !!o.good && wants.includes(o.good) && o.gain > 0,
+      );
+      if (legs) return legs;
+      continue;
+    }
+    const makes = (id: string) => producesAt(map, trade, id).filter((g) => gate.goods.includes(g));
+    const makers = charted.filter((p) => p.id !== town.id && makes(p.id).length);
+    // A hold's worth comes back as the stock refills: go when there are a few to carry.
+    const stocked = makers.filter((p) =>
+      makes(p.id).some((g) => available(trade.markets[p.id]!, g) >= 5),
+    );
+    if (stocked.some((p) => p.id === at))
+      return pick((o) => o.to === town.id && !!o.good && gate.goods.includes(o.good));
+    if (stocked.length) return pick((o) => stocked.some((p) => p.id === o.to));
+    if (makers.length) continue;
+    // No port makes them yet: supply one that will, until it grows to make them.
+    for (const p of charted) {
+      const later = Object.values(p.levelProduces ?? {}).flat() as GoodId[];
+      if (p.id === town.id || !later.some((g) => gate.goods.includes(g))) continue;
+      const wants = wantsAt(map, trade, p.id);
+      const legs = pick((o) => o.to === p.id && !!o.good && wants.includes(o.good));
+      if (legs) return legs;
+    }
+  }
+  return null;
+}
+
+/**
+ * Times a story quest's steps in the voyage's wind (decision 0195): from where she is to each
+ * place a step names, fetching its goods at the nearest port on her chart that makes them, a
+ * dock's time per step for the cards and the handing over, and on to the nearest charted port.
+ */
+function questTimer(map: MapDef, trade: TradeState, sea: Sea): QuestTimer {
+  const home = homePort(map).id;
+  const portPlace = (id: string): Place | null => {
+    const port = map.ports.find((p) => p.id === (id === 'home' ? home : id));
+    const island = port && map.islands.find((i) => i.id === port.islandId);
+    return island ? { x: island.x, y: island.y, r: island.radius } : null;
+  };
+  const far = (a: Place, b: Place) => Math.hypot(a.x - b.x, a.y - b.y);
+  const nearest = (from: Place, ports: readonly { id: string }[]) => {
+    let best: { id: string; place: Place } | null = null;
+    for (const p of ports) {
+      const place = portPlace(p.id);
+      if (place && (!best || far(from, place) < far(from, best.place))) best = { id: p.id, place };
+    }
+    return best;
+  };
+  return (def, from, t) => {
+    const ship = effectiveShip(activeShip(trade), trade.captain.ships[trade.captain.activeShip]!);
+    let pos = portPlace(from)!;
+    let seconds = 0;
+    const go = (to: Place) => {
+      seconds += placeSeconds(sea, ship, pos, to, t + seconds);
+      pos = to;
+    };
+    for (const step of questVisits(def)) {
+      seconds += DOCK_SECONDS;
+      for (const visit of step) {
+        if ('maker' in visit) {
+          const good = visit.maker as GoodId;
+          const makers = discoveredPorts(map, trade).filter((p) =>
+            producesAt(map, trade, p.id).includes(good),
+          );
+          const maker = nearest(pos, makers);
+          if (maker) go(maker.place);
+        } else {
+          const to = 'port' in visit ? portPlace(visit.port) : { ...visit, r: visit.within };
+          if (to) go(to);
+        }
+      }
+    }
+    const end = nearest(pos, discoveredPorts(map, trade))!;
+    go(end.place);
+    return { seconds, at: end.id };
+  };
 }
 
 /** Bought in this order at the home port. */
@@ -372,6 +619,24 @@ export interface Voyage {
   routes: Record<string, number>;
   /** Minute each port reached each level (decision 0059), e.g. "saltmere 3". */
   levels: Record<string, number>;
+  /** Minute each outer sea opened in story order (decision 0195); empty on the ring. */
+  opened: Record<string, number>;
+  /** Gold the story's quests paid (decision 0195). */
+  storyGold: number;
+  /** Minute each story quest was done, and the minutes each sea's quests took (ring: its arcs). */
+  questsDone: Record<string, number>;
+  storyMinutes: Record<string, number>;
+  /** Market gold from far goods (decision 0150), and units of each sold. */
+  farGold: number;
+  farSold: Partial<Record<GoodId, number>>;
+  /** Market and order gold after each leg: [minute, gold so far]. */
+  income: Array<[number, number]>;
+  /** Each leg sailed: [minute she left, seconds, a far sea's port at an end, a ring port at an end]. */
+  sailed: Array<[number, number, boolean, boolean]>;
+  /** Market gold, and the far goods' part of it, from `lateFrom` minutes on; routes sailed then. */
+  lateMarket: number;
+  lateFar: number;
+  lateRoutes: string[];
 }
 
 export interface VoyageOptions {
@@ -384,6 +649,14 @@ export interface VoyageOptions {
   seed?: number;
   /** Settings › Currents (decision 0145); on by default. */
   currents?: boolean;
+  /** Minute the late game's tally starts (decision 0195). */
+  lateFrom?: number;
+  /**
+   * Play the story on a sea with fog (decision 0195): the seas open through the quests. Without
+   * it she trades on the ports charted at the start: the ring's early game, which the 0046 and
+   * 0083 checks hold.
+   */
+  story?: boolean;
 }
 
 function must(ok: boolean, what: string) {
@@ -409,10 +682,38 @@ export function sailVoyage(opts: VoyageOptions): Voyage {
     legs: 0,
     routes: {},
     levels: {},
+    opened: {},
+    storyGold: 0,
+    questsDone: {},
+    storyMinutes: {},
+    farGold: 0,
+    farSold: {},
+    income: [],
+    sailed: [],
+    lateMarket: 0,
+    lateFar: 0,
+    lateRoutes: [],
   };
+  const lateFrom = (opts.lateFrom ?? Infinity) * 60;
+  const story = new StoryClock(map, opts.story ? storyChapters(map) : [], opts.relaxed ? 1.4 : 1);
+  const timer = questTimer(map, trade, sea);
+  if (story.active) story.ringMinutes(timer, home);
+  const sight = TUNING.economy.discoverRange;
+  const startPorts = new Set(chartedPorts(map).map((p) => p.id));
   let at = home;
   let t = 0;
   let next = 0;
+  /** Time passes at sea: markets refill, orders come, towns grow or stall. */
+  const pass = (seconds: number) => {
+    for (const m of Object.values(trade.markets)) stepMarket(m, seconds);
+    stepContracts(trade.contracts, seconds);
+    // A neglected town, or the home port holding back an upgrade, asks for help (0069).
+    syncHelpOrder(map, trade);
+    t += seconds;
+    for (const up of stepSettlements(trade, seconds, map))
+      v.levels[`${up.portId} ${up.level}`] = t / 60;
+    syncMarketLevels(trade, map);
+  };
   while (t < minutes * 60) {
     trade.dockedAt = at;
     if (opts.relaxed) {
@@ -423,9 +724,29 @@ export function sailVoyage(opts: VoyageOptions): Voyage {
       const r = deliverContract(trade, map);
       if (r.ok) v.contractGold += r.gold;
     }
+    // The story (decision 0195): once the cutter is hers and the ring's arcs could be sailed, she
+    // plays each sea's quests as soon as each starts.
+    if (v.bought.cutter !== undefined) story.begin(t / 60);
+    story.step(trade, t / 60);
+    for (let q = story.play(timer, at, t); q && t < minutes * 60; q = story.play(timer, at, t)) {
+      pass(q.seconds);
+      story.land(trade, t / 60, q.seconds);
+      at = q.at;
+      trade.dockedAt = at;
+    }
+    const late = t >= lateFrom;
+    for (const g of GOODS) {
+      const qty = trade.captain.cargo[g];
+      if (!qty || !isFar(g) || !trades(trade.markets[at]!, g)) continue;
+      const gold = quoteSell(trade.markets[at]!, g, qty);
+      v.farGold += gold;
+      if (late) v.lateFar += gold;
+      v.farSold[g] = (v.farSold[g] ?? 0) + qty;
+    }
     const before = trade.captain.gold;
     sellAll(trade, map);
     v.marketGold += trade.captain.gold - before;
+    if (late) v.lateMarket += trade.captain.gold - before;
 
     // Shop in a fixed order at the home port, keeping a little gold back for the next load.
     while (at === home && next < SHOPPING.length) {
@@ -465,8 +786,9 @@ export function sailVoyage(opts: VoyageOptions): Voyage {
       item === 'cutter' ||
       upgradeAllowed(trade, map, trade.captain.ships[trade.captain.activeShip]![item] + 1);
     const goHome = at !== home && want !== null && allowed && trade.captain.gold >= want + 80;
-    const all = legOptions(map, trade, at, opts.contracts, sea, t);
-    const options = goHome ? all.filter((o) => o.to === home) : all;
+    const all = legOptions(map, trade, at, opts.contracts, sea, t, story.active);
+    const errand = goHome || !story.started ? null : portTownErrand(map, trade, at, all);
+    const options = goHome ? all.filter((o) => o.to === home) : (errand ?? all);
     let leg = options[0]!;
     if (opts.relaxed) {
       const paying = options.filter((o) => o.gain > 0).slice(0, 3);
@@ -476,20 +798,32 @@ export function sailVoyage(opts: VoyageOptions): Voyage {
     if (leg.good && leg.qty > 0) must(buy(trade, leg.good, leg.qty).ok, `buying ${leg.good}`);
     const key = `${at}>${leg.to}`;
     v.routes[key] = (v.routes[key] ?? 0) + 1;
+    if (t >= lateFrom) v.lateRoutes.push(key);
     trade.dockedAt = null;
     const seconds = leg.seconds * (opts.relaxed ? 1.4 : 1);
     if (opts.relaxed && rng() < 0.2) damageHull(trade, (20 + rng() * 30) * damage);
-    for (const m of Object.values(trade.markets)) stepMarket(m, seconds);
-    stepContracts(trade.contracts, seconds);
-    // A neglected town, or the home port holding back an upgrade, asks for help (0069).
-    syncHelpOrder(map, trade);
-    t += seconds;
-    for (const up of stepSettlements(trade, seconds, map))
-      v.levels[`${up.portId} ${up.level}`] = t / 60;
-    syncMarketLevels(trade, map);
+    pass(seconds);
+    // Once the seas open, what she sails into or sights on the way goes on the chart (0156), and
+    // so do the hidden ports she passes (0048).
+    if (story.started)
+      for (const [x, y] of legPath(map, at, leg.to).points) {
+        stepFog(map, trade.progress, { x, y }, sight);
+        discoverNear(trade, map, { x, y });
+      }
+    v.sailed.push([
+      (t - seconds) / 60,
+      seconds,
+      !startPorts.has(at) || !startPorts.has(leg.to),
+      startPorts.has(at) || startPorts.has(leg.to),
+    ]);
     at = leg.to;
     v.legs++;
+    v.income.push([t / 60, v.marketGold + v.contractGold]);
   }
+  v.opened = story.opened;
+  v.questsDone = story.done;
+  v.storyMinutes = story.chapterMinutes;
+  v.storyGold = story.gold;
   return v;
 }
 
@@ -854,6 +1188,210 @@ export function difficultyChecks(by: DifficultyRun): BalanceCheck[] {
       actual: DIFFICULTIES.map((l) => min(by[l]!.sharp.cutter)).join(' / '),
       target: `≤ ${T.sharpCutterMax} min`,
       ok: DIFFICULTIES.every((l) => n(by[l]!.sharp.cutter) <= T.sharpCutterMax),
+    },
+  ];
+}
+
+// --- 0195: the grown sea in story order, the late game -----------------------------------------
+
+/** One level's late game: medians over the story seeds. */
+export interface StoryPace {
+  /** Minute each sea opened, relaxed captain. */
+  opened: Record<string, number>;
+  /** Minute the last sea's outpost was founded, relaxed captain (undefined: not in the run). */
+  allFounded?: number;
+  /** Minute the sharp captain founded it. */
+  sharpFounded?: number;
+  /** Minutes each sea's quests took to sail (ring: the ring's arcs), relaxed and sharp captain. */
+  arcMinutes: Record<string, number>;
+  sharpArcMinutes: Record<string, number>;
+  /** Relaxed captain's market and order gold per minute: the ring alone, and the run's last hour. */
+  ringRate: number;
+  lateRate: number;
+  /** Share of the relaxed captain's late market gold from far goods. */
+  farShare: number;
+  /** Share of the relaxed captain's legs in the last hour that start or end at a ring port. */
+  ringLegs: number;
+  /** Median seconds of the legs to or from a far sea's port, relaxed captain. */
+  farLegs: number;
+  /** Crafted far goods the sharp captain sold, units. */
+  craftedSold: Partial<Record<GoodId, number>>;
+  /** Share of the quests' gold in the relaxed captain's income. */
+  storyShare: number;
+  /** Busiest route's share of the relaxed captain's legs in the last hour. */
+  lateTopRoute: number;
+}
+
+export type StoryRun = Record<Difficulty, StoryPace>;
+
+const goldAt = (v: Voyage, minute: number) => {
+  let g = 0;
+  for (const [m, gold] of v.income) if (m <= minute) g = gold;
+  return g;
+};
+
+/**
+ * The relaxed and the sharp captain on every level for the story's minutes (decision 0195): the
+ * ring until the cutter, then each sea in story order. Only on a sea with chart areas.
+ */
+export function storyRun(map: MapDef, onLevel?: (level: Difficulty) => void): StoryRun | null {
+  if (!storyChapters(map).length) return null;
+  const S = TARGETS.story;
+  const out = {} as StoryRun;
+  for (const level of DIFFICULTIES) {
+    onLevel?.(level);
+    const sail = (relaxed: boolean) =>
+      S.seeds.map((seed) =>
+        sailVoyage({
+          map,
+          contracts: true,
+          relaxed,
+          minutes: S.minutes,
+          level,
+          seed,
+          lateFrom: late,
+          story: true,
+        }),
+      );
+    const late = S.minutes - S.lateMinutes;
+    const relaxed = sail(true);
+    const sharp = sail(false);
+    const med = (xs: number[]) => medianOf(xs.map((x) => (Number.isNaN(x) ? Infinity : x)));
+    const seas = storyChapters(map).map((c) => c.sea);
+    const lastQuest = storyChapters(map).at(-1)!.beats.at(-1)!.quest;
+    const founded = med(relaxed.map((v) => v.questsDone[lastQuest] ?? Infinity));
+    const seaMinutes = (runs: Voyage[]) =>
+      Object.fromEntries(
+        ['ring', ...seas].map((sea) => [sea, med(runs.map((v) => v.storyMinutes[sea] ?? NaN))]),
+      );
+    const crafted: Partial<Record<GoodId, number>> = {};
+    for (const g of GOODS) if (isCrafted(g)) crafted[g] = med(sharp.map((v) => v.farSold[g] ?? 0));
+    out[level] = {
+      opened: Object.fromEntries(
+        seas.map((sea) => [sea, med(relaxed.map((v) => v.opened[sea] ?? Infinity))]),
+      ),
+      allFounded: Number.isFinite(founded) && founded <= S.minutes ? founded : undefined,
+      sharpFounded: (() => {
+        const m = med(sharp.map((v) => v.questsDone[lastQuest] ?? Infinity));
+        return Number.isFinite(m) ? m : undefined;
+      })(),
+      arcMinutes: seaMinutes(relaxed),
+      sharpArcMinutes: seaMinutes(sharp),
+      ringRate: med(
+        relaxed.map((v) => {
+          const end = v.opened[seas[0]!] ?? S.minutes;
+          return goldAt(v, end) / end;
+        }),
+      ),
+      lateRate: med(relaxed.map((v) => (goldAt(v, S.minutes) - goldAt(v, late)) / S.lateMinutes)),
+      farShare: med(relaxed.map((v) => v.lateFar / Math.max(1, v.lateMarket))),
+      ringLegs: med(
+        relaxed.map((v) => {
+          const lateLegs = v.sailed.filter(([m]) => m >= late);
+          return lateLegs.filter(([, , , ring]) => ring).length / Math.max(1, lateLegs.length);
+        }),
+      ),
+      farLegs: med(
+        relaxed.map((v) => {
+          const far = v.sailed.filter(([, , f]) => f).map(([, sec]) => sec);
+          return far.length ? medianOf(far) : NaN;
+        }),
+      ),
+      craftedSold: crafted,
+      storyShare: med(
+        relaxed.map((v) => v.storyGold / (v.storyGold + v.marketGold + v.contractGold)),
+      ),
+      lateTopRoute: med(
+        relaxed.map((v) => {
+          const n: Record<string, number> = {};
+          let all = 0;
+          v.lateRoutes.forEach((r) => {
+            n[r] = (n[r] ?? 0) + 1;
+            all++;
+          });
+          return all ? Math.max(...Object.values(n)) / all : 0;
+        }),
+      ),
+    };
+  }
+  return out;
+}
+
+export function storyChecks(by: StoryRun): BalanceCheck[] {
+  const T = TARGETS.story;
+  const levels = DIFFICULTIES.map((l) => by[l]!);
+  const each = (f: (p: StoryPace) => string) => levels.map(f).join(' / ');
+  const x = (r: number) => `${r.toFixed(1)}×`;
+  const crafted = GOODS.filter(isCrafted);
+  return [
+    {
+      id: 'story-opens',
+      label: 'Every sea opens and its outpost is founded within the run (relaxed captain)',
+      actual: each((p) => min(p.allFounded)),
+      target: `≤ ${T.minutes} min`,
+      ok: levels.every((p) => p.allFounded !== undefined),
+    },
+    {
+      id: 'far-pays',
+      label: 'The far seas pay more than the ring (relaxed, last hour vs the ring alone)',
+      actual: each((p) => x(p.lateRate / p.ringRate)),
+      target: `${x(T.lateVsRing[0]!)}–${x(T.lateVsRing[1]!)}`,
+      ok: levels.every(
+        (p) =>
+          p.lateRate / p.ringRate >= T.lateVsRing[0]! &&
+          p.lateRate / p.ringRate <= T.lateVsRing[1]!,
+      ),
+    },
+    {
+      id: 'far-share',
+      label: 'Far goods carry the late game (relaxed, last hour)',
+      actual: each((p) => pct(p.farShare)),
+      target: `≥ ${pct(T.farShareMin)} of market gold`,
+      ok: levels.every((p) => p.farShare >= T.farShareMin),
+    },
+    {
+      id: 'ring-legs',
+      label: 'The ring still counts: its ports buy the crafts (relaxed, last hour)',
+      actual: each((p) => pct(p.ringLegs)),
+      target: `≥ ${pct(T.ringLegsMin)} of legs start or end at a ring port`,
+      ok: levels.every((p) => p.ringLegs >= T.ringLegsMin),
+    },
+    {
+      id: 'far-crafted',
+      label: "Every sea's crafted good sells (sharp captain)",
+      actual: each((p) =>
+        crafted.map((g) => `${g} ${Math.round(p.craftedSold[g] ?? 0)}`).join(', '),
+      ),
+      target: `≥ ${T.craftedSoldMin} of each`,
+      ok: levels.every((p) => crafted.every((g) => (p.craftedSold[g] ?? 0) >= T.craftedSoldMin)),
+    },
+    {
+      id: 'far-legs',
+      label: "Legs to and from the far seas' ports (relaxed captain, sailed)",
+      actual: each((p) => `${Math.round(p.farLegs)} s`),
+      target: `median ≤ ${T.farLegMedianMax} s`,
+      ok: levels.every((p) => p.farLegs <= T.farLegMedianMax),
+    },
+    {
+      id: 'late-ordered',
+      label: 'Each level earns less in the late game than the one before (relaxed)',
+      actual: each((p) => `${Math.round(p.lateRate)}/min`),
+      target: 'Fair winds > Captain > Old salt',
+      ok: levels.every((p, i) => i === 0 || p.lateRate < levels[i - 1]!.lateRate),
+    },
+    {
+      id: 'late-routes',
+      label: 'No single route is the only good one in the late game (relaxed)',
+      actual: each((p) => pct(p.lateTopRoute)),
+      target: `< ${pct(T.topRouteShareMax)}`,
+      ok: levels.every((p) => p.lateTopRoute < T.topRouteShareMax),
+    },
+    {
+      id: 'story-gold',
+      label: "The quests' gold helps, trade carries the game (relaxed)",
+      actual: each((p) => pct(p.storyShare)),
+      target: `≤ ${pct(T.storyShareMax)} of all gold`,
+      ok: levels.every((p) => p.storyShare <= T.storyShareMax),
     },
   ];
 }

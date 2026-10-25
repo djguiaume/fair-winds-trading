@@ -77,14 +77,14 @@
     "id": "spice",
     "name": "Spice",
     "kind": "far",
-    "basePrice": 20,
+    "basePrice": 18,
     "icon": "🌶️"
   },
   "spicedTea": {
     "id": "spicedTea",
     "name": "Spiced tea",
     "kind": "far",
-    "basePrice": 90,
+    "basePrice": 86,
     "icon": "🫖",
     "madeFrom": "spice"
   },
@@ -92,14 +92,14 @@
     "id": "obsidian",
     "name": "Obsidian",
     "kind": "far",
-    "basePrice": 22,
+    "basePrice": 19,
     "icon": "🪨"
   },
   "obsidianMirrors": {
     "id": "obsidianMirrors",
     "name": "Obsidian mirrors",
     "kind": "far",
-    "basePrice": 100,
+    "basePrice": 88,
     "icon": "🪞",
     "madeFrom": "obsidian"
   },
@@ -107,14 +107,14 @@
     "id": "cloudberries",
     "name": "Cloudberries",
     "kind": "far",
-    "basePrice": 25,
+    "basePrice": 20,
     "icon": "🫐"
   },
   "cloudberryJam": {
     "id": "cloudberryJam",
     "name": "Cloudberry jam",
     "kind": "far",
-    "basePrice": 110,
+    "basePrice": 95,
     "icon": "🫙",
     "madeFrom": "cloudberries"
   },
@@ -122,14 +122,14 @@
     "id": "amber",
     "name": "Amber",
     "kind": "far",
-    "basePrice": 28,
+    "basePrice": 22,
     "icon": "🟠"
   },
   "amberBeads": {
     "id": "amberBeads",
     "name": "Amber beads",
     "kind": "far",
-    "basePrice": 120,
+    "basePrice": 105,
     "icon": "📿",
     "madeFrom": "amber"
   }
