@@ -1198,6 +1198,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     '× day',
     'Share of that own light kept at night.',
   ),
+  'weather.volcano.smoke.shrinkFrom': num(
+    'Smoke: shrink from',
+    0.3,
+    0.95,
+    0.05,
+    '× life',
+    'Share of its life after which a puff stops growing and shrinks away, so the plume thins out near the island.',
+  ),
   'weather.volcano.smoke.cameraGap': num(
     'Smoke: camera gap',
     0,

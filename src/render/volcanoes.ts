@@ -311,11 +311,10 @@ export class Volcanoes {
     P.s0[i] = smoke.size[0]! * grow;
     P.s1[i] = smoke.size[1]! * grow;
     P.spin[i] = rng() * Math.PI * 2;
-    // Steam when quiet, warm ash the stronger the eruption; a bomb's puff is ash on land and
-    // steam where it hits the sea. A little variation puff to puff.
+    // Steam when quiet, warm ash the stronger the eruption; a bomb's puff is steam from the sea. A little variation puff to puff.
     this.tint
       .copy(this.steam)
-      .lerp(this.ash, at ? (at.y > 0.5 ? 0.8 : 0) : k)
+      .lerp(this.ash, at ? 0 : k)
       .multiplyScalar(0.95 + rng() * 0.1);
     P.rgb.set([this.tint.r, this.tint.g, this.tint.b], i * 3);
     P.hot[i] = at ? 0 : k;
@@ -382,9 +381,11 @@ export class Volcanoes {
       const y = P.from[n * 3 + 1]! + top * up;
       const x = P.from[n * 3]! + P.wander[n * 2]! * age + wx * along;
       const z = P.from[n * 3 + 2]! + P.wander[n * 2 + 1]! * age + wz * along;
-      // Small at the vent, growing as it drifts, shrinking away only at the very end.
-      let s = P.s0[n]! + (P.s1[n]! - P.s0[n]!) * Math.pow(t, 0.7);
-      if (t > 0.85) s *= (1 - t) / 0.15;
+      // Small at the vent, growing as it drifts, then shrinking away so the plume thins out
+      // near the island instead of drifting big past it.
+      const from = smoke.shrinkFrom;
+      let s = P.s0[n]! + (P.s1[n]! - P.s0[n]!) * Math.pow(Math.min(1, t / from), 0.7);
+      if (t > from) s *= (1 - t) / (1 - from);
       // Never up into the lens: close below the camera it shrinks away.
       if (y + s > ceiling) s = Math.max(0, ceiling - y);
       this.euler.set(P.spin[n]!, P.spin[n]! * 1.7 + age * 0.15, 0);
@@ -418,11 +419,12 @@ export class Volcanoes {
       const x = B.p[i * 3]! + B.v[i * 3]! * dt;
       const y = B.p[i * 3 + 1]! + B.v[i * 3 + 1]! * dt;
       const z = B.p[i * 3 + 2]! + B.v[i * 3 + 2]! * dt;
-      // Down on the cone's flank (or in the sea): a puff of ash where it lands.
+      // Down on the cone's flank, or in the sea: a puff of steam where it hits the water. None on
+      // land, where a trail of ash down the slope reads as rolling pebbles.
       const rim = c ? c.r / 0.8 : 0;
       const ground = c ? c.y - Math.max(0, Math.hypot(x - c.x, z - c.z) - rim) * c.slope : 0;
       if (!c || (B.v[i * 3 + 1]! < 0 && (y < ground || y < 0))) {
-        if (c) this.spawnPuff(c, 1, this.pos.set(x, Math.max(y, 0), z), B.size[i]! * LANDING_PUFF);
+        if (c && y < 0.5) this.spawnPuff(c, 1, this.pos.set(x, 0, z), B.size[i]! * LANDING_PUFF);
         continue;
       }
       if (n !== i) {

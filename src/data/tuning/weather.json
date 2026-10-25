@@ -166,7 +166,8 @@
     "sightUnits": 320,
     "smoke": {
       "perSec": 2,
-      "lifeSec": 12,
+      "lifeSec": 9,
+      "shrinkFrom": 0.6,
       "rise": 4,
       "top": 20,
       "drift": 0.6,
