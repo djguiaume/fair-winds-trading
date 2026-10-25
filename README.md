@@ -12,6 +12,10 @@ Set sail across a world of low-poly islands. Carry goods between harbours, watch
 
 > **Preparing for v1.0.** The base game is nearly ready for release, with two bug fixes remaining. The play link follows the latest successful deployment from `main`; the release badge points to the latest published milestone.
 
+![Sailing a regatta course alongside a rival boat among the Windward Ring's reefs and sea marks](docs/reviews/regatta/shots/2-racing-desktop.png)
+
+*Sailing the Saltmere Regatta: read the wind and pick your passage.*
+
 ## A sea of small adventures
 
 - **Sail by the wind.** Learn to tack, trim your sails, and navigate by the chart. Different ships bring different handling, cargo capacity, and draft.
@@ -23,6 +27,12 @@ Set sail across a world of low-poly islands. Carry goods between harbours, watch
 - **Listen to the sea.** Wind, waves, harbour bells, and music accompany your voyages.
 
 The base game is a gentle adventure without combat. Choose **Fair winds**, **Captain**, or **Old salt** difficulty, and adjust hazards in Settings. Time advances only during active play.
+
+## A look at life ashore
+
+| Trading in Saltmere | Your home on Skerry |
+| --- | --- |
+| ![Saltmere market with goods, prices, and delivery orders](docs/reviews/whole-game/saltmere-market.png) | ![Skerry with building plots, a harbour, and the regatta cup and pennant](docs/reviews/regatta/shots/6-cup-and-pennant-desktop.png) |
 
 ## Playing
 
