@@ -37,8 +37,8 @@ import { isFar, isGood, isRare, isSpecialty } from './sim/goods';
 import { portNow, questsDone } from './sim/settlement';
 import { foundSite, foundedSites, townLevels } from './sim/founding';
 import { bearingTo, clamp } from './sim/math';
-import { type SaveStorage, clearSave, loadGame, saveGame } from './sim/save';
-import { LINK_KEY } from './sim/saveTransfer';
+import { type SaveStorage, clearSave, loadGame, saveGame, serializeWorld } from './sim/save';
+import { LINK_KEY, encodeSaveCode } from './sim/saveTransfer';
 import { SLOOP, noGoAngle } from './sim/ship';
 import * as trade from './sim/trade';
 import { type Difficulty, isDifficulty, knobs } from './sim/difficulty';
@@ -2193,6 +2193,8 @@ if (new URLSearchParams(location.search).has('debug')) {
       freePlay,
       hull,
       impact,
+      /** The voyage as a save code, as Move your voyage sends it (`npm run shots -- --save-link`). */
+      saveCode: () => encodeSaveCode(serializeWorld(world), world.map),
     },
   });
 }
