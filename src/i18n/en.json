@@ -1345,7 +1345,7 @@
   "regatta.toMark": "Mark {n} of {total}",
   "regatta.toFinish": "To the finish line",
   "regatta.retire": "Retire from the race",
-  "regatta.retired": "Race given up. Race it again from the Quay.",
+  "regatta.retired": "Race left. Sail it again from the Quay whenever you like.",
   "regatta.book": "The regatta book",
   "regatta.shortStart": "Start",
   "regatta.shortFinish": "Finish",

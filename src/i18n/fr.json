@@ -1345,7 +1345,7 @@
   "regatta.toMark": "Marque {n} sur {total}",
   "regatta.toFinish": "Vers la ligne d’arrivée",
   "regatta.retire": "Abandonner la course",
-  "regatta.retired": "Course abandonnée. Recourez-la depuis le quai.",
+  "regatta.retired": "Course abandonnée. Vous pouvez la refaire depuis le quai quand vous voulez.",
   "regatta.book": "Le registre des régates",
   "regatta.shortStart": "Départ",
   "regatta.shortFinish": "Arrivée",

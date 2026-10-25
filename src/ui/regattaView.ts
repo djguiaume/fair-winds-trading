@@ -23,6 +23,9 @@ import { type QuestCardModel, cardFor } from './questView';
  * `<text>.race.title` / `.copy` (Wren's offer) and `<text>.race.start` (the starter at the line).
  */
 
+/** A name that opens a sentence: "the Saltmere pennant" → "The Saltmere pennant". */
+const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
 type RaceEvent = Extract<QuestEvent, { type: 'raced' }>;
 
 /** A race time, "1:02.4". */
@@ -90,7 +93,7 @@ export function raceResultCard(book: QuestBook, map: MapDef, e: RaceEvent): Ques
     ...e.won.map((s) =>
       s === 'regatta-cup'
         ? t('regatta.cupSet')
-        : t('regatta.pennantFlies', { pennant: t(`regatta.pennant.${s}` as MessageKey) }),
+        : t('regatta.pennantFlies', { pennant: capital(t(`regatta.pennant.${s}` as MessageKey)) }),
     ),
   ].filter(Boolean);
   Object.assign(card, {
