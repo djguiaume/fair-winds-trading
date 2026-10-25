@@ -34,6 +34,8 @@ export interface Settings {
   weather: boolean;
   /** Moving storms (decision 0067); hazards can be turned off (Guillaume). */
   storms: boolean;
+  /** Volcanoes erupt now and then near the boat (decision 0176); off, they only smoke. */
+  eruptions: boolean;
   /** Wind zones such as trade belts and doldrums (decision 0140); a hazard, so it can be off. */
   windZones: boolean;
   /** Currents (decision 0140): water that carries the boat; off = still water everywhere. */
@@ -62,6 +64,7 @@ const DEFAULTS: Settings = {
   dayNight: true,
   weather: true,
   storms: true,
+  eruptions: true,
   windZones: true,
   currents: true,
   haze: {},

@@ -38,6 +38,7 @@ import { QuestMarkers } from './questMarkers';
 import type { StepMarker } from '../ui/questView';
 import { daylightAt } from '../sim/daylight';
 import { StormClouds } from './stormClouds';
+import { Volcanoes } from './volcanoes';
 import { stormRain } from '../sim/storms';
 import { CLEAR, type ZoneVisual, mapZones, zoneField, zoneVisualAt } from '../sim/windZones';
 import { smoothOutline } from '../sim/flowShapes';
@@ -86,6 +87,10 @@ export class GameView {
   questMarks: () => readonly SeaMarkDef[] = () => [];
   private readonly boatLantern = new THREE.Vector3();
   private readonly stormClouds = new StormClouds();
+  /** Smoke over every crater, and eruptions (decision 0176). */
+  private readonly volcanoes: Volcanoes;
+  /** The Eruptions switch (Settings, decision 0176): off, volcanoes only smoke. */
+  eruptions = true;
   private rain!: Rain;
   private islands: IslandModel;
   /** Town levels the islands were built at, 0 for a site not founded yet (decision 0157). */
@@ -167,6 +172,7 @@ export class GameView {
     this.scene.add(this.lighthouseBeams.root);
     this.beaconLights = new BeaconLights(world.map.islands, this.islandLevels(this.levels));
     this.scene.add(this.beaconLights.points);
+    this.volcanoes = new Volcanoes(this.islands.craters);
     this.level = level;
     this.boat = this.buildBoat();
     this.edgeBuoys = new EdgeBuoys(world.map.boundsRadius);
@@ -183,6 +189,7 @@ export class GameView {
       this.buoy.root,
       this.edgeBuoys.mesh,
       this.stormClouds.root,
+      this.volcanoes.root,
     );
 
     toScene(world.boat.x, world.boat.y, this.target);
@@ -368,6 +375,7 @@ export class GameView {
 
   setHomeBuildings(byIsland: Record<string, Record<string, string>>) {
     this.islands.setHomeBuildings(byIsland);
+    this.volcanoes.setCraters(this.islands.craters);
   }
 
   /** What stands before or after a quest (decision 0130): island props, sea marks, lights. */
@@ -380,6 +388,7 @@ export class GameView {
 
   setQuestsDone(done: ReadonlySet<string>) {
     this.islands.setQuestsDone(done);
+    this.volcanoes.setCraters(this.islands.craters);
     this.seaMarks.setQuestsDone(done);
     this.lighthouseBeams.setQuestsDone(done);
     this.beaconLights.setQuestsDone(done);
@@ -389,6 +398,7 @@ export class GameView {
     const founded = Object.keys(levels).some((id) => this.levels[id] === 0 && levels[id] !== 0);
     this.levels = { ...levels };
     this.islands.setSettlementLevels(levels);
+    this.volcanoes.setCraters(this.islands.craters);
     if (founded) this.buildLanterns();
     this.lighthouseBeams.setLevels(this.islandLevels(levels));
     this.beaconLights.setLevels(this.islandLevels(levels));
@@ -424,6 +434,14 @@ export class GameView {
     this.veil.style.background =
       `radial-gradient(ellipse 70% 65% at 50% 52%, rgba(${rgb},0) ${v.veilClear * 100}%, ` +
       `rgba(${rgb},${v.veilMidAlpha}) ${v.veilMid * 100}%, rgba(${rgb},${v.veilEdgeAlpha}) 100%)`;
+  }
+
+  /**
+   * A volcano erupts (decision 0176): a quest's `reward.erupt` waits for the boat to come in
+   * sight; `now` starts it at once (the screenshot tool). False when the island has no crater.
+   */
+  erupt(island: string, now = false) {
+    return this.volcanoes.erupt(island, now);
   }
 
   /** 1 = default; larger = farther away. */
@@ -570,6 +588,16 @@ export class GameView {
     windows?.color.copy(WINDOWS_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
     const lava = this.islands.userData.lava as THREE.MeshBasicMaterial | undefined;
     lava?.color.copy(LAVA_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
+    const erupting = this.volcanoes.update(dt, {
+      target: this.target,
+      eruptions: this.eruptions,
+      out: this.world.land.out,
+      windX: to.x,
+      windZ: -to.y,
+      windUnits: wind.speedKn * TUNING.seamanship.boat.knotToUnits,
+    });
+    // An eruption brightens the lava past its night glow (one shared material, decision 0176).
+    lava?.color.multiplyScalar(1 + (TUNING.weather.volcano.eruptions.lavaGain - 1) * erupting);
     this.boat.setNightLighting?.(day.night);
     this.ocean.update(time, this.target);
     this.currentWater?.update(time, this.ocean, this.world.currentsOn);
@@ -617,6 +645,7 @@ export class GameView {
     this.qualityEffects.clear();
     this.shores.dispose();
     this.stormClouds.dispose();
+    this.volcanoes.dispose();
     this.lanterns.dispose();
     this.wake.dispose();
     this.currentWater?.dispose();

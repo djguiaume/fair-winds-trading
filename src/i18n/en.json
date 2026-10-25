@@ -151,6 +151,8 @@
   "settings.weatherNote": "Off: a steady breeze, no rain or storms",
   "settings.storms": "Storms",
   "settings.stormsNote": "Off: no storms cross the sea",
+  "settings.eruptions": "Eruptions",
+  "settings.eruptionsNote": "Off: volcanoes only smoke",
   "settings.windZones": "Wind zones",
   "settings.windZonesNote": "Off: no trade belts, doldrums or stormy coasts",
   "settings.currents": "Currents",

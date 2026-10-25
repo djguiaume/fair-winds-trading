@@ -13,7 +13,7 @@ import {
   vertexColorMaterial,
   windowPanes,
 } from './geometry';
-import type { IslandModel, IslandsBuilder } from './types';
+import type { Crater, IslandModel, IslandsBuilder } from './types';
 import { landmarkParts } from './landmarks';
 import { type Spot, landmarkRadius, sampleInside, terrainSeed } from '../../sim/landmarks';
 import { insetOutline } from '../../sim/coast';
@@ -454,6 +454,8 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
   /** Molten lava (decision 0171): glows like the windows, tinted orange by day. */
   private readonly lava = new THREE.MeshBasicMaterial({ vertexColors: true });
   private readonly batches = new Map<string, THREE.Group>();
+  /** Every volcano's crater in the scene (decision 0176), kept up as islands are rebuilt. */
+  readonly craters: Crater[] = [];
   private levels: Record<string, TownLevel>;
   /** Island id → spot id → building id (decisions 0126, 0128). */
   private homeBuilt: Record<string, Record<string, string>> = {};
@@ -482,7 +484,9 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
       // Shallows are water: ShallowsWater tints them at sea (decision 0152), nothing stands there.
       if (feature.kind === 'shallows') continue;
       if (feature.kind === 'sandbank') {
-        parts.push(paint(extrudeOutline(feature.outline, -0.4, 0.8), feature.look?.color ?? B2.sand));
+        parts.push(
+          paint(extrudeOutline(feature.outline, -0.4, 0.8), feature.look?.color ?? B2.sand),
+        );
       } else if (feature.kind === 'island') {
         for (const tier of RIDGE_TIERS) {
           const outline = tier.inset ? insetOutline(feature.outline, tier.inset) : feature.outline;
@@ -540,9 +544,30 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
       this.homeBuilt[island.id],
       this.questsDone,
     );
+    this.findCraters(island.id, parts);
     const group = this.batch(parts);
     group.name = `island:${island.id}`;
     return group;
+  }
+
+  /** Where each crater's pool sits in the scene, for the volcano smoke (decision 0176). */
+  private findCraters(islandId: string, parts: Parts) {
+    const craters = this.craters.filter((c) => c.island !== islandId);
+    const box = new THREE.Box3();
+    for (const g of parts) {
+      if (!g.userData.crater) continue;
+      g.computeBoundingBox();
+      box.copy(g.boundingBox!);
+      craters.push({
+        island: islandId,
+        x: (box.min.x + box.max.x) / 2,
+        y: box.max.y,
+        z: (box.min.z + box.max.z) / 2,
+        r: Math.max(box.max.x - box.min.x, box.max.z - box.min.z) / 2,
+        slope: (g.userData.crater as { slope: number }).slope,
+      });
+    }
+    this.craters.splice(0, this.craters.length, ...craters);
   }
 
   setSettlementLevels(levels: Record<string, TownLevel>) {

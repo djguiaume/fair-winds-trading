@@ -67,7 +67,20 @@ export interface IslandBuildOptions {
 }
 
 /** Rendered land supports incremental settlement changes without replacing stable harbour anchors. */
+/** A volcano's crater in the scene (decision 0176): its pool's centre and rim height, its radius. */
+export interface Crater {
+  island: string;
+  x: number;
+  y: number;
+  z: number;
+  r: number;
+  /** The cone's flank, rise over run, where lava bombs come down. */
+  slope: number;
+}
+
 export interface IslandModel extends THREE.Object3D {
+  /** Every crater of the islands' files, where the smoke rises (decision 0176). */
+  readonly craters: readonly Crater[];
   setSettlementLevels(levels: Record<string, TownLevel>): void;
   /** Redraw the captain's islands' buildings, island id → spot → building (0126, 0128). */
   setHomeBuildings(byIsland: Record<string, Record<string, string>>): void;

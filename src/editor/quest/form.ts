@@ -1,3 +1,4 @@
+import { hasVolcano } from '../../data/islands';
 import { isDifficulty } from '../../sim/difficulty';
 import { GOODS } from '../../sim/goods';
 import { BUILDINGS, homeSpots } from '../../sim/home';
@@ -539,7 +540,7 @@ export function rewardForm(
     });
   const ports = portOptions(ctx.map);
   const chips = (
-    key: 'discover' | 'levelUp' | 'found' | 'homeSpot',
+    key: 'discover' | 'levelUp' | 'found' | 'homeSpot' | 'erupt',
     options: [string, string][],
   ) => {
     const list = (r[key] as string[] | undefined) ?? [];
@@ -616,5 +617,10 @@ export function rewardForm(
       }),
   );
   box.append(row('Building spots', chips('homeSpot', spots)));
+  // Volcanoes: islands whose file has a peak with a crater (decision 0176).
+  const volcanoes: [string, string][] = ctx.map.islands
+    .filter(hasVolcano)
+    .map((i) => [i.id, i.name ?? i.id]);
+  if (volcanoes.length || r.erupt) box.append(row('Eruption', chips('erupt', volcanoes)));
   return box;
 }
