@@ -42,7 +42,13 @@ import {
   stepTrade,
 } from './trade';
 import { applyPerks } from './perks';
-import { type TrafficState, createTraffic, stepTraffic } from './traffic';
+import {
+  type TrafficBoat,
+  type TrafficState,
+  createTraffic,
+  stepRival,
+  stepTraffic,
+} from './traffic';
 import { GOODS, type GoodId } from './goods';
 import type { SpatialGrid } from './spatial';
 import { heelFactor, pointOfSailHeel } from './heel';
@@ -178,6 +184,8 @@ export interface World {
   trade: TradeState;
   /** Other boats on the sea (decision 0215); `traffic.on` is Settings › Other ships. */
   traffic: TrafficState;
+  /** A race's rival (decision 0216): Kestrel, while a race runs and until she is done. */
+  rival: TrafficBoat | null;
 }
 
 /**
@@ -265,6 +273,7 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     course: { index: 0, legStart: 0, reached: 0, lastLegSeconds: null },
     trade,
     traffic: createTraffic(map, land),
+    rival: null,
   };
   return world;
 }
@@ -752,6 +761,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
 
   // Other boats sail after her, in the same wind, and give way (decision 0215).
   events.push(...stepTraffic(world, dt));
+  events.push(...stepRival(world, dt));
   events.push(...stepTrade(world.trade, world.map, world.boat, dt));
   refreshPiers(world);
   events.push(...stepStorms(world));

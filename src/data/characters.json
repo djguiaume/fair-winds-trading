@@ -256,6 +256,24 @@
         "item": "net",
         "backdrop": "#e6d6a8"
       }
+    },
+    {
+      "id": "wren",
+      "name": "Wren Tally",
+      "voice": "wren",
+      "role": "Racing skipper",
+      "port": "saltmere",
+      "look": {
+        "skin": "#c99a74",
+        "hair": "#1f1a17",
+        "hairStyle": "short",
+        "hat": "cap",
+        "hatColor": "#f4f1e8",
+        "clothes": "#d2462f",
+        "stripes": "#f4f1e8",
+        "item": "stopwatch",
+        "backdrop": "#4f9fd6"
+      }
     }
   ]
 }

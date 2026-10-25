@@ -1,0 +1,42 @@
+{
+  "about": "The Saltmere Regatta (decision 0216): how a race starts, what a medal takes, what it pays and what a series won flies. Each race's course and pars are in its quest file (`race`, and its step's `raced` goal).",
+  "countdownSec": 10,
+  "within": 16,
+  "medals": {
+    "gold": 1,
+    "silver": 1.15,
+    "bronze": 1.35
+  },
+  "winMedal": "silver",
+  "rival": {
+    "name": "Kestrel",
+    "skipper": "wren",
+    "ship": "cutter",
+    "sailNumber": "K 7",
+    "hull": "#f4f1e8",
+    "band": "#d2462f",
+    "flag": "kestrel",
+    "pace": "silver",
+    "paceRange": [
+      0.45,
+      1.4
+    ]
+  },
+  "series": [
+    {
+      "id": "regatta-ring",
+      "name": "The ring series",
+      "pennant": "pennant-saltmere"
+    },
+    {
+      "id": "regatta-seas",
+      "name": "The sea races",
+      "pennant": "pennant-far-seas"
+    },
+    {
+      "id": "regatta-cup",
+      "name": "The Four Winds Cup",
+      "pennant": "pennant-four-winds"
+    }
+  ]
+}

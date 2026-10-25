@@ -355,7 +355,8 @@ export function packSave(
  * The quest section (decision 0125), written only when a quest has progress, so a code without
  * quests is what it was before: per quest 0 (not started), 1 (done) or 2 + its step, the step's
  * numbers, per choice step the option picked + 1, and per var (decision 0151) its port or good
- * + 1, and for a standing order (decision 0214) its rounds and wait; then the tracked quest + 1.
+ * + 1, for a standing order (decision 0214) its rounds and wait, and for a race (0216) its best
+ * time + 1 and medal; then the tracked quest + 1.
  */
 function packQuests(
   w: Writer,
@@ -385,6 +386,11 @@ function packQuests(
     if (quest.repeat) {
       w.uint(p.rounds ?? 0);
       w.uint(p.wait ?? 0);
+    }
+    // A race's best time + 1 (0 = none) and best medal (decision 0216).
+    if (quest.race) {
+      w.uint(p.best === undefined ? 0 : p.best + 1);
+      w.uint(p.medal ?? 0);
     }
   }
   w.uint(
@@ -420,6 +426,8 @@ function unpackQuests(
     }
     const rounds = quest.repeat ? r.uint() : 0;
     const wait = quest.repeat ? r.uint() : 0;
+    const best = quest.race ? r.uint() : 0;
+    const medal = quest.race ? r.uint() : 0;
     byId[quest.id] = {
       step: step?.id ?? QUEST_DONE,
       counts,
@@ -427,6 +435,8 @@ function unpackQuests(
       ...(Object.keys(vars).length ? { vars } : {}),
       ...(rounds ? { rounds } : {}),
       ...(wait ? { wait } : {}),
+      ...(best ? { best: best - 1 } : {}),
+      ...(medal ? { medal } : {}),
     };
   }
   const tracked = quests[r.uint() - 1]?.id;

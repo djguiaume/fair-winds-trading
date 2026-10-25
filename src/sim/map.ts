@@ -185,6 +185,11 @@ export const SEA_MARK_TYPES = [
   'fishing-boat',
   'pilot-cutter',
   'light',
+  // The regatta's marks (decision 0216), put on the water by a running race.
+  'race-mark',
+  'race-pin',
+  'race-committee',
+  'race-finish',
 ] as const;
 export type SeaMarkType = (typeof SEA_MARK_TYPES)[number];
 

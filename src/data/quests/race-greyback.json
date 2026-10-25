@@ -1,0 +1,74 @@
+{
+  "id": "race-greyback",
+  "name": "Round Greyback",
+  "start": {
+    "is": "quest-done",
+    "quest": "race-calda"
+  },
+  "text": "quest.race-greyback",
+  "giver": "wren",
+  "starter": "ines",
+  "port": "calda",
+  "offer": true,
+  "storms": false,
+  "wind": {
+    "speedKn": 12,
+    "fromDeg": 270
+  },
+  "race": {
+    "series": "regatta-ring",
+    "gold": {
+      "bronze": 60,
+      "silver": 120,
+      "gold": 200
+    },
+    "pars": {}
+  },
+  "steps": [
+    {
+      "id": "race",
+      "moveTo": {
+        "x": 130,
+        "y": 196,
+        "headingDeg": 270
+      },
+      "goal": {
+        "is": "raced",
+        "start": [
+          {
+            "x": 112,
+            "y": 218
+          },
+          {
+            "x": 112,
+            "y": 176
+          }
+        ],
+        "marks": [
+          {
+            "x": -110,
+            "y": 250
+          },
+          {
+            "x": -240,
+            "y": 228
+          },
+          {
+            "x": -110,
+            "y": 78
+          }
+        ],
+        "finish": [
+          {
+            "x": 215,
+            "y": -62
+          },
+          {
+            "x": 252,
+            "y": -38
+          }
+        ]
+      }
+    }
+  ]
+}
