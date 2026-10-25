@@ -460,7 +460,6 @@
     { "type": "dry-stone-wall", "x": 0.7, "z": 1.08, "turn": -25, "length": 0.16, "from": 1 },
     { "type": "dry-stone-wall", "x": 0.8, "z": 0.82, "turn": -40, "length": 0.12, "from": 1 },
     { "type": "peat-stack", "x": 0.9, "z": 0.86, "turn": 30, "from": 1 },
-    { "type": "sheep", "x": 0.7, "z": 1.1, "size": 1.3, "from": 1 },
     {
       "type": "turf-house",
       "x": 1.24,

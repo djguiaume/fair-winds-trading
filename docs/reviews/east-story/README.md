@@ -67,11 +67,9 @@ Decision [0193](../../decisions/0193-the-east-seas-story-and-the-four-winds-clos
 
 - Amber Strand at levels 1, 2, 3 and at night (the outpost now grows).
 - Elias's workshop on Fogwatch's front row: shutters closed before his arc, an amber lamp in the window after it (day and night).
-- The foghorn tower's lamp, dark before and lit after his arc.
+- The foghorn tower's lamp is left as it was: from the game camera its small lamp box doesn't read, lit or dark (art director's reshoot), so it isn't worth triangles on a full Fogwatch.
 - The signpost on Skerry's pier after Four winds.
 
-![look-foghorn-after-night.jpg](look-foghorn-after-night.jpg)
-![look-foghorn-before-night.jpg](look-foghorn-before-night.jpg)
 ![look-skerry-signpost.jpg](look-skerry-signpost.jpg)
 ![look-strand-1.jpg](look-strand-1.jpg)
 ![look-strand-2.jpg](look-strand-2.jpg)
