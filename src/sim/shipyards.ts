@@ -99,7 +99,7 @@ export function discoveredPorts(map: MapDef, trade: TradeState): PortDef[] {
 /**
  * Far goods (decision 0146) that a port on the chart sells or makes. The chart's market lists a
  * far good only then, or while one is in the hold, so a new voyage does not see the outer seas'
- * goods before their ports (decision 0189).
+ * goods before their ports (decision 0190).
  */
 export function farGoodsOnChart(map: MapDef, trade: TradeState): Set<GoodId> {
   const seen = new Set<GoodId>();

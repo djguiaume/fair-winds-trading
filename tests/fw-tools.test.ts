@@ -133,7 +133,7 @@ describe('npm run shots and npm run quest (decision 0153)', () => {
   });
 
   it('plays a dev sea or a map file, and refuses what cannot be shot', () => {
-    // The grown sea is the game's own (decision 0189); the ring alone is a test sea now.
+    // The grown sea is the game's own (decision 0190); the ring alone is a test sea now.
     expect(shotPath(normalise({ sea: 'phase4' }))).toBe('/?debug=');
     expect(shotPath(normalise({ sea: 'game' }))).toBe('/?debug=');
     expect(shotPath(normalise({ sea: 'ring' }))).toBe('/?debug=&map=ring');

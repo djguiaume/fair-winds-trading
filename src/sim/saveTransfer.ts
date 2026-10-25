@@ -100,7 +100,7 @@ function check(raw: unknown, world: World): TransferResult {
 
 /**
  * Read a scanned or pasted code (or link) into a checked save. `earlier` are maps the world's map
- * grew from under the same name (decision 0189: the Windward Ring inside the grown sea): an FW2
+ * grew from under the same name (decision 0190: the Windward Ring inside the grown sea): an FW2
  * code written there has shorter lists, so it reads with that map's lists and is then checked
  * against the world's map, which still has every port, island and quest it names.
  */

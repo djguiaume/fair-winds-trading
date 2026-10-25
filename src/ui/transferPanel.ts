@@ -18,7 +18,7 @@ import type { World } from '../sim/world';
 import { qrSvg } from './qr';
 import { QrScanner, canScan } from './qrScanner';
 
-/** The ring alone (decision 0189): codes written before the grown sea was the game's still read. */
+/** The ring alone (decision 0190): codes written before the grown sea was the game's still read. */
 const EARLIER_MAPS = [PHASE1_MAP];
 
 const $ = <T extends HTMLElement = HTMLElement>(root: ParentNode, id: string) =>
