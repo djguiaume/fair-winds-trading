@@ -1,6 +1,6 @@
 # 0209. Sounds of the sea
 
-**Status:** Proposed (2026-10-25). Built; waiting on the art director's listen and Guillaume's.
+**Status:** Accepted (2026-10-25). Guillaume listened to every sound and picked the remade ones.
 
 ## Context
 
