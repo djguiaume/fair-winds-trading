@@ -28,9 +28,9 @@ The base game is a gentle adventure without combat. Choose **Fair winds**, **Cap
 
 Open the [game](https://djguiaume.github.io/fair-winds-trading/) in a modern browser with WebGL support. No installation or account is required.
 
-- **Desktop:** keyboard and mouse.
-- **Phone or tablet:** touch controls, in landscape or portrait.
-- **Controller:** gamepad support, including controller navigation through menus and the chart.
+- **Mouse and keyboard:** play on desktop or laptop.
+- **Touch:** play on a phone or tablet, in landscape or portrait.
+- **Controller:** play with a compatible gamepad, including navigation through menus and the chart.
 - **Languages:** English and French.
 
 The sailing tutorial introduces the controls and your first voyage. Settings includes graphics quality and sound options; choose Low graphics for less powerful devices.
