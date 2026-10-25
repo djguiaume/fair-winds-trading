@@ -2,6 +2,8 @@ import { bergFields, prepareField } from './bergs';
 import { knotToUnits } from './boat';
 import { coastDistance } from './coast';
 import { piersOf, solidTo } from './collision';
+import { hullRadius } from './harbourDistance';
+import { distanceToPort } from './trade';
 import { CurrentField, laneShape } from './currents';
 import { outlineCrosses, smoothOutline } from './flowShapes';
 import { TUNING } from '../data/tuning';
@@ -21,7 +23,7 @@ import { hasQuestLand, standingMap } from './questLand';
 import { type IslandDef, type MapDef, type PortDef, SEA_MARK_TYPES, type TerrainDef } from './map';
 import { DEG, bearingTo, wrapAngle } from './math';
 import { CUTTER, SHIP_CLASSES, SLOOP, noGoAngle, polarFraction } from './ship';
-import { MAX_SETTLEMENT_LEVEL } from './settlement';
+import { DEFAULT_START_LEVEL, MAX_SETTLEMENT_LEVEL } from './settlement';
 import { isBeltKind } from './stormBelt';
 import { NO_ZONE, type ZoneEffect, zoneField, zoneMaxGain, zoneMeanAt } from './windZones';
 
@@ -736,7 +738,126 @@ export function quickChecks(map: MapDef): MapCheck[] {
         )
       : pass('landmarks', 'every scenery island has a landmark', 'warning'),
   );
+  out.push(...berthChecks(map));
   return out;
+}
+
+/** Distance from a point to a pier's centre line. */
+function segmentDistance(
+  x: number,
+  y: number,
+  p: { x0: number; y0: number; x1: number; y1: number },
+) {
+  const dx = p.x1 - p.x0,
+    dy = p.y1 - p.y0;
+  const t = Math.max(
+    0,
+    Math.min(1, ((x - p.x0) * dx + (y - p.y0) * dy) / (dx * dx + dy * dy || 1)),
+  );
+  return Math.hypot(x - p.x0 - t * dx, y - p.y0 - t * dy);
+}
+
+/**
+ * Berths (decision 0203): every port docks only at its harbour. Each port, at its first and top
+ * level, needs a pier, clear water where a sloop docks, and one dock zone round its piers: not
+ * the whole coast, and not a second patch past a spit or across a lagoon.
+ */
+export function berthChecks(map: MapDef): MapCheck[] {
+  const { dockRange, berthReach } = TUNING.seamanship.harbour;
+  const step = 4;
+  const problems: string[] = [];
+  const split: string[] = [];
+  for (const port of map.ports) {
+    const island = map.islands.find((i) => i.id === port.islandId);
+    if (!island) continue;
+    const first = port.site ? 1 : (port.level ?? DEFAULT_START_LEVEL);
+    for (const level of new Set([first, port.maxLevel ?? MAX_SETTLEMENT_LEVEL])) {
+      const piers = piersOf(map, { [port.id]: level }).filter(
+        (p) => p.islandId === island.id && !p.boat,
+      );
+      if (!piers.length) {
+        problems.push(`${port.name} has no pier (it docks along its whole coast)`);
+        break;
+      }
+      const reach = dockRange + berthReach + hullRadius('sloop');
+      // A wider look than the berth itself, to catch a dock zone that runs on along the coast.
+      const pad = reach + 24;
+      const x0 = Math.min(...piers.flatMap((p) => [p.x0, p.x1])) - pad;
+      const x1 = Math.max(...piers.flatMap((p) => [p.x0, p.x1])) + pad;
+      const y0 = Math.min(...piers.flatMap((p) => [p.y0, p.y1])) - pad;
+      const y1 = Math.max(...piers.flatMap((p) => [p.y0, p.y1])) + pad;
+      const cols = Math.ceil((x1 - x0) / step) + 1;
+      const rows = Math.ceil((y1 - y0) / step) + 1;
+      const docks = new Uint8Array(cols * rows);
+      for (let r = 0; r < rows; r++)
+        for (let c = 0; c < cols; c++) {
+          const x = x0 + c * step,
+            y = y0 + r * step;
+          if (!clearAt(map, x, y, 2)) continue;
+          // Bow out to sea, as she lies alongside.
+          const heading = Math.atan2(x - island.x, y - island.y);
+          if (distanceToPort(map, { x, y, heading }, port, level, 'sloop', dockRange) <= dockRange)
+            docks[r * cols + c] = 1;
+        }
+      let spill = 0;
+      for (let k = 0; k < docks.length; k++)
+        if (docks[k])
+          spill = Math.max(
+            spill,
+            Math.min(
+              ...piers.map((p) =>
+                segmentDistance(x0 + (k % cols) * step, y0 + Math.floor(k / cols) * step, p),
+              ),
+            ),
+          );
+      if (spill > reach + step)
+        problems.push(
+          `${port.name} (level ${level}): docks ${Math.round(spill)} units from its piers`,
+        );
+      const patches: number[] = [];
+      for (let k = 0; k < docks.length; k++) {
+        if (docks[k] !== 1) continue;
+        let size = 0;
+        const stack = [k];
+        docks[k] = 2;
+        while (stack.length) {
+          const at = stack.pop()!;
+          size++;
+          const r = Math.floor(at / cols),
+            c = at % cols;
+          for (const [dr, dc] of [
+            [1, 0],
+            [-1, 0],
+            [0, 1],
+            [0, -1],
+            [1, 1],
+            [1, -1],
+            [-1, 1],
+            [-1, -1],
+          ]) {
+            const rr = r + dr!,
+              cc = c + dc!;
+            if (rr < 0 || cc < 0 || rr >= rows || cc >= cols || docks[rr * cols + cc] !== 1)
+              continue;
+            docks[rr * cols + cc] = 2;
+            stack.push(rr * cols + cc);
+          }
+        }
+        patches.push(size);
+      }
+      if (!patches.length) problems.push(`${port.name} (level ${level}): no clear water to dock`);
+      else if (patches.filter((n) => n > 2).length > 1) split.push(`${port.name} (level ${level})`);
+    }
+  }
+  return [
+    problems.length
+      ? fail('berths', list(problems))
+      : pass('berths', 'every port docks only at its harbour'),
+    // Two dock patches: shore past a spit or round a small island's back, worth a look.
+    split.length
+      ? fail('berth-split', `dock zone in two patches: ${list(split)}`, 'warning')
+      : pass('berth-split', 'one dock zone per port', 'warning'),
+  ];
 }
 
 /**

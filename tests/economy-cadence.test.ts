@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PHASE1_MAP as map } from '../src/data/maps';
 import { TUNING, resetTuning } from '../src/data/tuning';
 import * as markets from '../src/sim/market';
-import { islandCoasts } from '../src/sim/islandLayout';
+import { piersOf } from '../src/sim/collision';
 import { GOODS } from '../src/sim/goods';
 import { applySave, serializeWorld, validateSave } from '../src/sim/save';
 import { addGrowth } from '../src/sim/settlement';
@@ -120,9 +120,9 @@ describe('economy cadence', () => {
     step(w, 0);
     step(w, 0.1);
     const port = map.ports[0]!;
-    const island = map.islands.find((i) => i.id === port.islandId)!;
-    const shore = islandCoasts(island)![0]![0]!;
-    const boat = { x: shore[0], y: shore[1], speedKn: 0 };
+    // At the pier head: she docks only at the harbour (decision 0203).
+    const pier = piersOf(map).find((p) => p.islandId === port.islandId && !p.boat)!;
+    const boat = { x: pier.x1, y: pier.y1, speedKn: 0 };
     expect(tryDock(w.trade, map, boat, port.id)).toBe(true);
     flushEconomy(w.trade, map); // explicit docking UI flushes before opening its paused panel
     expect(w.trade.economyPending).toBe(0);
