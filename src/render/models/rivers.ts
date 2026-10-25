@@ -194,9 +194,22 @@ function splash(
 ): Parts {
   if (lava && core) return [];
   if (!lava) {
-    // A low spill on a ledge; a wider ring on the sea, lying on the water.
-    const foam = new THREE.CircleGeometry(width * (sea ? 1.5 : 0.75), 7).rotateX(-Math.PI / 2);
-    return [paint(foam.translate(x, y + LIFT * (sea ? 1.5 : 1.1), z), RIVER_COLORS.white)];
+    // A low spill on a ledge; on the sea, three ragged patches of foam lying on the water.
+    if (!sea) {
+      const foam = new THREE.CircleGeometry(width * 0.75, 7).rotateX(-Math.PI / 2);
+      return [paint(foam.translate(x, y + LIFT * 1.1, z), RIVER_COLORS.white)];
+    }
+    return [
+      [0, 0, 0.6, 0],
+      [0.55, 0.35, 0.4, 1],
+      [-0.45, 0.45, 0.35, 2],
+    ].map(([dx, dz, r, turn]) => {
+      const foam = new THREE.CircleGeometry(width * r!, 5, turn!).rotateX(-Math.PI / 2);
+      return paint(
+        foam.translate(x + dx! * width, y + LIFT * 1.5, z + dz! * width),
+        RIVER_COLORS.white,
+      );
+    });
   }
   const puffs = sea ? 3 : 2;
   const out: Parts = [];
