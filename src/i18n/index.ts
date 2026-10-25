@@ -177,6 +177,18 @@ export function zoneKindName(kind: string): string {
   return key in en ? t(key) : kind;
 }
 
+/**
+ * A named wind zone on a chart, "The Glass · doldrums"; just the name when it already says its
+ * kind ("The Cold Sea", not "The Cold Sea · cold sea").
+ */
+export function zoneLabel(name: string, kind: string): string {
+  const kindName = zoneKindName(kind);
+  const words = kindName.replace(/[^\p{L} ]/gu, '');
+  return new RegExp(`(^|[^\\p{L}])${words}($|[^\\p{L}])`, 'iu').test(name)
+    ? name
+    : t('chart.zone', { name, kind: kindName });
+}
+
 export function hasText(key: string): key is MessageKey {
   return key in en;
 }

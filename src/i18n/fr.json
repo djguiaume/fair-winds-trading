@@ -881,5 +881,6 @@
   "zone.sheltered": "eaux abritées",
   "zone.ash": "nuage de cendres",
   "zone.storm-belt": "ceinture de grains",
-  "zone.fog-bank": "banc de brouillard"
+  "zone.fog-bank": "banc de brouillard",
+  "zone.cold-sea": "mer froide"
 }

@@ -18,7 +18,7 @@ import { coastDistance } from '../sim/coast';
 import { areaCrests, laneCrests, laneEdges, smoothOutline } from '../sim/flowShapes';
 import { zoneHazy } from '../sim/windZones';
 import { TUNING } from '../data/tuning';
-import { goodName, t, zoneKindName } from '../i18n';
+import { goodName, t, zoneLabel } from '../i18n';
 import { icon, COIN } from './icons';
 import { drawHazard } from './hazardMarker';
 import { landStyles, seaMarkShape } from './chartMarks';
@@ -457,7 +457,7 @@ export class SeaChart {
       });
       const deep = deepestPoint(outline);
       return {
-        text: t('chart.zone', { name: z.name!, kind: zoneKindName(z.kind) }),
+        text: zoneLabel(z.name!, z.kind),
         kind,
         x: deep.x,
         y: -deep.y,
@@ -1306,9 +1306,16 @@ export class SeaChart {
       const size = 11 * px;
       const w = z.text.length * size * 0.5,
         h = size * 1.2;
-      const b = box(z.x, z.y, w, h);
+      // Slid in from the sea's rim so the chart's edge never cuts the name (Phase 4 review).
+      const rim = Math.sqrt(Math.max(0, map.boundsRadius ** 2 - (Math.abs(z.y) + h / 2) ** 2));
+      const room = rim - 6 * unit - w / 2;
+      if (room < 0) continue;
+      const x = Math.min(Math.max(z.x, -room), room);
+      // A zone's name waits for its water to be charted, like the islands in it (decision 0156).
+      if (z.kind !== 'fog' && !chartedAt(map, this.world.trade.progress, x, -z.y)) continue;
+      const b = box(x, z.y, w, h);
       // The name may run a little past a zone's edge, but not over a zone much narrower than it.
-      const inside = (dx: number) => coastDistance(z.x + dx, -z.y, z.outline).distance < 0;
+      const inside = (dx: number) => coastDistance(x + dx, -z.y, z.outline).distance < 0;
       let chord = 0;
       for (const side of [-1, 1])
         for (let dx = 0; dx < w && inside(side * dx); dx += w / 20) chord += w / 20;
@@ -1316,7 +1323,7 @@ export class SeaChart {
       if (!fits || overlap(b, boatBox) > 0 || placed.some((p) => overlap(b, p) > 0)) continue;
       placed.push(b);
       const label = shape('text', {
-        x: z.x,
+        x,
         y: z.y + size * 0.35,
         class: `chart-zone-label chart-zone-${z.kind}`,
         style: `font-size: ${size}px`,
