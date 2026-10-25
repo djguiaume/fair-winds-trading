@@ -169,6 +169,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     'How deep the hull sits, relative: scales the drag of shallow water (0032).',
   ),
   'ships.*.hold': num('Hold', 1, 300, 1, 'units', 'Cargo capacity before hold upgrades.'),
+  'ships.*.deck': num(
+    'Deck cargo',
+    0,
+    100,
+    1,
+    'units',
+    'Quest cargo carried on deck, apart from the hold (0213); upgrades leave it.',
+  ),
   'ships.*.price': num('Price', 0, 50000, 50, 'gold', 'Shipyard price (0 for the starter).'),
   'ships.*.upgradePrices': num(
     'Upgrade prices',
@@ -1867,6 +1875,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     1,
     'units',
     'Distance at which a course buoy counts as reached.',
+  ),
+  'seamanship.harbour.markReach': num(
+    'Mark reached',
+    2,
+    60,
+    1,
+    'units',
+    'Distance at which her own chart mark counts as reached and is cleared (0212).',
   ),
   'seamanship.cargo.overpressedKn': num(
     'Overpressed',

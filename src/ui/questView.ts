@@ -1,4 +1,4 @@
-import { type MessageKey, goodSome, goodThe, t, tOptional } from '../i18n';
+import { type MessageKey, formatNumber, goodMany, goodSome, goodThe, t, tOptional } from '../i18n';
 import { isGood, type GoodId } from '../sim/goods';
 import type { MapDef } from '../sim/map';
 import {
@@ -11,6 +11,7 @@ import {
   pointOf,
   resolvePort,
   slotLayout,
+  type StepNews,
 } from '../sim/questLibrary';
 import {
   type CoachTarget,
@@ -23,7 +24,7 @@ import {
 } from '../sim/quests';
 import { BUILDINGS, homeSpots, resolveSpot } from '../sim/home';
 import { isDiscovered } from '../sim/shipyards';
-import { findPort } from '../sim/trade';
+import { findPort, quoteHandOver } from '../sim/trade';
 import { type Character, type Mood, MOODS, character } from './portraits';
 
 /*
@@ -71,6 +72,16 @@ export interface QuestCardModel {
   /** A standing order's ask (decision 0214): its number, shown instead of the steps. */
   round?: number;
   /**
+   * What just happened for this quest where the boat is (decision 0213): "1 millstone aboard for
+   * Maren, 1 left on the quay…", or "Done! +150 gold." for the step finished here.
+   */
+  news?: string;
+  /**
+   * Goods this person wants here and the hold has (decision 0213): the card hands them over,
+   * paid at the market price, instead of sending the captain to the market.
+   */
+  handOver?: { good: GoodId; n: number; gold: number };
+  /**
    * A plot's card at the captain's island (decision 0210): the giver by their stake, with its own
    * tag and no arc line; the arrival button opens the Island tab on this plot.
    */
@@ -87,6 +98,74 @@ export function arcName(quest: QuestDef): string {
 export function portName(map: MapDef, id: string | undefined): string | undefined {
   const port = resolvePort(map, id);
   return port ? (findPort(map, port)?.name ?? port) : undefined;
+}
+
+/** A person's short name in news lines: their `short`, else their first word ("Maren"). */
+export function shortName(c: Character | undefined): string {
+  return c ? (c.short ?? c.name.split(' ')[0]!) : '';
+}
+
+/** A dock news place: a port's name, or "the mark on the chart" for a spot at sea. */
+function placeName(map: MapDef, place: string | undefined): string {
+  if (!place) return '';
+  return place === 'spot' ? t('quest.news.spot') : (portName(map, place) ?? place);
+}
+
+/**
+ * Dock news in words (decision 0213): the line `quest.news.<kind>` with the quest's person, its
+ * cargo's name in the right form (`quest.item.<id>.one|many|the|own|unloadedOne|unloadedMany`,
+ * or a passenger's name) and the places.
+ */
+export function newsLine(book: QuestBook, map: MapDef, news: StepNews & { quest: string }): string {
+  const quest = book.quests.find((q) => q.id === news.quest);
+  const who = shortName(quest?.giver ? character(quest.giver) : undefined);
+  const person = news.item ? character(news.item) : undefined;
+  const form = (f: string) =>
+    person && quest?.items?.[news.item!]?.space === 0
+      ? shortName(person)
+      : (tOptional(`quest.item.${news.item}.${f}`) ?? news.item ?? '');
+  const count = news.n;
+  let item: string;
+  if (news.good) item = goodMany(news.good);
+  else if (news.kind === 'noRoom') item = form('own');
+  else if (news.kind === 'nothingAboard' || news.kind === 'loadedOne') item = form('the');
+  else if (news.kind === 'loadedPassenger') item = form('the');
+  else item = form(count === 1 ? 'one' : 'many');
+  const line = t(`quest.news.${news.kind}` as MessageKey, {
+    who,
+    item,
+    good: item,
+    n: formatNumber(news.n),
+    left: formatNumber(news.left),
+    done: formatNumber(news.done),
+    total: formatNumber(news.total),
+    space: formatNumber(news.space),
+    to: placeName(map, news.to),
+    from: placeName(map, news.from),
+    par: news.par === undefined ? '' : parClock(news.par),
+    unloaded: form(count === 1 ? 'unloadedOne' : 'unloadedMany'),
+  });
+  return line.charAt(0).toUpperCase() + line.slice(1);
+}
+
+/**
+ * Quest cargo in the hold lists (decision 0213): "Maren’s millstones: 1 (6 space)", a passenger
+ * "Pip, passenger".
+ */
+export function cargoLines(book: QuestBook): string[] {
+  return book.cargo().map(({ quest: id, item, n, space }) => {
+    const quest = book.quests.find((q) => q.id === id);
+    const who = shortName(quest?.giver ? character(quest.giver) : undefined);
+    if (quest?.items?.[item]?.space === 0)
+      return t('quest.cargoPassenger', { item: shortName(character(item)) || item });
+    const line = t('quest.cargoLine', {
+      who,
+      item: tOptional(`quest.item.${item}.own`) ?? item,
+      n: formatNumber(n),
+      space: formatNumber(space),
+    });
+    return line.charAt(0).toUpperCase() + line.slice(1);
+  });
 }
 
 /** Where a quest's card shows: the step's port, else the quest's. */
@@ -348,12 +427,21 @@ export interface QuayItem {
   key: string;
   card: QuestCardModel;
   fresh: boolean;
+  /**
+   * The `seen` key of the card's dock news (decision 0213), `news:<quest>:<step>@<port>:<line>`:
+   * the same news is told once, new news (more aboard, more handed over) again.
+   */
+  newsKey?: string;
 }
 
 /**
  * The harbour screen's Quay tab (decision 0141): everyone in this harbour with something to say,
  * other than the main quests' arrival cards. The thanks first, then the steps under way here, then
  * the offers; `fresh` ones count on the tab's badge until the tab is seen.
+ *
+ * Every stop of a started quest speaks here too (decision 0213): where its cargo is loaded or
+ * unloaded, or its goods handed over, the step's card is listed with its dock news on top, and
+ * `paid` (quest → gold, for steps done during this call) tops the next card with "Done! +150 gold".
  */
 export function quayItems(
   book: QuestBook,
@@ -361,24 +449,42 @@ export function quayItems(
   docked: string | null,
   seen: ReadonlySet<string>,
   finished: ReadonlySet<string>,
+  paid: ReadonlyMap<string, number> = new Map(),
 ): QuayItem[] {
   if (!docked) return [];
   const out: QuayItem[] = [];
-  const add = (quest: QuestDef, kind: CardKind, key: string) => {
+  const add = (quest: QuestDef, kind: CardKind, key: string, news?: string, hand?: StepNews) => {
     const card = cardFor(book, map, quest.id, kind);
-    if (card) out.push({ key, card, fresh: !seen.has(key) });
+    if (!card) return;
+    const gold = paid.get(quest.id);
+    const done = gold ? t('quest.news.paid', { gold: formatNumber(gold) }) : undefined;
+    card.news = [done, news].filter(Boolean).join(' ') || undefined;
+    const n = hand?.good ? Math.min(hand.left, book.world.trade.captain.cargo[hand.good]) : 0;
+    const pay = n > 0 ? quoteHandOver(book.world.trade, hand!.good!, n) : null;
+    if (pay !== null) card.handOver = { good: hand!.good!, n, gold: pay };
+    const newsKey = card.news ? `news:${key}@${docked}:${card.news}` : undefined;
+    const fresh = !seen.has(key) || (newsKey !== undefined && !seen.has(newsKey));
+    out.push({ key, card, fresh, ...(newsKey ? { newsKey } : {}) });
   };
   for (const id of finished) {
     const quest = book.quests.find((q) => q.id === id);
     if (quest && !quest.main && (cardPort(map, quest) ?? docked) === docked)
       add(quest, 'finished', `${id}:done`);
   }
+  const news = book.news();
   for (const { quest, step } of book.active) {
     if (quest.main) continue;
     const key = `${quest.id}:${step.id}`;
     const port = cardPort(map, quest, step);
-    if (port === docked || (!port && !seen.has(key)))
-      add(quest, step.choose ? 'choice' : 'step', key);
+    const here = news.filter((n) => n.quest === quest.id);
+    if (port === docked || (!port && !seen.has(key)) || here.length || paid.has(quest.id))
+      add(
+        quest,
+        step.choose ? 'choice' : 'step',
+        key,
+        here.map((n) => newsLine(book, map, n)).join(' ') || undefined,
+        here.find((n) => n.kind === 'handHere'),
+      );
   }
   for (const quest of book.offered)
     if (!quest.main && cardPort(map, quest) === docked) add(quest, 'offer', `${quest.id}:offer`);
@@ -543,7 +649,7 @@ export function questGoal(
   book: QuestBook,
   map: MapDef,
   harbours: Record<string, { x: number; y: number }>,
-): { x: number; y: number; label: string } | null {
+): { x: number; y: number; label: string; portId?: string; place?: string } | null {
   const target = questTarget(book, map);
   const active = book.active.find((a) => a.quest.id === book.tracked);
   if (!active) return null;
@@ -552,11 +658,31 @@ export function questGoal(
     stepParams(book, active.step, active.quest),
   );
   const point = book.compassOf(active.step) ?? target?.point;
-  if (point) return { x: point.x, y: point.y, label: ask ?? active.quest.name };
+  if (point) {
+    const place = placeBy(map, point);
+    return { x: point.x, y: point.y, label: ask ?? active.quest.name, ...(place ? { place } : {}) };
+  }
   const port = target?.port ? findPort(map, target.port) : undefined;
   const island = port && map.islands.find((i) => i.id === port.islandId);
   const at = (port && harbours[port.id]) ?? island;
-  return port && at ? { x: at.x, y: at.y, label: port.name } : null;
+  return port && at ? { x: at.x, y: at.y, label: port.name, portId: port.id } : null;
+}
+
+/** How near a named island a spot at sea is said to be by it (decision 0212). */
+const PLACE_REACH = 25;
+
+/** The named island a spot at sea lies by, for a course's name ("To Teeth Rock"), if any. */
+export function placeBy(map: MapDef, at: { x: number; y: number }): string | undefined {
+  let best: string | undefined;
+  let bestGap = PLACE_REACH;
+  for (const island of map.islands) {
+    const gap = Math.hypot(island.x - at.x, island.y - at.y) - island.radius;
+    if (island.name && gap < bestGap) {
+      best = island.name;
+      bestGap = gap;
+    }
+  }
+  return best;
 }
 
 /** A place at sea the tracked step asks the boat to reach (decision 0130). */

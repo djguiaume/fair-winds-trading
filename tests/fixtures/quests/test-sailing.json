@@ -3,7 +3,7 @@
   "name": "Test: every sailing kind",
   "start": { "is": "always" },
   "text": "quest.test-sailing",
-  "items": { "millstone": { "space": 4 } },
+  "items": { "millstone": { "space": 5 } },
   "steps": [
     {
       "id": "stones",

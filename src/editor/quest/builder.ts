@@ -1664,7 +1664,10 @@ function drawCardView() {
   const keys = textKeys(q).filter(({ key }) =>
     s
       ? key.startsWith(`${q.text}.${s.id}.`)
-      : key === `${q.text}.name` || key.startsWith(`${q.text}.done.`),
+      : key === `${q.text}.name` ||
+        key.startsWith(`${q.text}.done.`) ||
+        // The quest cargo's names, for the dock news (decision 0213).
+        key.startsWith('quest.item.'),
   );
   const table = h('table', { class: 'qb-text' });
   table.append(

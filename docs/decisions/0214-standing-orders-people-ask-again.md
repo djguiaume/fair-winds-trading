@@ -1,6 +1,6 @@
 # 0214. Standing orders: people ask again
 
-**Status:** Proposed (2026-10-25). Part 8 of the Phase 5 brief ([0207](0207-the-roadmap-after-phase-4.md), `docs/phase-5/brief.md`); words by the head storyteller (`docs/phase-5/story.md` › 2).
+**Status:** Accepted (2026-10-25). Part 8 of the Phase 5 brief ([0207](0207-the-roadmap-after-phase-4.md), `docs/phase-5/brief.md`); words by the head storyteller (`docs/phase-5/story.md` › 2).
 
 ## Context
 

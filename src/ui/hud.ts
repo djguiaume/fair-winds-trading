@@ -1,7 +1,7 @@
 import { knobs } from '../sim/difficulty';
 import { trueWindAngle } from '../sim/boat';
 import { DEG, bearingTo, distance, wrapPositive } from '../sim/math';
-import { type PointOfSail, noGoAngle, pointOfSail } from '../sim/ship';
+import { type PointOfSail, SHIP_CLASSES, noGoAngle, pointOfSail } from '../sim/ship';
 import { damageStage, hullCondition } from '../sim/hazards';
 import { windForecast } from '../sim/forecast';
 import { USUAL_WEATHER, windTo } from '../sim/wind';
@@ -61,6 +61,12 @@ function formatTime(seconds: number): string {
 }
 
 /** Plain-DOM heads-up display with trading stats and port labels. */
+/** Seconds as a clock, "1:45". */
+const clock = (secs: number) => {
+  const s = Math.max(0, Math.floor(secs));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+};
+
 export class Hud {
   private readonly speed = $('speed');
   private readonly heading = $('heading');
@@ -126,6 +132,11 @@ export class Hud {
    * tracked quest's place. The objective panel and the edge arrow show it like a course.
    */
   goal: { x: number; y: number; label: string } | null = null;
+  /** A timed run under way (decision 0213): its clock shows in the course pill. */
+  run: { sec: number; par: number; to: string } | null = null;
+  private readonly objClock = $('obj-clock');
+  /** Quest cargo aboard, a line each, for the hold list (decision 0213). */
+  questCargo: () => string[] = () => [];
   private readonly wpArrow = $('wp-arrow');
   private readonly toast = $('toast');
   private readonly tiller = $('tiller');
@@ -138,6 +149,8 @@ export class Hud {
   private readonly hudHullBox = $('hud-hull-box');
   private readonly hullBar = $('hull-bar');
   private readonly cargoFill = $('hud-cargo-fill');
+  private readonly deckBox = $('hud-deck-box');
+  private readonly deckText = $('hud-deck');
   private readonly cargoBox = $('hud-cargo-box');
   private readonly cargoTooltip = $('hud-cargo-tooltip');
   private readonly dockBtn = $('dock-btn');
@@ -356,6 +369,17 @@ export class Hud {
     }
   }
 
+  /** "1:45 / 2:20", red near par (decision 0213). */
+  private showRunClock() {
+    const run = this.run;
+    this.objClock.hidden = !run;
+    if (!run) return;
+    const text = `${clock(run.sec)} / ${clock(run.par)}`;
+    const b = this.objClock.querySelector('b')!;
+    if (b.textContent !== text) b.textContent = text;
+    this.objClock.classList.toggle('is-close', run.par - run.sec < 20);
+  }
+
   private toggleCargoTooltip() {
     if (!this.cargoTooltip.hidden) {
       this.cargoTooltip.hidden = true;
@@ -364,6 +388,13 @@ export class Hud {
     const { captain } = this.world.trade;
     const items = GOODS.filter((g) => captain.cargo[g] > 0)
       .map((g) => `${goodName(g)}: <b>${captain.cargo[g]}</b>`)
+      // Quest cargo on deck (decision 0213): say whose it is.
+      .concat(
+        this.questCargo().map(
+          (l, i) =>
+            `${i ? '' : `<small>${t('hud.onDeck')}</small><br>`}${l.replace(/[&<>"]/g, '')}`,
+        ),
+      )
       .join('<br>');
 
     this.cargoTooltip.innerHTML = items
@@ -387,7 +418,8 @@ export class Hud {
 
   handleEvents(events: WorldEvent[]) {
     for (const e of events) {
-      if (e.type === 'waypoint') {
+      if (e.type === 'mark-reached') this.showToast(t('toast.markReached'), 2.5);
+      else if (e.type === 'waypoint') {
         this.showToast(
           t('toast.waypoint', { label: e.label, time: formatTime(e.seconds), next: e.next }),
           3.5,
@@ -582,13 +614,16 @@ export class Hud {
     rot(this.cWind, windTo(wind));
     rot(this.cBoat, boat.heading);
     this.cWp.style.display = wp ? '' : 'none';
-    this.objective.hidden = !wp;
+    this.objective.hidden = !wp && !this.run;
+    this.showRunClock();
     if (wp) rot(this.cWp, bearingTo(boat, wp));
     this.cMark.style.display = this.mark ? '' : 'none';
     if (this.mark) rot(this.cMark, bearingTo(boat, this.mark));
     const targetAngle = wp ? screenBearing(project, boat, wp) : 0;
     if (wp) this.objArrow.style.transform = `rotate(${targetAngle}rad)`;
-    const targetName = wp?.label ?? '';
+    // No course set during a run: the pill names the run (decision 0213).
+    const runTo = this.run && findPort(this.world.map, this.run.to)?.name;
+    const targetName = wp?.label ?? (runTo ? t('quest.run.clock', { to: runTo }) : '');
     if (this.objName.textContent !== targetName) this.objName.textContent = targetName;
 
     this.compass.classList.toggle('is-upwind', cue.amber);
@@ -640,6 +675,11 @@ export class Hud {
       this.cargoFill.setAttribute('y', (20 - fill).toFixed(1));
       this.cargoFill.setAttribute('height', fill.toFixed(1));
       this.cargoBox.classList.toggle('is-full', used >= cap);
+      // Quest cargo lashed on deck (decision 0213), shown while there is some.
+      const deck = SHIP_CLASSES[trade.captain.activeShip]!.deck;
+      const onDeck = trade.quests.hold ?? 0;
+      this.deckBox.hidden = onDeck <= 0;
+      if (onDeck > 0) this.deckText.textContent = `${onDeck}/${deck}`;
       const condition = hullCondition(trade);
       const hull = Math.round(condition * 100);
       // The colour steps with the damage the model shows (decision 0208): brass when scuffed,
