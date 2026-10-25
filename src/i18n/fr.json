@@ -676,7 +676,7 @@
   "trade.tabQuay": "Quai",
   "trade.quayHint": "<b>{name}</b> voudrait vous parler",
   "trade.quayGo": "→ Quai",
-  "trade.quayEmpty": "Personne n’attend. Revenez à la prochaine marée.",
+  "trade.quayEmpty": "Personne n’attend sur le quai pour l’instant.",
   "trade.keeperGrowth": "{level} · {pct} %",
   "trade.keeperNext": "Ensuite : {level}",
   "trade.keeperNextMakes": "Ensuite : {level}, produit {goods}",

@@ -676,7 +676,7 @@
   "trade.tabQuay": "Quay",
   "trade.quayHint": "<b>{name}</b> would like a word",
   "trade.quayGo": "→ Quay",
-  "trade.quayEmpty": "Nobody waiting. Come back after the next tide.",
+  "trade.quayEmpty": "Nobody waiting on the quay just now.",
   "trade.keeperGrowth": "{level} · {pct}%",
   "trade.keeperNext": "Next: {level}",
   "trade.keeperNextMakes": "Next: {level}, makes {goods}",

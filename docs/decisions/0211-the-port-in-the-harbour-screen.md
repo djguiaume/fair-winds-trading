@@ -38,8 +38,8 @@ port's island file. The storyteller named the keepers and wrote their lines
   `running`, `done`, and `grew` once after the town grew a level; an outpost speaks as done. The two
   lines of a state take turns from one docking to the next. Lines are
   `keeper.<person>.<state>.<n>` in `en.json` and `fr.json`.
-- **The Quay tab** with nobody on it shows the picture and "Nobody waiting. Come back after the next
-  tide."
+- **The Quay tab** with nobody on it shows the picture and "Nobody waiting on the quay just now." (the storyteller: no
+  promise of a return the game does not keep).
 - **Tools**: `npm run sea -- set port <id> --keeper <person>` and the sea editor's Keeper field;
   `npm run island -- <id> view --from x,z --look x,z --height h --look-height h --accent #hex`
   (`none` clears one, `--clear` all) and the island builder's "Harbour screen picture" fields; the

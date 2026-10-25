@@ -696,9 +696,9 @@
   }
 }
 
-/* Phones with a controller: the X glyph on Sell all needs the quay hint on its own row (0163). */
+/* Phones: the quay hint on its own row, so Set sail and Sell all stay whole (0163, 0211). */
 @media (max-width: 640px) {
-  html[data-input='pad'] .port-screen .quay-hint {
+  .port-screen .quay-hint {
     flex-basis: 100%;
   }
 }

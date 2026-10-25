@@ -61,7 +61,16 @@ import {
 } from '../sim/upgrades';
 import type { World } from '../sim/world';
 import { KIDS_MODE_AVAILABLE, type UiMode } from './settings';
-import { formatNumber, goodName, shipName, shipThe, t, tOptional, townLevelName } from '../i18n';
+import {
+  formatNumber,
+  goodName,
+  goodSome,
+  shipName,
+  shipThe,
+  t,
+  tOptional,
+  townLevelName,
+} from '../i18n';
 import { COIN, crateIcon, icon } from './icons';
 import { character, portraitSvg } from './portraits';
 import { keeperState } from '../sim/keeper';
@@ -418,7 +427,7 @@ export class TradePanel {
       next = makes.length
         ? t('trade.keeperNextMakes', {
             level: name,
-            goods: makes.map((g) => `${icon(g)} ${goodName(g).toLowerCase()}`).join(', '),
+            goods: makes.map((g) => `${icon(g)} ${goodSome(g)}`).join(', '),
           })
         : upgrade && port.id === homePort(map).id
           ? t('trade.keeperNextShipyard', { level: name, n: upgrade })
