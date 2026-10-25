@@ -1,6 +1,6 @@
 # North sea review: Rimewick, pack ice and drifting bergs (decision 0170)
 
-Screenshots from the real game (`npm run shots -- --list src/final.json`) and the labelled chart (`npm run chart -- --sea phase4 --view -500,450,500,1000`). Art director approved review 2; these are review 3, with the art director's tweaks applied.
+Screenshots from the real game (`npm run shots -- --list src/final.json`) and the labelled chart (`npm run chart -- --sea phase4 --view -500,450,500,1000`). Art director approved review 2; review 3 applied the art director's tweaks. Review 4 reshapes Rimewick (Guillaume found it too close to Fogwatch): a long west arm curling round the fjord and a short east headland.
 
 | Shot | What it shows |
 |---|---|

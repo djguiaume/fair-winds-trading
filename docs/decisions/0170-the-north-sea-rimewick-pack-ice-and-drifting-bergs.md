@@ -9,7 +9,7 @@ Phase 4's north sea ([0137](0137-phase-4-biomes-and-founded-outposts.md), story 
 ## Decision
 
 **The sea** (`src/data/seas/north.json`, made with `npm run sea`, [review](../reviews/north-sea/README.md)):
-- Rimewick, the main port: level 3 at start, no top level, makes cloudberry jam from level 3. A fjord between two arms, with a glacier and slate fells behind.
+- Rimewick, the main port: level 3 at start, no top level, makes cloudberry jam from level 3. A Greenland fjord, made asymmetric so it does not echo Fogwatch's round bay (Guillaume): a long west arm curls round the harbour, a short east headland closes it, and the town sits at the head under the glacier and slate fells. The harbour still faces straight out to sea, as every profiled island's must for the harbour and route checks.
 - Snowberry Isle, the site you found (level 1 to 3, gathers cloudberries). Its shelf ice rings it, and the Snowberry Pack closes the cove on the harbour side.
 - Small islands: Whitefell, Lead Rock (the beacon), Cairn Holm and Seal Rocks.
 - The Floe Line is a barrier of ice floes with one gateway, the Rime Gate. Inside it is the Whistle cold gale. The Calving Grounds is a berg field.

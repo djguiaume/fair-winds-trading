@@ -158,7 +158,7 @@ const GOLDEN: Record<string, string[]> = {
   // The north sea's islands (decision 0170).
   'cairn-holm': Array(4).fill('6:cd116a0a'),
   'lead-rock': Array(4).fill('19:6c8d9003'),
-  rimewick: ['831:e52ccd32', '999:928efc6', '1042:bc36d5ef', '1050:5299e4de'],
+  rimewick: ['824:a686612e', '992:9a271e4f', '1040:683164e4', '1048:a124bafd'],
   'seal-rocks': Array(4).fill('19:515ad7d'),
   'snowberry-isle': ['238:30aaab39', '408:a4f7aef7', '437:cc204c39', '437:cc204c39'],
   whitefell: Array(4).fill('17:d0741cb0'),
