@@ -6,7 +6,8 @@ import { type QuestDef, QuestBook } from '../src/sim/quests';
 import { SLOOP } from '../src/sim/ship';
 import { homePort } from '../src/sim/shipyards';
 import { type World, createWorld } from '../src/sim/world';
-import { QuestCard } from '../src/ui/questCard';
+import { PAD } from '../src/input/gamepad';
+import { QuestCard, questCardBody } from '../src/ui/questCard';
 import { cardFor, dueCard, journal, questPins, questTarget } from '../src/ui/questView';
 import pier from './fixtures/quests/test-pier.json';
 
@@ -166,6 +167,24 @@ describe('QuestCard', () => {
     dialog.querySelector<HTMLButtonElement>('[data-act="accept"]')!.click();
     expect(accept).toHaveBeenCalledWith('test-pier');
     expect(card.isOpen).toBe(false);
+  });
+
+  it("puts the controller's buttons on the card's answers, from controls.json (decision 0163)", () => {
+    const { book, map } = setup();
+    const offer = cardFor(book, map, 'test-pier', 'offer')!;
+    const box = document.createElement('div');
+    const glyph = (act: string) =>
+      box.querySelector<HTMLElement>(`[data-act="${act}"] [data-pad-key]`)?.dataset.padKey;
+    box.innerHTML = questCardBody({ ...offer, main: false });
+    expect(glyph('accept')).toBe(PAD.menu.actions.press[0]);
+    expect(glyph('later')).toBe(PAD.menu.actions.back[0]);
+    expect(glyph('ignore')).toBe(PAD.menu.actions.secondary[0]);
+    // The extra action is the one the pad's secondary button clicks.
+    expect(box.querySelector('[data-pad="secondary"]')!.getAttribute('data-act')).toBe('ignore');
+    // On the Quay tab the cards share one screen: no glyphs there.
+    box.innerHTML = questCardBody({ ...offer, main: false }, true);
+    expect(box.querySelector('[data-pad-key]')).toBeNull();
+    expect(box.querySelector('[data-pad]')).toBeNull();
   });
 });
 

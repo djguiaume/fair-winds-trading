@@ -728,3 +728,16 @@ dialog.quest-card.is-arrival::backdrop {
   font-style: normal;
   text-align: center;
 }
+
+/* Controller glyphs on the card's answers (decision 0163): A on the focused answer only, B and X
+   on the answers they do whatever has the focus. */
+#quest-card .pad-press {
+  display: contents;
+}
+#quest-card button:not(:focus) .pad-press .pad-key {
+  display: none !important;
+}
+#quest-card .pad-only {
+  margin-right: 8px;
+  vertical-align: middle;
+}
