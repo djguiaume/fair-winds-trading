@@ -29,7 +29,7 @@
       "name": "Port Calda",
       "x": 170,
       "y": 270,
-      "radius": 26,
+      "radius": 36,
       "look": {
         "design": "calda",
         "houses": 6,
@@ -42,7 +42,7 @@
       "name": "Saltmere",
       "x": 285,
       "y": -140,
-      "radius": 24,
+      "radius": 36,
       "look": {
         "design": "saltmere",
         "houses": 6,
@@ -55,7 +55,7 @@
       "name": "Westholm",
       "x": -310,
       "y": 50,
-      "radius": 24,
+      "radius": 34,
       "look": {
         "design": "westholm",
         "houses": 5,
@@ -68,7 +68,7 @@
       "name": "Stonehaven",
       "x": -160,
       "y": -300,
-      "radius": 23,
+      "radius": 36,
       "look": {
         "design": "south-cay",
         "houses": 5,
@@ -295,8 +295,8 @@
   "marks": [
     {
       "type": "pilot-cutter",
-      "x": 164.5,
-      "y": 239.8,
+      "x": 162,
+      "y": 227,
       "turn": 209,
       "tags": ["after:calda-slipway"]
     },
