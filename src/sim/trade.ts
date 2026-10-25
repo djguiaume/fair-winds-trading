@@ -367,6 +367,21 @@ export function tryDock(
   boat: { x: number; y: number; speedKn: number; heading?: number },
   portId: string,
 ): boolean {
+  if (!canDock(trade, map, boat, portId)) return false;
+  trade.dockedAt = portId;
+  // She sold the lent load on the way: nothing left to sell here, so the loan is settled now.
+  if (trade.captain.loan?.port === portId && !trade.captain.cargo[trade.captain.loan.good])
+    settleCredit(trade);
+  return true;
+}
+
+/** Whether she could dock at the port now, without docking (asked first mid-race, 0217). */
+export function canDock(
+  trade: TradeState,
+  map: MapDef,
+  boat: { x: number; y: number; speedKn: number; heading?: number },
+  portId: string,
+): boolean {
   const port = findPort(map, portId);
   if (
     !port ||
@@ -382,12 +397,7 @@ export function tryDock(
     ) > harbour().dockRange
   )
     return false;
-  if (trade.dockedAt && trade.dockedAt !== portId) return false;
-  trade.dockedAt = portId;
-  // She sold the lent load on the way: nothing left to sell here, so the loan is settled now.
-  if (trade.captain.loan?.port === portId && !trade.captain.cargo[trade.captain.loan.good])
-    settleCredit(trade);
-  return true;
+  return !(trade.dockedAt && trade.dockedAt !== portId);
 }
 
 export type DockEvent =

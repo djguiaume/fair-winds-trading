@@ -844,7 +844,18 @@ hud.onDockClick = () => {
   if (world.trade.dockedAt) openHarbour();
 };
 
-hud.onPortClick = (portId: string) => {
+hud.onPortClick = async (portId: string) => {
+  // Mid-race (decision 0217) the captain is asked first: docking gives the race up.
+  const race = world.dockHeld ? quests.race() : null;
+  if (race && trade.canDock(world.trade, world.map, world.boat, portId)) {
+    const yes = await askConfirm({
+      title: t('regatta.leaveTitle'),
+      text: t('regatta.leaveText'),
+      ok: t('regatta.leaveOk'),
+    });
+    if (!yes) return;
+    quests.retire(race.quest.id);
+  }
   if (world.trade.dockedAt === portId) openHarbour();
   else if (trade.tryDock(world.trade, world.map, world.boat, portId)) {
     handleEvents([...trade.flushEconomy(world.trade, world.map), { type: 'docked', portId }]);
