@@ -6,8 +6,8 @@ import type { Crater } from './models';
 /** Most puffs and lava bombs alive at once, over every volcano in sight. */
 const MAX_PUFFS = 260;
 const MAX_BOMBS = 70;
-/** A bomb that lands leaves a puff this big, times its own size. */
-const LANDING_PUFF = 2.2;
+/** A bomb that lands leaves a puff this big, times its own size and the quiet puff's size. */
+const LANDING_PUFF = 0.25;
 
 /** One eruption: seconds since it began, and how long it holds at full strength. */
 interface Eruption {
@@ -289,7 +289,8 @@ export class Volcanoes {
     // Darker, ashier smoke the stronger the eruption; a little variation puff to puff.
     this.tint
       .copy(this.quiet)
-      .lerp(this.ash, at ? 0.7 : k)
+      // A bomb's puff: ash on land, white steam where it hits the sea.
+      .lerp(this.ash, at ? (at.y > 0.5 ? 0.7 : 0) : k)
       .multiplyScalar(0.92 + rng() * 0.16);
     this.puffs.setColorAt(i, this.tint);
     this.puffs.instanceColor!.needsUpdate = true;
@@ -375,8 +376,7 @@ export class Volcanoes {
       // Down on the cone's flank (or in the sea): a puff of ash where it lands.
       const ground = c ? c.y - Math.max(0, Math.hypot(x - c.x, z - c.z) - c.r) * c.slope : 0;
       if (!c || (B.v[i * 3 + 1]! < 0 && (y < ground || y < 0))) {
-        if (c)
-          this.spawnPuff(c, 1, this.pos.set(x, Math.max(y, 0), z), (B.size[i]! * LANDING_PUFF) / 4);
+        if (c) this.spawnPuff(c, 1, this.pos.set(x, Math.max(y, 0), z), B.size[i]! * LANDING_PUFF);
         continue;
       }
       if (n !== i) {
