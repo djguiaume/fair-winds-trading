@@ -773,9 +773,9 @@ export function pilot(world: World, b: TrafficBoat, wind: Wind): BoatControls {
   const pd = Math.hypot(me.x - boat.x, me.y - boat.y);
   if (pd < t.giveWayRange && !b.racer) {
     const toMe = wrapAngle(bearingTo(boat, me) - boat.heading);
-    if (Math.abs(toMe) < 70 * DEG) {
+    if (Math.abs(toMe) < t.giveWayConeDeg * DEG) {
       sailStep = 1;
-      const away = boat.heading - Math.sign(toMe || 1) * 40 * DEG;
+      const away = boat.heading - Math.sign(toMe || 1) * t.bearAwayDeg * DEG;
       if (Math.abs(wrapAngle(away - wind.from)) >= noGo) want = away;
     }
   }
@@ -790,14 +790,17 @@ export function pilot(world: World, b: TrafficBoat, wind: Wind): BoatControls {
     ];
     for (const o of others) {
       const d = Math.hypot(o.x - boat.x, o.y - boat.y);
-      if (d < nd && Math.abs(wrapAngle(bearingTo(boat, o) - boat.heading)) < 70 * DEG) {
+      if (
+        d < nd &&
+        Math.abs(wrapAngle(bearingTo(boat, o) - boat.heading)) < t.giveWayConeDeg * DEG
+      ) {
         near = o;
         nd = d;
       }
     }
     if (near) {
       const toIt = wrapAngle(bearingTo(boat, near) - boat.heading);
-      const away = boat.heading - Math.sign(toIt || 1) * 40 * DEG;
+      const away = boat.heading - Math.sign(toIt || 1) * t.bearAwayDeg * DEG;
       if (Math.abs(wrapAngle(away - wind.from)) >= noGo) want = away;
     }
   }
@@ -907,7 +910,8 @@ function touchReach(
 
 function bumpPlayer(world: World, b: TrafficBoat): WorldEvent | null {
   // A racer (decision 0217) is pushed half the way and loses way too: a touch costs both boats.
-  const share = b.racer ? 0.5 : 0.7;
+  const t = tuning();
+  const share = b.racer ? t.racerBumpShare : t.bumpShare;
   const me = world.boat;
   const reach = touchReach(world.boat, world.ship.radius, b.boat, b.ship.radius);
   const dx = b.boat.x - me.x;
@@ -922,10 +926,10 @@ function bumpPlayer(world: World, b: TrafficBoat): WorldEvent | null {
   me.x -= nx * over * (1 - share);
   me.y -= ny * over * (1 - share);
   const into = Math.sin(me.heading) * nx + Math.cos(me.heading) * ny;
-  if (into > 0) me.speedKn *= 1 - 0.5 * into;
+  if (into > 0) me.speedKn *= 1 - t.bumpSlow * into;
   if (b.racer) {
     const hers = -(Math.sin(b.boat.heading) * nx + Math.cos(b.boat.heading) * ny);
-    if (hers > 0) b.boat.speedKn *= 1 - 0.5 * hers;
+    if (hers > 0) b.boat.speedKn *= 1 - t.bumpSlow * hers;
   }
   if (me.sinceBump < 0.5) return null;
   me.sinceBump = 0;
