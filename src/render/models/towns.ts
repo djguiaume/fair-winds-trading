@@ -69,7 +69,7 @@ import {
 } from './props';
 import type { IslandCheckKit } from '../../sim/islandChecks';
 import { riverParts } from './rivers';
-import { craterPool, lavaCracks } from './lavaCracks';
+import { craterPool, groundSpecks, lavaCracks } from './lavaCracks';
 
 /**
  * Settlement growth (decision 0060): a port island's town grows in four steps, hamlet, village,
@@ -663,6 +663,10 @@ export function designedTownParts(
   }
   // Glowing cracks on lava fields and down a volcano's flanks (decision 0171).
   out.push(...lavaCracks(layout, (m) => ground(m).glow, design.seed, R));
+  for (const g of groundSpecks(layout, (m) => ground(m).specks, design.seed, R)) {
+    g.userData.islandTerrain = true;
+    out.push(g);
+  }
   // Rivers of water or lava (decision 0167) lie on the ground built above.
   for (const river of design.rivers ?? [])
     if (atLevel(river, level) && river.points.length >= 2)

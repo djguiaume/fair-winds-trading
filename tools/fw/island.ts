@@ -15,7 +15,7 @@ import {
 } from '../../src/editor/island/steps';
 import { formatIslandJson } from '../../src/editor/model';
 import { ISLAND_SCALE } from '../../src/render/models/highlandIslands';
-import { isResidence } from '../../src/render/models/towns';
+import { isResidence, islandCheckKit } from '../../src/render/models/towns';
 import { type IslandPlace, defaultSeas, islandPlacements, islandProblems } from './check';
 
 /** The repository: npm runs the tools from there. */
@@ -284,9 +284,20 @@ export function run(args: Args): number {
   const place = at ?? { R: 20 / ISLAND_SCALE, harbour: false };
   const problems = islandProblems(design, place);
   const errors = problems.filter((p) => p.severity === 'error');
-  const summary = islandSummary(design, isResidence);
+  // Triangles at the top level, against the old phones' budget (0117).
+  let triangles: number | undefined;
+  try {
+    triangles = islandCheckKit(design, place.R, place.harbour).triangles?.(4);
+  } catch {
+    triangles = undefined;
+  }
+  const summary = `${islandSummary(design, isResidence)}${
+    triangles !== undefined ? `, ${triangles} triangles at level 4` : ''
+  }`;
   if (args.json) {
-    console.log(JSON.stringify({ summary, file, written: write, made, place, problems }, null, 1));
+    console.log(
+      JSON.stringify({ summary, file, written: write, made, place, triangles, problems }, null, 1),
+    );
     return errors.length ? 1 : 0;
   }
   const warnings = problems.length - errors.length;
