@@ -1104,13 +1104,23 @@ button.captain-stat:focus-visible {
 }
 
 /* The pad's buttons on the sea's buttons (decision 0199), only while the pad is in use. */
-#menu-btn {
-  position: relative;
+/* View's symbol takes the Map icon's place while the pad is in use (decision 0201). */
+html[data-input='pad'] #chart-btn:has(.pad-symbol) > svg.icon {
+  display: none;
 }
-#menu-btn .pad-key {
-  position: absolute;
-  right: -10px;
-  bottom: -8px;
+.pad-symbol {
+  place-items: center;
+}
+.pad-symbol .pad-key {
+  display: none;
+}
+html[data-pad-brand='playstation'] .pad-symbol > svg,
+html[data-pad-brand='nintendo'] .pad-symbol > svg {
+  display: none;
+}
+html[data-pad-brand='playstation'] .pad-symbol .pad-key,
+html[data-pad-brand='nintendo'] .pad-symbol .pad-key {
+  display: inline-grid;
 }
 .lever-track button .pad-key {
   position: absolute;

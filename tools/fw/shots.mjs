@@ -66,6 +66,7 @@ Map editor (editor.html instead of the game)
                                 the-smoulder:lanes:river:0:2 (tab props|ground|lanes|spots)
 Look
   --lang en|fr                  language (default en)
+  --query padlog                more of the game's URL options, e.g. padlog (the controller log, 0201)
   --night  | --time s           night, or this game time in seconds (default 300, day)
   --weather  --storms           weather spells, moving storms (default off: steady breeze)
   --no-zones  --no-currents     wind zones, currents off (default on, like the game)
@@ -159,6 +160,7 @@ export function normalise(opts) {
       return [id, Number(level)];
     }),
     lang: o.lang ?? 'en',
+    query: o.query ?? null,
     night: !!o.night,
     time: o.time ?? null,
     weather: !!o.weather || !!o.storms,
@@ -238,6 +240,7 @@ export function shotPath(shot) {
   if (map) q.set('map', map);
   // Island files tried on the Phase 4 sea: the edited map falls back to the grown sea (0161).
   if (map === 'edited' && !shot.seaFile && shot.sea === 'phase4') q.set('sea', 'phase4');
+  for (const [k, v] of new URLSearchParams(shot.query ?? '')) q.set(k, v);
   return `/?${q}`;
 }
 
