@@ -61,6 +61,7 @@ import { giveIslandFile } from './island/fromLook';
 import { openQuests, questsOpen, setupQuestBuilder } from './quest/builder';
 import { controlsOpen, openControls, setupControlsPage } from './controls/page';
 import { openSounds, setupSoundsPage, soundsOpen } from './sounds/page';
+import { openRegatta, regattaOpen, setupRegattaPage } from './regatta/page';
 import {
   type GrownDef,
   type SeaDoc,
@@ -399,6 +400,8 @@ setupControlsPage(() => commit(true));
 $('ed-controls').addEventListener('click', openControls);
 setupSoundsPage(() => commit(true));
 $('ed-sounds').addEventListener('click', openSounds);
+setupRegattaPage(() => commit(true));
+$('ed-regatta').addEventListener('click', openRegatta);
 svg.addEventListener('dblclick', (e) => {
   if (laying) return finishLaying();
   const hit = (e.target as Element).closest('[data-hit]')?.getAttribute('data-hit') ?? '';
@@ -841,7 +844,7 @@ function nudge(dx: number, dy: number) {
 }
 
 document.addEventListener('keydown', (e) => {
-  if (islandOpen() || questsOpen() || controlsOpen() || soundsOpen()) return;
+  if (islandOpen() || questsOpen() || controlsOpen() || soundsOpen() || regattaOpen()) return;
   const target = e.target as HTMLElement;
   if (target.closest('input, select, textarea')) return;
   const mod = e.ctrlKey || e.metaKey;

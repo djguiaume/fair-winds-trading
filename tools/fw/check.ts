@@ -6,6 +6,7 @@ import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../../src/data/maps';
 import { SEAS, SEA_SECTORS, grownMap } from '../../src/data/grownMap';
 import { stressMap } from '../../src/data/stressMap';
 import { type ControlsDoc, controlsProblems, shippedControls } from '../../src/editor/controls/doc';
+import { regattaProblems, shippedRegattaDoc } from '../../src/editor/regatta/doc';
 import { questProblems } from '../../src/editor/quest/doc';
 import { ISLAND_SCALE } from '../../src/render/models/highlandIslands';
 import { islandCheckKit } from '../../src/render/models/towns';
@@ -21,7 +22,7 @@ import { sectorChecks } from '../../src/sim/seaSectors';
 type Args = Record<string, string | boolean | undefined> & { _: string[] };
 
 export interface Problem {
-  area: 'seas' | 'islands' | 'quests' | 'perks' | 'controls' | 'ships' | 'audio';
+  area: 'seas' | 'islands' | 'quests' | 'perks' | 'controls' | 'ships' | 'audio' | 'regatta';
   where: string;
   severity: 'error' | 'warning';
   message: string;
@@ -186,6 +187,12 @@ export function checkAll(opts: CheckOptions = {}) {
       problems.push({ area: 'audio', where: 'audio.json', severity: 'error', message });
     counted.audio = 'audio.json';
   }
+
+  if (want('regatta')) {
+    for (const message of regattaProblems(shippedRegattaDoc()))
+      problems.push({ area: 'regatta', where: 'regatta.json', severity: 'error', message });
+    counted.regatta = 'regatta.json, flags.json';
+  }
   return { problems, counted };
 }
 
@@ -194,7 +201,7 @@ const list = (v: unknown) => (typeof v === 'string' ? v.split(',').filter(Boolea
 export function run(args: Args): number {
   if (args.help) {
     console.log(`npm run check [-- options]
-  --only seas,islands,quests,perks,controls,ships,audio  check only these areas
+  --only seas,islands,quests,perks,controls,ships,audio,regatta  check only these areas
   --island id[,id]                   only these island files
   --map file.json[,file.json]        check these map files (editor exports) instead of the ring and stress seas
   --controls file.json               check this controls file (a controls page export)
