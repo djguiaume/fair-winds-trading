@@ -1,6 +1,6 @@
 # 0192. Port screen with a game controller
 
-**Status:** Proposed (2026-10-25).
+**Status:** Accepted (2026-10-25): Guillaume OK'd the screenshots.
 
 ## Context
 
