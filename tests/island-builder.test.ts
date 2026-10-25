@@ -121,11 +121,13 @@ describe('island builder document (0105)', () => {
     const i = addProp(d, newProp(d, 'cabin', 0.1, 0.2, 2, true));
     turnProp(d, i, 30);
     setPropValue(d, i, 'shape', 0.4);
+    // Calda's cabins have a size (decision 0216), so a new one takes it.
     expect(Object.keys(tidyDesign(d).props[i]!)).toEqual([
       'type',
       'x',
       'z',
       'turn',
+      'size',
       'variant',
       'shape',
       'from',

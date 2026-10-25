@@ -5,6 +5,7 @@ import { mergeAll, paint, place, vertexColorMaterial } from './models/geometry';
 import { fishingBoat } from './models/props';
 import { buildProp } from './models/propRecipe';
 import { ISLAND_SCALE } from './models/highlandIslands';
+import { landmarkParts } from './models/landmarks';
 
 /** Island props stand at this scale; Saltmere's moored boats are drawn 1.55 times a 2-unit hull. */
 const BOAT_SCALE = 1.55 * ISLAND_SCALE;
@@ -54,6 +55,8 @@ function model(type: SeaMarkDef['type']): THREE.BufferGeometry | null {
     parts[0] = paint(parts[0]!, '#26282c');
     return mergeAll(parts).scale(BOAT_SCALE, BOAT_SCALE, BOAT_SCALE);
   }
+  // Aground on a reef, at the size a reef's own wreck is drawn (decision 0216).
+  if (type === 'wreck') return mergeAll(landmarkParts('wreck', 1.15));
   // A `light` is a mark on the chart only.
   return null;
 }
@@ -113,8 +116,8 @@ export class SeaMarks {
   }
 
   update(time: number, waterY: (x: number, z: number) => number) {
-    for (const { mesh, phase } of [...this.marks, ...this.questMarks]) {
-      if (!mesh.visible) continue;
+    for (const { def, mesh, phase } of [...this.marks, ...this.questMarks]) {
+      if (!mesh.visible || def.type === 'wreck') continue;
       mesh.position.y = waterY(mesh.position.x, mesh.position.z);
       mesh.rotation.x = Math.sin(time * 1.3 + phase) * 0.06;
       mesh.rotation.z = Math.cos(time * 1.1 + phase) * 0.06;

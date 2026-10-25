@@ -1,0 +1,18 @@
+{
+  "id": "chimney-smoke",
+  "name": "Chimney smoke",
+  "group": "fish",
+  "edge": true,
+  "parts": [
+    {
+      "repeat": {
+        "i": {
+          "count": 3
+        }
+      },
+      "ico": ["0.14 + i * 0.07", 0],
+      "at": ["0.1 + i * 0.12", "1.95 + i * 0.32", "sin(i * 1.7) * 0.06"],
+      "color": { "pick": "i % 2", "of": ["#e9ecec", "#d8dcdc"] }
+    }
+  ]
+}

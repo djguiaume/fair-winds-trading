@@ -1,0 +1,8 @@
+[
+  { "do": "set", "what": "shape", "id": "east-reef", "fields": { "name": "East Reef" } },
+  { "do": "set", "what": "shape", "id": "sw-reef", "fields": { "name": "The Teeth" } },
+  { "do": "set", "what": "shape", "id": "narrows-reef", "fields": { "name": "The Combs" } },
+  { "do": "set", "what": "shape", "id": "south-reef", "fields": { "name": "Mackerel Ledge" } },
+  { "do": "set", "what": "shape", "id": "abbey-reef", "fields": { "name": "The Friars" } },
+  { "do": "set", "what": "island", "id": "bell-rock", "fields": { "name": "Bell Rock" } }
+]

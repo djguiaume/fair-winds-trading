@@ -29,7 +29,7 @@
       "name": "Port Calda",
       "x": 170,
       "y": 270,
-      "radius": 26,
+      "radius": 36,
       "look": {
         "design": "calda",
         "houses": 6,
@@ -42,7 +42,7 @@
       "name": "Saltmere",
       "x": 285,
       "y": -140,
-      "radius": 24,
+      "radius": 36,
       "look": {
         "design": "saltmere",
         "houses": 6,
@@ -55,7 +55,7 @@
       "name": "Westholm",
       "x": -310,
       "y": 50,
-      "radius": 24,
+      "radius": 34,
       "look": {
         "design": "westholm",
         "houses": 5,
@@ -68,7 +68,7 @@
       "name": "Stonehaven",
       "x": -160,
       "y": -300,
-      "radius": 23,
+      "radius": 36,
       "look": {
         "design": "south-cay",
         "houses": 5,
@@ -97,7 +97,8 @@
       "look": {
         "design": "bell-rock",
         "harbourBearing": 1.408118
-      }
+      },
+      "name": "Bell Rock"
     },
     {
       "id": "abbey-head",
@@ -171,23 +172,23 @@
   "course": [
     {
       "label": "Port Calda",
-      "x": 143,
-      "y": 222
+      "x": 138,
+      "y": 213
     },
     {
       "label": "Westholm",
-      "x": -258,
-      "y": 31
+      "x": -249,
+      "y": 28
     },
     {
       "label": "Saltmere",
-      "x": 231,
-      "y": -130
+      "x": 219,
+      "y": -128
     },
     {
       "label": "Stonehaven",
-      "x": -125,
-      "y": -258
+      "x": -117,
+      "y": -248
     },
     {
       "label": "Abbey Head",
@@ -294,8 +295,8 @@
   "marks": [
     {
       "type": "pilot-cutter",
-      "x": 164.5,
-      "y": 239.8,
+      "x": 162,
+      "y": 227,
       "turn": 209,
       "tags": ["after:calda-slipway"]
     },
@@ -354,6 +355,13 @@
       "y": 74,
       "turn": 250,
       "tags": ["after:saltmere-shoals"]
+    },
+    {
+      "type": "wreck",
+      "x": -165,
+      "y": -98,
+      "turn": 30,
+      "tags": ["before:stonehaven-light"]
     }
   ],
   "compatibleSaveMaps": ["Staggered passages", "Phase 0 practice waters"],
@@ -369,7 +377,8 @@
         [-63, 69],
         [-20, 45]
       ],
-      "seed": 12157
+      "seed": 12157,
+      "name": "The Combs"
     },
     {
       "id": "east-reef",
@@ -390,7 +399,8 @@
           "y": 46.33
         }
       },
-      "seed": 12254
+      "seed": 12254,
+      "name": "East Reef"
     },
     {
       "id": "east-reef-spit",
@@ -415,7 +425,8 @@
         [-192, -95],
         [-148, -116]
       ],
-      "seed": 12351
+      "seed": 12351,
+      "name": "The Teeth"
     },
     {
       "id": "south-reef",
@@ -428,7 +439,8 @@
         [37, -230],
         [75, -218]
       ],
-      "seed": 12448
+      "seed": 12448,
+      "name": "Mackerel Ledge"
     },
     {
       "id": "abbey-reef",
@@ -441,7 +453,8 @@
         [-236, 158],
         [-215, 177]
       ],
-      "seed": 12545
+      "seed": 12545,
+      "name": "The Friars"
     }
   ],
   "currents": [
