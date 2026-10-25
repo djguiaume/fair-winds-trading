@@ -1924,4 +1924,20 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     'rad',
     'Maximum pitch and roll of boundary buoys.',
   ),
+  'seamanship.boundaryBuoys.round': num(
+    'Sea edge rounding',
+    0,
+    200,
+    5,
+    'units',
+    'Radius every corner of a sea with sea edges is rounded to, where a section joins the round sea too (decision 0202).',
+  ),
+  'seamanship.boundaryBuoys.maxTurnDeg': num(
+    'Sea edge sharpest turn',
+    5,
+    90,
+    1,
+    '°',
+    'The map checks warn where the edge buoy line turns more than this between three buoys (decision 0202).',
+  ),
 };

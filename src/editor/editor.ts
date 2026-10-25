@@ -8,6 +8,7 @@ import phase1Text from '../data/phase1-map.json?raw';
 import type { MapDef } from '../sim/map';
 import { type MapCheck, distanceChanges, questTagsCheck, quickChecks } from '../sim/mapChecks';
 import { type Sectors, sectorChecks } from '../sim/seaSectors';
+import { seaReach, seaShape } from '../sim/seaEdge';
 import { QUESTS } from '../sim/quests';
 import { type Layers, type View, drawChart, drawCompass } from './chart';
 import {
@@ -15,6 +16,7 @@ import {
   type Selection,
   addAreaCurrent,
   addChartArea,
+  addSeaEdge,
   addIsland,
   addLanePoint,
   addMark,
@@ -23,6 +25,7 @@ import {
   beginLane,
   deleteSelection,
   findArea,
+  findEdge,
   findCurrent,
   findIsland,
   findShape,
@@ -98,7 +101,8 @@ type Tool =
   | 'current'
   | 'area'
   | 'zone'
-  | 'chartArea';
+  | 'chartArea'
+  | 'seaEdge';
 const TOOLS: { id: Tool; icon: string; label: string; hint: string }[] = [
   {
     id: 'move',
@@ -169,6 +173,12 @@ const TOOLS: { id: Tool; icon: string; label: string; hint: string }[] = [
     label: 'Add chart area',
     hint: 'Click the sea to add a chart area (fog of war): sailing into it charts all of it',
   },
+  {
+    id: 'seaEdge',
+    icon: '⭕',
+    label: 'Add sea edge',
+    hint: 'Click over the rim to add open water joined to the sea, then drag its points: the edge buoys follow the outer edge',
+  },
 ];
 
 // --- State ---------------------------------------------------------------------------------
@@ -237,7 +247,7 @@ function fit() {
   const rect = svg.getBoundingClientRect();
   view.cx = 0;
   view.cy = 0;
-  view.upp = ((map.boundsRadius + 20) * 2) / Math.max(1, Math.min(rect.width, rect.height));
+  view.upp = ((seaReach(seaShape(map)) + 20) * 2) / Math.max(1, Math.min(rect.width, rect.height));
 }
 
 // --- Drawing -------------------------------------------------------------------------------
@@ -526,7 +536,8 @@ svg.addEventListener('pointerdown', (e) => {
   const [hitKind, id = '', arg] = hit.split(':');
   // Adding on top of a zone or a current's water is adding on the sea.
   const kind =
-    tool !== 'move' && (hitKind === 'zone' || hitKind === 'current' || hitKind === 'area')
+    tool !== 'move' &&
+    (hitKind === 'zone' || hitKind === 'current' || hitKind === 'area' || hitKind === 'edge')
       ? 'sea'
       : hitKind;
   if (tool === 'current') {
@@ -559,6 +570,7 @@ svg.addEventListener('pointerdown', (e) => {
     else if (tool === 'mark')
       selection = { kind: 'mark', index: addMark(map, p.x, p.y, 'buoy-red') };
     else if (tool === 'area') selection = { kind: 'current', id: addAreaCurrent(map, p.x, p.y) };
+    else if (tool === 'seaEdge') selection = { kind: 'edge', id: addSeaEdge(map, p.x, p.y) };
     else if (tool === 'chartArea') {
       const id = addChartArea(map, p.x, p.y);
       selection = id ? { kind: 'area', id } : null;
@@ -586,7 +598,7 @@ svg.addEventListener('pointerdown', (e) => {
     pan();
     return;
   }
-  if (kind === 'zone' || kind === 'current' || kind === 'area') {
+  if (kind === 'zone' || kind === 'current' || kind === 'area' || kind === 'edge') {
     // A first press selects a zone or current and pans (zones can cover much of the sea); once
     // selected, a press drags it.
     if (selection?.kind !== kind || selection.id !== id) {
@@ -614,9 +626,9 @@ svg.addEventListener('pointerdown', (e) => {
     const index = kind === 'insert' ? insertPoint(map, id, Number(arg))! : Number(arg);
     drag = { kind: 'point', id, index };
     selection = { kind: 'shape', id, point: index };
-  } else if (/^[cza](point|insert)$/.test(kind!)) {
-    const flow = { c: 'current', z: 'zone', a: 'area' } as const;
-    const sel = { kind: flow[kind![0] as 'c' | 'z' | 'a'], id };
+  } else if (/^[czae](point|insert)$/.test(kind!)) {
+    const flow = { c: 'current', z: 'zone', a: 'area', e: 'edge' } as const;
+    const sel = { kind: flow[kind![0] as 'c' | 'z' | 'a' | 'e'], id };
     const index = kind!.endsWith('insert') ? insertFlowPoint(map, sel, Number(arg)) : Number(arg);
     if (index === undefined) return;
     drag = { kind: 'fpoint', index };
@@ -775,14 +787,17 @@ function nudge(dx: number, dy: number) {
   } else if (
     selection.kind === 'current' ||
     selection.kind === 'zone' ||
-    selection.kind === 'area'
+    selection.kind === 'area' ||
+    selection.kind === 'edge'
   ) {
     const c = selection.kind === 'current' ? findCurrent(map, selection.id) : undefined;
     const points = c
       ? (c.path ?? c.outline)
       : selection.kind === 'zone'
         ? findZone(map, selection.id)?.outline
-        : findArea(map, selection.id)?.outline;
+        : selection.kind === 'area'
+          ? findArea(map, selection.id)?.outline
+          : findEdge(map, selection.id)?.outline;
     const point = selection.point !== undefined ? points?.[selection.point] : undefined;
     if (point) moveFlowPoint(map, selection, selection.point!, point[0] + dx, point[1] + dy);
     else moveFlow(map, selection, dx, dy);
@@ -886,7 +901,8 @@ function replaceMap(next: MapDef) {
     (selection?.kind === 'mark' && !map.marks?.[selection.index]) ||
     (selection?.kind === 'current' && !findCurrent(map, selection.id)) ||
     (selection?.kind === 'zone' && !findZone(map, selection.id)) ||
-    (selection?.kind === 'area' && !findArea(map, selection.id))
+    (selection?.kind === 'area' && !findArea(map, selection.id)) ||
+    (selection?.kind === 'edge' && !findEdge(map, selection.id))
   )
     selection = null;
   commit();
@@ -1005,7 +1021,8 @@ if (new URLSearchParams(location.search).has('debug'))
                 kind === 'shape' ||
                 kind === 'current' ||
                 kind === 'zone' ||
-                kind === 'area'
+                kind === 'area' ||
+                kind === 'edge'
               ? { kind, id }
               : null,
       );

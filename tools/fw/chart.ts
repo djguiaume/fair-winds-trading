@@ -9,6 +9,7 @@ import { type Layers, drawChart } from '../../src/editor/chart';
 import { landStyles } from '../../src/ui/chartMarks';
 import { zoneKindName, zoneTint } from '../../src/editor/flowChart';
 import { isBeltKind } from '../../src/sim/stormBelt';
+import { seaBox, seaShape } from '../../src/sim/seaEdge';
 import { PHASE1_SOURCE } from '../../src/data/maps';
 import { loadSea } from './seas';
 import { ISLAND_DESIGNS } from '../../src/data/islands';
@@ -166,8 +167,9 @@ function findPoint(map: MapDef, id: string): { x: number; y: number } {
 export function renderChart(opts: ChartOptions) {
   const { map, prepared, overlay = {} } = opts;
   const layers = { ...DEFAULT_LAYERS, ...opts.layers };
-  const r = map.boundsRadius;
-  const [x0, y0, x1, y1] = opts.view ?? [-r - 10, -r - 10, r + 10, r + 10];
+  // The whole sea, a section sticking out of the round sea included (decision 0202).
+  const box = seaBox(seaShape(map));
+  const [x0, y0, x1, y1] = opts.view ?? [box[0] - 10, box[1] - 10, box[2] + 10, box[3] + 10];
   // The SVG is laid out at width / scale pixels; the PNG is shot at `scale` device pixels each.
   const scale = opts.scale ?? 1.5;
   const width = Math.round((opts.width ?? 1600) / scale);

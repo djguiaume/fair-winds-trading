@@ -34,7 +34,9 @@
     "waterline": -0.2,
     "pitchRate": 1.4,
     "rollRate": 1.1,
-    "rockRadians": 0.12
+    "rockRadians": 0.12,
+    "round": 60,
+    "maxTurnDeg": 30
   },
   "cargo": {
     "overpressedKn": 19.5,

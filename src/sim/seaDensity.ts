@@ -1,3 +1,4 @@
+import { type SeaShape, atSea, seaDistance, seaReach, seaShape } from './seaEdge';
 import type { MapDef } from './map';
 import { type Sector, type Sectors, bearingOf, inSector, sectorSpan } from './seaSectors';
 
@@ -97,7 +98,9 @@ export function seaDensity(
   opts: DensityOptions = {},
 ): SectorDensity[] {
   const inner = opts.inner ?? map.fog?.chartedRadius ?? 445;
-  const outer = opts.outer ?? map.boundsRadius;
+  // The sea's own shape, a section sticking out included (decision 0202), unless told a ring.
+  const sea: SeaShape = opts.outer === undefined ? seaShape(map) : { radius: opts.outer };
+  const outer = seaReach(sea);
   const sight = opts.sight ?? 160;
   const cell = opts.cell ?? 10;
   const step = 15;
@@ -184,7 +187,7 @@ export function seaDensity(
     for (let x = -outer; x <= outer; x += cell)
       for (let y = -outer; y <= outer; y += cell) {
         const r = Math.hypot(x, y);
-        if (r < inner || r > outer) continue;
+        if (r < inner || !atSea(sea, x, y)) continue;
         const b = bearingOf(x, y);
         if (!inSector(b, sector, 0)) continue;
         if (landmarks.some((l) => l.land && l.dist(x, y) === 0)) continue;
@@ -211,7 +214,7 @@ export function seaDensity(
         )
           feltCells++;
         // An empty disc may not reach past the rim or out of the slice's water.
-        const room = Math.min(d, outer - r, r - inner);
+        const room = Math.min(d, seaDistance(sea, x, y).distance, r - inner);
         if (room > sight / 2) cells.push({ x, y, radius: room, bearing: b });
       }
     cells.sort((a, b) => b.radius - a.radius);

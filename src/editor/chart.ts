@@ -6,6 +6,8 @@ import { GOOD_ICONS, isGood } from '../sim/goods';
 import { islandCoasts, islandLake } from '../sim/islandLayout';
 import type { MapDef } from '../sim/map';
 import { DEG } from '../sim/math';
+import { seaShape } from '../sim/seaEdge';
+import { seaSvg } from '../ui/seaOutline';
 import { landStyles, seaMarkShape } from '../ui/chartMarks';
 import { drawFlow, drawFlowSelection, flowLabels } from './flowChart';
 import type { Selection } from './model';
@@ -124,7 +126,19 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
     label(text, best.x, best.y, size, cls);
   };
 
-  el('circle', { r: map.boundsRadius, class: 'c-sea', 'data-hit': 'sea' });
+  // The water: the round sea, and any sea edges joined to it (decision 0202).
+  const water = seaSvg(seaShape(map), 4 * px);
+  el(water.tag, { ...water.attrs, class: 'c-sea', 'data-hit': 'sea' });
+  // Each sea edge's own outline, faint, to pick it up and drag its points.
+  for (const e of map.edges ?? []) {
+    el('polygon', { points: pts(e.outline), class: 'c-edge-outline' });
+    el('polygon', {
+      points: pts(e.outline),
+      class: 'c-edge-hit',
+      'stroke-width': 10 * px,
+      'data-hit': `edge:${e.id}`,
+    });
+  }
   if (scene.ringRadius) el('circle', { r: scene.ringRadius, class: 'c-ring-edge' });
   if (scene.sectors) drawSectors(el, label, scene.sectors, scene.ringRadius ?? 0, map, px);
   if (layers.grid) {
@@ -351,7 +365,7 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
       );
     }
   }
-  if (layers.flow || (selection?.kind === 'area' && layers.areas))
+  if (layers.flow || (selection?.kind === 'area' && layers.areas) || selection?.kind === 'edge')
     drawFlowSelection(el, map, selection, px);
   if (selection?.kind === 'waypoint') {
     const wp = map.course[selection.index];
