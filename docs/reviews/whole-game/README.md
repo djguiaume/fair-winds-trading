@@ -143,7 +143,16 @@ Phase 5 and the order of what comes after it.
 - **Alongside, small:** standing orders (short repeatable asks from people whose arc is done, all
   quest data), and the port screen showing the town (art director to mock).
 
-## Where the storyteller and the art director differ
+## Guillaume on pirates (2026-10-25, 14:37Z)
+
+"I'm not convinced about pirates either. Unless they are in an extension/dlc in a new sea and stay
+only there." So the plan below is updated: **pirates leave the base game.** They become a later
+extension with a sea of their own (a natural home: past the Stormbreak, where the great expedition
+was planned), and never sail the ring or the four seas. Phase 5 keeps the living sea, sound,
+regattas, standing orders and the two must-haves. The rovers idea and the art director's cozy-fight
+rules stay on file below for that extension.
+
+## Where the storyteller and the art director differ (for the pirate extension)
 
 Both want Phase 5 cozy and both want the ring pass, the port screen and sound. They differ on
 pirates:
@@ -163,7 +172,9 @@ art director's rules keep them cozy, and rovers can still be the first chapter.
 
 0. **Phase 5 opens with Guillaume's two must-haves**: the central sea review and catch-up pass, and
    the home island view fixed; then the port screen header.
-1. **Phase 5 becomes "A living sea"**: other sails, sea sounds, rovers you outsail and bring home,
+1. **Pirates leave the base game** (Guillaume): a later extension with its own new sea, never in the
+   ring or the four seas. Phase 5 has no chases.
+2. **Phase 5 becomes "A living sea"** (rovers left out, kept for the extension): other sails, sea sounds, rovers you outsail and bring home,
    regattas. Pirates keep their name in Settings and a switch.
 2. **Drop** the guns track and the warship line ([0035](../../decisions/0035-three-ship-lines.md)
    keeps two lines plus the starter). The `warship` line id stays unused in code.
@@ -183,8 +194,9 @@ art director's rules keep them cozy, and rovers can still be the first chapter.
 ## Questions for Guillaume
 
 1. Phase 5: **A**, **B** (recommended) or **C**?
-2. Pirates: **rovers** with no guns (storyteller, recommended), or **cozy cannon fights** with
-   warships (art director: puffs and splashes, nothing sinks, the pirate strikes its flag)?
+2. Pirates only in an extension with its own sea (your 14:37Z message): agreed, so Phase 5 has
+   none. When that extension comes: rovers (storyteller) or cozy cannon fights (art director)? No
+   need to answer now.
 3. Should Phase 5 aim at a **v1.0** (the base game finished, then the store plan of 0204 comes back),
    or stay v0.5?
 4. Rewrite the roadmap short, history kept in its own file: yes or no?

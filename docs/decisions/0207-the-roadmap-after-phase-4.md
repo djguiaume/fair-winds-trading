@@ -33,6 +33,12 @@ to people, kids can read every line) and is the costliest system on the roadmap.
   the grown map and each port's winter damage before and after its arc; then a catch-up pass, with
   screenshots to Guillaume.
 
+**Pirates leave the base game (Guillaume, 2026-10-25 14:37Z):** "not convinced about pirates
+either, unless they are in an extension/DLC in a new sea and stay only there." Pirates become a
+later extension with its own sea (for example past the Stormbreak, where the great expedition was
+planned); they never sail the ring or the four seas. Rovers (storyteller) and cozy fights (art
+director) stay on file for it. Items 1(b) and 2 below apply to that extension, not to Phase 5.
+
 Proposed for the rest, Option B of the review:
 
 1. **Phase 5 becomes "A living sea":** (a) other ships that sail by the same wind model (fishing
