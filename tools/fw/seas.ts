@@ -1,5 +1,5 @@
 // The seas the tools load by name (decision 0153): the game's grown sea (`phase4` or `game`,
-// decision 0190), the ring alone, the stress sea, an editor export (a whole map) or one sea file
+// decision 0193), the ring alone, the stress sea, an editor export (a whole map) or one sea file
 // merged round the ring.
 import { readFileSync } from 'node:fs';
 import { type SeaDef, SEAS, SEA_SECTORS, grownMap } from '../../src/data/grownMap';

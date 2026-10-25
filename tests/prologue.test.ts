@@ -6,7 +6,7 @@ import { landmarkSpot } from '../src/sim/landmarks';
 import { pointOf } from '../src/sim/questLibrary';
 import { SLOOP } from '../src/sim/ship';
 import { DEG } from '../src/sim/math';
-import { questGoal, questTarget, trackedMarkers } from '../src/ui/questView';
+import { cardFor, questGoal, questTarget, trackedMarkers } from '../src/ui/questView';
 import { createWorld, startAtPrologue, stepWorld } from '../src/sim/world';
 import { TUTORIAL, tutorialVoyage } from './helpers/tutorial';
 
@@ -78,7 +78,7 @@ describe('the prologue at sea (decision 0127)', () => {
     v.check(0.5);
     // Rook speaks on his card (decision 0185), then the chart lesson.
     expect(v.step).toBe('aboard');
-    v.cont();
+    v.cont('welcome');
     expect(v.step).toBe('chart');
     expect(v.quests.compassOf(v.quests.trackedStep)).toBeNull();
     expect(v.vars.origin).toBe('saltmere');
@@ -91,7 +91,7 @@ describe('the prologue at sea (decision 0127)', () => {
     v.cont();
     expect(v.wreck).toBeNull();
     expect(v.step).toBe('aboard');
-    v.cont();
+    v.cont('welcome');
     expect(v.step).toBe('chart');
     expect(v.vars.origin).toBeTruthy();
   });
@@ -107,10 +107,14 @@ describe("Rook's thanks: the island (decision 0127)", () => {
     expect(v.step).toBe('home');
     expect(v.world.trade.home.islands.skerry?.owned ?? false).toBe(false);
     v.dock('saltmere');
+    // Rook thanks her on the quay (decision 0190), then the island lesson.
+    expect(v.step).toBe('thanks');
+    v.cont();
     expect(v.step).toBe('island');
     expect(v.quests.isAt(TUTORIAL, 'island')).toBe(true);
     v.check();
-    // The island is hers at once; Rook's last step sends her to see it (decision 0159).
+    // The island is hers at once; Rook's last step sends her to see it (decision 0159), in the
+    // words of the man she pulled off the reef (decision 0190).
     expect(v.quests.progress('rooks-thanks')?.step).toBe('skerry');
     expect(v.world.trade.home.islands.skerry?.owned ?? false).toBe(true);
     // The lesson stays the tracked quest.
@@ -122,6 +126,12 @@ describe("Rook's thanks: the island (decision 0127)", () => {
     v.skip();
     v.dock('saltmere');
     expect(v.quests.isAt('rooks-thanks', 'skerry')).toBe(true);
+    // No rescue on this voyage: Rook offers Skerry as to a stranger (decision 0190), at once.
+    expect(v.quests.progress('rooks-thanks')?.step).toBe('skerry-stranger');
+    // Its card counts as the step it stands in for: 2 of 3.
+    const card = cardFor(v.quests, PHASE1_MAP, 'rooks-thanks', 'step')!;
+    expect([card.stepNo, card.steps]).toEqual([2, 3]);
+    expect(card.speech).toContain('I hear you handle a boat well');
     expect(questTarget(v.quests, PHASE1_MAP)).toEqual({ point: { x: -60, y: -150 } });
     // The arcs open as soon as the island is hers, not only once she has seen it.
     expect(v.quests.offered.map((q) => q.id)).toContain('saltmere-shoals');
@@ -182,7 +192,7 @@ describe('a gentler prologue (decision 0139)', () => {
     expect(v.step).toBe('home');
     expect(v.quests.trackedStep?.wind).toBeDefined();
     v.dock('saltmere');
-    expect(v.step).toBe('island');
+    expect(v.step).toBe('thanks');
     expect(v.quests.trackedStep?.wind).toBeUndefined();
   });
 

@@ -706,7 +706,7 @@ export class SeaChart {
     const goods = this.get('chart-goods');
     goods.replaceChildren();
     // Specialized goods join once a town makes them, or while one is in the hold (decision 0063);
-    // far goods once a port on the chart sells or makes them (decision 0190).
+    // far goods once a port on the chart sells or makes them (decision 0193).
     const made = madeGoods(map, trade);
     const far = farGoodsOnChart(map, trade);
     const inPlay = GOODS.filter(

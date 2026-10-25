@@ -1,6 +1,6 @@
-# 0190. The grown sea is the main game
+# 0193. The grown sea is the main game
 
-**Status:** Proposed (2026-10-25). Gap 1 of the [Phase 4 review](../reviews/phase-4-review/README.md) ([0188](0188-phase-4-review-and-release-gate.md)). [Screenshots](../reviews/grown-sea-main/README.md) for Guillaume before merge.
+**Status:** Accepted (2026-10-25). Guillaume OK on the screenshots. Gap 1 of the [Phase 4 review](../reviews/phase-4-review/README.md) ([0188](0188-phase-4-review-and-release-gate.md)). [Screenshots](../reviews/grown-sea-main/README.md) for Guillaume before merge.
 
 ## Context
 

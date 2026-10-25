@@ -1,6 +1,6 @@
 # The grown sea as the main game: screenshots
 
-Decision: [0190](../../decisions/0190-the-grown-sea-is-the-main-game.md). Taken with `npm run shots` on the branch, no `?map=` (the game's own sea now).
+Decision: [0193](../../decisions/0193-the-grown-sea-is-the-main-game.md). Taken with `npm run shots` on the branch, no `?map=` (the game's own sea now).
 
 | Shot | What to see |
 |---|---|

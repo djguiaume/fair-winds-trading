@@ -243,12 +243,12 @@ harbours and cargo the player picks. Its text keys are `lesson.<step>.title`, `.
 Skipping keeps the story ([0160](../decisions/0160-skipping-the-tutorial-keeps-its-story.md)): Free
 sailing on a fresh voyage, or Skip on the bubble, runs the lesson *without its coach*: no bubble, and
 the steps marked `"teach": true` are passed by. The tutorial's story steps (`foghorn`, `wreck`,
-`aboard`, `home`) still play, guided by the sea's objective arrow, the foghorn and the wreck's ring; then Rook's
+`aboard`, `home`, `thanks`) still play, guided by the sea's objective arrow, the foghorn and the wreck's ring; then Rook's
 thanks follows as after the full tutorial. A lesson needs at least one step without `teach`. Asked
 again from the menu, the lesson speaks from its first step. A new voyage started after the tutorial
 was seen on an earlier one plays the story the same way ([0185](../decisions/0185-a-new-game-always-plays-the-prologue-and-rook-speaks-at-the-.md)).
 A lesson step with a `speaker` is that person's card instead of a bubble, coach or not (Rook's
-`aboard` at the rescue, 0185); Esc on it counts as its first answer.
+`aboard` at the rescue, 0185, and `thanks` on the quay, 0190); Esc on it counts as its first answer.
 
 - The prologue's places are in the map file: `prologue.start` (`x`, `y`, `headingDeg`: where a fresh
   voyage that takes the tutorial begins) and `prologue.wreck` (the reef or sandbank whose wreck is

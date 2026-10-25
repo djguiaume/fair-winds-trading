@@ -27,7 +27,7 @@ export const SIZES = {
 export const HELP = `npm run shots -- [options]          screenshots of the real game, PNG in --out
 
 Where
-  --sea phase4|ring|stress|file.json   the sea (default phase4, the game's own grown sea, 0190;
+  --sea phase4|ring|stress|file.json   the sea (default phase4, the game's own grown sea, 0193;
                                 ring = the Windward Ring alone; a file: a map editor export, or a
                                 sea file merged round the ring, played as ?map=edited)
   --island a.json,b.json        island files to play instead of the shipped ones (builder exports)
@@ -92,7 +92,7 @@ Output
   --json                        print the files as JSON
 `;
 
-// The game's own sea is the grown one (decision 0190): `phase4` (or `game`) needs no `?map=`.
+// The game's own sea is the grown one (decision 0193): `phase4` (or `game`) needs no `?map=`.
 const SEAS = { phase4: '', game: '', ring: 'ring', stress: 'stress' };
 const NUMBERS = ['heading', 'sail', 'speed', 'zoom', 'time', 'wait', 'chart-zoom'];
 

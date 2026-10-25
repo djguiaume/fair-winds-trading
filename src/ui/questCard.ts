@@ -103,10 +103,12 @@ export class QuestCard {
       if (!button || !this.card) return;
       const card = this.card;
       const act = button.dataset.act!;
-      this.close();
+      // The answer first, then the close: what comes next (another card from the same person)
+      // is due by the time `onClose` looks for it.
       if (act === 'accept') this.onAccept(card.quest);
       else if (act === 'choose') this.onChoose(card.quest, button.dataset.option!);
       else if (act === 'ignore') this.onIgnore(card.quest);
+      this.close();
     });
     dialog.addEventListener('close', () => {
       const card = this.card;
