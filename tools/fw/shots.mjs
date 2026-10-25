@@ -50,7 +50,7 @@ Where
   --zoom z                      camera distance, 1 = default, larger = farther (no game limit)
   --look x,y                    camera on this map point instead of the boat
   --menu                        the title menu, before Set sail (the scene options are ignored)
-  --chart                       the sea chart open (--pad then plays on it); --chart-zoom n, --chart-pan Key:n,
+  --chart                       the sea chart open (--pad and --click then play on it); --chart-zoom n, --chart-pan Key:n,
                                 --chart-panel journal|market|legend: that tab (default the map)
   --charted                     every wind zone sailed and every chart area handed over (all named)
   --town id:level,…             towns at these levels; an empty island to found is founded first
@@ -504,11 +504,21 @@ async function shootScene(page, shot) {
   await pause(shot.wait);
   // Mooring by an island of hers turns the camera and leaving it frees it (0128): look again.
   if (shot.look && !shot.editor && !shot.url) await page.evaluate(lookAt, shot.look);
-  // With the chart, the pad plays on the chart (moves its cross), so it acts once it is open.
-  await act(page, shot.chart ? { ...shot, pad: null } : shot);
+  // With the chart, the pad and the clicks play on the chart (its cross, its flags), so they act
+  // once it is open.
+  if (!shot.chart) await act(page, shot);
   if (!shot.cards) await closeCards(page);
   if (shot.chart) {
-    await closeCards(page);
+    // Docked (--port): the chart opens from the sea, so the port screen is left first; a card
+    // closed after it can bring it back a moment later, so until it stays away.
+    for (let i = 0, clear = 0; i < 8 && clear < 2; i++) {
+      await closeCards(page);
+      await pause(500);
+      if (await page.isVisible('#tp-close')) {
+        clear = 0;
+        await page.click('#tp-close');
+      } else clear++;
+    }
     await page.click('#chart-btn');
     await pause(600);
     for (let i = 0; i < shot.chartZoom; i++) await page.click('#chart-zoom-in');
@@ -521,10 +531,7 @@ async function shootScene(page, shot) {
       if (tab) document.getElementById(`chart-tab-${tab}`)?.click();
     }, shot.chartPanel);
     await pause(400);
-    if (shot.pad) {
-      await drivePad(page, shot.pad);
-      await pause(600);
-    }
+    await act(page, shot);
   }
 }
 

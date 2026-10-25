@@ -85,7 +85,7 @@ import type { Bench } from './perf/bench';
 import type { PerfReadout } from './perf/perfReadout';
 import { Music } from './audio/music';
 import { wordCount } from './audio/babble';
-import { SeaChart } from './ui/seaChart';
+import { SeaChart, questCourse } from './ui/seaChart';
 import {
   LANGUAGES,
   browserLanguages,
@@ -538,6 +538,7 @@ chart.quests = {
   markers: () => trackedMarkers(quests)?.points ?? [],
   pins: () => questPins(quests, world.map, questSeen),
   target: () => questTarget(quests, world.map),
+  goal: () => questGoal(quests, world.map, view.harbours),
   journal: () => journal(quests, world.map),
   track: (id) => {
     if (quests.track(id)) autosave();
@@ -1096,8 +1097,11 @@ function readPad(now: number, dt: number) {
     if (c.zoom !== 1) chart.zoomBy(c.zoom);
     if (c.fit) chart.fit();
     if (c.close) chart.back();
-    // A: the port under the cross, else the lesson bubble's button; Y skips the lesson (0183).
-    if (c.pick && !chart.pickAtCross(PAD.chart.pickReachPx)) coach.padPress('main');
+    // Y skips the lesson (0183).
+    // A: the port or pin under the cross, else the lesson bubble's button, else her own mark there
+    // (decision 0212).
+    if (c.pick && !chart.pickAtCross(PAD.chart.pickReachPx) && !coach.padPress('main'))
+      chart.markAtCross();
     if (c.skipLesson) coach.padPress('skip');
     if (c.nextGood) chart.nextGood();
     if (c.tab) chart.stepTab(c.tab);
@@ -1557,6 +1561,18 @@ function seaGoal(): { x: number; y: number; label: string } | null {
 }
 
 /**
+ * A course set for the quest's place follows it to the step's next place, and ends with the quest
+ * or when another quest is tracked away to nowhere (decision 0212).
+ */
+function followQuestCourse() {
+  const course = world.destination;
+  if (course?.kind !== 'quest') return;
+  const goal = questGoal(quests, world.map, view.harbours);
+  if (goal) world.destination = questCourse(goal);
+  else world.destination = null;
+}
+
+/**
  * The tracked quest's step, whose `wind` and `sound` the sea plays (decision 0139): the same step
  * data for the tutorial (always tracked while it runs, decision 0151) and every quest.
  */
@@ -1627,6 +1643,7 @@ function tick(now: number) {
   // Rook waits on the wreck while a step points at it (decision 0127).
   view.castawayWaiting = compass === 'wreck';
   hud.goal = seaGoal();
+  followQuestCourse();
   hud.update(dt, (x, y) => view.project(x, y), size, !paused, hudVisible);
   questNote.update(dt, mode === 'play' && !paused && hudVisible, (key) => questSeen.has(key));
   homePanel.update((x, y) => view.project(x, y));

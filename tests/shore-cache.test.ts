@@ -207,6 +207,7 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
     'lanterns',
     'wake',
     'buoy',
+    'courseSpar',
     'edgeBuoys',
     'seaMarks',
     'questMarkers',

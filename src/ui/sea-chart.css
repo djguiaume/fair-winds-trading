@@ -418,6 +418,59 @@ html[data-input='pad'] .chart-cross {
   cursor: pointer;
   outline: none;
 }
+/* Real course marks (decision 0212): the quest's brass flag and her own cream one, navy-edged. */
+.chart-flag {
+  cursor: pointer;
+  outline: none;
+}
+.chart-flag-foot {
+  fill: #1e3550;
+  stroke: #f4ede0;
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+.chart-flag-post {
+  stroke: #1e3550;
+  stroke-width: 3px;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.chart-flag-cloth {
+  stroke: #1e3550;
+  stroke-width: 2px;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.chart-flag-quest .chart-flag-cloth {
+  fill: #e8c46a;
+}
+.chart-flag-quest.is-selected .chart-flag-cloth,
+.chart-flag-quest:hover .chart-flag-cloth {
+  fill: #f6d98a;
+  stroke: #b08a2c;
+}
+.chart-flag-mark .chart-flag-cloth {
+  fill: #f4ede0;
+}
+.chart-flag-bang {
+  fill: #1e3550;
+  font-family: var(--display);
+  font-weight: 800;
+  text-anchor: middle;
+}
+.chart-flag-name {
+  font-size: inherit;
+}
+.chart-flag.is-selected .chart-flag-name,
+.chart-flag:hover .chart-flag-name {
+  fill: var(--brass-hi);
+}
+.chart-flag:focus-visible .chart-hit {
+  stroke: #fff;
+  stroke-width: 2px;
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
+}
 .chart-card-box,
 .chart-hit {
   fill: transparent;
@@ -706,6 +759,24 @@ html[data-input='pad'] .chart-cross {
   }
 }
 
+/*
+ * Landscape: the goods column is centred on the map under the header and tabs, never over them;
+ * a long list (a big sea's goods on a TV) runs on in a second column (decision 0212).
+ */
+@media not (orientation: portrait) {
+  .chart-footer {
+    top: calc(var(--chart-top, 0px) + (100% - var(--chart-top, 0px)) / 2);
+  }
+  .chart .chart-goods {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(auto-fill, minmax(40px, auto));
+    max-height: calc(100dvh - var(--chart-top, 0px) - 24px);
+  }
+  .chart .chart-goods > .pad-key {
+    justify-self: center;
+  }
+}
 /* Portrait: the sea fills the width; goods run along the bottom and the course chip wraps. */
 @media (orientation: portrait) {
   .chart-footer {

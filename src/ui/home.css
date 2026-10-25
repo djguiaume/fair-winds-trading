@@ -92,6 +92,10 @@
     top: calc(var(--top, 10px) + 56px);
   }
 }
+/* Its display would beat the hidden attribute: the bar stayed up after leaving the pier. */
+.home-bar[hidden] {
+  display: none;
+}
 .home-title {
   padding: 6px 12px;
   border: 1.5px solid var(--brass-line);
