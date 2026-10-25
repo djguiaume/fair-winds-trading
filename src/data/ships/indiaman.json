@@ -110,6 +110,42 @@
     "hatchZ": -1.3,
     "cargoZ": 2.75,
     "cargoX": 0.6,
-    "parts": ["indiaman-stern", "gun-ports"]
+    "parts": ["indiaman-stern", "gun-ports"],
+    "damage": {
+      "scuffs": [
+        {
+          "z": 0.3,
+          "side": 1
+        },
+        {
+          "z": -0.1,
+          "side": -1
+        },
+        {
+          "z": -0.32,
+          "side": 1
+        }
+      ],
+      "rail": {
+        "z": 0.05,
+        "side": 1
+      },
+      "tears": [
+        {
+          "u": 0.3,
+          "v": 0.4
+        },
+        {
+          "u": 0.7,
+          "v": 0.6
+        },
+        {
+          "u": 0.5,
+          "v": 0.2
+        }
+      ],
+      "listDeg": 5,
+      "listSide": 1
+    }
   }
 }
