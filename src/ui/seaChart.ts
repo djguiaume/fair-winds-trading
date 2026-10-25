@@ -1,5 +1,5 @@
 import { islandCoasts, islandLake } from '../sim/islandLayout';
-import type { World } from '../sim/world';
+import type { Destination, World } from '../sim/world';
 import type { SeaMarkDef } from '../sim/map';
 import { WIND_FORCES, windForce } from '../sim/windStrength';
 import { GOODS, type GoodId, isFar, isMadeGood } from '../sim/goods';
@@ -10,7 +10,8 @@ import { DEG, distance } from '../sim/math';
 import { discoveredPorts, farGoodsOnChart } from '../sim/shipyards';
 import { ownedIslands } from '../sim/home';
 import { chartedAt, islandCharted } from '../sim/fog';
-import { noGoAngle } from '../sim/ship';
+import { SHIP_CLASSES, noGoAngle } from '../sim/ship';
+import { capacity, cargoUsed } from '../sim/trade';
 import { laneShape } from '../sim/currents';
 import { bergsAt } from '../sim/bergs';
 import { knobs } from '../sim/difficulty';
@@ -91,7 +92,7 @@ function deepestPoint(outline: [number, number][]) {
 
 /** What the chart shows of the quests (decision 0124); see `questView.ts`. */
 /** The chart's tabs (decision 0196), as the port screen's: the sea, then full pages. */
-export const CHART_TABS = ['map', 'journal', 'market', 'legend'] as const;
+export const CHART_TABS = ['map', 'journal', 'hold', 'market', 'legend'] as const;
 export type ChartTab = (typeof CHART_TABS)[number];
 
 export interface ChartQuests {
@@ -103,6 +104,26 @@ export interface ChartQuests {
   track(quest: string): void;
   /** Offer an ignored quest again (decision 0141). */
   takeUp?(quest: string): void;
+  /** Where the tracked step leads and its name, as the sea's arrow shows it (decision 0139). */
+  goal?(): { x: number; y: number; label: string; portId?: string; place?: string } | null;
+}
+
+/** Where the chart's zoom is kept between openings and visits (decision 0212). */
+const ZOOM_KEY = 'fwt.chart.zoom';
+
+/**
+ * A course for the quest's place (decision 0212), named by the island it lies by ("To Teeth
+ * Rock"), else by the step's ask; a port by its name.
+ */
+export function questCourse(goal: {
+  x: number;
+  y: number;
+  label: string;
+  portId?: string;
+  place?: string;
+}): Destination {
+  const { place, ...at } = goal;
+  return { kind: 'quest', ...at, label: place ?? at.label };
 }
 
 const escapeHtml = (s: string) =>
@@ -116,6 +137,8 @@ export class SeaChart {
   /** People's faces on their ports, the tracked step's place and the journal; none: no quests. */
   quests: ChartQuests | null = null;
   onDestinationChange: () => void = () => {};
+  /** Quest cargo on deck, one line each (decision 0213), for the Cargo tab. */
+  questCargo: () => string[] = () => [];
   /** The running quests' own sea marks (decision 0164), drawn while they run. */
   questMarks: () => readonly SeaMarkDef[] = () => [];
   private previousFocus: HTMLElement | null = null;
@@ -125,6 +148,8 @@ export class SeaChart {
   private goodPicked = false;
   private zoom = 1;
   private center = { x: 0, y: 0 };
+  /** Where the view would be centred if the sea's edge allowed: her boat, until she pans. */
+  private aim: { x: number; y: number } | null = null;
   private tab: ChartTab = 'map';
   private dragged = false;
   private settleTimer: ReturnType<typeof setTimeout> | undefined;
@@ -141,6 +166,7 @@ export class SeaChart {
     try {
       // Chart markers were removed (decision 0058); drop what older versions stored.
       localStorage.removeItem(`fwt.chart.v1.${world.map.name}`);
+      this.zoom = Number(localStorage.getItem(ZOOM_KEY)) || 1;
     } catch {
       /* Chart storage is optional and never touches voyage saves. */
     }
@@ -149,17 +175,16 @@ export class SeaChart {
     this.resizeObserver =
       typeof ResizeObserver !== 'undefined' && viewport
         ? new ResizeObserver(() => {
-            if (this.isOpen) this.draw();
+            if (!this.isOpen) return;
+            this.markTop();
+            this.draw();
           })
         : null;
     if (viewport) this.resizeObserver?.observe(viewport);
     this.get('close-chart').addEventListener('click', () => this.close());
-    this.get('chart-clear-target').addEventListener('click', () => {
-      world.destination = null;
-      this.onDestinationChange();
-      this.draw();
-      this.status(t('chart.statusCleared'));
-    });
+    this.get('chart-clear-target').addEventListener('click', () =>
+      this.clearCourse(t('chart.statusCleared')),
+    );
     dialog.addEventListener('close', () => {
       this.onChange();
       this.previousFocus?.focus({ preventScroll: true });
@@ -219,6 +244,7 @@ export class SeaChart {
       else if (event.key === 'ArrowDown') this.center.y += step;
       else return;
       event.preventDefault();
+      this.aim = null;
       this.updateViewBox();
       this.settleLabels();
     });
@@ -233,6 +259,11 @@ export class SeaChart {
       },
       true,
     );
+    // A tap on open water drops her own mark there (decision 0212); ports and pins stop the click.
+    svg.addEventListener('click', (event) => {
+      if (this.dragged || (event.target as Element).closest('[data-chart-target]')) return;
+      this.dropMark(this.toMap(event.clientX, event.clientY));
+    });
     svg.addEventListener('pointerdown', (event) => {
       if (!event.isPrimary || event.button !== 0) return;
       this.dragged = false;
@@ -253,6 +284,7 @@ export class SeaChart {
       if (!this.dragged && Math.hypot(dx, dy) < 6) return;
       this.dragged = true;
       svg.setPointerCapture(event.pointerId);
+      this.aim = null;
       this.center = { x: d.cx - dx * d.unit, y: d.cy - dy * d.unit };
       this.updateViewBox();
     });
@@ -511,6 +543,8 @@ export class SeaChart {
     const hw = ((rect.width || 600) * unit) / 2,
       hh = ((rect.height || 600) * unit) / 2;
     const extent = seaReach(seaShape(this.world.map)) + 24;
+    // Until she pans, the view keeps making for the boat as zooming in leaves it room (0212).
+    if (this.aim) this.center = { ...this.aim };
     this.center.x = Math.max(
       -Math.max(0, extent - hw),
       Math.min(Math.max(0, extent - hw), this.center.x),
@@ -571,16 +605,32 @@ export class SeaChart {
   }
   /** Zoom in (factor > 1) or out; the first step in centres on the boat. */
   zoomBy(factor: number) {
-    if (this.zoom === 1 && factor > 1)
-      this.center = { x: this.world.boat.x, y: -this.world.boat.y };
+    if (this.zoom === 1 && factor > 1) this.aim = { x: this.world.boat.x, y: -this.world.boat.y };
     const zoom = Math.min(this.maxZoom, Math.max(1, this.zoom * factor));
     if (zoom === this.zoom) return;
     this.zoom = zoom;
+    this.keepZoom();
     this.draw();
+  }
+  /** Where the map starts below the header and tabs: the goods column keeps under it (0212). */
+  private markTop() {
+    const top = this.dialog.querySelector('.chart-top')?.getBoundingClientRect().bottom ?? 0;
+    const at = top - this.dialog.getBoundingClientRect().top;
+    this.dialog.style.setProperty('--chart-top', `${Math.max(0, Math.round(at))}px`);
+  }
+  /** The chosen zoom is kept for the next opening, and in this browser for the next visit. */
+  private keepZoom() {
+    try {
+      localStorage.setItem(ZOOM_KEY, String(this.zoom));
+    } catch {
+      /* A convenience only. */
+    }
   }
   /** The whole sea again. */
   fit() {
     this.zoom = 1;
+    this.keepZoom();
+    this.aim = null;
     this.center = { x: 0, y: 0 };
     this.draw();
   }
@@ -588,6 +638,7 @@ export class SeaChart {
   panBy(dx: number, dy: number) {
     if (!dx && !dy) return;
     const unit = this.unitsPerPixel();
+    this.aim = null;
     this.center = { x: this.center.x + dx * unit, y: this.center.y + dy * unit };
     this.updateViewBox();
     this.settleLabels();
@@ -662,7 +713,7 @@ export class SeaChart {
       cy = r.top + r.height / 2 + this.cross.y;
     let best: Element | null = null;
     let bestD = reachPx * reachPx;
-    for (const g of this.dialog.querySelectorAll('.chart-port-target[data-chart-target]')) {
+    for (const g of this.dialog.querySelectorAll('#chart-map [data-chart-target]')) {
       const b = g.getBoundingClientRect();
       const dx = Math.max(b.left - cx, 0, cx - b.right),
         dy = Math.max(b.top - cy, 0, cy - b.bottom);
@@ -674,6 +725,44 @@ export class SeaChart {
     best?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     return !!best;
   }
+  /** A controller's A with nothing under the cross: her own mark there (decision 0212). */
+  markAtCross() {
+    const r = this.get('chart-map').getBoundingClientRect();
+    this.dropMark(
+      this.toMap(r.left + r.width / 2 + this.cross.x, r.top + r.height / 2 + this.cross.y),
+    );
+  }
+  /** The map point under a screen point. */
+  private toMap(clientX: number, clientY: number) {
+    const r = this.get('chart-map').getBoundingClientRect();
+    const unit = this.unitsPerPixel();
+    return {
+      x: this.center.x + (clientX - r.left - r.width / 2) * unit,
+      y: -(this.center.y + (clientY - r.top - r.height / 2) * unit),
+    };
+  }
+  /** Her own mark (decision 0212): one at a time, the course while it stands. */
+  private dropMark(at: { x: number; y: number }) {
+    this.world.destination = { kind: 'mark', label: t('chart.yourMark'), x: at.x, y: at.y };
+    this.onDestinationChange();
+    this.draw();
+    this.status(t('chart.statusMarkSet'));
+  }
+  private clearCourse(message: string) {
+    this.world.destination = null;
+    this.onDestinationChange();
+    this.draw();
+    this.status(message);
+  }
+  /** A course for the tracked quest's place; it follows the quest on to its next place. */
+  private setQuestCourse() {
+    const goal = this.quests?.goal?.();
+    if (!goal) return;
+    this.world.destination = questCourse(goal);
+    this.onDestinationChange();
+    this.draw();
+    this.status(t('chart.statusPortSet', { name: this.world.destination.label }));
+  }
   /** Back, like Esc: the chart closes from any tab, as the port screen does. */
   back() {
     this.close();
@@ -682,11 +771,13 @@ export class SeaChart {
     if (this.isOpen) return;
     this.previousFocus = document.activeElement as HTMLElement | null;
     if (!this.goodPicked) this.good = this.defaultGood();
-    this.zoom = 1;
-    this.center = { x: 0, y: 0 };
+    // The zoom she last chose, on her boat as near the middle as the sea's edge allows (0212).
+    this.zoom = Math.min(this.maxZoom, Math.max(1, this.zoom));
+    this.aim = { x: this.world.boat.x, y: -this.world.boat.y };
     this.cross = { x: 0, y: 0 };
     this.placeCross();
     this.dialog.showModal();
+    this.markTop();
     this.setTab('map');
     this.draw();
     this.status('');
@@ -857,8 +948,18 @@ export class SeaChart {
     };
     const target = quests.target();
     const at = target && (target.point ?? (target.port ? pierOf(target.port) : null));
+    const course = this.world.destination;
     if (target && at) {
-      shape('line', { x1: boat.x, y1: -boat.y, x2: at.x, y2: -at.y, class: 'chart-quest-route' });
+      // With no course set the sea's arrow follows the quest, so its faint route shows; a course
+      // of her own draws the one brass line instead (decision 0212).
+      if (!course)
+        shape('line', {
+          x1: boat.x,
+          y1: -boat.y,
+          x2: at.x,
+          y2: -at.y,
+          class: 'chart-quest-route',
+        });
       shape('circle', {
         cx: at.x,
         cy: -at.y,
@@ -875,6 +976,31 @@ export class SeaChart {
         r: Math.max(m.within, 4 * px),
         class: m.next ? 'chart-quest-ring' : 'chart-quest-area',
       });
+    }
+    // A place at sea gets a real marker (decision 0212): a brass flag to set as the course.
+    const goal = target?.point ? quests.goal?.() : null;
+    if (goal) {
+      const selected = course?.kind === 'quest';
+      const g = this.flagPin(shape, goal, px, {
+        kind: 'quest',
+        selected,
+        label: t('chart.setBearingTo', { name: goal.label }),
+      });
+      g.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!selected) this.setQuestCourse();
+      });
+      const name = shape(
+        'text',
+        {
+          x: goal.x,
+          y: -goal.y + 16 * px,
+          class: 'chart-port-name chart-flag-name',
+          style: `font-size: ${13 * px}px`,
+        },
+        g,
+      );
+      name.textContent = goal.label;
     }
     const size = 34 * px;
     for (const pin of quests.pins()) {
@@ -915,6 +1041,94 @@ export class SeaChart {
     }
     void unit;
     this.drawJournal(quests.journal());
+  }
+
+  /**
+   * The Cargo tab (decision 0213): what she carries, goods in the hold and quest cargo on deck, for
+   * a controller or a phone that has no cargo tooltip to hover.
+   */
+  private drawHold() {
+    const list = this.dialog.querySelector<HTMLElement>('#chart-hold-list');
+    if (!list) return;
+    const { trade } = this.world;
+    const { cargo } = trade.captain;
+    const goods = GOODS.filter((g) => cargo[g] > 0);
+    const deck = this.questCargo();
+    const section = (title: string, room: string, rows: string[]) =>
+      `<section class="hold-section"><h4><span>${escapeHtml(title)}</span><b>${escapeHtml(room)}</b></h4>${
+        rows.length
+          ? `<ul>${rows.join('')}</ul>`
+          : `<p class="muted">${escapeHtml(t('chart.holdNone'))}</p>`
+      }</section>`;
+    list.innerHTML =
+      section(
+        t('chart.holdTitle'),
+        `${cargoUsed(trade)}/${capacity(trade)}`,
+        goods.map(
+          (g) =>
+            `<li><span class="hold-good">${icon(g)}${escapeHtml(goodName(g))}</span><b>×${cargo[g]}</b></li>`,
+        ),
+      ) +
+      section(
+        t('quest.cargoTitle'),
+        `${trade.quests.hold ?? 0}/${SHIP_CLASSES[trade.captain.activeShip]!.deck}`,
+        deck.map((l) => `<li><span>${escapeHtml(l)}</span></li>`),
+      );
+  }
+
+  /**
+   * A flag on a post (decision 0212): brass with a "!" for the quest's place, cream for her own
+   * mark, both outlined in navy so they read on the water and on the fog of war.
+   */
+  private flagPin(
+    shape: (tag: string, attrs: Record<string, string | number>, parent?: Element) => Element,
+    at: { x: number; y: number },
+    px: number,
+    o: { kind: 'quest' | 'mark'; selected: boolean; label: string },
+  ) {
+    const g = shape('g', {
+      class: `chart-flag chart-flag-${o.kind}${o.selected ? ' is-selected' : ''}`,
+      role: 'button',
+      tabindex: 0,
+      'data-chart-target': o.kind,
+      'aria-label': o.label,
+    });
+    g.addEventListener('keydown', (e) => {
+      const key = (e as KeyboardEvent).key;
+      if (key === 'Enter' || key === ' ') {
+        e.preventDefault();
+        g.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      }
+    });
+    const x = at.x,
+      y = -at.y,
+      h = 26 * px,
+      w = 16 * px;
+    shape('circle', { cx: x, cy: y - h / 2, r: 22 * px, class: 'chart-hit' }, g);
+    shape('ellipse', { cx: x, cy: y, rx: 5 * px, ry: 2.5 * px, class: 'chart-flag-foot' }, g);
+    shape('line', { x1: x, y1: y, x2: x, y2: y - h, class: 'chart-flag-post' }, g);
+    shape(
+      'path',
+      {
+        d: `M${x},${y - h} L${x + w},${y - h + w * 0.4} L${x},${y - h + w * 0.8} Z`,
+        class: 'chart-flag-cloth',
+      },
+      g,
+    );
+    if (o.kind === 'quest') {
+      const mark = shape(
+        'text',
+        {
+          x: x + w * 0.36,
+          y: y - h + w * 0.62,
+          class: 'chart-flag-bang',
+          style: `font-size: ${11 * px}px`,
+        },
+        g,
+      );
+      mark.textContent = '!';
+    }
+    return g;
   }
 
   private drawJournal(entries: JournalEntry[]) {
@@ -1155,12 +1369,14 @@ export class SeaChart {
         y2: -destination.y,
         class: 'chart-course',
       });
-      shape('circle', {
-        cx: destination.x,
-        cy: -destination.y,
-        r: 7 * unit,
-        class: 'chart-selected',
-      });
+      // A port's pier gets a ring; the quest's place and her mark carry their flags.
+      if (!destination.kind)
+        shape('circle', {
+          cx: destination.x,
+          cy: -destination.y,
+          r: 7 * unit,
+          class: 'chart-selected',
+        });
     }
     // Screen-sized signature boat; position/heading remain exact world coordinates.
     const player = shape('g', {
@@ -1360,7 +1576,9 @@ export class SeaChart {
     // A big sea seen whole on a small screen leaves them out until zoomed in (decision 0115):
     // past the Windward Ring's phone-portrait scale its islands are too close for them.
     const roomForNames = unit <= MAX_UNITS_PER_PIXEL_FOR_NAMES;
-    for (const place of roomForNames ? places : []) {
+    // The quest's flag names the island it lies by: that island's own name gives way (0212).
+    const flagged = this.quests?.target()?.point ? this.quests.goal?.()?.place : undefined;
+    for (const place of roomForNames ? places.filter((p) => p.name !== flagged) : []) {
       const size = 11 * px;
       const w = place.name.length * size * 0.5,
         h = size * 1.2;
@@ -1410,7 +1628,19 @@ export class SeaChart {
       label.textContent = z.text;
     }
     this.drawMarket(market);
+    this.drawHold();
     if (this.quests) this.drawQuests(shape, unit, px);
+    if (destination?.kind === 'mark') {
+      const g = this.flagPin(shape, destination, px, {
+        kind: 'mark',
+        selected: true,
+        label: t('chart.removeMark'),
+      });
+      g.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.clearCourse(t('chart.statusMarkRemoved'));
+      });
+    }
     svg.append(player);
     const course = this.dialog.querySelector<HTMLElement>('#chart-course');
     if (course) {

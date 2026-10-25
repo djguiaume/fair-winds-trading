@@ -55,7 +55,7 @@ function model(type: SeaMarkDef['type']): THREE.BufferGeometry | null {
     parts[0] = paint(parts[0]!, '#26282c');
     return mergeAll(parts).scale(BOAT_SCALE, BOAT_SCALE, BOAT_SCALE);
   }
-  // Aground on a reef, at the size a reef's own wreck is drawn (decision 0214).
+  // Aground on a reef, at the size a reef's own wreck is drawn (decision 0215).
   if (type === 'wreck') return mergeAll(landmarkParts('wreck', 1.15));
   // A `light` is a mark on the chart only.
   return null;

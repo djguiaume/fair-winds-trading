@@ -183,7 +183,7 @@ export const SEA_MARK_TYPES = [
   'cardinal-west',
   'fishing-boat',
   'pilot-cutter',
-  /** An old, empty hull aground on a reef (decision 0214): a mark that waits on a quest. */
+  /** An old, empty hull aground on a reef (decision 0215): a mark that waits on a quest. */
   'wreck',
   'light',
 ] as const;

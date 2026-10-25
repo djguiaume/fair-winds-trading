@@ -1,0 +1,51 @@
+{
+  "id": "standing-tam",
+  "name": "Tam's standing order",
+  "start": {
+    "is": "quest-done",
+    "quest": "outpost-south"
+  },
+  "text": "quest.standing-tam",
+  "giver": "tam",
+  "port": "palm-key",
+  "offer": true,
+  "repeat": true,
+  "steps": [
+    {
+      "id": "ask-1",
+      "goal": {
+        "is": "landed",
+        "place": "palm-key",
+        "good": "timber",
+        "qty": 6
+      },
+      "reward": {
+        "order": true
+      }
+    },
+    {
+      "id": "ask-2",
+      "goal": {
+        "is": "landed",
+        "place": "palm-key",
+        "good": "timber",
+        "qty": 5
+      },
+      "reward": {
+        "order": true
+      }
+    },
+    {
+      "id": "ask-3",
+      "goal": {
+        "is": "landed",
+        "place": "palm-key",
+        "good": "timber",
+        "qty": 8
+      },
+      "reward": {
+        "order": true
+      }
+    }
+  ]
+}

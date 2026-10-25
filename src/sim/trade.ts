@@ -9,7 +9,14 @@ import { type Difficulty, DEFAULT_DIFFICULTY, easier, knobs } from './difficulty
 import { leakFactor } from './hazards';
 import { type HomeState, createHomeState, ownedIslands } from './home';
 import { applyPerks } from './perks';
-import { GOODS, type GoodAmounts, type GoodId, emptyAmounts, totalAmount } from './goods';
+import {
+  GOODS,
+  GOOD_DEFS,
+  type GoodAmounts,
+  type GoodId,
+  emptyAmounts,
+  totalAmount,
+} from './goods';
 import type { MapDef, PortDef } from './map';
 import {
   type Market,
@@ -237,9 +244,15 @@ export function capacity(trade: TradeState): number {
   return holdCapacity(SHIP_CLASSES[captain.activeShip]!, captain.ships[captain.activeShip]!);
 }
 
-/** Goods aboard, plus the quest cargo (decision 0125), which takes room but cannot be sold. */
+/** Goods aboard. Quest cargo goes on deck, apart from the hold (decision 0213). */
 export function cargoUsed(trade: TradeState): number {
-  return totalAmount(trade.captain.cargo) + (trade.quests.hold ?? 0);
+  return totalAmount(trade.captain.cargo);
+}
+
+/** Room for quest cargo on deck (decision 0213): the ship's `deck`, less what is lashed there. */
+export function deckFree(trade: TradeState): number {
+  const ship = SHIP_CLASSES[trade.captain.activeShip]!;
+  return Math.max(0, ship.deck - (trade.quests.hold ?? 0));
 }
 
 export function freeSpace(trade: TradeState): number {
@@ -572,6 +585,33 @@ export function sell(trade: TradeState, good: GoodId, qty: number, map?: MapDef)
     addGrowth(trade, market.portId, qty);
     addRare(trade, market.portId, good, qty);
   }
+  settleCredit(trade, good);
+  return { ok: true, gold: income };
+}
+
+/**
+ * What handing `qty` of `good` over for a quest here pays (decision 0213): the market's own sell
+ * price, or the good's base price where the market doesn't trade it. Null: not docked.
+ */
+export function quoteHandOver(trade: TradeState, good: GoodId, qty: number): number | null {
+  const market = dockedMarket(trade);
+  if (!market) return null;
+  return trades(market, good) ? quoteSell(market, good, qty) : GOOD_DEFS[good].basePrice * qty;
+}
+
+/**
+ * Goods handed straight to a quest's person from the arrival card (decision 0213), paid as a sale:
+ * a sale where the market trades the good, else at its base price, out of the hold either way.
+ */
+export function handOver(trade: TradeState, good: GoodId, qty: number, map?: MapDef): TradeResult {
+  const market = dockedMarket(trade);
+  if (!market) return fail('not-docked');
+  if (trades(market, good)) return sell(trade, good, qty, map);
+  if (!Number.isInteger(qty) || qty <= 0) return fail('bad-quantity');
+  if (qty > trade.captain.cargo[good]) return fail('not-in-hold');
+  const income = quoteHandOver(trade, good, qty)!;
+  trade.captain.gold += income;
+  trade.captain.cargo[good] -= qty;
   settleCredit(trade, good);
   return { ok: true, gold: income };
 }

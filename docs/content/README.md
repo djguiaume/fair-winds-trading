@@ -294,7 +294,11 @@ At the top: `id`, `name`, `start` (a condition), `text` (prefix of the text keys
 piece, 0 for a passenger), `giver`, `port`, `offer` (`true`: the card asks first, and the
 quest starts on the player's yes; the captain can also say "don't offer again"), `main` (`true`:
 a story quest, whose cards greet the captain on arrival before the harbour screen; every other
-quest speaks on the harbour screen's Quay tab and with a small note at sea, decision 0141). Each step: `id`, then `goal` (a condition), `choose` (one or more
+quest speaks on the harbour screen's Quay tab and with a small note at sea, decision 0141),
+`repeat` (`true`: a standing order, decision 0214: offered again and again at its `port`, each
+step one ask taken in turn, thanked with `<text>.<step>.thanks`, the next ask after
+`economy.orders.standingDockings` calls elsewhere, one ask at a time per port; a step's
+`"reward": { "order": true }` pays the goods it `landed` there like a help order). Each step: `id`, then `goal` (a condition), `choose` (one or more
 options: `id`, `reward`, `next`, and `if`: shown only while that condition holds) or both (either
 ends the step); optional `reward`, `next` (a later step or `done`; default the
 next one), `clean` (touching or grinding on a reef or shore starts the step over), `port`, `chart`
@@ -378,6 +382,13 @@ is a `carried` item (space 0) to the same spot. `discover` and `levelUp` never n
 The tracked step's `reach` points, a timed run's `via` points and quest cargo's spot are drawn
 at sea (a ring as wide as `within`, the next one pulsing) and on the chart, with no extra field.
 `"marker": "gulls"` on a step adds a flock diving over each spot.
+
+### Dock news, quest cargo on deck ([0213](../decisions/0213-quest-news-at-each-stop.md))
+
+- Every stop of a quest under way says what happened there, from the step's goal: no file field needed. The lines are `quest.news.<kind>` in `src/i18n/*.json`.
+- A quest item that takes room (`items.<id>.space` over 0) needs its names: `quest.item.<id>.one`, `.many`, `.the`, `.own`, `.unloadedOne`, `.unloadedMany`, in English and French. The quest builder lists them on the quest's page; `npm run check` says when one is missing. A passenger (space 0) uses the person's name from `characters.json` (`short` when not their first word).
+- Quest cargo rides on deck, apart from the hold: a ship file's `deck` is how much, in the items' `space` units (sloop 8 … indiaman 30).
+- A `delivered` step gets a "Hand over" button on the person's card by itself, paying the docked market's price for the goods (the good's base price where that port does not trade it). A good whose French name needs a plural after a count adds `goodMany.<good>` (« pierres »).
 
 ### What changes after a quest ([0130](../decisions/0130-after-a-quest-and-the-saltmere-shoals.md))
 

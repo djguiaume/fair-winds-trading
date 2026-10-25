@@ -355,7 +355,7 @@ export function packSave(
  * The quest section (decision 0125), written only when a quest has progress, so a code without
  * quests is what it was before: per quest 0 (not started), 1 (done) or 2 + its step, the step's
  * numbers, per choice step the option picked + 1, and per var (decision 0151) its port or good
- * + 1; then the tracked quest + 1.
+ * + 1, and for a standing order (decision 0214) its rounds and wait; then the tracked quest + 1.
  */
 function packQuests(
   w: Writer,
@@ -382,6 +382,10 @@ function packQuests(
         );
     for (const [name, kind] of Object.entries(quest.vars ?? {}))
       w.uint(indexOrNone(kind === 'port' ? ports : GOODS, p.vars?.[name]));
+    if (quest.repeat) {
+      w.uint(p.rounds ?? 0);
+      w.uint(p.wait ?? 0);
+    }
   }
   w.uint(
     indexOrNone(
@@ -414,11 +418,15 @@ function unpackQuests(
       const v = (kind === 'port' ? ports : GOODS)[r.uint() - 1];
       if (v) vars[name] = v;
     }
+    const rounds = quest.repeat ? r.uint() : 0;
+    const wait = quest.repeat ? r.uint() : 0;
     byId[quest.id] = {
       step: step?.id ?? QUEST_DONE,
       counts,
       chose,
       ...(Object.keys(vars).length ? { vars } : {}),
+      ...(rounds ? { rounds } : {}),
+      ...(wait ? { wait } : {}),
     };
   }
   const tracked = quests[r.uint() - 1]?.id;

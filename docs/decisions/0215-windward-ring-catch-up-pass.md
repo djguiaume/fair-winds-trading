@@ -1,4 +1,4 @@
-# 0214. Windward Ring catch-up pass
+# 0215. Windward Ring catch-up pass
 
 **Status:** Accepted (2026-10-25). Guillaume chose to grow the ring ports (16:21Z) and approved the screenshots (18:16Z).
 

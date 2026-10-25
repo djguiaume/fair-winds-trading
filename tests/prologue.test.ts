@@ -289,6 +289,7 @@ describe('a gentler prologue (decision 0139)', () => {
     expect(questGoal(v.quests, PHASE1_MAP, v.harbours)).toEqual({
       ...v.harbours.saltmere,
       label: 'Saltmere',
+      portId: 'saltmere',
     });
     // A running lesson takes the sea: the foghorn, by its ask.
     v.toFoghorn();

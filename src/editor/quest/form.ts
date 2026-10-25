@@ -617,6 +617,17 @@ export function rewardForm(
       }),
   );
   box.append(row('Building spots', chips('homeSpot', spots)));
+  // A standing order's ask (decision 0214): the goods it lands paid like a help order there.
+  box.append(
+    row(
+      'Paid like an order',
+      checkbox(
+        r.order === true,
+        (on) => change('order', on ? true : undefined),
+        'a help order’s gold and growth for the goods landed',
+      ),
+    ),
+  );
   // Volcanoes: islands whose file has a peak with a crater (decision 0178).
   const volcanoes: [string, string][] = ctx.map.islands
     .filter(hasVolcano)

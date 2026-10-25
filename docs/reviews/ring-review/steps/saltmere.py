@@ -1,4 +1,4 @@
-"""Saltmere's ring pass (decision 0214): run once on the shipped file, then `npm run island -- saltmere tidy`.
+"""Saltmere's ring pass (decision 0215): run once on the shipped file, then `npm run island -- saltmere tidy`.
 Kept for the record; later changes go through `npm run island` or the builder."""
 import json, sys, os
 sys.path.insert(0, os.path.dirname(__file__)); from rough import roughen
