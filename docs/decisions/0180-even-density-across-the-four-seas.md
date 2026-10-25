@@ -46,3 +46,4 @@ The gaps, biggest first: west 225..260° (r247), east 100..135° (r232), the nor
 - The density measure stays as a tool; once the seas are filled, a follow-up can make `npm run check` warn when a sea falls under the target (the target as data).
 - The Clinkers closes today's open way between the Coral Line and Forge Reef except through Bellows Pass, so west leg times change; the west thread runs the balance bots on all three difficulties.
 - Storyteller answer and art notes: project files `plan/sea-density/storyteller-answer.md`, `art-director/sea-density/notes.md`.
+- East built (PR #191): The Kittiwakes, Grey Lady Shoal, The Smirr, Sandwick Holm and a small unnamed rock on the Stormbreak's edge; east 7% empty, biggest disc r137 along The Race ([review](../reviews/sea-density-east/README.md)).

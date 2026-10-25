@@ -67,7 +67,14 @@ describe('sloped ground (decision 0096 §4)', () => {
       .filter((d) => d.style !== 'ice' && d.ground.some((g) => g.slope))
       .map((d) => d.id)
       .sort();
-    expect(sloping).toEqual(['amber-strand', 'emberhold', 'lamb-holm', 'the-smoulder']);
+    expect(sloping).toEqual([
+      'amber-strand',
+      'emberhold',
+      'lamb-holm',
+      'sandwick-holm',
+      'the-kittiwakes',
+      'the-smoulder',
+    ]);
   });
 
   it('lets small props stand on a slope but not buildings', () => {

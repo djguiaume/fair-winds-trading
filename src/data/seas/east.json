@@ -81,6 +81,28 @@
         "harbourBearing": 5.5
       },
       "name": "Broch Isle"
+    },
+    {
+      "id": "the-kittiwakes",
+      "x": 700,
+      "y": -300,
+      "radius": 18,
+      "look": {
+        "design": "the-kittiwakes",
+        "harbourBearing": 3.14
+      },
+      "name": "The Kittiwakes"
+    },
+    {
+      "id": "sandwick-holm",
+      "x": 545,
+      "y": 455,
+      "radius": 14,
+      "look": {
+        "design": "sandwick-holm",
+        "harbourBearing": 3.93
+      },
+      "name": "Sandwick Holm"
     }
   ],
   "terrain": [
@@ -301,6 +323,42 @@
       "look": {
         "style": "fog"
       }
+    },
+    {
+      "id": "grey-lady-shoal",
+      "kind": "reef",
+      "outline": [
+        [578, -446],
+        [570, -432],
+        [552, -424],
+        [531, -427],
+        [514, -437],
+        [508, -452],
+        [513, -468],
+        [530, -480],
+        [551, -483],
+        [568, -474]
+      ],
+      "name": "Grey Lady Shoal",
+      "look": {
+        "style": "fog",
+        "landmark": "wreck"
+      }
+    },
+    {
+      "id": "stormbreak-rocks",
+      "kind": "reef",
+      "outline": [
+        [703, 370],
+        [698, 380],
+        [686, 382],
+        [677, 374],
+        [681, 364],
+        [694, 362]
+      ],
+      "look": {
+        "style": "fog"
+      }
     }
   ],
   "ports": [
@@ -360,6 +418,12 @@
       "y": 112,
       "name": "Gannet Sound",
       "chart": true
+    },
+    {
+      "type": "cardinal-south",
+      "x": 545,
+      "y": -500,
+      "name": "Grey Lady Shoal"
     }
   ],
   "currents": [
@@ -446,6 +510,20 @@
         [584, 262]
       ],
       "headingDeg": 90
+    },
+    {
+      "id": "the-smirr",
+      "name": "The Smirr",
+      "kind": "fog-bank",
+      "outline": [
+        [790, -250],
+        [845, -262],
+        [878, -228],
+        [872, -180],
+        [835, -150],
+        [790, -160],
+        [770, -200]
+      ]
     }
   ],
   "chartAreas": [
