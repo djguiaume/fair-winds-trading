@@ -637,6 +637,8 @@ export type QuestEvent =
   | { type: 'landed'; quest: string; good: GoodId; qty: number }
   /** The boat was taken to a step's `moveTo` (decision 0164). */
   | { type: 'moved'; quest: string; step: string }
+  /** A reward's volcano erupts (decision 0178): the view plays it, nothing else changes. */
+  | { type: 'erupt'; quest: string; island: string }
   | { type: 'finished'; quest: string };
 
 /** How often the conditions are checked, in seconds of play. */
@@ -1181,6 +1183,12 @@ export class QuestBook {
     payReward(this.trade, this.world.map, r, () => syncMarketLevels(this.trade, this.world.map));
   }
 
+  /** A reward's eruptions (decision 0178), played in the game and never in a quest test's skip. */
+  private erupt(quest: QuestDef, rewards: (QuestReward | undefined)[], events: QuestEvent[]) {
+    for (const r of rewards)
+      for (const island of r?.erupt ?? []) events.push({ type: 'erupt', quest: quest.id, island });
+  }
+
   private finishStep(
     quest: QuestDef,
     step: QuestStep,
@@ -1189,6 +1197,7 @@ export class QuestBook {
   ) {
     this.pay(step.reward);
     this.pay(option?.reward);
+    this.erupt(quest, [step.reward, option?.reward], events);
     this.applySet(quest, step.set);
     const to = findStep(quest, nextOf(quest, step, option));
     if (to) {
@@ -1203,6 +1212,7 @@ export class QuestBook {
       ...(p.vars ? { vars: p.vars } : {}),
     };
     this.pay(quest.reward);
+    this.erupt(quest, [quest.reward], events);
     // A port that trades differently after this quest has its market follow at once (0130).
     if (this.world.map.ports.some((port) => port.afterQuest?.[quest.id]))
       syncMarketLevels(this.trade, this.world.map);

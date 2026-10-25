@@ -1,0 +1,9 @@
+[
+  { "name": "1-smoulder-plume", "sea": "phase4", "at": [-790, -120], "heading": 180, "speed": 4, "zoom": 1.7, "look": [-860, 45], "sizes": ["desktop", "landscape", "portrait"], "wait": 2500 },
+  { "name": "2-eruption-day", "sea": "phase4", "at": [-700, 40], "heading": 270, "zoom": 2.4, "look": [-830, 10], "erupt": "the-smoulder", "wait": 11000, "sizes": ["desktop", "landscape", "portrait"] },
+  { "name": "3-eruption-night", "sea": "phase4", "at": [-700, 40], "heading": 270, "zoom": 2.4, "look": [-830, 10], "erupt": "the-smoulder", "wait": 11000, "night": true, "sizes": ["desktop", "landscape", "portrait"] },
+  { "name": "4-eruption-sailing", "sea": "phase4", "at": [-790, -120], "heading": 180, "speed": 4, "zoom": 1.7, "look": [-860, 45], "erupt": "the-smoulder", "wait": 9000, "sizes": ["desktop", "landscape", "portrait"] },
+  { "name": "5-emberhold-vent", "sea": "phase4", "at": [-430, 200], "heading": 270, "zoom": 2.2, "look": [-539, 286], "wait": 2500 },
+  { "name": "6-settings", "sea": "phase4", "at": [-700, 40], "click": "#menu-btn;#menu-settings", "script": "docs/reviews/volcano/scroll-settings.js", "sizes": ["desktop", "portrait"] },
+  { "name": "7-settings-fr", "sea": "phase4", "at": [-700, 40], "lang": "fr", "click": "#menu-btn;#menu-settings", "script": "docs/reviews/volcano/scroll-settings.js" }
+]
