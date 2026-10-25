@@ -1,6 +1,6 @@
 # 0217. The Saltmere Regatta
 
-**Status:** Proposed (2026-10-25). Accepted once Guillaume has seen the screenshots and charts.
+**Status:** Accepted (2026-10-25, Guillaume approved the screenshots).
 
 ## Context
 
