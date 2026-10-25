@@ -8,8 +8,12 @@ change the Phase 5 plan ([brief](../phase-5/brief.md)). Written from Guillaume's
 
 The first update after v1.0 is **bug fixes plus new races**.
 
-- **Working title: "The Sailing Club"**, picked over "Gotta go fast" because it fits the game's
-  calm tone. The Head storyteller names the update; this title stands until they do.
+- **Name: "The Sailing Club"** (« Le Club de voile »), picked over "Gotta go fast" because it
+  fits the game's calm tone, and confirmed by the Head storyteller on 2026-10-25.
+- **Pitch** (storyteller): "Wren opens a sailing club at Saltmere: new courses round the islands,
+  a few with a squall to sail around, and a club board for your best times." / « Wren ouvre un
+  club de voile à Saltmere : de nouveaux parcours autour des îles, certains avec un grain à
+  contourner, et un tableau du club pour vos meilleurs temps. »
 - It builds on the Saltmere Regatta ([0217](../decisions/0217-the-saltmere-regatta.md)): Wren
   Tally, *Kestrel*, races as quests with a `raced` goal, pars set by the balance bots on all three
   levels, `npm run race`.
@@ -41,6 +45,9 @@ The first update after v1.0 is **bug fixes plus new races**.
   either way: to decide when it is built).
 - The quest checks (`npm run check`) check the storms: inside the sea, not on the start, finish or
   a mark, and the course still sailable round them.
+- **Story rule** (storyteller): no race text may depend on a storm. With Storms off the course
+  still runs, and the lines mention "weather" or "squall" only as flavour, as Elias does with the
+  Stormbreak.
 - Needs its own decision (ADR) when it is built.
 
 **When:** saved for the new v1.1 races. If Guillaume wants it in one of today's races sooner, it
@@ -48,6 +55,6 @@ can be built then.
 
 ## Open questions
 
-- The update's name (the Head storyteller).
-- How many new races, and where (the storyteller and the map; maybe a club house or regatta board
-  at Saltmere, see the 0217 thread's note on keeping races in each harbour's Quay).
+- How many new races, and where (the storyteller and the map).
+- The club board for best times: where it lives (Saltmere's Quay, or a board of its own) and
+  what it shows.
