@@ -1756,6 +1756,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     'units',
     'Maximum hull-to-shore or pier gap to dock.',
   ),
+  'seamanship.harbour.berthReach': num(
+    'Berth reach',
+    0,
+    80,
+    1,
+    'units',
+    "How far from the harbour's piers the shore still counts as a berth (decision 0205).",
+  ),
   'seamanship.harbour.dockSpeedKn': num(
     'Dock below',
     0.1,

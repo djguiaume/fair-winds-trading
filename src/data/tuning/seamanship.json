@@ -15,6 +15,7 @@
   },
   "harbour": {
     "dockRange": 16,
+    "berthReach": 24,
     "dockSpeedKn": 1.5,
     "undockMargin": 6,
     "brake": 1.6,

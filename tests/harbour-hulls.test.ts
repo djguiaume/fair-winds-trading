@@ -17,6 +17,18 @@ import { TUNING } from '../src/data/tuning';
 // Tuning values moved to src/data/tuning (decision 0094).
 const DOCK_RANGE = TUNING.seamanship.harbour.dockRange;
 const UNDOCK_MARGIN = TUNING.seamanship.harbour.undockMargin;
+const BERTH_REACH = TUNING.seamanship.harbour.berthReach;
+
+const pointSegment = (
+  x: number,
+  y: number,
+  p: { x0: number; y0: number; x1: number; y1: number },
+) => {
+  const dx = p.x1 - p.x0,
+    dy = p.y1 - p.y0;
+  const t = Math.max(0, Math.min(1, ((x - p.x0) * dx + (y - p.y0) * dy) / (dx * dx + dy * dy)));
+  return Math.hypot(x - p.x0 - t * dx, y - p.y0 - t * dy);
+};
 
 describe('real hull harbour clearance', () => {
   it('uses heading, bow/stern length and beam rather than a boat-centre circle', () => {
@@ -65,7 +77,12 @@ describe('real hull harbour clearance', () => {
                 piers,
               );
               trade.dockedAt = null;
-              expect(tryDock(trade, map, boat, port.id)).toBe(true);
+              // Against the shore she docks only beside the piers (decision 0205), never round
+              // the far side of the island.
+              const fromPiers = Math.min(...targets.map((p) => pointSegment(boat.x, boat.y, p)));
+              const docked = tryDock(trade, map, boat, port.id);
+              if (!targets.length) expect(docked).toBe(true);
+              else if (fromPiers > BERTH_REACH + ship.radius * 3) expect(docked).toBe(false);
             }
             for (const pier of targets) {
               const dx = pier.x1 - pier.x0,
