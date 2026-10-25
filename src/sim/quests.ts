@@ -647,6 +647,17 @@ function checkRace(q: QuestDef, at: string): string[] {
     out.push(`${at}: a race is not a main quest, a lesson or a standing order`);
   if (q.steps?.length !== 1 || q.steps[0]!.goal?.is !== 'raced')
     out.push(`${at}: a race has one step, its goal "raced"`);
+  else {
+    // Two big ships side by side, and the marks' boats, fit on each line (Guillaume's play-test).
+    const goal = q.steps[0]!.goal as { start?: unknown; finish?: unknown };
+    for (const key of ['start', 'finish'] as const) {
+      const g = goal[key] as { x: number; y: number }[] | undefined;
+      if (!Array.isArray(g) || g.length !== 2 || !g[0] || !g[1]) continue;
+      const len = Math.hypot(g[1].x - g[0].x, g[1].y - g[0].y);
+      if (len < REGATTA.minLine)
+        out.push(`${at}: its ${key} line is ${Math.round(len)} long, under ${REGATTA.minLine}`);
+    }
+  }
   if (q.reward !== undefined)
     out.push(`${at}: a race pays by its medals (race.gold), not a reward`);
   if (q.starter !== undefined && !PEOPLE.has(q.starter))

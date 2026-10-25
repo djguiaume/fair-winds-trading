@@ -24,39 +24,39 @@
     },
     "pars": {
       "sloop": {
-        "fair": 62,
-        "captain": 62,
-        "salt": 62
+        "fair": 61,
+        "captain": 61,
+        "salt": 60
       },
       "cutter": {
-        "fair": 61,
-        "captain": 62,
-        "salt": 61
+        "fair": 43,
+        "captain": 43,
+        "salt": 43
       },
       "schooner": {
-        "fair": 51,
-        "captain": 50,
-        "salt": 51
+        "fair": 36,
+        "captain": 36,
+        "salt": 36
       },
       "clipper": {
-        "fair": 45,
-        "captain": 46,
-        "salt": 46
+        "fair": 31,
+        "captain": 32,
+        "salt": 32
       },
       "hoy": {
-        "fair": 121,
-        "captain": 118,
+        "fair": 117,
+        "captain": 114,
         "salt": 119
       },
       "indiaman": {
-        "fair": 318,
-        "captain": 220,
-        "salt": 182
+        "captain": 185,
+        "salt": 172,
+        "fair": 118
       },
       "fluyt": {
-        "fair": 338,
-        "captain": 234,
-        "salt": 193
+        "captain": 218,
+        "salt": 191,
+        "fair": 125
       }
     }
   },
@@ -64,8 +64,8 @@
     {
       "id": "race",
       "moveTo": {
-        "x": 238,
-        "y": -78,
+        "x": 249,
+        "y": -59,
         "headingDeg": 330
       },
       "goal": {
@@ -76,8 +76,8 @@
             "y": -62
           },
           {
-            "x": 252,
-            "y": -38
+            "x": 285,
+            "y": -16
           }
         ],
         "marks": [
@@ -96,8 +96,8 @@
             "y": -62
           },
           {
-            "x": 252,
-            "y": -38
+            "x": 285,
+            "y": -16
           }
         ]
       }

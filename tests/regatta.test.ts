@@ -26,6 +26,10 @@ import { packSave, unpackSave } from '../src/sim/saveCode';
 import { serializeWorld } from '../src/sim/save';
 import { questsDone } from '../src/sim/settlement';
 import { SLOOP } from '../src/sim/ship';
+import { pilot, stepRival } from '../src/sim/traffic';
+import { testBerth } from '../src/sim/questTest';
+import { stepTrade } from '../src/sim/trade';
+import { releaseRival } from '../src/sim/rival';
 import { type World, createWorld } from '../src/sim/world';
 import { QUESTS } from '../src/sim/quests';
 import { cardFor } from '../src/ui/questView';
@@ -36,7 +40,7 @@ import { raceBookCards, raceClock, raceHud, raceResultCard } from '../src/ui/reg
 
 const START: Gate = [
   { x: 0, y: 0 },
-  { x: 40, y: 0 },
+  { x: 84, y: 0 },
 ];
 const RACE: QuestDef = {
   id: 'test-race',
@@ -88,6 +92,20 @@ function horn(world: World, book: QuestBook): QuestEvent[] {
 describe('regatta (decision 0217)', () => {
   it('the data and the shipped races are sound', () => {
     expect(checkRegattaData()).toEqual([]);
+    // A line too short for two big ships side by side.
+    const short: Gate = [
+      { x: 0, y: 0 },
+      { x: 40, y: 0 },
+    ];
+    const cramped = {
+      ...RACE,
+      steps: [{ ...RACE.steps[0]!, goal: { ...RACE.steps[0]!.goal, start: short } }],
+    } as QuestDef;
+    expect(
+      checkQuests([cramped], GAME_MAP, ['fair-winds']).some((p) =>
+        p.includes('start line is 40 long'),
+      ),
+    ).toBe(true);
     const { book } = setup();
     expect(checkQuests([RACE], GAME_MAP, ['fair-winds'])).toEqual([]);
     expect(book.offered.map((q) => q.id)).toEqual(['test-race']);
@@ -98,7 +116,59 @@ describe('regatta (decision 0217)', () => {
     expect(crossesForward(START, { x: 20, y: -5 }, { x: 20, y: 5 }, toward)).toBe(true);
     expect(crossesForward(START, { x: 20, y: 5 }, { x: 20, y: -5 }, toward)).toBe(false);
     // Outside the ends is no crossing.
-    expect(crossesGate(START, { x: 60, y: -5 }, { x: 60, y: 5 })).toBe(false);
+    expect(crossesGate(START, { x: 100, y: -5 }, { x: 100, y: 5 })).toBe(false);
+  });
+
+  it('Kestrel goes round the other boats, never through them', () => {
+    const { world, book } = setup();
+    world.boat.x = 20;
+    world.boat.y = -10;
+    book.accept('test-race');
+    const kestrel = world.rival!;
+    const other = world.traffic.boats[0]!;
+    other.awake = true;
+    other.boat.x = kestrel.boat.x;
+    other.boat.y = kestrel.boat.y + 1;
+    stepRival(world, 0.1);
+    // At least as far as two hulls touch side by side.
+    const reach = (kestrel.ship.radius + other.ship.radius) * 0.42 * 1.1;
+    const d = Math.hypot(other.boat.x - kestrel.boat.x, other.boat.y - kestrel.boat.y);
+    expect(d).toBeGreaterThanOrEqual(reach - 1e-6);
+  });
+
+  it('Kestrel steers round the captain, and a touch slows both boats', () => {
+    const { world, book } = setup();
+    world.boat.x = 20;
+    world.boat.y = -10;
+    book.accept('test-race');
+    const kestrel = world.rival!;
+    // The captain dead ahead of her, close: she bears away.
+    kestrel.boat.heading = 0;
+    world.boat.x = kestrel.boat.x;
+    world.boat.y = kestrel.boat.y + 15;
+    world.time = 1;
+    releaseRival(world, true);
+    expect(pilot(world, kestrel, { from: Math.PI / 2, speedKn: 12 }).steer).not.toBe(0);
+    // Touching, bow to bow: both lose way.
+    world.boat.y = kestrel.boat.y + 2;
+    world.boat.heading = Math.PI;
+    world.boat.speedKn = kestrel.boat.speedKn = 6;
+    stepRival(world, 0.01);
+    expect(world.boat.speedKn).toBeLessThan(6);
+    expect(kestrel.boat.speedKn).toBeLessThan(6);
+  });
+
+  it('no docking mid-race: a pier touched is a bump, not the harbour', () => {
+    const world = createWorld(GAME_MAP, SLOOP);
+    const berth = testBerth(world.map, world.trade, world.piers, 'saltmere', SLOOP.id)!;
+    const boat = { ...berth, heading: (berth.headingDeg * Math.PI) / 180, speedKn: 0 };
+    expect(
+      stepTrade(world.trade, world.map, boat, 0.1, true).some((e) => e.type === 'docked'),
+    ).toBe(false);
+    expect(world.trade.dockedAt).toBeNull();
+    expect(stepTrade(world.trade, world.map, boat, 0.1).some((e) => e.type === 'docked')).toBe(
+      true,
+    );
   });
 
   it('medals, their first-time gold and the rival pace', () => {
