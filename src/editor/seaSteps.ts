@@ -5,12 +5,14 @@ import {
   addChartArea,
   addIsland,
   addMark,
+  addSeaEdge,
   addPort,
   addShape,
   addZone,
   deleteSelection,
   findArea,
   findCurrent,
+  findEdge,
   findIsland,
   findShape,
   findZone,
@@ -32,7 +34,7 @@ import { RING, type SeaDoc, addSea, claimNew, moveToSea, ownerOf, seaIds, select
 
 /** What a step adds or points at. `shape` is any reef, sandbank, shallows, ice or barrier island. */
 export type SeaThing =
-  'island' | 'shape' | 'port' | 'waypoint' | 'mark' | 'current' | 'zone' | 'area';
+  'island' | 'shape' | 'port' | 'waypoint' | 'mark' | 'current' | 'zone' | 'area' | 'edge';
 export type SeaAdd =
   | 'island'
   | 'reef'
@@ -46,6 +48,7 @@ export type SeaAdd =
   | 'drift'
   | 'zone'
   | 'area'
+  | 'edge'
   | 'port';
 
 type XY = [number, number];
@@ -58,7 +61,7 @@ export type SeaStep =
       /** The sea file it goes in (default: the active sea, the last one). */
       sea?: string;
       at?: XY;
-      /** A shape's, zone's, drift's or chart area's outline (instead of the default oval). */
+      /** A shape's, zone's, drift's, chart area's or sea edge's outline (not the default oval). */
       outline?: XY[];
       /** A lane current's points `[x, y, width]`, in the direction the water flows. */
       path?: [number, number, number][];
@@ -103,21 +106,23 @@ export function seaRef(doc: SeaDoc, what: SeaThing, id: string | number): Select
             ? { kind: 'zone', id: String(id) }
             : what === 'area'
               ? { kind: 'area', id: String(id) }
-              : what === 'mark'
-                ? {
-                    kind: 'mark',
-                    index: Number.isInteger(index)
-                      ? index
-                      : (doc.marks ?? []).findIndex((m) => m.name === id),
-                  }
-                : what === 'waypoint'
+              : what === 'edge'
+                ? { kind: 'edge', id: String(id) }
+                : what === 'mark'
                   ? {
-                      kind: 'waypoint',
+                      kind: 'mark',
                       index: Number.isInteger(index)
                         ? index
-                        : doc.course.findIndex((w) => w.label === id),
+                        : (doc.marks ?? []).findIndex((m) => m.name === id),
                     }
-                  : null;
+                  : what === 'waypoint'
+                    ? {
+                        kind: 'waypoint',
+                        index: Number.isInteger(index)
+                          ? index
+                          : doc.course.findIndex((w) => w.label === id),
+                      }
+                    : null;
   if (what === 'port') {
     const port = doc.ports.find((p) => p.id === id);
     return port ? { kind: 'island', id: port.islandId } : null;
@@ -224,6 +229,13 @@ export function applySeaSteps(doc: SeaDoc, steps: readonly SeaStep[]): string[] 
         a.outline = step.outline ?? oval(at!, 140, 100);
         assign(a, step.fields);
         what = `area ${a.id}`;
+      } else if (step.what === 'edge') {
+        // Open water joined to the round sea (decision 0202): the edge buoys follow it.
+        const id = addSeaEdge(doc, at![0], at![1]);
+        const e = findEdge(doc, id)!;
+        if (step.outline) e.outline = step.outline;
+        assign(e, step.fields);
+        what = `edge ${e.id}`;
       } else if (step.what === 'port') {
         if (!step.island) throw new Error('add port needs --island');
         const port = addPort(doc, step.island);
@@ -322,7 +334,9 @@ function moveBy(doc: SeaDoc, sel: Selection, at?: XY, by?: XY) {
                 ? findZone(doc, sel.id)!.outline[0]
                 : sel.kind === 'area'
                   ? findArea(doc, sel.id)!.outline[0]
-                  : undefined;
+                  : sel.kind === 'edge'
+                    ? findEdge(doc, sel.id)!.outline[0]
+                    : undefined;
   if (!from) return;
   const [dx, dy] = at ? [at[0] - from[0], at[1] - from[1]] : by!;
   if (sel.kind === 'island') moveIsland(doc, sel.id, from[0] + dx, from[1] + dy);
@@ -356,7 +370,9 @@ function turnBy(doc: SeaDoc, sel: Selection, deg: number) {
           ? findZone(doc, sel.id)
           : sel.kind === 'area'
             ? findArea(doc, sel.id)
-            : undefined;
+            : sel.kind === 'edge'
+              ? findEdge(doc, sel.id)
+              : undefined;
   if (!item) return;
   const holder = item as { outline?: XY[]; path?: [number, number, number][] };
   if (holder.outline) holder.outline = holder.outline.map(turn);
@@ -376,6 +392,7 @@ export function seaSummary(doc: SeaDoc): string[] {
       ['currents', count(doc.currents)],
       ['zones', count(doc.windZones)],
       ['chart areas', count(doc.fog?.areas)],
+      ['sea edges', count(doc.edges)],
     ];
     const name =
       owner === RING

@@ -219,6 +219,18 @@ input:focus-visible {
   stroke-dasharray: 6 4;
   vector-effect: non-scaling-stroke;
 }
+.c-edge-outline {
+  fill: none;
+  stroke: rgba(238, 243, 244, 0.18);
+  stroke-width: 1px;
+  stroke-dasharray: 2 4;
+  vector-effect: non-scaling-stroke;
+}
+.c-edge-hit {
+  fill: none;
+  stroke: transparent;
+  pointer-events: stroke;
+}
 .c-grid {
   stroke: rgba(238, 243, 244, 0.1);
   stroke-width: 1px;

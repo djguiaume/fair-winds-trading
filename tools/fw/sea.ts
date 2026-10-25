@@ -42,13 +42,15 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
                  (storm-belt: squalls march downwind of --heading; --outline for its band)
         area     --name … [--id …] [--outline …]                    (a chart area, fog of war)
         port     --island <id> [--name …]                           (makes the island a port)
+        edge     [--outline …] [--id …]   open water joined to the round sea (decision 0202): the
+                 playable sea grows by it and the edge buoys follow its outer edge
   move <what> <id|index> --at x,y | --by dx,dy | --turn deg | --to-sea <id>
         (a mark or waypoint: index or name; --turn: round the middle of the map, degrees
         clockwise, keeping its distance)
   set <what> <id|index> --name … (and any field: --kind, --max-draft, --type, --speed, --level …;
         a port's --produces, --wants, --wants-made a,b,c; a sandbank's --color #b8b2a8)
   set shape <id> --style fog     a reef's rock style (a palette style's reefRock and coral; none = warm)
-  set <what> <id> --outline "x,y x,y …"   a new outline for a shape, zone, area or area current
+  set <what> <id> --outline "x,y x,y …"   a new outline for a shape, zone, area, area current or edge
   set sea <id> --name …          set grown --radius 985 --charted 445
   set grown --sector east=45,135 a sea's slice of the outer ring, compass degrees (decision 0179;
         several with ';', none removes it); every sea's things must stay inside its own
@@ -56,7 +58,7 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
         once that quest is done, or until it is (decision 0166: land swaps out of the boat's sight)
   --during <quest> | --except <quest>   an island or shape stands only while that quest runs,
         or all but then
-  remove <what> <id|index>       (what: island shape port waypoint mark current zone area)
+  remove <what> <id|index>       (what: island shape port waypoint mark current zone area edge)
   check                          the checks only
   density [--sight 160 --cell 10] how full each sea's slice of the outer ring is (decision 0180):
         islands, shapes, marks, zones per open water, share of empty water and the biggest

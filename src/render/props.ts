@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeAll, paint, place, vertexColorMaterial } from './models/geometry';
 import { TUNING } from '../data/tuning';
 import { MAX_WAVE_HEIGHT } from './ocean';
+import { type SeaShape, asSeaShape, edgeSpots } from '../sim/seaEdge';
 
 /** Course buoy: striped float, flag, a pulsing ring and a tall faint beacon seen from afar. */
 export class BuoyMarker {
@@ -79,7 +80,7 @@ export function createBlobShadow(width: number, length: number): THREE.Mesh {
 }
 
 /**
- * Red can buoys bobbing in a ring just inside the sea's edge, so the invisible wall the boat
+ * Red can buoys bobbing just beyond the sea's edge, so the invisible wall the boat
  * bumps into can be seen. Compact visible buoys into one instanced draw call. Hidden buoys
  * need only a sphere/frustum test, with no waves, matrix updates or uploaded instance data.
  */
@@ -91,21 +92,19 @@ export class EdgeBuoys {
   private readonly projection = new THREE.Matrix4();
   private readonly bounds = new THREE.Sphere();
 
-  constructor(boundsRadius: number) {
+  constructor(sea: number | SeaShape) {
     const geometry = mergeAll([
       paint(place(new THREE.CylinderGeometry(1.0, 1.2, 1.2, 8), 0, 0.3, 0), '#d93a2b'),
       paint(place(new THREE.CylinderGeometry(1.02, 1.02, 0.35, 8), 0, 1.05, 0), '#f6f1e4'),
       paint(place(new THREE.CylinderGeometry(0.75, 1.0, 1.0, 8), 0, 1.7, 0), '#d93a2b'),
       paint(place(new THREE.ConeGeometry(0.5, 0.9, 6), 0, 2.65, 0), '#d93a2b'),
     ]);
-    // Just beyond where the boat's hull is held, so it sails alongside them, never through.
+    // Just beyond where the boat's hull is held, so it sails alongside them, never through; only
+    // along the sea's outer edge, none where a section joins it (decision 0202).
     const tuning = TUNING.seamanship.boundaryBuoys;
-    const r = boundsRadius + tuning.offset;
-    const count = Math.max(8, Math.round((Math.PI * 2 * r) / tuning.spacing));
-    for (let i = 0; i < count; i++) {
-      const a = (i / count) * Math.PI * 2;
-      this.spots.push({ x: Math.cos(a) * r, z: Math.sin(a) * r, phase: i * tuning.phaseStep });
-    }
+    const spots = edgeSpots(asSeaShape(sea), tuning.spacing, tuning.offset);
+    spots.forEach(({ x, y }, i) => this.spots.push({ x, z: -y, phase: i * tuning.phaseStep }));
+    const count = spots.length;
     this.mesh = new THREE.InstancedMesh(geometry, vertexColorMaterial(), count);
     this.mesh.frustumCulled = false;
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);

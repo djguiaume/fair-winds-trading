@@ -1,5 +1,6 @@
 import type { FogDef } from './fog';
 import type { GoodId } from './goods';
+import type { SeaEdgeDef } from './seaEdge';
 import type { WindConfig } from './wind';
 
 /**
@@ -240,8 +241,13 @@ export interface MapDef {
   /** Explicit compatible predecessor maps; never accept arbitrary other-map saves. */
   compatibleSaveMaps?: string[];
   seed: number;
-  /** The playable sea is a disc of this radius around (0, 0). */
+  /** The round sea: a disc of this radius around (0, 0). */
   boundsRadius: number;
+  /**
+   * Open water joined to the round sea (decision 0202): the playable sea is the disc and these
+   * outlines together, and the edge buoys follow its outer edge. Each sea file can bring its own.
+   */
+  edges?: SeaEdgeDef[];
   wind: WindConfig;
   start: { x: number; y: number; headingDeg: number };
   islands: IslandDef[];

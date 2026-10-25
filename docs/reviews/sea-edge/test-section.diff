@@ -1,0 +1,21 @@
+diff --git a/src/data/seas/east.json b/src/data/seas/east.json
+index 32e06e6..16cfe37 100644
+--- a/src/data/seas/east.json
++++ b/src/data/seas/east.json
+@@ -626,5 +626,16 @@
+         [403.1, 403.1]
+       ]
+     }
++  ],
++  "edges": [
++    {
++      "id": "edge-1",
++      "outline": [
++        [900, -160],
++        [1260, -160],
++        [1260, 160],
++        [900, 160]
++      ]
++    }
+   ]
+ }

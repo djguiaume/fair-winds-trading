@@ -42,6 +42,7 @@ import { daylightAt } from '../sim/daylight';
 import { StormClouds } from './stormClouds';
 import { Volcanoes } from './volcanoes';
 import { stormRain } from '../sim/storms';
+import { seaShape } from '../sim/seaEdge';
 import { CLEAR, type ZoneVisual, mapZones, zoneField, zoneVisualAt } from '../sim/windZones';
 import { smoothOutline } from '../sim/flowShapes';
 
@@ -179,7 +180,7 @@ export class GameView {
     this.volcanoes = new Volcanoes(this.islands.craters);
     this.level = level;
     this.boat = this.buildBoat();
-    this.edgeBuoys = new EdgeBuoys(world.map.boundsRadius);
+    this.edgeBuoys = new EdgeBuoys(seaShape(world.map));
     this.castaway = new Castaway(world.map);
     this.seaMarks = new SeaMarks(world.map);
     this.bergs = new DriftingBergs(world.map);
