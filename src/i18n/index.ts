@@ -99,13 +99,25 @@ function variantOf(key: string): string {
   return (en as Record<string, string>)[k] ? k : key;
 }
 
+let padNames: Record<string, string> = {};
+
+/**
+ * The pad's own button names (decision 0185, `controls.json` › `padBrands`): a text writes
+ * `{pad:a}` and reads "A" on an Xbox pad, "✕" on a PlayStation pad, "B" on a Switch pad.
+ */
+export function setPadNames(names: Record<string, string>): void {
+  padNames = names;
+}
+
 /** Translate `key`, replacing `{name}` with `params.name`. Falls back to English, then the key. */
 export function t(key: MessageKey, params: Record<string, string | number> = {}): string {
   key = variantOf(key) as MessageKey;
   const text = current.messages[key] ?? (en as Messages)[key] ?? key;
-  return text.replace(/\{(\w+)\}/g, (match, name: string) =>
-    name in params ? String(params[name]) : match,
-  );
+  return text
+    .replace(/\{pad:(\w+)\}/g, (match, button: string) => padNames[button] ?? match)
+    .replace(/\{(\w+)\}/g, (match, name: string) =>
+      name in params ? String(params[name]) : match,
+    );
 }
 
 /**

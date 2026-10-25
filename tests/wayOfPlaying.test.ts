@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { setTextVariant, t } from '../src/i18n';
+import { setPadNames, setTextVariant, t } from '../src/i18n';
+import { PAD_BRANDS, brandProblems, padBrand } from '../src/input/gamepad';
 import { WayOfPlaying, firstWay, wayOfEvent } from '../src/input/wayOfPlaying';
 import { lineKeys, textKeys } from '../src/editor/quest/doc';
 import type { QuestDef } from '../src/sim/quests';
@@ -13,7 +14,10 @@ describe('texts per way of playing (decision 0184)', () => {
     expect(sell(null)).toBe('Sell fish here, or use Sell all.');
     expect(sell('touch')).toBe('Sell fish here, or tap Sell all.');
     expect(sell('keys')).toBe('Sell fish here, or click Sell all.');
+    setPadNames({ x: 'X' });
     expect(sell('pad')).toBe('Sell fish here, or press X to sell all.');
+    setPadNames({ x: '□' }); // a PlayStation pad (decision 0185)
+    expect(sell('pad')).toBe('Sell fish here, or press □ to sell all.');
     // A line with no versions reads the same for everyone.
     setTextVariant('touch');
     expect(t('lesson.wind.title')).toBe('Let the wind help');
@@ -70,5 +74,31 @@ describe('texts per way of playing (decision 0184)', () => {
     ]);
     const ask = textKeys(q).find((l) => l.key === 'quest.x.a.title')!;
     expect(lineKeys(ask)).toHaveLength(1);
+  });
+
+  it('names the buttons after the pad’s maker (decision 0185)', () => {
+    expect(brandProblems()).toEqual([]);
+    expect(padBrand('Xbox Wireless Controller (STANDARD GAMEPAD Vendor: 045e Product: 0b13)')).toBe(
+      'xbox',
+    );
+    expect(
+      padBrand('DualSense Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 0ce6)'),
+    ).toBe('playstation');
+    expect(padBrand('Pro Controller (STANDARD GAMEPAD Vendor: 057e Product: 2009)')).toBe(
+      'nintendo',
+    );
+    expect(padBrand('Some USB pad')).toBe('xbox'); // the first brand is the default
+    expect(PAD_BRANDS.playstation!.names.a).toBe('✕');
+    expect(PAD_BRANDS.nintendo!.names.a).toBe('B'); // the bottom button
+    expect(
+      brandProblems({
+        x: { match: [''], names: { a: 'A', b: 'B', x: 'X', y: '', zz: 'Z' } as never },
+      }),
+    ).toEqual([
+      'padBrands.x.y: empty name',
+      'padBrands.x: no button "zz"',
+      'padBrands.x: no name for y',
+      'padBrands.x.match: an empty word',
+    ]);
   });
 });

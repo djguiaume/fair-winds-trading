@@ -1,10 +1,7 @@
 import { t } from '../i18n';
 import type { QuestBook } from '../sim/quests';
 import { type LessonModel, lessonDone, lessonFor } from './questView';
-
-/** Button glyphs on the bubble, shown only while the pad is the last input (decision 0183). */
-const PAD_A = '<i class="pad-key a pad-only" aria-hidden="true">A</i>';
-const PAD_Y = '<i class="pad-key y pad-only" aria-hidden="true">Y</i>';
+import { padGlyph } from './padGlyphs';
 
 type Surface = 'sea' | 'chart' | 'market' | null;
 type Side = 'top' | 'bottom' | 'left' | 'right' | 'none';
@@ -277,7 +274,7 @@ export class TutorialCoach {
       button(actions, 'tutorial-finish', t('tutorial.free'), 'd-btn brass', () => {
         this.finished = null;
         this.render();
-      }).insertAdjacentHTML('afterbegin', PAD_A);
+      }).insertAdjacentHTML('afterbegin', padGlyph('a'));
       return this.refocus(focusedId);
     }
     lesson = lesson!;
@@ -291,7 +288,7 @@ export class TutorialCoach {
         'd-btn brass',
         () => this.onOption(quest, o.id),
       );
-      if (!i) b.insertAdjacentHTML('afterbegin', PAD_A);
+      if (!i) b.insertAdjacentHTML('afterbegin', padGlyph('a'));
     });
     // The ring already shows what to tap; a button only when nothing is pinned, or for tips.
     const offSurface = lesson.action === 'chart' && this.surface === 'chart';
@@ -307,12 +304,12 @@ export class TutorialCoach {
         else if (action === 'market') this.onMarket();
         else this.onTips();
       });
-      if (!lesson.options.length) go.insertAdjacentHTML('afterbegin', PAD_A);
+      if (!lesson.options.length) go.insertAdjacentHTML('afterbegin', padGlyph('a'));
     }
     const skip = button(actions, 'tutorial-skip', t('tutorial.skip'), 'coach-text-btn', () =>
       this.onSkip(quest),
     );
-    skip.insertAdjacentHTML('afterbegin', PAD_Y);
+    skip.insertAdjacentHTML('afterbegin', padGlyph('y'));
     skip.style.marginLeft = 'auto';
     skip.insertAdjacentHTML(
       'beforeend',

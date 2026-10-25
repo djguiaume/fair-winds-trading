@@ -107,6 +107,7 @@ import { HomePanel, buildingName, effectLine } from './ui/homePanel';
 import { builtByIsland, giveHomeIsland, homeSpots, islandHome, offerHomeSpot } from './sim/home';
 import { TransferPanel } from './ui/transferPanel';
 import { startTvMode } from './input/tv';
+import { usePadBrand } from './ui/padGlyphs';
 import { WayOfPlaying, firstWay } from './input/wayOfPlaying';
 
 declare const __APP_VERSION__: string;
@@ -991,6 +992,12 @@ hud.onSailStep = (step) => input.setSail(step);
  * rest (menus, the harbour, cards) goes to `pad.onMenuPress`.
  */
 const pad = new GamepadPoller();
+// The pad's own button names on glyphs and in texts: A on Xbox, ✕ on PlayStation (decision 0185).
+usePadBrand(pad.brand);
+pad.onBrand = (brand) => {
+  usePadBrand(brand);
+  coach.render();
+};
 pad.onConnect = (connected) => {
   document.body.classList.toggle('has-gamepad', connected);
   if (connected) hud.showToast(t('toast.padConnected'), 3);

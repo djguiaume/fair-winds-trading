@@ -66,5 +66,63 @@
       "y": 0.05
     },
     "stayOnBack": true
+  },
+  "padBrands": {
+    "xbox": {
+      "match": [],
+      "names": {
+        "a": "A",
+        "b": "B",
+        "x": "X",
+        "y": "Y",
+        "lb": "LB",
+        "rb": "RB",
+        "lt": "LT",
+        "rt": "RT",
+        "view": "View",
+        "menu": "Menu",
+        "ls": "LS",
+        "rs": "RS"
+      },
+      "lang": {
+        "fr": {
+          "view": "Affichage"
+        }
+      }
+    },
+    "playstation": {
+      "match": ["054c", "playstation", "dualsense", "dualshock"],
+      "names": {
+        "a": "✕",
+        "b": "○",
+        "x": "□",
+        "y": "△",
+        "lb": "L1",
+        "rb": "R1",
+        "lt": "L2",
+        "rt": "R2",
+        "view": "Create",
+        "menu": "Options",
+        "ls": "L3",
+        "rs": "R3"
+      }
+    },
+    "nintendo": {
+      "match": ["057e", "nintendo", "pro controller"],
+      "names": {
+        "a": "B",
+        "b": "A",
+        "x": "Y",
+        "y": "X",
+        "lb": "L",
+        "rb": "R",
+        "lt": "ZL",
+        "rt": "ZR",
+        "view": "−",
+        "menu": "+",
+        "ls": "LS",
+        "rs": "RS"
+      }
+    }
   }
 }
