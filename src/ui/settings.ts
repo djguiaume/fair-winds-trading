@@ -24,6 +24,8 @@ export interface Settings {
   language: LanguageId | null;
   /** Background music volume, 0 (off) to 1 (decision 0045). */
   musicVolume: number;
+  /** Effects and the sea's sound bed, 0 (off) to 1 (decision 0209). */
+  soundVolume: number;
   /** People babble as their card opens (decision 0132); on by default. */
   voices: boolean;
   /** Their volume, 0 to 1. */
@@ -65,6 +67,7 @@ const DEFAULTS: Settings = {
   showLog: true,
   language: null,
   musicVolume: 0.6,
+  soundVolume: 0.7,
   voices: true,
   voiceVolume: 0.7,
   dayNight: true,
@@ -90,6 +93,8 @@ export function loadSettings(): Settings {
     if (!isLanguage(settings.language)) settings.language = null;
     const volume = Number(settings.musicVolume);
     settings.musicVolume = Number.isFinite(volume) ? Math.min(1, Math.max(0, volume)) : 0.6;
+    const sounds = Number(settings.soundVolume);
+    settings.soundVolume = Number.isFinite(sounds) ? Math.min(1, Math.max(0, sounds)) : 0.7;
     const voices = Number(settings.voiceVolume);
     settings.voiceVolume = Number.isFinite(voices) ? Math.min(1, Math.max(0, voices)) : 0.7;
     settings.voices = settings.voices !== false;

@@ -457,6 +457,11 @@ export class GameView {
     return this.volcanoes.erupt(island, now);
   }
 
+  /** Eruptions begun since the last call and the nearest steam vent, from a sim point (0209). */
+  volcanoSounds(x: number, y: number) {
+    return this.volcanoes.sounds(x, -y);
+  }
+
   /** 1 = default; larger = farther away. */
   setZoom(zoom: number) {
     this.zoom = clamp(zoom, 0.6, 1.7);

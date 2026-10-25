@@ -96,6 +96,8 @@ export class Volcanoes {
   private readonly bombs: THREE.InstancedMesh;
   private readonly glow = new THREE.InstancedBufferAttribute(new Float32Array(MAX_PUFFS), 1);
   private readonly states: CraterState[] = [];
+  /** Eruptions begun since the sound last asked (decision 0209). */
+  private readonly started: Crater[] = [];
   /** Story eruptions waiting for the boat to come in sight, with their age in seconds. */
   private readonly story: { island: string; age: number }[] = [];
   private readonly rng: Rng = createRng(7176);
@@ -190,6 +192,19 @@ export class Volcanoes {
     return true;
   }
 
+  /**
+   * The eruptions begun since the last call, as how far each is from the scene point (x, z), for
+   * the rumble (decision 0209); and how far the nearest live steam vent is, for the lava hiss.
+   */
+  sounds(x: number, z: number): { eruptions: number[]; vent: number } {
+    const eruptions = this.started.map((c) => Math.hypot(c.x - x, c.z - z));
+    this.started.length = 0;
+    let vent = Infinity;
+    for (const { crater } of this.states)
+      if (crater.vent) vent = Math.min(vent, Math.hypot(crater.x - x, crater.z - z));
+    return { eruptions, vent };
+  }
+
   /** Islands whose eruption is running now. */
   erupting(): string[] {
     return this.states.filter((s) => s.eruption).map((s) => s.crater.island);
@@ -281,6 +296,7 @@ export class Volcanoes {
       return;
     }
     state.eruption = { elapsed: 0, hold };
+    if (this.started.length < 8) this.started.push(state.crater);
   }
 
   /**

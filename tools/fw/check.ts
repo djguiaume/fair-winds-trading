@@ -1,6 +1,6 @@
 // `npm run check` (decision 0153): the editors' own checks on every content file, in seconds,
 // without the test suite. Short output: one line per area, one line per problem.
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { ISLAND_DESIGNS, type IslandDesign } from '../../src/data/islands';
 import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../../src/data/maps';
 import { SEAS, SEA_SECTORS, grownMap } from '../../src/data/grownMap';
@@ -13,13 +13,14 @@ import { checkIsland } from '../../src/sim/islandChecks';
 import type { MapDef } from '../../src/sim/map';
 import { type MapCheck, questTagsCheck, quickChecks, routeChecks } from '../../src/sim/mapChecks';
 import { checkPerks } from '../../src/sim/perks';
+import { type AudioData, audioProblems } from '../../src/audio/catalog';
 import { QUESTS, type QuestDef } from '../../src/sim/quests';
 import { sectorChecks } from '../../src/sim/seaSectors';
 
 type Args = Record<string, string | boolean | undefined> & { _: string[] };
 
 export interface Problem {
-  area: 'seas' | 'islands' | 'quests' | 'perks' | 'controls';
+  area: 'seas' | 'islands' | 'quests' | 'perks' | 'controls' | 'audio';
   where: string;
   severity: 'error' | 'warning';
   message: string;
@@ -39,6 +40,8 @@ export interface CheckOptions {
   routes?: 'first' | 'all' | 'none';
   /** A controls file to check instead of `src/data/controls.json` (a controls page export). */
   controls?: ControlsDoc;
+  /** A sound list to check instead of `src/data/audio.json` (a Sounds page export, 0209). */
+  audio?: AudioData;
 }
 
 /** The seas checked by default: the ring, the grown Phase 4 sea (`?map=phase4`) and the stress sea. */
@@ -168,6 +171,13 @@ export function checkAll(opts: CheckOptions = {}) {
       problems.push({ area: 'controls', where: 'controls.json', severity: 'error', message });
     counted.controls = 'controls.json';
   }
+
+  if (want('audio')) {
+    const exists = (file: string) => existsSync(`public/${file}`);
+    for (const message of audioProblems(exists, opts.audio))
+      problems.push({ area: 'audio', where: 'audio.json', severity: 'error', message });
+    counted.audio = 'audio.json';
+  }
   return { problems, counted };
 }
 
@@ -176,10 +186,11 @@ const list = (v: unknown) => (typeof v === 'string' ? v.split(',').filter(Boolea
 export function run(args: Args): number {
   if (args.help) {
     console.log(`npm run check [-- options]
-  --only seas,islands,quests,perks,controls   check only these areas
+  --only seas,islands,quests,perks,controls,audio   check only these areas
   --island id[,id]                   only these island files
   --map file.json[,file.json]        check these map files (editor exports) instead of the ring and stress seas
   --controls file.json               check this controls file (a controls page export)
+  --audio file.json                  check this sound list (a Sounds page export)
   --fast                             skip the sailing route checks (about 7 s on the ring)
   --all-routes                       route checks on every sea, not just the first (minutes)
   --warnings                         list warnings too (counted otherwise)
@@ -200,6 +211,10 @@ export function run(args: Args): number {
     controls:
       typeof args.controls === 'string'
         ? (JSON.parse(readFileSync(args.controls, 'utf8')) as ControlsDoc)
+        : undefined,
+    audio:
+      typeof args.audio === 'string'
+        ? (JSON.parse(readFileSync(args.audio, 'utf8')) as AudioData)
         : undefined,
   });
   if (args.json) {

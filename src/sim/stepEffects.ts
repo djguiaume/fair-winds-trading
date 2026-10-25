@@ -41,6 +41,11 @@ export interface StepEffects {
   wind?: StepWind;
   sound?: StepSound;
   moveTo?: StepMove;
+  /**
+   * A music track of `audio.json` › `music` played over the sea's own while the step runs, such as
+   * the regatta's (decision 0209). It takes over at the next tune.
+   */
+  music?: string;
 }
 
 /** The breeze a step holds on this map, or null. */
@@ -52,7 +57,9 @@ export function heldWind(wind: StepWind | undefined, map: MapDef): Wind | null {
 /** Problems with a step's `wind` and `sound`, for the quest checks. */
 export function checkStepEffects(step: StepEffects, where: string): string[] {
   const out: string[] = [];
-  const { wind, sound, moveTo } = step;
+  const { wind, sound, moveTo, music } = step;
+  if (music !== undefined && !(music in audio.music))
+    out.push(`${where} › music: no track "${music}" in audio.json`);
   if (wind !== undefined) {
     if (!(typeof wind.speedKn === 'number' && wind.speedKn > 0 && wind.speedKn <= 40))
       out.push(`${where} › wind: speedKn between 0 and 40`);
