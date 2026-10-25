@@ -1,3 +1,4 @@
+import { PHASE1_MAP } from '../data/maps';
 import { formatNumber, shipName, t } from '../i18n';
 import { type SaveData, type SaveStorage, serializeWorld } from '../sim/save';
 import {
@@ -16,6 +17,9 @@ import { SHIP_CLASSES } from '../sim/ship';
 import type { World } from '../sim/world';
 import { qrSvg } from './qr';
 import { QrScanner, canScan } from './qrScanner';
+
+/** The ring alone (decision 0198): codes written before the grown sea was the game's still read. */
+const EARLIER_MAPS = [PHASE1_MAP];
 
 const $ = <T extends HTMLElement = HTMLElement>(root: ParentNode, id: string) =>
   root.querySelector<T>(`#${id}`)!;
@@ -50,7 +54,13 @@ export class TransferPanel {
     $(root, 'scan-start').addEventListener('click', () => void this.startScan());
     $(root, 'scan-stop').addEventListener('click', () => this.stopScan());
     $(root, 'transfer-load').addEventListener('click', () =>
-      this.take(readSaveCode($<HTMLTextAreaElement>(root, 'transfer-paste').value, this.world)),
+      this.take(
+        readSaveCode(
+          $<HTMLTextAreaElement>(root, 'transfer-paste').value,
+          this.world,
+          EARLIER_MAPS,
+        ),
+      ),
     );
     const file = $<HTMLInputElement>(root, 'transfer-file');
     $(root, 'transfer-open-file').addEventListener('click', () => file.click());
@@ -80,7 +90,7 @@ export class TransferPanel {
   openWithCode(text: string) {
     this.root.hidden = false;
     this.show('receive');
-    this.take(readSaveCode(text, this.world));
+    this.take(readSaveCode(text, this.world, EARLIER_MAPS));
   }
 
   close() {
@@ -155,7 +165,7 @@ export class TransferPanel {
     $(this.root, 'scan-stop').hidden = false;
     try {
       await this.scanner.start((text) => {
-        const result = readSaveCode(text, this.world);
+        const result = readSaveCode(text, this.world, EARLIER_MAPS);
         // Someone else's QR code in view: keep looking.
         if (!result.ok && result.problem === 'unreadable') return false;
         this.take(result);

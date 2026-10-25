@@ -2,8 +2,7 @@ import type { MapDef } from '../sim/map';
 import type { QuestDef } from '../sim/quests';
 import type { SaveStorage } from '../sim/save';
 import { type IslandDesign, isIslandShape, useIslandDesign } from './islands';
-import { grownMap } from './grownMap';
-import { PHASE1_SOURCE, prepareMap } from './maps';
+import { GAME_SOURCE, PHASE1_SOURCE, prepareMap } from './maps';
 
 /**
  * "Play this map" from the map editor (decision 0095). The editor keeps its working map in this
@@ -76,8 +75,7 @@ export function editedMap(search: string, storage: SaveStorage | null): MapDef |
     const raw: unknown = JSON.parse(
       storage.getItem(sea ? EDITED_SEAS_KEY : EDITED_MAP_KEY) ?? 'null',
     );
-    if (raw === null)
-      return prepareMap(sea ? grownMap(PHASE1_SOURCE) : structuredClone(PHASE1_SOURCE));
+    if (raw === null) return prepareMap(sea ? GAME_SOURCE : structuredClone(PHASE1_SOURCE));
     if (!isMapShape(raw)) return null;
     return prepareMap(raw);
   } catch {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../src/data/maps';
+import { GAME_MAP, PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../src/data/maps';
 import { stressMap } from '../src/data/stressMap';
 import { BENCHMARK, Bench, BenchRoute } from '../src/perf/bench';
 import { clearAt } from '../src/sim/mapChecks';
@@ -14,7 +14,8 @@ describe('?bench benchmark (decision 0154)', () => {
   });
 
   it.each([
-    ["today's sea", PHASE1_MAP],
+    ['the grown sea, the game since decision 0198', GAME_MAP],
+    ['the ring alone', PHASE1_MAP],
     ['the stress sea', prepareMap(stressMap(PHASE1_SOURCE))],
   ])('sails in open water on %s', (_, map) => {
     const route = new BenchRoute(BENCHMARK.route);
