@@ -265,5 +265,6 @@
     "size": 1.8,
     "margin": 0.0733,
     "spacing": 0.185
-  }
+  },
+  "harbourView": { "height": 0.8, "lookHeight": 0.45 }
 }

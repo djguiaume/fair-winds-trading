@@ -370,7 +370,8 @@
       "wants": ["amber"],
       "level": 3,
       "wantsMade": ["lampOil", "smokedFish", "planks"],
-      "levelProduces": { "3": ["amberBeads"] }
+      "levelProduces": { "3": ["amberBeads"] },
+      "keeper": "elias"
     },
     {
       "id": "amber-strand",
@@ -381,7 +382,8 @@
       "level": 1,
       "site": true,
       "wantsMade": ["bread", "planks"],
-      "maxLevel": 3
+      "maxLevel": 3,
+      "keeper": "pip"
     }
   ],
   "course": [

@@ -378,7 +378,8 @@
       "wantsMade": ["lampOil", "bread", "planks"],
       "levelProduces": {
         "3": ["cloudberryJam"]
-      }
+      },
+      "keeper": "sigrun"
     },
     {
       "id": "snowberry-isle",
@@ -389,7 +390,8 @@
       "level": 1,
       "site": true,
       "wantsMade": ["bread", "planks"],
-      "maxLevel": 3
+      "maxLevel": 3,
+      "keeper": "nell"
     }
   ],
   "course": [

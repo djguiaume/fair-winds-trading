@@ -334,6 +334,7 @@ chart.onChange = () => {
   refreshPause();
 };
 const tradePanel = new TradePanel($('trade-panel'), world);
+tradePanel.harbourPicture = (portId) => view.harbourPicture?.(portId) ?? null;
 // The home island (decision 0126). Rook's thanks gives it (decision 0127); `?home` gives it to the
 // voyage being played and offers every arc spot, to try the build spots.
 if (new URLSearchParams(location.search).has('home')) {

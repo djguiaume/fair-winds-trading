@@ -514,6 +514,19 @@ async function dress(page, shot) {
   }
   if (shot.script) await page.evaluate(shot.script);
   if (shot.style || shot.script || shot.focus) await pause(300);
+  // The harbour screen's port picture (decision 0211) shows once the browser has decoded it.
+  await page.evaluate(() =>
+    Promise.all(
+      [...document.querySelectorAll('.port-view, .quay-view')].map((el) => {
+        const url = window.getComputedStyle(el).backgroundImage.match(/url\("(.*)"\)/)?.[1];
+        if (!url) return null;
+        const image = new window.Image();
+        image.src = url;
+        return image.decode().catch(() => null);
+      }),
+    ),
+  );
+  await pause(100);
 }
 
 /** The game entered and the scene set, ready for the shot. */

@@ -119,6 +119,11 @@ export interface PortDef {
   wants: GoodId[];
   /** Ship classes its shipwright builds (decision 0048). */
   builds?: string[];
+  /**
+   * The person on its harbour screen, a `characters.json` id (decision 0211); left out, nobody
+   * (Abbey Head, Skerry). An outpost's keeper is its settler.
+   */
+  keeper?: string;
   /** Off the chart until the boat sails near it (decision 0048). */
   hidden?: boolean;
   /**
