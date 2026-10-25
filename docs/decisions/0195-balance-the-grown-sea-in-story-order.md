@@ -31,23 +31,23 @@ Running the bots in story order showed what else held the far goods back:
 4. **Towns buy the crafted far goods** (`levelWantsMade` from level 3 in `phase1-map.json`). Port towns pay more, because a level 4 market holds a smaller stock. The storyteller's test was that a buyer of spiced tea is a Port town, or nearly one, by the time Palm Key is founded. That fails on every level, so the storyteller backed Towns as the fallback, and Guillaume chose it (2026-10-25).
 5. **Far goods cost less, in the same order** (`goods.json`): raw 18 / 19 / 20 / 22 (were 20 / 22 / 25 / 28), crafted 86 / 88 / 95 / 105 (were 90 / 100 / 110 / 120). This keeps the order the seas open in (storyteller). At the old prices the last hour paid 5–6 times the ring. Spiced tea and mirrors sit close together because the south's run pays least per minute (Sunreach's buyers are far), and at a wider gap tea stopped selling.
 
-## The numbers (grown sea, median of 5 seeds; the east from its stand-in until #207 lands)
+## The numbers (grown sea, median of 5 seeds; the east's quests from #207)
 
 | Level | Ring alone → last hour (relaxed) | Far goods, last hour | Seas open (relaxed, min): S / W / N / E | All four outposts: relaxed / sharp |
 |---|---|---|---|---|
-| Fair winds | 155 → 669 gold/min (4.3×) | 94 % | 22 / 27 / 32 / 36 | 2 h 12 / 1 h 19 |
-| Captain | 133 → 420 (3.2×) | 78 % | 30 / 34 / 38 / 46 | 2 h 28 / 1 h 39 |
-| Old salt | 120 → 245 (2.0×) | 49 % | 40 / 44 / 47 / 51 | 2 h 30 / 1 h 38 |
+| Fair winds | 155 → 716 gold/min (4.6×) | 94 % | 22 / 27 / 32 / 36 | 2 h 12 / 1 h 19 |
+| Captain | 133 → 409 (3.1×) | 76 % | 30 / 34 / 38 / 46 | 2 h 25 / 1 h 35 |
+| Old salt | 120 → 328 (2.7×) | 62 % | 40 / 44 / 47 / 51 | 2 h 30 / 1 h 34 |
 
 A sea "opens" when the bot starts its letter. The bots start the far quests only once the cutter is theirs (relaxed 21 / 28 / 38 min, sharp 9 / 14 / 14), even though 0194 offers Ness's chart as soon as Ada's arc is done. Sharp captains start the four letters at 11–15 / 17–18 / 21–22 / 25–26 min. The cutter is fully upgraded at 2 h 41 / 3 h 07 / 3 h 02 (relaxed) and 1 h 34 / 2 h 03 / 2 h 04 (sharp). In 8 hours almost no town reaches its top level, so the bots never "finish everything"
 
-Minutes of sailing each sea's three quests take, relaxed (sharp): ring arcs 34 (23), south 36–41 (17–26), west 26–31 (20–23), north 16–21 (11–12), east 26–30 (15–20).
+Minutes of sailing each sea's three quests take, relaxed (sharp): ring arcs 34 (23–24), south 31–38 (21–27), west 28–31 (18–22), north 16–21 (12–13), east 27–29 (17–19).
 
 Every ring check still passes, on the ring and on the grown sea (19/19). The story checks pass 9/9.
 
 ## Consequences
 
-- **How long the game is:** a captain who plays the story as soon as it opens founds the last outpost about 1 h 15 to 1 h 40 in (sharp), or 2 h 10 to 2 h 30 in (relaxed), after the tutorial. That is a floor. The bots sail each quest back to back and never explore, wait or get lost. The playtest (review gap 4) will show how far real play is above it.
+- **How long the game is:** a captain who plays the story as soon as it opens founds the last outpost about 1 h 20 to 1 h 35 in (sharp), or 2 h 10 to 2 h 30 in (relaxed), after the tutorial. That is a floor. The bots sail each quest back to back and never explore, wait or get lost. The playtest (review gap 4) will show how far real play is above it.
 - A new quest, or a changed one, moves the story run by itself. A quest's gold and its step places are balanced from its file.
 - `npm run balance` takes about 2 minutes, up from 1 (the story run is 30 four-hour voyages).
 - If Guillaume keeps Port towns as the only buyers, point 4 goes back to level 4 and the late-game checks fail until town growth or the gate changes, and the ring's pace changes with it.
