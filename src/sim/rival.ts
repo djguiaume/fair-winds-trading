@@ -2,7 +2,7 @@ import { TUNING } from '../data/tuning';
 import { createBoat } from './boat';
 import { createRng } from './rng';
 import { bearingTo, bearingVector } from './math';
-import { REGATTA, type RaceCourse, type RaceDef, gateMid, gateSide, rivalPace } from './regatta';
+import { REGATTA, type RaceCourse, type RaceDef, gateMid, rivalPace } from './regatta';
 import type { TrafficBoat, TrafficDef } from './traffic';
 import type { World } from './world';
 
@@ -92,8 +92,8 @@ export function makeRacer(
 }
 
 /**
- * Kestrel at the line, a couple of boat lengths along it from the captain toward the end with
- * more room, on the same side, sails down until the horn.
+ * Kestrel at the line, along it from the captain toward the end with more room, both hulls and
+ * clear water between (`rival.berth`), behind it, sails down until the horn.
  */
 export function createRival(world: World, race: RaceDef, course: RaceCourse): TrafficBoat {
   const rival = REGATTA.rival;
@@ -103,17 +103,24 @@ export function createRival(world: World, race: RaceDef, course: RaceCourse): Tr
   const [a, b] = course.start;
   const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
   const along = { x: (b.x - a.x) / len, y: (b.y - a.y) / len };
-  const toA = Math.hypot(me.x - a.x, me.y - a.y);
-  const toB = Math.hypot(me.x - b.x, me.y - b.y);
-  const k = toB > toA ? 1 : -1;
-  const gap = (base.radius + 5) * 2.5;
-  let x = me.x + along.x * gap * k;
-  let y = me.y + along.y * gap * k;
+  // Along the line from the captain, room for both hulls and clear water between, on the side
+  // with more room; kept off the committee boat and the pin.
+  const gap = (world.ship.radius + base.radius) * TUNING.seamanship.traffic.touch + rival.berth * 2;
+  const s0 = (me.x - a.x) * along.x + (me.y - a.y) * along.y;
+  const end = base.radius * 2 + rival.berth;
+  const room = (k: number) => Math.min(len - end, Math.max(end, s0 + gap * k)) - s0;
+  const k = Math.abs(room(1)) >= Math.abs(room(-1)) ? 1 : -1;
+  let x = me.x + along.x * room(k);
+  let y = me.y + along.y * room(k);
   // Never over the line before the horn.
   const course0 = course.marks[0] ?? gateMid(course.finish);
-  if (Math.sign(gateSide(course.start, { x, y })) === Math.sign(gateSide(course.start, course0))) {
-    x = me.x;
-    y = me.y;
+  const n = { x: along.y, y: -along.x };
+  const over = (x - a.x) * n.x + (y - a.y) * n.y;
+  const ahead = Math.sign((course0.x - a.x) * n.x + (course0.y - a.y) * n.y);
+  if (Math.sign(over) === ahead) {
+    // Back behind it, a hull's length clear.
+    x -= n.x * (over + ahead * base.radius * 2);
+    y -= n.y * (over + ahead * base.radius * 2);
   }
   const out = makeRacer(world, course, rival.ship, pace, { x, y, heading: me.heading });
   world.rival = out;

@@ -1,3 +1,4 @@
+import { TUNING } from '../data/tuning';
 import type { BoatState } from './boat';
 import type { IslandDef, MapDef, TerrainDef } from './map';
 import { coastDistance } from './coast';
@@ -291,7 +292,9 @@ export function resolveCollisions(
     const dx = boat.x - (pier.x0 + sx * t);
     const dy = boat.y - (pier.y0 + sy * t);
     const dist = Math.hypot(dx, dy) || 1e-6;
-    const overlap = (pier.halfWidth ?? PIER_HALF_WIDTH) + radius - dist;
+    // A hull reaches out as an oval, long along her keel and narrow abeam: she can lie alongside.
+    const reach = hullReach(radius, boat.heading, Math.atan2(-dx, -dy));
+    const overlap = (pier.halfWidth ?? PIER_HALF_WIDTH) + reach - dist;
     if (overlap > 0) {
       const nx = dx / dist;
       const ny = dy / dist;
@@ -324,6 +327,18 @@ export function resolveCollisions(
 }
 
 /** Lose speed in proportion to how head-on the hit was; a glancing touch just slides along. */
+/**
+ * How far a hull reaches toward a bearing (decisions 0215, 0217): an oval, its collision radius
+ * along the keel and `seamanship.traffic.abeam` of it across. Boats and piers touch it; land
+ * still meets the round radius.
+ */
+export function hullReach(radius: number, heading: number, toward: number): number {
+  const a = radius;
+  const b = radius * TUNING.seamanship.traffic.abeam;
+  const off = toward - heading;
+  return (a * b) / Math.hypot(b * Math.cos(off), a * Math.sin(off));
+}
+
 function bump(boat: BoatState, nx: number, ny: number): void {
   const dir = bearingVector(boat.heading);
   const into = -(dir.x * nx + dir.y * ny); // 1 = straight into the obstacle

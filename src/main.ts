@@ -854,7 +854,18 @@ hud.onDockClick = () => {
   if (world.trade.dockedAt) openHarbour();
 };
 
-hud.onPortClick = (portId: string) => {
+hud.onPortClick = async (portId: string) => {
+  // Mid-race (decision 0217) the captain is asked first: docking gives the race up.
+  const race = world.dockHeld ? quests.race() : null;
+  if (race && trade.canDock(world.trade, world.map, world.boat, portId)) {
+    const yes = await askConfirm({
+      title: t('regatta.leaveTitle'),
+      text: t('regatta.leaveText'),
+      ok: t('regatta.leaveOk'),
+    });
+    if (!yes) return;
+    quests.retire(race.quest.id);
+  }
   if (world.trade.dockedAt === portId) openHarbour();
   else if (trade.tryDock(world.trade, world.map, world.boat, portId)) {
     handleEvents([...trade.flushEconomy(world.trade, world.map), { type: 'docked', portId }]);
@@ -1914,6 +1925,8 @@ function tick(now: number) {
       world.calmWind = heldWind(sea?.wind, world.map);
       // No storms while a quest that holds them runs: the tutorial (decision 0072).
       holdStorms(world, 'quest', quests.holdsStorms);
+      // A pier touched mid-race is a bump, not the harbour (decision 0217): retire with × first.
+      world.dockHeld = quests.race()?.state === 'sequence' || quests.race()?.state === 'racing';
       handleEvents(stepWorld(world, controls, SIM_STEP));
       if (quests.update(SIM_STEP, controls).length) showDueCard();
       // A step's sound (the prologue's foghorn) calls every few seconds, the first at once.

@@ -27,8 +27,8 @@ helm (0215) and standing orders (0214).
   A 10 s sequence ends on the horn (`regatta.json › countdownSec`); it only counts down while the
   sea is on screen. The start line counts when crossed toward the course from the far side, after
   the horn; over early, the captain goes back and crosses again. Marks are rounded in order within
-  16 units (`within`), then the finish line is crossed. Docking mid-race, or the pill's ×, gives
-  the race up: a race never finished is offered again, one finished before keeps its record.
+  16 units (`within`), then the finish line is crossed. The pill's × gives the race up (docking is
+  held while a race runs: a pier touched mid-race is a bump, never the harbour screen): a race never finished is offered again, one finished before keeps its record.
 - **Medals and gold** (`src/sim/regatta.ts`, `src/data/regatta.json`). The pars are per ship class
   and level; gold is the par, silver par × 1.15, bronze par × 1.35. A class with no par is held to
   the slowest. Each medal pays its gold the first time it is won (a first gold pays all three):
@@ -93,3 +93,21 @@ helm (0215) and standing orders (0214).
 - *Kestrel*'s sail number K 7 is block strokes painted through her mainsail
   (`BoatModelOptions.sailNumber`), a child of the sail so it fills and furls with it. UI words not in the storyteller's file (pill lines, "Enter the race", "The regatta
   book", medal names) were written to match and can be changed in the language files.
+
+## Play-test fixes (2026-10-25)
+
+Guillaume's first play-test: the lines were too short for two boats side by side, and *Kestrel*
+sailed through the fishing boats and into the captain. Now every start and finish line is at
+least `regatta.json › minLine` (80) long, which a quest check enforces. The captain starts mid-line.
+*Kestrel* waits along the line with both hulls and `rival.berth` of clear water between them,
+always behind it. Past the finish she sails on `rival.runOut` (40) before lying to. She bears away
+from the captain and the other boats close ahead, is kept apart from them, and a touch slows both
+her and the captain. The Calda Dash finishes 38 units further south, clear of the boats waiting off
+Port Calda's dock. Every other boat (0215) now touches as an oval rather than a circle: its radius
+along the keel and `seamanship.traffic.abeam` (0.42) of it across, at `touch` 1.1. The old round
+circle stood far out from a hull's sides. The captain's hull meets piers and moored boats the
+same way (`hullReach` in `src/sim/collision.ts`); land still meets the round radius. Docking and mooring are held while a race runs (`world.dockHeld`): a pier touched
+mid-race is a bump and no longer opens the harbour screen and ends the race. Tapping a harbour to
+dock mid-race first asks "Leave the race?" (the game's own yes/no dialog, 0183); yes retires, then
+docks. The pars were sailed
+again.

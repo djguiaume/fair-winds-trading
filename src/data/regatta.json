@@ -2,6 +2,7 @@
   "about": "The Saltmere Regatta (decision 0217): how a race starts, what a medal takes, what it pays and what a series won flies. Each race's course and pars are in its quest file (`race`, and its step's `raced` goal).",
   "countdownSec": 10,
   "within": 16,
+  "minLine": 80,
   "medals": {
     "gold": 1,
     "silver": 1.15,
@@ -17,7 +18,9 @@
     "band": "#d2462f",
     "flag": "kestrel",
     "pace": "silver",
-    "paceRange": [0.45, 1.4]
+    "paceRange": [0.45, 1.4],
+    "berth": 8,
+    "runOut": 40
   },
   "series": [
     {

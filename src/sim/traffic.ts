@@ -8,7 +8,7 @@ import {
   stepBoat,
   targetSpeed,
 } from './boat';
-import { type Pier, resolveCollisions } from './collision';
+import { type Pier, hullReach, resolveCollisions } from './collision';
 import { seaShape } from './seaEdge';
 import type { MapDef } from './map';
 import { createRng, range, type Rng } from './rng';
@@ -19,7 +19,7 @@ import type { World, WorldEvent } from './world';
 import { townLevels } from './founding';
 import { questsDone, questsRunning } from './settlement';
 import { knobs } from './difficulty';
-import { crossesGate } from './regatta';
+import { REGATTA, crossesGate } from './regatta';
 
 /*
  * Other boats on the sea (decision 0215, Phase 5 part 4): fishing boats near their port, coasters
@@ -773,9 +773,34 @@ export function pilot(world: World, b: TrafficBoat, wind: Wind): BoatControls {
   const pd = Math.hypot(me.x - boat.x, me.y - boat.y);
   if (pd < t.giveWayRange && !b.racer) {
     const toMe = wrapAngle(bearingTo(boat, me) - boat.heading);
-    if (Math.abs(toMe) < 70 * DEG) {
+    if (Math.abs(toMe) < t.giveWayConeDeg * DEG) {
       sailStep = 1;
-      const away = boat.heading - Math.sign(toMe || 1) * 40 * DEG;
+      const away = boat.heading - Math.sign(toMe || 1) * t.bearAwayDeg * DEG;
+      if (Math.abs(wrapAngle(away - wind.from)) >= noGo) want = away;
+    }
+  }
+  // A racer (decision 0217) goes round the captain and the other boats: the nearest one close
+  // ahead, she bears away from it, keeping her sails full.
+  if (b.racer) {
+    let near: { x: number; y: number } | null = null;
+    let nd: number = t.giveWayRange;
+    const others = [
+      me,
+      ...world.traffic.boats.filter((o) => o.awake && o !== b).map((o) => o.boat),
+    ];
+    for (const o of others) {
+      const d = Math.hypot(o.x - boat.x, o.y - boat.y);
+      if (
+        d < nd &&
+        Math.abs(wrapAngle(bearingTo(boat, o) - boat.heading)) < t.giveWayConeDeg * DEG
+      ) {
+        near = o;
+        nd = d;
+      }
+    }
+    if (near) {
+      const toIt = wrapAngle(bearingTo(boat, near) - boat.heading);
+      const away = boat.heading - Math.sign(toIt || 1) * t.bearAwayDeg * DEG;
       if (Math.abs(wrapAngle(away - wind.from)) >= noGo) want = away;
     }
   }
@@ -836,9 +861,20 @@ function stepOne(world: World, b: TrafficBoat, dt: number) {
   const over = !!line && crossesGate(line, was, boat);
   if (d < (b.racer?.arrive ?? t.arriveRange) || stuck || over) {
     if (b.leg + 1 < b.route.length) startLeg(b, b.leg + 1, world.time);
-    else if (b.racer) {
-      // Over the finish line: she lies there with her sails down.
+    else if (b.racer && line && b.racer.finishedAt === null) {
+      // Over the finish line: she sails on clear of it, square to the line, then lies there.
       b.racer.finishedAt = world.time;
+      const [p, q] = line;
+      const len = Math.hypot(q.x - p.x, q.y - p.y) || 1;
+      let nx = (q.y - p.y) / len;
+      let ny = -(q.x - p.x) / len;
+      if (nx * (boat.x - was.x) + ny * (boat.y - was.y) < 0) [nx, ny] = [-nx, -ny];
+      const run = REGATTA.rival.runOut;
+      b.route = [{ x: boat.x + nx * run, y: boat.y + ny * run }];
+      startLeg(b, 0, world.time);
+    } else if (b.racer) {
+      // Clear of the line (or her course given up): she lies there with her sails down.
+      b.racer.finishedAt ??= world.time;
       b.waitUntil = Infinity;
       b.route = [];
     } else nextTrip(world.map, world.land, b, world.time);
@@ -850,9 +886,23 @@ const flow = { east: 0, north: 0, id: '' };
  * The soft bump (decision 0215): a boat and the player that touch are pushed apart, the other boat
  * most, and the player loses a little way. No damage either way; the toast says "bump".
  */
+/** The distance two hulls touch at, along the line between them. */
+function touchReach(
+  p: { x: number; y: number; heading: number },
+  pr: number,
+  q: { x: number; y: number; heading: number },
+  qr: number,
+): number {
+  const toQ = Math.atan2(q.x - p.x, q.y - p.y);
+  return (hullReach(pr, p.heading, toQ) + hullReach(qr, q.heading, toQ)) * tuning().touch;
+}
+
 function bumpPlayer(world: World, b: TrafficBoat): WorldEvent | null {
+  // A racer (decision 0217) is pushed half the way and loses way too: a touch costs both boats.
+  const t = tuning();
+  const share = b.racer ? t.racerBumpShare : t.bumpShare;
   const me = world.boat;
-  const reach = (world.ship.radius + b.ship.radius) * tuning().touch;
+  const reach = touchReach(world.boat, world.ship.radius, b.boat, b.ship.radius);
   const dx = b.boat.x - me.x;
   const dy = b.boat.y - me.y;
   const d = Math.hypot(dx, dy);
@@ -860,12 +910,16 @@ function bumpPlayer(world: World, b: TrafficBoat): WorldEvent | null {
   const nx = d > 1e-6 ? dx / d : 1;
   const ny = d > 1e-6 ? dy / d : 0;
   const over = reach - d;
-  b.boat.x += nx * over * 0.7;
-  b.boat.y += ny * over * 0.7;
-  me.x -= nx * over * 0.3;
-  me.y -= ny * over * 0.3;
+  b.boat.x += nx * over * share;
+  b.boat.y += ny * over * share;
+  me.x -= nx * over * (1 - share);
+  me.y -= ny * over * (1 - share);
   const into = Math.sin(me.heading) * nx + Math.cos(me.heading) * ny;
-  if (into > 0) me.speedKn *= 1 - 0.5 * into;
+  if (into > 0) me.speedKn *= 1 - t.bumpSlow * into;
+  if (b.racer) {
+    const hers = -(Math.sin(b.boat.heading) * nx + Math.cos(b.boat.heading) * ny);
+    if (hers > 0) b.boat.speedKn *= 1 - t.bumpSlow * hers;
+  }
   if (me.sinceBump < 0.5) return null;
   me.sinceBump = 0;
   return { type: 'bump' };
@@ -873,7 +927,7 @@ function bumpPlayer(world: World, b: TrafficBoat): WorldEvent | null {
 
 /** Keeps two boats of the traffic from overlapping: each pushed half the way. */
 function separate(a: TrafficBoat, b: TrafficBoat) {
-  const reach = (a.ship.radius + b.ship.radius) * tuning().touch;
+  const reach = touchReach(a.boat, a.ship.radius, b.boat, b.ship.radius);
   const dx = b.boat.x - a.boat.x;
   const dy = b.boat.y - a.boat.y;
   const d = Math.hypot(dx, dy);
@@ -922,6 +976,8 @@ export function stepRival(world: World, dt: number): WorldEvent[] {
     return [];
   }
   stepOne(world, b, dt);
+  // She touches the other boats as the captain does, never sailing through them.
+  for (const o of world.traffic.boats) if (o.awake) separate(b, o);
   const e = bumpPlayer(world, b);
   return e ? [e] : [];
 }

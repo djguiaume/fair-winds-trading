@@ -50,12 +50,18 @@ export interface RivalDef {
   pace: Medal;
   /** Her speed × this at most and at least, whatever the captain sails. */
   paceRange: [number, number];
+  /** Clear water she keeps from the captain while they wait at the line, map units. */
+  berth: number;
+  /** How far she sails on past the finish line before she lies there, clear of it. */
+  runOut: number;
 }
 
 export interface RegattaData {
   countdownSec: number;
   /** How close a mark is rounded, map units. */
   within: number;
+  /** A start or finish line is at least this long, so two big ships fit on it side by side. */
+  minLine: number;
   /** Each medal's time as a share of more than the par (gold 1). */
   medals: Record<Medal, number>;
   /** The medal every race of a series needs for the series to be won. */
