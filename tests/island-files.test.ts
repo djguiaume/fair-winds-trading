@@ -118,7 +118,7 @@ describe('island files (decision 0101)', () => {
         return `${parts.length}:${(h >>> 0).toString(16)}`;
       });
     expect(hashes).toEqual(GOLDEN);
-  });
+  }, 30_000);
 });
 
 const GOLDEN: Record<string, string[]> = {

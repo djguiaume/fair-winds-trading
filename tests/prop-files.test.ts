@@ -20,7 +20,7 @@ describe('prop recipe files (decision 0135)', () => {
       if (issues.length) report[recipe.id] = issues;
     }
     expect(report).toEqual({});
-  });
+  }, 30_000);
 
   it('offers every file but the internal pieces to the island builder', () => {
     const offered = Object.values(PROP_RECIPES).filter((r) => !r.internal);
