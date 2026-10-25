@@ -10,8 +10,9 @@
       ],
       "color": {
         "pick": "variant % 2",
-        "of": ["rock2", "rock"]
-      }
+        "of": ["boulder2", "boulder"]
+      },
+      "faces": true
     }
   ]
 }

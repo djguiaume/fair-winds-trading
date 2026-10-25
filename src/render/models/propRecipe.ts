@@ -7,7 +7,7 @@ import {
   type PropRecipe,
   type RecipePart,
 } from '../../data/props';
-import { glowing, paint, triangleCount, windowPanes } from './geometry';
+import { glowing, paint, paintFaces, triangleCount, windowPanes } from './geometry';
 
 /**
  * Builds props from their recipe files (decision 0135). A recipe is a list of primitive parts
@@ -247,6 +247,23 @@ function colorOf(
   return list[((k % list.length) + list.length) % list.length]!;
 }
 
+/** Every colour a part's `color` may take: a whole list for a name with no index (`faces`). */
+function colorsOf(
+  color: RecipePart['color'],
+  style: { walls: string[]; roofs: string[] } | undefined,
+  s: Scope,
+): string[] {
+  if (typeof color === 'object')
+    return colorsOf(color.of[Math.round(num(color.pick, s)) % color.of.length], style, s);
+  const st = style as
+    (Record<string, string[]> & { colors?: Record<string, string | string[]> }) | undefined;
+  const list =
+    color && /^\w+$/.test(color)
+      ? (st?.[color] ?? st?.colors?.[color] ?? PALETTE.colors[color])
+      : undefined;
+  return Array.isArray(list) ? list : [colorOf(color, style, s)];
+}
+
 function transform(g: THREE.BufferGeometry, p: RecipePart, s: Scope) {
   for (const [op, ...a] of p.ops ?? []) {
     const v = a.map((x) => num(x, s));
@@ -349,7 +366,9 @@ export function prepareProp(id: string, args: PropBuildArgs): () => Parts {
         }
       if (!g) throw new Error(`A part of "${id}" has no shape`);
       transform(g, p, s);
-      g = paint(g, colorOf(p.color, style, s));
+      g = p.faces
+        ? paintFaces(g, colorsOf(p.color, style, s))
+        : paint(g, colorOf(p.color, style, s));
       if (p.glow) glowing(g);
       if (p.tag) Object.assign(g.userData, p.tag);
       out.push(g);
@@ -374,7 +393,7 @@ const RECIPE_KEYS = new Set([
 ]);
 const PART_KEYS = new Set([
   ...SHAPE_KEYS,
-  ...['seed', 'y', 'ops', 'at', 'color', 'glow', 'tag', 'if', 'repeat', 'vars'],
+  ...['seed', 'y', 'ops', 'at', 'color', 'glow', 'faces', 'tag', 'if', 'repeat', 'vars'],
 ]);
 
 /** The triangles of a set of parts. */
