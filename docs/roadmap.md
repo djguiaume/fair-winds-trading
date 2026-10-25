@@ -238,6 +238,7 @@ Timed delivery races between ports, alongside the sandbox rather than replacing 
 - Possible later: online leaderboards or shared world (needs a backend; decide much later).
 - **Move a voyage onto a console without typing (later, Guillaume 2026-10-25):** today's QR code and save file ([0066](decisions/0066-move-voyage-between-devices.md)) don't work in the Xbox browser, which has no camera, and typing a code with a pad is painful. A real fix needs a central server and probably sign-in (save to an account on one device, load on the other), so it waits for the same backend decision as the leaderboards. Couch text size was checked on his TV and stays as it is.
 - **Play with edited controls (optional, later, Guillaume 2026-10-25):** a "Play with these controls" button on the editors' Controls page ([0189](decisions/0189-controls-page-in-the-editors.md)) that opens the game with the browser's edited controls, like the quest builder's play button, so a button change can be tried before `controls.json` is committed.
+- **Selling on Android, iPhone and Xbox (proposed, [0204](decisions/0204-selling-on-android-iphone-and-xbox.md), Guillaume asked 2026-10-25):** the same web build in a Capacitor shell for both phones, iOS built on GitHub Actions without a Mac, native saves; Xbox only as a UWP + WebView2 app, so ID@Xbox is asked first. Costed plan and timeline (phones about a month after a go-ahead, $124 in fees the first year): [docs/stores/porting-plan.md](stores/porting-plan.md). Recommended: €4.99 once on phones, the web build a free demo up to the four seas. **Parked: not now (Guillaume 2026-10-25).**
 
 ---
 
@@ -245,7 +246,7 @@ Timed delivery races between ports, alongside the sandbox rather than replacing 
 
 - Ship-to-ship combat as a core feature before Phase 5 (trade stays the core; see [0010](decisions/0010-light-hazards-pirates-later.md)).
 - Steam propulsion and automated transport as immediate base-game progression (deferred to later work, [0097](decisions/0097-progression-candidates-and-later-extensions.md)).
-- Multiplayer and monetization; expansion planning is not approval for paid DLC.
+- Multiplayer and monetization beyond a store price (store sales are planned in [0204](decisions/0204-selling-on-android-iphone-and-xbox.md)); expansion planning is not approval for paid DLC.
 
 ## Rendering performance
 
