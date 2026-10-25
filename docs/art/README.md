@@ -1,6 +1,6 @@
 # Art style proposals: boats and islands
 
-**Art bible:** the rules and biome direction every visual follows are in [art-bible.md](art-bible.md) ([0165](../decisions/0165-art-bible-and-the-phase-4-biome-looks.md)).
+**Art bible:** the rules and biome direction every visual follows are in [art-bible.md](art-bible.md) ([0165](../decisions/0165-art-bible-and-the-phase-4-biome-looks.md)). The art director's state and open follow-ups are in [handover.md](handover.md).
 
 Static mockups (1280×720) to choose the look of the ships and islands within the real-time 3D low-poly direction ([0004](../decisions/0004-real-time-3d.md)). They are procedural three.js renders, not game code. The choice is tracked in [decision 0012](../decisions/0012-boat-and-island-art-style.md); the ship lineup and upgrades they show are in [decision 0011](../decisions/0011-ship-lineup-and-upgrades.md).
 
