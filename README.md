@@ -6,15 +6,17 @@
 
 A cozy sailing and trading game about reading the wind, helping island communities, and finding a place to call home.
 
-Set sail across a world of low-poly islands. Carry goods between harbours, watch settlements grow, meet the people who live there, and build your own island on Skerry. Sailing is at the heart of every voyage: find a good reach, tack into a headwind, and choose your passage through reefs, currents, and changing weather.
+Your first voyage is only the beginning. Leave the familiar harbours of the Windward Ring behind and find a passage into sunlit lagoons, volcanic waters, icy fjords, and fogbound islands. Carry a cargo someone is counting on, follow a neighbour's story to an unfamiliar shore, or chase a rival's sails toward the next race mark. Every journey brings new places to discover—and a reason to return to your own island on Skerry.
+
+Sailing is at the heart of the adventure: read the wind, tack into a headwind, thread a reef passage, and reach the next harbour with a story to tell.
 
 **[Play in your browser](https://djguiaume.github.io/fair-winds-trading/)** · **[Release notes](https://github.com/djguiaume/fair-winds-trading/releases)** · **[Roadmap](docs/roadmap.md)**
 
 > **Preparing for v1.0.** The base game is nearly ready for release, with two bug fixes remaining. The play link follows the latest successful deployment from `main`; the release badge points to the latest published milestone.
 
-![Sailing a regatta course alongside a rival boat among the Windward Ring's reefs and sea marks](docs/reviews/regatta/shots/2-racing-desktop.png)
+![Saltmere's island and docks, seen in the game's own harbour header](docs/images/readme/windward-ring.jpg)
 
-_Sailing the Saltmere Regatta: read the wind and pick your passage._
+_Your adventure begins in the Windward Ring, among green islands and welcoming harbours._
 
 ## A sea of small adventures
 
@@ -28,11 +30,27 @@ _Sailing the Saltmere Regatta: read the wind and pick your passage._
 
 The base game is a gentle adventure without combat. Choose **Fair winds**, **Captain**, or **Old salt** difficulty, and adjust hazards in Settings. Time advances only during active play.
 
-## A look at life ashore
+## Five seas, five different horizons
 
-| Trading in Saltmere                                                                                     | Your home on Skerry                                                                                                                 |
-| ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| ![Saltmere market with goods, prices, and delivery orders](docs/reviews/whole-game/saltmere-market.png) | ![Skerry with building plots, a harbour, and the regatta cup and pennant](docs/reviews/regatta/shots/6-cup-and-pennant-desktop.png) |
+Start among the green shores and working harbours of the **Windward Ring**, then follow the story beyond its reefs. Each outer sea has its own landscape, people, goods, and sailing challenges.
+
+| Sunreach · The tropical south                                                                           | Emberhold · The volcanic west                                                                          |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| ![Sunreach's tropical island and lagoon, from its in-game dock header](docs/images/readme/sunreach.jpg) | ![Emberhold's volcanic island harbour, from its in-game dock header](docs/images/readme/emberhold.jpg) |
+| Sail through coral passages to palm-lined shores and terraced tea gardens.                              | Find your way past dark rock, steam, and the smoking heights of the Smoulder.                          |
+
+| Rimewick · The icy north                                                                         | Fogwatch · The misty east                                                                     |
+| ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| ![Rimewick's snowy fjord harbour, from its in-game dock header](docs/images/readme/rimewick.jpg) | ![Fogwatch's island harbour, from its in-game dock header](docs/images/readme/fogwatch.jpg)   |
+| Read the cold wind and navigate ice-strewn waters toward sheltered fjord settlements.            | Pick a passage through fog, rocky skerries, and strong currents to reach distant communities. |
+
+_These pictures are exported directly from the island dock headers used in the game._
+
+## Race, explore, and come home
+
+| A friendly rivalry at sea                                                                               | Your own island on Skerry                                                                                               |
+| ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| ![Sailing the Saltmere Regatta alongside a rival boat](docs/reviews/regatta/shots/2-racing-desktop.png) | ![Skerry with building plots and the regatta cup and pennant](docs/reviews/regatta/shots/6-cup-and-pennant-desktop.png) |
 
 ## Playing
 
@@ -123,6 +141,26 @@ For debugging, add `?debug` to expose the game as `fwt` in the browser console, 
 - [Design decisions](docs/decisions/): the reasons behind the game's systems.
 - [Screenshots](docs/screenshots/): captures from the game's development.
 
+## Contributing
+
+Bug reports, playtest feedback, translation corrections, and ideas for new content are welcome. For substantial code, art, story, or content contributions, open an issue first to agree on scope and contribution terms before starting work.
+
 Found a bug? [Open an issue](https://github.com/djguiaume/fair-winds-trading/issues) with what happened, steps to reproduce it, your browser and device, and the version shown in the game. For performance problems, include the result from `?perf` or `?bench`.
 
-For changes, open a pull request against `main` and run the relevant checks above. Content changes should also pass `npm run check`; changes to sailing or the economy should be checked across all three difficulty levels.
+For an agreed change:
+
+1. Keep the pull request focused and target `main`. Explain what changes and how you checked it.
+2. Run `npm run lint`, `npm test`, and `npm run build`.
+3. For content changes, also run `npm run check`. For sailing or economy changes, check balance across all three difficulty levels.
+4. Include screenshots for visual changes. Keep English and French text in step.
+5. Follow the [art bible](docs/art/art-bible.md) and existing [design decisions](docs/decisions/).
+
+See [Adding content](docs/content/README.md) for data and editor workflows, and [Translations](docs/i18n/README.md) for language changes. Contribution permissions must be agreed before outside work is accepted, including the rights needed for future commercial releases.
+
+## Rights and licensing
+
+Fair Winds Trading is a proprietary game whose source is visible on GitHub. Commercial rights to the original game are reserved by its owner; this repository does not grant permission to sell, commercially redistribute, or commercially exploit the original game, code, artwork, music, or story.
+
+No open-source license is granted for the original project. GitHub's platform terms and applicable law still apply. Third-party libraries, fonts, and other third-party materials retain their own licenses and are excluded from this statement.
+
+For reuse or licensing requests, [open an issue](https://github.com/djguiaume/fair-winds-trading/issues).
