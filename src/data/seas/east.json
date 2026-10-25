@@ -628,5 +628,41 @@
         [403.1, 403.1]
       ]
     }
+  ],
+  "traffic": [
+    {
+      "id": "fogwatch-fishing",
+      "kind": "fishing",
+      "home": "fogwatch",
+      "names": ["Grey Mitten", "Haddie"],
+      "grounds": [581, 37, 35]
+    },
+    {
+      "id": "amber-strand-amber",
+      "kind": "coaster",
+      "home": "fogwatch",
+      "names": ["Driftwood Bell"],
+      "to": "amber-strand",
+      "tags": ["after:outpost-east"],
+      "path": [[640, 368]]
+    },
+    {
+      "id": "fogwatch-visitor",
+      "kind": "visitor",
+      "home": "fogwatch",
+      "names": ["Quiet Tern"],
+      "to": "saltmere",
+      "ship": "fluyt",
+      "livery": "east",
+      "tags": ["after:outpost-east"],
+      "path": [
+        [592, -136],
+        [336, -440],
+        [216, -496],
+        [144, -472],
+        [248, -224],
+        [216, -144]
+      ]
+    }
   ]
 }

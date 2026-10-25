@@ -48,6 +48,7 @@ store plan of [0204](decisions/0204-selling-on-android-iphone-and-xbox.md) comes
 2. **A harbour screen that shows the port:** a header with its signature, the keeper and the level.
 3. **Other sails on the water:** fishing boats, coasters and far-sea visitors that sail by the same
    wind as the player, few and capped per quality level, as data in the sea editor and `npm run sea`.
+   Built in [0215](decisions/0215-other-boats-on-the-sea.md) (21 fleets, 26 boats).
 4. **Sounds of the sea:** waves, wind in the sails, luffing, gulls, a harbour bell, a bed per sea.
 5. **Regattas in the story** (Guillaume: with an NPC and rewards): races against a friendly rival
    captain, unlocked through the story, with medals and prizes.

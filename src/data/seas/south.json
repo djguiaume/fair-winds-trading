@@ -695,5 +695,59 @@
         [396, -396]
       ]
     }
+  ],
+  "traffic": [
+    {
+      "id": "abbey-honey",
+      "kind": "coaster",
+      "home": "abbey-head",
+      "names": ["Honeycomb"],
+      "to": "sunreach",
+      "tags": ["after:sunreach-tea"],
+      "path": [
+        [-272, 160],
+        [-256, 32],
+        [-376, -384],
+        [-304, -504],
+        [-232, -784],
+        [-200, -808],
+        [-128, -720]
+      ]
+    },
+    {
+      "id": "sunreach-fishing",
+      "kind": "fishing",
+      "home": "sunreach",
+      "names": ["Flying Fish", "Sea Grape"],
+      "grounds": [-46, -766, 35]
+    },
+    {
+      "id": "palm-key-spice",
+      "kind": "coaster",
+      "home": "sunreach",
+      "names": ["Pekoe"],
+      "to": "palm-key",
+      "tags": ["after:outpost-south"],
+      "path": [
+        [32, -744],
+        [56, -672],
+        [168, -656],
+        [328, -736]
+      ]
+    },
+    {
+      "id": "sunreach-visitor",
+      "kind": "visitor",
+      "home": "sunreach",
+      "names": ["Golden Pekoe"],
+      "to": "stonehaven",
+      "ship": "schooner",
+      "livery": "south",
+      "tags": ["after:outpost-south"],
+      "path": [
+        [32, -744],
+        [136, -496]
+      ]
+    }
   ]
 }

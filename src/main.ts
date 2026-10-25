@@ -3,6 +3,7 @@ import { renderDifficultyButtons, renderLevelCards } from './ui/levelCards';
 import { GAME_MAP, PHASE1_MAP, PHASE1_SOURCE, RING_PREFIX, prepareMap } from './data/maps';
 import { STRESS_PREFIX, stressMap } from './data/stressMap';
 import { PHASE4_PREFIX } from './data/grownMap';
+import { TUNING } from './data/tuning';
 import {
   EDITED_PREFIX,
   EDITED_SEA_PREFIX,
@@ -1439,6 +1440,17 @@ bergsSwitch.addEventListener('change', () => {
   settings.bergs = bergsSwitch.checked;
   keepSettings();
 });
+// Other ships (decision 0215): a switch like every hazard, and as many as the quality allows.
+const shipsSwitch = $<HTMLInputElement>('ships');
+world.traffic.on = settings.ships;
+world.traffic.cap = TUNING.seamanship.traffic.atOnce[level];
+shipsSwitch.checked = settings.ships;
+shipsSwitch.addEventListener('change', () => {
+  world.traffic.on = shipsSwitch.checked;
+  if (shipsSwitch.checked) world.traffic.fresh = true;
+  settings.ships = shipsSwitch.checked;
+  keepSettings();
+});
 // Fog banks and ash clouds (decision 0169): one switch per haze the zone kinds name, made from
 // the data so a new kind needs no code, placed after the Currents row.
 const hazeOff = () => hazeSwitches().filter((id) => settings.haze[id] === false);
@@ -1623,6 +1635,7 @@ function setLevel(next: QualityLevel) {
   if (next === level) return;
   level = next;
   view.setQuality(level);
+  world.traffic.cap = TUNING.seamanship.traffic.atOnce[level];
   chart.fogBlur = QUALITY[level].chartFogBlur;
   describeQuality();
 }

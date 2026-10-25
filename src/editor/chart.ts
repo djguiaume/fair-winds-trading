@@ -10,6 +10,7 @@ import { seaShape } from '../sim/seaEdge';
 import { seaSvg } from '../ui/seaOutline';
 import { landStyles, seaMarkShape } from '../ui/chartMarks';
 import { drawFlow, drawFlowSelection, flowLabels } from './flowChart';
+import { drawFleets } from './fleetChart';
 import type { Selection } from './model';
 import { findIsland, findShape, waypointOf } from './model';
 
@@ -32,6 +33,8 @@ export interface Layers {
   marks: boolean;
   /** Fog of war's chart areas (decision 0156). */
   areas?: boolean;
+  /** Other boats' fleets: lanes and fishing grounds (decision 0215). */
+  traffic?: boolean;
 }
 
 export interface View {
@@ -367,6 +370,8 @@ export function drawChart(svg: SVGSVGElement, scene: ChartScene) {
   }
   if (layers.flow || (selection?.kind === 'area' && layers.areas) || selection?.kind === 'edge')
     drawFlowSelection(el, map, selection, px);
+  if (layers.traffic || selection?.kind === 'fleet')
+    drawFleets(el, map, scene.prepared, selection, px);
   if (selection?.kind === 'waypoint') {
     const wp = map.course[selection.index];
     if (wp) el('circle', { cx: wp.x, cy: -wp.y, r: 9 * px, class: 'c-selected' });

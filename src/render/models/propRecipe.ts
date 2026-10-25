@@ -183,6 +183,28 @@ export const CODE_PARTS: Record<string, (scope: Scope) => THREE.BufferGeometry> 
     hull.computeVertexNormals();
     return hull;
   },
+  /**
+   * A fore-and-aft sail (decision 0215's other boats): flat, in the boat's centre plane, its luff
+   * up the mast from the origin and its foot aft along −Z. `foot` and `luff` long, the head
+   * `head` long, peaked up `peak` at the leech: a gaff or lug sail, or a jib-headed one at 0.
+   */
+  sail: (s) => {
+    const foot = s.foot ?? 2;
+    const luff = s.luff ?? 2;
+    const head = s.head ?? 0;
+    const peak = s.peak ?? 0;
+    const p = [
+      [0, 0, 0],
+      [0, 0, -foot],
+      [0, luff + peak, -Math.max(head, 0.01)],
+      [0, luff, 0],
+    ];
+    const v = [0, 1, 2, 0, 2, 3].flatMap((k) => p[k]!);
+    const sail = new THREE.BufferGeometry();
+    sail.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
+    sail.computeVertexNormals();
+    return sail;
+  },
 };
 
 // ---------------------------------------------------------------- shapes

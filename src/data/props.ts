@@ -115,7 +115,16 @@ export interface Palette {
 export const PALETTE: Palette = paletteFile;
 
 export type PropGroup =
-  'homes' | 'town' | 'timber' | 'fish' | 'farm' | 'stone' | 'nature' | 'rocks' | 'landmarks';
+  | 'homes'
+  | 'town'
+  | 'timber'
+  | 'fish'
+  | 'farm'
+  | 'stone'
+  | 'nature'
+  | 'rocks'
+  | 'landmarks'
+  | 'boats';
 
 /** The prop groups in the builder's order, each with its triangle budget per prop. */
 export const PROP_GROUPS = groupsFile.groups as Record<PropGroup, { budget: number }>;

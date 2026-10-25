@@ -214,6 +214,7 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
     'questMarkers',
     'boat',
     'bergs',
+    'traffic',
   ]) {
     Object.assign(view, { [key]: { dispose: vi.fn() } });
   }

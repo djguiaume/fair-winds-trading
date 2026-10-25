@@ -1,3 +1,4 @@
+import type { TrafficDef } from './traffic';
 import type { FogDef } from './fog';
 import type { GoodId } from './goods';
 import type { SeaEdgeDef } from './seaEdge';
@@ -283,6 +284,8 @@ export interface MapDef {
   windZones?: WindZoneDef[];
   /** Fog of war (decision 0156): what starts uncharted, and its named areas. */
   fog?: FogDef;
+  /** Other boats (decision 0215): fishing fleets, coasters and far-sea visitors. */
+  traffic?: TrafficDef[];
 }
 
 /** The wind zones that go on the chart once sailed: the named ones (decision 0152). */

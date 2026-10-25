@@ -460,5 +460,65 @@
         [271, 65, 70]
       ]
     }
+  ],
+  "traffic": [
+    {
+      "id": "kits-boats",
+      "kind": "fishing",
+      "home": "saltmere",
+      "names": ["Morning Net", "Bright Herring", "Dab"],
+      "grounds": [172, -119, 35]
+    },
+    {
+      "id": "calda-timber-saltmere",
+      "kind": "coaster",
+      "home": "calda",
+      "names": ["Adze"],
+      "to": "saltmere",
+      "path": [[224, 16]]
+    },
+    {
+      "id": "calda-timber-stonehaven",
+      "kind": "coaster",
+      "home": "calda",
+      "names": ["Plumb Line"],
+      "to": "stonehaven",
+      "path": [
+        [224, -8],
+        [128, -144]
+      ]
+    },
+    {
+      "id": "saltmere-fish",
+      "kind": "coaster",
+      "home": "saltmere",
+      "names": ["Ledger"],
+      "to": "westholm",
+      "path": [[112, -144]]
+    },
+    {
+      "id": "westholm-grain-saltmere",
+      "kind": "coaster",
+      "home": "westholm",
+      "names": ["Millrace"],
+      "to": "saltmere",
+      "path": [[112, -144]]
+    },
+    {
+      "id": "westholm-grain-stonehaven",
+      "kind": "coaster",
+      "home": "westholm",
+      "names": ["Barleycorn"],
+      "to": "stonehaven",
+      "path": [[-264, -96]]
+    },
+    {
+      "id": "stonehaven-stone",
+      "kind": "coaster",
+      "home": "stonehaven",
+      "names": ["Keystone"],
+      "to": "westholm",
+      "path": [[-264, -96]]
+    }
   ]
 }
