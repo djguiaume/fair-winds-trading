@@ -1,0 +1,115 @@
+{
+  "id": "race-floe",
+  "name": "The Floe Line Race",
+  "start": {
+    "is": "all",
+    "of": [
+      {
+        "is": "quest-done",
+        "quest": "outpost-north"
+      },
+      {
+        "is": "quest-done",
+        "quest": "race-gap"
+      }
+    ]
+  },
+  "text": "quest.race-floe",
+  "giver": "wren",
+  "starter": "sigrun",
+  "port": "rimewick",
+  "offer": true,
+  "storms": false,
+  "wind": {
+    "speedKn": 13,
+    "fromDeg": 10
+  },
+  "race": {
+    "series": "regatta-seas",
+    "gold": {
+      "bronze": 120,
+      "silver": 240,
+      "gold": 400
+    },
+    "pars": {
+      "sloop": {
+        "fair": 70,
+        "captain": 70,
+        "salt": 70
+      },
+      "cutter": {
+        "fair": 64,
+        "captain": 64,
+        "salt": 64
+      },
+      "schooner": {
+        "fair": 54,
+        "captain": 54,
+        "salt": 54
+      },
+      "clipper": {
+        "fair": 47,
+        "captain": 47,
+        "salt": 47
+      },
+      "hoy": {
+        "fair": 112,
+        "captain": 112,
+        "salt": 112
+      },
+      "indiaman": {
+        "fair": 290,
+        "captain": 290,
+        "salt": 290
+      },
+      "fluyt": {
+        "fair": 308,
+        "captain": 308,
+        "salt": 308
+      }
+    }
+  },
+  "steps": [
+    {
+      "id": "race",
+      "moveTo": {
+        "x": -40,
+        "y": 656,
+        "headingDeg": 220
+      },
+      "goal": {
+        "is": "raced",
+        "start": [
+          {
+            "x": -60,
+            "y": 640
+          },
+          {
+            "x": -20,
+            "y": 640
+          }
+        ],
+        "marks": [
+          {
+            "x": -270,
+            "y": 560
+          },
+          {
+            "x": 40,
+            "y": 560
+          }
+        ],
+        "finish": [
+          {
+            "x": -60,
+            "y": 640
+          },
+          {
+            "x": -20,
+            "y": 640
+          }
+        ]
+      }
+    }
+  ]
+}

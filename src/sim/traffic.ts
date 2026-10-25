@@ -19,6 +19,7 @@ import type { World, WorldEvent } from './world';
 import { townLevels } from './founding';
 import { questsDone, questsRunning } from './settlement';
 import { knobs } from './difficulty';
+import { crossesGate } from './regatta';
 
 /*
  * Other boats on the sea (decision 0215, Phase 5 part 4): fishing boats near their port, coasters
@@ -106,7 +107,14 @@ export interface TrafficBoat {
    * never gives way. `gunAt` the horn's time (null before it), `finishedAt` hers, `arrive` how
    * close she rounds a mark, `over` once the captain's race has ended.
    */
-  racer?: { gunAt: number | null; finishedAt: number | null; arrive: number; over: boolean };
+  racer?: {
+    gunAt: number | null;
+    finishedAt: number | null;
+    arrive: number;
+    over: boolean;
+    /** The finish line: crossing it anywhere on the last leg finishes her. */
+    finish?: [Point, Point];
+  };
 }
 
 export interface TrafficState {
@@ -780,6 +788,7 @@ function stepOne(world: World, b: TrafficBoat, dt: number) {
   const wind = windFor(world, b);
   const controls = pilot(world, b, wind);
   const { boat } = b;
+  const was = { x: boat.x, y: boat.y };
   stepBoat(boat, controls, b.ship, wind, dt);
   if (b.sweeps && world.time >= b.waitUntil) {
     // Rowing: a steady way through the water, wind or none, and the hull held to her course.
@@ -823,7 +832,9 @@ function stepOne(world: World, b: TrafficBoat, dt: number) {
   }
   const stuck = world.time - b.bestAt > t.stuckSec;
   if (stuck) b.stuck++;
-  if (d < (b.racer?.arrive ?? t.arriveRange) || stuck) {
+  const line = b.leg === b.route.length - 1 ? b.racer?.finish : undefined;
+  const over = !!line && crossesGate(line, was, boat);
+  if (d < (b.racer?.arrive ?? t.arriveRange) || stuck || over) {
     if (b.leg + 1 < b.route.length) startLeg(b, b.leg + 1, world.time);
     else if (b.racer) {
       // Over the finish line: she lies there with her sails down.

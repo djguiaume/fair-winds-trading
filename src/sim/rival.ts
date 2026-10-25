@@ -86,6 +86,7 @@ export function makeRacer(
       finishedAt: null,
       arrive: Math.min(REGATTA.within, TUNING.seamanship.traffic.arriveRange),
       over: false,
+      finish: course.finish,
     },
   };
 }

@@ -1,0 +1,123 @@
+{
+  "id": "race-smoulder",
+  "name": "Round the Smoulder",
+  "start": {
+    "is": "all",
+    "of": [
+      {
+        "is": "quest-done",
+        "quest": "outpost-west"
+      },
+      {
+        "is": "quest-done",
+        "quest": "race-gap"
+      }
+    ]
+  },
+  "text": "quest.race-smoulder",
+  "giver": "wren",
+  "starter": "bram",
+  "port": "emberhold",
+  "offer": true,
+  "storms": false,
+  "wind": {
+    "speedKn": 13,
+    "fromDeg": 45
+  },
+  "race": {
+    "series": "regatta-seas",
+    "gold": {
+      "bronze": 120,
+      "silver": 240,
+      "gold": 400
+    },
+    "pars": {
+      "sloop": {
+        "fair": 164,
+        "captain": 168,
+        "salt": 166
+      },
+      "cutter": {
+        "fair": 142,
+        "captain": 142,
+        "salt": 141
+      },
+      "schooner": {
+        "fair": 128,
+        "captain": 129,
+        "salt": 126
+      },
+      "clipper": {
+        "fair": 109,
+        "captain": 117,
+        "salt": 115
+      },
+      "hoy": {
+        "fair": 339,
+        "captain": 322,
+        "salt": 318
+      },
+      "fluyt": {
+        "fair": 360,
+        "captain": 342,
+        "salt": 338
+      },
+      "indiaman": {
+        "fair": 340,
+        "captain": 323,
+        "salt": 319
+      }
+    }
+  },
+  "steps": [
+    {
+      "id": "race",
+      "moveTo": {
+        "x": -642,
+        "y": 220,
+        "headingDeg": 250
+      },
+      "goal": {
+        "is": "raced",
+        "start": [
+          {
+            "x": -660,
+            "y": 240
+          },
+          {
+            "x": -660,
+            "y": 200
+          }
+        ],
+        "marks": [
+          {
+            "x": -790,
+            "y": 118
+          },
+          {
+            "x": -955,
+            "y": 40
+          },
+          {
+            "x": -880,
+            "y": -105
+          },
+          {
+            "x": -740,
+            "y": -60
+          }
+        ],
+        "finish": [
+          {
+            "x": -660,
+            "y": 240
+          },
+          {
+            "x": -660,
+            "y": 200
+          }
+        ]
+      }
+    }
+  ]
+}
