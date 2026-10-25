@@ -18,3 +18,7 @@ Guillaume asked the Art director to compare Fogwatch ([0173](0173-east-sea-fogwa
 
 - Every island can have a narrower or wider beach without code.
 - The `fog` islets (the Giant and his Wife, the holms, Broch Isle) take the new cliff tones too.
+
+## Amended (2026-10-25): the waterfall
+
+With rivers in island files ([0176](0176-rivers-of-water-and-lava.md)), Fogwatch has one water river: it rises on the top fell, drops down the four basalt tiers on their town-facing side as a stepped cascade, runs along the ledge above the voe and falls off the sea cliff into the voe by the harbour. It is on the south face so the camera and a player sailing in see it (a Múlafossur-style fall on the north coast would face away from the camera). Two drying racks, four sheep and a peat stack made room in the 6000-triangle budget (5796 at level 4). Data only: `npm run island -- fogwatch river --points …`.
