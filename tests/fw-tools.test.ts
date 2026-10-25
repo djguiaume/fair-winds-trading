@@ -40,7 +40,14 @@ describe('command-line tools for agents (decision 0153)', () => {
   it('passes the shipped content with the editors’ checks', () => {
     const { problems, counted } = checkAll({ routes: 'none', seas: { ring: PHASE1_MAP } });
     expect(problems.filter((p) => p.severity === 'error')).toEqual([]);
-    expect(Object.keys(counted)).toEqual(['seas', 'islands', 'quests', 'perks', 'controls']);
+    expect(Object.keys(counted)).toEqual([
+      'seas',
+      'islands',
+      'quests',
+      'perks',
+      'ships',
+      'controls',
+    ]);
   }, 60000);
 
   it('reports a broken sea and an unknown island file', () => {

@@ -1,7 +1,8 @@
 /**
  * Model sheet (models.html): the game's own boat and island models side by side, for reviewing
  * the art (decision 0016) and checking triangle and draw-call counts on a real device.
- * ?view=boats shows the sloop at each upgrade level and the cutter; ?view=lines the starter and
+ * ?view=damage&ship=sloop shows one ship at the four damage steps (decision 0208), &damage=0..3
+ * any other view at one step. ?view=boats shows the sloop at each upgrade level and the cutter; ?view=lines the starter and
  * the swift and hauler lines (decision 0035); ?view=islands the four producer islands at the game
  * camera's angle. ?view=sloop&level=3&quality=low inspects one ship class (any ship file in src/data/ships/) with
  * the game's three quality profiles; ?view=compare&level=1..3 every class side by side at true size
@@ -24,7 +25,7 @@ import { DEG } from './sim/math';
 
 const params = new URLSearchParams(location.search);
 const view: string =
-  ['islands', 'towns', 'lines', 'compare', ...Object.keys(HULL_DIMENSIONS)].find(
+  ['islands', 'towns', 'lines', 'compare', 'damage', ...Object.keys(HULL_DIMENSIONS)].find(
     (v) => v === params.get('view'),
   ) ?? 'boats';
 const inspectBoat = view in HULL_DIMENSIONS;
@@ -60,6 +61,8 @@ const camera = new THREE.PerspectiveCamera(
 );
 
 const boats: BoatModel[] = [];
+/** &damage=0..3 shows every boat of the sheet at that damage step (decision 0208). */
+const sheetDamage = Math.max(0, Math.min(3, Number(params.get('damage')) || 0)) as 0 | 1 | 2 | 3;
 const labels: Array<{ at: THREE.Vector3; html: string }> = [];
 function addBoat(
   id: string,
@@ -68,8 +71,9 @@ function addBoat(
   z: number,
   yaw: number,
   html: string,
+  damage = sheetDamage,
 ) {
-  const b = createBoatModel(id, { upgrades });
+  const b = createBoatModel(id, { upgrades, damage });
   b.root.position.set(x, 0, z);
   b.root.rotation.y = yaw;
   b.root.traverse((o) => (o.castShadow = true));
@@ -218,6 +222,27 @@ if (inspectBoat) {
   if (focus) labels.length = 0;
   camera.position.set(fx, Math.sin(pitch) * dist, 8 + Math.cos(pitch) * dist);
   camera.lookAt(fx, 0, focus ? 8 : 4);
+} else if (view === 'damage') {
+  // One ship (&ship=, default sloop) at the four damage steps of decision 0208, &level=1..3.
+  const id = params.get('ship') ?? 'sloop';
+  const level = Math.max(1, Math.min(3, Number(params.get('level')) || 2)) as 1 | 2 | 3;
+  document.getElementById('title')!.textContent = `${id} · hull damage · upgrades ${level}`;
+  const len = (HULL_DIMENSIONS[id]?.length ?? 5) * 2.2;
+  const yaw = (Number(params.get('yaw')) || 140) * DEG;
+  const steps = [
+    'Sound',
+    'Below 75 %: scuffs',
+    'Below 50 %: patched, rail',
+    'Below 25 %: torn, list',
+  ];
+  steps.forEach((label, i) =>
+    addBoat(id, L(level), (i - 1.5) * (len + 6), 0, yaw, label, i as 0 | 1 | 2 | 3),
+  );
+  // Framed so the row of four just fills the sheet's width.
+  const far = 4 * (len + 6) * 0.98;
+  camera.fov = 24;
+  camera.position.set(0, far * 0.3, far);
+  camera.lookAt(0, len * 0.3, 0);
 } else if (view === 'compare') {
   // Every playable hull side by side at true relative size and one upgrade level (&level=1..3),
   // tagged with whether it already has its own refined model (decision 0077). A long, narrow

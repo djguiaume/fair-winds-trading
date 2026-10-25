@@ -81,6 +81,7 @@ const SECTION_NAMES: Record<string, string> = {
   'weather.daylight': 'Day and night',
   'seamanship.boat': 'Boat',
   'seamanship.hazards': 'Reefs, shallows and crashes',
+  'seamanship.damage': 'Hull damage you can see',
   'seamanship.harbour': 'Harbours',
   'seamanship.cargo': 'Cargo in a blow',
   'seamanship.boundaryBuoys': 'Boundary buoys',

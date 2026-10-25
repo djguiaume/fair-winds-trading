@@ -56,6 +56,9 @@ export interface BoatModelOptions {
   upgrades?: ShipUpgrades;
   /** Thin rigging lines (default true); can also be toggled later with setLowDetail. */
   rigging?: boolean;
+  /** Visible damage (decision 0208): 0 sound, 1 scuffed, 2 patched sails and a broken rail,
+   * 3 torn sails and a list. */
+  damage?: 0 | 1 | 2 | 3;
 }
 
 export type BoatModelFactory = (shipClassId: string, options?: BoatModelOptions) => BoatModel;
