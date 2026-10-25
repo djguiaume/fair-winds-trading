@@ -491,7 +491,9 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
       // Shallows are water: ShallowsWater tints them at sea (decision 0152), nothing stands there.
       if (feature.kind === 'shallows') continue;
       if (feature.kind === 'sandbank') {
-        parts.push(paint(extrudeOutline(feature.outline, -0.4, 0.8), feature.look?.color ?? B2.sand));
+        parts.push(
+          paint(extrudeOutline(feature.outline, -0.4, 0.8), feature.look?.color ?? B2.sand),
+        );
       } else if (feature.kind === 'island') {
         for (const tier of RIDGE_TIERS) {
           const outline = tier.inset ? insetOutline(feature.outline, tier.inset) : feature.outline;

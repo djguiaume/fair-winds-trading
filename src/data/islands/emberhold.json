@@ -286,7 +286,15 @@
       "variant": 2,
       "from": 3
     },
-    { "type": "turf-cottage", "x": 0.27, "z": 0.82, "turn": 0, "size": 1.5, "variant": 2, "from": 2 },
+    {
+      "type": "turf-cottage",
+      "x": 0.27,
+      "z": 0.82,
+      "turn": 0,
+      "size": 1.5,
+      "variant": 2,
+      "from": 2
+    },
     {
       "type": "iron-house",
       "x": 0.66,
@@ -359,9 +367,25 @@
       "variant": 6,
       "from": 1
     },
-    { "type": "turf-cottage", "x": -0.34, "z": 0.2, "turn": 0, "size": 1.5, "variant": 7, "from": 2 },
+    {
+      "type": "turf-cottage",
+      "x": -0.34,
+      "z": 0.2,
+      "turn": 0,
+      "size": 1.5,
+      "variant": 7,
+      "from": 2
+    },
     { "type": "iron-house", "x": -0.2, "z": 0.22, "turn": 0, "size": 1.5, "variant": 7, "from": 2 },
-    { "type": "turf-cottage", "x": 0.22, "z": 0.18, "turn": 0, "size": 1.5, "variant": 8, "from": 3 },
+    {
+      "type": "turf-cottage",
+      "x": 0.22,
+      "z": 0.18,
+      "turn": 0,
+      "size": 1.5,
+      "variant": 8,
+      "from": 3
+    },
     {
       "type": "iron-house",
       "x": 0.34,
