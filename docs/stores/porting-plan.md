@@ -171,6 +171,24 @@ So the paths are:
 | B. Native GDK build | Rewrite the game in an engine with a GDK export (Godot, Unity, Unreal), or embed our own JavaScript engine with WebGL on DirectX: months of work, and a second codebase | Not recommended |
 | C. Keep playing in the Xbox browser, sell elsewhere | Nothing new: it works today (0183). Sell on phones, and on Windows PC via the Microsoft Store (12%, the same UWP or a desktop package) or Steam | The fallback |
 
+**If Microsoft says no to UWP** (Guillaume asked, 2026-10-25), in order of preference:
+
+1. **Xbox on PC first:** a Windows desktop package (MSIX) hosting WebView2 on the Microsoft Store
+   is allowed, takes 12%, and shows in the Xbox app on Windows PCs and on Xbox-branded handhelds
+   (ROG Xbox Ally). About 1–2 weeks, and the console stays on the browser version.
+2. **Sell the unlock on the web, play in the Xbox browser:** sell through itch.io (or similar) and
+   let the web game open the full voyage with a key. The browser game already plays on the console
+   (0183). Weak points: typing a key with a pad (no camera for the QR), and a key check without a
+   server can be shared. Fits the free web demo above.
+3. **Wait for Microsoft's new self-service path:** a Microsoft staff member said in August 2025 a
+   team is working on what replaces the Creators Program. Costs nothing; no date.
+4. **A real console port with the GDK:** either a porting studio that runs web games on consoles
+   with its own runtime (typically paid per platform, quote needed, likely thousands of euros), or
+   rewriting the game in an engine with console export (Godot through W4 Games, Unity), which means
+   a second codebase and months of work. The data files (seas, islands, quests, goods) could be
+   reused; the renderer, the sim code and the UI could not. Only worth it if the phone sales show
+   the demand.
+
 Work items for path A:
 
 1. Open a Partner Center developer account (free for individuals since September 2025; confirm that
