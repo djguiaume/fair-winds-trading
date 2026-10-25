@@ -1403,17 +1403,18 @@ label.set-row {
 /*
  * Game controller in the menus (decision 0163): look A, a brass ring with a soft glow round the
  * control the pad is on, only while the pad is the last input (mouse or touch hides it again).
- * `!important` because each screen has its own focus and pressed styles underneath.
+ * `!important` because each screen has its own focus and pressed styles underneath. The mark
+ * `data-pad-focus` shows it when the browser has no focus to give the page (Xbox, decision 0203).
  */
-html[data-input='pad'] :focus {
+html[data-input='pad'] :is(:focus, [data-pad-focus]) {
   outline: 3px solid var(--brass-hi) !important;
   outline-offset: 3px !important;
   box-shadow:
     0 0 0 7px rgba(243, 211, 126, 0.22),
     0 0 22px 4px rgba(243, 211, 126, 0.55) !important;
 }
-html[data-input='pad'] dialog:focus,
-html[data-input='pad'] [role='dialog']:focus {
+html[data-input='pad'] dialog:is(:focus, [data-pad-focus]),
+html[data-input='pad'] [role='dialog']:is(:focus, [data-pad-focus]) {
   outline: none !important;
   box-shadow: none !important;
 }
