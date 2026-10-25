@@ -76,6 +76,8 @@ export interface Crater {
   r: number;
   /** The cone's flank, rise over run, where lava bombs come down. */
   slope: number;
+  /** A steam vent prop (decision 0181): a small plume at `smoke.ventScale`, never erupts. */
+  vent?: boolean;
 }
 
 export interface IslandModel extends THREE.Object3D {

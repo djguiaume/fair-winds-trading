@@ -198,6 +198,7 @@
       "sizeJitter": 0.35,
       "spread": 0.6,
       "craterRadius": 8,
+      "ventScale": 0.3,
       "color": "#ece8e1",
       "selfLit": 0.6,
       "nightSelfLit": 0.2,

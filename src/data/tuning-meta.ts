@@ -1185,6 +1185,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     'units',
     'A crater this wide (its pool’s radius) gets the plume as set here; a smaller one a smaller, lower, shorter plume.',
   ),
+  'weather.volcano.smoke.ventScale': num(
+    'Smoke: steam vent',
+    0.1,
+    1.2,
+    0.05,
+    '× plume',
+    'A steam vent prop’s plume (0181), as a share of a full crater’s: smaller, lower and shorter.',
+  ),
   'weather.volcano.smoke.color': text('Smoke: colour', 'A quiet plume’s steam, #rrggbb (0178).'),
   'weather.volcano.smoke.selfLit': num(
     'Smoke: self-lit',
