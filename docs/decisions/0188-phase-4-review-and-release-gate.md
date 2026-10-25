@@ -29,7 +29,12 @@ once these are true on `main`:
    difficulty levels. Today `npm run balance -- --map phase4` fails 8 of 19 checks.
 4. **A full playtest of a new game on all three levels** through every arc, with screenshots
    Guillaume has seen.
-5. **No Phase 4 PR left open** (today #193, #195, #199).
+5. **The art director's musts are done:** Fogwatch's south tier, the chart's wind-zone labels
+   (hidden until charted, no raw ids, no clipping or collisions), and the outposts, Cinder Isle and
+   the night ports approved from screenshots.
+6. **The closing beat `four-winds`** (Rook at Skerry once all four outposts stand, a signpost on the
+   pier), from the head storyteller.
+7. **No Phase 4 PR left open** (today #193, #195, #199).
 
 Not part of the gate, kept for later: outpost build spots (0157), the Xbox couch text size and
 no-typing save transfer ([0183](0183-play-in-the-xbox-browser.md)), the big-event panel

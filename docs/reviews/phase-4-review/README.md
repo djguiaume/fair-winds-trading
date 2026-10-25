@@ -55,6 +55,32 @@ ring and on `--map phase4`, `npm run chart -- --sea phase4`, `npm run shots` on 
 5. **Open PRs land or close first:** #193 (density wording), #195 (basalt boulders, 0182), #199
    (controller buttons on quest cards, 0187).
 
+6. **The art director's musts** (art director thread, 2026-10-25, against the art bible with Sunreach
+   as the benchmark):
+   - Fogwatch's south tier is one big empty green plane under the town (rule 10) and its coastal
+     shelf a wide grey band: walls, peat stacks, sheep, a few houses or a kailyard; a narrower shelf.
+   - In-game chart: wind-zone names show over uncharted water (The Whistle, Stormbreak, The Glass,
+     The Trades), hide them until charted; "cold-sea" is a raw id; the Stormbreak label is cut by the
+     chart edge; the Cold Sea and Calving Grounds labels collide.
+   - The dev badge, and the "<port> · your island" label under the quest pill (with gap 1).
+   - The outposts once founded at each level, Cinder Isle risen and each port at night: shot in
+     [art-set/](art-set/), waiting on the art director's look.
+   Approved as they are: Rimewick ("the best town in the game now"), Emberhold, Sunreach, the
+   eruption, the waterfall and the density fills.
+7. **The closing beat "four-winds"** (head storyteller): Rook at Skerry once all four outposts are
+   founded, with a signpost on Skerry's pier pointing to the four ports. One quest, its text and
+   one prop, built by the east quests thread after the east arcs; Guillaume sees the screenshots.
+
+## Seen in the art set (to check)
+
+- **Amber Strand has no founded look:** at Hamlet, Village and Town it stays an empty beach (no
+  houses, no flagpole). Part of the east sea's work.
+- **Cinder Isle's berth is off its island:** moored at Cinder Isle (founded, levels 1 to 3), the boat
+  and the port tag sit in open water with the island out of view. Check the dock position against
+  the risen island.
+- **Snowberry Isle has no pier** (`piers: []`): `npm run shots -- --moor snowberry-isle` finds no
+  berth. Check that docking there works for `outpost-north`'s settler step, then give it a pier.
+
 ## Smaller things seen (to fix with gap 1, art director to confirm)
 
 - The moored port's "<port> · your island" label sits under the quest target pill at the top of the
@@ -76,6 +102,8 @@ ring and on `--map phase4`, `npm run chart -- --sea phase4`, `npm run shots` on 
 
 ## Screenshots (main, `?map=phase4`, desktop)
 
+The art director's set (outposts at each level, every port at night, Cinder Isle risen) is in [art-set/](art-set/).
+
 - [chart-phase4.png](chart-phase4.png): the whole grown sea, labelled (`npm run chart -- --sea phase4`).
 - [chart-in-game-desktop.png](chart-in-game-desktop.png): the in-game chart of a new voyage, outer seas fogged.
 - [sunreach-desktop.png](sunreach-desktop.png), [emberhold-desktop.png](emberhold-desktop.png),
@@ -85,7 +113,8 @@ ring and on `--map phase4`, `npm run chart -- --sea phase4`, `npm run shots` on 
 
 | Thread | Does | Asks |
 |---|---|---|
-| Make the grown sea the main game | gap 1 + the small UI things | art director for the label overlap |
-| Write the east sea's quests (already running) | gap 2 | head storyteller, Guillaume sees portraits and cards |
+| Make the grown sea the main game | gap 1 + the small UI things + the chart labels | art director for the label overlap |
+| Fogwatch south tier and outpost fixes | Fogwatch's tier, Cinder Isle's berth, Snowberry's pier | art director |
+| Write the east sea's quests (already running) | gap 2, gap 7, Amber Strand's look | head storyteller, Guillaume sees portraits and cards |
 | Balance the grown sea | gap 3, tool first then tuning | storyteller on prices vs story order |
 | Phase 4 playtest and release | gaps 4 and 5, then v0.4.x notes and ADR like 0138 | Guillaume sees the screenshots |
