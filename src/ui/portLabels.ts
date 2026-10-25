@@ -7,6 +7,14 @@ import { distanceToPort } from '../sim/trade';
 import { TUNING } from '../data/tuning';
 import { navigationTarget, type World } from '../sim/world';
 import { goodName, t } from '../i18n';
+import { PAD } from '../input/gamepad';
+import { padGlyphFor } from './padGlyphs';
+
+/** The pad button that opens the port once moored (`controls.json` › `gamepad.sea.harbour`). */
+const TRADE_GLYPH = () => {
+  const button = PAD.sea.actions.harbour[0];
+  return button ? padGlyphFor(button) : '';
+};
 
 export type PortMarkerMode = 'approach' | 'objective' | 'all' | 'off';
 
@@ -88,6 +96,7 @@ export class PortLabels {
           <span class="port-marker-cue">${t('port.harbour')}</span>
         </span>
         <span class="port-marker-dock" hidden>
+          <span class="dock-glyph" hidden>${TRADE_GLYPH()}</span>
           <svg class="icon" aria-hidden="true"><use href="#i-anchor" /></svg>
           <span class="port-marker-dock-text"></span>
         </span>
@@ -199,6 +208,9 @@ export class PortLabels {
           entry.dock.hidden = !ready;
           if (ready) {
             const label = t(isDocked ? 'port.tradeBtn' : 'port.dockBtn');
+            // The pad's A opens the port once moored (decision 0199); docking is the sails' job.
+            const glyph = entry.dock.firstElementChild as HTMLElement;
+            if (glyph.hidden === isDocked) glyph.hidden = !isDocked;
             const text = entry.dock.lastElementChild!;
             if (text.textContent !== label) text.textContent = label;
           }

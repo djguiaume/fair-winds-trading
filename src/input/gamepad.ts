@@ -293,6 +293,18 @@ export const KEY_BUTTONS: Readonly<Record<string, PadButton>> = {
   GamepadLeftThumbstickRight: 'right',
 };
 
+/**
+ * On a TV (decision 0183) nobody plays with a keyboard: Edge's pointer mode can send the D-pad
+ * as arrow keys and A as Enter (decision 0199), so they count as the pad's buttons there.
+ */
+export const TV_KEY_BUTTONS: Readonly<Record<string, PadButton>> = {
+  ArrowUp: 'up',
+  ArrowDown: 'down',
+  ArrowLeft: 'left',
+  ArrowRight: 'right',
+  Enter: 'a',
+};
+
 /** How soon after a pad button's key the Gamepad API's report of it is the same press (ms). */
 const KEY_ECHO_MS = 300;
 
@@ -324,8 +336,18 @@ export class GamepadPoller {
   private lastHeldAt = -Infinity;
   /** A key or click that may mean the player left the pad, waiting to see (`away`). */
   private awayAt: number | null = null;
-  /** The Gamepad API has reported a press: keys for pad buttons are echoes from then on. */
+  /** The Gamepad API has reported a press (pointer clicks while a button is down are the pad's). */
   private apiPresses = false;
+  /**
+   * When the Gamepad API last showed each button down: a key for that button within
+   * `KEY_ECHO_MS` is its echo. Per button (decision 0199): Edge on Xbox's pointer mode keeps the
+   * D-pad and A for its cursor and sends them only as keys, while LB/RB/LT/RT come through the
+   * API; one "the API is live" flag dropped every D-pad key once a bumper had been pressed.
+   */
+  private apiAt = new Map<PadButton, number>();
+  /** Keys that are pad buttons here: `KEY_BUTTONS`, plus arrows and Enter on a TV. */
+  private readonly keyButtons: Readonly<Record<string, PadButton>>;
+  private readonly tv: boolean;
   private pressListeners: ((press: PadPress) => void)[] = [];
   private usingListeners: ((using: boolean) => void)[] = [];
   private using = false;
@@ -346,13 +368,19 @@ export class GamepadPoller {
     private readonly nav: { getGamepads?: () => (PadLike | null)[] } = navigator as never,
     target: Pick<Window, 'addEventListener'> | null = typeof window === 'undefined' ? null : window,
     private readonly config: PadConfig = PAD,
+    tv = false,
   ) {
+    this.keyButtons = tv ? { ...KEY_BUTTONS, ...TV_KEY_BUTTONS } : KEY_BUTTONS;
+    // On a TV the pad is the only input (its cursor's clicks included): always "using the pad".
+    this.tv = tv;
+    this.using = tv;
     if (!target) return;
     target.addEventListener('gamepadconnected', () => this.found());
     target.addEventListener('gamepaddisconnected', () => {
       if (!this.pad()) {
         this.since.clear();
-        this.setUsing(false);
+        // On a TV the pad stays the input (its keys still come, decision 0199).
+        if (!this.tv) this.setUsing(false);
         this.onConnect(false);
       }
     });
@@ -362,7 +390,7 @@ export class GamepadPoller {
     target.addEventListener(
       'keydown',
       (e) => {
-        const button = KEY_BUTTONS[(e as KeyboardEvent).key];
+        const button = this.keyButtons[(e as KeyboardEvent).key];
         if (button) return this.keyButton(button, true, e as KeyboardEvent);
         this.away();
       },
@@ -371,7 +399,7 @@ export class GamepadPoller {
     target.addEventListener(
       'keyup',
       (e) => {
-        const button = KEY_BUTTONS[(e as KeyboardEvent).key];
+        const button = this.keyButtons[(e as KeyboardEvent).key];
         if (button) this.keyButton(button, false, e as KeyboardEvent);
       },
       true,
@@ -427,6 +455,7 @@ export class GamepadPoller {
     frame.presses.unshift(...this.sampled.splice(0));
     this.lastNow = now;
     if (frame.held.size) this.lastHeldAt = now;
+    for (const b of frame.held) this.apiAt.set(b, now);
     if (this.awayAt !== null) {
       if (padInUse(frame)) this.awayAt = null;
       else if (now - this.awayAt > KEY_ECHO_MS) {
@@ -467,7 +496,10 @@ export class GamepadPoller {
   sample(now: number) {
     if (!this.seen) return;
     const pad = this.pad();
-    if (pad) this.sampled.push(...readPad(pad, this.since, now, this.config).presses);
+    if (!pad) return;
+    const read = readPad(pad, this.since, now, this.config);
+    for (const b of read.held) this.apiAt.set(b, now);
+    this.sampled.push(...read.presses);
   }
 
   private found() {
@@ -493,9 +525,12 @@ export class GamepadPoller {
    * is down or just released is the pad's: it is stopped. True when it was.
    */
   private padClick(e: Event): boolean {
-    if (!e.isTrusted || !this.apiPresses) return false;
+    if (!e.isTrusted) return false;
     const now = typeof performance === 'undefined' ? this.lastNow : performance.now();
-    if (!this.padHeld() && now - this.lastHeldAt > KEY_ECHO_MS) return false;
+    // A's key (GamepadA, or Enter on a TV) down or just up: the cursor's click is the pad's too.
+    const keyA = this.keyHeld.has('a') || now - (this.keyAt.get('a') ?? -Infinity) <= KEY_ECHO_MS;
+    const api = this.apiPresses && (this.padHeld() || now - this.lastHeldAt <= KEY_ECHO_MS);
+    if (!keyA && !api) return false;
     e.preventDefault();
     e.stopImmediatePropagation();
     return true;
@@ -508,25 +543,35 @@ export class GamepadPoller {
    * the next pad press only show the focus again, and the D-pad felt random.
    */
   private away() {
-    if (!this.using || this.padHeld()) return;
+    if (this.tv || !this.using || this.padHeld()) return;
     if (!this.seen) return this.setUsing(false);
     this.awayAt ??= this.lastNow;
   }
 
   /** A pad button the browser sent as a key: a press for the next frame, unless the pad has it. */
   private keyButton(button: PadButton, down: boolean, e: KeyboardEvent) {
-    // Keep the browser from acting on it (GamepadB is its Back).
+    // Keep the browser from acting on it (GamepadB is its Back; Enter would press the focused
+    // button a second time), and on a TV keep the arrows from steering the boat as keys too.
     e.preventDefault?.();
+    if (e.key in TV_KEY_BUTTONS) e.stopImmediatePropagation?.();
     if (!down) {
       this.keyHeld.delete(button);
       return;
     }
-    // The Gamepad API reports the same button (now, or since it first reported a press): the
-    // frame has it already.
-    if (this.apiPresses || this.padHeld()) return;
+    // The Gamepad API reports this same button (now, or a moment ago): the frame has it already.
+    if (this.apiHas(button)) return;
     this.keyHeld.add(button);
     this.keyAt.set(button, this.lastNow);
     this.keyPresses.push({ button, repeat: !!e.repeat });
+  }
+
+  /** Whether the Gamepad API shows this button down now or showed it within `KEY_ECHO_MS`. */
+  private apiHas(button: PadButton): boolean {
+    const pad = this.pad();
+    const b = pad?.buttons[PAD_BUTTONS.indexOf(button)];
+    if (b?.pressed || (b?.value ?? 0) >= this.config.triggerPress) return true;
+    const at = this.apiAt.get(button);
+    return at !== undefined && this.lastNow - at <= KEY_ECHO_MS;
   }
 
   /** Whether a pad has a button down or a stick leaning right now (its own key or click). */

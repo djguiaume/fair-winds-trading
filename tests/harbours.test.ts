@@ -167,14 +167,16 @@ describe('visible harbour approaches', () => {
     labels.update(() => ({ x: 123, y: 234, onScreen: true }));
     expect(cue.hidden).toBe(true);
     expect(dock.hidden).toBe(false);
-    expect(dock.textContent!.trim()).toBe('Dock');
+    expect(dock.querySelector('.port-marker-dock-text')!.textContent).toBe('Dock');
     labels.onPortClick = (id) => {
       if (tryDock(world.trade, world.map, world.boat, id)) world.trade.dockedAt = id;
     };
     marker.click();
     expect(world.trade.dockedAt).toBe(port.id);
     labels.update(() => ({ x: 123, y: 234, onScreen: true }));
-    expect(dock.textContent!.trim()).toBe('Trade');
+    expect(dock.querySelector('.port-marker-dock-text')!.textContent).toBe('Trade');
+    // The pad's A shows on Trade once moored (decision 0199).
+    expect((dock.querySelector('.dock-glyph') as HTMLElement).hidden).toBe(false);
     expect(marker.getAttribute('aria-label')).toContain('Docked · Tap to trade');
   });
 });
