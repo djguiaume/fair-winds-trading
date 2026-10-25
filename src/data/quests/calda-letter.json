@@ -1,7 +1,13 @@
 {
   "id": "calda-letter",
   "name": "A letter from Emberhold",
-  "start": { "is": "quest-done", "quest": "outpost-south" },
+  "start": {
+    "is": "all",
+    "of": [
+      { "is": "quest-done", "quest": "calda-slipway" },
+      { "is": "quest-done", "quest": "watchman-passage" }
+    ]
+  },
   "text": "quest.calda-letter",
   "giver": "ines",
   "port": "calda",
