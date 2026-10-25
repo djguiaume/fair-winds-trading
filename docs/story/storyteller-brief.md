@@ -167,7 +167,7 @@ The ring is busy now, and the company has a name. Letters start to arrive from p
 
 ### The pattern for every sea
 
-Every sea is the same three arcs, in this order. The second sea's letter only starts once the first sea's outpost is founded, so the seas open one by one, from the easiest to the hardest:
+Every sea is the same three arcs, in this order. The seas open early and run side by side (Guillaume, 2026-10-25, [0194](../decisions/0194-open-the-edge-seas-after-each-ring-arc.md)). The south is the first door: Old Ness's chart (`watchman-passage`, once Ada has brought his lens) shows the captain the way beyond the reef. After that, each other letter arrives once its writer's own ring arc is done, because word has spread that a captain sails beyond the reef. Sailing out is never blocked. Far main ports trade as soon as they are sighted, and only their arcs wait for the letter:
 
 1. **The letter (or chart)**, one step, given at a ring port by a person the player knows. A relative has written from beyond the reef. Goal: sail through the sea's gateway and reach its main port (discover it). This lifts the sea's chart (0137 point 1).
 2. **The keeper's arc**, three steps at the main port, given by its **keeper of the craft**. It tells why the workshop stands idle: the keeper still has the craft, but nobody gathers any more. The steps help the port itself (bring home goods, one sailing step that shows off the sea, one delivery that brings the port back to life). The port's look changes after it (`after:` props). The done card says the gathering ground is empty and points to the relative.
@@ -253,7 +253,7 @@ Written for the "Build the north ice sea" thread, which lays out the sea and wri
 
 Lamp oil (Watchman Key) and cut stone (Stonehaven) are both made goods on the ring, so the deliveries pass the `wantsMade` rule. Drifting bergs and cold gales stay optional: no card needs them, and with them off Lead Rock is still a slow, careful approach past the pack's edge.
 
-**Order while the west is unbuilt.** The table below has the north start after `outpost-west`. If the north merges first, `saltmere-letter` starts after `outpost-south` for now, and the west thread changes it to `outpost-west` when it lands. Nothing breaks for old saves: a player who has already done the north meets the west next.
+**Order.** Since 0194, `saltmere-letter` starts after `saltmere-shoals` and `watchman-passage` (see the Quest ids table).
 
 ### The east sea's names (head storyteller, 2026-10-24)
 
@@ -261,7 +261,7 @@ The names are English in French too. The barrier of skerries is **The Stepping S
 
 ### The east sea, step by step (head storyteller, 2026-10-25)
 
-This section is for the thread that writes the east arcs. It follows the same pattern as the west and the north. The gold amounts are first guesses, for `npm run balance` to settle. The east starts last: `westholm-letter` starts after `outpost-north`.
+This section is for the thread that writes the east arcs. It follows the same pattern as the west and the north. The gold amounts are first guesses, for `npm run balance` to settle. `westholm-letter` starts after `westholm-mill` and `watchman-passage` (0194).
 
 **People.** Elias Morrow (amber carver, a man) and Pip Holt (Maren's cousin, a woman) go into `characters.json`. Each gets their own voice in `audio.json`.
 - **Elias** is quiet and slow, with a soft, low voice. Make it different from Rook's and Bram's: vowels such as `"eu"`, low `wobble`.
@@ -313,12 +313,12 @@ Ids follow `<port>-<slug>` and `outpost-<biome>`. Keepers and relatives go in `c
 
 | Sea | Letter (giver, port) | Keeper's arc (giver) | Outpost (giver, speaker) | Starts when |
 |---|---|---|---|---|
-| South | `watchman-passage` (Ness, Watchman Key) | `sunreach-tea` (Juno) | `outpost-south` (Juno, Tam) | `fair-winds` done |
-| West | `calda-letter` (Ines, Port Calda) | `emberhold-glass` (Bram) | `outpost-west` (Bram, Oskar) | `outpost-south` done |
-| North | `saltmere-letter` (Kit, Saltmere) | `rimewick-jam` (Sigrun) | `outpost-north` (Sigrun, Nell) | `outpost-west` done |
-| East | `westholm-letter` (Maren, Westholm) | `fogwatch-amber` (Elias) | `outpost-east` (Elias, Pip) | `outpost-north` done |
+| South | `watchman-passage` (Ness, Watchman Key) | `sunreach-tea` (Juno) | `outpost-south` (Juno, Tam) | `stonehaven-light` done, and docked at Watchman Key |
+| West | `calda-letter` (Ines, Port Calda) | `emberhold-glass` (Bram) | `outpost-west` (Bram, Oskar) | `calda-slipway` and `watchman-passage` done |
+| North | `saltmere-letter` (Kit, Saltmere) | `rimewick-jam` (Sigrun) | `outpost-north` (Sigrun, Nell) | `saltmere-shoals` and `watchman-passage` done |
+| East | `westholm-letter` (Maren, Westholm) | `fogwatch-amber` (Elias) | `outpost-east` (Elias, Pip) | `westholm-mill` and `watchman-passage` done |
 
-Each keeper's arc starts when its letter is done, and each outpost starts when its keeper's arc is done. A ship's draft or class must never block a step outright: a step in the south suits the shallow ships, and its card says so ("she'll want a shallow keel"), but a deep ship can still reach the main port by the long way if the map has one. If not, the thread asks the storyteller.
+Each keeper's arc starts when its letter is done, and each outpost starts when its keeper's arc is done. The epilogues don't move: `fair-winds` comes after the four ring arcs, and `four-winds` after all four outposts. A ship's draft or class must never block a step outright: a step in the south suits the shallow ships, and its card says so ("she'll want a shallow keel"), but a deep ship can still reach the main port by the long way if the map has one. If not, the thread asks the storyteller.
 
 ### One mention across, in Phase 4
 

@@ -403,7 +403,9 @@ function showDueCard(): boolean {
 }
 /** Docked: the arrival card if a main quest has one, else straight to the harbour screen. */
 function openHarbour() {
-  if (!showDueCard()) tradePanel.open('market');
+  // A card already up (Rook's thanks, shown as the dock moved his lesson on) opens the harbour
+  // screen itself when it closes (decision 0190).
+  if (!questCard.isOpen && !showDueCard()) tradePanel.open('market');
   refreshPause();
 }
 // Every other quest's news away from its harbour: a small note at sea (decision 0141).
@@ -443,6 +445,9 @@ quests.onEvent = (e) => {
   }
   checkFounded();
   if (quest?.lesson) {
+    // Asked again, a lesson's people cards speak again (decision 0185).
+    if (e.type === 'started')
+      for (const key of questSeen) if (key.startsWith(`${e.quest}:`)) questSeen.delete(key);
     // A lesson speaks in its own bubble, and its last one says it is done (decision 0151).
     // Without its coach (the tutorial skipped, decision 0160) it ends without a word.
     if (e.type === 'finished' && quests.isCoached(e.quest)) {
@@ -500,17 +505,21 @@ questCard.onChoose = (id, option) => {
   autosave();
 };
 questCard.onClose = (card) => {
-  // Rook's card at the rescue closed without its answer (Esc): the lesson goes on as if answered,
-  // since nothing else would show that step again (decision 0185).
-  queueMicrotask(() => {
-    const lesson = quests.lesson;
-    if (lesson?.quest.id !== card.quest || !lesson.step.speaker) return;
+  // A lesson's people card closed without its answer (Esc, To the market): the lesson goes on as
+  // if answered, since nothing else would show that step again (decision 0185). Its next card,
+  // if any, is then due below.
+  const lesson = quests.lesson;
+  if (
+    lesson?.quest.id === card.quest &&
+    lesson.step.speaker &&
+    questSeen.has(`${card.quest}:${lesson.step.id}`)
+  ) {
     const first = quests.options(card.quest)[0];
     if (first) {
       quests.choose(card.quest, first.id);
       autosave();
     }
-  });
+  }
   // After the arrival card (or "To the market"), the harbour screen.
   if (!showDueCard() && world.trade.dockedAt && !tradePanel.isOpen) tradePanel.open('market');
   refreshPause();
@@ -923,8 +932,10 @@ function startQuestTest(test: NonNullable<typeof questTest>) {
   refreshPiers(world);
   view.setHomeBuildings(builtByIsland(world.trade.home));
   view.setQuestsDone(questsDone(world.trade));
+  // Land that stands after the quests before this step rises (or sinks) before she is placed.
+  syncWorldLand(world, true);
   const berth = test.port
-    ? testBerth(world.map, world.trade, world.piers, test.port, world.ship.id)
+    ? testBerth(world.map, world.trade, world.piers, test.port, world.ship.id, world.land)
     : null;
   const at = test.at ?? berth;
   if (at) {
@@ -1756,7 +1767,7 @@ if (new URLSearchParams(location.search).has('debug')) {
   };
   /** Dock at a port as a player would, from the berth a quest test uses (`npm run shots`, 0153). */
   const dock = (portId: string) => {
-    const berth = testBerth(world.map, world.trade, world.piers, portId, world.ship.id);
+    const berth = testBerth(world.map, world.trade, world.piers, portId, world.ship.id, world.land);
     if (!berth) return false;
     world.boat = createBoat(berth.x, berth.y, (berth.headingDeg * Math.PI) / 180);
     world.destination = null;
@@ -1770,7 +1781,14 @@ if (new URLSearchParams(location.search).has('debug')) {
    * decision 0159): the boat waits stopped by the pier and moors on the next step.
    */
   const moor = (islandId: string) => {
-    const berth = testBerth(world.map, world.trade, world.piers, islandId, world.ship.id);
+    const berth = testBerth(
+      world.map,
+      world.trade,
+      world.piers,
+      islandId,
+      world.ship.id,
+      world.land,
+    );
     if (!berth) return false;
     world.boat = createBoat(berth.x, berth.y, (berth.headingDeg * Math.PI) / 180);
     world.boat.sailStep = sailStep = 0;
@@ -1788,6 +1806,9 @@ if (new URLSearchParams(location.search).has('debug')) {
     trade.syncMarketLevels(world.trade, world.map);
     refreshPiers(world);
     view.setQuestsDone(questsDone(world.trade));
+    // Land that stands after these quests rises now, while the boat is still at her start: moored
+    // there next, the land would wait for her to sail out of sight (0166, Phase 4 review).
+    syncWorldLand(world, true);
     return started;
   };
   /** Put the boat at sea at a point, heading in degrees, sails at a step (0 furled … 2 full). */
