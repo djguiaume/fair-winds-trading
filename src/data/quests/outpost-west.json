@@ -17,13 +17,13 @@
         "of": [
           {
             "is": "landed",
-            "place": { "x": -659, "y": 535, "within": 10, "maxKn": 2, "holdSec": 3 },
+            "place": { "x": -703, "y": 476, "within": 10, "maxKn": 2, "holdSec": 3 },
             "good": "planks",
             "qty": 10
           },
           {
             "is": "landed",
-            "place": { "x": -659, "y": 535, "within": 10, "maxKn": 2, "holdSec": 3 },
+            "place": { "x": -703, "y": 476, "within": 10, "maxKn": 2, "holdSec": 3 },
             "good": "timber",
             "qty": 6
           }
@@ -40,7 +40,7 @@
         "item": "oskar",
         "qty": 1,
         "from": "emberhold",
-        "to": { "x": -659, "y": 535, "within": 10, "maxKn": 2, "holdSec": 3 }
+        "to": { "x": -703, "y": 476, "within": 10, "maxKn": 2, "holdSec": 3 }
       },
       "reward": { "gold": 450 }
     }
