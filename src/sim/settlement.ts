@@ -188,7 +188,7 @@ export function createSettlements(map: MapDef): SettlementState {
 }
 
 /** Anything holding settlements: the trade state, or the bare settlement store. */
-type HasSettlements = {
+export type HasSettlements = {
   settlements: SettlementState;
   /** The voyage's quests, for the trade a quest changes (decision 0130). */
   quests?: { byId: Record<string, { step: string }> };

@@ -1,3 +1,4 @@
+import { maxHull } from './sim/hazards';
 import { renderDifficultyButtons, renderLevelCards } from './ui/levelCards';
 import { GAME_MAP, PHASE1_MAP, PHASE1_SOURCE, RING_PREFIX, prepareMap } from './data/maps';
 import { STRESS_PREFIX, stressMap } from './data/stressMap';
@@ -333,6 +334,7 @@ chart.onChange = () => {
   refreshPause();
 };
 const tradePanel = new TradePanel($('trade-panel'), world);
+tradePanel.harbourPicture = (portId) => view.harbourPicture?.(portId) ?? null;
 // The home island (decision 0126). Rook's thanks gives it (decision 0127); `?home` gives it to the
 // voyage being played and offers every arc spot, to try the build spots.
 if (new URLSearchParams(location.search).has('home')) {
@@ -1553,6 +1555,11 @@ function autosave() {
 function handleEvents(events: WorldEvent[]) {
   hud.handleEvents(events);
   for (const e of events) {
+    if (e.type === 'crash' || e.type === 'reef-strike') {
+      // She shows the knock (decision 0208): a splash, planks afloat and a thud.
+      view.impact();
+      music.thud();
+    }
     if (e.type === 'docked') {
       const portName = trade.findPort(world.map, e.portId)?.name ?? e.portId;
       // Ramming the pier also stops you in range: keep the damage toast, the harbour shows repair.
@@ -1959,6 +1966,13 @@ if (new URLSearchParams(location.search).has('debug')) {
     resetBoat(world);
     sailStep = world.boat.sailStep;
   };
+  /** Her hull at `percent` condition, as after so many knocks (`npm run shots -- --hull`, 0208). */
+  const hull = (percent: number) => {
+    const { captain } = world.trade;
+    captain.hullDamage[captain.activeShip] = maxHull(world.trade) * (1 - percent / 100);
+  };
+  /** A crash's splash and planks at her bow, without the damage (`--crash`, decision 0208). */
+  const impact = () => view.impact();
   Object.assign(window, {
     fwt: {
       world,
@@ -1978,6 +1992,8 @@ if (new URLSearchParams(location.search).has('debug')) {
       questAt,
       town,
       freePlay,
+      hull,
+      impact,
     },
   });
 }
