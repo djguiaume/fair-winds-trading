@@ -3,8 +3,14 @@ import type { MapDef } from '../sim/map';
 import type { Sectors } from '../sim/seaSectors';
 import grown from './seas/grown.json';
 
-/** Local storage prefix of the grown sea's own voyage, so the real one is never touched. */
+/**
+ * Local storage prefix of the voyages sailed at `?map=phase4` while the grown sea was a dev sea
+ * (decision 0152). The address still opens them (decision 0189).
+ */
 export const PHASE4_PREFIX = 'fwt.phase4.';
+
+/** The name the grown sea's dev voyages were saved under (decision 0152): they still load. */
+const DEV_SEA_NAME = (ring: string) => `${ring} (Phase 4 sea)`;
 
 /**
  * The radius the sea grows to in Phase 4, from `seas/grown.json`: five times today's area
@@ -48,15 +54,14 @@ export const SEAS: SeaDef[] = grown.seas.map((id) => {
 });
 
 /**
- * The Phase 4 sea as laid out so far (decision 0152): today's Windward Ring unchanged in the
- * middle, the sea grown to its Phase 4 radius and each laid-out sea added round it. A dev sea
- * until fog of war and the far goods are in: it is reached only with `?map=phase4` and sails
- * its own voyage, so the shipped game and its saves never see it.
+ * The grown sea (decisions 0152, 0189): today's Windward Ring unchanged in the middle, the sea
+ * grown to its Phase 4 radius and each sea file added round it. The game's own sea since 0189.
+ * It keeps the ring's name, so a ring voyage resumes where it was with every port and quest
+ * (the new waters start fogged), and the grown sea's dev voyages still load.
  */
 export function grownMap(source: MapDef, seas: readonly SeaDef[] = SEAS): MapDef {
   const map = structuredClone(source);
-  map.name = `${source.name} (Phase 4 sea)`;
-  map.compatibleSaveMaps = [];
+  map.compatibleSaveMaps = [...(source.compatibleSaveMaps ?? []), DEV_SEA_NAME(source.name)];
   map.boundsRadius = GROWN_SEA_RADIUS;
   // The new waters start uncharted; the ring stays charted (decisions 0137, 0156).
   map.fog = { chartedRadius: grown.chartedRadius, areas: [] };

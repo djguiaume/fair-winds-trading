@@ -98,8 +98,17 @@ function check(raw: unknown, world: World): TransferResult {
   return save ? { ok: true, save } : { ok: false, problem: 'damaged' };
 }
 
-/** Read a scanned or pasted code (or link) into a checked save. */
-export function readSaveCode(text: string, world: World): TransferResult {
+/**
+ * Read a scanned or pasted code (or link) into a checked save. `earlier` are maps the world's map
+ * grew from under the same name (decision 0189: the Windward Ring inside the grown sea): an FW2
+ * code written there has shorter lists, so it reads with that map's lists and is then checked
+ * against the world's map, which still has every port, island and quest it names.
+ */
+export function readSaveCode(
+  text: string,
+  world: World,
+  earlier: readonly MapDef[] = [],
+): TransferResult {
   const code = extractCode(text);
   if (!code) return { ok: false, problem: 'unreadable' };
   let raw: unknown;
@@ -107,7 +116,11 @@ export function readSaveCode(text: string, world: World): TransferResult {
     const bytes = unzlibSync(fromBase64Url(code.slice(CODE_PREFIX.length)));
     if (code.startsWith(JSON_CODE_PREFIX)) raw = JSON.parse(strFromU8(bytes));
     else {
-      const read = unpackSave(bytes, world.map, SAVE_VERSION);
+      let read = unpackSave(bytes, world.map, SAVE_VERSION);
+      for (const map of earlier.filter((m) => m.name === world.map.name && m !== world.map)) {
+        if (read.ok || read.problem !== 'otherVersion') break;
+        read = unpackSave(bytes, map, SAVE_VERSION);
+      }
       if (!read.ok) return read;
       raw = read.raw;
     }

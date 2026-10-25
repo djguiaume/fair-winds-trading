@@ -173,10 +173,10 @@ const TOOLS: { id: Tool; icon: string; label: string; hint: string }[] = [
 // --- State ---------------------------------------------------------------------------------
 
 /**
- * Which sea the editor works on: today's Windward Ring (`phase1-map.json`), or with `?sea=phase4`
- * the whole Phase 4 sea, the ring and every sea file round it (decision 0161).
+ * Which sea the editor works on: the game's grown sea, the ring and every sea file round it
+ * (decisions 0161, 0189), or with `?sea=ring` the Windward Ring alone (`phase1-map.json`).
  */
-const SEA_MODE = new URLSearchParams(location.search).get('sea') === 'phase4';
+const SEA_MODE = new URLSearchParams(location.search).get('sea') !== 'ring';
 const DRAFT_KEY = SEA_MODE ? EDITED_SEAS_KEY : EDITED_MAP_KEY;
 const shippedSea = (): SeaDoc => mergeSeas(PHASE1_SOURCE, SEAS, grownFile as GrownDef);
 /** The map as shipped, for Reset, the dashed outlines and "edited". */
@@ -949,7 +949,7 @@ function setupSeaSwitch() {
   const pick = $<HTMLSelectElement>('ed-sea');
   pick.value = SEA_MODE ? 'phase4' : 'ring';
   pick.addEventListener('change', () => {
-    location.search = pick.value === 'phase4' ? '?sea=phase4' : '';
+    location.search = pick.value === 'phase4' ? '' : '?sea=ring';
   });
   $('ed-export').textContent = SEA_MODE ? 'Export files' : 'Export map.json';
   $('ed-play').textContent = SEA_MODE ? '▶ Play this sea' : '▶ Play this map';

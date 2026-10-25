@@ -4,6 +4,7 @@ import phase0 from './phase0-map.json';
 import phase1 from './phase1-map.json';
 import { bearingTo } from '../sim/math';
 import { islandDesign } from './islands';
+import { grownMap } from './grownMap';
 
 // JSON imports type good ids as plain strings; the map tests check every id is a known good.
 export const PHASE0_MAP = phase0 as MapDef;
@@ -40,3 +41,15 @@ export function prepareMap(source: MapDef): MapDef {
 }
 
 export const PHASE1_MAP: MapDef = prepareMap(PHASE1_SOURCE);
+
+/**
+ * The game's sea (decision 0189): the Windward Ring in the middle and the four seas round it,
+ * as authored. `PHASE1_SOURCE` and `PHASE1_MAP` stay the ring alone (`?map=ring`, the tests).
+ */
+export const GAME_SOURCE: MapDef = grownMap(PHASE1_SOURCE);
+
+/** Local storage prefix of the ring-alone test voyage (`?map=ring`), so the real one is never touched. */
+export const RING_PREFIX = 'fwt.ring.';
+
+/** The game's sea as sailed. */
+export const GAME_MAP: MapDef = prepareMap(GAME_SOURCE);

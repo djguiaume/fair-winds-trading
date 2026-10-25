@@ -27,8 +27,9 @@ export const SIZES = {
 export const HELP = `npm run shots -- [options]          screenshots of the real game, PNG in --out
 
 Where
-  --sea ring|stress|phase4|file.json   the sea (a file: a map editor export, or a sea file merged
-                                round the ring; played as ?map=edited)
+  --sea phase4|ring|stress|file.json   the sea (default phase4, the game's own grown sea, 0189;
+                                ring = the Windward Ring alone; a file: a map editor export, or a
+                                sea file merged round the ring, played as ?map=edited)
   --island a.json,b.json        island files to play instead of the shipped ones (builder exports)
   --at x,y                      boat at sea there (default: docked at the start port)
   --prologue                    a new voyage as a player who skips the tutorial meets it: alone at
@@ -55,7 +56,7 @@ Where
   --town id:level,…             towns at these levels; an empty island to found is founded first
                                 (0157), so --town palm-key:1 shows Palm Key just founded
 Map editor (editor.html instead of the game)
-  --editor ring|phase4          the map editor on the ring, or the sea editor on the Phase 4 sea
+  --editor phase4|ring          the sea editor on the game's sea (default), or the ring alone
   --select hit                  select what the chart tags so: island:sunreach, shape:coral-line-east,
                                 area:sugar-bar, zone:the-trades, current:id, mark:3, waypoint:2, start
   --look x,y --zoom upp         centre the chart there, map units per pixel (default: the whole sea)
@@ -91,7 +92,8 @@ Output
   --json                        print the files as JSON
 `;
 
-const SEAS = { ring: '', stress: 'stress', phase4: 'phase4' };
+// The game's own sea is the grown one (decision 0189): `phase4` (or `game`) needs no `?map=`.
+const SEAS = { phase4: '', game: '', ring: 'ring', stress: 'stress' };
 const NUMBERS = ['heading', 'sail', 'speed', 'zoom', 'time', 'wait', 'chart-zoom'];
 
 const pair = (v) => {
@@ -126,7 +128,7 @@ const keyHold = (v) => {
 export function normalise(opts) {
   const o = { ...opts };
   for (const k of NUMBERS) if (o[k] !== undefined) o[k] = Number(o[k]);
-  const sea = o.sea ?? 'ring';
+  const sea = o.sea === 'game' ? 'phase4' : (o.sea ?? 'phase4');
   const shot = {
     sea,
     seaFile: sea in SEAS ? null : resolve(ROOT, sea),
@@ -175,7 +177,7 @@ export function normalise(opts) {
     script: o.script ? readAll(o.script) : null,
     sizes: list(o.sizes ?? 'desktop'),
     url: o.url ?? null,
-    editor: o.editor === true ? 'ring' : (o.editor ?? null),
+    editor: o.editor === true ? 'phase4' : (o.editor ?? null),
     select: o.select ?? null,
     builder: o.builder ? String(o.builder).split(':') : null,
     exportOpen: !!o.export,
@@ -225,7 +227,7 @@ export function planShots(args) {
 
 /** The game's address for a shot: the sea, `?debug`, and a quest test's own parameters. */
 export function shotPath(shot) {
-  if (shot.editor) return `/editor.html?debug${shot.editor === 'phase4' ? '&sea=phase4' : ''}`;
+  if (shot.editor) return `/editor.html?debug${shot.editor === 'ring' ? '&sea=ring' : ''}`;
   if (shot.url) {
     const u = new URL(shot.url, 'http://x/');
     u.searchParams.set('debug', '');

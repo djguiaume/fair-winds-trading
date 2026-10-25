@@ -1,7 +1,7 @@
 import { renderDifficultyButtons, renderLevelCards } from './ui/levelCards';
-import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from './data/maps';
+import { GAME_MAP, PHASE1_MAP, PHASE1_SOURCE, RING_PREFIX, prepareMap } from './data/maps';
 import { STRESS_PREFIX, stressMap } from './data/stressMap';
-import { PHASE4_PREFIX, SEAS, grownMap } from './data/grownMap';
+import { PHASE4_PREFIX } from './data/grownMap';
 import {
   EDITED_PREFIX,
   EDITED_SEA_PREFIX,
@@ -180,22 +180,21 @@ const browserStorage: SaveStorage | null = (() => {
     return null;
   }
 })();
-// "Play this map" from the map editor (decision 0095): its own map, save and tutorial progress.
-// The bigger-map test sea (decision 0115), `?map=stress`, and the Phase 4 sea as laid out so far
-// (decision 0152), `?map=phase4`: each sails its own voyage too.
+// The game sails the grown sea: the Windward Ring in the middle, the four seas round it (decision
+// 0189). "Play this map" from the map editor (decision 0095) sails its own map, save and tutorial
+// progress; so do the bigger-map test sea (decision 0115), `?map=stress`, and the ring alone
+// (`?map=ring`, how the game was before 0189). `?map=phase4` still opens the voyage sailed there
+// while the grown sea was a dev sea (decision 0152), on the game's own sea.
 const mapParam = new URLSearchParams(location.search).get('map');
 // The sea editor's grown sea (decision 0161): `?map=edited&sea=phase4`.
 const editedPhase4 = mapParam === 'edited' && editedSea(location.search);
-const phase4Sea = mapParam === 'phase4';
+const phase4Voyage = mapParam === 'phase4';
 const stressTest = mapParam === 'stress';
-const devSea = stressTest || phase4Sea;
+const ringAlone = mapParam === 'ring';
+const devSea = stressTest || ringAlone;
 const playtestMap =
   editedMap(location.search, browserStorage) ??
-  (phase4Sea
-    ? prepareMap(grownMap(PHASE1_SOURCE))
-    : stressTest
-      ? prepareMap(stressMap(PHASE1_SOURCE))
-      : null);
+  (ringAlone ? PHASE1_MAP : stressTest ? prepareMap(stressMap(PHASE1_SOURCE)) : null);
 // The quest builder's quests and text sail with the edited map (decision 0142). A quest played
 // from one of its steps (`&quest=…&step=…`) starts a fresh voyage kept in memory only.
 const playtestQuests =
@@ -228,29 +227,31 @@ if (tuneMode) {
 const voyageStorage =
   questTest || benchMode
     ? memoryStorage()
-    : playtestMap && browserStorage
+    : (playtestMap || phase4Voyage) && browserStorage
       ? prefixedStorage(
           browserStorage,
-          phase4Sea
+          phase4Voyage
             ? PHASE4_PREFIX
             : stressTest
               ? STRESS_PREFIX
-              : editedPhase4
-                ? EDITED_SEA_PREFIX
-                : EDITED_PREFIX,
+              : ringAlone
+                ? RING_PREFIX
+                : editedPhase4
+                  ? EDITED_SEA_PREFIX
+                  : EDITED_PREFIX,
         )
       : browserStorage;
 const storage =
   tuneMode && voyageStorage ? prefixedStorage(voyageStorage, TUNE_PREFIX) : voyageStorage;
-const world = createWorld(playtestMap ?? PHASE1_MAP, SLOOP);
+const world = createWorld(playtestMap ?? GAME_MAP, SLOOP);
 if (playtestMap) {
-  document.title = `${phase4Sea ? 'Phase 4 sea' : stressTest ? 'Stress test' : questTest ? 'Quest test' : editedPhase4 ? 'Edited Phase 4 sea' : 'Edited map'} · ${document.title}`;
+  document.title = `${stressTest ? 'Stress test' : ringAlone ? 'Ring alone' : questTest ? 'Quest test' : editedPhase4 ? 'Edited Phase 4 sea' : 'Edited map'} · ${document.title}`;
   const badge = document.createElement('a');
-  badge.href = editedPhase4 ? './editor.html?sea=phase4' : './editor.html';
-  badge.textContent = phase4Sea
-    ? `Phase 4 sea (${SEAS.map((s) => s.id).join(', ')} laid out)`
-    : stressTest
-      ? 'Stress test sea'
+  badge.href = editedPhase4 ? './editor.html?sea=phase4' : './editor.html?sea=ring';
+  badge.textContent = stressTest
+    ? 'Stress test sea'
+    : ringAlone
+      ? 'The Windward Ring alone (test)'
       : editedPhase4
         ? 'Edited Phase 4 sea · back to editor'
         : 'Edited map · back to editor';
@@ -258,7 +259,7 @@ if (playtestMap) {
     'position:fixed;left:50%;bottom:6px;transform:translateX(-50%);z-index:50;padding:3px 10px;' +
     'border-radius:10px;background:#123246e6;color:#f3d37e;font:600 12px sans-serif;' +
     'text-decoration:none;';
-  // A label only: the stress and Phase 4 seas have no editor page to go back to.
+  // A label only: the stress sea and the ring alone have no editor page to go back to.
   if (devSea) {
     badge.removeAttribute('href');
     badge.style.pointerEvents = 'none';
@@ -1703,13 +1704,13 @@ function startBench(created: Bench) {
 if (perfMode) {
   void Promise.all([import('./perf/perfReadout'), benchMode ? import('./perf/bench') : null]).then(
     ([{ PerfReadout }, benchModule]) => {
-      const sea = phase4Sea
-        ? 'Phase 4 sea'
-        : stressTest
-          ? 'stress test sea'
+      const sea = stressTest
+        ? 'stress test sea'
+        : ringAlone
+          ? 'ring alone'
           : playtestMap
             ? 'edited map'
-            : "today's sea";
+            : 'grown sea';
       const created = benchModule
         ? new benchModule.Bench(benchModule.BENCHMARK, knotToUnits())
         : null;

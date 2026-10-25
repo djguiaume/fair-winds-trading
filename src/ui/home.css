@@ -80,6 +80,18 @@
   align-items: center;
   pointer-events: auto;
 }
+/* While the destination pill holds the top centre, the island's name sits under it. Narrow screens
+   move the pill to the bottom, and portrait already drops the bar below the instruments. */
+@media (min-width: 761px) and (orientation: landscape) {
+  body:has(.objective:not([hidden])) .home-bar {
+    top: calc(var(--top, 10px) + 48px);
+  }
+}
+@media (min-width: 1100px) and (min-height: 680px) and (orientation: landscape) {
+  body:has(.objective:not([hidden])) .home-bar {
+    top: calc(var(--top, 10px) + 56px);
+  }
+}
 .home-title {
   padding: 6px 12px;
   border: 1.5px solid var(--brass-line);

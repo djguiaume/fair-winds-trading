@@ -1,5 +1,7 @@
 import { TUNING } from '../data/tuning';
 import { chartAreaIds, fogIslandIds, islandCharted } from './fog';
+import { FAR_GOODS, type GoodId } from './goods';
+import { producesAt } from './settlement';
 import { chartableZoneIds, type MapDef, type PortDef } from './map';
 import { applyPerks } from './perks';
 import { distance } from './math';
@@ -92,6 +94,21 @@ export function portCharted(map: MapDef, trade: TradeState, port: PortDef): bool
 /** Ports on the chart, in map order. */
 export function discoveredPorts(map: MapDef, trade: TradeState): PortDef[] {
   return map.ports.filter((p) => portCharted(map, trade, p));
+}
+
+/**
+ * Far goods (decision 0146) that a port on the chart sells or makes. The chart's market lists a
+ * far good only then, or while one is in the hold, so a new voyage does not see the outer seas'
+ * goods before their ports (decision 0189).
+ */
+export function farGoodsOnChart(map: MapDef, trade: TradeState): Set<GoodId> {
+  const seen = new Set<GoodId>();
+  for (const port of discoveredPorts(map, trade)) {
+    const stock = trade.markets[port.id]?.stock;
+    for (const g of FAR_GOODS)
+      if ((stock?.[g] ?? 0) > 0 || producesAt(map, trade, port.id).includes(g)) seen.add(g);
+  }
+  return seen;
 }
 
 /** Put hidden ports near `pos` on the chart. Returns the ones found just now. */

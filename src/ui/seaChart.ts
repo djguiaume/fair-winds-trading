@@ -2,12 +2,12 @@ import { islandCoasts, islandLake } from '../sim/islandLayout';
 import type { World } from '../sim/world';
 import type { SeaMarkDef } from '../sim/map';
 import { WIND_FORCES, windForce } from '../sim/windStrength';
-import { GOODS, type GoodId, isMadeGood } from '../sim/goods';
+import { GOODS, type GoodId, isFar, isMadeGood } from '../sim/goods';
 import { madeGoods, questsDone } from '../sim/settlement';
 import { questShown } from '../data/islands';
 import { type PortQuote, quoteAcross } from '../sim/market';
 import { DEG, distance } from '../sim/math';
-import { discoveredPorts } from '../sim/shipyards';
+import { discoveredPorts, farGoodsOnChart } from '../sim/shipyards';
 import { ownedIslands } from '../sim/home';
 import { chartedAt, islandCharted } from '../sim/fog';
 import { noGoAngle } from '../sim/ship';
@@ -705,9 +705,13 @@ export class SeaChart {
     const { map, trade } = this.world;
     const goods = this.get('chart-goods');
     goods.replaceChildren();
-    // Specialized goods join once a town makes them, or while one is in the hold (decision 0063).
+    // Specialized goods join once a town makes them, or while one is in the hold (decision 0063);
+    // far goods once a port on the chart sells or makes them (decision 0189).
     const made = madeGoods(map, trade);
-    const inPlay = GOODS.filter((g) => !isMadeGood(g) || made.has(g) || trade.captain.cargo[g] > 0);
+    const far = farGoodsOnChart(map, trade);
+    const inPlay = GOODS.filter(
+      (g) => trade.captain.cargo[g] > 0 || (isFar(g) ? far.has(g) : !isMadeGood(g) || made.has(g)),
+    );
     for (const g of inPlay) {
       // Tap a good to show its prices on the chart; tap it again for names only.
       const b = this.button(goods, goodName(g), () => {

@@ -585,7 +585,7 @@ export async function writePng(
 export async function run(args: Args): Promise<number> {
   if (args.help) {
     console.log(`npm run chart [-- options]   a labelled map, PNG + SVG, from the real map and island files
-  --sea ring|stress|phase4|file.json  the sea (default ring); a file is an editor export, or a
+  --sea phase4|ring|stress|file.json  the sea (default phase4, the game's sea, 0189); a file is an editor export, or a
                                       sea file (src/data/seas/*.json shape) merged round the ring
   --overlay file.json                 proposed areas, islands, lines and labels (see docs/tools/chart.md)
   --around id|x,y [--radius 200]      centre on an island, a port or a point (map units)
@@ -606,7 +606,7 @@ export async function run(args: Args): Promise<number> {
   --json                              what was written, as JSON`);
     return 0;
   }
-  const { map, prepared, label, sectors } = loadSea(String(args.sea ?? 'ring'));
+  const { map, prepared, label, sectors } = loadSea(String(args.sea ?? 'phase4'));
   let overlay =
     typeof args.overlay === 'string'
       ? (JSON.parse(readFileSync(args.overlay, 'utf8')) as Overlay)

@@ -5,7 +5,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { isMapShape } from '../../src/data/editedMap';
-import { PHASE1_MAP, prepareMap } from '../../src/data/maps';
+import { GAME_MAP, prepareMap } from '../../src/data/maps';
 import {
   type QuestDoc,
   addQuestMark,
@@ -116,7 +116,7 @@ export function questPlay(
 }
 
 function loadMap(file: string | undefined): MapDef {
-  if (!file) return PHASE1_MAP;
+  if (!file) return GAME_MAP;
   const raw: unknown = JSON.parse(readFileSync(resolve(file), 'utf8'));
   if (!isMapShape(raw)) throw new Error(`${file}: not a map file`);
   return prepareMap(raw);
