@@ -28,6 +28,7 @@ import {
   LANE_WIDTH,
   type LaneDef,
   type PropDef,
+  designQuestIds,
   questDesign,
 } from '../../data/islands';
 import {
@@ -1066,11 +1067,21 @@ export function islandCheckKit(design: IslandDesign, R: number, harbour = true):
       parts.forEach((g) => g.dispose());
       return hull;
     },
+    // Props shown before or after a quest never stand together: count the town as a new voyage
+    // finds it and with every one of its quests done, and keep the bigger (decision 0208).
     triangles: (level) => {
-      const parts = designedTownParts(design, R, level as TownLevel, harbour);
-      const count = parts.reduce((n, g) => n + g.getAttribute('position').count / 3, 0);
-      parts.forEach((g) => g.dispose());
-      return count;
+      const count = (d: IslandDesign) => {
+        const parts = designedTownParts(d, R, level as TownLevel, harbour);
+        const n = parts.reduce((t, g) => t + g.getAttribute('position').count / 3, 0);
+        parts.forEach((g) => g.dispose());
+        return n;
+      };
+      const quests = designQuestIds(design);
+      if (!quests.length) return count(design);
+      return Math.max(
+        count(questDesign(design, new Set())),
+        count(questDesign(design, new Set(quests))),
+      );
     },
   };
 }

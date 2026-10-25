@@ -1,0 +1,10 @@
+{
+  "id": "empty-rack",
+  "name": "Empty drying rack",
+  "group": "fish",
+  "parts": [
+    {
+      "use": "rack"
+    }
+  ]
+}

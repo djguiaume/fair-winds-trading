@@ -25,7 +25,58 @@
       [-1.55, 0.95]
     ]
   ],
-  "ground": [{ "coast": 0, "height": 0.065, "material": "grass" }],
+  "ground": [
+    { "coast": 0, "height": 0.065, "material": "grass" },
+    {
+      "outline": [
+        [-0.947522, -0.47],
+        [-1.009367, -0.367824],
+        [-1.089746, -0.284558],
+        [-1.211332, -0.281239],
+        [-1.303301, -0.35862],
+        [-1.3238, -0.47],
+        [-1.292017, -0.573181],
+        [-1.211304, -0.658673],
+        [-1.094163, -0.641848],
+        [-0.998947, -0.579746]
+      ],
+      "height": 0.24,
+      "material": "grass"
+    },
+    {
+      "outline": [
+        [1.384726, -0.6],
+        [1.342159, -0.492453],
+        [1.245272, -0.406447],
+        [1.1, -0.387273],
+        [0.964111, -0.418949],
+        [0.843437, -0.486056],
+        [0.757145, -0.6],
+        [0.796396, -0.734835],
+        [0.928681, -0.828256],
+        [1.1, -0.827561],
+        [1.259247, -0.812173],
+        [1.347163, -0.709769]
+      ],
+      "height": 0.3,
+      "material": "grass"
+    },
+    {
+      "outline": [
+        [1.328909, -0.66],
+        [1.302613, -0.588248],
+        [1.223901, -0.547042],
+        [1.145558, -0.58142],
+        [1.074325, -0.621882],
+        [1.102024, -0.689717],
+        [1.144921, -0.739499],
+        [1.218469, -0.747287],
+        [1.304418, -0.733014]
+      ],
+      "height": 0.45,
+      "material": "rock"
+    }
+  ],
   "lanes": [
     {
       "points": [
@@ -388,15 +439,78 @@
     { "type": "field", "x": 0.42, "z": -1.04, "variant": 2, "from": 3 },
     { "type": "field", "x": 1.06, "z": 0.24, "variant": 3, "from": 3 },
     { "type": "field", "x": 1.06, "z": 0.56, "variant": 4, "from": 3 },
-    { "type": "spire-church", "x": -0.35, "z": -0.25, "size": 2, "fit": 0.12, "from": 4 }
+    { "type": "spire-church", "x": -0.35, "z": -0.25, "size": 2, "fit": 0.12, "from": 4 },
+    { "type": "lamp-post", "x": -0.58, "z": -0.205, "size": 1.3, "from": 2 },
+    { "type": "lamp-post", "x": -0.391, "z": -0.057, "size": 1.3, "from": 2 },
+    { "type": "lamp-post", "x": -0.237, "z": 0.109, "size": 1.3, "from": 2 },
+    { "type": "lamp-post", "x": -0.072, "z": 0.294, "size": 1.3, "from": 2 },
+    { "type": "lamp-post", "x": 0.315, "z": 0.27, "size": 1.3, "from": 2 },
+    { "type": "lamp-post", "x": 0.451, "z": 0.055, "size": 1.3, "from": 2 },
+    { "type": "lamp-post", "x": 0.517, "z": -0.176, "size": 1.3, "from": 2 },
+    { "type": "lamp-post", "x": -0.573, "z": -0.532, "size": 1.3, "from": 2 },
+    { "type": "lamp-post", "x": -0.339, "z": -0.48, "size": 1.3, "from": 2 },
+    { "type": "lamp-post", "x": -0.086, "z": -0.462, "size": 1.3, "from": 2 },
+    { "type": "lamp-post", "x": 0.152, "z": -0.489, "size": 1.3, "from": 2 },
+    { "type": "lamp-post", "x": 0.391, "z": -0.517, "size": 1.3, "from": 2 },
+    { "type": "lamp-post", "x": 0.63, "z": -0.547, "size": 1.3, "from": 2 },
+    { "type": "lamp-post", "x": -0.567, "z": -0.289, "size": 1.3, "from": 2 },
+    { "type": "lamp-post", "x": -0.329, "z": -0.259, "size": 1.3, "from": 2 },
+    { "type": "lamp-post", "x": -0.077, "z": -0.233, "size": 1.3, "from": 2 },
+    { "type": "lamp-post", "x": 0.16, "z": -0.27, "size": 1.3, "from": 2 },
+    { "type": "lamp-post", "x": -0.36, "z": 0.45, "size": 1.3, "from": 1 },
+    { "type": "lamp-post", "x": -1.2, "z": 0.62, "size": 1.3, "from": 1 },
+    { "type": "hedge", "x": -1.34, "z": 0.24, "turn": 90, "length": 0.3, "from": 1 },
+    { "type": "hedge", "x": -1.34, "z": -0.08, "turn": 90, "length": 0.3, "from": 1 },
+    { "type": "hedge", "x": -1.18, "z": 0.08, "turn": 0, "length": 0.3, "from": 1 },
+    { "type": "hedge", "x": -1.5, "z": 0.08, "turn": 0, "length": 0.3, "from": 1 },
+    { "type": "hedge", "x": -0.38, "z": -1.04, "turn": 90, "length": 0.3, "from": 1 },
+    { "type": "hedge", "x": -0.06, "z": -1.04, "turn": 90, "length": 0.3, "from": 1 },
+    { "type": "hedge", "x": 0.26, "z": -1.04, "turn": 90, "length": 0.3, "from": 1 },
+    { "type": "hedge", "x": -0.54, "z": -0.86, "turn": 0, "length": 0.3, "from": 1 },
+    { "type": "hedge", "x": -0.22, "z": -0.86, "turn": 0, "length": 0.3, "from": 1 },
+    { "type": "hedge", "x": 0.1, "z": -0.86, "turn": 0, "length": 0.3, "from": 1 },
+    { "type": "hedge", "x": 0.42, "z": -0.86, "turn": 0, "length": 0.3, "from": 1 },
+    { "type": "hedge", "x": 1.06, "z": 0.4, "turn": 0, "length": 0.3, "from": 1 },
+    { "type": "beached-boat", "x": -0.18, "z": 0.56, "turn": -30, "from": 1 },
+    { "type": "beached-boat", "x": 0.4, "z": 0.6, "turn": 10, "from": 2 },
+    {
+      "type": "moored-boat",
+      "x": -0.75,
+      "z": 0.68,
+      "turn": 20,
+      "size": 1.4,
+      "clear": 0,
+      "from": 1
+    },
+    { "type": "haystack", "x": -1.5, "z": -0.25, "from": 1 },
+    { "type": "haystack", "x": 0.6, "z": -0.9, "from": 1 },
+    { "type": "haystack", "x": 1.2, "z": 0.4, "from": 1 },
+    { "type": "rowan", "x": 0.077, "z": -0.151, "from": 1, "to": 2 },
+    { "type": "rowan", "x": 0.291, "z": -0.055, "from": 1, "to": 2 },
+    { "type": "rowan", "x": 0.24, "z": -0.212, "from": 1, "to": 2 },
+    { "type": "rowan", "x": 0.252, "z": 0.517, "from": 1, "to": 2 },
+    { "type": "rowan", "x": 0.413, "z": 0.355, "from": 1, "to": 2 },
+    { "type": "rowan", "x": 0.467, "z": 0.201, "from": 1, "to": 2 },
+    { "type": "rowan", "x": 0, "z": -0.37, "from": 1, "to": 2 },
+    { "type": "rowan", "x": 0.196, "z": -0.404, "from": 1, "to": 2 },
+    { "type": "rowan", "x": 0.358, "z": -0.335, "from": 1, "to": 2 },
+    { "type": "rowan", "x": 0.562, "z": 0.043, "from": 1, "to": 2 },
+    { "type": "rowan", "x": 0.6, "z": -0.12, "from": 1, "to": 2 }
   ],
   "woods": {
     "tree": "woodland-broadleaf",
-    "tries": 1100,
+    "tries": 3000,
     "area": [-1.7, -1.3, 1.7, 0.72],
     "size": 1.7,
-    "margin": 0.09,
-    "spacing": 0.27,
-    "clear": [[1, -0.5, 0.23]]
+    "margin": 0.05,
+    "spacing": 0.12,
+    "areas": [
+      [1.12, -0.62, 0.36],
+      [1.6, 0, 0.25],
+      [-1.3, -0.7, 0.3],
+      [-0.95, -1.05, 0.22],
+      [-1.55, 0.6, 0.22],
+      [0.8, 0.65, 0.15]
+    ]
   }
 }

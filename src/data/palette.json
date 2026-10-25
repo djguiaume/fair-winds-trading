@@ -41,21 +41,38 @@
   "styles": {
     "fish": {
       "walls": ["#f8f3ea", "#e2ecf0", "#f4e0c4", "#f0d6cf"],
-      "roofs": ["#3f74a8", "#c8603e", "#2f5f8a", "#d98a4a"]
+      "roofs": ["#3f74a8", "#c8603e", "#2f5f8a", "#d98a4a"],
+      "grounds": {
+        "grass": "downs",
+        "rock": "sandstone",
+        "sand": "ringsand"
+      }
     },
     "timber": {
       "walls": ["#9a6a3c", "#8a5a32", "#a87a4a"],
-      "roofs": ["#4f6b3a", "#5a3d24", "#6e7f45"]
+      "roofs": ["#4f6b3a", "#5a3d24", "#6e7f45"],
+      "grounds": {
+        "grass": "downs",
+        "rock": "sandstone",
+        "sand": "ringsand"
+      }
     },
     "grain": {
       "walls": ["#f8f3ea", "#f1e4c8", "#ece2cf"],
-      "roofs": ["#d9b45a", "#c9a24a", "#e0bf66"]
+      "roofs": ["#d9b45a", "#c9a24a", "#e0bf66"],
+      "grounds": {
+        "grass": "downs",
+        "rock": "sandstone",
+        "sand": "ringsand"
+      }
     },
     "stone": {
       "walls": ["#d6cdbd", "#c9bfae", "#e0d8c8"],
       "roofs": ["#5f6f7d", "#6f7f8d", "#4f5f6d"],
       "grounds": {
-        "rock": "cut"
+        "grass": "downs",
+        "rock": "cut",
+        "sand": "ringsand"
       }
     },
     "tropic": {
@@ -160,6 +177,23 @@
       "name": "Grass",
       "top": "grass",
       "side": "rock"
+    },
+    "downs": {
+      "name": "Ring downs",
+      "top": ["#7cc04f", "#79bd4c", "#7fc352"],
+      "side": ["#c2ad8c", "#b29c7a", "#cdb894", "#a8916f"]
+    },
+    "sandstone": {
+      "name": "Ring sandstone",
+      "top": ["#d6c4a4", "#cdb999", "#dccaa9"],
+      "side": ["#c2ad8c", "#b29c7a", "#a8916f", "#cdb894"],
+      "trees": false
+    },
+    "ringsand": {
+      "name": "Ring sand",
+      "top": ["#f2d9a0", "#efd49a"],
+      "side": ["#dcc08a", "#d2b47e"],
+      "beach": true
     },
     "rock": {
       "name": "Rock",
