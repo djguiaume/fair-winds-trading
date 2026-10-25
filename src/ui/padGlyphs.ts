@@ -29,6 +29,27 @@ export function padGlyphFor(button: PadButton): string {
   return padGlyph(button, ['a', 'b', 'x', 'y'].includes(button) ? button : 'bumper');
 }
 
+/**
+ * The Xbox pad's View and Menu buttons as their printed symbols (decision 0201), not their names:
+ * View is two overlapping windows, Menu three lines. Other pads keep the name (PlayStation's
+ * "Create", Switch's "−"), which their CSS shows instead of the symbol.
+ */
+const SYMBOLS: Partial<Record<PadButton, string>> = {
+  view: '<rect x="2.5" y="2.5" width="8" height="8" rx="1.5"/><path d="M6.5 13.5h6.5a1.5 1.5 0 0 0 1.5-1.5V5.5"/>',
+  menu: '<path d="M3 4.5h10M3 8h10M3 11.5h10"/>',
+};
+
+/**
+ * A button's glyph as the symbol printed on it, for a game button whose own icon it replaces
+ * while the pad is in use (View on the Map button, decision 0201). Buttons without a symbol get
+ * `padGlyphFor`.
+ */
+export function padSymbol(button: PadButton): string {
+  const symbol = SYMBOLS[button];
+  if (!symbol) return padGlyphFor(button);
+  return `<i class="pad-symbol pad-only" aria-hidden="true"><svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">${symbol}</svg><b class="pad-key bumper" data-pad-key="${button}">${padName(button)}</b></i>`;
+}
+
 /** The pad in use is of this brand: texts and every glyph on the page take its names. */
 export function usePadBrand(brand: string, root: ParentNode = document) {
   names = brandNames(brand) ?? names;

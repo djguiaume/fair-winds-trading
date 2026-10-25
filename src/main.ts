@@ -107,6 +107,7 @@ import { HomePanel, buildingName, effectLine } from './ui/homePanel';
 import { builtByIsland, giveHomeIsland, homeSpots, islandHome, offerHomeSpot } from './sim/home';
 import { TransferPanel } from './ui/transferPanel';
 import { startTvMode } from './input/tv';
+import { PadLog } from './ui/padLog';
 import { usePadBrand } from './ui/padGlyphs';
 import { askConfirm } from './ui/confirmDialog';
 import { WayOfPlaying, firstWay } from './input/wayOfPlaying';
@@ -1041,7 +1042,10 @@ hud.onSailStep = (step) => input.setSail(step);
  * rest (menus, the harbour, cards) goes to `pad.onMenuPress`.
  */
 // On a TV the arrows and Enter are the pad's too (Edge's pointer mode, decision 0199).
+// `?padlog`: what the controller really sends, on screen, for a photo from the Xbox (0201).
+const padLog = new URLSearchParams(location.search).has('padlog') ? new PadLog() : null;
 const pad = new GamepadPoller(undefined, undefined, undefined, tvMode);
+if (padLog) pad.onPress((p) => padLog.press(p.button, p.repeat));
 // The pad's own button names on glyphs and in texts: A on Xbox, ✕ on PlayStation (decision 0186).
 usePadBrand(pad.brand);
 // Buttons are read between frames too, so a quick tap is never missed (decision 0183).
