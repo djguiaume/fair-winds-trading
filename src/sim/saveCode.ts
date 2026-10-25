@@ -108,6 +108,11 @@ const ZONES_SECTION = 12;
  * areas' count and a flag each, and the islands' count and a flag each.
  */
 const FOG_SECTION = 13;
+/**
+ * A load on credit (decision 0200), after fog of war's section and only while she owes one: its
+ * number, the order's port and the good (indexes), the units and the gold owed.
+ */
+const CREDIT_SECTION = 14;
 /** No section left to read (sections are numbered from 1). */
 const NO_SECTION = -1;
 const currentIds = (map: MapDef) => (map.currents ?? []).map((c) => c.id);
@@ -334,6 +339,14 @@ export function packSave(
     w.flags(areas);
     w.uint(islandIds.length);
     w.flags(sighted);
+  }
+  const loan = save.loan;
+  if (loan && ports.includes(loan.port)) {
+    w.uint(CREDIT_SECTION);
+    w.uint(ports.indexOf(loan.port));
+    w.uint(GOODS.indexOf(loan.good));
+    w.uint(loan.qty);
+    w.uint(loan.owed);
   }
   return Uint8Array.from(w.bytes);
 }
@@ -607,6 +620,16 @@ export function unpackSave(
     }
     section = r.done ? NO_SECTION : r.uint();
   }
+  // A load on credit (decision 0200).
+  let loan: SaveData['loan'];
+  if (section === CREDIT_SECTION) {
+    const port = ports[r.uint()];
+    const good = goods[r.uint()];
+    const qty = r.uint();
+    const owed = r.uint();
+    if (port && good) loan = { port, good, qty, owed };
+    section = r.done ? NO_SECTION : r.uint();
+  }
   if (section > HOME_SECTION) return { ok: false, problem: 'newer' };
   if (section !== NO_SECTION || !r.done) return { ok: false, problem: 'unreadable' };
 
@@ -624,6 +647,7 @@ export function unpackSave(
       ships,
       cargo,
       hullDamage,
+      ...(loan ? { loan } : {}),
       dockedAt,
       markets,
       ...(workshops ? { workshops } : {}),

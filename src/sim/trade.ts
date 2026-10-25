@@ -81,6 +81,33 @@ export interface Captain {
   cargo: GoodAmounts;
   /** Hull points lost to reef strikes, per owned ship class (decision 0032). */
   hullDamage: Record<string, number>;
+  /** A load the harbour office lent her, paid back when she sells at its order's port (0200). */
+  loan?: CreditLoan;
+}
+
+/** A load on credit (decision 0200): no interest and no deadline, one at a time. */
+export interface CreditLoan {
+  /** The port whose order the load is for: she pays back when she sells or delivers there. */
+  port: string;
+  good: GoodId;
+  qty: number;
+  /** Gold to pay back: what the load cost in the port that lent it. */
+  owed: number;
+}
+
+/**
+ * At her loan's port (decision 0200), once she sells the lent good there, delivers there, or
+ * docks there with none of it left: the harbour office takes what she owes, or what she has, and
+ * the loan is cleared, so nothing can fail. `good` is what she just sold. Returns the gold paid.
+ */
+export function settleCredit(trade: TradeState, good?: GoodId): number {
+  const loan = trade.captain.loan;
+  if (!loan || trade.dockedAt !== loan.port) return 0;
+  if (good !== undefined && good !== loan.good) return 0;
+  const paid = Math.min(loan.owed, Math.max(0, trade.captain.gold));
+  trade.captain.gold -= paid;
+  delete trade.captain.loan;
+  return paid;
 }
 
 export interface TradeState {
@@ -340,6 +367,9 @@ export function tryDock(
     return false;
   if (trade.dockedAt && trade.dockedAt !== portId) return false;
   trade.dockedAt = portId;
+  // She sold the lent load on the way: nothing left to sell here, so the loan is settled now.
+  if (trade.captain.loan?.port === portId && !trade.captain.cargo[trade.captain.loan.good])
+    settleCredit(trade);
   return true;
 }
 
@@ -538,6 +568,7 @@ export function sell(trade: TradeState, good: GoodId, qty: number, map?: MapDef)
     addGrowth(trade, market.portId, qty);
     addRare(trade, market.portId, good, qty);
   }
+  settleCredit(trade, good);
   return { ok: true, gold: income };
 }
 

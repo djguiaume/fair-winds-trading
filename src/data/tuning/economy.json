@@ -38,6 +38,10 @@
     "helpGrowthFactor": 2,
     "helpCooldown": 240
   },
+  "credit": {
+    "loadUnits": 4,
+    "sailBias": 200
+  },
   "discoverRange": 90,
   "home": {
     "laterPriceFactor": 1.5,
