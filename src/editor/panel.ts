@@ -527,6 +527,12 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
       );
     }
     const look = () => (shape.look ??= {});
+    // A pumice bank is grey, not sand (decision 0171).
+    if (shape.kind === 'sandbank')
+      text('Colour', shape.look?.color ?? '', (v) => {
+        if (/^#[0-9a-f]{6}$/i.test(v)) look().color = v;
+        else delete look().color;
+      });
     number('Trees', shape.look?.trees, (v) => (look().trees = v), { min: 0, optional: true });
     select(
       'Landmark',

@@ -63,6 +63,22 @@
       "vowels": "aei",
       "moods": { "pleased": { "pitch": 1.3 } }
     },
+    "bram": {
+      "synth": "babble",
+      "pitch": 0.85,
+      "speed": 0.95,
+      "wobble": 0.1,
+      "vowels": "oau",
+      "moods": { "pleased": { "pitch": 0.95, "wobble": 0.16 }, "worried": { "speed": 0.85 } }
+    },
+    "oskar": {
+      "synth": "babble",
+      "pitch": 0.95,
+      "speed": 1.2,
+      "wobble": 0.12,
+      "vowels": "aeo",
+      "moods": { "pleased": { "pitch": 1.05 } }
+    },
     "maren": {
       "synth": "babble",
       "pitch": 1.45,

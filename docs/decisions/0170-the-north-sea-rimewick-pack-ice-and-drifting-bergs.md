@@ -31,7 +31,7 @@ Phase 4's north sea ([0137](0137-phase-4-biomes-and-founded-outposts.md), story 
 - A prop recipe can carry a `lamp` (`{y, color}`): any prop with one lights at night as a beacon. Lead Rock's rebuilt cairn uses it. A lamp is not inherited through `extends`.
 
 **Quests** (quest engine, [0125](0125-quest-engine.md)):
-- `saltmere-letter` (Kit's letter) starts after the south's outpost quest.
+- `saltmere-letter` (Kit's letter) starts after the west's outpost quest, `outpost-west` (the west sea merged first), so the outer seas open south, west, then north.
 - `rimewick-jam` (Sigrun): deliver lamp oil, find the lead past Lead Rock slowly, land cut stone to relight the cairn.
 - `outpost-north` (Sigrun, then Nell): land planks and stone on Snowberry Isle, carry Nell over, and the isle is founded.
 - New characters: Sigrun Vale and Nell Marlow, each with a look and a voice.
@@ -47,4 +47,4 @@ Phase 4's north sea ([0137](0137-phase-4-biomes-and-founded-outposts.md), story 
 - The north plays from the ring through the Rime Gate. Balance was checked on all three levels (every check passes): Saltmere to Rimewick takes about 108 s, Watchman Key 149 s.
 - The `ice`, `bergs` and `cold-sea` kinds and prop `lamp` are available to every sea. Bergs cost one batched mesh per field, drawn only near the boat.
 - The map checks run each site's harbour on the map as it stands once its quests are done. An island ringed by ice passes if it has an opening of 60° or more.
-- The west sea PR changes `saltmere-letter` to start after `outpost-west` if it merges first.
+- A thread making the four seas equal quarters may clip the Cold Sea's outline to 45°.

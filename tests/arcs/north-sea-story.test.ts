@@ -82,6 +82,9 @@ describe('the north sea story (decision 0170)', () => {
       'watchman-passage',
       'sunreach-tea',
       'outpost-south',
+      'calda-letter',
+      'emberhold-glass',
+      'outpost-west',
     ])
       world.trade.quests.byId[id] = { step: 'done', counts: [], chose: {} };
     // Watchman Key fills lamps from town level, so Rimewick buys lamp oil.

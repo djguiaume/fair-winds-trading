@@ -3,7 +3,7 @@
   "name": "A letter for the north",
   "start": {
     "is": "quest-done",
-    "quest": "outpost-south"
+    "quest": "outpost-west"
   },
   "text": "quest.saltmere-letter",
   "giver": "kit",

@@ -34,5 +34,5 @@ Phase 4's east is the fog and storm coast ([0137](0137-phase-4-biomes-and-founde
 
 - Saltmere → Fogwatch is 68 s through Gannet Sound (sloop, Fair winds); Fogwatch → Amber Strand 73 s; every balance check passes on all three levels.
 - The east's islands and areas are in the fog of war; a save code grows by a character or two.
-- Fogwatch's waterfall (art bible) waits for the west's rivers (decision 0167, on its own branch) and comes as a small follow-up.
+- Fogwatch's waterfall (art bible) waits for the west's rivers (decision 0176) and comes as a small follow-up.
 - The east's story (the Westholm letter, Maren's arc, founding Amber Strand) is not written yet; Amber Strand stays an empty site until then.

@@ -43,7 +43,13 @@ import {
 import { animateCrests } from './flowChart';
 import { TUNING } from '../data/tuning';
 import { renderPanel } from './panel';
-import { hasIslandFile, islandOpen, openIsland, setupIslandBuilder } from './island/builder';
+import {
+  builderSelectForShots,
+  hasIslandFile,
+  islandOpen,
+  openIsland,
+  setupIslandBuilder,
+} from './island/builder';
 import { giveIslandFile } from './island/fromLook';
 import { openQuests, questsOpen, setupQuestBuilder } from './quest/builder';
 import {
@@ -957,6 +963,11 @@ if (new URLSearchParams(location.search).has('debug'))
       [view.cx, view.cy] = [x, y];
       if (upp) view.upp = clampZoom(upp);
       drawMap();
+    },
+    /** The island builder on an island, at a tab, a shape and a point picked (`--builder`). */
+    builder(id: string, tab = 'props', shape?: string, point?: number) {
+      editIsland(id);
+      builderSelectForShots(tab as Parameters<typeof builderSelectForShots>[0], shape, point);
     },
     /** A chart hit as the chart tags it: "island:sunreach", "area:sugar-bar", "mark:3", "start". */
     select(hit: string) {

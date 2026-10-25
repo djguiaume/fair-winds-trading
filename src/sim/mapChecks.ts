@@ -7,7 +7,7 @@ import { outlineCrosses, smoothOutline } from './flowShapes';
 import { TUNING } from '../data/tuning';
 import { isFar, isGood } from './goods';
 import { islandCoasts, islandPoint } from './islandLayout';
-import { designOf, landmarkOf, questTagIds, runningTag } from '../data/islands';
+import { designOf, hasVolcano, landmarkOf, questTagIds, runningTag } from '../data/islands';
 import { PROP_RECIPES } from '../data/props';
 import { STYLES } from '../data/grounds';
 import { hasQuestLand, standingMap } from './questLand';
@@ -715,6 +715,7 @@ export function quickChecks(map: MapDef): MapCheck[] {
   const portIslands = new Set(map.ports.map((p) => p.islandId));
   const steersBy = (i: IslandDef) =>
     !!landmarkOf(i) ||
+    hasVolcano(i) ||
     !!designOf(i)?.props.some((p) => PROP_RECIPES[p.type]?.group === 'landmarks');
   const plain = map.islands.filter((i) => !portIslands.has(i.id) && !steersBy(i));
   out.push(

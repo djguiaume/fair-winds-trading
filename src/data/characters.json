@@ -150,6 +150,42 @@
       }
     },
     {
+      "id": "bram",
+      "name": "Bram Kettle",
+      "voice": "bram",
+      "role": "Glassworker",
+      "port": "emberhold",
+      "look": {
+        "skin": "#c98a62",
+        "hair": "#3a2a22",
+        "hairStyle": "bald",
+        "beard": true,
+        "clothes": "#4a3a32",
+        "apron": "#7a4a2a",
+        "dust": true,
+        "item": "none",
+        "backdrop": "#c8503a"
+      }
+    },
+    {
+      "id": "oskar",
+      "name": "Oskar Calder",
+      "voice": "oskar",
+      "role": "Settler",
+      "port": "emberhold",
+      "look": {
+        "skin": "#a8714e",
+        "hair": "#8a8178",
+        "hairStyle": "short",
+        "hat": "cap",
+        "hatColor": "#3f6a4a",
+        "beard": true,
+        "clothes": "#b8642f",
+        "item": "pencil",
+        "backdrop": "#8c8580"
+      }
+    },
+    {
       "id": "sigrun",
       "name": "Sigrun Vale",
       "voice": "sigrun",

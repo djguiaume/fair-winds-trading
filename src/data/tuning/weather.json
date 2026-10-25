@@ -161,6 +161,18 @@
         },
         "chart": "#cdd6d8"
       },
+      "ash": {
+        "strength": 0.9,
+        "gusts": 0.8,
+        "haze": {
+          "near": 0,
+          "far": 45,
+          "color": "#8c8580",
+          "fade": 120,
+          "switch": "ash"
+        },
+        "chart": "#8c8580"
+      },
       "cold-sea": {
         "tint": {
           "water": "#1f5a6c",

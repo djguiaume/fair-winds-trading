@@ -150,7 +150,7 @@ Grounds and styles live in [`src/data/palette.json`](../../src/data/palette.json
 }
 ```
 
-`top` paints flat tops, slopes and ramps, `side` the cliffs, `peak` a mountain's cone (else `top`); `cap` paints a peak's faces above `capAbove` of its height (a snow line). A colour is a palette name, `#rrggbb`, or a list (each triangle takes one, a faint speckle). `glow` is a colour that shines at night (lava cracks); `trees: false` keeps woods off it; `beach: true` marks a beach. Island files name grounds in `material` (raised ground, mountains, ramps); the beach is the ground `sand`.
+`top` paints flat tops, slopes and ramps, `side` the cliffs, `peak` a mountain's cone (else `top`); `cap` paints a peak's faces above `capAbove` of its height (a snow line). A colour is a palette name, `#rrggbb`, or a list (each triangle takes one, a faint speckle). `glow` is a colour that shines at night (lava cracks); `specks` is a colour for a few flat lava-rock stones on its tops (moss); `trees: false` keeps woods off it; `beach: true` marks a beach. Island files name grounds in `material` (raised ground, mountains, ramps); the beach is the ground `sand`.
 
 A style has `walls` and `roofs` (house colours), and may swap grounds and override palette colours for its islands:
 
@@ -170,6 +170,15 @@ So an island file of style `ice` that says `grass` is snow, and a file can still
 The ground that follows a coast may give a `beach` width in radius units (default 0.085): Fogwatch's narrow stony shore is 0.05 ([0175](../decisions/0175-fogwatch-detail-pass-beach-width-heather-peat-and-rowans.md)). The island builder's coast ground has a Beach width field; `npm run island -- <id> ground 0 --beach 0.05`.
 
 A lane or path may give a `width` in radius units (default 0.04 for a lane, 0.055 for a path): narrow, wandering lanes for a village ([0173](../decisions/0173-east-sea-fogwatch-the-stepping-stones-and-fog-banks.md)). The island builder's lane panel has a Width field; `npm run island -- <id> lane --points "x,z x,z" --width 0.024`.
+
+## A river or a lava river ([0176](../decisions/0176-rivers-of-water-and-lava.md))
+
+An island file lists `rivers`, each `{ "kind": "water" | "lava", "points": [[x, z], …], "width": 0.04 }` in island-radius units, source first and mouth last (`kind` left out is water; `from`, `to` and `tags` work as on props). The river lies on the ground: plateaus, ramps, slopes and mountains (a mountain's faceted cone). Where it crosses a cliff of raised ground it falls as a sheet to the ground below; a last point past the coast takes it into the sea, with foam for water and steam for lava. Lava has its own material: orange by day, glowing at night, one draw call on islands with lava ([0171](../decisions/0171-the-west-fire-sea-emberhold.md)). A point may carry its own width, `[x, z, width]`.
+
+- Island builder: **Lanes** tab › **River** or **Lava river**, click the source, the bends, the mouth, then Enter. The panel switches the kind, the width, the levels and the tags.
+- Command line: `npm run island -- <id> river --points "x,z x,z x,z" --kind lava --width 0.05`, `widen <n> --point 2 --width 0.08` (or `--width none`), `remove river <n>`.
+- A mountain (peak) may have a `crater`, its open top's radius as a share of its size (0.05 to 0.8), with a glowing pool: the builder's peak panel or the `mountain` step.
+- Checks: the source must be on the island, a width above 0; a river that runs uphill between two points is a warning.
 
 ## Ice, drifting bergs and a cold sea ([0170](../decisions/0170-the-north-sea-rimewick-pack-ice-and-drifting-bergs.md))
 

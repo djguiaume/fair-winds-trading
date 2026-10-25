@@ -82,6 +82,30 @@
         "path": "#d4dbe2"
       }
     },
+    "fire": {
+      "walls": ["#2e2a2a", "#f4ede0", "#3a3333", "#efe6d6"],
+      "roofs": ["#b8402e", "#4f7f4a", "#c8503a", "#3f6a4a"],
+      "grounds": {
+        "grass": "moss",
+        "rock": "blackbasalt",
+        "sand": "shingle"
+      },
+      "colors": {
+        "path": "#8f8a84"
+      }
+    },
+    "volcano": {
+      "walls": ["#2e2a2a", "#f4ede0", "#3a3333", "#efe6d6"],
+      "roofs": ["#b8402e", "#4f7f4a", "#c8503a", "#3f6a4a"],
+      "grounds": {
+        "grass": "moss",
+        "rock": "blackbasalt",
+        "sand": "blacksand"
+      },
+      "colors": {
+        "path": "#8f8a84"
+      }
+    },
     "fog": {
       "walls": ["#2f3035", "#eeeae2", "#2f3035", "#eeeae2", "#8a3a32"],
       "roofs": ["#8fae55", "#9ab85e", "#86a54e", "#2f3035"],
@@ -167,6 +191,47 @@
       "name": "Cloudberry moor",
       "top": ["#8a8a4a", "#9a6a3a", "#8f8450"],
       "side": ["#5b6068", "#6e747c"]
+    },
+    "blackbasalt": {
+      "name": "Black basalt",
+      "top": ["#4b4547", "#433e40", "#4f494b"],
+      "side": ["#3d3839", "#4b4547", "#363132"],
+      "trees": false
+    },
+    "lavafield": {
+      "name": "Lava field",
+      "top": ["#3d3839", "#433e40", "#383334"],
+      "side": ["#363132", "#3d3839"],
+      "glow": "#ff5a2a",
+      "trees": false
+    },
+    "volcanic": {
+      "name": "Volcanic cone",
+      "top": ["#4b4547", "#433e40"],
+      "side": ["#3d3839", "#4b4547"],
+      "peak": ["#4b4547", "#433e40", "#504a4b"],
+      "cap": ["#8a8682", "#7d7975", "#948f8a"],
+      "capAbove": 0.55,
+      "glow": "#ff5a2a",
+      "trees": false
+    },
+    "blacksand": {
+      "name": "Black sand",
+      "top": ["#3d3c3e", "#454347", "#38373a"],
+      "side": ["#3d3c3e", "#454347"],
+      "beach": true
+    },
+    "moss": {
+      "name": "Moss",
+      "top": ["#7fa852", "#6f9848", "#86b05a"],
+      "side": ["#3d3839", "#4b4547", "#363132"],
+      "specks": "#3a3536"
+    },
+    "moss-dark": {
+      "name": "Dark moss",
+      "top": ["#6f9848", "#668c42", "#78a04e"],
+      "side": ["#3d3839", "#4b4547", "#363132"],
+      "specks": "#3a3536"
     },
     "turf": {
       "name": "Turf",

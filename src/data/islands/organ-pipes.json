@@ -1,0 +1,39 @@
+{
+  "id": "organ-pipes",
+  "name": "The Organ Pipes",
+  "style": "volcano",
+  "seed": 7501,
+  "coasts": [
+    [
+      [1.592756, 0],
+      [1.209009, 0.585598],
+      [0.416424, 0.854414],
+      [-0.524739, 1.076654],
+      [-1.2445, 0.602788],
+      [-1.375924, 0],
+      [-1.291464, -0.625536],
+      [-0.526935, -1.081159],
+      [0.50176, -1.029506],
+      [1.302815, -0.631034]
+    ]
+  ],
+  "ground": [{ "coast": 0, "height": 0.06, "material": "rock" }],
+  "lanes": [],
+  "piers": [],
+  "props": [
+    { "type": "basalt-columns", "x": 0, "z": 0, "size": 1.4, "from": 1 },
+    { "type": "basalt-columns", "x": 0.45, "z": 0.1, "size": 1.4, "from": 1 },
+    { "type": "basalt-columns", "x": -0.45, "z": -0.1, "size": 1.4, "from": 1 },
+    { "type": "sea-stack", "x": 1.9, "z": 0.3, "size": 1.1, "from": 1 },
+    { "type": "sea-stack", "x": -1.9, "z": -0.4, "size": 1.1, "from": 1 },
+    { "type": "lighthouse", "x": 0.15, "z": -0.2, "from": 1 }
+  ],
+  "woods": {
+    "tree": "woodland-pine",
+    "tries": 0,
+    "area": [-1.48, -1.18, 1.69, 1.18],
+    "size": 1.8,
+    "margin": 0.1,
+    "spacing": 0.2
+  }
+}

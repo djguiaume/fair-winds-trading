@@ -53,6 +53,9 @@ describe('fog of war (0156)', () => {
       'sugar-bar',
       'sunreach-waters',
       'palm-key-narrows',
+      'forge-gap',
+      'emberhold-waters',
+      'cinder-reach',
       'stepping-stones',
       'fogwatch-waters',
       'the-race',
@@ -66,6 +69,10 @@ describe('fog of war (0156)', () => {
       'sunreach-south',
       'palm-key',
       'lone-palm',
+      'emberhold',
+      'the-smoulder',
+      'organ-pipes',
+      'cinder-isle',
       'fogwatch',
       'the-giant',
       'his-wife',
@@ -102,9 +109,9 @@ describe('fog of war (0156)', () => {
   it('charts a fogged island alone when she sails past it in uncharted water', () => {
     const world = at(-470, -665);
     world.trade.progress.areas = ['coral-line'];
-    // Outside every area (west of the south sea), within sight of nothing: nothing new.
-    world.boat.x = -900;
-    world.boat.y = 0;
+    // Outside every area (between the west and north seas), within sight of nothing.
+    world.boat.x = -500;
+    world.boat.y = 850;
     expect(lie(world, 0.2)).toEqual([]);
     // Within sight of Lone Palm, in the Sugar Bar area: the area and the island.
     world.trade.progress.areas = [];

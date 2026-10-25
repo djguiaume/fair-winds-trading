@@ -1,0 +1,17 @@
+{
+  "id": "turf-wall",
+  "name": "Turf wall (a yard)",
+  "group": "town",
+  "parts": [
+    {
+      "box": [0.9, 0.12, 0.08],
+      "at": [0, 0.06, -0.4],
+      "color": "#5d6a3c"
+    },
+    {
+      "box": [0.08, 0.12, 0.8],
+      "at": [-0.45, 0.06, 0],
+      "color": "#5d6a3c"
+    }
+  ]
+}

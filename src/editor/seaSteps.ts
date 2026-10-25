@@ -130,6 +130,9 @@ function assign(target: object, fields: Record<string, unknown> = {}) {
   const t = target as Record<string, unknown>;
   for (const [k, v] of Object.entries(fields)) {
     if (v === null) delete t[k];
+    // A look merges: its colour, design or landmark change without dropping the rest.
+    else if (k === 'look' && typeof v === 'object' && typeof t.look === 'object')
+      t.look = { ...(t.look as object), ...v };
     else t[k] = v;
   }
 }

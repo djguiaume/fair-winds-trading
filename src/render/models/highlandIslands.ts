@@ -7,6 +7,7 @@ import { type Rng, createRng, range } from '../../sim/rng';
 import {
   blobShape,
   isGlowing,
+  isMolten,
   mergeAll,
   paint,
   paintGroups,
@@ -20,7 +21,7 @@ import { type Spot, landmarkRadius, sampleInside, terrainSeed } from '../../sim/
 import { insetOutline } from '../../sim/coast';
 import { PALETTE } from '../../data/props';
 import { type TownLevel, townIslandParts } from './towns';
-import { designOf, questTagIds } from '../../data/islands';
+import { designOf, designQuestIds } from '../../data/islands';
 
 /**
  * B2 "Bright highlands" islands (decision 0012), ported from the reference builder in
@@ -538,6 +539,8 @@ export function terrainProps(feature: TerrainDef, seed: number): Parts {
 export class HighlandIslands extends THREE.Group implements IslandModel {
   private readonly land = vertexColorMaterial();
   private readonly glass = new THREE.MeshBasicMaterial({ vertexColors: true });
+  /** Molten lava (decision 0171): glows like the windows, tinted orange by day. */
+  private readonly lava = new THREE.MeshBasicMaterial({ vertexColors: true });
   private readonly batches = new Map<string, THREE.Group>();
   private levels: Record<string, TownLevel>;
   /** Island id → spot id → building id (decisions 0126, 0128). */
@@ -555,6 +558,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     this.userData.harbours = {};
     // Keep the model-sheet/night-lighting API: every window shares this tint material.
     this.userData.windows = this.glass;
+    this.userData.lava = this.lava;
     for (const [index, island] of map.islands.entries()) {
       const group = this.buildIsland(island, index);
       this.batches.set(island.id, group);
@@ -572,7 +576,9 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
         continue;
       }
       if (feature.kind === 'sandbank') {
-        parts.push(paint(extrudeOutline(feature.outline, -0.4, 0.8), B2.sand));
+        parts.push(
+          paint(extrudeOutline(feature.outline, -0.4, 0.8), feature.look?.color ?? B2.sand),
+        );
       } else if (feature.kind === 'island') {
         for (const tier of RIDGE_TIERS) {
           const outline = tier.inset ? insetOutline(feature.outline, tier.inset) : feature.outline;
@@ -602,7 +608,8 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     for (const [name, selected, material] of [
       ['terrain', parts.filter((g) => g.userData.islandTerrain), this.land],
       ['town', parts.filter((g) => !g.userData.islandTerrain && !isGlowing(g)), this.land],
-      ['windows', parts.filter(isGlowing), this.glass],
+      ['windows', parts.filter((g) => isGlowing(g) && !isMolten(g)), this.glass],
+      ['lava', parts.filter(isMolten), this.lava],
     ] as const) {
       if (!selected.length) continue;
       const mesh = this.mesh(selected, material);
@@ -676,7 +683,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     this.questsDone = new Set(done);
     for (const [index, island] of this.map.islands.entries()) {
       const design = designOf(island);
-      const quests = new Set(design?.props.flatMap(questTagIds));
+      const quests = new Set(design ? designQuestIds(design) : []);
       if (![...quests].some((q) => previous.has(q) !== done.has(q))) continue;
       this.rebuild(island, index);
     }
@@ -703,6 +710,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     disposeGeometry(this);
     this.land.dispose();
     this.glass.dispose();
+    this.lava.dispose();
     this.clear();
     this.batches.clear();
   }
