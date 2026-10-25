@@ -1,4 +1,5 @@
 import { STYLES } from '../data/grounds';
+import characterData from '../data/characters.json';
 import { bergsTuning } from '../sim/bergs';
 import { GOODS, GOOD_DEFS, GOOD_ICONS, type GoodId, isGood } from '../sim/goods';
 import { type LandmarkKind, type MapDef, type PortDef, SEA_MARK_TYPES } from '../sim/map';
@@ -467,6 +468,19 @@ export function renderPanel(root: HTMLElement, host: PanelHost) {
       if (v.length) port.builds = v;
       else delete port.builds;
     });
+    // The person on its harbour screen (decision 0211): an outpost's settler, nobody at Skerry.
+    select(
+      'Keeper',
+      port.keeper ?? '',
+      [
+        ['', '(nobody)'],
+        ...characterData.characters.map((c): [string, string] => [c.id, `${c.name} · ${c.role}`]),
+      ],
+      (v) => {
+        if (v) port.keeper = v;
+        else delete port.keeper;
+      },
+    );
     // An empty island until a quest's `found` reward opens it (decision 0157).
     check('Founding site', !!port.site, (v) => {
       if (v) port.site = true;

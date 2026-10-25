@@ -10,6 +10,7 @@ import {
   homesPerLevel,
   newDesign,
   newProp,
+  setHarbourView,
   setLevels,
   setPropValue,
   setSpotPair,
@@ -119,6 +120,19 @@ export type IslandStep =
       index?: number;
     }
   | { do: 'set'; name?: string; style?: IslandStyle; seed?: number }
+  /**
+   * The harbour screen's picture of its port (decision 0211): where the camera stands and looks,
+   * its heights in radius units, the port's accent colour; `null` clears one, `clear` them all.
+   */
+  | {
+      do: 'view';
+      from?: At | null;
+      look?: At | null;
+      height?: number | null;
+      lookHeight?: number | null;
+      accent?: string | null;
+      clear?: boolean;
+    }
   /** A river point's own width (decision 0176); no `width`: back to the river's. */
   | { do: 'widen'; river: number; point: number; width?: number }
   /** Changes a raised ground (or with `ramp`, a ramp): its material or height (decision 0168). */
@@ -148,6 +162,7 @@ export const STEP_KINDS = [
   'pier',
   'remove',
   'set',
+  'view',
   'widen',
   'ground',
 ] as const;
@@ -317,6 +332,17 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
       if (step.style) design.style = step.style;
       if (step.seed !== undefined) design.seed = step.seed;
       return 'set';
+    }
+    case 'view': {
+      if (step.clear) delete design.harbourView;
+      setHarbourView(design, {
+        from: step.from,
+        look: step.look,
+        height: step.height,
+        lookHeight: step.lookHeight,
+        accent: step.accent,
+      });
+      return design.harbourView ? 'harbour view set' : 'harbour view cleared';
     }
     case 'widen': {
       setRiverPointWidth(design, step.river, step.point, step.width);

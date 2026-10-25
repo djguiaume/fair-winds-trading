@@ -576,5 +576,11 @@
     "margin": 0.09,
     "spacing": 0.23,
     "clear": [[-0.65, -0.55, 0.23]]
+  },
+  "harbourView": {
+    "from": [1.8, 4.4],
+    "look": [-0.6, -0.4],
+    "height": 3,
+    "lookHeight": 0.6
   }
 }

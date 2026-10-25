@@ -327,7 +327,8 @@
       "level": 3,
       "levelProduces": {
         "3": ["spicedTea"]
-      }
+      },
+      "keeper": "juno"
     },
     {
       "id": "palm-key",
@@ -338,7 +339,8 @@
       "wants": ["timber"],
       "wantsMade": ["bread", "planks"],
       "level": 1,
-      "maxLevel": 3
+      "maxLevel": 3,
+      "keeper": "tam"
     }
   ],
   "course": [
