@@ -47,12 +47,16 @@ describe('fog of war (0156)', () => {
     expect(islandCharted(map, fresh, island('palm-key'))).toBe(false);
   });
 
-  it('names the south sea’s four areas and the north’s three (0170)', () => {
+  it('names the south sea’s four areas, the east sea’s (0173), then the north’s (0170)', () => {
     expect(chartAreaIds(map)).toEqual([
       'coral-line',
       'sugar-bar',
       'sunreach-waters',
       'palm-key-narrows',
+      'stepping-stones',
+      'fogwatch-waters',
+      'the-race',
+      'amber-reach',
       'floe-line',
       'rimewick-fjord',
       'calving-grounds',
@@ -62,6 +66,13 @@ describe('fog of war (0156)', () => {
       'sunreach-south',
       'palm-key',
       'lone-palm',
+      'fogwatch',
+      'the-giant',
+      'his-wife',
+      'amber-strand',
+      'puffin-holm',
+      'lamb-holm',
+      'broch-isle',
       'rimewick',
       'snowberry-isle',
       'whitefell',
@@ -142,7 +153,7 @@ describe('fog of war (0156)', () => {
       expect(read.save.progress?.sighted).toEqual(['lone-palm']);
     }
     const before = encodeSaveCode(serializeWorld(createWorld(map, SLOOP)), map);
-    // Seven chart areas now (the north's three, 0170): a bit more room for their flags.
+    // One flag per area and fogged island: each new sea adds a character or two (0173).
     expect(code.length - before.length).toBeLessThan(16);
   });
 

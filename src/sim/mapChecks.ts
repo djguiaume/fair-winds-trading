@@ -9,6 +9,7 @@ import { isFar, isGood } from './goods';
 import { islandCoasts, islandPoint } from './islandLayout';
 import { designOf, landmarkOf, questTagIds, runningTag } from '../data/islands';
 import { PROP_RECIPES } from '../data/props';
+import { STYLES } from '../data/grounds';
 import { hasQuestLand, standingMap } from './questLand';
 import { type IslandDef, type MapDef, type PortDef, SEA_MARK_TYPES, type TerrainDef } from './map';
 import { DEG, bearingTo, wrapAngle } from './math';
@@ -525,6 +526,9 @@ export function quickChecks(map: MapDef): MapCheck[] {
   for (const id of dupes(map.islands.map((i) => i.id))) problems.push(`two islands "${id}"`);
   for (const id of dupes(map.ports.map((p) => p.id))) problems.push(`two ports "${id}"`);
   for (const id of dupes((map.terrain ?? []).map((t) => t.id))) problems.push(`two shapes "${id}"`);
+  for (const t of map.terrain ?? [])
+    if (t.look?.style && !(t.look.style in STYLES))
+      problems.push(`${t.name ?? t.id}: unknown rock style "${t.look.style}"`);
   for (const port of map.ports) {
     if (!map.islands.some((i) => i.id === port.islandId))
       problems.push(`${port.name} sits on missing island "${port.islandId}"`);

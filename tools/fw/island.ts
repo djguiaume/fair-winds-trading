@@ -122,7 +122,11 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
     case 'lane':
     case 'path':
     case 'stairs':
-      return { do: kind, points: need(pointList(args.points), '--points "x,z x,z"') };
+      return clean({
+        do: kind,
+        points: need(pointList(args.points), '--points "x,z x,z"'),
+        width: num(args.width),
+      });
     case 'woods':
       return clean({
         do: 'woods',

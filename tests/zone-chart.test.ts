@@ -36,11 +36,17 @@ function lie(world: World, seconds: number) {
 
 describe('wind zones charted once sailed (0152)', () => {
   it('charts only the named zones', () => {
-    // The north's The Whistle and The Cold Sea (decision 0170) too.
-    expect(chartableZoneIds(map)).toEqual(
-      expect.arrayContaining(['sunreach-sound', 'the-glass', 'the-trades', 'the-whistle']),
-    );
-    expect(chartableZoneIds(map)).toHaveLength(5);
+    expect(chartableZoneIds(map)).toEqual([
+      'sunreach-sound',
+      'the-glass',
+      'the-trades',
+      'the-haar',
+      'the-grey-murk',
+      'fogwatch-voe',
+      'stormbreak',
+      'the-whistle',
+      'the-cold-sea',
+    ]);
   });
 
   it('charts the zone the first time, once', () => {

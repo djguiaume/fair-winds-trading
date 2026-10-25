@@ -1,4 +1,4 @@
-import type { GroundDef, IslandDesign, WoodsDef } from '../../data/islands';
+import { type GroundDef, type IslandDesign, LANE_WIDTH, type WoodsDef } from '../../data/islands';
 import { WOODLAND_TREES } from '../../render/models/props';
 import { GROUNDS, GROUND_IDS, groundId } from '../../data/grounds';
 import { isSloped } from '../../sim/islandLayout';
@@ -185,6 +185,12 @@ export function renderShapePanel(root: HTMLElement, host: ShapePanelHost) {
     if (lane.kind === 'path')
       number('Height', lane.y, (v) => (v === undefined ? delete lane.y : (lane.y = v)), {
         placeholder: 'follows the ground',
+      });
+    if (lane.kind !== 'stairs')
+      number('Width', lane.width, (v) => (v === undefined ? delete lane.width : (lane.width = v)), {
+        step: 0.005,
+        min: 0.01,
+        placeholder: String(LANE_WIDTH),
       });
     if (lane.kind === 'stairs') {
       number('Stands on', lane.base, (v) => (lane.base = v ?? 0));

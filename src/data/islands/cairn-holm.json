@@ -34,7 +34,7 @@
   ],
   "lanes": [],
   "piers": [],
-  "props": [{ "type": "cairn", "x": 0.05, "z": 0.05, "size": 1.1, "from": 1 }],
+  "props": [{ "type": "stone-cairn", "x": 0.05, "z": 0.05, "size": 1.1, "from": 1 }],
   "woods": {
     "tree": "woodland-snowfir",
     "tries": 0,

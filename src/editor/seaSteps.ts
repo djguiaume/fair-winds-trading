@@ -258,6 +258,15 @@ export function applySeaSteps(doc: SeaDoc, steps: readonly SeaStep[]): string[] 
     if (sel?.kind === 'island' && step.what === 'island' && typeof name === 'string')
       renameIsland(doc, sel.id, name);
     else if (name !== undefined) assign(item!, { name });
+    // A look is merged, so setting a reef's rock style keeps its landmark (null removes a key).
+    if (rest.look && typeof rest.look === 'object') {
+      const holder = item as { look?: object };
+      const look = { ...holder.look };
+      assign(look, rest.look as Record<string, unknown>);
+      if (Object.keys(look).length) holder.look = look;
+      else delete holder.look;
+      delete rest.look;
+    }
     assign(item!, rest);
     made.push(`set ${step.what} ${step.id}`);
   }
