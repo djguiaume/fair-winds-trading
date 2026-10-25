@@ -32,12 +32,15 @@
         "panRight": ["right"],
         "panUp": ["up"],
         "panDown": ["down"],
-        "zoomIn": ["rt", "rb"],
-        "zoomOut": ["lt", "lb"],
-        "fit": ["x"],
+        "zoomIn": ["rt"],
+        "zoomOut": ["lt"],
+        "fit": ["rs"],
         "close": ["b", "view"],
         "pick": ["a"],
-        "skipLesson": ["y"]
+        "skipLesson": ["y"],
+        "nextGood": ["x"],
+        "tabPrev": ["lb"],
+        "tabNext": ["rb"]
       }
     },
     "menu": {
