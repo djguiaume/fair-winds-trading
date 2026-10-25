@@ -1,7 +1,7 @@
 import { Ambience } from './ambience';
 import { THEMES, type AudioData } from './catalog';
 import { composeTune, EIGHTHS_PER_BAR } from './composer';
-import { CallClock, layerMix, type PlaceDistances, type SoundsHere } from './seaBed';
+import { CallClock, type LayerMix, layerMix, type PlaceDistances, type SoundsHere } from './seaBed';
 import { SYNTHS } from './sfx';
 import { createBand, playNote } from './synth';
 import { createRng } from '../sim/rng';
@@ -38,6 +38,8 @@ export interface DeskSea {
   /** Every call's place counts as right here (true), or none does. */
   near: boolean;
   storm: boolean;
+  /** Only these layers (waves, wind, wash, luff, rain) and no calls: one sound heard alone. */
+  only?: (keyof LayerMix)[];
 }
 
 export const DESK_SEA: DeskSea = {
@@ -136,6 +138,21 @@ export async function renderJob(data: AudioData, job: RenderJob): Promise<Float3
   return buffer.getChannelData(0);
 }
 
+/** The layers with only `state.only` left playing, when it is set. */
+function deskMix(mix: LayerMix, state: DeskSea): LayerMix {
+  const { only } = state;
+  if (!only) return mix;
+  const quiet = (k: keyof LayerMix) => (only.includes(k) ? mix[k] : 0);
+  return {
+    ...mix,
+    waves: quiet('waves'),
+    wind: quiet('wind'),
+    wash: quiet('wash'),
+    luff: quiet('luff'),
+    rain: quiet('rain'),
+  };
+}
+
 /** A sea's bed and its calls on an offline context, at `level`. */
 function renderSea(
   ctx: OfflineAudioContext,
@@ -152,9 +169,10 @@ function renderSea(
   out.connect(ctx.destination);
   const { luff, rain, wash } = data.boat;
   const ambience = new Ambience(ctx, out, luff, rain.tone, wash.tone);
-  ambience.set(layerMix(bed, data.boat, state.here), 0.01);
+  ambience.set(deskMix(layerMix(bed, data.boat, state.here), state), 0.01);
   // The calls as the game times them: the render stops every quarter second to hear them.
   const clock = new CallClock(createRng(9));
+  if (state.only) return;
   for (let t = 0.25; t < secs - 3; t += 0.25)
     void ctx.suspend(t).then(() => {
       for (const call of clock.step(0.25, sea, bed, deskPlaces(state)))

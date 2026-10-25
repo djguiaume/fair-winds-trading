@@ -63,7 +63,19 @@ export type CallPlace = {
 };
 
 /** How the sails sound luffing in irons (`ambience.ts`). */
-export const LUFF_STYLES = ['chop', 'flutter', 'slat', 'thrum', 'flog', 'billow'] as const;
+export const LUFF_STYLES = [
+  'chop',
+  'flutter',
+  'slat',
+  'thrum',
+  'flog',
+  'billow',
+  'heavy',
+  'whump',
+  'gusty',
+  'taut',
+  'deep',
+] as const;
 export type LuffStyle = (typeof LUFF_STYLES)[number];
 
 /** The boat's own sounds, wherever she sails: her wash, sails luffing in irons, rain on deck. */

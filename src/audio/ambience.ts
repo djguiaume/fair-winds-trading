@@ -16,6 +16,11 @@ const LUFF_TRIM: Record<LuffStyle, number> = {
   thrum: 0.84,
   flog: 0.6,
   billow: 1.12,
+  heavy: 2.6,
+  whump: 5,
+  gusty: 4.1,
+  taut: 6,
+  deep: 1,
 };
 
 export class Ambience {
@@ -209,6 +214,91 @@ export class Ambience {
           .connect(out);
         return [sweep, o];
       }
+      case 'heavy': {
+        // Heavy canvas slatting: like `slat`, slower and duller, deep wobbles so it nearly stops
+        // between flaps.
+        const os = [0.22, 0.37, 0.59].map((k) => osc(rate * k));
+        air
+          .connect(this.filter('lowpass', tone * 0.45, 0.9))
+          .connect(this.filter('lowpass', tone * 0.6, 0.7))
+          .connect(
+            moved(
+              0.4,
+              os.map((o) => [o, 0.3] as [OscillatorNode, number]),
+            ),
+          )
+          .connect(out);
+        return os;
+      }
+      case 'whump': {
+        // Each flap a low "whump" of heavy cloth filling: soft pulses of dull noise, their timing
+        // pushed and pulled by a slow wobble so no two are evenly spaced.
+        const [pulses, drift] = this.pulses(rate * 0.3, 6, 0.4);
+        const g = ctx.createGain();
+        g.gain.value = 0;
+        pulses.connect(g.gain);
+        air
+          .connect(this.filter('lowpass', tone * 0.4, 1))
+          .connect(g)
+          .connect(out);
+        return [pulses, drift];
+      }
+      case 'gusty': {
+        // Slatting in bursts: heavy flaps that come in runs with the gusts, then ease off.
+        const os = [0.33, 0.5].map((k) => osc(rate * k));
+        const gust = osc(0.21);
+        const flaps = moved(
+          0.35,
+          os.map((o) => [o, 0.3] as [OscillatorNode, number]),
+        );
+        const burst = moved(0.55, [[gust, 0.45]]);
+        air
+          .connect(this.filter('lowpass', tone * 0.5, 1))
+          .connect(flaps)
+          .connect(burst)
+          .connect(out);
+        return [...os, gust];
+      }
+      case 'taut': {
+        // Heavy flaps that end taut: a dull whump, and at its top a short dry crack as the cloth
+        // pulls tight (a band of noise gated by the same pulses, narrower).
+        const [pulses, drift] = this.pulses(rate * 0.3, 14, 0.4);
+        const body = ctx.createGain();
+        body.gain.value = 0;
+        pulses.connect(body.gain);
+        air
+          .connect(this.filter('lowpass', tone * 0.45, 1))
+          .connect(body)
+          .connect(out);
+        const crack = ctx.createGain();
+        crack.gain.value = 0;
+        const sharp = ctx.createGain();
+        sharp.gain.value = 0.35;
+        pulses.connect(sharp).connect(crack.gain);
+        air
+          .connect(this.filter('bandpass', tone * 1.7, 1.4))
+          .connect(crack)
+          .connect(out);
+        return [pulses, drift];
+      }
+      case 'deep': {
+        // A big mainsail: the flap's weight low down (warmed so phones play it) under the
+        // canvas's mid-range body, both slatting together unevenly.
+        const os = [0.27, 0.43].map((k) => osc(rate * k));
+        const flap = moved(
+          0.4,
+          os.map((o) => [o, 0.3] as [OscillatorNode, number]),
+        );
+        const low = this.filter('lowpass', 220, 1.2);
+        const shaper = ctx.createWaveShaper();
+        shaper.curve = new Float32Array(257).map((_, i) => Math.tanh(((i - 128) / 128) * 3));
+        const lowLevel = ctx.createGain();
+        lowLevel.gain.value = 1.4;
+        air.connect(low).connect(lowLevel).connect(shaper).connect(flap);
+        air.connect(this.filter('bandpass', tone * 0.8, 0.9)).connect(flap);
+        flap.connect(out);
+        return os;
+      }
       default: {
         // Chop: a band of noise chopped by a fast square wave.
         const o = osc(rate, 'square');
@@ -219,6 +309,24 @@ export class Ambience {
         return [o];
       }
     }
+  }
+
+  /**
+   * A train of soft pulses (0 to about 1) at about `hz`, `harmonics` sharp (more is a shorter
+   * pulse), its timing drifting by `drift` of `hz` with a slow wobble; the two oscillators.
+   */
+  private pulses(hz: number, harmonics: number, drift: number): [OscillatorNode, OscillatorNode] {
+    const { ctx } = this;
+    const real = new Float32Array(harmonics + 1).map((_, k) => (k ? 1 - k / (harmonics + 1) : 0));
+    const p = ctx.createOscillator();
+    p.setPeriodicWave(ctx.createPeriodicWave(real, new Float32Array(harmonics + 1)));
+    p.frequency.value = hz;
+    const wobble = ctx.createOscillator();
+    wobble.frequency.value = 0.17;
+    const depth = ctx.createGain();
+    depth.gain.value = hz * drift;
+    wobble.connect(depth).connect(p.frequency);
+    return [p, wobble];
   }
 
   private source(offset: number) {
