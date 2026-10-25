@@ -170,6 +170,8 @@ Goal: growth pushes you outward into tougher navigation.
 
 **Game controller (2026-10-24, [0162](decisions/0162-game-controller-for-sailing-and-the-chart.md), [screenshots](reviews/controller/README.md)):** an Xbox or any standard pad sails the boat and works the chart (mapping in `src/data/controls.json`); menus, the harbour screen and quest cards follow with focus navigation.
 
+**Idea for later: event panel for big events (Guillaume 2026-10-25, [0174](decisions/0174-event-panel-for-big-story-events.md), proposed, not built yet):** an eruption, Cinder Isle rising or the ice opening shows a quest-style panel in the middle of the screen, an animation on top in the quest UI and NPC art style and the text at the bottom. The animation is the real game staged and captured with the shots tool into a short looping clip per event, kept as data and captured again when the look changes; the panel is a quest step type; only a few major events. Mockups first when it is picked up.
+
 - Larger, explorable map with fog of war; discover new islands and settlements.
 - Regional wind patterns: trade-wind belts, doldrums with almost no wind, variable stormy zones, seasonal shifts.
 - Currents, reefs and shallows that block bigger ships.

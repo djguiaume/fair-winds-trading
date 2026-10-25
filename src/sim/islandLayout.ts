@@ -50,7 +50,7 @@ function createIslandLayout(design: IslandDesign, town: number): IslandLayout {
         // Explicit sandy shores: building height checks use the very same inset as the model.
         outline:
           g.coast !== undefined
-            ? insetOutline(design.coasts[g.coast]!, beachWidth(design.style))
+            ? insetOutline(design.coasts[g.coast]!, g.beach ?? beachWidth(design.style))
             : g.outline!,
         holes: g.holes,
         height: g.height,

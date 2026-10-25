@@ -1,7 +1,7 @@
 import { type GroundDef, type IslandDesign, LANE_WIDTH, type WoodsDef } from '../../data/islands';
 import { WOODLAND_TREES } from '../../render/models/props';
 import { GROUNDS, GROUND_IDS, groundId } from '../../data/grounds';
-import { isSloped } from '../../sim/islandLayout';
+import { BEACH, isSloped } from '../../sim/islandLayout';
 import { LEVEL_NAMES, LEVELS, type Level, propName } from './doc';
 import {
   RAMP_WIDTH,
@@ -231,7 +231,14 @@ export function renderShapePanel(root: HTMLElement, host: ShapePanelHost) {
     note('A peak: a cone over this outline, from its base up to its height, in its ground.');
   } else if (g.outline) {
     edges(g);
-  } else note(`Follows coast ${g.coast ?? 0} inside the beach: edit the coast to reshape it.`);
+  } else {
+    number('Beach width', g.beach, (v) => (v === undefined ? delete g.beach : (g.beach = v)), {
+      step: 0.005,
+      min: 0.01,
+      placeholder: String(BEACH),
+    });
+    note(`Follows coast ${g.coast ?? 0} inside the beach: edit the coast to reshape it.`);
+  }
   levels(g);
   if (g.outline) button(buttons(), '🗑 Delete', () => host.remove(), 'danger');
 

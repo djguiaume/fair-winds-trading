@@ -18,3 +18,7 @@ Phase 4 wave 2 starts three sea threads at once (west fire, north ice, east fog 
 - Sea threads build looks from the bible without asking Guillaume first; he sees all shots, charts and schemas before any visual merge.
 - New colours, grounds and tints are data, so the island builder, sea editor and `npm run island` / `npm run sea` gain them as each mechanism lands.
 - The bible is updated when a biome's look is approved or changed.
+
+## Update, 2026-10-25: one detail level
+
+After comparing Sunreach and Fogwatch at the same camera, Guillaume asked whether the seas had the same level of detail. A tenth rule makes the polished Sunreach the benchmark every main port is compared with: no large empty planes, banded cliffs, houses packed along lanes, lamp posts, lit windows (rule 10 in the [art bible](../art/art-bible.md)).

@@ -50,3 +50,11 @@ Pale dune sand with marram tufts, low dunes, driftwood, and bigger amber on the 
 | ![Gannet Sound, the gateway](gannet-sound-desktop.png) | ![Inside the Haar](the-haar-desktop.png) |
 
 The steps that made the sea and Fogwatch, as data: [sea-steps.json](sea-steps.json), [fogwatch-steps.json](fogwatch-steps.json).
+
+## Detail pass (0175)
+
+After the Art director's side-by-side with Sunreach ([decision 0175](../../decisions/0175-fogwatch-detail-pass-beach-width-heather-peat-and-rowans.md)): a narrow dark shingle shore, banded basalt cliffs, the town packed along its lanes with kale yards, rowans, lamps and boats pulled up, and heather, peat stacks, walls and sheep over the fells. Same cameras as the Art director's comparison (`--look 730,10 --zoom 2.2`, `--look 705,10 --zoom 1.4`).
+
+![Overview](detail-over-desktop.png)
+![The town](detail-town-desktop.png)
+![The town at night](detail-night-desktop.png)

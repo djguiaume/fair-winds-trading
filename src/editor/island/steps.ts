@@ -107,7 +107,15 @@ export type IslandStep =
     }
   | { do: 'set'; name?: string; style?: IslandStyle; seed?: number }
   /** Changes a raised ground (or with `ramp`, a ramp): its material or height (decision 0168). */
-  | { do: 'ground'; index: number; ramp?: boolean; material?: string; height?: number };
+  | {
+      do: 'ground';
+      index: number;
+      ramp?: boolean;
+      material?: string;
+      height?: number;
+      /** A coast ground's beach width (decision 0175). */
+      beach?: number;
+    };
 
 export const STEP_KINDS = [
   'islet',
@@ -285,6 +293,7 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
       if (!g) throw new Error(`no ${what} ${step.index}`);
       if (step.material) g.material = step.material;
       if (step.height !== undefined && 'height' in g) g.height = pos(step.height);
+      if (step.beach !== undefined && 'coast' in g) g.beach = pos(step.beach);
       return `${what} ${step.index}`;
     }
     default:
