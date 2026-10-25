@@ -106,7 +106,13 @@ export class LiveSea {
 export type RenderJob =
   | { kind: 'effect'; id: string; pitch?: number; secs?: number }
   | { kind: 'sea'; sea: string; secs: number; state?: DeskSea }
-  | { kind: 'music'; track: string; secs: number; seed?: number };
+  | { kind: 'music'; track: string; secs: number; seed?: number }
+  /** A sea with its theme over it, at the game's default volumes: what a player hears. */
+  | { kind: 'mix'; sea: string; secs: number; state?: DeskSea; seed?: number };
+
+/** The Settings defaults (`settings.ts`): Sounds 70 %, Music 60 %, squared as the game does. */
+const DEFAULT_SOUNDS = 0.7 * 0.7;
+const DEFAULT_MUSIC = 0.6 * 0.6;
 
 const RATE = 44100;
 
@@ -118,40 +124,66 @@ export async function renderJob(data: AudioData, job: RenderJob): Promise<Float3
     if (!playEffect(ctx, ctx.destination, data, job.id, 1, job.pitch ?? 1))
       throw new Error(`no synthesised effect "${job.id}"`);
   } else if (job.kind === 'sea') {
-    const bed = data.seas[job.sea];
-    if (!bed) throw new Error(`no sea bed "${job.sea}"`);
-    const state = job.state ?? DESK_SEA;
-    const out = ctx.createGain();
-    out.gain.value = FULL;
-    out.connect(ctx.destination);
-    const { luff, rain, wash } = data.boat;
-    const ambience = new Ambience(ctx, out, luff.tone, luff.rate, rain.tone, wash.tone);
-    ambience.set(layerMix(bed, data.boat, state.here), 0.01);
-    // The calls as the game times them: the render stops every quarter second to hear them.
-    const clock = new CallClock(createRng(9));
-    for (let t = 0.25; t < secs - 3; t += 0.25)
-      void ctx.suspend(t).then(() => {
-        for (const call of clock.step(0.25, job.sea, bed, deskPlaces(state)))
-          playEffect(ctx, out, data, call.effect, call.level);
-        void ctx.resume();
-      });
+    renderSea(ctx, data, job.sea, job.state ?? DESK_SEA, secs, FULL);
+  } else if (job.kind === 'music') {
+    renderMusic(ctx, data, job.track, secs, job.seed ?? 1, FULL * DEFAULT_MUSIC);
   } else {
-    const track = data.music[job.track];
-    const theme = track && 'theme' in track ? THEMES[track.theme] : undefined;
-    if (!theme) throw new Error(`no theme for music "${job.track}"`);
-    const band = createBand(ctx, ctx.destination, theme.echo);
-    band.out.gain.value = FULL * 0.6 * 0.6 * (track?.volume ?? 1);
-    let seed = job.seed ?? 1;
-    for (let at = 0.3; at < secs;) {
-      const tune = composeTune(seed++, theme);
-      for (const note of tune.notes)
-        if (at + note.at * tune.eighth < secs)
-          playNote(band, note, at + note.at * tune.eighth, note.len * tune.eighth);
-      at += Math.max(EIGHTHS_PER_BAR, tune.length) * tune.eighth;
-    }
+    const track = data.seas[job.sea]?.music ?? 'sea';
+    renderSea(ctx, data, job.sea, job.state ?? DESK_SEA, secs, FULL * DEFAULT_SOUNDS);
+    renderMusic(ctx, data, track, secs, job.seed ?? 1, FULL * DEFAULT_MUSIC);
   }
   const buffer = await ctx.startRendering();
   return buffer.getChannelData(0);
+}
+
+/** A sea's bed and its calls on an offline context, at `level`. */
+function renderSea(
+  ctx: OfflineAudioContext,
+  data: AudioData,
+  sea: string,
+  state: DeskSea,
+  secs: number,
+  level: number,
+) {
+  const bed = data.seas[sea];
+  if (!bed) throw new Error(`no sea bed "${sea}"`);
+  const out = ctx.createGain();
+  out.gain.value = level;
+  out.connect(ctx.destination);
+  const { luff, rain, wash } = data.boat;
+  const ambience = new Ambience(ctx, out, luff.tone, luff.rate, rain.tone, wash.tone);
+  ambience.set(layerMix(bed, data.boat, state.here), 0.01);
+  // The calls as the game times them: the render stops every quarter second to hear them.
+  const clock = new CallClock(createRng(9));
+  for (let t = 0.25; t < secs - 3; t += 0.25)
+    void ctx.suspend(t).then(() => {
+      for (const call of clock.step(0.25, sea, bed, deskPlaces(state)))
+        playEffect(ctx, out, data, call.effect, call.level);
+      void ctx.resume();
+    });
+}
+
+/** A music track's tunes on an offline context, at `level` before the track's own volume. */
+function renderMusic(
+  ctx: OfflineAudioContext,
+  data: AudioData,
+  id: string,
+  secs: number,
+  seed: number,
+  level: number,
+) {
+  const track = data.music[id];
+  const theme = track && 'theme' in track ? THEMES[track.theme] : undefined;
+  if (!theme) throw new Error(`no theme for music "${id}"`);
+  const band = createBand(ctx, ctx.destination, theme.echo);
+  band.out.gain.value = level * (track?.volume ?? 1);
+  for (let at = 0.3; at < secs;) {
+    const tune = composeTune(seed++, theme);
+    for (const note of tune.notes)
+      if (at + note.at * tune.eighth < secs)
+        playNote(band, note, at + note.at * tune.eighth, note.len * tune.eighth);
+    at += Math.max(EIGHTHS_PER_BAR, tune.length) * tune.eighth;
+  }
 }
 
 /** 16-bit mono WAV of samples at the desk's rate. */

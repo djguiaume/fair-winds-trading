@@ -13,6 +13,7 @@ const HELP = `npm run sound -- <what> [options]
   effect <id> [--pitch 1.2]    one effect (also: bell <port|island>, the dock bell at its pitch)
   sea <id> [--secs 30]         a sea's bed: --wind 12 --speed 5 --luff --rain 0.8 --storm --docked
                                --far (no call's place is near: only the calls heard anywhere)
+  mix <sea> [--secs 40]        a sea with its theme over it, at the default Sounds and Music volumes
   music <track> [--secs 60]    a music track, --seed n for another tune
   tour                         every sea (20 s), every effect and every theme (30 s): the review set
   --file audio.json            an edited sound list instead of src/data/audio.json
@@ -44,6 +45,13 @@ function plan(args, data) {
   }
   if (what === 'sea')
     return [{ name: `sea-${id}`, job: { kind: 'sea', sea: id, secs: secs(30), state } }];
+  if (what === 'mix')
+    return [
+      {
+        name: `mix-${id}`,
+        job: { kind: 'mix', sea: id, secs: secs(40), state, seed: num(args.seed, 1) },
+      },
+    ];
   if (what === 'music')
     return [
       {
