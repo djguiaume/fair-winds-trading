@@ -1384,7 +1384,8 @@ export class SeaChart {
         h = size * 1.2;
       // Slid in from the sea's rim so the chart's edge never cuts the name (Phase 4 review).
       // Out in a section past the round sea (decision 0202), only the sea's reach bounds it.
-      const R = Math.hypot(z.x, z.y) < map.boundsRadius ? map.boundsRadius : seaReach(seaShape(map));
+      const R =
+        Math.hypot(z.x, z.y) < map.boundsRadius ? map.boundsRadius : seaReach(seaShape(map));
       const rim = Math.sqrt(Math.max(0, R ** 2 - (Math.abs(z.y) + h / 2) ** 2));
       const room = rim - 6 * unit - w / 2;
       if (room < 0) continue;
