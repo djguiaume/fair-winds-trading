@@ -544,7 +544,7 @@ function regattaFiles(ids: string[], args: Args): number {
     console.log(problems.length ? problems.map((p) => `✗ ${p}`).join('\n') : 'checks ok');
     return problems.length ? 1 : 0;
   }
-  let did = '';
+  let did: string;
   if (cmd === 'set') {
     if (!id || value === undefined) {
       console.log('race set <path> <value>');
