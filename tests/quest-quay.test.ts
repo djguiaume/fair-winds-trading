@@ -133,9 +133,13 @@ describe('main quests and the Quay tab (decision 0141)', () => {
     const panel = new TradePanel(document.querySelector<HTMLElement>('#panel')!, world);
     const seen = new Set<string>();
     const act = vi.fn();
+    const spoke: (string | undefined)[] = [];
     panel.quay = {
       items: () => quayItems(book, map, world.trade.dockedAt, seen, new Set()),
-      seen: (keys) => keys.forEach((k) => seen.add(k)),
+      seen: (fresh) => {
+        fresh.forEach(({ key }) => seen.add(key));
+        spoke.push(fresh[0]!.card.giver?.voice);
+      },
       act,
     };
     panel.open('market');
@@ -143,6 +147,8 @@ describe('main quests and the Quay tab (decision 0141)', () => {
     expect(document.querySelector('#tp-quay-hint')!.textContent).toContain('Kit Marlow');
     document.querySelector<HTMLButtonElement>('#tp-quay-hint')!.click();
     expect(document.querySelectorAll('.quay-person.is-new')).toHaveLength(1);
+    // The new face speaks once, as the tab first shows them (decision 0197).
+    expect(spoke).toEqual(['kit']);
     expect(seen.has('test-pier:offer')).toBe(true);
     document.querySelector<HTMLButtonElement>('.quay-person [data-act="accept"]')!.click();
     expect(act).toHaveBeenCalledWith('test-pier', 'accept', undefined);
