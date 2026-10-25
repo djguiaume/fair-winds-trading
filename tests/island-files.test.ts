@@ -152,10 +152,10 @@ const GOLDEN: Record<string, string[]> = {
   'lamb-holm': Array(4).fill('17:5b407625'),
   'broch-isle': Array(4).fill('14:a0fc408e'),
   // The north sea's islands (decision 0170).
-  'cairn-holm': ['7:9d0087f4', '7:9d0087f4', '7:9d0087f4', '7:9d0087f4'],
-  'lead-rock': ['19:3b67111f', '19:3b67111f', '19:3b67111f', '19:3b67111f'],
-  rimewick: ['829:91952b9b', '999:58849f4c', '1042:eeb7ce0b', '1050:d10cd55a'],
-  'seal-rocks': ['19:36ac3049', '19:36ac3049', '19:36ac3049', '19:36ac3049'],
-  'snowberry-isle': ['238:c0c43b4e', '408:48e88975', '437:2d888381', '437:2d888381'],
-  whitefell: ['17:8f988367', '17:8f988367', '17:8f988367', '17:8f988367'],
+  'cairn-holm': Array(4).fill('6:cd116a0a'),
+  'lead-rock': Array(4).fill('19:6c8d9003'),
+  rimewick: ['831:53c82694', '999:4d1f4940', '1042:35f89845', '1050:9ae00bf4'],
+  'seal-rocks': Array(4).fill('19:515ad7d'),
+  'snowberry-isle': ['238:30aaab39', '408:a4f7aef7', '437:cc204c39', '437:cc204c39'],
+  whitefell: Array(4).fill('17:ef4726a9'),
 };

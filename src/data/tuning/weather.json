@@ -89,6 +89,12 @@
     "sway": 8,
     "swaySec": 160
   },
+  "ice": {
+    "floeSize": [1.5, 7.5],
+    "jitter": 0.3,
+    "bits": 0.5,
+    "bitSize": [0.5, 1.3]
+  },
   "currents": {
     "smoothRounds": 4,
     "edgeFadeUnits": 14,

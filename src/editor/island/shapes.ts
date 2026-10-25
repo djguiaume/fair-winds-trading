@@ -1,6 +1,6 @@
 import type { GroundDef, IslandDesign, LaneDef, Point, RampDef } from '../../data/islands';
 import { insetOutline } from '../../sim/coast';
-import { BEACH } from '../../sim/islandLayout';
+import { beachWidth } from '../../sim/islandLayout';
 import { createRng } from '../../sim/rng';
 import type { Level } from './doc';
 
@@ -43,7 +43,7 @@ export function pointsOf(design: IslandDesign, shape: Shape): number[][] | undef
 
 /** The outline drawn for a ground entry: its own, or its coast's inset by the beach. */
 export function groundOutline(design: IslandDesign, g: GroundDef): Point[] {
-  return g.outline ?? insetOutline(design.coasts[g.coast ?? 0]!, BEACH);
+  return g.outline ?? insetOutline(design.coasts[g.coast ?? 0]!, beachWidth(design.style));
 }
 
 export function shapeName(design: IslandDesign, shape: Shape): string {

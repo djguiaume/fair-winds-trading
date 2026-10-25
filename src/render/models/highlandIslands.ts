@@ -1,3 +1,4 @@
+import { TUNING } from '../../data/tuning';
 import * as THREE from 'three';
 import type { IslandDef, MapDef, TerrainDef } from '../../sim/map';
 import { pierAt } from '../../sim/collision';
@@ -358,6 +359,14 @@ function extrudeOutline(outline: TerrainDef['outline'], bottom: number, top: num
 const FLOE_TOPS = ['#eef4f8', '#e3ecf3', '#f6f9fb', '#dcebf2'];
 const FLOE_SIDE = '#a8dde8';
 
+/** `weather.json` › `ice`. */
+interface IceTuning {
+  floeSize: [number, number];
+  jitter: number;
+  bits: number;
+  bitSize: [number, number];
+}
+
 /**
  * A field of ice (decision 0170): a thin pale sheet over the whole outline, so nothing shows
  * through, then flat floes of several sizes laid across it, a few tilted slabs where floes press
@@ -372,17 +381,43 @@ export function iceField(feature: TerrainDef, seed: number): Parts {
     ys = feature.outline.map((p) => p[1]);
   const area = (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys));
   const floes = Math.min(140, Math.round(area / 55));
+  const tune = (TUNING.weather as unknown as { ice: IceTuning }).ice;
+  // A floe: an uneven five- to seven-sided slab, so no two read as the same hexagon.
+  const floe = (x: number, y: number, r: number, h: number, sides: number, top: string) => {
+    const turn = rng() * 6;
+    const corners = Array.from({ length: sides }, (_, k) => {
+      const a = turn + ((k + range(rng, -0.25, 0.25)) / sides) * Math.PI * 2;
+      const d = r * range(rng, 1 - tune.jitter, 1 + tune.jitter * 0.5);
+      return [x + Math.cos(a) * d, y + Math.sin(a) * d] as [number, number];
+    });
+    parts.push(paintGroups(extrudeOutline(corners, 0.2, 0.2 + h), [top, FLOE_SIDE]));
+  };
   for (let i = 0; i < floes; i++) {
-    const r = range(rng, 2, 6.5);
+    const r = range(rng, tune.floeSize[0], tune.floeSize[1]);
     const p = sampleInside(rng, feature.outline, r * 0.8, occupied);
     if (!p) continue;
-    const h = range(rng, 0.35, 0.8);
-    const floe = new THREE.CylinderGeometry(r, r * 1.05, h, 5 + (i % 3))
-      .scale(1, 1, range(rng, 0.6, 1))
-      .rotateY(rng() * 6)
-      .translate(p.x, 0.2 + h / 2, -p.y);
-    const top = FLOE_TOPS[i % FLOE_TOPS.length]!;
-    parts.push(paintGroups(floe, [FLOE_SIDE, top, FLOE_SIDE]));
+    floe(
+      p.x,
+      p.y,
+      r,
+      range(rng, 0.35, 0.8),
+      5 + Math.floor(rng() * 3),
+      FLOE_TOPS[i % FLOE_TOPS.length]!,
+    );
+  }
+  // Broken ice between the floes.
+  for (let i = 0; i < Math.round(floes * tune.bits); i++) {
+    const r = range(rng, tune.bitSize[0], tune.bitSize[1]);
+    const p = sampleInside(rng, feature.outline, r, occupied);
+    if (!p) continue;
+    floe(
+      p.x,
+      p.y,
+      r,
+      range(rng, 0.2, 0.4),
+      4 + Math.floor(rng() * 2),
+      FLOE_TOPS[(i + 1) % FLOE_TOPS.length]!,
+    );
   }
   // Pressure ridges: slabs pushed up on edge where the floes meet.
   for (let i = 0; i < Math.min(30, floes / 4); i++) {
