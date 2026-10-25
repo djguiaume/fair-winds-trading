@@ -173,6 +173,15 @@
       "side": ["#dceef4", "#c2dfea"],
       "trees": false
     },
+    "bergice": {
+      "name": "Berg ice",
+      "top": ["#eef7fa", "#e3f1f6"],
+      "side": ["#a8dde8", "#6cbcd2"],
+      "peak": ["#a8dde8", "#8fcfdf", "#6cbcd2"],
+      "cap": ["#f4fafc", "#e8f6fa", "#dceef4"],
+      "capAbove": 0.35,
+      "trees": false
+    },
     "slate": {
       "name": "Slate",
       "top": ["#6e747c", "#5b6068"],
