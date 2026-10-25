@@ -209,14 +209,17 @@ export class PadFocus {
     private readonly c: PadControls = PAD,
   ) {}
 
-  /** The pad is (or is no longer) the last input: show or hide the focus ring and hints. */
-  setUsing(using: boolean) {
+  /**
+   * The pad is (or is no longer) the last input: show or hide the focus ring and hints. `wake`:
+   * the next move or A only shows where the focus is (not on a TV, where the ring is always up).
+   */
+  setUsing(using: boolean, wake = true) {
     this.using = using;
     document.documentElement.dataset.input = using ? 'pad' : 'pointer';
     if (!using) this.showHints(false);
     else {
       this.screen = null;
-      this.waking = !!this.settle();
+      this.waking = !!this.settle() && wake;
     }
   }
 
@@ -224,10 +227,10 @@ export class PadFocus {
    * Every frame while a menu, the port screen or a card is up: the stick, a screen that just
    * opened (focus its main button), a focused control that went away when its screen redrew.
    */
-  frame(f: PadFrame, now: number) {
+  frame(f: PadFrame | null, now: number) {
     if (!this.using) return;
     const screen = this.settle();
-    if (!screen) return;
+    if (!screen || !f) return;
     const dir = this.stick.step(
       stickDirection(f.axes[this.c.menu.moveX], f.axes[this.c.menu.moveY], this.c.menu.stickPress),
       now,

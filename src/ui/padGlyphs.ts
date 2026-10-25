@@ -24,6 +24,11 @@ export function padGlyph(button: PadButton, kind: string = button): string {
   return `<i class="pad-key ${kind} pad-only" data-pad-key="${button}" aria-hidden="true">${padName(button)}</i>`;
 }
 
+/** A button's glyph in its own look: A B X Y round and coloured, the others a grey pill. */
+export function padGlyphFor(button: PadButton): string {
+  return padGlyph(button, ['a', 'b', 'x', 'y'].includes(button) ? button : 'bumper');
+}
+
 /** The pad in use is of this brand: texts and every glyph on the page take its names. */
 export function usePadBrand(brand: string, root: ParentNode = document) {
   names = brandNames(brand) ?? names;

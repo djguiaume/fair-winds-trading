@@ -7,6 +7,8 @@ import { windForecast } from '../sim/forecast';
 import { USUAL_WEATHER, windTo } from '../sim/wind';
 import { WIND_FORCES, createWindGauge, updateWindGauge } from '../sim/windStrength';
 import { windFeedback } from './windFeedback';
+import { PAD, type PadButton, type SeaAction } from '../input/gamepad';
+import { padGlyphFor } from './padGlyphs';
 import {
   type PressLevel,
   type World,
@@ -196,6 +198,7 @@ export class Hud {
     this.portLabels = new PortLabels($('port-labels'), this.world, harbours);
     this.portLabels.onPortClick = (portId) => this.onPortClick(portId);
 
+    this.seaGlyphs();
     this.dockBtn.addEventListener('click', () => {
       this.onDockClick();
     });
@@ -678,6 +681,26 @@ export class Hud {
       this.wpArrow.style.transform = `translate(${cx + dx * k}px, ${cy + dy * k}px)`;
       (this.wpArrow.firstElementChild as HTMLElement).style.transform = `rotate(${targetAngle}rad)`;
     }
+  }
+
+  /**
+   * The pad's buttons on the sea's own buttons (decision 0199), as console games show them, only
+   * while the pad is in use: A on Trade, View on Map, Menu on the menu button, the bumpers on the
+   * sail lever. From `controls.json` › `gamepad.sea`; the D-pad is left out (it is not a button
+   * a player looks for).
+   */
+  private seaGlyphs() {
+    const first = (action: SeaAction): PadButton | undefined =>
+      PAD.sea.actions[action].find((b) => !['up', 'down', 'left', 'right'].includes(b));
+    const put = (id: string, action: SeaAction, where: InsertPosition = 'afterbegin') => {
+      const button = first(action);
+      if (button) $(id).insertAdjacentHTML(where, padGlyphFor(button));
+    };
+    put('dock-btn', 'harbour');
+    put('chart-btn', 'chart');
+    put('menu-btn', 'pause', 'beforeend');
+    put('sail-full', 'sailUp', 'beforeend');
+    put('sail-none', 'sailDown', 'beforeend');
   }
 }
 

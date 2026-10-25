@@ -120,7 +120,7 @@ if (release) release.textContent = __BUILD_REVISION__;
 
 // A console's browser on a TV (decision 0183): hand the pad to the game, keep clear of the
 // screen's edges, keep Back in the game. Before any screen is built.
-startTvMode();
+const tvMode = startTvMode();
 // The first guess at the way of playing, before any input, for texts that name controls (0184).
 const firstGuess = firstWay((q) => typeof matchMedia === 'function' && matchMedia(q).matches);
 setTextVariant(firstGuess);
@@ -1040,7 +1040,8 @@ hud.onSailStep = (step) => input.setSail(step);
  * has been seen. At sea and on the chart the buttons do what `src/data/controls.json` says; the
  * rest (menus, the harbour, cards) goes to `pad.onMenuPress`.
  */
-const pad = new GamepadPoller();
+// On a TV the arrows and Enter are the pad's too (Edge's pointer mode, decision 0199).
+const pad = new GamepadPoller(undefined, undefined, undefined, tvMode);
 // The pad's own button names on glyphs and in texts: A on Xbox, ✕ on PlayStation (decision 0186).
 usePadBrand(pad.brand);
 // Buttons are read between frames too, so a quick tap is never missed (decision 0183).
@@ -1062,7 +1063,9 @@ function padContext(): PadContext {
 }
 function readPad(now: number, dt: number) {
   const frame = pad.poll(now);
-  if (!frame) return;
+  // A screen that opens while the pad is in use gets its focus even in a frame the pad sends
+  // nothing (decision 0199): on a TV the pad is "in use" before the browser shows it.
+  if (!frame) return padFocus.frame(null, now);
   const context = padContext();
   // Every frame: the stick over a menu, and a screen just opened or closed (by A or B) gets its
   // focus or loses its hints. Nothing is on top at sea or on the bare chart.
@@ -1145,6 +1148,11 @@ pad.onUsingPad((using) => {
   // The chart's map tab plays the cross: no ring left on its close button (decision 0196).
   if (using && chart.isOpen && chart.currentTab === 'map') chart.setTab('map');
 });
+// On a TV the pad is the only input from the start: the focus ring and pad texts are up at once.
+if (pad.usingPad) {
+  padFocus.setUsing(true, false);
+  way.setPad(true);
+}
 // Start in the pause menu sets sail again, as the menu's own button does.
 padFocus.onResume = () => {
   if (started && !menu.hidden) playButton.click();
