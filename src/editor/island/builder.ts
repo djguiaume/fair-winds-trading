@@ -858,6 +858,17 @@ function drawTools() {
   setTool(tool);
 }
 
+/**
+ * For `npm run shots -- --builder`: a tab and a shape picked as a click would, e.g. "lanes" and
+ * "river:0" with point 2 (decision 0167).
+ */
+export function builderSelectForShots(tab: Mode, shape?: string, point?: number) {
+  setMode(tab);
+  if (!shape) return;
+  const [kind, index] = shape.split(':');
+  selectShape({ kind, index: Number(index) } as Shape, point);
+}
+
 function selectShape(next: Shape | null, point?: number) {
   shapeSel = next ? { shape: next, point } : null;
   draw();
