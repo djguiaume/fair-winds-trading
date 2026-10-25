@@ -1,0 +1,8 @@
+{
+  "id": "lead-cairn-tumbled",
+  "name": "Tumbled cairn",
+  "extends": "lead-cairn",
+  "vars": {
+    "tumbled": 1
+  }
+}

@@ -1,3 +1,4 @@
+import { bergFields, prepareField } from './bergs';
 import { knotToUnits } from './boat';
 import { coastDistance } from './coast';
 import { piersOf, solidTo } from './collision';
@@ -6,7 +7,8 @@ import { outlineCrosses, smoothOutline } from './flowShapes';
 import { TUNING } from '../data/tuning';
 import { isFar, isGood } from './goods';
 import { islandCoasts, islandPoint } from './islandLayout';
-import { hasVolcano, landmarkOf, questTagIds, runningTag } from '../data/islands';
+import { designOf, hasVolcano, landmarkOf, questTagIds, runningTag } from '../data/islands';
+import { PROP_RECIPES } from '../data/props';
 import { STYLES } from '../data/grounds';
 import { hasQuestLand, standingMap } from './questLand';
 import { type IslandDef, type MapDef, type PortDef, SEA_MARK_TYPES, type TerrainDef } from './map';
@@ -632,30 +634,45 @@ export function quickChecks(map: MapDef): MapCheck[] {
       : fail('start', 'start position is on or too close to land'),
   );
 
-  // Harbours: the approach to every port is clear of reefs, shores and other islands.
+  // Harbours: the approach to every port is clear of reefs, shores and other islands. A port
+  // founded by a quest (a `site`) is looked at with its sea's quest land as it stands after all
+  // those quests (decision 0170: Snowberry's pack breaks up before Nell settles there).
   const blocked: string[] = [];
+  const allQuests = new Set(
+    [...map.islands, ...(map.terrain ?? [])].flatMap((f) => questTagIds(f)),
+  );
+  const afterQuests = allQuests.size ? standingMap(map, allQuests) : map;
   for (const port of map.ports) {
     const island = map.islands.find((i) => i.id === port.islandId);
     if (!island) continue;
+    const sea = port.site ? afterQuests : map;
     let ok = true;
     if (island.look?.profile) {
       for (let z = 1.5; z <= 2.0; z += 0.1) {
         const p = islandPoint(island, 0.08, z);
-        if (!clearAt(map, p.x, p.y, CUTTER.radius)) ok = false;
+        if (!clearAt(sea, p.x, p.y, CUTTER.radius)) ok = false;
       }
     } else {
+      // All round, or (an island in a ring of grounded ice, 0170) an opening of 60° or more.
+      const clear: boolean[] = [];
       for (let angle = 0; angle < 360; angle += 15) {
         const d = island.radius + 12;
-        if (
-          !clearAt(
-            map,
+        clear.push(
+          clearAt(
+            sea,
             island.x + d * Math.sin(angle * DEG),
             island.y + d * Math.cos(angle * DEG),
             CUTTER.radius,
-          )
-        )
-          ok = false;
+          ),
+        );
       }
+      const ringed = (sea.terrain ?? []).some(
+        (t) =>
+          t.kind === 'ice' &&
+          Math.hypot(t.outline[0]![0]! - island.x, t.outline[0]![1]! - island.y) <
+            island.radius * 4,
+      );
+      ok = clear.every(Boolean) || (ringed && longestRun(clear) >= 5);
     }
     if (!ok) blocked.push(port.name);
   }
@@ -682,11 +699,25 @@ export function quickChecks(map: MapDef): MapCheck[] {
 
   out.push(...flowChecks(map));
 
-  // Scenery islands are landmarks you steer by; a smoking volcano is one of its own.
-  const portIslands = new Set(map.ports.map((p) => p.islandId));
-  const plain = map.islands.filter(
-    (i) => !portIslands.has(i.id) && !landmarkOf(i) && !hasVolcano(i),
+  // Drifting bergs (decision 0170): every berg asked for fits round its field's loop.
+  const crowded = bergFields(map).flatMap((def, index) => {
+    const dropped = prepareField(def, index).dropped;
+    return dropped ? [`${def.name ?? def.id} (${dropped} of ${def.count} do not fit)`] : [];
+  });
+  out.push(
+    crowded.length
+      ? fail('bergs', `berg field too small for its bergs: ${list(crowded)}`, 'warning')
+      : pass('bergs', 'every berg field holds its bergs', 'warning'),
   );
+
+  // Scenery islands are landmarks you steer by: a lighthouse, ruins, a wreck or a beacon, or any
+  // prop of the `landmarks` group in its file (decision 0170: a cairn, a grounded berg).
+  const portIslands = new Set(map.ports.map((p) => p.islandId));
+  const steersBy = (i: IslandDef) =>
+    !!landmarkOf(i) ||
+    hasVolcano(i) ||
+    !!designOf(i)?.props.some((p) => PROP_RECIPES[p.type]?.group === 'landmarks');
+  const plain = map.islands.filter((i) => !portIslands.has(i.id) && !steersBy(i));
   out.push(
     plain.length
       ? fail(
@@ -826,8 +857,14 @@ export function routeChecks(map: MapDef): MapCheck[] {
       : []),
     ['after', 'after its quests', quests, none],
   ];
+  // A port still to be founded (a `site`, 0157) is founded by a quest, so before the quests it
+  // need not be reachable: Snowberry Isle lies behind pack ice until rimewick-jam (0170).
+  const sea = (done: ReadonlySet<string>, running: Parameters<typeof standingMap>[2]) => {
+    const standing = standingMap(map, done, running);
+    return done.size ? standing : { ...standing, ports: standing.ports.filter((p) => !p.site) };
+  };
   return states.flatMap(([id, state, done, running]) =>
-    routeChecksOn(standingMap(map, done, running)).map((c) => ({
+    routeChecksOn(sea(done, running)).map((c) => ({
       ...c,
       id: `${c.id}-${id}`,
       message: `${c.message} (land ${state})`,
@@ -973,4 +1010,15 @@ export function distanceChanges(map: MapDef, reference: MapDef, tolerance = 0.05
   return changes.length
     ? fail('distances', `${list(changes)}: check trade timings`, 'warning')
     : pass('distances', 'port distances as shipped', 'warning');
+}
+
+/** The longest run of `true` round a ring of values. */
+function longestRun(ring: readonly boolean[]): number {
+  let best = 0;
+  let run = 0;
+  for (let i = 0; i < ring.length * 2; i++) {
+    run = ring[i % ring.length] ? run + 1 : 0;
+    best = Math.max(best, Math.min(run, ring.length));
+  }
+  return best;
 }

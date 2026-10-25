@@ -1,3 +1,4 @@
+import { bergsAt } from './bergs';
 import { type FogEvent, stepFog } from './fog';
 import { TUNING } from '../data/tuning';
 import {
@@ -96,6 +97,8 @@ export interface World {
   currents: CurrentField;
   /** Currents on (Settings › Weather, decision 0140); off = still water everywhere. */
   currentsOn: boolean;
+  /** Drifting icebergs (decision 0170): a hazard with its own Settings switch. */
+  bergsOn: boolean;
   /** The water at the boat on the last step, knots (east, north), after the switch and level. */
   water: CurrentSample;
   /** Speed over the ground on the last step, knots: through the water, leeway and current. */
@@ -178,7 +181,7 @@ export type WorldEvent =
   /** Shallows refused her: her draft is too deep for them (decisions 0137, 0152). */
   | { type: 'too-shallow' }
   | { type: 'reef-strike'; damage: number }
-  | { type: 'crash'; damage: number; surface: 'shore' | 'pier' | 'boat' }
+  | { type: 'crash'; damage: number; surface: 'shore' | 'ice' | 'pier' | 'boat' }
   | { type: 'waypoint'; label: string; seconds: number; next: string }
   | { type: 'storm-near'; bearing: number }
   /** She came within warning range of a storm belt (decision 0167): squalls or a lull now. */
@@ -233,6 +236,7 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     shallow: 0,
     currents: new CurrentField(map),
     currentsOn: true,
+    bergsOn: true,
     water: { east: 0, north: 0, id: '' },
     sogKn: 0,
     windOffsetDeg: 0,
@@ -703,6 +707,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
     world.land.terrain,
     world.piers,
     world.ship.draft,
+    world.bergsOn ? bergsAt(world.map, world.time, { ...world.boat, range: 40 }) : [],
   );
   // Report a new hit, not every frame spent grinding along a shore.
   if (surface && world.boat.sinceBump === 0 && sinceBump > 0.5) {
@@ -716,7 +721,10 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
     );
     if (surface === 'shallows') events.push({ type: 'too-shallow' });
     else if (damage >= 1 && surface === 'reef') events.push({ type: 'reef-strike', damage });
-    else if (damage >= 1 && (surface === 'shore' || surface === 'pier' || surface === 'boat'))
+    else if (
+      damage >= 1 &&
+      (surface === 'shore' || surface === 'ice' || surface === 'pier' || surface === 'boat')
+    )
       events.push({ type: 'crash', damage, surface });
     else events.push({ type: 'bump' });
   }

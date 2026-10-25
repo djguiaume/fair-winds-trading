@@ -6,10 +6,12 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { Window } from 'happy-dom';
 import { type Layers, drawChart } from '../../src/editor/chart';
+import { landStyles } from '../../src/ui/chartMarks';
 import { zoneKindName, zoneTint } from '../../src/editor/flowChart';
 import { isBeltKind } from '../../src/sim/stormBelt';
 import { PHASE1_SOURCE } from '../../src/data/maps';
 import { loadSea } from './seas';
+import { ISLAND_DESIGNS } from '../../src/data/islands';
 import type { MapDef } from '../../src/sim/map';
 import { harbourApproach, sailRoute } from '../../src/sim/mapChecks';
 import { seaMarkShape } from '../../src/ui/chartMarks';
@@ -455,9 +457,26 @@ function legendEntries(
   const stroke = (cls: string) => (g: Element, make: Make) =>
     make('line', { x1: 0, y1: 7, x2: 24, y2: 7, class: cls }, g);
   const out: Entry[] = [{ text: 'island', swatch: box('c-land') }];
+  // Islands whose style swaps their grounds (an ice island's snow), one entry per look.
+  const looks = new Set<string>();
+  for (const island of map.islands) {
+    const land = landStyles(island.look?.design)[1].style;
+    if (land && !looks.has(land)) {
+      looks.add(land);
+      const style = island.look?.design && ISLAND_DESIGNS[island.look.design]?.style;
+      out.push({ text: `island, ${style} style`, swatch: box('c-land', { style: land }) });
+    }
+  }
   const kinds = new Set((map.terrain ?? []).map((t) => t.kind));
   if (kinds.has('reef')) out.push({ text: 'reef', swatch: box('c-reef') });
   if (kinds.has('sandbank')) out.push({ text: 'sandbank', swatch: box('c-bank') });
+  if (kinds.has('ice')) out.push({ text: 'ice: pack ice, grounded floes', swatch: box('c-ice') });
+  if (kinds.has('bergs')) out.push({ text: 'drifting icebergs', swatch: box('c-bergs') });
+  if (kinds.has('bergs') && layers.flow)
+    out.push({
+      text: 'iceberg now, the loops they drift round and the band they sway across',
+      swatch: stroke('c-berg-track'),
+    });
   if (kinds.has('shallows'))
     out.push({ text: 'shallows: shallow keels only', swatch: box('c-shallows') });
   if (layers.flow) {

@@ -47,7 +47,7 @@ describe('fog of war (0156)', () => {
     expect(islandCharted(map, fresh, island('palm-key'))).toBe(false);
   });
 
-  it('names the south sea’s four areas, then the east sea’s (0173)', () => {
+  it('names the south sea’s four areas, the east sea’s (0173), then the north’s (0170)', () => {
     expect(chartAreaIds(map)).toEqual([
       'coral-line',
       'sugar-bar',
@@ -60,6 +60,9 @@ describe('fog of war (0156)', () => {
       'fogwatch-waters',
       'the-race',
       'amber-reach',
+      'floe-line',
+      'rimewick-fjord',
+      'calving-grounds',
     ]);
     expect(fogIslandIds(map)).toEqual([
       'sunreach',
@@ -77,6 +80,12 @@ describe('fog of war (0156)', () => {
       'puffin-holm',
       'lamb-holm',
       'broch-isle',
+      'rimewick',
+      'snowberry-isle',
+      'whitefell',
+      'lead-rock',
+      'cairn-holm',
+      'seal-rocks',
     ]);
   });
 
@@ -100,9 +109,9 @@ describe('fog of war (0156)', () => {
   it('charts a fogged island alone when she sails past it in uncharted water', () => {
     const world = at(-470, -665);
     world.trade.progress.areas = ['coral-line'];
-    // Outside every area (north of the ring, where no sea is drawn yet), within sight of nothing.
-    world.boat.x = -150;
-    world.boat.y = 900;
+    // Outside every area (between the west and north seas), within sight of nothing.
+    world.boat.x = -500;
+    world.boat.y = 850;
     expect(lie(world, 0.2)).toEqual([]);
     // Within sight of Lone Palm, in the Sugar Bar area: the area and the island.
     world.trade.progress.areas = [];

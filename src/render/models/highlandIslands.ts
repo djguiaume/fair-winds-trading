@@ -1,3 +1,4 @@
+import { TUNING } from '../../data/tuning';
 import * as THREE from 'three';
 import type { IslandDef, MapDef, TerrainDef } from '../../sim/map';
 import { pierAt } from '../../sim/collision';
@@ -9,6 +10,7 @@ import {
   isMolten,
   mergeAll,
   paint,
+  paintGroups,
   slab,
   vertexColorMaterial,
   windowPanes,
@@ -354,6 +356,83 @@ function extrudeOutline(outline: TerrainDef['outline'], bottom: number, top: num
   return geometry.translate(0, bottom, 0);
 }
 
+/** Floe colours: snow on top, the pale sea ice at the edges, blue where it is thick (0170). */
+const FLOE_TOPS = ['#eef4f8', '#e3ecf3', '#f6f9fb', '#dcebf2'];
+const FLOE_SIDE = '#a8dde8';
+
+/** `weather.json` › `ice`. */
+interface IceTuning {
+  floeSize: [number, number];
+  jitter: number;
+  bits: number;
+  bitSize: [number, number];
+}
+
+/**
+ * A field of ice (decision 0170): a thin pale sheet over the whole outline, so nothing shows
+ * through, then flat floes of several sizes laid across it, a few tilted slabs where floes press
+ * together, and the odd grounded berg on a big field. Low-poly and merged like the rest of the
+ * terrain, so a field is one batch whatever its size.
+ */
+export function iceField(feature: TerrainDef, seed: number): Parts {
+  const parts: Parts = [paint(extrudeOutline(feature.outline, -0.5, 0.25), '#d8ecf3')];
+  const rng = createRng(seed);
+  const occupied: Spot[] = [];
+  const xs = feature.outline.map((p) => p[0]),
+    ys = feature.outline.map((p) => p[1]);
+  const area = (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys));
+  const floes = Math.min(140, Math.round(area / 55));
+  const tune = (TUNING.weather as unknown as { ice: IceTuning }).ice;
+  // A floe: an uneven five- to seven-sided slab, so no two read as the same hexagon.
+  const floe = (x: number, y: number, r: number, h: number, sides: number, top: string) => {
+    const turn = rng() * 6;
+    const corners = Array.from({ length: sides }, (_, k) => {
+      const a = turn + ((k + range(rng, -0.25, 0.25)) / sides) * Math.PI * 2;
+      const d = r * range(rng, 1 - tune.jitter, 1 + tune.jitter * 0.5);
+      return [x + Math.cos(a) * d, y + Math.sin(a) * d] as [number, number];
+    });
+    parts.push(paintGroups(extrudeOutline(corners, 0.2, 0.2 + h), [top, FLOE_SIDE]));
+  };
+  for (let i = 0; i < floes; i++) {
+    const r = range(rng, tune.floeSize[0], tune.floeSize[1]);
+    const p = sampleInside(rng, feature.outline, r * 0.8, occupied);
+    if (!p) continue;
+    floe(
+      p.x,
+      p.y,
+      r,
+      range(rng, 0.35, 0.8),
+      5 + Math.floor(rng() * 3),
+      FLOE_TOPS[i % FLOE_TOPS.length]!,
+    );
+  }
+  // Broken ice between the floes.
+  for (let i = 0; i < Math.round(floes * tune.bits); i++) {
+    const r = range(rng, tune.bitSize[0], tune.bitSize[1]);
+    const p = sampleInside(rng, feature.outline, r, occupied);
+    if (!p) continue;
+    floe(
+      p.x,
+      p.y,
+      r,
+      range(rng, 0.2, 0.4),
+      4 + Math.floor(rng() * 2),
+      FLOE_TOPS[(i + 1) % FLOE_TOPS.length]!,
+    );
+  }
+  // Pressure ridges: slabs pushed up on edge where the floes meet.
+  for (let i = 0; i < Math.min(30, floes / 4); i++) {
+    const p = sampleInside(rng, feature.outline, 1.5, []);
+    if (!p) continue;
+    const slab = new THREE.BoxGeometry(range(rng, 2, 4), range(rng, 0.9, 1.8), 0.5)
+      .rotateZ(range(rng, -0.5, 0.5))
+      .rotateY(rng() * 6)
+      .translate(p.x, 0.7, -p.y);
+    parts.push(paint(slab, i % 2 ? '#c5e4ee' : '#eef4f8'));
+  }
+  return parts;
+}
+
 /** Detail geometry only, anchored inside the exact solid shoreline. */
 export function terrainProps(feature: TerrainDef, seed: number): Parts {
   const parts: Parts = [];
@@ -491,7 +570,13 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     for (const feature of map.terrain ?? []) {
       const parts: Parts = [];
       // Shallows are water: ShallowsWater tints them at sea (decision 0152), nothing stands there.
-      if (feature.kind === 'shallows') continue;
+      if (feature.kind === 'shallows' || feature.kind === 'bergs') continue;
+      if (feature.kind === 'ice') {
+        const group = this.batch(iceField(feature, terrainSeed(map, feature)));
+        group.name = `terrain:${feature.id}`;
+        this.add(group);
+        continue;
+      }
       if (feature.kind === 'sandbank') {
         parts.push(
           paint(extrudeOutline(feature.outline, -0.4, 0.8), feature.look?.color ?? B2.sand),

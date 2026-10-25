@@ -1,0 +1,25 @@
+{
+  "id": "saltmere-letter",
+  "name": "A letter for the north",
+  "start": {
+    "is": "quest-done",
+    "quest": "outpost-west"
+  },
+  "text": "quest.saltmere-letter",
+  "giver": "kit",
+  "doneSpeaker": "sigrun",
+  "port": "saltmere",
+  "offer": true,
+  "steps": [
+    {
+      "id": "chart",
+      "goal": {
+        "is": "docked",
+        "port": "rimewick"
+      },
+      "reward": {
+        "gold": 300
+      }
+    }
+  ]
+}

@@ -184,6 +184,42 @@
         "item": "pencil",
         "backdrop": "#8c8580"
       }
+    },
+    {
+      "id": "sigrun",
+      "name": "Sigrun Vale",
+      "voice": "sigrun",
+      "role": "Jam maker",
+      "port": "rimewick",
+      "look": {
+        "skin": "#f0c8a8",
+        "hair": "#c9c2b0",
+        "hairStyle": "braid",
+        "hat": "scarf",
+        "hatColor": "#a8403a",
+        "clothes": "#d9a83a",
+        "apron": "#3f6a9a",
+        "item": "ledger",
+        "backdrop": "#9fc4d6"
+      }
+    },
+    {
+      "id": "nell",
+      "name": "Nell Marlow",
+      "voice": "nell",
+      "role": "Settler",
+      "port": "rimewick",
+      "look": {
+        "skin": "#eab896",
+        "hair": "#6b4128",
+        "hairStyle": "short",
+        "hat": "cap",
+        "hatColor": "#4f7f5a",
+        "clothes": "#3f6a9a",
+        "stripes": "#f4f1e8",
+        "item": "spyglass",
+        "backdrop": "#e0602a"
+      }
     }
   ]
 }

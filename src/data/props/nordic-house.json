@@ -1,0 +1,51 @@
+{
+  "id": "nordic-house",
+  "name": "Nordic house",
+  "group": "homes",
+  "home": true,
+  "building": true,
+  "vars": {
+    "h": {
+      "range": [0.9, 1.3]
+    }
+  },
+  "parts": [
+    {
+      "box": [1.1, "h", 0.85],
+      "at": [0, "h / 2", 0],
+      "color": "walls[variant]"
+    },
+    {
+      "repeat": {
+        "x": [-0.55, 0.55]
+      },
+      "box": [0.06, "h", 0.06],
+      "at": ["x", "h / 2", 0.43],
+      "color": "cream"
+    },
+    {
+      "gable": [1.25, 1.05, 0.72],
+      "y": "h",
+      "color": "roofs[variant]"
+    },
+    {
+      "gable": [1.27, 0.55, 0.38],
+      "y": "h + 0.36",
+      "color": "#eef4f8"
+    },
+    {
+      "box": [0.16, 0.5, 0.16],
+      "at": [-0.32, "h + 0.62", -0.12],
+      "color": "chimney"
+    },
+    {
+      "box": [0.26, 0.48, 0.04],
+      "at": [0.18, 0.24, 0.44],
+      "color": "cream"
+    },
+    {
+      "windows": [1.1, 0.85, "h * 0.6", 2, 1],
+      "seed": "variant"
+    }
+  ]
+}
