@@ -83,6 +83,8 @@ describe('volcano smoke and eruptions (0178)', () => {
   const crater = { island: 'v', x: 0, y: 60, z: 0, r: 6, slope: 1.6 };
   const frame = (x: number, eruptions = true) => ({
     target: new THREE.Vector3(x, 0, 0),
+    cameraY: 500,
+    night: 0,
     eruptions,
     out: new Set<string>(),
     windX: 1,
@@ -111,6 +113,31 @@ describe('volcano smoke and eruptions (0178)', () => {
     expect((far.root.children[0] as THREE.InstancedMesh).count).toBe(0);
     v.dispose();
     far.dispose();
+    // A small vent only smokes.
+    const vent = new Volcanoes([{ ...crater, r: E.minCrater - 1 }]);
+    expect(run(vent, E.firstSec + E.everySec[1]! + 30, frame(100))).toBe(0);
+    expect((vent.root.children[0] as THREE.InstancedMesh).count).toBeGreaterThan(0);
+    vent.dispose();
+  });
+
+  it('keeps the smoke out of the camera', () => {
+    const v = new Volcanoes([crater]);
+    run(v, 20, { ...frame(50), cameraY: crater.y + 6 });
+    const puffs = v.root.children[0] as THREE.InstancedMesh;
+    const m = new THREE.Matrix4();
+    const p = new THREE.Vector3(),
+      q = new THREE.Quaternion(),
+      s = new THREE.Vector3();
+    for (let i = 0; i < puffs.count; i++) {
+      puffs.getMatrixAt(i, m);
+      m.decompose(p, q, s);
+      s.x = Math.hypot(m.elements[0]!, m.elements[1]!, m.elements[2]!);
+      if (s.x > 1e-3)
+        expect(p.y + s.x).toBeLessThanOrEqual(
+          crater.y + 6 - TUNING.weather.volcano.smoke.cameraGap + 0.01,
+        );
+    }
+    v.dispose();
   });
 
   it('plays a story eruption whatever the switch says, once in sight', () => {
@@ -121,8 +148,14 @@ describe('volcano smoke and eruptions (0178)', () => {
     run(v, 30, frame(away, false));
     expect(v.erupting()).toEqual([]);
     expect(run(v, E.rampSec + 1, frame(50, false))).toBeGreaterThan(0.9);
-    // Lava bombs fly.
-    expect((v.root.children[1] as THREE.InstancedMesh).count).toBeGreaterThan(0);
+    // Lava bombs fly, in bursts.
+    const bombs = v.root.children[1] as THREE.InstancedMesh;
+    let most = 0;
+    for (let t = 0; t < 10; t += 0.25) {
+      v.update(0.25, frame(50, false));
+      most = Math.max(most, bombs.count);
+    }
+    expect(most).toBeGreaterThanOrEqual(E.bombBurst[0]!);
     // It holds longer than an everyday one, then dies down.
     run(v, E.storyHoldSec + E.fadeSec + 1, frame(50, false));
     expect(v.erupting()).toEqual([]);

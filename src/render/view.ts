@@ -598,6 +598,8 @@ export class GameView {
     lava?.color.copy(LAVA_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
     const erupting = this.volcanoes.update(dt, {
       target: this.target,
+      cameraY: this.camera.position.y,
+      night: day.night,
       eruptions: this.eruptions,
       out: this.world.land.out,
       windX: to.x,
