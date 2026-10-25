@@ -25,9 +25,9 @@ Phase 4's north sea ([0137](0137-phase-4-biomes-and-founded-outposts.md), story 
 
 **Islands** use the `ice` style ([0168](0168-ground-materials-and-island-styles-as-data.md)), which turns grass into snow, rock into slate and sand into shingle:
 - Cliffs get a slate tier under the snow, so they read in bands.
-- The glacier is the `ice` ground.
+- The glacier is the `ice` ground: a sloped ice cap filling the gap between the two back peaks, with pale sides (a teal side read as a river, Guillaume), and a meltwater stream (a `water` river, [0176](0176-rivers-of-water-and-lava.md)) falls from it through the town, under two footbridges, into the fjord.
 - Rimewick holds bright fjord houses along three lanes, Sigrun's jam house (it steams after her arc), a red church, lamp posts, kitchen gardens, picket fences, woodsheds, sledges, snowmen, boats in the fjord, snow firs and rocks poking through the snow. It stays within the 6,000-triangle budget.
-- New props, all data: `sledge`, `snow-rock`, `picket-fence`, `woodshed`, `snow-garden`, plus the earlier north props (snow fir, snowman, iceberg, warm spring, cloudberry patch, weather station shut and rebuilt, glasshouse, jam house, Lead Rock cairn tumbled and lit).
+- New props, all data: `sledge`, `snow-rock`, `picket-fence`, `woodshed`, `snow-garden`, `footbridge`, plus the earlier north props (snow fir, snowman, iceberg, warm spring, cloudberry patch, weather station shut and rebuilt, glasshouse, jam house, Lead Rock cairn tumbled and lit).
 - A prop recipe can carry a `lamp` (`{y, color}`): any prop with one lights at night as a beacon. Lead Rock's rebuilt cairn uses it. A lamp is not inherited through `extends`.
 
 **Quests** (quest engine, [0125](0125-quest-engine.md)):

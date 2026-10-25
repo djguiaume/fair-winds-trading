@@ -170,7 +170,7 @@
     "ice": {
       "name": "Glacier ice",
       "top": ["#e8f6fa", "#d8eff5"],
-      "side": ["#a8dde8", "#6cbcd2"],
+      "side": ["#dceef4", "#c2dfea"],
       "trees": false
     },
     "slate": {
