@@ -1,6 +1,7 @@
 # Selling Fair Winds Trading on Android, iPhone and Xbox
 
 Costed plan, researched 2026-10-25 for Guillaume (decision [0204](../decisions/0204-selling-on-android-iphone-and-xbox.md), Proposed).
+**Parked (Guillaume 2026-10-25): "We are not doing it now."** Kept here for when store sales come up again.
 Fees and rules were checked on the stores' own pages where possible (sources at the end); where only
 second-hand reports exist, this says so.
 
@@ -218,9 +219,21 @@ All three stores take the payment, so no payment system of our own. Options:
 | Free download + one in-app "unlock the full voyage" | A billing plugin per store, a restore-purchases button (Apple requires it), a demo cut-off point in the story | More downloads, more work and testing |
 | Ads or subscriptions | Ad SDKs mean data collection and consent forms | Not recommended for this game |
 
-**The web version:** today the full game is free on GitHub Pages. That is Guillaume's call: keep the
-web game free (the apps are a way to support it and play offline), or turn the web build into a demo
-(for example the ring seas only) with the full voyage in the stores.
+**The web version:** today the full game is free on GitHub Pages. If it stays fully free, few
+players will pay for the app.
+
+**Recommendation (2026-10-25, Guillaume's question "what price, should the web stay free?"):**
+
+- **Price: €4.99 / $4.99 once on the phones**, no ads, no in-app purchases; €3.99 for launch week.
+  Premium indie games on phones mostly sit between $2.99 and $6.99, and the story is about 3–4 hours
+  for a real player plus open-ended trading. On Xbox, $7.99–9.99 is usual.
+- **Web: a free demo, not the whole game.** The story already has a clean cut: the four Phase 4
+  seas open after `watchman-passage` (decision 0194). The free web build would be the ring, Skerry
+  and the ring arcs; the four seas come with the app. The Xbox browser version becomes the free
+  trial there too. The storyteller checks the closing card at the cut before it is built.
+- **The repo goes private before charging**, since anyone can build the full game from public
+  code. iOS builds then move to Codemagic's free tier (500 macOS minutes a month is enough) or
+  GitHub's paid macOS minutes (about $1 a build).
 
 ## Legal and admin (France)
 
@@ -271,7 +284,7 @@ Store cuts, on each sale: Google 15%, Apple 15% (Small Business Program; EU rate
 ## Open questions for Guillaume
 
 1. Go ahead with Android + iPhone first, and send the ID@Xbox question now?
-2. Paid up front, or free with an unlock? And does the web version stay fully free?
+2. Price and web demo: recommendation above (€4.99 once; free web demo up to the four seas; repo private).
 3. Is there an iPhone or iPad to test on?
 4. Home address on the store pages, or a domiciliation address?
 5. Add an "all rights reserved" licence to the repo before selling (recommended), or make it private?

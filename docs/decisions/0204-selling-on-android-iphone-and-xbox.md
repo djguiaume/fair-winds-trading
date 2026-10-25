@@ -1,6 +1,6 @@
 # 0204. Selling on Android, iPhone and Xbox
 
-- Status: Proposed
+- Status: Proposed, parked (Guillaume 2026-10-25: "We are not doing it now")
 - Date: 2026-10-25
 
 ## Context
@@ -26,8 +26,9 @@ The full research, costs and timeline are in [docs/stores/porting-plan.md](../st
   WebView2 (the GDK has no web view). Ask ID@Xbox in writing whether such a game can still ship,
   test on Guillaume's own Xbox in Developer Mode meanwhile, and decide then. A native GDK rewrite is
   not planned. The Xbox browser keeps working (0183).
-- **Payment through the stores only**, paid up front to start (Guillaume to confirm price and
-  whether the web game stays free).
+- **Payment through the stores only**, paid up front: €4.99 / $4.99 on the phones. The web build
+  becomes a free demo that ends where the four Phase 4 seas open (after `watchman-passage`, 0194),
+  and the repo goes private before charging.
 - **No spending without Guillaume's yes**: the known fees are $25 (Google, once) and $99 a year
   (Apple); everything else has a free option.
 
