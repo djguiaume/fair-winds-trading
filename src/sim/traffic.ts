@@ -8,7 +8,7 @@ import {
   stepBoat,
   targetSpeed,
 } from './boat';
-import { type Pier, resolveCollisions } from './collision';
+import { type Pier, hullReach, resolveCollisions } from './collision';
 import { seaShape } from './seaEdge';
 import type { MapDef } from './map';
 import { createRng, range, type Rng } from './rng';
@@ -886,17 +886,6 @@ const flow = { east: 0, north: 0, id: '' };
  * The soft bump (decision 0215): a boat and the player that touch are pushed apart, the other boat
  * most, and the player loses a little way. No damage either way; the toast says "bump".
  */
-/**
- * How far a hull reaches toward a bearing: an oval, its collision radius along the keel and
- * `abeam` of it across (a round circle stood far out from her sides, Guillaume's play-test).
- */
-function hullReach(radius: number, heading: number, toward: number): number {
-  const a = radius;
-  const b = radius * tuning().abeam;
-  const off = toward - heading;
-  return (a * b) / Math.hypot(b * Math.cos(off), a * Math.sin(off));
-}
-
 /** The distance two hulls touch at, along the line between them. */
 function touchReach(
   p: { x: number; y: number; heading: number },

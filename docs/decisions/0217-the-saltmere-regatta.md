@@ -105,7 +105,8 @@ from the captain and the other boats close ahead, is kept apart from them, and a
 her and the captain. The Calda Dash finishes 38 units further south, clear of the boats waiting off
 Port Calda's dock. Every other boat (0215) now touches as an oval rather than a circle: its radius
 along the keel and `seamanship.traffic.abeam` (0.42) of it across, at `touch` 1.1. The old round
-circle stood far out from a hull's sides. Docking and mooring are held while a race runs (`world.dockHeld`): a pier touched
+circle stood far out from a hull's sides. The captain's hull meets piers and moored boats the
+same way (`hullReach` in `src/sim/collision.ts`); land still meets the round radius. Docking and mooring are held while a race runs (`world.dockHeld`): a pier touched
 mid-race is a bump and no longer opens the harbour screen and ends the race. Tapping a harbour to
 dock mid-race first asks "Leave the race?" (the game's own yes/no dialog, 0183); yes retires, then
 docks. The pars were sailed
