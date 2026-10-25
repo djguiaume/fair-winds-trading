@@ -781,10 +781,21 @@ dialog.quest-card.is-arrival::backdrop {
 }
 
 /* --- A race of the regatta (decision 0217): the result, the medal times, the record -------- */
-.race-card {
+.race-card,
+.race-ask {
   --gold-medal: #e8c46a;
   --silver-medal: #c9d3d8;
   --bronze-medal: #c98a52;
+}
+.race-ask {
+  display: inline-flex;
+  flex: none;
+}
+.race-ask .race-medal {
+  width: 22px;
+  height: 22px;
+}
+.race-card {
   margin-top: 10px;
 }
 .race-medal {

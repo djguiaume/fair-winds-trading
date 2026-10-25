@@ -62,6 +62,8 @@ export interface BoatModelOptions {
   damage?: 0 | 1 | 2 | 3;
   /** The masthead flag (decision 0217): a regatta pennant won, Kestrel's burgee; else the stock one. */
   flag?: FlagDef;
+  /** A racing number painted on the mainsail (decision 0217): Kestrel's "K 7". */
+  sailNumber?: string;
 }
 
 export type BoatModelFactory = (shipClassId: string, options?: BoatModelOptions) => BoatModel;

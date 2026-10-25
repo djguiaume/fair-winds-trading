@@ -676,6 +676,7 @@ function raceEvent(e: QuestEvent) {
     const card = raceResultCard(quests, world.map, e);
     if (card && !bench) {
       input.releaseAll();
+      hud.hideToast();
       questCard.show(card);
       music.speak(card.giver?.voice, wordCount(card.speech), card.mood);
       refreshPause();

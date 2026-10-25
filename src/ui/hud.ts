@@ -438,6 +438,12 @@ export class Hud {
     this.toastTimer = seconds;
   }
 
+  /** Clears the toast now: a card opening over it says what comes next (decision 0217). */
+  hideToast() {
+    this.toast.hidden = true;
+    this.toastTimer = 0;
+  }
+
   handleEvents(events: WorldEvent[]) {
     for (const e of events) {
       if (e.type === 'mark-reached') this.showToast(t('toast.markReached'), 2.5);

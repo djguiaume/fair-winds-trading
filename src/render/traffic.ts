@@ -198,7 +198,12 @@ export class TrafficView {
     const flag = flagById(r.flag);
     this.rival = new RefinedBoat(
       { ...rigOf(file), hull: r.hull, band: r.band },
-      { upgrades: { sails: 2, hold: 1, hull: 2 }, rigging: false, ...(flag ? { flag } : {}) },
+      {
+        upgrades: { sails: 2, hold: 1, hull: 2 },
+        rigging: false,
+        sailNumber: r.sailNumber,
+        ...(flag ? { flag } : {}),
+      },
     );
     this.root.add(this.rival.root);
     return this.rival;

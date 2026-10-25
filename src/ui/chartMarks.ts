@@ -32,15 +32,25 @@ export function seaMarkShape(
       },
     };
   // The regatta's marks (decision 0217): a yellow mark to round, an orange pin, a committee boat.
+  // A racing mark is a small yellow buoy: a can with a pointed top.
+  if (mark.type === 'race-mark')
+    return {
+      tag: 'path',
+      attrs: {
+        d: `M${mark.x - 3 * px} ${-mark.y + 3 * px}h${6 * px}l${-1 * px} ${-4 * px}l${-2 * px} ${-3 * px}l${-2 * px} ${3 * px}z`,
+        fill: '#f2c230',
+        stroke: '#22252a',
+        'stroke-width': 1.2 * px,
+      },
+    };
   if (mark.type.startsWith('race-'))
     return {
       tag: 'circle',
       attrs: {
         cx: mark.x,
         cy: -mark.y,
-        r: (mark.type === 'race-mark' ? 4 : 3) * px,
-        fill:
-          mark.type === 'race-mark' ? '#f2c230' : mark.type === 'race-pin' ? '#ef7d2a' : '#f4f1e8',
+        r: 3 * px,
+        fill: mark.type === 'race-pin' ? '#ef7d2a' : '#f4f1e8',
         stroke: '#22252a',
         'stroke-width': 1.2 * px,
       },

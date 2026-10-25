@@ -67,7 +67,9 @@ helm (0215) and standing orders (0214).
   offer shows the medal times for the captain's ship and the gold of each; the Quay lists the
   regatta book: each race of that harbour sailed before, its best and medal, Race again.
 - **Marks** are prop recipes (0135): a tall yellow racing mark, an orange pin, a white committee
-  boat with signal flags (orange start, blue finish). They are sea marks of the running race
+  boat dressed with bunting bow to masthead to stern and chunky signal flags (orange start, blue
+  finish). Each line is drawn on the water as cream dashes from its boat to its pin
+  (`SeaMarks`), riding the waves. They are sea marks of the running race
   (`race-mark`, `race-pin`, `race-committee`, `race-finish`) and chart dots.
 - **Wren's standing order** (`standing-wren`, 0214): after the three ring races are finished,
   timber, grain and stone at Saltmere, in the storyteller's words.
@@ -88,6 +90,6 @@ helm (0215) and standing orders (0214).
   replace them later.
 - In-game screenshots of a race in motion need a scene script: headless Chromium runs the game
   too slowly for the horn to go in a shot.
-- *Kestrel*'s sail number K 7 is not painted yet (no text on sails); her burgee and band carry
-  her colours. UI words not in the storyteller's file (pill lines, "Enter the race", "The regatta
+- *Kestrel*'s sail number K 7 is block strokes painted through her mainsail
+  (`BoatModelOptions.sailNumber`), a child of the sail so it fills and furls with it. UI words not in the storyteller's file (pill lines, "Enter the race", "The regatta
   book", medal names) were written to match and can be changed in the language files.

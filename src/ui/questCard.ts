@@ -48,6 +48,14 @@ function raceBlock(r: RaceCardInfo): string {
   return `<div class="race-card">${result}${best}<p class="race-label">${esc(r.label)}</p><ul class="race-times">${times}</ul></div>`;
 }
 
+/** The ask's mark: a race result's medal disc (decision 0217), else the quest pin. */
+function askMark(c: QuestCardModel): string {
+  const medal = c.race?.result?.medal;
+  return medal
+    ? `<span class="race-ask is-${['', 'bronze', 'silver', 'gold'][medal]}"><span class="race-medal" aria-hidden="true"></span></span>`
+    : '<span class="quest-pin" aria-hidden="true">!</span>';
+}
+
 const TAG_KEY = { new: 'quest.tagNew', next: 'quest.tagNext', done: 'quest.tagDone' } as const;
 
 /**
@@ -64,7 +72,7 @@ export function questCardBody(c: QuestCardModel, inline = false): string {
   ).join('');
   const ask =
     c.ask && c.kind !== 'choice'
-      ? `<div class="quest-ask">${c.good ? icon(c.good) : '<span class="quest-pin" aria-hidden="true">!</span>'}<b>${esc(c.ask)}</b>${
+      ? `<div class="quest-ask">${c.good ? icon(c.good) : askMark(c)}<b>${esc(c.ask)}</b>${
           c.progress ? ` <span class="quest-count">${esc(c.progress)}</span>` : ''
         }${c.where ? `<span class="quest-where">· ${esc(c.where)}</span>` : ''}</div>`
       : '';

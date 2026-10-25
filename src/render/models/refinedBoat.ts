@@ -407,6 +407,110 @@ function cloth(
   return f.geometry();
 }
 
+/*
+ * A racing number on a mainsail (decision 0217): block strokes in a unit cell, 0..1 across from
+ * the luff and 0..1 up, for the letters and digits a sail number uses.
+ */
+const SAIL_GLYPHS: Record<string, readonly (readonly [number, number, number, number])[]> = {
+  K: [
+    [0, 0, 0, 1],
+    [0.05, 0.45, 1, 1],
+    [0.3, 0.6, 1, 0],
+  ],
+  '0': [
+    [0, 0, 0, 1],
+    [1, 0, 1, 1],
+    [0, 1, 1, 1],
+    [0, 0, 1, 0],
+  ],
+  '1': [
+    [0.6, 0, 0.6, 1],
+    [0.2, 0.8, 0.6, 1],
+  ],
+  '2': [
+    [0, 1, 1, 1],
+    [1, 1, 1, 0.5],
+    [1, 0.5, 0, 0.5],
+    [0, 0.5, 0, 0],
+    [0, 0, 1, 0],
+  ],
+  '3': [
+    [0, 1, 1, 1],
+    [1, 1, 1, 0],
+    [0, 0, 1, 0],
+    [0.2, 0.5, 1, 0.5],
+  ],
+  '4': [
+    [0, 1, 0, 0.5],
+    [0, 0.5, 1, 0.5],
+    [0.8, 1, 0.8, 0],
+  ],
+  '5': [
+    [1, 1, 0, 1],
+    [0, 1, 0, 0.5],
+    [0, 0.5, 1, 0.5],
+    [1, 0.5, 1, 0],
+    [1, 0, 0, 0],
+  ],
+  '6': [
+    [1, 1, 0, 1],
+    [0, 1, 0, 0],
+    [0, 0, 1, 0],
+    [1, 0, 1, 0.5],
+    [1, 0.5, 0, 0.5],
+  ],
+  '7': [
+    [0, 1, 1, 1],
+    [1, 1, 0.35, 0],
+  ],
+  '8': [
+    [0, 0, 0, 1],
+    [1, 0, 1, 1],
+    [0, 1, 1, 1],
+    [0, 0, 1, 0],
+    [0, 0.5, 1, 0.5],
+  ],
+  '9': [
+    [1, 0, 1, 1],
+    [0, 1, 1, 1],
+    [0, 1, 0, 0.5],
+    [0, 0.5, 1, 0.5],
+    [1, 0, 0, 0],
+  ],
+};
+
+/**
+ * Dark block glyphs standing through the cloth at `center` (in the sail's own frame, the sail in
+ * its y-z plane), `h` tall, running from the luff toward the clew (-z). Thick enough to show on
+ * both faces, so they ride the sail as it fills, swings and furls.
+ */
+function sailNumber(text: string, center: THREE.Vector3, h: number): THREE.BufferGeometry[] {
+  const w = h * 0.6;
+  const gap = h * 0.28;
+  const stroke = h * 0.14;
+  const chars = [...text];
+  const width = chars.reduce((s, ch) => s + (ch === ' ' ? gap : w + gap), -gap);
+  const out: THREE.BufferGeometry[] = [];
+  let z0 = center.z + width / 2;
+  for (const ch of chars) {
+    if (ch === ' ') {
+      z0 -= gap;
+      continue;
+    }
+    for (const [u0, v0, u1, v1] of SAIL_GLYPHS[ch] ?? []) {
+      const a = V(center.x, center.y + (v0 - 0.5) * h, z0 - u0 * w);
+      const b = V(center.x, center.y + (v1 - 0.5) * h, z0 - u1 * w);
+      const d = b.clone().sub(a);
+      const g = new THREE.BoxGeometry(0.05, d.length() + stroke, stroke);
+      g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(V(0, 1, 0), d.normalize()));
+      g.translate((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
+      out.push(paint(g, '#22252a'));
+    }
+    z0 -= w + gap;
+  }
+  return out;
+}
+
 /** Damage on a sail (decision 0208): patched canvas, and holes in the panels at `tears`. */
 interface ClothWear {
   patched?: boolean;
@@ -661,12 +765,25 @@ export class RefinedBoat implements BoatModel {
       const sails = [
         cloth(V(0, 0, 0), clew, throat, peak, upg.sails, 0.32, BAND, 6, 6, main ? torn : patched),
       ];
+      let number: THREE.BufferGeometry | null = null;
+      if (main && options.sailNumber) {
+        // Up the sail, halfway along: the cloth's own point there (its belly at u = v = 0.5).
+        const v = 0.6;
+        const center = V(
+          -0.32 * Math.sin(Math.PI * v),
+          throat.y * 0.5 * v + peak.y * 0.5 * v,
+          clew.z * 0.5 * (1 - v) + (throat.z + peak.z) * 0.5 * v,
+        );
+        number = mergeAll(sailNumber(options.sailNumber, center, height * 0.2));
+      }
       if (topsail && upg.sails >= 3) {
         const top = V(0, height - 0.85, 0);
         sails.push(cloth(throat, peak, top, top, upg.sails, 0.13, BAND, 6, 6, patched));
         this.stats.topsail = true;
       }
       const sail = mesh(mergeAll(sails), canvas, name);
+      // The number rides the sail as a child, in plain paint: the canvas glow would grey it.
+      if (number) sail.add(mesh(number, wood, 'SailNumber'));
       pivot.add(sail);
       this.ship.add(pivot);
       this.gaffSails.push({
