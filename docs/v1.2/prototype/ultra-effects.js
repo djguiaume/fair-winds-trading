@@ -1,3 +1,5 @@
+/* global window, setTimeout */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 (async () => {
   const mode = window.__fx || 'full';
   const mod = await import('/src/render/view.ts');

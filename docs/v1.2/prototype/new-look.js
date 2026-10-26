@@ -1,3 +1,4 @@
+/* global window, setTimeout */
 (async () => {
   for (let i = 0; i < 50 && !window.__view; i++) await new Promise((r) => setTimeout(r, 100));
   const view = window.__view; const scene = view.scene;
