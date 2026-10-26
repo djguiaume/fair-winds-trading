@@ -240,8 +240,8 @@ and High do not change, so phones and the old tablet look and run as today.
 1. **Render pipeline:** neutral tone mapping; soft shadows that follow the camera on all props,
    towns and boats; ambient occlusion at half resolution; anti-aliasing at full resolution; sky
    gradient and horizon haze. No tilt-shift (the prototype showed it adds nothing at our camera).
-2. **Water:** colour that deepens with depth, softer shore foam, the sky reflected at low angles
-   (also on High if it is cheap).
+2. **Water:** softer shore foam and the sky reflected at low angles (also on High if it is cheap);
+   depth-coloured blue water comes with v1.2 (0222).
 3. **Night:** moonlight and lamp glow retuned for the new colour response; never black (art bible).
 4. **Camera:** the turnable camera below gets a lower tilt limit on Ultra, about 35° (the prototype's
    horizon view), against 50° on the other levels.
@@ -251,12 +251,26 @@ and High do not change, so phones and the old tablet look and run as today.
    against High; `?bench` on a real desktop and on the Xbox (target 60 fps at 1080p; if the Xbox
    falls short it gets High plus the water).
 
-### In v1.2, "a new look" (about 4 to 6 weeks, not in this update)
+### How to build it (from the prototype)
 
-Smooth-shaded rolling terrain with colour variation and grass tufts (rocks and cliffs stay
-faceted), new tree and house recipes grown into dense instanced woods and fuller towns, and planar
-reflections of islands and boats on Ultra. These change every island, so each is reviewed on its
-own; terrain shading gets its own ADR.
+The working recipe is in [`docs/v1.2/prototype/ultra-effects.js`](../v1.2/prototype/ultra-effects.js) (reference only):
+
+- **Where:** `src/render/view.ts` (renderer and `render()`), `src/render/quality.ts` (add `ultra` to `QUALITY` with flags such as `ambientOcclusion`, `toneMapping`, `softShadows`), `src/render/atmosphere.ts` (sun and sky), `src/render/ocean.ts` (water).
+- **Tone mapping:** `NeutralToneMapping` (value 7), exposure 1.0. `AgXToneMapping` washed the colours out; the art bible wants saturation.
+- **Shadows:** `PCFSoftShadowMap`, map 4096, `radius` 4, `bias` -0.0004, `normalBias` 0.04, shadow box ±140 following the camera target; turn `castShadow`/`receiveShadow` on for towns, props and boats (today only island ground casts).
+- **Sun:** about 55 units up and 70 out, turned about 63° from the camera direction, so the faces toward the camera are lit and shadows fall sideways (a sun behind the island darkened the whole town).
+- **Ambient occlusion:** `EffectComposer` → `RenderPass` → `GTAOPass` (radius 2.5, distanceExponent 1.5, thickness 3, scale 1.8, samples 16; half resolution in the game) → `OutputPass`. Hide water (ShaderMaterial), transparent and basic meshes from its normal pass by wrapping `_overrideVisibility`, or the water shows black bands. The composer's render must run only for the main camera.
+- **Camera:** the prototype lowered the camera to about 35° (0.62 rad) at 1.15 × distance, with fog `near = 1.5 ×` and `far = 5 ×` distance and `camera.far` 900. In the game this is the Ultra tilt limit of the turnable camera (section below).
+- **Water (v1.1 part):** Fresnel sky reflection and sun glint as in the v1.2 plan's water step, without the depth colour.
+- **Don't build:** tilt-shift (invisible at our distance). **Do retune:** night (too dark with these effects).
+- **Settings and data:** every number above in `tuning.json`, each effect a Settings switch; `npm run shots -- --quality ultra`.
+
+### In v1.2, "a new look" (not in this update)
+
+Replaced by decision [0222](../decisions/0222-a-new-look-smooth-terrain-blue-water-and-forests.md),
+from the mockup Guillaume approved: island ground rebuilt as smooth rolling terrain, shores that
+slope into the sea, depth-coloured blue water and dense forests, on every quality level (about 7 to
+9 weeks). The v1.1 water step above keeps only the sky reflection and softer foam.
 
 ## Open questions
 

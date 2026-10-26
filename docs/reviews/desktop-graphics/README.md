@@ -41,3 +41,17 @@ Single shots: [today](today.jpg), [prototype](prototype.jpg). The page script is
 | WebGPU renderer | Later, only if Ultra runs short of frame time; our shaders would need rewriting |
 | Native desktop app (Tauri, Electron) | A store decision (0204), no visual gain by itself |
 | Engine change (Unity, Godot) | No: months of rewrite, and Traffic Architect runs on WebGL 2 |
+
+## Mockup v2: the approved direction
+
+After seeing more *Traffic Architect* shots, Guillaume asked for smooth ground and real-like terrain. Mockup v2 (page script, no game code changed) rebuilt each island's ground as a smooth heightfield from its own terrain, kept the town terraces, sloped the shores into the sea, planted dense instanced woods, coloured the water from the seabed depth and added haze. Guillaume, 2026-10-26: "Yes that's exactly the direction we want." Decision [0222](../../decisions/0222-a-new-look-smooth-terrain-blue-water-and-forests.md).
+
+Today on top, mockup below:
+
+![Sunreach, wide](v2-sunreach-wide.jpg)
+
+![Sunreach town](v2-sunreach-town.jpg)
+
+![Saltmere](v2-saltmere.jpg)
+
+Mockup limits: placeholder trees, the old cliff rim shows as a speckled band at some shores, no island reflections, houses and palms unchanged, not measured for frame rate. The script is kept in the project files (`graphics-desktop/mockup-v2-terrain.js`).
