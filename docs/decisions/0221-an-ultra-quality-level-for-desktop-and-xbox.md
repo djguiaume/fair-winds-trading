@@ -28,3 +28,7 @@ A read-only study (thread "Reach Traffic Architect's graphic level", review in [
 - The style E reskin ([0220](0220-a-game-like-ui-skin-style-e.md)) mockups are shot on the Ultra look once the pipeline lands, since tone mapping shifts the 3D colours.
 - Screenshots in docs taken on High stay valid (High does not change); new review shots for desktop use Ultra.
 - Auto quality must not step a desktop down from Ultra to High for one slow frame; it uses the same step-down rule as today, measured over seconds.
+
+## Update (2026-10-26)
+
+The v1.2 part is replaced by decision [0222](0222-a-new-look-smooth-terrain-blue-water-and-forests.md) (smooth terrain, blue water and forests on every level, from the approved mockup v2). The v1.1 water step keeps only the sky reflection and softer foam; depth-coloured water moves to v1.2.

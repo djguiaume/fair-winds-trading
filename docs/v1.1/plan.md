@@ -240,8 +240,8 @@ and High do not change, so phones and the old tablet look and run as today.
 1. **Render pipeline:** neutral tone mapping; soft shadows that follow the camera on all props,
    towns and boats; ambient occlusion at half resolution; anti-aliasing at full resolution; sky
    gradient and horizon haze. No tilt-shift (the prototype showed it adds nothing at our camera).
-2. **Water:** colour that deepens with depth, softer shore foam, the sky reflected at low angles
-   (also on High if it is cheap).
+2. **Water:** softer shore foam and the sky reflected at low angles (also on High if it is cheap);
+   depth-coloured blue water comes with v1.2 (0222).
 3. **Night:** moonlight and lamp glow retuned for the new colour response; never black (art bible).
 4. **Camera:** the turnable camera below gets a lower tilt limit on Ultra, about 35° (the prototype's
    horizon view), against 50° on the other levels.
@@ -251,12 +251,12 @@ and High do not change, so phones and the old tablet look and run as today.
    against High; `?bench` on a real desktop and on the Xbox (target 60 fps at 1080p; if the Xbox
    falls short it gets High plus the water).
 
-### In v1.2, "a new look" (about 4 to 6 weeks, not in this update)
+### In v1.2, "a new look" (not in this update)
 
-Smooth-shaded rolling terrain with colour variation and grass tufts (rocks and cliffs stay
-faceted), new tree and house recipes grown into dense instanced woods and fuller towns, and planar
-reflections of islands and boats on Ultra. These change every island, so each is reviewed on its
-own; terrain shading gets its own ADR.
+Replaced by decision [0222](../decisions/0222-a-new-look-smooth-terrain-blue-water-and-forests.md),
+from the mockup Guillaume approved: island ground rebuilt as smooth rolling terrain, shores that
+slope into the sea, depth-coloured blue water and dense forests, on every quality level (about 7 to
+9 weeks). The v1.1 water step above keeps only the sky reflection and softer foam.
 
 ## Open questions
 
