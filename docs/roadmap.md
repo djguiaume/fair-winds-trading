@@ -71,6 +71,7 @@ store plan of [0204](decisions/0204-selling-on-android-iphone-and-xbox.md) comes
 - **v1.2, "a new look"** ([0222](decisions/0222-a-new-look-smooth-terrain-blue-water-and-forests.md)): the
   *Traffic Architect* look Guillaume approved, on every quality level: smooth rolling terrain from the
   same island data, shores sloping into the sea, depth-coloured blue water, dense forests, haze.
+  Build guide: [v1.2/plan.md](v1.2/plan.md).
 - **The store plan** ([0204](decisions/0204-selling-on-android-iphone-and-xbox.md)): phones first,
   Xbox after asking ID@Xbox.
 - **Polish and extras:** ship cosmetics (sail colours, flags, figureheads), achievements, a real

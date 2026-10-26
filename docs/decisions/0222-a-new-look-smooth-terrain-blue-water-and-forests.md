@@ -1,5 +1,7 @@
 # 0222. A new look: smooth terrain, blue water and forests
 
+**Build guide:** [docs/v1.2/plan.md](../v1.2/plan.md) (order, files, numbers, traps).
+
 **Status:** Accepted for direction (2026-10-26, Guillaume on mockup v2: "Yes that's exactly the direction we want"). Planned as v1.2. Each island's final look is still approved from screenshots (art director, then Guillaume).
 
 ## Context

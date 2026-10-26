@@ -251,6 +251,20 @@ and High do not change, so phones and the old tablet look and run as today.
    against High; `?bench` on a real desktop and on the Xbox (target 60 fps at 1080p; if the Xbox
    falls short it gets High plus the water).
 
+### How to build it (from the prototype)
+
+The working recipe is in [`docs/v1.2/prototype/ultra-effects.js`](../v1.2/prototype/ultra-effects.js) (reference only):
+
+- **Where:** `src/render/view.ts` (renderer and `render()`), `src/render/quality.ts` (add `ultra` to `QUALITY` with flags such as `ambientOcclusion`, `toneMapping`, `softShadows`), `src/render/atmosphere.ts` (sun and sky), `src/render/ocean.ts` (water).
+- **Tone mapping:** `NeutralToneMapping` (value 7), exposure 1.0. `AgXToneMapping` washed the colours out; the art bible wants saturation.
+- **Shadows:** `PCFSoftShadowMap`, map 4096, `radius` 4, `bias` -0.0004, `normalBias` 0.04, shadow box ±140 following the camera target; turn `castShadow`/`receiveShadow` on for towns, props and boats (today only island ground casts).
+- **Sun:** about 55 units up and 70 out, turned about 63° from the camera direction, so the faces toward the camera are lit and shadows fall sideways (a sun behind the island darkened the whole town).
+- **Ambient occlusion:** `EffectComposer` → `RenderPass` → `GTAOPass` (radius 2.5, distanceExponent 1.5, thickness 3, scale 1.8, samples 16; half resolution in the game) → `OutputPass`. Hide water (ShaderMaterial), transparent and basic meshes from its normal pass by wrapping `_overrideVisibility`, or the water shows black bands. The composer's render must run only for the main camera.
+- **Camera:** the prototype lowered the camera to about 35° (0.62 rad) at 1.15 × distance, with fog `near = 1.5 ×` and `far = 5 ×` distance and `camera.far` 900. In the game this is the Ultra tilt limit of the turnable camera (section below).
+- **Water (v1.1 part):** Fresnel sky reflection and sun glint as in the v1.2 plan's water step, without the depth colour.
+- **Don't build:** tilt-shift (invisible at our distance). **Do retune:** night (too dark with these effects).
+- **Settings and data:** every number above in `tuning.json`, each effect a Settings switch; `npm run shots -- --quality ultra`.
+
 ### In v1.2, "a new look" (not in this update)
 
 Replaced by decision [0222](../decisions/0222-a-new-look-smooth-terrain-blue-water-and-forests.md),
