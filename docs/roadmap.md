@@ -66,6 +66,10 @@ store plan of [0204](decisions/0204-selling-on-android-iphone-and-xbox.md) comes
   Saltmere with new races (some with a squall in a fixed place to sail round) and a best-times board.
   Also a game-like UI skin, style E ([0220](decisions/0220-a-game-like-ui-skin-style-e.md)): same
   screens, new materials, font and icons, so the interface no longer reads as AI-made.
+  And an **Ultra quality level** for desktop and Xbox ([0221](decisions/0221-an-ultra-quality-level-for-desktop-and-xbox.md)):
+  tone mapping, soft shadows, ambient occlusion, better water, a lower camera tilt; phones unchanged.
+- **v1.2, "a new look"** ([0221](decisions/0221-an-ultra-quality-level-for-desktop-and-xbox.md)): smooth
+  rolling terrain, new trees and houses in dense woods, island reflections on Ultra.
 - **The store plan** ([0204](decisions/0204-selling-on-android-iphone-and-xbox.md)): phones first,
   Xbox after asking ID@Xbox.
 - **Polish and extras:** ship cosmetics (sail colours, flags, figureheads), achievements, a real
