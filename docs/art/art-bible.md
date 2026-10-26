@@ -23,7 +23,7 @@ A bright, low-poly storybook sea: flat-shaded shapes in clear sunny colours, chu
 
 ## 3. Rules every visual follows
 
-1. **Flat shading, vertex colours, one lighting.** Every model is lit by the same sun and sky light and coloured per face. No image textures, no outlines, no post-processing passes. Atmosphere changes only colours and intensities ([0068](../decisions/0068-day-and-night.md)).
+1. **Flat shading, vertex colours, one lighting.** Every model is lit by the same sun and sky light and coloured per face. No image textures, no outlines, no post-processing passes (one exception: the Ultra quality level on desktop and Xbox, decision [0221](../decisions/0221-an-ultra-quality-level-for-desktop-and-xbox.md), adds tone mapping and ambient occlusion; Low, Medium and High stay without). Atmosphere changes only colours and intensities ([0068](../decisions/0068-day-and-night.md)).
 2. **Colours have names, and the names live in data.** A recipe, island or sea says `rock2` or `basalt`, never a hex value in TypeScript. New colours go into `src/data/palette.json` (decision [0093](../decisions/0093-data-driven-content-and-authoring-tools.md)).
 3. **Storybook, never grim.** Saturation stays up, shadows stay coloured (blue, not grey), darks are warm charcoal, never `#000`. A cold, foggy or volcanic biome is still a sunny game on a good day. Pure white is avoided too (`#f6f9fb` at most): it blooms on tablet screens.
 4. **Read at the game camera.** Judge everything from the sailing camera and on a phone, not from the model sheet. Silhouette first, colour second, detail last. Small props are chunky; thin details go away at Low quality.

@@ -27,6 +27,9 @@ The first update after v1.0 is **bug fixes plus new races**.
 4. **A game-like UI skin, "style E"** (below, decision
    [0220](../decisions/0220-a-game-like-ui-skin-style-e.md)), so the interface stops reading as
    AI-made. Added by Guillaume on 2026-10-26.
+5. **An Ultra quality level for desktop and Xbox** (below, decision
+   [0221](../decisions/0221-an-ultra-quality-level-for-desktop-and-xbox.md)), because players say
+   the game does not look good enough on computers. Added by Guillaume on 2026-10-26.
 
 ## Fixed storms in races
 
@@ -221,6 +224,39 @@ style D redesign (0049, 0061). Every UI screenshot in the docs goes stale and is
   it with two or three new people, like the coworker).
 - Every screen passes the pad walk and the touch and portrait checks, `?bench` is unchanged
   within noise, and Guillaume has approved the shots.
+
+## Ultra quality level for desktop and Xbox
+
+Decision [0221](../decisions/0221-an-ultra-quality-level-for-desktop-and-xbox.md). Players say the
+game does not look good enough on computers; Guillaume pointed at *Traffic Architect* as the level
+to reach, "achievable, not AAA". Study and prototype shots:
+[docs/reviews/desktop-graphics](../reviews/desktop-graphics/README.md).
+
+A fourth quality level, **Ultra**, that auto picks only on desktop GPUs and the Xbox. Low, Medium
+and High do not change, so phones and the old tablet look and run as today.
+
+### In v1.1 (about 2 weeks, one build thread)
+
+1. **Render pipeline:** neutral tone mapping; soft shadows that follow the camera on all props,
+   towns and boats; ambient occlusion at half resolution; anti-aliasing at full resolution; sky
+   gradient and horizon haze. No tilt-shift (the prototype showed it adds nothing at our camera).
+2. **Water:** colour that deepens with depth, softer shore foam, the sky reflected at low angles
+   (also on High if it is cheap).
+3. **Night:** moonlight and lamp glow retuned for the new colour response; never black (art bible).
+4. **Camera:** the turnable camera below gets a lower tilt limit on Ultra, about 35° (the prototype's
+   horizon view), against 50° on the other levels.
+5. **Data and tools:** every number in `tuning.json` / `palette.json`, on the tuning page, each effect
+   switchable in Settings; `npm run shots -- --quality ultra`.
+6. **Checks:** art director, then Guillaume, see day and night shots of every main port on Ultra
+   against High; `?bench` on a real desktop and on the Xbox (target 60 fps at 1080p; if the Xbox
+   falls short it gets High plus the water).
+
+### In v1.2, "a new look" (about 4 to 6 weeks, not in this update)
+
+Smooth-shaded rolling terrain with colour variation and grass tufts (rocks and cliffs stay
+faceted), new tree and house recipes grown into dense instanced woods and fuller towns, and planar
+reflections of islands and boats on Ultra. These change every island, so each is reviewed on its
+own; terrain shading gets its own ADR.
 
 ## Open questions
 
