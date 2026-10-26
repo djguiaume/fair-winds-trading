@@ -64,6 +64,8 @@ store plan of [0204](decisions/0204-selling-on-android-iphone-and-xbox.md) comes
 
 - **v1.1, "The Sailing Club"** ([plan](v1.1/plan.md)): bug fixes, and Wren's sailing club at
   Saltmere with new races (some with a squall in a fixed place to sail round) and a best-times board.
+  Also a game-like UI skin, style E ([0220](decisions/0220-a-game-like-ui-skin-style-e.md)): same
+  screens, new materials, font and icons, so the interface no longer reads as AI-made.
 - **The store plan** ([0204](decisions/0204-selling-on-android-iphone-and-xbox.md)): phones first,
   Xbox after asking ID@Xbox.
 - **Polish and extras:** ship cosmetics (sail colours, flags, figureheads), achievements, a real
