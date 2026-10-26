@@ -31,6 +31,12 @@ Guillaume approved that direction and asked whether it changes every quality lev
 5. **Biomes:** fire (black sand, lava, moss), ice (snow, ice shelves) and fog (turf, sea stacks) get their own ground colours and tree mixes; sea stacks, cliffs and rocks that must stay sharp stay as faceted props on top of the smooth ground.
 6. **Art bible:** rule 1's "flat shading" no longer applies to terrain and water (models, houses, boats and trees stay flat-shaded); §2's sea colour moves from turquoise to depth-coloured blue. Updated in the art bible with this ADR.
 
+7. **First step: one height field, and a split of the island builder** (about 3 to 5 days, before any look work). The code is already split where it matters (sim separate from render, decision [0005](0005-tech-stack.md); all island drawing behind one `buildIslands` switch in `src/render/models/index.ts`; designs, layouts and recipes in data shared with the editors and CLIs). Two things are not ready:
+   - `src/render/models/highlandIslands.ts` (about 800 lines) builds the stepped ground, places towns and props, and batches meshes in one place.
+   - Heights have no single source: houses stand on tier heights (`standHeight` in `towns.ts`), the sim coast is computed on its own (`sim/coast.ts`, `collision.ts`), and the water tint reads a separate shore-distance map.
+
+   So v1.2 starts with a plain `heightfield` module (no three.js, Vitest-tested) built from the island data, that the ground mesh, house and tree placement, the water's seabed depth and the coast check all read; then `highlandIslands.ts` splits into ground, town and props, and batching. The new builder runs next to the old one behind a URL switch (`?look=v2`) until every island is reviewed, so both can be compared and the old look stays as a fallback.
+
 ## Consequences
 
 - Effort about 7 to 9 weeks: terrain module and editors 2 to 3, coast alignment and checks 1, water 1, forests 1 to 2, biomes and the island-by-island review 2. The Ultra lighting of 0221 stays in v1.1; its "depth colour" water step moves here, v1.1 keeps only the sky reflection and softer foam.
