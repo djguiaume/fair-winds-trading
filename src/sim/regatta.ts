@@ -2,6 +2,7 @@ import regattaData from '../data/regatta.json';
 import flagData from '../data/flags.json';
 import { isDifficulty, type Difficulty } from './difficulty';
 import type { SeaMarkDef } from './map';
+import { type RaceStormDef, checkRaceStormDefs } from './raceStorms';
 import { SHIP_CLASSES } from './ship';
 
 /*
@@ -29,6 +30,11 @@ export interface RaceDef {
    * (`npm run race -- pars <id> --write`): the gold medal's time, the others × `medals`.
    */
   pars: Record<string, Record<string, number>>;
+  /**
+   * The race's own storms (decision 0225): the same on every run, in place of the seeded ones
+   * while it runs. The pars hold with them and without (`npm run race -- <id> --pars`).
+   */
+  storms?: RaceStormDef[];
 }
 
 export interface SeriesDef {
@@ -115,6 +121,12 @@ export function medalTimes(race: RaceDef, ship: string, difficulty: Difficulty) 
     Medal,
     number
   >;
+}
+
+/** The slowest bronze-medal time of a race over every ship class and level, or undefined unsailed. */
+export function longestPar(race: RaceDef): number | undefined {
+  const all = Object.values(race.pars).flatMap((l) => Object.values(l));
+  return all.length ? Math.max(...all) * REGATTA.medals.bronze : undefined;
 }
 
 /** The medal a finish in `sec` wins, as a number. */
@@ -270,9 +282,11 @@ export function checkRaceDef(race: unknown, at: string): string[] {
   const r = race as Record<string, unknown>;
   const out: string[] = [];
   for (const key of Object.keys(r))
-    if (!['series', 'gold', 'pars'].includes(key)) out.push(`${at}: a race has no "${key}"`);
+    if (!['series', 'gold', 'pars', 'storms'].includes(key))
+      out.push(`${at}: a race has no "${key}"`);
   if (!seriesById(r.series as string))
     out.push(`${at}.series: one of ${REGATTA.series.map((s) => s.id).join(', ')}`);
+  out.push(...checkRaceStormDefs(r.storms, `${at}.storms`));
   const gold = r.gold as Record<string, unknown> | undefined;
   if (typeof gold !== 'object' || gold === null) out.push(`${at}.gold: bronze, silver, gold`);
   else

@@ -7,6 +7,7 @@ Who decides what in a release, and how threads talk to each other. Guillaume set
 - Writes one brief per release in `docs/vX.Y/plan.md`, then creates the GitHub milestone (e.g. "v1.1 The Sailing Club") and one issue per part: goal, files to touch, "done when", effort, visual yes/no. Bug fixes can share one checklist issue; a big bug gets its own.
 - Runs at most 3 to 5 build threads at a time, one per issue, never two on the same files.
 - New bugs and ideas from playtests become short issues (label `bug` or `idea`) for the next release, unless Guillaume says fix now.
+- Keeps the release moving: when a part merges or closes, starts the next unblocked one at once, and whenever it is waiting posts Guillaume one line saying what is left and who it waits on. Never sits idle.
 - Does the release itself (version, `docs/releases/`, decision) and resolves the role threads when it ships.
 
 ## Build threads
@@ -17,6 +18,7 @@ Who decides what in a release, and how threads talk to each other. Guillaume set
 - Visual work: one combined review round, screenshots to the art director and Guillaume together.
 - Follow the quality goals in [CLAUDE.md](../CLAUDE.md) (readable, optimized, no big files, data driven, editor plus CLI) and run graphify first on any code work, big or small (not for docs and plans).
 - Merge your own PR when there are no open questions, CI is green and it is current with main. Resolve the thread when done.
+- When your PR merges or the thread closes, message the release lead directly so the next part can start.
 
 ## Storyteller
 

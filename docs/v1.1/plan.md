@@ -54,7 +54,7 @@ The first update after v1.0 is **new races, the turnable camera, Ultra quality a
 - **Story rule** (storyteller): no race text may depend on a storm. With Storms off the course
   still runs, and the lines mention "weather" or "squall" only as flavour, as Elias does with the
   Stormbreak.
-- Needs its own decision (ADR) when it is built.
+- Built in [0225](../decisions/0225-fixed-storms-in-races.md): pars are the slower with and without the storms.
 
 **When:** saved for the new v1.1 races. If Guillaume wants it in one of today's races sooner, it
 can be built then.
