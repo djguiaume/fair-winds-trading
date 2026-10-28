@@ -1,65 +1,9 @@
 /*
- * Sea HUD in the "instrument" style (decision 0049): navy glass, thin brass lines, condensed
- * capitals for numbers and labels, colour goods icons and chunky pressed buttons.
- * Loaded after hud.css, which still styles the port, chart, menus and dialogs.
+ * Sea HUD in the "instrument" style (decision 0049): flat teal plates, brass edges, condensed
+ * figures, colour goods icons and chunky pressed buttons. Fonts, colours and button kinds are in
+ * theme.css (decision 0220). Loaded after hud.css, which still styles the port, chart, menus and dialogs.
  * No backdrop blur: it is costly on old tablets (decision 0006).
  */
-
-@font-face {
-  font-family: 'Barlow Condensed';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url('./fonts/barlow-condensed-600.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Barlow Condensed';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('./fonts/barlow-condensed-700.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Barlow';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url('./fonts/barlow-500.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Barlow';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url('./fonts/barlow-600.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Barlow';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('./fonts/barlow-700.woff2') format('woff2');
-}
-
-:root {
-  --navy: rgba(9, 28, 41, 0.86);
-  --navy-solid: #123246;
-  --brass: #e8c46a;
-  --brass-line: rgba(232, 196, 106, 0.55);
-  --brass-hi: #f3d37e;
-  --brass-lo: #b08a2c;
-  --ink: #eef3f4;
-  --ink-dim: rgba(238, 243, 244, 0.72);
-  --green: #59d36b;
-  --green-ink: #8fe3a4;
-  --red: #ff6a55;
-  /* The hull at its worst (decision 0208). */
-  --red-deep: #d8402e;
-  --amber: #ffb36b;
-  --outline: #06141c;
-  --display: 'Barlow Condensed', 'Arial Narrow', 'Roboto Condensed', sans-serif;
-  --body: 'Barlow', 'Trebuchet MS', sans-serif;
-}
 
 #hud {
   --top: max(10px, var(--safe-top, env(safe-area-inset-top)));

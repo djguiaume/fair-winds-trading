@@ -114,19 +114,13 @@
 .port-screen .close-btn {
   width: 46px;
   height: 46px;
-  border: 2px solid var(--outline);
-  border-radius: 10px;
-  background: linear-gradient(#ff8a73, #ec5a43);
-  box-shadow:
-    inset 0 -3px 0 #b8261a,
-    0 3px 8px rgba(0, 0, 0, 0.35);
-  color: #fff;
+  border-radius: 50%;
   font-size: 20px;
   font-weight: 700;
 }
 .port-screen .close-btn:active {
   transform: translateY(2px);
-  box-shadow: inset 0 -1px 0 #b8261a;
+  box-shadow: inset 0 -1px 0 var(--leather-deep);
 }
 
 /* --- Tabs and lot size ------------------------------------------------------------------ */
@@ -204,23 +198,18 @@
 .port-screen .sell-all-btn,
 .port-screen .upgrade-btn,
 .port-screen .ship-btn {
-  --lo: var(--brass-lo);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   min-height: 46px;
   padding: 0 16px;
-  border: 2px solid var(--outline);
-  border-radius: 10px;
-  background: linear-gradient(var(--brass-hi), #e0b452);
+  border: 2px solid;
   box-shadow:
     inset 0 -3px 0 var(--lo),
-    0 3px 8px rgba(0, 0, 0, 0.35);
-  color: #2a1c00;
-  font: 700 17px/1 var(--display);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+    0 2px 0 rgba(58, 42, 29, 0.6);
+  font-size: 17px;
+  line-height: 1;
   white-space: nowrap;
   cursor: pointer;
   touch-action: manipulation;
@@ -230,11 +219,6 @@
   --lo: #2f9c41;
   background: linear-gradient(#7fe08c, #49c45c);
   color: #08240e;
-}
-.port-btn.red {
-  --lo: #b8261a;
-  background: linear-gradient(#ff8a73, #ec5a43);
-  color: #2b0703;
 }
 .port-btn .icon {
   width: 20px;
@@ -352,17 +336,6 @@
 }
 .good-row .sell-btn {
   grid-area: sell;
-}
-/* Beat the older .trade-act-btn colours in hud.css. */
-.port-screen .good-row .buy-btn:not(:disabled, [aria-disabled='true']) {
-  border-color: var(--outline);
-  background: linear-gradient(var(--brass-hi), #e0b452);
-  color: #2a1c00;
-}
-.port-screen .good-row .sell-btn:not(:disabled, [aria-disabled='true']) {
-  border-color: var(--outline);
-  background: linear-gradient(#7fe08c, #49c45c);
-  color: #08240e;
 }
 .port-screen .good-row .trade-act-btn {
   flex: none;
