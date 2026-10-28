@@ -340,7 +340,8 @@ export function renderShapePanel(root: HTMLElement, host: ShapePanelHost) {
     note(
       'Click the coast, raised ground, a mountain or the lake to edit it, or add one with the ' +
         'buttons. Woods: paint where trees may grow, or clear them; homes, lanes, props and ' +
-        'fields clear trees as the town grows.',
+        "fields clear trees as the town grows. The new look grows its biome's forest there " +
+        '(forests.json), thick in painted woods; Forest density thins or thickens it.',
     );
     const tree = div('Trees');
     const select = node('select', {}, tree);
@@ -355,6 +356,10 @@ export function renderShapePanel(root: HTMLElement, host: ShapePanelHost) {
     });
     number('Spacing', w.spacing, (v) => (w.spacing = v ?? w.spacing), { step: 0.01, min: 0.03 });
     number('Tree size', w.size, (v) => (w.size = v ?? w.size), { step: 0.1, min: 0.3 });
+    // The new look's forest (issue #275): its biome picks the trees, this how thick they grow.
+    const density = (v: number | undefined) =>
+      v === undefined ? delete w.density : (w.density = Math.max(0, v));
+    number('Forest density', w.density, density, { step: 0.1, min: 0, placeholder: '1' });
     const brush = node('label', { className: 'ed-row' });
     node('span', { textContent: 'Brush' }, brush);
     // The range first, then the value, or the default 0 to 100 in steps of 1 rounds it.

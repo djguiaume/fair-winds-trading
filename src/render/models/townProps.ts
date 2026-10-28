@@ -13,6 +13,8 @@ import {
 } from '../../sim/islandLayout';
 import { BEACH_TOP, ISLAND_SCALE } from '../../sim/islandUnits';
 import { createRng, range } from '../../sim/rng';
+import type { ForestClearings } from '../../sim/forest';
+import { FORESTS } from '../../data/forests';
 import { paint } from './geometry';
 import { PROP_TYPES, WOODLAND_TREES, put, type Parts } from './props';
 
@@ -75,10 +77,15 @@ export function propParts(prop: PropDef, design: IslandDesign, R: number): Parts
 export const isResidence = (prop: PropDef) =>
   !!PROP_TYPES[prop.type]?.home && !prop.tags?.includes('outbuilding');
 
+/** The classic woods' clear strip up the arrival pier, in file units. */
+const HARBOUR_LANE = { x: 0.08, half: 0.14, from: 0.45 };
+
 /**
  * A designed island's town at its level (decision 0101): lanes near standing homes, the homes,
  * the harbour (`harbour` adds it in its turn), every other prop and the woods. Props stand on
  * `stand`, the new look's ground (decision 0222); left out, on the classic tiers of the layout.
+ * With `clearings`, the new look's forest grows the trees (issue #275): this notes the ground the
+ * town keeps clear there instead of scattering the classic woods.
  */
 export function townProps(
   out: Parts,
@@ -89,6 +96,7 @@ export function townProps(
   hasHarbour: boolean,
   harbour: (out: Parts) => void,
   stand?: Stand,
+  clearings?: ForestClearings,
 ) {
   const ground = (material: string) => groundColors(material, design.style);
   const pathColor = styleColor('path', design.style) as string;
@@ -118,7 +126,14 @@ export function townProps(
   design.props.filter(isResidence).forEach((prop, i) => {
     if (!atLevel(prop, level)) return;
     const parts = propParts(prop, design, R);
-    place(prop, parts, []);
+    const half = (extent(parts) * (prop.size ?? 1)) / R;
+    const clear = place(prop, parts, []);
+    if (clearings) {
+      // A house keeps the forest 1.5 house widths off (art direction, new look §3).
+      const margin = half * (1 + 2 * FORESTS.clear.houseWidths);
+      clearings.circles.push([prop.x, prop.z, Math.max(clear, margin)]);
+      clearings.homes.push([prop.x, prop.z]);
+    }
     const bounds = new THREE.Box3();
     for (const g of parts) {
       g.computeBoundingBox();
@@ -182,6 +197,13 @@ export function townProps(
     if (prop.type === 'field') fields.push(prop);
     else occupied.push({ x: prop.x, z: prop.z, clear });
   }
+  if (clearings) {
+    const { x, half, from } = HARBOUR_LANE;
+    for (const f of fields) clearings.circles.push([f.x, f.z, 0.24]);
+    for (const o of occupied) clearings.circles.push([o.x, o.z, o.clear]);
+    if (hasHarbour) for (let z = from; z <= 1.2; z += half) clearings.circles.push([x, z, half]);
+    return;
+  }
 
   // Fixed candidate trees keep untouched woods stable; occupied land alone clears them.
   const woods = design.woods;
@@ -214,7 +236,7 @@ export function townProps(
       occupied.some((p) => Math.hypot(p.x - x, p.z - z) < p.clear) ||
       fields.some((p) => Math.abs(p.x - x) < 0.22 && Math.abs(p.z - z) < 0.22) ||
       (woods.areas?.length && !woods.areas.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r)) ||
-      (hasHarbour && Math.abs(x - 0.08) < 0.14 && z > 0.45) ||
+      (hasHarbour && Math.abs(x - HARBOUR_LANE.x) < HARBOUR_LANE.half && z > HARBOUR_LANE.from) ||
       woods.clear?.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r)
     )
       continue;

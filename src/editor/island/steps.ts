@@ -94,6 +94,8 @@ export type IslandStep =
       size?: number;
       spacing?: number;
       margin?: number;
+      /** The new look's forest: a multiplier on the biome's cover (issue #275). */
+      density?: number;
     }
   | { do: 'spot'; at: At; pair?: string; y?: number }
   | {
@@ -268,7 +270,7 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
     case 'woods': {
       const w = design.woods;
       if (step.tree) w.tree = step.tree;
-      for (const key of ['tries', 'size', 'spacing', 'margin'] as const)
+      for (const key of ['tries', 'size', 'spacing', 'margin', 'density'] as const)
         if (step[key] !== undefined) w[key] = step[key];
       if (step.at) {
         const [x, z] = step.at;
