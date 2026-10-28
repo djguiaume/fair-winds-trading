@@ -1418,6 +1418,8 @@
   "regatta.series.regatta-club": "Le Club de voile",
   "regatta.pennant.regatta-club": "le fanion du Club de voile",
   "regatta.won.regatta-club": "Huit courses, huit victoires. Le fanion du club est à vous, capitaine. Vous êtes membre à vie, et évitez de le porter à la table de Rook.",
+  "regatta.gift.regatta-club": "Il ne me reste que ça à vous donner. Elle s’appelle Tern, ma propre conception, légère et faite pour voler. Il y a de la place pour un pain et une lettre, pas beaucoup plus. Prenez-en soin, capitaine.",
+  "regatta.gift.regatta-club.toast": "Tern est à vous.",
   "club.board.title": "Tableau du club",
   "club.board.intro": "Vos temps, affichés par Wren et notés dans le livre de Rook.",
   "club.board.count": "{won} médailles sur {all}",

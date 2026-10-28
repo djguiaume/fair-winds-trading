@@ -1,6 +1,6 @@
 # 0227. The racer café at Abbey Head
 
-**Status:** Proposed (2026-10-28).
+**Status:** Accepted (2026-10-28).
 
 ## Context
 
@@ -24,6 +24,8 @@ the club needs no new port, only a place on it, a way to find it and the races' 
 - **Early gold.** The ring races pay 30 / 60 / 100 (was 60 / 120 / 200) and the three home-water club races 40 / 80 / 130 (was 80 / 160 / 260), because they open in the first minutes: racing gold per minute stays near what trading pays, so the cutter (1,500) does not arrive early. The squall races pay 120 / 240 / 400 (the sea-race rate, was 140 / 280 / 450). Pars are unchanged (stock ships, all three levels, `npm run race`). Storyteller ruling.
   first minutes: racing gold per minute stays near what trading pays, so the cutter (1,500) does
   not arrive early. Pars are unchanged (stock ships, all three levels, `npm run race`).
+
+- **The Tern (0228).** `regatta-club` has `prize: tern`; Abbey Head `builds` lists `tern-pilot` and `tern-yawl`, which the yard sells only once the club series is won. The card that wins the pennant says Wren's gift (`regatta.gift.<series>`) after the pennant line, and the news carries the toast (`.toast`).
 
 ## Consequences
 

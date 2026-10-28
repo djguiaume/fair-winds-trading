@@ -288,7 +288,7 @@
       "levelWants": { "2": ["grain"], "3": ["stone"] },
       "levelProduces": { "2": ["honey"] },
       "wantsMade": ["planks", "cutStone"],
-      "builds": ["hoy", "fluyt", "indiaman"],
+      "builds": ["hoy", "fluyt", "indiaman", "tern-pilot", "tern-yawl"],
       "hidden": true
     }
   ],

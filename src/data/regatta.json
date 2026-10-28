@@ -41,7 +41,8 @@
     {
       "id": "regatta-club",
       "name": "The Sailing Club",
-      "pennant": "pennant-club"
+      "pennant": "pennant-club",
+      "prize": "tern"
     }
   ]
 }

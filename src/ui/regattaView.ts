@@ -91,6 +91,9 @@ export function raceResultCard(book: QuestBook, map: MapDef, e: RaceEvent): Ques
   const m = medalOf(e.medal) ?? 'none';
   const line = Math.round(e.sec * 10) % 2 ? 'line2' : 'line1';
   const won = e.won.map((s) => t(`regatta.won.${s}` as MessageKey));
+  // A series with a prize ship (decision 0228): Wren's gift after her line, the toast in the news.
+  const gifts = e.won.map((s) => tOptional(`regatta.gift.${s}`)).filter(Boolean);
+  const toasts = e.won.map((s) => tOptional(`regatta.gift.${s}.toast`)).filter(Boolean);
   const news = [
     e.best && !e.first ? t('regatta.newBest') : '',
     ...e.won.map((s) =>
@@ -98,12 +101,14 @@ export function raceResultCard(book: QuestBook, map: MapDef, e: RaceEvent): Ques
         ? t('regatta.cupSet')
         : t('regatta.pennantFlies', { pennant: capital(t(`regatta.pennant.${s}` as MessageKey)) }),
     ),
+    ...toasts,
   ].filter(Boolean);
   Object.assign(card, {
     mood: 'pleased',
     ask: t(`regatta.result.${m}.title` as MessageKey),
     speech: [
       won.at(-1) ?? t(`regatta.result.${m}.${line}` as MessageKey),
+      ...gifts,
       tOptional(`${quest.text}.race.done`),
     ]
       .filter(Boolean)

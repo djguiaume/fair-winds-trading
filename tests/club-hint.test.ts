@@ -3,9 +3,11 @@ import { describe, expect, it } from 'vitest';
 import { GAME_MAP } from '../src/data/maps';
 import { setLanguage } from '../src/i18n';
 import { QUESTS, QUEST_DONE, QuestBook } from '../src/sim/quests';
+import { REGATTA } from '../src/sim/regatta';
 import { SLOOP } from '../src/sim/ship';
 import { createWorld } from '../src/sim/world';
 import { cardFor, quayItems } from '../src/ui/questView';
+import { raceResultCard } from '../src/ui/regattaView';
 
 // Decision 0227: the racer café at Abbey Head. Right after the prologue Rook points to the club,
 // the ring races open, and every race is offered on Abbey Head's Quay.
@@ -54,5 +56,28 @@ describe('the club at Abbey Head', () => {
     expect(hint?.speech).toContain('Abbey Head');
     const arrive = cardFor(book, GAME_MAP, 'club-hint', 'finished');
     expect(arrive?.giver?.id).toBe('wren');
+  });
+
+  it('gives the Tern as the club prize and sells her sisters at the Abbey Head yard', () => {
+    expect(REGATTA.series.find((x) => x.id === 'regatta-club')?.prize).toBe('tern');
+    const builds = GAME_MAP.ports.find((p) => p.id === 'abbey-head')?.builds ?? [];
+    expect(builds).toEqual(expect.arrayContaining(['tern-pilot', 'tern-yawl']));
+  });
+
+  it("speaks Wren's gift and the toast on the card that wins the club pennant", () => {
+    const { book } = afterPrologue(true);
+    const card = raceResultCard(book, GAME_MAP, {
+      type: 'raced',
+      quest: 'race-mill',
+      sec: 90,
+      medal: 3,
+      had: 0,
+      best: true,
+      first: true,
+      gold: 0,
+      won: ['regatta-club'],
+    });
+    expect(card?.speech).toContain('built to fly');
+    expect(card?.news).toContain('Tern is yours.');
   });
 });
