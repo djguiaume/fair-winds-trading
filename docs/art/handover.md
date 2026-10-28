@@ -9,7 +9,7 @@ For the "Art director (v1.2)" thread, in the format of [roles.md](../roles.md). 
 | **v1.2 new look** ([0222](../decisions/0222-a-new-look-smooth-terrain-blue-water-and-forests.md)) | v1.2 build thread | Direction approved by Guillaume; not built. Each island's final look is approved from screenshots, the ring first. Art bible rule 1 (flat shading) and section 2's sea colour change when it is built. The art guide below is the input. |
 | **Ultra look** ([0221](../decisions/0221-an-ultra-quality-level-for-desktop-and-xbox.md)) | v1.2 build thread | Shipped in v1.1. Notes given: Emberhold rock must keep its facets with lava cracks the brightest thing, lamp glows warmer and smaller, window lights back to High's brightness at night, horizon haze 10 to 15% (warm by day, blue by night), to be re-tuned once at the 35 degree Ultra tilt. Recheck against the player's 50 to 70 degree tilt range. |
 | **Style E follow-ups** ([0220](../decisions/0220-a-game-like-ui-skin-style-e.md)) | none | Built in v1.1. My ruling: painted wood and brass for HUD and frames, cream paper for port tables, cards and the chart, signal-flag bunting as a thin port band. Red stays for edge buoys, yellow for regatta marks, brass `#e8c46a` for the HUD, no pure white. Check the night paper dimming (about 20%) shipped. |
-| **Ring port size** | Guillaume | Whether to grow the four ring towns (radius 18 to 26) to about 34. Decide before the ring is redone for 0222. |
+| **Ring port size** | none | Done: Guillaume chose it in [0216](../decisions/0216-windward-ring-catch-up-pass.md); Saltmere, Stonehaven and Port Calda are radius 36 and Westholm 34 on the map. The 18 to 26 figure was out of date. |
 
 ## 2. Pointers
 
