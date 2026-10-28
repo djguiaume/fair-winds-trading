@@ -72,11 +72,11 @@ export function setRule(doc: RegattaDoc, path: string, text: string): string | n
   return null;
 }
 
-/** A series' name or pennant, or a new series. */
+/** A series' name, pennant or prize ship (empty for none), or a new series. */
 export function setSeries(
   doc: RegattaDoc,
   id: string,
-  change: { name?: string; pennant?: string },
+  change: { name?: string; pennant?: string; prize?: string },
 ): void {
   let s = doc.regatta.series.find((x) => x.id === id);
   if (!s) {
@@ -85,6 +85,8 @@ export function setSeries(
   }
   if (change.name !== undefined) s.name = change.name;
   if (change.pennant !== undefined) s.pennant = change.pennant;
+  if (change.prize === '') delete s.prize;
+  else if (change.prize !== undefined) s.prize = change.prize;
 }
 
 /** A flag's shape, bands or size, or a new flag (a plain red pennant until told otherwise). */

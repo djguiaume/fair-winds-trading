@@ -53,6 +53,7 @@ import {
   seriesWon,
 } from './regatta';
 import { checkRace } from './raceChecks';
+import { grantSeriesPrizes } from './seriesPrizes';
 import { type RaceRecord, bestFor, cleanRaceRecord, raceRecord, recordTime } from './raceRecords';
 import { createRival, endRival, releaseRival, rivalTime } from './rival';
 import { deckFree, syncMarketLevels, type TradeState } from './trade';
@@ -1622,11 +1623,7 @@ export class QuestBook {
     events.push({ type: 'finished', quest: quest.id });
   }
 
-  /**
-   * A race's finish (decision 0217): its time against the pars of the captain's ship on the
-   * voyage's level, the best time and medal kept, gold for each medal won the first time, and the
-   * series this finish wins.
-   */
+  /** A race's finish (decision 0217): its medal, first-time gold and the series it wins. */
   private finishRace(quest: QuestDef, step: QuestStep, events: QuestEvent[]) {
     const p = this.progress(quest.id)!;
     const race = quest.race!;
@@ -1664,6 +1661,7 @@ export class QuestBook {
   /** The series won, from the races' medals (decision 0217). */
   private updateWon() {
     const won = seriesWon(this.quests, (id) => this.progress(id)?.medal ?? 0);
+    grantSeriesPrizes(this.world.trade, won);
     if (won.length) this.state.won = won;
     else delete this.state.won;
   }

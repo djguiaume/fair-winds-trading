@@ -33,9 +33,9 @@
     },
     "pars": {
       "sloop": {
-        "fair": 339,
-        "captain": 339,
-        "salt": 339
+        "captain": 371,
+        "salt": 358,
+        "fair": 466
       },
       "cutter": {
         "fair": 280,
@@ -53,19 +53,34 @@
         "salt": 211
       },
       "hoy": {
-        "fair": 546,
-        "captain": 545,
-        "salt": 545
+        "fair": 545,
+        "captain": 542,
+        "salt": 544
       },
       "fluyt": {
-        "fair": 579,
-        "captain": 578,
-        "salt": 578
+        "fair": 578,
+        "captain": 575,
+        "salt": 577
       },
       "indiaman": {
-        "fair": 547,
-        "captain": 546,
-        "salt": 546
+        "fair": 546,
+        "captain": 543,
+        "salt": 545
+      },
+      "tern": {
+        "fair": 219,
+        "captain": 219,
+        "salt": 219
+      },
+      "tern-pilot": {
+        "fair": 239,
+        "captain": 239,
+        "salt": 239
+      },
+      "tern-yawl": {
+        "fair": 228,
+        "captain": 228,
+        "salt": 228
       }
     }
   },

@@ -53,7 +53,7 @@ describe('visual heel (decision 0044)', () => {
   });
 
   it('gives every ship class a factor: tall swift rigs lean more than wide haulers', () => {
-    expect(SHIP_LINES).toHaveLength(7);
+    expect(SHIP_LINES).toHaveLength(10);
     for (const id of SHIP_LINES) expect(HEEL_FACTOR[id], id).toBeGreaterThan(0);
     expect(heelFactor('schooner')).toBeGreaterThan(heelFactor('sloop'));
     expect(heelFactor('fluyt')).toBeLessThan(heelFactor('sloop'));
