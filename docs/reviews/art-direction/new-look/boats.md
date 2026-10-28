@@ -1,6 +1,6 @@
 # Look rules: the other boats (v1.2, issue #331)
 
-Art director, 2026-10-28. Input for the build thread of [#331](https://github.com/djguiaume/fair-winds-trading/issues/331). Rules come from the [art bible](../../../art/art-bible.md) and the [new-look guide](README.md); the traffic notes of [phase 5](../phase5/README.md) still hold. Today's boats (decision [0215](../../../decisions/0215-other-boats-on-the-sea.md)) are 76 triangles (fishing) and 252 (coaster), well under the 350 and 900 budgets: the budget is for a better shape, not more parts.
+Art director, 2026-10-28. Input for the build thread of [#331](https://github.com/djguiaume/fair-winds-trading/issues/331). Rules come from the [art bible](../../../art/art-bible.md) and the [new-look guide](README.md); the traffic notes of [phase 5](../phase5/README.md) still hold. Today's boats (decision [0215](../../../decisions/0215-other-boats-on-the-sea.md)) are 76 triangles (fishing) and 252 (coaster). Guillaume (2026-10-28): the whole point of the redesign is better, richer boats, and the old tablet is not a constraint for now. So the budgets below replace the Phase 5 ones (350 / 900 / 1,500); the on-screen caps stay (Low 3, Medium 6, High 10). Re-measure with `?bench` before the old-tablet question comes back.
 
 ## 1. What stays, what changes
 
@@ -12,11 +12,11 @@ Art director, 2026-10-28. Input for the build thread of [#331](https://github.co
 
 | Boat | Rule | Triangles |
 |---|---|---|
-| Fishing boat | 0.45x the sloop (0.55x if lost on a phone). Open hull, one short mast, lug sail (a four-sided sail, high at the front), a stern cabin box, a crate or two of nets on deck. Reads as "small and working". | about 350 |
-| Coaster | About the hoy's size. Two masts: tall main, short mizzen, both fore-and-aft. Square stern, low deckhouse, a hatch. Carries the deck cargo (section 4). | about 900 |
-| Visitor | The player's fluyt, indiaman or schooner at far detail plus a livery. Leans on the right tack. Only the hull band, a pennant and a stern flag differ from the player's ship. | about 1,500 |
+| Fishing boat | 0.45x the sloop (0.55x if lost on a phone). Open hull, one short mast, lug sail (a four-sided sail, high at the front), a stern cabin box, a crate or two of nets on deck. Reads as "small and working". | about 1,500 |
+| Coaster | About the hoy's size. Two masts: tall main, short mizzen, both fore-and-aft. Square stern, low deckhouse, a hatch. Carries the deck cargo (section 4). | about 3,500 |
+| Visitor | The player's fluyt, indiaman or schooner plus a livery. Leans on the right tack. Only the hull band, a pennant and a stern flag differ from the player's ship. | about 4,000 (the player's model at near detail, no far LOD) |
 
-Sails are softly bellied like the player's, never flat triangles. Rigging is one thin line at most and goes away at Low. No cabin windows, no figures, no rope detail: they turn into noise at 0.45x.
+Sails are softly bellied like the player's, never flat triangles. Rigging is one thin line at most and goes away at Low. With the richer budget add what reads: planking steps on the hull, a rail, a tiller, hatches, a small figure at the helm on the coaster. Still no cabin windows or rope detail: they turn into noise at 0.45x.
 
 ## 3. Colours (all by name in `palette.json`)
 
@@ -29,7 +29,7 @@ Sails are softly bellied like the player's, never flat triangles. Rigging is one
 
 ## 4. Deck cargo by home good
 
-The coaster's cargo is data: one entry per good, a small prop on the deck (2 to 4 pieces, about 40 triangles in all).
+The coaster's cargo is data: one entry per good, a small prop on the deck (2 to 4 pieces, about 150 triangles in all).
 
 - Fish: stacked cream crates with a blue net.
 - Grain: tied sacks in sand and cream.
