@@ -56,6 +56,7 @@ describe('ship classes (decision 0035)', () => {
       'hauler1:hoy',
       'hauler2:fluyt',
       'hauler3:indiaman',
+      'racer1:tern',
     ]);
     const { schooner, clipper, hoy, fluyt, indiaman } = SHIP_CLASSES;
     expect([schooner, clipper, hoy, fluyt, indiaman].map((c) => c!.price)).toEqual([

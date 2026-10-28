@@ -56,7 +56,7 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
   // --- src/data/ships/<id>.json, `sailing` and `unlock` (decisions 0007, 0011, 0035, 0048, 0109) ---
   'ships.*.id': text('Id', 'Class id used in saves and code; must match the key.'),
   'ships.*.name': text('Name', 'English name in the code; players see the translated one.'),
-  'ships.*.line': text('Line', 'starter, swift, hauler or warship (decision 0035).'),
+  'ships.*.line': text('Line', 'starter, swift, hauler, racer or warship (decision 0035).'),
   'ships.*.tier': num('Tier', 0, 3, 1, undefined, '0 for the starter, 1 to 3 within a line.'),
   'ships.*.standing': num(
     'Deliveries to unlock',

@@ -20,10 +20,10 @@ import '../controls/controls.css';
 
 /**
  * The Regatta page of the editors (decision 0217): everything in `src/data/regatta.json` (the
- * horn, the medals, the lines, Kestrel, the series) and `src/data/flags.json` (pennants and
- * burgees, drawn as the game draws them), with the same checks as `npm run check`. Each race's
- * course, gold and pars are in the quest builder. The working copy stays in this browser; Export
- * gives the files to commit. `npm run race -- rules|set|series|flag` makes the same edits.
+ * horn, the medals, the lines, Kestrel, the series and their prize ships) and `src/data/flags.json`
+ * (pennants and burgees, drawn as the game draws them), with the same checks as `npm run check`.
+ * Races are in the quest builder. The working copy stays in this browser; Export gives the files
+ * to commit. `npm run race -- rules|set|series|flag` makes the same edits.
  */
 
 type Section = 'rules' | 'rival' | 'series' | 'flags';
@@ -211,6 +211,7 @@ const num = (value: number, set: (v: number) => void) =>
   numberInput(value, (v) => v !== undefined && edit(() => set(v)));
 
 const flagIds = () => doc.flags.flags.map((f) => f.id);
+const shipIds = ['', ...Object.keys(SHIP_CLASSES)];
 
 function colour(value: string, set: (v: string) => void): HTMLElement {
   const pick = h('input', { type: 'color' });
@@ -330,6 +331,10 @@ function drawSeries(): HTMLElement[] {
           'pennant',
           select(flagIds(), s.pennant, (v) => edit(() => setSeries(doc, s.id, { pennant: v }))),
           preview,
+        ),
+        row(
+          'prize ship',
+          select(shipIds, s.prize ?? '', (v) => edit(() => setSeries(doc, s.id, { prize: v }))),
         ),
       ),
     );

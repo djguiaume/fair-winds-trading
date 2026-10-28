@@ -2,7 +2,7 @@ import { TUNING } from '../data/tuning';
 import { DEG, clamp } from './math';
 
 /** Ship lines of decision 0035: the starter, then three lines of three tiers each. */
-export type ShipLine = 'starter' | 'swift' | 'hauler' | 'warship';
+export type ShipLine = 'starter' | 'swift' | 'hauler' | 'racer' | 'warship';
 
 /**
  * A ship class: everything that makes one hull sail differently from another. The sloop starts,

@@ -25,8 +25,8 @@
     "pars": {
       "sloop": {
         "fair": 59,
-        "captain": 60,
-        "salt": 60
+        "captain": 61,
+        "salt": 61
       },
       "cutter": {
         "fair": 52,
@@ -57,6 +57,11 @@
         "fair": 114,
         "captain": 84,
         "salt": 83
+      },
+      "tern": {
+        "fair": 40,
+        "captain": 40,
+        "salt": 40
       }
     }
   },

@@ -42,6 +42,8 @@ export interface SeriesDef {
   name: string;
   /** The masthead flag a series won flies (`flags.json`). */
   pennant: string;
+  /** A ship class given to the captain the moment the series is won (`ships/<id>.json`). */
+  prize?: string;
 }
 
 export interface RivalDef {
@@ -345,6 +347,8 @@ export function checkRegattaData(
     if (seen.has(s.id)) out.push(`regatta.json › ${s.id}: series id used twice`);
     seen.add(s.id);
     if (!flag(s.pennant)) out.push(`regatta.json › ${s.id}.pennant: no flag "${s.pennant}"`);
+    if (s.prize !== undefined && !SHIP_CLASSES[s.prize])
+      out.push(`regatta.json › ${s.id}.prize: no ship "${s.prize}"`);
   }
   const ids = new Set<string>();
   for (const f of flags) {

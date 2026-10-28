@@ -66,6 +66,11 @@
         "fair": 326,
         "captain": 307,
         "salt": 303
+      },
+      "tern": {
+        "fair": 108,
+        "captain": 115,
+        "salt": 115
       }
     }
   },

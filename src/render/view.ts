@@ -51,7 +51,8 @@ import { Volcanoes } from './volcanoes';
 import { stormRain } from '../sim/storms';
 import { seaShape } from '../sim/seaEdge';
 import { CLEAR, type ZoneVisual, mapZones, zoneField, zoneVisualAt } from '../sim/windZones';
-import type { FlagDef } from '../sim/regatta';
+import { type FlagDef, flagById } from '../sim/regatta';
+import { shipPennantId } from '../data/ships';
 import { smoothOutline } from '../sim/flowShapes';
 import { designOf } from '../data/islands';
 import {
@@ -325,7 +326,7 @@ export class GameView {
     const id = captain.activeShip;
     // The model shows the hull's damage in steps (decision 0208): a new step rebuilds it.
     const damage = damageStage(hullCondition(this.world.trade));
-    const flag = this.pennant;
+    const flag = this.pennant ?? flagById(shipPennantId(id));
     const key = `${id}:${upgrades.sails}${upgrades.hold}${upgrades.hull}:${damage}:${flag?.id ?? ''}`;
     return { id, upgrades, damage, flag, key };
   }

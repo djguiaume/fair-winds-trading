@@ -57,6 +57,8 @@ export interface ShipModelData {
   mainTopsail?: boolean;
   mainName?: 'Mainsail' | 'Mizzen';
   gooseneck?: number;
+  /** The masthead flag she flies when no regatta pennant has been won (`flags.json`). */
+  pennant?: string;
   /** Named pieces from the code library `src/render/models/shipParts.ts` (leeboards, gun ports…). */
   parts?: string[];
   /** Where her damage shows (decision 0208); left out, `DEFAULT_DAMAGE` places it. */
@@ -118,7 +120,7 @@ export function shipDamageProblems(file: ShipFile): string[] {
   return out;
 }
 
-const LINES: ShipLine[] = ['starter', 'swift', 'hauler', 'warship'];
+const LINES: ShipLine[] = ['starter', 'swift', 'hauler', 'racer', 'warship'];
 
 /** Every ship file, in shipyard order: the starter, then each line by tier. */
 export const SHIP_FILES: ShipFile[] = Object.values(
@@ -140,3 +142,6 @@ export function shipClassOf(file: ShipFile): ShipClass {
     upgradePrices: unlock.upgradePrices,
   };
 }
+
+/** The flag a ship flies by herself (the Tern's brass pennant), if her file names one. */
+export const shipPennantId = (id: string) => SHIP_FILES.find((f) => f.id === id)?.model.pennant;
