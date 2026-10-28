@@ -1,7 +1,9 @@
 import audio from '../data/audio.json';
 import type { MapDef } from './map';
 import { DEG, wrapPositive } from './math';
+import { type RaceStormDef, syncRaceStorms } from './raceStorms';
 import type { Wind } from './wind';
+import type { World } from './world';
 
 /*
  * What a step does to the sea while it runs (decision 0139), the same data for the tutorial's
@@ -52,6 +54,19 @@ export interface StepEffects {
 export function heldWind(wind: StepWind | undefined, map: MapDef): Wind | null {
   if (!wind) return null;
   return { from: wrapPositive((wind.fromDeg ?? map.wind.fromDeg) * DEG), speedKn: wind.speedKn };
+}
+
+/**
+ * Holds the step's breeze on the sea and the running race's own storms (decision 0225), every sim
+ * step. `race` is the quest book's `race()`: the race and the seconds since its horn.
+ */
+export function syncSea(
+  world: World,
+  wind: StepWind | undefined,
+  race: { quest: { race?: { storms?: RaceStormDef[] } }; sec: number } | undefined,
+) {
+  world.calmWind = heldWind(wind, world.map);
+  syncRaceStorms(world, race?.quest.race?.storms, race?.sec ?? 0);
 }
 
 /** Problems with a step's `wind` and `sound`, for the quest checks. */

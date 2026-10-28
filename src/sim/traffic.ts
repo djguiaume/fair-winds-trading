@@ -405,8 +405,7 @@ function windFor(world: World, b: TrafficBoat): Wind {
     : world.windConfig
       ? windAt(world.windConfig, world.time, world.map.seed, b.boat)
       : world.seaWind;
-  b.wind = localWind(sea, windEffectAt(world.windBlockers, b.boat, sea));
-  return b.wind;
+  return (b.wind = localWind(sea, windEffectAt(world.windBlockers, b.boat, sea)));
 }
 
 /**

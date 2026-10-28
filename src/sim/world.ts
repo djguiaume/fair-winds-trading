@@ -29,7 +29,7 @@ import { type LandState, hasQuestLand, landOut, landWith, syncLand } from './que
 import { DIFFICULTIES, knobs, weatherFor } from './difficulty';
 import { type ZoneVisual, CLEAR, mapZones, zoneField, zoneVisualAt } from './windZones';
 import { type BeltNow, beltNow } from './stormBelt';
-import { type RaceStorms, applyRaceStorms } from './raceStorms';
+import { pinSeaWind } from './raceStorms';
 import { smoothOutline } from './flowShapes';
 import { DEG, bearingTo, clamp, distance } from './math';
 import { type ShipClass, noGoAngle } from './ship';
@@ -174,8 +174,6 @@ export interface World {
   stormsFrom: number;
   /** Whether storms could blow on the last step, to notice when they come back. */
   stormsOn: boolean;
-  /** The running race's own storms (decision 0225), or null; see `syncRaceStorms`. */
-  raceStorms: RaceStorms | null;
   /** Degrees added to the map's wind direction (the "new wind" button). */
   windOffsetDeg: number;
   boat: BoatState;
@@ -264,7 +262,6 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     calmWind: null,
     stormsFrom: 0,
     stormsOn: true,
-    raceStorms: null,
     shelter: 0,
     funnel: 0,
     windBlockers: windGrid(windBlockers(land.islands, land.terrain)),
@@ -530,8 +527,7 @@ function loseCargo(world: World): WorldEvent[] {
   return [{ type: 'overboard', good, qty }];
 }
 
-/* The wind takes `weather.json` › `blendSec` to ease to a new level or Wind setting, as a weather
- * change does. */
+/* The wind eases over `weather.json` › `blendSec` to a new level or Wind setting. */
 
 /** Sea wind at the boat, eased from the previous config for a while after it changed (0083). */
 function seaWindAt(world: World, cfg: WindConfig): Wind {
@@ -693,8 +689,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   };
   world.seaWind = seaWindAt(world, cfg);
   events.push(...chartZone(world));
-  if (world.calmWind) world.seaWind = { ...world.calmWind };
-  applyRaceStorms(world);
+  pinSeaWind(world);
   const effect = windEffectAt(world.windBlockers, world.boat, world.seaWind);
   world.shelter = effect.shelter;
   world.funnel = effect.funnel;

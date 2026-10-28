@@ -124,6 +124,9 @@ export function checkRaceStormSpots(
   return out;
 }
 
+/** The running race's storms of each world (decision 0225), made once per race. */
+const running = new WeakMap<World, RaceStorms>();
+
 /**
  * Keeps the world's race storms in step with the race running (`defs`, from the quest, or none)
  * and its clock `sec` after the horn. Cheap: the storms are made once per race and moved in place.
@@ -134,16 +137,17 @@ export function syncRaceStorms(
   sec: number,
 ) {
   if (!defs?.length) {
-    world.raceStorms = null;
+    running.delete(world);
     return;
   }
-  if (world.raceStorms?.defs !== defs) world.raceStorms = makeRaceStorms(defs);
-  moveRaceStorms(world.raceStorms, sec);
+  let storms = running.get(world);
+  if (storms?.defs !== defs) running.set(world, (storms = makeRaceStorms(defs)));
+  moveRaceStorms(storms, sec);
 }
 
 /** The race storms that blow now: none with Settings › Weather or Storms off (decision 0067). */
 export function blowingRaceStorms(world: World): readonly Storm[] {
-  return world.raceStorms && world.dynamicWeather && world.storms ? world.raceStorms.storms : [];
+  return world.dynamicWeather && world.storms ? (running.get(world)?.storms ?? []) : [];
 }
 
 /** The sea wind at `pos` with the race's storms on it; the same wind when there are none. */
@@ -155,8 +159,12 @@ export function raceStormWind(world: World, sea: Wind, pos: { x: number; y: numb
   return wind;
 }
 
-/** Blows the race's storms on the sea wind at the boat and shows them in the weather (0225). */
-export function applyRaceStorms(world: World) {
+/**
+ * Pins the sea wind a quest holds (`calmWind`), then blows the race's storms on it at the boat and
+ * shows them in the weather (decision 0225).
+ */
+export function pinSeaWind(world: World) {
+  if (world.calmWind) world.seaWind = { ...world.calmWind };
   const storms = blowingRaceStorms(world);
   if (!storms.length) return;
   const { boat, weather } = world;

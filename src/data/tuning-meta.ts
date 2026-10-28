@@ -10,6 +10,7 @@ import { num, text, toggle, type TuningMeta } from './tuning-meta-types';
 import { GRAPHICS_META } from './tuning-meta-graphics';
 import { CAMERA_META } from './tuning-meta-camera';
 import { BUOYS_META } from './tuning-meta-buoys';
+import { STORMS_META } from './tuning-meta-storms';
 
 export type { NumberMeta, PolarMeta, TextMeta, ToggleMeta, TuningMeta } from './tuning-meta-types';
 
@@ -51,6 +52,7 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
   ...GRAPHICS_META,
   ...CAMERA_META,
   ...BUOYS_META,
+  ...STORMS_META,
   // --- src/data/ships/<id>.json, `sailing` and `unlock` (decisions 0007, 0011, 0035, 0048, 0109) ---
   'ships.*.id': text('Id', 'Class id used in saves and code; must match the key.'),
   'ships.*.name': text('Name', 'English name in the code; players see the translated one.'),
@@ -793,86 +795,6 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     5,
     's',
     'Seconds the wind takes to ease to a new level or Wind setting.',
-  ),
-  'weather.storms.coreShare': num(
-    'Storm core',
-    0,
-    0.95,
-    0.01,
-    'share',
-    'Share of the radius that is the core, where the storm is at full force.',
-  ),
-  'weather.storms.rampSec': num(
-    'Storm build-up',
-    1,
-    600,
-    5,
-    's',
-    'Seconds a storm takes to build up and to die down.',
-  ),
-  'weather.storms.inflowDeg': num(
-    'Storm inflow',
-    0,
-    90,
-    1,
-    '°',
-    'Storm wind spirals in toward the centre by this angle.',
-  ),
-  'weather.storms.windGain': num(
-    'Storm wind',
-    0,
-    3,
-    0.05,
-    '+× wind',
-    'How much a storm core adds to the wind (×1.9 at 0.9).',
-  ),
-  'weather.storms.warningRange': num(
-    'Storm warning',
-    0,
-    600,
-    10,
-    'units',
-    "Warn when a storm's edge comes this close.",
-  ),
-  'weather.raceStorms.radius': num(
-    'Race storm size',
-    10,
-    300,
-    5,
-    'units',
-    "A race storm's radius when its file gives none (decision 0225).",
-  ),
-  'weather.raceStorms.strength': num(
-    'Race storm strength',
-    0.1,
-    1,
-    0.05,
-    'share',
-    "A race storm's strength when its file gives none: 1 = a full storm core.",
-  ),
-  'weather.raceStorms.minRadius': num(
-    'Race storm smallest',
-    5,
-    200,
-    5,
-    'units',
-    'The smallest radius the checks allow a race storm.',
-  ),
-  'weather.raceStorms.maxRadius': num(
-    'Race storm largest',
-    20,
-    400,
-    5,
-    'units',
-    'The largest radius the checks allow a race storm.',
-  ),
-  'weather.raceStorms.maxDriftSpeed': num(
-    'Race storm drift',
-    0,
-    10,
-    0.1,
-    'units/s',
-    'The fastest a race storm may drift (a seeded storm crosses at 3.2): slower than a boat.',
   ),
   'weather.islands.shadowLength': num(
     'Lee length',

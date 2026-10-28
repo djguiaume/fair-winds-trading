@@ -67,7 +67,8 @@ describe('race storms', () => {
     expect(world.wind.speedKn).toBeLessThan(12.5);
     expect(world.weather.storms).toHaveLength(0);
     syncRaceStorms(world, undefined, 0);
-    expect(world.raceStorms).toBeNull();
+    step();
+    expect(world.weather.storms).toHaveLength(0);
   });
 
   it('are edited by the builder and the command with the same functions', () => {
