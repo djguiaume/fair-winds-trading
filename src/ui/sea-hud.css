@@ -62,12 +62,8 @@
   gap: 6px;
   height: 38px;
   padding: 0 11px 0 8px;
-  border: 1px solid var(--brass-line);
-  border-radius: 8px;
-  background: var(--navy);
   color: var(--ink);
-  font: 700 19px/1 var(--display);
-  letter-spacing: 0.02em;
+  font: 700 20px/1 var(--display);
 }
 #hud .captain-stat .icon {
   width: 22px;
@@ -78,7 +74,7 @@ button.captain-stat {
   touch-action: manipulation;
 }
 button.captain-stat:active {
-  background: var(--navy-solid);
+  transform: translateY(2px);
 }
 .captain-stat.is-full b {
   color: var(--amber);
@@ -115,7 +111,7 @@ button.captain-stat:active {
   padding: 8px 12px;
   border: 1px solid var(--brass-line);
   border-radius: 8px;
-  background: rgba(9, 28, 41, 0.95);
+  background: var(--navy);
   font-size: 14px;
   line-height: 1.45;
   white-space: nowrap;
@@ -138,12 +134,7 @@ button.captain-stat:active {
   max-width: calc(100vw - 2 * var(--gap) - 470px);
   min-width: 0;
   padding: 0 14px 0 6px;
-  border: 1px solid var(--brass-line);
-  border-radius: 19px;
-  background: var(--navy);
-  font: 700 18px/1 var(--display);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font: 700 18px/1 var(--serif);
   white-space: nowrap;
 }
 .objective[hidden] {
@@ -169,12 +160,12 @@ body.is-docked .objective {
 #obj-name {
   overflow: hidden;
   text-overflow: ellipsis;
-  color: var(--brass);
+  color: var(--ink);
 }
 .obj-dist {
   flex: none;
   color: var(--ink-dim);
-  font-weight: 600;
+  font: 700 18px/1 var(--display);
 }
 /* A timed run's clock in the course pill (decision 0213): the time against par, red with a slow
    pulse in the last 20 s, like the hull bar when low (amber means a storm, art bible §8). */
@@ -215,9 +206,6 @@ body.is-docked .objective {
   column-gap: 6px;
   min-width: 116px;
   padding: 6px 6px 8px 12px;
-  border: 1px solid var(--brass-line);
-  border-radius: 8px;
-  background: var(--navy);
   font-family: var(--display);
 }
 .log-speed {
@@ -295,10 +283,7 @@ body.is-docked .objective {
 .speed-log .pos {
   margin-top: 1px;
   color: var(--ink-dim);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font: 600 15px/1.2 var(--body);
 }
 .speed-log .pos.good {
   color: var(--green-ink);
@@ -322,9 +307,6 @@ body.is-docked .objective {
   position: relative;
   width: 132px;
   padding: 5px 6px 7px;
-  border: 1px solid var(--brass-line);
-  border-radius: 10px;
-  background: var(--navy);
   text-align: center;
 }
 .compass[data-force='0'] {
@@ -436,15 +418,13 @@ body.is-docked .objective {
 .wind-caption {
   display: block;
   margin-top: 3px;
-  font: 700 14px/1.15 var(--display);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font: 700 16px/1.15 var(--display);
 }
 #wind-force {
   color: var(--force);
 }
 #wind-text {
-  color: var(--ink-dim);
+  color: var(--ink);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -576,10 +556,6 @@ button.captain-stat:focus-visible {
   display: block;
   min-height: 44px;
   padding: 5px 10px 6px;
-  border: 1px solid var(--brass-line);
-  border-radius: 8px;
-  background: var(--navy);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
   text-align: center;
   white-space: nowrap;
 }
@@ -596,9 +572,7 @@ button.captain-stat:focus-visible {
   justify-content: center;
   gap: 4px;
   color: var(--brass);
-  font: 700 17px/1.1 var(--display);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font: 700 18px/1.1 var(--serif);
 }
 #hud .port-marker-icon {
   width: 16px;
@@ -614,10 +588,8 @@ button.captain-stat:focus-visible {
 .port-marker-tag small {
   margin-right: 3px;
   color: var(--ink-dim);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 .wants-tag,
 .produces-tag,
@@ -778,9 +750,6 @@ button.captain-stat:focus-visible {
 }
 .toast {
   top: 24%;
-  border: 1px solid var(--brass-line);
-  border-radius: 10px;
-  background: rgba(9, 28, 41, 0.92);
   font-family: var(--body);
   font-size: 16px;
   font-weight: 600;
@@ -802,16 +771,8 @@ button.captain-stat:focus-visible {
   min-width: 48px;
   height: 48px;
   padding: 0 12px;
-  border: 2px solid var(--outline);
-  border-radius: 10px;
-  background: var(--navy-solid);
-  box-shadow:
-    inset 0 -3px 0 rgba(0, 0, 0, 0.4),
-    0 3px 8px rgba(0, 0, 0, 0.35);
   color: var(--ink);
-  font: 700 18px/1 var(--display);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font: 700 19px/1 var(--serif);
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -821,15 +782,9 @@ button.captain-stat:focus-visible {
 }
 .icon-btn.map-btn {
   padding-right: 16px;
-  background: linear-gradient(var(--brass-hi), #e0b452);
-  box-shadow:
-    inset 0 -3px 0 var(--brass-lo),
-    0 3px 8px rgba(0, 0, 0, 0.35);
-  color: #2a1c00;
 }
 .icon-btn:active {
   transform: translateY(2px);
-  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.4);
 }
 .fps {
   position: absolute;
@@ -848,18 +803,13 @@ button.captain-stat:focus-visible {
   bottom: var(--bottom);
   min-width: 82px;
   padding: 5px 5px 6px;
-  border: 1px solid var(--brass-line);
-  border-radius: 12px;
-  background: var(--navy);
   text-align: center;
 }
 .lever-title {
   display: block;
   margin-bottom: 3px;
-  color: var(--brass);
-  font: 700 13px/1.2 var(--display);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  color: var(--ink);
+  font: 700 14px/1.2 var(--serif);
 }
 .lever-track {
   position: relative;
@@ -1030,6 +980,12 @@ button.captain-stat:focus-visible {
     top: auto;
     bottom: calc(var(--bottom) + 58px);
     max-width: calc(100vw - 2 * var(--gap) - 190px);
+  }
+  .objective {
+    font-size: 16px;
+  }
+  .obj-dist {
+    font-size: 16px;
   }
 }
 @media (max-width: 560px) {
