@@ -712,12 +712,13 @@ export class GameView {
       lantern.updateWorldMatrix(true, false);
       lantern.getWorldPosition(this.boatLantern);
     } else this.boatLantern.set(pos.x, 6, pos.z);
-    this.lanterns.update(glow, this.boatLantern, time);
+    this.lanterns.update(glow, this.boatLantern, time, ultra?.night.lanternSize);
     this.lighthouseBeams.update(time, glow);
     this.beaconLights.update(time, glow);
-    // Lit windows and street lamps in the towns.
+    // Lit windows and street lamps in the towns; Ultra's occlusion shades them, so they shine more.
     const windows = this.islands.userData.windows as THREE.MeshBasicMaterial | undefined;
     windows?.color.copy(WINDOWS_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
+    if (ultra) windows?.color.multiplyScalar(1 + (ultra.night.windowGlow - 1) * glow);
     const lava = this.islands.userData.lava as THREE.MeshBasicMaterial | undefined;
     lava?.color.copy(LAVA_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
     const erupting = this.volcanoes.update(dt, {
@@ -770,7 +771,7 @@ export class GameView {
       );
     }
 
-    if (ultra) ultra.render(dt, day.night, fog.color);
+    if (ultra) ultra.render(dt, day.night);
     else this.renderer.render(this.scene, this.camera);
   }
 

@@ -63,6 +63,7 @@ export class UltraPipeline {
   private height = 1;
   private pixelRatio = 1;
   private aoResolution = 0;
+  private readonly hazeNight = new THREE.Color();
 
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
@@ -112,6 +113,11 @@ export class UltraPipeline {
     return new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples });
   }
 
+  /** Lantern glow size and lit-window brightness at night on Ultra (from the tuning). */
+  get night() {
+    return TUNING.graphics.ultra.night;
+  }
+
   /** Where the sun stands on Ultra: lower, and turned so noon shadows fall to the side. */
   get sunShape(): SunShape {
     const s = TUNING.graphics.ultra.shadows;
@@ -150,7 +156,7 @@ export class UltraPipeline {
   }
 
   /** Draw a frame through the pipeline; `night` 0..1 eases the effects off in the dark. */
-  render(dt: number, night: number, sky: THREE.Color) {
+  render(dt: number, night: number) {
     const ultra = TUNING.graphics.ultra;
     this.casters.update(dt, this.scene, this.effects.shadows);
     this.followShadows(night);
@@ -165,7 +171,10 @@ export class UltraPipeline {
     u.uToneMap!.value = this.effects.toneMapping ? 1 : 0;
     u.uExposure!.value = lerp(ultra.exposure, ultra.nightExposure, night);
     u.uToe!.value = lerp(ultra.toe, ultra.nightToe, night);
-    (u.uHazeColor!.value as THREE.Color).copy(sky).lerp(WHITE, ultra.haze.lighten);
+    const haze = ultra.haze;
+    (u.uHazeColor!.value as THREE.Color)
+      .set(haze.dayColor)
+      .lerp(this.hazeNight.set(haze.nightColor), night);
     u.uHazeStart!.value = ultra.haze.start;
     u.uHazeStrength!.value = this.effects.haze ? ultra.haze.strength : 0;
     // One frame is many render calls here: count them all, so `?perf` and `?bench` stay honest.
@@ -248,5 +257,4 @@ export class UltraPipeline {
   }
 }
 
-const WHITE = new THREE.Color(1, 1, 1);
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k;

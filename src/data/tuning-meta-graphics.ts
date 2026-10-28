@@ -1,4 +1,4 @@
-import { num, type TuningMeta } from './tuning-meta-types';
+import { num, text, type TuningMeta } from './tuning-meta-types';
 
 /** `graphics.json`: the Ultra quality level and the sea's reflection (decision 0221). */
 export const GRAPHICS_META: Readonly<Record<string, TuningMeta>> = {
@@ -24,7 +24,7 @@ export const GRAPHICS_META: Readonly<Record<string, TuningMeta>> = {
     1,
     0.05,
     undefined,
-    'How much the tone curve deepens dark colours by day (its toe); 0 keeps them as on High.',
+    'How much the tone curve deepens dark colours by day (its toe); 0 keeps them as on High, 1 crushes dark rock.',
   ),
   'graphics.ultra.nightToe': num(
     'Dark saturation at night',
@@ -190,17 +190,33 @@ export const GRAPHICS_META: Readonly<Record<string, TuningMeta>> = {
     'Haze strength',
     0,
     1,
-    0.05,
+    0.01,
     undefined,
     'How much the top of the picture turns to the haze colour.',
   ),
-  'graphics.ultra.haze.lighten': num(
-    'Haze lightness',
-    0,
-    1,
+  'graphics.ultra.haze.dayColor': text(
+    'Haze colour by day',
+    'The warm colour the far sea fades toward by day (#rrggbb).',
+  ),
+  'graphics.ultra.haze.nightColor': text(
+    'Haze colour at night',
+    'The blue the far sea fades toward at night (#rrggbb).',
+  ),
+  'graphics.ultra.night.lanternSize': num(
+    'Lantern glow size',
+    0.3,
+    1.5,
     0.05,
-    undefined,
-    'The haze colour: the sky colour mixed this far toward white.',
+    '×',
+    'Size of the pier and boat lantern glows on Ultra against the other levels.',
+  ),
+  'graphics.ultra.night.windowGlow': num(
+    'Window glow',
+    0.5,
+    2,
+    0.05,
+    '×',
+    'Lit windows at night on Ultra, brighter to make up for the shade of the occlusion.',
   ),
   'graphics.water.reflection': num(
     'Sky reflection',

@@ -2,7 +2,7 @@
   "ultra": {
     "exposure": 1.1,
     "nightExposure": 1.15,
-    "toe": 1,
+    "toe": 0.5,
     "nightToe": 0,
     "antialiasSamples": 4,
     "shadows": {
@@ -28,8 +28,13 @@
     },
     "haze": {
       "start": 0.75,
-      "strength": 0.15,
-      "lighten": 0.2
+      "strength": 0.12,
+      "dayColor": "#f2e3c6",
+      "nightColor": "#2f4f7a"
+    },
+    "night": {
+      "lanternSize": 0.7,
+      "windowGlow": 1.3
     }
   },
   "water": {
