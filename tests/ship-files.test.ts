@@ -24,6 +24,9 @@ describe('ship files (decision 0109)', () => {
       'hoy',
       'fluyt',
       'indiaman',
+      'tern',
+      'tern-pilot',
+      'tern-yawl',
     ]);
     const tiers = SHIP_FILES.map((f) => `${f.line}:${f.tier}`);
     expect(new Set(tiers).size).toBe(tiers.length);

@@ -1,3 +1,4 @@
+import { SHIP_FILES } from '../data/ships';
 import regattaData from '../data/regatta.json';
 import flagData from '../data/flags.json';
 import { isDifficulty, type Difficulty } from './difficulty';
@@ -42,6 +43,8 @@ export interface SeriesDef {
   name: string;
   /** The masthead flag a series won flies (`flags.json`). */
   pennant: string;
+  /** A ship class given to the captain the moment the series is won (`ships/<id>.json`). */
+  prize?: string;
 }
 
 export interface RivalDef {
@@ -92,6 +95,10 @@ export interface FlagDef {
 
 export const FLAGS = flagData.flags as FlagDef[];
 export const flagById = (id: string | undefined) => FLAGS.find((f) => f.id === id);
+
+/** The flag a ship flies by herself (the Tern's brass pennant), if her file names one. */
+export const shipPennant = (shipId: string) =>
+  flagById(SHIP_FILES.find((f) => f.id === shipId)?.model.pennant);
 
 /** A line on the water: two points, the committee boat's end first, then the pin's. */
 export type Gate = [{ x: number; y: number }, { x: number; y: number }];
@@ -345,6 +352,8 @@ export function checkRegattaData(
     if (seen.has(s.id)) out.push(`regatta.json › ${s.id}: series id used twice`);
     seen.add(s.id);
     if (!flag(s.pennant)) out.push(`regatta.json › ${s.id}.pennant: no flag "${s.pennant}"`);
+    if (s.prize !== undefined && !SHIP_CLASSES[s.prize])
+      out.push(`regatta.json › ${s.id}.prize: no ship "${s.prize}"`);
   }
   const ids = new Set<string>();
   for (const f of flags) {

@@ -84,7 +84,7 @@ ${STORM_HELP}
   race rules                    regatta.json and flags.json: the rules, Kestrel, series, flags
   race set <path> <value>       a value of regatta.json, e.g. set medals.silver 1.2,
                                 set rival.hull "#f4f1e8", set rival.paceRange 0.45,1.4
-  race series <id> [--name "…"] [--pennant flag]   a series (a new id adds one)
+  race series <id> [--name "…"] [--pennant flag] [--prize ship]   a series (a new id adds one)
   race flag <id> [--shape pennant|swallowtail|burgee] [--bands "#a,#b"] [--length n]
                  [--height n] | --remove        a flag (a new id adds one)
                                 (the editor's Regatta page makes the same edits; --dry)
@@ -572,13 +572,11 @@ function regattaFiles(ids: string[], args: Args): number {
     did = `${id} = ${value}`;
   } else if (cmd === 'series') {
     if (!id) {
-      console.log('race series <id> [--name "…"] [--pennant flag]');
+      console.log('race series <id> [--name "…"] [--pennant flag] [--prize ship|""]');
       return 1;
     }
-    setSeries(doc, id, {
-      ...(typeof args.name === 'string' ? { name: args.name } : {}),
-      ...(typeof args.pennant === 'string' ? { pennant: args.pennant } : {}),
-    });
+    const keys = ['name', 'pennant', 'prize'].filter((k) => typeof args[k] === 'string');
+    setSeries(doc, id, Object.fromEntries(keys.map((k) => [k, args[k]])));
     did = `series ${id}`;
   } else {
     if (!id) {

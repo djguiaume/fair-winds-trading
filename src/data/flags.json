@@ -35,6 +35,13 @@
       "bands": ["#d2462f", "#f4f1e8"],
       "length": 1.1,
       "height": 0.6
+    },
+    {
+      "id": "tern",
+      "shape": "pennant",
+      "bands": ["#e8c46a"],
+      "length": 1.1,
+      "height": 0.45
     }
   ]
 }

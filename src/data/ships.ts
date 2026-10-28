@@ -15,11 +15,11 @@ export interface ShipFile {
   line: ShipLine;
   /** 0 for the starter, 1 to 3 within a line: the shipyard order. */
   tier: number;
-  unlock: Pick<ShipClass, 'standing' | 'price' | 'upgradePrices'>;
+  unlock: Pick<ShipClass, 'standing' | 'price' | 'upgradePrices' | 'series'>;
   /** How she sails (docs/sailing-model.md), plus `heel`: how readily she leans, 1 = sloop. */
   sailing: Omit<
     ShipClass,
-    'id' | 'name' | 'line' | 'tier' | 'standing' | 'price' | 'upgradePrices'
+    'id' | 'name' | 'line' | 'tier' | 'standing' | 'price' | 'upgradePrices' | 'series'
   > & {
     heel: number;
   };
@@ -57,6 +57,8 @@ export interface ShipModelData {
   mainTopsail?: boolean;
   mainName?: 'Mainsail' | 'Mizzen';
   gooseneck?: number;
+  /** The masthead flag she flies when no regatta pennant has been won (`flags.json`). */
+  pennant?: string;
   /** Named pieces from the code library `src/render/models/shipParts.ts` (leeboards, gun ports…). */
   parts?: string[];
   /** Where her damage shows (decision 0208); left out, `DEFAULT_DAMAGE` places it. */
@@ -118,7 +120,7 @@ export function shipDamageProblems(file: ShipFile): string[] {
   return out;
 }
 
-const LINES: ShipLine[] = ['starter', 'swift', 'hauler', 'warship'];
+const LINES: ShipLine[] = ['starter', 'swift', 'hauler', 'racer', 'warship'];
 
 /** Every ship file, in shipyard order: the starter, then each line by tier. */
 export const SHIP_FILES: ShipFile[] = Object.values(
@@ -138,5 +140,6 @@ export function shipClassOf(file: ShipFile): ShipClass {
     ...(sailing as Omit<ShipFile['sailing'], 'heel'>),
     price: unlock.price,
     upgradePrices: unlock.upgradePrices,
+    ...(unlock.series ? { series: unlock.series } : {}),
   };
 }

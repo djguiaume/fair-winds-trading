@@ -1,5 +1,5 @@
 import { DIFFICULTIES } from './difficulty';
-import { GOODS, type GoodId, isFar } from './goods';
+import { GOODS, type GoodId } from './goods';
 import { BUILDING_IDS, buildableIslands, homeSpots } from './home';
 import { chartAreaIds, fogIslandIds } from './fog';
 import { chartableZoneIds, type MapDef } from './map';
@@ -15,6 +15,7 @@ import {
 } from './quests';
 import type { SaveData } from './save';
 import { SHIP_IDS } from './ship';
+import { fingerprint, layoutFingerprint, readableLayouts } from './saveLayout';
 import { UPGRADE_TRACKS } from './upgrades';
 
 /**
@@ -32,40 +33,6 @@ import { UPGRADE_TRACKS } from './upgrades';
  */
 
 const TAU = 2 * Math.PI;
-
-/**
- * The goods list before the far goods (decision 0146) were added at its end: codes made with it
- * still read, with no far goods in them.
- */
-const GOODS_BEFORE_FAR: readonly GoodId[] = GOODS.filter((g) => !isFar(g));
-
-/**
- * The port lists a code may have been written with: the map's, and the map's before its empty
- * islands to found were added (decision 0157), so a code from before a sea had its site still reads.
- */
-function portLists(map: MapDef): string[][] {
-  const all = map.ports.map((p) => p.id);
-  const open = map.ports.filter((p) => !p.site).map((p) => p.id);
-  return open.length === all.length ? [all] : [all, open];
-}
-
-/** Every id list the layout depends on, in order. */
-function layoutIds(
-  map: MapDef,
-  goods: readonly string[],
-  ports: readonly string[] = map.ports.map((p) => p.id),
-): string[] {
-  return [map.name, ...ports, ...goods, ...SHIP_IDS, ...UPGRADE_TRACKS, ...DIFFICULTIES];
-}
-
-/** 16-bit FNV-1a of the layout lists: different lists give a different fingerprint. */
-export function layoutFingerprint(
-  map: MapDef,
-  goods: readonly string[] = GOODS,
-  ports?: readonly string[],
-): number {
-  return fingerprint(layoutIds(map, goods, ports));
-}
 
 /**
  * The home islands' section (decisions 0126, 0128) comes last, with its own layout number and a
@@ -121,15 +88,6 @@ const currentsFingerprint = (map: MapDef) => fingerprint(currentIds(map));
 const zonesFingerprint = (map: MapDef) => fingerprint(chartableZoneIds(map));
 const fogFingerprint = (map: MapDef) =>
   fingerprint([...chartAreaIds(map), '|', ...fogIslandIds(map)]);
-
-function fingerprint(ids: string[]): number {
-  let h = 0x811c9dc5;
-  for (const ch of ids.join('|')) {
-    h ^= ch.charCodeAt(0);
-    h = Math.imul(h, 0x01000193) >>> 0;
-  }
-  return (h ^ (h >>> 16)) & 0xffff;
-}
 
 class Writer {
   readonly bytes: number[] = [];
@@ -455,18 +413,16 @@ export function unpackSave(
   const version = r.uint();
   if (version > saveVersion) return { ok: false, problem: 'newer' };
   const fingerprint = r.uint();
-  // A code from before the far goods (0146), or from before a sea's empty island to found (0157),
-  // reads with the goods and ports lists it was written with.
-  const layout = portLists(map)
-    .flatMap((ports) => [GOODS, GOODS_BEFORE_FAR].map((goods) => ({ goods, ports })))
-    .find(
-      ({ goods, ports }) =>
-        fingerprint === layoutFingerprint(map, goods, ports) ||
-        fingerprint === (layoutFingerprint(map, goods, ports) ^ questFingerprint(quests)),
-    );
+  // A code from before the far goods (0146), a sea's empty island to found (0157) or the Tern
+  // (0228) reads with the lists it was written with.
+  const layout = readableLayouts(map).find(
+    (l) =>
+      fingerprint === layoutFingerprint(map, l) ||
+      fingerprint === (layoutFingerprint(map, l) ^ questFingerprint(quests)),
+  );
   if (!layout) return { ok: false, problem: 'otherVersion' };
-  const { goods, ports } = layout;
-  const withQuests = fingerprint !== layoutFingerprint(map, goods, ports);
+  const { goods, ports, ships: shipIds } = layout;
+  const withQuests = fingerprint !== layoutFingerprint(map, layout);
   const pick = (list: readonly string[], n: number) => (n > 0 ? list[n - 1] : undefined);
 
   const time = r.uint();
@@ -478,11 +434,11 @@ export function unpackSave(
   const sail = r.uint();
 
   const gold = r.uint();
-  const activeShip = SHIP_IDS[r.uint()] ?? '';
-  const owned = r.flags(SHIP_IDS.length);
+  const activeShip = shipIds[r.uint()] ?? '';
+  const owned = r.flags(shipIds.length);
   const ships: SaveData['ships'] = {};
   const hullDamage: Record<string, number> = {};
-  SHIP_IDS.forEach((id, k) => {
+  shipIds.forEach((id, k) => {
     if (!owned[k]) return;
     const levels = { sails: 1, hold: 1, hull: 1 };
     for (const t of UPGRADE_TRACKS) levels[t] = r.uint();
