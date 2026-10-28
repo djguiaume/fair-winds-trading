@@ -509,10 +509,7 @@ export function designedTownParts(
   const stone = design.style === 'stone';
   // Grounds as data (palette.json › grounds): the style swaps the file's names for its own.
   const ground = (material: string) => groundColors(material, design.style);
-  // The new look draws the rolling ground apart; only its faceted shapes are built here.
-  const out: Parts = stand
-    ? facetedGround(layout, design.style, R)
-    : designedGround(layout, design.style, R);
+  const out: Parts = (stand ? facetedGround : designedGround)(layout, design.style, R);
   const pathColor = styleColor('path', design.style) as string;
   for (const lane of design.lanes) {
     if (lane.kind === 'stairs') stairs(out, lane, R);

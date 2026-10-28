@@ -12,7 +12,7 @@ import { isGlowing } from '../../render/models/geometry';
 import { PROP_TYPES, type PropGroup } from '../../render/models/props';
 import { designedTownParts, islandCheckKit, type TownLevel } from '../../render/models/towns';
 import { propParts, standHeight } from '../../render/models/townProps';
-import { builderLook, newLookGround } from './newLook';
+import { builderLook, newLookGround, previewIsland } from './newLook';
 import { coastDistance } from '../../sim/coast';
 import { type IslandIssue, TRIANGLE_BUDGET } from '../../sim/islandChecks';
 import { islandLayout, layoutGround } from '../../sim/islandLayout';
@@ -292,16 +292,7 @@ function rebuild(without?: number) {
   top!.setGeometry(next, ground);
   preview!.setGeometry(land, windows, ground);
   // The game's lamps on this island: harbour toward +z, as the builder's model is drawn.
-  preview!.setLamps(
-    {
-      id: design.id,
-      x: 0,
-      y: 0,
-      radius: R * ISLAND_SCALE,
-      look: { design: design.id, harbourBearing: Math.PI, dock: harbour },
-    },
-    level,
-  );
+  preview!.setLamps(previewIsland(design, R, harbour), level);
   for (const g of [geometry, previewLand, previewGlass]) g?.dispose();
   [geometry, previewLand, previewGlass] = [next, land, windows];
   $('ib-preview-title').textContent = `3D preview · level ${level}`;

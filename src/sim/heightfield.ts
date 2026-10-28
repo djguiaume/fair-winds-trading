@@ -1,5 +1,5 @@
 import { TUNING } from '../data/tuning';
-import { designOf, type IslandDesign, type Point } from '../data/islands';
+import { designOf, type IslandDesign } from '../data/islands';
 import type { IslandDef, TerrainDef } from './map';
 import { insetOutline } from './coast';
 import { insideOutline } from './flowShapes';
@@ -8,6 +8,7 @@ import {
   flatLayout,
   islandBearing,
   islandLayout,
+  islandOutline,
   islandPoint,
   isSloped,
   layoutGround,
@@ -329,22 +330,15 @@ export function islandHeightfield(island: IslandDef, level = 4): Heightfield {
 }
 
 /**
-/**
  * An island file's field placed as `island`, built afresh: its generated ground smoothed into
  * the new look's rolling land (issue #269), then its hand edits (decision 0230). For a file that
  * is not the map's own, as the island builder, the island checks and the sculpting session use.
  */
 export function designHeightfield(island: IslandDef, design: IslandDesign, level = 4): Heightfield {
-  const toMap = (x: number, z: number) => islandPoint(island, x, z);
-  const coasts = design.coasts.map((c) =>
-    c.map(([x, z]): Point => {
-      const p = toMap(x, z);
-      return [p.x, p.y];
-    }),
-  );
+  const coasts = design.coasts.map((c) => islandOutline(island, c));
   const field = smoothField(
     rasterise(boxOf(coasts), design.seed, designSampler(island, design, level)),
-    townKeepAreas(design, level, island.radius, toMap),
+    townKeepAreas(design, level, island.radius, (x, z) => islandPoint(island, x, z)),
     coasts,
   );
   return sculptField(field, island, design);

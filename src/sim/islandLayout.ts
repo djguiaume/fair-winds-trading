@@ -352,6 +352,13 @@ export function islandPoint(island: IslandDef, x: number, z: number) {
     y: island.y + island.radius * (Math.sin(a) * x - Math.cos(a) * z),
   };
 }
+/** An outline of the island's file (radius units) on the map. */
+export function islandOutline(island: IslandDef, outline: Outline): Outline {
+  return outline.map(([x, z]) => {
+    const p = islandPoint(island, x, z);
+    return [p.x, p.y];
+  });
+}
 const coastCache = new WeakMap<
   IslandDef,
   { key: string; design: IslandDesign; coasts: Outline[] }
@@ -363,12 +370,7 @@ export function islandCoasts(island: IslandDef): Outline[] | null {
   const cached = coastCache.get(island);
   // The island builder replaces a design with an edited copy: the cache follows it.
   if (cached?.key === key && cached.design === design) return cached.coasts;
-  const coasts: Outline[] = design.coasts.map((c) =>
-    c.map(([x, z]) => {
-      const p = islandPoint(island, x, z);
-      return [p.x, p.y];
-    }),
-  );
+  const coasts = design.coasts.map((c) => islandOutline(island, c));
   coastCache.set(island, { key, design, coasts });
   return coasts;
 }
@@ -376,12 +378,7 @@ export function islandCoasts(island: IslandDef): Outline[] | null {
 /** Inland water shares its outline with the terrain hole and chart. */
 export function islandLake(island: IslandDef): Outline | null {
   const lake = designOf(island)?.lake;
-  return lake
-    ? lake.map(([x, z]) => {
-        const p = islandPoint(island, x, z);
-        return [p.x, p.y];
-      })
-    : null;
+  return lake ? islandOutline(island, lake) : null;
 }
 
 /** The arrival pier on the simulation's line, then the side piers the island file builds. */

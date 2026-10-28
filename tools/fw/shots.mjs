@@ -230,20 +230,18 @@ export function planShots(args) {
 
 /** The game's address for a shot: the sea, `?debug`, and a quest test's own parameters. */
 export function shotPath(shot) {
-  if (shot.editor)
-    // The island builder draws the new look's ground too (?look=v2, issue #269).
-    return `/editor.html?debug${shot.editor === 'ring' ? '&sea=ring' : ''}${shot.ground === 'v2' ? '&look=v2' : ''}`;
+  const look = shot.ground === 'v2' ? '&look=v2' : ''; // the new look's ground (#268, #269)
+  if (shot.editor) return `/editor.html?debug${shot.editor === 'ring' ? '&sea=ring' : ''}${look}`;
   if (shot.url) {
     const u = new URL(shot.url, 'http://x/');
     u.searchParams.set('debug', '');
     return `/${u.search}`;
   }
-  const q = new URLSearchParams({ debug: '' });
+  const q = new URLSearchParams(`debug${look}`);
   const map = shot.seaFile || shot.islands.length ? 'edited' : SEAS[shot.sea];
   if (map) q.set('map', map);
   // Island files tried on the Phase 4 sea: the edited map falls back to the grown sea (0161).
   if (map === 'edited' && !shot.seaFile && shot.sea === 'phase4') q.set('sea', 'phase4');
-  if (shot.ground === 'v2') q.set('look', 'v2');
   for (const [k, v] of new URLSearchParams(shot.query ?? '')) q.set(k, v);
   return `/?${q}`;
 }
