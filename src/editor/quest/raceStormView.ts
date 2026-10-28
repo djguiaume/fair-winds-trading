@@ -61,7 +61,7 @@ export function raceStormRows(
   const t = TUNING.weather.raceStorms;
   const list = h('div', { class: 'ed-list' });
   (q.race?.storms ?? []).forEach((s, i) => {
-    const line = h('span', { class: 'ed-pair' });
+    const line = h('span', { class: 'ed-pair qb-storm-row' });
     const drop = h('button', { type: 'button', title: 'Remove this storm' }, '✕');
     drop.addEventListener('click', () => edit(() => removeRaceStorm(q, i)));
     const set =

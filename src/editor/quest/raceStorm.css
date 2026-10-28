@@ -1,10 +1,16 @@
 .qb-overlay .qb-storm {
-  fill: rgba(120, 140, 170, 0.28);
-  stroke: #9fb4d4;
-  stroke-width: 1.4;
-  stroke-dasharray: 4 3;
+  fill: rgba(16, 52, 70, 0.4);
+  stroke: #0f3a4d;
+  stroke-width: 2.2;
+  stroke-dasharray: 9 4;
 }
 .qb-overlay .qb-storm-drift {
-  stroke: #9fb4d4;
-  stroke-width: 1.6;
+  stroke: #0f3a4d;
+  stroke-width: 2;
+}
+.qb-storm-row {
+  flex-wrap: wrap;
+}
+.qb-storm-row input {
+  width: 5.5em;
 }
