@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { IslandDef, TerrainDef } from '../sim/map';
 import { PALETTE } from './palette';
 import { TUNING } from '../data/tuning';
+import type { QualityProfile } from './quality';
 import { DAY, type Look } from './atmosphere';
 import { type ShoreTexture, shoreShader, shoreTexture } from './shoreTexture';
 import { type SeabedTexture, seabedShader } from './seabedTexture';
@@ -158,6 +159,27 @@ export function waveHeight(x: number, z: number, t: number): number {
     Math.sin(x * -0.05 + z * 0.15 + t * 0.8) * 0.24 +
     Math.sin(x * 0.21 + z * -0.17 + t * 1.7) * 0.12
   );
+}
+
+/**
+ * The ocean of a quality level. The shader depends on the water look, not the grid resolution:
+ * it shares the material of another level's ocean that draws the same water, so switching
+ * between High and Medium never releases or relinks the same program.
+ */
+export function oceanFor(
+  profile: QualityProfile,
+  others: readonly Ocean[],
+  land: { islands: readonly IslandDef[]; terrain: readonly TerrainDef[] },
+  shore: ShoreTexture,
+  seabed?: SeabedTexture,
+): Ocean {
+  const material = others.find(
+    ({ mesh }) =>
+      'FANCY' in mesh.material.defines === profile.fancyWater &&
+      'REFLECT' in mesh.material.defines === profile.waterReflection,
+  )?.mesh.material;
+  const look = { fancy: profile.fancyWater, reflect: profile.waterReflection, seabed };
+  return new Ocean(land.islands, profile.oceanSegments, look, 480, land.terrain, shore, material);
 }
 
 /** Which water shader a quality level draws. */

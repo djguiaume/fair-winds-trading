@@ -17,7 +17,7 @@ import {
   createBoatModel,
 } from './models';
 import { HEEL_FEEL, Heel, heelFactor } from './heel';
-import { Ocean, waveHeight } from './ocean';
+import { type Ocean, oceanFor, waveHeight } from './ocean';
 import { ShoreTextureCache } from './shoreTexture';
 import { SeabedTextureCache, drawnFields } from './seabedTexture';
 import { CalmWater } from './calmWater';
@@ -416,23 +416,9 @@ export class GameView {
     if (seabed) for (const effects of this.qualityEffects.values()) effects.ocean.setSeabed(seabed);
     let effects = this.qualityEffects.get(level);
     if (!effects) {
-      // Ocean shader source depends on fancyWater, not the grid resolution. Share the
-      // existing material so High/Medium never release or relink the same program.
-      const waterMaterial = [...this.qualityEffects.values()].find(
-        ({ ocean }) =>
-          'FANCY' in ocean.mesh.material.defines === profile.fancyWater &&
-          'REFLECT' in ocean.mesh.material.defines === profile.waterReflection,
-      )?.ocean.mesh.material;
+      const others = [...this.qualityEffects.values()].map(({ ocean }) => ocean);
       effects = {
-        ocean: new Ocean(
-          this.world.land.islands,
-          profile.oceanSegments,
-          { fancy: profile.fancyWater, reflect: profile.waterReflection, seabed },
-          480,
-          this.world.land.terrain,
-          shore,
-          waterMaterial,
-        ),
+        ocean: oceanFor(profile, others, this.world.land, shore, seabed),
         streaks: new WindStreaks(profile.windStreaks),
         rain: new Rain(profile.rainDrops),
       };
