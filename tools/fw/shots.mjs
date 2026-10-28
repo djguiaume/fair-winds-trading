@@ -59,6 +59,8 @@ Where
   --tab market|orders|quay|shipyard   the port screen's tab
   --zoom z                      camera distance, 1 = default, larger = farther (no game limit)
   --look x,y                    camera on this map point instead of the boat
+  --yaw deg --tilt deg          a turned camera (0223): looking toward this bearing (0 = north),
+                                this steep (degrees down; the player's limits do not apply)
   --menu                        the title menu, before Set sail (the scene options are ignored)
   --chart                       the sea chart open (--pad and --click then play on it); --chart-zoom n, --chart-pan Key:n,
                                 --chart-panel journal|market|legend: that tab (default the map)
@@ -109,7 +111,19 @@ const PAGES = 'https://djguiaume.github.io/fair-winds-trading/';
 
 // The game's own sea is the grown one (decision 0198): `phase4` (or `game`) needs no `?map=`.
 const SEAS = { phase4: '', game: '', ring: 'ring', stress: 'stress' };
-const NUMBERS = ['heading', 'sail', 'speed', 'zoom', 'time', 'wait', 'chart-zoom', 'hull', 'crash'];
+const NUMBERS = [
+  'heading',
+  'sail',
+  'speed',
+  'zoom',
+  'yaw',
+  'tilt',
+  'time',
+  'wait',
+  'chart-zoom',
+  'hull',
+  'crash',
+];
 
 const pair = (v) => {
   if (Array.isArray(v)) return v.map(Number);
@@ -166,6 +180,8 @@ export function normalise(opts) {
     quest: o.quest ? String(o.quest).split(':') : null,
     tab: o.tab ?? null,
     zoom: o.zoom ?? null,
+    yaw: o.yaw ?? null,
+    tilt: o.tilt ?? null,
     look: o.look !== undefined ? pair(o.look) : null,
     menu: !!o.menu,
     chart: !!o.chart,
@@ -228,6 +244,8 @@ function defaultName(s) {
     sea,
     s.menu ? 'menu' : where,
     s.chart && 'chart',
+    s.yaw !== null && `yaw${s.yaw}`,
+    s.tilt !== null && `tilt${s.tilt}`,
     s.night && 'night',
     s.lang !== 'en' && s.lang,
   ]
@@ -380,6 +398,7 @@ async function setScene(page, shot) {
     }
     if (s.tab && world.trade.dockedAt) window.fwt.tradePanel.open(s.tab);
     if (s.zoom !== null) view.zoom = s.zoom;
+    if (s.yaw !== null || s.tilt !== null) view.orbit.set(s.yaw ?? 0, s.tilt ?? undefined);
     if (s.look) view.setFocus({ x: s.look[0], y: s.look[1] }, true);
     if (s.erupt && !view.erupt(s.erupt, true)) return `no volcano on ${s.erupt}`;
     return null;

@@ -14,6 +14,9 @@ export interface Shot {
   quest: [string, string] | null;
   tab: string | null;
   zoom: number | null;
+  /** A turned camera (decision 0223): the bearing it looks toward and its tilt, degrees. */
+  yaw: number | null;
+  tilt: number | null;
   look: [number, number] | null;
   chart: boolean;
   charted: boolean;

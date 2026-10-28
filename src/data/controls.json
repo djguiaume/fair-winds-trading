@@ -9,6 +9,8 @@
       "steerAxis": "lx",
       "zoomAxis": "ry",
       "zoomPerSec": 1.6,
+      "orbitAxis": "rx",
+      "orbitDegPerSec": 120,
       "actions": {
         "steerLeft": ["left"],
         "steerRight": ["right"],
@@ -18,7 +20,8 @@
         "harbour": ["a"],
         "chart": ["view"],
         "pause": ["menu"],
-        "skipLesson": ["y"]
+        "skipLesson": ["y"],
+        "resetCamera": ["rs"]
       }
     },
     "chart": {

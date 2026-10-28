@@ -91,6 +91,13 @@ describe('game controller (decision 0162)', () => {
     expect(seaPad(readPad(fakePad([], [0, 0, 0, -1]), new Map(), 0, PAD), 0.5).zoom).toBeLessThan(
       1,
     );
+    // Right stick sideways turns the camera to look right; a click on it resets (decision 0223).
+    const turn = seaPad(readPad(fakePad([], [0, 0, 1, 0]), new Map(), 0, PAD), 0.5);
+    expect(turn.turn).toBeCloseTo((PAD.sea.orbitDegPerSec * 0.5 * Math.PI) / 180);
+    expect(seaPad(readPad(fakePad(['rs']), new Map(), 0, PAD), 1 / 60)).toMatchObject({
+      resetCamera: true,
+      other: [],
+    });
   });
 
   it('on the chart: stick pans, triggers zoom, B closes', () => {

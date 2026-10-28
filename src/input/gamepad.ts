@@ -1,4 +1,5 @@
 import controls from '../data/controls.json';
+import { DEG } from '../sim/math';
 
 /**
  * Game controllers through the browser's Gamepad API (decision 0162): an Xbox or any pad the
@@ -71,7 +72,8 @@ export type SeaAction =
   | 'harbour'
   | 'chart'
   | 'pause'
-  | 'skipLesson';
+  | 'skipLesson'
+  | 'resetCamera';
 export type ChartAction =
   | 'panLeft'
   | 'panRight'
@@ -106,6 +108,9 @@ export interface PadControls extends PadConfig {
     steerAxis: PadAxis;
     zoomAxis: PadAxis;
     zoomPerSec: number;
+    /** The stick that turns the camera round the boat (decision 0223), and how fast at full lean. */
+    orbitAxis: PadAxis;
+    orbitDegPerSec: number;
     actions: Record<SeaAction, PadButton[]>;
   };
   chart: {
@@ -177,6 +182,18 @@ export function brandProblems(brands: Record<string, PadBrand> = PAD_BRANDS): st
   return out;
 }
 
+/** The settings that name a stick axis, in any place. */
+const AXIS_KEYS = [
+  'steerAxis',
+  'zoomAxis',
+  'orbitAxis',
+  'panX',
+  'panY',
+  'moveX',
+  'moveY',
+  'scrollY',
+];
+
 /** Problems in a controls file: unknown buttons or axes, actions with no button, bad numbers. */
 export function controlProblems(c: PadControls = PAD): string[] {
   const out: string[] = [];
@@ -195,7 +212,7 @@ export function controlProblems(c: PadControls = PAD): string[] {
     { actions: Record<string, string[]> } & Record<string, unknown>
   >;
   for (const [name, ctx] of Object.entries(contexts)) {
-    for (const key of ['steerAxis', 'zoomAxis', 'panX', 'panY', 'moveX', 'moveY', 'scrollY'])
+    for (const key of AXIS_KEYS)
       if (key in ctx && !axes.has(ctx[key] as string))
         out.push(`${name}.${key}: no axis "${String(ctx[key])}"`);
     for (const [action, list] of Object.entries(ctx.actions)) {
@@ -618,6 +635,10 @@ export interface SeaPad {
   skipLesson: boolean;
   /** Camera zoom factor (< 1 closer), like the mouse wheel. */
   zoom: number;
+  /** Camera turn this frame, radians (+ looks to the right, decision 0223). */
+  turn: number;
+  /** Ease the camera back north-up. */
+  resetCamera: boolean;
   /** Presses no sea action took, for the menus' focus code. */
   other: PadPress[];
 }
@@ -634,6 +655,8 @@ export function seaPad(f: PadFrame, dt: number, c: PadControls['sea'] = PAD.sea)
     pause: false,
     skipLesson: false,
     zoom: Math.exp(f.axes[c.zoomAxis] * c.zoomPerSec * dt),
+    turn: f.axes[c.orbitAxis] * c.orbitDegPerSec * DEG * dt,
+    resetCamera: false,
     other: [],
   };
   for (const p of f.presses) {
@@ -646,6 +669,7 @@ export function seaPad(f: PadFrame, dt: number, c: PadControls['sea'] = PAD.sea)
     else if (isFor(p, a.chart)) out.chart = true;
     else if (isFor(p, a.pause)) out.pause = true;
     else if (isFor(p, a.skipLesson)) out.skipLesson = true;
+    else if (isFor(p, a.resetCamera)) out.resetCamera = true;
     else out.other.push(p);
   }
   return out;

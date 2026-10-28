@@ -32,6 +32,10 @@ export interface Settings {
   voiceVolume: number;
   /** Day and night cycle (decision 0068); off keeps a bright day for players who dislike night. */
   dayNight: boolean;
+  /** The player may turn and tilt the camera (decision 0223); off keeps north up. */
+  turnCamera: boolean;
+  /** A turned camera eases back north-up after a few seconds without camera input (0223). */
+  cameraReturns: boolean;
   /** Weather spells and storms (decision 0067); off = a steady breeze. */
   weather: boolean;
   /** Moving storms (decision 0067); hazards can be turned off (Guillaume). */
@@ -73,6 +77,8 @@ const DEFAULTS: Settings = {
   voices: true,
   voiceVolume: 0.7,
   dayNight: true,
+  turnCamera: true,
+  cameraReturns: false,
   weather: true,
   storms: true,
   eruptions: true,

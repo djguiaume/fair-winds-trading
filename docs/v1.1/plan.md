@@ -284,6 +284,10 @@ Guillaume asked on 2026-10-25 whether the camera could be moved: the right stick
 (click it to reset), right-click drag on a PC, and something that works on a phone. This is a
 **feasibility check only**: nothing is built, and it is a candidate for v1.1, not a commitment.
 
+**Built (2026-10-28):** issue #256, decision
+[0223](../decisions/0223-a-camera-the-player-can-turn.md). The ADR has what changed from this
+proposal (Settings rows sit under Display; `?bench&tilt=50` and `&tilt=70` measure the limits).
+
 **Verdict: feasible, medium size.** The camera is one small piece of code: `src/render/view.ts`
 `render()` places it at a fixed pitch (`CAMERA_PITCH` 58°) and distance (`BASE_DISTANCE` 110 ×
 zoom), always looking north, easing after a target a little ahead of the boat. Turning it means
