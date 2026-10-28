@@ -40,3 +40,5 @@ Who decides what in a release, and how threads talk to each other. Guillaume set
 ## Each decision lives in one place
 
 Look rules in the art bible, story rules in the story brief, everything else in a decision (`docs/decisions/`). Issues hold the "what", plans and decisions the "why". Memory and CLAUDE.md only point to them.
+
+More ways to save tokens: [token-saving.md](token-saving.md).
