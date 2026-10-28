@@ -53,6 +53,7 @@ import { seaShape } from '../sim/seaEdge';
 import { CLEAR, type ZoneVisual, mapZones, zoneField, zoneVisualAt } from '../sim/windZones';
 import { type FlagDef, shipPennant } from '../sim/regatta';
 import { smoothOutline } from '../sim/flowShapes';
+import { setNightPaper } from '../ui/nightPaper';
 import { designOf } from '../data/islands';
 import {
   HARBOUR_VIEW,
@@ -573,6 +574,7 @@ export class GameView {
     const dist = this.rig.place(dt, this.width / this.height, pos, dir, boat.speedKn);
     const fog = this.scene.fog as THREE.Fog;
     const day = daylightAt(this.dayNight ? time : ALWAYS_DAY);
+    setNightPaper(day.night);
     // Fog banks and ash clouds (decision 0169) are looked up where the camera looks, wind zones
     // switch or not: only their own Settings switch clears them.
     const zones = zoneField(mapZones(this.world.map), smoothOutline);

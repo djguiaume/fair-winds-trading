@@ -113,6 +113,16 @@
   --body: 'Barlow', 'Trebuchet MS', sans-serif;
 }
 
+/* At night the paper dims with the scene (issue #326); ink stays dark, so text keeps its contrast. */
+:root[data-night] {
+  --paper: #8d856f;
+  --paper-2: #7f765f;
+  --paper-card: #958c75;
+  --paper-shade: rgba(40, 28, 14, 0.2);
+  --paper-ink: #1f160e;
+  --paper-ink-dim: rgba(31, 22, 14, 0.78);
+}
+
 /* On paper the dark-surface tokens flip to ink on cream, so the screens' rules need no second set. */
 .on-paper,
 .port-screen .trade-content,
