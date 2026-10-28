@@ -92,6 +92,23 @@ function drawnHeights(field: Heightfield) {
   return out;
 }
 
+/**
+ * 1 on samples deep inside a faceted shape (they and their eight neighbours are faceted): the
+ * ground there is hidden inside the classic piece, so its cells are not drawn.
+ */
+function insideFaceted(field: Heightfield) {
+  const { w, h, smooth } = field;
+  const out = new Uint8Array(w * h);
+  for (let j = 1; j + 1 < h; j++)
+    for (let i = 1; i + 1 < w; i++) {
+      let all = true;
+      for (let dj = -1; dj <= 1 && all; dj++)
+        for (let di = -1; di <= 1 && all; di++) all = smooth[(j + dj) * w + i + di] === 0;
+      if (all) out[j * w + i] = 1;
+    }
+  return out;
+}
+
 /** Per-vertex normals of a grid of heights (scene axes: x east, z = -map y). */
 function gridNormals(heights: Float32Array, w: number, h: number, cell: number) {
   const normals = new Float32Array(w * h * 3);
@@ -144,7 +161,8 @@ function mottled(list: readonly THREE.Color[], noise: number, out: THREE.Color) 
 
 /**
  * The ground of a height field as one indexed, smooth-shaded mesh in scene coordinates, with
- * vertex colours. Cells wholly under `draw.hideBelow` (deep under the opaque sea) are left out.
+ * vertex colours. Cells wholly under `draw.hideBelow` (deep under the opaque sea) or deep inside
+ * a faceted shape are left out.
  */
 export function fieldGround(field: Heightfield, palette: FieldPalette): THREE.BufferGeometry {
   const { w, h, cell, seed } = field;
@@ -196,6 +214,7 @@ export function fieldGround(field: Heightfield, palette: FieldPalette): THREE.Bu
     colors[k * 3 + 1] = c.g;
     colors[k * 3 + 2] = c.b;
   }
+  const hidden = insideFaceted(field);
   const index: number[] = [];
   for (let j = 0; j + 1 < h; j++)
     for (let i = 0; i + 1 < w; i++) {
@@ -204,6 +223,7 @@ export function fieldGround(field: Heightfield, palette: FieldPalette): THREE.Bu
         d = a + w,
         e = a + w + 1;
       if (Math.max(heights[a]!, heights[b]!, heights[d]!, heights[e]!) < draw.hideBelow) continue;
+      if (hidden[a] && hidden[b] && hidden[d] && hidden[e]) continue;
       // Wound to face up: +x, then -z (the map's +y).
       index.push(a, b, d, b, e, d);
     }

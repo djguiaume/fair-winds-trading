@@ -163,7 +163,7 @@ export function smoothField(
     if (kept[k] && ground[k]) work[k] = work[k]! + (raw[k]! - work[k]!) * t.town.keep;
   weightedBlur(work, weight, w, h, t.seamBlur / cell);
   const deepen = seabed / t.shoreSea;
-  const { band, slope } = t.shore;
+  const { band, slope, seaSlope } = t.shore;
   const near = coasts.length ? nearShore(field, band) : null;
   for (let k = 0; k < n; k++) {
     const land = ground[k] !== 0,
@@ -178,7 +178,7 @@ export function smoothField(
       let inland = -Infinity;
       for (const c of coasts) inland = Math.max(inland, -coastDistance(x, y, c).distance);
       out = smoothstep(0, band, Math.abs(inland));
-      height = inland * slope * (1 - out) + height * out;
+      height = inland * (inland > 0 ? slope : seaSlope) * (1 - out) + height * out;
     }
     if (land) field.heights[k] = Math.max(out < 1 ? 0.01 : t.landMin, height);
     else {

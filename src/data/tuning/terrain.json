@@ -24,7 +24,8 @@
     "seaMax": -0.05,
     "shore": {
       "band": 2.5,
-      "slope": 0.35
+      "slope": 0.35,
+      "seaSlope": 0.7
     },
     "relief": {
       "scale": 0.05,
@@ -38,7 +39,7 @@
     }
   },
   "draw": {
-    "hideBelow": -1.5,
+    "hideBelow": -0.9,
     "blend": 2,
     "jitter": 0.6,
     "mottle": 0.18,
