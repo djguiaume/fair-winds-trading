@@ -69,6 +69,8 @@
   --ink-dim: rgba(246, 239, 219, 0.74);
   --green: #59d36b;
   --green-ink: #8fe3a4;
+  --gold-ink: #ffe680;
+  --disabled-line: rgba(246, 239, 219, 0.25);
   --red: #ff6a55;
   /* The hull at its worst (decision 0208). */
   --red-deep: #d8402e;
@@ -79,6 +81,11 @@
   --leather: #3a2a1d;
   --leather-deep: #2a1d12;
   --leather-ink: #fbeed0;
+  /* Planks: seams only on the wood (never on paper or plates), one soft shade across. */
+  --planks:
+    repeating-linear-gradient(90deg, transparent 0 138px, rgba(0, 0, 0, 0.3) 138px 140px),
+    linear-gradient(var(--leather), var(--leather-deep));
+  --tab: #b89a68;
 
   /* Paper: text lives on it. Flat, with one soft edge, never ruled. */
   --paper: #f1e6c8;
@@ -107,7 +114,8 @@
 }
 
 /* On paper the dark-surface tokens flip to ink on cream, so the screens' rules need no second set. */
-.on-paper {
+.on-paper,
+.port-screen .trade-content {
   --ink: var(--paper-ink);
   --ink-dim: var(--paper-ink-dim);
   --brass: var(--teal);
@@ -115,6 +123,8 @@
   --brass-lo: var(--teal-edge);
   --brass-line: rgba(90, 60, 30, 0.55);
   --green-ink: #3d6b3a;
+  --gold-ink: #7a5412;
+  --disabled-line: rgba(90, 60, 30, 0.35);
   --outline: #4a3320;
   --navy: var(--paper-card);
   --navy-solid: var(--paper-2);
@@ -194,6 +204,7 @@
 .sail-lever,
 .port-marker-box,
 .icon-btn,
+.port-chip,
 .toast {
   border: 2px solid var(--plate-edge);
   border-radius: 8px;

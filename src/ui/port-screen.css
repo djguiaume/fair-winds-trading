@@ -19,9 +19,9 @@
   gap: 0;
   border: 0;
   border-radius: 0;
-  background: rgba(9, 28, 41, 0.97);
+  background: var(--planks);
   box-shadow: none;
-  color: var(--ink);
+  color: var(--leather-ink);
   font-family: var(--body);
   text-shadow: none;
   /* The pad's focus scrolls into view clear of the sticky header and footer (decision 0192). */
@@ -39,8 +39,6 @@
   padding: max(10px, var(--safe-top, env(safe-area-inset-top)))
     max(16px, var(--safe-right, env(safe-area-inset-right))) 10px
     max(16px, var(--safe-left, env(safe-area-inset-left)));
-  border-bottom: 1px solid var(--brass-line);
-  background: #0b2230;
 }
 .port-screen .port-title-area {
   display: flex;
@@ -52,11 +50,9 @@
 }
 .port-screen .port-name {
   margin: 0;
-  color: var(--ink);
-  font: 700 30px/1 var(--display);
-  letter-spacing: 0.06em;
-  text-shadow: none;
-  text-transform: uppercase;
+  color: var(--leather-ink);
+  font: 900 38px/1 var(--serif);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.5);
 }
 .port-screen .port-roles-summary {
   display: flex;
@@ -70,13 +66,11 @@
   gap: 3px;
   height: 30px;
   padding: 0 10px;
-  border: 1px solid var(--brass-line);
-  border-radius: 6px;
-  background: none;
-  color: var(--ink);
-  font: 700 14px/1 var(--display);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  border: 1px solid var(--paper-edge);
+  border-radius: 4px;
+  background: var(--paper-card);
+  color: var(--paper-ink);
+  font: 700 15px/1 var(--serif);
 }
 .port-screen .role-tag small {
   margin-right: 4px;
@@ -102,8 +96,6 @@
   gap: 6px;
   height: 40px;
   padding: 0 12px;
-  border: 1px solid var(--brass-line);
-  border-radius: 8px;
   font: 700 20px/1 var(--display);
   white-space: nowrap;
 }
@@ -130,25 +122,22 @@
   gap: 4px;
   padding: 8px max(16px, var(--safe-right, env(safe-area-inset-right))) 0
     max(16px, var(--safe-left, env(safe-area-inset-left)));
-  border-bottom: 1px solid rgba(238, 243, 244, 0.12);
 }
+/* Tabs are paper folders on the wood; the open one is the paper below it. */
 .port-screen .tab-btn {
   flex: none;
   min-height: 44px;
   padding: 0 16px;
-  border: 0;
-  border-bottom: 3px solid transparent;
+  border: 1.5px solid var(--paper-edge);
+  border-bottom: 0;
   border-radius: 8px 8px 0 0;
-  background: none;
-  color: var(--ink-dim);
-  font: 700 18px/1 var(--display);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  background: var(--tab);
+  color: var(--paper-ink);
+  font: 700 19px/1 var(--serif);
 }
 .port-screen .tab-btn.active {
-  border-bottom-color: var(--brass);
-  background: rgba(232, 196, 106, 0.12);
-  color: var(--ink);
+  background: var(--paper);
+  color: var(--teal);
 }
 .tab-badge {
   display: inline-grid;
@@ -171,19 +160,17 @@
 }
 .lot-picker small {
   margin-right: 2px;
-  color: var(--ink-dim);
-  font: 700 13px var(--display);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  color: var(--leather-ink);
+  font: 700 15px var(--display);
 }
 .lot-btn {
   min-width: 44px;
   height: 36px;
-  border: 1px solid var(--brass-line);
+  border: 1.5px solid var(--paper-edge);
   border-radius: 6px;
-  background: none;
-  color: var(--ink-dim);
-  font: 700 16px/1 var(--display);
+  background: var(--paper-2);
+  color: var(--paper-ink);
+  font: 700 17px/1 var(--display);
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -239,10 +226,10 @@
 .port-screen .sell-all-btn:is(:disabled, [aria-disabled='true']),
 .port-screen .upgrade-btn:is(:disabled, [aria-disabled='true']),
 .port-screen .ship-btn:is(:disabled, [aria-disabled='true']) {
-  border-color: rgba(238, 243, 244, 0.18);
-  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--disabled-line);
+  background: var(--paper-shade);
   box-shadow: none;
-  color: rgba(238, 243, 244, 0.4);
+  color: var(--ink-dim);
   cursor: default;
   opacity: 1;
 }
@@ -257,6 +244,8 @@
 /* --- Market: one row per good, side panel -------------------------------------------- */
 .port-screen .trade-content {
   flex: 1;
+  background: var(--paper);
+  box-shadow: inset 0 0 38px var(--paper-shade);
   padding: 8px max(16px, var(--safe-right, env(safe-area-inset-right))) 12px
     max(16px, var(--safe-left, env(safe-area-inset-left)));
 }
@@ -278,10 +267,9 @@
   column-gap: 10px;
   row-gap: 6px;
   padding: 8px;
-  border-bottom: 1px solid rgba(238, 243, 244, 0.12);
 }
-.good-row.wants {
-  background: rgba(232, 196, 106, 0.06);
+.good-row:nth-child(even) {
+  background: var(--paper-shade);
 }
 .good-icon {
   grid-area: icon;
@@ -359,18 +347,17 @@
 }
 .side-card {
   padding: 10px 14px 12px;
-  border: 1px solid var(--brass-line);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.03);
+  border: 1.5px solid var(--paper-edge);
+  border-radius: 6px;
+  background: var(--navy);
+  box-shadow: 2px 3px 0 rgba(58, 42, 29, 0.35);
 }
 .side-card h3,
 .port-screen .contracts-title,
 .port-screen .section-title h3 {
   margin: 0 0 6px;
   color: var(--brass);
-  font: 700 18px/1.2 var(--display);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font: 700 18px/1.2 var(--serif);
 }
 .side-card ul {
   margin: 0;
@@ -407,11 +394,9 @@
 /* A load on credit (decision 0200): the harbour office's offer, then what she owes. */
 .side-card.credit-card {
   border-color: var(--brass);
-  background: rgba(255, 214, 130, 0.08);
 }
 .side-card.credit-card.owed {
   border-style: dashed;
-  background: rgba(255, 255, 255, 0.03);
 }
 .side-card.credit-card.owed p {
   margin: 0;
@@ -469,19 +454,17 @@
 }
 .port-screen .upgrade-card,
 .port-screen .ship-card {
-  border: 1px solid var(--brass-line);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.03);
-  box-shadow: none;
+  border: 1.5px solid var(--paper-edge);
+  border-radius: 6px;
+  background: var(--navy);
+  box-shadow: 2px 3px 0 rgba(58, 42, 29, 0.35);
 }
 .port-screen .ship-card.active-ship {
   border-color: var(--green);
 }
 .port-screen .track-name,
 .port-screen .ship-card-header h4 {
-  font: 700 19px/1.2 var(--display);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font: 700 19px/1.2 var(--serif);
 }
 .port-screen .track-pip.filled {
   background: var(--brass);
@@ -511,7 +494,7 @@
 .port-screen .trade-status {
   margin: 0;
   padding: 0 max(16px, var(--safe-right, env(safe-area-inset-right))) 4px;
-  color: var(--brass);
+  color: var(--leather-ink);
   font-size: 15px;
   text-align: right;
 }
@@ -526,8 +509,7 @@
   padding: 10px max(16px, var(--safe-right, env(safe-area-inset-right)))
     max(10px, var(--safe-bottom, env(safe-area-inset-bottom)))
     max(16px, var(--safe-left, env(safe-area-inset-left)));
-  border-top: 1px solid var(--brass-line);
-  background: #0b2230;
+  background: var(--planks);
 }
 .footer-gap {
   flex: 1;
@@ -646,8 +628,8 @@
     display: none;
   }
   .port-screen .tab-btn {
-    padding: 0 10px;
-    font-size: 16px;
+    padding: 0 6px;
+    font-size: 15px;
   }
   .port-screen #tp-repair {
     width: 100%;
@@ -683,20 +665,20 @@
   flex-shrink: 0;
   min-height: clamp(96px, 19vh, 150px);
   align-items: flex-start;
-  border-bottom: 4px solid var(--port-accent, var(--brass-line));
+  border-bottom: 4px solid var(--port-accent, var(--leather-deep));
 }
 /* The pad's focus scrolls into view clear of the taller header. */
 .trade-modal.port-screen:has(.has-view) {
   scroll-padding-top: calc(clamp(96px, 19vh, 150px) + 20px);
 }
 .port-screen .trade-header:not(.has-view) {
-  border-bottom-color: var(--port-accent, var(--brass-line));
+  border-bottom-color: var(--port-accent, var(--leather-deep));
 }
 .port-screen .port-view {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: #0b2230 center 62% / cover no-repeat;
+  background: var(--leather-deep) center 62% / cover no-repeat;
 }
 .port-screen .port-view::after {
   content: '';
@@ -704,9 +686,9 @@
   inset: 0;
   background: linear-gradient(
     90deg,
-    #0b2230 0%,
-    rgba(11, 34, 48, 0.86) 22%,
-    rgba(11, 34, 48, 0) 45%
+    var(--leather) 0%,
+    rgba(58, 42, 29, 0.86) 22%,
+    rgba(58, 42, 29, 0) 45%
   );
 }
 .port-screen .trade-header.has-view {
@@ -722,9 +704,10 @@
   gap: 4px 18px;
   margin: 18px 0 8px;
   padding: 12px 16px;
-  border: 1.5px solid var(--brass-line);
-  border-radius: 12px;
-  background: rgba(18, 50, 70, 0.55);
+  border: 1.5px solid var(--paper-edge);
+  border-radius: 6px;
+  background: var(--navy);
+  box-shadow: 2px 3px 0 rgba(58, 42, 29, 0.35);
 }
 .keeper-card.no-keeper {
   grid-template-columns: 1fr;
@@ -734,16 +717,12 @@
 }
 .keeper-name b {
   color: var(--ink);
-  font: 700 22px/1.1 var(--display);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font: 700 22px/1.1 var(--serif);
 }
 .keeper-name small {
   margin-left: 8px;
   color: var(--brass);
-  font: 700 14px/1 var(--display);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font: 700 15px/1 var(--serif);
 }
 .keeper-line {
   margin-top: 6px !important;
@@ -757,10 +736,8 @@
   align-items: center;
   gap: 4px 12px;
   margin-top: 8px !important;
-  color: var(--ink-dim, #a9bccb);
-  font: 700 14px/1.2 var(--display);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  color: var(--ink-dim);
+  font: 600 15px/1.2 var(--body);
 }
 .keeper-town .icon {
   width: 18px;
@@ -782,13 +759,9 @@
 }
 .quay-view {
   aspect-ratio: 1440 / 300;
-  border: 1.5px solid var(--brass-line);
-  border-radius: 12px;
-  background: #0b2230 center / cover no-repeat;
-}
-.port-screen .trade-header.has-view .port-chip,
-.port-screen .trade-header.has-view .role-tag {
-  background: rgba(11, 34, 48, 0.82);
+  border: 1.5px solid var(--paper-edge);
+  border-radius: 6px;
+  background: var(--leather-deep) center / cover no-repeat;
 }
 
 /* Short landscape screens and portrait phones: a strip, the picture behind the name and chips. */
