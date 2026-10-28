@@ -54,7 +54,9 @@ const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFi
 export function brushProblems(brush: Omit<SculptEdit, 'points'>): string[] {
   if (!OPS.has(brush.op)) return [`unknown operation "${String(brush.op)}"`];
   const problems: string[] = [];
+  const { limits } = TUNING.terrain.sculpt;
   if (!finite(brush.radius) || brush.radius <= 0) problems.push('radius must be above 0');
+  else if (brush.radius > limits.radius) problems.push(`radius must be ${limits.radius} or less`);
   if (!finite(brush.falloff) || brush.falloff < 0 || brush.falloff > 1)
     problems.push('falloff must be 0 to 1');
   const lift = brush.op === 'raise' || brush.op === 'lower';
@@ -70,12 +72,17 @@ export function brushProblems(brush: Omit<SculptEdit, 'points'>): string[] {
 export function editProblems(edit: SculptEdit): string[] {
   const problems = brushProblems(edit);
   if (!OPS.has(edit.op)) return problems;
+  const { limits } = TUNING.terrain.sculpt;
   const size = edit.op === 'slope' ? 3 : 2;
   const points = Array.isArray(edit.points) ? edit.points : [];
   if (edit.op === 'slope' ? points.length !== 2 : !points.length)
     problems.push(edit.op === 'slope' ? 'a slope needs two ends' : 'no points');
   if (!points.every((p) => Array.isArray(p) && p.length === size && p.every(finite)))
     problems.push(`points must be [x, z${size === 3 ? ', height' : ''}] numbers`);
+  else if (points.length > limits.points)
+    problems.push(`${points.length} points is over the limit of ${limits.points}`);
+  else if (points.some((p) => Math.hypot(p[0]!, p[1]!) > limits.reach))
+    problems.push(`a point is further than ${limits.reach} island radii from the centre`);
   return problems;
 }
 
@@ -84,6 +91,9 @@ export function sculptProblems(sculpt: SculptDef): string[] {
   if (sculpt.version !== SCULPT_VERSION)
     return [`sculpt version ${sculpt.version} is not this game's (${SCULPT_VERSION})`];
   if (!Array.isArray(sculpt.edits)) return ['sculpt has no edits list'];
+  const { edits } = TUNING.terrain.sculpt.limits;
+  if (sculpt.edits.length > edits)
+    return [`${sculpt.edits.length} edits is over the limit of ${edits}`];
   return sculpt.edits.flatMap((e, i) => editProblems(e).map((p) => `edit ${i + 1}: ${p}`));
 }
 
