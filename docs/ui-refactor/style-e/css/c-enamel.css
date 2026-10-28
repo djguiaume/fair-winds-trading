@@ -1,0 +1,149 @@
+x-swallow{} /* shots joins files with a stray ";", this empty rule eats it */
+/* Style E, direction C "Signal flags and enamel": flat enamel plates, bold sans, signal-flag colour
+   coding, one white selected row with a coloured marker, key-cap legend. No blur (old tablets).
+   Mockup stylesheet laid over the real game (npm run shots --style). Not built code. */
+html:root {
+  --sea: #173a5e;
+  --sea-2: #24557f;
+  --plate: #f5f8f6;
+  --plate-ink: #11283b;
+  --flag-red: #e5392c;
+  --flag-yellow: #ffc933;
+  --flag-blue: #1d63b4;
+  --flag-green: #2f9e57;
+  --navy: rgba(245, 248, 246, 0.98);
+  --navy-solid: #24557f;
+  --ink: #11283b;
+  --ink-dim: rgba(17, 40, 59, 0.68);
+  --brass: #e5392c;
+  --brass-hi: #ffd34d;
+  --brass-lo: #c79a12;
+  --brass-line: rgba(17, 40, 59, 0.5);
+  --green-ink: #1f7a43;
+  --outline: #11283b;
+  --display: 'Barlow', 'Trebuchet MS', sans-serif;
+}
+body { font-family: 'Barlow', sans-serif; }
+/* A signal-flag stripe, the one repeated decoration. */
+.flags, .menu-side, .sheet-head, .port-screen .trade-tabs, .chart-top {
+  --flags: repeating-linear-gradient(90deg, var(--flag-red) 0 28px, var(--plate) 28px 56px, var(--flag-blue) 56px 84px, var(--flag-yellow) 84px 112px);
+}
+
+.captain-stat, .objective, .speed-log, .sail-lever, .port-marker-box, .icon-btn, .compass-open,
+.side-card, .chart-chip, .port-chip, .set-row, .keeper-card, .quay-person, .toast, .quay-hint {
+  background: var(--plate) !important;
+  color: var(--plate-ink) !important;
+  border: 2.5px solid var(--plate-ink) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 3px 0 var(--plate-ink) !important;
+}
+.d-btn, .good-row .buy-btn, .good-row .sell-btn, .port-screen .ship-btn, .close-btn, .lot-btn {
+  font-family: var(--display) !important; font-weight: 800 !important; letter-spacing: 0.02em !important;
+  text-transform: none !important; border-radius: 8px !important;
+}
+.d-btn.brass, .good-row .buy-btn, .port-screen .ship-btn, .lot-btn[aria-pressed='true'] {
+  background: var(--flag-yellow) !important; color: var(--plate-ink) !important;
+  border: 2.5px solid var(--plate-ink) !important; box-shadow: 0 4px 0 var(--plate-ink) !important;
+}
+.good-row .sell-btn, .d-btn:not(.brass):not(.red), .lot-btn {
+  background: var(--plate) !important; color: var(--plate-ink) !important;
+  border: 2.5px solid var(--plate-ink) !important; box-shadow: 0 4px 0 var(--plate-ink) !important;
+}
+.close-btn, .d-btn.red { background: var(--flag-red) !important; color: #fff !important; border: 2.5px solid var(--plate-ink) !important; box-shadow: 0 4px 0 var(--plate-ink) !important; }
+#hud .icon, .menu-row .icon, .sheet-head > .icon { color: var(--flag-blue) !important; }
+.good-row .buy-btn *, .good-row .sell-btn *, .port-screen .ship-btn *, .lot-btn * { color: var(--plate-ink) !important; }
+.close-btn * { color: #fff !important; }
+.captain-stat .icon { color: #d99a00 !important; }
+
+/* --- Sea HUD ------------------------------------------------------------------------------ */
+#obj-name, .log-speed, .log-hdg, .log-sog, .captain-stat b, .obj-dist, .wind-caption, #wind-force, .speed-log .pos, .port-marker-box *, .sail-lever * { color: var(--plate-ink) !important; letter-spacing: 0.01em !important; text-transform: none !important; font-family: var(--display) !important; font-weight: 800; }
+.speed-log .pos.good { color: var(--flag-green) !important; }
+.compass .face { fill: #e4eef4 !important; stroke: var(--plate-ink) !important; }
+.compass text, .compass .cardinal { fill: var(--plate-ink) !important; }
+
+/* --- Title menu: sea-blue plate, big title, white selected row with a red marker ---------- */
+.menu { background: linear-gradient(90deg, rgba(10, 30, 52, 0.55), rgba(10, 30, 52, 0) 70%) !important; }
+.menu-side {
+  background: linear-gradient(180deg, var(--sea-2), var(--sea)) !important;
+  border-right: 0 !important; box-shadow: 5px 0 0 var(--plate-ink) !important;
+  background: var(--flags) top / 100% 14px no-repeat, linear-gradient(180deg, var(--sea-2), var(--sea)) !important;
+  padding-top: 30px !important;
+}
+.menu-kicker { color: var(--flag-yellow) !important; letter-spacing: 0.3em !important; font-weight: 800 !important; }
+.menu-title { font-family: var(--display) !important; font-weight: 800 !important; font-size: 40px !important; letter-spacing: 0.04em !important; text-transform: uppercase !important; color: #fff !important; text-shadow: 0 0 14px rgba(255, 255, 255, 0.45), 0 3px 0 var(--plate-ink); line-height: 1 !important; }
+.menu-tagline { color: #cfe3f1 !important; }
+#menu-play { min-height: 62px; font-size: 26px !important; }
+.menu-row {
+  background: rgba(255, 255, 255, 0.12) !important; color: #fff !important; border: 0 !important; border-radius: 8px !important;
+  font: 800 20px/1.1 var(--display) !important; letter-spacing: 0.02em !important; text-transform: none !important; min-height: 52px !important;
+}
+.menu-row .icon { color: #fff !important; }
+.menu-row small { display: none !important; }
+.menu-row:focus-visible, .menu-row:hover { background: #fff !important; color: var(--plate-ink) !important; box-shadow: inset 6px 0 0 var(--flag-red) !important; outline: 0 !important; }
+.menu-row:focus-visible .icon, .menu-row:hover .icon { color: var(--flag-blue) !important; }
+.menu-version, .menu-foot * { color: #cfe3f1 !important; }
+
+/* --- Sheets (New voyage, Settings) -------------------------------------------------------- */
+.sheet { background: linear-gradient(180deg, var(--sea-2), var(--sea)) !important; }
+.sheet-head { background: transparent !important; border-bottom: 0 !important; border-top: 14px solid transparent !important; border-image: var(--flags) 1 0 0 0 / 14px 0 0 0 stretch !important; box-shadow: 0 3px 0 var(--plate-ink); }
+.sheet-head h2 { font-family: var(--display) !important; font-weight: 800 !important; letter-spacing: 0.04em !important; text-shadow: 0 0 12px rgba(255, 255, 255, 0.4); color: #fff !important; }
+.sheet-head > .icon { color: var(--flag-yellow) !important; }
+.sheet-body, .sheet-head, .level-sub, .set-name, .set-pct, .set-note { color: #fff !important; }
+.level-sub, .level-note, .set-note { color: #cfe3f1 !important; }
+.level-card {
+  background: var(--plate) !important; color: var(--plate-ink) !important; border: 3px solid var(--plate-ink) !important; border-radius: 10px !important;
+  box-shadow: 0 6px 0 var(--plate-ink) !important; border-top-width: 14px !important; border-top-color: var(--flag-green) !important;
+}
+.level-card:nth-child(2) { border-top-color: var(--flag-yellow) !important; }
+.level-card:nth-child(3) { border-top-color: var(--flag-red) !important; }
+.level-card[aria-checked='true'] { box-shadow: 0 0 0 5px #fff, 0 0 0 8px var(--flag-red), 0 6px 0 8px var(--plate-ink) !important; }
+.level-name { font-family: var(--display) !important; font-weight: 800 !important; letter-spacing: 0.02em !important; text-transform: none !important; color: var(--plate-ink) !important; font-size: 26px !important; }
+.level-tag { color: var(--flag-blue) !important; letter-spacing: 0 !important; text-transform: none !important; font-weight: 700 !important; }
+.level-badge { display: none !important; }
+.level-card li { color: var(--plate-ink) !important; }
+.level-card li::before { background: var(--flag-blue) !important; }
+.set-row { background: rgba(255, 255, 255, 0.12) !important; border: 0 !important; box-shadow: none !important; color: #fff !important; }
+.set-label, .section-title h3, .side-card h3 { font-family: var(--display) !important; letter-spacing: 0.03em !important; text-transform: none !important; font-weight: 800 !important; }
+.set-label { color: var(--flag-yellow) !important; }
+.side-card h3, .side-card .section-title h3 { color: var(--flag-blue) !important; }
+
+/* --- Port screen --------------------------------------------------------------------------- */
+.port-screen .trade-header { background: linear-gradient(rgba(10, 30, 52, 0.55), rgba(10, 30, 52, 0)) !important; border: 0 !important; }
+.port-screen .port-name { font-family: var(--display) !important; font-weight: 800 !important; letter-spacing: 0.03em !important; text-transform: none !important; font-size: 40px !important; color: #fff !important; text-shadow: 0 0 14px rgba(255, 255, 255, 0.45), 0 3px 0 var(--plate-ink); }
+.port-screen .role-tag { background: var(--plate) !important; color: var(--plate-ink) !important; border: 2px solid var(--plate-ink) !important; border-radius: 6px !important; font-weight: 800 !important; letter-spacing: 0 !important; text-transform: none !important; }
+.port-screen .role-tag *, .port-chip * { color: var(--plate-ink) !important; }
+.port-screen .trade-tabs { background: var(--sea) !important; border: 0 !important; border-top: 10px solid transparent !important; border-image: var(--flags) 1 0 0 0 / 10px 0 0 0 stretch !important; }
+.port-screen .tab-btn { background: rgba(255, 255, 255, 0.14) !important; color: #fff !important; border: 0 !important; border-radius: 8px 8px 0 0 !important; font-family: var(--display) !important; font-weight: 800 !important; letter-spacing: 0.02em !important; text-transform: none !important; font-size: 19px !important; margin-right: 4px; }
+.port-screen .tab-btn.active { background: #fff !important; color: var(--plate-ink) !important; box-shadow: inset 0 -5px 0 var(--flag-red) !important; }
+.port-screen .trade-content, .trade-modal.port-screen { background: linear-gradient(180deg, var(--sea-2), var(--sea)) !important; }
+.good-row { background: var(--plate) !important; color: var(--plate-ink) !important; border: 0 !important; border-left: 10px solid var(--flag-blue) !important; border-radius: 8px !important; margin-bottom: 6px; box-shadow: 0 3px 0 var(--plate-ink); }
+.good-row:nth-child(2) { border-left-color: var(--flag-yellow) !important; }
+.good-row:nth-child(3) { border-left-color: var(--flag-red) !important; }
+.good-row:nth-child(4) { border-left-color: var(--flag-green) !important; }
+.good-row *:not(button):not(button *) { color: var(--plate-ink); }
+.good-row.wants .good-note { color: var(--flag-red) !important; font-weight: 800; }
+.good-best, .good-hold small { letter-spacing: 0 !important; text-transform: none !important; }
+.port-screen .trade-footer { background: var(--sea) !important; border: 0 !important; box-shadow: 0 -3px 0 var(--plate-ink); }
+.keeper-card, .quay-person { border-radius: 10px !important; box-shadow: 0 4px 0 var(--plate-ink) !important; }
+.keeper-card *, .quay-person * { color: var(--plate-ink); }
+.keeper-name b, .keeper-name small { letter-spacing: 0 !important; text-transform: none !important; font-weight: 800 !important; color: var(--flag-blue) !important; }
+.keeper-town, .keeper-town * { letter-spacing: 0 !important; text-transform: none !important; }
+.quay-hint { background: transparent !important; border: 0 !important; box-shadow: none !important; }
+.quay-hint, .quay-hint *, .lot-picker small { color: #fff !important; }
+.side-card .deliver-btn:disabled, .side-card .deliver-btn[aria-disabled='true'] { background: #dde6ea !important; color: var(--ink-dim) !important; border: 2.5px dashed var(--plate-ink) !important; box-shadow: none !important; }
+
+/* --- Quest card ---------------------------------------------------------------------------- */
+dialog.quest-card { background: var(--plate) !important; color: var(--plate-ink) !important; border: 3px solid var(--plate-ink) !important; border-top: 14px solid var(--flag-red) !important; border-radius: 12px !important; box-shadow: 0 6px 0 var(--plate-ink) !important; }
+.quest-head h2, .quest-role, .quest-reward b { color: var(--flag-blue) !important; letter-spacing: 0.01em !important; text-transform: none !important; font-family: var(--display) !important; font-weight: 800 !important; }
+.quest-speech, .quest-ask, .quest-count { color: var(--plate-ink) !important; }
+
+/* --- Chart chrome -------------------------------------------------------------------------- */
+.chart-top, .chart-tabs { background: var(--sea) !important; border-color: var(--plate-ink) !important; }
+.chart-top *, .chart-top .tab-btn { color: #fff; }
+.set-name, .set-name b { text-transform: none !important; letter-spacing: 0.01em !important; font-weight: 800 !important; }
+.chart .chart-goods button { background: var(--plate) !important; color: var(--plate-ink) !important; border: 2.5px solid var(--plate-ink) !important; box-shadow: 0 3px 0 var(--plate-ink) !important; border-radius: 8px !important; font-family: var(--display) !important; font-weight: 800 !important; letter-spacing: 0.01em !important; text-transform: none !important; }
+.chart .chart-goods button.active { background: var(--flag-yellow) !important; }
+.chart .chart-goods button * { color: var(--plate-ink) !important; }
+.seg { background: rgba(255, 255, 255, 0.16) !important; border-color: transparent !important; }
+.seg button { color: #fff !important; font-family: var(--display) !important; font-weight: 800 !important; letter-spacing: 0 !important; text-transform: none !important; }
+.seg button[aria-pressed='true'], .seg button[aria-checked='true'] { background: #fff !important; color: var(--plate-ink) !important; box-shadow: inset 0 -4px 0 var(--flag-red) !important; }

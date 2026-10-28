@@ -1,0 +1,25 @@
+/* Round 2, proposal 2: flat teal menu and frames (B's colours, no lines) with A's paper pages, brass buttons. */
+html:root { --leather: #123846; --btn-bg: linear-gradient(#f3d37e, #d9ae45); --btn-ink: #3a2605; --btn-line: #5a3d0d; --btn-lip: #a77a1c; }
+.d-btn.brass, .good-row .buy-btn, .port-screen .ship-btn, .lot-btn[aria-pressed='true'] {
+  background: var(--btn-bg) !important; color: var(--btn-ink) !important; border: 2px solid var(--btn-line) !important;
+  box-shadow: inset 0 -3px 0 var(--btn-lip), 0 2px 0 rgba(0, 0, 0, 0.5) !important;
+}
+.good-row .buy-btn *, .port-screen .ship-btn *, .lot-btn[aria-pressed='true'] * { color: var(--btn-ink) !important; }
+.menu { background: linear-gradient(90deg, rgba(8, 24, 32, 0.5), rgba(8, 24, 32, 0) 70%) !important; }
+.menu-side { background: #1d4d5c !important; border-right: 6px solid #0f2f3b !important; box-shadow: 4px 0 0 #c99a35 !important; }
+.menu-sheet { background: transparent !important; }
+.menu-kicker { color: #e8c46a !important; }
+.menu-title { color: #fff3d6 !important; text-shadow: 0 3px 0 #0b2430; }
+.menu-tagline { color: rgba(246, 239, 219, 0.8) !important; }
+.menu-emblem { filter: none; }
+.menu-row { color: #f6efdb !important; border-bottom: 1px dashed rgba(232, 196, 106, 0.6) !important; }
+.menu-row .icon { color: #e8c46a !important; }
+.menu-row:hover, .menu-row:focus-visible { background: rgba(232, 196, 106, 0.14) !important; }
+.menu-row:focus-visible::after { color: #e8c46a; }
+.menu-version, .menu-foot * { color: rgba(246, 239, 219, 0.75) !important; }
+#menu-language, #menu-fullscreen { background: #173f4d !important; border-color: #c99a35 !important; color: #f6efdb !important; }
+.port-screen .trade-tabs, .chart-top, .chart-tabs, .port-screen .trade-footer, .sheet { background: #123846 !important; }
+@media (orientation: portrait) and (max-width: 700px) {
+  .menu-side { background: none !important; box-shadow: none !important; border: 0 !important; }
+  .menu-sheet { background: #1d4d5c !important; border-top: 4px solid #c99a35 !important; }
+}

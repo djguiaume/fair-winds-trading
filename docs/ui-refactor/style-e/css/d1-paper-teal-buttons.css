@@ -1,0 +1,7 @@
+/* Round 2, proposal 1: A's brown-leather and paper menu, deep teal buttons. */
+html:root { --btn-bg: radial-gradient(circle at 30% 25%, #2f8a9a, #1d5a66 70%); --btn-ink: #f6ecd0; --btn-line: #0f3943; --btn-lip: #0f3943; }
+.d-btn.brass, .good-row .buy-btn, .port-screen .ship-btn, .lot-btn[aria-pressed='true'] {
+  background: var(--btn-bg) !important; color: var(--btn-ink) !important; border: 2px solid var(--btn-line) !important;
+  box-shadow: inset 0 -3px 0 var(--btn-lip), 0 2px 0 rgba(58, 42, 29, 0.6) !important;
+}
+.good-row .buy-btn *, .port-screen .ship-btn *, .lot-btn[aria-pressed='true'] * { color: var(--btn-ink) !important; }

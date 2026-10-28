@@ -1,0 +1,21 @@
+x-swallow{}
+/* New voyage as three pennants on a line (the plan's treatment), restrained: a rope, three flags,
+   the chosen one raised and ticked. Pennant colours: calm moss, captain's brass, storm oxblood
+   (not the edge-buoy red, which the art bible reserves). */
+.level-cards { position: relative; align-items: start !important; padding-top: 16px; }
+.level-cards::before { content: ''; position: absolute; top: 14px; left: -24px; right: -24px; height: 4px; border-radius: 2px; background: var(--paper-ink); }
+.level-card {
+  --flag: #7fa86a; --flag-ink: #1d2a14;
+  background: var(--flag) !important; color: var(--flag-ink) !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 88%, 0 100%); padding: 20px 18px 64px !important; transform: none;
+}
+.level-card:nth-child(2) { --flag: #e8c46a; --flag-ink: #2e2217; }
+.level-card:nth-child(3) { --flag: #a8403a; --flag-ink: #f8eedb; }
+.level-card, .level-card * { --ink: var(--flag-ink); }
+.level-card .level-name, .level-card .level-tag, .level-card li { color: var(--flag-ink) !important; }
+.level-card li::before { background: var(--flag-ink) !important; }
+.level-card[aria-checked='true'] { padding-bottom: 92px !important; box-shadow: none !important; background: var(--flag) !important; border: 0 !important; }
+.level-card[aria-checked='true']::after { top: 12px !important; right: 14px !important; background: var(--flag-ink) !important; color: var(--flag) !important; }
+.level-card[aria-checked='false'] { filter: saturate(0.8); }
+.level-card[data-pad-focus], .level-card:focus-visible { outline: 0 !important; box-shadow: none !important; background: var(--flag) !important; filter: drop-shadow(0 0 0 transparent); }
+.level-card[data-pad-focus]::before, .level-card:focus-visible::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 8px; background: var(--paint-edge); }
