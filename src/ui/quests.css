@@ -647,12 +647,12 @@ dialog.quest-card.is-arrival::backdrop {
   color: var(--ink-dim);
 }
 .journal-steps .is-later .journal-check {
-  border-color: rgba(238, 243, 244, 0.35);
+  border-color: var(--disabled-line);
 }
 .journal-list h4 {
   margin: 14px 0 8px;
   padding-top: 10px;
-  border-top: 1px solid rgba(238, 243, 244, 0.15);
+  border-top: 1px solid var(--disabled-line);
   color: var(--brass);
   font: 700 14px/1 var(--display);
   letter-spacing: 0.05em;

@@ -34,7 +34,8 @@ dialog.chart::backdrop {
   position: relative;
   z-index: 3;
   flex: none;
-  background: rgba(9, 28, 41, 0.97);
+  background: var(--planks);
+  color: var(--leather-ink);
 }
 .chart .chart-top h2 {
   position: static;
@@ -67,11 +68,11 @@ dialog.chart::backdrop {
   max-width: min(420px, 60vw);
   height: 40px;
   padding: 0 4px 0 12px;
-  border: 1px solid var(--brass-line);
-  border-radius: 8px;
-  background: var(--navy-solid);
-  font: 700 17px/1 var(--display);
-  letter-spacing: 0.03em;
+  border: 1.5px solid var(--paper-edge);
+  border-radius: 4px;
+  background: var(--paper-card);
+  color: var(--paper-ink);
+  font: 700 17px/1 var(--serif);
   white-space: nowrap;
 }
 .chart-chip > span {
@@ -88,11 +89,11 @@ dialog.chart::backdrop {
   border-color: transparent;
   background: transparent;
   box-shadow: none;
-  color: var(--ink-dim);
+  color: var(--paper-ink-dim);
   font-size: 16px;
 }
 
-/* Buttons: navy with a brass line; the picked good in brass; Close in red, as in the port. */
+/* Buttons: teal plates; the picked good in brass; Close in quiet wood, as in the port. */
 .chart :is(.chart-viewport, .chart-footer, .chart-chip) button {
   display: inline-flex;
   align-items: center;
@@ -100,14 +101,14 @@ dialog.chart::backdrop {
   gap: 6px;
   min-height: 44px;
   padding: 0 12px;
-  border: 1px solid var(--brass-line);
+  border: 2px solid var(--plate-edge);
   border-radius: 8px;
-  background: var(--navy-solid);
-  box-shadow: 0 2px 0 var(--outline);
+  background: var(--navy);
+  box-shadow:
+    inset 0 0 0 1.5px var(--brass),
+    0 2px 0 rgba(0, 0, 0, 0.4);
   color: var(--ink);
   font: 700 16px/1 var(--display);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -152,10 +153,10 @@ dialog.chart::backdrop {
   font-size: 15px;
 }
 .chart .chart-goods button.active {
-  border-color: var(--outline);
-  background: linear-gradient(var(--brass-hi), var(--brass));
-  box-shadow: inset 0 -3px 0 var(--brass-lo);
-  color: #2a1c00;
+  border-color: var(--teal-edge);
+  background: radial-gradient(circle at 30% 25%, var(--teal-hi), var(--teal) 70%);
+  box-shadow: inset 0 -3px 0 var(--teal-edge);
+  color: var(--paper-card);
 }
 /* A controller's X steps through the goods (decision 0196). */
 .chart .chart-goods > .pad-key {
@@ -566,9 +567,6 @@ html[data-input='pad'] .chart-cross {
   right: max(12px, var(--safe-right, env(safe-area-inset-right)));
   width: 96px;
   padding: 4px;
-  border: 1px solid var(--brass-line);
-  border-radius: 10px;
-  background: var(--navy-solid);
   pointer-events: none;
 }
 .chart-compass.compass svg {
@@ -579,10 +577,8 @@ html[data-input='pad'] .chart-cross {
 }
 .chart-compass #chart-wind {
   display: block;
-  font: 700 12px/1.2 var(--display);
-  letter-spacing: 0.04em;
+  font: 700 14px/1.2 var(--display);
   text-align: center;
-  text-transform: uppercase;
 }
 .chart-zoom {
   position: absolute;
@@ -624,10 +620,12 @@ html[data-input='pad'] .chart-cross {
   box-sizing: border-box;
   overflow: auto;
   overscroll-behavior: contain;
-  border: 1px solid var(--brass-line);
-  border-radius: 10px;
-  background: #0b2230;
-  box-shadow: 0 5px 15px rgba(6, 23, 34, 0.5);
+  border: 1.5px solid var(--paper-edge);
+  border-radius: 6px;
+  background: var(--paper);
+  box-shadow:
+    inset 0 0 38px var(--paper-shade),
+    2px 3px 0 rgba(58, 42, 29, 0.35);
 }
 .chart-sheet[hidden] {
   display: none;
@@ -643,14 +641,12 @@ html[data-input='pad'] .chart-cross {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  background: #0b2230;
+  background: var(--paper);
 }
 .chart-sheet h3 {
   margin: 0;
   color: var(--brass);
-  font: 700 22px/1.1 var(--display);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font: 700 22px/1.1 var(--serif);
 }
 .chart-sheet p {
   margin: 10px 0 0;
@@ -856,8 +852,8 @@ html[data-input='pad'] .chart-cross {
     max(16px, var(--safe-left, env(safe-area-inset-left)));
   border: 0;
   border-radius: 0;
-  background: rgba(9, 28, 41, 0.97);
-  box-shadow: none;
+  background: var(--paper);
+  box-shadow: inset 0 0 38px var(--paper-shade);
   font-size: 18px;
 }
 .chart[data-tab]:not([data-tab='map']) .chart-sheet > * {
@@ -870,10 +866,10 @@ html[data-input='pad'] .chart-cross {
   margin: 12px 0;
 }
 .chart .chart-market-goods button.active {
-  border-color: var(--outline);
-  background: linear-gradient(var(--brass-hi), var(--brass));
-  box-shadow: inset 0 -3px 0 var(--brass-lo);
-  color: #2a1c00;
+  border-color: var(--teal-edge);
+  background: radial-gradient(circle at 30% 25%, var(--teal-hi), var(--teal) 70%);
+  box-shadow: inset 0 -3px 0 var(--teal-edge);
+  color: var(--paper-card);
 }
 /* With a controller, LT / RT zoom and the stick moves the cross: no zoom buttons to cover. */
 html[data-input='pad'] .chart-zoom {

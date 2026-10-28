@@ -115,13 +115,17 @@
 
 /* On paper the dark-surface tokens flip to ink on cream, so the screens' rules need no second set. */
 .on-paper,
-.port-screen .trade-content {
+.port-screen .trade-content,
+.chart-sheet {
   --ink: var(--paper-ink);
   --ink-dim: var(--paper-ink-dim);
   --brass: var(--teal);
   --brass-hi: var(--teal-hi);
   --brass-lo: var(--teal-edge);
   --brass-line: rgba(90, 60, 30, 0.55);
+  --green: #2f7a3a;
+  --amber: #9a5a12;
+  --red: #a63b24;
   --green-ink: #3d6b3a;
   --gold-ink: #7a5412;
   --disabled-line: rgba(90, 60, 30, 0.35);
@@ -205,6 +209,7 @@
 .port-marker-box,
 .icon-btn,
 .port-chip,
+.chart-compass.compass,
 .toast {
   border: 2px solid var(--plate-edge);
   border-radius: 8px;
