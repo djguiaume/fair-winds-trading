@@ -7,11 +7,7 @@
  */
 
 import { num, text, toggle, type TuningMeta } from './tuning-meta-types';
-import { GRAPHICS_META } from './tuning-meta-graphics';
-import { CAMERA_META } from './tuning-meta-camera';
-import { BUOYS_META } from './tuning-meta-buoys';
-import { STORMS_META } from './tuning-meta-storms';
-import { TERRAIN_META } from './tuning-meta-terrain';
+import { FILE_METAS } from './tuning-meta-files';
 
 export type { NumberMeta, PolarMeta, TextMeta, ToggleMeta, TuningMeta } from './tuning-meta-types';
 
@@ -51,11 +47,7 @@ export function metaPath(path: readonly string[]): string {
 }
 
 export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
-  ...GRAPHICS_META,
-  ...CAMERA_META,
-  ...BUOYS_META,
-  ...STORMS_META,
-  ...TERRAIN_META,
+  ...FILE_METAS,
   // --- src/data/ships/<id>.json, `sailing` and `unlock` (decisions 0007, 0011, 0035, 0048, 0109) ---
   'ships.*.id': text('Id', 'Class id used in saves and code; must match the key.'),
   'ships.*.name': text('Name', 'English name in the code; players see the translated one.'),

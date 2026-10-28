@@ -7,6 +7,7 @@ import { readFileSync, mkdirSync } from 'node:fs';
 import { resolve, basename, extname, join } from 'node:path';
 import { ROOT, chromiumPath, startVite } from './lib.mjs';
 import { padSteps } from './padSteps.mjs';
+import { keyHold, list, lookOption, pair, readAll } from './shotOptions.mjs';
 
 /**
  * The three sizes every look review shows (desktop first, must look good in portrait), and `tv`:
@@ -115,30 +116,6 @@ const PAGES = 'https://djguiaume.github.io/fair-winds-trading/';
 // The game's own sea is the grown one (decision 0198): `phase4` (or `game`) needs no `?map=`.
 const SEAS = { phase4: '', game: '', ring: 'ring', stress: 'stress' };
 const NUMBERS = 'heading sail speed zoom yaw tilt time wait chart-zoom hull crash'.split(' ');
-
-const pair = (v) => {
-  if (Array.isArray(v)) return v.map(Number);
-  const out = String(v).split(',').map(Number);
-  if (out.length !== 2 || out.some((n) => !Number.isFinite(n))) throw new Error(`not x,y: ${v}`);
-  return out;
-};
-const list = (v) => (Array.isArray(v) ? v : String(v).split(',').filter(Boolean));
-const readAll = (v) =>
-  list(v)
-    .map((f) => readFileSync(resolve(ROOT, f), 'utf8'))
-    .join('\n;\n');
-const keyHold = (v) => {
-  const [key, n] = String(v).split(':');
-  return { key, n: Number(n) || 1 };
-};
-
-/** `--look`: a ground look (`v1`, `v2`), a camera point (`x,y`), or both (`v2,x,y`). */
-function lookOption(v) {
-  if (v === undefined) return { look: null, ground: null };
-  const [first, ...rest] = Array.isArray(v) ? v : String(v).split(',');
-  if (!/^v[12]$/.test(String(first))) return { look: pair(v), ground: null };
-  return { look: rest.length ? pair(rest) : null, ground: first };
-}
 
 /** One shot from its options (command line or list entry, keys as on the command line). */
 export function normalise(opts) {
