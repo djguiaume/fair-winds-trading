@@ -2,6 +2,7 @@
   "id": "glassworks",
   "name": "Glassworks",
   "group": "town",
+  "protect": 1.8,
   "building": true,
   "style": "fire",
   "parts": [

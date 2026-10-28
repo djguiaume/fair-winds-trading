@@ -1,6 +1,7 @@
 {
   "id": "lighthouse",
   "group": "landmarks",
+  "protect": 1.8,
   "sizedInModel": true,
   "scale": "size",
   "building": true,

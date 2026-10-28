@@ -98,6 +98,11 @@ export interface PropRecipe {
   sizedInModel?: boolean;
   fit?: number;
   fitRadius?: number;
+  /**
+   * A big building's footprint radius (reference units, at size 1) that hand sculpting keeps
+   * level (decision 0230); left out, its `fit`, else `terrain.json` › `sculpt.protect.fit`.
+   */
+  protect?: number;
   edge?: boolean;
   /** Walls and roofs from this style, whatever the island's. */
   style?: string;

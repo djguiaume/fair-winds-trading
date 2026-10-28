@@ -89,6 +89,47 @@ export interface RiverDef {
   tags?: string[];
 }
 
+/** A sculpting operation (decision 0230): see `src/sim/sculpt.ts` for what each one does. */
+export type SculptOp = 'raise' | 'lower' | 'flatten' | 'smooth' | 'slope';
+
+/**
+ * One hand edit of the ground, laid over the island's generated ground (decision 0230). Edits are
+ * replayed in file order, on the same canonical grid at every quality level and settlement level.
+ * Places, sizes and heights are radius units in this file's frame, so an edit follows the island
+ * when the map moves, turns or resizes it.
+ */
+export interface SculptEdit {
+  op: SculptOp;
+  /**
+   * The brush's dabs [x, z], in order: one drag is one edit. A slope's two ends [x, z, height]:
+   * the ground ramps evenly from one height to the other between them.
+   */
+  points: number[][];
+  /** The brush's radius; a slope's half width. */
+  radius: number;
+  /**
+   * `raise` and `lower`: the height each dab adds or takes at the brush's centre. The others: the
+   * share of the way, 0 to 1, each dab pulls the ground toward its target.
+   */
+  strength: number;
+  /** The share of the radius, 0 to 1, over which the brush fades out at its rim; 0 = a hard edge. */
+  falloff: number;
+  /** `flatten`: the height the ground is pulled to. */
+  height?: number;
+  /**
+   * Edits the protected ground round buildings too; the island checks then make sure every
+   * building still stands level. Left out, that ground is never touched.
+   */
+  override?: boolean;
+}
+
+/** The island's hand edits, after its generated ground (decision 0230). */
+export interface SculptDef {
+  /** The replay rules the edits were made with; a file from a newer game version will not load. */
+  version: number;
+  edits: SculptEdit[];
+}
+
 /** A side pier from a level; the arrival pier stays the simulation's (x 0.08). */
 export interface PierDef {
   x: number;
@@ -190,6 +231,8 @@ export interface IslandDesign {
   rivers?: RiverDef[];
   /** Ramps that climb along their length (decision 0123); left out, none. */
   ramps?: RampDef[];
+  /** Hand edits of the ground (decision 0230), replayed in order; left out, none. */
+  sculpt?: SculptDef;
   piers: PierDef[];
   props: PropDef[];
   /** The home island's build spots (decision 0126); props tagged `home:<building>` stand on them. */

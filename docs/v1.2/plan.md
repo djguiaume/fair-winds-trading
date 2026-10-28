@@ -41,6 +41,13 @@ The *Traffic Architect* look on every quality level: smooth rolling island groun
 - Files: `ground.ts` (classic tiers, ice, terrain shapes, and `fieldGround`, the v2 mesh), `islandParts.ts` (per-island dispatch and the generated islands), `highlandPalette.ts` (B2 colours), `terrainProps.ts`, `townProps.ts` (homes, lanes, props and woods on a `Stand` height function; `fieldStand` under v2), batching in `highlandIslands.ts`. `?look=v2` (`src/render/terrainLook.ts`) and `npm run shots -- --look v2` (or `--look v2,x,y` with a camera point).
 - Costs to watch: building every field of the game's sea takes about 1.5 s on a laptop, and the v2 ground is about 620,000 triangles on High and Ultra, 160,000 on Medium and 73,000 on Low. Step 2's smoothing should keep the canonical grid and may want a worker; #278 measures on devices.
 
+**Sculpting core (#270, 2026-10-28), decision [0232](../decisions/0232-sculpted-terrain-saved-edits-replayed-over-the-height-field.md).** For the editor (#271) and CLI (#272):
+
+- Island files take `sculpt: { version, edits }`; `designHeightfield(island, design, level)` builds a field afresh (generated ground, then the edits), `islandHeightfield` caches it.
+- `src/sim/sculpt.ts`: the five operations, `applyEdit`, `keepMask` (terrace protection), `editProblems`, `editReach`, `Region`. `src/sim/sculptSession.ts`: `SculptSession` (`begin`, `dab`, `commit`, `cancel`, `undo`, `redo`, `sculpt`), each returning the region to rebuild. `src/sim/sculptChecks.ts`: `checkSculpt`, run by `checkIsland`.
+- Numbers in `terrain.json › sculpt` (Terrain tab in `?tune`); big buildings' protected footprint is the prop recipe's `protect`.
+- Diagnostic sheet of every operation on Port Calda: [sculpt-ops.jpg](sculpt-ops.jpg).
+
 ### 2. Smooth ground (1 to 2 weeks with the editors)
 
 What the mockup did (`prototype/new-look.js`), to reproduce with data:

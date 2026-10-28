@@ -2,6 +2,7 @@
   "id": "tea-house",
   "name": "Tea house",
   "group": "town",
+  "protect": 2.1,
   "building": true,
   "style": "tropic",
   "parts": [
