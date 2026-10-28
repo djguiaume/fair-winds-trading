@@ -71,7 +71,7 @@ What the mockup did:
 - `calmWater.ts`, `currentWater.ts` and `roughWater.ts` read the shore texture too: check each still lines up.
 - Don't use the shore-distance texture for the deep tint: it saturates at 64 units and showed hard steps in the mockup.
 
-**Built (#274, 2026-10-28, [0233](../decisions/0233-depth-coloured-water-from-the-height-fields.md)).** Under `?look=v2`: `seabedDepth.ts` bakes the depth (whole map, 2.5-unit cells, one byte, 0.6 MB, about 0.1 s) from the drawn fields and terrain shapes; `seabedTexture.ts` caches it per view; `seaWater.ts` blends the per-sea colours (`palette.json › water`) at the camera; numbers in `graphics.json › water.depth`. Differences from the mockup: all land counts as one height (`land` 9) and the blur is 4 cells, so the turquoise band shows past the foam; the v1.1 reflection and glint numbers are kept. Shots: `/mnt/project-files/depth-water/`.
+**Built (#274, 2026-10-28, [0233](../decisions/0233-depth-coloured-water-from-the-height-fields.md)).** Under `?look=v2`: `seabedDepth.ts` bakes the depth (whole map, 3-unit cells, one byte, 0.4 MB, about 0.1 s) from the drawn fields and terrain shapes; `seabedTexture.ts` caches it per view; `seaWater.ts` blends the per-sea colours (`palette.json › water`) at the camera; numbers in `graphics.json › water.depth`. Differences from the mockup, after the art director's review: all land and reefs count as one height (`land` 24) and the blur is 6 cells, so the turquoise band runs about 14 to 16 units out; a `night` floor per sea keeps night water moonlit navy; the v1.1 reflection and glint numbers are kept. Shots: `/mnt/project-files/depth-water/`.
 
 ### 5. Forests (1 to 2 weeks)
 

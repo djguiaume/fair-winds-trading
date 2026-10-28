@@ -5,7 +5,7 @@ import { TUNING } from '../data/tuning';
 import { DAY, type Look } from './atmosphere';
 import { type ShoreTexture, shoreShader, shoreTexture } from './shoreTexture';
 import { type SeabedTexture, seabedShader } from './seabedTexture';
-import { newRamp, seaRampAt } from './seaWater';
+import { liftToFloor, newRamp, seaRampAt } from './seaWater';
 
 const vertexShader = /* glsl */ `
 uniform float uTime;
@@ -293,10 +293,14 @@ export class Ocean {
   /** The depth colours: the sea's at the camera in the light of now. The rough and calm layers copy them. */
   private applyRamp() {
     const u = this.mesh.material.uniforms;
-    (u.uShallow!.value as THREE.Color).copy(this.ramp.shallow).multiply(this.shallowLight);
-    (u.uWaterLight!.value as THREE.Color).copy(this.ramp.mid).multiply(this.waterLight);
-    (u.uWater!.value as THREE.Color).copy(this.ramp.deep).multiply(this.waterLight);
-    (u.uDayWater!.value as THREE.Color).copy(this.ramp.deep);
+    const { shallow, mid, deep, night } = this.ramp;
+    liftToFloor(
+      (u.uShallow!.value as THREE.Color).copy(shallow).multiply(this.shallowLight),
+      night,
+    );
+    liftToFloor((u.uWaterLight!.value as THREE.Color).copy(mid).multiply(this.waterLight), night);
+    liftToFloor((u.uWater!.value as THREE.Color).copy(deep).multiply(this.waterLight), night);
+    (u.uDayWater!.value as THREE.Color).copy(deep);
   }
 
   /** The light (scene space, normalized direction), for the flat shading and the glint. */

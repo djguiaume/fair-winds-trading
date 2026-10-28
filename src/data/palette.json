@@ -63,11 +63,11 @@
     "wakeEdge": "#b8e9e9"
   },
   "water": {
-    "ring": { "shallow": "#58c2c0", "mid": "#2f8fb8", "deep": "#1f5f94" },
-    "south": { "shallow": "#7fd6cf", "mid": "#39a9c4", "deep": "#2479a8" },
-    "north": { "shallow": "#6fb9c9", "mid": "#2f7d9e", "deep": "#1d5578" },
-    "west": { "shallow": "#4fa9a8", "mid": "#2a7a8c", "deep": "#1d5068" },
-    "east": { "shallow": "#6aa3ad", "mid": "#3a7489", "deep": "#284f63" }
+    "ring": { "shallow": "#58c2c0", "mid": "#2f8fb8", "deep": "#1f5f94", "night": "#1d3d7a" },
+    "south": { "shallow": "#7fd6cf", "mid": "#39a9c4", "deep": "#2479a8", "night": "#1d3d7a" },
+    "north": { "shallow": "#6fb9c9", "mid": "#2f7d9e", "deep": "#1d5578", "night": "#1d3d7a" },
+    "west": { "shallow": "#4fa9a8", "mid": "#2a7a8c", "deep": "#1d5068", "night": "#1d3d7a" },
+    "east": { "shallow": "#6aa3ad", "mid": "#3a7489", "deep": "#284f63", "night": "#1d3d7a" }
   },
   "styles": {
     "fish": {

@@ -50,22 +50,22 @@
     "foamStrength": 0.8,
     "foamLine": 0.15,
     "depth": {
-      "cell": 2.5,
+      "cell": 3,
       "maxTexels": 1024,
       "deepBed": -9,
-      "land": 9,
-      "blur": 4,
+      "land": 24,
+      "blur": 6,
       "fullDepth": 8.5,
       "midAt": 0.35,
       "crest": 0.12,
       "shading": 0.35,
       "seaBlend": 80,
       "beds": {
-        "island": 1,
-        "sandbank": 0.8,
-        "reef": -1,
-        "shallows": -1.5,
-        "ice": -2.5
+        "island": 24,
+        "sandbank": 24,
+        "reef": 24,
+        "shallows": 4,
+        "ice": 0
       }
     }
   }

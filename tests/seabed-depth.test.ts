@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import { TUNING } from '../src/data/tuning';
 import palette from '../src/data/palette.json';
@@ -7,7 +8,7 @@ import type { Heightfield } from '../src/sim/heightfield';
 import type { TerrainDef } from '../src/sim/map';
 import { type SeabedDepth, bakeSeabedDepth } from '../src/render/seabedDepth';
 import { SeabedTextureCache, drawnFields } from '../src/render/seabedTexture';
-import { SEA_RAMPS, newRamp, seaRampAt } from '../src/render/seaWater';
+import { SEA_RAMPS, liftToFloor, newRamp, seaRampAt } from '../src/render/seaWater';
 import { Ocean } from '../src/render/ocean';
 import { QUALITY } from '../src/render/quality';
 
@@ -48,10 +49,10 @@ function depthAt(bake: SeabedDepth, x: number, y: number): number {
 describe('seabed depth bake', () => {
   it('is shallow at the coast and deepens steadily out to the open sea', () => {
     const bake = bakeSeabedDepth([square(20, 6)], []);
-    const out = [0, 10, 20, 25, 30, 40, 55].map((x) => depthAt(bake, x, 0));
+    const out = [0, 10, 20, 30, 40, 50, 85].map((x) => depthAt(bake, x, 0));
     expect(out[0]).toBe(0);
     for (let k = 1; k < out.length; k++) expect(out[k]).toBeGreaterThanOrEqual(out[k - 1]!);
-    expect(out[3]! - out[2]!).toBeGreaterThan(0);
+    expect(out[5]!).toBeGreaterThan(out[2]!);
     expect(out.at(-1)).toBe(255);
   });
 
@@ -143,6 +144,14 @@ describe('sea colours by place', () => {
     expect(near(seaRampAt(800, 0, ramp).mid, SEA_RAMPS.east!.mid)).toBe(true);
   });
 
+  it('lifts night colours toward the floor but leaves every day colour as it is', () => {
+    for (const sea of Object.values(SEA_RAMPS))
+      for (const day of [sea.shallow, sea.mid, sea.deep])
+        expect(near(liftToFloor(day.clone(), sea.night), day)).toBe(true);
+    const floor = SEA_RAMPS.east!.night;
+    expect(near(liftToFloor(new THREE.Color(0, 0, 0), floor), floor)).toBe(true);
+  });
+
   it('blends half and half on a border between seas', () => {
     const r = 800 / Math.SQRT2;
     const mixed = seaRampAt(r, -r, ramp).deep;
@@ -181,7 +190,7 @@ describe('water colours as data', () => {
     for (const id of ['ring', ...grown.seas]) {
       const colors = (palette.water as Record<string, Record<string, string>>)[id];
       expect(colors, id).toBeDefined();
-      for (const key of ['shallow', 'mid', 'deep'])
+      for (const key of ['shallow', 'mid', 'deep', 'night'])
         expect(colors![key], `${id} ${key}`).toMatch(/^#[0-9a-f]{6}$/i);
     }
   });

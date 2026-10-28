@@ -69,7 +69,7 @@ export function seabedTexture(
   terrain: readonly TerrainDef[],
 ): SeabedTexture {
   const bake = bakeSeabedDepth(fields, terrain);
-  // One byte per texel, filtered: a quarter of the memory of RGBA (about 0.7 MB for today's sea).
+  // One byte per texel, filtered: a quarter of the memory of RGBA (about 0.4 MB for today's sea).
   const texture = new THREE.DataTexture(bake.depth, bake.w, bake.h, THREE.RedFormat);
   texture.unpackAlignment = 1;
   texture.minFilter = texture.magFilter = THREE.LinearFilter;

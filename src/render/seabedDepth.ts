@@ -36,15 +36,15 @@ export function bakeSeabedDepth(
   const shapes = terrain.filter((t) => hasBed(t.kind));
   const pad = tune.blur * tune.cell * 3 + tune.fullDepth;
   const box = boundsOf(fields, shapes, pad);
-  // Same sharpness on any map, within the memory cap: a bigger map gets coarser cells.
-  const cell = Math.max(
-    tune.cell,
-    (box[2] - box[0]) / tune.maxTexels,
-    (box[3] - box[1]) / tune.maxTexels,
-  );
-  const w = Math.max(1, Math.ceil((box[2] - box[0]) / cell));
-  const h = Math.max(1, Math.ceil((box[3] - box[1]) / cell));
-  const grid = { x0: box[0], z0: box[1], cell, w, h };
+  // Same sharpness on any map, within the memory cap: a bigger map gets coarser cells. The grid
+  // is snapped to whole cells so an edit elsewhere never shifts the cells under a coast.
+  const fit = tune.maxTexels - 2;
+  const cell = Math.max(tune.cell, (box[2] - box[0]) / fit, (box[3] - box[1]) / fit);
+  const x0 = Math.floor(box[0] / cell) * cell,
+    z0 = Math.floor(box[1] / cell) * cell;
+  const w = Math.max(1, Math.ceil((box[2] - x0) / cell));
+  const h = Math.max(1, Math.ceil((box[3] - z0) / cell));
+  const grid = { x0, z0, cell, w, h };
   const beds = new Float32Array(w * h).fill(tune.deepBed);
   for (const field of fields) splatField(beds, grid, field, tune.land);
   for (const shape of shapes) fillShape(beds, grid, shape, tune.beds[shape.kind as BedKind]);
