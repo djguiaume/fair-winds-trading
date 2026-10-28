@@ -203,6 +203,8 @@ uniform float uReflect;
 uniform float uFresnelPower;
 uniform float uGlint;
 uniform float uGlintSharpness;
+// Glint fades out between these view heights (sines of the angle above the sea), and peaks at w.
+uniform vec3 uGlintFade;
 // Soft shore foam: full strength out to x, fading over y, opacity z, outer line w.
 uniform vec4 uFoamLook;
 #endif
@@ -248,8 +250,10 @@ void main() {
   vec3 toEye = normalize(cameraPosition - vWorld);
   float fresnel = pow(1.0 - max(dot(n, toEye), 0.0), uFresnelPower);
   col = mix(col, uSkyLight, fresnel * uReflect);
+  // A glint belongs to a low view: looking down at a high sun it would blow out half the screen.
   float glint = pow(max(dot(n, normalize(uSunDir + toEye)), 0.0), uGlintSharpness);
-  col += uSunColor * glint * uGlint;
+  glint *= 1.0 - smoothstep(uGlintFade.x, uGlintFade.y, toEye.y);
+  col += uSunColor * min(glint * uGlint, uGlintFade.z);
 #endif
   col = mix(col, uFogColor, smoothstep(uFogNear, uFogFar, vFogDepth));
   gl_FragColor = vec4(col, 1.0);
@@ -330,6 +334,7 @@ export class Ocean {
           uFresnelPower: { value: 4 },
           uGlint: { value: 0 },
           uGlintSharpness: { value: 90 },
+          uGlintFade: { value: new THREE.Vector3(0.6, 0.85, 0.5) },
           uFoamLook: { value: new THREE.Vector4() },
         },
       });
@@ -381,6 +386,7 @@ export class Ocean {
     u.uGlint!.value = reflect ? w.glint : 0;
     u.uFresnelPower!.value = w.fresnelPower;
     u.uGlintSharpness!.value = w.glintSharpness;
+    (u.uGlintFade!.value as THREE.Vector3).set(w.glintFadeFrom, w.glintFadeTo, w.glintMax);
     (u.uFoamLook!.value as THREE.Vector4).set(w.foamInner, w.foamWidth, w.foamStrength, w.foamLine);
     this.mesh.position.set(
       Math.round(center.x / this.cell) * this.cell,
