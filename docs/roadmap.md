@@ -62,8 +62,8 @@ store plan of [0204](decisions/0204-selling-on-android-iphone-and-xbox.md) comes
 
 ## Now and next, after 1.0 (not scheduled)
 
-- **v1.1, "The Sailing Club"** ([plan](v1.1/plan.md)): a turnable camera, and Wren's sailing club at
-  Saltmere with new races (some with a squall in a fixed place to sail round) and a best-times board.
+- **v1.1, "The Sailing Club"** (**released**, [notes](releases/v1.1.282.md), [plan](v1.1/plan.md)): a turnable camera, and Wren's sailing club at
+  Abbey Head with new races (some with a squall in a fixed place to sail round) and a best-times board.
   Also a game-like UI skin, style E ([0220](decisions/0220-a-game-like-ui-skin-style-e.md)): same
   screens, new materials, font and icons, so the interface no longer reads as AI-made.
   And an **Ultra quality level** for desktop and Xbox ([0221](decisions/0221-an-ultra-quality-level-for-desktop-and-xbox.md)):
