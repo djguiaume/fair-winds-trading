@@ -13,10 +13,10 @@ dialog.quest-card {
   margin: 0 auto;
   padding: 0;
   overflow: visible;
-  border: 1.5px solid var(--brass-line);
+  border: 2px solid var(--paper-edge);
   border-radius: 14px;
-  background: rgba(9, 28, 41, 0.97);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  background: var(--paper);
+  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.35);
   color: var(--ink);
 }
 dialog.quest-card::backdrop {

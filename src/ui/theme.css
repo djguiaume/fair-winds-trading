@@ -116,7 +116,14 @@
 /* On paper the dark-surface tokens flip to ink on cream, so the screens' rules need no second set. */
 .on-paper,
 .port-screen .trade-content,
-.chart-sheet {
+.chart-sheet,
+.menu-side,
+.menu-sheet,
+.sheet-head,
+.sheet-body,
+dialog.quest-card,
+.d-dialog,
+.coach {
   --ink: var(--paper-ink);
   --ink-dim: var(--paper-ink-dim);
   --brass: var(--teal);
