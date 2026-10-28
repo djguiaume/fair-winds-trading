@@ -1,3 +1,4 @@
+import './club.css';
 import { t } from '../i18n';
 import type { ClubBoard, ClubRow } from './clubBoard';
 import { raceClock, seriesName } from './regattaView';
