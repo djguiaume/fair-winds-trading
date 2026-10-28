@@ -10,7 +10,7 @@ import {
   islandSummary,
 } from '../src/editor/island/steps';
 import { formatIslandJson } from '../src/editor/model';
-import { isResidence } from '../src/render/models/towns';
+import { isResidence } from '../src/render/models/townProps';
 import { islandProblems } from '../tools/fw/check';
 import { stepFromArgs } from '../tools/fw/island';
 // @ts-expect-error plain JavaScript module without types

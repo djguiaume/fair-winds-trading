@@ -11,6 +11,7 @@ import { GRAPHICS_META } from './tuning-meta-graphics';
 import { CAMERA_META } from './tuning-meta-camera';
 import { BUOYS_META } from './tuning-meta-buoys';
 import { STORMS_META } from './tuning-meta-storms';
+import { TERRAIN_META } from './tuning-meta-terrain';
 
 export type { NumberMeta, PolarMeta, TextMeta, ToggleMeta, TuningMeta } from './tuning-meta-types';
 
@@ -25,6 +26,7 @@ export const TUNING_GROUPS = {
   seamanship: 'Seamanship',
   camera: 'Camera',
   graphics: 'Graphics',
+  terrain: 'Terrain',
 } as const;
 
 /** Objects whose keys are ids: their children are written `*` in meta paths. */
@@ -53,6 +55,7 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
   ...CAMERA_META,
   ...BUOYS_META,
   ...STORMS_META,
+  ...TERRAIN_META,
   // --- src/data/ships/<id>.json, `sailing` and `unlock` (decisions 0007, 0011, 0035, 0048, 0109) ---
   'ships.*.id': text('Id', 'Class id used in saves and code; must match the key.'),
   'ships.*.name': text('Name', 'English name in the code; players see the translated one.'),

@@ -60,6 +60,8 @@ Where
   --tab market|orders|quay|shipyard   the port screen's tab
   --zoom z                      camera distance, 1 = default, larger = farther (no game limit)
   --look x,y                    camera on this map point instead of the boat
+  --look v2 | v2,x,y            the new look's ground from the shared height field (?look=v2,
+                                decision 0222), and the camera on that point; v1: the classic
   --yaw deg --tilt deg          a turned camera (0223): the bearing it looks to, degrees down
   --menu                        the title menu, before Set sail (the scene options are ignored)
   --chart                       the sea chart open (--pad and --click then play on it); --chart-zoom n, --chart-pan Key:n,
@@ -130,6 +132,14 @@ const keyHold = (v) => {
   return { key, n: Number(n) || 1 };
 };
 
+/** `--look`: a ground look (`v1`, `v2`), a camera point (`x,y`), or both (`v2,x,y`). */
+function lookOption(v) {
+  if (v === undefined) return { look: null, ground: null };
+  const [first, ...rest] = Array.isArray(v) ? v : String(v).split(',');
+  if (!/^v[12]$/.test(String(first))) return { look: pair(v), ground: null };
+  return { look: rest.length ? pair(rest) : null, ground: first };
+}
+
 /** One shot from its options (command line or list entry, keys as on the command line). */
 export function normalise(opts) {
   const o = { ...opts };
@@ -158,7 +168,7 @@ export function normalise(opts) {
     tab: o.tab ?? null,
     zoom: o.zoom ?? null,
     turn: (o.yaw ?? o.tilt) !== undefined ? [o.yaw ?? 0, o.tilt] : null,
-    look: o.look !== undefined ? pair(o.look) : null,
+    ...lookOption(o.look),
     menu: !!o.menu,
     chart: !!o.chart,
     chartZoom: o['chart-zoom'] ?? 0,
@@ -221,6 +231,7 @@ function defaultName(s) {
     s.menu ? 'menu' : where,
     s.chart && 'chart',
     s.night && 'night',
+    s.ground === 'v2' && 'v2',
     s.lang !== 'en' && s.lang,
   ]
     .filter(Boolean)
@@ -253,6 +264,7 @@ export function shotPath(shot) {
   if (map) q.set('map', map);
   // Island files tried on the Phase 4 sea: the edited map falls back to the grown sea (0161).
   if (map === 'edited' && !shot.seaFile && shot.sea === 'phase4') q.set('sea', 'phase4');
+  if (shot.ground === 'v2') q.set('look', 'v2');
   for (const [k, v] of new URLSearchParams(shot.query ?? '')) q.set(k, v);
   return `/?${q}`;
 }

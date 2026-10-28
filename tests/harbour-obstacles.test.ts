@@ -8,7 +8,7 @@ import { createWorld, stepWorld } from '../src/sim/world';
 import { hullCondition } from '../src/sim/hazards';
 import { SLOOP } from '../src/sim/ship';
 import { createTradeState, tryDock } from '../src/sim/trade';
-import { islandParts } from '../src/render/models/highlandIslands';
+import { islandParts } from '../src/render/models/islandParts';
 
 const DT = 1 / 60;
 const levelsAt = (level: number) => Object.fromEntries(PHASE1_MAP.ports.map((p) => [p.id, level]));

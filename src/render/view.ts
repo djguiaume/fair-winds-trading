@@ -27,6 +27,7 @@ import { PALETTE } from './palette';
 import { BuoyMarker, EdgeBuoys, createBlobShadow } from './props';
 import { CourseSpar } from './courseSpar';
 import { renderPixelRatio, QUALITY, type QualityLevel, type QualityProfile } from './quality';
+import type { TerrainLook } from './terrainLook';
 import { Wake } from './wake';
 import { ImpactDebris } from './impactDebris';
 import { damageStage, hullCondition } from '../sim/hazards';
@@ -179,6 +180,8 @@ export class GameView {
     canvas: HTMLCanvasElement,
     private readonly world: World,
     level: QualityLevel,
+    /** `?look=v2`: the new look's ground from the shared height field (decision 0222). */
+    look: TerrainLook = 'v1',
   ) {
     this.renderer = new THREE.WebGLRenderer({
       canvas,
@@ -204,10 +207,19 @@ export class GameView {
     this.scene.add(this.sun, this.sun.target);
 
     this.levels = townLevels(world.map, world.trade);
-    this.islands = buildIslands(world.map, { shadows: true, levels: this.levels });
-    this.lighthouseBeams = new LighthouseBeams(world.map.islands, this.islandLevels(this.levels));
+    this.islands = buildIslands(world.map, {
+      shadows: true,
+      levels: this.levels,
+      look,
+      quality: level,
+    });
+    this.lighthouseBeams = new LighthouseBeams(
+      world.map.islands,
+      this.islandLevels(this.levels),
+      look,
+    );
     this.scene.add(this.lighthouseBeams.root);
-    this.beaconLights = new BeaconLights(world.map.islands, this.islandLevels(this.levels));
+    this.beaconLights = new BeaconLights(world.map.islands, this.islandLevels(this.levels), look);
     this.scene.add(this.beaconLights.points);
     this.volcanoes = new Volcanoes(this.islands.craters);
     this.level = level;
@@ -382,6 +394,7 @@ export class GameView {
     this.level = level;
     this.rig.orbit.ultra = level === 'ultra';
     this.wake.setQuality(level);
+    this.islands.setQuality(level);
     const profile = QUALITY[level];
     if (this.ocean) this.scene.remove(this.ocean.mesh, this.streaks.mesh, this.rain.mesh);
     const shore = this.shores.get(this.world.land.islands, this.world.land.terrain);

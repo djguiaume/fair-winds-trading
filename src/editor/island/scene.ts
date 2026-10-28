@@ -6,7 +6,7 @@ import { PROP_TYPES, type Parts } from '../../render/models/props';
 import { NIGHT, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from '../../render/atmosphere';
 import { BeaconLights } from '../../render/beaconLights';
 import { LighthouseBeams } from '../../render/lighthouseBeams';
-import { ISLAND_SCALE } from '../../render/models/highlandIslands';
+import { ISLAND_SCALE } from '../../sim/islandUnits';
 import type { IslandDef } from '../../sim/map';
 import { PALETTE } from '../../render/palette';
 

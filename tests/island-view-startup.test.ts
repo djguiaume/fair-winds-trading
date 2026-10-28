@@ -36,6 +36,8 @@ it('builds saved settlement levels once and keeps harbour lighting on level-up',
   expect(buildIslands).toHaveBeenCalledExactlyOnceWith(world.map, {
     shadows: true,
     levels: settlementLevels(world.trade),
+    look: 'v1',
+    quality: 'low',
   });
   const model = vi.mocked(buildIslands).mock.results[0]!.value;
   const windows = model.userData.windows;

@@ -102,6 +102,7 @@ import { addEffectSwitches, switchRow } from './ui/graphicsSettings';
 import type { Bench } from './perf/bench';
 import type { PerfReadout } from './perf/perfReadout';
 import { perfOptions } from './perf/perfOptions';
+import { terrainLook } from './render/terrainLook';
 import { Music } from './audio/music';
 import { SeaListener } from './audio/listener';
 import { wordCount } from './audio/babble';
@@ -300,7 +301,7 @@ if (playtestMap) {
 }
 const resumedVoyage = storage ? loadGame(storage, world) : false;
 let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
-const view = new GameView(canvas, world, level);
+const view = new GameView(canvas, world, level, terrainLook(location.search));
 // The sea's sound where she sails, and the effects of what happens (decision 0209).
 const seaListener = new SeaListener(
   music,

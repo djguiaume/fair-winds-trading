@@ -2,7 +2,8 @@
 import * as THREE from 'three';
 import { afterAll, describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
-import { buildHighlandIslands, islandParts } from '../src/render/models/highlandIslands';
+import { buildHighlandIslands } from '../src/render/models/highlandIslands';
+import { islandParts } from '../src/render/models/islandParts';
 import { SLOOP, SHIP_CLASSES } from '../src/sim/ship';
 import { tryDock } from '../src/sim/trade';
 import { createWorld, stepWorld } from '../src/sim/world';

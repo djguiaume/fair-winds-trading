@@ -33,6 +33,14 @@ The *Traffic Architect* look on every quality level: smooth rolling island groun
 - Add the new builder next to the old one, picked by a URL switch `?look=v2` (and a `--look v2` option in `npm run shots`), so old and new can be compared and the old stays as a fallback until every island passes review.
 - `standHeight` reads the height field when `look=v2`.
 
+**Built (#268, 2026-10-28).** What the next steps start from:
+
+- `src/sim/heightfield.ts`: `islandHeightfield(island, level)` (cached per island and level), `terrainHeightfield(feature, seed)` (barrier islands, sandbanks; null for reefs and ice), `heightAt(field, x, y)` (bilinear, seabed off the grid), `sampleIndex`, `fieldLod(field, step)`. Map coordinates (x east, y north; the scene's z is -y), heights in world units above the sea at 0. A field also has `terrace` (1 on level ground buildings stand on), `ground`/`grounds` (material per sample, for biome colours and forests) and `seed`.
+- Numbers in `src/data/tuning/terrain.json` (Terrain tab in `?tune`): `cell` 0.8 is the canonical grid on every quality level; `groundStep` per level only thins what is drawn (Low 3, Medium 2, High and Ultra 1). Barrier tier heights moved there too.
+- Unsmoothed on purpose: the field is the classic ground sampled exactly (beach at 0.66, terraces at their heights, mountains as their cones, ramps and slopes). Step 2 adds the blur, relief and terrace protection on top of it.
+- Files: `ground.ts` (classic tiers, ice, terrain shapes, and `fieldGround`, the v2 mesh), `islandParts.ts` (per-island dispatch and the generated islands), `highlandPalette.ts` (B2 colours), `terrainProps.ts`, `townProps.ts` (homes, lanes, props and woods on a `Stand` height function; `fieldStand` under v2), batching in `highlandIslands.ts`. `?look=v2` (`src/render/terrainLook.ts`) and `npm run shots -- --look v2` (or `--look v2,x,y` with a camera point).
+- Costs to watch: building every field of the game's sea takes about 1.5 s on a laptop, and the v2 ground is about 620,000 triangles on High and Ultra, 160,000 on Medium and 73,000 on Low. Step 2's smoothing should keep the canonical grid and may want a worker; #278 measures on devices.
+
 ### 2. Smooth ground (1 to 2 weeks with the editors)
 
 What the mockup did (`prototype/new-look.js`), to reproduce with data:

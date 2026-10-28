@@ -7,16 +7,11 @@ import {
   useIslandDesign,
   type IslandDesign,
 } from '../../data/islands';
-import { ISLAND_SCALE } from '../../render/models/highlandIslands';
+import { ISLAND_SCALE } from '../../sim/islandUnits';
 import { isGlowing } from '../../render/models/geometry';
 import { PROP_TYPES, type PropGroup } from '../../render/models/props';
-import {
-  designedTownParts,
-  islandCheckKit,
-  propParts,
-  standHeight,
-  type TownLevel,
-} from '../../render/models/towns';
+import { designedTownParts, islandCheckKit, type TownLevel } from '../../render/models/towns';
+import { propParts, standHeight } from '../../render/models/townProps';
 import { coastDistance } from '../../sim/coast';
 import { type IslandIssue, TRIANGLE_BUDGET } from '../../sim/islandChecks';
 import { islandLayout, layoutGround } from '../../sim/islandLayout';

@@ -14,8 +14,9 @@ import {
   islandSummary,
 } from '../../src/editor/island/steps';
 import { formatIslandJson } from '../../src/editor/model';
-import { ISLAND_SCALE } from '../../src/render/models/highlandIslands';
-import { isResidence, islandCheckKit } from '../../src/render/models/towns';
+import { ISLAND_SCALE } from '../../src/sim/islandUnits';
+import { islandCheckKit } from '../../src/render/models/towns';
+import { isResidence } from '../../src/render/models/townProps';
 import { type IslandPlace, defaultSeas, islandPlacements, islandProblems } from './check';
 
 /** The repository: npm runs the tools from there. */

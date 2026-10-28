@@ -12,7 +12,8 @@ import {
   layoutGround,
   type IslandTheme,
 } from '../src/sim/islandLayout';
-import { isResidence, townIslandParts } from '../src/render/models/towns';
+import { townIslandParts } from '../src/render/models/towns';
+import { isResidence } from '../src/render/models/townProps';
 import { islandDesign } from '../src/data/islands';
 import { coastDistance } from '../src/sim/coast';
 import { createBoat } from '../src/sim/boat';

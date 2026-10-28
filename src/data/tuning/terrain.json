@@ -1,0 +1,18 @@
+{
+  "cell": 0.8,
+  "margin": 6,
+  "seabed": -3.5,
+  "lakeBed": 0.2,
+  "groundStep": {
+    "low": 3,
+    "medium": 2,
+    "high": 1,
+    "ultra": 1
+  },
+  "ridge": {
+    "insets": [0, 4, 8, 10],
+    "bottoms": [-0.8, 0.8, 4.4, 7.5],
+    "tops": [1, 4.6, 7.6, 8]
+  },
+  "sandbankTop": 0.8
+}
