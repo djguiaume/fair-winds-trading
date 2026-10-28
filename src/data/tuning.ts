@@ -9,6 +9,7 @@ import economy from './tuning/economy.json';
 import difficulty from './tuning/difficulty.json';
 import weather from './tuning/weather.json';
 import seamanship from './tuning/seamanship.json';
+import camera from './tuning/camera.json';
 import graphics from './tuning/graphics.json';
 
 /**
@@ -48,6 +49,8 @@ export interface Tuning {
   };
   weather: Omit<typeof weather, 'default'> & { default: WeatherConfig };
   seamanship: typeof seamanship;
+  /** The sea camera's placement and the player's turning of it (decision 0223). */
+  camera: typeof camera;
   /** The Ultra quality level and the sea's reflection (decision 0221). */
   graphics: typeof graphics;
 }
@@ -62,6 +65,7 @@ export const SHIPPED_TUNING: Readonly<Tuning> = {
   difficulty,
   weather,
   seamanship,
+  camera,
   graphics,
 } as unknown as Tuning;
 

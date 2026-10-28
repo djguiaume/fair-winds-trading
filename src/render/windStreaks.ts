@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { type Rng, createRng } from '../sim/rng';
+import { NORTH_UP, type ViewAxes } from './cameraOrbit';
 
 interface Streak {
   x: number;
@@ -8,6 +9,7 @@ interface Streak {
   life: number;
 }
 
+/** The streak field across and up the screen, turning with the camera (decision 0223). */
 const AREA_X = 200;
 const AREA_Z = 160;
 
@@ -48,13 +50,15 @@ export class WindStreaks {
     );
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = 2;
-    this.streaks = Array.from({ length: count }, () => this.spawn(0, 0, this.rng() * 3));
+    this.streaks = Array.from({ length: count }, () => this.spawn(0, 0, NORTH_UP, this.rng() * 3));
   }
 
-  private spawn(cx: number, cz: number, age = 0): Streak {
+  private spawn(cx: number, cz: number, axes: Readonly<ViewAxes>, age = 0): Streak {
+    const across = (this.rng() - 0.5) * AREA_X;
+    const up = (this.rng() - 0.5) * AREA_Z;
     return {
-      x: cx + (this.rng() - 0.5) * AREA_X,
-      z: cz + (this.rng() - 0.5) * AREA_Z,
+      x: cx + across * axes.rightX + up * axes.forwardX,
+      z: cz + across * axes.rightZ + up * axes.forwardZ,
       age,
       life: 2 + this.rng() * 2,
     };
@@ -72,6 +76,7 @@ export class WindStreaks {
     toZ: number,
     speed: number,
     strength = 0.56,
+    axes: Readonly<ViewAxes> = NORTH_UP,
   ) {
     const len = 3 + speed * 0.18;
     const w = 0.09;
@@ -81,8 +86,12 @@ export class WindStreaks {
       s.age += dt;
       s.x += toX * speed * dt;
       s.z += toZ * speed * dt;
-      const far = Math.abs(s.x - center.x) > AREA_X / 2 || Math.abs(s.z - center.z) > AREA_Z / 2;
-      if (s.age > s.life || far) this.streaks[i] = s = this.spawn(center.x, center.z);
+      const dx = s.x - center.x;
+      const dz = s.z - center.z;
+      const far =
+        Math.abs(dx * axes.rightX + dz * axes.rightZ) > AREA_X / 2 ||
+        Math.abs(dx * axes.forwardX + dz * axes.forwardZ) > AREA_Z / 2;
+      if (s.age > s.life || far) this.streaks[i] = s = this.spawn(center.x, center.z, axes);
       const fade = Math.sin(Math.PI * Math.min(1, s.age / s.life));
       const px = -toZ * w;
       const pz = toX * w;
