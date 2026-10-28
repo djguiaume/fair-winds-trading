@@ -1,0 +1,45 @@
+{
+  "ultra": {
+    "exposure": 1.1,
+    "nightExposure": 1.15,
+    "toe": 1,
+    "nightToe": 0,
+    "antialiasSamples": 4,
+    "shadows": {
+      "mapSize": 4096,
+      "radius": 4,
+      "bias": -0.0004,
+      "normalBias": 0.04,
+      "box": 140,
+      "distance": 160,
+      "sunHeight": 0.8,
+      "sunTurnDeg": 30,
+      "nightStrength": 0.45
+    },
+    "occlusion": {
+      "resolution": 0.5,
+      "radius": 2.5,
+      "distanceExponent": 1.5,
+      "thickness": 3,
+      "scale": 1.8,
+      "samples": 16,
+      "strength": 1,
+      "nightStrength": 0.4
+    },
+    "haze": {
+      "start": 0.75,
+      "strength": 0.15,
+      "lighten": 0.2
+    }
+  },
+  "water": {
+    "reflection": 0.5,
+    "fresnelPower": 2,
+    "glint": 0.8,
+    "glintSharpness": 90,
+    "foamInner": 0.5,
+    "foamWidth": 3.6,
+    "foamStrength": 0.8,
+    "foamLine": 0.15
+  }
+}

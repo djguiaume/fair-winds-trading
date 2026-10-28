@@ -1,0 +1,76 @@
+import { hasText, t } from '../i18n';
+import { QUALITY, type QualityLevel } from '../render/quality';
+import type { GraphicsEffects } from '../render/ultraPipeline';
+import type { Settings } from './settings';
+
+/** A Settings switch row (label, note, switch), its texts from `key` and `key`Note. */
+export function switchRow(
+  id: string,
+  key: string,
+  checked: boolean,
+  change: (on: boolean) => void,
+) {
+  const row = document.createElement('label');
+  row.className = 'set-row';
+  const name = document.createElement('span');
+  name.className = 'set-name';
+  const label = document.createElement('span');
+  const note = document.createElement('small');
+  for (const [el, k] of [
+    [label, key],
+    [note, `${key}Note`],
+  ] as const) {
+    el.dataset.i18n = k;
+    el.textContent = hasText(k) ? t(k) : id;
+  }
+  name.append(label, note);
+  const input = document.createElement('input');
+  input.type = 'checkbox';
+  input.id = id;
+  input.className = 'switch';
+  input.setAttribute('role', 'switch');
+  input.checked = checked;
+  input.addEventListener('change', () => change(input.checked));
+  row.append(name, input);
+  return row;
+}
+
+/** The effects the switches cover; the water's reflection also shows on High. */
+const EFFECTS: readonly (keyof GraphicsEffects)[] = [
+  'shadows',
+  'occlusion',
+  'toneMapping',
+  'haze',
+  'reflection',
+];
+
+/**
+ * One Settings switch per graphics effect (decision 0221), placed after `after` and shown only
+ * on the levels that draw it. Left out of `settings.effects` = on. Returns a function that shows
+ * the rows for the level in use.
+ */
+export function addEffectSwitches(
+  after: Element,
+  settings: Settings,
+  effects: GraphicsEffects,
+  keep: () => void,
+): (level: QualityLevel) => void {
+  const rows = new Map<keyof GraphicsEffects, HTMLElement>();
+  let previous = after;
+  for (const id of EFFECTS) {
+    effects[id] = settings.effects[id] !== false;
+    const row = switchRow(`fx-${id}`, `settings.fx.${id}`, effects[id], (on) => {
+      effects[id] = on;
+      settings.effects = { ...settings.effects, [id]: on };
+      keep();
+    });
+    previous.after(row);
+    previous = row;
+    rows.set(id, row);
+  }
+  return (level) => {
+    const profile = QUALITY[level];
+    for (const [id, row] of rows)
+      row.hidden = id === 'reflection' ? !profile.waterReflection : !profile.ultra;
+  };
+}

@@ -60,7 +60,8 @@
     "atOnce": {
       "low": 3,
       "medium": 6,
-      "high": 10
+      "high": 10,
+      "ultra": 10
     },
     "activeRange": 340,
     "hideRange": 280,

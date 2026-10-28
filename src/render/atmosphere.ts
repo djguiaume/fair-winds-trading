@@ -94,6 +94,18 @@ const STORM = look(
   0.9,
 );
 
+/** Where the light stands round the camera target: Ultra lowers and turns it (decision 0221). */
+export interface SunShape {
+  /** Height against the time of day's, 1 = as is. */
+  height: number;
+  /** Radians turned from the time of day's bearing. */
+  turn: number;
+  /** How far up the light it sits from the target, enough to clear the shadow box. */
+  distance: number;
+}
+
+export const PLAIN_SUN: Readonly<SunShape> = { height: 1, turn: 0, distance: 60 };
+
 /** Window glass tint: dark panes by day, the vertex colours (warm or dark) at night. */
 export const WINDOWS_BY_DAY = new THREE.Color('#5c6470');
 export const WINDOWS_AT_NIGHT = new THREE.Color('#ffffff');
@@ -148,6 +160,7 @@ export class Atmosphere {
     ocean: Ocean,
     target: THREE.Vector3,
     haze?: ZoneVisual,
+    sun: Readonly<SunShape> = PLAIN_SUN,
   ) {
     this.gloom = approach(this.gloom, Atmosphere.gloomFor(weather), 0.35, dt);
     // Day → golden → night, then the storm on top (a storm at night stays dark blue-grey).
@@ -182,14 +195,15 @@ export class Atmosphere {
     this.sun.intensity = l.sunIntensity * (1 - 0.5 * this.gloom);
     this.sky.color.copy(l.skyLight);
     this.sky.intensity = l.skyIntensity;
-    ocean.setColors(l.water, l.waterLight, l.sky, l.shallow, l.foam);
+    ocean.setColors(l);
 
     // The sun (or moon) moves across the sky; shadows swing with it.
-    const height = day.lightHeight;
-    this.lightDir.set(Math.sin(day.lightBearing), height * 1.6, -Math.cos(day.lightBearing));
+    const height = day.lightHeight * sun.height;
+    const bearing = day.lightBearing + sun.turn;
+    this.lightDir.set(Math.sin(bearing), height * 1.6, -Math.cos(bearing));
     this.lightDir.normalize();
-    this.sun.position.copy(target).addScaledVector(this.lightDir, 60);
+    this.sun.position.copy(target).addScaledVector(this.lightDir, sun.distance);
     this.sun.target.position.copy(target);
-    ocean.setSunDirection(this.lightDir);
+    ocean.setSun(this.lightDir, this.sun.color, this.sun.intensity);
   }
 }

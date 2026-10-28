@@ -15,6 +15,7 @@ vi.mock('../src/render/view', () => ({
       westholm: { x: -280, y: 40 },
       stonehaven: { x: -140, y: -270 },
     };
+    effects = {};
     resize() {}
     render() {}
     setQuality() {}
