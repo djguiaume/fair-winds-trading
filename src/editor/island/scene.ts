@@ -24,7 +24,7 @@ export interface IslandView {
   upp: number;
 }
 
-const SEA = '#2fa3b3';
+export const SEA = '#2fa3b3';
 const CAMERA_PITCH = (58 * Math.PI) / 180;
 
 function lights(scene: THREE.Scene): [THREE.HemisphereLight, THREE.DirectionalLight] {

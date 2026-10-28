@@ -10,7 +10,7 @@ import { islandPoint } from '../../../sim/islandLayout';
 import { ISLAND_SCALE } from '../../../sim/islandUnits';
 import { type Region, keepMask } from '../../../sim/sculpt';
 import { SculptSession } from '../../../sim/sculptSession';
-import type { Preview, TopView } from '../scene';
+import { SEA, type Preview, type TopView } from '../scene';
 import { type BrushSettings, defaultBrush, resized, sculptBrush } from './brush';
 import { type TerrainWarning, terrainWarnings } from './warnings';
 import { TerrainView, depthColor, shaded } from './terrainView';
@@ -72,7 +72,7 @@ export class TerrainTool {
   private at: [number, number] | null = null;
   private blocked = false;
   /** The drag being painted: the ground as it was (a slope's ends read it) and the slope ends. */
-  private stroke: { ground: Float32Array | null; slope: number[][] } | null = null;
+  private stroke: { ground: Float32Array | null; slope: number[][]; dabs: number } | null = null;
   private timer = 0;
 
   constructor(private readonly host: TerrainHost) {
@@ -86,6 +86,11 @@ export class TerrainTool {
 
   get stroking() {
     return !!this.stroke;
+  }
+
+  /** The file holds as many edits as it may (`sculpt.limits`): the next stroke would be refused. */
+  get full() {
+    return this.strokes >= TUNING.terrain.sculpt.limits.edits;
   }
 
   /** How many strokes the island file holds. */
@@ -184,22 +189,23 @@ export class TerrainTool {
     const depth = depthColor();
     if (this.view === 'depth') return depth;
     const land = shaded(designColor(design.style));
-    // Open water takes the sea's depth colours; land the island style's, lighter the higher.
+    // Open water is the sea (so the field's edge does not show); land the island style's,
+    // lighter the higher; seabed raised out of the sea, sand.
     return (ground, steep, height) =>
-      ground === '' ? depth(ground, steep, height) : land(ground, steep, height);
+      ground !== '' ? land(ground, steep, height) : height > 0 ? land('sand', steep, height) : SEA;
   }
 
-  /** The island's extent in the scene, for framing the 3D view. */
+  /** The island's extent in the scene, for framing the 3D view: a sphere round its coasts. */
   private reach(design: IslandDesign, island: IslandDef) {
     const points = design.coasts.flat();
     const xs = points.map((p) => p[0]),
       zs = points.map((p) => p[1]);
     const x = (Math.min(...xs) + Math.max(...xs)) / 2,
       z = (Math.min(...zs) + Math.max(...zs)) / 2;
-    const r = Math.hypot(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs)) / 2;
+    const r = Math.max(...points.map((p) => Math.hypot(p[0] - x, p[1] - z)));
     return new THREE.Sphere(
       new THREE.Vector3(x * island.radius, 0, z * island.radius),
-      (r + 0.3) * island.radius,
+      (r + 0.1) * island.radius,
     );
   }
 
@@ -220,10 +226,15 @@ export class TerrainTool {
     return heightAt(heights ? { ...field, heights } : field, p.x, p.y) / island.radius;
   }
 
+  /** Whether a file may hold a dab there (`sculpt.limits.reach`, radius units from the centre). */
+  private inReach(x: number, z: number) {
+    return Math.hypot(x, z) <= TUNING.terrain.sculpt.limits.reach;
+  }
+
   /** Begins a stroke at a point (radius units), or takes the target height when picking. */
   begin(x: number, z: number): boolean {
     const session = this.session;
-    if (!session) return false;
+    if (!session || this.full || !this.inReach(x, z)) return false;
     if (this.picking) {
       this.brush = { ...this.brush, height: Number(this.ground(x, z).toFixed(4)) };
       this.picking = false;
@@ -239,7 +250,7 @@ export class TerrainTool {
       return false;
     }
     const slope = brush.op === 'slope';
-    this.stroke = { ground: slope ? session.field.heights.slice() : null, slope: [] };
+    this.stroke = { ground: slope ? session.field.heights.slice() : null, slope: [], dabs: 0 };
     this.move(x, z);
     this.host.refresh();
     return true;
@@ -250,6 +261,7 @@ export class TerrainTool {
     const stroke = this.stroke;
     if (!stroke) return;
     this.point(x, z);
+    if (!this.inReach(x, z)) return this.host.redraw();
     const slope = this.brush.tool === 'slope';
     let region: Region | null;
     if (slope) {
@@ -263,6 +275,11 @@ export class TerrainTool {
     this.drawn.update(region);
     this.restandSoon();
     this.host.redraw();
+    // A very long drag is saved in pieces: a file's edit holds `sculpt.limits.points` dabs at most.
+    if (++stroke.dabs >= TUNING.terrain.sculpt.limits.points) {
+      this.end();
+      this.begin(x, z);
+    }
   }
 
   /** Re-stands the props on the new ground at most every `placementMs` while a stroke goes on. */

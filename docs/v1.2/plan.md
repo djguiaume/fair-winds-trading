@@ -49,6 +49,8 @@ The *Traffic Architect* look on every quality level: smooth rolling island groun
 - CLI (#272, decision [0234](../decisions/0234-terrain-command-line-tool-sculpt-commands-exportimport-and-l.md)): `npm run island -- <id> sculpt …` and `--steps` run the same `SculptSession` via `src/sim/sculptScript.ts` (`applySculpt`, `parseSculpt`, `sculptFrame`); list, remove, reset, export, import; limits in `terrain.json › sculpt › limits`. Guide: [docs/tools/terrain.md](../tools/terrain.md).
 - Diagnostic sheet of every operation on Port Calda: [sculpt-ops.jpg](sculpt-ops.jpg).
 
+**Terrain brushes (#271, 2026-10-28), decision [0235](../decisions/0235-terrain-brushes-in-the-island-builder.md).** The builder's Terrain tab ([how to use](../island-builder/builder/terrain.md)): `src/editor/island/terrain/` (`terrainTool.ts` session and strokes, `terrainPanel.ts`, `warnings.ts`, `brush.ts`), the field ground in both views through `FieldSurface` (`src/render/models/fieldGround.ts`), numbers in `terrain.json › sculpt.editor`.
+
 ### 2. Smooth ground (1 to 2 weeks with the editors)
 
 What the mockup did (`prototype/new-look.js`), to reproduce with data:

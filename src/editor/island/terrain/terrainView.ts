@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import depthView from '../../../data/depth-view.json';
 import { TUNING } from '../../../data/tuning';
 import { type FieldColor, FieldSurface } from '../../../render/models/fieldGround';
 import { vertexColorMaterial } from '../../../render/models/geometry';
@@ -7,11 +8,10 @@ import { ISLAND_SCALE } from '../../../sim/islandUnits';
 import type { Region } from '../../../sim/sculpt';
 import type { Preview, TopView } from '../scene';
 
-/** Colours by height off `terrain.json › sculpt.editor.depthBands`: the sea level and depth view. */
+/** Colours by height off `depth-view.json`: the sea level and depth view. */
 export function depthColor(): FieldColor {
-  const { depthBands } = TUNING.terrain.sculpt.editor;
-  return (_ground, _steep, height) =>
-    (depthBands.find((b) => height < b.below) ?? depthBands.at(-1)!).color;
+  const { bands } = depthView;
+  return (_ground, _steep, height) => (bands.find((b) => height < b.below) ?? bands.at(-1)!).color;
 }
 
 /**
@@ -19,7 +19,12 @@ export function depthColor(): FieldColor {
  * stands, in steps of `heightShade.step` so the triangles share a few dozen colours.
  */
 export function shaded(colorOf: FieldColor): FieldColor {
-  const { step, from, to, lighten } = TUNING.terrain.sculpt.editor.heightShade;
+  const [step, from, to, lighten] = TUNING.terrain.sculpt.editor.heightShade as [
+    number,
+    number,
+    number,
+    number,
+  ];
   const cache = new Map<string, string>();
   const white = new THREE.Color('#fff');
   return (ground, steep, height) => {

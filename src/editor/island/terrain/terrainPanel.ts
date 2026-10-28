@@ -1,5 +1,5 @@
 import './terrain.css';
-import { TUNING } from '../../../data/tuning';
+import depthView from '../../../data/depth-view.json';
 import type { SculptOp } from '../../../data/islands';
 import {
   LANGUAGES,
@@ -9,7 +9,7 @@ import {
   type LanguageId,
   type MessageKey,
 } from '../../../i18n';
-import { TERRAIN_TOOLS, strengthKey } from './brush';
+import { TERRAIN_TOOLS, brushRanges, strengthKey } from './brush';
 import type { TerrainTool } from './terrainTool';
 
 /**
@@ -69,8 +69,9 @@ export function renderTerrainTools(box: HTMLElement, tool: TerrainTool) {
   const { brush } = tool;
   const heading = node(box, 'h3', { textContent: t('editor.terrain.tab') });
   heading.title = t('editor.terrain.tabHint');
+  const tools = node(box, 'div', { className: 'ib-terrain-tools' });
   for (const op of TERRAIN_TOOLS) {
-    const b = node(box, 'button', { className: 'ib-tool' });
+    const b = node(tools, 'button', { className: 'ib-tool' });
     b.dataset.tool = op;
     b.setAttribute('aria-pressed', String(brush.tool === op));
     b.innerHTML = '<span></span><span><b></b><small></small></span>';
@@ -85,7 +86,7 @@ export function renderTerrainTools(box: HTMLElement, tool: TerrainTool) {
       tool.refreshPanel();
     });
   }
-  const { radius, raise, share } = TUNING.terrain.sculpt.editor;
+  const { radius, raise, share, falloff } = brushRanges();
   const unit = tool.unit;
   const world = (v: number) => t('editor.terrain.units', { value: (v * unit).toFixed(1) });
   const settings = node(box, 'div', { className: 'ib-terrain-settings' });
@@ -103,7 +104,6 @@ export function renderTerrainTools(box: HTMLElement, tool: TerrainTool) {
       : (v) => `${Math.round(v * 100)}%`,
     (v) => tool.set({ [key]: v }),
   );
-  const { falloff } = TUNING.terrain.sculpt.editor;
   slider(
     settings,
     t('editor.terrain.soft'),
@@ -147,6 +147,7 @@ export function renderTerrainPanel(
       ? t('editor.terrain.strokes', { n: tool.strokes })
       : t('editor.terrain.noStrokes'),
   });
+  if (tool.full) node(root, 'p', { className: 'ed-note', textContent: t('editor.terrain.full') });
   warnings(root, tool);
   const actions = node(root, 'div', { className: 'ed-row' });
   const cancel = node(actions, 'button', { textContent: t('editor.terrain.cancel') });
@@ -173,7 +174,7 @@ export function renderTerrainPanel(
 /** The target height of flatten, or the top of a slope: typed, picked from the ground, or auto. */
 function target(root: HTMLElement, tool: TerrainTool) {
   const { brush } = tool;
-  const { height } = TUNING.terrain.sculpt.editor;
+  const { height } = brushRanges();
   const row = node(root, 'div', { className: 'ed-row ib-row-target' });
   node(row, 'span', {
     textContent: t(brush.tool === 'slope' ? 'editor.terrain.targetEnd' : 'editor.terrain.target'),
@@ -204,7 +205,7 @@ function target(root: HTMLElement, tool: TerrainTool) {
 
 function legend(root: HTMLElement) {
   const box = node(root, 'div', { className: 'ib-depth-legend' });
-  for (const band of TUNING.terrain.sculpt.editor.depthBands) {
+  for (const band of depthView.bands) {
     const swatch = node(box, 'i');
     swatch.style.background = band.color;
   }

@@ -1475,5 +1475,6 @@
   "editor.terrain.warn.none": "Coast and harbour water still match the recipe",
   "editor.terrain.building": "Rebuilding the ground…",
   "editor.terrain.help": "Drag to paint. [ and ] resize the brush, Esc cancels the stroke, a second finger pans and cancels.",
-  "editor.terrain.language": "Language"
+  "editor.terrain.language": "Language",
+  "editor.terrain.full": "This island file holds as many terrain strokes as it may: reset or export it before sculpting more"
 }

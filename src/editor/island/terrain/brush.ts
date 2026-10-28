@@ -21,13 +21,30 @@ export interface BrushSettings {
   override: boolean;
 }
 
+/** A slider's range from `terrain.json › sculpt.editor`: [min, max, step, start]. */
+function range([min, max, step, start]: readonly number[]) {
+  return { min: min!, max: max!, step: step!, start: start! };
+}
+
+/** The ranges of the brush's controls. */
+export function brushRanges() {
+  const e = TUNING.terrain.sculpt.editor;
+  return {
+    radius: range(e.radius),
+    raise: range(e.raise),
+    share: range(e.share),
+    falloff: range(e.falloff),
+    height: range(e.height),
+  };
+}
+
 export function defaultBrush(): BrushSettings {
-  const { radius, raise, share } = TUNING.terrain.sculpt.editor;
+  const { radius, raise, share } = brushRanges();
   return {
     tool: 'raise',
-    radius: radius.default,
-    lift: raise.default,
-    share: share.default,
+    radius: radius.start,
+    lift: raise.start,
+    share: share.start,
     falloff: TUNING.terrain.sculpt.falloff,
     height: null,
     override: false,
@@ -42,7 +59,7 @@ export const strengthKey = (tool: SculptOp): 'lift' | 'share' =>
 
 /** Keeps every setting inside the ranges of `terrain.json › sculpt.editor`. */
 export function clampBrush(b: BrushSettings): BrushSettings {
-  const { radius, raise, share, falloff, height } = TUNING.terrain.sculpt.editor;
+  const { radius, raise, share, falloff, height } = brushRanges();
   return {
     ...b,
     radius: clamp(b.radius, radius.min, radius.max),

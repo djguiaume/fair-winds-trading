@@ -31,82 +31,19 @@
       "edits": 400,
       "points": 600,
       "radius": 1.5,
-      "reach": 2
+      "reach": 6
     },
     "editor": {
-      "radius": {
-        "min": 0.02,
-        "max": 0.4,
-        "step": 0.01,
-        "default": 0.12
-      },
-      "raise": {
-        "min": 0.001,
-        "max": 0.08,
-        "step": 0.001,
-        "default": 0.02
-      },
-      "share": {
-        "min": 0.05,
-        "max": 1,
-        "step": 0.05,
-        "default": 0.35
-      },
-      "falloff": {
-        "min": 0,
-        "max": 1,
-        "step": 0.05
-      },
-      "height": {
-        "min": -0.1,
-        "max": 0.3,
-        "step": 0.005,
-        "default": 0.03
-      },
+      "radius": [0.02, 0.4, 0.01, 0.12],
+      "raise": [0.001, 0.08, 0.001, 0.02],
+      "share": [0.05, 1, 0.05, 0.35],
+      "height": [-0.1, 0.3, 0.005, 0.03],
+      "falloff": [0, 1, 0.05],
+      "heightShade": [1.5, -4, 8, 0.025],
       "placementMs": 350,
       "coastTolerance": 1.5,
-      "berthClearance": 0.4,
-      "depthBands": [
-        {
-          "below": -6,
-          "color": "#1d5578"
-        },
-        {
-          "below": -2,
-          "color": "#2f7d9e"
-        },
-        {
-          "below": -0.15,
-          "color": "#6fb9c9"
-        },
-        {
-          "below": 0.15,
-          "color": "#f6efb0"
-        },
-        {
-          "below": 0.9,
-          "color": "#e8d28a"
-        },
-        {
-          "below": 3,
-          "color": "#b7d775"
-        },
-        {
-          "below": 8,
-          "color": "#6fa743"
-        },
-        {
-          "below": 1000,
-          "color": "#9a9a86"
-        }
-      ],
       "shoreHeight": 0.2,
-      "heightShade": {
-        "step": 1.5,
-        "from": -4,
-        "to": 8,
-        "lighten": 0.025
-      }
+      "berthClearance": 0.4
     }
   }
 }
