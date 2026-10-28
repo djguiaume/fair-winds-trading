@@ -1,5 +1,6 @@
 import { TUNING } from '../data/tuning';
-import { DEG, TAU, clamp } from './math';
+import { DEG, TAU, clamp, wrapAngle } from './math';
+import type { Wind } from './wind';
 import { createRng } from './rng';
 
 /**
@@ -162,4 +163,17 @@ export function stormWindFrom(storm: Storm, x: number, y: number): number {
     toY = ty * c - (ry / d) * s;
   // FROM is the opposite of the way it blows.
   return Math.atan2(-toX, -toY);
+}
+
+/**
+ * A storm's push on the wind at a spot, applied in place: the wind turns to circle the centre and
+ * blows harder (decision 0067). Returns how hard the storm hits there, 0..1.
+ */
+export function blowStorm(storm: Storm, x: number, y: number, wind: Wind): number {
+  const k = stormStrength(storm, x, y);
+  if (k <= 0) return 0;
+  const turn = wrapAngle(stormWindFrom(storm, x, y) - wind.from);
+  wind.from += turn * Math.min(1, k * 1.1);
+  wind.speedKn *= 1 + stormTuning().windGain * k;
+  return k;
 }

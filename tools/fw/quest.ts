@@ -29,6 +29,7 @@ import { clearAt } from '../../src/sim/mapChecks';
 import type { Condition } from '../../src/sim/questLibrary';
 import { QUESTS, type QuestDef } from '../../src/sim/quests';
 import { racePars } from '../../src/sim/raceBot';
+import { STORM_HELP, stormEdit } from './raceStorm';
 import {
   flagsText,
   isFlagShape,
@@ -79,6 +80,7 @@ Races of the Saltmere Regatta (decision 0217; also \`npm run race -- …\`):
   race <id> --finish "x,y x,y"  the finish line
   race <id> --add --at x,y [--after N]   a mark (numbered in order), after mark N
   race <id> --mark N --at x,y | --remove move or remove mark N (1 = first)
+${STORM_HELP}
   race rules                    regatta.json and flags.json: the rules, Kestrel, series, flags
   race set <path> <value>       a value of regatta.json, e.g. set medals.silver 1.2,
                                 set rival.hull "#f4f1e8", set rival.paceRange 0.45,1.4
@@ -424,7 +426,7 @@ function race(ids: string[], args: Args, doc: QuestDoc, map: MapDef): number {
           );
         for (const r of lost)
           console.log(
-            `  ${r.ship} on ${r.difficulty}: ${r.sec === null ? 'did not finish' : `gave up ${r.stuck} mark(s)`} (route points given up: ${r.gaveUp.join(', ') || 'none'}; 0 the start, last the finish; legs at ${r.legs.join(', ')} s)`,
+            `  ${r.ship} on ${r.difficulty}${r.storms ? '' : ' (storms off)'}: ${r.sec === null ? 'did not finish' : `gave up ${r.stuck} mark(s)`} (route points given up: ${r.gaveUp.join(', ') || 'none'}; 0 the start, last the finish; legs at ${r.legs.join(', ')} s)`,
           );
       }
       if (args.write) {
@@ -456,6 +458,13 @@ function race(ids: string[], args: Args, doc: QuestDoc, map: MapDef): number {
       setRaceLine(q, which, line[0]!, line[1]!);
       said += `${q.id}: ${which} line ${line.map((p) => `${p.x},${p.y}`).join(' to ')}. `;
     }
+  } else if (args.storm !== undefined) {
+    const result = stormEdit(q, args);
+    if ('error' in result) {
+      console.log(result.error);
+      return 1;
+    }
+    said = result.said;
   } else if (args.add) {
     const at = xy(args.at);
     if (!at) {
@@ -502,6 +511,11 @@ function race(ids: string[], args: Args, doc: QuestDoc, map: MapDef): number {
     console.log(`  mark ${i + 1} ${m.x},${m.y}`),
   );
   console.log(`  finish ${line(goal.finish)}`);
+  (q.race!.storms ?? []).forEach((st, i) =>
+    console.log(
+      `  storm ${i + 1} ${st.x},${st.y}${st.radius ? `  radius ${st.radius}` : ''}${st.strength ? `  strength ${st.strength}` : ''}${st.driftSpeed ? `  drifts ${st.driftSpeed}/s toward ${st.driftDeg}°` : ''}`,
+    ),
+  );
   console.log(
     `  wind   ${q.wind ? `${q.wind.speedKn} kn from ${q.wind.fromDeg ?? 'the map'}°` : "the sea's"}`,
   );

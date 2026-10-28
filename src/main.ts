@@ -48,6 +48,7 @@ import { type QuestEvent, QuestBook, roundStep, useEditedQuests } from './sim/qu
 import { questTestFrom, sailableHeading, testBerth } from './sim/questTest';
 import { QuestTestBar } from './ui/questTestBar';
 import { type StepEffects, type StepWind, heldWind } from './sim/stepEffects';
+import { syncRaceStorms } from './sim/raceStorms';
 import { QuestCard } from './ui/questCard';
 import { QuestNote } from './ui/questNote';
 import {
@@ -1915,6 +1916,8 @@ function tick(now: number) {
       const controls = { steer: input.steer, sailStep };
       const sea = seaStep();
       world.calmWind = heldWind(sea?.wind, world.map);
+      const race = quests.race();
+      syncRaceStorms(world, race?.quest.race?.storms, race?.sec ?? 0);
       // No storms while a quest that holds them runs: the tutorial (decision 0072).
       holdStorms(world, 'quest', quests.holdsStorms);
       // A pier touched mid-race is a bump, not the harbour (decision 0217): retire with × first.

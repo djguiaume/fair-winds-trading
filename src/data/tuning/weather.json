@@ -62,6 +62,13 @@
     "windGain": 0.9,
     "warningRange": 140
   },
+  "raceStorms": {
+    "radius": 70,
+    "strength": 0.9,
+    "minRadius": 25,
+    "maxRadius": 140,
+    "maxDriftSpeed": 3.2
+  },
   "islands": {
     "shadowLength": 70,
     "shadowDepth": 0.55,

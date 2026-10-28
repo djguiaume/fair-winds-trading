@@ -48,11 +48,13 @@ import {
   type RaceDef,
   checkRaceDef,
   courseOf,
+  longestPar,
   medalFor,
   medalGold,
   raceMarks,
   seriesWon,
 } from './regatta';
+import { checkRaceStormSpots } from './raceStorms';
 import { createRival, endRival, releaseRival, rivalTime } from './rival';
 import { deckFree, syncMarketLevels, type TradeState } from './trade';
 import { pointOfSail } from './ship';
@@ -478,7 +480,7 @@ export function checkQuests(
     if (q.repeat !== undefined && typeof q.repeat !== 'boolean')
       out.push(`${at}: repeat is true or false`);
     if (q.repeat) out.push(...checkRepeat(q, map, at));
-    if (q.race !== undefined) out.push(...checkRace(q, at));
+    if (q.race !== undefined) out.push(...checkRace(q, map, at));
     else if (q.steps?.some((st) => st.goal?.is === 'raced'))
       out.push(`${at}: a "raced" goal belongs to a race (a quest with "race")`);
     if (q.lesson !== undefined && typeof q.lesson !== 'boolean')
@@ -640,7 +642,7 @@ function checkRepeat(q: QuestDef, map: MapDef, at: string): string[] {
  * Problems with a race (decision 0217): its `race` block, offered, never a main quest, a lesson or
  * a standing order, and one step whose goal is `raced`.
  */
-function checkRace(q: QuestDef, at: string): string[] {
+function checkRace(q: QuestDef, map: MapDef, at: string): string[] {
   const out = checkRaceDef(q.race, `${at} › race`);
   if (!q.offer) out.push(`${at}: a race is offered (offer: true)`);
   if (q.main || q.lesson || q.repeat)
@@ -658,6 +660,17 @@ function checkRace(q: QuestDef, at: string): string[] {
         out.push(`${at}: its ${key} line is ${Math.round(len)} long, under ${REGATTA.minLine}`);
     }
   }
+  const course = courseOf(q.steps?.[0]?.goal);
+  if (q.race?.storms && course && !out.length)
+    out.push(
+      ...checkRaceStormSpots(
+        q.race.storms,
+        course,
+        map.boundsRadius,
+        longestPar(q.race),
+        `${at} › race.storms`,
+      ),
+    );
   if (q.reward !== undefined)
     out.push(`${at}: a race pays by its medals (race.gold), not a reward`);
   if (q.starter !== undefined && !PEOPLE.has(q.starter))

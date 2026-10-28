@@ -20,6 +20,7 @@ import { townLevels } from './founding';
 import { questsDone, questsRunning } from './settlement';
 import { knobs } from './difficulty';
 import { REGATTA, crossesGate } from './regatta';
+import { raceStormWind } from './raceStorms';
 
 /*
  * Other boats on the sea (decision 0215, Phase 5 part 4): fishing boats near their port, coasters
@@ -399,11 +400,11 @@ function pick(world: World, traffic: TrafficState) {
 function windFor(world: World, b: TrafficBoat): Wind {
   if (world.time - b.windAt < 0.3) return b.wind;
   b.windAt = world.time;
-  const sea =
-    world.calmWind ??
-    (world.windConfig
+  const sea = world.calmWind
+    ? raceStormWind(world, world.calmWind, b.boat)
+    : world.windConfig
       ? windAt(world.windConfig, world.time, world.map.seed, b.boat)
-      : world.seaWind);
+      : world.seaWind;
   b.wind = localWind(sea, windEffectAt(world.windBlockers, b.boat, sea));
   return b.wind;
 }

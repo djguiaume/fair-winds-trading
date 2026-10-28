@@ -29,6 +29,7 @@ import { type LandState, hasQuestLand, landOut, landWith, syncLand } from './que
 import { DIFFICULTIES, knobs, weatherFor } from './difficulty';
 import { type ZoneVisual, CLEAR, mapZones, zoneField, zoneVisualAt } from './windZones';
 import { type BeltNow, beltNow } from './stormBelt';
+import { type RaceStorms, applyRaceStorms } from './raceStorms';
 import { smoothOutline } from './flowShapes';
 import { DEG, bearingTo, clamp, distance } from './math';
 import { type ShipClass, noGoAngle } from './ship';
@@ -173,6 +174,8 @@ export interface World {
   stormsFrom: number;
   /** Whether storms could blow on the last step, to notice when they come back. */
   stormsOn: boolean;
+  /** The running race's own storms (decision 0225), or null; see `syncRaceStorms`. */
+  raceStorms: RaceStorms | null;
   /** Degrees added to the map's wind direction (the "new wind" button). */
   windOffsetDeg: number;
   boat: BoatState;
@@ -261,6 +264,7 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     calmWind: null,
     stormsFrom: 0,
     stormsOn: true,
+    raceStorms: null,
     shelter: 0,
     funnel: 0,
     windBlockers: windGrid(windBlockers(land.islands, land.terrain)),
@@ -690,6 +694,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   world.seaWind = seaWindAt(world, cfg);
   events.push(...chartZone(world));
   if (world.calmWind) world.seaWind = { ...world.calmWind };
+  applyRaceStorms(world);
   const effect = windEffectAt(world.windBlockers, world.boat, world.seaWind);
   world.shelter = effect.shelter;
   world.funnel = effect.funnel;
