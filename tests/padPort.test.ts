@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
-import { PAD, controlProblems, type PadButton, type PadFrame } from '../src/input/gamepad';
+import { PAD, type PadButton, type PadFrame } from '../src/input/gamepad';
+import { controlProblems } from '../src/input/padChecks';
 import { PadFocus, guardSoftDisabled, hintsFor, softDisable, startOf } from '../src/ui/padFocus';
 
 const press = (button: PadButton, repeat = false) => ({ button, repeat });

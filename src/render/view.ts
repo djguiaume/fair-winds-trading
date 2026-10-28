@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { trueWindAngle } from '../sim/boat';
 import { noGoAngle } from '../sim/ship';
-import { DEG, approach, bearingVector, clamp, wrapAngle } from '../sim/math';
+import { DEG, bearingVector, clamp, wrapAngle } from '../sim/math';
 import { windTo } from '../sim/wind';
 import { windStrength01 } from '../sim/windStrength';
 import { type World, currentWaypoint } from '../sim/world';
@@ -32,7 +32,7 @@ import { damageStage, hullCondition } from '../sim/hazards';
 import { WindStreaks } from './windStreaks';
 import type { GraphicsEffects, UltraPipeline } from './ultraPipeline';
 import { Rain, rainMayReachArea } from './rain';
-import { CameraOrbit, type ViewAxes, seaMiddle, viewAxes } from './cameraOrbit';
+import { CameraRig } from './cameraRig';
 import { Atmosphere, LAVA_BY_DAY, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from './atmosphere';
 import { LighthouseBeams } from './lighthouseBeams';
 import { BeaconLights } from './beaconLights';
@@ -161,17 +161,9 @@ export class GameView {
       rain: Rain;
     }
   >();
-  private readonly target = new THREE.Vector3();
-  /** The camera the player turns (decision 0223). */
-  readonly orbit = new CameraOrbit();
-  /** The ground directions of the screen this frame, for the rain and the wind streaks. */
-  private readonly axes = viewAxes(0, {} as ViewAxes);
-  /** The middle of the sea on screen, where the ocean grid centres. */
-  private readonly seaCentre = new THREE.Vector3();
-  /** A point the camera looks at instead of ahead of the boat (the home island, 0126). */
-  private focus: { x: number; y: number } | null = null;
-  /** Where on the screen the focus point sits, from the centre in screen fractions (0210). */
-  private focusShift = { x: 0, y: 0 };
+  /** Where the sea camera looks and how the player turned it (decision 0223). */
+  readonly rig = new CameraRig(this.camera);
+  private readonly target = this.rig.target;
   private readonly tmp = new THREE.Vector3();
   /** The fog bank or ash cloud at the camera's target (decision 0169). */
   private readonly haze: ZoneVisual = { ...CLEAR };
@@ -179,7 +171,6 @@ export class GameView {
   private readonly veil: HTMLElement | null;
   private veilOpacity = -1;
   private veilColor = '';
-  private zoom = 1;
   private width = 1;
   private height = 1;
 
@@ -388,7 +379,7 @@ export class GameView {
 
   setQuality(level: QualityLevel) {
     this.level = level;
-    this.orbit.ultra = level === 'ultra';
+    this.rig.orbit.ultra = level === 'ultra';
     this.wake.setQuality(level);
     const profile = QUALITY[level];
     if (this.ocean) this.scene.remove(this.ocean.mesh, this.streaks.mesh, this.rain.mesh);
@@ -480,13 +471,7 @@ export class GameView {
     /** Put the point off centre, in screen fractions (x right, y down): beside a half screen. */
     shift = { x: 0, y: 0 },
   ) {
-    this.focus = point ? { ...point } : null;
-    this.focusShift = { ...shift };
-    // At once, without the camera's easing (the screenshot tool's --look).
-    if (point && jump) {
-      this.target.x = point.x;
-      this.target.z = -point.y;
-    }
+    this.rig.setFocus(point, jump, shift);
   }
 
   setHomeBuildings(byIsland: Record<string, Record<string, string>>) {
@@ -570,61 +555,11 @@ export class GameView {
 
   /** 1 = default; larger = farther away. */
   setZoom(zoom: number) {
-    this.zoom = clamp(zoom, TUNING.camera.zoomMin, TUNING.camera.zoomMax);
+    this.rig.setZoom(zoom);
   }
 
   getZoom() {
-    return this.zoom;
-  }
-
-  /**
-   * Camera: tilted top-down, looking a little ahead of the boat, turned where the player turned it
-   * (decision 0223); farther out in portrait. A focus view eases it back north-up. Returns its
-   * distance from the target.
-   */
-  private placeCamera(dt: number, pos: THREE.Vector3, dir: { x: number; y: number }) {
-    const c = TUNING.camera;
-    const { boat } = this.world;
-    this.orbit.held = this.focus !== null;
-    this.orbit.update(dt);
-    const { heading, pitch } = this.orbit;
-    const axes = viewAxes(heading, this.axes);
-    const ahead = boat.speedKn * c.aheadPerKn;
-    const aspect = this.width / this.height;
-    // The field of view is vertical, so a tall phone sees a thin strip of sea: pull back until
-    // portrait shows about as much water across as a landscape tablet (Guillaume, 2026-10-20).
-    const portrait = aspect < 1 ? clamp(c.portraitWidth / aspect, 1, c.portraitPullMax) : 1;
-    const dist = c.distance * this.zoom * portrait;
-    // A shifted focus: the ground the screen spans around the target, the tilt foreshortening it
-    // top to bottom.
-    const spanY = (2 * dist * Math.tan((this.camera.fov * DEG) / 2)) / Math.sin(pitch);
-    const spanX = 2 * dist * Math.tan((this.camera.fov * DEG) / 2) * aspect;
-    const sx = this.focusShift.x * spanX;
-    const sy = this.focusShift.y * spanY;
-    const tx = this.focus
-      ? this.focus.x - sx * axes.rightX + sy * axes.forwardX
-      : pos.x + dir.x * ahead;
-    const tz = this.focus
-      ? -this.focus.y - sx * axes.rightZ + sy * axes.forwardZ
-      : pos.z - dir.y * ahead;
-    this.target.x = approach(this.target.x, tx, c.followRate, dt);
-    this.target.z = approach(this.target.z, tz, c.followRate, dt);
-    const back = Math.cos(pitch) * dist;
-    this.camera.position.set(
-      this.target.x - axes.forwardX * back,
-      Math.sin(pitch) * dist,
-      this.target.z - axes.forwardZ * back,
-    );
-    // The screen's up is the view heading on the ground, so a camera straight down still knows it.
-    this.camera.up.set(axes.forwardX, 0, axes.forwardZ);
-    this.camera.lookAt(this.target);
-    const middle = seaMiddle(pitch, dist, this.camera.fov * DEG, TUNING.weather.sight.far * dist);
-    this.seaCentre.set(
-      this.target.x + axes.forwardX * middle,
-      0,
-      this.target.z + axes.forwardZ * middle,
-    );
-    return dist;
+    return this.rig.zoom;
   }
 
   render(dt: number) {
@@ -634,7 +569,7 @@ export class GameView {
     const dir = bearingVector(boat.heading);
     const pos = toScene(boat.x, boat.y, this.tmp);
 
-    const dist = this.placeCamera(dt, pos, dir);
+    const dist = this.rig.place(dt, this.width / this.height, pos, dir, boat.speedKn);
     const fog = this.scene.fog as THREE.Fog;
     const day = daylightAt(this.dayNight ? time : ALWAYS_DAY);
     // Fog banks and ash clouds (decision 0169) are looked up where the camera looks, wind zones
@@ -726,7 +661,7 @@ export class GameView {
       -to.y,
       wind.speedKn * TUNING.seamanship.boat.knotToUnits * 0.75,
       windStrength01(wind.speedKn),
-      this.axes,
+      this.rig.axes,
     );
     const { weather } = this.world;
     this.stormClouds.update(weather.storms, time, this.world.boat);
@@ -742,8 +677,8 @@ export class GameView {
         for (const s of weather.storms) r = Math.max(r, stormRain(s, x, -z));
         return r;
       },
-      rainMayReachArea(this.target, weather.showers, weather.storms, this.axes),
-      this.axes,
+      rainMayReachArea(this.target, weather.showers, weather.storms, this.rig.axes),
+      this.rig.axes,
     );
     // Masthead lantern (heels with the mast), else a lantern above the deck.
     const glow = Math.max(day.night, gloom * 0.5);
@@ -774,7 +709,7 @@ export class GameView {
     // An eruption brightens the lava past its night glow (one shared material, decision 0178).
     lava?.color.multiplyScalar(1 + (TUNING.weather.volcano.eruptions.lavaGain - 1) * erupting);
     this.boat.setNightLighting?.(day.night);
-    this.ocean.update(time, this.seaCentre, this.effects.reflection);
+    this.ocean.update(time, this.rig.seaCentre, this.effects.reflection);
     this.currentWater?.update(time, this.ocean, this.world.currentsOn);
     this.calmWater?.update(time, this.ocean, this.world.windZones);
     this.roughWater?.update(time, this.ocean, this.world.windZones);

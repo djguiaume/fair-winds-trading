@@ -446,46 +446,6 @@ body.is-docked .objective {
   fill: var(--ink-dim);
   font-size: 9px;
 }
-/* The letters turn back as the rose turns with the camera (decision 0223), so they stay upright. */
-#c-rose text {
-  transform-box: fill-box;
-  transform-origin: center;
-}
-/* Back to north-up: shows only while the camera is turned (decision 0223). */
-.camera-reset {
-  position: absolute;
-  top: -8px;
-  left: -8px;
-  display: grid;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  place-items: center;
-  border: 1px solid var(--brass-line);
-  border-radius: 50%;
-  background: var(--navy);
-  color: var(--brass);
-  cursor: pointer;
-  touch-action: manipulation;
-}
-.camera-reset[hidden] {
-  display: none;
-}
-@media (pointer: coarse) {
-  .camera-reset {
-    width: 40px;
-    height: 40px;
-  }
-}
-.compass .camera-reset svg {
-  width: 20px;
-  height: 20px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
 .compass .wind {
   fill: var(--force);
   stroke: rgba(0, 0, 0, 0.5);
@@ -873,8 +833,6 @@ button.captain-stat:focus-visible {
   height: 18px;
 }
 .toast {
-  /* Above the port signs (a pier near a turned camera's centre, decision 0223) and the panels. */
-  z-index: 11;
   top: 24%;
   border: 1px solid var(--brass-line);
   border-radius: 10px;

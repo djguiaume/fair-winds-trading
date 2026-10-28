@@ -15,8 +15,7 @@ export interface Shot {
   tab: string | null;
   zoom: number | null;
   /** A turned camera (decision 0223): the bearing it looks toward and its tilt, degrees. */
-  yaw: number | null;
-  tilt: number | null;
+  turn: [number, number | undefined] | null;
   look: [number, number] | null;
   chart: boolean;
   charted: boolean;

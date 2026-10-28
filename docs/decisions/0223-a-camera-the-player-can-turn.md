@@ -8,7 +8,7 @@ Guillaume asked on 2026-10-25 whether the camera could be moved (right stick, ri
 
 ## Decision
 
-1. **Heading and tilt.** `src/render/cameraOrbit.ts` holds the camera's heading (the bearing it looks toward, 0 = north) and its tilt offset; `view.ts` places the camera from them. The sim, steering (the rudder is relative to the boat) and saves do not care where the camera looks.
+1. **Heading and tilt.** `src/render/cameraOrbit.ts` holds the camera's heading (the bearing it looks toward, 0 = north) and its tilt offset; `src/render/cameraRig.ts` places the camera from them (and the focus views), and `src/ui/cameraControls.ts` wires the inputs, the Settings switches and the turning compass. The sim, steering (the rudder is relative to the boat) and saves do not care where the camera looks.
 2. **Controls.**
    - Controller: right stick sideways turns (`controls.json` › `gamepad.sea.orbitAxis`, `orbitDegPerSec`); up/down stays zoom; clicking the stick resets (`actions.resetCamera: ["rs"]`).
    - PC: right-button drag turns (sideways) and tilts (up flattens); double right-click or Home resets; the browser menu is blocked over the sea.

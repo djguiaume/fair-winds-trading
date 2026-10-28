@@ -4,7 +4,6 @@ import {
   PAD,
   PAD_BUTTONS,
   chartPad,
-  controlProblems,
   readPad,
   seaPad,
   shapeAxis,
@@ -12,6 +11,7 @@ import {
   type PadButton,
   type PadLike,
 } from '../src/input/gamepad';
+import { controlProblems } from '../src/input/padChecks';
 
 /** A standard pad with these buttons down and these stick values. */
 function fakePad(down: PadButton[] = [], axes: number[] = [0, 0, 0, 0]): PadLike {
