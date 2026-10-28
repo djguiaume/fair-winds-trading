@@ -61,3 +61,11 @@ comparisons `sheets/compare-d1-b-refined-*.jpg`. Sources: `css/e-refined.css` (+
 - Fraunces TTFs are about 70 KB each; a WOFF2 latin subset is not measured.
 - Phone: the port title is clipped by the gold and cargo chips (also true today); the pennants stack badly; long French strings are untested.
 - Brass main action on the paint footer and Map button is the only strong gold; if that reads as "default" to you, the footer action can become cream paper instead.
+
+## Flagged risk: teal paint with brass can read as "default blue and gold"
+
+Guillaume rejected C and D2 for that look. Refined uses flat teal paint with brass fittings, which is closer to it than it should be.
+A **warm alternative** is drawn from the same rules with tokens only (`css/e-warm.css`): tar-brown paint `#3b2d23`, deep green
+actions and headings `#2f5a3a`, brass unchanged. Sheet: `sheets/refined-warm-alternative.jpg` (menu, sea HUD, Market, quest card,
+refined next to warm). Other warm options not drawn: oxblood paint (clashes with the red reservation) and deep green paint.
+Not decided; Guillaume to judge.

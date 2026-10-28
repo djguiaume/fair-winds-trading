@@ -1,0 +1,12 @@
+x-swallow{}
+/* Style E refined, warm alternative: the same rules with tar-brown paint and deep green actions,
+   in case flat teal plus brass reads as the default blue-and-gold. Tokens only. */
+html:root {
+  --paint: #3b2d23;
+  --paint-hi: #52402f;
+  --paint-lo: #271d16;
+  --paint-edge: #17100b;
+  --teal-ink: #2f5a3a;
+  --teal-btn: #2f5a3a;
+  --teal-btn-lo: #1c3a24;
+}
