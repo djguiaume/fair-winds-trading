@@ -18,9 +18,13 @@ on:
       title:
         description: 'Release title'
         required: true
+      milestone:
+        description: 'Milestone to draft the notes from when docs/releases/<tag>.md is missing (e.g. "v1.1 The Sailing Club")'
+        required: false
 
 permissions:
   contents: write
+  issues: read
 
 jobs:
   release:
@@ -32,11 +36,18 @@ jobs:
       - name: Create the release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           TAG: ${{ inputs.tag || github.ref_name }}
           COMMIT: ${{ inputs.commit || github.sha }}
           TITLE: ${{ inputs.title || github.ref_name }}
+          MILESTONE: ${{ inputs.milestone }}
         run: |
           notes="docs/releases/${TAG}.md"
+          if [ ! -f "$notes" ] && [ -n "$MILESTONE" ]; then
+            # A draft list of what the milestone closed; the release lead can edit the release after.
+            notes="$RUNNER_TEMP/notes.md"
+            bash tools/ci/milestone-notes.sh "$MILESTONE" > "$notes"
+          fi
           if [ ! -f "$notes" ]; then echo "Missing $notes"; exit 1; fi
           sha=$(git rev-parse --verify --quiet "origin/${COMMIT}^{commit}" || git rev-parse --verify "${COMMIT}^{commit}")
           # Tag the commit first, then publish the release on that tag.

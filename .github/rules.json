@@ -1,0 +1,16 @@
+{
+  "maxLines": 400,
+  "lineCheckedExtensions": [".ts", ".mjs", ".js", ".css", ".html", ".md"],
+  "maxJsonKB": 200,
+  "maxImageKB": 500,
+  "maxImageWidth": 1920,
+  "ignore": [
+    "package-lock.json",
+    "docs/art/",
+    "docs/screenshots/",
+    "docs/reviews/",
+    "docs/mockups/",
+    ".github/"
+  ],
+  "issueLink": "(fixes|closes|resolves|refs)\\s+#\\d+"
+}

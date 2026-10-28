@@ -1,0 +1,45 @@
+name: Render budget
+
+# A headless run of the sailing and docking scenarios on rendering PRs: fails when draw calls or
+# triangles pass tools/performance/budget.json. Counts carry over to old tablets; frame times do
+# not, so those stay with ?bench on a real device (decision 0006, ADR 0154).
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tools/performance/**'
+      - 'package.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: budget-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  budget:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Measure
+        env:
+          PERF_SCENARIOS: sailing,docking
+          PERF_REPEATS: '1'
+        run: |
+          npx vite preview --host 127.0.0.1 --port 5180 --strictPort > preview.log 2>&1 &
+          curl --retry 15 --retry-connrefused --retry-delay 2 -sf http://127.0.0.1:5180/ >/dev/null \
+            || { cat preview.log; exit 1; }
+          npm run perf -- http://127.0.0.1:5180/ output/performance/ci.json
+      - name: Check the budget
+        run: node tools/performance/budget.mjs output/performance/ci.json

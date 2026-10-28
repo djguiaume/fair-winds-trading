@@ -1,0 +1,60 @@
+name: Screenshot sheet
+
+# One small JPG contact sheet of the standard views (tools/ci/sheet.json, taken with
+# `npm run shots`) posted on PRs that touch the game, so threads and Guillaume see the look
+# without anyone taking, resizing and checking screenshots. Only for Guillaume's own branches.
+# The JPGs live on the ci-shots branch (one folder per PR, removed when the PR closes).
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    paths:
+      - 'src/**'
+      - 'index.html'
+      - 'public/**'
+      - 'tools/ci/sheet.*'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ci-shots-branch
+  cancel-in-progress: false
+
+jobs:
+  sheet:
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'djguiaume'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Take the sheet
+        run: node tools/ci/sheet.mjs shots/sheet.jpg
+      - name: Publish it and comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: bash tools/ci/post-sheet.sh
+  cleanup:
+    if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ci-shots
+        continue-on-error: true
+      - name: Remove this PR's sheets
+        env:
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          [ -d "pr-$PR" ] || exit 0
+          git rm -rq "pr-$PR"
+          git -c user.name=github-actions -c user.email=actions@github.com commit -qm "Remove sheets of PR $PR"
+          git push origin HEAD:ci-shots
