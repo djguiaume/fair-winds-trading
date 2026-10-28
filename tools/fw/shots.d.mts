@@ -17,6 +17,8 @@ export interface Shot {
   /** A turned camera (decision 0223): the bearing it looks toward and its tilt, degrees. */
   turn: [number, number | undefined] | null;
   look: [number, number] | null;
+  /** `--look v2`: the new look's ground (decision 0222); null: the game's default. */
+  ground: 'v1' | 'v2' | null;
   chart: boolean;
   charted: boolean;
   towns: [string, number][];

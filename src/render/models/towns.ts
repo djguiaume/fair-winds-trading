@@ -2,30 +2,20 @@ import * as THREE from 'three';
 import type { LandmarkKind } from '../../sim/map';
 import { homeDesign } from '../../sim/home';
 import { type Rng, createRng, range } from '../../sim/rng';
-import { BEACH_TOP, blobShape, isGlowing, paint, paintFaces, slab } from './geometry';
-import { type GroundColors, groundColors, styleColor } from '../../data/grounds';
-import { coastDistance, insetOutline } from '../../sim/coast';
+import { blobShape, paint, slab } from './geometry';
+import { groundColors, styleColor } from '../../data/grounds';
 import { landmarkParts } from './landmarks';
 import {
   islandLayout,
   layoutGround,
   characterPiers,
   crossesCliff,
-  flatLayout,
-  isSloped,
-  PEAK_SEGMENTS,
-  peakBox,
-  type IslandLayout,
   type IslandTheme,
-  type LandSurface,
-  type LayoutRamp,
-  type Outline,
 } from '../../sim/islandLayout';
 import {
   atLevel,
   islandDesign,
   type IslandDesign,
-  LANE_WIDTH,
   type LaneDef,
   type PropDef,
   designQuestIds,
@@ -71,7 +61,9 @@ import {
 } from './props';
 import type { IslandCheckKit } from '../../sim/islandChecks';
 import { riverParts } from './rivers';
-import { craterPool, groundSpecks, lavaCracks } from './lavaCracks';
+import { groundSpecks, lavaCracks } from './lavaCracks';
+import { designedGround, lakeRim, outlineShape } from './ground';
+import { type Stand, extent, propParts, townProps } from './townProps';
 
 /**
  * Settlement growth (decision 0060): a port island's town grows in four steps, hamlet, village,
@@ -140,6 +132,8 @@ export interface TownIslandSpec {
   homeBuilt?: Record<string, string>;
   /** The quests done, for props tagged `after:` or `before:` one (decision 0130); none: no quest. */
   questsDone?: ReadonlySet<string>;
+  /** The new look's ground under an island file's props (decision 0222); none: the classic tiers. */
+  stand?: Stand;
 }
 
 /**
@@ -156,6 +150,7 @@ export function townIslandParts(spec: TownIslandSpec): Parts {
       spec.R,
       spec.level,
       spec.harbour,
+      spec.stand,
     );
   const { R, sx, sz, pier } = spec;
   const level = Math.min(Math.max(spec.level, 1), 4);
@@ -497,54 +492,6 @@ function quarry(
   }
 }
 
-/** Height a prop stands at, in reference units: the ground under it, else the sand, else the sea. */
-export function standHeight(layout: IslandLayout, x: number, z: number, R: number) {
-  const h = layoutGround(layout, x, z, 0);
-  if (h !== null) return h * R;
-  return layout.coasts.some((c) => coastDistance(x, z, c).distance < 0) &&
-    !(layout.lake && coastDistance(x, z, layout.lake).distance < 0)
-    ? BEACH_TOP
-    : 0;
-}
-
-/** The half-diagonal of a model's plan, the footprint the old town code checked with. */
-function extent(parts: Parts) {
-  const bounds = new THREE.Box3();
-  for (const g of parts) {
-    g.computeBoundingBox();
-    bounds.union(g.boundingBox!);
-  }
-  return Math.hypot(
-    Math.max(Math.abs(bounds.min.x), Math.abs(bounds.max.x)),
-    Math.max(Math.abs(bounds.min.z), Math.abs(bounds.max.z)),
-  );
-}
-
-/** A catalogue prop's parts, not yet placed, with its game hooks set. */
-export function propParts(prop: PropDef, design: IslandDesign, R: number): Parts {
-  const type = PROP_TYPES[prop.type];
-  if (!type) throw new Error(`Unknown prop type "${prop.type}" on ${design.id}`);
-  const parts = type.build({
-    R,
-    style: design.style,
-    variant: prop.variant ?? 0,
-    shape: prop.shape ?? 0.5,
-    size: prop.size ?? 1,
-    length: prop.length,
-  });
-  const tags = prop.tags ?? [];
-  if (tags.includes('workshop')) parts[0]!.userData.workshop = design.style;
-  if (tags.includes('windmill')) parts[0]!.userData.windmill = { x: prop.x, z: prop.z };
-  const yard = tags.find((t) => t.startsWith('log-yard:'));
-  if (yard) parts[0]!.userData.logYard = yard.slice('log-yard:'.length);
-  if (prop.type === 'field') parts[0]!.userData.field = { x: prop.x, z: prop.z };
-  return parts;
-}
-
-/** Is this prop one of the island's numbered residences? */
-export const isResidence = (prop: PropDef) =>
-  !!PROP_TYPES[prop.type]?.home && !prop.tags?.includes('outbuilding');
-
 /**
  * A designed port island at its level, built from its island file (decision 0101): terrain,
  * stairs and paths, the lake, lanes near standing homes, homes, the docks, props and woods.
@@ -555,67 +502,14 @@ export function designedTownParts(
   level: TownLevel,
   /** False for an island with no harbour (decision 0110): no arrival pier, flag or side piers. */
   harbour = true,
+  /** The new look's ground under the props (decision 0222); left out, the classic tiers. */
+  stand?: Stand,
 ): Parts {
   const layout = islandLayout(design, level);
   const stone = design.style === 'stone';
   // Grounds as data (palette.json › grounds): the style swaps the file's names for its own.
   const ground = (material: string) => groundColors(material, design.style);
-  const beach = ground('sand');
-  const out: Parts = [];
-  const shape = (outline: Outline, holes: Outline[] = []) => {
-    const s = new THREE.Shape(outline.map(([x, z]) => new THREE.Vector2(x * R, -z * R)));
-    s.holes = holes.map((h) => new THREE.Path(h.map(([x, z]) => new THREE.Vector2(x * R, -z * R))));
-    return s;
-  };
-  const terrain = (
-    outline: Outline,
-    bottom: number,
-    top: number,
-    look: GroundColors,
-    holes: Outline[] = [],
-  ) => {
-    const g = new THREE.ExtrudeGeometry(shape(outline, holes), {
-      depth: top - bottom,
-      bevelEnabled: false,
-      curveSegments: 1,
-    });
-    g.rotateX(-Math.PI / 2).translate(0, bottom, 0);
-    // The extrusion's first group is its caps, the second its sides (cliffs).
-    const sideFrom = (g.groups[1]?.start ?? Infinity) / 3;
-    out.push(
-      paintFaces(g, look.top, (_x, _y, _z, face) => (face >= sideFrom ? look.side : undefined)),
-    );
-  };
-  for (const coast of layout.coasts)
-    terrain(coast, -1, BEACH_TOP, beach, layout.lake ? [layout.lake] : []);
-  for (const s of layout.surfaces) {
-    const look = ground(s.material);
-    if (s.shape === 'peak') {
-      const { cx, cz, rx, rz } = peakBox(s);
-      const mountainBase = (s.base ?? 0) * R;
-      const height = s.height * R - mountainBase;
-      // A snow line (capAbove) needs rings up the cone to fall on; plain peaks keep one. A
-      // volcano's cone is cut off at its crater's rim (decision 0171).
-      const rings = look.cap ? 4 : 1;
-      const g = (
-        s.crater
-          ? new THREE.CylinderGeometry(R * s.crater, R, height, PEAK_SEGMENTS, rings)
-          : new THREE.ConeGeometry(R, height, PEAK_SEGMENTS, rings)
-      )
-        .scale(rx, 1, rz)
-        .translate(cx * R, (s.height * R + mountainBase) / 2, cz * R);
-      const line = mountainBase + height * (look.capAbove ?? 1);
-      out.push(paintFaces(g, look.peak, (_x, y) => (look.cap && y > line ? look.cap : undefined)));
-      if (s.crater) out.push(craterPool(s, R, look.glow ?? look.side[0]!, !!look.glow));
-    } else terrain(s.outline, BEACH_TOP, s.height * R, look, s.holes);
-  }
-  // Sloped edges (decision 0096 §4): a ramp down from the top, outward, to the ground below.
-  for (const s of layout.surfaces)
-    if (s.slope && s.shape !== 'peak') out.push(ramp(layout, s, R, ground(s.material).top));
-  // Ramps that climb along their length (decision 0123).
-  for (const r of layout.ramps) out.push(...rampBand(r, R, ground(r.material)));
-  // Glowing parts (a crater's lava) go to the windows' mesh, not the terrain's.
-  for (const g of out) if (!isGlowing(g)) g.userData.islandTerrain = true;
+  const out: Parts = stand ? [] : designedGround(layout, design.style, R);
   const pathColor = styleColor('path', design.style) as string;
   for (const lane of design.lanes) {
     if (lane.kind === 'stairs') stairs(out, lane, R);
@@ -656,9 +550,9 @@ export function designedTownParts(
   }
   if (layout.lake) {
     const lakeStart = out.length;
-    terrain(insetOutline(layout.lake, -0.035), BEACH_TOP, 0.55, beach, [layout.lake]);
+    if (!stand) out.push(...lakeRim(layout, design.style, R));
     // A true hole through the terrain; an independent still-water surface above the ocean.
-    const water = new THREE.ShapeGeometry(shape(layout.lake));
+    const water = new THREE.ShapeGeometry(outlineShape(layout.lake, R));
     water.rotateX(-Math.PI / 2).translate(0, 0.5, 0);
     out.push(paint(water, '#319eae'));
     for (const g of out.slice(lakeStart)) g.userData.islandTerrain = true;
@@ -674,136 +568,9 @@ export function designedTownParts(
     if (atLevel(river, level) && river.points.length >= 2)
       out.push(...riverParts(layout, river, R));
 
-  const standing = design.props.filter((p) => atLevel(p, level));
-  /** Places a prop's parts (into `into`) and returns how far it clears the woods. */
-  const place = (prop: PropDef, parts: Parts, into: Parts = out) => {
-    const type = PROP_TYPES[prop.type]!;
-    const size = prop.size ?? 1;
-    const clear = prop.clear ?? (extent(parts) * size) / R + 0.1;
-    const y = prop.y !== undefined ? prop.y * R : standHeight(layout, prop.x, prop.z, R);
-    put(
-      into,
-      parts,
-      prop.x * R,
-      y,
-      prop.z * R,
-      ((prop.turn ?? 0) * Math.PI) / 180,
-      type.sizedInModel ? 1 : size,
-    );
-    return clear;
-  };
-
-  // Homes, numbered in file order; lanes appear piece by piece near the ones that stand.
-  const homes: Parts[] = [];
-  const active: { x: number; z: number }[] = [];
-  design.props.filter(isResidence).forEach((prop, i) => {
-    if (!atLevel(prop, level)) return;
-    const parts = propParts(prop, design, R);
-    place(prop, parts, []);
-    const bounds = new THREE.Box3();
-    for (const g of parts) {
-      g.computeBoundingBox();
-      bounds.union(g.boundingBox!);
-    }
-    parts[0]!.userData.residence = i;
-    parts[0]!.userData.buildingBounds = {
-      minX: bounds.min.x,
-      maxX: bounds.max.x,
-      minZ: bounds.min.z,
-      maxZ: bounds.max.z,
-    };
-    homes.push(parts);
-    active.push({ x: prop.x, z: prop.z });
-  });
-  // Lane pieces near standing homes, with no roads across water or cliffs.
-  const clearedLanes: { x: number; z: number }[] = [];
-  for (const lane of design.lanes) {
-    if (lane.kind && lane.kind !== 'lane') continue;
-    const street = new THREE.CatmullRomCurve3(
-      lane.points.map(([x, z]) => new THREE.Vector3(x, 0, z)),
-      false,
-      'centripetal',
-    );
-    const points = street.getSpacedPoints(110);
-    for (let i = 1; i < points.length; i++) {
-      const a = points[i - 1]!,
-        b = points[i]!;
-      const x = (a.x + b.x) / 2,
-        z = (a.z + b.z) / 2;
-      const h = layoutGround(layout, x, z, 0.025);
-      if (h === null || !active.some((p) => Math.hypot(p.x - x, p.z - z) < 0.3)) continue;
-      const ha = layoutGround(layout, a.x, a.z, 0.025),
-        hb = layoutGround(layout, b.x, b.z, 0.025);
-      // On one level, or climbing a slope (never across a cliff).
-      const flat = ha === h && hb === h;
-      if (!flat && (ha === null || hb === null || crossesCliff(layout, a.x, a.z, b.x, b.z)))
-        continue;
-      clearedLanes.push({ x, z });
-      const len = a.distanceTo(b) * R;
-      const g = paint(
-        new THREE.PlaneGeometry(len + 0.01, R * (lane.width ?? LANE_WIDTH))
-          .rotateX(-Math.PI / 2)
-          .translate(0, 0.012, 0),
-        pathColor,
-      );
-      if (!flat) g.rotateZ(Math.atan2((hb! - ha!) * R, len));
-      put(out, [g], x * R, h * R, z * R, -Math.atan2(b.z - a.z, b.x - a.x));
-    }
-  }
-  for (const parts of homes) out.push(...parts);
-
   // The same blue-and-white harbour flag identifies the player berth at every port.
-  if (harbour) harbourParts(out, design, R, level, stone);
-
-  // Every other prop, in file order; fields claim woodland as the settlement grows.
-  const occupied: { x: number; z: number; clear: number }[] = [];
-  const fields: { x: number; z: number }[] = [];
-  for (const prop of standing) {
-    if (isResidence(prop)) continue;
-    const clear = place(prop, propParts(prop, design, R));
-    if (prop.type === 'field') fields.push(prop);
-    else occupied.push({ x: prop.x, z: prop.z, clear });
-  }
-
-  // Fixed candidate trees keep untouched woods stable; occupied land alone clears them.
-  const woods = design.woods;
-  const make = WOODLAND_TREES[woods.tree]!;
-  const finalLayout = islandLayout(design);
-  // No trees on grounds that carry none (rock, ice): by the height of their tops.
-  const rockHeights = layout.surfaces.filter((s) => !ground(s.material).trees).map((s) => s.height);
-  const treesRng = createRng(design.seed + 789);
-  const forest: { x: number; z: number }[] = [];
-  const [x0, z0, x1, z1] = woods.area;
-  for (let i = 0; i < woods.tries; i++) {
-    const x = range(treesRng, x0, x1),
-      z = range(treesRng, z0, z1);
-    const buildTree = make(treesRng);
-    const yaw = treesRng() * 6;
-    const h = layoutGround(layout, x, z, woods.margin);
-    // No trees on rock, nor where the grown town's ground (a level-4 quarry) will not carry one.
-    if (
-      h === null ||
-      layoutGround(finalLayout, x, z, woods.margin) === null ||
-      rockHeights.includes(h)
-    )
-      continue;
-    const spacing = woods.spacingAt?.find(([at]) => at === h)?.[1] ?? woods.spacing;
-    if (forest.some((p) => Math.hypot(p.x - x, p.z - z) < spacing)) continue;
-    forest.push({ x, z });
-    if (
-      active.some((p) => Math.hypot(p.x - x, p.z - z) < 0.19) ||
-      clearedLanes.some((p) => Math.hypot(p.x - x, p.z - z) < 0.09) ||
-      occupied.some((p) => Math.hypot(p.x - x, p.z - z) < p.clear) ||
-      fields.some((p) => Math.abs(p.x - x) < 0.22 && Math.abs(p.z - z) < 0.22) ||
-      (woods.areas?.length && !woods.areas.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r)) ||
-      (harbour && Math.abs(x - 0.08) < 0.14 && z > 0.45) ||
-      woods.clear?.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r)
-    )
-      continue;
-    const tree = buildTree();
-    tree[0]!.userData.tree = { x, z };
-    put(out, tree, x * R, h * R, z * R, yaw, woods.size);
-  }
+  const flag = (into: Parts) => harbourParts(into, design, R, level, stone);
+  townProps(out, design, layout, R, level, harbour, harbour ? flag : () => {}, stand);
   return out.map(withoutUndersides);
 }
 
@@ -840,128 +607,6 @@ function harbourParts(
   );
   // Additional finger piers use the shared harbour plan (including their collision segments).
   for (const p of piers.slice(1)) secondPier(out, p.x, p.z0, p.len, stone);
-}
-
-/**
- * The ramp of a sloped outline: a band from each sloped edge's top, outward by the slope's
- * width, down to the ground below, with a fan at each bend between two sloped edges.
- */
-function ramp(layout: IslandLayout, s: LandSurface, R: number, colors: string[]) {
-  const o = s.outline;
-  const w = s.slope!;
-  let area = 0;
-  for (let i = 0; i < o.length; i++) {
-    const a = o[i]!,
-      b = o[(i + 1) % o.length]!;
-    area += a[0] * b[1] - b[0] * a[1];
-  }
-  const out = area > 0 ? -1 : 1;
-  const normal = (i: number) => {
-    const a = o[i % o.length]!,
-      b = o[(i + 1) % o.length]!;
-    const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
-    return [((b[1] - a[1]) / l) * out, (-(b[0] - a[0]) / l) * out] as const;
-  };
-  // Down to the ground below, not up a mountain's flat outline (its cone stands over the foot).
-  const flat = flatLayout(layout);
-  const foot = (x: number, z: number) => (layoutGround(flat, x, z) ?? 0) * R;
-  const positions: number[] = [];
-  const v = (x: number, y: number, z: number) => positions.push(x * R, y, z * R);
-  /** One triangle, wound to face up. */
-  const tri = (p: number[], q: number[], r: number[]) => {
-    const up = (q[0]! - p[0]!) * (r[2]! - p[2]!) - (q[2]! - p[2]!) * (r[0]! - p[0]!) < 0;
-    for (const [x, y, z] of up ? [p, q, r] : [p, r, q]) v(x!, y!, z!);
-  };
-  const top = s.height * R;
-  for (let i = 0; i < o.length; i++) {
-    if (!isSloped(s, i)) continue;
-    const a = o[i]!,
-      b = o[(i + 1) % o.length]!;
-    const [nx, nz] = normal(i);
-    const fa = [a[0] + nx * w, a[1] + nz * w],
-      fb = [b[0] + nx * w, b[1] + nz * w];
-    const A = [a[0], top, a[1]],
-      B = [b[0], top, b[1]],
-      FA = [fa[0]!, foot(fa[0]!, fa[1]!), fa[1]!],
-      FB = [fb[0]!, foot(fb[0]!, fb[1]!), fb[1]!];
-    tri(A, B, FB);
-    tri(A, FB, FA);
-    // The bend to the next edge, when it slopes too: a fan round the corner.
-    if (isSloped(s, (i + 1) % o.length)) {
-      const [mx, mz] = normal(i + 1);
-      const fc = [b[0] + mx * w, b[1] + mz * w];
-      tri(B, FB, [fc[0]!, foot(fc[0]!, fc[1]!), fc[1]!]);
-    }
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  return paintFaces(g, colors);
-}
-
-/**
- * A ramp along its points (decision 0123): a band rising evenly from start to end, with rock
- * sides and ends down to the beach. Corners are mitred so the band keeps its width.
- */
-function rampBand(r: LayoutRamp, R: number, look: GroundColors): Parts {
-  const p = r.points;
-  const total = r.along[r.along.length - 1]! || 1;
-  const half = r.width / 2;
-  const dir = (i: number) => {
-    const [ax, az] = p[Math.max(0, i - 1)]!,
-      [bx, bz] = p[Math.min(p.length - 1, Math.max(1, i))]!;
-    const l = Math.hypot(bx - ax, bz - az) || 1;
-    return [(bx - ax) / l, (bz - az) / l] as const;
-  };
-  // Left and right edge of each cross-section and its height.
-  const sections = p.map(([x, z], i) => {
-    const [ux, uz] = dir(i),
-      [vx, vz] = dir(i + 1);
-    let nx = -(uz + vz),
-      nz = ux + vx;
-    const l = Math.hypot(nx, nz) || 1;
-    nx /= l;
-    nz /= l;
-    // Mitre: as wide as the band across both runs, no more than twice at a sharp bend.
-    const k = Math.min(2, 1 / Math.max(0.5, Math.abs(nx * -uz + nz * ux)));
-    const y = (r.start + ((r.end - r.start) * r.along[i]!) / total) * R;
-    return {
-      left: [(x + nx * half * k) * R, y, (z + nz * half * k) * R],
-      right: [(x - nx * half * k) * R, y, (z - nz * half * k) * R],
-    };
-  });
-  const top: number[] = [],
-    sides: number[] = [];
-  const quad = (to: number[], a: number[], b: number[], c: number[], d: number[]) =>
-    to.push(...a, ...b, ...c, ...a, ...c, ...d);
-  const low = (v: number[]) => [v[0]!, BEACH_TOP, v[2]!];
-  for (let i = 1; i < sections.length; i++) {
-    const a = sections[i - 1]!,
-      b = sections[i]!;
-    quad(top, a.left, a.right, b.right, b.left);
-    quad(sides, low(a.left), a.left, b.left, low(b.left));
-    quad(sides, a.right, low(a.right), low(b.right), b.right);
-  }
-  const first = sections[0]!,
-    last = sections[sections.length - 1]!;
-  quad(sides, low(first.right), first.right, first.left, low(first.left));
-  quad(sides, low(last.left), last.left, last.right, low(last.right));
-  const mesh = (positions: number[], c: string[]) => {
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    // Wound either way round: both faces drawn by flipping to face up or out.
-    const faced = new THREE.BufferGeometry();
-    const both = [...positions];
-    for (let i = 0; i < positions.length; i += 9)
-      both.push(
-        ...positions.slice(i, i + 3),
-        ...positions.slice(i + 6, i + 9),
-        ...positions.slice(i + 3, i + 6),
-      );
-    faced.setAttribute('position', new THREE.Float32BufferAttribute(both, 3));
-    g.dispose();
-    return paintFaces(faced, c);
-  };
-  return [mesh(top, look.top), mesh(sides, look.side)];
 }
 
 /** Stairs over a cliff: treads on full masonry down to `base`, a landing at each bend. */

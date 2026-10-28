@@ -27,6 +27,8 @@ import { PALETTE } from './palette';
 import { BuoyMarker, EdgeBuoys, createBlobShadow } from './props';
 import { CourseSpar } from './courseSpar';
 import { renderPixelRatio, QUALITY, type QualityLevel, type QualityProfile } from './quality';
+import { type TerrainLook, terrainLook } from './terrainLook';
+import { HazeVeil } from './hazeVeil';
 import { Wake } from './wake';
 import { ImpactDebris } from './impactDebris';
 import { damageStage, hullCondition } from '../sim/hazards';
@@ -166,10 +168,7 @@ export class GameView {
   private readonly tmp = new THREE.Vector3();
   /** The fog bank or ash cloud at the camera's target (decision 0169). */
   private readonly haze: ZoneVisual = { ...CLEAR };
-  /** The veil over the screen inside a haze, its opacity and colour as last set. */
-  private readonly veil: HTMLElement | null;
-  private veilOpacity = -1;
-  private veilColor = '';
+  private readonly veil: HazeVeil;
   private width = 1;
   private height = 1;
 
@@ -177,6 +176,8 @@ export class GameView {
     canvas: HTMLCanvasElement,
     private readonly world: World,
     level: QualityLevel,
+    /** `?look=v2`: the new look's ground from the shared height field (decision 0222). */
+    look: TerrainLook = terrainLook(location.search),
   ) {
     this.renderer = new THREE.WebGLRenderer({
       canvas,
@@ -186,7 +187,9 @@ export class GameView {
       stencil: false,
     });
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
-    this.veil = canvas.parentElement?.querySelector<HTMLElement>('#haze-veil') ?? null;
+    this.veil = new HazeVeil(
+      canvas.parentElement?.querySelector<HTMLElement>('#haze-veil') ?? null,
+    );
     this.scene.background = new THREE.Color(PALETTE.deepWater);
     this.scene.fog = new THREE.Fog(PALETTE.deepWater, 120, 220);
     this.scene.add(this.hemi);
@@ -202,10 +205,19 @@ export class GameView {
     this.scene.add(this.sun, this.sun.target);
 
     this.levels = townLevels(world.map, world.trade);
-    this.islands = buildIslands(world.map, { shadows: true, levels: this.levels });
-    this.lighthouseBeams = new LighthouseBeams(world.map.islands, this.islandLevels(this.levels));
+    this.islands = buildIslands(world.map, {
+      shadows: true,
+      levels: this.levels,
+      look,
+      quality: level,
+    });
+    this.lighthouseBeams = new LighthouseBeams(
+      world.map.islands,
+      this.islandLevels(this.levels),
+      look,
+    );
     this.scene.add(this.lighthouseBeams.root);
-    this.beaconLights = new BeaconLights(world.map.islands, this.islandLevels(this.levels));
+    this.beaconLights = new BeaconLights(world.map.islands, this.islandLevels(this.levels), look);
     this.scene.add(this.beaconLights.points);
     this.volcanoes = new Volcanoes(this.islands.craters);
     this.level = level;
@@ -380,6 +392,7 @@ export class GameView {
     this.level = level;
     this.rig.orbit.ultra = level === 'ultra';
     this.wake.setQuality(level);
+    this.islands.setQuality(level);
     const profile = QUALITY[level];
     if (this.ocean) this.scene.remove(this.ocean.mesh, this.streaks.mesh, this.rain.mesh);
     const shore = this.shores.get(this.world.land.islands, this.world.land.terrain);
@@ -516,30 +529,6 @@ export class GameView {
   }
 
   /**
-   * The veil over the screen (decision 0169): clear round the boat, the haze's colour toward the
-   * edges. Touched only when its opacity or colour changes, so open sea costs nothing.
-   */
-  private updateVeil(haze: ZoneVisual) {
-    if (!this.veil) return;
-    const opacity = haze.kind ? Math.round(haze.haze * 50) / 50 : 0;
-    if (opacity !== this.veilOpacity) {
-      this.veilOpacity = opacity;
-      this.veil.style.opacity = String(opacity);
-    }
-    if (opacity <= 0) return;
-    const c = this.atmosphere.hazeColor;
-    const rgb = `${Math.round(c.r * 255)},${Math.round(c.g * 255)},${Math.round(c.b * 255)}`;
-    // The look changes with the colour or the `?tune` panel's veil numbers.
-    const key = `${rgb}|${JSON.stringify(TUNING.weather.sight)}`;
-    if (key === this.veilColor) return;
-    this.veilColor = key;
-    const v = TUNING.weather.sight;
-    this.veil.style.background =
-      `radial-gradient(ellipse 70% 65% at 50% 52%, rgba(${rgb},0) ${v.veilClear * 100}%, ` +
-      `rgba(${rgb},${v.veilMidAlpha}) ${v.veilMid * 100}%, rgba(${rgb},${v.veilEdgeAlpha}) 100%)`;
-  }
-
-  /**
    * A volcano erupts (decision 0178): a quest's `reward.erupt` waits for the boat to come in
    * sight; `now` starts it at once (the screenshot tool). False when the island has no crater.
    */
@@ -599,7 +588,7 @@ export class GameView {
       fog.near += (Math.min(fog.near, dist + haze.kind.near) - fog.near) * haze.haze;
       fog.far += (Math.min(fog.far, dist + haze.kind.far) - fog.far) * haze.haze;
     }
-    this.updateVeil(haze);
+    this.veil.update(haze, this.atmosphere.hazeColor);
     this.ocean.setFog(fog.near, fog.far);
     // Nothing past the fog can show, so the camera stops there and three.js skips what lies beyond
     // (decision 0117). The sea at the top of the screen is about 1.4 x `dist` away (1.5 x at the

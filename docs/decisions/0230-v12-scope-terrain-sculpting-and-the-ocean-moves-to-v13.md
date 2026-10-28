@@ -20,3 +20,7 @@
 - The island file gains a list of terrain edits; old files load unchanged.
 - Editor and CLI work grows; the release is longer than first planned.
 - The ocean update (v1.3) can read seabed depth from the same height field.
+
+## Update (2026-10-28, #268)
+
+The field is built: `src/sim/heightfield.ts`, canonical grid `terrain.json › cell` (0.8 units); quality levels draw one vertex every `groundStep` cells. Details in `docs/v1.2/plan.md` step 1.

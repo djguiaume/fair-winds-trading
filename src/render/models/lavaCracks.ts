@@ -8,7 +8,8 @@ import {
   surfaceHeight,
 } from '../../sim/islandLayout';
 import { createRng } from '../../sim/rng';
-import { BEACH_TOP, glowing, molten, paint } from './geometry';
+import { glowing, molten, paint } from './geometry';
+import { BEACH_TOP } from '../../sim/islandUnits';
 
 /**
  * Glowing cracks on a ground that has a `glow` colour (decision 0171, lava fields): a seeded

@@ -8,7 +8,7 @@ import { stressMap } from '../../src/data/stressMap';
 import { type ControlsDoc, controlsProblems, shippedControls } from '../../src/editor/controls/doc';
 import { regattaProblems, shippedRegattaDoc } from '../../src/editor/regatta/doc';
 import { questProblems } from '../../src/editor/quest/doc';
-import { ISLAND_SCALE } from '../../src/render/models/highlandIslands';
+import { ISLAND_SCALE } from '../../src/sim/islandUnits';
 import { islandCheckKit } from '../../src/render/models/towns';
 import { checkIsland } from '../../src/sim/islandChecks';
 import type { MapDef } from '../../src/sim/map';

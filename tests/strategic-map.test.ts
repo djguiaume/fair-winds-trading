@@ -12,7 +12,8 @@ import { SLOOP, CUTTER } from '../src/sim/ship';
 import { applySave, serializeWorld, validateSave } from '../src/sim/save';
 import { createWorld } from '../src/sim/world';
 import { type SailRoute, clearAt, sailRoute } from '../src/sim/mapChecks';
-import { buildHighlandIslands, terrainProps } from '../src/render/models/highlandIslands';
+import { buildHighlandIslands } from '../src/render/models/highlandIslands';
+import { terrainProps } from '../src/render/models/terrainProps';
 import { triangleCount } from '../src/render/models/geometry';
 import { Ocean } from '../src/render/ocean';
 

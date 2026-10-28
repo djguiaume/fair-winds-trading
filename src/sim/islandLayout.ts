@@ -148,7 +148,7 @@ export function layoutGround(
     }
     return height;
   }
-  if (cliffDistance(layout, x, z) < margin) return null;
+  if (margin > 0 && cliffDistance(layout, x, z) < margin) return null; // (never < 0: skip the walk)
   let height = rampHeight(layout, x, z, margin);
   for (const s of layout.surfaces) {
     if (onSurface(s, x, z)) height = Math.max(height ?? 0, s.height);

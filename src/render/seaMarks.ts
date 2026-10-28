@@ -4,7 +4,7 @@ import { questShown } from '../data/islands';
 import { mergeAll, paint, place, vertexColorMaterial } from './models/geometry';
 import { fishingBoat } from './models/props';
 import { buildProp } from './models/propRecipe';
-import { ISLAND_SCALE } from './models/highlandIslands';
+import { ISLAND_SCALE } from '../sim/islandUnits';
 import { landmarkParts } from './models/landmarks';
 
 /** Island props stand at this scale; Saltmere's moored boats are drawn 1.55 times a 2-unit hull. */

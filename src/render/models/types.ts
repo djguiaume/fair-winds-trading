@@ -2,6 +2,8 @@ import type { FlagDef } from '../../sim/regatta';
 import type * as THREE from 'three';
 import type { MapDef } from '../../sim/map';
 import type { TownLevel } from './towns';
+import type { QualityLevel } from '../quality';
+import type { TerrainLook } from '../terrainLook';
 
 /**
  * Swap point for art (see docs/art-pipeline.md): any boat or island look only has to satisfy
@@ -72,6 +74,10 @@ export interface IslandBuildOptions {
   shadows: boolean;
   /** Settlement level per port id (decision 0060); a port left out keeps the map's fixed look. */
   levels?: Record<string, TownLevel>;
+  /** The classic ground or the new look's height-field ground (decision 0222); default v1. */
+  look?: TerrainLook;
+  /** The quality level the ground's detail starts at (`terrain.json › groundStep`). */
+  quality?: QualityLevel;
 }
 
 /** Rendered land supports incremental settlement changes without replacing stable harbour anchors. */
@@ -98,6 +104,8 @@ export interface IslandModel extends THREE.Object3D {
   setQuestsDone(done: ReadonlySet<string>): void;
   /** Hide the islands and shapes out of the sea for now, show the others (decision 0166). */
   setLandOut(out: ReadonlySet<string>): void;
+  /** Draw the new look's ground at this quality level's detail (decision 0222). */
+  setQuality(level: QualityLevel): void;
   dispose(): void;
 }
 

@@ -7,6 +7,7 @@ import { readFileSync, mkdirSync } from 'node:fs';
 import { resolve, basename, extname, join } from 'node:path';
 import { ROOT, chromiumPath, startVite } from './lib.mjs';
 import { padSteps } from './padSteps.mjs';
+import { keyHold, list, lookOption, pair, readAll } from './shotOptions.mjs';
 
 /**
  * The three sizes every look review shows (desktop first, must look good in portrait), and `tv`:
@@ -60,6 +61,8 @@ Where
   --tab market|orders|quay|shipyard   the port screen's tab
   --zoom z                      camera distance, 1 = default, larger = farther (no game limit)
   --look x,y                    camera on this map point instead of the boat
+  --look v2 | v2,x,y            the new look's ground from the shared height field (?look=v2,
+                                decision 0222), and the camera on that point; v1: the classic
   --yaw deg --tilt deg          a turned camera (0223): the bearing it looks to, degrees down
   --menu                        the title menu, before Set sail (the scene options are ignored)
   --chart                       the sea chart open (--pad and --click then play on it); --chart-zoom n, --chart-pan Key:n,
@@ -114,22 +117,6 @@ const PAGES = 'https://djguiaume.github.io/fair-winds-trading/';
 const SEAS = { phase4: '', game: '', ring: 'ring', stress: 'stress' };
 const NUMBERS = 'heading sail speed zoom yaw tilt time wait chart-zoom hull crash'.split(' ');
 
-const pair = (v) => {
-  if (Array.isArray(v)) return v.map(Number);
-  const out = String(v).split(',').map(Number);
-  if (out.length !== 2 || out.some((n) => !Number.isFinite(n))) throw new Error(`not x,y: ${v}`);
-  return out;
-};
-const list = (v) => (Array.isArray(v) ? v : String(v).split(',').filter(Boolean));
-const readAll = (v) =>
-  list(v)
-    .map((f) => readFileSync(resolve(ROOT, f), 'utf8'))
-    .join('\n;\n');
-const keyHold = (v) => {
-  const [key, n] = String(v).split(':');
-  return { key, n: Number(n) || 1 };
-};
-
 /** One shot from its options (command line or list entry, keys as on the command line). */
 export function normalise(opts) {
   const o = { ...opts };
@@ -158,7 +145,7 @@ export function normalise(opts) {
     tab: o.tab ?? null,
     zoom: o.zoom ?? null,
     turn: (o.yaw ?? o.tilt) !== undefined ? [o.yaw ?? 0, o.tilt] : null,
-    look: o.look !== undefined ? pair(o.look) : null,
+    ...lookOption(o.look),
     menu: !!o.menu,
     chart: !!o.chart,
     chartZoom: o['chart-zoom'] ?? 0,
@@ -221,6 +208,7 @@ function defaultName(s) {
     s.menu ? 'menu' : where,
     s.chart && 'chart',
     s.night && 'night',
+    s.ground === 'v2' && 'v2',
     s.lang !== 'en' && s.lang,
   ]
     .filter(Boolean)
@@ -253,6 +241,7 @@ export function shotPath(shot) {
   if (map) q.set('map', map);
   // Island files tried on the Phase 4 sea: the edited map falls back to the grown sea (0161).
   if (map === 'edited' && !shot.seaFile && shot.sea === 'phase4') q.set('sea', 'phase4');
+  if (shot.ground === 'v2') q.set('look', 'v2');
   for (const [k, v] of new URLSearchParams(shot.query ?? '')) q.set(k, v);
   return `/?${q}`;
 }

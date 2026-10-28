@@ -1,540 +1,43 @@
-import { TUNING } from '../../data/tuning';
 import * as THREE from 'three';
+import { TUNING } from '../../data/tuning';
+import { groundColors } from '../../data/grounds';
 import type { IslandDef, MapDef, TerrainDef } from '../../sim/map';
-import { pierAt } from '../../sim/collision';
-import { bearingTo } from '../../sim/math';
-import { type Rng, createRng, range } from '../../sim/rng';
-import {
-  blobShape,
-  isGlowing,
-  isMolten,
-  mergeAll,
-  paint,
-  paintGroups,
-  slab,
-  vertexColorMaterial,
-  windowPanes,
-} from './geometry';
-import type { Crater, IslandModel, IslandsBuilder } from './types';
-import { landmarkParts } from './landmarks';
-import { type Spot, landmarkRadius, sampleInside, terrainSeed } from '../../sim/landmarks';
-import { insetOutline } from '../../sim/coast';
-import { PALETTE } from '../../data/props';
-import { type TownLevel, standHeight, townIslandParts } from './towns';
+import { terrainSeed } from '../../sim/landmarks';
 import { atLevel, designOf, designQuestIds } from '../../data/islands';
 import { PROP_RECIPES } from '../../data/props';
 import { islandLayout, islandPoint } from '../../sim/islandLayout';
+import { ISLAND_SCALE } from '../../sim/islandUnits';
+import {
+  type Heightfield,
+  fieldLod,
+  islandHeightfield,
+  terrainHeightfield,
+} from '../../sim/heightfield';
+import type { QualityLevel } from '../quality';
+import type { TerrainLook } from '../terrainLook';
+import { isGlowing, isMolten, mergeAll, vertexColorMaterial } from './geometry';
+import type { Crater, IslandModel, IslandsBuilder } from './types';
+import { type FieldColor, featureGround, fieldGround, iceField } from './ground';
+import { B2 } from './highlandPalette';
+import { islandParts, shownLevel } from './islandParts';
+import { terrainProps } from './terrainProps';
+import { type Stand, fieldStand, standHeight } from './townProps';
+import type { TownLevel } from './towns';
+import type { Parts } from './props';
 
-/**
- * B2 "Bright highlands" islands (decision 0012), ported from the reference builder in
- * docs/art/src/lib.js (`kit('highlandLight')`, `island`): a beach, stacked sandstone layers and a
- * grass cap, with props that show what the island produces. Each island is batched separately so the camera can cull distant land. The shallows glow is drawn by the ocean shader.
- */
-export const B2 = {
-  sand: '#f2d9a0',
-  grass: '#7cc04f',
-  rock: '#c2ad8c',
-  rock2: '#d6c4a4',
-  field: ['#e8c547', '#c9d65a', '#e2b53e'],
-  furrow: '#8f7a30',
-  leaves: ['#3f8f45', '#4aa04f', '#38833f'],
-  trunk: '#5a3d24',
-  walls: ['#f4ede0', '#ece2cf', '#f8f3ea'],
-  roofs: ['#c8603e', '#3f74a8', '#c8603e'],
-  chimney: '#8a8174',
-  dock: '#9b6b3d',
-  post: '#6b4a2a',
-  rack: '#b08a5a',
-  logs: '#a8703c',
-  mill: '#fff3dc',
-  millCap: '#8a4a2a',
-  blade: '#f4ead2',
-  cart: '#8a6a4a',
-};
-
-/**
- * Islands are designed in the reference sheet's units, where a sloop is 5 m long; the game draws
- * the sloop 2.2× bigger, so islands and props scale the same way to keep the sheet's proportions.
- */
-export const ISLAND_SCALE = 2.2;
-
-type Parts = THREE.BufferGeometry[];
-
-/** Move a group of parts to (x, y, z), turned by rotY. */
-function put(out: Parts, parts: Parts, x: number, y: number, z: number, rotY = 0, scale = 1) {
-  for (const g of parts) {
-    if (scale !== 1) g.scale(scale, scale, scale);
-    if (rotY) g.rotateY(rotY);
-    g.translate(x, y, z);
-    out.push(g);
-  }
-}
-
-function tree(rng: Rng): Parts {
-  const parts = [
-    paint(new THREE.CylinderGeometry(0.08, 0.12, 0.6, 5).translate(0, 0.3, 0), B2.trunk),
-  ];
-  for (let i = 0; i < 3; i++) {
-    const cone = new THREE.ConeGeometry(0.65 - i * 0.16, 0.9, 6).rotateY(rng() * 2);
-    parts.push(paint(cone.translate(0, 0.75 + i * 0.45, 0), B2.leaves[i]!));
-  }
-  const sc = 0.8 + rng() * 0.5;
-  for (const g of parts) g.scale(sc, sc, sc);
-  return parts;
-}
-
-function house(i: number): Parts {
-  const roof = new THREE.CylinderGeometry(0, 0.75, 0.6, 4, 1).rotateY(Math.PI / 4);
-  roof.scale(1.15, 1, 0.85);
-  return [
-    paint(new THREE.BoxGeometry(1.2, 0.9, 0.9).translate(0, 0.45, 0), B2.walls[i % 3]!),
-    paint(roof.translate(0, 1.2, 0), B2.roofs[i % 3]!),
-    paint(new THREE.BoxGeometry(0.18, 0.5, 0.18).translate(0.35, 1.3, 0), B2.chimney),
-    ...windowPanes(1.2, 0.9, 0.5, 2, 1, i),
-  ];
-}
-
-function logPile(): Parts {
-  const parts: Parts = [];
-  for (let i = 0; i < 5; i++) {
-    const layer = Math.floor(i / 3);
-    const log = new THREE.CylinderGeometry(0.18, 0.18, 1.6, 6).rotateZ(Math.PI / 2);
-    log.translate(0, 0.18 + layer * 0.3, (i % 3) * 0.37 - 0.37 + layer * 0.18);
-    parts.push(paint(log, B2.logs));
-  }
-  return parts;
-}
-
-function windmill(): Parts {
-  const parts = [
-    paint(new THREE.CylinderGeometry(0.45, 0.65, 2.2, 8).translate(0, 1.1, 0), B2.mill),
-    paint(new THREE.ConeGeometry(0.6, 0.7, 8).translate(0, 2.55, 0), B2.millCap),
-  ];
-  for (let k = 0; k < 4; k++) {
-    const blade = new THREE.BoxGeometry(0.25, 1.8, 0.05).translate(0, 0.9, 0);
-    blade.rotateZ((k * Math.PI) / 2 + 0.4);
-    parts.push(paint(blade.translate(0, 2.2, 0.55), B2.blade));
-  }
-  return parts;
-}
-
-/**
- * One island in reference units around its own origin, with its harbour side toward +Z.
- * Returns the parts, already scaled, turned and moved to the island's place on the map.
- */
-export function islandParts(
-  island: IslandDef,
-  map: MapDef,
-  seed: number,
-  onHarbour?: (point: { x: number; y: number }) => void,
-  level?: TownLevel,
-  homeBuilt?: Record<string, string>,
-  questsDone?: ReadonlySet<string>,
-): Parts {
-  const rng = createRng(seed);
-  const look = island.look ?? {};
-  const kind = look.kind ?? map.ports.find((p) => p.islandId === island.id)?.produces[0];
-  const R = island.radius / ISLAND_SCALE;
-  const sx = 1 + (rng() - 0.5) * 0.16;
-  const sz = 1 + (rng() - 0.5) * 0.16;
-  const out: Parts = [];
-  // A port with a settlement level grows its own town and island profile (decision 0060); any
-  // island with its own file is built from it, a harbour only with a dock (decision 0110).
-  const town = !!look.design || ((level !== undefined || !!look.profile) && !!look.dock);
-
-  if (town) {
-    out.push(
-      ...townIslandParts({
-        seed,
-        // An island with no port has no levels: everything in its file stands.
-        level: level ?? (look.dock ? 1 : 4),
-        design: look.design,
-        profile: look.profile,
-        kind,
-        R,
-        sx,
-        sz,
-        landmark: look.landmark,
-        pier: { x: R * 0.08, z0: R * 0.85, len: Math.min(R * 0.75, 4.5) },
-        // Level 0: an empty island to found, no harbour yet (decision 0157).
-        harbour: !!look.dock && level !== 0,
-        homeBuilt,
-        questsDone,
-      }),
-    );
-  } else {
-    // Beach: from under the waves to just above them; its waterline sits on the collision radius.
-    out.push(
-      paint(
-        slab(blobShape(rng, R * 1.1, 14, 0.2, sx, sz), 1.45, 0.85).translate(0, -1, 0),
-        B2.sand,
-      ),
-    );
-
-    // Sandstone layers, each stepped back from the harbour so the dock side stays low.
-    const layers = Math.max(
-      1,
-      Math.min(
-        4,
-        look.layers ?? (kind === 'stone' ? 4 : kind === 'grain' ? 2 : kind ? 3 : look.rock ? 2 : 1),
-      ),
-    );
-    let y = 0;
-    let ox = 0;
-    let oz = 0;
-    for (let i = 0; i < layers; i++) {
-      const h = kind === 'stone' ? range(rng, 1.1, 1.5) : range(rng, 1.2, 1.8);
-      ox += (rng() - 0.5) * R * 0.08;
-      oz -= R * 0.05;
-      const layer = slab(blobShape(rng, R * (0.9 - i * 0.15), 11, 0.3, sx, sz), h, 0.9);
-      out.push(paint(layer.translate(ox, y, oz), i % 2 ? B2.rock2 : B2.rock));
-      y += h;
-    }
-    const capR = R * (0.92 - layers * 0.15);
-    out.push(
-      paint(slab(blobShape(rng, capR, 11, 0.2, sx, sz), 0.25, 0.95).translate(ox, y, oz), B2.grass),
-    );
-    const top = y + 0.25;
-    // Props sit on the cap: angle 0 = +X, π/2 = harbour (+Z); d is a fraction of the cap radius.
-    const HARBOUR = Math.PI / 2;
-    const at = (parts: Parts, a: number, d: number, rotY = 0, yOff = 0) =>
-      put(
-        out,
-        parts,
-        ox + Math.cos(a) * d * capR * sx,
-        top + yOff,
-        oz + Math.sin(a) * d * capR * sz,
-        rotY,
-      );
-
-    if (look.dock) {
-      const len = Math.min(R * 0.75, 4.5);
-      const z0 = R * 0.85;
-      out.push(
-        paint(
-          new THREE.BoxGeometry(0.9, 0.2, len).translate(R * 0.08, 0.45, z0 + len / 2),
-          B2.dock,
-        ),
-      );
-      for (const k of [-1, 1]) {
-        for (const t of [0.35, 0.95]) {
-          const post = new THREE.CylinderGeometry(0.08, 0.08, 1.2, 5);
-          out.push(paint(post.translate(R * 0.08 + k * 0.4, 0, z0 + len * t), B2.post));
-        }
-      }
-      if (kind === 'fish') {
-        // Fish-drying racks on stilts beside the pier.
-        for (const k of [-1, 1]) {
-          const rack = new THREE.BoxGeometry(1.2, 0.5, 0.1).rotateY(Math.PI / 2);
-          out.push(paint(rack.translate(R * 0.08 + k * 1.05, 0.8, z0 + len * 0.55), B2.rack));
-          out.push(
-            paint(
-              new THREE.BoxGeometry(0.1, 0.9, 0.1).translate(
-                R * 0.08 + k * 1.05,
-                0.2,
-                z0 + len * 0.55,
-              ),
-              B2.post,
-            ),
-          );
-        }
-      }
-    }
-
-    const houses = look.houses ?? 0;
-    const trees = look.trees ?? 0;
-    if (kind === 'fish') {
-      for (let i = 0; i < houses; i++) {
-        at(house(i), HARBOUR + (i - (houses - 1) / 2) * 0.6, i % 2 ? 0.4 : 0.72, rng() * 3);
-      }
-      for (let i = 0; i < trees; i++) at(tree(rng), -HARBOUR + (i - (trees - 1) / 2) * 0.7, 0.62);
-    } else if (kind === 'timber') {
-      for (let i = 0; i < Math.max(trees, 14); i++) {
-        const a = rng() * Math.PI * 2;
-        // Leave a clearing on the harbour side for the log pile and the hut.
-        if (Math.abs(Math.atan2(Math.sin(a - HARBOUR), Math.cos(a - HARBOUR))) < 0.6) continue;
-        at(tree(rng), a, Math.sqrt(rng()) * 0.85, rng() * 3);
-      }
-      at(logPile(), HARBOUR - 0.35, 0.55, 0.3);
-      for (let i = 0; i < Math.max(1, houses); i++)
-        at(house(i + 1), HARBOUR + 0.45 + i * 0.5, 0.6, 0.5);
-    } else if (kind === 'grain') {
-      const w = capR * 0.32;
-      for (let i = 0; i < 4; i++) {
-        const fx = ox + (i - 1.5) * capR * 0.34;
-        const fz = oz - capR * 0.15;
-        out.push(
-          paint(
-            new THREE.BoxGeometry(w, 0.12, capR * 0.6).translate(fx, top + 0.05, fz),
-            B2.field[i % 3]!,
-          ),
-        );
-        for (let k = 0; k < 3; k++) {
-          const furrow = new THREE.BoxGeometry(w * 0.94, 0.05, 0.06);
-          out.push(paint(furrow.translate(fx, top + 0.13, fz + (k - 1) * capR * 0.18), B2.furrow));
-        }
-      }
-      at(windmill(), HARBOUR + 0.8, 0.62, 0.4);
-      for (let i = 0; i < Math.max(1, houses); i++)
-        at(house(i + 2), HARBOUR - 0.8 + i * 0.45, 0.6, rng() * 3);
-      for (let i = 0; i < trees; i++) at(tree(rng), -HARBOUR + (i - (trees - 1) / 2) * 0.5, 0.88);
-    } else if (kind === 'stone') {
-      for (let i = 0; i < 3; i++) {
-        const boulder = new THREE.DodecahedronGeometry(R * (0.24 - i * 0.05), 0).scale(1, 1.3, 1);
-        at([paint(boulder, i % 2 ? B2.rock2 : B2.rock)], i * 2.1, 0.45 * i, rng() * 3, R * 0.1);
-      }
-      for (let i = 0; i < houses; i++) at(house(i), HARBOUR - 0.5 - i * 0.5, 0.55, rng() * 3);
-      for (let i = 0; i < trees; i++) at(tree(rng), 3 + i * 0.5, 0.75);
-      at(
-        [paint(new THREE.BoxGeometry(0.8, 0.4, 0.6).translate(0, 0.2, 0), B2.cart)],
-        HARBOUR + 0.3,
-        0.5,
-        0.4,
-      );
-    } else {
-      if (look.rock && !look.landmark) {
-        const boulder = new THREE.DodecahedronGeometry(R * 0.3, 0).scale(1, 1.3, 1);
-        at([paint(boulder, B2.rock2)], rng() * 6, 0.2, rng() * 3, R * 0.12);
-      }
-      for (let i = 0; i < houses; i++)
-        at(house(i), HARBOUR + (i - (houses - 1) / 2) * 0.6, 0.6, rng() * 3);
-      for (let i = 0; i < trees; i++)
-        at(
-          tree(rng),
-          rng() * Math.PI * 2,
-          look.landmark ? 0.78 + rng() * 0.1 : 0.3 + rng() * 0.5,
-          rng() * 3,
-        );
-    }
-
-    if (look.landmark) {
-      const size = Math.min(1.15, capR / 3.8);
-      if (look.landmark === 'wreck') {
-        put(out, landmarkParts('wreck', Math.min(0.9, R * 0.07)), 0, 0.6, R * 0.84, Math.PI / 2);
-      } else {
-        put(out, landmarkParts(look.landmark, size), ox, top, oz, 0.2);
-      }
-    }
-  }
-
-  // The harbour (+Z) faces the course buoy named after this island, else a seeded direction.
-  const wp = map.course.find((w) => w.label === island.name);
-  const bearing = look.harbourBearing ?? (wp ? bearingTo(island, wp) : rng() * Math.PI * 2);
-  // Exact pier head, shared with the pier's collision segment (decision 0038).
-  if (look.dock && onHarbour) {
-    const pier = pierAt(island, bearing);
-    onHarbour({ x: pier.x1, y: pier.y1 });
-  }
-  // rotateY(π - bearing) turns +Z to (sin b, 0, -cos b), the bearing's direction in the scene.
-  for (const g of out) {
-    g.scale(ISLAND_SCALE, ISLAND_SCALE, ISLAND_SCALE);
-    g.rotateY(Math.PI - bearing);
-    g.translate(island.x, 0, -island.y);
-  }
-  return out;
-}
-
-/**
- * Terraces of a barrier island (decision 0031): the beach is the exact collision outline, then
- * two sandstone tiers and a grass cap, each inset so nothing overhangs the shore.
- */
-const RIDGE_TIERS = [
-  { inset: 0, bottom: -0.8, top: 1, color: B2.sand },
-  { inset: 4, bottom: 0.8, top: 4.6, color: B2.rock },
-  { inset: 8, bottom: 4.4, top: 7.6, color: B2.rock2 },
-  { inset: 10, bottom: 7.5, top: 8, color: B2.grass },
-] as const;
-const RIDGE_TOP = 8;
-const CORAL = ['#e08a6a', '#f0a580', '#d9707a'];
-
-function extrudeOutline(outline: TerrainDef['outline'], bottom: number, top: number) {
-  const shape = new THREE.Shape(outline.map(([x, y]) => new THREE.Vector2(x, y)));
-  const geometry = new THREE.ExtrudeGeometry(shape, {
-    depth: top - bottom,
-    bevelEnabled: false,
-    curveSegments: 1,
-  });
-  geometry.rotateX(-Math.PI / 2);
-  return geometry.translate(0, bottom, 0);
-}
-
-/** Floe colours: snow on top, the pale sea ice at the edges, blue where it is thick (0170). */
-const FLOE_TOPS = ['#eef4f8', '#e3ecf3', '#f6f9fb', '#dcebf2'];
-const FLOE_SIDE = '#a8dde8';
-
-/** `weather.json` › `ice`. */
-interface IceTuning {
-  floeSize: [number, number];
-  jitter: number;
-  bits: number;
-  bitSize: [number, number];
-}
-
-/**
- * A field of ice (decision 0170): a thin pale sheet over the whole outline, so nothing shows
- * through, then flat floes of several sizes laid across it, a few tilted slabs where floes press
- * together, and the odd grounded berg on a big field. Low-poly and merged like the rest of the
- * terrain, so a field is one batch whatever its size.
- */
-export function iceField(feature: TerrainDef, seed: number): Parts {
-  const parts: Parts = [paint(extrudeOutline(feature.outline, -0.5, 0.25), '#d8ecf3')];
-  const rng = createRng(seed);
-  const occupied: Spot[] = [];
-  const xs = feature.outline.map((p) => p[0]),
-    ys = feature.outline.map((p) => p[1]);
-  const area = (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys));
-  const floes = Math.min(140, Math.round(area / 55));
-  const tune = (TUNING.weather as unknown as { ice: IceTuning }).ice;
-  // A floe: an uneven five- to seven-sided slab, so no two read as the same hexagon.
-  const floe = (x: number, y: number, r: number, h: number, sides: number, top: string) => {
-    const turn = rng() * 6;
-    const corners = Array.from({ length: sides }, (_, k) => {
-      const a = turn + ((k + range(rng, -0.25, 0.25)) / sides) * Math.PI * 2;
-      const d = r * range(rng, 1 - tune.jitter, 1 + tune.jitter * 0.5);
-      return [x + Math.cos(a) * d, y + Math.sin(a) * d] as [number, number];
-    });
-    parts.push(paintGroups(extrudeOutline(corners, 0.2, 0.2 + h), [top, FLOE_SIDE]));
+/** The new look's ground colours of an island file (until the biome palettes of issue #269). */
+function designColor(style: string): FieldColor {
+  return (ground, steep) => {
+    const look = groundColors(ground === '' || ground === 'lake' ? 'sand' : ground, style);
+    return (steep ? look.side : look.top)[0]!;
   };
-  for (let i = 0; i < floes; i++) {
-    const r = range(rng, tune.floeSize[0], tune.floeSize[1]);
-    const p = sampleInside(rng, feature.outline, r * 0.8, occupied);
-    if (!p) continue;
-    floe(
-      p.x,
-      p.y,
-      r,
-      range(rng, 0.35, 0.8),
-      5 + Math.floor(rng() * 3),
-      FLOE_TOPS[i % FLOE_TOPS.length]!,
-    );
-  }
-  // Broken ice between the floes.
-  for (let i = 0; i < Math.round(floes * tune.bits); i++) {
-    const r = range(rng, tune.bitSize[0], tune.bitSize[1]);
-    const p = sampleInside(rng, feature.outline, r, occupied);
-    if (!p) continue;
-    floe(
-      p.x,
-      p.y,
-      r,
-      range(rng, 0.2, 0.4),
-      4 + Math.floor(rng() * 2),
-      FLOE_TOPS[(i + 1) % FLOE_TOPS.length]!,
-    );
-  }
-  // Pressure ridges: slabs pushed up on edge where the floes meet.
-  for (let i = 0; i < Math.min(30, floes / 4); i++) {
-    const p = sampleInside(rng, feature.outline, 1.5, []);
-    if (!p) continue;
-    const slab = new THREE.BoxGeometry(range(rng, 2, 4), range(rng, 0.9, 1.8), 0.5)
-      .rotateZ(range(rng, -0.5, 0.5))
-      .rotateY(rng() * 6)
-      .translate(p.x, 0.7, -p.y);
-    parts.push(paint(slab, i % 2 ? '#c5e4ee' : '#eef4f8'));
-  }
-  return parts;
 }
 
-/** Detail geometry only, anchored inside the exact solid shoreline. */
-export function terrainProps(feature: TerrainDef, seed: number): Parts {
-  const parts: Parts = [];
-  const bank = feature.kind === 'sandbank';
-  const reef = feature.kind === 'reef';
-  // Decoration stays inside the shore (on barriers, on the grass cap); it cannot narrow passages.
-  const area = bank || reef ? feature.outline : insetOutline(feature.outline, RIDGE_TIERS[3].inset);
-  const rng = createRng(seed);
-  const occupied: Spot[] = [];
-  const sample = (radius: number) => sampleInside(rng, area, radius, occupied);
-  const topY = reef ? 0 : bank ? 0.8 : RIDGE_TOP;
-  if (feature.look?.landmark) {
-    const s = bank || reef ? 1.15 : 1.8;
-    const at = feature.look.landmarkAt;
-    const radius = landmarkRadius(feature.look.landmark);
-    // A landmark set by hand (decision 0130) keeps its room clear of the seeded details.
-    if (at) occupied.push({ ...at, radius });
-    const p = at ?? sample(radius);
-    if (!p) throw new Error(`Landmark does not fit on ${feature.id}`);
-    put(parts, landmarkParts(feature.look.landmark, s), p.x, topY, -p.y, 0.3);
-  }
-  if (reef) {
-    // Rocks and coral heads just awash; the ocean shader paints the shallows and foam around them.
-    // A styled reef takes its style's rock and coral colours (an empty `coral` list: none).
-    const own = feature.look?.style
-      ? (PALETTE.styles[feature.look.style] as { colors?: Record<string, string | string[]> })
-          ?.colors
-      : undefined;
-    const list = (v: string | string[] | undefined) => (v === undefined ? undefined : [v].flat());
-    const rocks = list(own?.reefRock) ?? [B2.rock2, B2.rock, B2.rock];
-    const coral = list(own?.coral) ?? CORAL;
-    for (let i = 0; i < 26; i++) {
-      const size = range(rng, 1.1, 2.2);
-      const p = sample(size + 1.2);
-      if (!p) break;
-      parts.push(
-        paint(
-          new THREE.DodecahedronGeometry(size, 0)
-            .scale(1, 0.6, 1)
-            .rotateY(rng() * 6)
-            .translate(p.x, size * 0.35, -p.y),
-          rocks[i % rocks.length]!,
-        ),
-      );
-      if (i % 2 && coral.length) {
-        const cone = new THREE.ConeGeometry(0.8, 1.6, 5).translate(
-          p.x + size * 0.6,
-          0.7,
-          -p.y + size * 0.3,
-        );
-        parts.push(paint(cone, coral[i % coral.length]!));
-      }
-    }
-    return parts;
-  }
-  if (!bank) {
-    // Small terraced outcrops give the long barriers relief like the highland islands.
-    for (let i = 0; i < 4; i++) {
-      const p = sample(3.4);
-      if (!p) break;
-      const base = new THREE.CylinderGeometry(2.4, 3.2, 1.7, 7).translate(p.x, topY + 0.85, -p.y);
-      parts.push(paint(base, B2.rock));
-      parts.push(
-        paint(
-          new THREE.CylinderGeometry(1.7, 1.8, 0.2, 6).translate(p.x, topY + 1.75, -p.y),
-          B2.grass,
-        ),
-      );
-    }
-  }
-  for (let i = 0; i < (feature.look?.trees ?? 0); i++) {
-    const p = sample(2.4);
-    if (!p) break;
-    put(parts, tree(rng), p.x, topY, -p.y, rng() * 6, 2.3);
-  }
-  // Rock outcrops, grass tufts and driftwood break up the otherwise flat surfaces.
-  for (let i = 0; i < (bank ? 7 : 9); i++) {
-    const p = sample(bank ? 1.1 : 2);
-    if (!p) break;
-    const size = bank ? range(rng, 0.45, 0.85) : range(rng, 1.0, 1.7);
-    parts.push(
-      paint(
-        new THREE.DodecahedronGeometry(size, 0)
-          .scale(1, 0.7, 1)
-          .translate(p.x, topY + size * 0.35, -p.y),
-        i % 2 ? B2.rock : B2.rock2,
-      ),
-    );
-    if (bank) {
-      const driftwood = new THREE.BoxGeometry(1.8, 0.25, 0.3)
-        .rotateY(rng() * 6)
-        .translate(p.x, topY + 0.3, -p.y);
-      parts.push(paint(driftwood, B2.logs));
-    } else {
-      parts.push(
-        paint(new THREE.ConeGeometry(0.7, 1.4, 4).translate(p.x, topY + 0.7, -p.y), B2.leaves[1]!),
-      );
-    }
-  }
-  return parts;
+/** The new look's ground colours of a terrain shape: the classic tiers' colours. */
+function featureColor(feature: TerrainDef): FieldColor {
+  const sand = feature.look?.color ?? B2.sand;
+  return (ground, steep) =>
+    steep ? B2.rock : ground === 'grass' ? B2.grass : ground === 'rock' ? B2.rock2 : sand;
 }
 
 /** Separate land batches keep camera and shadow culling local to each island. */
@@ -552,12 +55,20 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
   /** The quests done, for props shown before or after one (decision 0130). */
   private questsDone: ReadonlySet<string> = new Set();
 
+  /** The new look's height fields, by batch, to redraw their ground at another quality level. */
+  private readonly fields = new Map<THREE.Group, { field: Heightfield; color: FieldColor }>();
+  private groundStep: number;
+
   constructor(
     private readonly map: MapDef,
     private readonly shadows: boolean,
     levels = {} as Record<string, TownLevel>,
+    /** `?look=v2` (decision 0222): the ground drawn from the shared height field. */
+    private readonly look: TerrainLook = 'v1',
+    quality: QualityLevel = 'high',
   ) {
     super();
+    this.groundStep = TUNING.terrain.groundStep[quality];
     this.levels = { ...levels };
     this.userData.harbours = {};
     // Keep the model-sheet/night-lighting API: every window shares this tint material.
@@ -570,28 +81,17 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     }
     // Collision terrain is independent of settlement growth and never rebuilt for a level-up.
     for (const feature of map.terrain ?? []) {
-      const parts: Parts = [];
       // Shallows are water: ShallowsWater tints them at sea (decision 0152), nothing stands there.
       if (feature.kind === 'shallows' || feature.kind === 'bergs') continue;
-      if (feature.kind === 'ice') {
-        const group = this.batch(iceField(feature, terrainSeed(map, feature)));
-        group.name = `terrain:${feature.id}`;
-        this.add(group);
-        continue;
-      }
-      if (feature.kind === 'sandbank') {
-        parts.push(
-          paint(extrudeOutline(feature.outline, -0.4, 0.8), feature.look?.color ?? B2.sand),
-        );
-      } else if (feature.kind === 'island') {
-        for (const tier of RIDGE_TIERS) {
-          const outline = tier.inset ? insetOutline(feature.outline, tier.inset) : feature.outline;
-          parts.push(paint(extrudeOutline(outline, tier.bottom, tier.top), tier.color));
-        }
-      }
-      parts.push(...terrainProps(feature, terrainSeed(map, feature)));
+      const seed = terrainSeed(map, feature);
+      const field = this.look === 'v2' ? terrainHeightfield(feature, seed) : null;
+      const parts =
+        feature.kind === 'ice'
+          ? iceField(feature, seed)
+          : [...(field ? [] : featureGround(feature)), ...terrainProps(feature, seed)];
       const group = this.batch(parts);
       group.name = `terrain:${feature.id}`;
+      if (field) this.addGround(group, field, featureColor(feature));
       this.add(group);
     }
   }
@@ -625,6 +125,11 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
 
   private buildIsland(island: IslandDef, index: number) {
     const port = this.map.ports.find((p) => p.islandId === island.id);
+    const level = port ? this.levels[port.id] : undefined;
+    const design = designOf(island);
+    const field =
+      this.look === 'v2' && design ? islandHeightfield(island, shownLevel(island, level)) : null;
+    const stand = field ? fieldStand(island, field) : undefined;
     const parts = islandParts(
       island,
       this.map,
@@ -636,15 +141,38 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
         if (harbours[port.id]) Object.assign(harbours[port.id]!, point);
         else harbours[port.id] = point;
       },
-      port ? this.levels[port.id] : undefined,
+      level,
       this.homeBuilt[island.id],
       this.questsDone,
+      stand,
     );
     this.findCraters(island.id, parts);
-    this.findVents(island, port ? (this.levels[port.id] ?? 1) : 4);
+    this.findVents(island, port ? (level ?? 1) : 4, stand);
     const group = this.batch(parts);
     group.name = `island:${island.id}`;
+    if (field) this.addGround(group, field, designColor(design!.style));
     return group;
+  }
+
+  /** The new look's ground of a batch, drawn from its height field at the quality's detail. */
+  private addGround(group: THREE.Group, field: Heightfield, color: FieldColor) {
+    this.fields.set(group, { field, color });
+    const mesh = this.mesh([fieldGround(fieldLod(field, this.groundStep), color)], this.land);
+    mesh.name = 'ground';
+    group.add(mesh);
+  }
+
+  /** Redraw the new look's ground at a quality level's detail; the field itself never changes. */
+  setQuality(level: QualityLevel) {
+    const step = TUNING.terrain.groundStep[level];
+    if (step === this.groundStep) return;
+    this.groundStep = step;
+    for (const [group, { field, color }] of this.fields) {
+      const old = group.getObjectByName('ground') as THREE.Mesh;
+      old.geometry.dispose();
+      group.remove(old);
+      this.addGround(group, field, color);
+    }
   }
 
   /** Where each crater's pool sits in the scene, for the volcano smoke (decision 0178). */
@@ -668,7 +196,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
   }
 
   /** The steam vent props of an island's file at its town level (decision 0181): small plumes. */
-  private findVents(island: IslandDef, level: TownLevel) {
+  private findVents(island: IslandDef, level: TownLevel, stand?: Stand) {
     const design = designOf(island);
     const R = island.radius / ISLAND_SCALE;
     const vents: Crater[] = [];
@@ -679,7 +207,8 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
       const ground =
         prop.y !== undefined
           ? prop.y * R
-          : standHeight(islandLayout(design!, level), prop.x, prop.z, R);
+          : (stand?.(prop.x, prop.z) ??
+            standHeight(islandLayout(design!, level), prop.x, prop.z, R));
       const size = prop.size ?? 1;
       vents.push({
         island: island.id,
@@ -712,11 +241,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
         old.remove(oldTerrain);
         next.add(oldTerrain);
       }
-      next.visible = old.visible;
-      this.remove(old);
-      disposeGeometry(old);
-      this.batches.set(island.id, next);
-      this.add(next);
+      this.replace(island, old, next);
     }
   }
 
@@ -751,11 +276,14 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
   }
 
   private rebuild(island: IslandDef, index: number) {
-    const old = this.batches.get(island.id)!;
-    const next = this.buildIsland(island, index);
+    this.replace(island, this.batches.get(island.id)!, this.buildIsland(island, index));
+  }
+
+  private replace(island: IslandDef, old: THREE.Group, next: THREE.Group) {
     next.visible = old.visible;
     this.remove(old);
     disposeGeometry(old);
+    this.fields.delete(old);
     this.batches.set(island.id, next);
     this.add(next);
   }
@@ -767,6 +295,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     this.lava.dispose();
     this.clear();
     this.batches.clear();
+    this.fields.clear();
   }
 }
 
@@ -794,5 +323,5 @@ function sameGeometry(a: THREE.BufferGeometry, b: THREE.BufferGeometry) {
   );
 }
 
-export const buildHighlandIslands: IslandsBuilder = (map, { shadows, levels }) =>
-  new HighlandIslands(map, shadows, levels);
+export const buildHighlandIslands: IslandsBuilder = (map, { shadows, levels, look, quality }) =>
+  new HighlandIslands(map, shadows, levels, look, quality);

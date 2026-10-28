@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import type { RiverDef } from '../../data/islands';
 import { type IslandLayout, fallsBetween, surfaceHeight } from '../../sim/islandLayout';
-import { BEACH_TOP, molten, paint } from './geometry';
+import { molten, paint } from './geometry';
+import { BEACH_TOP } from '../../sim/islandUnits';
 
 /**
  * Rivers of water and lava (decision 0176), in reference units round the island's origin: a
