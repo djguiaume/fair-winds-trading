@@ -5,6 +5,7 @@ from PIL import Image, ImageDraw
 
 src, out, left, right = sys.argv[1:5]
 size = sys.argv[5] if len(sys.argv) > 5 else 'desktop'
+labels = (sys.argv[6], sys.argv[7]) if len(sys.argv) > 7 else ('today (left)', 'proposal (right)')
 screens = [('1-menu', 'Title menu'), ('2-level', 'New voyage'), ('3-settings', 'Settings'), ('4-sea', 'Sea HUD'),
            ('5-market', 'Port: Market'), ('6-quay', 'Port: Quay'), ('7-chart', 'Chart'), ('9-quest', 'Quest card')]
 W = 620 if size == 'desktop' else 240
@@ -16,7 +17,7 @@ for key, cap in screens:
     a, b = tile(left, key), tile(right, key)
     bar = Image.new('RGB', (2 * W + 12, 22), (20, 20, 20))
     d = ImageDraw.Draw(bar)
-    d.text((6, 5), f'{cap}:  today (left)   |   proposal (right)', fill=(255, 255, 255))
+    d.text((6, 5), f'{cap}:  {labels[0]}   |   {labels[1]}', fill=(255, 255, 255))
     row = Image.new('RGB', (2 * W + 12, 22 + a.height + 4), (12, 12, 12))
     row.paste(bar, (0, 0))
     row.paste(a, (4, 22))

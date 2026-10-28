@@ -1,0 +1,36 @@
+x-swallow{}
+/* Style E, direction 1 with Guillaume's changes (2026-10-28): refined's flat paper instead of the ruled
+   lines, 1's brown leather and 1's HUD kept, refined's speed log and wind boxes (type and layout),
+   and a brass Set sail on the Market footer (teal on brown was unreadable). Laid after d1-paper.css. */
+html:root {
+  --paper: #f1e6c8;
+  --paper-2: #e6d7ae;
+  --paper-shade: rgba(120, 85, 40, 0.13);
+  --figures: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+}
+/* Flat paper with one soft page edge (no ruled lines). */
+.menu-side, .menu-sheet, .sheet-body, .port-screen .trade-content, .trade-modal.port-screen, dialog.quest-card {
+  background: var(--paper) !important;
+}
+.menu-side { box-shadow: 6px 0 0 rgba(58, 42, 29, 0.35), inset 0 0 38px var(--paper-shade) !important; }
+.sheet-body { box-shadow: 0 0 0 3px var(--paper-edge) inset, inset 0 0 38px var(--paper-shade) !important; }
+.port-screen .trade-content { box-shadow: inset 0 0 38px var(--paper-shade) !important; }
+dialog.quest-card { box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4), inset 0 0 38px var(--paper-shade) !important; }
+
+/* Speed log and wind box: refined's type and layout on 1's dark HUD plates. */
+.log-speed, .log-sog, .captain-stat b, .obj-dist { font-family: var(--figures) !important; font-weight: 700 !important; letter-spacing: 0 !important; }
+.log-speed { font-size: 46px !important; line-height: 0.9 !important; }
+.log-speed small, .log-hdg small, .wind-caption { font-family: 'Barlow', sans-serif !important; text-transform: none !important; letter-spacing: 0 !important; }
+.log-hdg { font-family: var(--figures) !important; letter-spacing: 0 !important; }
+.speed-log .pos { font-family: 'Barlow', sans-serif !important; font-weight: 600 !important; font-size: 15px !important; text-transform: none !important; letter-spacing: 0 !important; }
+.compass-open { padding: 6px !important; }
+#wind-force { font-family: var(--figures) !important; font-weight: 700 !important; letter-spacing: 0 !important; }
+.wind-caption { font-size: 14px !important; }
+
+/* Market footer: Set sail was teal on brown. Brass with ink text reads on the leather. */
+.port-screen .trade-footer .port-btn.brass, .port-screen .trade-footer .undock-btn {
+  background: #e8c46a !important; color: #2e2217 !important; border: 2px solid #b08a2c !important;
+  box-shadow: inset 0 -3px 0 #b08a2c, 0 2px 0 rgba(0, 0, 0, 0.45) !important; border-radius: 999px !important;
+}
+.port-screen .trade-footer .port-btn.brass *, .port-screen .trade-footer .undock-btn * { color: #2e2217 !important; }
+.wind-caption, .wind-caption *, #wind-force { color: var(--hud-ink) !important; }

@@ -2,8 +2,8 @@
 
 *2026-10-28, issue #261. Mockups only. Nothing is built, approved or merged; this is for Guillaume's assessment.*
 
-Base: direction 1 (paper menu) with B's painted instrument mounts, as asked. Sheets: `sheets/refined-*.jpg`,
-comparisons `sheets/compare-d1-b-refined-*.jpg`. Sources: `css/e-refined.css` (+ `e-night.css`, `e-pennants.css`),
+Base: direction 1 (paper menu) with B's painted instrument mounts, as asked. Sheets: `sheets/round3-refined/refined-*.jpg`,
+comparisons `sheets/round3-refined/compare-d1-b-refined-*.jpg`. Sources: `css/e-refined.css` (+ `e-night.css`, `e-pennants.css`),
 `js/strip.js`, `js/rules.js`; redraw with `shots.sh e-refined` and `extra.sh`. Drawn over real game captures.
 
 ## Commitments checked, and where this departs (flagged, not decided)
@@ -36,11 +36,11 @@ comparisons `sheets/compare-d1-b-refined-*.jpg`. Sources: `css/e-refined.css` (+
   - Settings: group headings with one rule each, no boxes round rows; segmented controls are the only framed control.
 - **One shape per job:** pills are actions, bookmarks are tabs, stamped squares are amounts, luggage tags are information, plates are instruments. Nothing is interchangeable now.
 
-## Rules (also on the sheet `sheets/refined-rules.jpg`)
+## Rules (also on the sheet `sheets/round3-refined/refined-rules.jpg`)
 
 - **Paint** `#2a5a7c` (hull blue, lighter than the first teal) structure, flat. **Brass** `#e8c46a` fittings, compass ring, focus halo, main action on paint. **Paper** `#f1e6c8` records and people, flat with a soft page edge and **no ruled lines**; notes `#e6d7ae`; ink `#2e2217`; action on paper `#366d94`.
 - **Type:** Fraunces 900 titles, 700 names and actions, italic for notes. Barlow body (15 px minimum). Barlow Condensed for every figure. Sentence case; no tracking.
-- **States** (strip: `sheets/refined-component-strip.jpg`): normal, pressed (drops 3 px), selected (filled), unavailable (dashed outline, dim), focused (dark line plus brass halo). Selected and focus never look alike.
+- **States** (strip: `sheets/round3-refined/refined-component-strip.jpg`): normal, pressed (drops 3 px), selected (filled), unavailable (dashed outline, dim), focused (dark line plus brass halo). Selected and focus never look alike.
 - **Night:** a second token set, not a filter. Paper takes a lamp tone (`#dccba1`), paint gets a brighter text and rim, the focus ring is unchanged.
 
 ## New voyage: cards or pennants (the one open choice)
@@ -66,7 +66,7 @@ comparisons `sheets/compare-d1-b-refined-*.jpg`. Sources: `css/e-refined.css` (+
 
 Guillaume rejected C and D2 for that look. Refined uses flat teal paint with brass fittings, which is closer to it than it should be.
 A **warm alternative** is drawn from the same rules with tokens only (`css/e-warm.css`): tar-brown paint `#3b2d23`, deep green
-actions and headings `#2f5a3a`, brass unchanged. Sheet: `sheets/refined-warm-alternative.jpg` (menu, sea HUD, Market, quest card,
+actions and headings `#2f5a3a`, brass unchanged. Sheet: `sheets/round3-refined/refined-warm-alternative.jpg` (menu, sea HUD, Market, quest card,
 refined next to warm). Other warm options not drawn: oxblood paint (clashes with the red reservation) and deep green paint.
 Not decided; Guillaume to judge.
 
@@ -74,4 +74,4 @@ Not decided; Guillaume to judge.
 
 - **Ruled lines removed from every background** (menu, Settings, New voyage, quest card). Paper is now flat with one soft inset edge shade (a static box-shadow, no gradient fill). Dotted rules stay only as row dividers in the Market ledger and a rule under Settings group headings, where they separate things.
 - **Blue changed:** the green-leaning teal (`#1f4c58` / `#1f5a66`) became a lighter hull blue: paint `#2a5a7c`, actions `#366d94`. Brass is unchanged.
-- The warm alternative sheet (`sheets/refined-warm-alternative.jpg`) was drawn before this change and still shows ruled lines and the old teal; its tokens file `css/e-warm.css` still applies on top of the new rules.
+- The warm alternative sheet (`sheets/round3-refined/refined-warm-alternative.jpg`) was drawn before this change and still shows ruled lines and the old teal; its tokens file `css/e-warm.css` still applies on top of the new rules.
