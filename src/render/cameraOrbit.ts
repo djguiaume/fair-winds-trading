@@ -28,6 +28,20 @@ export function viewAxes(heading: number, out: ViewAxes): ViewAxes {
 export const NORTH_UP: Readonly<ViewAxes> = viewAxes(0, {} as ViewAxes);
 
 /**
+ * How far ahead of the target the middle of the sea on screen lies, for a camera `dist` away at
+ * `pitch` with a vertical field of view `fov` that sees `sight` far: a flat camera sees far ahead
+ * and little behind, so the ocean grid centres there rather than on the target (decision 0223).
+ */
+export function seaMiddle(pitch: number, dist: number, fov: number, sight: number): number {
+  const height = Math.sin(pitch) * dist;
+  // Past straight down the bottom of the screen looks back behind the camera: a negative distance.
+  const near = height / Math.tan(pitch + fov / 2);
+  const top = pitch > fov / 2 ? height / Math.tan(pitch - fov / 2) : sight;
+  const far = Math.min(top, Math.sqrt(Math.max(0, sight * sight - height * height)));
+  return (near + far) / 2 - Math.cos(pitch) * dist;
+}
+
+/**
  * The sea camera the player turns (decision 0223): `heading` is the compass bearing it looks
  * toward (0 = north, the view before 0223) and `pitch` how steeply it looks down. The pad's right
  * stick, a right-button drag and a two-finger drag turn it; a reset, a focus view (the home
@@ -44,6 +58,8 @@ export class CameraOrbit {
   autoReturn = false;
   /** A focus view is on: it wants north-up, so turns wait until it ends. */
   held = false;
+  /** On the Ultra level the camera may tilt flatter, to `ultraPitchMinDeg` (decision 0221). */
+  ultra = false;
   private returning = false;
   private idle = 0;
 
@@ -52,7 +68,8 @@ export class CameraOrbit {
     if (!this.enabled || this.held || (heading === 0 && pitch === 0)) return;
     const c = TUNING.camera;
     this.heading = wrapAngle(this.heading + heading);
-    const tilted = clamp(this.pitch + pitch, c.pitchMinDeg * DEG, c.pitchMaxDeg * DEG);
+    const flattest = this.ultra ? c.ultraPitchMinDeg : c.pitchMinDeg;
+    const tilted = clamp(this.pitch + pitch, flattest * DEG, c.pitchMaxDeg * DEG);
     this.tilt = tilted - c.pitchDeg * DEG;
     this.returning = false;
     this.idle = 0;

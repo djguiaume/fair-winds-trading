@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { TUNING, resetTuning } from '../src/data/tuning';
-import { CameraOrbit, type ViewAxes, viewAxes } from '../src/render/cameraOrbit';
+import { CameraOrbit, type ViewAxes, seaMiddle, viewAxes } from '../src/render/cameraOrbit';
 import { rainMayReachArea } from '../src/render/rain';
 import { DEG } from '../src/sim/math';
 import type { Storm } from '../src/sim/storms';
@@ -26,6 +26,15 @@ describe('a camera the player can turn (decision 0223)', () => {
     orbit.turn(0, 90 * DEG);
     expect(orbit.pitch).toBeCloseTo(c.pitchMaxDeg * DEG);
     expect(orbit.turned).toBe(true);
+  });
+
+  it('tilts flatter only on the Ultra level', () => {
+    const orbit = new CameraOrbit();
+    orbit.turn(0, -60 * DEG);
+    expect(orbit.pitch).toBeCloseTo(c.pitchMinDeg * DEG);
+    orbit.ultra = true;
+    orbit.turn(0, -60 * DEG);
+    expect(orbit.pitch).toBeCloseTo(c.ultraPitchMinDeg * DEG);
   });
 
   it('eases back north-up the short way on a reset, and stays there', () => {
@@ -85,6 +94,14 @@ describe('a camera the player can turn (decision 0223)', () => {
     c.pitchDeg = 64;
     expect(orbit.pitch).toBeCloseTo(64 * DEG);
     expect(orbit.turned).toBe(false);
+  });
+
+  it('the sea in view lies ahead of a flat camera, round a straight-down one', () => {
+    expect(seaMiddle(90 * DEG, 100, 40 * DEG, 240)).toBeCloseTo(0);
+    const steep = seaMiddle(58 * DEG, 100, 40 * DEG, 240);
+    const flat = seaMiddle(35 * DEG, 100, 40 * DEG, 240);
+    expect(steep).toBeGreaterThan(0);
+    expect(flat).toBeGreaterThan(steep);
   });
 
   it('the screen axes turn with the heading', () => {

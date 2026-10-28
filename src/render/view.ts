@@ -32,7 +32,7 @@ import { damageStage, hullCondition } from '../sim/hazards';
 import { WindStreaks } from './windStreaks';
 import type { GraphicsEffects, UltraPipeline } from './ultraPipeline';
 import { Rain, rainMayReachArea } from './rain';
-import { CameraOrbit, type ViewAxes, viewAxes } from './cameraOrbit';
+import { CameraOrbit, type ViewAxes, seaMiddle, viewAxes } from './cameraOrbit';
 import { Atmosphere, LAVA_BY_DAY, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from './atmosphere';
 import { LighthouseBeams } from './lighthouseBeams';
 import { BeaconLights } from './beaconLights';
@@ -166,6 +166,8 @@ export class GameView {
   readonly orbit = new CameraOrbit();
   /** The ground directions of the screen this frame, for the rain and the wind streaks. */
   private readonly axes = viewAxes(0, {} as ViewAxes);
+  /** The middle of the sea on screen, where the ocean grid centres. */
+  private readonly seaCentre = new THREE.Vector3();
   /** A point the camera looks at instead of ahead of the boat (the home island, 0126). */
   private focus: { x: number; y: number } | null = null;
   /** Where on the screen the focus point sits, from the centre in screen fractions (0210). */
@@ -386,6 +388,7 @@ export class GameView {
 
   setQuality(level: QualityLevel) {
     this.level = level;
+    this.orbit.ultra = level === 'ultra';
     this.wake.setQuality(level);
     const profile = QUALITY[level];
     if (this.ocean) this.scene.remove(this.ocean.mesh, this.streaks.mesh, this.rain.mesh);
@@ -612,7 +615,15 @@ export class GameView {
       Math.sin(pitch) * dist,
       this.target.z - axes.forwardZ * back,
     );
+    // The screen's up is the view heading on the ground, so a camera straight down still knows it.
+    this.camera.up.set(axes.forwardX, 0, axes.forwardZ);
     this.camera.lookAt(this.target);
+    const middle = seaMiddle(pitch, dist, this.camera.fov * DEG, TUNING.weather.sight.far * dist);
+    this.seaCentre.set(
+      this.target.x + axes.forwardX * middle,
+      0,
+      this.target.z + axes.forwardZ * middle,
+    );
     return dist;
   }
 
@@ -763,7 +774,7 @@ export class GameView {
     // An eruption brightens the lava past its night glow (one shared material, decision 0178).
     lava?.color.multiplyScalar(1 + (TUNING.weather.volcano.eruptions.lavaGain - 1) * erupting);
     this.boat.setNightLighting?.(day.night);
-    this.ocean.update(time, this.target, this.effects.reflection);
+    this.ocean.update(time, this.seaCentre, this.effects.reflection);
     this.currentWater?.update(time, this.ocean, this.world.currentsOn);
     this.calmWater?.update(time, this.ocean, this.world.windZones);
     this.roughWater?.update(time, this.ocean, this.world.windZones);

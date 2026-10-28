@@ -5,7 +5,7 @@ export const CAMERA_META: Readonly<Record<string, TuningMeta>> = {
   'camera.pitchDeg': num(
     'Camera tilt',
     20,
-    85,
+    90,
     1,
     '°',
     'How steeply the camera looks down at sea, and where a reset brings it back (90 = straight down).',
@@ -13,7 +13,7 @@ export const CAMERA_META: Readonly<Record<string, TuningMeta>> = {
   'camera.pitchMinDeg': num(
     'Flattest tilt',
     20,
-    85,
+    90,
     1,
     '°',
     'The player can tilt no flatter than this; flatter shows more islands and sky (old tablet cost).',
@@ -21,7 +21,7 @@ export const CAMERA_META: Readonly<Record<string, TuningMeta>> = {
   'camera.pitchMaxDeg': num(
     'Steepest tilt',
     20,
-    85,
+    90,
     1,
     '°',
     'The player can tilt no steeper than this.',
@@ -29,10 +29,10 @@ export const CAMERA_META: Readonly<Record<string, TuningMeta>> = {
   'camera.ultraPitchMinDeg': num(
     'Flattest tilt on Ultra',
     15,
-    85,
+    90,
     1,
     '°',
-    'On the Ultra graphics tier the camera may go this flat (decision 0221).',
+    'On the Ultra level the camera may go this flat; its sky and haze carry the far view (0221).',
   ),
   'camera.distance': num(
     'Camera distance',

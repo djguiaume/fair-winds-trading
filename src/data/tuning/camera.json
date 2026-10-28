@@ -1,7 +1,7 @@
 {
   "pitchDeg": 58,
-  "pitchMinDeg": 50,
-  "pitchMaxDeg": 70,
+  "pitchMinDeg": 45,
+  "pitchMaxDeg": 90,
   "ultraPitchMinDeg": 35,
   "distance": 110,
   "zoomMin": 0.6,

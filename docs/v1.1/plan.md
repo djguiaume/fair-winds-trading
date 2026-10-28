@@ -286,7 +286,7 @@ Guillaume asked on 2026-10-25 whether the camera could be moved: the right stick
 
 **Built (2026-10-28):** issue #256, decision
 [0223](../decisions/0223-a-camera-the-player-can-turn.md). The ADR has what changed from this
-proposal (Settings rows sit under Display; `?bench&tilt=50` and `&tilt=70` measure the limits).
+proposal (tilt 45°–90°, 35° on Ultra; Settings rows sit under Display; `?bench&tilt=45` measures the flattest).
 
 **Verdict: feasible, medium size.** The camera is one small piece of code: `src/render/view.ts`
 `render()` places it at a fixed pitch (`CAMERA_PITCH` 58°) and distance (`BASE_DISTANCE` 110 ×
