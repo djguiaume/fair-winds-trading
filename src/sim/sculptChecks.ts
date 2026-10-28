@@ -3,9 +3,9 @@ import { atLevel, type IslandDesign, type PropDef } from '../data/islands';
 import { designHeightfield, heightAt, type Heightfield } from './heightfield';
 import type { IslandCheckKit, IslandIssue } from './islandChecks';
 import { islandPoint } from './islandLayout';
-import { ISLAND_SCALE } from './islandUnits';
 import type { IslandDef } from './map';
 import { editReach, sculptProblems } from './sculpt';
+import { sculptFrame } from './sculptScript';
 import { SETTLEMENT_LEVELS } from './settlement';
 
 /** Points round a footprint where the checks read the ground: the centre and eight on its rim. */
@@ -26,8 +26,7 @@ export function checkSculpt(design: IslandDesign, kit: IslandCheckKit): IslandIs
     return problems.map((message) => ({ severity: 'error', check: 'sculpt', message }));
   const edits = design.sculpt.edits;
   if (!edits.length) return [];
-  // The file's own frame on a map: radius R reference units, ISLAND_SCALE bigger in the world.
-  const island: IslandDef = { id: design.id, x: 0, y: 0, radius: kit.R * ISLAND_SCALE };
+  const island = sculptFrame(design.id, kit.R);
   const plain = { ...design, sculpt: undefined };
   const fields = new Map<number, [Heightfield, Heightfield]>();
   const fieldsAt = (level: number) => {
