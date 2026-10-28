@@ -28,7 +28,6 @@ export function raceOverlay(q: QuestDef, goal: Condition, file: string): number 
         Math.round(st.y + (st.radius ?? 70) * Math.sin((i * Math.PI) / 8)),
       ]),
       style: 'tint',
-      label: 'squall at the horn',
     })),
     lines: [
       {
@@ -43,7 +42,14 @@ export function raceOverlay(q: QuestDef, goal: Condition, file: string): number 
       },
       ...(same ? [] : [{ points: finish.map((p) => [p.x, p.y]), style: 'long', label: 'finish' }]),
     ],
-    labels: marks.map((m, i) => ({ at: [m.x, m.y + 14], text: String(i + 1), style: 'note' })),
+    labels: [
+      ...(q.race!.storms ?? []).map((st) => ({
+        at: [st.x, st.y],
+        text: 'squall at the horn',
+        style: 'note',
+      })),
+      ...marks.map((m, i) => ({ at: [m.x, m.y + 14], text: String(i + 1), style: 'note' })),
+    ],
   };
   writeFileSync(file, `${JSON.stringify(overlay, null, 2)}\n`);
   const all = [...start, ...finish, ...marks];
