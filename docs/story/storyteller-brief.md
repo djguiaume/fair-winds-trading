@@ -342,4 +342,4 @@ Story calls made for threads outside the arcs. They stand unless Guillaume chang
 ## Status (2026-10-28)
 
 - Phase 3 and Phase 4 story are built and merged, and so is the Phase 5 story: the regatta, standing orders, the voiced Skerry choice and the keepers on the harbour screen (see [docs/phase-5/story.md](../phase-5/story.md)).
-- No story question is open. What v1.1 may ask, and the pointers, are in [handover.md](handover.md).
+- The v1.1 Sailing Club story is built and merged ([club-words.md](club-words.md)). No story question is open; the pointers for v1.2 are in [handover.md](handover.md).
