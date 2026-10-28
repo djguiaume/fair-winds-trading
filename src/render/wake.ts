@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { waveHeight } from './ocean';
 import type { QualityLevel } from './quality';
+import { PALETTE } from '../data/props';
 
 const CAPACITY = 64;
 /** Bounded history and transparency coverage; no spray particles or render targets. */
@@ -10,6 +11,9 @@ export const WAKE_DETAIL = {
   high: { points: 64, life: 3.4, interval: 0.06, centre: true },
   ultra: { points: 64, life: 3.4, interval: 0.06, centre: true },
 } as const;
+
+/** The player's bow waves hug her shoulders; the other boats' run further aft as a V. */
+const BOW_WAVE = { aft: 0.35, spread: 0.48 };
 
 interface Point {
   x: number;
@@ -27,29 +31,22 @@ export interface WakeHull {
   beam: number;
 }
 
-/** Broken foam edges, quiet centre turbulence and two hull-attached bow waves: one draw call. */
-export class Wake {
+/**
+ * Foam strips on the waves in one dynamic mesh and one draw: the player's wake and the other
+ * boats' bow waves share it. Colours come from the palette (`wakeFoam`, `wakeEdge`), so they can
+ * follow the water.
+ */
+export class FoamStrips {
   readonly mesh: THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMaterial>;
-  private readonly history: Point[] = Array.from({ length: CAPACITY }, () => ({
-    x: 0,
-    z: 0,
-    sx: 0,
-    sz: 0,
-    age: 0,
-    strength: 0,
-    distance: 0,
-  }));
-  private count = 0;
-  private elapsed = 0;
-  private distance = 0;
-  private level: QualityLevel = 'medium';
-  // Three strips per history segment, plus two bow strips of six segments each.
-  private readonly positions = new Float32Array((CAPACITY * 3 + 12) * 6 * 3);
-  private readonly foam = new Float32Array((CAPACITY * 3 + 12) * 6 * 4);
-  private readonly geometry = new THREE.BufferGeometry();
-  private vertices = 0;
+  protected readonly geometry = new THREE.BufferGeometry();
+  private readonly positions: Float32Array;
+  private readonly foam: Float32Array;
+  protected vertices = 0;
 
-  constructor() {
+  /** Room for `strips` strips of one quad each. */
+  constructor(strips: number) {
+    this.positions = new Float32Array(strips * 6 * 3);
+    this.foam = new Float32Array(strips * 6 * 4);
     this.geometry.setAttribute(
       'position',
       new THREE.BufferAttribute(this.positions, 3).setUsage(THREE.DynamicDrawUsage),
@@ -62,7 +59,11 @@ export class Wake {
       transparent: true,
       depthWrite: false,
       side: THREE.DoubleSide,
-      uniforms: { uTime: { value: 0 } },
+      uniforms: {
+        uTime: { value: 0 },
+        uFoam: { value: new THREE.Color(PALETTE.colors.wakeFoam as string) },
+        uEdge: { value: new THREE.Color(PALETTE.colors.wakeEdge as string) },
+      },
       vertexShader: `attribute vec4 aFoam;
         varying vec4 vFoam;
         void main() {
@@ -70,13 +71,15 @@ export class Wake {
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }`,
       fragmentShader: `uniform float uTime;
+        uniform vec3 uFoam;
+        uniform vec3 uEdge;
         varying vec4 vFoam;
         void main() {
           float edge = 1.0 - smoothstep(0.3, 1.0, abs(vFoam.x));
           float breakup = 0.64 + 0.22 * sin(vFoam.y * 2.8 + vFoam.x * 4.0 - uTime * 0.9)
                                   + 0.14 * sin(vFoam.y * 6.1 - vFoam.x * 7.0 + uTime * 0.5);
           float alpha = edge * smoothstep(0.18, 0.8, breakup) * vFoam.z;
-          vec3 col = mix(vec3(0.48, 0.82, 0.82), vec3(0.92, 0.99, 1.0), vFoam.w);
+          vec3 col = mix(uEdge, uFoam, vFoam.w);
           gl_FragColor = vec4(col, alpha);
           #include <colorspace_fragment>
         }`,
@@ -87,20 +90,7 @@ export class Wake {
     this.geometry.setDrawRange(0, 0);
   }
 
-  setQuality(level: QualityLevel) {
-    this.level = level;
-    this.count = Math.min(this.count, WAKE_DETAIL[level].points);
-  }
-
-  /** Clear on ship changes and teleports so unrelated positions are never joined. */
-  reset() {
-    this.count = 0;
-    this.elapsed = 0;
-    this.distance = 0;
-    this.geometry.setDrawRange(0, 0);
-  }
-
-  private strip(
+  protected strip(
     ax: number,
     az: number,
     asx: number,
@@ -132,6 +122,101 @@ export class Wake {
       this.foam[i * 4 + 2] = end ? ba : aa;
       this.foam[i * 4 + 3] = white;
     }
+  }
+
+  /**
+   * Curved, tapered foam on either shoulder of a hull at (cx, cz) heading (dx, dz): from the bow
+   * it runs `shape.aft` hull lengths aft and spreads `shape.spread` beams out.
+   */
+  protected bowWaves(
+    cx: number,
+    cz: number,
+    dx: number,
+    dz: number,
+    hull: WakeHull,
+    strength: number,
+    steps: number,
+    time: number,
+    shape: { aft: number; spread: number } = BOW_WAVE,
+  ) {
+    const sx = -dz,
+      sz = dx;
+    for (const side of [-1, 1]) {
+      for (let j = 0; j < steps; j++) {
+        const a = j / steps,
+          b = (j + 1) / steps;
+        const forwardA = hull.length * (0.48 - a * shape.aft);
+        const forwardB = hull.length * (0.48 - b * shape.aft);
+        const acrossA = hull.beam * (0.06 + a * shape.spread) * side;
+        const acrossB = hull.beam * (0.06 + b * shape.spread) * side;
+        this.strip(
+          cx + dx * forwardA + sx * acrossA,
+          cz + dz * forwardA + sz * acrossA,
+          sx,
+          sz,
+          hull.beam * 0.09,
+          strength * Math.sin(a * Math.PI) * 0.65,
+          a * 5,
+          cx + dx * forwardB + sx * acrossB,
+          cz + dz * forwardB + sz * acrossB,
+          sx,
+          sz,
+          hull.beam * 0.09,
+          strength * Math.sin(b * Math.PI) * 0.65,
+          b * 5,
+          1,
+          time,
+        );
+      }
+    }
+  }
+
+  /** Uploads the strips written since `vertices` was last set to 0. */
+  protected finish(time: number) {
+    this.geometry.setDrawRange(0, this.vertices);
+    this.geometry.attributes.position!.needsUpdate = true;
+    this.geometry.attributes.aFoam!.needsUpdate = true;
+    this.mesh.material.uniforms.uTime!.value = time;
+  }
+
+  dispose() {
+    this.geometry.dispose();
+    this.mesh.material.dispose();
+  }
+}
+
+/** Broken foam edges, quiet centre turbulence and two hull-attached bow waves: one draw call. */
+export class Wake extends FoamStrips {
+  private readonly history: Point[] = Array.from({ length: CAPACITY }, () => ({
+    x: 0,
+    z: 0,
+    sx: 0,
+    sz: 0,
+    age: 0,
+    strength: 0,
+    distance: 0,
+  }));
+  private count = 0;
+  private elapsed = 0;
+  private distance = 0;
+  private level: QualityLevel = 'medium';
+
+  constructor() {
+    // Three strips per history segment, plus two bow strips of six segments each.
+    super(CAPACITY * 3 + 12);
+  }
+
+  setQuality(level: QualityLevel) {
+    this.level = level;
+    this.count = Math.min(this.count, WAKE_DETAIL[level].points);
+  }
+
+  /** Clear on ship changes and teleports so unrelated positions are never joined. */
+  reset() {
+    this.count = 0;
+    this.elapsed = 0;
+    this.distance = 0;
+    this.geometry.setDrawRange(0, 0);
   }
 
   /** Centre and heading are scene-space; emitted history stays in world space through turns. */
@@ -221,45 +306,9 @@ export class Wake {
           time,
         );
     }
-    // Curved, tapered foam on either shoulder; disappears when the boat stops.
-    const steps = this.level === 'low' ? 3 : 6;
-    for (const side of [-1, 1]) {
-      for (let j = 0; j < steps; j++) {
-        const a = j / steps,
-          b = (j + 1) / steps;
-        const forwardA = hull.length * (0.48 - a * 0.35);
-        const forwardB = hull.length * (0.48 - b * 0.35);
-        const acrossA = hull.beam * (0.06 + a * 0.48) * side;
-        const acrossB = hull.beam * (0.06 + b * 0.48) * side;
-        this.strip(
-          centre.x + dx * forwardA + sx * acrossA,
-          centre.z + dz * forwardA + sz * acrossA,
-          sx,
-          sz,
-          hull.beam * 0.09,
-          strength * Math.sin(a * Math.PI) * 0.65,
-          a * 5,
-          centre.x + dx * forwardB + sx * acrossB,
-          centre.z + dz * forwardB + sz * acrossB,
-          sx,
-          sz,
-          hull.beam * 0.09,
-          strength * Math.sin(b * Math.PI) * 0.65,
-          b * 5,
-          1,
-          time,
-        );
-      }
-    }
-    this.geometry.setDrawRange(0, this.vertices);
-    this.geometry.attributes.position!.needsUpdate = true;
-    this.geometry.attributes.aFoam!.needsUpdate = true;
-    this.mesh.material.uniforms.uTime!.value = time;
+    // Bow waves on either shoulder; they disappear when the boat stops.
+    this.bowWaves(centre.x, centre.z, dx, dz, hull, strength, this.level === 'low' ? 3 : 6, time);
+    this.finish(time);
     this.mesh.visible = this.count > 1 || strength > 0;
-  }
-
-  dispose() {
-    this.geometry.dispose();
-    this.mesh.material.dispose();
   }
 }

@@ -47,7 +47,20 @@
     "liveryNorth": "#a8403a",
     "liverySouth": "#2a8f6e",
     "liveryWest": "#8a3a2a",
-    "liveryEast": "#2f3035"
+    "liveryEast": "#2f3035",
+    "sailCloth": ["#efe0bf", "#e6d5ab", "#efe0bf", "#f4ead2"],
+    "fishHull": "#7a5a3a",
+    "fishCabin": "#e8dcc0",
+    "crew": "#3f5470",
+    "net": "#3f6a8a",
+    "logPale": "#b07a45",
+    "logEnd": "#e8cf98",
+    "sack": ["#efe2b8", "#e2cf94"],
+    "stoneBlock": "#8e949c",
+    "tarp": "#6a7f8a",
+    "hatch": "#4a3220",
+    "wakeFoam": "#f6fbfd",
+    "wakeEdge": "#b8e9e9"
   },
   "styles": {
     "fish": {
@@ -164,7 +177,8 @@
         "reefRock": ["#4f535a", "#61666d", "#474a50"],
         "coral": ["#4f6b3a", "#5e7a3a"],
         "boatBand": ["#2f3035", "#8a3a32"],
-        "boatSail": "#a5603f"
+        "boatSail": "#a5603f",
+        "sailCloth": ["#a5603f", "#9a5838", "#a5603f", "#b06a46"]
       }
     },
     "strand": {
@@ -181,7 +195,8 @@
         "reefRock": ["#4f535a", "#61666d", "#474a50"],
         "coral": ["#4f6b3a", "#5e7a3a"],
         "boatBand": ["#2f3035", "#8a3a32"],
-        "boatSail": "#a5603f"
+        "boatSail": "#a5603f",
+        "sailCloth": ["#a5603f", "#9a5838", "#a5603f", "#b06a46"]
       }
     }
   },
