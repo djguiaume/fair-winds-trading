@@ -1,6 +1,7 @@
 {
   "id": "ruins",
   "group": "landmarks",
+  "protect": 2.8,
   "sizedInModel": true,
   "scale": "size",
   "building": true,

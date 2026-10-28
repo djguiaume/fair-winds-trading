@@ -226,6 +226,7 @@ export function tidyDesign(design: IslandDesign): IslandDesign {
     'lanes',
     'rivers',
     'ramps',
+    'sculpt',
     'piers',
     'props',
     'homeSpots',
@@ -259,6 +260,14 @@ export function tidyDesign(design: IslandDesign): IslandDesign {
       ramps: d.ramps.map((r) =>
         ordered(r, ['points', 'width', 'start', 'end', 'material', 'from', 'to']),
       ),
+    }),
+    ...(d.sculpt && {
+      sculpt: {
+        version: d.sculpt.version,
+        edits: d.sculpt.edits.map((e) =>
+          ordered(e, ['op', 'points', 'radius', 'strength', 'falloff', 'height', 'override']),
+        ),
+      },
     }),
     props: d.props.map((p) => ordered(p, PROP_KEYS as string[])),
     ...(d.homeSpots && {
