@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
 import { CalmWater } from '../src/render/calmWater';
-import { shoreTexture } from '../src/render/ocean';
+import { shoreTexture } from '../src/render/shoreTexture';
 import type { WindZoneDef } from '../src/sim/map';
 
 const oval = (id: string, kind: string, tune?: WindZoneDef['tune']): WindZoneDef => ({

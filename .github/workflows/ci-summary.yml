@@ -1,0 +1,37 @@
+name: CI summary
+
+# When a PR's CI, rule or render-budget run fails, one comment lists only the failing lines; when
+# it passes again the comment says so. Runs from main's copy with no PR code checked out.
+on:
+  workflow_run:
+    workflows: ['CI and GitHub Pages', 'PR rules', 'Render budget']
+    types: [completed]
+
+permissions:
+  actions: read
+  pull-requests: write
+  contents: read
+
+jobs:
+  summary:
+    if: >-
+      github.event.workflow_run.event == 'pull_request'
+      && github.event.workflow_run.head_repository.full_name == github.repository
+      && github.event.workflow_run.pull_requests[0] != null
+      && (github.event.workflow_run.conclusion == 'failure' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      # Main's copy of the helper script only, never the PR's.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - name: Comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          WORKFLOW: ${{ github.event.workflow_run.name }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          PR: ${{ github.event.workflow_run.pull_requests[0].number }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+        run: bash tools/ci/post-failure.sh

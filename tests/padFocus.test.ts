@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
-import { PAD, controlProblems, type PadButton } from '../src/input/gamepad';
+import { PAD, type PadButton } from '../src/input/gamepad';
+import { controlProblems } from '../src/input/padChecks';
 import {
   StickRepeat,
   menuAction,

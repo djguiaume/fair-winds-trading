@@ -26,6 +26,7 @@ vi.mock('../src/render/view', () => ({
     jumpToBoat() {}
     setFocus() {}
     setZoom() {}
+    rig = { orbit: { heading: 0, turned: false, turn() {}, drag() {}, reset() {} } };
     getZoom() {
       return 1;
     }

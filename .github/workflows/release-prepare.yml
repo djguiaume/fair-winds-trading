@@ -1,0 +1,39 @@
+name: Prepare release
+
+# Opens a PR that sets the release's number in package.json (the menu shows <major>.<minor>.<merges
+# on main>, decision 0042), so the release lead only presses run and merges. Needs the repo setting
+# "Allow GitHub Actions to create and approve pull requests", or an AUTOMERGE_TOKEN secret.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release number, e.g. 1.2'
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Bump package.json and open the PR
+        env:
+          GH_TOKEN: ${{ secrets.AUTOMERGE_TOKEN || github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+$ ]] || { echo "version must look like 1.2"; exit 1; }
+          npm version "${VERSION}.0" --no-git-tag-version
+          branch="release/v${VERSION}"
+          git config user.name github-actions
+          git config user.email actions@github.com
+          git checkout -b "$branch"
+          git commit -am "Set the version to ${VERSION}"
+          git push origin "$branch"
+          gh pr create --title "Set the version to ${VERSION}" --head "$branch" \
+            --body "Sets \`package.json\` to ${VERSION}.0 so the menu shows v${VERSION}.<merges>."

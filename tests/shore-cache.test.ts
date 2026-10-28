@@ -2,8 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { ISLAND_DESIGNS } from '../src/data/islands';
 import { islandCoasts } from '../src/sim/islandLayout';
 import type { IslandDef, TerrainDef } from '../src/sim/map';
-import { Ocean, ShoreTextureCache } from '../src/render/ocean';
+import { Ocean } from '../src/render/ocean';
+import { ShoreTextureCache } from '../src/render/shoreTexture';
 import { QUALITY } from '../src/render/quality';
+import { CameraOrbit } from '../src/render/cameraOrbit';
 import { GameView } from '../src/render/view';
 import * as THREE from 'three';
 
@@ -145,6 +147,7 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
     // The land standing (decision 0166) is the map's, so an edit to it reaches the shores.
     world: { map, land: map },
     wake: { setQuality: vi.fn() },
+    rig: { orbit: new CameraOrbit() },
     boat: { setLowDetail: vi.fn() },
     scene: new THREE.Scene(),
     sun: new THREE.DirectionalLight(),

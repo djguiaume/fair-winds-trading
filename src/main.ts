@@ -96,10 +96,12 @@ import {
   toggleFullscreen,
 } from './ui/fullscreen';
 import { Hud } from './ui/hud';
+import { CameraControls } from './ui/cameraControls';
 import { loadSettings, saveSettings } from './ui/settings';
 import { addEffectSwitches, switchRow } from './ui/graphicsSettings';
 import type { Bench } from './perf/bench';
 import type { PerfReadout } from './perf/perfReadout';
+import { perfOptions } from './perf/perfOptions';
 import { Music } from './audio/music';
 import { SeaListener } from './audio/listener';
 import { wordCount } from './audio/babble';
@@ -305,11 +307,7 @@ const seaListener = new SeaListener(
   (x, y) => view.volcanoSounds(x, y),
   () => world.hazeOff.includes('ash'),
 );
-// `?perf` test aids (decision 0148): `scale=0.7` draws fewer pixels, `fps=30` caps the frame rate.
-const perfParams = new URLSearchParams(location.search);
-const perfMode = perfParams.has('perf') || benchMode;
-const perfScale = perfMode ? Math.min(1, Math.max(0.3, Number(perfParams.get('scale')) || 1)) : 1;
-const frameCap = perfMode ? Math.max(0, Number(perfParams.get('fps')) || 0) : 0;
+const { perfMode, perfScale, frameCap, tilt } = perfOptions(location.search, benchMode);
 view.renderScale = perfScale;
 const hud = new Hud(
   world,
@@ -1320,7 +1318,6 @@ for (const [group, short] of [
 
 // --- Controls ----------------------------------------------------------------------------------
 input.onDrag = (d) => hud.setTiller(d);
-input.onZoom = (f) => view.setZoom(view.getZoom() * f);
 hud.onSailStep = (step) => input.setSail(step);
 
 /*
@@ -1366,7 +1363,7 @@ function readPad(now: number, dt: number) {
     input.setPadSteer(sea.steer);
     if (sea.sail) input.pressSail(sea.sail);
     if (sea.strike) input.setSail(0);
-    if (sea.zoom !== 1) view.setZoom(view.getZoom() * sea.zoom);
+    camera.pad(sea);
     // A presses the tutorial bubble's main button first, Y skips its lesson (decision 0183).
     if (sea.harbour && coach.padPress('main')) {
       /* the bubble took it */
@@ -1474,6 +1471,8 @@ dayNight.addEventListener('change', () => {
   settings.dayNight = dayNight.checked;
   keepSettings();
 });
+
+const camera = new CameraControls(view.rig, input, settings, keepSettings, tilt);
 
 // Weather and storms can be turned off like every hazard (decision 0067; pirates will follow in
 // Phase 5). Without weather there are no storms either, so that switch is greyed out.
@@ -1955,6 +1954,7 @@ function tick(now: number) {
   hud.goal = seaGoal();
   followQuestCourse();
   hud.update(dt, (x, y) => view.project(x, y), size, !paused, hudVisible);
+  camera.update();
   if (coachTick % 15 === 0) seaNews();
   showRunClock();
   questNote.update(dt, mode === 'play' && !paused && hudVisible, (key) => questSeen.has(key));

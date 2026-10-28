@@ -1,0 +1,33 @@
+name: PR rules
+
+# Checks a thread would otherwise do by hand (decision 0153): files over ~400 lines that grew, big
+# JSON, oversized images, a missing "Fixes #N". Limits: .github/rules.json. Advisory; its
+# failure is posted on the PR by ci-summary.yml.
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rules-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Tests of the CI tools
+        run: node --test tools/ci/rules.test.mjs tools/performance/budget.test.mjs
+      - name: Rule checks
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: node tools/ci/rules.mjs

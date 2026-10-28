@@ -2,8 +2,13 @@
 import { createServer } from 'vite';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import { existsSync } from 'node:fs';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+
+/** The sandbox's Chromium, or undefined so Playwright uses its own download (CI). */
+export const chromiumPath = () =>
+  existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined;
 
 /** A Vite server for the repository; `listen` also serves the game over http. */
 export async function startVite(listen = false) {

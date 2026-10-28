@@ -16,6 +16,9 @@ const TRADE_GLYPH = () => {
   return button ? padGlyphFor(button) : '';
 };
 
+/** Screen pixels a port sign keeps from the left and right edges. */
+const SIGN_MARGIN = 8;
+
 export type PortMarkerMode = 'approach' | 'objective' | 'all' | 'off';
 
 const COIN = '<svg class="icon coin" aria-hidden="true"><use href="#i-coin" /></svg>';
@@ -35,6 +38,8 @@ export class PortLabels {
       cue: HTMLElement;
       dock: HTMLElement;
       prices: { good: GoodId; el: HTMLElement }[];
+      /** Half the sign's width, measured when its content changes, to keep it on screen. */
+      halfWidth: number;
     }
   > = new Map();
 
@@ -122,6 +127,7 @@ export class PortLabels {
           good: p.dataset.price as GoodId,
           el: p,
         })),
+        halfWidth: 0,
       });
     }
   }
@@ -189,7 +195,8 @@ export class PortLabels {
       const s = project(entry.anchor.x, entry.anchor.y);
       if (s.onScreen) {
         // Only content is throttled. Pier motion follows the rendered camera every frame.
-        if (refreshContent || entry.root.hidden) {
+        const refresh = refreshContent || entry.root.hidden;
+        if (refresh) {
           const { dockRange, dockSpeedKn } = TUNING.seamanship.harbour;
           const canDock = distToShore <= dockRange && boat.speedKn < dockSpeedKn;
           const cue = isDocked
@@ -231,8 +238,13 @@ export class PortLabels {
         if (entry.root.hidden) entry.root.hidden = false;
         if (entry.root.classList.contains('docked') !== isDocked)
           entry.root.classList.toggle('docked', isDocked);
+        if (refresh) entry.halfWidth = entry.root.offsetWidth / 2;
+        // A pier near a side (more often with the camera turned, decision 0223) keeps its whole
+        // sign on screen.
+        const edge = entry.halfWidth + SIGN_MARGIN;
+        const x = Math.min(Math.max(s.x, edge), Math.max(edge, window.innerWidth - edge));
         // Composite the existing sign rather than repainting its shadow and SVGs as it moves.
-        const transform = `translate3d(${s.x.toFixed(2)}px, ${s.y.toFixed(2)}px, 0) translate(-50%, -100%)`;
+        const transform = `translate3d(${x.toFixed(2)}px, ${s.y.toFixed(2)}px, 0) translate(-50%, -100%)`;
         if (entry.root.style.transform !== transform) entry.root.style.transform = transform;
       } else {
         // Hide off-screen markers to avoid screen edge clutter
