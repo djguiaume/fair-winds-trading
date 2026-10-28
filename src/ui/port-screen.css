@@ -51,7 +51,7 @@
 .port-screen .port-name {
   margin: 0;
   color: var(--leather-ink);
-  font: 900 38px/1 var(--serif);
+  font: 900 var(--fs-display)/1 var(--serif);
   text-shadow: 0 2px 0 rgba(0, 0, 0, 0.5);
 }
 .port-screen .port-roles-summary {
@@ -70,7 +70,7 @@
   border-radius: 4px;
   background: var(--paper-card);
   color: var(--paper-ink);
-  font: 700 15px/1 var(--serif);
+  font: 700 var(--fs-text)/1 var(--serif);
 }
 .port-screen .role-tag small {
   margin-right: 4px;
@@ -96,7 +96,7 @@
   gap: 6px;
   height: 40px;
   padding: 0 12px;
-  font: 700 20px/1 var(--display);
+  font: 700 var(--fs-head)/1 var(--display);
   white-space: nowrap;
 }
 .port-chip .icon {
@@ -107,7 +107,7 @@
   width: 46px;
   height: 46px;
   border-radius: 50%;
-  font-size: 20px;
+  font-size: var(--fs-head);
   font-weight: 700;
 }
 .port-screen .close-btn:active {
@@ -133,7 +133,7 @@
   border-radius: 8px 8px 0 0;
   background: var(--tab);
   color: var(--paper-ink);
-  font: 700 19px/1 var(--serif);
+  font: 700 var(--fs-sub)/1 var(--serif);
 }
 .port-screen .tab-btn.active {
   background: var(--paper);
@@ -147,8 +147,8 @@
   margin-left: 4px;
   border-radius: 50%;
   background: var(--brass);
-  color: #2a1c00;
-  font-size: 13px;
+  color: var(--on-gold);
+  font-size: var(--fs-note);
   vertical-align: 2px;
 }
 .lot-picker {
@@ -161,7 +161,7 @@
 .lot-picker small {
   margin-right: 2px;
   color: var(--leather-ink);
-  font: 700 15px var(--display);
+  font: 700 var(--fs-text) var(--display);
 }
 .lot-btn {
   min-width: 44px;
@@ -170,14 +170,14 @@
   border-radius: 6px;
   background: var(--paper-2);
   color: var(--paper-ink);
-  font: 700 17px/1 var(--display);
+  font: 700 var(--fs-lead)/1 var(--display);
   cursor: pointer;
   touch-action: manipulation;
 }
 .lot-btn[aria-pressed='true'] {
   border-color: var(--outline);
   background: var(--brass);
-  color: #2a1c00;
+  color: var(--on-gold);
 }
 
 /* --- Chunky buttons ------------------------------------------------------------------- */
@@ -195,7 +195,7 @@
   box-shadow:
     inset 0 -3px 0 var(--lo),
     0 2px 0 rgba(58, 42, 29, 0.6);
-  font-size: 17px;
+  font-size: var(--fs-lead);
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
@@ -205,7 +205,7 @@
 .port-screen .sell-all-btn {
   --lo: #2f9c41;
   background: linear-gradient(#7fe08c, #49c45c);
-  color: #08240e;
+  color: var(--on-green);
 }
 .port-btn .icon {
   width: 20px;
@@ -286,13 +286,13 @@
 }
 .good-row .good-name {
   display: block;
-  font-size: 19px;
+  font-size: var(--fs-sub);
   font-weight: 600;
 }
 .good-note {
   display: block;
   color: var(--ink-dim);
-  font-size: 14px;
+  font-size: var(--fs-body);
   font-weight: 600;
 }
 .good-row.wants .good-note {
@@ -301,13 +301,13 @@
 .good-best {
   display: none;
   grid-area: best;
-  font-size: 15px;
+  font-size: var(--fs-text);
 }
 .good-best small,
 .good-hold small {
   display: block;
   color: var(--ink-dim);
-  font: 700 12px/1.2 var(--display);
+  font: 700 var(--fs-small)/1.2 var(--display);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -317,7 +317,7 @@
   text-align: center;
 }
 .good-hold b {
-  font: 700 22px/1 var(--display);
+  font: 700 var(--fs-title)/1 var(--display);
 }
 .good-row .buy-btn {
   grid-area: buy;
@@ -332,10 +332,10 @@
   margin: 0;
 }
 .good-row .trade-act-btn small {
-  font-size: 15px;
+  font-size: var(--fs-text);
 }
 .good-row .trade-act-btn b {
-  font-size: 22px;
+  font-size: var(--fs-title);
 }
 
 .port-side {
@@ -357,7 +357,7 @@
 .port-screen .section-title h3 {
   margin: 0 0 6px;
   color: var(--brass);
-  font: 700 18px/1.2 var(--serif);
+  font: 700 var(--fs-sub)/1.2 var(--serif);
 }
 .side-card ul {
   margin: 0;
@@ -368,27 +368,27 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 15px;
+  font-size: var(--fs-text);
   line-height: 1.7;
 }
 .side-card p {
   margin: 0 0 8px;
-  font-size: 15px;
+  font-size: var(--fs-text);
 }
 .side-card .order-line {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 16px;
+  font-size: var(--fs-lead);
 }
 .side-card .deliver-btn {
   width: 100%;
 }
 /* A help order from a neglected town (decision 0069). */
 .side-card .order-help {
-  color: #ffb36b;
+  color: var(--amber-ink);
   font-weight: 700;
-  font-size: 14px;
+  font-size: var(--fs-body);
 }
 
 /* A load on credit (decision 0200): the harbour office's offer, then what she owes. */
@@ -400,7 +400,7 @@
 }
 .side-card.credit-card.owed p {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-body);
 }
 .credit-actions {
   display: flex;
@@ -420,7 +420,7 @@
 /* --- Orders tab ------------------------------------------------------------------------ */
 .port-screen .contracts {
   max-width: 720px;
-  font-size: 16px;
+  font-size: var(--fs-lead);
   opacity: 1;
 }
 .port-screen .contract-line {
@@ -464,7 +464,7 @@
 }
 .port-screen .track-name,
 .port-screen .ship-card-header h4 {
-  font: 700 19px/1.2 var(--serif);
+  font: 700 var(--fs-sub)/1.2 var(--serif);
 }
 .port-screen .track-pip.filled {
   background: var(--brass);
@@ -473,7 +473,7 @@
 .port-screen .ship-btn {
   width: 100%;
   min-height: 44px;
-  font-size: 15px;
+  font-size: var(--fs-text);
   white-space: normal;
 }
 .port-screen .upgrades-grid {
@@ -495,7 +495,7 @@
   margin: 0;
   padding: 0 max(16px, var(--safe-right, env(safe-area-inset-right))) 4px;
   color: var(--leather-ink);
-  font-size: 15px;
+  font-size: var(--fs-text);
   text-align: right;
 }
 .port-screen .trade-footer {
@@ -525,11 +525,11 @@
     padding-bottom: 6px;
   }
   .port-screen .port-name {
-    font-size: 26px;
+    font-size: var(--fs-big);
   }
   .port-chip {
     height: 36px;
-    font-size: 18px;
+    font-size: var(--fs-sub);
   }
   .port-screen .tab-btn {
     min-height: 40px;
@@ -578,7 +578,7 @@
   .port-chip {
     height: 34px;
     padding: 0 8px;
-    font-size: 17px;
+    font-size: var(--fs-lead);
   }
   .port-chip .icon {
     width: 20px;
@@ -589,12 +589,12 @@
     height: 40px;
   }
   .port-screen .port-name {
-    font-size: 24px;
+    font-size: var(--fs-title);
   }
   .port-screen .role-tag {
     height: 26px;
     padding: 0 7px;
-    font-size: 13px;
+    font-size: var(--fs-note);
   }
   /* The lot size gets its own line under the tabs. */
   .port-screen .trade-tabs {
@@ -629,7 +629,7 @@
   }
   .port-screen .tab-btn {
     padding: 0 6px;
-    font-size: 15px;
+    font-size: var(--fs-text);
   }
   .port-screen #tp-repair {
     width: 100%;
@@ -717,17 +717,17 @@
 }
 .keeper-name b {
   color: var(--ink);
-  font: 700 22px/1.1 var(--serif);
+  font: 700 var(--fs-title)/1.1 var(--serif);
 }
 .keeper-name small {
   margin-left: 8px;
   color: var(--brass);
-  font: 700 15px/1 var(--serif);
+  font: 700 var(--fs-text)/1 var(--serif);
 }
 .keeper-line {
   margin-top: 6px !important;
   color: var(--ink);
-  font-size: 16px;
+  font-size: var(--fs-lead);
   line-height: 1.4;
 }
 .keeper-town {
@@ -737,7 +737,7 @@
   gap: 4px 12px;
   margin-top: 8px !important;
   color: var(--ink-dim);
-  font: 600 15px/1.2 var(--body);
+  font: 600 var(--fs-text)/1.2 var(--body);
 }
 .keeper-town .icon {
   width: 18px;

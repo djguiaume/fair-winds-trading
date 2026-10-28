@@ -23,4 +23,8 @@ Carried from v1.1, one low-effort Sonnet thread alongside wave 1 (UI files only,
 
 At most 3 to 5 threads at once; I start the next part as soon as one merges. Role questions (one message each, when their wave starts): storyteller has none for v1.2 so far; art director gives boat look rules for #331 first, then biome tables for #269 and #275.
 
-Ring port size (grow four ring towns from radius 18 to about 34?): not decided; the art director shows a before and after chart to Guillaume before #277. The Abbey Head club-house art follow-ups are noted for v1.2.
+Guillaume's rules (2026-10-28):
+- **Island and town size:** no blanket growth. A bigger island moves things apart and can change sailing times and balance, so each change is made only where it makes sense, one island at a time, with a chart and `npm run balance` on all three levels. The ring ports already grew to radius 34 to 36 in [0216](../decisions/0216-windward-ring-catch-up-pass.md); the old handover item "grow ring towns" is closed.
+- **Budgets:** the old-tablet triangle limit is lifted for now, but every budget raise is a conscious, argued choice each time (what it buys, what it costs on Low), never a default.
+
+The Abbey Head club-house art follow-ups are noted for v1.2.

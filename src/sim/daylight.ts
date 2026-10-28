@@ -79,3 +79,10 @@ export function daylightAt(t: number): Daylight {
     lightHeight: Math.max(0.15, Math.sin(arc)),
   };
 }
+
+/** Game time whose light is kept when day and night is off: early afternoon. */
+const ALWAYS_DAY = 200;
+
+/** The light the player sees: the real time of day, or early afternoon with day and night off. */
+export const shownDaylightAt = (dayNight: boolean, t: number): Daylight =>
+  daylightAt(dayNight ? t : ALWAYS_DAY);
