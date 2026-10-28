@@ -27,6 +27,12 @@
       "fade": 1.6
     },
     "levelTolerance": 0.15,
+    "limits": {
+      "edits": 400,
+      "points": 600,
+      "radius": 1.5,
+      "reach": 2
+    },
     "editor": {
       "radius": {
         "min": 0.02,
