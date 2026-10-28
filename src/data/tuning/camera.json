@@ -1,0 +1,19 @@
+{
+  "pitchDeg": 58,
+  "pitchMinDeg": 45,
+  "pitchMaxDeg": 90,
+  "ultraPitchMinDeg": 35,
+  "distance": 110,
+  "zoomMin": 0.6,
+  "zoomMax": 1.7,
+  "portraitWidth": 0.85,
+  "portraitPullMax": 1.9,
+  "aheadPerKn": 1.6,
+  "followRate": 2.5,
+  "mouseDegPerPx": 0.3,
+  "mouseTiltDegPerPx": 0.15,
+  "touchDegPerPx": -0.3,
+  "touchTiltDegPerPx": 0.15,
+  "resetRate": 4,
+  "returnAfterSeconds": 5
+}

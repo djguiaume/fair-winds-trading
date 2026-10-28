@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { setPadNames, setTextVariant, t } from '../src/i18n';
-import { PAD_BRANDS, brandProblems, padBrand } from '../src/input/gamepad';
+import { PAD_BRANDS, padBrand } from '../src/input/gamepad';
+import { brandProblems } from '../src/input/padChecks';
 import { WayOfPlaying, firstWay, wayOfEvent } from '../src/input/wayOfPlaying';
 import { lineKeys, textKeys } from '../src/editor/quest/doc';
 import type { QuestDef } from '../src/sim/quests';

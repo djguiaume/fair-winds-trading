@@ -1,0 +1,11 @@
+[
+  { "name": "1-sea-day", "sizes": ["desktop", "portrait"] },
+  { "name": "2-sea-night", "night": true, "sizes": ["desktop"] },
+  {
+    "name": "3-port-saltmere",
+    "port": "saltmere",
+    "tab": "market",
+    "sizes": ["desktop", "portrait"]
+  },
+  { "name": "4-chart", "chart": true, "charted": true, "sizes": ["desktop"] }
+]

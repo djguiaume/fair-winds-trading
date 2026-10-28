@@ -5,7 +5,8 @@
 // `place`, `dock`, the view, the chart) and shoots each size.
 import { readFileSync, mkdirSync } from 'node:fs';
 import { resolve, basename, extname, join } from 'node:path';
-import { ROOT, startVite } from './lib.mjs';
+import { ROOT, chromiumPath, startVite } from './lib.mjs';
+import { padSteps } from './padSteps.mjs';
 
 /**
  * The three sizes every look review shows (desktop first, must look good in portrait), and `tv`:
@@ -59,6 +60,7 @@ Where
   --tab market|orders|quay|shipyard   the port screen's tab
   --zoom z                      camera distance, 1 = default, larger = farther (no game limit)
   --look x,y                    camera on this map point instead of the boat
+  --yaw deg --tilt deg          a turned camera (0223): the bearing it looks to, degrees down
   --menu                        the title menu, before Set sail (the scene options are ignored)
   --chart                       the sea chart open (--pad and --click then play on it); --chart-zoom n, --chart-pan Key:n,
                                 --chart-panel journal|market|legend: that tab (default the map)
@@ -110,7 +112,7 @@ const PAGES = 'https://djguiaume.github.io/fair-winds-trading/';
 
 // The game's own sea is the grown one (decision 0198): `phase4` (or `game`) needs no `?map=`.
 const SEAS = { phase4: '', game: '', ring: 'ring', stress: 'stress' };
-const NUMBERS = ['heading', 'sail', 'speed', 'zoom', 'time', 'wait', 'chart-zoom', 'hull', 'crash'];
+const NUMBERS = 'heading sail speed zoom yaw tilt time wait chart-zoom hull crash'.split(' ');
 
 const pair = (v) => {
   if (Array.isArray(v)) return v.map(Number);
@@ -119,18 +121,6 @@ const pair = (v) => {
   return out;
 };
 const list = (v) => (Array.isArray(v) ? v : String(v).split(',').filter(Boolean));
-/** The standard controller layout's buttons in the browser's order (src/input/gamepad.ts). */
-const PAD_BUTTONS = 'a b x y lb rb lt rt view menu ls rs up down left right home'.split(' ');
-const PAD_AXES = ['lx', 'ly', 'rx', 'ry'];
-const padSteps = (v) =>
-  list(v).map((step) => {
-    const [what, ms] = String(step).split(':');
-    const [name, value] = what.split('=');
-    const axis = PAD_AXES.indexOf(name);
-    const button = PAD_BUTTONS.indexOf(name);
-    if (axis < 0 && button < 0) throw new Error(`no pad button or axis "${name}"`);
-    return { axis, button, value: value === undefined ? 1 : Number(value), n: Number(ms) || 100 };
-  });
 const readAll = (v) =>
   list(v)
     .map((f) => readFileSync(resolve(ROOT, f), 'utf8'))
@@ -167,6 +157,7 @@ export function normalise(opts) {
     quest: o.quest ? String(o.quest).split(':') : null,
     tab: o.tab ?? null,
     zoom: o.zoom ?? null,
+    turn: (o.yaw ?? o.tilt) !== undefined ? [o.yaw ?? 0, o.tilt] : null,
     look: o.look !== undefined ? pair(o.look) : null,
     menu: !!o.menu,
     chart: !!o.chart,
@@ -380,7 +371,8 @@ async function setScene(page, shot) {
       if (!window.fwt.moor(s.moor)) return `no pier to moor at on ${s.moor}`;
     }
     if (s.tab && world.trade.dockedAt) window.fwt.tradePanel.open(s.tab);
-    if (s.zoom !== null) view.zoom = s.zoom;
+    if (s.zoom !== null) view.rig.zoom = s.zoom;
+    if (s.turn) view.rig.orbit.set(...s.turn);
     if (s.look) view.setFocus({ x: s.look[0], y: s.look[1] }, true);
     if (s.erupt && !view.erupt(s.erupt, true)) return `no volcano on ${s.erupt}`;
     return null;
@@ -626,7 +618,7 @@ export async function takeShots(shots, out) {
       shot.seaMap = JSON.stringify(loadSea(shot.seaFile).map);
     }
   const browser = await chromium.launch({
-    executablePath: '/opt/pw-browsers/chromium',
+    executablePath: chromiumPath(),
     args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
   });
   const files = [];

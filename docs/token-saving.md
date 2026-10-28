@@ -24,17 +24,17 @@ These cost on every turn of every thread, so shrinking them pays the most.
 ## Threads and wakes
 
 9. Each wake re-sends the thread's context, so long threads get expensive per turn. One thread per issue, resolve it when done, and start a new thread with a short handover rather than piling a new ask on a long one.
-10. Guillaume: turn on "Allow auto-merge" (repo Settings > General > Pull requests). Threads can then arm the merge once instead of waking on each CI event to merge by hand.
-11. Docs-only PRs could skip the full build and tests in CI (a `paths-ignore` for `docs/**` with a light check), so they finish sooner and wake threads less. Needs care: Pages deploys from the same workflow.
+10. Auto-merge: Guillaume turns on "Allow auto-merge" and branch protection; threads add the `automerge` label (the `Auto-merge` workflow arms it, only for his own branches) instead of waking on each CI event to merge by hand. Setup: [tools/ci.md](tools/ci.md).
+11. Docs-only PRs run the full build too: a required check that never starts would block them (decision 0224).
 12. Feedback in one message: when reviewing, put every comment for a thread in one message, so it does one round of work instead of several.
 
 ## Images
 
-13. Each image is roughly 1,000 to 1,600 tokens. Take the fewest shots that answer the question, JPG at most ~1280 px, desktop only unless the layout changes. For comparisons, one contact sheet (several views in one image) beats several images. Look at each image once.
+13. A workflow posts one screenshot sheet on game PRs (desktop and phone, day, night, port, chart), so look at that first. Each image is roughly 1,000 to 1,600 tokens. Take the fewest shots that answer the question, JPG at most ~1280 px, desktop only unless the layout changes. For comparisons, one contact sheet (several views in one image) beats several images. Look at each image once.
 
 ## Tool output
 
-14. Prefer `--json` and one-line results; run only the tests you touched (`npx vitest run path --reporter=dot`) before the full suite once; `tail` long logs. Tools should print one summary line by default.
+14. Failed CI posts a comment with only the failing lines (`CI summary`): read it instead of the log. Prefer `--json` and one-line results; run only the tests you touched (`npx vitest run path --reporter=dot`) before the full suite once; `tail` long logs. Tools should print one summary line by default.
 
 ## Up front
 

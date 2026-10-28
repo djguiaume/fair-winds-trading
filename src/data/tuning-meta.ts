@@ -8,6 +8,8 @@
 
 import { num, text, toggle, type TuningMeta } from './tuning-meta-types';
 import { GRAPHICS_META } from './tuning-meta-graphics';
+import { CAMERA_META } from './tuning-meta-camera';
+import { BUOYS_META } from './tuning-meta-buoys';
 
 export type { NumberMeta, PolarMeta, TextMeta, ToggleMeta, TuningMeta } from './tuning-meta-types';
 
@@ -20,6 +22,7 @@ export const TUNING_GROUPS = {
   difficulty: 'Levels',
   weather: 'Weather',
   seamanship: 'Seamanship',
+  camera: 'Camera',
   graphics: 'Graphics',
 } as const;
 
@@ -46,6 +49,8 @@ export function metaPath(path: readonly string[]): string {
 
 export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
   ...GRAPHICS_META,
+  ...CAMERA_META,
+  ...BUOYS_META,
   // --- src/data/ships/<id>.json, `sailing` and `unlock` (decisions 0007, 0011, 0035, 0048, 0109) ---
   'ships.*.id': text('Id', 'Class id used in saves and code; must match the key.'),
   'ships.*.name': text('Name', 'English name in the code; players see the translated one.'),
@@ -2177,77 +2182,5 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     0.05,
     '× class',
     "Collision radius as a share of the class's: a fishing boat is small.",
-  ),
-  'seamanship.boundaryBuoys.spacing': num(
-    'Boundary buoy spacing',
-    1,
-    100,
-    1,
-    'units',
-    'Distance between boundary buoys; applies when a view is created.',
-  ),
-  'seamanship.boundaryBuoys.offset': num(
-    'Boundary buoy offset',
-    0,
-    30,
-    1,
-    'units',
-    'Distance outside the sailing boundary; applies when a view is created.',
-  ),
-  'seamanship.boundaryBuoys.phaseStep': num(
-    'Boundary buoy phase',
-    0,
-    6,
-    0.1,
-    'rad',
-    'Phase difference between neighbouring buoys; applies when a view is created.',
-  ),
-  'seamanship.boundaryBuoys.waterline': num(
-    'Boundary buoy waterline',
-    -3,
-    3,
-    0.1,
-    'units',
-    'Vertical offset from the animated water surface.',
-  ),
-  'seamanship.boundaryBuoys.pitchRate': num(
-    'Boundary buoy pitch rate',
-    0,
-    5,
-    0.1,
-    'rad/s',
-    'Speed of the buoy pitching animation.',
-  ),
-  'seamanship.boundaryBuoys.rollRate': num(
-    'Boundary buoy roll rate',
-    0,
-    5,
-    0.1,
-    'rad/s',
-    'Speed of the buoy rolling animation.',
-  ),
-  'seamanship.boundaryBuoys.rockRadians': num(
-    'Boundary buoy rocking',
-    0,
-    1,
-    0.01,
-    'rad',
-    'Maximum pitch and roll of boundary buoys.',
-  ),
-  'seamanship.boundaryBuoys.round': num(
-    'Sea edge rounding',
-    0,
-    200,
-    5,
-    'units',
-    'Radius every corner of a sea with sea edges is rounded to, where a section joins the round sea too (decision 0202).',
-  ),
-  'seamanship.boundaryBuoys.maxTurnDeg': num(
-    'Sea edge sharpest turn',
-    5,
-    90,
-    1,
-    '°',
-    'The map checks warn where the edge buoy line turns more than this between three buoys (decision 0202).',
   ),
 };

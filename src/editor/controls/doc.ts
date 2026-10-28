@@ -1,13 +1,7 @@
 import shipped from '../../data/controls.json';
 import { formatJson } from '../../data/jsonFormat';
-import {
-  PAD_AXES,
-  PAD_BUTTONS,
-  type PadBrand,
-  type PadControls,
-  brandProblems,
-  controlProblems,
-} from '../../input/gamepad';
+import { PAD_AXES, PAD_BUTTONS, type PadBrand, type PadControls } from '../../input/gamepad';
+import { brandProblems, controlProblems } from '../../input/padChecks';
 import { type TvConfig, tvProblems } from '../../input/tv';
 
 /**
