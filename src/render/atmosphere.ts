@@ -168,6 +168,7 @@ export class Atmosphere {
     mix(l, l, NIGHT, day.night);
     mix(this.storm, STORM, NIGHT, day.night * 0.7);
     mix(l, l, this.storm, this.gloom);
+    ocean.setDaylight(l);
     // A fog bank or ash cloud (decision 0169) turns the sky and the fog its colour, darkened at
     // night like the sky, and dims the sun a little.
     const h = haze?.kind ? haze.haze : 0;

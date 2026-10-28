@@ -4,6 +4,7 @@ import { islandCoasts } from '../src/sim/islandLayout';
 import type { IslandDef, TerrainDef } from '../src/sim/map';
 import { Ocean } from '../src/render/ocean';
 import { ShoreTextureCache } from '../src/render/shoreTexture';
+import { SeabedTextureCache } from '../src/render/seabedTexture';
 import { QUALITY } from '../src/render/quality';
 import { CameraOrbit } from '../src/render/cameraOrbit';
 import { GameView } from '../src/render/view';
@@ -139,10 +140,14 @@ describe('view-owned shoreline bake', () => {
 
 it('GameView quality changes reuse its cache and refresh edited map contents', () => {
   const cache = new ShoreTextureCache();
-  const map = { islands: [island()], terrain: [] };
+  const map = { islands: [island()], terrain: [], ports: [] };
   // Exercise the real quality rebuild method without requiring a WebGL context.
   const view: GameView = Object.assign(Object.create(GameView.prototype), {
     shores: cache,
+    // The new look's water (issue #274): its seabed bake follows the same edits.
+    look: 'v2',
+    levels: {},
+    seabeds: new SeabedTextureCache(),
     qualityEffects: new Map(),
     // The land standing (decision 0166) is the map's, so an edit to it reaches the shores.
     world: { map, land: map },
@@ -170,6 +175,8 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
   ).qualityEffects;
   const first = water().mesh.material.uniforms.uShoreMap!.value;
   const dispose = vi.spyOn(first, 'dispose');
+  const firstSeabed = water().mesh.material.uniforms.uDepthMap!.value;
+  expect('DEPTH' in water().mesh.material.defines).toBe(true);
   map.islands = structuredClone(map.islands);
   view.setQuality('medium');
   const medium = water();
@@ -205,6 +212,7 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
   view.setQuality('high');
   for (const effect of effects.values()) {
     expect(effect.ocean.mesh.material.uniforms.uShoreMap!.value === first).toBe(false);
+    expect(effect.ocean.mesh.material.uniforms.uDepthMap!.value === firstSeabed).toBe(false);
   }
   view.setQuality('low');
   expect(water().mesh.material.uniforms.uShoreMap!.value === first).toBe(false);

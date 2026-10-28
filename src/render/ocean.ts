@@ -2,14 +2,20 @@ import * as THREE from 'three';
 import type { IslandDef, TerrainDef } from '../sim/map';
 import { PALETTE } from './palette';
 import { TUNING } from '../data/tuning';
-import type { Look } from './atmosphere';
+import { DAY, type Look } from './atmosphere';
 import { type ShoreTexture, shoreShader, shoreTexture } from './shoreTexture';
+import { type SeabedTexture, seabedShader } from './seabedTexture';
+import { newRamp, seaRampAt } from './seaWater';
 
 const vertexShader = /* glsl */ `
 uniform float uTime;
 #ifdef VERTEX_SHORES
 ${shoreShader}
 varying float vShoreDistance;
+#ifdef DEPTH
+${seabedShader}
+varying float vDepth;
+#endif
 #endif
 varying vec3 vWorld;
 varying float vHeight;
@@ -28,6 +34,9 @@ void main() {
   vWorld = world.xyz;
 #ifdef VERTEX_SHORES
   vShoreDistance = shoreDistance(world.xz);
+#ifdef DEPTH
+  vDepth = seabedDepth(world.xz);
+#endif
 #endif
   vHeight = h;
   vec4 mv = viewMatrix * world;
@@ -40,9 +49,19 @@ const fragmentShader = /* glsl */ `
 uniform float uTime;
 #ifndef VERTEX_SHORES
 ${shoreShader}
+#ifdef DEPTH
+${seabedShader}
+#endif
 #endif
 #ifdef VERTEX_SHORES
 varying float vShoreDistance;
+#ifdef DEPTH
+varying float vDepth;
+#endif
+#endif
+#ifdef DEPTH
+// The mid colour's place on the depth (0..1), the crest lightening and the facet shading.
+uniform vec3 uDepthLook;
 #endif
 uniform vec3 uSunDir;
 uniform vec3 uWater;
@@ -74,15 +93,27 @@ void main() {
   if (n.y < 0.0) n = -n;
   float light = 0.62 + 0.5 * max(dot(n, uSunDir), 0.0);
 
-  vec3 col = mix(uWater, uWaterLight, smoothstep(-0.35, 0.45, vHeight));
-
-  // Distance to the nearest beach: shallow tint and a moving foam line.
+  // Distance to the nearest beach, for the foam line.
 #ifdef VERTEX_SHORES
   float d = vShoreDistance;
 #else
   float d = shoreDistance(vWorld.xz);
 #endif
+#ifdef DEPTH
+  // Coloured by the seabed's depth (issue #274): shallow → mid → deep (uWaterLight, uWater).
+#ifdef VERTEX_SHORES
+  float dep = vDepth;
+#else
+  float dep = seabedDepth(vWorld.xz);
+#endif
+  vec3 col = mix(uShallow, uWaterLight, clamp(dep / uDepthLook.x, 0.0, 1.0));
+  col = mix(col, uWater, clamp((dep - uDepthLook.x) / (1.0 - uDepthLook.x), 0.0, 1.0));
+  col *= 1.0 + uDepthLook.y * (smoothstep(-0.35, 0.45, vHeight) - 0.5);
+  light = mix(1.0, light, uDepthLook.z);
+#else
+  vec3 col = mix(uWater, uWaterLight, smoothstep(-0.35, 0.45, vHeight));
   col = mix(col, uShallow, (1.0 - smoothstep(0.0, 14.0, d)) * 0.85);
+#endif
 #ifdef FANCY
   float ripple = sin(vWorld.x * 0.45 + uTime * 1.3) * sin(vWorld.z * 0.5 - uTime * 1.7);
 #endif
@@ -135,6 +166,8 @@ export interface WaterLook {
   fancy: boolean;
   /** Sky reflection, sun glint and soft foam (High and Ultra, decision 0221); needs `fancy`. */
   reflect?: boolean;
+  /** Coloured by the seabed's depth and the sea's own colours (`?look=v2`, issue #274). */
+  seabed?: SeabedTexture;
 }
 
 /**
@@ -148,6 +181,10 @@ export class Ocean {
   private readonly ownsShore: boolean;
   private readonly ownsMaterial: boolean;
   private disposed = false;
+  /** The sea's day colours at the camera, and the light's share of them now (time, weather). */
+  private readonly ramp = newRamp();
+  private readonly waterLight = new THREE.Color(1, 1, 1);
+  private readonly shallowLight = new THREE.Color(1, 1, 1);
 
   constructor(
     islands: readonly IslandDef[],
@@ -167,15 +204,22 @@ export class Ocean {
       new THREE.ShaderMaterial({
         vertexShader,
         fragmentShader,
-        defines: !look.fancy
-          ? { VERTEX_SHORES: '' }
-          : look.reflect
-            ? { FANCY: '', REFLECT: '' }
-            : { FANCY: '' },
+        defines: {
+          ...(!look.fancy
+            ? { VERTEX_SHORES: '' }
+            : look.reflect
+              ? { FANCY: '', REFLECT: '' }
+              : { FANCY: '' }),
+          ...(look.seabed ? { DEPTH: '' } : {}),
+        },
         uniforms: {
           uTime: { value: 0 },
           uShoreMap: { value: shore.texture },
           uShoreBounds: { value: shore.bounds },
+          uDepthMap: { value: look.seabed?.texture ?? null },
+          uDepthBounds: { value: look.seabed?.bounds ?? new THREE.Vector4(0, 0, 1, 1) },
+          uDepthLook: { value: new THREE.Vector3() },
+          uDayWater: { value: new THREE.Color(PALETTE.water) },
           uSunDir: { value: new THREE.Vector3(-0.45, 0.8, 0.35).normalize() },
           uWater: { value: new THREE.Color(PALETTE.water) },
           uWaterLight: { value: new THREE.Color(PALETTE.waterLight) },
@@ -194,6 +238,8 @@ export class Ocean {
           uFoamLook: { value: new THREE.Vector4() },
         },
       });
+    // The ring's colours until the first update places the camera.
+    if (look.seabed) seaRampAt(0, 0, this.ramp);
     const geometry = new THREE.PlaneGeometry(size, size, segments, segments);
     geometry.rotateX(-Math.PI / 2);
     this.mesh = new THREE.Mesh(geometry, material);
@@ -205,6 +251,16 @@ export class Ocean {
     if (this.ownsShore) throw new Error('Only borrowed ocean shores may be replaced');
     this.mesh.material.uniforms.uShoreMap!.value = shore.texture;
     this.mesh.material.uniforms.uShoreBounds!.value = shore.bounds;
+  }
+
+  /** The view's seabed bake may change (a map edit) while this quality level is inactive. */
+  setSeabed(seabed: SeabedTexture): void {
+    this.mesh.material.uniforms.uDepthMap!.value = seabed.texture;
+    this.mesh.material.uniforms.uDepthBounds!.value = seabed.bounds;
+  }
+
+  private get depth(): boolean {
+    return 'DEPTH' in this.mesh.material.defines;
   }
 
   setFog(near: number, far: number): void {
@@ -221,6 +277,26 @@ export class Ocean {
     (u.uWaterLight!.value as THREE.Color).copy(look.waterLight);
     (u.uFogColor!.value as THREE.Color).copy(look.sky);
     (u.uSkyLight!.value as THREE.Color).copy(look.skyLight);
+    if (this.depth) this.applyRamp();
+  }
+
+  /**
+   * The time of day and the weather, before any zone tints (atmosphere.ts): the depth colours are
+   * the sea's day colours times this light's water against the day's, so dusk, night and storms
+   * shade every sea alike, and a sea's own colours replace the old zone tint of its water.
+   */
+  setDaylight(look: Look): void {
+    lightOf(look.water, DAY.water, this.waterLight);
+    lightOf(look.shallow, DAY.shallow, this.shallowLight);
+  }
+
+  /** The depth colours: the sea's at the camera in the light of now. The rough and calm layers copy them. */
+  private applyRamp() {
+    const u = this.mesh.material.uniforms;
+    (u.uShallow!.value as THREE.Color).copy(this.ramp.shallow).multiply(this.shallowLight);
+    (u.uWaterLight!.value as THREE.Color).copy(this.ramp.mid).multiply(this.waterLight);
+    (u.uWater!.value as THREE.Color).copy(this.ramp.deep).multiply(this.waterLight);
+    (u.uDayWater!.value as THREE.Color).copy(this.ramp.deep);
   }
 
   /** The light (scene space, normalized direction), for the flat shading and the glint. */
@@ -244,6 +320,11 @@ export class Ocean {
     u.uGlintSharpness!.value = w.glintSharpness;
     (u.uGlintFade!.value as THREE.Vector3).set(w.glintFadeFrom, w.glintFadeTo, w.glintMax);
     (u.uFoamLook!.value as THREE.Vector4).set(w.foamInner, w.foamWidth, w.foamStrength, w.foamLine);
+    if (this.depth) {
+      (u.uDepthLook!.value as THREE.Vector3).set(w.depth.midAt, w.depth.crest, w.depth.shading);
+      seaRampAt(center.x, -center.z, this.ramp);
+      this.applyRamp();
+    }
     this.mesh.position.set(
       Math.round(center.x / this.cell) * this.cell,
       0,
@@ -258,4 +339,10 @@ export class Ocean {
     this.mesh.geometry.dispose();
     if (this.ownsMaterial) this.mesh.material.dispose();
   }
+}
+
+/** A light's colour against the day's, channel by channel, kept within reason. */
+function lightOf(now: THREE.Color, day: THREE.Color, out: THREE.Color) {
+  const ratio = (a: number, b: number) => Math.min(2, a / Math.max(b, 1e-4));
+  return out.setRGB(ratio(now.r, day.r), ratio(now.g, day.g), ratio(now.b, day.b));
 }

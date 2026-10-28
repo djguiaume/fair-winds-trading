@@ -5,7 +5,6 @@ import { zonesTuning } from '../sim/windZones';
 import { zoneGeometry } from './calmWater';
 import type { Ocean } from './ocean';
 import { type ShoreTexture, shoreShader } from './shoreTexture';
-import { PALETTE } from './palette';
 
 /**
  * Rough water over a storm belt (decision 0167): darker slate-blue, choppy, with whitecap streaks
@@ -142,7 +141,7 @@ export class RoughWater {
           uLight: { value: colour(kind?.waterLight, '#3e6a7c') },
           uFoam: { value: colour(kind?.foam, '#e6eef2') },
           uWater: { value: new THREE.Color() },
-          uDayWater: { value: new THREE.Color(PALETTE.water) },
+          uDayWater: { value: new THREE.Color() },
           uFlow: { value: new THREE.Vector2(Math.sin(to), Math.cos(to)) },
           uRough: { value: Math.min(1, rough) },
           uFogColor: { value: new THREE.Color() },
@@ -177,6 +176,7 @@ export class RoughWater {
       const u = m.uniforms;
       u.uTime!.value = time;
       (u.uWater!.value as THREE.Color).copy(from.uWater!.value as THREE.Color);
+      (u.uDayWater!.value as THREE.Color).copy(from.uDayWater!.value as THREE.Color);
       (u.uFogColor!.value as THREE.Color).copy(from.uFogColor!.value as THREE.Color);
       u.uFogNear!.value = from.uFogNear!.value;
       u.uFogFar!.value = from.uFogFar!.value;
