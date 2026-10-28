@@ -17,7 +17,8 @@ import {
   createBoatModel,
 } from './models';
 import { HEEL_FEEL, Heel, heelFactor } from './heel';
-import { Ocean, ShoreTextureCache, waveHeight } from './ocean';
+import { Ocean, waveHeight } from './ocean';
+import { ShoreTextureCache } from './shoreTexture';
 import { CalmWater } from './calmWater';
 import { RoughWater } from './roughWater';
 import { CurrentWater } from './currentWater';

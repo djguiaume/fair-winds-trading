@@ -3,7 +3,8 @@ import type { WindZoneDef } from '../sim/map';
 import { DEG } from '../sim/math';
 import { zonesTuning } from '../sim/windZones';
 import { zoneGeometry } from './calmWater';
-import { type Ocean, type ShoreTexture, shoreShader } from './ocean';
+import type { Ocean } from './ocean';
+import { type ShoreTexture, shoreShader } from './shoreTexture';
 import { PALETTE } from './palette';
 
 /**

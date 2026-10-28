@@ -5,7 +5,8 @@ import { insetOutline } from '../sim/coast';
 import { laneShape } from '../sim/currents';
 import { smoothOutline } from '../sim/flowShapes';
 import type { CurrentDef } from '../sim/map';
-import { type Ocean, type ShoreTexture, shoreShader } from './ocean';
+import type { Ocean } from './ocean';
+import { type ShoreTexture, shoreShader } from './shoreTexture';
 
 /**
  * Currents at sea (decision 0140): only visuals. Each current is darker, bluer water with soft
