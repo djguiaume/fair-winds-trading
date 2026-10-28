@@ -31,8 +31,8 @@ export function clubBoardBody(b: ClubBoard): string {
           .join('')}</ul>`,
     )
     .join('');
-  return `<header class="quest-head"><h2>${esc(t('club.board.title'))}</h2><span class="quest-role">${esc(
+  return `<div class="club-head"><header class="quest-head"><h2>${esc(t('club.board.title'))}</h2><span class="quest-role">${esc(
     t('club.board.count', { won: b.won, all: b.all }),
   )}</span></header>
-    <p class="quest-speech">${esc(t(b.pinned ? 'club.board.intro' : 'club.board.empty'))}</p><div class="race-card">${groups}</div>`;
+    <p class="quest-speech">${esc(t(b.pinned ? 'club.board.intro' : 'club.board.empty'))}</p></div><div class="race-card club-board">${groups}</div>`;
 }

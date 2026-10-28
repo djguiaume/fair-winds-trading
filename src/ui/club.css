@@ -1,4 +1,7 @@
 /* The Sailing Club's board on the Quay (decision 0226): rows of race, best time and par. */
+.club-board {
+  max-width: 640px;
+}
 .club-series {
   margin: 12px 0 4px;
   color: var(--brass);
@@ -42,16 +45,23 @@
   justify-self: end;
 }
 @media (max-width: 600px) {
+  .club-head {
+    padding-right: 64px;
+  }
   .club-row {
     grid-template-columns: 1fr auto;
+    row-gap: 4px;
     padding-bottom: 6px;
   }
   .club-time {
     grid-row: 1;
   }
   .club-row .d-btn {
-    grid-column: 1 / 3;
-    grid-row: 3;
-    justify-self: stretch;
+    grid-column: 2;
+    grid-row: 2;
+    min-height: 0;
+    padding: 4px 12px;
+    font-size: 13px;
+    border-radius: 999px;
   }
 }
