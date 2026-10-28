@@ -1,15 +1,15 @@
-# Art director handover (v1.0 to v1.1, 2026-10-28)
+# Art director handover (v1.1 to v1.2, 2026-10-28)
 
-For the "Art director (v1.1)" thread, in the format of [roles.md](../roles.md). Rules are in the [art bible](art-bible.md) (decision [0165](../decisions/0165-art-bible-and-the-phase-4-biome-looks.md)); this page only holds what is open. Guillaume gives the final OK on every visual: your OK means "ready to show Guillaume", never "merged". Your own PRs are docs only.
+For the "Art director (v1.2)" thread, in the format of [roles.md](../roles.md). Rules are in the [art bible](art-bible.md) (decision [0165](../decisions/0165-art-bible-and-the-phase-4-biome-looks.md)); this page only holds what is open. Guillaume gives the final OK on every visual: your OK means "ready to show Guillaume", never "merged". Your own PRs are docs only. v1.1 shipped as v1.1.282 ([0229](../decisions/0229-version-11-release-the-sailing-club.md)).
 
 ## 1. Open decisions
 
 | What | Who waits | State |
 |---|---|---|
-| **Style E, the UI reskin** ([0220](../decisions/0220-a-game-like-ui-skin-style-e.md), issue [#261](https://github.com/djguiaume/fair-winds-trading/issues/261)) | the build thread of #261 (last wave) | Proposed. Still to do, in this order: a "UI" chapter in the bible (materials, tokens, font, frames), then static mockups of two directions side by side (logbook, painted wood) for the title menu, new voyage, sea HUD, port Market and Quay, chart and a quest card; Guillaume picks one; 0220 is then updated with the font, colours and frames. No mockup exists yet. |
-| **Ultra look** ([0221](../decisions/0221-an-ultra-quality-level-for-desktop-and-xbox.md), issues #257 and #258) | the Ultra build thread | You review its day and night shots of every main port (lighting, tone mapping, sky reflection, foam). Night stays deep blue, never black; colours stay saturated. |
-| **v1.2 new look** ([0222](../decisions/0222-a-new-look-smooth-terrain-blue-water-and-forests.md)) | v1.2 build thread | Direction approved by Guillaume; not built. Each island's final look is approved from screenshots, the ring first. The art guide below is the input. |
-| **Ring port size** | Guillaume | The central-sea review asked whether to grow the four ring towns (radius 18 to 26, against 48 to 60 for the outer main ports) to about 34. Check what was decided before the ring is redone for 0222. |
+| **v1.2 new look** ([0222](../decisions/0222-a-new-look-smooth-terrain-blue-water-and-forests.md)) | v1.2 build thread | Direction approved by Guillaume; not built. Each island's final look is approved from screenshots, the ring first. Art bible rule 1 (flat shading) and section 2's sea colour change when it is built. The art guide below is the input. |
+| **Ultra look** ([0221](../decisions/0221-an-ultra-quality-level-for-desktop-and-xbox.md)) | v1.2 build thread | Shipped in v1.1. Notes given: Emberhold rock must keep its facets with lava cracks the brightest thing, lamp glows warmer and smaller, window lights back to High's brightness at night, horizon haze 10 to 15% (warm by day, blue by night), to be re-tuned once at the 35 degree Ultra tilt. Recheck against the player's 50 to 70 degree tilt range. |
+| **Style E follow-ups** ([0220](../decisions/0220-a-game-like-ui-skin-style-e.md)) | none | Built in v1.1. My ruling: painted wood and brass for HUD and frames, cream paper for port tables, cards and the chart, signal-flag bunting as a thin port band. Red stays for edge buoys, yellow for regatta marks, brass `#e8c46a` for the HUD, no pure white. Check the night paper dimming (about 20%) shipped. |
+| **Ring port size** | Guillaume | Whether to grow the four ring towns (radius 18 to 26) to about 34. Decide before the ring is redone for 0222. |
 
 ## 2. Pointers
 
@@ -33,6 +33,8 @@ Agreed small work not yet done. None has an issue yet; open one (label `idea`) w
 - Sunreach at night: a few more lit windows on the upper lane.
 - First real sea extension: zones that hug the old rim (the Stormbreak) must continue into the new section or fade out at the seam (0202).
 - Portrait shots of each main port, once.
+- Abbey Head club (0227): lit windows at night, café awning and tables; no budget in v1.1.
+- The Tern (0228) and the Sailing Club chart (one course per panel, 0226): look at them again in the v1.2 look.
 - Pirates, warships and the "cozy fight" rules are parked for a later extension sea (notes in [whole-game/README.md](../reviews/art-direction/whole-game/README.md)).
 
 ## Follow-ups from the Abbey Head club (#312)
