@@ -419,7 +419,7 @@ export function unpackSave(
   if (version > saveVersion) return { ok: false, problem: 'newer' };
   const fingerprint = r.uint();
   // A code from before the far goods (0146), a sea's empty island to found (0157) or the Tern
-  // (0227) reads with the lists it was written with.
+  // (0228) reads with the lists it was written with.
   const layout = readableLayouts(map).find(
     (l) =>
       fingerprint === layoutFingerprint(map, l) ||

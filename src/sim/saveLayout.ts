@@ -17,7 +17,7 @@ export interface CodeLayout {
  */
 const GOODS_BEFORE_FAR: readonly GoodId[] = GOODS.filter((g) => !isFar(g));
 
-/** The ship list before the Terns (decision 0227) were added at its end. */
+/** The ship list before the Terns (decision 0228) were added at its end. */
 const SHIPS_BEFORE_TERN: readonly string[] = SHIP_IDS.filter((id) => !id.startsWith('tern'));
 
 /**

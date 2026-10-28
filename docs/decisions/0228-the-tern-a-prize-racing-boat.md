@@ -1,4 +1,4 @@
-# 0227. The Tern, a prize racing boat
+# 0228. The Tern, a prize racing boat
 
 **Status:** Proposed (2026-10-28), pending Guillaume's OK of the look.
 

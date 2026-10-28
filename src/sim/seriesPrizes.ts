@@ -4,7 +4,7 @@ import { stockLevels } from './upgrades';
 import type { TradeState } from './trade';
 
 /**
- * A series' prize ship (decision 0227): the moment a series is won, its `prize` class is in the
+ * A series' prize ship (decision 0228): the moment a series is won, its `prize` class is in the
  * captain's fleet at stock levels. She is not sailed until the captain switches at the home port.
  * Safe to call again: a ship already owned is left alone. Returns the classes given just now.
  */

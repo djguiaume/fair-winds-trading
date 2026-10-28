@@ -8,7 +8,7 @@ import { shipOffer } from '../src/sim/shipyards';
 import { grantSeriesPrizes } from '../src/sim/seriesPrizes';
 import { createWorld } from '../src/sim/world';
 
-// The Tern (decision 0227): a racer given for a series, never sold at a yard.
+// The Tern (decision 0228): a racer given for a series, never sold at a yard.
 const trial = { id: 'trial', name: 'Trial', pennant: 'tern', prize: 'tern' };
 const original = [...REGATTA.series];
 afterEach(() => (REGATTA.series = original));

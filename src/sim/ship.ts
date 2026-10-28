@@ -23,7 +23,7 @@ export interface ShipClass {
   standing: number;
   /**
    * A regatta series (`regatta.json`) that must be won before its yard sells this class; until
-   * then it is not offered at all (decision 0227).
+   * then it is not offered at all (decision 0228).
    */
   series?: string;
   /** Half-width of the no-go zone in degrees: closer than this to the wind, the sails cannot draw. */
