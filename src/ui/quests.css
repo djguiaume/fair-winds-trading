@@ -336,13 +336,13 @@ dialog.quest-card.is-arrival::backdrop {
   grid-template-columns: auto 1fr;
   gap: 4px 18px;
   padding: 12px 16px;
-  border: 1.5px solid var(--brass-line);
-  border-radius: 12px;
-  background: rgba(18, 50, 70, 0.55);
+  border: 1.5px solid var(--paper-edge);
+  border-radius: 6px;
+  background: var(--navy);
+  box-shadow: 2px 3px 0 rgba(58, 42, 29, 0.35);
 }
 .quay-person.is-new {
   border-color: var(--brass);
-  box-shadow: 0 0 0 3px rgba(232, 196, 106, 0.12);
 }
 .quay-face svg {
   display: block;
