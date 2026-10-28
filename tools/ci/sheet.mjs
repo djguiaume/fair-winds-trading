@@ -5,8 +5,8 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { chromium } from 'playwright';
-import { ROOT } from '../fw/lib.mjs';
-import { chromiumPath, planShots, takeShots } from '../fw/shots.mjs';
+import { ROOT, chromiumPath } from '../fw/lib.mjs';
+import { planShots, takeShots } from '../fw/shots.mjs';
 
 const SHEET_WIDTH = 1280;
 const CELL_HEIGHT = 400;

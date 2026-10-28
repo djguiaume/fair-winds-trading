@@ -54,4 +54,3 @@ export function shotPath(shot: Shot): string;
 export function seedStorage(shot: Shot): Record<string, string>;
 export function takeShots(shots: Shot[], out: string): Promise<string[]>;
 export function run(args: Record<string, unknown>): Promise<number>;
-export function chromiumPath(): string | undefined;

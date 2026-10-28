@@ -3,9 +3,9 @@
 // script per review. It starts Vite itself, opens the game with `?debug`, gets past the menu, the
 // level card, the tutorial offer and the harbour, sets the scene through `window.fwt` (the boat's
 // `place`, `dock`, the view, the chart) and shoots each size.
-import { readFileSync, mkdirSync, existsSync } from 'node:fs';
+import { readFileSync, mkdirSync } from 'node:fs';
 import { resolve, basename, extname, join } from 'node:path';
-import { ROOT, startVite } from './lib.mjs';
+import { ROOT, chromiumPath, startVite } from './lib.mjs';
 
 /**
  * The three sizes every look review shows (desktop first, must look good in portrait), and `tv`:
@@ -106,9 +106,6 @@ Output
   --json                        print the files as JSON
 `;
 
-const SANDBOX_CHROMIUM = '/opt/pw-browsers/chromium';
-// The cloud sandbox ships Chromium there; elsewhere (CI) Playwright's own download is used.
-export const chromiumPath = () => (existsSync(SANDBOX_CHROMIUM) ? SANDBOX_CHROMIUM : undefined);
 const PAGES = 'https://djguiaume.github.io/fair-winds-trading/';
 
 // The game's own sea is the grown one (decision 0198): `phase4` (or `game`) needs no `?map=`.
