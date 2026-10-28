@@ -7,8 +7,7 @@ import {
   type PropRecipe,
   type RecipePart,
 } from '../../data/props';
-import trafficBoats from '../../data/traffic-boats.json';
-import { hullGeometry } from './refinedBoat';
+import { CODE_PARTS, boatHull } from './propCodeParts';
 import { glowing, paint, paintFaces, triangleCount, windowPanes } from './geometry';
 
 /**
@@ -156,76 +155,6 @@ export function compileExpression(src: string): Expr {
 const num = (v: Num | undefined, s: Scope, fallback = 0) =>
   v === undefined ? fallback : typeof v === 'number' ? v : compileExpression(v)(s);
 
-// ---------------------------------------------------------------- code parts
-
-/**
- * Shapes written in code, by name (the ship parts pattern, decision 0109). Each returns an
- * unpainted geometry; the recipe part colours and places it.
- */
-export const CODE_PARTS: Record<string, (scope: Scope) => THREE.BufferGeometry> = {
-  /** The planked hull on a working slipway: a lofted, open curved shell. */
-  'slip-hull': () => {
-    const vertices: number[] = [];
-    const point = (section: number, arc: number) => {
-      const t = section / 8,
-        a = -Math.PI / 2 + (arc / 6) * Math.PI;
-      const width = 0.12 + Math.pow(Math.sin(t * Math.PI), 0.65) * 1.05;
-      return [Math.sin(a) * width, 1.25 - Math.cos(a) * width, -2.3 + t * 4.6];
-    };
-    for (let section = 0; section < 8; section++)
-      for (let arc = 0; arc < 6; arc++) {
-        const a = point(section, arc),
-          b = point(section + 1, arc),
-          c = point(section + 1, arc + 1),
-          d = point(section, arc + 1);
-        vertices.push(...a, ...b, ...c, ...a, ...c, ...d, ...c, ...b, ...a, ...d, ...c, ...a);
-      }
-    const hull = new THREE.BufferGeometry();
-    hull.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    hull.computeVertexNormals();
-    return hull;
-  },
-  /**
-   * A fore-and-aft sail (decision 0215's other boats): flat, in the boat's centre plane, its luff
-   * up the mast from the origin and its foot aft along −Z. `foot` and `luff` long, the head
-   * `head` long, peaked up `peak` at the leech: a gaff or lug sail, or a jib-headed one at 0.
-   * `cells` panels each way, filled out to one side by `belly`, like the player's cloth.
-   */
-  sail: (s) => {
-    const foot = s.foot ?? 2;
-    const luff = s.luff ?? 2;
-    const head = s.head ?? 0;
-    const peak = s.peak ?? 0;
-    const belly = s.belly ?? 0;
-    const cells = s.cells ?? 1;
-    // Bottom edge tack to clew, top edge luff head to leech peak, bellied out to one side.
-    const at = (u: number, v: number) => [
-      belly * Math.sin(Math.PI * u) * Math.sin(Math.PI * v),
-      v * (luff + peak * u),
-      -u * (foot * (1 - v) + Math.max(head, 0.01) * v),
-    ];
-    const v: number[] = [];
-    for (let j = 0; j < cells; j++)
-      for (let i = 0; i < cells; i++) {
-        const a = at(i / cells, j / cells);
-        const b = at((i + 1) / cells, j / cells);
-        const c = at((i + 1) / cells, (j + 1) / cells);
-        const d = at(i / cells, (j + 1) / cells);
-        v.push(...a, ...b, ...c, ...a, ...c, ...d);
-      }
-    const sail = new THREE.BufferGeometry();
-    sail.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
-    sail.computeVertexNormals();
-    return sail;
-  },
-};
-
-/** Boat hulls by id: length, beam, depth and the sections `hullGeometry` lofts. */
-const HULLS = trafficBoats.hulls as Record<
-  string,
-  Omit<Parameters<typeof hullGeometry>[1], 'hull' | 'band' | 'rail'>
->;
-
 // ---------------------------------------------------------------- shapes
 
 type Shape = (a: number[], part: RecipePart, s: Scope) => THREE.BufferGeometry;
@@ -263,6 +192,7 @@ const SHAPES: Record<string, Shape> = {
   plane: ([w, h]) => new THREE.PlaneGeometry(w, h),
 };
 /** The shape keys a part may have, for the checks. */
+export { CODE_PARTS };
 export const SHAPE_KEYS = [...Object.keys(SHAPES), 'windows', 'use', 'part', 'parts', 'hull'];
 
 // ---------------------------------------------------------------- building
@@ -381,14 +311,11 @@ export function prepareProp(id: string, args: PropBuildArgs): () => Parts {
         return;
       }
       if (p.hull) {
-        const hull = HULLS[p.hull];
-        if (!hull) throw new Error(`Unknown boat hull "${p.hull}"`);
-        const g = hullGeometry(2, {
-          ...hull,
-          hull: colorOf(p.color, style, s),
-          band: colorOf(p.band ?? p.color, style, s),
-          rail: colorOf(p.band ?? p.color, style, s),
-        });
+        const g = boatHull(
+          p.hull,
+          colorOf(p.color, style, s),
+          colorOf(p.band ?? p.color, style, s),
+        );
         transform(g, p, s);
         out.push(g);
         return;
