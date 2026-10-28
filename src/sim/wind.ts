@@ -2,17 +2,10 @@ import { TUNING } from '../data/tuning';
 import { islandCoasts } from './islandLayout';
 import { coastDistance } from './coast';
 import type { IslandDef, TerrainDef } from './map';
-import { DEG, TAU, bearingVector, clamp, wrapAngle, wrapPositive } from './math';
+import { DEG, TAU, bearingVector, clamp, wrapPositive } from './math';
 import { createRng } from './rng';
 import { SpatialGrid } from './spatial';
-import {
-  DEFAULT_SEA_RADIUS,
-  type Storm,
-  type StormConfig,
-  stormStrength,
-  stormWindFrom,
-  stormsAt,
-} from './storms';
+import { DEFAULT_SEA_RADIUS, type Storm, type StormConfig, blowStorm, stormsAt } from './storms';
 import {
   NO_ZONE,
   type ZoneEffect,
@@ -251,6 +244,8 @@ export function regionAt(
   };
 }
 
+const stormScratch: Wind = { from: 0, speedKn: 0 };
+
 let stormless = new WeakMap<WeatherConfig, WeatherConfig>();
 
 /** The same weather without moving storms, for players who turn them off (decision 0067). Cached
@@ -371,14 +366,11 @@ export function windAt(
     if (born.length) storms = [...storms, ...born];
   }
   let storm = 0;
-  for (const s of storms) {
-    const k = stormStrength(s, pos.x, pos.y);
-    if (k <= 0) continue;
-    const turn = wrapAngle(stormWindFrom(s, pos.x, pos.y) - from);
-    from += turn * Math.min(1, k * 1.1);
-    speedKn *= 1 + TUNING.weather.storms.windGain * k;
-    storm = Math.max(storm, k);
-  }
+  stormScratch.from = from;
+  stormScratch.speedKn = speedKn;
+  for (const s of storms) storm = Math.max(storm, blowStorm(s, pos.x, pos.y, stormScratch));
+  from = stormScratch.from;
+  speedKn = stormScratch.speedKn;
   if (out) {
     out.kind = weather.kind;
     out.rain = Math.max(weather.rain, storm);

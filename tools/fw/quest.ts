@@ -26,9 +26,10 @@ import {
 } from '../../src/editor/quest/doc';
 import { type MapDef, SEA_MARK_TYPES, type SeaMarkType } from '../../src/sim/map';
 import { clearAt } from '../../src/sim/mapChecks';
-import type { Condition } from '../../src/sim/questLibrary';
 import { QUESTS, type QuestDef } from '../../src/sim/quests';
 import { racePars } from '../../src/sim/raceBot';
+import { raceOverlay } from './raceOverlay';
+import { STORM_HELP, stormEdit } from './raceStorm';
 import {
   flagsText,
   isFlagShape,
@@ -40,7 +41,7 @@ import {
   setSeries,
   shippedRegattaDoc,
 } from '../../src/editor/regatta/doc';
-import { MEDALS, medalTimes, seriesById } from '../../src/sim/regatta';
+import { MEDALS, medalTimes } from '../../src/sim/regatta';
 import { DIFFICULTIES } from '../../src/sim/difficulty';
 import { SHIP_IDS } from '../../src/sim/ship';
 
@@ -79,6 +80,7 @@ Races of the Saltmere Regatta (decision 0217; also \`npm run race -- …\`):
   race <id> --finish "x,y x,y"  the finish line
   race <id> --add --at x,y [--after N]   a mark (numbered in order), after mark N
   race <id> --mark N --at x,y | --remove move or remove mark N (1 = first)
+${STORM_HELP}
   race rules                    regatta.json and flags.json: the rules, Kestrel, series, flags
   race set <path> <value>       a value of regatta.json, e.g. set medals.silver 1.2,
                                 set rival.hull "#f4f1e8", set rival.paceRange 0.45,1.4
@@ -424,7 +426,7 @@ function race(ids: string[], args: Args, doc: QuestDoc, map: MapDef): number {
           );
         for (const r of lost)
           console.log(
-            `  ${r.ship} on ${r.difficulty}: ${r.sec === null ? 'did not finish' : `gave up ${r.stuck} mark(s)`} (route points given up: ${r.gaveUp.join(', ') || 'none'}; 0 the start, last the finish; legs at ${r.legs.join(', ')} s)`,
+            `  ${r.ship} on ${r.difficulty}${r.storms ? '' : ' (storms off)'}: ${r.sec === null ? 'did not finish' : `gave up ${r.stuck} mark(s)`} (route points given up: ${r.gaveUp.join(', ') || 'none'}; 0 the start, last the finish; legs at ${r.legs.join(', ')} s)`,
           );
       }
       if (args.write) {
@@ -456,6 +458,13 @@ function race(ids: string[], args: Args, doc: QuestDoc, map: MapDef): number {
       setRaceLine(q, which, line[0]!, line[1]!);
       said += `${q.id}: ${which} line ${line.map((p) => `${p.x},${p.y}`).join(' to ')}. `;
     }
+  } else if (args.storm !== undefined) {
+    const result = stormEdit(q, args);
+    if ('error' in result) {
+      console.log(result.error);
+      return 1;
+    }
+    said = result.said;
   } else if (args.add) {
     const at = xy(args.at);
     if (!at) {
@@ -502,6 +511,11 @@ function race(ids: string[], args: Args, doc: QuestDoc, map: MapDef): number {
     console.log(`  mark ${i + 1} ${m.x},${m.y}`),
   );
   console.log(`  finish ${line(goal.finish)}`);
+  (q.race!.storms ?? []).forEach((st, i) =>
+    console.log(
+      `  storm ${i + 1} ${st.x},${st.y}${st.radius ? `  radius ${st.radius}` : ''}${st.strength ? `  strength ${st.strength}` : ''}${st.driftSpeed ? `  drifts ${st.driftSpeed}/s toward ${st.driftDeg}°` : ''}`,
+    ),
+  );
   console.log(
     `  wind   ${q.wind ? `${q.wind.speedKn} kn from ${q.wind.fromDeg ?? 'the map'}°` : "the sea's"}`,
   );
@@ -609,51 +623,6 @@ function regattaFiles(ids: string[], args: Args): number {
   if (!args.dry) for (const [path, text] of changed) writeFileSync(resolve(path), text);
   console.log(
     `${did} · ${changed.length ? changed.map(([p]) => p).join(', ') : 'nothing changed'}${args.dry ? ' (dry)' : ''} · checks ok`,
-  );
-  return 0;
-}
-
-/**
- * A race's course as a `npm run chart` overlay (decision 0217): the line from the start round
- * each mark to the finish, the marks numbered, the lines named; prints the view that frames it.
- */
-function raceOverlay(q: QuestDef, goal: Condition, file: string): number {
-  type P = { x: number; y: number };
-  const start = goal.start as P[];
-  const finish = goal.finish as P[];
-  const marks = goal.marks as P[];
-  const mid = (g: P[]): [number, number] => [(g[0]!.x + g[1]!.x) / 2, (g[0]!.y + g[1]!.y) / 2];
-  const same = JSON.stringify(start) === JSON.stringify(finish);
-  const overlay = {
-    title: `${q.name} · ${seriesById(q.race!.series)?.name ?? q.race!.series}`,
-    legend: [{ style: 'route', text: 'the course, mark to mark (boats sail round land)' }],
-    lines: [
-      {
-        points: [mid(start), ...marks.map((m) => [m.x, m.y]), mid(finish)],
-        style: 'route',
-        label: q.name,
-        arrow: true,
-      },
-      {
-        points: start.map((p) => [p.x, p.y]),
-        style: 'short',
-        label: same ? 'start and finish' : 'start',
-      },
-      ...(same ? [] : [{ points: finish.map((p) => [p.x, p.y]), style: 'long', label: 'finish' }]),
-    ],
-    labels: marks.map((m, i) => ({ at: [m.x, m.y + 14], text: `mark ${i + 1}`, style: 'note' })),
-  };
-  writeFileSync(file, `${JSON.stringify(overlay, null, 2)}\n`);
-  const all = [...start, ...finish, ...marks];
-  const pad = 90;
-  const view = [
-    Math.min(...all.map((p) => p.x)) - pad,
-    Math.min(...all.map((p) => p.y)) - pad,
-    Math.max(...all.map((p) => p.x)) + pad,
-    Math.max(...all.map((p) => p.y)) + pad,
-  ].map(Math.round);
-  console.log(
-    `${file}: ${q.id}'s course · npm run chart -- --overlay ${file} --view ${view.join(',')}`,
   );
   return 0;
 }

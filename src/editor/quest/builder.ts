@@ -12,7 +12,6 @@ import {
   type QuestStep,
 } from '../../sim/quests';
 import { CHARACTERS, MOODS, type Mood, portraitSvg } from '../../ui/portraits';
-import { MEDALS, REGATTA } from '../../sim/regatta';
 import { seaMarkShape } from '../../ui/chartMarks';
 import { questCardBody } from '../../ui/questCard';
 import type { QuestCardModel } from '../../ui/questView';
@@ -36,7 +35,6 @@ import {
   fillWords,
   getAt,
   isQuestDoc,
-  newCondition,
   newQuest,
   newStep,
   playUrl,
@@ -70,6 +68,9 @@ import {
   jsonField,
   textInput,
 } from './form';
+import { addRaceStorm, moveRaceStorm, shapeRaceStorm } from './raceStormDoc';
+import { raceRows } from './raceRows';
+import { stormShapes } from './raceStormView';
 import '../../ui/quests.css';
 import './quest.css';
 import gamePage from '../../../index.html?raw';
@@ -115,7 +116,7 @@ const shippedDoc = (): QuestDoc => ({
 
 type Tab = 'goal' | 'card' | 'sea' | 'reward';
 type Centre = 'chart' | 'card' | 'story';
-type Tool = 'select' | 'add' | 'compass' | 'move' | 'buoy';
+type Tool = 'select' | 'add' | 'compass' | 'move' | 'buoy' | 'storm';
 
 let host: QuestHost;
 let open = false;
@@ -798,7 +799,13 @@ function questPanel(q: QuestDef): HTMLElement[] {
       ),
     ),
   );
-  out.push(...raceRows(q, ctx, edit));
+  out.push(
+    ...raceRows(q, ctx, edit, characterOptions(), () => {
+      centre = 'chart';
+      setTool('storm');
+      render();
+    }),
+  );
   out.push(...questSeaRows(q));
   out.push(conditionForm(q.start, ctx, false, (c) => (q.start = c), 'Starts when'));
   out.push(h('h2', {}, 'Quest cargo'));
@@ -1306,6 +1313,7 @@ const HINTS: Record<Tool, string> = {
   compass: 'Click the sea to put the step’s compass point there',
   move: 'Click the sea where the step takes the boat when it begins',
   buoy: 'Click the sea to add a buoy the quest shows while it runs',
+  storm: 'Click the sea to add a storm the race always has (drag it or its gold handle after)',
 };
 const TOOLS: [Tool, string, string][] = [
   ['select', '✥', 'Select and drag'],
@@ -1313,6 +1321,7 @@ const TOOLS: [Tool, string, string][] = [
   ['compass', '✶', 'Put the compass point'],
   ['move', '⛵', 'Where the step takes the boat'],
   ['buoy', '◍', 'Add a quest buoy'],
+  ['storm', '🌀', 'Add a race storm'],
 ];
 
 function setTool(next: Tool) {
@@ -1402,6 +1411,11 @@ function drawChartView() {
     add(tag, attrs);
     if (m.name) label(m.name, m.x, m.y + 8 * px, 'num', 13);
   }
+  // A race's own storms (decision 0225), dragged like a place.
+  for (const { tag, attrs, label: text } of stormShapes(q, px)) {
+    add(tag, attrs);
+    if (text) label(text.text, text.x, text.y, 'tip', 12);
+  }
   // Where the step takes the boat, bow pointing her heading.
   if (s?.moveTo) {
     const { x, y } = s.moveTo;
@@ -1472,6 +1486,8 @@ function star(x: number, y: number, r: number): string {
 type Drag =
   | { kind: 'place'; i: number; dx: number; dy: number }
   | { kind: 'radius'; i: number }
+  | { kind: 'storm'; i: number; dx: number; dy: number }
+  | { kind: 'stormSize'; i: number }
   | { kind: 'pan'; sx: number; sy: number; cx: number; cy: number };
 let drag: Drag | null = null;
 
@@ -1516,6 +1532,19 @@ function setupChart() {
       edit(() => addQuestMark(q, p));
       return;
     }
+    if (q?.race && tool === 'storm') {
+      edit(() => addRaceStorm(q, p));
+      return;
+    }
+    const storm = q?.race?.storms?.[Number(n)];
+    if (storm && (kind === 'qs' || kind === 'qz')) {
+      history.record(doc);
+      drag =
+        kind === 'qs'
+          ? { kind: 'storm', i: Number(n), dx: storm.x - p.x, dy: storm.y - p.y }
+          : { kind: 'stormSize', i: Number(n) };
+      return;
+    }
     if (s && tool !== 'select' && !kind.startsWith('q')) {
       if (tool === 'compass') edit(() => (s.compass = { x: round1(p.x), y: round1(p.y) }));
       else if (tool === 'move') edit(() => setStepMove(s, p));
@@ -1545,6 +1574,16 @@ function setupChart() {
     if (drag.kind === 'pan') {
       view.cx = drag.cx - (e.clientX - drag.sx) * view.upp;
       view.cy = drag.cy + (e.clientY - drag.sy) * view.upp;
+      drawChartView();
+      return;
+    }
+    if (drag.kind === 'storm' || drag.kind === 'stormSize') {
+      const p = toMap(e);
+      const q = quest()!;
+      const at = q.race?.storms?.[drag.i];
+      if (!at) return;
+      if (drag.kind === 'storm') moveRaceStorm(q, drag.i, { x: p.x + drag.dx, y: p.y + drag.dy });
+      else shapeRaceStorm(q, drag.i, { radius: Math.hypot(p.x - at.x, p.y - at.y) });
       drawChartView();
       return;
     }
@@ -1860,87 +1899,4 @@ function drawStory() {
       ? [h('h3', { class: 'qb-legend' }, 'Standing orders: they ask again (0214)'), standing]
       : []),
   );
-}
-
-/**
- * A race of the regatta (decision 0217): its series, the gold of each medal the first time, who
- * starts it, and its pars by ship class and level. The pars come from the balance bots
- * (`npm run race -- <id> --pars --write`); the line and the marks are its one step's `raced` goal,
- * dragged on the chart like any place.
- */
-function raceRows(q: QuestDef, ctx: FormContext, edit: (fn: () => void) => void): HTMLElement[] {
-  const out: HTMLElement[] = [
-    row(
-      'Race',
-      checkbox(
-        !!q.race,
-        (on) =>
-          edit(() => {
-            if (!on) return delete q.race;
-            q.race = {
-              series: REGATTA.series[0]!.id,
-              gold: { bronze: 60, silver: 120, gold: 200 },
-              pars: {},
-            };
-            q.offer = true;
-            delete q.reward;
-            const s = ctx.map.start;
-            q.steps = [
-              {
-                id: 'race',
-                goal: newCondition('raced', ctx.map, []),
-                moveTo: { x: round1(s.x), y: round1(s.y), headingDeg: 0 },
-              },
-            ];
-          }),
-        'a race of the regatta: one raced step, medals, Race again (0217)',
-      ),
-    ),
-  ];
-  const race = q.race;
-  if (!race) return out;
-  out.push(
-    row(
-      'Series',
-      select(
-        REGATTA.series.map((s) => [s.id, s.name] as [string, string]),
-        race.series,
-        (v) => edit(() => (race.series = v)),
-      ),
-    ),
-    row(
-      'Medal gold',
-      ...MEDALS.map((m) =>
-        h(
-          'span',
-          { class: 'qb-medal' },
-          `${m} `,
-          numberInput(
-            race.gold[m],
-            (n) => n !== undefined && edit(() => (race.gold[m] = Math.max(0, Math.round(n)))),
-          ),
-        ),
-      ),
-    ),
-    row(
-      'Starter',
-      select(
-        characterOptions(),
-        q.starter,
-        (v) => edit(() => (v ? (q.starter = v) : delete q.starter)),
-        '—',
-      ),
-    ),
-  );
-  const ships = Object.keys(race.pars);
-  const pars = ships.length
-    ? ships
-        .map(
-          (ship) =>
-            `${ship} ${['fair', 'captain', 'salt'].map((l) => clock(race.pars[ship]![l] ?? 0)).join(' / ')}`,
-        )
-        .join(' · ')
-    : 'none yet';
-  out.push(row('Pars', h('small', {}, `${pars} — npm run race -- ${q.id} --pars --write`)));
-  return out;
 }

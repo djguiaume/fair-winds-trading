@@ -3,6 +3,7 @@ import type { MapDef } from './map';
 import { landOut, landWith } from './questLand';
 import type { QuestDef } from './quests';
 import { courseOf } from './regatta';
+import { syncRaceStorms } from './raceStorms';
 import { makeRacer } from './rival';
 import { SHIP_CLASSES, SHIP_IDS, SLOOP } from './ship';
 import { heldWind } from './stepEffects';
@@ -19,6 +20,8 @@ import { createWorld } from './world';
 export interface BotRun {
   ship: string;
   difficulty: Difficulty;
+  /** Whether the race's storms blew (a race with storms is sailed both ways). */
+  storms: boolean;
   /** Seconds from the horn to the finish, or null when she did not finish. */
   sec: number | null;
   /** Marks she gave up because she could not get there. */
@@ -32,18 +35,23 @@ export interface BotRun {
 /** At most this long round any course before the bot is called lost. */
 const GIVE_UP_SEC = 3600;
 
-/** One bot round a race: a ship class on a level. */
+/**
+ * One bot round a race: a ship class on a level, with the race's own storms (decision 0225) or,
+ * with `storms` false, as it runs for a captain who has Settings › Storms off.
+ */
 export function sailRace(
   map: MapDef,
   quest: QuestDef,
   ship: string,
   difficulty: Difficulty,
+  storms = true,
 ): BotRun {
   const step = quest.steps[0];
   const course = courseOf(step?.goal);
-  if (!course) return { ship, difficulty, sec: null, stuck: 0, legs: [], gaveUp: [] };
+  if (!course) return { ship, difficulty, storms, sec: null, stuck: 0, legs: [], gaveUp: [] };
   const world = createWorld(map, SLOOP);
   world.trade.difficulty = difficulty;
+  world.storms = storms;
   world.trade.captain.activeShip = ship;
   // The sea as it stands late in the story: every quest's land in place.
   const tags = [...map.islands, ...(map.terrain ?? [])].flatMap((f) =>
@@ -67,6 +75,7 @@ export function sailRace(
   let leg = 0;
   let stuck = 0;
   while (world.time < end && bot.racer!.finishedAt === null) {
+    syncRaceStorms(world, quest.race?.storms, world.time - bot.racer!.gunAt!);
     sailAlone(world, bot, 0.5, 0.1);
     const now = bot.racer!.finishedAt !== null ? bot.route.length : bot.leg;
     while (leg < (bot.racer!.finishedAt !== null ? legs.length + 1 : now)) {
@@ -82,6 +91,7 @@ export function sailRace(
   return {
     ship,
     difficulty,
+    storms,
     sec: done === null ? null : Math.round((done - bot.racer!.gunAt!) * 10) / 10,
     stuck: bot.stuck,
     legs,
@@ -91,7 +101,7 @@ export function sailRace(
 
 /**
  * The pars of a race (decision 0217): every ship class on every level, rounded up to whole
- * seconds. A class whose bot does not get round (a big hull in a narrow gap: the bots' grid is
+ * seconds, the slower with and without the race's storms (0225). A class whose bot does not get round (a big hull in a narrow gap: the bots' grid is
  * coarser than the captain's helm) gets a par worked out from the others by speed: the slowest of
  * their times × their speed over hers, listed in `estimated`.
  */
@@ -102,12 +112,15 @@ export function racePars(
 ): { pars: Record<string, Record<string, number>>; runs: BotRun[]; estimated: string[] } {
   const pars: Record<string, Record<string, number>> = {};
   const runs: BotRun[] = [];
+  // A race with storms keeps one set of pars that holds with them and without (decision 0225): the
+  // slower of the two, so no captain is held to a time the other setting made out of reach.
+  const ways = quest.race?.storms?.length ? [true, false] : [true];
   for (const ship of ships)
     for (const level of DIFFICULTIES) {
-      const run = sailRace(map, quest, ship, level);
-      runs.push(run);
-      if (run.sec === null || run.stuck) continue;
-      (pars[ship] ??= {})[level] = Math.ceil(run.sec);
+      const sailed = ways.map((storms) => sailRace(map, quest, ship, level, storms));
+      runs.push(...sailed);
+      if (sailed.some((run) => run.sec === null || run.stuck)) continue;
+      (pars[ship] ??= {})[level] = Math.ceil(Math.max(...sailed.map((run) => run.sec!)));
     }
   const estimated: string[] = [];
   for (const ship of ships)
