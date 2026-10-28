@@ -45,7 +45,7 @@ import { TrafficView } from './traffic';
 import type { SeaMarkDef } from '../sim/map';
 import { QuestMarkers } from './questMarkers';
 import type { StepMarker } from '../ui/questView';
-import { daylightAt } from '../sim/daylight';
+import { daylightAt, shownDaylightAt } from '../sim/daylight';
 import { StormClouds } from './stormClouds';
 import { Volcanoes } from './volcanoes';
 import { stormRain } from '../sim/storms';
@@ -63,9 +63,6 @@ import {
   harbourPictureKey,
   harbourShot,
 } from './harbourView';
-
-/** Game time whose light is kept when day and night is off: early afternoon. */
-const ALWAYS_DAY = 200;
 
 /** Sim (x east, y north) → three.js scene (x, 0, -y). */
 function toScene(x: number, y: number, out = new THREE.Vector3()) {
@@ -573,7 +570,7 @@ export class GameView {
 
     const dist = this.rig.place(dt, this.width / this.height, pos, dir, boat.speedKn);
     const fog = this.scene.fog as THREE.Fog;
-    const day = daylightAt(this.dayNight ? time : ALWAYS_DAY);
+    const day = shownDaylightAt(this.dayNight, time);
     setNightPaper(day.night);
     // Fog banks and ash clouds (decision 0169) are looked up where the camera looks, wind zones
     // switch or not: only their own Settings switch clears them.
@@ -771,7 +768,7 @@ export class GameView {
    */
   harbourPicture(
     portId: string,
-    light: HarbourLight = harbourLight(daylightAt(this.dayNight ? this.world.time : ALWAYS_DAY)),
+    light: HarbourLight = harbourLight(shownDaylightAt(this.dayNight, this.world.time)),
   ): string | null {
     const look = `${this.townVersion}/${this.landVersion}/${this.level}`;
     // A town or the land changed: every picture is old. The screen may still be loading one, so
