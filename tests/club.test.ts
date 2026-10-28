@@ -20,6 +20,7 @@ import { raceBookCards } from '../src/ui/regattaView';
 const CLUB = QUESTS.filter((q) => q.race?.series === 'regatta-club');
 const HOME = ['race-mill', 'race-light', 'race-abbey'];
 const SQUALL = ['race-coral-squall', 'race-snowberry-squall', 'race-sandwick-squall'];
+const LONG = ['race-meridian', 'race-great-reach'];
 
 function bookWith(done: string[]) {
   setLanguage('en');
@@ -60,13 +61,17 @@ describe('best times per ship class', () => {
 });
 
 describe('the Sailing Club races', () => {
-  it('are six: three in home waters, three with one fixed squall', () => {
-    expect(CLUB.map((q) => q.id).sort()).toEqual([...HOME, ...SQUALL].sort());
+  it('are eight: three in home waters, three with one fixed squall, two long one-way crossings', () => {
+    expect(CLUB.map((q) => q.id).sort()).toEqual([...HOME, ...SQUALL, ...LONG].sort());
     for (const q of CLUB) {
       const gold = q.race!.gold;
       expect(q.race!.storms?.length ?? 0, q.id).toBe(SQUALL.includes(q.id) ? 1 : 0);
       expect([gold.bronze, gold.silver, gold.gold], q.id).toEqual(
-        SQUALL.includes(q.id) ? [140, 280, 450] : [80, 160, 260],
+        LONG.includes(q.id)
+          ? [200, 400, 650]
+          : SQUALL.includes(q.id)
+            ? [140, 280, 450]
+            : [80, 160, 260],
       );
     }
   });
