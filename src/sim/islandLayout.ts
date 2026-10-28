@@ -18,6 +18,8 @@ export interface LandSurface {
   /** Ramp width outward from the sloped edges (decision 0096 §4), and which edges slope. */
   slope?: number;
   slopeEdges?: [number, number][];
+  /** How much the new look smooths it (issue #269): 0 stays faceted; left out, 1. */
+  smooth?: number;
 }
 /** A ramp at a level (decision 0123), with the length along it to each point. */
 export interface LayoutRamp {
@@ -62,6 +64,7 @@ function createIslandLayout(design: IslandDesign, town: number): IslandLayout {
         crater: g.crater,
         slope: g.slope,
         slopeEdges: g.slopeEdges,
+        smooth: g.smooth,
       })),
     ramps: (design.ramps ?? [])
       .filter((r) => atLevel(r, level) && r.points.length >= 2)

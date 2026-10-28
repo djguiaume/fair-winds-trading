@@ -62,7 +62,7 @@ import {
 import type { IslandCheckKit } from '../../sim/islandChecks';
 import { riverParts } from './rivers';
 import { groundSpecks, lavaCracks } from './lavaCracks';
-import { designedGround, lakeRim, outlineShape } from './ground';
+import { designedGround, facetedGround, lakeRim, outlineShape } from './ground';
 import { type Stand, extent, propParts, townProps } from './townProps';
 
 /**
@@ -509,7 +509,10 @@ export function designedTownParts(
   const stone = design.style === 'stone';
   // Grounds as data (palette.json › grounds): the style swaps the file's names for its own.
   const ground = (material: string) => groundColors(material, design.style);
-  const out: Parts = stand ? [] : designedGround(layout, design.style, R);
+  // The new look draws the rolling ground apart; only its faceted shapes are built here.
+  const out: Parts = stand
+    ? facetedGround(layout, design.style, R)
+    : designedGround(layout, design.style, R);
   const pathColor = styleColor('path', design.style) as string;
   for (const lane of design.lanes) {
     if (lane.kind === 'stairs') stairs(out, lane, R);
@@ -558,8 +561,8 @@ export function designedTownParts(
     for (const g of out.slice(lakeStart)) g.userData.islandTerrain = true;
   }
   // Glowing cracks on lava fields and down a volcano's flanks (decision 0171).
-  out.push(...lavaCracks(layout, (m) => ground(m).glow, design.seed, R));
-  for (const g of groundSpecks(layout, (m) => ground(m).specks, design.seed, R)) {
+  out.push(...lavaCracks(layout, (m) => ground(m).glow, design.seed, R, stand));
+  for (const g of groundSpecks(layout, (m) => ground(m).specks, design.seed, R, stand)) {
     g.userData.islandTerrain = true;
     out.push(g);
   }

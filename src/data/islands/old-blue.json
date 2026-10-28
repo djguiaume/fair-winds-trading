@@ -34,7 +34,8 @@
       "height": 1.5,
       "material": "bergice",
       "shape": "peak",
-      "base": 0.06
+      "base": 0.06,
+      "smooth": 0
     },
     {
       "outline": [
@@ -52,7 +53,8 @@
       "height": 0.9,
       "material": "bergice",
       "shape": "peak",
-      "base": 1.5
+      "base": 1.5,
+      "smooth": 0
     }
   ],
   "lanes": [],

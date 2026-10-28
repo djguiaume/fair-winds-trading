@@ -41,6 +41,8 @@ export interface StyleLook {
   beachWidth?: number;
   /** Palette colours this style overrides for its props and paths (`path`, `pine`…). */
   colors?: Record<string, string | string[]>;
+  /** The new look's wet band where its shore meets the water (issue #269). */
+  wet?: string;
 }
 
 export const GROUNDS = (PALETTE as unknown as { grounds: Record<string, GroundLook> }).grounds;

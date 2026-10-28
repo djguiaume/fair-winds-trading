@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { TUNING } from '../../data/tuning';
-import { groundColors } from '../../data/grounds';
-import type { IslandDef, MapDef, TerrainDef } from '../../sim/map';
+import type { IslandDef, MapDef } from '../../sim/map';
 import { terrainSeed } from '../../sim/landmarks';
 import { atLevel, designOf, designQuestIds } from '../../data/islands';
 import { PROP_RECIPES } from '../../data/props';
@@ -17,32 +16,19 @@ import type { QualityLevel } from '../quality';
 import type { TerrainLook } from '../terrainLook';
 import { isGlowing, isMolten, mergeAll, vertexColorMaterial } from './geometry';
 import type { Crater, IslandModel, IslandsBuilder } from './types';
-import { type FieldColor, featureGround, fieldGround, iceField } from './ground';
-import { B2 } from './highlandPalette';
+import { featureGround, iceField } from './ground';
+import { type FieldPalette, designPalette, featurePalette, fieldGround } from './fieldGround';
 import { islandParts, shownLevel } from './islandParts';
 import { terrainProps } from './terrainProps';
 import { type Stand, fieldStand, standHeight } from './townProps';
 import type { TownLevel } from './towns';
 import type { Parts } from './props';
 
-/** The new look's ground colours of an island file (until the biome palettes of issue #269). */
-function designColor(style: string): FieldColor {
-  return (ground, steep) => {
-    const look = groundColors(ground === '' || ground === 'lake' ? 'sand' : ground, style);
-    return (steep ? look.side : look.top)[0]!;
-  };
-}
-
-/** The new look's ground colours of a terrain shape: the classic tiers' colours. */
-function featureColor(feature: TerrainDef): FieldColor {
-  const sand = feature.look?.color ?? B2.sand;
-  return (ground, steep) =>
-    steep ? B2.rock : ground === 'grass' ? B2.grass : ground === 'rock' ? B2.rock2 : sand;
-}
-
 /** Separate land batches keep camera and shadow culling local to each island. */
 export class HighlandIslands extends THREE.Group implements IslandModel {
   private readonly land = vertexColorMaterial();
+  /** The new look's rolling ground: smooth shaded (decision 0222). */
+  private readonly smoothLand = new THREE.MeshLambertMaterial({ vertexColors: true });
   private readonly glass = new THREE.MeshBasicMaterial({ vertexColors: true });
   /** Molten lava (decision 0171): glows like the windows, tinted orange by day. */
   private readonly lava = new THREE.MeshBasicMaterial({ vertexColors: true });
@@ -56,7 +42,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
   private questsDone: ReadonlySet<string> = new Set();
 
   /** The new look's height fields, by batch, to redraw their ground at another quality level. */
-  private readonly fields = new Map<THREE.Group, { field: Heightfield; color: FieldColor }>();
+  private readonly fields = new Map<THREE.Group, { field: Heightfield; palette: FieldPalette }>();
   private groundStep: number;
 
   constructor(
@@ -91,7 +77,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
           : [...(field ? [] : featureGround(feature)), ...terrainProps(feature, seed)];
       const group = this.batch(parts);
       group.name = `terrain:${feature.id}`;
-      if (field) this.addGround(group, field, featureColor(feature));
+      if (field) this.addGround(group, field, featurePalette(feature));
       this.add(group);
     }
   }
@@ -150,14 +136,18 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     this.findVents(island, port ? (level ?? 1) : 4, stand);
     const group = this.batch(parts);
     group.name = `island:${island.id}`;
-    if (field) this.addGround(group, field, designColor(design!.style));
+    if (field) this.addGround(group, field, designPalette(design!.style));
     return group;
   }
 
   /** The new look's ground of a batch, drawn from its height field at the quality's detail. */
-  private addGround(group: THREE.Group, field: Heightfield, color: FieldColor) {
-    this.fields.set(group, { field, color });
-    const mesh = this.mesh([fieldGround(fieldLod(field, this.groundStep), color)], this.land);
+  private addGround(group: THREE.Group, field: Heightfield, palette: FieldPalette) {
+    this.fields.set(group, { field, palette });
+    const geometry = fieldGround(fieldLod(field, this.groundStep), palette);
+    geometry.computeBoundingBox();
+    geometry.computeBoundingSphere();
+    const mesh = new THREE.Mesh(geometry, this.smoothLand);
+    mesh.castShadow = mesh.receiveShadow = this.shadows;
     mesh.name = 'ground';
     group.add(mesh);
   }
@@ -167,11 +157,11 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     const step = TUNING.terrain.groundStep[level];
     if (step === this.groundStep) return;
     this.groundStep = step;
-    for (const [group, { field, color }] of this.fields) {
+    for (const [group, { field, palette }] of this.fields) {
       const old = group.getObjectByName('ground') as THREE.Mesh;
       old.geometry.dispose();
       group.remove(old);
-      this.addGround(group, field, color);
+      this.addGround(group, field, palette);
     }
   }
 

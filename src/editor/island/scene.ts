@@ -56,12 +56,23 @@ export function mergeParts(parts: Parts): THREE.BufferGeometry {
   return merged;
 }
 
+/** The new look's rolling ground (`?look=v2`): smooth shaded, apart from the faceted island. */
+const groundMesh = () =>
+  new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshLambertMaterial({ vertexColors: true }));
+
+/** Shows a view's new-look ground, or none; the view owns the geometry and frees the old one. */
+function setGround(mesh: THREE.Mesh, geometry?: THREE.BufferGeometry) {
+  if (mesh.geometry !== geometry) mesh.geometry.dispose();
+  mesh.geometry = geometry ?? new THREE.BufferGeometry();
+}
+
 /** The island straight from above, drawn when something changes (not every frame). */
 export class TopView {
   readonly renderer: THREE.WebGLRenderer;
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 600);
   private readonly island = new THREE.Mesh(new THREE.BufferGeometry(), vertexColorMaterial());
+  private readonly ground = groundMesh();
   /** The prop being dragged, drawn apart until it is dropped and the island is rebuilt. */
   private readonly moving = new THREE.Group();
   private width = 1;
@@ -73,12 +84,13 @@ export class TopView {
     this.renderer.setClearColor(SEA);
     lights(this.scene);
     sea(this.scene);
-    this.scene.add(this.island, this.moving);
+    this.scene.add(this.island, this.ground, this.moving);
     this.camera.up.set(0, 0, -1);
   }
 
-  setGeometry(geometry: THREE.BufferGeometry) {
+  setGeometry(geometry: THREE.BufferGeometry, ground?: THREE.BufferGeometry) {
     this.island.geometry = geometry;
+    setGround(this.ground, ground);
   }
 
   /** Shows a prop's parts at a place (reference units), or nothing. */
@@ -129,6 +141,7 @@ export class Preview {
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(40, 1, 0.5, 800);
   private readonly island = new THREE.Mesh(new THREE.BufferGeometry(), vertexColorMaterial());
+  private readonly ground = groundMesh();
   /** Window glass and street lamps, tinted like the game's (dark by day, lit at night). */
   private readonly glass = new THREE.MeshBasicMaterial({ vertexColors: true });
   private readonly windows = new THREE.Mesh(new THREE.BufferGeometry(), this.glass);
@@ -150,7 +163,7 @@ export class Preview {
     this.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
     [this.sky, this.sun] = lights(this.scene);
     this.water = sea(this.scene);
-    this.scene.add(this.island, this.windows, this.lamps);
+    this.scene.add(this.island, this.ground, this.windows, this.lamps);
     this.lamps.scale.setScalar(1 / ISLAND_SCALE);
     this.setNight(false);
     const pointers = new Map<number, { x: number; y: number }>();
@@ -194,9 +207,14 @@ export class Preview {
   }
 
   /** The island without its glass, and the glass on its own (the game draws them apart). */
-  setGeometry(land: THREE.BufferGeometry, windows: THREE.BufferGeometry) {
+  setGeometry(
+    land: THREE.BufferGeometry,
+    windows: THREE.BufferGeometry,
+    ground?: THREE.BufferGeometry,
+  ) {
     this.island.geometry = land;
     this.windows.geometry = windows;
+    setGround(this.ground, ground);
     this.render();
   }
 
