@@ -17,8 +17,9 @@ import {
   createBoatModel,
 } from './models';
 import { HEEL_FEEL, Heel, heelFactor } from './heel';
-import { Ocean, waveHeight } from './ocean';
+import { type Ocean, oceanFor, waveHeight } from './ocean';
 import { ShoreTextureCache } from './shoreTexture';
+import { SeabedTextureCache, drawnFields } from './seabedTexture';
 import { CalmWater } from './calmWater';
 import { RoughWater } from './roughWater';
 import { CurrentWater } from './currentWater';
@@ -140,6 +141,8 @@ export class GameView {
   private roughWater?: RoughWater;
   private shallowsWater?: ShallowsWater;
   private readonly shores = new ShoreTextureCache();
+  /** The seabed's depth for the new look's water (issue #274); only baked under `?look=v2`. */
+  private readonly seabeds = new SeabedTextureCache();
   private streaks!: WindStreaks;
   private profile!: QualityProfile;
   /** The Ultra pipeline (decision 0221), loaded the first time Ultra is picked. */
@@ -177,7 +180,7 @@ export class GameView {
     private readonly world: World,
     level: QualityLevel,
     /** `?look=v2`: the new look's ground from the shared height field (decision 0222). */
-    look: TerrainLook = terrainLook(location.search),
+    private readonly look: TerrainLook = terrainLook(location.search),
   ) {
     this.renderer = new THREE.WebGLRenderer({
       canvas,
@@ -292,6 +295,13 @@ export class GameView {
     }
   }
 
+  /** The seabed depth bake of the land standing now, for the new look's water (`?look=v2`). */
+  private seabed() {
+    if (this.look !== 'v2') return undefined;
+    const { islands, terrain } = this.world.land;
+    return this.seabeds.get(drawnFields(this.world.map, islands, this.levels), terrain);
+  }
+
   /** Harbour lanterns (decision 0068): one on each pier head and a town glow a little inland. */
   private buildLanterns() {
     if (this.lanterns) {
@@ -402,25 +412,13 @@ export class GameView {
     this.currentWater?.setShore(shore);
     this.calmWater?.setShore(shore);
     this.roughWater?.setShore(shore);
+    const seabed = this.seabed();
+    if (seabed) for (const effects of this.qualityEffects.values()) effects.ocean.setSeabed(seabed);
     let effects = this.qualityEffects.get(level);
     if (!effects) {
-      // Ocean shader source depends on fancyWater, not the grid resolution. Share the
-      // existing material so High/Medium never release or relink the same program.
-      const waterMaterial = [...this.qualityEffects.values()].find(
-        ({ ocean }) =>
-          'FANCY' in ocean.mesh.material.defines === profile.fancyWater &&
-          'REFLECT' in ocean.mesh.material.defines === profile.waterReflection,
-      )?.ocean.mesh.material;
+      const others = [...this.qualityEffects.values()].map(({ ocean }) => ocean);
       effects = {
-        ocean: new Ocean(
-          this.world.land.islands,
-          profile.oceanSegments,
-          { fancy: profile.fancyWater, reflect: profile.waterReflection },
-          480,
-          this.world.land.terrain,
-          shore,
-          waterMaterial,
-        ),
+        ocean: oceanFor(profile, others, this.world.land, shore, seabed),
         streaks: new WindStreaks(profile.windStreaks),
         rain: new Rain(profile.rainDrops),
       };
@@ -885,6 +883,7 @@ export class GameView {
     }
     this.qualityEffects.clear();
     this.shores.dispose();
+    this.seabeds.dispose();
     this.stormClouds.dispose();
     this.volcanoes.dispose();
     this.lanterns.dispose();
