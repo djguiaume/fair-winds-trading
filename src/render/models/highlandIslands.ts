@@ -17,7 +17,8 @@ import type { QualityLevel } from '../quality';
 import type { TerrainLook } from '../terrainLook';
 import { isGlowing, isMolten, mergeAll, vertexColorMaterial } from './geometry';
 import type { Crater, IslandModel, IslandsBuilder } from './types';
-import { type FieldColor, featureGround, fieldGround, iceField } from './ground';
+import { featureGround, iceField } from './ground';
+import { type FieldColor, fieldGround } from './fieldGround';
 import { B2 } from './highlandPalette';
 import { islandParts, shownLevel } from './islandParts';
 import { terrainProps } from './terrainProps';
@@ -26,7 +27,7 @@ import type { TownLevel } from './towns';
 import type { Parts } from './props';
 
 /** The new look's ground colours of an island file (until the biome palettes of issue #269). */
-function designColor(style: string): FieldColor {
+export function designColor(style: string): FieldColor {
   return (ground, steep) => {
     const look = groundColors(ground === '' || ground === 'lake' ? 'sand' : ground, style);
     return (steep ? look.side : look.top)[0]!;

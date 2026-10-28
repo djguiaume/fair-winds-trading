@@ -6,7 +6,9 @@ import {
   isIslandShape,
   useIslandDesign,
   type IslandDesign,
+  type SculptDef,
 } from '../../data/islands';
+import { t } from '../../i18n';
 import { ISLAND_SCALE } from '../../sim/islandUnits';
 import { isGlowing } from '../../render/models/geometry';
 import { PROP_TYPES, type PropGroup } from '../../render/models/props';
@@ -57,6 +59,8 @@ import {
   toggleSlopeEdge,
 } from './shapes';
 import { Preview, TopView, mergeParts, thumbnails, type IslandView } from './scene';
+import { renderTerrainPanel, renderTerrainTools } from './terrain/terrainPanel';
+import { TerrainTool } from './terrain/terrainTool';
 
 /**
  * The island builder (decision 0105, planned in 0096 §3): opened from the map editor on a port
@@ -128,7 +132,7 @@ let group: PropGroup | 'all' = 'all';
 /** A palette prop waiting for a tap on the island (touch), or being dragged in (mouse). */
 let armed: string | null = null;
 /** The tools out: props, or ground (with woods) and lanes (part 2 of decision 0105). */
-type Mode = 'props' | 'ground' | 'lanes' | 'spots';
+type Mode = 'props' | 'ground' | 'lanes' | 'spots' | 'terrain';
 let mode: Mode = 'props';
 /** Build spots (decisions 0126, 0128): the selected one, and what the island shows. */
 let spotSel: number | null = null;
@@ -160,6 +164,8 @@ const canvas = $<HTMLCanvasElement>('ib-canvas');
 const viewBox = $('ib-view');
 let top: TopView | null = null;
 let preview: Preview | null = null;
+/** The terrain brushes (issue #271); made with the views, kept for every island opened. */
+let terrain: TerrainTool | null = null;
 let geometry: THREE.BufferGeometry | null = null;
 let previewLand: THREE.BufferGeometry | null = null;
 let previewGlass: THREE.BufferGeometry | null = null;
@@ -199,6 +205,24 @@ export function openIsland(target: IslandDef) {
   top ??= new TopView(canvas);
   preview ??= new Preview($<HTMLCanvasElement>('ib-preview-canvas'));
   preview.yaw = 0;
+  terrain ??= new TerrainTool({
+    top,
+    preview,
+    R: () => R,
+    harbour: () => harbour,
+    level: () => level,
+    save: saveSculpt,
+    restand: () => {
+      rebuild();
+      draw();
+    },
+    redraw: draw,
+    refresh: () => {
+      drawTools();
+      drawPanel();
+    },
+  });
+  terrain.markExported(design);
   $('ib-map-name').textContent = host.mapName();
   $('ib-name').textContent = design.name;
   $('ib-file').textContent = `· islands/${design.id}.json`;
@@ -218,7 +242,10 @@ export function openIsland(target: IslandDef) {
 }
 
 function close() {
+  if (terrain?.unexported(design) && !confirm(t('editor.terrain.leave'))) return;
   open = false;
+  terrain?.cancel();
+  terrain?.release();
   expandPreview(false);
   armed = null;
   $('ib').hidden = true;
@@ -275,7 +302,9 @@ function rebuild(without?: number) {
       without === undefined
         ? view.design
         : { ...view.design, props: view.design.props.filter((_, i) => view.from[i] !== without) };
-    parts = designedTownParts(shown, R, level as TownLevel, harbour);
+    // Terrain edits, or the terrain tools, draw the ground from the height field (issue #271).
+    const stand = terrain?.prepare(design, mode === 'terrain' || !!design.sculpt?.edits.length);
+    parts = designedTownParts(shown, R, level as TownLevel, harbour, stand);
   } catch (error) {
     hint(`The island does not build: ${String(error)}`);
     return;
@@ -364,6 +393,8 @@ function draw() {
     mode,
     shape: shapeSel,
     drawing: drawing ? { points: drawing, hover } : undefined,
+    terrain:
+      mode === 'terrain' && terrain ? { marks: terrain.marks(), unit: terrain.unit } : undefined,
     brush:
       hover && (tool === 'grow' || tool === 'clear')
         ? { x: hover[0], z: hover[1], r: brush, mode: tool }
@@ -373,6 +404,17 @@ function draw() {
 
 function drawPanel() {
   drawSelectionBar();
+  if (mode === 'terrain')
+    return renderTerrainPanel($('ib-panel'), terrain!, {
+      reset: resetTerrain,
+      setView: (view) => terrain!.setView(view, design),
+      language: () => {
+        labelTerrain();
+        drawTools();
+        drawPanel();
+        hint();
+      },
+    });
   if (mode === 'spots')
     return renderSpotPanel($('ib-panel'), {
       design,
@@ -524,6 +566,24 @@ function commit(record = true) {
   runChecks();
 }
 
+/** One stroke, or a reset, as one undo step of the island file. */
+function saveSculpt(sculpt: SculptDef | undefined) {
+  history.record(design);
+  if (sculpt) design.sculpt = sculpt;
+  else delete design.sculpt;
+  commit();
+}
+
+function resetTerrain() {
+  if (terrain?.strokes && confirm(t('editor.terrain.resetAsk'))) saveSculpt(undefined);
+}
+
+/** The Terrain tab's name in the language chosen in its panel. */
+function labelTerrain() {
+  for (const b of document.querySelectorAll('[data-mode="terrain"]'))
+    b.textContent = t('editor.terrain.tab');
+}
+
 function selectSpot(next: number | null) {
   spotSel = next;
   draw();
@@ -594,15 +654,17 @@ function hint(text?: string) {
     text ??
     (tool
       ? TOOL_HINTS[tool]
-      : mode === 'spots'
-        ? 'Drag a spot to move it · pick its kind and what it shows in the panel · Delete removes it'
-        : mode === 'ground'
-          ? 'Click the coast, raised ground, a ramp, a mountain or the lake · drag a square to move a point, a ring to add one · click an edge: cliff ↔ slope · Delete removes'
-          : mode === 'lanes'
-            ? 'Click a lane or river to edit it · drag a square to move a point, a ring to add one · Delete removes'
-            : armed
-              ? `Click the island to place a ${propName(armed).toLowerCase()} from level ${level} · Esc cancels`
-              : 'Drag a prop from the palette · drag props to move them · R / Shift+R turn 15° · Delete removes · a prop belongs to the level it first appears');
+      : mode === 'terrain'
+        ? t('editor.terrain.help')
+        : mode === 'spots'
+          ? 'Drag a spot to move it · pick its kind and what it shows in the panel · Delete removes it'
+          : mode === 'ground'
+            ? 'Click the coast, raised ground, a ramp, a mountain or the lake · drag a square to move a point, a ring to add one · click an edge: cliff ↔ slope · Delete removes'
+            : mode === 'lanes'
+              ? 'Click a lane or river to edit it · drag a square to move a point, a ring to add one · Delete removes'
+              : armed
+                ? `Click the island to place a ${propName(armed).toLowerCase()} from level ${level} · Esc cancels`
+                : 'Drag a prop from the palette · drag props to move them · R / Shift+R turn 15° · Delete removes · a prop belongs to the level it first appears');
 }
 
 // --- Checks --------------------------------------------------------------------------------
@@ -772,7 +834,13 @@ function arm(type: string | null) {
 // --- Modes and the ground and lane tools ----------------------------------------------------
 
 function setMode(next: Mode) {
+  const was = mode;
   mode = next;
+  if (was === 'terrain') {
+    terrain?.cancel();
+    if (terrain) terrain.picking = false;
+  }
+  labelTerrain();
   setTool(null);
   shapeSel = null;
   if (mode !== 'props') {
@@ -784,6 +852,8 @@ function setMode(next: Mode) {
   syncTabs();
   $('ib-prop-tools').hidden = mode !== 'props';
   $('ib-shape-tools').hidden = mode === 'props' || mode === 'spots';
+  // The ground is drawn from the height field in the terrain tools, and as the recipe's tiers elsewhere.
+  if (terrain && (mode === 'terrain' || was === 'terrain')) rebuild();
   drawTools();
   draw();
   drawPanel();
@@ -830,6 +900,7 @@ function drawTools() {
   const box = $('ib-shape-tools');
   box.replaceChildren();
   if (mode === 'props' || mode === 'spots') return;
+  if (mode === 'terrain') return renderTerrainTools(box, terrain!);
   let heading = '';
   for (const [group, id, icon, text] of TOOLS[mode]) {
     if (group !== heading) {
@@ -982,10 +1053,18 @@ type Drag =
   | { kind: 'point' }
   | { kind: 'spot'; index: number; dx: number; dz: number }
   | { kind: 'paint' }
+  | { kind: 'terrain' }
   | { kind: 'pan'; sx: number; sy: number; cx: number; cz: number };
 let drag: Drag | null = null;
 const pointers = new Map<number, { x: number; y: number }>();
-let pinch: { distance: number; upp: number } | null = null;
+let pinch: {
+  distance: number;
+  upp: number;
+  mx: number;
+  my: number;
+  cx: number;
+  cz: number;
+} | null = null;
 
 function toIsland(e: { clientX: number; clientY: number }) {
   const rect = svg.getBoundingClientRect();
@@ -1008,7 +1087,8 @@ function showMoving(index: number | null, type?: string, x = 0, z = 0) {
 }
 function placeMoving(p: { turn?: number; y?: number; type: string }, x: number, z: number) {
   const layout = islandLayout(design, level);
-  const y = p.y !== undefined ? p.y * R : standHeight(layout, x, z, R);
+  const stand = terrain?.standing;
+  const y = p.y !== undefined ? p.y * R : stand ? stand(x, z) : standHeight(layout, x, z, R);
   top!.placeMoving(x * R, y + 0.05, z * R, ((p.turn ?? 0) * Math.PI) / 180);
 }
 
@@ -1114,13 +1194,28 @@ document.addEventListener('pointerup', (e) => {
 });
 
 svg.addEventListener('pointerdown', (e) => {
-  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  // The terrain brush takes the left button and one finger: the others pan.
+  const panning = mode === 'terrain' && e.pointerType === 'mouse' && e.button !== 0;
+  if (e.pointerType === 'mouse' && e.button !== 0 && !panning) return;
   svg.focus();
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   svg.setPointerCapture(e.pointerId);
+  if (panning) {
+    drag = { kind: 'pan', sx: e.clientX, sy: e.clientY, cx: view.cx, cz: view.cz };
+    return;
+  }
   if (pointers.size === 2) {
     const [a, b] = [...pointers.values()];
-    pinch = { distance: Math.hypot(a!.x - b!.x, a!.y - b!.y), upp: view.upp };
+    pinch = {
+      distance: Math.hypot(a!.x - b!.x, a!.y - b!.y),
+      upp: view.upp,
+      mx: (a!.x + b!.x) / 2,
+      my: (a!.y + b!.y) / 2,
+      cx: view.cx,
+      cz: view.cz,
+    };
+    // A second finger cancels the stroke under the first and takes over as pan and zoom.
+    if (drag?.kind === 'terrain') terrain?.cancel();
     if (drag?.kind === 'prop' && drag.moved) {
       showMoving(null);
       history.discardIfSame(design);
@@ -1132,6 +1227,10 @@ svg.addEventListener('pointerdown', (e) => {
   const p = toIsland(e);
   const hit = (e.target as Element).closest('[data-hit]')?.getAttribute('data-hit') ?? 'sea';
   const [kind, arg, ...more] = hit.split(':');
+  if (mode === 'terrain') {
+    if (terrain!.begin(p.x, p.z)) drag = { kind: 'terrain' };
+    return;
+  }
   if (mode === 'spots') {
     if (kind === 'spot') {
       const index = Number(arg);
@@ -1176,6 +1275,11 @@ svg.addEventListener('pointerdown', (e) => {
 
 svg.addEventListener('pointermove', (e) => {
   if (!pointers.has(e.pointerId)) {
+    if (mode === 'terrain') {
+      const p = toIsland(e);
+      terrain!.point(p.x, p.z);
+      draw();
+    }
     // Hovering: the lane being drawn follows the pointer, and so does the woods brush.
     if (drawing || tool === 'grow' || tool === 'clear') {
       const p = toIsland(e);
@@ -1189,6 +1293,9 @@ svg.addEventListener('pointermove', (e) => {
     const [a, b] = [...pointers.values()];
     const d = Math.hypot(a!.x - b!.x, a!.y - b!.y);
     view.upp = clampZoom((pinch.upp * pinch.distance) / Math.max(1, d));
+    // Two fingers also drag the island along, as the pointer between them moves.
+    view.cx = pinch.cx - ((a!.x + b!.x) / 2 - pinch.mx) * view.upp;
+    view.cz = pinch.cz - ((a!.y + b!.y) / 2 - pinch.my) * view.upp;
     fitted = false;
     draw();
     return;
@@ -1232,6 +1339,8 @@ svg.addEventListener('pointermove', (e) => {
     hover = [p.x, p.z];
     paintWoods(design, p.x, p.z, brush, tool);
     draw();
+  } else if (drag.kind === 'terrain') {
+    terrain!.move(p.x, p.z);
   } else if (drag.kind === 'turn') {
     const prop = design.props[drag.index]!;
     let deg = (Math.atan2(p.x - prop.x, p.z - prop.z) * 180) / Math.PI;
@@ -1248,12 +1357,19 @@ function endPointer(e: PointerEvent) {
   const was = drag;
   drag = null;
   if (was.kind === 'pan' || (was.kind === 'prop' && !was.moved)) return;
+  if (was.kind === 'terrain') {
+    if (e.type === 'pointercancel') terrain!.cancel();
+    else terrain!.end();
+    return;
+  }
   showMoving(null);
   history.discardIfSame(design);
   commit();
 }
 svg.addEventListener('pointerup', endPointer);
 svg.addEventListener('pointercancel', endPointer);
+svg.addEventListener('pointerleave', () => mode === 'terrain' && terrain?.leave());
+svg.addEventListener('contextmenu', (e) => mode === 'terrain' && e.preventDefault());
 
 const clampZoom = (upp: number) => Math.min(0.05, Math.max(0.0008, upp));
 function zoom(factor: number, at?: { x: number; z: number }) {
@@ -1307,8 +1423,11 @@ document.addEventListener('keydown', (e) => {
   } else if (mod && key === 'd') {
     e.preventDefault();
     duplicate();
+  } else if (mode === 'terrain' && (e.key === '[' || e.key === ']')) {
+    terrain!.resize(e.key === ']' ? 1.15 : 1 / 1.15);
   } else if (e.key === 'Delete' || e.key === 'Backspace') {
     e.preventDefault();
+    if (mode === 'terrain') return;
     if (mode === 'props') remove();
     else if (mode === 'spots') {
       if (spotSel !== null) {
@@ -1321,7 +1440,10 @@ document.addEventListener('keydown', (e) => {
   } else if (e.key === 'Enter' && drawing) {
     finishDrawing();
   } else if (e.key === 'Escape') {
-    if (previewBig) expandPreview(false);
+    if (terrain?.stroking) {
+      terrain.cancel();
+      drag = null;
+    } else if (previewBig) expandPreview(false);
     else if (tool) {
       setTool(null);
       draw();
@@ -1375,6 +1497,7 @@ $('ib-reset').addEventListener('click', () => {
   replaceDesign(structuredClone(original(design.id)!));
 });
 $('ib-export').addEventListener('click', () => {
+  terrain?.markExported(design);
   const blob = new Blob([formatIslandJson(tidyDesign(design))], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -1471,3 +1594,7 @@ new ResizeObserver(() => {
 }).observe(viewBox);
 
 hint();
+
+window.addEventListener('beforeunload', (e) => {
+  if (open && terrain?.unexported(design)) e.preventDefault();
+});

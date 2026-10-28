@@ -17,7 +17,6 @@ import {
   type Outline,
 } from '../../sim/islandLayout';
 import { BEACH_TOP } from '../../sim/islandUnits';
-import type { Heightfield } from '../../sim/heightfield';
 import { isGlowing, paint, paintFaces, paintGroups } from './geometry';
 import { craterPool } from './lavaCracks';
 import type { Parts } from './props';
@@ -337,63 +336,4 @@ export function featureGround(feature: TerrainDef): Parts {
     const outline = inset ? insetOutline(feature.outline, inset) : feature.outline;
     return paint(extrudeOutline(outline, bottoms[i]!, tops[i]!), RIDGE_COLORS[i] ?? B2.grass);
   });
-}
-
-/** What colour a triangle of field ground takes: its highest corner's ground, steep or not. */
-export type FieldColor = (ground: string, steep: boolean) => string;
-
-/** Rise over run past which a field triangle reads as a cliff or slope side. */
-const STEEP = 1.3;
-
-/**
- * The new look's ground (decision 0222): one triangle pair per cell of a height field, in scene
- * coordinates, flat shaded like the rest of the land. Open seabed cells are left out.
- */
-export function fieldGround(field: Heightfield, colorOf: FieldColor): THREE.BufferGeometry {
-  const { w, h, cell, heights } = field;
-  const positions: number[] = [],
-    colors: number[] = [];
-  // One colour per ground and steepness: a field has a handful, its triangles many.
-  const palette = new Map<string, THREE.Color>();
-  const colorFor = (ground: string, steep: boolean) => {
-    const key = `${ground}/${steep}`;
-    let c = palette.get(key);
-    if (!c) palette.set(key, (c = new THREE.Color(colorOf(ground, steep))));
-    return c;
-  };
-  const corner = [0, 0, 0, 0];
-  const vertex = (k: number) => {
-    const i = k % w,
-      j = (k - i) / w;
-    positions.push(field.x0 + i * cell, heights[k]!, -(field.y0 + j * cell));
-  };
-  const triangle = (a: number, b: number, c: number) => {
-    const ha = heights[a]!,
-      hb = heights[b]!,
-      hc = heights[c]!;
-    const top = ha >= hb && ha >= hc ? a : hb >= hc ? b : c;
-    const steep = (Math.max(ha, hb, hc) - Math.min(ha, hb, hc)) / cell > STEEP;
-    const color = colorFor(field.grounds[field.ground[top]!]!, steep);
-    for (const k of [a, b, c]) {
-      vertex(k);
-      colors.push(color.r, color.g, color.b);
-    }
-  };
-  for (let j = 0; j + 1 < h; j++)
-    for (let i = 0; i + 1 < w; i++) {
-      const a = j * w + i;
-      corner[0] = a;
-      corner[1] = a + 1;
-      corner[2] = a + w;
-      corner[3] = a + w + 1;
-      if (corner.every((k) => heights[k]! <= field.seabed)) continue;
-      // Wound to face up: +x, then -z (the map's +y).
-      triangle(a, a + 1, a + w);
-      triangle(a + 1, a + w + 1, a + w);
-    }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-  g.computeVertexNormals();
-  return g;
 }

@@ -1,4 +1,6 @@
 import { atLevel, type HomeSpotDef, type IslandDesign } from '../../data/islands';
+import { drawTerrainMarks } from './terrain/terrainOverlay';
+import type { TerrainMarks } from './terrain/terrainTool';
 import type { IslandIssue } from '../../sim/islandChecks';
 import { isSloped } from '../../sim/islandLayout';
 import { propName, type Level } from './doc';
@@ -36,7 +38,7 @@ export interface OverlayScene {
   /** A prop being dragged in from the palette: its outline and whether it fits there. */
   drop?: { hull: [number, number][]; ok: boolean; label: string };
   /** Which tools are out: props, ground (with woods), lanes or build spots. */
-  mode: 'props' | 'ground' | 'lanes' | 'spots';
+  mode: 'props' | 'ground' | 'lanes' | 'spots' | 'terrain';
   /** The island's build spots (decisions 0126, 0128) and the selected one. */
   spots: { list: HomeSpotDef[]; selected: number | null };
   shape: { shape: Shape; point?: number } | null;
@@ -44,6 +46,8 @@ export interface OverlayScene {
   drawing?: { points: number[][]; hover?: [number, number] };
   /** The woods brush under the pointer. */
   brush?: { x: number; z: number; r: number; mode: 'grow' | 'clear' };
+  /** The terrain tools' marks, with the world units of one radius unit (issue #271). */
+  terrain?: { marks: TerrainMarks; unit: number };
 }
 
 /** The arrival pier's lane, as the checks keep it (islandChecks APPROACH). */
@@ -347,6 +351,7 @@ function drawShapes(s: OverlayScene, el: El, label: (x: number, z: number, t: st
       r: s.brush.r,
       class: `i-brush ${s.brush.mode}`,
     });
+  if (s.terrain) drawTerrainMarks(el, u, s.terrain.unit, s.terrain.marks);
 }
 
 function title(text: string) {
