@@ -141,6 +141,7 @@ import { PadLog } from './ui/padLog';
 import { usePadBrand } from './ui/padGlyphs';
 import { askConfirm } from './ui/confirmDialog';
 import { WayOfPlaying, firstWay } from './input/wayOfPlaying';
+import './ui/theme.css';
 
 declare const __APP_VERSION__: string;
 declare const __BUILD_REVISION__: string;

@@ -2,7 +2,7 @@
  * The UI theme, style E (decision 0220): one place for fonts, colours and the button kinds.
  * Three materials: dark wood (leather) as the background, paper for text, and dark teal plates for
  * the sea HUD. No lines on paper or plates; a plank texture only on the wood. Teal and brass
- * are muted roles, red is only for danger. Loaded last, so its paint wins over the screens' older rules; their files keep the layout.
+ * are muted roles, red is only for danger. Imported last in main.ts, so its paint wins over the screens' older rules; their files keep the layout.
  * No backdrop blur: it is costly on old tablets (decision 0006).
  */
 
