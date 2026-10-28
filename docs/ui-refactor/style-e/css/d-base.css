@@ -1,0 +1,37 @@
+/* Style E round 2: A's paper and serif, B's sea HUD (flat dark teal, brass line, no planks), no red
+   confirm buttons (red stays for danger: New game, errors). Laid after a-logbook.css. */
+html:root {
+  --brass: #1f5a66;          /* headings and accents: deep teal ink, not oxblood */
+  --brass-hi: #2f7f8f;
+  --brass-lo: #123f48;
+  --hud-panel: #17404f;
+  --hud-line: #e8c46a;
+  --hud-ink: #f6efdb;
+}
+.menu-title { font-size: 40px !important; line-height: 1.12 !important; }
+
+/* --- Sea HUD from B, flat ------------------------------------------------------------------ */
+.captain-stat, .objective, .speed-log, .sail-lever, .port-marker-box, .icon-btn, .compass-open, .toast {
+  background: var(--hud-panel) !important;
+  color: var(--hud-ink) !important;
+  border: 2px solid #0d2a35 !important;
+  border-radius: 8px !important;
+  box-shadow: inset 0 0 0 1.5px var(--hud-line), 0 3px 0 rgba(0, 0, 0, 0.4) !important;
+}
+#obj-name, .log-speed, .log-hdg, .log-sog, .speed-log .pos, .captain-stat b, .obj-dist, .wind-caption, #wind-force,
+.port-marker-box *, .sail-lever *, .objective *, .toast { color: var(--hud-ink) !important; }
+.speed-log .pos.good { color: #8fe3a4 !important; }
+#hud .icon { color: var(--hud-line) !important; }
+.captain-stat .icon { color: #f0c75e !important; }
+.compass .face { fill: #1b4a58 !important; stroke: var(--hud-line) !important; }
+.compass text, .compass .cardinal { fill: var(--hud-ink) !important; }
+.sail-lever { background: var(--hud-panel) !important; }
+.toast { box-shadow: inset 0 0 0 1.5px var(--hud-line), 0 3px 0 rgba(0, 0, 0, 0.4) !important; }
+
+/* --- Buttons: brass or teal, never red (danger only) --------------------------------------- */
+.close-btn { background: #3a2a1d !important; color: #f6ecd0 !important; border: 2px solid #1f150c !important; box-shadow: inset 0 -3px 0 #1f150c !important; }
+.d-btn.red { background: radial-gradient(circle at 30% 25%, #c9503a, #8f2f1c 70%) !important; color: #fbeed0 !important; border: 2px solid #5b1a0f !important; }
+.keeper-card, .quay-person, .quay-hint, .toast { }
+.quest-reward b, .quest-head h2, .quest-role { color: var(--brass) !important; }
+.port-screen .role-tag, .port-chip { background: #f6ecd0 !important; }
+.compass .wind { }

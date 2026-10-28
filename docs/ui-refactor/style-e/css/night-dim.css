@@ -1,0 +1,3 @@
+x-swallow{}
+/* Paper dims about 20% at night (art director). */
+.port-screen .trade-content, dialog.quest-card, .keeper-card, .quay-person, .side-card, .good-row { filter: brightness(0.8) saturate(0.95); }

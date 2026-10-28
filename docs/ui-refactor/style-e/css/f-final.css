@@ -1,0 +1,261 @@
+x-swallow{} /* shots joins files with a stray ";", this empty rule eats it */
+/* Style E, direction A "Logbook": parchment pages, ink, a serif, oxblood wax-seal buttons.
+   Mockup stylesheet laid over the real game (npm run shots --style). Not built code. */
+html:root {
+  --paper: #efe1bd;
+  --paper-2: #e6d3a6;
+  --paper-edge: #8a6a3c;
+  --leather: #3a2a1d;
+  --navy: rgba(239, 225, 189, 0.97);
+  --navy-solid: #e6d3a6;
+  --ink: #35261a;
+  --ink-dim: rgba(53, 38, 26, 0.72);
+  --brass: #8f2f1c;
+  --brass-line: rgba(90, 60, 30, 0.55);
+  --brass-hi: #b9402a;
+  --brass-lo: #6a1f12;
+  --green-ink: #3d6b3a;
+  --outline: #4a3320;
+  --display: 'Fraunces', Georgia, serif;
+}
+body { font-family: 'Barlow', sans-serif; }
+.ruled {
+  background-image: repeating-linear-gradient(transparent 0 31px, rgba(90, 60, 30, 0.16) 31px 32px);
+}
+
+/* --- shared paper pieces ------------------------------------------------------------------ */
+.captain-stat, .objective, .speed-log, .sail-lever, .port-marker-box, .icon-btn, .compass-open,
+.side-card, .chart-chip, .port-chip, .lot-btn, .set-row, .quest-card {
+  background: var(--paper) !important;
+  color: var(--ink) !important;
+  border: 1.5px solid var(--paper-edge) !important;
+  border-radius: 3px !important;
+  box-shadow: 0 2px 0 rgba(58, 42, 29, 0.55), inset 0 0 0 3px rgba(255, 255, 255, 0.25) !important;
+}
+.d-btn, .good-row .buy-btn, .good-row .sell-btn, .port-screen .ship-btn, .close-btn {
+  font-family: var(--display) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  border-radius: 999px !important;
+}
+.d-btn.brass, .good-row .buy-btn, .port-screen .ship-btn {
+  background: radial-gradient(circle at 30% 25%, #c9503a, #8f2f1c 70%) !important;
+  color: #fbeed0 !important;
+  border: 2px solid #5b1a0f !important;
+  box-shadow: inset 0 -3px 0 #5b1a0f, 0 2px 0 rgba(58, 42, 29, 0.6) !important;
+}
+.good-row .sell-btn, .d-btn:not(.brass):not(.red) {
+  background: var(--paper-2) !important;
+  color: var(--ink) !important;
+  border: 2px solid var(--paper-edge) !important;
+  box-shadow: inset 0 -3px 0 rgba(90, 60, 30, 0.35) !important;
+}
+.close-btn, .d-btn.red {
+  background: #7a2a1d !important;
+  color: #fbeed0 !important;
+  border: 2px solid #4a1810 !important;
+}
+.ruled-h, .set-label, .section-title h3, .side-card h3 {
+  font-family: var(--display) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--brass) !important;
+}
+#hud .icon, .menu-row .icon, .sheet-head > .icon { color: var(--brass) !important; }
+.captain-stat .icon { color: #a9741a !important; }
+
+/* --- Sea HUD ------------------------------------------------------------------------------ */
+.objective { font-family: var(--display) !important; }
+#obj-name { font-family: var(--display) !important; letter-spacing: 0 !important; text-transform: none !important; color: var(--ink) !important; }
+.log-speed, .log-hdg, .log-sog, .speed-log .pos, .captain-stat b, .obj-dist { color: var(--ink) !important; font-family: var(--display) !important; letter-spacing: 0 !important; }
+.compass .face { fill: #f6ecd0 !important; stroke: #8a6a3c !important; }
+.compass text, .compass .cardinal { fill: #35261a !important; }
+.wind-caption, #wind-force { color: var(--ink) !important; font-family: var(--display) !important; letter-spacing: 0 !important; }
+.sail-lever { background: var(--paper-2) !important; }
+.sail-lever * { color: var(--ink) !important; }
+.port-marker-box * { color: var(--ink) !important; letter-spacing: 0 !important; }
+
+/* --- Title menu: a log page with a ribbon title ------------------------------------------- */
+.menu { background: linear-gradient(90deg, rgba(40, 26, 14, 0.55), rgba(40, 26, 14, 0) 70%) !important; }
+.menu-side {
+  background: var(--paper) repeating-linear-gradient(transparent 0 35px, rgba(90, 60, 30, 0.14) 35px 36px) !important;
+  border-right: 6px double var(--paper-edge) !important;
+  box-shadow: 6px 0 0 rgba(58, 42, 29, 0.35) !important;
+  color: var(--ink) !important;
+}
+.menu-kicker { color: var(--brass) !important; font-family: var(--display) !important; letter-spacing: 0.1em !important; font-style: italic; }
+.menu-title {
+  font-family: var(--display) !important; font-weight: 900 !important; letter-spacing: 0 !important;
+  text-transform: none !important; color: var(--ink) !important; line-height: 1.02 !important;
+}
+.menu-tagline { color: var(--ink-dim) !important; font-family: var(--display) !important; font-style: italic; }
+.menu-emblem { filter: sepia(0.6) saturate(1.2) hue-rotate(-12deg); }
+#menu-play { border-radius: 4px !important; clip-path: polygon(0 0, 100% 0, 96% 50%, 100% 100%, 0 100%, 4% 50%); min-height: 62px; }
+.menu-row {
+  background: transparent !important; border: 0 !important; border-bottom: 1px dashed var(--paper-edge) !important;
+  border-radius: 0 !important; color: var(--ink) !important; font: 700 20px/1.1 var(--display) !important;
+  letter-spacing: 0 !important; text-transform: none !important; min-height: 50px !important;
+}
+.menu-row small { display: none !important; }
+.menu-row:hover, .menu-row:focus-visible { background: rgba(143, 47, 28, 0.1) !important; }
+.menu-row:focus-visible::after { content: '\261E'; margin-left: auto; color: var(--brass); font-size: 22px; }
+.menu-version, .menu-foot * { color: var(--ink-dim) !important; }
+#menu-language, #menu-fullscreen { background: var(--paper-2) !important; border-color: var(--paper-edge) !important; color: var(--ink) !important; }
+
+/* --- Full-screen sheets (New voyage, Settings): a bound page ------------------------------ */
+.sheet { background: var(--leather) !important; }
+.sheet-head, .sheet-body {
+  background: var(--paper) !important; color: var(--ink) !important;
+}
+.sheet-head { border-bottom: 3px double var(--paper-edge) !important; }
+.sheet-head h2 { font-family: var(--display) !important; letter-spacing: 0 !important; text-transform: none !important; font-weight: 900 !important; }
+.sheet-body { background: var(--paper) repeating-linear-gradient(transparent 0 39px, rgba(90, 60, 30, 0.12) 39px 40px) !important; margin: 0 clamp(0px, 6vw, 80px); box-shadow: 0 0 0 3px var(--paper-edge) inset; }
+.level-sub, .level-note, .set-note { color: var(--ink-dim) !important; font-family: var(--display) !important; font-style: italic; }
+.level-card {
+  background: #f6ecd0 !important; color: var(--ink) !important; border: 1.5px solid var(--paper-edge) !important;
+  border-radius: 2px 2px 14px 2px !important; box-shadow: 3px 4px 0 rgba(58, 42, 29, 0.35) !important;
+  transform: rotate(-0.6deg);
+}
+.level-card:nth-child(2) { transform: rotate(0.5deg); }
+.level-card:nth-child(3) { transform: rotate(-0.3deg); }
+.level-card[aria-checked='true'] { outline: 3px solid var(--brass) !important; outline-offset: 3px; box-shadow: 3px 4px 0 rgba(58, 42, 29, 0.35) !important; }
+.level-name { font-family: var(--display) !important; letter-spacing: 0 !important; text-transform: none !important; color: var(--ink) !important; font-weight: 900 !important; }
+.level-tag { color: var(--brass) !important; font-family: var(--display) !important; font-style: italic; letter-spacing: 0 !important; text-transform: none !important; }
+.level-badge { display: none !important; }
+.level-card li { color: var(--ink) !important; }
+.level-card li::before { background: var(--brass) !important; }
+.set-row { box-shadow: none !important; border-width: 0 0 1px 0 !important; border-radius: 0 !important; background: transparent !important; }
+.set-name, .set-pct { color: var(--ink) !important; }
+
+/* --- Port screen -------------------------------------------------------------------------- */
+.port-screen .trade-header { background: linear-gradient(rgba(40, 26, 14, 0.55), rgba(40, 26, 14, 0)) !important; border: 0 !important; }
+.port-screen .port-name { font-family: var(--display) !important; font-weight: 900 !important; letter-spacing: 0 !important; text-transform: none !important; color: #fbeed0 !important; text-shadow: 0 2px 0 rgba(0, 0, 0, 0.5); font-size: 38px !important; }
+.port-screen .role-tag { background: rgba(239, 225, 189, 0.92) !important; color: var(--ink) !important; border: 1px solid var(--paper-edge) !important; border-radius: 2px !important; font-family: var(--display) !important; letter-spacing: 0 !important; text-transform: none !important; }
+.port-screen .role-tag *, .port-chip * { color: var(--ink) !important; }
+.port-screen .trade-tabs { background: var(--leather) !important; border: 0 !important; }
+.port-screen .tab-btn { background: #b89a68 !important; color: var(--ink) !important; border: 1.5px solid var(--paper-edge) !important; border-bottom: 0 !important; border-radius: 8px 8px 0 0 !important; font-family: var(--display) !important; letter-spacing: 0 !important; text-transform: none !important; font-size: 19px !important; margin-right: 4px; }
+.port-screen .tab-btn.active { background: var(--paper) !important; color: var(--brass) !important; }
+.port-screen .trade-content, .trade-modal.port-screen {
+  background: var(--paper) repeating-linear-gradient(transparent 0 39px, rgba(90, 60, 30, 0.12) 39px 40px) !important; color: var(--ink) !important;
+}
+.good-row { background: transparent !important; border-bottom: 1px solid rgba(90, 60, 30, 0.35) !important; }
+.good-row .good-name, .good-row * { color: var(--ink); }
+.good-row.wants .good-note { color: var(--brass) !important; font-style: italic; }
+.good-best, .good-hold small { color: var(--ink-dim) !important; font-family: var(--display) !important; letter-spacing: 0 !important; text-transform: none !important; }
+.good-row .buy-btn *, .port-screen .ship-btn * { color: #fbeed0 !important; }
+.good-row .sell-btn * { color: var(--ink) !important; }
+.side-card { box-shadow: 2px 3px 0 rgba(58, 42, 29, 0.35) !important; transform: rotate(0.4deg); }
+.port-screen footer, .port-screen .port-footer, .port-screen .trade-footer { background: var(--leather) !important; color: #fbeed0 !important; }
+
+/* --- Quest card ---------------------------------------------------------------------------- */
+dialog.quest-card { background: #f6ecd0 repeating-linear-gradient(transparent 0 31px, rgba(90, 60, 30, 0.12) 31px 32px) !important; }
+.quest-head h2, .quest-role, .quest-reward b { font-family: var(--display) !important; color: var(--brass) !important; letter-spacing: 0 !important; text-transform: none !important; }
+.quest-speech, .quest-ask, .quest-count { color: var(--ink) !important; font-family: var(--display) !important; }
+
+/* --- Chart chrome: the chart keeps its own paper ------------------------------------------ */
+.chart-top, .chart-tabs { background: var(--leather) !important; border-color: var(--paper-edge) !important; }
+.chart-top *, .chart-tabs .tab-btn { color: #fbeed0; }
+.chart-chip { color: var(--ink) !important; }
+
+/* --- Keeper card, quay people, toasts, hint ----------------------------------------------- */
+.keeper-card, .quay-person, .toast, .quay-hint { background: #f6ecd0 !important; color: var(--ink) !important; border: 1.5px solid var(--paper-edge) !important; border-radius: 3px !important; box-shadow: 2px 3px 0 rgba(58, 42, 29, 0.35) !important; }
+.keeper-card *, .quay-person *, .toast, .quay-hint * { color: var(--ink); }
+.keeper-name b, .keeper-name small { font-family: var(--display) !important; letter-spacing: 0 !important; text-transform: none !important; color: var(--brass) !important; }
+.keeper-town, .keeper-town * { color: var(--ink-dim) !important; letter-spacing: 0 !important; text-transform: none !important; }
+.port-screen .trade-footer { background: var(--leather) !important; border: 0 !important; }
+.quay-hint { background: transparent !important; border: 0 !important; box-shadow: none !important; }
+.quay-hint, .quay-hint * { color: #fbeed0 !important; }
+.lot-picker, .lot-picker * { color: #fbeed0 !important; }
+.lot-btn { color: var(--ink) !important; }
+.side-card .deliver-btn:disabled, .side-card .deliver-btn[aria-disabled='true'] { background: var(--paper-2) !important; color: var(--ink-dim) !important; border: 1.5px dashed var(--paper-edge) !important; }
+.set-name, .set-name b, .segmented *, .set-row button { text-transform: none !important; letter-spacing: 0 !important; font-family: var(--display) !important; }
+.menu-sheet { background: var(--paper) repeating-linear-gradient(transparent 0 35px, rgba(90, 60, 30, 0.14) 35px 36px) !important; }
+@media (orientation: portrait) and (max-width: 700px) {
+  .menu-side { background: none !important; border: 0 !important; box-shadow: none !important; }
+  .menu-sheet { border-top: 5px double var(--paper-edge) !important; border-radius: 4px 4px 0 0 !important; }
+}
+@media (orientation: portrait) and (max-width: 700px) {
+  .menu-title, .menu-tagline, .menu-kicker { color: #fbeed0 !important; text-shadow: 0 2px 0 rgba(40, 26, 14, 0.8); }
+  .menu-emblem { filter: none; }
+}
+/* Style E round 2: A's paper and serif, B's sea HUD (flat dark teal, brass line, no planks), no red
+   confirm buttons (red stays for danger: New game, errors). Laid after a-logbook.css. */
+html:root {
+  --brass: #1f5a66;          /* headings and accents: deep teal ink, not oxblood */
+  --brass-hi: #2f7f8f;
+  --brass-lo: #123f48;
+  --hud-panel: #17404f;
+  --hud-line: #e8c46a;
+  --hud-ink: #f6efdb;
+}
+.menu-title { font-size: 40px !important; line-height: 1.12 !important; }
+
+/* --- Sea HUD from B, flat ------------------------------------------------------------------ */
+.captain-stat, .objective, .speed-log, .sail-lever, .port-marker-box, .icon-btn, .compass-open, .toast {
+  background: var(--hud-panel) !important;
+  color: var(--hud-ink) !important;
+  border: 2px solid #0d2a35 !important;
+  border-radius: 8px !important;
+  box-shadow: inset 0 0 0 1.5px var(--hud-line), 0 3px 0 rgba(0, 0, 0, 0.4) !important;
+}
+#obj-name, .log-speed, .log-hdg, .log-sog, .speed-log .pos, .captain-stat b, .obj-dist, .wind-caption, #wind-force,
+.port-marker-box *, .sail-lever *, .objective *, .toast { color: var(--hud-ink) !important; }
+.speed-log .pos.good { color: #8fe3a4 !important; }
+#hud .icon { color: var(--hud-line) !important; }
+.captain-stat .icon { color: #f0c75e !important; }
+.compass .face { fill: #1b4a58 !important; stroke: var(--hud-line) !important; }
+.compass text, .compass .cardinal { fill: var(--hud-ink) !important; }
+.sail-lever { background: var(--hud-panel) !important; }
+.toast { box-shadow: inset 0 0 0 1.5px var(--hud-line), 0 3px 0 rgba(0, 0, 0, 0.4) !important; }
+
+/* --- Buttons: brass or teal, never red (danger only) --------------------------------------- */
+.close-btn { background: #3a2a1d !important; color: #f6ecd0 !important; border: 2px solid #1f150c !important; box-shadow: inset 0 -3px 0 #1f150c !important; }
+.d-btn.red { background: radial-gradient(circle at 30% 25%, #c9503a, #8f2f1c 70%) !important; color: #fbeed0 !important; border: 2px solid #5b1a0f !important; }
+.keeper-card, .quay-person, .quay-hint, .toast { }
+.quest-reward b, .quest-head h2, .quest-role { color: var(--brass) !important; }
+.port-screen .role-tag, .port-chip { background: #f6ecd0 !important; }
+.compass .wind { }
+/* Round 2, proposal 1: A's brown-leather and paper menu, deep teal buttons. */
+html:root { --btn-bg: radial-gradient(circle at 30% 25%, #2f8a9a, #1d5a66 70%); --btn-ink: #f6ecd0; --btn-line: #0f3943; --btn-lip: #0f3943; }
+.d-btn.brass, .good-row .buy-btn, .port-screen .ship-btn, .lot-btn[aria-pressed='true'] {
+  background: var(--btn-bg) !important; color: var(--btn-ink) !important; border: 2px solid var(--btn-line) !important;
+  box-shadow: inset 0 -3px 0 var(--btn-lip), 0 2px 0 rgba(58, 42, 29, 0.6) !important;
+}
+.good-row .buy-btn *, .port-screen .ship-btn *, .lot-btn[aria-pressed='true'] * { color: var(--btn-ink) !important; }
+x-swallow{}
+/* Style E, direction 1 with Guillaume's changes (2026-10-28): refined's flat paper instead of the ruled
+   lines, 1's brown leather and 1's HUD kept, refined's speed log and wind boxes (type and layout),
+   and a brass Set sail on the Market footer (teal on brown was unreadable). Laid after d1-paper.css. */
+html:root {
+  --paper: #f1e6c8;
+  --paper-2: #e6d7ae;
+  --paper-shade: rgba(120, 85, 40, 0.13);
+  --figures: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+}
+/* Flat paper with one soft page edge (no ruled lines). */
+.menu-side, .menu-sheet, .sheet-body, .port-screen .trade-content, .trade-modal.port-screen, dialog.quest-card {
+  background: var(--paper) !important;
+}
+.menu-side { box-shadow: 6px 0 0 rgba(58, 42, 29, 0.35), inset 0 0 38px var(--paper-shade) !important; }
+.sheet-body { box-shadow: 0 0 0 3px var(--paper-edge) inset, inset 0 0 38px var(--paper-shade) !important; }
+.port-screen .trade-content { box-shadow: inset 0 0 38px var(--paper-shade) !important; }
+dialog.quest-card { box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4), inset 0 0 38px var(--paper-shade) !important; }
+
+/* Speed log and wind box: refined's type and layout on 1's dark HUD plates. */
+.log-speed, .log-sog, .captain-stat b, .obj-dist { font-family: var(--figures) !important; font-weight: 700 !important; letter-spacing: 0 !important; }
+.log-speed { font-size: 46px !important; line-height: 0.9 !important; }
+.log-speed small, .log-hdg small, .wind-caption { font-family: 'Barlow', sans-serif !important; text-transform: none !important; letter-spacing: 0 !important; }
+.log-hdg { font-family: var(--figures) !important; letter-spacing: 0 !important; }
+.speed-log .pos { font-family: 'Barlow', sans-serif !important; font-weight: 600 !important; font-size: 15px !important; text-transform: none !important; letter-spacing: 0 !important; }
+.compass-open { padding: 6px !important; }
+#wind-force { font-family: var(--figures) !important; font-weight: 700 !important; letter-spacing: 0 !important; }
+.wind-caption { font-size: 14px !important; }
+
+/* Market footer: Set sail was teal on brown. Brass with ink text reads on the leather. */
+.port-screen .trade-footer .port-btn.brass, .port-screen .trade-footer .undock-btn {
+  background: #e8c46a !important; color: #2e2217 !important; border: 2px solid #b08a2c !important;
+  box-shadow: inset 0 -3px 0 #b08a2c, 0 2px 0 rgba(0, 0, 0, 0.45) !important; border-radius: 999px !important;
+}
+.port-screen .trade-footer .port-btn.brass *, .port-screen .trade-footer .undock-btn * { color: #2e2217 !important; }
+.wind-caption, .wind-caption *, #wind-force { color: var(--hud-ink) !important; }
