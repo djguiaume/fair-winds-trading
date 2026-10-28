@@ -34,7 +34,7 @@ function modelOf(kind: string, style: string) {
   return model;
 }
 
-/** The ranks of a mesh's trees, lowest first, for the count a quality level draws. */
+/** The ranks of a mesh's trees, lowest first: a quality level draws the first ones. */
 interface ForestMeshData {
   ranks: number[];
 }
@@ -83,28 +83,19 @@ export function forestMeshes(
   return group;
 }
 
-/** Draw the trees a quality level keeps, with or without their shadows. */
+/**
+ * Draw the trees a quality level keeps, with or without their shadows: the `share` of each kind
+ * with the lowest ranks, which are the trees deepest in their woods.
+ */
 export function setForestQuality(group: THREE.Object3D, level: QualityLevel) {
   const { share, shadows } = FORESTS.quality[level];
   for (const mesh of group.children as THREE.InstancedMesh[]) {
     const { ranks } = mesh.userData as ForestMeshData;
-    mesh.count = countBelow(ranks, share);
+    mesh.count = Math.round(ranks.length * share);
     mesh.visible = mesh.count > 0;
     mesh.castShadow = shadows;
     mesh.receiveShadow = shadows;
   }
-}
-
-/** How many of the sorted ranks lie under `share`. */
-function countBelow(ranks: readonly number[], share: number) {
-  let lo = 0,
-    hi = ranks.length;
-  while (lo < hi) {
-    const mid = (lo + hi) >> 1;
-    if (ranks[mid]! < share) lo = mid + 1;
-    else hi = mid;
-  }
-  return lo;
 }
 
 /** What a forest group draws: trees, draw calls and triangles (the `?perf` and test budgets). */

@@ -173,6 +173,7 @@ export function townProps(
       if (!flat && (ha === null || hb === null || crossesCliff(layout, a.x, a.z, b.x, b.z)))
         continue;
       clearedLanes.push({ x, z });
+      clearings?.lanes.push([a.x, a.z, b.x, b.z, (lane.width ?? LANE_WIDTH) / 2]);
       const len = a.distanceTo(b) * R;
       const g = paint(
         new THREE.PlaneGeometry(len + 0.01, R * (lane.width ?? LANE_WIDTH))

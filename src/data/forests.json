@@ -2,7 +2,10 @@
   "spacing": 1.05,
   "jitter": 0.7,
   "sink": 0.05,
-  "clump": { "scale": 0.035, "octaves": 3, "fill": 0.85, "ragged": 0.03 },
+  "clump": { "scale": 0.035, "octaves": 3, "fill": 0.85, "ragged": 0.03, "outside": 0.5 },
+  "small": { "share": 0.3, "scale": 0.6 },
+  "hedgerow": { "spacing": 0.9, "offset": 0.5 },
+  "thinning": 0.4,
   "clear": { "houseWidths": 1.5, "lane": 1.2, "pier": 4, "plot": 3.5, "view": 3 },
   "quality": {
     "low": { "share": 0.45, "shadows": false },
@@ -66,6 +69,7 @@
       "cover": 0.4,
       "minHeight": 1,
       "maxSlope": 35,
+      "hedgerow": 0.7,
       "trees": [
         { "kind": "broadleaf", "share": 0.6, "to": 0.5 },
         { "kind": "pine", "share": 0.4 }
@@ -81,7 +85,7 @@
       ]
     },
     "north": {
-      "cover": 0.15,
+      "cover": 0.25,
       "minHeight": 1,
       "maxSlope": 22,
       "trees": [{ "kind": "snow-pine", "share": 1, "to": 0.35 }]

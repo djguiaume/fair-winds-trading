@@ -275,7 +275,7 @@ function forestLine(design: IslandDesign, place: { R: number; harbour: boolean }
   for (const t of trees) kinds.set(t.kind, (kinds.get(t.kind) ?? 0) + 1);
   const mix = [...kinds].map(([k, n]) => `${k} ${n}`).join(', ');
   const drawn = Object.entries(FORESTS.quality)
-    .map(([q, { share }]) => `${q} ${trees.filter((t) => t.rank < share).length}`)
+    .map(([q, { share }]) => `${q} ~${Math.round(trees.length * share)}`)
     .join(' · ');
   return `forest at level ${level}: ${trees.length} trees${mix ? ` (${mix})` : ''}; ${drawn}`;
 }

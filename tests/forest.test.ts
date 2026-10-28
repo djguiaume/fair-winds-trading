@@ -168,6 +168,32 @@ describe('forest placement', () => {
     }
   });
 
+  it('fills an island with painted woods beyond them, mixes small trees in, lines lanes', () => {
+    const island = islandOf('saltmere');
+    const input = inputOf(island);
+    const areas = input.design.woods.areas!;
+    const trees = PLANTED.get('saltmere')!;
+    const points = trees.map((t) => filePoint(island, t.x, t.y));
+    const outside = points.filter(
+      ([x, z]) => !areas.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r),
+    );
+    expect(outside.length).toBeGreaterThan(10);
+    // Small trees: a share of every kind, at the small size.
+    const unit = input.design.woods.size * 2.2;
+    const small = trees.filter((t) => t.scale < unit * FORESTS.kinds[t.kind]!.scale[0]);
+    expect(small.length / trees.length).toBeGreaterThan(0.2);
+    // Hedgerows: the lane pieces drawn at this level are lined with trees.
+    expect(input.clearings.lanes.length).toBeGreaterThan(0);
+    const ring = FORESTS.biomes.ring!;
+    const hedgerow = ring.hedgerow;
+    ring.hedgerow = 0;
+    try {
+      expect(plantForest(input).length).toBeLessThan(trees.length);
+    } finally {
+      ring.hedgerow = hedgerow;
+    }
+  });
+
   it('grows none with the woods off or a density of 0, more with a higher density', () => {
     const island = islandOf('calda');
     const design = structuredClone(designOf(island)!);
@@ -233,11 +259,13 @@ describe('forest drawing', () => {
     expect(drawn('ultra')).toBe(trees.length);
     expect(drawn('medium')).toBeLessThan(trees.length);
     expect(drawn('low')).toBeLessThan(drawn('medium'));
-    // Low draws the trees ranked first, which High draws too.
+    // Low draws the trees ranked first (deepest in their woods), which High draws too.
     setForestQuality(group, 'low');
     for (const mesh of group.children as THREE.InstancedMesh[]) {
       const ranks = (mesh.userData as { ranks: number[] }).ranks;
-      for (let i = 0; i < mesh.count; i++) expect(ranks[i]).toBeLessThan(FORESTS.quality.low.share);
+      expect(mesh.count).toBe(Math.round(ranks.length * FORESTS.quality.low.share));
+      const kept = Math.max(...ranks.slice(0, mesh.count));
+      for (const r of ranks.slice(mesh.count)) expect(r).toBeGreaterThanOrEqual(kept);
     }
     expect((group.children[0] as THREE.Mesh).castShadow).toBe(FORESTS.quality.low.shadows);
     setForestQuality(group, 'high');

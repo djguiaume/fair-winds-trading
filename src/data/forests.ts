@@ -34,6 +34,8 @@ export interface ForestBiome {
   minHeight: number;
   /** Degrees: no tree on steeper ground. */
   maxSlope: number;
+  /** Share of the lane sides lined with small trees (0 or left out: no hedgerows). */
+  hedgerow?: number;
   trees: ForestMixEntry[];
 }
 
@@ -52,9 +54,19 @@ export interface ForestData {
   sink: number;
   /**
    * Clumps: noise per world unit and its octaves; the share of cells a clump (or painted woods)
-   * fills; how wide a clump's ragged edge is, in noise values.
+   * fills; how wide a clump's ragged edge is, in noise values; on an island with painted woods,
+   * the share of the biome's cover that still grows in clumps outside them.
    */
-  clump: { scale: number; octaves: number; fill: number; ragged: number };
+  clump: { scale: number; octaves: number; fill: number; ragged: number; outside: number };
+  /** The share of trees that are small (two to a cell), and their size against the others. */
+  small: { share: number; scale: number };
+  /** Hedgerow trees: their spacing and how far off the lane's clear strip, in tree sizes. */
+  hedgerow: { spacing: number; offset: number };
+  /**
+   * How a lower quality level picks the trees it drops: 0 = strictly from the woods' edges in,
+   * 1 = at random. The same trees always.
+   */
+  thinning: number;
   /**
    * Clear ground, in world units unless named otherwise: round houses (house widths), each side
    * of a lane past its half width, round a pier's root and a build spot, and the harbour camera's
@@ -91,6 +103,7 @@ export function forestProblems(data: ForestData = FORESTS): string[] {
     if (!data.biomes[data.styles[style] ?? '']) out.push(`style ${style}: no biome`);
   for (const [id, biome] of Object.entries(data.biomes)) {
     share(biome.cover, `biome ${id}: cover`);
+    share(biome.hedgerow ?? 0, `biome ${id}: hedgerow`);
     if (biome.cover > 0 && !biome.trees.length) out.push(`biome ${id}: cover but no trees`);
     for (const t of biome.trees) {
       if (!data.kinds[t.kind]) out.push(`biome ${id}: no kind "${t.kind}"`);
@@ -100,5 +113,8 @@ export function forestProblems(data: ForestData = FORESTS): string[] {
     }
   }
   for (const [level, q] of Object.entries(data.quality)) share(q.share, `quality ${level}: share`);
+  share(data.small.share, 'small: share');
+  share(data.thinning, 'thinning');
+  share(data.clump.outside, 'clump: outside');
   return out;
 }

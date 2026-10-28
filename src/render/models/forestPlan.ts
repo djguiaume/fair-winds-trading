@@ -25,6 +25,7 @@ export const emptyClearings = (
 ): ForestClearings => ({
   circles: [],
   homes: [],
+  lanes: [],
   camera: harbour ? forestCamera(island, design) : undefined,
 });
 

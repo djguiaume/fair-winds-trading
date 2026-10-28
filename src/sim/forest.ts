@@ -29,7 +29,7 @@ export interface ForestTree {
   yaw: number;
   /** Index into its kind's `tints`. */
   tint: number;
-  /** 0 to 1: a quality level draws the trees ranked under its `share`, the same ones each time. */
+  /** 0 to 1: a quality level draws the lowest-ranked `share` of each kind, the same ones each time. */
   rank: number;
 }
 
@@ -39,6 +39,8 @@ export interface ForestClearings {
   circles: [number, number, number][];
   /** Houses [x, z] the harbour camera looks at. */
   homes: [number, number][];
+  /** The lane pieces drawn at this level [ax, az, bx, bz, half width]: hedgerows line them. */
+  lanes: [number, number, number, number, number][];
   /** Where the harbour camera stands, [x, z] in the file's units; none: no view to keep. */
   camera?: [number, number];
 }
@@ -65,6 +67,10 @@ const enum Salt {
   Yaw = 67,
   Tint = 79,
   Rank = 83,
+  Small = 97,
+  Hedge = 101,
+  /** Added to every salt for a small tree's companion in the same cell. */
+  Companion = 1000,
 }
 
 /** An island file point from a map point: `islandPoint` undone (a reflection: its own inverse). */
@@ -133,11 +139,19 @@ function inView(input: ForestInput, x: number, z: number) {
   });
 }
 
-/** The chance a tree grows where the clump noise is `n`: full inside a clump, a ragged edge. */
-function clumpChance(n: number, edge: number) {
+/** A clump's chance and how deep inside it a point is (0 at its edge, 1 well inside). */
+function clumpAt(n: number, edge: number) {
   const { fill, ragged } = FORESTS.clump;
   const t = Math.min(1, Math.max(0, (n - edge + ragged) / (2 * ragged)));
-  return fill * t * t * (3 - 2 * t);
+  const core = Math.min(1, Math.max(0, (n - edge + ragged) / (6 * ragged)));
+  return { chance: fill * t * t * (3 - 2 * t), core };
+}
+
+/** How deep inside the painted woods a point is: 0 at their edge, 1 at a circle's middle. */
+function paintedDepth(areas: [number, number, number][], x: number, z: number) {
+  let depth = -1;
+  for (const [cx, cz, r] of areas) depth = Math.max(depth, 1 - Math.hypot(x - cx, z - cz) / r);
+  return depth;
 }
 
 /** The kind that grows at a share of the island's top, picked by weight; none: no tree. */
@@ -147,9 +161,95 @@ function kindAt(biome: ForestBiome, t: number, pick: number): string | undefined
   return fits.find((e) => (left -= e.share) < 0)?.kind ?? fits[fits.length - 1]?.kind;
 }
 
+/** What one planting reads, worked out once. */
+interface Planting {
+  input: ForestInput;
+  biome: ForestBiome;
+  circles: [number, number, number][];
+  top: number;
+  seed: number;
+  /** World units per tree size: the island's `woods.size`. */
+  unit: number;
+  box?: MapBox;
+}
+
+/**
+ * A tree at file point (fx, fz), drawing its numbers from cell (i, j) with `salt` added; none
+ * where the ground or the town says no, or where its `chance` fails. `core` (0 to 1) is how deep
+ * in its wood it stands: a lower quality level drops the trees at the edges first.
+ */
+function treeAt(
+  pl: Planting,
+  fx: number,
+  fz: number,
+  i: number,
+  j: number,
+  salt: number,
+  chance: number,
+  core: number,
+  small: boolean,
+): ForestTree | null {
+  const { input, biome, seed } = pl;
+  const { island, field, design } = input;
+  const p = islandPoint(island, fx, fz);
+  const box = pl.box;
+  if (box && !(p.x >= box[0] && p.x <= box[2] && p.y >= box[1] && p.y <= box[3])) return null;
+  if (pl.circles.some(([x, z, r]) => Math.hypot(fx - x, fz - z) < r)) return null;
+  const height = heightAt(field, p.x, p.y);
+  if (height < biome.minHeight) return null;
+  const k = sampleIndex(field, p.x, p.y);
+  const ground = k < 0 ? '' : field.grounds[field.ground[k]!]!;
+  if (!ground || ground === 'lake' || !groundColors(ground, design.style).trees) return null;
+  if (slopeAt(field, p.x, p.y) > biome.maxSlope) return null;
+  if (hash01(seed + salt + Salt.Keep, i, j) >= chance) return null;
+  const kind = kindAt(biome, height / pl.top, hash01(seed + salt + Salt.Kind, i, j));
+  if (!kind || inView(input, fx, fz)) return null;
+  const look = FORESTS.kinds[kind]!;
+  const [lo, hi] = look.scale;
+  const size = lo + (hi - lo) * hash01(seed + salt + Salt.Scale, i, j);
+  const { thinning } = FORESTS;
+  return {
+    x: p.x,
+    y: p.y,
+    height,
+    kind,
+    scale: pl.unit * size * (small ? FORESTS.small.scale : 1),
+    yaw: hash01(seed + salt + Salt.Yaw, i, j) * Math.PI * 2,
+    tint: Math.floor(hash01(seed + salt + Salt.Tint, i, j) * look.tints.length),
+    rank: (1 - thinning) * (1 - core) + thinning * hash01(seed + salt + Salt.Rank, i, j),
+  };
+}
+
+/** Trees in lines along both sides of the lanes drawn at this level (the biome's `hedgerow`). */
+function hedgerows(pl: Planting, out: ForestTree[]) {
+  const chance = pl.biome.hedgerow ?? 0;
+  if (!chance) return;
+  const { island } = pl.input;
+  const { hedgerow, clear } = FORESTS;
+  const spacing = (hedgerow.spacing * pl.unit) / island.radius;
+  const offset = (clear.lane + hedgerow.offset * pl.unit) / island.radius;
+  pl.input.clearings.lanes.forEach(([ax, az, bx, bz, half], k) => {
+    const length = Math.hypot(bx - ax, bz - az);
+    if (!length) return;
+    const nx = -(bz - az) / length,
+      nz = (bx - ax) / length;
+    for (const side of [-1, 1]) {
+      const along = Math.min(1, length / spacing);
+      if (hash01(pl.seed + Salt.Hedge, k, side) >= chance * along) continue;
+      const d = side * (half + offset);
+      const fx = (ax + bx) / 2 + nx * d,
+        fz = (az + bz) / 2 + nz * d;
+      const tree = treeAt(pl, fx, fz, k, side, Salt.Hedge, 1, 0, true);
+      if (tree) out.push(tree);
+    }
+  });
+}
+
 /**
  * The trees of an island at a level; with `box`, only those standing inside it (map units).
- * None where the file's woods are off (`tries` 0) or its biome grows none.
+ * None where the file's woods are off (`tries` 0) or its biome grows none. Painted woods grow
+ * thick and the rest of the free ground in clumps; a share of the trees are small ones, two to a
+ * cell; hedgerows line the lanes.
  */
 export function plantForest(input: ForestInput, box?: MapBox): ForestTree[] {
   const { island, design, field } = input;
@@ -158,16 +258,23 @@ export function plantForest(input: ForestInput, box?: MapBox): ForestTree[] {
   const density = woods.density ?? 1;
   const cover = Math.min(1, (biome?.cover ?? 0) * density);
   if (!biome || cover <= 0 || !woods.tries) return [];
-  const { spacing, jitter, clump } = FORESTS;
-  // Painted woods are the forest itself, grown thick; elsewhere the noise's highest ground grows
-  // clumps over the biome's share of the free land.
-  const painted = !!woods.areas?.length;
-  const edge = fbmQuantile(clump.octaves, 1 - Math.min(1, cover / clump.fill));
+  const { spacing, jitter, clump, small } = FORESTS;
+  const areas = woods.areas ?? [];
+  // Outside painted woods only the biome's `outside` share grows, in clumps.
+  const loose = areas.length ? cover * clump.outside : cover;
+  const edge = fbmQuantile(clump.octaves, 1 - Math.min(1, loose / clump.fill));
   const unit = woods.size * ISLAND_SCALE;
   const step = (spacing * unit) / island.radius;
   const noiseScale = clump.scale * island.radius;
-  const circles = clearCircles(input);
-  const top = topOf(field) || 1;
+  const pl: Planting = {
+    input,
+    biome,
+    circles: clearCircles(input),
+    top: topOf(field) || 1,
+    seed: design.seed,
+    unit,
+    box,
+  };
   const seed = design.seed;
   const [x0, z0, x1, z1] = woods.area;
   const out: ForestTree[] = [];
@@ -175,35 +282,25 @@ export function plantForest(input: ForestInput, box?: MapBox): ForestTree[] {
     for (let i = Math.ceil(x0 / step); i * step <= x1; i++) {
       const fx = (i + (hash01(seed + Salt.JitterX, i, j) - 0.5) * jitter) * step,
         fz = (j + (hash01(seed + Salt.JitterZ, i, j) - 0.5) * jitter) * step;
-      const p = islandPoint(island, fx, fz);
-      if (box && !(p.x >= box[0] && p.x <= box[2] && p.y >= box[1] && p.y <= box[3])) continue;
-      if (painted && !woods.areas!.some(([x, z, r]) => Math.hypot(fx - x, fz - z) < r)) continue;
-      if (circles.some(([x, z, r]) => Math.hypot(fx - x, fz - z) < r)) continue;
-      const height = heightAt(field, p.x, p.y);
-      if (height < biome.minHeight) continue;
-      const k = sampleIndex(field, p.x, p.y);
-      const ground = k < 0 ? '' : field.grounds[field.ground[k]!]!;
-      if (!ground || ground === 'lake' || !groundColors(ground, design.style).trees) continue;
-      if (slopeAt(field, p.x, p.y) > biome.maxSlope) continue;
+      const depth = paintedDepth(areas, fx, fz);
       // In the file's frame, so an island's clumps stay put wherever its sea places it.
       const n = fbm(seed, fx * noiseScale, fz * noiseScale, clump.octaves);
-      const chance = painted ? Math.min(1, clump.fill * density) : clumpChance(n, edge);
-      if (hash01(seed + Salt.Keep, i, j) >= chance) continue;
-      const kind = kindAt(biome, height / top, hash01(seed + Salt.Kind, i, j));
-      if (!kind || inView(input, fx, fz)) continue;
-      const look = FORESTS.kinds[kind]!;
-      const [lo, hi] = look.scale;
-      out.push({
-        x: p.x,
-        y: p.y,
-        height,
-        kind,
-        scale: unit * (lo + (hi - lo) * hash01(seed + Salt.Scale, i, j)),
-        yaw: hash01(seed + Salt.Yaw, i, j) * Math.PI * 2,
-        tint: Math.floor(hash01(seed + Salt.Tint, i, j) * look.tints.length),
-        rank: hash01(seed + Salt.Rank, i, j),
-      });
+      const wood =
+        depth >= 0
+          ? { chance: Math.min(1, clump.fill * density), core: Math.min(1, depth * 2) }
+          : clumpAt(n, edge);
+      if (!wood.chance) continue;
+      const isSmall = hash01(seed + Salt.Small, i, j) < small.share;
+      const tree = treeAt(pl, fx, fz, i, j, 0, wood.chance, wood.core, isSmall);
+      if (tree) out.push(tree);
+      if (!isSmall) continue;
+      // A small tree shares its cell with a second one, half a cell off.
+      const cx = fx + step / 2,
+        cz = fz + (hash01(seed + Salt.Companion, i, j) - 0.5) * step;
+      const companion = treeAt(pl, cx, cz, i, j, Salt.Companion, wood.chance, wood.core, true);
+      if (companion) out.push(companion);
     }
+  hedgerows(pl, out);
   return out;
 }
 
