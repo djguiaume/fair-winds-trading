@@ -34,3 +34,5 @@ The art director picked the slim one-mast gaff cutter (Guillaume pointed at real
 
 - The club series (`regatta-club`) needs `"prize": "tern"`, and Abbey Head `builds` needs `tern-pilot` and `tern-yawl`, once the club races land.
 - Every new ship file appended to the list needs the same legacy entry in `saveLayout.ts`.
+
+- **Not in the engine yet:** a quest reward that gives a ship, and a quest start on "series won", so a pick-one prize (a `choose` step with a ship per option) is not possible; the prize is fixed and the other boats are sold. Tracked as idea issue #315 for v1.2.
