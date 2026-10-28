@@ -1,5 +1,6 @@
 import { formatNumber, goodMany, t } from '../i18n';
 import { type MenuAction, PAD } from '../input/gamepad';
+import { clubBoardBody } from './clubBoardView';
 import { COIN, icon } from './icons';
 import { padGlyph } from './padGlyphs';
 import { firstName, portraitSvg } from './portraits';
@@ -65,6 +66,7 @@ const TAG_KEY = { new: 'quest.tagNew', next: 'quest.tagNext', done: 'quest.tagDo
  * card has no button there, and the buttons name their quest.
  */
 export function questCardBody(c: QuestCardModel, inline = false): string {
+  if (c.race?.board) return clubBoardBody(c.race.board);
   const tag = cardTag(c.kind);
   const pips = Array.from(
     { length: c.steps },

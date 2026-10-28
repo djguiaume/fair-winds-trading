@@ -37,6 +37,11 @@
       "id": "regatta-cup",
       "name": "The Four Winds Cup",
       "pennant": "pennant-four-winds"
+    },
+    {
+      "id": "regatta-club",
+      "name": "The Sailing Club",
+      "pennant": "pennant-club"
     }
   ]
 }

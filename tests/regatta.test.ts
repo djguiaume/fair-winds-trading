@@ -296,26 +296,32 @@ describe('regatta (decision 0217)', () => {
     expect(RACE_FINISHED).toBe(2);
   });
 
-  it('the shipped races: eight, all sound, and their gold a small share of the game', () => {
+  it('the shipped races: fourteen, all sound, and their gold a small share of the game', () => {
     const races = QUESTS.filter((q) => q.race);
     expect(races.map((q) => q.id).sort()).toEqual(
       [
+        'race-abbey',
         'race-calda',
+        'race-coral-squall',
         'race-floe',
         'race-four-winds',
         'race-gap',
         'race-greyback',
+        'race-light',
+        'race-mill',
         'race-narrows',
+        'race-sandwick-squall',
         'race-smoulder',
+        'race-snowberry-squall',
         'race-stormbreak',
       ].sort(),
     );
-    // Every series has its races: the ring 3, the seas 4, the Cup 1.
+    // Every series has its races: the ring 3, the seas 4, the Cup 1, the club 6.
     const count = (s: string) => races.filter((q) => q.race!.series === s).length;
-    expect([count('regatta-ring'), count('regatta-seas'), count('regatta-cup')]).toEqual([3, 4, 1]);
-    // Every medal the first time comes to under 6,000 gold: pride, not power (storyteller).
+    expect(['ring', 'seas', 'cup', 'club'].map((s) => count(`regatta-${s}`))).toEqual([3, 4, 1, 6]);
+    // Every medal the first time comes to under 10,000 gold (the club adds 4,110, decision 0226): pride, not power (storyteller).
     const all = races.reduce((n, q) => n + medalGold(q.race!, 0, 3), 0);
-    expect(all).toBeLessThanOrEqual(6000);
+    expect(all).toBeLessThanOrEqual(10000);
     // Every ship class has a par on every level.
     for (const q of races)
       for (const ship of ['sloop', 'cutter', 'schooner', 'clipper', 'hoy', 'fluyt', 'indiaman'])
