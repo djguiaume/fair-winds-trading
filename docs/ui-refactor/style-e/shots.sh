@@ -3,6 +3,7 @@
 t=$1; sizes=${2:-desktop}
 st="docs/ui-refactor/style-e/css/fonts.css,docs/ui-refactor/style-e/css/$t.css"
 day=/tmp/claude-0/s/$t.json; night=/tmp/claude-0/s/$t-night.json
+nst="$st,docs/ui-refactor/style-e/css/night-dim.css"
 cat > $day <<J
 [
  {"name":"1-menu","menu":true,"style":"$st"},
@@ -18,8 +19,8 @@ cat > $day <<J
 J
 cat > $night <<J
 [
- {"name":"4-sea","sail":true,"night":true,"style":"$st"},
- {"name":"5-market","port":"saltmere","night":true,"style":"$st"}
+ {"name":"4-sea","sail":true,"night":true,"style":"$nst"},
+ {"name":"5-market","port":"saltmere","night":true,"style":"$nst"}
 ]
 J
 cd /home/user/fair-winds-trading

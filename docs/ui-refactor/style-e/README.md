@@ -23,3 +23,12 @@ python3 sheets.py /tmp/claude-0/s out   # the contact sheets
 Screens: title menu, new voyage, settings, sea HUD, port Market and Quay, chart, quest card, Xbox focus,
 sea and Market at night. Desktop and portrait. The stylesheets are mockup code (`!important` everywhere);
 the build would move the tokens into `src/ui/theme.css` and the materials into small SVG frames.
+
+## Round 2 (Guillaume, 2026-10-28)
+
+Guillaume: A has the most personality and looks least AI-made, B has the best HUD, C is too modern and
+too "default AI" (yellow/blue). Red confirm buttons and B's plank lines out. Two proposals on A:
+[d1](css/d1-paper-teal-buttons.css) paper menu and deep teal buttons, [d2](css/d2-teal-brass-buttons.css)
+flat teal menu and frames with paper pages and brass buttons. Both: B's sea HUD (flat dark teal, brass
+line), deep teal accents, red only for danger, paper dimmed 20% at night ([night-dim.css](css/night-dim.css)).
+`d1-paper.css` and `d2-teal.css` are the three layers concatenated (what `shots.sh` loads).
