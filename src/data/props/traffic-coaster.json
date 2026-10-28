@@ -31,7 +31,7 @@
     {
       "box": [0.8, 0.04, 0.9],
       "at": [0, 0.84, 1.0],
-      "color": "boatDeck"
+      "color": "boatBand[variant]"
     },
     {
       "box": [1.5, 0.8, 1.3],

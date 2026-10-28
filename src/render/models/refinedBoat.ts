@@ -130,7 +130,10 @@ class Faces {
 /** Class-specific deck outline and depth sections, with shared gunwale construction. */
 export function hullGeometry(
   level: number,
-  rig: Pick<RefinedRig, 'length' | 'beam' | 'depth' | 'hull' | 'band' | 'hullShape' | 'damage'>,
+  rig: Pick<RefinedRig, 'length' | 'beam' | 'depth' | 'hull' | 'band' | 'hullShape' | 'damage'> & {
+    /** Paints the whole gunwale, cap included: the other boats' home colour, seen from above. */
+    rail?: string;
+  },
   damage = 0,
 ) {
   const { length: L, band: BAND, hull: HULL } = rig;
@@ -186,9 +189,9 @@ export function hullGeometry(
       const bt = b.clone().add(V(0, 0.16, 0));
       const ait = ai.clone().add(V(0, 0.16, 0));
       const bit = bi.clone().add(V(0, 0.16, 0));
-      f.quad(a, b, bt, at, HULL);
-      f.quad(at, bt, bit, ait, ST.deck);
-      f.quad(ai, ait, bit, bi, HULL);
+      f.quad(a, b, bt, at, rig.rail ?? HULL);
+      f.quad(at, bt, bit, ait, rig.rail ?? ST.deck);
+      f.quad(ai, ait, bit, bi, rig.rail ?? HULL);
       if (spans.length > 1) {
         // The broken ends: the gunwale's cut section, in bare wood.
         const end = from === 0 ? [b, bi, bit, bt] : [a, at, ait, ai];

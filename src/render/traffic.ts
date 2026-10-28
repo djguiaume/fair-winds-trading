@@ -11,6 +11,7 @@ import { windTo } from '../sim/wind';
 import { glowTexture } from './lanterns';
 import { TrafficWakes } from './trafficWake';
 import type { WakeHull } from './wake';
+import TRAFFIC_BOATS from '../data/traffic-boats.json';
 import { cargoOf, trafficBatch, trafficMaterials, type Batch } from './trafficBatch';
 import { RefinedBoat } from './models/refinedBoat';
 import { rigOf } from './models/shipModels';
@@ -76,7 +77,7 @@ export class TrafficView {
     );
     // Small warm lamps (the lit-window colour), never brighter than the player's own lantern.
     this.lightMaterial = new THREE.PointsMaterial({
-      size: 1.6,
+      size: TRAFFIC_BOATS.lampSize,
       color: PALETTE.colors.lamp as string,
       map: this.lightTexture,
       transparent: true,

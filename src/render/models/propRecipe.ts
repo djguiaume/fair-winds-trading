@@ -223,7 +223,7 @@ export const CODE_PARTS: Record<string, (scope: Scope) => THREE.BufferGeometry> 
 /** Boat hulls by id: length, beam, depth and the sections `hullGeometry` lofts. */
 const HULLS = trafficBoats.hulls as Record<
   string,
-  Omit<Parameters<typeof hullGeometry>[1], 'hull' | 'band'>
+  Omit<Parameters<typeof hullGeometry>[1], 'hull' | 'band' | 'rail'>
 >;
 
 // ---------------------------------------------------------------- shapes
@@ -387,6 +387,7 @@ export function prepareProp(id: string, args: PropBuildArgs): () => Parts {
           ...hull,
           hull: colorOf(p.color, style, s),
           band: colorOf(p.band ?? p.color, style, s),
+          rail: colorOf(p.band ?? p.color, style, s),
         });
         transform(g, p, s);
         out.push(g);
