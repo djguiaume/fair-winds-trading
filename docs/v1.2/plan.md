@@ -46,6 +46,7 @@ The *Traffic Architect* look on every quality level: smooth rolling island groun
 - Island files take `sculpt: { version, edits }`; `designHeightfield(island, design, level)` builds a field afresh (generated ground, then the edits), `islandHeightfield` caches it.
 - `src/sim/sculpt.ts`: the five operations, `applyEdit`, `keepMask` (terrace protection), `editProblems`, `editReach`, `Region`. `src/sim/sculptSession.ts`: `SculptSession` (`begin`, `dab`, `commit`, `cancel`, `undo`, `redo`, `sculpt`), each returning the region to rebuild. `src/sim/sculptChecks.ts`: `checkSculpt`, run by `checkIsland`.
 - Numbers in `terrain.json › sculpt` (Terrain tab in `?tune`); big buildings' protected footprint is the prop recipe's `protect`.
+- CLI (#272, decision [0234](../decisions/0234-terrain-command-line-tool-sculpt-commands-exportimport-and-l.md)): `npm run island -- <id> sculpt …` and `--steps` run the same `SculptSession` via `src/sim/sculptScript.ts` (`applySculpt`, `parseSculpt`, `sculptFrame`); list, remove, reset, export, import; limits in `terrain.json › sculpt › limits`. Guide: [docs/tools/terrain.md](../tools/terrain.md).
 - Diagnostic sheet of every operation on Port Calda: [sculpt-ops.jpg](sculpt-ops.jpg).
 
 ### 2. Smooth ground (1 to 2 weeks with the editors)

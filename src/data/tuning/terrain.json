@@ -58,6 +58,12 @@
       "margin": 1.6,
       "fade": 1.6
     },
-    "levelTolerance": 0.15
+    "levelTolerance": 0.15,
+    "limits": {
+      "edits": 400,
+      "points": 600,
+      "radius": 1.5,
+      "reach": 2
+    }
   }
 }

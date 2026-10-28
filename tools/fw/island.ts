@@ -15,14 +15,20 @@ import {
 } from '../../src/editor/island/steps';
 import { formatIslandJson } from '../../src/editor/model';
 import { ISLAND_SCALE } from '../../src/sim/islandUnits';
+import {
+  type SculptCommand,
+  applySculpt,
+  isSculptCommand,
+  sculptFrame,
+} from '../../src/sim/sculptScript';
 import { islandCheckKit } from '../../src/render/models/towns';
 import { isResidence } from '../../src/render/models/townProps';
+import { type Args, num, pair, pointList } from './islandArgs';
+import { SCULPT_HELP, exportJson, listEdits, sculptCall } from './islandSculpt';
 import { type IslandPlace, defaultSeas, islandPlacements, islandProblems } from './check';
 
 /** The repository: npm runs the tools from there. */
 const ROOT = process.cwd();
-
-type Args = Record<string, string | boolean | undefined> & { _: string[] };
 
 const HELP = `npm run island -- <id|file.json> [step] [options]   change an island file, check it, one line
 npm run island -- new <id> [options]                  a new island file (src/data/islands/<id>.json)
@@ -51,25 +57,14 @@ steps (island-radius units, harbour toward +z; --level n = from that town level)
             picture of its port (decision 0211; heights in radius units; none clears one, --clear all)
   ground    <index> [--ramp] --material <palette.json ground: grass, rock, snow, ice…> [--height h] [--beach w (a coast ground: its beach width)]
             [--smooth 0..1 (the new look's rounding: 0 stays faceted, a stack or crater rim; 1 the default)]
+  sculpt    hand terrain, brush by brush (help below); also steps {"do":"sculpt",…} in --steps
   tidy      rewrite the file in the builder's format (any step does)
 options: --steps steps.json (or '[{"do":"prop",…}]': a list of steps as data, see src/editor/island/steps.ts)
          --radius r  map radius to check at (default: the island's size on the ring or the Phase 4 sea)
          --no-harbour  check as an island without a harbour; --out file  write there instead
-         --dry  do not write; --warnings  list warnings; --json  summary, steps and problems as JSON`;
+         --dry  do not write; --warnings  list warnings; --json  summary, steps and problems as JSON
+${SCULPT_HELP}`;
 
-const num = (v: unknown) => (v === undefined || v === true ? undefined : Number(v));
-/** "x,z x,z" or "x,z;x,z" (a third number per point for stairs). */
-const pointList = (v: unknown) =>
-  typeof v === 'string'
-    ? v
-        .split(/[;\s]+/)
-        .filter(Boolean)
-        .map((p) => p.split(',').map(Number))
-    : undefined;
-const pair = (v: unknown) => {
-  const p = pointList(v)?.[0];
-  return p ? ([p[0]!, p[1] ?? p[0]!] as [number, number]) : undefined;
-};
 /** "r=1,points=14,rough=0.2" */
 function blobSpec(v: unknown): BlobSpec | undefined {
   if (typeof v !== 'string') return v === true ? { r: 1 } : undefined;
@@ -250,6 +245,25 @@ export function placeOf(id: string, radius?: number, harbour?: boolean): IslandP
   return at && harbour === false ? { ...at, harbour } : at;
 }
 
+/** `sculpt list` and `sculpt export`: report on the file and leave it alone. */
+function printSculpt(design: IslandDesign, call: ReturnType<typeof sculptCall>) {
+  if ('command' in call) return 0;
+  if (call.report === 'list') {
+    console.log(listEdits(design).join('\n'));
+    return 0;
+  }
+  const json = exportJson(design);
+  if (json === undefined) {
+    console.log('✗ no sculpt edits to export');
+    return 1;
+  }
+  if (call.to) writeFileSync(resolve(call.to), json);
+  console.log(
+    call.to ? `exported ${design.sculpt?.edits.length} edits → ${call.to}` : json.trimEnd(),
+  );
+  return 0;
+}
+
 export function run(args: Args): number {
   const [target, kind, ...rest] = args._;
   if (args.help || !target) {
@@ -259,6 +273,8 @@ export function run(args: Args): number {
   let design: IslandDesign;
   let file: string;
   const steps: IslandStep[] = [];
+  const sculpting: SculptCommand[] = [];
+  let report: ReturnType<typeof sculptCall> | undefined;
   try {
     if (target === 'new') {
       const id = kind;
@@ -279,22 +295,32 @@ export function run(args: Args): number {
         throw new Error(`no island file ${from} (npm run island -- new ${target})`);
       design = JSON.parse(readFileSync(from, 'utf8')) as IslandDesign;
       file = typeof args.out === 'string' ? resolve(args.out) : from;
-      if (kind && kind !== 'tidy' && kind !== 'check') steps.push(stepFromArgs(kind, args, rest));
+      if (kind === 'sculpt') {
+        const call = sculptCall(args, rest);
+        if ('command' in call) sculpting.push(call.command);
+        else report = call;
+      } else if (kind && kind !== 'tidy' && kind !== 'check')
+        steps.push(stepFromArgs(kind, args, rest));
     }
     if (typeof args.steps === 'string') {
       const text = args.steps.trim().startsWith('[')
         ? args.steps
         : readFileSync(args.steps, 'utf8');
-      steps.push(...(JSON.parse(text) as IslandStep[]));
+      for (const step of JSON.parse(text) as (IslandStep | SculptCommand)[])
+        (isSculptCommand(step) ? sculpting : steps).push(step as never);
     }
   } catch (e) {
     console.log(`✗ ${(e as Error).message}`);
     return 1;
   }
 
+  const at = placeOf(design.id, num(args.radius), args['no-harbour'] ? false : undefined);
+  const place = at ?? { R: 20 / ISLAND_SCALE, harbour: false };
   let made: string[];
   try {
     made = applySteps(design, steps);
+    if (report) return printSculpt(design, report);
+    made.push(...applySculpt(sculptFrame(design.id, place.R), design, sculpting));
   } catch (e) {
     console.log(`✗ ${(e as Error).message} (nothing written)`);
     return 1;
@@ -303,8 +329,6 @@ export function run(args: Args): number {
   const write = !args.dry && kind !== 'check';
   if (write) writeFileSync(file, formatIslandJson(design));
 
-  const at = placeOf(design.id, num(args.radius), args['no-harbour'] ? false : undefined);
-  const place = at ?? { R: 20 / ISLAND_SCALE, harbour: false };
   const problems = islandProblems(design, place);
   const errors = problems.filter((p) => p.severity === 'error');
   // Triangles at the top level, against the old phones' budget (0117).
