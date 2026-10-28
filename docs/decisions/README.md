@@ -250,3 +250,4 @@ Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decis
 | [0226](0226-the-sailing-club-races-and-club-board.md) | **The Sailing Club races and club board**: six new races (three with one fixed storm), series and pennant, a club board at Saltmere, best times per ship class | 2026-10-28 | Proposed |
 | [0227](0227-the-racer-cafe-at-abbey-head.md) | **The racer café at Abbey Head**: Wren's shed and a café on the quay, Rook's hint and chart flag after the prologue, every race offered on the Abbey Head Quay, ring races open early with smaller gold | 2026-10-28 | Accepted |
 | [0228](0228-the-tern-a-prize-racing-boat.md) | **The Tern, a prize racing boat**: a fast racer with a tiny hold, given for a series won | 2026-10-28 | Proposed |
+| [0229](0229-version-11-release-the-sailing-club.md) | **Version 1.1 release, The Sailing Club**: package 1.1.0, menu label "1.1", tag and notes | 2026-10-28 | Accepted |
