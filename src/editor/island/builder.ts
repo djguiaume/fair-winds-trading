@@ -14,8 +14,7 @@ import { isGlowing } from '../../render/models/geometry';
 import { PROP_TYPES, type PropGroup } from '../../render/models/props';
 import { designedTownParts, islandCheckKit, type TownLevel } from '../../render/models/towns';
 import { propParts, standHeight } from '../../render/models/townProps';
-import { coastDistance } from '../../sim/coast';
-import { type IslandIssue, TRIANGLE_BUDGET } from '../../sim/islandChecks';
+import type { IslandIssue } from '../../sim/islandChecks';
 import { islandLayout, layoutGround } from '../../sim/islandLayout';
 import type { IslandDef } from '../../sim/map';
 import { History, formatIslandJson } from '../model';
@@ -37,7 +36,10 @@ import {
   tidyDesign,
   turnProp,
 } from './doc';
+import { renderChecks } from './checksView';
+import { fits, groundOf, propHull } from './propPlace';
 import { drawOverlay } from './overlay';
+import { TOOLS, TOOL_HINTS, type ShapeTool } from './toolTable';
 import { renderIslandPanel } from './panel';
 import { renderShapePanel } from './shapePanel';
 import { type SpotShow, renderSpotPanel } from './spotPanel';
@@ -139,18 +141,6 @@ let spotSel: number | null = null;
 let showHome: SpotShow = 'all';
 let chosen: Record<string, string> = {};
 let shapeSel: { shape: Shape; point?: number } | null = null;
-type ShapeTool =
-  | 'plateau'
-  | 'mountain'
-  | 'lake'
-  | 'ramp'
-  | 'grow'
-  | 'clear'
-  | 'lane'
-  | 'path'
-  | 'stairs'
-  | 'river'
-  | 'lava';
 let tool: ShapeTool | null = null;
 /** A lane being drawn (with heights for stairs), and the pointer while drawing or painting. */
 let drawing: number[][] | null = null;
@@ -332,37 +322,6 @@ function rebuild(without?: number) {
   $('ib-preview-title').textContent = `3D preview · level ${level}`;
 }
 
-const hulls = new Map<string, [number, number][]>();
-/** A prop's plan outline where it stands, from its model (cached by everything but place). */
-function hull(index: number): [number, number][] {
-  const p = design.props[index]!;
-  const key = JSON.stringify([
-    p.type,
-    p.turn,
-    p.size,
-    p.variant,
-    p.shape,
-    p.length,
-    design.style,
-    R,
-  ]);
-  let local = hulls.get(key);
-  if (!local) {
-    try {
-      local = islandCheckKit(design, R, harbour).footprint!({ ...p, x: 0, z: 0 });
-    } catch {
-      local = [
-        [-0.03, -0.03],
-        [0.03, -0.03],
-        [0.03, 0.03],
-        [-0.03, 0.03],
-      ];
-    }
-    hulls.set(key, local);
-  }
-  return local.map(([x, z]) => [x + p.x, z + p.z]);
-}
-
 let drop: { hull: [number, number][]; ok: boolean; label: string } | undefined;
 
 function draw() {
@@ -387,7 +346,7 @@ function draw() {
     showLater,
     outlines,
     selection,
-    hull,
+    hull: (index) => propHull(design, R, harbour, index),
     issues,
     drop,
     mode,
@@ -476,7 +435,7 @@ function drawPanel() {
     select,
     duplicate,
     remove,
-    groundOf,
+    groundOf: (index) => groundOf(design, level, index),
   });
 }
 
@@ -498,7 +457,8 @@ function drawSelectionBar() {
   const text = document.createElement('div');
   text.innerHTML = '<b></b><small></small>';
   text.querySelector('b')!.textContent = propName(p.type);
-  text.querySelector('small')!.textContent = `from level ${p.from} · ${groundOf(selection!)}`;
+  text.querySelector('small')!.textContent =
+    `from level ${p.from} · ${groundOf(design, level, selection!)}`;
   bar.append(img, text);
   const action = (label: string, title: string, run: () => void) => {
     const b = document.createElement('button');
@@ -517,23 +477,6 @@ function drawSelectionBar() {
   action('⟳', 'Turn 15° right', turnBy(15));
   action('⧉', 'Duplicate', duplicate);
   action('🗑', 'Delete', remove);
-}
-
-function groundOf(index: number) {
-  const p = design.props[index]!;
-  if (PROP_TYPES[p.type]?.water) return 'in the sea';
-  if (p.y !== undefined) return `set at ${p.y}`;
-  const layout = islandLayout(design, Math.max(level, p.from ?? 1));
-  const h = layoutGround(layout, p.x, p.z, 0);
-  if (h !== null) {
-    const s = layout.surfaces.find((g) => g.height === h);
-    const lowest = Math.min(...layout.surfaces.map((g) => g.height));
-    if (s?.material === 'rock') return `on rock (height ${h})`;
-    return h === lowest ? 'on the low ground' : `on raised ground (height ${h})`;
-  }
-  return layout.coasts.some((c) => coastDistance(p.x, p.z, c).distance < 0)
-    ? 'on the sand'
-    : 'off the island';
 }
 
 /** After any edit: a fresh copy (layout caches key on the object), save, rebuild, recheck. */
@@ -634,21 +577,6 @@ function removeShape() {
   commit();
 }
 
-const TOOL_HINTS: Record<ShapeTool, string> = {
-  plateau: 'Click the island to add raised ground there · Esc cancels',
-  mountain: 'Click the island to add a mountain · Esc cancels',
-  lake: 'Click the island to add the lake · Esc cancels',
-  ramp: 'Click the foot of the ramp, then its bends, then its top; click the top again or press Enter · Esc cancels',
-  grow: 'Paint where trees may grow · Esc stops',
-  clear: 'Paint where trees are cleared · Esc stops',
-  lane: 'Click to add bends; click the last point again or press Enter to finish · Esc cancels',
-  path: 'Click to add bends; click the last point again or press Enter to finish · Esc cancels',
-  stairs: 'Click the foot and the top of a cliff (and any bends); Enter finishes · Esc cancels',
-  river:
-    'Click the source, then bends down to the mouth (past the coast it falls into the sea); Enter finishes · Esc cancels',
-  lava: 'Click the source, then bends down to the mouth (past the coast it steams in the sea); Enter finishes · Esc cancels',
-};
-
 function hint(text?: string) {
   $('ib-hint').textContent =
     text ??
@@ -709,50 +637,14 @@ function runChecks() {
 }
 
 function showChecks() {
-  const list = $('ib-checks');
-  list.replaceChildren();
-  const li = (cls: string, text: string, sub?: string) => {
-    const item = document.createElement('li');
-    item.className = cls;
-    item.textContent = text;
-    if (sub) {
-      const small = document.createElement('small');
-      small.textContent = sub;
-      item.append(document.createElement('br'), small);
-    }
-    list.append(item);
-    return item;
-  };
-  if (checking) li('pending', '⋯ checking the island');
-  const has = (check: string) => issues.some((i) => i.check === check);
-  if (!checking) {
-    if (!has('land') && !has('water') && !has('cliff'))
-      li('ok', '✓ every prop on its ground, none in the lake or on a cliff edge');
-    if (!has('approach') && !has('pier')) li('ok', '✓ clear of the piers and the harbour approach');
-    if (!has('growth')) li('ok', '✓ each level only adds: no home is removed');
-  }
-  for (const issue of issues) {
-    const item = li(
-      issue.severity,
-      `${issue.severity === 'error' ? '✗' : '⚠'} ${issue.message}`,
-      issue.level ? `level ${issue.level}` : undefined,
-    );
-    if (issue.prop !== undefined || issue.level !== undefined) {
-      item.classList.add('link');
-      item.addEventListener('click', () => {
-        if (issue.level && issue.level !== level) setLevel(issue.level as Level);
-        if (issue.prop !== undefined) select(issue.prop);
-      });
-    }
-  }
-  if (!checking && triangles.length && !has('budget'))
-    li(
-      'ok',
-      `✓ 3D: ${triangles[TOP_LEVEL - 1]!.toLocaleString('en')} of ${TRIANGLE_BUDGET.toLocaleString('en')} triangles at level ${TOP_LEVEL}`,
-    );
-  const errors = issues.filter((i) => i.severity === 'error').length;
-  const warnings = issues.length - errors;
-  $('ib-tab-count').textContent = errors ? `✗${errors}` : warnings ? `⚠${warnings}` : '';
+  $('ib-tab-count').textContent = renderChecks(
+    $('ib-checks'),
+    { issues, triangles, checking },
+    (issue) => {
+      if (issue.level && issue.level !== level) setLevel(issue.level as Level);
+      if (issue.prop !== undefined) select(issue.prop);
+    },
+  );
 }
 
 // --- Levels, palette and toggles -------------------------------------------------------------
@@ -871,30 +763,6 @@ function setTool(next: ShapeTool | null) {
     b.setAttribute('aria-pressed', String(b.dataset.tool === tool));
   hint();
 }
-
-const TOOLS: Record<'ground' | 'lanes', [string, string | ShapeTool, string, string][]> = {
-  ground: [
-    ['Ground', 'coast', '🏝️', 'Coast: Drag a point, or a ring on an edge to add one'],
-    ['Ground', 'plateau', '⛰️', 'Raised ground: A plateau or terrace, with cliff or slope edges'],
-    ['Ground', 'mountain', '🗻', 'Mountain: A rocky peak'],
-    ['Ground', 'lake', '💧', 'Lake: Inland water, kept clear of homes'],
-    [
-      'Ground',
-      'ramp',
-      '↗️',
-      'Ramp: Draw its path; it climbs evenly from its start to its end height',
-    ],
-    ['Woods', 'grow', '🌲', 'Grow woods: Paint the woods; once painted, trees grow only there'],
-    ['Woods', 'clear', '🪓', 'Clear trees: Paint where none grow'],
-  ],
-  lanes: [
-    ['Lanes', 'lane', '〰️', 'Lane: Shows near the homes standing at each level'],
-    ['Lanes', 'path', '┈', 'Path: Always shown'],
-    ['Lanes', 'stairs', '🪜', 'Stairs: Climb a cliff between two ground levels'],
-    ['Rivers', 'river', '🏞️', 'River: Water down the land, falls at cliffs and into the sea'],
-    ['Rivers', 'lava', '🌋', 'Lava river: Glows at night, steams where it meets the sea'],
-  ],
-};
 
 function drawTools() {
   const box = $('ib-shape-tools');
@@ -1092,24 +960,6 @@ function placeMoving(p: { turn?: number; y?: number; type: string }, x: number, 
   top!.placeMoving(x * R, y + 0.05, z * R, ((p.turn ?? 0) * Math.PI) / 180);
 }
 
-/** A quick fit test for a prop being dropped: on land (or in the sea for boats). */
-function fits(type: string, x: number, z: number) {
-  const layout = islandLayout(design, level);
-  const p = newProp(design, type, x, z, placeLevel());
-  let fit = 0.05;
-  try {
-    fit = islandCheckKit(design, R, harbour).fit(p);
-  } catch {
-    /* Unknown models fit nowhere: the checks say why. */
-  }
-  const land = Math.max(...layout.coasts.map((c) => -coastDistance(x, z, c).distance));
-  if (PROP_TYPES[type]?.water) return land < -fit;
-  if (layout.lake && coastDistance(x, z, layout.lake).distance < fit) return false;
-  if (layoutGround(layout, x, z, 0) === null)
-    return land > 0 && !!PROP_TYPES[type]?.edge ? true : land > 0;
-  return layoutGround(layout, x, z, fit) !== null;
-}
-
 function setDrop(type: string, x: number, z: number) {
   const p = newProp(design, type, x, z, placeLevel());
   const hullAt = (() => {
@@ -1126,7 +976,7 @@ function setDrop(type: string, x: number, z: number) {
       ] as [number, number][];
     }
   })();
-  const ok = fits(type, x, z);
+  const ok = fits(design, R, harbour, level, placeLevel(), type, x, z);
   drop = {
     hull: hullAt,
     ok,
