@@ -11,6 +11,7 @@ import {
 } from './islandLayout';
 import { atLevel, type IslandDesign, type PropDef, questApart } from '../data/islands';
 import { GROUNDS, STYLES, groundId } from '../data/grounds';
+import { checkSculpt } from './sculptChecks';
 
 /**
  * Island file checks (decision 0096 §2, built in 0101), shared by the island builder and
@@ -122,6 +123,8 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
   });
   if (!kit.woodlandTrees.includes(design.woods.tree))
     error('known', `Unknown woods tree "${design.woods.tree}"`);
+  // Hand sculpting (decision 0230): edits that replay, buildings still level.
+  issues.push(...checkSculpt(design, kit));
   if (issues.some((i) => i.severity === 'error')) return issues;
 
   // Raised ground and the lake inside the coast.

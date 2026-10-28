@@ -1,12 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { PROP_GROUPS, PROP_RECIPES, type PropRecipe } from '../src/data/props';
 import { PROP_TYPES } from '../src/render/models/props';
-import {
-  buildProp,
-  checkPropRecipe,
-  compileExpression,
-  partsTriangles,
-} from '../src/render/models/propRecipe';
+import { buildProp, compileExpression, partsTriangles } from '../src/render/models/propRecipe';
+import { checkPropRecipe } from '../src/render/models/propRecipeChecks';
 
 describe('prop recipe files (decision 0135)', () => {
   it('every file reads, builds in every style and variant, and keeps its group budget', () => {

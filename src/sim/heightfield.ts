@@ -17,6 +17,7 @@ import {
 } from './islandLayout';
 import { BEACH_TOP, ISLAND_SCALE } from './islandUnits';
 import { smoothField, townKeepAreas } from './smoothField';
+import { sculptField } from './sculpt';
 
 /**
  * The islands' ground as one grid of heights (decision 0222, issue #268): built from the island
@@ -328,14 +329,12 @@ export function islandHeightfield(island: IslandDef, level = 4): Heightfield {
 }
 
 /**
- * The height field of an island file placed as `island`, built afresh (no cache): the island
- * builder draws its edited copy with it. Rasterised, then smoothed (issue #269).
+/**
+ * An island file's field placed as `island`, built afresh: its generated ground smoothed into
+ * the new look's rolling land (issue #269), then its hand edits (decision 0230). For a file that
+ * is not the map's own, as the island builder, the island checks and the sculpting session use.
  */
-export function designHeightfield(
-  island: IslandDef,
-  design: IslandDesign,
-  level: number,
-): Heightfield {
+export function designHeightfield(island: IslandDef, design: IslandDesign, level = 4): Heightfield {
   const toMap = (x: number, z: number) => islandPoint(island, x, z);
   const coasts = design.coasts.map((c) =>
     c.map(([x, z]): Point => {
@@ -343,11 +342,12 @@ export function designHeightfield(
       return [p.x, p.y];
     }),
   );
-  return smoothField(
+  const field = smoothField(
     rasterise(boxOf(coasts), design.seed, designSampler(island, design, level)),
     townKeepAreas(design, level, island.radius, toMap),
     coasts,
   );
+  return sculptField(field, island, design);
 }
 
 function legacyField(island: IslandDef): Heightfield {
