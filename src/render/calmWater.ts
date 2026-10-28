@@ -3,7 +3,8 @@ import { coastDistance } from '../sim/coast';
 import { smoothOutline } from '../sim/flowShapes';
 import type { WindZoneDef } from '../sim/map';
 import { zonesTuning } from '../sim/windZones';
-import { type Ocean, type ShoreTexture, shoreShader } from './ocean';
+import type { Ocean } from './ocean';
+import { type ShoreTexture, shoreShader } from './shoreTexture';
 
 /**
  * Calm water in wind zones (decision 0144): the doldrums, and a little a sheltered lagoon, look

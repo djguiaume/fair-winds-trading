@@ -19,7 +19,7 @@ import { createBoat } from '../src/sim/boat';
 import { piersOf, resolveCollisions } from '../src/sim/collision';
 import { createTradeState, homeInRange, tryDock } from '../src/sim/trade';
 import { SLOOP } from '../src/sim/ship';
-import { shoreTexture } from '../src/render/ocean';
+import { shoreTexture } from '../src/render/shoreTexture';
 
 const kinds: IslandTheme[] = ['fish', 'timber', 'stone', 'grain'];
 /** The homes of a style's island file, in residence order, as reference-unit spots. */
