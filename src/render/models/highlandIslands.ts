@@ -6,18 +6,20 @@ import { atLevel, designOf, designQuestIds } from '../../data/islands';
 import { PROP_RECIPES } from '../../data/props';
 import { islandLayout, islandPoint } from '../../sim/islandLayout';
 import { ISLAND_SCALE } from '../../sim/islandUnits';
-import {
-  type Heightfield,
-  fieldLod,
-  islandHeightfield,
-  terrainHeightfield,
-} from '../../sim/heightfield';
+import { type Heightfield, islandHeightfield, terrainHeightfield } from '../../sim/heightfield';
 import type { QualityLevel } from '../quality';
 import type { TerrainLook } from '../terrainLook';
 import { isGlowing, isMolten, mergeAll, vertexColorMaterial } from './geometry';
 import type { Crater, IslandModel, IslandsBuilder } from './types';
 import { featureGround, iceField } from './ground';
-import { type FieldPalette, designPalette, featurePalette, fieldGround } from './fieldGround';
+import {
+  type FieldPalette,
+  designPalette,
+  featurePalette,
+  fieldGround,
+  fieldGroundMaterial,
+  fieldGroundTexture,
+} from './fieldGround';
 import { islandParts, shownLevel } from './islandParts';
 import { terrainProps } from './terrainProps';
 import { type Stand, fieldStand, standHeight } from './townProps';
@@ -27,8 +29,6 @@ import type { Parts } from './props';
 /** Separate land batches keep camera and shadow culling local to each island. */
 export class HighlandIslands extends THREE.Group implements IslandModel {
   private readonly land = vertexColorMaterial();
-  /** The new look's rolling ground: smooth shaded (decision 0222). */
-  private readonly smoothLand = new THREE.MeshLambertMaterial({ vertexColors: true });
   private readonly glass = new THREE.MeshBasicMaterial({ vertexColors: true });
   /** Molten lava (decision 0171): glows like the windows, tinted orange by day. */
   private readonly lava = new THREE.MeshBasicMaterial({ vertexColors: true });
@@ -42,7 +42,10 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
   private questsDone: ReadonlySet<string> = new Set();
 
   /** The new look's height fields, by batch, to redraw their ground at another quality level. */
-  private readonly fields = new Map<THREE.Group, { field: Heightfield; palette: FieldPalette }>();
+  private readonly fields = new Map<
+    THREE.Group,
+    { field: Heightfield; material: THREE.Material }
+  >();
   private groundStep: number;
 
   constructor(
@@ -142,11 +145,17 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
 
   /** The new look's ground of a batch, drawn from its height field at the quality's detail. */
   private addGround(group: THREE.Group, field: Heightfield, palette: FieldPalette) {
-    this.fields.set(group, { field, palette });
-    const geometry = fieldGround(fieldLod(field, this.groundStep), palette);
+    // The colours live in a texture at the field's own grid: built once, whatever the quality.
+    const material = fieldGroundMaterial(fieldGroundTexture(field, palette));
+    this.fields.set(group, { field, material });
+    this.addGroundMesh(group, field, material);
+  }
+
+  private addGroundMesh(group: THREE.Group, field: Heightfield, material: THREE.Material) {
+    const geometry = fieldGround(field, this.groundStep);
     geometry.computeBoundingBox();
     geometry.computeBoundingSphere();
-    const mesh = new THREE.Mesh(geometry, this.smoothLand);
+    const mesh = new THREE.Mesh(geometry, material);
     mesh.castShadow = mesh.receiveShadow = this.shadows;
     mesh.name = 'ground';
     group.add(mesh);
@@ -157,11 +166,11 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     const step = TUNING.terrain.groundStep[level];
     if (step === this.groundStep) return;
     this.groundStep = step;
-    for (const [group, { field, palette }] of this.fields) {
+    for (const [group, { field, material }] of this.fields) {
       const old = group.getObjectByName('ground') as THREE.Mesh;
       old.geometry.dispose();
       group.remove(old);
-      this.addGround(group, field, palette);
+      this.addGroundMesh(group, field, material);
     }
   }
 
@@ -273,7 +282,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     next.visible = old.visible;
     this.remove(old);
     disposeGeometry(old);
-    this.fields.delete(old);
+    this.disposeGround(old);
     this.batches.set(island.id, next);
     this.add(next);
   }
@@ -283,9 +292,17 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     this.land.dispose();
     this.glass.dispose();
     this.lava.dispose();
+    for (const group of [...this.fields.keys()]) this.disposeGround(group);
     this.clear();
     this.batches.clear();
-    this.fields.clear();
+  }
+
+  /** A batch's new-look ground material and its colour texture. */
+  private disposeGround(group: THREE.Group) {
+    const material = this.fields.get(group)?.material as THREE.MeshLambertMaterial | undefined;
+    material?.map?.dispose();
+    material?.dispose();
+    this.fields.delete(group);
   }
 }
 

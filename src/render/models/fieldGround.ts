@@ -2,18 +2,18 @@ import * as THREE from 'three';
 import { TUNING } from '../../data/tuning';
 import { STYLES, groundColors, styleColor } from '../../data/grounds';
 import type { TerrainDef } from '../../sim/map';
-import type { Heightfield } from '../../sim/heightfield';
+import { type Heightfield, fieldLod } from '../../sim/heightfield';
 import { valueNoise } from '../../sim/noise';
 import { blurGrid } from '../../sim/smoothField';
 import { B2 } from './highlandPalette';
 
 /**
- * The new look's ground mesh (decision 0222, issue #269): one smooth-shaded grid over a height
- * field, coloured by zone from height and slope, the way the art direction's biome table reads
- * (docs/reviews/art-direction/new-look §2): the wet band at the waterline, each ground's own
- * colours on the flat, mottled a few units across, its cliff colours in bands on the slopes.
- * Ground zones blend over `terrain.json › draw.blend` units with a little jitter, so they stay
- * crisp storybook shapes rather than smears.
+ * The new look's ground (decision 0222, issue #269): one smooth-shaded grid over a height field,
+ * and a colour texture at the field's own resolution, coloured by zone from height and slope as
+ * the art direction's biome table reads (docs/reviews/art-direction/new-look §2): the wet band at
+ * the waterline, each ground's own colours on the flat, mottled a few units across, its slope
+ * colours in bands on the slopes. Zones blend over `terrain.json › draw.blend` units with a little
+ * jitter on their edges, so they stay crisp storybook shapes rather than smears, on every quality.
  */
 
 /** A ground's colours in the new look: `top` on the flat, `side` on slopes (palette.json). */
@@ -163,11 +163,10 @@ function mottled(list: readonly THREE.Color[], noise: number, out: THREE.Color) 
 }
 
 /**
- * The ground of a height field as one indexed, smooth-shaded mesh in scene coordinates, with
- * vertex colours. Cells wholly under `draw.hideBelow` (deep under the opaque sea) or deep inside
- * a faceted shape are left out.
+ * The ground colours of a height field as a texture, one texel per sample of the canonical grid
+ * (decision 0230), so every quality level shows the same crisp zones however coarse its mesh.
  */
-export function fieldGround(field: Heightfield, palette: FieldPalette): THREE.BufferGeometry {
+export function fieldGroundTexture(field: Heightfield, palette: FieldPalette): THREE.DataTexture {
   const { w, h, cell, seed } = field;
   const draw = TUNING.terrain.draw;
   const n = w * h;
@@ -194,18 +193,12 @@ export function fieldGround(field: Heightfield, palette: FieldPalette): THREE.Bu
     flat[2][k] = c.b;
   }
   for (const channel of flat) blurGrid(channel, w, h, draw.blend / 2 / cell);
-  const positions = new Float32Array(n * 3),
-    colors = new Float32Array(n * 3);
+  const texels = new Uint8Array(n * 4);
   const side = new THREE.Color();
   for (let k = 0; k < n; k++) {
-    const i = k % w,
-      j = (k - i) / w;
-    const x = field.x0 + i * cell,
-      y = field.y0 + j * cell,
+    const x = field.x0 + (k % w) * cell,
+      y = field.y0 + Math.floor(k / w) * cell,
       height = heights[k]!;
-    positions[k * 3] = x;
-    positions[k * 3 + 1] = height;
-    positions[k * 3 + 2] = -y;
     c.setRGB(flat[0][k]!, flat[1][k]!, flat[2][k]!);
     // Cliff colours in level bands, each a little wavy, like the classic tiers' layers.
     const bands = looks[grounds[k]!]!.side;
@@ -213,9 +206,49 @@ export function fieldGround(field: Heightfield, palette: FieldPalette): THREE.Bu
     side.copy(bands[((band % bands.length) + bands.length) % bands.length]!);
     c.lerp(side, smoothstep(draw.slope[0]!, draw.slope[1]!, 1 - normals[k * 3 + 1]!));
     c.lerp(wet, 1 - smoothstep(draw.wet[0]!, draw.wet[1]!, height));
-    colors[k * 3] = c.r;
-    colors[k * 3 + 1] = c.g;
-    colors[k * 3 + 2] = c.b;
+    const hex = c.getHex();
+    texels[k * 4] = hex >> 16;
+    texels[k * 4 + 1] = (hex >> 8) & 255;
+    texels[k * 4 + 2] = hex & 255;
+    texels[k * 4 + 3] = 255;
+  }
+  const texture = new THREE.DataTexture(texels, w, h, THREE.RGBAFormat);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.magFilter = THREE.LinearFilter;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+/** The smooth-shaded material that draws a field's ground with its colour texture. */
+export const fieldGroundMaterial = (texture: THREE.Texture) =>
+  new THREE.MeshLambertMaterial({ map: texture });
+
+/**
+ * The ground of a height field as one indexed, smooth-shaded mesh in scene coordinates, one
+ * vertex every `step` samples, its texture coordinates on the field's colour texture. Cells
+ * wholly under `draw.hideBelow` (deep under the opaque sea) or deep inside a faceted shape are
+ * left out.
+ */
+export function fieldGround(full: Heightfield, step = 1): THREE.BufferGeometry {
+  const field = fieldLod(full, step);
+  const { w, h, cell } = field;
+  const draw = TUNING.terrain.draw;
+  const n = w * h;
+  const heights = drawnHeights(field);
+  const normals = gridNormals(heights, w, h, cell);
+  const positions = new Float32Array(n * 3),
+    uvs = new Float32Array(n * 2);
+  for (let k = 0; k < n; k++) {
+    const i = k % w,
+      j = (k - i) / w;
+    positions[k * 3] = field.x0 + i * cell;
+    positions[k * 3 + 1] = heights[k]!;
+    positions[k * 3 + 2] = -(field.y0 + j * cell);
+    // On the centre of the full field's texel under it.
+    uvs[k * 2] = (Math.min(full.w - 1, i * step) + 0.5) / full.w;
+    uvs[k * 2 + 1] = (Math.min(full.h - 1, j * step) + 0.5) / full.h;
   }
   const hidden = insideFaceted(field);
   const index: number[] = [];
@@ -233,7 +266,7 @@ export function fieldGround(field: Heightfield, palette: FieldPalette): THREE.Bu
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   g.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
-  g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  g.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
   g.setIndex(index);
   return g;
 }

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { IslandStyle } from '../../data/islands';
 import { vertexColorMaterial } from '../../render/models/geometry';
+import type { NewLookGround } from './newLook';
 import { PROP_TYPES, type Parts } from '../../render/models/props';
 import { NIGHT, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from '../../render/atmosphere';
 import { BeaconLights } from '../../render/beaconLights';
@@ -56,14 +57,20 @@ export function mergeParts(parts: Parts): THREE.BufferGeometry {
   return merged;
 }
 
-/** The new look's rolling ground (`?look=v2`): smooth shaded, apart from the faceted island. */
+/** The new look's rolling ground (`?look=v2`), drawn apart from the faceted island. */
 const groundMesh = () =>
-  new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshLambertMaterial({ vertexColors: true }));
+  new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshLambertMaterial());
 
-/** Shows a view's new-look ground, or none; the view owns the geometry and frees the old one. */
-function setGround(mesh: THREE.Mesh, geometry?: THREE.BufferGeometry) {
-  if (mesh.geometry !== geometry) mesh.geometry.dispose();
-  mesh.geometry = geometry ?? new THREE.BufferGeometry();
+/** Shows a view's new-look ground, or none; the views share it and free the old one. */
+function setGround(mesh: THREE.Mesh, ground?: NewLookGround) {
+  const old = mesh.material as THREE.MeshLambertMaterial;
+  if (ground?.material !== old) {
+    old.map?.dispose();
+    old.dispose();
+  }
+  if (mesh.geometry !== ground?.geometry) mesh.geometry.dispose();
+  mesh.geometry = ground?.geometry ?? new THREE.BufferGeometry();
+  mesh.material = ground?.material ?? new THREE.MeshLambertMaterial();
 }
 
 /** The island straight from above, drawn when something changes (not every frame). */
@@ -88,7 +95,7 @@ export class TopView {
     this.camera.up.set(0, 0, -1);
   }
 
-  setGeometry(geometry: THREE.BufferGeometry, ground?: THREE.BufferGeometry) {
+  setGeometry(geometry: THREE.BufferGeometry, ground?: NewLookGround) {
     this.island.geometry = geometry;
     setGround(this.ground, ground);
   }
@@ -207,11 +214,7 @@ export class Preview {
   }
 
   /** The island without its glass, and the glass on its own (the game draws them apart). */
-  setGeometry(
-    land: THREE.BufferGeometry,
-    windows: THREE.BufferGeometry,
-    ground?: THREE.BufferGeometry,
-  ) {
+  setGeometry(land: THREE.BufferGeometry, windows: THREE.BufferGeometry, ground?: NewLookGround) {
     this.island.geometry = land;
     this.windows.geometry = windows;
     setGround(this.ground, ground);

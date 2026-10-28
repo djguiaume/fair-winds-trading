@@ -8,7 +8,7 @@ import { coastDistance } from '../src/sim/coast';
 import { createRng } from '../src/sim/rng';
 import { fbm, valueNoise } from '../src/sim/noise';
 import { smoothField } from '../src/sim/smoothField';
-import { designPalette, fieldGround } from '../src/render/models/fieldGround';
+import { designPalette, fieldGround, fieldGroundTexture } from '../src/render/models/fieldGround';
 import { facetedGround } from '../src/render/models/ground';
 import { applySteps } from '../src/editor/island/steps';
 
@@ -152,27 +152,31 @@ describe('the smoothed ground (issue #269)', () => {
 });
 
 describe('the new look ground mesh', () => {
-  it('is one indexed, smooth-shaded grid coloured by zone', () => {
+  it('is one indexed, smooth-shaded grid on a colour texture of the full field', () => {
     const f = smoothField(plateau(10));
-    const palette = designPalette('fish');
-    const g = fieldGround(f, palette);
+    const g = fieldGround(f);
     expect(g.index).not.toBeNull();
     const normals = g.attributes.normal!;
     for (let k = 0; k < normals.count; k += 37)
       expect(Math.hypot(normals.getX(k), normals.getY(k), normals.getZ(k))).toBeCloseTo(1, 4);
     // Wholly deep cells are left out: far fewer triangles than cells.
     expect(g.index!.count / 6).toBeLessThan(39 * 39);
-    const colors = g.attributes.color!;
-    const at = (i: number, j: number) => {
-      const k = j * 40 + i;
-      return [colors.getX(k), colors.getY(k), colors.getZ(k)];
-    };
-    // The plateau's flat top is green (downs), its steep edge warm sandstone, never grey.
+    // A coarser mesh reads the same texture: its corners on the same texels.
+    const coarse = fieldGround(f, 3);
+    expect(coarse.attributes.position!.count).toBeLessThan(g.attributes.position!.count / 4);
+    expect(coarse.attributes.uv!.getX(1)).toBeCloseTo(g.attributes.uv!.getX(3), 6);
+  });
+
+  it('colours by zone: green flat tops, warm sandstone slopes, never grey', () => {
+    const f = smoothField(plateau(10));
+    const texels = fieldGroundTexture(f, designPalette('fish')).image.data as Uint8Array;
+    const at = (i: number, j: number) =>
+      Array.from(texels.slice((j * 40 + i) * 4, (j * 40 + i) * 4 + 3));
     const [r, gr, b] = at(20, 20);
     expect(gr).toBeGreaterThan(r!);
     expect(gr).toBeGreaterThan(b!);
     const [er, eg, eb] = at(16, 20);
-    expect(er).toBeGreaterThan(eb!);
+    expect(er).toBeGreaterThan(eb! + 20);
     expect(er).toBeGreaterThan(eg! * 0.95);
   });
 });
