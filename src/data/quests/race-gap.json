@@ -3,12 +3,12 @@
   "name": "Round the Gap",
   "start": {
     "is": "quest-done",
-    "quest": "fair-winds"
+    "quest": "rooks-thanks"
   },
   "text": "quest.race-gap",
   "giver": "wren",
   "starter": "rook",
-  "port": "saltmere",
+  "port": "abbey-head",
   "offer": true,
   "storms": false,
   "wind": {
@@ -18,9 +18,9 @@
   "race": {
     "series": "regatta-ring",
     "gold": {
-      "bronze": 60,
-      "silver": 120,
-      "gold": 200
+      "bronze": 30,
+      "silver": 60,
+      "gold": 100
     },
     "pars": {
       "sloop": {

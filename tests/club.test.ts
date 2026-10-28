@@ -11,7 +11,7 @@ import {
 } from '../src/sim/raceRecords';
 import { SLOOP } from '../src/sim/ship';
 import { createWorld } from '../src/sim/world';
-import { clubBoard, clubOpening } from '../src/ui/clubBoard';
+import { clubBoard } from '../src/ui/clubBoard';
 import { clubBoardBody } from '../src/ui/clubBoardView';
 import { raceBookCards } from '../src/ui/regattaView';
 
@@ -70,16 +70,16 @@ describe('the Sailing Club races', () => {
         LONG.includes(q.id)
           ? [200, 400, 650]
           : SQUALL.includes(q.id)
-            ? [140, 280, 450]
-            : [80, 160, 260],
+            ? [120, 240, 400]
+            : [40, 80, 130],
       );
     }
   });
 
-  it('open when the ring is won, the squall races also with their sea', () => {
+  it('open after the prologue, the squall races also with their sea', () => {
     const open = (done: string[]) => bookWith(done).offered.map((q) => q.id);
     expect(open([])).not.toContain('race-mill');
-    expect(open(['race-greyback'])).toEqual(expect.arrayContaining(HOME));
+    expect(open(['rooks-thanks'])).toEqual(expect.arrayContaining(HOME));
     expect(open(['race-greyback'])).not.toContain('race-coral-squall');
     expect(open(['race-greyback', 'outpost-south'])).toContain('race-coral-squall');
     expect(open(['race-greyback', 'outpost-north'])).toContain('race-snowberry-squall');
@@ -88,15 +88,15 @@ describe('the Sailing Club races', () => {
 });
 
 describe('the club board', () => {
-  it('stays shut until the club opens, and only at Saltmere', () => {
-    expect(clubBoard(bookWith([]), 'saltmere')).toBeNull();
-    const book = bookWith(['race-greyback']);
-    expect(clubBoard(book, 'westholm')).toBeNull();
-    expect(clubBoard(book, 'saltmere')).not.toBeNull();
+  it('stays shut until the club opens, and only at Abbey Head', () => {
+    expect(clubBoard(bookWith([]), 'abbey-head')).toBeNull();
+    const book = bookWith(['rooks-thanks']);
+    expect(clubBoard(book, 'saltmere')).toBeNull();
+    expect(clubBoard(book, 'abbey-head')).not.toBeNull();
   });
 
   it('lists the races met by series, with a medal count, "not sailed yet" and the ship par', () => {
-    const book = bookWith(['race-greyback']);
+    const book = bookWith(['rooks-thanks', 'race-greyback']);
     book.world.trade.quests.byId['race-mill'] = {
       step: QUEST_DONE,
       counts: [],
@@ -105,7 +105,7 @@ describe('the club board', () => {
       medal: 2,
       bests: { sloop: 9000 },
     };
-    const board = clubBoard(book, 'saltmere')!;
+    const board = clubBoard(book, 'abbey-head')!;
     expect(board.groups.map((g) => g.series)).toContain('regatta-club');
     const rows = board.groups.flatMap((g) => g.rows);
     expect(rows.find((r) => r.quest === 'race-mill')).toMatchObject({ best: 90, medal: 2 });
@@ -120,7 +120,7 @@ describe('the club board', () => {
   });
 
   it('shows the best of the ship sailed now', () => {
-    const book = bookWith(['race-greyback']);
+    const book = bookWith(['rooks-thanks', 'race-greyback']);
     book.world.trade.quests.byId['race-mill'] = {
       step: QUEST_DONE,
       counts: [],
@@ -130,25 +130,17 @@ describe('the club board', () => {
       bests: { sloop: 9000 },
     };
     book.world.trade.captain.activeShip = 'cutter';
-    const row = clubBoard(book, 'saltmere')!
+    const row = clubBoard(book, 'abbey-head')!
       .groups.flatMap((g) => g.rows)
       .find((r) => r.quest === 'race-mill');
     expect(row?.best).toBeUndefined();
   });
-
-  it('Wren opens the club on the first club offer only', () => {
-    const quest = CLUB.find((q) => q.id === 'race-mill')!;
-    const book = bookWith(['race-greyback']);
-    expect(clubOpening(book, quest, 'Copy.')).toMatch(/shed on the quay.*Copy\.$/);
-    book.world.trade.quests.byId['race-light'] = { step: QUEST_DONE, counts: [], chose: {} };
-    expect(clubOpening(book, quest, 'Copy.')).toBe('Copy.');
-  });
 });
 
 describe('the board card on the Quay', () => {
-  it('leads the regatta book at Saltmere, and nowhere else', () => {
-    const book = bookWith(['race-greyback']);
-    const cards = raceBookCards(book, GAME_MAP, 'saltmere');
+  it('leads the regatta book at Abbey Head, and nowhere else', () => {
+    const book = bookWith(['rooks-thanks', 'race-greyback']);
+    const cards = raceBookCards(book, GAME_MAP, 'abbey-head');
     expect(cards[0]?.race?.board).toBeDefined();
     expect(cards[0]?.giver?.id).toBe('wren');
     expect(raceBookCards(book, GAME_MAP, 'westholm')).toEqual([]);

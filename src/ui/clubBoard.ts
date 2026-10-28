@@ -1,17 +1,17 @@
-import { t, tOptional } from '../i18n';
+import { tOptional } from '../i18n';
 import type { QuestBook, QuestDef } from '../sim/quests';
 import { bestFor } from '../sim/raceRecords';
 import { type MedalRank, REGATTA, parOf } from '../sim/regatta';
 
 /*
- * The Sailing Club's board (decision 0226): Wren pins the captain's own times up at Saltmere, on
- * the Quay tab beside Rook's book. Only this captain's times, no ranking. Each race shows the best
+ * The Sailing Club's board (decision 0226): Wren pins the captain's own times up at Abbey Head,
+ * on the Quay tab of the club. Only this captain's times, no ranking. Each race shows the best
  * time and medal of the ship sailed now and that ship's par. Words: `club.*`.
  */
 
 export const CLUB_SERIES = 'regatta-club';
 /** The harbour that keeps the board. */
-export const CLUB_PORT = 'saltmere';
+export const CLUB_PORT = 'abbey-head';
 
 export interface ClubRow {
   quest: string;
@@ -70,16 +70,4 @@ export function clubBoard(book: QuestBook, docked: string | null): ClubBoard | n
     pinned: groups.some((g) => g.rows.some((r) => r.best !== undefined)),
     again: !book.race() && !book.lesson,
   };
-}
-
-/**
- * Wren's opening line, on the offer of a club race while no club race has been entered yet: the
- * club exists, there are new courses, a board, a few squalls.
- */
-export function clubOpening(book: QuestBook, quest: QuestDef, speech?: string): string | undefined {
-  if (quest.race?.series !== CLUB_SERIES) return speech;
-  const entered = book.quests.some(
-    (q) => q.race?.series === CLUB_SERIES && book.progress(q.id) !== undefined,
-  );
-  return entered ? speech : [t('club.open'), speech].filter(Boolean).join(' ');
 }

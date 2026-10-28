@@ -34,3 +34,7 @@ Agreed small work not yet done. None has an issue yet; open one (label `idea`) w
 - First real sea extension: zones that hug the old rim (the Stormbreak) must continue into the new section or fade out at the seam (0202).
 - Portrait shots of each main port, once.
 - Pirates, warships and the "cozy fight" rules are parked for a later extension sea (notes in [whole-game/README.md](../reviews/art-direction/whole-game/README.md)).
+
+## Follow-ups from the Abbey Head club (#312)
+
+- v1.2 budget pass: lit windows at night, a striped awning and a few tables for the café, a lamp on the shed. The island is at its mobile triangle budget (0073), so they need budget freed first.
