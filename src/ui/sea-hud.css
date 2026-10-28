@@ -471,6 +471,12 @@ body.is-docked .objective {
 .camera-reset[hidden] {
   display: none;
 }
+@media (pointer: coarse) {
+  .camera-reset {
+    width: 40px;
+    height: 40px;
+  }
+}
 .compass .camera-reset svg {
   width: 20px;
   height: 20px;
@@ -867,6 +873,8 @@ button.captain-stat:focus-visible {
   height: 18px;
 }
 .toast {
+  /* Above the port signs (a pier near a turned camera's centre, decision 0223) and the panels. */
+  z-index: 11;
   top: 24%;
   border: 1px solid var(--brass-line);
   border-radius: 10px;
