@@ -83,7 +83,8 @@ Look
   --weather  --storms           weather spells, moving storms (default off: steady breeze)
   --no-zones  --no-currents     wind zones, currents off (default on, like the game)
   --no-belt                     Settings › Storm belt off (0167)
-  --quality low|medium|high     Settings › Quality (default: the game's auto guess)
+  --quality low|medium|high|ultra  Settings › Quality (default: the game's auto guess; ultra:
+                                the desktop and Xbox look, decision 0221)
   --erupt island                this volcano erupts as the scene is set (0178); give it time to
                                 build, e.g. --wait 6000. --no-eruptions: the Eruptions switch off
   --cards                       keep quest cards and dialogs open (default: closed, kept in a quest test)

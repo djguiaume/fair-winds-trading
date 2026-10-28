@@ -54,6 +54,8 @@ export interface Settings {
   ships: boolean;
   /** Haze switches (`fog`, `ash`, decision 0169): false turns that haze off. Left out = on. */
   haze: Record<string, boolean>;
+  /** Graphics effect switches (`shadows`, `reflection`…, decision 0221). Left out = on. */
+  effects: Record<string, boolean>;
   /** The first current met has shown its one-time hint (decision 0140). */
   seenCurrentHint: boolean;
   /** The first storm belt met has shown its one-time hint (decision 0167). */
@@ -88,6 +90,7 @@ const DEFAULTS: Settings = {
   bergs: true,
   ships: true,
   haze: {},
+  effects: {},
   seenCurrentHint: false,
   seenBeltHint: false,
   steadyWind: false,
@@ -108,6 +111,7 @@ export function loadSettings(): Settings {
     settings.voiceVolume = Number.isFinite(voices) ? Math.min(1, Math.max(0, voices)) : 0.7;
     settings.voices = settings.voices !== false;
     if (typeof settings.haze !== 'object' || !settings.haze) settings.haze = {};
+    if (typeof settings.effects !== 'object' || !settings.effects) settings.effects = {};
     if (!KIDS_MODE_AVAILABLE) settings.uiMode = 'adult';
     return settings;
   } catch {

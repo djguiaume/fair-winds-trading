@@ -23,6 +23,9 @@ export function glowTexture(): THREE.Texture {
  * boat, so ports and your own ship are easy to find in the dark. One additive point cloud, no
  * real lights, so it costs one draw call on an old tablet.
  */
+/** World size of a lantern's glow on the levels below Ultra. */
+const GLOW_SIZE = 13;
+
 export class Lanterns {
   readonly points: THREE.Points;
   private readonly geometry = new THREE.BufferGeometry();
@@ -39,7 +42,7 @@ export class Lanterns {
       new THREE.BufferAttribute(this.positions, 3).setUsage(THREE.DynamicDrawUsage),
     );
     this.material = new THREE.PointsMaterial({
-      size: 13,
+      size: GLOW_SIZE,
       map: this.texture,
       transparent: true,
       depthWrite: false,
@@ -52,10 +55,14 @@ export class Lanterns {
     this.points.renderOrder = 4;
   }
 
-  /** `glow` 0..1 (night, a little in storms); `boat` is the stern lantern's scene position. */
-  update(glow: number, boat: THREE.Vector3, time: number) {
+  /**
+   * `glow` 0..1 (night, a little in storms); `boat` is the stern lantern's scene position; `size`
+   * scales the glow (Ultra draws smaller, crisper lamps, decision 0221).
+   */
+  update(glow: number, boat: THREE.Vector3, time: number, size = 1) {
     this.points.visible = glow > 0.02;
     if (!this.points.visible) return;
+    this.material.size = GLOW_SIZE * size;
     this.material.opacity = Math.min(1, glow) * (0.92 + 0.08 * Math.sin(time * 7.3));
     this.positions.set([boat.x, boat.y, boat.z], this.positions.length - 3);
     this.geometry.attributes.position!.needsUpdate = true;

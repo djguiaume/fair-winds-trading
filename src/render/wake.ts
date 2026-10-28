@@ -8,6 +8,7 @@ export const WAKE_DETAIL = {
   low: { points: 24, life: 1.8, interval: 0.1, centre: false },
   medium: { points: 40, life: 2.6, interval: 0.075, centre: true },
   high: { points: 64, life: 3.4, interval: 0.06, centre: true },
+  ultra: { points: 64, life: 3.4, interval: 0.06, centre: true },
 } as const;
 
 interface Point {

@@ -6,38 +6,11 @@
  * `src/data/tuning/*.json` has an entry and sits inside its range: a new value needs a line here.
  */
 
-/** A number, or a list of numbers that share one range (each element is checked). */
-export interface NumberMeta {
-  kind: 'number';
-  label: string;
-  min: number;
-  max: number;
-  step: number;
-  unit?: string;
-  help: string;
-}
+import { num, text, toggle, type TuningMeta } from './tuning-meta-types';
+import { GRAPHICS_META } from './tuning-meta-graphics';
+import { CAMERA_META } from './tuning-meta-camera';
 
-/** A polar curve: [true wind angle 0..180°, fraction of top speed 0..1] points. */
-export interface PolarMeta {
-  kind: 'polar';
-  label: string;
-  help: string;
-}
-
-export interface ToggleMeta {
-  kind: 'toggle';
-  label: string;
-  help: string;
-}
-
-/** Names, icons and ids: shown but not slid. */
-export interface TextMeta {
-  kind: 'text';
-  label: string;
-  help: string;
-}
-
-export type TuningMeta = NumberMeta | PolarMeta | ToggleMeta | TextMeta;
+export type { NumberMeta, PolarMeta, TextMeta, ToggleMeta, TuningMeta } from './tuning-meta-types';
 
 /** Tabs of the panel, one per tuning file. */
 export const TUNING_GROUPS = {
@@ -49,6 +22,7 @@ export const TUNING_GROUPS = {
   weather: 'Weather',
   seamanship: 'Seamanship',
   camera: 'Camera',
+  graphics: 'Graphics',
 } as const;
 
 /** Objects whose keys are ids: their children are written `*` in meta paths. */
@@ -72,18 +46,9 @@ export function metaPath(path: readonly string[]): string {
   return out.join('.');
 }
 
-const num = (
-  label: string,
-  min: number,
-  max: number,
-  step: number,
-  unit: string | undefined,
-  help: string,
-): NumberMeta => ({ kind: 'number', label, min, max, step, ...(unit ? { unit } : {}), help });
-const text = (label: string, help: string): TextMeta => ({ kind: 'text', label, help });
-const toggle = (label: string, help: string): ToggleMeta => ({ kind: 'toggle', label, help });
-
 export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
+  ...GRAPHICS_META,
+  ...CAMERA_META,
   // --- src/data/ships/<id>.json, `sailing` and `unlock` (decisions 0007, 0011, 0035, 0048, 0109) ---
   'ships.*.id': text('Id', 'Class id used in saves and code; must match the key.'),
   'ships.*.name': text('Name', 'English name in the code; players see the translated one.'),
@@ -1968,6 +1933,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     'boats',
     'How many other boats sail near you at once on High quality.',
   ),
+  'seamanship.traffic.atOnce.ultra': num(
+    'Other boats at once, Ultra',
+    0,
+    20,
+    1,
+    'boats',
+    'How many other boats sail near you at once on Ultra quality (desktop and Xbox).',
+  ),
   'seamanship.traffic.activeRange': num(
     'Other boats sail within',
     100,
@@ -2279,128 +2252,5 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     1,
     '°',
     'The map checks warn where the edge buoy line turns more than this between three buoys (decision 0202).',
-  ),
-  // --- camera.json: the sea camera and the player turning it (decision 0223) ---
-  'camera.pitchDeg': num(
-    'Camera tilt',
-    20,
-    85,
-    1,
-    '°',
-    'How steeply the camera looks down at sea, and where a reset brings it back (90 = straight down).',
-  ),
-  'camera.pitchMinDeg': num(
-    'Flattest tilt',
-    20,
-    85,
-    1,
-    '°',
-    'The player can tilt no flatter than this; flatter shows more islands and sky (old tablet cost).',
-  ),
-  'camera.pitchMaxDeg': num(
-    'Steepest tilt',
-    20,
-    85,
-    1,
-    '°',
-    'The player can tilt no steeper than this.',
-  ),
-  'camera.ultraPitchMinDeg': num(
-    'Flattest tilt on Ultra',
-    15,
-    85,
-    1,
-    '°',
-    'On the Ultra graphics tier the camera may go this flat (decision 0221).',
-  ),
-  'camera.distance': num(
-    'Camera distance',
-    40,
-    300,
-    1,
-    'units',
-    'Camera distance from the point it looks at, at zoom 1.',
-  ),
-  'camera.zoomMin': num('Closest zoom', 0.2, 1, 0.05, '× distance', 'Zooming in stops here.'),
-  'camera.zoomMax': num('Farthest zoom', 1, 4, 0.05, '× distance', 'Zooming out stops here.'),
-  'camera.portraitWidth': num(
-    'Portrait sea width',
-    0.3,
-    2,
-    0.05,
-    'aspect',
-    'A tall screen pulls back until it shows about as much sea across as this width-to-height would.',
-  ),
-  'camera.portraitPullMax': num(
-    'Portrait pull back',
-    1,
-    3,
-    0.05,
-    '× distance',
-    'The most a tall screen pulls the camera back.',
-  ),
-  'camera.aheadPerKn': num(
-    'Look ahead',
-    0,
-    5,
-    0.1,
-    'units per kn',
-    'The camera looks this far ahead of the boat per knot of speed.',
-  ),
-  'camera.followRate': num(
-    'Follow ease',
-    0.5,
-    10,
-    0.1,
-    '/s',
-    'How quickly the camera catches up with the point it follows.',
-  ),
-  'camera.mouseDegPerPx': num(
-    'Mouse turn',
-    -1,
-    1,
-    0.01,
-    '°/px',
-    'Right-button drag sideways turns the camera this much; negative turns the other way.',
-  ),
-  'camera.mouseTiltDegPerPx': num(
-    'Mouse tilt',
-    -1,
-    1,
-    0.01,
-    '°/px',
-    'Right-button drag up flattens the camera this much; negative tilts the other way.',
-  ),
-  'camera.touchDegPerPx': num(
-    'Touch turn',
-    -1,
-    1,
-    0.01,
-    '°/px',
-    'Two-finger drag sideways turns the camera; negative: the sea follows the fingers.',
-  ),
-  'camera.touchTiltDegPerPx': num(
-    'Touch tilt',
-    -1,
-    1,
-    0.01,
-    '°/px',
-    'Two-finger drag up flattens the camera this much; negative tilts the other way.',
-  ),
-  'camera.resetRate': num(
-    'Reset ease',
-    0.5,
-    20,
-    0.1,
-    '/s',
-    'How quickly a reset (or a harbour or home island view) brings the camera back north-up.',
-  ),
-  'camera.returnAfterSeconds': num(
-    'Comes back after',
-    1,
-    60,
-    0.5,
-    's',
-    'With "Camera comes back by itself" on: seconds without camera input before it eases back.',
   ),
 };

@@ -30,6 +30,7 @@ import { Wake } from './wake';
 import { ImpactDebris } from './impactDebris';
 import { damageStage, hullCondition } from '../sim/hazards';
 import { WindStreaks } from './windStreaks';
+import type { GraphicsEffects, UltraPipeline } from './ultraPipeline';
 import { Rain, rainMayReachArea } from './rain';
 import { CameraOrbit, type ViewAxes, viewAxes } from './cameraOrbit';
 import { Atmosphere, LAVA_BY_DAY, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from './atmosphere';
@@ -140,6 +141,17 @@ export class GameView {
   private readonly shores = new ShoreTextureCache();
   private streaks!: WindStreaks;
   private profile!: QualityProfile;
+  /** The Ultra pipeline (decision 0221), loaded the first time Ultra is picked. */
+  private ultra?: UltraPipeline;
+  private ultraLoading = false;
+  /** The graphics effects switches (Settings); all on by default. */
+  readonly effects: GraphicsEffects = {
+    shadows: true,
+    occlusion: true,
+    toneMapping: true,
+    haze: true,
+    reflection: true,
+  };
   /** Created only when selected; retain GPU programs/buffers for subsequent switches. */
   private readonly qualityEffects = new Map<
     QualityLevel,
@@ -176,7 +188,8 @@ export class GameView {
   ) {
     this.renderer = new THREE.WebGLRenderer({
       canvas,
-      antialias: level === 'high',
+      // Ultra may step down to High, which then needs it; Ultra itself multisamples its own.
+      antialias: level === 'high' || level === 'ultra',
       powerPreference: 'high-performance',
       stencil: false,
     });
@@ -353,6 +366,7 @@ export class GameView {
     this.boat.dispose();
     this.boat = this.buildBoat();
     this.scene.add(this.boat.root);
+    this.ultra?.sceneChanged();
   }
 
   /** A crash or a reef strike (decision 0208): a splash at her bow and planks floating off. */
@@ -387,13 +401,15 @@ export class GameView {
       // Ocean shader source depends on fancyWater, not the grid resolution. Share the
       // existing material so High/Medium never release or relink the same program.
       const waterMaterial = [...this.qualityEffects.values()].find(
-        (cached) => 'FANCY' in cached.ocean.mesh.material.defines === profile.fancyWater,
+        ({ ocean }) =>
+          'FANCY' in ocean.mesh.material.defines === profile.fancyWater &&
+          'REFLECT' in ocean.mesh.material.defines === profile.waterReflection,
       )?.ocean.mesh.material;
       effects = {
         ocean: new Ocean(
           this.world.land.islands,
           profile.oceanSegments,
-          profile.fancyWater,
+          { fancy: profile.fancyWater, reflect: profile.waterReflection },
           480,
           this.world.land.terrain,
           shore,
@@ -407,16 +423,34 @@ export class GameView {
     ({ ocean: this.ocean, streaks: this.streaks, rain: this.rain } = effects);
     this.scene.add(this.ocean.mesh, this.streaks.mesh, this.rain.mesh);
 
-    if (this.profile?.shadows !== profile.shadows) {
-      this.renderer.shadowMap.enabled = profile.shadows;
-      this.sun.castShadow = profile.shadows;
-      // Three tracks the changed shadow-light count and refreshes lit materials.
-      // Forcing every unlit/custom material dirty creates unused shadow variants,
-      // including an expensive water program whose shader never samples shadows.
-    }
+    // Ultra may have switched its shadows off. Three tracks the changed shadow-light count and
+    // refreshes lit materials. Forcing every unlit/custom material dirty creates unused shadow
+    // variants, including an expensive water program whose shader never samples shadows.
+    this.ultra?.setActive(profile.ultra);
+    this.renderer.shadowMap.enabled = profile.shadows;
+    this.sun.castShadow = profile.shadows;
     this.boat.setLowDetail?.(level === 'low');
     this.profile = profile;
+    if (profile.ultra) this.loadUltra();
+    this.ultra?.sceneChanged();
     this.resize(this.width, this.height);
+  }
+
+  /** Fetch the Ultra pipeline once; phones never pick Ultra, so they never download it. */
+  private loadUltra() {
+    if (this.ultra || this.ultraLoading) return;
+    this.ultraLoading = true;
+    void import('./ultraPipeline').then(({ UltraPipeline }) => {
+      this.ultra = new UltraPipeline(
+        this.renderer,
+        this.scene,
+        this.camera,
+        this.sun,
+        this.effects,
+      );
+      this.ultra.setActive(this.profile.ultra);
+      this.resize(this.width, this.height);
+    });
   }
 
   /** Extra drawing-resolution factor, a `?perf` test aid only (decision 0148); 1 = normal. */
@@ -430,6 +464,7 @@ export class GameView {
         this.renderScale,
     );
     this.renderer.setSize(this.width, this.height, false);
+    this.ultra?.setSize(this.width, this.height, this.renderer.getPixelRatio());
     this.camera.aspect = this.width / this.height;
     this.camera.updateProjectionMatrix();
   }
@@ -452,7 +487,7 @@ export class GameView {
   }
 
   setHomeBuildings(byIsland: Record<string, Record<string, string>>) {
-    this.townVersion++;
+    this.townChanged();
     this.islands.setHomeBuildings(byIsland);
     this.volcanoes.setCraters(this.islands.craters);
   }
@@ -466,7 +501,7 @@ export class GameView {
   }
 
   setQuestsDone(done: ReadonlySet<string>) {
-    this.townVersion++;
+    this.townChanged();
     this.islands.setQuestsDone(done);
     this.volcanoes.setCraters(this.islands.craters);
     this.seaMarks.setQuestsDone(done);
@@ -477,7 +512,7 @@ export class GameView {
   setSettlementLevels(levels: Record<string, TownLevel>) {
     const founded = Object.keys(levels).some((id) => this.levels[id] === 0 && levels[id] !== 0);
     this.levels = { ...levels };
-    this.townVersion++;
+    this.townChanged();
     this.islands.setSettlementLevels(levels);
     this.volcanoes.setCraters(this.islands.craters);
     if (founded) this.buildLanterns();
@@ -597,7 +632,16 @@ export class GameView {
     const haze = zones
       ? zoneVisualAt(zones, this.target.x, -this.target.z, this.world.hazeOff, this.haze)
       : CLEAR;
-    this.atmosphere.update(dt, day, this.world.weather, this.ocean, this.target, haze);
+    const ultra = this.profile.ultra ? this.ultra : undefined;
+    this.atmosphere.update(
+      dt,
+      day,
+      this.world.weather,
+      this.ocean,
+      this.target,
+      haze,
+      ultra?.sunShape,
+    );
     const gloom = this.atmosphere.gloom;
     // Rain and the dark close in a little, never enough to hide the next island. The view range
     // is `weather.json` › `sight`, in camera distances (decision 0169).
@@ -697,12 +741,13 @@ export class GameView {
       lantern.updateWorldMatrix(true, false);
       lantern.getWorldPosition(this.boatLantern);
     } else this.boatLantern.set(pos.x, 6, pos.z);
-    this.lanterns.update(glow, this.boatLantern, time);
+    this.lanterns.update(glow, this.boatLantern, time, ultra?.night.lanternSize);
     this.lighthouseBeams.update(time, glow);
     this.beaconLights.update(time, glow);
-    // Lit windows and street lamps in the towns.
+    // Lit windows and street lamps in the towns; Ultra's occlusion shades them, so they shine more.
     const windows = this.islands.userData.windows as THREE.MeshBasicMaterial | undefined;
     windows?.color.copy(WINDOWS_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
+    if (ultra) windows?.color.multiplyScalar(1 + (ultra.night.windowGlow - 1) * glow);
     const lava = this.islands.userData.lava as THREE.MeshBasicMaterial | undefined;
     lava?.color.copy(LAVA_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
     const erupting = this.volcanoes.update(dt, {
@@ -718,7 +763,7 @@ export class GameView {
     // An eruption brightens the lava past its night glow (one shared material, decision 0178).
     lava?.color.multiplyScalar(1 + (TUNING.weather.volcano.eruptions.lavaGain - 1) * erupting);
     this.boat.setNightLighting?.(day.night);
-    this.ocean.update(time, this.target);
+    this.ocean.update(time, this.target, this.effects.reflection);
     this.currentWater?.update(time, this.ocean, this.world.currentsOn);
     this.calmWater?.update(time, this.ocean, this.world.windZones);
     this.roughWater?.update(time, this.ocean, this.world.windZones);
@@ -755,11 +800,17 @@ export class GameView {
       );
     }
 
-    this.renderer.render(this.scene, this.camera);
+    if (ultra) ultra.render(dt, day.night);
+    else this.renderer.render(this.scene, this.camera);
   }
 
   /** Bumped whenever a town's look may change: its pictures are taken again (decision 0211). */
   private townVersion = 0;
+  /** A town or its props were rebuilt: new pictures, and Ultra's shadows on the new meshes. */
+  private townChanged() {
+    this.townVersion++;
+    this.ultra?.sceneChanged();
+  }
   private readonly pictures = new Map<string, string>();
   private picturesLook = '';
   private pictureCamera?: THREE.PerspectiveCamera;
@@ -812,14 +863,15 @@ export class GameView {
     tint.kind = null;
     const gloom = this.atmosphere.gloom;
     this.atmosphere.gloom = 0;
-    this.atmosphere.update(0, day, this.world.weather, this.ocean, aim, tint);
+    const sun = this.profile.ultra ? this.ultra?.sunShape : undefined;
+    this.atmosphere.update(0, day, this.world.weather, this.ocean, aim, tint, sun);
     this.atmosphere.gloom = gloom;
     const fog = this.scene.fog as THREE.Fog;
     const { near, far } = fog;
     fog.near = 1e4;
     fog.far = 2e4;
     this.ocean.setFog(fog.near, fog.far);
-    this.ocean.update(this.world.time, aim);
+    this.ocean.update(this.world.time, aim, this.effects.reflection);
     const glow = day.night;
     this.lanterns.update(glow, this.boatLantern, time);
     this.lighthouseBeams.update(time, glow);
@@ -915,6 +967,7 @@ export class GameView {
     this.seaMarks.dispose();
     this.questMarkers.dispose();
     this.boat.dispose();
+    this.ultra?.dispose();
     this.renderer.dispose();
   }
 }

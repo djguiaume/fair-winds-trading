@@ -2,7 +2,7 @@
  * Quality levels (decision 0005's mobile budget). "auto" starts from a guess based on the device
  * and steps down while the frame time is too long.
  */
-export type QualityLevel = 'low' | 'medium' | 'high';
+export type QualityLevel = 'low' | 'medium' | 'high' | 'ultra';
 export type QualitySetting = QualityLevel | 'auto';
 
 export interface QualityProfile {
@@ -21,6 +21,10 @@ export interface QualityProfile {
   fancyWater: boolean;
   /** Fog of war's edge on the chart blurred (decision 0156); else a cheap stepped soft rim. */
   chartFogBlur: boolean;
+  /** Fresnel sky reflection and sun glint on the sea (decision 0221). */
+  waterReflection: boolean;
+  /** Desktop and Xbox pipeline (decision 0221): tone mapping, soft shadows, occlusion, haze. */
+  ultra: boolean;
 }
 
 export const QUALITY: Record<QualityLevel, QualityProfile> = {
@@ -33,6 +37,8 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
     shadows: false,
     fancyWater: false,
     chartFogBlur: false,
+    waterReflection: false,
+    ultra: false,
   },
   medium: {
     maxRenderPixels: 1_250_000,
@@ -43,6 +49,8 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
     shadows: false,
     fancyWater: true,
     chartFogBlur: false,
+    waterReflection: false,
+    ultra: false,
   },
   high: {
     maxRenderPixels: 2_500_000,
@@ -53,6 +61,21 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
     shadows: true,
     fancyWater: true,
     chartFogBlur: true,
+    waterReflection: true,
+    ultra: false,
+  },
+  // Full resolution on a 1440p screen; a 4K one draws fewer pixels and is scaled up.
+  ultra: {
+    maxRenderPixels: 3_700_000,
+    pixelRatioCap: 2,
+    oceanSegments: 160,
+    windStreaks: 90,
+    rainDrops: 400,
+    shadows: true,
+    fancyWater: true,
+    chartFogBlur: true,
+    waterReflection: true,
+    ultra: true,
   },
 };
 
@@ -71,16 +94,44 @@ export function renderPixelRatio(
   );
 }
 
-const ORDER: QualityLevel[] = ['low', 'medium', 'high'];
+const ORDER: QualityLevel[] = ['low', 'medium', 'high', 'ultra'];
 
-/** First guess before any frame is measured: touch devices start lower. */
+/** Software renderers and small laptop chips: no Ultra for them (decision 0221). */
+const WEAK_GPU =
+  /swiftshader|llvmpipe|software|basic render|intel\(r\) u?hd graphics|mali|adreno|powervr/i;
+
+/** The GPU's name, or '' when the browser hides it. Asked once, on a throwaway context. */
+let gpu: string | undefined;
+function gpuName(): string {
+  if (gpu !== undefined) return gpu;
+  gpu = '';
+  try {
+    const gl = document.createElement('canvas').getContext('webgl2');
+    const info = gl?.getExtension('WEBGL_debug_renderer_info');
+    if (gl && info) gpu = String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL));
+    gl?.getExtension('WEBGL_lose_context')?.loseContext();
+  } catch {
+    // No WebGL 2 here: High at most.
+  }
+  return gpu;
+}
+
+/** Ultra only on a desktop or an Xbox with a real graphics card (decision 0221). */
+export function ultraCapable(gpu: string, cores: number): boolean {
+  return gpu !== '' && !WEAK_GPU.test(gpu) && cores >= 6;
+}
+
+/**
+ * First guess before any frame is measured: touch devices start lower, desktops with a real
+ * graphics card on Ultra. Auto still steps down if the frames are slow.
+ */
 export function guessQuality(): QualityLevel {
   const touch = navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
   const cores = navigator.hardwareConcurrency || 4;
   const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
   if (touch && (cores <= 4 || (memory !== undefined && memory <= 4))) return 'low';
   if (touch) return 'medium';
-  return 'high';
+  return ultraCapable(gpuName(), cores) ? 'ultra' : 'high';
 }
 
 export function lowerQuality(q: QualityLevel): QualityLevel {

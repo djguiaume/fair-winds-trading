@@ -10,6 +10,7 @@ import difficulty from './tuning/difficulty.json';
 import weather from './tuning/weather.json';
 import seamanship from './tuning/seamanship.json';
 import camera from './tuning/camera.json';
+import graphics from './tuning/graphics.json';
 
 /**
  * Every tuning number of the game, read from the JSON files in `src/data/tuning/` (decisions 0093
@@ -50,6 +51,8 @@ export interface Tuning {
   seamanship: typeof seamanship;
   /** The sea camera's placement and the player's turning of it (decision 0223). */
   camera: typeof camera;
+  /** The Ultra quality level and the sea's reflection (decision 0221). */
+  graphics: typeof graphics;
 }
 
 /** The values as shipped. Never changed: the panel resets to these. */
@@ -63,6 +66,7 @@ export const SHIPPED_TUNING: Readonly<Tuning> = {
   weather,
   seamanship,
   camera,
+  graphics,
 } as unknown as Tuning;
 
 /** The live values. */
