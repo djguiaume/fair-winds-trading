@@ -16,12 +16,23 @@ export function raceOverlay(q: QuestDef, goal: Condition, file: string): number 
   const same = JSON.stringify(start) === JSON.stringify(finish);
   const overlay = {
     title: `${q.name} · ${seriesById(q.race!.series)?.name ?? q.race!.series}`,
-    legend: [{ style: 'route', text: 'the course, mark to mark (boats sail round land)' }],
+    legend: [
+      {
+        style: 'route',
+        text: `${q.name}: start, marks 1-${marks.length}, ${same ? 'back to the line' : 'finish'}`,
+      },
+    ],
+    areas: (q.race!.storms ?? []).map((st) => ({
+      outline: Array.from({ length: 16 }, (_, i) => [
+        Math.round(st.x + (st.radius ?? 70) * Math.cos((i * Math.PI) / 8)),
+        Math.round(st.y + (st.radius ?? 70) * Math.sin((i * Math.PI) / 8)),
+      ]),
+      style: 'tint',
+    })),
     lines: [
       {
         points: [mid(start), ...marks.map((m) => [m.x, m.y]), mid(finish)],
         style: 'route',
-        label: q.name,
         arrow: true,
       },
       {
@@ -31,7 +42,14 @@ export function raceOverlay(q: QuestDef, goal: Condition, file: string): number 
       },
       ...(same ? [] : [{ points: finish.map((p) => [p.x, p.y]), style: 'long', label: 'finish' }]),
     ],
-    labels: marks.map((m, i) => ({ at: [m.x, m.y + 14], text: `mark ${i + 1}`, style: 'note' })),
+    labels: [
+      ...(q.race!.storms ?? []).map((st) => ({
+        at: [st.x, st.y],
+        text: 'squall at the horn',
+        style: 'note',
+      })),
+      ...marks.map((m, i) => ({ at: [m.x, m.y + 14], text: String(i + 1), style: 'note' })),
+    ],
   };
   writeFileSync(file, `${JSON.stringify(overlay, null, 2)}\n`);
   const all = [...start, ...finish, ...marks];

@@ -4,6 +4,7 @@ import { BUILDING_IDS, buildableIslands, homeSpots } from './home';
 import { chartAreaIds, fogIslandIds } from './fog';
 import { chartableZoneIds, type MapDef } from './map';
 import { slotLayout } from './questLibrary';
+import { readRaceRecord, writeRaceRecord } from './raceRecords';
 import {
   type QuestDef,
   type QuestState,
@@ -313,8 +314,8 @@ export function packSave(
  * The quest section (decision 0125), written only when a quest has progress, so a code without
  * quests is what it was before: per quest 0 (not started), 1 (done) or 2 + its step, the step's
  * numbers, per choice step the option picked + 1, and per var (decision 0151) its port or good
- * + 1, for a standing order (decision 0214) its rounds and wait, and for a race (0217) its best
- * time + 1 and medal; then the tracked quest + 1.
+ * + 1, for a standing order (decision 0214) its rounds and wait, and for a race (0217, 0226) its
+ * record (`raceRecords.ts`); then the tracked quest + 1.
  */
 function packQuests(
   w: Writer,
@@ -345,11 +346,7 @@ function packQuests(
       w.uint(p.rounds ?? 0);
       w.uint(p.wait ?? 0);
     }
-    // A race's best time + 1 (0 = none) and best medal (decision 0217).
-    if (quest.race) {
-      w.uint(p.best === undefined ? 0 : p.best + 1);
-      w.uint(p.medal ?? 0);
-    }
+    if (quest.race) writeRaceRecord(p, (n) => w.uint(n));
   }
   w.uint(
     indexOrNone(
@@ -384,8 +381,7 @@ function unpackQuests(
     }
     const rounds = quest.repeat ? r.uint() : 0;
     const wait = quest.repeat ? r.uint() : 0;
-    const best = quest.race ? r.uint() : 0;
-    const medal = quest.race ? r.uint() : 0;
+    const record = quest.race ? readRaceRecord(() => r.uint()) : {};
     byId[quest.id] = {
       step: step?.id ?? QUEST_DONE,
       counts,
@@ -393,8 +389,7 @@ function unpackQuests(
       ...(Object.keys(vars).length ? { vars } : {}),
       ...(rounds ? { rounds } : {}),
       ...(wait ? { wait } : {}),
-      ...(best ? { best: best - 1 } : {}),
-      ...(medal ? { medal } : {}),
+      ...record,
     };
   }
   const tracked = quests[r.uint() - 1]?.id;

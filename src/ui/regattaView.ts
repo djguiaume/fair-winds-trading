@@ -14,6 +14,9 @@ import {
 } from '../sim/regatta';
 import { SHIP_CLASSES } from '../sim/ship';
 import { character, firstName } from './portraits';
+import { type ClubBoard, CLUB_PORT, clubBoard } from './clubBoard';
+
+export { clubOpening } from './clubBoard';
 import { type QuestCardModel, cardFor } from './questView';
 
 /*
@@ -53,6 +56,8 @@ export interface RaceCardInfo {
   series: string;
   /** An entry of the regatta book on the Quay. */
   book?: boolean;
+  /** The Sailing Club's board on the Quay (decision 0226): the card shows it instead. */
+  board?: ClubBoard;
 }
 
 export function raceInfo(book: QuestBook, quest: QuestDef, again = false): RaceCardInfo {
@@ -99,7 +104,12 @@ export function raceResultCard(book: QuestBook, map: MapDef, e: RaceEvent): Ques
   Object.assign(card, {
     mood: 'pleased',
     ask: t(`regatta.result.${m}.title` as MessageKey),
-    speech: won.at(-1) ?? t(`regatta.result.${m}.${line}` as MessageKey),
+    speech: [
+      won.at(-1) ?? t(`regatta.result.${m}.${line}` as MessageKey),
+      tOptional(`${quest.text}.race.done`),
+    ]
+      .filter(Boolean)
+      .join(' '),
     news: news.join(' ') || undefined,
     reward: e.gold ? { gold: e.gold, more: [] } : undefined,
   });
@@ -122,7 +132,7 @@ export function raceResultCard(book: QuestBook, map: MapDef, e: RaceEvent): Ques
 export function raceBookCards(book: QuestBook, map: MapDef, docked: string | null) {
   if (!docked) return [];
   const busy = !!book.race();
-  const out: QuestCardModel[] = [];
+  const out = clubBoardCard(book, map, docked);
   for (const quest of book.raced) {
     if (book.portOf(quest.id, quest.port) !== docked) continue;
     const card = cardFor(book, map, quest.id, 'finished');
@@ -136,6 +146,17 @@ export function raceBookCards(book: QuestBook, map: MapDef, docked: string | nul
     out.push(card);
   }
   return out;
+}
+
+/** Wren's club board for the Quay of Saltmere, from the first club race on offer (0226). */
+function clubBoardCard(book: QuestBook, map: MapDef, docked: string): QuestCardModel[] {
+  const board = clubBoard(book, docked);
+  const base = board && book.quests.find((q) => q.race && q.port === CLUB_PORT);
+  const card = base && cardFor(book, map, base.id, 'finished');
+  if (!board || !card) return [];
+  Object.assign(card, { mood: 'neutral', ask: undefined, speech: undefined });
+  card.race = { ...raceInfo(book, base, false), board };
+  return [card];
 }
 
 /**
