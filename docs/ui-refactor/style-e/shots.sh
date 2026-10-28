@@ -3,7 +3,8 @@
 t=$1; sizes=${2:-desktop}
 st="docs/ui-refactor/style-e/css/fonts.css,docs/ui-refactor/style-e/css/$t.css"
 day=/tmp/claude-0/s/$t.json; night=/tmp/claude-0/s/$t-night.json
-nst="$st,docs/ui-refactor/style-e/css/night-dim.css"
+nightcss=night-dim; case $t in e-*) nightcss=e-night;; esac
+nst="$st,docs/ui-refactor/style-e/css/$nightcss.css"
 cat > $day <<J
 [
  {"name":"1-menu","menu":true,"style":"$st"},

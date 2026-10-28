@@ -1,0 +1,17 @@
+x-swallow{}
+/* Night tokens for style E refined: each material is retuned, nothing is dimmed with a filter.
+   Paper takes a warm lamp tone (about 15% darker, ink contrast stays above 9:1), paint plates get a
+   brighter brass rim and brighter text, the focus ring is untouched. */
+html:root {
+  --paper: #dccba1;
+  --paper-2: #cfbd91;
+  --paper-ink: #231910;
+  --paper-dim: #54452f;
+  --paper-rule: rgba(70, 45, 20, 0.24);
+  --enamel: #d9ceaf;
+  --paint: #1c4755;
+  --paint-hi: #2a6070;
+  --ink: #f8f0da;
+  --brass: #f2cf7c;
+  --brass-deep: #c79d3a;
+}
