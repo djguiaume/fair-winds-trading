@@ -66,6 +66,21 @@
         "fair": 374,
         "captain": 374,
         "salt": 374
+      },
+      "tern": {
+        "fair": 110,
+        "captain": 110,
+        "salt": 110
+      },
+      "tern-pilot": {
+        "fair": 119,
+        "captain": 119,
+        "salt": 119
+      },
+      "tern-yawl": {
+        "fair": 113,
+        "captain": 113,
+        "salt": 113
       }
     },
     "storms": [
