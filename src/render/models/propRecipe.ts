@@ -373,6 +373,7 @@ export const buildProp = (id: string, args: PropBuildArgs): Parts => prepareProp
 const RECIPE_KEYS = new Set([
   ...['id', 'name', 'group', 'internal', 'extends', 'home', 'building', 'water', 'lamp', 'vent'],
   ...['sizedInModel', 'fit', 'fitRadius', 'edge', 'style', 'defaults', 'vars', 'parts', 'scale'],
+  'protect',
 ]);
 const PART_KEYS = new Set([
   ...SHAPE_KEYS,

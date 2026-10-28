@@ -14,5 +14,18 @@
     "bottoms": [-0.8, 0.8, 4.4, 7.5],
     "tops": [1, 4.6, 7.6, 8]
   },
-  "sandbankTop": 0.8
+  "sandbankTop": 0.8,
+  "sculpt": {
+    "falloff": 0.5,
+    "spacing": 0.25,
+    "smoothRadius": 1.6,
+    "minHeight": -12,
+    "maxHeight": 60,
+    "protect": {
+      "fit": 3.2,
+      "margin": 1.6,
+      "fade": 1.6
+    },
+    "levelTolerance": 0.15
+  }
 }

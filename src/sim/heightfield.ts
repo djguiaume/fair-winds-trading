@@ -7,8 +7,8 @@ import {
   edgeDistance,
   flatLayout,
   islandBearing,
-  islandCoasts,
   islandLayout,
+  islandPoint,
   isSloped,
   layoutGround,
   peakHeight,
@@ -16,6 +16,7 @@ import {
   type IslandLayout,
 } from './islandLayout';
 import { BEACH_TOP, ISLAND_SCALE } from './islandUnits';
+import { sculptField } from './sculpt';
 
 /**
  * The islands' ground as one grid of heights (decision 0222, issue #268): built from the island
@@ -301,12 +302,26 @@ export function islandHeightfield(island: IslandDef, level = 4): Heightfield {
   if (cached?.design !== design) fieldCache.set(island, (cached = { design, fields: new Map() }));
   let field = cached.fields.get(key);
   if (!field) {
-    field = design
-      ? rasterise(boxOf(islandCoasts(island)!), design.seed, designSampler(island, design, level))
-      : legacyField(island);
+    field = design ? designHeightfield(island, design, level) : legacyField(island);
     cached.fields.set(key, field);
   }
   return field;
+}
+
+/**
+ * An island file's field placed as `island`, built afresh: its generated ground, then its hand
+ * edits (decision 0230). For a file that is not the map's own, as the island checks and the
+ * sculpting session use.
+ */
+export function designHeightfield(island: IslandDef, design: IslandDesign, level = 4): Heightfield {
+  const coasts = design.coasts.map((c) =>
+    c.map(([x, z]): [number, number] => {
+      const p = islandPoint(island, x, z);
+      return [p.x, p.y];
+    }),
+  );
+  const field = rasterise(boxOf(coasts), design.seed, designSampler(island, design, level));
+  return sculptField(field, island, design);
 }
 
 function legacyField(island: IslandDef): Heightfield {
