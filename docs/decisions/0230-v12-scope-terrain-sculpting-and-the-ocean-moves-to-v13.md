@@ -1,6 +1,6 @@
 # 0230. v1.2 scope: terrain sculpting and the ocean moves to v1.3
 
-**Status:** Proposed (2026-10-28). Becomes Accepted when Guillaume OKs the v1.2 brief.
+**Status:** Accepted (2026-10-28, Guillaume OK on the v1.2 brief).
 
 ## Context
 

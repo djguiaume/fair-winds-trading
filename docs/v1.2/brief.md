@@ -23,4 +23,4 @@ Carried from v1.1, one low-effort Sonnet thread alongside wave 1 (UI files only,
 
 At most 3 to 5 threads at once; I start the next part as soon as one merges. Role questions (one message each, when their wave starts): storyteller has none for v1.2 so far; art director gives boat look rules for #331 first, then biome tables for #269 and #275.
 
-Open for Guillaume: ring port size (grow four ring towns from radius 18 to about 34?) before #277; the Abbey Head club-house art follow-ups noted for v1.2.
+Ring port size (grow four ring towns from radius 18 to about 34?): not decided; the art director shows a before and after chart to Guillaume before #277. The Abbey Head club-house art follow-ups are noted for v1.2.
