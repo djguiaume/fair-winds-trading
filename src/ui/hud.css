@@ -18,7 +18,7 @@ body {
   height: 100%;
   overflow: hidden;
   background: #1d6f7a;
-  font-family: 'Trebuchet MS', Verdana, sans-serif;
+  font-family: var(--body);
   color: #fff;
   -webkit-user-select: none;
   user-select: none;

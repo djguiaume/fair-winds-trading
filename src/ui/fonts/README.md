@@ -10,3 +10,7 @@ fontTools from the Google Fonts TTFs in `docs/ui-refactor/mockups/src/fonts/`:
       --flavor=woff2 --layout-features='kern,liga,tnum,lnum' --output-file=<name>.woff2
 
 Used by `src/ui/sea-hud.css` (decision 0049).
+
+Fraunces (700 and 900) by Undercase Type (https://github.com/undercasetype/Fraunces), SIL Open Font License 1.1,
+copyright 2020 The Fraunces Project Authors. Same subset and command as above.
+Used by `src/ui/theme.css` for titles and buttons (decision 0220). Its figures are old-style, which is part of the look.

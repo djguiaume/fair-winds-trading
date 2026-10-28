@@ -29,36 +29,21 @@
   flex: none;
 }
 .d-btn {
-  --lo: rgba(0, 0, 0, 0.4);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   min-height: 46px;
   padding: 0 16px;
-  border: 2px solid var(--outline);
-  border-radius: 10px;
-  background: var(--navy-solid);
+  border: 2px solid;
   box-shadow:
     inset 0 -3px 0 var(--lo),
-    0 3px 8px rgba(0, 0, 0, 0.35);
-  color: var(--ink);
-  font: 700 18px/1 var(--display);
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+    0 2px 0 rgba(58, 42, 29, 0.6);
+  font-size: 18px;
+  line-height: 1;
   white-space: nowrap;
   cursor: pointer;
   touch-action: manipulation;
-}
-.d-btn.brass {
-  --lo: var(--brass-lo);
-  background: linear-gradient(var(--brass-hi), #e0b452);
-  color: #2a1c00;
-}
-.d-btn.red {
-  --lo: #b8261a;
-  background: linear-gradient(#ff8a73, #ec5a43);
-  color: #2b0703;
 }
 .d-btn.big {
   min-height: 56px;

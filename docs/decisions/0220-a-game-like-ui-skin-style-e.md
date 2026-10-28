@@ -1,6 +1,6 @@
 # 0220. A game-like UI skin (style E)
 
-**Status:** Proposed (2026-10-26). Part of the v1.1 plan ([plan](../v1.1/plan.md#ui-reskin-a-game-like-look-style-e)); built in v1.1 after mockups are approved.
+**Status:** Accepted (2026-10-28). Part of the v1.1 plan ([plan](../v1.1/plan.md#ui-reskin-a-game-like-look-style-e)); built in v1.1 (issue #261).
 
 ## Context
 
@@ -33,4 +33,14 @@ Plan a **reskin, not a rebuild**, as a v1.1 part: **style E**, the successor of 
 - One more font (~20 to 40 KB WOFF2, SIL OFL, latin subset) and a handful of small SVG frames; checked with `?bench` on the old tablet.
 - Every screenshot in the docs that shows the UI goes stale; the mockup and build threads retake them with `npm run shots`.
 - Text changes (fewer "·" and arrows) go through the storyteller for both languages.
-- Accepted when Guillaume picks a mockup direction; this ADR is then updated with the chosen font, colours and frames.
+- Accepted when Guillaume picked the "final" mockup (2026-10-28); the choice is below.
+
+## Chosen look (the "final" mockup)
+
+Drawn in the mockup archive `docs/ui-refactor/style-e/` (direction 1, with refined's flat paper, speed log and wind box, and a brass Set sail). Built in `src/ui/theme.css`.
+
+- **Three materials.** Dark wood (`--leather` #3a2a1d) is the background behind paper, with a plank texture only there. Paper (`--paper` #f1e6c8, cards #f6ecd0, edge #8a6a3c) holds the text: flat, one soft inner edge, never ruled. Flat dark teal plates (`--navy` #17404f, edge #0d2a35, brass line #e8c46a) hold the sea HUD.
+- **Fonts.** Fraunces 700 and 900 (SIL OFL, latin subset, ~18 KB each) for titles and buttons (its figures are old-style); Barlow Condensed stays for HUD figures and small labels (the speed log and wind box), Barlow for text.
+- **Buttons, one paint per kind.** Teal for the main action (#2f8a9a to #1f5a66), paper for neutral, brass (#e8c46a, ink #2e2217) for Set sail, oxblood only for danger (New game), quiet wood for close. Pill shape, no capitals, no letter spacing.
+- **Frames.** Plain CSS borders and flat fills, no SVG `border-image`: the paper edge is a box-shadow, so it costs no extra draw work on an old tablet.
+- **Rules from Guillaume.** No lines on paper or plates; no default blue/teal-and-gold look (teal stays muted, brass only on Set sail and HUD edges); red only for danger.
