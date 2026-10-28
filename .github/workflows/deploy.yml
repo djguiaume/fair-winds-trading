@@ -3,11 +3,8 @@ name: CI and GitHub Pages
 on:
   push:
     branches: [main]
+  # No path filter on PRs: a required check that never starts would block docs-only PRs (decision 0224).
   pull_request:
-    # Docs-only PRs skip the build; pushes to main always run it.
-    paths-ignore:
-      - 'docs/**'
-      - '**/*.md'
   workflow_dispatch:
 
 permissions:

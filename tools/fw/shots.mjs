@@ -5,7 +5,7 @@
 // `place`, `dock`, the view, the chart) and shoots each size.
 import { readFileSync, mkdirSync } from 'node:fs';
 import { resolve, basename, extname, join } from 'node:path';
-import { ROOT, startVite } from './lib.mjs';
+import { ROOT, chromiumPath, startVite } from './lib.mjs';
 
 /**
  * The three sizes every look review shows (desktop first, must look good in portrait), and `tv`:
@@ -645,7 +645,7 @@ export async function takeShots(shots, out) {
       shot.seaMap = JSON.stringify(loadSea(shot.seaFile).map);
     }
   const browser = await chromium.launch({
-    executablePath: '/opt/pw-browsers/chromium',
+    executablePath: chromiumPath(),
     args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
   });
   const files = [];
