@@ -1,0 +1,129 @@
+{
+  "id": "race-coral-squall",
+  "name": "The Coral Squall",
+  "start": {
+    "is": "all",
+    "of": [
+      {
+        "is": "quest-done",
+        "quest": "race-greyback"
+      },
+      {
+        "is": "quest-done",
+        "quest": "outpost-south"
+      }
+    ]
+  },
+  "text": "quest.race-coral-squall",
+  "giver": "wren",
+  "starter": "juno",
+  "port": "sunreach",
+  "offer": true,
+  "storms": false,
+  "wind": {
+    "speedKn": 12,
+    "fromDeg": 100
+  },
+  "race": {
+    "series": "regatta-club",
+    "gold": {
+      "bronze": 140,
+      "silver": 280,
+      "gold": 450
+    },
+    "pars": {
+      "sloop": {
+        "fair": 173,
+        "captain": 173,
+        "salt": 173
+      },
+      "cutter": {
+        "fair": 141,
+        "captain": 141,
+        "salt": 141
+      },
+      "schooner": {
+        "fair": 113,
+        "captain": 113,
+        "salt": 113
+      },
+      "clipper": {
+        "fair": 106,
+        "captain": 106,
+        "salt": 106
+      },
+      "hoy": {
+        "fair": 373,
+        "captain": 373,
+        "salt": 373
+      },
+      "fluyt": {
+        "fair": 396,
+        "captain": 396,
+        "salt": 396
+      },
+      "indiaman": {
+        "fair": 374,
+        "captain": 374,
+        "salt": 374
+      }
+    },
+    "storms": [
+      {
+        "x": -340,
+        "y": -870,
+        "radius": 55,
+        "strength": 0.9,
+        "driftDeg": 0,
+        "driftSpeed": 1.2
+      }
+    ]
+  },
+  "steps": [
+    {
+      "id": "race",
+      "moveTo": {
+        "x": -85,
+        "y": -690,
+        "headingDeg": 180
+      },
+      "goal": {
+        "is": "raced",
+        "start": [
+          {
+            "x": -130,
+            "y": -715
+          },
+          {
+            "x": -40,
+            "y": -715
+          }
+        ],
+        "marks": [
+          {
+            "x": -260,
+            "y": -840
+          },
+          {
+            "x": -470,
+            "y": -740
+          },
+          {
+            "x": -440,
+            "y": -600
+          }
+        ],
+        "finish": [
+          {
+            "x": -130,
+            "y": -715
+          },
+          {
+            "x": -40,
+            "y": -715
+          }
+        ]
+      }
+    }
+  ]
+}
