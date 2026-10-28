@@ -72,13 +72,32 @@ store plan of [0204](decisions/0204-selling-on-android-iphone-and-xbox.md) comes
   *Traffic Architect* look Guillaume approved, on every quality level: smooth rolling terrain from the
   same island data, shores sloping into the sea, depth-coloured blue water, dense forests, haze.
   Build guide: [v1.2/plan.md](v1.2/plan.md). Also takes the v1.0 bug fixes (moved from v1.1, issue #255).
+  Delivery authority: [#267](https://github.com/djguiaume/fair-winds-trading/issues/267), including approved terrain sculpting/editor/CLI extensions.
+- **v1.3, "Ocean update"** ([#279](https://github.com/djguiaume/fair-winds-trading/issues/279)): shared wind/storm/depth waves, scalable
+  water visuals, boat motion and bounded sailing effects; selective reflections are conditional.
+  Depends on v1.2; no due date. The tracker and child briefs hold the agreed scope.
+- **v1.4, "Your Own Boat"** ([plan](v1.4/plan.md), [#294](https://github.com/djguiaume/fair-winds-trading/issues/294)):
+  visibly distinct existing sail/hull/hold upgrades without changing their mechanical effects;
+  personal sail colours/patterns, hull trim, flags and a small figurehead collection;
+  per-ship persistence, shipyard preview, shared editor/CLI authoring and compact isolated Free Sailing.
+  Scope approved 2026-10-28; seven issues (#295–#301), after v1.3. No implementation started or due date.
 - **The store plan** ([0204](decisions/0204-selling-on-android-iphone-and-xbox.md)): phones first,
-  Xbox after asking ID@Xbox.
-- **Polish and extras:** ship cosmetics (sail colours, flags, figureheads), achievements, a real
-  **sandbox** mode (everything unlocked, nothing saved; needs its own decision), the **Kids mode**
+  Xbox after asking ID@Xbox. Still proposed and parked; not selected for v1.4.
+- **Polish and extras:** achievements, the **Kids mode**
   rework ([0043](decisions/0043-shelve-kids-mode.md)), "play with these controls" in the editors.
 - **Event panel** for big story events ([0174](decisions/0174-event-panel-for-big-story-events.md)),
   only when Guillaume asks.
+
+## Boat ideas after v1.4 (unscheduled)
+
+Captured individually so they remain discoverable; no milestone, implementation approval or v1.5 promise.
+The v1.4 figurehead collection is committed separately.
+
+- [#302](https://github.com/djguiaume/fair-winds-trading/issues/302): Decorative boat attachments at compatible mounting points.
+- [#303](https://github.com/djguiaume/fair-winds-trading/issues/303): New upgrade tracks or changes to existing upgrade effects.
+- [#304](https://github.com/djguiaume/fair-winds-trading/issues/304): Sail materials with distinct gameplay effects.
+- [#305](https://github.com/djguiaume/fair-winds-trading/issues/305): Interchangeable class-compatible sail rigs.
+- [#306](https://github.com/djguiaume/fair-winds-trading/issues/306): New playable boat classes and fleet variety.
 
 ## Later extensions (each its own decision, maybe paid)
 
