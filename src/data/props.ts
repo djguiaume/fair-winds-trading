@@ -36,6 +36,10 @@ export interface RecipePart {
   pane?: Num;
   /** Which windows stay dark at night. */
   seed?: Num;
+  /** A lofted boat hull from `src/data/traffic-hulls.json`, curved sheer and rail; `color` paints
+   * the topsides and `band` the top strake. */
+  hull?: string;
+  band?: string;
   /** Another prop type's parts, with `vars` set for it. */
   use?: string;
   /** A shape written in code (`src/render/models/propRecipe.ts` › CODE_PARTS). */

@@ -166,7 +166,8 @@ export function hullGeometry(
     f.tri(V(0, DECK, 0), outline[i]!, outline[j]!, ST.deck);
     for (let r = 0; r < rings.length - 1; r++)
       f.quad(rings[r]![i]!, rings[r + 1]![i]!, rings[r + 1]![j]!, rings[r]![j]!, strake(r));
-    f.tri(V(0, DECK - H, 0), rings[3]![j]!, rings[3]![i]!, HULL);
+    const keel = rings[rings.length - 1]!;
+    f.tri(V(0, DECK - H, 0), keel[j]!, keel[i]!, HULL);
     // A solid raised gunwale: outer face, cap and inner face follow the same sheer as the deck.
     // A badly knocked hull has lost its middle stretch on one side (decision 0208).
     const spans =

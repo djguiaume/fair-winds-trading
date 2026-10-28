@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { TUNING } from '../data/tuning';
 import { SHIP_FILES } from '../data/ships';
 import { trueWindAngle } from '../sim/boat';
-import { HULL_SCALE } from '../sim/hullShape';
 import type { MapDef } from '../sim/map';
 import { designOf } from '../data/islands';
 import { DEG, clamp, wrapAngle } from '../sim/math';
@@ -10,8 +9,9 @@ import { noGoAngle } from '../sim/ship';
 import type { TrafficBoat, TrafficKind, TrafficState } from '../sim/traffic';
 import { windTo } from '../sim/wind';
 import { glowTexture } from './lanterns';
-import { mergeAll, vertexColorMaterial } from './models/geometry';
-import { buildProp } from './models/propRecipe';
+import { TrafficWakes } from './trafficWake';
+import type { WakeHull } from './wake';
+import { cargoOf, trafficBatch, trafficMaterials, type Batch } from './trafficBatch';
 import { RefinedBoat } from './models/refinedBoat';
 import { rigOf } from './models/shipModels';
 import { PALETTE } from '../data/props';
@@ -23,26 +23,11 @@ const RECIPES: Partial<Record<TrafficKind, string>> = {
   coaster: 'traffic-coaster',
 };
 
-/** A drawn kind in one home style and colour: one instanced hull, one instanced mesh per sail. */
-interface Batch {
-  hulls: THREE.InstancedMesh;
-  sails: THREE.InstancedMesh[];
-  /** Where each sail's luff meets the boom, in model units, bow toward −Z. */
-  pivots: THREE.Vector3[];
-  /** Model units to scene units. */
-  scale: number;
-  /** Stern lantern and masthead light, in model units. */
-  lights: THREE.Vector3[];
-  count: number;
-}
-
 /** One visitor's model: at most one is drawn, the nearest (decision 0215). */
 interface Visitor {
   model: RefinedBoat;
   key: string;
 }
-
-const UP = new THREE.Vector3(0, 1, 0);
 
 /**
  * The other boats on the sea (decision 0215), drawn from the World's traffic, which only the
@@ -53,16 +38,12 @@ const UP = new THREE.Vector3(0, 1, 0);
  */
 export class TrafficView {
   readonly root = new THREE.Group();
-  private readonly hullMaterial = vertexColorMaterial();
-  private readonly sailMaterial = new THREE.MeshLambertMaterial({
-    vertexColors: true,
-    side: THREE.DoubleSide,
-    flatShading: true,
-    emissive: '#ffffff',
-    emissiveIntensity: 0.25,
-  });
+  private readonly materials = trafficMaterials();
   private readonly batches = new Map<string, Batch>();
+  private readonly wakes = new TrafficWakes();
   private readonly styles: Map<string, string>;
+  /** The deck cargo a coaster carries from each port: her home's first good (traffic-boats.json). */
+  private readonly cargo: Map<string, number>;
   private visitor: Visitor | null = null;
   /** Kestrel, the regatta's rival (decision 0217): her own model, built at her first race. */
   private rival: RefinedBoat | null = null;
@@ -86,6 +67,7 @@ export class TrafficView {
     this.root.name = 'traffic';
     const islandStyle = new Map(map.islands.map((i) => [i.id, designOf(i)?.style ?? 'fish']));
     this.styles = new Map(map.ports.map((p) => [p.id, islandStyle.get(p.islandId) ?? 'fish']));
+    this.cargo = new Map(map.ports.map((p) => [p.id, cargoOf(p.produces[0])]));
     this.most = Math.max(...Object.values(TUNING.seamanship.traffic.atOnce));
     this.lightPositions = new Float32Array(this.most * 2 * 3);
     this.lightGeometry.setAttribute(
@@ -106,7 +88,7 @@ export class TrafficView {
     this.lights = new THREE.Points(this.lightGeometry, this.lightMaterial);
     this.lights.frustumCulled = false;
     this.lights.renderOrder = 4;
-    this.root.add(this.lights);
+    this.root.add(this.lights, this.wakes.mesh);
   }
 
   /** The batch a boat is drawn in: her kind, in her home's style and her band colour. */
@@ -115,52 +97,18 @@ export class TrafficView {
     if (!recipe) return null;
     const style = this.styles.get(b.fleet.home) ?? 'fish';
     const variant = b.fleetIndex % 2;
-    const key = `${recipe}:${style}:${variant}`;
+    const cargo = this.cargo.get(b.fleet.home) ?? 0;
+    const key = `${recipe}:${style}:${variant}:${cargo}`;
     let batch = this.batches.get(key);
     if (batch) return batch;
-    const parts = buildProp(recipe, { R: 1, style, variant, shape: 0.5, size: 1 });
-    const turn = (g: THREE.BufferGeometry) => g.rotateY(Math.PI);
-    const pivots: THREE.Vector3[] = [];
-    const sails: THREE.InstancedMesh[] = [];
-    const hull: THREE.BufferGeometry[] = [];
-    for (const g of parts) {
-      const at = g.userData.sail as [number, number, number] | undefined;
-      if (!at) {
-        hull.push(turn(g));
-        continue;
-      }
-      // Bow toward −Z like the ship models: the recipe's +Z turned round.
-      pivots.push(new THREE.Vector3(-at[0], at[1], -at[2]));
-      const sail = new THREE.InstancedMesh(turn(g), this.sailMaterial, this.most);
-      sail.count = 0;
-      sail.frustumCulled = false;
-      sails.push(sail);
-    }
-    const geometry = mergeAll(hull);
-    geometry.computeBoundingBox();
-    const box = geometry.boundingBox!;
-    const hulls = new THREE.InstancedMesh(geometry, this.hullMaterial, this.most);
-    hulls.count = 0;
-    hulls.frustumCulled = false;
-    hulls.castShadow = true;
-    const kind = TUNING.seamanship.traffic.kinds[b.fleet.kind]!;
-    const top = Math.max(box.max.y, ...pivots.map((p) => p.y));
-    batch = {
-      hulls,
-      sails,
-      pivots,
-      scale: HULL_SCALE * kind.scale,
-      // A fishing boat shows one stern lamp; a coaster a stern lamp and a masthead pin.
-      lights:
-        b.fleet.kind === 'fishing'
-          ? [new THREE.Vector3(0, box.max.y * 0.9, box.max.z * 0.9)]
-          : [new THREE.Vector3(0, box.max.y * 0.9, box.max.z * 0.9), new THREE.Vector3(0, top, 0)],
-      count: 0,
-    };
-    // The masthead light over the tallest mast, at its foot's distance from the bow.
-    const mast = pivots.reduce((a, p) => (p.y > a.y ? p : a), pivots[0] ?? UP);
-    if (batch.lights[1]) batch.lights[1].z = mast.z;
-    this.root.add(hulls, ...sails);
+    batch = trafficBatch(
+      recipe,
+      b.fleet.kind,
+      { style, variant, cargo },
+      this.materials,
+      this.most,
+    );
+    this.root.add(batch.hulls, ...batch.sails);
     this.batches.set(key, batch);
     return batch;
   }
@@ -222,6 +170,7 @@ export class TrafficView {
     rival: TrafficBoat | null = null,
   ) {
     for (const batch of this.batches.values()) batch.count = 0;
+    this.wakes.begin();
     let lights = 0;
     let shownVisitor: TrafficBoat | null = null;
     let visitorD = Infinity;
@@ -243,6 +192,7 @@ export class TrafficView {
       this.matrix.compose(this.position, this.quaternion, this.scaleVec);
       const i = batch.count++;
       batch.hulls.setMatrixAt(i, this.matrix);
+      this.addWake(b, batch.wake, time);
       batch.sails.forEach((sail, k) => {
         const pivot = batch.pivots[k]!;
         // Set and trimmed under way. Lowered (at a harbour, on the nets) she keeps it half up,
@@ -283,6 +233,7 @@ export class TrafficView {
         time,
       });
       visitor.root.position.copy(this.position);
+      this.addWake(shownVisitor, visitor.wakeHull, time);
       visitor.root.rotation.set(pose.pitch, -shownVisitor.boat.heading, 0);
       visitor.setNightLighting?.(glow);
       if (visitor.lantern && lights < this.most * 2) {
@@ -306,16 +257,32 @@ export class TrafficView {
         time,
       });
       kestrel.root.position.copy(this.position);
+      this.addWake(rival, kestrel.wakeHull, time);
       kestrel.root.rotation.set(pose.pitch, -rival.boat.heading, 0);
       kestrel.setNightLighting?.(glow);
     }
 
+    this.wakes.end(time);
     this.lights.visible = glow > 0.02 && lights > 0;
     if (this.lights.visible) {
       this.lightGeometry.setDrawRange(0, lights);
       this.lightGeometry.attributes.position!.needsUpdate = true;
       this.lightMaterial.opacity = Math.min(1, glow) * (0.7 + 0.1 * Math.sin(time * 6.1));
     }
+  }
+
+  /** Her bow waves at the pose just set: a boat at rest or on the nets leaves none. */
+  private addWake(b: TrafficBoat, hull: WakeHull, time: number) {
+    const { heading } = b.boat;
+    this.wakes.add(
+      this.position.x,
+      this.position.z,
+      Math.sin(heading),
+      -Math.cos(heading),
+      hull,
+      b.boat.speedKn,
+      time,
+    );
   }
 
   /**
@@ -357,8 +324,9 @@ export class TrafficView {
     }
     this.visitor?.model.dispose();
     this.rival?.dispose();
-    this.hullMaterial.dispose();
-    this.sailMaterial.dispose();
+    this.wakes.dispose();
+    this.materials.hull.dispose();
+    this.materials.sail.dispose();
     this.lightGeometry.dispose();
     this.lightMaterial.dispose();
     this.lightTexture.dispose();

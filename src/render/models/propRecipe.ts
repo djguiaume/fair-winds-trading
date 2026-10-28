@@ -7,6 +7,8 @@ import {
   type PropRecipe,
   type RecipePart,
 } from '../../data/props';
+import trafficBoats from '../../data/traffic-boats.json';
+import { hullGeometry } from './refinedBoat';
 import { glowing, paint, paintFaces, triangleCount, windowPanes } from './geometry';
 
 /**
@@ -187,25 +189,42 @@ export const CODE_PARTS: Record<string, (scope: Scope) => THREE.BufferGeometry> 
    * A fore-and-aft sail (decision 0215's other boats): flat, in the boat's centre plane, its luff
    * up the mast from the origin and its foot aft along −Z. `foot` and `luff` long, the head
    * `head` long, peaked up `peak` at the leech: a gaff or lug sail, or a jib-headed one at 0.
+   * `cells` panels each way, filled out to one side by `belly`, like the player's cloth.
    */
   sail: (s) => {
     const foot = s.foot ?? 2;
     const luff = s.luff ?? 2;
     const head = s.head ?? 0;
     const peak = s.peak ?? 0;
-    const p = [
-      [0, 0, 0],
-      [0, 0, -foot],
-      [0, luff + peak, -Math.max(head, 0.01)],
-      [0, luff, 0],
+    const belly = s.belly ?? 0;
+    const cells = s.cells ?? 1;
+    // Bottom edge tack to clew, top edge luff head to leech peak, bellied out to one side.
+    const at = (u: number, v: number) => [
+      belly * Math.sin(Math.PI * u) * Math.sin(Math.PI * v),
+      v * (luff + peak * u),
+      -u * (foot * (1 - v) + Math.max(head, 0.01) * v),
     ];
-    const v = [0, 1, 2, 0, 2, 3].flatMap((k) => p[k]!);
+    const v: number[] = [];
+    for (let j = 0; j < cells; j++)
+      for (let i = 0; i < cells; i++) {
+        const a = at(i / cells, j / cells);
+        const b = at((i + 1) / cells, j / cells);
+        const c = at((i + 1) / cells, (j + 1) / cells);
+        const d = at(i / cells, (j + 1) / cells);
+        v.push(...a, ...b, ...c, ...a, ...c, ...d);
+      }
     const sail = new THREE.BufferGeometry();
     sail.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
     sail.computeVertexNormals();
     return sail;
   },
 };
+
+/** Boat hulls by id: length, beam, depth and the sections `hullGeometry` lofts. */
+const HULLS = trafficBoats.hulls as Record<
+  string,
+  Omit<Parameters<typeof hullGeometry>[1], 'hull' | 'band'>
+>;
 
 // ---------------------------------------------------------------- shapes
 
@@ -244,7 +263,7 @@ const SHAPES: Record<string, Shape> = {
   plane: ([w, h]) => new THREE.PlaneGeometry(w, h),
 };
 /** The shape keys a part may have, for the checks. */
-export const SHAPE_KEYS = [...Object.keys(SHAPES), 'windows', 'use', 'part', 'parts'];
+export const SHAPE_KEYS = [...Object.keys(SHAPES), 'windows', 'use', 'part', 'parts', 'hull'];
 
 // ---------------------------------------------------------------- building
 
@@ -361,6 +380,18 @@ export function prepareProp(id: string, args: PropBuildArgs): () => Parts {
         );
         return;
       }
+      if (p.hull) {
+        const hull = HULLS[p.hull];
+        if (!hull) throw new Error(`Unknown boat hull "${p.hull}"`);
+        const g = hullGeometry(2, {
+          ...hull,
+          hull: colorOf(p.color, style, s),
+          band: colorOf(p.band ?? p.color, style, s),
+        });
+        transform(g, p, s);
+        out.push(g);
+        return;
+      }
       if (p.use) {
         const vars = Object.fromEntries(
           Object.entries(p.vars ?? {}).map(([k, v]) => [k, num(v, s)]),
@@ -417,7 +448,21 @@ const RECIPE_KEYS = new Set([
 ]);
 const PART_KEYS = new Set([
   ...SHAPE_KEYS,
-  ...['seed', 'pane', 'y', 'ops', 'at', 'color', 'glow', 'faces', 'tag', 'if', 'repeat', 'vars'],
+  ...[
+    'seed',
+    'pane',
+    'y',
+    'ops',
+    'at',
+    'color',
+    'band',
+    'glow',
+    'faces',
+    'tag',
+    'if',
+    'repeat',
+    'vars',
+  ],
 ]);
 
 /** The triangles of a set of parts. */

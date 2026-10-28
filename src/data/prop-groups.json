@@ -9,6 +9,6 @@
     "nature": { "budget": 60 },
     "rocks": { "budget": 200 },
     "landmarks": { "budget": 300 },
-    "boats": { "budget": 900 }
+    "boats": { "budget": 3500 }
   }
 }
