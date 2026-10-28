@@ -72,7 +72,7 @@ dialog.chart::backdrop {
   border-radius: 4px;
   background: var(--paper-card);
   color: var(--paper-ink);
-  font: 700 17px/1 var(--serif);
+  font: 700 var(--fs-lead)/1 var(--serif);
   white-space: nowrap;
 }
 .chart-chip > span {
@@ -90,7 +90,7 @@ dialog.chart::backdrop {
   background: transparent;
   box-shadow: none;
   color: var(--paper-ink-dim);
-  font-size: 16px;
+  font-size: var(--fs-lead);
 }
 
 /* Buttons: teal plates; the picked good in brass; Close in quiet wood, as in the port. */
@@ -108,7 +108,7 @@ dialog.chart::backdrop {
     inset 0 0 0 1.5px var(--brass),
     0 2px 0 rgba(0, 0, 0, 0.4);
   color: var(--ink);
-  font: 700 16px/1 var(--display);
+  font: 700 var(--fs-lead)/1 var(--display);
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -150,7 +150,7 @@ dialog.chart::backdrop {
 .chart .chart-goods button {
   justify-content: flex-start;
   min-height: 40px;
-  font-size: 15px;
+  font-size: var(--fs-text);
 }
 .chart .chart-goods button.active {
   border-color: var(--teal-edge);
@@ -577,7 +577,7 @@ html[data-input='pad'] .chart-cross {
 }
 .chart-compass #chart-wind {
   display: block;
-  font: 700 14px/1.2 var(--display);
+  font: 700 var(--fs-body)/1.2 var(--display);
   text-align: center;
 }
 .chart-zoom {
@@ -592,10 +592,10 @@ html[data-input='pad'] .chart-cross {
 .chart .chart-zoom button {
   width: 44px;
   padding: 0;
-  font-size: 24px;
+  font-size: var(--fs-title);
 }
 .chart .chart-zoom #chart-fit {
-  font-size: 20px;
+  font-size: var(--fs-head);
 }
 /* Course changes are spoken; the course chip already shows them. */
 .chart-status {
@@ -646,16 +646,16 @@ html[data-input='pad'] .chart-cross {
 .chart-sheet h3 {
   margin: 0;
   color: var(--brass);
-  font: 700 22px/1.1 var(--serif);
+  font: 700 var(--fs-title)/1.1 var(--serif);
 }
 .chart-sheet p {
   margin: 10px 0 0;
-  font: 500 14px/1.4 var(--body);
+  font: 500 var(--fs-body)/1.4 var(--body);
 }
 .chart-sheet header button {
   width: 44px;
   padding: 0;
-  font-size: 24px;
+  font-size: var(--fs-title);
 }
 .chart-legend {
   margin: 8px 0;
@@ -681,7 +681,7 @@ html[data-input='pad'] .chart-cross {
 }
 .chart-legend dd {
   margin: 0;
-  font: 500 15px var(--body);
+  font: 500 var(--fs-text) var(--body);
 }
 .chart-legend .chart-shore {
   stroke-width: 4.5px;
@@ -697,12 +697,12 @@ html[data-input='pad'] .chart-cross {
   width: 100%;
   margin-top: 8px;
   border-collapse: collapse;
-  font: 500 15px var(--body);
+  font: 500 var(--fs-text) var(--body);
 }
 .chart .chart-prices th {
   padding: 4px;
   color: var(--ink-dim);
-  font: 700 13px var(--display);
+  font: 700 var(--fs-note) var(--display);
   letter-spacing: 0.06em;
   text-align: left;
   text-transform: uppercase;
@@ -713,7 +713,7 @@ html[data-input='pad'] .chart-cross {
   white-space: nowrap;
 }
 .chart .chart-prices td:last-child {
-  font-size: 13px;
+  font-size: var(--fs-note);
   white-space: normal;
 }
 .chart .chart-prices td.best {
@@ -723,7 +723,7 @@ html[data-input='pad'] .chart-cross {
 .chart .chart-prices button {
   min-height: 38px;
   padding: 0 8px;
-  font-size: 15px;
+  font-size: var(--fs-text);
   text-transform: none;
 }
 .chart .chart-prices .icon {
@@ -733,7 +733,7 @@ html[data-input='pad'] .chart-cross {
 }
 .chart-key-price {
   color: var(--green);
-  font: 700 16px var(--body);
+  font: 700 var(--fs-lead) var(--body);
 }
 
 /* --- Sizes ------------------------------------------------------------------------------ */
@@ -741,15 +741,15 @@ html[data-input='pad'] .chart-cross {
 @media (max-height: 450px) {
   .chart :is(.chart-viewport, .chart-footer) button {
     min-height: 38px;
-    font-size: 14px;
+    font-size: var(--fs-body);
   }
   .chart .chart-goods button {
     min-height: 36px;
-    font-size: 14px;
+    font-size: var(--fs-body);
   }
   .chart-chip {
     height: 36px;
-    font-size: 14px;
+    font-size: var(--fs-body);
   }
   .chart-compass.compass {
     top: 8px;
@@ -810,7 +810,7 @@ html[data-input='pad'] .chart-cross {
     justify-content: center;
     gap: 4px;
     padding: 0 4px;
-    font-size: 13px;
+    font-size: var(--fs-note);
   }
   .chart .chart-goods .icon {
     width: 18px;
@@ -854,7 +854,7 @@ html[data-input='pad'] .chart-cross {
   border-radius: 0;
   background: var(--paper);
   box-shadow: inset 0 0 38px var(--paper-shade);
-  font-size: 18px;
+  font-size: var(--fs-sub);
 }
 .chart[data-tab]:not([data-tab='map']) .chart-sheet > * {
   max-width: 1100px;

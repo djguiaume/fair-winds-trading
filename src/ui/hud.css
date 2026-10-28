@@ -19,7 +19,7 @@ body {
   overflow: hidden;
   background: #1d6f7a;
   font-family: var(--body);
-  color: #fff;
+  color: var(--white);
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -68,7 +68,7 @@ body {
   opacity: 0.75;
 }
 .small {
-  font-size: 12px;
+  font-size: var(--fs-small);
 }
 
 /* Toast */
@@ -84,7 +84,7 @@ body {
   border-radius: 14px;
   padding: 10px 16px;
   font-weight: bold;
-  font-size: 16px;
+  font-size: var(--fs-lead);
   animation: toast-in 0.25s ease-out;
 }
 .toast[hidden] {
@@ -134,7 +134,7 @@ body {
 
 button.primary {
   background: #f2c230;
-  color: #5a3d00;
+  color: var(--on-gold-soft);
   border-color: #fff3c4;
   font-weight: bold;
   text-shadow: none;
@@ -203,7 +203,7 @@ button.primary {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--fs-note);
 }
 
 .role-tag {
@@ -229,7 +229,7 @@ button.primary {
   border: 2px solid rgba(255, 255, 255, 0.3);
   background: rgba(255, 255, 255, 0.1);
   color: var(--ink);
-  font-size: 18px;
+  font-size: var(--fs-sub);
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -255,7 +255,7 @@ button.primary {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: var(--fs-body);
 }
 
 .stat-pill .stat-val {
@@ -268,7 +268,7 @@ button.primary {
 
 .stat-pill .stat-label {
   opacity: 0.75;
-  font-size: 12px;
+  font-size: var(--fs-small);
 }
 
 /* Tabs */
@@ -281,7 +281,7 @@ button.primary {
   flex: 1;
   min-height: 46px;
   font: inherit;
-  font-size: 16px;
+  font-size: var(--fs-lead);
   font-weight: bold;
   border-radius: 10px;
   border: 2px solid rgba(255, 255, 255, 0.25);
@@ -293,7 +293,7 @@ button.primary {
 
 .tab-btn.active {
   background: #f2c230;
-  color: #5a3d00;
+  color: var(--on-gold-soft);
   border-color: #fff3c4;
 }
 
@@ -324,9 +324,9 @@ button.primary {
   border-radius: 8px;
   border: 2px solid #9be37d;
   background: #9be37d;
-  color: #1a4d10;
+  color: var(--on-green);
   font: inherit;
-  font-size: 15px;
+  font-size: var(--fs-text);
   font-weight: bold;
   cursor: pointer;
   touch-action: manipulation;
@@ -367,7 +367,7 @@ button.primary {
 }
 
 .good-icon {
-  font-size: 26px;
+  font-size: var(--fs-big);
   line-height: 1;
 }
 
@@ -379,11 +379,11 @@ button.primary {
 
 .good-name {
   margin: 0;
-  font-size: 17px;
+  font-size: var(--fs-lead);
 }
 
 .role-badge {
-  font-size: 11px;
+  font-size: var(--fs-micro);
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -400,7 +400,7 @@ button.primary {
 
 .role-badge.help {
   background: rgba(255, 179, 107, 0.2);
-  color: #ffb36b;
+  color: var(--amber-ink);
 }
 .role-badge.neutral {
   background: rgba(255, 255, 255, 0.1);
@@ -408,7 +408,7 @@ button.primary {
 }
 
 .good-meta {
-  font-size: 13px;
+  font-size: var(--fs-note);
   opacity: 0.85;
   margin-top: 2px;
 }
@@ -424,7 +424,7 @@ button.primary {
   background: rgba(0, 0, 0, 0.26);
   border-radius: 8px;
   padding: 6px;
-  font-size: 13px;
+  font-size: var(--fs-note);
 }
 
 .price-col {
@@ -432,7 +432,7 @@ button.primary {
 }
 
 .price-label {
-  font-size: 11px;
+  font-size: var(--fs-micro);
   opacity: 0.75;
   display: block;
 }
@@ -453,7 +453,7 @@ button.primary {
 }
 
 .qty-title {
-  font-size: 12px;
+  font-size: var(--fs-small);
   opacity: 0.8;
 }
 
@@ -470,7 +470,7 @@ button.primary {
   border: 1px solid rgba(255, 255, 255, 0.3);
   background: rgba(255, 255, 255, 0.1);
   color: var(--ink);
-  font-size: 18px;
+  font-size: var(--fs-sub);
   font-weight: bold;
   cursor: pointer;
   display: grid;
@@ -486,7 +486,7 @@ button.primary {
   min-width: 28px;
   text-align: center;
   font-weight: bold;
-  font-size: 15px;
+  font-size: var(--fs-text);
 }
 
 .qty-quick-buttons {
@@ -501,7 +501,7 @@ button.primary {
   border: 1px solid rgba(255, 255, 255, 0.25);
   background: rgba(255, 255, 255, 0.08);
   color: var(--ink);
-  font-size: 12px;
+  font-size: var(--fs-small);
   font-weight: bold;
   cursor: pointer;
   touch-action: manipulation;
@@ -514,7 +514,7 @@ button.primary {
 .quote-preview {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: var(--fs-note);
   padding: 2px 4px;
 }
 
@@ -533,7 +533,7 @@ button.primary {
 }
 
 .quote-total.unaffordable {
-  color: #ff8a73;
+  color: var(--red-ink);
 }
 
 .quote-total.income {
@@ -541,7 +541,7 @@ button.primary {
 }
 
 .quote-avg {
-  font-size: 11px;
+  font-size: var(--fs-micro);
   opacity: 0.75;
 }
 
@@ -557,7 +557,7 @@ button.primary {
   padding: 6px 10px;
   border-radius: 8px;
   font: inherit;
-  font-size: 13px;
+  font-size: var(--fs-note);
   font-weight: bold;
   cursor: pointer;
   border: 2px solid;
@@ -573,7 +573,7 @@ button.primary {
 
 .trade-act-btn.buy-btn:not(:disabled, [aria-disabled='true']):active {
   background: #f2c230;
-  color: #5a3d00;
+  color: var(--on-gold-soft);
 }
 
 .trade-act-btn.sell-btn {
@@ -584,7 +584,7 @@ button.primary {
 
 .trade-act-btn.sell-btn:not(:disabled, [aria-disabled='true']):active {
   background: #9be37d;
-  color: #1a4d10;
+  color: var(--on-green);
 }
 
 .trade-act-btn:is(:disabled, [aria-disabled='true']) {
@@ -605,7 +605,7 @@ button.primary {
 .undock-btn {
   min-height: 48px;
   min-width: 170px;
-  font-size: 16px;
+  font-size: var(--fs-lead);
 }
 
 /* Shipyard Section */
@@ -617,7 +617,7 @@ button.primary {
 
 .section-title h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--fs-sub);
   color: var(--gold-ink);
 }
 
@@ -648,12 +648,12 @@ button.primary {
 }
 
 .track-icon {
-  font-size: 24px;
+  font-size: var(--fs-title);
 }
 
 .track-name {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--fs-lead);
 }
 
 .track-pips-container {
@@ -664,7 +664,7 @@ button.primary {
 }
 
 .track-level-text {
-  font-size: 12px;
+  font-size: var(--fs-small);
   opacity: 0.8;
 }
 
@@ -685,7 +685,7 @@ button.primary {
 }
 
 .track-effects {
-  font-size: 13px;
+  font-size: var(--fs-note);
   line-height: 1.35;
   flex: 1;
 }
@@ -711,7 +711,7 @@ button.primary {
   min-height: 46px;
   border-radius: 8px;
   font: inherit;
-  font-size: 14px;
+  font-size: var(--fs-body);
   font-weight: bold;
   cursor: pointer;
   border: 2px solid rgba(255, 255, 255, 0.3);
@@ -722,7 +722,7 @@ button.primary {
 
 .upgrade-btn.primary {
   background: #f2c230;
-  color: #5a3d00;
+  color: var(--on-gold-soft);
   border-color: #fff3c4;
 }
 
@@ -764,17 +764,17 @@ button.primary {
 
 .ship-card-header h4 {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--fs-sub);
   color: var(--gold-ink);
 }
 
 .ship-role-tag {
-  font-size: 12px;
+  font-size: var(--fs-small);
   opacity: 0.8;
 }
 
 .ship-specs {
-  font-size: 13px;
+  font-size: var(--fs-note);
   line-height: 1.45;
   flex: 1;
 }
@@ -788,7 +788,7 @@ button.primary {
   min-height: 46px;
   border-radius: 8px;
   font: inherit;
-  font-size: 14px;
+  font-size: var(--fs-body);
   font-weight: bold;
   cursor: pointer;
   touch-action: manipulation;
@@ -799,7 +799,7 @@ button.primary {
 
 .ship-btn.primary {
   background: #f2c230;
-  color: #5a3d00;
+  color: var(--on-gold-soft);
   border-color: #fff3c4;
 }
 
@@ -817,7 +817,7 @@ button.primary {
   border: 1px solid #f2c230;
   color: var(--gold-ink);
   font-weight: bold;
-  font-size: 14px;
+  font-size: var(--fs-body);
 }
 
 /* Responsive adjustments */
@@ -834,7 +834,7 @@ button.primary {
   }
 
   .port-name {
-    font-size: 22px;
+    font-size: var(--fs-title);
   }
 }
 .trade-modal {
@@ -885,7 +885,7 @@ button.primary {
 
 .contracts-title {
   margin: 0 0 6px;
-  font-size: 15px;
+  font-size: var(--fs-text);
 }
 
 .contract-line {
@@ -905,7 +905,7 @@ button.primary {
 .contract-list {
   margin: 8px 0 0;
   padding-left: 18px;
-  font-size: 13px;
+  font-size: var(--fs-note);
   opacity: 0.9;
 }
 
@@ -930,7 +930,7 @@ button.primary {
 
 .best-elsewhere {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--fs-note);
   opacity: 0.85;
 }
 /* Wind strength gauge (decision 0040), hidden for now; the rest of the compass is in sea-hud.css. */
@@ -996,8 +996,8 @@ button.primary {
   padding: 4px 6px 4px 12px;
   border-radius: 12px;
   background: #123246ee;
-  color: #f3d37e;
-  font: 600 12px sans-serif;
+  color: var(--brass-hi);
+  font: 600 var(--fs-small) var(--body);
   white-space: nowrap;
 }
 .quest-test-bar span {

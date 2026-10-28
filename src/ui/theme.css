@@ -76,6 +76,20 @@
   --red-deep: #d8402e;
   --amber: #ffb36b;
   --outline: #06141c;
+  --white: #fff;
+  /* Text on teal and danger button fills: stays light at night. */
+  --on-fill: #f6ecd0;
+  /* Text on filled chips: dark on gold, green and light plates. */
+  --on-gold: #2a1c00;
+  --on-gold-soft: #5a3d00;
+  --on-green: #1a4d10;
+  --on-light: #14202a;
+  /* Accent text on dark plates. */
+  --amber-ink: #ffb36b;
+  --red-ink: #ff8a73;
+  --brass-pale: #ffdfa0;
+  --sky-ink: #9fe3ff;
+  --ink-cool: #c9d3d8;
 
   /* Dark wood: the background behind paper (title menu, sheets, port tabs and footer). */
   --leather: #3a2a1d;
@@ -107,6 +121,20 @@
   --danger-hi: #c9503a;
   --danger-edge: #5b1a0f;
 
+  /* The type scale, in px: every font size in game CSS is one of these (tests/type-scale.test.ts). */
+  --fs-micro: 11px;
+  --fs-small: 12px;
+  --fs-note: 13px;
+  --fs-body: 14px;
+  --fs-text: 15px;
+  --fs-lead: 16px;
+  --fs-sub: 18px;
+  --fs-head: 20px;
+  --fs-title: 24px;
+  --fs-big: 28px;
+  --fs-display: 32px;
+  --fs-hero: 44px;
+
   /* --display is the condensed face of numbers and small labels; --serif is for titles and buttons. */
   --display: 'Barlow Condensed', 'Arial Narrow', 'Roboto Condensed', sans-serif;
   --serif: 'Fraunces', Georgia, serif;
@@ -115,12 +143,12 @@
 
 /* At night the paper dims with the scene (issue #326); ink stays dark, so text keeps its contrast. */
 :root[data-night] {
-  --paper: #8d856f;
-  --paper-2: #7f765f;
-  --paper-card: #958c75;
+  --paper: #a59d86;
+  --paper-2: #968d75;
+  --paper-card: #aca48c;
   --paper-shade: rgba(40, 28, 14, 0.2);
-  --paper-ink: #1f160e;
-  --paper-ink-dim: rgba(31, 22, 14, 0.78);
+  --paper-ink: #1a120a;
+  --paper-ink-dim: rgba(26, 18, 10, 0.85);
 }
 
 /* On paper the dark-surface tokens flip to ink on cream, so the screens' rules need no second set. */
@@ -180,7 +208,7 @@ dialog.quest-card,
   --lo: var(--teal-edge);
   border-color: var(--teal-edge);
   background: radial-gradient(circle at 30% 25%, var(--teal-hi), var(--teal) 70%);
-  color: var(--paper-card);
+  color: var(--on-fill);
 }
 /* Sell is quiet next to Buy. */
 .good-row .sell-btn:not(:disabled, [aria-disabled='true']) {
@@ -203,7 +231,7 @@ dialog.quest-card,
   --lo: var(--danger-edge);
   border-color: var(--danger-edge);
   background: radial-gradient(circle at 30% 25%, var(--danger-hi), var(--danger) 70%);
-  color: var(--paper-card);
+  color: var(--on-fill);
 }
 /* Close: quiet wood, not a red alarm. Pad focus finds it by its classes (padFocus.ts). */
 .close-btn,
@@ -213,7 +241,7 @@ dialog.quest-card,
   border: 2px solid var(--leather-deep);
   background: var(--leather);
   box-shadow: inset 0 -3px 0 var(--leather-deep);
-  color: var(--paper-card);
+  color: var(--on-fill);
 }
 
 /* --- Sea HUD plates: flat dark teal, a dark edge, a brass line inside, a hard drop shadow. No lines

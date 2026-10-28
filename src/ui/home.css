@@ -15,7 +15,7 @@
   border-radius: 10px;
   background: var(--navy);
   color: var(--brass);
-  font: 700 17px/1.1 var(--display);
+  font: 700 var(--fs-lead)/1.1 var(--display);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -83,30 +83,30 @@
   border-radius: 8px;
   background: #b08a5a;
   box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2);
-  color: #3b2814;
-  font: 700 28px/1 var(--display);
+  color: var(--paper-ink);
+  font: 700 var(--fs-big)/1 var(--display);
 }
 .home-plot.is-locked .home-num {
   background: #4a5b66;
-  color: #c9d3d8;
+  color: var(--ink-cool);
 }
 .home-plot h3 {
   margin: 0;
   color: var(--ink);
-  font: 700 20px/1.1 var(--display);
+  font: 700 var(--fs-head)/1.1 var(--display);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 .home-plot h3 small {
   margin-left: 8px;
   color: var(--brass);
-  font-size: 14px;
+  font-size: var(--fs-body);
   letter-spacing: 0.06em;
 }
 .home-line {
   margin: 0;
   color: var(--ink-dim);
-  font: 500 15px/1.3 var(--body);
+  font: 500 var(--fs-text)/1.3 var(--body);
 }
 .home-see {
   grid-column: 1 / -1;
@@ -130,7 +130,7 @@
 }
 .home-choice b {
   color: var(--ink);
-  font: 700 19px/1.1 var(--display);
+  font: 700 var(--fs-sub)/1.1 var(--display);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -138,11 +138,11 @@
   flex: 1;
   margin: 0 0 4px;
   color: var(--ink);
-  font: 500 15px/1.3 var(--body);
+  font: 500 var(--fs-text)/1.3 var(--body);
 }
 .home-kind {
   color: var(--brass);
-  font: 700 12px/1 var(--display);
+  font: 700 var(--fs-small)/1 var(--display);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -180,7 +180,7 @@
   grid-row: auto;
   width: 36px;
   height: 36px;
-  font-size: 22px;
+  font-size: var(--fs-title);
 }
 .home-screen.is-half .home-choice {
   padding: 8px 10px;
@@ -212,7 +212,7 @@
     grid-row: span 2;
     width: 48px;
     height: 48px;
-    font-size: 28px;
+    font-size: var(--fs-big);
   }
 }
 @media (max-height: 500px) {
@@ -224,10 +224,10 @@
     padding: 6px 10px;
   }
   .home-screen.is-half .home-choice p {
-    font-size: 13px;
+    font-size: var(--fs-note);
   }
   .home-screen.is-half .home-choice b {
-    font-size: 16px;
+    font-size: var(--fs-lead);
   }
 }
 @media (max-width: 600px) {
@@ -235,14 +235,14 @@
     padding: 10px;
   }
   .home-choice p {
-    font-size: 13px;
+    font-size: var(--fs-note);
   }
   .home-choice b {
-    font-size: 16px;
+    font-size: var(--fs-lead);
   }
   .home-choice .port-btn {
     padding: 0 8px;
-    font-size: 14px;
+    font-size: var(--fs-body);
   }
 }
 body.home-half #hud > :not(#home-ui) {
@@ -253,7 +253,7 @@ body.home-half #hud > :not(#home-ui) {
 .home-store-title {
   margin: 0;
   color: var(--brass);
-  font: 700 18px/1.15 var(--display);
+  font: 700 var(--fs-sub)/1.15 var(--display);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -279,21 +279,21 @@ body.home-half #hud > :not(#home-ui) {
 .home-store-name {
   grid-area: name;
   color: var(--ink);
-  font: 700 18px/1.1 var(--display);
+  font: 700 var(--fs-sub)/1.1 var(--display);
   text-transform: uppercase;
 }
 .home-store-counts {
   grid-area: counts;
   color: var(--ink-dim);
-  font: 600 14px/1.2 var(--body);
+  font: 600 var(--fs-body)/1.2 var(--body);
 }
 .home-store-row .port-btn {
   min-height: 40px;
   padding: 6px 10px;
-  font-size: 14px;
+  font-size: var(--fs-body);
 }
 .home-note {
   margin: 0;
   color: var(--ink-dim);
-  font: 500 13px/1.35 var(--body);
+  font: 500 var(--fs-note)/1.35 var(--body);
 }
