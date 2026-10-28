@@ -154,6 +154,14 @@ export const SMOOTH_META: Readonly<Record<string, TuningMeta>> = {
     '/ unit',
     'Frequency of the gentle mottling between a ground’s own colours: smaller is broader patches.',
   ),
+  'terrain.draw.mottleAmount': num(
+    'Mottling depth',
+    0,
+    1,
+    0.05,
+    '×',
+    'How far the mottling strays from a ground’s first colour into its others: low keeps the shipped colour bright.',
+  ),
   'terrain.draw.slope': num(
     'Slope colour',
     0,

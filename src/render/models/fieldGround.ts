@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { TUNING } from '../../data/tuning';
-import { STYLES, groundColors, styleColor } from '../../data/grounds';
+import { GROUNDS, STYLES, groundColors, styleColor } from '../../data/grounds';
 import type { TerrainDef } from '../../sim/map';
 import { type Heightfield, fieldLod } from '../../sim/heightfield';
 import { valueNoise } from '../../sim/noise';
@@ -33,7 +33,8 @@ export function designPalette(style: string): FieldPalette {
   return {
     look: (ground) => {
       const look = groundColors(ground, style);
-      return { top: look.top, side: look.slope };
+      // A beach stays sand where it slopes into the sea: no cliff colours on it.
+      return { top: look.top, side: GROUNDS[look.id]?.beach ? look.top : look.slope };
     },
     wet: STYLES[style]?.wet ?? groundColors('sand', style).side[0]!,
   };
@@ -154,10 +155,13 @@ function jitteredGrounds(field: Heightfield) {
   return out;
 }
 
-/** One colour of a list, eased between neighbours by a noise in [-1, 1]: gentle mottling. */
+/**
+ * One colour of a list, eased along it by a noise in [-1, 1]: gentle mottling. The first colour,
+ * the ground's own, holds most of the ground; `draw.mottleAmount` is how far along the rest go.
+ */
 function mottled(list: readonly THREE.Color[], noise: number, out: THREE.Color) {
   if (list.length === 1) return out.copy(list[0]!);
-  const t = ((noise + 1) / 2) * (list.length - 1);
+  const t = Math.abs(noise) * TUNING.terrain.draw.mottleAmount * (list.length - 1);
   const a = Math.min(list.length - 2, Math.floor(t));
   return out.copy(list[a]!).lerp(list[a + 1]!, t - a);
 }

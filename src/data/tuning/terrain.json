@@ -43,6 +43,7 @@
     "blend": 1,
     "jitter": 0.6,
     "mottle": 0.18,
+    "mottleAmount": 0.3,
     "slope": [0.15, 0.18],
     "wet": [0.1, 0.4],
     "bands": 2.4
