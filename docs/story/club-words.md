@@ -105,3 +105,25 @@ These replace rulings 1, 2 and 6 where they differ. Guillaume's calls are marked
 | `club.arrive` (Wren, first docking, replaces `club.open`) | Abbey Head, captain, and the best wind on the chart. Rook lent me the shed, and the kettle's mine. Every course I know is on the board. Sail one, drink tea, sail another. | Abbey Head, capitaine, et le meilleur vent de la carte. Rook m'a prêté le hangar, et la bouilloire est à moi. Toutes les courses que je connais sont sur le tableau. Faites-en une, buvez un thé, faites-en une autre. |
 | `club.gift` (Wren, when the club pennant is won) | Six races, six wins, and I've nothing left to give but this. She's *Tern*, my own design, built light and built to fly. There's room for a loaf and a letter, and not much more. Look after her, captain. | Six courses, six victoires, et il ne me reste que ça à vous donner. Elle s'appelle *Tern*, ma propre conception, légère et faite pour voler. Il y a de la place pour un pain et une lettre, pas beaucoup plus. Prenez-en soin, capitaine. |
 | `club.gift.toast` | *Tern* is yours | *Tern* est à vous |
+
+## Update 2026-10-28 (2): Tern for sale, two long runs
+
+**Tern line.** The gifted *Tern* stays the prize for the club pennant. After the last club race Wren also sells two sisters at the Abbey Head yard: **Tern Pilot** (hold 12) and **Tern Yawl** (hold 8), FR « Tern Pilote » and « Tern Yawl ». Pilot 6000, Yawl 8000 (the smaller hold is the faster, dearer racer; both sit between the schooner at 5000 and the clipper at 20000, since they are prestige, not trade hulls). Upgrade prices follow the schooner's pattern.
+
+**Two long runs, one-way, about 5 minutes, several seas.** Both join the club series, which now has eight races; the club pennant and the *Tern* gift come after all eight. They open once the starting sea's outpost and the far sea's outpost are done (`race-meridian` needs south and north, `race-great-reach` needs west and east). Gold 200 / 400 / 650 (about the Cup's rate per minute). The finish needs no sail home; Wren's line says the *Kestrel*'s crew will bring the boat back, so the game does not force it.
+
+- `race-meridian`, The Meridian Run: Sunreach in the south, up through the ring to Rimewick in the north. Starter Juno.
+- `race-great-reach`, The Great Reach: Emberhold in the west, across the ring to Fogwatch in the east. Starter Bram.
+
+| Key | EN | FR |
+| --- | --- | --- |
+| `quest.race-meridian.name` | The Meridian Run | La course du méridien |
+| `quest.race-meridian.race.title` | Race from Sunreach to Rimewick | Course de Sunreach à Rimewick |
+| `quest.race-meridian.race.copy` | Warm water at one end, ice at the other, and all the sea between, captain. Juno will see you off with tea. Sigrun will have jam waiting. Don't stop for either. | De l'eau chaude à un bout, de la glace à l'autre, et toute la mer entre les deux, capitaine. Juno vous verra partir avec du thé. Sigrun aura de la confiture qui attend. Ne vous arrêtez ni pour l'un ni pour l'autre. |
+| `quest.race-meridian.race.start` | One long line on the chart, captain. On the horn. | Un seul long trait sur la carte, capitaine. Au coup de corne. |
+| `quest.race-meridian.race.done` | Kestrel's crew will bring your boat home. Go and find that jam. | L'équipage du Kestrel ramènera votre bateau. Allez trouver cette confiture. |
+| `quest.race-great-reach.name` | The Great Reach | La grande bordée |
+| `quest.race-great-reach.race.title` | Race from Emberhold to Fogwatch | Course d'Emberhold à Fogwatch |
+| `quest.race-great-reach.race.copy` | Black rocks at one end, fog and amber at the other, captain, and the wind behind you most of the way. Bram says glass shows the truth. Let's see what a long reach shows. | Des rochers noirs à un bout, de la brume et de l'ambre à l'autre, capitaine, et le vent dans le dos presque tout du long. Bram dit que le verre montre la vérité. Voyons ce que montre une longue bordée. |
+| `quest.race-great-reach.race.start` | West to east and don't look back. On the horn. | D'ouest en est, et sans se retourner. Au coup de corne. |
+| `quest.race-great-reach.race.done` | Elias will have the kettle on and a question about your sails. Kestrel's crew will fetch your boat. | Elias aura mis la bouilloire au feu et une question sur vos voiles. L'équipage du Kestrel ira chercher votre bateau. |
