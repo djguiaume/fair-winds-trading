@@ -15,6 +15,7 @@ Who decides what in a release, and how threads talk to each other. Guillaume set
 - Answer small story and look questions yourself from [the story brief](story/storyteller-brief.md) and [the art bible](art/art-bible.md).
 - Ask the storyteller or art director only for a real decision (new person, new rule, a look the bible does not cover, a price that changes story progression). Put all questions in one message. Ask the storyteller before Guillaume.
 - Visual work: one combined review round, screenshots to the art director and Guillaume together.
+- Follow the quality goals in [CLAUDE.md](../CLAUDE.md) (readable, optimized, no big files, data driven, editor plus CLI) and run graphify first on code work.
 - Merge your own PR when there are no open questions, CI is green and it is current with main. Resolve the thread when done.
 
 ## Storyteller

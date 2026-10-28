@@ -1,36 +1,60 @@
 # Working on Fair Winds Trading
 
-## Use graphify first (decision 0177)
+Rules and pointers only. History lives in `docs/decisions/`, `docs/releases/` and the plans.
 
-Guillaume's rule: graphify saves tokens, so every thread uses it.
+## Start here
 
-- Start with `graphify update .` (the SessionStart hook in `.claude/` also runs it in the background).
-- Before grepping or reading many files, ask the graph: `graphify query "<question>"`, `graphify explain <node>`, `graphify path <a> <b>`.
-- Re-run `graphify update .` after big changes.
-- Missing? `npm install -g graphifyy` (binary `/opt/node22/bin/graphify`). The graph lives in `.graphify/`, which git ignores.
+- Build thread: read your GitHub issue (goal, files, done when), not the whole plan or chat history. Your PR says "Fixes #N".
+- Roles (release lead, build threads, storyteller, art director): [docs/roles.md](docs/roles.md).
+- Current release plan: `docs/v1.1/plan.md` (next: `docs/v1.2/plan.md`). Roadmap: `docs/roadmap.md`.
+- Look rules: `docs/art/art-bible.md` (decision 0165). Story rules: `docs/story/storyteller-brief.md` (decision 0129).
+
+## Graphify (decision 0177) — do this first on code work
+
+Threads keep forgetting it. Before reading or grepping code: run `graphify update .`, then `graphify query "<question>"`, `graphify explain <node>` or `graphify path <a> <b>`. Re-run `graphify update .` after big changes. Skip it for docs, plans and small fixes. Missing? `npm install -g graphifyy`.
+
+## Quality goals
+
+- Human readable, clear code: small functions, clear names, comments only for the why. Match the surrounding code.
+- Best practices: TypeScript strict, no dead code, no copy-paste (move shared logic into a module), Vitest tests for logic.
+- Keep it optimized: it must run on an old tablet and a phone (decision 0006); no per-frame allocations, watch draw calls and triangle budgets (`?perf`, `?bench`).
+- No big files: split a file once it passes about 400 lines. Same for docs: one subject per file, short.
+- Everything data driven (decision 0093): tuning numbers and content (goods, ships, towns, weather, quests, text) live in data files, never in TypeScript constants.
+- Every authoring feature is editable in the editors AND has a matching `npm run` tool (decision 0153); the tool and the editor share one module.
 
 ## Rules
 
-- Everything lives in this repo: code, assets, planning docs and decisions. Always document.
-- Record each decision as a new file in `docs/decisions/NNNN-short-title.md` (context, decision, consequences) and link it from `docs/decisions/README.md`.
+- Everything lives in this repo: code, assets, plans and decisions. Always document.
+- Record each decision with `npm run adr -- new "Title"` (context, decision, consequences); it adds the README line.
 - Keep `docs/roadmap.md` up to date when scope or phases change.
-- Reference art and inspiration go in `docs/reference/`. Every visual follows the art bible, `docs/art/art-bible.md` (decision 0165).
-- Tuning numbers and content (goods, ships, town levels, weather) belong in data files, not TypeScript constants (decision 0093).
+- Quests use the quest engine; split long dialogue into several cards.
+- Balance and timings are checked on all three difficulty levels (`npm run balance`).
+- Hazards and annoyances (night, storms, any new one) can be switched off in Settings.
+- Guillaume sees every visual change (screenshots, chart) before it is validated or merged.
+- Threads may merge their own PRs when there are no open questions, CI is green and the branch is current with main.
+- Never spend paid credits without asking Guillaume first with a cost estimate.
+
+## Saving tokens
+
+- Graphify (see above) is the first token saver on code work.
+- Read only the files you need. Use the tools below instead of one-off scripts; prefer `--json`, `tail` and quiet test reporters.
+- Run `npm run check` after editing data files, then only the tests you touched before the full `npm test`.
+- Screenshots: as few as needed, JPG, at most ~1280 px wide, desktop (plus phone when the layout changes). Look at each image once.
+- Wait for CI with a PR subscription, not polling.
 
 ## Command-line tools (decision 0153)
 
-Agents write the data files directly, then use these tools instead of writing one-off scripts. They run the game's and the editors' own code (loaded through Vite), print a short result, and take `--help`.
+Full options: [docs/tools/README.md](docs/tools/README.md), or `--help`. `npm run fw` lists them.
 
-- `npm run check`: every content check the editors run (seas, island files, quests, perks, controls) in about 10 s. Run it after editing any data file, before the full `npm test`. `--only islands --island sunreach`, `--map file.json` for an editor export, `--controls file.json` for a controls page export, `--fast` skips route sailing, `--warnings`, `--json`.
-- `npm run adr`: the next free decision number across main **and every pushed branch**. `npm run adr -- new "Title"` writes the file and its README line. Use it instead of guessing the number.
-- `npm run balance`: the balance bots on all three difficulty levels (Guillaume's rule) in about 10 s (still on the ring alone by default until the bots open the seas in story order, 0198; `--map phase4` for the game's sea): leg times, milestones per level and the failing checks. `--legs` for leg times only, `--map file.json`, `--all`, `--json`. Run it after changing prices, ships, wind or the map.
-- `npm run island`: make and change island files with the island builder's own edits, instead of a generator script. `npm run island -- new palm-key --style tropic --seed 7103 --blob r=1,stretch=1.25`, then one step per call (`plateau --at x,z --size rx,rz`, `mountain`, `lake`, `islet`, `ramp --points "x,z x,z"`, `lane`/`path`/`stairs`, `woods --at x,z --r 0.3`, `spot`, `prop palm --at "x,z x,z" --level 2`, `pier`, `remove prop 3`, `set`, `tidy`) or many at once with `--steps steps.json` (steps as data, `src/editor/island/steps.ts`). It writes the file the way the builder exports it, runs the builder's checks at the island's size on the seas (`--radius` for an island not on a sea yet) and prints one line. `--dry`, `--warnings`, `--json`. Add the island to its sea file yourself.
-- `npm run sea`: the Phase 4 sea's files (`src/data/seas/*.json`, `grown.json`) with the sea editor's own edits (decision 0161), instead of a generator script. `npm run sea -- list`; `new north --name "…"`; `add island|reef|sandbank|shallows|ridge|mark|current|drift|zone|area|edge|port --sea south --at x,y` (`edge`: open water joined to the round sea, the edge buoys follow it, decision 0202) (`--outline`, `--path`, `--type cardinal-north`, `--kind cold-gale`, `--max-draft`, `--name`…); `move <what> <id|index> --at|--by|--to-sea`; `set <what> <id> --field …`, `set grown --radius`; `remove`; `--steps steps.json` (steps as data, `src/editor/seaSteps.ts`). Writes every changed file byte for byte like the editor's export, runs the map checks (`--routes` adds the route checks, ~6 s), prints one line. `--dry`, `--json`, `--warnings`. `npm run sea -- density`: how full each sea's quarter is (decision 0180; target no empty disc over r150, at most ~12% empty water, one open reach).
-- `npm run chart`: the labelled map (PNG + SVG) Guillaume must see with every map or layout change, drawn by the map editor's chart code from the real map and island files: coasts, ports and names, reefs, banks, shallows, sea marks, currents, wind zones, a legend panel. `--sea phase4|ring|stress|file.json` (default phase4, the game's own grown sea since 0198; an editor export, or a sea file merged round the ring), `--around sunreach --radius 300` or `--view w,s,e,n`, `--route start,sunreach` sails a leg with the route checks' planner, `--density` shades empty water, `--overlay file.json` adds proposed islands, areas, routes and labels ([docs/tools/chart.md](docs/tools/chart.md)), `--out path`. Use it instead of a drawing script.
-- `npm run shots`: real-game screenshots in one line, instead of a Playwright script (it starts Vite and Chromium itself, gets past the menu, level card, tutorial offer and harbour). `--sea phase4|ring|stress|map.json` (default phase4, the game's sea, 0198; `ring` = the ring alone at `?map=ring`), `--island a.json` (builder exports), `--at x,y --heading --zoom --look x,y --sail --ship --hold ArrowUp:2000 --click sel` (several: `"#a;#b"`), `--focus sel --style a.css --script a.js` (a mockup drawn in the real game, 0163), `--pad "lx=0.8:1500,rb:100,y:100"` (a fake game controller, 0162), or `--port id --tab quay`, `--moor skerry` (`--offer spot-2`, `--built spot-1=workshop`, `--island-tab`, `--choose spot-2`: Skerry's plots and Island tab, 0210), `--quest rooks-thanks:skerry`, `--chart --charted`, `--menu` (the title menu), `--prologue` (a new voyage's start as a player who skips the tutorial meets it, 0160; otherwise the tools start in plain free play), `--town palm-key:2` (a town's level; an empty island is founded first, 0157), `--lang fr`, `--night`, `--storms`, `--no-zones`, `--no-currents`, `--sizes desktop,landscape,portrait`, `--out dir` (default `shots/`, ignored by git), `--save-link` (also prints the scene as a Pages save link to play from). Many shots: `--list shots.json`, a JSON list whose entries take the same options as keys. Look at every image before posting it. The map editor: `--editor phase4|ring --select island:sunreach --look x,y --zoom upp --export --draft file.json`.
-- `npm run quest`: `quest list`; `quest check <id>` (the quest builder's checks on that quest, `--file q.json` for a quest not in `src/data/quests` yet); `quest play <id> --step N` prints the builder's play-from-step link (local and Pages), `--sea` starts near the step's place, `--shots` takes the screenshots of that test with the `shots` options. The quest's own sea (0164), with the builder's edits, written as the builder exports and checked: `quest move <id> --step N --at x,y --heading deg` (where the step takes the boat), `quest buoy <id> --at x,y --name A` (`<n> --at|--name|--type|--remove`), `quest wind <id> [--step N] --speed 10 --from 30` (`--clear`), `--dry`.
-- `npm run race`: the regatta's races (decision 0217), the quest builder's race edits: `race` lists them; `race <id>` its course and medal times; `--pars --write` (`--all`) has the balance bots sail it with every ship on all three levels and writes the pars; `--start "x,y x,y"`, `--finish`, `--add --at x,y`, `--mark N --at|--remove`; `--overlay file.json` writes the course for `npm run chart -- --overlay`; `race rules`, `race set medals.silver 1.2`, `race series <id> --name --pennant`, `race flag <id> --shape --bands --length --height|--remove` edit `regatta.json` and `flags.json` as the editor's Regatta page does. Re-run the pars after changing a course or the map round it.
-- `npm run sound`: the game's sounds into MP3s (decision 0209), rendered with the game's own synthesisers, sea beds and composer, instead of a script: `sound list`, `sound check`, `sound effect gull --pitch 1.3`, `sound bell skerry` (a port's dock bell), `sound sea north --secs 30 --wind 18 --speed 6 --luff --rain 0.8 --storm --docked --far`, `sound music regatta --secs 60`, `sound mix north` (a sea with its theme at the default volumes), `sound tour` (every sea, effect, bell and theme: the review set). `--file audio.json` plays a Sounds page export, `--out dir` (default `shots/sounds`), `--wav`. The editors' Sounds page edits `src/data/audio.json` with a play button on everything.
-- `npm run fw`: lists every tool (the seven of 0153, and `sea` from 0161).
+- `check`: every editor content check (~10 s).
+- `adr`: next free decision number across all branches; `adr -- new "Title"`.
+- `balance`: balance bots on all three levels.
+- `island`: make and edit island files with the builder's edits.
+- `sea`: edit the sea files with the sea editor's edits; `sea -- density`.
+- `chart`: labelled map PNG/SVG for any map or layout change.
+- `shots`: real-game screenshots in one line (also the map editor, save links).
+- `quest`: list, check, play from a step, edit a quest's sea.
+- `race`: regatta courses, pars and rules.
+- `sound`: render the game's sounds to MP3.
 
-If a tool lacks something, add it to the tool (and move the logic into the shared module the editor uses), rather than writing a script in `docs/reviews`.
+If a tool lacks something, add it to the tool (and its shared module) rather than writing a script.
