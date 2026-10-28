@@ -41,6 +41,8 @@ Threads keep forgetting it. Before reading or grepping code: run `graphify updat
 - Run `npm run check` after editing data files, then only the tests you touched before the full `npm test`.
 - Screenshots: as few as needed, JPG, at most ~1280 px wide, desktop (plus phone when the layout changes). Look at each image once.
 - Wait for CI with a PR subscription, not polling.
+- Workflows do the chores (decision 0224, [docs/tools/ci.md](docs/tools/ci.md)): a screenshot sheet on game PRs, a short failing-lines comment on red CI, rule checks (400 lines, big JSON and images, "Fixes #N"), a render budget, issue triage. Read their comments; don't repeat them by hand.
+- Auto-merge: add the `automerge` label when your PR is ready. A visual PR waits for Guillaume's `visual-ok`; never add that yourself.
 
 ## Command-line tools (decision 0153)
 

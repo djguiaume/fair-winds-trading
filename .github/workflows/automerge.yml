@@ -1,0 +1,49 @@
+name: Auto-merge
+
+# Arms GitHub's auto-merge (it merges once the required checks pass) on Guillaume's own PRs only.
+# The repo is public, so every guard is on who and where, and nothing from the PR is run:
+#  - the PR's branch is in this repo (never a fork) and its author is djguiaume;
+#  - the trigger is djguiaume adding the `automerge` label, or approving the PR;
+#  - a PR labelled `visual` waits for djguiaume's OK (a `visual-ok` label or an approval).
+# No checkout, no pull_request_target, no PR text in a shell.
+on:
+  pull_request:
+    types: [labeled]
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  arm:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository
+      && github.event.pull_request.user.login == 'djguiaume'
+      && github.event.pull_request.draft == false
+      && (
+        (github.event_name == 'pull_request'
+          && github.event.sender.login == 'djguiaume'
+          && (github.event.label.name == 'automerge' || github.event.label.name == 'visual-ok'))
+        || (github.event_name == 'pull_request_review'
+          && github.event.review.state == 'approved'
+          && github.event.review.user.login == 'djguiaume')
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Arm auto-merge
+        env:
+          # A token that is not GITHUB_TOKEN makes the merge start the Pages deploy (see docs/tools/ci.md).
+          GH_TOKEN: ${{ secrets.AUTOMERGE_TOKEN || github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          APPROVED: ${{ github.event_name == 'pull_request_review' }}
+        run: |
+          labels=$(gh pr view "$PR" --json labels --jq '[.labels[].name] | join(" ")')
+          has() { [[ " $labels " == *" $1 "* ]]; }
+          if [ "$APPROVED" != true ] && ! has automerge; then echo "no automerge label yet"; exit 0; fi
+          if [ "$APPROVED" != true ] && has visual && ! has visual-ok; then
+            echo "visual PR: waiting for the visual OK"; exit 0
+          fi
+          gh pr merge "$PR" --auto --merge

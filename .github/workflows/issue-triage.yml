@@ -1,0 +1,26 @@
+name: Issue triage
+
+# New issues titled "bug: ..." or "idea: ..." (or already labelled so) get the label and the next
+# milestone from .github/triage.json. Reads only the issue's title and labels, through env vars.
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Label and sort
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.issue.number }}
+          TITLE: ${{ github.event.issue.title }}
+          LABELS: ${{ join(github.event.issue.labels.*.name, ' ') }}
+          HAS_MILESTONE: ${{ github.event.issue.milestone != null }}
+        run: bash tools/ci/triage.sh
