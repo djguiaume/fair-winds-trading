@@ -6,10 +6,10 @@ x-swallow{} /* shots joins files with a stray ";", this empty rule eats it */
 
 /* --- Tokens. The root is the PAINT context (HUD, bands, footers); paper surfaces re-scope them. --- */
 html:root {
-  --paint: #1f4c58;
-  --paint-hi: #2b6272;
-  --paint-lo: #143742;
-  --paint-edge: #0e2a33;
+  --paint: #2a5a7c;
+  --paint-hi: #3b7096;
+  --paint-lo: #1d4260;
+  --paint-edge: #12293c;
   --brass: #e8c46a;           /* art bible: the HUD colour */
   --brass-deep: #b08a2c;
   --ink: #f4ecd6;             /* text on paint: warm cream, never pure white */
@@ -18,10 +18,11 @@ html:root {
   --paper-2: #e6d7ae;
   --paper-ink: #2e2217;
   --paper-dim: #6a5a44;
-  --paper-rule: rgba(90, 60, 30, 0.2);
-  --teal-ink: #1f5a66;        /* headings and actions on paper */
-  --teal-btn: #1f5a66;
-  --teal-btn-lo: #123f48;
+  --paper-rule: rgba(90, 60, 30, 0.2);   /* dividers only (dotted rows, hairlines), never a background
+  --paper-shade: rgba(120, 85, 40, 0.13);  /* soft page edge, one static inset shadow */
+  --teal-ink: #2a5a7c;        /* headings and actions on paper */
+  --teal-btn: #366d94;
+  --teal-btn-lo: #1f4968;
   --moss: #3f7a4a;
   --danger: #8f2f1c;
   --focus: #e8c46a;
@@ -113,11 +114,11 @@ body { font-family: 'Barlow', sans-serif; }
 [data-pad-focus], :focus-visible { outline: 3px solid var(--paint-edge) !important; outline-offset: 2px !important; box-shadow: 0 0 0 6px var(--focus) !important; }
 
 /* --- Title menu: a paper column bound to a painted edge ------------------------------------ */
-.menu { background: linear-gradient(90deg, rgba(14, 42, 51, 0.5), rgba(14, 42, 51, 0) 70%) !important; }
+.menu { background: linear-gradient(90deg, rgba(18, 41, 60, 0.5), rgba(18, 41, 60, 0) 70%) !important; }
 .menu-side {
-  background: var(--paper) repeating-linear-gradient(transparent 0 35px, var(--paper-rule) 35px 36px) !important;
+  background: var(--paper) !important;
   border-right: 10px solid var(--paint) !important;
-  box-shadow: 3px 0 0 var(--paint-edge) !important;
+  box-shadow: 3px 0 0 var(--paint-edge), inset 0 0 38px var(--paper-shade) !important;
 }
 .menu-emblem { width: 64px !important; height: 64px !important; }
 .menu-kicker { color: var(--teal-ink) !important; font: italic 600 15px/1 var(--display) !important; }
@@ -130,13 +131,13 @@ body { font-family: 'Barlow', sans-serif; }
 }
 .menu-row .icon { color: var(--teal-ink) !important; }
 .menu-row small { color: var(--paper-dim) !important; font: italic 500 14px/1.1 var(--display) !important; }
-.menu-row[data-pad-focus], .menu-row:focus-visible { background: rgba(31, 90, 102, 0.12) !important; box-shadow: inset 5px 0 0 var(--teal-ink) !important; outline: 0 !important; }
+.menu-row[data-pad-focus], .menu-row:focus-visible { background: rgba(54, 109, 148, 0.14) !important; box-shadow: inset 5px 0 0 var(--teal-ink) !important; outline: 0 !important; }
 .menu-version, .menu-foot * { color: var(--paper-dim) !important; }
 #menu-language, #menu-fullscreen { background: var(--paper-2) !important; border: 2px solid var(--paper-dim) !important; color: var(--paper-ink) !important; border-radius: 999px !important; }
 #menu-language .seg button[aria-pressed='true'], #menu-language button[aria-pressed='true'] { background: var(--teal-btn) !important; color: var(--paper) !important; }
 @media (orientation: portrait) and (max-width: 700px) {
   .menu-side { background: none !important; border: 0 !important; box-shadow: none !important; }
-  .menu-sheet { background: var(--paper) repeating-linear-gradient(transparent 0 35px, var(--paper-rule) 35px 36px) !important; border-top: 8px solid var(--paint) !important; border-radius: 0 !important; }
+  .menu-sheet { background: var(--paper) !important; border-top: 8px solid var(--paint) !important; border-radius: 0 !important; }
   .menu-title, .menu-tagline, .menu-kicker { color: #f4ecd6 !important; text-shadow: 0 2px 0 var(--paint-edge); }
 }
 
@@ -147,8 +148,8 @@ body { font-family: 'Barlow', sans-serif; }
 .sheet-head > .icon { color: var(--brass) !important; }
 .sheet-head .sub, .level-sub { color: var(--ink-dim) !important; font-style: italic; font-family: var(--display) !important; }
 .sheet-body {
-  background: var(--paper) repeating-linear-gradient(transparent 0 39px, var(--paper-rule) 39px 40px) !important;
-  margin: 12px clamp(0px, 5vw, 72px) 0 !important; border-radius: 6px 6px 0 0; box-shadow: 0 0 0 2px var(--paint-edge);
+  background: var(--paper) !important;
+  margin: 12px clamp(0px, 5vw, 72px) 0 !important; border-radius: 6px 6px 0 0; box-shadow: 0 0 0 2px var(--paint-edge), inset 0 0 38px var(--paper-shade);
 }
 .set-group .set-label { color: var(--teal-ink) !important; font-size: 21px !important; font-weight: 900 !important; border-bottom: 2px solid var(--teal-ink); padding-bottom: 4px; }
 .set-row { background: none !important; border: 0 !important; box-shadow: none !important; border-radius: 0 !important; }
@@ -160,7 +161,7 @@ body { font-family: 'Barlow', sans-serif; }
 
 /* --- Port screen --------------------------------------------------------------------------- */
 .trade-modal.port-screen { background: var(--paint) !important; }
-.port-screen .trade-header { background: linear-gradient(rgba(14, 42, 51, 0.65), rgba(14, 42, 51, 0)) !important; border: 0 !important; }
+.port-screen .trade-header { background: linear-gradient(rgba(18, 41, 60, 0.65), rgba(18, 41, 60, 0)) !important; border: 0 !important; }
 .port-screen .port-name { font-weight: 900 !important; font-size: 38px !important; color: #f4ecd6 !important; text-shadow: 0 2px 0 var(--paint-edge); }
 /* Information tags are luggage tags, not buttons. */
 .port-screen .role-tag { background: var(--paper) !important; color: var(--paper-ink) !important; border: 0 !important; border-radius: 0 !important; padding: 4px 10px 4px 16px !important; clip-path: polygon(9px 0, 100% 0, 100% 100%, 9px 100%, 0 50%); font: 600 15px/1.2 'Barlow', sans-serif !important; box-shadow: none !important; }
@@ -176,8 +177,8 @@ body { font-family: 'Barlow', sans-serif; }
 .lot-btn[aria-pressed='true'] { background: var(--paper) !important; color: var(--paper-ink) !important; border-color: var(--paper) !important; }
 .lot-btn * { color: inherit !important; }
 .port-screen .trade-content {
-  background: var(--paper) repeating-linear-gradient(transparent 0 39px, var(--paper-rule) 39px 40px) !important;
-  margin: 0 12px !important; border-radius: 0 6px 0 0; box-shadow: 0 0 0 2px var(--paint-edge);
+  background: var(--paper) !important;
+  margin: 0 12px !important; border-radius: 0 6px 0 0; box-shadow: 0 0 0 2px var(--paint-edge), inset 0 0 38px var(--paper-shade);
 }
 /* The ledger: one continuous page, rows divided by a dotted rule, figures in condensed type. */
 .good-row { background: none !important; border: 0 !important; border-bottom: 1px dotted var(--paper-dim) !important; border-radius: 0 !important; box-shadow: none !important; min-height: 64px; }
@@ -201,7 +202,7 @@ body { font-family: 'Barlow', sans-serif; }
 .port-screen .trade-footer .ship-btn *, .port-screen .trade-footer .d-btn.brass * { color: var(--paper-ink) !important; }
 
 /* --- Quest card: a paper notice on a painted backing --------------------------------------- */
-dialog.quest-card { background: var(--paper) repeating-linear-gradient(transparent 0 31px, var(--paper-rule) 31px 32px) !important; border: 6px solid var(--paint) !important; border-radius: 12px !important; box-shadow: 0 0 0 2px var(--paint-edge), 0 8px 18px rgba(0, 0, 0, 0.4) !important; }
+dialog.quest-card { background: var(--paper) !important; border: 6px solid var(--paint) !important; border-radius: 12px !important; box-shadow: 0 0 0 2px var(--paint-edge), 0 8px 18px rgba(0, 0, 0, 0.4) !important; }
 .quest-head h2 { color: var(--teal-ink) !important; font-size: 28px !important; font-weight: 900 !important; }
 .quest-role { color: var(--paper-dim) !important; font: italic 500 16px var(--display) !important; }
 .quest-speech { color: var(--paper-ink) !important; font: 500 19px/1.4 var(--display) !important; }

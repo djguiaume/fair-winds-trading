@@ -24,7 +24,7 @@ comparisons `sheets/compare-d1-b-refined-*.jpg`. Sources: `css/e-refined.css` (+
 
 ## Retained, changed, why
 
-- **Retained from direction 1:** paper column, compact masthead, teal ribbon, ruled entries, teal pill actions, paper ledger, no red.
+- **Retained from direction 1:** paper column, compact masthead, ribbon, entries divided by a hairline, pill actions, paper ledger, no red.
 - **Retained from B:** flat painted teal as structure, painted HUD mounts, brass rim and screws on the two big instruments, the notice-on-backing idea.
 - **Dropped from B:** plank seams, rivets on every plate, double borders (dark line plus brass inset). A plate has one brass rim.
 - **Changed:**
@@ -38,7 +38,7 @@ comparisons `sheets/compare-d1-b-refined-*.jpg`. Sources: `css/e-refined.css` (+
 
 ## Rules (also on the sheet `sheets/refined-rules.jpg`)
 
-- **Paint** `#1f4c58` structure, flat. **Brass** `#e8c46a` fittings, compass ring, focus halo, main action on paint. **Paper** `#f1e6c8` records and people; notes `#e6d7ae`; ink `#2e2217`; action on paper `#1f5a66`.
+- **Paint** `#2a5a7c` (hull blue, lighter than the first teal) structure, flat. **Brass** `#e8c46a` fittings, compass ring, focus halo, main action on paint. **Paper** `#f1e6c8` records and people, flat with a soft page edge and **no ruled lines**; notes `#e6d7ae`; ink `#2e2217`; action on paper `#366d94`.
 - **Type:** Fraunces 900 titles, 700 names and actions, italic for notes. Barlow body (15 px minimum). Barlow Condensed for every figure. Sentence case; no tracking.
 - **States** (strip: `sheets/refined-component-strip.jpg`): normal, pressed (drops 3 px), selected (filled), unavailable (dashed outline, dim), focused (dark line plus brass halo). Selected and focus never look alike.
 - **Night:** a second token set, not a filter. Paper takes a lamp tone (`#dccba1`), paint gets a brighter text and rim, the focus ring is unchanged.
@@ -50,7 +50,7 @@ comparisons `sheets/compare-d1-b-refined-*.jpg`. Sources: `css/e-refined.css` (+
 
 ## Checked and not checked
 
-- **Contrast computed from the hex values** (WCAG): ink on paper 12.4, dim ink on paper 5.3, dim ink on note 4.7, cream on paint 8.0, paper on teal button 6.2, ink on brass 9.2, night ink on night paper 10.8. The brass focus halo alone is 1.3 on paper; the dark line (12.1) carries the focus there, so both are needed.
+- **Contrast computed from the hex values** (WCAG): ink on paper 12.4, dim ink on paper 5.3, dim ink on note 4.7, cream on paint 6.2, paper on blue button 4.5 (bold 17 px and up only), blue ink on paper 5.9, ink on brass 9.2, brass on paint 4.4 (icons and large text only), night ink on night paper 10.8, night cream on night paint 8.0. The brass focus halo alone is 1.3 on paper; the dark line (12.1) carries the focus there, so both are needed.
 - **Looked at:** every screen in desktop and portrait, day and night (sea, Market), and one pad-focus view. Visual assessment only.
 - **Not tested:** `?bench` on the old tablet, a real controller, English and French wrapping beyond the English strings shown, touch targets measured in a browser. The CSS uses no filter and no blur, but nothing here is a performance measurement.
 
@@ -69,3 +69,9 @@ A **warm alternative** is drawn from the same rules with tokens only (`css/e-war
 actions and headings `#2f5a3a`, brass unchanged. Sheet: `sheets/refined-warm-alternative.jpg` (menu, sea HUD, Market, quest card,
 refined next to warm). Other warm options not drawn: oxblood paint (clashes with the red reservation) and deep green paint.
 Not decided; Guillaume to judge.
+
+## Update 14:40Z (Guillaume's feedback)
+
+- **Ruled lines removed from every background** (menu, Settings, New voyage, quest card). Paper is now flat with one soft inset edge shade (a static box-shadow, no gradient fill). Dotted rules stay only as row dividers in the Market ledger and a rule under Settings group headings, where they separate things.
+- **Blue changed:** the green-leaning teal (`#1f4c58` / `#1f5a66`) became a lighter hull blue: paint `#2a5a7c`, actions `#366d94`. Brass is unchanged.
+- The warm alternative sheet (`sheets/refined-warm-alternative.jpg`) was drawn before this change and still shows ruled lines and the old teal; its tokens file `css/e-warm.css` still applies on top of the new rules.

@@ -3,7 +3,7 @@
   const sw = (name, hex, note, dark) =>
     `<div class="sw"><i style="background:${hex}"></i><b>${name}</b><code>${hex}</code><small>${note}</small></div>`;
   const css = `<style>
-    #rules{position:fixed;inset:0;z-index:99999;background:var(--paper) repeating-linear-gradient(transparent 0 39px,var(--paper-rule) 39px 40px);color:var(--paper-ink);padding:22px 28px;display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:26px;font-family:Barlow,sans-serif;overflow:hidden}
+    #rules{position:fixed;inset:0;z-index:99999;background:var(--paper);color:var(--paper-ink);padding:22px 28px;display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:26px;font-family:Barlow,sans-serif;overflow:hidden}
     #rules h3{margin:0 0 8px;font:900 22px Fraunces;color:var(--teal-ink);border-bottom:2px solid var(--teal-ink);padding-bottom:3px}
     #rules .sw{display:grid;grid-template-columns:34px 1fr auto;gap:2px 8px;align-items:center;margin:5px 0}
     #rules .sw i{width:34px;height:26px;border-radius:4px;border:1.5px solid #0e2a33;grid-row:span 2}
@@ -19,18 +19,18 @@
   el.id = 'rules';
   el.innerHTML = css + `
   <section><h3>Palette</h3>
-    ${sw('Paint', '#1f4c58', 'structure, HUD plates, bands, footers: flat, no plank lines')}
-    ${sw('Paint light', '#2b6272', 'tabs; deep #143742 for shadows and pressed bands')}
+    ${sw('Paint', '#2a5a7c', 'structure, HUD plates, bands, footers: flat, no plank lines, no ruled lines')}
+    ${sw('Paint light', '#3b7096', 'tabs; deep #1d4260 for shadows and pressed bands')}
     ${sw('Brass', '#e8c46a', 'art bible HUD colour: compass ring, rims, focus halo, main action on paint')}
     ${sw('Brass deep', '#b08a2c', 'the single rim round a plate, screws')}
     ${sw('Paper', '#f1e6c8', 'records, people, menus. Cream, never pure white')}
     ${sw('Paper 2 (notes)', '#e6d7ae', 'side notes, harbourmaster, quay notices')}
     ${sw('Ink', '#2e2217', 'text on paper; dim #6a5a44')}
-    ${sw('Teal ink / action', '#1f5a66', 'headings and main action on paper')}
+    ${sw('Hull blue / action', '#366d94', 'main action on paper; headings #2a5a7c')}
     ${sw('Cream text on paint', '#f4ecd6', 'text on paint (warm, not white)')}
     ${sw('Moss', '#3f7a4a', 'on / good. Green stays semantic')}
     ${sw('Danger', '#8f2f1c', 'New game and errors only (red is reserved)')}
-    ${sw('Night paper', '#dccba1', 'lamp-lit paper; night paint #1c4755, ink #231910')}
+    ${sw('Night paper', '#dccba1', 'lamp-lit paper; night paint #234c6a, ink #231910')}
   </section>
   <section><h3>Type</h3>
     <div class="spec"><small>Fraunces 900</small><span style="font:900 30px Fraunces">Fair Winds Trading</span></div>
@@ -43,9 +43,9 @@
     <ul><li>Goods stay full colour. UI icons become filled two-tone (ADR 0220): ink outline, one fill; brass on paint, teal on paper.</li><li>This mockup keeps today's outline icons; the redraw is a build step.</li></ul>
   </section>
   <section><h3>Materials and shapes</h3>
-    <div class="mat"><span style="background:#1f4c58;color:#f4ecd6;border-color:#b08a2c">Paint plate</span><p>HUD, bands, footers. One brass rim, flat. Screws only on the speed log and compass mount.</p></div>
-    <div class="mat"><span style="background:#f1e6c8;border-radius:0 6px 0 0">Paper page</span><p>Ledger, menu, settings. Ruled lines only where nothing else divides it.</p></div>
-    <div class="mat"><span style="background:#e6d7ae;border-left:6px solid #1f4c58;border-radius:3px 8px 8px 3px">Note</span><p>A notice on the page: harbourmaster, orders, quay people.</p></div>
+    <div class="mat"><span style="background:#2a5a7c;color:#f4ecd6;border-color:#b08a2c">Paint plate</span><p>HUD, bands, footers. One brass rim, flat. Screws only on the speed log and compass mount.</p></div>
+    <div class="mat"><span style="background:#f1e6c8;border-radius:0 6px 0 0">Paper page</span><p>Ledger, menu, settings. Flat, with a soft page edge. No ruled lines.</p></div>
+    <div class="mat"><span style="background:#e6d7ae;border-left:6px solid #2a5a7c;border-radius:3px 8px 8px 3px">Note</span><p>A notice on the page: harbourmaster, orders, quay people.</p></div>
     <div class="mat"><span style="background:#efe4c6;border-radius:50%;border-color:#b08a2c;border-width:5px;width:46px">N</span><p>Enamel face in a brass ring: the compass, the one paper-on-paint exception.</p></div>
     <h3 style="margin-top:12px">One shape per job</h3>
     <ul><li><b>Pills</b> = actions (Buy, Sell, Set sail). <b>Bookmarks</b> = tabs. <b>Stamped squares</b> = amounts. <b>Luggage tags</b> = information. <b>Plates</b> = instruments.</li><li>Action rule: it contrasts with its surface: teal on paper, brass on paint.</li><li>Selected = filled. Focus = dark line with a brass halo. Pressed = drops 3 px.</li></ul>

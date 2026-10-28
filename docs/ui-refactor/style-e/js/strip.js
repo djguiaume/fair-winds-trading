@@ -9,7 +9,7 @@
   const head = `<div class="srow shead"><span class="slabel"></span>${states.map((s) => `<span class="scell">${s}</span>`).join('')}</div>`;
   const paper = [
     row('Main action', (s) => `<button class="d-btn brass"${attrs(s, ' style="outline:0"')}>${s === 'Selected' ? 'Set sail ✓' : 'Set sail'}</button>`),
-    row('Secondary', (s) => `<button class="d-btn"${attrs(s, ' style="background:#1f5a66!important;color:#f1e6c8!important"')}>Not now</button>`),
+    row('Secondary', (s) => `<button class="d-btn"${attrs(s, ' style="background:#366d94!important;color:#f1e6c8!important"')}>Not now</button>`),
     row('Buy', (s) => `<span class="good-row" style="display:inline-flex;border:0;min-height:0"><button class="buy-btn"${attrs(s, '')} style="min-width:120px;min-height:44px;padding:0 14px">Buy <b>23</b></button></span>`),
     row('Sell', (s) => `<span class="good-row" style="display:inline-flex;border:0;min-height:0"><button class="sell-btn"${attrs(s, '')} style="min-width:120px;min-height:44px;padding:0 14px">Sell <b>17</b></button></span>`),
     row('Setting (segmented)', (s) => `<span class="seg"><button${s === 'Selected' ? ' aria-pressed="true"' : ''}${s === 'Pressed' ? ' data-demo="pressed"' : ''}${s === 'Focused' ? ' data-demo="focus"' : ''}${s === 'Unavailable' ? ' disabled style="opacity:.5"' : ''}>Captain</button></span>`),
@@ -24,7 +24,7 @@
   const css = `<style>
     #strip{position:fixed;inset:0;z-index:99999;display:grid;grid-template-rows:56% 44%;gap:0;font-family:Barlow,sans-serif}
     #strip .col{padding:14px 28px;overflow:hidden}
-    #strip .paper{background:var(--paper) repeating-linear-gradient(transparent 0 39px,var(--paper-rule) 39px 40px)}
+    #strip .paper{background:var(--paper)}
     #strip .paint{background:var(--paint)}
     #strip h3{margin:0 0 4px;font:900 24px var(--display)}
     #strip .paper h3{color:var(--teal-ink)} #strip .paint h3{color:var(--ink)}
