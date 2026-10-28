@@ -92,7 +92,7 @@ Each race has `name`, `race.title`, `race.copy` (Wren's offer), `race.start` (li
 
 These replace rulings 1, 2 and 6 where they differ. Guillaume's calls are marked (G); the rest is the storyteller's pick, open to his change.
 
-1. **The club house is a pier at Abbey Head**, not the Saltmere quay (pick, G to confirm; fallback a holm near Saltmere, then the Saltmere quay). Wren's shed, a café and the *Kestrel* lie there. The club board and all races live on that pier's Quay tab. Rook keeps the book at Saltmere; Wren pins the times up at the club.
+1. **The club house is a pier at Abbey Head**, not the Saltmere quay (G agreed 2026-10-28; fallback if it does not fit: a holm near Saltmere, then the Saltmere quay). Wren's shed, a café and the *Kestrel* lie there. The club board and all races live on that pier's Quay tab. Rook keeps the book at Saltmere; Wren pins the times up at the club.
 2. **Opens right after the prologue**: the three ring races and the three home-water club races. The sea races, squall races and the Four Winds Cup keep their gates (their people, the outposts, `four-winds`). The ring races' words change from "challenge the company" to a visiting skipper's welcome.
 3. **Who introduces it.** Rook gives one line after the prologue and a chart flag appears on Abbey Head; Wren speaks the arrival card on the first docking. No quest step.
 4. **Prize (G): new art and a new model, for Guillaume's OK on screenshots.** A fast racing boat with almost no hold, Wren's gift when the club pennant is won (silver or better in all six club races). A sister to the *Kestrel*, called *Tern* (never "Swift", a ship line id). It can trade, with a tiny hold. Needs bot-run pars on all 3 levels and the art director's look.
