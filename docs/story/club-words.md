@@ -87,3 +87,21 @@ Each race has `name`, `race.title`, `race.copy` (Wren's offer), `race.start` (li
 - copy: Pip says there's a squall that comes over Sandwick like it has an appointment. Round the holm and back to Fogwatch, captain. Pip's bet on you. I've bet on me. / Pip dit qu'un grain arrive sur Sandwick comme s'il avait rendez-vous. Autour du holm et retour à Fogwatch, capitaine. Pip a parié sur vous. J'ai parié sur moi.
 - start: Hold your hat, Pip's holding the stakes. On the horn. / Tenez votre chapeau, c'est Pip qui garde les mises. Au coup de corne.
 - done: Pip says whoever lost owes amber. Nobody has amber. Good race. / Pip dit que le perdant doit de l'ambre. Personne n'en a. Belle course.
+
+## Update 2026-10-28: the club house, early opening and the prize (Guillaume)
+
+These replace rulings 1, 2 and 6 where they differ. Guillaume's calls are marked (G); the rest is the storyteller's pick, open to his change.
+
+1. **The club house is a pier at Abbey Head**, not the Saltmere quay (G agreed 2026-10-28; fallback if it does not fit: a holm near Saltmere, then the Saltmere quay). Wren's shed, a café and the *Kestrel* lie there. The club board and all races live on that pier's Quay tab. Rook keeps the book at Saltmere; Wren pins the times up at the club.
+2. **Opens right after the prologue**: the three ring races and the three home-water club races. The sea races, squall races and the Four Winds Cup keep their gates (their people, the outposts, `four-winds`). The ring races' words change from "challenge the company" to a visiting skipper's welcome.
+3. **Who introduces it.** Rook gives one line after the prologue and a chart flag appears on Abbey Head; Wren speaks the arrival card on the first docking. No quest step.
+4. **Prize (G): new art and a new model, for Guillaume's OK on screenshots.** A fast racing boat with almost no hold, Wren's gift when the club pennant is won (silver or better in all six club races). A sister to the *Kestrel*, called *Tern* (never "Swift", a ship line id). It can trade, with a tiny hold. Needs bot-run pars on all 3 levels and the art director's look.
+
+### Words
+
+| Key | EN | FR |
+| --- | --- | --- |
+| `club.hint` (Rook, once, after the prologue) | Wren Tally's put up a shed on Abbey Head, captain. She'll race anyone. Mind the tea. | Wren Tally a monté un hangar à Abbey Head, capitaine. Elle fait la course avec tout le monde. Méfiez-vous du thé. |
+| `club.arrive` (Wren, first docking, replaces `club.open`) | Abbey Head, captain, and the best wind on the chart. Rook lent me the shed, and the kettle's mine. Every course I know is on the board. Sail one, drink tea, sail another. | Abbey Head, capitaine, et le meilleur vent de la carte. Rook m'a prêté le hangar, et la bouilloire est à moi. Toutes les courses que je connais sont sur le tableau. Faites-en une, buvez un thé, faites-en une autre. |
+| `club.gift` (Wren, when the club pennant is won) | Six races, six wins, and I've nothing left to give but this. She's *Tern*, my own design, built light and built to fly. There's room for a loaf and a letter, and not much more. Look after her, captain. | Six courses, six victoires, et il ne me reste que ça à vous donner. Elle s'appelle *Tern*, ma propre conception, légère et faite pour voler. Il y a de la place pour un pain et une lettre, pas beaucoup plus. Prenez-en soin, capitaine. |
+| `club.gift.toast` | *Tern* is yours | *Tern* est à vous |
