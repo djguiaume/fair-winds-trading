@@ -25,7 +25,7 @@ The art director picked the slim one-mast gaff cutter (Guillaume pointed at real
   can offer a pick-one step (`choose`) but has no ship reward and no "series won" start, so the
   prize stays the Tern; the other two have `unlock.series` set to the club series: no yard offers
   them until it is won, then the yard that lists them in `builds` (Abbey Head) sells them.
-  Prices 6000 and 7000 are placeholders for the storyteller.
+  Prices 6000 and 8000 are the storyteller's (the smaller-hold Yawl is the dearer racer).
 - **Pars** for them on all three levels come from `npm run race -- --all --pars --write`.
 - **Save codes** keep reading codes made before her: the id lists a code can be read with moved to
   `src/sim/saveLayout.ts`, with the ship list before the Tern beside the goods and ports ones.

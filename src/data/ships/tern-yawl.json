@@ -5,8 +5,8 @@
   "tier": 3,
   "unlock": {
     "standing": 0,
-    "price": 7000,
-    "upgradePrices": [1800, 5400],
+    "price": 8000,
+    "upgradePrices": [1500, 4500],
     "series": "regatta-club"
   },
   "sailing": {
