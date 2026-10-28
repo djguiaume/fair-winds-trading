@@ -25,7 +25,7 @@ These cost on every turn of every thread, so shrinking them pays the most.
 
 9. Each wake re-sends the thread's context, so long threads get expensive per turn. One thread per issue, resolve it when done, and start a new thread with a short handover rather than piling a new ask on a long one.
 10. Auto-merge: Guillaume turns on "Allow auto-merge" and branch protection; threads add the `automerge` label (the `Auto-merge` workflow arms it, only for his own branches) instead of waking on each CI event to merge by hand. Setup: [tools/ci.md](tools/ci.md).
-11. Docs-only PRs could skip the full build and tests in CI (a `paths-ignore` for `docs/**` with a light check), so they finish sooner and wake threads less. Needs care: Pages deploys from the same workflow.
+11. Docs-only PRs run the full build too: a required check that never starts would block them (decision 0224).
 12. Feedback in one message: when reviewing, put every comment for a thread in one message, so it does one round of work instead of several.
 
 ## Images
