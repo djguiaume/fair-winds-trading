@@ -168,24 +168,6 @@
     { "type": "slipway-hull", "x": 0.53, "z": 0.74, "turn": 32, "y": 0.055, "from": 4 },
     {
       "type": "yard-house",
-      "x": -0.1351,
-      "z": 0.568,
-      "turn": 27,
-      "size": 1.25,
-      "variant": 0,
-      "from": 1
-    },
-    {
-      "type": "yard-house",
-      "x": 0.443,
-      "z": 0.45,
-      "turn": -26,
-      "size": 1.25,
-      "variant": 1,
-      "from": 1
-    },
-    {
-      "type": "yard-house",
       "x": -0.26,
       "z": 0.482,
       "turn": 19,
@@ -256,7 +238,17 @@
       "shape": 0.2969,
       "from": 1
     },
-    { "type": "ruins", "x": 0.105, "z": -0.375, "turn": 11, "size": 1.097, "from": 1 }
+    { "type": "ruins", "x": 0.105, "z": -0.375, "turn": 11, "size": 1.097, "from": 1 },
+    { "type": "boathouse", "x": -0.28, "z": 0.72, "turn": -160, "size": 1.4, "from": 1 },
+    {
+      "type": "beach-house",
+      "x": 0.3,
+      "z": 0.62,
+      "turn": 160,
+      "size": 1.55,
+      "variant": 0,
+      "from": 1
+    }
   ],
   "woods": {
     "tree": "woodland-pine",

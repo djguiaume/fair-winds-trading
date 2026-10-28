@@ -130,7 +130,7 @@ const GOLDEN: Record<string, string[]> = {
   saltmere: ['305:845e93d7', '504:fd0b5a46', '732:81a5bb40', '911:998fb521'],
   'south-cay': ['211:7e88ade9', '321:5698534c', '512:8751e27e', '688:65031d05'],
   westholm: ['216:10f65f4e', '436:3820301b', '727:13838172', '881:769cc3db'],
-  'abbey-head': ['49:c11151bb', '77:13fb161', '96:16db665d', '127:40742666'],
+  'abbey-head': ['47:e43df2ce', '75:3e126ec8', '94:eeb270', '125:a452f429'],
   'bell-rock': ['13:149f2ca0', '13:149f2ca0', '13:149f2ca0', '13:149f2ca0'],
   'greyback-ridge': ['121:d8b1afe4', '121:d8b1afe4', '121:d8b1afe4', '121:d8b1afe4'],
   'gull-hook': ['130:ca8ed3fd', '130:ca8ed3fd', '130:ca8ed3fd', '130:ca8ed3fd'],
