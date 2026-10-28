@@ -62,7 +62,7 @@ store plan of [0204](decisions/0204-selling-on-android-iphone-and-xbox.md) comes
 
 ## Now and next, after 1.0 (not scheduled)
 
-- **v1.1, "The Sailing Club"** ([plan](v1.1/plan.md)): bug fixes, and Wren's sailing club at
+- **v1.1, "The Sailing Club"** ([plan](v1.1/plan.md)): a turnable camera, and Wren's sailing club at
   Saltmere with new races (some with a squall in a fixed place to sail round) and a best-times board.
   Also a game-like UI skin, style E ([0220](decisions/0220-a-game-like-ui-skin-style-e.md)): same
   screens, new materials, font and icons, so the interface no longer reads as AI-made.
@@ -71,7 +71,7 @@ store plan of [0204](decisions/0204-selling-on-android-iphone-and-xbox.md) comes
 - **v1.2, "a new look"** ([0222](decisions/0222-a-new-look-smooth-terrain-blue-water-and-forests.md)): the
   *Traffic Architect* look Guillaume approved, on every quality level: smooth rolling terrain from the
   same island data, shores sloping into the sea, depth-coloured blue water, dense forests, haze.
-  Build guide: [v1.2/plan.md](v1.2/plan.md).
+  Build guide: [v1.2/plan.md](v1.2/plan.md). Also takes the v1.0 bug fixes (moved from v1.1, issue #255).
 - **The store plan** ([0204](decisions/0204-selling-on-android-iphone-and-xbox.md)): phones first,
   Xbox after asking ID@Xbox.
 - **Polish and extras:** ship cosmetics (sail colours, flags, figureheads), achievements, a real

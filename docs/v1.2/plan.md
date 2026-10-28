@@ -4,6 +4,8 @@ Status: **planned**, after v1.1. Decision [0222](../decisions/0222-a-new-look-sm
 
 This page is written so the build threads can start without redoing the analysis: what to build, in which order, where in the code, with the numbers the mockup used and the traps it hit.
 
+> Also in v1.2: the v1.0 bug fixes, moved from v1.1 (issue #255).
+
 ## The goal in one line
 
 The *Traffic Architect* look on every quality level: smooth rolling island ground with soft colour zones, shores that slope into the sea, water coloured by depth, dense forests, a light haze, from the same island data.
