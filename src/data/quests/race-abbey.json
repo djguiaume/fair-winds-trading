@@ -3,12 +3,12 @@
   "name": "The Abbey Bell",
   "start": {
     "is": "quest-done",
-    "quest": "race-greyback"
+    "quest": "rooks-thanks"
   },
   "text": "quest.race-abbey",
   "giver": "wren",
   "starter": "rook",
-  "port": "saltmere",
+  "port": "abbey-head",
   "offer": true,
   "storms": false,
   "wind": {
@@ -18,9 +18,9 @@
   "race": {
     "series": "regatta-club",
     "gold": {
-      "bronze": 80,
-      "silver": 160,
-      "gold": 260
+      "bronze": 40,
+      "silver": 80,
+      "gold": 130
     },
     "pars": {
       "sloop": {

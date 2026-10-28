@@ -19,9 +19,9 @@ the club needs no new port, only a place on it, a way to find it and the races' 
   Wren speaks the arrival card when she first docks (`doneSpeaker`). No other quest step.
 - **Races are offered at Abbey Head.** Every race quest has `port: abbey-head`, so the offers and
   the regatta book are on its Quay tab. The three ring races start when `rooks-thanks` is done
-  (they no longer chain); the sea races and the Cup keep their gates. Wren's `character.port` is
+  (they no longer chain), as do the three home-water club races; the sea and squall races and the Cup keep their gates. The club board (0226) is on this Quay; Wren's old `club.open` line is gone, her arrival card replaces it. Wren's `character.port` is
   Abbey Head, and her first ring line says "visiting skipper".
-- **Early gold.** The ring races pay 30 / 60 / 100 (was 60 / 120 / 200) because they open in the
+- **Early gold.** The ring races pay 30 / 60 / 100 (was 60 / 120 / 200) and the three home-water club races 40 / 80 / 130 (was 80 / 160 / 260), because they open in the first minutes: racing gold per minute stays near what trading pays, so the cutter (1,500) does not arrive early. The squall races pay 120 / 240 / 400 (the sea-race rate, was 140 / 280 / 450). Pars are unchanged (stock ships, all three levels, `npm run race`). Storyteller ruling.
   first minutes: racing gold per minute stays near what trading pays, so the cutter (1,500) does
   not arrive early. Pars are unchanged (stock ships, all three levels, `npm run race`).
 

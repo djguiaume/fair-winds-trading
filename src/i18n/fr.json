@@ -1411,7 +1411,6 @@
   "regatta.series.regatta-club": "Le Club de voile",
   "regatta.pennant.regatta-club": "le fanion du Club de voile",
   "regatta.won.regatta-club": "Huit courses, huit victoires. Le fanion du club est à vous, capitaine. Vous êtes membre à vie, et évitez de le porter à la table de Rook.",
-  "club.open": "Rook m'a trouvé un hangar sur le quai, capitaine, et voilà un club. De nouveaux parcours autour des îles, et un tableau pour vos temps. Quelques-uns ont un grain. C'est voulu, de ma part.",
   "club.board.title": "Tableau du club",
   "club.board.intro": "Vos temps, affichés par Wren et notés dans le livre de Rook.",
   "club.board.count": "{won} médailles sur {all}",

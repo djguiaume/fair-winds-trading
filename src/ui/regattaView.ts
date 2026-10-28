@@ -15,8 +15,6 @@ import {
 import { SHIP_CLASSES } from '../sim/ship';
 import { character, firstName } from './portraits';
 import { type ClubBoard, CLUB_PORT, clubBoard } from './clubBoard';
-
-export { clubOpening } from './clubBoard';
 import { type QuestCardModel, cardFor } from './questView';
 
 /*

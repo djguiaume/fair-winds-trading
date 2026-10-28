@@ -17,7 +17,7 @@
   "text": "quest.race-sandwick-squall",
   "giver": "wren",
   "starter": "pip",
-  "port": "fogwatch",
+  "port": "abbey-head",
   "offer": true,
   "storms": false,
   "wind": {
@@ -27,9 +27,9 @@
   "race": {
     "series": "regatta-club",
     "gold": {
-      "bronze": 140,
-      "silver": 280,
-      "gold": 450
+      "bronze": 120,
+      "silver": 240,
+      "gold": 400
     },
     "pars": {
       "sloop": {

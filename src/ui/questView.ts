@@ -27,7 +27,7 @@ import { REGATTA } from '../sim/regatta';
 import { isDiscovered } from '../sim/shipyards';
 import { findPort, quoteHandOver } from '../sim/trade';
 import { type Character, type Mood, MOODS, character } from './portraits';
-import { type RaceCardInfo, clubOpening, raceInfo, raceNext } from './regattaView';
+import { type RaceCardInfo, raceInfo, raceNext } from './regattaView';
 
 /*
  * What the quest card, the journal and the chart show (decision 0124), read from the quest
@@ -387,7 +387,6 @@ export function cardFor(
   // A race's offer shows its medal times and what each pays the first time (decision 0217).
   if (quest.race && kind === 'offer') {
     Object.assign(card, { reward: undefined, race: raceInfo(book, quest) });
-    card.speech = clubOpening(book, quest, card.speech);
   }
   if (kind === 'choice')
     card.options = book.options(quest.id).map((o) => ({
