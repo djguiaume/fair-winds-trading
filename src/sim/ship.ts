@@ -21,6 +21,11 @@ export interface ShipClass {
    * (decision 0048). 0 = on sale as soon as you reach the yard.
    */
   standing: number;
+  /**
+   * A regatta series (`regatta.json`) that must be won before its yard sells this class; until
+   * then it is not offered at all (decision 0227).
+   */
+  series?: string;
   /** Half-width of the no-go zone in degrees: closer than this to the wind, the sails cannot draw. */
   noGoDeg: number;
   /** Polar curve: [true wind angle in degrees, fraction of top speed], sorted by angle. */

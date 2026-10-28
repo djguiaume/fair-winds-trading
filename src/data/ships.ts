@@ -15,11 +15,11 @@ export interface ShipFile {
   line: ShipLine;
   /** 0 for the starter, 1 to 3 within a line: the shipyard order. */
   tier: number;
-  unlock: Pick<ShipClass, 'standing' | 'price' | 'upgradePrices'>;
+  unlock: Pick<ShipClass, 'standing' | 'price' | 'upgradePrices' | 'series'>;
   /** How she sails (docs/sailing-model.md), plus `heel`: how readily she leans, 1 = sloop. */
   sailing: Omit<
     ShipClass,
-    'id' | 'name' | 'line' | 'tier' | 'standing' | 'price' | 'upgradePrices'
+    'id' | 'name' | 'line' | 'tier' | 'standing' | 'price' | 'upgradePrices' | 'series'
   > & {
     heel: number;
   };
@@ -140,5 +140,6 @@ export function shipClassOf(file: ShipFile): ShipClass {
     ...(sailing as Omit<ShipFile['sailing'], 'heel'>),
     price: unlock.price,
     upgradePrices: unlock.upgradePrices,
+    ...(unlock.series ? { series: unlock.series } : {}),
   };
 }

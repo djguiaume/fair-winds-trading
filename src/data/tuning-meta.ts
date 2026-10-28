@@ -58,14 +58,8 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
   'ships.*.name': text('Name', 'English name in the code; players see the translated one.'),
   'ships.*.line': text('Line', 'starter, swift, hauler, racer or warship (decision 0035).'),
   'ships.*.tier': num('Tier', 0, 3, 1, undefined, '0 for the starter, 1 to 3 within a line.'),
-  'ships.*.standing': num(
-    'Deliveries to unlock',
-    0,
-    30,
-    1,
-    'orders',
-    'Orders delivered at the yard before its shipwright sells this class (0048).',
-  ),
+  'ships.*.standing': num('Deliveries to unlock', 0, 30, 1, 'orders', 'Orders at the yard first.'),
+  'ships.*.series': text('Series', 'A regatta series that must be won before it is sold (0227).'),
   'ships.*.noGoDeg': num(
     'No-go zone',
     20,

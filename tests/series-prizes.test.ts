@@ -37,4 +37,14 @@ describe('series prize ships', () => {
     const { trade } = createWorld(PHASE1_MAP, SLOOP);
     expect(shipOffer(trade, PHASE1_MAP, 'tern').status).toBe('no-yard');
   });
+
+  it('sells the other Terns only once the club series is won', () => {
+    const { trade } = createWorld(PHASE1_MAP, SLOOP);
+    expect(SHIP_CLASSES['tern-pilot']!.series).toBe('regatta-club');
+    for (const id of ['tern-pilot', 'tern-yawl'])
+      expect(shipOffer(trade, PHASE1_MAP, id).status).toBe('no-yard');
+    trade.quests.won = ['regatta-club'];
+    for (const id of ['tern-pilot', 'tern-yawl'])
+      expect(shipOffer(trade, PHASE1_MAP, id).status).not.toBe('no-yard');
+  });
 });

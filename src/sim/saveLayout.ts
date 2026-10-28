@@ -17,8 +17,8 @@ export interface CodeLayout {
  */
 const GOODS_BEFORE_FAR: readonly GoodId[] = GOODS.filter((g) => !isFar(g));
 
-/** The ship list before the Tern (decision 0227) was added at its end. */
-const SHIPS_BEFORE_TERN: readonly string[] = SHIP_IDS.filter((id) => id !== 'tern');
+/** The ship list before the Terns (decision 0227) were added at its end. */
+const SHIPS_BEFORE_TERN: readonly string[] = SHIP_IDS.filter((id) => !id.startsWith('tern'));
 
 /**
  * The port lists a code may have been written with: the map's, and the map's before its empty

@@ -57,6 +57,8 @@ describe('ship classes (decision 0035)', () => {
       'hauler2:fluyt',
       'hauler3:indiaman',
       'racer1:tern',
+      'racer2:tern-pilot',
+      'racer3:tern-yawl',
     ]);
     const { schooner, clipper, hoy, fluyt, indiaman } = SHIP_CLASSES;
     expect([schooner, clipper, hoy, fluyt, indiaman].map((c) => c!.price)).toEqual([
@@ -89,7 +91,7 @@ describe('ship classes (decision 0035)', () => {
     // Unlock thresholds rise with the tier; the cutter needs none (Phase 1 goal).
     expect(CUTTER.standing).toBe(0);
     for (const c of Object.values(SHIP_CLASSES))
-      if (c.tier >= 2) expect(c.standing).toBeGreaterThan(1);
+      if (c.tier >= 2 && c.line !== 'racer') expect(c.standing).toBeGreaterThan(1);
   });
 });
 

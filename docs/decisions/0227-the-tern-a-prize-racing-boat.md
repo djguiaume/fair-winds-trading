@@ -20,11 +20,17 @@ The art director picked the slim one-mast gaff cutter (Guillaume pointed at real
   Editable on the editor's Regatta page and with `npm run race -- series <id> --prize tern`.
 - **The masthead flies a brass pennant** from the ship file's `model.pennant` (`flags.json`
   `tern`) until a regatta pennant is won.
-- **Pars** for her on all three levels come from `npm run race -- --all --pars --write`.
+- **Three boats (Guillaume, 2026-10-28):** `tern` (gaff cutter, the prize), `tern-pilot` (Bristol
+  Channel pilot cutter, beamier, hold 12) and `tern-yawl` (gaff yawl, hold 8). The quest engine
+  can offer a pick-one step (`choose`) but has no ship reward and no "series won" start, so the
+  prize stays the Tern; the other two have `unlock.series` set to the club series: no yard offers
+  them until it is won, then the yard that lists them in `builds` (Abbey Head) sells them.
+  Prices 6000 and 7000 are placeholders for the storyteller.
+- **Pars** for them on all three levels come from `npm run race -- --all --pars --write`.
 - **Save codes** keep reading codes made before her: the id lists a code can be read with moved to
   `src/sim/saveLayout.ts`, with the ship list before the Tern beside the goods and ports ones.
 
 ## Consequences
 
-- The club series (`regatta-club`) needs `"prize": "tern"` once the club races land.
+- The club series (`regatta-club`) needs `"prize": "tern"`, and Abbey Head `builds` needs `tern-pilot` and `tern-yawl`, once the club races land.
 - Every new ship file appended to the list needs the same legacy entry in `saveLayout.ts`.

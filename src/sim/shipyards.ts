@@ -165,7 +165,8 @@ export interface ShipOffer {
 /** What the captain knows about getting `classId`. */
 export function shipOffer(trade: TradeState, map: MapDef, classId: string): ShipOffer {
   const cls = SHIP_CLASSES[classId]!;
-  const yard = yardOf(map, classId);
+  // A class tied to a series is not on offer anywhere until the captain has won it.
+  const yard = cls.series && !trade.quests.won?.includes(cls.series) ? null : yardOf(map, classId);
   const known = yard && isDiscovered(trade, yard.id) ? yard : null;
   const ordersLeft = yard ? Math.max(0, cls.standing - standingAt(trade, yard.id)) : 0;
   const status: OfferStatus = trade.captain.ships[classId]
