@@ -14,6 +14,8 @@ export interface GroundLook {
   top: string | string[];
   /** Cliff faces. */
   side: string | string[];
+  /** The new look's slopes (issue #269), when they differ from its cliff faces; left out, `side`. */
+  slope?: string | string[];
   /** A peak's cone; left out, `top`. */
   peak?: string | string[];
   /** A peak's faces higher than this share of its height get `cap` (a snow line). */
@@ -41,6 +43,8 @@ export interface StyleLook {
   beachWidth?: number;
   /** Palette colours this style overrides for its props and paths (`path`, `pine`…). */
   colors?: Record<string, string | string[]>;
+  /** The new look's wet band where its shore meets the water (issue #269). */
+  wet?: string;
 }
 
 export const GROUNDS = (PALETTE as unknown as { grounds: Record<string, GroundLook> }).grounds;
@@ -76,6 +80,7 @@ export interface GroundColors {
   id: string;
   top: string[];
   side: string[];
+  slope: string[];
   peak: string[];
   cap?: string[];
   capAbove?: number;
@@ -93,6 +98,7 @@ export function groundColors(material: string, style: string): GroundColors {
     id,
     top: hexes(g.top, style),
     side: hexes(g.side, style),
+    slope: hexes(g.slope ?? g.side, style),
     peak: hexes(g.peak ?? g.top, style),
     cap: g.cap ? hexes(g.cap, style) : undefined,
     capAbove: g.capAbove,

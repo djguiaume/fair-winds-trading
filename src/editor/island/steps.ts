@@ -1,4 +1,5 @@
-import type { IslandDesign, IslandStyle, Point, PropDef } from '../../data/islands';
+import type { GroundDef, IslandDesign, IslandStyle, Point, PropDef } from '../../data/islands';
+import { setSmooth } from './smooth';
 import { PROP_RECIPES } from '../../data/props';
 import { islandLayout, layoutGround } from '../../sim/islandLayout';
 import {
@@ -63,6 +64,8 @@ export type IslandStep =
       slope?: number;
       /** A mountain's crater (decision 0171): its radius as a share of its size. */
       crater?: number;
+      /** How much the new look smooths it (issue #269): 0 stays faceted. */
+      smooth?: number;
     } & Shaped)
   | ({ do: 'lake'; at: At } & Shaped)
   | {
@@ -144,6 +147,7 @@ export type IslandStep =
       height?: number;
       /** A coast ground's beach width (decision 0175). */
       beach?: number;
+      smooth?: number;
     };
 
 export const STEP_KINDS = [
@@ -223,6 +227,7 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
       const add = step.do === 'plateau' ? addPlateau : addMountain;
       const index = add(design, x, z, under, level, shape);
       if (step.crater && step.do === 'mountain') design.ground[index]!.crater = pos(step.crater);
+      setSmooth(design.ground[index]!, step.smooth);
       return `ground ${index}`;
     }
     case 'lake': {
@@ -355,6 +360,7 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
       if (step.material) g.material = step.material;
       if (step.height !== undefined && 'height' in g) g.height = pos(step.height);
       if (step.beach !== undefined && 'coast' in g) g.beach = pos(step.beach);
+      if (step.smooth !== undefined && !step.ramp) setSmooth(g as GroundDef, step.smooth);
       return `${what} ${step.index}`;
     }
     default:

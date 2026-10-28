@@ -65,6 +65,13 @@ Add from the art review (must): slopes take each biome's cliff colours (grey onl
 
 Editors: the island builder and sea editor draw with the same `ground.ts`; `npm run island` and `npm run check` run the height field checks.
 
+**Built (#269, 2026-10-28).** Decision [0235](../decisions/0235-smooth-island-ground-shore-on-the-coast-faceted-landmarks.md):
+
+- `src/sim/smoothField.ts` smooths every field (`terrain.json › smooth`, Terrain tab in `?tune`); `designHeightfield` is raster → smooth → sculpt (#270). The waterline follows a shore profile from the true coast; a probe over every island found land and sea on the wrong side only within 0.45 units of the coast.
+- `src/render/models/fieldGround.ts`: one indexed, smooth-shaded grid per field, colours by zone (`terrain.json › draw`, `palette.json` grounds `slope` and styles `wet`). `ground.ts › facetedGround` draws the `smooth: 0` shapes as their classic pieces.
+- Island builder: `editor.html?look=v2` draws the same ground (and `npm run shots -- --editor … --look v2`); Smooth field per shape; `npm run island -- <id> ground <i> --smooth s`.
+- Ground triangles: High 615k, Medium 160k, Low 73k (no raise over #268). Fields: about 1.7 s for the whole sea.
+
 ### 3. Coast check (about 1 week, can run with step 2)
 
 The smoothed shoreline (height 0 contour) must stay within a tolerance of the sim coast (`coast.ts`) everywhere, and berths and piers must stay reachable. Add a check to `src/sim/islandChecks.ts` / `mapChecks.ts`, run by `npm run check`, that compares the two outlines (suggested limit: 1.5 units, to tune) and lists the worst points per island; `npm run chart -- --overlay` draws both lines for review.

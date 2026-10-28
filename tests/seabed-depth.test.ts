@@ -33,6 +33,7 @@ function square(half: number, margin: number, cell = 1): Heightfield {
     heights,
     terrace: new Uint8Array(n * n),
     ground: new Uint8Array(n * n),
+    smooth: new Float32Array(n * n).fill(1),
     grounds: [''],
     seabed: SEABED,
     seed: 1,

@@ -37,6 +37,11 @@ export interface GroundDef {
   slope?: number;
   /** Which edges slope, as runs of edge indices [first, last]; left out, every edge. */
   slopeEdges?: [number, number][];
+  /**
+   * How much the new look smooths it (decision 0222, issue #269), 0 to 1; left out, 1. At 0 it
+   * stays faceted, drawn crisp over the rolling ground: sea stacks, signature cliffs, crater rims.
+   */
+  smooth?: number;
   from?: number;
   to?: number;
 }

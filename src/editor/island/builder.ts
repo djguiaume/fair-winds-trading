@@ -12,6 +12,7 @@ import { isGlowing } from '../../render/models/geometry';
 import { PROP_TYPES, type PropGroup } from '../../render/models/props';
 import { designedTownParts, islandCheckKit, type TownLevel } from '../../render/models/towns';
 import { propParts, standHeight } from '../../render/models/townProps';
+import { builderLook, newLookGround, previewIsland } from './newLook';
 import { coastDistance } from '../../sim/coast';
 import { type IslandIssue, TRIANGLE_BUDGET } from '../../sim/islandChecks';
 import { islandLayout, layoutGround } from '../../sim/islandLayout';
@@ -268,14 +269,17 @@ function displayed() {
 
 /** Builds the island at the level and shows it in both views. */
 function rebuild(without?: number) {
-  let parts;
+  let parts, ground;
   try {
     const view = displayed();
     const shown =
       without === undefined
         ? view.design
         : { ...view.design, props: view.design.props.filter((_, i) => view.from[i] !== without) };
-    parts = designedTownParts(shown, R, level as TownLevel, harbour);
+    // `?look=v2`: the game's new-look ground, its props standing on it (decision 0222).
+    const v2 = builderLook === 'v2' ? newLookGround(shown, R, level, harbour) : undefined;
+    parts = designedTownParts(shown, R, level as TownLevel, harbour, v2?.stand);
+    ground = v2?.ground;
   } catch (error) {
     hint(`The island does not build: ${String(error)}`);
     return;
@@ -285,19 +289,10 @@ function rebuild(without?: number) {
   const land = mergeParts(parts.filter((g) => !isGlowing(g)).map((g) => g.clone()));
   const windows = mergeParts(glass.map((g) => g.clone()));
   const next = mergeParts(parts);
-  top!.setGeometry(next);
-  preview!.setGeometry(land, windows);
+  top!.setGeometry(next, ground);
+  preview!.setGeometry(land, windows, ground);
   // The game's lamps on this island: harbour toward +z, as the builder's model is drawn.
-  preview!.setLamps(
-    {
-      id: design.id,
-      x: 0,
-      y: 0,
-      radius: R * ISLAND_SCALE,
-      look: { design: design.id, harbourBearing: Math.PI, dock: harbour },
-    },
-    level,
-  );
+  preview!.setLamps(previewIsland(design, R, harbour), level);
   for (const g of [geometry, previewLand, previewGlass]) g?.dispose();
   [geometry, previewLand, previewGlass] = [next, land, windows];
   $('ib-preview-title').textContent = `3D preview · level ${level}`;

@@ -37,8 +37,8 @@ new:   --outline "x,z x,z …" or --blob r=1,points=14,rough=0.22,stretch=1,turn
        --name "Palm Key" --style <a palette.json style: timber, fish, ice…> --seed 7103 --low 0.06 --force
 steps (island-radius units, harbour toward +z; --level n = from that town level):
   islet     --outline … | --blob r=0.3,… --at x,z [--low h]
-  plateau   --at x,z [--size rx,rz | --outline … | --blob …] [--height h | --rise 0.2] [--slope w] [--rock | --material snow] [--level n]
-  mountain  --at x,z [--size rx,rz | --outline … | --blob …] [--height h | --rise 0.6] [--material slate] [--level n]
+  plateau   --at x,z [--size rx,rz | --outline … | --blob …] [--height h | --rise 0.2] [--slope w] [--rock | --material snow] [--level n] [--smooth s]
+  mountain  --at x,z [--size rx,rz | --outline … | --blob …] [--height h | --rise 0.6] [--material slate] [--crater c] [--level n] [--smooth s]
   lake      --at x,z [--size rx,rz | --outline … | --blob …]
   ramp      --points "x,z x,z …" [--start h --end h (default: the ground there)] [--width 0.1] [--rock | --material m] [--level n]
   lane | path | stairs   --points "x,z x,z …" (stairs take the ground's height at each point)
@@ -56,6 +56,7 @@ steps (island-radius units, harbour toward +z; --level n = from that town level)
   view      --from x,z --look x,z [--height h --look-height h] [--accent #hex]   the harbour screen's
             picture of its port (decision 0211; heights in radius units; none clears one, --clear all)
   ground    <index> [--ramp] --material <palette.json ground: grass, rock, snow, ice…> [--height h] [--beach w (a coast ground: its beach width)]
+            [--smooth 0..1 (the new look's rounding: 0 stays faceted, a stack or crater rim; 1 the default)]
   sculpt    hand terrain, brush by brush (help below); also steps {"do":"sculpt",…} in --steps
   tidy      rewrite the file in the builder's format (any step does)
 options: --steps steps.json (or '[{"do":"prop",…}]': a list of steps as data, see src/editor/island/steps.ts)
@@ -108,6 +109,7 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
         material,
         slope: num(args.slope),
         crater: num(args.crater),
+        smooth: num(args.smooth),
         ...shaped,
       });
     case 'lake':
@@ -206,6 +208,7 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
         material: typeof args.material === 'string' ? args.material : undefined,
         height: num(args.height),
         beach: num(args.beach),
+        smooth: num(args.smooth),
       });
     case 'set':
       return clean({
