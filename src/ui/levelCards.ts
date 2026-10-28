@@ -1,5 +1,6 @@
 import { hasText, t } from '../i18n';
 import { DEFAULT_DIFFICULTY, DIFFICULTIES, DIFFICULTY } from '../sim/difficulty';
+import './theme.css';
 
 /*
  * The difficulty levels on screen (decisions 0083, 0113): a card per level on the New voyage
