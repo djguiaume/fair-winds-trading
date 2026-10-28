@@ -142,6 +142,3 @@ export function shipClassOf(file: ShipFile): ShipClass {
     upgradePrices: unlock.upgradePrices,
   };
 }
-
-/** The flag a ship flies by herself (the Tern's brass pennant), if her file names one. */
-export const shipPennantId = (id: string) => SHIP_FILES.find((f) => f.id === id)?.model.pennant;

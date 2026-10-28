@@ -1,3 +1,4 @@
+import { SHIP_FILES } from '../data/ships';
 import regattaData from '../data/regatta.json';
 import flagData from '../data/flags.json';
 import { isDifficulty, type Difficulty } from './difficulty';
@@ -94,6 +95,10 @@ export interface FlagDef {
 
 export const FLAGS = flagData.flags as FlagDef[];
 export const flagById = (id: string | undefined) => FLAGS.find((f) => f.id === id);
+
+/** The flag a ship flies by herself (the Tern's brass pennant), if her file names one. */
+export const shipPennant = (shipId: string) =>
+  flagById(SHIP_FILES.find((f) => f.id === shipId)?.model.pennant);
 
 /** A line on the water: two points, the committee boat's end first, then the pin's. */
 export type Gate = [{ x: number; y: number }, { x: number; y: number }];

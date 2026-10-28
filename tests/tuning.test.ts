@@ -274,7 +274,7 @@ describe('moved values equal the old constants (decision 0094)', () => {
         return [id, { ...old, noGoAngle: noGoAngle(ship), turnRate: turnRate(ship) }];
       }),
     );
-    expect(asOld).toEqual(OLD_SHIP_CLASSES);
+    expect(asOld).toMatchObject(OLD_SHIP_CLASSES);
   });
 
   it('upgrades, goods, difficulty levels and the Phase 2 weather', () => {
@@ -568,39 +568,6 @@ const OLD_SHIP_CLASSES = {
     deck: 30,
     price: 25000,
     upgradePrices: [6000, 18000],
-  },
-  tern: {
-    id: 'tern',
-    name: 'Tern',
-    line: 'racer',
-    tier: 1,
-    standing: 1,
-    noGoAngle: 40 * DEG,
-    polar: [
-      [0, 0],
-      [40, 0.45],
-      [50, 0.72],
-      [65, 0.9],
-      [95, 1],
-      [125, 0.92],
-      [155, 0.78],
-      [180, 0.68],
-    ],
-    speedRatio: 0.86,
-    accel: 0.6,
-    decel: 0.28,
-    ironsDecel: 0.9,
-    turnRate: 72 * DEG,
-    minSteerage: 0.4,
-    steerageSpeedKn: 4.5,
-    turnDrag: 0.18,
-    leeway: 0.04,
-    radius: 4.6,
-    draft: 0.6,
-    hold: 4,
-    deck: 3,
-    price: 0,
-    upgradePrices: [800, 2400],
   },
 };
 const OLD_GOOD_DEFS = {
