@@ -25,6 +25,10 @@ The *Traffic Architect* look on every quality level: smooth rolling island groun
 
 ## Build order (one thread per step, one PR each)
 
+### 0. Other boats redesign (about 1 week, first step; issue #331)
+
+Guillaume (2026-10-28): redo the traffic boats first. Fishing boats (about 350 triangles), coasters (about 900) and far-sea visitors (fluyt, indiaman, schooner far LOD) of [0215](../decisions/0215-other-boats-on-the-sea.md) get the new look; caps stay Low 3, Medium 6, High 10. Also the v1.0 follow-ups: smaller wakes, deck cargo by home good. The art director gives look rules first. Colour dependency: boat colours live in data and are rechecked against the new water (step 4) and haze (step 6) before the v1.2 review (step 7). Shapes and data first, colours last.
+
 ### 1. Height field and builder split (3 to 5 days)
 
 - New `src/sim/heightfield.ts`, plain TypeScript, no three.js, Vitest-tested: `islandHeightfield(island, map) → { x0, z0, cell, w, h, heights: Float32Array, terrace: Uint8Array }` and `heightAt(field, x, z)`.
@@ -99,4 +103,4 @@ Before release, `?bench` on the old tablet decides the Low grid and tree count.
 
 ## Effort
 
-About 7 to 9 weeks in all: height field and split 3 to 5 days, ground and editors 1 to 2 weeks, coast check about 1 week, water about 1 week, forests 1 to 2 weeks, haze 2 to 3 days, biomes and review about 2 weeks.
+About 8 to 10 weeks in all: other boats about 1 week, height field and split 3 to 5 days, ground and editors 1 to 2 weeks, coast check about 1 week, water about 1 week, forests 1 to 2 weeks, haze 2 to 3 days, biomes and review about 2 weeks.
