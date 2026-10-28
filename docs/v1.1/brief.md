@@ -1,11 +1,11 @@
 # v1.1 "The Sailing Club" — brief
 
 Milestone: [v1.1 The Sailing Club](https://github.com/djguiaume/fair-winds-trading/milestone/1). Detail lives in [plan.md](plan.md); each part is one issue ("Fixes #N").
+Bug fixes (#255) moved to v1.2 by Guillaume on 2026-10-28.
 Guillaume's order: UI reskin and new races last; fixed storms go with the races.
 
 | # | Part | Effort | Visual | Model | Wave |
 | --- | --- | --- | --- | --- | --- |
-| [#255](https://github.com/djguiaume/fair-winds-trading/issues/255) | Bug fixes from v1.0 play | low/med | no | Sonnet | 1 |
 | [#256](https://github.com/djguiaume/fair-winds-trading/issues/256) | Turnable camera (+ Ultra tilt key) | high | yes | Opus | 1 |
 | [#257](https://github.com/djguiaume/fair-winds-trading/issues/257) | Ultra quality: lighting, shadows, night | high | yes | Opus | 1 |
 | [#258](https://github.com/djguiaume/fair-winds-trading/issues/258) | Water: sky reflection, foam | med | yes | Opus | 1 (after #257) |

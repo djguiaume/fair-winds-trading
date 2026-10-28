@@ -6,7 +6,7 @@ change the Phase 5 plan ([brief](../phase-5/brief.md)). Written from Guillaume's
 
 ## The idea
 
-The first update after v1.0 is **bug fixes plus new races**.
+The first update after v1.0 is **new races, the turnable camera, Ultra quality and the UI reskin**. Bug fixes moved to v1.2 (Guillaume, 2026-10-28).
 
 - **Name: "The Sailing Club"** (« Le Club de voile »), picked over "Gotta go fast" because it
   fits the game's calm tone, and confirmed by the Head storyteller on 2026-10-25.
@@ -20,7 +20,7 @@ The first update after v1.0 is **bug fixes plus new races**.
 
 ## What is in it
 
-1. **Bug fixes** gathered from v1.0 play (playtests, the old-tablet test, reports).
+1. ~~Bug fixes~~ moved to v1.2 (issue #255).
 2. **New races**, as quests like today's eight, with their words from the storyteller and their
    pars written by the bots (`npm run race -- --all --pars --write`).
 3. **Fixed storm positions in races** (below), so a storm to dodge gives a course its character.
