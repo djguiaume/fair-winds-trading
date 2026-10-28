@@ -19,7 +19,7 @@ Guillaume's order: other boats first.
 | #277 | Island-by-island art acceptance (ring first) | med | yes | Sonnet | 5 |
 | #278 | Performance and device gates, `?bench` | med | no | Sonnet | 5 |
 
-Carried from v1.1, run as one low-effort Sonnet thread alongside wave 1 (UI files only, no overlap): #255 bug fixes, #326 night dimming of paper screens, #319 Style E text audit. #255's list is empty: Guillaume, send bugs and they go in.
+Carried from v1.1, one low-effort Sonnet thread alongside wave 1 (UI files only, no overlap): #326 night dimming of paper screens, #319 Style E text audit. The bug fixes (#255) moved to the next release, v1.3, by Guillaume on 2026-10-28; new bugs become `bug` issues for it.
 
 At most 3 to 5 threads at once; I start the next part as soon as one merges. Role questions (one message each, when their wave starts): storyteller has none for v1.2 so far; art director gives boat look rules for #331 first, then biome tables for #269 and #275.
 
