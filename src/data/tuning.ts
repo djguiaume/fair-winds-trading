@@ -9,6 +9,7 @@ import economy from './tuning/economy.json';
 import difficulty from './tuning/difficulty.json';
 import weather from './tuning/weather.json';
 import seamanship from './tuning/seamanship.json';
+import graphics from './tuning/graphics.json';
 
 /**
  * Every tuning number of the game, read from the JSON files in `src/data/tuning/` (decisions 0093
@@ -47,6 +48,8 @@ export interface Tuning {
   };
   weather: Omit<typeof weather, 'default'> & { default: WeatherConfig };
   seamanship: typeof seamanship;
+  /** The Ultra quality level and the sea's reflection (decision 0221). */
+  graphics: typeof graphics;
 }
 
 /** The values as shipped. Never changed: the panel resets to these. */
@@ -59,6 +62,7 @@ export const SHIPPED_TUNING: Readonly<Tuning> = {
   difficulty,
   weather,
   seamanship,
+  graphics,
 } as unknown as Tuning;
 
 /** The live values. */

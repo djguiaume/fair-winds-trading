@@ -6,38 +6,10 @@
  * `src/data/tuning/*.json` has an entry and sits inside its range: a new value needs a line here.
  */
 
-/** A number, or a list of numbers that share one range (each element is checked). */
-export interface NumberMeta {
-  kind: 'number';
-  label: string;
-  min: number;
-  max: number;
-  step: number;
-  unit?: string;
-  help: string;
-}
+import { num, text, toggle, type TuningMeta } from './tuning-meta-types';
+import { GRAPHICS_META } from './tuning-meta-graphics';
 
-/** A polar curve: [true wind angle 0..180°, fraction of top speed 0..1] points. */
-export interface PolarMeta {
-  kind: 'polar';
-  label: string;
-  help: string;
-}
-
-export interface ToggleMeta {
-  kind: 'toggle';
-  label: string;
-  help: string;
-}
-
-/** Names, icons and ids: shown but not slid. */
-export interface TextMeta {
-  kind: 'text';
-  label: string;
-  help: string;
-}
-
-export type TuningMeta = NumberMeta | PolarMeta | ToggleMeta | TextMeta;
+export type { NumberMeta, PolarMeta, TextMeta, ToggleMeta, TuningMeta } from './tuning-meta-types';
 
 /** Tabs of the panel, one per tuning file. */
 export const TUNING_GROUPS = {
@@ -48,6 +20,7 @@ export const TUNING_GROUPS = {
   difficulty: 'Levels',
   weather: 'Weather',
   seamanship: 'Seamanship',
+  graphics: 'Graphics',
 } as const;
 
 /** Objects whose keys are ids: their children are written `*` in meta paths. */
@@ -71,18 +44,8 @@ export function metaPath(path: readonly string[]): string {
   return out.join('.');
 }
 
-const num = (
-  label: string,
-  min: number,
-  max: number,
-  step: number,
-  unit: string | undefined,
-  help: string,
-): NumberMeta => ({ kind: 'number', label, min, max, step, ...(unit ? { unit } : {}), help });
-const text = (label: string, help: string): TextMeta => ({ kind: 'text', label, help });
-const toggle = (label: string, help: string): ToggleMeta => ({ kind: 'toggle', label, help });
-
 export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
+  ...GRAPHICS_META,
   // --- src/data/ships/<id>.json, `sailing` and `unlock` (decisions 0007, 0011, 0035, 0048, 0109) ---
   'ships.*.id': text('Id', 'Class id used in saves and code; must match the key.'),
   'ships.*.name': text('Name', 'English name in the code; players see the translated one.'),
@@ -1966,6 +1929,14 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
     1,
     'boats',
     'How many other boats sail near you at once on High quality.',
+  ),
+  'seamanship.traffic.atOnce.ultra': num(
+    'Other boats at once, Ultra',
+    0,
+    20,
+    1,
+    'boats',
+    'How many other boats sail near you at once on Ultra quality (desktop and Xbox).',
   ),
   'seamanship.traffic.activeRange': num(
     'Other boats sail within',

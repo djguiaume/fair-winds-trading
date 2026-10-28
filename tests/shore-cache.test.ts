@@ -24,7 +24,14 @@ describe('view-owned shoreline bake', () => {
     for (const profile of Object.values(QUALITY)) {
       const same = cache.get(structuredClone(islands));
       expect(same).toBe(shore);
-      const ocean = new Ocean(islands, profile.oceanSegments, profile.fancyWater, 480, [], same);
+      const ocean = new Ocean(
+        islands,
+        profile.oceanSegments,
+        { fancy: profile.fancyWater },
+        480,
+        [],
+        same,
+      );
       expect(ocean.mesh.material.uniforms.uShoreMap!.value).toBe(shore.texture);
       expect(ocean.mesh.material.uniforms.uShoreBounds!.value).toBe(shore.bounds);
       ocean.dispose();
@@ -116,7 +123,7 @@ describe('view-owned shoreline bake', () => {
   });
 
   it('standalone oceans own their bake and release resources once', () => {
-    const ocean = new Ocean([island()], 8, false);
+    const ocean = new Ocean([island()], 8, { fancy: false });
     const texture = vi.spyOn(ocean.mesh.material.uniforms.uShoreMap!.value, 'dispose');
     const geometry = vi.spyOn(ocean.mesh.geometry, 'dispose');
     const material = vi.spyOn(ocean.mesh.material, 'dispose');
@@ -143,6 +150,8 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
     sun: new THREE.DirectionalLight(),
     renderer: { shadowMap: { enabled: false }, dispose: vi.fn() },
     resize: vi.fn(),
+    // The Ultra pipeline needs a real WebGL context; its water is what is under test here.
+    loadUltra: vi.fn(),
   });
   const water = () => (view as unknown as { ocean: Ocean }).ocean;
   view.setQuality('low');
@@ -163,7 +172,9 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
   expect(water().mesh.material.uniforms.uShoreMap!.value).toBe(first);
   view.setQuality('high');
   const high = water();
-  expect(high.mesh.material).toBe(medium.mesh.material);
+  // High adds the sky reflection (decision 0221): its own program, Medium's kept for a return.
+  expect('REFLECT' in high.mesh.material.defines).toBe(true);
+  expect(high.mesh.material === medium.mesh.material).toBe(false);
   expect(low.mesh.material === high.mesh.material).toBe(false);
   expect(water().mesh.material.uniforms.uShoreMap!.value).toBe(first);
   expect(dispose).not.toHaveBeenCalled();
@@ -179,6 +190,8 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
   expect(water()).toBe(low);
   view.setQuality('medium');
   expect(water()).toBe(medium);
+  view.setQuality('ultra');
+  expect(water().mesh.material).toBe(high.mesh.material);
   view.setQuality('high');
   expect(water()).toBe(high);
   expect(lowDisposed).not.toHaveBeenCalled();

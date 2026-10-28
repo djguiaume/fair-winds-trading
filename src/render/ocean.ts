@@ -3,6 +3,8 @@ import type { IslandDef, TerrainDef } from '../sim/map';
 import { islandPoint } from '../sim/islandLayout';
 import { designOf } from '../data/islands';
 import { PALETTE } from './palette';
+import { TUNING } from '../data/tuning';
+import type { Look } from './atmosphere';
 
 /** Baked shoreline distance: constant shader cost as authored coast complexity grows. */
 export const shoreShader = /* glsl */ `
@@ -194,6 +196,16 @@ uniform vec3 uFoam;
 uniform vec3 uFogColor;
 uniform float uFogNear;
 uniform float uFogFar;
+#ifdef REFLECT
+uniform vec3 uSkyLight;
+uniform vec3 uSunColor;
+uniform float uReflect;
+uniform float uFresnelPower;
+uniform float uGlint;
+uniform float uGlintSharpness;
+// Soft shore foam: full strength out to x, fading over y, opacity z, outer line w.
+uniform vec4 uFoamLook;
+#endif
 varying vec3 vWorld;
 varying float vHeight;
 varying float vFogDepth;
@@ -216,14 +228,29 @@ void main() {
 #ifdef FANCY
   float ripple = sin(vWorld.x * 0.45 + uTime * 1.3) * sin(vWorld.z * 0.5 - uTime * 1.7);
 #endif
-#ifdef FANCY
+#if defined(REFLECT)
+  // A wide band that fades softly into the sea, and a faint line further out that comes and goes.
+  float soft = 1.0 - smoothstep(uFoamLook.x, uFoamLook.x + uFoamLook.y, d + 0.5 * ripple);
+  float beyond = d - uFoamLook.x - uFoamLook.y - 1.0 - 0.8 * sin(uTime * 0.9 + d * 0.4);
+  float line = (1.0 - smoothstep(0.0, 1.2, abs(beyond))) * uFoamLook.w;
+  col = mix(col, uFoam, clamp(soft * soft * uFoamLook.z + line, 0.0, 1.0));
+#elif defined(FANCY)
   float foam = 1.0 - smoothstep(0.8, 2.6, d + 0.7 * ripple + 0.6 * sin(uTime * 1.4 + d * 0.6));
+  col = mix(col, uFoam, foam * 0.8);
 #else
   float foam = 1.0 - smoothstep(0.8, 2.6, d);
-#endif
   col = mix(col, uFoam, foam * 0.8);
+#endif
 
   col *= light;
+#ifdef REFLECT
+  // The sky mirrored at low angles (Fresnel), and the sun or moon sparkling on the facets.
+  vec3 toEye = normalize(cameraPosition - vWorld);
+  float fresnel = pow(1.0 - max(dot(n, toEye), 0.0), uFresnelPower);
+  col = mix(col, uSkyLight, fresnel * uReflect);
+  float glint = pow(max(dot(n, normalize(uSunDir + toEye)), 0.0), uGlintSharpness);
+  col += uSunColor * glint * uGlint;
+#endif
   col = mix(col, uFogColor, smoothstep(uFogNear, uFogFar, vFogDepth));
   gl_FragColor = vec4(col, 1.0);
   #include <colorspace_fragment>
@@ -242,9 +269,18 @@ export function waveHeight(x: number, z: number, t: number): number {
   );
 }
 
+/** Which water shader a quality level draws. */
+export interface WaterLook {
+  /** Moving foam and per-pixel coasts (Medium and up). */
+  fancy: boolean;
+  /** Sky reflection, sun glint and soft foam (High and Ultra, decision 0221); needs `fancy`. */
+  reflect?: boolean;
+}
+
 /**
  * Stylized low-poly ocean: a grid that follows the camera, vertex waves, flat shading, a shallow
- * tint and foam around islands. Cheap on purpose (no reflections) for old tablets.
+ * tint and foam around islands. Cheap on purpose for old tablets; High and Ultra add a Fresnel
+ * sky reflection and sun glint, still no reflection pass.
  */
 export class Ocean {
   readonly mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
@@ -256,7 +292,7 @@ export class Ocean {
   constructor(
     islands: readonly IslandDef[],
     segments: number,
-    fancy: boolean,
+    look: WaterLook,
     size = 420,
     terrain: readonly TerrainDef[] = [],
     borrowedShore?: ShoreTexture,
@@ -271,7 +307,11 @@ export class Ocean {
       new THREE.ShaderMaterial({
         vertexShader,
         fragmentShader,
-        defines: fancy ? { FANCY: '' } : { VERTEX_SHORES: '' },
+        defines: !look.fancy
+          ? { VERTEX_SHORES: '' }
+          : look.reflect
+            ? { FANCY: '', REFLECT: '' }
+            : { FANCY: '' },
         uniforms: {
           uTime: { value: 0 },
           uShoreMap: { value: shore.texture },
@@ -284,6 +324,13 @@ export class Ocean {
           uFogColor: { value: new THREE.Color(PALETTE.deepWater) },
           uFogNear: { value: 120 },
           uFogFar: { value: 210 },
+          uSkyLight: { value: new THREE.Color(PALETTE.sky) },
+          uSunColor: { value: new THREE.Color(PALETTE.sun) },
+          uReflect: { value: 0 },
+          uFresnelPower: { value: 4 },
+          uGlint: { value: 0 },
+          uGlintSharpness: { value: 90 },
+          uFoamLook: { value: new THREE.Vector4() },
         },
       });
     const geometry = new THREE.PlaneGeometry(size, size, segments, segments);
@@ -304,30 +351,37 @@ export class Ocean {
     this.mesh.material.uniforms.uFogFar!.value = far;
   }
 
-  /** Water and fog colours, for weather and time of day (decisions 0067, 0068). */
-  setColors(
-    water: THREE.Color,
-    waterLight: THREE.Color,
-    fog: THREE.Color,
-    shallow: THREE.Color,
-    foam: THREE.Color,
-  ): void {
+  /** Water, fog and reflected sky colours, for weather and time of day (decisions 0067, 0068). */
+  setColors(look: Look): void {
     const u = this.mesh.material.uniforms;
-    (u.uShallow!.value as THREE.Color).copy(shallow);
-    (u.uFoam!.value as THREE.Color).copy(foam);
-    (u.uWater!.value as THREE.Color).copy(water);
-    (u.uWaterLight!.value as THREE.Color).copy(waterLight);
-    (u.uFogColor!.value as THREE.Color).copy(fog);
+    (u.uShallow!.value as THREE.Color).copy(look.shallow);
+    (u.uFoam!.value as THREE.Color).copy(look.foam);
+    (u.uWater!.value as THREE.Color).copy(look.water);
+    (u.uWaterLight!.value as THREE.Color).copy(look.waterLight);
+    (u.uFogColor!.value as THREE.Color).copy(look.sky);
+    (u.uSkyLight!.value as THREE.Color).copy(look.skyLight);
   }
 
-  /** Direction the light comes from (scene space, normalized), for the flat shading. */
-  setSunDirection(dir: THREE.Vector3): void {
-    (this.mesh.material.uniforms.uSunDir!.value as THREE.Vector3).copy(dir);
+  /** The light (scene space, normalized direction), for the flat shading and the glint. */
+  setSun(dir: THREE.Vector3, color: THREE.Color, intensity: number): void {
+    const u = this.mesh.material.uniforms;
+    (u.uSunDir!.value as THREE.Vector3).copy(dir);
+    (u.uSunColor!.value as THREE.Color).copy(color).multiplyScalar(intensity);
   }
 
-  /** Keep the grid centered on the camera target, snapped to whole cells so waves don't swim. */
-  update(time: number, center: THREE.Vector3): void {
-    this.mesh.material.uniforms.uTime!.value = time;
+  /**
+   * Keep the grid centered on the camera target, snapped to whole cells so waves don't swim.
+   * `reflect` is the Settings switch for the sky reflection and glint (where the shader has them).
+   */
+  update(time: number, center: THREE.Vector3, reflect = true): void {
+    const u = this.mesh.material.uniforms;
+    u.uTime!.value = time;
+    const w = TUNING.graphics.water;
+    u.uReflect!.value = reflect ? w.reflection : 0;
+    u.uGlint!.value = reflect ? w.glint : 0;
+    u.uFresnelPower!.value = w.fresnelPower;
+    u.uGlintSharpness!.value = w.glintSharpness;
+    (u.uFoamLook!.value as THREE.Vector4).set(w.foamInner, w.foamWidth, w.foamStrength, w.foamLine);
     this.mesh.position.set(
       Math.round(center.x / this.cell) * this.cell,
       0,

@@ -97,6 +97,7 @@ import {
 } from './ui/fullscreen';
 import { Hud } from './ui/hud';
 import { loadSettings, saveSettings } from './ui/settings';
+import { addEffectSwitches, switchRow } from './ui/graphicsSettings';
 import type { Bench } from './perf/bench';
 import type { PerfReadout } from './perf/perfReadout';
 import { Music } from './audio/music';
@@ -112,7 +113,6 @@ import {
   workshopName,
   formatNumber,
   goodSome,
-  hasText,
   setLanguage,
   setTextVariant,
   t,
@@ -1553,32 +1553,16 @@ world.hazeOff = hazeOff();
 {
   let after: Element | null = currentsSwitch.closest('.set-row');
   for (const id of hazeSwitches()) {
-    const row = document.createElement('label');
-    row.className = 'set-row';
-    const name = document.createElement('span');
-    name.className = 'set-name';
-    const label = document.createElement('span');
-    const note = document.createElement('small');
-    for (const [el, key] of [
-      [label, `settings.haze.${id}`],
-      [note, `settings.haze.${id}Note`],
-    ] as const) {
-      el.dataset.i18n = key;
-      el.textContent = hasText(key) ? t(key) : id;
-    }
-    name.append(label, note);
-    const input = document.createElement('input');
-    input.type = 'checkbox';
-    input.id = `haze-${id}`;
-    input.className = 'switch';
-    input.setAttribute('role', 'switch');
-    input.checked = settings.haze[id] !== false;
-    input.addEventListener('change', () => {
-      settings.haze = { ...settings.haze, [id]: input.checked };
-      world.hazeOff = hazeOff();
-      keepSettings();
-    });
-    row.append(name, input);
+    const row = switchRow(
+      `haze-${id}`,
+      `settings.haze.${id}`,
+      settings.haze[id] !== false,
+      (on) => {
+        settings.haze = { ...settings.haze, [id]: on };
+        world.hazeOff = hazeOff();
+        keepSettings();
+      },
+    );
     after?.after(row);
     after = row;
   }
@@ -1642,8 +1626,17 @@ const markQuality = () => {
 };
 markQuality();
 showFps.checked = settings.showFps;
-const describeQuality = () =>
-  (qualityNow.textContent = t('settings.nowUsing', { level: t(`settings.${level}`) }));
+// Graphics effects (decision 0221): a switch each, under the level that draws it.
+const showEffects = addEffectSwitches(
+  $('quality').closest('.set-row')!,
+  settings,
+  view.effects,
+  keepSettings,
+);
+const describeQuality = () => {
+  qualityNow.textContent = t('settings.nowUsing', { level: t(`settings.${level}`) });
+  showEffects(level);
+};
 describeQuality();
 
 $('chart-btn').addEventListener('click', () => chart.open());

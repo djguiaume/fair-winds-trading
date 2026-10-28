@@ -146,7 +146,7 @@ describe('Windward Ring trading map', () => {
     );
     expect(pos.count).toBeGreaterThan(0);
     expect(Array.from(pos.array).every(Number.isFinite)).toBe(true);
-    const ocean = new Ocean(PHASE1_MAP.islands, 8, false, 480, terrain);
+    const ocean = new Ocean(PHASE1_MAP.islands, 8, { fancy: false }, 480, terrain);
     expect(ocean.mesh.material.uniforms.uShoreMap!.value).toBeInstanceOf(THREE.DataTexture);
     for (const t of terrain.filter((t) => t.kind !== 'reef'))
       for (const [x, y] of t.outline) {
@@ -193,7 +193,7 @@ describe('Windward Ring trading map', () => {
       expect(Math.hypot(i.x, i.y) + i.radius + SLOOP.radius + 20).toBeLessThan(
         PHASE1_MAP.boundsRadius,
       );
-    const ocean = new Ocean(PHASE1_MAP.islands, 8, false, 480, terrain);
+    const ocean = new Ocean(PHASE1_MAP.islands, 8, { fancy: false }, 480, terrain);
     expect(ocean.mesh.material.uniforms.uShoreMap!.value.image.width).toBeGreaterThanOrEqual(512);
     ocean.dispose();
   });

@@ -357,7 +357,7 @@ scene.traverse((o) => {
 const ocean = new Ocean(
   islandsForWater,
   inspectBoat ? profile.oceanSegments : 140,
-  inspectBoat ? profile.fancyWater : true,
+  { fancy: inspectBoat ? profile.fancyWater : true },
   600,
 );
 ocean.setFog(400, 700);
