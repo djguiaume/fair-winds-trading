@@ -1,0 +1,148 @@
+{
+  "id": "race-sandwick-squall",
+  "name": "The Sandwick Scramble",
+  "start": {
+    "is": "all",
+    "of": [
+      {
+        "is": "quest-done",
+        "quest": "race-greyback"
+      },
+      {
+        "is": "quest-done",
+        "quest": "outpost-east"
+      }
+    ]
+  },
+  "text": "quest.race-sandwick-squall",
+  "giver": "wren",
+  "starter": "pip",
+  "port": "abbey-head",
+  "offer": true,
+  "storms": false,
+  "wind": {
+    "speedKn": 12,
+    "fromDeg": 90
+  },
+  "race": {
+    "series": "regatta-club",
+    "gold": {
+      "bronze": 120,
+      "silver": 240,
+      "gold": 400
+    },
+    "pars": {
+      "sloop": {
+        "fair": 122,
+        "captain": 122,
+        "salt": 122
+      },
+      "cutter": {
+        "fair": 102,
+        "captain": 102,
+        "salt": 102
+      },
+      "schooner": {
+        "fair": 88,
+        "captain": 88,
+        "salt": 88
+      },
+      "clipper": {
+        "fair": 74,
+        "captain": 74,
+        "salt": 74
+      },
+      "hoy": {
+        "fair": 175,
+        "captain": 175,
+        "salt": 175
+      },
+      "fluyt": {
+        "fair": 186,
+        "captain": 186,
+        "salt": 186
+      },
+      "indiaman": {
+        "fair": 176,
+        "captain": 176,
+        "salt": 176
+      },
+      "tern": {
+        "fair": 78,
+        "captain": 78,
+        "salt": 78
+      },
+      "tern-pilot": {
+        "fair": 86,
+        "captain": 86,
+        "salt": 86
+      },
+      "tern-yawl": {
+        "fair": 81,
+        "captain": 81,
+        "salt": 81
+      }
+    },
+    "storms": [
+      {
+        "x": 720,
+        "y": 260,
+        "radius": 55,
+        "strength": 0.9,
+        "driftDeg": 270,
+        "driftSpeed": 1
+      }
+    ]
+  },
+  "steps": [
+    {
+      "id": "race",
+      "moveTo": {
+        "x": 640,
+        "y": 20,
+        "headingDeg": 270
+      },
+      "goal": {
+        "is": "raced",
+        "start": [
+          {
+            "x": 610,
+            "y": -20
+          },
+          {
+            "x": 610,
+            "y": 60
+          }
+        ],
+        "marks": [
+          {
+            "x": 650,
+            "y": 430
+          },
+          {
+            "x": 546,
+            "y": 505
+          },
+          {
+            "x": 490,
+            "y": 430
+          },
+          {
+            "x": 520,
+            "y": 120
+          }
+        ],
+        "finish": [
+          {
+            "x": 610,
+            "y": -20
+          },
+          {
+            "x": 610,
+            "y": 60
+          }
+        ]
+      }
+    }
+  ]
+}

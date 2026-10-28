@@ -17,7 +17,7 @@
   "text": "quest.race-stormbreak",
   "giver": "wren",
   "starter": "elias",
-  "port": "fogwatch",
+  "port": "abbey-head",
   "offer": true,
   "storms": false,
   "wind": {
@@ -66,6 +66,21 @@
         "fair": 265,
         "captain": 239,
         "salt": 237
+      },
+      "tern": {
+        "fair": 93,
+        "captain": 93,
+        "salt": 94
+      },
+      "tern-pilot": {
+        "fair": 104,
+        "captain": 104,
+        "salt": 105
+      },
+      "tern-yawl": {
+        "fair": 98,
+        "captain": 98,
+        "salt": 99
       }
     }
   },

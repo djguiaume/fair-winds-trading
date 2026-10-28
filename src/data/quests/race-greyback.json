@@ -3,12 +3,12 @@
   "name": "Round Greyback",
   "start": {
     "is": "quest-done",
-    "quest": "race-calda"
+    "quest": "rooks-thanks"
   },
   "text": "quest.race-greyback",
   "giver": "wren",
   "starter": "ines",
-  "port": "calda",
+  "port": "abbey-head",
   "offer": true,
   "storms": false,
   "wind": {
@@ -18,9 +18,9 @@
   "race": {
     "series": "regatta-ring",
     "gold": {
-      "bronze": 60,
-      "silver": 120,
-      "gold": 200
+      "bronze": 30,
+      "silver": 60,
+      "gold": 100
     },
     "pars": {
       "schooner": {
@@ -57,6 +57,21 @@
         "fair": 381,
         "captain": 378,
         "salt": 377
+      },
+      "tern": {
+        "fair": 133,
+        "captain": 132,
+        "salt": 130
+      },
+      "tern-pilot": {
+        "fair": 151,
+        "captain": 149,
+        "salt": 148
+      },
+      "tern-yawl": {
+        "fair": 139,
+        "captain": 137,
+        "salt": 136
       }
     }
   },

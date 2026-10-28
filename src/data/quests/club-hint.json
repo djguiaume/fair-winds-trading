@@ -1,0 +1,22 @@
+{
+  "id": "club-hint",
+  "name": "The club at Abbey Head",
+  "start": {
+    "is": "quest-done",
+    "quest": "rooks-thanks"
+  },
+  "text": "quest.club-hint",
+  "giver": "rook",
+  "doneSpeaker": "wren",
+  "port": "abbey-head",
+  "steps": [
+    {
+      "id": "visit",
+      "port": "saltmere",
+      "goal": {
+        "is": "docked",
+        "port": "abbey-head"
+      }
+    }
+  ]
+}

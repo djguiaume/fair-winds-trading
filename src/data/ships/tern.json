@@ -1,0 +1,135 @@
+{
+  "id": "tern",
+  "name": "Tern",
+  "line": "racer",
+  "tier": 1,
+  "unlock": {
+    "standing": 1,
+    "price": 0,
+    "upgradePrices": [800, 2400]
+  },
+  "sailing": {
+    "noGoDeg": 40,
+    "polar": [
+      [0, 0],
+      [40, 0.45],
+      [50, 0.72],
+      [65, 0.9],
+      [95, 1],
+      [125, 0.92],
+      [155, 0.78],
+      [180, 0.68]
+    ],
+    "speedRatio": 0.86,
+    "accel": 0.6,
+    "decel": 0.28,
+    "ironsDecel": 0.9,
+    "turnRateDeg": 72,
+    "minSteerage": 0.4,
+    "steerageSpeedKn": 4.5,
+    "turnDrag": 0.18,
+    "leeway": 0.04,
+    "radius": 4.6,
+    "draft": 0.6,
+    "hold": 4,
+    "deck": 3,
+    "heel": 1.15
+  },
+  "hull": {
+    "length": 7.2,
+    "beam": 1.4,
+    "depth": 0.75,
+    "outline": [
+      [0, 0.5],
+      [0.05, 0.42],
+      [0.14, 0.28],
+      [0.28, 0.08],
+      [0.38, -0.12],
+      [0.4, -0.28],
+      [0.34, -0.42],
+      [0.17, -0.5],
+      [-0.17, -0.5],
+      [-0.34, -0.42],
+      [-0.4, -0.28],
+      [-0.38, -0.12],
+      [-0.28, 0.08],
+      [-0.14, 0.28],
+      [-0.05, 0.42]
+    ],
+    "rings": [
+      {
+        "t": 0,
+        "beam": 1,
+        "length": 1
+      },
+      {
+        "t": 0.3,
+        "beam": 0.9,
+        "length": 0.94
+      },
+      {
+        "t": 0.7,
+        "beam": 0.45,
+        "length": 0.72
+      },
+      {
+        "t": 1,
+        "beam": 0.04,
+        "length": 0.5
+      }
+    ]
+  },
+  "model": {
+    "hullColor": "#f4efe0",
+    "bandColor": "#1f4f8a",
+    "mastZ": 0.3,
+    "mastHeight": 8.8,
+    "boom": 4,
+    "gaff": 2.8,
+    "stockJibs": 2,
+    "maxJibs": 2,
+    "cargoExtra": 0,
+    "pennant": "tern",
+    "mainTopsail": true,
+    "damage": {
+      "scuffs": [
+        {
+          "z": 0.3,
+          "side": 1
+        },
+        {
+          "z": -0.1,
+          "side": -1
+        },
+        {
+          "z": -0.32,
+          "side": 1
+        }
+      ],
+      "rail": {
+        "z": 0.12,
+        "side": 1
+      },
+      "tears": [
+        {
+          "u": 0.45,
+          "v": 0.4
+        },
+        {
+          "u": 0.6,
+          "v": 0.4
+        },
+        {
+          "u": 0.45,
+          "v": 0.55
+        },
+        {
+          "u": 0.6,
+          "v": 0.55
+        }
+      ],
+      "listDeg": 6,
+      "listSide": 1
+    }
+  }
+}

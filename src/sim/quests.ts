@@ -53,6 +53,8 @@ import {
   seriesWon,
 } from './regatta';
 import { checkRace } from './raceChecks';
+import { grantSeriesPrizes } from './seriesPrizes';
+import { type RaceRecord, bestFor, cleanRaceRecord, raceRecord, recordTime } from './raceRecords';
 import { createRival, endRival, releaseRival, rivalTime } from './rival';
 import { deckFree, syncMarketLevels, type TradeState } from './trade';
 import { pointOfSail } from './ship';
@@ -276,7 +278,8 @@ export type StepMarkerStyle = (typeof STEP_MARKER_STYLES)[number];
 export const QUEST_DONE = 'done';
 
 /** One started quest: its step (or `done`), the step's numbers, the options picked. */
-export interface QuestProgress {
+/** A race's record rides on its progress (decisions 0217, 0226). */
+export interface QuestProgress extends RaceRecord {
   step: string;
   /** The numbers the step's conditions keep (goods handed over, markers, a run's clock). */
   counts: number[];
@@ -288,10 +291,6 @@ export interface QuestProgress {
   rounds?: number;
   /** A standing order between rounds: dockings at other ports before it asks again (0214). */
   wait?: number;
-  /** A race's best time so far, hundredths of a second (decision 0217). */
-  best?: number;
-  /** A race's best medal so far: 1 bronze, 2 silver, 3 gold (decision 0217). */
-  medal?: number;
 }
 
 export interface QuestState {
@@ -1097,8 +1096,7 @@ export class QuestBook {
         step: QUEST_DONE,
         counts: [],
         chose: {},
-        best: p.best,
-        ...(p.medal ? { medal: p.medal } : {}),
+        ...raceRecord(p),
       };
     else delete this.state.byId[id];
     this.announced.delete(id);
@@ -1536,8 +1534,7 @@ export class QuestBook {
       chose: was?.chose ?? {},
       ...(was?.vars ? { vars: was.vars } : {}),
       ...(was?.rounds ? { rounds: was.rounds } : {}),
-      ...(was?.best !== undefined ? { best: was.best } : {}),
-      ...(was?.medal ? { medal: was.medal } : {}),
+      ...(was ? raceRecord(was) : {}),
     };
     if (step.charts) chartAreas(this.world.map, this.trade.progress, step.charts);
     // A step about a place this map lacks (the prologue's wreck) is passed by (decision 0151), and
@@ -1613,8 +1610,7 @@ export class QuestBook {
       ...(quest.repeat
         ? { rounds: (p.rounds ?? 0) + 1, wait: TUNING.economy.orders.standingDockings }
         : {}),
-      ...(p.best !== undefined ? { best: p.best } : {}),
-      ...(p.medal ? { medal: p.medal } : {}),
+      ...raceRecord(p),
     };
     if (quest.repeat) this.announced.delete(quest.id);
     this.pay(quest.reward);
@@ -1627,11 +1623,7 @@ export class QuestBook {
     events.push({ type: 'finished', quest: quest.id });
   }
 
-  /**
-   * A race's finish (decision 0217): its time against the pars of the captain's ship on the
-   * voyage's level, the best time and medal kept, gold for each medal won the first time, and the
-   * series this finish wins.
-   */
+  /** A race's finish (decision 0217): its medal, first-time gold and the series it wins. */
   private finishRace(quest: QuestDef, step: QuestStep, events: QuestEvent[]) {
     const p = this.progress(quest.id)!;
     const race = quest.race!;
@@ -1641,9 +1633,9 @@ export class QuestBook {
     const sec = hundredths / 100;
     const medal = medalFor(race, this.trade.captain.activeShip, this.trade.difficulty, sec);
     const had = p.medal ?? 0;
-    const first = p.best === undefined;
-    const best = first || hundredths < p.best!;
-    if (best) p.best = hundredths;
+    const ship = this.trade.captain.activeShip;
+    const first = bestFor(p, ship) === undefined;
+    const best = recordTime(p, ship, hundredths);
     if (medal > had) p.medal = medal;
     const gold = medalGold(race, had, medal);
     this.trade.captain.gold += gold;
@@ -1669,6 +1661,7 @@ export class QuestBook {
   /** The series won, from the races' medals (decision 0217). */
   private updateWon() {
     const won = seriesWon(this.quests, (id) => this.progress(id)?.medal ?? 0);
+    grantSeriesPrizes(this.world.trade, won);
     if (won.length) this.state.won = won;
     else delete this.state.won;
   }
@@ -1821,9 +1814,7 @@ export function readQuests(
     if (quest.repeat && p.step === QUEST_DONE && isCount(p.wait) && p.wait > 0)
       out.byId[quest.id]!.wait = Math.min(p.wait, TUNING.economy.orders.standingDockings);
     // A race's record (decision 0217).
-    if (quest.race && isCount(p.best)) out.byId[quest.id]!.best = p.best;
-    if (quest.race && isCount(p.medal) && p.medal > 0 && p.medal <= 3)
-      out.byId[quest.id]!.medal = p.medal;
+    if (quest.race) Object.assign(out.byId[quest.id]!, cleanRaceRecord(p));
     // Vars that no longer fit (a port gone from the map) are dropped: the steps find them again.
     const vars = readVars(quest, map, p.vars);
     if (vars) out.byId[quest.id]!.vars = vars;

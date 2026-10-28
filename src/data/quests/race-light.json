@@ -1,0 +1,133 @@
+{
+  "id": "race-light",
+  "name": "The Stonehaven Light Race",
+  "start": {
+    "is": "quest-done",
+    "quest": "rooks-thanks"
+  },
+  "text": "quest.race-light",
+  "giver": "wren",
+  "starter": "ness",
+  "port": "abbey-head",
+  "offer": true,
+  "storms": false,
+  "wind": {
+    "speedKn": 12,
+    "fromDeg": 180
+  },
+  "race": {
+    "series": "regatta-club",
+    "gold": {
+      "bronze": 40,
+      "silver": 80,
+      "gold": 130
+    },
+    "pars": {
+      "sloop": {
+        "fair": 136,
+        "captain": 136,
+        "salt": 136
+      },
+      "cutter": {
+        "fair": 105,
+        "captain": 105,
+        "salt": 105
+      },
+      "schooner": {
+        "fair": 91,
+        "captain": 91,
+        "salt": 91
+      },
+      "clipper": {
+        "fair": 80,
+        "captain": 80,
+        "salt": 80
+      },
+      "hoy": {
+        "fair": 232,
+        "captain": 232,
+        "salt": 232
+      },
+      "fluyt": {
+        "fair": 246,
+        "captain": 246,
+        "salt": 246
+      },
+      "indiaman": {
+        "fair": 233,
+        "captain": 233,
+        "salt": 233
+      },
+      "tern": {
+        "fair": 84,
+        "captain": 84,
+        "salt": 84
+      },
+      "tern-pilot": {
+        "fair": 92,
+        "captain": 92,
+        "salt": 92
+      },
+      "tern-yawl": {
+        "fair": 87,
+        "captain": 87,
+        "salt": 87
+      }
+    }
+  },
+  "steps": [
+    {
+      "id": "race",
+      "moveTo": {
+        "x": -65,
+        "y": -260,
+        "headingDeg": 270
+      },
+      "goal": {
+        "is": "raced",
+        "start": [
+          {
+            "x": -90,
+            "y": -300
+          },
+          {
+            "x": -90,
+            "y": -220
+          }
+        ],
+        "marks": [
+          {
+            "x": -100,
+            "y": -100
+          },
+          {
+            "x": -140,
+            "y": -20
+          },
+          {
+            "x": -250,
+            "y": 15
+          },
+          {
+            "x": -310,
+            "y": -70
+          },
+          {
+            "x": -250,
+            "y": -160
+          }
+        ],
+        "finish": [
+          {
+            "x": -90,
+            "y": -300
+          },
+          {
+            "x": -90,
+            "y": -220
+          }
+        ]
+      }
+    }
+  ]
+}

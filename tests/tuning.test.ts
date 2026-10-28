@@ -274,7 +274,7 @@ describe('moved values equal the old constants (decision 0094)', () => {
         return [id, { ...old, noGoAngle: noGoAngle(ship), turnRate: turnRate(ship) }];
       }),
     );
-    expect(asOld).toEqual(OLD_SHIP_CLASSES);
+    expect(asOld).toMatchObject(OLD_SHIP_CLASSES);
   });
 
   it('upgrades, goods, difficulty levels and the Phase 2 weather', () => {

@@ -1,0 +1,146 @@
+{
+  "id": "race-great-reach",
+  "name": "The Great Reach",
+  "start": {
+    "is": "all",
+    "of": [
+      {
+        "is": "quest-done",
+        "quest": "race-greyback"
+      },
+      {
+        "is": "quest-done",
+        "quest": "outpost-west"
+      },
+      {
+        "is": "quest-done",
+        "quest": "outpost-east"
+      }
+    ]
+  },
+  "text": "quest.race-great-reach",
+  "giver": "wren",
+  "starter": "bram",
+  "port": "abbey-head",
+  "offer": true,
+  "storms": false,
+  "wind": {
+    "speedKn": 7,
+    "fromDeg": 285
+  },
+  "race": {
+    "series": "regatta-club",
+    "gold": {
+      "bronze": 200,
+      "silver": 400,
+      "gold": 650
+    },
+    "pars": {
+      "sloop": {
+        "fair": 280,
+        "captain": 280,
+        "salt": 280
+      },
+      "cutter": {
+        "fair": 271,
+        "captain": 271,
+        "salt": 271
+      },
+      "schooner": {
+        "fair": 238,
+        "captain": 238,
+        "salt": 238
+      },
+      "clipper": {
+        "fair": 198,
+        "captain": 198,
+        "salt": 198
+      },
+      "hoy": {
+        "fair": 320,
+        "captain": 320,
+        "salt": 320
+      },
+      "fluyt": {
+        "fair": 326,
+        "captain": 326,
+        "salt": 326
+      },
+      "indiaman": {
+        "fair": 318,
+        "captain": 318,
+        "salt": 318
+      },
+      "tern": {
+        "fair": 209,
+        "captain": 209,
+        "salt": 209
+      },
+      "tern-pilot": {
+        "fair": 229,
+        "captain": 229,
+        "salt": 229
+      },
+      "tern-yawl": {
+        "fair": 218,
+        "captain": 218,
+        "salt": 218
+      }
+    }
+  },
+  "steps": [
+    {
+      "id": "race",
+      "moveTo": {
+        "x": -500,
+        "y": 210,
+        "headingDeg": 180
+      },
+      "goal": {
+        "is": "raced",
+        "start": [
+          {
+            "x": -540,
+            "y": 195
+          },
+          {
+            "x": -460,
+            "y": 195
+          }
+        ],
+        "marks": [
+          {
+            "x": -410,
+            "y": 50
+          },
+          {
+            "x": -372,
+            "y": -330
+          },
+          {
+            "x": -100,
+            "y": -390
+          },
+          {
+            "x": 240,
+            "y": -280
+          },
+          {
+            "x": 420,
+            "y": -120
+          }
+        ],
+        "finish": [
+          {
+            "x": 610,
+            "y": -20
+          },
+          {
+            "x": 610,
+            "y": 60
+          }
+        ]
+      }
+    }
+  ]
+}

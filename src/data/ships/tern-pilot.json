@@ -1,0 +1,136 @@
+{
+  "id": "tern-pilot",
+  "name": "Tern Pilot",
+  "line": "racer",
+  "tier": 2,
+  "unlock": {
+    "standing": 0,
+    "price": 6000,
+    "upgradePrices": [1500, 4500],
+    "series": "regatta-club"
+  },
+  "sailing": {
+    "noGoDeg": 42,
+    "polar": [
+      [0, 0],
+      [40, 0.45],
+      [50, 0.72],
+      [65, 0.9],
+      [95, 1],
+      [125, 0.92],
+      [155, 0.78],
+      [180, 0.68]
+    ],
+    "speedRatio": 0.78,
+    "accel": 0.6,
+    "decel": 0.28,
+    "ironsDecel": 0.9,
+    "turnRateDeg": 60,
+    "minSteerage": 0.4,
+    "steerageSpeedKn": 4.5,
+    "turnDrag": 0.18,
+    "leeway": 0.04,
+    "radius": 5,
+    "draft": 0.9,
+    "hold": 12,
+    "deck": 8,
+    "heel": 0.95
+  },
+  "hull": {
+    "length": 7,
+    "beam": 1.9,
+    "depth": 1,
+    "outline": [
+      [0, 0.5],
+      [0.18, 0.46],
+      [0.34, 0.34],
+      [0.46, 0.12],
+      [0.5, -0.1],
+      [0.47, -0.3],
+      [0.36, -0.45],
+      [0.26, -0.5],
+      [-0.26, -0.5],
+      [-0.36, -0.45],
+      [-0.47, -0.3],
+      [-0.5, -0.1],
+      [-0.46, 0.12],
+      [-0.34, 0.34],
+      [-0.18, 0.46]
+    ],
+    "rings": [
+      {
+        "t": 0,
+        "beam": 1,
+        "length": 1
+      },
+      {
+        "t": 0.3,
+        "beam": 0.98,
+        "length": 1
+      },
+      {
+        "t": 0.7,
+        "beam": 0.8,
+        "length": 0.97
+      },
+      {
+        "t": 1,
+        "beam": 0.2,
+        "length": 0.9
+      }
+    ]
+  },
+  "model": {
+    "hullColor": "#f4efe0",
+    "bandColor": "#1f4f8a",
+    "mastZ": 0.1,
+    "mastHeight": 8,
+    "boom": 4.6,
+    "gaff": 3.1,
+    "stockJibs": 2,
+    "maxJibs": 2,
+    "cargoExtra": 0,
+    "pennant": "tern",
+    "mainTopsail": true,
+    "damage": {
+      "scuffs": [
+        {
+          "z": 0.3,
+          "side": 1
+        },
+        {
+          "z": -0.1,
+          "side": -1
+        },
+        {
+          "z": -0.32,
+          "side": 1
+        }
+      ],
+      "rail": {
+        "z": 0.12,
+        "side": 1
+      },
+      "tears": [
+        {
+          "u": 0.45,
+          "v": 0.4
+        },
+        {
+          "u": 0.6,
+          "v": 0.4
+        },
+        {
+          "u": 0.45,
+          "v": 0.55
+        },
+        {
+          "u": 0.6,
+          "v": 0.55
+        }
+      ],
+      "listDeg": 6,
+      "listSide": 1
+    }
+  }
+}

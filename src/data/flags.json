@@ -23,11 +23,25 @@
       "height": 0.55
     },
     {
+      "id": "pennant-club",
+      "shape": "burgee",
+      "bands": ["#1f4e79", "#f4f1e8", "#1f4e79"],
+      "length": 1.1,
+      "height": 0.6
+    },
+    {
       "id": "kestrel",
       "shape": "burgee",
       "bands": ["#d2462f", "#f4f1e8"],
       "length": 1.1,
       "height": 0.6
+    },
+    {
+      "id": "tern",
+      "shape": "pennant",
+      "bands": ["#e8c46a"],
+      "length": 1.1,
+      "height": 0.45
     }
   ]
 }

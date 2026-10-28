@@ -1,0 +1,144 @@
+{
+  "id": "race-snowberry-squall",
+  "name": "The Snowberry Squall",
+  "start": {
+    "is": "all",
+    "of": [
+      {
+        "is": "quest-done",
+        "quest": "race-greyback"
+      },
+      {
+        "is": "quest-done",
+        "quest": "outpost-north"
+      }
+    ]
+  },
+  "text": "quest.race-snowberry-squall",
+  "giver": "wren",
+  "starter": "nell",
+  "port": "abbey-head",
+  "offer": true,
+  "storms": false,
+  "wind": {
+    "speedKn": 12,
+    "fromDeg": 340
+  },
+  "race": {
+    "series": "regatta-club",
+    "gold": {
+      "bronze": 120,
+      "silver": 240,
+      "gold": 400
+    },
+    "pars": {
+      "sloop": {
+        "fair": 162,
+        "captain": 162,
+        "salt": 162
+      },
+      "cutter": {
+        "fair": 163,
+        "captain": 163,
+        "salt": 163
+      },
+      "schooner": {
+        "fair": 179,
+        "captain": 179,
+        "salt": 179
+      },
+      "clipper": {
+        "fair": 152,
+        "captain": 152,
+        "salt": 152
+      },
+      "hoy": {
+        "fair": 254,
+        "captain": 254,
+        "salt": 254
+      },
+      "fluyt": {
+        "fair": 278,
+        "captain": 278,
+        "salt": 278
+      },
+      "indiaman": {
+        "fair": 263,
+        "captain": 263,
+        "salt": 263
+      },
+      "tern": {
+        "fair": 146,
+        "captain": 146,
+        "salt": 146
+      },
+      "tern-pilot": {
+        "fair": 163,
+        "captain": 163,
+        "salt": 163
+      },
+      "tern-yawl": {
+        "fair": 168,
+        "captain": 168,
+        "salt": 168
+      }
+    },
+    "storms": [
+      {
+        "x": -260,
+        "y": 560,
+        "radius": 55,
+        "strength": 0.9,
+        "driftDeg": 0,
+        "driftSpeed": 0.6
+      }
+    ]
+  },
+  "steps": [
+    {
+      "id": "race",
+      "moveTo": {
+        "x": -120,
+        "y": 620,
+        "headingDeg": 180
+      },
+      "goal": {
+        "is": "raced",
+        "start": [
+          {
+            "x": -170,
+            "y": 650
+          },
+          {
+            "x": -70,
+            "y": 650
+          }
+        ],
+        "marks": [
+          {
+            "x": -330,
+            "y": 870
+          },
+          {
+            "x": -500,
+            "y": 760
+          },
+          {
+            "x": -420,
+            "y": 640
+          }
+        ],
+        "finish": [
+          {
+            "x": -170,
+            "y": 650
+          },
+          {
+            "x": -70,
+            "y": 650
+          }
+        ]
+      }
+    }
+  ]
+}

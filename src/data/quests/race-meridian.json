@@ -1,0 +1,146 @@
+{
+  "id": "race-meridian",
+  "name": "The Meridian Run",
+  "start": {
+    "is": "all",
+    "of": [
+      {
+        "is": "quest-done",
+        "quest": "race-greyback"
+      },
+      {
+        "is": "quest-done",
+        "quest": "outpost-south"
+      },
+      {
+        "is": "quest-done",
+        "quest": "outpost-north"
+      }
+    ]
+  },
+  "text": "quest.race-meridian",
+  "giver": "wren",
+  "starter": "juno",
+  "port": "abbey-head",
+  "offer": true,
+  "storms": false,
+  "wind": {
+    "speedKn": 12,
+    "fromDeg": 290
+  },
+  "race": {
+    "series": "regatta-club",
+    "gold": {
+      "bronze": 200,
+      "silver": 400,
+      "gold": 650
+    },
+    "pars": {
+      "sloop": {
+        "fair": 321,
+        "captain": 320,
+        "salt": 321
+      },
+      "cutter": {
+        "fair": 250,
+        "captain": 250,
+        "salt": 249
+      },
+      "schooner": {
+        "fair": 199,
+        "captain": 198,
+        "salt": 198
+      },
+      "clipper": {
+        "fair": 176,
+        "captain": 176,
+        "salt": 176
+      },
+      "hoy": {
+        "fair": 512,
+        "captain": 513,
+        "salt": 512
+      },
+      "fluyt": {
+        "fair": 543,
+        "captain": 544,
+        "salt": 543
+      },
+      "indiaman": {
+        "fair": 513,
+        "captain": 514,
+        "salt": 513
+      },
+      "tern": {
+        "fair": 185,
+        "captain": 185,
+        "salt": 185
+      },
+      "tern-pilot": {
+        "fair": 211,
+        "captain": 211,
+        "salt": 211
+      },
+      "tern-yawl": {
+        "fair": 195,
+        "captain": 195,
+        "salt": 195
+      }
+    }
+  },
+  "steps": [
+    {
+      "id": "race",
+      "moveTo": {
+        "x": -85,
+        "y": -690,
+        "headingDeg": 180
+      },
+      "goal": {
+        "is": "raced",
+        "start": [
+          {
+            "x": -130,
+            "y": -715
+          },
+          {
+            "x": -40,
+            "y": -715
+          }
+        ],
+        "marks": [
+          {
+            "x": -260,
+            "y": -840
+          },
+          {
+            "x": -372,
+            "y": -330
+          },
+          {
+            "x": -420,
+            "y": 0
+          },
+          {
+            "x": -290,
+            "y": 200
+          },
+          {
+            "x": 66,
+            "y": 545
+          }
+        ],
+        "finish": [
+          {
+            "x": -170,
+            "y": 650
+          },
+          {
+            "x": -70,
+            "y": 650
+          }
+        ]
+      }
+    }
+  ]
+}

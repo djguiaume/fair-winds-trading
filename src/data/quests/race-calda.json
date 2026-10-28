@@ -3,12 +3,12 @@
   "name": "The Calda Dash",
   "start": {
     "is": "quest-done",
-    "quest": "race-gap"
+    "quest": "rooks-thanks"
   },
   "text": "quest.race-calda",
   "giver": "wren",
   "starter": "rook",
-  "port": "saltmere",
+  "port": "abbey-head",
   "offer": true,
   "storms": false,
   "wind": {
@@ -18,15 +18,15 @@
   "race": {
     "series": "regatta-ring",
     "gold": {
-      "bronze": 60,
-      "silver": 120,
-      "gold": 200
+      "bronze": 30,
+      "silver": 60,
+      "gold": 100
     },
     "pars": {
       "sloop": {
         "fair": 59,
-        "captain": 60,
-        "salt": 60
+        "captain": 61,
+        "salt": 61
       },
       "cutter": {
         "fair": 52,
@@ -57,6 +57,21 @@
         "fair": 114,
         "captain": 84,
         "salt": 83
+      },
+      "tern": {
+        "fair": 40,
+        "captain": 40,
+        "salt": 40
+      },
+      "tern-pilot": {
+        "fair": 44,
+        "captain": 44,
+        "salt": 44
+      },
+      "tern-yawl": {
+        "fair": 42,
+        "captain": 41,
+        "salt": 42
       }
     }
   },

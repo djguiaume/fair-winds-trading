@@ -386,8 +386,7 @@ export function cardFor(
   }
   // A race's offer shows its medal times and what each pays the first time (decision 0217).
   if (quest.race && kind === 'offer') {
-    card.reward = undefined;
-    card.race = raceInfo(book, quest);
+    Object.assign(card, { reward: undefined, race: raceInfo(book, quest) });
   }
   if (kind === 'choice')
     card.options = book.options(quest.id).map((o) => ({
