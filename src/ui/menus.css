@@ -39,7 +39,7 @@
   box-shadow:
     inset 0 -3px 0 var(--lo),
     0 2px 0 rgba(58, 42, 29, 0.6);
-  font-size: 18px;
+  font-size: var(--fs-sub);
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
@@ -47,7 +47,7 @@
 }
 .d-btn.big {
   min-height: 56px;
-  font-size: 24px;
+  font-size: var(--fs-title);
 }
 .d-btn.square {
   width: 46px;
@@ -85,7 +85,7 @@
   border-radius: 7px;
   background: none;
   color: var(--ink);
-  font: 700 16px/1 var(--serif);
+  font: 700 var(--fs-lead)/1 var(--serif);
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -173,12 +173,12 @@ body.at-title .in-game {
 }
 .menu-title {
   margin-top: 2px !important;
-  font: 900 32px/1.05 var(--serif);
+  font: 900 var(--fs-display)/1.05 var(--serif);
   color: var(--ink);
 }
 .menu-tagline {
   margin-top: 5px !important;
-  font: 500 14px/1.25 var(--body);
+  font: 500 var(--fs-body)/1.25 var(--body);
   color: var(--ink-dim);
 }
 .menu.is-paused .menu-tagline {
@@ -189,7 +189,7 @@ body.at-title .in-game {
   align-items: center;
   gap: 14px;
   margin: 0;
-  font: 700 17px/1 var(--display);
+  font: 700 var(--fs-lead)/1 var(--display);
   letter-spacing: 0.05em;
 }
 .menu-status[hidden] {
@@ -209,7 +209,7 @@ body.at-title .in-game {
   border: 1px solid var(--brass-line);
   border-radius: 99px;
   color: var(--brass);
-  font-size: 14px;
+  font-size: var(--fs-body);
 }
 #menu-play {
   width: 100%;
@@ -230,7 +230,7 @@ body.at-title .in-game {
   border-radius: 6px;
   background: transparent;
   color: var(--ink);
-  font: 700 20px/1.1 var(--serif);
+  font: 700 var(--fs-head)/1.1 var(--serif);
   text-align: left;
   cursor: pointer;
   touch-action: manipulation;
@@ -254,7 +254,7 @@ body.at-title .in-game {
 .menu-hint {
   margin: 0;
   color: var(--ink-dim);
-  font-size: 13px;
+  font-size: var(--fs-note);
   line-height: 1.35;
 }
 .menu-hint[hidden] {
@@ -275,7 +275,7 @@ body.at-title .in-game {
   min-width: 0;
   margin: 0 0 0 auto;
   color: var(--ink-dim);
-  font: 600 13px/1.3 var(--body);
+  font: 600 var(--fs-note)/1.3 var(--body);
   text-align: right;
 }
 /* Readable version first (decision 0042); the commit code stays small, for debugging. */
@@ -284,7 +284,7 @@ body.at-title .in-game {
 }
 .menu-version .build-revision {
   opacity: 0.6;
-  font-size: 10px;
+  font-size: var(--fs-micro);
 }
 
 /* Short landscape phones: a tighter panel so everything fits without scrolling. */
@@ -309,14 +309,14 @@ body.at-title .in-game {
     height: 46px;
   }
   .menu-title {
-    font-size: 26px;
+    font-size: var(--fs-big);
   }
   .menu-row {
     min-height: 37px;
   }
   .d-btn.big {
     min-height: 46px;
-    font-size: 22px;
+    font-size: var(--fs-title);
   }
 }
 /* The shortest landscape phones (about 360 px high): one notch tighter still. */
@@ -333,7 +333,7 @@ body.at-title .in-game {
     height: 40px;
   }
   .menu-title {
-    font-size: 23px;
+    font-size: var(--fs-title);
   }
   .menu-row {
     min-height: 34px;
@@ -358,11 +358,11 @@ body.at-title .in-game {
     height: 78px;
   }
   .menu-title {
-    font-size: 42px;
+    font-size: var(--fs-hero);
   }
   .menu-row {
     min-height: 52px;
-    font-size: 19px;
+    font-size: var(--fs-sub);
   }
 }
 /* Portrait: the title sits over the sea and the buttons move to a bottom sheet. */
@@ -407,7 +407,7 @@ body.at-title .in-game {
     height: 84px;
   }
   .menu:not(.is-paused) .menu-title {
-    font-size: 44px;
+    font-size: var(--fs-hero);
     color: var(--leather-ink);
     text-shadow: 0 2px 0 rgba(40, 26, 14, 0.8);
   }
@@ -416,7 +416,7 @@ body.at-title .in-game {
   }
   .menu:not(.is-paused) .menu-tagline {
     color: var(--leather-ink);
-    font-size: 16px;
+    font-size: var(--fs-lead);
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
   }
   /* In pause the title moves into the sheet, above the buttons. */
@@ -468,7 +468,7 @@ body.at-title .in-game {
 .sheet-head h2 {
   flex: 1;
   margin: 0;
-  font: 900 26px/1 var(--serif);
+  font: 900 var(--fs-big)/1 var(--serif);
 }
 .sheet-body {
   display: grid;
@@ -502,7 +502,7 @@ body.at-title .in-game {
 .set-label {
   margin: 0;
   color: var(--brass);
-  font: 700 16px/1 var(--serif);
+  font: 700 var(--fs-lead)/1 var(--serif);
 }
 .set-group .set-label:not(:first-child) {
   margin-top: 6px;
@@ -525,12 +525,12 @@ label.set-row {
   background: var(--paper-shade);
 }
 .set-name {
-  font: 700 18px/1.1 var(--serif);
+  font: 700 var(--fs-sub)/1.1 var(--serif);
 }
 .set-name small {
   display: block;
   color: var(--ink-dim);
-  font: 500 13px/1.2 var(--body);
+  font: 500 var(--fs-note)/1.2 var(--body);
   letter-spacing: 0;
   text-transform: none;
 }
@@ -541,7 +541,7 @@ label.set-row {
 }
 .set-pct {
   min-width: 40px;
-  font: 700 16px/1 var(--display);
+  font: 700 var(--fs-lead)/1 var(--display);
   text-align: right;
 }
 .set-row input[type='range'] {
@@ -594,7 +594,7 @@ label.set-row {
 .set-note {
   margin: 0;
   color: var(--ink-dim);
-  font-size: 13px;
+  font-size: var(--fs-note);
   line-height: 1.35;
 }
 
@@ -622,11 +622,11 @@ label.set-row {
 .help-card h3 {
   margin: 0;
   color: var(--brass);
-  font: 700 20px/1 var(--serif);
+  font: 700 var(--fs-head)/1 var(--serif);
 }
 .help-card p {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--fs-text);
   line-height: 1.35;
 }
 .help-controls {
@@ -635,13 +635,13 @@ label.set-row {
   flex-wrap: wrap;
   gap: 8px 24px;
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-body);
   line-height: 1.6;
 }
 .help-controls b {
   margin-right: 6px;
   color: var(--brass);
-  font: 700 15px/1 var(--serif);
+  font: 700 var(--fs-text)/1 var(--serif);
 }
 .help-controls kbd {
   display: inline-block;
@@ -650,7 +650,7 @@ label.set-row {
   border: 1px solid var(--paper-edge);
   border-radius: 5px;
   background: var(--paper-2);
-  font: 700 13px/1 var(--display);
+  font: 700 var(--fs-note)/1 var(--display);
   text-align: center;
 }
 /* The controller line shows once a pad is seen (decision 0162). */
@@ -671,7 +671,7 @@ label.set-row {
     height: 70px;
   }
   .help-card p {
-    font-size: 14px;
+    font-size: var(--fs-body);
   }
 }
 @media (min-width: 1100px) and (min-height: 680px) {
@@ -682,7 +682,7 @@ label.set-row {
     padding: 16px 20px;
   }
   .help-card p {
-    font-size: 17px;
+    font-size: var(--fs-lead);
   }
 }
 @media (max-width: 700px) {
@@ -747,7 +747,7 @@ label.set-row {
 }
 .qr-card figcaption {
   color: var(--ink-dim);
-  font: 600 14px/1.2 var(--body);
+  font: 600 var(--fs-body)/1.2 var(--body);
 }
 .transfer-side {
   display: flex;
@@ -759,7 +759,7 @@ label.set-row {
 .transfer-steps {
   margin: 0;
   padding-left: 22px;
-  font-size: 16px;
+  font-size: var(--fs-lead);
   line-height: 1.4;
 }
 .transfer-steps li + li {
@@ -824,7 +824,7 @@ label.set-row {
   border-left: 4px solid var(--red);
   border-radius: 6px;
   background: rgba(255, 106, 85, 0.14);
-  font-size: 15px;
+  font-size: var(--fs-text);
   line-height: 1.35;
 }
 .transfer-error[hidden] {
@@ -838,7 +838,7 @@ label.set-row {
 }
 .transfer-question {
   margin: 0;
-  font: 700 26px/1.1 var(--display);
+  font: 700 var(--fs-big)/1.1 var(--display);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -868,7 +868,7 @@ label.set-row {
 .voyage-card h4 {
   margin: 0 0 8px;
   color: var(--brass);
-  font: 700 17px/1 var(--serif);
+  font: 700 var(--fs-lead)/1 var(--serif);
 }
 .voyage-card dl {
   display: grid;
@@ -878,19 +878,19 @@ label.set-row {
 }
 .voyage-card dt {
   color: var(--ink-dim);
-  font-size: 14px;
+  font-size: var(--fs-body);
 }
 .voyage-card dd {
   margin: 0;
-  font: 700 17px/1.1 var(--display);
+  font: 700 var(--fs-lead)/1.1 var(--display);
   text-align: right;
 }
 @media (max-height: 480px) {
   .transfer-steps {
-    font-size: 14px;
+    font-size: var(--fs-body);
   }
   .transfer-question {
-    font-size: 22px;
+    font-size: var(--fs-title);
   }
   .voyage-card {
     padding: 8px 12px;
@@ -926,7 +926,7 @@ label.set-row {
     flex-wrap: wrap;
   }
   .transfer-sheet .sheet-head h2 {
-    font-size: 22px;
+    font-size: var(--fs-title);
   }
   .transfer-sheet .sheet-head .seg {
     order: 3;
@@ -961,11 +961,11 @@ label.set-row {
 }
 .d-dialog h2 {
   margin: 0;
-  font: 900 28px/1 var(--serif);
+  font: 900 var(--fs-big)/1 var(--serif);
 }
 .d-dialog p {
   margin: 12px 0 0;
-  font-size: 15px;
+  font-size: var(--fs-text);
   line-height: 1.4;
 }
 .offer-top {
@@ -993,7 +993,7 @@ label.set-row {
   padding: 5px 9px;
   border-radius: 99px;
   background: var(--paper-shade);
-  font: 700 14px/1 var(--serif);
+  font: 700 var(--fs-body)/1 var(--serif);
 }
 .d-dialog .offer-steps .icon {
   width: 16px;
@@ -1002,7 +1002,7 @@ label.set-row {
 }
 .d-dialog .offer-note {
   color: var(--ink-dim);
-  font-size: 13px;
+  font-size: var(--fs-note);
 }
 .offer-actions {
   display: flex;
@@ -1030,7 +1030,7 @@ label.set-row {
     padding: 14px 18px;
   }
   .d-dialog h2 {
-    font-size: 24px;
+    font-size: var(--fs-title);
   }
   .wind-help svg {
     max-height: 110px;
@@ -1138,7 +1138,7 @@ label.set-row {
   flex: 1;
   margin: 0;
   color: var(--brass);
-  font: 700 15px/1.1 var(--display);
+  font: 700 var(--fs-text)/1.1 var(--display);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -1151,7 +1151,7 @@ label.set-row {
   border: 0;
   background: none;
   color: var(--ink-dim);
-  font: 700 12px/1 var(--display);
+  font: 700 var(--fs-small)/1 var(--display);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
@@ -1162,7 +1162,7 @@ label.set-row {
 }
 .coach p {
   margin: 5px 0 0;
-  font: 600 15px/1.3 var(--body);
+  font: 600 var(--fs-text)/1.3 var(--body);
 }
 .coach-actions {
   display: flex;
@@ -1173,7 +1173,7 @@ label.set-row {
 .coach .d-btn {
   min-height: 38px;
   padding: 0 12px;
-  font-size: 15px;
+  font-size: var(--fs-text);
 }
 @media (prefers-reduced-motion: reduce) {
   .coach-ring::after,
@@ -1187,7 +1187,7 @@ label.set-row {
 .level-sub {
   flex: 1;
   color: var(--ink-dim);
-  font-size: 15px;
+  font-size: var(--fs-text);
 }
 .level-sheet .sheet-head h2 {
   flex: none;
@@ -1237,7 +1237,7 @@ label.set-row {
   height: 34px;
 }
 .level-name {
-  font: 900 25px/1 var(--serif);
+  font: 900 var(--fs-title)/1 var(--serif);
 }
 .level-tag {
   color: var(--brass);
@@ -1251,7 +1251,7 @@ label.set-row {
   border-radius: 6px;
   background: var(--brass);
   color: var(--paper-card);
-  font: 700 13px/1 var(--display);
+  font: 700 var(--fs-note)/1 var(--display);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -1262,7 +1262,7 @@ label.set-row {
   margin: 2px 0 0;
   padding: 0;
   list-style: none;
-  font-size: 15px;
+  font-size: var(--fs-text);
   line-height: 1.25;
 }
 .level-card li {
@@ -1286,19 +1286,19 @@ label.set-row {
 .level-foot #set-sail {
   min-width: 220px;
   min-height: 64px;
-  font-size: 28px;
+  font-size: var(--fs-big);
 }
 .level-note {
   flex: 1;
   margin: 0;
   color: var(--ink-dim);
-  font-size: 14px;
+  font-size: var(--fs-body);
   line-height: 1.3;
 }
 /* Phone landscape: the same three cards, fewer lines. */
 @media (max-height: 480px) {
   .level-sub {
-    font-size: 13px;
+    font-size: var(--fs-note);
   }
   .level-body {
     gap: 8px;
@@ -1311,18 +1311,18 @@ label.set-row {
     padding: 10px 11px;
   }
   .level-name {
-    font-size: 20px;
+    font-size: var(--fs-head);
   }
   .level-waves {
     width: 34px;
     height: 26px;
   }
   .level-tag {
-    font-size: 14px;
+    font-size: var(--fs-body);
   }
   .level-card ul {
     gap: 3px;
-    font-size: 13px;
+    font-size: var(--fs-note);
   }
   .level-card li::before {
     width: 5px;
@@ -1333,7 +1333,7 @@ label.set-row {
     display: none;
   }
   .level-note {
-    font-size: 12px;
+    font-size: var(--fs-small);
   }
 }
 /* Portrait: the cards stack and the chosen one opens. */
@@ -1404,7 +1404,7 @@ html[data-input='pad'] [role='dialog']:is(:focus, [data-pad-focus]) {
   background: var(--navy);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   color: var(--ink);
-  font: 700 15px/1 var(--display);
+  font: 700 var(--fs-text)/1 var(--display);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -1444,8 +1444,8 @@ html[data-input='pad'] .pad-only {
   min-width: 22px;
   height: 22px;
   border-radius: 50%;
-  color: #08141b;
-  font: 800 13px/1 var(--body);
+  color: var(--on-light);
+  font: 800 var(--fs-note)/1 var(--body);
   font-style: normal;
 }
 .pad-key.a {
@@ -1471,13 +1471,13 @@ html[data-input='pad'] .pad-only {
   margin-right: 2px;
   border-radius: 6px;
   background: #c9d6da;
-  font-size: 11px;
+  font-size: var(--fs-micro);
 }
 @media (max-width: 600px), (max-height: 450px) {
   .pad-hints {
     gap: 10px;
     padding: 5px 10px;
-    font-size: 13px;
+    font-size: var(--fs-note);
   }
 }
 /* Narrow screens: A and B only; the tab bar and the lot row carry their own glyphs. */
@@ -1503,7 +1503,7 @@ html[data-input='pad'] .pad-only {
   padding: 6px 8px;
   border-radius: 6px;
   background: rgb(0 0 0 / 0.75);
-  color: #fff;
+  color: var(--white);
   font:
     13px/1.3 ui-monospace,
     monospace;

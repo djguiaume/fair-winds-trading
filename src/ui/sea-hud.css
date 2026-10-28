@@ -63,7 +63,7 @@
   height: 38px;
   padding: 0 11px 0 8px;
   color: var(--ink);
-  font: 700 20px/1 var(--display);
+  font: 700 var(--fs-head)/1 var(--display);
 }
 #hud .captain-stat .icon {
   width: 22px;
@@ -95,7 +95,7 @@ button.captain-stat:active {
 /* Quest cargo on deck (decision 0213): "Deck 6/8", its lashed crate apart from the hold's. */
 .deck-stat span {
   color: var(--brass);
-  font-size: 15px;
+  font-size: var(--fs-text);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -112,7 +112,7 @@ button.captain-stat:active {
   border: 1px solid var(--brass-line);
   border-radius: 8px;
   background: var(--navy);
-  font-size: 14px;
+  font-size: var(--fs-body);
   line-height: 1.45;
   white-space: nowrap;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
@@ -134,7 +134,7 @@ button.captain-stat:active {
   max-width: calc(100vw - 2 * var(--gap) - 470px);
   min-width: 0;
   padding: 0 14px 0 6px;
-  font: 700 18px/1 var(--serif);
+  font: 700 var(--fs-sub)/1 var(--serif);
   white-space: nowrap;
 }
 .objective[hidden] {
@@ -165,7 +165,7 @@ body.is-docked .objective {
 .obj-dist {
   flex: none;
   color: var(--ink-dim);
-  font: 700 18px/1 var(--display);
+  font: 700 var(--fs-sub)/1 var(--display);
 }
 /* A timed run's clock in the course pill (decision 0213): the time against par, red with a slow
    pulse in the last 20 s, like the hull bar when low (amber means a storm, art bible §8). */
@@ -209,13 +209,13 @@ body.is-docked .objective {
   font-family: var(--display);
 }
 .log-speed {
-  font: 700 32px/1 var(--display);
+  font: 700 var(--fs-display)/1 var(--display);
   font-variant-numeric: tabular-nums;
 }
 .log-speed small {
   margin-left: 3px;
   color: var(--ink-dim);
-  font-size: 15px;
+  font-size: var(--fs-text);
   font-weight: 600;
 }
 .log-toggle {
@@ -252,8 +252,8 @@ body.is-docked .objective {
 .log-sog {
   grid-column: 1 / -1;
   white-space: nowrap;
-  color: #9fe3ff;
-  font-size: 15px;
+  color: var(--sky-ink);
+  font-size: var(--fs-text);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -262,28 +262,28 @@ body.is-docked .objective {
 }
 .log-sog small {
   color: var(--brass);
-  font-size: 13px;
+  font-size: var(--fs-note);
   letter-spacing: 0.08em;
 }
 /* The current under the wind (decision 0140): the same blue as SOG. */
 .weather-text.current-text {
-  color: #9fe3ff;
+  color: var(--sky-ink);
 }
 .log-hdg {
   margin-top: 2px;
-  font-size: 17px;
+  font-size: var(--fs-lead);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 .log-hdg small {
   color: var(--brass);
-  font-size: 13px;
+  font-size: var(--fs-note);
   letter-spacing: 0.08em;
 }
 .speed-log .pos {
   margin-top: 1px;
   color: var(--ink-dim);
-  font: 600 15px/1.2 var(--body);
+  font: 600 var(--fs-text)/1.2 var(--body);
 }
 .speed-log .pos.good {
   color: var(--green-ink);
@@ -366,11 +366,11 @@ body.is-docked .objective {
 }
 .compass .north {
   fill: var(--brass);
-  font-size: 11px;
+  font-size: var(--fs-micro);
 }
 .compass .cardinal {
   fill: var(--ink-dim);
-  font-size: 9px;
+  font-size: var(--fs-micro);
 }
 .compass .wind {
   fill: var(--force);
@@ -418,7 +418,7 @@ body.is-docked .objective {
 .wind-caption {
   display: block;
   margin-top: 3px;
-  font: 700 16px/1.15 var(--display);
+  font: 700 var(--fs-lead)/1.15 var(--display);
 }
 #wind-force {
   color: var(--force);
@@ -439,14 +439,14 @@ body.is-docked .objective {
   display: none;
 }
 .weather-text[data-kind='storm'] {
-  color: #ffb36b;
+  color: var(--amber-ink);
 }
 /* The weather glass's forecast (decision 0136): quieter than the wind now. */
 .weather-text.forecast {
   color: var(--ink-dim);
 }
 .weather-text.forecast[data-storm] {
-  color: #ffb36b;
+  color: var(--amber-ink);
 }
 /* The storm belt near the boat (decision 0167): amber while squalls pass, calm in a lull. */
 .weather-text.belt {
@@ -457,7 +457,7 @@ body.is-docked .objective {
   white-space: normal;
 }
 .weather-text.belt[data-squalls] {
-  color: #ffb36b;
+  color: var(--amber-ink);
 }
 .wind-gust {
   margin-left: 2px;
@@ -465,7 +465,7 @@ body.is-docked .objective {
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.16);
   color: var(--ink);
-  font-size: 12px;
+  font-size: var(--fs-small);
 }
 .upwind-chip {
   width: 100%;
@@ -475,8 +475,8 @@ body.is-docked .objective {
   border: 1px solid rgba(255, 179, 107, 0.6);
   border-radius: 7px;
   background: rgba(87, 60, 20, 0.6);
-  color: #ffdfa0;
-  font: 700 13px/1.1 var(--display);
+  color: var(--brass-pale);
+  font: 700 var(--fs-note)/1.1 var(--display);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   cursor: pointer;
@@ -497,7 +497,7 @@ body.is-docked .objective {
   border: 1px solid var(--brass-line);
   border-radius: 8px;
   background: rgba(9, 28, 41, 0.95);
-  font-size: 13px;
+  font-size: var(--fs-note);
   text-align: left;
   white-space: normal;
   pointer-events: auto;
@@ -508,7 +508,7 @@ body.is-docked .objective {
   border: 0;
   background: transparent;
   color: var(--ink);
-  font-size: 22px;
+  font-size: var(--fs-title);
   cursor: pointer;
 }
 .compass-open:focus-visible,
@@ -572,7 +572,7 @@ button.captain-stat:focus-visible {
   justify-content: center;
   gap: 4px;
   color: var(--brass);
-  font: 700 18px/1.1 var(--serif);
+  font: 700 var(--fs-sub)/1.1 var(--serif);
 }
 #hud .port-marker-icon {
   width: 16px;
@@ -583,12 +583,12 @@ button.captain-stat:focus-visible {
   justify-content: center;
   gap: 10px;
   margin-top: 2px;
-  font: 700 15px/1.2 var(--display);
+  font: 700 var(--fs-text)/1.2 var(--display);
 }
 .port-marker-tag small {
   margin-right: 3px;
   color: var(--ink-dim);
-  font-size: 13px;
+  font-size: var(--fs-note);
   font-weight: 600;
 }
 .wants-tag,
@@ -617,7 +617,7 @@ button.captain-stat:focus-visible {
   display: block;
   margin-top: 2px;
   color: var(--ink-dim);
-  font-size: 12px;
+  font-size: var(--fs-small);
   font-weight: 600;
 }
 .port-marker-cue[hidden],
@@ -637,8 +637,8 @@ button.captain-stat:focus-visible {
   box-shadow:
     inset 0 -3px 0 var(--brass-lo),
     0 3px 8px rgba(0, 0, 0, 0.4);
-  color: #2a1c00;
-  font: 700 17px/1 var(--display);
+  color: var(--on-gold);
+  font: 700 var(--fs-lead)/1 var(--display);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -676,8 +676,8 @@ button.captain-stat:focus-visible {
   box-shadow:
     inset 0 -4px 0 var(--brass-lo),
     0 4px 12px rgba(0, 0, 0, 0.45);
-  color: #2a1c00;
-  font: 700 19px/1 var(--display);
+  color: var(--on-gold);
+  font: 700 var(--fs-sub)/1 var(--display);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -751,7 +751,7 @@ button.captain-stat:focus-visible {
 .toast {
   top: 24%;
   font-family: var(--body);
-  font-size: 16px;
+  font-size: var(--fs-lead);
   font-weight: 600;
 }
 
@@ -772,7 +772,7 @@ button.captain-stat:focus-visible {
   height: 48px;
   padding: 0 12px;
   color: var(--ink);
-  font: 700 19px/1 var(--serif);
+  font: 700 var(--fs-sub)/1 var(--serif);
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -790,7 +790,7 @@ button.captain-stat:focus-visible {
   position: absolute;
   bottom: calc(var(--bottom) + 58px);
   left: var(--gap);
-  font: 12px monospace;
+  font: var(--fs-small) monospace;
   opacity: 0.8;
 }
 
@@ -809,7 +809,7 @@ button.captain-stat:focus-visible {
   display: block;
   margin-bottom: 3px;
   color: var(--ink);
-  font: 700 14px/1.2 var(--serif);
+  font: 700 var(--fs-body)/1.2 var(--serif);
 }
 .lever-track {
   position: relative;
@@ -840,7 +840,7 @@ button.captain-stat:focus-visible {
   border-radius: 7px;
   background: transparent;
   color: var(--ink-dim);
-  font: 700 15px/1 var(--display);
+  font: 700 var(--fs-text)/1 var(--display);
   letter-spacing: 0.05em;
   text-align: right;
   text-transform: uppercase;
@@ -937,10 +937,10 @@ button.captain-stat:focus-visible {
 .sail-lever[data-press='1'] button[aria-pressed='true'],
 .sail-lever[data-press='2'] button[aria-pressed='true'] {
   background: rgba(var(--press), 0.92);
-  color: #2a1d05;
+  color: var(--on-gold);
 }
 .sail-lever[data-press='2'] button[aria-pressed='true'] {
-  color: #fff;
+  color: var(--white);
 }
 
 /* --- Sizes --------------------------------------------------------------------------------- */
@@ -955,10 +955,10 @@ button.captain-stat:focus-visible {
     height: 94px;
   }
   .wind-caption {
-    font-size: 13px;
+    font-size: var(--fs-note);
   }
   .log-speed {
-    font-size: 28px;
+    font-size: var(--fs-big);
   }
   .speed-log {
     min-width: 104px;
@@ -982,10 +982,10 @@ button.captain-stat:focus-visible {
     max-width: calc(100vw - 2 * var(--gap) - 190px);
   }
   .objective {
-    font-size: 16px;
+    font-size: var(--fs-lead);
   }
   .obj-dist {
-    font-size: 16px;
+    font-size: var(--fs-lead);
   }
 }
 @media (max-width: 560px) {
@@ -1015,20 +1015,20 @@ button.captain-stat:focus-visible {
     height: 90px;
   }
   .wind-caption {
-    font-size: 12px;
+    font-size: var(--fs-small);
   }
   .speed-log {
     min-width: 96px;
     padding-left: 10px;
   }
   .log-speed {
-    font-size: 26px;
+    font-size: var(--fs-big);
   }
   .log-hdg {
-    font-size: 15px;
+    font-size: var(--fs-text);
   }
   .speed-log .pos {
-    font-size: 13px;
+    font-size: var(--fs-note);
   }
 }
 
@@ -1105,7 +1105,7 @@ html[data-input='pad'] #dock-btn:focus {
   background: var(--navy);
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
   color: var(--ink);
-  font: 600 14px/1.2 var(--display);
+  font: 600 var(--fs-body)/1.2 var(--display);
   letter-spacing: 0.04em;
   white-space: nowrap;
   pointer-events: none;
@@ -1127,7 +1127,7 @@ html[data-input='pad'] #dock-btn:focus {
   border-radius: 50%;
   background: none;
   color: var(--ink-dim);
-  font: 700 16px/1 var(--body);
+  font: 700 var(--fs-lead)/1 var(--body);
   cursor: pointer;
   pointer-events: auto;
 }
