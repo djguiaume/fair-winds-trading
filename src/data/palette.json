@@ -257,7 +257,8 @@
     "snow": {
       "name": "Snow",
       "top": ["#e3ecf3", "#f6f9fb", "#e9f1f6", "#dfe9f1", "#f6f9fb", "#c5d6e6"],
-      "side": ["#c5d6e6", "#6e747c", "#b5c8da", "#5b6068", "#c5d6e6"]
+      "side": ["#c5d6e6", "#6e747c", "#b5c8da", "#5b6068", "#c5d6e6"],
+      "slope": ["#5b6068", "#6e747c"]
     },
     "ice": {
       "name": "Glacier ice",

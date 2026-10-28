@@ -31,7 +31,10 @@ export interface FieldPalette {
 /** The new look's ground colours of an island file: its style's grounds (palette.json). */
 export function designPalette(style: string): FieldPalette {
   return {
-    look: (ground) => groundColors(ground, style),
+    look: (ground) => {
+      const look = groundColors(ground, style);
+      return { top: look.top, side: look.slope };
+    },
     wet: STYLES[style]?.wet ?? groundColors('sand', style).side[0]!,
   };
 }

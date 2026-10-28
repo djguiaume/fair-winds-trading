@@ -230,7 +230,9 @@ export function planShots(args) {
 
 /** The game's address for a shot: the sea, `?debug`, and a quest test's own parameters. */
 export function shotPath(shot) {
-  if (shot.editor) return `/editor.html?debug${shot.editor === 'ring' ? '&sea=ring' : ''}`;
+  if (shot.editor)
+    // The island builder draws the new look's ground too (?look=v2, issue #269).
+    return `/editor.html?debug${shot.editor === 'ring' ? '&sea=ring' : ''}${shot.ground === 'v2' ? '&look=v2' : ''}`;
   if (shot.url) {
     const u = new URL(shot.url, 'http://x/');
     u.searchParams.set('debug', '');
