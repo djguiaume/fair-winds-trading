@@ -39,5 +39,5 @@ These cost on every turn of every thread, so shrinking them pays the most.
 ## Up front
 
 15. Ask for references, examples and "done when" before building mockups. Offer 2 or 3 variants, not more.
-16. Graphify first on any code work (`graphify update .`, then `graphify query`): a graph answer costs far less than reading files. It is installed in the environment, but threads forget it, so CLAUDE.md puts it at the top. Skip it for docs and small fixes.
+16. Graphify first on any code work (`graphify update .`, then `graphify query`): a graph answer costs far less than reading files. It is installed in the environment, but threads forget it, so CLAUDE.md puts it at the top. Use it on any code work, big or small; skip it only for docs and plans.
 17. Quality goals (CLAUDE.md) also save tokens: files under ~400 lines are cheap to read, data-driven content means changing a JSON file instead of code, and the editor-plus-CLI rule avoids one-off scripts.

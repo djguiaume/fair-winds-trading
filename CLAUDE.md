@@ -11,7 +11,7 @@ Rules and pointers only. History lives in `docs/decisions/`, `docs/releases/` an
 
 ## Graphify (decision 0177) — do this first on code work
 
-Threads keep forgetting it. Before reading or grepping code: run `graphify update .`, then `graphify query "<question>"`, `graphify explain <node>` or `graphify path <a> <b>`. Re-run `graphify update .` after big changes. Skip it for docs, plans and small fixes. Missing? `npm install -g graphifyy`.
+Threads keep forgetting it. Before reading or grepping code: run `graphify update .`, then `graphify query "<question>"`, `graphify explain <node>` or `graphify path <a> <b>`. Re-run `graphify update .` after big changes. Use it on any code work, big or small. Skip it only for docs and plans. Missing? `npm install -g graphifyy`.
 
 ## Quality goals
 
