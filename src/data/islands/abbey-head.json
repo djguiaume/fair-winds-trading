@@ -239,16 +239,16 @@
       "from": 1
     },
     { "type": "ruins", "x": 0.105, "z": -0.375, "turn": 11, "size": 1.097, "from": 1 },
-    { "type": "boathouse", "x": -0.28, "z": 0.72, "turn": -160, "size": 1.4, "from": 1 },
     {
       "type": "beach-house",
       "x": 0.3,
       "z": 0.62,
       "turn": 160,
       "size": 1.55,
-      "variant": 0,
+      "variant": 3,
       "from": 1
-    }
+    },
+    { "type": "boathouse", "x": -0.28, "z": 0.72, "turn": 105, "size": 1.4, "from": 1 }
   ],
   "woods": {
     "tree": "woodland-pine",
@@ -258,5 +258,10 @@
     "margin": 0.0733,
     "spacing": 0.185
   },
-  "harbourView": { "height": 0.8, "lookHeight": 0.45 }
+  "harbourView": {
+    "from": [0.35, 2.3],
+    "look": [0, 0.6],
+    "height": 1,
+    "lookHeight": 0.1
+  }
 }
