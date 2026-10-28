@@ -4,6 +4,19 @@
   "group": "boats",
   "internal": true,
   "water": true,
-  "vars": { "foot": 2, "luff": 2, "head": 0, "peak": 0 },
-  "parts": [{ "part": "sail", "color": "boatSail" }]
+  "vars": {
+    "foot": 2,
+    "luff": 2,
+    "head": 0,
+    "peak": 0,
+    "belly": 0.3,
+    "cells": 5
+  },
+  "parts": [
+    {
+      "part": "sail",
+      "faces": true,
+      "color": "sailCloth"
+    }
+  ]
 }

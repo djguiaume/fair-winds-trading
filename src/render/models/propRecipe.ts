@@ -7,6 +7,7 @@ import {
   type PropRecipe,
   type RecipePart,
 } from '../../data/props';
+import { CODE_PARTS, boatHull } from './propCodeParts';
 import { glowing, paint, paintFaces, triangleCount, windowPanes } from './geometry';
 
 /**
@@ -154,59 +155,6 @@ export function compileExpression(src: string): Expr {
 const num = (v: Num | undefined, s: Scope, fallback = 0) =>
   v === undefined ? fallback : typeof v === 'number' ? v : compileExpression(v)(s);
 
-// ---------------------------------------------------------------- code parts
-
-/**
- * Shapes written in code, by name (the ship parts pattern, decision 0109). Each returns an
- * unpainted geometry; the recipe part colours and places it.
- */
-export const CODE_PARTS: Record<string, (scope: Scope) => THREE.BufferGeometry> = {
-  /** The planked hull on a working slipway: a lofted, open curved shell. */
-  'slip-hull': () => {
-    const vertices: number[] = [];
-    const point = (section: number, arc: number) => {
-      const t = section / 8,
-        a = -Math.PI / 2 + (arc / 6) * Math.PI;
-      const width = 0.12 + Math.pow(Math.sin(t * Math.PI), 0.65) * 1.05;
-      return [Math.sin(a) * width, 1.25 - Math.cos(a) * width, -2.3 + t * 4.6];
-    };
-    for (let section = 0; section < 8; section++)
-      for (let arc = 0; arc < 6; arc++) {
-        const a = point(section, arc),
-          b = point(section + 1, arc),
-          c = point(section + 1, arc + 1),
-          d = point(section, arc + 1);
-        vertices.push(...a, ...b, ...c, ...a, ...c, ...d, ...c, ...b, ...a, ...d, ...c, ...a);
-      }
-    const hull = new THREE.BufferGeometry();
-    hull.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    hull.computeVertexNormals();
-    return hull;
-  },
-  /**
-   * A fore-and-aft sail (decision 0215's other boats): flat, in the boat's centre plane, its luff
-   * up the mast from the origin and its foot aft along −Z. `foot` and `luff` long, the head
-   * `head` long, peaked up `peak` at the leech: a gaff or lug sail, or a jib-headed one at 0.
-   */
-  sail: (s) => {
-    const foot = s.foot ?? 2;
-    const luff = s.luff ?? 2;
-    const head = s.head ?? 0;
-    const peak = s.peak ?? 0;
-    const p = [
-      [0, 0, 0],
-      [0, 0, -foot],
-      [0, luff + peak, -Math.max(head, 0.01)],
-      [0, luff, 0],
-    ];
-    const v = [0, 1, 2, 0, 2, 3].flatMap((k) => p[k]!);
-    const sail = new THREE.BufferGeometry();
-    sail.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
-    sail.computeVertexNormals();
-    return sail;
-  },
-};
-
 // ---------------------------------------------------------------- shapes
 
 type Shape = (a: number[], part: RecipePart, s: Scope) => THREE.BufferGeometry;
@@ -244,7 +192,8 @@ const SHAPES: Record<string, Shape> = {
   plane: ([w, h]) => new THREE.PlaneGeometry(w, h),
 };
 /** The shape keys a part may have, for the checks. */
-export const SHAPE_KEYS = [...Object.keys(SHAPES), 'windows', 'use', 'part', 'parts'];
+export { CODE_PARTS };
+export const SHAPE_KEYS = [...Object.keys(SHAPES), 'windows', 'use', 'part', 'parts', 'hull'];
 
 // ---------------------------------------------------------------- building
 
@@ -361,6 +310,16 @@ export function prepareProp(id: string, args: PropBuildArgs): () => Parts {
         );
         return;
       }
+      if (p.hull) {
+        const g = boatHull(
+          p.hull,
+          colorOf(p.color, style, s),
+          colorOf(p.band ?? p.color, style, s),
+        );
+        transform(g, p, s);
+        out.push(g);
+        return;
+      }
       if (p.use) {
         const vars = Object.fromEntries(
           Object.entries(p.vars ?? {}).map(([k, v]) => [k, num(v, s)]),
@@ -417,7 +376,21 @@ const RECIPE_KEYS = new Set([
 ]);
 const PART_KEYS = new Set([
   ...SHAPE_KEYS,
-  ...['seed', 'pane', 'y', 'ops', 'at', 'color', 'glow', 'faces', 'tag', 'if', 'repeat', 'vars'],
+  ...[
+    'seed',
+    'pane',
+    'y',
+    'ops',
+    'at',
+    'color',
+    'band',
+    'glow',
+    'faces',
+    'tag',
+    'if',
+    'repeat',
+    'vars',
+  ],
 ]);
 
 /** The triangles of a set of parts. */
