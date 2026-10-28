@@ -32,3 +32,13 @@ A read-only study (thread "Reach Traffic Architect's graphic level", review in [
 ## Update (2026-10-26)
 
 The v1.2 part is replaced by decision [0222](0222-a-new-look-smooth-terrain-blue-water-and-forests.md) (smooth terrain, blue water and forests on every level, from the approved mockup v2). The v1.1 water step keeps only the sky reflection and softer foam; depth-coloured water moves to v1.2.
+
+## Update (2026-10-28): how v1.1 builds it (#257, #258)
+
+- **Pipeline** (`src/render/ultraPipeline.ts`, loaded only when Ultra is picked, so phones never download it): render pass, `GTAOPass` at half resolution (the sea, glows and see-through meshes kept out of its normal pass), a grade pass, then the output pass. Multisampled anti-aliasing at full resolution.
+- **Tone mapping** is three's Khronos Neutral curve, applied in our grade pass (`src/render/gradeShader.ts`) instead of the renderer's, because its toe (the black-level offset) turned moonlit grass emerald. The toe is full by day and off at night (`toe`, `nightToe`); the night is otherwise lifted by exposure and by easing shadows and occlusion (never black, art bible).
+- **Shadows:** PCF with a radius (three r186 dropped `PCFSoftShadowMap`), 4096 px, ±140 box following the camera target; every lit solid mesh casts and receives on Ultra, put back when Ultra is left (`src/render/shadowCasters.ts`). The sun keeps its time-of-day path but sits lower and turned 30° (`sunHeight`, `sunTurnDeg`), so noon shadows fall to the side.
+- **Haze:** a soft fade toward a pale sky at the top of the picture. Kept subtle while the camera looks steeply down; it matters more with the Ultra tilt of the turnable camera.
+- **Water:** Fresnel sky reflection (the sky light's colour), sun and moon glint on the facets and a softer foam band with a faint outer line, on High and Ultra (cheap: a few instructions per pixel, no extra pass). Low and Medium keep their shader.
+- **Auto** picks Ultra on a desktop with at least 6 cores and a GPU that is not a software renderer or a small laptop chip (Intel UHD, Mali, Adreno, PowerVR); otherwise High as before, and it still steps down when frames are slow.
+- **Data and switches:** every number in `src/data/tuning/graphics.json` (tab Graphics on the tune page); Settings › Display has a switch per effect (soft shadows, occlusion, tone mapping, haze, water reflection), shown under the levels that draw it. `npm run shots -- --quality ultra`.

@@ -20,8 +20,8 @@ describe('tablet rendering budget', () => {
     }
   });
   it('uses per-vertex coast distance on Low and per-pixel coasts on High', () => {
-    const low = new Ocean(PHASE1_MAP.islands, 48, false, 420, PHASE1_MAP.terrain);
-    const high = new Ocean(PHASE1_MAP.islands, 120, true, 420, PHASE1_MAP.terrain);
+    const low = new Ocean(PHASE1_MAP.islands, 48, { fancy: false }, 420, PHASE1_MAP.terrain);
+    const high = new Ocean(PHASE1_MAP.islands, 120, { fancy: true }, 420, PHASE1_MAP.terrain);
     expect(low.mesh.material.defines).toEqual({ VERTEX_SHORES: '' });
     expect(high.mesh.material.defines).toEqual({ FANCY: '' });
     expect(low.mesh.geometry.getAttribute('position').count).toBe(49 * 49);
