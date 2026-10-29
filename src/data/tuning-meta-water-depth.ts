@@ -94,7 +94,7 @@ export const WATER_DEPTH_META: Readonly<Record<string, TuningMeta>> = {
     'Night shallows greyer',
     0,
     1,
-    0.05,
+    0.025,
     'share',
     'How much colour the shallows lose at full night (0 keeps the day hue, 1 is grey).',
   ),
