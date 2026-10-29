@@ -42,7 +42,8 @@ describe('island files (decision 0101)', () => {
       // the hidden yards' houses touching as the old shipyard town placed them (0107).
       for (const w of issues) expect(['lanes', 'budget', 'overlap'], w.message).toContain(w.check);
     }
-  });
+    // Every file builds its ground at each settlement level for the coast and footing checks.
+  }, 30000);
 
   it('flags broken copies', () => {
     expect(checksOf(broken((d) => (prop(d, 'warehouse').type = 'castle')))).toEqual(['known']);

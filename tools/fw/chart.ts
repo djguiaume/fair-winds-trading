@@ -11,14 +11,15 @@ import { zoneKindName, zoneTint } from '../../src/editor/flowChart';
 import { isBeltKind } from '../../src/sim/stormBelt';
 import { seaBox, seaShape } from '../../src/sim/seaEdge';
 import { PHASE1_SOURCE } from '../../src/data/maps';
+import { coastOverlay, type Quality } from './coastOverlay';
 import { loadSea } from './seas';
-import { coastOverlay } from './chartCoast';
 import { ISLAND_DESIGNS } from '../../src/data/islands';
 import type { MapDef } from '../../src/sim/map';
 import { harbourApproach, sailRoute } from '../../src/sim/mapChecks';
 import { seaMarkShape } from '../../src/ui/chartMarks';
 import type { Sectors } from '../../src/sim/seaSectors';
-import { type SectorDensity, seaDensity } from '../../src/sim/seaDensity';
+import { seaDensity } from '../../src/sim/seaDensity';
+import { densityOverlay } from './densityOverlay';
 
 type Args = Record<string, string | boolean | undefined> & { _: string[] };
 type Pt = [number, number];
@@ -41,6 +42,9 @@ export interface Overlay {
   legend?: { style: string; text: string }[];
 }
 
+/** Overlay styles drawn as lines, which the legend shows as strokes. */
+const LINE_STYLES = ['route', 'short', 'long', 'block', 'current', 'coast-sailed', 'coast-drawn'];
+
 /** Overlay styles: the class each one draws with, and its legend wording. */
 export const OVERLAY_STYLES: Record<string, string> = {
   proposed: 'proposed land',
@@ -60,12 +64,10 @@ export const OVERLAY_STYLES: Record<string, string> = {
   long: 'long way',
   block: 'blocked',
   current: 'current',
-  'coast-drawn': 'coast in the island file',
-  'coast-v2': 'coast of the new look',
+  'coast-sailed': 'sailed coast (the island file)',
+  'coast-drawn': 'drawn coast (height zero of the ground)',
+  'coast-bad': 'drawn and sailed coasts apart (units)',
 };
-
-/** Styles drawn as lines (the rest are filled areas). */
-const LINE_STYLES = ['route', 'short', 'long', 'block', 'current', 'coast-drawn', 'coast-v2'];
 
 export interface ChartOptions {
   map: MapDef;
@@ -145,9 +147,10 @@ svg.fw-chart { background: #1b7f8c; }
 .o-short { stroke: #6fe3c6; stroke-dasharray: 10 6; }
 .o-long { stroke: #ffb35c; stroke-dasharray: 10 6; }
 .o-block { stroke: #d7263d; stroke-width: 5px; stroke-dasharray: 10 6; }
-.o-coast-drawn { stroke: #ffd23f; stroke-width: 2px; stroke-dasharray: 6 4; }
-.o-coast-v2 { stroke: #ff3e8a; stroke-width: 2px; }
 .o-current { stroke: #13607e; stroke-width: 8px; stroke-opacity: .8; }
+.o-coast-sailed { stroke: #fff; stroke-width: 2.5px; }
+.o-coast-drawn { stroke: #ffd23f; stroke-width: 2px; stroke-dasharray: 5 4; }
+.o-coast-bad { fill: #d7263d; fill-opacity: .55; stroke: #fff; stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
 .o-sailed { fill: none; stroke: #fff; stroke-width: 2.5px; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .o-label { fill: #fff; stroke: #06141c; stroke-linejoin: round; paint-order: stroke; text-anchor: middle; font-family: 'Barlow', sans-serif; font-weight: 700; }
 .o-label.port { fill: #ffe39a; font-family: 'Barlow Condensed', sans-serif; }
@@ -389,65 +392,13 @@ interface Entry {
   swatch: (g: Element, make: Make) => void;
 }
 
-/** Empty water as shaded runs of grid cells, the biggest empty discs, stats in the legend. */
-function densityOverlay(rows: SectorDensity[], cell: number): Overlay {
-  const areas: NonNullable<Overlay['areas']> = [];
-  for (const r of rows) {
-    // Join cells side by side on one row of the grid into one strip.
-    const byY = new Map<number, number[]>();
-    for (const [x, y] of r.emptyCells ?? []) byY.set(y, [...(byY.get(y) ?? []), x]);
-    for (const [y, xs] of byY) {
-      xs.sort((a, b) => a - b);
-      let start = xs[0]!;
-      for (let k = 1; k <= xs.length; k++)
-        if (k === xs.length || xs[k]! - xs[k - 1]! > cell + 0.01) {
-          const end = xs[k - 1]!;
-          const h = cell / 2;
-          areas.push({
-            outline: [
-              [start - h, y - h],
-              [end + h, y - h],
-              [end + h, y + h],
-              [start - h, y + h],
-            ],
-            style: 'empty',
-          });
-          if (k < xs.length) start = xs[k]!;
-        }
-    }
-  }
-  const pct = (v: number) => `${Math.round(v * 100)}%`;
-  return {
-    areas,
-    islands: biggestSpots(rows).map((s) => ({
-      x: s.x,
-      y: s.y,
-      radius: s.radius,
-      style: 'gap',
-      name: `r${s.radius}`,
-    })),
-    legend: rows.map((r) => ({
-      style: 'tint',
-      text: `${r.id}: ${r.islands} islands, ${r.shapes} shapes, ${r.marks} marks, ${r.zones} zones; ${r.perArea} per 100k; ${pct(r.empty)} empty`,
-    })),
-  };
-}
-
-/** Two biggest empty discs per sea; a disc mostly inside a bigger one (on a border) is left out. */
-function biggestSpots(rows: SectorDensity[]) {
-  const all = rows.flatMap((r) => r.spots.slice(0, 2)).sort((a, b) => b.radius - a.radius);
-  const out: typeof all = [];
-  for (const s of all)
-    if (!out.some((o) => Math.hypot(o.x - s.x, o.y - s.y) < o.radius)) out.push(s);
-  return out;
-}
-
 function mergeOverlays(a: Overlay | undefined, b: Overlay): Overlay {
   if (!a) return b;
   return {
     ...a,
     areas: [...(b.areas ?? []), ...(a.areas ?? [])],
     islands: [...(a.islands ?? []), ...(b.islands ?? [])],
+    lines: [...(a.lines ?? []), ...(b.lines ?? [])],
     legend: [...(a.legend ?? []), ...(b.legend ?? [])],
   };
 }
@@ -605,8 +556,8 @@ export async function run(args: Args): Promise<number> {
   --sectors none                      no sector spokes on the grown sea (decision 0179)
   --density [--sight 160]             shade empty water (nothing in sight) and ring the biggest
                                       empty discs per sea, stats in the legend (decision 0180)
-  --coast                             draw each island's file coast (dashed) and the new look's smoothed
-                                      coast (solid); use with --around
+  --coast [--quality low|medium|high]  both coasts of every island: the sailed one (file) and the drawn
+                                      one (ground height zero), red discs where they part (decision 0237)
   --title "…"                         title above the legend
   --legend none                       no side panel (title and legend)
   --width 1600                        PNG width in pixels
@@ -631,7 +582,12 @@ export async function run(args: Args): Promise<number> {
     });
     overlay = mergeOverlays(overlay, densityOverlay(rows, cell));
   }
-  if (args.coast) overlay = mergeOverlays(overlay, coastOverlay(prepared, parseView(args, map)));
+  const coastReport: string[] = [];
+  if (args.coast) {
+    const { overlay: coast, report } = coastOverlay(prepared, (args.quality as Quality) ?? 'high');
+    coastReport.push(...report);
+    overlay = mergeOverlays(overlay, coast);
+  }
   const layers =
     typeof args.layers === 'string'
       ? Object.fromEntries(
@@ -677,6 +633,7 @@ export async function run(args: Args): Promise<number> {
   console.log(
     `wrote ${files.join(', ')} (${Math.round(result.width * result.scale)}×${Math.round(result.height * result.scale)}; ${c.islands} islands, ${c.ports} ports, ${c.marks} marks, ${c.zones} zones, ${c.currents} currents)`,
   );
+  for (const line of coastReport) console.log(`  ${line}`);
   for (const s of result.routes)
     console.log(
       `  ${s.from} → ${s.to}: ${s.seconds === null ? 'no way through' : `${s.seconds} s`}`,

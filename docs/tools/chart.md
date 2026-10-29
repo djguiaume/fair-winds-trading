@@ -16,6 +16,7 @@ npm run chart -- --sea src/data/seas/south.json --view -820,-1000,820,0 \
 - **Size:** `--width 1600` PNG pixels for the map; `--scale 1.5` (default) is the text and line size. The legend panel adds 270 × scale pixels on the right; `--legend none` drops it.
 - **Sectors:** on the grown sea (`phase4` or a sea file) a dashed spoke marks each sea's border and the sea's name and span sit near the rim (decision 0179); `--sectors none` hides them.
 - **Density:** `--density` (grown sea only) shades empty water, farther than `--sight` (default 160) from any island, reef, bank, ice or mark, rings the biggest empty discs and puts each sea's counts in the legend (decision 0180). `npm run sea -- density` prints the same numbers.
+- **Coast:** `--coast [--quality low|medium|high]` draws each island's sailed coast (white, from the island file) and drawn coast (yellow, the ground's height zero at that quality), red discs with the gap in units where they part by more than `terrain.json › coast › tolerance`, and prints the worst gap per island (decision 0237). `npm run check` fails the same gaps.
 - `--ghosts` draws dashed outlines where shapes sat on the shipped ring; `--svg` skips the PNG (no Chromium); `--json` prints what was written.
 
 ## Overlay file

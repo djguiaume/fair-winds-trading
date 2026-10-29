@@ -49,6 +49,8 @@ The *Traffic Architect* look on every quality level: smooth rolling island groun
 - CLI (#272, decision [0234](../decisions/0234-terrain-command-line-tool-sculpt-commands-exportimport-and-l.md)): `npm run island -- <id> sculpt …` and `--steps` run the same `SculptSession` via `src/sim/sculptScript.ts` (`applySculpt`, `parseSculpt`, `sculptFrame`); list, remove, reset, export, import; limits in `terrain.json › sculpt › limits`. Guide: [docs/tools/terrain.md](../tools/terrain.md).
 - Diagnostic sheet of every operation on Port Calda: [sculpt-ops.jpg](sculpt-ops.jpg).
 
+**Terrain brushes (#271, 2026-10-28), decision [0238](../decisions/0238-terrain-brushes-in-the-island-builder.md).** The builder's Terrain tab ([how to use](../island-builder/builder/terrain.md)): `src/editor/island/terrain/` (`terrainTool.ts` session and strokes, `terrainPanel.ts`, `warnings.ts`, `brush.ts`), the field ground in both views through `FieldSurface` (`src/render/models/fieldSurface.ts`), numbers in `terrain.json › sculpt.editor`.
+
 ### 2. Smooth ground (1 to 2 weeks with the editors)
 
 What the mockup did (`prototype/new-look.js`), to reproduce with data:
@@ -75,6 +77,11 @@ Editors: the island builder and sea editor draw with the same `ground.ts`; `npm 
 ### 3. Coast check (about 1 week, can run with step 2)
 
 The smoothed shoreline (height 0 contour) must stay within a tolerance of the sim coast (`coast.ts`) everywhere, and berths and piers must stay reachable. Add a check to `src/sim/islandChecks.ts` / `mapChecks.ts`, run by `npm run check`, that compares the two outlines (suggested limit: 1.5 units, to tune) and lists the worst points per island; `npm run chart -- --overlay` draws both lines for review.
+
+**Built (#273, 2026-10-28, [0237](../decisions/0237-drawn-coast-must-agree-with-the-sailed-coast.md)).** The island file's outline stays the sim's coast; the drawn zero contour must match it, or the edit is an error:
+
+- `src/sim/coastAgreement.ts` (gap per sample, worst per island, tolerance `terrain.json › coast` 1.5 units), `fieldContour.ts` (the drawn line), `coastChecks.ts` (island checks `coast` and `support`, run by `checkIsland`, so by `npm run check` and the island builder), `mapCoast.ts` (`coastReport`; map checks `coast-terrain` and `harbour-water`, run by `npm run check` and the sea editor).
+- `npm run chart -- --coast [--quality low|medium|high]` draws both coasts and red discs where they part; prints the worst gap per island. Every shipped island and barrier island agrees at all three qualities.
 
 ### 4. Water (about 1 week)
 

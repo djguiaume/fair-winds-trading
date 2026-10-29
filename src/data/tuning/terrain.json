@@ -15,6 +15,12 @@
     "tops": [1, 4.6, 7.6, 8]
   },
   "sandbankTop": 0.8,
+  "coast": {
+    "tolerance": 1.5,
+    "stride": 1,
+    "buildingMinHeight": 0.1,
+    "markSpacing": 6
+  },
   "smooth": {
     "amount": 1,
     "blur": 2.4,
@@ -64,7 +70,19 @@
       "edits": 400,
       "points": 600,
       "radius": 1.5,
-      "reach": 2
+      "reach": 6
+    },
+    "editor": {
+      "radius": [0.02, 0.4, 0.01, 0.12],
+      "raise": [0.001, 0.08, 0.001, 0.02],
+      "share": [0.05, 1, 0.05, 0.35],
+      "height": [-0.1, 0.3, 0.005, 0.03],
+      "falloff": [0, 1, 0.05],
+      "heightShade": [1.5, -4, 8, 0.025],
+      "placementMs": 350,
+      "coastTolerance": 1.5,
+      "shoreHeight": 0.2,
+      "berthClearance": 0.4
     }
   }
 }

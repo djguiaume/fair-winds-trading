@@ -7,9 +7,9 @@ import { join, resolve } from 'node:path';
 import { SEAS } from '../../src/data/grownMap';
 import { islandHeightfield } from '../../src/sim/heightfield';
 import { PHASE1_SOURCE } from '../../src/data/maps';
-import type { IslandDef } from '../../src/sim/map';
-import { renderChart, writePng } from './chart';
-import { coastOverlay } from './chartCoast';
+import type { IslandDef, MapDef } from '../../src/sim/map';
+import { type Overlay, renderChart, writePng } from './chart';
+import { coastOverlay } from './coastOverlay';
 import { loadSea } from './seas';
 
 type Args = Record<string, string | boolean | undefined> & { _: string[] };
@@ -62,7 +62,7 @@ async function composeSheets(islands: IslandDef[], dir: string, night: boolean) 
         .row{display:flex}figure{margin:0;flex:1}img{width:100%;display:block}
         figcaption{padding:4px 8px}</style>
         <div class="row">${img(shot('high'), `${island.id}: High`)}${img(shot('low'), 'Low')}</div>
-        <div class="row">${img(join(dir, `${island.id}-coast.png`), 'coast: yellow dashed = island file, pink = new look')}</div>`,
+        <div class="row">${img(join(dir, `${island.id}-coast.png`), 'coast: white = sailed (island file), yellow dashed = drawn ground, red = apart')}</div>`,
       );
       await page.goto(`file://${html}`);
       const out = join(dir, `${island.id}${night ? '-night' : ''}.jpg`);
@@ -74,6 +74,10 @@ async function composeSheets(islands: IslandDef[], dir: string, night: boolean) 
   }
   return files;
 }
+
+/** Both coasts of the whole sea, worked out once per run (decision 0237). */
+let coasts: Overlay | undefined;
+const coastLines = (map: MapDef) => (coasts ??= coastOverlay(map, 'high').overlay);
 
 /** The coast chart of one island: wide and short, like the shots above it. */
 async function writeCoastChart(island: IslandDef, dir: string) {
@@ -96,7 +100,7 @@ async function writeCoastChart(island: IslandDef, dir: string) {
     legend: false,
     width: SHEET,
     layers: { names: true },
-    overlay: coastOverlay(prepared, view),
+    overlay: coastLines(prepared),
   });
   const base = join(dir, `${island.id}-coast`);
   writeFileSync(`${base}.svg`, chart.svg);
