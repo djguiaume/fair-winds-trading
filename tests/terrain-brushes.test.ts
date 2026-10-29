@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, expect, it, vi } from 'vitest';
 import { ISLAND_DESIGNS, type IslandDesign, type SculptDef } from '../src/data/islands';
-import { FieldSurface, fieldGround } from '../src/render/models/fieldGround';
+import { FieldSurface, fieldGround } from '../src/render/models/fieldSurface';
 import { designHeightfield, heightAt } from '../src/sim/heightfield';
 import { islandPoint } from '../src/sim/islandLayout';
 import { ISLAND_SCALE } from '../src/sim/islandUnits';
@@ -96,7 +96,7 @@ describe('the field surface', () => {
 /** A host that counts what the builder would be asked to do. */
 function harness(design: IslandDesign) {
   const calls = { save: [] as (SculptDef | undefined)[], restand: 0, redraw: 0, refresh: 0 };
-  const view = { setGround: vi.fn(), render: vi.fn() };
+  const view = { setField: vi.fn(), render: vi.fn() };
   const host: TerrainHost = {
     top: view as never,
     preview: view as never,
@@ -226,7 +226,7 @@ describe('the terrain tool', () => {
     tool.markExported(design);
     expect(tool.unexported(design)).toBe(false);
     expect(tool.prepare(design, false)).toBeUndefined();
-    expect(view.setGround).toHaveBeenLastCalledWith(null);
+    expect(view.setField).toHaveBeenLastCalledWith(null);
   });
 });
 

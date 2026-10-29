@@ -283,6 +283,8 @@ export function tidyDesign(design: IslandDesign): IslandDesign {
       'spacingAt',
       'clear',
       'areas',
+      'groves',
+      'density',
     ]),
     ...(d.harbourView && {
       harbourView: ordered(d.harbourView, ['from', 'look', 'height', 'lookHeight', 'accent']),

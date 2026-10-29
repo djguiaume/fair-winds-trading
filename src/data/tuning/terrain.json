@@ -1,6 +1,6 @@
 {
   "cell": 0.8,
-  "margin": 6,
+  "margin": 8,
   "seabed": -3.5,
   "lakeBed": 0.2,
   "groundStep": {
@@ -15,6 +15,39 @@
     "tops": [1, 4.6, 7.6, 8]
   },
   "sandbankTop": 0.8,
+  "smooth": {
+    "amount": 1,
+    "blur": 2.4,
+    "seamBlur": 0.9,
+    "shoreSea": -0.66,
+    "landMin": 0.05,
+    "seaMax": -0.05,
+    "shore": {
+      "band": 2.5,
+      "slope": 0.35,
+      "seaSlope": 0.7
+    },
+    "relief": {
+      "scale": 0.05,
+      "height": 0.8,
+      "fadeIn": 3,
+      "octaves": 3
+    },
+    "town": {
+      "radius": 2,
+      "keep": 0.85
+    }
+  },
+  "draw": {
+    "hideBelow": -0.9,
+    "blend": 1,
+    "jitter": 0.6,
+    "mottle": 0.18,
+    "mottleAmount": 0.3,
+    "slope": [0.15, 0.18],
+    "wet": [0.1, 0.4],
+    "bands": 2.4
+  },
   "sculpt": {
     "falloff": 0.5,
     "spacing": 0.25,

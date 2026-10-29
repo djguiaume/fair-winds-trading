@@ -48,6 +48,30 @@
     "foamInner": 0.5,
     "foamWidth": 3.6,
     "foamStrength": 0.8,
-    "foamLine": 0.15
+    "foamLine": 0.15,
+    "haze": {
+      "amount": 0.35,
+      "duskFade": 0.5,
+      "gloomFade": 1
+    },
+    "depth": {
+      "cell": 3,
+      "maxTexels": 1024,
+      "deepBed": -9,
+      "land": 24,
+      "blur": 6,
+      "fullDepth": 8.5,
+      "midAt": 0.35,
+      "crest": 0.12,
+      "shading": 0.35,
+      "seaBlend": 80,
+      "beds": {
+        "island": 24,
+        "sandbank": 24,
+        "reef": 24,
+        "shallows": 4,
+        "ice": 0
+      }
+    }
   }
 }

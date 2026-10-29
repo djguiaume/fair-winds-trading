@@ -442,7 +442,7 @@ export function setRiverKind(
 
 // --- Woods -----------------------------------------------------------------------------------
 
-const circle = (x: number, z: number, r: number): [number, number, number] => [
+export const circle = (x: number, z: number, r: number): [number, number, number] => [
   pos(x),
   pos(z),
   pos(r),
@@ -476,11 +476,6 @@ export function paintWoods(
     w.clear ??= [];
     if (!w.clear.some(near)) w.clear.push(circle(x, z, r));
   }
-}
-
-/** Removes the painted woods (back to trees anywhere in the woods' area). */
-export function clearWoodsPainting(design: IslandDesign) {
-  delete design.woods.areas;
 }
 
 /** Turns a lane into a lane, path or stairs; stairs take the ground's height at each point. */

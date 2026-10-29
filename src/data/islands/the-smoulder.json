@@ -42,7 +42,8 @@
       "material": "volcanic",
       "shape": "peak",
       "base": 0.06,
-      "crater": 0.22
+      "crater": 0.22,
+      "smooth": 0
     },
     {
       "outline": [

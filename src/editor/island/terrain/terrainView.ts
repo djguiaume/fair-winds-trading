@@ -1,12 +1,22 @@
 import * as THREE from 'three';
 import depthView from '../../../data/depth-view.json';
 import { TUNING } from '../../../data/tuning';
-import { type FieldColor, FieldSurface } from '../../../render/models/fieldGround';
+import { type FieldColor, FieldSurface } from '../../../render/models/fieldSurface';
+import { designPalette } from '../../../render/models/fieldGround';
 import { vertexColorMaterial } from '../../../render/models/geometry';
 import type { Heightfield } from '../../../sim/heightfield';
 import { ISLAND_SCALE } from '../../../sim/islandUnits';
 import type { Region } from '../../../sim/sculpt';
 import type { Preview, TopView } from '../scene';
+
+/** The island style's ground colours: each ground's flat colour, or its slope colour where steep. */
+export function landColor(style: string): FieldColor {
+  const palette = designPalette(style);
+  return (ground, steep) => {
+    const look = palette.look(ground === '' || ground === 'lake' ? 'sand' : ground);
+    return (steep ? look.side : look.top)[0]!;
+  };
+}
 
 /** Colours by height off `depth-view.json`: the sea level and depth view. */
 export function depthColor(): FieldColor {
@@ -65,7 +75,7 @@ export class TerrainView {
       mesh.scale.setScalar(1 / ISLAND_SCALE);
       // A sphere that is the island's, not the sea margin's, so a brush at the rim is not culled.
       mesh.frustumCulled = false;
-      view.setGround(mesh);
+      view.setField(mesh);
     }
   }
 
@@ -83,8 +93,8 @@ export class TerrainView {
   hide() {
     for (const s of this.surfaces) s.geometry.dispose();
     this.surfaces = [];
-    this.top.setGround(null);
-    this.preview.setGround(null);
+    this.top.setField(null);
+    this.preview.setField(null);
   }
 
   private redraw() {

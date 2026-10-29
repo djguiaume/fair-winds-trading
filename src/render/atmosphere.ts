@@ -153,6 +153,22 @@ export class Atmosphere {
     return clamp(Math.max(weather.rain * 0.55, weather.storm, weather.gloom), 0, 1);
   }
 
+  /**
+   * The haze of the new look (issue #276): the sky, and with it the fog, fades toward the
+   * sea's horizon tint. Dusk and gloom take part of it away, night all of it (deep blue stays).
+   */
+  private tintHorizon(l: Look, day: Daylight, ocean: Ocean) {
+    const horizon = ocean.horizon;
+    if (!horizon) return;
+    const haze = TUNING.graphics.water.haze;
+    const share =
+      haze.amount *
+      (1 - day.night) *
+      (1 - haze.duskFade * day.warm) *
+      (1 - haze.gloomFade * this.gloom);
+    l.sky.lerp(horizon, share);
+  }
+
   update(
     dt: number,
     day: Daylight,
@@ -168,6 +184,8 @@ export class Atmosphere {
     mix(l, l, NIGHT, day.night);
     mix(this.storm, STORM, NIGHT, day.night * 0.7);
     mix(l, l, this.storm, this.gloom);
+    ocean.setDaylight(l);
+    this.tintHorizon(l, day, ocean);
     // A fog bank or ash cloud (decision 0169) turns the sky and the fog its colour, darkened at
     // night like the sky, and dims the sun a little.
     const h = haze?.kind ? haze.haze : 0;

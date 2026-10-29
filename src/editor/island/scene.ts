@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { IslandStyle } from '../../data/islands';
 import { vertexColorMaterial } from '../../render/models/geometry';
+import type { NewLookGround } from './newLook';
 import { PROP_TYPES, type Parts } from '../../render/models/props';
 import { NIGHT, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from '../../render/atmosphere';
 import { BeaconLights } from '../../render/beaconLights';
@@ -56,16 +57,33 @@ export function mergeParts(parts: Parts): THREE.BufferGeometry {
   return merged;
 }
 
+/** The new look's rolling ground (`?look=v2`), drawn apart from the faceted island. */
+const groundMesh = () =>
+  new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshLambertMaterial());
+
+/** Shows a view's new-look ground, or none; the views share it and free the old one. */
+function setGround(mesh: THREE.Mesh, ground?: NewLookGround) {
+  const old = mesh.material as THREE.MeshLambertMaterial;
+  if (ground?.material !== old) {
+    old.map?.dispose();
+    old.dispose();
+  }
+  if (mesh.geometry !== ground?.geometry) mesh.geometry.dispose();
+  mesh.geometry = ground?.geometry ?? new THREE.BufferGeometry();
+  mesh.material = ground?.material ?? new THREE.MeshLambertMaterial();
+}
+
 /** The island straight from above, drawn when something changes (not every frame). */
 export class TopView {
   readonly renderer: THREE.WebGLRenderer;
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 600);
   private readonly island = new THREE.Mesh(new THREE.BufferGeometry(), vertexColorMaterial());
+  private readonly ground = groundMesh();
   /** The prop being dragged, drawn apart until it is dropped and the island is rebuilt. */
   private readonly moving = new THREE.Group();
   /** The terrain tools' ground, when the island is drawn from its height field. */
-  private ground: THREE.Object3D | null = null;
+  private fieldMesh: THREE.Object3D | null = null;
   private width = 1;
   private height = 1;
 
@@ -75,18 +93,19 @@ export class TopView {
     this.renderer.setClearColor(SEA);
     lights(this.scene);
     sea(this.scene);
-    this.scene.add(this.island, this.moving);
+    this.scene.add(this.island, this.ground, this.moving);
     this.camera.up.set(0, 0, -1);
   }
 
-  setGeometry(geometry: THREE.BufferGeometry) {
+  setGeometry(geometry: THREE.BufferGeometry, ground?: NewLookGround) {
     this.island.geometry = geometry;
+    setGround(this.ground, ground);
   }
 
   /** Shows the height field's ground (the island's props stand on it), or the classic tiers. */
-  setGround(ground: THREE.Object3D | null) {
-    if (this.ground) this.scene.remove(this.ground);
-    this.ground = ground;
+  setField(ground: THREE.Object3D | null) {
+    if (this.fieldMesh) this.scene.remove(this.fieldMesh);
+    this.fieldMesh = ground;
     if (ground) this.scene.add(ground);
   }
 
@@ -138,6 +157,7 @@ export class Preview {
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(40, 1, 0.5, 800);
   private readonly island = new THREE.Mesh(new THREE.BufferGeometry(), vertexColorMaterial());
+  private readonly ground = groundMesh();
   /** Window glass and street lamps, tinted like the game's (dark by day, lit at night). */
   private readonly glass = new THREE.MeshBasicMaterial({ vertexColors: true });
   private readonly windows = new THREE.Mesh(new THREE.BufferGeometry(), this.glass);
@@ -147,7 +167,7 @@ export class Preview {
   /** Lighthouse beams and beacon lights: the game's, in world units, so scaled to the model. */
   private readonly lamps = new THREE.Group();
   /** The terrain tools' ground, when the island is drawn from its height field. */
-  private ground: THREE.Mesh | null = null;
+  private fieldMesh: THREE.Mesh | null = null;
   private beams: LighthouseBeams | null = null;
   private beacons: BeaconLights | null = null;
   private frame = 0;
@@ -161,7 +181,7 @@ export class Preview {
     this.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
     [this.sky, this.sun] = lights(this.scene);
     this.water = sea(this.scene);
-    this.scene.add(this.island, this.windows, this.lamps);
+    this.scene.add(this.island, this.ground, this.windows, this.lamps);
     this.lamps.scale.setScalar(1 / ISLAND_SCALE);
     this.setNight(false);
     const pointers = new Map<number, { x: number; y: number }>();
@@ -205,16 +225,17 @@ export class Preview {
   }
 
   /** The island without its glass, and the glass on its own (the game draws them apart). */
-  setGeometry(land: THREE.BufferGeometry, windows: THREE.BufferGeometry) {
+  setGeometry(land: THREE.BufferGeometry, windows: THREE.BufferGeometry, ground?: NewLookGround) {
     this.island.geometry = land;
     this.windows.geometry = windows;
+    setGround(this.ground, ground);
     this.render();
   }
 
   /** Shows the height field's ground (the island's props stand on it), or the classic tiers. */
-  setGround(ground: THREE.Mesh | null) {
-    if (this.ground) this.scene.remove(this.ground);
-    this.ground = ground;
+  setField(ground: THREE.Mesh | null) {
+    if (this.fieldMesh) this.scene.remove(this.fieldMesh);
+    this.fieldMesh = ground;
     if (ground) this.scene.add(ground);
     this.render();
   }
@@ -271,10 +292,10 @@ export class Preview {
   /** What the camera frames: the island's model, with the field ground's extent when it is shown. */
   private framed() {
     const sphere = this.island.geometry.boundingSphere;
-    const ground = this.ground?.geometry.boundingSphere;
+    const ground = this.fieldMesh?.geometry.boundingSphere;
     if (!ground) return sphere;
-    this.ground!.updateMatrixWorld();
-    const land = ground.clone().applyMatrix4(this.ground!.matrixWorld);
+    this.fieldMesh!.updateMatrixWorld();
+    const land = ground.clone().applyMatrix4(this.fieldMesh!.matrixWorld);
     return sphere ? land.union(sphere) : land;
   }
 

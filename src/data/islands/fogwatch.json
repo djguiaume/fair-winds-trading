@@ -74,7 +74,8 @@
         [-0.68, 0.3]
       ],
       "height": 0.46,
-      "material": "grass"
+      "material": "grass",
+      "smooth": 0
     },
     {
       "outline": [
@@ -90,7 +91,8 @@
         [0.66, 0.2]
       ],
       "height": 0.3,
-      "material": "grass"
+      "material": "grass",
+      "smooth": 0
     },
     {
       "outline": [
@@ -106,7 +108,8 @@
         [-0.719, 0.182]
       ],
       "height": 0.6,
-      "material": "grass"
+      "material": "grass",
+      "smooth": 0
     },
     {
       "outline": [
@@ -122,7 +125,8 @@
         [-0.758, 0.061]
       ],
       "height": 0.74,
-      "material": "grass"
+      "material": "grass",
+      "smooth": 0
     },
     {
       "outline": [
@@ -138,7 +142,8 @@
         [-0.787, -0.051]
       ],
       "height": 0.86,
-      "material": "grass"
+      "material": "grass",
+      "smooth": 0
     }
   ],
   "lanes": [

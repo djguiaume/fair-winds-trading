@@ -1,8 +1,7 @@
 import * as THREE from 'three';
 import { TUNING } from '../../../data/tuning';
 import type { IslandDesign, SculptDef } from '../../../data/islands';
-import type { FieldColor } from '../../../render/models/fieldGround';
-import { designColor } from '../../../render/models/highlandIslands';
+import type { FieldColor } from '../../../render/models/fieldSurface';
 import { type Stand, fieldStand } from '../../../render/models/townProps';
 import { heightAt, sampleIndex } from '../../../sim/heightfield';
 import type { IslandDef } from '../../../sim/map';
@@ -13,7 +12,7 @@ import { SculptSession } from '../../../sim/sculptSession';
 import { SEA, type Preview, type TopView } from '../scene';
 import { type BrushSettings, defaultBrush, resized, sculptBrush } from './brush';
 import { type TerrainWarning, terrainWarnings } from './warnings';
-import { TerrainView, depthColor, shaded } from './terrainView';
+import { TerrainView, depthColor, landColor, shaded } from './terrainView';
 
 /** What the terrain tools need from the island builder. */
 export interface TerrainHost {
@@ -188,7 +187,7 @@ export class TerrainTool {
   private colors(design: IslandDesign): FieldColor {
     const depth = depthColor();
     if (this.view === 'depth') return depth;
-    const land = shaded(designColor(design.style));
+    const land = shaded(landColor(design.style));
     // Open water is the sea (so the field's edge does not show); land the island style's,
     // lighter the higher; seabed raised out of the sea, sand.
     return (ground, steep, height) =>

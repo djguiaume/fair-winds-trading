@@ -49,7 +49,7 @@ The *Traffic Architect* look on every quality level: smooth rolling island groun
 - CLI (#272, decision [0234](../decisions/0234-terrain-command-line-tool-sculpt-commands-exportimport-and-l.md)): `npm run island -- <id> sculpt …` and `--steps` run the same `SculptSession` via `src/sim/sculptScript.ts` (`applySculpt`, `parseSculpt`, `sculptFrame`); list, remove, reset, export, import; limits in `terrain.json › sculpt › limits`. Guide: [docs/tools/terrain.md](../tools/terrain.md).
 - Diagnostic sheet of every operation on Port Calda: [sculpt-ops.jpg](sculpt-ops.jpg).
 
-**Terrain brushes (#271, 2026-10-28), decision [0235](../decisions/0235-terrain-brushes-in-the-island-builder.md).** The builder's Terrain tab ([how to use](../island-builder/builder/terrain.md)): `src/editor/island/terrain/` (`terrainTool.ts` session and strokes, `terrainPanel.ts`, `warnings.ts`, `brush.ts`), the field ground in both views through `FieldSurface` (`src/render/models/fieldGround.ts`), numbers in `terrain.json › sculpt.editor`.
+**Terrain brushes (#271, 2026-10-28), decision [0238](../decisions/0238-terrain-brushes-in-the-island-builder.md).** The builder's Terrain tab ([how to use](../island-builder/builder/terrain.md)): `src/editor/island/terrain/` (`terrainTool.ts` session and strokes, `terrainPanel.ts`, `warnings.ts`, `brush.ts`), the field ground in both views through `FieldSurface` (`src/render/models/fieldSurface.ts`), numbers in `terrain.json › sculpt.editor`.
 
 ### 2. Smooth ground (1 to 2 weeks with the editors)
 
@@ -67,6 +67,13 @@ Add from the art review (must): slopes take each biome's cliff colours (grey onl
 
 Editors: the island builder and sea editor draw with the same `ground.ts`; `npm run island` and `npm run check` run the height field checks.
 
+**Built (#269, 2026-10-28).** Decision [0235](../decisions/0235-smooth-island-ground-shore-on-the-coast-faceted-landmarks.md):
+
+- `src/sim/smoothField.ts` smooths every field (`terrain.json › smooth`, Terrain tab in `?tune`); `designHeightfield` is raster → smooth → sculpt (#270). The waterline follows a shore profile from the true coast; a probe over every island found land and sea on the wrong side only within 0.45 units of the coast.
+- `src/render/models/fieldGround.ts`: one indexed, smooth-shaded grid per field, colours by zone (`terrain.json › draw`, `palette.json` grounds `slope` and styles `wet`). `ground.ts › facetedGround` draws the `smooth: 0` shapes as their classic pieces.
+- Island builder: `editor.html?look=v2` draws the same ground (and `npm run shots -- --editor … --look v2`); Smooth field per shape; `npm run island -- <id> ground <i> --smooth s`.
+- Ground triangles: High 615k, Medium 160k, Low 73k (no raise over #268). Fields: about 1.7 s for the whole sea.
+
 ### 3. Coast check (about 1 week, can run with step 2)
 
 The smoothed shoreline (height 0 contour) must stay within a tolerance of the sim coast (`coast.ts`) everywhere, and berths and piers must stay reachable. Add a check to `src/sim/islandChecks.ts` / `mapChecks.ts`, run by `npm run check`, that compares the two outlines (suggested limit: 1.5 units, to tune) and lists the worst points per island; `npm run chart -- --overlay` draws both lines for review.
@@ -81,11 +88,15 @@ What the mockup did:
 - `calmWater.ts`, `currentWater.ts` and `roughWater.ts` read the shore texture too: check each still lines up.
 - Don't use the shore-distance texture for the deep tint: it saturates at 64 units and showed hard steps in the mockup.
 
+**Built (#274, 2026-10-28, [0233](../decisions/0233-depth-coloured-water-from-the-height-fields.md)).** Under `?look=v2`: `seabedDepth.ts` bakes the depth (whole map, 3-unit cells, one byte, 0.4 MB, about 0.1 s) from the drawn fields and terrain shapes; `seabedTexture.ts` caches it per view; `seaWater.ts` blends the per-sea colours (`palette.json › water`) at the camera; numbers in `graphics.json › water.depth`. Differences from the mockup, after the art director's review: all land and reefs count as one height (`land` 24) and the blur is 6 cells, so the turquoise band runs about 14 to 16 units out; a `night` floor per sea keeps night water moonlit navy; the v1.1 reflection and glint numbers are kept. Shots: `/mnt/project-files/depth-water/`.
+
 ### 5. Forests (1 to 2 weeks)
 
 What the mockup did: random cells on the height field, kept if height > 1.4, `normal.y` > 0.8, a clump noise (fbm at 0.035 per unit) > 0.43, not within one 2-unit cell of a house, within 480 units of the camera; `InstancedMesh` per tree kind (broadleaf: icosahedron detail 1, crown at 2.6; pine: 7-sided cone 3.2 high; trunk cylinder), scale 0.8 to 1.6, five greens per kind via `setColorAt`, shadows on.
 
 In the game: woods come from data (the island builder's `woods` areas, plus a density per biome), trees are prop recipes (`src/data/props/`) drawn instanced, counts by quality level. Art review rules: ring pines and broadleaf (up to about 40% cover), south palms and jungle broadleaf (about 55%), north snow-pines in valleys only (about 15%), west sparse birch scrub (about 8%), east no forest (heather, bracken, walls); keep 1.5 house widths clear round houses, no trees on lanes, fields, piers, plots or the camera's line to the town (Saltmere's town was swallowed in the mockup).
+
+**Built (#275, decision [0236](../decisions/0236-instanced-forests-from-biome-recipes.md)):** `src/data/forests.json` (how-to: [docs/content/forests.md](../content/forests.md)), placement `src/sim/forest.ts`, drawing `src/render/models/forest.ts`. Woods off stay treeless; painted woods and new-look-only groves grow thick, the rest in clumps, with small trees and hedgerows. Cost on the whole game map at level 2: High/Ultra 1070 trees, 19 draws, 24k triangles, 81 KB instances; Medium 752 trees, 17k; Low 481 trees, 11k triangles, no tree shadows. `?bench` on the old tablet may lower Low's `share`.
 
 ### 6. Haze and sky (2 to 3 days)
 
@@ -118,3 +129,5 @@ Before release, `?bench` on the old tablet decides the Low grid and tree count.
 ## Effort
 
 About 7 to 9 weeks in all: height field and split 3 to 5 days, ground and editors 1 to 2 weeks, coast check about 1 week, water about 1 week, forests 1 to 2 weeks, haze 2 to 3 days, biomes and review about 2 weeks.
+
+**Built (#276, 2026-10-28).** Under `?look=v2`: each sea's `palette.json › water › horizon` (light, blue-leaning, never grey) is blended at the camera with the water ramp (`seaWater.ts`); `atmosphere.ts` fades the sky, and with it the fog (the ocean's fog colour too), toward it by `graphics.json › water.haze.amount` (0.35). Dusk (`duskFade`) and rain or storm (`gloomFade`) take part away, night all of it, so night stays deep blue. No new pass or texture, so no budget change. Night shallows were rechecked with the haze: no cyan glow beyond the `night` floor. Shots: `/mnt/project-files/haze-sky/`.

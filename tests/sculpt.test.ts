@@ -42,6 +42,7 @@ function flat(height = 1): Heightfield {
     terrace: new Uint8Array(w * w).fill(1),
     ground: new Uint8Array(w * w),
     grounds: [''],
+    smooth: new Float32Array(w * w).fill(1),
     seabed: -3.5,
     seed: 1,
   };

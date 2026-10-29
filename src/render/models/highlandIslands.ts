@@ -1,45 +1,33 @@
 import * as THREE from 'three';
 import { TUNING } from '../../data/tuning';
-import { groundColors } from '../../data/grounds';
-import type { IslandDef, MapDef, TerrainDef } from '../../sim/map';
+import type { IslandDef, MapDef } from '../../sim/map';
 import { terrainSeed } from '../../sim/landmarks';
 import { atLevel, designOf, designQuestIds } from '../../data/islands';
 import { PROP_RECIPES } from '../../data/props';
 import { islandLayout, islandPoint } from '../../sim/islandLayout';
 import { ISLAND_SCALE } from '../../sim/islandUnits';
-import {
-  type Heightfield,
-  fieldLod,
-  islandHeightfield,
-  terrainHeightfield,
-} from '../../sim/heightfield';
+import { type Heightfield, islandHeightfield, terrainHeightfield } from '../../sim/heightfield';
 import type { QualityLevel } from '../quality';
 import type { TerrainLook } from '../terrainLook';
 import { isGlowing, isMolten, mergeAll, vertexColorMaterial } from './geometry';
 import type { Crater, IslandModel, IslandsBuilder } from './types';
 import { featureGround, iceField } from './ground';
-import { type FieldColor, fieldGround } from './fieldGround';
-import { B2 } from './highlandPalette';
+import {
+  type FieldPalette,
+  designPalette,
+  featurePalette,
+  fieldGround,
+  fieldGroundMaterial,
+  fieldGroundTexture,
+} from './fieldGround';
 import { islandParts, shownLevel } from './islandParts';
 import { terrainProps } from './terrainProps';
 import { type Stand, fieldStand, standHeight } from './townProps';
+import { plantForest } from '../../sim/forest';
+import { forestMeshes, setForestQuality } from './forest';
+import { emptyClearings } from './forestPlan';
 import type { TownLevel } from './towns';
 import type { Parts } from './props';
-
-/** The new look's ground colours of an island file (until the biome palettes of issue #269). */
-export function designColor(style: string): FieldColor {
-  return (ground, steep) => {
-    const look = groundColors(ground === '' || ground === 'lake' ? 'sand' : ground, style);
-    return (steep ? look.side : look.top)[0]!;
-  };
-}
-
-/** The new look's ground colours of a terrain shape: the classic tiers' colours. */
-function featureColor(feature: TerrainDef): FieldColor {
-  const sand = feature.look?.color ?? B2.sand;
-  return (ground, steep) =>
-    steep ? B2.rock : ground === 'grass' ? B2.grass : ground === 'rock' ? B2.rock2 : sand;
-}
 
 /** Separate land batches keep camera and shadow culling local to each island. */
 export class HighlandIslands extends THREE.Group implements IslandModel {
@@ -57,8 +45,12 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
   private questsDone: ReadonlySet<string> = new Set();
 
   /** The new look's height fields, by batch, to redraw their ground at another quality level. */
-  private readonly fields = new Map<THREE.Group, { field: Heightfield; color: FieldColor }>();
+  private readonly fields = new Map<
+    THREE.Group,
+    { field: Heightfield; material: THREE.Material }
+  >();
   private groundStep: number;
+  private quality: QualityLevel;
 
   constructor(
     private readonly map: MapDef,
@@ -69,6 +61,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     quality: QualityLevel = 'high',
   ) {
     super();
+    this.quality = quality;
     this.groundStep = TUNING.terrain.groundStep[quality];
     this.levels = { ...levels };
     this.userData.harbours = {};
@@ -92,7 +85,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
           : [...(field ? [] : featureGround(feature)), ...terrainProps(feature, seed)];
       const group = this.batch(parts);
       group.name = `terrain:${feature.id}`;
-      if (field) this.addGround(group, field, featureColor(feature));
+      if (field) this.addGround(group, field, featurePalette(feature));
       this.add(group);
     }
   }
@@ -131,6 +124,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     const field =
       this.look === 'v2' && design ? islandHeightfield(island, shownLevel(island, level)) : null;
     const stand = field ? fieldStand(island, field) : undefined;
+    const clearings = field ? emptyClearings(island, design!, !!island.look?.dock) : undefined;
     const parts = islandParts(
       island,
       this.map,
@@ -146,33 +140,54 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
       this.homeBuilt[island.id],
       this.questsDone,
       stand,
+      clearings,
     );
     this.findCraters(island.id, parts);
     this.findVents(island, port ? (level ?? 1) : 4, stand);
     const group = this.batch(parts);
     group.name = `island:${island.id}`;
-    if (field) this.addGround(group, field, designColor(design!.style));
+    if (field) this.addGround(group, field, designPalette(design!.style));
+    if (field && clearings) {
+      const shown = shownLevel(island, level);
+      const trees = plantForest({ island, design: design!, field, level: shown, clearings });
+      if (trees.length) group.add(forestMeshes(trees, design!.style, this.land, this.quality));
+    }
     return group;
   }
 
   /** The new look's ground of a batch, drawn from its height field at the quality's detail. */
-  private addGround(group: THREE.Group, field: Heightfield, color: FieldColor) {
-    this.fields.set(group, { field, color });
-    const mesh = this.mesh([fieldGround(fieldLod(field, this.groundStep), color)], this.land);
+  private addGround(group: THREE.Group, field: Heightfield, palette: FieldPalette) {
+    // The colours live in a texture at the field's own grid: built once, whatever the quality.
+    const material = fieldGroundMaterial(fieldGroundTexture(field, palette));
+    this.fields.set(group, { field, material });
+    this.addGroundMesh(group, field, material);
+  }
+
+  private addGroundMesh(group: THREE.Group, field: Heightfield, material: THREE.Material) {
+    const geometry = fieldGround(field, this.groundStep);
+    geometry.computeBoundingBox();
+    geometry.computeBoundingSphere();
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.castShadow = mesh.receiveShadow = this.shadows;
     mesh.name = 'ground';
     group.add(mesh);
   }
 
   /** Redraw the new look's ground at a quality level's detail; the field itself never changes. */
   setQuality(level: QualityLevel) {
+    this.quality = level;
+    for (const group of this.batches.values()) {
+      const forest = group.getObjectByName('forest');
+      if (forest) setForestQuality(forest, level);
+    }
     const step = TUNING.terrain.groundStep[level];
     if (step === this.groundStep) return;
     this.groundStep = step;
-    for (const [group, { field, color }] of this.fields) {
+    for (const [group, { field, material }] of this.fields) {
       const old = group.getObjectByName('ground') as THREE.Mesh;
       old.geometry.dispose();
       group.remove(old);
-      this.addGround(group, field, color);
+      this.addGroundMesh(group, field, material);
     }
   }
 
@@ -284,7 +299,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     next.visible = old.visible;
     this.remove(old);
     disposeGeometry(old);
-    this.fields.delete(old);
+    this.disposeGround(old);
     this.batches.set(island.id, next);
     this.add(next);
   }
@@ -294,15 +309,25 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     this.land.dispose();
     this.glass.dispose();
     this.lava.dispose();
+    for (const group of [...this.fields.keys()]) this.disposeGround(group);
     this.clear();
     this.batches.clear();
-    this.fields.clear();
+  }
+
+  /** A batch's new-look ground material and its colour texture. */
+  private disposeGround(group: THREE.Group) {
+    const material = this.fields.get(group)?.material as THREE.MeshLambertMaterial | undefined;
+    material?.map?.dispose();
+    material?.dispose();
+    this.fields.delete(group);
   }
 }
 
 function disposeGeometry(root: THREE.Object3D) {
   root.traverse((object) => {
-    if (object instanceof THREE.Mesh) object.geometry.dispose();
+    // A forest's tree models are shared by every island: only its own instances go.
+    if (object instanceof THREE.InstancedMesh) object.dispose();
+    else if (object instanceof THREE.Mesh) object.geometry.dispose();
   });
 }
 

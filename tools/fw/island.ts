@@ -21,7 +21,9 @@ import {
   isSculptCommand,
   sculptFrame,
 } from '../../src/sim/sculptScript';
-import { islandCheckKit } from '../../src/render/models/towns';
+import { type TownLevel, islandCheckKit } from '../../src/render/models/towns';
+import { designForest } from '../../src/render/models/forestPlan';
+import { FORESTS } from '../../src/data/forests';
 import { isResidence } from '../../src/render/models/townProps';
 import { type Args, num, pair, pointList } from './islandArgs';
 import { SCULPT_HELP, exportJson, listEdits, sculptCall } from './islandSculpt';
@@ -37,8 +39,8 @@ new:   --outline "x,z x,z …" or --blob r=1,points=14,rough=0.22,stretch=1,turn
        --name "Palm Key" --style <a palette.json style: timber, fish, ice…> --seed 7103 --low 0.06 --force
 steps (island-radius units, harbour toward +z; --level n = from that town level):
   islet     --outline … | --blob r=0.3,… --at x,z [--low h]
-  plateau   --at x,z [--size rx,rz | --outline … | --blob …] [--height h | --rise 0.2] [--slope w] [--rock | --material snow] [--level n]
-  mountain  --at x,z [--size rx,rz | --outline … | --blob …] [--height h | --rise 0.6] [--material slate] [--level n]
+  plateau   --at x,z [--size rx,rz | --outline … | --blob …] [--height h | --rise 0.2] [--slope w] [--rock | --material snow] [--level n] [--smooth s]
+  mountain  --at x,z [--size rx,rz | --outline … | --blob …] [--height h | --rise 0.6] [--material slate] [--crater c] [--level n] [--smooth s]
   lake      --at x,z [--size rx,rz | --outline … | --blob …]
   ramp      --points "x,z x,z …" [--start h --end h (default: the ground there)] [--width 0.1] [--rock | --material m] [--level n]
   lane | path | stairs   --points "x,z x,z …" (stairs take the ground's height at each point)
@@ -46,7 +48,9 @@ steps (island-radius units, harbour toward +z; --level n = from that town level)
             [--kind water|lava] [--width 0.04] [--level n --to n --tags after:quest]
             a point "x,z,w" has its own width; the river eases between widths
   widen     <river> --point n --width w   one point's own width (--width none: the river's)
-  woods     --at x,z [--r 0.2] [--clear]  paint (turns woods on); --tree --tries --size --spacing --margin
+  woods     --at x,z [--r 0.2] [--clear | --grove]  paint (turns woods on; --grove: new look only);
+            --tree --tries --size --spacing --margin
+            --density d  the new look's forest: its biome's cover × d (0 none, 1 as forests.json)
   spot      --at x,z [--pair id] [--y h]
   prop      <type> --at "x,z[ x,z …]" [--turn deg --size s --variant v --shape s --length l --y h --fit r --clear r]
             [--level n --to n --tags a,b]
@@ -56,12 +60,15 @@ steps (island-radius units, harbour toward +z; --level n = from that town level)
   view      --from x,z --look x,z [--height h --look-height h] [--accent #hex]   the harbour screen's
             picture of its port (decision 0211; heights in radius units; none clears one, --clear all)
   ground    <index> [--ramp] --material <palette.json ground: grass, rock, snow, ice…> [--height h] [--beach w (a coast ground: its beach width)]
+            [--smooth 0..1 (the new look's rounding: 0 stays faceted, a stack or crater rim; 1 the default)]
   sculpt    hand terrain, brush by brush (help below); also steps {"do":"sculpt",…} in --steps
   tidy      rewrite the file in the builder's format (any step does)
 options: --steps steps.json (or '[{"do":"prop",…}]': a list of steps as data, see src/editor/island/steps.ts)
          --radius r  map radius to check at (default: the island's size on the ring or the Phase 4 sea)
          --no-harbour  check as an island without a harbour; --out file  write there instead
          --dry  do not write; --warnings  list warnings; --json  summary, steps and problems as JSON
+         --forest [--level n]  the new look's trees (forests.json) at that town level (default 4):
+                   by kind, and how many each quality level draws
 ${SCULPT_HELP}`;
 
 /** "r=1,points=14,rough=0.2" */
@@ -108,6 +115,7 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
         material,
         slope: num(args.slope),
         crater: num(args.crater),
+        smooth: num(args.smooth),
         ...shaped,
       });
     case 'lake':
@@ -151,11 +159,13 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
         at,
         r: num(args.r),
         clear: args.clear ? true : undefined,
+        grove: args.grove ? true : undefined,
         tree: typeof args.tree === 'string' ? args.tree : undefined,
         tries: num(args.tries),
         size: num(args.size),
         spacing: num(args.spacing),
         margin: num(args.margin),
+        density: num(args.density),
       });
     case 'spot':
       return clean({
@@ -206,6 +216,7 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
         material: typeof args.material === 'string' ? args.material : undefined,
         height: num(args.height),
         beach: num(args.beach),
+        smooth: num(args.smooth),
       });
     case 'set':
       return clean({
@@ -259,6 +270,19 @@ function printSculpt(design: IslandDesign, call: ReturnType<typeof sculptCall>) 
     call.to ? `exported ${design.sculpt?.edits.length} edits → ${call.to}` : json.trimEnd(),
   );
   return 0;
+}
+
+/** "forest at level 4: 118 trees (broadleaf 103, pine 15); Low 53 · Medium 83 · High 118" */
+function forestLine(design: IslandDesign, place: { R: number; harbour: boolean }, level: number) {
+  const island = sculptFrame(design.id, place.R);
+  const trees = designForest(island, design, level as TownLevel, place.harbour);
+  const kinds = new Map<string, number>();
+  for (const t of trees) kinds.set(t.kind, (kinds.get(t.kind) ?? 0) + 1);
+  const mix = [...kinds].map(([k, n]) => `${k} ${n}`).join(', ');
+  const drawn = Object.entries(FORESTS.quality)
+    .map(([q, { share }]) => `${q} ~${Math.round(trees.length * share)}`)
+    .join(' · ');
+  return `forest at level ${level}: ${trees.length} trees${mix ? ` (${mix})` : ''}; ${drawn}`;
 }
 
 export function run(args: Args): number {
@@ -335,9 +359,10 @@ export function run(args: Args): number {
   } catch {
     triangles = undefined;
   }
+  const forest = args.forest ? forestLine(design, place, num(args.level) ?? 4) : undefined;
   const summary = `${islandSummary(design, isResidence)}${
     triangles !== undefined ? `, ${triangles} triangles at level 4` : ''
-  }`;
+  }${forest ? `; ${forest}` : ''}`;
   if (args.json) {
     console.log(
       JSON.stringify({ summary, file, written: write, made, place, triangles, problems }, null, 1),

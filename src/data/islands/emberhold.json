@@ -96,7 +96,8 @@
       "material": "rock",
       "shape": "peak",
       "base": 0.3,
-      "crater": 0.35
+      "crater": 0.35,
+      "smooth": 0
     },
     {
       "outline": [

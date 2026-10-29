@@ -1,6 +1,6 @@
 # Terrain tab
 
-*Decision [0235](../../decisions/0235-terrain-brushes-in-the-island-builder.md), issue #271. The same edits as `npm run island -- <id> sculpt …` ([docs/tools/terrain.md](../../tools/terrain.md)).*
+*Decision [0238](../../decisions/0238-terrain-brushes-in-the-island-builder.md), issue #271. The same edits as `npm run island -- <id> sculpt …` ([docs/tools/terrain.md](../../tools/terrain.md)).*
 
 Open an island, pick **Terrain**. The island is drawn from its height field in the top view and the 3D preview, lighter the higher it stands.
 

@@ -37,6 +37,11 @@ export interface GroundDef {
   slope?: number;
   /** Which edges slope, as runs of edge indices [first, last]; left out, every edge. */
   slopeEdges?: [number, number][];
+  /**
+   * How much the new look smooths it (decision 0222, issue #269), 0 to 1; left out, 1. At 0 it
+   * stays faceted, drawn crisp over the rolling ground: sea stacks, signature cliffs, crater rims.
+   */
+  smooth?: number;
   from?: number;
   to?: number;
 }
@@ -214,6 +219,14 @@ export interface WoodsDef {
   clear?: [number, number, number][];
   /** Painted circles [x, z, r] where trees may grow; left out or empty, anywhere in `area`. */
   areas?: [number, number, number][];
+  /** Painted circles [x, z, r] of woods only the new look's forest grows (decision 0236). */
+  groves?: [number, number, number][];
+  /**
+   * The new look's forest (issue #275): a multiplier on its biome's cover (`forests.json`), 0 for
+   * none; left out, 1. The biome picks the trees; `tree`, `tries` and `spacing` are the classic
+   * look's, but woods off (`tries` 0) grow no forest either.
+   */
+  density?: number;
 }
 
 export interface IslandDesign {

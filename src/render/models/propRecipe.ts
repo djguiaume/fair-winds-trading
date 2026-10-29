@@ -30,6 +30,8 @@ export interface PropBuildArgs {
   rng?: Rng;
   /** Var values that replace the recipe's (the old town code's `crates(5)`). */
   vars?: Record<string, number>;
+  /** Palette colours that replace the style's for this prop (a forest kind's own leaves). */
+  colors?: Record<string, string | string[]>;
 }
 
 type Scope = Record<string, number>;
@@ -280,7 +282,10 @@ function scopeOf(recipe: PropRecipe, args: PropBuildArgs): Scope {
 export function prepareProp(id: string, args: PropBuildArgs): () => Parts {
   const recipe = recipeOf(id);
   const s = scopeOf(recipe, args);
-  const style = PALETTE.styles[recipe.style ?? args.style];
+  const base = PALETTE.styles[recipe.style ?? args.style] as
+    ((typeof PALETTE.styles)[string] & { colors?: Record<string, string | string[]> }) | undefined;
+  const style =
+    args.colors && base ? { ...base, colors: { ...base.colors, ...args.colors } } : base;
   return () => {
     const out: Parts = [];
     const emit = (p: RecipePart, s: Scope) => {

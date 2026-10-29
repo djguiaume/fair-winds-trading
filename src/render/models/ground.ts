@@ -16,7 +16,7 @@ import {
   type LayoutRamp,
   type Outline,
 } from '../../sim/islandLayout';
-import { BEACH_TOP } from '../../sim/islandUnits';
+import { BEACH_TOP, ISLAND_SCALE } from '../../sim/islandUnits';
 import { isGlowing, paint, paintFaces, paintGroups } from './geometry';
 import { craterPool } from './lavaCracks';
 import type { Parts } from './props';
@@ -24,8 +24,8 @@ import { B2 } from './highlandPalette';
 
 /**
  * The islands' ground, apart from what stands on it (issue #268): the classic extruded tiers of
- * the island files and terrain shapes, and the new look's ground drawn from the shared height
- * field (decision 0222, `?look=v2`).
+ * the island files and terrain shapes, and the pieces that stay faceted in the new look
+ * (decision 0222, `?look=v2`), whose rolling ground is `fieldGround.ts`.
  */
 
 /** An island file's outline as a three.js shape, in reference units (z drawn as -y). */
@@ -68,24 +68,8 @@ export function designedGround(layout: IslandLayout, style: string, R: number): 
     out.push(tier(coast, -1, BEACH_TOP, beach, R, layout.lake ? [layout.lake] : []));
   for (const s of layout.surfaces) {
     const look = ground(s.material);
-    if (s.shape === 'peak') {
-      const { cx, cz, rx, rz } = peakBox(s);
-      const mountainBase = (s.base ?? 0) * R;
-      const height = s.height * R - mountainBase;
-      // A snow line (capAbove) needs rings up the cone to fall on; plain peaks keep one. A
-      // volcano's cone is cut off at its crater's rim (decision 0171).
-      const rings = look.cap ? 4 : 1;
-      const g = (
-        s.crater
-          ? new THREE.CylinderGeometry(R * s.crater, R, height, PEAK_SEGMENTS, rings)
-          : new THREE.ConeGeometry(R, height, PEAK_SEGMENTS, rings)
-      )
-        .scale(rx, 1, rz)
-        .translate(cx * R, (s.height * R + mountainBase) / 2, cz * R);
-      const line = mountainBase + height * (look.capAbove ?? 1);
-      out.push(paintFaces(g, look.peak, (_x, y) => (look.cap && y > line ? look.cap : undefined)));
-      if (s.crater) out.push(craterPool(s, R, look.glow ?? look.side[0]!, !!look.glow));
-    } else out.push(tier(s.outline, BEACH_TOP, s.height * R, look, R, s.holes));
+    if (s.shape === 'peak') out.push(...peak(s, look, R));
+    else out.push(tier(s.outline, BEACH_TOP, s.height * R, look, R, s.holes));
   }
   // Sloped edges (decision 0096 §4): a ramp down from the top, outward, to the ground below.
   for (const s of layout.surfaces)
@@ -93,6 +77,54 @@ export function designedGround(layout: IslandLayout, style: string, R: number): 
   // Ramps that climb along their length (decision 0123).
   for (const r of layout.ramps) out.push(...rampBand(r, R, ground(r.material)));
   // Glowing parts (a crater's lava) go to the windows' mesh, not the terrain's.
+  for (const g of out) if (!isGlowing(g)) g.userData.islandTerrain = true;
+  return out;
+}
+
+/**
+ * A mountain's cone over its outline, from its base to its height; a volcano's cut off at its
+ * crater's rim (decision 0171), with its pool. `skirt`: a wall down to that height under the
+ * base, so a faceted cone stands on smoothed ground lower than its base without a gap.
+ */
+function peak(s: LandSurface, look: GroundColors, R: number, skirt?: number): Parts {
+  const { cx, cz, rx, rz } = peakBox(s);
+  const mountainBase = (s.base ?? 0) * R;
+  const height = s.height * R - mountainBase;
+  // A snow line (capAbove) needs rings up the cone to fall on; plain peaks keep one.
+  const rings = look.cap ? 4 : 1;
+  const g = (
+    s.crater
+      ? new THREE.CylinderGeometry(R * s.crater, R, height, PEAK_SEGMENTS, rings)
+      : new THREE.ConeGeometry(R, height, PEAK_SEGMENTS, rings)
+  )
+    .scale(rx, 1, rz)
+    .translate(cx * R, (s.height * R + mountainBase) / 2, cz * R);
+  const line = mountainBase + height * (look.capAbove ?? 1);
+  const out = [paintFaces(g, look.peak, (_x, y) => (look.cap && y > line ? look.cap : undefined))];
+  if (s.crater) out.push(craterPool(s, R, look.glow ?? look.side[0]!, !!look.glow));
+  if (skirt !== undefined && skirt < mountainBase) {
+    const wall = new THREE.CylinderGeometry(R, R, mountainBase - skirt, PEAK_SEGMENTS, 1, true)
+      .scale(rx, 1, rz)
+      .translate(cx * R, (mountainBase + skirt) / 2, cz * R);
+    out.push(paintFaces(wall, look.side));
+  }
+  return out;
+}
+
+/**
+ * The shapes of an island file that stay faceted in the new look (`smooth: 0`, issue #269):
+ * their classic tiers and cones, reaching down to the seabed under the smoothed ground round
+ * them, so the sharp landmark stands crisp on the rolling land.
+ */
+export function facetedGround(layout: IslandLayout, style: string, R: number): Parts {
+  const deep = TUNING.terrain.seabed / ISLAND_SCALE;
+  const out: Parts = [];
+  for (const s of layout.surfaces) {
+    if ((s.smooth ?? 1) > 0) continue;
+    const look = groundColors(s.material, style);
+    if (s.shape === 'peak') out.push(...peak(s, look, R, deep));
+    else out.push(tier(s.outline, deep, s.height * R, look, R, s.holes));
+  }
   for (const g of out) if (!isGlowing(g)) g.userData.islandTerrain = true;
   return out;
 }
