@@ -16,7 +16,7 @@ Status: `todo`, `sheet` (sheet made), `AD ok`, `ok` (Guillaume), `fix` (see note
 
 ## Ring (12): calda, saltmere, westholm, south-cay (Stonehaven), skerry, bell-rock, abbey-head, watchman-key, lantern-rock, greyback-ridge, gull-hook, teeth-rock
 
-Status: sheet (AD review pending). Ports (calda, saltmere, westholm, south-cay, watchman-key, abbey-head) also close and at night. Coast: the smoothed coast matches the file coast on every ring island.
+Status: AD ok (2026-10-29), waiting for Guillaume. Fixed in the round: Low shore band and foam ring, night shallows (`graphics.json › water.depth.nightShallow`), cabin side windows (Calda), Stonehaven plateau faceted (no pale quarry band). Nice to have: reeds or rocks on Greyback Ridge and Gull Hook's sand; Stonehaven's close-zoom slopes are big flat triangles.
 
 ## South (5): sunreach, sunreach-south, palm-key, lone-palm, two-palms
 ## North (8): rimewick, snowberry-isle, whitefell, lead-rock, cairn-holm, seal-rocks, selkie-rock, old-blue
@@ -28,7 +28,6 @@ Status: todo.
 ## Carried over
 
 - Traffic boats: recheck hull, band and `wakeEdge` colours on depth water and haze (#331).
-- Night shallows: recheck the cyan with haze (#274, #276); #276 only shot Ultra, so look at Low and High too.
 - Fogwatch and the east sea: heath and bracken ground patches (new `palette.json` ground, used in the fog and strand styles), more boulders and walls (#275).
 - Emberhold scrub: bigger birch clumps near the lanes (`forests.json › biomes.west`, or the island's grove/density) (#275).
 
