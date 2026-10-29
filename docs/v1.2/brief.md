@@ -18,6 +18,7 @@ Guillaume's order: other boats first.
 | #276 | Per-sea haze, sky, night | low | yes | Sonnet | 4 (after #269, #274) |
 | #277 | Island-by-island art acceptance (ring first) | med | yes | Sonnet | 5 |
 | #278 | Performance and device gates, `?bench` | med | no | Sonnet | 5 |
+| #350 | Make look v2 the default; `?look=v1` keeps the old look (Guillaume, 2026-10-29) | low | yes | Sonnet | 6 (last, after #277, #278) |
 
 Carried from v1.1, one low-effort Sonnet thread alongside wave 1 (UI files only, no overlap): #326 night dimming of paper screens, #319 Style E text audit. The bug fixes (#255) moved to the next release, v1.3, by Guillaume on 2026-10-28; new bugs become `bug` issues for it.
 
