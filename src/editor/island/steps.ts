@@ -29,8 +29,8 @@ import {
   setRiverPointWidth,
   blobOutline,
   deleteShape,
-  paintWoods,
 } from './shapes';
+import { type WoodsStep, applyWoodsStep } from './groves';
 
 /**
  * Island edits as data (decision 0153, `npm run island`): each step is one of the island
@@ -87,17 +87,7 @@ export type IslandStep =
       to?: Level;
       tags?: string[];
     }
-  | {
-      do: 'woods';
-      at?: At;
-      r?: number;
-      clear?: boolean;
-      tree?: string;
-      tries?: number;
-      size?: number;
-      spacing?: number;
-      margin?: number;
-    }
+  | ({ do: 'woods' } & WoodsStep)
   | { do: 'spot'; at: At; pair?: string; y?: number }
   | {
       do: 'prop';
@@ -270,19 +260,8 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
       if (step.tags?.length) river.tags = [...step.tags];
       return `river ${index}`;
     }
-    case 'woods': {
-      const w = design.woods;
-      if (step.tree) w.tree = step.tree;
-      for (const key of ['tries', 'size', 'spacing', 'margin'] as const)
-        if (step[key] !== undefined) w[key] = step[key];
-      if (step.at) {
-        const [x, z] = step.at;
-        paintWoods(design, x, z, step.r ?? 0.2, step.clear ? 'clear' : 'grow');
-        // Painting woods on an island whose woods are off turns them on.
-        if (!step.clear && !w.tries && step.tries === undefined) w.tries = 260;
-      }
-      return 'woods';
-    }
+    case 'woods':
+      return applyWoodsStep(design, step);
     case 'spot': {
       const index = addSpot(design, step.at[0], step.at[1]);
       if (step.pair) setSpotPair(design, index, step.pair);

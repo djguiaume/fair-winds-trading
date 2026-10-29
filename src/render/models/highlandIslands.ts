@@ -23,6 +23,9 @@ import {
 import { islandParts, shownLevel } from './islandParts';
 import { terrainProps } from './terrainProps';
 import { type Stand, fieldStand, standHeight } from './townProps';
+import { plantForest } from '../../sim/forest';
+import { forestMeshes, setForestQuality } from './forest';
+import { emptyClearings } from './forestPlan';
 import type { TownLevel } from './towns';
 import type { Parts } from './props';
 
@@ -47,6 +50,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     { field: Heightfield; material: THREE.Material }
   >();
   private groundStep: number;
+  private quality: QualityLevel;
 
   constructor(
     private readonly map: MapDef,
@@ -57,6 +61,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     quality: QualityLevel = 'high',
   ) {
     super();
+    this.quality = quality;
     this.groundStep = TUNING.terrain.groundStep[quality];
     this.levels = { ...levels };
     this.userData.harbours = {};
@@ -119,6 +124,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     const field =
       this.look === 'v2' && design ? islandHeightfield(island, shownLevel(island, level)) : null;
     const stand = field ? fieldStand(island, field) : undefined;
+    const clearings = field ? emptyClearings(island, design!, !!island.look?.dock) : undefined;
     const parts = islandParts(
       island,
       this.map,
@@ -134,12 +140,18 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
       this.homeBuilt[island.id],
       this.questsDone,
       stand,
+      clearings,
     );
     this.findCraters(island.id, parts);
     this.findVents(island, port ? (level ?? 1) : 4, stand);
     const group = this.batch(parts);
     group.name = `island:${island.id}`;
     if (field) this.addGround(group, field, designPalette(design!.style));
+    if (field && clearings) {
+      const shown = shownLevel(island, level);
+      const trees = plantForest({ island, design: design!, field, level: shown, clearings });
+      if (trees.length) group.add(forestMeshes(trees, design!.style, this.land, this.quality));
+    }
     return group;
   }
 
@@ -163,6 +175,11 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
 
   /** Redraw the new look's ground at a quality level's detail; the field itself never changes. */
   setQuality(level: QualityLevel) {
+    this.quality = level;
+    for (const group of this.batches.values()) {
+      const forest = group.getObjectByName('forest');
+      if (forest) setForestQuality(forest, level);
+    }
     const step = TUNING.terrain.groundStep[level];
     if (step === this.groundStep) return;
     this.groundStep = step;
@@ -308,7 +325,9 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
 
 function disposeGeometry(root: THREE.Object3D) {
   root.traverse((object) => {
-    if (object instanceof THREE.Mesh) object.geometry.dispose();
+    // A forest's tree models are shared by every island: only its own instances go.
+    if (object instanceof THREE.InstancedMesh) object.dispose();
+    else if (object instanceof THREE.Mesh) object.geometry.dispose();
   });
 }
 
