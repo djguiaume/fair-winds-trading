@@ -11,7 +11,7 @@ import {
 } from './heightfield';
 import { islandCoasts, islandLake } from './islandLayout';
 import { terrainSeed } from './landmarks';
-import { clearAt, type MapCheck } from './mapChecks';
+import { clearAt, type MapCheck, questTagsCheck, quickChecks } from './mapChecks';
 import type { MapDef, PortDef } from './map';
 import { DEFAULT_START_LEVEL, MAX_SETTLEMENT_LEVEL } from './settlement';
 
@@ -131,3 +131,10 @@ function harbourGround(map: MapDef, port: PortDef): string[] {
   }
   return out;
 }
+
+/** The map editor's checks: the quick checks, the coast checks and the quest tags. */
+export const editorChecks = (map: MapDef, quests: readonly string[]): MapCheck[] => [
+  ...quickChecks(map),
+  ...coastMapChecks(map),
+  questTagsCheck(map, quests),
+];

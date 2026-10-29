@@ -6,8 +6,8 @@ import { ISLAND_DESIGNS, useIslandDesign } from '../data/islands';
 import { PHASE1_MAP, PHASE1_SOURCE, prepareMap } from '../data/maps';
 import phase1Text from '../data/phase1-map.json?raw';
 import type { MapDef } from '../sim/map';
-import { coastMapChecks } from '../sim/mapCoast';
-import { type MapCheck, distanceChanges, questTagsCheck, quickChecks } from '../sim/mapChecks';
+import { editorChecks } from '../sim/mapCoast';
+import { type MapCheck, distanceChanges } from '../sim/mapChecks';
 import { type Sectors, sectorChecks } from '../sim/seaSectors';
 import { seaReach, seaShape } from '../sim/seaEdge';
 import { QUESTS } from '../sim/quests';
@@ -472,9 +472,7 @@ function showChecks() {
 
 function runChecks() {
   quick = [
-    ...quickChecks(prepared),
-    ...coastMapChecks(prepared),
-    questTagsCheck(
+    ...editorChecks(
       prepared,
       QUESTS.map((q) => q.id),
     ),
