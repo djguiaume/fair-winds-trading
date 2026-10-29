@@ -281,6 +281,11 @@ export class Ocean {
     this.mesh.material.uniforms.uDepthBounds!.value = seabed.bounds;
   }
 
+  /** The sky's horizon tint of the sea at the camera (issue #276); null away from the new look. */
+  get horizon(): THREE.Color | null {
+    return this.depth ? this.ramp.horizon : null;
+  }
+
   private get depth(): boolean {
     return 'DEPTH' in this.mesh.material.defines;
   }

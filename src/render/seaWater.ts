@@ -15,6 +15,8 @@ export interface WaterRamp {
   mid: THREE.Color;
   deep: THREE.Color;
   night: THREE.Color;
+  /** The sky's tint at the horizon by day (issue #276), what the haze fades the far sea to. */
+  horizon: THREE.Color;
 }
 
 /** The ring's own sea id, as in the sea files. */
@@ -25,6 +27,7 @@ const ramp = (colors: Record<keyof WaterRamp, string>): WaterRamp => ({
   mid: new THREE.Color(colors.mid),
   deep: new THREE.Color(colors.deep),
   night: new THREE.Color(colors.night),
+  horizon: new THREE.Color(colors.horizon),
 });
 
 /** Every sea's day colours, `palette.json › water`, by sea id. */
@@ -43,6 +46,7 @@ export const newRamp = (): WaterRamp => ({
   mid: new THREE.Color(),
   deep: new THREE.Color(),
   night: new THREE.Color(),
+  horizon: new THREE.Color(),
 });
 
 const smoothstep = (a: number, b: number, x: number) => {
@@ -73,6 +77,7 @@ function addScaled(out: WaterRamp, from: WaterRamp, weight: number) {
   addColor(out.mid, from.mid, weight);
   addColor(out.deep, from.deep, weight);
   addColor(out.night, from.night, weight);
+  addColor(out.horizon, from.horizon, weight);
 }
 
 /**
@@ -90,6 +95,7 @@ export function seaRampAt(
   out.mid.setRGB(0, 0, 0);
   out.deep.setRGB(0, 0, 0);
   out.night.setRGB(0, 0, 0);
+  out.horizon.setRGB(0, 0, 0);
   const r = Math.hypot(x, y);
   const outer = smoothstep(ringRadius - blend / 2, ringRadius + blend / 2, r);
   let ring = 1 - outer;

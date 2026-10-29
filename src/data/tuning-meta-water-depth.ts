@@ -122,4 +122,28 @@ export const WATER_DEPTH_META: Readonly<Record<string, TuningMeta>> = {
     'units',
     'Height an ice field counts as before the blur.',
   ),
+  'graphics.water.haze.amount': num(
+    'Horizon haze',
+    0,
+    0.6,
+    0.01,
+    'share',
+    "How far the sky fades to the sea's horizon tint (palette.json › water) on a clear day.",
+  ),
+  'graphics.water.haze.duskFade': num(
+    'Haze at dusk',
+    0,
+    1,
+    0.05,
+    'share',
+    'How much of the haze dusk and dawn take away; night keeps its deep blue.',
+  ),
+  'graphics.water.haze.gloomFade': num(
+    'Haze under cloud',
+    0,
+    1,
+    0.05,
+    'share',
+    'How much of the haze rain and storms take away, so they stay dark rather than milky.',
+  ),
 };

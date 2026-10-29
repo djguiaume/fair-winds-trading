@@ -49,6 +49,8 @@ The *Traffic Architect* look on every quality level: smooth rolling island groun
 - CLI (#272, decision [0234](../decisions/0234-terrain-command-line-tool-sculpt-commands-exportimport-and-l.md)): `npm run island -- <id> sculpt …` and `--steps` run the same `SculptSession` via `src/sim/sculptScript.ts` (`applySculpt`, `parseSculpt`, `sculptFrame`); list, remove, reset, export, import; limits in `terrain.json › sculpt › limits`. Guide: [docs/tools/terrain.md](../tools/terrain.md).
 - Diagnostic sheet of every operation on Port Calda: [sculpt-ops.jpg](sculpt-ops.jpg).
 
+**Terrain brushes (#271, 2026-10-28), decision [0238](../decisions/0238-terrain-brushes-in-the-island-builder.md).** The builder's Terrain tab ([how to use](../island-builder/builder/terrain.md)): `src/editor/island/terrain/` (`terrainTool.ts` session and strokes, `terrainPanel.ts`, `warnings.ts`, `brush.ts`), the field ground in both views through `FieldSurface` (`src/render/models/fieldSurface.ts`), numbers in `terrain.json › sculpt.editor`.
+
 ### 2. Smooth ground (1 to 2 weeks with the editors)
 
 What the mockup did (`prototype/new-look.js`), to reproduce with data:
@@ -99,6 +101,8 @@ What the mockup did: random cells on the height field, kept if height > 1.4, `no
 
 In the game: woods come from data (the island builder's `woods` areas, plus a density per biome), trees are prop recipes (`src/data/props/`) drawn instanced, counts by quality level. Art review rules: ring pines and broadleaf (up to about 40% cover), south palms and jungle broadleaf (about 55%), north snow-pines in valleys only (about 15%), west sparse birch scrub (about 8%), east no forest (heather, bracken, walls); keep 1.5 house widths clear round houses, no trees on lanes, fields, piers, plots or the camera's line to the town (Saltmere's town was swallowed in the mockup).
 
+**Built (#275, decision [0236](../decisions/0236-instanced-forests-from-biome-recipes.md)):** `src/data/forests.json` (how-to: [docs/content/forests.md](../content/forests.md)), placement `src/sim/forest.ts`, drawing `src/render/models/forest.ts`. Woods off stay treeless; painted woods and new-look-only groves grow thick, the rest in clumps, with small trees and hedgerows. Cost on the whole game map at level 2: High/Ultra 1070 trees, 19 draws, 24k triangles, 81 KB instances; Medium 752 trees, 17k; Low 481 trees, 11k triangles, no tree shadows. `?bench` on the old tablet may lower Low's `share`.
+
 ### 6. Haze and sky (2 to 3 days)
 
 Haze is a light tint of each sea's sky colour, at most about 35% at the horizon, never grey; night stays deep blue (`#1d2f4a`). Set from `atmosphere.ts`, colours per sea in data. The mockup used `#cfe1ea` and fog `near = 1.5 ×`, `far = 5 ×` the camera distance.
@@ -130,3 +134,5 @@ Before release, `?bench` on the old tablet decides the Low grid and tree count.
 ## Effort
 
 About 7 to 9 weeks in all: height field and split 3 to 5 days, ground and editors 1 to 2 weeks, coast check about 1 week, water about 1 week, forests 1 to 2 weeks, haze 2 to 3 days, biomes and review about 2 weeks.
+
+**Built (#276, 2026-10-28).** Under `?look=v2`: each sea's `palette.json › water › horizon` (light, blue-leaning, never grey) is blended at the camera with the water ramp (`seaWater.ts`); `atmosphere.ts` fades the sky, and with it the fog (the ocean's fog colour too), toward it by `graphics.json › water.haze.amount` (0.35). Dusk (`duskFade`) and rain or storm (`gloomFade`) take part away, night all of it, so night stays deep blue. No new pass or texture, so no budget change. Night shallows were rechecked with the haze: no cyan glow beyond the `night` floor. Shots: `/mnt/project-files/haze-sky/`.

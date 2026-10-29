@@ -1,0 +1,108 @@
+/* The island builder's Terrain tab (issue #271). */
+.ib-modes button {
+  padding-inline: 4px;
+  min-width: 0;
+}
+.ib-panel .ib-row-target {
+  grid-template-columns: 96px 1fr 36px;
+}
+.ib-panel .ib-row-check {
+  grid-template-columns: auto 1fr;
+}
+.ib-row-check > span {
+  color: inherit;
+}
+.ib-terrain-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+/* Portrait: the five tools in one row, names only, so the size and strength sliders stay in view. */
+@media (max-width: 900px), (orientation: portrait) {
+  .ib-terrain-tools {
+    flex-direction: row;
+    gap: 4px;
+  }
+  .ib-terrain-tools .ib-tool {
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 2px;
+    text-align: center;
+  }
+  .ib-terrain-tools .ib-tool small {
+    display: none;
+  }
+  .ib-terrain-tools .ib-tool b {
+    font-size: 14px;
+  }
+}
+.ib-terrain-settings {
+  display: grid;
+  gap: 2px;
+  margin-top: 6px;
+}
+.ib-terrain-settings .ed-row {
+  grid-template-columns: 64px 1fr 58px;
+}
+.ib-terrain-settings output {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-dim);
+  text-align: right;
+}
+.ib-terrain-settings input[type='range'],
+.ib-panel .ed-row input[type='range'] {
+  padding: 0;
+  min-height: 28px;
+}
+.ib-depth-legend {
+  display: flex;
+  height: 14px;
+  margin: 6px 0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.ib-depth-legend i {
+  flex: 1;
+}
+
+/* Overlay: the brush's footprint, a slope's ends, and the places a stroke spoiled. */
+.i-terrain-brush {
+  fill: rgba(255, 255, 255, 0.08);
+  stroke: #fff;
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.i-terrain-brush.blocked {
+  fill: rgba(255, 179, 107, 0.2);
+  stroke: var(--amber);
+}
+.i-terrain-core {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.7);
+  stroke-width: 1.5px;
+  stroke-dasharray: 4 4;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.i-terrain-slope {
+  stroke: #fff;
+  stroke-width: 3px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.i-terrain-end {
+  fill: #fff;
+  stroke: #123;
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+.i-terrain-warning {
+  fill: var(--amber);
+  stroke: #123;
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}

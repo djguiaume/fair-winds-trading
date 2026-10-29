@@ -19,6 +19,7 @@ import { checkPerks } from '../../src/sim/perks';
 import { type AudioData, audioProblems } from '../../src/audio/catalog';
 import { QUESTS, type QuestDef } from '../../src/sim/quests';
 import { sectorChecks } from '../../src/sim/seaSectors';
+import { forestProblems } from '../../src/data/forests';
 
 type Args = Record<string, string | boolean | undefined> & { _: string[] };
 
@@ -148,7 +149,10 @@ export function checkAll(opts: CheckOptions = {}) {
       for (const i of islandProblems(design, at))
         problems.push({ area: 'islands', where: id, severity: i.severity, message: i.message });
     }
-    counted.islands = `${ids.length} files`;
+    // The new look's forests (decision 0236): tree kinds, biomes, quality shares.
+    for (const message of forestProblems())
+      problems.push({ area: 'islands', where: 'forests.json', severity: 'error', message });
+    counted.islands = `${ids.length} files, forests.json`;
   }
 
   if (want('quests')) {

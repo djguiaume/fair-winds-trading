@@ -41,3 +41,36 @@ export function fbm(x: number, y: number, seed: number, octaves = 3): number {
   }
   return sum / total;
 }
+
+/**
+ * A well-mixed hash of a seed and two integers, in [0, 1): stateless, so a pass that reads it
+ * (the forests, decision 0236) can redo one corner of an island and get what a full pass would.
+ */
+export function hash01(seed: number, i: number, j: number): number {
+  let h = Math.imul(seed ^ 0x9e3779b9, 0x85ebca6b);
+  h = Math.imul(h ^ Math.imul(i | 0, 0xc2b2ae35), 0x27d4eb2f);
+  h = Math.imul(h ^ Math.imul(j | 0, 0x165667b1), 0x9e3779b1);
+  h ^= h >>> 15;
+  h = Math.imul(h, 0x2c1b3c6d);
+  h ^= h >>> 12;
+  h = Math.imul(h, 0x297a2d39);
+  h ^= h >>> 15;
+  return (h >>> 0) / 4294967296;
+}
+
+/** Sorted samples of `fbm`, per octave count: its distribution, measured once. */
+const fbmSamples = new Map<number, Float32Array>();
+
+/** The `fbm` value that a share `q` (0 to 1) of all points fall under. */
+export function fbmQuantile(octaves: number, q: number): number {
+  let sorted = fbmSamples.get(octaves);
+  if (!sorted) {
+    sorted = new Float32Array(4096);
+    for (let k = 0; k < sorted.length; k++)
+      sorted[k] = fbm((k % 64) * 0.37 + 0.13, Math.floor(k / 64) * 0.37 + 0.29, 7, octaves);
+    sorted.sort();
+    fbmSamples.set(octaves, sorted);
+  }
+  const k = Math.round(Math.min(1, Math.max(0, q)) * (sorted.length - 1));
+  return sorted[k]!;
+}
