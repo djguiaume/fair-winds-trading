@@ -12,6 +12,7 @@ import { ISLAND_SCALE } from '../../src/sim/islandUnits';
 import { islandCheckKit } from '../../src/render/models/towns';
 import { checkIsland } from '../../src/sim/islandChecks';
 import type { MapDef } from '../../src/sim/map';
+import { coastMapChecks } from '../../src/sim/mapCoast';
 import { type MapCheck, questTagsCheck, quickChecks, routeChecks } from '../../src/sim/mapChecks';
 import { SHIP_FILES, shipDamageProblems } from '../../src/data/ships';
 import { checkPerks } from '../../src/sim/perks';
@@ -95,6 +96,7 @@ export function checkAll(opts: CheckOptions = {}) {
     Object.entries(seas).forEach(([name, map], n) => {
       const checks: MapCheck[] = [
         ...quickChecks(map),
+        ...coastMapChecks(map),
         questTagsCheck(
           map,
           QUESTS.map((q) => q.id),

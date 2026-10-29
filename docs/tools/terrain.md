@@ -37,3 +37,5 @@ npm run island -- /tmp/hill.json sculpt list
 npm run island -- /tmp/hill.json sculpt export --to /tmp/hill-sculpt.json
 npm run island -- other sculpt import /tmp/hill-sculpt.json     # same terrain on another island
 ```
+
+Coast: an edit that moves the drawn coast (ground height zero) more than `terrain.json › coast › tolerance` from the island file's coast outline, or leaves a building off level ground, fails `npm run check` (`coast`, `support`); `npm run chart -- --coast` draws both coasts (decision 0237).

@@ -11,6 +11,7 @@ import { zoneKindName, zoneTint } from '../../src/editor/flowChart';
 import { isBeltKind } from '../../src/sim/stormBelt';
 import { seaBox, seaShape } from '../../src/sim/seaEdge';
 import { PHASE1_SOURCE } from '../../src/data/maps';
+import { coastOverlay, type Quality } from './coastOverlay';
 import { loadSea } from './seas';
 import { ISLAND_DESIGNS } from '../../src/data/islands';
 import type { MapDef } from '../../src/sim/map';
@@ -40,6 +41,9 @@ export interface Overlay {
   legend?: { style: string; text: string }[];
 }
 
+/** Overlay styles drawn as lines, which the legend shows as strokes. */
+const LINE_STYLES = ['route', 'short', 'long', 'block', 'current', 'coast-sailed', 'coast-drawn'];
+
 /** Overlay styles: the class each one draws with, and its legend wording. */
 export const OVERLAY_STYLES: Record<string, string> = {
   proposed: 'proposed land',
@@ -59,6 +63,9 @@ export const OVERLAY_STYLES: Record<string, string> = {
   long: 'long way',
   block: 'blocked',
   current: 'current',
+  'coast-sailed': 'sailed coast (the island file)',
+  'coast-drawn': 'drawn coast (height zero of the ground)',
+  'coast-bad': 'drawn and sailed coasts apart (units)',
 };
 
 export interface ChartOptions {
@@ -140,6 +147,9 @@ svg.fw-chart { background: #1b7f8c; }
 .o-long { stroke: #ffb35c; stroke-dasharray: 10 6; }
 .o-block { stroke: #d7263d; stroke-width: 5px; stroke-dasharray: 10 6; }
 .o-current { stroke: #13607e; stroke-width: 8px; stroke-opacity: .8; }
+.o-coast-sailed { stroke: #fff; stroke-width: 2.5px; }
+.o-coast-drawn { stroke: #ffd23f; stroke-width: 2px; stroke-dasharray: 5 4; }
+.o-coast-bad { fill: #d7263d; fill-opacity: .55; stroke: #fff; stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
 .o-sailed { fill: none; stroke: #fff; stroke-width: 2.5px; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .o-label { fill: #fff; stroke: #06141c; stroke-linejoin: round; paint-order: stroke; text-anchor: middle; font-family: 'Barlow', sans-serif; font-weight: 700; }
 .o-label.port { fill: #ffe39a; font-family: 'Barlow Condensed', sans-serif; }
@@ -440,6 +450,7 @@ function mergeOverlays(a: Overlay | undefined, b: Overlay): Overlay {
     ...a,
     areas: [...(b.areas ?? []), ...(a.areas ?? [])],
     islands: [...(a.islands ?? []), ...(b.islands ?? [])],
+    lines: [...(a.lines ?? []), ...(b.lines ?? [])],
     legend: [...(a.legend ?? []), ...(b.legend ?? [])],
   };
 }
@@ -507,7 +518,7 @@ function legendEntries(
     if (types.has('buoy-red') || types.has('buoy-green')) mark('buoy-red', 'channel buoy');
   }
   for (const style of used)
-    if (!['route', 'short', 'long', 'block', 'current'].includes(style))
+    if (!LINE_STYLES.includes(style))
       out.push({ text: OVERLAY_STYLES[style] ?? style, swatch: box(`o-${style}`) });
   const lineText = new Map<string, string>();
   for (const l of overlay.lines ?? []) {
@@ -523,9 +534,7 @@ function legendEntries(
   for (const e of overlay.legend ?? [])
     out.push({
       text: e.text,
-      swatch: ['route', 'short', 'long', 'block', 'current'].includes(e.style)
-        ? stroke(`o-line o-${e.style}`)
-        : box(`o-${e.style}`),
+      swatch: LINE_STYLES.includes(e.style) ? stroke(`o-line o-${e.style}`) : box(`o-${e.style}`),
     });
   return out;
 }
@@ -599,6 +608,8 @@ export async function run(args: Args): Promise<number> {
   --sectors none                      no sector spokes on the grown sea (decision 0179)
   --density [--sight 160]             shade empty water (nothing in sight) and ring the biggest
                                       empty discs per sea, stats in the legend (decision 0180)
+  --coast [--quality low|medium|high]  both coasts of every island: the sailed one (file) and the drawn
+                                      one (ground height zero), red discs where they part (decision 0237)
   --title "…"                         title above the legend
   --legend none                       no side panel (title and legend)
   --width 1600                        PNG width in pixels
@@ -622,6 +633,12 @@ export async function run(args: Args): Promise<number> {
       keepCells: true,
     });
     overlay = mergeOverlays(overlay, densityOverlay(rows, cell));
+  }
+  const coastReport: string[] = [];
+  if (args.coast) {
+    const { overlay: coast, report } = coastOverlay(prepared, (args.quality as Quality) ?? 'high');
+    coastReport.push(...report);
+    overlay = mergeOverlays(overlay, coast);
   }
   const layers =
     typeof args.layers === 'string'
@@ -668,6 +685,7 @@ export async function run(args: Args): Promise<number> {
   console.log(
     `wrote ${files.join(', ')} (${Math.round(result.width * result.scale)}×${Math.round(result.height * result.scale)}; ${c.islands} islands, ${c.ports} ports, ${c.marks} marks, ${c.zones} zones, ${c.currents} currents)`,
   );
+  for (const line of coastReport) console.log(`  ${line}`);
   for (const s of result.routes)
     console.log(
       `  ${s.from} → ${s.to}: ${s.seconds === null ? 'no way through' : `${s.seconds} s`}`,

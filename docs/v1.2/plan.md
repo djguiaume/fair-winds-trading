@@ -76,6 +76,11 @@ Editors: the island builder and sea editor draw with the same `ground.ts`; `npm 
 
 The smoothed shoreline (height 0 contour) must stay within a tolerance of the sim coast (`coast.ts`) everywhere, and berths and piers must stay reachable. Add a check to `src/sim/islandChecks.ts` / `mapChecks.ts`, run by `npm run check`, that compares the two outlines (suggested limit: 1.5 units, to tune) and lists the worst points per island; `npm run chart -- --overlay` draws both lines for review.
 
+**Built (#273, 2026-10-28, [0237](../decisions/0237-drawn-coast-must-agree-with-the-sailed-coast.md)).** The island file's outline stays the sim's coast; the drawn zero contour must match it, or the edit is an error:
+
+- `src/sim/coastAgreement.ts` (gap per sample, worst per island, tolerance `terrain.json › coast` 1.5 units), `fieldContour.ts` (the drawn line), `coastChecks.ts` (island checks `coast` and `support`, run by `checkIsland`, so by `npm run check` and the island builder), `mapCoast.ts` (`coastReport`; map checks `coast-terrain` and `harbour-water`, run by `npm run check` and the sea editor).
+- `npm run chart -- --coast [--quality low|medium|high]` draws both coasts and red discs where they part; prints the worst gap per island. Every shipped island and barrier island agrees at all three qualities.
+
 ### 4. Water (about 1 week)
 
 What the mockup did:
