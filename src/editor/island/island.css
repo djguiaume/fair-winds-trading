@@ -495,13 +495,6 @@
 .i-brush.grow {
   stroke: var(--green-ink);
 }
-.i-woods.grove {
-  stroke-dasharray: 4 3;
-}
-.i-brush.grove {
-  stroke: var(--green-ink);
-  stroke-dasharray: 6 4;
-}
 .i-brush.clear {
   stroke: var(--red);
 }

@@ -212,7 +212,7 @@ function drawShapes(s: OverlayScene, el: El, label: (x: number, z: number, t: st
     for (const [x, z, r] of design.woods.areas ?? [])
       el('circle', { cx: x, cy: z, r, class: 'i-woods' });
     for (const [x, z, r] of design.woods.groves ?? [])
-      el('circle', { cx: x, cy: z, r, class: 'i-woods grove' });
+      el('circle', { cx: x, cy: z, r, class: 'i-woods', 'stroke-dasharray': '4 3' });
     for (const [x, z, r] of design.woods.clear ?? [])
       el('circle', { cx: x, cy: z, r, class: 'i-clearing' });
   }
@@ -348,7 +348,9 @@ function drawShapes(s: OverlayScene, el: El, label: (x: number, z: number, t: st
       cx: s.brush.x,
       cy: s.brush.z,
       r: s.brush.r,
-      class: `i-brush ${s.brush.mode}`,
+      // A grove brush is the grow brush, dashed: woods the new look alone grows.
+      class: `i-brush ${s.brush.mode === 'grove' ? 'grow' : s.brush.mode}`,
+      ...(s.brush.mode === 'grove' && { 'stroke-dasharray': '6 4' }),
     });
 }
 
