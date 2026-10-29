@@ -33,7 +33,8 @@ const coastIssues = (design: IslandDesign) =>
 const shore = caldaDesign.coasts[0]![9]!;
 const seaward: [number, number] = [shore[0] + 0.08, shore[1] + 0.09];
 
-describe('the drawn coast against the sailed coast (decision 0237)', () => {
+// Every test builds the ground of islands, which takes seconds on a CI runner.
+describe('the drawn coast against the sailed coast (decision 0237)', { timeout: 60000 }, () => {
   it('agrees on every island and barrier island of the game, on every quality level', () => {
     const { tolerance } = TUNING.terrain.coast;
     for (const quality of Object.keys(
