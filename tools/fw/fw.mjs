@@ -21,6 +21,10 @@ const TOOLS = {
   },
   quest: { about: 'quest checks, play a quest from a step', module: '/tools/fw/quest.ts' },
   sound: { about: "the game's sounds into files: effects, sea beds, music", file: './sound.mjs' },
+  editorperf: {
+    about: "speed of the island builder's terrain brushes on the largest island",
+    module: '/tools/fw/editorPerf.ts',
+  },
   adr: { about: 'next free decision number, new decision file', file: './adr.mjs' },
 };
 
