@@ -10,6 +10,7 @@ import { type Parts, put } from './props';
 import { B2 } from './highlandPalette';
 import { type TownLevel, townIslandParts } from './towns';
 import type { Stand } from './townProps';
+import type { ForestClearings } from '../../sim/forest';
 
 export function tree(rng: Rng): Parts {
   const parts = [
@@ -77,6 +78,8 @@ export function islandParts(
   questsDone?: ReadonlySet<string>,
   /** The new look's ground under the props (decision 0222); left out, the classic tiers. */
   stand?: Stand,
+  /** The new look's forest (issue #275): filled with the ground the town keeps clear, no woods. */
+  clearings?: ForestClearings,
 ): Parts {
   const rng = createRng(seed);
   const look = island.look ?? {};
@@ -107,6 +110,7 @@ export function islandParts(
         homeBuilt,
         questsDone,
         stand,
+        clearings,
       }),
     );
   } else {

@@ -21,7 +21,9 @@ import {
   isSculptCommand,
   sculptFrame,
 } from '../../src/sim/sculptScript';
-import { islandCheckKit } from '../../src/render/models/towns';
+import { type TownLevel, islandCheckKit } from '../../src/render/models/towns';
+import { designForest } from '../../src/render/models/forestPlan';
+import { FORESTS } from '../../src/data/forests';
 import { isResidence } from '../../src/render/models/townProps';
 import { type Args, num, pair, pointList } from './islandArgs';
 import { SCULPT_HELP, exportJson, listEdits, sculptCall } from './islandSculpt';
@@ -46,7 +48,9 @@ steps (island-radius units, harbour toward +z; --level n = from that town level)
             [--kind water|lava] [--width 0.04] [--level n --to n --tags after:quest]
             a point "x,z,w" has its own width; the river eases between widths
   widen     <river> --point n --width w   one point's own width (--width none: the river's)
-  woods     --at x,z [--r 0.2] [--clear]  paint (turns woods on); --tree --tries --size --spacing --margin
+  woods     --at x,z [--r 0.2] [--clear | --grove]  paint (turns woods on; --grove: new look only);
+            --tree --tries --size --spacing --margin
+            --density d  the new look's forest: its biome's cover × d (0 none, 1 as forests.json)
   spot      --at x,z [--pair id] [--y h]
   prop      <type> --at "x,z[ x,z …]" [--turn deg --size s --variant v --shape s --length l --y h --fit r --clear r]
             [--level n --to n --tags a,b]
@@ -63,6 +67,8 @@ options: --steps steps.json (or '[{"do":"prop",…}]': a list of steps as data, 
          --radius r  map radius to check at (default: the island's size on the ring or the Phase 4 sea)
          --no-harbour  check as an island without a harbour; --out file  write there instead
          --dry  do not write; --warnings  list warnings; --json  summary, steps and problems as JSON
+         --forest [--level n]  the new look's trees (forests.json) at that town level (default 4):
+                   by kind, and how many each quality level draws
 ${SCULPT_HELP}`;
 
 /** "r=1,points=14,rough=0.2" */
@@ -153,11 +159,13 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
         at,
         r: num(args.r),
         clear: args.clear ? true : undefined,
+        grove: args.grove ? true : undefined,
         tree: typeof args.tree === 'string' ? args.tree : undefined,
         tries: num(args.tries),
         size: num(args.size),
         spacing: num(args.spacing),
         margin: num(args.margin),
+        density: num(args.density),
       });
     case 'spot':
       return clean({
@@ -264,6 +272,19 @@ function printSculpt(design: IslandDesign, call: ReturnType<typeof sculptCall>) 
   return 0;
 }
 
+/** "forest at level 4: 118 trees (broadleaf 103, pine 15); Low 53 · Medium 83 · High 118" */
+function forestLine(design: IslandDesign, place: { R: number; harbour: boolean }, level: number) {
+  const island = sculptFrame(design.id, place.R);
+  const trees = designForest(island, design, level as TownLevel, place.harbour);
+  const kinds = new Map<string, number>();
+  for (const t of trees) kinds.set(t.kind, (kinds.get(t.kind) ?? 0) + 1);
+  const mix = [...kinds].map(([k, n]) => `${k} ${n}`).join(', ');
+  const drawn = Object.entries(FORESTS.quality)
+    .map(([q, { share }]) => `${q} ~${Math.round(trees.length * share)}`)
+    .join(' · ');
+  return `forest at level ${level}: ${trees.length} trees${mix ? ` (${mix})` : ''}; ${drawn}`;
+}
+
 export function run(args: Args): number {
   const [target, kind, ...rest] = args._;
   if (args.help || !target) {
@@ -338,9 +359,10 @@ export function run(args: Args): number {
   } catch {
     triangles = undefined;
   }
+  const forest = args.forest ? forestLine(design, place, num(args.level) ?? 4) : undefined;
   const summary = `${islandSummary(design, isResidence)}${
     triangles !== undefined ? `, ${triangles} triangles at level 4` : ''
-  }`;
+  }${forest ? `; ${forest}` : ''}`;
   if (args.json) {
     console.log(
       JSON.stringify({ summary, file, written: write, made, place, triangles, problems }, null, 1),

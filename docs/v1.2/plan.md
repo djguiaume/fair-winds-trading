@@ -94,6 +94,8 @@ What the mockup did: random cells on the height field, kept if height > 1.4, `no
 
 In the game: woods come from data (the island builder's `woods` areas, plus a density per biome), trees are prop recipes (`src/data/props/`) drawn instanced, counts by quality level. Art review rules: ring pines and broadleaf (up to about 40% cover), south palms and jungle broadleaf (about 55%), north snow-pines in valleys only (about 15%), west sparse birch scrub (about 8%), east no forest (heather, bracken, walls); keep 1.5 house widths clear round houses, no trees on lanes, fields, piers, plots or the camera's line to the town (Saltmere's town was swallowed in the mockup).
 
+**Built (#275, decision [0236](../decisions/0236-instanced-forests-from-biome-recipes.md)):** `src/data/forests.json` (how-to: [docs/content/forests.md](../content/forests.md)), placement `src/sim/forest.ts`, drawing `src/render/models/forest.ts`. Woods off stay treeless; painted woods and new-look-only groves grow thick, the rest in clumps, with small trees and hedgerows. Cost on the whole game map at level 2: High/Ultra 1070 trees, 19 draws, 24k triangles, 81 KB instances; Medium 752 trees, 17k; Low 481 trees, 11k triangles, no tree shadows. `?bench` on the old tablet may lower Low's `share`.
+
 ### 6. Haze and sky (2 to 3 days)
 
 Haze is a light tint of each sea's sky colour, at most about 35% at the horizon, never grey; night stays deep blue (`#1d2f4a`). Set from `atmosphere.ts`, colours per sea in data. The mockup used `#cfe1ea` and fog `near = 1.5 ×`, `far = 5 ×` the camera distance.
