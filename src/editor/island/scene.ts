@@ -25,7 +25,7 @@ export interface IslandView {
   upp: number;
 }
 
-const SEA = '#2fa3b3';
+export const SEA = '#2fa3b3';
 const CAMERA_PITCH = (58 * Math.PI) / 180;
 
 function lights(scene: THREE.Scene): [THREE.HemisphereLight, THREE.DirectionalLight] {
@@ -82,6 +82,8 @@ export class TopView {
   private readonly ground = groundMesh();
   /** The prop being dragged, drawn apart until it is dropped and the island is rebuilt. */
   private readonly moving = new THREE.Group();
+  /** The terrain tools' ground, when the island is drawn from its height field. */
+  private fieldMesh: THREE.Object3D | null = null;
   private width = 1;
   private height = 1;
 
@@ -98,6 +100,13 @@ export class TopView {
   setGeometry(geometry: THREE.BufferGeometry, ground?: NewLookGround) {
     this.island.geometry = geometry;
     setGround(this.ground, ground);
+  }
+
+  /** Shows the height field's ground (the island's props stand on it), or the classic tiers. */
+  setField(ground: THREE.Object3D | null) {
+    if (this.fieldMesh) this.scene.remove(this.fieldMesh);
+    this.fieldMesh = ground;
+    if (ground) this.scene.add(ground);
   }
 
   /** Shows a prop's parts at a place (reference units), or nothing. */
@@ -157,6 +166,8 @@ export class Preview {
   private readonly water: THREE.MeshBasicMaterial;
   /** Lighthouse beams and beacon lights: the game's, in world units, so scaled to the model. */
   private readonly lamps = new THREE.Group();
+  /** The terrain tools' ground, when the island is drawn from its height field. */
+  private fieldMesh: THREE.Mesh | null = null;
   private beams: LighthouseBeams | null = null;
   private beacons: BeaconLights | null = null;
   private frame = 0;
@@ -221,6 +232,14 @@ export class Preview {
     this.render();
   }
 
+  /** Shows the height field's ground (the island's props stand on it), or the classic tiers. */
+  setField(ground: THREE.Mesh | null) {
+    if (this.fieldMesh) this.scene.remove(this.fieldMesh);
+    this.fieldMesh = ground;
+    if (ground) this.scene.add(ground);
+    this.render();
+  }
+
   /**
    * The island's lighthouses and beacons, as the game lights them at night (decision 0121): one
    * island at the origin whose harbour faces +z, standing at the level shown.
@@ -270,13 +289,23 @@ export class Preview {
     if (night) this.frame = requestAnimationFrame(tick);
   }
 
+  /** What the camera frames: the island's model, with the field ground's extent when it is shown. */
+  private framed() {
+    const sphere = this.island.geometry.boundingSphere;
+    const ground = this.fieldMesh?.geometry.boundingSphere;
+    if (!ground) return sphere;
+    this.fieldMesh!.updateMatrixWorld();
+    const land = ground.clone().applyMatrix4(this.fieldMesh!.matrixWorld);
+    return sphere ? land.union(sphere) : land;
+  }
+
   render() {
     const rect = this.canvas.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
     this.renderer.setSize(rect.width, rect.height, false);
     this.camera.aspect = rect.width / rect.height;
     this.camera.updateProjectionMatrix();
-    const sphere = this.island.geometry.boundingSphere;
+    const sphere = this.framed();
     const r = sphere?.radius ?? 20;
     const c = sphere?.center ?? new THREE.Vector3();
     const fov = (this.camera.fov * Math.PI) / 180;
