@@ -11,6 +11,7 @@ import {
 } from './islandLayout';
 import { atLevel, type IslandDesign, type PropDef, questApart } from '../data/islands';
 import { GROUNDS, STYLES, groundId } from '../data/grounds';
+import { checkCoast } from './coastChecks';
 import { checkSculpt } from './sculptChecks';
 
 /**
@@ -306,6 +307,9 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
     else if (triangles > TRIANGLE_WARNING)
       warn('budget', `${triangles} triangles at level ${TOP} (budget ${TRIANGLE_BUDGET})`);
   }
+
+  // The drawn ground against the sailed coast and the buildings' footing (decision 0237).
+  if (!issues.some((i) => i.severity === 'error')) issues.push(...checkCoast(design, kit));
   return issues;
 }
 
