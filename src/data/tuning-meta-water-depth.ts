@@ -82,6 +82,22 @@ export const WATER_DEPTH_META: Readonly<Record<string, TuningMeta>> = {
     'units',
     "Width over which one sea's water colours turn into the next sea's, centred on the border.",
   ),
+  'graphics.water.depth.nightShallow.darken': num(
+    'Night shallows darker',
+    0,
+    0.8,
+    0.05,
+    'share',
+    'How much darker the shallows get at full night than the day ramp lit by the moon (issue #277): moonlit teal, not lit from below.',
+  ),
+  'graphics.water.depth.nightShallow.desaturate': num(
+    'Night shallows greyer',
+    0,
+    1,
+    0.05,
+    'share',
+    'How much colour the shallows lose at full night (0 keeps the day hue, 1 is grey).',
+  ),
   'graphics.water.depth.beds.island': num(
     'Barrier island weight',
     -10,

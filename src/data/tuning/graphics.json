@@ -65,6 +65,7 @@
       "crest": 0.12,
       "shading": 0.35,
       "seaBlend": 80,
+      "nightShallow": { "darken": 0.3, "desaturate": 0.5 },
       "beds": {
         "island": 24,
         "sandbank": 24,

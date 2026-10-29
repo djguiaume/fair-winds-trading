@@ -3,10 +3,10 @@ import type { IslandDef, TerrainDef } from '../sim/map';
 import { PALETTE } from './palette';
 import { TUNING } from '../data/tuning';
 import type { QualityProfile } from './quality';
-import { DAY, type Look } from './atmosphere';
+import { DAY, NIGHT, type Look } from './atmosphere';
 import { type ShoreTexture, shoreShader, shoreTexture } from './shoreTexture';
 import { type SeabedTexture, seabedShader } from './seabedTexture';
-import { liftToFloor, newRamp, seaRampAt } from './seaWater';
+import { dimShallow, liftToFloor, newRamp, seaRampAt } from './seaWater';
 
 const vertexShader = /* glsl */ `
 uniform float uTime;
@@ -81,6 +81,8 @@ uniform float uGlint;
 uniform float uGlintSharpness;
 // Glint fades out between these view heights (sines of the angle above the sea), and peaks at w.
 uniform vec3 uGlintFade;
+#endif
+#if defined(REFLECT) || defined(DEPTH)
 // Soft shore foam: full strength out to x, fading over y, opacity z, outer line w.
 uniform vec4 uFoamLook;
 #endif
@@ -117,8 +119,10 @@ void main() {
 #endif
 #ifdef FANCY
   float ripple = sin(vWorld.x * 0.45 + uTime * 1.3) * sin(vWorld.z * 0.5 - uTime * 1.7);
+#else
+  float ripple = 0.0;
 #endif
-#if defined(REFLECT)
+#if defined(REFLECT) || defined(DEPTH)
   // A wide band that fades softly into the sea, and a faint line further out that comes and goes.
   float soft = 1.0 - smoothstep(uFoamLook.x, uFoamLook.x + uFoamLook.y, d + 0.5 * ripple);
   float beyond = d - uFoamLook.x - uFoamLook.y - 1.0 - 0.8 * sin(uTime * 0.9 + d * 0.4);
@@ -227,7 +231,9 @@ export class Ocean {
         vertexShader,
         fragmentShader,
         defines: {
-          ...(!look.fancy
+          // The new look's Low reads the shore per pixel too (issue #277): per vertex, its coarse
+          // grid smeared the shallows into a wide halo and lost the foam ring.
+          ...(!look.fancy && !look.seabed
             ? { VERTEX_SHORES: '' }
             : look.reflect
               ? { FANCY: '', REFLECT: '' }
@@ -321,10 +327,14 @@ export class Ocean {
   private applyRamp() {
     const u = this.mesh.material.uniforms;
     const { shallow, mid, deep, night } = this.ramp;
-    liftToFloor(
-      (u.uShallow!.value as THREE.Color).copy(shallow).multiply(this.shallowLight),
-      night,
+    const lit = (u.uShallow!.value as THREE.Color).copy(shallow).multiply(this.shallowLight);
+    dimShallow(
+      lit,
+      this.shallowLight,
+      NIGHT_SHALLOW_LIGHT,
+      TUNING.graphics.water.depth.nightShallow,
     );
+    liftToFloor(lit, night);
     liftToFloor((u.uWaterLight!.value as THREE.Color).copy(mid).multiply(this.waterLight), night);
     liftToFloor((u.uWater!.value as THREE.Color).copy(deep).multiply(this.waterLight), night);
     (u.uDayWater!.value as THREE.Color).copy(deep);
@@ -377,3 +387,6 @@ function lightOf(now: THREE.Color, day: THREE.Color, out: THREE.Color) {
   const ratio = (a: number, b: number) => Math.min(2, a / Math.max(b, 1e-4));
   return out.setRGB(ratio(now.r, day.r), ratio(now.g, day.g), ratio(now.b, day.b));
 }
+
+/** The shallows' light at full night against the day's: where `dimShallow` reaches full strength. */
+const NIGHT_SHALLOW_LIGHT = lightOf(NIGHT.shallow, DAY.shallow, new THREE.Color());
