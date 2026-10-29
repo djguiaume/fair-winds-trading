@@ -49,6 +49,11 @@
     "foamWidth": 3.6,
     "foamStrength": 0.8,
     "foamLine": 0.15,
+    "haze": {
+      "amount": 0.35,
+      "duskFade": 0.5,
+      "gloomFade": 1
+    },
     "depth": {
       "cell": 3,
       "maxTexels": 1024,
