@@ -10,6 +10,7 @@ import {
 import { createRng } from '../../sim/rng';
 import { glowing, molten, paint } from './geometry';
 import { BEACH_TOP } from '../../sim/islandUnits';
+import type { Stand } from './townProps';
 
 /**
  * Glowing cracks on a ground that has a `glow` colour (decision 0171, lava fields): a seeded
@@ -20,6 +21,13 @@ import { BEACH_TOP } from '../../sim/islandUnits';
 
 type Parts = THREE.BufferGeometry[];
 const LIFT = 0.03;
+/** Over the new look's rolling ground (reference units), a little higher: it is drawn coarser. */
+const FIELD_LIFT = 0.08;
+
+/** The height a mark lies at, in reference units: on the new look's ground, else the layout's. */
+function markHeight(h: number, R: number, x: number, z: number, stand?: Stand) {
+  return stand ? stand(x, z) + FIELD_LIFT : Math.max(h * R, BEACH_TOP) + LIFT;
+}
 
 /** A thin glowing line along points (radius units) at the land's height there. */
 function crackLine(
@@ -28,6 +36,7 @@ function crackLine(
   width: number,
   R: number,
   color: string,
+  stand?: Stand,
 ): THREE.BufferGeometry | null {
   const positions: number[] = [];
   for (let i = 1; i < points.length; i++) {
@@ -42,8 +51,8 @@ function crackLine(
       wb = width * (i === points.length - 1 ? 0.3 : 1);
     const nx = -(bz - az) / l,
       nz = (bx - ax) / l;
-    const ya = Math.max(ha * R, BEACH_TOP) + LIFT,
-      yb = Math.max(hb * R, BEACH_TOP) + LIFT;
+    const ya = markHeight(ha, R, ax, az, stand),
+      yb = markHeight(hb, R, bx, bz, stand);
     const A1 = [(ax + nx * wa) * R, ya, (az + nz * wa) * R],
       A2 = [(ax - nx * wa) * R, ya, (az - nz * wa) * R],
       B1 = [(bx + nx * wb) * R, yb, (bz + nz * wb) * R],
@@ -72,7 +81,14 @@ function onTop(layout: IslandLayout, s: LandSurface, x: number, z: number) {
 }
 
 /** Cracks over a flat surface: about one per 0.02 square radius units of its box. */
-function flatCracks(layout: IslandLayout, s: LandSurface, seed: number, R: number, color: string) {
+function flatCracks(
+  layout: IslandLayout,
+  s: LandSurface,
+  seed: number,
+  R: number,
+  color: string,
+  stand?: Stand,
+) {
   const rng = createRng(seed);
   const xs = s.outline.map((p) => p[0]),
     zs = s.outline.map((p) => p[1]);
@@ -97,14 +113,14 @@ function flatCracks(layout: IslandLayout, s: LandSurface, seed: number, R: numbe
       pts.push(next);
     }
     if (pts.length < 2) continue;
-    const line = crackLine(layout, pts, 0.004 + rng() * 0.003, R, color);
+    const line = crackLine(layout, pts, 0.004 + rng() * 0.003, R, color, stand);
     if (line) out.push(line);
     if (pts.length > 3 && rng() < 0.4) {
       const m = pts[Math.floor(pts.length / 2)]!;
       const b = a + (rng() < 0.5 ? 1 : -1) * (0.8 + rng() * 0.6);
       const end: [number, number] = [m[0] + Math.cos(b) * 0.04, m[1] + Math.sin(b) * 0.04];
       if (onTop(layout, s, end[0], end[1])) {
-        const fork = crackLine(layout, [m, end], 0.003, R, color);
+        const fork = crackLine(layout, [m, end], 0.003, R, color, stand);
         if (fork) out.push(fork);
       }
     }
@@ -113,7 +129,14 @@ function flatCracks(layout: IslandLayout, s: LandSurface, seed: number, R: numbe
 }
 
 /** Streaks down a mountain's flanks, from its rim or near its top, part way to its foot. */
-function peakCracks(layout: IslandLayout, s: LandSurface, seed: number, R: number, color: string) {
+function peakCracks(
+  layout: IslandLayout,
+  s: LandSurface,
+  seed: number,
+  R: number,
+  color: string,
+  stand?: Stand,
+) {
   const rng = createRng(seed);
   const { cx, cz, rx, rz } = peakBox(s);
   const top = s.crater ?? 0.08;
@@ -132,7 +155,7 @@ function peakCracks(layout: IslandLayout, s: LandSurface, seed: number, R: numbe
       if (peakHeight(s, x, z) === null) break;
       pts.push([x, z]);
     }
-    const line = crackLine(layout, pts, 0.006 + rng() * 0.004, R, color);
+    const line = crackLine(layout, pts, 0.006 + rng() * 0.004, R, color, stand);
     if (line) out.push(line);
   }
   return out;
@@ -144,6 +167,8 @@ export function lavaCracks(
   glowOf: (material: string) => string | undefined,
   seed: number,
   R: number,
+  /** The new look's ground (decision 0222); left out, the classic tiers. */
+  stand?: Stand,
 ): Parts {
   const out: Parts = [];
   layout.surfaces.forEach((s, i) => {
@@ -152,8 +177,8 @@ export function lavaCracks(
     const k = seed * 31 + i * 7919;
     out.push(
       ...(s.shape === 'peak'
-        ? peakCracks(layout, s, k, R, color)
-        : flatCracks(layout, s, k, R, color)),
+        ? peakCracks(layout, s, k, R, color, stand)
+        : flatCracks(layout, s, k, R, color, stand)),
     );
   });
   return out;
@@ -168,6 +193,7 @@ export function groundSpecks(
   specksOf: (material: string) => string | undefined,
   seed: number,
   R: number,
+  stand?: Stand,
 ): Parts {
   const out: Parts = [];
   layout.surfaces.forEach((s, i) => {
@@ -186,7 +212,7 @@ export function groundSpecks(
       k++;
       const r = (0.008 + rng() * 0.012) * R,
         turn = rng() * Math.PI;
-      const y = Math.max(s.height * R, BEACH_TOP) + LIFT;
+      const y = markHeight(s.height, R, x, z, stand);
       const corner = (j: number) => {
         const a = turn + (j / 5) * Math.PI * 2;
         const rr = r * (0.7 + ((j * 7 + k) % 3) * 0.15);

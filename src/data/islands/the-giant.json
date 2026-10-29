@@ -31,7 +31,8 @@
         [0.792, -0.554]
       ],
       "height": 4.2,
-      "material": "grass"
+      "material": "grass",
+      "smooth": 0
     }
   ],
   "lanes": [],

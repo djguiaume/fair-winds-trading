@@ -21,7 +21,8 @@ import { forestCost, forestMeshes, setForestQuality } from '../src/render/models
 import { designForest, emptyClearings } from '../src/render/models/forestPlan';
 import { islandParts, shownLevel } from '../src/render/models/islandParts';
 import { fieldStand } from '../src/render/models/townProps';
-import { vertexColorMaterial } from '../src/render/models/geometry';
+import { mergeAll, vertexColorMaterial } from '../src/render/models/geometry';
+import { buildProp } from '../src/render/models/propRecipe';
 import type { QualityLevel } from '../src/render/quality';
 
 /*
@@ -60,6 +61,16 @@ const PLANTED = new Map(WOODED.map((i) => [i.id, plantForest(inputOf(i))]));
 const kindsOf = (trees: ForestTree[]) => new Set(trees.map((t) => t.kind));
 
 describe('forest data', () => {
+  it("gives each kind its model's height", () => {
+    for (const [id, k] of Object.entries(FORESTS.kinds)) {
+      const model = mergeAll(
+        buildProp(k.prop, { R: 1, style: 'fish', variant: 0, shape: 0.5, size: 1, vars: k.vars }),
+      );
+      model.computeBoundingBox();
+      expect(model.boundingBox!.max.y, id).toBeCloseTo(k.height, 1);
+    }
+  });
+
   it('names real props, a biome for every style, and shares between 0 and 1', () => {
     expect(forestProblems()).toEqual([]);
   });
@@ -154,16 +165,20 @@ describe('forest placement', () => {
 
   it('leaves the harbour camera its line to the town', () => {
     const input = inputOf(islandOf('calda'));
-    const [cx, cz] = input.clearings.camera!;
-    const half = FORESTS.clear.view / input.island.radius;
+    const { island, field } = input;
+    const [cx, cz, cy] = input.clearings.camera!;
+    const half = FORESTS.clear.view / island.radius;
     for (const t of PLANTED.get('calda')!) {
-      const [x, z] = filePoint(input.island, t.x, t.y);
+      const [x, z] = filePoint(island, t.x, t.y);
+      const top = t.height + FORESTS.kinds[t.kind]!.height * t.scale;
       for (const [hx, hz] of input.clearings.homes) {
-        const dx = hx - cx,
-          dz = hz - cz;
-        const s = ((x - cx) * dx + (z - cz) * dz) / (dx * dx + dz * dz);
-        if (s > 0 && s < 1)
-          expect(Math.hypot(cx + dx * s - x, cz + dz * s - z)).toBeGreaterThan(half);
+        const p = islandPoint(island, hx, hz);
+        const hy = heightAt(field, p.x, p.y);
+        const dx = cx - hx,
+          dz = cz - hz;
+        const s = ((x - hx) * dx + (z - hz) * dz) / (dx * dx + dz * dz);
+        const near = s > 0 && s < 1 && Math.hypot(hx + dx * s - x, hz + dz * s - z) < half;
+        if (near) expect(top).toBeLessThanOrEqual(hy + (cy - hy) * s);
       }
     }
   });
@@ -207,6 +222,20 @@ describe('forest placement', () => {
     design.woods.density = 1;
     design.woods.tries = 0;
     expect(count(design)).toBe(0);
+  });
+
+  it("grows painted groves in the new look only, leaving the classic look's woods as they are", () => {
+    const island = islandOf('calda');
+    const design = structuredClone(designOf(island)!);
+    const count = () => plantForest({ ...inputOf(island), design }).length;
+    const areas = structuredClone(design.woods.areas);
+    const shipped = count();
+    applySteps(design, [{ do: 'woods', at: [0.5, 0.2], r: 0.3, grove: true }]);
+    expect(design.woods.groves).toHaveLength(1);
+    expect(design.woods.areas).toEqual(areas);
+    expect(count()).toBeGreaterThan(shipped);
+    applySteps(design, [{ do: 'woods', at: [0.5, 0.2], r: 0.3, clear: true }]);
+    expect(design.woods.groves).toBeUndefined();
   });
 
   it('maps file points and map points both ways', () => {

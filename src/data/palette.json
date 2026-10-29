@@ -1,6 +1,7 @@
 {
   "colors": {
     "sand": "#f2d9a0",
+    "wetsand": "#d9bf86",
     "grass": "#7cc04f",
     "meadow": "#8fcc5a",
     "rock": "#c2ad8c",
@@ -71,6 +72,7 @@
   },
   "styles": {
     "fish": {
+      "wet": "#d9bf86",
       "walls": ["#f8f3ea", "#e2ecf0", "#f4e0c4", "#f0d6cf"],
       "roofs": ["#3f74a8", "#c8603e", "#2f5f8a", "#d98a4a"],
       "grounds": {
@@ -80,6 +82,7 @@
       }
     },
     "timber": {
+      "wet": "#d9bf86",
       "walls": ["#9a6a3c", "#8a5a32", "#a87a4a"],
       "roofs": ["#4f6b3a", "#5a3d24", "#6e7f45"],
       "grounds": {
@@ -89,6 +92,7 @@
       }
     },
     "grain": {
+      "wet": "#d9bf86",
       "walls": ["#f8f3ea", "#f1e4c8", "#ece2cf"],
       "roofs": ["#d9b45a", "#c9a24a", "#e0bf66"],
       "grounds": {
@@ -98,6 +102,7 @@
       }
     },
     "stone": {
+      "wet": "#d9bf86",
       "walls": ["#d6cdbd", "#c9bfae", "#e0d8c8"],
       "roofs": ["#5f6f7d", "#6f7f8d", "#4f5f6d"],
       "grounds": {
@@ -107,6 +112,7 @@
       }
     },
     "tropic": {
+      "wet": "#e3d3ac",
       "walls": ["#f8f3ea", "#f6dcc0", "#d6ece0", "#f3d0c4"],
       "roofs": ["#c9a35a", "#d0603e", "#b8904c", "#2f8a8a"],
       "grounds": {
@@ -120,10 +126,12 @@
       }
     },
     "yard": {
+      "wet": "#d9bf86",
       "walls": ["#f4ede0", "#ece2cf", "#f8f3ea"],
       "roofs": ["#c8603e", "#3f74a8", "#8a4a2a"]
     },
     "ice": {
+      "wet": "#6b6e6c",
       "walls": ["#a8403a", "#d9a83a", "#3f6a9a", "#4f7f5a"],
       "roofs": ["#33373d", "#3a3f46", "#2e3238"],
       "grounds": {
@@ -138,6 +146,7 @@
       }
     },
     "fire": {
+      "wet": "#2f2e30",
       "walls": ["#2e2a2a", "#f4ede0", "#3a3333", "#efe6d6"],
       "roofs": ["#b8402e", "#4f7f4a", "#c8503a", "#3f6a4a"],
       "grounds": {
@@ -151,6 +160,7 @@
       }
     },
     "volcano": {
+      "wet": "#2f2e30",
       "walls": ["#2e2a2a", "#f4ede0", "#3a3333", "#efe6d6"],
       "roofs": ["#b8402e", "#4f7f4a", "#c8503a", "#3f6a4a"],
       "grounds": {
@@ -171,6 +181,7 @@
       }
     },
     "fog": {
+      "wet": "#545754",
       "walls": ["#2f3035", "#eeeae2", "#2f3035", "#eeeae2", "#8a3a32"],
       "roofs": ["#8fae55", "#9ab85e", "#86a54e", "#2f3035"],
       "grounds": {
@@ -189,6 +200,7 @@
       }
     },
     "strand": {
+      "wet": "#c4b48a",
       "walls": ["#2f3035", "#eeeae2", "#2f3035", "#eeeae2", "#8a3a32"],
       "roofs": ["#6f9a4a", "#5e8a44", "#679245", "#2f3035"],
       "grounds": {
@@ -252,7 +264,8 @@
     "snow": {
       "name": "Snow",
       "top": ["#e3ecf3", "#f6f9fb", "#e9f1f6", "#dfe9f1", "#f6f9fb", "#c5d6e6"],
-      "side": ["#c5d6e6", "#6e747c", "#b5c8da", "#5b6068", "#c5d6e6"]
+      "side": ["#c5d6e6", "#6e747c", "#b5c8da", "#5b6068", "#c5d6e6"],
+      "slope": ["#5b6068", "#878d94", "#6e747c", "#7c8289"]
     },
     "ice": {
       "name": "Glacier ice",

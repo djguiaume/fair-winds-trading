@@ -26,6 +26,7 @@ function modelOf(kind: string, style: string) {
       shape: 0.5,
       size: 1,
       vars: look.vars,
+      colors: look.colors,
     });
     model = mergeAll(parts);
     model.computeBoundingSphere();

@@ -12,6 +12,7 @@ import { isGlowing } from '../../render/models/geometry';
 import { PROP_TYPES, type PropGroup } from '../../render/models/props';
 import { designedTownParts, islandCheckKit, type TownLevel } from '../../render/models/towns';
 import { propParts, standHeight } from '../../render/models/townProps';
+import { builderLook, newLookGround, previewIsland } from './newLook';
 import { coastDistance } from '../../sim/coast';
 import { type IslandIssue, TRIANGLE_BUDGET } from '../../sim/islandChecks';
 import { islandLayout, layoutGround } from '../../sim/islandLayout';
@@ -52,11 +53,11 @@ import {
   deleteShape,
   insertPoint,
   movePoint,
-  paintWoods,
   pointsOf,
   toggleSlopeEdge,
 } from './shapes';
 import { Preview, TopView, mergeParts, thumbnails, type IslandView } from './scene';
+import { WOODS_HINTS, WOODS_TOOLS, type WoodsBrush, isWoodsBrush, paintForest } from './groves';
 
 /**
  * The island builder (decision 0105, planned in 0096 §3): opened from the map editor on a port
@@ -140,8 +141,7 @@ type ShapeTool =
   | 'mountain'
   | 'lake'
   | 'ramp'
-  | 'grow'
-  | 'clear'
+  | WoodsBrush
   | 'lane'
   | 'path'
   | 'stairs'
@@ -268,14 +268,17 @@ function displayed() {
 
 /** Builds the island at the level and shows it in both views. */
 function rebuild(without?: number) {
-  let parts;
+  let parts, ground;
   try {
     const view = displayed();
     const shown =
       without === undefined
         ? view.design
         : { ...view.design, props: view.design.props.filter((_, i) => view.from[i] !== without) };
-    parts = designedTownParts(shown, R, level as TownLevel, harbour);
+    // `?look=v2`: the game's new-look ground, its props standing on it (decision 0222).
+    const v2 = builderLook === 'v2' ? newLookGround(shown, R, level, harbour) : undefined;
+    parts = designedTownParts(shown, R, level as TownLevel, harbour, v2?.stand);
+    ground = v2?.ground;
   } catch (error) {
     hint(`The island does not build: ${String(error)}`);
     return;
@@ -285,19 +288,10 @@ function rebuild(without?: number) {
   const land = mergeParts(parts.filter((g) => !isGlowing(g)).map((g) => g.clone()));
   const windows = mergeParts(glass.map((g) => g.clone()));
   const next = mergeParts(parts);
-  top!.setGeometry(next);
-  preview!.setGeometry(land, windows);
+  top!.setGeometry(next, ground);
+  preview!.setGeometry(land, windows, ground);
   // The game's lamps on this island: harbour toward +z, as the builder's model is drawn.
-  preview!.setLamps(
-    {
-      id: design.id,
-      x: 0,
-      y: 0,
-      radius: R * ISLAND_SCALE,
-      look: { design: design.id, harbourBearing: Math.PI, dock: harbour },
-    },
-    level,
-  );
+  preview!.setLamps(previewIsland(design, R, harbour), level);
   for (const g of [geometry, previewLand, previewGlass]) g?.dispose();
   [geometry, previewLand, previewGlass] = [next, land, windows];
   $('ib-preview-title').textContent = `3D preview · level ${level}`;
@@ -365,9 +359,7 @@ function draw() {
     shape: shapeSel,
     drawing: drawing ? { points: drawing, hover } : undefined,
     brush:
-      hover && (tool === 'grow' || tool === 'clear')
-        ? { x: hover[0], z: hover[1], r: brush, mode: tool }
-        : undefined,
+      hover && isWoodsBrush(tool) ? { x: hover[0], z: hover[1], r: brush, mode: tool } : undefined,
   });
 }
 
@@ -579,8 +571,7 @@ const TOOL_HINTS: Record<ShapeTool, string> = {
   mountain: 'Click the island to add a mountain · Esc cancels',
   lake: 'Click the island to add the lake · Esc cancels',
   ramp: 'Click the foot of the ramp, then its bends, then its top; click the top again or press Enter · Esc cancels',
-  grow: 'Paint where trees may grow · Esc stops',
-  clear: 'Paint where trees are cleared · Esc stops',
+  ...WOODS_HINTS,
   lane: 'Click to add bends; click the last point again or press Enter to finish · Esc cancels',
   path: 'Click to add bends; click the last point again or press Enter to finish · Esc cancels',
   stairs: 'Click the foot and the top of a cliff (and any bends); Enter finishes · Esc cancels',
@@ -814,8 +805,7 @@ const TOOLS: Record<'ground' | 'lanes', [string, string | ShapeTool, string, str
       '↗️',
       'Ramp: Draw its path; it climbs evenly from its start to its end height',
     ],
-    ['Woods', 'grow', '🌲', 'Grow woods: Paint the woods; once painted, trees grow only there'],
-    ['Woods', 'clear', '🪓', 'Clear trees: Paint where none grow'],
+    ...WOODS_TOOLS,
   ],
   lanes: [
     ['Lanes', 'lane', '〰️', 'Lane: Shows near the homes standing at each level'],
@@ -914,9 +904,9 @@ function shapePointerDown(e: PointerEvent, x: number, z: number, kind: string, a
     drawTools();
     return;
   }
-  if (tool === 'grow' || tool === 'clear') {
+  if (isWoodsBrush(tool)) {
     history.record(design);
-    paintWoods(design, x, z, brush, tool);
+    paintForest(design, x, z, brush, tool);
     drag = { kind: 'paint' };
     draw();
     return;
@@ -1177,7 +1167,7 @@ svg.addEventListener('pointerdown', (e) => {
 svg.addEventListener('pointermove', (e) => {
   if (!pointers.has(e.pointerId)) {
     // Hovering: the lane being drawn follows the pointer, and so does the woods brush.
-    if (drawing || tool === 'grow' || tool === 'clear') {
+    if (drawing || isWoodsBrush(tool)) {
       const p = toIsland(e);
       hover = [p.x, p.z];
       draw();
@@ -1228,9 +1218,9 @@ svg.addEventListener('pointermove', (e) => {
   } else if (drag.kind === 'spot') {
     moveSpot(design, drag.index, p.x + drag.dx, p.z + drag.dz);
     draw();
-  } else if (drag.kind === 'paint' && (tool === 'grow' || tool === 'clear')) {
+  } else if (drag.kind === 'paint' && isWoodsBrush(tool)) {
     hover = [p.x, p.z];
-    paintWoods(design, p.x, p.z, brush, tool);
+    paintForest(design, p.x, p.z, brush, tool);
     draw();
   } else if (drag.kind === 'turn') {
     const prop = design.props[drag.index]!;

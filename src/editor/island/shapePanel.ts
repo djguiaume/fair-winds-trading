@@ -2,13 +2,14 @@ import { type GroundDef, type IslandDesign, LANE_WIDTH, type WoodsDef } from '..
 import { WOODLAND_TREES } from '../../render/models/props';
 import { GROUNDS, GROUND_IDS, groundId } from '../../data/grounds';
 import { BEACH, isSloped } from '../../sim/islandLayout';
+import { setSmooth } from './smooth';
+import { clearWoodsPainting } from './groves';
 import { LEVEL_NAMES, LEVELS, type Level, propName } from './doc';
 import {
   RAMP_WIDTH,
   RIVER_WIDTH,
   SLOPE_WIDTH,
   type Shape,
-  clearWoodsPainting,
   pointsOf,
   setEdges,
   setLaneKind,
@@ -281,6 +282,12 @@ export function renderShapePanel(root: HTMLElement, host: ShapePanelHost) {
   const g = design.ground[gi]!;
   number('Height', g.height, (v) => (g.height = v ?? g.height), { step: 0.02, min: 0.02 });
   groundPicker(g.material, (m) => (g.material = m));
+  // The new look (issue #269): how much it rounds this shape; 0 keeps a landmark faceted.
+  number('Smooth', g.smooth, (v) => setSmooth(g, v), {
+    step: 0.1,
+    min: 0,
+    placeholder: '1 (rolling; 0 stays faceted)',
+  });
   if (g.shape === 'peak') {
     number('Base', g.base, (v) => (v === undefined ? delete g.base : (g.base = v)), {
       placeholder: '0',
@@ -367,10 +374,10 @@ export function renderShapePanel(root: HTMLElement, host: ShapePanelHost) {
     range.value = String(host.brush);
     range.addEventListener('input', () => host.setBrush(Number(range.value)));
     div('Painted').append(
-      `${w.areas?.length ?? 0} woods · ${w.clear?.length ?? 0} clearings` +
+      `${w.areas?.length ?? 0} woods · ${w.groves?.length ?? 0} groves · ${w.clear?.length ?? 0} clearings` +
         (w.areas?.length ? '' : ' (trees anywhere)'),
     );
-    if (w.areas?.length)
+    if (w.areas?.length || w.groves?.length)
       button(buttons(), 'Remove painted woods', () =>
         host.change(() => clearWoodsPainting(design)),
       );

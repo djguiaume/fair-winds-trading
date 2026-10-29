@@ -348,7 +348,8 @@
         [1.9627, 1.2809]
       ],
       "height": 0.48999999999999994,
-      "material": "grass"
+      "material": "grass",
+      "smooth": 0
     },
     {
       "outline": [
@@ -365,7 +366,8 @@
         [1.8463, 1.2172]
       ],
       "height": 0.7,
-      "material": "rock"
+      "material": "rock",
+      "smooth": 0
     },
     {
       "outline": [
@@ -382,7 +384,8 @@
         [-1.6635, 1.6286]
       ],
       "height": 0.42,
-      "material": "grass"
+      "material": "grass",
+      "smooth": 0
     },
     {
       "outline": [
@@ -399,7 +402,8 @@
         [-1.7331, 1.5901]
       ],
       "height": 0.6,
-      "material": "rock"
+      "material": "rock",
+      "smooth": 0
     }
   ],
   "lanes": [

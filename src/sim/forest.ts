@@ -41,8 +41,11 @@ export interface ForestClearings {
   homes: [number, number][];
   /** The lane pieces drawn at this level [ax, az, bx, bz, half width]: hedgerows line them. */
   lanes: [number, number, number, number, number][];
-  /** Where the harbour camera stands, [x, z] in the file's units; none: no view to keep. */
-  camera?: [number, number];
+  /**
+   * Where the harbour camera stands: [x, z] in the file's units and its height in world units;
+   * none: no view to keep.
+   */
+  camera?: [number, number, number];
 }
 
 export interface ForestInput {
@@ -124,18 +127,22 @@ function clearCircles(input: ForestInput): [number, number, number][] {
   return out;
 }
 
-/** Is a file point on the harbour camera's line to a house? */
-function inView(input: ForestInput, x: number, z: number) {
-  const { camera, homes } = input.clearings;
+/**
+ * Would a tree whose top is at `top` (world units) at file point (x, z) stand in the harbour
+ * camera's line to a house? Only near the line and above it: the camera looks down from high
+ * up, so trees well out from the town stay under its view.
+ */
+function inView(pl: Planting, x: number, z: number, top: number) {
+  const { camera } = pl.input.clearings;
   if (!camera) return false;
-  const half = FORESTS.clear.view / input.island.radius;
-  const [cx, cz] = camera;
-  return homes.some(([hx, hz]) => {
-    const dx = hx - cx,
-      dz = hz - cz;
-    const t = ((x - cx) * dx + (z - cz) * dz) / (dx * dx + dz * dz || 1);
-    if (t <= 0 || t >= 1) return false;
-    return Math.hypot(cx + dx * t - x, cz + dz * t - z) < half;
+  const half = FORESTS.clear.view / pl.input.island.radius;
+  const [cx, cz, cy] = camera;
+  return pl.homes.some(([hx, hz, hy]) => {
+    const dx = cx - hx,
+      dz = cz - hz;
+    const t = ((x - hx) * dx + (z - hz) * dz) / (dx * dx + dz * dz || 1);
+    if (t <= 0 || t >= 1 || top <= hy + (cy - hy) * t) return false;
+    return Math.hypot(hx + dx * t - x, hz + dz * t - z) < half;
   });
 }
 
@@ -171,6 +178,8 @@ interface Planting {
   /** World units per tree size: the island's `woods.size`. */
   unit: number;
   box?: MapBox;
+  /** The houses [x, z] and the height of the ground under them, world units. */
+  homes: [number, number, number][];
 }
 
 /**
@@ -203,17 +212,19 @@ function treeAt(
   if (slopeAt(field, p.x, p.y) > biome.maxSlope) return null;
   if (hash01(seed + salt + Salt.Keep, i, j) >= chance) return null;
   const kind = kindAt(biome, height / pl.top, hash01(seed + salt + Salt.Kind, i, j));
-  if (!kind || inView(input, fx, fz)) return null;
+  if (!kind) return null;
   const look = FORESTS.kinds[kind]!;
   const [lo, hi] = look.scale;
   const size = lo + (hi - lo) * hash01(seed + salt + Salt.Scale, i, j);
+  const scale = pl.unit * size * (small ? FORESTS.small.scale : 1);
+  if (inView(pl, fx, fz, height + look.height * scale)) return null;
   const { thinning } = FORESTS;
   return {
     x: p.x,
     y: p.y,
     height,
     kind,
-    scale: pl.unit * size * (small ? FORESTS.small.scale : 1),
+    scale,
     yaw: hash01(seed + salt + Salt.Yaw, i, j) * Math.PI * 2,
     tint: Math.floor(hash01(seed + salt + Salt.Tint, i, j) * look.tints.length),
     rank: (1 - thinning) * (1 - core) + thinning * hash01(seed + salt + Salt.Rank, i, j),
@@ -259,9 +270,9 @@ export function plantForest(input: ForestInput, box?: MapBox): ForestTree[] {
   const cover = Math.min(1, (biome?.cover ?? 0) * density);
   if (!biome || cover <= 0 || !woods.tries) return [];
   const { spacing, jitter, clump, small } = FORESTS;
-  const areas = woods.areas ?? [];
-  // Outside painted woods only the biome's `outside` share grows, in clumps.
-  const loose = areas.length ? cover * clump.outside : cover;
+  // Outside painted woods only the biome's `outside` share grows, in clumps; groves only add.
+  const loose = woods.areas?.length ? cover * clump.outside : cover;
+  const areas = [...(woods.areas ?? []), ...(woods.groves ?? [])];
   const edge = fbmQuantile(clump.octaves, 1 - Math.min(1, loose / clump.fill));
   const unit = woods.size * ISLAND_SCALE;
   const step = (spacing * unit) / island.radius;
@@ -274,6 +285,10 @@ export function plantForest(input: ForestInput, box?: MapBox): ForestTree[] {
     seed: design.seed,
     unit,
     box,
+    homes: input.clearings.homes.map(([x, z]) => {
+      const p = islandPoint(island, x, z);
+      return [x, z, heightAt(field, p.x, p.y)];
+    }),
   };
   const seed = design.seed;
   const [x0, z0, x1, z1] = woods.area;
@@ -284,7 +299,7 @@ export function plantForest(input: ForestInput, box?: MapBox): ForestTree[] {
         fz = (j + (hash01(seed + Salt.JitterZ, i, j) - 0.5) * jitter) * step;
       const depth = paintedDepth(areas, fx, fz);
       // In the file's frame, so an island's clumps stay put wherever its sea places it.
-      const n = fbm(seed, fx * noiseScale, fz * noiseScale, clump.octaves);
+      const n = fbm(fx * noiseScale, fz * noiseScale, seed, clump.octaves);
       const wood =
         depth >= 0
           ? { chance: Math.min(1, clump.fill * density), core: Math.min(1, depth * 2) }

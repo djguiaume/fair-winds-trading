@@ -12,6 +12,10 @@ import { STYLE_IDS } from './grounds';
 export interface ForestKind {
   prop: string;
   vars?: Record<string, number>;
+  /** Palette colours replacing the island style's for this kind (fresh birch leaves on dark moss). */
+  colors?: Record<string, string[]>;
+  /** The model's height at scale 1 (its recipe's top): the harbour view checks trees by it. */
+  height: number;
   /** Each tree's size, a share of its island's `woods.size`, drawn evenly in this range. */
   scale: [number, number];
   /** Colours each tree's model is multiplied by, one picked per tree (`#ffffff`: as modelled). */
@@ -94,6 +98,7 @@ export function forestProblems(data: ForestData = FORESTS): string[] {
   };
   for (const [id, kind] of Object.entries(data.kinds)) {
     if (!PROP_RECIPES[kind.prop]) out.push(`kind ${id}: no prop "${kind.prop}"`);
+    if (!(kind.height > 0)) out.push(`kind ${id}: height must be above 0`);
     if (!(kind.scale[0] > 0 && kind.scale[0] <= kind.scale[1]))
       out.push(`kind ${id}: scale must be [min, max] above 0`);
     if (!kind.tints.length || kind.tints.some((t) => !/^#[0-9a-f]{6}$/i.test(t)))

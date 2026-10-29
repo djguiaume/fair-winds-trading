@@ -27,7 +27,8 @@
         [0.66046, -0.690159]
       ],
       "height": 0.82,
-      "material": "ashrock"
+      "material": "ashrock",
+      "smooth": 0
     },
     {
       "outline": [
@@ -40,7 +41,8 @@
         [0.546877, -0.560119]
       ],
       "height": 1.59,
-      "material": "blackbasalt"
+      "material": "blackbasalt",
+      "smooth": 0
     },
     {
       "outline": [
@@ -52,7 +54,8 @@
         [0.478372, -0.698765]
       ],
       "height": 2.2,
-      "material": "ashrock"
+      "material": "ashrock",
+      "smooth": 0
     },
     {
       "outline": [
@@ -64,7 +67,8 @@
         [0.444486, -0.602424]
       ],
       "height": 2.75,
-      "material": "moss"
+      "material": "moss",
+      "smooth": 0
     }
   ],
   "lanes": [],

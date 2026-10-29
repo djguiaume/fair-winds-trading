@@ -4,6 +4,7 @@ import { isSloped } from '../../sim/islandLayout';
 import { propName, type Level } from './doc';
 import { type Shape, groundOutline, pointsOf, shapeName } from './shapes';
 import type { IslandView } from './scene';
+import type { WoodsBrush } from './groves';
 
 /**
  * The SVG drawn over the island (decision 0105), in island-radius units with the harbour at the
@@ -43,7 +44,7 @@ export interface OverlayScene {
   /** A lane being drawn, and where the pointer is. */
   drawing?: { points: number[][]; hover?: [number, number] };
   /** The woods brush under the pointer. */
-  brush?: { x: number; z: number; r: number; mode: 'grow' | 'clear' };
+  brush?: { x: number; z: number; r: number; mode: WoodsBrush };
 }
 
 /** The arrival pier's lane, as the checks keep it (islandChecks APPROACH). */
@@ -210,6 +211,8 @@ function drawShapes(s: OverlayScene, el: El, label: (x: number, z: number, t: st
   if (ground) {
     for (const [x, z, r] of design.woods.areas ?? [])
       el('circle', { cx: x, cy: z, r, class: 'i-woods' });
+    for (const [x, z, r] of design.woods.groves ?? [])
+      el('circle', { cx: x, cy: z, r, class: 'i-woods grove' });
     for (const [x, z, r] of design.woods.clear ?? [])
       el('circle', { cx: x, cy: z, r, class: 'i-clearing' });
   }

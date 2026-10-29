@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { GAME_MAP, PHASE0_MAP } from '../src/data/maps';
 import { TUNING } from '../src/data/tuning';
 import { designOf } from '../src/data/islands';
@@ -29,6 +29,7 @@ function tiny(): Heightfield {
     terrace: new Uint8Array(6),
     ground: new Uint8Array(6),
     grounds: [''],
+    smooth: new Float32Array(6).fill(1),
     seabed: -3.5,
     seed: 1,
   };
@@ -37,6 +38,11 @@ function tiny(): Heightfield {
 const designed = GAME_MAP.islands.filter((i) => designOf(i));
 
 describe('the shared height field', () => {
+  // The raster as built, before the new look's smoothing (tests/smooth-ground.test.ts).
+  const amount = TUNING.terrain.smooth.amount;
+  beforeAll(() => (TUNING.terrain.smooth.amount = 0));
+  afterAll(() => (TUNING.terrain.smooth.amount = amount));
+
   it('reads heights between samples linearly and the seabed off the grid', () => {
     const f = tiny();
     expect(heightAt(f, 10, 20)).toBe(0);

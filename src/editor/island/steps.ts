@@ -1,4 +1,5 @@
-import type { IslandDesign, IslandStyle, Point, PropDef } from '../../data/islands';
+import type { GroundDef, IslandDesign, IslandStyle, Point, PropDef } from '../../data/islands';
+import { setSmooth } from './smooth';
 import { PROP_RECIPES } from '../../data/props';
 import { islandLayout, layoutGround } from '../../sim/islandLayout';
 import {
@@ -28,8 +29,8 @@ import {
   setRiverPointWidth,
   blobOutline,
   deleteShape,
-  paintWoods,
 } from './shapes';
+import { type WoodsStep, applyWoodsStep } from './groves';
 
 /**
  * Island edits as data (decision 0153, `npm run island`): each step is one of the island
@@ -63,6 +64,8 @@ export type IslandStep =
       slope?: number;
       /** A mountain's crater (decision 0171): its radius as a share of its size. */
       crater?: number;
+      /** How much the new look smooths it (issue #269): 0 stays faceted. */
+      smooth?: number;
     } & Shaped)
   | ({ do: 'lake'; at: At } & Shaped)
   | {
@@ -84,19 +87,7 @@ export type IslandStep =
       to?: Level;
       tags?: string[];
     }
-  | {
-      do: 'woods';
-      at?: At;
-      r?: number;
-      clear?: boolean;
-      tree?: string;
-      tries?: number;
-      size?: number;
-      spacing?: number;
-      margin?: number;
-      /** The new look's forest: a multiplier on the biome's cover (issue #275). */
-      density?: number;
-    }
+  | ({ do: 'woods' } & WoodsStep)
   | { do: 'spot'; at: At; pair?: string; y?: number }
   | {
       do: 'prop';
@@ -146,6 +137,7 @@ export type IslandStep =
       height?: number;
       /** A coast ground's beach width (decision 0175). */
       beach?: number;
+      smooth?: number;
     };
 
 export const STEP_KINDS = [
@@ -225,6 +217,7 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
       const add = step.do === 'plateau' ? addPlateau : addMountain;
       const index = add(design, x, z, under, level, shape);
       if (step.crater && step.do === 'mountain') design.ground[index]!.crater = pos(step.crater);
+      setSmooth(design.ground[index]!, step.smooth);
       return `ground ${index}`;
     }
     case 'lake': {
@@ -267,19 +260,8 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
       if (step.tags?.length) river.tags = [...step.tags];
       return `river ${index}`;
     }
-    case 'woods': {
-      const w = design.woods;
-      if (step.tree) w.tree = step.tree;
-      for (const key of ['tries', 'size', 'spacing', 'margin', 'density'] as const)
-        if (step[key] !== undefined) w[key] = step[key];
-      if (step.at) {
-        const [x, z] = step.at;
-        paintWoods(design, x, z, step.r ?? 0.2, step.clear ? 'clear' : 'grow');
-        // Painting woods on an island whose woods are off turns them on.
-        if (!step.clear && !w.tries && step.tries === undefined) w.tries = 260;
-      }
-      return 'woods';
-    }
+    case 'woods':
+      return applyWoodsStep(design, step);
     case 'spot': {
       const index = addSpot(design, step.at[0], step.at[1]);
       if (step.pair) setSpotPair(design, index, step.pair);
@@ -357,6 +339,7 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
       if (step.material) g.material = step.material;
       if (step.height !== undefined && 'height' in g) g.height = pos(step.height);
       if (step.beach !== undefined && 'coast' in g) g.beach = pos(step.beach);
+      if (step.smooth !== undefined && !step.ramp) setSmooth(g as GroundDef, step.smooth);
       return `${what} ${step.index}`;
     }
     default:

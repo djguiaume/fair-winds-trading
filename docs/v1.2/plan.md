@@ -65,6 +65,13 @@ Add from the art review (must): slopes take each biome's cliff colours (grey onl
 
 Editors: the island builder and sea editor draw with the same `ground.ts`; `npm run island` and `npm run check` run the height field checks.
 
+**Built (#269, 2026-10-28).** Decision [0235](../decisions/0235-smooth-island-ground-shore-on-the-coast-faceted-landmarks.md):
+
+- `src/sim/smoothField.ts` smooths every field (`terrain.json › smooth`, Terrain tab in `?tune`); `designHeightfield` is raster → smooth → sculpt (#270). The waterline follows a shore profile from the true coast; a probe over every island found land and sea on the wrong side only within 0.45 units of the coast.
+- `src/render/models/fieldGround.ts`: one indexed, smooth-shaded grid per field, colours by zone (`terrain.json › draw`, `palette.json` grounds `slope` and styles `wet`). `ground.ts › facetedGround` draws the `smooth: 0` shapes as their classic pieces.
+- Island builder: `editor.html?look=v2` draws the same ground (and `npm run shots -- --editor … --look v2`); Smooth field per shape; `npm run island -- <id> ground <i> --smooth s`.
+- Ground triangles: High 615k, Medium 160k, Low 73k (no raise over #268). Fields: about 1.7 s for the whole sea.
+
 ### 3. Coast check (about 1 week, can run with step 2)
 
 The smoothed shoreline (height 0 contour) must stay within a tolerance of the sim coast (`coast.ts`) everywhere, and berths and piers must stay reachable. Add a check to `src/sim/islandChecks.ts` / `mapChecks.ts`, run by `npm run check`, that compares the two outlines (suggested limit: 1.5 units, to tune) and lists the worst points per island; `npm run chart -- --overlay` draws both lines for review.
@@ -87,7 +94,7 @@ What the mockup did: random cells on the height field, kept if height > 1.4, `no
 
 In the game: woods come from data (the island builder's `woods` areas, plus a density per biome), trees are prop recipes (`src/data/props/`) drawn instanced, counts by quality level. Art review rules: ring pines and broadleaf (up to about 40% cover), south palms and jungle broadleaf (about 55%), north snow-pines in valleys only (about 15%), west sparse birch scrub (about 8%), east no forest (heather, bracken, walls); keep 1.5 house widths clear round houses, no trees on lanes, fields, piers, plots or the camera's line to the town (Saltmere's town was swallowed in the mockup).
 
-**Built (#275, decision [0236](../decisions/0236-instanced-forests-from-biome-recipes.md)):** `src/data/forests.json` (how-to: [docs/content/forests.md](../content/forests.md)), placement `src/sim/forest.ts`, drawing `src/render/models/forest.ts`. Woods off stay treeless; painted woods grow thick, unpainted ones in clumps. Cost on the whole game map at level 2: High/Ultra 801 trees, 17 draws, 16k triangles, 59 KB instances; Medium 563 trees, 11k; Low 380 trees, 7.5k triangles, no tree shadows. `?bench` on the old tablet may lower Low's `share`.
+**Built (#275, decision [0236](../decisions/0236-instanced-forests-from-biome-recipes.md)):** `src/data/forests.json` (how-to: [docs/content/forests.md](../content/forests.md)), placement `src/sim/forest.ts`, drawing `src/render/models/forest.ts`. Woods off stay treeless; painted woods and new-look-only groves grow thick, the rest in clumps, with small trees and hedgerows. Cost on the whole game map at level 2: High/Ultra 1070 trees, 19 draws, 24k triangles, 81 KB instances; Medium 752 trees, 17k; Low 481 trees, 11k triangles, no tree shadows. `?bench` on the old tablet may lower Low's `share`.
 
 ### 6. Haze and sky (2 to 3 days)
 

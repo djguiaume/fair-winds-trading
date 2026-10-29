@@ -10,11 +10,11 @@ import { fieldStand } from './townProps';
 import type { TownLevel } from './towns';
 import { designedTownParts } from './towns';
 
-/** Where the harbour screen's camera stands (decision 0211), in the island file's units. */
-export function forestCamera(island: IslandDef, design: IslandDesign): [number, number] {
+/** Where the harbour screen's camera stands (decision 0211): file point and height (world). */
+export function forestCamera(island: IslandDef, design: IslandDesign): [number, number, number] {
   const pier = pierAt(island, islandBearing(island));
   const shot = harbourShot(island, { x: pier.x1, y: pier.y1 }, design.harbourView);
-  return filePoint(island, shot.from.x, shot.from.y);
+  return [...filePoint(island, shot.from.x, shot.from.y), shot.fromHeight];
 }
 
 /** The clearings a town notes as the game builds it: none yet, the harbour camera's place. */
