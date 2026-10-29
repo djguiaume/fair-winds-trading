@@ -45,8 +45,7 @@ function chain(segments: [Pt, Pt][]): Pt[][] {
     if (used.has(s)) continue;
     used.add(s);
     const line: Pt[] = [...segments[s]!];
-    for (let grown = true; grown;) {
-      grown = false;
+    for (;;) {
       const tail = line[line.length - 1]!;
       const next = ends.get(key(tail))?.find((n) => !used.has(n));
       if (next === undefined) break;
