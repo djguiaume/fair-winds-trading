@@ -412,7 +412,7 @@
     },
     "heath": {
       "name": "Heath and bracken",
-      "top": ["#a05c38", "#7a4e66", "#8e6a48", "#6c4a60"],
+      "top": ["#6f5666", "#8a6a5c", "#7a5e62", "#7d6a58"],
       "side": ["#61666d", "#74787e"],
       "trees": false
     },

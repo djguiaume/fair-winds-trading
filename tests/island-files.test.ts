@@ -150,7 +150,7 @@ const GOLDEN: Record<string, string[]> = {
   'the-chimneys-2': ['7:b1a0088d', '7:b1a0088d', '7:b1a0088d', '7:b1a0088d'],
   'the-tongs': ['7:78575b7d', '7:78575b7d', '7:78575b7d', '7:78575b7d'],
   'the-tongs-2': ['7:cbe478f3', '7:cbe478f3', '7:cbe478f3', '7:cbe478f3'],
-  fogwatch: ['607:dc9f8d0d', '728:ee565c88', '826:a4cedd0a', '880:19b86f4'],
+  fogwatch: ['607:93f5634b', '728:cea13ce', '826:136b8864', '880:a04b353a'],
   'the-giant': ['6:c84f56e6', '6:c84f56e6', '6:c84f56e6', '6:c84f56e6'],
   'his-wife': ['6:676eecc4', '6:676eecc4', '6:676eecc4', '6:676eecc4'],
   'amber-strand': ['196:df094665', '238:7c80561c', '277:f31e16ff', '277:f31e16ff'],
