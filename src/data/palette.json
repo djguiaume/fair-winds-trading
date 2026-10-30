@@ -410,7 +410,12 @@
       "side": ["#e6d6a8", "#d9c898"],
       "beach": true
     },
-    "heath": {"name": "Heath and bracken", "top": ["#8a7a52", "#7d6c58", "#76874a", "#8c6f5e"], "side": ["#61666d", "#74787e"], "trees": false},
+    "heath": {
+      "name": "Heath and bracken",
+      "top": ["#8a7a52", "#7d6c58", "#76874a", "#8c6f5e"],
+      "side": ["#61666d", "#74787e"],
+      "trees": false
+    },
     "marram": {
       "name": "Marram dunes",
       "top": ["#a8aa6a", "#b4b474", "#9ea062"],
