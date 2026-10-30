@@ -19,6 +19,7 @@ test('a scenario missing from the report is a problem', () => {
 });
 test('the new look has its own budget', () => {
   const budgets = { scenarios: { a: 1 }, newLook: { scenarios: { a: 2 } } };
-  assert.equal(budgetFor({ url: 'http://x/?look=v2&debug=' }, budgets), budgets.newLook);
+  assert.equal(budgetFor({ url: 'http://x/?debug=' }, budgets), budgets.newLook);
+  assert.equal(budgetFor({ url: 'http://x/?look=v1&debug=' }, budgets), budgets);
   assert.equal(budgetFor({ url: 'http://x/?debug=' }, budgets), budgets);
 });

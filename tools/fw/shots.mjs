@@ -61,8 +61,8 @@ Where
   --tab market|orders|quay|shipyard   the port screen's tab
   --zoom z                      camera distance, 1 = default, larger = farther (no game limit)
   --look x,y                    camera on this map point instead of the boat
-  --look v2 | v2,x,y            the new look's ground from the shared height field (?look=v2,
-                                decision 0222), and the camera on that point; v1: the classic
+  --look v1 | v1,x,y            the classic ground (?look=v1) for comparison, and the camera on that
+                                point; the new look (v2, decision 0222) is the default
   --yaw deg --tilt deg          a turned camera (0223): the bearing it looks to, degrees down
   --menu                        the title menu, before Set sail (the scene options are ignored)
   --chart                       the sea chart open (--pad and --click then play on it); --chart-zoom n, --chart-pan Key:n,
@@ -208,7 +208,7 @@ function defaultName(s) {
     s.menu ? 'menu' : where,
     s.chart && 'chart',
     s.night && 'night',
-    s.ground === 'v2' && 'v2',
+    s.ground === 'v1' && 'v1',
     s.lang !== 'en' && s.lang,
   ]
     .filter(Boolean)
@@ -230,7 +230,7 @@ export function planShots(args) {
 
 /** The game's address for a shot: the sea, `?debug`, and a quest test's own parameters. */
 export function shotPath(shot) {
-  const look = shot.ground === 'v2' ? '&look=v2' : ''; // the new look's ground (#268, #269)
+  const look = shot.ground === 'v1' ? '&look=v1' : ''; // the classic ground; v2 is the default (#350)
   if (shot.editor) return `/editor.html?debug${shot.editor === 'ring' ? '&sea=ring' : ''}${look}`;
   if (shot.url) {
     const u = new URL(shot.url, 'http://x/');
