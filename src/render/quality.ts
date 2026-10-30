@@ -29,7 +29,8 @@ export interface QualityProfile {
 
 export const QUALITY: Record<QualityLevel, QualityProfile> = {
   low: {
-    maxRenderPixels: 750_000,
+    // Decision 0240: a weak tablet ran 28 fps at 750 000 pixels and 38 at about half of them.
+    maxRenderPixels: 400_000,
     pixelRatioCap: 1,
     oceanSegments: 48,
     windStreaks: 36,
