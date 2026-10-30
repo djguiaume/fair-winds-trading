@@ -3,13 +3,8 @@ import { ISLAND_DESIGNS, type IslandDesign } from '../src/data/islands';
 import { designedTownParts, islandCheckKit } from '../src/render/models/towns';
 import { coastDistance } from '../src/sim/coast';
 import { checkIsland } from '../src/sim/islandChecks';
-import {
-  cliffDistance,
-  crossesCliff,
-  islandLayout,
-  layoutGround,
-  slopeDistance,
-} from '../src/sim/islandLayout';
+import { cliffDistance } from '../src/sim/islandCliffs';
+import { crossesCliff, islandLayout, layoutGround, slopeDistance } from '../src/sim/islandLayout';
 
 /** Port Calda with a ramp from the low ground (0.11) up onto its plateau (ground 1, 0.32). */
 const R = 30 / 2.2;
@@ -85,5 +80,13 @@ describe('ramps (decision 0123)', () => {
     expect(checkIsland(d, islandCheckKit(d, R)).some((i) => i.message.includes('width'))).toBe(
       true,
     );
+  });
+});
+
+describe('buried cliffs (#277)', () => {
+  it('does not count the edge of lower ground buried under higher ground', () => {
+    // Stonehaven's quarry tiers end under its plateau: their edge there is no cliff.
+    const layout = islandLayout('south-cay', 4);
+    expect(cliffDistance(layout, -0.262, -0.766)).toBeGreaterThan(0.1);
   });
 });
