@@ -45,14 +45,15 @@ Per scenario: draw calls / triangles / frame p95 ms (median of the repeats).
 
 ## Real device: Guillaume's Android 10 phone (2026-10-30)
 
-Chrome 156, 8 cores, 8 GB, screen 412x924 @2.63, `?bench` (3 passes of 75 s, medium fixed, all hazards on), game v1.1.301 to v1.1.302. The readout did not record the look, so these runs cannot be told apart from the classic look (the readout should print it).
+Chrome 156, 8 cores, 8 GB, screen 412x924 @2.63, `?bench` (3 passes of 75 s, medium fixed, all hazards on), game v1.1.301 to v1.1.302. Runs 1 to 3 were on `?look=v2`; run 4 was the classic look (`?perf`, 1:09 of free sailing). The readout does not print the look yet.
 
 | Run | Quality | Canvas | Draws / tris | avg fps | 1% low | p95 ms | Worst ms | Slow / hitches |
 |---|---|---|---|---|---|---|---|---|
-| Grown sea, full res | auto → medium | 513x1153 | 33 / 44k | 59.7 | 59.5 | 16.8 | 150 | 3 / 1 |
-| Stress sea, full res | auto → medium | 513x1153 | 30 / 32k | 59.8 | 59.5 | 16.8 | 117 | 1 / 1 |
-| Stress sea, 0.7 scale | ultra | 575x1292 | 115 / 462k | 53.6 | 20.0 | 33.4 | 67 | 52 / 0 |
+| New look, grown sea, full res | auto → medium | 513x1153 | 33 / 44k | 59.7 | 59.5 | 16.8 | 150 | 3 / 1 |
+| New look, stress sea, full res | auto → medium | 513x1153 | 30 / 32k | 59.8 | 59.5 | 16.8 | 117 | 1 / 1 |
+| New look, stress sea, 0.7 scale | ultra | 575x1292 | 115 / 462k | 53.6 | 20.0 | 33.4 | 67 | 52 / 0 |
+| Classic look, grown sea (`?perf`) | auto → medium | 513x1153 | 33 / 44k | 59.8 | 59.5 | 16.8 | 100 | 2 / 1 |
 
-- Medium holds 60 fps at 16.8 ms p95 with one hitch per pass (80 to 150 ms, likely the first frames of a pass).
+- The new look at Medium is as smooth as the classic look on this phone (both 59.7 to 59.8 fps, p95 16.8 ms). Medium holds 60 fps at 16.8 ms p95 with one hitch per pass (80 to 150 ms, likely the first frames of a pass).
 - Ultra on a phone is not smooth (1% low 20 fps) and draws 462k triangles on the stress sea. It is a desktop level; auto picks medium here, so this is only a ceiling.
 - Still missing: an old tablet or low-end phone at Low, and a desktop Ultra readout at 1080p.
