@@ -8,6 +8,7 @@ import { type ShoreTexture, shoreShader, shoreTexture } from './shoreTexture';
 import { type SeabedTexture, seabedShader } from './seabedTexture';
 import { dimShallow, liftToFloor, newRamp, seaRampAt } from './seaWater';
 import { oceanVertexShader as vertexShader, waveSag } from './oceanWaves';
+import { type SeaWaves, gerstnerDefines, gerstnerUniforms } from './seaWaves';
 
 const fragmentShader = /* glsl */ `
 uniform float uTime;
@@ -119,15 +120,6 @@ void main() {
 /** Conservative displacement bound: sum of the three wave amplitudes below and in the shader. */
 export const MAX_WAVE_HEIGHT = 0.32 + 0.24 + 0.12;
 
-/** CPU copy of the vertex shader's wave height, so boats and wakes ride the same waves. */
-export function waveHeight(x: number, z: number, t: number): number {
-  return (
-    Math.sin(x * 0.12 + z * 0.07 + t * 1.1) * 0.32 +
-    Math.sin(x * -0.05 + z * 0.15 + t * 0.8) * 0.24 +
-    Math.sin(x * 0.21 + z * -0.17 + t * 1.7) * 0.12
-  );
-}
-
 /**
  * The ocean of a quality level. The shader depends on the water look, not the grid resolution:
  * it shares the material of another level's ocean that draws the same water, so switching
@@ -139,13 +131,14 @@ export function oceanFor(
   land: { islands: readonly IslandDef[]; terrain: readonly TerrainDef[] },
   shore: ShoreTexture,
   seabed?: SeabedTexture,
+  gerstner = false,
 ): Ocean {
   const material = others.find(
     ({ mesh }) =>
       'FANCY' in mesh.material.defines === profile.fancyWater &&
       'REFLECT' in mesh.material.defines === profile.waterReflection,
   )?.mesh.material;
-  const look = { fancy: profile.fancyWater, reflect: profile.waterReflection, seabed };
+  const look = { fancy: profile.fancyWater, reflect: profile.waterReflection, seabed, gerstner };
   return new Ocean(land.islands, profile.oceanSegments, look, 480, land.terrain, shore, material);
 }
 
@@ -157,6 +150,8 @@ export interface WaterLook {
   reflect?: boolean;
   /** Coloured by the seabed's depth and the sea's own colours (`?look=v2`, issue #274). */
   seabed?: SeabedTexture;
+  /** The wind and storm driven Gerstner waves (`?waves=v2`, decision 0245). */
+  gerstner?: boolean;
 }
 
 /**
@@ -215,6 +210,7 @@ export class Ocean {
               ? { FANCY: '', REFLECT: '' }
               : { FANCY: '' }),
           ...(look.seabed ? { DEPTH: '' } : {}),
+          ...(look.gerstner ? gerstnerDefines() : {}),
         },
         uniforms: {
           uTime: { value: 0 },
@@ -241,6 +237,7 @@ export class Ocean {
           uGlintFade: { value: new THREE.Vector3(0.6, 0.85, 0.5) },
           uFoamLook: { value: new THREE.Vector4() },
           uShoreCalm: { value: new THREE.Vector2() },
+          ...(look.gerstner ? gerstnerUniforms() : {}),
         },
       });
     // The ring's colours until the first update places the camera.
@@ -328,9 +325,13 @@ export class Ocean {
    * Keep the grid centered on the camera target, snapped to whole cells so waves don't swim.
    * `reflect` is the Settings switch for the sky reflection and glint (where the shader has them).
    */
-  update(time: number, center: THREE.Vector3, reflect = true): void {
+  update(time: number, center: THREE.Vector3, reflect = true, waves?: SeaWaves | null): void {
     const u = this.mesh.material.uniforms;
     u.uTime!.value = time;
+    if (waves && 'GERSTNER' in this.mesh.material.defines) {
+      waves.update();
+      waves.writeUniforms(u as Parameters<SeaWaves['writeUniforms']>[0], this.cell);
+    }
     const w = TUNING.graphics.water;
     u.uReflect!.value = reflect ? w.reflection : 0;
     u.uGlint!.value = reflect ? w.glint : 0;
