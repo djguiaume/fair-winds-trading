@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { EdgeBuoys } from '../src/render/props';
-import { MAX_WAVE_HEIGHT, waveHeight } from '../src/render/ocean';
+import { MAX_WAVE_HEIGHT } from '../src/render/ocean';
+import { waveHeight } from '../src/render/oceanWaves';
 import { resetTuning, TUNING } from '../src/data/tuning';
 
 afterEach(resetTuning);

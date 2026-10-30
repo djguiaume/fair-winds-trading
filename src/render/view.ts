@@ -17,7 +17,7 @@ import {
   createBoatModel,
 } from './models';
 import { HEEL_FEEL, Heel, heelFactor } from './heel';
-import { type Ocean, oceanFor, waveHeight } from './ocean';
+import { type Ocean, oceanFor } from './ocean';
 import { ShoreTextureCache } from './shoreTexture';
 import { SeabedTextureCache, drawnFields } from './seabedTexture';
 import { CalmWater } from './calmWater';
@@ -29,6 +29,8 @@ import { BuoyMarker, EdgeBuoys, createBlobShadow } from './props';
 import { CourseSpar } from './courseSpar';
 import { renderPixelRatio, QUALITY, type QualityLevel, type QualityProfile } from './quality';
 import { type TerrainLook, terrainLook } from './terrainLook';
+import { SeaWaves } from './seaWaves';
+import { toScene } from './sceneSpace';
 import { HazeVeil } from './hazeVeil';
 import { Wake } from './wake';
 import { ImpactDebris } from './impactDebris';
@@ -67,11 +69,6 @@ import {
   harbourShot,
 } from './harbourView';
 
-/** Sim (x east, y north) → three.js scene (x, 0, -y). */
-function toScene(x: number, y: number, out = new THREE.Vector3()) {
-  return out.set(x, 0, -y);
-}
-
 export interface ScreenPoint {
   /** Pixels from the top-left of the canvas. */
   x: number;
@@ -103,6 +100,7 @@ export class GameView {
   private readonly traffic: TrafficView;
   /** The tracked quest step's places at sea (decision 0130). */
   private readonly questMarkers = new QuestMarkers();
+  private readonly sea = new SeaWaves(() => this.world);
   /** What the tracked step marks at sea; the game sets it once the quests run. */
   stepMarkers: () => { style: string; points: readonly StepMarker[] } | null = () => null;
   /** The running quests' own sea marks (decision 0164: the lessons' buoys). */
@@ -125,7 +123,7 @@ export class GameView {
   /** How readily the current class leans (decision 0044). */
   private heelFactor = 1;
   private readonly boatShadow = createBlobShadow(6.5, 14);
-  private readonly wake = new Wake();
+  private readonly wake = new Wake(this.sea.heightAt);
   /** Splash and planks from crashes and reef strikes (decision 0208). */
   private readonly debris = new ImpactDebris();
   private readonly buoy = new BuoyMarker();
@@ -418,7 +416,7 @@ export class GameView {
     if (!effects) {
       const others = [...this.qualityEffects.values()].map(({ ocean }) => ocean);
       effects = {
-        ocean: oceanFor(profile, others, this.world.land, shore, seabed),
+        ocean: oceanFor(profile, others, this.world.land, shore, seabed, this.sea.gerstner),
         streaks: new WindStreaks(profile.windStreaks),
         rain: new Rain(profile.rainDrops),
       };
@@ -630,15 +628,15 @@ export class GameView {
     const fz = pos.z - dir.y * 5;
     const bx = pos.x - dir.x * 5;
     const bz = pos.z + dir.y * 5;
-    const hFront = waveHeight(fx, fz, time);
-    const hBack = waveHeight(bx, bz, time);
+    const hFront = this.sea.heightAt(fx, fz);
+    const hBack = this.sea.heightAt(bx, bz);
     this.boat.root.position.set(pos.x, (hFront + hBack) * 0.4, pos.z);
     this.boat.root.rotation.set(Math.atan2(hFront - hBack, 10) * 0.8, yaw, 0);
     this.boatShadow.position.set(pos.x + 1.8, 0.55, pos.z - 1);
     this.boatShadow.rotation.y = yaw;
 
     this.wake.update(dt, time, pos, dir.x, -dir.y, boat.speedKn, this.boat.wakeHull);
-    this.debris.update(dt, (x, z) => waveHeight(x, z, time));
+    this.debris.update(dt, this.sea.heightAt);
 
     const to = bearingVector(windTo(wind));
     this.streaks.update(
@@ -696,29 +694,29 @@ export class GameView {
     // An eruption brightens the lava past its night glow (one shared material, decision 0178).
     lava?.color.multiplyScalar(1 + (TUNING.weather.volcano.eruptions.lavaGain - 1) * erupting);
     this.boat.setNightLighting?.(day.night);
-    this.ocean.update(time, this.rig.seaCentre, this.effects.reflection);
+    this.ocean.update(time, this.rig.seaCentre, this.effects.reflection, this.sea);
     this.currentWater?.update(time, this.ocean, this.world.currentsOn);
     this.calmWater?.update(time, this.ocean, this.world.windZones);
     this.roughWater?.update(time, this.ocean, this.world.windZones);
     this.shallowsWater?.update(time, this.ocean);
-    this.edgeBuoys.update(time, (x, z) => waveHeight(x, z, time), this.camera);
+    this.edgeBuoys.update(time, this.sea.heightAt, this.camera);
     this.seaMarks.setQuestMarks(this.questMarks());
-    this.seaMarks.update(time, (x, z) => waveHeight(x, z, time));
-    this.bergs.update(this.world.time, this.world.bergsOn, (x, z) => waveHeight(x, z, time));
+    this.seaMarks.update(time, this.sea.heightAt);
+    this.bergs.update(this.world.time, this.world.bergsOn, this.sea.heightAt);
     this.traffic.update(
       this.world.traffic,
       time,
-      (x, z) => waveHeight(x, z, time),
+      this.sea.heightAt,
       glow,
       this.world.boat,
       this.world.rival,
     );
-    this.questMarkers.update(this.stepMarkers(), time, (x, z) => waveHeight(x, z, time));
+    this.questMarkers.update(this.stepMarkers(), time, this.sea.heightAt);
     const course = this.world.destination;
     this.courseSpar.update(
       course?.kind && !course.portId ? { x: course.x, y: course.y, kind: course.kind } : null,
       time,
-      (x, z) => waveHeight(x, z, time),
+      this.sea.heightAt,
       glow,
     );
 
@@ -728,7 +726,7 @@ export class GameView {
       toScene(wp.x, wp.y, this.buoy.root.position);
       this.buoy.update(
         time,
-        waveHeight(wp.x, -wp.y, time),
+        this.sea.heightAt(wp.x, -wp.y),
         TUNING.seamanship.harbour.waypointRadius,
       );
     }
@@ -804,7 +802,7 @@ export class GameView {
     fog.near = 1e4;
     fog.far = 2e4;
     this.ocean.setFog(fog.near, fog.far);
-    this.ocean.update(this.world.time, aim, this.effects.reflection);
+    this.ocean.update(this.world.time, aim, this.effects.reflection, this.sea);
     const glow = day.night;
     this.lanterns.update(glow, this.boatLantern, time);
     this.lighthouseBeams.update(time, glow);

@@ -1,7 +1,50 @@
 import { num, type TuningMeta } from './tuning-meta-types';
 
-/** `weather.json` › `storms` and `raceStorms`: storm cells, and a race's own storms (decision 0225). */
+/**
+ * `weather.json` › `default.storms`, `storms` and `raceStorms`: how often storm cells cross the sea,
+ * how they behave, and a race's own storms (decision 0225).
+ */
 export const STORMS_META: Readonly<Record<string, TuningMeta>> = {
+  'weather.default.storms.everySec': num(
+    'One storm every',
+    60,
+    3600,
+    30,
+    's',
+    'Captain level; the other levels set their own (difficulty).',
+  ),
+  'weather.default.storms.radius': num(
+    'Storm radius',
+    20,
+    300,
+    5,
+    'units',
+    "Radius of the storm's reach; the core is the inner part.",
+  ),
+  'weather.default.storms.speed': num(
+    'Storm speed',
+    0.5,
+    20,
+    0.1,
+    'units/s',
+    'Track speed (a sloop at 8 kn sails 12.8).',
+  ),
+  'weather.default.storms.areaShare': num(
+    'Storm area',
+    0.2,
+    1.5,
+    0.05,
+    undefined,
+    "Share of the sea's radius the storms cross; 1 = the whole sea (0115).",
+  ),
+  'weather.default.storms.perRadius': num(
+    'Sea per storm',
+    100,
+    2000,
+    10,
+    'units',
+    'Sea radius that gets one storm per stretch; bigger seas get more at once (0115).',
+  ),
   'weather.storms.coreShare': num(
     'Storm core',
     0,

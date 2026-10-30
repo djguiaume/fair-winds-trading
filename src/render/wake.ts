@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { waveHeight } from './ocean';
+import { waveHeight } from './oceanWaves';
 import type { QualityLevel } from './quality';
 import { PALETTE } from '../data/props';
 
@@ -43,8 +43,11 @@ export class FoamStrips {
   private readonly foam: Float32Array;
   protected vertices = 0;
 
-  /** Room for `strips` strips of one quad each. */
-  constructor(strips: number) {
+  /** Room for `strips` strips of one quad each, floating on `water` (scene x, z, time). */
+  constructor(
+    strips: number,
+    private readonly water: (x: number, z: number, t: number) => number = waveHeight,
+  ) {
     this.positions = new Float32Array(strips * 6 * 3);
     this.foam = new Float32Array(strips * 6 * 4);
     this.geometry.setAttribute(
@@ -115,7 +118,7 @@ export class FoamStrips {
       const z = (end ? bz : az) + (end ? bsz * bw : asz * aw) * side;
       const i = this.vertices++;
       this.positions[i * 3] = x;
-      this.positions[i * 3 + 1] = waveHeight(x, z, time) + 0.14;
+      this.positions[i * 3 + 1] = this.water(x, z, time) + 0.14;
       this.positions[i * 3 + 2] = z;
       this.foam[i * 4] = side;
       this.foam[i * 4 + 1] = end ? bv : av;
@@ -201,9 +204,9 @@ export class Wake extends FoamStrips {
   private distance = 0;
   private level: QualityLevel = 'medium';
 
-  constructor() {
+  constructor(water?: (x: number, z: number, t: number) => number) {
     // Three strips per history segment, plus two bow strips of six segments each.
-    super(CAPACITY * 3 + 12);
+    super(CAPACITY * 3 + 12, water);
   }
 
   setQuality(level: QualityLevel) {
