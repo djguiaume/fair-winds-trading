@@ -1,4 +1,5 @@
 import controls from '../data/controls.json';
+import { QUALITY_LEVELS, type QualityLevel } from '../render/quality';
 
 /**
  * The game in a console's browser on a TV (decision 0183): Microsoft Edge on Xbox. Three things
@@ -12,6 +13,9 @@ import controls from '../data/controls.json';
  * - If B still reaches the browser as Back, the game keeps an extra history entry so Back stays
  *   in the game instead of leaving it (the voyage autosaves anyway).
  *
+ * - The console's browser is held to `maxQuality` (decision 0244): Ultra blanked the sea on the
+ *   Xbox and took Edge's graphics down until the console restarted.
+ *
  * What counts as a TV and the numbers are in `src/data/controls.json` › `tv` (decision 0093).
  * `?tv` forces TV mode on any browser (to test it on a desktop), `?tv=0` turns it off.
  */
@@ -24,6 +28,8 @@ export interface TvConfig {
   safeMargin: { x: number; y: number };
   /** Keep an extra history entry so the browser's Back stays in the game. */
   stayOnBack: boolean;
+  /** Highest graphics level on a TV; Auto and the Settings stop there. */
+  maxQuality: QualityLevel;
 }
 
 export const TV = controls.tv as TvConfig;
@@ -37,6 +43,8 @@ export function tvProblems(c: TvConfig = TV): string[] {
     if (!(c.safeMargin[k] >= 0 && c.safeMargin[k] <= 0.2))
       out.push(`tv.safeMargin.${k} must be 0..0.2`);
   if (!c.gamepadInputEmulation) out.push('tv.gamepadInputEmulation: empty');
+  if (!QUALITY_LEVELS.includes(c.maxQuality))
+    out.push(`tv.maxQuality must be one of ${QUALITY_LEVELS.join(', ')}`);
   return out;
 }
 

@@ -1,4 +1,5 @@
 import { PAD_AXES, PAD_BUTTONS } from '../../input/gamepad';
+import { QUALITY_LEVELS, type QualityLevel } from '../../render/quality';
 import { History } from '../model';
 import { h, numberInput, row, select, textInput } from '../quest/form';
 import {
@@ -273,7 +274,7 @@ function drawTv(): HTMLElement[] {
   return [
     heading(
       'TV mode',
-      'A console browser on a TV (Edge on Xbox): the words in its user agent, what it does with the pad, the margin kept clear of overscan. ?tv forces it on any browser.',
+      'A console browser on a TV (Edge on Xbox): the words in its user agent, what it does with the pad, the margin kept clear of overscan, the highest graphics level (Ultra blanked the sea on the Xbox, decision 0244). ?tv forces it on any browser.',
     ),
     row(
       'user agents',
@@ -294,6 +295,12 @@ function drawTv(): HTMLElement[] {
       numberInput(tv.safeMargin.y, (v) => v !== undefined && edit(() => (tv.safeMargin.y = v))),
     ),
     row('Back stays', stay),
+    row(
+      'highest graphics',
+      select([...QUALITY_LEVELS], tv.maxQuality, (v) =>
+        edit(() => (tv.maxQuality = v as QualityLevel)),
+      ),
+    ),
   ];
 }
 

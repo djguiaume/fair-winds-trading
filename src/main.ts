@@ -28,9 +28,12 @@ import {
   FrameMonitor,
   QUALITY,
   type QualityLevel,
+  capQuality,
   guessQuality,
   lowerQuality,
+  probeGpu,
 } from './render/quality';
+import { UltraTrial } from './render/ultraTrial';
 import { GameView } from './render/view';
 import { SAIL_STEPS, createBoat, knotToUnits } from './sim/boat';
 import { isFar, isGood, isRare, isSpecialty } from './sim/goods';
@@ -136,7 +139,7 @@ import {
 } from './sim/home';
 import { character, firstName } from './ui/portraits';
 import { TransferPanel } from './ui/transferPanel';
-import { startTvMode } from './input/tv';
+import { TV, startTvMode } from './input/tv';
 import { PadLog } from './ui/padLog';
 import { usePadBrand } from './ui/padGlyphs';
 import { askConfirm } from './ui/confirmDialog';
@@ -196,7 +199,7 @@ translateDom();
 const canvas = $<HTMLCanvasElement>('scene');
 
 // three.js needs WebGL2 (iOS 15+, Android Chrome since ~2017). Say so instead of a blank page.
-if (!document.createElement('canvas').getContext('webgl2')) {
+if (!probeGpu().webgl2) {
   const help = $('help');
   help.innerHTML = `<div class="sheet-body"><h2>${t('game.title')}</h2><p>${t('webgl.unsupported')}</p></div>`;
   help.hidden = false;
@@ -299,7 +302,13 @@ if (playtestMap) {
   if (!questTest) document.body.append(badge);
 }
 const resumedVoyage = storage ? loadGame(storage, world) : false;
-let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
+// The Xbox, and a device where Ultra took the graphics down, stop at High (decision 0244).
+const ultraTrial = new UltraTrial(browserStorage, TUNING.graphics.ultra.trialSeconds);
+const topLevel = () =>
+  capQuality(tvMode ? TV.maxQuality : 'ultra', ultraTrial.failed ? 'high' : 'ultra');
+const pickLevel = () =>
+  settings.quality === 'auto' ? guessQuality(topLevel()) : capQuality(settings.quality, topLevel());
+let level: QualityLevel = pickLevel();
 const view = new GameView(canvas, world, level);
 // The sea's sound where she sails, and the effects of what happens (decision 0209).
 const seaListener = new SeaListener(
@@ -1620,8 +1629,11 @@ const qualityButtons = [...$('quality').querySelectorAll<HTMLButtonElement>('[da
 const showFps = $<HTMLInputElement>('show-fps');
 const qualityNow = $('quality-now');
 const markQuality = () => {
-  for (const b of qualityButtons)
-    b.setAttribute('aria-checked', String(b.dataset.quality === settings.quality));
+  for (const b of qualityButtons) {
+    const q = b.dataset.quality as QualityLevel | 'auto';
+    b.setAttribute('aria-checked', String(q === settings.quality));
+    b.disabled = q !== 'auto' && capQuality(q, topLevel()) !== q;
+  }
 };
 markQuality();
 showFps.checked = settings.showFps;
@@ -1650,7 +1662,7 @@ for (const b of qualityButtons)
     settings.quality = b.dataset.quality as typeof settings.quality;
     keepSettings();
     markQuality();
-    setLevel(settings.quality === 'auto' ? guessQuality() : settings.quality);
+    setLevel(pickLevel());
   });
 const musicVolume = $<HTMLInputElement>('music-volume');
 const musicValue = $('music-volume-value');
@@ -1733,12 +1745,22 @@ resetSaveBtn?.addEventListener('click', async () => {
 
 function setLevel(next: QualityLevel) {
   if (next === level) return;
+  if (level === 'ultra') ultraTrial.stop();
   level = next;
   view.setQuality(level);
   world.traffic.cap = TUNING.seamanship.traffic.atOnce[level];
   chart.fogBlur = QUALITY[level].chartFogBlur;
   describeQuality();
 }
+
+// Graphics lost on Ultra: never Ultra again on this device; leaving early is not a failure.
+canvas.addEventListener('webglcontextlost', () => {
+  if (level !== 'ultra') return;
+  ultraTrial.fail();
+  setLevel('high');
+  markQuality();
+});
+window.addEventListener('pagehide', () => level === 'ultra' && ultraTrial.stop());
 
 // --- Resize ------------------------------------------------------------------------------------
 const size = { w: 1, h: 1 };
@@ -1963,6 +1985,7 @@ function tick(now: number) {
   if (++coachTick % 6 === 0) coach.place();
 
   // The benchmark keeps one level throughout so its passes compare (decision 0154).
+  if (level === 'ultra') ultraTrial.tick(dt);
   if (monitor.sample(dt) && !benchMode && settings.quality === 'auto' && level !== 'low') {
     setLevel(lowerQuality(level));
   }

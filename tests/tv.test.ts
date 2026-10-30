@@ -39,10 +39,16 @@ function fakeWindow(userAgent: string, search = '') {
 describe('TV mode (decision 0183)', () => {
   it('has a valid data section', () => {
     expect(tvProblems()).toEqual([]);
-    const bad: TvConfig = { ...TV, userAgents: [], safeMargin: { x: 0.5, y: 0.05 } };
+    const bad: TvConfig = {
+      ...TV,
+      userAgents: [],
+      safeMargin: { x: 0.5, y: 0.05 },
+      maxQuality: 'best' as TvConfig['maxQuality'],
+    };
     expect(tvProblems(bad)).toEqual([
       'tv.userAgents: needs at least one non-empty word',
       'tv.safeMargin.x must be 0..0.2',
+      'tv.maxQuality must be one of low, medium, high, ultra',
     ]);
   });
 

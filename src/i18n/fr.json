@@ -95,7 +95,7 @@
   "compassLong.SW": "au sud-ouest",
   "compassLong.W": "à l’ouest",
   "compassLong.NW": "au nord-ouest",
-  "webgl.unsupported": "Désolé, ce navigateur ne prend pas en charge WebGL2, nécessaire au jeu. Essayez de mettre à jour le navigateur ou le système (iOS 15 ou plus sur iPad).",
+  "webgl.unsupported": "Désolé, ce navigateur ne prend pas en charge WebGL2, nécessaire au jeu. Essayez de mettre à jour le navigateur ou le système (iOS 15 ou plus sur iPad). Si le jeu marchait ici avant, redémarrez le navigateur (sur une console, redémarrez la console).",
   "menu.kicker": "La",
   "menu.title": "Compagnie<br />Fair Winds",
   "menu.tagline": "Prenez le vent. Livrez la marchandise.",

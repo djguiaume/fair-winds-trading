@@ -235,8 +235,10 @@ body.at-title .in-game {
   cursor: pointer;
   touch-action: manipulation;
 }
-/* A line that can't be picked now (the lessons while the first voyage's story runs). */
-.menu-row:disabled {
+/* A line that can't be picked now (the lessons while the first voyage's story runs), or a level
+   this device is held below (Ultra on the Xbox, decision 0244). */
+.menu-row:disabled,
+.seg button:disabled {
   opacity: 0.45;
   cursor: default;
   filter: grayscale(0.6);
@@ -520,6 +522,10 @@ body.at-title .in-game {
 }
 label.set-row {
   cursor: pointer;
+}
+/* The Ultra switches hide on the levels that do not draw them. */
+.set-row[hidden] {
+  display: none;
 }
 .set-row:nth-of-type(odd) {
   background: var(--paper-shade);

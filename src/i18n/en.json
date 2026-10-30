@@ -95,7 +95,7 @@
   "compassLong.SW": "to the southwest",
   "compassLong.W": "to the west",
   "compassLong.NW": "to the northwest",
-  "webgl.unsupported": "Sorry, this browser does not support WebGL2, which the game needs. Try updating the browser or the system (iOS 15+ on iPad).",
+  "webgl.unsupported": "Sorry, this browser does not support WebGL2, which the game needs. Try updating the browser or the system (iOS 15+ on iPad). If the game ran here before, restart the browser (on a console, restart the console).",
   "menu.kicker": "The",
   "menu.title": "Fair Winds<br />Trading Co.",
   "menu.tagline": "Read the wind. Deliver the goods.",

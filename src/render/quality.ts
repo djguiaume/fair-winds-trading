@@ -94,26 +94,38 @@ export function renderPixelRatio(
   );
 }
 
-const ORDER: QualityLevel[] = ['low', 'medium', 'high', 'ultra'];
+export const QUALITY_LEVELS: readonly QualityLevel[] = ['low', 'medium', 'high', 'ultra'];
 
 /** Software renderers and small laptop chips: no Ultra for them (decision 0221). */
 const WEAK_GPU =
   /swiftshader|llvmpipe|software|basic render|intel\(r\) (?:u?hd|iris\(r\) (?:plus|pro)?) graphics|mali|adreno|powervr/i;
 
-/** The GPU's name, or '' when the browser hides it. Asked once, on a throwaway context. */
-let gpu: string | undefined;
-function gpuName(): string {
-  if (gpu !== undefined) return gpu;
-  gpu = '';
+/** What one throwaway WebGL 2 context says about this browser, asked once (decision 0244). */
+interface GpuProbe {
+  webgl2: boolean;
+  /** The GPU's name, or '' when the browser hides it. */
+  name: string;
+}
+
+let probe: GpuProbe | undefined;
+
+/**
+ * Opens a single throwaway context for both questions and releases it at once, so the page holds
+ * no spare context next to the game's (the start-up check used to leave one open until GC).
+ */
+export function probeGpu(): GpuProbe {
+  if (probe) return probe;
+  probe = { webgl2: false, name: '' };
   try {
     const gl = document.createElement('canvas').getContext('webgl2');
+    probe.webgl2 = !!gl;
     const info = gl?.getExtension('WEBGL_debug_renderer_info');
-    if (gl && info) gpu = String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL));
+    if (gl && info) probe.name = String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL));
     gl?.getExtension('WEBGL_lose_context')?.loseContext();
   } catch {
-    // No WebGL 2 here: High at most.
+    // No WebGL 2 here.
   }
-  return gpu;
+  return probe;
 }
 
 /** Ultra only on a desktop or an Xbox with a real graphics card (decision 0221). */
@@ -123,19 +135,28 @@ export function ultraCapable(gpu: string, cores: number): boolean {
 
 /**
  * First guess before any frame is measured: touch devices start lower, desktops with a real
- * graphics card on Ultra. Auto still steps down if the frames are slow.
+ * graphics card on Ultra, never above `max`. Auto still steps down if the frames are slow.
  */
-export function guessQuality(): QualityLevel {
+export function guessQuality(max: QualityLevel = 'ultra'): QualityLevel {
+  return capQuality(firstGuess(), max);
+}
+
+function firstGuess(): QualityLevel {
   const touch = navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
   const cores = navigator.hardwareConcurrency || 4;
   const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
   if (touch && (cores <= 4 || (memory !== undefined && memory <= 4))) return 'low';
   if (touch) return 'medium';
-  return ultraCapable(gpuName(), cores) ? 'ultra' : 'high';
+  return ultraCapable(probeGpu().name, cores) ? 'ultra' : 'high';
+}
+
+/** `level`, or `max` when that is lower (the Xbox and a device where Ultra failed stop at High). */
+export function capQuality(level: QualityLevel, max: QualityLevel): QualityLevel {
+  return QUALITY_LEVELS.indexOf(level) > QUALITY_LEVELS.indexOf(max) ? max : level;
 }
 
 export function lowerQuality(q: QualityLevel): QualityLevel {
-  return ORDER[Math.max(0, ORDER.indexOf(q) - 1)]!;
+  return QUALITY_LEVELS[Math.max(0, QUALITY_LEVELS.indexOf(q) - 1)]!;
 }
 
 /**
