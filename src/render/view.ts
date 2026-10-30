@@ -404,6 +404,11 @@ export class GameView {
     );
   }
 
+  /** The Gerstner waves are drawn now (Settings › Waves or the level's default, 0250). */
+  get wavesOn() {
+    return this.sea.gerstner;
+  }
+
   /** Settings › Waves: on, off, or null for the level's default (`graphics.json`, 0250). */
   setWaves(choice: boolean | null) {
     this.wavesChoice = choice;

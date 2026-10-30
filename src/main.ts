@@ -2103,6 +2103,7 @@ if (perfMode) {
           : undefined,
         switches: () =>
           [
+            `waves ${view.wavesOn ? 'on' : 'off'}`,
             ...(
               ['weather', 'storms', 'dayNight', 'windZones', 'stormBelt', 'currents'] as const
             ).map((k) => `${k} ${settings[k] ? 'on' : 'off'}`),
