@@ -69,3 +69,11 @@ Headless, look v2, same method. Frame times were 2 to 4 times slower than the fi
 | High | 26 / 153.6k (was 150.8k) | 35 / 122k (was 151k, a different docking pose) |
 
 The island review and the current-water grid add about 2k to 3k triangles in view, inside the `newLook` budget (166k at High). No budget change needed.
+
+## Real device: Surface laptop, integrated GPU (2026-10-30)
+
+Windows, Chrome 156, Core i7-1065G7, Intel Iris Plus Graphics, 32 GB, canvas 2484x1489 (3.7 MP). Auto chose **Ultra** and stayed there: 17.9 fps average, 1% low 10 fps, p95 83 ms, 186 hitches over 8:36, 307k triangles, 114 draws.
+
+- This is not the Ultra target machine (a card that can do 1080p at 60 fps), but it showed a bug: the Ultra guess excluded "UHD Graphics" and not "Iris Plus", so this chip started on Ultra. Fixed here: Iris Plus, Iris and Iris Pro no longer guess Ultra (Iris Xe still can, it is a lot faster). `tests/ultra-quality.test.ts` covers both.
+- Auto did not step back down from Ultra in 8 minutes at 18 fps. Worth a look in its own issue: the step-down needs to act when Ultra is the guess and the frames stay slow.
+- Desktop Ultra on a discrete card at 1080p is still unmeasured.

@@ -98,7 +98,7 @@ const ORDER: QualityLevel[] = ['low', 'medium', 'high', 'ultra'];
 
 /** Software renderers and small laptop chips: no Ultra for them (decision 0221). */
 const WEAK_GPU =
-  /swiftshader|llvmpipe|software|basic render|intel\(r\) u?hd graphics|mali|adreno|powervr/i;
+  /swiftshader|llvmpipe|software|basic render|intel\(r\) (?:u?hd|iris\(r\) (?:plus|pro)?) graphics|mali|adreno|powervr/i;
 
 /** The GPU's name, or '' when the browser hides it. Asked once, on a throwaway context. */
 let gpu: string | undefined;

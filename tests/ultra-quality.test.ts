@@ -8,6 +8,8 @@ describe('Ultra quality (decision 0221)', () => {
     expect(ultraCapable('ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11)', 8)).toBe(true);
     expect(ultraCapable('ANGLE (AMD, AMD Radeon RX 6800 Direct3D11)', 8)).toBe(true);
     expect(ultraCapable('ANGLE (Intel, Intel(R) UHD Graphics 620 Direct3D11)', 8)).toBe(false);
+    expect(ultraCapable('ANGLE (Intel, Intel(R) Iris(R) Plus Graphics Direct3D11)', 8)).toBe(false);
+    expect(ultraCapable('ANGLE (Intel, Intel(R) Iris(R) Xe Graphics Direct3D11)', 8)).toBe(true);
     expect(ultraCapable('Google SwiftShader', 16)).toBe(false);
     expect(ultraCapable('ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11)', 4)).toBe(false);
     expect(ultraCapable('', 8)).toBe(false);
