@@ -6,7 +6,7 @@ import type { QualityProfile } from './quality';
 import { DAY, NIGHT, type Look } from './atmosphere';
 import { type ShoreTexture, shoreTexture } from './shoreTexture';
 import type { SeabedTexture } from './seabedTexture';
-import { dimShallow, liftToFloor, newRamp, seaRampAt } from './seaWater';
+import { dimShallow, greyed, liftToFloor, newRamp, seaRampAt } from './seaWater';
 import { oceanVertexShader as vertexShader, waveSag } from './oceanWaves';
 import { oceanFragmentShader as fragmentShader } from './oceanShader';
 import { type SeaWaves, gerstnerDefines, gerstnerUniforms } from './seaWaves';
@@ -18,6 +18,9 @@ export const maxWaveHeight = () =>
     0.32 + 0.24 + 0.12,
     Object.values(TUNING.waves.bands).reduce((sum, band) => sum + band.max, 0),
   );
+
+/** The side of the game's ocean grid, which follows the camera (units). */
+export const OCEAN_SIZE = 480;
 
 /**
  * The ocean of a quality level. The shader depends on the water look, not the grid resolution:
@@ -49,7 +52,8 @@ export function oceanFor(
     gerstner,
     coast: gerstner ? seabed : undefined,
   };
-  return new Ocean(land.islands, profile.oceanSegments, look, 480, land.terrain, shore, material);
+  const { oceanSegments } = profile;
+  return new Ocean(land.islands, oceanSegments, look, OCEAN_SIZE, land.terrain, shore, material);
 }
 
 /** Which water shader a quality level draws. */
@@ -112,6 +116,8 @@ export class Ocean {
   private readonly ramp = newRamp();
   private readonly waterLight = new THREE.Color(1, 1, 1);
   private readonly shallowLight = new THREE.Color(1, 1, 1);
+  /** 0 = clear … 1 = under the darkest storm: the water greys toward slate blue (issue #282). */
+  private gloom = 0;
 
   constructor(
     islands: readonly IslandDef[],
@@ -219,8 +225,10 @@ export class Ocean {
    * The time of day and the weather, before any zone tints (atmosphere.ts): the depth colours are
    * the sea's day colours times this light's water against the day's, so dusk, night and storms
    * shade every sea alike, and a sea's own colours replace the old zone tint of its water.
+   * `gloom` (0..1, the storm's) greys the mid and deep water.
    */
-  setDaylight(look: Look): void {
+  setDaylight(look: Look, gloom = 0): void {
+    this.gloom = gloom;
     lightOf(look.water, DAY.water, this.waterLight);
     lightOf(look.shallow, DAY.shallow, this.shallowLight);
   }
@@ -229,16 +237,14 @@ export class Ocean {
   private applyRamp() {
     const u = this.mesh.material.uniforms;
     const { shallow, mid, deep, night } = this.ramp;
+    const depth = TUNING.graphics.water.depth;
     const lit = (u.uShallow!.value as THREE.Color).copy(shallow).multiply(this.shallowLight);
-    dimShallow(
-      lit,
-      this.shallowLight,
-      NIGHT_SHALLOW_LIGHT,
-      TUNING.graphics.water.depth.nightShallow,
-    );
+    dimShallow(lit, this.shallowLight, NIGHT_SHALLOW_LIGHT, depth.nightShallow);
     liftToFloor(lit, night);
-    liftToFloor((u.uWaterLight!.value as THREE.Color).copy(mid).multiply(this.waterLight), night);
-    liftToFloor((u.uWater!.value as THREE.Color).copy(deep).multiply(this.waterLight), night);
+    const midLit = (u.uWaterLight!.value as THREE.Color).copy(mid).multiply(this.waterLight);
+    const deepLit = (u.uWater!.value as THREE.Color).copy(deep).multiply(this.waterLight);
+    liftToFloor(greyed(midLit, this.gloom, depth.storm), night);
+    liftToFloor(greyed(deepLit, this.gloom, depth.storm), night);
     (u.uDayWater!.value as THREE.Color).copy(deep);
   }
 
@@ -263,6 +269,11 @@ export class Ocean {
       this.sag = waves.sag(this.cell, this.cell);
       const day = Math.min(1, (this.waterLight.r + this.waterLight.g + this.waterLight.b) / 3);
       u.uFoamNight!.value = THREE.MathUtils.lerp(TUNING.waves.foam.night, 1, day);
+      // The fine waves and facets fade in fog distances, so they follow the camera's zoom.
+      const { facets, detailFrom, detailTo, slopeGain } = TUNING.waves.look;
+      const near = u.uFogNear!.value as number;
+      const look = u.uWaveLook!.value as THREE.Vector4;
+      look.set(facets, near * detailFrom, near * detailTo, slopeGain);
     }
     const w = TUNING.graphics.water;
     u.uReflect!.value = reflect ? w.reflection : 0;

@@ -156,6 +156,10 @@
         "darken": 0.3,
         "desaturate": 0.375
       },
+      "storm": {
+        "darken": 0.1,
+        "desaturate": 0.45
+      },
       "beds": {
         "island": 24,
         "sandbank": 24,

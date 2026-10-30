@@ -178,13 +178,14 @@ export class Atmosphere {
     haze?: ZoneVisual,
     sun: Readonly<SunShape> = PLAIN_SUN,
   ) {
-    this.gloom = approach(this.gloom, Atmosphere.gloomFor(weather), 0.35, dt);
+    // A time jump back (a loaded voyage, the shots tool) must not throw the gloom past 0..1.
+    this.gloom = approach(this.gloom, Atmosphere.gloomFor(weather), 0.35, Math.max(0, dt));
     // Day → golden → night, then the storm on top (a storm at night stays dark blue-grey).
     const l = mix(this.now, DAY, GOLDEN, day.warm * (1 - day.night));
     mix(l, l, NIGHT, day.night);
     mix(this.storm, STORM, NIGHT, day.night * 0.7);
     mix(l, l, this.storm, this.gloom);
-    ocean.setDaylight(l);
+    ocean.setDaylight(l, this.gloom);
     this.tintHorizon(l, day, ocean);
     // A fog bank or ash cloud (decision 0169) turns the sky and the fog its colour, darkened at
     // night like the sky, and dims the sun a little.
