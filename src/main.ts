@@ -28,6 +28,7 @@ import {
   FrameMonitor,
   QUALITY,
   type QualityLevel,
+  forceAntialias,
   guessQuality,
   lowerQuality,
 } from './render/quality';
@@ -300,6 +301,8 @@ if (playtestMap) {
 }
 const resumedVoyage = storage ? loadGame(storage, world) : false;
 let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
+const { perfMode, perfScale, frameCap, tilt, antialias } = perfOptions(location.search, benchMode);
+if (antialias) forceAntialias();
 const view = new GameView(canvas, world, level);
 // The sea's sound where she sails, and the effects of what happens (decision 0209).
 const seaListener = new SeaListener(
@@ -307,7 +310,6 @@ const seaListener = new SeaListener(
   (x, y) => view.volcanoSounds(x, y),
   () => world.hazeOff.includes('ash'),
 );
-const { perfMode, perfScale, frameCap, tilt } = perfOptions(location.search, benchMode);
 view.renderScale = perfScale;
 const hud = new Hud(
   world,
@@ -1967,23 +1969,13 @@ function tick(now: number) {
     setLevel(lowerQuality(level));
   }
   hud.setFps(settings.showFps ? monitor.fps : null, hudVisible);
-  if (perf) {
-    const info = view.renderer.info.render;
-    const canvas = view.renderer.domElement;
-    perf.frame({
-      ms: rawMs,
-      counting: mode === 'play' && !paused && hudVisible,
-      level,
-      qualitySetting: settings.quality,
-      drawCalls: info.calls,
-      triangles: info.triangles,
-      canvas: {
-        width: canvas.width,
-        height: canvas.height,
-        pixelRatio: view.renderer.getPixelRatio(),
-      },
-    });
-  }
+  perf?.frame({
+    ms: rawMs,
+    counting: mode === 'play' && !paused && hudVisible,
+    level,
+    qualitySetting: settings.quality,
+    renderer: view.renderer,
+  });
 }
 
 // Stop rendering while the tab is hidden (battery on phones and tablets).
@@ -2089,6 +2081,7 @@ if (perfMode) {
           sea,
           perfScale !== 1 ? `scale ${perfScale}` : '',
           frameCap ? `cap ${frameCap} fps` : '',
+          antialias ? 'antialias forced on' : '',
         ]
           .filter(Boolean)
           .join(' · '),

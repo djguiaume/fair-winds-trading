@@ -19,6 +19,13 @@ describe('tablet rendering budget', () => {
       }
     }
   });
+  it('draws Low at no more than 400 000 pixels on a tablet-sized screen (decision 0240)', () => {
+    const ratio = renderPixelRatio(800, 1280, 1.5, QUALITY.low);
+    expect(800 * 1280 * ratio ** 2).toBeLessThanOrEqual(400_001);
+    // A phone's screen is under the cap, so it draws at the profile's own pixel ratio.
+    expect(renderPixelRatio(360, 800, 3, QUALITY.low)).toBe(1);
+    expect(QUALITY.low.maxRenderPixels).toBeLessThan(QUALITY.medium.maxRenderPixels);
+  });
   it('uses per-vertex coast distance on Low and per-pixel coasts on High', () => {
     const low = new Ocean(PHASE1_MAP.islands, 48, { fancy: false }, 420, PHASE1_MAP.terrain);
     const high = new Ocean(PHASE1_MAP.islands, 120, { fancy: true }, 420, PHASE1_MAP.terrain);

@@ -1,19 +1,26 @@
+import type { WebGLRenderer } from 'three';
 import './perf.css';
 import CONFIG from '../data/perf-readout.json';
 import { describeOverrides } from './graphicsOverrides';
 import { FrameStats, type FrameSummary, type PerfReadoutConfig } from './frameStats';
 
 /** What the game reports each frame; the readout only reads it. */
-export interface PerfFrame {
+export interface PerfFrameInput {
   /** Raw time since the previous frame, in ms. */
   ms: number;
   /** True while the sea is on screen and the voyage runs (not the title, chart or pauses). */
   counting: boolean;
   level: string;
   qualitySetting: string;
+  renderer: WebGLRenderer;
+}
+
+interface PerfFrame extends Omit<PerfFrameInput, 'renderer'> {
   drawCalls: number;
   triangles: number;
   canvas: { width: number; height: number; pixelRatio: number };
+  /** Whether the drawing context multisamples (Ultra multisamples its own targets instead). */
+  antialias: boolean;
 }
 
 export interface PerfContext {
@@ -88,7 +95,16 @@ export class PerfReadout {
     document.body.append(this.box);
   }
 
-  frame(f: PerfFrame) {
+  frame({ renderer, ...rest }: PerfFrameInput) {
+    const { calls, triangles } = renderer.info.render;
+    const { width, height } = renderer.domElement;
+    const f: PerfFrame = {
+      ...rest,
+      drawCalls: calls,
+      triangles,
+      canvas: { width, height, pixelRatio: renderer.getPixelRatio() },
+      antialias: renderer.getContextAttributes()?.antialias ?? false,
+    };
     this.last = f;
     if (this.lastLevel && f.level !== this.lastLevel) {
       this.drops.push(
@@ -179,7 +195,7 @@ export class PerfReadout {
       `Device: ${navigator.userAgent}`,
       `Cores ${navigator.hardwareConcurrency ?? '?'} · memory ${nav.deviceMemory ?? '?'} GB · screen ${screen.width}×${screen.height} @${fixed(devicePixelRatio, 2)}`,
       f
-        ? `Canvas ${f.canvas.width}×${f.canvas.height} @${fixed(f.canvas.pixelRatio, 2)} · quality ${f.qualitySetting} → ${f.level} · ${f.drawCalls} draws · ${f.triangles} tris`
+        ? `Canvas ${f.canvas.width}×${f.canvas.height} @${fixed(f.canvas.pixelRatio, 2)} · antialias ${f.antialias ? 'on' : 'off'} · quality ${f.qualitySetting} → ${f.level} · ${f.drawCalls} draws · ${f.triangles} tris`
         : 'No frame yet',
       `Graphics: ${describeOverrides(location.search)}`,
       `Switches: ${this.context.switches()}`,
