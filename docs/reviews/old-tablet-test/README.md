@@ -60,3 +60,24 @@ If antialiasing costs little (about 33 fps or better with no hitches), Low and M
 2. https://djguiaume.github.io/fair-winds-trading/?bench&map=stress (stress sea)
 
 For comparison, headless desktop Chromium with a software GPU (not a device result) at 800×1280, level High: full 11.6 fps, 0.7 → 18.0, 0.5 → 25.0 on today's sea.
+
+### Round 3 results (2026-10-30, new look, stress sea)
+
+Same device. Two builds: v1.2.316 without antialiasing (canvas 525×761) and v1.2.315 with `&aa=1` (canvas 500×800, the same 400 000 pixels).
+
+| Run                    | Pass         | Avg FPS | 1 % low | Slow ≥ 50 ms | Hitches ≥ 100 ms |
+| ---------------------- | ------------ | ------- | ------- | ------------ | ---------------- |
+| no antialiasing        | full         | 25.5    | 14.9    | 536 of 1787  | 5                |
+| no antialiasing        | 0.7          | 31.7    | 19.9    | 221 of 2214  | 1                |
+| no antialiasing        | 0.5          | 34.2    | 19.9    | 140 of 2391  | 0                |
+| `&aa=1`                | full         | 20.7    | 8.5     | 795 of 1450  | 42               |
+| `&aa=1`                | 0.7          | 38.4    | 19.9    | 87 of 2685   | 1                |
+| `&aa=1`                | 0.5          | 42.7    | 19.9    | 44 of 2986   | 0                |
+
+### Reading
+
+- **Antialiasing costs a lot** (25.5 → 20.7 fps, 5 → 42 hitches at the same pixel count), so Low and Medium keep it off.
+- **The 400 000-pixel cap is not enough with the new look**: 25.5 fps, not the 35 the issue wanted. Round 2's 28.3 was the classic look at 750 000 pixels.
+- **The new look is no longer purely fill-rate bound**: even at a quarter of the pixels (0.5 pass) it reaches only 34 fps, where the classic look reached 42 at 0.5. About 3 000 more triangles and heavier ground and water shading cost this device more.
+- The 2 s worst frame appears again in the first pass only (island builds on first approach).
+- The two builds differ (315 vs 316), so the `&aa=1` 0.7 and 0.5 rows, which are faster than the non-AA ones, are not comparable; compare the full rows.
