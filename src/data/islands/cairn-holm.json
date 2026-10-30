@@ -28,13 +28,18 @@
         [-0.26, -0.383013],
         [0.36, -0.383013]
       ],
-      "height": 0.2,
+      "height": 0.5,
       "material": "slate"
     }
   ],
   "lanes": [],
   "piers": [],
-  "props": [{ "type": "cairn", "x": 0.05, "z": 0.05, "size": 1.1, "from": 1 }],
+  "props": [
+    { "type": "cairn", "x": 0.05, "z": 0.05, "size": 1.1, "from": 1 },
+    { "type": "boulder", "x": -0.6, "z": -0.3, "size": 0.6, "from": 1 },
+    { "type": "boulder", "x": 0.85, "z": 0.4, "size": 0.6, "from": 1 },
+    { "type": "boulder", "x": 0.1, "z": -0.6, "size": 0.6, "from": 1 }
+  ],
   "woods": {
     "tree": "woodland-snowfir",
     "tries": 0,
