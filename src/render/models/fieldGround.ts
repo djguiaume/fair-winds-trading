@@ -190,6 +190,7 @@ function textureSamples(field: Heightfield) {
     heights: new Float32Array(w * h),
     up: new Float32Array(w * h),
     grounds: new Uint8Array(w * h),
+    confidence: new Float32Array(w * h),
   };
   const { jitter } = TUNING.terrain.draw;
   const clamp = (t: number, max: number) => Math.min(max, Math.max(0, t));
@@ -213,15 +214,20 @@ function textureSamples(field: Heightfield) {
         );
       // Land stays land and sea stays sea: the jitter only moves edges between grounds.
       const sea = bilinear(shares[0]!, field.w, u, v) > 0.5;
-      let best = -1;
+      let best = -1,
+        sum = 0;
       for (let g = 0; g < shares.length; g++) {
         if (sea !== (g === 0)) continue;
         const share = bilinear(shares[g]!, field.w, gu, gv);
+        sum += share;
         if (share <= best) continue;
         best = share;
         fine.grounds[k] = g;
       }
+      fine.confidence[k] = sum > 0 ? best / sum : 1;
     }
+  // Levelness smoothed a little, so a narrow slope threshold draws a smooth line.
+  blurGrid(fine.up, w, h, TUNING.terrain.draw.slopeSmooth / (field.cell / f));
   return { ...sample, w, h, cell: field.cell / f, ...fine };
 }
 
@@ -230,9 +236,10 @@ export interface FieldGroundTextures {
   /** Each texel's flat colour (its ground's, mottled), and in alpha how level it is (normal.y). */
   colour: THREE.DataTexture;
   /**
-   * Each texel's ground (its index in the field's grounds) in red, and its height smoothed over
-   * `draw.bandSmooth` in green and blue (16 bits over `heights`): the shader's cliff bands. Alpha
-   * 1 where the ground is sharp (rock): narrower slope and zone edges.
+   * Each texel's ground in red (its index in the field's grounds, plus 128 where it is sharp
+   * rock: narrower slope and zone edges), its height smoothed over `draw.bandSmooth` in green and
+   * blue (16 bits over `heights`, for the cliff bands), and in alpha its ground's share there
+   * (0.5 on a zone edge, 1 well inside): the shader draws zone edges where these shares cross.
    */
   shape: THREE.DataTexture;
   /** The lowest height and the span the shape texture's 16 bits cover. */
@@ -289,7 +296,7 @@ export function fieldGroundTextures(
   field: Heightfield,
   palette: FieldPalette,
 ): FieldGroundTextures {
-  const { w, h, cell, x0, y0, heights, up, grounds } = textureSamples(field);
+  const { w, h, cell, x0, y0, heights, up, grounds, confidence } = textureSamples(field);
   const draw = TUNING.terrain.draw;
   const looks = field.grounds.map((g) => palette.look(g === '' || g === 'lake' ? 'sand' : g));
   const tops = looks.map((look) => look.top.map((c) => new THREE.Color(c)));
@@ -316,7 +323,8 @@ export function fieldGroundTextures(
   const shape = new Uint8Array(n * 4);
   for (let k = 0; k < n; k++) {
     const bits = Math.round(((level[k]! - low) / span) * 65535);
-    shape.set([grounds[k]!, bits >> 8, bits & 255, looks[grounds[k]!]!.sharp ? 255 : 0], k * 4);
+    const id = grounds[k]! | (looks[grounds[k]!]!.sharp ? 128 : 0);
+    shape.set([id, bits >> 8, bits & 255, Math.round(confidence[k]! * 255)], k * 4);
   }
   return {
     colour: dataTexture(texels, w, h, THREE.SRGBColorSpace, true),

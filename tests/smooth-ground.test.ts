@@ -185,7 +185,7 @@ describe('the new look ground mesh', () => {
     const [r, gr, b, level] = at(20, 20);
     expect(gr).toBeGreaterThan(r!);
     expect(gr).toBeGreaterThan(b!);
-    expect(level).toBeGreaterThan(250);
+    expect(level).toBeGreaterThan(235);
     // The plateau's edge is steep: the shader turns it to the cliff bands.
     expect(at(16, 20)[3]).toBeLessThan(255 * (1 - TUNING.terrain.draw.slope[1]!));
     // The grass row's bands (row 1) are warm sandstone.
@@ -214,14 +214,18 @@ describe('the new look ground mesh', () => {
     expect(texel(0)[0]).toBe(0);
   });
 
-  it('marks rock grounds sharp in the shape texture’s alpha', () => {
+  it('marks rock grounds sharp, and each texel’s share of its own ground', () => {
     const f = { ...smoothField(plateau(10)), grounds: ['', 'basalt'] };
     const { shape } = fieldGroundTextures(f, designPalette('fog'));
     const t = groundTexels(f);
     const data = shape.image.data as Uint8Array;
-    expect(data[(20 * t * shape.image.width + 20 * t) * 4 + 3]).toBe(255);
+    const at = (i: number, j: number) => (j * t * shape.image.width + i * t) * 4;
+    expect(data[at(20, 20)]).toBe(1 + 128);
+    // Well inside its zone a texel's ground has all the share; next to another, about half.
+    expect(data[at(20, 20) + 3]).toBe(255);
+    for (let k = 0; k < data.length; k += 4) expect(data[k + 3]).toBeGreaterThanOrEqual(127);
     const soft = fieldGroundTextures(smoothField(plateau(10)), designPalette('fish')).shape;
-    expect((soft.image.data as Uint8Array)[(20 * t * soft.image.width + 20 * t) * 4 + 3]).toBe(0);
+    expect((soft.image.data as Uint8Array)[at(20, 20)]).toBe(1);
   });
 
   it('repeats each ground’s bands to a width every row shares', () => {

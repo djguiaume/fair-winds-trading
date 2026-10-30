@@ -170,6 +170,14 @@ export const SMOOTH_META: Readonly<Record<string, TuningMeta>> = {
     '1 − normal.y',
     'The same for sharp grounds (palette.json `sharp`: rock, basalt, lava, slate, grass over a rock cliff): a narrow range keeps rock edges crisp. Starts no lower than Slope colour.',
   ),
+  'terrain.draw.slopeSmooth': num(
+    'Slope smoothing',
+    0,
+    3,
+    0.05,
+    'units',
+    'Spread of the blur on the levelness the slope colours read, so a narrow (rock) threshold draws a smooth line, not the texture’s steps.',
+  ),
   'terrain.draw.wet': num(
     'Wet band',
     0,
@@ -186,21 +194,21 @@ export const SMOOTH_META: Readonly<Record<string, TuningMeta>> = {
     'units',
     'Height of each band of cliff colour on slopes, like the classic tiers’ layers.',
   ),
-  'terrain.draw.bandWobble.scales': num(
+  'terrain.draw.bandWobble.scale': num(
     'Band wobble size',
     0.01,
-    4,
+    1,
     0.01,
     '/ unit',
-    'Frequencies of the two noises that make the cliff bands wavy: a broad one and a fine one.',
+    'Frequency of the noise that makes the cliff bands wavy: keep it broad, a fine wobble reads as teeth.',
   ),
-  'terrain.draw.bandWobble.amounts': num(
+  'terrain.draw.bandWobble.amount': num(
     'Band wobble',
     0,
     1,
     0.01,
     'bands',
-    'How far each wobble noise moves a band edge up or down, in bands.',
+    'How far that noise moves a band edge up or down, in bands.',
   ),
   'terrain.draw.bandSmooth': num(
     'Band smoothing',
@@ -305,22 +313,6 @@ export const SMOOTH_META: Readonly<Record<string, TuningMeta>> = {
     0.02,
     'units',
     'Zone edge width where either side is a sharp ground (lava, ash, slate): high-contrast pairs.',
-  ),
-  'terrain.draw.edge.warp': num(
-    'Zone edge wander',
-    0,
-    1,
-    0.05,
-    'units',
-    'How far zone edges wander between the colour texture’s texels, so they never follow its grid.',
-  ),
-  'terrain.draw.edge.warpScale': num(
-    'Zone edge wander size',
-    0.1,
-    4,
-    0.1,
-    '/ unit',
-    'Frequency of that wander: larger is a finer wiggle.',
   ),
   'terrain.draw.edge.crisp.low': toggle(
     'Crisp zone edges, Low',

@@ -23,12 +23,12 @@ interface GroundUniforms {
   groundSlope: THREE.IUniform<THREE.Vector4>;
   groundWetBand: THREE.IUniform<THREE.Vector2>;
   groundBandHeight: THREE.IUniform<number>;
-  groundBandWobble: THREE.IUniform<THREE.Vector4>;
+  groundBandWobble: THREE.IUniform<THREE.Vector2>;
   groundStrata: THREE.IUniform<THREE.Vector3>;
   groundDetailScale: THREE.IUniform<THREE.Vector3>;
   groundDetailAmount: THREE.IUniform<THREE.Vector3>;
   groundDetailOctaves: THREE.IUniform<number>;
-  groundEdge: THREE.IUniform<THREE.Vector4>;
+  groundEdge: THREE.IUniform<THREE.Vector2>;
   groundCrisp: THREE.IUniform<boolean>;
 }
 
@@ -48,12 +48,12 @@ uniform vec2 groundCentre;
 uniform vec4 groundSlope;
 uniform vec2 groundWetBand;
 uniform float groundBandHeight;
-uniform vec4 groundBandWobble;
+uniform vec2 groundBandWobble;
 uniform vec3 groundStrata;
 uniform vec3 groundDetailScale;
 uniform vec3 groundDetailAmount;
 uniform int groundDetailOctaves;
-uniform vec4 groundEdge;
+uniform vec2 groundEdge;
 uniform bool groundCrisp;
 varying vec3 vGround;
 
@@ -81,22 +81,24 @@ float groundResolved(float frequency, float unitsPerPixel) {
   return 1.0 - smoothstep(0.25, 0.5, frequency * unitsPerPixel);
 }
 
-// A texel's ground (red) and smoothed height (green and blue, 16 bits over groundHeights).
+// A texel's ground (red, plus 128 when sharp rock), smoothed height (green and blue, 16 bits over
+// groundHeights) and its ground's share there (alpha).
 int groundAt(vec4 shape) {
-  return int(shape.r * 255.0 + 0.5);
+  return int(shape.r * 255.0 + 0.5) & 127;
+}
+
+float groundSharp(vec4 shape) {
+  return shape.r > 0.5 ? 1.0 : 0.0;
 }
 
 float groundHeight(vec4 shape) {
   return groundHeights.x + (shape.g * 65280.0 + shape.b * 255.0) / 65535.0 * groundHeights.y;
 }
 
-// The cliff band at a height, its edges made wavy by two noises.
+// The cliff band at a height, its edges made gently wavy by a broad noise (a fine one, like any
+// fine wobble of an edge, reads as teeth).
 float groundBand(vec2 p, float height) {
-  return floor(
-    height / groundBandHeight +
-    groundNoise(p * groundBandWobble.x) * groundBandWobble.y +
-    groundNoise(p * groundBandWobble.z) * groundBandWobble.w
-  );
+  return floor(height / groundBandHeight + groundNoise(p * groundBandWobble.x) * groundBandWobble.y);
 }
 
 // A ground's cliff colour in a band: its row repeats its colours to the texture's width.
@@ -117,7 +119,7 @@ void groundCorners(vec2 t, ivec2 size, out ivec2 at[4], out float weight[4]) {
 }
 
 // How far a ground has turned to its cliff colours: over the soft slope range, or the sharp one
-// for rock grounds (sharp 1, from the shape texture's alpha).
+// for rock grounds (sharp 1).
 float groundSteep(float up, float sharp) {
   vec2 range = mix(groundSlope.xy, groundSlope.zw, sharp);
   return smoothstep(range.x, range.y, 1.0 - up);
@@ -140,12 +142,48 @@ vec4 groundCliff(vec2 t, ivec2 size, vec2 p, float streakDepth) {
   for (int i = 0; i < 4; i++) {
     shape[i] = texelFetch(groundShape, at[i], 0);
     level += weight[i] * groundHeight(shape[i]);
-    sharp += weight[i] * shape[i].a;
+    sharp += weight[i] * groundSharp(shape[i]);
   }
   float band = groundBand(p, level);
   vec3 side = vec3(0.0);
   for (int i = 0; i < 4; i++) side += weight[i] * groundSide(groundAt(shape[i]), band);
   return vec4(side * groundStreaks(p, level, streakDepth), sharp);
+}
+
+// A texel's share of ground g: its own ground's share, or what that leaves (two grounds meet).
+float groundShareAt(int g, int ground, float share) {
+  return ground == g ? share : 1.0 - share;
+}
+
+// The ground with the largest share at the pixel among the four texels' grounds, other than
+// ground skip (-1 if there is none).
+int groundWinner(int ground[4], float share[4], float weight[4], int skip) {
+  int best = -1;
+  float most = -1.0;
+  for (int i = 0; i < 4; i++) {
+    if (ground[i] == skip) continue;
+    float total = 0.0;
+    for (int j = 0; j < 4; j++) total += weight[j] * groundShareAt(ground[i], ground[j], share[j]);
+    if (total > most) {
+      most = total;
+      best = ground[i];
+    }
+  }
+  return best;
+}
+
+// Ground g's colour at the pixel: its texels' colours, bilinear among themselves.
+vec3 groundTint(int g, int ground[4], vec3 tint[4], float weight[4]) {
+  vec3 sum = vec3(0.0);
+  float total = 0.0;
+  vec3 fallback = vec3(0.0);
+  for (int i = 0; i < 4; i++) {
+    if (ground[i] != g) continue;
+    sum += tint[i] * weight[i];
+    total += weight[i];
+    fallback = tint[i];
+  }
+  return total > 1e-4 ? sum / total : fallback;
 }
 
 vec3 groundColour() {
@@ -154,9 +192,7 @@ vec3 groundColour() {
   vec2 unitsPerPixel2 = fwidth(p);
   float unitsPerPixel = max(unitsPerPixel2.x, unitsPerPixel2.y);
   ivec2 size = textureSize(map, 0);
-  // Zone edges wander a little between texels, so they never follow the texture's grid.
-  vec2 warp = vec2(groundNoise(p * groundEdge.z), groundNoise(p * groundEdge.z + 19.7));
-  vec2 t = vMapUv * vec2(size) + warp * groundEdge.w;
+  vec2 t = vMapUv * vec2(size);
   vec2 texelsPerPixel2 = fwidth(t);
   float texelsPerPixel = max(texelsPerPixel2.x, texelsPerPixel2.y);
   vec4 filtered = texture2D(map, t / vec2(size));
@@ -177,50 +213,59 @@ vec3 groundColour() {
     }
   } else {
     // Close up: the four texels round the pixel. Slope and the bands' smoothed height blend
-    // between them (the mesh's own height has grid ripples that make band edges zigzag); each
-    // colour is weighed up by its ground's share of the pixel, so the larger zone wins and the
-    // edge between two grounds is a thin line, never thinner than about a pixel.
+    // between them (the mesh's own height has grid ripples that make band edges zigzag). Where
+    // two grounds meet, the edge is drawn where their shares cross, measured in pixels from the
+    // shares' slope, so it runs smooth between texels and stays about a pixel sharp.
     ivec2 at[4];
     float weight[4];
     groundCorners(t, size, at, weight);
-    vec4 texel[4];
+    vec3 tint[4];
     int ground[4];
+    float share[4];
     float up = 0.0;
     float level = 0.0;
     float sharp = 0.0;
     float sharpest = 0.0;
     for (int i = 0; i < 4; i++) {
       vec4 shape = texelFetch(groundShape, at[i], 0);
-      texel[i] = texelFetch(map, at[i], 0);
+      vec4 texel = texelFetch(map, at[i], 0);
+      tint[i] = texel.rgb;
       ground[i] = groundAt(shape);
-      up += weight[i] * texel[i].a;
+      share[i] = shape.a;
+      up += weight[i] * texel.a;
       level += weight[i] * groundHeight(shape);
-      sharp += weight[i] * shape.a;
-      sharpest = max(sharpest, shape.a);
+      sharp += weight[i] * groundSharp(shape);
+      sharpest = max(sharpest, groundSharp(shape));
     }
     steep = groundSteep(up, sharp);
-    float band = groundBand(p, level);
-    float streaks = groundStreaks(p, level, streakDepth);
-    float share[4];
-    float most = 0.0;
-    for (int i = 0; i < 4; i++) {
-      share[i] = 0.0;
-      for (int j = 0; j < 4; j++) share[i] += ground[j] == ground[i] ? weight[j] : 0.0;
-      most = max(most, share[i]);
+    if (steep > 0.0) {
+      float band = groundBand(p, level);
+      float streaks = groundStreaks(p, level, streakDepth);
+      for (int i = 0; i < 4; i++) tint[i] = mix(tint[i], groundSide(ground[i], band) * streaks, steep);
     }
-    // A rock ground's edges are narrower, whichever side of the edge it is on.
-    float width = mix(groundEdge.x, groundEdge.y, sharpest);
-    float sharpness = 2.2 / max(width, texelsPerPixel * 1.5);
-    vec3 sum = vec3(0.0);
-    float total = 0.0;
-    for (int i = 0; i < 4; i++) {
-      float w = weight[i] * exp(sharpness * (share[i] - most));
-      vec3 c = texel[i].rgb;
-      if (steep > 0.0) c = mix(c, groundSide(ground[i], band) * streaks, steep);
-      sum += c * w;
-      total += w;
+    int a = groundWinner(ground, share, weight, -1);
+    int b = groundWinner(ground, share, weight, a);
+    if (b < 0) {
+      colour = tint[0] * weight[0] + tint[1] * weight[1] + tint[2] * weight[2] + tint[3] * weight[3];
+    } else {
+      // How far ground a's share leads b's, a bilinear field over the four texels.
+      float lead[4];
+      for (int i = 0; i < 4; i++) lead[i] = groundShareAt(a, ground[i], share[i]) - groundShareAt(b, ground[i], share[i]);
+      vec2 f = vec2(weight[1] + weight[3], weight[2] + weight[3]);
+      float ahead = lead[0] * weight[0] + lead[1] * weight[1] + lead[2] * weight[2] + lead[3] * weight[3];
+      vec2 slope = vec2(
+        mix(lead[1] - lead[0], lead[3] - lead[2], f.y),
+        mix(lead[2] - lead[0], lead[3] - lead[1], f.x)
+      );
+      float texels = ahead / max(length(slope), 1e-4);
+      // A rock ground's edges are narrower, whichever side of the edge it is on.
+      float halfWidth = 0.5 * max(mix(groundEdge.x, groundEdge.y, sharpest), texelsPerPixel * 1.5);
+      colour = mix(
+        groundTint(b, ground, tint, weight),
+        groundTint(a, ground, tint, weight),
+        smoothstep(-halfWidth, halfWidth, texels)
+      );
     }
-    colour = sum / total;
   }
 
   float detail = 0.0;
@@ -286,26 +331,14 @@ function groundUniforms(textures: FieldGroundTextures, quality: QualityLevel, sc
     },
     groundWetBand: { value: new THREE.Vector2(draw.wet[0], draw.wet[1]) },
     groundBandHeight: { value: draw.bands },
-    groundBandWobble: {
-      value: new THREE.Vector4(
-        bandWobble.scales[0],
-        bandWobble.amounts[0],
-        bandWobble.scales[1],
-        bandWobble.amounts[1],
-      ),
-    },
+    groundBandWobble: { value: new THREE.Vector2(bandWobble.scale, bandWobble.amount) },
     groundStrata: { value: new THREE.Vector3(strata.along, strata.up, strata.amount) },
     groundDetailScale: { value: vec3(detail.scales) },
     groundDetailAmount: { value: vec3(detail.amounts) },
     groundDetailOctaves: { value: detail.octaves[quality] },
-    // Edge widths (soft, sharp) and wander in texels; the wander's frequency per unit.
+    // Edge widths (soft, sharp) in texels.
     groundEdge: {
-      value: new THREE.Vector4(
-        edge.width / textures.texel,
-        edge.sharpWidth / textures.texel,
-        edge.warpScale,
-        edge.warp / textures.texel,
-      ),
+      value: new THREE.Vector2(edge.width / textures.texel, edge.sharpWidth / textures.texel),
     },
     groundCrisp: { value: edge.crisp[quality] },
   };
