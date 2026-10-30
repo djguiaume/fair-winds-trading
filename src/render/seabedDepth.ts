@@ -2,6 +2,7 @@ import { type Heightfield, SEA_LEVEL } from '../sim/heightfield';
 import type { TerrainDef } from '../sim/map';
 import { insideOutline } from '../sim/fog';
 import { TUNING } from '../data/tuning';
+import { type BerthLine, type CoastTuning, bakeExposure } from './seabedExposure';
 
 /**
  * The depth of the sea over the whole map (issue #274), baked once from the islands' height fields
@@ -20,6 +21,8 @@ export interface SeabedDepth {
   h: number;
   /** 0 (shallow) to 255 (deep) per cell, row by row along z. */
   depth: Uint8Array;
+  /** How open each cell lies to the sea (`seabedExposure.ts`), 0 to 255; all 255 if not baked. */
+  exposure: Uint8Array;
 }
 
 export type DepthTuning = typeof TUNING.graphics.water.depth;
@@ -28,10 +31,13 @@ export type DepthTuning = typeof TUNING.graphics.water.depth;
 type BedKind = keyof DepthTuning['beds'];
 const hasBed = (kind: string): kind is BedKind => kind in TUNING.graphics.water.depth.beds;
 
+/** `coast`: also bake the exposure the waves calm by, closed in round `piers` (issue #281). */
 export function bakeSeabedDepth(
   fields: readonly Heightfield[],
   terrain: readonly TerrainDef[],
   tune: DepthTuning = TUNING.graphics.water.depth,
+  coast: CoastTuning | null = null,
+  piers: readonly BerthLine[] = [],
 ): SeabedDepth {
   const shapes = terrain.filter((t) => hasBed(t.kind));
   const pad = tune.blur * tune.cell * 3 + tune.fullDepth;
@@ -48,14 +54,19 @@ export function bakeSeabedDepth(
   const beds = new Float32Array(w * h).fill(tune.deepBed);
   for (const field of fields) splatField(beds, grid, field, tune.land);
   for (const shape of shapes) fillShape(beds, grid, shape, tune.beds[shape.kind as BedKind]);
+  const sharp = coast ? beds.slice() : null;
   blur(beds, w, h, tune.blur);
   const depth = new Uint8Array(w * h);
   for (let k = 0; k < depth.length; k++)
     depth[k] = Math.round(Math.min(1, Math.max(0, -beds[k]! / tune.fullDepth)) * 255);
-  return { ...grid, depth };
+  const exposure =
+    coast && sharp
+      ? bakeExposure(sharp, grid, coast, blur, piers)
+      : new Uint8Array(w * h).fill(255);
+  return { ...grid, depth, exposure };
 }
 
-type Grid = Omit<SeabedDepth, 'depth'>;
+type Grid = Omit<SeabedDepth, 'depth' | 'exposure'>;
 type Box = [x0: number, z0: number, x1: number, z1: number];
 
 /** The scene box holding every field and shape, padded for the shelf; a small box when empty. */

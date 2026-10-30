@@ -314,4 +314,12 @@ export const TERRAIN_META: Readonly<Record<string, TuningMeta>> = {
     'units',
     'Island builder warning: the water at a pier or the harbour lane must stay this far below the sea.',
   ),
+  'terrain.rivers.fallSlope': num(
+    'River falls at',
+    0.2,
+    6,
+    0.1,
+    undefined,
+    "On the new look's ground, a river falls as a sheet where the ground drops more than this per unit along it (1 = 45°); gentler, it runs down the slope.",
+  ),
 };

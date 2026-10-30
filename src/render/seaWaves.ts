@@ -1,5 +1,7 @@
+import * as THREE from 'three';
 import { TUNING } from '../data/tuning';
-import { createSeaState, seaStateAt, steadySeaState } from '../sim/seaState';
+import type { CoastGrid } from '../sim/coastWaves';
+import { WAVE_BANDS, createSeaState, seaStateAt, steadySeaState } from '../sim/seaState';
 import { createWaveField, setWaveField, waveCount, waveHeightAt } from '../sim/waves';
 import type { World } from '../sim/world';
 import { waveHeight } from './oceanWaves';
@@ -21,14 +23,37 @@ const previewOf = (search: string) => {
   return name in TUNING.waves.previews ? (name as keyof typeof TUNING.waves.previews) : null;
 };
 
-/** The defines a Gerstner ocean compiles with. */
-export const gerstnerDefines = () => ({ GERSTNER: '', WAVE_COUNT: String(waveCount()) });
+/** Where each band's components end in the field (swell first), for the shader's calm. */
+const bandEnd = (band: number) =>
+  WAVE_BANDS.slice(0, band + 1).reduce((n, b) => n + TUNING.waves.bands[b].lengths.length, 0);
+
+/** The defines a Gerstner ocean compiles with; `coast` adds the coast's calm (issue #281). */
+export const gerstnerDefines = (coast = false) => ({
+  GERSTNER: '',
+  WAVE_COUNT: String(waveCount()),
+  SWELL_END: String(bandEnd(0)),
+  CHOP_END: String(bandEnd(1)),
+  ...(coast ? { COAST: '' } : {}),
+});
 
 /** Its uniforms, before the first `writeUniforms`. */
 export const gerstnerUniforms = () => ({
   uWave: { value: new Float32Array(4 * waveCount()) },
   uWaveShift: { value: new Float32Array(2 * waveCount()) },
+  uBandHeight: { value: new THREE.Vector3() },
+  uCoast: { value: new THREE.Vector4() },
+  uCoastReach: { value: new THREE.Vector3() },
+  uSeaFoam: { value: new THREE.Vector4() },
 });
+
+type WaveUniforms = { [K in keyof ReturnType<typeof gerstnerUniforms>]: { value: unknown } };
+
+/** A wave of `length` drawn on a grid of `cell` units: 0 to 1 between `drawCells` cells a wave. */
+function drawnOn(length: number, cell: number) {
+  const [from, to] = TUNING.waves.drawCells as [number, number];
+  const t = Math.min(1, Math.max(0, (length / cell - from) / Math.max(1e-6, to - from)));
+  return t * t * (3 - 2 * t);
+}
 
 /**
  * The sea's waves for the view: what the ocean draws and everything floats on. Under `?waves=v2`,
@@ -43,6 +68,8 @@ export class SeaWaves {
   private readonly sea = createSeaState();
   readonly field = createWaveField();
   private time = Number.NaN;
+  /** The land's bake the coast calms the waves by (the view's seabed); none: open sea everywhere. */
+  coast: CoastGrid | null = null;
 
   constructor(
     private readonly world: () => World,
@@ -50,6 +77,12 @@ export class SeaWaves {
   ) {
     this.gerstner = wavesModel(search) === 'v2';
     this.preview = previewOf(search);
+  }
+
+  /** Calm the waves by `seabed`'s bake (the view's, rebaked on a land edit); returns it. */
+  calmBy<T extends { bake: CoastGrid }>(seabed: T): T {
+    this.coast = this.gerstner ? seabed.bake : null;
+    return seabed;
   }
 
   /** Bring the field to the world's time (once per time). */
@@ -69,24 +102,38 @@ export class SeaWaves {
   readonly heightAt = (x: number, z: number): number => {
     if (!this.gerstner) return waveHeight(x, z, this.world().time);
     this.update();
-    return waveHeightAt(this.field, x, -z);
+    return waveHeightAt(this.field, x, -z, this.coast);
   };
+
+  /**
+   * How far a grid of `cell` units, drawing the waves the ocean's grid of `drawn` units draws,
+   * parts from the true surface between its points (a cell's diagonal): each wave's chord sag, at
+   * most its full height. The sheets riding the waves float clear of it.
+   */
+  sag(cell: number, drawn: number) {
+    const f = this.field;
+    const span = cell * Math.SQRT2;
+    let sag = 0;
+    for (let i = 0; i < f.count; i++) {
+      const a = f.amp[i]! * drawnOn(f.length[i]!, drawn);
+      const k = (2 * Math.PI) / f.length[i]!;
+      sag += Math.min(2 * a, (a * (k * span) ** 2) / 8);
+    }
+    return sag;
+  }
 
   /**
    * Fill the shader's arrays for a grid of `cell` units: a wave shorter than `drawCells` cells
    * fades out, since the grid can't hold it. Drawing only: the CPU field keeps every physical wave.
    */
-  writeUniforms(
-    uniforms: { uWave: { value: Float32Array }; uWaveShift: { value: Float32Array } },
-    cell: number,
-  ) {
+  writeUniforms(uniforms: WaveUniforms, cell: number) {
     const f = this.field;
-    const [from, to] = TUNING.waves.drawCells as [number, number];
-    const wave = uniforms.uWave.value;
-    const shift = uniforms.uWaveShift.value;
+    const wave = uniforms.uWave.value as Float32Array;
+    const shift = uniforms.uWaveShift.value as Float32Array;
+    const bands = (uniforms.uBandHeight.value as THREE.Vector3).set(0, 0, 0);
     for (let i = 0; i < f.count; i++) {
-      const t = Math.min(1, Math.max(0, (f.length[i]! / cell - from) / Math.max(1e-6, to - from)));
-      const drawn = t * t * (3 - 2 * t);
+      const drawn = drawnOn(f.length[i]!, cell);
+      bands.setComponent(f.band[i]!, bands.getComponent(f.band[i]!) + f.amp[i]! * drawn);
       wave[4 * i] = f.kx[i]!;
       wave[4 * i + 1] = -f.ky[i]!;
       wave[4 * i + 2] = f.phase[i]!;
@@ -94,5 +141,11 @@ export class SeaWaves {
       shift[2 * i] = f.shiftX[i]! * drawn;
       shift[2 * i + 1] = -f.shiftY[i]! * drawn;
     }
+    const c = TUNING.waves.coast;
+    (uniforms.uCoast.value as THREE.Vector4).set(c.floor, c.sheltered, c.shelteredAt, c.openAt);
+    (uniforms.uCoastReach.value as THREE.Vector3).set(c.reach.swell, c.reach.chop, c.reach.ripple);
+    const foam = TUNING.waves.foam;
+    const rough = Math.min(1, (this.sea.swell.height + this.sea.chop.height) / foam.roughAt);
+    (uniforms.uSeaFoam.value as THREE.Vector4).set(rough, foam.widen, foam.surf, foam.whitecaps);
   }
 }

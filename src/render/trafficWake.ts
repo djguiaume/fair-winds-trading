@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import TRAFFIC_BOATS from '../data/traffic-boats.json';
 import { FoamStrips, type WakeHull } from './wake';
+import { waveHeight } from './oceanWaves';
 
 /** At most this many boats show a bow wave at once: the High traffic cap and the rival. */
 const MOST = 12;
@@ -12,8 +13,9 @@ const MOST = 12;
 export class TrafficWakes extends FoamStrips {
   private readonly hull: WakeHull = { length: 0, beam: 0 };
 
-  constructor() {
-    super(MOST * 2 * TRAFFIC_BOATS.wake.steps);
+  /** Floating on `water` (scene x, z, time): the view's sea, or the classic waves. */
+  constructor(water: (x: number, z: number, t: number) => number = waveHeight) {
+    super(MOST * 2 * TRAFFIC_BOATS.wake.steps, water);
   }
 
   /** Starts a frame's wakes. */

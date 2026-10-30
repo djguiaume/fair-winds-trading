@@ -19,6 +19,7 @@ import type { MapDef } from '../../src/sim/map';
 import { questTagsCheck, quickChecks, routeChecks } from '../../src/sim/mapChecks';
 import { QUESTS } from '../../src/sim/quests';
 import { densityLines, seaDensity } from '../../src/sim/seaDensity';
+import { berthSpots, calmLines, calmRows, mapCoastGrid } from '../../src/render/coastCalmReport';
 import { type Sectors, sectorChecks } from '../../src/sim/seaSectors';
 
 /** The repository: npm runs the tools from there. */
@@ -68,6 +69,8 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
   density [--sight 160 --cell 10] how full each sea's slice of the outer ring is (decision 0180):
         islands, shapes, marks, zones per open water, share of empty water and the biggest
         empty discs; \`npm run chart -- --sea phase4 --density\` draws them
+  calm [--at "x,y x,y"]          how much of the open sea's swell and chop the coast leaves at each
+        port's berth (or these points): depth and shelter, the waves.json › coast numbers (#281)
 
 options: --steps steps.json (or '[{"do":"add","what":"reef",…}]': steps as data, src/editor/seaSteps.ts)
          --routes  also the sailing route checks (about 6 s on the grown sea)
@@ -245,6 +248,7 @@ export function seaStepFromArgs(args: Args): SeaStep | null {
     case 'list':
     case 'check':
     case 'density':
+    case 'calm':
     case undefined:
       return null;
     default:
@@ -299,6 +303,12 @@ export function run(args: Args): number {
     const rows = seaDensity(doc, sectors, { sight: num(args.sight), cell: num(args.cell) });
     if (args.json) console.log(JSON.stringify(rows, null, 1));
     else for (const line of densityLines(rows)) console.log(line);
+    return 0;
+  }
+  if (args._[0] === 'calm') {
+    const at = points(args.at)?.map(([x, y], k) => ({ id: `point ${k + 1}`, x: x!, y: y! }));
+    const rows = calmRows(mapCoastGrid(doc), at ?? berthSpots(doc));
+    console.log(args.json ? JSON.stringify(rows, null, 1) : calmLines(rows).join('\n'));
     return 0;
   }
   if (args._[0] === 'list' || (!args._.length && !steps.length)) {

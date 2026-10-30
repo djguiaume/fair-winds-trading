@@ -19,7 +19,7 @@ import {
 import { HEEL_FEEL, Heel, heelFactor } from './heel';
 import { type Ocean, oceanFor } from './ocean';
 import { ShoreTextureCache } from './shoreTexture';
-import { SeabedTextureCache, drawnFields } from './seabedTexture';
+import { SeabedTextureCache, drawnLand } from './seabedTexture';
 import { CalmWater } from './calmWater';
 import { RoughWater } from './roughWater';
 import { CurrentWater } from './currentWater';
@@ -226,7 +226,7 @@ export class GameView {
     this.castaway = new Castaway(world.map);
     this.seaMarks = new SeaMarks(world.map);
     this.bergs = new DriftingBergs(world.map);
-    this.traffic = new TrafficView(world.map);
+    this.traffic = new TrafficView(world.map, this.sea.heightAt);
     this.scene.add(
       this.bergs.root,
       this.traffic.root,
@@ -292,11 +292,11 @@ export class GameView {
     }
   }
 
-  /** The seabed depth bake of the land standing now, for the new look's water (`?look=v2`). */
+  /** The land's seabed bake: the new look's water (`?look=v2`), the waves' calm (`?waves=v2`). */
   private seabed() {
-    if (this.look !== 'v2') return undefined;
-    const { islands, terrain } = this.world.land;
-    return this.seabeds.get(drawnFields(this.world.map, islands, this.levels), terrain);
+    if (this.look !== 'v2' && !this.sea.gerstner) return undefined;
+    const land = drawnLand(this.world.map, this.world.land, this.levels, this.sea.gerstner);
+    return this.sea.calmBy(this.seabeds.get(land));
   }
 
   /** Harbour lanterns (decision 0068): one on each pier head and a town glow a little inland. */
@@ -415,7 +415,7 @@ export class GameView {
     if (!effects) {
       const others = [...this.qualityEffects.values()].map(({ ocean }) => ocean);
       effects = {
-        ocean: oceanFor(profile, others, this.world.land, shore, seabed, this.sea.gerstner),
+        ocean: oceanFor(profile, others, this.world.land, shore, seabed, this.sea, this.look),
         streaks: new WindStreaks(profile.windStreaks),
         rain: new Rain(profile.rainDrops),
       };

@@ -6,8 +6,8 @@ import { laneShape } from '../sim/currents';
 import { smoothOutline } from '../sim/flowShapes';
 import type { CurrentDef } from '../sim/map';
 import type { Ocean } from './ocean';
-import { waveSag } from './oceanWaves';
 import { type ShoreTexture, shoreShader } from './shoreTexture';
+import { rideSea, sheetSurfaceShader, sheetSurfaceUniforms } from './seaSheets';
 
 /**
  * Currents at sea (decision 0140): only visuals. Each current is darker, bluer water with soft
@@ -29,12 +29,11 @@ const AREA_COLUMN = 48;
  * (issue #277): 6 keeps the lift small at a quarter of the triangles of the calm water's 3.
  */
 const GRID = 6;
-/** The sheet's height over the true waves, before the ocean grid's own sag. */
-const LIFT = 0.14 + waveSag(GRID);
+/** The sheet's height over the waves, before the two grids' sag (`Ocean.sheetLift`). */
+const LIFT = 0.14;
 
 const vertexShader = /* glsl */ `
-uniform float uTime;
-uniform float uLift;
+${sheetSurfaceShader}
 attribute vec2 aFlow;
 attribute float aEdge;
 attribute float aEnds;
@@ -47,16 +46,11 @@ varying float vHalf;
 varying vec3 vWorld;
 varying float vFogDepth;
 
-float wave(vec2 p) {
-  return sin(dot(p, vec2(0.12, 0.07)) + uTime * 1.1) * 0.32
-       + sin(dot(p, vec2(-0.05, 0.15)) + uTime * 0.8) * 0.24
-       + sin(dot(p, vec2(0.21, -0.17)) + uTime * 1.7) * 0.12;
-}
-
 void main() {
   vec4 world = modelMatrix * vec4(position, 1.0);
   // Just above the water: the same waves as the ocean, lifted past the grids' chord error.
-  world.y += wave(world.xz) + uLift;
+  world.xyz += seaOffset(world.xz, shoreDistance(world.xz));
+  world.y += uLift;
   vWorld = world.xyz;
   vFlow = vec2(aFlow.x - uTime * aDrift, aFlow.y);
   vEdge = aEdge;
@@ -277,8 +271,8 @@ export class CurrentWater {
       transparent: true,
       depthWrite: false,
       uniforms: {
+        ...sheetSurfaceUniforms(),
         uTime: { value: 0 },
-        uLift: { value: LIFT },
         uShoreMap: { value: shore.texture },
         uShoreBounds: { value: shore.bounds },
         uWater: { value: new THREE.Color() },
@@ -315,7 +309,7 @@ export class CurrentWater {
     const from = ocean.mesh.material.uniforms;
     const u = this.material.uniforms;
     u.uTime!.value = time;
-    u.uLift!.value = ocean.sheetLift(LIFT);
+    rideSea(this.material, ocean, LIFT, GRID);
     (u.uWater!.value as THREE.Color).copy(from.uWater!.value as THREE.Color);
     (u.uWaterLight!.value as THREE.Color).copy(from.uWaterLight!.value as THREE.Color);
     (u.uFogColor!.value as THREE.Color).copy(from.uFogColor!.value as THREE.Color);

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { EdgeBuoys } from '../src/render/props';
-import { MAX_WAVE_HEIGHT } from '../src/render/ocean';
+import { maxWaveHeight } from '../src/render/ocean';
 import { waveHeight } from '../src/render/oceanWaves';
 import { resetTuning, TUNING } from '../src/data/tuning';
 
@@ -113,7 +113,7 @@ describe('boundary buoy culling', () => {
   it('bounds the ocean displacement used by culling', () => {
     for (let i = 0; i < 10000; i++) {
       expect(Math.abs(waveHeight(i * 3.1, i * -7.3, i * 0.37))).toBeLessThanOrEqual(
-        MAX_WAVE_HEIGHT,
+        maxWaveHeight(),
       );
     }
   });

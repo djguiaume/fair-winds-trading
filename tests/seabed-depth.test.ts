@@ -103,12 +103,12 @@ describe('seabed bake cache', () => {
   it('bakes again only for a new field, terrain shape or depth number, freeing the old bake', () => {
     const cache = new SeabedTextureCache();
     const field = square(10, 2);
-    const first = cache.get([field]);
-    expect(cache.get([field])).toBe(first);
+    const first = cache.get({ fields: [field] });
+    expect(cache.get({ fields: [field] })).toBe(first);
     const disposed = vi.spyOn(first.texture, 'dispose');
     // An edit (a builder stroke) gives the island a new field object.
     const fields = [square(10, 2)];
-    const edited = cache.get(fields);
+    const edited = cache.get({ fields });
     expect(edited).not.toBe(first);
     expect(disposed).toHaveBeenCalledTimes(1);
     const reef: TerrainDef = {
@@ -120,13 +120,13 @@ describe('seabed bake cache', () => {
         [5, 5],
       ],
     };
-    const withReef = cache.get(fields, [reef]);
+    const withReef = cache.get({ fields, terrain: [reef] });
     expect(withReef).not.toBe(edited);
     const depth = TUNING.graphics.water.depth;
     const before = depth.fullDepth;
     depth.fullDepth = before + 1;
     try {
-      expect(cache.get(fields, [reef])).not.toBe(withReef);
+      expect(cache.get({ fields, terrain: [reef] })).not.toBe(withReef);
     } finally {
       depth.fullDepth = before;
     }
@@ -164,14 +164,14 @@ describe('sea colours by place', () => {
 describe('depth-coloured ocean', () => {
   it('draws depth and the shore per pixel on every level (#277), and takes a new bake on any level', () => {
     const cache = new SeabedTextureCache();
-    const seabed = cache.get([square(10, 2)]);
+    const seabed = cache.get({ fields: [square(10, 2)] });
     for (const profile of Object.values(QUALITY)) {
       const look = { fancy: profile.fancyWater, reflect: profile.waterReflection, seabed };
       const ocean = new Ocean([], profile.oceanSegments, look, 480);
       const defines = ocean.mesh.material.defines;
       expect('DEPTH' in defines).toBe(true);
       expect('VERTEX_SHORES' in defines).toBe(false);
-      const next = cache.get([square(12, 2)]);
+      const next = cache.get({ fields: [square(12, 2)] });
       ocean.setSeabed(next);
       expect(ocean.mesh.material.uniforms.uDepthMap!.value).toBe(next.texture);
       ocean.dispose();

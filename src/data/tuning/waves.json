@@ -57,5 +57,28 @@
       "samples": 2,
       "cosmetic": true
     }
+  },
+  "coast": {
+    "reach": {
+      "swell": 1,
+      "chop": 0.6,
+      "ripple": 0.3
+    },
+    "floor": 0.12,
+    "fetch": 45,
+    "rays": 16,
+    "blocks": 12,
+    "smooth": 2,
+    "berth": 14,
+    "openAt": 0.5,
+    "shelteredAt": 0.25,
+    "sheltered": 0.2
+  },
+  "foam": {
+    "roughAt": 2.4,
+    "widen": 0.6,
+    "surf": 0.55,
+    "whitecaps": 0.45,
+    "night": 0.5
   }
 }
