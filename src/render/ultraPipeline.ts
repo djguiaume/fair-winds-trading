@@ -22,6 +22,8 @@ export interface GraphicsEffects {
   haze: boolean;
   /** The sea's sky reflection and sun glint, on High and Ultra. */
   reflection: boolean;
+  /** Ultra's multisampled off-screen render; only a `?off=msaa` device test turns it off. */
+  msaa: boolean;
 }
 
 /** GTAOPass's hooks for what its normal pass leaves out; not in the published types. */
@@ -160,7 +162,7 @@ export class UltraPipeline {
     const ultra = TUNING.graphics.ultra;
     this.casters.update(dt, this.scene, this.effects.shadows);
     this.followShadows(night);
-    this.followSamples(ultra.antialiasSamples);
+    this.followSamples(this.effects.msaa ? ultra.antialiasSamples : 0);
     if (ultra.occlusion.resolution !== this.aoResolution)
       this.setSize(this.width, this.height, this.pixelRatio);
     this.followOcclusion();

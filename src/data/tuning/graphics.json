@@ -1,4 +1,12 @@
 {
+  "urlSwitches": {
+    "shadows": "shadows",
+    "ao": "occlusion",
+    "tonemap": "toneMapping",
+    "haze": "haze",
+    "reflection": "reflection",
+    "msaa": "msaa"
+  },
   "ultra": {
     "exposure": 1.1,
     "nightExposure": 1.15,

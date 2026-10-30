@@ -155,6 +155,7 @@ export class GameView {
     toneMapping: true,
     haze: true,
     reflection: true,
+    msaa: true,
   };
   /** Created only when selected; retain GPU programs/buffers for subsequent switches. */
   private readonly qualityEffects = new Map<

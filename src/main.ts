@@ -101,6 +101,8 @@ import { loadSettings, saveSettings } from './ui/settings';
 import { addEffectSwitches, switchRow } from './ui/graphicsSettings';
 import type { Bench } from './perf/bench';
 import type { PerfReadout } from './perf/perfReadout';
+import { describeOverrides, graphicsOverrides } from './perf/graphicsOverrides';
+import { terrainLook } from './render/terrainLook';
 import { perfOptions } from './perf/perfOptions';
 import { Music } from './audio/music';
 import { SeaListener } from './audio/listener';
@@ -299,7 +301,9 @@ if (playtestMap) {
   if (!questTest) document.body.append(badge);
 }
 const resumedVoyage = storage ? loadGame(storage, world) : false;
-let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
+const graphicsTest = graphicsOverrides(location.search);
+let level: QualityLevel =
+  graphicsTest.quality ?? (settings.quality === 'auto' ? guessQuality() : settings.quality);
 const view = new GameView(canvas, world, level);
 // The sea's sound where she sails, and the effects of what happens (decision 0209).
 const seaListener = new SeaListener(
@@ -1632,6 +1636,7 @@ const showEffects = addEffectSwitches(
   view.effects,
   keepSettings,
 );
+for (const effect of graphicsTest.off) view.effects[effect] = false;
 const describeQuality = () => {
   qualityNow.textContent = t('settings.nowUsing', { level: t(`settings.${level}`) });
   showEffects(level);
@@ -1963,7 +1968,13 @@ function tick(now: number) {
   if (++coachTick % 6 === 0) coach.place();
 
   // The benchmark keeps one level throughout so its passes compare (decision 0154).
-  if (monitor.sample(dt) && !benchMode && settings.quality === 'auto' && level !== 'low') {
+  if (
+    monitor.sample(dt) &&
+    !benchMode &&
+    !graphicsTest.quality &&
+    settings.quality === 'auto' &&
+    level !== 'low'
+  ) {
     setLevel(lowerQuality(level));
   }
   hud.setFps(settings.showFps ? monitor.fps : null, hudVisible);
@@ -1974,7 +1985,7 @@ function tick(now: number) {
       ms: rawMs,
       counting: mode === 'play' && !paused && hudVisible,
       level,
-      qualitySetting: settings.quality,
+      qualitySetting: graphicsTest.quality ?? settings.quality,
       drawCalls: info.calls,
       triangles: info.triangles,
       canvas: {
@@ -2097,6 +2108,7 @@ if (perfMode) {
             `${Math.round(created.route.length)} units at ${created.config.speedKn} kn, ` +
             `level ${level} fixed, all hazards on)`
           : undefined,
+        graphics: describeOverrides(terrainLook(location.search), graphicsTest),
         switches: () =>
           [
             ...(
