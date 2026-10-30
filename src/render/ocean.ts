@@ -174,6 +174,11 @@ export class Ocean {
   get shoreCalm() {
     return Math.min(1, this.sag / TUNING.graphics.water.shoreCalm.sag);
   }
+
+  /** How high a sheet riding the waves (calm water, currents) floats: clear of this grid's sag. */
+  sheetLift(base: number) {
+    return base + Math.max(this.sag, this.shoreCalm * MAX_WAVE_HEIGHT);
+  }
   private readonly ownsShore: boolean;
   private readonly ownsMaterial: boolean;
   private disposed = false;

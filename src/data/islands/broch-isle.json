@@ -39,8 +39,9 @@
   "lanes": [],
   "piers": [],
   "props": [
-    { "type": "broch", "x": -0.25, "z": 0, "size": 0.55, "from": 1 },
-    { "type": "standing-stones", "x": 0.38, "z": 0.1, "size": 0.35, "from": 1 }
+    { "type": "broch", "x": -0.25, "z": 0, "size": 0.85, "from": 1 },
+    { "type": "standing-stones", "x": 0.4, "z": 0.1, "size": 0.6, "from": 1 },
+    { "type": "dry-stone-wall", "x": 0.12, "z": -0.36, "turn": 15, "length": 0.55, "from": 1 }
   ],
   "woods": {
     "tree": "woodland-pine",
