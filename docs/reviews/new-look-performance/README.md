@@ -98,4 +98,4 @@ Windows, Chrome 156, Core i7-1065G7, Intel Iris Plus Graphics, 32 GB, canvas 248
 - The new look fits the phone at Medium and the Xbox at High. Every readout that holds 60 fps is capped by the screen, so it says "fits", not how much room is left. To find the room, run the same three readouts again after each big rendering change and watch p95 and 1% low, or add `&scale=1.4`.
 - Next phase (the waves milestone): the sea is drawn per pixel, so test it first on the phone at Medium and on the Xbox at High. Budget in `budget.json › newLook` is counts only, and waves will mostly cost fill rate, which the counts do not show. Re-read the same three devices, then update this section.
 - High holds 60 fps on all three devices, so the new look fits without changing engine; Ultra is the level that does not scale down.
-- Open: Low on a weak device, Ultra on a discrete card. The Xbox is held at High (#374, decision 0244); Ultra there waits for a lighter Ultra.
+- Open: Low on a weak device, Ultra on a discrete card, Ultra on the Xbox again after #374 (decision 0246: Ultra ran out of graphics memory, cut from 711 to 428 MB on a 4K TV with the same picture).

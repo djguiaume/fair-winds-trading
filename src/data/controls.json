@@ -76,8 +76,7 @@
       "x": 0.05,
       "y": 0.05
     },
-    "stayOnBack": true,
-    "maxQuality": "high"
+    "stayOnBack": true
   },
   "padBrands": {
     "xbox": {

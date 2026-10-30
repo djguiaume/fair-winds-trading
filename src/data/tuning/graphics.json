@@ -5,7 +5,6 @@
     "toe": 0.5,
     "nightToe": 0,
     "antialiasSamples": 4,
-    "trialSeconds": 20,
     "shadows": {
       "mapSize": 4096,
       "radius": 4,

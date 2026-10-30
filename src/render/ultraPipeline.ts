@@ -111,8 +111,8 @@ export class UltraPipeline {
     };
   }
 
-  private target(samples: number) {
-    return new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples });
+  private target(samples: number, depthBuffer = true) {
+    return new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples, depthBuffer });
   }
 
   /** Lantern glow size and lit-window brightness at night on Ultra (from the tuning). */
@@ -162,7 +162,6 @@ export class UltraPipeline {
     const ultra = TUNING.graphics.ultra;
     this.casters.update(dt, this.scene, this.effects.shadows);
     this.followShadows(night);
-    this.followSamples(this.effects.msaa !== false ? ultra.antialiasSamples : 0);
     if (ultra.occlusion.resolution !== this.aoResolution)
       this.setSize(this.width, this.height, this.pixelRatio);
     this.followOcclusion();
@@ -179,11 +178,31 @@ export class UltraPipeline {
       .lerp(this.hazeNight.set(haze.nightColor), night);
     u.uHazeStart!.value = ultra.haze.start;
     u.uHazeStrength!.value = this.effects.haze ? ultra.haze.strength : 0;
+    this.compose(dt);
+  }
+
+  /**
+   * High after Ultra: the canvas was made without anti-aliasing (Ultra brings its own), so the
+   * scene still goes through the multisampled target, with no effects (decision 0246).
+   */
+  renderPlain(dt: number) {
+    this.occlusion.enabled = false;
+    this.grade.enabled = false;
+    this.compose(dt);
+    this.grade.enabled = true;
+  }
+
+  private compose(dt: number) {
+    const samples = TUNING.graphics.ultra.antialiasSamples;
+    this.followSamples(this.effects.msaa !== false ? samples : 0);
+    // The scene pass draws into the read buffer: keep it on the multisampled target.
+    const composer = this.composer;
+    if (composer.readBuffer !== composer.renderTarget2) composer.swapBuffers();
     // One frame is many render calls here: count them all, so `?perf` and `?bench` stay honest.
     const info = this.renderer.info;
     info.reset();
     info.autoReset = false;
-    this.composer.render(dt);
+    composer.render(dt);
     info.autoReset = true;
   }
 
@@ -222,11 +241,19 @@ export class UltraPipeline {
     }
   }
 
-  /** A new sample count needs new render targets. */
+  /**
+   * A new sample count needs new render targets. Only the scene needs multisampling and depth;
+   * the passes after it draw full-screen pictures, so their target saves that memory
+   * (decision 0246: the full Ultra ran the Xbox out of graphics memory).
+   */
   private followSamples(samples: number) {
     if (samples === this.samples) return;
     this.samples = samples;
-    this.composer.reset(this.target(samples));
+    const composer = this.composer;
+    composer.renderTarget1.dispose();
+    composer.renderTarget2.dispose();
+    composer.renderTarget1 = composer.writeBuffer = this.target(0, false);
+    composer.renderTarget2 = composer.readBuffer = this.target(samples);
     this.setSize(this.width, this.height, this.pixelRatio);
   }
 

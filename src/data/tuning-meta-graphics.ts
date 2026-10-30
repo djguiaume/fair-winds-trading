@@ -42,14 +42,6 @@ export const GRAPHICS_META: Readonly<Record<string, TuningMeta>> = {
     undefined,
     'Multisampling of the Ultra picture; 0 turns it off.',
   ),
-  'graphics.ultra.trialSeconds': num(
-    'Ultra trial',
-    5,
-    120,
-    5,
-    's',
-    'Seconds of frames on Ultra before it is trusted on this device; a run that dies sooner keeps the game at High there (decision 0244).',
-  ),
   'graphics.ultra.shadows.mapSize': num(
     'Shadow map size',
     1024,

@@ -10,5 +10,9 @@
   "scenarios": {
     "sailing": { "calls": 35, "triangles": 66000 },
     "docking": { "calls": 40, "triangles": 54500 }
+  },
+  "gpuMemory": {
+    "note": "Graphics memory (MB) a report may hold at a level (decision 0246), measured by CI at 1920x1080 scale 2, as on a 4K TV (PERF_SCREEN=1920x1080@2). Ultra went past the Xbox Edge's share at 711 MB and crashed its graphics; after the cut it holds 428 MB. Set about 10% above; a raise needs its reason in the PR and an Xbox re-test.",
+    "limitsMB": { "ultra": 470 }
   }
 }

@@ -148,6 +148,8 @@ export class GameView {
   /** The Ultra pipeline (decision 0221), loaded the first time Ultra is picked. */
   private ultra?: UltraPipeline;
   private ultraLoading = false;
+  /** The canvas was made with multisampling (it cannot change later). */
+  private readonly canvasAntialias: boolean;
   /** The graphics effects switches (Settings); all on by default. */
   readonly effects: GraphicsEffects = {
     shadows: true,
@@ -182,10 +184,10 @@ export class GameView {
     /** `?look=v2`: the new look's ground from the shared height field (decision 0222). */
     private readonly look: TerrainLook = terrainLook(location.search),
   ) {
+    this.canvasAntialias = QUALITY[level].antialias;
     this.renderer = new THREE.WebGLRenderer({
       canvas,
-      // Ultra may step down to High, which then needs it; Ultra itself multisamples its own.
-      antialias: QUALITY[level].antialias,
+      antialias: this.canvasAntialias,
       powerPreference: 'high-performance',
       stencil: false,
     });
@@ -734,6 +736,8 @@ export class GameView {
     }
 
     if (ultra) ultra.render(dt, day.night);
+    else if (this.ultra && this.profile.antialias && !this.canvasAntialias)
+      this.ultra.renderPlain(dt);
     else this.renderer.render(this.scene, this.camera);
   }
 
