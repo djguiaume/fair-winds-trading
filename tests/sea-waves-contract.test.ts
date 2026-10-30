@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { TUNING } from '../src/data/tuning';
-import { gerstnerShader, gerstnerUniforms, SeaWaves } from '../src/render/seaWaves';
+import { oceanVertexShader } from '../src/render/oceanWaves';
+import { gerstnerUniforms, SeaWaves } from '../src/render/seaWaves';
 import { WAVE_BANDS, createSeaState } from '../src/sim/seaState';
 import { setWaveField, waveOffsetAt } from '../src/sim/waves';
 
@@ -28,7 +29,9 @@ function gpuOffset(u: ReturnType<typeof gerstnerUniforms>, count: number, x: num
 
 /** A heavy, wind-driven sea after ten hours of play, physical bands only. */
 function heavySea(t = 36_000) {
-  const waves = new SeaWaves(null);
+  const waves = new SeaWaves(() => {
+    throw new Error('no world in a contract test');
+  }, '?waves=v2');
   const state = createSeaState();
   for (const b of WAVE_BANDS)
     Object.assign(state[b], {
@@ -88,6 +91,6 @@ describe('CPU/GPU wave contract (0245)', () => {
       if (cells <= from) expect(drawn).toBe(0);
       if (cells >= to) expect(drawn).toBeCloseTo(waves.field.amp[i]!, 5);
     }
-    expect(gerstnerShader).toContain('uWave[WAVE_COUNT]');
+    expect(oceanVertexShader).toContain('uWave[WAVE_COUNT]');
   });
 });

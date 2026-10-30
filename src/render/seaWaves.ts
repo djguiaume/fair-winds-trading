@@ -2,6 +2,7 @@ import { TUNING } from '../data/tuning';
 import { createSeaState, seaStateAt, steadySeaState } from '../sim/seaState';
 import { createWaveField, setWaveField, waveCount, waveHeightAt } from '../sim/waves';
 import type { World } from '../sim/world';
+import { waveHeight } from './oceanWaves';
 
 /**
  * Which waves the sea draws (decision 0245, issue #280): `v1`, the classic three sines, or `v2`,
@@ -20,27 +21,6 @@ const previewOf = (search: string) => {
   return name in TUNING.waves.previews ? (name as keyof typeof TUNING.waves.previews) : null;
 };
 
-/**
- * The GPU half of the wave contract: `uWave[i]` = (k.x, k.z, phase, height) and `uWaveShift[i]`
- * = Gerstner shift (x, z), in scene space (z = -sim y), filled by `SeaWaves.writeUniforms`.
- * Returns the offset (x, height, z) of the rest point `p` (scene x, z): the same sum as the CPU's
- * `waveOffsetAt`, plus the cosmetic bands.
- */
-export const gerstnerShader = /* glsl */ `
-uniform vec4 uWave[WAVE_COUNT];
-uniform vec2 uWaveShift[WAVE_COUNT];
-
-vec3 waveOffset(vec2 p) {
-  vec3 o = vec3(0.0);
-  for (int i = 0; i < WAVE_COUNT; i++) {
-    float theta = dot(uWave[i].xy, p) + uWave[i].z;
-    o.xz += uWaveShift[i] * cos(theta);
-    o.y += uWave[i].w * sin(theta);
-  }
-  return o;
-}
-`;
-
 /** The defines a Gerstner ocean compiles with. */
 export const gerstnerDefines = () => ({ GERSTNER: '', WAVE_COUNT: String(waveCount()) });
 
@@ -51,18 +31,32 @@ export const gerstnerUniforms = () => ({
 });
 
 /**
- * The sea's waves for the view: each frame, the sea state where the ship is, frozen into one wave
- * field that both floats things (`heightAt`) and feeds the ocean shader. The field is a pure
- * function of the world's time, so a frame rate or quality level never changes it.
+ * The sea's waves for the view: what the ocean draws and everything floats on. Under `?waves=v2`,
+ * the sea state where the ship is, frozen each moment into one wave field that both floats things
+ * and feeds the ocean shader; otherwise the classic waves. The field is a pure function of the
+ * world's time, so it is rebuilt once per new time, never per frame rate or quality level.
  */
 export class SeaWaves {
+  /** `?waves=v2` (or a review preview): the ocean compiles the Gerstner shader. */
+  readonly gerstner: boolean;
+  private readonly preview: ReturnType<typeof previewOf>;
   private readonly sea = createSeaState();
   readonly field = createWaveField();
+  private time = Number.NaN;
 
-  /** A review preview (`?waves=storm`) holds the sea in that state. */
-  constructor(private readonly preview = previewOf(location.search)) {}
+  constructor(
+    private readonly world: () => World,
+    search = location.search,
+  ) {
+    this.gerstner = wavesModel(search) === 'v2';
+    this.preview = previewOf(search);
+  }
 
-  update(world: World): void {
+  /** Bring the field to the world's time (once per time). */
+  update(): void {
+    const world = this.world();
+    if (!this.gerstner || world.time === this.time) return;
+    this.time = world.time;
     const { boat, map, time, windConfig } = world;
     if (this.preview) {
       const { speedKn, storm } = TUNING.waves.previews[this.preview];
@@ -71,8 +65,12 @@ export class SeaWaves {
     setWaveField(this.field, this.sea, map.seed, time);
   }
 
-  /** Height of the physical sea at scene (`x`, `z`). */
-  readonly heightAt = (x: number, z: number): number => waveHeightAt(this.field, x, -z);
+  /** Height of the sea at scene (`x`, `z`) now: what boats, buoys, marks and wakes float on. */
+  readonly heightAt = (x: number, z: number): number => {
+    if (!this.gerstner) return waveHeight(x, z, this.world().time);
+    this.update();
+    return waveHeightAt(this.field, x, -z);
+  };
 
   /**
    * Fill the shader's arrays for a grid of `cell` units: a wave shorter than `drawCells` cells

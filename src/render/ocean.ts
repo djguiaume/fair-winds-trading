@@ -120,15 +120,6 @@ void main() {
 /** Conservative displacement bound: sum of the three wave amplitudes below and in the shader. */
 export const MAX_WAVE_HEIGHT = 0.32 + 0.24 + 0.12;
 
-/** CPU copy of the vertex shader's wave height, so boats and wakes ride the same waves. */
-export function waveHeight(x: number, z: number, t: number): number {
-  return (
-    Math.sin(x * 0.12 + z * 0.07 + t * 1.1) * 0.32 +
-    Math.sin(x * -0.05 + z * 0.15 + t * 0.8) * 0.24 +
-    Math.sin(x * 0.21 + z * -0.17 + t * 1.7) * 0.12
-  );
-}
-
 /**
  * The ocean of a quality level. The shader depends on the water look, not the grid resolution:
  * it shares the material of another level's ocean that draws the same water, so switching
@@ -337,8 +328,10 @@ export class Ocean {
   update(time: number, center: THREE.Vector3, reflect = true, waves?: SeaWaves | null): void {
     const u = this.mesh.material.uniforms;
     u.uTime!.value = time;
-    if (waves && 'GERSTNER' in this.mesh.material.defines)
+    if (waves && 'GERSTNER' in this.mesh.material.defines) {
+      waves.update();
       waves.writeUniforms(u as Parameters<SeaWaves['writeUniforms']>[0], this.cell);
+    }
     const w = TUNING.graphics.water;
     u.uReflect!.value = reflect ? w.reflection : 0;
     u.uGlint!.value = reflect ? w.glint : 0;
