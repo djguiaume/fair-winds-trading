@@ -1965,9 +1965,8 @@ function tick(now: number) {
   if (++coachTick % 6 === 0) coach.place();
 
   // The benchmark keeps one level throughout so its passes compare (decision 0154).
-  if (monitor.sample(dt) && !benchMode && settings.quality === 'auto' && level !== 'low') {
+  if (monitor.sample(dt) && !benchMode && settings.quality === 'auto')
     setLevel(lowerQuality(level));
-  }
   hud.setFps(settings.showFps ? monitor.fps : null, hudVisible);
   perf?.frame({
     ms: rawMs,

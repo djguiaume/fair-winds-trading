@@ -258,6 +258,14 @@ export const SMOOTH_META: Readonly<Record<string, TuningMeta>> = {
     '×',
     'How much each detail noise lightens and darkens the flat ground.',
   ),
+  'terrain.draw.detail.octaves.ultralow': num(
+    'Detail noises, Ultra-low',
+    0,
+    3,
+    1,
+    '',
+    'How many of the detail noises the ground draws on Ultra-low.',
+  ),
   'terrain.draw.detail.octaves.low': num(
     'Detail noises, Low',
     0,
@@ -313,6 +321,10 @@ export const SMOOTH_META: Readonly<Record<string, TuningMeta>> = {
     0.02,
     'units',
     'Zone edge width where either side is a sharp ground (lava, ash, slate): high-contrast pairs.',
+  ),
+  'terrain.draw.edge.crisp.ultralow': toggle(
+    'Crisp zone edges, Ultra-low',
+    'Crisp zone edges on Ultra-low.',
   ),
   'terrain.draw.edge.crisp.low': toggle(
     'Crisp zone edges, Low',

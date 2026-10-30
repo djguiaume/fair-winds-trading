@@ -1,4 +1,87 @@
 {
+  "quality": {
+    "ultralow": {
+      "maxRenderPixels": 200000,
+      "pixelRatioCap": 1,
+      "oceanSegments": 96,
+      "windStreaks": 24,
+      "rainDrops": 100,
+      "shadows": false,
+      "antialias": false,
+      "fancyWater": false,
+      "chartFogBlur": false,
+      "waterReflection": false,
+      "ultra": false,
+      "plain": true,
+      "lowDetail": true
+    },
+    "low": {
+      "maxRenderPixels": 400000,
+      "pixelRatioCap": 1,
+      "oceanSegments": 48,
+      "windStreaks": 36,
+      "rainDrops": 160,
+      "shadows": false,
+      "antialias": false,
+      "fancyWater": false,
+      "chartFogBlur": false,
+      "waterReflection": false,
+      "ultra": false,
+      "plain": false,
+      "lowDetail": true
+    },
+    "medium": {
+      "maxRenderPixels": 1250000,
+      "pixelRatioCap": 1.25,
+      "oceanSegments": 80,
+      "windStreaks": 60,
+      "rainDrops": 260,
+      "shadows": false,
+      "antialias": false,
+      "fancyWater": true,
+      "chartFogBlur": false,
+      "waterReflection": false,
+      "ultra": false,
+      "plain": false,
+      "lowDetail": false
+    },
+    "high": {
+      "maxRenderPixels": 2500000,
+      "pixelRatioCap": 1.5,
+      "oceanSegments": 120,
+      "windStreaks": 90,
+      "rainDrops": 400,
+      "shadows": true,
+      "antialias": true,
+      "fancyWater": true,
+      "chartFogBlur": true,
+      "waterReflection": true,
+      "ultra": false,
+      "plain": false,
+      "lowDetail": false
+    },
+    "ultra": {
+      "maxRenderPixels": 3700000,
+      "pixelRatioCap": 2,
+      "oceanSegments": 160,
+      "windStreaks": 90,
+      "rainDrops": 400,
+      "shadows": true,
+      "antialias": false,
+      "fancyWater": true,
+      "chartFogBlur": true,
+      "waterReflection": true,
+      "ultra": true,
+      "plain": false,
+      "lowDetail": false
+    }
+  },
+  "auto": {
+    "minFps": 40,
+    "windowSec": 1.5,
+    "firstSec": 2,
+    "cooldownSec": 4
+  },
   "ultra": {
     "exposure": 1.1,
     "nightExposure": 1.15,

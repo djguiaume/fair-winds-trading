@@ -1,4 +1,5 @@
 import file from './forests.json';
+import type { QualityLevel } from '../render/quality';
 import { PROP_RECIPES } from './props';
 import { STYLE_IDS } from './grounds';
 
@@ -77,7 +78,7 @@ export interface ForestData {
    * line to each house (half its width).
    */
   clear: { houseWidths: number; lane: number; pier: number; plot: number; view: number };
-  quality: Record<'low' | 'medium' | 'high' | 'ultra', ForestQuality>;
+  quality: Record<QualityLevel, ForestQuality>;
   kinds: Record<string, ForestKind>;
   /** Island style → biome. */
   styles: Record<string, string>;

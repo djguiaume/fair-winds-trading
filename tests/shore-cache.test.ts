@@ -205,6 +205,10 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
   expect(water()).toBe(medium);
   view.setQuality('ultra');
   expect(water().mesh.material).toBe(high.mesh.material);
+  // Ultra-low's plain water is its own program, never Low's (decision 0247).
+  view.setQuality('ultralow');
+  expect('PLAIN' in water().mesh.material.defines).toBe(true);
+  expect(water().mesh.material === low.mesh.material).toBe(false);
   view.setQuality('high');
   expect(water()).toBe(high);
   expect(lowDisposed).not.toHaveBeenCalled();
