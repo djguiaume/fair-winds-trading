@@ -54,7 +54,7 @@
       "height": 1.04,
       "vars": { "s": 0.9 },
       "colors": { "leaves": ["#a8d862", "#b6e070", "#9acb56"] },
-      "scale": [1.1, 1.7],
+      "scale": [1.5, 2.2],
       "tints": ["#ffffff", "#f4fae8", "#eaf4dc"]
     }
   },
