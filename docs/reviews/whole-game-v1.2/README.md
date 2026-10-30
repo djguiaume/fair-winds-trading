@@ -3,8 +3,9 @@
 Guillaume asked for a fresh look at the game, its story, the v1 and v2 graphics, the UI, the v1.2
 plan and the roadmap, with a clear view of what is good, what is missing, what must be addressed
 and where the game should go. Earlier review, after Phase 4: [whole-game](../whole-game/README.md).
-Read-only: nothing in code changed. Companion: [quests.md](quests.md), every quest and how they
-chain.
+Read-only: nothing in code changed. Companions: [quests.md](quests.md), every quest and how they
+chain; [consultant.md](consultant.md), an outside view of identity, length, engine, platform,
+audience, extensions and money (added 2026-10-30).
 
 Checked on `main` at `56a9f49` (v1.1.282 released, v1.2 half built): the roadmap, the v1.2 brief
 and plan, decisions 0207 to 0238, the storyteller brief and handover, the art bible and handover,
@@ -43,10 +44,11 @@ Full reading in [quests.md](quests.md). In short:
   files, ring arcs with real sailing in them, gateways that tell a story in one card, races that
   name a person of every sea. Everything is data and the bots play all of it on three levels.
 - **Weak.** The four seas are still one template (letter, bring a ring good, look, bring a ring
-  good, supplies, settler); the sea's hazard is never a task. The far goods (tea, mirrors, jam,
-  amber) are asked for by nobody, in any of the 53 quests. After four-winds the company has a name
-  and nothing to do; the outposts are founded and forgotten. Stonehaven's arc is the only door to
-  the seas and the game never says so.
+  good, supplies, settler); the sea's hazard is never a task. The far goods work in the trade
+  (outpost gathers, main port crafts, the ring buys, 0146) but no quest asks for one. After
+  four-winds the company has a name and nothing to do; the outposts go quiet in the story. Every
+  sea's story waits on Ada's arc and a return to Watchman Key, and nothing tells the player
+  ([quests.md](quests.md), point 5, with a data-only fix).
 - **Must tidy.** Wren's standing order is offered at Saltmere, her club is at Abbey Head. The
   brief's status line is stale.
 
@@ -121,8 +123,9 @@ What to watch:
 - **The sculpting line (#270, #271, #272, #352) is authoring, not look.** It is the right
   investment for the editors, but nobody playing the game sees it. It is nearly done; #352 (bake a
   sculpted coast into the outline) can wait for v1.3 without holding the release.
-- **#255 bug fixes have now slid twice** (v1.1 to v1.2 to v1.3). A new look on top of known bugs
-  is the wrong order for a game that wants to go to the stores.
+- **#255 has no bugs in it.** Its checklist is empty and no issue carries the `bug` label: there
+  are no known bugs, because nobody but Guillaume and the bots has played. Close it, and replace it
+  with a playtest by a few strangers before the store build.
 
 ## 5. The roadmap
 
@@ -131,17 +134,27 @@ scope. The next three releases are planned as issues already: v1.2 the look, v1.
 waves, boat motion, reflections), v1.4 "Your own boat" (#294, visible upgrades, cosmetics, free
 sailing). Then the store plan (0204).
 
-**This is three graphics releases in a row and no play.** Each is a good idea on its own: the
-ocean is the single biggest thing a sailing game can add after the wind, and cosmetics are what
-players of cozy games keep for. But between 1.1 and the store build there is no new place to sail
-to, no new person, no new kind of ask, no deeper trade. The weak points found on 2026-10-25 and
-again here (one story template, far goods unused, nothing after four-winds, the harbour screen as
-a table) are not on any milestone.
+**Three graphics releases in a row, before any player.** The releases follow each other every one
+or two weeks and the game is not in any store yet, so the order is not a problem for players. A
+strong look is also what sells a store page. The point is what the first store build contains:
+between 1.1 and it, the plan adds no new kind of ask and no deeper story, and the weak points found
+on 2026-10-25 and again here (one story template, the far goods absent from quests, nothing after
+four-winds, the harbour screen as a table) are on no milestone. One short story release (data
+only) before the store build closes that.
 
 The second risk is **scope per release.** #279 lists GPU waves, depth-aware foam, boat heave and
 roll, bounded gameplay effects and a reflection prototype; #294 lists seven packages with save
 migration. v1.2 was cut to 13 issues and still grew (#331, #350, #352). The token rules say 3 to 5
 threads and one brief; the trackers for v1.3 and v1.4 each read like two releases.
+
+**How to fix it:** split each tracker into two milestones of 3 to 5 issues, each one shippable on
+its own, and add one rule to the start-a-release skill: a release with more than 5 issues, or more
+than two of high effort, is split before it starts.
+
+| Today | Split into |
+|---|---|
+| v1.3 Ocean (#279, 7 issues) | **v1.3 "Waves you can see"**: #280 wave model, #281 coast and shelter, #282 GPU visuals, #286 acceptance. **v1.3.1 "Boats that ride them"**: #283 heave, pitch and roll, #284 effects on sailing and balance. #285 reflections becomes an `idea` issue, decided later with evidence. |
+| v1.4 Your own boat (#294, 7 issues) | **v1.4 "Visible upgrades"**: #295 direction, #296 upgrades on the models, #298 saved per ship, #299 shipyard preview. **v1.4.1 "Cosmetics and free sailing"**: #297 catalogue, #300 free sailing, #301 figureheads and acceptance. |
 
 ## What is good, what is missing, what must be addressed
 
@@ -157,25 +170,25 @@ threads and one brief; the trackers for v1.3 and v1.4 each read like two release
 **Missing**
 
 - A reason to keep sailing after four-winds and the Cup: the company never acts as one, the
-  outposts never grow on their own, the far goods have no story.
+  outposts go quiet in the story, and no quest asks for the far goods.
 - A harbour screen that treats trade and people as the main event rather than a table.
 - A real device measurement of v2 on Low and of Ultra (#278, #291 still open).
-- The store build itself: #255 bugs, the first 15 minutes checked with a stranger, and a decision
-  on what "1.x in the store" contains.
+- The store build itself: a playtest by strangers, the first 15 minutes checked, a licence
+  decision (the repository is public with no licence file), and what "1.x in the store" contains
+  ([consultant.md](consultant.md)).
 
 **Must be addressed, in this order**
 
 1. **Land v1.2 as a look release**: #277, #278, #350 and the art bible update; sculpting may finish
    after.
-2. **Fix #255 before v1.3**, as its own short release or wave 1 of v1.3. Bugs slide; a look does not
-   hide them.
+2. **Close #255 and playtest with strangers** before the store build; their reports become the
+   bug list.
 3. **Decide the UI layout once.** Scope #345 to the harbour fullscreen modes and the HUD on top of
    style E; no fourth palette.
 4. **Put a story release on the roadmap** before or inside v1.4: hazard steps per sea, far-good
    asks, a chapter after four-winds ([quests.md](quests.md), last section). It is data work, the
    cheapest kind this project has.
-5. **Cut v1.3 to its first half** (shared wave model, depth-aware coast, GPU visuals, boat
-   presentation) and make the gameplay effects and reflections a v1.3.1 decision with evidence.
+5. **Split the v1.3 and v1.4 trackers** into two milestones each (table in section 5).
 
 ## Where the game should evolve
 
@@ -189,10 +202,12 @@ threads and one brief; the trackers for v1.3 and v1.4 each read like two release
   second boat with a standing route, or a captain to hire, or the expedition past the Stormbreak
   as the first paid extension in a sea of its own, which is where pirates were parked). Pick one;
   the quest engine carries any of them.
-- **Deepen trade a little, not a lot.** Far goods wanted across seas, standing orders that ask for
-  them, outposts that grow a level from the player's trade. No automation (0120 holds).
-- **Then the stores.** A store build is a product, not a feature: bugs closed, onboarding tested,
-  a short trailer from the v2 look, and 0204's phones-first plan un-parked once v1.3's look is in.
+- **Bring the far-goods trade into the story.** The chain already works (0146); let people ask
+  for it: settlers asking for what their outpost gathers, keepers asking for another sea's crafted
+  good, standing orders across seas. No automation (0120 holds).
+- **Then the stores.** A store build is a product, not a feature: strangers' playtest, onboarding
+  tested, a licence, a short trailer from the v2 look. Steam with a web demo first, phones second
+  ([consultant.md](consultant.md)).
 
 ## Screenshots (main `900b0c9`, desktop; the docs read at `56a9f49`)
 

@@ -102,18 +102,29 @@ Gold written into the quests: 12,500 over the 127 steps (about 500 per arc, as t
    good, look, bring a ring good, supplies, settler. The sea's own hazard is never a step (nobody
    asks you to cross the Stormbreak in a lull, wait out a doldrum, or thread the pack ice; Sigrun
    says "keep off the ice" and that is all).
-2. **The far goods play no part in the story.** Tea, mirrors, jam and amber exist only after the
-   outposts, and no quest ever asks for one. Every delivery in all 53 quests is a ring good (timber,
-   planks, stone, fish, grain, bread, lamp oil). Standing orders repeat this: Nell asks for timber
-   three times.
+2. **The far goods live in the trade, not in the story.** The trade chain works as decided in
+   [0146](../../decisions/0146-far-goods-from-the-biome-outposts.md): the outpost gathers the raw good
+   (spice, obsidian, cloudberries, amber), the sea's main port crafts it only from raw goods
+   delivered, and the ring's level-4 towns buy the crafted good. But no quest ever asks for one:
+   every delivery in all 53 quests is a ring good (timber, planks, stone, fish, grain, bread, lamp
+   oil). Standing orders repeat this: Nell asks for timber three times. The people never notice the
+   trade that their founding made possible.
 3. **Nothing happens after four-winds.** The company has a name and a signpost, then the Cup, then
    standing orders. The "company" does nothing a company would do: no order book of its own, no
    second captain, no growth to see. Skerry stops at four buildings.
-4. **The outposts are founded and forgotten.** Each is two steps, then a standing order. Nothing
-   grows them past the player's own deliveries, and the settlers never write home.
-5. **Stonehaven is the only door.** A player who dislikes Ada's arc cannot reach any sea; a player
-   who finishes Saltmere first gets a letter that does nothing until Ness's chart. That is fine for
-   a first play, but the game never tells the player which arc opens the seas.
+4. **The outposts are founded, then quiet in the story.** In the economy they matter: they
+   gather the raw far good that feeds their main port's workshop, and they grow to level 3 from
+   deliveries. In the story each is two steps, then a standing order for timber; the settlers never
+   ask for what their own outpost is for, and never write home.
+5. **The sea stories wait on Ada's arc, and nothing says so.** The seas are open to sail and
+   trade at any time (0194: no far port is locked). But every sea's story starts from Ness's chart
+   (`watchman-passage`), and that needs Ada's lighthouse arc done **and** a fresh call at Watchman
+   Key afterwards. Ada's done card talks about her plot and nothing else, so a player who finishes
+   Kit's, Ines's and Maren's arcs first gets no letters and no hint why; and a player who finishes
+   Ada's arc may not go back to Watchman Key for a long time. **Fix, data only:** Ada's done card
+   (or a quest news line) says Ness wants a word, and Watchman Key gets a chart flag the way Rook
+   flags Abbey Head in `club-hint`; optionally, the three letters say "once Ness has charted the way"
+   in Rook's journal line so the order is visible. The storyteller writes the lines.
 6. **Small things to tidy:** `standing-wren` is offered at Saltmere while Wren lives at Abbey Head
    (her club house is there since v1.1); the brief's Status line is stale (handover note); the
    regatta's "Saltmere Regatta" and the club at Abbey Head should read as one thing on the Quay.
