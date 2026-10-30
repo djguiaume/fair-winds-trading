@@ -22,7 +22,7 @@ it leaves. Depth and shelter are per-point multipliers owned by #281: both sides
 the same way (CPU from the height field and `shelterAt`, GPU from the seabed texture).
 
 **Waves.** Three bands (`src/data/tuning/waves.json`): swell (6 waves, 92-150 u), chop (8 waves,
-22-42 u), ripple (4 waves, 11-16 u, `cosmetic`). Each band is a fixed fan, one wave per compass
+28-50 u), ripple (4 waves, 11-16 u, `cosmetic`). Each band is a fixed fan, one wave per compass
 direction with its own length and seeded phase, speed from deep-water dispersion (`gravity`). A
 wind shift only moves height between neighbours (`max(0, cos)^spread`, blended to an even spread as
 the wind's coherence over the window drops), so a crest never jumps and the total height holds.
@@ -43,8 +43,8 @@ cells fades out of the drawing only.
 **Tolerances** (tests `waves.test.ts`, `sea-waves-contract.test.ts`): GPU sum vs CPU within 0.001
 units out to 900 units after 10 h of play; height lookup within 0.01 units in the heaviest sea;
 normal matches the sampled slope; no band moves more than 0.005 units in 0.05 s. Drawn vs physical
-on a coarse grid: up to the faded waves' height plus the grid's sag (Low's 10-unit cell fades chop
-of 22-30 u); #282 closes that gap with its scalable grid.
+on a coarse grid: up to the faded waves' height plus the grid's sag (Low's 10-unit cell partly fades
+chop under 40 u); #282 closes that gap with its scalable grid.
 
 **Baseline cost** (headless Chromium/Node, desktop CPU): sea state 17 µs, field 7 µs, one height
 lookup 2.5 µs, so about 0.1 ms per frame with ~30 floating things. GPU: 18 waves per vertex instead
