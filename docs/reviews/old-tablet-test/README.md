@@ -23,11 +23,38 @@ Canvas 719×1042 at 0.90, which is the Low cap of 750 000 pixels.
 
 ### Next
 
-Guillaume asked for a test that plays itself, so round 2 uses the automatic benchmark (decision 0154) instead of free sailing. It sails the same route three times (full, 0.7 and 0.5 resolution). If the 0.7 and 0.5 passes run clearly faster, fill rate is the limit and the fix is a lower level ("Very low" with a smaller pixel cap) and/or a steady 30 fps cap on weak devices.
+Guillaume asked for a test that plays itself, so round 2 uses the automatic benchmark (decision 0154) instead of free sailing. It sails the same route three times (full, 0.7 and 0.5 resolution). If the 0.7 and 0.5 passes run clearly faster, fill rate is the limit and the fix is a lower pixel cap for Low.
 
-## Round 2 links
+## Round 2 (2026-10-30, v1.1.309, stress sea, `?bench&map=stress`)
 
-Open each link, keep the tablet awake and don't touch it for about 4 minutes, then press **Copy** and paste the report:
+Same Android device, Auto picked Low and the benchmark kept it. Canvas 719×1042 at full resolution; 24 draws and 16 340 triangles at the end. Every hazard on, including the storm belt, fog and ash.
+
+| Pass                     | Avg FPS | 1 % low | Frame ms p50 / p95 / worst | Slow ≥ 50 ms     | Hitches ≥ 100 ms |
+| ------------------------ | ------- | ------- | -------------------------- | ---------------- | ---------------- |
+| full (719×1042)          | 28.3    | 14.9    | 33.5 / 50.2 / 1941         | 340 of 1977      | 11               |
+| 0.7 resolution (503×729) | 37.6    | 19.9    | 33.4 / 33.5 / 67.0         | 49 of 2630 (2 %) | 0                |
+| 0.5 resolution (359×521) | 41.9    | 20.0    | 16.8 / 33.5 / 83.7         | 32 of 2927 (1 %) | 0                |
+
+Only the stress sea was reported; today's sea was not needed for this question.
+
+### Reading
+
+- Fewer pixels, steadily faster frames: **the device is limited by fill rate**, as round 1 suspected. At 0.7 resolution nearly every frame lands at 33 ms or better and nothing stutters.
+- The one 1.9 s frame and the 11 hitches are all in the first, full-resolution pass. A guess, not measured: the first lap is also the first time each island and its trees are built, and the later laps reuse them. If so a player meets that cost once per island on first approach; worth a closer look separately.
+- Decision [0240](../decisions/0240-lower-pixel-cap-for-low.md): Low's pixel cap drops from 750 000 to 400 000 (about 0.73 of today's width and height on this device).
+
+## Round 3
+
+Guillaume noticed the stair-stepped edges on the softer Low picture. Low and Medium draw without antialiasing (only High and Ultra multisample), and the edges show more at fewer pixels. What antialiasing costs this device is unknown, so `&aa=1` turns it on for the test ([0154](../../decisions/0154-automatic-device-benchmark.md), pictures in the project files). After the release, repeat the benchmark on the same device twice and paste both Copy reports; the second report's first line says "antialias forced on".
+
+1. https://djguiaume.github.io/fair-winds-trading/?bench&map=stress (Low at the new 400 000-pixel cap with the new look)
+2. https://djguiaume.github.io/fair-winds-trading/?bench&map=stress&aa=1 (the same with antialiasing)
+
+Round 2 ran the classic look (v1.1.309); the new look is now the default ([0241](../../decisions/0241-the-new-look-is-the-default-lookv1-keeps-the-classic.md)) and draws more triangles on Low, so round 3 also shows what the new look costs. Optional third run to compare with round 2 directly: `&look=v1`.
+
+If antialiasing costs little (about 33 fps or better with no hitches), Low and Medium get the `antialias` flag in `quality.ts`; if it costs a lot, Low stays as is, or its cap goes up a little instead.
+
+## Round 2 links (used)
 
 1. https://djguiaume.github.io/fair-winds-trading/?bench (today's sea)
 2. https://djguiaume.github.io/fair-winds-trading/?bench&map=stress (stress sea)

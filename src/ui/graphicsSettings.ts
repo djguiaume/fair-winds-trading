@@ -56,6 +56,7 @@ export function addEffectSwitches(
   keep: () => void,
 ): (level: QualityLevel) => void {
   const rows = new Map<keyof GraphicsEffects, HTMLElement>();
+  effects.msaa = settings.effects.msaa !== false;
   let previous = after;
   for (const id of EFFECTS) {
     effects[id] = settings.effects[id] !== false;

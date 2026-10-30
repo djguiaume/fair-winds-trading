@@ -1,4 +1,5 @@
 import { type LanguageId, isLanguage } from '../i18n';
+import { applyGraphicsOverrides } from '../perf/graphicsOverrides';
 import type { QualitySetting } from '../render/quality';
 
 export type UiMode = 'adult' | 'kids';
@@ -96,7 +97,11 @@ const DEFAULTS: Settings = {
   steadyWind: false,
 };
 
-export function loadSettings(): Settings {
+/** True once `?quality` or `?off` changed the settings in memory: they must not be saved. */
+let testOverrides = false;
+
+/** `search` is the page's query: device-test switches (issue #377) override quality and effects. */
+export function loadSettings(search = ''): Settings {
   try {
     const raw = localStorage.getItem(KEY);
     const settings = raw
@@ -113,6 +118,7 @@ export function loadSettings(): Settings {
     if (typeof settings.haze !== 'object' || !settings.haze) settings.haze = {};
     if (typeof settings.effects !== 'object' || !settings.effects) settings.effects = {};
     if (!KIDS_MODE_AVAILABLE) settings.uiMode = 'adult';
+    testOverrides = applyGraphicsOverrides(search, settings);
     return settings;
   } catch {
     return { ...DEFAULTS };
@@ -120,6 +126,7 @@ export function loadSettings(): Settings {
 }
 
 export function saveSettings(settings: Settings): void {
+  if (testOverrides) return;
   try {
     localStorage.setItem(KEY, JSON.stringify(settings));
   } catch {
