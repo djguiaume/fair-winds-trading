@@ -34,11 +34,13 @@ Status: ok (AD and Guillaume 2026-10-30, PR #368). Organ Pipes got more basalt c
 
 Status: AD ok (2026-10-30), waiting for Guillaume. Fixed: dark blobs in the current water (sheets now a 6-unit grid), Broch Isle's broch, stones and wall. Nice to have: dune grass, driftwood and rock pools on Amber Strand (its growth stages); `?bench` check of the current sheets (#278).
 
-## Carried over
+## Carried over (done in #370)
 
-- Traffic boats: recheck hull, band and `wakeEdge` colours on depth water and haze (#331).
-- Fogwatch and the east sea: heath and bracken ground patches (new `palette.json` ground, used in the fog and strand styles), more boulders and walls (#275).
-- Emberhold scrub: bigger birch clumps near the lanes (`forests.json › biomes.west`, or the island's grove/density) (#275).
+- Traffic boats: hull, band and `wakeEdge` rechecked on depth water and haze; they read well, no change.
+- Fogwatch: three `heath` ground patches (palette.json), small to stay inside the classic 6000-triangle budget. More boulders and walls were not added.
+- Emberhold: three groves beside the lanes and birch scale 1.1 to 1.7 (`forests.json`).
+- Amber Strand: more marram, two driftwood, two boulders. Rock pools have no prop yet (v1.3 idea). Rimewick: a snow patch on the right hill.
+- North sea horizon tint cooler (`palette.json` water.north.horizon).
 
 ## Gate
 
