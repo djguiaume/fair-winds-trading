@@ -34,6 +34,14 @@ export const TERRAIN_META: Readonly<Record<string, TuningMeta>> = {
     'units',
     'Height of the ground under an island lake (its water lies at 1.1).',
   ),
+  'terrain.groundStep.ultralow': num(
+    'Ground detail, Ultra-low',
+    1,
+    4,
+    1,
+    'cells',
+    'One ground vertex every this many field cells on Ultra-low.',
+  ),
   'terrain.groundStep.low': num(
     'Ground detail, Low',
     1,

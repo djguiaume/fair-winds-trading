@@ -354,7 +354,7 @@ export class GameView {
     this.heelFactor = heelFactor(id);
     // Quality is a live toggle, not a permanent factory opt-out: Low → Medium must restore ropes.
     const boat = createBoatModel(id, { upgrades, damage, ...(flag ? { flag } : {}) });
-    boat.setLowDetail?.(this.level === 'low');
+    boat.setLowDetail?.(QUALITY[this.level].lowDetail);
     boat.root.rotation.order = 'YXZ';
     return boat;
   }
@@ -430,7 +430,7 @@ export class GameView {
     this.ultra?.setActive(profile.ultra);
     this.renderer.shadowMap.enabled = profile.shadows;
     this.sun.castShadow = profile.shadows;
-    this.boat.setLowDetail?.(level === 'low');
+    this.boat.setLowDetail?.(profile.lowDetail);
     this.profile = profile;
     if (profile.ultra) this.loadUltra();
     this.ultra?.sceneChanged();
@@ -611,7 +611,7 @@ export class GameView {
         factor: this.heelFactor,
       },
       dt,
-      HEEL_FEEL[this.level === 'low' ? 'smooth' : 'lively'],
+      HEEL_FEEL[this.profile.lowDetail ? 'smooth' : 'lively'],
     );
     const shake = boat.sinceBump < 0.4 ? Math.sin(time * 60) * (0.4 - boat.sinceBump) * 0.4 : 0;
     this.boat.update({

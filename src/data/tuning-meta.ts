@@ -38,6 +38,7 @@ export const ID_COLLECTIONS: readonly string[] = [
   'seamanship.traffic.kinds',
   'waves.bands',
   'waves.previews',
+  'graphics.quality',
 ];
 
 /** The meta path of a value: `['ships', 'cutter', 'hold']` → `ships.*.hold`. */
@@ -1825,38 +1826,6 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
   ),
 
   // --- seamanship.json › traffic: other boats on the sea (decision 0215) ---
-  'seamanship.traffic.atOnce.low': num(
-    'Other boats at once, Low',
-    0,
-    20,
-    1,
-    'boats',
-    'How many other boats sail near you at once on Low quality (the old tablet).',
-  ),
-  'seamanship.traffic.atOnce.medium': num(
-    'Other boats at once, Medium',
-    0,
-    20,
-    1,
-    'boats',
-    'How many other boats sail near you at once on Medium quality.',
-  ),
-  'seamanship.traffic.atOnce.high': num(
-    'Other boats at once, High',
-    0,
-    20,
-    1,
-    'boats',
-    'How many other boats sail near you at once on High quality.',
-  ),
-  'seamanship.traffic.atOnce.ultra': num(
-    'Other boats at once, Ultra',
-    0,
-    20,
-    1,
-    'boats',
-    'How many other boats sail near you at once on Ultra quality (desktop and Xbox).',
-  ),
   'seamanship.traffic.activeRange': num(
     'Other boats sail within',
     100,

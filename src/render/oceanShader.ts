@@ -60,10 +60,15 @@ varying float vHeight;
 varying float vFogDepth;
 
 void main() {
+#ifdef PLAIN
+  // Ultra-low (decision 0247): no facets; the waves show in the crest colour alone.
+  float light = 1.0;
+#else
   // Flat shading: one normal per triangle from screen-space derivatives.
   vec3 n = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
   if (n.y < 0.0) n = -n;
   float light = 0.62 + 0.5 * max(dot(n, uSunDir), 0.0);
+#endif
 
   // Distance to the nearest beach, for the foam line.
 #ifdef VERTEX_SHORES
@@ -93,7 +98,7 @@ void main() {
 #endif
 #if defined(REFLECT) || defined(DEPTH)
   // A wide band that fades softly into the sea, and a faint line further out that comes and goes.
-#ifdef COAST
+#if defined(COAST) && !defined(PLAIN)
   ${seaFoamShader}
 #else
   float soft = 1.0 - smoothstep(uFoamLook.x, uFoamLook.x + uFoamLook.y, d + 0.5 * ripple);

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { TUNING } from '../../data/tuning';
-import type { QualityLevel } from '../quality';
+import { QUALITY, type QualityLevel } from '../quality';
 import type { FieldGroundTextures } from './fieldGround';
 
 /**
@@ -30,6 +30,7 @@ interface GroundUniforms {
   groundDetailOctaves: THREE.IUniform<number>;
   groundEdge: THREE.IUniform<THREE.Vector2>;
   groundCrisp: THREE.IUniform<boolean>;
+  groundPlain: THREE.IUniform<boolean>;
 }
 
 const VERTEX_HEAD = /* glsl */ `
@@ -55,6 +56,7 @@ uniform vec3 groundDetailAmount;
 uniform int groundDetailOctaves;
 uniform vec2 groundEdge;
 uniform bool groundCrisp;
+uniform bool groundPlain;
 varying vec3 vGround;
 
 // A hash without sin(), steady on phone GPUs.
@@ -200,7 +202,16 @@ vec3 groundColour() {
 
   vec3 colour;
   float steep;
-  if (!groundCrisp || texelsPerPixel > 1.0) {
+  if (groundPlain) {
+    // Ultra-low (decision 0247): the filtered texture, and on slopes the nearest texel's cliff
+    // colour in its band by the pixel's height. Two reads, no noise.
+    steep = groundSteep(filtered.a, 0.0);
+    colour = filtered.rgb;
+    if (steep > 0.0) {
+      int ground = groundAt(texelFetch(groundShape, clamp(ivec2(t), ivec2(0), size - 1), 0));
+      colour = mix(colour, groundSide(ground, floor(height / groundBandHeight)), steep);
+    }
+  } else if (!groundCrisp || texelsPerPixel > 1.0) {
     // On Low, or far off where a texel is smaller than a pixel: the filtered (mipmapped)
     // texture, its zone edges soft, and the cliff bands only where it slopes.
     // The sharp slope range starts within the soft one, so the soft one says where to look.
@@ -341,6 +352,7 @@ function groundUniforms(textures: FieldGroundTextures, quality: QualityLevel, sc
       value: new THREE.Vector2(edge.width / textures.texel, edge.sharpWidth / textures.texel),
     },
     groundCrisp: { value: edge.crisp[quality] },
+    groundPlain: { value: QUALITY[quality].plain },
   };
   return uniforms;
 }
@@ -364,12 +376,16 @@ export function fieldGroundMaterial(
   return material;
 }
 
-/** The ground's detail at a quality level: Low drops the finest noise and the crisp zone edges. */
+/**
+ * The ground's detail at a quality level: Low drops the finest noise and the crisp zone edges,
+ * Ultra-low draws it plain.
+ */
 export function setFieldGroundQuality(material: THREE.Material, quality: QualityLevel) {
   const uniforms = material.userData.ground as GroundUniforms | undefined;
   if (!uniforms) return;
   uniforms.groundDetailOctaves.value = TUNING.terrain.draw.detail.octaves[quality];
   uniforms.groundCrisp.value = TUNING.terrain.draw.edge.crisp[quality];
+  uniforms.groundPlain.value = QUALITY[quality].plain;
 }
 
 /** Frees a ground material and its textures (any material: the builder's empty one too). */

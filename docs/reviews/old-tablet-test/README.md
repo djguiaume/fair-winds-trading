@@ -81,3 +81,12 @@ Same device. Two builds: v1.2.316 without antialiasing (canvas 525×761) and v1.
 - **The new look is no longer purely fill-rate bound**: even at a quarter of the pixels (0.5 pass) it reaches only 34 fps, where the classic look reached 42 at 0.5. About 3 000 more triangles and heavier ground and water shading cost this device more.
 - The 2 s worst frame appears again in the first pass only (island builds on first approach).
 - The two builds differ (315 vs 316), so the `&aa=1` 0.7 and 0.5 rows, which are faster than the non-AA ones, are not comparable; compare the full rows.
+
+## Round 4 (to run): Ultra-low
+
+Decision [0247](../../decisions/0247-ultra-low-quality-level-for-weak-tablets.md) adds **Ultra-low** below Low (issue #390): 200 000 pixels at most, plain water (shore and depth per vertex, no facet lighting) and plain ground (no detail noise or cliff bands), fewer trees and other boats. Auto now steps down from Low to it when the frames stay under 40 fps.
+
+1. https://djguiaume.github.io/fair-winds-trading/?bench&map=stress&quality=ultralow (the benchmark keeps one level, so the level is forced)
+2. https://djguiaume.github.io/fair-winds-trading/?perf&map=stress (Auto: sail a minute; the readout should say Ultra-low after a few seconds)
+
+Target: about 35 fps on the full pass with no hitches. Round 3's 0.7 pass (about 196 000 pixels, full shading) ran 31.7, so the plain shading and fewer trees must bring the rest. If it falls short, 0247 lists the next steps.

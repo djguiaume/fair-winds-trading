@@ -38,11 +38,13 @@ export function oceanFor(
   const material = others.find(
     ({ mesh }) =>
       'FANCY' in mesh.material.defines === profile.fancyWater &&
-      'REFLECT' in mesh.material.defines === profile.waterReflection,
+      'REFLECT' in mesh.material.defines === profile.waterReflection &&
+      'PLAIN' in mesh.material.defines === profile.plain,
   )?.mesh.material;
   const look = {
     fancy: profile.fancyWater,
     reflect: profile.waterReflection,
+    plain: profile.plain,
     seabed: terrain === 'v2' ? seabed : undefined,
     gerstner,
     coast: gerstner ? seabed : undefined,
@@ -56,12 +58,24 @@ export interface WaterLook {
   fancy: boolean;
   /** Sky reflection, sun glint and soft foam (High and Ultra, decision 0221); needs `fancy`. */
   reflect?: boolean;
+  /** Shore and depth read per vertex and no per-pixel lighting (Ultra-low, decision 0247). */
+  plain?: boolean;
   /** Coloured by the seabed's depth and the sea's own colours (`?look=v2`, issue #274). */
   seabed?: SeabedTexture;
   /** The wind and storm driven Gerstner waves (`?waves=v2`, decision 0245). */
   gerstner?: boolean;
   /** The bake whose depth and exposure calm the Gerstner waves near land (issue #281). */
   coast?: SeabedTexture;
+}
+
+/** The shader's switches for a water look. */
+function waterDefines(look: WaterLook): Record<string, string> {
+  // Ultra-low's finer grid carries the shore per vertex (decision 0247).
+  if (look.plain) return { VERTEX_SHORES: '', PLAIN: '' };
+  // The new look's Low reads the shore per pixel too (issue #277): per vertex, its coarse grid
+  // smeared the shallows into a wide halo and lost the foam ring.
+  if (!look.fancy && !look.seabed) return { VERTEX_SHORES: '' };
+  return look.reflect ? { FANCY: '', REFLECT: '' } : { FANCY: '' };
 }
 
 /**
@@ -119,13 +133,7 @@ export class Ocean {
         vertexShader,
         fragmentShader,
         defines: {
-          // The new look's Low reads the shore per pixel too (issue #277): per vertex, its coarse
-          // grid smeared the shallows into a wide halo and lost the foam ring.
-          ...(!look.fancy && !look.seabed
-            ? { VERTEX_SHORES: '' }
-            : look.reflect
-              ? { FANCY: '', REFLECT: '' }
-              : { FANCY: '' }),
+          ...waterDefines(look),
           ...(look.seabed ? { DEPTH: '' } : {}),
           ...(look.gerstner ? gerstnerDefines(!!look.coast) : {}),
         },

@@ -162,15 +162,21 @@ describe('sea colours by place', () => {
 });
 
 describe('depth-coloured ocean', () => {
-  it('draws depth and the shore per pixel on every level (#277), and takes a new bake on any level', () => {
+  it('draws depth on every level, the shore per pixel above Ultra-low (#277, 0247), and takes a new bake', () => {
     const cache = new SeabedTextureCache();
     const seabed = cache.get({ fields: [square(10, 2)] });
     for (const profile of Object.values(QUALITY)) {
-      const look = { fancy: profile.fancyWater, reflect: profile.waterReflection, seabed };
+      const look = {
+        fancy: profile.fancyWater,
+        reflect: profile.waterReflection,
+        plain: profile.plain,
+        seabed,
+      };
       const ocean = new Ocean([], profile.oceanSegments, look, 480);
       const defines = ocean.mesh.material.defines;
       expect('DEPTH' in defines).toBe(true);
-      expect('VERTEX_SHORES' in defines).toBe(false);
+      expect('VERTEX_SHORES' in defines).toBe(profile.plain);
+      expect('PLAIN' in defines).toBe(profile.plain);
       const next = cache.get({ fields: [square(12, 2)] });
       ocean.setSeabed(next);
       expect(ocean.mesh.material.uniforms.uDepthMap!.value).toBe(next.texture);
