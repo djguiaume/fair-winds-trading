@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import { waveHeight } from './oceanWaves';
-import type { QualityLevel } from './quality';
+import { QUALITY, type QualityLevel } from './quality';
 import { PALETTE } from '../data/props';
 
 const CAPACITY = 64;
 /** Bounded history and transparency coverage; no spray particles or render targets. */
 export const WAKE_DETAIL = {
+  ultralow: { points: 24, life: 1.8, interval: 0.1, centre: false },
   low: { points: 24, life: 1.8, interval: 0.1, centre: false },
   medium: { points: 40, life: 2.6, interval: 0.075, centre: true },
   high: { points: 64, life: 3.4, interval: 0.06, centre: true },
@@ -310,7 +311,16 @@ export class Wake extends FoamStrips {
         );
     }
     // Bow waves on either shoulder; they disappear when the boat stops.
-    this.bowWaves(centre.x, centre.z, dx, dz, hull, strength, this.level === 'low' ? 3 : 6, time);
+    this.bowWaves(
+      centre.x,
+      centre.z,
+      dx,
+      dz,
+      hull,
+      strength,
+      QUALITY[this.level].lowDetail ? 3 : 6,
+      time,
+    );
     this.finish(time);
     this.mesh.visible = this.count > 1 || strength > 0;
   }

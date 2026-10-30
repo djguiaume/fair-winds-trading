@@ -55,10 +55,15 @@ varying float vHeight;
 varying float vFogDepth;
 
 void main() {
+#ifdef PLAIN
+  // Ultra-low (decision 0247): no facets; the waves show in the crest colour alone.
+  float light = 1.0;
+#else
   // Flat shading: one normal per triangle from screen-space derivatives.
   vec3 n = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
   if (n.y < 0.0) n = -n;
   float light = 0.62 + 0.5 * max(dot(n, uSunDir), 0.0);
+#endif
 
   // Distance to the nearest beach, for the foam line.
 #ifdef VERTEX_SHORES
@@ -136,9 +141,16 @@ export function oceanFor(
   const material = others.find(
     ({ mesh }) =>
       'FANCY' in mesh.material.defines === profile.fancyWater &&
-      'REFLECT' in mesh.material.defines === profile.waterReflection,
+      'REFLECT' in mesh.material.defines === profile.waterReflection &&
+      'PLAIN' in mesh.material.defines === profile.plain,
   )?.mesh.material;
-  const look = { fancy: profile.fancyWater, reflect: profile.waterReflection, seabed, gerstner };
+  const look = {
+    fancy: profile.fancyWater,
+    reflect: profile.waterReflection,
+    plain: profile.plain,
+    seabed,
+    gerstner,
+  };
   return new Ocean(land.islands, profile.oceanSegments, look, 480, land.terrain, shore, material);
 }
 
@@ -148,10 +160,22 @@ export interface WaterLook {
   fancy: boolean;
   /** Sky reflection, sun glint and soft foam (High and Ultra, decision 0221); needs `fancy`. */
   reflect?: boolean;
+  /** Shore and depth read per vertex and no per-pixel lighting (Ultra-low, decision 0247). */
+  plain?: boolean;
   /** Coloured by the seabed's depth and the sea's own colours (`?look=v2`, issue #274). */
   seabed?: SeabedTexture;
   /** The wind and storm driven Gerstner waves (`?waves=v2`, decision 0245). */
   gerstner?: boolean;
+}
+
+/** The shader's switches for a water look. */
+function waterDefines(look: WaterLook): Record<string, string> {
+  // Ultra-low's finer grid carries the shore per vertex (decision 0247).
+  if (look.plain) return { VERTEX_SHORES: '', PLAIN: '' };
+  // The new look's Low reads the shore per pixel too (issue #277): per vertex, its coarse grid
+  // smeared the shallows into a wide halo and lost the foam ring.
+  if (!look.fancy && !look.seabed) return { VERTEX_SHORES: '' };
+  return look.reflect ? { FANCY: '', REFLECT: '' } : { FANCY: '' };
 }
 
 /**
@@ -202,13 +226,7 @@ export class Ocean {
         vertexShader,
         fragmentShader,
         defines: {
-          // The new look's Low reads the shore per pixel too (issue #277): per vertex, its coarse
-          // grid smeared the shallows into a wide halo and lost the foam ring.
-          ...(!look.fancy && !look.seabed
-            ? { VERTEX_SHORES: '' }
-            : look.reflect
-              ? { FANCY: '', REFLECT: '' }
-              : { FANCY: '' }),
+          ...waterDefines(look),
           ...(look.seabed ? { DEPTH: '' } : {}),
           ...(look.gerstner ? gerstnerDefines() : {}),
         },

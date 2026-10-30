@@ -8,6 +8,7 @@
   "thinning": 0.4,
   "clear": { "houseWidths": 1.5, "lane": 1.2, "pier": 4, "plot": 3.5, "view": 3 },
   "quality": {
+    "ultralow": { "share": 0.3, "shadows": false },
     "low": { "share": 0.45, "shadows": false },
     "medium": { "share": 0.7, "shadows": false },
     "high": { "share": 1, "shadows": true },

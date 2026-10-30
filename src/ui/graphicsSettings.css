@@ -1,0 +1,12 @@
+/* Settings › Graphics (graphicsSettings.ts). */
+
+/* The effect switches of a level not in use. */
+.set-row[hidden] {
+  display: none;
+}
+
+/* Auto and five levels: two even rows of three, on the phone and on a desktop's half sheet. */
+#quality.seg {
+  display: inline-grid;
+  grid-template-columns: repeat(3, 1fr);
+}

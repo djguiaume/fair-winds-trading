@@ -1,8 +1,10 @@
+import { TUNING } from '../data/tuning';
+
 /**
  * Quality levels (decision 0005's mobile budget). "auto" starts from a guess based on the device
- * and steps down while the frame time is too long.
+ * and steps down while the frame time is too long, down to Ultra-low (decision 0247).
  */
-export type QualityLevel = 'low' | 'medium' | 'high' | 'ultra';
+export type QualityLevel = 'ultralow' | 'low' | 'medium' | 'high' | 'ultra';
 export type QualitySetting = QualityLevel | 'auto';
 
 export interface QualityProfile {
@@ -27,66 +29,14 @@ export interface QualityProfile {
   waterReflection: boolean;
   /** Desktop and Xbox pipeline (decision 0221): tone mapping, soft shadows, occlusion, haze. */
   ultra: boolean;
+  /** Plain water and ground for fill-rate bound tablets (decision 0247): no per-pixel lighting. */
+  plain: boolean;
+  /** Simple boat rig, calm heel and short bow waves. */
+  lowDetail: boolean;
 }
 
-export const QUALITY: Record<QualityLevel, QualityProfile> = {
-  low: {
-    // Decision 0240: a weak tablet ran 28 fps at 750 000 pixels and 38 at about half of them.
-    maxRenderPixels: 400_000,
-    pixelRatioCap: 1,
-    oceanSegments: 48,
-    windStreaks: 36,
-    rainDrops: 160,
-    shadows: false,
-    antialias: false,
-    fancyWater: false,
-    chartFogBlur: false,
-    waterReflection: false,
-    ultra: false,
-  },
-  medium: {
-    maxRenderPixels: 1_250_000,
-    pixelRatioCap: 1.25,
-    oceanSegments: 80,
-    windStreaks: 60,
-    rainDrops: 260,
-    shadows: false,
-    antialias: false,
-    fancyWater: true,
-    chartFogBlur: false,
-    waterReflection: false,
-    ultra: false,
-  },
-  high: {
-    maxRenderPixels: 2_500_000,
-    pixelRatioCap: 1.5,
-    oceanSegments: 120,
-    windStreaks: 90,
-    rainDrops: 400,
-    shadows: true,
-    antialias: true,
-    fancyWater: true,
-    chartFogBlur: true,
-    waterReflection: true,
-    ultra: false,
-  },
-  // Full resolution on a 1440p screen; a 4K one draws fewer pixels and is scaled up.
-  ultra: {
-    maxRenderPixels: 3_700_000,
-    pixelRatioCap: 2,
-    oceanSegments: 160,
-    windStreaks: 90,
-    rainDrops: 400,
-    shadows: true,
-    // Ultra multisamples its own target, and draws High through it after a step down: a
-    // multisampled canvas would be graphics memory spent for nothing (decision 0246).
-    antialias: false,
-    fancyWater: true,
-    chartFogBlur: true,
-    waterReflection: true,
-    ultra: true,
-  },
-};
+/** The levels' numbers live in `graphics.json › quality` (decision 0093). */
+export const QUALITY: Record<QualityLevel, QualityProfile> = TUNING.graphics.quality;
 
 /** `?perf&aa=1` test aid (decision 0154): multisample on every level, to measure its cost. */
 export function forceAntialias(): void {
@@ -108,7 +58,14 @@ export function renderPixelRatio(
   );
 }
 
-const ORDER: QualityLevel[] = ['low', 'medium', 'high', 'ultra'];
+/** Lowest first. */
+export const QUALITY_LEVELS: readonly QualityLevel[] = [
+  'ultralow',
+  'low',
+  'medium',
+  'high',
+  'ultra',
+];
 
 /** Software renderers and small laptop chips: no Ultra for them (decision 0221). */
 const WEAK_GPU =
@@ -148,31 +105,34 @@ export function guessQuality(): QualityLevel {
   return ultraCapable(gpuName(), cores) ? 'ultra' : 'high';
 }
 
+/** One level down; the lowest stays where it is. */
 export function lowerQuality(q: QualityLevel): QualityLevel {
-  return ORDER[Math.max(0, ORDER.indexOf(q) - 1)]!;
+  return QUALITY_LEVELS[Math.max(0, QUALITY_LEVELS.indexOf(q) - 1)]!;
 }
 
 /**
- * Watches frame times. Returns true from `sample` when the average over the window is too slow
- * (below ~40 fps), at most once per cooldown, so "auto" quality can step down.
+ * Watches frame times. Returns true from `sample` when the average over a window is below the
+ * frame budget (`graphics.json › auto`), at most once per cooldown, so "auto" quality can step
+ * down. The game ignores it on the lowest level and during the benchmark.
  */
 export class FrameMonitor {
   private sum = 0;
   private count = 0;
-  private cooldown = 2;
+  private cooldown = TUNING.graphics.auto.firstSec;
   fps = 60;
 
   sample(dt: number): boolean {
+    const auto = TUNING.graphics.auto;
     this.cooldown -= dt;
     this.sum += dt;
     this.count++;
-    if (this.sum < 1.5) return false;
+    if (this.sum < auto.windowSec) return false;
     const avg = this.sum / this.count;
     this.fps = 1 / avg;
     this.sum = 0;
     this.count = 0;
-    if (this.cooldown <= 0 && avg > 1 / 40) {
-      this.cooldown = 4;
+    if (this.cooldown <= 0 && this.fps < auto.minFps) {
+      this.cooldown = auto.cooldownSec;
       return true;
     }
     return false;
