@@ -68,7 +68,7 @@ store plan of [0204](decisions/0204-selling-on-android-iphone-and-xbox.md) comes
   screens, new materials, font and icons, so the interface no longer reads as AI-made.
   And an **Ultra quality level** for desktop and Xbox ([0221](decisions/0221-an-ultra-quality-level-for-desktop-and-xbox.md)):
   tone mapping, soft shadows, ambient occlusion, better water, a lower camera tilt; phones unchanged.
-- **v1.2, "a new look"** ([0222](decisions/0222-a-new-look-smooth-terrain-blue-water-and-forests.md)): the
+- **v1.2, "a new look"** (**released**, [notes](releases/v1.2.313.md), [0222](decisions/0222-a-new-look-smooth-terrain-blue-water-and-forests.md)): the
   *Traffic Architect* look Guillaume approved, on every quality level: smooth rolling terrain from the
   same island data, shores sloping into the sea, depth-coloured blue water, dense forests, haze.
   Build guide: [v1.2/plan.md](v1.2/plan.md), [brief](v1.2/brief.md); sculpting scope in [0230](decisions/0230-v12-scope-terrain-sculpting-and-the-ocean-moves-to-v13.md), ocean waves moved to v1.3. Look v2 becomes the default at the end (#350), `?look=v1` keeps the old look. #255 closed: no known bugs.
