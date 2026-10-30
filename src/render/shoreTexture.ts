@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { IslandDef, TerrainDef } from '../sim/map';
 import { islandPoint } from '../sim/islandLayout';
 import { designOf } from '../data/islands';
+import { insideOutline } from '../sim/flowShapes';
 
 /** Baked shoreline distance: constant shader cost as authored coast complexity grows. */
 export const shoreShader = /* glsl */ `
@@ -136,6 +137,16 @@ export function shoreTexture(islands: readonly IslandDef[], terrain: readonly Te
     band(c.x - c.radius, -c.y - c.radius, c.x + c.radius, -c.y + c.radius, (x, z) =>
       Math.abs(Math.hypot(x - c.x, z + c.y) - c.radius),
     );
+  // Pack ice is shore all through: the waves calm under it, so a coarse ocean never pokes up
+  // between its floes (issue #277). Its rim keeps its open water.
+  for (const t of terrain) {
+    if (t.kind !== 'ice') continue;
+    const xs = t.outline.map((p) => p[0]),
+      zs = t.outline.map((p) => -p[1]);
+    band(Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs), (x, z) =>
+      insideOutline(x, -z, t.outline) ? 0 : 64,
+    );
+  }
   // One byte per texel (the shader reads red only): a quarter of the memory of RGBA.
   const bytes = new Uint8Array(nx * nz);
   distances.forEach((d, i) => (bytes[i] = Math.round((d / 64) * 255)));

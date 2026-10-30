@@ -138,7 +138,7 @@ const GOLDEN: Record<string, string[]> = {
   sunreach: ['637:729bb737', '770:ee013449', '873:e559bf02', '908:f897a5d2'],
   'sunreach-south': ['465:d9e49149', '490:ecb661b2', '499:3d6b3b64', '499:3d6b3b64'],
   'palm-key': ['296:5af31071', '270:7e77b63a', '266:18f30d17', '266:18f30d17'],
-  'lone-palm': ['13:2bd589f4', '13:2bd589f4', '13:2bd589f4', '13:2bd589f4'],
+  'lone-palm': ['19:56b2c2', '19:56b2c2', '19:56b2c2', '19:56b2c2'],
   'two-palms': ['23:74ab6e0d', '23:74ab6e0d', '23:74ab6e0d', '23:74ab6e0d'],
   emberhold: ['552:5705f2ba', '688:58915cae', '799:e0203cd9', '832:37fa5b96'],
   'the-smoulder': ['161:afbe8b23', '161:afbe8b23', '161:afbe8b23', '161:afbe8b23'],

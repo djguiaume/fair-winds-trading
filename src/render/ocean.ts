@@ -7,44 +7,7 @@ import { DAY, NIGHT, type Look } from './atmosphere';
 import { type ShoreTexture, shoreShader, shoreTexture } from './shoreTexture';
 import { type SeabedTexture, seabedShader } from './seabedTexture';
 import { dimShallow, liftToFloor, newRamp, seaRampAt } from './seaWater';
-
-const vertexShader = /* glsl */ `
-uniform float uTime;
-#ifdef VERTEX_SHORES
-${shoreShader}
-varying float vShoreDistance;
-#ifdef DEPTH
-${seabedShader}
-varying float vDepth;
-#endif
-#endif
-varying vec3 vWorld;
-varying float vHeight;
-varying float vFogDepth;
-
-float wave(vec2 p) {
-  return sin(dot(p, vec2(0.12, 0.07)) + uTime * 1.1) * 0.32
-       + sin(dot(p, vec2(-0.05, 0.15)) + uTime * 0.8) * 0.24
-       + sin(dot(p, vec2(0.21, -0.17)) + uTime * 1.7) * 0.12;
-}
-
-void main() {
-  vec4 world = modelMatrix * vec4(position, 1.0);
-  float h = wave(world.xz);
-  world.y += h;
-  vWorld = world.xyz;
-#ifdef VERTEX_SHORES
-  vShoreDistance = shoreDistance(world.xz);
-#ifdef DEPTH
-  vDepth = seabedDepth(world.xz);
-#endif
-#endif
-  vHeight = h;
-  vec4 mv = viewMatrix * world;
-  vFogDepth = -mv.z;
-  gl_Position = projectionMatrix * mv;
-}
-`;
+import { oceanVertexShader as vertexShader, waveSag } from './oceanWaves';
 
 const fragmentShader = /* glsl */ `
 uniform float uTime;
@@ -203,7 +166,14 @@ export interface WaterLook {
  */
 export class Ocean {
   readonly mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
-  private cell: number;
+  /** The grid's cell size (units), and how far its flat triangles part from the true waves. */
+  readonly cell: number;
+  private readonly sag: number;
+
+  /** How much the waves calm toward the shore on this grid (0 to 1, `water.shoreCalm`). */
+  get shoreCalm() {
+    return Math.min(1, this.sag / TUNING.graphics.water.shoreCalm.sag);
+  }
   private readonly ownsShore: boolean;
   private readonly ownsMaterial: boolean;
   private disposed = false;
@@ -222,6 +192,7 @@ export class Ocean {
     borrowedMaterial?: THREE.ShaderMaterial,
   ) {
     this.cell = size / segments;
+    this.sag = waveSag(this.cell);
     const shore = borrowedShore ?? shoreTexture(islands, terrain);
     this.ownsShore = !borrowedShore;
     this.ownsMaterial = !borrowedMaterial;
@@ -264,6 +235,7 @@ export class Ocean {
           uGlintSharpness: { value: 90 },
           uGlintFade: { value: new THREE.Vector3(0.6, 0.85, 0.5) },
           uFoamLook: { value: new THREE.Vector4() },
+          uShoreCalm: { value: new THREE.Vector2() },
         },
       });
     // The ring's colours until the first update places the camera.
@@ -361,6 +333,7 @@ export class Ocean {
     u.uGlintSharpness!.value = w.glintSharpness;
     (u.uGlintFade!.value as THREE.Vector3).set(w.glintFadeFrom, w.glintFadeTo, w.glintMax);
     (u.uFoamLook!.value as THREE.Vector4).set(w.foamInner, w.foamWidth, w.foamStrength, w.foamLine);
+    (u.uShoreCalm!.value as THREE.Vector2).set(this.shoreCalm, w.shoreCalm.units);
     if (this.depth) {
       (u.uDepthLook!.value as THREE.Vector3).set(w.depth.midAt, w.depth.crest, w.depth.shading);
       seaRampAt(center.x, -center.z, this.ramp);
