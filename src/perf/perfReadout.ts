@@ -1,5 +1,6 @@
 import './perf.css';
 import CONFIG from '../data/perf-readout.json';
+import { describeOverrides } from './graphicsOverrides';
 import { FrameStats, type FrameSummary, type PerfReadoutConfig } from './frameStats';
 
 /** What the game reports each frame; the readout only reads it. */
@@ -22,8 +23,6 @@ export interface PerfContext {
   bench?: string;
   /** Hazard switches as they are now, for the report (e.g. "currents on"). */
   switches: () => string;
-  /** The look and the forced quality or effects (`?quality`, `?off`), for the report. */
-  graphics: string;
 }
 
 const fixed = (n: number, d = 0) => (Number.isFinite(n) ? n.toFixed(d) : '-');
@@ -182,7 +181,7 @@ export class PerfReadout {
       f
         ? `Canvas ${f.canvas.width}×${f.canvas.height} @${fixed(f.canvas.pixelRatio, 2)} · quality ${f.qualitySetting} → ${f.level} · ${f.drawCalls} draws · ${f.triangles} tris`
         : 'No frame yet',
-      `Graphics: ${this.context.graphics}`,
+      `Graphics: ${describeOverrides(location.search)}`,
       `Switches: ${this.context.switches()}`,
     ];
     if (this.passes.length) {
