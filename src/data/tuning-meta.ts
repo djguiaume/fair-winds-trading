@@ -23,6 +23,7 @@ export const TUNING_GROUPS = {
   camera: 'Camera',
   graphics: 'Graphics',
   terrain: 'Terrain',
+  waves: 'Waves',
 } as const;
 
 /** Objects whose keys are ids: their children are written `*` in meta paths. */
@@ -35,6 +36,8 @@ export const ID_COLLECTIONS: readonly string[] = [
   'economy.towns.growthToLevel',
   'upgrades.homePortLevel',
   'seamanship.traffic.kinds',
+  'waves.bands',
+  'waves.previews',
 ];
 
 /** The meta path of a value: `['ships', 'cutter', 'hold']` → `ships.*.hold`. */

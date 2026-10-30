@@ -12,6 +12,7 @@ import seamanship from './tuning/seamanship.json';
 import camera from './tuning/camera.json';
 import graphics from './tuning/graphics.json';
 import terrain from './tuning/terrain.json';
+import waves from './tuning/waves.json';
 
 /**
  * Every tuning number of the game, read from the JSON files in `src/data/tuning/` (decisions 0093
@@ -56,6 +57,8 @@ export interface Tuning {
   graphics: typeof graphics;
   /** The shared height field of the islands' ground (decision 0222, issue #268). */
   terrain: typeof terrain;
+  /** The sea's wave bands and how the wind raises them (decision 0245). */
+  waves: typeof waves;
 }
 
 /** The values as shipped. Never changed: the panel resets to these. */
@@ -71,6 +74,7 @@ export const SHIPPED_TUNING: Readonly<Tuning> = {
   camera,
   graphics,
   terrain,
+  waves,
 } as unknown as Tuning;
 
 /** The live values. */

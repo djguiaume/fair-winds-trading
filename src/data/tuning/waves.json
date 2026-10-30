@@ -1,0 +1,61 @@
+{
+  "gravity": 9.8,
+  "steepLimit": 0.8,
+  "inverseSteps": 4,
+  "drawCells": [2, 4],
+  "previews": {
+    "calm": {
+      "speedKn": 3,
+      "storm": 0
+    },
+    "wind": {
+      "speedKn": 14,
+      "storm": 0
+    },
+    "storm": {
+      "speedKn": 26,
+      "storm": 1
+    }
+  },
+  "bands": {
+    "swell": {
+      "lengths": [150, 105, 128, 92, 140, 116],
+      "offsetDeg": 15,
+      "spread": 4,
+      "steepness": 0.35,
+      "base": 0.12,
+      "perKn2": 0.0012,
+      "storm": 1.6,
+      "max": 1.6,
+      "windowSec": 120,
+      "samples": 7,
+      "cosmetic": false
+    },
+    "chop": {
+      "lengths": [30, 22, 38, 26, 34, 24, 42, 28],
+      "offsetDeg": 0,
+      "spread": 2,
+      "steepness": 0.6,
+      "base": 0,
+      "perKn2": 0.0025,
+      "storm": 0.8,
+      "max": 1.2,
+      "windowSec": 20,
+      "samples": 5,
+      "cosmetic": false
+    },
+    "ripple": {
+      "lengths": [14, 11, 16, 12],
+      "offsetDeg": 30,
+      "spread": 1,
+      "steepness": 0.3,
+      "base": 0.02,
+      "perKn2": 0.0003,
+      "storm": 0,
+      "max": 0.12,
+      "windowSec": 4,
+      "samples": 2,
+      "cosmetic": true
+    }
+  }
+}

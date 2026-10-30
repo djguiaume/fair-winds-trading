@@ -1,5 +1,6 @@
 import { shoreShader } from './shoreTexture';
 import { seabedShader } from './seabedTexture';
+import { gerstnerShader } from './seaWaves';
 
 /** The waves' (amplitude, wavenumber), as in the shaders' `wave`. */
 const WAVES: readonly [number, number][] = [
@@ -36,17 +37,24 @@ varying vec3 vWorld;
 varying float vHeight;
 varying float vFogDepth;
 
-float wave(vec2 p) {
-  return sin(dot(p, vec2(0.12, 0.07)) + uTime * 1.1) * 0.32
-       + sin(dot(p, vec2(-0.05, 0.15)) + uTime * 0.8) * 0.24
-       + sin(dot(p, vec2(0.21, -0.17)) + uTime * 1.7) * 0.12;
+#ifdef GERSTNER
+${gerstnerShader}
+#else
+vec3 waveOffset(vec2 p) {
+  return vec3(0.0,
+    sin(dot(p, vec2(0.12, 0.07)) + uTime * 1.1) * 0.32
+      + sin(dot(p, vec2(-0.05, 0.15)) + uTime * 0.8) * 0.24
+      + sin(dot(p, vec2(0.21, -0.17)) + uTime * 1.7) * 0.12,
+    0.0);
 }
+#endif
 
 void main() {
   vec4 world = modelMatrix * vec4(position, 1.0);
   float shore = shoreDistance(world.xz);
-  float h = wave(world.xz) * mix(1.0, smoothstep(0.0, uShoreCalm.y, shore), uShoreCalm.x);
-  world.y += h;
+  vec3 offset = waveOffset(world.xz) * mix(1.0, smoothstep(0.0, uShoreCalm.y, shore), uShoreCalm.x);
+  float h = offset.y;
+  world.xyz += offset;
   vWorld = world.xyz;
 #ifdef VERTEX_SHORES
   vShoreDistance = shore;
