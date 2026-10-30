@@ -156,7 +156,7 @@ const GOLDEN: Record<string, string[]> = {
   'amber-strand': ['172:d2f08c8a', '214:25877637', '253:69fee500', '253:69fee500'],
   'puffin-holm': ['8:3ff49b4c', '8:3ff49b4c', '8:3ff49b4c', '8:3ff49b4c'],
   'lamb-holm': ['17:85293a40', '17:85293a40', '17:85293a40', '17:85293a40'],
-  'broch-isle': ['14:18071749', '14:18071749', '14:18071749', '14:18071749'],
+  'broch-isle': ['16:4157b50d', '16:4157b50d', '16:4157b50d', '16:4157b50d'],
   'the-kittiwakes': ['56:f643c38e', '56:f643c38e', '56:f643c38e', '56:f643c38e'],
   'sandwick-holm': ['27:2fd20df', '27:2fd20df', '27:2fd20df', '27:2fd20df'],
   rimewick: ['818:c9f3de29', '986:d2eba7b1', '1039:7e9609ca', '1047:f9f74f03'],

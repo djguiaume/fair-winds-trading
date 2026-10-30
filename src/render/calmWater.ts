@@ -3,8 +3,7 @@ import { coastDistance } from '../sim/coast';
 import { smoothOutline } from '../sim/flowShapes';
 import type { WindZoneDef } from '../sim/map';
 import { zonesTuning } from '../sim/windZones';
-import { MAX_WAVE_HEIGHT, type Ocean } from './ocean';
-import { waveSag } from './oceanWaves';
+import type { Ocean } from './ocean';
 import { type ShoreTexture, shoreShader } from './shoreTexture';
 
 /**
@@ -202,8 +201,7 @@ export class CalmWater {
     const from = ocean.mesh.material.uniforms;
     const u = this.material.uniforms;
     u.uTime!.value = time;
-    // Over the ocean's sag, and over the waves where they calm by the shore.
-    u.uLift!.value = LIFT + Math.max(waveSag(ocean.cell), ocean.shoreCalm * MAX_WAVE_HEIGHT);
+    u.uLift!.value = ocean.sheetLift(LIFT);
     (u.uWater!.value as THREE.Color).copy(from.uWater!.value as THREE.Color);
     (u.uWaterLight!.value as THREE.Color).copy(from.uWaterLight!.value as THREE.Color);
     (u.uFogColor!.value as THREE.Color).copy(from.uFogColor!.value as THREE.Color);
