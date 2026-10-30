@@ -13,6 +13,7 @@ worth remembering.
 | [v0.4.226](v0.4.226.md) | `901b25c` | Phase 4 complete: four new seas beyond the reef |
 | [v1.0.253](v1.0.253.md) | merge of the 1.0 PR | 1.0: the base game finished, a living sea |
 | [v1.1.282](v1.1.282.md) | merge of the 1.1 PR | 1.1 The Sailing Club: club races, the Tern, a turnable camera, Ultra, a new UI look |
+| [v1.2.313](v1.2.313.md) | merge of the 1.2 PR | 1.2 A new look: smooth islands, depth-blue water, forests, terrain brushes, new look by default |
 
 ## How to cut a release
 
