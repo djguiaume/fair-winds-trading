@@ -29,6 +29,7 @@ interface GroundUniforms {
   groundDetailAmount: THREE.IUniform<THREE.Vector3>;
   groundDetailOctaves: THREE.IUniform<number>;
   groundEdge: THREE.IUniform<THREE.Vector3>;
+  groundCrisp: THREE.IUniform<boolean>;
 }
 
 const VERTEX_HEAD = /* glsl */ `
@@ -53,6 +54,7 @@ uniform vec3 groundDetailScale;
 uniform vec3 groundDetailAmount;
 uniform int groundDetailOctaves;
 uniform vec3 groundEdge;
+uniform bool groundCrisp;
 varying vec3 vGround;
 
 // A hash without sin(), steady on phone GPUs.
@@ -103,6 +105,39 @@ vec3 groundSide(int ground, float band) {
   return texelFetch(groundSides, ivec2(int(mod(band, width)), ground), 0).rgb;
 }
 
+// The four texels round texel coordinate t, and their bilinear weights.
+void groundCorners(vec2 t, ivec2 size, out ivec2 at[4], out float weight[4]) {
+  vec2 corner = t - 0.5;
+  ivec2 base = ivec2(floor(corner));
+  vec2 f = fract(corner);
+  for (int i = 0; i < 4; i++) {
+    at[i] = clamp(base + ivec2(i & 1, i >> 1), ivec2(0), size - 1);
+    weight[i] = ((i & 1) == 1 ? f.x : 1.0 - f.x) * ((i >> 1) == 1 ? f.y : 1.0 - f.y);
+  }
+}
+
+// Faint streaks along a cliff: a factor round 1.
+float groundStreaks(vec2 p, float level, float depth) {
+  return 1.0 + groundNoise(vec2((p.x + p.y) * groundStrata.x, level * groundStrata.y)) * depth;
+}
+
+// The cliff colour at t: the four texels' bands at their smoothed height, blended.
+vec3 groundCliff(vec2 t, ivec2 size, vec2 p, float streakDepth) {
+  ivec2 at[4];
+  float weight[4];
+  groundCorners(t, size, at, weight);
+  vec4 shape[4];
+  float level = 0.0;
+  for (int i = 0; i < 4; i++) {
+    shape[i] = texelFetch(groundShape, at[i], 0);
+    level += weight[i] * groundHeight(shape[i]);
+  }
+  float band = groundBand(p, level);
+  vec3 side = vec3(0.0);
+  for (int i = 0; i < 4; i++) side += weight[i] * groundSide(groundAt(shape[i]), band);
+  return side * groundStreaks(p, level, streakDepth);
+}
+
 vec3 groundColour() {
   vec2 p = vGround.xz - groundCentre;
   float height = vGround.y;
@@ -115,45 +150,38 @@ vec3 groundColour() {
   vec2 texelsPerPixel2 = fwidth(t);
   float texelsPerPixel = max(texelsPerPixel2.x, texelsPerPixel2.y);
   vec4 filtered = texture2D(map, t / vec2(size));
-
-  float strataDepth = groundStrata.z * groundResolved(groundStrata.y, fwidth(height));
+  float streakDepth = groundStrata.z * groundResolved(groundStrata.y, fwidth(height));
 
   vec3 colour;
   float steep;
-  if (texelsPerPixel > 1.0) {
-    // Far off a texel is smaller than a pixel: the mipmapped texture, and the nearest ground's bands.
+  if (!groundCrisp || texelsPerPixel > 1.0) {
+    // On Low, or far off where a texel is smaller than a pixel: the filtered (mipmapped)
+    // texture, its zone edges soft, and the cliff bands only where it slopes.
     steep = smoothstep(groundSlope.x, groundSlope.y, 1.0 - filtered.a);
     colour = filtered.rgb;
-    if (steep > 0.0) {
-      vec4 shape = texelFetch(groundShape, clamp(ivec2(t), ivec2(0), size - 1), 0);
-      float strata = 1.0 + groundNoise(vec2((p.x + p.y) * groundStrata.x, height * groundStrata.y)) * strataDepth;
-      colour = mix(colour, groundSide(groundAt(shape), groundBand(p, height)) * strata, steep);
-    }
+    if (steep > 0.0) colour = mix(colour, groundCliff(t, size, p, streakDepth), steep);
   } else {
     // Close up: the four texels round the pixel. Slope and the bands' smoothed height blend
-    // between them (the mesh's own height has grid ripples that make band edges zigzag); each colour is
-    // weighed up by its ground's share of the pixel, so the larger zone wins and the edge between
-    // two grounds is a thin line, never thinner than about a pixel.
-    vec2 corner = t - 0.5;
-    ivec2 base = ivec2(floor(corner));
-    vec2 f = fract(corner);
+    // between them (the mesh's own height has grid ripples that make band edges zigzag); each
+    // colour is weighed up by its ground's share of the pixel, so the larger zone wins and the
+    // edge between two grounds is a thin line, never thinner than about a pixel.
+    ivec2 at[4];
+    float weight[4];
+    groundCorners(t, size, at, weight);
     vec4 texel[4];
     int ground[4];
-    float weight[4];
     float up = 0.0;
     float level = 0.0;
     for (int i = 0; i < 4; i++) {
-      ivec2 at = clamp(base + ivec2(i & 1, i >> 1), ivec2(0), size - 1);
-      vec4 shape = texelFetch(groundShape, at, 0);
-      texel[i] = texelFetch(map, at, 0);
+      vec4 shape = texelFetch(groundShape, at[i], 0);
+      texel[i] = texelFetch(map, at[i], 0);
       ground[i] = groundAt(shape);
-      weight[i] = ((i & 1) == 1 ? f.x : 1.0 - f.x) * ((i >> 1) == 1 ? f.y : 1.0 - f.y);
       up += weight[i] * texel[i].a;
       level += weight[i] * groundHeight(shape);
     }
     steep = smoothstep(groundSlope.x, groundSlope.y, 1.0 - up);
     float band = groundBand(p, level);
-    float strata = 1.0 + groundNoise(vec2((p.x + p.y) * groundStrata.x, level * groundStrata.y)) * strataDepth;
+    float streaks = groundStreaks(p, level, streakDepth);
     float share[4];
     float most = 0.0;
     for (int i = 0; i < 4; i++) {
@@ -167,7 +195,7 @@ vec3 groundColour() {
     for (int i = 0; i < 4; i++) {
       float w = weight[i] * exp(sharpness * (share[i] - most));
       vec3 c = texel[i].rgb;
-      if (steep > 0.0) c = mix(c, groundSide(ground[i], band) * strata, steep);
+      if (steep > 0.0) c = mix(c, groundSide(ground[i], band) * streaks, steep);
       sum += c * w;
       total += w;
     }
@@ -250,6 +278,7 @@ function groundUniforms(textures: FieldGroundTextures, quality: QualityLevel, sc
         edge.warp / textures.texel,
       ),
     },
+    groundCrisp: { value: edge.crisp[quality] },
   };
   return uniforms;
 }
@@ -273,10 +302,12 @@ export function fieldGroundMaterial(
   return material;
 }
 
-/** The ground's detail at a quality level: Low drops the finest noise. */
+/** The ground's detail at a quality level: Low drops the finest noise and the crisp zone edges. */
 export function setFieldGroundQuality(material: THREE.Material, quality: QualityLevel) {
   const uniforms = material.userData.ground as GroundUniforms | undefined;
-  if (uniforms) uniforms.groundDetailOctaves.value = TUNING.terrain.draw.detail.octaves[quality];
+  if (!uniforms) return;
+  uniforms.groundDetailOctaves.value = TUNING.terrain.draw.detail.octaves[quality];
+  uniforms.groundCrisp.value = TUNING.terrain.draw.edge.crisp[quality];
 }
 
 /** Frees a ground material and its textures (any material: the builder's empty one too). */

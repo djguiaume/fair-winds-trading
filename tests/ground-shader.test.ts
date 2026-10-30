@@ -63,7 +63,7 @@ describe('the ground shader (issue #373)', () => {
     expect(u.groundDetailOctaves!.value).toBe(draw.detail.octaves.high);
   });
 
-  it('drops the finest detail on Low, and frees every texture', () => {
+  it('drops the finest detail and crisp edges on Low, and frees every texture', () => {
     const t = textures();
     const material = fieldGroundMaterial(t, 'high');
     const u = compiled(material).uniforms;
@@ -72,6 +72,7 @@ describe('the ground shader (issue #373)', () => {
     expect(TUNING.terrain.draw.detail.octaves.low).toBeLessThan(
       TUNING.terrain.draw.detail.octaves.high,
     );
+    expect(u.groundCrisp!.value).toBe(TUNING.terrain.draw.edge.crisp.low);
     const spies = [t.colour, t.shape, t.sides].map((x) => vi.spyOn(x, 'dispose'));
     disposeFieldGround(material);
     for (const spy of spies) expect(spy).toHaveBeenCalled();

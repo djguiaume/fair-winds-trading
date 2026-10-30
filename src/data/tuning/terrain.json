@@ -76,7 +76,13 @@
     "edge": {
       "width": 0.5,
       "warp": 0.3,
-      "warpScale": 0.9
+      "warpScale": 0.9,
+      "crisp": {
+        "low": false,
+        "medium": true,
+        "high": true,
+        "ultra": true
+      }
     },
     "fineTexels": 256,
     "fineMax": 3

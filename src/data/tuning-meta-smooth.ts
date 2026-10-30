@@ -1,4 +1,4 @@
-import { num, type TuningMeta } from './tuning-meta-types';
+import { num, toggle, type TuningMeta } from './tuning-meta-types';
 
 /** `terrain.json › smooth` and `draw`: the new look's rolling ground (issue #269). */
 export const SMOOTH_META: Readonly<Record<string, TuningMeta>> = {
@@ -306,6 +306,16 @@ export const SMOOTH_META: Readonly<Record<string, TuningMeta>> = {
     '/ unit',
     'Frequency of that wander: larger is a finer wiggle.',
   ),
+  'terrain.draw.edge.crisp.low': toggle(
+    'Crisp zone edges, Low',
+    'Close up, zone edges drawn as thin lines from the four texels round each pixel (8 texture reads); off, one soft filtered read, cheaper for phones.',
+  ),
+  'terrain.draw.edge.crisp.medium': toggle(
+    'Crisp zone edges, Medium',
+    'Crisp zone edges on Medium.',
+  ),
+  'terrain.draw.edge.crisp.high': toggle('Crisp zone edges, High', 'Crisp zone edges on High.'),
+  'terrain.draw.edge.crisp.ultra': toggle('Crisp zone edges, Ultra', 'Crisp zone edges on Ultra.'),
   'terrain.draw.fineTexels': num(
     'Fine ground texture',
     64,
