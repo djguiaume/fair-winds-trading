@@ -2,6 +2,9 @@ import { STYLES } from '../data/grounds';
 import type { IslandDef, TerrainDef } from './map';
 import { coastDistance, insetOutline } from './coast';
 import { cliffDistance } from './islandCliffs';
+
+// The cliff distance moved out to its own file; the builder still reads it from here.
+export { cliffDistance };
 import { atLevel, designOf, islandDesign, type IslandDesign, type RampDef } from '../data/islands';
 
 /** An island style id (palette.json › styles, decision 0168). */
