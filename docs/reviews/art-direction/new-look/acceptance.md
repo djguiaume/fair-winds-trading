@@ -38,7 +38,7 @@ Status: AD ok (2026-10-30), waiting for Guillaume. Fixed: dark blobs in the curr
 
 - Traffic boats: hull, band and `wakeEdge` rechecked on depth water and haze; they read well, no change.
 - Fogwatch: three `heath` ground patches (palette.json), small to stay inside the classic 6000-triangle budget. More boulders and walls were not added.
-- Emberhold: three groves beside the lanes and birch scale 1.1 to 1.7 (`forests.json`).
+- Emberhold: five groves beside the lanes and birch scale 1.5 to 2.2 (`forests.json`).
 - Amber Strand: more and darker marram (shared prop, so Two Palms and Sandwick Holm change a little), two larger pale driftwood, two boulders. Rock pools have no prop yet (v1.3 idea). Rimewick Low's white spot on the right hill's summit is not a ground patch (the ground there is untouched by any edit); it is how Low draws that summit, so it waits for v1.3.
 - North sea horizon tint cooler (`palette.json` water.north.horizon).
 
