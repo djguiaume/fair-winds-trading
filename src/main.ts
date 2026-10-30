@@ -163,7 +163,7 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 const stage = $('stage');
 
 // Language: the player's choice, else the browser's, else English (decision 0037).
-const settings = loadSettings();
+const settings = loadSettings(location.search);
 // The `?bench` device benchmark (decision 0154) sails a fresh voyage kept in memory with every
 // hazard on and the shifting wind, so runs compare; it never saves the player's settings.
 const benchMode = new URLSearchParams(location.search).has('bench');

@@ -1,6 +1,7 @@
 import type { WebGLRenderer } from 'three';
 import './perf.css';
 import CONFIG from '../data/perf-readout.json';
+import { describeOverrides } from './graphicsOverrides';
 import { FrameStats, type FrameSummary, type PerfReadoutConfig } from './frameStats';
 
 /** What the game reports each frame; the readout only reads it. */
@@ -196,6 +197,7 @@ export class PerfReadout {
       f
         ? `Canvas ${f.canvas.width}×${f.canvas.height} @${fixed(f.canvas.pixelRatio, 2)} · antialias ${f.antialias ? 'on' : 'off'} · quality ${f.qualitySetting} → ${f.level} · ${f.drawCalls} draws · ${f.triangles} tris`
         : 'No frame yet',
+      `Graphics: ${describeOverrides(location.search)}`,
       `Switches: ${this.context.switches()}`,
     ];
     if (this.passes.length) {

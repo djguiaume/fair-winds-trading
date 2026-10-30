@@ -1,0 +1,8 @@
+{
+  "shadows": "shadows",
+  "ao": "occlusion",
+  "tonemap": "toneMapping",
+  "haze": "haze",
+  "reflection": "reflection",
+  "msaa": "msaa"
+}
