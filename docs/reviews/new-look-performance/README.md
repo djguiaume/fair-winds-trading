@@ -42,3 +42,17 @@ Per scenario: draw calls / triangles / frame p95 ms (median of the repeats).
 
 - Coast, grounding and berth positions do not depend on the graphics level: the sim and checks read the canonical field (`fieldLod` is draw only); `coast-checks` and the island checks pass on all levels (`npm run check`).
 - Full test suite (1458 tests) passes; old save-code fixtures (FW1, FW2) still load; the classic look is the default and unchanged. Island files without `smooth`/`sculpt`/`groves` replay as before.
+
+## Real device: Guillaume's Android 10 phone (2026-10-30)
+
+Chrome 156, 8 cores, 8 GB, screen 412x924 @2.63, `?bench` (3 passes of 75 s, medium fixed, all hazards on), game v1.1.301 to v1.1.302. The readout did not record the look, so these runs cannot be told apart from the classic look (the readout should print it).
+
+| Run | Quality | Canvas | Draws / tris | avg fps | 1% low | p95 ms | Worst ms | Slow / hitches |
+|---|---|---|---|---|---|---|---|---|
+| Grown sea, full res | auto → medium | 513x1153 | 33 / 44k | 59.7 | 59.5 | 16.8 | 150 | 3 / 1 |
+| Stress sea, full res | auto → medium | 513x1153 | 30 / 32k | 59.8 | 59.5 | 16.8 | 117 | 1 / 1 |
+| Stress sea, 0.7 scale | ultra | 575x1292 | 115 / 462k | 53.6 | 20.0 | 33.4 | 67 | 52 / 0 |
+
+- Medium holds 60 fps at 16.8 ms p95 with one hitch per pass (80 to 150 ms, likely the first frames of a pass).
+- Ultra on a phone is not smooth (1% low 20 fps) and draws 462k triangles on the stress sea. It is a desktop level; auto picks medium here, so this is only a ceiling.
+- Still missing: an old tablet or low-end phone at Low, and a desktop Ultra readout at 1080p.
