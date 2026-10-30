@@ -8,7 +8,7 @@ Ultra runs at 18 fps on the Surface while High runs at 60, and the waves milesto
 
 ## Decision
 
-`&off=shadows,ao,tonemap,haze,reflection,msaa` turns Ultra parts off one at a time, and `&quality=low|medium|high|ultra` forces a level (auto stepping stays off then). The names are `graphics.json › urlSwitches`; parsing is `src/perf/graphicsOverrides.ts`. `msaa` joins `GraphicsEffects` but has no Settings row. The `?perf` and `?bench` report gets a `Graphics:` line with the look, the forced level and the switches off. With nothing set the game is unchanged.
+`&off=shadows,ao,tonemap,haze,reflection,msaa` turns Ultra parts off one at a time, and `&quality=low|medium|high|ultra` forces a level (auto stepping stays off then). The names are `src/data/graphics-switches.json`; parsing is `src/perf/graphicsOverrides.ts`. `msaa` joins `GraphicsEffects` but has no Settings row. The `?perf` and `?bench` report gets a `Graphics:` line with the look, the forced level and the switches off. With nothing set the game is unchanged.
 
 ## Consequences
 

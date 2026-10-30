@@ -1,10 +1,10 @@
-import graphics from '../data/tuning/graphics.json';
+import switches from '../data/graphics-switches.json';
 import { terrainLook } from '../render/terrainLook';
 import type { QualityLevel } from '../render/quality';
 import type { Settings } from '../ui/settings';
 
 const LEVELS: readonly QualityLevel[] = ['low', 'medium', 'high', 'ultra'];
-const NAMES: Record<string, string> = graphics.urlSwitches;
+const NAMES: Record<string, string> = switches;
 
 function parse(search: string) {
   const params = new URLSearchParams(search);
@@ -19,7 +19,7 @@ function parse(search: string) {
 /**
  * Device-test switches (issue #377): `quality=low|medium|high|ultra` picks a level without the
  * menu, `off=ao,msaa,...` turns Ultra's parts off one at a time to read what each pass costs
- * (names in `graphics.json › urlSwitches`). Applied to the settings in memory; returns true when
+ * (names in `src/data/graphics-switches.json`). Applied to the settings in memory; returns true when
  * anything was set, so the caller does not save them. Unknown names are ignored.
  */
 export function applyGraphicsOverrides(
