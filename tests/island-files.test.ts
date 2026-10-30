@@ -162,9 +162,9 @@ const GOLDEN: Record<string, string[]> = {
   rimewick: ['818:c9f3de29', '986:d2eba7b1', '1039:7e9609ca', '1047:f9f74f03'],
   'snowberry-isle': ['244:66927c47', '425:d47de293', '553:3d5c09c', '553:3d5c09c'],
   whitefell: ['17:90d719e7', '17:90d719e7', '17:90d719e7', '17:90d719e7'],
-  'lead-rock': ['19:6c8d9003', '19:6c8d9003', '19:6c8d9003', '19:6c8d9003'],
-  'cairn-holm': ['6:cd116a0a', '6:cd116a0a', '6:cd116a0a', '6:cd116a0a'],
-  'seal-rocks': ['19:515ad7d', '19:515ad7d', '19:515ad7d', '19:515ad7d'],
+  'lead-rock': ['22:566ea91e', '22:566ea91e', '22:566ea91e', '22:566ea91e'],
+  'cairn-holm': ['9:86e5a65a', '9:86e5a65a', '9:86e5a65a', '9:86e5a65a'],
+  'seal-rocks': ['22:8d9a9e5c', '22:8d9a9e5c', '22:8d9a9e5c', '22:8d9a9e5c'],
   'selkie-rock': ['26:c7676022', '26:c7676022', '26:c7676022', '26:c7676022'],
   'old-blue': ['8:57804bba', '8:57804bba', '8:57804bba', '8:57804bba'],
 };

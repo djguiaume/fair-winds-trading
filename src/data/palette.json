@@ -171,6 +171,8 @@
       },
       "beachWidth": 0.05,
       "colors": {
+        "boulder": "#6b7179",
+        "boulder2": "#808690",
         "path": "#d4dbe2",
         "boatBand": ["#a8403a", "#3f6a9a"]
       }
