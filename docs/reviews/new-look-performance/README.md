@@ -77,3 +77,9 @@ Windows, Chrome 156, Core i7-1065G7, Intel Iris Plus Graphics, 32 GB, canvas 248
 - Not the Ultra target machine (a card that can do 1080p at 60 fps), and 3.7 MP is almost twice 1080p. It does show that an integrated chip cannot run Ultra.
 - Found on the way: the automatic Ultra guess excluded "UHD Graphics" but not "Iris Plus", so auto would have started this chip on Ultra. Fixed here: Iris Plus, Iris and Iris Pro no longer guess Ultra (Iris Xe still can, it is much faster). `tests/ultra-quality.test.ts` covers both.
 - Desktop Ultra on a discrete card at 1080p is still unmeasured.
+
+## Real device: Xbox, Edge (2026-10-30)
+
+`?perf&look=v2` at High (after a console restart), 3:19 of sailing, photo of the readout: 60 fps now, average 59, 1% low 30, p50 17 ms, p95 17 ms, worst 67 ms, 3 slow frames, 0 hitches, 0 quality drops, 50 draws, 179k triangles. The new look at High holds 60 fps on the Xbox.
+
+- Before this run Ultra was tried on the same Xbox. The game then showed a blank sea, and afterwards Edge reported no WebGL2 at all until the console was restarted. Ultra on the Xbox is unmeasured and suspected of crashing the graphics process there; to be looked at in its own issue.
