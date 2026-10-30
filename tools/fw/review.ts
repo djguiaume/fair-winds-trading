@@ -37,6 +37,7 @@ function shotList(islands: IslandDef[], args: Args) {
       zoom: Number(args.zoom ?? zoomFor(island)),
       quality,
       night: !!args.night,
+      ...(args.quest ? { quest: String(args.quest) } : {}),
       name: `${island.id}-${quality}${args.night ? '-night' : ''}`,
     })),
   );
@@ -123,6 +124,7 @@ export async function run(args: Args): Promise<number> {
   --sea name       every island of that sea (ring: the Windward Ring)
   --zoom z         camera distance for every island (default from the island's size)
   --night          at night
+  --quest id:step  with a quest at that step (an island that appears after one)
   --no-shots       redo the coast charts and sheets from the shots already in --out
   --out dir        where the sheets go (default output/review)
 Each sheet: High and Low at the same pose, and the coast chart (the island file's coast against
