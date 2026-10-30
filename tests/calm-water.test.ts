@@ -79,3 +79,28 @@ describe('the calm sheet over a coarse ocean grid (issue #277)', () => {
     }
   });
 });
+
+describe('pack ice in the shore bake (issue #277)', () => {
+  it('is shore all through, so the waves calm under it', () => {
+    const square: [number, number][] = [
+      [-40, -40],
+      [40, -40],
+      [40, 40],
+      [-40, 40],
+    ];
+    const read = (kind: 'ice' | 'reef') => {
+      const { texture, bounds } = shoreTexture([], [{ id: 'p', kind, outline: square }]);
+      const { data, width, height } = texture.image as {
+        data: Uint8Array;
+        width: number;
+        height: number;
+      };
+      const i = Math.floor(((0 - bounds.x) / bounds.z) * width),
+        j = Math.floor(((0 - bounds.y) / bounds.w) * height);
+      texture.dispose();
+      return data[j * width + i]!;
+    };
+    expect(read('ice')).toBe(0);
+    expect(read('reef')).toBeGreaterThan(100);
+  });
+});

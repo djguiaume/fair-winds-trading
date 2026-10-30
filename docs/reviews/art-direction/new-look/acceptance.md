@@ -23,6 +23,9 @@ Status: ok (AD 2026-10-29, Guillaume 2026-10-30, PR #353). Fixed in the round: L
 Status: AD reviewed 2026-10-30; fixes made, waiting for the AD re-check, then Guillaume. Coasts match on all five. Fixed: Low's dark blobs in calm zones (the calm sheet now clears the coarse ocean's sag), Low's sand ring on low beaches (waves calm by the shore on a coarse grid, `graphics.json › water.shoreCalm`), crisper ground zones on small islands (finer colour texture, `terrain.json › draw.fineTexels`), Lone Palm's palm 1.5x plus a second small palm. Separate: Palm Key's town level 3 visual step (AD handover).
 
 ## North (8): rimewick, snowberry-isle, whitefell, lead-rock, cairn-holm, seal-rocks, selkie-rock, old-blue
+
+Status: AD ok on Rimewick, Whitefell, Old Blue (2026-10-30); Snowberry Isle fixed (Low: waves calm under pack ice, no sea holes), re-check with the small-isle close-ups pending. Nice to have: Rimewick Low's pale snow patch on the right hill; a touch of sky tint in the north water (park for the #276 haze pass).
+
 ## West (10): emberhold, the-smoulder, organ-pipes, cinder-isle, steam-holm, spark-rock, the-chimneys, the-chimneys-2, the-tongs, the-tongs-2
 ## East (9): fogwatch, the-giant, his-wife, amber-strand, puffin-holm, lamb-holm, broch-isle, the-kittiwakes, sandwick-holm
 
