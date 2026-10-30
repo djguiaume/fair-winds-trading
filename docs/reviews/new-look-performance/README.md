@@ -57,3 +57,15 @@ Chrome 156, 8 cores, 8 GB, screen 412x924 @2.63, `?bench` (3 passes of 75 s, med
 - The new look at Medium is as smooth as the classic look on this phone (both 59.7 to 59.8 fps, p95 16.8 ms). Medium holds 60 fps at 16.8 ms p95 with one hitch per pass (80 to 150 ms, likely the first frames of a pass).
 - Ultra on a phone is not smooth (1% low 20 fps) and draws 462k triangles on the stress sea. It is a desktop level; auto picks medium here, so this is only a ceiling.
 - Still missing: an old tablet or low-end phone at Low, and a desktop Ultra readout at 1080p.
+
+## Final re-measure after #277 (main with #369, 2026-10-30)
+
+Headless, look v2, same method. Frame times were 2 to 4 times slower than the first run because the cloud machine was busier, so they are not comparable; the counts are.
+
+| Level | Sailing calls / tris | Docking calls / tris |
+|---|---|---|
+| Low | 20 / 37.8k (was 35.7k) | 23 / 22.8k (was 20.6k) |
+| Medium | 20 / 52.2k (was 50.1k) | 25 / 36.9k (was 34.6k) |
+| High | 26 / 153.6k (was 150.8k) | 35 / 122k (was 151k, a different docking pose) |
+
+The island review and the current-water grid add about 2k to 3k triangles in view, inside the `newLook` budget (166k at High). No budget change needed.
