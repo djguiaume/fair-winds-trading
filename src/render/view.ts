@@ -185,7 +185,7 @@ export class GameView {
     this.renderer = new THREE.WebGLRenderer({
       canvas,
       // Ultra may step down to High, which then needs it; Ultra itself multisamples its own.
-      antialias: level === 'high' || level === 'ultra',
+      antialias: QUALITY[level].antialias,
       powerPreference: 'high-performance',
       stencil: false,
     });

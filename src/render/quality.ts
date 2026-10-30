@@ -17,6 +17,8 @@ export interface QualityProfile {
   rainDrops: number;
   /** Real shadow map for island props; boats always use a cheap blob shadow. */
   shadows: boolean;
+  /** Multisampled drawing context; costs fill rate, so the weak levels leave it off. */
+  antialias: boolean;
   /** Smooth foam animation and second wave layer in the ocean shader. */
   fancyWater: boolean;
   /** Fog of war's edge on the chart blurred (decision 0156); else a cheap stepped soft rim. */
@@ -35,6 +37,7 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
     windStreaks: 36,
     rainDrops: 160,
     shadows: false,
+    antialias: false,
     fancyWater: false,
     chartFogBlur: false,
     waterReflection: false,
@@ -47,6 +50,7 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
     windStreaks: 60,
     rainDrops: 260,
     shadows: false,
+    antialias: false,
     fancyWater: true,
     chartFogBlur: false,
     waterReflection: false,
@@ -59,6 +63,7 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
     windStreaks: 90,
     rainDrops: 400,
     shadows: true,
+    antialias: true,
     fancyWater: true,
     chartFogBlur: true,
     waterReflection: true,
@@ -72,12 +77,18 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
     windStreaks: 90,
     rainDrops: 400,
     shadows: true,
+    antialias: true,
     fancyWater: true,
     chartFogBlur: true,
     waterReflection: true,
     ultra: true,
   },
 };
+
+/** `?perf&aa=1` test aid (decision 0154): multisample on every level, to measure its cost. */
+export function forceAntialias(): void {
+  for (const profile of Object.values(QUALITY)) profile.antialias = true;
+}
 
 /** Can fall below 1 on large tablets to keep fill-rate bounded. */
 export function renderPixelRatio(
