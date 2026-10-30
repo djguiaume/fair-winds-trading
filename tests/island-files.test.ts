@@ -142,7 +142,7 @@ const GOLDEN: Record<string, string[]> = {
   'two-palms': ['23:74ab6e0d', '23:74ab6e0d', '23:74ab6e0d', '23:74ab6e0d'],
   emberhold: ['552:5705f2ba', '688:58915cae', '799:e0203cd9', '832:37fa5b96'],
   'the-smoulder': ['161:afbe8b23', '161:afbe8b23', '161:afbe8b23', '161:afbe8b23'],
-  'organ-pipes': ['49:99b3de15', '49:99b3de15', '49:99b3de15', '49:99b3de15'],
+  'organ-pipes': ['89:ef4e83bf', '89:ef4e83bf', '89:ef4e83bf', '89:ef4e83bf'],
   'cinder-isle': ['101:d61cc732', '120:264040fd', '136:af5a5fb4', '136:af5a5fb4'],
   'steam-holm': ['35:f930960c', '35:f930960c', '35:f930960c', '35:f930960c'],
   'spark-rock': ['18:b3591ec5', '18:b3591ec5', '18:b3591ec5', '18:b3591ec5'],
