@@ -116,7 +116,7 @@ export class Ocean {
   private readonly ramp = newRamp();
   private readonly waterLight = new THREE.Color(1, 1, 1);
   private readonly shallowLight = new THREE.Color(1, 1, 1);
-  /** 0 = clear … 1 = under the darkest storm: the water greys toward slate blue (issue #282). */
+  /** 0 = clear … 1 = under the darkest storm: the mid and deep water grey toward slate blue (#282). */
   private gloom = 0;
 
   constructor(
@@ -243,7 +243,7 @@ export class Ocean {
     liftToFloor(lit, night);
     const midLit = (u.uWaterLight!.value as THREE.Color).copy(mid).multiply(this.waterLight);
     const deepLit = (u.uWater!.value as THREE.Color).copy(deep).multiply(this.waterLight);
-    liftToFloor(greyed(midLit, this.gloom, depth.storm), night);
+    liftToFloor(greyed(midLit, this.gloom * depth.storm.mid, depth.storm), night);
     liftToFloor(greyed(deepLit, this.gloom, depth.storm), night);
     (u.uDayWater!.value as THREE.Color).copy(deep);
   }
@@ -264,7 +264,8 @@ export class Ocean {
     u.uTime!.value = time;
     if (waves && 'GERSTNER' in this.mesh.material.defines) {
       waves.update();
-      waves.writeUniforms(u as Parameters<SeaWaves['writeUniforms']>[0], this.cell);
+      const perPixel = 'FANCY' in this.mesh.material.defines;
+      waves.writeUniforms(u as Parameters<SeaWaves['writeUniforms']>[0], this.cell, perPixel);
       this.waves = waves;
       this.sag = waves.sag(this.cell, this.cell);
       const day = Math.min(1, (this.waterLight.r + this.waterLight.g + this.waterLight.b) / 3);

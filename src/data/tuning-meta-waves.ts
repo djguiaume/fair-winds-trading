@@ -44,6 +44,14 @@ export const WAVES_META: Readonly<Record<string, TuningMeta>> = {
     'cells',
     'A wave fades in between these many grid cells per wavelength, so a coarse grid never aliases it. Drawing only.',
   ),
+  'waves.shadeCells': num(
+    'Shaded from (cells)',
+    0.5,
+    6,
+    0.5,
+    'cells',
+    "A wave the grid can't draw still shades per vertex from the first number of grid cells a wavelength, fully from the second; shorter ones would alias (ripples shade per pixel on Medium and up).",
+  ),
   'waves.previews.*.speedKn': num(
     'Preview wind',
     0,

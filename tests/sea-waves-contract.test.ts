@@ -167,16 +167,21 @@ describe('CPU/GPU wave contract (0245)', () => {
     const waves = heavySea();
     const u = gerstnerUniforms();
     const cell = 10;
-    waves.writeUniforms(u, cell);
+    waves.writeUniforms(u, cell, true);
     const [from, to] = TUNING.waves.drawCells as [number, number];
     for (let i = 0; i < waves.field.count; i++) {
       const cells = waves.field.length[i]! / cell;
       const drawn = u.uWave.value[4 * i + 3]!;
       if (cells <= from) expect(drawn).toBe(0);
       if (cells >= to) expect(drawn).toBeCloseTo(waves.field.amp[i]!, 5);
-      // What the grid can't hold still shades (issue #282): no wave is lost.
+      // What the grid can't hold still shades (issue #282): no wave is lost on a per-pixel ocean.
       expect(drawn + u.uWaveFine.value[i]!).toBeCloseTo(waves.field.amp[i]!, 5);
     }
+    // Per vertex only (Low), the ripples falling between its points would alias: they go.
+    waves.writeUniforms(u, cell, false);
+    for (let i = 0; i < waves.field.count; i++)
+      if (waves.field.length[i]! / cell <= TUNING.waves.shadeCells[0]!)
+        expect(u.uWaveFine.value[i]).toBe(0);
     const all = waves.field.amp.reduce((sum, a) => sum + a, 0);
     const bands = u.uBandHeight.value;
     expect(bands.x + bands.y + bands.z).toBeCloseTo(all, 4);

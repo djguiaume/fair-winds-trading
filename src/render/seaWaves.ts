@@ -28,6 +28,8 @@ const previewOf = (search: string) => {
 const bandEnd = (band: number) =>
   WAVE_BANDS.slice(0, band + 1).reduce((n, b) => n + TUNING.waves.bands[b].lengths.length, 0);
 
+const RIPPLE = WAVE_BANDS.indexOf('ripple');
+
 /** The defines a Gerstner ocean compiles with; `coast` adds the coast's calm (issue #281). */
 export const gerstnerDefines = (coast = false) => ({
   GERSTNER: '',
@@ -57,8 +59,19 @@ type WaveUniforms = { [K in keyof ReturnType<typeof gerstnerUniforms>]: { value:
 
 /** A wave of `length` drawn on a grid of `cell` units: 0 to 1 between `drawCells` cells a wave. */
 export function drawnOn(length: number, cell: number) {
-  const [from, to] = TUNING.waves.drawCells as [number, number];
-  const t = Math.min(1, Math.max(0, (length / cell - from) / Math.max(1e-6, to - from)));
+  return cellStep(length / cell, TUNING.waves.drawCells as [number, number]);
+}
+
+/**
+ * A wave of `length` shaded per vertex on a grid of `cell` units: 0 to 1 between `shadeCells`
+ * cells a wave. A shorter one would alias into slopes that aren't there (issue #282).
+ */
+function shadedOn(length: number, cell: number) {
+  return cellStep(length / cell, TUNING.waves.shadeCells as [number, number]);
+}
+
+function cellStep(cells: number, [from, to]: [number, number]) {
+  const t = Math.min(1, Math.max(0, (cells - from) / Math.max(1e-6, to - from)));
   return t * t * (3 - 2 * t);
 }
 
@@ -144,9 +157,10 @@ export class SeaWaves {
   /**
    * Fill the shader's arrays for a grid of `cell` units: a wave shorter than `drawCells` cells
    * fades out of the grid, since it can't hold it, into `uWaveFine`, which only shades (issue
-   * #282). Drawing only: the CPU field keeps every physical wave.
+   * #282): per vertex as far as the grid can sample it, and the ripples per pixel on a `perPixel`
+   * ocean (Medium and up). Drawing only: the CPU field keeps every physical wave.
    */
-  writeUniforms(uniforms: WaveUniforms, cell: number) {
+  writeUniforms(uniforms: WaveUniforms, cell: number, perPixel = false) {
     const f = this.field;
     const wave = uniforms.uWave.value as Float32Array;
     const shift = uniforms.uWaveShift.value as Float32Array;
@@ -159,7 +173,9 @@ export class SeaWaves {
       wave[4 * i + 1] = -f.ky[i]!;
       wave[4 * i + 2] = f.phase[i]!;
       wave[4 * i + 3] = f.amp[i]! * drawn;
-      fine[i] = f.amp[i]! * (1 - drawn);
+      const ripple = f.band[i] === RIPPLE;
+      const shaded = perPixel && ripple ? 1 : shadedOn(f.length[i]!, cell);
+      fine[i] = f.amp[i]! * (1 - drawn) * shaded;
       shift[2 * i] = f.shiftX[i]! * drawn;
       shift[2 * i + 1] = -f.shiftY[i]! * drawn;
     }

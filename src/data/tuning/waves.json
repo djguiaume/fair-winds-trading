@@ -3,6 +3,7 @@
   "steepLimit": 0.8,
   "inverseSteps": 4,
   "drawCells": [2, 4],
+  "shadeCells": [1.5, 2.5],
   "previews": {
     "calm": {
       "speedKn": 3,

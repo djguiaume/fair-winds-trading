@@ -114,6 +114,14 @@ export const WATER_DEPTH_META: Readonly<Record<string, TuningMeta>> = {
     'share',
     'How much colour the water loses under the darkest storm: blue-grey, not black (0 keeps the hue, 1 is grey).',
   ),
+  'graphics.water.depth.storm.mid': num(
+    'Storm mid water share',
+    0,
+    1,
+    0.05,
+    'share',
+    'How much of the storm grey the mid water round the islands takes (the deep water takes all of it): a lighter ring, never the shallows.',
+  ),
   'graphics.water.depth.beds.island': num(
     'Barrier island weight',
     -10,

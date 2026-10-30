@@ -18,8 +18,8 @@ simulation, no new passes.
 **Every wave either stands or shades.** `SeaWaves.writeUniforms` splits each component's height
 between the grid (`uWave.w`) and `uWaveFine`, the part the grid can't hold: it no longer
 disappears, it shades. The vertex shader adds the undrawn swell and chop as slope and height per
-vertex; on Medium and up the fragment adds the ripples per pixel from the rest point (four
-waves, never the whole field). The physical field and boat sampling are unchanged.
+vertex, as far as its grid can sample them (`shadeCells`, so nothing aliases); on Medium and up
+the fragment adds the ripples per pixel from the rest point (four waves, never the whole field). The physical field and boat sampling are unchanged.
 
 **The waves' own normal.** The vertex shader crosses the displaced surface's two tangents, the
 same normal the CPU's `waveNormalAt` tilts boats by (tested), and passes it as a slope. The
@@ -34,8 +34,11 @@ Medium too (per vertex there, where no glint needs a per-pixel normal); the glin
 Ultra's. Low now matches High's water within about 2% and is never whiter. Ultra-low's plain
 water (decision 0247) is unchanged.
 
-**Storm water.** The ocean greys and darkens its mid and deep colours under the storm's gloom
-(`graphics.json › water.depth.storm`), then the night floor still lifts them (never black).
+**Storm water.** The ocean greys and darkens its deep colour under the storm's gloom, and its mid
+colour by a share of that (`graphics.json › water.depth.storm`, art director round 1: 0.3 grey,
+0.05 darker, half on the mid water so the ring round an island stays lighter); the shallows and
+the island light are left to the storm light of decision 0067. The night floor still lifts them
+(never black).
 `?waves=storm` brings the storm's gloom too, so a review shows the whole storm look. The
 atmosphere's gloom no longer runs past 0..1 when the clock jumps back.
 
