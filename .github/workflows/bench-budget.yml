@@ -41,5 +41,8 @@ jobs:
           curl --retry 15 --retry-connrefused --retry-delay 2 -sf http://127.0.0.1:5180/ >/dev/null \
             || { cat preview.log; exit 1; }
           npm run perf -- http://127.0.0.1:5180/ output/performance/ci.json
+          npm run perf -- 'http://127.0.0.1:5180/?look=v2' output/performance/ci-v2.json
       - name: Check the budget
-        run: node tools/performance/budget.mjs output/performance/ci.json
+        run: |
+          node tools/performance/budget.mjs output/performance/ci.json
+          node tools/performance/budget.mjs output/performance/ci-v2.json

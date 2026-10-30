@@ -1,7 +1,14 @@
 {
-  "note": "Draw calls and triangles per scenario at quality high in the headless run (about 10% above the 2026-10-28 measurement). A rendering change that needs more raises it here with its reason in the PR. Not a replacement for ?bench on a real device.",
+  "note": "Draw calls and triangles per scenario at quality high in the headless run (about 10% above the measurement, re-set 2026-10-30: CI measured 49.5k docking after the #277 island review (shared props, current water)). A rendering change that needs more raises it here with its reason in the PR. Not a replacement for ?bench on a real device.",
+  "newLook": {
+    "note": "?look=v2 at High (2026-10-29, #278): the smooth ground draws about 2.4x the classic triangles on screen, about 150k, mostly the island ground. Medium and Low are cheaper (50k and 36k). Set 10% above the measurement; a Low/Medium tablet is the reason to watch it, so confirm with ?bench on a device.",
+    "scenarios": {
+      "sailing": { "calls": 35, "triangles": 166000 },
+      "docking": { "calls": 42, "triangles": 166000 }
+    }
+  },
   "scenarios": {
     "sailing": { "calls": 35, "triangles": 66000 },
-    "docking": { "calls": 40, "triangles": 48500 }
+    "docking": { "calls": 40, "triangles": 54500 }
   }
 }

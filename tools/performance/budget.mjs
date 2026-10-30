@@ -21,10 +21,15 @@ export function overBudget(report, budget) {
   return problems;
 }
 
+/** The new look (`?look=v2`) has its own limits; the classic look keeps the original ones. */
+export function budgetFor(report, budgets) {
+  return new URL(report.url).searchParams.get('look') === 'v2' ? budgets.newLook : budgets;
+}
+
 export function run(reportFile) {
   const report = JSON.parse(readFileSync(reportFile, 'utf8'));
-  const budget = JSON.parse(readFileSync(new URL('./budget.json', import.meta.url), 'utf8'));
-  const problems = overBudget(report, budget);
+  const budgets = JSON.parse(readFileSync(new URL('./budget.json', import.meta.url), 'utf8'));
+  const problems = overBudget(report, budgetFor(report, budgets));
   for (const p of problems) console.log(`::error::${p}`);
   console.log(problems.length ? `${problems.length} over budget.` : 'Render budget: all good.');
   return problems.length ? 1 : 0;

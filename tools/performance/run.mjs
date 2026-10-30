@@ -8,6 +8,8 @@ import { summarize } from './stats.mjs';
 const config = JSON.parse(await readFile(new URL('./scenarios.json', import.meta.url), 'utf8'));
 // CI runs a short list once (decision 0153: the workflow only calls the tools).
 if (process.env.PERF_SCENARIOS) config.scenarios = process.env.PERF_SCENARIOS.split(',');
+// One report per graphics level; the settings in scenarios.json stay the default.
+if (process.env.PERF_QUALITY) config.settings.quality = process.env.PERF_QUALITY;
 if (process.env.PERF_REPEATS) config.repeats = Number(process.env.PERF_REPEATS);
 for (const key of ['repeats', 'warmupMs', 'durationMs', 'timeoutMs']) {
   if (!Number.isFinite(config[key]) || config[key] <= 0)
