@@ -61,6 +61,10 @@ export const QUALITY_META: Readonly<Record<string, TuningMeta>> = {
     'Low detail boats',
     'Simple rig, calm heel and short bow waves.',
   ),
+  'graphics.quality.*.waves': toggle(
+    'Waves',
+    'The wind and storm waves (decision 0250); off draws the classic sea. Settings › Waves overrides it.',
+  ),
   'graphics.auto.minFps': num(
     'Auto: frame budget',
     20,

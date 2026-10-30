@@ -3,6 +3,7 @@ import type { Input } from '../input/input';
 import type { SeaPad } from '../input/gamepad';
 import type { CameraOrbit } from '../render/cameraOrbit';
 import type { CameraRig } from '../render/cameraRig';
+import type { SeaMotion } from '../render/seaMotion';
 import { CompassCamera } from './compassCamera';
 import type { Settings } from './settings';
 
@@ -10,12 +11,15 @@ import type { Settings } from './settings';
 const SWITCHES = [
   ['turn-camera', 'turnCamera', 'settings.turnCamera', 'settings.turnCameraNote'],
   ['camera-returns', 'cameraReturns', 'settings.cameraReturns', 'settings.cameraReturnsNote'],
+  ['gentle-motion', 'gentleMotion', 'settings.gentleMotion', 'settings.gentleMotionNote'],
+  ['camera-bob', 'cameraBob', 'settings.cameraBob', 'settings.cameraBobNote'],
 ] as const;
 
 /**
  * The player's hold on the sea camera (decision 0223): zoom and turns from the mouse, touch and
- * controller, the two Settings switches ("Turn the camera", "Camera comes back by itself") and the
- * HUD compass that turns with the camera. `tilt` (degrees, `?perf&tilt=`) holds a tilt to measure.
+ * controller, the Settings switches ("Turn the camera", "Camera comes back by itself", and the
+ * comfort ones of decision 0250: gentle sea motion, camera riding the waves) and the HUD compass
+ * that turns with the camera. `tilt` (degrees, `?perf&tilt=`) holds a tilt to measure.
  */
 export class CameraControls {
   private readonly compass: CompassCamera;
@@ -23,6 +27,7 @@ export class CameraControls {
 
   constructor(
     private readonly rig: CameraRig,
+    private readonly motion: SeaMotion,
     input: Input,
     private readonly settings: Settings,
     keep: () => void,
@@ -79,6 +84,8 @@ export class CameraControls {
   private sync() {
     this.orbit.enabled = this.settings.turnCamera;
     this.orbit.autoReturn = this.settings.cameraReturns;
+    this.motion.gentle = this.settings.gentleMotion;
+    this.motion.cameraBob = this.settings.cameraBob;
     const returns = document.getElementById('camera-returns') as HTMLInputElement;
     returns.disabled = !this.settings.turnCamera;
   }

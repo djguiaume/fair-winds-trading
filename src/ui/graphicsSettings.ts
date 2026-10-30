@@ -90,3 +90,28 @@ export function addEffectSwitches(
       row.hidden = id === 'reflection' ? !profile.waterReflection : !profile.ultra;
   };
 }
+
+/**
+ * Settings › Waves (decision 0250), placed after `after`: the wind and storm waves, on by default
+ * from Medium up (`graphics.json › quality.*.waves`); once the player flips it, their choice holds
+ * on every level. Off draws the classic sea, without the waves' shader. Returns a function that
+ * shows the switch's state on the level in use.
+ */
+export function addWavesSwitch(
+  after: Element,
+  settings: Settings,
+  setWaves: (choice: boolean | null) => void,
+  keep: () => void,
+): (level: QualityLevel) => void {
+  const row = switchRow('waves', 'settings.waves', false, (on) => {
+    settings.waves = on;
+    setWaves(on);
+    keep();
+  });
+  after.after(row);
+  const input = row.querySelector('input')!;
+  setWaves(settings.waves);
+  return (level) => {
+    input.checked = settings.waves ?? QUALITY[level].waves;
+  };
+}

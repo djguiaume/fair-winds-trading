@@ -17,6 +17,7 @@ import {
   createBoatModel,
 } from './models';
 import { HEEL_FEEL, Heel, heelFactor } from './heel';
+import { type BoatFloat, SeaMotion } from './seaMotion';
 import { type Ocean, oceanFor } from './ocean';
 import { ShoreTextureCache } from './shoreTexture';
 import { SeabedTextureCache, drawnLand } from './seabedTexture';
@@ -101,6 +102,11 @@ export class GameView {
   /** The tracked quest step's places at sea (decision 0130). */
   private readonly questMarkers = new QuestMarkers();
   private readonly sea = new SeaWaves(() => this.world);
+  /** Settings › Waves (decision 0250): the player's choice, or null for the level's default. */
+  private wavesChoice: boolean | null = null;
+  /** The comfort switches: gentle boat motion, the camera riding the waves (decision 0250). */
+  readonly motion = new SeaMotion();
+  private readonly float: BoatFloat = { lift: 0, pitch: 0 };
   /** What the tracked step marks at sea; the game sets it once the quests run. */
   stepMarkers: () => { style: string; points: readonly StepMarker[] } | null = () => null;
   /** The running quests' own sea marks (decision 0164: the lessons' buoys). */
@@ -154,9 +160,12 @@ export class GameView {
     haze: true,
     reflection: true,
   };
-  /** Created only when selected; retain GPU programs/buffers for subsequent switches. */
+  /**
+   * Created only when selected, by level and waves on or off; retain GPU programs/buffers for
+   * subsequent switches.
+   */
   private readonly qualityEffects = new Map<
-    QualityLevel,
+    `${QualityLevel}:${boolean}`,
     {
       ocean: Ocean;
       streaks: WindStreaks;
@@ -292,7 +301,7 @@ export class GameView {
     }
   }
 
-  /** The land's seabed bake: the new look's water (`?look=v2`), the waves' calm (`?waves=v2`). */
+  /** The land's seabed bake: the new look's water (`?look=v2`), the waves' calm (when on). */
   private seabed() {
     if (this.look !== 'v2' && !this.sea.gerstner) return undefined;
     const land = drawnLand(this.world.map, this.world.land, this.levels, this.sea.gerstner);
@@ -395,8 +404,15 @@ export class GameView {
     );
   }
 
+  /** Settings › Waves: on, off, or null for the level's default (`graphics.json`, 0250). */
+  setWaves(choice: boolean | null) {
+    this.wavesChoice = choice;
+    if (this.sea.setOn(choice ?? QUALITY[this.level].waves)) this.setQuality(this.level);
+  }
+
   setQuality(level: QualityLevel) {
     this.level = level;
+    this.sea.setOn(this.wavesChoice ?? QUALITY[level].waves);
     this.rig.orbit.ultra = level === 'ultra';
     this.wake.setQuality(level);
     this.islands.setQuality(level);
@@ -411,7 +427,8 @@ export class GameView {
     this.roughWater?.setShore(shore);
     const seabed = this.seabed();
     if (seabed) for (const effects of this.qualityEffects.values()) effects.ocean.setSeabed(seabed);
-    let effects = this.qualityEffects.get(level);
+    const key = `${level}:${this.sea.gerstner}` as const;
+    let effects = this.qualityEffects.get(key);
     if (!effects) {
       const others = [...this.qualityEffects.values()].map(({ ocean }) => ocean);
       effects = {
@@ -419,7 +436,7 @@ export class GameView {
         streaks: new WindStreaks(profile.windStreaks),
         rain: new Rain(profile.rainDrops),
       };
-      this.qualityEffects.set(level, effects);
+      this.qualityEffects.set(key, effects);
     }
     ({ ocean: this.ocean, streaks: this.streaks, rain: this.rain } = effects);
     this.scene.add(this.ocean.mesh, this.streaks.mesh, this.rain.mesh);
@@ -553,6 +570,7 @@ export class GameView {
     const pos = toScene(boat.x, boat.y, this.tmp);
 
     const dist = this.rig.place(dt, this.width / this.height, pos, dir, boat.speedKn);
+    this.camera.position.y += this.motion.cameraRise(dt, this.sea.heightAt(pos.x, pos.z));
     const fog = this.scene.fog as THREE.Fog;
     const day = shownDaylightAt(this.dayNight, time);
     setNightPaper(day.night);
@@ -613,7 +631,10 @@ export class GameView {
       dt,
       HEEL_FEEL[this.profile.lowDetail ? 'smooth' : 'lively'],
     );
-    const shake = boat.sinceBump < 0.4 ? Math.sin(time * 60) * (0.4 - boat.sinceBump) * 0.4 : 0;
+    const shake =
+      boat.sinceBump < 0.4
+        ? Math.sin(time * 60) * (0.4 - boat.sinceBump) * 0.4 * this.motion.share
+        : 0;
     this.boat.update({
       sail: boat.sail,
       boomAngle: lee * boomMag * (1 - luff * 0.7),
@@ -627,10 +648,14 @@ export class GameView {
     const fz = pos.z - dir.y * 5;
     const bx = pos.x - dir.x * 5;
     const bz = pos.z + dir.y * 5;
-    const hFront = this.sea.heightAt(fx, fz);
-    const hBack = this.sea.heightAt(bx, bz);
-    this.boat.root.position.set(pos.x, (hFront + hBack) * 0.4, pos.z);
-    this.boat.root.rotation.set(Math.atan2(hFront - hBack, 10) * 0.8, yaw, 0);
+    const float = this.motion.float(
+      this.sea.heightAt(fx, fz),
+      this.sea.heightAt(bx, bz),
+      10,
+      this.float,
+    );
+    this.boat.root.position.set(pos.x, float.lift, pos.z);
+    this.boat.root.rotation.set(float.pitch, yaw, 0);
     this.boatShadow.position.set(pos.x + 1.8, 0.55, pos.z - 1);
     this.boatShadow.rotation.y = yaw;
 

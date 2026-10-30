@@ -24,8 +24,8 @@ export const OCEAN_SIZE = 480;
 
 /**
  * The ocean of a quality level. The shader depends on the water look, not the grid resolution:
- * it shares the material of another level's ocean that draws the same water, so switching
- * between High and Medium never releases or relinks the same program.
+ * it shares the material of another level's ocean that draws the same water and waves, so
+ * switching between High and Medium never releases or relinks the same program.
  */
 export function oceanFor(
   profile: QualityProfile,
@@ -42,7 +42,8 @@ export function oceanFor(
     ({ mesh }) =>
       'FANCY' in mesh.material.defines === profile.fancyWater &&
       'REFLECT' in mesh.material.defines === profile.waterReflection &&
-      'PLAIN' in mesh.material.defines === profile.plain,
+      'PLAIN' in mesh.material.defines === profile.plain &&
+      'GERSTNER' in mesh.material.defines === gerstner,
   )?.mesh.material;
   const look = {
     fancy: profile.fancyWater,

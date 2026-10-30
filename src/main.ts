@@ -99,7 +99,12 @@ import {
 import { Hud } from './ui/hud';
 import { CameraControls } from './ui/cameraControls';
 import { loadSettings, saveSettings } from './ui/settings';
-import { addEffectSwitches, addQualityButtons, switchRow } from './ui/graphicsSettings';
+import {
+  addEffectSwitches,
+  addQualityButtons,
+  addWavesSwitch,
+  switchRow,
+} from './ui/graphicsSettings';
 import type { Bench } from './perf/bench';
 import type { PerfReadout } from './perf/perfReadout';
 import { perfOptions } from './perf/perfOptions';
@@ -1474,7 +1479,7 @@ dayNight.addEventListener('change', () => {
   keepSettings();
 });
 
-const camera = new CameraControls(view.rig, input, settings, keepSettings, tilt);
+const camera = new CameraControls(view.rig, view.motion, input, settings, keepSettings, tilt);
 
 // Weather and storms can be turned off like every hazard (decision 0067; pirates will follow in
 // Phase 5). Without weather there are no storms either, so that switch is greyed out.
@@ -1634,9 +1639,16 @@ const showEffects = addEffectSwitches(
   view.effects,
   keepSettings,
 );
+const showWaves = addWavesSwitch(
+  $('quality').closest('.set-row')!,
+  settings,
+  (choice) => view.setWaves(choice),
+  keepSettings,
+);
 const describeQuality = () => {
   qualityNow.textContent = t('settings.nowUsing', { level: t(`settings.${level}`) });
   showEffects(level);
+  showWaves(level);
 };
 describeQuality();
 
