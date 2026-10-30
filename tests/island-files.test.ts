@@ -159,7 +159,7 @@ const GOLDEN: Record<string, string[]> = {
   'broch-isle': ['16:4157b50d', '16:4157b50d', '16:4157b50d', '16:4157b50d'],
   'the-kittiwakes': ['56:f643c38e', '56:f643c38e', '56:f643c38e', '56:f643c38e'],
   'sandwick-holm': ['27:bf85bc6f', '27:bf85bc6f', '27:bf85bc6f', '27:bf85bc6f'],
-  rimewick: ['819:d2cd536f', '987:c2ffffd7', '1040:47e69208', '1048:575559e5'],
+  rimewick: ['818:c9f3de29', '986:d2eba7b1', '1039:7e9609ca', '1047:f9f74f03'],
   'snowberry-isle': ['244:66927c47', '425:d47de293', '553:3d5c09c', '553:3d5c09c'],
   whitefell: ['17:90d719e7', '17:90d719e7', '17:90d719e7', '17:90d719e7'],
   'lead-rock': ['22:566ea91e', '22:566ea91e', '22:566ea91e', '22:566ea91e'],

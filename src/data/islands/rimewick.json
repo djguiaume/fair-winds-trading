@@ -58,8 +58,7 @@
         [-0.66, 0.85]
       ],
       "height": 0.13,
-      "material": "rock",
-      "smooth": 0
+      "material": "rock"
     },
     {
       "outline": [
@@ -91,8 +90,7 @@
         [0.66, 0.5]
       ],
       "height": 0.15,
-      "material": "rock",
-      "smooth": 0
+      "material": "rock"
     },
     {
       "outline": [
@@ -122,8 +120,7 @@
         [-0.92, -0.38]
       ],
       "height": 0.11,
-      "material": "rock",
-      "smooth": 0
+      "material": "rock"
     },
     {
       "outline": [
@@ -229,18 +226,6 @@
       "material": "slate",
       "shape": "peak",
       "base": 0.3
-    },
-    {
-      "outline": [
-        [0.933265, 0.7],
-        [0.892353, 0.773358],
-        [0.803518, 0.780509],
-        [0.759098, 0.7],
-        [0.806346, 0.624389],
-        [0.898572, 0.61587]
-      ],
-      "height": 0.3,
-      "material": "snow"
     }
   ],
   "lanes": [
@@ -505,8 +490,7 @@
       [0.82, 0.5, 0.2],
       [-0.8, 1.15, 0.16],
       [-0.6, 1.6, 0.1]
-    ],
-    "density": 4
+    ]
   },
   "harbourView": {
     "from": [0.1, 2.8],
