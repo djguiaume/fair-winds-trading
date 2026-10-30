@@ -2,7 +2,8 @@ name: Render budget
 
 # A headless run of the sailing and docking scenarios on rendering PRs: fails when draw calls or
 # triangles pass tools/performance/budget.json. Counts carry over to old tablets; frame times do
-# not, so those stay with ?bench on a real device (decision 0006, ADR 0154).
+# not, so those stay with ?bench on a real device (decision 0006, ADR 0154). Ultra's graphics
+# memory is held to its own limit too (decision 0246).
 on:
   pull_request:
     paths:
@@ -42,7 +43,11 @@ jobs:
             || { cat preview.log; exit 1; }
           npm run perf -- http://127.0.0.1:5180/ output/performance/ci.json
           npm run perf -- 'http://127.0.0.1:5180/?look=v1' output/performance/ci-v1.json
+          # Ultra's graphics memory on a 4K TV screen (decision 0246: the Xbox crashed past its share).
+          PERF_QUALITY=ultra PERF_SCREEN=1920x1080@2 PERF_SCENARIOS=sailing PERF_TIMEOUT_MS=180000 \
+            npm run perf -- http://127.0.0.1:5180/ output/performance/ci-ultra.json
       - name: Check the budget
         run: |
           node tools/performance/budget.mjs output/performance/ci.json
           node tools/performance/budget.mjs output/performance/ci-v1.json
+          node tools/performance/budget.mjs output/performance/ci-ultra.json

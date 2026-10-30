@@ -14,9 +14,10 @@ describe('?perf test aids (decision 0154)', () => {
     const before = Object.values(QUALITY).map((p) => p.antialias);
     afterEach(() => Object.values(QUALITY).forEach((p, i) => (p.antialias = before[i]!)));
 
-    it('is off on Low and Medium, on from High, until forced', () => {
+    it('is off on Low, Medium and the Ultra canvas, on at High, until forced', () => {
       expect([QUALITY.low, QUALITY.medium].map((p) => p.antialias)).toEqual([false, false]);
-      expect([QUALITY.high, QUALITY.ultra].map((p) => p.antialias)).toEqual([true, true]);
+      // Ultra's canvas leaves it off: Ultra multisamples its own target (decision 0246).
+      expect([QUALITY.high, QUALITY.ultra].map((p) => p.antialias)).toEqual([true, false]);
       forceAntialias();
       expect(Object.values(QUALITY).every((p) => p.antialias)).toBe(true);
     });

@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { summarize } from './stats.mjs';
+import { countGpuMemory, readGpuMemory } from './gpuMemory.mjs';
 
 const config = JSON.parse(await readFile(new URL('./scenarios.json', import.meta.url), 'utf8'));
 // CI runs a short list once (decision 0153: the workflow only calls the tools).
@@ -11,6 +12,15 @@ if (process.env.PERF_SCENARIOS) config.scenarios = process.env.PERF_SCENARIOS.sp
 // One report per graphics level; the settings in scenarios.json stay the default.
 if (process.env.PERF_QUALITY) config.settings.quality = process.env.PERF_QUALITY;
 if (process.env.PERF_REPEATS) config.repeats = Number(process.env.PERF_REPEATS);
+if (process.env.PERF_TIMEOUT_MS) config.timeoutMs = Number(process.env.PERF_TIMEOUT_MS);
+// A screen as `1920x1080@2` (width x height @ device scale), e.g. a 4K TV for graphics memory.
+if (process.env.PERF_SCREEN) {
+  const [, width, height, scale = '1'] =
+    /^(\d+)x(\d+)(?:@([\d.]+))?$/.exec(process.env.PERF_SCREEN) ?? [];
+  if (!width) throw new Error('PERF_SCREEN must look like 1920x1080@2');
+  config.viewport = { width: Number(width), height: Number(height) };
+  config.deviceScaleFactor = Number(scale);
+}
 for (const key of ['repeats', 'warmupMs', 'durationMs', 'timeoutMs']) {
   if (!Number.isFinite(config[key]) || config[key] <= 0)
     throw new Error(`Invalid ${key} in scenarios.json`);
@@ -49,6 +59,7 @@ try {
         (settings) => localStorage.setItem('fwt.settings.v1', JSON.stringify(settings)),
         config.settings,
       );
+      await page.addInitScript(countGpuMemory);
       page.setDefaultTimeout(config.timeoutMs);
       const errors = [];
       page.on('pageerror', (error) => errors.push(error.message));
@@ -204,6 +215,7 @@ try {
           },
         };
       });
+      const gpuMemory = await page.evaluate(readGpuMemory);
       if (errors.length) throw new Error(errors.join('\n'));
       const steady = raw.samples.slice(Math.max(1, action.setupFrames));
       if (!steady.length) throw new Error('No steady frames collected');
@@ -223,12 +235,13 @@ try {
         action,
         environment: raw.environment,
         metrics,
+        gpuMemory,
         eventFrameMs,
         framesOverBudget: steady.filter((s) => s.frameMs > config.reportingBudgets.frameMs).length,
       };
       report.runs.push(run);
       console.log(
-        `${scenario} ${repeat + 1}: frame p95 ${metrics.frameMs.p95?.toFixed(2)}ms, max ${metrics.frameMs.max?.toFixed(2)}ms; calls ${metrics.calls.median}; triangles ${metrics.triangles.median}`,
+        `${scenario} ${repeat + 1}: frame p95 ${metrics.frameMs.p95?.toFixed(2)}ms, max ${metrics.frameMs.max?.toFixed(2)}ms; calls ${metrics.calls.median}; triangles ${metrics.triangles.median}; graphics memory ${gpuMemory.totalMB} MB`,
       );
       await context.close();
     }

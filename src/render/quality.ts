@@ -78,7 +78,9 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
     windStreaks: 90,
     rainDrops: 400,
     shadows: true,
-    antialias: true,
+    // Ultra multisamples its own target, and draws High through it after a step down: a
+    // multisampled canvas would be graphics memory spent for nothing (decision 0246).
+    antialias: false,
     fancyWater: true,
     chartFogBlur: true,
     waterReflection: true,

@@ -66,6 +66,8 @@ export class UltraPipeline {
   private pixelRatio = 1;
   private aoResolution = 0;
   private readonly hazeNight = new THREE.Color();
+  /** The canvas was made with multisampling (it cannot change later). */
+  private readonly canvasAntialias: boolean;
 
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
@@ -75,6 +77,7 @@ export class UltraPipeline {
     /** Which effects are on: the player's Settings, shared with the view. */
     private readonly effects: Readonly<GraphicsEffects>,
   ) {
+    this.canvasAntialias = !!renderer.getContext().getContextAttributes()?.antialias;
     this.composer = new EffectComposer(renderer, this.target(0));
     this.composer.addPass(new RenderPass(scene, camera));
     this.occlusion = new GTAOPass(scene, camera);
@@ -111,8 +114,8 @@ export class UltraPipeline {
     };
   }
 
-  private target(samples: number) {
-    return new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples });
+  private target(samples: number, depthBuffer = true) {
+    return new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples, depthBuffer });
   }
 
   /** Lantern glow size and lit-window brightness at night on Ultra (from the tuning). */
@@ -162,7 +165,6 @@ export class UltraPipeline {
     const ultra = TUNING.graphics.ultra;
     this.casters.update(dt, this.scene, this.effects.shadows);
     this.followShadows(night);
-    this.followSamples(this.effects.msaa !== false ? ultra.antialiasSamples : 0);
     if (ultra.occlusion.resolution !== this.aoResolution)
       this.setSize(this.width, this.height, this.pixelRatio);
     this.followOcclusion();
@@ -179,11 +181,34 @@ export class UltraPipeline {
       .lerp(this.hazeNight.set(haze.nightColor), night);
     u.uHazeStart!.value = ultra.haze.start;
     u.uHazeStrength!.value = this.effects.haze ? ultra.haze.strength : 0;
+    this.compose(dt);
+  }
+
+  /**
+   * A level below Ultra after a step down. A canvas made for Ultra has no anti-aliasing of its own
+   * (decision 0246), so a level that wants it goes through the multisampled target with no
+   * effects. False when the view should draw the frame itself.
+   */
+  renderHigh(dt: number, level: { antialias: boolean }): boolean {
+    if (!level.antialias || this.canvasAntialias) return false;
+    this.occlusion.enabled = false;
+    this.grade.enabled = false;
+    this.compose(dt);
+    this.grade.enabled = true;
+    return true;
+  }
+
+  private compose(dt: number) {
+    const samples = TUNING.graphics.ultra.antialiasSamples;
+    this.followSamples(this.effects.msaa !== false ? samples : 0);
+    // The scene pass draws into the read buffer: keep it on the multisampled target.
+    const composer = this.composer;
+    if (composer.readBuffer !== composer.renderTarget2) composer.swapBuffers();
     // One frame is many render calls here: count them all, so `?perf` and `?bench` stay honest.
     const info = this.renderer.info;
     info.reset();
     info.autoReset = false;
-    this.composer.render(dt);
+    composer.render(dt);
     info.autoReset = true;
   }
 
@@ -222,11 +247,19 @@ export class UltraPipeline {
     }
   }
 
-  /** A new sample count needs new render targets. */
+  /**
+   * A new sample count needs new render targets. Only the scene needs multisampling and depth;
+   * the passes after it draw full-screen pictures, so their target saves that memory
+   * (decision 0246: the full Ultra ran the Xbox out of graphics memory).
+   */
   private followSamples(samples: number) {
     if (samples === this.samples) return;
     this.samples = samples;
-    this.composer.reset(this.target(samples));
+    const composer = this.composer;
+    composer.renderTarget1.dispose();
+    composer.renderTarget2.dispose();
+    composer.renderTarget1 = composer.writeBuffer = this.target(0, false);
+    composer.renderTarget2 = composer.readBuffer = this.target(samples);
     this.setSize(this.width, this.height, this.pixelRatio);
   }
 

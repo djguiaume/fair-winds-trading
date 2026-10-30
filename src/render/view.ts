@@ -182,7 +182,6 @@ export class GameView {
   ) {
     this.renderer = new THREE.WebGLRenderer({
       canvas,
-      // Ultra may step down to High, which then needs it; Ultra itself multisamples its own.
       antialias: QUALITY[level].antialias,
       powerPreference: 'high-performance',
       stencil: false,
@@ -732,7 +731,8 @@ export class GameView {
     }
 
     if (ultra) ultra.render(dt, day.night);
-    else this.renderer.render(this.scene, this.camera);
+    else if (!this.ultra?.renderHigh(dt, this.profile))
+      this.renderer.render(this.scene, this.camera);
   }
 
   /** Bumped whenever a town's look may change: its pictures are taken again (decision 0211). */
