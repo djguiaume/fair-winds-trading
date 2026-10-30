@@ -13,6 +13,10 @@ through one `SaveStorage` door in `src/sim/save.ts`.
 
 The full research, costs and timeline are in [docs/stores/porting-plan.md](../stores/porting-plan.md).
 
+## Update (2026-10-30)
+
+Guillaume approved the store order from the whole-game review: **Steam with a free web demo first, phones second, Xbox last**. The plan stays parked. Before any store build: a stranger playtest (#364), the licence decision (the public repo has none), and a short trailer from the v2 look. Where the text below says phones first, this order replaces it; the phone and Xbox details still apply. The Steam build, price and demo ending are a new decision when the plan is unparked.
+
 ## Decision (proposed)
 
 - **Phones first, with one shell:** wrap the same web build in **Capacitor** for Android and iOS.

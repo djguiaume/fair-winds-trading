@@ -71,9 +71,17 @@ store plan of [0204](decisions/0204-selling-on-android-iphone-and-xbox.md) comes
 - **v1.2, "a new look"** ([0222](decisions/0222-a-new-look-smooth-terrain-blue-water-and-forests.md)): the
   *Traffic Architect* look Guillaume approved, on every quality level: smooth rolling terrain from the
   same island data, shores sloping into the sea, depth-coloured blue water, dense forests, haze.
-  Build guide: [v1.2/plan.md](v1.2/plan.md), [brief](v1.2/brief.md); sculpting scope in [0230](decisions/0230-v12-scope-terrain-sculpting-and-the-ocean-moves-to-v13.md), ocean waves moved to v1.3. The v1.0 bug fixes (#255) moved on to v1.3.
-- **The store plan** ([0204](decisions/0204-selling-on-android-iphone-and-xbox.md)): phones first,
-  Xbox after asking ID@Xbox.
+  Build guide: [v1.2/plan.md](v1.2/plan.md), [brief](v1.2/brief.md); sculpting scope in [0230](decisions/0230-v12-scope-terrain-sculpting-and-the-ocean-moves-to-v13.md), ocean waves moved to v1.3. Look v2 becomes the default at the end (#350), `?look=v1` keeps the old look. #255 closed: no known bugs.
+- **v1.3, "Waves you can see"** (tracker #279): wind- and storm-driven waves, depth-aware coasts, scalable GPU water,
+  ocean controls. **v1.3.1, "Boats that ride them"** (#356): heave, pitch and roll, bounded wave effects on sailing.
+  Island and boat reflections are an idea (#285).
+- **v1.4, "Visible upgrades"** (tracker #294): sail, hull and hold upgrades visible on every ship, per-ship looks,
+  shipyard preview. **v1.4.1, "Cosmetics and free sailing"** (#357): cosmetics and figureheads, Free Sailing.
+- **v1.5, "The far seas' story"** ([plan](v1.5/plan.md), tracker #358): data-only story release before the store
+  build: a hazard step per sea, far-goods asks, a chapter after four-winds. Storyteller leads.
+- **The store plan** ([0204](decisions/0204-selling-on-android-iphone-and-xbox.md), parked): after a stranger
+  playtest (#364), a licence decision and a trailer from the v2 look. Order: **Steam with a free web demo first,
+  phones second, Xbox last.**
 - **Polish and extras:** ship cosmetics (sail colours, flags, figureheads), achievements, a real
   **sandbox** mode (everything unlocked, nothing saved; needs its own decision), the **Kids mode**
   rework ([0043](decisions/0043-shelve-kids-mode.md)), "play with these controls" in the editors.
