@@ -27,7 +27,7 @@
       "color": "chimney"
     },
     {
-      "windows": ["w", 0.95, 0.4, 2, 0],
+      "windows": ["w", 0.95, 0.4, 2, 1],
       "pane": 1.5,
       "seed": "variant"
     }

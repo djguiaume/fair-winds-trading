@@ -61,6 +61,7 @@ steps (island-radius units, harbour toward +z; --level n = from that town level)
             picture of its port (decision 0211; heights in radius units; none clears one, --clear all)
   ground    <index> [--ramp] --material <palette.json ground: grass, rock, snow, ice…> [--height h] [--beach w (a coast ground: its beach width)]
             [--smooth 0..1 (the new look's rounding: 0 stays faceted, a stack or crater rim; 1 the default)]
+            [--outline "x,z x,z …" (a new outline for a raised ground)]
   sculpt    hand terrain, brush by brush (help below); also steps {"do":"sculpt",…} in --steps
   tidy      rewrite the file in the builder's format (any step does)
 options: --steps steps.json (or '[{"do":"prop",…}]': a list of steps as data, see src/editor/island/steps.ts)
@@ -217,6 +218,7 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
         height: num(args.height),
         beach: num(args.beach),
         smooth: num(args.smooth),
+        outline: pointList(args.outline) as [number, number][] | undefined,
       });
     case 'set':
       return clean({

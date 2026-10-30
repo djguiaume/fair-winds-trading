@@ -128,13 +128,15 @@ export type IslandStep =
     }
   /** A river point's own width (decision 0176); no `width`: back to the river's. */
   | { do: 'widen'; river: number; point: number; width?: number }
-  /** Changes a raised ground (or with `ramp`, a ramp): its material or height (decision 0168). */
+  /** Changes a raised ground (or with `ramp`, a ramp): its material, height or outline (0168). */
   | {
       do: 'ground';
       index: number;
       ramp?: boolean;
       material?: string;
       height?: number;
+      /** A raised ground's new outline (radius units), e.g. a tier drawn smaller (issue #277). */
+      outline?: [number, number][];
       /** A coast ground's beach width (decision 0175). */
       beach?: number;
       smooth?: number;
@@ -340,6 +342,10 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
       if (step.height !== undefined && 'height' in g) g.height = pos(step.height);
       if (step.beach !== undefined && 'coast' in g) g.beach = pos(step.beach);
       if (step.smooth !== undefined && !step.ramp) setSmooth(g as GroundDef, step.smooth);
+      if (step.outline && 'outline' in g) {
+        if (step.outline.length < 3) throw new Error('an outline needs 3 points or more');
+        g.outline = step.outline;
+      }
       return `${what} ${step.index}`;
     }
     default:

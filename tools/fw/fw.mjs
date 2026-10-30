@@ -19,6 +19,10 @@ const TOOLS = {
     about: 'labelled map of a sea, PNG + SVG, with an overlay',
     module: '/tools/fw/chart.ts',
   },
+  review: {
+    about: 'island review sheets: High and Low, coast chart',
+    module: '/tools/fw/review.ts',
+  },
   quest: { about: 'quest checks, play a quest from a step', module: '/tools/fw/quest.ts' },
   sound: { about: "the game's sounds into files: effects, sea beds, music", file: './sound.mjs' },
   adr: { about: 'next free decision number, new decision file', file: './adr.mjs' },
