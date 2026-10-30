@@ -44,6 +44,9 @@ export const gerstnerUniforms = () => ({
   uCoast: { value: new THREE.Vector4() },
   uCoastReach: { value: new THREE.Vector3() },
   uSeaFoam: { value: new THREE.Vector4() },
+  uSeaWind: { value: new THREE.Vector4(0, -1, 1, 0) },
+  uFoamBreakup: { value: 1 },
+  uFoamCap: { value: new THREE.Color(1, 1, 1) },
 });
 
 type WaveUniforms = { [K in keyof ReturnType<typeof gerstnerUniforms>]: { value: unknown } };
@@ -146,6 +149,17 @@ export class SeaWaves {
     (uniforms.uCoastReach.value as THREE.Vector3).set(c.reach.swell, c.reach.chop, c.reach.ripple);
     const foam = TUNING.waves.foam;
     const rough = Math.min(1, (this.sea.swell.height + this.sea.chop.height) / foam.roughAt);
-    (uniforms.uSeaFoam.value as THREE.Vector4).set(rough, foam.widen, foam.surf, foam.whitecaps);
+    // A coarse grid spreads each crest's foam over wide triangles: it keeps less (never whiter).
+    const grid = Math.min(1, Math.sqrt(foam.fineCell / cell));
+    (uniforms.uSeaFoam.value as THREE.Vector4).set(
+      rough,
+      foam.widen,
+      foam.surf * grid,
+      foam.whitecaps * grid,
+    );
+    const { toX, toY } = this.sea.swell;
+    (uniforms.uSeaWind.value as THREE.Vector4).set(toX, -toY, foam.lee, foam.ahead);
+    uniforms.uFoamBreakup.value = foam.breakup;
+    (uniforms.uFoamCap.value as THREE.Color).set(foam.cap);
   }
 }

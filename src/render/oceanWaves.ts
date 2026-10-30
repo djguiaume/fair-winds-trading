@@ -54,24 +54,31 @@ vec3 waveOffset(vec2 p, vec3 calm) {
  * The coast's calm (issue #281, `sim/coastWaves.ts`): each band's share of its waves from the
  * bake's depth (red) and exposure (green), the same bytes and formula as the CPU's `bandCalm`.
  * `uCoast` = (floor, sheltered, shelteredAt, openAt), `uCoastReach` = each band's reach.
- * `seaSurf` is left with how much of the swell the seabed breaks here (open water only), for foam.
+ * `seaSurf` is left with how much of the swell the seabed breaks here (open water only), for foam,
+ * and `seaBake` with the bake here.
  */
 const coastShader = /* glsl */ `
 ${seabedUniforms()}
 uniform vec4 uCoast;
 uniform vec3 uCoastReach;
 float seaSurf = 0.0;
+vec2 seaBake = vec2(1.0);
 
 float calmStep(float a, float b, float x) {
   float t = clamp((x - a) / max(b - a, 1e-4), 0.0, 1.0);
   return t * t * (3.0 - 2.0 * t);
 }
 
-vec3 coastCalm(vec2 p) {
+vec2 coastBake(vec2 p) {
   vec2 uv = (p - uDepthBounds.xy) / uDepthBounds.zw;
-  vec2 bake = vec2(1.0);
   if (all(greaterThanEqual(uv, vec2(0.0))) && all(lessThanEqual(uv, vec2(1.0))))
-    bake = texture2D(uDepthMap, uv).rg;
+    return texture2D(uDepthMap, uv).rg;
+  return vec2(1.0);
+}
+
+vec3 coastCalm(vec2 p) {
+  vec2 bake = coastBake(p);
+  seaBake = bake;
   float shelter = mix(uCoast.y, 1.0, calmStep(uCoast.z, uCoast.w, bake.y));
   vec3 deep = vec3(
     calmStep(0.0, uCoastReach.x, bake.x),
@@ -136,6 +143,9 @@ varying float vDepth;
 #ifdef COAST
 // The bands' drawn heights now, so the fragment knows how near a crest it is.
 uniform vec3 uBandHeight;
+// The way the swell runs (scene x, z), the surf's share in a reef's lee (z), how far ahead the
+// windward test looks (w).
+uniform vec4 uSeaWind;
 varying vec3 vSea;
 #endif
 varying vec3 vWorld;
@@ -144,8 +154,9 @@ varying float vFogDepth;
 
 void main() {
   vec4 world = modelMatrix * vec4(position, 1.0);
-  float shore = shoreDistance(world.xz);
-  vec3 offset = seaOffset(world.xz, shore);
+  vec2 rest = world.xz;
+  float shore = shoreDistance(rest);
+  vec3 offset = seaOffset(rest, shore);
   float h = offset.y;
   world.xyz += offset;
   vWorld = world.xyz;
@@ -156,8 +167,10 @@ void main() {
 #endif
 #endif
 #ifdef COAST
-  // How high a crest can stand here (x), the surf (y), the swell's share (z).
-  vSea = vec3(dot(uBandHeight, seaShare), seaSurf, seaShare.x);
+  // How high a crest can stand here (x), the surf (y), the swell's share (z). The surf breaks on
+  // the windward edge, where the seabed rises ahead of the swell; the lee keeps a thinner share.
+  float windward = smoothstep(0.0, 0.06, seaBake.x - coastBake(rest + uSeaWind.xy * uSeaWind.w).x);
+  vSea = vec3(dot(uBandHeight, seaShare), seaSurf * mix(uSeaWind.z, 1.0, windward), seaShare.x);
 #endif
   vHeight = h;
   vec4 mv = viewMatrix * world;

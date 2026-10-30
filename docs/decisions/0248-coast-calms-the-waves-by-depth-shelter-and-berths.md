@@ -34,10 +34,13 @@ uniforms and defines each frame. A sheet floats only its base lift plus both gri
 measured from the live field (`SeaWaves.sag`). `maxWaveHeight()` replaces the 0.68-unit constant.
 Traffic bow waves float on `SeaWaves.heightAt`.
 
-**Foam** (`seaFoam.ts`, soft-foam looks under `?waves=v2`): the shore ring widens, breaks up under
-a drifting value noise and lifts with each crest as the sea gets up (calm sea = the v1.2 ring);
-surf where the seabed breaks the swell (not in sheltered water); sparse whitecaps on the highest
-open-sea crests. Roughness = swell + chop height over `foam.roughAt`.
+**Foam** (`seaFoam.ts`, soft-foam looks under `?waves=v2`, not Ultra-low's plain water): the
+shore ring widens, breaks up under a drifting value noise and lifts with each crest as the sea gets
+up (calm sea = the v1.2 ring); surf where the seabed breaks the swell, full on the windward edge
+(the seabed rising `foam.ahead` units downwind) and `foam.lee` of it behind, never in sheltered
+water; small soft whitecaps streaked along the swell on the highest open-sea crests. Roughness =
+swell + chop height over `foam.roughAt`; a grid coarser than `foam.fineCell` draws less surf and
+whitecaps (Low never whiter than High); no foam whiter than `foam.cap`; `foam.night` of it at night.
 
 **Rivers (#378).** On the new look's ground a river samples the height field (`stand`) at its
 middle and banks instead of the classic tiers, and falls only where that ground drops more than

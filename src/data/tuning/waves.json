@@ -77,8 +77,13 @@
   "foam": {
     "roughAt": 2.4,
     "widen": 0.6,
-    "surf": 0.55,
-    "whitecaps": 0.45,
-    "night": 0.5
+    "breakup": 0.75,
+    "surf": 0.5,
+    "lee": 0.3,
+    "ahead": 6,
+    "whitecaps": 0.4,
+    "night": 0.5,
+    "fineCell": 4,
+    "cap": "#f6f9fb"
   }
 }

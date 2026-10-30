@@ -1,4 +1,4 @@
-import { num, toggle, type TuningMeta } from './tuning-meta-types';
+import { num, text, toggle, type TuningMeta } from './tuning-meta-types';
 
 /** A band's reach on the shelf (`waves.coast.reach`, one per band). */
 const FEELS_BOTTOM = num(
@@ -229,6 +229,39 @@ export const WAVES_META: Readonly<Record<string, TuningMeta>> = {
     undefined,
     'Foam where the seabed breaks the swell: reefs, banks, an open shelf.',
   ),
+  'waves.foam.breakup': num(
+    'Ring breakup',
+    0,
+    1,
+    0.05,
+    undefined,
+    'How much the shore ring breaks up and pulses in the roughest sea (0 = the calm ring).',
+  ),
+  'waves.foam.lee': num(
+    'Surf in the lee',
+    0,
+    1,
+    0.05,
+    undefined,
+    "Share of the surf left on a reef's or bank's lee side; the windward edge keeps all of it.",
+  ),
+  'waves.foam.ahead': num(
+    'Windward look-ahead',
+    1,
+    30,
+    1,
+    'u',
+    'How far downwind the surf looks for the seabed rising, to tell the windward edge from the lee.',
+  ),
+  'waves.foam.fineCell': num(
+    'Full foam grid',
+    1,
+    12,
+    0.5,
+    'u',
+    'Ocean grids this fine or finer draw all the surf and whitecaps; coarser ones (Low) draw less, never whiter than High.',
+  ),
+  'waves.foam.cap': text('Whitest foam', 'No foam on the waves is whiter than this colour (hex).'),
   'waves.foam.night': num(
     'Foam at night',
     0,

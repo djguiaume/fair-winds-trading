@@ -52,6 +52,10 @@ uniform vec4 uFoamLook;
 uniform vec4 uSeaFoam;
 // The foam's share in this light: all of it by day, waves.json › foam.night at night.
 uniform float uFoamNight;
+// The way the swell runs (scene x, z), how much the shore ring breaks up, the whitest foam.
+uniform vec4 uSeaWind;
+uniform float uFoamBreakup;
+uniform vec3 uFoamCap;
 varying vec3 vSea;
 ${seaFoamFunctions}
 #endif
