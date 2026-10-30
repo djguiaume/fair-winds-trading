@@ -138,10 +138,23 @@ export function dimShallow(
   color: THREE.Color,
   light: THREE.Color,
   nightLight: THREE.Color,
-  look: { darken: number; desaturate: number },
+  look: GreyLook,
 ): THREE.Color {
   const span = Math.max(1 - luminance(nightLight), 1e-6);
-  const t = Math.min(1, Math.max(0, (1 - luminance(light)) / span));
+  return greyed(color, Math.min(1, Math.max(0, (1 - luminance(light)) / span)), look);
+}
+
+/** How much darker and greyer a colour gets at full strength. */
+export interface GreyLook {
+  darken: number;
+  desaturate: number;
+}
+
+/**
+ * `color` darker and greyer by `look` at strength `t` (0..1), in place: the night shallows, and
+ * the storm's blue-grey water (issue #282) under the gloom.
+ */
+export function greyed(color: THREE.Color, t: number, look: GreyLook): THREE.Color {
   if (t <= 0) return color;
   const l = luminance(color);
   return color.lerp(grey.setRGB(l, l, l), look.desaturate * t).multiplyScalar(1 - look.darken * t);

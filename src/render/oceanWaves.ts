@@ -28,23 +28,74 @@ export function waveSag(cell: number) {
 }
 
 /**
- * The GPU half of the wave contract: `uWave[i]` = (k.x, k.z, phase, height) and `uWaveShift[i]`
- * = Gerstner shift (x, z), in scene space (z = -sim y), filled by `SeaWaves.writeUniforms` (`seaWaves.ts`).
- * Returns the offset (x, height, z) of the rest point `p` (scene x, z), each band (`SWELL_END`,
- * `CHOP_END`: where its components end) times its share `calm`: the same sum as the CPU's
- * `waveOffsetAt`, plus the cosmetic bands.
+ * The GPU half of the wave contract: `uWave[i]` = (k.x, k.z, phase, drawn height),
+ * `uWaveShift[i]` = Gerstner shift (x, z) and `uWaveFine[i]` = the height the grid can't hold
+ * (`drawCells`), in scene space (z = -sim y), filled by `SeaWaves.writeUniforms` (`seaWaves.ts`).
+ * `bandShare` is a component's band's share `calm` (`SWELL_END`, `CHOP_END`: where each band ends).
  */
-const gerstnerShader = /* glsl */ `
+const waveUniformsShader = /* glsl */ `
 uniform vec4 uWave[WAVE_COUNT];
 uniform vec2 uWaveShift[WAVE_COUNT];
+uniform float uWaveFine[WAVE_COUNT];
+
+float bandShare(int i, vec3 calm) {
+  return i < SWELL_END ? calm.x : (i < CHOP_END ? calm.y : calm.z);
+}
+`;
+
+/**
+ * Returns the offset (x, height, z) of the rest point `p` (scene x, z): the same sum as the CPU's
+ * `waveOffsetAt`, plus the cosmetic bands. Leaves `seaNormal` with the drawn surface's normal
+ * there (not normalized), the cross of its two tangents as the CPU's `waveNormalAt`, and
+ * `seaFine` with the undrawn waves' slope (x, z) and height (y), which only shade: all of them on
+ * Low, the swell's and chop's under `FANCY` (the fragment adds the ripples per pixel).
+ */
+const gerstnerShader = /* glsl */ `
+${waveUniformsShader}
+vec3 seaNormal = vec3(0.0, 1.0, 0.0);
+vec3 seaFine = vec3(0.0);
 
 vec3 waveOffset(vec2 p, vec3 calm) {
   vec3 o = vec3(0.0);
+  // The displaced surface's tangents along rest x and rest z.
+  vec3 tx = vec3(1.0, 0.0, 0.0), tz = vec3(0.0, 0.0, 1.0);
+  seaFine = vec3(0.0);
   for (int i = 0; i < WAVE_COUNT; i++) {
+    vec2 k = uWave[i].xy;
+    float theta = dot(k, p) + uWave[i].z;
+    float share = bandShare(i, calm);
+    float s = sin(theta), c = cos(theta);
+    float a = uWave[i].w * share;
+    vec2 shift = uWaveShift[i] * share;
+    o.xz += shift * c;
+    o.y += a * s;
+    vec3 slope = vec3(-shift.x * s, a * c, -shift.y * s);
+    tx += slope * k.x;
+    tz += slope * k.y;
+#ifdef FANCY
+    if (i >= CHOP_END) continue;
+#endif
+    float f = uWaveFine[i] * share;
+    seaFine += vec3(k.x * f * c, f * s, k.y * f * c);
+  }
+  seaNormal = cross(tz, tx);
+  return o;
+}
+`;
+
+/**
+ * Fragment side (Medium and up): the undrawn ripples' slope (x, z) and height (y) at the rest
+ * point `p`, per pixel: the few waves short enough to fall between a fine grid's points.
+ */
+export const waveFineShader = /* glsl */ `
+${waveUniformsShader}
+vec3 waveFine(vec2 p, float calm) {
+  vec3 o = vec3(0.0);
+  for (int i = CHOP_END; i < WAVE_COUNT; i++) {
     float theta = dot(uWave[i].xy, p) + uWave[i].z;
-    float share = i < SWELL_END ? calm.x : (i < CHOP_END ? calm.y : calm.z);
-    o.xz += uWaveShift[i] * (cos(theta) * share);
-    o.y += uWave[i].w * share * sin(theta);
+    float f = uWaveFine[i] * calm;
+    float c = cos(theta);
+    o += vec3(uWave[i].x * f * c, f * sin(theta), uWave[i].y * f * c);
   }
   return o;
 }
@@ -125,8 +176,37 @@ vec3 seaOffset(vec2 p, float shore) {
 #else
   vec3 o = waveOffset(p);
 #endif
-  return o * mix(1.0, smoothstep(0.0, uShoreCalm.y, shore), uShoreCalm.x);
+  float calm = mix(1.0, smoothstep(0.0, uShoreCalm.y, shore), uShoreCalm.x);
+#ifdef GERSTNER
+  seaNormal.xz *= calm;
+  seaFine *= calm;
+#endif
+  return o * calm;
 }
+`;
+
+/**
+ * What the ocean's fragment shades the Gerstner waves by (not Ultra-low's plain water): the drawn
+ * surface's slope with the waves the grid can't hold, per vertex, and the ripples per pixel from
+ * the rest point (Medium and up). `uWaveLook` = (how faceted, where the detail starts and ends
+ * fading with distance, how much steeper the slopes shade than they stand); `uWaveTone` = (how
+ * much the sun shades the slopes, how much lighter a crest is than a trough, the sea's highest
+ * crest now). Where no glint needs a true normal per pixel, the sky's Fresnel share comes per
+ * vertex too (`VERTEX_SKY`).
+ */
+export const waveShadingVaryings = /* glsl */ `
+uniform vec4 uWaveLook;
+uniform vec3 uWaveTone;
+// The slope (x, z: the normal's over its y), the undrawn waves' height, the detail left here.
+varying vec4 vWave;
+#ifdef FANCY
+// The rest point, and the ripples' share there.
+varying vec3 vRest;
+#endif
+#if defined(DEPTH) && !defined(REFLECT)
+#define VERTEX_SKY
+varying float vSky;
+#endif
 `;
 
 /** The ocean's waves (`seaSurfaceShader`), with what its fragment shader colours and foams by. */
@@ -141,12 +221,22 @@ varying float vDepth;
 #endif
 #endif
 #ifdef COAST
-// The bands' drawn heights now, so the fragment knows how near a crest it is.
+// The bands' heights now (drawn or only shaded), so the fragment knows how near a crest it is.
 uniform vec3 uBandHeight;
 // The way the swell runs (scene x, z), the surf's share in a reef's lee (z), how far ahead the
 // windward test looks (w).
 uniform vec4 uSeaWind;
 varying vec3 vSea;
+#endif
+#if defined(GERSTNER) && !defined(PLAIN)
+${waveShadingVaryings}
+#ifdef VERTEX_SKY
+uniform float uFresnelPower;
+#endif
+// The fine waves and facets fade out toward the horizon, so it never sparkles.
+float waveDetail(float depth) {
+  return 1.0 - smoothstep(uWaveLook.y, uWaveLook.z, depth);
+}
 #endif
 varying vec3 vWorld;
 varying float vHeight;
@@ -175,6 +265,18 @@ void main() {
   vHeight = h;
   vec4 mv = viewMatrix * world;
   vFogDepth = -mv.z;
+#if defined(GERSTNER) && !defined(PLAIN)
+  float near = waveDetail(vFogDepth);
+  vec3 fine = seaFine * near;
+  vWave = vec4(seaNormal.xz / max(seaNormal.y, 0.1) - fine.xz, fine.y, near);
+#ifdef FANCY
+  vRest = vec3(rest, seaShare.z);
+#endif
+#ifdef VERTEX_SKY
+  vec3 toEye = normalize(cameraPosition - world.xyz);
+  vSky = pow(1.0 - max(dot(normalize(seaNormal), toEye), 0.0), uFresnelPower);
+#endif
+#endif
   gl_Position = projectionMatrix * mv;
 }
 `;

@@ -1,9 +1,11 @@
+import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { TUNING } from '../src/data/tuning';
 import { oceanVertexShader } from '../src/render/oceanWaves';
 import { gerstnerDefines, gerstnerUniforms, SeaWaves } from '../src/render/seaWaves';
+import { drawRows } from '../src/render/waveDrawReport';
 import { WAVE_BANDS, createSeaState } from '../src/sim/seaState';
-import { setWaveField, waveOffsetAt } from '../src/sim/waves';
+import { setWaveField, waveNormalAt, waveOffsetAt } from '../src/sim/waves';
 
 const f = Math.fround;
 
@@ -38,6 +40,27 @@ function gpuOffset(
     oy = f(oy + f(f(w[4 * i + 3]! * share) * sin));
   }
   return { x: ox, y: oy, z: oz };
+}
+
+/** The shader's `seaNormal` (normalized): the cross of the displaced surface's two tangents. */
+function gpuNormal(u: ReturnType<typeof gerstnerUniforms>, count: number, x: number, z: number) {
+  const w = u.uWave.value,
+    s = u.uWaveShift.value;
+  const tx = [1, 0, 0],
+    tz = [0, 0, 1];
+  for (let i = 0; i < count; i++) {
+    const kx = w[4 * i]!,
+      kz = w[4 * i + 1]!;
+    const theta = kx * x + kz * z + w[4 * i + 2]!;
+    const slope = [-s[2 * i]! * Math.sin(theta), w[4 * i + 3]! * Math.cos(theta), 0];
+    slope[2] = -s[2 * i + 1]! * Math.sin(theta);
+    for (let j = 0; j < 3; j++) {
+      tx[j]! += slope[j]! * kx;
+      tz[j]! += slope[j]! * kz;
+    }
+  }
+  const n = new THREE.Vector3(...tz).cross(new THREE.Vector3(...tx));
+  return n.normalize();
 }
 
 /** A heavy, wind-driven sea after ten hours of play, physical bands only. */
@@ -84,6 +107,28 @@ describe('CPU/GPU wave contract (0245)', () => {
     expect(worst).toBeLessThan(1e-3);
   });
 
+  it('shades by the very normal the CPU tilts boats by (issue #282)', () => {
+    const waves = heavySea();
+    const field = waves.field;
+    for (let i = 0; i < field.count; i++)
+      if (field.cosmetic[i]) field.amp[i] = field.shiftX[i] = field.shiftY[i] = 0;
+    const u = gerstnerUniforms();
+    waves.writeUniforms(u, 0.1);
+    const offset = { x: 0, y: 0, h: 0 };
+    const cpu = { x: 0, y: 0, z: 0 };
+    let worst = 0;
+    for (let i = 0; i < 100; i++) {
+      const x = ((i * 97) % 1800) - 900,
+        z = ((i * 61) % 1800) - 900;
+      // The CPU asks by the spot the waves carry the rest point to.
+      waveOffsetAt(field, x, -z, offset);
+      waveNormalAt(field, x + offset.x, -z + offset.y, cpu);
+      const gpu = gpuNormal(u, field.count, x, z);
+      worst = Math.max(worst, gpu.angleTo(new THREE.Vector3(cpu.x, cpu.z, -cpu.y)));
+    }
+    expect(worst).toBeLessThan(0.01);
+  });
+
   it('calms each band near the coast by the same share on both sides (issue #281)', () => {
     const waves = heavySea();
     const field = waves.field;
@@ -122,14 +167,35 @@ describe('CPU/GPU wave contract (0245)', () => {
     const waves = heavySea();
     const u = gerstnerUniforms();
     const cell = 10;
-    waves.writeUniforms(u, cell);
+    waves.writeUniforms(u, cell, true);
     const [from, to] = TUNING.waves.drawCells as [number, number];
     for (let i = 0; i < waves.field.count; i++) {
       const cells = waves.field.length[i]! / cell;
       const drawn = u.uWave.value[4 * i + 3]!;
       if (cells <= from) expect(drawn).toBe(0);
       if (cells >= to) expect(drawn).toBeCloseTo(waves.field.amp[i]!, 5);
+      // What the grid can't hold still shades (issue #282): no wave is lost on a per-pixel ocean.
+      expect(drawn + u.uWaveFine.value[i]!).toBeCloseTo(waves.field.amp[i]!, 5);
     }
+    // Per vertex only (Low), the ripples falling between its points would alias: they go.
+    waves.writeUniforms(u, cell, false);
+    for (let i = 0; i < waves.field.count; i++)
+      if (waves.field.length[i]! / cell <= TUNING.waves.shadeCells[0]!)
+        expect(u.uWaveFine.value[i]).toBe(0);
+    const all = waves.field.amp.reduce((sum, a) => sum + a, 0);
+    const bands = u.uBandHeight.value;
+    expect(bands.x + bands.y + bands.z).toBeCloseTo(all, 4);
     expect(oceanVertexShader).toContain('uWave[WAVE_COUNT]');
+  });
+
+  it("reports a finer grid standing no further from the boats' sea (issue #282)", () => {
+    const rows = drawRows();
+    for (const preview of Object.keys(TUNING.waves.previews)) {
+      const off = rows
+        .filter((r) => r.preview === preview)
+        .sort((a, b) => a.cell - b.cell)
+        .map((r) => r.undrawn + r.sag);
+      for (let i = 1; i < off.length; i++) expect(off[i]).toBeGreaterThanOrEqual(off[i - 1]!);
+    }
   });
 });

@@ -118,7 +118,8 @@
     "night": {
       "lanternSize": 0.7,
       "windowGlow": 1.3
-    }
+    },
+    "stormFoam": 0.15
   },
   "water": {
     "reflection": 0.5,
@@ -155,6 +156,11 @@
       "nightShallow": {
         "darken": 0.3,
         "desaturate": 0.375
+      },
+      "storm": {
+        "darken": 0.05,
+        "desaturate": 0.3,
+        "mid": 0.5
       },
       "beds": {
         "island": 24,

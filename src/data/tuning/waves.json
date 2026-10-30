@@ -3,6 +3,7 @@
   "steepLimit": 0.8,
   "inverseSteps": 4,
   "drawCells": [2, 4],
+  "shadeCells": [1.5, 2.5],
   "previews": {
     "calm": {
       "speedKn": 3,
@@ -81,9 +82,18 @@
     "surf": 0.5,
     "lee": 0.3,
     "ahead": 6,
-    "whitecaps": 0.4,
+    "whitecaps": 0.7,
     "night": 0.5,
     "fineCell": 4,
     "cap": "#f6f9fb"
+  },
+  "look": {
+    "facets": 0.35,
+    "detailFrom": 0.8,
+    "detailTo": 1.6,
+    "slopeGain": 2,
+    "shading": 0.6,
+    "crest": 0.25,
+    "crestFloor": 0.4
   }
 }

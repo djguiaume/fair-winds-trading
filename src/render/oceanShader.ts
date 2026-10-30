@@ -1,10 +1,12 @@
 import { shoreShader } from './shoreTexture';
 import { seabedShader } from './seabedTexture';
 import { seaFoamFunctions, seaFoamShader } from './seaFoam';
+import { waveFineShader, waveShadingVaryings } from './oceanWaves';
 
 /**
  * The ocean's colours (`ocean.ts`): flat shaded, by the seabed's depth or the classic shallow
- * tint, shore foam, and on High and Ultra the sky's reflection and the sun's glint.
+ * tint, shore foam, the sky's reflection (High and Ultra, and any faceted depth-coloured sea) and
+ * on High and Ultra the sun's glint.
  */
 export const oceanFragmentShader = /* glsl */ `
 uniform float uTime;
@@ -32,11 +34,18 @@ uniform vec3 uFoam;
 uniform vec3 uFogColor;
 uniform float uFogNear;
 uniform float uFogFar;
-#ifdef REFLECT
+// The sky's Fresnel tint: on every faceted depth-coloured sea too, so Low and Medium match High's
+// colour (issue #282); the glint stays High and Ultra's.
+#if defined(REFLECT) || (defined(DEPTH) && !defined(PLAIN))
+#define SKY
+#endif
+#ifdef SKY
 uniform vec3 uSkyLight;
-uniform vec3 uSunColor;
 uniform float uReflect;
 uniform float uFresnelPower;
+#endif
+#ifdef REFLECT
+uniform vec3 uSunColor;
 uniform float uGlint;
 uniform float uGlintSharpness;
 // Glint fades out between these view heights (sines of the angle above the sea), and peaks at w.
@@ -59,11 +68,18 @@ uniform vec3 uFoamCap;
 varying vec3 vSea;
 ${seaFoamFunctions}
 #endif
+#if defined(GERSTNER) && !defined(PLAIN)
+${waveShadingVaryings}
+#ifdef FANCY
+${waveFineShader}
+#endif
+#endif
 varying vec3 vWorld;
 varying float vHeight;
 varying float vFogDepth;
 
 void main() {
+  float height = vHeight;
 #ifdef PLAIN
   // Ultra-low (decision 0247): no facets; the waves show in the crest colour alone.
   float light = 1.0;
@@ -71,7 +87,27 @@ void main() {
   // Flat shading: one normal per triangle from screen-space derivatives.
   vec3 n = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
   if (n.y < 0.0) n = -n;
-  float light = 0.62 + 0.5 * max(dot(n, uSunDir), 0.0);
+#ifdef GERSTNER
+  // Soft facets (issue #282): the waves' own slope with the ones the grid can't hold (per vertex,
+  // the ripples per pixel), and a share of the facets, all fading out toward the horizon.
+  float near = vWave.w;
+  vec2 slope = vWave.xy;
+  height += vWave.z;
+#ifdef FANCY
+  vec3 fine = waveFine(vRest.xy, vRest.z) * near;
+  slope -= fine.xz;
+  height += fine.y;
+#endif
+  slope = mix(slope, n.xz / max(n.y, 0.1), uWaveLook.x * near);
+  n = normalize(vec3(slope.x, 1.0, slope.y));
+  // The sun shades steeper slopes than stand, so a chop reads from the high camera; the sky's
+  // mirror and the glint keep the true ones.
+  slope *= uWaveLook.w;
+  vec3 shade = normalize(vec3(slope.x, 1.0, slope.y));
+#else
+  vec3 shade = n;
+#endif
+  float light = 0.62 + 0.5 * max(dot(shade, uSunDir), 0.0);
 #endif
 
   // Distance to the nearest beach, for the foam line.
@@ -89,10 +125,16 @@ void main() {
 #endif
   vec3 col = mix(uShallow, uWaterLight, clamp(dep / uDepthLook.x, 0.0, 1.0));
   col = mix(col, uWater, clamp((dep - uDepthLook.x) / (1.0 - uDepthLook.x), 0.0, 1.0));
-  col *= 1.0 + uDepthLook.y * (smoothstep(-0.35, 0.45, vHeight) - 0.5);
-  light = mix(1.0, light, uDepthLook.z);
+#if defined(GERSTNER) && !defined(PLAIN)
+  // Lit crest faces, darker troughs (issue #282), whatever the sea's height.
+  col *= 1.0 + uWaveTone.y * (smoothstep(-0.8, 0.8, height / uWaveTone.z) - 0.5);
+  light = mix(1.0, light, uWaveTone.x);
 #else
-  vec3 col = mix(uWater, uWaterLight, smoothstep(-0.35, 0.45, vHeight));
+  col *= 1.0 + uDepthLook.y * (smoothstep(-0.35, 0.45, height) - 0.5);
+  light = mix(1.0, light, uDepthLook.z);
+#endif
+#else
+  vec3 col = mix(uWater, uWaterLight, smoothstep(-0.35, 0.45, height));
   col = mix(col, uShallow, (1.0 - smoothstep(0.0, 14.0, d)) * 0.85);
 #endif
 #ifdef FANCY
@@ -119,11 +161,17 @@ void main() {
 #endif
 
   col *= light;
-#ifdef REFLECT
+#ifdef SKY
   // The sky mirrored at low angles (Fresnel), and the sun or moon sparkling on the facets.
+#ifdef VERTEX_SKY
+  float fresnel = vSky;
+#else
   vec3 toEye = normalize(cameraPosition - vWorld);
   float fresnel = pow(1.0 - max(dot(n, toEye), 0.0), uFresnelPower);
+#endif
   col = mix(col, uSkyLight, fresnel * uReflect);
+#endif
+#ifdef REFLECT
   // A glint belongs to a low view: looking down at a high sun it would blow out half the screen.
   float glint = pow(max(dot(n, normalize(uSunDir + toEye)), 0.0), uGlintSharpness);
   glint *= 1.0 - smoothstep(uGlintFade.x, uGlintFade.y, toEye.y);

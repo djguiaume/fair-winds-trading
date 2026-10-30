@@ -25,15 +25,15 @@ float foamGrain(vec2 p, float t) {
 `;
 
 /**
- * In `main`: reads `d` (to the shore), `ripple`, `vWorld`, `vHeight`, `vSea` (crest height, surf,
- * swell share), `uSeaFoam` (how rough, ring widening, surf, whitecaps: `waves.json` › `foam`),
- * `uSeaWind` (the swell's way), `uFoamBreakup`, `uFoamCap`, `uFoamNight` and `uFoamLook`; writes
- * `col`. A calm sea keeps the classic ring.
+ * In `main`: reads `d` (to the shore), `ripple`, `vWorld`, `height` (with the waves the grid only
+ * shades), `vSea` (highest crest, surf, swell share), `uSeaFoam` (how rough, ring widening, surf,
+ * whitecaps: `waves.json` › `foam`), `uSeaWind` (the swell's way), `uFoamBreakup`, `uFoamCap`,
+ * `uFoamNight` and `uFoamLook`; writes `col`. A calm sea keeps the classic ring.
  */
 export const seaFoamShader = /* glsl */ `
   float rough = uSeaFoam.x;
   float grain = foamGrain(vWorld.xz, uTime);
-  float lift = vHeight / max(vSea.x, 0.05);
+  float lift = height / max(vSea.x, 0.05);
   float crest = smoothstep(0.0, 0.6, lift);
   float reach = uFoamLook.x + uFoamLook.y * (1.0 + uSeaFoam.y * rough);
   float soft = 1.0 - smoothstep(uFoamLook.x, reach, d + 0.5 * ripple);

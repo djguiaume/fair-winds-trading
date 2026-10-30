@@ -20,6 +20,7 @@ import { questTagsCheck, quickChecks, routeChecks } from '../../src/sim/mapCheck
 import { QUESTS } from '../../src/sim/quests';
 import { densityLines, seaDensity } from '../../src/sim/seaDensity';
 import { berthSpots, calmLines, calmRows, mapCoastGrid } from '../../src/render/coastCalmReport';
+import { drawLines, drawRows } from '../../src/render/waveDrawReport';
 import { type Sectors, sectorChecks } from '../../src/sim/seaSectors';
 
 /** The repository: npm runs the tools from there. */
@@ -71,6 +72,8 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
         empty discs; \`npm run chart -- --sea phase4 --density\` draws them
   calm [--at "x,y x,y"]          how much of the open sea's swell and chop the coast leaves at each
         port's berth (or these points): depth and shelter, the waves.json › coast numbers (#281)
+  drawn                          per quality level and review sea, how far the drawn sea can stand
+        from the one boats float on: the waves its grid only shades, and its sag (#282)
 
 options: --steps steps.json (or '[{"do":"add","what":"reef",…}]': steps as data, src/editor/seaSteps.ts)
          --routes  also the sailing route checks (about 6 s on the grown sea)
@@ -249,6 +252,7 @@ export function seaStepFromArgs(args: Args): SeaStep | null {
     case 'check':
     case 'density':
     case 'calm':
+    case 'drawn':
     case undefined:
       return null;
     default:
@@ -309,6 +313,11 @@ export function run(args: Args): number {
     const at = points(args.at)?.map(([x, y], k) => ({ id: `point ${k + 1}`, x: x!, y: y! }));
     const rows = calmRows(mapCoastGrid(doc), at ?? berthSpots(doc));
     console.log(args.json ? JSON.stringify(rows, null, 1) : calmLines(rows).join('\n'));
+    return 0;
+  }
+  if (args._[0] === 'drawn') {
+    const rows = drawRows();
+    console.log(args.json ? JSON.stringify(rows, null, 1) : drawLines(rows).join('\n'));
     return 0;
   }
   if (args._[0] === 'list' || (!args._.length && !steps.length)) {

@@ -566,7 +566,7 @@ export class GameView {
     this.atmosphere.update(
       dt,
       day,
-      this.world.weather,
+      this.sea.shownWeather(this.world.weather),
       this.ocean,
       this.target,
       haze,
