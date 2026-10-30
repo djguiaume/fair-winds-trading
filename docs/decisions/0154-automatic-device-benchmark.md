@@ -22,3 +22,7 @@ Route, speed, look-ahead, start time and passes live in `src/data/benchmark.json
 ## Consequences
 
 A device test is now one link and one paste, about 4 minutes per sea, and results from different devices and builds compare. The boat does not really sail during the benchmark (sail trim, tacking and collisions are skipped), which is right for measuring drawing and simulation cost but says nothing about handling. Docking, trading and town growth are not part of the route; the desktop Playwright tool (0102) still covers those. `?perf` with `scale` and `fps` stays for free sailing.
+
+## Update (2026-10-30): `aa=1`
+
+Low and Medium draw without antialiasing (only High and Ultra multisample), so hull and shore edges show stair-steps, more so when Low draws fewer pixels (decision 0240). What multisampling costs a weak tablet is unknown, so `?perf` and `?bench` take `aa=1`, which turns it on for every level (the readout's report says "antialias on"). It is a test aid only: the quality table now has an `antialias` flag per level (Low and Medium off, High and Ultra on, as before), and `aa=1` sets it for all. Run `?bench&map=stress&aa=1` next to the same link without it and compare the lines. If the cost is small, Low and Medium get the flag in `quality.ts` and the test aid goes away.

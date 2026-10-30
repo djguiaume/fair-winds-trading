@@ -28,12 +28,10 @@ import {
   FrameMonitor,
   QUALITY,
   type QualityLevel,
-  capQuality,
+  forceAntialias,
   guessQuality,
   lowerQuality,
-  probeGpu,
 } from './render/quality';
-import { UltraTrial } from './render/ultraTrial';
 import { GameView } from './render/view';
 import { SAIL_STEPS, createBoat, knotToUnits } from './sim/boat';
 import { isFar, isGood, isRare, isSpecialty } from './sim/goods';
@@ -139,7 +137,7 @@ import {
 } from './sim/home';
 import { character, firstName } from './ui/portraits';
 import { TransferPanel } from './ui/transferPanel';
-import { TV, startTvMode } from './input/tv';
+import { startTvMode } from './input/tv';
 import { PadLog } from './ui/padLog';
 import { usePadBrand } from './ui/padGlyphs';
 import { askConfirm } from './ui/confirmDialog';
@@ -165,7 +163,7 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 const stage = $('stage');
 
 // Language: the player's choice, else the browser's, else English (decision 0037).
-const settings = loadSettings();
+const settings = loadSettings(location.search);
 // The `?bench` device benchmark (decision 0154) sails a fresh voyage kept in memory with every
 // hazard on and the shifting wind, so runs compare; it never saves the player's settings.
 const benchMode = new URLSearchParams(location.search).has('bench');
@@ -199,7 +197,7 @@ translateDom();
 const canvas = $<HTMLCanvasElement>('scene');
 
 // three.js needs WebGL2 (iOS 15+, Android Chrome since ~2017). Say so instead of a blank page.
-if (!probeGpu().webgl2) {
+if (!document.createElement('canvas').getContext('webgl2')) {
   const help = $('help');
   help.innerHTML = `<div class="sheet-body"><h2>${t('game.title')}</h2><p>${t('webgl.unsupported')}</p></div>`;
   help.hidden = false;
@@ -302,13 +300,9 @@ if (playtestMap) {
   if (!questTest) document.body.append(badge);
 }
 const resumedVoyage = storage ? loadGame(storage, world) : false;
-// The Xbox, and a device where Ultra took the graphics down, stop at High (decision 0244).
-const ultraTrial = new UltraTrial(browserStorage, TUNING.graphics.ultra.trialSeconds);
-const topLevel = () =>
-  capQuality(tvMode ? TV.maxQuality : 'ultra', ultraTrial.failed ? 'high' : 'ultra');
-const pickLevel = () =>
-  settings.quality === 'auto' ? guessQuality(topLevel()) : capQuality(settings.quality, topLevel());
-let level: QualityLevel = pickLevel();
+let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
+const { perfMode, perfScale, frameCap, tilt, antialias } = perfOptions(location.search, benchMode);
+if (antialias) forceAntialias();
 const view = new GameView(canvas, world, level);
 // The sea's sound where she sails, and the effects of what happens (decision 0209).
 const seaListener = new SeaListener(
@@ -316,7 +310,6 @@ const seaListener = new SeaListener(
   (x, y) => view.volcanoSounds(x, y),
   () => world.hazeOff.includes('ash'),
 );
-const { perfMode, perfScale, frameCap, tilt } = perfOptions(location.search, benchMode);
 view.renderScale = perfScale;
 const hud = new Hud(
   world,
@@ -1629,11 +1622,8 @@ const qualityButtons = [...$('quality').querySelectorAll<HTMLButtonElement>('[da
 const showFps = $<HTMLInputElement>('show-fps');
 const qualityNow = $('quality-now');
 const markQuality = () => {
-  for (const b of qualityButtons) {
-    const q = b.dataset.quality as QualityLevel | 'auto';
-    b.setAttribute('aria-checked', String(q === settings.quality));
-    b.disabled = q !== 'auto' && capQuality(q, topLevel()) !== q;
-  }
+  for (const b of qualityButtons)
+    b.setAttribute('aria-checked', String(b.dataset.quality === settings.quality));
 };
 markQuality();
 showFps.checked = settings.showFps;
@@ -1662,7 +1652,7 @@ for (const b of qualityButtons)
     settings.quality = b.dataset.quality as typeof settings.quality;
     keepSettings();
     markQuality();
-    setLevel(pickLevel());
+    setLevel(settings.quality === 'auto' ? guessQuality() : settings.quality);
   });
 const musicVolume = $<HTMLInputElement>('music-volume');
 const musicValue = $('music-volume-value');
@@ -1745,22 +1735,12 @@ resetSaveBtn?.addEventListener('click', async () => {
 
 function setLevel(next: QualityLevel) {
   if (next === level) return;
-  if (level === 'ultra') ultraTrial.stop();
   level = next;
   view.setQuality(level);
   world.traffic.cap = TUNING.seamanship.traffic.atOnce[level];
   chart.fogBlur = QUALITY[level].chartFogBlur;
   describeQuality();
 }
-
-// Graphics lost on Ultra: never Ultra again on this device; leaving early is not a failure.
-canvas.addEventListener('webglcontextlost', () => {
-  if (level !== 'ultra') return;
-  ultraTrial.fail();
-  setLevel('high');
-  markQuality();
-});
-window.addEventListener('pagehide', () => level === 'ultra' && ultraTrial.stop());
 
 // --- Resize ------------------------------------------------------------------------------------
 const size = { w: 1, h: 1 };
@@ -1985,28 +1965,17 @@ function tick(now: number) {
   if (++coachTick % 6 === 0) coach.place();
 
   // The benchmark keeps one level throughout so its passes compare (decision 0154).
-  if (level === 'ultra') ultraTrial.tick(dt);
   if (monitor.sample(dt) && !benchMode && settings.quality === 'auto' && level !== 'low') {
     setLevel(lowerQuality(level));
   }
   hud.setFps(settings.showFps ? monitor.fps : null, hudVisible);
-  if (perf) {
-    const info = view.renderer.info.render;
-    const canvas = view.renderer.domElement;
-    perf.frame({
-      ms: rawMs,
-      counting: mode === 'play' && !paused && hudVisible,
-      level,
-      qualitySetting: settings.quality,
-      drawCalls: info.calls,
-      triangles: info.triangles,
-      canvas: {
-        width: canvas.width,
-        height: canvas.height,
-        pixelRatio: view.renderer.getPixelRatio(),
-      },
-    });
-  }
+  perf?.frame({
+    ms: rawMs,
+    counting: mode === 'play' && !paused && hudVisible,
+    level,
+    qualitySetting: settings.quality,
+    renderer: view.renderer,
+  });
 }
 
 // Stop rendering while the tab is hidden (battery on phones and tablets).
@@ -2112,6 +2081,7 @@ if (perfMode) {
           sea,
           perfScale !== 1 ? `scale ${perfScale}` : '',
           frameCap ? `cap ${frameCap} fps` : '',
+          antialias ? 'antialias forced on' : '',
         ]
           .filter(Boolean)
           .join(' · '),
