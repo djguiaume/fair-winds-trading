@@ -193,7 +193,7 @@
   "settings.haze.ashNote": "Off: clear sight in the volcano's ash",
   "settings.haze.fogNote": "Off: clear sight inside fog banks",
   "settings.waves": "Waves",
-  "settings.wavesNote": "Wind and storm waves; off: the classic sea",
+  "settings.wavesNote": "Wind and storm waves; off by default on Low and Ultra-low",
   "settings.fx.shadows": "Soft shadows",
   "settings.fx.shadowsNote": "Ultra: everything casts a shadow",
   "settings.fx.occlusion": "Ambient occlusion",

@@ -193,7 +193,7 @@
   "settings.haze.ashNote": "Désactivé : on voit clair dans les cendres du volcan",
   "settings.haze.fogNote": "Désactivé : on voit clair dans les bancs de brouillard",
   "settings.waves": "Vagues",
-  "settings.wavesNote": "Vagues du vent et des tempêtes ; désactivé : la mer classique",
+  "settings.wavesNote": "Vagues du vent et des tempêtes ; désactivées par défaut en Bas et Très bas",
   "settings.fx.shadows": "Ombres douces",
   "settings.fx.shadowsNote": "Ultra : tout projette une ombre",
   "settings.fx.occlusion": "Occlusion ambiante",

@@ -59,20 +59,36 @@ const EFFECTS: readonly (keyof GraphicsEffects)[] = [
   'reflection',
 ];
 
+/** What the switches drive: the view's effects and its waves. */
+interface GraphicsView {
+  effects: GraphicsEffects;
+  setWaves(choice: boolean | null): void;
+}
+
 /**
- * One Settings switch per graphics effect (decision 0221), placed after `after` and shown only
- * on the levels that draw it. Left out of `settings.effects` = on. Returns a function that shows
- * the rows for the level in use.
+ * Settings › Waves (decision 0250), then one switch per graphics effect (decision 0221), placed
+ * after `after`. Waves follows the level (`graphics.json › quality.*.waves`: off on Low and
+ * Ultra-low) until the player flips it, then their choice holds on every level; off draws the
+ * classic sea without the waves' shader. An effect shows only on the levels that draw it; left
+ * out of `settings.effects` = on. Returns a function that shows the rows for the level in use.
  */
 export function addEffectSwitches(
   after: Element,
   settings: Settings,
-  effects: GraphicsEffects,
+  view: GraphicsView,
   keep: () => void,
 ): (level: QualityLevel) => void {
+  const { effects } = view;
   const rows = new Map<keyof GraphicsEffects, HTMLElement>();
   effects.msaa = settings.effects.msaa !== false;
-  let previous = after;
+  view.setWaves(settings.waves);
+  const waves = switchRow('waves', 'settings.waves', false, (on) => {
+    settings.waves = on;
+    view.setWaves(on);
+    keep();
+  });
+  after.after(waves);
+  let previous: Element = waves;
   for (const id of EFFECTS) {
     effects[id] = settings.effects[id] !== false;
     const row = switchRow(`fx-${id}`, `settings.fx.${id}`, effects[id], (on) => {
@@ -86,32 +102,8 @@ export function addEffectSwitches(
   }
   return (level) => {
     const profile = QUALITY[level];
+    waves.querySelector('input')!.checked = settings.waves ?? profile.waves;
     for (const [id, row] of rows)
       row.hidden = id === 'reflection' ? !profile.waterReflection : !profile.ultra;
-  };
-}
-
-/**
- * Settings › Waves (decision 0250), placed after `after`: the wind and storm waves, on by default
- * from Medium up (`graphics.json › quality.*.waves`); once the player flips it, their choice holds
- * on every level. Off draws the classic sea, without the waves' shader. Returns a function that
- * shows the switch's state on the level in use.
- */
-export function addWavesSwitch(
-  after: Element,
-  settings: Settings,
-  setWaves: (choice: boolean | null) => void,
-  keep: () => void,
-): (level: QualityLevel) => void {
-  const row = switchRow('waves', 'settings.waves', false, (on) => {
-    settings.waves = on;
-    setWaves(on);
-    keep();
-  });
-  after.after(row);
-  const input = row.querySelector('input')!;
-  setWaves(settings.waves);
-  return (level) => {
-    input.checked = settings.waves ?? QUALITY[level].waves;
   };
 }

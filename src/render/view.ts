@@ -1,7 +1,5 @@
 import * as THREE from 'three';
-import { trueWindAngle } from '../sim/boat';
-import { noGoAngle } from '../sim/ship';
-import { DEG, bearingVector, clamp, wrapAngle } from '../sim/math';
+import { bearingVector, clamp } from '../sim/math';
 import { windTo } from '../sim/wind';
 import { windStrength01 } from '../sim/windStrength';
 import { type World, currentWaypoint } from '../sim/world';
@@ -16,7 +14,7 @@ import {
   buildIslands,
   createBoatModel,
 } from './models';
-import { HEEL_FEEL, Heel, heelFactor } from './heel';
+import { RigPose } from './boatPose';
 import { type BoatFloat, SeaMotion } from './seaMotion';
 import { type Ocean, oceanFor } from './ocean';
 import { ShoreTextureCache } from './shoreTexture';
@@ -125,9 +123,7 @@ export class GameView {
   /** Ship class and upgrade levels the boat model was built for; rebuilt when they change. */
   private boatKey = '';
   private level: QualityLevel;
-  private readonly heel = new Heel();
-  /** How readily the current class leans (decision 0044). */
-  private heelFactor = 1;
+  private readonly rigPose = new RigPose();
   private readonly boatShadow = createBlobShadow(6.5, 14);
   private readonly wake = new Wake(this.sea.heightAt);
   /** Splash and planks from crashes and reef strikes (decision 0208). */
@@ -360,7 +356,7 @@ export class GameView {
   private buildBoat(): BoatModel {
     const { id, upgrades, damage, flag, key } = this.activeBoat();
     this.boatKey = key;
-    this.heelFactor = heelFactor(id);
+    this.rigPose.setShip(id);
     // Quality is a live toggle, not a permanent factory opt-out: Low → Medium must restore ropes.
     const boat = createBoatModel(id, { upgrades, damage, ...(flag ? { flag } : {}) });
     boat.setLowDetail?.(QUALITY[this.level].lowDetail);
@@ -619,35 +615,9 @@ export class GameView {
 
     // Boat pose from the simulation.
     this.refreshBoat();
-    const twa = trueWindAngle(boat.heading, wind);
-    const abs = Math.abs(twa);
-    const lee = twa > 0 ? -1 : 1;
-    const boomMag = (12 + clamp((abs / DEG - 45) / 135, 0, 1) * 68) * DEG;
-    const luff = 1 - clamp((abs - noGoAngle(ship) * 0.8) / (noGoAngle(ship) * 0.3), 0, 1);
-    const heel = this.heel.update(
-      {
-        twa,
-        noGoAngle: noGoAngle(ship),
-        windKn: wind.speedKn,
-        sail: boat.sail,
-        luff,
-        factor: this.heelFactor,
-      },
-      dt,
-      HEEL_FEEL[this.profile.lowDetail ? 'smooth' : 'lively'],
+    this.boat.update(
+      this.rigPose.update(boat, wind, ship, time, dt, this.profile.lowDetail, this.motion.share),
     );
-    const shake =
-      boat.sinceBump < 0.4
-        ? Math.sin(time * 60) * (0.4 - boat.sinceBump) * 0.4 * this.motion.share
-        : 0;
-    this.boat.update({
-      sail: boat.sail,
-      boomAngle: lee * boomMag * (1 - luff * 0.7),
-      luff,
-      heel: heel + shake,
-      windRelative: wrapAngle(windTo(wind) - boat.heading),
-      time,
-    });
     const yaw = -boat.heading;
     const fx = pos.x + dir.x * 5;
     const fz = pos.z - dir.y * 5;

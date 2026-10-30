@@ -24,15 +24,18 @@ const SWITCHES = [
 export class CameraControls {
   private readonly compass: CompassCamera;
   private readonly orbit: CameraOrbit;
+  private readonly rig: CameraRig;
+  private readonly motion: SeaMotion;
 
   constructor(
-    private readonly rig: CameraRig,
-    private readonly motion: SeaMotion,
+    view: { rig: CameraRig; motion: SeaMotion },
     input: Input,
     private readonly settings: Settings,
     keep: () => void,
     tilt = 0,
   ) {
+    const rig = (this.rig = view.rig);
+    this.motion = view.motion;
     const orbit = (this.orbit = rig.orbit);
     if (tilt) orbit.set(0, tilt);
     input.onZoom = (f) => rig.setZoom(rig.zoom * f);

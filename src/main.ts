@@ -99,12 +99,7 @@ import {
 import { Hud } from './ui/hud';
 import { CameraControls } from './ui/cameraControls';
 import { loadSettings, saveSettings } from './ui/settings';
-import {
-  addEffectSwitches,
-  addQualityButtons,
-  addWavesSwitch,
-  switchRow,
-} from './ui/graphicsSettings';
+import { addEffectSwitches, addQualityButtons, switchRow } from './ui/graphicsSettings';
 import type { Bench } from './perf/bench';
 import type { PerfReadout } from './perf/perfReadout';
 import { perfOptions } from './perf/perfOptions';
@@ -1479,7 +1474,7 @@ dayNight.addEventListener('change', () => {
   keepSettings();
 });
 
-const camera = new CameraControls(view.rig, view.motion, input, settings, keepSettings, tilt);
+const camera = new CameraControls(view, input, settings, keepSettings, tilt);
 
 // Weather and storms can be turned off like every hazard (decision 0067; pirates will follow in
 // Phase 5). Without weather there are no storms either, so that switch is greyed out.
@@ -1632,23 +1627,12 @@ const markQuality = () => {
 };
 markQuality();
 showFps.checked = settings.showFps;
-// Graphics effects (decision 0221): a switch each, under the level that draws it.
-const showEffects = addEffectSwitches(
-  $('quality').closest('.set-row')!,
-  settings,
-  view.effects,
-  keepSettings,
-);
-const showWaves = addWavesSwitch(
-  $('quality').closest('.set-row')!,
-  settings,
-  (choice) => view.setWaves(choice),
-  keepSettings,
-);
+// Waves (decision 0250) and graphics effects (0221): a switch each, under the level that draws it.
+const qualityRow = $('quality').closest('.set-row')!;
+const showEffects = addEffectSwitches(qualityRow, settings, view, keepSettings);
 const describeQuality = () => {
   qualityNow.textContent = t('settings.nowUsing', { level: t(`settings.${level}`) });
   showEffects(level);
-  showWaves(level);
 };
 describeQuality();
 
