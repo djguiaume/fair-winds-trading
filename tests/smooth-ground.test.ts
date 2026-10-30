@@ -8,7 +8,12 @@ import { coastDistance } from '../src/sim/coast';
 import { createRng } from '../src/sim/rng';
 import { fbm, valueNoise } from '../src/sim/noise';
 import { smoothField } from '../src/sim/smoothField';
-import { designPalette, fieldGround, fieldGroundTexture } from '../src/render/models/fieldGround';
+import {
+  designPalette,
+  fieldGround,
+  fieldGroundTexture,
+  groundTexels,
+} from '../src/render/models/fieldGround';
 import { facetedGround } from '../src/render/models/ground';
 import { applySteps } from '../src/editor/island/steps';
 
@@ -169,15 +174,30 @@ describe('the new look ground mesh', () => {
 
   it('colours by zone: green flat tops, warm sandstone slopes, never grey', () => {
     const f = smoothField(plateau(10));
-    const texels = fieldGroundTexture(f, designPalette('fish')).image.data as Uint8Array;
-    const at = (i: number, j: number) =>
-      Array.from(texels.slice((j * 40 + i) * 4, (j * 40 + i) * 4 + 3));
+    const { image } = fieldGroundTexture(f, designPalette('fish'));
+    const texels = image.data as Uint8Array;
+    // The field's sample (i, j), on a small island's finer texture (issue #277).
+    const t = groundTexels(f);
+    const at = (i: number, j: number) => {
+      const k = j * t * image.width + i * t;
+      return Array.from(texels.slice(k * 4, k * 4 + 3));
+    };
     const [r, gr, b] = at(20, 20);
     expect(gr).toBeGreaterThan(r!);
     expect(gr).toBeGreaterThan(b!);
     const [er, eg, eb] = at(16, 20);
     expect(er).toBeGreaterThan(eb! + 20);
     expect(er).toBeGreaterThan(eg! * 0.95);
+  });
+
+  it('gives a small island a finer texture, its mesh on the same texels (issue #277)', () => {
+    const f = smoothField(plateau(10));
+    const t = groundTexels(f);
+    expect(t).toBeGreaterThan(1);
+    const { image } = fieldGroundTexture(f, designPalette('fish'));
+    expect(image.width).toBe((f.w - 1) * t + 1);
+    const g = fieldGround(f, 1);
+    expect(g.attributes.uv!.getX(1)).toBeCloseTo((t + 0.5) / image.width, 6);
   });
 });
 

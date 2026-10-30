@@ -49,6 +49,10 @@
     "foamWidth": 3.6,
     "foamStrength": 0.8,
     "foamLine": 0.15,
+    "shoreCalm": {
+      "sag": 0.5,
+      "units": 8
+    },
     "haze": {
       "amount": 0.35,
       "duskFade": 0.5,

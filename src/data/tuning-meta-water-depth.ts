@@ -162,4 +162,20 @@ export const WATER_DEPTH_META: Readonly<Record<string, TuningMeta>> = {
     'share',
     'How much of the haze rain and storms take away, so they stay dark rather than milky.',
   ),
+  'graphics.water.shoreCalm.sag': num(
+    'Shore calm sag',
+    0.1,
+    2,
+    0.05,
+    'units',
+    'Near the shore the waves calm fully on an ocean grid this coarse (its flat triangles part this far from the waves), less on finer grids, so they never stand over a low beach. Low is about 0.5, High about 0.05.',
+  ),
+  'graphics.water.shoreCalm.units': num(
+    'Shore calm reach',
+    1,
+    30,
+    1,
+    'units',
+    'How far from the shore the waves calm on a coarse ocean grid.',
+  ),
 };

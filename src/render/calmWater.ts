@@ -3,7 +3,8 @@ import { coastDistance } from '../sim/coast';
 import { smoothOutline } from '../sim/flowShapes';
 import type { WindZoneDef } from '../sim/map';
 import { zonesTuning } from '../sim/windZones';
-import type { Ocean } from './ocean';
+import { MAX_WAVE_HEIGHT, type Ocean } from './ocean';
+import { waveSag } from './oceanWaves';
 import { type ShoreTexture, shoreShader } from './shoreTexture';
 
 /**
@@ -16,6 +17,7 @@ import { type ShoreTexture, shoreShader } from './shoreTexture';
 
 const vertexShader = /* glsl */ `
 uniform float uTime;
+uniform float uLift;
 attribute float aEdge;
 attribute float aGlassy;
 varying float vEdge;
@@ -31,8 +33,9 @@ float wave(vec2 p) {
 
 void main() {
   vec4 world = modelMatrix * vec4(position, 1.0);
-  // Just above the water, on the same waves as the ocean.
-  world.y += wave(world.xz) + 0.12;
+  // Just above the water, on the same waves as the ocean, clear of its sag between grid points
+  // (waveSag, issue #277).
+  world.y += wave(world.xz) + uLift;
   vWorld = world.xyz;
   vEdge = aEdge;
   vGlassy = aGlassy;
@@ -91,6 +94,9 @@ void main() {
   #include <colorspace_fragment>
 }
 `;
+
+/** The calm sheet's height over the true waves (units). */
+const LIFT = 0.12;
 
 /** Grid spacing of a zone's sheet (units): fine enough to ride the waves, as the currents do. */
 const STEP = 3;
@@ -157,6 +163,7 @@ export class CalmWater {
       depthWrite: false,
       uniforms: {
         uTime: { value: 0 },
+        uLift: { value: LIFT },
         uShoreMap: { value: shore.texture },
         uShoreBounds: { value: shore.bounds },
         uWater: { value: new THREE.Color() },
@@ -195,6 +202,8 @@ export class CalmWater {
     const from = ocean.mesh.material.uniforms;
     const u = this.material.uniforms;
     u.uTime!.value = time;
+    // Over the ocean's sag, and over the waves where they calm by the shore.
+    u.uLift!.value = LIFT + Math.max(waveSag(ocean.cell), ocean.shoreCalm * MAX_WAVE_HEIGHT);
     (u.uWater!.value as THREE.Color).copy(from.uWater!.value as THREE.Color);
     (u.uWaterLight!.value as THREE.Color).copy(from.uWaterLight!.value as THREE.Color);
     (u.uFogColor!.value as THREE.Color).copy(from.uFogColor!.value as THREE.Color);

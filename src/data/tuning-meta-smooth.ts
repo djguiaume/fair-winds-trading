@@ -186,4 +186,20 @@ export const SMOOTH_META: Readonly<Record<string, TuningMeta>> = {
     'units',
     'Height of each band of cliff colour on slopes, like the classic tiers’ layers.',
   ),
+  'terrain.draw.fineTexels': num(
+    'Fine ground texture',
+    64,
+    1024,
+    32,
+    'texels',
+    'A small island’s ground colours get several texels per field sample, up to this many across, so its zone edges stay crisp up close.',
+  ),
+  'terrain.draw.fineMax': num(
+    'Most texels per sample',
+    1,
+    4,
+    1,
+    '',
+    'The most texels per field sample in a small island’s ground colours (1: one per sample everywhere).',
+  ),
 };

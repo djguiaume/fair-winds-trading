@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
 import { CalmWater } from '../src/render/calmWater';
+import { waveHeight } from '../src/render/ocean';
+import { waveSag } from '../src/render/oceanWaves';
 import { shoreTexture } from '../src/render/shoreTexture';
 import type { WindZoneDef } from '../src/sim/map';
 
@@ -44,5 +46,36 @@ describe('calm water in wind zones (decision 0144)', () => {
     const calm = new CalmWater(PHASE1_MAP.windZones ?? [], shore);
     expect(calm.root.children).toHaveLength(0);
     calm.dispose();
+  });
+});
+
+describe('the calm sheet over a coarse ocean grid (issue #277)', () => {
+  /** The ocean's flat triangle over (x, z), on a grid `cell` apart, at time t, above the waves. */
+  const rise = (x: number, z: number, cell: number, t: number) => {
+    const i = Math.floor(x / cell) * cell,
+      j = Math.floor(z / cell) * cell;
+    const fx = (x - i) / cell,
+      fz = (z - j) / cell;
+    const h = (a: number, b: number) => waveHeight(a, b, t);
+    // PlaneGeometry splits each square on the diagonal from (i, j+cell) to (i+cell, j).
+    const flat =
+      fx + fz <= 1
+        ? h(i, j) + fx * (h(i + cell, j) - h(i, j)) + fz * (h(i, j + cell) - h(i, j))
+        : h(i + cell, j + cell) +
+          (1 - fx) * (h(i, j + cell) - h(i + cell, j + cell)) +
+          (1 - fz) * (h(i + cell, j) - h(i + cell, j + cell));
+    return flat - h(x, z);
+  };
+
+  it('bounds how far every level’s ocean stands over the true waves', () => {
+    for (const cell of [480 / 48, 480 / 80, 480 / 120, 480 / 160]) {
+      let worst = 0;
+      for (let k = 0; k < 4000; k++) {
+        const x = (k * 7.31) % 200,
+          z = (k * 3.97) % 200;
+        worst = Math.max(worst, rise(x, z, cell, k * 0.37));
+      }
+      expect(worst).toBeLessThanOrEqual(waveSag(cell));
+    }
   });
 });
