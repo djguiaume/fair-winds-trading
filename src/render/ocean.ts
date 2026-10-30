@@ -48,6 +48,7 @@ export function oceanFor(
     fancy: profile.fancyWater,
     reflect: profile.waterReflection,
     plain: profile.plain,
+    ultra: profile.ultra,
     seabed: terrain === 'v2' ? seabed : undefined,
     gerstner,
     coast: gerstner ? seabed : undefined,
@@ -64,6 +65,8 @@ export interface WaterLook {
   reflect?: boolean;
   /** Shore and depth read per vertex and no per-pixel lighting (Ultra-low, decision 0247). */
   plain?: boolean;
+  /** Ultra's tone mapping (decision 0221): its shore foam lifts under a storm to keep reading. */
+  ultra?: boolean;
   /** Coloured by the seabed's depth and the sea's own colours (`?look=v2`, issue #274). */
   seabed?: SeabedTexture;
   /** The wind and storm driven Gerstner waves (`?waves=v2`, decision 0245). */
@@ -118,6 +121,8 @@ export class Ocean {
   private readonly shallowLight = new THREE.Color(1, 1, 1);
   /** 0 = clear … 1 = under the darkest storm: the mid and deep water grey toward slate blue (#282). */
   private gloom = 0;
+  /** How much stronger the shore foam is under the darkest storm (Ultra's `stormFoam`, else 0). */
+  private readonly stormFoam: number;
 
   constructor(
     islands: readonly IslandDef[],
@@ -129,6 +134,7 @@ export class Ocean {
     borrowedMaterial?: THREE.ShaderMaterial,
   ) {
     this.cell = size / segments;
+    this.stormFoam = look.ultra ? TUNING.graphics.ultra.stormFoam : 0;
     this.sag = waveSag(this.cell);
     const shore = borrowedShore ?? shoreTexture(islands, terrain);
     this.ownsShore = !borrowedShore;
@@ -282,7 +288,8 @@ export class Ocean {
     u.uFresnelPower!.value = w.fresnelPower;
     u.uGlintSharpness!.value = w.glintSharpness;
     (u.uGlintFade!.value as THREE.Vector3).set(w.glintFadeFrom, w.glintFadeTo, w.glintMax);
-    (u.uFoamLook!.value as THREE.Vector4).set(w.foamInner, w.foamWidth, w.foamStrength, w.foamLine);
+    const foam = w.foamStrength * (1 + this.stormFoam * this.gloom);
+    (u.uFoamLook!.value as THREE.Vector4).set(w.foamInner, w.foamWidth, foam, w.foamLine);
     (u.uShoreCalm!.value as THREE.Vector2).set(this.shoreCalm, w.shoreCalm.units);
     if (this.depth) {
       (u.uDepthLook!.value as THREE.Vector3).set(w.depth.midAt, w.depth.crest, w.depth.shading);

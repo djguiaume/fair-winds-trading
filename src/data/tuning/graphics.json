@@ -118,7 +118,8 @@
     "night": {
       "lanternSize": 0.7,
       "windowGlow": 1.3
-    }
+    },
+    "stormFoam": 0.15
   },
   "water": {
     "reflection": 0.5,

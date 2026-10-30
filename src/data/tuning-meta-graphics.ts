@@ -218,6 +218,14 @@ export const GRAPHICS_META: Readonly<Record<string, TuningMeta>> = {
     '×',
     'Lit windows at night on Ultra, brighter to make up for the shade of the occlusion.',
   ),
+  'graphics.ultra.stormFoam': num(
+    'Storm shore foam',
+    0,
+    1,
+    0.05,
+    'share',
+    "How much stronger Ultra's shore foam ring is under the darkest storm, so it reads through the tone mapping (issue #282).",
+  ),
   'graphics.water.reflection': num(
     'Sky reflection',
     0,

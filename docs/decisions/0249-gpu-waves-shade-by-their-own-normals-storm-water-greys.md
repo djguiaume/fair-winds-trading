@@ -38,7 +38,9 @@ water (decision 0247) is unchanged.
 colour by a share of that (`graphics.json › water.depth.storm`, art director round 1: 0.3 grey,
 0.05 darker, half on the mid water so the ring round an island stays lighter); the shallows and
 the island light are left to the storm light of decision 0067. The night floor still lifts them
-(never black).
+(never black). On Ultra the shore foam ring grows by `ultra.stormFoam` (15%) under the gloom, so it
+reads through the tone mapping. The storm look is judged on a device too: the headless shots draw
+High slowly, so its gloom lags behind Low's there.
 `?waves=storm` brings the storm's gloom too, so a review shows the whole storm look. The
 atmosphere's gloom no longer runs past 0..1 when the clock jumps back.
 
