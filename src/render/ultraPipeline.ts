@@ -66,6 +66,8 @@ export class UltraPipeline {
   private pixelRatio = 1;
   private aoResolution = 0;
   private readonly hazeNight = new THREE.Color();
+  /** The canvas was made with multisampling (it cannot change later). */
+  private readonly canvasAntialias: boolean;
 
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
@@ -75,6 +77,7 @@ export class UltraPipeline {
     /** Which effects are on: the player's Settings, shared with the view. */
     private readonly effects: Readonly<GraphicsEffects>,
   ) {
+    this.canvasAntialias = !!renderer.getContext().getContextAttributes()?.antialias;
     this.composer = new EffectComposer(renderer, this.target(0));
     this.composer.addPass(new RenderPass(scene, camera));
     this.occlusion = new GTAOPass(scene, camera);
@@ -182,14 +185,17 @@ export class UltraPipeline {
   }
 
   /**
-   * High after Ultra: the canvas was made without anti-aliasing (Ultra brings its own), so the
-   * scene still goes through the multisampled target, with no effects (decision 0246).
+   * A level below Ultra after a step down. A canvas made for Ultra has no anti-aliasing of its own
+   * (decision 0246), so a level that wants it goes through the multisampled target with no
+   * effects. False when the view should draw the frame itself.
    */
-  renderPlain(dt: number) {
+  renderHigh(dt: number, level: { antialias: boolean }): boolean {
+    if (!level.antialias || this.canvasAntialias) return false;
     this.occlusion.enabled = false;
     this.grade.enabled = false;
     this.compose(dt);
     this.grade.enabled = true;
+    return true;
   }
 
   private compose(dt: number) {

@@ -32,7 +32,7 @@ Xbox-only Ultra, no cap at High):
 
 - Ultra's canvas has no multisampling (`QUALITY.ultra.antialias: false`). After a step down to
   High on that canvas, the view draws High through Ultra's multisampled target with no effects
-  (`UltraPipeline.renderPlain`), so High stays smooth.
+  (`UltraPipeline.renderHigh`), so High stays smooth.
 - The composer keeps one multisampled target with depth for the scene pass and one plain target
   without depth for the passes after it; each frame starts with the scene's target as the read
   buffer.
