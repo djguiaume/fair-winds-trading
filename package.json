@@ -24,6 +24,7 @@
     "quest": "node tools/fw/fw.mjs quest",
     "race": "node tools/fw/fw.mjs quest race",
     "chart": "node tools/fw/fw.mjs chart",
+    "review": "node tools/fw/fw.mjs review",
     "sound": "node tools/fw/fw.mjs sound"
   },
   "dependencies": {

@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import { TUNING } from '../data/tuning';
 import { knotToUnits } from '../sim/boat';
-import { insetOutline } from '../sim/coast';
+import { coastDistance } from '../sim/coast';
 import { laneShape } from '../sim/currents';
 import { smoothOutline } from '../sim/flowShapes';
 import type { CurrentDef } from '../sim/map';
 import type { Ocean } from './ocean';
+import { waveSag } from './oceanWaves';
 import { type ShoreTexture, shoreShader } from './shoreTexture';
 
 /**
@@ -22,9 +23,18 @@ const CREST_GAP = 34;
 const DRIFT_SHARE = 0.5;
 /** Width of an area current's crest columns (units). */
 const AREA_COLUMN = 48;
+/**
+ * The most the sheet's points stand apart (units). Its flat triangles sag under the wave crests
+ * between them, so the sheet floats that much higher, or the ocean pokes through it as dark blobs
+ * (issue #277): 6 keeps the lift small at a quarter of the triangles of the calm water's 3.
+ */
+const GRID = 6;
+/** The sheet's height over the true waves, before the ocean grid's own sag. */
+const LIFT = 0.14 + waveSag(GRID);
 
 const vertexShader = /* glsl */ `
 uniform float uTime;
+uniform float uLift;
 attribute vec2 aFlow;
 attribute float aEdge;
 attribute float aEnds;
@@ -45,8 +55,8 @@ float wave(vec2 p) {
 
 void main() {
   vec4 world = modelMatrix * vec4(position, 1.0);
-  // Just above the water: the same waves as the ocean, lifted past the grid's chord error.
-  world.y += wave(world.xz) + 0.14;
+  // Just above the water: the same waves as the ocean, lifted past the grids' chord error.
+  world.y += wave(world.xz) + uLift;
   vWorld = world.xyz;
   vFlow = vec2(aFlow.x - uTime * aDrift, aFlow.y);
   vEdge = aEdge;
@@ -134,13 +144,18 @@ function resample(points: readonly [number, number, number][], step: number) {
   return out;
 }
 
-const ACROSS = [-1, -0.5, 0, 0.5, 1];
+/** Places across a lane (-1 to 1), no more than `GRID` apart on its widest stretch. */
+function acrossLane(widest: number) {
+  const n = Math.max(2, Math.ceil(widest / GRID / 2) * 2);
+  return Array.from({ length: n + 1 }, (_, i) => (2 * i) / n - 1);
+}
 
 function laneGeometry(current: CurrentDef): THREE.BufferGeometry | null {
   const lane = laneShape(current);
   if (!lane) return null;
   const tune = TUNING.weather.currents;
-  const samples = resample(lane.points, 3);
+  const samples = resample(lane.points, GRID);
+  const across = acrossLane(Math.max(...samples.map((p) => p.w)));
   const total = samples[samples.length - 1]?.s ?? 0;
   const drift = current.speedKn * knotToUnits() * DRIFT_SHARE;
   const position: number[] = [],
@@ -155,7 +170,7 @@ function laneGeometry(current: CurrentDef): THREE.BufferGeometry | null {
     const fade = Math.min(1, p.s / tune.endFadeUnits, (total - p.s) / tune.endFadeUnits);
     // Wider, slacker water is a little lighter too.
     const shade = Math.max(0, fade) * (0.55 + 0.45 * slow);
-    for (const v of ACROSS) {
+    for (const v of across) {
       // Left of the flow is (-ty, tx); scene z is -y.
       const x = p.x - p.ty * half * v,
         y = p.y + p.tx * half * v;
@@ -168,7 +183,7 @@ function laneGeometry(current: CurrentDef): THREE.BufferGeometry | null {
     }
   }
   const index: number[] = [];
-  const cols = ACROSS.length;
+  const cols = across.length;
   for (let i = 0; i + 1 < samples.length; i++)
     for (let k = 0; k + 1 < cols; k++) {
       const a = i * cols + k,
@@ -183,38 +198,47 @@ function laneGeometry(current: CurrentDef): THREE.BufferGeometry | null {
 function areaGeometry(current: CurrentDef): THREE.BufferGeometry | null {
   if (!current.outline || current.outline.length < 3) return null;
   const tune = TUNING.weather.currents;
-  const outer = smoothOutline(current.outline);
-  const inner = insetOutline(outer, tune.edgeFadeUnits);
+  const outline = smoothOutline(current.outline);
   const a = ((current.towardDeg ?? 0) * Math.PI) / 180;
   const tx = Math.sin(a),
     ty = Math.cos(a);
   const drift = current.speedKn * knotToUnits() * DRIFT_SHARE;
+  const xs = outline.map((p) => p[0]),
+    ys = outline.map((p) => p[1]);
+  const x0 = Math.min(...xs),
+    y0 = Math.min(...ys);
+  const nx = Math.ceil((Math.max(...xs) - x0) / GRID) + 1,
+    ny = Math.ceil((Math.max(...ys) - y0) / GRID) + 1;
   const position: number[] = [],
     flow: number[] = [],
     edge: number[] = [],
     ends: number[] = [],
     drifts: number[] = [],
     halves: number[] = [];
-  const add = ([x, y]: [number, number], e: number) => {
-    position.push(x, 0, -y);
-    flow.push(x * tx + y * ty, (x * ty - y * tx) / AREA_COLUMN);
-    edge.push(e);
-    ends.push(1);
-    drifts.push(drift);
-    halves.push(-13);
-  };
-  outer.forEach((p) => add(p, 0));
-  inner.forEach((p) => add(p, tune.edgeFadeUnits));
-  const n = outer.length;
+  // A grid over the area, each point knowing how far inside the outline's fade it is.
+  for (let j = 0; j < ny; j++)
+    for (let i = 0; i < nx; i++) {
+      const x = x0 + i * GRID,
+        y = y0 + j * GRID;
+      position.push(x, 0, -y);
+      flow.push(x * tx + y * ty, (x * ty - y * tx) / AREA_COLUMN);
+      edge.push(Math.min(tune.edgeFadeUnits, Math.max(0, -coastDistance(x, y, outline).distance)));
+      ends.push(1);
+      drifts.push(drift);
+      halves.push(-13);
+    }
   const index: number[] = [];
-  // The fade ring between the outline and its inset, then the inset filled.
-  for (let i = 0; i < n; i++) {
-    const j = (i + 1) % n;
-    index.push(i, n + i, j, j, n + i, n + j);
-  }
-  const vectors = inner.map(([x, y]) => new THREE.Vector2(x, y));
-  for (const [p, q, r] of THREE.ShapeUtils.triangulateShape(vectors, []))
-    index.push(n + p!, n + q!, n + r!);
+  for (let j = 0; j + 1 < ny; j++)
+    for (let i = 0; i + 1 < nx; i++) {
+      const p = j * nx + i,
+        q = p + 1,
+        r = p + nx,
+        t = r + 1;
+      // Squares wholly outside the outline are left out.
+      if (!edge[p] && !edge[q] && !edge[r] && !edge[t]) continue;
+      index.push(p, r, q, q, r, t);
+    }
+  if (!index.length) return null;
   return build(position, flow, edge, ends, drifts, halves, index);
 }
 
@@ -254,6 +278,7 @@ export class CurrentWater {
       depthWrite: false,
       uniforms: {
         uTime: { value: 0 },
+        uLift: { value: LIFT },
         uShoreMap: { value: shore.texture },
         uShoreBounds: { value: shore.bounds },
         uWater: { value: new THREE.Color() },
@@ -290,6 +315,7 @@ export class CurrentWater {
     const from = ocean.mesh.material.uniforms;
     const u = this.material.uniforms;
     u.uTime!.value = time;
+    u.uLift!.value = ocean.sheetLift(LIFT);
     (u.uWater!.value as THREE.Color).copy(from.uWater!.value as THREE.Color);
     (u.uWaterLight!.value as THREE.Color).copy(from.uWaterLight!.value as THREE.Color);
     (u.uFogColor!.value as THREE.Color).copy(from.uFogColor!.value as THREE.Color);

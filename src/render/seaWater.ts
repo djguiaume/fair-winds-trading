@@ -126,3 +126,23 @@ export function liftToFloor(color: THREE.Color, floor: THREE.Color): THREE.Color
   const lift = 1 - luminance(color) / Math.max(luminance(floor), 1e-6);
   return lift > 0 ? color.lerp(floor, lift) : color;
 }
+
+const grey = new THREE.Color();
+
+/**
+ * Night shallows (issue #277): darker and greyer than the day ramp under the moon, by how far
+ * `light` (now against the day) has gone toward `nightLight`, so they read as moonlit teal
+ * rather than lit from below. Changes `color` in place.
+ */
+export function dimShallow(
+  color: THREE.Color,
+  light: THREE.Color,
+  nightLight: THREE.Color,
+  look: { darken: number; desaturate: number },
+): THREE.Color {
+  const span = Math.max(1 - luminance(nightLight), 1e-6);
+  const t = Math.min(1, Math.max(0, (1 - luminance(light)) / span));
+  if (t <= 0) return color;
+  const l = luminance(color);
+  return color.lerp(grey.setRGB(l, l, l), look.desaturate * t).multiplyScalar(1 - look.darken * t);
+}

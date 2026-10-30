@@ -27,7 +27,7 @@
         [-0.36, -0.571577],
         [0.36, -0.571577]
       ],
-      "height": 0.25,
+      "height": 0.55,
       "material": "rock"
     }
   ],
@@ -49,7 +49,10 @@
       "size": 0.75,
       "tags": ["after:rimewick-jam"],
       "from": 1
-    }
+    },
+    { "type": "boulder", "x": -0.3, "z": -0.15, "size": 0.6, "from": 1 },
+    { "type": "boulder", "x": 0.12, "z": -0.3, "size": 0.6, "from": 1 },
+    { "type": "boulder", "x": 0.3, "z": 0.2, "size": 0.6, "from": 1 }
   ],
   "woods": {
     "tree": "woodland-snowfir",

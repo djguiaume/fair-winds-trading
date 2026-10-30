@@ -27,7 +27,7 @@
         [-0.25, -0.403109],
         [0.25, -0.403109]
       ],
-      "height": 0.15,
+      "height": 0.4,
       "material": "rock"
     }
   ],
@@ -38,7 +38,10 @@
     { "type": "seal", "x": -0.35, "z": 0.45, "turn": 40, "size": 1.4, "from": 1 },
     { "type": "seal", "x": 0.6, "z": 0.1, "turn": 40, "size": 1.4, "from": 1 },
     { "type": "seal", "x": -0.1, "z": 0.6, "turn": -70, "size": 1.2, "variant": 1, "from": 1 },
-    { "type": "iceberg", "x": -2.3, "z": -0.5, "size": 0.8, "variant": 1, "from": 1 }
+    { "type": "iceberg", "x": -2.3, "z": -0.5, "size": 0.8, "variant": 1, "from": 1 },
+    { "type": "boulder", "x": 0.55, "z": 0.4, "size": 0.6, "from": 1 },
+    { "type": "boulder", "x": -0.6, "z": -0.3, "size": 0.6, "from": 1 },
+    { "type": "boulder", "x": 0.1, "z": -0.68, "size": 0.6, "from": 1 }
   ],
   "woods": {
     "tree": "woodland-snowfir",

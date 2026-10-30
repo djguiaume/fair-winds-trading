@@ -162,7 +162,7 @@ describe('sea colours by place', () => {
 });
 
 describe('depth-coloured ocean', () => {
-  it('draws depth per vertex on Low and per pixel above, and takes a new bake on any level', () => {
+  it('draws depth and the shore per pixel on every level (#277), and takes a new bake on any level', () => {
     const cache = new SeabedTextureCache();
     const seabed = cache.get([square(10, 2)]);
     for (const profile of Object.values(QUALITY)) {
@@ -170,7 +170,7 @@ describe('depth-coloured ocean', () => {
       const ocean = new Ocean([], profile.oceanSegments, look, 480);
       const defines = ocean.mesh.material.defines;
       expect('DEPTH' in defines).toBe(true);
-      expect('VERTEX_SHORES' in defines).toBe(!profile.fancyWater);
+      expect('VERTEX_SHORES' in defines).toBe(false);
       const next = cache.get([square(12, 2)]);
       ocean.setSeabed(next);
       expect(ocean.mesh.material.uniforms.uDepthMap!.value).toBe(next.texture);
@@ -179,10 +179,13 @@ describe('depth-coloured ocean', () => {
     cache.dispose();
   });
 
-  it('keeps the classic water without a bake', () => {
+  it('keeps the classic water without a bake, its Low shore per vertex', () => {
     const ocean = new Ocean([], 8, { fancy: true });
     expect('DEPTH' in ocean.mesh.material.defines).toBe(false);
     ocean.dispose();
+    const low = new Ocean([], 8, { fancy: false });
+    expect('VERTEX_SHORES' in low.mesh.material.defines).toBe(true);
+    low.dispose();
   });
 });
 

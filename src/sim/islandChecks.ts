@@ -1,7 +1,7 @@
+import { cliffDistance } from './islandCliffs';
 import { MAX_SETTLEMENT_LEVEL, SETTLEMENT_LEVELS } from './settlement';
 import { coastDistance } from './coast';
 import {
-  cliffDistance,
   crossesCliff,
   islandLayout,
   layoutGround,

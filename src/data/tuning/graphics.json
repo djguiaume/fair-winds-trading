@@ -49,6 +49,10 @@
     "foamWidth": 3.6,
     "foamStrength": 0.8,
     "foamLine": 0.15,
+    "shoreCalm": {
+      "sag": 0.5,
+      "units": 8
+    },
     "haze": {
       "amount": 0.35,
       "duskFade": 0.5,
@@ -65,6 +69,10 @@
       "crest": 0.12,
       "shading": 0.35,
       "seaBlend": 80,
+      "nightShallow": {
+        "darken": 0.3,
+        "desaturate": 0.375
+      },
       "beds": {
         "island": 24,
         "sandbank": 24,

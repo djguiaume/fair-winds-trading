@@ -1,6 +1,10 @@
 import { STYLES } from '../data/grounds';
 import type { IslandDef, TerrainDef } from './map';
 import { coastDistance, insetOutline } from './coast';
+import { cliffDistance } from './islandCliffs';
+
+// The cliff distance moved out to its own file; the builder still reads it from here.
+export { cliffDistance };
 import { atLevel, designOf, islandDesign, type IslandDesign, type RampDef } from '../data/islands';
 
 /** An island style id (palette.json › styles, decision 0168). */
@@ -143,13 +147,15 @@ export function layoutGround(
   if (layout.lake && coastDistance(x, z, layout.lake).distance < margin) return null;
   if (!layout.surfaces.some((s) => s.slope) && !layout.ramps.length) {
     let height: number | null = null;
+    const edges: number[] = [];
     for (const s of layout.surfaces) {
       const d = coastDistance(x, z, s.outline).distance;
-      if (Math.abs(d) < margin) return null;
-      if (d < -margin && !s.holes?.some((h) => coastDistance(x, z, h).distance < margin))
+      if (Math.abs(d) < margin) edges.push(s.height);
+      else if (d < -margin && !s.holes?.some((h) => coastDistance(x, z, h).distance < margin))
         height = Math.max(height ?? 0, s.height);
     }
-    return height;
+    // Edges of lower ground buried under this ground are no cliffs (issue #277).
+    return edges.some((h) => h >= (height ?? 0)) ? null : height;
   }
   if (margin > 0 && cliffDistance(layout, x, z) < margin) return null; // (never < 0: skip the walk)
   let height = rampHeight(layout, x, z, margin);
@@ -271,29 +277,6 @@ export function edgeDistance(
     const l = dx * dx + dz * dz;
     const t = l ? Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / l)) : 0;
     best = Math.min(best, Math.hypot(x - ax - dx * t, z - az - dz * t));
-  }
-  return best;
-}
-
-/**
- * Distance to the nearest cliff: every edge of raised ground and its holes, but sloped ones, and
- * a ramp's sides. On a ramp only its sides count: it runs over the cliffs it climbs.
- */
-export function cliffDistance(layout: IslandLayout, x: number, z: number) {
-  let best = Infinity,
-    onRamp = false;
-  for (const r of layout.ramps) {
-    const side = rampAt(r, x, z).distance - r.width / 2;
-    if (side <= 0) onRamp = true;
-    best = Math.min(best, Math.abs(side));
-  }
-  if (onRamp) return best;
-  for (const s of layout.surfaces) {
-    best = Math.min(
-      best,
-      edgeDistance(s.outline, x, z, (i) => !isSloped(s, i)),
-    );
-    for (const h of s.holes ?? []) best = Math.min(best, edgeDistance(h, x, z));
   }
   return best;
 }
