@@ -179,7 +179,17 @@
       "variant": 9,
       "clear": 0.14,
       "from": 3
-    }
+    },
+    { "type": "marram", "x": 0.3, "z": -0.2, "size": 4.4, "from": 1 },
+    { "type": "marram", "x": 0.55, "z": -0.35, "size": 4.4, "from": 1 },
+    { "type": "marram", "x": 0.8, "z": -0.3, "size": 4.4, "from": 1 },
+    { "type": "marram", "x": 0.1, "z": -0.65, "size": 4.4, "from": 1 },
+    { "type": "marram", "x": -0.4, "z": -0.72, "size": 4.4, "from": 1 },
+    { "type": "marram", "x": -1, "z": -0.55, "size": 4.4, "from": 1 },
+    { "type": "driftwood", "x": 0.45, "z": 0.05, "turn": 30, "size": 3.2, "from": 1 },
+    { "type": "driftwood", "x": -1.2, "z": -0.3, "turn": 30, "size": 3.2, "from": 1 },
+    { "type": "boulder", "x": 0.9, "z": -0.1, "size": 1.1, "from": 1 },
+    { "type": "boulder", "x": -0.6, "z": -0.75, "size": 1.1, "from": 1 }
   ],
   "woods": {
     "tree": "woodland-pine",
