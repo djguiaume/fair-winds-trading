@@ -21,9 +21,9 @@ export function overBudget(report, budget) {
   return problems;
 }
 
-/** The new look (`?look=v2`) has its own limits; the classic look keeps the original ones. */
+/** The new look (the default; `?look=v1` is the classic one) has its own limits. */
 export function budgetFor(report, budgets) {
-  return new URL(report.url).searchParams.get('look') === 'v2' ? budgets.newLook : budgets;
+  return new URL(report.url).searchParams.get('look') === 'v1' ? budgets : budgets.newLook;
 }
 
 export function run(reportFile) {

@@ -14,9 +14,10 @@ export interface NewLookGround {
   material: THREE.MeshLambertMaterial;
 }
 
-/** `editor.html?look=v2`: the island builder draws the new look's ground, like the game. */
-export const builderLook: TerrainLook =
-  typeof location === 'undefined' ? 'v1' : terrainLook(location.search);
+/** The island builder draws the new look's ground like the game; `editor.html?look=v1` the classic one. */
+export const builderLook: TerrainLook = terrainLook(
+  typeof location === 'undefined' ? '' : location.search,
+);
 
 /** The island the builder shows: the file at the origin, harbour toward +z, as the game sees it. */
 export function previewIsland(design: IslandDesign, R: number, harbour: boolean): IslandDef {

@@ -136,3 +136,7 @@ Before release, `?bench` on the old tablet decides the Low grid and tree count.
 About 7 to 9 weeks in all: height field and split 3 to 5 days, ground and editors 1 to 2 weeks, coast check about 1 week, water about 1 week, forests 1 to 2 weeks, haze 2 to 3 days, biomes and review about 2 weeks.
 
 **Built (#276, 2026-10-28).** Under `?look=v2`: each sea's `palette.json › water › horizon` (light, blue-leaning, never grey) is blended at the camera with the water ramp (`seaWater.ts`); `atmosphere.ts` fades the sky, and with it the fog (the ocean's fog colour too), toward it by `graphics.json › water.haze.amount` (0.35). Dusk (`duskFade`) and rain or storm (`gloomFade`) take part away, night all of it, so night stays deep blue. No new pass or texture, so no budget change. Night shallows were rechecked with the haze: no cyan glow beyond the `night` floor. Shots: `/mnt/project-files/haze-sky/`.
+
+## Default look (#350, [0241](../decisions/0241-the-new-look-is-the-default-lookv1-keeps-the-classic.md))
+
+The new look (v2) is the default in the game, editors, CLIs and shots. `?look=v1` (and `npm run shots -- --look v1`) draws the classic look for comparison.

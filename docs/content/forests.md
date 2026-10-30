@@ -1,6 +1,6 @@
 # Forests (the new look, decision [0236](../decisions/0236-instanced-forests-from-biome-recipes.md))
 
-The new look (`?look=v2`) grows each island's forest from [`src/data/forests.json`](../../src/data/forests.json) and the island file's `woods`. The classic look keeps its own woods (`tree`, `tries`, `spacing`).
+The new look (the default; `?look=v1` is the classic one) grows each island's forest from [`src/data/forests.json`](../../src/data/forests.json) and the island file's `woods`. The classic look keeps its own woods (`tree`, `tries`, `spacing`).
 
 ## An island's woods
 
