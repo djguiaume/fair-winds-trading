@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import type { IslandStyle } from '../../data/islands';
 import { vertexColorMaterial } from '../../render/models/geometry';
 import type { NewLookGround } from './newLook';
+import { disposeFieldGround } from '../../render/models/fieldGroundShader';
 import { PROP_TYPES, type Parts } from '../../render/models/props';
 import { NIGHT, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from '../../render/atmosphere';
 import { BeaconLights } from '../../render/beaconLights';
@@ -64,10 +65,7 @@ const groundMesh = () =>
 /** Shows a view's new-look ground, or none; the views share it and free the old one. */
 function setGround(mesh: THREE.Mesh, ground?: NewLookGround) {
   const old = mesh.material as THREE.MeshLambertMaterial;
-  if (ground?.material !== old) {
-    old.map?.dispose();
-    old.dispose();
-  }
+  if (ground?.material !== old) disposeFieldGround(old);
   if (mesh.geometry !== ground?.geometry) mesh.geometry.dispose();
   mesh.geometry = ground?.geometry ?? new THREE.BufferGeometry();
   mesh.material = ground?.material ?? new THREE.MeshLambertMaterial();

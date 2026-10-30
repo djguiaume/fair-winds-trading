@@ -28,6 +28,11 @@ export interface GroundLook {
   glow?: string;
   /** Small dark rocks scattered over its flat tops (decision 0171: moss over old lava). */
   specks?: string;
+  /**
+   * Rock, or grass over a rock cliff: the new look draws its slope and zone edges sharp
+   * (`terrain.json › draw.sharpSlope`, `edge.sharpWidth`; issue #373).
+   */
+  sharp?: boolean;
   /** Woods may grow on it (default true). */
   trees?: boolean;
   /** A beach: what a style's `sand` may become. */

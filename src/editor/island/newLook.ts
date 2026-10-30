@@ -3,12 +3,8 @@ import type { IslandDesign } from '../../data/islands';
 import { designHeightfield } from '../../sim/heightfield';
 import { ISLAND_SCALE } from '../../sim/islandUnits';
 import type { IslandDef } from '../../sim/map';
-import {
-  designPalette,
-  fieldGround,
-  fieldGroundMaterial,
-  fieldGroundTexture,
-} from '../../render/models/fieldGround';
+import { designPalette, fieldGround, fieldGroundTextures } from '../../render/models/fieldGround';
+import { fieldGroundMaterial } from '../../render/models/fieldGroundShader';
 import { type Stand, fieldStand } from '../../render/models/townProps';
 import { type TerrainLook, terrainLook } from '../../render/terrainLook';
 
@@ -47,6 +43,8 @@ export function newLookGround(
   const field = designHeightfield(island, design, level);
   const geometry = fieldGround(field);
   geometry.scale(1 / ISLAND_SCALE, 1 / ISLAND_SCALE, 1 / ISLAND_SCALE);
-  const material = fieldGroundMaterial(fieldGroundTexture(field, designPalette(design.style)));
+  // The game's material at High, told the mesh is scaled down so its bands and noises match.
+  const textures = fieldGroundTextures(field, designPalette(design.style));
+  const material = fieldGroundMaterial(textures, 'high', ISLAND_SCALE);
   return { stand: fieldStand(island, field), ground: { geometry, material } };
 }

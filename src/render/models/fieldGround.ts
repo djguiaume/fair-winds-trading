@@ -9,17 +9,19 @@ import { B2 } from './highlandPalette';
 
 /**
  * The new look's ground (decision 0222, issue #269): one smooth-shaded grid over a height field,
- * and a colour texture at the field's own resolution, coloured by zone from height and slope as
- * the art direction's biome table reads (docs/reviews/art-direction/new-look §2): the wet band at
- * the waterline, each ground's own colours on the flat, mottled a few units across, its slope
- * colours in bands on the slopes. Zones blend over `terrain.json › draw.blend` units with a little
- * jitter on their edges, so they stay crisp storybook shapes rather than smears, on every quality.
+ * and textures at the field's own resolution that its shader (fieldGroundShader.ts, issue #373)
+ * colours per pixel, as the art direction's biome table reads (docs/reviews/art-direction/new-look
+ * §2): each ground's own colours on the flat, mottled a few units across, its slope colours in
+ * bands on the slopes, the wet band at the waterline. Zone edges are jittered on the grid here and
+ * drawn as thin smooth lines by the shader, so they stay crisp storybook shapes on every quality.
  */
 
 /** A ground's colours in the new look: `top` on the flat, `side` on slopes (palette.json). */
 export interface FieldGroundLook {
   top: readonly string[];
   side: readonly string[];
+  /** Rock: its slope and zone edges drawn sharp (palette.json `sharp`). */
+  sharp?: boolean;
 }
 
 /** An island's ground colours: each ground of its field, and the wet band at the waterline. */
@@ -34,7 +36,8 @@ export function designPalette(style: string): FieldPalette {
     look: (ground) => {
       const look = groundColors(ground, style);
       // A beach stays sand where it slopes into the sea: no cliff colours on it.
-      return { top: look.top, side: GROUNDS[look.id]?.beach ? look.top : look.slope };
+      const def = GROUNDS[look.id];
+      return { top: look.top, side: def?.beach ? look.top : look.slope, sharp: def?.sharp };
     },
     wet: STYLES[style]?.wet ?? groundColors('sand', style).side[0]!,
   };
@@ -53,11 +56,6 @@ export function featurePalette(feature: TerrainDef): FieldPalette {
     wet: styleColor('wetsand', '') as string,
   };
 }
-
-const smoothstep = (a: number, b: number, x: number) => {
-  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
-  return t * t * (3 - 2 * t);
-};
 
 /**
  * Heights to draw: the field's own, except under faceted shapes (`smooth` 0), whose classic
@@ -134,27 +132,6 @@ function gridNormals(heights: Float32Array, w: number, h: number, cell: number) 
   return normals;
 }
 
-/** Each vertex's ground, read a jittered step away so zone edges don't follow the grid. */
-function jitteredGrounds(field: Heightfield) {
-  const { w, h, cell, ground, seed } = field;
-  const { jitter } = TUNING.terrain.draw;
-  const out = new Uint8Array(w * h);
-  for (let j = 0; j < h; j++)
-    for (let i = 0; i < w; i++) {
-      const x = field.x0 + i * cell,
-        y = field.y0 + j * cell;
-      const di = Math.round((valueNoise(x * 0.4, y * 0.4, seed + 11) * jitter) / cell),
-        dj = Math.round((valueNoise(x * 0.4, y * 0.4, seed + 23) * jitter) / cell);
-      const ii = Math.min(w - 1, Math.max(0, i + di)),
-        jj = Math.min(h - 1, Math.max(0, j + dj));
-      const k = j * w + i;
-      // Land stays land and sea stays sea: the jitter only moves edges between grounds.
-      const near = ground[jj * w + ii]!;
-      out[k] = !ground[k] === !near ? near : ground[k]!;
-    }
-  return out;
-}
-
 /**
  * One colour of a list, eased along it by a noise in [-1, 1]: gentle mottling. The first colour,
  * the ground's own, holds most of the ground; `draw.mottleAmount` is how far along the rest go.
@@ -192,30 +169,28 @@ function bilinear(values: ArrayLike<number>, w: number, u: number, v: number, st
 }
 
 /**
- * The samples the colour texture is painted from: the field's own, or a finer grid between them
+ * The samples the textures are painted from: the field's own, or a finer grid between them
  * (`groundTexels`), its heights and slopes read between samples and each point's ground the one
- * whose share there is largest, so a zone's edge runs smooth instead of in steps.
+ * whose share is largest a jittered step aside, so a zone's edge wanders smoothly instead of in
+ * steps (rounding the jitter to whole samples made teeth that the shader's crisp edges show).
  */
 function textureSamples(field: Heightfield) {
   const heights = drawnHeights(field);
   const normals = gridNormals(heights, field.w, field.h, field.cell);
   const f = groundTexels(field);
   const sample = { w: field.w, h: field.h, cell: field.cell, x0: field.x0, y0: field.y0 };
-  if (f === 1) {
-    const up = new Float32Array(field.w * field.h).map((_, k) => normals[k * 3 + 1]!);
-    return { ...sample, heights, up, grounds: jitteredGrounds(field) };
-  }
   const w = (field.w - 1) * f + 1,
     h = (field.h - 1) * f + 1;
   const shares = field.grounds.map((_, g) => {
     const share = Float32Array.from(field.ground, (v) => (v === g ? 1 : 0));
-    blurGrid(share, field.w, field.h, 0.5);
+    blurGrid(share, field.w, field.h, TUNING.terrain.draw.edgeSmooth / field.cell);
     return share;
   });
   const fine = {
     heights: new Float32Array(w * h),
     up: new Float32Array(w * h),
     grounds: new Uint8Array(w * h),
+    confidence: new Float32Array(w * h),
   };
   const { jitter } = TUNING.terrain.draw;
   const clamp = (t: number, max: number) => Math.min(max, Math.max(0, t));
@@ -226,7 +201,7 @@ function textureSamples(field: Heightfield) {
         v = j / f;
       fine.heights[k] = bilinear(heights, field.w, u, v);
       fine.up[k] = bilinear(normals, field.w, u, v, 3, 1);
-      // The ground's share read a little aside, as on the field's grid but between its samples.
+      // The ground's share read a little aside, between the field's samples.
       const x = field.x0 + u * field.cell,
         y = field.y0 + v * field.cell;
       const gu = clamp(
@@ -239,80 +214,131 @@ function textureSamples(field: Heightfield) {
         );
       // Land stays land and sea stays sea: the jitter only moves edges between grounds.
       const sea = bilinear(shares[0]!, field.w, u, v) > 0.5;
-      let best = -1;
+      let best = -1,
+        sum = 0;
       for (let g = 0; g < shares.length; g++) {
         if (sea !== (g === 0)) continue;
         const share = bilinear(shares[g]!, field.w, gu, gv);
+        sum += share;
         if (share <= best) continue;
         best = share;
         fine.grounds[k] = g;
       }
+      fine.confidence[k] = sum > 0 ? best / sum : 1;
     }
+  // Levelness smoothed a little, so a narrow slope threshold draws a smooth line.
+  blurGrid(fine.up, w, h, TUNING.terrain.draw.slopeSmooth / (field.cell / f));
   return { ...sample, w, h, cell: field.cell / f, ...fine };
 }
 
-/**
- * The ground colours of a height field as a texture, `groundTexels` texels per sample of the
- * canonical grid (decision 0230), so every quality level shows the same crisp zones however coarse
- * its mesh.
- */
-export function fieldGroundTexture(field: Heightfield, palette: FieldPalette): THREE.DataTexture {
-  const { w, h, cell, x0, y0, heights, up, grounds } = textureSamples(field);
-  const { seed } = field;
-  const draw = TUNING.terrain.draw;
-  const n = w * h;
-  const looks = field.grounds.map((g) => {
-    const look = palette.look(g === '' || g === 'lake' ? 'sand' : g);
-    return {
-      top: look.top.map((c) => new THREE.Color(c)),
-      side: look.side.map((c) => new THREE.Color(c)),
-    };
-  });
-  const wet = new THREE.Color(palette.wet);
-  // Flat colours first, blended across ground edges; slopes and the wet band go on after.
-  const flat = [new Float32Array(n), new Float32Array(n), new Float32Array(n)] as const;
-  const c = new THREE.Color();
-  for (let k = 0; k < n; k++) {
-    const x = x0 + (k % w) * cell,
-      y = y0 + Math.floor(k / w) * cell;
-    mottled(looks[grounds[k]!]!.top, valueNoise(x * draw.mottle, y * draw.mottle, seed + 5), c);
-    flat[0][k] = c.r;
-    flat[1][k] = c.g;
-    flat[2][k] = c.b;
-  }
-  // A small island is seen closer: its finer texture blends zones over texels, not units.
-  for (const channel of flat) blurGrid(channel, w, h, draw.blend / 2 / field.cell);
-  const texels = new Uint8Array(n * 4);
-  const side = new THREE.Color();
-  for (let k = 0; k < n; k++) {
-    const x = x0 + (k % w) * cell,
-      y = y0 + Math.floor(k / w) * cell,
-      height = heights[k]!;
-    c.setRGB(flat[0][k]!, flat[1][k]!, flat[2][k]!);
-    // Cliff colours in level bands, each a little wavy, like the classic tiers' layers.
-    const bands = looks[grounds[k]!]!.side;
-    const band = Math.floor(height / draw.bands + valueNoise(x * 0.1, y * 0.1, seed + 7) * 0.4);
-    side.copy(bands[((band % bands.length) + bands.length) % bands.length]!);
-    c.lerp(side, smoothstep(draw.slope[0]!, draw.slope[1]!, 1 - up[k]!));
-    c.lerp(wet, 1 - smoothstep(draw.wet[0]!, draw.wet[1]!, height));
-    const hex = c.getHex();
-    texels[k * 4] = hex >> 16;
-    texels[k * 4 + 1] = (hex >> 8) & 255;
-    texels[k * 4 + 2] = hex & 255;
-    texels[k * 4 + 3] = 255;
-  }
-  const texture = new THREE.DataTexture(texels, w, h, THREE.RGBAFormat);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.magFilter = THREE.LinearFilter;
-  texture.minFilter = THREE.LinearMipmapLinearFilter;
-  texture.generateMipmaps = true;
+/** A field's textures for its ground shader (`fieldGroundMaterial`). */
+export interface FieldGroundTextures {
+  /** Each texel's flat colour (its ground's, mottled), and in alpha how level it is (normal.y). */
+  colour: THREE.DataTexture;
+  /**
+   * Each texel's ground in red (its index in the field's grounds, plus 128 where it is sharp
+   * rock: narrower slope and zone edges), its height smoothed over `draw.bandSmooth` in green and
+   * blue (16 bits over `heights`, for the cliff bands), and in alpha its ground's share there
+   * (0.5 on a zone edge, 1 well inside): the shader draws zone edges where these shares cross.
+   */
+  shape: THREE.DataTexture;
+  /** The lowest height and the span the shape texture's 16 bits cover. */
+  heights: [number, number];
+  /** A row per ground: its cliff band colours, repeated to the width every row can share. */
+  sides: THREE.DataTexture;
+  /** The wet band's colour. */
+  wet: string;
+  /** World units per texel. */
+  texel: number;
+  /** The field's centre in scene x and z, where the shader's noises are measured from. */
+  centre: [number, number];
+}
+
+function dataTexture(
+  data: Uint8Array,
+  w: number,
+  h: number,
+  colorSpace: THREE.ColorSpace,
+  filtered: boolean,
+) {
+  const texture = new THREE.DataTexture(data, w, h, THREE.RGBAFormat);
+  texture.colorSpace = colorSpace;
+  texture.magFilter = filtered ? THREE.LinearFilter : THREE.NearestFilter;
+  texture.minFilter = filtered ? THREE.LinearMipmapLinearFilter : THREE.NearestFilter;
+  texture.generateMipmaps = filtered;
   texture.needsUpdate = true;
   return texture;
 }
 
-/** The smooth-shaded material that draws a field's ground with its colour texture. */
-export const fieldGroundMaterial = (texture: THREE.Texture) =>
-  new THREE.MeshLambertMaterial({ map: texture });
+const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a);
+
+/**
+ * Each ground's cliff colours as a row, repeated to the least common width of all rows, so the
+ * shader picks band `b` of any ground at column `b mod width` without knowing its count.
+ */
+function sidesTexture(sides: readonly (readonly string[])[]) {
+  const width = sides.reduce((w, list) => (w * list.length) / gcd(w, list.length), 1);
+  const data = new Uint8Array(width * sides.length * 4);
+  sides.forEach((list, g) => {
+    for (let b = 0; b < width; b++) {
+      const hex = new THREE.Color(list[b % list.length]).getHex();
+      data.set([hex >> 16, (hex >> 8) & 255, hex & 255, 255], (g * width + b) * 4);
+    }
+  });
+  return dataTexture(data, width, sides.length, THREE.SRGBColorSpace, false);
+}
+
+/**
+ * The ground textures of a height field, `groundTexels` texels per sample of the canonical grid
+ * (decision 0230), so every quality level shows the same crisp zones however coarse its mesh.
+ */
+export function fieldGroundTextures(
+  field: Heightfield,
+  palette: FieldPalette,
+): FieldGroundTextures {
+  const { w, h, cell, x0, y0, heights, up, grounds, confidence } = textureSamples(field);
+  const draw = TUNING.terrain.draw;
+  const looks = field.grounds.map((g) => palette.look(g === '' || g === 'lake' ? 'sand' : g));
+  const tops = looks.map((look) => look.top.map((c) => new THREE.Color(c)));
+  const n = w * h;
+  const texels = new Uint8Array(n * 4);
+  const c = new THREE.Color();
+  for (let k = 0; k < n; k++) {
+    const x = x0 + (k % w) * cell,
+      y = y0 + Math.floor(k / w) * cell;
+    const noise = valueNoise(x * draw.mottle, y * draw.mottle, field.seed + 5);
+    const hex = mottled(tops[grounds[k]!]!, noise, c).getHex();
+    texels.set([hex >> 16, (hex >> 8) & 255, hex & 255, Math.round(up[k]! * 255)], k * 4);
+  }
+  // The bands' height, smoothed so their edges don't trace the field's grid ripples.
+  const level = Float32Array.from(heights);
+  blurGrid(level, w, h, draw.bandSmooth / cell);
+  let low = Infinity,
+    high = -Infinity;
+  for (const height of level) {
+    low = Math.min(low, height);
+    high = Math.max(high, height);
+  }
+  const span = Math.max(high - low, 1e-3);
+  const shape = new Uint8Array(n * 4);
+  for (let k = 0; k < n; k++) {
+    const bits = Math.round(((level[k]! - low) / span) * 65535);
+    const id = grounds[k]! | (looks[grounds[k]!]!.sharp ? 128 : 0);
+    shape.set([id, bits >> 8, bits & 255, Math.round(confidence[k]! * 255)], k * 4);
+  }
+  return {
+    colour: dataTexture(texels, w, h, THREE.SRGBColorSpace, true),
+    shape: dataTexture(shape, w, h, THREE.NoColorSpace, false),
+    heights: [low, span],
+    sides: sidesTexture(looks.map((look) => look.side)),
+    wet: palette.wet,
+    texel: cell,
+    centre: [
+      field.x0 + ((field.w - 1) * field.cell) / 2,
+      -(field.y0 + ((field.h - 1) * field.cell) / 2),
+    ],
+  };
+}
 
 /**
  * The ground of a height field as one indexed, smooth-shaded mesh in scene coordinates, one
