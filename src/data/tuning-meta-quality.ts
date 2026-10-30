@@ -1,6 +1,9 @@
 import { num, toggle, type TuningMeta } from './tuning-meta-types';
 
-/** `graphics.json › quality` and `auto`: the quality levels and Auto's step down (decision 0247). */
+/**
+ * `graphics.json › quality` and `auto`, the quality levels and Auto's step down (decision 0247),
+ * and the other boats each level sails (`seamanship.json › traffic.atOnce`).
+ */
 export const QUALITY_META: Readonly<Record<string, TuningMeta>> = {
   'graphics.quality.*.maxRenderPixels': num(
     'Most pixels drawn',
@@ -89,5 +92,45 @@ export const QUALITY_META: Readonly<Record<string, TuningMeta>> = {
     0.5,
     's',
     'Time a new level gets to settle before Auto may drop again.',
+  ),
+  'seamanship.traffic.atOnce.ultralow': num(
+    'Other boats at once, Ultra-low',
+    0,
+    20,
+    1,
+    'boats',
+    'How many other boats sail near you at once on Ultra-low quality (weak tablets).',
+  ),
+  'seamanship.traffic.atOnce.low': num(
+    'Other boats at once, Low',
+    0,
+    20,
+    1,
+    'boats',
+    'How many other boats sail near you at once on Low quality (the old tablet).',
+  ),
+  'seamanship.traffic.atOnce.medium': num(
+    'Other boats at once, Medium',
+    0,
+    20,
+    1,
+    'boats',
+    'How many other boats sail near you at once on Medium quality.',
+  ),
+  'seamanship.traffic.atOnce.high': num(
+    'Other boats at once, High',
+    0,
+    20,
+    1,
+    'boats',
+    'How many other boats sail near you at once on High quality.',
+  ),
+  'seamanship.traffic.atOnce.ultra': num(
+    'Other boats at once, Ultra',
+    0,
+    20,
+    1,
+    'boats',
+    'How many other boats sail near you at once on Ultra quality (desktop and Xbox).',
   ),
 };

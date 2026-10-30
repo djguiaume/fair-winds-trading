@@ -1,7 +1,22 @@
 import { hasText, t } from '../i18n';
-import { QUALITY, type QualityLevel } from '../render/quality';
+import { QUALITY, QUALITY_LEVELS, type QualityLevel } from '../render/quality';
 import type { GraphicsEffects } from '../render/ultraPipeline';
 import type { Settings } from './settings';
+import './graphicsSettings.css';
+
+/** Settings › Graphics: after Auto (in the page), a button per level, lowest first (0247). */
+export function addQualityButtons(group: HTMLElement): HTMLButtonElement[] {
+  for (const level of QUALITY_LEVELS) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.setAttribute('role', 'radio');
+    button.dataset.quality = level;
+    button.dataset.i18n = `settings.${level}`;
+    button.textContent = t(`settings.${level}`);
+    group.append(button);
+  }
+  return [...group.querySelectorAll<HTMLButtonElement>('[data-quality]')];
+}
 
 /** A Settings switch row (label, note, switch), its texts from `key` and `key`Note. */
 export function switchRow(

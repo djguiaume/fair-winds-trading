@@ -99,7 +99,7 @@ import {
 import { Hud } from './ui/hud';
 import { CameraControls } from './ui/cameraControls';
 import { loadSettings, saveSettings } from './ui/settings';
-import { addEffectSwitches, switchRow } from './ui/graphicsSettings';
+import { addEffectSwitches, addQualityButtons, switchRow } from './ui/graphicsSettings';
 import type { Bench } from './perf/bench';
 import type { PerfReadout } from './perf/perfReadout';
 import { perfOptions } from './perf/perfOptions';
@@ -1618,7 +1618,7 @@ storms.addEventListener('change', () => {
 });
 
 // --- Settings panel ----------------------------------------------------------------------------
-const qualityButtons = [...$('quality').querySelectorAll<HTMLButtonElement>('[data-quality]')];
+const qualityButtons = addQualityButtons($('quality'));
 const showFps = $<HTMLInputElement>('show-fps');
 const qualityNow = $('quality-now');
 const markQuality = () => {

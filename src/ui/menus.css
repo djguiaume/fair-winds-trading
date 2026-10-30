@@ -518,10 +518,6 @@ body.at-title .in-game {
   border-radius: 6px;
   cursor: default;
 }
-/* The effect switches of a level not in use (graphicsSettings.ts). */
-.set-row[hidden] {
-  display: none;
-}
 label.set-row {
   cursor: pointer;
 }
