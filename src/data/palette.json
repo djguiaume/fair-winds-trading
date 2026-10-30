@@ -281,12 +281,14 @@
       "beach": true
     },
     "rock": {
+      "sharp": true,
       "name": "Rock",
       "top": "rock2",
       "side": "rock",
       "trees": false
     },
     "cut": {
+      "sharp": true,
       "name": "Cut stone",
       "top": "cut",
       "side": "rock",
@@ -315,6 +317,7 @@
       "trees": false
     },
     "slate": {
+      "sharp": true,
       "name": "Slate",
       "top": ["#6e747c", "#5b6068"],
       "side": ["#5b6068", "#6e747c"],
@@ -323,6 +326,7 @@
       "trees": false
     },
     "paleslate": {
+      "sharp": true,
       "name": "Pale slate",
       "top": ["#878d94", "#7c8289"],
       "side": ["#71777f", "#7c8289"],
@@ -340,12 +344,14 @@
       "side": ["#5b6068", "#6e747c"]
     },
     "blackbasalt": {
+      "sharp": true,
       "name": "Black basalt",
       "top": ["#4b4547", "#433e40", "#4f494b"],
       "side": ["#3d3839", "#4b4547", "#363132"],
       "trees": false
     },
     "lavafield": {
+      "sharp": true,
       "name": "Lava field",
       "top": ["#3d3839", "#433e40", "#383334"],
       "side": ["#363132", "#3d3839"],
@@ -353,6 +359,7 @@
       "trees": false
     },
     "volcanic": {
+      "sharp": true,
       "name": "Volcanic cone",
       "top": ["#4b4547", "#433e40"],
       "side": ["#3d3839", "#4b4547"],
@@ -369,30 +376,35 @@
       "beach": true
     },
     "moss": {
+      "sharp": true,
       "name": "Moss",
       "top": ["#7fa852", "#6f9848", "#86b05a"],
       "side": ["#3d3839", "#4b4547", "#363132"],
       "specks": "#3a3536"
     },
     "moss-dark": {
+      "sharp": true,
       "name": "Dark moss",
       "top": ["#6f9848", "#668c42", "#78a04e"],
       "side": ["#3d3839", "#4b4547", "#363132"],
       "specks": "#3a3536"
     },
     "ashrock": {
+      "sharp": true,
       "name": "Weathered basalt (moss ledge)",
       "top": ["#7fa852", "#6f9848"],
       "side": ["#6e625a", "#7a6d64", "#655a53"],
       "trees": false
     },
     "turf": {
+      "sharp": true,
       "name": "Turf",
       "top": "#6a9548",
       "side": ["#3f434a", "#4f535a", "#61666d", "#74787e"],
       "peak": "#6a9548"
     },
     "basalt": {
+      "sharp": true,
       "name": "Basalt",
       "top": ["#61666d", "#4f535a"],
       "side": ["#4f535a", "#61666d", "#474a50"],

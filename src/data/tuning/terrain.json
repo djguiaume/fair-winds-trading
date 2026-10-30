@@ -50,6 +50,7 @@
     "mottle": 0.18,
     "mottleAmount": 0.3,
     "slope": [0.1, 0.3],
+    "sharpSlope": [0.13, 0.18],
     "wet": [0.1, 0.4],
     "bands": 2.4,
     "bandWobble": {
@@ -75,6 +76,7 @@
     "edgeSmooth": 0.6,
     "edge": {
       "width": 0.5,
+      "sharpWidth": 0.3,
       "warp": 0.3,
       "warpScale": 0.9,
       "crisp": {

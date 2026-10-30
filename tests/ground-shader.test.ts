@@ -57,7 +57,10 @@ describe('the ground shader (issue #373)', () => {
     const { draw } = TUNING.terrain;
     expect(u.groundScale!.value).toBe(2);
     expect(u.groundBandHeight!.value).toBe(draw.bands);
-    expect(u.groundSlope!.value.toArray()).toEqual(draw.slope);
+    expect(u.groundSlope!.value.toArray()).toEqual([...draw.slope, ...draw.sharpSlope]);
+    // The sharp range starts within the soft one: the shader's soft test says where to look.
+    expect(draw.sharpSlope[0]).toBeGreaterThanOrEqual(draw.slope[0]!);
+    expect(u.groundEdge!.value.y).toBeCloseTo(draw.edge.sharpWidth / 0.4, 6);
     expect(u.groundEdge!.value.x).toBeCloseTo(draw.edge.width / 0.4, 6);
     expect(u.groundCentre!.value.toArray()).toEqual([10, -20]);
     expect(u.groundDetailOctaves!.value).toBe(draw.detail.octaves.high);

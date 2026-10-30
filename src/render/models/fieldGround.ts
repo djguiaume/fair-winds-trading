@@ -20,6 +20,8 @@ import { B2 } from './highlandPalette';
 export interface FieldGroundLook {
   top: readonly string[];
   side: readonly string[];
+  /** Rock: its slope and zone edges drawn sharp (palette.json `sharp`). */
+  sharp?: boolean;
 }
 
 /** An island's ground colours: each ground of its field, and the wet band at the waterline. */
@@ -34,7 +36,8 @@ export function designPalette(style: string): FieldPalette {
     look: (ground) => {
       const look = groundColors(ground, style);
       // A beach stays sand where it slopes into the sea: no cliff colours on it.
-      return { top: look.top, side: GROUNDS[look.id]?.beach ? look.top : look.slope };
+      const def = GROUNDS[look.id];
+      return { top: look.top, side: def?.beach ? look.top : look.slope, sharp: def?.sharp };
     },
     wet: STYLES[style]?.wet ?? groundColors('sand', style).side[0]!,
   };
@@ -228,7 +231,8 @@ export interface FieldGroundTextures {
   colour: THREE.DataTexture;
   /**
    * Each texel's ground (its index in the field's grounds) in red, and its height smoothed over
-   * `draw.bandSmooth` in green and blue (16 bits over `heights`): the shader's cliff bands.
+   * `draw.bandSmooth` in green and blue (16 bits over `heights`): the shader's cliff bands. Alpha
+   * 1 where the ground is sharp (rock): narrower slope and zone edges.
    */
   shape: THREE.DataTexture;
   /** The lowest height and the span the shape texture's 16 bits cover. */
@@ -312,7 +316,7 @@ export function fieldGroundTextures(
   const shape = new Uint8Array(n * 4);
   for (let k = 0; k < n; k++) {
     const bits = Math.round(((level[k]! - low) / span) * 65535);
-    shape.set([grounds[k]!, bits >> 8, bits & 255, 255], k * 4);
+    shape.set([grounds[k]!, bits >> 8, bits & 255, looks[grounds[k]!]!.sharp ? 255 : 0], k * 4);
   }
   return {
     colour: dataTexture(texels, w, h, THREE.SRGBColorSpace, true),

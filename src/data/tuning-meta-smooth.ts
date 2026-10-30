@@ -162,6 +162,14 @@ export const SMOOTH_META: Readonly<Record<string, TuningMeta>> = {
     '1 − normal.y',
     'Steepness where a ground starts and finishes turning to its cliff colours, decided per pixel (issue #373): a wider range is a softer edge.',
   ),
+  'terrain.draw.sharpSlope': num(
+    'Rock slope colour',
+    0,
+    1,
+    0.01,
+    '1 − normal.y',
+    'The same for sharp grounds (palette.json `sharp`: rock, basalt, lava, slate, grass over a rock cliff): a narrow range keeps rock edges crisp. Starts no lower than Slope colour.',
+  ),
   'terrain.draw.wet': num(
     'Wet band',
     0,
@@ -289,6 +297,14 @@ export const SMOOTH_META: Readonly<Record<string, TuningMeta>> = {
     0.02,
     'units',
     'Width of the edge between two grounds (grass and sand): short keeps crisp storybook zones. Never less than about a pixel, so far edges don’t flicker.',
+  ),
+  'terrain.draw.edge.sharpWidth': num(
+    'Rock zone edge',
+    0.02,
+    2,
+    0.02,
+    'units',
+    'Zone edge width where either side is a sharp ground (lava, ash, slate): high-contrast pairs.',
   ),
   'terrain.draw.edge.warp': num(
     'Zone edge wander',

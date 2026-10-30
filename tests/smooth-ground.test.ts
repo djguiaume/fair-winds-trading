@@ -214,6 +214,16 @@ describe('the new look ground mesh', () => {
     expect(texel(0)[0]).toBe(0);
   });
 
+  it('marks rock grounds sharp in the shape texture’s alpha', () => {
+    const f = { ...smoothField(plateau(10)), grounds: ['', 'basalt'] };
+    const { shape } = fieldGroundTextures(f, designPalette('fog'));
+    const t = groundTexels(f);
+    const data = shape.image.data as Uint8Array;
+    expect(data[(20 * t * shape.image.width + 20 * t) * 4 + 3]).toBe(255);
+    const soft = fieldGroundTextures(smoothField(plateau(10)), designPalette('fish')).shape;
+    expect((soft.image.data as Uint8Array)[(20 * t * soft.image.width + 20 * t) * 4 + 3]).toBe(0);
+  });
+
   it('repeats each ground’s bands to a width every row shares', () => {
     const f = { ...smoothField(plateau(10)), grounds: ['', 'grass', 'rock'] };
     const palette = {
