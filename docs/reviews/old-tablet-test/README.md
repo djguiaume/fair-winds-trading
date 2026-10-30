@@ -47,8 +47,10 @@ Only the stress sea was reported; today's sea was not needed for this question.
 
 Guillaume noticed the stair-stepped edges on the softer Low picture. Low and Medium draw without antialiasing (only High and Ultra multisample), and the edges show more at fewer pixels. What antialiasing costs this device is unknown, so `&aa=1` turns it on for the test ([0154](../../decisions/0154-automatic-device-benchmark.md), pictures in the project files). After the release, repeat the benchmark on the same device twice and paste both Copy reports; the second report's first line says "antialias forced on".
 
-1. https://djguiaume.github.io/fair-winds-trading/?bench&map=stress (Low at the new 400 000-pixel cap; expect about 37 fps, no hitches)
+1. https://djguiaume.github.io/fair-winds-trading/?bench&map=stress (Low at the new 400 000-pixel cap with the new look)
 2. https://djguiaume.github.io/fair-winds-trading/?bench&map=stress&aa=1 (the same with antialiasing)
+
+Round 2 ran the classic look (v1.1.309); the new look is now the default ([0241](../../decisions/0241-the-new-look-is-the-default-lookv1-keeps-the-classic.md)) and draws more triangles on Low, so round 3 also shows what the new look costs. Optional third run to compare with round 2 directly: `&look=v1`.
 
 If antialiasing costs little (about 33 fps or better with no hitches), Low and Medium get the `antialias` flag in `quality.ts`; if it costs a lot, Low stays as is, or its cap goes up a little instead.
 
