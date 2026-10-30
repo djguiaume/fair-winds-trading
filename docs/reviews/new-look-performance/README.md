@@ -90,10 +90,12 @@ Windows, Chrome 156, Core i7-1065G7, Intel Iris Plus Graphics, 32 GB, canvas 248
 |---|---|---|---|
 | Phone | Android 10, 8 cores | Medium | 60 fps, p95 16.8 ms, about 41 to 44k triangles. Same as the classic look. |
 | Console | Xbox, Edge | High | 60 fps, p95 17 ms, 179k triangles, 50 draws, no hitches. |
+| Integrated GPU | Surface, Iris Plus | High | 60 fps (avg 59.8, p95 16.8 ms), 163k triangles, canvas 2041x1224, 2 hitches in 1:31. |
 | Integrated GPU | Surface, Iris Plus | Ultra (by hand) | 18 fps at 3.7 MP, 307k triangles. Ultra is not for integrated chips; auto no longer guesses it. |
 | Weak device | old tablet | Low | not measured |
 | Discrete desktop | 1080p | Ultra | not measured |
 
 - The new look fits the phone at Medium and the Xbox at High. Every readout that holds 60 fps is capped by the screen, so it says "fits", not how much room is left. To find the room, run the same three readouts again after each big rendering change and watch p95 and 1% low, or add `&scale=1.4`.
 - Next phase (the waves milestone): the sea is drawn per pixel, so test it first on the phone at Medium and on the Xbox at High. Budget in `budget.json › newLook` is counts only, and waves will mostly cost fill rate, which the counts do not show. Re-read the same three devices, then update this section.
-- Open: Ultra crashes or blanks the Xbox (own issue), Low on a weak device, Ultra on a discrete card.
+- High holds 60 fps on all three devices, so the new look fits without changing engine; Ultra is the level that does not scale down.
+- Open: Ultra crashes or blanks the Xbox (#374), Low on a weak device, Ultra on a discrete card.
