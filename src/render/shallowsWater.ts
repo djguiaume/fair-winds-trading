@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { coastDistance } from '../sim/coast';
 import type { TerrainDef } from '../sim/map';
 import type { Ocean } from './ocean';
+import { rideSea, sheetSurfaceShader, sheetSurfaceUniforms } from './seaSheets';
 
 /**
  * Sandy passages at sea (decision 0152): pale turquoise water over a sand floor with faint
@@ -11,25 +12,22 @@ import type { Ocean } from './ocean';
 
 /** Grid spacing (units): fine enough that the waves never poke through. */
 const CELL = 4;
+/** How high the tint floats over the waves, before the grids' sag (`Ocean.sheetLift`). */
+const LIFT = 0.12;
 /** The tint fades in over this many units from the passage's edge. */
 const EDGE_FADE = 9;
 
 const vertexShader = /* glsl */ `
-uniform float uTime;
+${sheetSurfaceShader}
 attribute float aEdge;
 varying float vEdge;
 varying vec3 vWorld;
 varying float vFogDepth;
 
-float wave(vec2 p) {
-  return sin(dot(p, vec2(0.12, 0.07)) + uTime * 1.1) * 0.32
-       + sin(dot(p, vec2(-0.05, 0.15)) + uTime * 0.8) * 0.24
-       + sin(dot(p, vec2(0.21, -0.17)) + uTime * 1.7) * 0.12;
-}
-
 void main() {
   vec4 world = modelMatrix * vec4(position, 1.0);
-  world.y += wave(world.xz) + 0.12;
+  world.xyz += seaOffset(world.xz, shoreDistance(world.xz));
+  world.y += uLift;
   vWorld = world.xyz;
   vEdge = aEdge;
   vec4 mv = viewMatrix * world;
@@ -112,6 +110,7 @@ export class ShallowsWater {
       transparent: true,
       depthWrite: false,
       uniforms: {
+        ...sheetSurfaceUniforms(),
         uTime: { value: 0 },
         uWaterLight: { value: new THREE.Color() },
         uFogColor: { value: new THREE.Color() },
@@ -145,6 +144,7 @@ export class ShallowsWater {
     const from = ocean.mesh.material.uniforms;
     const u = this.material.uniforms;
     u.uTime!.value = time;
+    rideSea(this.material, ocean, LIFT, CELL);
     (u.uWaterLight!.value as THREE.Color).copy(from.uWaterLight!.value as THREE.Color);
     (u.uFogColor!.value as THREE.Color).copy(from.uFogColor!.value as THREE.Color);
     u.uFogNear!.value = from.uFogNear!.value;

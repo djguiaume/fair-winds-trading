@@ -572,7 +572,7 @@ export function designedTownParts(
   // Rivers of water or lava (decision 0176) lie on the ground built above.
   for (const river of design.rivers ?? [])
     if (atLevel(river, level) && river.points.length >= 2)
-      out.push(...riverParts(layout, river, R));
+      out.push(...riverParts(layout, river, R, stand));
 
   // The same blue-and-white harbour flag identifies the player berth at every port.
   const flag = (into: Parts) => harbourParts(into, design, R, level, stone);

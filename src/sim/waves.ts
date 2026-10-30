@@ -2,6 +2,7 @@ import { TUNING } from '../data/tuning';
 import { DEG, TAU, bearingVector } from './math';
 import { hash01 } from './noise';
 import { WAVE_BANDS, type SeaState } from './seaState';
+import { type BandCalm, type CoastGrid, coastCalmAt, createBandCalm } from './coastWaves';
 
 /**
  * The waves (decision 0245, issue #280): a small set of Gerstner waves, frozen at one moment,
@@ -26,6 +27,8 @@ export interface WaveField {
   length: Float64Array;
   /** 1 for a cosmetic band (ripples): drawn only, never felt by a boat. */
   cosmetic: Uint8Array;
+  /** The component's band, its index in `WAVE_BANDS`: the coast calms each band its own way. */
+  band: Uint8Array;
 }
 
 /** Components across every band, in `WAVE_BANDS` order. */
@@ -46,6 +49,7 @@ export function createWaveField(): WaveField {
     shiftY: f64(),
     length: f64(),
     cosmetic: new Uint8Array(n),
+    band: new Uint8Array(n),
   };
 }
 
@@ -85,6 +89,7 @@ export function setWaveField(field: WaveField, sea: SeaState, seed: number, t: n
       field.shiftY[c] = dir.y * band.steepness * amp;
       field.length[c] = band.lengths[i]!;
       field.cosmetic[c] = band.cosmetic ? 1 : 0;
+      field.band[c] = b;
       slope += band.steepness * amp * k;
     }
   });
@@ -114,57 +119,87 @@ export interface WaveOffset {
   h: number;
 }
 
-/** The physical waves' offset of the rest point (`x`, `y`): cosmetic bands left out. */
-export function waveOffsetAt(field: WaveField, x: number, y: number, out: WaveOffset): WaveOffset {
+const open = createBandCalm();
+
+/**
+ * The physical waves' offset of the rest point (`x`, `y`), cosmetic bands left out, each band
+ * calmed by its share `calm` there (`coastWaves.ts`; open sea when left out).
+ */
+export function waveOffsetAt(
+  field: WaveField,
+  x: number,
+  y: number,
+  out: WaveOffset,
+  calm: BandCalm = open,
+): WaveOffset {
   out.x = out.y = out.h = 0;
   for (let i = 0; i < field.count; i++) {
     if (field.cosmetic[i]) continue;
     const theta = field.kx[i]! * x + field.ky[i]! * y + field.phase[i]!;
-    const cos = Math.cos(theta);
+    const share = calm[field.band[i]!]!;
+    const cos = Math.cos(theta) * share;
     out.x += field.shiftX[i]! * cos;
     out.y += field.shiftY[i]! * cos;
-    out.h += field.amp[i]! * Math.sin(theta);
+    out.h += field.amp[i]! * share * Math.sin(theta);
   }
   return out;
 }
 
 const scratch: WaveOffset = { x: 0, y: 0, h: 0 };
+const calmHere = createBandCalm();
 
 /**
  * The rest point that the waves carry over the spot (`x`, `y`), found by fixed-point steps
- * (`inverseSteps`): the shifts' slopes stay under `steepLimit`, so each step shrinks the error at
- * least that much. Written to `out` with that point's offset.
+ * (`inverseSteps`): the shifts' slopes stay under `steepLimit`, and the coast's calm changes over
+ * tens of units, so each step shrinks the error. Written to `out` with that point's offset; the
+ * calm there is left in `calmHere`.
  */
-function restUnder(field: WaveField, x: number, y: number, out: WaveOffset): WaveOffset {
+function restUnder(
+  field: WaveField,
+  coast: CoastGrid | null,
+  x: number,
+  y: number,
+  out: WaveOffset,
+): WaveOffset {
   let px = x,
     py = y;
   for (let s = 0; s < TUNING.waves.inverseSteps; s++) {
-    waveOffsetAt(field, px, py, out);
+    waveOffsetAt(field, px, py, out, coastCalmAt(coast, px, py, calmHere));
     px = x - out.x;
     py = y - out.y;
   }
-  waveOffsetAt(field, px, py, out);
+  waveOffsetAt(field, px, py, out, coastCalmAt(coast, px, py, calmHere));
   out.x = px;
   out.y = py;
   return out;
 }
 
-/** Height of the physical sea surface over the sim spot (`x`, `y`): what a boat there floats on. */
-export function waveHeightAt(field: WaveField, x: number, y: number): number {
-  return restUnder(field, x, y, scratch).h;
+/**
+ * Height of the physical sea surface over the sim spot (`x`, `y`): what a boat there floats on,
+ * calmed by the coast's bake when there is one.
+ */
+export function waveHeightAt(
+  field: WaveField,
+  x: number,
+  y: number,
+  coast: CoastGrid | null = null,
+): number {
+  return restUnder(field, coast, x, y, scratch).h;
 }
 
 /**
- * Unit normal of the physical surface over the sim spot (`x`, `y`): x east, y north, z up. Exact:
- * the cross product of the displaced surface's two tangents at the rest point under the spot.
+ * Unit normal of the physical surface over the sim spot (`x`, `y`): x east, y north, z up. The
+ * cross product of the displaced surface's two tangents at the rest point under the spot: exact
+ * on the open sea; near the coast the calm's own slope, a share over tens of units, is left out.
  */
 export function waveNormalAt(
   field: WaveField,
   x: number,
   y: number,
   out: { x: number; y: number; z: number },
+  coast: CoastGrid | null = null,
 ) {
-  restUnder(field, x, y, scratch);
+  restUnder(field, coast, x, y, scratch);
   // Tangents along rest x (ax, ay, ah) and rest y (bx, by, bh).
   let ax = 1,
     ay = 0,
@@ -177,8 +212,9 @@ export function waveNormalAt(
     const kx = field.kx[i]!,
       ky = field.ky[i]!;
     const theta = kx * scratch.x + ky * scratch.y + field.phase[i]!;
-    const sin = Math.sin(theta),
-      cos = Math.cos(theta);
+    const share = calmHere[field.band[i]!]!;
+    const sin = Math.sin(theta) * share,
+      cos = Math.cos(theta) * share;
     ax -= field.shiftX[i]! * kx * sin;
     ay -= field.shiftY[i]! * kx * sin;
     ah += field.amp[i]! * kx * cos;

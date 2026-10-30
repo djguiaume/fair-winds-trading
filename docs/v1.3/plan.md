@@ -1,6 +1,6 @@
 # v1.3 "Waves you can see" — plan
 
-Scope and parts: [brief.md](brief.md). Wave model and its contract: [ADR 0245](../decisions/0245-shared-wave-model-and-cpugpu-contract.md).
+Scope and parts: [brief.md](brief.md). Wave model and its contract: [ADR 0245](../decisions/0245-shared-wave-model-and-cpugpu-contract.md). Coast calm, sheets and foam: [ADR 0248](../decisions/0248-coast-calms-the-waves-by-depth-shelter-and-berths.md).
 
 ## Phases (the wave chain)
 

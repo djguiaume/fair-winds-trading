@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeAll, paint, place, vertexColorMaterial } from './models/geometry';
 import { TUNING } from '../data/tuning';
-import { MAX_WAVE_HEIGHT } from './ocean';
+import { maxWaveHeight } from './ocean';
 import { type SeaShape, asSeaShape, edgeSpots } from '../sim/seaEdge';
 
 /** Course buoy: striped float, flag, a pulsing ring and a tall faint beacon seen from afar. */
@@ -111,7 +111,7 @@ export class EdgeBuoys {
     // Radius about the rotation origin contains every tilt, plus all water displacement.
     geometry.computeBoundingSphere();
     const sphere = geometry.boundingSphere!;
-    this.bounds.radius = sphere.center.length() + sphere.radius + MAX_WAVE_HEIGHT;
+    this.bounds.radius = sphere.center.length() + sphere.radius + maxWaveHeight();
     this.mesh.count = 0;
   }
 

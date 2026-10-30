@@ -121,5 +121,8 @@
       "shoreHeight": 0.2,
       "berthClearance": 0.4
     }
+  },
+  "rivers": {
+    "fallSlope": 1.4
   }
 }

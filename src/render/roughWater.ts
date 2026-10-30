@@ -2,9 +2,13 @@ import * as THREE from 'three';
 import type { WindZoneDef } from '../sim/map';
 import { DEG } from '../sim/math';
 import { zonesTuning } from '../sim/windZones';
-import { zoneGeometry } from './calmWater';
+import { STEP, zoneGeometry } from './calmWater';
 import type { Ocean } from './ocean';
 import { type ShoreTexture, shoreShader } from './shoreTexture';
+import { rideSea, sheetSurfaceShader, sheetSurfaceUniforms } from './seaSheets';
+
+/** How high the belt floats over the waves, before the grids' sag: over the calm water. */
+const LIFT = 0.2;
 
 /**
  * Rough water over a storm belt (decision 0167): darker slate-blue, choppy, with whitecap streaks
@@ -17,23 +21,17 @@ import { type ShoreTexture, shoreShader } from './shoreTexture';
  */
 
 const vertexShader = /* glsl */ `
-uniform float uTime;
+${sheetSurfaceShader}
 attribute float aEdge;
 varying float vEdge;
 varying vec3 vWorld;
 varying float vFogDepth;
 
-float wave(vec2 p) {
-  return sin(dot(p, vec2(0.12, 0.07)) + uTime * 1.1) * 0.32
-       + sin(dot(p, vec2(-0.05, 0.15)) + uTime * 0.8) * 0.24
-       + sin(dot(p, vec2(0.21, -0.17)) + uTime * 1.7) * 0.12;
-}
-
 void main() {
   vec4 world = modelMatrix * vec4(position, 1.0);
-  // A little higher than the calm water: the chop under it must never poke through, even on the
-  // coarse ocean grid of Low quality.
-  world.y += wave(world.xz) + 0.55;
+  // A little higher than the calm water, on the same waves as the ocean, clear of the grids' sag.
+  world.xyz += seaOffset(world.xz, shoreDistance(world.xz));
+  world.y += uLift;
   vWorld = world.xyz;
   vEdge = aEdge;
   vec4 mv = viewMatrix * world;
@@ -134,6 +132,7 @@ export class RoughWater {
         transparent: true,
         depthWrite: false,
         uniforms: {
+          ...sheetSurfaceUniforms(),
           uTime: { value: 0 },
           uShoreMap: { value: shore.texture },
           uShoreBounds: { value: shore.bounds },
@@ -175,6 +174,7 @@ export class RoughWater {
     for (const m of this.materials) {
       const u = m.uniforms;
       u.uTime!.value = time;
+      rideSea(m, ocean, LIFT, STEP);
       (u.uWater!.value as THREE.Color).copy(from.uWater!.value as THREE.Color);
       (u.uDayWater!.value as THREE.Color).copy(from.uDayWater!.value as THREE.Color);
       (u.uFogColor!.value as THREE.Color).copy(from.uFogColor!.value as THREE.Color);

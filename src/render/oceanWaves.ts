@@ -1,5 +1,5 @@
 import { shoreShader } from './shoreTexture';
-import { seabedShader } from './seabedTexture';
+import { seabedShader, seabedUniforms } from './seabedTexture';
 
 /** The waves' (amplitude, wavenumber), as in the shaders' `wave`. */
 const WAVES: readonly [number, number][] = [
@@ -30,44 +30,82 @@ export function waveSag(cell: number) {
 /**
  * The GPU half of the wave contract: `uWave[i]` = (k.x, k.z, phase, height) and `uWaveShift[i]`
  * = Gerstner shift (x, z), in scene space (z = -sim y), filled by `SeaWaves.writeUniforms` (`seaWaves.ts`).
- * Returns the offset (x, height, z) of the rest point `p` (scene x, z): the same sum as the CPU's
+ * Returns the offset (x, height, z) of the rest point `p` (scene x, z), each band (`SWELL_END`,
+ * `CHOP_END`: where its components end) times its share `calm`: the same sum as the CPU's
  * `waveOffsetAt`, plus the cosmetic bands.
  */
 const gerstnerShader = /* glsl */ `
 uniform vec4 uWave[WAVE_COUNT];
 uniform vec2 uWaveShift[WAVE_COUNT];
 
-vec3 waveOffset(vec2 p) {
+vec3 waveOffset(vec2 p, vec3 calm) {
   vec3 o = vec3(0.0);
   for (int i = 0; i < WAVE_COUNT; i++) {
     float theta = dot(uWave[i].xy, p) + uWave[i].z;
-    o.xz += uWaveShift[i] * cos(theta);
-    o.y += uWave[i].w * sin(theta);
+    float share = i < SWELL_END ? calm.x : (i < CHOP_END ? calm.y : calm.z);
+    o.xz += uWaveShift[i] * (cos(theta) * share);
+    o.y += uWave[i].w * share * sin(theta);
   }
   return o;
 }
 `;
 
-/** The ocean's waves, calmed near the shore on a coarse grid (`uShoreCalm`). */
-export const oceanVertexShader = /* glsl */ `
-uniform float uTime;
-// How much the waves calm toward the shore (x), over this many units (y): a coarse grid's flat
-// triangles would otherwise stand over a low beach between its points (issue #277).
-uniform vec2 uShoreCalm;
-${shoreShader}
-#ifdef VERTEX_SHORES
-varying float vShoreDistance;
-#ifdef DEPTH
-${seabedShader}
-varying float vDepth;
-#endif
-#endif
-varying vec3 vWorld;
-varying float vHeight;
-varying float vFogDepth;
+/**
+ * The coast's calm (issue #281, `sim/coastWaves.ts`): each band's share of its waves from the
+ * bake's depth (red) and exposure (green), the same bytes and formula as the CPU's `bandCalm`.
+ * `uCoast` = (floor, sheltered, shelteredAt, openAt), `uCoastReach` = each band's reach.
+ * `seaSurf` is left with how much of the swell the seabed breaks here (open water only), for foam,
+ * and `seaBake` with the bake here.
+ */
+const coastShader = /* glsl */ `
+${seabedUniforms()}
+uniform vec4 uCoast;
+uniform vec3 uCoastReach;
+float seaSurf = 0.0;
+vec2 seaBake = vec2(1.0);
 
+float calmStep(float a, float b, float x) {
+  float t = clamp((x - a) / max(b - a, 1e-4), 0.0, 1.0);
+  return t * t * (3.0 - 2.0 * t);
+}
+
+vec2 coastBake(vec2 p) {
+  vec2 uv = (p - uDepthBounds.xy) / uDepthBounds.zw;
+  if (all(greaterThanEqual(uv, vec2(0.0))) && all(lessThanEqual(uv, vec2(1.0))))
+    return texture2D(uDepthMap, uv).rg;
+  return vec2(1.0);
+}
+
+vec3 coastCalm(vec2 p) {
+  vec2 bake = coastBake(p);
+  seaBake = bake;
+  float shelter = mix(uCoast.y, 1.0, calmStep(uCoast.z, uCoast.w, bake.y));
+  vec3 deep = vec3(
+    calmStep(0.0, uCoastReach.x, bake.x),
+    calmStep(0.0, uCoastReach.y, bake.x),
+    calmStep(0.0, uCoastReach.z, bake.x));
+  seaSurf = (1.0 - deep.x) * (1.0 - deep.x) * shelter;
+  return mix(vec3(uCoast.x), vec3(1.0), deep) * shelter;
+}
+`;
+
+/**
+ * The sea's surface, shared by the ocean and every sheet riding it (calm, rough and current
+ * water, the shallows): `seaOffset(p, shore)` moves the rest point `p` (scene x, z), `shore`
+ * units from the nearest beach. The classic sines, or the Gerstner waves calmed by the coast
+ * (`COAST`); then calmed toward the shore on a coarse grid (`uShoreCalm`: how much (x), over
+ * how many units (y)), since its flat triangles would otherwise stand over a low beach (issue #277).
+ * `seaShare` is left with each band's share there. Declares `uTime`.
+ */
+export const seaSurfaceShader = /* glsl */ `
+uniform float uTime;
+uniform vec2 uShoreCalm;
+vec3 seaShare = vec3(1.0);
 #ifdef GERSTNER
 ${gerstnerShader}
+#ifdef COAST
+${coastShader}
+#endif
 #else
 vec3 waveOffset(vec2 p) {
   return vec3(0.0,
@@ -78,10 +116,47 @@ vec3 waveOffset(vec2 p) {
 }
 #endif
 
+vec3 seaOffset(vec2 p, float shore) {
+#if defined(GERSTNER) && defined(COAST)
+  seaShare = coastCalm(p);
+  vec3 o = waveOffset(p, seaShare);
+#elif defined(GERSTNER)
+  vec3 o = waveOffset(p, vec3(1.0));
+#else
+  vec3 o = waveOffset(p);
+#endif
+  return o * mix(1.0, smoothstep(0.0, uShoreCalm.y, shore), uShoreCalm.x);
+}
+`;
+
+/** The ocean's waves (`seaSurfaceShader`), with what its fragment shader colours and foams by. */
+export const oceanVertexShader = /* glsl */ `
+${shoreShader}
+${seaSurfaceShader}
+#ifdef VERTEX_SHORES
+varying float vShoreDistance;
+#ifdef DEPTH
+${seabedShader}
+varying float vDepth;
+#endif
+#endif
+#ifdef COAST
+// The bands' drawn heights now, so the fragment knows how near a crest it is.
+uniform vec3 uBandHeight;
+// The way the swell runs (scene x, z), the surf's share in a reef's lee (z), how far ahead the
+// windward test looks (w).
+uniform vec4 uSeaWind;
+varying vec3 vSea;
+#endif
+varying vec3 vWorld;
+varying float vHeight;
+varying float vFogDepth;
+
 void main() {
   vec4 world = modelMatrix * vec4(position, 1.0);
-  float shore = shoreDistance(world.xz);
-  vec3 offset = waveOffset(world.xz) * mix(1.0, smoothstep(0.0, uShoreCalm.y, shore), uShoreCalm.x);
+  vec2 rest = world.xz;
+  float shore = shoreDistance(rest);
+  vec3 offset = seaOffset(rest, shore);
   float h = offset.y;
   world.xyz += offset;
   vWorld = world.xyz;
@@ -90,6 +165,12 @@ void main() {
 #ifdef DEPTH
   vDepth = seabedDepth(world.xz);
 #endif
+#endif
+#ifdef COAST
+  // How high a crest can stand here (x), the surf (y), the swell's share (z). The surf breaks on
+  // the windward edge, where the seabed rises ahead of the swell; the lee keeps a thinner share.
+  float windward = smoothstep(0.0, 0.06, seaBake.x - coastBake(rest + uSeaWind.xy * uSeaWind.w).x);
+  vSea = vec3(dot(uBandHeight, seaShare), seaSurf * mix(uSeaWind.z, 1.0, windward), seaShare.x);
 #endif
   vHeight = h;
   vec4 mv = viewMatrix * world;

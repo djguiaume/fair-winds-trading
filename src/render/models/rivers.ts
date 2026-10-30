@@ -3,12 +3,17 @@ import type { RiverDef } from '../../data/islands';
 import { type IslandLayout, fallsBetween, surfaceHeight } from '../../sim/islandLayout';
 import { molten, paint } from './geometry';
 import { BEACH_TOP } from '../../sim/islandUnits';
+import { TUNING } from '../../data/tuning';
+import type { Stand } from './townProps';
 
 /**
  * Rivers of water and lava (decision 0176), in reference units round the island's origin: a
  * ribbon that lies on the land, falls as a sheet where the ground drops at a cliff, and ends in the
  * sea with foam (water) or steam (lava). Lava is drawn as glowing parts, so it shares the lit
- * windows' material: dull red by day, bright at night, with no extra draw call.
+ * windows' material: dull red by day, bright at night, with no extra draw call. On the new look's
+ * smooth ground (`stand`, decision 0222) it runs down the slopes the ground has, and falls only
+ * where that ground drops steeply (issue #378: it used to follow the classic tiers, standing as a
+ * waterfall over a smoothed slope and sinking into the ground under it).
  */
 
 /** Colours: water as the lake; lava's bright core, its dark crust and the steam. */
@@ -47,8 +52,14 @@ function mesh(tris: P3[], up: boolean) {
 /**
  * Where a river runs, in island-radius units: points along it, the land's height there and the
  * river's width (a point's own width, or the river's, eased between points along the curve).
+ * `ground` (island-radius units): the new look's ground instead of the classic tiers, taken at the
+ * highest of the stream's middle and banks so it never sinks into a slope across it.
  */
-export function riverSamples(layout: IslandLayout, river: RiverDef) {
+export function riverSamples(
+  layout: IslandLayout,
+  river: RiverDef,
+  ground?: (x: number, z: number) => number,
+) {
   // The width rides the curve as its y, so it eases smoothly from point to point.
   const pts = river.points.map(([x, z, w]) => new THREE.Vector3(x, w ?? river.width, z));
   const curve =
@@ -58,17 +69,42 @@ export function riverSamples(layout: IslandLayout, river: RiverDef) {
   const n = Math.max(2, Math.ceil(curve.getLength() * SAMPLES));
   const out: { x: number; z: number; h: number | null; w: number }[] = [];
   for (const p of curve.getSpacedPoints(n)) {
-    const h = surfaceHeight(layout, p.x, p.z);
+    const classic = surfaceHeight(layout, p.x, p.z);
+    const h = classic === null || !ground ? classic : landOrNull(ground(p.x, p.z));
     out.push({ x: p.x, z: p.z, h, w: Math.max(0.002, p.y) });
     // The river ends where it first reaches the sea or the lake.
     if (h === null) break;
   }
+  if (ground) onBanks(out, ground);
   return out;
 }
 
-/** One river's parts at island radius R (reference units). */
-export function riverParts(layout: IslandLayout, river: RiverDef, R: number): Parts {
-  const samples = riverSamples(layout, river);
+/** The new look's ground at the water (the sea's surface) ends the river. */
+const landOrNull = (h: number) => (h > 0.002 ? h : null);
+
+/** Each sample as high as the ground under its banks, so a slope across it never covers it. */
+function onBanks(
+  samples: ReturnType<typeof riverSamples>,
+  ground: (x: number, z: number) => number,
+) {
+  samples.forEach((s, i) => {
+    if (s.h === null) return;
+    const a = samples[Math.max(0, i - 1)]!,
+      b = samples[Math.min(samples.length - 1, i + 1)]!;
+    const l = Math.hypot(b.x - a.x, b.z - a.z) || 1;
+    const nx = (-(b.z - a.z) / l) * s.w * 0.5,
+      nz = ((b.x - a.x) / l) * s.w * 0.5;
+    s.h = Math.max(s.h, ground(s.x + nx, s.z + nz), ground(s.x - nx, s.z - nz));
+  });
+}
+
+/**
+ * One river's parts at island radius R (reference units), on the classic tiers or, with `stand`,
+ * on the new look's ground.
+ */
+export function riverParts(layout: IslandLayout, river: RiverDef, R: number, stand?: Stand): Parts {
+  const ground = stand && ((x: number, z: number) => stand(x, z) / R);
+  const samples = riverSamples(layout, river, ground);
   if (samples.length < 2) return [];
   const lava = river.kind === 'lava';
   // Lava's crust shows as a dark edge either side of the glowing core. `half`: of the width.
@@ -78,14 +114,19 @@ export function riverParts(layout: IslandLayout, river: RiverDef, R: number): Pa
         { half: 0.42, lift: LIFT, color: RIVER_COLORS.lava, glow: true },
       ]
     : [{ half: 0.5, lift: LIFT, color: RIVER_COLORS.water, glow: false }];
-  // On the beach the land's top is the sand's, above the sea.
-  const y = (h: number | null) => (h === null ? -0.15 : Math.max(h * R, BEACH_TOP));
-  // Falls at cliff edges, and off the land into the sea when the ground meets the water high.
+  // On the classic beach the land's top is the sand's, above the sea; the new look's is its own.
+  const y = (h: number | null) =>
+    h === null ? -0.15 : ground ? h * R : Math.max(h * R, BEACH_TOP);
+  // Falls at cliff edges (on the new look, a drop steeper than `rivers.fallSlope`), and off the
+  // land into the sea when the ground meets the water high.
   const drops = samples.map((b, i) => {
     const a = samples[i - 1];
     if (!a) return false;
     if (b.h === null) return (a.h ?? 0) * R > 0.5;
-    return a.h !== null && fallsBetween(layout, a.x, a.z, b.x, b.z);
+    if (a.h === null) return false;
+    if (ground)
+      return a.h - b.h > TUNING.terrain.rivers.fallSlope * Math.hypot(b.x - a.x, b.z - a.z);
+    return fallsBetween(layout, a.x, a.z, b.x, b.z);
   });
   const fallsAt = (i: number) => drops[i]!;
   // A water fall that lands on the beach just above the sea spills on over the shingle and off

@@ -117,6 +117,24 @@ describe('rivers (decision 0176)', () => {
     ).toMatch(/width must be above 0/);
   });
 
+  it("run down the new look's smooth slopes, on top of the ground, and fall only where it drops steeply (#378)", () => {
+    const d = riverIsland();
+    const layout = islandLayout(d);
+    const stream = d.rivers![1]!;
+    // A smooth ramp where the classic file has a cliff: 0.2 high at the source, 0 at the coast.
+    const gentle = (x: number, z: number) => Math.max(0, 0.2 * (1 - Math.hypot(x, z))) * R;
+    const ground = (x: number, z: number) => gentle(x, z) / R;
+    const samples = riverSamples(layout, stream, ground);
+    for (const s of samples.slice(0, -1)) expect(s.h!).toBeGreaterThanOrEqual(ground(s.x, s.z));
+    // Falls add a sheet, a white lip and foam where they land; a run down a slope is one ribbon.
+    const parts = (stand?: (x: number, z: number) => number) =>
+      riverParts(layout, stream, R, stand).length;
+    expect(parts(gentle)).toBeLessThan(parts());
+    // A real drop in the new ground still falls.
+    const stepped = (x: number, z: number) => (gentle(x, z) > 0 ? (x + z < 0.45 ? 8 : 1) : 0);
+    expect(parts(stepped)).toBeGreaterThan(parts(gentle));
+  });
+
   it('follow after:/before: quest tags like props', () => {
     const d = riverIsland();
     d.rivers![0]!.tags = ['after:emberhold-glass'];

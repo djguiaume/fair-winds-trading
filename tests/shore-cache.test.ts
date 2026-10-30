@@ -153,7 +153,7 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
     world: { map, land: map },
     wake: { setQuality: vi.fn() },
     // The classic waves (decision 0245): `?waves=v2` compiles another ocean shader.
-    sea: { gerstner: false },
+    sea: { gerstner: false, calmBy: <T>(seabed: T) => seabed },
     islands: { setQuality: vi.fn() },
     rig: { orbit: new CameraOrbit() },
     boat: { setLowDetail: vi.fn() },

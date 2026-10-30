@@ -5,6 +5,7 @@ import type { WindZoneDef } from '../sim/map';
 import { zonesTuning } from '../sim/windZones';
 import type { Ocean } from './ocean';
 import { type ShoreTexture, shoreShader } from './shoreTexture';
+import { rideSea, sheetSurfaceShader, sheetSurfaceUniforms } from './seaSheets';
 
 /**
  * Calm water in wind zones (decision 0144): the doldrums, and a little a sheltered lagoon, look
@@ -15,8 +16,7 @@ import { type ShoreTexture, shoreShader } from './shoreTexture';
  */
 
 const vertexShader = /* glsl */ `
-uniform float uTime;
-uniform float uLift;
+${sheetSurfaceShader}
 attribute float aEdge;
 attribute float aGlassy;
 varying float vEdge;
@@ -24,17 +24,11 @@ varying float vGlassy;
 varying vec3 vWorld;
 varying float vFogDepth;
 
-float wave(vec2 p) {
-  return sin(dot(p, vec2(0.12, 0.07)) + uTime * 1.1) * 0.32
-       + sin(dot(p, vec2(-0.05, 0.15)) + uTime * 0.8) * 0.24
-       + sin(dot(p, vec2(0.21, -0.17)) + uTime * 1.7) * 0.12;
-}
-
 void main() {
   vec4 world = modelMatrix * vec4(position, 1.0);
-  // Just above the water, on the same waves as the ocean, clear of its sag between grid points
-  // (waveSag, issue #277).
-  world.y += wave(world.xz) + uLift;
+  // Just above the water, on the same waves as the ocean, clear of the grids' sag (issue #277).
+  world.xyz += seaOffset(world.xz, shoreDistance(world.xz));
+  world.y += uLift;
   vWorld = world.xyz;
   vEdge = aEdge;
   vGlassy = aGlassy;
@@ -98,7 +92,7 @@ void main() {
 const LIFT = 0.12;
 
 /** Grid spacing of a zone's sheet (units): fine enough to ride the waves, as the currents do. */
-const STEP = 3;
+export const STEP = 3;
 /** The glass's own edge (units): sharp enough to steer by, ruffled water just outside it. */
 const EDGE = 6;
 
@@ -161,8 +155,8 @@ export class CalmWater {
       transparent: true,
       depthWrite: false,
       uniforms: {
+        ...sheetSurfaceUniforms(),
         uTime: { value: 0 },
-        uLift: { value: LIFT },
         uShoreMap: { value: shore.texture },
         uShoreBounds: { value: shore.bounds },
         uWater: { value: new THREE.Color() },
@@ -201,7 +195,7 @@ export class CalmWater {
     const from = ocean.mesh.material.uniforms;
     const u = this.material.uniforms;
     u.uTime!.value = time;
-    u.uLift!.value = ocean.sheetLift(LIFT);
+    rideSea(this.material, ocean, LIFT, STEP);
     (u.uWater!.value as THREE.Color).copy(from.uWater!.value as THREE.Color);
     (u.uWaterLight!.value as THREE.Color).copy(from.uWaterLight!.value as THREE.Color);
     (u.uFogColor!.value as THREE.Color).copy(from.uFogColor!.value as THREE.Color);

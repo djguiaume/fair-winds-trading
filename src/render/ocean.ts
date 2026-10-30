@@ -4,126 +4,20 @@ import { PALETTE } from './palette';
 import { TUNING } from '../data/tuning';
 import type { QualityProfile } from './quality';
 import { DAY, NIGHT, type Look } from './atmosphere';
-import { type ShoreTexture, shoreShader, shoreTexture } from './shoreTexture';
-import { type SeabedTexture, seabedShader } from './seabedTexture';
+import { type ShoreTexture, shoreTexture } from './shoreTexture';
+import type { SeabedTexture } from './seabedTexture';
 import { dimShallow, liftToFloor, newRamp, seaRampAt } from './seaWater';
 import { oceanVertexShader as vertexShader, waveSag } from './oceanWaves';
+import { oceanFragmentShader as fragmentShader } from './oceanShader';
 import { type SeaWaves, gerstnerDefines, gerstnerUniforms } from './seaWaves';
+import type { TerrainLook } from './terrainLook';
 
-const fragmentShader = /* glsl */ `
-uniform float uTime;
-#ifndef VERTEX_SHORES
-${shoreShader}
-#ifdef DEPTH
-${seabedShader}
-#endif
-#endif
-#ifdef VERTEX_SHORES
-varying float vShoreDistance;
-#ifdef DEPTH
-varying float vDepth;
-#endif
-#endif
-#ifdef DEPTH
-// The mid colour's place on the depth (0..1), the crest lightening and the facet shading.
-uniform vec3 uDepthLook;
-#endif
-uniform vec3 uSunDir;
-uniform vec3 uWater;
-uniform vec3 uWaterLight;
-uniform vec3 uShallow;
-uniform vec3 uFoam;
-uniform vec3 uFogColor;
-uniform float uFogNear;
-uniform float uFogFar;
-#ifdef REFLECT
-uniform vec3 uSkyLight;
-uniform vec3 uSunColor;
-uniform float uReflect;
-uniform float uFresnelPower;
-uniform float uGlint;
-uniform float uGlintSharpness;
-// Glint fades out between these view heights (sines of the angle above the sea), and peaks at w.
-uniform vec3 uGlintFade;
-#endif
-#if defined(REFLECT) || defined(DEPTH)
-// Soft shore foam: full strength out to x, fading over y, opacity z, outer line w.
-uniform vec4 uFoamLook;
-#endif
-varying vec3 vWorld;
-varying float vHeight;
-varying float vFogDepth;
-
-void main() {
-#ifdef PLAIN
-  // Ultra-low (decision 0247): no facets; the waves show in the crest colour alone.
-  float light = 1.0;
-#else
-  // Flat shading: one normal per triangle from screen-space derivatives.
-  vec3 n = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
-  if (n.y < 0.0) n = -n;
-  float light = 0.62 + 0.5 * max(dot(n, uSunDir), 0.0);
-#endif
-
-  // Distance to the nearest beach, for the foam line.
-#ifdef VERTEX_SHORES
-  float d = vShoreDistance;
-#else
-  float d = shoreDistance(vWorld.xz);
-#endif
-#ifdef DEPTH
-  // Coloured by the seabed's depth (issue #274): shallow → mid → deep (uWaterLight, uWater).
-#ifdef VERTEX_SHORES
-  float dep = vDepth;
-#else
-  float dep = seabedDepth(vWorld.xz);
-#endif
-  vec3 col = mix(uShallow, uWaterLight, clamp(dep / uDepthLook.x, 0.0, 1.0));
-  col = mix(col, uWater, clamp((dep - uDepthLook.x) / (1.0 - uDepthLook.x), 0.0, 1.0));
-  col *= 1.0 + uDepthLook.y * (smoothstep(-0.35, 0.45, vHeight) - 0.5);
-  light = mix(1.0, light, uDepthLook.z);
-#else
-  vec3 col = mix(uWater, uWaterLight, smoothstep(-0.35, 0.45, vHeight));
-  col = mix(col, uShallow, (1.0 - smoothstep(0.0, 14.0, d)) * 0.85);
-#endif
-#ifdef FANCY
-  float ripple = sin(vWorld.x * 0.45 + uTime * 1.3) * sin(vWorld.z * 0.5 - uTime * 1.7);
-#else
-  float ripple = 0.0;
-#endif
-#if defined(REFLECT) || defined(DEPTH)
-  // A wide band that fades softly into the sea, and a faint line further out that comes and goes.
-  float soft = 1.0 - smoothstep(uFoamLook.x, uFoamLook.x + uFoamLook.y, d + 0.5 * ripple);
-  float beyond = d - uFoamLook.x - uFoamLook.y - 1.0 - 0.8 * sin(uTime * 0.9 + d * 0.4);
-  float line = (1.0 - smoothstep(0.0, 1.2, abs(beyond))) * uFoamLook.w;
-  col = mix(col, uFoam, clamp(soft * soft * uFoamLook.z + line, 0.0, 1.0));
-#elif defined(FANCY)
-  float foam = 1.0 - smoothstep(0.8, 2.6, d + 0.7 * ripple + 0.6 * sin(uTime * 1.4 + d * 0.6));
-  col = mix(col, uFoam, foam * 0.8);
-#else
-  float foam = 1.0 - smoothstep(0.8, 2.6, d);
-  col = mix(col, uFoam, foam * 0.8);
-#endif
-
-  col *= light;
-#ifdef REFLECT
-  // The sky mirrored at low angles (Fresnel), and the sun or moon sparkling on the facets.
-  vec3 toEye = normalize(cameraPosition - vWorld);
-  float fresnel = pow(1.0 - max(dot(n, toEye), 0.0), uFresnelPower);
-  col = mix(col, uSkyLight, fresnel * uReflect);
-  // A glint belongs to a low view: looking down at a high sun it would blow out half the screen.
-  float glint = pow(max(dot(n, normalize(uSunDir + toEye)), 0.0), uGlintSharpness);
-  glint *= 1.0 - smoothstep(uGlintFade.x, uGlintFade.y, toEye.y);
-  col += uSunColor * min(glint * uGlint, uGlintFade.z);
-#endif
-  col = mix(col, uFogColor, smoothstep(uFogNear, uFogFar, vFogDepth));
-  gl_FragColor = vec4(col, 1.0);
-  #include <colorspace_fragment>
-}
-`;
-
-/** Conservative displacement bound: sum of the three wave amplitudes below and in the shader. */
-export const MAX_WAVE_HEIGHT = 0.32 + 0.24 + 0.12;
+/** Conservative displacement bound: the classic waves' three amplitudes, or every band's cap. */
+export const maxWaveHeight = () =>
+  Math.max(
+    0.32 + 0.24 + 0.12,
+    Object.values(TUNING.waves.bands).reduce((sum, band) => sum + band.max, 0),
+  );
 
 /**
  * The ocean of a quality level. The shader depends on the water look, not the grid resolution:
@@ -136,8 +30,11 @@ export function oceanFor(
   land: { islands: readonly IslandDef[]; terrain: readonly TerrainDef[] },
   shore: ShoreTexture,
   seabed?: SeabedTexture,
-  gerstner = false,
+  waves?: Pick<SeaWaves, 'gerstner'>,
+  /** `v2` colours the water by `seabed`; otherwise it only calms the Gerstner waves. */
+  terrain: TerrainLook = 'v2',
 ): Ocean {
+  const gerstner = !!waves?.gerstner;
   const material = others.find(
     ({ mesh }) =>
       'FANCY' in mesh.material.defines === profile.fancyWater &&
@@ -148,8 +45,9 @@ export function oceanFor(
     fancy: profile.fancyWater,
     reflect: profile.waterReflection,
     plain: profile.plain,
-    seabed,
+    seabed: terrain === 'v2' ? seabed : undefined,
     gerstner,
+    coast: gerstner ? seabed : undefined,
   };
   return new Ocean(land.islands, profile.oceanSegments, look, 480, land.terrain, shore, material);
 }
@@ -166,6 +64,8 @@ export interface WaterLook {
   seabed?: SeabedTexture;
   /** The wind and storm driven Gerstner waves (`?waves=v2`, decision 0245). */
   gerstner?: boolean;
+  /** The bake whose depth and exposure calm the Gerstner waves near land (issue #281). */
+  coast?: SeabedTexture;
 }
 
 /** The shader's switches for a water look. */
@@ -187,16 +87,23 @@ export class Ocean {
   readonly mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
   /** The grid's cell size (units), and how far its flat triangles part from the true waves. */
   readonly cell: number;
-  private readonly sag: number;
+  /** The grid's sag under today's waves: the classic ones', or the Gerstner sea's now. */
+  private sag: number;
+  private waves: SeaWaves | null = null;
 
   /** How much the waves calm toward the shore on this grid (0 to 1, `water.shoreCalm`). */
   get shoreCalm() {
     return Math.min(1, this.sag / TUNING.graphics.water.shoreCalm.sag);
   }
 
-  /** How high a sheet riding the waves (calm water, currents) floats: clear of this grid's sag. */
-  sheetLift(base: number) {
-    return base + Math.max(this.sag, this.shoreCalm * MAX_WAVE_HEIGHT);
+  /**
+   * How high a sheet riding the waves (calm, rough and current water, the shallows) on its own
+   * grid of `cell` units floats: it rides the same surface (`seaSurfaceShader`), so it only has to
+   * clear both grids' sag.
+   */
+  sheetLift(base: number, cell: number) {
+    const own = this.waves?.gerstner ? this.waves.sag(cell, this.cell) : waveSag(cell);
+    return base + this.sag + own;
   }
   private readonly ownsShore: boolean;
   private readonly ownsMaterial: boolean;
@@ -228,14 +135,16 @@ export class Ocean {
         defines: {
           ...waterDefines(look),
           ...(look.seabed ? { DEPTH: '' } : {}),
-          ...(look.gerstner ? gerstnerDefines() : {}),
+          ...(look.gerstner ? gerstnerDefines(!!look.coast) : {}),
         },
         uniforms: {
           uTime: { value: 0 },
           uShoreMap: { value: shore.texture },
           uShoreBounds: { value: shore.bounds },
-          uDepthMap: { value: look.seabed?.texture ?? null },
-          uDepthBounds: { value: look.seabed?.bounds ?? new THREE.Vector4(0, 0, 1, 1) },
+          uDepthMap: { value: (look.seabed ?? look.coast)?.texture ?? null },
+          uDepthBounds: {
+            value: (look.seabed ?? look.coast)?.bounds ?? new THREE.Vector4(0, 0, 1, 1),
+          },
           uDepthLook: { value: new THREE.Vector3() },
           uDayWater: { value: new THREE.Color(PALETTE.water) },
           uSunDir: { value: new THREE.Vector3(-0.45, 0.8, 0.35).normalize() },
@@ -255,6 +164,7 @@ export class Ocean {
           uGlintFade: { value: new THREE.Vector3(0.6, 0.85, 0.5) },
           uFoamLook: { value: new THREE.Vector4() },
           uShoreCalm: { value: new THREE.Vector2() },
+          uFoamNight: { value: 1 },
           ...(look.gerstner ? gerstnerUniforms() : {}),
         },
       });
@@ -349,6 +259,10 @@ export class Ocean {
     if (waves && 'GERSTNER' in this.mesh.material.defines) {
       waves.update();
       waves.writeUniforms(u as Parameters<SeaWaves['writeUniforms']>[0], this.cell);
+      this.waves = waves;
+      this.sag = waves.sag(this.cell, this.cell);
+      const day = Math.min(1, (this.waterLight.r + this.waterLight.g + this.waterLight.b) / 3);
+      u.uFoamNight!.value = THREE.MathUtils.lerp(TUNING.waves.foam.night, 1, day);
     }
     const w = TUNING.graphics.water;
     u.uReflect!.value = reflect ? w.reflection : 0;

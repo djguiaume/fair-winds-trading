@@ -41,7 +41,7 @@ export class TrafficView {
   readonly root = new THREE.Group();
   private readonly materials = trafficMaterials();
   private readonly batches = new Map<string, Batch>();
-  private readonly wakes = new TrafficWakes();
+  private readonly wakes: TrafficWakes;
   private readonly styles: Map<string, string>;
   /** The deck cargo a coaster carries from each port: her home's first good (traffic-boats.json). */
   private readonly cargo: Map<string, number>;
@@ -64,7 +64,9 @@ export class TrafficView {
   /** The most boats ever drawn at once: the High cap. */
   private readonly most: number;
 
-  constructor(map: MapDef) {
+  /** `water`: the sea's height at a scene point, which the bow waves float on (`SeaWaves.heightAt`). */
+  constructor(map: MapDef, water?: (x: number, z: number) => number) {
+    this.wakes = new TrafficWakes(water);
     this.root.name = 'traffic';
     const islandStyle = new Map(map.islands.map((i) => [i.id, designOf(i)?.style ?? 'fish']));
     this.styles = new Map(map.ports.map((p) => [p.id, islandStyle.get(p.islandId) ?? 'fish']));
