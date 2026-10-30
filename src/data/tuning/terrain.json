@@ -46,13 +46,45 @@
   },
   "draw": {
     "hideBelow": -0.9,
-    "blend": 1,
     "jitter": 0.6,
     "mottle": 0.18,
     "mottleAmount": 0.3,
-    "slope": [0.15, 0.18],
+    "slope": [0.1, 0.3],
+    "sharpSlope": [0.13, 0.18],
+    "slopeSmooth": 0.6,
     "wet": [0.1, 0.4],
     "bands": 2.4,
+    "bandWobble": {
+      "scale": 0.1,
+      "amount": 0.4
+    },
+    "bandSmooth": 1.2,
+    "strata": {
+      "along": 0.6,
+      "up": 6,
+      "amount": 0.07
+    },
+    "detail": {
+      "scales": [0.7, 2.3, 6.1],
+      "amounts": [0.05, 0.03, 0.02],
+      "octaves": {
+        "low": 2,
+        "medium": 3,
+        "high": 3,
+        "ultra": 3
+      }
+    },
+    "edgeSmooth": 0.6,
+    "edge": {
+      "width": 0.5,
+      "sharpWidth": 0.3,
+      "crisp": {
+        "low": false,
+        "medium": true,
+        "high": true,
+        "ultra": true
+      }
+    },
     "fineTexels": 256,
     "fineMax": 3
   },

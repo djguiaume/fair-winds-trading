@@ -11,7 +11,7 @@ import { smoothField } from '../src/sim/smoothField';
 import {
   designPalette,
   fieldGround,
-  fieldGroundTexture,
+  fieldGroundTextures,
   groundTexels,
 } from '../src/render/models/fieldGround';
 import { facetedGround } from '../src/render/models/ground';
@@ -172,32 +172,91 @@ describe('the new look ground mesh', () => {
     expect(coarse.attributes.uv!.getX(1)).toBeCloseTo(g.attributes.uv!.getX(3), 6);
   });
 
-  it('colours by zone: green flat tops, warm sandstone slopes, never grey', () => {
+  it('colours by zone: green flat tops, warm sandstone bands, slope in alpha (issue #373)', () => {
     const f = smoothField(plateau(10));
-    const { image } = fieldGroundTexture(f, designPalette('fish'));
-    const texels = image.data as Uint8Array;
+    const { colour, sides } = fieldGroundTextures(f, designPalette('fish'));
+    const texels = colour.image.data as Uint8Array;
     // The field's sample (i, j), on a small island's finer texture (issue #277).
     const t = groundTexels(f);
     const at = (i: number, j: number) => {
-      const k = j * t * image.width + i * t;
-      return Array.from(texels.slice(k * 4, k * 4 + 3));
+      const k = j * t * colour.image.width + i * t;
+      return Array.from(texels.slice(k * 4, k * 4 + 4));
     };
-    const [r, gr, b] = at(20, 20);
+    const [r, gr, b, level] = at(20, 20);
     expect(gr).toBeGreaterThan(r!);
     expect(gr).toBeGreaterThan(b!);
-    const [er, eg, eb] = at(16, 20);
-    expect(er).toBeGreaterThan(eb! + 20);
-    expect(er).toBeGreaterThan(eg! * 0.95);
+    expect(level).toBeGreaterThan(235);
+    // The plateau's edge is steep: the shader turns it to the cliff bands.
+    expect(at(16, 20)[3]).toBeLessThan(255 * (1 - TUNING.terrain.draw.slope[1]!));
+    // The grass row's bands (row 1) are warm sandstone.
+    const band = Array.from(
+      (sides.image.data as Uint8Array).slice(sides.image.width * 4, sides.image.width * 4 + 3),
+    );
+    expect(band[0]).toBeGreaterThan(band[2]! + 20);
+    expect(band[0]).toBeGreaterThan(band[1]! * 0.95);
+  });
+
+  it('marks each texel with its ground and height, sea and land kept apart', () => {
+    const f = smoothField(plateau(10));
+    const { colour, shape, heights } = fieldGroundTextures(f, designPalette('fish'));
+    expect(shape.image.width).toBe(colour.image.width);
+    const data = shape.image.data as Uint8Array;
+    const texel = (k: number) => data.slice(k * 4, k * 4 + 4);
+    const n = colour.image.width * colour.image.height;
+    expect(new Set(Array.from({ length: n }, (_, k) => texel(k)[0]))).toEqual(new Set([0, 1]));
+    const t = groundTexels(f);
+    const at = (i: number, j: number) => texel(j * t * shape.image.width + i * t);
+    const height = (v: Uint8Array) => heights[0] + ((v[1]! * 256 + v[2]!) / 65535) * heights[1];
+    expect(at(20, 20)[0]).toBe(1);
+    // The bands' height: the field's, smoothed a little (draw.bandSmooth), so higher on the top.
+    expect(Math.abs(height(at(20, 20)) - heightAt(f, 20, 20))).toBeLessThan(1);
+    expect(height(at(20, 20))).toBeGreaterThan(height(at(10, 10)) + 4);
+    expect(texel(0)[0]).toBe(0);
+  });
+
+  it('marks rock grounds sharp, and each texel’s share of its own ground', () => {
+    const f = { ...smoothField(plateau(10)), grounds: ['', 'basalt'] };
+    const { shape } = fieldGroundTextures(f, designPalette('fog'));
+    const t = groundTexels(f);
+    const data = shape.image.data as Uint8Array;
+    const at = (i: number, j: number) => (j * t * shape.image.width + i * t) * 4;
+    expect(data[at(20, 20)]).toBe(1 + 128);
+    // Well inside its zone a texel's ground has all the share; next to another, about half.
+    expect(data[at(20, 20) + 3]).toBe(255);
+    for (let k = 0; k < data.length; k += 4) expect(data[k + 3]).toBeGreaterThanOrEqual(127);
+    const soft = fieldGroundTextures(smoothField(plateau(10)), designPalette('fish')).shape;
+    expect((soft.image.data as Uint8Array)[at(20, 20)]).toBe(1);
+  });
+
+  it('repeats each ground’s bands to a width every row shares', () => {
+    const f = { ...smoothField(plateau(10)), grounds: ['', 'grass', 'rock'] };
+    const palette = {
+      look: (g: string) => ({
+        top: ['#808080'],
+        side: {
+          sand: ['#010101'],
+          grass: ['#020202', '#030303'],
+          rock: ['#040404', '#050505', '#060606'],
+        }[g]!,
+      }),
+      wet: '#000000',
+    };
+    const { sides } = fieldGroundTextures(f, palette);
+    expect(sides.image.width).toBe(6);
+    const red = (g: number, b: number) => (sides.image.data as Uint8Array)[(g * 6 + b) * 4];
+    expect([0, 1, 2, 3, 4, 5].map((b) => red(1, b))).toEqual([2, 3, 2, 3, 2, 3]);
+    expect([0, 1, 2, 3, 4, 5].map((b) => red(2, b))).toEqual([4, 5, 6, 4, 5, 6]);
   });
 
   it('gives a small island a finer texture, its mesh on the same texels (issue #277)', () => {
     const f = smoothField(plateau(10));
     const t = groundTexels(f);
     expect(t).toBeGreaterThan(1);
-    const { image } = fieldGroundTexture(f, designPalette('fish'));
-    expect(image.width).toBe((f.w - 1) * t + 1);
+    const { colour, texel } = fieldGroundTextures(f, designPalette('fish'));
+    expect(colour.image.width).toBe((f.w - 1) * t + 1);
+    expect(texel).toBeCloseTo(f.cell / t, 6);
     const g = fieldGround(f, 1);
-    expect(g.attributes.uv!.getX(1)).toBeCloseTo((t + 0.5) / image.width, 6);
+    expect(g.attributes.uv!.getX(1)).toBeCloseTo((t + 0.5) / colour.image.width, 6);
   });
 });
 

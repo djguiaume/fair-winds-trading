@@ -17,9 +17,13 @@ import {
   designPalette,
   featurePalette,
   fieldGround,
-  fieldGroundMaterial,
-  fieldGroundTexture,
+  fieldGroundTextures,
 } from './fieldGround';
+import {
+  disposeFieldGround,
+  fieldGroundMaterial,
+  setFieldGroundQuality,
+} from './fieldGroundShader';
 import { islandParts, shownLevel } from './islandParts';
 import { terrainProps } from './terrainProps';
 import { type Stand, fieldStand, standHeight } from './townProps';
@@ -158,7 +162,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
   /** The new look's ground of a batch, drawn from its height field at the quality's detail. */
   private addGround(group: THREE.Group, field: Heightfield, palette: FieldPalette) {
     // The colours live in a texture at the field's own grid: built once, whatever the quality.
-    const material = fieldGroundMaterial(fieldGroundTexture(field, palette));
+    const material = fieldGroundMaterial(fieldGroundTextures(field, palette), this.quality);
     this.fields.set(group, { field, material });
     this.addGroundMesh(group, field, material);
   }
@@ -180,6 +184,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
       const forest = group.getObjectByName('forest');
       if (forest) setForestQuality(forest, level);
     }
+    for (const { material } of this.fields.values()) setFieldGroundQuality(material, level);
     const step = TUNING.terrain.groundStep[level];
     if (step === this.groundStep) return;
     this.groundStep = step;
@@ -314,11 +319,10 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     this.batches.clear();
   }
 
-  /** A batch's new-look ground material and its colour texture. */
+  /** A batch's new-look ground material and its textures. */
   private disposeGround(group: THREE.Group) {
-    const material = this.fields.get(group)?.material as THREE.MeshLambertMaterial | undefined;
-    material?.map?.dispose();
-    material?.dispose();
+    const material = this.fields.get(group)?.material;
+    if (material) disposeFieldGround(material);
     this.fields.delete(group);
   }
 }
