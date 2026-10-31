@@ -22,7 +22,7 @@ v1.3 put real waves on the sea (0245-0250) and #283 made the boats ride them (02
 
 ## Consequences
 
-- Balance (`npm run balance`, all three levels): sloop legs +1 to +2 s median (61/66/64 s to 62/67/66 s); cutter on Fair/Captain/Old salt 20.0/27.4/37.2 to 20.2/27.5/37.7 min. Every check passes except the sharp captain's first upgrade, 5.0 to 5.1 min against "≤ 5 min": the target moves to 5.25 min (`balance-targets.json`), pending Guillaume's OK.
+- Balance (`npm run balance`, all three levels): sloop legs +1 to +2 s median (61/66/64 s to 62/67/66 s); cutter on Fair/Captain/Old salt 20.0/27.4/37.2 to 20.2/27.5/37.7 min. Every check passes except the sharp captain's first upgrade, 5.0 to 5.1 min against "≤ 5 min": the target moves to 5.25 min (`balance-targets.json`, `docs/economy.md`); the storyteller agreed to keep the upgrade price; pending Guillaume's OK.
 - Race pars are re-sailed by the bots with the waves and written to the quest files: median +1.6 %, 9 in 10 within +4 %; a few heavy-ship pars moved more where the bot's route changed (most were already estimates).
 - Tuning: `waves.json › drag` in the `?tune` Waves tab and `npm run sea -- waves waves.drag.max=0.08`; the table: `npm run sea -- drag`.
 - Not done: coast calm and island shelter do not lower the drag yet (the coast bake is render side); the drawn sea in a held-breeze race still follows the map's weather.

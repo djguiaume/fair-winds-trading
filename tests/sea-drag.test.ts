@@ -89,13 +89,12 @@ describe('the waves slowing her (decision 0256)', () => {
       world.trade.difficulty = level;
       world.boat.heading = world.seaWind.from;
       for (let i = 0; i < 120; i++) stepWorld(world, { steer: 0, sailStep: 2 }, DT);
-      return { drag: world.seaDrag, mine: seaDragAt(world, world.boat, SLOOP) };
+      return seaDragAt(world, world.boat, SLOOP);
     };
     for (const level of DIFFICULTIES) {
-      const { drag, mine } = at(level);
+      const drag = at(level);
       expect(drag).toBeGreaterThan(0);
       expect(drag).toBeLessThanOrEqual(TUNING.waves.drag.max);
-      expect(mine).toBe(drag);
     }
   });
 
@@ -144,7 +143,7 @@ describe('the waves slowing her (decision 0256)', () => {
       const seen: number[] = [];
       for (let i = 0; i < 600; i++) {
         stepWorld(world, { steer: 0, sailStep: 2 }, DT);
-        seen.push(world.seaDrag);
+        seen.push(seaDragAt(world, world.boat, SLOOP));
       }
       return { seen, world };
     };
@@ -159,7 +158,7 @@ describe('the waves slowing her (decision 0256)', () => {
     const world = createWorld(PHASE0_MAP, SLOOP);
     world.seaDragOn = false;
     for (let i = 0; i < 120; i++) stepWorld(world, { steer: 0, sailStep: 2 }, DT);
-    expect(world.seaDrag).toBe(0);
+    expect(seaDragAt(world, world.boat, SLOOP)).toBe(0);
   });
 
   it('report the table the tool prints, inside the caps', () => {

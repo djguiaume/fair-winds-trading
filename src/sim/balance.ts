@@ -29,7 +29,7 @@ import {
   stepSettlements,
   wantsAt,
 } from './settlement';
-import { CUTTER, SLOOP, type ShipClass, polarFraction } from './ship';
+import { CUTTER, SLOOP, type ShipClass } from './ship';
 import { discoverNear, discoveredPorts, homePort } from './shipyards';
 import { islandCharted, stepFog } from './fog';
 import {
@@ -54,9 +54,7 @@ import {
 } from './trade';
 import { type UpgradeTrack, effectiveShip, upgradePrice } from './upgrades';
 import { createWorld } from './world';
-import { drivingWind } from './boat';
-import { seaDrag } from './seaDrag';
-import { createSeaState, steadySeaState } from './seaState';
+import { type Weather, madeGood, madeGoodIn } from './madeGood';
 import { type WindConfig, windAt, withoutStorms } from './wind';
 
 /**
@@ -77,11 +75,6 @@ import { type WindConfig, windAt, withoutStorms } from './wind';
 export const BALANCE_TARGETS = TARGETS;
 const DOCK_SECONDS = 20;
 
-interface Weather {
-  from: number;
-  kn: number;
-}
-
 /** Wind from the map's prevailing direction, ±`spread`° and ×0.8–1.1 as the weather shifts. */
 function weathers(map: MapDef, spread: number): Weather[] {
   return Array.from({ length: 11 }, (_, i) => ((i - 5) * spread) / 5).flatMap((off) =>
@@ -98,36 +91,6 @@ const SHIFTING_SPREAD = 50;
 function islandOfPort(map: MapDef, portId: string) {
   const port = map.ports.find((p) => p.id === portId)!;
   return map.islands.find((i) => i.id === port.islandId)!;
-}
-
-/**
- * Best speed made good along `bearing` (kn), sailing straight or tacking, in one wind and the sea
- * it raises once settled, the waves slowing her unless `waves` is off (decision 0256).
- */
-function madeGoodIn(
-  ship: ShipClass,
-  bearing: number,
-  from: number,
-  kn: number,
-  waves: boolean,
-): number {
-  const drive = drivingWind(kn) * ship.speedRatio;
-  const sea = steadySeaState(from, kn, 0, legSea);
-  let best = 0;
-  for (let a = -180; a <= 180; a += 2) {
-    const heading = bearing + a * DEG;
-    const flat = polarFraction(ship, from - heading) * drive * Math.cos(a * DEG);
-    best = Math.max(best, waves ? flat * (1 - seaDrag(ship, heading, sea)) : flat);
-  }
-  return best;
-}
-const legSea = createSeaState();
-
-/** Best speed made good along `bearing` (kn), averaged over the weather. */
-function madeGood(ship: ShipClass, bearing: number, weather: Weather[], waves: boolean): number {
-  let sum = 0;
-  for (const w of weather) sum += madeGoodIn(ship, bearing, w.from, w.kn, waves);
-  return sum / weather.length;
 }
 
 /** A leg cut into stretches of at most `ZONE_STRETCH` units, each timed in its own wind and water. */

@@ -1,5 +1,5 @@
 import { TUNING } from '../data/tuning';
-import type { BoatState } from './boat';
+import { type BoatControls, type BoatState, stepBoat } from './boat';
 import { clamp } from './math';
 import { type SeaState, createSeaState, seaStateAt, steadySeaState } from './seaState';
 import type { ShipClass } from './ship';
@@ -88,4 +88,16 @@ function seaAround(world: SeaSource, boat: BoatState): SeaState {
 /** `seaDrag` for a boat sailing in the world, in the sea where she is; 0 with the switch off. */
 export function seaDragAt(world: SeaSource, boat: BoatState, ship: ShipClass): number {
   return world.seaDragOn ? seaDrag(ship, boat.heading, seaAround(world, boat)) : 0;
+}
+
+/** `stepBoat` in the sea where she is: the waves slow her as they slow every boat. */
+export function stepBoatAtSea(
+  world: SeaSource,
+  boat: BoatState,
+  controls: BoatControls,
+  ship: ShipClass,
+  wind: Wind,
+  dt: number,
+): void {
+  stepBoat(boat, controls, ship, wind, dt, seaDragAt(world, boat, ship));
 }

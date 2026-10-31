@@ -1,14 +1,9 @@
 import { bergsAt } from './bergs';
 import { type FogEvent, stepFog } from './fog';
 import { TUNING } from '../data/tuning';
-import {
-  type BoatControls,
-  type BoatState,
-  createBoat,
-  knotToUnits,
-  stepBoat,
-  trueWindAngle,
-} from './boat';
+import { type BoatControls, type BoatState, createBoat, knotToUnits, trueWindAngle } from './boat';
+import { stepBoatAtSea } from './seaDrag';
+import { stepCurrent } from './currentStep';
 import { type Pier, piersOf, resolveCollisions } from './collision';
 import { seaShape } from './seaEdge';
 import { CurrentField, type CurrentSample } from './currents';
@@ -53,7 +48,6 @@ import {
 import { GOODS, type GoodId } from './goods';
 import type { SpatialGrid } from './spatial';
 import { heelFactor, pointOfSailHeel } from './heel';
-import { seaDragAt } from './seaDrag';
 import {
   type LocalWeather,
   type Wind,
@@ -111,8 +105,6 @@ export interface World {
   bergsOn: boolean;
   /** The waves slow the boat (Settings, decision 0256); off = flat-water speeds in any sea. */
   seaDragOn: boolean;
-  /** Share of her flat-water speed the waves took off on the last step (decision 0256). */
-  seaDrag: number;
   /** The water at the boat on the last step, knots (east, north), after the switch and level. */
   water: CurrentSample;
   /** Speed over the ground on the last step, knots: through the water, leeway and current. */
@@ -278,7 +270,6 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     currentsOn: true,
     bergsOn: true,
     seaDragOn: true,
-    seaDrag: 0,
     water: { east: 0, north: 0, id: '' },
     sogKn: 0,
     windOffsetDeg: 0,
@@ -603,29 +594,6 @@ export function stepHeel(world: World, dt: number): WorldEvent[] {
 }
 
 /**
- * Current (decision 0140): the water at the boat carries her over the ground, added to her motion
- * the way leeway is; the polars, heel and press stay "through the water". A moored boat (stopped
- * with her lines ashore) ignores it. Sailing into a current she has not met charts it.
- */
-function stepCurrent(world: World, dt: number): WorldEvent[] {
-  const { boat } = world;
-  const scale = world.currentsOn ? knobs(world.trade.difficulty).currents : 0;
-  const water = world.currents.at(boat.x, boat.y, scale, world.water);
-  const moored = boat.speedKn === 0 && boat.sailStep === 0 && !boat.drift.x && !boat.drift.y;
-  if (moored || !water.id) return [];
-  const k = knotToUnits() * dt;
-  boat.x += water.east * k;
-  boat.y += water.north * k;
-  if (
-    world.trade.progress.charted?.includes(water.id) ||
-    Math.hypot(water.east, water.north) < TUNING.weather.currents.chartAtKn
-  )
-    return [];
-  (world.trade.progress.charted ??= []).push(water.id);
-  return [{ type: 'current-charted', id: water.id }];
-}
-
-/**
  * A named wind zone goes on the chart once she is well inside it, past its soft edge, like a
  * current (decision 0152). Unnamed zones are tuning, not places, and stay off it.
  */
@@ -705,9 +673,7 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   world.ship = activeShip(world.trade);
 
   const before = { x: world.boat.x, y: world.boat.y };
-  // The waves slow her (decision 0256): head seas most, following seas hardly, never a boost.
-  world.seaDrag = seaDragAt(world, world.boat, world.ship);
-  stepBoat(world.boat, controls, world.ship, world.wind, dt, world.seaDrag);
+  stepBoatAtSea(world, world.boat, controls, world.ship, world.wind, dt);
   // Lowering the sails near a port at a slow speed brings her alongside: the crew throws lines, she stops dead
   // and no longer drifts, so docking is reliable instead of a slow exponential crawl (0041).
   if (
