@@ -13,6 +13,8 @@ if (process.env.PERF_SCENARIOS) config.scenarios = process.env.PERF_SCENARIOS.sp
 if (process.env.PERF_QUALITY) config.settings.quality = process.env.PERF_QUALITY;
 if (process.env.PERF_REPEATS) config.repeats = Number(process.env.PERF_REPEATS);
 if (process.env.PERF_TIMEOUT_MS) config.timeoutMs = Number(process.env.PERF_TIMEOUT_MS);
+// A slow level (Ultra on a 4K screen in the software renderer) needs longer to draw a few frames.
+if (process.env.PERF_DURATION_MS) config.durationMs = Number(process.env.PERF_DURATION_MS);
 // A screen as `1920x1080@2` (width x height @ device scale), e.g. a 4K TV for graphics memory.
 if (process.env.PERF_SCREEN) {
   const [, width, height, scale = '1'] =

@@ -21,6 +21,7 @@ import { QUESTS } from '../../src/sim/quests';
 import { densityLines, seaDensity } from '../../src/sim/seaDensity';
 import { berthSpots, calmLines, calmRows, mapCoastGrid } from '../../src/render/coastCalmReport';
 import { drawLines, drawRows } from '../../src/render/waveDrawReport';
+import { wavesCommand } from './oceanControls';
 import { type Sectors, sectorChecks } from '../../src/sim/seaSectors';
 
 /** The repository: npm runs the tools from there. */
@@ -74,6 +75,9 @@ const HELP = `npm run sea -- <command> [options]   change the Phase 4 sea's file
         port's berth (or these points): depth and shelter, the waves.json › coast numbers (#281)
   drawn                          per quality level and review sea, how far the drawn sea can stand
         from the one boats float on: the waves its grid only shades, and its sag (#282)
+  waves [path=value …]           the ocean controls by what they change (sea, drawing, comfort,
+        level defaults, review seas); with pairs, set them as the ?tune panel does and write the
+        files (decision 0250), e.g. waves waves.motion.gentle=0.3 graphics.quality.low.waves=true
 
 options: --steps steps.json (or '[{"do":"add","what":"reef",…}]': steps as data, src/editor/seaSteps.ts)
          --routes  also the sailing route checks (about 6 s on the grown sea)
@@ -253,6 +257,7 @@ export function seaStepFromArgs(args: Args): SeaStep | null {
     case 'density':
     case 'calm':
     case 'drawn':
+    case 'waves':
     case undefined:
       return null;
     default:
@@ -281,6 +286,7 @@ export function run(args: Args): number {
     console.log(HELP);
     return 0;
   }
+  if (args._[0] === 'waves') return wavesCommand(args, ROOT);
   let sea: ReturnType<typeof readSea>;
   const steps: SeaStep[] = [];
   try {

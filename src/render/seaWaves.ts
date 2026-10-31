@@ -8,15 +8,15 @@ import type { World } from '../sim/world';
 import { waveHeight } from './oceanWaves';
 
 /**
- * Which waves the sea draws (decision 0245, issue #280): `v1`, the classic three sines, or `v2`,
- * the wind and storm driven Gerstner waves (`?waves=v2`, a prototype until v1.3 ships them).
+ * The `?waves` test switch (decisions 0245, 0250): `v1` the classic three sines, `v2` or a review
+ * preview the wind and storm driven Gerstner waves, whatever Settings › Waves says; null when
+ * the page leaves it to the Settings.
  */
-export type WavesModel = 'v1' | 'v2';
-
-export const wavesModel = (search: string): WavesModel => {
+export function wavesForced(search: string): boolean | null {
   const waves = new URLSearchParams(search).get('waves');
-  return waves === 'v2' || (waves ?? '') in TUNING.waves.previews ? 'v2' : 'v1';
-};
+  if (waves === 'v1') return false;
+  return waves === 'v2' || (waves ?? '') in TUNING.waves.previews ? true : null;
+}
 
 /** A review's fixed sea state (`?waves=calm|wind|storm`, `waves.json` › `previews`), or null. */
 const previewOf = (search: string) => {
@@ -76,14 +76,16 @@ function cellStep(cells: number, [from, to]: [number, number]) {
 }
 
 /**
- * The sea's waves for the view: what the ocean draws and everything floats on. Under `?waves=v2`,
- * the sea state where the ship is, frozen each moment into one wave field that both floats things
- * and feeds the ocean shader; otherwise the classic waves. The field is a pure function of the
+ * The sea's waves for the view: what the ocean draws and everything floats on. With the waves on
+ * (Settings › Waves, decision 0250), the sea state where the ship is, frozen each moment into one
+ * wave field that both floats things and feeds the ocean shader; off, the classic waves. The field is a pure function of the
  * world's time, so it is rebuilt once per new time, never per frame rate or quality level.
  */
 export class SeaWaves {
-  /** `?waves=v2` (or a review preview): the ocean compiles the Gerstner shader. */
-  readonly gerstner: boolean;
+  /** The waves are on: the ocean compiles the Gerstner shader. */
+  gerstner: boolean;
+  /** `?waves=…` holds the switch for tests and reviews; null leaves it to `setOn`. */
+  private readonly forced: boolean | null;
   private readonly preview: ReturnType<typeof previewOf>;
   private readonly sea = createSeaState();
   readonly field = createWaveField();
@@ -96,8 +98,19 @@ export class SeaWaves {
     private readonly world: () => World,
     search = location.search,
   ) {
-    this.gerstner = wavesModel(search) === 'v2';
+    this.forced = wavesForced(search);
+    this.gerstner = this.forced ?? true;
     this.preview = previewOf(search);
+  }
+
+  /** Settings › Waves for the level in use (a `?waves` switch wins); true if they changed. */
+  setOn(on: boolean): boolean {
+    const next = this.forced ?? on;
+    if (next === this.gerstner) return false;
+    this.gerstner = next;
+    this.time = Number.NaN;
+    if (!next) this.coast = null;
+    return true;
   }
 
   /** Calm the waves by `seabed`'s bake (the view's, rebaked on a land edit); returns it. */

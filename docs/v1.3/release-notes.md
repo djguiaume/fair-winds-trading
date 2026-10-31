@@ -1,0 +1,16 @@
+Draft for the release lead: becomes `docs/releases/v1.3.N.md` at the release.
+
+**Fair Winds Trading Co. 1.3, "Waves you can see".** This is the build the game menu shows as **v1.3.N**.
+Play it at https://djguiaume.github.io/fair-winds-trading/ (desktop, tablet, phone and the Xbox browser, installable).
+
+### Waves you can see
+- **Wind and storm waves**: a long swell, a chop that builds with the wind and ripples, all coming from where the wind has been blowing. A storm raises a grey, foam-capped sea.
+- **Coasts calm them**: waves shrink over the shallows, in the lee of islands and at the berths; surf where open water meets the shore.
+- **Lit like water**: crests catch the light, troughs darken, the sky reflects on every level, and the horizon stays calm.
+- **Your choice**: Settings › Waves turns them on or off. They are on from Medium up and off on Low and Ultra-low, where the classic sea costs less.
+- **Easy on the stomach**: Settings › Gentle sea motion makes the boat rise and pitch less (it follows your device's "reduce motion" setting), and Camera rides the waves (off by default) lets the view rise with the sea.
+- Sailing is unchanged: speeds, races, pars and docking are the same with the waves on or off. Boats that ride the waves come in 1.3.1.
+
+### For the makers
+- One wave model for the CPU and the GPU (`waves.json`), tuned in `?tune` › Waves; `npm run sea -- waves` lists and sets every ocean control, `sea -- calm` and `sea -- drawn` report the coast's calm and what each level draws.
+- `?waves=v1` shows the classic sea, `?waves=calm|wind|storm` fixed review seas.

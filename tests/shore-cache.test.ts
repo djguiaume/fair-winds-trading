@@ -152,8 +152,9 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
     // The land standing (decision 0166) is the map's, so an edit to it reaches the shores.
     world: { map, land: map },
     wake: { setQuality: vi.fn() },
-    // The classic waves (decision 0245): `?waves=v2` compiles another ocean shader.
-    sea: { gerstner: false, calmBy: <T>(seabed: T) => seabed },
+    // The classic waves (decision 0250: Settings › Waves off); on compiles another ocean shader.
+    sea: { gerstner: false, setOn: () => false, calmBy: <T>(seabed: T) => seabed },
+    wavesChoice: false,
     islands: { setQuality: vi.fn() },
     rig: { orbit: new CameraOrbit() },
     boat: { setLowDetail: vi.fn() },

@@ -1474,7 +1474,7 @@ dayNight.addEventListener('change', () => {
   keepSettings();
 });
 
-const camera = new CameraControls(view.rig, input, settings, keepSettings, tilt);
+const camera = new CameraControls(view, input, settings, keepSettings, tilt);
 
 // Weather and storms can be turned off like every hazard (decision 0067; pirates will follow in
 // Phase 5). Without weather there are no storms either, so that switch is greyed out.
@@ -1627,13 +1627,9 @@ const markQuality = () => {
 };
 markQuality();
 showFps.checked = settings.showFps;
-// Graphics effects (decision 0221): a switch each, under the level that draws it.
-const showEffects = addEffectSwitches(
-  $('quality').closest('.set-row')!,
-  settings,
-  view.effects,
-  keepSettings,
-);
+// Waves (decision 0250) and graphics effects (0221): a switch each, under the level that draws it.
+const qualityRow = $('quality').closest('.set-row')!;
+const showEffects = addEffectSwitches(qualityRow, settings, view, keepSettings);
 const describeQuality = () => {
   qualityNow.textContent = t('settings.nowUsing', { level: t(`settings.${level}`) });
   showEffects(level);
@@ -2091,6 +2087,7 @@ if (perfMode) {
           : undefined,
         switches: () =>
           [
+            `waves ${view.wavesOn ? 'on' : 'off'}`,
             ...(
               ['weather', 'storms', 'dayNight', 'windZones', 'stormBelt', 'currents'] as const
             ).map((k) => `${k} ${settings[k] ? 'on' : 'off'}`),

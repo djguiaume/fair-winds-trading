@@ -48,7 +48,7 @@ export class SeabedTextureCache {
   private tuning = '';
   private seabed?: SeabedTexture;
 
-  /** With `piers`, the exposure too, for the Gerstner waves' calm (`?waves=v2`). */
+  /** With `piers`, the exposure too, for the Gerstner waves' calm (Settings › Waves on). */
   get({ fields, terrain = [], piers = null }: DrawnLand): SeabedTexture {
     const outlines = terrain.map((t) => t.outline);
     const tuning = JSON.stringify([TUNING.graphics.water.depth, piers && [bakedCoast(), piers]]);
