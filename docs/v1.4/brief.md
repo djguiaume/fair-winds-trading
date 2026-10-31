@@ -24,3 +24,5 @@ Pauses: Guillaume checks token usage before each next wave. The lead starts a wa
 Role questions (one message each): the storyteller names figureheads and flag texts (EN and FR) for #297 and #301; the art director sets the look rules for #295 first, then reviews #296 and #301 with Guillaume.
 
 Rules: boats stay recognizable at sailing camera; every upgrade, cosmetic and damage combination reads; old saves keep their meaning; Free Sailing never touches voyage saves; budgets are argued, not raised by default; EN and FR; touch, keyboard and pad.
+
+Ruling (Guillaume, 2026-10-31): sail colours and patterns are free; figureheads and pennants are earned through story or regatta wins; no coin prices; the Tern stays a single gift. Pick-one club prizes (#315) are later story content.
