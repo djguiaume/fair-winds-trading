@@ -15,7 +15,8 @@ import {
   createBoatModel,
 } from './models';
 import { RigPose } from './boatPose';
-import { type BoatFloat, SeaMotion } from './seaMotion';
+import { SeaMotion } from './seaMotion';
+import { BoatRide, type RideConditions } from './boatRide';
 import { type Ocean, oceanFor } from './ocean';
 import { ShoreTextureCache } from './shoreTexture';
 import { SeabedTextureCache, drawnLand } from './seabedTexture';
@@ -104,7 +105,9 @@ export class GameView {
   private wavesChoice: boolean | null = null;
   /** The comfort switches: gentle boat motion, the camera riding the waves (decision 0250). */
   readonly motion = new SeaMotion();
-  private readonly float: BoatFloat = { lift: 0, pitch: 0 };
+  /** The player's ship riding the waves (issue #283), and the sea every ship drawn rides. */
+  private readonly ride = new BoatRide();
+  private readonly rideConditions: RideConditions = { waves: true, share: 1, storm: 0 };
   /** What the tracked step marks at sea; the game sets it once the quests run. */
   stepMarkers: () => { style: string; points: readonly StepMarker[] } | null = () => null;
   /** The running quests' own sea marks (decision 0164: the lessons' buoys). */
@@ -582,15 +585,8 @@ export class GameView {
       ? zoneVisualAt(zones, this.target.x, -this.target.z, this.world.hazeOff, this.haze)
       : CLEAR;
     const ultra = this.profile.ultra ? this.ultra : undefined;
-    this.atmosphere.update(
-      dt,
-      day,
-      this.sea.shownWeather(this.world.weather),
-      this.ocean,
-      this.target,
-      haze,
-      ultra?.sunShape,
-    );
+    const shownWeather = this.sea.shownWeather(this.world.weather);
+    this.atmosphere.update(dt, day, shownWeather, this.ocean, this.target, haze, ultra?.sunShape);
     const gloom = this.atmosphere.gloom;
     // Rain and the dark close in a little, never enough to hide the next island. The view range
     // is `weather.json` › `sight`, in camera distances (decision 0169).
@@ -618,21 +614,24 @@ export class GameView {
     this.boat.update(
       this.rigPose.update(boat, wind, ship, time, dt, this.profile.lowDetail, this.motion.share),
     );
-    const yaw = -boat.heading;
-    const fx = pos.x + dir.x * 5;
-    const fz = pos.z - dir.y * 5;
-    const bx = pos.x - dir.x * 5;
-    const bz = pos.z + dir.y * 5;
-    const float = this.motion.float(
-      this.sea.heightAt(fx, fz),
-      this.sea.heightAt(bx, bz),
-      10,
-      this.float,
+    const conditions = this.rideConditions;
+    conditions.waves = this.sea.gerstner;
+    conditions.share = this.motion.share;
+    conditions.storm = shownWeather.storm;
+    const ride = this.ride.update(
+      this.sea.heightAt,
+      pos.x,
+      pos.z,
+      boat.heading,
+      this.boat.wakeHull,
+      time,
+      conditions,
+      this.world.trade.dockedAt !== null,
     );
-    this.boat.root.position.set(pos.x, float.lift, pos.z);
-    this.boat.root.rotation.set(float.pitch, yaw, 0);
-    this.boatShadow.position.set(pos.x + 1.8, 0.55, pos.z - 1);
-    this.boatShadow.rotation.y = yaw;
+    this.boat.root.position.set(pos.x, ride.lift, pos.z);
+    this.boat.root.rotation.set(ride.pitch, -boat.heading, ride.roll, 'YXZ');
+    this.boatShadow.position.set(pos.x + 1.8, 0.55 + ride.lift, pos.z - 1);
+    this.boatShadow.rotation.y = -boat.heading;
 
     this.wake.update(dt, time, pos, dir.x, -dir.y, boat.speedKn, this.boat.wakeHull);
     this.debris.update(dt, this.sea.heightAt);
@@ -709,6 +708,7 @@ export class GameView {
       glow,
       this.world.boat,
       this.world.rival,
+      conditions,
     );
     this.questMarkers.update(this.stepMarkers(), time, this.sea.heightAt);
     const course = this.world.destination;
