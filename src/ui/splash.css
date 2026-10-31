@@ -1,7 +1,8 @@
 /*
  * The start view (issue #396, decision 0252): drawn from one empty element in index.html, so it
  * needs no markup and no text of its own. Only the bar moves, on the compositor, so it keeps
- * running while the game builds.
+ * running while the game builds. It stands alone on purpose: theme.css and its tokens load
+ * with the game, after this view has painted, so the values here are plain.
  */
 #splash {
   position: fixed;
@@ -14,8 +15,11 @@
   gap: 18px;
   padding: 0 max(16px, env(safe-area-inset-left, 0px));
   background: #0f2a3d;
-  color: #f4ead2;
-  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  color: rgb(244 234 210);
+  font-family:
+    Barlow Condensed,
+    Arial Narrow,
+    sans-serif;
   transition: opacity 0.4s ease;
 }
 #splash.is-done {
@@ -55,7 +59,7 @@
 }
 #splash::after {
   content: attr(data-status);
-  font-size: 15px;
+  font-size: 0.9375rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   opacity: 0.7;
