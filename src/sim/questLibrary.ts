@@ -16,7 +16,8 @@ import { MAX_SETTLEMENT_LEVEL, settlementLevel } from './settlement';
 import { homePort, isDiscovered, standingAt } from './shipyards';
 import type { TradeState } from './trade';
 import { hasVolcano } from '../data/islands';
-import { REGATTA, crossesForward, crossesGate, type Gate } from './regatta';
+import { REGATTA, crossesForward, crossesGate, seriesById, type Gate } from './regatta';
+import { giveShip } from './seriesPrizes';
 
 /*
  * The quest engine's code library (decision 0125), like ship parts: the kinds of condition a quest
@@ -67,6 +68,8 @@ export interface QuestReward {
    * paid and grow the town like a help order there, on the voyage's level.
    */
   order?: true;
+  /** A ship class given at stock levels (decision 0228's prize, as a quest reward; 0227). */
+  ship?: string;
 }
 
 /** A point at sea, in map units. */
@@ -132,6 +135,8 @@ export interface ConditionContext {
   course?: string | null;
   /** What is open: the sea, the chart or the market (the harbour screen). */
   screen?: Screen;
+  /** The regatta series won so far (decision 0217). */
+  won?: readonly string[];
 }
 
 /** The surfaces the captain can have open, for `screen` and lesson coach marks. */
@@ -190,6 +195,7 @@ export type Param =
   | 'place'
   | 'good'
   | 'ship'
+  | 'series'
   | 'building'
   | 'island'
   | 'quest'
@@ -557,6 +563,10 @@ export const CONDITIONS: Record<string, ConditionKind> = {
     params: { ship: 'ship' },
     test: (c, ctx) => ctx.trade.captain.ships[c.ship as string] !== undefined,
   },
+  'series-won': {
+    params: { series: 'series' },
+    test: (c, ctx) => ctx.won?.includes(c.series as string) ?? false,
+  },
   /**
    * Goods handed over alongside `port`, sold or for an order, since the step began; buying the
    * same good back there counts off again. Slot: how many.
@@ -780,6 +790,7 @@ export const CONDITION_ABOUT: Record<string, string> = {
   built: 'a building stands on an island',
   moored: 'moored at an island’s pier',
   'owns-ship': 'owns a ship',
+  'series-won': 'a regatta series is won (every race at the winning medal)',
   delivered: 'hand over goods at a port',
   landed: 'land goods from the hold at a port or a spot (founding goods)',
   bought: 'buy goods at a port',
@@ -979,6 +990,8 @@ function checkParam(
   }
   if (type === 'good' && !isGood(v)) bad(`no good "${String(v)}"`);
   if (type === 'ship' && !(typeof v === 'string' && SHIP_CLASSES[v])) bad(`no ship "${String(v)}"`);
+  if (type === 'series' && !(typeof v === 'string' && seriesById(v)))
+    bad(`no series "${String(v)}"`);
   if (type === 'building' && !buildingById(v as string)) bad(`no building "${String(v)}"`);
   if (type === 'island' && !homeSpots(scope.map, v as string).length)
     bad(`no island with build spots "${String(v)}"`);
@@ -1090,10 +1103,13 @@ export function checkReward(r: unknown, scope: CheckScope, at: string): string[]
         'homeSpot',
         'erupt',
         'order',
+        'ship',
       ].includes(key)
     )
       out.push(`${at}: unknown reward "${key}"`);
   if (reward.order !== undefined && reward.order !== true) out.push(`${at}.order: only ever true`);
+  if (reward.ship !== undefined && !(typeof reward.ship === 'string' && SHIP_CLASSES[reward.ship]))
+    out.push(`${at}.ship: no ship "${String(reward.ship)}"`);
   if (reward.gold !== undefined && !isCount(reward.gold))
     out.push(`${at}.gold: needs a whole number`);
   if (reward.standing !== undefined) {
@@ -1170,6 +1186,7 @@ export function payReward(
     up = true;
   }
   if (up) levelled();
+  if (r.ship) giveShip(trade, r.ship);
   if (r.homeIsland)
     giveHomeIsland(trade, map, r.homeIsland === true ? map.homeIsland : r.homeIsland);
   for (const ref of r.homeSpot ?? []) {

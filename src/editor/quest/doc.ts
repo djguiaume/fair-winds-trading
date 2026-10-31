@@ -128,6 +128,8 @@ export function conditionWords(c: Condition | undefined): string {
       return `moored at ${v.island ? String(v.island) : 'home'}`;
     case 'owns-ship':
       return `owns a ${String(v.ship)}`;
+    case 'series-won':
+      return `series ${String(v.series)} won`;
     case 'delivered':
       return `deliver ${String(v.qty)} ${String(v.good)} at ${String(v.port)}`;
     case 'landed':
@@ -516,6 +518,8 @@ export function defaultParam(type: Param, map: MapDef, questIds: string[]): unkn
       return 'fish';
     case 'ship':
       return 'sloop';
+    case 'series':
+      return REGATTA.series[0]?.id ?? '';
     case 'building':
       return 'workshop';
     case 'island':
@@ -958,4 +962,5 @@ export const REWARD_FIELDS: { key: keyof QuestReward; label: string }[] = [
   { key: 'homeSpot', label: 'Building spots' },
   { key: 'erupt', label: 'Eruption' },
   { key: 'order', label: 'Paid like a help order' },
+  { key: 'ship', label: 'A ship' },
 ];

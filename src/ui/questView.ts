@@ -1,4 +1,13 @@
-import { type MessageKey, formatNumber, goodMany, goodSome, goodThe, t, tOptional } from '../i18n';
+import {
+  type MessageKey,
+  formatNumber,
+  goodMany,
+  goodSome,
+  goodThe,
+  shipName,
+  t,
+  tOptional,
+} from '../i18n';
 import { isGood, type GoodId } from '../sim/goods';
 import type { MapDef } from '../sim/map';
 import {
@@ -24,6 +33,7 @@ import {
 } from '../sim/quests';
 import { BUILDINGS, homeSpots, resolveSpot } from '../sim/home';
 import { REGATTA } from '../sim/regatta';
+import { SHIP_CLASSES } from '../sim/ship';
 import { isDiscovered } from '../sim/shipyards';
 import { findPort, quoteHandOver } from '../sim/trade';
 import { type Character, type Mood, MOODS, character } from './portraits';
@@ -276,6 +286,8 @@ export function rewardWords(
     if (!r) continue;
     gold += r.gold ?? 0;
     if (r.homeIsland) more.push(t('quest.rewardIsland'));
+    const ship = r.ship && SHIP_CLASSES[r.ship];
+    if (ship) more.push(t('quest.rewardShip', { name: shipName(ship) }));
     if (r.homeSpot?.length) more.push(t('quest.rewardBuilding'));
     for (const id of r.levelUp ?? [])
       more.push(t('quest.rewardGrows', { name: portName(map, id) ?? id }));

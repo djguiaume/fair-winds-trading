@@ -1156,6 +1156,7 @@
   "quest.rewardBuilding": "a building for your island, with a lasting perk",
   "quest.rewardGrows": "{name} grows",
   "quest.rewardDiscover": "{name} on the chart",
+  "quest.rewardShip": "a {name} for your fleet",
   "quest.rewardFound": "{name} founded",
   "quest.whereMarks": "{n} places, marked on the chart",
   "quest.whereChart": "marked on the chart",

@@ -16,6 +16,7 @@ import {
   isSpot,
 } from '../../sim/questLibrary';
 import type { QuestDef } from '../../sim/quests';
+import { REGATTA } from '../../sim/regatta';
 import { SHIP_CLASSES } from '../../sim/ship';
 import { REWARD_FIELDS, defaultParam, newCondition, round1 } from './doc';
 
@@ -295,6 +296,16 @@ function paramField(
       return row(name, select([...POINTS_OF_SAIL], v as string, set, blank));
     case 'ship':
       return row(name, select(Object.keys(SHIP_CLASSES), v as string, set, blank));
+    case 'series':
+      return row(
+        name,
+        select(
+          REGATTA.series.map((s) => s.id),
+          v as string,
+          set,
+          blank,
+        ),
+      );
     case 'building':
       return row(
         name,
@@ -659,6 +670,17 @@ export function rewardForm(
         r.order === true,
         (on) => change('order', on ? true : undefined),
         'a help order’s gold and growth for the goods landed',
+      ),
+    ),
+  );
+  box.append(
+    row(
+      'A ship',
+      select(
+        Object.keys(SHIP_CLASSES),
+        r.ship,
+        (v) => change('ship', v === '' ? undefined : v),
+        '—',
       ),
     ),
   );

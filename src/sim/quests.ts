@@ -1192,6 +1192,7 @@ export class QuestBook {
       vars: quest ? this.progress(quest.id)?.vars : undefined,
       course: course && resolvePort(this.world.map, course) ? course : null,
       screen: this.screen(),
+      won: this.state.won,
     };
   }
 
