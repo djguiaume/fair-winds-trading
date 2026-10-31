@@ -10,6 +10,7 @@ import type { TrafficBoat, TrafficKind, TrafficState } from '../sim/traffic';
 import { windTo } from '../sim/wind';
 import { glowTexture } from './lanterns';
 import { TrafficWakes } from './trafficWake';
+import { BoatRide, type RideConditions } from './boatRide';
 import type { WakeHull } from './wake';
 import TRAFFIC_BOATS from '../data/traffic-boats.json';
 import { cargoOf, trafficBatch, trafficMaterials, type Batch } from './trafficBatch';
@@ -48,6 +49,9 @@ export class TrafficView {
   private visitor: Visitor | null = null;
   /** Kestrel, the regatta's rival (decision 0217): her own model, built at her first race. */
   private rival: RefinedBoat | null = null;
+  /** The visitor's and Kestrel's rides on the waves, as the player's (issue #283). */
+  private readonly visitorRide = new BoatRide();
+  private readonly rivalRide = new BoatRide();
   private readonly matrix = new THREE.Matrix4();
   private readonly sailMatrix = new THREE.Matrix4();
   private readonly quaternion = new THREE.Quaternion();
@@ -162,7 +166,8 @@ export class TrafficView {
 
   /**
    * Draws the boats awake now. `wave` is the sea's height at a scene point; `glow` the night's
-   * (and a storm's) 0..1 for the lanterns; `near` the player, whose nearest visitor is drawn.
+   * (and a storm's) 0..1 for the lanterns; `near` the player, whose nearest visitor is drawn;
+   * `ride` the sea the full ship models ride, as the player's does.
    */
   update(
     traffic: TrafficState,
@@ -171,6 +176,7 @@ export class TrafficView {
     glow: number,
     near: { x: number; y: number },
     rival: TrafficBoat | null = null,
+    ride: RideConditions = { waves: false, share: 1, storm: 0 },
   ) {
     for (const batch of this.batches.values()) batch.count = 0;
     this.wakes.begin();
@@ -235,9 +241,8 @@ export class TrafficView {
         windRelative: wrapAngle(windTo(shownVisitor.wind) - shownVisitor.boat.heading),
         time,
       });
-      visitor.root.position.copy(this.position);
+      this.ride(visitor, this.visitorRide, shownVisitor, wave, time, ride);
       this.addWake(shownVisitor, visitor.wakeHull, time);
-      visitor.root.rotation.set(pose.pitch, -shownVisitor.boat.heading, 0);
       visitor.setNightLighting?.(glow);
       if (visitor.lantern && lights < this.most * 2) {
         visitor.lantern.updateWorldMatrix(true, false);
@@ -259,9 +264,8 @@ export class TrafficView {
         windRelative: wrapAngle(windTo(rival.wind) - rival.boat.heading),
         time,
       });
-      kestrel.root.position.copy(this.position);
+      this.ride(kestrel, this.rivalRide, rival, wave, time, ride);
       this.addWake(rival, kestrel.wakeHull, time);
-      kestrel.root.rotation.set(pose.pitch, -rival.boat.heading, 0);
       kestrel.setNightLighting?.(glow);
     }
 
@@ -272,6 +276,23 @@ export class TrafficView {
       this.lightGeometry.attributes.position!.needsUpdate = true;
       this.lightMaterial.opacity = Math.min(1, glow) * (0.7 + 0.1 * Math.sin(time * 6.1));
     }
+  }
+
+  /** A full ship model on the waves, as the player's; `position` is left at her waterline. */
+  private ride(
+    model: RefinedBoat,
+    ride: BoatRide,
+    b: TrafficBoat,
+    wave: (x: number, z: number) => number,
+    time: number,
+    conditions: RideConditions,
+  ) {
+    const { x, z } = this.position;
+    const { heading } = b.boat;
+    const pose = ride.update(wave, x, z, heading, model.wakeHull, time, conditions);
+    this.position.y = pose.lift;
+    model.root.position.copy(this.position);
+    model.root.rotation.set(pose.pitch, -heading, pose.roll, 'YXZ');
   }
 
   /** Her bow waves at the pose just set: a boat at rest or on the nets leaves none. */
@@ -317,7 +338,7 @@ export class TrafficView {
     this.quaternion.setFromEuler(this.euler);
     // A loose sail swings to leeward as far as the sheet lets it.
     const stream = lee * boomMag;
-    return { sail, boom, luff, heel, pitch, stream };
+    return { sail, boom, luff, heel, stream };
   }
 
   dispose() {
