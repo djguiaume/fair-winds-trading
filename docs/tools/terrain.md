@@ -39,3 +39,12 @@ npm run island -- other sculpt import /tmp/hill-sculpt.json     # same terrain o
 ```
 
 Coast: an edit that moves the drawn coast (ground height zero) more than `terrain.json › coast › tolerance` from the island file's coast outline, or leaves a building off level ground, fails `npm run check` (`coast`, `support`); `npm run chart -- --coast` draws both coasts (decision 0237).
+
+## Bake the coast
+
+`npm run island -- <id> bake-coast` (the Terrain tab's **Bake coast** button) writes the sculpted ground's coast, the line where it meets the sea, as the island file's coast outline ([0255](../decisions/0255-bake-a-sculpted-coast-into-the-island-outline.md)). Boats, berths and the chart then follow what was sculpted; the sculpt edits stay in the file.
+
+- Runs after any other steps of the same call. It prints the outline's points, the gap to the ground, what it left out (ponds, islets under `bake.minArea`) and piers whose tip moved off the shore.
+- Refused, nothing written: edits that do not replay, land past the edge of the ground (`terrain.json › margin`), an outline that parts from the ground by more than the coast tolerance, a new island check error, a `berths` / `harbour-water` map error.
+- Limits: `terrain.json › coast › bake` (`epsilon`, `maxPoints`, `minArea`, `tries`, `approachShift`). Brushes can only move a coast by about the margin (8 units) past the old one.
+- After a bake: `npm run balance`, and `npm run chart -- --coast` before and after.
