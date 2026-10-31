@@ -382,7 +382,6 @@ function editIsland(id: string) {
   if (island && hasIslandFile(island)) openIsland(island);
 }
 setupIslandBuilder({
-  mapName: () => map.name,
   prepared: () => prepared,
   close: () => {
     // Island edits can move coasts the chart and the checks use.
