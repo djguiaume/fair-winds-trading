@@ -8,6 +8,10 @@ Nothing waits on Guillaume. v1.3 "Waves you can see" (v1.3.324) shipped with no 
 
 Carried over from v1.1, if not yet done: the empty Quay tab reads "Nobody waiting on the quay just now." (no promise of a return), status lines use digits and no "captain", and no race text may depend on a storm (lines say "weather" or "squall" only as flavour). New races need Wren's offer, starter and result lines; rewards stay pride, not power.
 
+## Open question for v1.4
+
+Are v1.4 cosmetics (boat looks, figureheads) free, earned or priced? Not ruled yet. Leaning: earned by a story or regatta moment, or a small price in coin, never a power gain. The v1.4 storyteller decides with the release lead, and asks Guillaume only if it changes scope. v1.3.1 shipped as v1.3.335.
+
 ## v1.3.1 and v1.4 rules
 
 - v1.3.1 "Boats that ride them": waves slow the boat in head seas (#284, PR #408). Ruled: first-upgrade price kept, balance target moved to 5.25 min. Texts: Settings "Waves slow the boat" / "Les vagues freinent le bateau" (note "Off: she sails as fast in any sea as in flat water"); HUD "Waves −3%" / "Vagues −3 %" (true minus, NBSP before % in FR). It is a hazard-style switch in Settings. No race or quest text may mention the slowdown.
