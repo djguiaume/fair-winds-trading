@@ -9,7 +9,7 @@ Decision: [0250](../../decisions/0250-waves-on-by-default-from-medium-up-with-oc
 | Waves the same on every level and frame rate | tested (`tests/ocean-controls.test.ts`, `tests/sea-waves-contract.test.ts`) |
 | No sailing rule reads the waves or the comfort switches | tested; `src/sim` unchanged by v1.3's controls |
 | Headless frame cost, waves off vs on | below (software renderer: a regression baseline, not a device forecast) |
-| Phone (Android 10, Medium: waves on by default) | **owed**: `?bench` and `?bench&waves=v1` |
+| Phone (Android 10, 8 cores) | **done 2026-10-31**: Medium off 59.8 fps, on 59.7 (1% low 59.5 both, 42k tris on vs 33k); High with waves 59.6. Vsync-capped: fits, headroom unknown |
 | Surface (Iris Plus, High) | **owed**: same pair |
 | Xbox Edge (High) | **owed**: `?bench&quality=high`, and a storm look on the TV (`?waves=storm`) |
 | Weak tablet (Low / Ultra-low, waves off by default) | no device at hand; the default keeps v1.2's cost |
