@@ -30,14 +30,14 @@ Every item works on every class at every upgrade level; the validator refuses on
 
 ## Items are files (easy to add)
 
-- One JSON file per item: `src/data/cosmetics/<slot>/<id>.json` with `id`, `slot`, names (EN/FR keys), `source`, look data. Same shape as props (decision 0135).
+- One JSON file per item: `src/data/cosmetics/<slot>/<id>.json` with `id`, `slot`, names (EN/FR keys), `unlock`, look data. Same shape as props (decision 0135).
 - Logos: an SVG file next to the JSON (`logo-otter.svg`), flat filled shapes only, at most about 40 triangles once filled; turned into sail geometry at load (three's SVGLoader), drawn like the racing number (decision 0217). No textures.
-- `source`: `free`, `earned` (`{ quest | regatta | milestone }`), or `store` (`{ sku }`, unused for now). The save keeps an owned list and each ship's equipped look per slot.
+- `unlock`: `free`, `earned` (`{ quest | regatta | milestone }`), a paid kind can be added later but is not built. The save keeps an owned list and each ship's equipped look per slot.
 - Tool and editor share one module (decision 0153): `npm run cosmetics -- list | check | add <slot> <id> | shot <id>`, and a Cosmetics tab in the editor with live preview.
 
 ## Ready for paid items, not building them
 
-Store items are just `source: store`. Nothing about a shop, prices or payments is built in v1.4: phone stores need their own in-app purchase rules (see decision 0204, parked) and Guillaume decides any prices. Paid items stay cosmetic only and the free set must look good on its own.
+A paid kind would be one more `unlock` value (`store` with an `sku`), not built now. Nothing about a shop, prices or payments is built in v1.4: phone stores need their own in-app purchase rules (see decision 0204, parked) and Guillaume decides any prices. Paid items stay cosmetic only and the free set must look good on its own.
 
 ## The screen
 
