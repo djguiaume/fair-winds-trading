@@ -1,5 +1,7 @@
 # Art director handover (v1.3.1 to v1.4, 2026-10-31)
 
+v1.3.1 is released (v1.3.335). First thing for v1.4: review the #295 boat upgrade prototype, PR #414.
+
 For the next art director thread, in the format of [roles.md](../roles.md). Rules are in the [art bible](art-bible.md), now describing the v2 look as the default (decisions [0222](../decisions/0222-a-new-look-smooth-terrain-blue-water-and-forests.md), [0165](../decisions/0165-art-bible-and-the-phase-4-biome-looks.md)). This page only holds what is open. Guillaume gives the final OK on every visual: your OK means "ready to show Guillaume", never "merged". Your own PRs are docs only.
 
 ## 1. Open decisions
