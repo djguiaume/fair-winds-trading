@@ -14,6 +14,7 @@ worth remembering.
 | [v1.0.253](v1.0.253.md) | merge of the 1.0 PR | 1.0: the base game finished, a living sea |
 | [v1.1.282](v1.1.282.md) | merge of the 1.1 PR | 1.1 The Sailing Club: club races, the Tern, a turnable camera, Ultra, a new UI look |
 | [v1.2.313](v1.2.313.md) | merge of the 1.2 PR | 1.2 A new look: smooth islands, depth-blue water, forests, terrain brushes, new look by default |
+| [v1.3.324](v1.3.324.md) | merge of the 1.3 PR | 1.3 Waves you can see: wind and storm waves, calm coasts, GPU water, Settings › Waves, Ultra-low level, Xbox Ultra fix |
 
 ## How to cut a release
 
