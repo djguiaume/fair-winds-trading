@@ -11,6 +11,17 @@ Guillaume, 2026-10-31: "Sails must be really customisable visually. Colours, pat
 | Sea of Thieves (shipwright, emporium) | Matching ship sets (sails, hull, figurehead, flag) plus single pieces; cosmetic only, never stats; the shop is where paid items started |
 | Forza (livery editor) | Layers: base colour, pattern, decal on top; decals have a fixed place, we do not offer free placement |
 
+Pirate and boat games (Guillaume, 2026-10-31):
+
+| Game | What we take |
+| --- | --- |
+| Assassin's Creed IV Black Flag (the Jackdaw) | Sails, figurehead, wheel and hull paint picked at the harbour master; most pieces **found or earned at sea** (wrecks, treasure maps, quests), a few in DLC packs. Unlocks are trophies of a voyage |
+| Skull and Bones | Per-ship looks in a dedicated customisation screen: hull paint and pattern, sail look, figurehead, flag, emblems; shown on the ship before buying; paid items live beside earned ones |
+| Sea of Thieves | Matching full sets per theme (above); the flag you fly says who you are; the shipwright on the dock is the in-world way in |
+| World of Warships | Camouflage patterns and signal flags as small, stackable cosmetic items; the bought ones are cosmetic only in our version (theirs add bonuses, we do not) |
+
+So for us: earned pieces come from voyages and quests (a volcano logo after the volcano quest, a seal after the seal colony), the harbour shipyard is the in-world door to the screen, and sets are themed (Sailing Club, East Wind, Ember Isles).
+
 Rules from them: cosmetics never change sailing; every locked item says how to get it; preview before equip; one tap back to "stock".
 
 ## Slots
