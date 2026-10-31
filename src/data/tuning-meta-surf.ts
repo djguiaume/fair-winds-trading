@@ -66,7 +66,7 @@ export const SURF_META: Readonly<Record<string, TuningMeta>> = {
     'Faded tail',
     0.2,
     6,
-    0.1,
+    0.05,
     'u',
     'How far seaward a line fades out behind its front.',
   ),
