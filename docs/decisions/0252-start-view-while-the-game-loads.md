@@ -8,9 +8,8 @@ Issue #396: on Guillaume's phone (Android 10, Medium) the game took 8 to 10 s to
 
 ## Decision
 
-- `index.html` carries a start view: the title, a thin bar and one word ("Loading" or "Chargement", the saved or browser language) on the night-water blue, with its own inline CSS so it paints before any script or stylesheet. Only the bar moves, as a compositor animation, so it keeps running while the game builds.
-- The page's entry is `src/boot.ts`: after the first frame it imports `main.ts`, so the browser paints the view before it parses the game.
-- `main.ts` calls `dismissSplash()` (`src/ui/splash.ts`) right after the menu is shown: a 0.4 s fade, then the element is removed. The no-WebGL2 message dismisses it too.
+- `index.html` has one empty `#splash` element; `src/ui/splash.css` draws the title, a thin bar and one word (`data-status`, "Loading" or "Chargement" by the saved or browser language) on the night-water blue. Only the bar moves, as a compositor animation, so it keeps running while the game builds.
+- The page's entry is `src/boot.ts`: after the first frame it imports `main.ts`, so the browser paints the view before it parses the game. When that import settles (menu shown, or no WebGL2) `dismissSplash()` fades the view out in 0.4 s and removes it. `main.ts` and `index.html` do not grow (the 400-line rule).
 
 ## Consequences
 
