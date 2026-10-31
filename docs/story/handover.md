@@ -1,14 +1,12 @@
-# Storyteller handover to v1.1 (2026-10-28)
+# Storyteller handover to v1.4 (2026-10-31)
 
-From "Head storyteller (Phase 5)" to the next storyteller thread. Format: [roles.md](../roles.md). The voice, cast and every ruling live in the [storyteller brief](storyteller-brief.md); this file only says what is open.
+From "Storyteller (v1.3)" to the next storyteller thread. Format: [roles.md](../roles.md). The voice, cast and every ruling live in the [storyteller brief](storyteller-brief.md); this file only says what is open.
 
 ## Open decisions
 
-Nothing waits on Guillaume. Questions will come from the v1.1 build threads, and each is answered by the storyteller before Guillaume:
+Nothing waits on Guillaume. v1.3 "Waves you can see" (v1.3.324) shipped with no story work and no story questions came up. The next story release is v1.5 ([plan](../v1.5/plan.md)); until then answer only real questions from build threads, storyteller before Guillaume. Any text change still needs EN and FR from the storyteller first.
 
-- **#260 New races + club board** (wave 3, last): how many races, where they run, and what the club board says. Not decided. Wren opens "The Sailing Club" (« Le Club de voile ») at Saltmere. Pitch: "Wren opens a sailing club at Saltmere: new courses round the islands, a few with a squall to sail around, and a club board for your best times." The new races need Wren's offer cards, starter lines, result lines and a pennant rule for any new series. Rewards stay pride, not power (no perk, no stat).
-- **#259 Fixed storms in races** (wave 2): the story rule is that no race text may depend on a storm. With Storms off the course still runs, and lines say "weather" or "squall" only as flavour, as Elias does with the Stormbreak.
-- **#261 UI reskin style E** (wave 3, last): every text change needs EN and FR from the storyteller first. Two earlier rulings to keep: the empty Quay tab reads "Nobody waiting on the quay just now." (no promise of a return), and status lines use digits and no "captain".
+Carried over from v1.1, if not yet done: the empty Quay tab reads "Nobody waiting on the quay just now." (no promise of a return), status lines use digits and no "captain", and no race text may depend on a storm (lines say "weather" or "squall" only as flavour). New races need Wren's offer, starter and result lines; rewards stay pride, not power.
 
 ## Pointers
 
