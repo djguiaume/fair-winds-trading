@@ -52,7 +52,7 @@ Full options: [docs/tools/README.md](docs/tools/README.md), or `--help`. `npm ru
 - `adr`: next free decision number across all branches; `adr -- new "Title"`.
 - `balance`: balance bots on all three levels.
 - `island`: make and edit island files with the builder's edits.
-- `sea`: edit the sea files with the sea editor's edits; `sea -- density`.
+- `sea`: edit the sea files with the sea editor's edits; `sea -- density`; `sea -- waves` (ocean controls).
 - `chart`: labelled map PNG/SVG for any map or layout change.
 - `shots`: real-game screenshots in one line (also the map editor, save links).
 - `quest`: list, check, play from a step, edit a quest's sea.

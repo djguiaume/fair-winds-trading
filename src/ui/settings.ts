@@ -37,6 +37,12 @@ export interface Settings {
   turnCamera: boolean;
   /** A turned camera eases back north-up after a few seconds without camera input (0223). */
   cameraReturns: boolean;
+  /** The boat rises, pitches and shakes less on the waves (decision 0250); drawing only. */
+  gentleMotion: boolean;
+  /** The camera rises and sinks with the sea under the boat (decision 0250); off by default. */
+  cameraBob: boolean;
+  /** The wind and storm waves (decision 0250): null follows the quality level's default. */
+  waves: boolean | null;
   /** Weather spells and storms (decision 0067); off = a steady breeze. */
   weather: boolean;
   /** Moving storms (decision 0067); hazards can be turned off (Guillaume). */
@@ -82,6 +88,9 @@ const DEFAULTS: Settings = {
   dayNight: true,
   turnCamera: true,
   cameraReturns: false,
+  gentleMotion: false,
+  cameraBob: false,
+  waves: null,
   weather: true,
   storms: true,
   eruptions: true,
@@ -104,9 +113,11 @@ let testOverrides = false;
 export function loadSettings(search = ''): Settings {
   try {
     const raw = localStorage.getItem(KEY);
-    const settings = raw
-      ? { ...DEFAULTS, ...(JSON.parse(raw) as Partial<Settings>) }
-      : { ...DEFAULTS };
+    const saved = raw ? (JSON.parse(raw) as Partial<Settings>) : {};
+    const settings = { ...DEFAULTS, ...saved };
+    // Until the player picks, gentle motion follows the device's "reduce motion" setting.
+    if (typeof saved.gentleMotion !== 'boolean') settings.gentleMotion = prefersReducedMotion();
+    if (typeof settings.waves !== 'boolean') settings.waves = null;
     if (!isLanguage(settings.language)) settings.language = null;
     const volume = Number(settings.musicVolume);
     settings.musicVolume = Number.isFinite(volume) ? Math.min(1, Math.max(0, volume)) : 0.6;
@@ -123,6 +134,10 @@ export function loadSettings(search = ''): Settings {
   } catch {
     return { ...DEFAULTS };
   }
+}
+
+function prefersReducedMotion(): boolean {
+  return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 export function saveSettings(settings: Settings): void {

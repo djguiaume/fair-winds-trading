@@ -19,6 +19,8 @@ vi.mock('../src/render/view', () => ({
     resize() {}
     render() {}
     setQuality() {}
+    setWaves() {}
+    motion = { gentle: false, cameraBob: false };
     setSettlementLevels() {}
     setHomeBuildings() {}
     setQuestsDone() {}

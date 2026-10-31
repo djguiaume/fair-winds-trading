@@ -57,7 +57,7 @@ export function sheetSurfaceUniforms() {
 
 /**
  * Once a frame: ride `ocean`'s surface, `base` units over it, on a grid of `cell` units. Compiles
- * again only when the ocean's waves change kind (never in play).
+ * again only when the ocean's waves change kind (Settings › Waves, or a level with other waves).
  */
 export function rideSea(material: THREE.ShaderMaterial, ocean: Ocean, base: number, cell: number) {
   const from = ocean.mesh.material;

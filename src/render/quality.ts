@@ -33,6 +33,8 @@ export interface QualityProfile {
   plain: boolean;
   /** Simple boat rig, calm heel and short bow waves. */
   lowDetail: boolean;
+  /** The Gerstner waves by default (decision 0250); Settings › Waves overrides it. */
+  waves: boolean;
 }
 
 /** The levels' numbers live in `graphics.json › quality` (decision 0093). */

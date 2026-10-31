@@ -43,8 +43,9 @@ jobs:
             || { cat preview.log; exit 1; }
           npm run perf -- http://127.0.0.1:5180/ output/performance/ci.json
           npm run perf -- 'http://127.0.0.1:5180/?look=v1' output/performance/ci-v1.json
-          # Ultra's graphics memory on a 4K TV screen (decision 0246: the Xbox crashed past its share).
-          PERF_QUALITY=ultra PERF_SCREEN=1920x1080@2 PERF_SCENARIOS=sailing PERF_TIMEOUT_MS=180000 \
+          # Ultra's graphics memory on a 4K TV screen (decision 0246: the Xbox crashed past its share);
+          # its frames take seconds in the software renderer, more with the waves (0250).
+          PERF_QUALITY=ultra PERF_SCREEN=1920x1080@2 PERF_SCENARIOS=sailing PERF_TIMEOUT_MS=180000 PERF_DURATION_MS=12000 \
             npm run perf -- http://127.0.0.1:5180/ output/performance/ci-ultra.json
       - name: Check the budget
         run: |

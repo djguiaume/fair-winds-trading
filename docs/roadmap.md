@@ -73,7 +73,7 @@ store plan of [0204](decisions/0204-selling-on-android-iphone-and-xbox.md) comes
   same island data, shores sloping into the sea, depth-coloured blue water, dense forests, haze.
   Build guide: [v1.2/plan.md](v1.2/plan.md), [brief](v1.2/brief.md); sculpting scope in [0230](decisions/0230-v12-scope-terrain-sculpting-and-the-ocean-moves-to-v13.md), ocean waves moved to v1.3. Look v2 becomes the default at the end (#350), `?look=v1` keeps the old look. #255 closed: no known bugs.
 - **v1.3, "Waves you can see"** (tracker #279): wind- and storm-driven waves, depth-aware coasts, scalable GPU water,
-  ocean controls. Plan: [v1.3/plan.md](v1.3/plan.md); wave model [0245](decisions/0245-shared-wave-model-and-cpugpu-contract.md) (#280, `?waves=v2`). **v1.3.1, "Boats that ride them"** (#356): heave, pitch and roll, bounded wave effects on sailing.
+  ocean controls. Plan: [v1.3/plan.md](v1.3/plan.md); wave model [0245](decisions/0245-shared-wave-model-and-cpugpu-contract.md) (#280), coasts [0248](decisions/0248-coast-calms-the-waves-by-depth-shelter-and-berths.md), look [0249](decisions/0249-gpu-waves-shade-by-their-own-normals-storm-water-greys.md), on by default from Medium up with Settings › Waves and comfort switches [0250](decisions/0250-waves-on-by-default-from-medium-up-with-ocean-comfort-contro.md) (#286). **v1.3.1, "Boats that ride them"** (#356): heave, pitch and roll, bounded wave effects on sailing.
   Island and boat reflections are an idea (#285).
 - **v1.4, "Visible upgrades"** (tracker #294): sail, hull and hold upgrades visible on every ship, per-ship looks,
   shipyard preview. **v1.4.1, "Cosmetics and free sailing"** (#357): cosmetics and figureheads, Free Sailing.

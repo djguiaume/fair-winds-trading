@@ -95,5 +95,12 @@
     "shading": 0.6,
     "crest": 0.25,
     "crestFloor": 0.4
+  },
+  "motion": {
+    "heave": 0.8,
+    "pitch": 0.8,
+    "gentle": 0.35,
+    "cameraBob": 0.5,
+    "cameraEase": 1.5
   }
 }
