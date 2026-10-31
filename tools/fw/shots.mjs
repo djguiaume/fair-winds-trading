@@ -41,6 +41,7 @@ Where
   --sail 0|1|2                  sails furled, half, full (default 2)
   --speed kn                    starting speed (default 5)
   --ship id                     sail this ship (sloop, schooner, fluyt, …)
+  --levels s,h,u                her upgrade levels 1-3 (sails, hold, hull), e.g. 3,1,2
   --hull pct                    her hull at this condition, 0 to 100 (decision 0208: the model
                                 shows scuffs below 75, patches below 50, torn sails below 25)
   --crash ms                    a crash's splash and planks at her bow this long before the shot
@@ -132,6 +133,7 @@ export function normalise(opts) {
     speed: o.speed ?? 5,
     ship: o.ship ?? null,
     hull: o.hull ?? null,
+    levels: o.levels ? list(o.levels).map(Number) : null,
     crash: o.crash ?? null,
     hold: o.hold ? keyHold(o.hold) : null,
     pad: o.pad ? padSteps(o.pad) : null,
@@ -328,6 +330,11 @@ async function setScene(page, shot) {
       const { captain } = world.trade;
       captain.ships[s.ship] ??= structuredClone(captain.ships[captain.activeShip]);
       captain.activeShip = s.ship;
+      world.ship = trade.activeShip(world.trade);
+    }
+    if (s.levels) {
+      const [sails, hold, hull] = s.levels;
+      Object.assign(world.trade.captain.ships[world.trade.captain.activeShip], { sails, hold, hull });
       world.ship = trade.activeShip(world.trade);
     }
     if (s.hull !== null) window.fwt.hull(s.hull);

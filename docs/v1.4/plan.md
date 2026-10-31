@@ -10,6 +10,10 @@ Classes: sloop, cutter, schooner, clipper (swift line); hoy, fluyt, indiaman (ha
 
 Cutter (small, swift) and indiaman (large, hauler), base / middle / max / mixed, in the engine, colours only. Three sail looks: A panels and borders, B bands, C cut and luff tabling. Hull rubbing strake is common to all. **Recommended: B**, the only one that reads at max on both boats. Weak spots: at night the pale bands fade (sail emissive); the phone strip was cropped from the sheet viewer, not the real phone camera, so phone legibility needs a game-camera check in the build.
 
+## Round 2 (art director fixes, real game camera, v2 water)
+
+Sheets `prototype/round2-day.jpg` (base, middle, max; cutter then indiaman), `round2-night.jpg`, `round2-phone.jpg` (shot with `npm run shots -- --levels`, new). Band is now a saturated class colour (swift blue, hauler teal), written dark because sails add white emissive; copper brighter, brass strake. Open: at night the bands still fade (needs lower sail emissive at night in the build); the cutter night phone shot caught a dialogue card and must be redone; the middle band on the cutter mainsail is faint at this distance.
+
 ## Sail, hull, hold identity (spec)
 
 - Sails: 1 mismatched patches, no band. 2 uniform canvas, class-colour foot band. 3 foot and head bands plus centre stripe (topsail kept). Mechanical effects unchanged.
