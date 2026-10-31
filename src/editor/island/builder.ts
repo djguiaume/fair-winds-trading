@@ -12,12 +12,14 @@ import { t } from '../../i18n';
 import { ISLAND_SCALE } from '../../sim/islandUnits';
 import { isGlowing } from '../../render/models/geometry';
 import { PROP_TYPES, type PropGroup } from '../../render/models/props';
+import { BakeError, bakeSummary } from '../../sim/coastBake';
+import { bakeIsland } from '../../sim/coastBakeMap';
 import { designedTownParts, islandCheckKit, type TownLevel } from '../../render/models/towns';
 import { propParts, standHeight } from '../../render/models/townProps';
 import { builderLook, newLookGround, previewIsland } from './newLook';
 import type { IslandIssue } from '../../sim/islandChecks';
 import { islandLayout, layoutGround } from '../../sim/islandLayout';
-import type { IslandDef } from '../../sim/map';
+import type { IslandDef, MapDef } from '../../sim/map';
 import { History, formatIslandJson } from '../model';
 import {
   LEVEL_NAMES,
@@ -111,6 +113,8 @@ interface Host {
   /** Shows the map editor again. */
   close(): void;
   mapName(): string;
+  /** The sea being edited, prepared, for the checks a bake can break. */
+  prepared(): MapDef;
 }
 
 let host: Host;
@@ -360,6 +364,7 @@ function drawPanel() {
   if (mode === 'terrain')
     return renderTerrainPanel($('ib-panel'), terrain!, {
       reset: resetTerrain,
+      bake: bakeTerrainCoast,
       setView: (view) => terrain!.setView(view, design),
       language: () => {
         labelTerrain();
@@ -508,6 +513,21 @@ function saveSculpt(sculpt: SculptDef | undefined) {
   history.record(design);
   if (sculpt) design.sculpt = sculpt;
   else delete design.sculpt;
+  commit();
+}
+
+/** Traces the sculpted ground's coast into the file's outline, after showing what it does (undoable). */
+function bakeTerrainCoast() {
+  let result: ReturnType<typeof bakeIsland>;
+  try {
+    result = bakeIsland(design, islandCheckKit(design, R, harbour), host.prepared());
+  } catch (e) {
+    if (!(e instanceof BakeError)) throw e;
+    return alert(t('editor.terrain.bakeRefused', { why: e.message }));
+  }
+  if (!confirm(`${t('editor.terrain.bakeAsk')}\n\n${bakeSummary(result).join('\n')}`)) return;
+  history.record(design);
+  design.coasts = result.coasts;
   commit();
 }
 

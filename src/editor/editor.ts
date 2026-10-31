@@ -383,6 +383,7 @@ function editIsland(id: string) {
 }
 setupIslandBuilder({
   mapName: () => map.name,
+  prepared: () => prepared,
   close: () => {
     // Island edits can move coasts the chart and the checks use.
     commit(true);

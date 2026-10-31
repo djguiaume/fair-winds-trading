@@ -20,7 +20,14 @@
     "tolerance": 1.5,
     "stride": 1,
     "buildingMinHeight": 0.1,
-    "markSpacing": 6
+    "markSpacing": 6,
+    "bake": {
+      "epsilon": 0.25,
+      "maxPoints": 120,
+      "minArea": 6,
+      "tries": 12,
+      "approachShift": 0.05
+    }
   },
   "smooth": {
     "amount": 1,

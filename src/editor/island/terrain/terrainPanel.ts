@@ -118,7 +118,12 @@ export function renderTerrainTools(box: HTMLElement, tool: TerrainTool) {
 export function renderTerrainPanel(
   root: HTMLElement,
   tool: TerrainTool,
-  host: { reset(): void; setView(view: 'ground' | 'depth'): void; language(id: LanguageId): void },
+  host: {
+    reset(): void;
+    bake(): void;
+    setView(view: 'ground' | 'depth'): void;
+    language(id: LanguageId): void;
+  },
 ) {
   root.replaceChildren();
   const { brush } = tool;
@@ -156,6 +161,10 @@ export function renderTerrainPanel(
   const reset = node(actions, 'button', { textContent: t('editor.terrain.reset') });
   reset.disabled = !tool.strokes;
   reset.addEventListener('click', host.reset);
+  const bake = node(actions, 'button', { textContent: t('editor.terrain.bake') });
+  bake.title = t('editor.terrain.bakeHint');
+  bake.disabled = !tool.strokes;
+  bake.addEventListener('click', host.bake);
 
   node(root, 'p', { className: 'ed-note', textContent: t('editor.terrain.help') });
   const lang = node(root, 'div', { className: 'ed-row' });
