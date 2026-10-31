@@ -32,6 +32,7 @@
     <link rel="stylesheet" href="/src/ui/quests.css" />
   </head>
   <body>
+    <div id="splash" role="status" data-status="Loading"><i></i></div>
     <svg class="icon-sprite" aria-hidden="true">
       <symbol id="i-info" viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" />
@@ -616,7 +617,6 @@
       <div id="haze-veil" class="haze-veil" aria-hidden="true"></div>
       <div id="press-glow" class="press-glow" data-press="0" aria-hidden="true"></div>
     </div>
-
     <div id="hud">
       <div id="home-ui"></div>
       <div class="panel captain-stats" id="captain-stats">
@@ -1954,7 +1954,7 @@
         </p>
       </div>
     </section>
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="/src/boot.ts"></script>
     <!-- A game controller's button hints in menus and on cards (decision 0163). -->
     <div id="pad-hints" class="pad-hints" popover="manual" aria-hidden="true">
       <span
