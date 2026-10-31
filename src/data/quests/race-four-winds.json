@@ -33,54 +33,54 @@
     },
     "pars": {
       "sloop": {
-        "captain": 371,
-        "salt": 358,
-        "fair": 466
+        "captain": 370,
+        "salt": 365,
+        "fair": 480
       },
       "cutter": {
-        "fair": 280,
-        "captain": 280,
-        "salt": 280
+        "fair": 285,
+        "captain": 285,
+        "salt": 285
       },
       "schooner": {
-        "fair": 237,
-        "captain": 237,
-        "salt": 237
+        "fair": 240,
+        "captain": 240,
+        "salt": 240
       },
       "clipper": {
-        "fair": 211,
-        "captain": 211,
-        "salt": 211
+        "fair": 213,
+        "captain": 213,
+        "salt": 213
       },
       "hoy": {
-        "fair": 545,
-        "captain": 542,
-        "salt": 544
+        "fair": 561,
+        "captain": 561,
+        "salt": 561
       },
       "fluyt": {
-        "fair": 578,
-        "captain": 575,
-        "salt": 577
+        "fair": 596,
+        "captain": 595,
+        "salt": 595
       },
       "indiaman": {
-        "fair": 546,
-        "captain": 543,
-        "salt": 545
+        "fair": 563,
+        "captain": 562,
+        "salt": 562
       },
       "tern": {
-        "fair": 219,
-        "captain": 219,
-        "salt": 219
+        "fair": 222,
+        "captain": 222,
+        "salt": 222
       },
       "tern-pilot": {
-        "fair": 239,
-        "captain": 239,
-        "salt": 239
+        "fair": 243,
+        "captain": 243,
+        "salt": 243
       },
       "tern-yawl": {
-        "fair": 228,
-        "captain": 228,
-        "salt": 228
+        "fair": 231,
+        "captain": 231,
+        "salt": 231
       }
     }
   },

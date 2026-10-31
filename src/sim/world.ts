@@ -53,6 +53,7 @@ import {
 import { GOODS, type GoodId } from './goods';
 import type { SpatialGrid } from './spatial';
 import { heelFactor, pointOfSailHeel } from './heel';
+import { seaDragAt } from './seaDrag';
 import {
   type LocalWeather,
   type Wind,
@@ -108,6 +109,10 @@ export interface World {
   currentsOn: boolean;
   /** Drifting icebergs (decision 0170): a hazard with its own Settings switch. */
   bergsOn: boolean;
+  /** The waves slow the boat (Settings, decision 0256); off = flat-water speeds in any sea. */
+  seaDragOn: boolean;
+  /** Share of her flat-water speed the waves took off on the last step (decision 0256). */
+  seaDrag: number;
   /** The water at the boat on the last step, knots (east, north), after the switch and level. */
   water: CurrentSample;
   /** Speed over the ground on the last step, knots: through the water, leeway and current. */
@@ -272,6 +277,8 @@ export function createWorld(map: MapDef, ship: ShipClass): World {
     currents: new CurrentField(map),
     currentsOn: true,
     bergsOn: true,
+    seaDragOn: true,
+    seaDrag: 0,
     water: { east: 0, north: 0, id: '' },
     sogKn: 0,
     windOffsetDeg: 0,
@@ -698,7 +705,9 @@ export function stepWorld(world: World, controls: BoatControls, dt: number): Wor
   world.ship = activeShip(world.trade);
 
   const before = { x: world.boat.x, y: world.boat.y };
-  stepBoat(world.boat, controls, world.ship, world.wind, dt);
+  // The waves slow her (decision 0256): head seas most, following seas hardly, never a boost.
+  world.seaDrag = seaDragAt(world, world.boat, world.ship);
+  stepBoat(world.boat, controls, world.ship, world.wind, dt, world.seaDrag);
   // Lowering the sails near a port at a slow speed brings her alongside: the crew throws lines, she stops dead
   // and no longer drifts, so docking is reliable instead of a slow exponential crawl (0041).
   if (

@@ -174,6 +174,7 @@ if (benchMode)
     dayNight: true,
     windZones: true,
     currents: true,
+    seaDrag: true,
     steadyWind: false,
   });
 const keepSettings = () => {
@@ -1527,6 +1528,13 @@ currentsSwitch.addEventListener('change', () => {
   settings.currents = currentsSwitch.checked;
   keepSettings();
 });
+// The waves slowing the boat (decision 0256): a hazard's switch too.
+const seaDragSwitch = $<HTMLInputElement>('sea-drag');
+world.seaDragOn = seaDragSwitch.checked = settings.seaDrag;
+seaDragSwitch.addEventListener('change', () => {
+  world.seaDragOn = settings.seaDrag = seaDragSwitch.checked;
+  keepSettings();
+});
 // Drifting icebergs (decision 0170): their own switch, like every hazard.
 const bergsSwitch = $<HTMLInputElement>('bergs');
 world.bergsOn = settings.bergs;
@@ -2089,7 +2097,15 @@ if (perfMode) {
           [
             `waves ${view.wavesOn ? 'on' : 'off'}`,
             ...(
-              ['weather', 'storms', 'dayNight', 'windZones', 'stormBelt', 'currents'] as const
+              [
+                'weather',
+                'storms',
+                'dayNight',
+                'windZones',
+                'stormBelt',
+                'currents',
+                'seaDrag',
+              ] as const
             ).map((k) => `${k} ${settings[k] ? 'on' : 'off'}`),
             ...hazeSwitches().map((id) => `${id} ${settings.haze[id] !== false ? 'on' : 'off'}`),
           ].join(', '),

@@ -21,6 +21,7 @@ import { questsDone, questsRunning } from './settlement';
 import { knobs } from './difficulty';
 import { REGATTA, crossesGate } from './regatta';
 import { raceStormWind } from './raceStorms';
+import { seaDragAt } from './seaDrag';
 
 /*
  * Other boats on the sea (decision 0215, Phase 5 part 4): fishing boats near their port, coasters
@@ -814,7 +815,8 @@ function stepOne(world: World, b: TrafficBoat, dt: number) {
   const controls = pilot(world, b, wind);
   const { boat } = b;
   const was = { x: boat.x, y: boat.y };
-  stepBoat(boat, controls, b.ship, wind, dt);
+  // The same sea slows her as the player (decision 0256), so races stay fair.
+  stepBoat(boat, controls, b.ship, wind, dt, seaDragAt(world, boat, b.ship));
   if (b.sweeps && world.time >= b.waitUntil) {
     // Rowing: a steady way through the water, wind or none, and the hull held to her course.
     boat.speedKn = Math.max(boat.speedKn, t.sweepKn);

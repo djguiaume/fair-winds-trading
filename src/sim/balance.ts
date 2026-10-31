@@ -55,6 +55,8 @@ import {
 import { type UpgradeTrack, effectiveShip, upgradePrice } from './upgrades';
 import { createWorld } from './world';
 import { drivingWind } from './boat';
+import { seaDrag } from './seaDrag';
+import { createSeaState, steadySeaState } from './seaState';
 import { type WindConfig, windAt, withoutStorms } from './wind';
 
 /**
@@ -98,22 +100,33 @@ function islandOfPort(map: MapDef, portId: string) {
   return map.islands.find((i) => i.id === port.islandId)!;
 }
 
-/** Best speed made good along `bearing` (kn), sailing straight or tacking, in one wind. */
-function madeGoodIn(ship: ShipClass, bearing: number, from: number, kn: number): number {
+/**
+ * Best speed made good along `bearing` (kn), sailing straight or tacking, in one wind and the sea
+ * it raises once settled, the waves slowing her unless `waves` is off (decision 0256).
+ */
+function madeGoodIn(
+  ship: ShipClass,
+  bearing: number,
+  from: number,
+  kn: number,
+  waves: boolean,
+): number {
   const drive = drivingWind(kn) * ship.speedRatio;
+  const sea = steadySeaState(from, kn, 0, legSea);
   let best = 0;
-  for (let a = -180; a <= 180; a += 2)
-    best = Math.max(
-      best,
-      polarFraction(ship, from - bearing - a * DEG) * drive * Math.cos(a * DEG),
-    );
+  for (let a = -180; a <= 180; a += 2) {
+    const heading = bearing + a * DEG;
+    const flat = polarFraction(ship, from - heading) * drive * Math.cos(a * DEG);
+    best = Math.max(best, waves ? flat * (1 - seaDrag(ship, heading, sea)) : flat);
+  }
   return best;
 }
+const legSea = createSeaState();
 
 /** Best speed made good along `bearing` (kn), averaged over the weather. */
-function madeGood(ship: ShipClass, bearing: number, weather: Weather[]): number {
+function madeGood(ship: ShipClass, bearing: number, weather: Weather[], waves: boolean): number {
   let sum = 0;
-  for (const w of weather) sum += madeGoodIn(ship, bearing, w.from, w.kn);
+  for (const w of weather) sum += madeGoodIn(ship, bearing, w.from, w.kn, waves);
   return sum / weather.length;
 }
 
@@ -176,8 +189,9 @@ const stretchSeconds = (units: number, madeGoodKn: number, currentKn: number) =>
   (Math.max(CRAWL_KN, madeGoodKn * 0.9 + currentKn) * TUNING.seamanship.boat.knotToUnits);
 
 /**
- * Seconds from one port to another averaged over a range of winds, in the zones' average wind and
- * the currents at `currents` strength (Captain's by default). For the "about a minute" check.
+ * Seconds from one port to another averaged over a range of winds, in the zones' average wind,
+ * the currents at `currents` strength (Captain's by default) and the waves slowing her unless
+ * `waves` is off. For the "about a minute" check.
  */
 export function legSeconds(
   map: MapDef,
@@ -186,12 +200,13 @@ export function legSeconds(
   to: string,
   weather = weathers(map, SHIFTING_SPREAD),
   currents = 1,
+  waves = true,
 ): number {
   const zones = zoneField(map.windZones, smoothOutline);
   // Cached per weather list, since the checks ask for the same legs again.
   let byWeather = averageLegs.get(weather);
   if (!byWeather) averageLegs.set(weather, (byWeather = new Map()));
-  const key = `${map.name}:${ship.id}:${ship.speedRatio}:${from}:${to}:${currents}`;
+  const key = `${map.name}:${ship.id}:${ship.speedRatio}:${from}:${to}:${currents}:${waves}`;
   const known = byWeather.get(key);
   if (known !== undefined) return known;
   const path = legPath(map, from, to);
@@ -205,7 +220,7 @@ export function legSeconds(
           return { from: w.from + z.turn, kn: w.kn * z.strength };
         });
     const current = currentAlong(map, x, y, path.bearing, currents);
-    seconds += stretchSeconds(path.stretch, madeGood(ship, path.bearing, local), current);
+    seconds += stretchSeconds(path.stretch, madeGood(ship, path.bearing, local, waves), current);
   }
   // Storm belts (decision 0167) crossed on the way: Captain's mean wait for a lull at each.
   if (zones) seconds += beltWait(zones, path.points, DIFFICULTY[DEFAULT_DIFFICULTY]!.stormBelt);
@@ -242,6 +257,8 @@ export interface Sea {
   currents: number;
   /** The level's storm belt knob (decision 0167), 0 with the switch off: she waits for a lull. */
   belt: number;
+  /** The waves slow her (decision 0256): Settings › Waves slow the boat. */
+  seaDrag: boolean;
 }
 
 export interface SeaOptions {
@@ -256,6 +273,8 @@ export interface SeaOptions {
   steadyWind?: boolean;
   /** Settings › Storm belt (decision 0167); on by default. */
   stormBelt?: boolean;
+  /** Settings › Waves slow the boat (decision 0256); on by default. */
+  seaDrag?: boolean;
 }
 
 export function seaOf(map: MapDef, opts: SeaOptions = {}): Sea {
@@ -274,6 +293,7 @@ export function seaOf(map: MapDef, opts: SeaOptions = {}): Sea {
     seed: (map.seed ^ Math.imul(opts.seed ?? 0, 0x9e3779b1)) >>> 0,
     currents: opts.currents === false ? 0 : k.currents,
     belt: opts.stormBelt === false || opts.zones === false ? 0 : k.stormBelt,
+    seaDrag: opts.seaDrag !== false,
   };
 }
 
@@ -307,7 +327,7 @@ export function seaLegSeconds(
     const current = currentAlong(sea.map, x, y, path.bearing, sea.currents);
     seconds += stretchSeconds(
       path.stretch,
-      madeGoodIn(ship, path.bearing, wind.from, wind.speedKn),
+      madeGoodIn(ship, path.bearing, wind.from, wind.speedKn, sea.seaDrag),
       current,
     );
   }
@@ -341,7 +361,11 @@ export function placeSeconds(sea: Sea, ship: ShipClass, a: Place, b: Place, t: n
     spot.y = a.y + uy * along;
     const wind = windAt(sea.wind, t + seconds, sea.seed, spot);
     const current = currentAlong(sea.map, spot.x, spot.y, bearing, sea.currents);
-    seconds += stretchSeconds(d / n, madeGoodIn(ship, bearing, wind.from, wind.speedKn), current);
+    seconds += stretchSeconds(
+      d / n,
+      madeGoodIn(ship, bearing, wind.from, wind.speedKn, sea.seaDrag),
+      current,
+    );
   }
   return seconds;
 }

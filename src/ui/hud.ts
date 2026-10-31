@@ -1,3 +1,4 @@
+import { TUNING } from '../data/tuning';
 import { knobs } from '../sim/difficulty';
 import { trueWindAngle } from '../sim/boat';
 import { DEG, bearingTo, distance, wrapPositive } from '../sim/math';
@@ -106,6 +107,7 @@ export class Hud {
   private readonly objName = $('obj-name');
   private readonly objDist = $('obj-dist');
   private readonly windText = $('wind-text');
+  private readonly seaDragText = $('sea-drag-text');
   private readonly weatherText = $('weather-text');
   private readonly forecastText = $('wind-forecast');
   private readonly beltText = $('belt-text');
@@ -569,6 +571,20 @@ export class Hud {
     });
   }
 
+  /**
+   * "Waves −4%" under the wind once the sea takes that much off her speed (decision 0256), only
+   * while she makes way under sail: in irons or alongside there is nothing to slow.
+   */
+  private showSeaDrag() {
+    const { seaDrag: drag, boat } = this.world;
+    const shown = drag >= TUNING.waves.drag.hudAt && boat.sail > 0 && boat.speedKn >= 1;
+    const pc = shown ? Math.round(drag * 100) : 0;
+    if (this.seaDragText.dataset.pc === String(pc)) return;
+    this.seaDragText.dataset.pc = String(pc);
+    this.seaDragText.hidden = !shown;
+    if (shown) this.seaDragText.textContent = t('hud.seaDrag', { n: pc });
+  }
+
   /** The weather glass's forecast under the wind (decision 0136), twice a second. */
   private showForecast(dt: number) {
     this.sinceForecast += dt;
@@ -682,6 +698,7 @@ export class Hud {
       // Name the lee so a sudden drop in speed reads as the island, not a bug (decision 0027).
       const lee = this.world.shelter > 0.25 ? ` · ${t('hud.lee')}` : '';
       this.windText.textContent = `${fromDir} · ${wind.speedKn.toFixed(0)} ${t('unit.knots')}${lee}`;
+      this.showSeaDrag();
       // Weather only shows when it is not a plain breeze, in line with the quiet HUD (0067).
       const { weather } = this.world;
       const kind = weather.storm > 0.15 ? 'storm' : weather.kind;

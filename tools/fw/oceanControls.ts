@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { type OceanEffect, oceanControls, setOceanControls } from '../../src/data/oceanControls';
 
 const HEADINGS: Record<OceanEffect, string> = {
+  sailing: 'Sailing (how much the waves slow her; Settings › Waves slow the boat, decision 0256)',
   sea: 'Sea (the wave field everything floats on; same on every level and frame rate)',
   drawing: 'Drawing (how the ocean draws and shades it)',
   comfort:
@@ -16,7 +17,7 @@ const HEADINGS: Record<OceanEffect, string> = {
 
 type Args = Record<string, string | boolean | undefined> & { _: string[] };
 
-/** `waves [path=value …] [--dry] [--json]`: list, or set and write. No sailing rule reads any. */
+/** `waves [path=value …] [--dry] [--json]`: list, or set and write. Only Sailing slows the boat. */
 export function wavesCommand(args: Args, root: string): number {
   const pairs = args._.slice(1);
   if (pairs.length) {
