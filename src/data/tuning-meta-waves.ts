@@ -251,7 +251,7 @@ export const WAVES_META: Readonly<Record<string, TuningMeta>> = {
     1,
     0.05,
     undefined,
-    "Share of the surf left on a reef's or bank's lee side; the windward edge keeps all of it.",
+    "Share of the surf left on a reef's or bank's lee side, and of the surf lines and wash on a beach in the swell's lee; the windward side keeps all of it.",
   ),
   'waves.foam.ahead': num(
     'Windward look-ahead',

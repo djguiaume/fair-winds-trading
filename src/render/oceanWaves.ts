@@ -1,5 +1,6 @@
 import { shoreShader } from './shoreTexture';
 import { seabedShader, seabedUniforms } from './seabedTexture';
+import { surfOpenShader } from './shoreWash';
 
 /** The waves' (amplitude, wavenumber), as in the shaders' `wave`. */
 const WAVES: readonly [number, number][] = [
@@ -227,6 +228,11 @@ uniform vec3 uBandHeight;
 // windward test looks (w).
 uniform vec4 uSeaWind;
 varying vec3 vSea;
+#ifdef FANCY
+// How strong the surf lines are on this coast (issue #397).
+${surfOpenShader}
+varying float vSurfOpen;
+#endif
 #endif
 #if defined(GERSTNER) && !defined(PLAIN)
 ${waveShadingVaryings}
@@ -261,6 +267,9 @@ void main() {
   // the windward edge, where the seabed rises ahead of the swell; the lee keeps a thinner share.
   float windward = smoothstep(0.0, 0.06, seaBake.x - coastBake(rest + uSeaWind.xy * uSeaWind.w).x);
   vSea = vec3(dot(uBandHeight, seaShare), seaSurf * mix(uSeaWind.z, 1.0, windward), seaShare.x);
+#ifdef FANCY
+  vSurfOpen = surfOpen(seaBake.y, windward);
+#endif
 #endif
   vHeight = h;
   vec4 mv = viewMatrix * world;

@@ -28,7 +28,7 @@ export interface OceanControl {
   effect: OceanEffect;
 }
 
-const DRAWING = ['drawCells', 'shadeCells', 'foam', 'look'];
+const DRAWING = ['drawCells', 'shadeCells', 'foam', 'surf', 'wash', 'look'];
 
 function effectOf(path: readonly string[]): OceanEffect | null {
   if (path[0] === 'graphics') return path[1] === 'quality' && path[3] === 'waves' ? 'level' : null;

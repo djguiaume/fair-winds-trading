@@ -77,8 +77,8 @@
   },
   "foam": {
     "roughAt": 1.6,
-    "widen": 1,
-    "breakup": 0.75,
+    "widen": 0.4,
+    "breakup": 0.15,
     "surf": 1.2,
     "lee": 0.5,
     "ahead": 6,
@@ -86,6 +86,33 @@
     "night": 0.5,
     "fineCell": 4,
     "cap": "#f6f9fb"
+  },
+  "surf": {
+    "from": [0.25, 0.6],
+    "open": [0.06, 0.22],
+    "storm": [0.6, 1.8],
+    "period": [6, 4.5],
+    "spacing": 7,
+    "lines": [1, 2],
+    "front": 0.25,
+    "tail": 0.85,
+    "strength": 0.6,
+    "gaps": 0.3,
+    "wobble": 0.5,
+    "wobbleScale": 0.03
+  },
+  "wash": {
+    "reach": [1.4, 2.2],
+    "rise": 0.3,
+    "edge": 0.3,
+    "foam": 1,
+    "wet": 1,
+    "wetTint": "#d6cbb8",
+    "sheen": 0.05,
+    "lace": 0.85,
+    "sheenColour": "#bcd8e6",
+    "top": 1.2,
+    "look": 3
   },
   "look": {
     "facets": 0.35,

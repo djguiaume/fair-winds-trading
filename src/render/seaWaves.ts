@@ -6,6 +6,7 @@ import { createWaveField, setWaveField, waveCount, waveHeightAt } from '../sim/w
 import type { LocalWeather } from '../sim/wind';
 import type { World } from '../sim/world';
 import { waveHeight } from './oceanWaves';
+import { ShoreWash } from './shoreWash';
 
 /**
  * The `?waves` test switch (decisions 0245, 0250): `v1` the classic three sines, `v2` or a review
@@ -93,6 +94,8 @@ export class SeaWaves {
   /** The land's bake the coast calms the waves by (the view's seabed); none: open sea everywhere. */
   coast: CoastGrid | null = null;
   private readonly shown = {} as LocalWeather;
+  /** The surf's clock at the shore (issue #397). */
+  private readonly wash = new ShoreWash();
 
   constructor(
     private readonly world: () => World,
@@ -141,6 +144,14 @@ export class SeaWaves {
       steadySeaState(world.wind.from, speedKn, storm, this.sea);
     } else seaStateAt(windConfig, map.seed, time, boat.x, boat.y, this.sea);
     setWaveField(this.field, this.sea, map.seed, time);
+  }
+
+  /**
+   * The surf lines and the wash up the beach for this frame (`shoreWash.ts`): `on` where the
+   * ocean draws them (per pixel, with the coast's calm), `night` the foam's share in this light.
+   */
+  writeShoreWash(on: boolean, night: number, bake: Parameters<ShoreWash['write']>[5]) {
+    this.wash.write(this.sea, this.field, this.world().time, on && this.gerstner, night, bake);
   }
 
   /** Height of the sea at scene (`x`, `z`) now: what boats, buoys, marks and wakes float on. */
