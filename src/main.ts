@@ -99,7 +99,8 @@ import {
 import { Hud } from './ui/hud';
 import { CameraControls } from './ui/cameraControls';
 import { loadSettings, saveSettings } from './ui/settings';
-import { addEffectSwitches, addQualityButtons, switchRow } from './ui/graphicsSettings';
+import { addEffectSwitches, addQualityButtons } from './ui/graphicsSettings';
+import { wireSeaSwitches } from './ui/seaSwitches';
 import type { Bench } from './perf/bench';
 import type { PerfReadout } from './perf/perfReadout';
 import { perfOptions } from './perf/perfOptions';
@@ -1518,56 +1519,9 @@ stormBelt.addEventListener('change', () => {
   syncWeather();
   keepSettings();
 });
-// Currents (decision 0140): their own switch too.
-const currentsSwitch = $<HTMLInputElement>('currents');
-world.currentsOn = settings.currents;
-currentsSwitch.checked = settings.currents;
-currentsSwitch.addEventListener('change', () => {
-  world.currentsOn = currentsSwitch.checked;
-  settings.currents = currentsSwitch.checked;
-  keepSettings();
-});
-// Drifting icebergs (decision 0170): their own switch, like every hazard.
-const bergsSwitch = $<HTMLInputElement>('bergs');
-world.bergsOn = settings.bergs;
-bergsSwitch.checked = settings.bergs;
-bergsSwitch.addEventListener('change', () => {
-  world.bergsOn = bergsSwitch.checked;
-  settings.bergs = bergsSwitch.checked;
-  keepSettings();
-});
-// Other ships (decision 0215): a switch like every hazard, and as many as the quality allows.
-const shipsSwitch = $<HTMLInputElement>('ships');
-world.traffic.on = settings.ships;
+// The sea's hazards each have a switch (currents, waves, bergs, other ships, haze).
+wireSeaSwitches(world, settings, keepSettings);
 world.traffic.cap = TUNING.seamanship.traffic.atOnce[level];
-shipsSwitch.checked = settings.ships;
-shipsSwitch.addEventListener('change', () => {
-  world.traffic.on = shipsSwitch.checked;
-  if (shipsSwitch.checked) world.traffic.fresh = true;
-  settings.ships = shipsSwitch.checked;
-  keepSettings();
-});
-// Fog banks and ash clouds (decision 0169): one switch per haze the zone kinds name, made from
-// the data so a new kind needs no code, placed after the Currents row.
-const hazeOff = () => hazeSwitches().filter((id) => settings.haze[id] === false);
-world.hazeOff = hazeOff();
-{
-  let after: Element | null = currentsSwitch.closest('.set-row');
-  for (const id of hazeSwitches()) {
-    const row = switchRow(
-      `haze-${id}`,
-      `settings.haze.${id}`,
-      settings.haze[id] !== false,
-      (on) => {
-        settings.haze = { ...settings.haze, [id]: on };
-        world.hazeOff = hazeOff();
-        keepSettings();
-      },
-    );
-    after?.after(row);
-    after = row;
-  }
-}
 // Wind: steady trade wind or the shifting wind (decision 0083); the level sets its default.
 const windButtons = [...$('wind-choice').querySelectorAll<HTMLButtonElement>('[data-wind]')];
 const syncWind = () => {

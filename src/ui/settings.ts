@@ -55,6 +55,8 @@ export interface Settings {
   stormBelt: boolean;
   /** Currents (decision 0140): water that carries the boat; off = still water everywhere. */
   currents: boolean;
+  /** The waves slow the boat, head seas most (decision 0256); off = flat-water speeds. */
+  seaDrag: boolean;
   /** Drifting icebergs in the north (decision 0170); a hazard, so it can be off. */
   bergs: boolean;
   /** Other boats on the sea (decision 0215): fishing boats, coasters and visitors; off, none. */
@@ -97,6 +99,7 @@ const DEFAULTS: Settings = {
   windZones: true,
   stormBelt: true,
   currents: true,
+  seaDrag: true,
   bergs: true,
   ships: true,
   haze: {},

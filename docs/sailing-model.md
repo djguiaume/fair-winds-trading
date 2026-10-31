@@ -22,11 +22,18 @@ How boats move in Fair Winds Trading, and which numbers to change to tune the fe
 - Striking a reef takes 6 hull points per knot lost; a damaged hull sails up to 25 % slower until repaired.
 - Ramming a rocky shore or a pier takes 5 hull points per knot lost beyond a free 2-knot bump; sandbanks and the sea's edge are soft ([0038](decisions/0038-hull-damage-from-any-crash.md)). Piers are solid segments out to the pier head.
 
+## Waves (`src/sim/seaDrag.ts`, [0256](decisions/0256-waves-slow-the-boat-bounded.md))
+
+- The sea state (swell and chop height and direction where she is, `seaState.ts`) takes a share off the target speed: `perUnit × (swell × 1 + chop × 0.5) × heading share × hull share`, capped at `max` (10 %). The same on every level (0083); rougher weather on the harder levels raises rougher seas.
+- Heading share: 1 head on, 0.4 abeam, 0.1 dead astern, straight lines between; a confused sea counts as abeam from every side. Never below 0: no surfing boost.
+- Hull share: 1 at radius 4.5 (sloop) down to 0.5 at 9.5 (indiaman), by size.
+- Nothing else changes: rudder, no-go zone, sails, leeway, currents and docking are as without it. Graphics quality and Settings › Waves (drawn) do not change it; Settings › Waves slow the boat turns it off. `npm run sea -- drag` prints the table.
+
 ## Each step (`stepBoat` in `src/sim/boat.ts`)
 
 1. **Sails** ease toward the requested step (0, ½, full) at 1.4 per second.
 2. **Rudder** follows the steering input quickly. Turn rate = `turnRateDeg × rudder × steerage`, where steerage grows from `minSteerage` (stopped) to 1 at `steerageSpeedKn`.
-3. **Target speed** = `polar(TWA) × windKn × speedRatio × sail`.
+3. **Target speed** = `polar(TWA) × windKn × speedRatio × sail × (1 − seaDrag)`; `seaDrag` is the waves' share, above.
 4. **Speed** eases toward the target: at `accel` when speeding up, `decel` when slowing down, `ironsDecel` when inside the no-go zone. Turning hard costs a little speed (`turnDrag`).
 5. **Leeway**: a small drift downwind (`leeway × windKn`, more with sails up). With no drive, it slowly pushes the boat backwards, which is what makes being "in irons" feel like a mistake.
 6. **Move**: `(heading vector × speed + drift) × 1.6 units/s per knot`.

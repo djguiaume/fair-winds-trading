@@ -76,7 +76,7 @@ Every number lives in `src/data/tuning/` ([0094](decisions/0094-tuning-moved-to-
 
 | Milestone | Sharp captain (best load every leg) | Relaxed captain (40 % slower, often 2nd/3rd best load, a crash every 5 legs) |
 |---|---|---|
-| First upgrade | ≤ 5 min (now 3.7) | ≤ 8 min (now 5.8) |
+| First upgrade | ≤ 5.25 min (now 5.1; was ≤ 5 until the waves slowed her, [0256](decisions/0256-waves-slow-the-boat-bounded.md)) | ≤ 8 min (now 7.2) |
 | Cutter (1 500) | 9–16 min (now 12.7); ≤ 25 min without orders (now 18.9) | ≤ 32 min (now 18.2) |
 | Cutter fully upgraded | ≥ 25 min (now 34) | |
 | Delivery orders' share of income | 30–65 % (now 55 %) | |
