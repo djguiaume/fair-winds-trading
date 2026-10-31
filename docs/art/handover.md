@@ -1,4 +1,4 @@
-# Art director handover (v1.3 to v1.3.1, 2026-10-31)
+# Art director handover (v1.3.1 to v1.4, 2026-10-31)
 
 For the next art director thread, in the format of [roles.md](../roles.md). Rules are in the [art bible](art-bible.md), now describing the v2 look as the default (decisions [0222](../decisions/0222-a-new-look-smooth-terrain-blue-water-and-forests.md), [0165](../decisions/0165-art-bible-and-the-phase-4-biome-looks.md)). This page only holds what is open. Guillaume gives the final OK on every visual: your OK means "ready to show Guillaume", never "merged". Your own PRs are docs only.
 
@@ -6,11 +6,16 @@ For the next art director thread, in the format of [roles.md](../roles.md). Rule
 
 | What | Who waits | State |
 |---|---|---|
-| **Coast surf after v1.3** | v1.3.1 / v1.4 | Guillaume saw no wave effect on coasts, so #286 raised the surf (`waves.json` foam). My last look note was not delivered: the new foam reads as soft cloud puffs and the thin shore ring line is gone. Wanted: thin breaking lines parallel to the shore (1 to 2, travelling inward, crisp front, faded tail), the classic ring kept underneath, fewer lines at 14 kn and more in storm, half at night, never above `#f6f9fb`. Check High, Low and night. |
-| **Waves look (#280-#282, #286)** | next build threads | Waves are on from Medium up, off on Low and Ultra-low (classic sea). Storm keeps the full light of decision 0067; Low's water is about 4% darker than High's, the same as calm. Judge storms on a device too, headless High renders slowly and can show a different gloom. Ultra storm shore foam got a small boost. |
+| **Surf and beach wash (#286, #397)** | v1.4 | Looks I approved for Guillaume: 1 thin breaking line at 14 kn, 2 in storm, classic ring kept, crisp front, faded tail, half at night, never above `#f6f9fb`; wash with warm wet sand `#d6cbb8`, foam edge, rock shores foam only. Numbers in `waves.json > surf / wash`. Guillaume's own verdict is what counts; re-check High, Low (unchanged, waves off) and night. |
+| **Boat ride and drag (#283, #284)** | v1.4 | Ride caps: roll 6° sloop/schooner, 4° fluyt, 3° indiaman; pitch 5° to 2.5°; 1.5 s smoothing; 1.5x in storm; rise follows the sea (not fixed metres), bow keeps 0.4 units of freeboard. Judge on a device or video, stills hide the lag. HUD line "Waves −3%" is a footnote: keep it dimmer than the wind text. |
 | **Reef foam** | next | Grey Lady's outer ring is a bit uniform; let its width vary with the swell. |
-| **Ultra on Xbox, Ultra costs** | v1.3.1 | [#374](https://github.com/djguiaume/fair-winds-trading/issues/374), [#377](https://github.com/djguiaume/fair-winds-trading/issues/377). Ultra notes still stand: Emberhold rock keeps its facets with lava cracks the brightest thing, lamp glow warmer and smaller, window lights at High's brightness at night, haze 10 to 15% (warm by day, blue by night). |
-| **Triangle budgets** | each raise | Guillaume lifted the old-tablet limit for now (2026-10-28), but budgets are ceilings: models stay as light as they look good, every raise is argued (what it buys, what it costs on Low). Low on a weak tablet is [#380](https://github.com/djguiaume/fair-winds-trading/issues/380). |
+| **Ultra on Xbox, costs** | v1.4 | [#374](https://github.com/djguiaume/fair-winds-trading/issues/374), [#377](https://github.com/djguiaume/fair-winds-trading/issues/377). Ultra notes: Emberhold rock keeps its facets, lava cracks the brightest thing; lamp glow warmer and smaller; window lights at High's brightness at night; haze 10 to 15% (warm by day, blue by night). |
+| **Triangle budgets** | each raise | Budgets are ceilings, every raise is argued (what it buys, what it costs on Low). Low on a weak tablet is [#380](https://github.com/djguiaume/fair-winds-trading/issues/380). |
+
+### What I would ask for v1.4
+
+- **Boat upgrades (#295-#301):** follow [boat look rules](../reviews/art-direction/new-look/boats.md). One readable change per level (sails, trim, flags), no new facets on smooth hulls, same silhouette per class so players still recognise it at far LOD, and ride/tilt must still look right (pivot at the waterline). Show each class at levels 1 to 3, High and Low, day and night, one combined sheet; budget raises argued per ship.
+- **Phone look idea (#405):** judge portrait first. Keep numbers and HUD readable, no new per-frame cost, Low stays the reference. Offer 2 or 3 variants as static mockups (Guillaume prefers images over playable demos) before building.
 
 ## 2. Pointers
 
