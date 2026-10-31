@@ -148,5 +148,24 @@
       "storm": 0.5,
       "dockSec": 2
     }
+  },
+  "drag": {
+    "perUnit": 0.05,
+    "swell": 1,
+    "chop": 0.5,
+    "head": 1,
+    "beam": 0.4,
+    "following": 0.1,
+    "small": {
+      "radius": 4.5,
+      "share": 1
+    },
+    "big": {
+      "radius": 9.5,
+      "share": 0.5
+    },
+    "max": 0.1,
+    "sampleSec": 2,
+    "hudAt": 0.02
   }
 }
