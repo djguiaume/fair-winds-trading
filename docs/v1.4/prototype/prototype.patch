@@ -1,0 +1,55 @@
+diff --git a/src/render/models/hullGeometry.ts b/src/render/models/hullGeometry.ts
+index abac345..11809e0 100644
+--- a/src/render/models/hullGeometry.ts
++++ b/src/render/models/hullGeometry.ts
+@@ -51,7 +51,11 @@ export function hullGeometry(
+   );
+   const f = new Faces();
+   const strake = (r: number) =>
+-    r === 0 && level >= 2 ? BAND : r === 2 && level >= 3 ? ST.copper : HULL;
++    r === 0 && level >= 2
++      ? BAND
++      : r === 1 && level >= 2
++        ? level >= 3 ? '#d9a441' : '#9c7446'
++        : r === 2 && level >= 3 ? ST.copper : HULL;
+   const marks = rig.damage ?? DEFAULT_DAMAGE;
+   // The outline segment nearest a damage station (decision 0208), on its side of the hull.
+   const segmentAt = (p: { z: number; side: number }) => {
+diff --git a/src/render/models/refinedBoat.ts b/src/render/models/refinedBoat.ts
+index 2511db4..f70c4a2 100644
+--- a/src/render/models/refinedBoat.ts
++++ b/src/render/models/refinedBoat.ts
+@@ -256,7 +256,10 @@ function cloth(
+   for (let j = 0; j < nv; j++)
+     for (let i = 0; i < nu; i++) {
+       if (torn.has(`${i}:${j}`)) continue;
+-      const color = patched.has(`${i}:${j}`)
++      const proto = protoSail(level, i, j, nu, nv, band);
++      const color = proto && !patched.has(`${i}:${j}`) && !torn.has(`${i}:${j}`)
++        ? proto
++        : patched.has(`${i}:${j}`)
+         ? ST.damagePatches[(i + j) % 2]!
+         : worn && (i * 7 + j * 3) % 8 === 1
+           ? ST.patches[(i + j) % 2]!
+@@ -1015,3 +1018,21 @@ export class RefinedBoat implements BoatModel {
+     for (const d of this.disposables) d.dispose();
+   }
+ }
++
++/** PROTOTYPE ONLY (#295): sail look variants from ?look=A|B|C. */
++function protoSail(level: number, i: number, j: number, nu: number, nv: number, band: string) {
++  const look = new URLSearchParams(location.search).get('look');
++  if (!look || level === 1) return undefined;
++  const edge = i === 0 || i === nu - 1 || j === 0 || j === nv - 1;
++  const mid = j === nv / 2 - 1 || j === nv / 2;
++  if (look === 'A') {
++    if (level === 2) return edge ? '#c9b78c' : (i % 2 ? '#f1ead9' : '#e6dcc3');
++    return edge ? band : mid ? band : '#f4efe2';
++  }
++  if (look === 'B') {
++    if (level === 2) return j === 0 ? band : '#eee6d4';
++    return j === 0 || j === nv - 1 || mid ? band : '#f4efe2';
++  }
++  if (level === 2) return i % 2 ? '#f1ead9' : '#ddd2b6';
++  return i === 0 ? band : j % 2 ? '#f4efe2' : '#dfd5ba';
++}
