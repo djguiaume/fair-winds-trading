@@ -1,14 +1,15 @@
-# Art director handover (v1.2 to v1.3, 2026-10-30)
+# Art director handover (v1.3 to v1.3.1, 2026-10-31)
 
-For the "Art director (v1.3)" thread, in the format of [roles.md](../roles.md). Rules are in the [art bible](art-bible.md), now describing the v2 look as the default (decisions [0222](../decisions/0222-a-new-look-smooth-terrain-blue-water-and-forests.md), [0165](../decisions/0165-art-bible-and-the-phase-4-biome-looks.md)). This page only holds what is open. Guillaume gives the final OK on every visual: your OK means "ready to show Guillaume", never "merged". Your own PRs are docs only.
+For the next art director thread, in the format of [roles.md](../roles.md). Rules are in the [art bible](art-bible.md), now describing the v2 look as the default (decisions [0222](../decisions/0222-a-new-look-smooth-terrain-blue-water-and-forests.md), [0165](../decisions/0165-art-bible-and-the-phase-4-biome-looks.md)). This page only holds what is open. Guillaume gives the final OK on every visual: your OK means "ready to show Guillaume", never "merged". Your own PRs are docs only.
 
 ## 1. Open decisions
 
 | What | Who waits | State |
 |---|---|---|
-| **Waves (v1.3)** | v1.3 build threads | The sea colours (shallow, mid, deep, night floor, haze per sea) live in `palette.json` `water` and the depth bake. Waves must keep them: check each sea day and night at High and Low, and that no seabed blobs or sheets poke through (v1.2 fixed two such bugs, sheets and coarse ocean sag). |
-| **Water at slopes** | v1.3 | Bug [#378](https://github.com/djguiaume/fair-winds-trading/issues/378): water turns into a waterfall through the ground. |
-| **Ultra on Xbox, Ultra costs** | v1.3 | [#374](https://github.com/djguiaume/fair-winds-trading/issues/374), [#377](https://github.com/djguiaume/fair-winds-trading/issues/377). Ultra notes still stand: Emberhold rock keeps its facets with lava cracks the brightest thing, lamp glow warmer and smaller, window lights at High's brightness at night, haze 10 to 15% (warm by day, blue by night). |
+| **Coast surf after v1.3** | v1.3.1 / v1.4 | Guillaume saw no wave effect on coasts, so #286 raised the surf (`waves.json` foam). My last look note was not delivered: the new foam reads as soft cloud puffs and the thin shore ring line is gone. Wanted: thin breaking lines parallel to the shore (1 to 2, travelling inward, crisp front, faded tail), the classic ring kept underneath, fewer lines at 14 kn and more in storm, half at night, never above `#f6f9fb`. Check High, Low and night. |
+| **Waves look (#280-#282, #286)** | next build threads | Waves are on from Medium up, off on Low and Ultra-low (classic sea). Storm keeps the full light of decision 0067; Low's water is about 4% darker than High's, the same as calm. Judge storms on a device too, headless High renders slowly and can show a different gloom. Ultra storm shore foam got a small boost. |
+| **Reef foam** | next | Grey Lady's outer ring is a bit uniform; let its width vary with the swell. |
+| **Ultra on Xbox, Ultra costs** | v1.3.1 | [#374](https://github.com/djguiaume/fair-winds-trading/issues/374), [#377](https://github.com/djguiaume/fair-winds-trading/issues/377). Ultra notes still stand: Emberhold rock keeps its facets with lava cracks the brightest thing, lamp glow warmer and smaller, window lights at High's brightness at night, haze 10 to 15% (warm by day, blue by night). |
 | **Triangle budgets** | each raise | Guillaume lifted the old-tablet limit for now (2026-10-28), but budgets are ceilings: models stay as light as they look good, every raise is argued (what it buys, what it costs on Low). Low on a weak tablet is [#380](https://github.com/djguiaume/fair-winds-trading/issues/380). |
 
 ## 2. Pointers
@@ -18,7 +19,7 @@ For the "Art director (v1.3)" thread, in the format of [roles.md](../roles.md). 
 - **Review habits:** same camera for High and Low (one frame each) plus night; judge Low against High (shore band, foam ring, trees, no blobs). Common v1.2 flaws: blurry zone edges, dark seabed blobs on Low, glowing night shallows, bare islets, dark blobs that read as stains. Answer in a short list (must fix, good, nice to have). Look at every image yourself.
 - **Colour reservations:** red edge buoys, amber `#ffb36b` storm warning, yellow regatta marks, brass `#e8c46a` HUD, never pure white (`#f6f9fb` at most).
 - **Tools:** `npm run shots`, `npm run chart`, `npm run island`, `npm run sound`; colours in `src/data/palette.json`, trees in `src/data/forests.json`, ground and shader numbers in `terrain.json` and `graphics.json`. Shared-folder sheets: `/mnt/project-files/` (`new-look-review/`, `forests/`, `depth-water/`, `boats-v12/`).
-- **Thread ids:** find them with `list_threads` and match the relay's session id before replying. Never send a test or placeholder message (done by mistake twice in v1.2).
+- **Thread ids:** find them with `list_threads` and match the relay's session id before replying. Never send a test or placeholder message. The coordinator names the thread to reply to; copy that id exactly (one reply in v1.3 failed on a mistyped id).
 
 ## 3. Follow-ups
 
