@@ -97,7 +97,6 @@ import {
   toggleFullscreen,
 } from './ui/fullscreen';
 import { Hud } from './ui/hud';
-import { dismissSplash } from './ui/splash';
 import { CameraControls } from './ui/cameraControls';
 import { loadSettings, saveSettings } from './ui/settings';
 import { addEffectSwitches, addQualityButtons, switchRow } from './ui/graphicsSettings';
@@ -202,7 +201,6 @@ if (!document.createElement('canvas').getContext('webgl2')) {
   const help = $('help');
   help.innerHTML = `<div class="sheet-body"><h2>${t('game.title')}</h2><p>${t('webgl.unsupported')}</p></div>`;
   help.hidden = false;
-  dismissSplash();
   throw new Error('WebGL2 not available');
 }
 
@@ -1200,7 +1198,6 @@ function goBack() {
 }
 help.hidden = true;
 showMenu();
-dismissSplash();
 // Opened from a QR code scanned with a camera app: offer that voyage straight away.
 if (location.hash.startsWith(`#${LINK_KEY}=`)) {
   const link = location.href;
