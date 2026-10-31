@@ -124,10 +124,29 @@
     "crestFloor": 0.4
   },
   "motion": {
-    "heave": 0.8,
-    "pitch": 0.8,
+    "heave": 1,
+    "pitch": 1,
+    "roll": 1,
     "gentle": 0.35,
     "cameraBob": 0.5,
-    "cameraEase": 1.5
+    "cameraEase": 1.5,
+    "ride": {
+      "bowStern": 0.8,
+      "beam": 1,
+      "heaveSec": 0.1,
+      "tiltSec": 1.5,
+      "small": {
+        "length": 18,
+        "rollDeg": 6,
+        "pitchDeg": 5
+      },
+      "big": {
+        "length": 28.6,
+        "rollDeg": 3,
+        "pitchDeg": 2.5
+      },
+      "storm": 0.5,
+      "dockSec": 2
+    }
   }
 }

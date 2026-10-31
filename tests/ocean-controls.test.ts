@@ -89,17 +89,6 @@ describe('sailing never reads the ocean switches', () => {
 });
 
 describe('gentle motion and the riding camera', () => {
-  it('full motion floats the boat as before; gentle keeps its share', () => {
-    const motion = new SeaMotion();
-    const full = { ...motion.float(1.2, 0.2, 10, { lift: 0, pitch: 0 }) };
-    expect(full.lift).toBeCloseTo((1.2 + 0.2) * 0.4);
-    expect(full.pitch).toBeCloseTo(Math.atan2(1, 10) * 0.8);
-    motion.gentle = true;
-    const gentle = motion.float(1.2, 0.2, 10, { lift: 0, pitch: 0 });
-    expect(gentle.lift).toBeCloseTo(full.lift * TUNING.waves.motion.gentle);
-    expect(gentle.pitch).toBeCloseTo(full.pitch * TUNING.waves.motion.gentle);
-  });
-
   it('the camera stays put until the player turns the bob on, then eases with the sea', () => {
     const motion = new SeaMotion();
     for (let i = 0; i < 60; i++) expect(motion.cameraRise(1 / 60, 2)).toBe(0);

@@ -7,6 +7,7 @@ import { TERRAIN_META } from './tuning-meta-terrain';
 import { SMOOTH_META } from './tuning-meta-smooth';
 import { WATER_DEPTH_META } from './tuning-meta-water-depth';
 import { WAVES_META } from './tuning-meta-waves';
+import { MOTION_META } from './tuning-meta-motion';
 import { SURF_META } from './tuning-meta-surf';
 import { QUALITY_META } from './tuning-meta-quality';
 
@@ -21,5 +22,6 @@ export const FILE_METAS: Readonly<Record<string, TuningMeta>> = {
   ...SMOOTH_META,
   ...WATER_DEPTH_META,
   ...WAVES_META,
+  ...MOTION_META,
   ...SURF_META,
 };
