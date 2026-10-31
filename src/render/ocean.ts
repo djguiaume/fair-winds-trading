@@ -10,6 +10,7 @@ import { dimShallow, greyed, liftToFloor, newRamp, seaRampAt } from './seaWater'
 import { oceanVertexShader as vertexShader, waveSag } from './oceanWaves';
 import { oceanFragmentShader as fragmentShader } from './oceanShader';
 import { type SeaWaves, gerstnerDefines, gerstnerUniforms } from './seaWaves';
+import { SHORE_WASH_UNIFORMS, shoreWashOff } from './shoreWash';
 import type { TerrainLook } from './terrainLook';
 
 /** Conservative displacement bound: the classic waves' three amplitudes, or every band's cap. */
@@ -178,7 +179,7 @@ export class Ocean {
           uFoamLook: { value: new THREE.Vector4() },
           uShoreCalm: { value: new THREE.Vector2() },
           uFoamNight: { value: 1 },
-          ...(look.gerstner ? gerstnerUniforms() : {}),
+          ...(look.gerstner ? { ...gerstnerUniforms(), ...SHORE_WASH_UNIFORMS } : {}),
         },
       });
     // The ring's colours until the first update places the camera.
@@ -277,12 +278,17 @@ export class Ocean {
       this.sag = waves.sag(this.cell, this.cell);
       const day = Math.min(1, (this.waterLight.r + this.waterLight.g + this.waterLight.b) / 3);
       u.uFoamNight!.value = THREE.MathUtils.lerp(TUNING.waves.foam.night, 1, day);
+      const surf = perPixel && 'COAST' in this.mesh.material.defines;
+      waves.writeShoreWash(surf, u.uFoamNight!.value as number, {
+        map: u.uDepthMap as { value: THREE.Texture | null },
+        bounds: u.uDepthBounds as { value: THREE.Vector4 },
+      });
       // The fine waves and facets fade in fog distances, so they follow the camera's zoom.
       const { facets, detailFrom, detailTo, slopeGain } = TUNING.waves.look;
       const near = u.uFogNear!.value as number;
       const look = u.uWaveLook!.value as THREE.Vector4;
       look.set(facets, near * detailFrom, near * detailTo, slopeGain);
-    }
+    } else shoreWashOff();
     const w = TUNING.graphics.water;
     u.uReflect!.value = reflect ? w.reflection : 0;
     u.uGlint!.value = reflect ? w.glint : 0;

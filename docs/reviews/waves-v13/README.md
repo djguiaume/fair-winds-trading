@@ -54,6 +54,14 @@ renderer is fill-bound, so the shader's per-pixel cost shows much larger than on
 - The storm scenario of `npm run perf` found no mature storm in its scan window (a simulation search the waves do not touch), so
   the storm rows use the review storm sea instead.
 
+## Surf lines and beach wash (#397, decision 0254, 2026-10-31)
+
+`npm run perf`, Medium, `?waves=wind`, 2 repeats, production previews of main and the branch.
+Frame median ms per repeat: sailing 244, 308 before, 212, 215 after; docking 231, 179 before,
+235, 195 after. Same draws, triangles and GPU memory. Within this renderer's run-to-run noise;
+a device `?bench` on a beach (Medium and High) is still owed. Low and Ultra-low are unchanged.
+Sheets: shared folder `surf-wash-397/`.
+
 ## Device asks (one round)
 
 On each device, two `?bench` runs, copied with the Copy button (`Switches:` names the waves):

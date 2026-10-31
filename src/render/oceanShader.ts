@@ -2,6 +2,7 @@ import { shoreShader } from './shoreTexture';
 import { seabedShader } from './seabedTexture';
 import { seaFoamFunctions, seaFoamShader } from './seaFoam';
 import { waveFineShader, waveShadingVaryings } from './oceanWaves';
+import { surfFunctions, surfLinesShader } from './shoreWash';
 
 /**
  * The ocean's colours (`ocean.ts`): flat shaded, by the seabed's depth or the classic shallow
@@ -67,6 +68,12 @@ uniform float uFoamBreakup;
 uniform vec3 uFoamCap;
 varying vec3 vSea;
 ${seaFoamFunctions}
+#ifdef FANCY
+// The surf's thin breaking lines, in time with the wash up the beach (issue #397).
+varying float vSurfOpen;
+${surfFunctions}
+${surfLinesShader}
+#endif
 #endif
 #if defined(GERSTNER) && !defined(PLAIN)
 ${waveShadingVaryings}

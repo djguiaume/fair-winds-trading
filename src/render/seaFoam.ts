@@ -1,10 +1,11 @@
 /**
  * The ocean's foam on the Gerstner waves (issue #281), for its fragment shader (`oceanShader.ts`,
- * soft-foam looks with the coast's calm): the shore ring of the calm sea, which grows wider,
- * breaks up under a drifting grain and lifts with each crest as the sea gets up; surf where the
- * seabed breaks the swell on its windward edge (reefs, banks, an open shelf, never a closed
- * harbour), thinner in the lee; small soft whitecaps streaked downwind on the highest crests of a
- * rough open sea. Never whiter than `foam.cap`.
+ * soft-foam looks with the coast's calm): the classic shore ring and its thin outer line, which
+ * widen a little as the sea gets up; on Medium and up, thin breaking lines that travel in to the
+ * beach (`shoreWash.ts`, issue #397); surf where the seabed breaks the swell further out (reefs,
+ * banks, an open shelf, never a closed harbour), streaked along the crests and thinner in the
+ * lee; small soft whitecaps streaked downwind on the highest crests of a rough open sea. Never
+ * whiter than `foam.cap`.
  */
 
 /** Top level: `foamGrain`, a drifting value noise (0..1) that breaks the foam into patches. */
@@ -28,7 +29,8 @@ float foamGrain(vec2 p, float t) {
  * In `main`: reads `d` (to the shore), `ripple`, `vWorld`, `height` (with the waves the grid only
  * shades), `vSea` (highest crest, surf, swell share), `uSeaFoam` (how rough, ring widening, surf,
  * whitecaps: `waves.json` › `foam`), `uSeaWind` (the swell's way), `uFoamBreakup`, `uFoamCap`,
- * `uFoamNight` and `uFoamLook`; writes `col`. A calm sea keeps the classic ring.
+ * `uFoamNight`, `uFoamLook` and the surf lines (`uSurfLines`); writes `col`. A calm sea keeps the
+ * classic ring.
  */
 export const seaFoamShader = /* glsl */ `
   float rough = uSeaFoam.x;
@@ -38,16 +40,25 @@ export const seaFoamShader = /* glsl */ `
   float reach = uFoamLook.x + uFoamLook.y * (1.0 + uSeaFoam.y * rough);
   float soft = 1.0 - smoothstep(uFoamLook.x, reach, d + 0.5 * ripple);
   float beyond = d - reach - 1.0 - 0.8 * sin(uTime * 0.9 + d * 0.4);
-  float line = (1.0 - smoothstep(0.0, 1.2, abs(beyond))) * uFoamLook.w * mix(1.0, crest, rough);
+  float line = (1.0 - smoothstep(0.0, 1.2, abs(beyond))) * uFoamLook.w;
   float broken = smoothstep(0.3, 0.6, grain + 0.3 * crest - 0.1);
-  float ring = soft * soft * uFoamLook.z
-    * mix(1.0, broken * (0.4 + 0.6 * crest), rough * uFoamBreakup);
-  float surf = vSea.y * crest * rough * smoothstep(0.5, 0.75, grain) * uSeaFoam.z;
-  // Along and across the swell: long thin streaks that drift downwind.
+  float ring = soft * soft * uFoamLook.z * mix(1.0, broken, rough * uFoamBreakup);
+  // Along and across the swell, for foam streaked along its crests or downwind.
   vec2 along = vec2(dot(vWorld.xz, uSeaWind.xy), dot(vWorld.xz, vec2(-uSeaWind.y, uSeaWind.x)));
+#ifdef FANCY
+  float breakers = surfLines(vWorld.xz, d) * vSurfOpen;
+  float offshore = smoothstep(uSurfLines.y, uSurfLines.y + uSurfLines.x, d);
+#else
+  float breakers = 0.0;
+  float offshore = 1.0;
+#endif
+  float crestLine = foamNoise(vec2(along.x * 0.5, along.y * 0.08) + uTime * 0.05);
+  float surf = vSea.y * smoothstep(0.45, 0.85, lift) * rough * smoothstep(0.45, 0.7, crestLine)
+    * uSeaFoam.z * offshore;
   float streak = 0.7 * foamNoise(vec2(along.x * 0.3 - uTime * 0.5, along.y * 1.6))
                + 0.3 * foamNoise(vec2(along.x * 0.7, along.y * 3.1) + uTime * 0.1);
   float caps = smoothstep(0.4, 0.8, lift) * rough * vSea.z * smoothstep(0.52, 0.8, streak)
     * uSeaFoam.w;
-  col = mix(col, min(uFoam, uFoamCap), clamp(ring + line + surf + caps, 0.0, 1.0) * uFoamNight);
+  col = mix(col, min(uFoam, uFoamCap),
+    clamp(ring + line + breakers + surf + caps, 0.0, 1.0) * uFoamNight);
 `;
