@@ -10,6 +10,8 @@ The fleet already shows three levels each of sails, hull and hold (decisions 007
 
 Recommended direction, pending approval: sail variant **B "Bands"**. Sails 1 stays patched canvas; sails 2 gets clean canvas with a class-colour foot band; sails 3 adds a head band and the centre stripe. Hull gets a rubbing strake (leather tan at 2, brass at 3) between the band and the copper. Hold stays as is (more crates and barrels). Variants A (panels and borders) and C (cut and luff tabling) were weaker at camera scale. Cosmetics, slots and compatibility are in `docs/v1.4/plan.md`.
 
+Availability (Guillaume OK, 2026-10-31): sail colours and patterns are free; figureheads and pennants are earned through story or regatta wins; no coin prices; the Tern stays a single gift.
+
 ## Consequences
 
 Only colours change, no new geometry, so budgets are unchanged. Prototype patch: `docs/v1.4/prototype/prototype.patch`. Night washes out pale bands; build thread must check the emissive sail colours (see 0208).

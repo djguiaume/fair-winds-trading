@@ -36,4 +36,4 @@ Rules: reserved hazard colours (storm, night warning) and earned pennants are no
 
 - About 8 swatches, 3 sail patterns, 6 figureheads (names by the storyteller), 4 Free Sailing presets (swift, hauler, all-max, all-base).
 - Budget: colours only, zero extra triangles for sails and hull; a figurehead is at most about 60 triangles, one draw call merged into the hull mesh.
-- **Open for Guillaume:** are cosmetics free, earned, or priced? No progression prices are assumed here.
+- **Availability (Guillaume OK, 2026-10-31):** sail colours and patterns are free; figureheads and pennants are earned through story or regatta wins; no coin prices; the Tern stays a single gift.
