@@ -38,4 +38,4 @@ storm, head sea), the indiaman 1.5. `motion.heave` under 1 trades rise for wet d
 - Drawing only: the sim, polars, grounding, berths and races never read the ride (#284 adds
   bounded sailing effects).
 - Cost: four height lookups per full ship model (about 10 µs each frame for the player).
-- Contact sheet: [docs/reviews/boat-ride/ride-sheet.jpg](../reviews/boat-ride/ride-sheet.jpg) (High, `?waves=storm` and `wind`).
+- Contact sheet: [docs/reviews/boat-ride/ride-sheet.jpg](../reviews/boat-ride/ride-sheet.jpg) (High, `?waves=storm`, `wind` and `calm`, with and without Gentle sea motion). Art director OK 2026-10-31.
