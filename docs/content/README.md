@@ -356,7 +356,7 @@ level, as a clock ("Rush bread to Saltmere in {par}" shows "2:20" on Captain,
 | `orders-done`, `gold` | `atLeast` | anywhere |
 | `has-cargo` | `good`, `qty` (both optional: anything aboard) | anywhere |
 | `owns-ship` | `ship` | anywhere |
-| `series-won` | `series`: every race of the series at the winning medal ([0259](../decisions/0259-quest-ship-reward-and-series-won-start.md)) | anywhere |
+| `series-won` | `series`: every race of the series at the winning medal ([0260](../decisions/0260-quest-ship-reward-and-series-won-start.md)) | anywhere |
 | `moored` | `island` (optional; default the home island): moored at its pier | anywhere |
 | `delivered` | `port`, `good`, `qty`: sold or for an order there since the step began | goal |
 | `landed` | `place`, `good`, `qty`: goods taken out of the hold at a port alongside, or at a spot at sea held slowly there, as many as she has aboard up to `qty`; nothing paid; founding goods ([0157](../decisions/0157-founding-an-outpost.md)) | goal |
@@ -367,7 +367,7 @@ level, as a clock ("Rush bread to Saltmere in {par}" shows "2:20" on Captain,
 | `timed` | `from`, `to` (default `from`), `via` (points in order), `within`, `par` (seconds, or `{ "fair": …, "captain": …, "salt": … }`) | goal |
 
 `port` can be `"home"`. Rewards: `gold`, `standing` (`{ "port": n }`), `discover` and `levelUp`
-(lists of ports), `found` (a list of sites to found, below), and `ship` (a ship class given at stock levels, once; with `series-won` and a `choose` step it makes a pick-one prize, 0259). `tests/quests.test.ts` checks every shipped quest file; `checkQuests` says
+(lists of ports), `found` (a list of sites to found, below), and `ship` (a ship class given at stock levels, once; with `series-won` and a `choose` step it makes a pick-one prize, 0260). `tests/quests.test.ts` checks every shipped quest file; `checkQuests` says
 what is wrong in plain words. Never rename a shipped quest, step or option: old saves would
 start it again.
 

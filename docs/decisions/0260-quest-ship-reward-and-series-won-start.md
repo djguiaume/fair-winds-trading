@@ -1,4 +1,4 @@
-# 0259. Quest ship reward and series-won start
+# 0260. Quest ship reward and series-won start
 
 **Status:** Accepted (2026-10-31).
 
