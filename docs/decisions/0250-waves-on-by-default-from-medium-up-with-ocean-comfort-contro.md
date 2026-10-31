@@ -50,6 +50,12 @@ the boat's response must stay the same whether the waves are drawn or not.
 Waves toggle). `npm run sea -- waves [path=value …]` lists them by kind, and sets them through
 the panel's own edits (`tuningEdits.ts`), writing the files the panel's Export writes.
 
+**Surf you can see** (Guillaume, 2026-10-31: no visible effect on coasts and beaches). The foam
+reaches its roughest earlier (`foam.roughAt` 2.4 → 1.6), the surf where the seabed breaks the swell
+is stronger (`surf` 0.5 → 1.2) and keeps more of itself in the lee (`lee` 0.3 → 0.5), and the shore
+ring grows wider in a rough sea (`widen` 0.6 → 1). A breeze now breaks the shore foam into surf
+and a few whitecaps; a calm sea keeps the classic ring.
+
 ## Consequences
 
 - A weak tablet or phone on Low keeps its v1.2 cost unless the player turns the waves on.

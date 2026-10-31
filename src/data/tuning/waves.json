@@ -76,11 +76,11 @@
     "sheltered": 0.2
   },
   "foam": {
-    "roughAt": 2.4,
-    "widen": 0.6,
+    "roughAt": 1.6,
+    "widen": 1,
     "breakup": 0.75,
-    "surf": 0.5,
-    "lee": 0.3,
+    "surf": 1.2,
+    "lee": 0.5,
     "ahead": 6,
     "whitecaps": 0.7,
     "night": 0.5,
