@@ -18,8 +18,8 @@ load time on the phone, the load-time follow-ups listed in 0252.
 
 - **This is a patch update.** `package.json` stays `1.3.0` and the menu label stays "1.3", so the menu shows
   `v1.3.<n>` ([0042](0042-light-versioning.md), [0219](0219-version-1-0-release.md)).
-- **The tag** is the version the menu shows for this PR's merge, `v1.3.334` if no other merge lands first, published
-  with the release workflow and the notes in [docs/releases/v1.3.334.md](../releases/v1.3.334.md)
+- **The tag** is the version the menu shows for this PR's merge, `v1.3.335` (another merge landed first), published
+  with the release workflow and the notes in [docs/releases/v1.3.335.md](../releases/v1.3.335.md)
   ([0062](0062-github-releases-per-phase.md)).
 
 ## Consequences
