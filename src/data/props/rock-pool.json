@@ -1,0 +1,30 @@
+{
+  "id": "rock-pool",
+  "name": "Rock pool",
+  "group": "rocks",
+  "parts": [
+    {
+      "cyl": [0.7, 0.75, 0.06, 6],
+      "at": [0, 0.03, 0],
+      "color": "#5faab8"
+    },
+    {
+      "repeat": {
+        "k": {
+          "count": 4
+        }
+      },
+      "dodeca": [0.3, 0],
+      "ops": [
+        ["scale", 1, 0.55, 1],
+        ["turnY", "k * 1.3"]
+      ],
+      "at": ["cos(k * 1.5708 + 0.3) * 0.82", 0.1, "sin(k * 1.5708 + 0.3) * 0.78"],
+      "color": {
+        "pick": "k % 2",
+        "of": ["boulder2", "boulder"]
+      },
+      "faces": true
+    }
+  ]
+}
