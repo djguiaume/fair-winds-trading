@@ -7,7 +7,7 @@ import type { WaveField } from '../sim/waves';
  * The surf at the shore and its wash up the beach (issue #397). Near land the swell turns to meet
  * the shore and breaks in thin lines parallel to it that travel in, a crisp front and a faded
  * tail (the ocean's fragment, `seaFoam.ts`); each line that lands runs up the sand as a thin foam
- * edge over a sheen of water and slides back, leaving a darker, cooler wet band (the ground's
+ * edge over a sheen of water and slides back, leaving a band of darker wet sand (the ground's
  * fragment, `fieldGroundGlsl.ts`). Both read one surf phase, so the wash lands with its line, out
  * of phase along the shore with the swell's own crests. Stronger on open and windward coasts and
  * in a storm, nothing in a closed harbour, none at all where the ocean doesn't draw per pixel
@@ -144,7 +144,7 @@ vec3 groundWash(vec3 colour, vec2 p, float height, float up, float steep) {
   float sand = 1.0 - steep;
   float aa = fwidth(x);
   // The running sheet of water, and the wet band to the highest reach behind it, its inner edge
-  // soft and breathing with the wash: darker, cooler sand, a faint sheen under the sheet.
+  // soft and breathing with the wash: darker wet sand, a faint sheen under the sheet.
   float sheet = (1.0 - smoothstep(front - aa, front + aa, x)) * step(0.02, front);
   float wetTop = reach * (0.8 + 0.2 * run);
   float wet = max(1.0 - smoothstep(0.55 * wetTop, wetTop, x), sheet);

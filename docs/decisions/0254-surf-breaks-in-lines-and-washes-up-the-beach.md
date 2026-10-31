@@ -52,4 +52,8 @@ and the ocean is a plane that meets the land where it meets it.
   comes from the ground's own height, so a sculpted coast (#352) needs nothing more.
 - `fieldGroundShader.ts` was at the 400-line limit: its shader text moved to
   `fieldGroundGlsl.ts`.
+- Art director round 1 (2026-10-31): lines thinner and their tails shorter (`surf.strength` 0.75
+  → 0.6, `surf.tail` 1.2 → 0.85); the wet sand a warmer, darker sand (`wash.wetTint` `#d6cbb8`)
+  instead of a grey stripe, and a stronger foam edge and lace. A reach wider than 0.5 to 1 m is
+  fine.
 - Reef surf width varying with the swell (art handover, "later") is not part of this.

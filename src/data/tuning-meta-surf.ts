@@ -152,7 +152,7 @@ export const SURF_META: Readonly<Record<string, TuningMeta>> = {
   ),
   'waves.wash.wetTint': text(
     'Wet tint',
-    'Colour the wet sand is multiplied by (hex): darker and a little cooler.',
+    'Colour the wet sand is multiplied by (hex): darker, warmer sand, never grey.',
   ),
   'waves.wash.sheen': num(
     'Sheen',

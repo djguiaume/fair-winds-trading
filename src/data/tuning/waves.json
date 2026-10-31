@@ -95,8 +95,8 @@
     "spacing": 7,
     "lines": [1, 2],
     "front": 0.25,
-    "tail": 1.2,
-    "strength": 0.75,
+    "tail": 0.85,
+    "strength": 0.6,
     "gaps": 0.3,
     "wobble": 0.5,
     "wobbleScale": 0.03
@@ -104,12 +104,12 @@
   "wash": {
     "reach": [1.4, 2.2],
     "rise": 0.3,
-    "edge": 0.22,
-    "foam": 0.8,
+    "edge": 0.3,
+    "foam": 1,
     "wet": 1,
-    "wetTint": "#cfd5db",
+    "wetTint": "#d6cbb8",
     "sheen": 0.05,
-    "lace": 0.6,
+    "lace": 0.85,
     "sheenColour": "#bcd8e6",
     "top": 1.2,
     "look": 3
