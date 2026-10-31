@@ -1,4 +1,4 @@
-# 0256. Look leftovers: Rimewick summit shelf and Amber Strand rock pools
+# 0257. Look leftovers: Rimewick summit shelf and Amber Strand rock pools
 
 **Status:** Accepted (2026-10-31, issue #372).
 

@@ -3,7 +3,7 @@
     "minutes": 40,
     "seeds": [1, 2, 3, 4, 5],
     "legSeconds": [30, 130],
-    "sharpFirstUpgradeMax": 5,
+    "sharpFirstUpgradeMax": 5.25,
     "sharpCutter": [9, 16],
     "sharpCutterMaxedMin": 25,
     "relaxedFirstUpgradeMax": 8,

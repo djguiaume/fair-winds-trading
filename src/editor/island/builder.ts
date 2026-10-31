@@ -6,7 +6,6 @@ import {
   isIslandShape,
   useIslandDesign,
   type IslandDesign,
-  type SculptDef,
 } from '../../data/islands';
 import { t } from '../../i18n';
 import { ISLAND_SCALE } from '../../sim/islandUnits';
@@ -17,7 +16,7 @@ import { propParts, standHeight } from '../../render/models/townProps';
 import { builderLook, newLookGround, previewIsland } from './newLook';
 import type { IslandIssue } from '../../sim/islandChecks';
 import { islandLayout, layoutGround } from '../../sim/islandLayout';
-import type { IslandDef } from '../../sim/map';
+import type { IslandDef, MapDef } from '../../sim/map';
 import { History, formatIslandJson } from '../model';
 import {
   LEVEL_NAMES,
@@ -63,6 +62,7 @@ import {
 import { Preview, TopView, mergeParts, thumbnails, type IslandView } from './scene';
 import { renderTerrainPanel, renderTerrainTools } from './terrain/terrainPanel';
 import { TerrainTool } from './terrain/terrainTool';
+import { terrainSaves } from './terrain/terrainSave';
 import { isWoodsBrush, paintForest } from './groves';
 
 /**
@@ -110,7 +110,8 @@ export const hasIslandFile = (island: IslandDef) =>
 interface Host {
   /** Shows the map editor again. */
   close(): void;
-  mapName(): string;
+  /** The sea being edited, prepared: its name, and the map checks a bake can break. */
+  prepared(): MapDef;
 }
 
 let host: Host;
@@ -202,7 +203,7 @@ export function openIsland(target: IslandDef) {
     R: () => R,
     harbour: () => harbour,
     level: () => level,
-    save: saveSculpt,
+    save: saves.sculpt,
     restand: () => {
       rebuild();
       draw();
@@ -214,7 +215,7 @@ export function openIsland(target: IslandDef) {
     },
   });
   terrain.markExported(design);
-  $('ib-map-name').textContent = host.mapName();
+  $('ib-map-name').textContent = host.prepared().name;
   $('ib-name').textContent = design.name;
   $('ib-file').textContent = `· islands/${design.id}.json`;
   $('ib-export').textContent = `Export ${design.id}.json`;
@@ -359,7 +360,8 @@ function drawPanel() {
   drawSelectionBar();
   if (mode === 'terrain')
     return renderTerrainPanel($('ib-panel'), terrain!, {
-      reset: resetTerrain,
+      reset: saves.reset,
+      bake: saves.bake,
       setView: (view) => terrain!.setView(view, design),
       language: () => {
         labelTerrain();
@@ -503,17 +505,14 @@ function commit(record = true) {
   runChecks();
 }
 
-/** One stroke, or a reset, as one undo step of the island file. */
-function saveSculpt(sculpt: SculptDef | undefined) {
-  history.record(design);
-  if (sculpt) design.sculpt = sculpt;
-  else delete design.sculpt;
-  commit();
-}
-
-function resetTerrain() {
-  if (terrain?.strokes && confirm(t('editor.terrain.resetAsk'))) saveSculpt(undefined);
-}
+const saves = terrainSaves({
+  design: () => design,
+  kit: () => islandCheckKit(design, R, harbour),
+  map: () => host.prepared(),
+  strokes: () => terrain?.strokes,
+  record: () => history.record(design),
+  commit: () => commit(),
+});
 
 /** The Terrain tab's name in the language chosen in its panel. */
 function labelTerrain() {

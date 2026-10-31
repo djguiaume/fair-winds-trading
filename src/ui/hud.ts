@@ -24,6 +24,7 @@ import { PortLabels } from './portLabels';
 import { BoatLabels } from './boatLabels';
 import { type HazardKind, hazardBadge } from './hazardMarker';
 import { screenBearing } from './screenBearing';
+import { SeaLines } from './seaLines';
 import { formatNumber, goodName, t, tOptional, weatherName, zoneKindName } from '../i18n';
 
 const POINT_OF_SAIL_TONE: Record<PointOfSail, '' | 'good' | 'bad'> = {
@@ -72,10 +73,7 @@ export class Hud {
   private readonly speed = $('speed');
   private readonly heading = $('heading');
   private readonly pos = $('point-of-sail');
-  /** Speed over the ground and the current, shown only while in a current (decision 0140). */
-  private readonly sogBox = $('log-sog');
-  private readonly sog = $('sog');
-  private readonly currentText = $('current-text');
+  private readonly seaLines = new SeaLines();
   private readonly speedLog = $('speed-log');
   private readonly logToggle = $('log-toggle');
   private readonly lever = $('sail-lever');
@@ -551,24 +549,6 @@ export class Hud {
   /** `project` maps sim positions to pixels; `size` is the viewport. `active` controls
    * sailing cues; `visible` controls rendering. Paused instruments can still be visible. */
 
-  /**
-   * In a current (decision 0140): SOG under the speed and "Current 1.8 kn E" (where it flows)
-   * under the wind. Both go with the log's eye toggle, and away in still water.
-   */
-  private showCurrent() {
-    const { water, sogKn } = this.world;
-    const kn = Math.hypot(water.east, water.north);
-    const shown = this.showLog && !!water.id && kn >= 0.2;
-    this.sogBox.hidden = !shown;
-    this.currentText.hidden = !shown;
-    if (!shown) return;
-    this.sog.textContent = `${formatNumber(sogKn, 1)} ${t('unit.knots')}`;
-    this.currentText.textContent = t('hud.current', {
-      n: formatNumber(kn, 1),
-      dir: compassPoint(Math.atan2(water.east, water.north)),
-    });
-  }
-
   /** The weather glass's forecast under the wind (decision 0136), twice a second. */
   private showForecast(dt: number) {
     this.sinceForecast += dt;
@@ -675,7 +655,7 @@ export class Hud {
         this.pos.textContent = boat.sailStep === 0 ? t('hud.sailsDown') : t(`pos.${p}`);
         this.pos.className = `pos ${boat.sailStep === 0 ? '' : POINT_OF_SAIL_TONE[p]}`;
       }
-      this.showCurrent();
+      this.seaLines.show(this.world, this.showLog, compassPoint);
       if (this.leverDrag === null) this.showSail(boat.sailStep);
       this.objDist.textContent = wp ? t('unit.metres', { n: Math.round(distance(boat, wp)) }) : '';
       const fromDir = compassPoint(wind.from);

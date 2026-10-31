@@ -1,13 +1,7 @@
 import { TUNING } from '../data/tuning';
 import { questShown } from '../data/islands';
-import {
-  type BoatControls,
-  type BoatState,
-  createBoat,
-  knotToUnits,
-  stepBoat,
-  targetSpeed,
-} from './boat';
+import { type BoatControls, type BoatState, createBoat, knotToUnits, targetSpeed } from './boat';
+import { stepBoatAtSea } from './seaDrag';
 import { type Pier, hullReach, resolveCollisions } from './collision';
 import { seaShape } from './seaEdge';
 import type { MapDef } from './map';
@@ -814,7 +808,7 @@ function stepOne(world: World, b: TrafficBoat, dt: number) {
   const controls = pilot(world, b, wind);
   const { boat } = b;
   const was = { x: boat.x, y: boat.y };
-  stepBoat(boat, controls, b.ship, wind, dt);
+  stepBoatAtSea(world, boat, controls, b.ship, wind, dt);
   if (b.sweeps && world.time >= b.waitUntil) {
     // Rowing: a steady way through the water, wind or none, and the hull held to her course.
     boat.speedKn = Math.max(boat.speedKn, t.sweepKn);

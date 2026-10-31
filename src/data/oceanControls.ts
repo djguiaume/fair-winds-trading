@@ -9,8 +9,9 @@ import {
 } from './tuningEdits';
 
 /**
- * What an ocean control changes (decision 0250). None of them changes a sailing rule: the boat's
- * speed, course, grounding and races never read the waves in v1.3.
+ * What an ocean control changes (decision 0250). Only `sailing` changes a sailing rule: how much
+ * the waves slow the boat (decision 0256); course, grounding and docking never read the waves.
+ * - `sailing`: the waves' drag on her speed, the same on every level.
  * - `sea`: the wave field everything floats on, the same on every quality level and frame rate
  *   (what boats will ride from v1.3.1).
  * - `drawing`: how the ocean draws and shades that field.
@@ -18,7 +19,7 @@ import {
  * - `level`: whether a quality level draws the waves by default (Settings › Waves overrides it).
  * - `review`: the fixed sea states of `?waves=calm|wind|storm`.
  */
-export type OceanEffect = 'sea' | 'drawing' | 'comfort' | 'level' | 'review';
+export type OceanEffect = 'sailing' | 'sea' | 'drawing' | 'comfort' | 'level' | 'review';
 
 export interface OceanControl {
   /** Dotted tuning path, e.g. `waves.motion.gentle`. */
@@ -33,6 +34,7 @@ const DRAWING = ['drawCells', 'shadeCells', 'foam', 'surf', 'wash', 'look'];
 function effectOf(path: readonly string[]): OceanEffect | null {
   if (path[0] === 'graphics') return path[1] === 'quality' && path[3] === 'waves' ? 'level' : null;
   if (path[0] !== 'waves') return null;
+  if (path[1] === 'drag') return 'sailing';
   if (path[1] === 'motion') return 'comfort';
   if (path[1] === 'previews') return 'review';
   return DRAWING.includes(path[1]!) ? 'drawing' : 'sea';

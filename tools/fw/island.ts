@@ -26,6 +26,7 @@ import { designForest } from '../../src/render/models/forestPlan';
 import { FORESTS } from '../../src/data/forests';
 import { isResidence } from '../../src/render/models/townProps';
 import { type Args, num, pair, pointList } from './islandArgs';
+import { BAKE_HELP, bakeFile } from './islandBake';
 import { SCULPT_HELP, exportJson, listEdits, sculptCall } from './islandSculpt';
 import { type IslandPlace, defaultSeas, islandPlacements, islandProblems } from './check';
 
@@ -70,7 +71,9 @@ options: --steps steps.json (or '[{"do":"prop",…}]': a list of steps as data, 
          --dry  do not write; --warnings  list warnings; --json  summary, steps and problems as JSON
          --forest [--level n]  the new look's trees (forests.json) at that town level (default 4):
                    by kind, and how many each quality level draws
-${SCULPT_HELP}`;
+${SCULPT_HELP}
+
+${BAKE_HELP}`;
 
 /** "r=1,points=14,rough=0.2" */
 function blobSpec(v: unknown): BlobSpec | undefined {
@@ -322,7 +325,7 @@ export function run(args: Args): number {
         const call = sculptCall(args, rest);
         if ('command' in call) sculpting.push(call.command);
         else report = call;
-      } else if (kind && kind !== 'tidy' && kind !== 'check')
+      } else if (kind && kind !== 'tidy' && kind !== 'check' && kind !== 'bake-coast')
         steps.push(stepFromArgs(kind, args, rest));
     }
     if (typeof args.steps === 'string') {
@@ -344,6 +347,7 @@ export function run(args: Args): number {
     made = applySteps(design, steps);
     if (report) return printSculpt(design, report);
     made.push(...applySculpt(sculptFrame(design.id, place.R), design, sculpting));
+    if (kind === 'bake-coast') made.push(...bakeFile(design, place.R, place.harbour));
   } catch (e) {
     console.log(`✗ ${(e as Error).message} (nothing written)`);
     return 1;

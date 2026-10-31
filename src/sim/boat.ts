@@ -90,6 +90,8 @@ export function targetSpeed(ship: ShipClass, heading: number, wind: Wind, sail: 
 /**
  * Advance one boat by `dt` seconds. Pure arcade model (decision 0007): speed eases toward the
  * polar-curve target, the no-go zone brakes hard, and the rudder needs water flow to bite.
+ * `seaDrag` (0..1, `seaDrag.ts`) is the share of that target the waves take off; it changes
+ * nothing else.
  */
 export function stepBoat(
   boat: BoatState,
@@ -97,6 +99,7 @@ export function stepBoat(
   ship: ShipClass,
   wind: Wind,
   dt: number,
+  seaDrag = 0,
 ): void {
   // Sails ease toward the requested setting.
   boat.sailStep = clamp(Math.round(controls.sailStep), 0, SAIL_STEPS.length - 1);
@@ -112,7 +115,7 @@ export function stepBoat(
 
   // Speed eases toward the polar target; coasting is slow so you carry way through a tack.
   const twa = Math.abs(trueWindAngle(boat.heading, wind));
-  const target = targetSpeed(ship, boat.heading, wind, boat.sail);
+  const target = targetSpeed(ship, boat.heading, wind, boat.sail) * (1 - seaDrag);
   const inIrons = twa < noGoAngle(ship);
   const rate = boat.speedKn < target ? ship.accel : inIrons ? ship.ironsDecel : ship.decel;
   boat.speedKn = approach(boat.speedKn, target, rate, dt);
