@@ -44,6 +44,7 @@ Every item works on every class at every upgrade level; the validator refuses on
 - One JSON file per item: `src/data/cosmetics/<slot>/<id>.json` with `id`, `slot`, names (EN/FR keys), `unlock`, look data. Same shape as props (decision 0135).
 - Logos: an SVG file next to the JSON (`logo-otter.svg`), flat filled shapes only, at most about 40 triangles once filled; turned into sail geometry at load (three's SVGLoader), drawn like the racing number (decision 0217). No textures.
 - `unlock`: `free`, `earned` (`{ quest | regatta | milestone }`), a paid kind can be added later but is not built. The save keeps an owned list and each ship's equipped look per slot.
+- Sail marks (logos and the racing number) share one module and are **drawn on the cloth**: each shape is laid out in the sail's own (u, v) and lifted by the same belly as the cloth, a hair in front of each face, so it stays on the sail as it fills, swings and furls. This replaces today's racing number (decision 0217), which is a flat box set at one point of the belly, so its ends float off or sink into the curved sail (Guillaume, 2026-10-31: "not really on the sail"). The racing number becomes a mark too, and the player's boat can carry one.
 - Tool and editor share one module (decision 0153): `npm run cosmetics -- list | check | add <slot> <id> | shot <id>`, and a Cosmetics tab in the editor with live preview.
 
 ## Ready for paid items, not building them
