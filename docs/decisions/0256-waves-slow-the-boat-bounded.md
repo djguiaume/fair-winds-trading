@@ -1,6 +1,6 @@
 # 0256. Waves slow the boat, bounded
 
-**Status:** Proposed (2026-10-31). Issue #284 (v1.3.1). Tuning and the balance target below wait for Guillaume's OK.
+**Status:** Accepted (2026-10-31). Issue #284 (v1.3.1). Guillaume approved the tuning and the 5.25 min balance target.
 
 ## Context
 

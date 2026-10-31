@@ -27,3 +27,4 @@ worth remembering.
    "Phase N" menu label (`menu.version` in `src/i18n/`). Since 1.0 ([0219](../decisions/0219-version-1-0-release.md))
    the middle number counts updates: the 1.0 release PR set `1.0.0` and the label "1.0"; an update
    sets the next `1.<minor>.0` and its label.
+| [v1.3.335](v1.3.335.md) | merge of the 1.3.1 PR | 1.3.1 Boats that ride them: boats heave, pitch and roll, waves slow the boat, surf lines and beach wash, start view, bake coast |
