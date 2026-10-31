@@ -12,6 +12,8 @@ Recommended direction, pending approval: sail variant **B "Bands"**. Sails 1 sta
 
 Availability (Guillaume OK, 2026-10-31): sail colours and patterns are free; figureheads and pennants are earned through story or regatta wins; no coin prices; the Tern stays a single gift.
 
+Customisation is a full slot system (sail colour, pattern, logo; hull colour; figurehead; flag; wake trail; sets), one data file per item with a `source` of free, earned or store, its own screen: [customisation.md](../v1.4/customisation.md). Cosmetics never change sailing.
+
 ## Consequences
 
 Only colours change, no new geometry, so budgets are unchanged. Prototype patch: `docs/v1.4/prototype/prototype.patch`. Night washes out pale bands; build thread must check the emissive sail colours (see 0208).

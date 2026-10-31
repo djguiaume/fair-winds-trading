@@ -21,16 +21,9 @@ Sheets `prototype/round2-day.jpg` (base, middle, max; cutter then indiaman), `ro
 - Hold: unchanged crate and barrel counts; fittings (tarp, lashing) are a later option.
 - Class silhouettes and rigs untouched; damage patches stay warmer and darker than upgrade colours.
 
-## Cosmetic slots (proposal, data-driven in a catalogue file, validated by `npm run check`)
+## Cosmetic slots
 
-| Slot | Colour channels | Limits |
-| --- | --- | --- |
-| sail pattern | 1 (band colour) | one of plain, band, stripe; never covers the sail number |
-| hull band | 1 | uses palette swatches only |
-| figurehead | 0 | one per hull, mount point per class, "none" always available |
-| masthead flag | 0 | regatta pennants earned, never selectable otherwise |
-
-Rules: reserved hazard colours (storm, night warning) and earned pennants are not in the swatch list. Every cosmetic works on every class and upgrade level; figurehead mounts are per-class data. Unequipped is the default and costs nothing.
+Replaced by the full customisation design in [customisation.md](customisation.md) (Guillaume, 2026-10-31: colours, patterns, logos, flags, wake trails, own screen, easy to add items, ready for paid items later).
 
 ## Catalogue, budgets, Free Sailing (proposal)
 
