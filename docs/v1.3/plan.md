@@ -1,6 +1,6 @@
 # v1.3 "Waves you can see" — plan
 
-Scope and parts: [brief.md](brief.md). Wave model and its contract: [ADR 0245](../decisions/0245-shared-wave-model-and-cpugpu-contract.md). Coast calm, sheets and foam: [ADR 0248](../decisions/0248-coast-calms-the-waves-by-depth-shelter-and-berths.md). Controls and defaults: [ADR 0250](../decisions/0250-waves-on-by-default-from-medium-up-with-ocean-comfort-contro.md); benchmarks [reviews/waves-v13](../reviews/waves-v13/README.md); release notes draft [release-notes.md](release-notes.md).
+Scope and parts: [brief.md](brief.md). Wave model and its contract: [ADR 0245](../decisions/0245-shared-wave-model-and-cpugpu-contract.md). Coast calm, sheets and foam: [ADR 0248](../decisions/0248-coast-calms-the-waves-by-depth-shelter-and-berths.md). Controls and defaults: [ADR 0250](../decisions/0250-waves-on-by-default-from-medium-up-with-ocean-comfort-contro.md); benchmarks [reviews/waves-v13](../reviews/waves-v13/README.md); release notes [v1.3.324](../releases/v1.3.324.md).
 
 ## Phases (the wave chain)
 
