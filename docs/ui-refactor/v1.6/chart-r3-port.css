@@ -1,0 +1,240 @@
+/* Direction 1, round 3: paper in the harbour, Boat looks and the chart (loaded after chart-r3.css).
+   Variant C: the panes cover about 65% of the width, the boat and the quay on the right.
+   Variant D: one ledger across about 90% of the width, the port kept as a strip above it. */
+.quay, .yard, .lk-slots, .lk-items, .ledger, .f-hint, .c-title, .c-key, .c-zoom button, .s-chart .padbar { isolation: isolate; }
+.quay::before, .yard::before, .lk-slots::before, .lk-items::before, .ledger::before, .f-hint::before,
+.c-title::before, .c-key::before, .c-zoom button::before, .s-chart .padbar::before {
+  content: ''; position: absolute; inset: -4px; z-index: -1;
+  border: 20px solid transparent; border-image: var(--plate) 40 fill / 20px round;
+}
+.f-hint, .c-zoom button { position: relative; }
+.r3 h3 { font: 400 26px/1.1 var(--f-display); }
+.pips { display: inline-flex; gap: 4px; vertical-align: middle; margin-left: 6px; }
+.pips i { width: 22px; height: 6px; border-radius: 3px; background: var(--paper-3); } .pips i.on { background: var(--sig); }
+.new { font: 700 12px/1 var(--f-body); background: var(--sig); color: var(--on-sig); border-radius: 9px; padding: 3px 8px; margin-left: 8px; vertical-align: 3px; }
+.r3 .ic-sail .i1, .r3 .ic-hold .i1, .r3 .ic-hull .i1 { fill: var(--sig-dark); }
+
+/* Footer: the quay hint on a small plate, the pad bar, Set sail. */
+.r3 .p-foot { gap: 18px; }
+.f-hint { display: inline-flex; align-items: center; gap: 10px; padding: 6px 16px 6px 6px; font-size: 17px; }
+.f-hint .face { width: 40px; height: 40px; margin: 3px; }
+.f-hint a { color: var(--sig-dark); font-weight: 700; } .f-hint a::after { content: ' ›'; }
+
+/* C: panes at about 65%. */
+.w-c .market { width: 820px; }
+.w-c .quay, .w-c .yard { left: 20px; top: 114px; bottom: 86px; width: 820px; }
+.w-c .g-trend, .w-c .g-best { display: none; }
+.r3.s-harbour.z-desktop .bg { background-size: 108% auto; background-position: left top; }
+.r3.w-c.s-harbour.z-desktop .bg { background-size: 112% auto; background-position: 0 -10px; }
+
+/* D: the ledger across, the port as a strip above. */
+.ledger { position: absolute; left: 70px; right: 70px; top: 150px; bottom: 74px; }
+.w-d .market::before, .w-d .quay::before, .w-d .yard::before, .w-d .p-head .p-title::before { display: none; }
+.w-d .p-head { left: 70px; right: 70px; top: 158px; height: 76px; padding: 0 30px; }
+.w-d .p-head .p-title { padding: 0; }
+.w-d .p-title p { display: none; }
+.w-d .p-wallet { background: none; color: var(--ink); }
+.w-d .p-wallet .ic-coin .i1 { fill: var(--ink); } .w-d .p-wallet .ic-coin .i2 { fill: var(--paper-3); }
+.w-d .market, .w-d .quay, .w-d .yard { left: 96px; right: 96px; top: 240px; bottom: 96px; width: auto; padding: 4px 4px; }
+.w-d .market { gap: 26px; }
+.w-d .g-row { min-height: 66px; }
+.w-d .detail { flex: 0 0 350px; }
+.w-d .goods { flex: 2.3; }
+.w-d .g-head, .w-d .g-row { grid-template-columns: 56px 1fr 46px 64px 64px 112px 150px; }
+.w-d .g-trend .spark { width: 100px; height: 30px; }
+.w-d .g-best { font-size: 16px; color: var(--ink-2); }
+.w-d .g-head .g-trend, .w-d .g-head .g-best { font-size: 14px; }
+.r3.w-d.s-harbour.z-desktop .bg { background-size: 106% auto; background-position: 0 -40px; }
+
+/* Quay: who is on the quay and the open quest card. */
+.quay { display: flex; gap: 20px; padding: 22px; }
+.q-list { width: 290px; flex: none; display: flex; flex-direction: column; gap: 8px; }
+.q-person { display: flex; gap: 8px; align-items: center; padding: 6px 10px 6px 4px; border-radius: 6px; min-height: 76px; }
+.q-person.on { background: var(--sig-wash); box-shadow: inset 5px 0 0 var(--sig); }
+.q-person div { display: flex; flex-direction: column; }
+.q-person b { font: 400 24px/1.1 var(--f-display); } .q-person i { font-size: 15px; color: var(--ink-2); } .q-person span { font-size: 16px; }
+.q-list .village { margin-top: auto; }
+.q-card { flex: 1; min-width: 0; background: var(--paper-2); border-radius: 6px; padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; }
+.qc-top { display: flex; gap: 14px; align-items: center; }
+.qc-top .face { width: 96px; height: 96px; }
+.qc-top div { display: flex; flex-direction: column; gap: 2px; }
+.qc-top h2 { font: 400 42px/1 var(--f-display); } .qc-top p { font-size: 16px; color: var(--ink-2); }
+.qc-step { font-size: 16px; color: var(--sig-dark); font-weight: 700; }
+.qc-copy { font: 500 20px/1.4 var(--f-body); }
+.qc-goal { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-radius: 6px; background: var(--paper); font-size: 18px; }
+.qc-goal .ic { color: var(--sig-dark); width: 24px; height: 24px; }
+.qc-act { display: flex; gap: 10px; margin-top: auto; }
+.qc-act .btn { flex: 1; justify-content: center; min-height: 62px; font-size: 28px; border-radius: 6px; box-shadow: inset 0 0 0 2px var(--ink), 0 3px 0 var(--ink); background: var(--paper); }
+.qc-act .btn.primary { background: var(--sig); box-shadow: inset 0 0 0 2px var(--sig-dark), 0 3px 0 var(--sig-dark); }
+.qc-act .btn.primary .pad { background: var(--on-sig); color: var(--sig-dark); }
+.w-d .q-list { width: 340px; }
+.w-d .qc-top .face { width: 120px; height: 120px; }
+.w-d .qc-copy { font-size: 22px; }
+
+/* Shipyard: upgrades and fleet, and a real reserved area for the 3D model preview. */
+.yard { display: flex; gap: 20px; padding: 20px 22px; }
+.y-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.y-upgrades { display: flex; flex-direction: column; gap: 6px; }
+.y-up { display: grid; grid-template-columns: 34px 1fr 120px; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 6px; background: var(--paper-2); }
+.y-up > .ic { width: 30px; height: 30px; }
+.yu-t { display: flex; flex-direction: column; } .yu-t b { font: 400 22px/1.1 var(--f-display); }
+.yu-t span { font-size: 15px; color: var(--ink-2); } .yu-t .yu-next { color: var(--sig-dark); font-weight: 700; }
+.yu-buy { flex-direction: column; gap: 0; justify-content: center; min-height: 56px; font: 800 21px var(--f-body); border-radius: 6px; box-shadow: inset 0 0 0 2px var(--ink-2); color: var(--ink-2); }
+.yu-buy i { font: 500 13px var(--f-body); }
+.yu-buy span { display: inline-flex; gap: 4px; align-items: center; }
+.y-fleet { display: flex; flex-direction: column; gap: 3px; }
+.yf-row { display: grid; grid-template-columns: 1fr 50px 64px 72px 150px; gap: 8px; align-items: center; min-height: 48px; padding: 2px 10px; border-radius: 5px; font-size: 17px; }
+.yf-row.on { background: var(--sig-wash); box-shadow: inset 5px 0 0 var(--sig); }
+.yf-head { min-height: 0; font: 700 14px var(--f-body); color: var(--ink-2); }
+.yf-n { display: flex; flex-direction: column; } .yf-n b { font: 400 22px/1 var(--f-display); } .yf-n i { font-size: 14px; color: var(--ink-2); }
+.yf-p { display: inline-flex; gap: 4px; align-items: center; font-size: 15px; color: var(--ink-2); } .yf-row.on .yf-p { font: 800 18px var(--f-body); color: var(--ink); }
+.y-side { width: 300px; flex: none; display: flex; flex-direction: column; gap: 10px; }
+.y-preview { position: relative; height: 210px; flex: none; border: 2px dashed var(--ink-2); border-radius: 8px; background: rgba(35, 48, 58, .07);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; }
+.yp-l { font: 400 22px var(--f-display); } .yp-s { font-size: 15px; color: var(--ink-2); }
+.yp-turn { position: absolute; right: 10px; bottom: 8px; display: inline-flex; gap: 6px; align-items: center; font-size: 14px; color: var(--ink-2); }
+.y-ship h2 { font: 400 36px/1 var(--f-display); } .y-ship p { font-size: 16px; line-height: 1.3; margin-top: 4px; }
+.y-side .btn { justify-content: center; min-height: 58px; font-size: 26px; border-radius: 6px; }
+.y-buy { background: var(--sig); color: var(--on-sig); box-shadow: inset 0 0 0 2px var(--sig-dark), 0 3px 0 var(--sig-dark); }
+.y-buy .pr { font: 800 21px var(--f-body); display: inline-flex; gap: 4px; align-items: center; }
+.y-buy .ic-coin .i1 { fill: var(--on-sig); } .y-buy .ic-coin .i2 { fill: var(--sig-dark); }
+.y-buy .pad { background: var(--on-sig); color: var(--sig-dark); }
+.y-need { font-size: 15px; color: var(--ink-2); text-align: center; margin-top: -4px; }
+.y-looks { background: var(--paper); box-shadow: inset 0 0 0 2px var(--ink), 0 3px 0 var(--ink); }
+.w-d .y-side { width: 400px; } .w-d .y-preview { height: 196px; }
+.w-d .y-upgrades { flex-direction: row; gap: 8px; }
+.w-d .y-up { flex: 1; grid-template-columns: 30px 1fr; grid-template-rows: auto auto; padding: 8px 10px; }
+.w-d .y-up .yu-buy { grid-column: 1 / 3; min-height: 48px; flex-direction: row; gap: 10px; }
+.w-d .yf-row { min-height: 38px; }
+.w-d .yard { top: 236px; bottom: 86px; padding-top: 0; }
+
+/* Boat looks: the slots and the items on paper, the real turntable between them. */
+.lk-slots { position: absolute; left: 20px; top: 20px; bottom: 86px; width: 280px; padding: 20px; display: flex; flex-direction: column; gap: 4px; }
+.lk-slots h2 { font: 400 40px/1 var(--f-display); margin-bottom: 6px; }
+.lk-ships { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
+.lk-ships a { padding: 4px 14px; border-radius: 4px; font: 400 21px var(--f-display); } .lk-ships a.on { background: var(--ink); color: var(--paper); } .lk-ships a.off { color: var(--ink-2); }
+.lk-slot { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 48px; padding: 4px 12px; border-radius: 5px; }
+.lk-slot b { font: 400 22px var(--f-display); } .lk-slot span { font-size: 15px; color: var(--ink-2); text-align: right; }
+.lk-slot.on { background: var(--sig-wash); box-shadow: inset 5px 0 0 var(--sig); }
+.lk-stock { margin-top: auto; justify-content: center; min-height: 52px; font-size: 24px; border-radius: 6px; box-shadow: inset 0 0 0 2px var(--ink); }
+.lk-stage { position: absolute; left: 320px; right: 380px; top: 20px; bottom: 86px; display: flex; flex-direction: column; align-items: center; }
+.lk-line { display: flex; flex-direction: column; align-items: center; color: var(--light); text-shadow: var(--halo); }
+.lk-line b { font: 400 30px var(--f-display); } .lk-line span { font-size: 16px; }
+.lk-compare { margin-top: auto; display: flex; gap: 4px; padding: 5px; border-radius: 6px; background: rgba(35, 48, 58, .82); }
+.lk-compare a { padding: 6px 16px; border-radius: 4px; font: 400 21px var(--f-display); color: var(--paper); } .lk-compare a.on { background: var(--paper); color: var(--ink); }
+.lk-view { display: flex; gap: 14px; margin-top: 10px; }
+.lk-view button { display: inline-flex; gap: 6px; align-items: center; font-size: 16px; color: var(--light); text-shadow: var(--halo); }
+.lk-items { position: absolute; right: 20px; top: 20px; bottom: 86px; width: 340px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.lk-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.lk-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 2px 6px; border-radius: 6px; background: var(--paper-2); text-align: center; }
+.lk-item b { font: 600 14px/1.1 var(--f-body); } .lk-item i { font-size: 12px; color: var(--sig-dark); font-weight: 700; }
+.lk-item.on { background: var(--sig-wash); box-shadow: inset 0 0 0 3px var(--sig); }
+.lk-sail { width: 50px; height: 50px; } .lk-sail .lk-mast { fill: var(--ink); } .lk-sail path:not(.lk-mast) { stroke: var(--ink); stroke-width: 1.4; stroke-linejoin: round; }
+.lk-detail { display: flex; flex-direction: column; } .lk-detail b { font: 400 30px/1 var(--f-display); } .lk-detail span { font-size: 16px; color: var(--ink-2); }
+.lk-use { margin-top: auto; justify-content: center; min-height: 60px; font-size: 26px; border-radius: 6px; }
+.lk-use .pad { background: var(--on-sig); color: var(--sig-dark); }
+.s-looks .p-foot .padbar { margin: 0 auto; }
+.r3.s-looks.z-desktop .bg { background-size: 110% auto; background-position: -17px 0; }
+.w-d .lk-slots { width: 320px; } .w-d .lk-items { width: 540px; } .w-d .lk-stage { left: 350px; right: 570px; }
+.w-d .lk-sail { width: 76px; height: 76px; } .w-d .lk-item b { font-size: 16px; } .w-d .lk-item { padding: 12px 4px 10px; }
+.r3.w-d.s-looks.z-desktop .bg { background-position: -97px 0; }
+
+/* Chart: the round 1 chart on plain paper, the parts on torn plates (no filters). */
+.s-chart { background: #d9cba8; }
+.c-sea { fill: var(--paper); stroke: var(--ink); stroke-width: 2px; vector-effect: non-scaling-stroke; }
+.c-shore { fill: #e6d5a6; stroke: var(--ink); stroke-width: 1.6px; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.c-land { fill: #c4cf9f; stroke: none; }
+.c-reef { fill: none; stroke: var(--ink-2); stroke-width: 1.4px; stroke-dasharray: 1 4; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.c-bank, .c-shallows { fill: #e7dcc0; stroke: none; }
+.c-ice, .c-bergs { fill: #ece7da; stroke: var(--ink-2); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.c-quest { display: none; }
+.c-label { font-family: var(--f-display); fill: var(--ink); stroke: var(--paper); paint-order: stroke; text-anchor: middle; }
+.c-label.small { font-style: italic; fill: var(--ink-2); }
+#ovl .o-course { fill: none; stroke: var(--ink); stroke-width: 2.6; stroke-dasharray: 9 6; stroke-linecap: round; }
+#ovl .o-past { fill: none; stroke: var(--ink-2); stroke-width: 1.6; stroke-dasharray: 2 5; stroke-linecap: round; }
+#ovl .o-boat { fill: var(--sig); stroke: var(--ink); stroke-width: 1.8; }
+#ovl .o-quest-ring { fill: var(--sig-wash); stroke: var(--sig-dark); stroke-width: 2; } #ovl .o-quest-flag { fill: var(--sig-dark); }
+#ovl .o-done circle { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+#ovl .o-label { font: italic 400 17px var(--f-display); fill: var(--ink); stroke: var(--paper); stroke-width: 4; paint-order: stroke; }
+#ovl .o-dest { fill: var(--sig-dark); font-size: 19px; }
+.r-ring { fill: rgba(239, 230, 209, .6); stroke: var(--ink); stroke-width: 1.6; } .r-ring2 { fill: none; stroke: var(--ink); stroke-width: .8; }
+.r-tick { stroke: var(--ink); stroke-width: 1; } .r-dark { fill: var(--ink); } .r-light { fill: var(--paper); stroke: var(--ink); stroke-width: .8; }
+.r-hub { fill: var(--sig); stroke: var(--ink); } .r-n { font: 400 22px var(--f-display); fill: var(--ink); text-anchor: middle; }
+.c-title { padding: 16px 28px 16px 24px; }
+.c-title h1 { font: 400 42px/1 var(--f-display); } .c-title p { font: italic 400 18px var(--f-display); color: var(--ink-2); }
+.c-tabs a { padding: 12px 22px 12px 18px; border-radius: 6px 0 0 6px; background: var(--paper-2); font: 400 23px var(--f-display); box-shadow: -2px 2px 5px rgba(35, 28, 18, .25); }
+.c-tabs a.on { background: var(--sig); color: var(--on-sig); padding-right: 30px; }
+.c-key { padding: 12px 20px; font-size: 16px; }
+.c-key .k-course { border-top: 2.6px dashed var(--ink); height: 0; } .c-key .k-quest { background: var(--sig); border-radius: 50%; width: 12px; height: 12px; }
+.c-key .k-reef { border-top: 2.4px dotted var(--ink-2); height: 0; }
+.c-zoom button { color: var(--ink); }
+.s-chart .padbar { padding: 10px 20px; font-size: 16px; }
+
+/* Phone landscape */
+.z-phone .f-hint { font-size: 12px; padding: 3px 10px 3px 3px; gap: 6px; } .z-phone .f-hint .face { width: 28px; height: 28px; margin: 2px; }
+.z-phone.r3 .p-foot { gap: 10px; }
+.z-phone.r3.s-harbour .p-foot .padbar { display: none; }
+.z-phone.w-c .market { width: 548px; }
+.z-phone.w-c .quay, .z-phone.w-c .yard { left: 10px; top: 62px; bottom: 50px; width: 548px; }
+.z-phone .quay, .z-phone .yard { padding: 12px; gap: 12px; }
+.z-phone .q-list { width: 170px; gap: 4px; } .z-phone .q-list h3, .z-phone .q-list .village { display: none; }
+.z-phone .q-person { min-height: 50px; padding: 3px 6px 3px 2px; gap: 4px; } .z-phone .q-person .face { width: 36px; height: 36px; margin: 4px; }
+.z-phone .q-person b { font-size: 16px; } .z-phone .q-person i { font-size: 11px; } .z-phone .q-person span { font-size: 11px; }
+.z-phone .new { font-size: 11px; padding: 1px 5px; margin-left: 4px; }
+.z-phone .q-card { padding: 10px 12px; gap: 6px; }
+.z-phone .qc-top { gap: 8px; } .z-phone .qc-top .face { width: 52px; height: 52px; margin: 4px; }
+.z-phone .qc-top h2 { font-size: 24px; } .z-phone .qc-top p { display: none; } .z-phone .qc-step { font-size: 11px; }
+.z-phone .pips i { width: 14px; height: 5px; }
+.z-phone .qc-copy { font-size: 13px; line-height: 1.3; }
+.z-phone .qc-goal { font-size: 13px; padding: 6px 8px; } .z-phone .qc-goal .ic { width: 18px; height: 18px; }
+.z-phone .qc-act .btn { min-height: 40px; font-size: 18px; }
+.z-phone .y-main { gap: 4px; } .z-phone .yard h3 { font-size: 17px; }
+.z-phone .y-fleet, .z-phone .y-main h3:nth-of-type(2) { display: none; }
+.z-phone .y-up { grid-template-columns: 24px 1fr 86px; gap: 6px; padding: 3px 6px; } .z-phone .y-up > .ic { width: 22px; height: 22px; }
+.z-phone .yu-t b { font-size: 16px; } .z-phone .yu-t span { font-size: 11px; } .z-phone .yu-t .pips { display: none; }
+.z-phone .yu-buy { min-height: 42px; font-size: 15px; } .z-phone .yu-buy i { font-size: 11px; }
+.z-phone .y-side { width: 180px; gap: 5px; }
+.z-phone .y-preview { height: 104px; } .z-phone .yp-l { font-size: 14px; } .z-phone .yp-s, .z-phone .yp-turn { font-size: 11px; }
+.z-phone .yp-turn .pad { display: none; } .z-phone .yp-turn { bottom: 3px; right: 6px; }
+.z-phone .y-ship h2 { font-size: 20px; } .z-phone .y-ship p { display: none; }
+.z-phone .y-side .btn { min-height: 40px; font-size: 17px; } .z-phone .y-buy .pr { font-size: 14px; } .z-phone .y-need { font-size: 11px; }
+.z-phone .y-side .btn .pad { display: none; }
+.z-phone .ledger { left: 40px; right: 40px; top: 66px; bottom: 46px; }
+.z-phone.w-d .p-head { left: 40px; right: 40px; top: 68px; height: 40px; padding: 0 16px; }
+.z-phone.w-d .p-title h1 { font-size: 26px; }
+.z-phone.w-d .market, .z-phone.w-d .quay, .z-phone.w-d .yard { left: 54px; right: 54px; top: 110px; bottom: 54px; padding: 2px; }
+.z-phone.w-d .market { bottom: auto; gap: 14px; }
+.z-phone.w-d .g-head, .z-phone.w-d .g-row { grid-template-columns: 38px 1fr 30px 46px 46px 70px; }
+.z-phone.w-d .g-best { display: none; } .z-phone.w-d .g-trend .spark { width: 64px; height: 22px; }
+.z-phone.w-d .q-list { width: 200px; }
+.z-phone.w-d .y-side { width: 230px; } .z-phone.w-d .y-preview { height: 112px; }
+.r3.w-d.s-harbour.z-phone .bg { background-size: 100% auto; background-position: 0 -10px; }
+.z-phone .lk-slots { left: 10px; top: 10px; bottom: 46px; width: 186px; padding: 10px 12px; gap: 0; }
+.z-phone .lk-slots h2 { font-size: 22px; margin-bottom: 2px; } .z-phone .lk-ships { margin-bottom: 2px; } .z-phone .lk-ships .pad { display: none; }
+.z-phone .lk-ships a { font-size: 14px; padding: 1px 8px; }
+.z-phone .lk-slot { min-height: 30px; padding: 1px 8px; } .z-phone .lk-slot b { font-size: 15px; } .z-phone .lk-slot span { font-size: 11px; }
+.z-phone .lk-stock { display: none; }
+.z-phone .lk-stage { left: 206px; right: 248px; top: 10px; bottom: 46px; }
+.z-phone .lk-line b { font-size: 18px; } .z-phone .lk-line span { font-size: 11px; }
+.z-phone .lk-compare { padding: 3px; } .z-phone .lk-compare a { font-size: 13px; padding: 3px 8px; }
+.z-phone .lk-view { display: none; }
+.z-phone .lk-items { right: 10px; top: 10px; bottom: 46px; width: 228px; padding: 10px 12px; gap: 6px; }
+.z-phone .lk-items h3 { font-size: 17px; }
+.z-phone .lk-grid { gap: 4px; } .z-phone .lk-item { padding: 4px 1px 3px; } .z-phone .lk-sail { width: 30px; height: 30px; }
+.z-phone .lk-item b { font-size: 11px; } .z-phone .lk-item i { display: none; }
+.z-phone .lk-detail b { font-size: 18px; } .z-phone .lk-detail span { font-size: 11px; }
+.z-phone .lk-use { min-height: 40px; font-size: 17px; }
+.z-phone.w-d .lk-slots { width: 210px; } .z-phone.w-d .lk-items { width: 330px; } .z-phone.w-d .lk-stage { left: 230px; right: 350px; }
+.z-phone.w-d .lk-sail { width: 44px; height: 44px; } .z-phone.w-d .lk-item b { font-size: 12px; }
+.r3.s-looks.z-phone .bg { background-size: 100% auto; background-position: 0 0; }
+.r3.w-d.s-looks.z-phone .bg { background-size: 112% auto; background-position: -99px 0; }
+.z-phone .c-title { padding: 7px 14px; } .z-phone .c-title h1 { font-size: 24px; } .z-phone .c-title p { font-size: 12px; }
+.z-phone .c-tabs a { font-size: 15px; padding: 7px 12px 7px 10px; } .z-phone .c-tabs a.on { padding-right: 16px; }
+.z-phone.s-chart .padbar { font-size: 12px; padding: 5px 10px; }
+.z-phone #ovl .o-label { font-size: 22px; }
+.z-phone.w-d .y-upgrades { flex-direction: column; gap: 4px; }
+.z-phone.w-d .y-up { grid-template-columns: 24px 1fr 86px; grid-template-rows: auto; padding: 3px 6px; }
+.z-phone.w-d .y-up .yu-buy { grid-column: auto; min-height: 42px; flex-direction: column; gap: 0; }
+.z-phone.w-d .y-preview { height: 96px; }
+.z-phone .y-need { display: none; }
+.z-phone.w-d .yard { top: 110px; bottom: 50px; }

@@ -1,6 +1,7 @@
 // The four mockup screens. The markup is shared; each direction's stylesheet gives it its identity.
 // mock.html?d=chart|club|harbour&s=title|hud|harbour|chart&z=desktop|phone&t=night|day|storm
 // Round 2: &v=framed|minimal (chart and harbour only) loads <d>-r2.css and the round 2 parts.
+// Round 3: &r=3 hands over to screens-r3.js.
 (() => {
   const q = new URLSearchParams(location.search);
   const d = q.get('d') || 'chart', s = q.get('s') || 'title', z = q.get('z') || 'desktop';
@@ -133,6 +134,10 @@
         <div class="id-parts"><button class="btn primary">Set sail</button><button class="btn">Not now</button>${A.pad('A')}${A.pad('B')}${A.pad('LB')}<span class="stat">${A.icon('coin')}<b>150</b></span><span class="stat">${A.icon('hold')}<b>6/10</b></span></div>
       </div>`;
   };
+
+  // Round 3 (screens-r3.js) reuses these parts and draws its own screens.
+  window.SCR = { stat, padbar, GOODS, spark, row, title, chart };
+  if (q.get('r') === '3') return;
 
   const app = document.getElementById('app');
   app.innerHTML = `<div class="scr ${s}">${BG[s] ? `<div class="bg" style="background-image:url(${BG[s]})"></div>` : ''}${{ title, hud, harbour, chart, identity }[s]()}</div>`;

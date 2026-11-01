@@ -76,6 +76,25 @@ What changed, from Guillaume and the art director:
 
 Redraw round 2: `node docs/ui-refactor/v1.6/render.mjs --r2`, then `python3 docs/ui-refactor/v1.6/sheet_r2.py docs/ui-refactor/v1.6/out-r2 <dir>`. In a browser, add `&v=framed` or `&v=minimal` (loads `chart-r2.css` or `harbour-r2.css`).
 
+## Round 3 (2026-11-01): the chart table as the mix, variants C and D
+
+Guillaume's pick: direction 1 only, minimal at sea and on the title, paper in the harbour, Boat looks and the chart. Two previews with every fix applied; they differ only in how much of the screen the harbour panes cover. Sheets: project files `ui-review/mockups/round3/` (`1-chart-table-r3-C.jpg`, `1-chart-table-r3-D.jpg`), each with sea by day, sea at night, harbour Market, Quay and Shipyard, Boat looks, chart and title, desktop beside phone landscape.
+
+- **C:** the panes at about 65% of the width (820 px desktop, 548 px phone), the boat and the quay visible on the right.
+- **D:** one ledger across about 90% of the width (1140 px desktop, 764 px phone) with the port as a strip above it. The wider ledger adds each good's trend and best price elsewhere to the market, the upgrades sit side by side, and the 3D preview area is bigger.
+
+What changed since round 2:
+
+- **Wind compass top right**, its own dial, 176 px desktop and 104 px phone (round 2: 150 and 92, bottom right), with the point of sail ("Beam reach") and the breeze beside it. The no-go wedge is solid ink at 55% with light hatching and crisp solid edges, never red; the wind arrow is 8 px thick with a big head.
+- **Speed stays the biggest number** (96 px desktop, 58 px phone). The instrument always sits on a faint backing (ink at 40%, no blur) so it never lies bare on land.
+- **Text on the scene** has a hard 1 px ink halo, no blur (the build would use a text stroke). The title menu is light with the same halo.
+- **Night paper** is dimmer and more see-through: `#b9ab8a` at 80% (round 2: `#cbbd9c` at 90%), with darker muted ink `#3f4850` so small text holds. The Quay is drawn at night to show it.
+- **Market:** names 26 px, prices 22 px, rows 56 px (66 px in D), Buy and Sell 64 px tall.
+- **Phone:** status and labels 12 px (11 px is the floor), a roomier title menu (items 24 px, Continue 30 px, 8 px apart).
+- **New screens:** the Quay (who is on the quay, the quest card with a big portrait, the step and the goal, Take the job and Not now); the Shipyard with a **reserved, empty area for the 3D model preview** (dashed, labelled, no painted render) beside the ship's numbers and Buy; Boat looks (#299's Wardrobe layout: slots, the real boat, the item grid, Use) on paper. On phone the Shipyard leaves the fleet list out (it would get its own tab).
+
+Redraw round 3: `node docs/ui-refactor/v1.6/render.mjs --r3`, then `python3 docs/ui-refactor/v1.6/sheet_r3.py docs/ui-refactor/v1.6/out-r3 <dir>`. In a browser: `mock.html?r=3&w=c|d&s=title|hud|market|quay|shipyard|looks|chart&z=desktop|phone&t=day|night` (`screens-r3.js`, `chart-r3.css` for the sea and the title, `chart-r3-port.css` for the harbour, Boat looks and the chart). New backgrounds in `bg.json`: the harbour at night (`hn-*`) and the docked sloop for Boat looks (`lk`).
+
 ## Redraw
 
 ```sh

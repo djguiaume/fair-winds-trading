@@ -76,7 +76,8 @@
 
   // Wind compass, its own dial (Guillaume, round 2): boat up, the card turns with the heading,
   // the wind arrow from where the wind blows, and the no-go zone (no sail can point there) shaded.
-  function windCompass(heading, windFrom, noGo = 45) {
+  // Round 3: a bigger arrow head and the no-go zone hatched (`headLen`, `.wc-hatch`).
+  function windCompass(heading, windFrom, noGo = 45, headLen = 10, tip = 30) {
     const rel = windFrom - heading, P = (deg, r) => {
       const t = (deg - 90) * Math.PI / 180;
       return [60 + Math.cos(t) * r, 60 + Math.sin(t) * r];
@@ -94,13 +95,15 @@
       const [x, y] = P(b - heading, 38);
       letters += `<text class="wc-card" x="${x}" y="${y + 4.5}">${n}</text>`;
     }
-    const [ax, ay] = P(rel, 57), [bx, by] = P(rel, 30);
+    const [ax, ay] = P(rel, 57), [bx, by] = P(rel, tip);
     const head = (() => {
       const t = (rel - 90) * Math.PI / 180, ux = -Math.cos(t), uy = -Math.sin(t);
-      return `M${bx + ux * -2} ${by + uy * -2}L${bx - ux * 10 - uy * 6} ${by - uy * 10 + ux * 6}L${bx - ux * 10 + uy * 6} ${by - uy * 10 - ux * 6}z`;
+      const w = headLen * 0.6;
+      return `M${bx + ux * -2} ${by + uy * -2}L${bx - ux * headLen - uy * w} ${by - uy * headLen + ux * w}L${bx - ux * headLen + uy * w} ${by - uy * headLen - ux * w}z`;
     })();
-    return svg('0 0 120 120', `<circle class="wc-face" cx="60" cy="60" r="56"/>
-      <path class="wc-nogo" d="${arc(rel - noGo, rel + noGo, 54)}"/>
+    const hatch = '<defs><pattern id="wc-hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path class="wc-hatch-line" d="M0 0V5"/></pattern></defs>';
+    return svg('0 0 120 120', `${hatch}<circle class="wc-face" cx="60" cy="60" r="56"/>
+      <path class="wc-nogo" d="${arc(rel - noGo, rel + noGo, 54)}"/><path class="wc-hatch" d="${arc(rel - noGo, rel + noGo, 54)}"/>
       ${ticks}${letters}
       <path class="wc-lubber" d="M60 2l4 7h-8z"/>
       <path class="wc-boat-under" d="M60 40c5 5 7 12 7 19v15c0 3-3 6-7 6s-7-3-7-6V59c0-7 2-14 7-19z"/>

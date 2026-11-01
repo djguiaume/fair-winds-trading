@@ -95,5 +95,72 @@
   "sizes": [
    "landscape"
   ]
+ },
+ {
+  "name": "hn-l",
+  "port": "saltmere",
+  "tilt": 38,
+  "yaw": 90,
+  "zoom": 0.85,
+  "look": [
+   222,
+   -130
+  ],
+  "sizes": [
+   "desktop"
+  ],
+  "night": true
+ },
+ {
+  "name": "hn-i",
+  "port": "saltmere",
+  "tilt": 38,
+  "yaw": 90,
+  "zoom": 0.8,
+  "look": [
+   205,
+   -128
+  ],
+  "sizes": [
+   "landscape"
+  ],
+  "night": true
+ },
+ {
+  "name": "hn-a",
+  "port": "saltmere",
+  "tilt": 40,
+  "yaw": 90,
+  "zoom": 0.9,
+  "sizes": [
+   "desktop"
+  ],
+  "night": true
+ },
+ {
+  "name": "hn-e",
+  "port": "saltmere",
+  "tilt": 38,
+  "yaw": 90,
+  "zoom": 0.8,
+  "look": [
+   215,
+   -128
+  ],
+  "sizes": [
+   "landscape"
+  ],
+  "night": true
+ },
+ {
+  "name": "lk",
+  "port": "saltmere",
+  "zoom": 0.34,
+  "tilt": 10,
+  "yaw": 175,
+  "sizes": [
+   "desktop",
+   "landscape"
+  ]
  }
 ]

@@ -171,3 +171,4 @@ svg { display: block; }
 .v-minimal .t-under, .v-minimal .wc-boat-under, .v-minimal .wc-arrow-under { display: inline; }
 .r2.s-harbour.z-desktop .bg { background-size: 108% auto; background-position: left top; }
 .r2.z-desktop .market { width: 790px; }
+.wc-hatch { display: none; }
