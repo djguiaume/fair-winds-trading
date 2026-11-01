@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { BOAT_LOOK, canvasColour, sailRow, sailRowEdges, type BoatLook } from './boatLook';
 import { STYLE_D as ST } from './boatStyle';
 import { Faces } from './hullGeometry';
-import { paintMarks, type SailMark } from './sailMarks';
+import { canvasPatches, paintMarks, type ClothBox, type SailMark } from './sailMarks';
 import { panelPaint } from './sailPatterns';
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
@@ -74,6 +74,7 @@ export function cloth(
   const canvas = canvasColour(look, level, worn);
   // A pattern other than plain bands paints the canvas and the sails-3 stripe rows.
   const pattern = look.sailPattern?.kind === 'bands' ? null : look.sailPattern;
+  const plainAt = canvasPatches(wear.marks ?? [], pattern ?? null, canvas, nu, nv);
   const rows = sailRowEdges(level, nv);
   for (let j = 0; j < nv; j++) {
     const row = sailRow(level, j, nv);
@@ -87,7 +88,7 @@ export function cloth(
       else if (row === 'band' || (row === 'stripe' && !pattern)) {
         color = row === 'band' ? look.sailBand : look.sailStripe;
         glow = BOAT_LOOK.sails.bandGlow;
-      } else if (pattern) {
+      } else if (pattern && !plainAt.some((box) => inBox(box, (u0 + u1) / 2, (v0 + v1) / 2))) {
         patternPanel(f, corners, panelPaint(pattern.kind, i, j, nu, nv), pattern.colours, canvas);
         continue;
       } else if (worn && (i * 7 + j * 3) % 8 === 1) color = ST.patches[(i + j) % 2]!;
@@ -109,6 +110,9 @@ export function cloth(
   }
   return f.geometry();
 }
+
+const inBox = ([u0, u1, v0, v1]: ClothBox, u: number, v: number) =>
+  u >= u0 && u <= u1 && v >= v0 && v <= v1;
 
 /** One canvas panel under a pattern: two triangles split along the pattern's edge. */
 function patternPanel(

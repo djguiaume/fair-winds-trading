@@ -26,7 +26,7 @@ A paid kind may come later; nothing is built for it.
 | Slot | Fields |
 | --- | --- |
 | `sail-pattern` | `pattern` (a key of `rules.json` › `patterns`: bands, stripe, panels, halves, chevron, diamond), `colours` (pattern, trim). The upgrade bands take the colours `boat-look.json` › `patterns.bandColours` names (decision 0264). |
-| `sail-logo` | `colour`, and `<id>.svg` beside the file: viewBox, flat filled shapes only (`path rect circle ellipse polygon g`, `transform` allowed), no text, strokes, styles or images, about 40 triangles at most (the check estimates). An outline inside another is a hole. Drawn on the mainsail (decision 0264). |
+| `sail-logo` | `colour`, and `<id>.svg` beside the file: viewBox, flat filled shapes only (`path rect circle ellipse polygon g`, `transform` allowed), no text, strokes, styles or images, about 40 triangles at most (the check estimates). An outline inside another is a hole. The `colour` is no lighter than lightness 0.55 (`rules.json › emblem.maxLightness`). Drawn on the mainsail, half its width, centred (decision 0264); over a pattern of a close colour the cloth keeps plain canvas behind it. |
 | `hull-colour` | `band`, `strake` (hex); `stock` keeps the class's own. |
 | `flag` | `own: { shape, bands (1 to 3), length, height }` or `ref` (a regatta pennant of `flags.json`: earned by its series, never recoloured). A personal flag may not look like any flag of `flags.json`. |
 | `wake` | `style` (see `rules.json`; how each draws: `boat-look.json` › `wakes`), `tint` (hex, any colour, or null). |

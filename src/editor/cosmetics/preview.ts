@@ -62,7 +62,7 @@ function motifSvg(kind: string, colours: readonly string[]): string {
     .join('');
 }
 
-/** The emblem at the size and place `rules.json` gives: a share of the sail's width, centred, upper third. */
+/** The emblem at the size and place `rules.json` gives: a share of the sail's width, centred. */
 function emblem(svg: string, colour: string): string {
   const size = RULES.emblem.width * SAIL_FOOT;
   const y = 12 + RULES.emblem.centreV * SAIL_HEIGHT - size / 2;

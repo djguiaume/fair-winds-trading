@@ -7,8 +7,8 @@ import { BOAT_LOOK } from './boatLook';
  * by the cloth's `glow` attribute (1 on canvas). The upgrade bands (decision 0259) glow less, so their class colour is
  * not washed to grey, day or night. One shader edit, no extra material or draw call.
  *
- * Painted marks (sailMarks.ts, `mark` ±1) are drawn `marks.lift` toward the camera, so the
- * curved cloth between their corners never covers them. Each copy is wound to face the side it
+ * Painted marks (sailMarks.ts) are drawn `marks.lift` × |`mark`| toward the camera: their layer plus
+ * the sag of their flat triangles under the belly, so the curved cloth never covers them. Each copy is wound to face the side it
  * reads from and shows only from there. A sail filling to the other side is mirrored (a negative
  * scale), which swaps which face three.js calls front, so the test follows the model matrix's
  * handedness.
@@ -35,8 +35,11 @@ export function sailCanvasMaterial() {
         // Each copy faces its reading side; mirrored, the front face is the other side's.
         vMark = abs(mark) * sign(determinant(mat3(modelMatrix)));
         if (mark != 0.0) {
+          // In the model's units (the boat is scaled up), and more where the cloth slants away.
+          float units = max(length(modelMatrix[0].xyz), max(length(modelMatrix[1].xyz), length(modelMatrix[2].xyz)));
+          float facing = max(abs(dot(normalize(transformedNormal), normalize(mvPosition.xyz))), 0.5);
           vec4 lifted = mvPosition;
-          lifted.xyz -= normalize(lifted.xyz) * ${lift};
+          lifted.xyz -= normalize(lifted.xyz) * ${lift} * abs(mark) * units / facing;
           gl_Position = projectionMatrix * lifted;
         }`,
       );
@@ -44,7 +47,7 @@ export function sailCanvasMaterial() {
       .replace('#include <common>', '#include <common>\nvarying float vGlow;\nvarying float vMark;')
       .replace(
         'void main() {',
-        'void main() {\n  if (vMark > 0.5 != gl_FrontFacing && abs(vMark) > 0.5) discard;',
+        'void main() {\n  if (abs(vMark) > 0.01 && vMark > 0.0 != gl_FrontFacing) discard;',
       )
       .replace(
         'vec3 totalEmissiveRadiance = emissive;',

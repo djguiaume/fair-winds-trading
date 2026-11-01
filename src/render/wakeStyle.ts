@@ -37,9 +37,13 @@ export const WAKE_STYLE_HEAD = `uniform vec3 uTint;
  * strength, edge 1 / centre 0); `edge` the across fade.
  */
 export const WAKE_STYLE_BODY = `
-  if (uStyle.x > 0.0)
-    alpha *= 1.0 - smoothstep(uStyle.y - 0.08, uStyle.y, fract(vFoam.y * uStyle.x));
   float across = abs(vFoam.x);
+  if (uStyle.x > 0.0) {
+    // Round blobs in lanes: the drawn share of each repeat along, a lane's middle across.
+    float along = (fract(vFoam.y * uStyle.x) - 0.5) / uStyle.y;
+    float lane = (fract(across * 2.5) - 0.5) * 1.25;
+    alpha *= 1.0 - smoothstep(0.36, 0.5, length(vec2(along, lane)));
+  }
   float lines = max(1.0 - smoothstep(0.0, 0.1, abs(across - 0.15)),
                     1.0 - smoothstep(0.0, 0.1, abs(across - 0.55)));
   alpha *= mix(1.0, lines, uStyle.z * vFoam.w);

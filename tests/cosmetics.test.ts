@@ -138,6 +138,14 @@ describe('the checks refuse', () => {
     expect(problemsAfter((d) => setField(find(d, 'wake', 'foam')!, 'tint', '#f0f4f8'))).toEqual([]);
   });
 
+  it('a logo too light to read on the canvas (art director, #418)', () => {
+    const pale = problemsAfter((d) => setField(find(d, 'sail-logo', 'gull')!, 'colour', '#9cc7e4'));
+    expect(pale.join()).toMatch(/too light for a logo/);
+    expect(
+      problemsAfter((d) => setField(find(d, 'sail-logo', 'gull')!, 'colour', '#2f8f7a')),
+    ).toEqual([]);
+  });
+
   it('an emblem of more than two colours', () => {
     const three =
       '<svg viewBox="0 0 1 1"><rect fill="#111111"/><rect fill="#222222"/><rect fill="#333333"/></svg>';

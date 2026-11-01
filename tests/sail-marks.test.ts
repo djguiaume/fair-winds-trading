@@ -3,7 +3,13 @@ import { describe, expect, it } from 'vitest';
 import { SHIPPED_CATALOGUE } from '../src/data/cosmetics';
 import { RULES } from '../src/sim/cosmetics';
 import { emblemTriangles } from '../src/render/models/emblem';
-import { clothUv, mainsailMarks, numberMark } from '../src/render/models/sailMarks';
+import {
+  canvasPatches,
+  clothUv,
+  contrast,
+  mainsailMarks,
+  numberMark,
+} from '../src/render/models/sailMarks';
 import { cloth } from '../src/render/models/sailCloth';
 import { resolveBoatLook } from '../src/render/models/boatLook';
 import { createBoatModel } from '../src/render/models';
@@ -102,7 +108,9 @@ describe('marks on the cloth', () => {
     for (let i = 0; i < pos.count; i++) {
       const side = markAttr.getX(i);
       if (side === 0) continue;
-      sides.add(side);
+      sides.add(Math.sign(side));
+      // Lifted by its layer (1) plus the sag of its flat triangles under the belly.
+      expect(Math.abs(side)).toBeGreaterThanOrEqual(1);
       painted++;
       // The cloth's own x at this point's (u, v): the mark sits on it, not in front or behind.
       const [u, v] = clothUv(GAFF, pos.getY(i), pos.getZ(i));
@@ -123,9 +131,45 @@ describe('marks on the cloth', () => {
   });
 });
 
+describe('a canvas patch behind a low-contrast logo', () => {
+  const navy = { ...look, sailLogo: { svg: SHIPPED_CATALOGUE.logos.gull!, colour: '#1f4e79' } };
+  const marks = mainsailMarks(navy);
+  const canvas = '#f4f1e8';
+  const diamond = { kind: 'diamond', colours: ['#2f6f9f', '#9cc7e4'] };
+
+  it('keeps plain canvas panels behind a logo the pattern would swallow', () => {
+    const [box] = canvasPatches(marks, diamond, canvas, 6, 6);
+    expect(box![0]).toBeLessThan(marks[0]!.u);
+    expect(box![1]).toBeGreaterThan(marks[0]!.u);
+    // Sewn from the cloth's own panels: the same triangles, the pattern's colour gone there.
+    const bare = cloth(...GAFF, 3, BELLY, { ...look, sailPattern: diamond });
+    const backed = cloth(...GAFF, 3, BELLY, { ...look, sailPattern: diamond }, 6, 6, { marks });
+    const painted = (g: THREE.BufferGeometry) => {
+      const [c, mark] = [g.getAttribute('color'), g.getAttribute('mark')];
+      const cloth = Array.from({ length: c.count }, (_, i) => i).filter((i) => !mark?.getX(i));
+      return cloth.filter(
+        (i) => new THREE.Color().fromBufferAttribute(c, i).getHexString() === '2f6f9f',
+      ).length;
+    };
+    expect(painted(backed)).toBeLessThan(painted(bare));
+  });
+
+  it('leaves a bare logo on a plain sail or a pattern that contrasts', () => {
+    expect(canvasPatches(marks, null, canvas, 6, 6)).toEqual([]);
+    const pale = { kind: 'diamond', colours: ['#f4f1e8', '#e6dcc4'] };
+    expect(canvasPatches(marks, pale, canvas, 6, 6)).toEqual([]);
+  });
+
+  it('measures contrast as a ratio from 1 to 21', () => {
+    expect(contrast('#000000', '#ffffff')).toBeCloseTo(21, 0);
+    expect(contrast('#2f6f9f', '#2f6f9f')).toBe(1);
+  });
+});
+
 describe('the look budget (issue #418)', () => {
   it('adds no mesh on any class, and at most a logo copy a side in triangles', () => {
     const svg = SHIPPED_CATALOGUE.logos['four-winds']!;
+    // A navy logo on the navy diamond: its canvas patch is sewn from the cloth's own panels.
     const logoTris = emblemTriangles(svg).length / 6;
     const worn = {
       sailLogo: { svg, colour: '#1f4e79' },

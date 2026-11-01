@@ -65,7 +65,8 @@
     "share": 0.1
   },
   "emblem": {
-    "width": 0.35,
-    "centreV": 0.3
+    "width": 0.5,
+    "centreV": 0.5,
+    "maxLightness": 0.55
   }
 }

@@ -3,6 +3,7 @@ import glyphFile from '../../data/sail-glyphs.json';
 import { RULES } from '../../sim/cosmetics';
 import { BOAT_LOOK, type BoatLook } from './boatLook';
 import { emblemTriangles } from './emblem';
+import { patternPaint } from './sailPatterns';
 import type { Faces } from './hullGeometry';
 
 /**
@@ -22,6 +23,8 @@ export interface SailMark {
   v: number;
   /** One mark unit as a share of the sail's width (luff to leech) at `v`. */
   size: number;
+  /** A logo: it gets a canvas patch behind it where the pattern under it is too close in colour. */
+  backed?: boolean;
 }
 
 /** The cloth a mark is laid on: its corners (foot luff, foot leech, head luff, head leech). */
@@ -97,7 +100,62 @@ export function mainsailMarks(look: BoatLook, sailNumber?: string): SailMark[] {
   if (!look.sailLogo) return [];
   const { width, centreV } = RULES.emblem;
   const { svg, colour } = look.sailLogo;
-  return [{ tris: emblemMark(svg), colour, u: 0.5, v: 1 - centreV, size: width }];
+  return [{ tris: emblemMark(svg), colour, u: 0.5, v: 1 - centreV, size: width, backed: true }];
+}
+
+const PATCH = BOAT_LOOK.marks.patch;
+
+/** WCAG relative luminance of a colour. */
+function luminance(hex: string): number {
+  const c = new THREE.Color(hex);
+  return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+}
+
+/** Contrast ratio of two colours, 1 (same) to 21 (black on white). */
+export function contrast(a: string, b: string): number {
+  const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p) as [number, number];
+  return (x + 0.05) / (y + 0.05);
+}
+
+/** A box on the cloth in (u, v): from u0 to u1 across, v0 to v1 up. */
+export type ClothBox = [number, number, number, number];
+
+/**
+ * Where the cloth keeps its plain canvas under a pattern: a box around each logo whose pattern
+ * beneath is too close to it in colour (art director, #418). The panels there are sewn plain, so
+ * the patch costs no triangle; a plain sail, or a pattern that contrasts, keeps a bare logo.
+ */
+export function canvasPatches(
+  marks: readonly SailMark[],
+  pattern: { kind: string; colours: string[] } | null,
+  canvas: string,
+  nu: number,
+  nv: number,
+): ClothBox[] {
+  if (!pattern) return [];
+  const steps = [-1, -0.5, 0, 0.5, 1];
+  return marks
+    .filter((m) => m.backed)
+    .filter((m) => {
+      const reach = (m.size * PATCH.scale) / 2;
+      return steps.some((s) =>
+        steps.some((t) => {
+          const p = patternPaint(
+            pattern.kind,
+            (m.u + s * reach) * nu,
+            (m.v + t * reach) * nv,
+            nu,
+            nv,
+          );
+          const under = p < 0 ? canvas : (pattern.colours[p] ?? pattern.colours[0]!);
+          return contrast(under, m.colour) < PATCH.minContrast;
+        }),
+      );
+    })
+    .map((m) => {
+      const reach = (m.size * PATCH.scale) / 2;
+      return [m.u - reach, m.u + reach, m.v - reach, m.v + reach];
+    });
 }
 
 /** Turns every triangle counter-clockwise. */
@@ -154,40 +212,75 @@ export function clothUv(
 /**
  * Paints marks onto a cloth: each upright (its y up the mast), centred at its (u, v), one copy per
  * face, each readable from its own side (`mark` +1 seen from +x, -1 from -x). A triangle with a
- * corner over damage is left out.
+ * corner over damage is left out. A flat triangle cuts under the curved belly between its
+ * corners, so each mark is lifted one `marks.lift` plus that sag (the attribute's size, in lifts).
  */
 export function paintMarks(f: Faces, cloth: MarkCloth, marks: readonly SailMark[]) {
-  const { corners } = cloth;
   const glow = BOAT_LOOK.marks.glow;
-  const centre = new THREE.Vector2();
-  const luff = new THREE.Vector2();
-  const leech = new THREE.Vector2();
   for (const m of marks) {
-    flat(corners, m.u, m.v, centre);
-    const chord = flat(corners, 1, m.v, leech).sub(flat(corners, 0, m.v, luff));
-    const unit = chord.length() * m.size;
-    // Across: along the chord; up: the mast's direction, square to it. Both as (y, z).
-    const across = chord.clone().normalize();
-    const up = new THREE.Vector2(1, 0).addScaledVector(across, -across.x).normalize();
-    for (const side of [1, -1]) {
-      // Seen from +x, the viewer's right is -z; from -x, +z.
-      const right = across.clone().multiplyScalar(Math.sign(-across.y * side) || side);
-      const uv: [number, number][] = [];
-      for (let i = 0; i < m.tris.length; i += 2) {
-        const y = centre.x + right.x * m.tris[i]! * unit + up.x * m.tris[i + 1]! * unit;
-        const z = centre.y + right.y * m.tris[i]! * unit + up.y * m.tris[i + 1]! * unit;
-        uv.push(clothUv(corners, y, z, m.u, m.v));
-      }
-      for (let i = 0; i < uv.length; i += 3) {
-        const tri = uv.slice(i, i + 3);
-        if (tri.some(([u, v]) => cloth.hidden(u, v))) continue;
-        const [p, q, r] = tri.map(([u, v]) => cloth.at(u, v)) as [
-          THREE.Vector3,
-          THREE.Vector3,
-          THREE.Vector3,
-        ];
-        f.tri(p, q, r, m.colour, glow, side);
-      }
-    }
+    const tris = [1, -1].map((side) => markTriangles(cloth, m, side));
+    const lift = 1 + Math.max(0, ...tris.map((list) => sag(cloth, list))) / BOAT_LOOK.marks.lift;
+    tris.forEach((list, k) => {
+      for (const {
+        at: [p, q, r],
+      } of list)
+        f.tri(p, q, r, m.colour, glow, (k ? -1 : 1) * lift);
+    });
   }
+}
+
+type Tri = [THREE.Vector3, THREE.Vector3, THREE.Vector3];
+type MarkTri = { at: Tri; uv: [number, number][] };
+
+/** One copy of a mark laid on the cloth, wound to face `side`. */
+function markTriangles(cloth: MarkCloth, m: SailMark, side: number): MarkTri[] {
+  const { corners } = cloth;
+  const centre = flat(corners, m.u, m.v, new THREE.Vector2());
+  const luff = flat(corners, 0, m.v, new THREE.Vector2());
+  const chord = flat(corners, 1, m.v, new THREE.Vector2()).sub(luff);
+  const unit = chord.length() * m.size;
+  // Across: along the chord; up: the mast's direction, square to it. Both as (y, z).
+  const across = chord.clone().normalize();
+  const up = new THREE.Vector2(1, 0).addScaledVector(across, -across.x).normalize();
+  // Seen from +x, the viewer's right is -z; from -x, +z.
+  const right = across.clone().multiplyScalar(Math.sign(-across.y * side) || side);
+  const uv: [number, number][] = [];
+  for (let i = 0; i < m.tris.length; i += 2) {
+    const y = centre.x + right.x * m.tris[i]! * unit + up.x * m.tris[i + 1]! * unit;
+    const z = centre.y + right.y * m.tris[i]! * unit + up.y * m.tris[i + 1]! * unit;
+    uv.push(clothUv(corners, y, z, m.u, m.v));
+  }
+  const out: MarkTri[] = [];
+  for (let i = 0; i < uv.length; i += 3) {
+    const tri = uv.slice(i, i + 3);
+    if (tri.some(([u, v]) => cloth.hidden(u, v))) continue;
+    out.push({ at: tri.map(([u, v]) => cloth.at(u, v)) as Tri, uv: tri });
+  }
+  return out;
+}
+
+/** Barycentric points where a flat triangle strays most from the cloth: its middle and edges. */
+const SAG_AT = [
+  [1 / 3, 1 / 3, 1 / 3],
+  [0.5, 0.5, 0],
+  [0, 0.5, 0.5],
+  [0.5, 0, 0.5],
+] as const;
+
+/** How far a mark's flat triangles stray from the curved cloth at most. */
+function sag(cloth: MarkCloth, tris: MarkTri[]): number {
+  const p = new THREE.Vector3();
+  let most = 0;
+  for (const { at, uv } of tris)
+    for (const w of SAG_AT) {
+      p.set(0, 0, 0);
+      let [u, v] = [0, 0];
+      at.forEach((c, k) => {
+        p.addScaledVector(c, w[k]!);
+        u += uv[k]![0] * w[k]!;
+        v += uv[k]![1] * w[k]!;
+      });
+      most = Math.max(most, p.distanceTo(cloth.at(u, v)));
+    }
+  return most;
 }

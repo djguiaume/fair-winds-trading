@@ -14,7 +14,7 @@
     "copper": "#e08a4c"
   },
   "marks": {
-    "about": "Logos and racing numbers on the cloth. lift: how far (scene units) each mark is drawn toward the camera so it never sinks into the curved cloth. glow: the canvas glow a mark keeps (0 = plain paint). The logo's size and place are cosmetics/rules.json › emblem; the number's here: its centre up the sail (0 foot, 1 head), its glyph height as a share of the sail's width there.",
+    "about": "Logos and racing numbers on the cloth. lift: how far (model units) each mark is drawn toward the camera, on top of the sag of its flat triangles under the belly, so it never sinks into the curved cloth. glow: the canvas glow a mark keeps (0 = plain paint). The logo's size and place are cosmetics/rules.json › emblem; the number's here: its centre up the sail (0 foot, 1 head), its glyph height as a share of the sail's width there. patch: where the pattern under a logo is too close to it in colour (contrast ratio below minContrast), the panels in a box this many logo widths wide stay plain canvas.",
     "lift": 0.12,
     "glow": 0,
     "number": {
@@ -25,7 +25,11 @@
       "gap": 0.28,
       "stroke": 0.14
     },
-    "player": "FW 1"
+    "player": "FW 1",
+    "patch": {
+      "scale": 1.3,
+      "minContrast": 2
+    }
   },
   "patterns": {
     "about": "Sail pattern shapes on the cloth's panel grid (6 panels across, 6 up on most sails), in panels, painted panel by panel (no extra triangles). bandColours: which pattern colours the upgrade foot/head band and the stripe take (others: '*'). The foot and head bands keep their rows; a pattern other than bands takes the sails-3 stripe's rows.",
