@@ -1,0 +1,13 @@
+{
+  "id": "green-trim",
+  "slot": "hull-colour",
+  "name": {
+    "en": "Green trim",
+    "fr": "Liseré vert"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "band": "#2f8f7a",
+  "strake": "#b9a58a"
+}

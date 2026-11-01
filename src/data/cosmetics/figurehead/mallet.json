@@ -1,0 +1,16 @@
+{
+  "id": "mallet",
+  "slot": "figurehead",
+  "name": {
+    "en": "Mallet",
+    "fr": "Maillet"
+  },
+  "unlock": {
+    "kind": "earned",
+    "quest": "calda-slipway"
+  },
+  "mount": "stem",
+  "recipe": "figurehead-mallet",
+  "tris": 36,
+  "size": 1
+}

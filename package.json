@@ -22,6 +22,7 @@
     "adr": "node tools/fw/fw.mjs adr",
     "shots": "node tools/fw/fw.mjs shots",
     "quest": "node tools/fw/fw.mjs quest",
+    "cosmetics": "node tools/fw/fw.mjs cosmetics",
     "race": "node tools/fw/fw.mjs quest race",
     "chart": "node tools/fw/fw.mjs chart",
     "review": "node tools/fw/fw.mjs review",

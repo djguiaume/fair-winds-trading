@@ -1,0 +1,13 @@
+{
+  "id": "plain",
+  "slot": "sail-pattern",
+  "name": {
+    "en": "Plain",
+    "fr": "Uni"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "pattern": "plain",
+  "colours": []
+}

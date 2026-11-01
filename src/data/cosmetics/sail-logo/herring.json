@@ -1,0 +1,13 @@
+{
+  "id": "herring",
+  "slot": "sail-logo",
+  "name": {
+    "en": "Herring",
+    "fr": "Hareng"
+  },
+  "unlock": {
+    "kind": "earned",
+    "quest": "saltmere-shoals"
+  },
+  "colour": "#1f4e79"
+}

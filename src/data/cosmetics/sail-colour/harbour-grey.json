@@ -1,0 +1,12 @@
+{
+  "id": "harbour-grey",
+  "slot": "sail-colour",
+  "name": {
+    "en": "Harbour grey",
+    "fr": "Gris du port"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "cloth": "#c4ccd4"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "plain",
+  "slot": "wake",
+  "name": {
+    "en": "Plain wake",
+    "fr": "Sillage simple"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "style": "plain",
+  "tint": null
+}

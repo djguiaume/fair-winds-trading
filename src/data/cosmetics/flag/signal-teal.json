@@ -1,0 +1,17 @@
+{
+  "id": "signal-teal",
+  "slot": "flag",
+  "name": {
+    "en": "Teal signal",
+    "fr": "Signal sarcelle"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "own": {
+    "shape": "burgee",
+    "bands": ["#2f9a9a", "#f4f1e8"],
+    "length": 1.1,
+    "height": 0.6
+  }
+}

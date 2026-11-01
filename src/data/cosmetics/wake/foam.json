@@ -1,0 +1,14 @@
+{
+  "id": "foam",
+  "slot": "wake",
+  "name": {
+    "en": "Foam wake",
+    "fr": "Sillage d'écume"
+  },
+  "unlock": {
+    "kind": "earned",
+    "regatta": "regatta-ring"
+  },
+  "style": "foam",
+  "tint": null
+}

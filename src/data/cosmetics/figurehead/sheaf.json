@@ -1,0 +1,16 @@
+{
+  "id": "sheaf",
+  "slot": "figurehead",
+  "name": {
+    "en": "Wheat sheaf",
+    "fr": "Gerbe de blé"
+  },
+  "unlock": {
+    "kind": "earned",
+    "quest": "westholm-mill"
+  },
+  "mount": "stem",
+  "recipe": "figurehead-sheaf",
+  "tris": 48,
+  "size": 1
+}

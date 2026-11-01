@@ -1,0 +1,14 @@
+{
+  "id": "bubbles",
+  "slot": "wake",
+  "name": {
+    "en": "Bubble wake",
+    "fr": "Sillage de bulles"
+  },
+  "unlock": {
+    "kind": "earned",
+    "regatta": "regatta-cup"
+  },
+  "style": "bubbles",
+  "tint": null
+}

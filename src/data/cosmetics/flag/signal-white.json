@@ -1,0 +1,17 @@
+{
+  "id": "signal-white",
+  "slot": "flag",
+  "name": {
+    "en": "White signal",
+    "fr": "Signal blanc"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "own": {
+    "shape": "pennant",
+    "bands": ["#f4f1e8", "#1f4e79"],
+    "length": 1.2,
+    "height": 0.5
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "snow",
+  "slot": "figurehead",
+  "name": {
+    "en": "Snow crystal",
+    "fr": "Cristal de neige"
+  },
+  "unlock": {
+    "kind": "earned",
+    "quest": "outpost-north"
+  },
+  "mount": "stem",
+  "recipe": "figurehead-snow",
+  "tris": 44,
+  "size": 1
+}

@@ -1,0 +1,12 @@
+{
+  "id": "knot",
+  "slot": "sail-logo",
+  "name": {
+    "en": "Knot",
+    "fr": "Noeud"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "colour": "#1f4e79"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "wave",
+  "slot": "sail-logo",
+  "name": {
+    "en": "Wave",
+    "fr": "Vague"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "colour": "#1f4e79"
+}

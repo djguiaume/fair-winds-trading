@@ -1,0 +1,13 @@
+{
+  "id": "sun",
+  "slot": "sail-logo",
+  "name": {
+    "en": "Sun",
+    "fr": "Soleil"
+  },
+  "unlock": {
+    "kind": "earned",
+    "quest": "outpost-south"
+  },
+  "colour": "#1f4e79"
+}

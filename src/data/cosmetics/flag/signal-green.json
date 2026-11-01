@@ -1,0 +1,17 @@
+{
+  "id": "signal-green",
+  "slot": "flag",
+  "name": {
+    "en": "Green signal",
+    "fr": "Signal vert"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "own": {
+    "shape": "swallowtail",
+    "bands": ["#2f8f55", "#f4f1e8"],
+    "length": 1.2,
+    "height": 0.55
+  }
+}

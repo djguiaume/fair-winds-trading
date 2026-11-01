@@ -135,6 +135,7 @@ export type PropGroup =
   | 'nature'
   | 'rocks'
   | 'landmarks'
+  | 'figureheads'
   | 'boats';
 
 /** The prop groups in the builder's order, each with its triangle budget per prop. */

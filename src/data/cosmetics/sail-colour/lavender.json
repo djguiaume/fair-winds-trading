@@ -1,0 +1,12 @@
+{
+  "id": "lavender",
+  "slot": "sail-colour",
+  "name": {
+    "en": "Lavender",
+    "fr": "Lavande"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "cloth": "#cdbff0"
+}
