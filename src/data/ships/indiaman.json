@@ -82,7 +82,7 @@
   "model": {
     "hullColor": "#5c3a1c",
     "bandColor": "#8a2f2f",
-    "sailBandColor": "#145846",
+    "sailBandColor": "#0b7a4c",
     "figureheadMount": {
       "size": 1.17,
       "drop": 0.1
