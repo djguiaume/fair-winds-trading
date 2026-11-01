@@ -106,6 +106,8 @@ Guillaume picked round 3 D and found the title still weak. Four title screens, s
 
 All four: the menu rows are large plain rows with the same height and type as Continue (art director), Continue selected in sage with the save line; phone landscape drops the pad bar (touch first) and keeps rows at 34 to 36 px. The cover is bright teal sea; a painting made only for the title could match the chart table palette better (not made: no paid credits spent).
 
+**Picks (2026-11-01):** the art director recommends 3, on four conditions: key art that matches the game (a golden-hour render at the Saltmere quay, or the cover graded to the game's colours), a straight edge with a thin ink line between the art and the page, Continue as the only sage row, and a tagline the storyteller confirms. The UI lead prefers 2 (the player's boat as the ink mark) and accepts 3 on those terms. Drawn as **5** on the same sheet: title 3 with the cover graded by `grade_cover.py` (the teal sea pulled to the game's blue and quieted, a warm light from the top, baked into the image) and a straight inked page edge; the tagline "Read the wind, carry the cargo, find a home." is a placeholder for the storyteller. The game itself cannot light Saltmere at golden hour yet (its dusk is grey).
+
 Redraw round 4: `node docs/ui-refactor/v1.6/render.mjs --r4`, then `python3 docs/ui-refactor/v1.6/sheet_r3.py --titles docs/ui-refactor/v1.6/out-r4 <dir>`. In a browser: `mock.html?r=3&s=title&k=1..4&z=desktop|phone` (`titles-r3.js`, `chart-r3-title.css`).
 
 ## Redraw

@@ -8,6 +8,7 @@ mkdir -p $k/bg
 for f in /tmp/fw-v16-bg/*.png; do python3 -c "import sys; from PIL import Image; Image.open(sys.argv[1]).convert('RGB').save(sys.argv[2], quality=90)" "$f" "$k/bg/$(basename "$f" .png).jpg"; done
 # Round 4 titles: the README cover is the painted key art.
 python3 -c "import sys; from PIL import Image; Image.open(sys.argv[1]).convert('RGB').save(sys.argv[2], quality=90)" docs/images/readme/cover.png $k/bg/cover.jpg
+python3 $k/grade_cover.py docs/images/readme/cover.png $k/bg/cover-graded.jpg
 npm run -s chart -- --sea phase4 --view=-430,-470,770,280 --layers names,marks --legend none --sectors none --svg --out /tmp/fw-v16-chart
 cp /tmp/fw-v16-chart.svg $k/chart-src.svg
 npx tsx $k/portraits.ts > $k/portraits-src.json

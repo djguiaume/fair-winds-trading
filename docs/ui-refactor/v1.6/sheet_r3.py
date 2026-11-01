@@ -23,7 +23,8 @@ SHOTS = [('hud-day', 'Sea by day'), ('hud-night', 'Sea at night'), ('market-day'
 if titles:  # one sheet; each "shot" is a title screen (k = 1..4)
     VARIANTS = {'title': ('1-chart-table-titles', '1. The chart table: four title screens', 'Staged four ways; the menu rows are large plain rows, the same as Continue')}
     SHOTS = [('1', '1. Ledger: painted key art above, logo and menu on one ledger'), ('2', '2. The chart table: the chart itself, the logo as its cartouche'),
-             ('3', '3. Logbook page: a full-height page, painted key art beside it'), ('4', '4. Live harbour: the real game, the menu as a row of tiles')]
+             ('3', '3. Logbook page: a full-height page, painted key art beside it'), ('4', '4. Live harbour: the real game, the menu as a row of tiles'),
+             ('5', '3 on the art director\'s terms: the cover graded to the game, a straight inked edge')]
 
 
 def tile(path, width, text):

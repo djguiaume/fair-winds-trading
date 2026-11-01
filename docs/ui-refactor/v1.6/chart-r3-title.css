@@ -107,3 +107,8 @@
 .z-phone.tk-1 .tt-menu { top: 226px; }
 .z-phone.tk-1 .tt-row { min-height: 34px; }
 .z-phone.tk-1 .tt-links { bottom: 24px; }
+
+/* 5. Title 3 on the art director's terms: a straight page edge with a thin ink line, a tagline. */
+.tk-5 .tt-page::before { inset: 0; border: 0; border-image: none; background: var(--paper); box-shadow: 1.5px 0 0 var(--ink), 5px 0 14px rgba(20, 14, 8, .35); }
+.tk-5 .tt-tag { left: 0; width: 500px; top: 300px; text-align: center; font-size: 21px; }
+.tk-5 .tt-menu { top: 356px; }

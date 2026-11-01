@@ -20,6 +20,12 @@
     2: () => `<div class="c-map">${window.ASSETS.chart}</div>${brand('tt-cart')}${menu()}${common()}`,
     3: () => `<div class="tt-page"></div>${brand('tt-stack')}${menu()}${common()}`,
     4: () => `${brand('tt-cart')}${menu()}${common()}`,
+    // 3 on the art director's terms: the cover graded to the game, a straight inked edge, a tagline
+    // (a placeholder until the storyteller confirms it). It shares 3's layout, so it takes its class too.
+    5: () => {
+      document.body.classList.add('tk-3');
+      return `<div class="tt-page"></div>${brand('tt-stack')}<p class="tt-tag">Read the wind, carry the cargo, find a home.</p>${menu()}${common()}`;
+    },
   };
-  window.R3_TITLE_BG = { 1: 'bg/cover.jpg', 2: '', 3: 'bg/cover.jpg', 4: (size) => `bg/tt-d-${size}.jpg` };
+  window.R3_TITLE_BG = { 1: 'bg/cover.jpg', 2: '', 3: 'bg/cover.jpg', 4: (size) => `bg/tt-d-${size}.jpg`, 5: 'bg/cover-graded.jpg' };
 })();
