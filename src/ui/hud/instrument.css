@@ -16,6 +16,7 @@
 .hud-speed {
   display: flex;
   align-items: baseline;
+  justify-content: center;
   gap: 10px;
 }
 .hud-speed-n {
@@ -23,6 +24,10 @@
 }
 .hud-speed small {
   font: 400 var(--fs-big) / 1 var(--ui-font-title);
+}
+.hud-hdg,
+.hud-sog {
+  text-align: center;
 }
 .hud-hdg {
   margin-top: 4px;
