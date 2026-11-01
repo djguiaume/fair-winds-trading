@@ -1,10 +1,36 @@
-# v1.6 identity mockups: three directions (2026-11-01)
+# v1.6 identity mockups: four rounds to the chart table (2026-11-01)
 
 Static mockups only, nothing built. Asked by the [v1.6 brief](../../v1.6/brief.md) ("Identity first") and the [UI review](../../reviews/ui/review.md). Each direction is a full identity (logo, signature colour, type pair, motif, materials) on the same screens over the real game: title, sea HUD at night (plus day with the arrival banner and a storm with the storm warning), harbour Market and chart, desktop 1280 × 800 and phone landscape 844 × 390.
 
 Sheets (one per direction, JPG, 1280 px wide) and every screen at full size: project files `ui-review/mockups/`.
 
 The layout is the same in all three (the brief's screen rules and the useful parts of Guillaume's ChatGPT images): one hero per screen; the HUD in three clusters (status top left, heading strip and destination top centre, one big-number instrument bottom right, Map, Cargo and Menu bottom left); a harbour with the 3D port left visible between a Market pane (goods list and a detail pane with the price trend) and a people pane; a chart with book tabs. Only the identity changes.
+
+## Where we are
+
+**Pick (Guillaume, 2026-11-01): direction 1, the chart table, as round 3 D, with title 6.** Minimal at sea and on the title, paper in the harbour, Boat looks and the chart; the harbour is one ledger across about 90% of the width with the port as a strip above; the title is the logbook page beside painted key art (the README cover graded to the game's colours) with the torn page edge. Every proposition is kept below and in [sheets/](sheets/) (each sheet cut into pages at most 1900 px tall).
+
+## Every round
+
+| Round | Proposition | Sheets | Outcome |
+| --- | --- | --- | --- |
+| 1 | **1 The chart table**: ink on paper, sage | [round1/chart-table-*](sheets/round1/) | Kept for round 2 |
+| 1 | **2 The sailing club**: slate, burgee pink, condensed type | [round1/sailing-club-*](sheets/round1/) | Dropped; its big-number instrument went into every direction |
+| 1 | **3 The painted harbour**: painted wood, bottle green | [round1/painted-harbour-*](sheets/round1/) | Kept for round 2 |
+| 2 | 1 and 3, each **A framed** and **B minimal** | [round2/](sheets/round2/) | 1 chosen as a mix (minimal at sea and on the title, paper in the harbour); 3 dropped, its goods colour coding and chunky Buy and Sell kept |
+| 3 | 1 as the mix, **C** panes at 65% | [round3/chart-table-C-*](sheets/round3/) | Not chosen |
+| 3 | 1 as the mix, **D** a ledger across 90% | [round3/chart-table-D-*](sheets/round3/) | **Chosen** ("Round 3 D is the winner"); its minimal title "still bad" |
+| 4 | Titles **1 Ledger**, **2 Chart table**, **3 Logbook page**, **4 Live harbour** | [round4-title/titles-*](sheets/round4-title/) | 3 recommended by this thread and the art director, 2 by the UI lead |
+| 4 | Title **5**: 3 with the cover graded to the game and a straight inked edge (art director's terms) | same sheet | Edge not chosen |
+| 4 | Title **6**: 5 with 3's torn page edge | same sheet, [pick-title-6-*](sheets/round4-title/) | **Chosen** ("Go with the last one but with the torn edge of 3") |
+
+## Rules learned from Guillaume's feedback (keep for later rounds)
+
+- The wind compass is its own dial, top right, with the no-go zone hatched (never red); the speed stays the biggest number.
+- Text on the scene gets a hard 1 px ink halo or a faint ink plate, never blur; the instrument always has a backing.
+- The harbour may cover most of the screen (a ledger) if the port stays visible as a strip.
+- Title art may be generated in the game's style (not only game frames), graded to the game's colours.
+- Torn paper edges stay, over straight inked edges. Menu rows are large plain rows, the same as Continue.
 
 ## 1. The chart table
 
@@ -106,11 +132,13 @@ Guillaume picked round 3 D and found the title still weak. Four title screens, s
 
 All four: the menu rows are large plain rows with the same height and type as Continue (art director), Continue selected in sage with the save line; phone landscape drops the pad bar (touch first) and keeps rows at 34 to 36 px. The cover is bright teal sea; a painting made only for the title could match the chart table palette better (not made: no paid credits spent).
 
-**Picks (2026-11-01):** the art director recommends 3, on four conditions: key art that matches the game (a golden-hour render at the Saltmere quay, or the cover graded to the game's colours), a straight edge with a thin ink line between the art and the page, Continue as the only sage row, and a tagline the storyteller confirms. The UI lead prefers 2 (the player's boat as the ink mark) and accepts 3 on those terms. Drawn as **5** on the same sheet: title 3 with the cover graded by `grade_cover.py` (the teal sea pulled to the game's blue and quieted, a warm light from the top, baked into the image) and a straight inked page edge; the tagline "Read the wind, carry the cargo, find a home." is a placeholder for the storyteller. The game itself cannot light Saltmere at golden hour yet (its dusk is grey).
+**Picks (2026-11-01):** the art director recommends 3, on four conditions: key art that matches the game (a golden-hour render at the Saltmere quay, or the cover graded to the game's colours), a straight edge with a thin ink line between the art and the page, Continue as the only sage row, and a tagline the storyteller confirms. The UI lead prefers 2 (the player's boat as the ink mark) and accepts 3 on those terms. Drawn as **5** on the same sheet, then **6** (Guillaume's pick: 5 with 3's torn edge): title 3 with the cover graded by `grade_cover.py` (the teal sea pulled to the game's blue and quieted, a warm light from the top, baked into the image) and a straight inked page edge; the tagline "Read the wind, carry the cargo, find a home." is a placeholder for the storyteller. The game itself cannot light Saltmere at golden hour yet (its dusk is grey).
 
-Redraw round 4: `node docs/ui-refactor/v1.6/render.mjs --r4`, then `python3 docs/ui-refactor/v1.6/sheet_r3.py --titles docs/ui-refactor/v1.6/out-r4 <dir>`. In a browser: `mock.html?r=3&s=title&k=1..4&z=desktop|phone` (`titles-r3.js`, `chart-r3-title.css`).
+Redraw round 4: `node docs/ui-refactor/v1.6/render.mjs --r4`, then `python3 docs/ui-refactor/v1.6/sheet_r3.py --titles docs/ui-refactor/v1.6/out-r4 <dir>`. In a browser: `mock.html?r=3&s=title&k=1..6&z=desktop|phone` (`titles-r3.js`, `chart-r3-title.css`).
 
 ## Redraw
+
+The sheets in [sheets/](sheets/) are cut from the contact sheets by `archive.py` (pages at most 1900 px tall and 500 KB, cut only between rows).
 
 ```sh
 sh docs/ui-refactor/v1.6/setup.sh            # backgrounds, chart, portraits, fonts (from the real game)

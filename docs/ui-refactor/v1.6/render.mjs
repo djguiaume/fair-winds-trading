@@ -14,7 +14,7 @@ const out = process.env.OUT || join(here, r4 ? 'out-r4' : r3 ? 'out-r3' : r2 ? '
 const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const dirs = r3 || r4 ? ['chart'] : args.length ? args : r2 ? ['chart', 'harbour'] : ['chart', 'club', 'harbour'];
 // Round 3 variants are the harbour widths (w=c|d); the Quay is drawn at night to show the night paper.
-const VARIANTS = r4 ? ['1', '2', '3', '4', '5'] : r3 ? ['c', 'd'] : r2 ? ['framed', 'minimal'] : [''];
+const VARIANTS = r4 ? ['1', '2', '3', '4', '5', '6'] : r3 ? ['c', 'd'] : r2 ? ['framed', 'minimal'] : [''];
 const SHOTS = r4
   ? [['title', 'day']]
   : r3
