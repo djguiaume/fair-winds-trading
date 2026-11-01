@@ -1,6 +1,6 @@
 # 0259. Visible upgrade identity: panels, bands, rubbing strakes
 
-**Status:** Proposed (2026-10-31), awaiting art director and Guillaume (#295).
+**Status:** Accepted (2026-11-01). Guillaume: "Go with B, but it will be changed by the logos and more patterns issue anyway. Free is OK at the moment." Logos and patterns: #418.
 
 ## Context
 
@@ -8,7 +8,7 @@ The fleet already shows three levels each of sails, hull and hold (decisions 007
 
 ## Decision
 
-Recommended direction, pending approval: sail variant **B "Bands"**. Sails 1 stays patched canvas; sails 2 gets clean canvas with a class-colour foot band; sails 3 adds a head band and the centre stripe. Hull gets a rubbing strake (leather tan at 2, brass at 3) between the band and the copper. Hold stays as is (more crates and barrels). Variants A (panels and borders) and C (cut and luff tabling) were weaker at camera scale. Cosmetics, slots and compatibility are in `docs/v1.4/plan.md`.
+Sail variant **B "Bands"**. Sails 1 stays patched canvas; sails 2 gets clean canvas with a class-colour foot band; sails 3 adds a head band and the centre stripe. Hull gets a rubbing strake (leather tan at 2, brass at 3) between the band and the copper. Hold stays as is (more crates and barrels). Variants A (panels and borders) and C (cut and luff tabling) were weaker at camera scale. Cosmetics, slots and compatibility are in `docs/v1.4/plan.md`.
 
 Availability (Guillaume OK, 2026-10-31): sail colours and patterns are free; figureheads and pennants are earned through story or regatta wins; no coin prices; the Tern stays a single gift.
 
