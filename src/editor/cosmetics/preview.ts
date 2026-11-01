@@ -2,8 +2,8 @@ import { SHIP_FILES } from '../../data/ships';
 import { PROP_RECIPES, type RecipePart } from '../../data/props';
 import { type Catalogue, type Appearance, RULES, resolveAppearance } from '../../sim/cosmetics';
 import { FLAGS } from '../../sim/regatta';
-import { flagSvg } from '../regatta/doc';
-import { bandPaints, patternTriangles } from '../../render/models/sailPatterns';
+import { emblemShapes, flagSvg, patternSvg, type SailCorners } from '../../ui/lookPictures';
+import { bandPaints } from '../../render/models/sailPatterns';
 
 /**
  * A flat side view of a boat wearing a look, as SVG: the hull in her class colours, the sail with
@@ -14,6 +14,13 @@ import { bandPaints, patternTriangles } from '../../render/models/sailPatterns';
 const SAIL = 'M100 12 L100 98 L26 98 L46 40 Z';
 const SAIL_FOOT = 74;
 const SAIL_HEIGHT = 86;
+/** Foot luff, foot leech, head leech, head luff of SAIL. */
+const EDITOR_SAIL_CORNERS: SailCorners = [
+  [100, 98],
+  [26, 98],
+  [46, 40],
+  [100, 12],
+];
 
 export function lookSvg(cat: Catalogue, want: Partial<Appearance>, shipClass: string): string {
   const { look, problems } = resolveAppearance(cat, want, shipClass, FLAGS);
@@ -28,7 +35,7 @@ export function lookSvg(cat: Catalogue, want: Partial<Appearance>, shipClass: st
   const bands =
     kind === 'plain'
       ? ''
-      : `<g clip-path="url(#sail)">${motifSvg(kind, colours)}<rect x="20" y="84" width="90" height="14" fill="${c1}"/><rect x="20" y="12" width="90" height="10" fill="${c1}"/>${stripe}</g>`;
+      : `<g clip-path="url(#sail)">${patternSvg(kind, colours, EDITOR_SAIL_CORNERS)}<rect x="20" y="84" width="90" height="14" fill="${c1}"/><rect x="20" y="12" width="90" height="10" fill="${c1}"/>${stripe}</g>`;
   const logo = look.sail.logo ? emblem(look.sail.logo.svg, look.sail.logo.colour) : '';
   const flag = look.flag ? flagSvg(look.flag, 26).replace('<svg ', '<svg x="100" y="2" ') : '';
   const head = look.figurehead ? figureheadSvg(look.figurehead.recipe, look.figurehead.size) : '';
@@ -39,39 +46,12 @@ export function lookSvg(cat: Catalogue, want: Partial<Appearance>, shipClass: st
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" width="200" height="150" role="img" aria-label="${shipClass}${problems.length ? ': ' + problems.join('; ') : ''}"><defs><clipPath id="sail"><path d="${SAIL}"/></clipPath></defs><rect width="200" height="150" fill="#bfe3f0"/><path d="M0 128 H200 V150 H0 Z" fill="#6fb6d0"/>${wake}<path d="M34 106 H166 L156 128 H48 Z" fill="${hull}" stroke="#22252a"/><rect x="38" y="110" width="124" height="6" fill="${band}"/>${strake}${head}<rect x="98" y="10" width="3" height="96" fill="#5a3d24"/><path d="${SAIL}" fill="${look.sail.cloth}" stroke="#22252a"/>${bands}${logo}${flag}</svg>`;
 }
 
-/** A pattern's shapes (sailPatterns.ts, as the 3D sails paint them) on the flat sail. */
-function motifSvg(kind: string, colours: readonly string[]): string {
-  // Foot luff, foot leech, head leech, head luff of SAIL.
-  const [a, b, c, d] = [
-    [100, 98],
-    [26, 98],
-    [46, 40],
-    [100, 12],
-  ] as const;
-  const at = ([u, v]: [number, number]) =>
-    [0, 1]
-      .map((k) => (a[k]! * (1 - u) + b[k]! * u) * (1 - v) + (d[k]! * (1 - u) + c[k]! * u) * v)
-      .map((n) => n.toFixed(1))
-      .join(',');
-  return patternTriangles(kind)
-    .map((t) => {
-      // A hairline of the same colour hides the seams between neighbouring triangles.
-      const fill = colours[t.paint] ?? colours[0];
-      return `<polygon points="${t.corners.map(at).join(' ')}" fill="${fill}" stroke="${fill}" stroke-width="0.4"/>`;
-    })
-    .join('');
-}
-
 /** The emblem at the size and place `rules.json` gives: a share of the sail's width, centred. */
 function emblem(svg: string, colour: string): string {
   const size = RULES.emblem.width * SAIL_FOOT;
   const y = 12 + RULES.emblem.centreV * SAIL_HEIGHT - size / 2;
-  return `<g fill="${colour}"><svg x="${(100 - 4 - size).toFixed(1)}" y="${y.toFixed(1)}" width="${size.toFixed(1)}" height="${size.toFixed(1)}" viewBox="0 0 32 32">${innerOf(svg)}</svg></g>`;
+  return `<g fill="${colour}"><svg x="${(100 - 4 - size).toFixed(1)}" y="${y.toFixed(1)}" width="${size.toFixed(1)}" height="${size.toFixed(1)}" viewBox="0 0 32 32">${emblemShapes(svg)}</svg></g>`;
 }
-
-/** The shapes inside an emblem's `<svg>`. */
-const innerOf = (svg: string) =>
-  svg.replace(/^[\s\S]*?<svg\b[^>]*>/, '').replace(/<\/svg>\s*$/, '');
 
 const n = (v: unknown, fallback = 0) => (typeof v === 'number' ? v : fallback);
 const HULL_PX = 132;

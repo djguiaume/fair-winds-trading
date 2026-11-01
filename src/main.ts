@@ -127,6 +127,7 @@ import {
   useTextEdits,
 } from './i18n';
 import { TradePanel } from './ui/tradePanel';
+import { boatLooksIn } from './ui/boatLooks/host';
 import { HomePanel, buildingName, effectLine } from './ui/homePanel';
 import {
   PLOT_CAMERA,
@@ -426,6 +427,7 @@ const quests = new QuestBook(world, undefined, {
 });
 // The regatta pennant won flies at her masthead (decision 0217).
 view.setPennant(flownPennant(quests));
+boatLooksIn($('trade-panel'), { world, quests, settings, autosave }, () => level);
 // Whether a fresh voyage offers the tutorial: kept in the browser across voyages.
 const tutorialChoice = new TutorialChoice(world.map.name, storage);
 // A lesson under way in the browser's storage before 0151 moves into the voyage once.
@@ -826,12 +828,10 @@ chart.quests = {
   },
 };
 tradePanel.uiMode = settings.uiMode;
-hud.portLabels.isKidMode = settings.uiMode === 'kids';
-hud.isKidMode = settings.uiMode === 'kids';
+hud.portLabels.isKidMode = hud.isKidMode = settings.uiMode === 'kids';
 tradePanel.onUiModeChange = (mode) => {
   settings.uiMode = mode;
-  hud.portLabels.isKidMode = mode === 'kids';
-  hud.isKidMode = mode === 'kids';
+  hud.portLabels.isKidMode = hud.isKidMode = mode === 'kids';
   keepSettings();
 };
 const monitor = new FrameMonitor();

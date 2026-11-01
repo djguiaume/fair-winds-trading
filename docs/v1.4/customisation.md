@@ -55,6 +55,8 @@ A paid kind would be one more `unlock` value (`store` with an `sku`), not built 
 
 Its own screen, opened from the shipyard tab and from the title menu's Free Sailing. Left: slot list (Z-A style rows). Middle: the boat, turnable, in day or night light, with the selected item on it. Right/bottom on phone: item grid with locked items and how to earn them, a "new" dot, the set's name. Buttons: equip, back to stock, save as set. Pad, touch and keyboard. A static mockup comes before any build (Guillaume prefers mockups).
 
+Built in #299 as layout B "Wardrobe" (decision [0265](../decisions/0265-boat-looks-screen-wardrobe-layout-and-turntable-preview.md), mockups in `docs/mockups/boat-looks/`): try on, then Use per slot; Back to stock; compare Stock / Yours / All upgrades; day or night. Not built yet: the "new" dot, sets and "save as set".
+
 ## Budgets
 
 Colours and patterns: 0 extra triangles, 0 draw calls. Logo ≤ 40 triangles, figurehead ≤ 60, both merged. Wake trail: uniform changes only on the existing wake, no particles on Low.

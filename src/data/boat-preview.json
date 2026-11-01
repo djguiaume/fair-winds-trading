@@ -1,0 +1,66 @@
+{
+  "about": "The turntable boat of the Boat looks screen and Free Sailing (issue #299): camera, turn speed, the speed her laid wake shows (`wakeKnots`), the soft water disc under her, the backdrop's sky and sea by day and night (the disc takes the sea's colour), and the camera views: `at` is the point looked at as shares of her half beam, height above the water and waterline's half length (-1 the stem), `yaw` her turn in degrees (null: she keeps turning), `zoom` how much closer than the whole boat, `tilt` the camera's degrees down. `slotViews`: the view a Boat looks slot turns to.",
+  "fov": 28,
+  "margin": 0.72,
+  "startYaw": -125,
+  "spinDegPerSecond": 9,
+  "wakeKnots": 6,
+  "stepDeg": 45,
+  "discScale": 1.15,
+  "discSolid": 0.55,
+  "backdrop": {
+    "day": {
+      "sky": "#bfe0ea",
+      "sea": "#5aa8bd"
+    },
+    "night": {
+      "sky": "#0f2740",
+      "sea": "#1f4a70"
+    }
+  },
+  "maxPixelRatio": 2,
+  "ease": 4,
+  "views": {
+    "whole": {
+      "about": "The whole boat, turning slowly.",
+      "yaw": null,
+      "zoom": 1,
+      "at": [0, 0.35, 0],
+      "tilt": 24
+    },
+    "bow": {
+      "about": "Three-quarter bow, close: the figurehead hung under the bowsprit.",
+      "yaw": -120,
+      "zoom": 3.2,
+      "at": [0, 0.07, -1.0],
+      "tilt": 12
+    },
+    "masthead": {
+      "about": "Up the mast: the flag.",
+      "yaw": -110,
+      "zoom": 1.7,
+      "at": [0, 0.88, 0],
+      "tilt": 6
+    },
+    "stern": {
+      "about": "Three-quarter stern, a little high: her wake astern.",
+      "yaw": 35,
+      "zoom": 1.15,
+      "at": [0, 0.05, 1.15],
+      "tilt": 30
+    },
+    "side": {
+      "about": "Broadside, a little low: the sail logo, drawn flat on the cloth, reads best from the side.",
+      "yaw": -90,
+      "zoom": 1.05,
+      "at": [0, 0.42, 0],
+      "tilt": 8
+    }
+  },
+  "slotViews": {
+    "sail-logo": "side",
+    "figurehead": "bow",
+    "flag": "masthead",
+    "wake": "stern"
+  }
+}

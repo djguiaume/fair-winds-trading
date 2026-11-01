@@ -1,0 +1,362 @@
+/*
+ * Boat looks (issue #299), layout B "Wardrobe": slot rows on paper at the left, the boat on her
+ * turntable in the middle, the slot's items at the right; smaller screens in boatLooksSmall.css.
+ * Style E tokens (theme.css), the #319 type scale, no tracking. A modal dialog over the port.
+ */
+.boat-looks {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr) 360px;
+  background: var(--planks);
+  color: var(--paper-ink);
+  font-family: var(--body);
+}
+.boat-looks:not([open]) {
+  display: none;
+}
+.boat-looks::backdrop {
+  background: var(--leather-deep);
+}
+:where(.boat-looks) button {
+  font: inherit;
+  cursor: pointer;
+}
+
+/* --- Slots ------------------------------------------------------------------------------------- */
+.bl-slots,
+.bl-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  padding: max(16px, var(--safe-top, env(safe-area-inset-top))) 16px 16px;
+  background: var(--paper);
+  overflow-y: auto;
+}
+.bl-slots {
+  padding-left: max(16px, var(--safe-left, env(safe-area-inset-left)));
+}
+.bl-title {
+  margin: 0;
+  font: 900 var(--fs-big) / 1.1 var(--serif);
+}
+.bl-ships {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.bl-ships:empty {
+  display: none;
+}
+.bl-ships button {
+  min-height: 40px;
+  padding: 4px 14px;
+  border: 2px solid var(--paper-edge);
+  border-radius: 999px;
+  background: var(--tab);
+  color: var(--paper-ink);
+  font: 700 var(--fs-body) var(--serif);
+}
+.bl-ships button[aria-pressed='true'] {
+  background: var(--paper-card);
+}
+.bl-slot-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+}
+.bl-slot {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 4px 12px 4px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--paper-2);
+  color: var(--paper-ink);
+  text-align: left;
+}
+/* Pokémon Z-A's selected row: white, bigger, standing out of the list. */
+.bl-slot[aria-selected='true'] {
+  min-height: 64px;
+  margin-right: -8px;
+  background: #fffdf6;
+  box-shadow:
+    0 3px 0 rgba(0, 0, 0, 0.2),
+    inset 6px 0 0 var(--teal);
+}
+.bl-slot-pic {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 40px;
+}
+.bl-slot-pic > svg {
+  width: auto;
+  max-width: 44px;
+  height: 100%;
+}
+.bl-slot-pic > img {
+  width: 40px;
+  height: 40px;
+}
+.bl-slot-pic .bl-swatch {
+  width: 32px;
+  height: 32px;
+}
+.bl-slot-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.bl-slot-text small {
+  color: var(--paper-ink-dim);
+  font: 600 var(--fs-small) var(--body);
+}
+.bl-slot-text b {
+  overflow: hidden;
+  font: 700 var(--fs-lead) / 1.2 var(--serif);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Tried on, not in use yet. */
+.bl-changed {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--teal);
+}
+.bl-stock {
+  flex: none;
+}
+
+/* --- Stage ------------------------------------------------------------------------------------- */
+.bl-stage {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  /* The sky and sea come from boat-preview.json (screen.ts sets them), the water disc's sea. */
+  background: linear-gradient(var(--bl-sky) 0 50%, var(--bl-sea) 50%);
+}
+.bl-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+.bl-ship-line {
+  position: absolute;
+  top: max(14px, var(--safe-top, env(safe-area-inset-top)));
+  left: 16px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  color: var(--paper-ink);
+  font-size: var(--fs-note);
+  pointer-events: none;
+}
+.boat-looks[data-night] .bl-ship-line {
+  color: var(--leather-ink);
+}
+.bl-ship-line b {
+  font: 900 var(--fs-title) var(--serif);
+}
+.bl-compare {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: 1;
+  display: flex;
+  border: 2px solid var(--plate-edge);
+  border-radius: 999px;
+  background: var(--paper-card);
+  overflow: hidden;
+}
+.bl-compare button {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  background: none;
+  color: var(--paper-ink);
+  font: 700 var(--fs-body) var(--display);
+  white-space: nowrap;
+}
+.bl-compare button[aria-pressed='true'] {
+  background: var(--teal);
+  color: var(--on-fill);
+}
+.bl-view {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 1;
+  display: flex;
+  gap: 6px;
+}
+.bl-round {
+  width: 46px;
+  height: 46px;
+  border: 2px solid var(--plate-edge);
+  border-radius: 50%;
+  background: var(--paper-card);
+  color: var(--paper-ink);
+  font-size: var(--fs-head);
+}
+.boat-looks .bl-close {
+  position: absolute;
+  top: max(12px, var(--safe-top, env(safe-area-inset-top)));
+  right: 376px;
+  z-index: 2;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  font-size: var(--fs-head);
+  font-weight: 700;
+}
+
+/* --- Items ------------------------------------------------------------------------------------- */
+.bl-items {
+  padding-right: max(16px, var(--safe-right, env(safe-area-inset-right)));
+}
+.bl-items-title {
+  margin: 0;
+  font: 700 var(--fs-head) var(--serif);
+}
+.bl-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  align-content: start;
+}
+.bl-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 96px;
+  padding: 8px 4px 6px;
+  border: 2px solid rgba(90, 60, 30, 0.25);
+  border-radius: 10px;
+  background: var(--paper-card);
+  color: var(--paper-ink);
+}
+.bl-tile[aria-pressed='true'] {
+  border: 3px solid var(--teal);
+  background: #fffaf0;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18);
+}
+.bl-tile:is(.locked, .unfit) .bl-pic {
+  opacity: 0.6;
+  filter: saturate(0.5);
+}
+.bl-pic {
+  display: grid;
+  place-items: center;
+  height: 52px;
+}
+.bl-pic > svg {
+  width: auto;
+  max-width: 64px;
+  height: 100%;
+}
+.bl-pic > img {
+  width: 52px;
+  height: 52px;
+}
+.bl-swatch {
+  display: block;
+  width: 46px;
+  height: 46px;
+  border: 2px solid rgba(53, 38, 26, 0.4);
+  border-radius: 50%;
+}
+.bl-none {
+  width: 34px;
+  height: 34px;
+  stroke: var(--paper-ink-dim);
+}
+.bl-tile-name {
+  font: 600 var(--fs-small) / 1.15 var(--body);
+  text-align: center;
+}
+.bl-lock {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  fill: currentColor;
+  stroke: currentColor;
+}
+.bl-tile .bl-lock {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+.bl-in-use {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--green);
+}
+.bl-detail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--paper-2);
+}
+.bl-detail-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.bl-detail-text b {
+  font: 700 var(--fs-sub) var(--serif);
+}
+.bl-note,
+.bl-earn {
+  font-size: var(--fs-note);
+}
+.bl-note {
+  color: var(--paper-ink-dim);
+}
+.bl-earn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--amber);
+  font-weight: 700;
+}
+.bl-badge {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--green);
+  color: var(--on-fill);
+  font: 700 var(--fs-body) var(--display);
+  white-space: nowrap;
+}
+.bl-use[aria-disabled='true'] {
+  opacity: 0.45;
+}

@@ -993,7 +993,7 @@ export class TradePanel {
     return `
       <div class="shipyard-section kids-layout">
         <div class="section-title">
-          <h3>${t('kids.upgradeTitle')}</h3>
+          <h3>${t('kids.upgradeTitle')}</h3><button type="button" class="ship-btn boat-looks-btn" id="tp-boat-looks" title="${t('customise.openTitle')}">${t('customise.open')}</button>
         </div>
         ${
           trade.dockedAt === home.id
@@ -1099,7 +1099,7 @@ export class TradePanel {
       <div class="shipyard-section adult-layout">
         <div class="section-title">
           <h3>${t('upg.forActive', { ship: shipName(activeShipBase) })}</h3>
-          <span class="muted small">${t('upg.visualNote')}</span>
+          <span class="muted small">${t('upg.visualNote')}</span><button type="button" class="ship-btn boat-looks-btn" id="tp-boat-looks" title="${t('customise.openTitle')}">${t('customise.open')}</button>
         </div>
         ${upgradesHtml}
 

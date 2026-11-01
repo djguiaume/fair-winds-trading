@@ -1,6 +1,7 @@
 import shippedRegatta from '../../data/regatta.json';
 import shippedFlags from '../../data/flags.json';
 import { formatJson } from '../../data/jsonFormat';
+export { flagSvg } from '../../ui/lookPictures';
 import {
   FLAG_SHAPES,
   type FlagDef,
@@ -111,68 +112,3 @@ export function removeFlag(doc: RegattaDoc, id: string): boolean {
 }
 
 export const isFlagShape = (v: string): v is FlagShape => FLAG_SHAPES.includes(v as FlagShape);
-
-/**
- * A flag drawn flat as SVG, as `flagGeometry` builds it in the game: the luff on the left, the
- * bands from the mast out, a swallowtail's fork cut 70 % in. `px` pixels per flag unit.
- */
-export function flagSvg(f: FlagDef, px = 80): string {
-  const L = f.length * px;
-  const H = f.height * px;
-  const bands = f.bands.length ? f.bands : ['#d2462f'];
-  const n = bands.length;
-  const polys: string[] = [];
-  const poly = (pts: number[][], c: string) =>
-    polys.push(
-      `<polygon points="${pts.map(([x, y]) => `${(x! * L).toFixed(1)},${y!.toFixed(1)}`).join(' ')}" fill="${c}"/>`,
-    );
-  if (f.shape === 'swallowtail') {
-    const fork = 0.7;
-    for (let i = 0; i < n; i++)
-      poly(
-        [
-          [(i / n) * fork, 0],
-          [((i + 1) / n) * fork, 0],
-          [((i + 1) / n) * fork, H],
-          [(i / n) * fork, H],
-        ],
-        bands[i]!,
-      );
-    const last = bands[n - 1]!;
-    poly(
-      [
-        [fork, 0],
-        [1, 0],
-        [1, H * 0.25],
-        [fork, H * 0.5],
-      ],
-      last,
-    );
-    poly(
-      [
-        [fork, H * 0.5],
-        [1, H * 0.75],
-        [1, H],
-        [fork, H],
-      ],
-      last,
-    );
-  } else {
-    const top = (u: number) => (H / 2) * u;
-    const bottom = (u: number) => H - (H / 2) * u;
-    for (let i = 0; i < n; i++) {
-      const u0 = i / n;
-      const u1 = (i + 1) / n;
-      poly(
-        [
-          [u0, top(u0)],
-          [u1, top(u1)],
-          [u1, bottom(u1)],
-          [u0, bottom(u0)],
-        ],
-        bands[i]!,
-      );
-    }
-  }
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.ceil(L) + 6}" height="${Math.ceil(H) + 6}" viewBox="-3 -3 ${Math.ceil(L) + 6} ${Math.ceil(H) + 6}"><line x1="0" y1="-3" x2="0" y2="${H + 3}" stroke="#22252a" stroke-width="3"/>${polys.join('')}</svg>`;
-}
