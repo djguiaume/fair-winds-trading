@@ -106,6 +106,8 @@ export interface Rules {
   wake: { minLightness: number; maxChroma: number };
   /** An emblem's width as a share of the sail's, and its centre down the sail (0 head, 1 foot). */
   emblem: { width: number; centreV: number };
+  /** A figurehead's longest reach as a share of the hull's length (times the item's `size`). */
+  figurehead: { share: number };
   mounts: string[];
 }
 export const RULES = rulesFile as unknown as Rules;

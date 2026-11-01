@@ -45,39 +45,95 @@ function emblem(svg: string, colour: string): string {
 const innerOf = (svg: string) =>
   svg.replace(/^[\s\S]*?<svg\b[^>]*>/, '').replace(/<\/svg>\s*$/, '');
 
-const PX = 36;
 const n = (v: unknown, fallback = 0) => (typeof v === 'number' ? v : fallback);
+const HULL_PX = 132;
 
-/** One recipe part seen from the front: its box, cylinder or cone as a flat shape, a ball as a disc. */
-function partShape(p: RecipePart): string {
-  const [x = 0, y = 0] = p.at ?? [];
+interface Piece {
+  svg: string;
+  /** Where it reaches along the bow (z) and up (y), in recipe units. */
+  box: [number, number, number, number];
+}
+
+/** The way a part's long axis points after its turns: along y (up), z (the bow) or x (across). */
+function axisOf(p: RecipePart): 'x' | 'y' | 'z' {
+  for (const [op, a] of p.ops ?? []) {
+    if (op === 'turnX' && Math.abs(n(a)) > 1) return 'z';
+    if (op === 'turnZ' && Math.abs(n(a)) > 1) return 'x';
+  }
+  return 'y';
+}
+
+/** One recipe part seen from the side (bow to the right, z across and y up). */
+function sidePiece(p: RecipePart): Piece | null {
+  const y = n(p.at?.[1]);
+  const z = n(p.at?.[2]);
   const scale = (p.ops ?? []).find((o) => o[0] === 'scale');
-  const [sx, sy] = [n(scale?.[1], 1), n(scale?.[scale?.length === 4 ? 2 : 1], 1)];
+  const [, sy, sz] = scale
+    ? scale.length === 4
+      ? [n(scale[1], 1), n(scale[2], 1), n(scale[3], 1)]
+      : [n(scale[1], 1), n(scale[1], 1), n(scale[1], 1)]
+    : [1, 1, 1];
   const color = typeof p.color === 'string' ? p.color : '#999999';
-  const cx = n(x) * PX;
-  const cy = -n(y) * PX;
-  const shape = (w: number, h: number, kind: 'rect' | 'tri' | 'disc') => {
-    const [W, H] = [w * PX * sx, h * PX * sy];
-    if (kind === 'disc')
-      return `<ellipse cx="${cx}" cy="${cy}" rx="${W / 2}" ry="${H / 2}" fill="${color}"/>`;
-    if (kind === 'tri')
-      return `<polygon points="${cx - W / 2},${cy + H / 2} ${cx + W / 2},${cy + H / 2} ${cx},${cy - H / 2}" fill="${color}"/>`;
-    return `<rect x="${cx - W / 2}" y="${cy - H / 2}" width="${W}" height="${H}" fill="${color}"/>`;
-  };
-  if (p.box) return shape(n(p.box[0]), n(p.box[1]), 'rect');
-  if (p.cyl) return shape(n(p.cyl[0]) * 2, n(p.cyl[2]), 'rect');
-  if (p.cone) return shape(n(p.cone[0]) * 2, n(p.cone[1]), 'tri');
-  const ball = p.ico ?? p.dodeca ?? p.sphere;
-  return ball ? shape(n(ball[0]) * 2, n(ball[0]) * 2, 'disc') : '';
+  const axis = axisOf(p);
+  let w: number;
+  let h: number;
+  let kind: 'rect' | 'tri' | 'disc' = 'rect';
+  if (p.box) [w, h] = [n(p.box[2]) * sz, n(p.box[1]) * sy];
+  else if (p.cyl || p.cone) {
+    const [r, len] = p.cyl
+      ? [Math.max(n(p.cyl[0]), n(p.cyl[1])), n(p.cyl[2])]
+      : [n(p.cone![0]), n(p.cone![1])];
+    [w, h] =
+      axis === 'z'
+        ? [len * sz, r * 2 * sy]
+        : axis === 'x'
+          ? [r * 2 * sz, r * 2 * sy]
+          : [r * 2 * sz, len * sy];
+    if (p.cone) kind = axis === 'z' ? 'tri' : 'tri';
+    if (p.cyl && axis === 'x') kind = 'disc';
+  } else {
+    const ball = p.ico ?? p.dodeca ?? p.sphere;
+    if (!ball) return null;
+    [w, h, kind] = [n(ball[0]) * 2 * sz, n(ball[0]) * 2 * sy, 'disc'];
+  }
+  const [x0, x1, y0, y1] = [z - w / 2, z + w / 2, y - h / 2, y + h / 2];
+  const at = `cx="${z}" cy="${-y}"`;
+  const svg =
+    kind === 'disc'
+      ? `<ellipse ${at} rx="${w / 2}" ry="${h / 2}" fill="${color}"/>`
+      : kind === 'tri'
+        ? axis === 'z'
+          ? `<polygon points="${x0},${-y1} ${x0},${-y0} ${x1},${-y}" fill="${color}"/>`
+          : `<polygon points="${x0},${-y0} ${x1},${-y0} ${z},${-y1}" fill="${color}"/>`
+        : `<rect x="${x0}" y="${-y1}" width="${w}" height="${h}" fill="${color}"/>`;
+  return { svg, box: [x0, x1, y0, y1] };
 }
 
-/** A figurehead's prop recipe as a front-view silhouette, standing on the bow at its size. */
-export function figureheadSvg(recipe: string, size = 1): string {
-  const parts = PROP_RECIPES[recipe]?.parts ?? [];
-  return `<g transform="translate(166 108) scale(${size * 0.6})">${parts.map(partShape).join('')}</g>`;
+/**
+ * A figurehead's prop recipe as a side silhouette: its longest reach is `rules.json` ›
+ * `figurehead.share` of the hull's length times the item's `size`, so every carving reads at the
+ * bow whatever its recipe's own units. Seated on the stem, leaning forward and up.
+ */
+export function figureheadSvg(
+  recipe: string,
+  size = 1,
+  hullPx = HULL_PX,
+  bow: [number, number] = [166, 108],
+): string {
+  const pieces = (PROP_RECIPES[recipe]?.parts ?? [])
+    .map(sidePiece)
+    .filter((q): q is Piece => q !== null);
+  if (!pieces.length) return '';
+  const [x0, x1, y0, y1] = [0, 1, 2, 3].map((k) =>
+    k % 2 ? Math.max(...pieces.map((q) => q.box[k]!)) : Math.min(...pieces.map((q) => q.box[k]!)),
+  ) as [number, number, number, number];
+  const scale = (RULES.figurehead.share * hullPx * size) / Math.max(x1 - x0, y1 - y0);
+  const dx = bow[0] - ((x0 + x1) / 2) * scale;
+  const dy = bow[1] + y0 * scale;
+  return `<g transform="translate(${dx.toFixed(1)} ${dy.toFixed(1)}) scale(${scale.toFixed(2)})">${pieces.map((q) => q.svg).join('')}</g>`;
 }
 
-/** A figurehead on its own, for its card in the editor. */
+/** A figurehead on its own, large, for its card in the editor. */
 export function figureheadCard(recipe: string, size = 1): string {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -50 80 56" width="160" height="112" role="img" aria-label="${recipe}"><rect x="-40" y="-50" width="80" height="56" fill="#bfe3f0"/><g transform="scale(${size})">${(PROP_RECIPES[recipe]?.parts ?? []).map(partShape).join('')}</g></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 56" width="160" height="112" role="img" aria-label="${recipe}"><rect width="80" height="56" fill="#bfe3f0"/>${figureheadSvg(recipe, size, 330, [40, 50])}</svg>`;
 }

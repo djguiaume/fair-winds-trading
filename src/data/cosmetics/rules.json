@@ -65,6 +65,7 @@
     "minLightness": 0.85,
     "maxChroma": 0.1
   },
+  "figurehead": { "share": 0.1 },
   "emblem": {
     "width": 0.35,
     "centreV": 0.3
