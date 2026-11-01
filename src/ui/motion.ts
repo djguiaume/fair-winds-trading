@@ -1,4 +1,5 @@
 import './motion.css';
+import { motionMode } from './motionMode';
 import { SHIPPED_THEME } from './theme/model';
 
 /**
@@ -9,12 +10,14 @@ import { SHIPPED_THEME } from './theme/model';
  * off: screens and toasts just appear, numbers jump to their value.
  */
 
-export type Enter = 'fade' | 'slide' | 'rise';
+export type Enter = 'fade' | 'slide' | 'rise' | 'drop' | 'pulse' | 'stamp';
 
 let reducedQuery: MediaQueryList | null | undefined;
 
-/** Whether the player asked their system for less motion. */
+/** Whether the interface holds still: Settings › Motion, else the system's "reduce motion". */
 export function reducedMotion(): boolean {
+  const chosen = motionMode();
+  if (chosen) return chosen !== 'full';
   if (reducedQuery === undefined)
     reducedQuery =
       typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : null;

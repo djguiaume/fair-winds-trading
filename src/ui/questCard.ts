@@ -5,6 +5,8 @@ import { COIN, icon } from './icons';
 import { padGlyph } from './padGlyphs';
 import { firstName, portraitSvg } from './portraits';
 import { type QuestCardModel, cardTag } from './questView';
+import { medalClass, raceBoardHtml } from './moments/raceBoard';
+import { stampCard } from './moments/stamp';
 import { type RaceCardInfo, raceClock } from './regattaView';
 
 const esc = (s: string) =>
@@ -20,20 +22,12 @@ function padFor(action: MenuAction): string {
 }
 
 /**
- * A race's times on its card (decision 0217): the result just sailed, big, against Kestrel's; then
- * this ship's three medal times with the gold each pays the first time, the ones won ticked; and
- * the record.
+ * A race's times on its card (decision 0217): this ship's three medal times with the gold each pays
+ * the first time, the ones won ticked, and the record; a race just sailed shows the finish board
+ * instead (decision 0274).
  */
 function raceBlock(r: RaceCardInfo): string {
   const res = r.result;
-  const medal = (m: number) => ['none', 'bronze', 'silver', 'gold'][m] ?? 'none';
-  const result = res
-    ? `<div class="race-result is-${medal(res.medal)}"><span class="race-medal" aria-hidden="true"></span><span><small>${esc(t('regatta.yourTime'))}</small><b>${raceClock(res.sec)}</b></span><span class="race-rival">${esc(
-        res.rival !== undefined
-          ? t('regatta.kestrel', { time: raceClock(res.rival) })
-          : t('regatta.kestrelBehind'),
-      )}</span></div>`
-    : '';
   const times = r.times
     .map(
       (m) =>
@@ -42,11 +36,12 @@ function raceBlock(r: RaceCardInfo): string {
         }</li>`,
     )
     .join('');
+  if (res) return raceBoardHtml(r, times);
   const best =
-    r.best !== undefined && !res
-      ? `<p class="race-best is-${medal(r.medal ?? 0)}"><span class="race-medal" aria-hidden="true"></span>${esc(t('regatta.best', { time: raceClock(r.best) }))}</p>`
+    r.best !== undefined
+      ? `<p class="race-best is-${medalClass(r.medal ?? 0)}"><span class="race-medal" aria-hidden="true"></span>${esc(t('regatta.best', { time: raceClock(r.best) }))}</p>`
       : '';
-  return `<div class="race-card">${result}${best}<p class="race-label">${esc(r.label)}</p><ul class="race-times">${times}</ul></div>`;
+  return `<div class="race-card">${best}<p class="race-label">${esc(r.label)}</p><ul class="race-times">${times}</ul></div>`;
 }
 
 /** The ask's mark: a race result's medal disc (decision 0217), else the quest pin. */
@@ -236,6 +231,7 @@ export class QuestCard {
           : `<button type="button" class="quest-to-market" data-act="market">${card.kind === 'offer' ? '' : padFor('back')}${esc(t('quest.toMarket'))}</button>`
         : ''
     }`;
+    stampCard(this.dialog.querySelector('.quest-body'), card);
     if (!this.dialog.open) this.dialog.showModal();
     this.dialog
       .querySelector<HTMLButtonElement>('.quest-actions button, .quest-to-market.d-btn')

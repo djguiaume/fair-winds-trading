@@ -1,6 +1,6 @@
 import { hasText, t } from '../../../i18n';
 import { listRow } from '../../components';
-import { el } from '../../components/dom';
+import { el, onPress } from '../../components/dom';
 
 /**
  * The Settings controls, each one a list row (decision 0269): a name and a note on the left, the
@@ -94,7 +94,7 @@ export function choiceRow<T extends string>(o: ChoiceSpec<T>): SettingRow {
     b.type = 'button';
     b.setAttribute('role', 'radio');
     b.dataset.choice = option.id;
-    b.addEventListener('click', () => o.set(option.id));
+    onPress(b, () => o.set(option.id));
     return b;
   });
   group.append(...buttons);

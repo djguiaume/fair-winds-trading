@@ -31,7 +31,16 @@
     "sheep": { "synth": "baa", "volume": 0.47 },
     "fogwatch-horn": { "synth": "foghorn", "volume": 0.87, "pitch": 0.8 },
     "far-foghorn": { "synth": "foghorn", "volume": 0.38, "pitch": 1.12 },
-    "bell-buoy": { "synth": "bell", "volume": 0.3, "pitch": 1.35 }
+    "bell-buoy": { "synth": "bell", "volume": 0.3, "pitch": 1.35 },
+    "ui-press": { "synth": "press", "volume": 0.9 },
+    "ui-confirm": { "synth": "confirm", "volume": 0.9 },
+    "ui-back": { "synth": "back", "volume": 0.9 },
+    "ui-tab": { "synth": "tab", "volume": 0.8 },
+    "ui-error": { "synth": "error", "volume": 0.9 },
+    "ui-coin": { "synth": "coin", "volume": 0.9 },
+    "ui-stamp": { "synth": "stamp", "volume": 1 },
+    "ui-arrival": { "synth": "chime", "volume": 0.8 },
+    "ui-sting": { "synth": "sting", "volume": 1 }
   },
   "boat": {
     "wash": { "level": 0.16, "tone": 1100, "fullKn": 8 },
@@ -129,7 +138,16 @@
     "crash": { "effect": "thud" },
     "bump": { "effect": "bump" },
     "tack": { "effect": "flap" },
-    "eruption": { "effect": "rumble", "range": 450 }
+    "eruption": { "effect": "rumble", "range": 450 },
+    "press": { "effect": "ui-press" },
+    "confirm": { "effect": "ui-confirm" },
+    "back": { "effect": "ui-back" },
+    "tab": { "effect": "ui-tab" },
+    "error": { "effect": "ui-error" },
+    "coin": { "effect": "ui-coin" },
+    "stamp": { "effect": "ui-stamp" },
+    "arrival": { "effect": "ui-arrival" },
+    "sting": { "effect": "ui-sting" }
   },
   "voices": {
     "juno": {

@@ -156,22 +156,27 @@ describe('dialog', () => {
 });
 
 describe('toast', () => {
-  it('shows one line at a time, in order, and the same line twice once', () => {
+  const lines = (t: Toaster) => [...t.root.querySelectorAll<HTMLElement>('.ui-toast')];
+
+  it('stacks at most two, queues the rest in order, and the same line twice once', () => {
     const timers: (() => void)[] = [];
     const toaster = new Toaster({ set: (run) => timers.push(run) });
     toaster.show('Sold 4 fish');
     toaster.show('Sold 4 fish');
     toaster.show('Storm ahead', { kind: 'bad' });
+    toaster.show('Gold +20');
     expect(toaster.current).toBe('Sold 4 fish');
+    expect(toaster.visible).toBe(2);
     expect(toaster.queued).toBe(1);
-    timers.shift()!(); // its time is up: it sinks
-    expect(toaster.root.querySelector<HTMLElement>('.ui-toast')!.dataset.leave).toBe('');
-    timers.shift()!(); // gone: the next one rises
-    expect(toaster.current).toBe('Storm ahead');
-    expect(toaster.root.querySelector<HTMLElement>('.ui-toast')!.dataset.kind).toBe('bad');
-    timers.shift()!();
-    timers.shift()!();
+    expect(lines(toaster)[1]!.dataset.kind).toBe('bad');
+    timers.shift()!(); // the first one's time is up: it sinks
+    expect(lines(toaster)[0]!.dataset.leave).toBe('');
+    timers.shift()!(); // the second sinks too
+    timers.shift()!(); // the first is gone: the queued line takes its place
+    expect(lines(toaster)[0]!.textContent).toBe('Gold +20');
+    expect(toaster.queued).toBe(0);
+    while (timers.length) timers.shift()!();
     expect(toaster.current).toBeNull();
-    expect(toaster.root.querySelector<HTMLElement>('.ui-toast')!.hidden).toBe(true);
+    expect(lines(toaster).every((l) => l.hidden)).toBe(true);
   });
 });

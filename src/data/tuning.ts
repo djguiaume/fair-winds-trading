@@ -13,6 +13,7 @@ import camera from './tuning/camera.json';
 import graphics from './tuning/graphics.json';
 import terrain from './tuning/terrain.json';
 import waves from './tuning/waves.json';
+import ui from './tuning/ui.json';
 
 /**
  * Every tuning number of the game, read from the JSON files in `src/data/tuning/` (decisions 0093
@@ -59,6 +60,8 @@ export interface Tuning {
   terrain: typeof terrain;
   /** The sea's wave bands and how the wind raises them (decision 0245). */
   waves: typeof waves;
+  /** How long the UI's moments last (decision 0274). */
+  ui: typeof ui;
 }
 
 /** The values as shipped. Never changed: the panel resets to these. */
@@ -75,6 +78,7 @@ export const SHIPPED_TUNING: Readonly<Tuning> = {
   graphics,
   terrain,
   waves,
+  ui,
 } as unknown as Tuning;
 
 /** The live values. */

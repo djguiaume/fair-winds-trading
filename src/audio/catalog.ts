@@ -1,7 +1,7 @@
 import audio from '../data/audio.json';
 import characterData from '../data/characters.json';
 import { SEA_FILES } from '../data/grownMap';
-import { SYNTHS } from './sfx';
+import { SYNTHS } from './synths';
 import { SYNTH_VOICES, VOWELS, voiceFiles, type Voice } from './babble';
 import type { Theme } from './composer';
 
@@ -74,8 +74,22 @@ export interface BoatSounds {
   rain: { level: number; tone: number };
 }
 
+/** The interface's sound events (decision 0274), played by the moments and the components. */
+export const UI_EVENTS = [
+  'press',
+  'confirm',
+  'back',
+  'tab',
+  'error',
+  'coin',
+  'stamp',
+  'arrival',
+  'sting',
+] as const;
+export type UiEvent = (typeof UI_EVENTS)[number];
+
 /** What the game plays when something happens; `pitch` by port or island for the dock bell. */
-export interface SoundEvents {
+export interface SoundEvents extends Record<UiEvent, { effect: string }> {
   dock: { effect: string; pitch?: Record<string, number> };
   crash: { effect: string };
   bump: { effect: string };
@@ -83,6 +97,9 @@ export interface SoundEvents {
   /** A volcano erupting within `range` units: louder the closer (decision 0178). */
   eruption: { effect: string; range: number };
 }
+
+/** Every event with an effect to pick: the world's, then the interface's. */
+export const EVENT_NAMES = ['dock', 'crash', 'bump', 'tack', 'eruption', ...UI_EVENTS] as const;
 
 /** The whole of `audio.json`. */
 export interface AudioData {
@@ -205,8 +222,7 @@ export function audioProblems(
   const events = data.events;
   if (!events) problems.push('events: missing');
   else {
-    for (const name of ['dock', 'crash', 'bump', 'tack', 'eruption'] as const)
-      effect(`event ${name}`, events[name]?.effect);
+    for (const name of EVENT_NAMES) effect(`event ${name}`, events[name]?.effect);
     for (const [port, pitch] of Object.entries(events.dock?.pitch ?? {}))
       if (!(level(pitch) && pitch >= 0.25)) problems.push(`event dock: ${port} pitch 0.25 to 4`);
     if (!(Number(events.eruption?.range) > 0)) problems.push('event eruption: range above 0');

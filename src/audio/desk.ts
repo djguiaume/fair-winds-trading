@@ -2,7 +2,7 @@ import { Ambience } from './ambience';
 import { THEMES, type AudioData } from './catalog';
 import { composeTune, EIGHTHS_PER_BAR } from './composer';
 import { CallClock, type LayerMix, layerMix, type PlaceDistances, type SoundsHere } from './seaBed';
-import { SYNTHS } from './sfx';
+import { SYNTHS } from './synths';
 import { createBand, playNote } from './synth';
 import { createRng } from '../sim/rng';
 
