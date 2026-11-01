@@ -1,0 +1,16 @@
+{
+  "id": "amber",
+  "slot": "figurehead",
+  "name": {
+    "en": "Amber drop",
+    "fr": "Goutte d'ambre"
+  },
+  "unlock": {
+    "kind": "earned",
+    "quest": "outpost-east"
+  },
+  "mount": "stem",
+  "recipe": "figurehead-amber",
+  "tris": 36,
+  "size": 1
+}

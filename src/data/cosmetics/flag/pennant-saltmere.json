@@ -1,0 +1,13 @@
+{
+  "id": "pennant-saltmere",
+  "slot": "flag",
+  "name": {
+    "en": "Ring pennant",
+    "fr": "Fanion de l'anneau"
+  },
+  "unlock": {
+    "kind": "earned",
+    "regatta": "regatta-ring"
+  },
+  "ref": "pennant-saltmere"
+}

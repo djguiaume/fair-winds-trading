@@ -1,0 +1,13 @@
+{
+  "id": "bands-green",
+  "slot": "sail-pattern",
+  "name": {
+    "en": "Green bands",
+    "fr": "Bandes vertes"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "pattern": "bands",
+  "colours": ["#2f8f7a", "#f4f1e8"]
+}

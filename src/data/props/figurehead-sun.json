@@ -1,0 +1,25 @@
+{
+  "id": "figurehead-sun",
+  "name": "Sun figurehead",
+  "group": "figureheads",
+  "internal": true,
+  "parts": [
+    {
+      "cyl": [0.28, 0.28, 0.08, 8, false],
+      "ops": [["turnX", 1.5708]],
+      "at": [0, 0.4, 0],
+      "color": "#f2c230"
+    },
+    {
+      "box": [0.9, 0.08, 0.06],
+      "at": [0, 0.4, 0],
+      "color": "#e0a91c"
+    },
+    {
+      "box": [0.06, 0.08, 0.9],
+      "ops": [["turnX", 1.5708]],
+      "at": [0, 0.4, 0],
+      "color": "#e0a91c"
+    }
+  ]
+}

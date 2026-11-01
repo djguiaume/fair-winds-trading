@@ -1,0 +1,12 @@
+{
+  "id": "peach",
+  "slot": "sail-colour",
+  "name": {
+    "en": "Peach",
+    "fr": "Pêche"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "cloth": "#f6cfa0"
+}

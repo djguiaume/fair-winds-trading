@@ -1,0 +1,29 @@
+{
+  "about": "Rules for the boat cosmetics (decision 0261): what each slot may hold. Items are the other files in this folder, one per item; docs/content/cosmetics.md says how to add one.",
+  "stock": {
+    "sail-colour": "canvas",
+    "sail-pattern": "plain",
+    "sail-logo": null,
+    "hull-colour": "stock",
+    "figurehead": null,
+    "flag": null,
+    "wake": "plain"
+  },
+  "sail": {
+    "minLightness": 0.55,
+    "reservedHues": [{ "from": 345, "to": 20, "minSaturation": 0.25 }]
+  },
+  "patterns": {
+    "plain": 0,
+    "bands": 2,
+    "stripe": 2,
+    "panels": 2,
+    "halves": 2,
+    "chevron": 2,
+    "diamond": 2
+  },
+  "wakeStyles": ["plain", "foam", "fine-foam", "bubbles"],
+  "flagBands": { "min": 1, "max": 3 },
+  "maxTriangles": { "sail-logo": 40, "figurehead": 60 },
+  "mounts": ["stem"]
+}

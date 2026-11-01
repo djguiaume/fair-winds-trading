@@ -1,0 +1,13 @@
+{
+  "id": "volcano",
+  "slot": "sail-logo",
+  "name": {
+    "en": "Volcano",
+    "fr": "Volcan"
+  },
+  "unlock": {
+    "kind": "earned",
+    "quest": "outpost-west"
+  },
+  "colour": "#1f4e79"
+}

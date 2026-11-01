@@ -1,0 +1,11 @@
+{
+  "id": "stock",
+  "slot": "hull-colour",
+  "name": {
+    "en": "The yard's colours",
+    "fr": "Couleurs du chantier"
+  },
+  "unlock": {
+    "kind": "free"
+  }
+}

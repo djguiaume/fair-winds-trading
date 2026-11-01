@@ -57,6 +57,7 @@ Full options: [docs/tools/README.md](docs/tools/README.md), or `--help`. `npm ru
 - `shots`: real-game screenshots in one line (also the map editor, save links).
 - `quest`: list, check, play from a step, edit a quest's sea.
 - `race`: regatta courses, pars and rules.
+- `cosmetics`: boat cosmetic items (list, add, set, check, import, export, preview).
 - `sound`: render the game's sounds to MP3.
 
 If a tool lacks something, add it to the tool (and its shared module) rather than writing a script.

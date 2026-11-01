@@ -1,0 +1,13 @@
+{
+  "id": "snowflake",
+  "slot": "sail-logo",
+  "name": {
+    "en": "Snowflake",
+    "fr": "Flocon"
+  },
+  "unlock": {
+    "kind": "earned",
+    "quest": "outpost-north"
+  },
+  "colour": "#1f4e79"
+}

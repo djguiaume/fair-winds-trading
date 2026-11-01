@@ -1,0 +1,17 @@
+{
+  "id": "sailing-club",
+  "slot": "set",
+  "name": {
+    "en": "Sailing Club",
+    "fr": "Club de voile"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "items": {
+    "sail-colour": "canvas",
+    "sail-pattern": "bands-navy",
+    "sail-logo": "anchor",
+    "flag": "signal-blue"
+  }
+}

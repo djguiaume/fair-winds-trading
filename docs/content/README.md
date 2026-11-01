@@ -472,3 +472,7 @@ Every sound is listed in [`src/data/audio.json`](../../src/data/audio.json):
   checks refuse a person whose voice is missing and a file not in `public/`.
 - The game plays `music.sea`, `effects.creak` and, during the prologue, `effects.foghorn`; a new kind of moment (port music, a bell when an
   order is done) needs one line of code to play it, then it is a line in this file.
+
+## A boat cosmetic
+
+See [cosmetics.md](cosmetics.md): sail colours, patterns, emblems, hull colours, figureheads, flags and wakes are one file each.

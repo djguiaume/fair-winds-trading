@@ -1,0 +1,12 @@
+{
+  "id": "gull",
+  "slot": "sail-logo",
+  "name": {
+    "en": "Gull",
+    "fr": "Mouette"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "colour": "#1f4e79"
+}

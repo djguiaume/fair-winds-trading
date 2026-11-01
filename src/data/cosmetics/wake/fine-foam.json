@@ -1,0 +1,14 @@
+{
+  "id": "fine-foam",
+  "slot": "wake",
+  "name": {
+    "en": "Fine foam wake",
+    "fr": "Sillage de fine écume"
+  },
+  "unlock": {
+    "kind": "earned",
+    "regatta": "regatta-seas"
+  },
+  "style": "fine-foam",
+  "tint": null
+}

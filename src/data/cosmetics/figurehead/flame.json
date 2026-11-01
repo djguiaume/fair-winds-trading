@@ -1,0 +1,16 @@
+{
+  "id": "flame",
+  "slot": "figurehead",
+  "name": {
+    "en": "Flame",
+    "fr": "Flamme"
+  },
+  "unlock": {
+    "kind": "earned",
+    "quest": "outpost-west"
+  },
+  "mount": "stem",
+  "recipe": "figurehead-flame",
+  "tris": 36,
+  "size": 1
+}

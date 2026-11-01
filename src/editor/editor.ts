@@ -63,6 +63,7 @@ import { openQuests, questsOpen, setupQuestBuilder } from './quest/builder';
 import { controlsOpen, openControls, setupControlsPage } from './controls/page';
 import { openSounds, setupSoundsPage, soundsOpen } from './sounds/page';
 import { openRegatta, regattaOpen, setupRegattaPage } from './regatta/page';
+import { cosmeticsOpen, openCosmetics, setupCosmeticsPage } from './cosmetics/page';
 import {
   type GrownDef,
   type SeaDoc,
@@ -403,6 +404,8 @@ setupSoundsPage(() => commit(true));
 $('ed-sounds').addEventListener('click', openSounds);
 setupRegattaPage(() => commit(true));
 $('ed-regatta').addEventListener('click', openRegatta);
+setupCosmeticsPage(() => commit(true));
+$('ed-cosmetics').addEventListener('click', openCosmetics);
 svg.addEventListener('dblclick', (e) => {
   if (laying) return finishLaying();
   const hit = (e.target as Element).closest('[data-hit]')?.getAttribute('data-hit') ?? '';
@@ -844,7 +847,15 @@ function nudge(dx: number, dy: number) {
 }
 
 document.addEventListener('keydown', (e) => {
-  if (islandOpen() || questsOpen() || controlsOpen() || soundsOpen() || regattaOpen()) return;
+  if (
+    islandOpen() ||
+    questsOpen() ||
+    controlsOpen() ||
+    soundsOpen() ||
+    regattaOpen() ||
+    cosmeticsOpen()
+  )
+    return;
   const target = e.target as HTMLElement;
   if (target.closest('input, select, textarea')) return;
   const mod = e.ctrlKey || e.metaKey;

@@ -1,0 +1,12 @@
+{
+  "id": "anchor",
+  "slot": "sail-logo",
+  "name": {
+    "en": "Anchor",
+    "fr": "Ancre"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "colour": "#1f4e79"
+}

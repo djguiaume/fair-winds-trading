@@ -1,0 +1,17 @@
+{
+  "id": "signal-blue",
+  "slot": "flag",
+  "name": {
+    "en": "Blue signal",
+    "fr": "Signal bleu"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "own": {
+    "shape": "pennant",
+    "bands": ["#2f6f9f", "#f4f1e8"],
+    "length": 1.2,
+    "height": 0.5
+  }
+}

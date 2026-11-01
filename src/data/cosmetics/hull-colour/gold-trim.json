@@ -1,0 +1,13 @@
+{
+  "id": "gold-trim",
+  "slot": "hull-colour",
+  "name": {
+    "en": "Gold trim",
+    "fr": "Liseré doré"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "band": "#c9a23a",
+  "strake": "#6e4520"
+}

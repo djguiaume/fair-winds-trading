@@ -1,0 +1,13 @@
+{
+  "id": "navy-trim",
+  "slot": "hull-colour",
+  "name": {
+    "en": "Navy trim",
+    "fr": "Liseré marine"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "band": "#2f6f9f",
+  "strake": "#d8c7a0"
+}

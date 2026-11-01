@@ -1,0 +1,12 @@
+{
+  "id": "mint",
+  "slot": "sail-colour",
+  "name": {
+    "en": "Mint",
+    "fr": "Menthe"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "cloth": "#a8dfc0"
+}

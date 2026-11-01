@@ -1,0 +1,23 @@
+{
+  "id": "figurehead-snow",
+  "name": "Snow crystal figurehead",
+  "group": "figureheads",
+  "internal": true,
+  "parts": [
+    {
+      "ico": [0.2],
+      "at": [0, 0.4, 0],
+      "color": "#e8eef4"
+    },
+    {
+      "box": [0.8, 0.05, 0.05],
+      "at": [0, 0.4, 0],
+      "color": "#bcd0e0"
+    },
+    {
+      "box": [0.05, 0.8, 0.05],
+      "at": [0, 0.4, 0],
+      "color": "#bcd0e0"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "butter",
+  "slot": "sail-colour",
+  "name": {
+    "en": "Butter",
+    "fr": "Beurre"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "cloth": "#f6e08a"
+}

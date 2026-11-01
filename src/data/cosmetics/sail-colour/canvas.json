@@ -1,0 +1,12 @@
+{
+  "id": "canvas",
+  "slot": "sail-colour",
+  "name": {
+    "en": "Canvas",
+    "fr": "Toile"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "cloth": "#fbf6e8"
+}

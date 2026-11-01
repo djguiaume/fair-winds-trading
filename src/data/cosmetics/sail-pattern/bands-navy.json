@@ -1,0 +1,13 @@
+{
+  "id": "bands-navy",
+  "slot": "sail-pattern",
+  "name": {
+    "en": "Navy bands",
+    "fr": "Bandes marine"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "pattern": "bands",
+  "colours": ["#2f6f9f", "#f4f1e8"]
+}

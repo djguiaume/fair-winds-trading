@@ -1,0 +1,13 @@
+{
+  "id": "pennant-far-seas",
+  "slot": "flag",
+  "name": {
+    "en": "Far Seas pennant",
+    "fr": "Fanion des mers lointaines"
+  },
+  "unlock": {
+    "kind": "earned",
+    "regatta": "regatta-seas"
+  },
+  "ref": "pennant-far-seas"
+}

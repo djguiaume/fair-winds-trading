@@ -1,0 +1,12 @@
+{
+  "id": "sky",
+  "slot": "sail-colour",
+  "name": {
+    "en": "Sky",
+    "fr": "Ciel"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "cloth": "#a9d4ee"
+}
