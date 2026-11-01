@@ -1,0 +1,362 @@
+/*
+ * The harbour screen (v1.5, issue #443, round 3 D and C): the port as a strip above one paper
+ * ledger about 90% wide (Market, Orders, Quay), or the Shipyard's paper at about 65% beside the
+ * live boat. Built from the v1.5 components and their `--ui-*` tokens only; sizes come from
+ * theme.json › harbour (`--ui-harbour-*`). No CSS filters; the torn edge is the panel's 9-slice.
+ */
+.hb-overlay:not([hidden]) {
+  display: block;
+  padding: 0;
+  background: linear-gradient(to bottom, transparent 55%, rgb(35 48 58 / 0.35));
+}
+/* The sea HUD steps aside while the harbour is up: the port and the boat are the scene. */
+html[data-screen='harbour'] #hud {
+  visibility: hidden;
+}
+.harbour {
+  --hb-margin: var(--ui-harbour-margin);
+  --hb-strip: var(--ui-harbour-strip);
+  --hb-gap: var(--ui-space-3);
+  position: absolute;
+  inset: 0;
+  padding: max(var(--hb-gap), env(safe-area-inset-top))
+    max(var(--hb-gap), env(safe-area-inset-right)) max(var(--hb-gap), env(safe-area-inset-bottom))
+    max(var(--hb-gap), env(safe-area-inset-left));
+  color: var(--ui-ink);
+  font-family: var(--ui-font-text);
+}
+html[data-layout='phone'] .harbour {
+  --hb-margin: var(--ui-harbour-margin-phone);
+  --hb-strip: var(--ui-harbour-strip-phone);
+  --hb-gap: var(--ui-space-2);
+}
+
+/* The port's own picture (decision 0211) as a strip above the ledger, fading into the scene. */
+.hb-strip {
+  position: absolute;
+  inset: 0 0 auto;
+  height: calc(var(--hb-strip) + var(--ui-space-7));
+  background: center 40% / cover no-repeat;
+  mask-image: linear-gradient(to bottom, #000 70%, transparent);
+  pointer-events: none;
+}
+.hb-tab-shipyard .hb-strip {
+  display: none;
+}
+
+/* The paper: header and the tab's panes. It fills down to the footer, never a blank half. */
+.hb-sheet {
+  position: absolute;
+  top: var(--hb-strip);
+  right: var(--hb-margin);
+  bottom: calc(var(--ui-touch-target) + var(--hb-gap) * 2);
+  left: var(--hb-margin);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.hb-sheet > .hb-head,
+.hb-sheet > .hb-pane {
+  padding-inline: var(--ui-space-5);
+}
+.hb-tab-shipyard .hb-sheet {
+  top: var(--hb-gap);
+  right: auto;
+  width: min(var(--ui-harbour-yard), 68vw);
+}
+
+/* --- Header: the port's name and line, the tabs, gold and hold, close ---------------------- */
+.hb-head {
+  flex: none;
+  gap: var(--ui-space-2) var(--ui-space-4);
+  padding-block: var(--ui-space-3) var(--ui-space-2);
+}
+.hb-titles {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  max-width: 34%;
+}
+.hb-head .ui-header-title {
+  flex: none;
+  font-size: var(--fs-hero);
+  line-height: 1;
+}
+.hb-line {
+  margin: var(--ui-space-1) 0 0;
+  color: var(--ui-muted);
+  font-size: var(--fs-body);
+}
+.hb-line::before {
+  content: '';
+  display: inline-block;
+  width: var(--ui-space-2);
+  height: var(--ui-space-2);
+  margin-right: var(--ui-space-2);
+  border-radius: var(--ui-radius-pill);
+  background: var(--port-accent, var(--ui-sage));
+}
+.hb-head .ui-tabs {
+  flex: 1;
+  justify-content: center;
+}
+.hb-head .ui-header-exit {
+  flex: none;
+}
+/* Beside the boat (or a plot) the paper is narrower: the trade line goes, the tabs close up. */
+.hb-home.is-half .hb-line,
+.hb-tab-shipyard .hb-line {
+  display: none;
+}
+.hb-tab-shipyard .hb-head .ui-tab {
+  padding-inline: var(--ui-space-3);
+}
+.hb-head .ui-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+}
+.harbour .tab-badge {
+  display: inline-grid;
+  place-items: center;
+  width: auto;
+  min-width: 22px;
+  margin: 0;
+  height: 22px;
+  padding: 0 var(--ui-space-1);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-ink);
+  color: var(--ui-paper);
+  font-size: var(--fs-note);
+  font-weight: 700;
+}
+.harbour .tab-badge.is-quay {
+  background: var(--ui-sage);
+  color: var(--ui-on-sage);
+}
+.hb-wallet {
+  display: flex;
+  gap: var(--ui-space-4);
+}
+.hb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-1);
+  font-size: var(--fs-head);
+  font-variant-numeric: tabular-nums;
+}
+.hb-chip .icon {
+  width: 22px;
+  height: 22px;
+}
+
+/* --- Panes: a list on the left, the picked thing on the right ------------------------------ */
+.hb-pane {
+  display: flex;
+  flex: 1;
+  gap: var(--ui-space-5);
+  min-height: 0;
+  padding-block: var(--ui-space-2) var(--ui-space-4);
+}
+.hb-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--ui-space-1);
+  min-width: 0;
+  overflow-y: auto;
+}
+.hb-list-title {
+  margin: var(--ui-space-1) 0;
+  font: 400 var(--fs-title) / 1.1 var(--ui-font-title);
+}
+.hb-detail {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: var(--ui-space-3);
+  width: var(--ui-harbour-detail);
+  padding: var(--ui-space-4);
+  overflow-y: auto;
+  border-radius: var(--ui-radius-m);
+  background: var(--ui-face-off);
+}
+.hb-detail-top {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-3);
+}
+.hb-detail-name {
+  margin: 0;
+  font: 400 var(--fs-display) / 1 var(--ui-font-title);
+}
+.hb-detail-note {
+  margin: var(--ui-space-1) 0 0;
+  color: var(--ui-muted);
+  font-size: var(--fs-text);
+}
+.hb-muted {
+  margin: 0;
+  color: var(--ui-muted);
+  font-size: var(--fs-text);
+}
+.hb-small {
+  font-size: var(--fs-note);
+}
+.hb-wide {
+  width: 100%;
+}
+.hb-pips {
+  display: inline-flex;
+  gap: var(--ui-space-1);
+  margin-left: var(--ui-space-2);
+  vertical-align: middle;
+}
+.hb-pips i {
+  width: 18px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--ui-rule);
+}
+.hb-pips i.is-on {
+  background: var(--ui-sage);
+}
+
+/* --- Footer: the face plate, the status, the pad legend, Set sail on the scene -------------- */
+.hb-foot {
+  position: absolute;
+  right: var(--hb-margin);
+  bottom: var(--hb-gap);
+  left: var(--hb-margin);
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-3);
+  min-height: var(--ui-touch-target);
+}
+.hb-face,
+.hb-status,
+.hb-legend {
+  border: 1px solid var(--ui-rule);
+  border-radius: var(--ui-radius-m);
+  background: var(--ui-face);
+  box-shadow: var(--ui-shadow-2);
+  color: var(--ui-ink);
+}
+.hb-face {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  max-width: 46%;
+  min-height: var(--ui-touch-target);
+  padding: var(--ui-space-1) var(--ui-space-3) var(--ui-space-1) var(--ui-space-1);
+  font: inherit;
+  font-size: var(--fs-text);
+  text-align: start;
+}
+button.hb-face {
+  cursor: pointer;
+}
+.hb-face svg {
+  flex: none;
+  width: 40px;
+  height: 40px;
+}
+.hb-face > span {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.hb-face-line {
+  font-style: normal;
+}
+.hb-face em {
+  color: var(--ui-sage-deep);
+  font-style: normal;
+  font-weight: 700;
+}
+.hb-status {
+  margin: 0;
+  padding: var(--ui-space-2) var(--ui-space-3);
+  font-size: var(--fs-body);
+}
+.hb-status:empty {
+  display: none;
+}
+.hb-legend {
+  display: none;
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  font-size: var(--fs-body);
+}
+html[data-input='pad'] .hb-legend {
+  display: flex;
+}
+.hb-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-1);
+}
+.hb-foot .hb-sail {
+  margin-left: auto;
+  min-height: 52px;
+  padding-inline: var(--ui-space-5);
+  font: 400 var(--fs-title) / 1 var(--ui-font-title);
+}
+
+/* --- Phone landscape: the same panes, smaller; nothing cut by the bottom bar (#433) --------- */
+html[data-layout='phone'] .hb-sheet > .hb-head,
+html[data-layout='phone'] .hb-sheet > .hb-pane {
+  padding-inline: var(--ui-space-3);
+}
+html[data-layout='phone'] .hb-head {
+  gap: var(--ui-space-2);
+  padding-block: var(--ui-space-1) 0;
+}
+html[data-layout='phone'] .hb-head .ui-header-title {
+  font-size: var(--fs-title);
+}
+html[data-layout='phone'] .hb-line,
+html[data-layout='phone'] .hb-face > span,
+html[data-layout='phone'][data-input='pad'] .hb-legend {
+  display: none;
+}
+html[data-layout='phone'] .hb-head .ui-tab {
+  min-height: 36px;
+  padding: 0 var(--ui-space-2);
+  font-size: var(--fs-text);
+}
+html[data-layout='phone'] .hb-chip {
+  font-size: var(--fs-text);
+}
+html[data-layout='phone'] .hb-pane {
+  gap: var(--ui-space-3);
+  padding-block: var(--ui-space-1) var(--ui-space-2);
+}
+html[data-layout='phone'] .hb-detail {
+  width: var(--ui-harbour-detail-phone);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-2) var(--ui-space-3);
+}
+html[data-layout='phone'] .hb-detail-name {
+  font-size: var(--fs-title);
+}
+html[data-layout='phone'] .hb-list-title {
+  font-size: var(--fs-sub);
+}
+html[data-layout='phone'] .hb-tab-shipyard .hb-sheet {
+  width: 80vw;
+}
+html[data-layout='phone'] .hb-tab-shipyard .hb-chip:nth-child(2) {
+  display: none;
+}
+html[data-layout='phone'] .hb-foot .hb-sail {
+  min-height: var(--ui-touch-target);
+  font-size: var(--fs-head);
+}
+html[data-layout='phone'] .hb-sheet {
+  --ui-edge-torn-width: 12px;
+}
+html[data-layout='phone'] .hb-head.ui-header {
+  min-height: 0;
+}

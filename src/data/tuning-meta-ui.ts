@@ -37,4 +37,20 @@ export const UI_META: Readonly<Record<string, TuningMeta>> = {
     'ms',
     'The paper cross-fades to the night paper over this time.',
   ),
+  'ui.priceLogDays': num(
+    'Price line days',
+    2,
+    14,
+    1,
+    'days',
+    "How many days of prices the harbour ledger's trend line keeps.",
+  ),
+  'ui.yardBoatShift': num(
+    'Shipyard boat shift',
+    0,
+    0.45,
+    0.01,
+    'screen',
+    'In the Shipyard the camera puts the boat this far right of centre, beside the paper.',
+  ),
 };

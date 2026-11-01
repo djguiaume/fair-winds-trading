@@ -126,6 +126,7 @@ import {
   useTextEdits,
 } from './i18n';
 import { TradePanel } from './ui/tradePanel';
+import { boatBeside } from './ui/harbour/camera';
 import { showTestSeaBadge } from './ui/testSeaBadge';
 import { boatLooksIn } from './ui/boatLooks/host';
 import {
@@ -376,8 +377,8 @@ function homeFocus(islandId: string) {
   const island = world.map.islands.find((i) => i.id === islandId)!;
   view.setFocus({ x: (island.x * 2 + world.boat.x) / 3, y: (island.y * 2 + world.boat.y) / 3 });
 }
-// A plot chosen on the Island tab (decision 0210): the camera turns to it beside the half
-// screen, closer in, and its ring shows; let go, the island again.
+// A plot chosen on the Island tab (decision 0210): the camera turns to it right of the paper
+// (#443), closer in, and its ring shows; let go, the island again.
 homePanel.onChosen = (islandId, spotId) => {
   const island = world.map.islands.find((i) => i.id === islandId);
   const spot = spotId ? homeSpots(world.map, islandId).find((s) => s.id === spotId) : undefined;
@@ -388,7 +389,7 @@ homePanel.onChosen = (islandId, spotId) => {
     view.setFocus(
       spotPosition(island, spot),
       false,
-      wide ? { x: -PLOT_CAMERA.side, y: 0 } : { x: 0, y: -PLOT_CAMERA.top },
+      wide ? { x: PLOT_CAMERA.side, y: 0 } : { x: 0, y: -PLOT_CAMERA.top },
     );
   } else {
     if (zoomBeforePlot !== null) view.setZoom(zoomBeforePlot);
@@ -809,11 +810,8 @@ chart.quests = {
 };
 tradePanel.uiMode = settings.uiMode;
 hud.portLabels.isKidMode = hud.isKidMode = settings.uiMode === 'kids';
-tradePanel.onUiModeChange = (mode) => {
-  settings.uiMode = mode;
-  hud.portLabels.isKidMode = hud.isKidMode = mode === 'kids';
-  keepSettings();
-};
+// The Shipyard keeps the live boat in sight beside its paper (#443): the camera makes room.
+tradePanel.onBoatSide = (beside) => boatBeside(view, world, beside);
 const monitor = new FrameMonitor();
 /** The `?perf` readout, once its chunk has loaded (decision 0148). */
 let perf: PerfReadout | null = null;

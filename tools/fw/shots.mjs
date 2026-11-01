@@ -214,6 +214,8 @@ const pause = (ms) => new Promise((r) => setTimeout(r, ms));
  */
 async function enter(page, shot) {
   await page.waitForFunction(() => !!window.fwt, null, { timeout: 30000 });
+  // `--url "/?free"`: the Free Sailing setup opens over the menu (0266) and is the shot.
+  if (await visible(page, '.free-setup[open]')) return;
   if (await visible(page, '#menu-play')) await page.click('#menu-play');
   await page
     .locator('#set-sail')

@@ -1,93 +1,34 @@
-import { TUNING } from '../data/tuning';
-import { topSpeedKn } from '../sim/boat';
-import { type Contract, deliverContract, openContracts } from '../sim/contracts';
-import { creditOffer, leavesShort, takeCredit } from '../sim/credit';
-import { GOODS, GOOD_DEFS, GOOD_ICONS, type GoodId } from '../sim/goods';
-import { hullCondition, repairHull, repairPrice } from '../sim/hazards';
-import {
-  available,
-  goodRole,
-  quoteAcross,
-  quoteBuy,
-  quoteSell,
-  trades,
-  type Market,
-} from '../sim/market';
-import {
-  growthProgress,
-  MAX_SETTLEMENT_LEVEL,
-  portTownGate,
-  madeGoods,
-  topLevel,
-  portNow,
-  producesAt,
-  settlementLevel,
-  upgradeNeedsLevel,
-  wantsAt,
-} from '../sim/settlement';
-import { SHIP_CLASSES, SLOOP } from '../sim/ship';
-import {
-  type ShipOffer,
-  discoveredPorts,
-  homePort,
-  isDiscovered,
-  shipOffers,
-} from '../sim/shipyards';
-import {
-  buy,
-  buyShip,
-  buyUpgrade,
-  capacity,
-  cargoUsed,
-  findPort,
-  freeSpace,
-  maxBuy,
-  sell,
-  sellAll,
-  shipCost,
-  switchShip,
-  type TradeResult,
-  upgradeAllowed,
-  upgradeCost,
-} from '../sim/trade';
-import {
-  MAX_UPGRADE_LEVEL,
-  UPGRADE_TRACKS,
-  holdCapacity,
-  effectiveShip,
-  hullDurability,
-  upgradePrice,
-  type UpgradeTrack,
-} from '../sim/upgrades';
+import './harbour/harbour.css';
+import type { GoodId } from '../sim/goods';
+import { producesAt, wantsAt } from '../sim/settlement';
+import { SHIP_CLASSES } from '../sim/ship';
+import { homePort } from '../sim/shipyards';
+import { capacity, cargoUsed, findPort } from '../sim/trade';
 import type { World } from '../sim/world';
-import { KIDS_MODE_AVAILABLE, type UiMode } from './settings';
-import {
-  formatNumber,
-  goodName,
-  goodSome,
-  shipName,
-  shipThe,
-  t,
-  tOptional,
-  townLevelName,
-} from '../i18n';
-import { COIN, crateIcon, icon } from './icons';
-import { character, portraitSvg } from './portraits';
-import { keeperState } from '../sim/keeper';
-import { questCardBody } from './questCard';
-import type { QuayItem } from './questView';
-import { askConfirm } from './confirmDialog';
+import type { PadButton } from '../input/gamepad';
+import { formatNumber, t } from '../i18n';
+import type { UiMode } from './settings';
 import { guardSoftDisabled, softDisable } from './padFocus';
-import { padGlyph } from './padGlyphs';
 import { harbourAccent } from '../render/harbourView';
+import { el } from './components/dom';
+import { panel } from './components/panel';
+import { button } from './components/button';
+import { COIN } from './icons';
+import type { QuayItem } from './questView';
+import { character } from './portraits';
+import { creditNote, questCargoNote } from './harbour/credit';
+import { HarbourDeals } from './harbour/deals';
+import { harbourFooter, type FooterFace } from './harbour/footer';
+import { harbourHeader, portLine } from './harbour/header';
+import { KeeperLines } from './harbour/keeper';
+import { goodsLedger, tradedGoods } from './harbour/market';
+import { goodDetail, type Lot } from './harbour/marketDetail';
+import { openOrderCount } from './harbour/marketFacts';
+import { firstOrder, orderDetail, ordersLedger } from './harbour/orders';
+import { esc } from './harbour/parts';
+import { quayPane } from './harbour/quay';
+import { shipyardPane } from './harbour/shipyard';
 
-/** A game controller's button glyphs, shown only while the pad is in use (decision 0163). */
-// Button glyphs named for the pad in use (decision 0186), built when the panel draws.
-const PAD_LB = () => padGlyph('lb', 'bumper');
-const PAD_RB = () => padGlyph('rb', 'bumper');
-const PAD_X = () => padGlyph('x');
-const PAD_LT = () => padGlyph('lt', 'bumper');
-const PAD_RT = () => padGlyph('rt', 'bumper');
 export type TradePanelTab = 'market' | 'orders' | 'quay' | 'shipyard';
 
 /**
@@ -106,93 +47,65 @@ export interface PortQuay {
   /** "Hand over" on a person's card (decision 0213): `n` of `good`, paid. */
   hand(quest: string, good: string, n: number): void;
 }
-type QuayAct = 'accept' | 'later' | 'ignore' | 'choose' | 'hand' | 'again';
 
-/** Lot sizes for one tap on Buy or Sell (decision 0049); clamped to what the hold, stock and gold allow. */
-const LOTS = [1, 5, 10] as const;
-type Lot = (typeof LOTS)[number];
-
+/**
+ * The harbour screen (decisions 0049, 0141, 0211; v1.5 issue #443): the port as a strip above one
+ * paper ledger across about 90% of the width (Market, Orders, Quay), or the Shipyard's paper
+ * beside the live boat. One header and footer on every tab; the panes live in `harbour/`.
+ */
 export class TradePanel {
   private tab: TradePanelTab = 'market';
   private returnFocus: HTMLElement | null = null;
-  private message = '';
-
-  /** Each port's town level when she last docked there, and her visits: the keeper's line (0211). */
-  private readonly seenLevels: Record<string, number> = {};
-  private readonly visits: Record<string, number> = {};
-  /** This docking's keeper line, kept while the screen redraws. */
-  private keeperLine: { port: string; key: string } | null = null;
-
-  /** "Not now" on the load on credit (decision 0200): hidden until she docks again. */
-  private creditLater = false;
-
-  private finish(result: TradeResult, transaction?: { kind: 'buy' | 'sell'; good: GoodId | null }) {
-    this.message = result.ok ? t('trade.done') : t(`trade.err.${result.error}`);
-    if (result.ok) {
-      this.onAction();
-      if (transaction && result.gold > 0) this.onTrade(transaction.kind, transaction.good);
-    }
-    this.render();
-  }
-  uiMode: UiMode = 'adult';
   private lot: Lot = 1;
+  /** What each pane shows on its right: a good, an order (by port), a person, a ship. */
+  private picked: { good?: GoodId; order?: string; person?: string; ship?: string } = {};
+  private readonly keeper: KeeperLines;
+  private readonly deals: HarbourDeals;
 
+  uiMode: UiMode = 'adult';
   onAction: () => void = () => {};
   onTrade: (kind: 'buy' | 'sell', good: GoodId | null) => void = () => {};
   onRender: () => void = () => {};
   onClose: () => void = () => {};
+  /** The live boat beside the paper (the Shipyard) or not: the camera makes room for her. */
+  onBoatSide: (beside: boolean) => void = () => {};
   /** Quest cargo aboard, a line each (decision 0213). */
   questCargo: () => string[] = () => [];
-  /** The port's picture for the header, from the game's renderer (decision 0211); null: none. */
+  /** The port's picture for the strip, from the game's renderer (decision 0211); null: none. */
   harbourPicture: (portId: string) => string | null = () => null;
   /** The Quay tab's people; none: no tab. */
   quay: PortQuay | null = null;
-  onUiModeChange: (mode: UiMode) => void = () => {};
 
   constructor(
     private readonly container: HTMLElement,
     private readonly world: World,
   ) {
-    this.container.setAttribute('role', 'dialog');
-    this.container.setAttribute('aria-modal', 'true');
-    this.container.setAttribute('aria-label', t('trade.dialogLabel'));
-    this.container.tabIndex = -1;
-    // Greyed buttons stay reachable by the pad and the keyboard, but do nothing (decision 0192).
-    guardSoftDisabled(this.container);
-    this.container.addEventListener('keydown', (e) => {
-      e.stopPropagation();
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        this.close();
-      }
-      if (e.key !== 'Tab') return;
-      const buttons = [
-        ...this.container.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'),
-      ].filter((button) => !button.closest('[hidden]'));
-      const first = buttons[0],
-        last = buttons.at(-1);
-      if (!first) {
-        e.preventDefault();
-        this.container.focus();
-        return;
-      }
-      if (
-        e.shiftKey &&
-        (document.activeElement === first || document.activeElement === this.container)
-      ) {
-        e.preventDefault();
-        last?.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
+    this.keeper = new KeeperLines(world);
+    this.deals = new HarbourDeals(world, {
+      onAction: () => this.onAction(),
+      onTrade: (kind, good) => this.onTrade(kind, good),
+      render: () => this.render(),
+      isOpen: () => this.isOpen,
     });
-    this.container.addEventListener('pointerdown', (e) => e.stopPropagation());
-    this.container.addEventListener('pointermove', (e) => e.stopPropagation());
-    this.container.addEventListener('pointerup', (e) => e.stopPropagation());
-    this.container.addEventListener('wheel', (e) => e.stopPropagation(), { passive: true });
-    this.container.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
-    this.container.addEventListener('touchmove', (e) => e.stopPropagation(), { passive: true });
+    container.classList.add('hb-overlay');
+    container.setAttribute('role', 'dialog');
+    container.setAttribute('aria-modal', 'true');
+    container.setAttribute('aria-label', t('trade.dialogLabel'));
+    // The footer carries this screen's pad legend: no floating hints pill over Set sail (#433).
+    container.dataset.padHints = 'off';
+    container.tabIndex = -1;
+    // Greyed buttons stay reachable by the pad and the keyboard, but do nothing (decision 0192).
+    guardSoftDisabled(container);
+    container.addEventListener('keydown', (e) => this.onKey(e));
+    for (const type of [
+      'pointerdown',
+      'pointermove',
+      'pointerup',
+      'wheel',
+      'touchstart',
+      'touchmove',
+    ])
+      container.addEventListener(type, (e) => e.stopPropagation(), { passive: true });
   }
 
   get isOpen(): boolean {
@@ -200,1181 +113,300 @@ export class TradePanel {
   }
 
   open(tab: TradePanelTab = 'market') {
-    if (!this.isOpen) this.returnFocus = document.activeElement as HTMLElement | null;
-    this.message = '';
-    this.creditLater = false;
-    this.pickKeeperLine();
+    if (!this.isOpen) {
+      this.returnFocus = document.activeElement as HTMLElement | null;
+      this.picked = {};
+    }
+    this.deals.docked();
+    this.keeper.dock();
     this.tab = tab;
     this.container.hidden = false;
+    document.documentElement.dataset.screen = 'harbour';
     this.render();
     this.container.querySelector<HTMLButtonElement>('#tp-close')?.focus();
   }
 
   close() {
     this.container.hidden = true;
+    delete document.documentElement.dataset.screen;
+    this.onBoatSide(false);
     this.onClose();
     if (this.returnFocus?.isConnected) this.returnFocus.focus({ preventScroll: true });
   }
 
+  /** Escape closes; Tab stays inside the screen. */
+  private onKey(e: KeyboardEvent) {
+    e.stopPropagation();
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      this.close();
+    }
+    if (e.key !== 'Tab') return;
+    const buttons = [
+      ...this.container.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'),
+    ];
+    const first = buttons[0];
+    const last = buttons.at(-1);
+    const at = document.activeElement;
+    if (!first) {
+      e.preventDefault();
+      this.container.focus();
+    } else if (e.shiftKey && (at === first || at === this.container)) {
+      e.preventDefault();
+      last?.focus();
+    } else if (!e.shiftKey && at === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
   render() {
     if (this.container.hidden) return;
-
-    const previous = document.activeElement as HTMLElement | null;
-    const focusKey =
-      previous && this.container.contains(previous)
-        ? previous.id
-          ? `#${previous.id}`
-          : [...previous.attributes]
-              .filter((a) => a.name.startsWith('data-') && a.name !== 'data-qty')
-              .map((a) => `[${a.name}="${a.value}"]`)
-              .join('')
-        : '';
-    const scrollTop = this.container.querySelector('.trade-modal')?.scrollTop ?? 0;
+    const focusKey = this.focusKey();
+    const scroll = [...this.container.querySelectorAll('.hb-scroll')].map((s) => s.scrollTop);
     const { trade, map } = this.world;
-    const portId = trade.dockedAt;
-    const port = portId ? findPort(map, portId) : null;
-    const market = portId ? trade.markets[portId] : null;
-
+    const port = trade.dockedAt ? findPort(map, trade.dockedAt) : null;
+    const market = port ? trade.markets[port.id] : null;
     if (!port || !market) {
-      this.container.innerHTML = `
-        <div class="trade-modal panel card">
-          <div class="trade-header">
-            <h2>${t('trade.harbour')}</h2>
-            <button class="close-btn" id="tp-close" aria-label="${t('trade.close')}">✕</button>
-          </div>
-          <p class="muted">${t('trade.noMarket')}</p>
-        </div>
-      `;
-      this.attachListeners();
+      const root = el('div', 'harbour hb-empty');
+      root.append(el('p', 'hb-muted', t('trade.noMarket')));
+      this.container.replaceChildren(root);
       return;
     }
-
-    const { captain } = trade;
-    const holdCap = capacity(trade);
-    const holdUsed = cargoUsed(trade);
-
-    let totalSellableValue = 0;
-    for (const g of GOODS) {
-      const q = captain.cargo[g];
-      if (q > 0 && trades(market, g)) totalSellableValue += quoteSell(market, g, q);
-    }
-
-    const isKid = this.uiMode === 'kids';
-    if (isKid && this.tab === 'orders') this.tab = 'market';
-    const goodIcons = (goods: readonly string[]) =>
-      goods.map((g) => `<span title="${goodName(g)}">${icon(g)}</span>`).join('');
-    const makes = producesAt(map, trade, port.id);
-    const orders = this.openOrderCount();
     const people = this.quay?.items() ?? [];
     const fresh = people.filter((p) => p.fresh);
-    // The port's own picture and colour (decision 0211).
-    const picture = this.harbourPicture(port.id);
-    const accent = harbourAccent(map, port.id);
     if (!this.quay && this.tab === 'quay') this.tab = 'market';
-    const tabBtn = (tab: TradePanelTab, label: string, extra = '') =>
-      `<button id="tp-tab-${tab}" class="tab-btn ${this.tab === tab ? 'active' : ''}" aria-pressed="${this.tab === tab}">${label}${extra}</button>`;
+    this.onBoatSide(this.tab === 'shipyard');
 
-    // Full-screen port (decision 0049): header, tabs, one screen of content, actions along the bottom.
-    const html = `
-      <div class="trade-modal port-screen ${isKid ? 'kids-view' : 'captain-view'}">
-        <header class="trade-header${picture ? ' has-view' : ''}"${accent ? ` style="--port-accent: ${accent}"` : ''}>
-          ${picture ? `<div class="port-view" aria-hidden="true" style="background-image: url('${picture}')"></div>` : ''}
-          <div class="port-title-area">
-            <h2 class="port-name">${port.name}</h2>
-            <div class="port-roles-summary">
-              ${port.id === homePort(map).id ? `<span class="role-tag home">${icon('anchor')}${t('trade.homePort')}</span>` : ''}
-              ${makes.length ? `<span class="role-tag produces"><small>${isKid ? t('kids.produces') : t('trade.makes')}</small>${goodIcons(makes)}</span>` : ''}
-              ${!port.produces.length ? `<span class="role-tag produces">${t('trade.shipwright')}</span>` : ''}
-              <span class="role-tag wants"><small>${isKid ? t('kids.wants') : t('trade.wants')}</small>${goodIcons(wantsAt(map, trade, port.id))}</span>
-              ${this.settlementTag(port.id, port.name)}
-            </div>
-          </div>
-          <div class="header-controls">
-            <span class="port-chip" title="${t('hud.gold')}">${COIN}<b>${formatNumber(captain.gold)}</b></span>
-            <span class="port-chip" title="${t('hud.cargo')}">${crateIcon(holdCap > 0 ? holdUsed / holdCap : 0)}<b>${holdUsed}/${holdCap}</b></span>
-            ${this.renderDeckChip()}
-            ${
-              KIDS_MODE_AVAILABLE
-                ? `<button id="tp-toggle-mode" class="mode-toggle-btn" title="${t('trade.switchMode')}">
-              ${isKid ? t('kids.toCaptain') : t('trade.toKids')}
-            </button>`
-                : ''
-            }
-            <button class="close-btn" id="tp-close" aria-label="${t('trade.close')}">✕</button>
-          </div>
-        </header>
+    const root = el('div', `harbour hb-tab-${this.tab}`);
+    const picture = this.harbourPicture(port.id);
+    if (picture) {
+      const strip = el('div', 'hb-strip');
+      strip.setAttribute('aria-hidden', 'true');
+      strip.style.backgroundImage = `url('${picture}')`;
+      root.append(strip);
+    }
+    const accent = harbourAccent(map, port.id);
+    if (accent) root.style.setProperty('--port-accent', accent);
 
-        <nav class="trade-tabs">
-          ${PAD_LB()}
-          ${tabBtn('market', isKid ? t('kids.tabMarket') : t('trade.tabMarket'))}
-          ${isKid ? '' : tabBtn('orders', t('trade.tabOrders'), orders ? ` <span class="tab-badge">${orders}</span>` : '')}
-          ${this.quay ? tabBtn('quay', t('trade.tabQuay'), fresh.length && this.tab !== 'quay' ? ` <span class="tab-badge is-quay">${fresh.length}</span>` : '') : ''}
-          ${tabBtn('shipyard', isKid ? t('kids.tabShipyard') : t('trade.tabShipyard'))}
-          ${PAD_RB()}
-          ${
-            this.tab === 'market' && !isKid
-              ? `<span class="lot-picker" role="group" data-pad="steps" aria-label="${t('trade.lot')}"><small>${t('trade.lot')}</small>${PAD_LT()}${LOTS.map(
-                  (n) =>
-                    `<button class="lot-btn" data-lot="${n}" aria-pressed="${this.lot === n}">×${n}</button>`,
-                ).join('')}${PAD_RT()}</span>`
-              : ''
-          }
-        </nav>
-
-        <div id="tutorial-market"></div>
-        <main class="trade-content tab-${this.tab}">
-          ${
-            this.tab === 'market'
-              ? isKid
-                ? this.renderContracts(isKid) + this.renderKidsMarket(market, totalSellableValue)
-                : this.renderAdultMarket(market)
-              : this.tab === 'orders'
-                ? this.renderContracts(isKid)
-                : this.tab === 'quay'
-                  ? this.renderQuay(people)
-                  : isKid
-                    ? this.renderKidsShipyard()
-                    : this.renderAdultShipyard()
-          }
-        </main>
-
-        <p class="trade-status" role="status">${this.message}</p>
-        <footer class="trade-footer">
-          ${this.tab !== 'quay' && fresh.length ? this.renderQuayHint(fresh) : ''}
-          ${this.renderRepair(isKid)}
-          <span class="footer-gap"></span>
-          ${
-            totalSellableValue > 0 && !isKid
-              ? `<button id="tp-sell-all" class="port-btn green" data-pad="secondary">${PAD_X()}${t('trade.sellAll', { price: totalSellableValue })}${COIN}</button>`
-              : ''
-          }
-          <button id="tp-undock" class="port-btn brass undock-btn" data-pad-start="never">${icon('anchor')}${isKid ? t('kids.undock') : t('trade.undock')}</button>
-        </footer>
-      </div>
-    `;
-
-    this.container.innerHTML = html;
+    const sheet = panel({ tag: 'div' });
+    sheet.classList.add('hb-sheet');
+    sheet.append(this.header(port.id, port.name, people), this.body(people));
+    // The tutorial's coach mark lives in this host while the harbour is up.
+    const coach = el('div', '');
+    coach.id = 'tutorial-market';
+    root.append(sheet, this.footer(fresh), coach);
+    this.container.replaceChildren(root);
     softDisable(this.container);
-    this.attachListeners();
     this.onRender();
     if (this.tab === 'quay' && fresh.length) this.quay?.seen(fresh);
-    const modal = this.container.querySelector('.trade-modal');
-    if (modal) modal.scrollTop = scrollTop;
+    this.container.querySelectorAll('.hb-scroll').forEach((s, i) => (s.scrollTop = scroll[i] ?? 0));
     if (focusKey) {
-      const next = this.container.querySelector<HTMLButtonElement>(focusKey);
       // A greyed button keeps the focus (decision 0192): the next A must not land on Close.
-      (next ?? this.container.querySelector<HTMLButtonElement>('#tp-close'))?.focus({
+      const next = this.container.querySelector<HTMLElement>(focusKey);
+      (next ?? this.container.querySelector<HTMLElement>('#tp-close'))?.focus({
         preventScroll: true,
       });
     }
   }
 
-  /** The Quay tab (decision 0141): everyone in this harbour with something to say. */
-  private renderQuay(people: QuayItem[]): string {
-    if (!people.length) {
-      // The quay itself, in the header's picture (decision 0211).
-      const picture = this.world.trade.dockedAt && this.harbourPicture(this.world.trade.dockedAt);
-      return `<div class="quay-empty${picture ? ' has-view' : ''}">${
-        picture ? `<div class="quay-view" style="background-image: url('${picture}')"></div>` : ''
-      }<p class="muted">${t('trade.quayEmpty')}</p></div>`;
-    }
-    return `<div class="quay-people">${people
-      .map(
-        ({ card, fresh }) =>
-          `<article class="quay-person${fresh ? ' is-new' : ''}">${
-            card.giver
-              ? `<span class="quay-face">${portraitSvg(card.giver, { size: 96, mood: card.mood, variant: card.look })}</span>`
-              : ''
-          }<div class="quay-body">${questCardBody(card, true)}</div></article>`,
-      )
-      .join('')}</div>`;
-  }
-
-  /**
-   * The keeper's line for this docking (decision 0211): `grew` once after the town grew a level,
-   * else how the port's arc stands; the two lines of a state take turns from one visit to the next.
-   */
-  private pickKeeperLine() {
-    const { trade, map } = this.world;
-    const port = trade.dockedAt ? findPort(map, trade.dockedAt) : null;
-    this.keeperLine = null;
-    if (!port) return;
-    const level = settlementLevel(trade, port.id);
-    const grew = this.seenLevels[port.id] !== undefined && level > this.seenLevels[port.id]!;
-    this.seenLevels[port.id] = level;
-    const visit = (this.visits[port.id] = (this.visits[port.id] ?? 0) + 1);
-    if (!port.keeper) return;
-    const lines = (state: string) => {
-      const out: string[] = [];
-      for (let n = 1; tOptional(`keeper.${port.keeper}.${state}.${n}`) !== undefined; n++)
-        out.push(`keeper.${port.keeper}.${state}.${n}`);
-      return out;
-    };
-    // An outpost has no `before` or `running` lines: it speaks as done.
-    let options = lines(keeperState(port, trade, grew));
-    if (!options.length) options = lines('done');
-    if (options.length)
-      this.keeperLine = { port: port.id, key: options[(visit - 1) % options.length]! };
-  }
-
-  /** Under the Market rows: the keeper with a line, the town's level and what it grows into. */
-  private renderKeeper(portId: string): string {
-    const { trade, map } = this.world;
-    const port = findPort(map, portId);
-    const s = trade.settlements.byPort[portId];
-    if (!port || !s) return '';
-    const level = townLevelName(s.level);
-    const top = topLevel(port);
-    let next: string;
-    if (s.level >= top) next = t('trade.keeperTop', { level });
-    else {
-      const nextLevel = s.level + 1;
-      const makes = portNow(port, trade).levelProduces?.[String(nextLevel) as '2'] ?? [];
-      const upgrade = Object.entries(TUNING.upgrades.homePortLevel).find(
-        ([, at]) => at === nextLevel,
-      )?.[0];
-      const name = townLevelName(nextLevel);
-      next = makes.length
-        ? t('trade.keeperNextMakes', {
-            level: name,
-            goods: makes.map((g) => `${icon(g)} ${goodSome(g)}`).join(', '),
-          })
-        : upgrade && port.id === homePort(map).id
-          ? t('trade.keeperNextShipyard', { level: name, n: upgrade })
-          : t('trade.keeperNext', { level: name });
-    }
-    const growth =
-      s.level >= top
-        ? ''
-        : `<span class="keeper-growth">${t('trade.keeperGrowth', {
-            level,
-            pct: Math.round(growthProgress(trade, portId) * 100),
-          })}</span>`;
-    const who = port.keeper ? character(port.keeper) : undefined;
-    const line = this.keeperLine?.port === portId ? tOptional(this.keeperLine.key) : undefined;
-    return `<section class="keeper-card${who ? '' : ' no-keeper'}">${
-      who ? `<span class="quay-face">${portraitSvg(who, { size: 96 })}</span>` : ''
-    }<div class="keeper-body">${
-      who
-        ? `<p class="keeper-name"><b>${who.name}</b> <small>${tOptional(`character.${who.id}.role`) ?? who.role} · ${port.name}</small></p>`
-        : ''
-    }${line ? `<p class="keeper-line">${line}</p>` : ''}<p class="keeper-town">${growth}<span>${next}</span></p></div></section>`;
-  }
-
-  /** "Kit Marlow would like a word → Quay", in the footer of the other tabs. */
-  private renderQuayHint(fresh: QuayItem[]): string {
-    const first = fresh[0]!.card;
-    const name = (first.giver?.name ?? first.arc).replace(/[&<>"]/g, '');
-    return `<button id="tp-quay-hint" class="quay-hint">${
-      first.giver ? portraitSvg(first.giver, { size: 40, mood: first.mood }) : ''
-    }<span>${
-      // Dock news says itself (decision 0213): "Done! +100 gold." after the timber sold.
-      first.news
-        ? `<b>${name}</b> · ${first.news.replace(/[&<>"]/g, '')}`
-        : t('trade.quayHint', { name })
-    } <em>${t('trade.quayGo')}</em></span></button>`;
-  }
-
-  /** Hull repair after reef strikes (decision 0032); shown only when the hull is damaged. */
-  private renderRepair(isKid: boolean): string {
-    const { trade } = this.world;
-    const pct = Math.round(hullCondition(trade) * 100);
-    if (pct >= 100 && repairPrice(trade) === 0) return '';
-    const price = repairPrice(trade);
-    const canPay = trade.captain.gold >= 2;
-    const label =
-      trade.captain.gold >= price
-        ? t(isKid ? 'kids.fix' : 'trade.repair', { pct, price })
-        : canPay
-          ? t(isKid ? 'kids.fixSome' : 'trade.repairSome', { pct })
-          : t('trade.needGold');
-    return `<button id="tp-repair" class="port-btn red" title="${t('trade.hull')} ${t('unit.percent', { n: pct })}${t('trade.leaking')}" ${canPay ? '' : 'disabled'}>${icon('hull')}${label}${trade.captain.gold >= price ? COIN : ''}</button>`;
-  }
-
-  /** Open delivery orders across the map, counted on the Orders tab. */
-  private openOrderCount(): number {
-    const { trade, map } = this.world;
-    const here = trade.contracts.byPort[trade.dockedAt!];
-    // Same list as the Orders tab: ports not yet discovered stay hidden (decision 0048).
-    const charted = discoveredPorts(map, trade).map((p) => p.id);
-    const others = openContracts(trade.contracts).filter(
-      (c) => c.portId !== trade.dockedAt && charted.includes(c.portId),
-    );
-    return others.length + (here && here.readyIn <= 0 ? 1 : 0);
-  }
-
-  /** Delivery orders (decision 0028): this port's, with a Deliver button, then the others'. */
-  private renderContracts(isKid: boolean): string {
-    const { trade, map } = this.world;
-    const here = trade.contracts.byPort[trade.dockedAt!];
-    const portName = (id: string) => findPort(map, id)?.name ?? id;
-    const goods = (c: Contract) =>
-      isKid
-        ? `${GOOD_ICONS[c.good]} ×${c.qty}`
-        : t('trade.contractGoods', { qty: c.qty, good: goodName(c.good).toLowerCase() });
-
-    let hereHtml: string;
-    if (!here || here.readyIn > 0) {
-      hereHtml = `<p class="contract-line muted">${isKid ? t('kids.noJob') : t('trade.noOrder')}</p>`;
-    } else {
-      const missing = here.qty - trade.captain.cargo[here.good];
-      hereHtml = `
-        <div class="contract-line contract-here">
-          ${here.help ? `<span class="role-badge help">🆘 ${t('trade.help')}</span>` : ''}
-          <span>${isKid ? t('kids.townNeeds') : t('trade.portOrders')} <b>${goods(here)}</b> · ${isKid ? t('kids.pays') : t('trade.reward')} <b>${here.reward}${COIN}</b></span>
-          <button id="tp-deliver" class="sell-all-btn deliver-btn" ${missing > 0 ? 'disabled' : ''}>
-            ${missing > 0 ? t('trade.needMore', { n: missing }) : isKid ? t('kids.deliver') : t('trade.deliverFor', { reward: here.reward })}
-          </button>
-        </div>`;
-    }
-    const charted = discoveredPorts(map, trade).map((p) => p.id);
-    const others = openContracts(trade.contracts).filter(
-      (c) => c.portId !== trade.dockedAt && charted.includes(c.portId),
-    );
-    const othersHtml = others
-      .map(
-        (c) =>
-          `<li>${c.help ? '🆘 ' : ''}<b>${portName(c.portId)}</b>: ${goods(c)} · ${c.reward}${COIN}${
-            trade.captain.cargo[c.good] >= c.qty
-              ? ` <span class="role-badge produces">${t('trade.inHoldBadge')}</span>`
-              : ''
-          }</li>`,
-      )
+  /** How to find the focused control again after the redraw: its id, else its data attributes. */
+  private focusKey(): string {
+    const at = document.activeElement as HTMLElement | null;
+    if (!at || !this.container.contains(at) || at === this.container) return '';
+    if (at.id) return `#${at.id}`;
+    return [...at.attributes]
+      .filter((a) => a.name.startsWith('data-') && !['data-qty', 'data-pad-focus'].includes(a.name))
+      .map((a) => `[${a.name}="${a.value}"]`)
       .join('');
-    return `
-      <section class="contracts" aria-label="${isKid ? t('kids.jobs') : t('trade.orders')}">
-        <h3 class="contracts-title">${isKid ? t('kids.jobs') : t('trade.orders')}</h3>
-        ${hereHtml}
-        ${others.length ? `<ul class="contract-list">${othersHtml}</ul>` : ''}
-      </section>`;
   }
 
-  /** Where this good sells best among the other ports today (decision 0036). */
-  private bestSaleElsewhere(good: GoodId): { name: string; sell: number } | null {
+  private header(portId: string, name: string, people: readonly QuayItem[]): HTMLElement {
     const { trade, map } = this.world;
-    const others = discoveredPorts(map, trade).filter((p) => p.id !== trade.dockedAt);
-    const best = quoteAcross(
-      trade.markets,
-      good,
-      others.map((p) => p.id),
-    ).reduce<{ portId: string; sell: number } | null>(
-      (top, q) => (!top || q.sell > top.sell ? q : top),
-      null,
-    );
-    return best ? { name: findPort(map, best.portId)?.name ?? best.portId, sell: best.sell } : null;
-  }
-
-  /** The town's size and growth toward the next level (decision 0059). */
-  private settlementTag(portId: string, name: string): string {
-    const s = this.world.trade.settlements.byPort[portId];
-    if (!s) return '';
-    const level = townLevelName(s.level);
-    const pct = Math.round(growthProgress(this.world.trade, portId) * 100);
-    // A town short of its rare goods shows how many it has had (decision 0065).
-    const gate =
-      s.level === MAX_SETTLEMENT_LEVEL - 1
-        ? portTownGate(this.world.map, this.world.trade, portId)
-        : null;
-    if (gate) {
-      const goods = gate.goods.map((g) => icon(g)).join('');
-      const text = t('settlement.rare', { level, pct, have: gate.have, need: gate.need, goods });
-      const sources = this.world.map.ports
-        .filter(
-          (p) =>
-            portNow(p, this.world.trade).levelProduces &&
-            Object.values(portNow(p, this.world.trade).levelProduces!)
-              .flat()
-              .some((g) => g && gate.goods.includes(g)),
-        )
-        .map((p) => (isDiscovered(this.world.trade, p.id) ? p.name : t('settlement.farIsland')));
-      const hint = t('settlement.rareHint', {
-        name,
-        need: gate.need,
-        goods: gate.goods.map(goodName).join(', '),
-        source: sources[0] ?? t('settlement.farIsland'),
-      });
-      return `<span class="role-tag level rare" title="${hint}">${text}</span>`;
-    }
-    const text =
-      s.level >= MAX_SETTLEMENT_LEVEL
-        ? level
-        : t(
-            s.sinceSupply > TUNING.economy.towns.stallSeconds && s.growth > 0
-              ? 'settlement.stalling'
-              : 'settlement.growing',
-            {
-              level,
-              pct,
-            },
-          );
-    return `<span class="role-tag level" title="${t('settlement.hint', { name })}">${text}</span>`;
-  }
-
-  /** Why an upgrade waits: the home port has to grow first (decision 0059). */
-  private needsLevelText(to: number): string {
-    const home = homePort(this.world.map);
-    return t('upg.needsLevel', {
-      port: home.name,
-      level: townLevelName(upgradeNeedsLevel(to)),
-    });
-  }
-
-  // --- KIDS MARKET RENDERER ---
-  private renderKidsMarket(market: Market, sellAllGold: number): string {
-    const { trade, map } = this.world;
-    const port = findPort(map, trade.dockedAt!)!;
-    const { captain } = trade;
-
-    const made = madeGoods(map, trade);
-    // Specialized goods appear only where they are made or wanted (decision 0063).
-    const cardsHtml = GOODS.filter((g) => trades(market, g))
-      .map((good) => {
-        const def = GOOD_DEFS[good];
-        const role = goodRole(port, good, settlementLevel(trade, port.id), made);
-        const inHold = captain.cargo[good];
-        const maxCanBuy = maxBuy(trade, good);
-
-        const buyPrice = quoteBuy(market, good, 1);
-        const sellPrice = quoteSell(market, good, 1);
-
-        const fillHoldCost = maxCanBuy > 0 ? quoteBuy(market, good, maxCanBuy) : 0;
-        const bestElsewhere = this.bestSaleElsewhere(good);
-        const sellAllIncome = inHold > 0 ? quoteSell(market, good, inHold) : 0;
-
-        let badgeText = t('kids.regular');
-        let badgeClass = 'neutral';
-        if (role === 'produces') {
-          badgeText = t('kids.cheap');
-          badgeClass = 'produces';
-        } else if (role === 'wants') {
-          badgeText = t('kids.highReward');
-          badgeClass = 'wants';
-        }
-
-        return `
-        <article class="good-card kid-card ${role}">
-          <div class="kid-good-head">
-            <span class="kid-icon">${GOOD_ICONS[good]}</span>
-            <div class="kid-title-block">
-              <h4 class="kid-good-name">${goodName(def.id)}</h4>
-              <span class="role-badge ${badgeClass}">${badgeText}</span>
-            </div>
-            <div class="kid-hold-count">
-              <span class="count-label">${t('kids.inYourHold')}</span>
-              <b class="count-val">${inHold}</b>
-            </div>
-          </div>
-
-          <div class="kid-price-summary">
-            <span>${t('kids.buy')} <b>${buyPrice} 🪙</b></span>
-            <span>·</span>
-            <span>${t('kids.sell')} <b>${sellPrice} 🪙</b></span>
-          </div>
-          ${bestElsewhere ? `<p class="best-elsewhere">${t('kids.sellsBestAt', { name: bestElsewhere.name, price: bestElsewhere.sell })}</p>` : ''}
-
-          <div class="kid-button-row">
-            <button
-              class="kid-act-btn buy-one"
-              data-action="buy"
-              data-good="${good}"
-              data-qty="1"
-              ${maxCanBuy < 1 ? 'disabled' : ''}
-            >
-              ${t('kids.buyOne', { price: buyPrice })}
-            </button>
-
-            ${
-              maxCanBuy > 1
-                ? `
-              <button
-                class="kid-act-btn buy-max"
-                data-action="buy"
-                data-good="${good}"
-                data-qty="${maxCanBuy}"
-              >
-                ${t('kids.fillHold', { n: maxCanBuy, price: fillHoldCost })}
-              </button>
-            `
-                : ''
-            }
-
-            <button
-              class="kid-act-btn sell-one"
-              data-action="sell"
-              data-good="${good}"
-              data-qty="1"
-              ${inHold < 1 ? 'disabled' : ''}
-            >
-              ${t('kids.sellOne', { price: sellPrice })}
-            </button>
-
-            ${
-              inHold > 1
-                ? `
-              <button
-                class="kid-act-btn sell-all-one"
-                data-action="sell"
-                data-good="${good}"
-                data-qty="${inHold}"
-              >
-                ${t('kids.sellAllOf', { n: inHold, price: sellAllIncome })}
-              </button>
-            `
-                : ''
-            }
-          </div>
-        </article>
-      `;
-      })
-      .join('');
-
-    return `
-      <div class="market-section kids-layout">
-        ${
-          sellAllGold > 0
-            ? `
-          <div class="sell-all-bar kid-banner">
-            <span>${t('kids.cargoReady')}</span>
-            <button id="tp-sell-all" class="sell-all-btn">
-              ${t('kids.sellAll', { price: sellAllGold })}
-            </button>
-          </div>
-        `
-            : ''
-        }
-        <div class="goods-grid">
-          ${cardsHtml}
-        </div>
-      </div>
-    `;
-  }
-
-  // --- ADULT / CAPTAIN MARKET RENDERER ---
-  /** One row per good: price on the button, one tap per lot (decision 0049). */
-  private renderAdultMarket(market: Market): string {
-    const { trade, map } = this.world;
-    const port = findPort(map, trade.dockedAt!)!;
-    const { captain } = trade;
-    const order = trade.contracts.byPort[trade.dockedAt!];
-    const liveOrder = order && order.readyIn <= 0 ? order : null;
-
-    const made = madeGoods(map, trade);
-    // Specialized goods appear only where they are made or wanted (decision 0063).
-    const rowsHtml = GOODS.filter((g) => trades(market, g))
-      .map((good) => {
-        const def = GOOD_DEFS[good];
-        const role = goodRole(port, good, settlementLevel(trade, port.id), made);
-        // A far workshop sells only what it crafted from raw goods received (decision 0146).
-        const stock = available(market, good);
-        const inHold = captain.cargo[good];
-        const free = freeSpace(trade);
-        const buyQty = Math.max(1, Math.min(this.lot, maxBuy(trade, good)));
-        const sellQty = Math.max(1, Math.min(this.lot, inHold));
-        const costQuote = quoteBuy(market, good, buyQty);
-        const sellQuote = quoteSell(market, good, sellQty);
-        const nextBuy = quoteBuy(market, good, 1);
-
-        const canBuy = maxBuy(trade, good) >= buyQty;
-        let buyDisabledReason = '';
-        if (!canBuy) {
-          if (stock === 0) buyDisabledReason = t('trade.outOfStock');
-          else if (free === 0) buyDisabledReason = t('trade.holdFull');
-          else if (captain.gold < nextBuy) buyDisabledReason = t('trade.needGold');
-          else buyDisabledReason = t('trade.cannotAfford');
-        }
-        const canSell = inHold >= sellQty;
-        const sellDisabledReason = canSell ? '' : t('trade.noneInHold');
-
-        const note =
-          role === 'produces'
-            ? t('trade.madeHere')
-            : role === 'wants'
-              ? liveOrder?.good === good
-                ? t('trade.wantedOrder', { n: liveOrder.qty })
-                : t('trade.wanted')
-              : '';
-        const best = this.bestSaleElsewhere(good);
-        const qtyLabel = (n: number) => (n > 1 ? ` ${n}` : '');
-
-        return `
-        <article class="good-row ${role}">
-          <span class="good-icon">${icon(good)}</span>
-          <span class="good-text">
-            <b class="good-name">${goodName(def.id)}</b>
-            ${note ? `<small class="good-note">${note}</small>` : ''}
-          </span>
-          <span class="good-best">${best ? `<small>${t('trade.bestElsewhereTitle')}</small>${t('trade.paysAt', { name: best.name, price: best.sell })}` : ''}</span>
-          <span class="good-hold"><b>${inHold}</b><small>${t('trade.hold')}</small></span>
-          <button
-            class="trade-act-btn buy-btn port-btn brass"
-            data-action="buy"
-            data-good="${good}"
-            data-qty="${buyQty}"
-            ${!canBuy ? 'disabled' : ''}
-            title="${canBuy ? t('trade.buyFor', { n: buyQty, price: costQuote }) : buyDisabledReason}"
-          ><small>${t('trade.buy')}${qtyLabel(buyQty)}</small><b>${costQuote}</b></button>
-          <button
-            class="trade-act-btn sell-btn port-btn green ${role === 'wants' ? 'pays-well' : ''}"
-            data-action="sell"
-            data-good="${good}"
-            data-qty="${sellQty}"
-            ${!canSell ? 'disabled' : ''}
-            title="${canSell ? t('trade.sellFor', { n: sellQty, price: sellQuote }) : sellDisabledReason}"
-          ><small>${t('trade.sell')}${qtyLabel(sellQty)}</small><b>${sellQuote}</b></button>
-        </article>
-      `;
-      })
-      .join('');
-
-    // Side panel: this port's order, then where the cargo (or what this port makes) sells best.
-    const hereGoods = GOODS.filter((g) => captain.cargo[g] > 0);
-    const tips = (hereGoods.length ? hereGoods : producesAt(map, trade, port.id))
-      .map((g) => {
-        const best = this.bestSaleElsewhere(g as GoodId);
-        return best
-          ? `<li>${icon(g)} ${t('trade.paysAt', { name: best.name, price: best.sell })}</li>`
-          : '';
-      })
-      .join('');
-    const missing = liveOrder ? liveOrder.qty - captain.cargo[liveOrder.good] : 0;
-    const orderHtml = liveOrder
-      ? `${liveOrder.help ? `<p class="order-help">🆘 ${t('trade.help')}</p>` : ''}<p class="order-line">${icon(liveOrder.good)} <b>${t('trade.contractGoods', { qty: liveOrder.qty, good: goodName(liveOrder.good).toLowerCase() })}</b> → <b>${liveOrder.reward}</b>${COIN}</p>
-         <button id="tp-deliver" class="port-btn green deliver-btn" ${missing > 0 ? 'disabled' : ''}>
-           ${missing > 0 ? t('trade.needMore', { n: missing }) : t('trade.deliverFor', { reward: liveOrder.reward })}
-         </button>`
-      : `<p class="muted">${t('trade.noOrder')}</p>`;
-
-    return `
-      <div class="market-section adult-layout">
-        <div class="goods-list">${rowsHtml}${this.renderKeeper(port.id)}</div>
-        <aside class="port-side">
-          ${this.renderCredit()}
-          ${this.renderQuestCargo()}
-          <section class="side-card">
-            <h3>${t('trade.orderHere')}</h3>
-            ${orderHtml}
-          </section>
-          ${tips ? `<section class="side-card"><h3>${t('trade.bestElsewhereTitle')}</h3><ul>${tips}</ul></section>` : ''}
-        </aside>
-      </div>
-    `;
-  }
-
-  /** Quest cargo on deck (decision 0213), next to the hold, while there is some. */
-  private renderDeckChip(): string {
-    const { trade } = this.world;
+    const kids = this.uiMode === 'kids';
+    const fresh = people.filter((p) => p.fresh).length;
     const onDeck = trade.quests.hold ?? 0;
-    if (onDeck <= 0) return '';
-    const deck = SHIP_CLASSES[trade.captain.activeShip]!.deck;
-    return `<span class="port-chip deck-chip" title="${t('hud.onDeck')}"><svg class="icon" aria-hidden="true"><use href="#i-deck" /></svg><small>${t('hud.deck')}</small><b>${onDeck}/${deck}</b></span>`;
-  }
-
-  /** Quest cargo on deck (decision 0213): it is not for sale and not in the hold, so say whose. */
-  private renderQuestCargo(): string {
-    const lines = this.questCargo();
-    if (!lines.length) return '';
-    return `<section class="side-card quest-cargo"><h3>${t('quest.cargoTitle')}</h3><ul>${lines
-      .map((l) => `<li>${l.replace(/[&<>"]/g, '')}</li>`)
-      .join('')}</ul></section>`;
-  }
-
-  /**
-   * A load on credit (decision 0200): the harbour office's offer while she is broke with an empty
-   * hold, or what she owes while a loan is open.
-   */
-  private renderCredit(): string {
-    const { trade, map } = this.world;
-    const portName = (id: string) => findPort(map, id)?.name ?? id;
-    const loan = trade.captain.loan;
-    if (loan)
-      return `<section class="side-card credit-card owed"><p>${icon(loan.good)} ${t('trade.creditOwed', { price: loan.owed, good: goodName(loan.good).toLowerCase(), port: portName(loan.port) })}</p></section>`;
-    const offer = this.creditLater ? null : creditOffer(map, trade);
-    if (!offer) return '';
-    const text = t('trade.creditText', {
-      goods: t('trade.contractGoods', { qty: offer.qty, good: goodName(offer.good).toLowerCase() }),
-      port: portName(offer.port),
-      price: offer.price,
+    return harbourHeader({
+      title: name,
+      line: portLine({
+        home: portId === homePort(map).id,
+        makes: producesAt(map, trade, portId),
+        wants: wantsAt(map, trade, portId),
+        shipwright: !findPort(map, portId)!.produces.length,
+      }),
+      tabs: [
+        { id: 'market', label: t(kids ? 'kids.tabMarket' : 'trade.tabMarket') },
+        { id: 'orders', label: t('trade.tabOrders'), badge: openOrderCount(this.world) },
+        ...(this.quay
+          ? [
+              {
+                id: 'quay',
+                label: t('trade.tabQuay'),
+                badge: this.tab === 'quay' ? 0 : fresh,
+                quay: true,
+              },
+            ]
+          : []),
+        { id: 'shipyard', label: t(kids ? 'kids.tabShipyard' : 'trade.tabShipyard') },
+      ],
+      selected: this.tab,
+      wallet: {
+        gold: trade.captain.gold,
+        used: cargoUsed(trade),
+        cap: capacity(trade),
+        deck:
+          onDeck > 0
+            ? { used: onDeck, cap: SHIP_CLASSES[trade.captain.activeShip]!.deck }
+            : undefined,
+      },
+      onSelect: (id) => this.show(id as TradePanelTab),
+      onClose: () => this.close(),
     });
-    return `
-      <section class="side-card credit-card">
-        <h3>${t('trade.creditTitle')}</h3>
-        <p>${icon(offer.good)} ${text}</p>
-        <div class="credit-actions">
-          <button id="tp-credit-take" class="port-btn green">${t('trade.creditTake')}</button>
-          <button id="tp-credit-later" class="port-btn later">${t('trade.creditLater')}</button>
-        </div>
-      </section>`;
   }
 
-  /**
-   * Spend `gold` here, asking first if it would leave her with an empty hold and less than the
-   * cheapest load (decision 0200).
-   */
-  private async spend(gold: number, act: () => void) {
-    const trade = this.world.trade;
-    if (leavesShort(trade, gold)) {
-      const yes = await askConfirm({
-        title: t('trade.shortTitle'),
-        text: t('trade.shortText', { gold: formatNumber(Math.max(0, trade.captain.gold - gold)) }),
-        ok: t('trade.shortOk'),
-      });
-      if (!yes || !this.isOpen) return;
-    }
-    act();
-  }
-
-  /** After a sale or a delivery: the gold paid back if it cleared her loan (decision 0200). */
-  private repaidNote(before: { gold: number; owed: boolean }, earned: number) {
-    if (!before.owed || this.world.trade.captain.loan) return;
-    const paid = before.gold + earned - this.world.trade.captain.gold;
-    if (paid > 0) this.message += ` ${t('trade.creditRepaid', { gold: paid })}`;
-  }
-
-  // --- KIDS SHIPYARD RENDERER ---
-  private renderKidsShipyard(): string {
-    const { trade } = this.world;
-    const { captain } = trade;
-    const activeShipId = captain.activeShip;
-    const activeShipBase = SHIP_CLASSES[activeShipId]!;
-    const levels = captain.ships[activeShipId] ?? { sails: 1, hold: 1, hull: 1 };
-
-    const tracks = [
-      {
-        track: 'sails' as UpgradeTrack,
-        title: t('kids.upg.sails'),
-        desc: t('kids.upg.sailsDesc'),
-        current: t('kids.upg.sailsLevel', { level: levels.sails }),
-      },
-      {
-        track: 'hold' as UpgradeTrack,
-        title: t('kids.upg.hold'),
-        desc: t('kids.upg.holdDesc'),
-        current: t('kids.upg.holdLevel', { level: levels.hold }),
-      },
-      {
-        track: 'hull' as UpgradeTrack,
-        title: t('kids.upg.hull'),
-        desc: t('kids.upg.hullDesc'),
-        current: t('kids.upg.hullLevel', { level: levels.hull }),
-      },
-    ];
-
-    const upgradeCardsHtml = tracks
-      .map(({ track, title, desc, current }) => {
-        const cur = levels[track];
-        const isMax = cur >= MAX_UPGRADE_LEVEL;
-        const nextPrice = upgradePrice(activeShipBase, levels, track);
-        const canAfford = nextPrice !== null && captain.gold >= nextPrice;
-
-        return `
-        <article class="upgrade-card kid-card">
-          <div class="kid-upg-header">
-            <h4>${title}</h4>
-            <span class="kid-level-badge">${current}</span>
-          </div>
-          <p class="kid-upg-desc">${desc}</p>
-          <div class="upgrade-action">
-            ${
-              isMax
-                ? `<button class="upgrade-btn maxed" disabled>${t('kids.maxLevel')}</button>`
-                : !upgradeAllowed(trade, this.world.map, cur + 1)
-                  ? `<button class="upgrade-btn" disabled>${this.needsLevelText(cur + 1)}</button>`
-                  : canAfford
-                    ? `<button class="upgrade-btn primary kid-btn" data-track="${track}">${t('kids.upgrade', { price: nextPrice! })}</button>`
-                    : `<button class="upgrade-btn" disabled>${t('kids.needCoins', { n: nextPrice! - captain.gold })}</button>`
-            }
-          </div>
-        </article>
-      `;
-      })
-      .join('');
-
-    const home = homePort(this.world.map);
-    return `
-      <div class="shipyard-section kids-layout">
-        <div class="section-title">
-          <h3>${t('kids.upgradeTitle')}</h3><button type="button" class="ship-btn boat-looks-btn" id="tp-boat-looks" title="${t('customise.openTitle')}">${t('customise.open')}</button>
-        </div>
-        ${
-          trade.dockedAt === home.id
-            ? `<div class="upgrades-grid">
-          ${upgradeCardsHtml}
-        </div>`
-            : `<p class="muted home-note">${t('upg.homeOnly', { port: home.name })}</p>`
-        }
-
-        <div class="section-title ships-title">
-          <h3>${t('kids.fleet')}</h3>
-        </div>
-        ${this.renderFleet()}
-      </div>
-    `;
-  }
-
-  // --- ADULT / CAPTAIN SHIPYARD RENDERER ---
-  private renderAdultShipyard(): string {
-    const { trade } = this.world;
-    const { captain } = trade;
-    const activeShipId = captain.activeShip;
-    const activeShipBase = SHIP_CLASSES[activeShipId]!;
-    const levels = captain.ships[activeShipId] ?? { sails: 1, hold: 1, hull: 1 };
-
-    const tracksHtml = UPGRADE_TRACKS.map((track) => {
-      const currentLevel = levels[track];
-      const isMax = currentLevel >= MAX_UPGRADE_LEVEL;
-      const nextPrice = upgradePrice(activeShipBase, levels, track);
-      const canAfford = nextPrice !== null && captain.gold >= nextPrice;
-
-      const icon = { sails: '💨', hold: '📦', hull: '🛡' }[track];
-      const name = t(`upg.${track}`);
-      // Each level's number: hold capacity for the hold, durability for the hull (decision 0011).
-      const amount = (level: 1 | 2 | 3) => {
-        const levels = { sails: 1, hold: 1, hull: 1, [track]: level };
-        return track === 'hold'
-          ? holdCapacity(activeShipBase, levels)
-          : track === 'hull'
-            ? hullDurability(levels)
-            : 0;
-      };
-      const level = Math.min(Math.max(currentLevel, 1), 3) as 1 | 2 | 3;
-      // Top speed in knots with this track at `level` and the other tracks as they are (decision 0075).
-      const kn = (level: 1 | 2 | 3) =>
-        formatNumber(topSpeedKn(effectiveShip(activeShipBase, { ...levels, [track]: level })), 1);
-      const params = (level: 1 | 2 | 3) => ({ n: amount(level), kn: kn(level) });
-      const currentDesc = t(`upg.${track}.${level}`, params(level));
-      const nextDesc =
-        level === 1
-          ? t(`upg.${track}.next2`, params(2))
-          : level === 2
-            ? t(`upg.${track}.next3`, params(3))
-            : '';
-
-      let buttonHtml: string;
-      if (isMax) {
-        buttonHtml = `<button class="upgrade-btn maxed" disabled>${t('upg.maxLevel')}</button>`;
-      } else if (!upgradeAllowed(trade, this.world.map, currentLevel + 1)) {
-        buttonHtml = `<button class="upgrade-btn" disabled>${this.needsLevelText(currentLevel + 1)}</button>`;
-      } else if (canAfford) {
-        buttonHtml = `<button class="upgrade-btn primary" data-track="${track}">${t('upg.upgradeTo', { price: nextPrice! })}</button>`;
-      } else {
-        const short = nextPrice! - captain.gold;
-        buttonHtml = `<button class="upgrade-btn" disabled title="${t('upg.needGoldTitle', { n: short })}">${t('upg.upgradeShort', { price: nextPrice!, n: short })}</button>`;
-      }
-
-      const pipsHtml = [1, 2, 3]
-        .map((lv) => `<span class="track-pip ${lv <= currentLevel ? 'filled' : ''}"></span>`)
-        .join('');
-
-      return `
-        <article class="upgrade-card adult-card">
-          <div class="upgrade-card-header">
-            <span class="track-icon">${icon}</span>
-            <div class="track-titles">
-              <h4 class="track-name">${name}</h4>
-              <div class="track-pips-container">
-                <span class="track-level-text">${t('upg.levelOf', { level: currentLevel, max: MAX_UPGRADE_LEVEL })}</span>
-                <div class="track-pips">${pipsHtml}</div>
-              </div>
-            </div>
-          </div>
-          <div class="track-effects">
-            <p class="current-effect">${currentDesc}</p>
-            ${!isMax ? `<p class="next-effect"><b>${t('upg.next')}</b> ${nextDesc}</p>` : `<p class="max-note">${t('upg.fullyUpgraded')}</p>`}
-          </div>
-          <div class="upgrade-action">
-            ${buttonHtml}
-          </div>
-        </article>
-      `;
-    }).join('');
-
-    const home = homePort(this.world.map);
-    const upgradesHtml =
-      trade.dockedAt === home.id
-        ? `<div class="upgrades-grid">
-          ${tracksHtml}
-        </div>`
-        : `<p class="muted home-note">${t('upg.homeOnly', { port: home.name })}</p>`;
-    return `
-      <div class="shipyard-section adult-layout">
-        <div class="section-title">
-          <h3>${t('upg.forActive', { ship: shipName(activeShipBase) })}</h3>
-          <span class="muted small">${t('upg.visualNote')}</span><button type="button" class="ship-btn boat-looks-btn" id="tp-boat-looks" title="${t('customise.openTitle')}">${t('customise.open')}</button>
-        </div>
-        ${upgradesHtml}
-
-        <div class="section-title ships-title">
-          <h3>${t('fleet.title')}</h3>
-          <span class="muted small">${t('fleet.note', { port: home.name })}</span>
-        </div>
-
-        ${this.renderFleet()}
-      </div>
-    `;
-  }
-
-  /**
-   * Every ship class (decision 0048): the starter, then each line's ships with where they are
-   * built and what it takes to buy them. Switching and upgrades happen at the home port only.
-   */
-  private renderFleet(): string {
-    const { trade, map } = this.world;
-    const { captain } = trade;
-    const here = trade.dockedAt;
-    const home = homePort(map);
-    const atHome = here === home.id;
-    const cargoNow = cargoUsed(trade);
-    const stock = { sails: 1, hold: 1, hull: 1 };
-    const sailing = `<span class="ship-badge active-badge">${t('fleet.sailing')}</span>`;
-    const note = (text: string) => `<span class="ship-note muted small">${text}</span>`;
-
-    const action = (offer: ShipOffer): string => {
-      const { cls } = offer;
-      const ship = shipThe(cls);
-      if (captain.activeShip === cls.id) return sailing;
-      if (offer.status === 'owned') {
-        if (!atHome) return note(t('fleet.waitingAt', { port: home.name }));
-        const cap = holdCapacity(cls, captain.ships[cls.id]!);
-        if (cargoNow <= cap)
-          return `<button class="ship-btn primary" data-ship-switch="${cls.id}">${t('fleet.switchTo', { ship })}</button>`;
-        const load = { used: cargoNow, cap };
-        return `<button class="ship-btn" disabled title="${t('fleet.cargoTooLargeCount', load)}">${t('fleet.switchCargo', { ship, ...load })}</button>`;
-      }
-      if (offer.status === 'undiscovered') return note(t('fleet.undiscovered'));
-      const yard = offer.yard!.name;
-      if (offer.status === 'needs-standing')
-        return note(t('fleet.needsOrders', { n: offer.ordersLeft, port: yard }));
-      const price = formatNumber(cls.price);
-      if (here !== offer.yard!.id) return note(t('fleet.builtAt', { port: yard, price }));
-      if (captain.gold < cls.price) {
-        const short = cls.price - captain.gold;
-        return `<button class="ship-btn" disabled title="${t('upg.needGoldTitle', { n: short })}">${t('fleet.buyNeed', { ship, price, n: short })}</button>`;
-      }
-      if (cargoNow > holdCapacity(cls, stock))
-        return `<button class="ship-btn" disabled title="${t('fleet.cargoExceeds', { ship })}">${t('fleet.buyCargoBig', { ship, price })}</button>`;
-      return `<button class="ship-btn primary" data-ship-buy="${cls.id}">${t('fleet.buy', { ship, price })}</button>`;
-    };
-
-    const card = (offer: ShipOffer): string => {
-      const { cls } = offer;
-      const levels = captain.ships[cls.id] ?? stock;
-      const speed = formatNumber(topSpeedKn(effectiveShip(cls, levels)), 1);
-      const role =
-        cls.line === 'starter'
-          ? t('fleet.line.starter')
-          : t('fleet.lineTier', { line: t(`fleet.line.${cls.line}`), tier: cls.tier });
-      return `
-          <article class="ship-card adult-card ${captain.activeShip === cls.id ? 'active-ship' : ''}" data-ship="${cls.id}">
-            <div class="ship-card-header">
-              <h4>${shipName(cls)}</h4>
-              <span class="ship-role-tag">${role}</span>
-            </div>
-            <div class="ship-specs">
-              <div>${t('fleet.hold', { n: holdCapacity(cls, levels) })}</div>
-              <div>${t('fleet.points', { deg: cls.noGoDeg })}</div>
-              <div>${t('fleet.speed', { kn: speed })}</div>
-            </div>
-            <div class="ship-action">
-              ${action(offer)}
-            </div>
-          </article>`;
-    };
-
-    const sloop: ShipOffer = { cls: SLOOP, status: 'owned', yard: home, ordersLeft: 0 };
-    const offers = [sloop, ...shipOffers(trade, map).filter((o) => o.status !== 'no-yard')];
-    return `
-        <div class="ships-grid">
-          ${offers.map(card).join('')}
-        </div>
-        <p class="muted small speed-note">${t('upg.speedNote', { wind: TUNING.seamanship.boat.referenceBreezeKn })}</p>
-    `;
-  }
-
-  private loanState() {
-    const { captain } = this.world.trade;
-    return { gold: captain.gold, owed: !!captain.loan };
-  }
-
-  /** A sale's note, with the loan paid back if it cleared (decision 0200). */
-  private afterSale(before: { gold: number; owed: boolean }, res: TradeResult) {
-    if (!res.ok) return;
-    this.repaidNote(before, res.gold);
+  private show(tab: TradePanelTab) {
+    this.tab = tab;
     this.render();
   }
 
-  private attachListeners() {
-    const closeBtn = this.container.querySelector('#tp-close');
-    closeBtn?.addEventListener('click', () => this.close());
+  private pick(kind: keyof TradePanel['picked'], key: string) {
+    this.picked[kind] = key as GoodId;
+    this.render();
+  }
 
-    const undockBtn = this.container.querySelector('#tp-undock');
-    undockBtn?.addEventListener('click', () => this.close());
-
-    const modeBtn = this.container.querySelector('#tp-toggle-mode');
-    modeBtn?.addEventListener('click', () => {
-      this.uiMode = this.uiMode === 'kids' ? 'adult' : 'kids';
-      this.onUiModeChange(this.uiMode);
-      this.render();
-    });
-
-    const tabMarket = this.container.querySelector('#tp-tab-market');
-    tabMarket?.addEventListener('click', () => {
-      this.tab = 'market';
-      this.render();
-    });
-
-    const tabShipyard = this.container.querySelector('#tp-tab-shipyard');
-    tabShipyard?.addEventListener('click', () => {
-      this.tab = 'shipyard';
-      this.render();
-    });
-
-    // Sell all
-    const sellAllBtn = this.container.querySelector('#tp-sell-all');
-    sellAllBtn?.addEventListener('click', () => {
-      const before = this.loanState();
-      const res = sellAll(this.world.trade, this.world.map);
-      this.finish(res, { kind: 'sell', good: null });
-      this.afterSale(before, res);
-    });
-
-    this.container.querySelector('#tp-repair')?.addEventListener('click', () => {
-      const trade = this.world.trade;
-      // Repairs take what she can pay for (decision 0032).
-      const cost = Math.min(repairPrice(trade), trade.captain.gold);
-      void this.spend(cost, () => {
-        const res = repairHull(trade);
-        if (res.ok) {
-          this.message = t('trade.repaired', { gold: res.gold });
-          this.onAction();
-        } else {
-          this.message = res.error === 'not-enough-gold' ? t('trade.err.not-enough-gold') : '';
-        }
-        this.render();
+  private body(people: readonly QuayItem[]): HTMLElement {
+    const world = this.world;
+    const market = world.trade.markets[world.trade.dockedAt!]!;
+    const pane = (...parts: HTMLElement[]) => {
+      const p = el('section', `hb-pane hb-${this.tab}`);
+      p.append(...parts);
+      return p;
+    };
+    let body: HTMLElement;
+    if (this.tab === 'orders') {
+      const at = this.picked.order ?? firstOrder(world);
+      body = pane(
+        ordersLedger(world, at, (id) => this.pick('order', id)),
+        ...(at ? [orderDetail(world, at, () => this.deals.deliver())] : []),
+      );
+    } else if (this.tab === 'quay') {
+      const at = this.picked.person ?? people[0]?.key ?? null;
+      body = quayPane(
+        world,
+        people,
+        at,
+        (k) => this.pick('person', k),
+        this.harbourPicture(world.trade.dockedAt!),
+      );
+      body.addEventListener('click', (e) => this.quayAnswer(e));
+    } else if (this.tab === 'shipyard') {
+      body = shipyardPane(world, this.picked.ship ?? null, {
+        upgrade: (track) => this.deals.upgrade(track),
+        ship: (kind, id) => {
+          // The table shows the next ship to act on again after a purchase or a change.
+          this.picked.ship = undefined;
+          this.deals.ship(kind, id);
+        },
+        pick: (id) => this.pick('ship', id),
       });
-    });
+    } else {
+      const goods = tradedGoods(market);
+      const good = goods.find((g) => g === this.picked.good) ?? goods[0];
+      const extras = [
+        creditNote(world, this.deals.creditLater, (take) => this.deals.credit(take)),
+        questCargoNote(this.questCargo()),
+      ].filter((n): n is HTMLElement => n !== null);
+      body = pane(
+        goodsLedger(world, market, good ?? null, (g) => this.pick('good', g)),
+        ...(good
+          ? [
+              goodDetail(
+                world,
+                market,
+                good,
+                {
+                  lot: this.lot,
+                  setLot: (lot) => ((this.lot = lot), this.render()),
+                  trade: (kind, g, qty) => this.deals.trade(kind, g, qty),
+                  deliver: () => this.deals.deliver(),
+                },
+                extras,
+              ),
+            ]
+          : []),
+      );
+    }
+    for (const list of body.querySelectorAll<HTMLElement>(
+      '.hb-list, .hb-detail, .hb-yard-main, .hb-fleet',
+    ))
+      list.classList.add('hb-scroll');
+    return body;
+  }
 
-    this.container.querySelector('#tp-credit-take')?.addEventListener('click', () => {
-      const offer = takeCredit(this.world.map, this.world.trade);
-      if (offer) {
-        this.message = t('trade.creditTaken', {
-          goods: t('trade.contractGoods', {
-            qty: offer.qty,
-            good: goodName(offer.good).toLowerCase(),
-          }),
-          port: findPort(this.world.map, offer.port)?.name ?? offer.port,
-        });
-        this.onAction();
-      }
-      this.render();
-    });
-    this.container.querySelector('#tp-credit-later')?.addEventListener('click', () => {
-      this.creditLater = true;
-      this.render();
-    });
-
-    this.container.querySelector('#tp-deliver')?.addEventListener('click', () => {
-      const before = this.loanState();
-      const res = deliverContract(this.world.trade, this.world.map);
-      if (res.ok) {
-        this.message = t('trade.delivered', { gold: res.gold });
-        this.repaidNote(before, res.gold);
-        this.onAction();
-      } else {
-        this.message = t('trade.needFullOrder');
-      }
-      this.render();
-    });
-
-    this.container.querySelector('#tp-tab-orders')?.addEventListener('click', () => {
-      this.tab = 'orders';
-      this.render();
-    });
-
-    for (const id of ['#tp-tab-quay', '#tp-quay-hint'])
-      this.container.querySelector(id)?.addEventListener('click', () => {
-        this.tab = 'quay';
-        this.render();
+  private footer(fresh: readonly QuayItem[]): HTMLElement {
+    const kids = this.uiMode === 'kids';
+    const extras: HTMLElement[] = [];
+    const repair = this.deals.repairButton();
+    if (repair) extras.push(repair);
+    const sellable = this.deals.sellAllValue();
+    if (sellable > 0 && this.tab === 'market') {
+      const b = button({
+        label: t('trade.sellAll', { price: formatNumber(sellable) }),
+        onPress: () => this.deals.sellEverything(),
       });
-    this.container
-      .querySelectorAll<HTMLButtonElement>('.quay-people button[data-act]')
-      .forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const act = btn.dataset.act as QuayAct;
-          // Goods handed over from the person's card (decision 0213): paid, the quest moves on.
-          if (act === 'hand')
-            this.quay?.hand(btn.dataset.quest!, btn.dataset.good!, Number(btn.dataset.n));
-          else this.quay?.act(btn.dataset.quest!, act, btn.dataset.option);
-          this.render();
-        });
-      });
-
-    this.container.querySelectorAll<HTMLButtonElement>('[data-lot]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        this.lot = Number(btn.dataset.lot) as Lot;
-        this.render();
-      });
+      b.id = 'tp-sell-all';
+      b.insertAdjacentHTML('beforeend', COIN);
+      extras.push(b);
+    }
+    return harbourFooter({
+      face: this.footerFace(fresh),
+      status: this.deals.message,
+      legend: this.legend(),
+      extras,
+      sailLabel: t(kids ? 'kids.undock' : 'trade.undock'),
+      onSail: () => this.close(),
     });
+  }
 
-    // Buy/Sell buttons (both adult and kids)
-    this.container
-      .querySelectorAll<HTMLButtonElement>('.trade-act-btn, .kid-act-btn')
-      .forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const action = btn.dataset.action;
-          const good = btn.dataset.good as GoodId;
-          const qty = parseInt(btn.dataset.qty || '1', 10);
-          if (!good || qty <= 0) return;
+  /** Someone new on the quay who would like a word, else the harbour keeper with this docking's line. */
+  private footerFace(fresh: readonly QuayItem[]): FooterFace | undefined {
+    const first = fresh[0]?.card;
+    if (first && this.tab !== 'quay') {
+      const name = esc(first.giver?.name ?? first.arc);
+      // Dock news says itself (decision 0213): "Done! +100 gold." after the timber sold.
+      const html = first.news
+        ? `<b>${name}</b> · ${esc(first.news)}`
+        : t('trade.quayHint', { name });
+      return {
+        who: first.giver,
+        mood: first.mood,
+        look: first.look,
+        html,
+        go: () => this.show('quay'),
+      };
+    }
+    const port = findPort(this.world.map, this.world.trade.dockedAt!)!;
+    const line = this.keeper.line(port.id);
+    const who = port.keeper ? character(port.keeper) : undefined;
+    if (!line || !who) return undefined;
+    return { who, html: `<b>${esc(who.name)}</b> <i class="hb-face-line">${esc(line)}</i>` };
+  }
 
-          if (action === 'buy') {
-            const res = buy(this.world.trade, good, qty);
-            this.finish(res, { kind: 'buy', good });
-          } else if (action === 'sell') {
-            const before = this.loanState();
-            const res = sell(this.world.trade, good, qty, this.world.map);
-            this.finish(res, { kind: 'sell', good });
-            this.afterSale(before, res);
-          }
-        });
-      });
+  /** The pad's buttons on this tab, as the footer shows them. */
+  private legend(): [PadButton, string][] {
+    const close: [PadButton, string] = ['b', t('trade.close')];
+    if (this.tab === 'market') return [['a', t('trade.buy')], ['x', t('trade.sell')], close];
+    return [['a', t('pad.choose')], close];
+  }
 
-    // Upgrades
-    this.container
-      .querySelectorAll<HTMLButtonElement>('.upgrade-btn[data-track]')
-      .forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const track = btn.dataset.track as UpgradeTrack;
-          if (!track) return;
-          const { trade, map } = this.world;
-          const base = SHIP_CLASSES[trade.captain.activeShip]!;
-          const listed = upgradePrice(base, trade.captain.ships[trade.captain.activeShip]!, track);
-          const cost = listed === null ? 0 : upgradeCost(trade, listed, track);
-          void this.spend(cost <= trade.captain.gold ? cost : 0, () =>
-            this.finish(buyUpgrade(trade, map, track)),
-          );
-        });
-      });
-
-    // Ship purchase & switch
-    this.container.querySelectorAll<HTMLButtonElement>('[data-ship-buy]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const shipId = btn.dataset.shipBuy;
-        const cls = shipId ? SHIP_CLASSES[shipId] : undefined;
-        if (!shipId || !cls) return;
-        const { trade, map } = this.world;
-        const cost = shipCost(trade, cls);
-        void this.spend(cost <= trade.captain.gold ? cost : 0, () =>
-          this.finish(buyShip(trade, map, shipId)),
-        );
-      });
-    });
-
-    this.container.querySelectorAll<HTMLButtonElement>('[data-ship-switch]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const shipId = btn.dataset.shipSwitch;
-        if (!shipId) return;
-        const res = switchShip(this.world.trade, this.world.map, shipId);
-        this.finish(res);
-      });
-    });
+  /** A person's answer on the Quay card: the quest engine moves on, goods handed over are paid. */
+  private quayAnswer(e: Event) {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-act]');
+    if (!b || b.getAttribute('aria-disabled') === 'true') return;
+    const { act, quest, good, n, option } = b.dataset;
+    if (act === 'hand') this.quay?.hand(quest!, good!, Number(n));
+    else this.quay?.act(quest!, act as 'accept', option);
+    this.picked.person = undefined;
+    this.render();
   }
 }

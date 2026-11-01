@@ -1,0 +1,204 @@
+/*
+ * The Quay (issue #443): the people with their faces on the left, the picked person's card on
+ * the right with a big portrait, and the town's growth under the list. The card is the quest
+ * engine's (`questCardBody`), restyled here on paper.
+ */
+.hb-people {
+  flex: none;
+  width: var(--ui-harbour-people);
+}
+.hb-person svg {
+  flex: none;
+  width: 56px;
+  height: 56px;
+}
+.hb-person .ui-row-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  font: 400 var(--fs-head) / 1.1 var(--ui-font-title);
+}
+.hb-person .tab-badge {
+  padding: 0 var(--ui-space-2);
+  font-family: var(--ui-font-text);
+}
+.hb-person-line {
+  overflow: hidden;
+  font-size: var(--fs-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hb-town {
+  margin-top: auto;
+  padding-top: var(--ui-space-3);
+  border-top: 1px solid var(--ui-rule);
+  font-size: var(--fs-body);
+}
+.hb-town p {
+  margin: 0;
+}
+.hb-town .icon {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+}
+.hb-town-bar {
+  display: block;
+  height: 6px;
+  margin: var(--ui-space-1) 0;
+  border-radius: 3px;
+  background: var(--ui-rule);
+}
+.hb-town-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ui-sage);
+}
+.hb-town-next {
+  color: var(--ui-muted);
+}
+
+/* The card: the big portrait beside the name, what they say below, the answers at the foot. */
+.hb-detail.hb-quay-card {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+}
+.hb-quay-top {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-4);
+}
+.hb-quay-top svg {
+  flex: none;
+  width: var(--ui-harbour-portrait);
+  height: var(--ui-harbour-portrait);
+}
+.hb-quay-who {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-1);
+  min-width: 0;
+}
+.hb-quay-card .quest-tag {
+  align-self: flex-start;
+  margin: 0;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-sage);
+  box-shadow: none;
+  color: var(--ui-on-sage);
+  font: 700 var(--fs-note) / 1 var(--ui-font-text);
+}
+.hb-quay-card .quest-head h2 {
+  font: 400 var(--fs-hero) / 1 var(--ui-font-title);
+}
+.hb-quay-card .quest-role,
+.hb-quay-card .quest-arc,
+.hb-quay-card .quest-where,
+.hb-quay-card .quest-reward {
+  color: var(--ui-muted);
+  font: 600 var(--fs-text) / 1.2 var(--ui-font-text);
+}
+.hb-quay-card .quest-arc {
+  color: var(--ui-sage-deep);
+  font-weight: 700;
+}
+.hb-quay-card .quest-pips i {
+  background: var(--ui-rule);
+}
+.hb-quay-card .quest-pips i.on,
+.hb-quay-card .quest-pin {
+  background: var(--ui-sage);
+  color: var(--ui-on-sage);
+}
+.hb-quay-card .quest-speech {
+  margin: 0;
+  font: 500 var(--fs-sub) / 1.45 var(--ui-font-text);
+}
+.hb-quay-card .quest-ask,
+.hb-quay-card .quest-news {
+  margin: 0;
+  border: 0;
+  border-radius: var(--ui-radius-m);
+  background: var(--ui-face);
+  color: var(--ui-ink);
+  font: 600 var(--fs-sub) / 1.2 var(--ui-font-text);
+}
+.hb-quay-card .quest-count,
+.hb-quay-card .quest-reward b {
+  color: var(--ui-sage-deep);
+}
+.hb-quay-card .quest-actions {
+  position: sticky;
+  bottom: calc(-1 * var(--ui-space-4));
+  display: flex;
+  gap: var(--ui-space-2);
+  margin: auto 0 0;
+  padding-block: var(--ui-space-2) 0;
+  background: var(--ui-face-off);
+}
+.hb-quay-card .quest-actions .ui-btn {
+  flex: 1;
+  min-height: 56px;
+  font: 400 var(--fs-title) / 1.1 var(--ui-font-title);
+}
+.hb-quay-card .quest-actions.is-choice {
+  flex-direction: column;
+}
+.hb-quay-card .quest-option {
+  flex-direction: column;
+  align-items: flex-start;
+  padding-block: var(--ui-space-2);
+}
+.hb-quay-card .quest-option span {
+  font: 500 var(--fs-text) var(--ui-font-text);
+}
+.hb-detail.hb-quay-empty {
+  flex: 1;
+  justify-content: center;
+  width: auto;
+  text-align: center;
+}
+.hb-quay-view {
+  flex: 1;
+  max-height: 220px;
+  border-radius: var(--ui-radius-m);
+  background: center / cover no-repeat;
+}
+
+html[data-layout='phone'] .hb-people {
+  width: var(--ui-harbour-people-phone);
+}
+html[data-layout='phone'] .hb-person svg {
+  width: 36px;
+  height: 36px;
+}
+html[data-layout='phone'] .hb-person .ui-row-label {
+  font-size: var(--fs-text);
+}
+html[data-layout='phone'] .hb-person-line,
+html[data-layout='phone'] .hb-town-next {
+  display: none;
+}
+html[data-layout='phone'] .hb-quay-top svg {
+  width: var(--ui-harbour-portrait-phone);
+  height: var(--ui-harbour-portrait-phone);
+}
+html[data-layout='phone'] .hb-quay-card .quest-head h2 {
+  font-size: var(--fs-title);
+}
+html[data-layout='phone'] .hb-quay-card .quest-speech {
+  font-size: var(--fs-text);
+}
+html[data-layout='phone'] .hb-quay-card .quest-actions .ui-btn {
+  min-height: var(--ui-touch-target);
+  font-size: var(--fs-head);
+}
+html[data-layout='phone'] .hb-quay-card .quest-tag,
+html[data-layout='phone'] .hb-quay-card .quest-reward {
+  display: none;
+}
+html[data-layout='phone'] .hb-quay-card .quest-ask {
+  font-size: var(--fs-text);
+}
