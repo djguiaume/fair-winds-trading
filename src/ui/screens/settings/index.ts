@@ -9,6 +9,7 @@ import { gameTab } from './game';
 import { type SettingRow, text } from './rows';
 import { soundTab } from './sound';
 import '../screens.css';
+import '../settings.css';
 
 /** One group of rows under a small heading; an empty title makes a plain group. */
 export interface SettingGroup {

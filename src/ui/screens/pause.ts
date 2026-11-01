@@ -4,6 +4,7 @@ import { el } from '../components/dom';
 import type { MenuRows } from './menuRows';
 import type { Screen } from './stack';
 import './screens.css';
+import './title.css';
 
 export interface PauseHost {
   resume(): void;

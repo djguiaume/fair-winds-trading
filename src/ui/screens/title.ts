@@ -6,6 +6,7 @@ import type { MenuRows } from './menuRows';
 import type { Screen } from './stack';
 import keyArt from './art/title-key.jpg';
 import './screens.css';
+import './title.css';
 
 export interface TitleHost {
   /** Continue the saved voyage, or open New voyage when there is none. */

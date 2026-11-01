@@ -5,6 +5,7 @@ import { el } from '../components/dom';
 import { levelCards } from '../levelCards';
 import type { Screen } from './stack';
 import './screens.css';
+import './newVoyage.css';
 
 export interface NewVoyageHost {
   /** The level the voyage starts on when nothing was picked. */
