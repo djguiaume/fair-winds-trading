@@ -15,13 +15,16 @@ import type { Faces } from './hullGeometry';
  * curved cloth never covers it.
  */
 export interface SailMark {
-  /** x, y pairs, three a triangle, counter-clockwise; one unit is `size` of the sail's width. */
+  /** x, y pairs, three a triangle, counter-clockwise; one unit is `size` of the sail (see `size`). */
   tris: Float32Array;
   colour: string;
   /** Its centre: across the sail (0 luff, 1 leech) and up it (0 foot, 1 head). */
   u: number;
   v: number;
-  /** One mark unit as a share of the sail's width (luff to leech) at `v`. */
+  /**
+   * One mark unit as a share of the sail's width (luff to leech) at `v`, or of its height (foot to
+   * head) at `u` where that is less, so a mark fits a short, wide square course.
+   */
   size: number;
   /** A logo: it gets a canvas patch behind it where the pattern under it is too close in colour. */
   backed?: boolean;
@@ -93,14 +96,16 @@ export function sailNumberMark(text: string): SailMark {
 
 /**
  * What the mainsail carries: the racing number while racing (it hides the logo, issue #418),
- * else the look's logo (`rules.json` › `emblem`: centred, its width a share of the sail's).
+ * else the look's logo (`rules.json` › `emblem`: centred, its width a share of the sail's;
+ * higher on a square rigger's main course).
  */
-export function mainsailMarks(look: BoatLook, sailNumber?: string): SailMark[] {
+export function mainsailMarks(look: BoatLook, sailNumber?: string, square = false): SailMark[] {
   if (sailNumber) return [sailNumberMark(sailNumber)];
   if (!look.sailLogo) return [];
-  const { width, centreV } = RULES.emblem;
+  const { width, centreV, squareCentreV } = RULES.emblem;
   const { svg, colour } = look.sailLogo;
-  return [{ tris: emblemMark(svg), colour, u: 0.5, v: 1 - centreV, size: width, backed: true }];
+  const v = 1 - (square ? squareCentreV : centreV);
+  return [{ tris: emblemMark(svg), colour, u: 0.5, v, size: width, backed: true }];
 }
 
 const PATCH = BOAT_LOOK.marks.patch;
@@ -238,7 +243,10 @@ function markTriangles(cloth: MarkCloth, m: SailMark, side: number): MarkTri[] {
   const centre = flat(corners, m.u, m.v, new THREE.Vector2());
   const luff = flat(corners, 0, m.v, new THREE.Vector2());
   const chord = flat(corners, 1, m.v, new THREE.Vector2()).sub(luff);
-  const unit = chord.length() * m.size;
+  const height = flat(corners, m.u, 1, new THREE.Vector2()).distanceTo(
+    flat(corners, m.u, 0, new THREE.Vector2()),
+  );
+  const unit = Math.min(chord.length(), height) * m.size;
   // Across: along the chord; up: the mast's direction, square to it. Both as (y, z).
   const across = chord.clone().normalize();
   const up = new THREE.Vector2(1, 0).addScaledVector(across, -across.x).normalize();

@@ -67,6 +67,7 @@
   "emblem": {
     "width": 0.5,
     "centreV": 0.5,
+    "squareCentreV": 0.42,
     "maxLightness": 0.55
   }
 }

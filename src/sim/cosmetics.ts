@@ -104,10 +104,11 @@ export interface Rules {
   /** Colours at least this white on every channel are refused. */
   tooBright: string;
   /**
-   * An emblem's width as a share of the sail's, its centre down the sail (0 head, 1 foot), and the
-   * lightest colour it may take: a pale logo vanishes on the canvas, worst of all at night.
+   * An emblem's width as a share of the sail's, its centre down the sail (0 head, 1 foot), higher
+   * on a square rigger's main course (it sits low on the ship), and the lightest colour it may
+   * take: a pale logo vanishes on the canvas, worst of all at night.
    */
-  emblem: { width: number; centreV: number; maxLightness: number };
+  emblem: { width: number; centreV: number; squareCentreV: number; maxLightness: number };
   /** A figurehead's longest reach as a share of the hull's length (times the item's `size`). */
   figurehead: { share: number };
   mounts: string[];

@@ -295,7 +295,7 @@ export class RefinedBoat implements BoatModel {
     this.jibSheetAnchor = V(0, deckAt(sheetZ) + 0.12, sheetZ);
     const upg = options.upgrades ?? STOCK_UPGRADES;
     const look = resolveBoatLook({ bandColor: BAND, sailBandColor: rig.sailBand }, options.look);
-    const sailMarks = mainsailMarks(look, options.sailNumber);
+    const sailMarks = mainsailMarks(look, options.sailNumber, !!rig.squareMasts?.length);
     this.riggingEnabled = options.rigging ?? true;
     const wood = vertexColorMaterial();
     const canvas = sailCanvasMaterial();
