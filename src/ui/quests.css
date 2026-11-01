@@ -425,22 +425,6 @@ dialog.quest-card.is-arrival::backdrop {
   font: 600 var(--fs-note)/1.2 var(--body);
 }
 
-/* Short landscape phones: a narrow note that stays clear of the centred sea banner. */
-@media (max-height: 450px) {
-  .quest-note {
-    gap: 6px;
-    max-width: 196px;
-    padding: 5px 8px 5px 5px;
-  }
-  .quest-note-face svg {
-    width: 34px;
-    height: 34px;
-  }
-  .quest-note-text small {
-    display: none;
-  }
-}
-
 /* Short landscape phones and portrait: smaller faces, tighter lists. */
 @media (max-height: 450px) {
   .quest-arrival {
