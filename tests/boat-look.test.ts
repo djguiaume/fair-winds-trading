@@ -146,7 +146,13 @@ describe('stock look and ship files', () => {
     const bad = structuredClone(SHIP_FILES[0]!);
     bad.model.sailBandColor = 'blue';
     bad.model.figureheadMount = { size: 0, drop: -1 };
-    expect(shipLookProblems(bad)).toHaveLength(3);
+    expect(shipLookProblems(bad)).toHaveLength(4);
+  });
+
+  it('refuses a mount that is not the catalogue share of her length', () => {
+    const odd = structuredClone(SHIP_FILES[0]!);
+    odd.model.figureheadMount = { size: odd.hull.length * 0.1, drop: 0.05 };
+    expect(shipLookProblems(odd).join()).toContain('figurehead.share');
   });
 });
 
