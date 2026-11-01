@@ -22,7 +22,7 @@ Each direction names its signature colour; none uses blue or teal with gold as t
 
 ## Guillaume's ChatGPT mockups (2026-11-01)
 
-Twelve images in the project files (`ui-review/references-chatgpt/`, notes there). They set the bar for structure: one hero per screen, a big title, a goods list with a detail pane and illustrated goods, portraits on the quay, a pad legend along the bottom, and the sea HUD as three clusters (status top-left, heading strip top-centre, one instrument bottom-right). The three mockup directions take that structure as given and differ on identity. Their three palettes map to the directions: cream paper with navy ink and sage selection (1), dark navy with mint and condensed caps (2), dark teal-green with cream panels and a painted port banner (between 1 and 3).
+Twelve images in the project files (`ui-review/references-chatgpt/`, notes there). Guillaume: propositions only, not reviewed or agreed; each has good and bad parts. They are input for the mockup thread, not a bar: take what works (a goods list with a detail pane, illustrated goods, portraits on the quay, a pad legend, a HUD in clusters) and leave the rest. Their palettes happen to sit near the three directions.
 
 ## Screen rules (apply to the chosen direction)
 
