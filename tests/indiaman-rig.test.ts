@@ -1,6 +1,7 @@
 import { INDIAMAN_PORTS } from '../src/render/models/shipParts';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
+import { BOAT_LOOK } from '../src/render/models/boatLook';
 import { INDIAMAN_MIZZEN } from '../src/render/models/indiamanDetails';
 import { createBoatModel } from '../src/render/models';
 import { isRefinedShip } from '../src/render/models/shipModels';
@@ -135,7 +136,7 @@ describe('refined indiaman', () => {
           const colors = mesh(b, 'IndiamanHull').geometry.getAttribute('color');
           for (const [required, hex] of [
             [hull >= 2, '#8a2f2f'],
-            [hull >= 3, '#c8743c'],
+            [hull >= 3, BOAT_LOOK.hull.copper],
           ] as const) {
             const c = new THREE.Color(hex);
             expect(

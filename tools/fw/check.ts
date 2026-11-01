@@ -14,7 +14,7 @@ import { checkIsland } from '../../src/sim/islandChecks';
 import type { MapDef } from '../../src/sim/map';
 import { coastMapChecks } from '../../src/sim/mapCoast';
 import { type MapCheck, questTagsCheck, quickChecks, routeChecks } from '../../src/sim/mapChecks';
-import { SHIP_FILES, shipDamageProblems } from '../../src/data/ships';
+import { SHIP_FILES, shipDamageProblems, shipLookProblems } from '../../src/data/ships';
 import { checkPerks } from '../../src/sim/perks';
 import { type AudioData, audioProblems } from '../../src/audio/catalog';
 import { QUESTS, type QuestDef } from '../../src/sim/quests';
@@ -176,7 +176,7 @@ export function checkAll(opts: CheckOptions = {}) {
 
   if (want('ships')) {
     for (const file of SHIP_FILES)
-      for (const message of shipDamageProblems(file))
+      for (const message of [...shipDamageProblems(file), ...shipLookProblems(file)])
         problems.push({ area: 'ships', where: `${file.id}.json`, severity: 'error', message });
     counted.ships = `${SHIP_FILES.length} ship files`;
   }

@@ -61,7 +61,7 @@ const camera = new THREE.PerspectiveCamera(
 );
 
 const boats: BoatModel[] = [];
-/** &damage=0..3 shows every boat of the sheet at that damage step (decision 0208). */
+/** Every boat of the sheet at &damage=0..3 (0208), in &look={"sailBand":"#602080"} (0259). */
 const sheetDamage = Math.max(0, Math.min(3, Number(params.get('damage')) || 0)) as 0 | 1 | 2 | 3;
 const labels: Array<{ at: THREE.Vector3; html: string }> = [];
 function addBoat(
@@ -73,7 +73,7 @@ function addBoat(
   html: string,
   damage = sheetDamage,
 ) {
-  const b = createBoatModel(id, { upgrades, damage });
+  const b = createBoatModel(id, { upgrades, damage, look: JSON.parse(params.get('look') ?? '{}') });
   b.root.position.set(x, 0, z);
   b.root.rotation.y = yaw;
   b.root.traverse((o) => (o.castShadow = true));

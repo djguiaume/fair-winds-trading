@@ -82,6 +82,11 @@
   "model": {
     "hullColor": "#5c3a1c",
     "bandColor": "#8a2f2f",
+    "sailBandColor": "#0b7a4c",
+    "figureheadMount": {
+      "size": 1.3,
+      "drop": 0.1
+    },
     "squareMasts": [
       {
         "name": "Fore",

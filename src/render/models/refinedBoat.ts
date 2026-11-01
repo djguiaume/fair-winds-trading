@@ -3,10 +3,14 @@ import * as THREE from 'three';
 import { BOAT_SCALE, STYLE_D as ST } from './boatStyle';
 import { isGlowing, mergeAll, paint, triangleCount, vertexColorMaterial } from './geometry';
 import type { BoatCargo, BoatDetails } from './boatDetails';
-import { DEFAULT_DAMAGE, type ShipDamageData } from '../../data/ships';
+import { DEFAULT_DAMAGE, type FigureheadMount, type ShipDamageData } from '../../data/ships';
 import { DEG } from '../../sim/math';
 import { flagGeometry } from './flag';
 import { Faces, hullGeometry } from './hullGeometry';
+import { resolveBoatLook, strakeColour } from './boatLook';
+import { cloth, type ClothWear } from './sailCloth';
+import { sailCanvasMaterial } from './sailCanvas';
+import { figureheadParts } from './figurehead';
 import {
   STOCK_UPGRADES,
   type BoatModel,
@@ -33,6 +37,8 @@ export interface RefinedRig {
   mastZ: number;
   mastHeight: number;
   band: string;
+  /** The sail bands' class colour (decision 0259), before any cosmetic look. */
+  sailBand: string;
   hull: string;
   stockJibs: number;
   cargoExtra: number;
@@ -73,6 +79,8 @@ export interface RefinedRig {
   cargo?: BoatCargo;
   /** Where her damage shows (decision 0208), from the ship file. */
   damage?: ShipDamageData;
+  /** Where a figurehead sits; left out, she carries none. */
+  figureheadMount?: FigureheadMount;
   /** Authored quarterdeck and rear rig heights; foot is above the original main deck. */
   sternLayout?: { deck: number; foot: number; aft: number; sheet: { z: number; y: number } };
 }
@@ -104,14 +112,6 @@ const CLOSE_BOOM = (12 * Math.PI) / 180;
 const RUN_BOOM = (80 * Math.PI) / 180;
 const MAX_BRACE = (40 * Math.PI) / 180;
 
-/** Where a damaged sail's patches sit, as fractions along the foot and up the luff (0208). */
-const PATCH_SPOTS = [
-  [0.2, 0.25],
-  [0.78, 0.3],
-  [0.22, 0.78],
-  [0.8, 0.8],
-] as const;
-
 /** Deck outline in ship-local coordinates (+Z bow), shared by the hull and the stern castle. */
 function deckOutline(rig: RefinedRig) {
   const L = rig.length;
@@ -138,7 +138,7 @@ function halfBeamAt(outline: THREE.Vector3[], z: number) {
  * a deck on top, a forward bulkhead, a rail, and stern windows. Hull 2 paints its upper strake
  * in the class colour, like the hull band.
  */
-function castleGeometry(level: number, rig: RefinedRig) {
+function castleGeometry(level: number, rig: RefinedRig, band: string) {
   const { length: L, castle } = rig;
   const f = new Faces();
   if (!castle) return f.geometry();
@@ -164,13 +164,7 @@ function castleGeometry(level: number, rig: RefinedRig) {
     const b = ring[(i + 1) % ring.length]!;
     const bulkhead = i === ring.length - 1;
     f.quad(up(a, ch * 0.72), a, b, up(b, ch * 0.72), rig.hull);
-    f.quad(
-      up(a, ch),
-      up(a, ch * 0.72),
-      up(b, ch * 0.72),
-      up(b, ch),
-      level >= 2 ? rig.band : rig.hull,
-    );
+    f.quad(up(a, ch), up(a, ch * 0.72), up(b, ch * 0.72), up(b, ch), level >= 2 ? band : rig.hull);
     f.tri(top, up(a, ch), up(b, ch), ST.deck);
     if (bulkhead) continue;
     // Low rail round the castle edge: outer face and cap.
@@ -207,75 +201,6 @@ function spar(a: THREE.Vector3, b: THREE.Vector3, radius = 0.045) {
   g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(V(0, 1, 0), d.normalize()));
   g.translate((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
   return paint(g, ST.mast);
-}
-
-/** Cloth edges have zero belly, so tack, luff, head and spar attachments cannot drift.
- * `nu` × `nv` panels; the sails-3 racing stripe runs across the middle two rows. */
-function cloth(
-  a: THREE.Vector3,
-  b: THREE.Vector3,
-  c: THREE.Vector3,
-  d: THREE.Vector3,
-  level: number,
-  belly: number,
-  band: string,
-  nu = 6,
-  nv = 6,
-  wear: ClothWear = {},
-) {
-  const f = new Faces();
-  // A patched sail (decision 0208) takes the stock canvas look, keeping a racing stripe.
-  const worn = level === 1 || wear.patched;
-  // Damage patches (decision 0208): four big squares of darker, warmer canvas, two panels each
-  // way, clear of the middle where a torn sail has its hole.
-  const patched = new Set<string>();
-  if (wear.patched)
-    for (const [u, v] of PATCH_SPOTS) {
-      const i0 = Math.max(0, Math.min(nu - 2, Math.round(u * nu - 1)));
-      const j0 = Math.max(0, Math.min(nv - 2, Math.round(v * nv - 1)));
-      for (const [di, dj] of [
-        [0, 0],
-        [1, 0],
-        [0, 1],
-        [1, 1],
-      ])
-        patched.add(`${i0 + di!}:${j0 + dj!}`);
-    }
-  const torn = new Set(
-    (wear.tears ?? []).map(
-      (t) => `${Math.min(nu - 1, Math.floor(t.u * nu))}:${Math.min(nv - 1, Math.floor(t.v * nv))}`,
-    ),
-  );
-  const at = (u: number, v: number) =>
-    V(
-      -belly * Math.sin(Math.PI * u) * Math.sin(Math.PI * v),
-      (a.y * (1 - u) + b.y * u) * (1 - v) + (c.y * (1 - u) + d.y * u) * v,
-      (a.z * (1 - u) + b.z * u) * (1 - v) + (c.z * (1 - u) + d.z * u) * v,
-    );
-  const stripe = nv / 2;
-  for (let j = 0; j < nv; j++)
-    for (let i = 0; i < nu; i++) {
-      if (torn.has(`${i}:${j}`)) continue;
-      const color = patched.has(`${i}:${j}`)
-        ? ST.damagePatches[(i + j) % 2]!
-        : worn && (i * 7 + j * 3) % 8 === 1
-          ? ST.patches[(i + j) % 2]!
-          : level === 3 && (j === stripe - 1 || j === stripe)
-            ? band
-            : worn
-              ? ST.patchedSail
-              : (i + j) % 3 === 0
-                ? '#eee6d4'
-                : ST.sail;
-      f.quad(
-        at(i / nu, j / nv),
-        at((i + 1) / nu, j / nv),
-        at((i + 1) / nu, (j + 1) / nv),
-        at(i / nu, (j + 1) / nv),
-        color,
-      );
-    }
-  return f.geometry();
 }
 
 /*
@@ -382,12 +307,6 @@ function sailNumber(text: string, center: THREE.Vector3, h: number): THREE.Buffe
   return out;
 }
 
-/** Damage on a sail (decision 0208): patched canvas, and holes in the panels at `tears`. */
-interface ClothWear {
-  patched?: boolean;
-  tears?: ReadonlyArray<{ u: number; v: number }>;
-}
-
 interface GaffSail {
   pivot: THREE.Group;
   sail: THREE.Mesh;
@@ -478,15 +397,10 @@ export class RefinedBoat implements BoatModel {
     const sheetZ = foremost === undefined ? 0 : foremost + SQUARE_FORWARD + SQUARE_BELLY + 0.4;
     this.jibSheetAnchor = V(0, deckAt(sheetZ) + 0.12, sheetZ);
     const upg = options.upgrades ?? STOCK_UPGRADES;
+    const look = resolveBoatLook({ bandColor: BAND, sailBandColor: rig.sailBand }, options.look);
     this.riggingEnabled = options.rigging ?? true;
     const wood = vertexColorMaterial();
-    const canvas = new THREE.MeshLambertMaterial({
-      vertexColors: true,
-      side: THREE.DoubleSide,
-      flatShading: true,
-      emissive: '#ffffff',
-      emissiveIntensity: 0.22,
-    });
+    const canvas = sailCanvasMaterial();
     this.disposables.push(wood, canvas);
     const mesh = (g: THREE.BufferGeometry, material: THREE.Material, name: string) => {
       this.disposables.push(g);
@@ -501,8 +415,11 @@ export class RefinedBoat implements BoatModel {
     const patched: ClothWear = { patched: damage >= 2 };
     const torn: ClothWear = { ...patched, tears: damage >= 3 ? marks.tears : [] };
     this.list = damage >= 3 ? marks.listSide * marks.listDeg * DEG : 0;
-    const parts = [hullGeometry(upg.hull, rig, damage)];
-    if (rig.castle && !rig.replaceDeckDetails) parts.push(castleGeometry(upg.hull, rig));
+    const parts = [
+      hullGeometry(upg.hull, { ...rig, band: look.hullBand }, damage, strakeColour(look, upg.hull)),
+    ];
+    if (rig.castle && !rig.replaceDeckDetails)
+      parts.push(castleGeometry(upg.hull, rig, look.hullBand));
     const box = (w: number, h: number, l: number, x: number, y: number, z: number, color: string) =>
       paint(new THREE.BoxGeometry(w, h, l).translate(x, y, z), color);
     // Forward hatch leaves a working area behind the mast for the upgraded cargo stacks.
@@ -525,7 +442,7 @@ export class RefinedBoat implements BoatModel {
       depth: H,
       deckAt,
       hull: rig.hull,
-      band: BAND,
+      band: look.hullBand,
       upgrades: upg,
     };
     const cargo = rig.cargo?.(detailContext);
@@ -583,6 +500,9 @@ export class RefinedBoat implements BoatModel {
     if (rig.details)
       parts.push(...rig.details({ deckAt, halfBeam: B / 2, depth: H, upgrades: upg }));
     if (rig.boatDetails) parts.push(...rig.boatDetails(detailContext));
+    parts.push(
+      ...figureheadParts(look.figurehead, rig.figureheadMount, V(0, deckAt(L / 2), L / 2)),
+    );
     let hull = mergeAll(parts.filter((g) => !isGlowing(g)));
     if (rig.hullFinish) hull = mergeAll([hull, ...rig.hullFinish(hull, deckAt)]);
     this.ship.add(mesh(hull, wood, `${rig.name}Hull`));
@@ -634,7 +554,7 @@ export class RefinedBoat implements BoatModel {
       );
       const main = z === MAST_Z;
       const sails = [
-        cloth(V(0, 0, 0), clew, throat, peak, upg.sails, 0.32, BAND, 6, 6, main ? torn : patched),
+        cloth(V(0, 0, 0), clew, throat, peak, upg.sails, 0.32, look, 6, 6, main ? torn : patched),
       ];
       let number: THREE.BufferGeometry | null = null;
       if (main && options.sailNumber) {
@@ -649,7 +569,7 @@ export class RefinedBoat implements BoatModel {
       }
       if (topsail && upg.sails >= 3) {
         const top = V(0, height - 0.85, 0);
-        sails.push(cloth(throat, peak, top, top, upg.sails, 0.13, BAND, 6, 6, patched));
+        sails.push(cloth(throat, peak, top, top, upg.sails, 0.13, look, 6, 6, patched));
         this.stats.topsail = true;
       }
       const sail = mesh(mergeAll(sails), canvas, name);
@@ -713,6 +633,7 @@ export class RefinedBoat implements BoatModel {
       const pos: number[] = [];
       const furled: number[] = [];
       const colors: number[] = [];
+      const glows: number[] = [];
       const yardParts: THREE.BufferGeometry[] = [];
       const courses: SquareRig['courses'] = [];
       const yardArms: number[] = [];
@@ -729,17 +650,19 @@ export class RefinedBoat implements BoatModel {
           V(0, yard, head / 2),
           upg.sails,
           SQUARE_BELLY,
-          BAND,
+          look,
           5,
           4,
           k === 0 ? torn : patched,
         ).rotateY(Math.PI / 2);
         const p = g.getAttribute('position');
         const c = g.getAttribute('color');
+        const glow = g.getAttribute('glow');
         for (let i = 0; i < p.count; i++) {
           pos.push(p.getX(i), p.getY(i), p.getZ(i));
           furled.push(p.getX(i), yard + (p.getY(i) - yard) * 0.06, p.getZ(i));
           colors.push(c.getX(i), c.getY(i), c.getZ(i));
+          glows.push(glow.getX(i));
         }
         g.dispose();
         yardParts.push(spar(V(-head * 0.56, yard, 0), V(head * 0.56, yard, 0), 0.05));
@@ -749,6 +672,7 @@ export class RefinedBoat implements BoatModel {
       const sailGeo = new THREE.BufferGeometry();
       sailGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
       sailGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      sailGeo.setAttribute('glow', new THREE.Float32BufferAttribute(glows, 1));
       sailGeo.morphAttributes.position = [new THREE.Float32BufferAttribute(furled, 3)];
       sailGeo.computeVertexNormals();
       turn.add(mesh(mergeAll(yardParts), wood, `${m.name}Yards`));
@@ -819,7 +743,7 @@ export class RefinedBoat implements BoatModel {
       // Exact zeroes on the luff prevent even float conversion error at attachment vertices.
       h.set(0, h.y, 0);
       const c = local(clew);
-      const g = cloth(V(0, 0, 0), c, h, h, upg.sails, 0.22, BAND, 6, 6, patched);
+      const g = cloth(V(0, 0, 0), c, h, h, upg.sails, 0.22, look, 6, 6, patched);
       const sail = mesh(g, canvas, `Jib${j + 1}`);
       axis.add(sail);
       this.ship.add(axis);

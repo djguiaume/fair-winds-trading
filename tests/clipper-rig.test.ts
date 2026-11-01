@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
+import { BOAT_LOOK } from '../src/render/models/boatLook';
 import { createBoatModel } from '../src/render/models';
 import { QUALITY } from '../src/render/quality';
 import { STYLE_D } from '../src/render/models/boatStyle';
@@ -67,7 +68,7 @@ describe('refined clipper', () => {
           const colors = mesh(b, 'ClipperHull').geometry.getAttribute('color');
           for (const [required, hex] of [
             [hull >= 2, '#d8b04a'],
-            [hull >= 3, '#c8743c'],
+            [hull >= 3, BOAT_LOOK.hull.copper],
           ] as const) {
             const c = new THREE.Color(hex);
             expect(
