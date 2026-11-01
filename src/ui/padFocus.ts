@@ -149,8 +149,9 @@ export function guardSoftDisabled(root: HTMLElement) {
     true,
   );
 }
-/** Close buttons: the pad starts elsewhere, B already closes. */
-const CLOSE = '.close-btn, #tp-close, .d-btn.red.square, [data-chart-close], .home-close';
+/** Close buttons (`data-pad-close`: the v1.5 header): the pad starts elsewhere, B closes. */
+const CLOSE =
+  '.close-btn, #tp-close, .d-btn.red.square, [data-chart-close], .home-close, [data-pad-close]';
 
 function shown(el: HTMLElement): boolean {
   if ((el as HTMLButtonElement).disabled || el.closest('[hidden], [inert]')) return false;
@@ -165,15 +166,14 @@ export function reachable(root: HTMLElement): HTMLElement[] {
 }
 
 /**
- * Where the focus starts on a screen: its main (brass) button, else its first control. A button
- * marked `data-pad-start="never"` (the port's Set sail, decision 0192) is the last resort, so a
- * stray A on a Shipyard with nothing affordable yet does not leave port.
+ * Where the focus starts: the main button (brass, `data-pad-main`), else the first control. One
+ * marked `data-pad-start="never"` (the port's Set sail, 0192) comes last: a stray A stays in port.
  */
 export function startOf(controls: readonly HTMLElement[]): HTMLElement | null {
   const open = controls.filter((el) => !el.matches(CLOSE) && !el.matches(TABS));
   const first = open.filter((el) => el.dataset.padStart !== 'never');
   return (
-    first.find((el) => el.classList.contains('brass') && !el.matches(SOFT_OFF)) ??
+    first.find((el) => el.matches('.brass, [data-pad-main]') && !el.matches(SOFT_OFF)) ??
     first[0] ??
     open[0] ??
     controls[0] ??

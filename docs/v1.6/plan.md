@@ -1,6 +1,6 @@
-# v1.5 — "The far seas' story" (plan)
+# v1.6 — "The far seas' story" (plan)
 
-Status: **planned**, after v1.2, v1.3, v1.3.1, v1.4 and v1.4.1 (it can move earlier; it needs none of them). Guillaume approved it on 2026-10-30 after the [whole-game review](../reviews/whole-game-v1.2/README.md). Tracker [#358](https://github.com/djguiaume/fair-winds-trading/issues/358), milestone "v1.5 The far seas' story".
+Status: **planned**, after v1.2, v1.3, v1.3.1, v1.4 and v1.4.1 (it can move earlier; it needs none of them). Guillaume approved it on 2026-10-30 after the [whole-game review](../reviews/whole-game-v1.2/README.md). Tracker [#358](https://github.com/djguiaume/fair-winds-trading/issues/358), milestone "v1.6 The far seas' story" (renumbered from v1.5 on 2026-11-01: the UI rebuild ships first as v1.5, decision 0268).
 
 Data only: quests, standing orders and text (EN and FR), all through the quest engine. The storyteller leads and writes every line ([brief](../story/storyteller-brief.md)). Findings and quest chain: [quests.md](../reviews/whole-game-v1.2/quests.md).
 
