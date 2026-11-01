@@ -138,6 +138,9 @@ export class PortLabels {
     return Boolean(entry && !entry.root.hidden && !entry.dock.hidden);
   }
 
+  /** The close chase view is on (decision 0272). */
+  chase = false;
+
   update(project: (x: number, y: number) => ScreenPoint, dt = 0.12, forceContent = false) {
     this.sinceContent += dt;
     const refreshContent = forceContent || this.sinceContent >= 0.12;
@@ -186,6 +189,11 @@ export class PortLabels {
       } else if (effectiveMode === 'all') {
         shouldShow = distToShore <= 160 || isDocked;
       }
+
+      // The close chase view looks low, so a far sign would float over the wind text: it waits
+      // until the harbour is near.
+      if (this.chase && !isDocked && distToShore > TUNING.hud.portSignChaseRange)
+        shouldShow = false;
 
       if (!shouldShow) {
         if (!entry.root.hidden) entry.root.hidden = true;
@@ -244,7 +252,12 @@ export class PortLabels {
         const edge = entry.halfWidth + SIGN_MARGIN;
         const x = Math.min(Math.max(s.x, edge), Math.max(edge, window.innerWidth - edge));
         // Composite the existing sign rather than repainting its shadow and SVGs as it moves.
-        const transform = `translate3d(${x.toFixed(2)}px, ${s.y.toFixed(2)}px, 0) translate(-50%, -100%)`;
+        // The chase view looks low, so a pier sits near the horizon and its sign would land on the
+        // wind text: the sign is pinned below the top of the screen (`hud.json`).
+        const y = this.chase
+          ? Math.max(s.y, window.innerHeight * TUNING.hud.portSignChaseMinY)
+          : s.y;
+        const transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) translate(-50%, -100%)`;
         if (entry.root.style.transform !== transform) entry.root.style.transform = transform;
       } else {
         // Hide off-screen markers to avoid screen edge clutter

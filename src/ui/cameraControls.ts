@@ -83,6 +83,7 @@ export class CameraControls {
   update() {
     this.compass.update(this.orbit.turned && !this.chase.active);
     this.compass.setChase(this.chase.active);
+    this.hud.portLabels.chase = this.chase.active;
     // The close view shows the boat and the sea, so the HUD keeps to the wind compass and speed.
     const quiet = this.settings.quietHud || this.chase.blend > 0.5;
     if (quiet === this.quiet) return;

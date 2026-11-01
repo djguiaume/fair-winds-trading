@@ -59,4 +59,20 @@ export const HUD_META: Readonly<Record<string, TuningMeta>> = {
     'm',
     'Port signs stand this far out from the pier, away from the island, so they sit over water.',
   ),
+  'hud.portSignChaseRange': num(
+    'Port sign range, chase view',
+    10,
+    160,
+    1,
+    'm',
+    'In the close chase view a port sign shows only this close to the harbour (or when moored).',
+  ),
+  'hud.portSignChaseMinY': num(
+    'Port sign lowest foot, chase view',
+    0,
+    1,
+    0.01,
+    '× screen height',
+    'In the close chase view a port sign stands no higher on screen than this, clear of the wind text.',
+  ),
 };
