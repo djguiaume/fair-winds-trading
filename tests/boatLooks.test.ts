@@ -8,7 +8,9 @@ import { type BoatLooksHost, BoatLooksScreen } from '../src/ui/boatLooks/screen'
 
 // The turntable needs WebGL; the screen's logic does not.
 const shown: unknown[] = [];
+const views: string[] = [];
 vi.mock('../src/render/boatPreview', () => ({
+  SLOT_VIEWS: { 'sail-logo': 'side', figurehead: 'bow', flag: 'masthead', wake: 'stern' },
   BoatPreview: class {
     backdrop = { sky: '#fff', sea: '#00f' };
     show(boat: unknown) {
@@ -18,6 +20,9 @@ vi.mock('../src/render/boatPreview', () => ({
     resize() {}
     start() {}
     turn() {}
+    setView(view: string) {
+      views.push(view);
+    }
     figureheadPicture() {
       return 'data:,';
     }
@@ -127,6 +132,7 @@ describe('the Boat looks screen', () => {
     click('[data-slot="figurehead"]');
     click('[data-item="sun"]');
     expect(JSON.stringify(shown.at(-1))).toContain('figurehead-sun');
+    expect(views.at(-1)).toBe('bow');
     expect($('.bl-detail').textContent).toContain('Earn it:');
     expect($('.bl-use').getAttribute('aria-disabled')).toBe('true');
     click('.bl-use');

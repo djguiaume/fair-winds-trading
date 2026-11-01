@@ -262,8 +262,8 @@
   box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18);
 }
 .bl-tile:is(.locked, .unfit) .bl-pic {
-  opacity: 0.45;
-  filter: saturate(0.4);
+  opacity: 0.6;
+  filter: saturate(0.5);
 }
 .bl-pic {
   display: grid;

@@ -15,6 +15,13 @@
   min-height: 44px;
   padding: 0 18px;
 }
+/* Brass, like Set sail: the Shipyard's main way somewhere (art director, #299). */
+.port-screen .ship-btn.boat-looks-btn:not(:disabled) {
+  --lo: var(--sail-edge);
+  border-color: var(--sail-edge);
+  background: var(--sail);
+  color: var(--sail-ink);
+}
 
 /* --- Smaller landscape: narrower side columns ---------------------------------------------- */
 @media (max-width: 1100px) and (orientation: landscape) {

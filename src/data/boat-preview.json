@@ -1,9 +1,7 @@
 {
-  "about": "The turntable boat of the Boat looks screen and Free Sailing (issue #299): camera, turn speed, the soft water disc under her and the backdrop's sky and sea by day and night (the disc takes the sea's colour, so it melts into it).",
+  "about": "The turntable boat of the Boat looks screen and Free Sailing (issue #299): camera, turn speed, the soft water disc under her, the backdrop's sky and sea by day and night (the disc takes the sea's colour), and the camera views: `at` is the point looked at as shares of her half beam, height above the water and waterline's half length (-1 the stem), `yaw` her turn in degrees (null: she keeps turning), `zoom` how much closer than the whole boat, `tilt` the camera's degrees down. `slotViews`: the view a Boat looks slot turns to.",
   "fov": 28,
-  "tiltDeg": 24,
-  "lookUp": 0.35,
-  "margin": 1.04,
+  "margin": 0.72,
   "startYaw": -125,
   "spinDegPerSecond": 9,
   "stepDeg": 45,
@@ -18,5 +16,50 @@
       "sky": "#0f2740",
       "sea": "#1f4a70"
     }
+  },
+  "maxPixelRatio": 2,
+  "ease": 4,
+  "views": {
+    "whole": {
+      "about": "The whole boat, turning slowly.",
+      "yaw": null,
+      "zoom": 1,
+      "at": [0, 0.35, 0],
+      "tilt": 24
+    },
+    "bow": {
+      "about": "Three-quarter bow, close: the figurehead.",
+      "yaw": 150,
+      "zoom": 3.0,
+      "at": [0, 0.15, -1.0],
+      "tilt": 12
+    },
+    "masthead": {
+      "about": "Up the mast: the flag.",
+      "yaw": -110,
+      "zoom": 1.7,
+      "at": [0, 0.88, 0],
+      "tilt": 6
+    },
+    "stern": {
+      "about": "Three-quarter stern, low: the wake.",
+      "yaw": 35,
+      "zoom": 1.4,
+      "at": [0, 0.08, 0.9],
+      "tilt": 26
+    },
+    "side": {
+      "about": "Broadside, a little low: the sail logo, drawn flat on the cloth, reads best from the side.",
+      "yaw": -90,
+      "zoom": 1.05,
+      "at": [0, 0.42, 0],
+      "tilt": 8
+    }
+  },
+  "slotViews": {
+    "sail-logo": "side",
+    "figurehead": "bow",
+    "flag": "masthead",
+    "wake": "stern"
   }
 }

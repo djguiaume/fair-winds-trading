@@ -111,7 +111,7 @@ export function sailSwatchSvg(
 /** A hull side: her wood, the band and the rubbing strake. */
 export function hullSwatchSvg(hull: string, band: string, strake: string | null): string {
   const rub = strake ? `<rect x="7" y="16" width="42" height="2.5" fill="${strake}"/>` : '';
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 32" aria-hidden="true"><path d="M2 8 H54 L46 28 H10 Z" fill="${hull}" stroke="#4a3320"/><rect x="4" y="10" width="48" height="5" fill="${band}"/>${rub}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 6 56 24" aria-hidden="true"><path d="M2 8 H54 L46 28 H10 Z" fill="${hull}" stroke="#4a3320"/><rect x="4" y="10" width="48" height="5" fill="${band}"/>${rub}</svg>`;
 }
 
 /** Two lines of wake on the sea: plain, dashed foam or bubbles, in her tint. */

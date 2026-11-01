@@ -1,4 +1,5 @@
 import {
+  APPEARANCE_SLOTS,
   type Appearance,
   type Catalogue,
   resolveAppearance,
@@ -6,7 +7,7 @@ import {
 } from '../../sim/cosmetics';
 import type { UnlockProgress } from '../../sim/cosmeticUnlocks';
 import { FLAGS, type FlagDef } from '../../sim/regatta';
-import { BoatPreview } from '../../render/boatPreview';
+import { BoatPreview, SLOT_VIEWS } from '../../render/boatPreview';
 import { boatLookOf } from '../../render/models/boatLook';
 import type { ShipUpgrades } from '../../render/models';
 import type { QualityLevel } from '../../render/quality';
@@ -103,11 +104,12 @@ export class BoatLooksScreen {
     this.root.showModal();
     this.night = this.host.night();
     this.compare = 'yours';
-    this.slot = 'sailColour';
     const canvas = this.root.querySelector<HTMLCanvasElement>('.bl-canvas')!;
     this.preview = new BoatPreview(canvas, this.host.quality());
     this.preview.setNight(this.night);
+    this.slot = 'sailColour';
     this.selectShip(shipId ?? this.host.ships()[0]!.id);
+    this.showSlot(this.slot, true);
     this.preview.resize();
     this.preview.start();
     addEventListener('resize', this.onResize);
@@ -214,7 +216,7 @@ export class BoatLooksScreen {
     const d = el.dataset;
     if (el.classList.contains('bl-close')) return this.close();
     if (d.ship) this.selectShip(d.ship);
-    else if (d.slot) this.slot = d.slot as SlotKey;
+    else if (d.slot) this.showSlot(d.slot as SlotKey);
     else if (d.item !== undefined) this.tried = { ...this.tried, [this.slot]: d.item || null };
     else if (d.compare) this.compare = d.compare as Compare;
     else if (d.turn) return this.preview?.turn(Number(d.turn));
@@ -225,6 +227,12 @@ export class BoatLooksScreen {
     else if (el.classList.contains('bl-stock')) this.tried = stockAppearance();
     else return;
     this.renderKeepingFocus(el);
+  }
+
+  /** A slot's items, and the turntable turned to where it shows (the bow for a figurehead). */
+  private showSlot(slot: SlotKey, now?: boolean) {
+    this.slot = slot;
+    this.preview?.setView(SLOT_VIEWS[APPEARANCE_SLOTS[slot]] ?? 'whole', now);
   }
 
   /** Keeps the tried-on item of the current slot, if it may be used. */
