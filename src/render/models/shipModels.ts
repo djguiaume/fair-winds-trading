@@ -13,7 +13,7 @@ export interface ShipModelEntry {
 
 /** The shared builder's rig for a ship file: its hull, its `model` numbers and named parts. */
 export function rigOf(file: ShipFile): RefinedRig {
-  const { hullColor, bandColor, parts = [], ...model } = file.model;
+  const { hullColor, bandColor, sailBandColor, parts = [], ...model } = file.model;
   const { length, beam, depth, outline, rings } = file.hull;
   let rig: RefinedRig = {
     name: file.name,
@@ -23,6 +23,7 @@ export function rigOf(file: ShipFile): RefinedRig {
     hullShape: { outline, rings },
     hull: hullColor,
     band: bandColor,
+    sailBand: sailBandColor,
     ...model,
   };
   for (const id of parts) {

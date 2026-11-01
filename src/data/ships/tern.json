@@ -82,6 +82,11 @@
   "model": {
     "hullColor": "#f4efe0",
     "bandColor": "#1f4f8a",
+    "sailBandColor": "#1f4f8a",
+    "figureheadMount": {
+      "size": 0.72,
+      "drop": 0.04
+    },
     "mastZ": 0.3,
     "mastHeight": 8.8,
     "boom": 4,
