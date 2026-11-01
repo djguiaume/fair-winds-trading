@@ -19,7 +19,8 @@ import {
 } from '../src/sim/home';
 import { applyPerks, checkPerks } from '../src/sim/perks';
 import { type QuestDef, checkQuests } from '../src/sim/quests';
-import { payReward, testCondition } from '../src/sim/questLibrary';
+import { testCondition } from '../src/sim/questLibrary';
+import { payReward } from '../src/sim/questRewards';
 import { serializeWorld, validateSave } from '../src/sim/save';
 import { packSave, unpackSave } from '../src/sim/saveCode';
 import { SHIP_CLASSES, SLOOP } from '../src/sim/ship';

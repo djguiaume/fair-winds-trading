@@ -5,7 +5,8 @@ import { REGATTA, checkRegattaData } from '../src/sim/regatta';
 import { SHIP_CLASSES, SLOOP } from '../src/sim/ship';
 import { holdCapacity } from '../src/sim/upgrades';
 import { shipOffer } from '../src/sim/shipyards';
-import { checkReward, payReward, testCondition } from '../src/sim/questLibrary';
+import { testCondition } from '../src/sim/questLibrary';
+import { checkReward, payReward } from '../src/sim/questRewards';
 import { grantSeriesPrizes } from '../src/sim/seriesPrizes';
 import { createWorld } from '../src/sim/world';
 

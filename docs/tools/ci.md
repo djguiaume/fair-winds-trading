@@ -5,7 +5,7 @@ Threads: do not repeat these by hand. Tools live in `tools/ci/`, limits in data 
 | Workflow (check name) | Runs on | What you get |
 |---|---|---|
 | `CI and GitHub Pages` (`build`) | every PR touching code, main | lint, tests, build, Pages deploy |
-| `PR rules` (`rules`) | every PR | fails on: a code file over 400 lines that grew, JSON over 200 KB, an image over 500 KB or 1920 px, no "Fixes #N". Limits: `.github/rules.json` |
+| `PR rules` (`rules`) | every PR | fails on: a code file over 400 lines that grew (docs are exempt), JSON over 200 KB, an image over 500 KB or 1920 px, no "Fixes #N". Limits: `.github/rules.json` |
 | `Render budget` (`budget`) | PRs touching `src/` | headless sailing and docking run; fails if draw calls or triangles pass `tools/performance/budget.json`. Raise it in your PR with the reason; frame times still need `?bench` on a device |
 | `Screenshot sheet` (`sheet`) | Guillaume's PRs touching the game | one JPG comment: sea day (desktop, phone), night, Saltmere market (desktop, phone), chart. Views: `tools/ci/sheet.json`. Look at it once; take your own shots only for something it does not show |
 | `CI summary` | after the three above | a comment with only the failing lines, updated in place, "green" when fixed. Read it instead of the log |

@@ -1,20 +1,10 @@
-import {
-  type MessageKey,
-  formatNumber,
-  goodMany,
-  goodSome,
-  goodThe,
-  shipName,
-  t,
-  tOptional,
-} from '../i18n';
+import { type MessageKey, formatNumber, goodMany, goodSome, goodThe, t, tOptional } from '../i18n';
 import { isGood, type GoodId } from '../sim/goods';
 import type { MapDef } from '../sim/map';
 import {
   CONDITIONS,
   type Condition,
   type QuestPoint,
-  type QuestReward,
   deref,
   isSpot,
   pointOf,
@@ -22,6 +12,7 @@ import {
   slotLayout,
   type StepNews,
 } from '../sim/questLibrary';
+import type { QuestReward } from '../sim/questRewards';
 import {
   type CoachTarget,
   QUEST_DONE,
@@ -33,7 +24,6 @@ import {
 } from '../sim/quests';
 import { BUILDINGS, homeSpots, resolveSpot } from '../sim/home';
 import { REGATTA } from '../sim/regatta';
-import { SHIP_CLASSES } from '../sim/ship';
 import { isDiscovered } from '../sim/shipyards';
 import { findPort, quoteHandOver } from '../sim/trade';
 import { type Character, type Mood, MOODS, character } from './portraits';
@@ -286,15 +276,12 @@ export function rewardWords(
     if (!r) continue;
     gold += r.gold ?? 0;
     if (r.homeIsland) more.push(t('quest.rewardIsland'));
-    const ship = r.ship && SHIP_CLASSES[r.ship];
-    if (ship) more.push(t('quest.rewardShip', { name: shipName(ship) }));
     if (r.homeSpot?.length) more.push(t('quest.rewardBuilding'));
-    for (const id of r.levelUp ?? [])
-      more.push(t('quest.rewardGrows', { name: portName(map, id) ?? id }));
-    for (const id of r.discover ?? [])
-      more.push(t('quest.rewardDiscover', { name: portName(map, id) ?? id }));
-    for (const id of r.found ?? [])
-      more.push(t('quest.rewardFound', { name: portName(map, id) ?? id }));
+    if (r.ship) more.push(t('quest.rewardShip', { name: tOptional(`ship.${r.ship}`) ?? r.ship }));
+    const at = (key: MessageKey, ids: string[] = []) =>
+      ids.map((id) => t(key, { name: portName(map, id) ?? id }));
+    more.push(...at('quest.rewardGrows', r.levelUp), ...at('quest.rewardDiscover', r.discover));
+    more.push(...at('quest.rewardFound', r.found));
   }
   return gold || more.length ? { gold, more } : undefined;
 }

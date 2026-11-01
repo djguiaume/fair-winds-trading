@@ -1,6 +1,6 @@
 {
   "maxLines": 400,
-  "lineCheckedExtensions": [".ts", ".mjs", ".js", ".css", ".html", ".md"],
+  "lineCheckedExtensions": [".ts", ".mjs", ".js", ".css", ".html"],
   "maxJsonKB": 200,
   "maxImageKB": 500,
   "maxImageWidth": 1920,

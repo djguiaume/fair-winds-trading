@@ -355,8 +355,7 @@ level, as a clock ("Rush bread to Saltmere in {par}" shows "2:20" on Captain,
 | `town-level`, `standing` | `port`, `atLeast` | anywhere |
 | `orders-done`, `gold` | `atLeast` | anywhere |
 | `has-cargo` | `good`, `qty` (both optional: anything aboard) | anywhere |
-| `owns-ship` | `ship` | anywhere |
-| `series-won` | `series`: every race of the series at the winning medal ([0260](../decisions/0260-quest-ship-reward-and-series-won-start.md)) | anywhere |
+| `owns-ship`, `series-won` | `ship`; `series` (every race of it at the winning medal, [0260](../decisions/0260-quest-ship-reward-and-series-won-start.md)) | anywhere |
 | `moored` | `island` (optional; default the home island): moored at its pier | anywhere |
 | `delivered` | `port`, `good`, `qty`: sold or for an order there since the step began | goal |
 | `landed` | `place`, `good`, `qty`: goods taken out of the hold at a port alongside, or at a spot at sea held slowly there, as many as she has aboard up to `qty`; nothing paid; founding goods ([0157](../decisions/0157-founding-an-outpost.md)) | goal |

@@ -61,13 +61,13 @@ import {
   h,
   numberInput,
   portOptions,
-  rewardForm,
   row,
   segmented,
   select,
   jsonField,
   textInput,
 } from './form';
+import { rewardForm } from './rewardForm';
 import { addRaceStorm, moveRaceStorm, shapeRaceStorm } from './raceStormDoc';
 import { raceRows } from './raceRows';
 import { stormShapes } from './raceStormView';
