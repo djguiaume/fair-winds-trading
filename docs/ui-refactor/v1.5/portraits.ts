@@ -1,4 +1,4 @@
-// The game's own portraits for the mockups: npx tsx docs/ui-refactor/v1.6/portraits.ts > portraits-src.json
+// The game's own portraits for the mockups: npx tsx docs/ui-refactor/v1.5/portraits.ts > portraits-src.json
 import { character, portraitSvg } from '../../../src/ui/portraits';
 
 const out: Record<string, string> = {};
