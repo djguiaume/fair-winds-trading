@@ -1,3 +1,4 @@
+import rules from './cosmetics/rules.json';
 import type { HullShape } from '../sim/hullShape';
 import type { ShipClass, ShipLine } from '../sim/ship';
 
@@ -158,6 +159,9 @@ export function shipClassOf(file: ShipFile): ShipClass {
   };
 }
 
+/** How far a mount may stray from the share of her length (rounding in the files). */
+const FIGUREHEAD_TOLERANCE = 0.02;
+
 const HEX = /^#[0-9a-f]{6}$/i;
 
 /** What is wrong with a ship file's look (decision 0259): class colours and figurehead mount. */
@@ -170,6 +174,11 @@ export function shipLookProblems(file: ShipFile): string[] {
   const mount = m.figureheadMount;
   if (mount && !(mount.size > 0 && mount.size <= 3))
     out.push(`${where}.figureheadMount.size must be above 0 and at most 3`);
+  const reach = rules.figurehead.share * file.hull.length;
+  if (mount && Math.abs(mount.size - reach) > reach * FIGUREHEAD_TOLERANCE)
+    out.push(
+      `${where}.figureheadMount.size must be figurehead.share (${rules.figurehead.share}) x hull length = ${reach.toFixed(2)}`,
+    );
   if (mount && !(mount.drop >= 0 && mount.drop <= file.hull.depth))
     out.push(`${where}.figureheadMount.drop must be 0 to the hull depth (${file.hull.depth})`);
   return out;
