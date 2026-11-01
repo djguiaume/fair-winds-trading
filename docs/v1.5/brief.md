@@ -1,6 +1,6 @@
 # v1.5 "A real game" (UI rebuild) — brief
 
-Status: **approved** by Guillaume on 2026-11-01 16:00Z ("Ok to create all issue with lots of details and start"); milestone "v1.5 A real game". Why: [UI review](../reviews/ui/review.md), [UI inventory](../reviews/ui/inventory.md). Decision: 0268. Runs after v1.4.1 (#357) and may run **alongside v1.6** "The far seas' story" (data only: quests and text, no shared files). Numbers swapped by Guillaume on 2026-11-01: the UI rebuild ships first as v1.5, the story follows as v1.6.
+Status: **approved** by Guillaume on 2026-11-01 16:00Z ("Ok to create all issue with lots of details and start"); milestone [v1.5 A real game](https://github.com/djguiaume/fair-winds-trading/milestone/8), tracker #446. Why: [UI review](../reviews/ui/review.md), [UI inventory](../reviews/ui/inventory.md). Decision: 0268. Runs after v1.4.1 (#357) and may run **alongside v1.6** "The far seas' story" (data only: quests and text, no shared files). Numbers swapped by Guillaume on 2026-11-01: the UI rebuild ships first as v1.5, the story follows as v1.6.
 
 Guillaume's "done when" (2026-11-01): one visual language on every screen; a proper title, pause and settings flow; juicy feedback (sounds, animations, toasts); less on screen at sea; a clear identity (logo, type, signature colour). Everything may move or be redesigned. Phone **landscape** only, portrait is no longer required. Keep: sailing numbers visible by default, hazards off in Settings, everything data driven, no backdrop blur, the phone budget, no blue/teal plus gold "AI look", no lines on paper.
 
@@ -42,17 +42,17 @@ Same pause rule as v1.4: Guillaume checks token use between waves and says go. A
 
 | Wave | Part | Effort | Visual | Model |
 | --- | --- | --- | --- | --- |
-| 0 (v1.4.1 or now) | Phone landscape bugs: clipped titles, port tab content cut off, pause sheet taller than the screen, quest card over the chip, settings scroll (#433) | low | yes | Sonnet |
+| 0 | #433 Phone landscape bugs: clipped titles, port tab content cut off, pause sheet taller than the screen, quest card over the chip, settings scroll (#433) | low | yes | Sonnet |
 | M (done) | Identity mockups, three rounds, direction 1 round 3 D chosen; the art bible UI section is rewritten from the kit's README in wave 1 | med | yes | Opus |
-| 1 | UI foundation: tokens (colour, type, space, radius, elevation, motion, z) in `src/data/ui/theme.json`, components (button, tab bar, card, panel, list row, dialog, toast, screen header), a screen stack with transitions replacing the `hidden` wiring in `main.ts`, pad focus kept; theme editable in the editors and `npm run theme` (0153) | high | no | Opus |
-| 1 | Identity assets: logo, wordmark, pennant motif, icon style pass on the sprite (one weight), fonts | med | yes | Sonnet |
-| 1 | Title, pause, settings and New voyage on the foundation | med | yes | Sonnet |
-| 2 | Sea HUD regroup, quiet HUD setting, idle fade, port labels, race and quest chips | high | yes | Opus |
-| 2 | Moments and feedback: arrival banner, trade ticks, quest stamp, race horn and board, UI sounds (`npm run sound`) | med | yes | Sonnet |
-| 2 | Close chase camera (#432) | med | yes | Sonnet |
-| 3 | Harbour screen rebuild (market, quay, shipyard, home island) | high | yes | Opus |
-| 3 | Chart rebuild (paper chart, book tabs, course in ink) | high | yes | Opus |
-| 4 | Free Sailing, Boat looks, club board and regatta screens on the components; tutorial coach marks; remove the old CSS files; release notes and ADR acceptance | med | yes | Sonnet |
+| 1 | #438 UI foundation: tokens (colour, type, space, radius, elevation, motion, z) in `src/data/ui/theme.json`, components (button, tab bar, card, panel, list row, dialog, toast, screen header), a screen stack with transitions replacing the `hidden` wiring in `main.ts`, pad focus kept; theme editable in the editors and `npm run theme` (0153) | high | no | Opus |
+| 1 | #439 Identity assets: logo, wordmark, pennant motif, icon style pass on the sprite (one weight), fonts | med | yes | Sonnet |
+| 1 | #440 Title, pause, settings and New voyage on the foundation | med | yes | Sonnet |
+| 2 | #441 Sea HUD regroup, quiet HUD setting, idle fade, port labels, race and quest chips | high | yes | Opus |
+| 2 | #442 Moments and feedback: arrival banner, trade ticks, quest stamp, race horn and board, UI sounds (`npm run sound`) | med | yes | Sonnet |
+| 2 | #432 Close chase camera | med | yes | Sonnet |
+| 3 | #443 Harbour screen rebuild (market, quay, shipyard, home island) | high | yes | Opus |
+| 3 | #444 Chart rebuild (paper chart, book tabs, course in ink) | high | yes | Opus |
+| 4 | #445 Free Sailing, Boat looks, club board and regatta screens on the components; tutorial coach marks; remove the old CSS files; release notes and ADR acceptance | med | yes | Sonnet |
 
 Not in scope: portrait layouts (dropped), the Xbox store work, any gameplay change. Prices, text and story stay with the storyteller.
 
