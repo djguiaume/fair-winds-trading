@@ -1568,5 +1568,6 @@
   "settings.pad.playstation": "PlayStation",
   "settings.pad.nintendo": "Switch",
   "settings.tutorial": "Lessons",
-  "pause.status": "{gold} gold · hold {used}/{cap}"
+  "pause.status": "{gold} gold · hold {used}/{cap}",
+  "settings.tab.hazards": "Hazards"
 }

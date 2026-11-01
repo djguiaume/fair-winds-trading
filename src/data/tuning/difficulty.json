@@ -4,7 +4,7 @@
     "fair": {
       "name": "Fair winds",
       "tag": "Learn the trade, no stress",
-      "color": "#8fe3a4",
+      "color": "#4a6d41",
       "waves": 1,
       "cargoLost": 0,
       "damage": 0.5,
@@ -23,7 +23,7 @@
     "captain": {
       "name": "Captain",
       "tag": "Read the wind or pay for it",
-      "color": "#e8c46a",
+      "color": "#3a5733",
       "waves": 2,
       "cargoLost": 1,
       "damage": 1,
@@ -42,7 +42,7 @@
     "salt": {
       "name": "Old salt",
       "tag": "For sailors who read the sky",
-      "color": "#ff8a73",
+      "color": "#23303a",
       "waves": 3,
       "cargoLost": 2,
       "damage": 1.5,

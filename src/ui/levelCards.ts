@@ -12,38 +12,53 @@ import './theme/boot';
  */
 
 const SVG = 'http://www.w3.org/2000/svg';
-/** Wave heights on a card, by number of waves; more waves share the card evenly. */
+/** Wave heights under the boat, by number of waves; more waves share the space evenly. */
 const WAVE_Y: Record<number, number[]> = { 1: [20], 2: [13, 25], 3: [8, 18, 28] };
 const waveYs = (n: number) =>
   WAVE_Y[n] ?? Array.from({ length: n }, (_, i) => Math.round(6 + (i * 24) / Math.max(1, n - 1)));
 
 const words = (key: string, fallback: string) => (hasText(key) ? t(key) : fallback);
 
-/** One wave line per sea state, in the level's colour: the card's picture. */
-function waves(id: Difficulty): SVGElement {
+/** Degrees the boat heels on the level's sea: the rougher the level, the more she leans. */
+const HEEL = [0, -5, -10];
+
+/**
+ * The boat on the level's sea: one hull silhouette in ink, a wave line per sea state under her
+ * (`level.waves`) and a heel that grows with them. Ink only: yellow and red are signal colours.
+ */
+function boatOnWaves(id: Difficulty, order: number): SVGElement {
   const level = DIFFICULTY[id]!;
   const svg = document.createElementNS(SVG, 'svg');
-  svg.setAttribute('class', 'level-waves');
-  svg.setAttribute('viewBox', '0 0 46 34');
+  svg.setAttribute('class', 'level-boat');
+  svg.setAttribute('viewBox', '0 0 120 76');
   svg.setAttribute('aria-hidden', 'true');
-  svg.setAttribute('style', `color: ${level.color}`);
-  for (const y of waveYs(level.waves)) {
+  const heel = HEEL[order] ?? HEEL.at(-1)!;
+  const boat = document.createElementNS(SVG, 'g');
+  boat.setAttribute('transform', `rotate(${heel} 60 50)`);
+  boat.innerHTML =
+    '<path d="M24 46h72l-10 14H36z" fill="currentColor"/>' +
+    '<path d="M58 10v36" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>' +
+    '<path d="M62 14l26 28H62z" fill="currentColor" fill-opacity=".55"/>' +
+    '<path d="M54 20L34 42h20z" fill="currentColor" fill-opacity=".35"/>';
+  svg.append(boat);
+  waveYs(level.waves).forEach((y, i) => {
     const use = document.createElementNS(SVG, 'use');
     use.setAttribute('href', '#i-level-wave');
-    use.setAttribute('y', String(y));
+    use.setAttribute('x', String(i % 2 ? 22 : 6));
+    use.setAttribute('y', String(58 + y * 0.6));
     svg.append(use);
-  }
+  });
   return svg;
 }
 
 /** The level cards, in order; `choose` runs on a press, `mark` shows the chosen one. */
 export function levelCards(choose: (id: Difficulty) => void) {
-  const cards = DIFFICULTIES.map((id) => {
+  const cards = DIFFICULTIES.map((id, order) => {
     const level = DIFFICULTY[id]!;
     const node = card({
       title: words(`level.${id}`, level.name),
       text: words(`level.${id}Tag`, level.tag),
-      media: waves(id),
+      media: boatOnWaves(id, order),
       selected: false,
       onPress: () => choose(id),
     });

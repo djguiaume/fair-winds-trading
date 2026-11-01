@@ -73,7 +73,7 @@ describe('levels added in data files only (decision 0113)', () => {
     // Not translated yet: the file's name and pitch.
     expect(card.querySelector('.ui-card-title')!.textContent).toBe('Storm petrel');
     expect(card.querySelector('.ui-card-text')!.textContent).toBe('Gales all the way');
-    expect(card.querySelectorAll('.level-waves use')).toHaveLength(3);
+    expect(card.querySelectorAll('.level-boat use')).toHaveLength(3);
   });
 
   it('a fifth town level is a level: towns grow into it and it has a name', () => {

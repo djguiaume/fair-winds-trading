@@ -1,18 +1,13 @@
 /* New voyage: three paper cards over the sea, the boat in view above (issue #440). */
-/*
- * The title, pause, New voyage and Settings screens (decision 0269, issue #440), built from the
- * components. Tokens only (`--ui-*`, `--fs-*`); no filters or blur. Phone landscape is
- * `html[data-layout='phone']`; text on the scene is never used here, every screen is paper.
- */
-
 .nv {
-  inset: auto 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-3);
-  max-width: 1040px;
-  margin: 0 auto;
-  padding: var(--ui-space-3) var(--ui-space-5) var(--ui-space-4);
+  /* Wider than the screen on three sides, so only the top torn edge shows. */
+  inset: auto calc(-1 * var(--ui-edge-torn-width)) calc(-1 * var(--ui-edge-torn-width));
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--ui-space-3) var(--ui-space-5);
+  padding: var(--ui-space-4)
+    calc(var(--ui-edge-torn-width) + max(var(--ui-space-5), calc(50vw - 520px)))
+    calc(var(--ui-edge-torn-width) + var(--ui-space-4));
 }
 
 .nv-sub {
@@ -34,17 +29,28 @@
 
 .level-card {
   position: relative;
-  min-height: 132px;
+  min-height: var(--ui-touch-level-card);
+  justify-content: flex-end;
 }
 
 .level-card .ui-card-media {
-  align-self: flex-start;
+  flex: 1;
 }
 
-.level-waves {
-  width: 46px;
-  height: 34px;
-  overflow: visible;
+.level-card .ui-card-title {
+  font-size: var(--fs-sub);
+}
+
+.level-card .ui-card-text {
+  font-size: var(--fs-body);
+}
+
+/* The boat on the level's sea: more wave lines, more heel. */
+.level-boat {
+  width: 100%;
+  max-width: 190px;
+  height: 100%;
+  color: var(--ui-ink);
 }
 
 .level-badge {
@@ -58,29 +64,36 @@
   font-weight: 700;
 }
 
+.nv .ui-header {
+  grid-column: 1;
+}
+
 .nv-foot {
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-4);
+  display: contents;
+}
+
+.nv-foot .ui-btn {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.nv-cards {
+  grid-column: 1 / -1;
 }
 
 .nv-note {
-  flex: 1;
+  grid-column: 1 / -1;
   margin: 0;
   color: var(--ui-muted);
   font-size: var(--fs-note);
-}
-
-:root[data-layout='phone'] .nv,
-:root[data-layout='phone'] .set-screen {
-  padding-inline: var(--ui-space-4);
 }
 
 :root[data-layout='phone'] .nv {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: var(--ui-space-2) var(--ui-space-5);
-  padding-block: var(--ui-space-2);
+  padding: var(--ui-space-2) calc(var(--ui-edge-torn-width) + var(--ui-space-4))
+    calc(var(--ui-edge-torn-width) + var(--ui-space-2));
 }
 
 :root[data-layout='phone'] .nv[hidden] {
@@ -91,18 +104,12 @@
   grid-column: 1;
 }
 
-:root[data-layout='phone'] .nv-foot {
-  grid-column: 2;
-  grid-row: 1;
-}
-
 :root[data-layout='phone'] .nv-cards {
   grid-column: 1 / -1;
 }
 
-:root[data-layout='phone'] .level-waves {
-  width: 34px;
-  height: 25px;
+:root[data-layout='phone'] .level-boat {
+  height: 56px;
 }
 
 :root[data-layout='phone'] .level-card {
@@ -114,12 +121,10 @@
   display: none;
 }
 
-:root[data-layout='phone'] .set-screen .ui-header,
 :root[data-layout='phone'] .nv .ui-header {
   min-height: 36px;
 }
 
-:root[data-layout='phone'] .set-screen .ui-header-exit,
 :root[data-layout='phone'] .nv .ui-header-exit {
   width: 36px;
   height: 36px;

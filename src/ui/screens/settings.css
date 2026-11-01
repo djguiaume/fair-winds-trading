@@ -2,18 +2,15 @@
 
 /* --- Settings: tabs of list rows ------------------------------------------------------------- */
 .set-screen {
-  inset: 0;
+  /* Wider than the screen, so the torn edge runs off it and the scene never shows through. */
+  --edge: var(--ui-edge-torn-width);
+  inset: calc(-1 * var(--edge));
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-3);
-  padding: calc(var(--ui-space-4) + env(safe-area-inset-top, 0px))
-    max(var(--ui-space-5), calc(50vw - 520px))
-    calc(var(--ui-space-3) + env(safe-area-inset-bottom, 0px));
-}
-
-/* The sides of the page, past its width, are dimmed with one big shadow: no filter. */
-.set-screen {
-  box-shadow: 0 0 0 100vmax var(--ui-shadow-backdrop);
+  padding: calc(var(--edge) + var(--ui-space-4) + env(safe-area-inset-top, 0px))
+    calc(var(--edge) + max(var(--ui-space-5), calc(50vw - 520px)))
+    calc(var(--edge) + var(--ui-space-3) + env(safe-area-inset-bottom, 0px));
 }
 
 .set-body {
@@ -44,6 +41,16 @@
   font-weight: 400;
 }
 
+.set-page[data-tab='hazards'] {
+  grid-template-columns: 1fr;
+}
+
+.set-page[data-tab='hazards'] .set-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: var(--ui-space-6);
+}
+
 .set-row[hidden] {
   display: none;
 }
@@ -57,6 +64,8 @@
 }
 
 .set-row .ui-row-detail {
+  color: var(--ui-muted);
+  font-size: var(--fs-body);
   white-space: normal;
 }
 
@@ -132,6 +141,22 @@
   color: var(--ui-on-sage);
 }
 
+/* A choice of a few big options, equal tiles under its name (Difficulty). */
+.set-row--tiles {
+  flex-wrap: wrap;
+}
+
+.ui-choice--tiles {
+  flex: 1 1 100%;
+  max-width: none;
+  display: grid;
+  grid-template-columns: repeat(var(--tiles), 1fr);
+}
+
+.ui-choice--tiles .ui-choice-option {
+  min-height: 44px;
+}
+
 .ui-slider-box {
   display: flex;
   align-items: center;
@@ -151,8 +176,18 @@
 
 :root[data-layout='phone'] .set-screen {
   gap: var(--ui-space-1);
-  padding-block: calc(var(--ui-space-2) + env(safe-area-inset-top, 0px)) var(--ui-space-2);
-  box-shadow: none;
+  padding-block: calc(var(--edge) + var(--ui-space-2) + env(safe-area-inset-top, 0px))
+    calc(var(--edge) + var(--ui-space-2));
+  padding-inline: calc(var(--edge) + var(--ui-space-4));
+}
+
+:root[data-layout='phone'] .set-screen .ui-header {
+  min-height: 36px;
+}
+
+:root[data-layout='phone'] .set-screen .ui-header-exit {
+  width: 36px;
+  height: 36px;
 }
 
 :root[data-layout='phone'] .set-page {
@@ -163,8 +198,22 @@
   min-height: 44px;
 }
 
+:root[data-layout='phone'] .set-page[data-tab='hazards'] .set-list {
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: var(--ui-space-4);
+}
+
+:root[data-layout='phone'] .set-page[data-tab='hazards'] .ui-row-detail {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 @media (max-width: 640px) {
-  .set-page {
+  .set-page,
+  .set-page[data-tab='hazards'] .set-list,
+  :root[data-layout='phone'] .set-page[data-tab='hazards'] .set-list {
     grid-template-columns: 1fr;
   }
 }

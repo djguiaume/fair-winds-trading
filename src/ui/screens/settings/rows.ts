@@ -77,12 +77,15 @@ export function switchRow(o: SwitchSpec): SettingRow {
 export interface ChoiceSpec<T extends string> extends RowText, RowState {
   id: string;
   options: readonly { id: T; label: string }[];
+  /** The options as equal tiles under the name, for a choice of a few big options. */
+  tiles?: boolean;
   get(): T;
   set(id: T): void;
 }
 
 export function choiceRow<T extends string>(o: ChoiceSpec<T>): SettingRow {
-  const group = el('div', 'ui-choice');
+  const group = el('div', o.tiles ? 'ui-choice ui-choice--tiles' : 'ui-choice');
+  group.style.setProperty('--tiles', String(o.options.length));
   group.id = o.id;
   group.setAttribute('role', 'radiogroup');
   group.setAttribute('aria-label', text(o.key));
@@ -95,10 +98,12 @@ export function choiceRow<T extends string>(o: ChoiceSpec<T>): SettingRow {
     return b;
   });
   group.append(...buttons);
-  return frame(o, group, () => {
+  const row = frame(o, group, () => {
     const now = o.get();
     for (const b of buttons) b.setAttribute('aria-checked', String(b.dataset.choice === now));
   });
+  row.root.classList.toggle('set-row--tiles', Boolean(o.tiles));
+  return row;
 }
 
 export interface SliderSpec extends RowText, RowState {
