@@ -31,6 +31,24 @@ const smooth = (k: number) => {
   return x * x * (3 - 2 * x);
 };
 
+/** Clock hours at the start of each part of the day (day, dusk, night, dawn) and at its end. */
+function daySegments(): [start: number, end: number, fromHour: number, toHour: number][] {
+  const { daySeconds, dayEnd, duskEnd, nightEnd } = TUNING.weather.daylight;
+  return [
+    [0, dayEnd, 7, 19],
+    [dayEnd, duskEnd, 19, 21],
+    [duskEnd, nightEnd, 21, 29],
+    [nightEnd, daySeconds, 29, 31],
+  ];
+}
+
+/** Seconds into a game day at a clock hour (0..24): `daylightAt`'s hour read backwards. */
+export function secondsAtHour(hour: number): number {
+  const h = hour < 7 ? hour + 24 : hour;
+  const [a, b, h0, h1] = daySegments().find(([, , , to]) => h < to) ?? daySegments()[3]!;
+  return a + ((h - h0) / (h1 - h0)) * (b - a);
+}
+
 export function daylightAt(t: number): Daylight {
   const {
     daySeconds: DAY_SECONDS,
@@ -38,13 +56,7 @@ export function daylightAt(t: number): Daylight {
     duskEnd: DUSK_END,
     nightEnd: NIGHT_END,
   } = TUNING.weather.daylight;
-  // Clock hours at the start of each segment (day, dusk, night, dawn) and at the end of the day.
-  const SEGMENTS: [start: number, end: number, fromHour: number, toHour: number][] = [
-    [0, DAY_END, 7, 19],
-    [DAY_END, DUSK_END, 19, 21],
-    [DUSK_END, NIGHT_END, 21, 29],
-    [NIGHT_END, DAY_SECONDS, 29, 31],
-  ];
+  const SEGMENTS = daySegments();
   const s = ((t % DAY_SECONDS) + DAY_SECONDS) % DAY_SECONDS;
   const [a, b, h0, h1] = SEGMENTS.find(([, end]) => s < end) ?? SEGMENTS[SEGMENTS.length - 1]!;
   const hour = (h0 + ((s - a) / (b - a)) * (h1 - h0)) % 24;

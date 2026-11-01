@@ -1,0 +1,24 @@
+{
+  "id": "saltmere-morning",
+  "name": {
+    "en": "Saltmere morning",
+    "fr": "Matin à Saltmere"
+  },
+  "about": {
+    "en": "The sloop as she comes from the yard, a fair breeze off home.",
+    "fr": "Le sloop tel qu'il sort du chantier, bonne brise au large de chez vous."
+  },
+  "place": {
+    "x": 190,
+    "y": -60,
+    "headingDeg": 300
+  },
+  "hour": 9,
+  "weather": "breeze",
+  "ship": {
+    "class": "sloop",
+    "sails": 1,
+    "hold": 1,
+    "hull": 1
+  }
+}

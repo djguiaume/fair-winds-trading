@@ -1,0 +1,24 @@
+{
+  "id": "fogwatch-reach",
+  "name": {
+    "en": "Fogwatch reach",
+    "fr": "Cap sur Fogwatch"
+  },
+  "about": {
+    "en": "A swift clipper, new sails, open water to the east in the afternoon.",
+    "fr": "Un clipper rapide, voiles neuves, la mer ouverte à l'est l'après-midi."
+  },
+  "place": {
+    "x": 465,
+    "y": -40,
+    "headingDeg": 120
+  },
+  "hour": 14,
+  "weather": "breeze",
+  "ship": {
+    "class": "clipper",
+    "sails": 3,
+    "hold": 1,
+    "hull": 2
+  }
+}

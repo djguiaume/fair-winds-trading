@@ -1,0 +1,24 @@
+{
+  "id": "westholm-rain",
+  "name": {
+    "en": "Rain off Westholm",
+    "fr": "Pluie au large de Westholm"
+  },
+  "about": {
+    "en": "The big indiaman, hold and hull to the full, under a grey shower.",
+    "fr": "Le grand indiaman, cale et coque au maximum, sous une averse grise."
+  },
+  "place": {
+    "x": -245,
+    "y": -175,
+    "headingDeg": 90
+  },
+  "hour": 11,
+  "weather": "rain",
+  "ship": {
+    "class": "indiaman",
+    "sails": 2,
+    "hold": 3,
+    "hull": 3
+  }
+}

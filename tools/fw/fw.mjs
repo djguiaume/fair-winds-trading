@@ -28,6 +28,10 @@ const TOOLS = {
     about: 'boat cosmetics: list, add, edit, check, import, export, preview',
     module: '/tools/fw/cosmetics.ts',
   },
+  free: {
+    about: 'Free Sailing presets: list, add, edit, check; walk proves the voyage stays untouched',
+    file: './free.mjs',
+  },
   sound: { about: "the game's sounds into files: effects, sea beds, music", file: './sound.mjs' },
   editorperf: {
     about: "speed of the island builder's terrain brushes on the largest island",

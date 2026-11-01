@@ -472,3 +472,7 @@ Every sound is listed in [`src/data/audio.json`](../../src/data/audio.json):
   checks refuse a person whose voice is missing and a file not in `public/`.
 - The game plays `music.sea`, `effects.creak` and, during the prologue, `effects.foghorn`; a new kind of moment (port music, a bell when an
   order is done) needs one line of code to play it, then it is a line in this file.
+
+## A Free Sailing preset ([0266](../decisions/0266-free-sailing-sessions-kept-in-memory-only.md))
+
+One file per preset in `src/data/free-sailing/`: where, when, what weather, which ship. How: [free-sailing.md](free-sailing.md).

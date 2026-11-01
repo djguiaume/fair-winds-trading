@@ -1,0 +1,24 @@
+{
+  "id": "rimewick-night",
+  "name": {
+    "en": "Night off Rimewick",
+    "fr": "Nuit au large de Rimewick"
+  },
+  "about": {
+    "en": "A cutter with every upgrade, lanterns lit on a calm night in the north.",
+    "fr": "Un cotre tout équipé, lanternes allumées par une nuit calme au nord."
+  },
+  "place": {
+    "x": -133,
+    "y": 630,
+    "headingDeg": 109
+  },
+  "hour": 23,
+  "weather": "calm",
+  "ship": {
+    "class": "cutter",
+    "sails": 3,
+    "hold": 3,
+    "hull": 3
+  }
+}
