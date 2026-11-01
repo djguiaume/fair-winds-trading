@@ -162,5 +162,17 @@
    "desktop",
    "landscape"
   ]
+ },
+ {
+  "name": "tt-d",
+  "port": "saltmere",
+  "zoom": 0.45,
+  "tilt": 8,
+  "yaw": 150,
+  "time": 250,
+  "sizes": [
+   "desktop",
+   "landscape"
+  ]
  }
 ]

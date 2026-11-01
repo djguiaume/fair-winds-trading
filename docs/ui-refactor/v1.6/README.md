@@ -95,6 +95,19 @@ What changed since round 2:
 
 Redraw round 3: `node docs/ui-refactor/v1.6/render.mjs --r3`, then `python3 docs/ui-refactor/v1.6/sheet_r3.py docs/ui-refactor/v1.6/out-r3 <dir>`. In a browser: `mock.html?r=3&w=c|d&s=title|hud|market|quay|shipyard|looks|chart&z=desktop|phone&t=day|night` (`screens-r3.js`, `chart-r3.css` for the sea and the title, `chart-r3-port.css` for the harbour, Boat looks and the chart). New backgrounds in `bg.json`: the harbour at night (`hn-*`) and the docked sloop for Boat looks (`lk`).
 
+## Round 4 (2026-11-01): four title screens in the chart table style
+
+Guillaume picked round 3 D and found the title still weak. Four title screens, staged differently, one sheet: project files `ui-review/mockups/round4-title/1-chart-table-titles.jpg`. Guillaume said the title art may be generated rather than taken from the game, so 1 and 3 use the README cover (generated in the game's style, `docs/images/readme/cover.png`) as painted key art; 4 shows the live game for comparison.
+
+1. **Ledger:** the painted key art as a strip across the top, one torn ledger below with the logo and tagline on the left and the menu on the right (the same frame as the D harbour).
+2. **The chart table:** no picture, the chart itself; the logo is the chart's cartouche at the top, the menu a paper card in the middle, the rose bottom left.
+3. **Logbook page:** a full-height torn page on the left with the logo stacked (rose, wordmark, banderole) and the menu; the painted key art fills the right.
+4. **Live harbour:** the real game (Saltmere, day) behind, the logo on a cartouche, the menu as a row of four big torn tiles; Continue is the sage tile (`slices/chart-sage.png`).
+
+All four: the menu rows are large plain rows with the same height and type as Continue (art director), Continue selected in sage with the save line; phone landscape drops the pad bar (touch first) and keeps rows at 34 to 36 px. The cover is bright teal sea; a painting made only for the title could match the chart table palette better (not made: no paid credits spent).
+
+Redraw round 4: `node docs/ui-refactor/v1.6/render.mjs --r4`, then `python3 docs/ui-refactor/v1.6/sheet_r3.py --titles docs/ui-refactor/v1.6/out-r4 <dir>`. In a browser: `mock.html?r=3&s=title&k=1..4&z=desktop|phone` (`titles-r3.js`, `chart-r3-title.css`).
+
 ## Redraw
 
 ```sh

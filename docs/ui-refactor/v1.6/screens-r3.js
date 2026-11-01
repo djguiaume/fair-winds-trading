@@ -2,6 +2,7 @@
 // title, paper in the harbour, Boat looks and the chart. &w=c|d is how much the harbour panes cover:
 // c = about 65% with the boat and the quay on the right, d = a ledger across with the port as a strip.
 // mock.html?r=3&w=c|d&s=title|hud|market|quay|shipyard|looks|chart&z=desktop|phone&t=day|night
+// Round 4: &s=title&k=1..4 draws one of the four title screens of titles-r3.js.
 (() => {
   const q = new URLSearchParams(location.search);
   if (q.get('r') !== '3') return;
@@ -10,10 +11,14 @@
   const t = q.get('t') || 'day', size = z === 'phone' ? 'landscape' : 'desktop';
   const port = ['market', 'quay', 'shipyard'].includes(s);
   const v = s === 'title' || s === 'hud' ? 'minimal' : 'framed';
-  document.body.className = `d-chart s-${port ? `harbour p-${s}` : s} z-${z} t-${t} r2 r3 w-${w} v-${v}`;
+  const k = s === 'title' ? q.get('k') : null; // round 4: one of the four title screens (titles-r3.js)
+  document.body.className = k
+    ? `d-chart s-titlek tk-${k} z-${z} t-day r2 r3 w-d v-framed`
+    : `d-chart s-${port ? `harbour p-${s}` : s} z-${z} t-${t} r2 r3 w-${w} v-${v}`;
   document.getElementById('dircss').href = 'chart-r2.css';
   document.getElementById('r3css').href = 'chart-r3.css';
   document.getElementById('r3css2').href = 'chart-r3-port.css';
+  if (k) document.getElementById('r3css3').href = 'chart-r3-title.css';
 
   const night = t === 'night' ? 'n' : '';
   const harbourBg = w === 'c' ? (z === 'phone' ? 'i-landscape' : 'l-desktop') : z === 'phone' ? 'e-landscape' : 'a-desktop';
@@ -158,7 +163,8 @@
     </aside>
     <footer class="p-foot">${S.padbar([['A', 'Try on'], ['X', 'Use'], ['Y', 'Back to stock'], ['B', 'Close']])}</footer>`;
 
-  const BUILD = { title: S.title, hud, market, quay, shipyard, looks, chart: S.chart };
-  document.getElementById('app').innerHTML = `<div class="scr scr-${s}">${BG ? `<div class="bg" style="background-image:url(${BG})"></div>` : ''}${BUILD[s]()}</div>`;
-  if (s === 'chart') document.getElementById('ovl').innerHTML = A.chartOverlay('chart');
+  const BUILD = { title: k ? window.R3_TITLES[k] : S.title, hud, market, quay, shipyard, looks, chart: S.chart };
+  const kbg = k && window.R3_TITLE_BG[k], bg = k ? (typeof kbg === 'function' ? kbg(size) : kbg) : BG;
+  document.getElementById('app').innerHTML = `<div class="scr scr-${s}">${bg ? `<div class="bg" style="background-image:url(${bg})"></div>` : ''}${BUILD[s]()}</div>`;
+  if (s === 'chart' || k === '2') document.getElementById('ovl').innerHTML = A.chartOverlay('chart');
 })();

@@ -58,6 +58,7 @@ def frame(name, colour, alpha, kind, radius=0, seed=1):
 frame('chart-paper', '#efe6d1', 1, 'torn', seed=3)
 frame('chart-paper-night', '#cbbd9c', .9, 'torn', seed=3)
 frame('chart-paper-night-r3', '#b9ab8a', .8, 'torn', seed=3)  # round 3: dimmer, lower opacity
+frame('chart-sage', '#4a6d41', 1, 'torn', seed=7)  # round 4 titles: the selected tile
 frame('chart-paper-2', '#e3d6b8', 1, 'torn', seed=11)
 frame('harbour-cloth', '#f3ead6', 1, 'brush', radius=22, seed=5)
 frame('harbour-cloth-night', '#d6c9ad', .9, 'brush', radius=22, seed=5)
