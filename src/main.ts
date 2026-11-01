@@ -100,6 +100,7 @@ import { Hud } from './ui/hud';
 import { CameraControls } from './ui/cameraControls';
 import { loadSettings, saveSettings } from './ui/settings';
 import { addEffectSwitches, addQualityButtons } from './ui/graphicsSettings';
+import { wireViewSwitches } from './ui/viewSwitches';
 import { wireSeaSwitches } from './ui/seaSwitches';
 import type { Bench } from './perf/bench';
 import type { PerfReadout } from './perf/perfReadout';
@@ -1492,16 +1493,8 @@ const syncWeather = () => {
   stormBelt.checked = settings.stormBelt;
   stormBelt.disabled = !settings.weather || !settings.storms || !settings.windZones;
 };
-// Eruptions (decision 0178): spectacle only, but switchable like every annoyance. Off, the
-// volcanoes only smoke; a quest's story eruption plays anyway.
-const eruptions = $<HTMLInputElement>('eruptions');
-view.eruptions = settings.eruptions;
-eruptions.checked = settings.eruptions;
-eruptions.addEventListener('change', () => {
-  view.eruptions = eruptions.checked;
-  settings.eruptions = eruptions.checked;
-  keepSettings();
-});
+// Eruptions (decision 0178) and wake styles (issue #418): what the sea shows, each switchable.
+wireViewSwitches(view, settings, keepSettings);
 // Wind zones (decision 0140) have their own switch, like every hazard.
 const windZones = $<HTMLInputElement>('wind-zones');
 const stormBelt = $<HTMLInputElement>('storm-belt');

@@ -1,0 +1,13 @@
+{
+  "id": "diamond-navy",
+  "slot": "sail-pattern",
+  "name": {
+    "en": "Navy diamond",
+    "fr": "Losange marine"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "pattern": "diamond",
+  "colours": ["#2f6f9f", "#9cc7e4"]
+}

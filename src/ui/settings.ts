@@ -49,6 +49,8 @@ export interface Settings {
   storms: boolean;
   /** Volcanoes erupt now and then near the boat (decision 0178); off, they only smoke. */
   eruptions: boolean;
+  /** The boat's wake style (issue #418); off, the plain wake whatever her look. */
+  wakeStyles: boolean;
   /** Wind zones such as trade belts and doldrums (decision 0140); a hazard, so it can be off. */
   windZones: boolean;
   /** Storm belts' squalls (decision 0167); off leaves a belt a gusty band with no squalls. */
@@ -96,6 +98,7 @@ const DEFAULTS: Settings = {
   weather: true,
   storms: true,
   eruptions: true,
+  wakeStyles: true,
   windZones: true,
   stormBelt: true,
   currents: true,

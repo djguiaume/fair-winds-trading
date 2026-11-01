@@ -82,6 +82,15 @@ export function sailColourProblem(hex: string): string | null {
   return null;
 }
 
+/** A logo lighter than `rules.json` › `emblem.maxLightness` would vanish on the canvas. */
+function logoColourProblems(hex: string): string[] {
+  if (!/^#[0-9a-f]{6}$/i.test(hex)) return [];
+  const l = hsl(hex)[2];
+  return l > RULES.emblem.maxLightness
+    ? [`${hex} is too light for a logo on the canvas (lightness ${l.toFixed(2)})`]
+    : [];
+}
+
 /** Vertices a path's commands lay down, a curve counting as its flattened pieces. */
 function pathVertices(d: string): number[] {
   const perSub: number[] = [];
@@ -181,6 +190,7 @@ function ownProblems(item: Item, cat: Catalogue, cx: CosmeticContext): string[] 
       const tris = logoTriangles(svg);
       return [
         ...hexes('colour', [item.colour]),
+        ...logoColourProblems(item.colour),
         ...logoProblems(svg),
         ...(tris > RULES.maxTriangles['sail-logo']
           ? [

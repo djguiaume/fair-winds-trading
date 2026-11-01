@@ -1,0 +1,13 @@
+{
+  "id": "panels-sky",
+  "slot": "sail-pattern",
+  "name": {
+    "en": "Sky panels",
+    "fr": "Laizes ciel"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "pattern": "panels",
+  "colours": ["#9cc7e4", "#2f6f9f"]
+}

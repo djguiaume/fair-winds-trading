@@ -103,8 +103,12 @@ export interface Rules {
   reservedColours: { name: string; hex: string; within: number }[];
   /** Colours at least this white on every channel are refused. */
   tooBright: string;
-  /** An emblem's width as a share of the sail's, and its centre down the sail (0 head, 1 foot). */
-  emblem: { width: number; centreV: number };
+  /**
+   * An emblem's width as a share of the sail's, its centre down the sail (0 head, 1 foot), higher
+   * on a square rigger's main course (it sits low on the ship), and the lightest colour it may
+   * take: a pale logo vanishes on the canvas, worst of all at night.
+   */
+  emblem: { width: number; centreV: number; squareCentreV: number; maxLightness: number };
   /** A figurehead's longest reach as a share of the hull's length (times the item's `size`). */
   figurehead: { share: number };
   mounts: string[];
@@ -136,6 +140,8 @@ export const APPEARANCE_SLOTS: Record<keyof Appearance, Slot> = {
 export interface ResolvedLook {
   sail: {
     cloth: string;
+    /** The stock canvas: the 3D sails keep each upgrade level's own canvas (decision 0259). */
+    stockCloth: boolean;
     pattern: { kind: string; colours: string[] };
     logo: { id: string; svg: string; colour: string } | null;
   };
@@ -212,6 +218,7 @@ export function resolveAppearance(
     look: {
       sail: {
         cloth: colour?.cloth ?? '#fbf6e8',
+        stockCloth: !colour || colour.id === stock.sailColour,
         pattern: { kind: pattern?.pattern ?? 'plain', colours: pattern?.colours ?? [] },
         logo: logoId
           ? { id: logoId.id, svg: cat.logos[logoId.id] ?? '', colour: logoId.colour }

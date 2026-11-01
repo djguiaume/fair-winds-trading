@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { waveHeight } from './oceanWaves';
 import { QUALITY, type QualityLevel } from './quality';
 import { PALETTE } from '../data/props';
+import { applyWakeStyle, WAKE_STYLE_BODY, WAKE_STYLE_HEAD, wakeStyleUniforms } from './wakeStyle';
 
 const CAPACITY = 64;
 /** Bounded history and transparency coverage; no spray particles or render targets. */
@@ -67,6 +68,7 @@ export class FoamStrips {
         uTime: { value: 0 },
         uFoam: { value: new THREE.Color(PALETTE.colors.wakeFoam as string) },
         uEdge: { value: new THREE.Color(PALETTE.colors.wakeEdge as string) },
+        ...wakeStyleUniforms(),
       },
       vertexShader: `attribute vec4 aFoam;
         varying vec4 vFoam;
@@ -77,6 +79,7 @@ export class FoamStrips {
       fragmentShader: `uniform float uTime;
         uniform vec3 uFoam;
         uniform vec3 uEdge;
+        ${WAKE_STYLE_HEAD}
         varying vec4 vFoam;
         void main() {
           float edge = 1.0 - smoothstep(0.3, 1.0, abs(vFoam.x));
@@ -84,6 +87,7 @@ export class FoamStrips {
                                   + 0.14 * sin(vFoam.y * 6.1 - vFoam.x * 7.0 + uTime * 0.5);
           float alpha = edge * smoothstep(0.18, 0.8, breakup) * vFoam.z;
           vec3 col = mix(uEdge, uFoam, vFoam.w);
+          ${WAKE_STYLE_BODY}
           gl_FragColor = vec4(col, alpha);
           #include <colorspace_fragment>
         }`,
@@ -213,6 +217,39 @@ export class Wake extends FoamStrips {
   setQuality(level: QualityLevel) {
     this.level = level;
     this.count = Math.min(this.count, WAKE_DETAIL[level].points);
+    applyWakeStyle(this.mesh.material, this.style, level);
+  }
+
+  /** The player's wake style (wakeStyle.ts): an item's style and tint, or null for plain. */
+  private style: { style: string; tint: string | null } | null = null;
+  setStyle(style: { style: string; tint: string | null } | null) {
+    this.style = style;
+    applyWakeStyle(this.mesh.material, style, this.level);
+  }
+
+  private readonly previewAt = new THREE.Vector3();
+
+  /**
+   * A still boat's wake, as if she had sailed straight ahead at `speedKn` (the Boat looks
+   * screen's preview): the trail laid astern of `centre` along (dx, dz), `pace` scene units a
+   * second. Lays the whole trail at once; call it when the look or the view changes.
+   */
+  preview(
+    time: number,
+    centre: THREE.Vector3,
+    dx: number,
+    dz: number,
+    speedKn: number,
+    hull: WakeHull,
+    pace = speedKn * 0.5,
+  ) {
+    this.reset();
+    const { life, interval } = WAKE_DETAIL[this.level];
+    for (let i = Math.ceil(life / interval); i >= 0; i--) {
+      const back = pace * i * interval;
+      this.previewAt.set(centre.x - dx * back, centre.y, centre.z - dz * back);
+      this.update(interval, time - i * interval, this.previewAt, dx, dz, speedKn, hull);
+    }
   }
 
   /** Clear on ship changes and teleports so unrelated positions are never joined. */
