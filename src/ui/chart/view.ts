@@ -17,7 +17,7 @@ export interface ViewHooks {
   redraw: () => void;
   /** A tap on the chart, not a drag: the map point under it. */
   tap: (at: Point) => void;
-  /** Pixels to keep clear each side in landscape (the book tabs), so the round sea fits between. */
+  /** The book tabs' width in landscape: the round sea fills the rest of the width. */
   sideRoom: () => number;
   /** The screen box the pad's cross keeps left of (the book tabs). */
   rightEdge: () => number | null;
@@ -81,8 +81,10 @@ export class ChartView {
     const rect = this.svg.getBoundingClientRect();
     const w = rect.width || 600,
       h = rect.height || 600;
-    const side = w > h ? this.hooks.sideRoom() : 0;
-    return (this.extent * 2) / this.zoom / Math.max(1, Math.min(w - 2 * side, h));
+    // Landscape: the round sea fills the width left of the book tabs, its top and bottom cut by
+    // the page as on a real chart table (art director, #444); upright, it fits whole.
+    const span = w > h ? w - this.hooks.sideRoom() : Math.min(w, h);
+    return (this.extent * 2) / this.zoom / Math.max(1, span);
   }
 
   /** Writes the view box, the centre held inside the sea, and the zoom buttons' limits. */
@@ -109,7 +111,7 @@ export class ChartView {
     if (this.setZoom(this.zoom * factor)) this.hooks.redraw();
   }
 
-  /** The whole sea again. */
+  /** The sea filling the page again, centred. */
   fit() {
     this.aim = null;
     this.center = { x: 0, y: 0 };

@@ -19,7 +19,7 @@ export interface ZoneLabel {
 }
 
 /** The spot deepest inside an outline, on a coarse grid: where its name fits best. */
-export function deepestPoint(outline: [number, number][]) {
+function deepestPoint(outline: [number, number][]) {
   let x0 = Infinity,
     x1 = -Infinity,
     y0 = Infinity,

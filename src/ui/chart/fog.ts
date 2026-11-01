@@ -1,7 +1,5 @@
-import { t } from '../../i18n';
 import { seaBox, seaShape } from '../../sim/seaEdge';
 import { seaSvg } from '../seaOutline';
-import { deepestPoint, type ZoneLabel } from './flows';
 import { type Attrs, type Paint, points } from './svg';
 
 /** The fog's blurred edge on High quality, in pixels (decision 0156). */
@@ -17,13 +15,12 @@ const HATCH_STEP = 5;
  * Fog of war (decisions 0156, issue #444): the uncharted waters as a lighter, blank paper with a
  * hatched band along the edge of what she has charted, one layer with holes where the ring, the
  * charted areas and the sighted islands are. No blur filter unless `blur` (High quality), which
- * old tablets draw slowly. Returns an "Uncharted waters" label per fogged area, placed with the
- * zones' names so it never covers a port, a place or the boat.
+ * old tablets draw slowly. No words on it: the hatch says it, and the Legend names it once.
  */
-export function drawFog({ world, shape, px }: Paint, blur: boolean): ZoneLabel[] {
+export function drawFog({ world, shape, px }: Paint, blur: boolean) {
   const { map, trade } = world;
   const fog = map.fog;
-  if (!fog) return [];
+  if (!fog) return;
   // The fog covers the whole sea, a section sticking out of the round sea too (decision 0202).
   const sea = seaShape(map);
   const [bx0, by0, bx1, by1] = seaBox(sea);
@@ -98,10 +95,4 @@ export function drawFog({ world, shape, px }: Paint, blur: boolean): ZoneLabel[]
       },
       layer,
     );
-  return fog.areas
-    .filter((a) => !progress.areas?.includes(a.id))
-    .map((a) => {
-      const deep = deepestPoint(a.outline);
-      return { text: t('chart.uncharted'), kind: 'fog', x: deep.x, y: -deep.y, outline: a.outline };
-    });
 }

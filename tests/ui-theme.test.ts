@@ -80,6 +80,15 @@ describe('UI theme', () => {
     expect(problems).toMatch(/chart\.hatch: .*too close to/);
   });
 
+  it("keeps the chart's words at 13 px or more (art director, #444)", () => {
+    const t = shippedTheme();
+    t.chartSize.place = 11;
+    t.chartSize.crates = 0;
+    const problems = themeProblems(t).join('\n');
+    expect(problems).toMatch(/chartSize\.place is 11: whole pixels, 13 or more/);
+    expect(problems).toMatch(/chartSize\.crates is 0/);
+  });
+
   it("keeps the sea HUD's safe margin at 12 px or more", () => {
     const t = shippedTheme();
     t.hud['margin-phone'] = 8;

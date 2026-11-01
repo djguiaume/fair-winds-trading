@@ -104,11 +104,13 @@ dialog.chart::backdrop {
 /* --- Exit and the book tabs down the right edge ------------------------------------------ */
 .chart-close {
   position: absolute;
+  z-index: 1;
   top: var(--ui-space-3);
   right: var(--ui-space-4);
 }
 .chart-book {
   position: absolute;
+  z-index: 1;
   top: 76px;
   right: 0;
   flex-direction: column;
@@ -167,8 +169,9 @@ dialog.chart::backdrop {
 }
 .chart-dial svg {
   display: block;
-  width: 200px;
-  height: 220px;
+  width: var(--ui-chart-size-rose);
+  height: auto;
+  aspect-ratio: 124 / 136;
 }
 .chart-wind {
   color: var(--ui-ink);
@@ -358,8 +361,7 @@ html[data-input='pad'] .chart[data-tab='map'] .chart-cross {
   height: 18px;
 }
 :root[data-layout='phone'] .chart-dial svg {
-  width: 112px;
-  height: 124px;
+  width: var(--ui-chart-size-rose-phone);
 }
 :root[data-layout='phone'] .chart-keystrip {
   display: none;

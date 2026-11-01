@@ -1601,7 +1601,6 @@
   "settings.tab.hazards": "Hazards",
   "chart.subtitle": "Charted by your own hand",
   "chart.seaTitle": "The {name}",
-  "chart.yourShip": "Your {ship}",
   "chart.keyCourse": "Your course",
   "chart.keyNoGo": "No-go: too close to the wind",
   "chart.namesOnly": "Names only",

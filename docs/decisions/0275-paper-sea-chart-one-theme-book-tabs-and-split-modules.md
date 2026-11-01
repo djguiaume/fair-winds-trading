@@ -18,16 +18,24 @@ look: an engraved paper chart with book tabs, drawn from the v1.5 components and
   paper, hatch, storm slate and the zone inks. They pass the same colour checks as `colour`
   (hex, reserved signal colours). `npm run theme` and the editors' Theme page edit them. The
   reserved signal colours are read once in `src/ui/theme/signals.ts`.
+- **Sizes live in the theme file too.** A `chartSize` group holds the chart's word sizes (13 px
+  or more, checked), the rose, the crates and how many crates a hold shows at most.
+- **The chart fills the page** (art director): in landscape the round sea spans the width left
+  of the book tabs, its top and bottom cut by the page; upright it fits whole.
 - **Layout:** title cartouche top left, book tabs (Chart, Journal, Cargo, Prices, Legend) down
   the right edge, the engraved rose with the wind and no-go wedge and a short key bottom left,
-  zoom and fit bottom right. Journal, Cargo and Prices are paper pages of `listRow`s; the goods
-  chips on the map are gone (the Prices page picks the good; X on a pad steps through them).
+  zoom and fit bottom right. Journal, Cargo and Prices are flat paper pages over the whole chart
+  made of `listRow`s, words 14 px or more; the goods chips on the map are gone (the Prices page
+  picks the good; X on a pad steps through them). Cargo shows each room as a row of crates, full
+  or empty, and the goods aboard as big icons, so an empty hold still looks designed.
 - **Marks:** the boat is an ink hull with its course a dashed ink line; quest places are sage
   flags, her own mark an ink cross; reefs are ink dots; uncharted waters are lighter paper with
-  a hatched edge. The storm keeps its slate band with amber chevrons.
+  a hatched edge, with no words on them (the Legend names them once). The boat has no label.
+  The storm keeps its slate band with amber chevrons.
 - **Code:** `seaChart.ts` stays the coordinator (same public API) and the drawing moves to
   `src/ui/chart/` (one file per layer or page, each under 400 lines). The quest flag's name is
-  placed by the chart's words like any label, and faces over piers keep words off them.
+  placed by the chart's words like any label and left out where it finds no room; faces over
+  piers keep words off them.
 - **Input:** wheel and pinch zoom, drag to pan (`chart/view.ts`), the pad's cross pans,
   LB/RB switch tabs.
 

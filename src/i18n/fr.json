@@ -1601,7 +1601,6 @@
   "settings.tab.hazards": "Dangers",
   "chart.subtitle": "Relevée de votre propre main",
   "chart.seaTitle": "{name}",
-  "chart.yourShip": "Votre {ship}",
   "chart.keyCourse": "Votre route",
   "chart.keyNoGo": "Vent debout : trop près du vent",
   "chart.namesOnly": "Noms seulement",

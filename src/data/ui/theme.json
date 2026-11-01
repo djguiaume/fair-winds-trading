@@ -113,6 +113,19 @@
     "zone-sheltered": "#2f6487",
     "zone-fog-bank": "#5f6c72"
   },
+  "chartSize": {
+    "port": 19,
+    "place": 15,
+    "zone": 15,
+    "flag": 16,
+    "price": 14,
+    "tag": 14,
+    "rose": 220,
+    "rose-phone": 132,
+    "crate": 52,
+    "crate-phone": 40,
+    "crates": 12
+  },
   "edges": {
     "torn": {
       "size": 96,

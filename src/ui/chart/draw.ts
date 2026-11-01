@@ -54,7 +54,7 @@ export function drawSea(p: Paint, o: SeaDrawing) {
   const land = drawLand(p, charted);
   drawRace(p, o.race);
   drawSeaMarks(p, o.questMarks, land.places);
-  zoneLabels.push(...drawFog(p, o.fogBlur));
+  drawFog(p, o.fogBlur);
   drawStorms(p);
   drawCourse(p);
   const market = o.prices.market();

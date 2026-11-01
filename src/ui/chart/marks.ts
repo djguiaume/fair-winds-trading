@@ -1,10 +1,10 @@
-import { shipName, t } from '../../i18n';
+import { t } from '../../i18n';
 import { DEG } from '../../sim/math';
 import type { Destination } from '../../sim/world';
 import { drawHazard } from '../hazardMarker';
 import { portraitSvg } from '../portraits';
 import type { QuestPin, QuestTarget, StepMarker } from '../questView';
-import { type Paint, pressable } from './svg';
+import { chartSize, type Paint, pressable } from './svg';
 
 type Point = { x: number; y: number };
 
@@ -48,8 +48,8 @@ export function drawCourse({ world, shape, px }: Paint) {
     shape('circle', { cx: destination.x, cy: -destination.y, r: 9 * px, class: 'chart-selected' });
 }
 
-/** The boat: a screen-sized sage hull on her exact place and heading, and "Your sloop" by it. */
-export function drawPlayer({ world, shape, unit, px }: Paint) {
+/** The boat: a screen-sized sage hull on her exact place and heading, no words to crowd it. */
+export function drawPlayer({ world, shape, unit }: Paint) {
   const { boat } = world;
   const heading = Math.round((boat.heading / DEG + 360) % 360);
   const g = shape('g', {
@@ -59,13 +59,6 @@ export function drawPlayer({ world, shape, unit, px }: Paint) {
     'aria-label': t('chart.boatLabel', { deg: heading }),
   });
   shape('path', { d: HULL, class: 'chart-player-hull' }, g);
-  const name = shape('text', {
-    x: boat.x + 14 * px,
-    y: -boat.y + 26 * px,
-    class: 'chart-player-name',
-    'font-size': 14 * px,
-  });
-  name.textContent = t('chart.yourShip', { ship: shipName(world.ship).toLocaleLowerCase() });
 }
 
 /**
@@ -115,7 +108,7 @@ export interface QuestMarks {
   target: QuestTarget | null;
   markers: readonly StepMarker[];
   goal: (Point & { label: string }) | null;
-  /** Where the flag's name goes, as the chart's words placed it. */
+  /** Where the flag's name goes, as the chart's words placed it; null: no room for it. */
   goalName: Point | null;
   pins: readonly QuestPin[];
   pierOf: (port: string) => Point | null;
@@ -163,13 +156,14 @@ export function drawQuests(p: Paint, q: QuestMarks, course: Destination | null) 
       e.stopPropagation();
       if (!selected) q.onGoal();
     });
-    const at = q.goalName ?? { x: q.goal.x, y: -q.goal.y + 26 * px };
-    const name = shape(
-      'text',
-      { x: at.x, y: at.y, class: 'chart-flag-name', 'font-size': 14 * px },
-      g,
-    );
-    name.textContent = q.goal.label;
+    // Its name only where the chart's words found it room (the flag keeps it as its label).
+    const at = q.goalName;
+    if (at)
+      shape(
+        'text',
+        { x: at.x, y: at.y, class: 'chart-flag-name', 'font-size': chartSize('flag') * px },
+        g,
+      ).textContent = q.goal.label;
   }
   for (const pin of q.pins) drawPin(p, pin, q.pierOf(pin.port));
 }

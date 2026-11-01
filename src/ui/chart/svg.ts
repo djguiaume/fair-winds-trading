@@ -1,4 +1,5 @@
 import type { World } from '../../sim/world';
+import { SHIPPED_THEME } from '../theme/model';
 
 /**
  * What every layer of the sea chart draws with (issue #444): one SVG in map units, y flipped so
@@ -76,4 +77,9 @@ export function pressable(node: Element, label: string) {
     e.preventDefault();
     node.dispatchEvent(new MouseEvent('click', { bubbles: true }));
   });
+}
+
+/** One of the chart's sizes in screen pixels, from the theme file (`chartSize`). */
+export function chartSize(key: string): number {
+  return SHIPPED_THEME.chartSize[key] ?? 14;
 }

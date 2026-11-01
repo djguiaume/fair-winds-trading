@@ -70,6 +70,10 @@ describe('full-screen chart planning', () => {
     );
     expect(sections[0]).toBe('In the hold5/10Grain×5');
     expect(sections[1]).toBe('On deck6/8Maren’s millstones ×1 · 6 deck space');
+    // Each room a row of crates, one a unit on a sloop, full from the first (art director).
+    const hold = get('chart-hold-list').querySelector('.chart-cargo-section')!;
+    expect(hold.querySelectorAll('.chart-crate')).toHaveLength(10);
+    expect(hold.querySelectorAll('.chart-crate.is-full')).toHaveLength(5);
     world.trade.captain.cargo.grain = 0;
     world.trade.quests.hold = 0;
     chart.questCargo = () => [];

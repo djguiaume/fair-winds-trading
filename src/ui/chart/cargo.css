@@ -1,0 +1,62 @@
+/*
+ * The Cargo page (issue #444): each room a row of crates, the goods aboard as big colour-coded
+ * icons. Crate sizes from the theme (`chartSize.crate*`).
+ */
+.chart-crates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space-2);
+  margin: var(--ui-space-2) 0 var(--ui-space-3);
+}
+.chart-crate {
+  display: grid;
+  place-items: center;
+  width: var(--ui-chart-size-crate);
+  height: var(--ui-chart-size-crate);
+  border: 1.5px dashed var(--ui-rule);
+  border-radius: var(--ui-radius-s);
+  color: var(--ui-rule);
+}
+.chart-crate.is-full {
+  border: 1.5px solid var(--ui-ink);
+  background: var(--ui-paper-off);
+  color: var(--ui-ink);
+}
+.chart-crate-icon {
+  width: 60%;
+  height: 60%;
+}
+.chart-crate:not(.is-full) .chart-crate-icon {
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+.chart-goods {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--ui-space-3);
+}
+.chart-good {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border-radius: var(--ui-radius-m);
+  background: var(--ui-paper-off);
+}
+.chart-good-icon {
+  width: 40px;
+  height: 40px;
+  flex: none;
+}
+.chart-good-name {
+  flex: 1;
+  font-size: var(--fs-lead);
+}
+.chart-good b {
+  font-size: var(--fs-sub);
+  font-variant-numeric: tabular-nums;
+}
+:root[data-layout='phone'] .chart-crate {
+  width: var(--ui-chart-size-crate-phone);
+  height: var(--ui-chart-size-crate-phone);
+}

@@ -155,13 +155,8 @@
   stroke-linejoin: round;
   pointer-events: none;
 }
-.chart-port-name,
-.chart-player-name {
+.chart-port-name {
   fill: var(--ui-ink);
-}
-.chart-player-name {
-  font-style: italic;
-  text-anchor: start;
 }
 .chart-place,
 .chart-current-label,
@@ -173,10 +168,6 @@
 .chart-zone-label {
   fill: var(--zone);
   font-style: italic;
-}
-#chart-map .chart-zone-label.chart-zone-fog {
-  fill: var(--ui-ink-muted);
-  stroke: var(--ui-chart-uncharted);
 }
 #chart-map .chart-need {
   fill: var(--ui-ink-muted);

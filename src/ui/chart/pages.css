@@ -1,22 +1,17 @@
 /*
- * The chart's pages (decision 0196, issue #444): Journal, Cargo, Prices and Legend as torn paper
- * pages over the chart, left of the book tabs, made of the v1.5 list rows. Only `--ui-*` and
- * `--fs-*` tokens.
+ * The chart's pages (decision 0196, issue #444): Journal, Cargo, Prices and Legend as flat paper
+ * pages over the whole chart, the book tabs on them, made of the v1.5 list rows. Words 14 px or
+ * more (art director). Only `--ui-*` and `--fs-*` tokens.
  */
 .chart-page {
   position: absolute;
-  top: var(--ui-space-3);
-  right: 196px;
-  bottom: var(--ui-space-3);
-  left: var(--ui-space-4);
+  inset: 0;
   display: flex;
   flex-direction: column;
-  max-width: 980px;
-  padding: var(--ui-space-3) var(--ui-space-5);
-  border: var(--ui-edge-torn-width) solid transparent;
-  border-image: var(--ui-edge-torn) var(--ui-edge-torn-slice) fill / var(--ui-edge-torn-width) round;
+  padding: var(--ui-space-5) 200px var(--ui-space-4) var(--ui-space-6);
+  background: var(--ui-paper);
   color: var(--ui-ink);
-  font-size: var(--fs-text);
+  font-size: var(--fs-lead);
 }
 .chart-page[hidden] {
   display: none;
@@ -69,6 +64,9 @@
 .chart-page .ui-row + .ui-row {
   border-top: 1px solid var(--ui-paper-off);
 }
+.chart-page .ui-row-detail {
+  font-size: var(--fs-body);
+}
 
 /* --- Journal ---------------------------------------------------------------------------- */
 .chart-tracked {
@@ -84,7 +82,7 @@
 .chart-tracked-who small {
   display: block;
   color: var(--ui-muted);
-  font-size: var(--fs-note);
+  font-size: var(--fs-body);
 }
 .chart-tracked-who b {
   display: block;
@@ -99,7 +97,7 @@
   gap: var(--ui-space-2);
   margin-top: 2px;
   color: var(--ui-muted);
-  font-size: var(--fs-note);
+  font-size: var(--fs-body);
 }
 .chart-tracked .quest-pips i {
   border-color: var(--ui-ink);
@@ -136,7 +134,7 @@
   height: 20px;
   border: 1.5px solid var(--ui-ink);
   border-radius: var(--ui-radius-s);
-  font-size: var(--fs-note);
+  font-size: var(--fs-body);
   font-weight: 700;
 }
 .chart-steps .is-now .chart-check {
@@ -206,7 +204,7 @@
 .chart-chose {
   margin: 2px 0 0;
   color: var(--ui-sage-deep);
-  font-size: var(--fs-note);
+  font-size: var(--fs-body);
 }
 .chart-chose::before {
   content: '→ ';
@@ -231,7 +229,7 @@
 .chart-market {
   display: grid;
   flex: 1;
-  grid-template-columns: minmax(180px, 240px) 1fr;
+  grid-template-columns: minmax(200px, 280px) 1fr;
   gap: var(--ui-space-5);
   min-height: 0;
 }
@@ -246,11 +244,11 @@
 }
 .chart-price-head {
   display: grid;
-  grid-template-columns: 1fr 88px 88px;
+  grid-template-columns: 1fr 120px 120px;
   padding: 0 var(--ui-space-3) var(--ui-space-1);
   border-bottom: 1px solid var(--ui-rule);
   color: var(--ui-muted);
-  font-size: var(--fs-note);
+  font-size: var(--fs-body);
 }
 .chart-price-head span + span {
   text-align: end;
@@ -259,7 +257,7 @@
   flex: 1;
 }
 .chart-price {
-  width: 88px;
+  width: 120px;
   flex: none;
   font-size: var(--fs-sub);
   font-variant-numeric: tabular-nums;
@@ -326,11 +324,7 @@
 
 /* --- Phone landscape --------------------------------------------------------------------- */
 :root[data-layout='phone'] .chart-page {
-  top: var(--ui-space-2);
-  right: 140px;
-  bottom: var(--ui-space-2);
-  left: var(--ui-space-3);
-  padding: var(--ui-space-1) var(--ui-space-3);
+  padding: var(--ui-space-2) 148px var(--ui-space-2) var(--ui-space-4);
 }
 :root[data-layout='phone'] .chart-page-title {
   margin-bottom: var(--ui-space-1);
@@ -342,4 +336,10 @@
 }
 :root[data-layout='phone'] .chart-page-help {
   display: none;
+}
+:root[data-layout='phone'] .chart-price-head {
+  grid-template-columns: 1fr 96px 96px;
+}
+:root[data-layout='phone'] .chart-price {
+  width: 96px;
 }

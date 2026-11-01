@@ -5,7 +5,7 @@ import type { IslandDef, PortDef } from '../../sim/map';
 import { seaReach, seaShape } from '../../sim/seaEdge';
 import type { ZoneLabel } from './flows';
 import type { Place } from './land';
-import { type Box, box, overlap, type Paint, pressable } from './svg';
+import { type Box, box, chartSize, overlap, type Paint, pressable } from './svg';
 
 /** Chart scale (map units per pixel) beyond which secondary names are left out (0115). */
 const MAX_UNITS_PER_PIXEL_FOR_NAMES = 3;
@@ -91,8 +91,8 @@ export class Labels {
       'data-chart-target': port.id,
     });
     pressable(group, t('chart.setBearingTo', { name: port.name }));
-    const nameSize = 17 * px,
-      priceSize = 13 * px;
+    const nameSize = chartSize('port') * px,
+      priceSize = chartSize('price') * px;
     const w = Math.max(port.name.length, price.text.length * 0.9) * nameSize * LETTER;
     const h = nameSize * 1.15 + (price.text ? priceSize * 1.25 : 0);
     const at = this.spot(island.x, -island.y - island.radius, -island.y + island.radius, w, h);
@@ -142,8 +142,8 @@ export class Labels {
     const { shape, px } = this.p;
     const name = island.name ?? island.id;
     const tag = t('chart.yourIsland');
-    const nameSize = 17 * px,
-      tagSize = 12 * px;
+    const nameSize = chartSize('port') * px,
+      tagSize = chartSize('tag') * px;
     const w = Math.max(name.length * nameSize, tag.length * tagSize) * LETTER;
     const h = nameSize * 1.15 + tagSize * 1.2;
     const at = this.spot(island.x, -island.y - island.radius, -island.y + island.radius, w, h);
@@ -180,14 +180,19 @@ export class Labels {
     line.textContent = tag;
   }
 
-  /** The quest flag's name: the clearest side of the flag, kept clear of everything after it. */
+  /**
+   * The quest flag's name on the clearest side of the flag, kept clear of everything after it;
+   * null when every side would cover a name, a face or the boat (the flag keeps its label).
+   */
   flag(goal: { x: number; y: number; label: string }) {
     const { px } = this.p;
-    const size = 14 * px;
+    const size = chartSize('flag') * px;
     const w = goal.label.length * size * LETTER,
       h = size * 1.2;
     const at = this.spot(goal.x, -goal.y - 16 * px, -goal.y + 12 * px, w, h);
-    this.placed.push(box(at.x, at.y, w, h));
+    const b = box(at.x, at.y, w, h);
+    if (this.clashes(b)) return null;
+    this.placed.push(b);
     return { x: at.x, y: at.y + size * 0.35 };
   }
 
@@ -201,7 +206,7 @@ export class Labels {
     if (unit > MAX_UNITS_PER_PIXEL_FOR_NAMES) return;
     for (const place of places) {
       if (place.name === flagged) continue;
-      const size = 13 * px;
+      const size = chartSize('place') * px;
       const w = place.name.length * size * LETTER,
         h = size * 1.2;
       const at = this.spot(place.x, place.top, place.bottom, w, h);
@@ -226,7 +231,7 @@ export class Labels {
     const { world, shape, unit, px } = this.p;
     const { map } = world;
     for (const z of zones) {
-      const size = 12 * px;
+      const size = chartSize('zone') * px;
       const w = z.text.length * size * LETTER,
         h = size * 1.2;
       // Slid in from the sea's rim so the chart's edge never cuts the name (Phase 4 review).
@@ -238,7 +243,7 @@ export class Labels {
       if (room < 0) continue;
       const x = Math.min(Math.max(z.x, -room), room);
       // A zone's name waits for its water to be charted, like the islands in it (decision 0156).
-      if (z.kind !== 'fog' && !chartedAt(map, world.trade.progress, x, -z.y)) continue;
+      if (!chartedAt(map, world.trade.progress, x, -z.y)) continue;
       const b = box(x, z.y, w, h);
       if (!fitsInside(x, -z.y, w, z.outline) || this.clashes(b)) continue;
       this.placed.push(b);
