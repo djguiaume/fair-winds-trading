@@ -24,6 +24,10 @@ const TOOLS = {
     module: '/tools/fw/review.ts',
   },
   quest: { about: 'quest checks, play a quest from a step', module: '/tools/fw/quest.ts' },
+  cosmetics: {
+    about: 'boat cosmetics: list, add, edit, check, import, export, preview',
+    module: '/tools/fw/cosmetics.ts',
+  },
   sound: { about: "the game's sounds into files: effects, sea beds, music", file: './sound.mjs' },
   editorperf: {
     about: "speed of the island builder's terrain brushes on the largest island",

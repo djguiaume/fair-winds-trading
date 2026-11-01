@@ -1,0 +1,16 @@
+{
+  "id": "dolphin",
+  "slot": "figurehead",
+  "name": {
+    "en": "Dolphin",
+    "fr": "Dauphin"
+  },
+  "unlock": {
+    "kind": "earned",
+    "quest": "saltmere-shoals"
+  },
+  "mount": "stem",
+  "recipe": "figurehead-dolphin",
+  "tris": 44,
+  "size": 1
+}

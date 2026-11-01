@@ -1,0 +1,12 @@
+{
+  "id": "linen",
+  "slot": "sail-colour",
+  "name": {
+    "en": "Linen",
+    "fr": "Lin"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "cloth": "#e9e1d4"
+}

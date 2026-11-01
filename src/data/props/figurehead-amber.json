@@ -1,0 +1,14 @@
+{
+  "id": "figurehead-amber",
+  "name": "Amber drop figurehead",
+  "group": "figureheads",
+  "internal": true,
+  "parts": [
+    {
+      "dodeca": [0.22],
+      "at": [0, 0.35, 0],
+      "ops": [["scale", 1, 1.5, 1]],
+      "color": "#b8803a"
+    }
+  ]
+}

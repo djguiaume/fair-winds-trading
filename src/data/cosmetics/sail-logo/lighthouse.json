@@ -1,0 +1,13 @@
+{
+  "id": "lighthouse",
+  "slot": "sail-logo",
+  "name": {
+    "en": "Lighthouse",
+    "fr": "Phare"
+  },
+  "unlock": {
+    "kind": "earned",
+    "quest": "stonehaven-light"
+  },
+  "colour": "#1f4e79"
+}

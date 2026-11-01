@@ -7,6 +7,7 @@ import { SEAS, SEA_SECTORS, grownMap } from '../../src/data/grownMap';
 import { stressMap } from '../../src/data/stressMap';
 import { type ControlsDoc, controlsProblems, shippedControls } from '../../src/editor/controls/doc';
 import { regattaProblems, shippedRegattaDoc } from '../../src/editor/regatta/doc';
+import { cosmeticsProblems, shippedCosmeticsDoc } from '../../src/editor/cosmetics/doc';
 import { questProblems } from '../../src/editor/quest/doc';
 import { ISLAND_SCALE } from '../../src/sim/islandUnits';
 import { islandCheckKit } from '../../src/render/models/towns';
@@ -24,7 +25,16 @@ import { forestProblems } from '../../src/data/forests';
 type Args = Record<string, string | boolean | undefined> & { _: string[] };
 
 export interface Problem {
-  area: 'seas' | 'islands' | 'quests' | 'perks' | 'controls' | 'ships' | 'audio' | 'regatta';
+  area:
+    | 'seas'
+    | 'islands'
+    | 'quests'
+    | 'perks'
+    | 'controls'
+    | 'ships'
+    | 'audio'
+    | 'regatta'
+    | 'cosmetics';
   where: string;
   severity: 'error' | 'warning';
   message: string;
@@ -199,6 +209,12 @@ export function checkAll(opts: CheckOptions = {}) {
       problems.push({ area: 'regatta', where: 'regatta.json', severity: 'error', message });
     counted.regatta = 'regatta.json, flags.json';
   }
+
+  if (want('cosmetics')) {
+    for (const message of cosmeticsProblems(shippedCosmeticsDoc()))
+      problems.push({ area: 'cosmetics', where: 'cosmetics', severity: 'error', message });
+    counted.cosmetics = 'src/data/cosmetics';
+  }
   return { problems, counted };
 }
 
@@ -207,7 +223,7 @@ const list = (v: unknown) => (typeof v === 'string' ? v.split(',').filter(Boolea
 export function run(args: Args): number {
   if (args.help) {
     console.log(`npm run check [-- options]
-  --only seas,islands,quests,perks,controls,ships,audio,regatta  check only these areas
+  --only seas,islands,quests,perks,controls,ships,audio,regatta,cosmetics  check only these areas
   --island id[,id]                   only these island files
   --map file.json[,file.json]        check these map files (editor exports) instead of the ring and stress seas
   --controls file.json               check this controls file (a controls page export)
@@ -248,7 +264,7 @@ export function run(args: Args): number {
     const warnings = mine.length - errors.length;
     const tail = warnings ? `, ${warnings} warning${warnings > 1 ? 's' : ''}` : '';
     console.log(
-      `${area.padEnd(9)}${errors.length ? `${errors.length} error(s)` : 'ok'}${tail} (${what})`,
+      `${area.padEnd(10)}${errors.length ? `${errors.length} error(s)` : 'ok'}${tail} (${what})`,
     );
     for (const p of mine)
       if (p.severity === 'error' || args.warnings)

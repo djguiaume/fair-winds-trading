@@ -1,0 +1,13 @@
+{
+  "id": "windmill",
+  "slot": "sail-logo",
+  "name": {
+    "en": "Windmill",
+    "fr": "Moulin"
+  },
+  "unlock": {
+    "kind": "earned",
+    "quest": "westholm-mill"
+  },
+  "colour": "#1f4e79"
+}

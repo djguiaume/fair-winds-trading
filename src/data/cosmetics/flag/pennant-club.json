@@ -1,0 +1,13 @@
+{
+  "id": "pennant-club",
+  "slot": "flag",
+  "name": {
+    "en": "Sailing Club pennant",
+    "fr": "Fanion du Club de voile"
+  },
+  "unlock": {
+    "kind": "earned",
+    "regatta": "regatta-club"
+  },
+  "ref": "pennant-club"
+}

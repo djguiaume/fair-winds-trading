@@ -1,0 +1,12 @@
+{
+  "id": "sand",
+  "slot": "sail-colour",
+  "name": {
+    "en": "Sand",
+    "fr": "Sable"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "cloth": "#efdba6"
+}

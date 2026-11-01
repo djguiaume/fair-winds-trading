@@ -1,0 +1,13 @@
+{
+  "id": "amber",
+  "slot": "sail-logo",
+  "name": {
+    "en": "Amber",
+    "fr": "Ambre"
+  },
+  "unlock": {
+    "kind": "earned",
+    "quest": "outpost-east"
+  },
+  "colour": "#1f4e79"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "sun",
+  "slot": "figurehead",
+  "name": {
+    "en": "Sun",
+    "fr": "Soleil"
+  },
+  "unlock": {
+    "kind": "earned",
+    "quest": "outpost-south"
+  },
+  "mount": "stem",
+  "recipe": "figurehead-sun",
+  "tris": 44,
+  "size": 1
+}

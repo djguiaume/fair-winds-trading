@@ -1,0 +1,13 @@
+{
+  "id": "four-winds",
+  "slot": "sail-logo",
+  "name": {
+    "en": "Four Winds",
+    "fr": "Quatre vents"
+  },
+  "unlock": {
+    "kind": "earned",
+    "regatta": "regatta-cup"
+  },
+  "colour": "#1f4e79"
+}

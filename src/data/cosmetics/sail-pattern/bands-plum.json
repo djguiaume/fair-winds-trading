@@ -1,0 +1,13 @@
+{
+  "id": "bands-plum",
+  "slot": "sail-pattern",
+  "name": {
+    "en": "Plum bands",
+    "fr": "Bandes prune"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "pattern": "bands",
+  "colours": ["#7a5aa8", "#f4f1e8"]
+}
