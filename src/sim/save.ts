@@ -11,8 +11,11 @@ import { type SettlementState, readSettlements } from './settlement';
 import { SHIP_CLASSES } from './ship';
 import { type QuestState, readQuests } from './quests';
 import { type ShipyardProgress, readProgress } from './shipyards';
-import { type CreditLoan, activeShip, findPort, setDifficulty, syncMarketLevels } from './trade';
+import type { CreditLoan } from './credit';
+import { activeShip, findPort, setDifficulty, syncMarketLevels } from './trade';
 import { MAX_UPGRADE_LEVEL, UPGRADE_TRACKS, type UpgradeLevels, hullDurability } from './upgrades';
+import { SHIPPED_CATALOGUE } from '../data/cosmetics';
+import { type ShipLooks, readLooks } from './shipLooks';
 import { refreshPiers, resetLand, syncWorldLand, type World } from './world';
 
 /**
@@ -40,6 +43,11 @@ export interface SaveData {
   cargo: GoodAmounts;
   /** Hull damage per ship (decision 0032). Optional: older saves have sound hulls. */
   hullDamage?: Record<string, number>;
+  /**
+   * Each owned ship's own look, by ship id (decision 0263). Optional: older saves and ships never
+   * dressed sail in the stock look.
+   */
+  looks?: ShipLooks;
   /** A load on credit (decision 0200). Optional: none owed. */
   loan?: CreditLoan;
   dockedAt: string | null;
@@ -99,6 +107,7 @@ export function serializeWorld(world: World): SaveData {
     ships,
     cargo: { ...captain.cargo },
     hullDamage: { ...captain.hullDamage },
+    ...(Object.keys(captain.looks ?? {}).length ? { looks: structuredClone(captain.looks) } : {}),
     ...(captain.loan ? { loan: { ...captain.loan } } : {}),
     dockedAt,
     markets: stocks,
@@ -174,6 +183,12 @@ function readHullDamage(v: unknown, ships: Record<string, UpgradeLevels>): Recor
   return out;
 }
 
+/** The ships' looks that still make sense; a bad one costs only that look, never the voyage. */
+function readShipLooks(v: unknown, ships: Record<string, UpgradeLevels>): { looks?: ShipLooks } {
+  const looks = readLooks(SHIPPED_CATALOGUE, v, Object.keys(ships));
+  return Object.keys(looks).length ? { looks } : {};
+}
+
 /**
  * Check a parsed save against the current map and rules. Returns a clean copy, or null when it
  * is from another version or map, or damaged.
@@ -235,6 +250,7 @@ export function validateSave(raw: unknown, world: World): SaveData | null {
     ships,
     cargo,
     hullDamage: readHullDamage(raw.hullDamage, ships),
+    ...readShipLooks(raw.looks, ships),
     ...readLoan(raw.loan, world.map),
     dockedAt: dockedAt as string | null,
     markets,
@@ -273,6 +289,7 @@ export function applySave(world: World, data: SaveData): void {
     ships: data.ships,
     cargo: data.cargo,
     hullDamage: { ...(data.hullDamage ?? {}) },
+    looks: structuredClone(data.looks ?? {}),
     ...(data.loan ? { loan: { ...data.loan } } : {}),
   };
   // Levels first, so the markets that are open match the save before its stocks go in.
