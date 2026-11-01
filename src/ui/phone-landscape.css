@@ -1,0 +1,87 @@
+/* Short landscape phones (about 667x375): fixes for screens that overflow there (issue #433).
+   Loaded after the screens' own styles, so these rules win at equal weight. */
+
+/* Port: smaller role tags, slimmer market columns, a flat picture on an empty quay. */
+@media (max-height: 480px) {
+  .port-screen .port-title-area {
+    gap: 4px 10px;
+  }
+  .port-screen .role-tag {
+    height: 24px;
+    padding: 0 7px;
+    font-size: var(--fs-sub);
+  }
+  .quay-empty.has-view {
+    gap: 6px;
+    padding: 8px 16px;
+  }
+  .quay-view {
+    aspect-ratio: 1440 / 150;
+  }
+}
+@media (max-height: 480px) and (max-width: 720px) {
+  .port-screen .market-section.adult-layout {
+    grid-template-columns: minmax(0, 1fr) 176px;
+    gap: 8px;
+  }
+  .good-row {
+    grid-template-columns: 32px minmax(0, 1fr) 40px 84px 84px;
+    column-gap: 6px;
+  }
+  .good-row .port-btn {
+    padding: 0 8px;
+  }
+}
+
+/* Pause menu: the title shrinks so Resume and every row stay on screen. */
+@media (max-height: 480px) {
+  .menu.is-paused .menu-side {
+    gap: 4px;
+  }
+  .menu.is-paused .menu-brand {
+    padding: 4px 8px 2px;
+    margin-top: 0;
+  }
+  .menu.is-paused .menu-kicker,
+  .menu.is-paused .menu-tagline {
+    display: none;
+  }
+  .menu.is-paused .menu-emblem {
+    width: 34px;
+    height: 34px;
+  }
+  .menu.is-paused .menu-title {
+    font-size: var(--fs-lead);
+  }
+  .menu.is-paused .menu-row {
+    min-height: 30px;
+    font-size: var(--fs-lead);
+  }
+  .menu.is-paused .d-btn.big {
+    min-height: 40px;
+  }
+
+  /* Settings stays two columns, with tighter rows, so more shows at once. */
+  .settings-body {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 18px;
+  }
+  .set-row {
+    min-height: 38px;
+    padding: 3px 10px;
+  }
+
+  /* Quest note at sea: narrow, clear of the centred sea banner. */
+  .quest-note {
+    gap: 6px;
+    max-width: 196px;
+    padding: 5px 8px 5px 5px;
+  }
+  .quest-note-face svg {
+    width: 34px;
+    height: 34px;
+  }
+  .quest-note-text small {
+    display: none;
+  }
+}
