@@ -1,5 +1,5 @@
 {
-  "about": "The turntable boat of the Boat looks screen and Free Sailing (issue #299): camera, turn speed and the soft water disc under her.",
+  "about": "The turntable boat of the Boat looks screen and Free Sailing (issue #299): camera, turn speed, the soft water disc under her and the backdrop's sky and sea by day and night (the disc takes the sea's colour, so it melts into it).",
   "fov": 28,
   "tiltDeg": 24,
   "lookUp": 0.35,
@@ -8,5 +8,15 @@
   "spinDegPerSecond": 9,
   "stepDeg": 45,
   "discScale": 1.15,
-  "discSolid": 0.55
+  "discSolid": 0.55,
+  "backdrop": {
+    "day": {
+      "sky": "#bfe0ea",
+      "sea": "#5aa8bd"
+    },
+    "night": {
+      "sky": "#0f2740",
+      "sea": "#1f4a70"
+    }
+  }
 }

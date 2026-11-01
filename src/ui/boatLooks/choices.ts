@@ -32,6 +32,7 @@ export const SLOT_ORDER: readonly SlotKey[] = [
 const MAY_BE_EMPTY: readonly SlotKey[] = ['sailLogo', 'figurehead', 'flag'];
 
 export interface Choice {
+  slot: SlotKey;
   /** null is "None". */
   id: string | null;
   item: Cosmetic | null;
@@ -54,6 +55,7 @@ export function slotChoices(
   const choice = (item: Cosmetic | null): Choice => {
     const id = item?.id ?? null;
     return {
+      slot,
       id,
       item,
       tried: preview[slot] === id,
@@ -68,26 +70,20 @@ export function slotChoices(
 /** Whether a tried-on choice may be kept: unlocked and made for this ship. */
 export const canUse = (c: Choice) => !c.locked && !c.unfit;
 
-/** An item's name in the player's language. */
-export const itemName = (item: Cosmetic | null) =>
-  item ? item.name[language() === 'fr' ? 'fr' : 'en'] : t('customise.none');
+/** A choice's name in the player's language; no flag chosen flies the ship's own. */
+export const itemName = ({ item, slot }: Choice) =>
+  item
+    ? item.name[language() === 'fr' ? 'fr' : 'en']
+    : t(slot === 'flag' ? 'customise.ownFlag' : 'customise.none');
 
 /** "Earn it: The mill on the hill": the quest, series or milestone that unlocks an item. */
 export function howToEarn(item: Cosmetic): string {
   const by = earnedBy(item);
   if (!by) return '';
   const how =
-    by.kind === 'quest'
-      ? questName(by.id)
-      : by.kind === 'regatta'
-        ? seriesName(by.id)
-        : by.id;
+    by.kind === 'quest' ? questName(by.id) : by.kind === 'regatta' ? seriesName(by.id) : by.id;
   return t('customise.locked', { how });
 }
-
-/** The slots whose tried-on item differs from the one in use. */
-export const changedSlots = (preview: Appearance, applied: Appearance) =>
-  SLOT_ORDER.filter((s) => preview[s] !== applied[s]);
 
 function questName(id: string): string {
   const quest = QUESTS.find((q) => q.id === id);

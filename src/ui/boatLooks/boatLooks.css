@@ -1,23 +1,29 @@
 /*
  * Boat looks (issue #299), layout B "Wardrobe": slot rows on paper at the left, the boat on her
- * turntable in the middle, the slot's items at the right. Phone portrait: the boat on top (at
- * least 40 % of the height), the slots as a row that snaps, the items below. Style E tokens
- * (theme.css), the #319 type scale, no tracking. Above the port screen, under the menus.
+ * turntable in the middle, the slot's items at the right; smaller screens in boatLooksSmall.css.
+ * Style E tokens (theme.css), the #319 type scale, no tracking. A modal dialog over the port.
  */
 .boat-looks {
-  position: fixed;
-  inset: 0;
-  z-index: 115;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr) 360px;
   background: var(--planks);
   color: var(--paper-ink);
   font-family: var(--body);
 }
-.boat-looks[hidden] {
+.boat-looks:not([open]) {
   display: none;
 }
-.boat-looks button {
+.boat-looks::backdrop {
+  background: var(--leather-deep);
+}
+:where(.boat-looks) button {
   font: inherit;
   cursor: pointer;
 }
@@ -96,10 +102,14 @@
   width: 44px;
   height: 40px;
 }
-.bl-slot-pic > svg,
-.bl-slot-pic > img {
+.bl-slot-pic > svg {
+  width: auto;
   max-width: 44px;
-  max-height: 40px;
+  height: 100%;
+}
+.bl-slot-pic > img {
+  width: 40px;
+  height: 40px;
 }
 .bl-slot-pic .bl-swatch {
   width: 32px;
@@ -138,10 +148,8 @@
   position: relative;
   min-width: 0;
   min-height: 0;
-  background: linear-gradient(#bfe0ea 0 50%, #79b9cc 50.2%, #4d9bb3 100%);
-}
-.boat-looks[data-night] .bl-stage {
-  background: linear-gradient(#0f2740 0 50%, #28567f 50.2%, #1b3f63 100%);
+  /* The sky and sea come from boat-preview.json (screen.ts sets them), the water disc's sea. */
+  background: linear-gradient(var(--bl-sky) 0 50%, var(--bl-sea) 50%);
 }
 .bl-canvas {
   position: absolute;
@@ -262,10 +270,10 @@
   place-items: center;
   height: 52px;
 }
-.bl-pic > svg,
-.bl-pic > img {
+.bl-pic > svg {
+  width: auto;
   max-width: 64px;
-  max-height: 52px;
+  height: 100%;
 }
 .bl-pic > img {
   width: 52px;
@@ -351,115 +359,4 @@
 }
 .bl-use[aria-disabled='true'] {
   opacity: 0.45;
-}
-
-/* --- Smaller landscape: narrower side columns ---------------------------------------------- */
-@media (max-width: 1100px) and (orientation: landscape) {
-  .boat-looks {
-    grid-template-columns: 250px minmax(0, 1fr) 300px;
-  }
-  .boat-looks .bl-close {
-    right: 316px;
-  }
-  .bl-slot-pic {
-    display: none;
-  }
-  .bl-tile {
-    min-height: 84px;
-  }
-}
-
-/* --- Phone portrait: the boat on top, slots in a snapping row, then the items --------------------- */
-@media (orientation: portrait) {
-  .boat-looks {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(42dvh, 44%) auto minmax(0, 1fr);
-    background: var(--paper);
-  }
-  .bl-stage {
-    grid-row: 1;
-  }
-  .bl-slots {
-    grid-row: 2;
-    gap: 6px;
-    padding: 8px 0 4px;
-    overflow: visible;
-  }
-  .bl-title,
-  .bl-stock {
-    display: none;
-  }
-  .bl-ships {
-    flex-wrap: nowrap;
-    padding: 0 12px;
-    overflow-x: auto;
-  }
-  /* One row of slots that peeks past the edge and snaps to a slot. */
-  .bl-slot-list {
-    flex-direction: row;
-    padding: 2px 12px 6px;
-    overflow-x: auto;
-    scroll-padding: 0 12px;
-    scroll-snap-type: x mandatory;
-  }
-  .bl-slot {
-    min-height: 52px;
-    max-width: 62vw;
-    scroll-snap-align: start;
-  }
-  .bl-slot[aria-selected='true'] {
-    min-height: 52px;
-    margin-right: 0;
-    box-shadow:
-      0 3px 0 rgba(0, 0, 0, 0.2),
-      inset 0 -4px 0 var(--teal);
-  }
-  .bl-items {
-    grid-row: 3;
-    padding: 4px 12px max(12px, var(--safe-bottom, env(safe-area-inset-bottom)));
-  }
-  .bl-items-title {
-    display: none;
-  }
-  .bl-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 6px;
-  }
-  .bl-tile {
-    min-height: 84px;
-    padding: 6px 2px 4px;
-  }
-  .bl-pic {
-    height: 44px;
-  }
-  .bl-pic > img {
-    width: 44px;
-    height: 44px;
-  }
-  .bl-detail {
-    position: sticky;
-    bottom: 0;
-    margin-top: auto;
-  }
-  .boat-looks .bl-close {
-    right: 12px;
-  }
-  .bl-compare {
-    bottom: 10px;
-    left: 10px;
-  }
-  .bl-compare button {
-    min-height: 40px;
-    padding: 0 10px;
-    font-size: var(--fs-note);
-  }
-  .bl-view {
-    right: 10px;
-    bottom: 10px;
-    gap: 4px;
-  }
-  .bl-round {
-    width: 42px;
-    height: 42px;
-  }
 }

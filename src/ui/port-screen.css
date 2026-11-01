@@ -796,17 +796,3 @@
     margin: 4px 0 0;
   }
 }
-
-/* The Shipyard's way into Boat looks (issue #299): beside the upgrades' title. */
-.port-screen .shipyard-section > .section-title:first-child {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  column-gap: 12px;
-}
-.port-screen .boat-looks-btn {
-  grid-row: 1 / span 2;
-  grid-column: 2;
-  min-height: 44px;
-  padding: 0 18px;
-}

@@ -1,4 +1,9 @@
-import { type Appearance, type Catalogue, resolveAppearance, stockAppearance } from '../../sim/cosmetics';
+import {
+  type Appearance,
+  type Catalogue,
+  resolveAppearance,
+  stockAppearance,
+} from '../../sim/cosmetics';
 import type { UnlockProgress } from '../../sim/cosmeticUnlocks';
 import { FLAGS, type FlagDef } from '../../sim/regatta';
 import { BoatPreview } from '../../render/boatPreview';
@@ -19,6 +24,7 @@ import {
   slotRowsHtml,
 } from './view';
 import './boatLooks.css';
+import './boatLooksSmall.css';
 
 /**
  * The Boat looks screen (issue #299, docs/v1.4/customisation.md): dress each owned ship. A tap
@@ -56,7 +62,7 @@ const COMPARE_LEVELS: Record<Exclude<Compare, 'yours'>, ShipUpgrades> = {
 const FIGUREHEAD_PX = 96;
 
 export class BoatLooksScreen {
-  readonly root: HTMLElement;
+  readonly root: HTMLDialogElement;
   private preview: BoatPreview | null = null;
   private ship!: OwnedShip;
   private slot: SlotKey = 'sailColour';
@@ -67,24 +73,25 @@ export class BoatLooksScreen {
   private returnFocus: HTMLElement | null = null;
   private readonly figureheads = new Map<string, string>();
   private readonly onResize = () => this.preview?.resize();
-  /** Called after the screen closes (the port screen redraws its Shipyard). */
-  onClose: () => void = () => {};
 
   constructor(private readonly host: BoatLooksHost) {
-    this.root = document.createElement('section');
+    // A modal dialog: the top layer, a focus trap, and the pad's focus finds it (padScreen).
+    this.root = document.createElement('dialog');
     this.root.className = 'boat-looks';
-    this.root.hidden = true;
-    this.root.setAttribute('role', 'dialog');
-    this.root.setAttribute('aria-modal', 'true');
     this.root.setAttribute('aria-labelledby', 'bl-title');
     document.body.append(this.root);
     this.root.addEventListener('click', (e) => this.click(e));
     this.root.addEventListener('keydown', (e) => this.key(e));
+    // Esc and the pad's B: leave through `close`, which frees the preview.
+    this.root.addEventListener('cancel', (e) => {
+      e.preventDefault();
+      this.close();
+    });
     guardSoftDisabled(this.root);
   }
 
   get isOpen() {
-    return !this.root.hidden;
+    return this.root.open;
   }
 
   /** Opens on a ship (default: the one she sails), its first slot, by day or night as at sea. */
@@ -92,7 +99,7 @@ export class BoatLooksScreen {
     if (this.isOpen) return;
     this.returnFocus = document.activeElement as HTMLElement | null;
     this.root.innerHTML = shellHtml();
-    this.root.hidden = false;
+    this.root.showModal();
     this.night = this.host.night();
     this.compare = 'yours';
     this.slot = 'sailColour';
@@ -113,10 +120,9 @@ export class BoatLooksScreen {
     this.preview?.dispose();
     this.preview = null;
     this.figureheads.clear();
-    this.root.hidden = true;
+    this.root.close();
     this.root.innerHTML = '';
     this.returnFocus?.focus?.();
-    this.onClose();
   }
 
   private selectShip(id: string) {
@@ -159,6 +165,12 @@ export class BoatLooksScreen {
     nightBtn.setAttribute('aria-label', nightLabel);
     nightBtn.setAttribute('aria-pressed', String(this.night));
     this.root.toggleAttribute('data-night', this.night);
+    const stage = $('.bl-stage');
+    const backdrop = this.preview?.backdrop;
+    if (backdrop) {
+      stage.style.setProperty('--bl-sky', backdrop.sky);
+      stage.style.setProperty('--bl-sea', backdrop.sea);
+    }
     this.showBoat();
   }
 
@@ -231,12 +243,10 @@ export class BoatLooksScreen {
     again?.focus({ preventScroll: true });
   }
 
-  /** Esc leaves; Q and E (or [ and ]) turn the boat. */
+  /** Esc stays here (the port screen behind keeps its own); Q and E (or [ and ]) turn the boat. */
   private key(e: KeyboardEvent) {
-    if (e.key === 'Escape') {
-      e.stopPropagation();
-      this.close();
-    } else if (e.key === 'q' || e.key === '[') this.preview?.turn(-1);
+    if (e.key === 'Escape') e.stopPropagation();
+    else if (e.key === 'q' || e.key === '[') this.preview?.turn(-1);
     else if (e.key === 'e' || e.key === ']') this.preview?.turn(1);
   }
 }

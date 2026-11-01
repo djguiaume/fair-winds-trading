@@ -97,9 +97,14 @@ export class BoatPreview {
     this.sky.color.copy(l.skyLight);
     this.sky.groundColor.copy(l.water);
     this.sky.intensity = l.skyIntensity;
-    this.water.material.color.copy(l.water);
+    this.water.material.color.set(this.backdrop.sea);
     this.boat?.setNightLighting?.(this.night);
     this.draw();
+  }
+
+  /** The sky and sea the screen paints behind the canvas, matching the water disc. */
+  get backdrop(): { sky: string; sea: string } {
+    return this.night ? SETTINGS.backdrop.night : SETTINGS.backdrop.day;
   }
 
   /** A step round by hand (buttons, keys, the pad's shoulder): `dir` -1 or 1. */
@@ -142,7 +147,9 @@ export class BoatPreview {
    * context, so the tiles cost no second renderer.
    */
   figureheadPicture(recipe: string, px: number): string {
-    const geometry = mergeAll(buildProp(recipe, { R: 1, style: 'timber', variant: 0, shape: 0, size: 1 }));
+    const geometry = mergeAll(
+      buildProp(recipe, { R: 1, style: 'timber', variant: 0, shape: 0, size: 1 }),
+    );
     const material = vertexColorMaterial();
     const carving = new THREE.Mesh(geometry, material);
     const scene = new THREE.Scene();

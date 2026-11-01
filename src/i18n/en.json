@@ -1042,6 +1042,7 @@
   "customise.use": "Use",
   "customise.inUse": "In use",
   "customise.none": "None",
+  "customise.ownFlag": "The ship's own",
   "customise.locked": "Earn it: {how}",
   "customise.free": "Free",
   "customise.earned": "Earned",

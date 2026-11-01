@@ -141,8 +141,6 @@ export class TradePanel {
   onTrade: (kind: 'buy' | 'sell', good: GoodId | null) => void = () => {};
   onRender: () => void = () => {};
   onClose: () => void = () => {};
-  /** The Shipyard's "Boat looks" button (issue #299). */
-  onBoatLooks: () => void = () => {};
   /** Quest cargo aboard, a line each (decision 0213). */
   questCargo: () => string[] = () => [];
   /** The port's picture for the header, from the game's renderer (decision 0211); null: none. */
@@ -995,8 +993,7 @@ export class TradePanel {
     return `
       <div class="shipyard-section kids-layout">
         <div class="section-title">
-          <h3>${t('kids.upgradeTitle')}</h3>
-          <button type="button" class="ship-btn boat-looks-btn" id="tp-boat-looks" title="${t('customise.openTitle')}">${t('customise.open')}</button>
+          <h3>${t('kids.upgradeTitle')}</h3><button type="button" class="ship-btn boat-looks-btn" id="tp-boat-looks" title="${t('customise.openTitle')}">${t('customise.open')}</button>
         </div>
         ${
           trade.dockedAt === home.id
@@ -1102,8 +1099,7 @@ export class TradePanel {
       <div class="shipyard-section adult-layout">
         <div class="section-title">
           <h3>${t('upg.forActive', { ship: shipName(activeShipBase) })}</h3>
-          <span class="muted small">${t('upg.visualNote')}</span>
-          <button type="button" class="ship-btn boat-looks-btn" id="tp-boat-looks" title="${t('customise.openTitle')}">${t('customise.open')}</button>
+          <span class="muted small">${t('upg.visualNote')}</span><button type="button" class="ship-btn boat-looks-btn" id="tp-boat-looks" title="${t('customise.openTitle')}">${t('customise.open')}</button>
         </div>
         ${upgradesHtml}
 
@@ -1225,10 +1221,6 @@ export class TradePanel {
       this.tab = 'market';
       this.render();
     });
-
-    this.container
-      .querySelector('#tp-boat-looks')
-      ?.addEventListener('click', () => this.onBoatLooks());
 
     const tabShipyard = this.container.querySelector('#tp-tab-shipyard');
     tabShipyard?.addEventListener('click', () => {

@@ -88,16 +88,20 @@ let clips = 0;
 /**
  * A sail in a look: the cloth, the pattern's bands (variant B's places, decision 0259) and the
  * emblem at `rules.json` › `emblem` (a share of the sail's width, its centre down the sail).
+ * `emblemWidth` draws it larger, for a logo's own tile.
  */
-export function sailSwatchSvg(sail: ResolvedLook['sail']): string {
+export function sailSwatchSvg(
+  sail: ResolvedLook['sail'],
+  emblemWidth = RULES.emblem.width,
+): string {
   const id = `sail-clip-${++clips}`;
   const [band, stripe = band] = sail.pattern.colours;
   const bands =
     sail.pattern.kind === 'plain' || !band
       ? ''
       : `<g clip-path="url(#${id})"><rect x="0" y="45" width="40" height="8" fill="${band}"/><rect x="0" y="3" width="40" height="6" fill="${band}"/><rect x="0" y="26" width="40" height="4" fill="${stripe}"/></g>`;
-  const size = RULES.emblem.width * SAIL_FOOT;
-  const y = SAIL_TOP + RULES.emblem.centreV * SAIL_HEIGHT - size / 2;
+  const size = emblemWidth * SAIL_FOOT;
+  const y = Math.max(SAIL_TOP + 8, SAIL_TOP + RULES.emblem.centreV * SAIL_HEIGHT - size / 2);
   const logo = sail.logo
     ? `<svg x="${(29 - size).toFixed(1)}" y="${y.toFixed(1)}" width="${size.toFixed(1)}" height="${size.toFixed(1)}" viewBox="0 0 32 32"><g fill="${sail.logo.colour}">${emblemShapes(sail.logo.svg)}</g></svg>`
     : '';

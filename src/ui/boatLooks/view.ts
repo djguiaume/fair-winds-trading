@@ -29,6 +29,8 @@ export const slotName = (slot: SlotKey) => t(SLOT_TEXT[slot]);
 const LOCK = `<svg class="bl-lock" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="8" rx="1.5"/><path d="M5 7 V5 a3 3 0 0 1 6 0 V7" fill="none" stroke-width="2"/></svg>`;
 const NONE = `<svg class="bl-none" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11" fill="none" stroke-width="2.5"/><path d="M8 24 L24 8" stroke-width="2.5"/></svg>`;
 const SEA = '#3f8fa8';
+/** A logo's tile shows it larger than on the sail (a share of the sail's foot), so it reads. */
+const LOGO_TILE_EMBLEM = 0.8;
 
 /** The frame of the screen; the parts in it are filled by the functions below. */
 export function shellHtml(): string {
@@ -69,7 +71,9 @@ export function shipsHtml(ships: readonly string[], current: string): string {
 }
 
 export function shipLineHtml(shipClass: string, levels: ShipUpgrades): string {
-  const name = shipName(SHIP_FILES.find((s) => s.id === shipClass) ?? { id: shipClass, name: shipClass });
+  const name = shipName(
+    SHIP_FILES.find((s) => s.id === shipClass) ?? { id: shipClass, name: shipClass },
+  );
   return `<b>${name}</b><span>${t('customise.levels', { ...levels })}</span>`;
 }
 
@@ -84,7 +88,7 @@ export function slotRowsHtml(
       ({ slot, tried }) => `
         <button type="button" role="tab" class="bl-slot" data-slot="${slot}" aria-selected="${slot === current}">
           <span class="bl-slot-pic">${pictureOf(slot, tried)}</span>
-          <span class="bl-slot-text"><small>${slotName(slot)}</small><b>${itemName(tried.item)}</b></span>
+          <span class="bl-slot-text"><small>${slotName(slot)}</small><b>${itemName(tried)}</b></span>
           ${tried.inUse ? '' : '<span class="bl-changed" aria-hidden="true"></span>'}
         </button>`,
     )
@@ -101,12 +105,12 @@ export function gridHtml(
       const state = [c.tried && 'tried', c.locked && 'locked', c.unfit && 'unfit']
         .filter(Boolean)
         .join(' ');
-      const label = `${itemName(c.item)}${c.inUse ? ` (${t('customise.inUse')})` : ''}`;
+      const label = `${itemName(c)}${c.inUse ? ` (${t('customise.inUse')})` : ''}`;
       return `
         <button type="button" class="bl-tile ${state}" data-item="${c.id ?? ''}" aria-pressed="${c.tried}" aria-label="${label}">
           <span class="bl-pic">${pictureOf(slot, c)}</span>
           ${c.locked ? LOCK : ''}${c.inUse ? '<span class="bl-in-use" aria-hidden="true"></span>' : ''}
-          <span class="bl-tile-name">${itemName(c.item)}</span>
+          <span class="bl-tile-name">${itemName(c)}</span>
         </button>`;
     })
     .join('');
@@ -121,11 +125,11 @@ export function detailHtml(tried: Choice, inUse: Choice, shipClass: string): str
       ? `<span class="bl-earn">${t('customise.notForShip', { ship: shipThe(ship) })}</span>`
       : tried.inUse
         ? ''
-        : `<span class="bl-note">${tried.item?.unlock.kind === 'earned' ? t('customise.earned') : t('customise.free')} · ${t('customise.was', { item: itemName(inUse.item) })}</span>`;
+        : `<span class="bl-note">${tried.item?.unlock.kind === 'earned' ? t('customise.earned') : t('customise.free')} · ${t('customise.was', { item: itemName(inUse) })}</span>`;
   const action = tried.inUse
     ? `<span class="bl-badge">${t('customise.inUse')}</span>`
     : `<button type="button" class="d-btn brass bl-use" data-pad="secondary" ${canUse(tried) ? '' : 'aria-disabled="true"'}>${t('customise.use')}</button>`;
-  return `<div class="bl-detail-text"><b>${itemName(tried.item)}</b>${note}</div>${action}`;
+  return `<div class="bl-detail-text"><b>${itemName(tried)}</b>${note}</div>${action}`;
 }
 
 /**
@@ -149,7 +153,7 @@ export function choicePicture(
     case 'sail-pattern':
       return sailSwatchSvg({ ...look.sail, logo: null });
     case 'sail-logo':
-      return sailSwatchSvg(look.sail);
+      return sailSwatchSvg(look.sail, LOGO_TILE_EMBLEM);
     case 'hull-colour': {
       const model = SHIP_FILES.find((s) => s.id === shipClass)?.model;
       return hullSwatchSvg(

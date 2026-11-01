@@ -1,0 +1,128 @@
+/*
+ * Boat looks on smaller screens (issue #299): narrower columns in a small landscape; in portrait
+ * the boat on top (at least 40 % of the height), the slots as one row that peeks and snaps, a
+ * full row of four items below. Also the Shipyard's way in, beside the upgrades' title.
+ */
+.port-screen .shipyard-section > .section-title:first-child {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+}
+.port-screen .boat-looks-btn {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  min-height: 44px;
+  padding: 0 18px;
+}
+
+/* --- Smaller landscape: narrower side columns ---------------------------------------------- */
+@media (max-width: 1100px) and (orientation: landscape) {
+  .boat-looks {
+    grid-template-columns: 250px minmax(0, 1fr) 300px;
+  }
+  .boat-looks .bl-close {
+    right: 316px;
+  }
+  .bl-slot-pic {
+    display: none;
+  }
+  .bl-tile {
+    min-height: 84px;
+  }
+}
+
+/* --- Phone portrait: the boat on top, slots in a snapping row, then the items --------------------- */
+@media (orientation: portrait) {
+  .boat-looks {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(42dvh, 44%) auto minmax(0, 1fr);
+    background: var(--paper);
+  }
+  .bl-stage {
+    grid-row: 1;
+  }
+  .bl-slots {
+    grid-row: 2;
+    gap: 6px;
+    padding: 8px 0 4px;
+    overflow: visible;
+  }
+  .bl-title,
+  .bl-stock {
+    display: none;
+  }
+  .bl-ships {
+    flex-wrap: nowrap;
+    padding: 0 12px;
+    overflow-x: auto;
+  }
+  /* One row of slots that peeks past the edge and snaps to a slot. */
+  .bl-slot-list {
+    flex-direction: row;
+    padding: 2px 12px 6px;
+    overflow-x: auto;
+    scroll-padding: 0 12px;
+    scroll-snap-type: x mandatory;
+  }
+  .bl-slot {
+    min-height: 52px;
+    max-width: 62vw;
+    scroll-snap-align: start;
+  }
+  .bl-slot[aria-selected='true'] {
+    min-height: 52px;
+    margin-right: 0;
+    box-shadow:
+      0 3px 0 rgba(0, 0, 0, 0.2),
+      inset 0 -4px 0 var(--teal);
+  }
+  .bl-items {
+    grid-row: 3;
+    padding: 4px 12px max(12px, var(--safe-bottom, env(safe-area-inset-bottom)));
+  }
+  .bl-items-title {
+    display: none;
+  }
+  .bl-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .bl-tile {
+    min-height: 84px;
+    padding: 6px 2px 4px;
+  }
+  .bl-pic {
+    height: 44px;
+  }
+  .bl-pic > img {
+    width: 44px;
+    height: 44px;
+  }
+  .bl-detail {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+  }
+  .boat-looks .bl-close {
+    right: 12px;
+  }
+  .bl-compare {
+    bottom: 10px;
+    left: 10px;
+  }
+  .bl-compare button {
+    min-height: 40px;
+    padding: 0 10px;
+    font-size: var(--fs-note);
+  }
+  .bl-view {
+    right: 10px;
+    bottom: 10px;
+    gap: 4px;
+  }
+  .bl-round {
+    width: 42px;
+    height: 42px;
+  }
+}
