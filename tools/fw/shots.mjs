@@ -209,12 +209,11 @@ const visible = (page, sel) =>
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /**
- * Past the title menu, the level card and the tutorial offer, as a player would click; then, unless
- * the shot is of the prologue, back to plain free play (decision 0160).
+ * Past the title menu, level card and tutorial offer as a player would click (`--url "/?free"`: its
+ * setup is the shot, 0266); then, unless the shot is the prologue, back to plain free play (0160).
  */
 async function enter(page, shot) {
   await page.waitForFunction(() => !!window.fwt, null, { timeout: 30000 });
-  // `--url "/?free"`: the Free Sailing setup opens over the menu (0266) and is the shot.
   if (await visible(page, '.free-setup[open]')) return;
   if (await visible(page, '#menu-play')) await page.click('#menu-play');
   await page
@@ -467,8 +466,7 @@ async function shootScene(page, shot) {
   }
   // Mooring by an island of hers turns the camera and leaving it frees it (0128): look again.
   if (shot.look && !shot.editor && !shot.url) await page.evaluate(lookAt, shot.look);
-  // With the chart, the pad and the clicks play on the chart (its cross, its flags), so they act
-  // once it is open.
+  // With the chart, the pad and the clicks play on the chart (its cross, flags) once it is open.
   if (!shot.chart) await act(page, shot);
   if (!shot.cards) await closeCards(page);
   // Moored at her island (decision 0210): its harbour screen, or the island at sea. A plot's
