@@ -3,6 +3,7 @@ import {
   LUFF_STYLES,
   type LuffStyle,
   RING,
+  EVENT_NAMES,
   SYNTH_EFFECTS,
   type AudioData,
   audioProblems,
@@ -498,13 +499,9 @@ function drawEvents(): HTMLElement[] {
   return [
     heading(
       'Events and bells',
-      'What the game plays when she docks, crashes, bumps, tacks or gybes, and when a volcano erupts within range. The dock bell rings at each port’s pitch: big towns lower, outposts a handbell.',
+      'What the game plays when she docks, crashes, bumps, tacks or gybes, when a volcano erupts within range, and for the interface: a press, a choice, a step back, a tab, an error, a coin, the quest stamp, a port in sight and the title’s sting. The dock bell rings at each port’s pitch: big towns lower, outposts a handbell.',
     ),
-    pick('dock'),
-    pick('crash'),
-    pick('bump'),
-    pick('tack'),
-    pick('eruption'),
+    ...EVENT_NAMES.map(pick),
     row(
       'eruption range',
       num(ev.eruption.range, (v) => (ev.eruption.range = v)),

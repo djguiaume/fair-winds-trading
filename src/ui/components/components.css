@@ -232,9 +232,11 @@ button.ui-row {
 /* --- Toast ----------------------------------------------------------------------------------- */
 .ui-toasts {
   position: fixed;
-  inset: auto 0 var(--ui-space-6);
+  inset: var(--ui-toast-top, 112px) 0 auto;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ui-space-2);
   pointer-events: none;
 }
 .ui-toast {

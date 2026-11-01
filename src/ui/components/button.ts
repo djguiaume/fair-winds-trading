@@ -28,7 +28,7 @@ export function button(o: ButtonOptions): HTMLButtonElement {
   if (o.icon) b.insertAdjacentHTML('beforeend', icon(o.icon));
   b.append(el('span', 'ui-btn-label', o.label));
   setDisabled(b, Boolean(o.disabled));
-  onPress(b, o.onPress);
+  onPress(b, o.onPress, variant === 'primary' ? 'confirm' : 'press');
   return b;
 }
 

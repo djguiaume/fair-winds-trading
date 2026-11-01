@@ -12,7 +12,7 @@
  */
 import { composeTune, EIGHTHS_PER_BAR, type Theme, type Tune } from './composer';
 import { createBand, playNote, type Band } from './synth';
-import { SYNTHS } from './sfx';
+import { SYNTHS } from './synths';
 import { Ambience } from './ambience';
 import { CallClock, layerMix, type PlaceDistances, type SoundsHere } from './seaBed';
 import { createRng } from '../sim/rng';
@@ -66,6 +66,8 @@ export class Music {
     this.track && 'theme' in this.track ? THEMES[this.track.theme] : undefined;
   /** The music track the sea asks for, and one a quest step holds over it (decision 0209). */
   private seaTrack = 'sea';
+  /** An effect waiting for sound to unlock. */
+  private waiting: string | null = null;
   private heldTrack: string | null = null;
 
   /** People's babble on the cards (decision 0132): its own switch and volume in Settings. */
@@ -84,6 +86,24 @@ export class Music {
 
   /** Create the audio graph; call from a user gesture. Safe to call again. */
   unlock(): void {
+    this.build();
+    this.playWaiting();
+  }
+
+  /** An effect to play at once, or at the first tap if sound is not unlocked yet (the title's sting). */
+  effectWhenReady(id: string): void {
+    this.waiting = id;
+    if (this.ctx) this.playWaiting();
+  }
+
+  private playWaiting() {
+    const { ctx, waiting } = this;
+    if (!ctx || !waiting) return;
+    this.waiting = null;
+    void ctx.resume().then(() => this.effectNamed(waiting));
+  }
+
+  private build(): void {
     if (this.ctx) {
       if (this.ctx.state === 'suspended' && this.awake) void this.ctx.resume();
       return;

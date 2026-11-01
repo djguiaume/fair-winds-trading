@@ -1,4 +1,5 @@
 import { t } from '../i18n';
+import { stampCard } from './moments/stamp';
 import { portraitSvg } from './portraits';
 import type { QuestCardModel } from './questView';
 
@@ -72,6 +73,7 @@ export class QuestNote {
     this.place();
     this.el.classList.remove('is-fading');
     this.el.hidden = false;
+    stampCard(this.el, c);
     this.left = NOTE_SEC;
   }
 

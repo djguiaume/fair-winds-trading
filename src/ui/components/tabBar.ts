@@ -1,4 +1,5 @@
 import { padGlyph } from '../padGlyphs';
+import { uiSound } from '../uiSound';
 import { el } from './dom';
 
 /**
@@ -56,7 +57,10 @@ export class TabBar {
     if (!this.o.tabs.some((t) => t.id === id) || id === this.current) return;
     this.current = id;
     for (const b of this.buttons) b.setAttribute('aria-selected', String(b.dataset.tab === id));
-    if (notify) this.o.onSelect?.(id);
+    if (notify) {
+      uiSound('tab');
+      this.o.onSelect?.(id);
+    }
   }
 
   /** The next (1) or previous (-1) tab, round the ends. */
