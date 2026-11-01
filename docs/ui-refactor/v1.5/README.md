@@ -24,6 +24,8 @@ The layout is the same in all three (the brief's screen rules and the useful par
 | 4 | Title **5**: 3 with the cover graded to the game and a straight inked edge (art director's terms) | same sheet | Edge not chosen |
 | 4 | Title **6**: 5 with 3's torn page edge | same sheet, [pick-title-6-*](sheets/round4-title/) | **Chosen** ("Go with the last one but with the torn edge of 3") |
 
+| Build | **Identity assets** (#439): logo, icon pass, fonts, favicon and PWA icons, built from the pick | [identity/](sheets/identity/) | Awaiting Guillaume's `visual-ok` |
+
 ## Rules learned from Guillaume's feedback (keep for later rounds)
 
 - The wind compass is its own dial, top right, with the no-go zone hatched (never red); the speed stays the biggest number.

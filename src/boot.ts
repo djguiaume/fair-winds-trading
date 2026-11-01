@@ -1,3 +1,4 @@
+import './ui/sprite';
 import { dismissSplash, showSplashLanguage } from './ui/splash';
 
 // The page's entry (issue #396): the start view in index.html paints first, then the game loads.
