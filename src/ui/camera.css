@@ -32,3 +32,24 @@ html[data-layout='phone'] .camera-reset {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+/* The chase view's switch sits first under the compass, on touch screens only (decision 0272);
+   the reset button moves one slot down. */
+#camera-chase {
+  display: none;
+}
+@media (pointer: coarse) {
+  #camera-chase {
+    display: grid;
+  }
+  #camera-chase ~ #camera-reset {
+    top: calc(var(--ui-hud-compass) + 52px);
+  }
+  html[data-layout='phone'] #camera-chase ~ #camera-reset {
+    top: calc(var(--ui-hud-compass-phone) + 50px);
+  }
+}
+#camera-chase[aria-pressed='true'] {
+  background: var(--hud-text);
+  color: var(--hud-backing);
+}

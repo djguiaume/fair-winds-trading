@@ -1447,7 +1447,7 @@ if (pad.usingPad) {
 padFocus.onResume = () => {
   if (started && screens.showing('pause')) pause.resume.click();
 };
-const camera = new CameraControls(view, input, settings, tilt);
+const camera = new CameraControls(view, input, settings, hud, tilt);
 world.traffic.cap = TUNING.seamanship.traffic.atOnce[level];
 
 // --- Settings ----------------------------------------------------------------------------------

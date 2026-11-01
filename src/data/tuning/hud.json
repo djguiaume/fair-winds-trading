@@ -5,5 +5,7 @@
   "backingInk": 0.4,
   "noGoInk": 0.55,
   "tapeSpanDeg": 70,
-  "portSignSeaward": 10
+  "portSignSeaward": 10,
+  "portSignChaseRange": 25,
+  "portSignChaseMinY": 0.5
 }

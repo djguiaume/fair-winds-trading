@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { TUNING } from '../data/tuning';
-import { DEG, approach, clamp } from '../sim/math';
+import { DEG, approach, clamp, lerp, wrapAngle } from '../sim/math';
+import { ChaseView } from './chaseView';
 import { CameraOrbit, type ViewAxes, seaMiddle, viewAxes } from './cameraOrbit';
 
 /**
@@ -11,6 +12,8 @@ import { CameraOrbit, type ViewAxes, seaMiddle, viewAxes } from './cameraOrbit';
 export class CameraRig {
   /** The camera the player turns (decision 0223). */
   readonly orbit = new CameraOrbit();
+  /** The optional close chase view behind the boat. */
+  readonly chase = new ChaseView();
   /** The point on the sea the camera looks at. */
   readonly target = new THREE.Vector3();
   /** The ground directions of the screen this frame, for the rain and the wind streaks. */
@@ -40,7 +43,8 @@ export class CameraRig {
 
   /**
    * Place the camera for a boat at scene `pos` heading `dir` (sim x east, y north) at `speedKn`;
-   * a focus view eases the turned camera back north-up. Returns its distance from the target.
+   * a focus view eases the turned camera back north-up. Returns the distance fog and the far view
+   * are set by.
    */
   place(
     dt: number,
@@ -52,13 +56,19 @@ export class CameraRig {
     const c = TUNING.camera;
     this.orbit.held = this.focus !== null;
     this.orbit.update(dt);
-    const { heading, pitch } = this.orbit;
+    this.chase.update(dt, Math.atan2(dir.x, dir.y), this.focus === null);
+    const b = this.chase.eased;
+    const heading = this.orbit.heading + b * wrapAngle(this.chase.heading - this.orbit.heading);
+    const pitch = lerp(this.orbit.pitch, c.chase.pitchDeg * DEG, b);
     const axes = viewAxes(heading, this.axes);
-    const ahead = speedKn * c.aheadPerKn;
+    const ahead = lerp(speedKn * c.aheadPerKn, c.chase.lookAhead, b);
     // The field of view is vertical, so a tall phone sees a thin strip of sea: pull back until
     // portrait shows about as much water across as a landscape tablet (Guillaume, 2026-10-20).
     const portrait = aspect < 1 ? clamp(c.portraitWidth / aspect, 1, c.portraitPullMax) : 1;
-    const dist = c.distance * this.zoom * portrait;
+    const seaDist = c.distance * this.zoom * portrait;
+    const dist = lerp(seaDist, c.chase.distance * this.chase.zoom, b);
+    // Fog and the far view follow the sea camera's distance, so the close view keeps the horizon.
+    const sightDist = lerp(seaDist, c.chase.sightDistance, b);
     // A shifted focus: the ground the screen spans around the target, the tilt foreshortening it
     // top to bottom.
     const fov = this.camera.fov * DEG;
@@ -82,8 +92,8 @@ export class CameraRig {
     // The screen's up is the view heading on the ground, so a camera straight down still knows it.
     this.camera.up.set(axes.forwardX, 0, axes.forwardZ);
     this.camera.lookAt(target);
-    const middle = seaMiddle(pitch, dist, fov, TUNING.weather.sight.far * dist);
+    const middle = seaMiddle(pitch, dist, fov, TUNING.weather.sight.far * sightDist);
     this.seaCentre.set(target.x + axes.forwardX * middle, 0, target.z + axes.forwardZ * middle);
-    return dist;
+    return sightDist;
   }
 }
