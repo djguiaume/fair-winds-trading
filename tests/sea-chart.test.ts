@@ -89,8 +89,7 @@ describe('full-screen chart planning', () => {
     expect(pressed()).toBeNull();
   });
 
-  it('uses the actual local wind and ship no-go angle in an isolated compass snapshot', () => {
-    get('c-wp').style.display = 'none';
+  it('uses the actual local wind and ship no-go angle in its own north-up dial', () => {
     const { world, chart } = setup();
     chart.close();
     world.wind = { from: 90 * DEG, speedKn: 8 };
@@ -112,7 +111,6 @@ describe('full-screen chart planning', () => {
       'rotate(90)',
     );
     expect(compass.querySelectorAll('svg [id]')).toHaveLength(0); // no duplicated HUD ids
-    expect(get('c-nogo').getAttribute('transform')).toBeNull();
   });
 
   it('keeps the player screen-sized through zoom, bounds zoom, and resets to the overview', () => {

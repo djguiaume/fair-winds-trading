@@ -23,16 +23,12 @@
 .home-bar[hidden] {
   display: none;
 }
-/* While the destination pill holds the top centre, the island's name sits under it. */
-@media (min-width: 761px) and (orientation: landscape) {
-  body:has(.objective:not([hidden])) .home-bar {
-    top: calc(var(--top, 10px) + 48px);
-  }
+/* The heading strip holds the top centre (issue #441): the island's name sits under it. */
+#hud .home-bar {
+  top: calc(var(--top, 10px) + 64px);
 }
-@media (min-width: 1100px) and (min-height: 680px) and (orientation: landscape) {
-  body:has(.objective:not([hidden])) .home-bar {
-    top: calc(var(--top, 10px) + 56px);
-  }
+html[data-layout='phone'] #hud .home-bar {
+  top: calc(var(--top, 10px) + 48px);
 }
 @media (orientation: portrait) {
   .home-bar {

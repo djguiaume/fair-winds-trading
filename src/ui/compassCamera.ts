@@ -1,52 +1,46 @@
 import { translateDom } from '../i18n';
-import { DEG } from '../sim/math';
 import './camera.css';
 
-/** The rose is turned again only once the camera has turned this far (degrees). */
-const STEP_DEG = 0.5;
-const SVG = 'http://www.w3.org/2000/svg';
-
 /**
- * The HUD compass turns with the camera (decision 0223): its rose (wind, no-go zone, boat, course
- * marks and the N E S W letters) is drawn for the map, so it turns by the camera's heading and the
- * top of the compass stays the top of the screen. The letters turn back so they stay upright. The
- * "reset the view" button beside it shows only while the camera is turned.
+ * The camera's two buttons under the wind compass: a "reset the view" button (decision 0223) shown
+ * only while the camera is turned, and the close chase view's switch (decision 0272) for touch. The compass itself no longer turns with the camera: its
+ * card turns with the boat, which points up whatever the camera does (issue #441).
  */
 export class CompassCamera {
-  private readonly rose: SVGGElement;
-  private readonly letters: SVGTextElement[];
   private readonly reset: HTMLButtonElement;
-  private shownDeg = 0;
+  private readonly chase: HTMLButtonElement;
 
-  constructor(compass: HTMLElement, onReset: () => void) {
-    // Everything on the face but the face itself turns.
-    const svg = compass.querySelector('svg')!;
-    this.rose = document.createElementNS(SVG, 'g');
-    this.rose.id = 'c-rose';
-    this.rose.append(...[...svg.children].filter((c) => !c.classList.contains('face')));
-    svg.append(this.rose);
-    this.letters = [...this.rose.querySelectorAll<SVGTextElement>('text')];
-    this.reset = document.createElement('button');
-    this.reset.id = 'camera-reset';
-    this.reset.className = 'camera-reset';
-    this.reset.type = 'button';
+  constructor(compass: HTMLElement, onReset: () => void, onChase: () => void) {
+    this.reset = this.button('camera-reset', 'hud.cameraReset', onReset);
     this.reset.hidden = true;
-    this.reset.dataset.i18nAttr = 'aria-label:hud.cameraReset';
     this.reset.innerHTML =
       '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 9.5A7 7 0 1 1 5 14.5" />' +
       '<path d="M4.5 4.5v5h5" /></svg>';
-    this.reset.addEventListener('click', onReset);
-    compass.append(this.reset);
+    this.chase = this.button('camera-chase', 'hud.cameraChase', onChase);
+    this.chase.innerHTML =
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l4-9h4l2 4h6l2 5z" />' +
+      '<path d="M3 20.5h18" /></svg>';
+    compass.append(this.chase, this.reset);
     translateDom(compass);
   }
 
-  /** `heading`: the bearing the camera looks toward (radians); `turned`: away from north-up. */
-  update(heading: number, turned: boolean) {
+  private button(id: string, name: string, onClick: () => void): HTMLButtonElement {
+    const button = document.createElement('button');
+    button.id = id;
+    button.className = 'camera-reset';
+    button.type = 'button';
+    button.dataset.i18nAttr = `aria-label:${name}`;
+    button.addEventListener('click', onClick);
+    return button;
+  }
+
+  /** The chase view is on: its button shows pressed. */
+  setChase(on: boolean) {
+    this.chase.setAttribute('aria-pressed', String(on));
+  }
+
+  /** `turned`: the camera is away from where it rests. */
+  update(turned: boolean) {
     if (this.reset.hidden === turned) this.reset.hidden = !turned;
-    const deg = Math.round(heading / DEG / STEP_DEG) * STEP_DEG;
-    if (deg === this.shownDeg) return;
-    this.shownDeg = deg;
-    this.rose.setAttribute('transform', deg ? `rotate(${-deg})` : '');
-    for (const letter of this.letters) letter.style.transform = deg ? `rotate(${deg}deg)` : '';
   }
 }

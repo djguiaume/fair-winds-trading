@@ -80,9 +80,11 @@ describe('navigation HUD and modal input', () => {
     hud.update(0.2, project, { w: 800, h: 600 });
     expect(document.getElementById('navigation-target')!.hidden).toBe(true);
     expect(document.getElementById('wp-arrow')!.hidden).toBe(true);
-    expect(document.getElementById('c-wp')!.style.display).toBe('none');
+    const dialMark = () => document.querySelector('.hud-dial .course')!.hasAttribute('hidden');
+    expect(dialMark()).toBe(true);
     world.destination = { x: 20, y: 20, portId: '', label: 'Marker 1' };
     hud.update(0.2, project, { w: 800, h: 600 });
+    expect(dialMark()).toBe(false);
     expect(document.getElementById('navigation-target')!.hidden).toBe(false);
     expect(document.getElementById('wp-arrow')!.hidden).toBe(false);
     expect(document.getElementById('obj-name')!.textContent).toBe('Marker 1');

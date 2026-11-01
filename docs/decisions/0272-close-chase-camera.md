@@ -18,12 +18,11 @@ the same camera, not a new one.
   distance, heading trailing the boat's heading. State lives in `src/render/chaseView.ts`.
 - Fog and the far view keep the sea camera's distance (`sightDistance`), so the horizon and islands
   look the same; only the camera stands closer. Per frame cost: a few multiplies, no allocations.
-- While chasing, drag and stick turns are ignored; the wind compass turns with the shown heading
-  (`rig.viewHeading`), so wind stays readable. A focus view (home island) holds the sea camera.
+- While chasing, drag and stick turns are ignored. The wind compass card turns with the boat
+  (decision 0273), so it reads the same in both views. A focus view (home island) holds the sea camera.
 - All numbers are `camera.json` › `chase`, editable in `?tune` (Camera tab).
 
 ## Consequences
 
-- The HUD thread (#441) can hide the extra boxes in chase and should point the objective arrow with
-  `rig.viewHeading`, not north-up; `rig.chase.active` says which view is on.
+- The HUD is quiet while chasing, and a touch button switches the view.
 - Phone `?bench` near a beach still to be read on a real device (open list, #377).

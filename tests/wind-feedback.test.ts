@@ -1,30 +1,28 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { windFeedback } from '../src/ui/windFeedback';
+import { WindCue } from '../src/ui/windFeedback';
 import { loadSettings, saveSettings } from '../src/ui/settings';
-
-const sailing = { inNoGo: true, sailsRaised: true, docked: false, active: true };
 
 describe('quiet compass feedback', () => {
   it('keeps a brief tack free of pulses and text, then reveals help gradually', () => {
-    const tack = windFeedback(0, 0.8, sailing);
-    expect(tack.amber).toBe(true);
-    expect(tack.pulse).toBe(false);
-    expect(tack.chip).toBe(false);
-    const lingering = windFeedback(tack.seconds, 0.5, sailing);
-    expect(lingering.pulse).toBe(true);
-    expect(lingering.chip).toBe(false);
-    expect(windFeedback(lingering.seconds, 1.8, sailing).chip).toBe(true);
+    const cue = new WindCue();
+    cue.update(0.8, true);
+    expect(cue.amber).toBe(true);
+    expect(cue.pulse).toBe(false);
+    expect(cue.chip).toBe(false);
+    cue.update(0.5, true);
+    expect(cue.pulse).toBe(true);
+    expect(cue.chip).toBe(false);
+    cue.update(1.8, true);
+    expect(cue.chip).toBe(true);
   });
 
-  it.each([
-    { ...sailing, inNoGo: false },
-    { ...sailing, sailsRaised: false },
-    { ...sailing, docked: true },
-    { ...sailing, active: false },
-  ])('clears feedback and the delay when sailing help is inappropriate: %j', (state) => {
-    const result = windFeedback(10, 0.1, state);
-    expect(result).toEqual({ seconds: 0, amber: false, pulse: false, chip: false });
-    expect(windFeedback(result.seconds, 0.1, sailing).chip).toBe(false);
+  it('clears feedback and the delay when sailing help is inappropriate', () => {
+    const cue = new WindCue();
+    cue.update(10, true);
+    cue.update(0.1, false);
+    expect({ ...cue }).toEqual({ seconds: 0, amber: false, pulse: false, chip: false });
+    cue.update(0.1, true);
+    expect(cue.chip).toBe(false);
   });
 });
 

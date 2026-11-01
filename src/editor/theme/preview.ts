@@ -8,6 +8,11 @@ import {
   panel,
   screenHeader,
 } from '../../ui/components';
+import { MomentBanner } from '../../ui/moments/banner';
+import { raceBoardHtml } from '../../ui/moments/raceBoard';
+import { stampOn } from '../../ui/moments/stamp';
+import '../../ui/moments/moments.css';
+import { h } from '../quest/form';
 import { type Theme, themeCss } from '../../ui/theme/model';
 
 /**
@@ -91,7 +96,40 @@ function strip(night: boolean): HTMLElement {
   toaster.show('Sold 4 fish for 36 gold', { kind: 'good' });
   toaster.root.classList.add('th-toasts');
   box.append(header.root, tabs.root, buttons, cards, rows, dialog.root, toaster.root);
+  box.append(...moments());
   return box;
+}
+
+/** The moments (decision 0274): the arrival banner, the horn countdown, a stamped card, the board. */
+function moments(): HTMLElement[] {
+  const still = { set: () => 0 };
+  const arrival = new MomentBanner('arrival', still);
+  arrival.show('Saltmere', 'Home port', 0);
+  const horn = new MomentBanner('horn', still);
+  horn.show('Horn in 10', undefined, 0);
+  const row = document.createElement('div');
+  row.className = 'th-row th-moments';
+  const stamped = panel({ tag: 'div' }, h('p', {}, 'Rook asks you to call at Port Calda.'));
+  stamped.classList.add('th-stamped');
+  stampOn(stamped, 'Step done');
+  const board = document.createElement('div');
+  board.innerHTML = raceBoardHtml(
+    {
+      times: [
+        { medal: 'gold', sec: 61.2, gold: 0, won: true },
+        { medal: 'silver', sec: 66.8, gold: 0, won: true },
+        { medal: 'bronze', sec: 74.1, gold: 0, won: false },
+      ],
+      again: true,
+      label: 'Medal times for your sloop',
+      series: 'The Saltmere Regatta',
+      best: 64.9,
+      result: { sec: 64.9, medal: 2, rival: 63.2, gold: 40 },
+    },
+    '<li class="is-gold"><span class="race-medal"></span><b>1:01.2</b></li><li class="is-silver is-won"><span class="race-medal"></span><b>1:06.8</b></li>',
+  );
+  row.append(stamped, board);
+  return [arrival.root, horn.root, row];
 }
 
 /** Both strips, day then night. */

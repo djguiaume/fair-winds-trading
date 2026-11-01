@@ -71,6 +71,15 @@ describe('UI theme', () => {
     expect(problems).toMatch(/touch\.target is 30px/);
   });
 
+  it("keeps the sea HUD's safe margin at 12 px or more", () => {
+    const t = shippedTheme();
+    t.hud['margin-phone'] = 8;
+    t.hud.compass = 0;
+    const problems = themeProblems(t).join('\n');
+    expect(problems).toMatch(/hud\.margin-phone must be 12px or more/);
+    expect(problems).toMatch(/hud\.compass must be whole pixels/);
+  });
+
   it('puts each window in one of the two breakpoints', () => {
     expect(layoutFor(844, 390)).toBe('phone');
     expect(layoutFor(1440, 900)).toBe('desktop');

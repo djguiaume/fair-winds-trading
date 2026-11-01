@@ -154,7 +154,10 @@ describe('visible harbour approaches', () => {
     labels.update((x, y) => ({
       x: 123,
       y: 234,
-      onScreen: x === harbours[port.id]!.x && y === harbours[port.id]!.y,
+      // Only the sign's foot, a little out from the pier over the water (issue #441), is on screen.
+      onScreen:
+        Math.hypot(x - harbours[port.id]!.x, y - harbours[port.id]!.y) <=
+        TUNING.hud.portSignSeaward + 1e-6,
     }));
     const marker = layer.querySelector<HTMLButtonElement>(`[data-port-id="${port.id}"]`)!;
     expect(marker.hidden).toBe(false);

@@ -7,6 +7,7 @@ import type { ChaseView } from '../render/chaseView';
 import type { CameraRig } from '../render/cameraRig';
 import type { SeaMotion } from '../render/seaMotion';
 import { CompassCamera } from './compassCamera';
+import type { Hud } from './hud';
 import type { Settings } from './settings';
 
 /**
@@ -21,11 +22,13 @@ export class CameraControls {
   private readonly rig: CameraRig;
   private readonly motion: SeaMotion;
   private readonly chase: ChaseView;
+  private quiet = false;
 
   constructor(
     view: { rig: CameraRig; motion: SeaMotion },
     input: Input,
     private readonly settings: Settings,
+    private readonly hud: Hud,
     tilt = 0,
   ) {
     const rig = (this.rig = view.rig);
@@ -41,7 +44,11 @@ export class CameraControls {
     input.onCameraTurn = (dx, dy, device) => chase.active || orbit.drag(dx, dy, device);
     input.onCameraReset = () => orbit.reset();
     input.onCameraChase = () => chase.toggle();
-    this.compass = new CompassCamera(document.getElementById('wind-compass')!, () => orbit.reset());
+    this.compass = new CompassCamera(
+      document.getElementById('wind-compass')!,
+      () => orbit.reset(),
+      () => chase.toggle(),
+    );
     this.sync();
     // The help card's mouse and controller lines name the camera's inputs too.
     const help = document.querySelector('.help-controls')!;
@@ -72,9 +79,15 @@ export class CameraControls {
     else this.chase.toggle();
   }
 
-  /** Every frame: the compass follows the camera. */
+  /** Every frame: the reset button shows while the camera is turned. */
   update() {
-    this.compass.update(this.rig.viewHeading, this.orbit.turned && !this.chase.active);
+    this.compass.update(this.orbit.turned && !this.chase.active);
+    this.compass.setChase(this.chase.active);
+    // The close view shows the boat and the sea, so the HUD keeps to the wind compass and speed.
+    const quiet = this.settings.quietHud || this.chase.blend > 0.5;
+    if (quiet === this.quiet) return;
+    this.quiet = quiet;
+    this.hud.quiet = quiet;
   }
 
   /** Pushes the Settings switches to the camera and the sea motion. */

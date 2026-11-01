@@ -1,0 +1,9 @@
+{
+  "idleFadeSec": 5,
+  "idleOpacity": 0.6,
+  "wakeTurnDeg": 20,
+  "backingInk": 0.4,
+  "noGoInk": 0.55,
+  "tapeSpanDeg": 70,
+  "portSignSeaward": 10
+}

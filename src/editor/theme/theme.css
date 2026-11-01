@@ -58,3 +58,12 @@
 .th-toasts {
   position: static;
 }
+
+.th-stamped {
+  position: relative;
+  min-width: 220px;
+  min-height: 90px;
+}
+.th-moments {
+  align-items: flex-start;
+}

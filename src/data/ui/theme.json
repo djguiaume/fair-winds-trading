@@ -85,6 +85,16 @@
     "phone-max-height": 500,
     "desktop-min-width": 1024
   },
+  "hud": {
+    "margin": 16,
+    "margin-phone": 12,
+    "compass": 168,
+    "compass-phone": 104,
+    "speed": 64,
+    "speed-phone": 58,
+    "tape": 420,
+    "tape-phone": 240
+  },
   "edges": {
     "torn": {
       "size": 96,

@@ -28,6 +28,8 @@ export interface Theme {
   z: { screen: number; dialog: number; toast: number };
   touch: { target: number; 'row-min': number; 'row-max': number; 'level-card': number };
   breakpoints: { 'phone-max-height': number; 'desktop-min-width': number };
+  /** The sea HUD's sizes (issue #441): its safe margin, the compass, the speed digits, the tape. */
+  hud: Record<string, number>;
   edges: Record<string, Edge>;
   /** Style E (decision 0220): the tokens of the screens not rebuilt yet, by surface. */
   legacy: {
@@ -52,6 +54,7 @@ const CSS_GROUPS: Record<string, { prefix: string; unit?: string }> = {
   press: { prefix: '--ui-press-' },
   z: { prefix: '--ui-z-' },
   touch: { prefix: '--ui-touch-', unit: 'px' },
+  hud: { prefix: '--ui-hud-', unit: 'px' },
 };
 
 /**

@@ -1,17 +1,18 @@
-import { LANGUAGES, language } from '../../../i18n';
+import { LANGUAGES, type MessageKey, language } from '../../../i18n';
+import { MOTION_MODES, type MotionMode } from '../../motionMode';
 import { effectSwitches, qualityOptions } from '../../graphicsSettings';
 import type { QualitySetting } from '../../../render/quality';
 import { t } from '../../../i18n';
 import type { RowHost, SettingsContext } from './context';
 import { choiceRow, switchRow } from './rows';
 
-/** Settings › Display: the picture, the speed log and the comfort switches. */
+/** Settings › Display: the picture, the quiet HUD and the comfort switches. */
 export function displayTab(ctx: SettingsContext, host: RowHost) {
   const { settings } = ctx;
   const flag = (
     id: string,
     key: string,
-    name: 'showLog' | 'showFps' | 'gentleMotion' | 'cameraBob' | 'wakeStyles',
+    name: 'quietHud' | 'showFps' | 'gentleMotion' | 'cameraBob' | 'wakeStyles',
   ) =>
     switchRow({
       id,
@@ -39,7 +40,17 @@ export function displayTab(ctx: SettingsContext, host: RowHost) {
     flag('show-fps', 'settings.showFps', 'showFps'),
   ];
   const comfort = [
-    flag('show-log', 'settings.speedLog', 'showLog'),
+    flag('quiet-hud', 'settings.quietHud', 'quietHud'),
+    choiceRow({
+      id: 'motion',
+      key: 'settings.motion',
+      options: MOTION_MODES.map((id) => ({ id, label: t(`settings.motion.${id}` as MessageKey) })),
+      get: () => settings.motion,
+      set: (id) => {
+        settings.motion = id as MotionMode;
+        host.changed();
+      },
+    }),
     flag('gentle-motion', 'settings.gentleMotion', 'gentleMotion'),
     flag('camera-bob', 'settings.cameraBob', 'cameraBob'),
     choiceRow({

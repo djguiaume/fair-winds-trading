@@ -16,8 +16,6 @@ export class CameraRig {
   readonly chase = new ChaseView();
   /** The point on the sea the camera looks at. */
   readonly target = new THREE.Vector3();
-  /** The compass bearing the screen's top points toward this frame (the orbit's, or the chase's). */
-  viewHeading = 0;
   /** The ground directions of the screen this frame, for the rain and the wind streaks. */
   readonly axes = viewAxes(0, {} as ViewAxes);
   /** The middle of the sea on screen, where the ocean grid centres. */
@@ -62,7 +60,6 @@ export class CameraRig {
     const b = this.chase.eased;
     const heading = this.orbit.heading + b * wrapAngle(this.chase.heading - this.orbit.heading);
     const pitch = lerp(this.orbit.pitch, c.chase.pitchDeg * DEG, b);
-    this.viewHeading = heading;
     const axes = viewAxes(heading, this.axes);
     const ahead = lerp(speedKn * c.aheadPerKn, c.chase.lookAhead, b);
     // The field of view is vertical, so a tall phone sees a thin strip of sea: pull back until

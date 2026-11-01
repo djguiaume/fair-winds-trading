@@ -2,6 +2,11 @@ import type { ScreenPoint } from '../render/view';
 import { TUNING } from '../data/tuning';
 import type { World } from '../sim/world';
 import { t } from '../i18n';
+import { stripBottom } from './hud/bands';
+
+/** The label sits this far over the boat, and is about this tall. */
+const LIFT = 40;
+const LABEL_HEIGHT = 26;
 
 /**
  * The name of the other boat she passes close by (decision 0215): "Adze, out of Calda", in the
@@ -37,7 +42,8 @@ export class BoatLabels {
         }
       }
     const p = near ? project(near.boat.x, near.boat.y) : null;
-    if (!near || !p?.onScreen) {
+    // Never over the heading strip (art director, issue #441).
+    if (!near || !p?.onScreen || p.y - LIFT - LABEL_HEIGHT < stripBottom()) {
       this.el.hidden = true;
       return;
     }
@@ -48,6 +54,6 @@ export class BoatLabels {
     }
     this.el.hidden = false;
     this.el.style.opacity = Math.min(1, (range - nearD) / (range / 3)).toFixed(2);
-    this.el.style.transform = `translate(${p.x.toFixed(0)}px, ${(p.y - 40).toFixed(0)}px) translate(-50%, -100%)`;
+    this.el.style.transform = `translate(${p.x.toFixed(0)}px, ${(p.y - LIFT).toFixed(0)}px) translate(-50%, -100%)`;
   }
 }

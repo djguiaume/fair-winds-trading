@@ -1,6 +1,7 @@
 import { type LanguageId, isLanguage } from '../i18n';
 import { applyGraphicsOverrides } from '../perf/graphicsOverrides';
 import type { QualitySetting } from '../render/quality';
+import { type MotionMode, isMotionMode } from './motionMode';
 
 export type UiMode = 'adult' | 'kids';
 
@@ -19,8 +20,10 @@ export interface Settings {
   /** The one-time "ease the sails" message has been shown (decision 0078). */
   seenPressHint: boolean;
   uiMode: UiMode;
-  /** Speed log (speed, heading, point of sail) shown at sea; on by default (decision 0049). */
-  showLog: boolean;
+  /** Quiet HUD (issue #441): only the wind compass and the instrument at sea; off by default. */
+  quietHud: boolean;
+  /** The wind compass dial; it can be switched off on the hardest level only (Guillaume). */
+  windCompass: boolean;
   /** Chosen language; null follows the browser (decision 0037). */
   language: LanguageId | null;
   /** Background music volume, 0 (off) to 1 (decision 0045). */
@@ -37,6 +40,8 @@ export interface Settings {
   turnCamera: boolean;
   /** A turned camera eases back north-up after a few seconds without camera input (0223). */
   cameraReturns: boolean;
+  /** How much the interface moves (decision 0274): full, reduced or off; follows the device first. */
+  motion: MotionMode;
   /** The boat rises, pitches and shakes less on the waves (decision 0250); drawing only. */
   gentleMotion: boolean;
   /** The camera rises and sinks with the sea under the boat (decision 0250); off by default. */
@@ -85,7 +90,8 @@ const DEFAULTS: Settings = {
   seenWindHint: false,
   seenPressHint: false,
   uiMode: 'adult',
-  showLog: true,
+  quietHud: false,
+  windCompass: true,
   language: null,
   musicVolume: 0.6,
   soundVolume: 0.7,
@@ -94,6 +100,7 @@ const DEFAULTS: Settings = {
   dayNight: true,
   turnCamera: true,
   cameraReturns: false,
+  motion: 'full',
   gentleMotion: false,
   cameraBob: false,
   waves: null,
@@ -126,6 +133,7 @@ export function loadSettings(search = ''): Settings {
     const settings = { ...DEFAULTS, ...saved };
     // Until the player picks, gentle motion follows the device's "reduce motion" setting.
     if (typeof saved.gentleMotion !== 'boolean') settings.gentleMotion = prefersReducedMotion();
+    if (!isMotionMode(saved.motion)) settings.motion = prefersReducedMotion() ? 'reduced' : 'full';
     if (typeof settings.waves !== 'boolean') settings.waves = null;
     if (!isLanguage(settings.language)) settings.language = null;
     const volume = Number(settings.musicVolume);

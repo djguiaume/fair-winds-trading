@@ -1,0 +1,9 @@
+{
+  "arrivalRadius": 46,
+  "arrivalRearm": 80,
+  "arrivalMs": 2200,
+  "stampMs": 700,
+  "tradeRollMs": 500,
+  "countdownFrom": 10,
+  "duskFadeMs": 6000
+}

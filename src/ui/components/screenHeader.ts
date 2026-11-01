@@ -33,7 +33,7 @@ function exitButton(kind: HeaderExit, press: () => void): HTMLButtonElement {
   b.dataset.padClose = '';
   b.setAttribute('aria-label', t(kind === 'back' ? 'ui.back' : 'ui.close'));
   b.innerHTML = kind === 'back' ? BACK : icon('close');
-  onPress(b, press);
+  onPress(b, press, 'back');
   return b;
 }
 
