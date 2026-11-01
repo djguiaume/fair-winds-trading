@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
+import { BOAT_LOOK } from '../src/render/models/boatLook';
 import { FLUYT_MIZZEN } from '../src/render/models/fluytDetails';
 import { createBoatModel } from '../src/render/models';
 import { isRefinedShip } from '../src/render/models/shipModels';
@@ -88,7 +89,7 @@ describe('refined fluyt', () => {
           const colors = mesh(b, 'FluytHull').geometry.getAttribute('color');
           for (const [required, hex] of [
             [hull >= 2, '#b5652a'],
-            [hull >= 3, '#c8743c'],
+            [hull >= 3, BOAT_LOOK.hull.copper],
           ] as const) {
             const c = new THREE.Color(hex);
             expect(
