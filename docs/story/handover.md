@@ -22,7 +22,7 @@ Carried over from v1.1: the empty Quay tab reads "Nobody waiting on the quay jus
 
 - v1.3.1 "Boats that ride them": waves slow the boat in head seas (#284, PR #408). Ruled: first-upgrade price kept, balance target moved to 5.25 min. Texts: Settings "Waves slow the boat" / "Les vagues freinent le bateau" (note "Off: she sails as fast in any sea as in flat water"); HUD "Waves −3%" / "Vagues −3 %" (true minus, NBSP before % in FR). It is a hazard-style switch in Settings. No race or quest text may mention the slowdown.
 - v1.4 boat names, figurehead names and cosmetic text: ask the storyteller for the line, not Guillaume. Names are plain and sea-worn like the existing fleet, no leading word already taken (see "Rules that stay"), "Swift" is never a name, no "Skerry". Figureheads are carved things, not characters: no speech, no lore claims, nothing that implies pirates or guns. Cosmetics are pride, never power (same as regatta rewards). Every new text needs EN and FR, NBSP before : ! ? ; and %, FR map names untranslated.
-- v1.5 ([plan](../v1.5/plan.md)) is the next story release; the storyteller leads it and rules prices and progression before Guillaume.
+- The story release ([plan](../v1.6/plan.md), renumbered v1.6 on 2026-11-01; v1.5 is the UI rebuild) is the next story release; the storyteller leads it and rules prices and progression before Guillaume.
 
 ## Pointers
 
