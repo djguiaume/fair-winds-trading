@@ -7,10 +7,11 @@ import { buildProp } from './propRecipe';
 /**
  * A figurehead (docs/v1.4/customisation.md): its prop recipe (decision 0135, seated at its
  * origin, leaning forward toward +Z and up) scaled so its longest reach seen from the side is
- * the mount's `size` times the item's, then set at the stem head, `drop` below the deck at
- * `stem`. Every carving thus reads the same at the bow whatever its recipe's units. Merged into
- * the hull mesh by the caller, so it heaves, pitches, rolls and heels with her for no extra draw
- * call. No mount, no figurehead or an unknown recipe: nothing.
+ * the mount's `size` times the item's, then hung on the stem with its top `drop` below the
+ * deck at `stem`: under the bowsprit, clear of the jib's foot (Guillaume, #299). Every carving
+ * thus reads the same at the bow whatever its recipe's units. Merged into the hull mesh by the
+ * caller, so it heaves, pitches, rolls and heels with her for no extra draw call. No mount, no
+ * figurehead or an unknown recipe: nothing.
  */
 export function figureheadParts(
   figurehead: BoatLook['figurehead'],
@@ -25,20 +26,22 @@ export function figureheadParts(
     shape: 0,
     size: 1,
   });
-  const reach = sideReach(parts);
+  const box = bounds(parts);
+  const size = box.getSize(new THREE.Vector3());
+  const reach = Math.max(size.y, size.z);
   if (!(reach > 0)) return [];
   const k = (mount.size * figurehead.size) / reach;
-  for (const g of parts) g.scale(k, k, k).translate(stem.x, stem.y - mount.drop, stem.z);
+  const top = stem.y - mount.drop - box.max.y * k;
+  for (const g of parts) g.scale(k, k, k).translate(stem.x, top, stem.z);
   return parts;
 }
 
-/** The longest of a set of parts' height and length (y and z), as seen from the side. */
-function sideReach(parts: THREE.BufferGeometry[]) {
+/** The box round a set of parts; seen from the side its height is y and its length z. */
+function bounds(parts: THREE.BufferGeometry[]) {
   const box = new THREE.Box3();
   for (const g of parts) {
     g.computeBoundingBox();
     box.union(g.boundingBox!);
   }
-  const size = box.getSize(new THREE.Vector3());
-  return Math.max(size.y, size.z);
+  return box;
 }
