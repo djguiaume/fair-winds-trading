@@ -1,0 +1,8 @@
+[
+ {"name":"t-c","port":"saltmere","time":405,"tilt":12,"yaw":70,"zoom":0.42,"sizes":["desktop","landscape"]},
+ {"name":"n-a","sail":2,"night":true,"sizes":["desktop","landscape"]},
+ {"name":"s-day","sail":2,"sizes":["desktop","landscape"]},
+ {"name":"s-storm","at":[760,290],"heading":90,"storms":true,"weather":true,"sail":1,"wait":3000,"sizes":["desktop","landscape"]},
+ {"name":"h-a","port":"saltmere","tilt":40,"yaw":90,"zoom":0.9,"sizes":["desktop"]},
+ {"name":"h-e","port":"saltmere","tilt":38,"yaw":90,"zoom":0.8,"look":[215,-128],"sizes":["landscape"]}
+]

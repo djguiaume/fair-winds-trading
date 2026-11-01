@@ -1,0 +1,233 @@
+/* Direction 3, "The painted harbour": cosy and illustrated. Painted wood and sailcloth, a hand-lettered
+   sign, bottle green as the signature, colour-coded goods. Rounded but not toy-like: small radii,
+   a painted edge and one darker lip, no bevels. Canvas grain on wood only, never seams. */
+:root {
+  --wood: #3e2b20;
+  --wood-2: #4d3628;
+  --wood-3: #5f4433;
+  --cloth: #f3ead6;         /* sailcloth cream */
+  --cloth-2: #e5d6b4;
+  --cloth-3: #d4c095;
+  --ink: #2c211a;
+  --ink-2: #6f5c4b;
+  --sig: #2f6d4f;           /* bottle green, the signature */
+  --sig-dark: #20503a;
+  --sig-wash: #d3e3cf;
+  --on-sig: #f3ead6;
+  --fish: #4f86ad; --grain: #d29a2e; --timber: #9c6236; --stone: #858d94;
+  --canvas: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55 .9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+  --f-display: 'Caprasimo', Georgia, serif;
+  --f-body: 'Nunito Sans', sans-serif;
+}
+body { font-family: var(--f-body); font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.hbtn, .p-head .p-title, .tabs, .stat, .c-zoom button { position: relative; }
+.market { bottom: auto; }
+
+/* Painted surfaces: a brushed edge under the content. */
+.t-menu .btn, .h-status, .h-strip, .h-toast, .h-instr, .hbtn, .market, .people, .p-title, .c-title, .c-key, .padbar, .tabs, .p-wallet { isolation: isolate; }
+.h-status::before, .h-toast::before, .market::before, .people::before, .c-key::before, .padbar::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 10px;
+  background: var(--cloth); filter: url(#brush) drop-shadow(0 3px 0 rgba(44, 33, 26, .55)) drop-shadow(0 6px 10px rgba(20, 14, 8, .3));
+}
+.h-strip::before, .h-instr::before, .hbtn::before, .p-title::before, .c-title::before, .tabs::before, .p-wallet::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 10px;
+  background: var(--canvas), var(--wood); filter: url(#brush) drop-shadow(0 3px 0 rgba(20, 14, 8, .6)) drop-shadow(0 6px 10px rgba(20, 14, 8, .3));
+}
+.p-wallet { position: relative; padding: 10px 18px; color: var(--cloth); }
+
+.pad { min-width: 24px; height: 24px; border-radius: 12px; background: var(--ink); color: var(--cloth); font: 800 13px/1 var(--f-body); padding: 0 6px; }
+.pad-wide { border-radius: 7px; font-size: 12px; }
+.ic .i1 { fill: currentColor; } .ic .i2 { fill: currentColor; opacity: .55; }
+.ic-coin .i1 { fill: #a8673a; } .ic-coin .i2 { fill: #d9955e; opacity: 1; }  /* copper, not the reserved brass */
+
+/* Logo: the harbour sign. */
+.logo-harbour .l-sign { width: 520px; height: 250px; overflow: visible; }
+.l-rope { stroke: #c9b48a; stroke-width: 5; stroke-linecap: round; }
+.l-board { fill: var(--wood); filter: url(#brush) drop-shadow(0 6px 0 rgba(20, 14, 8, .5)) drop-shadow(0 10px 14px rgba(20, 14, 8, .35)); }
+.l-board-in { fill: var(--sig); filter: url(#brush); }
+.logo-harbour .l-fair, .logo-harbour .l-fair-shadow { font: 400 86px var(--f-display); letter-spacing: 0; }
+.logo-harbour .l-fair { fill: var(--cloth); }
+.logo-harbour .l-fair-shadow { fill: var(--ink); transform: translate(0, 5px); }
+.l-wave { fill: #e9dcb9; } .l-hull { fill: #b47a45; } .l-mast { fill: var(--cloth); } .l-sail { fill: var(--cloth); } .l-sail2 { fill: var(--cloth-2); }
+.logo-harbour .l-ribbon { fill: var(--cloth); filter: drop-shadow(0 3px 0 rgba(20, 14, 8, .45)); }
+.logo-harbour .l-sub { font: 400 20px var(--f-display); fill: var(--sig-dark); }
+
+/* Buttons: painted, small radius, one darker lip. */
+.btn { font: 400 24px/1 var(--f-display); padding: 12px 22px; border-radius: 10px; background: var(--cloth); color: var(--ink); box-shadow: 0 4px 0 var(--cloth-3), 0 8px 12px rgba(20, 14, 8, .3); }
+.btn.primary { background: var(--sig); color: var(--on-sig); box-shadow: 0 4px 0 var(--sig-dark), 0 8px 12px rgba(20, 14, 8, .3); }
+.btn.focus { outline: 3px solid var(--cloth); outline-offset: 4px; }
+.b-sub { font: 700 14px/1.2 var(--f-body); opacity: .9; }
+
+/* Title: the sign hangs centre top, the actions sit in one row along the quay. */
+.s-title .grade { background: linear-gradient(180deg, rgba(255, 190, 110, .26), rgba(255, 170, 100, .08) 45%, rgba(60, 35, 20, .35)); mix-blend-mode: soft-light; }
+.s-title .t-brand { left: 50%; top: 18px; transform: translateX(-50%); }
+.s-title .t-menu { left: 50%; bottom: 92px; transform: translateX(-50%); flex-direction: row; align-items: flex-end; gap: 14px; }
+.s-title .t-menu .btn.big { font-size: 34px; padding: 14px 30px; align-items: center; }
+.s-title .t-second { left: 50%; bottom: 34px; transform: translateX(-50%); font-size: 15px; color: var(--cloth); padding: 7px 18px; }
+.s-title .t-second::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 10px; background: rgba(62, 43, 32, .82); }
+.s-title .t-second { isolation: isolate; }
+.lang b { background: var(--cloth); color: var(--ink); border-radius: 6px; } .lang i { color: var(--cloth-2); }
+.t-version { right: 28px; top: 22px; font: 800 15px var(--f-body); color: var(--cloth); text-shadow: 0 1px 2px rgba(0, 0, 0, .5); }
+.s-title .padbar { right: 28px; bottom: 30px; padding: 7px 14px; font-size: 15px; }
+
+/* Sea HUD */
+.h-status { padding: 12px 16px; }
+.stat { font: 800 22px/1 var(--f-body); }
+.h-quest { font-size: 14px; } .h-quest b { font: 400 19px/1.1 var(--f-display); } .h-quest span { color: var(--ink-2); }
+.h-quest .ic { color: var(--sig); width: 24px; height: 24px; }
+.ic-hold { color: var(--timber); } .ic-hull { color: var(--sig); }
+.h-strip { padding: 7px 16px 8px; color: var(--cloth); }
+.tape .t-tick { stroke: var(--cloth-2); stroke-width: 1.6; } .tape .t-tick.major { stroke: var(--cloth); stroke-width: 2.6; }
+.tape text { fill: var(--cloth); text-anchor: middle; } .tape .t-card { font: 400 16px var(--f-display); } .tape .t-num { font: 800 10px var(--f-body); fill: var(--cloth-3); }
+.tape .t-dest { fill: #7fc39b; } .tape .t-lubber { fill: var(--cloth); }
+.h-dest { font-size: 14px; } .h-dest b { font: 400 19px var(--f-display); } .h-dest .ic { color: #7fc39b; } .h-dest span { color: var(--cloth-2); }
+.h-toast { padding: 9px 20px; font: 400 19px var(--f-display); }
+.hbtn { padding: 10px 16px; font: 400 20px var(--f-display); color: var(--cloth); }
+.hbtn .pad { background: var(--cloth); color: var(--ink); }
+.h-instr { padding: 16px 20px 18px; gap: 4px; color: var(--cloth); }
+.i-speed b { font: 400 84px/0.85 var(--f-display); letter-spacing: 0; }
+.i-unit { font: 400 26px var(--f-display); color: var(--cloth-2); }
+.i-pos { font: 400 26px/1 var(--f-display); color: #9fd3b2; margin: 2px 0 6px; }
+.i-wind b { font: 400 19px var(--f-display); } .i-wind span { font-size: 15px; color: var(--cloth-2); }
+.wind-dial .w-face { fill: var(--wood-3); stroke: var(--cloth-3); stroke-width: 2; }
+.wind-dial .w-tick { stroke: var(--cloth-2); stroke-width: 1.6; }
+.wind-dial .w-boat { fill: #b47a45; stroke: var(--ink); stroke-width: 1.4; } .wind-dial .w-sail { fill: var(--cloth); }
+.wind-dial .w-arrow { stroke: #9fd3b2; stroke-width: 5; stroke-linecap: round; } .wind-dial .w-arrow-head, .wind-dial .w-arrow-tail { fill: #9fd3b2; }
+.i-sails { margin-top: 10px; gap: 5px; font: 800 15px var(--f-body); }
+.sl { padding: 6px 0; border-radius: 8px; background: var(--wood-3); color: var(--cloth-2); }
+.sl.on { background: var(--sig); color: var(--on-sig); box-shadow: 0 3px 0 var(--sig-dark); }
+.i-sails .pad { background: var(--cloth); color: var(--ink); }
+
+/* Harbour */
+.p-head { height: 112px; }
+.p-head .p-title { padding: 12px 30px 14px 26px; color: var(--cloth); margin-top: 6px; }
+.p-title h1 { font: 400 54px/1 var(--f-display); }
+.p-title p { font-size: 15px; color: var(--cloth-2); }
+.tabs { padding: 7px; gap: 6px; }
+.tabs a { padding: 8px 18px; font: 400 21px var(--f-display); color: var(--cloth); border-radius: 8px; }
+.tabs a.on { background: var(--cloth); color: var(--ink); box-shadow: 0 3px 0 var(--cloth-3); }
+.tabs a i { font: 800 13px var(--f-body); background: var(--sig); color: var(--on-sig); border-radius: 10px; padding: 1px 7px; }
+.tabs .pad { background: var(--cloth); color: var(--ink); }
+.p-wallet .stat { font-size: 22px; }
+.market { padding: 18px; gap: 16px; }
+.g-head { font: 800 13px var(--f-body); color: var(--ink-2); padding: 0 8px 6px; }
+.g-head span:first-child { grid-column: 1 / 3; }
+.g-row { padding: 7px 8px; border-radius: 10px; margin-bottom: 5px; background: var(--cloth-2); }
+.g-row.on { background: var(--sig-wash); box-shadow: 0 0 0 3px var(--sig); }
+.g-art { border-radius: 10px; display: flex; justify-content: center; align-items: center; height: 48px; }
+.g-row:nth-of-type(2) .g-art { background: var(--fish); } .g-row:nth-of-type(3) .g-art { background: var(--grain); }
+.g-row:nth-of-type(4) .g-art { background: var(--timber); } .g-row:nth-of-type(5) .g-art { background: var(--stone); }
+.g-art .good { width: 40px; height: 40px; }
+.g-name b { font: 400 22px/1 var(--f-display); } .g-name i { font-size: 13px; color: var(--ink-2); }
+.g-hold b { font: 800 19px/1 var(--f-body); } .g-hold i { font-size: 12px; color: var(--ink-2); }
+.g-buy, .g-sell { font: 800 20px var(--f-body); }
+.good .ga { fill: var(--cloth); } .good .gb { fill: var(--cloth-2); } .good .gs { fill: rgba(44, 33, 26, .2); } .good .ge { fill: var(--ink); }
+.good .gl { fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+.detail { padding: 16px; border-radius: 10px; background: var(--cloth-2); }
+.d-art { width: 82px; height: 82px; border-radius: 12px; background: var(--grain); display: flex; align-items: center; justify-content: center; }
+.d-top h2 { font: 400 36px/1 var(--f-display); } .d-top p { color: var(--ink-2); font-size: 14px; }
+.d-trend span { font-size: 14px; color: var(--ink-2); display: flex; gap: 6px; align-items: center; } .d-trend .ic { color: var(--sig); }
+.spark polyline { fill: none; stroke: var(--sig); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; } .spark circle { fill: var(--sig); }
+.d-qty { font-size: 14px; color: var(--ink-2); }
+.d-qty b { padding: 5px 0; border-radius: 8px; background: var(--cloth); font: 800 16px var(--f-body); }
+.d-qty b.on { background: var(--wood); color: var(--cloth); }
+.d-act .btn { flex-direction: column; gap: 3px; font-size: 22px; padding: 10px 6px; }
+.d-act .btn .pad { display: none; }
+.d-act .pr { font: 800 18px var(--f-body); display: inline-flex; gap: 4px; align-items: center; }
+.d-order { font-size: 14px; } .d-order .ic { color: var(--sig); width: 22px; height: 22px; }
+.people { padding: 16px; gap: 14px; }
+.face { border-radius: 14px 14px 10px 10px; background: var(--cloth-3); box-shadow: 0 0 0 3px var(--wood), 0 4px 0 3px var(--wood); }
+.person b { font: 400 21px/1 var(--f-display); } .person i { font-size: 13px; color: var(--ink-2); }
+.person p { font-size: 14px; line-height: 1.3; margin-top: 4px; }
+.person.ask { background: var(--sig-wash); padding: 8px; border-radius: 10px; }
+.village { font-size: 13px; color: var(--ink-2); } .village .bar { background: var(--cloth-3); border-radius: 6px; } .village .bar i { background: var(--sig); }
+.p-foot .padbar { padding: 7px 14px; font-size: 14px; position: relative; }
+.p-foot .sail { font-size: 32px; padding: 14px 32px; }
+.p-foot .sail .ic { width: 30px; height: 30px; } .p-foot .sail .pad { background: var(--on-sig); color: var(--sig-dark); }
+
+/* Chart: a painted map hung in the harbour office. */
+.s-chart { background: var(--canvas), var(--wood); }
+.c-map { inset: 16px; border-radius: 14px; overflow: hidden; box-shadow: 0 0 0 4px var(--wood-3), inset 0 0 40px rgba(44, 33, 26, .35); }
+.c-sea { fill: #8fbcc6; stroke: var(--cloth); stroke-width: 3px; stroke-dasharray: 10 8; vector-effect: non-scaling-stroke; }
+.c-shore { fill: #ead9a8; stroke: none; filter: drop-shadow(0 0 7px rgba(235, 245, 240, .8)); }
+.c-land { fill: #86b25d; stroke: none; }
+.c-reef { fill: none; stroke: #4c7380; stroke-width: 1.6px; stroke-dasharray: 2 4; vector-effect: non-scaling-stroke; }
+.c-bank, .c-shallows { fill: #b6d6d0; stroke: none; }
+.c-ice, .c-bergs { fill: #e9eff0; stroke: none; }
+.c-quest { display: none; }
+.c-label { font-family: var(--f-display); fill: var(--ink); stroke: var(--cloth); paint-order: stroke; text-anchor: middle; }
+.c-label.small { font-family: var(--f-body); font-weight: 800; fill: #33545f; stroke: none; }
+#ovl .o-course { fill: none; stroke: var(--sig-dark); stroke-width: 4; stroke-dasharray: 12 7; stroke-linecap: round; }
+#ovl .o-past { fill: none; stroke: var(--cloth); stroke-width: 2.4; stroke-dasharray: 2 6; stroke-linecap: round; }
+#ovl .o-boat { fill: #b47a45; stroke: var(--ink); stroke-width: 2; }
+#ovl .o-quest-ring { fill: var(--cloth); stroke: var(--sig); stroke-width: 3; } #ovl .o-quest-flag { fill: var(--sig); }
+#ovl .o-done circle { fill: var(--cloth); stroke: var(--ink); stroke-width: 2; }
+#ovl .o-label { font: 400 18px var(--f-display); fill: var(--ink); stroke: var(--cloth); stroke-width: 5; paint-order: stroke; }
+#ovl .o-dest { fill: var(--sig-dark); font-size: 20px; }
+.r-ring { fill: rgba(243, 234, 214, .75); stroke: var(--wood); stroke-width: 2.4; } .r-ring2 { fill: none; stroke: var(--wood-3); stroke-width: 1; }
+.r-tick { stroke: var(--wood); stroke-width: 1.2; } .r-dark { fill: var(--sig); } .r-light { fill: var(--cloth); stroke: var(--wood); stroke-width: .8; }
+.r-hub { fill: var(--cloth); stroke: var(--wood); } .r-n { font: 400 24px var(--f-display); fill: var(--wood); text-anchor: middle; }
+.c-title { left: 40px; top: 36px; padding: 12px 24px; color: var(--cloth); }
+.c-title h1 { font: 400 38px/1 var(--f-display); } .c-title p { font-size: 14px; color: var(--cloth-2); }
+.c-tabs { right: 16px; }
+.c-tabs a { padding: 12px 20px; background: var(--cloth-2); border-radius: 10px 0 0 10px; font: 400 21px var(--f-display); box-shadow: 0 3px 0 var(--cloth-3); }
+.c-tabs a.on { background: var(--sig); color: var(--on-sig); box-shadow: 0 3px 0 var(--sig-dark); }
+.c-key { left: 40px; bottom: 34px; padding: 8px 16px; font-size: 14px; }
+.c-key .k-course { border-top: 4px dashed var(--sig-dark); height: 0; } .c-key .k-quest { background: var(--cloth); border: 3px solid var(--sig); border-radius: 50%; width: 14px; height: 14px; }
+.c-key .k-reef { border-top: 2px dotted #4c7380; height: 0; }
+.c-zoom { right: 36px; bottom: 86px; }
+.c-zoom button { background: var(--cloth); border-radius: 10px; box-shadow: 0 3px 0 var(--cloth-3); }
+.s-chart .padbar { bottom: 34px; padding: 7px 14px; font-size: 14px; }
+
+/* Phone landscape */
+.z-phone .logo-harbour .l-sign { width: 300px; height: 144px; }
+.z-phone.s-title .t-brand { top: 4px; }
+.z-phone.s-title .t-menu { bottom: 58px; gap: 8px; }
+.z-phone .btn { font-size: 17px; padding: 8px 14px; }
+.z-phone.s-title .t-menu .btn.big { font-size: 22px; padding: 8px 18px; }
+.z-phone .b-sub { font-size: 11px; }
+.z-phone.s-title .t-second { bottom: 14px; font-size: 12px; gap: 12px; padding: 4px 12px; }
+.z-phone .t-version { right: 14px; top: 10px; font-size: 11px; }
+.z-phone.s-title .padbar { display: none; }
+.z-phone .pad { min-width: 20px; height: 20px; font-size: 11px; }
+.z-phone .h-status { padding: 8px 10px; } .z-phone .stat { font-size: 16px; } .z-phone .h-stats { gap: 12px; }
+.z-phone .h-quest { margin-top: 5px; font-size: 11px; } .z-phone .h-quest b { font-size: 14px; } .z-phone .h-quest .ic { width: 18px; height: 18px; }
+.z-phone .h-strip { padding: 4px 10px 5px; } .z-phone .h-dest { font-size: 11px; margin-top: 2px; } .z-phone .h-dest b { font-size: 14px; }
+.z-phone .h-toast { font-size: 14px; padding: 5px 12px; }
+.z-phone .hbtn { font-size: 14px; padding: 6px 10px; gap: 5px; } .z-phone .hbtn .pad { display: none; }
+.z-phone .h-instr { padding: 10px 12px; gap: 2px; }
+.z-phone .i-speed b { font-size: 54px; } .z-phone .i-unit { font-size: 17px; } .z-phone .i-pos { font-size: 17px; margin: 1px 0 3px; }
+.z-phone .i-wind b { font-size: 14px; } .z-phone .i-wind span { font-size: 11px; }
+.z-phone .i-sails { font-size: 11px; margin-top: 5px; } .z-phone .sl { padding: 3px 0; }
+.z-phone .p-head { height: 60px; }
+.z-phone .p-head .p-title { padding: 5px 16px 7px 14px; margin-top: 2px; } .z-phone .p-title h1 { font-size: 28px; } .z-phone .p-title p { display: none; }
+.z-phone .tabs { padding: 4px; gap: 2px; } .z-phone .tabs a { font-size: 14px; padding: 4px 8px; } .z-phone .tabs a i { font-size: 11px; padding: 0 5px; }
+.z-phone .p-wallet { padding: 6px 10px; gap: 10px; } .z-phone .p-wallet .stat { font-size: 15px; }
+.z-phone .market { padding: 10px; gap: 10px; }
+.z-phone .g-head { font-size: 11px; padding: 0 4px 2px; } .z-phone .g-row { padding: 3px 4px; margin-bottom: 3px; }
+.z-phone .g-art { height: 32px; border-radius: 7px; } .z-phone .g-art .good { width: 26px; height: 26px; }
+.z-phone .g-name b { font-size: 15px; } .z-phone .g-name i { font-size: 11px; }
+.z-phone .g-hold b { font-size: 14px; } .z-phone .g-hold i { display: none; } .z-phone .g-buy, .z-phone .g-sell { font-size: 14px; }
+.z-phone .detail { padding: 8px 10px; } .z-phone .d-art { width: 50px; height: 50px; } .z-phone .d-top h2 { font-size: 22px; } .z-phone .d-top p { font-size: 11px; }
+.z-phone .d-trend span { font-size: 11px; } .z-phone .d-qty { font-size: 11px; } .z-phone .d-qty b { font-size: 12px; padding: 2px 0; min-width: 30px; }
+.z-phone .d-act .btn { font-size: 16px; padding: 5px; } .z-phone .d-act .pr { font-size: 13px; }
+.z-phone .d-order { display: none; }
+.z-phone .people { padding: 8px; } .z-phone .person.ask p { font-size: 11px; } .z-phone .person b { font-size: 15px; }
+.z-phone .p-foot .padbar { font-size: 11px; padding: 5px 10px; }
+.z-phone .p-foot .sail { font-size: 20px; padding: 7px 18px; } .z-phone .p-foot .sail .ic { width: 20px; height: 20px; }
+.z-phone .c-map { inset: 8px; }
+.z-phone .c-title { left: 20px; top: 18px; padding: 6px 14px; } .z-phone .c-title h1 { font-size: 22px; } .z-phone .c-title p { font-size: 11px; }
+.z-phone .c-tabs { right: 8px; } .z-phone .c-tabs a { font-size: 14px; padding: 7px 12px; }
+.z-phone.s-chart .padbar { bottom: 16px; font-size: 11px; padding: 5px 10px; }
+.z-phone .c-zoom { right: 20px; bottom: 56px; }
+.z-phone #ovl .o-label { font-size: 22px; }
+.h-arrive { padding: 10px 40px 12px; color: var(--cloth); isolation: isolate; }
+.h-arrive::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 12px; background: var(--canvas), var(--wood); filter: url(#brush) drop-shadow(0 4px 0 rgba(20, 14, 8, .6)) drop-shadow(0 8px 12px rgba(20, 14, 8, .3)); }
+.h-arrive b { font: 400 50px/1 var(--f-display); } .h-arrive span { font: 800 16px var(--f-body); color: #9fd3b2; }
+.logo-harbour .l-fair, .logo-harbour .l-fair-shadow { font-size: 74px; }
+.z-phone .h-arrive { padding: 5px 22px 7px; } .z-phone .h-arrive b { font-size: 30px; } .z-phone .h-arrive span { font-size: 12px; }
+.s-identity { background: var(--canvas), var(--wood); color: var(--cloth); }
+.s-identity h2, .id-type .ty-d { font-family: var(--f-display); font-weight: 400; }
+.s-identity .id-parts .btn:not(.primary) { color: var(--ink); }
+.s-identity .logo-harbour .l-sign { width: 480px; height: 231px; }
+.s-identity .pad { background: var(--cloth); color: var(--ink); }

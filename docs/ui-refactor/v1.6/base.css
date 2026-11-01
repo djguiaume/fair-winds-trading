@@ -1,0 +1,144 @@
+/* Layout shared by the three directions (positions and sizes only; no colour, no type). */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+body { background: #222; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; background: none; border: 0; }
+a { color: inherit; text-decoration: none; }
+i, em { font-style: normal; }
+#app, .scr { position: absolute; inset: 0; }
+.bg { position: absolute; inset: 0; background: center / cover no-repeat; }
+.grade { position: absolute; inset: 0; pointer-events: none; }
+.ic { width: 1.1em; height: 1.1em; flex: none; display: inline-block; vertical-align: -0.16em; }
+svg { display: block; }
+.pad { display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.padbar { position: absolute; display: flex; gap: 18px; align-items: center; }
+.pb { display: inline-flex; align-items: center; gap: 6px; }
+.btn { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
+
+/* Title */
+.t-brand, .t-menu, .t-second, .t-version { position: absolute; }
+.t-menu { display: flex; flex-direction: column; }
+.t-menu .btn.big { flex-direction: column; align-items: flex-start; gap: 2px; }
+.t-second { display: flex; gap: 22px; align-items: center; }
+.lang { display: inline-flex; gap: 2px; }
+.lang b, .lang i { padding: 2px 8px; }
+
+/* Sea HUD: three clusters plus actions */
+.h-status { position: absolute; left: 20px; top: 18px; }
+.h-stats { display: flex; gap: 18px; }
+.stat { display: inline-flex; align-items: center; gap: 6px; }
+.stat-l { display: none; }
+.h-quest { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+.h-quest div { display: flex; flex-direction: column; }
+.h-strip { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; }
+.tape { width: 420px; height: 34px; }
+.h-dest { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; }
+.h-toast { position: absolute; top: 116px; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+.h-arrive { position: absolute; top: 104px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; white-space: nowrap; }
+.h-toast.warn { display: inline-flex; align-items: center; gap: 8px; }
+.h-toast.warn .ic { color: #ffb36b; width: 22px; height: 22px; }
+.z-phone .h-arrive { top: 72px; }
+.btn { white-space: nowrap; }
+.h-actions { position: absolute; left: 20px; bottom: 20px; display: flex; gap: 10px; }
+.hbtn { display: inline-flex; align-items: center; gap: 8px; }
+.h-instr { position: absolute; right: 20px; bottom: 20px; width: 300px; display: flex; flex-direction: column; }
+.i-speed { display: flex; align-items: baseline; gap: 6px; }
+.i-row { display: flex; gap: 12px; align-items: center; }
+.wind-dial { width: 76px; height: 76px; flex: none; }
+.i-wind { display: flex; flex-direction: column; }
+.i-sails { display: flex; align-items: center; gap: 4px; }
+.sl { flex: 1; text-align: center; }
+
+/* Harbour */
+.p-head { position: absolute; left: 0; right: 0; top: 0; height: 100px; display: flex; align-items: center; gap: 28px; padding: 0 24px; }
+.p-title { flex: none; }
+.tabs { display: flex; align-items: center; gap: 4px; }
+.tabs a { position: relative; display: inline-flex; align-items: center; gap: 6px; }
+.p-wallet { margin-left: auto; display: flex; gap: 18px; }
+.pane { position: absolute; }
+.market { left: 20px; top: 114px; bottom: 86px; width: 640px; display: flex; gap: 0; }
+.goods { flex: 1.25; display: flex; flex-direction: column; }
+.g-head, .g-row { display: grid; grid-template-columns: 52px 1fr 44px 54px 54px; align-items: center; gap: 8px; }
+.g-art .good { width: 44px; height: 44px; }
+.g-name, .g-hold { display: flex; flex-direction: column; }
+.g-buy, .g-sell { display: inline-flex; align-items: center; gap: 4px; }
+.detail { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+.d-top { display: flex; gap: 12px; align-items: center; }
+.d-art .good { width: 72px; height: 72px; }
+.d-trend { display: flex; flex-direction: column; gap: 4px; }
+.spark { width: 100%; height: 34px; }
+.d-qty { display: flex; gap: 6px; align-items: center; }
+.d-qty b { min-width: 40px; text-align: center; }
+.d-act { display: flex; gap: 8px; }
+.d-act .btn { flex: 1; justify-content: center; }
+.d-order { display: flex; gap: 8px; align-items: flex-start; }
+.people { right: 20px; top: 114px; width: 272px; display: flex; flex-direction: column; gap: 10px; }
+.person { display: flex; gap: 10px; align-items: flex-start; }
+.person.ask { align-items: center; }
+.face { flex: none; display: block; width: 64px; height: 64px; overflow: hidden; }
+.face-svg { width: 100%; height: 100%; }
+.person div { display: flex; flex-direction: column; }
+.village { display: flex; gap: 8px; align-items: center; }
+.village .bar { flex: 1; height: 8px; position: relative; overflow: hidden; }
+.village .bar i { position: absolute; left: 0; top: 0; bottom: 0; }
+.p-foot { position: absolute; left: 0; right: 0; bottom: 0; height: 72px; display: flex; align-items: center; padding: 0 24px; }
+.p-foot .padbar { position: static; }
+.p-foot .sail { margin-left: auto; }
+
+/* Chart */
+.c-map { position: absolute; inset: 0; }
+.c-map > svg { width: 100%; height: 100%; }
+.c-title, .c-tabs, .c-key, .c-zoom { position: absolute; }
+.c-title { left: 28px; top: 22px; }
+.c-tabs { right: 0; top: 110px; display: flex; flex-direction: column; gap: 6px; }
+.c-tabs a { display: flex; align-items: center; gap: 8px; }
+.c-key { left: 28px; bottom: 22px; display: flex; gap: 16px; }
+.c-key span { display: inline-flex; align-items: center; gap: 6px; }
+.c-key i { display: inline-block; width: 22px; height: 10px; }
+.c-zoom { right: 24px; bottom: 70px; display: flex; flex-direction: column; gap: 6px; }
+.c-zoom button { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+.s-chart .padbar { left: 50%; transform: translateX(-50%); bottom: 20px; }
+
+/* Phone landscape (844 x 390): same parts, smaller, fewer words. */
+.z-phone .h-status { left: 12px; top: 10px; }
+.z-phone .tape { width: 300px; height: 28px; }
+.z-phone .h-strip { top: 6px; }
+.z-phone .h-toast { top: 82px; }
+.z-phone .h-actions { left: 12px; bottom: 10px; gap: 6px; }
+.z-phone .h-instr { right: 12px; bottom: 10px; width: 220px; }
+.z-phone .wind-dial { width: 54px; height: 54px; }
+.z-phone .p-head { height: 56px; gap: 14px; padding: 0 12px; }
+.z-phone .market { left: 10px; top: 62px; bottom: 50px; width: 520px; }
+.z-phone .g-head, .z-phone .g-row { grid-template-columns: 34px 1fr 30px 40px 40px; gap: 5px; }
+.z-phone .g-art .good { width: 30px; height: 30px; }
+.z-phone .d-art .good { width: 44px; height: 44px; }
+.z-phone .detail { gap: 6px; }
+.z-phone .spark { height: 22px; }
+.z-phone .people { right: 10px; top: 62px; width: 220px; }
+.z-phone .person:first-child, .z-phone .village { display: none; }
+.z-phone .face { width: 40px; height: 40px; }
+.z-phone .p-foot { height: 46px; padding: 0 12px; }
+.z-phone .padbar { gap: 12px; }
+.z-phone .c-title { left: 14px; top: 10px; }
+.z-phone .c-tabs { top: 60px; }
+.z-phone .c-key { display: none; }
+.z-phone .c-zoom { right: 12px; bottom: 50px; }
+.z-phone .c-zoom button { width: 34px; height: 34px; }
+.z-phone.s-chart .padbar, .z-phone.s-chart .padbar { bottom: 10px; }
+
+/* Identity card (contact sheet header) */
+.s-identity .scr { display: flex; align-items: center; gap: 40px; padding: 30px 44px; }
+.id-logo { flex: none; width: 520px; display: flex; justify-content: center; }
+.id-text { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+.id-text h2 { font-size: 34px; line-height: 1; }
+.id-text p { font-size: 16px; line-height: 1.3; }
+.id-sw { display: flex; gap: 10px; flex-wrap: wrap; }
+.sw { display: flex; flex-direction: column; width: 118px; font-size: 12px; gap: 3px; }
+.sw .chip { height: 34px; border-radius: 4px; box-shadow: inset 0 0 0 1px rgba(128, 128, 128, .45); display: flex; overflow: hidden; }
+.sw .chip.goods i { flex: 1; display: block; height: 100%; }
+.sw code { font: 12px ui-monospace, monospace; opacity: .8; }
+.id-type { display: flex; flex-direction: column; gap: 2px; }
+.id-type .ty-d { font-size: 34px; line-height: 1.1; }
+.id-type .ty-b { font-size: 17px; }
+.id-type code { font: 12px ui-monospace, monospace; opacity: .8; margin-top: 2px; }
+.id-parts { display: flex; gap: 12px; align-items: center; }
