@@ -82,6 +82,7 @@ export class BoatLooksScreen {
     document.body.append(this.root);
     this.root.addEventListener('click', (e) => this.click(e));
     this.root.addEventListener('keydown', (e) => this.key(e));
+    this.root.addEventListener('close', () => this.cleanUp());
     // Esc and the pad's B: leave through `close`, which frees the preview.
     this.root.addEventListener('cancel', (e) => {
       e.preventDefault();
@@ -115,12 +116,17 @@ export class BoatLooksScreen {
 
   /** Leaves without keeping what was only tried on; frees the 3D preview. */
   close() {
-    if (!this.isOpen) return;
+    if (this.root.open) this.root.close();
+    this.cleanUp();
+  }
+
+  /** Also when something else closes the dialog: the preview never outlives the screen. */
+  private cleanUp() {
+    if (!this.preview) return;
     removeEventListener('resize', this.onResize);
-    this.preview?.dispose();
+    this.preview.dispose();
     this.preview = null;
     this.figureheads.clear();
-    this.root.close();
     this.root.innerHTML = '';
     this.returnFocus?.focus?.();
   }
