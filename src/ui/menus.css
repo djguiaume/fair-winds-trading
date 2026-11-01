@@ -440,6 +440,35 @@ body.at-title .in-game {
   }
 }
 
+/* Short landscape phones, paused: the title shrinks so Resume and every row stay on screen. */
+@media (max-height: 480px) {
+  .menu.is-paused .menu-side {
+    gap: 4px;
+  }
+  .menu.is-paused .menu-brand {
+    padding: 4px 8px 2px;
+    margin-top: 0;
+  }
+  .menu.is-paused .menu-kicker,
+  .menu.is-paused .menu-tagline {
+    display: none;
+  }
+  .menu.is-paused .menu-emblem {
+    width: 34px;
+    height: 34px;
+  }
+  .menu.is-paused .menu-title {
+    font-size: var(--fs-lead);
+  }
+  .menu.is-paused .menu-row {
+    min-height: 30px;
+    font-size: var(--fs-lead);
+  }
+  .menu.is-paused .d-btn.big {
+    min-height: 40px;
+  }
+}
+
 /* --- Full-screen sheets: settings, how to play ---------------------------------------- */
 .sheet {
   position: fixed;
@@ -685,7 +714,6 @@ label.set-row {
   }
 }
 @media (max-width: 700px) {
-  .settings-body,
   .help-body {
     grid-template-columns: 1fr;
     align-content: start;
@@ -1498,4 +1526,20 @@ html[data-input='pad'] .pad-only {
     monospace;
   white-space: pre-wrap;
   pointer-events: none;
+}
+/* Settings stays two columns on landscape phones, with tighter rows, so more shows at once. */
+@media (max-width: 700px) and (orientation: portrait) {
+  .settings-body {
+    grid-template-columns: 1fr;
+    align-content: start;
+  }
+}
+@media (max-height: 480px) {
+  .set-row {
+    min-height: 38px;
+    padding: 3px 10px;
+  }
+  .settings-body {
+    gap: 6px 18px;
+  }
 }
