@@ -1,0 +1,62 @@
+/*
+ * The UI's motion (decision 0269, motion.ts): ways in for screens and toasts, the way out of a
+ * toast, and the pressed button's scale. Durations and easings are theme tokens. Moves use the
+ * `translate` and `scale` properties, so a screen's own `transform` (centring) is left alone.
+ */
+
+[data-enter='fade'] {
+  animation: ui-fade var(--ui-dur-base) var(--ui-ease-out) both;
+}
+[data-enter='slide'] {
+  animation: ui-slide var(--ui-dur-slow) var(--ui-ease-out) both;
+}
+[data-enter='rise'] {
+  animation: ui-rise var(--ui-dur-base) var(--ui-ease-out) both;
+}
+[data-leave] {
+  animation: ui-sink var(--ui-dur-fast) var(--ui-ease-in-out) both;
+}
+
+.ui-pressable {
+  transition: scale var(--ui-dur-fast) var(--ui-ease-out);
+}
+.ui-pressable:active:not(:disabled, [aria-disabled='true']) {
+  scale: var(--ui-press-scale);
+}
+
+@keyframes ui-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes ui-slide {
+  from {
+    opacity: 0;
+    translate: var(--ui-space-6) 0;
+  }
+}
+@keyframes ui-rise {
+  from {
+    opacity: 0;
+    translate: 0 var(--ui-space-4);
+  }
+}
+@keyframes ui-sink {
+  to {
+    opacity: 0;
+    translate: 0 var(--ui-space-2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-enter],
+  [data-leave] {
+    animation: none;
+  }
+  .ui-pressable {
+    transition: none;
+  }
+  .ui-pressable:active {
+    scale: none;
+  }
+}
