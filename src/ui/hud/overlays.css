@@ -56,7 +56,7 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  font: 400 21px/1.1 var(--ui-font-title);
+  font: 400 var(--fs-title) / 1.1 var(--ui-font-title);
 }
 #hud .port-marker-icon {
   width: 16px;
@@ -71,11 +71,11 @@
   justify-content: center;
   gap: 10px;
   margin-top: 2px;
-  font: 700 15px/1.2 var(--ui-font-text);
+  font: 700 var(--fs-lead) / 1.2 var(--ui-font-text);
 }
 .port-marker-tag small {
   margin-right: 3px;
-  font-size: 13px;
+  font-size: var(--fs-body);
   font-weight: 600;
 }
 .wants-tag,
@@ -102,8 +102,8 @@
 .port-marker-cue {
   display: block;
   margin-top: 2px;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--fs-text);
+  font-weight: 700;
 }
 /* Dock, then Trade once moored: the one action at the pier, in sage. */
 .port-marker-dock {
@@ -117,7 +117,7 @@
   background: var(--ui-sage);
   box-shadow: var(--ui-shadow-2);
   color: var(--ui-on-sage);
-  font: 400 19px/1 var(--ui-font-title);
+  font: 400 var(--fs-head) / 1 var(--ui-font-title);
   text-shadow: none;
 }
 #hud .port-marker-dock .icon {
@@ -129,6 +129,16 @@
 }
 .port-marker-dock .dock-glyph .pad-key {
   margin-right: 2px;
+}
+html[data-layout='phone'] .port-marker-header {
+  font-size: var(--fs-head);
+}
+html[data-layout='phone'] .port-marker-tag,
+html[data-layout='phone'] .port-marker-cue {
+  font-size: var(--fs-body);
+}
+html[data-layout='phone'] .port-marker-tag small {
+  font-size: var(--fs-note);
 }
 .port-marker-stem {
   width: 2px;
@@ -223,7 +233,7 @@
   max-width: min(80vw, 560px);
   transform: translateX(-50%);
   color: var(--hud-text);
-  font: italic 400 22px/1.25 var(--ui-font-title);
+  font: italic 400 var(--fs-title) / 1.25 var(--ui-font-title);
   text-align: center;
   text-shadow: var(--hud-halo);
   animation: toast-in var(--ui-dur-slow) var(--ui-ease-out);
@@ -245,7 +255,7 @@
 }
 html[data-layout='phone'] .toast {
   top: 26%;
-  font-size: 16px;
+  font-size: var(--fs-sub);
 }
 
 /* --- Press warning (decision 0078): the lee edge glows amber, then red; only opacity animates. */

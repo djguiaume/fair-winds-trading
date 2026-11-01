@@ -5,9 +5,5 @@
   "backingInk": 0.4,
   "noGoInk": 0.55,
   "tapeSpanDeg": 70,
-  "compassPx": 176,
-  "compassPxPhone": 104,
-  "speedPx": 96,
-  "speedPxPhone": 58,
   "portSignSeaward": 10
 }

@@ -2,11 +2,17 @@ import { t } from '../../i18n';
 import { el } from '../components/dom';
 import { icon } from '../icons';
 import { DEG } from '../../sim/math';
+import { SHIPPED_THEME } from '../theme/model';
+import { isPhoneLayout } from './bands';
 import { label, labelAttrs, setHidden, setText, svgEl } from './parts';
 
-/** The tape's drawn width in SVG units; CSS scales it for a phone. */
-const WIDTH = 420;
-const HEIGHT = 34;
+/**
+ * The tape's drawn width in SVG units, its desktop width in pixels (`theme.json` › `hud`). A phone
+ * shows a narrower window of the same tape at the same scale, so its marks keep their size.
+ */
+const WIDTH = SHIPPED_THEME.hud.tape ?? 420;
+const PHONE_SHARE = (SHIPPED_THEME.hud['tape-phone'] ?? WIDTH) / WIDTH;
+const HEIGHT = 38;
 const NAMES = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
 
 /** A race's or a timed run's clock in the strip (decisions 0213 and 0217). */
@@ -33,16 +39,23 @@ export class HeadingStrip {
   private readonly tape: SVGGElement;
   private readonly dest: SVGPathElement;
   private readonly pxPerDeg: number;
+  /** What a phone's narrower window shows each side of the bow, less the marker's half width. */
+  private readonly phoneSpan: number;
   private shownHeading = NaN;
   private shownDest = NaN;
 
   constructor(private readonly spanDeg: number) {
     this.pxPerDeg = WIDTH / (spanDeg * 2);
-    const svg = svgEl('svg', { viewBox: `0 0 ${WIDTH} ${HEIGHT}`, 'aria-hidden': 'true' });
+    this.phoneSpan = Math.floor(spanDeg * PHONE_SHARE - 7 / this.pxPerDeg);
+    const svg = svgEl('svg', {
+      viewBox: `0 0 ${WIDTH} ${HEIGHT}`,
+      preserveAspectRatio: 'xMidYMid slice',
+      'aria-hidden': 'true',
+    });
     svg.classList.add('hud-tape');
     this.tape = svgEl('g', {}, svg);
     this.drawTape();
-    this.dest = svgEl('path', { class: 'dest', d: 'M-7 32h14l-7-9z' }, svg);
+    this.dest = svgEl('path', { class: 'dest', d: 'M-7 37h14l-7-9z' }, svg);
     svgEl('path', { class: 'lubber', d: `M${WIDTH / 2 - 7} 0h14l-7 8z` }, svg);
     this.target.id = 'navigation-target';
     this.target.hidden = true;
@@ -62,7 +75,10 @@ export class HeadingStrip {
     this.root.append(svg, this.target);
   }
 
-  /** Ticks every 5°, longer at 15°, the points' names at 45°, over 360° plus a span each side. */
+  /**
+   * Ticks every 5°, longer at 15°, and only the points' names at 45° (art director: no small
+   * numbers), over 360° plus a span each side.
+   */
   private drawTape() {
     let ticks = '';
     let majors = '';
@@ -71,15 +87,13 @@ export class HeadingStrip {
       const x = (d * this.pxPerDeg).toFixed(1);
       const b = ((d % 360) + 360) % 360;
       if (b % 45 === 0) {
-        majors += `M${x} 20V32`;
-        const name = svgEl('text', { x, y: 15, class: 'card' }, this.tape);
+        majors += `M${x} 23V36`;
+        const name = svgEl('text', { x, y: 18, class: 'card' }, this.tape);
         const key = `compass.${NAMES[b / 45]!}` as const;
         name.dataset.i18n = key;
         name.textContent = t(key);
       } else {
-        ticks += `M${x} ${b % 15 === 0 ? 24 : 27}V32`;
-        if (b % 15 === 0)
-          svgEl('text', { x, y: 17, class: 'num' }, this.tape).textContent = String(b);
+        ticks += `M${x} ${b % 15 === 0 ? 27 : 30}V36`;
       }
     }
     // Each tick twice: a wider ink line under the light one, the tape's 1 px halo.
@@ -104,15 +118,16 @@ export class HeadingStrip {
     setHidden(this.dest, course === null);
     if (course === null) return;
     // Off the tape, the mark waits at its edge on the side to turn to.
+    const span = isPhoneLayout() ? this.phoneSpan : this.spanDeg;
     const off = ((((course / DEG - deg) % 360) + 540) % 360) - 180;
-    const clamped = Math.max(-this.spanDeg, Math.min(this.spanDeg, Math.round(off)));
+    const clamped = Math.max(-span, Math.min(span, Math.round(off)));
     if (clamped === this.shownDest) return;
     this.shownDest = clamped;
     this.dest.setAttribute(
       'transform',
       `translate(${(WIDTH / 2 + clamped * this.pxPerDeg).toFixed(1)} 0)`,
     );
-    this.dest.classList.toggle('is-off', Math.abs(off) > this.spanDeg);
+    this.dest.classList.toggle('is-off', Math.abs(off) > span);
   }
 
   /** Every visible frame, so a new course shows at once: its name, and the race's × while racing. */

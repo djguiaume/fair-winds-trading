@@ -1,7 +1,8 @@
-import { TUNING } from '../../data/tuning';
 import type { ScreenPoint } from '../../render/view';
 import type { Vec2 } from '../../sim/math';
 import { screenBearing } from '../screenBearing';
+import { SHIPPED_THEME } from '../theme/model';
+import { isPhoneLayout } from './bands';
 import { setHidden } from './parts';
 
 /** Room kept from the screen's sides, and under the instrument at the bottom. */
@@ -30,8 +31,9 @@ export class EdgeArrow {
     if (!course || !s || s.onScreen) return;
     const angle = screenBearing(project, boat, course);
     // Clear of the wind compass at the top and the instrument at the bottom.
-    const phone = document.documentElement.dataset.layout === 'phone';
-    const top = (phone ? TUNING.hud.compassPxPhone : TUNING.hud.compassPx) + 24;
+    const phone = isPhoneLayout();
+    const hud = SHIPPED_THEME.hud;
+    const top = (phone ? hud['compass-phone']! : hud.compass!) + 24;
     const bottom = phone ? BOTTOM_ROOM.phone : BOTTOM_ROOM.desktop;
     const cx = size.w / 2;
     const cy = (top + size.h - bottom) / 2;

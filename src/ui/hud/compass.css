@@ -22,17 +22,17 @@
 }
 .hud-pos {
   color: var(--hud-sig);
-  font: 400 34px/1 var(--ui-font-title);
+  font: 400 var(--fs-display) / 1 var(--ui-font-title);
 }
 .hud-pos[data-point='down'] {
   color: var(--hud-text);
-  font-size: 26px;
+  font-size: var(--fs-big);
 }
 .hud-pos[data-point='in-irons'] {
   color: var(--hud-storm);
 }
 .hud-breeze {
-  font-size: 18px;
+  font-size: var(--fs-sub);
   font-weight: 600;
 }
 .hud-gust {
@@ -40,7 +40,7 @@
   padding: 0 6px 1px;
   border-radius: var(--ui-radius-s);
   background: var(--hud-backing);
-  font-size: 12px;
+  font-size: var(--fs-note);
   font-weight: 700;
 }
 .hud-gust[hidden],
@@ -54,7 +54,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  font-size: 14px;
+  font-size: var(--fs-text);
   font-weight: 600;
 }
 .hud-line.is-dim {
@@ -64,6 +64,8 @@
 #wind-forecast[data-storm],
 #belt-text[data-squalls] {
   color: var(--hud-storm);
+  font-size: var(--fs-lead);
+  font-weight: 700;
 }
 .hud-chip,
 .hud-hint {
@@ -73,7 +75,7 @@
   border-radius: var(--ui-radius-pill);
   background: var(--hud-backing);
   color: var(--hud-text);
-  font: 700 14px/1.2 var(--ui-font-text);
+  font: 700 var(--fs-body) / 1.2 var(--ui-font-text);
   text-shadow: var(--hud-halo);
   pointer-events: auto;
   cursor: pointer;
@@ -92,14 +94,14 @@
   border: 0;
   background: none;
   color: inherit;
-  font: 700 18px/1 var(--ui-font-text);
+  font: 700 var(--fs-sub) / 1 var(--ui-font-text);
   cursor: pointer;
 }
 
 .hud-dial {
   flex: none;
-  width: var(--hud-compass);
-  height: var(--hud-compass);
+  width: var(--ui-hud-compass);
+  height: var(--ui-hud-compass);
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -145,8 +147,13 @@
   stroke: var(--ui-ink);
   stroke-width: 2.5px;
   paint-order: stroke;
+  /* In the dial's own units: the letters scale with the dial. */
   font: 400 15px var(--ui-font-title);
   text-anchor: middle;
+}
+/* North and south are the dial's big marks (art director). */
+.hud-dial text.major {
+  font-size: 21px;
 }
 .hud-dial .lubber {
   fill: var(--hud-text);
@@ -230,21 +237,32 @@ html[data-layout='phone'] .hud-wind {
   gap: 8px;
 }
 html[data-layout='phone'] .hud-dial {
-  width: var(--hud-compass-phone);
-  height: var(--hud-compass-phone);
+  width: var(--ui-hud-compass-phone);
+  height: var(--ui-hud-compass-phone);
 }
 html[data-layout='phone'] .hud-wind-text {
-  max-width: 200px;
-  padding-top: 10px;
+  max-width: 220px;
+  padding-top: 8px;
 }
 html[data-layout='phone'] .hud-pos {
-  font-size: 20px;
+  font-size: var(--fs-head);
 }
-html[data-layout='phone'] .hud-breeze,
+html[data-layout='phone'] .hud-breeze {
+  font-size: var(--fs-body);
+}
+html[data-layout='phone'] .hud-gust {
+  font-size: var(--fs-small);
+}
 html[data-layout='phone'] .hud-lines,
 html[data-layout='phone'] .hud-chip,
 html[data-layout='phone'] .hud-hint {
-  font-size: 12px;
+  font-size: var(--fs-note);
+}
+/* The storm's line stays a step bigger than the rest (art director: 13 px or more). */
+html[data-layout='phone'] #weather-text[data-kind='storm'],
+html[data-layout='phone'] #wind-forecast[data-storm],
+html[data-layout='phone'] #belt-text[data-squalls] {
+  font-size: var(--fs-body);
 }
 
 @media (prefers-reduced-motion: reduce) {

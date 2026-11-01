@@ -15,7 +15,7 @@ Wave 2 of v1.5 "A real game" (issue #441, [decision 0268](0268-a-real-game-rebui
 - **Idle fade:** the status and the strip fade to 60% after 5 s without a change (a new number, a new course, or a turn of 20°), and come back at once.
 - **Wind compass switch** (Settings › Game) shows only on the hardest level and only takes the dial away there.
 - **Port signs** stand off the shoreline: their foot is pushed out from the island by `portSignSeaward`. They read as halo text with a sage Dock/Trade button. Boat labels are unchanged.
-- **Data:** sizes, backings, the fade and the tape's span are in `src/data/tuning/hud.json` (the `?tune` panel's Sea HUD tab); colours are theme tokens, the storm amber and danger red come from the reserved signal colours in `rules.json`.
+- **Data:** backings, the fade and the tape's span are in `src/data/tuning/hud.json` (the `?tune` panel's Sea HUD tab). Sizes are theme tokens (art director): text uses the type scale (`--fs-*`, 13 px the smallest on a phone), and `theme.json` › `hud` holds the safe margin (16 px desktop, 12 px phone, never under 12, checked), the compass (200 px desktop), the speed digits and the tape's width. The tape shows only the points' names at 45°. Colours are theme tokens, the storm amber and danger red come from the reserved signal colours in `rules.json`.
 - **Code:** `src/ui/hud.ts` coordinates one module per cluster in `src/ui/hud/` (status, headingStrip, windCompass + windDial + windLines, instrument, actions), plus seaToasts, pressWarning and edgeArrow. The clusters are built in code; `index.html` keeps only the overlays pinned to the scene and the sailing tips dialog.
 
 ## Consequences

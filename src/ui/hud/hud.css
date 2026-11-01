@@ -3,13 +3,14 @@
  * Only the wind compass and the instrument have a backing, a faint ink plate that is always on;
  * the quest line and the hold list sit on the same faint plate. Sizes, backings and the idle fade
  * come from `hud.json` (`tokens.ts`), colours from the theme; the storm amber and the danger red
- * are the game's reserved signals, for warnings only. No blur, no filters (decision 0006).
+ * are the game's reserved signals, for warnings only. Text sizes are the theme's type scale
+ * (`--fs-*`), the margin and the big sizes its `hud` tokens. No blur, no filters (decision 0006).
  */
 #hud {
-  --top: max(12px, var(--safe-top, env(safe-area-inset-top)));
-  --bottom: max(14px, var(--safe-bottom, env(safe-area-inset-bottom)));
-  --left: max(16px, var(--safe-left, env(safe-area-inset-left)));
-  --right: max(16px, var(--safe-right, env(safe-area-inset-right)));
+  --top: max(var(--ui-hud-margin), var(--safe-top, env(safe-area-inset-top)));
+  --bottom: max(var(--ui-hud-margin), var(--safe-bottom, env(safe-area-inset-bottom)));
+  --left: max(var(--ui-hud-margin), var(--safe-left, env(safe-area-inset-left)));
+  --right: max(var(--ui-hud-margin), var(--safe-right, env(safe-area-inset-right)));
   --hud-text: var(--ui-paper);
   --hud-sig: var(--ui-sage-wash);
   --hud-halo:
@@ -78,7 +79,7 @@
 .hud-stats {
   display: flex;
   gap: 18px;
-  font: 700 20px/1 var(--ui-font-text);
+  font: 700 var(--fs-head) / 1.2 var(--ui-font-text);
 }
 .hud-stat {
   display: inline-flex;
@@ -123,11 +124,11 @@
 }
 .hud-quest-text b {
   display: block;
-  font: 400 19px/1.15 var(--ui-font-title);
+  font: 400 var(--fs-head) / 1.15 var(--ui-font-title);
 }
 .hud-quest-text span {
   display: block;
-  font-size: 14px;
+  font-size: var(--fs-body);
 }
 
 /* --- Top centre: the heading tape and the course --------------------------------------------- */
@@ -142,8 +143,8 @@
 }
 .hud-tape {
   display: block;
-  width: 420px;
-  height: 34px;
+  width: var(--ui-hud-tape);
+  height: 38px;
   overflow: hidden;
   mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
 }
@@ -171,10 +172,7 @@
   text-anchor: middle;
 }
 .hud-tape .card {
-  font: 400 15px var(--ui-font-title);
-}
-.hud-tape .num {
-  font: 600 10px var(--ui-font-text);
+  font: 400 var(--fs-sub) var(--ui-font-title);
 }
 .hud-tape .dest {
   fill: var(--hud-sig);
@@ -193,7 +191,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 15px;
+  font-size: var(--fs-sub);
+  font-weight: 600;
   white-space: nowrap;
 }
 .hud-target[hidden],
@@ -207,7 +206,7 @@
   color: var(--hud-sig);
 }
 .hud-target-name {
-  font: 400 20px/1.1 var(--ui-font-title);
+  font: 400 var(--fs-title) / 1.1 var(--ui-font-title);
 }
 .hud-target.is-race .hud-target-name {
   font-family: var(--ui-font-text);
@@ -233,7 +232,7 @@
   border-radius: 50%;
   background: var(--hud-backing);
   color: inherit;
-  font: 700 18px/1 var(--ui-font-text);
+  font: 700 var(--fs-sub) / 1 var(--ui-font-text);
   cursor: pointer;
 }
 
@@ -254,7 +253,7 @@
   border: 0;
   background: none;
   color: inherit;
-  font: 400 22px/1 var(--ui-font-title);
+  font: 400 var(--fs-title) / 1 var(--ui-font-title);
   text-shadow: var(--hud-halo);
   cursor: pointer;
   touch-action: manipulation;
@@ -277,7 +276,7 @@
   background: var(--ui-sage);
   box-shadow: var(--ui-shadow-2);
   color: var(--ui-on-sage);
-  font: 400 20px/1 var(--ui-font-title);
+  font: 400 var(--fs-head) / 1 var(--ui-font-title);
   white-space: nowrap;
   cursor: pointer;
   touch-action: manipulation;
@@ -295,12 +294,12 @@
   gap: 2px;
   min-width: 170px;
   padding: 8px 12px;
-  font-size: 15px;
+  font-size: var(--fs-text);
   text-shadow: var(--hud-halo);
 }
 .hud-hold small {
   margin-top: 4px;
-  font-size: 12px;
+  font-size: var(--fs-note);
 }
 
 /* --- Quiet HUD (Settings): the compass and the instrument; Map and Menu as their icons ----- */
@@ -311,42 +310,44 @@
   display: none;
 }
 
-/* --- Phone landscape: the same clusters, smaller (12 px is the smallest text) -------------- */
+/* --- Phone landscape: the same clusters, smaller (13 px is the smallest text) -------------- */
 html[data-layout='phone'] #hud {
-  --top: max(8px, var(--safe-top, env(safe-area-inset-top)));
-  --bottom: max(8px, var(--safe-bottom, env(safe-area-inset-bottom)));
-  --left: max(12px, var(--safe-left, env(safe-area-inset-left)));
-  --right: max(12px, var(--safe-right, env(safe-area-inset-right)));
+  --top: max(var(--ui-hud-margin-phone), var(--safe-top, env(safe-area-inset-top)));
+  --bottom: max(var(--ui-hud-margin-phone), var(--safe-bottom, env(safe-area-inset-bottom)));
+  --left: max(var(--ui-hud-margin-phone), var(--safe-left, env(safe-area-inset-left)));
+  --right: max(var(--ui-hud-margin-phone), var(--safe-right, env(safe-area-inset-right)));
 }
 html[data-layout='phone'] .hud-stats {
   gap: 12px;
-  font-size: 15px;
+  font-size: var(--fs-lead);
 }
 html[data-layout='phone'] .hud-quest-text b {
-  font-size: 15px;
+  font-size: var(--fs-lead);
 }
 html[data-layout='phone'] .hud-quest-text span {
-  font-size: 12px;
+  font-size: var(--fs-note);
 }
 html[data-layout='phone'] .hud-tape {
-  width: 300px;
-  height: 24px;
+  width: var(--ui-hud-tape-phone);
+}
+html[data-layout='phone'] .hud-tape .card {
+  font-size: var(--fs-lead);
 }
 html[data-layout='phone'] .hud-target {
-  font-size: 12px;
+  font-size: var(--fs-lead);
 }
 html[data-layout='phone'] .hud-target-name {
-  font-size: 15px;
+  font-size: var(--fs-sub);
 }
 html[data-layout='phone'] .hud-actions {
   gap: 10px;
 }
 html[data-layout='phone'] .hud-action {
-  font-size: 17px;
+  font-size: var(--fs-sub);
 }
 html[data-layout='phone'] .hud-dock {
   min-height: 44px;
-  font-size: 16px;
+  font-size: var(--fs-lead);
 }
 
 @media (prefers-reduced-motion: reduce) {

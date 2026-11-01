@@ -59,7 +59,13 @@ export class WindDial {
     svgEl('path', { class: 'ticks major', d: ticks(true) }, this.card);
     CARDINALS.forEach((name, i) => {
       const [x, y] = polar(i * 90, LETTER);
-      const letter = svgEl('text', { x: x.toFixed(1), y: (y + 5).toFixed(1) }, this.card);
+      const major = name === 'N' || name === 'S';
+      const letter = svgEl(
+        'text',
+        { x: x.toFixed(1), y: (y + (major ? 7 : 5)).toFixed(1) },
+        this.card,
+      );
+      if (major) letter.classList.add('major');
       letter.dataset.i18n = `compass.${name}`;
       letter.textContent = t(`compass.${name}`);
       letter.dataset.x = x.toFixed(1);

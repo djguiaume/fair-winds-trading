@@ -2,7 +2,7 @@
    only while the camera is turned, under the wind compass. */
 .camera-reset {
   position: absolute;
-  top: calc(var(--hud-compass) + 6px);
+  top: calc(var(--ui-hud-compass) + 6px);
   right: 0;
   display: grid;
   width: 40px;
@@ -21,7 +21,7 @@
   display: none;
 }
 html[data-layout='phone'] .camera-reset {
-  top: calc(var(--hud-compass-phone) + 4px);
+  top: calc(var(--ui-hud-compass-phone) + 4px);
 }
 .camera-reset svg {
   width: 20px;

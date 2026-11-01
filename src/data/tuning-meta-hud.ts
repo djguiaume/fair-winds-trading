@@ -1,6 +1,7 @@
 import { num, type TuningMeta } from './tuning-meta-types';
 
-/** `hud.json`: the sea HUD's sizes, backings and idle fade (issue #441, decision 0268). */
+/** `hud.json`: the sea HUD's backings, idle fade and tape span (issue #441, decision 0268);
+ * its sizes are theme tokens (`theme.json` › `hud`). */
 export const HUD_META: Readonly<Record<string, TuningMeta>> = {
   'hud.idleFadeSec': num(
     'Idle fade after',
@@ -49,38 +50,6 @@ export const HUD_META: Readonly<Record<string, TuningMeta>> = {
     5,
     '°',
     'How many degrees the heading tape shows on each side of the bow.',
-  ),
-  'hud.compassPx': num(
-    'Wind compass size',
-    96,
-    220,
-    2,
-    'px',
-    'The wind compass dial on desktop (at least 96).',
-  ),
-  'hud.compassPxPhone': num(
-    'Wind compass on a phone',
-    72,
-    160,
-    2,
-    'px',
-    'The dial on a phone in landscape (at least 72).',
-  ),
-  'hud.speedPx': num(
-    'Speed digits',
-    40,
-    120,
-    2,
-    'px',
-    'The speed in knots on desktop: the biggest number on screen.',
-  ),
-  'hud.speedPxPhone': num(
-    'Speed digits on a phone',
-    32,
-    96,
-    2,
-    'px',
-    'The speed in knots on a phone in landscape.',
   ),
   'hud.portSignSeaward': num(
     'Port sign seaward',

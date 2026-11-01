@@ -13,6 +13,8 @@ const HEX = /^#[0-9a-f]{6}$/i;
 export const MIN_CONTRAST = 4.5;
 const MIN_TYPE = 11;
 const MIN_TOUCH = 44;
+/** The sea HUD keeps this far from every screen edge (art director, issue #441). */
+const MIN_HUD_MARGIN = 12;
 const DURATION = { min: 150, max: 250 };
 
 /** Text colour on a background, both colour tokens. */
@@ -75,6 +77,11 @@ function sizeProblems(theme: Theme): string[] {
   if (target < MIN_TOUCH) out.push(`touch.target is ${target}px, under ${MIN_TOUCH}px`);
   if (rowMin < target) out.push(`touch.row-min (${rowMin}px) is under touch.target`);
   if (rowMax < rowMin) out.push(`touch.row-max (${rowMax}px) is under touch.row-min`);
+  for (const [key, px] of Object.entries(theme.hud))
+    if (!Number.isInteger(px) || px <= 0) out.push(`hud.${key} must be whole pixels, over 0`);
+  for (const key of ['margin', 'margin-phone'])
+    if (!((theme.hud[key] ?? 0) >= MIN_HUD_MARGIN))
+      out.push(`hud.${key} must be ${MIN_HUD_MARGIN}px or more (the HUD's safe margin)`);
   for (const group of ['space', 'radius', 'z'] as const)
     for (const [key, n] of Object.entries(theme[group]))
       if (!Number.isFinite(n) || n < 0) out.push(`${group}.${key} must be a number, 0 or more`);

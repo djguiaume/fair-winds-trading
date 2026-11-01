@@ -8,18 +8,14 @@ function signal(name: string): string {
 }
 
 /**
- * The sea HUD's custom properties (issue #441): sizes, the two ink backings and the idle fade from
- * `hud.json`, the ink from the theme, and the storm amber and danger red from the game's reserved
+ * The sea HUD's custom properties (issue #441): the two ink backings and the idle fade from
+ * `hud.json` (its sizes are theme tokens, `--ui-hud-*`), the ink from the theme, and the storm amber and danger red from the game's reserved
  * signal colours, which only warnings may wear (art bible section 11).
  */
 export function hudTokens(): Record<string, string> {
   const h = TUNING.hud;
   const ink = SHIPPED_THEME.colour.ink ?? '#23303a';
   return {
-    '--hud-compass': `${h.compassPx}px`,
-    '--hud-compass-phone': `${h.compassPxPhone}px`,
-    '--hud-speed': `${h.speedPx}px`,
-    '--hud-speed-phone': `${h.speedPxPhone}px`,
     '--hud-backing': withOpacity(ink, h.backingInk),
     '--hud-nogo': withOpacity(ink, h.noGoInk),
     '--hud-idle': String(h.idleOpacity),
