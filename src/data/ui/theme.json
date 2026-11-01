@@ -88,9 +88,9 @@
   "hud": {
     "margin": 16,
     "margin-phone": 12,
-    "compass": 200,
+    "compass": 168,
     "compass-phone": 104,
-    "speed": 96,
+    "speed": 64,
     "speed-phone": 58,
     "tape": 420,
     "tape-phone": 240
