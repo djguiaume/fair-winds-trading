@@ -20,6 +20,10 @@ An Opus thread draws **three directions as static images** (Guillaume prefers mo
 
 Each direction names its signature colour; none uses blue or teal with gold as the pair. Lines on paper stay banned; a plank or canvas texture is fine on backgrounds. The mockup thread is told Guillaume's past rejections (red confirm buttons, plank seams, teal-and-brass menus).
 
+## Guillaume's ChatGPT mockups (2026-11-01)
+
+Twelve images in the project files (`ui-review/references-chatgpt/`, notes there). They set the bar for structure: one hero per screen, a big title, a goods list with a detail pane and illustrated goods, portraits on the quay, a pad legend along the bottom, and the sea HUD as three clusters (status top-left, heading strip top-centre, one instrument bottom-right). The three mockup directions take that structure as given and differ on identity. Their three palettes map to the directions: cream paper with navy ink and sage selection (1), dark navy with mint and condensed caps (2), dark teal-green with cream panels and a painted port banner (between 1 and 3).
+
 ## Screen rules (apply to the chosen direction)
 
 - **Title screen.** A staged scene (the player's boat at anchor at golden hour, or the home port), the logo large, four actions: Continue (or Set sail), New voyage, Free Sailing, Settings. Help, tutorial and save transfer move to a secondary row or into Settings. Shown once, with a short fade and a sting.
