@@ -1,0 +1,304 @@
+/*
+ * The v1.5 components (decision 0269), the chart-table identity: ink on paper, sage for the main
+ * action, IM Fell English for titles, Alegreya Sans for text and numbers. Only `--ui-*` and
+ * `--fs-*` tokens (src/data/ui/theme.json); never the style E roles. No CSS filters or blur
+ * (decision 0006); torn and brushed edges are 9-slice theme images. Sentence case, no tracking.
+ */
+
+/* --- Button ---------------------------------------------------------------------------------- */
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-space-2);
+  min-width: var(--ui-touch-target);
+  min-height: var(--ui-touch-target);
+  padding: 0 var(--ui-space-4);
+  border: 1px solid var(--ui-rule);
+  border-radius: var(--ui-radius-m);
+  background: var(--ui-face);
+  box-shadow: var(--ui-shadow-1);
+  color: var(--ui-ink);
+  font-family: var(--ui-font-text);
+  font-size: var(--fs-lead);
+  font-weight: 600;
+  line-height: 1.1;
+  cursor: pointer;
+}
+.ui-btn .icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.ui-btn--primary {
+  border-color: var(--ui-sage-deep);
+  background: var(--ui-sage);
+  color: var(--ui-on-sage);
+}
+.ui-btn--danger {
+  border-color: var(--ui-danger);
+  background: var(--ui-danger);
+  color: var(--ui-on-danger);
+}
+.ui-btn[aria-disabled='true'] {
+  box-shadow: none;
+  opacity: 0.5;
+  cursor: default;
+}
+.ui-btn:focus-visible,
+.ui-tab:focus-visible,
+.ui-card:focus-visible,
+.ui-row:focus-visible,
+.ui-header-exit:focus-visible {
+  outline: 2px solid var(--ui-ink);
+  outline-offset: 2px;
+}
+
+/* --- Tab bar: the chosen tab sits on a brushed sage wash ------------------------------------ */
+.ui-tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-1);
+}
+.ui-tab {
+  min-height: var(--ui-touch-target);
+  padding: 0 var(--ui-space-4);
+  border: var(--ui-edge-brushed-width) solid transparent;
+  border-image: none;
+  background: none;
+  color: var(--ui-ink-muted);
+  font-family: var(--ui-font-text);
+  font-size: var(--fs-lead);
+  font-weight: 600;
+  cursor: pointer;
+}
+.ui-tab[aria-selected='true'] {
+  border-width: 0 var(--ui-space-2);
+  border-image: var(--ui-edge-brushed) var(--ui-edge-brushed-slice) fill / 0 var(--ui-space-2) round;
+  color: var(--ui-ink);
+}
+.ui-tabs .pad-key {
+  flex: none;
+}
+
+/* --- Card ------------------------------------------------------------------------------------ */
+.ui-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ui-space-1);
+  min-width: 0;
+  padding: var(--ui-space-4);
+  border: 1px solid var(--ui-rule);
+  border-radius: var(--ui-radius-m);
+  background: var(--ui-face);
+  box-shadow: var(--ui-shadow-2);
+  color: var(--ui-ink);
+  font: inherit;
+  text-align: start;
+}
+button.ui-card {
+  cursor: pointer;
+}
+.ui-card[aria-pressed='true'] {
+  border-color: var(--ui-sage);
+  box-shadow:
+    inset 0 0 0 2px var(--ui-sage),
+    var(--ui-shadow-2);
+}
+.ui-card-media {
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+}
+.ui-card-title {
+  font-family: var(--ui-font-title);
+  font-size: var(--fs-sub);
+}
+.ui-card-text {
+  color: var(--ui-ink-muted);
+  font-family: var(--ui-font-text);
+  font-size: var(--fs-body);
+}
+
+/* --- Panel: paper with the torn edge, night paper with the scene --------------------------- */
+.ui-panel {
+  --ui-surface-ink: var(--ui-ink);
+  padding: var(--ui-space-5);
+  background: var(--ui-surface);
+  color: var(--ui-surface-ink);
+  font-family: var(--ui-font-text);
+  font-size: var(--fs-text);
+}
+.ui-panel--torn {
+  border: var(--ui-edge-torn-width) solid transparent;
+  border-image: var(--ui-edge-torn) var(--ui-edge-torn-slice) fill / var(--ui-edge-torn-width) round;
+  background: none;
+  padding: var(--ui-space-2);
+}
+.ui-panel--plain {
+  border-radius: var(--ui-radius-s);
+  box-shadow: var(--ui-shadow-2);
+}
+.ui-panel--night {
+  --ui-surface: var(--ui-paper-night-fill);
+  --ui-face: var(--ui-paper-night);
+  --ui-edge-torn: var(--ui-edge-torn-night);
+}
+.ui-panel--day {
+  --ui-surface: var(--ui-paper);
+  --ui-face: var(--ui-paper);
+  --ui-edge-torn: var(--ui-edge-torn-day);
+}
+
+/* --- List row -------------------------------------------------------------------------------- */
+.ui-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-3);
+  width: 100%;
+  min-height: var(--ui-touch-row-min);
+  max-height: var(--ui-touch-row-max);
+  padding: 0 var(--ui-space-3);
+  border: 0;
+  border-radius: var(--ui-radius-s);
+  background: none;
+  color: var(--ui-ink);
+  font-family: var(--ui-font-text);
+  text-align: start;
+}
+button.ui-row {
+  cursor: pointer;
+}
+.ui-row[aria-pressed='true'] {
+  background: var(--ui-sage-wash);
+}
+.ui-row-icon {
+  width: 24px;
+  height: 24px;
+  flex: none;
+}
+.ui-row-words {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.ui-row-label {
+  font-size: var(--fs-lead);
+  font-weight: 600;
+}
+.ui-row-detail {
+  overflow: hidden;
+  color: var(--ui-ink-muted);
+  font-size: var(--fs-note);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ui-row-value {
+  font-size: var(--fs-sub);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Dialog ---------------------------------------------------------------------------------- */
+.ui-dialog {
+  z-index: var(--ui-z-dialog);
+  width: min(440px, calc(100vw - 2 * var(--ui-space-4)));
+  margin: auto;
+}
+.ui-dialog::backdrop {
+  background: var(--ui-shadow-backdrop);
+}
+.ui-dialog-title {
+  margin: 0 0 var(--ui-space-2);
+  font-family: var(--ui-font-title);
+  font-size: var(--fs-title);
+  font-weight: 400;
+}
+.ui-dialog-text {
+  margin: 0 0 var(--ui-space-4);
+  color: var(--ui-ink);
+  font-size: var(--fs-text);
+}
+.ui-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--ui-space-2);
+}
+
+/* --- Toast ----------------------------------------------------------------------------------- */
+.ui-toasts {
+  position: fixed;
+  inset: auto 0 var(--ui-space-6);
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+.ui-toast {
+  margin: 0;
+  padding: var(--ui-space-2) var(--ui-space-4);
+  border-radius: var(--ui-radius-m);
+  background: var(--ui-face);
+  box-shadow: var(--ui-shadow-3);
+  color: var(--ui-ink);
+  font-family: var(--ui-font-text);
+  font-size: var(--fs-text);
+  font-weight: 600;
+}
+.ui-toast[data-kind='good'] {
+  border-inline-start: var(--ui-space-1) solid var(--ui-sage);
+}
+.ui-toast[data-kind='bad'] {
+  border-inline-start: var(--ui-space-1) solid var(--ui-danger);
+}
+
+/* --- Screen header --------------------------------------------------------------------------- */
+.ui-header {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-3);
+  min-height: var(--ui-touch-target);
+  color: var(--ui-ink);
+}
+.ui-header-title {
+  flex: 1;
+  margin: 0;
+  font-family: var(--ui-font-title);
+  font-size: var(--fs-big);
+  font-weight: 400;
+}
+.ui-header-legend {
+  display: flex;
+  gap: var(--ui-space-3);
+  color: var(--ui-ink-muted);
+  font-size: var(--fs-small);
+}
+.ui-header-exit {
+  display: grid;
+  place-items: center;
+  width: var(--ui-touch-target);
+  height: var(--ui-touch-target);
+  padding: 0;
+  border: 1px solid var(--ui-rule);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-face);
+  color: var(--ui-ink);
+  cursor: pointer;
+}
+.ui-header-exit .icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* --- Phone landscape (theme breakpoints, html[data-layout]) --------------------------------- */
+:root[data-layout='phone'] .ui-header-title {
+  font-size: var(--fs-title);
+}
+:root[data-layout='phone'] .ui-panel {
+  padding: var(--ui-space-3);
+}
+:root[data-layout='phone'] .ui-panel--torn {
+  padding: var(--ui-space-1);
+}

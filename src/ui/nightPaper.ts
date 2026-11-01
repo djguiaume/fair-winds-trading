@@ -1,6 +1,7 @@
 /**
- * Paper screens follow the day (issue #326). `theme.css` dims the paper tokens under
- * `data-night`; no CSS filter or blur, which are costly on old tablets (decision 0006).
+ * Paper screens follow the day (issue #326). The theme (`src/data/ui/theme.json`) dims the
+ * paper tokens under `data-night`; no CSS filter or blur, which are costly on old tablets
+ * (decision 0006).
  */
 
 /** Past this share of night the paper is dimmed, matching the scene's own dusk. */
