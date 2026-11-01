@@ -27,7 +27,8 @@
     "race": "node tools/fw/fw.mjs quest race",
     "chart": "node tools/fw/fw.mjs chart",
     "review": "node tools/fw/fw.mjs review",
-    "sound": "node tools/fw/fw.mjs sound"
+    "sound": "node tools/fw/fw.mjs sound",
+    "identity": "node tools/fw/fw.mjs identity"
   },
   "dependencies": {
     "fflate": "^0.8.3",

@@ -1,0 +1,45 @@
+/*
+ * The identity fonts (v1.5 "A real game", the chart table): IM Fell English for titles, the wordmark
+ * and port names, Alegreya Sans for the UI and the numbers. Licences in fonts/README.md.
+ * Loaded from index.html; the screens pick them up through --font-title and --font-ui.
+ */
+@font-face {
+  font-family: 'IM Fell English';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/im-fell-english-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IM Fell English';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/im-fell-english-400i.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Alegreya Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/alegreya-sans-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Alegreya Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./fonts/alegreya-sans-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Alegreya Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./fonts/alegreya-sans-700.woff2') format('woff2');
+}
+
+:root {
+  --font-title: 'IM Fell English', 'Iowan Old Style', Georgia, serif;
+  --font-ui: 'Alegreya Sans', 'Segoe UI', system-ui, sans-serif;
+}
