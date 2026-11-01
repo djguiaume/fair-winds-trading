@@ -49,8 +49,8 @@ vi.mock('../src/data/tuning/economy.json', async (importOriginal) => {
 const { DIFFICULTIES, isDifficulty, knobs, easier } = await import('../src/sim/difficulty');
 const { MAX_SETTLEMENT_LEVEL, SETTLEMENT_LEVELS, growthNeeded, addGrowth, stepSettlements } =
   await import('../src/sim/settlement');
-const { townLevelName, translateDom } = await import('../src/i18n');
-const { renderDifficultyButtons, renderLevelCards } = await import('../src/ui/levelCards');
+const { townLevelName } = await import('../src/i18n');
+const { levelCards } = await import('../src/ui/levelCards');
 const { PHASE1_MAP } = await import('../src/data/maps');
 const { SLOOP } = await import('../src/sim/ship');
 const { createWorld } = await import('../src/sim/world');
@@ -69,19 +69,11 @@ describe('levels added in data files only (decision 0113)', () => {
     const back = validateSave(JSON.parse(JSON.stringify(serializeWorld(world))), world);
     expect(back!.difficulty).toBe('storm');
 
-    const cards = document.createElement('div');
-    const buttons = document.createElement('div');
-    renderLevelCards(cards);
-    renderDifficultyButtons(buttons);
-    translateDom(cards);
-    translateDom(buttons);
-    const card = cards.querySelector<HTMLElement>('[data-level="storm"]')!;
-    // Not translated yet: the file's name and pitch, no points.
-    expect(card.querySelector('.level-name')!.textContent).toBe('Storm petrel');
-    expect(card.querySelector('.level-tag')!.textContent).toBe('Gales all the way');
+    const card = levelCards(() => {}).cards.find((c) => c.dataset.level === 'storm')!;
+    // Not translated yet: the file's name and pitch.
+    expect(card.querySelector('.ui-card-title')!.textContent).toBe('Storm petrel');
+    expect(card.querySelector('.ui-card-text')!.textContent).toBe('Gales all the way');
     expect(card.querySelectorAll('.level-waves use')).toHaveLength(3);
-    expect(card.querySelectorAll('li')).toHaveLength(0);
-    expect(buttons.querySelector('[data-level="storm"]')!.textContent).toBe('Storm petrel');
   });
 
   it('a fifth town level is a level: towns grow into it and it has a name', () => {

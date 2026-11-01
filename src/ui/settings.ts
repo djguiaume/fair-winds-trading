@@ -73,6 +73,8 @@ export interface Settings {
   seenBeltHint: boolean;
   /** The steady trade wind (decision 0083); picking a difficulty level sets its default. */
   steadyWind: boolean;
+  /** The pad's button names to show (a brand in `controls.json`); null follows the pad in use. */
+  padGlyphs: string | null;
 }
 
 const KEY = 'fwt.settings.v1';
@@ -110,6 +112,7 @@ const DEFAULTS: Settings = {
   seenCurrentHint: false,
   seenBeltHint: false,
   steadyWind: false,
+  padGlyphs: null,
 };
 
 /** True once `?quality` or `?off` changed the settings in memory: they must not be saved. */

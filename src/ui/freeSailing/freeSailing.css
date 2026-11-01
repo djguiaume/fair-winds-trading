@@ -168,6 +168,6 @@ body.in-menu .free-badge {
   display: none;
 }
 /* Nothing in a session can save or send a voyage (decision 0266). */
-body.free-sailing :is(#menu-tutorial, #menu-transfer, #reset-save) {
+body.free-sailing :is(#menu-tutorial, #menu-transfer) {
   display: none;
 }
