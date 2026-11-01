@@ -15,7 +15,7 @@ export interface BoatLook {
   sailStripe: string;
   /** Top strake from hull 2, and the stern castle's upper strake. */
   hullBand: string;
-  /** Rubbing strake from hull 2; null keeps the level's own (tan at 2, brass at 3). */
+  /** Rubbing strake under the band from hull 2; null keeps the hull's own colour there. */
   hullStrake: string | null;
   /** A figurehead: a prop recipe (decision 0135) and its size; null for none. */
   figurehead: { recipe: string; size: number } | null;
@@ -31,8 +31,8 @@ type LevelColours = Record<'1' | '2' | '3', string>;
 
 /** Shared upgrade colours and the sails' band glow, from `src/data/boat-look.json`. */
 export const BOAT_LOOK = boatLookFile as {
-  sails: { canvas: LevelColours; glow: number; bandGlow: number };
-  hull: { strake: Omit<LevelColours, '1'>; copper: string };
+  sails: { canvas: LevelColours; glow: number; bandGlow: number; footBand: number };
+  hull: { copper: string };
 };
 
 /** A class's stock look with the chosen channels on top. */
@@ -48,10 +48,12 @@ export function resolveBoatLook(colours: ClassColours, chosen: Partial<BoatLook>
   };
 }
 
-/** The rubbing strake's colour at a hull level, or null below hull 2 (bare topsides). */
+/**
+ * A chosen rubbing strake's colour at a hull level, or null for the hull's own colour: below
+ * hull 2, and on the stock look, which keeps the class band alone (art director, #296).
+ */
 export function strakeColour(look: BoatLook, hull: UpgradeLevel | number): string | null {
-  if (hull < 2) return null;
-  return look.hullStrake ?? BOAT_LOOK.hull.strake[hull >= 3 ? '3' : '2'];
+  return hull >= 2 ? look.hullStrake : null;
 }
 
 /** Which kind of panel a sail row is at a sails level: `nv` rows, row 0 at the foot. */
@@ -69,6 +71,21 @@ export function sailRow(level: number, j: number, nv: number): SailRow {
   if (j === nv - 1) return 'band';
   if (nv >= 6 && (j === nv / 2 - 1 || j === nv / 2)) return 'stripe';
   return 'canvas';
+}
+
+/**
+ * Where each sail row starts and ends, 0 at the foot to 1 at the head: equal rows, except the
+ * foot band from sails 2, `footBand` rows deep so it reads along a boom from the game camera.
+ */
+export function sailRowEdges(level: number, nv: number): number[] {
+  const weights = Array.from({ length: nv }, (_, j) =>
+    j === 0 && level >= 2 ? BOAT_LOOK.sails.footBand : 1,
+  );
+  const total = weights.reduce((sum, w) => sum + w, 0);
+  const edges = [0];
+  for (const w of weights) edges.push(edges[edges.length - 1]! + w / total);
+  edges[nv] = 1;
+  return edges;
 }
 
 /** The plain canvas of a sail: the chosen cloth, else the level's own (worn = sails 1's). */

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { BOAT_LOOK, canvasColour, sailRow, type BoatLook } from './boatLook';
+import { BOAT_LOOK, canvasColour, sailRow, sailRowEdges, type BoatLook } from './boatLook';
 import { STYLE_D as ST } from './boatStyle';
 import { Faces } from './hullGeometry';
 
@@ -63,6 +63,7 @@ export function cloth(
       (a.z * (1 - u) + b.z * u) * (1 - v) + (c.z * (1 - u) + d.z * u) * v,
     );
   const canvas = canvasColour(look, level, worn);
+  const rows = sailRowEdges(level, nv);
   for (let j = 0; j < nv; j++) {
     const row = sailRow(level, j, nv);
     for (let i = 0; i < nu; i++) {
@@ -77,10 +78,10 @@ export function cloth(
         glow = BOAT_LOOK.sails.bandGlow;
       }
       f.quad(
-        at(i / nu, j / nv),
-        at((i + 1) / nu, j / nv),
-        at((i + 1) / nu, (j + 1) / nv),
-        at(i / nu, (j + 1) / nv),
+        at(i / nu, rows[j]!),
+        at((i + 1) / nu, rows[j]!),
+        at((i + 1) / nu, rows[j + 1]!),
+        at(i / nu, rows[j + 1]!),
         color,
         glow,
       );

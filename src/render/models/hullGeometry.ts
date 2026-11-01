@@ -50,7 +50,7 @@ export function hullGeometry(
     rail?: string;
   },
   damage = 0,
-  /** The rubbing strake under the band (decision 0259); null leaves bare topsides. */
+  /** A chosen rubbing strake under the band (a cosmetic, 0262); null keeps the hull colour. */
   strake: string | null = null,
 ) {
   const { length: L, band: BAND, hull: HULL } = rig;
@@ -64,7 +64,7 @@ export function hullGeometry(
     outline.map((p) => V(p.x * beam, deckAt(p.z * length) - H * t, p.z * length)),
   );
   const f = new Faces();
-  // Top strake the class band from hull 2, then the rubbing strake, then copper at hull 3.
+  // Top strake the class band from hull 2, then any chosen strake, then copper at hull 3.
   const strakeAt = (r: number) =>
     r === 0 && level >= 2
       ? BAND

@@ -2,10 +2,10 @@
   "sails": {
     "canvas": { "1": "#d9c9a2", "2": "#eee6d4", "3": "#f4efe2" },
     "glow": 0.22,
-    "bandGlow": 0.3
+    "bandGlow": 0.3,
+    "footBand": 1.8
   },
   "hull": {
-    "strake": { "2": "#9c7446", "3": "#e8b64a" },
     "copper": "#e08a4c"
   }
 }

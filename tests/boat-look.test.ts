@@ -6,6 +6,7 @@ import {
   canvasColour,
   resolveBoatLook,
   sailRow,
+  sailRowEdges,
   strakeColour,
 } from '../src/render/models/boatLook';
 import { createShipModel } from '../src/render/models/shipModels';
@@ -85,20 +86,15 @@ describe('sail bands (decision 0259, variant B)', () => {
 });
 
 describe('hull strakes and copper', () => {
-  it('goes bare, tan strake, then brass strake and copper', () => {
+  it('goes bare, class band, then band and copper, with no strake on the stock look', () => {
     const look = resolveBoatLook(CLASS);
-    expect([1, 2, 3].map((h) => strakeColour(look, h))).toEqual([
-      null,
-      BOAT_LOOK.hull.strake['2'],
-      BOAT_LOOK.hull.strake['3'],
-    ]);
-    const tan = hex(BOAT_LOOK.hull.strake['2']);
-    const brass = hex(BOAT_LOOK.hull.strake['3']);
+    expect([1, 2, 3].map((h) => strakeColour(look, h))).toEqual([null, null, null]);
+    const band = hex(SHIP_FILES.find((f) => f.id === 'sloop')!.model.bandColor);
     const copper = hex(BOAT_LOOK.hull.copper);
     const at = (n: UpgradeLevel) => hull(colours('sloop', { upgrades: all(n) }), 'sloop');
-    expect([tan, brass, copper].map((c) => at(1).has(c))).toEqual([false, false, false]);
-    expect([tan, brass, copper].map((c) => at(2).has(c))).toEqual([true, false, false]);
-    expect([tan, brass, copper].map((c) => at(3).has(c))).toEqual([false, true, true]);
+    expect([band, copper].map((c) => at(1).has(c))).toEqual([false, false]);
+    expect([band, copper].map((c) => at(2).has(c))).toEqual([true, false]);
+    expect([band, copper].map((c) => at(3).has(c))).toEqual([true, true]);
   });
 
   it('takes a chosen band and strake at every hull level from 2, keeping copper at 3', () => {
@@ -108,6 +104,17 @@ describe('hull strakes and copper', () => {
       expect(h.has(hex(look.hullBand)) && h.has(hex(look.hullStrake)), `hull ${n}`).toBe(true);
       expect(h.has(hex(BOAT_LOOK.hull.copper)), `hull ${n}`).toBe(n === 3);
     }
+  });
+});
+
+describe('sail row depths', () => {
+  it('deepens the foot band from sails 2 and keeps the rows in order', () => {
+    const even = sailRowEdges(1, 6);
+    expect(even.map((v) => Math.round(v * 6 * 1000) / 1000)).toEqual([0, 1, 2, 3, 4, 5, 6]);
+    const banded = sailRowEdges(2, 6);
+    expect(banded[0]).toBe(0);
+    expect(banded[6]).toBe(1);
+    expect(banded[1]! / (banded[2]! - banded[1]!)).toBeCloseTo(BOAT_LOOK.sails.footBand);
   });
 });
 

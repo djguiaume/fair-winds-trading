@@ -51,7 +51,7 @@ export interface ShipUpgrades {
   sails: UpgradeLevel;
   /** More crates and barrels on deck as the hold grows. */
   hold: UpgradeLevel;
-  /** 1 bare wood, 2 class-colour band and tan rubbing strake, 3 brass strake and copper bottom. */
+  /** 1 bare wood, 2 painted class-colour band, 3 copper-sheathed bottom. */
   hull: UpgradeLevel;
 }
 
