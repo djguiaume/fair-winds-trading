@@ -1,0 +1,26 @@
+{
+  "id": "figurehead-dolphin",
+  "name": "Dolphin figurehead",
+  "group": "figureheads",
+  "internal": true,
+  "parts": [
+    {
+      "ico": [0.2],
+      "ops": [["scale", 0.7, 0.8, 1.6]],
+      "at": [0, 0.35, 0],
+      "color": "#8fb4c9"
+    },
+    {
+      "cone": [0.1, 0.35, 6],
+      "ops": [["turnX", 1.5708]],
+      "at": [0, 0.35, 0.45],
+      "color": "#8fb4c9"
+    },
+    {
+      "cone": [0.12, 0.3, 6],
+      "ops": [["turnX", -1.5708]],
+      "at": [0, 0.45, -0.4],
+      "color": "#6f98b0"
+    }
+  ]
+}

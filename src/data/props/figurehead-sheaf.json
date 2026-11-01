@@ -1,0 +1,30 @@
+{
+  "id": "figurehead-sheaf",
+  "name": "Wheat sheaf figurehead",
+  "group": "figureheads",
+  "internal": true,
+  "parts": [
+    {
+      "cone": [0.2, 0.7, 6],
+      "at": [0, 0.35, 0],
+      "color": "#e0b84a"
+    },
+    {
+      "cone": [0.14, 0.6, 6],
+      "ops": [["turnZ", 0.4]],
+      "at": [0.1, 0.32, 0],
+      "color": "#d9a93a"
+    },
+    {
+      "cone": [0.14, 0.6, 6],
+      "ops": [["turnZ", -0.4]],
+      "at": [-0.1, 0.32, 0],
+      "color": "#d9a93a"
+    },
+    {
+      "box": [0.3, 0.08, 0.3],
+      "at": [0, 0.2, 0],
+      "color": "#9b6b3d"
+    }
+  ]
+}

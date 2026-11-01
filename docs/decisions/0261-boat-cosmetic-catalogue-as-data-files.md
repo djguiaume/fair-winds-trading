@@ -17,4 +17,4 @@ v1.4 lets the player dress a boat (design: [customisation.md](../v1.4/customisat
 
 ## Consequences
 
-Adding an item is one file (docs/content/cosmetics.md). The game, the screen (#299) and saves (#298) store and read ids only. Earned unlocks are data, so quest and series ids are checked against the game. Item names for colours, patterns, hull colours, wakes and signal flags are drafts until the storyteller confirms them; figureheads exist for the four outposts only.
+Adding an item is one file (docs/content/cosmetics.md). The game, the screen (#299) and saves (#298) store and read ids only. Earned unlocks are data, so quest and series ids are checked against the game. Item names are the storyteller's (2026-11-01); eight carved figureheads: four ring arcs (dolphin, mallet, wheat sheaf, beacon) and four outposts (sun, flame, snow crystal, amber drop). Mallet is the first to drop if a budget says fewer.

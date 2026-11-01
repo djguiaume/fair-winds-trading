@@ -1,0 +1,23 @@
+{
+  "id": "figurehead-beacon",
+  "name": "Beacon figurehead",
+  "group": "figureheads",
+  "internal": true,
+  "parts": [
+    {
+      "cyl": [0.12, 0.18, 0.5, 6],
+      "at": [0, 0.25, 0],
+      "color": "#c9bfa8"
+    },
+    {
+      "box": [0.3, 0.16, 0.3],
+      "at": [0, 0.58, 0],
+      "color": "#f2c230"
+    },
+    {
+      "cone": [0.24, 0.2, 6],
+      "at": [0, 0.76, 0],
+      "color": "#7d4a22"
+    }
+  ]
+}

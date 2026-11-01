@@ -1,0 +1,16 @@
+{
+  "id": "beacon",
+  "slot": "figurehead",
+  "name": {
+    "en": "Beacon",
+    "fr": "Fanal"
+  },
+  "unlock": {
+    "kind": "earned",
+    "quest": "stonehaven-light"
+  },
+  "mount": "stem",
+  "recipe": "figurehead-beacon",
+  "tris": 48,
+  "size": 1
+}
