@@ -6,6 +6,7 @@ import { DAY, NIGHT, type Look } from './atmosphere';
 import { QUALITY, type QualityLevel } from './quality';
 import { buildProp } from './models/propRecipe';
 import { mergeAll, vertexColorMaterial } from './models/geometry';
+import { Wake } from './wake';
 import SETTINGS from '../data/boat-preview.json';
 
 /**
@@ -20,6 +21,8 @@ export interface PreviewBoat {
   damage: 0 | 1 | 2 | 3;
   look: Partial<BoatLook>;
   flag?: FlagDef;
+  /** Her wake style (decision 0264), laid astern as if she sailed; none is the plain wake. */
+  wake?: { style: string; tint: string | null };
 }
 
 const DEG = Math.PI / 180;
@@ -39,6 +42,7 @@ export class BoatPreview {
   private readonly sun = new THREE.DirectionalLight();
   private readonly sky = new THREE.HemisphereLight();
   private readonly water: THREE.Mesh<THREE.CircleGeometry, THREE.MeshBasicMaterial>;
+  private readonly wake = new Wake();
   private boat: BoatModel | null = null;
   private key = '';
   private radius = 10;
@@ -79,7 +83,9 @@ export class BoatPreview {
     );
     this.water.rotation.x = -Math.PI / 2;
     this.water.renderOrder = 1;
-    this.scene.add(this.sky, this.sun, this.sun.target, this.water);
+    this.wake.setQuality(quality);
+    this.wake.mesh.renderOrder = 2;
+    this.scene.add(this.sky, this.sun, this.sun.target, this.water, this.wake.mesh);
     this.at.fromArray(VIEWS.whole.at);
     this.setNight(false);
   }
@@ -102,6 +108,7 @@ export class BoatPreview {
     this.scene.add(model.root);
     this.boat = model;
     this.frameBoat(model);
+    this.layWake(model, boat.wake);
     this.draw();
   }
 
@@ -217,6 +224,7 @@ export class BoatPreview {
     this.water.geometry.dispose();
     this.water.material.map?.dispose();
     this.water.material.dispose();
+    this.wake.dispose();
     this.renderer.dispose();
     this.renderer.forceContextLoss();
   }
@@ -241,6 +249,7 @@ export class BoatPreview {
   private draw() {
     if (!this.boat) return;
     this.boat.root.rotation.y = this.yaw;
+    this.wake.mesh.rotation.y = this.yaw;
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -249,6 +258,12 @@ export class BoatPreview {
     this.scene.remove(this.boat.root);
     this.boat.dispose();
     this.boat = null;
+  }
+
+  /** Her wake astern (she points to -Z), laid at once as if she sailed at `wakeKnots`. */
+  private layWake(model: BoatModel, style: PreviewBoat['wake'] | null = null) {
+    this.wake.setStyle(style);
+    this.wake.preview(0, this.aim.set(0, 0, 0), 0, -1, SETTINGS.wakeKnots, model.wakeHull);
   }
 
   /** The water disc and the camera sized to the boat, whatever her class. */

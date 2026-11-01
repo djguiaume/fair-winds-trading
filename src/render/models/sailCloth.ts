@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { BOAT_LOOK, canvasColour, sailRow, sailRowEdges, type BoatLook } from './boatLook';
 import { STYLE_D as ST } from './boatStyle';
 import { Faces } from './hullGeometry';
+import { canvasPatches, paintMarks, type ClothBox, type SailMark } from './sailMarks';
+import { panelPaint } from './sailPatterns';
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
@@ -9,6 +11,11 @@ const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 export interface ClothWear {
   patched?: boolean;
   tears?: ReadonlyArray<{ u: number; v: number }>;
+}
+
+/** A sail's damage and the marks painted on it (a logo, the racing number: sailMarks.ts). */
+export interface ClothDress extends ClothWear {
+  marks?: readonly SailMark[];
 }
 
 /** Where a damaged sail's patches sit, as fractions along the foot and up the luff (0208). */
@@ -20,7 +27,9 @@ const PATCH_SPOTS = [
 ] as const;
 
 /** Cloth edges have zero belly, so tack, luff, head and spar attachments cannot drift.
- * `nu` × `nv` panels; the upgrade bands and stripe run across whole rows (sailRow). */
+ * `nu` × `nv` panels; the upgrade bands and stripe run across whole rows (sailRow); a pattern
+ * (sailPatterns.ts) paints the canvas rows, and the stripe's too. Damage draws over all of them,
+ * and marks (sailMarks.ts) over everything but damage. */
 export function cloth(
   a: THREE.Vector3,
   b: THREE.Vector3,
@@ -31,7 +40,7 @@ export function cloth(
   look: BoatLook,
   nu = 6,
   nv = 6,
-  wear: ClothWear = {},
+  wear: ClothDress = {},
 ) {
   const f = new Faces(true);
   // A patched sail (decision 0208) takes the stock canvas look, keeping its bands.
@@ -63,29 +72,69 @@ export function cloth(
       (a.z * (1 - u) + b.z * u) * (1 - v) + (c.z * (1 - u) + d.z * u) * v,
     );
   const canvas = canvasColour(look, level, worn);
+  // A pattern other than plain bands paints the canvas and the sails-3 stripe rows.
+  const pattern = look.sailPattern?.kind === 'bands' ? null : look.sailPattern;
+  const plainAt = canvasPatches(wear.marks ?? [], pattern ?? null, canvas, nu, nv);
   const rows = sailRowEdges(level, nv);
   for (let j = 0; j < nv; j++) {
     const row = sailRow(level, j, nv);
     for (let i = 0; i < nu; i++) {
       if (torn.has(`${i}:${j}`)) continue;
+      const [u0, u1, v0, v1] = [i / nu, (i + 1) / nu, rows[j]!, rows[j + 1]!];
+      const corners = [at(u0, v0), at(u1, v0), at(u1, v1), at(u0, v1)] as const;
       let color = canvas;
       let glow = 1;
       if (patched.has(`${i}:${j}`)) color = ST.damagePatches[(i + j) % 2]!;
-      else if (worn && row === 'canvas' && (i * 7 + j * 3) % 8 === 1)
-        color = ST.patches[(i + j) % 2]!;
-      else if (row !== 'canvas') {
+      else if (row === 'band' || (row === 'stripe' && !pattern)) {
         color = row === 'band' ? look.sailBand : look.sailStripe;
         glow = BOAT_LOOK.sails.bandGlow;
-      }
-      f.quad(
-        at(i / nu, rows[j]!),
-        at((i + 1) / nu, rows[j]!),
-        at((i + 1) / nu, rows[j + 1]!),
-        at(i / nu, rows[j + 1]!),
-        color,
-        glow,
-      );
+      } else if (pattern && !plainAt.some((box) => inBox(box, (u0 + u1) / 2, (v0 + v1) / 2))) {
+        patternPanel(f, corners, panelPaint(pattern.kind, i, j, nu, nv), pattern.colours, canvas);
+        continue;
+      } else if (worn && (i * 7 + j * 3) % 8 === 1) color = ST.patches[(i + j) % 2]!;
+      f.quad(...corners, color, glow);
     }
   }
+  if (wear.marks?.length) {
+    const cell = (u: number, v: number) =>
+      `${Math.min(nu - 1, Math.floor(u * nu))}:${Math.max(0, rows.findIndex((e) => e > v) - 1)}`;
+    paintMarks(
+      f,
+      {
+        corners: [a, b, c, d],
+        at,
+        hidden: (u, v) => torn.has(cell(u, v)) || patched.has(cell(u, v)),
+      },
+      wear.marks,
+    );
+  }
   return f.geometry();
+}
+
+const inBox = ([u0, u1, v0, v1]: ClothBox, u: number, v: number) =>
+  u >= u0 && u <= u1 && v >= v0 && v <= v1;
+
+/** One canvas panel under a pattern: two triangles split along the pattern's edge. */
+function patternPanel(
+  f: Faces,
+  [a, b, c, d]: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3],
+  { split, paint }: ReturnType<typeof panelPaint>,
+  colours: readonly string[],
+  canvas: string,
+) {
+  const [first, second] =
+    split === 'ac'
+      ? [
+          [a, b, c],
+          [a, c, d],
+        ]
+      : [
+          [a, b, d],
+          [b, c, d],
+        ];
+  for (const [k, tri] of [first!, second!].entries()) {
+    const p = paint[k]!;
+    const colour = p < 0 ? canvas : (colours[p] ?? colours[0]!);
+    f.tri(tri[0]!, tri[1]!, tri[2]!, colour, p < 0 ? 1 : BOAT_LOOK.sails.bandGlow);
+  }
 }

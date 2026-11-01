@@ -1,0 +1,13 @@
+{
+  "id": "chevron-plum",
+  "slot": "sail-pattern",
+  "name": {
+    "en": "Plum chevron",
+    "fr": "Chevron prune"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "pattern": "chevron",
+  "colours": ["#7a5aa8", "#b9a3d6"]
+}

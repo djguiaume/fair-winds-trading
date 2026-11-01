@@ -1,0 +1,13 @@
+{
+  "id": "halves-green",
+  "slot": "sail-pattern",
+  "name": {
+    "en": "Green halves",
+    "fr": "Moitiés vertes"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "pattern": "halves",
+  "colours": ["#2f8f7a", "#7fb8a4"]
+}

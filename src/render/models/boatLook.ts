@@ -1,6 +1,7 @@
 import boatLookFile from '../../data/boat-look.json';
-import type { UpgradeLevel } from './types';
 import type { ResolvedLook } from '../../sim/cosmetics';
+import { bandPaints } from './sailPatterns';
+import type { UpgradeLevel } from './types';
 
 /**
  * A boat's paint (decision 0259, docs/v1.4/customisation.md): the colour channels the
@@ -20,6 +21,10 @@ export interface BoatLook {
   hullStrake: string | null;
   /** A figurehead: a prop recipe (decision 0135) and its size; null for none. */
   figurehead: { recipe: string; size: number } | null;
+  /** A pattern on the canvas (sailPatterns.ts): its kind and colours (pattern, trim). */
+  sailPattern: { kind: string; colours: string[] } | null;
+  /** A logo on the mainsail (sailMarks.ts): the emblem's SVG and its colour; null for none. */
+  sailLogo: { svg: string; colour: string } | null;
 }
 
 /** The class colours a stock look starts from: the ship file's `model`. */
@@ -31,9 +36,8 @@ export interface ClassColours {
 type LevelColours = Record<'1' | '2' | '3', string>;
 
 /** Shared upgrade colours and the sails' band glow, from `src/data/boat-look.json`. */
-export const BOAT_LOOK = boatLookFile as {
-  sails: { canvas: LevelColours; glow: number; bandGlow: number; footBand: number };
-  hull: { copper: string };
+export const BOAT_LOOK = boatLookFile as typeof boatLookFile & {
+  sails: { canvas: LevelColours };
 };
 
 /** A class's stock look with the chosen channels on top. */
@@ -46,7 +50,31 @@ export function resolveBoatLook(colours: ClassColours, chosen: Partial<BoatLook>
     hullBand: chosen.hullBand ?? colours.bandColor,
     hullStrake: chosen.hullStrake ?? null,
     figurehead: chosen.figurehead ?? null,
+    sailPattern: chosen.sailPattern ?? null,
+    sailLogo: chosen.sailLogo ?? null,
   };
+}
+
+/**
+ * The model's colour channels for a catalogue look (`resolveAppearance`): the cloth, the pattern
+ * and the colours its upgrade bands take, the logo, the hull's band and strake, the figurehead.
+ * Channels the look leaves to the class (stock hull, plain pattern) are left out.
+ */
+export function boatLookOf(resolved: ResolvedLook): Partial<BoatLook> {
+  const { sail, hull, figurehead } = resolved;
+  const look: Partial<BoatLook> = sail.stockCloth ? {} : { sailCloth: sail.cloth };
+  const { kind, colours } = sail.pattern;
+  if (kind !== 'plain' && colours.length) {
+    const [band, stripe] = bandPaints(kind);
+    look.sailPattern = { kind, colours };
+    look.sailBand = colours[band] ?? colours[0]!;
+    look.sailStripe = colours[stripe] ?? look.sailBand;
+  }
+  if (sail.logo?.svg) look.sailLogo = { svg: sail.logo.svg, colour: sail.logo.colour };
+  if (hull.band) look.hullBand = hull.band;
+  if (hull.strake) look.hullStrake = hull.strake;
+  if (figurehead) look.figurehead = { recipe: figurehead.recipe, size: figurehead.size };
+  return look;
 }
 
 /**
@@ -94,19 +122,4 @@ export function canvasColour(look: BoatLook, level: number, worn: boolean): stri
   if (look.sailCloth) return look.sailCloth;
   const k = worn ? '1' : level >= 3 ? '3' : level >= 2 ? '2' : '1';
   return BOAT_LOOK.sails.canvas[k];
-}
-
-/** A resolved cosmetic look (decision 0261) as the model's colour channels. */
-export function boatLookOf(resolved: ResolvedLook): Partial<BoatLook> {
-  const [band, stripe] = resolved.sail.pattern.colours;
-  return {
-    sailCloth: resolved.sail.cloth,
-    ...(band ? { sailBand: band } : {}),
-    ...(stripe ? { sailStripe: stripe } : {}),
-    ...(resolved.hull.band ? { hullBand: resolved.hull.band } : {}),
-    hullStrake: resolved.hull.strake,
-    figurehead: resolved.figurehead
-      ? { recipe: resolved.figurehead.recipe, size: resolved.figurehead.size }
-      : null,
-  };
 }

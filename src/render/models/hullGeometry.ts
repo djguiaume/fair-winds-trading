@@ -10,15 +10,18 @@ const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 export class Faces {
   private pos: number[] = [];
   private colors: number[] = [];
-  /** Per-vertex canvas glow (sailCanvas.ts), kept only by sails: `withGlow`. */
+  /** Per-vertex canvas glow and painted-mark side (sailCanvas.ts), kept only by sails: `withGlow`. */
   private glows: number[] = [];
+  private marks: number[] = [];
   constructor(private readonly withGlow = false) {}
-  tri(a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3, color: string, glow = 1) {
+  /** `mark`: 0 cloth, else the side a painted mark reads from (sailMarks.ts). */
+  tri(a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3, color: string, glow = 1, mark = 0) {
     const k = new THREE.Color(color);
     for (const p of [a, b, c]) {
       this.pos.push(p.x, p.y, p.z);
       this.colors.push(k.r, k.g, k.b);
       if (this.withGlow) this.glows.push(glow);
+      if (this.withGlow) this.marks.push(mark);
     }
   }
   quad(
@@ -37,6 +40,7 @@ export class Faces {
     g.setAttribute('position', new THREE.Float32BufferAttribute(this.pos, 3));
     g.setAttribute('color', new THREE.Float32BufferAttribute(this.colors, 3));
     if (this.withGlow) g.setAttribute('glow', new THREE.Float32BufferAttribute(this.glows, 1));
+    if (this.withGlow) g.setAttribute('mark', new THREE.Float32BufferAttribute(this.marks, 1));
     g.computeVertexNormals();
     return g;
   }

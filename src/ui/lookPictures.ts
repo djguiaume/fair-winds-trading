@@ -1,5 +1,6 @@
 import type { FlagDef } from '../sim/regatta';
 import { RULES, type ResolvedLook } from '../sim/cosmetics';
+import { bandPaints, patternTriangles } from '../render/models/sailPatterns';
 
 /**
  * Small flat pictures of a boat's look as SVG text (decision 0261): a sail swatch with its
@@ -81,6 +82,40 @@ const SAIL = 'M30 3 L30 53 L5 53 L13 15 Z';
 const SAIL_TOP = 3;
 const SAIL_FOOT = 25;
 const SAIL_HEIGHT = 50;
+const SWATCH_SAIL_CORNERS: SailCorners = [
+  [30, 53],
+  [5, 53],
+  [13, 15],
+  [30, 3],
+];
+
+/** A flat sail's foot luff, foot leech, head leech and head luff, in SVG units. */
+export type SailCorners = readonly [
+  readonly [number, number],
+  readonly [number, number],
+  readonly [number, number],
+  readonly [number, number],
+];
+
+/**
+ * A pattern's shapes (sailPatterns.ts, as the 3D sails paint them) on a flat sail: its (u, v)
+ * cloth grid stretched over the four `corners`. Shared by the swatches and the editor's preview.
+ */
+export function patternSvg(kind: string, colours: readonly string[], corners: SailCorners): string {
+  const [a, b, c, d] = corners;
+  const at = ([u, v]: [number, number]) =>
+    [0, 1]
+      .map((k) => (a[k]! * (1 - u) + b[k]! * u) * (1 - v) + (d[k]! * (1 - u) + c[k]! * u) * v)
+      .map((n) => n.toFixed(1))
+      .join(',');
+  return patternTriangles(kind)
+    .map((t) => {
+      // A hairline of the same colour hides the seams between neighbouring triangles.
+      const fill = colours[t.paint] ?? colours[0];
+      return `<polygon points="${t.corners.map(at).join(' ')}" fill="${fill}" stroke="${fill}" stroke-width="0.4"/>`;
+    })
+    .join('');
+}
 
 /** Every sail swatch needs its own clip id, as many share one page. */
 let clips = 0;
@@ -95,11 +130,13 @@ export function sailSwatchSvg(
   emblemWidth = RULES.emblem.width,
 ): string {
   const id = `sail-clip-${++clips}`;
-  const [band, stripe = band] = sail.pattern.colours;
+  const { kind, colours } = sail.pattern;
+  const band = colours[bandPaints(kind)[0]] ?? colours[0];
+  // As on the sail: the pattern, then the foot and head bands in the colour it gives them.
   const bands =
-    sail.pattern.kind === 'plain' || !band
+    kind === 'plain' || !band
       ? ''
-      : `<g clip-path="url(#${id})"><rect x="0" y="45" width="40" height="8" fill="${band}"/><rect x="0" y="3" width="40" height="6" fill="${band}"/><rect x="0" y="26" width="40" height="4" fill="${stripe}"/></g>`;
+      : `<g clip-path="url(#${id})">${patternSvg(kind, colours, SWATCH_SAIL_CORNERS)}<rect x="0" y="47" width="40" height="6" fill="${band}"/><rect x="0" y="3" width="40" height="4" fill="${band}"/></g>`;
   const size = emblemWidth * SAIL_FOOT;
   const y = Math.max(SAIL_TOP + 8, SAIL_TOP + RULES.emblem.centreV * SAIL_HEIGHT - size / 2);
   const logo = sail.logo

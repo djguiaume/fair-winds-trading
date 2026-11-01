@@ -22,6 +22,7 @@ import { PALETTE } from './render/palette';
 import { QUALITY, renderPixelRatio, type QualityLevel } from './render/quality';
 import type { MapDef } from './sim/map';
 import { DEG } from './sim/math';
+import { sheetLook } from './render/boatAppearance';
 
 const params = new URLSearchParams(location.search);
 const view: string =
@@ -59,9 +60,8 @@ const camera = new THREE.PerspectiveCamera(
   1,
   800,
 );
-
 const boats: BoatModel[] = [];
-/** Every boat of the sheet at &damage=0..3 (0208), in &look={"sailBand":"#602080"} (0259). */
+/** Every boat at &damage=0..3 (0208), in &look= (0259), &wear= and &number= (sheetLook). */
 const sheetDamage = Math.max(0, Math.min(3, Number(params.get('damage')) || 0)) as 0 | 1 | 2 | 3;
 const labels: Array<{ at: THREE.Vector3; html: string }> = [];
 function addBoat(
@@ -73,7 +73,7 @@ function addBoat(
   html: string,
   damage = sheetDamage,
 ) {
-  const b = createBoatModel(id, { upgrades, damage, look: JSON.parse(params.get('look') ?? '{}') });
+  const b = createBoatModel(id, { upgrades, damage, ...sheetLook(location.search, id) });
   b.root.position.set(x, 0, z);
   b.root.rotation.y = yaw;
   b.root.traverse((o) => (o.castShadow = true));

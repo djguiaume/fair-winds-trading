@@ -1,9 +1,10 @@
 {
-  "about": "The turntable boat of the Boat looks screen and Free Sailing (issue #299): camera, turn speed, the soft water disc under her, the backdrop's sky and sea by day and night (the disc takes the sea's colour), and the camera views: `at` is the point looked at as shares of her half beam, height above the water and waterline's half length (-1 the stem), `yaw` her turn in degrees (null: she keeps turning), `zoom` how much closer than the whole boat, `tilt` the camera's degrees down. `slotViews`: the view a Boat looks slot turns to.",
+  "about": "The turntable boat of the Boat looks screen and Free Sailing (issue #299): camera, turn speed, the speed her laid wake shows (`wakeKnots`), the soft water disc under her, the backdrop's sky and sea by day and night (the disc takes the sea's colour), and the camera views: `at` is the point looked at as shares of her half beam, height above the water and waterline's half length (-1 the stem), `yaw` her turn in degrees (null: she keeps turning), `zoom` how much closer than the whole boat, `tilt` the camera's degrees down. `slotViews`: the view a Boat looks slot turns to.",
   "fov": 28,
   "margin": 0.72,
   "startYaw": -125,
   "spinDegPerSecond": 9,
+  "wakeKnots": 6,
   "stepDeg": 45,
   "discScale": 1.15,
   "discSolid": 0.55,
@@ -42,11 +43,11 @@
       "tilt": 6
     },
     "stern": {
-      "about": "Three-quarter stern, low: the wake.",
+      "about": "Three-quarter stern, a little high: her wake astern.",
       "yaw": 35,
-      "zoom": 1.4,
-      "at": [0, 0.08, 0.9],
-      "tilt": 26
+      "zoom": 1.3,
+      "at": [0, 0.05, 1.6],
+      "tilt": 30
     },
     "side": {
       "about": "Broadside, a little low: the sail logo, drawn flat on the cloth, reads best from the side.",

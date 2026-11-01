@@ -195,6 +195,7 @@ export class BoatLooksScreen {
       upgrades: this.levels(),
       damage: this.compare === 'yours' ? this.ship.damage : 0,
       look: boatLookOf(look),
+      wake: look.wake,
       ...(flag ? { flag } : {}),
     });
   }

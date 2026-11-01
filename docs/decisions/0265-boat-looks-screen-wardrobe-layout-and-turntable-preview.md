@@ -1,4 +1,4 @@
-# 0264. Boat looks screen: wardrobe layout and turntable preview
+# 0265. Boat looks screen: wardrobe layout and turntable preview
 
 **Status:** Accepted (2026-11-01), part of v1.4 (#299).
 

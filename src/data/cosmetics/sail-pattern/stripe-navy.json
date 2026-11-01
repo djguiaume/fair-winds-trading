@@ -1,0 +1,13 @@
+{
+  "id": "stripe-navy",
+  "slot": "sail-pattern",
+  "name": {
+    "en": "Navy stripe",
+    "fr": "Bande marine"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "pattern": "stripe",
+  "colours": ["#2f6f9f", "#1f4e79"]
+}

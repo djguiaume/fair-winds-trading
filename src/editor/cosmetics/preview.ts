@@ -2,7 +2,8 @@ import { SHIP_FILES } from '../../data/ships';
 import { PROP_RECIPES, type RecipePart } from '../../data/props';
 import { type Catalogue, type Appearance, RULES, resolveAppearance } from '../../sim/cosmetics';
 import { FLAGS } from '../../sim/regatta';
-import { emblemShapes, flagSvg } from '../../ui/lookPictures';
+import { emblemShapes, flagSvg, patternSvg, type SailCorners } from '../../ui/lookPictures';
+import { bandPaints } from '../../render/models/sailPatterns';
 
 /**
  * A flat side view of a boat wearing a look, as SVG: the hull in her class colours, the sail with
@@ -13,17 +14,28 @@ import { emblemShapes, flagSvg } from '../../ui/lookPictures';
 const SAIL = 'M100 12 L100 98 L26 98 L46 40 Z';
 const SAIL_FOOT = 74;
 const SAIL_HEIGHT = 86;
+/** Foot luff, foot leech, head leech, head luff of SAIL. */
+const EDITOR_SAIL_CORNERS: SailCorners = [
+  [100, 98],
+  [26, 98],
+  [46, 40],
+  [100, 12],
+];
 
 export function lookSvg(cat: Catalogue, want: Partial<Appearance>, shipClass: string): string {
   const { look, problems } = resolveAppearance(cat, want, shipClass, FLAGS);
   const model = SHIP_FILES.find((s) => s.id === shipClass)?.model;
   const hull = model?.hullColor ?? '#9a5a2a';
   const band = look.hull.band ?? model?.bandColor ?? '#2f6f9f';
-  const [c1 = band, c2 = '#f4f1e8'] = look.sail.pattern.colours;
+  const { kind, colours } = look.sail.pattern;
+  const [bandAt, stripeAt] = bandPaints(kind);
+  const [c1 = band, c2 = '#f4f1e8'] = [colours[bandAt], colours[stripeAt]];
+  // As on sails 3: the pattern, then the foot and head bands (the stripe with bands only).
+  const stripe = kind === 'bands' ? `<rect x="90" y="12" width="4" height="86" fill="${c2}"/>` : '';
   const bands =
-    look.sail.pattern.kind === 'plain'
+    kind === 'plain'
       ? ''
-      : `<g clip-path="url(#sail)"><rect x="20" y="84" width="90" height="14" fill="${c1}"/><rect x="20" y="12" width="90" height="10" fill="${c1}"/><rect x="90" y="12" width="4" height="86" fill="${c2}"/></g>`;
+      : `<g clip-path="url(#sail)">${patternSvg(kind, colours, EDITOR_SAIL_CORNERS)}<rect x="20" y="84" width="90" height="14" fill="${c1}"/><rect x="20" y="12" width="90" height="10" fill="${c1}"/>${stripe}</g>`;
   const logo = look.sail.logo ? emblem(look.sail.logo.svg, look.sail.logo.colour) : '';
   const flag = look.flag ? flagSvg(look.flag, 26).replace('<svg ', '<svg x="100" y="2" ') : '';
   const head = look.figurehead ? figureheadSvg(look.figurehead.recipe, look.figurehead.size) : '';
@@ -34,7 +46,7 @@ export function lookSvg(cat: Catalogue, want: Partial<Appearance>, shipClass: st
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" width="200" height="150" role="img" aria-label="${shipClass}${problems.length ? ': ' + problems.join('; ') : ''}"><defs><clipPath id="sail"><path d="${SAIL}"/></clipPath></defs><rect width="200" height="150" fill="#bfe3f0"/><path d="M0 128 H200 V150 H0 Z" fill="#6fb6d0"/>${wake}<path d="M34 106 H166 L156 128 H48 Z" fill="${hull}" stroke="#22252a"/><rect x="38" y="110" width="124" height="6" fill="${band}"/>${strake}${head}<rect x="98" y="10" width="3" height="96" fill="#5a3d24"/><path d="${SAIL}" fill="${look.sail.cloth}" stroke="#22252a"/>${bands}${logo}${flag}</svg>`;
 }
 
-/** The emblem at the size and place `rules.json` gives: a share of the sail's width, centred, upper third. */
+/** The emblem at the size and place `rules.json` gives: a share of the sail's width, centred. */
 function emblem(svg: string, colour: string): string {
   const size = RULES.emblem.width * SAIL_FOOT;
   const y = 12 + RULES.emblem.centreV * SAIL_HEIGHT - size / 2;
