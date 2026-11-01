@@ -1,0 +1,115 @@
+/* Round 4: four title screens in the chart table style. The menu rows are large plain rows, all the
+   same height and type as Continue (art director); Continue is the selected one, in sage. */
+.tt-brand, .tt-menu, .tt-links, .tt-ver, .tt-tag, .tt-page { position: absolute; }
+.tt-menu { display: flex; flex-direction: column; gap: 8px; width: 460px; }
+.tt-row { position: relative; display: flex; align-items: center; gap: 14px; min-height: 62px; padding: 0 22px;
+  border-radius: 6px; background: var(--paper-2); font: 400 34px/1 var(--f-display); color: var(--ink); text-align: left; }
+.tt-row.on { background: var(--sig); color: var(--on-sig); box-shadow: inset 0 0 0 2px var(--sig-dark), 0 3px 0 var(--sig-dark); outline: 2.5px solid var(--ink); outline-offset: 3px; }
+.tt-sub { font: 500 16px/1.2 var(--f-body); opacity: .92; margin-left: auto; text-align: right; }
+.tt-row .pad { background: var(--on-sig); color: var(--sig-dark); }
+.tt-links { display: flex; gap: 20px; align-items: center; font-size: 17px; color: var(--ink-2); }
+.tt-links .lang b { background: var(--ink); color: var(--paper); border-radius: 3px; } .tt-links .lang i { color: var(--ink-2); }
+.tt-ver { right: 28px; top: 20px; font: italic 400 16px var(--f-display); color: var(--ink); }
+.s-titlek .padbar { font-size: 16px; color: var(--ink); }
+.tt-tag { font: italic 400 22px var(--f-display); color: var(--sig-dark); }
+.tt-cart, .tt-page, .tk-2 .tt-menu, .tk-2 .tt-links, .tk-2 .padbar, .tk-3 .padbar, .tk-4 .tt-row { isolation: isolate; }
+.tt-cart::before, .tt-page::before, .tk-2 .tt-menu::before, .tk-2 .tt-links::before, .tk-2 .padbar::before, .tk-3 .padbar::before, .tk-4 .tt-row::before {
+  content: ''; position: absolute; inset: -4px; z-index: -1;
+  border: 20px solid transparent; border-image: var(--plate) 40 fill / 20px round;
+}
+
+/* 1. Ledger: the painted key art as a strip, one ledger below with the logo and the menu. */
+.tk-1 .bg { background-size: 100% auto; background-position: center top; background-color: #09a2b4; }
+.tk-1 .ledger { left: 60px; right: 60px; top: 444px; bottom: 18px; }
+.tk-1 .tt-brand { left: 104px; top: 484px; }
+.tk-1 .logo-chart .l-emblem { width: 112px; height: 112px; }
+.tk-1 .logo-chart .l-fair { font-size: 92px; }
+.tk-1 .logo-chart .l-band { width: 290px; height: 40px; } .tk-1 .logo-chart .l-band em { font-size: 22px; }
+.tk-1 .tt-tag { left: 112px; top: 654px; }
+.tk-1 .tt-menu { right: 104px; top: 474px; }
+.tk-1 .tt-links { left: 112px; bottom: 52px; }
+.tk-1 .padbar { right: 110px; bottom: 50px; display: none; }
+
+/* 2. The chart table: no picture, the chart itself; the logo as the chart's cartouche, the menu as a card. */
+.tk-2 { background: #d9cba8; }
+.tt-cart { left: 50%; top: 30px; transform: translateX(-50%); padding: 18px 34px 16px; }
+.tk-2 .logo-chart .l-emblem { width: 120px; height: 120px; }
+.tk-2 .logo-chart .l-fair { font-size: 104px; }
+.tk-2 .tt-menu { left: 50%; transform: translateX(-50%); top: 288px; padding: 26px; width: 520px; }
+.tk-2 .tt-links { left: 50%; transform: translateX(-50%); bottom: 26px; padding: 10px 22px; }
+.tk-2 .padbar { right: 28px; bottom: 26px; padding: 10px 18px; }
+
+/* 3. Logbook page: a full-height torn page on the left, the painted key art on the right. */
+.tk-3 .bg { background-size: auto 100%; background-position: -335px 0; }
+.tt-page { left: -20px; top: -20px; bottom: -20px; width: 520px; }
+.tt-stack { left: 0; width: 500px; top: 34px; display: flex; justify-content: center; }
+.tt-stack .logo-chart { flex-direction: column; gap: 4px; }
+.tt-stack .logo-chart .l-emblem { width: 104px; height: 104px; }
+.tt-stack .logo-chart .l-fair { font-size: 100px; }
+.tt-stack .logo-chart .l-band { width: 320px; height: 44px; } .tt-stack .logo-chart .l-band em { font-size: 24px; }
+.tk-3 .tt-menu { left: 40px; top: 340px; width: 420px; }
+.tk-3 .tt-links { left: 44px; bottom: 34px; width: 420px; flex-wrap: wrap; gap: 8px 18px; }
+.tk-3 .tt-ver { color: var(--light); text-shadow: var(--halo); }
+.tk-3 .padbar { right: 28px; bottom: 26px; padding: 10px 18px; }
+
+/* 4. The live harbour: the real game behind, the logo on a cartouche, the menu as a row of big tiles. */
+.tk-4 .bg { background-position: center top; }
+.tk-4 .tt-cart { top: 24px; }
+.tk-4 .logo-chart .l-emblem { width: 110px; height: 110px; }
+.tk-4 .logo-chart .l-fair { font-size: 96px; }
+.tk-4 .tt-menu { left: 50%; transform: translateX(-50%); bottom: 82px; width: auto; flex-direction: row; gap: 14px; }
+.tk-4 .tt-row { flex-direction: column; justify-content: center; align-items: center; gap: 4px; width: 220px; min-height: 104px; padding: 10px; background: none; text-align: center; }
+.tk-4 .tt-row.on { width: 300px; background: none; box-shadow: none; outline: none; color: var(--on-sig); }
+.tk-4 .tt-row.on::before { border-image-source: url(slices/chart-sage.png); }
+.tk-4 .tt-row.on .tt-sub { margin: 0; text-align: center; }
+.tk-4 .tt-row .pad { position: absolute; right: 14px; top: 12px; }
+.tk-4 .tt-links { left: 34px; bottom: 26px; color: var(--light); text-shadow: var(--halo); }
+.tk-4 .tt-links .lang i { color: var(--light); }
+.tk-4 .padbar { right: 34px; bottom: 26px; color: var(--light); text-shadow: var(--halo); }
+
+/* Phone landscape (844 x 390): touch first, so no pad bar. */
+.z-phone.s-titlek .padbar, .z-phone .tt-tag { display: none; }
+.z-phone .tt-menu { gap: 4px; width: 330px; }
+.z-phone .tt-row { min-height: 36px; padding: 0 14px; font-size: 22px; }
+.z-phone .tt-sub { font-size: 11px; }
+.z-phone .tt-row .pad { display: none; }
+.z-phone .tt-links { font-size: 12px; gap: 12px; }
+.z-phone .tt-ver { right: 14px; top: 8px; font-size: 12px; }
+.z-phone.tk-1 .ledger { left: 20px; right: 20px; top: 196px; bottom: 8px; }
+.z-phone.tk-1 .tt-brand { left: 46px; top: 222px; }
+.z-phone.tk-1 .logo-chart .l-emblem { width: 58px; height: 58px; }
+.z-phone.tk-1 .logo-chart .l-fair { font-size: 50px; }
+.z-phone.tk-1 .logo-chart .l-band { width: 170px; height: 24px; } .z-phone.tk-1 .logo-chart .l-band em { font-size: 13px; }
+.z-phone.tk-1 .tt-menu { right: 42px; top: 212px; }
+.z-phone.tk-1 .tt-links { left: 48px; bottom: 30px; }
+.z-phone .tt-cart { top: 8px; padding: 8px 18px 7px; }
+.z-phone.tk-2 .logo-chart .l-emblem, .z-phone.tk-4 .logo-chart .l-emblem { width: 58px; height: 58px; }
+.z-phone.tk-2 .logo-chart .l-fair, .z-phone.tk-4 .logo-chart .l-fair { font-size: 52px; }
+.z-phone.tk-2 .logo-chart .l-band, .z-phone.tk-4 .logo-chart .l-band { width: 180px; height: 24px; }
+.z-phone.tk-2 .logo-chart .l-band em, .z-phone.tk-4 .logo-chart .l-band em { font-size: 13px; }
+.z-phone.tk-2 .tt-menu { top: 128px; padding: 14px; width: 360px; }
+.z-phone.tk-2 .tt-links { bottom: 8px; padding: 6px 14px; }
+.z-phone.tk-3 .tt-page { width: 330px; }
+.z-phone .tt-stack { width: 310px; top: 12px; }
+.z-phone .tt-stack .logo-chart .l-emblem { width: 52px; height: 52px; }
+.z-phone .tt-stack .logo-chart .l-fair { font-size: 50px; }
+.z-phone .tt-stack .logo-chart .l-band { width: 170px; height: 24px; } .z-phone .tt-stack .logo-chart .l-band em { font-size: 13px; }
+.z-phone.tk-3 .bg { background-position: -10px 0; }
+.z-phone.tk-3 .tt-menu { left: 24px; top: 168px; width: 270px; }
+.z-phone.tk-3 .tt-links { left: 26px; bottom: 10px; width: 280px; gap: 4px 12px; }
+.z-phone.tk-4 .tt-menu { bottom: 40px; width: auto; gap: 8px; }
+.z-phone.tk-4 .tt-row { width: 168px; min-height: 66px; font-size: 22px; }
+.z-phone.tk-4 .tt-row.on { width: 214px; }
+.z-phone.tk-4 .tt-links { left: 18px; bottom: 10px; }
+.z-phone.tk-1 .bg { background-position: 0 -50px; }
+.z-phone.tk-1 .ledger { top: 212px; }
+.z-phone.tk-1 .tt-brand { top: 236px; }
+.z-phone.tk-1 .tt-menu { top: 226px; }
+.z-phone.tk-1 .tt-row { min-height: 34px; }
+.z-phone.tk-1 .tt-links { bottom: 24px; }
+
+/* 5. Title 3 on the art director's terms: a straight page edge with a thin ink line, a tagline.
+   6. Guillaume's pick: 5 with 3's torn page edge. Both carry the tagline (.tk-tag). */
+.tk-5 .tt-page::before { inset: 0; border: 0; border-image: none; background: var(--paper); box-shadow: 1.5px 0 0 var(--ink), 5px 0 14px rgba(20, 14, 8, .35); }
+.tk-tag .tt-tag { left: 0; width: 500px; top: 300px; text-align: center; font-size: 21px; }
+.tk-tag .tt-menu { top: 356px; }

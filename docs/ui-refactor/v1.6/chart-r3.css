@@ -1,0 +1,68 @@
+/* Direction 1, "The chart table", round 3 (loaded after chart-r2.css): minimal at sea and on the title.
+   Fixes from Guillaume and the art director: the wind compass top right, bigger, a solid hatched no-go
+   wedge; text on the scene gets a hard 1 px ink halo (no blur); the instrument always has a faint
+   backing; dimmer night paper; phone text 11 px or more; a roomier title menu on phone. */
+.r3 {
+  --halo-c: #0f161e;
+  --halo: 1px 0 0 var(--halo-c), -1px 0 0 var(--halo-c), 0 1px 0 var(--halo-c), 0 -1px 0 var(--halo-c),
+    1px 1px 0 var(--halo-c), -1px 1px 0 var(--halo-c), 1px -1px 0 var(--halo-c), -1px -1px 0 var(--halo-c);
+  --halo-paper: 1px 0 0 var(--paper), -1px 0 0 var(--paper), 0 1px 0 var(--paper), 0 -1px 0 var(--paper),
+    1px 1px 0 var(--paper), -1px 1px 0 var(--paper), 1px -1px 0 var(--paper), -1px -1px 0 var(--paper);
+  --backing: rgba(15, 22, 30, .4);
+  --nogo: rgba(35, 48, 58, .55);
+}
+.r3.t-night { --plate: url(slices/chart-paper-night-r3.png); --paper-2: #b5a685; --paper-3: #a99a79; --ink-2: #3f4850; --sig-wash: #b3c3a0; }
+
+/* Text on the scene: a hard halo, never a blur. */
+.r3.v-minimal .h-status, .r3.v-minimal .h-strip, .r3.v-minimal .h-toast, .r3.v-minimal .h-arrive, .r3.v-minimal .h-instr,
+.r3.v-minimal .h-wind, .r3.v-minimal .hbtn { text-shadow: var(--halo); }
+.r3.v-minimal.s-title .t-menu .btn:not(.primary), .r3.v-minimal.s-title .t-second,
+.r3.v-minimal.s-title .padbar { color: var(--light); text-shadow: var(--halo); }
+.r3.v-minimal.s-title .t-second a, .r3.v-minimal.s-title .lang i { color: var(--light); }
+.r3.v-minimal.s-title .t-version { text-shadow: var(--halo-paper); }
+.r3.v-minimal .h-toast { font-size: 22px; }
+
+/* The instrument: speed is the biggest number; a faint backing so it never sits on land bare. */
+.r3 .h-instr { width: 236px; padding: 14px 18px 16px; }
+.r3.v-minimal .h-instr::before { display: block; content: ''; inset: 0; border: 0; border-image: none; background: var(--backing); border-radius: 12px; }
+.r3.v-minimal .i-speed b { font-size: 96px; }
+.r3 .i-head { font-size: 18px; margin-top: 2px; }
+.r3.v-minimal .sl.on { background: var(--sig-light); color: var(--ink); }
+
+/* The wind compass: its own dial, top right, the point of sail beside it. */
+.r3 .h-wind { right: 20px; top: 16px; bottom: auto; flex-direction: row; align-items: center; gap: 14px; padding: 0; }
+.r3 .wind-compass { width: 176px; height: 176px; }
+.r3 .hw-t { flex-direction: column; align-items: flex-end; gap: 2px; }
+.r3 .hw-t .hw-pos { font: 400 34px/1 var(--f-display); color: var(--sig-light); }
+.r3 .hw-t span { font-size: 18px; }
+.r3 .wc-face { fill: var(--backing); stroke: var(--light); stroke-width: 2; }
+.r3 .wc-nogo { fill: var(--nogo); stroke: var(--light); stroke-width: 1.6; stroke-dasharray: none; stroke-linejoin: round; }
+.r3 .wc-hatch { display: inline; fill: url(#wc-hatch); stroke: none; }
+.r3 .wc-hatch-line { stroke: rgba(243, 238, 223, .62); stroke-width: 1.4; }
+.r3 .wc-tick { stroke: var(--light); } .r3 .wc-card { font-size: 15px; }
+.r3 .wc-arrow { stroke-width: 8; stroke-linecap: butt; } .r3 .wc-arrow-under { stroke-width: 12; stroke-linecap: butt; }
+
+/* Title: the minimal menu, ink with a paper halo. */
+.r3.v-minimal.s-title .t-menu { gap: 10px; }
+
+/* Phone landscape */
+.z-phone.r3 .h-status { padding: 8px 12px; }
+.z-phone.r3 .h-quest { font-size: 12px; } .z-phone.r3 .h-quest b { font-size: 16px; }
+.z-phone.r3 .h-dest { font-size: 12px; }
+.z-phone.r3 .h-strip { left: 40%; }
+.z-phone.r3 .h-instr { width: 168px; padding: 8px 12px 10px; }
+.z-phone.r3.v-minimal .i-speed b { font-size: 58px; }
+.z-phone.r3 .i-head { font-size: 12px; }
+.z-phone.r3 .i-sails { font-size: 12px; }
+.z-phone.r3 .h-wind { right: 10px; top: 8px; bottom: auto; gap: 8px; padding: 0; }
+.z-phone.r3 .wind-compass { width: 104px; height: 104px; }
+.z-phone.r3 .hw-t .hw-pos { font-size: 20px; } .z-phone.r3 .hw-t span { font-size: 12px; }
+.z-phone.r3 .h-toast { font-size: 15px; top: 76px; left: 40%; }
+.z-phone.r3 .h-arrive { top: 70px; left: 40%; }
+.z-phone.r3 .hbtn { font-size: 16px; }
+.z-phone.r3.v-minimal.s-title .t-menu { top: 140px; gap: 8px; width: 320px; }
+.z-phone.r3 .btn { font-size: 23px; }
+.z-phone.r3.s-title .t-menu .btn:not(.primary) { font-size: 24px; padding: 4px 12px; }
+.z-phone.r3.s-title .t-menu .btn.big { font-size: 30px; padding: 8px 16px; }
+.z-phone.r3 .b-sub { font-size: 13px; }
+.z-phone.r3.s-title .t-second, .z-phone.r3.s-title .padbar, .z-phone.r3 .t-version { font-size: 13px; }

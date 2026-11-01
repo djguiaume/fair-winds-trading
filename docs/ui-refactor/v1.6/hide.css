@@ -1,0 +1,3 @@
+x-swallow{}
+body > *:not(#stage):not(svg) { display:none !important; }
+dialog { display:none !important; }
