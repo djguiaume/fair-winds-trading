@@ -6,8 +6,6 @@
   margin: 12px 0 4px;
   color: var(--brass);
   font: 700 var(--fs-note)/1.2 var(--body);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 .club-rows {
   display: grid;

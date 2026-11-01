@@ -16,8 +16,6 @@
   background: var(--navy);
   color: var(--brass);
   font: 700 var(--fs-lead)/1.1 var(--display);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
   white-space: nowrap;
   cursor: pointer;
   pointer-events: auto;
@@ -94,14 +92,11 @@
   margin: 0;
   color: var(--ink);
   font: 700 var(--fs-head)/1.1 var(--display);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 .home-plot h3 small {
   margin-left: 8px;
   color: var(--brass);
   font-size: var(--fs-body);
-  letter-spacing: 0.06em;
 }
 .home-line {
   margin: 0;
@@ -131,8 +126,6 @@
 .home-choice b {
   color: var(--ink);
   font: 700 var(--fs-sub)/1.1 var(--display);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 .home-choice p {
   flex: 1;
@@ -143,8 +136,6 @@
 .home-kind {
   color: var(--brass);
   font: 700 var(--fs-small)/1 var(--display);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 .home-empty {
   margin: 30px auto;
@@ -254,8 +245,6 @@ body.home-half #hud > :not(#home-ui) {
   margin: 0;
   color: var(--brass);
   font: 700 var(--fs-sub)/1.15 var(--display);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 .home-store {
   display: flex;
@@ -280,7 +269,6 @@ body.home-half #hud > :not(#home-ui) {
   grid-area: name;
   color: var(--ink);
   font: 700 var(--fs-sub)/1.1 var(--display);
-  text-transform: uppercase;
 }
 .home-store-counts {
   grid-area: counts;
