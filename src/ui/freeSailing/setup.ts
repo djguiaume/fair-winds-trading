@@ -43,6 +43,8 @@ export class FreeSetupScreen {
   private setup: FreeSetup;
   /** Set while Set sail closes the screen: the session starts instead of the menu coming back. */
   private sailing = false;
+  /** The session has set sail at least once: the menu's play button resumes it. */
+  sailed = false;
   private readonly looks: BoatLooksScreen;
   private readonly onResize = () => this.preview?.resize();
 
@@ -82,6 +84,7 @@ export class FreeSetupScreen {
     this.root.innerHTML = shellHtml();
     this.root.showModal();
     this.preview = new BoatPreview(this.root.querySelector('.bl-canvas')!, this.host.quality());
+    this.preview.setView('whole', true);
     this.render();
     this.preview.resize();
     this.preview.start();
@@ -165,6 +168,7 @@ export class FreeSetupScreen {
 
   private sail() {
     this.sailing = true;
+    this.sailed = true;
     this.close();
     this.host.sail(this.setup);
   }

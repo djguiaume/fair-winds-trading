@@ -30,11 +30,13 @@ export function shellHtml(): string {
       </div>
     </section>
     <aside class="bl-items on-paper fs-side">
-      <h3 class="fs-head">${t('free.ship')}</h3>
+      <div class="fs-ship-head">
+        <h3 class="fs-head">${t('free.ship')}</h3>
+        <button type="button" class="d-btn fs-looks">${t('customise.title')}</button>
+      </div>
       <div class="bl-ships fs-ships" role="radiogroup" aria-label="${t('free.ship')}"></div>
       <h3 class="fs-head">${t('free.upgrades')}</h3>
       <div class="fs-upgrades"></div>
-      <button type="button" class="d-btn fs-looks">${t('customise.title')}</button>
       <div class="fs-actions">
         <button type="button" class="d-btn brass big fs-sail">${t('menu.play')}</button>
         <button type="button" class="d-btn fs-leave">${t('free.leave')}</button>

@@ -9,9 +9,9 @@
     "fr": "Un clipper rapide, voiles neuves, la mer ouverte à l'est l'après-midi."
   },
   "place": {
-    "x": 465,
-    "y": -40,
-    "headingDeg": 120
+    "x": 378,
+    "y": 10,
+    "headingDeg": 140
   },
   "hour": 14,
   "weather": "breeze",

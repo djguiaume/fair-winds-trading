@@ -9,9 +9,9 @@
     "fr": "Le sloop tel qu'il sort du chantier, bonne brise au large de chez vous."
   },
   "place": {
-    "x": 190,
+    "x": 210,
     "y": -60,
-    "headingDeg": 300
+    "headingDeg": 186
   },
   "hour": 9,
   "weather": "breeze",

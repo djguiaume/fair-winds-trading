@@ -73,8 +73,15 @@
   background: var(--teal);
   color: var(--on-fill);
 }
+.fs-ship-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
 .free-setup .fs-looks {
-  margin-top: 4px;
+  min-height: 40px;
+  padding: 0 14px;
 }
 .fs-actions {
   display: grid;
@@ -108,10 +115,14 @@
     flex: none;
     padding: 0 0 2px;
   }
+  .free-setup .bl-items {
+    padding-bottom: 0;
+  }
   .fs-actions {
     grid-template-columns: 1fr auto;
     position: sticky;
     bottom: 0;
+    padding-bottom: max(12px, var(--safe-bottom, env(safe-area-inset-bottom)));
     background: var(--paper);
   }
 }
@@ -123,18 +134,25 @@
   left: 50%;
   z-index: 5;
   transform: translateX(-50%);
-  padding: 3px 12px;
-  border-radius: 10px;
+  padding: 4px 12px;
+  border: 1px solid var(--brass-lo);
+  border-radius: 999px;
   background: #123246e6;
-  color: #f3d37e;
-  font: 600 12px var(--display);
+  color: var(--paper);
+  font: 600 var(--fs-small) var(--display);
   pointer-events: none;
+}
+/* On a phone the top row is full: under it, clear of the compass and the Map button. */
+@media (max-width: 700px) {
+  .free-badge {
+    top: calc(max(6px, var(--safe-top, env(safe-area-inset-top))) + 64px);
+  }
 }
 body:not(.free-sailing) .free-badge,
 body.in-menu .free-badge {
   display: none;
 }
-body.free-sailing :is(#menu-tutorial, #menu-transfer, #menu-free, #reset-save),
-body:not(.free-sailing) :is(#menu-free-setup, #menu-free-leave) {
+/* Nothing in a session can save or send a voyage (decision 0266). */
+body.free-sailing :is(#menu-tutorial, #menu-transfer, #reset-save) {
   display: none;
 }

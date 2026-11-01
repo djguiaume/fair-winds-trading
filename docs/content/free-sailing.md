@@ -21,4 +21,4 @@ npm run free -- set harbour-dusk name.fr "Crépuscule au port"
 }
 ```
 
-`weather` is a kind from `weather.json` (`calm`, `breeze`, `rain`, `gale`); the session starts at the first game time with that weather at that hour. `npm run free -- check` (also in `npm run check`) refuses a start on or near land or shallows for the largest ship, inside a harbour's docking reach, outside the sea, or a weather that never comes at that hour on some level. Point `headingDeg` across the wind (`npm run free -- walk --shots dir` shows her at sea).
+`weather` is a kind from `weather.json` (`calm`, `breeze`, `rain`, `gale`); the session starts at the first game time with that weather at that hour. `npm run free -- check` (also in `npm run check`) refuses a start on or near land or shallows for the largest ship, without `runway` metres of open water ahead, inside a harbour's docking reach, outside the sea, or a weather that never comes at that hour on some level. Point `headingDeg` across the wind (`npm run free -- walk --shots dir` shows her at sea).

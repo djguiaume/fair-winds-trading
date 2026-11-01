@@ -2,6 +2,7 @@ import { DIFFICULTIES, weatherFor } from './difficulty';
 import { type FreePreset, type FreeRules, presetTime } from './freeSailing';
 import type { MapDef } from './map';
 import { clearAt } from './mapChecks';
+import { bearingVector } from './math';
 import { SHIP_CLASSES } from './ship';
 import { distanceToPort } from './trade';
 import { MAX_UPGRADE_LEVEL, UPGRADE_TRACKS } from './upgrades';
@@ -61,8 +62,29 @@ function placeProblems(p: FreePreset, map: MapDef, rules: FreeRules): string[] {
   for (const port of map.ports)
     if (distanceToPort(map, { x, y }, port) <= dockRange + berthReach + rules.clearance)
       out.push(`place is inside ${port.name}'s docking reach`);
+  if (!runwayClear(x, y, headingDeg, map, rules, hull))
+    out.push(`less than ${rules.runway} m of open water ahead on headingDeg ${headingDeg}`);
   return out;
 }
+
+/** Open water ahead, so she can sail off the start before the player turns her. */
+function runwayClear(
+  x: number,
+  y: number,
+  headingDeg: number,
+  map: MapDef,
+  rules: FreeRules,
+  hull: { radius: number; draft: number },
+): boolean {
+  const ahead = bearingVector((headingDeg * Math.PI) / 180);
+  for (let d = RUNWAY_STEP; d <= rules.runway; d += RUNWAY_STEP)
+    if (!clearAt(map, x + ahead.x * d, y + ahead.y * d, hull.radius + RUNWAY_STEP, hull.draft))
+      return false;
+  return true;
+}
+
+/** Metres between the points tested along the runway. */
+const RUNWAY_STEP = 20;
 
 function timeProblems(p: FreePreset, map: MapDef, rules: FreeRules): string[] {
   if (!Number.isFinite(p.hour) || p.hour < 0 || p.hour >= 24) return ['hour must be 0 to 24'];

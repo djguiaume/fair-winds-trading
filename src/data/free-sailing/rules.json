@@ -1,5 +1,6 @@
 {
-  "about": "Rules for the Free Sailing presets (decision 0266): every other file in this folder is one preset. clearance: sea room in metres round a start, beyond the largest hull, also kept from every harbour's docking reach. searchDays: how many game days the session looks ahead for the preset's weather at its hour.",
+  "about": "Rules for the Free Sailing presets (decision 0266): every other file in this folder is one preset. clearance: sea room in metres round a start, beyond the largest hull, also kept from every harbour's docking reach. runway: open water in metres ahead of her on the preset's heading. searchDays: how many game days the session looks ahead for the preset's weather at its hour.",
   "clearance": 30,
+  "runway": 150,
   "searchDays": 400
 }

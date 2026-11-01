@@ -17,7 +17,7 @@ interface LooksGame {
   settings: { dayNight: boolean };
   autosave: () => void;
   /** What may be worn instead of the voyage's own unlocks: Free Sailing's everything (0266). */
-  unlocked?: UnlockProgress;
+  unlocked?: UnlockProgress | undefined;
 }
 
 /**

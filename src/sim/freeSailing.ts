@@ -37,6 +37,8 @@ export interface FreePreset {
 export interface FreeRules {
   /** Sea room round the start beyond the largest hull, in metres. */
   clearance: number;
+  /** Open water ahead of her on the preset's heading, in metres. */
+  runway: number;
   /** How many game days to look ahead for the preset's weather at its hour. */
   searchDays: number;
 }

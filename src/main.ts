@@ -127,10 +127,9 @@ import {
   useTextEdits,
 } from './i18n';
 import { TradePanel } from './ui/tradePanel';
+import { showTestSeaBadge } from './ui/testSeaBadge';
 import { boatLooksIn } from './ui/boatLooks/host';
-import { freeSessionIn, leaveFreeSailing, openFreeSailing } from './ui/freeSailing/session';
-import { everythingUnlocked, isFreeSailing } from './sim/freeSailing';
-import { SHIPPED_CATALOGUE } from './data/cosmetics';
+import { FREE_UNLOCKS, freeSailingIn, isFreeSailing } from './ui/freeSailing/session';
 import { HomePanel, buildingName, effectLine } from './ui/homePanel';
 import {
   PLOT_CAMERA,
@@ -173,8 +172,7 @@ const settings = loadSettings(location.search);
 // The `?bench` device benchmark (decision 0154) sails a fresh voyage kept in memory with every
 // hazard on and the shifting wind, so runs compare; it never saves the player's settings.
 const benchMode = new URLSearchParams(location.search).has('bench');
-// Free Sailing (decision 0266): `?free` is a session on the game's sea kept in memory only. It
-// never opens the voyage's storage, so nothing it does can reach the voyage's save.
+// Free Sailing (decision 0266): `?free`, a session in memory only that never opens the voyage's save.
 const freeSailing = isFreeSailing(location.search);
 if (benchMode)
   Object.assign(settings, {
@@ -286,29 +284,8 @@ const voyageStorage =
 const storage =
   tuneMode && voyageStorage ? prefixedStorage(voyageStorage, TUNE_PREFIX) : voyageStorage;
 const world = createWorld(playtestMap ?? GAME_MAP, SLOOP);
-if (playtestMap) {
-  document.title = `${stressTest ? 'Stress test' : ringAlone ? 'Ring alone' : questTest ? 'Quest test' : editedPhase4 ? 'Edited Phase 4 sea' : 'Edited map'} · ${document.title}`;
-  const badge = document.createElement('a');
-  badge.href = editedPhase4 ? './editor.html?sea=phase4' : './editor.html?sea=ring';
-  badge.textContent = stressTest
-    ? 'Stress test sea'
-    : ringAlone
-      ? 'The Windward Ring alone (test)'
-      : editedPhase4
-        ? 'Edited Phase 4 sea · back to editor'
-        : 'Edited map · back to editor';
-  badge.style.cssText =
-    'position:fixed;left:50%;bottom:6px;transform:translateX(-50%);z-index:50;padding:3px 10px;' +
-    'border-radius:10px;background:#123246e6;color:#f3d37e;font:600 12px sans-serif;' +
-    'text-decoration:none;';
-  // A label only: the stress sea and the ring alone have no editor page to go back to.
-  if (devSea) {
-    badge.removeAttribute('href');
-    badge.style.pointerEvents = 'none';
-  }
-  // The quest test bar says it all (and links back) instead.
-  if (!questTest) document.body.append(badge);
-}
+if (playtestMap)
+  showTestSeaBadge({ stressTest, ringAlone, questTest: !!questTest, editedPhase4: !!editedPhase4 });
 const resumedVoyage = storage ? loadGame(storage, world) : false;
 let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
 const { perfMode, perfScale, frameCap, tilt, antialias } = perfOptions(location.search, benchMode);
@@ -427,7 +404,7 @@ homePanel.onRepaired = (gold) => {
 };
 homePanel.onStored = () => autosave();
 // Quests (decision 0125), the tutorial too (decision 0151): saved with the voyage.
-// A Free Sailing session has no quests: no story, rewards, races or records (decision 0266).
+// Free Sailing has no quests: no story, rewards, races or records (decision 0266).
 const quests = new QuestBook(world, freeSailing ? [] : undefined, {
   // A night step counts at any time when night is switched off (hazards stay optional).
   nightOk: () => !settings.dayNight || daylightAt(world.time).night >= 0.5,
@@ -435,18 +412,8 @@ const quests = new QuestBook(world, freeSailing ? [] : undefined, {
 });
 // The regatta pennant won flies at her masthead (decision 0217).
 view.setPennant(flownPennant(quests));
-boatLooksIn(
-  $('trade-panel'),
-  {
-    world,
-    quests,
-    settings,
-    autosave,
-    // Free Sailing tries every item (decision 0266); the voyage keeps its own unlocks.
-    ...(freeSailing ? { unlocked: everythingUnlocked(SHIPPED_CATALOGUE) } : {}),
-  },
-  () => level,
-);
+const unlocked = freeSailing ? FREE_UNLOCKS : undefined;
+boatLooksIn($('trade-panel'), { world, quests, settings, autosave, unlocked }, () => level);
 // Whether a fresh voyage offers the tutorial: kept in the browser across voyages.
 const tutorialChoice = new TutorialChoice(world.map.name, storage);
 // A lesson under way in the browser's storage before 0151 moves into the voyage once.
@@ -1018,13 +985,8 @@ $('set-sail').addEventListener('click', () => {
   play();
 });
 
-/** A Free Sailing session has set sail from its setup at least once. */
-let freeAtSea = false;
 function play() {
-  if (freeSetup && !freeAtSea) {
-    freeSetup.open();
-    return;
-  }
+  if (freeSetup && !freeSetup.sailed) return freeSetup.open();
   if (!levelPicked) {
     openNewVoyage();
     return;
@@ -1178,22 +1140,16 @@ $('menu-tutorial').addEventListener('click', () => {
   refreshPause();
 });
 playButton.addEventListener('click', play);
-// Free Sailing (decision 0266): the voyage page links to it; the session sets up, restarts, leaves.
-const freeSetup = freeSailing
-  ? freeSessionIn({
-      world,
-      quality: () => level,
-      play: () => {
-        freeAtSea = true;
-        sailStep = world.boat.sailStep;
-        play();
-      },
-      menu: showMenu,
-    })
-  : null;
-$('menu-free').addEventListener('click', openFreeSailing);
-$('menu-free-setup').addEventListener('click', () => freeSetup?.open());
-$('menu-free-leave').addEventListener('click', leaveFreeSailing);
+// Free Sailing (decision 0266): the title menu's way in; in a session, its setup and way out.
+const freeSetup = freeSailingIn(freeSailing, {
+  world,
+  quality: () => level,
+  play: () => {
+    sailStep = world.boat.sailStep;
+    play();
+  },
+  menu: showMenu,
+});
 $('menu-help').addEventListener('click', openHelp);
 $('menu-settings').addEventListener('click', () => {
   menu.hidden = true;
@@ -1242,10 +1198,8 @@ function goBack() {
 }
 help.hidden = true;
 showMenu();
-// A Free Sailing session opens on its setup.
 freeSetup?.open();
-// Opened from a QR code scanned with a camera app: offer that voyage straight away. Never into a
-// Free Sailing session, which keeps nothing (decision 0266).
+// Opened from a QR code scanned with a camera app: offer that voyage, never in Free Sailing.
 if (!freeSailing && location.hash.startsWith(`#${LINK_KEY}=`)) {
   const link = location.href;
   history.replaceState(null, '', location.pathname + location.search);
