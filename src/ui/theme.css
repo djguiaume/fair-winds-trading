@@ -64,7 +64,6 @@
  * list (decision 0269).
  */
 .on-paper,
-.port-screen .trade-content,
 .chart-sheet,
 .sheet-head,
 .sheet-body,
@@ -90,11 +89,7 @@ dialog.quest-card,
 }
 
 /* --- Buttons: one paint per kind; the screens' files keep size and layout ----------------------- */
-.d-btn,
-.port-btn,
-.port-screen .sell-all-btn,
-.port-screen .upgrade-btn,
-.port-screen .ship-btn {
+.d-btn {
   border-radius: 999px;
   font-family: var(--serif);
   font-weight: 700;
@@ -109,34 +104,14 @@ dialog.quest-card,
   color: var(--paper-ink);
 }
 /* Main action. */
-.d-btn.brass,
-.port-btn:not(.green, .red, .later, .undock-btn, :disabled, [aria-disabled='true']),
-.port-screen .ship-btn:not(:disabled, [aria-disabled='true']),
-.port-screen .upgrade-btn:not(:disabled, [aria-disabled='true']),
-.lot-btn[aria-pressed='true'] {
+.d-btn.brass {
   --lo: var(--teal-edge);
   border-color: var(--teal-edge);
   background: radial-gradient(circle at 30% 25%, var(--teal-hi), var(--teal) 70%);
   color: var(--on-fill);
 }
-/* Sell is quiet next to Buy. */
-.good-row .sell-btn:not(:disabled, [aria-disabled='true']) {
-  --lo: var(--paper-lo);
-  border-color: var(--paper-edge);
-  background: var(--paper-2);
-  color: var(--paper-ink);
-}
-/* Set sail: brass, readable on the dark wood footer. */
-.port-btn.undock-btn:not(:disabled, [aria-disabled='true']),
-.port-screen .undock-btn:not(:disabled, [aria-disabled='true']) {
-  --lo: var(--sail-edge);
-  border-color: var(--sail-edge);
-  background: var(--sail);
-  color: var(--sail-ink);
-}
 /* Danger only: New game, abandon. */
-.d-btn.red:not(.square),
-.port-btn.red:not(:disabled, [aria-disabled='true']) {
+.d-btn.red:not(.square) {
   --lo: var(--danger-edge);
   border-color: var(--danger-edge);
   background: radial-gradient(circle at 30% 25%, var(--danger-hi), var(--danger) 70%);
@@ -155,7 +130,6 @@ dialog.quest-card,
 
 /* --- Plates: flat dark teal, a dark edge, a brass line inside, a hard drop shadow. No lines
    across them, no blur (decision 0006). */
-.port-chip,
 .chart-compass.compass {
   border: 2px solid var(--plate-edge);
   border-radius: 8px;

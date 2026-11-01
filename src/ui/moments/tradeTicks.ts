@@ -47,7 +47,7 @@ export class TradeTicks {
     this.last = now;
     if (!this.dealt) return;
     this.dealt = false;
-    const [gold, hold] = root.querySelectorAll<HTMLElement>('.port-chip b');
+    const [gold, hold] = root.querySelectorAll<HTMLElement>('.hb-chip b');
     if (gold && before.gold !== now.gold) this.roll(gold, before.gold, now.gold, formatNumber);
     if (hold && before.used !== now.used)
       this.roll(hold, before.used, now.used, (n) => `${n}/${now.cap}`);

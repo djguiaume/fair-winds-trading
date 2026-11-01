@@ -40,7 +40,7 @@ export type PlotState = 'open' | 'bare' | 'chosen';
 export const PLOT_PROPS: Record<PlotState, string> = buildingsFile.plots;
 /**
  * The camera on a chosen plot: its zoom, and how far off centre the plot sits beside the half
- * screen (screen fractions: left of centre in landscape, above it in portrait).
+ * paper (screen fractions: right of centre in landscape, #443; above it in portrait).
  */
 export const PLOT_CAMERA: { zoom: number; side: number; top: number } = buildingsFile.plotCamera;
 /** A plot's state in a home look, where a built spot holds its building id. */

@@ -3,6 +3,8 @@ import { FREE_RULES } from '../../data/freeSailing';
 import type { FreePreset, FreeSetup } from '../../sim/freeSailing';
 import { UPGRADE_TRACKS, MAX_UPGRADE_LEVEL } from '../../sim/upgrades';
 import { type MessageKey, language, shipName, t } from '../../i18n';
+import { panelClasses } from '../components/panel';
+import { icon } from '../icons';
 
 /**
  * The Free Sailing setup's markup (#300): presets on paper at the left, the boat on her turntable
@@ -10,13 +12,15 @@ import { type MessageKey, language, shipName, t } from '../../i18n';
  * Strings only; `setup.ts` puts them in place and wires them.
  */
 
+/** The two side pages are the v1.5 paper, as Boat looks' (issue #443). */
+const PAPER = panelClasses('torn');
 const lang = () => (language() === 'fr' ? 'fr' : 'en');
 const pad2 = (n: number) => String(Math.floor(n)).padStart(2, '0');
 const clock = (hour: number) => `${pad2(hour)}:${pad2((hour % 1) * 60)}`;
 
 export function shellHtml(): string {
   return `
-    <aside class="bl-slots on-paper fs-side">
+    <aside class="bl-slots on-paper ${PAPER} fs-side">
       <h2 class="bl-title" id="fs-title">${t('free.title')}</h2>
       <p class="fs-note">${t('free.note')}</p>
       <h3 class="fs-head">${t('free.place')}</h3>
@@ -30,11 +34,12 @@ export function shellHtml(): string {
         <button type="button" class="bl-round" data-turn="1" title="${t('customise.turnRight')}" aria-label="${t('customise.turnRight')}">⟳</button>
       </div>
     </section>
-    <aside class="bl-items on-paper fs-side">
-      <div class="fs-ship-head">
+    <aside class="bl-items on-paper ${PAPER} fs-side">
+      <div class="bl-items-head">
         <h3 class="fs-head">${t('free.ship')}</h3>
-        <button type="button" class="d-btn fs-looks">${t('customise.title')}</button>
+        <button type="button" class="ui-header-exit ui-pressable bl-close" data-pad-close title="${t('customise.close')}" aria-label="${t('customise.close')}">${icon('close')}</button>
       </div>
+      <button type="button" class="d-btn fs-looks">${t('customise.title')}</button>
       <div class="bl-ships fs-ships" role="radiogroup" aria-label="${t('free.ship')}"></div>
       <h3 class="fs-head">${t('free.upgrades')}</h3>
       <div class="fs-upgrades"></div>
@@ -42,8 +47,7 @@ export function shellHtml(): string {
         <button type="button" class="d-btn brass big fs-sail">${t('menu.play')}</button>
         <button type="button" class="d-btn fs-leave">${t('free.leave')}</button>
       </div>
-    </aside>
-    <button type="button" class="close-btn bl-close" title="${t('customise.close')}" aria-label="${t('customise.close')}">✕</button>`;
+    </aside>`;
 }
 
 /** The weather's icon from the rules file; decorative, the weather's name sits beside it. */

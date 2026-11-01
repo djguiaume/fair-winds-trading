@@ -139,8 +139,8 @@ describe('delivery contracts (0028)', () => {
       const container = document.querySelector<HTMLElement>('#panel')!;
       const panel = new TradePanel(container, world);
       panel.uiMode = mode;
-      // Captain mode lists every order on its own tab (decision 0049); Kids mode keeps them on the market.
-      panel.open(mode === 'adult' ? 'orders' : 'market');
+      // Every order on its own tab (decision 0049), Kids mode too since the v1.5 harbour (#443).
+      panel.open('orders');
       const deliver = () => container.querySelector<HTMLButtonElement>('#tp-deliver')!;
       // Greyed, yet still reachable by the pad (decision 0192).
       expect(deliver().getAttribute('aria-disabled')).toBe('true');

@@ -95,6 +95,26 @@
     "tape": 420,
     "tape-phone": 240
   },
+  "harbour": {
+    "strip": 150,
+    "strip-phone": 36,
+    "margin": 64,
+    "margin-phone": 8,
+    "row": 64,
+    "act": 64,
+    "detail": 360,
+    "detail-phone": 280,
+    "people": 330,
+    "people-phone": 220,
+    "yard": 900,
+    "portrait": 120,
+    "portrait-phone": 48,
+    "looks-slots": 300,
+    "looks-items": 380,
+    "looks-slots-phone": 196,
+    "looks-items-phone": 256,
+    "home-half": 560
+  },
   "edges": {
     "torn": {
       "size": 96,

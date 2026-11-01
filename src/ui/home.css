@@ -1,7 +1,7 @@
 /*
- * The captain's island at its pier (decisions 0126, 0210): a harbour screen like a port's, with
- * the Island and Warehouse tabs (port-screen.css draws the frame, header, tabs and footer). The
- * plots stand on the island itself as stakes; nothing floats over the sea.
+ * The captain's island at its pier (decisions 0126, 0210): the harbour's paper like a port's
+ * (issue #443; harbour.css draws the sheet, header, ledger and footer), with the Island and
+ * Warehouse tabs. The plots stand on the island itself as stakes; nothing floats over the sea.
  */
 
 /* Moored and the screen closed: the island's name, which opens it again. */
@@ -36,248 +36,150 @@ html[data-layout='phone'] #hud .home-bar {
   }
 }
 
-.home-screen .trade-modal.port-screen {
-  background: #091c29;
+/* No port picture here: the paper starts at the top; the sea HUD steps aside like at a port. */
+.hb-home .hb-sheet {
+  top: var(--hb-gap);
 }
-.home-plots {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 14px 16px;
-  box-sizing: border-box;
+html[data-screen='home'] #hud > :not(#home-ui) {
+  visibility: hidden;
 }
-.home-plot {
+
+/* --- The Island tab: the plots as ledger rows, the picked one beside them ------------------ */
+.hb-plot-n {
   display: grid;
-  grid-template-columns: 56px 1fr;
-  align-items: center;
-  gap: 6px 14px;
-  padding: 12px 14px;
-  border: 1px solid var(--brass-line);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.03);
-}
-.home-plot.is-open {
-  border-color: var(--brass);
-  background: rgba(232, 196, 106, 0.08);
-}
-/* Not given yet: dimmed like the Market's unavailable buttons (art director, 0210). */
-.home-plot.is-locked {
-  opacity: 0.55;
-}
-/* The number painted on the plot's sign. */
-.home-num {
-  grid-row: span 2;
-  display: grid;
+  flex: none;
   place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  background: #b08a5a;
-  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2);
-  color: var(--paper-ink);
-  font: 700 var(--fs-big)/1 var(--display);
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--ui-rule);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-face);
+  font: 400 var(--fs-title) / 1 var(--ui-font-title);
 }
-.home-plot.is-locked .home-num {
-  background: #4a5b66;
-  color: var(--ink-cool);
+.hb-plot.is-open .hb-plot-n {
+  border-color: var(--ui-sage);
+  background: var(--ui-sage);
+  color: var(--ui-on-sage);
 }
-.home-plot h3 {
+.hb-plot.is-locked {
+  color: var(--ui-muted);
+}
+.hb-plot .ui-row-detail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hb-plot .ui-row-value {
+  color: var(--ui-sage-deep);
+  font-size: var(--fs-note);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.hb-plot-tag {
   margin: 0;
-  color: var(--ink);
-  font: 700 var(--fs-head)/1.1 var(--display);
+  color: var(--ui-sage-deep);
+  font-size: var(--fs-text);
+  font-weight: 700;
 }
-.home-plot h3 small {
-  margin-left: 8px;
-  color: var(--brass);
-  font-size: var(--fs-body);
-}
-.home-line {
-  margin: 0;
-  color: var(--ink-dim);
-  font: 500 var(--fs-text)/1.3 var(--body);
-}
-.home-see {
-  grid-column: 1 / -1;
-  justify-self: end;
-}
-.home-choices {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 4px;
-}
-.home-choice {
+.hb-buildings {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px;
-  border: 1px solid var(--brass-line);
-  border-radius: 8px;
-  background: #0b2230;
+  gap: var(--ui-space-2);
 }
-.home-choice b {
-  color: var(--ink);
-  font: 700 var(--fs-sub)/1.1 var(--display);
+.ui-card.hb-building {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--ui-space-1);
+  padding: var(--ui-space-3);
+  background: var(--ui-face);
+  box-shadow: none;
 }
-.home-choice p {
-  flex: 1;
-  margin: 0 0 4px;
-  color: var(--ink);
-  font: 500 var(--fs-text)/1.3 var(--body);
+.hb-building-kind {
+  color: var(--ui-muted);
+  font-size: var(--fs-note);
+  font-weight: 700;
 }
-.home-kind {
-  color: var(--brass);
-  font: 700 var(--fs-small)/1 var(--display);
+.hb-building .ui-card-title {
+  font-size: var(--fs-sub);
+}
+.hb-building .ui-btn {
+  margin-top: var(--ui-space-2);
+}
+.hb-building .hb-price,
+.hb-foot .hb-price {
+  margin-left: var(--ui-space-2);
 }
 .home-empty {
-  margin: 30px auto;
+  margin: auto;
+  max-width: 32em;
   text-align: center;
-}
-.home-screen .footer-gap {
-  flex: 1;
 }
 
 /*
- * A plot chosen: the screen drops to half so the island shows with the plot's ring (the camera
- * turns to it, main.ts). Right half in landscape, the bottom 60 % in portrait; the sea HUD hides.
+ * A plot chosen: the paper steps to the left so the island shows with the plot's ring at the
+ * right (the camera turns to it, main.ts), as the Shipyard beside the boat; the sea HUD hides.
  */
 .home-screen.is-half {
   background: none;
   pointer-events: none;
 }
-.home-screen.is-half .trade-modal.port-screen {
-  position: absolute;
-  inset: auto 0 0;
-  height: 60%;
-  border-top: 2px solid var(--brass);
+.hb-home.is-half .hb-sheet {
+  right: auto;
+  width: min(var(--ui-harbour-home-half), 48vw);
+}
+.hb-home.is-half .hb-sheet,
+.hb-home.is-half .hb-foot > * {
   pointer-events: auto;
 }
-.home-screen.is-half .port-roles-summary,
-.home-screen.is-half .home-line {
-  display: none;
+.hb-home.is-half .hb-detail {
+  flex: 1;
+  width: auto;
 }
-.home-screen.is-half .home-plot {
-  grid-template-columns: 40px 1fr;
-}
-.home-screen.is-half .home-num {
-  grid-row: auto;
-  width: 36px;
-  height: 36px;
-  font-size: var(--fs-title);
-}
-.home-screen.is-half .home-choice {
-  padding: 8px 10px;
-  gap: 4px;
-}
-.home-screen.is-half .home-choice .port-btn {
-  height: 40px;
-  min-height: 40px;
-}
-@media (orientation: landscape) and (min-width: 700px) {
-  .home-screen.is-half .trade-modal.port-screen {
-    inset: 0 0 0 auto;
-    width: 50%;
-    height: 100%;
-    border-top: 0;
-    border-left: 2px solid var(--brass);
+@media (orientation: portrait) {
+  .hb-home.is-half .hb-sheet {
+    top: 40%;
+    right: var(--hb-margin);
+    width: auto;
   }
-  .home-screen.is-half .port-roles-summary,
-  .home-screen.is-half .home-line {
-    display: flex;
-  }
-  .home-screen.is-half .home-line {
-    display: block;
-  }
-  .home-screen.is-half .home-plot {
-    grid-template-columns: 56px 1fr;
-  }
-  .home-screen.is-half .home-num {
-    grid-row: span 2;
-    width: 48px;
-    height: 48px;
-    font-size: var(--fs-big);
-  }
-}
-@media (max-height: 500px) {
-  .home-screen.is-half .home-line,
-  .home-screen.is-half .port-roles-summary {
-    display: none;
-  }
-  .home-screen.is-half .home-plots {
-    padding: 6px 10px;
-  }
-  .home-screen.is-half .home-choice p {
-    font-size: var(--fs-note);
-  }
-  .home-screen.is-half .home-choice b {
-    font-size: var(--fs-lead);
-  }
-}
-@media (max-width: 600px) {
-  .home-plots {
-    padding: 10px;
-  }
-  .home-choice p {
-    font-size: var(--fs-note);
-  }
-  .home-choice b {
-    font-size: var(--fs-lead);
-  }
-  .home-choice .port-btn {
-    padding: 0 8px;
-    font-size: var(--fs-body);
-  }
-}
-body.home-half #hud > :not(#home-ui) {
-  visibility: hidden;
 }
 
-/* The warehouse (decision 0136): one row per good, store and take. */
-.home-store-title {
-  margin: 0;
-  color: var(--brass);
-  font: 700 var(--fs-sub)/1.15 var(--display);
-}
-.home-store {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.home-store-row {
+/* --- The Warehouse (decision 0136): one row per good, store and take ---------------------- */
+.hb-store-row {
   display: grid;
-  grid-template-columns: repeat(4, auto);
-  grid-template-areas:
-    'name name name name'
-    'counts counts counts counts';
-  justify-content: start;
+  grid-template-columns: 48px minmax(6em, 1fr) 64px 72px repeat(4, auto);
   align-items: center;
-  gap: 4px 6px;
-  padding: 8px 10px;
-  border: 1.5px solid rgba(238, 243, 244, 0.25);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
+  column-gap: var(--ui-space-3);
+  max-height: none;
 }
-.home-store-name {
-  grid-area: name;
-  color: var(--ink);
-  font: 700 var(--fs-sub)/1.1 var(--display);
-}
-.home-store-counts {
-  grid-area: counts;
-  color: var(--ink-dim);
-  font: 600 var(--fs-body)/1.2 var(--body);
-}
-.home-store-row .port-btn {
+.hb-store-row .ui-btn {
   min-height: 40px;
-  padding: 6px 10px;
+  padding-inline: var(--ui-space-3);
   font-size: var(--fs-body);
 }
-.home-note {
-  margin: 0;
-  color: var(--ink-dim);
-  font: 500 var(--fs-note)/1.35 var(--body);
+.hb-store-note {
+  margin-top: var(--ui-space-3);
+}
+
+/* --- Phone landscape ------------------------------------------------------------------------ */
+html[data-layout='phone'] .hb-plot-n {
+  width: 32px;
+  height: 32px;
+  font-size: var(--fs-head);
+}
+html[data-layout='phone'] .hb-plot .ui-row-value,
+html[data-layout='phone'] .hb-building .ui-card-text {
+  display: none;
+}
+html[data-layout='phone'] .hb-home.is-half .hb-sheet {
+  width: 56vw;
+}
+html[data-layout='phone'] .hb-store-row {
+  grid-template-columns: 32px minmax(4em, 1fr) 36px 44px repeat(4, auto);
+  column-gap: var(--ui-space-1);
+}
+html[data-layout='phone'] .hb-store-row .ui-btn {
+  min-height: 32px;
+  padding-inline: var(--ui-space-2);
+  font-size: var(--fs-note);
 }
