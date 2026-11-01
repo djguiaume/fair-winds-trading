@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
+import { BOAT_LOOK } from '../src/render/models/boatLook';
 import { createShipModel } from '../src/render/models/shipModels';
 import { QUALITY } from '../src/render/quality';
 import type { BoatPose, ShipUpgrades } from '../src/render/models/types';
@@ -101,7 +102,7 @@ describe('refined upgraded sloop', () => {
           const colors = mesh(b, 'SloopHull').geometry.getAttribute('color');
           for (const [required, hex] of [
             [hull >= 2, '#2f6f9f'],
-            [hull >= 3, '#c8743c'],
+            [hull >= 3, BOAT_LOOK.hull.copper],
           ] as const) {
             const want = new THREE.Color(hex);
             const found = Array.from({ length: colors.count }, (_, i) => i).some(
