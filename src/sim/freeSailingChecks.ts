@@ -27,7 +27,8 @@ export function presetProblems(presets: FreePreset[], map: MapDef, rules: FreeRu
         if (!p[field]?.[lang]?.trim()) out.push(`${where}: ${field}.${lang} is empty`);
     out.push(...shipProblems(p).map((m) => `${where}: ${m}`));
     out.push(...placeProblems(p, map, rules).map((m) => `${where}: ${m}`));
-    if (!rules.weatherIcons?.[p.weather]) out.push(`${where}: no weatherIcons entry for "${p.weather}"`);
+    if (!rules.weatherIcons?.[p.weather])
+      out.push(`${where}: no weatherIcons entry for "${p.weather}"`);
     out.push(...timeProblems(p, map, rules).map((m) => `${where}: ${m}`));
   }
   return out;
