@@ -13,7 +13,8 @@ Design first: nothing fleet-wide starts until Guillaume has approved the #295 pr
 | #297 | Cosmetic catalogue, validator, editor and CLI | med | no | Sonnet | 2 (after #295 schema) |
 | #326 | Dim paper screens at night (carried; after #319, same files) | low | yes | Sonnet | 2 |
 | #298 | Per-ship appearance persistence and save migration | med | no | Sonnet | 3 (after #297) |
-| #299 | Shipyard customization, comparison and preview | high | yes | Opus | 3 (after #296, #297) |
+| #299 | Customisation screen "Boat looks" (own screen, opened from the shipyard; spec docs/v1.4/customisation.md) | high | yes | Opus | 3 (after #296, #297) |
+| #418 | Sail logos, more patterns, racing number on the cloth, wake styles (Guillaume, 2026-10-31) | high | yes | Opus | 3 (after #296, #297) |
 | #300 | Isolated Free Sailing sessions and presets | med | yes | Sonnet | 4 (after #298, #299) |
 | #301 | Cosmetic and figurehead collection, fleet review, acceptance, release | med | yes | Sonnet | 4 (last) |
 
@@ -26,3 +27,5 @@ Role questions (one message each): the storyteller names figureheads and flag te
 Rules: boats stay recognizable at sailing camera; every upgrade, cosmetic and damage combination reads; old saves keep their meaning; Free Sailing never touches voyage saves; budgets are argued, not raised by default; EN and FR; touch, keyboard and pad.
 
 Ruling (Guillaume, 2026-10-31): sail colours and patterns are free; figureheads and pennants are earned through story or regatta wins; no coin prices; the Tern stays a single gift. Pick-one club prizes (#315) are later story content.
+
+Ruling (Guillaume, 2026-11-01): sail variant B (ADR 0259), to be reshaped by logos and patterns (#418); everything free for now. Customisation spec: [customisation.md](customisation.md); logo set and screen words from the storyteller in project files `story/v1.4-customisation.md`.
