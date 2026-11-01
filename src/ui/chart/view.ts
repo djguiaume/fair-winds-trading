@@ -1,5 +1,6 @@
 import type { MapDef } from '../../sim/map';
 import { seaReach, seaShape } from '../../sim/seaEdge';
+import type { Box } from './svg';
 
 /** Where the chart's zoom is kept between openings and visits (decision 0212). */
 const ZOOM_KEY = 'fwt.chart.zoom';
@@ -159,6 +160,13 @@ export class ChartView {
       x: this.center.x + (clientX - r.left - r.width / 2) * unit,
       y: -(this.center.y + (clientY - r.top - r.height / 2) * unit),
     };
+  }
+
+  /** A screen rectangle (the rose, the cartouche) in the chart's drawing units. */
+  cover(r: DOMRect): Box {
+    const a = this.toMap(r.left, r.top),
+      b = this.toMap(r.right, r.bottom);
+    return { x0: a.x, y0: -a.y, x1: b.x, y1: -b.y };
   }
 
   /** Where the cross may go, in pixels from the chart's middle: clear of the book tabs. */

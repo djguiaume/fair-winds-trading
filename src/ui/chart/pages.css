@@ -64,8 +64,14 @@
 .chart-page .ui-row + .ui-row {
   border-top: 1px solid var(--ui-paper-off);
 }
+.chart-page .ui-row {
+  min-height: var(--ui-touch-row-max);
+}
+.chart-page .ui-row-label {
+  font-size: var(--fs-head);
+}
 .chart-page .ui-row-detail {
-  font-size: var(--fs-body);
+  font-size: var(--fs-lead);
 }
 
 /* --- Journal ---------------------------------------------------------------------------- */
@@ -107,6 +113,7 @@
 }
 .chart-steps {
   display: flex;
+  font-size: var(--fs-sub);
   flex-direction: column;
   gap: var(--ui-space-2);
   margin: var(--ui-space-3) 0 0;
@@ -237,6 +244,10 @@
   display: flex;
   flex-direction: column;
 }
+.chart-prices .ui-row,
+.chart-market-goods .ui-row {
+  min-height: 80px;
+}
 .chart-market-table {
   display: flex;
   flex-direction: column;
@@ -259,7 +270,7 @@
 .chart-price {
   width: 120px;
   flex: none;
-  font-size: var(--fs-sub);
+  font-size: var(--fs-head);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   text-align: end;
@@ -276,15 +287,17 @@
 /* --- Legend ------------------------------------------------------------------------------ */
 .chart-legend {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  flex: 1;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  align-content: space-around;
   column-gap: var(--ui-space-4);
 }
 .chart-page .chart-legend .ui-row + .ui-row {
   border-top: 0;
 }
 .chart-key-symbol {
-  width: 40px;
-  height: 28px;
+  width: 48px;
+  height: 34px;
   flex: none;
   overflow: visible;
 }
@@ -316,7 +329,7 @@
   padding-top: var(--ui-space-2);
   border-top: 1px solid var(--ui-rule);
   color: var(--ui-muted);
-  font-size: var(--fs-body);
+  font-size: var(--fs-lead);
 }
 .chart-page-help p {
   margin: 0 0 var(--ui-space-1);
@@ -334,6 +347,13 @@
   grid-template-columns: 160px 1fr;
   gap: var(--ui-space-3);
 }
+:root[data-layout='phone'] .chart-legend {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  align-content: start;
+}
+:root[data-layout='phone'] .chart-steps {
+  font-size: var(--fs-lead);
+}
 :root[data-layout='phone'] .chart-page-help {
   display: none;
 }
@@ -342,4 +362,14 @@
 }
 :root[data-layout='phone'] .chart-price {
   width: 96px;
+  font-size: var(--fs-sub);
+}
+:root[data-layout='phone'] .chart-page .ui-row {
+  min-height: var(--ui-touch-row-min);
+}
+:root[data-layout='phone'] .chart-page .ui-row-label {
+  font-size: var(--fs-lead);
+}
+:root[data-layout='phone'] .chart-page .ui-row-detail {
+  font-size: var(--fs-body);
 }

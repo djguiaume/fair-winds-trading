@@ -35,7 +35,7 @@ export class Labels {
     private readonly p: Paint,
     private readonly boat: Box,
     private readonly land: readonly Box[],
-    /** The port dots and people's faces on the piers: no word may cover one. */
+    /** The port dots, people's faces and the chart's furniture: no word may cover one. */
     private readonly badges: readonly Box[],
   ) {
     const [x, y, w, h] = (p.svg.getAttribute('viewBox') ?? '0 0 0 0').split(' ').map(Number);

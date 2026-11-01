@@ -16,6 +16,9 @@ import './chart/chart.css';
 import './chart/frame.css';
 import './chart/pages.css';
 
+/** The chart's furniture that sits over the sea. */
+const COVERS = '.chart-cartouche, .chart-rose, .chart-zoom, .chart-book, .chart-close';
+
 export { CHART_TABS, type ChartQuests, type ChartTab };
 
 /**
@@ -304,6 +307,14 @@ export class SeaChart {
     this.journal.render(entries);
   }
 
+  /** The chart's furniture over the sea (rose, cartouche, tabs, zoom), where no word may go. */
+  private covered() {
+    return [...this.dialog.querySelectorAll(COVERS)]
+      .map((n) => n.getBoundingClientRect())
+      .filter((r) => r.width > 0)
+      .map((r) => this.view.cover(r));
+  }
+
   private draw() {
     const focused = document.activeElement;
     const focusedTarget = focused?.getAttribute('data-chart-target');
@@ -329,6 +340,7 @@ export class SeaChart {
         questMarks: this.questMarks(),
         prices: this.prices,
         quests: this.quests,
+        covered: this.covered(),
         pierOf: (id) => this.pierOf(id),
         selectPort: (id) => this.selectPort(id),
         setQuestCourse: () => this.setQuestCourse(),

@@ -8,7 +8,7 @@ import { Labels } from './labels';
 import { drawLand, drawSeaMarks, drawWater } from './land';
 import { courseMark, drawCourse, drawPlayer, drawQuests, drawRace, drawStorms } from './marks';
 import { type PriceKey, priceLine } from './prices';
-import { box, type Paint } from './svg';
+import { type Box, box, type Paint } from './svg';
 
 type Point = { x: number; y: number };
 
@@ -33,6 +33,8 @@ export interface SeaDrawing {
   questMarks: readonly SeaMarkDef[];
   prices: PriceKey;
   quests: ChartQuests | null;
+  /** What lies over the sea on screen (the rose, the cartouche…): no word goes under it. */
+  covered: readonly Box[];
   pierOf: (port: string) => Point | null;
   selectPort: (port: string) => void;
   setQuestCourse: () => void;
@@ -64,6 +66,7 @@ export function drawSea(p: Paint, o: SeaDrawing) {
   const labels = new Labels(p, box(boat.x, -boat.y, 34 * unit, 34 * unit), land.landBoxes, [
     ...piers.map((pier) => box(pier.x, -pier.y, 20 * p.px, 20 * p.px)),
     ...pins.flatMap((pin) => faceBox(p, o.pierOf(pin.port))),
+    ...o.covered,
   ]);
   charted.forEach((port, i) => {
     const quote = market.quotes.find((q) => q.portId === port.id);
