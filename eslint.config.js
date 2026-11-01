@@ -9,7 +9,7 @@ export default tseslint.config(
       'docs/mockups/src',
       'docs/ui-refactor/mockups/src',
       'docs/ui-refactor/style-e/js',
-      'docs/ui-refactor/v1.6',
+      'docs/ui-refactor/v1.5',
       'docs/reviews/*/src',
       'docs/reviews/**/src',
       'docs/art',
