@@ -153,18 +153,10 @@ dialog.quest-card,
   color: var(--on-fill);
 }
 
-/* --- Sea HUD plates: flat dark teal, a dark edge, a brass line inside, a hard drop shadow. No lines
+/* --- Plates: flat dark teal, a dark edge, a brass line inside, a hard drop shadow. No lines
    across them, no blur (decision 0006). */
-.captain-stat,
-.objective,
-.speed-log,
-.compass,
-.sail-lever,
-.port-marker-box,
-.icon-btn,
 .port-chip,
-.chart-compass.compass,
-.toast {
+.chart-compass.compass {
   border: 2px solid var(--plate-edge);
   border-radius: 8px;
   background: var(--navy);

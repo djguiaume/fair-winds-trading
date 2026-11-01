@@ -1,0 +1,116 @@
+/*
+ * Bottom right: the instrument (issue #441). The speed in knots is the biggest number on screen,
+ * then her heading and, in a current, her speed over the ground; the sails as Down, Half and Full
+ * between the pad's sail buttons. Always on its faint ink backing (art director), so it never
+ * sits over land unbacked. The press warning (decision 0078) marks the set sails amber, then red.
+ */
+.hud-instr {
+  right: var(--right);
+  bottom: var(--bottom);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 208px;
+  padding: 14px 18px 16px;
+}
+.hud-speed {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+}
+.hud-speed-n {
+  font: 800 var(--ui-hud-speed) / 0.85 var(--ui-font-text);
+}
+.hud-speed small {
+  font: 400 var(--fs-big) / 1 var(--ui-font-title);
+}
+.hud-hdg,
+.hud-sog {
+  text-align: center;
+}
+.hud-hdg {
+  margin-top: 4px;
+  font-size: var(--fs-sub);
+}
+.hud-sog {
+  font-size: var(--fs-body);
+  font-weight: 600;
+}
+.hud-sog[hidden] {
+  display: none;
+}
+.hud-sails {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  pointer-events: auto;
+  touch-action: none;
+}
+.hud-sail {
+  flex: 1;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--ui-radius-s);
+  background: var(--hud-backing);
+  color: var(--hud-text);
+  font: 700 var(--fs-lead) / 1 var(--ui-font-text);
+  text-shadow: var(--hud-halo);
+  cursor: pointer;
+}
+.hud-sail[aria-pressed='true'] {
+  background: var(--hud-sig);
+  color: var(--ui-ink);
+  text-shadow: none;
+}
+.hud-sails .pad-key {
+  flex: none;
+  text-shadow: none;
+}
+.hud-sails[data-press='1'] .hud-sail[aria-pressed='true'] {
+  background: var(--hud-storm);
+}
+.hud-sails[data-press='2'] .hud-sail[aria-pressed='true'] {
+  background: var(--hud-storm);
+  box-shadow: 0 0 0 3px var(--hud-danger);
+  animation: hud-press 0.7s ease-in-out infinite;
+}
+@keyframes hud-press {
+  50% {
+    box-shadow: 0 0 0 1px var(--hud-danger);
+  }
+}
+
+html[data-layout='phone'] .hud-instr {
+  min-width: 184px;
+  padding: 8px 12px 10px;
+  gap: 2px;
+}
+html[data-layout='phone'] .hud-speed-n {
+  font-size: var(--ui-hud-speed-phone);
+}
+html[data-layout='phone'] .hud-speed small {
+  font-size: var(--fs-sub);
+}
+html[data-layout='phone'] .hud-hdg {
+  font-size: var(--fs-body);
+}
+html[data-layout='phone'] .hud-sog {
+  font-size: var(--fs-note);
+}
+html[data-layout='phone'] .hud-sails {
+  margin-top: 4px;
+}
+html[data-layout='phone'] .hud-sail {
+  min-height: 40px;
+  padding: 0 6px;
+  font-size: var(--fs-body);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-sails[data-press='2'] .hud-sail[aria-pressed='true'] {
+    animation: none;
+  }
+}

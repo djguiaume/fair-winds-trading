@@ -13,6 +13,7 @@ import camera from './tuning/camera.json';
 import graphics from './tuning/graphics.json';
 import terrain from './tuning/terrain.json';
 import waves from './tuning/waves.json';
+import hud from './tuning/hud.json';
 import ui from './tuning/ui.json';
 
 /**
@@ -60,6 +61,8 @@ export interface Tuning {
   terrain: typeof terrain;
   /** The sea's wave bands and how the wind raises them (decision 0245). */
   waves: typeof waves;
+  /** The sea HUD's backings, idle fade and tape span (issue #441). */
+  hud: typeof hud;
   /** How long the UI's moments last (decision 0274). */
   ui: typeof ui;
 }
@@ -78,6 +81,7 @@ export const SHIPPED_TUNING: Readonly<Tuning> = {
   graphics,
   terrain,
   waves,
+  hud,
   ui,
 } as unknown as Tuning;
 

@@ -23,6 +23,7 @@ import { SeaChart } from '../src/ui/seaChart';
 import { loadSettings } from '../src/ui/settings';
 import { TradePanel } from '../src/ui/tradePanel';
 import { TitleScreen } from '../src/ui/screens/title';
+import { Hud } from '../src/ui/hud';
 
 const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
 const body = () =>
@@ -72,6 +73,7 @@ describe('translations (decision 0037)', () => {
 
   it('translates the static menu, help and dialogs', () => {
     document.body.innerHTML = body();
+    new Hud(createWorld(PHASE1_MAP, SLOOP), { seen: true, markSeen: () => {} });
     setLanguage('fr');
     translateDom();
     const noop = () => {};
@@ -95,7 +97,7 @@ describe('translations (decision 0037)', () => {
     expect(document.getElementById('help')!.textContent).toContain(fr['help.windCopy']);
     // The wind compass letters follow the language: W is O in French.
     expect(
-      document.querySelector('#wind-help-trigger .cardinal[data-i18n="compass.W"]')!.textContent,
+      document.querySelector('#wind-help-trigger text[data-i18n="compass.W"]')!.textContent,
     ).toBe('O');
   });
 

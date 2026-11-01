@@ -1,0 +1,354 @@
+/*
+ * What the sea HUD pins to the scene (issue #441): port signs off the shoreline, other boats'
+ * names (decision 0215), the hull bar over the boat, the arrow at the screen's edge toward her
+ * course, the line of news, the press glow, the steering drag and the frame counter. Words on the
+ * scene wear the same 1 px ink halo as the clusters; the signs slide under the clusters.
+ */
+
+/* --- Port signs: anchored over the water off the pier (`hud.json` › `portSignSeaward`) ----- */
+.port-labels-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  overflow: hidden;
+  pointer-events: none;
+}
+.port-marker {
+  will-change: transform;
+  contain: layout style;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--hud-text);
+  font: inherit;
+  text-shadow: var(--hud-halo);
+  cursor: pointer;
+  pointer-events: auto;
+  user-select: none;
+  touch-action: manipulation;
+}
+.port-marker[hidden],
+.port-marker-cue[hidden],
+.port-marker-dock[hidden],
+.port-marker-dock .dock-glyph[hidden] {
+  display: none;
+}
+.port-marker-box {
+  display: block;
+  min-height: 44px;
+  padding: 2px 8px 4px;
+  text-align: center;
+  white-space: nowrap;
+}
+.port-marker:focus-visible .port-marker-box {
+  outline: 2px solid var(--hud-text);
+  outline-offset: 2px;
+  border-radius: var(--ui-radius-m);
+}
+.port-marker-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font: 400 var(--fs-title) / 1.1 var(--ui-font-title);
+}
+#hud .port-marker-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--hud-sig);
+}
+.port-marker.docked .port-marker-name {
+  color: var(--hud-sig);
+}
+.port-marker-tag {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 2px;
+  font: 700 var(--fs-lead) / 1.2 var(--ui-font-text);
+}
+.port-marker-tag small {
+  margin-right: 3px;
+  font-size: var(--fs-body);
+  font-weight: 600;
+}
+.wants-tag,
+.produces-tag,
+.sign-good {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+#hud .port-marker-tag .icon {
+  width: 18px;
+  height: 18px;
+}
+#hud .port-marker-tag .coin {
+  width: 13px;
+  height: 13px;
+}
+.sign-good b {
+  margin-left: 2px;
+}
+.sign-good + .sign-good {
+  margin-left: 6px;
+}
+.port-marker-cue {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--fs-text);
+  font-weight: 700;
+}
+/* Dock, then Trade once moored: the one action at the pier, in sage. */
+.port-marker-dock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-top: 4px;
+  padding: 0 16px;
+  border-radius: var(--ui-radius-m);
+  background: var(--ui-sage);
+  box-shadow: var(--ui-shadow-2);
+  color: var(--ui-on-sage);
+  font: 400 var(--fs-head) / 1 var(--ui-font-title);
+  text-shadow: none;
+}
+#hud .port-marker-dock .icon {
+  width: 17px;
+  height: 17px;
+}
+.port-marker:active .port-marker-dock {
+  transform: scale(var(--ui-press-scale));
+}
+.port-marker-dock .dock-glyph .pad-key {
+  margin-right: 2px;
+}
+html[data-layout='phone'] .port-marker-header {
+  font-size: var(--fs-head);
+}
+html[data-layout='phone'] .port-marker-tag,
+html[data-layout='phone'] .port-marker-cue {
+  font-size: var(--fs-body);
+}
+html[data-layout='phone'] .port-marker-tag small {
+  font-size: var(--fs-note);
+}
+.port-marker-stem {
+  width: 2px;
+  height: 14px;
+  background: var(--hud-text);
+  box-shadow: 0 0 0 1px var(--ui-ink);
+}
+
+/* --- The name of another boat close by (decision 0215), unchanged ---------------------------- */
+.boat-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 3px 9px 4px;
+  border: 1px solid var(--brass-line);
+  border-radius: 8px;
+  background: var(--navy);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  color: var(--ink);
+  font: 600 var(--fs-body)/1.2 var(--display);
+  white-space: nowrap;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.boat-label[hidden] {
+  display: none;
+}
+
+/* --- Hull bar over the boat, by the damage the model shows (decision 0208) ------------------- */
+.hull-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 56px;
+  height: 8px;
+  margin-left: -28px;
+  overflow: hidden;
+  border: 1px solid var(--ui-ink);
+  border-radius: 4px;
+  background: var(--hud-backing);
+  pointer-events: none;
+}
+.hull-bar[hidden] {
+  display: none;
+}
+.hull-bar i {
+  display: block;
+  height: 100%;
+  background: var(--hud-sig);
+}
+.hull-bar[data-stage='1'] i {
+  background: var(--hud-storm);
+}
+.hull-bar[data-stage='2'] i,
+.hull-bar[data-stage='3'] i {
+  background: var(--hud-danger);
+}
+
+/* --- The edge arrow toward her course ---------------------------------------------------------- */
+.wp-arrow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
+  border: 1px solid var(--hud-text);
+  border-radius: 50%;
+  background: var(--hud-backing);
+  color: var(--hud-sig);
+}
+.wp-arrow[hidden] {
+  display: none;
+}
+.wp-arrow span {
+  display: grid;
+  place-items: center;
+}
+#hud .wp-arrow .icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* --- The line of news at sea: italic words on the scene, no box (round 3 D) ------------------ */
+.toast {
+  position: absolute;
+  top: 22%;
+  left: 50%;
+  z-index: 11;
+  max-width: min(80vw, 560px);
+  transform: translateX(-50%);
+  color: var(--hud-text);
+  font: italic 400 var(--fs-title) / 1.25 var(--ui-font-title);
+  text-align: center;
+  text-shadow: var(--hud-halo);
+  animation: toast-in var(--ui-dur-slow) var(--ui-ease-out);
+}
+.toast[hidden] {
+  display: none;
+}
+.hazard-toast-badge {
+  width: 28px;
+  height: 28px;
+  margin: -4px 8px -4px 0;
+  vertical-align: middle;
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+}
+html[data-layout='phone'] .toast {
+  top: 26%;
+  font-size: var(--fs-sub);
+}
+
+/* --- Press warning (decision 0078): the lee edge glows amber, then red; only opacity animates. */
+.press-glow {
+  --press: 242, 179, 61;
+  --lee: 90deg;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    var(--lee),
+    rgba(var(--press), 0) 55%,
+    rgba(var(--press), 0.16) 80%,
+    rgba(var(--press), 0.45) 100%
+  );
+  transition: opacity 0.4s;
+}
+.press-glow[data-press='1'] {
+  opacity: 0.8;
+}
+.press-glow[data-press='2'] {
+  --press: 226, 80, 58;
+  opacity: 1;
+  animation: press-pulse 0.9s ease-in-out infinite alternate;
+}
+@keyframes press-pulse {
+  from {
+    opacity: 0.55;
+  }
+}
+
+/* --- Steering drag (touch) and the frame counter --------------------------------------------- */
+.tiller {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+.tiller::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -60px;
+  width: 120px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.25);
+}
+.tiller i {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 2px solid var(--hud-text);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+}
+.tiller[hidden],
+.fps[hidden] {
+  display: none;
+}
+.fps {
+  position: absolute;
+  bottom: calc(var(--bottom) + 60px);
+  left: var(--left);
+  font: 12px monospace;
+  text-shadow: var(--hud-halo);
+}
+
+/* --- Pad glyphs on the sea's buttons (decisions 0199, 0201), only while the pad is in use ---- */
+.pad-symbol {
+  place-items: center;
+}
+.pad-symbol .pad-key {
+  display: none;
+}
+html[data-pad-brand='playstation'] .pad-symbol > svg,
+html[data-pad-brand='nintendo'] .pad-symbol > svg {
+  display: none;
+}
+html[data-pad-brand='playstation'] .pad-symbol .pad-key,
+html[data-pad-brand='nintendo'] .pad-symbol .pad-key {
+  display: inline-grid;
+}
+/* On a TV the pad is always in use: no focus ring left on a sea button the pad never moves to. */
+html[data-input='pad'] :is(.hud-actions, .hud-sails) :focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast,
+  .press-glow[data-press='2'] {
+    animation: none;
+  }
+}

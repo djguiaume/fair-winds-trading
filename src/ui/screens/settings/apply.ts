@@ -12,7 +12,7 @@ export interface SettingsTargets {
     eruptions: boolean;
     wakeStyles: boolean;
   };
-  hud: { showLog: boolean };
+  hud: { quiet: boolean; compassOff: boolean };
   /** The camera's and the sea motion's own flags (cameraControls.ts). */
   camera: { sync(): void };
   /** The pad's button names: a brand, or null to follow the pad in use. */
@@ -34,7 +34,8 @@ export class SettingsApplier {
     view.dayNight = s.dayNight;
     view.eruptions = s.eruptions;
     view.wakeStyles = s.wakeStyles;
-    hud.showLog = s.showLog;
+    hud.quiet = s.quietHud;
+    hud.compassOff = !s.windCompass;
     setMotionMode(s.motion);
     applyGraphics(view, s);
     if (s.waves !== this.waves) view.setWaves((this.waves = s.waves));

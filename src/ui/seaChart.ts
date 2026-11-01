@@ -24,6 +24,7 @@ import { icon, COIN } from './icons';
 import { drawHazard } from './hazardMarker';
 import { landStyles, seaMarkShape } from './chartMarks';
 import { padGlyph } from './padGlyphs';
+import { chartDial } from './chartDial';
 import { portraitSvg } from './portraits';
 import { seaSvg } from './seaOutline';
 import { seaBox, seaReach, seaShape } from '../sim/seaEdge';
@@ -331,14 +332,8 @@ export class SeaChart {
         if (this.drag && this.dragged) this.settleLabels();
         this.drag = null;
       });
-    // Reuse the Sea HUD instrument geometry; the chart snapshot has no pulses or help dialog.
-    const source = document.querySelector('#wind-compass svg');
-    const dial = this.dialog.querySelector('#chart-dial');
-    if (source && dial) {
-      const copy = source.cloneNode(true) as SVGSVGElement;
-      for (const element of copy.querySelectorAll('[id]')) element.removeAttribute('id');
-      dial.replaceChildren(copy);
-    }
+    // The chart keeps its own north-up dial; the sea HUD's turns with the boat (issue #441).
+    this.dialog.querySelector('#chart-dial')?.replaceChildren(chartDial());
   }
   /**
    * Closest zoom: the same detail as 3x on the Windward Ring (sea radius 440) on any sea, so a

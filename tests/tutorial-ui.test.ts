@@ -5,6 +5,7 @@ import { PHASE1_MAP } from '../src/data/maps';
 import { TutorialCoach } from '../src/ui/tutorial';
 import { TradePanel } from '../src/ui/tradePanel';
 import { SeaChart } from '../src/ui/seaChart';
+import { Hud } from '../src/ui/hud';
 import { TUTORIAL, tutorialVoyage } from './helpers/tutorial';
 
 beforeEach(() => {
@@ -24,6 +25,8 @@ const click = (selector: string) => {
 function setup(mode: 'adult' | 'kids' = 'adult') {
   const v = tutorialVoyage();
   const { world, quests } = v;
+  // The sea HUD builds its own buttons (issue #441): Map, Menu and the sails the coach rings.
+  new Hud(world, { seen: true, markSeen: () => {} });
   const card = new TutorialCoach(quests, v.harbours);
   const panel = new TradePanel(document.getElementById('trade-panel')!, world);
   panel.uiMode = mode;

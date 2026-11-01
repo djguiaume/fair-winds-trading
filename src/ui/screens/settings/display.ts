@@ -6,13 +6,13 @@ import { t } from '../../../i18n';
 import type { RowHost, SettingsContext } from './context';
 import { choiceRow, switchRow } from './rows';
 
-/** Settings › Display: the picture, the speed log and the comfort switches. */
+/** Settings › Display: the picture, the quiet HUD and the comfort switches. */
 export function displayTab(ctx: SettingsContext, host: RowHost) {
   const { settings } = ctx;
   const flag = (
     id: string,
     key: string,
-    name: 'showLog' | 'showFps' | 'gentleMotion' | 'cameraBob' | 'wakeStyles',
+    name: 'quietHud' | 'showFps' | 'gentleMotion' | 'cameraBob' | 'wakeStyles',
   ) =>
     switchRow({
       id,
@@ -40,7 +40,7 @@ export function displayTab(ctx: SettingsContext, host: RowHost) {
     flag('show-fps', 'settings.showFps', 'showFps'),
   ];
   const comfort = [
-    flag('show-log', 'settings.speedLog', 'showLog'),
+    flag('quiet-hud', 'settings.quietHud', 'quietHud'),
     choiceRow({
       id: 'motion',
       key: 'settings.motion',

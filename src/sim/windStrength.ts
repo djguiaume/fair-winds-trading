@@ -52,11 +52,15 @@ export function createWindGauge(speedKn: number): WindGauge {
   return { force: windForce(speedKn), average: speedKn, gust: 0 };
 }
 
-/** Advance the gauge by `dt` seconds with the wind the boat feels now. */
+/**
+ * Advance the gauge by `dt` seconds with the wind the boat feels now. It changes `g` in place and
+ * returns it, so the HUD's every frame allocates nothing (issue #441).
+ */
 export function updateWindGauge(g: WindGauge, speedKn: number, dt: number): WindGauge {
   const { averageSec, gustJumpKn, gustHoldSec } = force();
   const k = 1 - Math.exp(-dt / averageSec);
-  const average = g.average + (speedKn - g.average) * k;
-  const gust = speedKn - average >= gustJumpKn ? gustHoldSec : Math.max(0, g.gust - dt);
-  return { force: windForceSticky(speedKn, g.force), average, gust };
+  g.average += (speedKn - g.average) * k;
+  g.gust = speedKn - g.average >= gustJumpKn ? gustHoldSec : Math.max(0, g.gust - dt);
+  g.force = windForceSticky(speedKn, g.force);
+  return g;
 }

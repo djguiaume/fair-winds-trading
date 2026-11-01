@@ -165,7 +165,7 @@ describe('settings applier', () => {
       eruptions: true,
       wakeStyles: true,
     };
-    const hud = { showLog: true };
+    const hud = { quiet: false, compassOff: false };
     const camera = { sync: vi.fn() };
     const padGlyphs = vi.fn();
     const applier = new SettingsApplier({ world, view, hud, camera, padGlyphs });
@@ -173,7 +173,8 @@ describe('settings applier', () => {
     Object.assign(settings, {
       weather: false,
       ships: false,
-      showLog: false,
+      quietHud: true,
+      windCompass: false,
       dayNight: false,
       haze: { fog: false },
       effects: { shadows: false },
@@ -185,7 +186,7 @@ describe('settings applier', () => {
     expect(world.hazeOff).toContain('fog');
     expect(view.dayNight).toBe(false);
     expect(view.effects.shadows).toBe(false);
-    expect(hud.showLog).toBe(false);
+    expect(hud).toEqual({ quiet: true, compassOff: true });
     expect(padGlyphs).toHaveBeenCalledWith('playstation');
     // Turning the ships back on starts them afresh; an unchanged setting is not re-sent.
     settings.ships = true;

@@ -11,20 +11,7 @@ import { FILE_METAS } from './tuning-meta-files';
 
 export type { NumberMeta, PolarMeta, TextMeta, ToggleMeta, TuningMeta } from './tuning-meta-types';
 
-/** Tabs of the panel, one per tuning file. */
-export const TUNING_GROUPS = {
-  ships: 'Ships',
-  upgrades: 'Upgrades',
-  goods: 'Goods',
-  economy: 'Towns and trade',
-  difficulty: 'Levels',
-  weather: 'Weather',
-  seamanship: 'Seamanship',
-  camera: 'Camera',
-  graphics: 'Graphics',
-  terrain: 'Terrain',
-  waves: 'Waves',
-} as const;
+export { TUNING_GROUPS } from './tuning-meta-groups';
 
 /** Objects whose keys are ids: their children are written `*` in meta paths. */
 export const ID_COLLECTIONS: readonly string[] = [

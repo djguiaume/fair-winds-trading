@@ -1,41 +1,31 @@
-import { knobs } from '../sim/difficulty';
+import { TUNING } from '../data/tuning';
 import { trueWindAngle } from '../sim/boat';
-import { DEG, bearingTo, distance, wrapPositive } from '../sim/math';
-import { type PointOfSail, SHIP_CLASSES, noGoAngle, pointOfSail } from '../sim/ship';
+import { DIFFICULTIES } from '../sim/difficulty';
 import { damageStage, hullCondition } from '../sim/hazards';
-import { windForecast } from '../sim/forecast';
-import { USUAL_WEATHER, windTo } from '../sim/wind';
-import { WIND_FORCES, createWindGauge, updateWindGauge } from '../sim/windStrength';
-import { windFeedback } from './windFeedback';
-import { PAD, type PadButton, type SeaAction } from '../input/gamepad';
-import { padGlyphFor, padSymbol } from './padGlyphs';
-import {
-  type PressLevel,
-  type World,
-  type WorldEvent,
-  navigationTarget,
-  pressLevel,
-} from '../sim/world';
-import type { ScreenPoint } from '../render/view';
-
-import { GOODS } from '../sim/goods';
+import { DEG, bearingTo, distance, wrapAngle } from '../sim/math';
+import type { QuestBook } from '../sim/quests';
+import { SHIP_CLASSES, noGoAngle, pointOfSail } from '../sim/ship';
 import { capacity, cargoUsed, findPort } from '../sim/trade';
-import { PortLabels } from './portLabels';
+import { type World, type WorldEvent, navigationTarget } from '../sim/world';
+import type { ScreenPoint } from '../render/view';
+import { t } from '../i18n';
 import { BoatLabels } from './boatLabels';
-import { type HazardKind, hazardBadge } from './hazardMarker';
-import { screenBearing } from './screenBearing';
+import type { HazardKind } from './hazardMarker';
+import { PortLabels } from './portLabels';
 import { SeaLines } from './seaLines';
-import { formatNumber, goodName, t, tOptional, weatherName, zoneKindName } from '../i18n';
-
-const POINT_OF_SAIL_TONE: Record<PointOfSail, '' | 'good' | 'bad'> = {
-  'in-irons': '',
-  'close-hauled': '',
-  'beam-reach': 'good',
-  'broad-reach': 'good',
-  running: '',
-};
-
-const COMPASS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
+import { Actions } from './hud/actions';
+import { HeadingStrip, type StripClock } from './hud/headingStrip';
+import { IdleFade } from './hud/idleFade';
+import { Instrument } from './hud/instrument';
+import { PressWarning } from './hud/pressWarning';
+import { SeaToasts } from './hud/seaToasts';
+import { Status, type StatusFrame, trackedQuestLine } from './hud/status';
+import { applyHudTokens } from './hud/tokens';
+import { WindCompass, type WindFrame } from './hud/windCompass';
+import { EdgeArrow } from './hud/edgeArrow';
+import { setHidden } from './hud/parts';
+import './hud/hud.css';
+import './hud/overlays.css';
 
 function $(id: string): HTMLElement {
   const el = document.getElementById(id);
@@ -43,149 +33,79 @@ function $(id: string): HTMLElement {
   return el;
 }
 
-/** Nearest of the eight compass points for a direction in radians, translated. */
-function compassPoint(rad: number): string {
-  return t(`compass.${compassIndex(rad)}`);
-}
-
-/** The same point as words for a sentence: "to the west", "à l'ouest" (decision 0091). */
-function compassWords(rad: number): string {
-  return t(`compassLong.${compassIndex(rad)}`);
-}
-
-function compassIndex(rad: number): (typeof COMPASS)[number] {
-  return COMPASS[Math.round(wrapPositive(rad) / (Math.PI / 4)) % 8]!;
-}
-
-function formatTime(seconds: number): string {
-  const s = Math.round(seconds);
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-}
-
-/** Plain-DOM heads-up display with trading stats and port labels. */
 /** Seconds as a clock, "1:45". */
 const clock = (secs: number) => {
   const s = Math.max(0, Math.floor(secs));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 };
 
+/**
+ * The sea HUD (issue #441, round 3 D): three clusters on the scene instead of nine plates. Top
+ * left the status, top centre the heading strip, top right the wind compass; bottom right the
+ * instrument and bottom left the actions. Text sits on the sea with a hard ink halo; only the
+ * compass and the instrument have a faint ink backing. The quiet HUD keeps those two alone, and
+ * the status and the strip fade back after a while without a change.
+ */
 export class Hud {
-  private readonly speed = $('speed');
-  private readonly heading = $('heading');
-  private readonly pos = $('point-of-sail');
-  private readonly seaLines = new SeaLines();
-  private readonly speedLog = $('speed-log');
-  private readonly logToggle = $('log-toggle');
-  private readonly lever = $('sail-lever');
-  private readonly leverButtons = Array.from(
-    document.querySelectorAll<HTMLButtonElement>('#sail-lever button[data-step]'),
-  );
-  private leverDrag: number | null = null;
-  /** Press warning (decision 0078): the sails control turns amber, then red, and the lee edge of
-   * the screen glows the same colour. */
-  private readonly pressGlow = $('press-glow');
-  private press: PressLevel = 0;
-  private shownPress: PressLevel | null = null;
-  private glowAngle = NaN;
-  /** The one-time "ease the sails" message has been shown. */
-  seenPressHint = false;
-  /** The first current's hint was shown (decision 0140); main.ts keeps it in the settings. */
-  seenCurrentHint = false;
-  onCurrentHintSeen: () => void = () => {};
-  /** The storm belt's one-time hint has shown (decision 0167). */
-  seenBeltHint = false;
-  onBeltHintSeen: () => void = () => {};
-  onPressHintSeen: () => void = () => {};
-  /** She just crossed into red: main buzzes the phone and plays a creak. */
-  onPressDanger: () => void = () => {};
-  private shownSail = -1;
-  private readonly objective = $('navigation-target');
-  private readonly objArrow = $('obj-arrow');
-  private readonly objName = $('obj-name');
-  private readonly objDist = $('obj-dist');
-  private readonly windText = $('wind-text');
-  private readonly weatherText = $('weather-text');
-  private readonly forecastText = $('wind-forecast');
-  private readonly beltText = $('belt-text');
-  private sinceForecast = Infinity;
-  private readonly cNoGo = $('c-nogo');
-  private readonly cBand = $('c-band');
-  private readonly cWind = $('c-wind');
-  private readonly cWindScale = $('c-wind-scale');
-  private readonly windForceText = $('wind-force');
-  private readonly windGust = $('wind-gust');
-  private readonly windBars = Array.from(document.querySelectorAll<HTMLElement>('.wind-gauge i'));
-  private windGauge = createWindGauge(0);
-  private windGaugeInitialized = false;
-  private shownForce = -1;
-  private shownKids: boolean | null = null;
-  /** Kids mode shows the strength as a big plain word and hides the knots. */
-  isKidMode = false;
-  private readonly cBoat = $('c-boat');
-  private readonly cWp = $('c-wp');
-  private readonly cMark = $('c-mark');
+  private readonly root = $('hud');
+  readonly status = new Status();
+  readonly strip = new HeadingStrip(TUNING.hud.tapeSpanDeg);
+  readonly compass = new WindCompass();
+  readonly instrument = new Instrument();
+  readonly actions = new Actions();
+  readonly toasts: SeaToasts;
+  readonly press: PressWarning;
+  readonly portLabels: PortLabels;
+  private readonly boatLabels: BoatLabels;
+  private readonly seaLines: SeaLines;
+  private readonly edge = new EdgeArrow($('wp-arrow'));
+  private readonly tiller = $('tiller');
+  private readonly fps = $('fps');
+  private readonly hullBar = $('hull-bar');
+  private readonly windHelp = $('wind-help') as HTMLDialogElement;
+  private readonly statusFade = new IdleFade();
+  private readonly stripFade = new IdleFade();
+  private wokeHeading = 0;
+  /** A timed run's line when no course is set ("Run to Saltmere"), kept between text ticks. */
+  private runName = '';
+  /** Reused each text tick, so the status costs no new objects. */
+  private readonly frame: StatusFrame = {
+    gold: 0,
+    used: 0,
+    capacity: 0,
+    hull: 100,
+    stage: 0,
+    deck: 0,
+    deckRoom: 0,
+  };
+  private readonly wind: WindFrame = { heading: 0, windFrom: 0, noGo: 0, course: null, mark: null };
+
   /** A place the compass marks the direction of: the prologue's wreck (decision 0127). */
   mark: { x: number; y: number } | null = null;
   /**
    * Where to head when no course is set (decision 0139): the wreck during the prologue, else the
-   * tracked quest's place. The objective panel and the edge arrow show it like a course.
+   * tracked quest's place. The strip and the edge arrow show it like a course.
    */
   goal: { x: number; y: number; label: string } | null = null;
-  /** A timed run under way (decision 0213): its clock shows in the course pill. */
+  /** A timed run under way (decision 0213): its clock shows in the strip. */
   run: { sec: number; par: number; to: string } | null = null;
-  private readonly objClock = $('obj-clock');
-  /**
-   * A race under way (decision 0217): its line in the course pill ("Horn in 7", "Mark 2 of 3")
-   * and its clock once the horn has gone; the pill's × gives it up (`onRetire`).
-   */
+  /** A race under way (decision 0217): its line and clock; the strip's × gives it up. */
   race: { label: string; short: string; sec: number | null } | null = null;
-  private readonly upright = matchMedia('(orientation: portrait) and (max-width: 600px)');
+  /** The quests, for the tracked one's line under the status. */
+  quests: QuestBook | null = null;
   onRetire: () => void = () => {};
-  private readonly objRetire = $('obj-retire');
-  /** Quest cargo aboard, a line each, for the hold list (decision 0213). */
-  questCargo: () => string[] = () => [];
-  private readonly wpArrow = $('wp-arrow');
-  private readonly toast = $('toast');
-  private readonly tiller = $('tiller');
-  private readonly fps = $('fps');
-
-  // Phase 1 persistent stats and docking
-  private readonly hudGold = $('hud-gold');
-  private readonly hudCargo = $('hud-cargo');
-  private readonly hudHull = $('hud-hull');
-  private readonly hudHullBox = $('hud-hull-box');
-  private readonly hullBar = $('hull-bar');
-  private readonly cargoFill = $('hud-cargo-fill');
-  private readonly deckBox = $('hud-deck-box');
-  private readonly deckText = $('hud-deck');
-  private readonly cargoBox = $('hud-cargo-box');
-  private readonly cargoTooltip = $('hud-cargo-tooltip');
-  private readonly dockBtn = $('dock-btn');
-  private readonly dockPortName = $('dock-port-name');
-  readonly portLabels: PortLabels;
-  private readonly boatLabels: BoatLabels;
-
+  onQuestOpen: () => void = () => {};
   onDockClick: () => void = () => {};
-  /** The player picked a sail step on the lever (0 = down). */
   onSailStep: (step: number) => void = () => {};
-  /** The player showed or folded the speed log. */
-  onLogToggle: (shown: boolean) => void = () => {};
   onPortClick: (portId: string) => void = () => {};
+  onWindHelpChange: () => void = () => {};
 
-  private toastTimer = 0;
   private sinceText = 1;
+  private sinceQuest = Infinity;
   private wasVisible = false;
-  private ironsTime = 0;
-  private noGoAngle = -1;
-  private readonly compass = $('wind-compass');
-  private readonly windTrigger = $('wind-help-trigger');
-  private readonly windChip = $('upwind-chip');
-  private readonly windHint = $('wind-first-hint');
-  private readonly windHelp = $('wind-help') as HTMLDialogElement;
   private hintSeconds = 0;
   private seenWindHint: boolean;
   private returnFocus: HTMLElement | null = null;
-  onWindHelpChange: () => void = () => {};
 
   constructor(
     private readonly world: World,
@@ -193,343 +113,91 @@ export class Hud {
     harbours: Record<string, { x: number; y: number }> = {},
   ) {
     this.seenWindHint = windPreferences.seen;
+    applyHudTokens(this.root);
+    const { status, strip, compass, instrument, actions } = this;
+    this.root.append(status.root, strip.root, compass.root, instrument.root, actions.root);
+    this.toasts = new SeaToasts($('toast'), world);
+    this.press = new PressWarning(world, $('press-glow'), (text, sec) => this.showToast(text, sec));
+    this.seaLines = new SeaLines(compass.lines, (sog) => instrument.showSog(sog));
+    this.portLabels = new PortLabels($('port-labels'), world, harbours);
+    this.portLabels.onPortClick = (portId) => this.onPortClick(portId);
+    this.boatLabels = new BoatLabels($('boat-labels'), world);
+    instrument.onStep = (step) => this.onSailStep(step);
+    strip.retire.addEventListener('click', () => this.onRetire());
+    status.quest.addEventListener('click', () => this.onQuestOpen());
+    actions.dock.addEventListener('click', () => this.onDockClick());
+    actions.cargo.addEventListener('click', (e) => {
+      e.stopPropagation();
+      actions.toggleHold(world.trade);
+    });
+    document.addEventListener('click', () => actions.closeHold());
+    this.initWindHelp();
+  }
+
+  /** The dial and the chip open the sailing tips; closing gives the focus back. */
+  private initWindHelp() {
+    const { compass, windHelp } = this;
     const open = () => {
       this.returnFocus = document.activeElement as HTMLElement | null;
       this.dismissWindHint();
-      this.windHelp.showModal();
+      windHelp.showModal();
       this.onWindHelpChange();
     };
-    this.windTrigger.addEventListener('click', open);
-    this.windChip.addEventListener('click', open);
-    $('dismiss-wind-hint').addEventListener('click', () => {
+    compass.trigger.addEventListener('click', open);
+    compass.chip.addEventListener('click', open);
+    compass.hintClose.addEventListener('click', () => {
       this.dismissWindHint();
-      this.windTrigger.focus({ preventScroll: true });
+      compass.trigger.focus({ preventScroll: true });
     });
-    $('close-wind-help').addEventListener('click', () => this.windHelp.close());
-    this.windHelp.addEventListener('close', () => {
+    $('close-wind-help').addEventListener('click', () => windHelp.close());
+    windHelp.addEventListener('close', () => {
       this.onWindHelpChange();
-      // The delayed chip disappears while paused. Restore focus to the permanent compass.
-      const target =
-        this.returnFocus?.isConnected && !this.returnFocus.hidden
-          ? this.returnFocus
-          : this.windTrigger;
-      target.focus({ preventScroll: true });
+      // The delayed chip disappears while paused: fall back to the dial, which always stays.
+      const back = this.returnFocus;
+      (back?.isConnected && !back.hidden ? back : compass.trigger).focus({ preventScroll: true });
     });
-
-    this.portLabels = new PortLabels($('port-labels'), this.world, harbours);
-    this.portLabels.onPortClick = (portId) => this.onPortClick(portId);
-    this.boatLabels = new BoatLabels($('boat-labels'), this.world);
-
-    this.seaGlyphs();
-    this.objRetire.addEventListener('click', () => this.onRetire());
-    this.dockBtn.addEventListener('click', () => {
-      this.onDockClick();
-    });
-
-    this.cargoBox.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.toggleCargoTooltip();
-      this.cargoBox.setAttribute('aria-expanded', String(!this.cargoTooltip.hidden));
-    });
-
-    document.addEventListener('click', () => {
-      if (!this.cargoTooltip.hidden) this.cargoTooltip.hidden = true;
-      this.cargoBox.setAttribute('aria-expanded', 'false');
-    });
-
-    this.logToggle.addEventListener('click', () => {
-      this.showLog = this.speedLog.classList.contains('is-folded');
-      this.onLogToggle(this.showLog);
-    });
-    this.initLever();
-  }
-
-  /** Speed log at the top right (decision 0049): on by default, folds to a small button. */
-  set showLog(shown: boolean) {
-    this.speedLog.classList.toggle('is-folded', !shown);
-    this.logToggle.setAttribute('aria-pressed', String(shown));
-    if (shown) this.sinceText = 1;
-  }
-
-  get showLog(): boolean {
-    return !this.speedLog.classList.contains('is-folded');
-  }
-
-  /** Sail lever: tap a notch or drag along it; keyboard users press the notch buttons. */
-  private initLever() {
-    const track = this.lever.querySelector<HTMLElement>('.lever-track')!;
-    const pick = (clientY: number) => {
-      let best = this.leverButtons[0]!;
-      let bestGap = Infinity;
-      for (const b of this.leverButtons) {
-        const r = b.getBoundingClientRect();
-        const gap = Math.abs(clientY - (r.top + r.height / 2));
-        if (gap < bestGap) [best, bestGap] = [b, gap];
-      }
-      const step = Number(best.dataset.step);
-      if (step !== this.shownSail) {
-        this.showSail(step);
-        this.onSailStep(step);
-      }
-    };
-    track.addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
-      e.preventDefault();
-      this.leverDrag = e.pointerId;
-      track.setPointerCapture?.(e.pointerId);
-      pick(e.clientY);
-    });
-    track.addEventListener('pointermove', (e) => {
-      if (e.pointerId === this.leverDrag) pick(e.clientY);
-    });
-    const release = (e: PointerEvent) => {
-      if (e.pointerId === this.leverDrag) this.leverDrag = null;
-    };
-    track.addEventListener('pointerup', release);
-    track.addEventListener('pointercancel', release);
-    for (const b of this.leverButtons) {
-      // Pointer presses are handled above; this catches Enter / Space on a focused notch.
-      b.addEventListener('click', (e) => {
-        if (e.detail !== 0) return;
-        const step = Number(b.dataset.step);
-        this.showSail(step);
-        this.onSailStep(step);
-      });
-    }
-  }
-
-  private showSail(step: number) {
-    if (step === this.shownSail) return;
-    this.shownSail = step;
-    this.lever.dataset.step = String(step);
-    for (const b of this.leverButtons)
-      b.setAttribute('aria-pressed', String(Number(b.dataset.step) === step));
-  }
-
-  /** Strength gauge under the compass (decision 0040): bars, a word and a short gust cue. */
-  private updateWindStrength(dt: number, speedKn: number, visible: boolean) {
-    if (!this.windGaugeInitialized) {
-      this.windGauge = createWindGauge(speedKn);
-      this.windGaugeInitialized = true;
-    }
-    this.windGauge = updateWindGauge(this.windGauge, speedKn, dt);
-    if (!visible) return;
-    const { force, gust } = this.windGauge;
-    const kids = this.isKidMode;
-    if (force !== this.shownForce || kids !== this.shownKids) {
-      this.shownForce = force;
-      this.shownKids = kids;
-      this.compass.dataset.force = String(force);
-      this.compass.classList.toggle('is-kids', kids);
-      this.windBars.forEach((bar, i) => bar.classList.toggle('on', i <= force));
-      this.windForceText.textContent = t(
-        `${kids ? 'kidsWind' : 'windForce'}.${WIND_FORCES[force]}`,
-      );
-      // The arrow grows a little bolder as the wind rises; its length and direction stay.
-      this.cWindScale.setAttribute('transform', `scale(${(0.8 + force * 0.12).toFixed(2)} 1)`);
-    }
-    this.windGust.hidden = gust <= 0;
-  }
-
-  /** Press warning (decision 0078): cheap class and custom-property writes, only on change. */
-  private updatePress(
-    project: (x: number, y: number) => ScreenPoint,
-    active: boolean,
-    visible: boolean,
-  ) {
-    const level = active ? pressLevel(this.world, this.press) : 0;
-    if (level !== this.press) {
-      if (level === 2 && this.press < 2) this.onPressDanger();
-      this.press = level;
-      if (level > 0 && !this.seenPressHint) {
-        this.seenPressHint = true;
-        this.onPressHintSeen();
-        // On a level that keeps the cargo (Fair winds) the warning is a lesson (decision 0083).
-        const hint =
-          knobs(this.world.trade.difficulty).cargoLost === 0
-            ? 'toast.pressHintFair'
-            : 'toast.pressHint';
-        this.showToast(t(hint), 5);
-      }
-    }
-    if (!visible) return;
-    if (this.shownPress !== level) {
-      this.shownPress = level;
-      this.lever.dataset.press = String(level);
-      this.pressGlow.dataset.press = String(level);
-    }
-    if (level === 0) return;
-    // The glow sits on the lee side, where she leans: the way the wind blows, on screen.
-    const { boat, wind } = this.world;
-    const to = windTo(wind);
-    const lee = { x: boat.x + Math.sin(to), y: boat.y + Math.cos(to) };
-    const deg = Math.round(screenBearing(project, boat, lee) / DEG);
-    if (!(Math.abs(deg - this.glowAngle) < 2)) {
-      this.glowAngle = deg;
-      this.pressGlow.style.setProperty('--lee', `${deg}deg`);
-    }
   }
 
   private dismissWindHint() {
     this.hintSeconds = 0;
-    this.windHint.hidden = true;
+    this.compass.hint.hidden = true;
     if (!this.seenWindHint) {
       this.seenWindHint = true;
       this.windPreferences.markSeen();
     }
   }
 
-  /** "1:45 / 2:20", red near par (decision 0213). */
-  private showRunClock() {
-    const run = this.run;
-    const race = this.race;
-    this.objRetire.hidden = !race;
-    this.objClock.hidden = !run && race?.sec == null;
-    if (race) {
-      if (race.sec === null) return;
-      const b = this.objClock.querySelector('b')!;
-      const text = clock(race.sec);
-      if (b.textContent !== text) b.textContent = text;
-      this.objClock.classList.remove('is-close');
-      return;
-    }
-    if (!run) return;
-    const text = `${clock(run.sec)} / ${clock(run.par)}`;
-    const b = this.objClock.querySelector('b')!;
-    if (b.textContent !== text) b.textContent = text;
-    this.objClock.classList.toggle('is-close', run.par - run.sec < 20);
+  /** Settings › Quiet HUD: only the wind compass and the instrument stay at sea. */
+  set quiet(on: boolean) {
+    this.root.toggleAttribute('data-quiet', on);
   }
 
-  private toggleCargoTooltip() {
-    if (!this.cargoTooltip.hidden) {
-      this.cargoTooltip.hidden = true;
-      return;
-    }
-    const { captain } = this.world.trade;
-    const items = GOODS.filter((g) => captain.cargo[g] > 0)
-      .map((g) => `${goodName(g)}: <b>${captain.cargo[g]}</b>`)
-      // Quest cargo on deck (decision 0213): say whose it is.
-      .concat(
-        this.questCargo().map(
-          (l, i) =>
-            `${i ? '' : `<small>${t('hud.onDeck')}</small><br>`}${l.replace(/[&<>"]/g, '')}`,
-        ),
-      )
-      .join('<br>');
+  /** Settings › Wind compass off: the dial goes, but only on the hardest level (Guillaume). */
+  compassOff = false;
 
-    this.cargoTooltip.innerHTML = items
-      ? items
-      : `<span class="muted">${t('hud.holdEmpty')}</span>`;
-    this.cargoTooltip.hidden = false;
+  set isKidMode(on: boolean) {
+    this.compass.isKidMode = on;
   }
 
-  /** A step's sound plays (decision 0139): said in words too, for a muted phone, if it has words. */
-  stepSound(effect: string, bearing: number) {
-    const line = tOptional(`toast.${effect}`, { dir: compassWords(bearing) });
-    if (line) this.showToast(line, 3);
+  /** Quest cargo aboard, a line each, for the hold list (decision 0213). */
+  set questCargo(lines: () => string[]) {
+    this.actions.questCargo = lines;
   }
+
   showToast(text: string, seconds = 2.5, hazard?: HazardKind) {
-    this.toast.textContent = text;
-    // Hazard warnings carry the same badge as the chart (decision 0070).
-    if (hazard) this.toast.prepend(hazardBadge(hazard));
-    this.toast.hidden = false;
-    this.toastTimer = seconds;
+    this.toasts.show(text, seconds, hazard);
   }
 
-  /** Clears the toast now: a card opening over it says what comes next (decision 0217). */
   hideToast() {
-    this.toast.hidden = true;
-    this.toastTimer = 0;
+    this.toasts.hide();
+  }
+
+  stepSound(effect: string, bearing: number) {
+    this.toasts.stepSound(effect, bearing);
   }
 
   handleEvents(events: WorldEvent[]) {
-    for (const e of events) {
-      if (e.type === 'mark-reached') this.showToast(t('toast.markReached'), 2.5);
-      else if (e.type === 'waypoint') {
-        this.showToast(
-          t('toast.waypoint', { label: e.label, time: formatTime(e.seconds), next: e.next }),
-          3.5,
-        );
-      } else if (e.type === 'reef-strike') {
-        const pct = Math.round(hullCondition(this.world.trade) * 100);
-        this.showToast(t('toast.reef', { pct }), 2.5);
-      } else if (e.type === 'crash') {
-        const pct = Math.round(hullCondition(this.world.trade) * 100);
-        this.showToast(
-          t(
-            e.surface === 'pier'
-              ? 'toast.crashPier'
-              : e.surface === 'boat'
-                ? 'toast.crashBoat'
-                : e.surface === 'ice'
-                  ? 'toast.crashIce'
-                  : 'toast.crash',
-            { pct },
-          ),
-          2.5,
-        );
-      } else if (e.type === 'storm-near') {
-        this.showToast(t('toast.stormNear', { dir: compassWords(e.bearing) }), 4, 'storm');
-      } else if (e.type === 'belt-near') {
-        if (!this.seenBeltHint) {
-          this.seenBeltHint = true;
-          this.onBeltHintSeen();
-          this.showToast(t('toast.beltHint', { name: zoneName(this.world, e.zone) }), 7, 'storm');
-        }
-      } else if (e.type === 'overboard') {
-        this.showToast(t('toast.overboard', { n: e.qty, good: goodName(e.good).toLowerCase() }), 3);
-      } else if (e.type === 'current-charted') {
-        const name = this.world.map.currents?.find((c) => c.id === e.id)?.name ?? '';
-        if (!this.seenCurrentHint) {
-          this.seenCurrentHint = true;
-          this.onCurrentHintSeen();
-          this.showToast(t('toast.currentHint'), 6);
-        } else this.showToast(t('toast.currentCharted', { name }), 3);
-      } else if (e.type === 'zone-charted') {
-        const zone = this.world.map.windZones?.find((z) => z.id === e.id);
-        if (zone?.name)
-          this.showToast(
-            t('toast.zoneCharted', { name: zone.name, kind: zoneKindName(zone.kind) }),
-            3,
-          );
-      } else if (e.type === 'area-charted') {
-        this.showToast(t('toast.areaCharted', { name: e.name }), 3);
-      } else if (e.type === 'too-shallow' && this.toastTimer <= 0) {
-        this.showToast(t('toast.tooShallow'), 3);
-      } else if (e.type === 'bump' && this.toastTimer <= 0) {
-        this.showToast(t('toast.bump'), 1.2);
-      }
-    }
-  }
-
-  /** The storm belt near the boat (decision 0167): squalls or a lull there, and for how long. */
-  private showBelt() {
-    const belt = this.world.belt;
-    if (this.beltText.hidden !== !belt) this.beltText.hidden = !belt;
-    if (!belt) return;
-    // About a minute or two; seconds by tens only in the last minute and a half.
-    const s = belt.changeSec;
-    const time =
-      s >= 90
-        ? t('unit.minutes', { n: Math.round(s / 60) })
-        : t('unit.seconds', { n: Math.max(10, Math.round(s / 10) * 10) });
-    this.beltText.toggleAttribute('data-squalls', belt.squalls);
-    // Two short lines, split at the dot, so it fits the compass panel even on a phone.
-    const text = t(belt.squalls ? 'hud.beltSqualls' : 'hud.beltLull', {
-      name: zoneName(this.world, belt.zone),
-      time: time.replace(' ', '\u00a0'),
-    });
-    // Keep "30 s" and "2 min" on one line.
-    if (this.beltText.dataset.text !== text) {
-      this.beltText.dataset.text = text;
-      this.beltText.replaceChildren(
-        ...text.split(' · ').map((line) => {
-          const span = document.createElement('span');
-          span.textContent = line;
-          return span;
-        }),
-      );
-    }
+    this.toasts.handle(events);
   }
 
   setTiller(drag: { x: number; y: number; steer: number } | null) {
@@ -546,32 +214,10 @@ export class Hud {
     if (fps !== null) this.fps.textContent = t('hud.fps', { n: fps.toFixed(0) });
   }
 
-  /** `project` maps sim positions to pixels; `size` is the viewport. `active` controls
-   * sailing cues; `visible` controls rendering. Paused instruments can still be visible. */
-
-  /** The weather glass's forecast under the wind (decision 0136), twice a second. */
-  private showForecast(dt: number) {
-    this.sinceForecast += dt;
-    if (this.sinceForecast < 0.5) return;
-    this.sinceForecast = 0;
-    const f = windForecast(this.world);
-    this.forecastText.hidden = !f;
-    if (!f) return;
-    const minutes = f.aheadSec % 60 === 0;
-    const time = t(minutes ? 'unit.minutes' : 'unit.seconds', {
-      n: minutes ? f.aheadSec / 60 : Math.round(f.aheadSec),
-    });
-    const storm = f.storm > 0.15;
-    const weather = storm ? 'storm' : f.kind;
-    const extra = weather === USUAL_WEATHER ? '' : ` · ${weatherName(weather)}`;
-    this.forecastText.toggleAttribute('data-storm', storm);
-    this.forecastText.textContent = t('hud.forecast', {
-      time,
-      dir: compassPoint(f.from),
-      kn: f.speedKn.toFixed(0),
-      extra,
-    });
-  }
+  /**
+   * `project` maps sim positions to pixels; `size` is the viewport. `active` runs the sailing cues;
+   * `visible` draws: a paused game keeps its instruments on screen.
+   */
   update(
     dt: number,
     project: (x: number, y: number) => ScreenPoint,
@@ -579,191 +225,140 @@ export class Hud {
     active = true,
     visible = true,
   ) {
-    const { boat, wind, ship } = this.world;
-    const wp = navigationTarget(this.world) ?? this.goal;
-    // Time-dependent cues still advance while the opaque chart or title hides the HUD.
-    if (this.toastTimer > 0) {
-      this.toastTimer -= dt;
-      if (this.toastTimer <= 0) this.toast.hidden = true;
-    }
-    this.updateWindStrength(dt, wind.speedKn, visible);
-    this.updatePress(project, active, visible);
+    const { world, compass } = this;
+    const { boat, wind, ship } = world;
+    this.toasts.tick(dt);
+    compass.tick(dt, wind.speedKn);
+    this.press.update(project, active, visible);
     const twa = trueWindAngle(boat.heading, wind);
-    const irons = Math.abs(twa) < noGoAngle(ship);
-    const cue = windFeedback(this.ironsTime, dt, {
-      inNoGo: irons,
-      sailsRaised: boat.sailStep > 0 && boat.sail > 0.05,
-      docked: this.world.trade.dockedAt !== null,
-      active,
-    });
-    this.ironsTime = cue.seconds;
-    if (cue.chip && !this.seenWindHint) {
+    const sailing = boat.sailStep > 0 && boat.sail > 0.05;
+    const docked = world.trade.dockedAt !== null;
+    compass.cue.update(dt, Math.abs(twa) < noGoAngle(ship) && sailing && !docked && active);
+    if (compass.cue.chip && !this.seenWindHint) {
       this.hintSeconds = 7;
       this.seenWindHint = true;
       this.windPreferences.markSeen();
     }
-    this.hintSeconds = cue.chip ? Math.max(0, this.hintSeconds - dt) : 0;
+    this.hintSeconds = compass.cue.chip ? Math.max(0, this.hintSeconds - dt) : 0;
     const resumed = visible && !this.wasVisible;
     this.wasVisible = visible;
     if (!visible) return;
-    if (resumed) this.sinceText = 1;
-
-    // Rotations every frame (cheap attribute writes), text ~8 times a second.
-    const rot = (el: HTMLElement, rad: number) =>
-      el.setAttribute('transform', `rotate(${(rad / DEG).toFixed(1)})`);
-    if (this.noGoAngle !== noGoAngle(ship)) {
-      this.noGoAngle = noGoAngle(ship);
-      const x = 40 * Math.sin(this.noGoAngle);
-      const y = -40 * Math.cos(this.noGoAngle);
-      this.cNoGo.firstElementChild!.setAttribute('d', `M0 0 L${-x} ${y} A40 40 0 0 1 ${x} ${y} Z`);
+    if (resumed) {
+      this.sinceText = 1;
+      this.sinceQuest = Infinity;
     }
-    rot(this.cNoGo, wind.from);
-    rot(this.cBand, wind.from);
-    rot(this.cWind, windTo(wind));
-    rot(this.cBoat, boat.heading);
-    this.cWp.style.display = wp ? '' : 'none';
-    this.objective.hidden = !wp && !this.run && !this.race;
-    this.showRunClock();
-    if (wp) rot(this.cWp, bearingTo(boat, wp));
-    this.cMark.style.display = this.mark ? '' : 'none';
-    if (this.mark) rot(this.cMark, bearingTo(boat, this.mark));
-    const targetAngle = wp ? screenBearing(project, boat, wp) : 0;
-    if (wp) this.objArrow.style.transform = `rotate(${targetAngle}rad)`;
-    // No course set during a run: the pill names the run (decision 0213).
-    const runTo = this.run && findPort(this.world.map, this.run.to)?.name;
-    this.objective.classList.toggle('is-race', !!this.race);
-    const race = this.race && (this.upright.matches ? this.race.short : this.race.label);
-    const targetName = race ?? wp?.label ?? (runTo ? t('quest.run.clock', { to: runTo }) : '');
-    if (this.objName.textContent !== targetName) this.objName.textContent = targetName;
 
-    this.compass.classList.toggle('is-upwind', cue.amber);
-    this.compass.classList.toggle('wind-pulse', cue.pulse);
-    this.windChip.hidden = !cue.chip;
-    const label = cue.amber ? t('wind.compassUpwind') : t('wind.compass');
-    if (this.windTrigger.getAttribute('aria-label') !== label)
-      this.windTrigger.setAttribute('aria-label', label);
-    this.windHint.hidden = this.hintSeconds <= 0;
+    const wp = navigationTarget(world) ?? this.goal;
+    const f = this.wind;
+    f.heading = boat.heading;
+    f.windFrom = wind.from;
+    f.noGo = noGoAngle(ship);
+    f.course = wp ? bearingTo(boat, wp) : null;
+    f.mark = this.mark ? bearingTo(boat, this.mark) : null;
+    compass.update(f, this.hintSeconds > 0);
+    this.strip.update(boat.heading, f.course);
+    this.showCourse(wp);
+    this.instrument.showPress(this.press.level);
 
     this.sinceText += dt;
     if (this.sinceText > 0.12) {
+      this.showText(this.sinceText, wp, twa);
       this.sinceText = 0;
-      if (this.showLog) {
-        this.speed.textContent = formatNumber(boat.speedKn, 1);
-        const hdg = Math.round(wrapPositive(boat.heading) / DEG) % 360;
-        this.heading.textContent = `${hdg}° ${compassPoint(boat.heading)}`;
-        const p = pointOfSail(ship, twa);
-        this.pos.textContent = boat.sailStep === 0 ? t('hud.sailsDown') : t(`pos.${p}`);
-        this.pos.className = `pos ${boat.sailStep === 0 ? '' : POINT_OF_SAIL_TONE[p]}`;
-      }
-      this.seaLines.show(this.world, this.showLog, compassPoint);
-      if (this.leverDrag === null) this.showSail(boat.sailStep);
-      this.objDist.textContent = wp ? t('unit.metres', { n: Math.round(distance(boat, wp)) }) : '';
-      const fromDir = compassPoint(wind.from);
-      // Name the lee so a sudden drop in speed reads as the island, not a bug (decision 0027).
-      const lee = this.world.shelter > 0.25 ? ` · ${t('hud.lee')}` : '';
-      this.windText.textContent = `${fromDir} · ${wind.speedKn.toFixed(0)} ${t('unit.knots')}${lee}`;
-      // Weather only shows when it is not a plain breeze, in line with the quiet HUD (0067).
-      const { weather } = this.world;
-      const kind = weather.storm > 0.15 ? 'storm' : weather.kind;
-      this.weatherText.hidden = kind === USUAL_WEATHER;
-      if (this.weatherText.dataset.kind !== kind) {
-        this.weatherText.dataset.kind = kind;
-        this.weatherText.textContent = weatherName(kind);
-      }
-      this.showForecast(dt);
-      this.showBelt();
-
-      document.body.classList.toggle('is-docked', Boolean(this.world.trade.dockedAt));
-      // Captain stats & dock button
-      const { trade, map } = this.world;
-      this.hudGold.textContent = formatNumber(trade.captain.gold);
-      const used = cargoUsed(trade);
-      const cap = capacity(trade);
-      this.hudCargo.textContent = `${used}/${cap}`;
-      // The crate icon fills with the hold instead of a bar (decision 0049).
-      const fill = 16 * Math.min(1, cap > 0 ? used / cap : 0);
-      this.cargoFill.setAttribute('y', (20 - fill).toFixed(1));
-      this.cargoFill.setAttribute('height', fill.toFixed(1));
-      this.cargoBox.classList.toggle('is-full', used >= cap);
-      // Quest cargo lashed on deck (decision 0213), shown while there is some.
-      const deck = SHIP_CLASSES[trade.captain.activeShip]!.deck;
-      const onDeck = trade.quests.hold ?? 0;
-      this.deckBox.hidden = onDeck <= 0;
-      if (onDeck > 0) this.deckText.textContent = `${onDeck}/${deck}`;
-      const condition = hullCondition(trade);
-      const hull = Math.round(condition * 100);
-      // The colour steps with the damage the model shows (decision 0208): brass when scuffed,
-      // red once the sails are patched, a deeper red when torn.
-      const stage = damageStage(condition);
-      this.hudHullBox.hidden = hull >= 100;
-      this.hudHull.textContent = t('unit.percent', { n: hull });
-      for (const box of [this.hudHullBox, this.hullBar]) {
-        box.classList.toggle('is-worn', stage === 1);
-        box.classList.toggle('is-low', stage >= 2);
-        box.classList.toggle('is-wrecked', stage === 3);
-      }
-      this.hullBar.hidden = hull >= 100;
-      (this.hullBar.firstElementChild as HTMLElement).style.width = `${hull}%`;
-
-      if (trade.dockedAt) {
-        const port = findPort(map, trade.dockedAt);
-        this.dockPortName.textContent = port?.name ?? trade.dockedAt;
-      }
     }
+    this.sinceQuest += dt;
+    if (this.sinceQuest > 1 && this.quests) {
+      this.sinceQuest = 0;
+      this.status.showQuest(trackedQuestLine(this.quests, world.map));
+    }
+    this.placeOverlays(dt, project, size, wp, resumed);
+  }
 
-    if (!this.hullBar.hidden) {
+  /** The words and numbers, about eight times a second. */
+  private showText(dt: number, wp: { x: number; y: number; label: string } | null, twa: number) {
+    const { world, compass, instrument } = this;
+    const { boat, ship, trade } = world;
+    instrument.showText(boat.speedKn, boat.heading, boat.sailStep);
+    const point = boat.sailStep === 0 ? null : pointOfSail(ship, twa);
+    compass.showText(world, point, world.shelter > 0.25, dt);
+    this.seaLines.show(world);
+    this.showStrip(dt, wp);
+    this.showStatus(dt);
+    const hardest = trade.difficulty === DIFFICULTIES[DIFFICULTIES.length - 1];
+    setHidden(compass.trigger, this.compassOff && hardest);
+  }
+
+  /** Every visible frame: the course's name, a race's line or a run's (decisions 0213, 0217). */
+  private showCourse(wp: { label: string } | null) {
+    const { race } = this;
+    const phone = document.documentElement.dataset.layout === 'phone';
+    this.strip.showName(
+      (race && (phone ? race.short : race.label)) ?? wp?.label ?? this.runName,
+      !!race,
+    );
+  }
+
+  /** The distance, a race's or a run's clock, and the strip's idle fade. */
+  private showStrip(dt: number, wp: { x: number; y: number; label: string } | null) {
+    const { run, race, world } = this;
+    const runTo = run && findPort(world.map, run.to)?.name;
+    this.runName = runTo ? t('quest.run.clock', { to: runTo }) : '';
+    let time: StripClock | null = null;
+    if (race?.sec != null) time = { text: clock(race.sec), close: false };
+    else if (run && !race)
+      time = { text: `${clock(run.sec)} / ${clock(run.par)}`, close: run.par - run.sec < 20 };
+    const dist = wp ? t('unit.metres', { n: Math.round(distance(world.boat, wp)) }) : '';
+    this.strip.showDetail(dist, time);
+    // A big turn wakes the strip as a new course does.
+    if (Math.abs(wrapAngle(world.boat.heading - this.wokeHeading)) / DEG > TUNING.hud.wakeTurnDeg) {
+      this.wokeHeading = world.boat.heading;
+      this.stripFade.wake();
+    }
+    const shown = `${race?.label ?? wp?.label ?? this.runName}|${time ? 1 : 0}`;
+    if (this.stripFade.update(dt, shown, TUNING.hud.idleFadeSec))
+      this.strip.root.toggleAttribute('data-idle', this.stripFade.faded);
+  }
+
+  private showStatus(dt: number) {
+    const { trade } = this.world;
+    const s = this.frame;
+    s.gold = trade.captain.gold;
+    s.used = cargoUsed(trade);
+    s.capacity = capacity(trade);
+    const condition = hullCondition(trade);
+    s.hull = Math.round(condition * 100);
+    s.stage = damageStage(condition);
+    s.deck = trade.quests.hold ?? 0;
+    s.deckRoom = SHIP_CLASSES[trade.captain.activeShip]!.deck;
+    this.status.show(s);
+    const shown = `${s.gold}|${s.used}|${s.hull}|${s.deck}|${this.status.questText}`;
+    if (this.statusFade.update(dt, shown, TUNING.hud.idleFadeSec))
+      this.status.root.toggleAttribute('data-idle', this.statusFade.faded);
+  }
+
+  /** Things pinned to the scene: the hull bar, the port and boat signs, the edge arrow. */
+  private placeOverlays(
+    dt: number,
+    project: (x: number, y: number) => ScreenPoint,
+    size: { w: number; h: number },
+    wp: { x: number; y: number } | null,
+    resumed: boolean,
+  ) {
+    const { boat } = this.world;
+    const hull = this.frame.hull;
+    this.hullBar.hidden = hull >= 100;
+    if (hull < 100) {
+      this.hullBar.dataset.stage = String(this.frame.stage);
+      (this.hullBar.firstElementChild as HTMLElement).style.width = `${hull}%`;
       const b = project(boat.x, boat.y);
       this.hullBar.style.transform = `translate(${b.x.toFixed(0)}px, ${(b.y - 52).toFixed(0)}px)`;
     }
-
     this.portLabels.update(project, dt, resumed);
     this.boatLabels.update(project);
-    // One Trade button at a time: the port sign's, or this one when the sign is off screen.
+    // One Trade button at a time: the pier sign's, or this one when the sign is off screen.
     const dockedAt = this.world.trade.dockedAt;
-    const showDock = dockedAt !== null && !this.portLabels.dockShown(dockedAt);
-    if (this.dockBtn.hidden === showDock) this.dockBtn.hidden = !showDock;
-
-    // Arrow at the screen edge when the buoy is off-screen.
-    const s = wp ? project(wp.x, wp.y) : null;
-    this.wpArrow.hidden = !s || s.onScreen;
-    if (s && !s.onScreen) {
-      const cx = size.w / 2;
-      const cy = size.h / 2;
-      const dx = Math.sin(targetAngle);
-      const dy = -Math.cos(targetAngle);
-      const margin = 34;
-      const k = Math.min(
-        (cx - margin) / Math.abs(dx || 1e-6),
-        (cy - margin - 60) / Math.abs(dy || 1e-6),
-      );
-      this.wpArrow.style.transform = `translate(${cx + dx * k}px, ${cy + dy * k}px)`;
-      (this.wpArrow.firstElementChild as HTMLElement).style.transform = `rotate(${targetAngle}rad)`;
-    }
+    if (dockedAt && !this.portLabels.dockShown(dockedAt))
+      this.actions.showDock(findPort(this.world.map, dockedAt)?.name ?? dockedAt);
+    else this.actions.showDock(null);
+    this.edge.update(project, size, boat, wp);
   }
-
-  /**
-   * The pad's buttons on the sea's own buttons (decision 0199), as console games show them, only
-   * while the pad is in use: A on Trade, the bumpers on the sail lever, and View's symbol in place
-   * of the Map button's icon (decision 0201). The menu button's icon already is the Menu
-   * button's, so it gets none. From `controls.json` › `gamepad.sea`; the D-pad is left out (it is
-   * not a button a player looks for).
-   */
-  private seaGlyphs() {
-    const first = (action: SeaAction): PadButton | undefined =>
-      PAD.sea.actions[action].find((b) => !['up', 'down', 'left', 'right'].includes(b));
-    const put = (id: string, action: SeaAction, where: InsertPosition = 'afterbegin') => {
-      const button = first(action);
-      if (button) $(id).insertAdjacentHTML(where, padGlyphFor(button));
-    };
-    put('dock-btn', 'harbour');
-    const chart = first('chart');
-    if (chart) $('chart-btn').insertAdjacentHTML('afterbegin', padSymbol(chart));
-    put('sail-full', 'sailUp', 'beforeend');
-    put('sail-none', 'sailDown', 'beforeend');
-  }
-}
-
-/** A wind zone's name for the HUD, its id when it has none. */
-function zoneName(world: World, id: string): string {
-  return world.map.windZones?.find((z) => z.id === id)?.name ?? id;
 }

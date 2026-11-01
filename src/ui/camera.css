@@ -1,38 +1,29 @@
-/* The turnable camera's parts of the sea HUD (decision 0223). */
-
-/* The compass letters turn back as the rose turns with the camera, so they stay upright. */
-#c-rose text {
-  transform-box: fill-box;
-  transform-origin: center;
-}
-
-/* Back to north-up: shows only while the camera is turned. */
+/* The turnable camera's part of the sea HUD (decision 0223): back to the resting view, shown
+   only while the camera is turned, under the wind compass. */
 .camera-reset {
   position: absolute;
-  top: -8px;
-  left: -8px;
+  top: calc(var(--ui-hud-compass) + 6px);
+  right: 0;
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   place-items: center;
-  border: 1px solid var(--brass-line);
+  border: 1px solid var(--hud-text);
   border-radius: 50%;
-  background: var(--navy);
-  color: var(--brass);
+  background: var(--hud-backing);
+  color: var(--hud-text);
   cursor: pointer;
+  pointer-events: auto;
   touch-action: manipulation;
 }
 .camera-reset[hidden] {
   display: none;
 }
-@media (pointer: coarse) {
-  .camera-reset {
-    width: 40px;
-    height: 40px;
-  }
+html[data-layout='phone'] .camera-reset {
+  top: calc(var(--ui-hud-compass-phone) + 4px);
 }
-.compass .camera-reset svg {
+.camera-reset svg {
   width: 20px;
   height: 20px;
   fill: none;
@@ -40,9 +31,4 @@
   stroke-width: 2.2;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-
-/* A turned camera brings piers to the middle of the screen: messages stay above port signs. */
-.toast {
-  z-index: 11;
 }

@@ -11,6 +11,7 @@ import { MOTION_META } from './tuning-meta-motion';
 import { SURF_META } from './tuning-meta-surf';
 import { SEA_DRAG_META } from './tuning-meta-sea-drag';
 import { QUALITY_META } from './tuning-meta-quality';
+import { HUD_META } from './tuning-meta-hud';
 import { UI_META } from './tuning-meta-ui';
 
 /** The meta entries kept in their own files, one subject each, so tuning-meta.ts stays readable. */
@@ -27,5 +28,6 @@ export const FILE_METAS: Readonly<Record<string, TuningMeta>> = {
   ...MOTION_META,
   ...SURF_META,
   ...SEA_DRAG_META,
+  ...HUD_META,
   ...UI_META,
 };
