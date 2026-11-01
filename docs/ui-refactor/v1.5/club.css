@@ -1,0 +1,195 @@
+/* Direction 2, "The sailing club": sportive and bold. Dark slate and sailcloth, one burgee pink,
+   condensed type and big numbers, slanted tiles. Flat colour, no texture, no blur. */
+:root {
+  --slate: rgba(22, 30, 37, .9);
+  --slate-solid: #161e25;
+  --slate-2: #24303a;
+  --slate-3: #33424d;
+  --cloth: #f2f4ef;         /* sailcloth, never pure white */
+  --cloth-2: #c6ced3;
+  --muted: #8f9ea9;
+  --sig: #ff5a8f;           /* burgee pink, the signature */
+  --sig-dark: #c93d6d;
+  --on-sig: #161e25;
+  --f-display: 'Saira Condensed', 'Barlow Condensed', sans-serif;
+  --f-body: 'Barlow', sans-serif;
+  --slant: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+}
+body { font-family: var(--f-body); font-weight: 500; color: var(--cloth); font-variant-numeric: tabular-nums; }
+.hbtn, .p-head .p-title, .tabs, .stat { position: relative; }
+.market { bottom: auto; }
+
+.pad { min-width: 24px; height: 24px; border-radius: 12px; background: var(--cloth); color: var(--slate-solid); font: 700 13px/1 var(--f-body); padding: 0 6px; }
+.pad-wide { border-radius: 4px; font-size: 12px; }
+.ic .i1 { fill: currentColor; } .ic .i2 { fill: currentColor; opacity: .5; }
+
+/* Logo: burgee and a heavy slanted wordmark. */
+.logo-club { display: flex; align-items: flex-end; gap: 14px; }
+.logo-club .l-emblem { width: 128px; height: 96px; }
+.logo-club .l-staff { fill: var(--cloth); } .logo-club .l-burgee { fill: var(--sig); } .logo-club .l-cut { fill: var(--cloth); }
+.logo-club .l-words { display: flex; flex-direction: column; transform: skewX(-8deg); }
+.logo-club .l-fair { font: 800 108px/0.82 var(--f-display); color: var(--cloth); letter-spacing: 0; }
+.logo-club .l-sub { font: 700 22px/1 var(--f-display); color: var(--sig); margin-top: 10px; }
+
+.btn { font: 700 26px/1 var(--f-display); padding: 10px 22px; background: var(--slate); clip-path: var(--slant); }
+.btn.primary { background: var(--sig); color: var(--on-sig); }
+.btn.focus { box-shadow: inset 6px 0 0 var(--cloth); }
+.b-sub { font: 600 15px/1.2 var(--f-body); }
+
+/* Title: Forza-like left column over a slate fade. */
+.s-title .grade { background: linear-gradient(90deg, rgba(16, 22, 28, .82), rgba(16, 22, 28, .45) 38%, rgba(16, 22, 28, 0) 62%), linear-gradient(0deg, rgba(16, 22, 28, .5), rgba(16, 22, 28, 0) 30%); }
+.s-title .t-brand { left: 56px; top: 64px; }
+.s-title .t-menu { left: 56px; top: 360px; width: 400px; gap: 8px; }
+.s-title .t-menu .btn { font-size: 30px; padding: 12px 28px; }
+.s-title .t-menu .btn.big { font-size: 40px; padding: 16px 32px 14px; margin-bottom: 6px; }
+.s-title .t-second { left: 56px; bottom: 36px; font: 600 16px var(--f-body); color: var(--cloth-2); }
+.lang b { background: var(--cloth); color: var(--slate-solid); } .lang i { color: var(--cloth-2); }
+.t-version { right: 32px; top: 26px; font: 700 18px var(--f-display); color: var(--cloth); }
+.s-title .padbar { right: 32px; bottom: 32px; font: 600 16px var(--f-body); }
+
+/* Sea HUD */
+.h-status { padding: 12px 16px; background: var(--slate); border-radius: 3px; box-shadow: inset 4px 0 0 var(--sig); }
+.stat { font: 700 26px/1 var(--f-display); }
+.h-quest { font-size: 15px; } .h-quest b { font: 700 20px/1.05 var(--f-display); } .h-quest span { color: var(--cloth-2); }
+.h-quest .ic { color: var(--sig); width: 24px; height: 24px; }
+.h-strip { padding: 6px 14px 8px; background: var(--slate); border-radius: 3px; }
+.tape .t-tick { stroke: var(--cloth-2); stroke-width: 1.4; } .tape .t-tick.major { stroke: var(--cloth); stroke-width: 2.6; }
+.tape text { fill: var(--cloth); text-anchor: middle; } .tape .t-card { font: 800 16px var(--f-display); } .tape .t-num { font: 600 10px var(--f-body); fill: var(--muted); }
+.tape .t-dest { fill: var(--sig); } .tape .t-lubber { fill: var(--cloth); }
+.h-dest { font-size: 15px; } .h-dest b { font: 700 19px var(--f-display); } .h-dest .ic { color: var(--sig); } .h-dest span { color: var(--cloth-2); }
+.h-toast { padding: 8px 20px; font: 700 20px var(--f-display); background: var(--slate); clip-path: var(--slant); }
+.hbtn { padding: 10px 16px; font: 700 20px var(--f-display); background: var(--slate); border-radius: 3px; }
+.h-instr { padding: 16px 20px 16px; gap: 4px; background: var(--slate); border-radius: 3px; box-shadow: inset 0 4px 0 var(--sig); }
+.i-speed b { font: 800 96px/0.8 var(--f-display); letter-spacing: 0; }
+.i-unit { font: 700 26px var(--f-display); color: var(--cloth-2); }
+.i-pos { font: 800 28px/1 var(--f-display); color: var(--sig); margin: 4px 0 6px; }
+.i-wind b { font: 700 20px var(--f-display); } .i-wind span { font-size: 15px; color: var(--cloth-2); }
+.wind-dial .w-face { fill: var(--slate-2); stroke: var(--slate-3); stroke-width: 2; }
+.wind-dial .w-tick { stroke: var(--muted); stroke-width: 1.6; }
+.wind-dial .w-boat { fill: var(--cloth); } .wind-dial .w-sail { fill: var(--cloth-2); }
+.wind-dial .w-arrow { stroke: var(--sig); stroke-width: 5; } .wind-dial .w-arrow-head, .wind-dial .w-arrow-tail { fill: var(--sig); }
+.i-sails { margin-top: 10px; gap: 3px; font: 700 16px var(--f-display); }
+.sl { padding: 6px 0; background: var(--slate-2); color: var(--muted); clip-path: var(--slant); }
+.sl.on { background: var(--sig); color: var(--on-sig); }
+
+/* Harbour */
+.p-head { background: linear-gradient(180deg, rgba(16, 22, 28, .86), rgba(16, 22, 28, .55) 75%, rgba(16, 22, 28, 0)); height: 110px; }
+.p-title h1 { font: 800 64px/0.85 var(--f-display); transform: skewX(-8deg); }
+.p-title p { font: 600 15px var(--f-body); color: var(--cloth-2); margin-top: 4px; }
+.tabs { gap: 6px; }
+.tabs a { padding: 9px 22px; font: 700 22px var(--f-display); background: var(--slate); clip-path: var(--slant); color: var(--cloth-2); }
+.tabs a.on { background: var(--sig); color: var(--on-sig); }
+.tabs a i { font: 700 13px var(--f-body); background: var(--cloth); color: var(--slate-solid); border-radius: 9px; padding: 0 6px; }
+.p-wallet .stat { font-size: 26px; }
+.market { padding: 18px; gap: 16px; background: var(--slate); border-radius: 3px; }
+.g-head { font: 700 14px var(--f-display); color: var(--muted); padding: 0 8px 6px; }
+.g-head span:first-child { grid-column: 1 / 3; }
+.g-row { padding: 8px; margin-bottom: 4px; background: rgba(255, 255, 255, .03); }
+.g-row.on { background: var(--slate-3); box-shadow: inset 4px 0 0 var(--sig); }
+.g-name b { font: 700 24px/1 var(--f-display); } .g-name i { font-size: 13px; color: var(--cloth-2); }
+.g-hold b { font: 700 20px/1 var(--f-display); } .g-hold i { font-size: 12px; color: var(--muted); }
+.g-buy, .g-sell { font: 800 24px var(--f-display); }
+.good .ga { fill: var(--cloth); } .good .gb { fill: var(--cloth-2); } .good .gs { fill: rgba(22, 30, 37, .25); } .good .ge { fill: var(--slate-solid); }
+.good .gl { fill: none; stroke: var(--slate-solid); stroke-width: 1.4; opacity: .5; }
+.g-row.on .good .ga, .d-art .good .ga { fill: var(--sig); }
+.detail { padding: 16px; background: var(--slate-2); border-radius: 3px; }
+.d-top h2 { font: 800 40px/0.9 var(--f-display); } .d-top p { color: var(--cloth-2); font-size: 15px; }
+.d-trend span { font-size: 14px; color: var(--cloth-2); display: flex; gap: 6px; align-items: center; } .d-trend .ic { color: var(--sig); }
+.spark polyline { fill: none; stroke: var(--cloth); stroke-width: 2.4; stroke-linejoin: round; } .spark circle { fill: var(--sig); }
+.d-qty { font-size: 14px; color: var(--muted); }
+.d-qty b { padding: 5px 0; background: var(--slate-3); font: 700 17px var(--f-display); clip-path: var(--slant); }
+.d-qty b.on { background: var(--cloth); color: var(--slate-solid); }
+.d-act .btn { flex-direction: column; gap: 2px; font-size: 26px; padding: 10px 6px; background: var(--slate-3); }
+.d-act .btn.primary { background: var(--sig); }
+.d-act .btn .pad { display: none; }
+.d-act .pr { font: 800 22px var(--f-display); display: inline-flex; gap: 4px; align-items: center; }
+.d-order { font-size: 15px; color: var(--cloth-2); } .d-order b { color: var(--cloth); } .d-order .ic { color: var(--sig); width: 22px; height: 22px; }
+.people { padding: 16px; gap: 14px; background: var(--slate); border-radius: 3px; }
+.face { border-radius: 3px; background: var(--slate-3); box-shadow: inset 0 -4px 0 var(--sig); }
+.person b { font: 700 22px/1 var(--f-display); } .person i { font-size: 13px; color: var(--muted); }
+.person p { font-size: 15px; line-height: 1.3; margin-top: 4px; color: var(--cloth-2); }
+.person.ask { background: var(--slate-3); padding: 8px; box-shadow: inset 4px 0 0 var(--sig); } .person.ask p { color: var(--cloth); }
+.village { font: 600 14px var(--f-body); color: var(--muted); } .village .bar { background: var(--slate-3); } .village .bar i { background: var(--sig); }
+.p-foot { background: linear-gradient(0deg, rgba(16, 22, 28, .8), rgba(16, 22, 28, 0)); }
+.p-foot .padbar { font: 600 15px var(--f-body); }
+.p-foot .sail { font-size: 34px; padding: 12px 40px; }
+.p-foot .sail .ic { width: 30px; height: 30px; } .p-foot .sail .pad { background: var(--on-sig); color: var(--sig); }
+
+/* Chart: the race plotter. */
+.s-chart { background: #10171d; }
+.c-sea { fill: #1c2831; stroke: var(--cloth-2); stroke-width: 2px; stroke-dasharray: 8 6; vector-effect: non-scaling-stroke; }
+.c-shore { fill: #8e9ca5; stroke: none; }
+.c-land { fill: #dfe4e0; stroke: none; }
+.c-reef { fill: none; stroke: var(--muted); stroke-width: 1.6px; stroke-dasharray: 2 4; vector-effect: non-scaling-stroke; }
+.c-bank, .c-shallows { fill: #26353f; stroke: none; }
+.c-ice, .c-bergs { fill: #33424d; stroke: none; }
+.c-quest { display: none; }
+.c-label { font-family: var(--f-display); font-weight: 700; fill: var(--cloth); stroke: #1c2831; paint-order: stroke; text-anchor: middle; }
+.c-label.small { font-weight: 600; fill: var(--muted); }
+#ovl .o-course { fill: none; stroke: var(--sig); stroke-width: 4; stroke-dasharray: 12 7; stroke-linecap: round; }
+#ovl .o-past { fill: none; stroke: var(--cloth-2); stroke-width: 2; stroke-dasharray: 2 6; stroke-linecap: round; opacity: .7; }
+#ovl .o-boat { fill: var(--sig); stroke: var(--cloth); stroke-width: 2; }
+#ovl .o-quest-ring { fill: rgba(255, 90, 143, .18); stroke: var(--sig); stroke-width: 2.5; } #ovl .o-quest-flag { fill: var(--sig); }
+#ovl .o-done circle { fill: #1c2831; stroke: var(--cloth); stroke-width: 2.5; }
+#ovl .o-label { font: 700 18px var(--f-display); fill: var(--cloth); stroke: #1c2831; stroke-width: 4; paint-order: stroke; }
+#ovl .o-dest { fill: var(--sig); font-size: 21px; }
+.r-ring { fill: rgba(28, 40, 49, .6); stroke: var(--cloth-2); stroke-width: 2; } .r-ring2 { fill: none; stroke: var(--slate-3); stroke-width: 1; }
+.r-tick { stroke: var(--cloth-2); stroke-width: 1.2; } .r-dark { fill: var(--cloth); } .r-light { fill: var(--muted); }
+.r-hub { fill: var(--sig); } .r-n { font: 800 24px var(--f-display); fill: var(--sig); text-anchor: middle; }
+.c-title, .c-key { padding: 12px 22px; background: var(--slate); border-radius: 3px; box-shadow: inset 4px 0 0 var(--sig); }
+.c-title h1 { font: 800 48px/0.9 var(--f-display); transform: skewX(-8deg); } .c-title p { font: 600 15px var(--f-body); color: var(--cloth-2); margin-top: 4px; }
+.c-tabs a { padding: 12px 26px 12px 22px; background: var(--slate); font: 700 22px var(--f-display); clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%); color: var(--cloth-2); }
+.c-tabs a.on { background: var(--sig); color: var(--on-sig); padding-left: 30px; }
+.c-key { font: 600 14px var(--f-body); color: var(--cloth-2); }
+.c-key .k-course { border-top: 4px dashed var(--sig); height: 0; } .c-key .k-quest { border: 2.5px solid var(--sig); border-radius: 50%; width: 13px; height: 13px; }
+.c-key .k-reef { border-top: 2px dotted var(--muted); height: 0; }
+.c-zoom button { background: var(--slate); color: var(--cloth); border-radius: 3px; }
+.s-chart .padbar { font: 600 15px var(--f-body); }
+
+/* Phone landscape */
+.z-phone .logo-club .l-emblem { width: 72px; height: 54px; }
+.z-phone .logo-club .l-fair { font-size: 60px; } .z-phone .logo-club .l-sub { font-size: 14px; margin-top: 6px; }
+.z-phone.s-title .t-brand { left: 24px; top: 22px; }
+.z-phone.s-title .t-menu { left: 24px; top: 132px; width: 260px; gap: 5px; }
+.z-phone.s-title .t-menu .btn { font-size: 20px; padding: 7px 18px; }
+.z-phone.s-title .t-menu .btn.big { font-size: 26px; padding: 9px 20px 8px; margin-bottom: 3px; }
+.z-phone .b-sub { font-size: 12px; }
+.z-phone.s-title .t-second { left: auto; right: 16px; bottom: 46px; font-size: 12px; gap: 12px; }
+.z-phone .t-version { right: 16px; top: 12px; font-size: 13px; }
+.z-phone.s-title .padbar { right: 16px; bottom: 14px; font-size: 12px; }
+.z-phone .pad { min-width: 20px; height: 20px; font-size: 11px; }
+.z-phone .h-status { padding: 7px 10px; } .z-phone .stat { font-size: 19px; } .z-phone .h-stats { gap: 12px; }
+.z-phone .h-quest { margin-top: 5px; font-size: 11px; } .z-phone .h-quest b { font-size: 15px; } .z-phone .h-quest .ic { width: 18px; height: 18px; }
+.z-phone .h-strip { padding: 3px 10px 5px; } .z-phone .h-dest { font-size: 11px; margin-top: 2px; } .z-phone .h-dest b { font-size: 14px; }
+.z-phone .h-toast { font-size: 15px; padding: 5px 14px; }
+.z-phone .hbtn { font-size: 15px; padding: 6px 10px; gap: 5px; } .z-phone .hbtn .pad { display: none; }
+.z-phone .h-instr { padding: 10px 12px; gap: 2px; }
+.z-phone .i-speed b { font-size: 60px; } .z-phone .i-unit { font-size: 18px; } .z-phone .i-pos { font-size: 19px; margin: 2px 0 3px; }
+.z-phone .i-wind b { font-size: 15px; } .z-phone .i-wind span { font-size: 11px; }
+.z-phone .i-sails { font-size: 12px; margin-top: 5px; } .z-phone .sl { padding: 3px 0; }
+.z-phone .p-head { height: 60px; }
+.z-phone .p-title h1 { font-size: 38px; } .z-phone .p-title p { display: none; }
+.z-phone .tabs { gap: 3px; } .z-phone .tabs a { font-size: 16px; padding: 5px 13px; } .z-phone .tabs a i { font-size: 11px; padding: 0 5px; }
+.z-phone .p-wallet .stat { font-size: 18px; } .z-phone .p-wallet { gap: 10px; }
+.z-phone .market { padding: 10px; gap: 10px; }
+.z-phone .g-head { font-size: 11px; padding: 0 4px 2px; } .z-phone .g-row { padding: 3px 4px; margin-bottom: 2px; }
+.z-phone .g-name b { font-size: 17px; } .z-phone .g-name i { font-size: 11px; }
+.z-phone .g-hold b { font-size: 15px; } .z-phone .g-hold i { display: none; } .z-phone .g-buy, .z-phone .g-sell { font-size: 17px; }
+.z-phone .detail { padding: 8px 10px; } .z-phone .d-top h2 { font-size: 26px; } .z-phone .d-top p { font-size: 11px; }
+.z-phone .d-trend span { font-size: 11px; } .z-phone .d-qty { font-size: 11px; } .z-phone .d-qty b { font-size: 13px; padding: 2px 0; min-width: 30px; }
+.z-phone .d-act .btn { font-size: 18px; padding: 5px; } .z-phone .d-act .pr { font-size: 15px; }
+.z-phone .d-order { display: none; }
+.z-phone .people { padding: 8px; } .z-phone .person.ask p { font-size: 11px; } .z-phone .person b { font-size: 16px; }
+.z-phone .p-foot .padbar { font-size: 11px; }
+.z-phone .p-foot .sail { font-size: 22px; padding: 6px 22px; } .z-phone .p-foot .sail .ic { width: 20px; height: 20px; }
+.z-phone .c-title { padding: 6px 14px; } .z-phone .c-title h1 { font-size: 30px; } .z-phone .c-title p { font-size: 11px; }
+.z-phone .c-tabs a { font-size: 15px; padding: 7px 14px 7px 12px; } .z-phone .c-tabs a.on { padding-left: 18px; }
+.z-phone.s-chart .padbar { font-size: 11px; }
+.z-phone #ovl .o-label { font-size: 22px; }
+.h-arrive { padding: 8px 40px 10px; background: var(--slate); clip-path: var(--slant); box-shadow: inset 0 -4px 0 var(--sig); }
+.h-arrive b { font: 800 56px/0.9 var(--f-display); transform: skewX(-8deg); } .h-arrive span { font: 700 18px var(--f-display); color: var(--sig); }
+.z-phone .h-arrive { padding: 4px 24px 6px; } .z-phone .h-arrive b { font-size: 34px; } .z-phone .h-arrive span { font-size: 13px; }
+.s-identity { background: var(--slate-solid); }
+.s-identity h2, .id-type .ty-d { font-family: var(--f-display); font-weight: 800; }
+.s-identity .logo-club .l-fair { font-size: 92px; }
+.ic-coin .i1 { fill: var(--cloth); } .ic-coin .i2 { fill: var(--slate-3); opacity: 1; }

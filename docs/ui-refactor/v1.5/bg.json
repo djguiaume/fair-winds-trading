@@ -1,0 +1,178 @@
+[
+ {
+  "name": "t-c",
+  "port": "saltmere",
+  "time": 405,
+  "tilt": 12,
+  "yaw": 70,
+  "zoom": 0.42,
+  "sizes": [
+   "desktop",
+   "landscape"
+  ]
+ },
+ {
+  "name": "n-a",
+  "sail": 2,
+  "night": true,
+  "sizes": [
+   "desktop",
+   "landscape"
+  ]
+ },
+ {
+  "name": "s-day",
+  "sail": 2,
+  "sizes": [
+   "desktop",
+   "landscape"
+  ]
+ },
+ {
+  "name": "s-storm",
+  "at": [
+   760,
+   290
+  ],
+  "heading": 90,
+  "storms": true,
+  "weather": true,
+  "sail": 1,
+  "wait": 3000,
+  "sizes": [
+   "desktop",
+   "landscape"
+  ]
+ },
+ {
+  "name": "h-a",
+  "port": "saltmere",
+  "tilt": 40,
+  "yaw": 90,
+  "zoom": 0.9,
+  "sizes": [
+   "desktop"
+  ]
+ },
+ {
+  "name": "h-e",
+  "port": "saltmere",
+  "tilt": 38,
+  "yaw": 90,
+  "zoom": 0.8,
+  "look": [
+   215,
+   -128
+  ],
+  "sizes": [
+   "landscape"
+  ]
+ },
+ {
+  "name": "h-l",
+  "port": "saltmere",
+  "tilt": 38,
+  "yaw": 90,
+  "zoom": 0.85,
+  "look": [
+   222,
+   -130
+  ],
+  "sizes": [
+   "desktop"
+  ]
+ },
+ {
+  "name": "h-i",
+  "port": "saltmere",
+  "tilt": 38,
+  "yaw": 90,
+  "zoom": 0.8,
+  "look": [
+   205,
+   -128
+  ],
+  "sizes": [
+   "landscape"
+  ]
+ },
+ {
+  "name": "hn-l",
+  "port": "saltmere",
+  "tilt": 38,
+  "yaw": 90,
+  "zoom": 0.85,
+  "look": [
+   222,
+   -130
+  ],
+  "sizes": [
+   "desktop"
+  ],
+  "night": true
+ },
+ {
+  "name": "hn-i",
+  "port": "saltmere",
+  "tilt": 38,
+  "yaw": 90,
+  "zoom": 0.8,
+  "look": [
+   205,
+   -128
+  ],
+  "sizes": [
+   "landscape"
+  ],
+  "night": true
+ },
+ {
+  "name": "hn-a",
+  "port": "saltmere",
+  "tilt": 40,
+  "yaw": 90,
+  "zoom": 0.9,
+  "sizes": [
+   "desktop"
+  ],
+  "night": true
+ },
+ {
+  "name": "hn-e",
+  "port": "saltmere",
+  "tilt": 38,
+  "yaw": 90,
+  "zoom": 0.8,
+  "look": [
+   215,
+   -128
+  ],
+  "sizes": [
+   "landscape"
+  ],
+  "night": true
+ },
+ {
+  "name": "lk",
+  "port": "saltmere",
+  "zoom": 0.34,
+  "tilt": 10,
+  "yaw": 175,
+  "sizes": [
+   "desktop",
+   "landscape"
+  ]
+ },
+ {
+  "name": "tt-d",
+  "port": "saltmere",
+  "zoom": 0.45,
+  "tilt": 8,
+  "yaw": 150,
+  "time": 250,
+  "sizes": [
+   "desktop",
+   "landscape"
+  ]
+ }
+]

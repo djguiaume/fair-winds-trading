@@ -1,4 +1,5 @@
 import { SHIP_FILES } from '../../data/ships';
+import { FREE_RULES } from '../../data/freeSailing';
 import type { FreePreset, FreeSetup } from '../../sim/freeSailing';
 import { UPGRADE_TRACKS, MAX_UPGRADE_LEVEL } from '../../sim/upgrades';
 import { type MessageKey, language, shipName, t } from '../../i18n';
@@ -45,12 +46,18 @@ export function shellHtml(): string {
     <button type="button" class="close-btn bl-close" title="${t('customise.close')}" aria-label="${t('customise.close')}">✕</button>`;
 }
 
+/** The weather's icon from the rules file; decorative, the weather's name sits beside it. */
+function weatherIcon(kind: string): string {
+  const inner = FREE_RULES.weatherIcons[kind] ?? '';
+  return `<svg class="fs-weather" viewBox="0 0 24 24" aria-hidden="true">${inner}</svg>`;
+}
+
 export function presetsHtml(presets: readonly FreePreset[], current: string): string {
   return presets
     .map((p) => {
       const when = `${clock(p.hour)} · ${t(`weather.${p.weather}` as MessageKey)}`;
       return `<button type="button" role="radio" class="fs-preset" data-preset="${p.id}" aria-checked="${p.id === current}">
-        <b>${p.name[lang()]}</b><small>${when}</small><span>${p.about[lang()]}</span>
+        <b>${p.name[lang()]}</b><small>${weatherIcon(p.weather)}${when}</small><span>${p.about[lang()]}</span>
       </button>`;
     })
     .join('');

@@ -1,0 +1,60 @@
+/*
+ * The Theme page (decision 0269): the token groups, their fields and the checks above, then the
+ * components by day and by night on a sea-coloured ground, painted with the working theme.
+ */
+.th-main {
+  flex: 0 1 auto;
+  max-height: 46vh;
+}
+.th-colour {
+  display: flex;
+  gap: 6px;
+}
+.ed-row .th-swatch {
+  flex: none;
+  width: 40px;
+  padding: 0;
+}
+.th-strips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 16px;
+  padding: 16px;
+  overflow-y: auto;
+  background: #2f5f70;
+}
+.th-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #3d7488;
+}
+.th-preview[data-night] {
+  background: #15303c;
+}
+.th-preview > .ui-header,
+.th-preview > .ui-panel {
+  align-self: stretch;
+}
+.th-preview .ui-header,
+.th-preview .ui-tabs {
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: var(--ui-surface);
+}
+.th-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.th-dialog {
+  position: static;
+  display: block;
+  margin: 0;
+}
+.th-toasts {
+  position: static;
+}

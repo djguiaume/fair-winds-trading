@@ -1,0 +1,175 @@
+{
+  "about": "The UI theme (decision 0269): the chart-table identity of v1.5 as tokens, loaded into CSS custom properties at boot (src/ui/theme/). Edit it in the editors (Theme page) or with npm run theme; npm run check holds it to the rules. legacy is style E (decision 0220), kept for the screens not rebuilt yet; new components never read it.",
+  "colour": {
+    "paper": "#efe6d1",
+    "paper-night": "#b9ab8a",
+    "paper-off": "#d8ceb6",
+    "paper-night-off": "#a1957a",
+    "ink": "#23303a",
+    "ink-muted": "#5b6670",
+    "ink-muted-night": "#333c44",
+    "sage": "#4a6d41",
+    "sage-deep": "#3a5733",
+    "sage-wash": "#cfdcbc",
+    "sage-wash-night": "#a3ad8c",
+    "on-sage": "#efe6d1",
+    "danger": "#7a2a1e",
+    "rule": "#8c8270"
+  },
+  "night": {
+    "paper-opacity": 0.8
+  },
+  "font": {
+    "title": "'IM Fell English', Georgia, serif",
+    "text": "'Alegreya Sans', 'Trebuchet MS', sans-serif"
+  },
+  "type": {
+    "micro": 11,
+    "small": 12,
+    "note": 13,
+    "body": 14,
+    "text": 15,
+    "lead": 16,
+    "sub": 18,
+    "head": 20,
+    "title": 24,
+    "big": 28,
+    "display": 32,
+    "hero": 44
+  },
+  "space": {
+    "1": 4,
+    "2": 8,
+    "3": 12,
+    "4": 16,
+    "5": 24,
+    "6": 32,
+    "7": 48
+  },
+  "radius": {
+    "s": 4,
+    "m": 8,
+    "l": 14,
+    "pill": 999
+  },
+  "elevation": {
+    "1": "0 1px 0 rgba(35, 48, 58, 0.25)",
+    "2": "0 2px 6px rgba(35, 48, 58, 0.22)",
+    "3": "0 8px 24px rgba(35, 48, 58, 0.3)",
+    "backdrop": "rgba(35, 48, 58, 0.45)"
+  },
+  "duration": {
+    "fast": 150,
+    "base": 200,
+    "slow": 250
+  },
+  "easing": {
+    "out": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+    "in-out": "cubic-bezier(0.4, 0, 0.2, 1)"
+  },
+  "press": {
+    "scale": 0.96
+  },
+  "z": {
+    "screen": 20,
+    "dialog": 40,
+    "toast": 60
+  },
+  "touch": {
+    "target": 44,
+    "row-min": 56,
+    "row-max": 64
+  },
+  "breakpoints": {
+    "phone-max-height": 500,
+    "desktop-min-width": 1024
+  },
+  "edges": {
+    "torn": {
+      "size": 96,
+      "slice": 24,
+      "path": "M0 0L4 3.2L8 1L12 0.7L16 2.6L20 1.9L24 1.2L28 2.6L32 2.6L36 1.9L40 2.4L44 2.2L48 2.9L52 0.8L56 1.3L60 2.5L64 2.4L68 0.2L72 2.4L76 1.6L80 3.2L84 2.8L88 0.4L92 1.8L96 3.2L93.6 4L93.7 8L94 12L92.8 16L92.8 20L94.7 24L94.8 28L93.1 32L94.8 36L95.5 40L95 44L94.5 48L95 52L92.7 56L94 60L93.4 64L92.9 68L95.8 72L95 76L94 80L94.2 84L94.5 88L95.3 92L92.8 96L92 95.8L88 94.7L84 94.8L80 93.7L76 92.8L72 94.2L68 95.4L64 94.6L60 95L56 94.7L52 94.5L48 94.8L44 94.1L40 93.9L36 95.2L32 92.8L28 94.4L24 93L20 93.8L16 93.8L12 94.2L8 94.2L4 93.6L0 92.7L1.4 92L2.5 88L0.9 84L2.1 80L1.2 76L1.2 72L1.4 68L2.8 64L3.1 60L0.4 56L2.9 52L0.3 48L1.4 44L0.5 40L0.3 36L3.5 32L0.8 28L2.2 24L0.5 20L1.6 16L2.1 12L0.5 8L3.2 4Z"
+    },
+    "brushed": {
+      "size": 96,
+      "slice": 24,
+      "path": "M0 6L8 6.3L16 7.7L24 6.9L32 8.1L40 9.2L48 7.8L56 6.2L64 6.2L72 9.9L80 9.6L88 6.4L96 9L95.6 8L92.1 14L93.5 20L91.2 26L94.6 32L90.7 38L95.6 44L90.3 50L94.3 56L94.5 62L90.9 68L94.6 74L94 80L90.9 86L96 88.9L88 86.4L80 87.1L72 89.1L64 87.5L56 89.5L48 88.1L40 86.7L32 89.3L24 87.6L16 88.2L8 87.1L0 88.7L3.9 88L2.8 82L2.4 76L2.1 70L1.2 64L1.5 58L3.5 52L2.6 46L2.7 40L3.2 34L4.6 28L4.9 22L2.2 16L3.1 10Z"
+    }
+  },
+  "legacy": {
+    "root": {
+      "navy": "#17404f",
+      "navy-solid": "#17404f",
+      "plate-edge": "#0d2a35",
+      "brass": "#e8c46a",
+      "brass-line": "rgba(232, 196, 106, 0.55)",
+      "brass-hi": "#f3d37e",
+      "brass-lo": "#b08a2c",
+      "ink": "#f6efdb",
+      "ink-dim": "rgba(246, 239, 219, 0.74)",
+      "green": "#59d36b",
+      "green-ink": "#8fe3a4",
+      "gold-ink": "#ffe680",
+      "disabled-line": "rgba(246, 239, 219, 0.25)",
+      "red": "#ff6a55",
+      "red-deep": "#d8402e",
+      "amber": "#ffb36b",
+      "outline": "#06141c",
+      "white": "#fff",
+      "on-fill": "#f6ecd0",
+      "on-gold": "#2a1c00",
+      "on-gold-soft": "#5a3d00",
+      "on-green": "#1a4d10",
+      "on-light": "#14202a",
+      "amber-ink": "#ffb36b",
+      "red-ink": "#ff8a73",
+      "brass-pale": "#ffdfa0",
+      "sky-ink": "#9fe3ff",
+      "ink-cool": "#c9d3d8",
+      "leather": "#3a2a1d",
+      "leather-deep": "#2a1d12",
+      "leather-ink": "#fbeed0",
+      "planks": "repeating-linear-gradient(90deg, transparent 0 138px, rgba(0, 0, 0, 0.3) 138px 140px), linear-gradient(var(--leather), var(--leather-deep))",
+      "tab": "#b89a68",
+      "paper": "#f1e6c8",
+      "paper-2": "#e6d7ae",
+      "paper-card": "#f6ecd0",
+      "paper-edge": "#8a6a3c",
+      "paper-shade": "rgba(120, 85, 40, 0.13)",
+      "paper-ink": "#35261a",
+      "paper-ink-dim": "rgba(53, 38, 26, 0.72)",
+      "paper-lo": "rgba(90, 60, 30, 0.35)",
+      "plate-drop": "rgba(0, 0, 0, 0.4)",
+      "teal": "#1f5a66",
+      "teal-hi": "#2f8a9a",
+      "teal-edge": "#0f3943",
+      "sail": "#e8c46a",
+      "sail-edge": "#b08a2c",
+      "sail-ink": "#2e2217",
+      "danger": "#8f2f1c",
+      "danger-hi": "#c9503a",
+      "danger-edge": "#5b1a0f",
+      "display": "'Barlow Condensed', 'Arial Narrow', 'Roboto Condensed', sans-serif",
+      "serif": "'Fraunces', Georgia, serif",
+      "body": "'Barlow', 'Trebuchet MS', sans-serif"
+    },
+    "night": {
+      "paper": "#a59d86",
+      "paper-2": "#968d75",
+      "paper-card": "#aca48c",
+      "paper-shade": "rgba(40, 28, 14, 0.2)",
+      "paper-ink": "#1a120a",
+      "paper-ink-dim": "rgba(26, 18, 10, 0.85)"
+    },
+    "on-paper": {
+      "brass-line": "rgba(90, 60, 30, 0.55)",
+      "green": "#2f7a3a",
+      "amber": "#9a5a12",
+      "red": "#a63b24",
+      "green-ink": "#3d6b3a",
+      "gold-ink": "#7a5412",
+      "disabled-line": "rgba(90, 60, 30, 0.35)",
+      "outline": "#4a3320"
+    }
+  }
+}

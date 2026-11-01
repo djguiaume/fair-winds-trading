@@ -1,0 +1,93 @@
+/*
+ * The logo's colours and lockups (v1.5, the chart table). The symbols #i-logo, #i-logo-sm,
+ * #i-wordmark, #i-banderole and #i-banderole-sm in the index.html sprite read these variables.
+ * Paper is the default; `.logo-scene` is the same logo over the 3D scene, light with a hard 1 px ink halo.
+ */
+.logo {
+  --logo-ink: #23303a;
+  --logo-paper: #efe6d1;
+  --logo-sig: #4a6d41;
+  --logo-on-sig: #efe6d1;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--logo-ink);
+}
+.logo-scene {
+  --logo-ink: #f2f4ef;
+  --logo-paper: #23303a;
+  --logo-sig: #5f8a54;
+  --logo-halo: #23303a;
+}
+.logo svg {
+  display: block;
+  overflow: visible;
+}
+/* The title size: the rose over the wordmark over the banderole. */
+.logo-rose {
+  width: 112px;
+  height: 112px;
+}
+.logo-word {
+  width: 100%;
+  aspect-ratio: 458 / 92;
+}
+.logo-band {
+  width: 64%;
+  aspect-ratio: 300 / 40;
+}
+.logo:not(.logo-small) {
+  width: min(420px, 100%);
+}
+/* The small size for headers: the simplified rose beside the wordmark, one line. */
+.logo-small {
+  flex-direction: row;
+  gap: 8px;
+  width: auto;
+}
+.logo-small .logo-rose {
+  width: 28px;
+  height: 28px;
+}
+.logo-small .logo-word {
+  width: 112px;
+}
+.logo-small .logo-band {
+  display: none;
+}
+
+/* The title menu: the logo over the tagline; light over the scene where the menu sits on it. */
+.menu .menu-brand {
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+}
+.menu-brand .logo {
+  width: min(300px, 100%);
+}
+.menu-brand .logo-rose {
+  width: 84px;
+  height: 84px;
+}
+@media (max-height: 480px) {
+  .menu-brand .logo {
+    width: min(210px, 100%);
+    gap: 2px;
+  }
+  .menu-brand .logo-rose {
+    width: 44px;
+    height: 44px;
+  }
+  .menu .menu-tagline {
+    display: none;
+  }
+}
+@media (orientation: portrait) and (max-width: 700px) {
+  .menu:not(.is-paused) .menu-brand .logo {
+    --logo-ink: #f2f4ef;
+    --logo-paper: #23303a;
+    --logo-sig: #5f8a54;
+    --logo-halo: #23303a;
+  }
+}

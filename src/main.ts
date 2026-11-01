@@ -146,6 +146,7 @@ import { startTvMode } from './input/tv';
 import { PadLog } from './ui/padLog';
 import { usePadBrand } from './ui/padGlyphs';
 import { askConfirm } from './ui/confirmDialog';
+import { type Screen, ScreenStack } from './ui/screens/stack';
 import { WayOfPlaying, firstWay } from './input/wayOfPlaying';
 
 declare const __APP_VERSION__: string;
@@ -888,14 +889,22 @@ const transfer = new TransferPanel(
 let mode: 'menu' | 'play' = 'menu';
 let started = false;
 let paused = true;
+// The menu and the screens over it (decision 0269): only the top one shows, Esc and B pop it.
+const screens = new ScreenStack(() => refreshPause());
+const menuScreen: Screen = { id: 'menu', root: menu, enter: 'fade', back: () => {} };
+const settingsScreen: Screen = { id: 'settings', root: settingsPanel, back: () => closeSettings() };
+const helpScreen: Screen = { id: 'help', root: help, back: () => closeHelp() };
+const newVoyageScreen: Screen = { id: 'new-voyage', root: newVoyage, back: () => showMenu() };
+const transferScreen: Screen = {
+  id: 'transfer',
+  root: $('transfer'),
+  back: () => transfer.close(),
+};
 
 function refreshPause() {
   paused =
     mode === 'menu' ||
-    !settingsPanel.hidden ||
-    !newVoyage.hidden ||
-    !help.hidden ||
-    transfer.isOpen ||
+    screens.depth > 0 ||
     tradePanel.isOpen ||
     homePanel.isOpen ||
     windHelp.open ||
@@ -903,12 +912,7 @@ function refreshPause() {
     tutorialOffer.open ||
     questCard.isOpen;
   coach.setSurface(
-    mode === 'menu' ||
-      !settingsPanel.hidden ||
-      !help.hidden ||
-      transfer.isOpen ||
-      windHelp.open ||
-      tutorialOffer.open
+    mode === 'menu' || screens.depth > 0 || windHelp.open || tutorialOffer.open
       ? null
       : chart.isOpen
         ? 'chart'
@@ -928,9 +932,6 @@ function showMenu() {
   mode = 'menu';
   document.body.classList.add('in-menu');
   document.body.classList.toggle('at-title', !started);
-  help.hidden = true;
-  settingsPanel.hidden = true;
-  newVoyage.hidden = true;
   if (transfer.isOpen) transfer.close();
   if (tradePanel.isOpen) tradePanel.close();
   // Pause shows the voyage under the same menu (decision 0061).
@@ -940,8 +941,7 @@ function showMenu() {
   $('menu-cargo').textContent = `${trade.cargoUsed(world.trade)}/${trade.capacity(world.trade)}`;
   $('menu-play-label').textContent = started ? t('menu.resume') : t('menu.play');
   $('menu-play-icon').setAttribute('href', started ? '#i-play' : '#i-sail');
-  menu.hidden = false;
-  refreshPause();
+  screens.reset(menuScreen);
   playButton.focus({ preventScroll: true });
 }
 
@@ -962,22 +962,16 @@ for (const c of levelCards)
     markLevelCards();
   });
 function openNewVoyage() {
-  menu.hidden = true;
   markLevelCards();
-  newVoyage.hidden = false;
-  refreshPause();
+  screens.replace(newVoyageScreen);
   levelCards.find((c) => c.dataset.level === chosenLevel)?.focus({ preventScroll: true });
 }
-$('close-new-voyage').addEventListener('click', () => {
-  newVoyage.hidden = true;
-  showMenu();
-});
+$('close-new-voyage').addEventListener('click', () => showMenu());
 $('set-sail').addEventListener('click', () => {
   trade.startVoyage(world.trade, chosenLevel);
   applyLevelWind(chosenLevel);
   markDifficulty();
   levelPicked = true;
-  newVoyage.hidden = true;
   // The tutorial seen on an earlier voyage (New game in Settings) is not offered again, but the
   // fresh voyage still starts with the prologue's story, without the coach (decisions 0160, 0185).
   if (tutorialChoice.status !== 'unseen') startUncoachedPrologue();
@@ -994,24 +988,20 @@ function play() {
   mode = 'play';
   started = true;
   document.body.classList.remove('in-menu', 'at-title');
-  menu.hidden = true;
+  screens.reset();
   if (!freeSailing && tutorialChoice.shouldOffer(resumedVoyage) && !tutorialRunning())
     tutorialOffer.showModal();
   refreshPause();
 }
 
 function openHelp() {
-  menu.hidden = true;
-  help.hidden = false;
-  refreshPause();
+  screens.push(helpScreen);
 }
 
 function closeHelp() {
-  help.hidden = true;
   settings.seenHelp = true;
   keepSettings();
-  if (mode === 'menu') menu.hidden = false;
-  refreshPause();
+  screens.close('help');
 }
 
 /**
@@ -1125,7 +1115,7 @@ $('menu-tutorial').addEventListener('click', () => {
   mode = 'play';
   started = true;
   document.body.classList.remove('in-menu', 'at-title');
-  menu.hidden = true;
+  screens.reset();
   if (tutorialRunning() || quests.isRunning(LESSONS_QUEST)) {
     // Carry on with the lesson under way.
   } else if (tutorialChoice.status === 'unseen') tutorialOffer.showModal();
@@ -1152,19 +1142,14 @@ const freeSetup = freeSailingIn(freeSailing, {
 });
 $('menu-help').addEventListener('click', openHelp);
 $('menu-settings').addEventListener('click', () => {
-  menu.hidden = true;
-  settingsPanel.hidden = false;
+  screens.push(settingsScreen);
   $('close-settings').focus({ preventScroll: true });
 });
 $('menu-transfer').addEventListener('click', () => {
-  menu.hidden = true;
   transfer.open('send');
-  refreshPause();
+  screens.push(transferScreen);
 });
-transfer.onClose = () => {
-  if (mode === 'menu') menu.hidden = false;
-  refreshPause();
-};
+transfer.onClose = () => screens.close('transfer');
 transfer.onReplaced = () => {
   // The incoming voyage is stored; reload into it without the autosave writing this one back.
   leaving = true;
@@ -1188,24 +1173,17 @@ function goBack() {
     tradePanel.close();
     refreshPause();
   } else if (homePanel.isOpen) homePanel.back();
-  else if (!settingsPanel.hidden) closeSettings();
-  else if (transfer.isOpen) transfer.close();
-  else if (!help.hidden) closeHelp();
-  else if (!newVoyage.hidden) {
-    newVoyage.hidden = true;
-    showMenu();
-  } else if (mode === 'play') showMenu();
+  else if (screens.top) screens.back();
+  else if (mode === 'play') showMenu();
 }
-help.hidden = true;
 showMenu();
 freeSetup?.open();
 // Opened from a QR code scanned with a camera app: offer that voyage, never in Free Sailing.
 if (!freeSailing && location.hash.startsWith(`#${LINK_KEY}=`)) {
   const link = location.href;
   history.replaceState(null, '', location.pathname + location.search);
-  menu.hidden = true;
   transfer.openWithCode(link);
-  refreshPause();
+  screens.push(transferScreen);
 }
 
 /**
@@ -1415,12 +1393,7 @@ function padScreen(): PadScreen | null {
   const screen = (root: HTMLElement | null) => (root ? { root, back: goBack } : null);
   if (tradePanel.isOpen) return screen($('trade-panel'));
   if (homePanel.isOpen) return screen($('home-ui').querySelector<HTMLElement>('.home-screen'));
-  if (!settingsPanel.hidden) return screen(settingsPanel);
-  if (transfer.isOpen) return screen($('transfer'));
-  if (!help.hidden) return screen(help);
-  if (!newVoyage.hidden) return screen(newVoyage);
-  if (!menu.hidden) return screen(menu);
-  return null;
+  return screens.padScreen();
 }
 const padFocus = new PadFocus(padScreen, document.getElementById('pad-hints'));
 pad.onMenuPress = (p, context) => padFocus.press(p, context);
@@ -1449,7 +1422,7 @@ if (pad.usingPad) {
 }
 // Start in the pause menu sets sail again, as the menu's own button does.
 padFocus.onResume = () => {
-  if (started && !menu.hidden) playButton.click();
+  if (started && screens.showing('menu')) playButton.click();
 };
 const showLog = $<HTMLInputElement>('show-log');
 hud.onLogToggle = (shown) => {
@@ -1584,9 +1557,7 @@ describeQuality();
 
 $('chart-btn').addEventListener('click', () => chart.open());
 function closeSettings() {
-  settingsPanel.hidden = true;
-  if (mode === 'menu') menu.hidden = false;
-  refreshPause();
+  screens.close('settings');
 }
 $('close-settings').addEventListener('click', closeSettings);
 for (const b of qualityButtons)
@@ -1657,8 +1628,8 @@ $('shift-wind').addEventListener('click', () => {
 $('reset-boat').addEventListener('click', () => {
   resetBoat(world);
   sailStep = world.boat.sailStep;
-  settingsPanel.hidden = true;
-  refreshPause();
+  // The boat is back at the quay: show the scene, still paused, without the menu over it.
+  screens.reset();
 });
 const resetSaveBtn = document.getElementById('reset-save');
 resetSaveBtn?.addEventListener('click', async () => {
