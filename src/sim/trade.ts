@@ -56,6 +56,8 @@ import {
   shipOffer,
 } from './shipyards';
 import { townLevels } from './founding';
+import type { CreditLoan } from './credit';
+import type { ShipLooks } from './shipLooks';
 import {
   type UpgradeLevels,
   type UpgradeTrack,
@@ -89,18 +91,10 @@ export interface Captain {
   cargo: GoodAmounts;
   /** Hull points lost to reef strikes, per owned ship class (decision 0032). */
   hullDamage: Record<string, number>;
+  /** Each owned ship's own look, only the slots that differ from stock (decision 0263). */
+  looks?: ShipLooks;
   /** A load the harbour office lent her, paid back when she sells at its order's port (0200). */
   loan?: CreditLoan;
-}
-
-/** A load on credit (decision 0200): no interest and no deadline, one at a time. */
-export interface CreditLoan {
-  /** The port whose order the load is for: she pays back when she sells or delivers there. */
-  port: string;
-  good: GoodId;
-  qty: number;
-  /** Gold to pay back: what the load cost in the port that lent it. */
-  owed: number;
 }
 
 /**

@@ -1,3 +1,5 @@
+import { CREDIT_SECTION, packLoan, unpackLoan } from './saveCreditCode';
+import { LOOKS_SECTION, packLooks, unpackLooks } from './saveLooksCode';
 import { DIFFICULTIES } from './difficulty';
 import { GOODS, type GoodId } from './goods';
 import { BUILDING_IDS, buildableIslands, homeSpots } from './home';
@@ -76,11 +78,6 @@ const ZONES_SECTION = 12;
  * areas' count and a flag each, and the islands' count and a flag each.
  */
 const FOG_SECTION = 13;
-/**
- * A load on credit (decision 0200), after fog of war's section and only while she owes one: its
- * number, the order's port and the good (indexes), the units and the gold owed.
- */
-const CREDIT_SECTION = 14;
 /** No section left to read (sections are numbered from 1). */
 const NO_SECTION = -1;
 const currentIds = (map: MapDef) => (map.currents ?? []).map((c) => c.id);
@@ -302,11 +299,9 @@ export function packSave(
   const loan = save.loan;
   if (loan && ports.includes(loan.port)) {
     w.uint(CREDIT_SECTION);
-    w.uint(ports.indexOf(loan.port));
-    w.uint(GOODS.indexOf(loan.good));
-    w.uint(loan.qty);
-    w.uint(loan.owed);
+    packLoan(w, loan, ports, GOODS);
   }
+  if (Object.keys(save.looks ?? {}).length) packLooks(w, save.looks!, SHIP_IDS);
   return Uint8Array.from(w.bytes);
 }
 
@@ -592,11 +587,13 @@ export function unpackSave(
   // A load on credit (decision 0200).
   let loan: SaveData['loan'];
   if (section === CREDIT_SECTION) {
-    const port = ports[r.uint()];
-    const good = goods[r.uint()];
-    const qty = r.uint();
-    const owed = r.uint();
-    if (port && good) loan = { port, good, qty, owed };
+    loan = unpackLoan(r, ports, goods);
+    section = r.done ? NO_SECTION : r.uint();
+  }
+  // Each ship's own look (decision 0263).
+  let looks: SaveData['looks'];
+  if (section === LOOKS_SECTION) {
+    looks = unpackLooks(r, shipIds);
     section = r.done ? NO_SECTION : r.uint();
   }
   if (section > HOME_SECTION) return { ok: false, problem: 'newer' };
@@ -616,6 +613,7 @@ export function unpackSave(
       ships,
       cargo,
       hullDamage,
+      ...(looks && Object.keys(looks).length ? { looks } : {}),
       ...(loan ? { loan } : {}),
       dockedAt,
       markets,
