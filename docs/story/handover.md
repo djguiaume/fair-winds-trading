@@ -1,18 +1,24 @@
-# Storyteller handover to v1.4 (2026-10-31, refreshed after v1.3.1)
+# Storyteller handover to v1.4.1 (2026-11-01, after v1.4)
 
-From "Storyteller (v1.3.1)" to the next storyteller thread. Format: [roles.md](../roles.md). The voice, cast and every ruling live in the [storyteller brief](storyteller-brief.md); this file only says what is open.
+From "Storyteller (v1.4)" to the next storyteller thread. Format: [roles.md](../roles.md). The voice, cast and every ruling live in the [storyteller brief](storyteller-brief.md); this file only says what is open.
 
 ## Open decisions
 
-Nothing waits on Guillaume. v1.3 "Waves you can see" (v1.3.324) shipped with no story work and no story questions came up. The next story release is v1.5 ([plan](../v1.5/plan.md)); until then answer only real questions from build threads, storyteller before Guillaume. Any text change still needs EN and FR from the storyteller first.
+Nothing waits on Guillaume. v1.4 "Visible upgrades" shipped (release PR #428). Next: v1.4.1 "Cosmetics and free sailing" (#357), then v1.5 ([plan](../v1.5/plan.md)), the next story release.
 
-Carried over from v1.1, if not yet done: the empty Quay tab reads "Nobody waiting on the quay just now." (no promise of a return), status lines use digits and no "captain", and no race text may depend on a storm (lines say "weather" or "squall" only as flavour). New races need Wren's offer, starter and result lines; rewards stay pride, not power.
+## What v1.4 ruled
 
-## Open question for v1.4
+- Cosmetics are free or earned, never priced, never power. Full rules, the word rules and the paid-item voice are in [customisation.md](customisation.md). The 12 logos, 8 figureheads and names are in `src/data/cosmetics/` and `src/i18n`; the first draft is also in project files `story/v1.4-customisation.md`.
+- The Tern stays a single gift. The pick-one ship reward (#315) is kept for choices of equal power; a v1.5 use is possible.
 
-Are v1.4 cosmetics (boat looks, figureheads) free, earned or priced? Not ruled yet. Leaning: earned by a story or regatta moment, or a small price in coin, never a power gain. The v1.4 storyteller decides with the release lead, and asks Guillaume only if it changes scope. v1.3.1 shipped as v1.3.335.
+## Open for v1.4.1
 
-## v1.3.1 and v1.4 rules
+- More cosmetics (a 13th logo for Skerry, themed sets such as East Wind and Ember Isles): ask the storyteller for names in EN and FR. Port Calda and Abbey Head have no logo on purpose.
+- Any paid item (not built, decision 0204 parked) follows the voice rules in customisation.md and needs Guillaume's call on prices.
+
+Carried over from v1.1: the empty Quay tab reads "Nobody waiting on the quay just now." (no promise of a return), status lines use digits and no "captain", no race text may depend on a storm. New races need Wren's offer, starter and result lines; rewards stay pride, not power.
+
+## Earlier rules (v1.3.1, still valid)
 
 - v1.3.1 "Boats that ride them": waves slow the boat in head seas (#284, PR #408). Ruled: first-upgrade price kept, balance target moved to 5.25 min. Texts: Settings "Waves slow the boat" / "Les vagues freinent le bateau" (note "Off: she sails as fast in any sea as in flat water"); HUD "Waves −3%" / "Vagues −3 %" (true minus, NBSP before % in FR). It is a hazard-style switch in Settings. No race or quest text may mention the slowdown.
 - v1.4 boat names, figurehead names and cosmetic text: ask the storyteller for the line, not Guillaume. Names are plain and sea-worn like the existing fleet, no leading word already taken (see "Rules that stay"), "Swift" is never a name, no "Skerry". Figureheads are carved things, not characters: no speech, no lore claims, nothing that implies pirates or guns. Cosmetics are pride, never power (same as regatta rewards). Every new text needs EN and FR, NBSP before : ! ? ; and %, FR map names untranslated.

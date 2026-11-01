@@ -1,23 +1,26 @@
-# Art director handover (v1.3.1 to v1.4, 2026-10-31)
+# Art director handover (v1.4 to v1.4.1, 2026-11-01)
 
-v1.3.1 is released (v1.3.335). First thing for v1.4: review the #295 boat upgrade prototype, PR #414.
+v1.4 "Visible upgrades" is built (release PR #428). Upgrade bands, cosmetics catalogue, logos, wakes, Boat looks screen and Free Sailing were reviewed and approved for Guillaume; his `visual-ok` is the final word.
 
-For the next art director thread, in the format of [roles.md](../roles.md). Rules are in the [art bible](art-bible.md), now describing the v2 look as the default (decisions [0222](../decisions/0222-a-new-look-smooth-terrain-blue-water-and-forests.md), [0165](../decisions/0165-art-bible-and-the-phase-4-biome-looks.md)). This page only holds what is open. Guillaume gives the final OK on every visual: your OK means "ready to show Guillaume", never "merged". Your own PRs are docs only.
+For the next art director thread, in the format of [roles.md](../roles.md). Rules are in the [art bible](art-bible.md) (v2 look is the default). This page only holds what is open. Your OK means "ready to show Guillaume", never "merged". Your own PRs are docs only.
 
-## 1. Open decisions
+## 1. Open
 
-| What | Who waits | State |
-|---|---|---|
-| **Surf and beach wash (#286, #397)** | v1.4 | Looks I approved for Guillaume: 1 thin breaking line at 14 kn, 2 in storm, classic ring kept, crisp front, faded tail, half at night, never above `#f6f9fb`; wash with warm wet sand `#d6cbb8`, foam edge, rock shores foam only. Numbers in `waves.json > surf / wash`. Guillaume's own verdict is what counts; re-check High, Low (unchanged, waves off) and night. |
-| **Boat ride and drag (#283, #284)** | v1.4 | Ride caps: roll 6° sloop/schooner, 4° fluyt, 3° indiaman; pitch 5° to 2.5°; 1.5 s smoothing; 1.5x in storm; rise follows the sea (not fixed metres), bow keeps 0.4 units of freeboard. Judge on a device or video, stills hide the lag. HUD line "Waves −3%" is a footnote: keep it dimmer than the wind text. |
-| **Reef foam** | next | Grey Lady's outer ring is a bit uniform; let its width vary with the swell. |
-| **Ultra on Xbox, costs** | v1.4 | [#374](https://github.com/djguiaume/fair-winds-trading/issues/374), [#377](https://github.com/djguiaume/fair-winds-trading/issues/377). Ultra notes: Emberhold rock keeps its facets, lava cracks the brightest thing; lamp glow warmer and smaller; window lights at High's brightness at night; haze 10 to 15% (warm by day, blue by night). |
-| **Triangle budgets** | each raise | Budgets are ceilings, every raise is argued (what it buys, what it costs on Low). Low on a weak tablet is [#380](https://github.com/djguiaume/fair-winds-trading/issues/380). |
+| What | State |
+|---|---|
+| **Upgrade look rules (kept)** | Sail bands: swift line deep blue, haulers saturated green `#0b7a4c`, foot band about 1.8 rows deep from sails 2, centre stripe and head band at 3. Hull band at 2, copper at 3. No pink or rose, no brass or yellow in swatches (validator enforces). |
+| **Logos** | One per sail, mainsail only, about half the sail width at game zoom, swatch colour, validator refuses lightness above 0.55 until a night edge exists (first pale logo needs it). Race number hides the logo. |
+| **Wakes** | Tint and pattern only on Low and Medium; patterns and sparkle on High; foam never above `#f6f9fb`. |
+| **Figureheads** | Hang on the stem under the bowsprit, about 0.15 of hull length. Sun may still read as a wheel stuck to the hull: make it smaller, tuck it to the stem, use a lighter carved wood (not brass). |
+| **Boat looks screen** | Layout B (Wardrobe). Wake view centres the stern. Hint "Logos are best seen from the side". |
+| **Free Sailing (#300)** | Preset cards want a weather icon (deferred to v1.4.1). Badge is the small token on a navy pill with brass edge. |
+| **Clipper and schooner hulls** | Still slightly olive at levels 2 to 3. |
+| **Surf, ride, Ultra, budgets** | Unchanged from v1.3.1 (see [v1.3.1 notes](../releases/)): reef foam width varying with swell, Xbox Ultra notes in [#374](https://github.com/djguiaume/fair-winds-trading/issues/374) and [#377](https://github.com/djguiaume/fair-winds-trading/issues/377), triangle budgets argued per raise, Low on a weak tablet [#380](https://github.com/djguiaume/fair-winds-trading/issues/380). |
 
-### What I would ask for v1.4
+### What I would ask for v1.4.1
 
-- **Boat upgrades (#295-#301):** follow [boat look rules](../reviews/art-direction/new-look/boats.md). One readable change per level (sails, trim, flags), no new facets on smooth hulls, same silhouette per class so players still recognise it at far LOD, and ride/tilt must still look right (pivot at the waterline). Show each class at levels 1 to 3, High and Low, day and night, one combined sheet; budget raises argued per ship.
-- **Phone look idea (#405):** judge portrait first. Keep numbers and HUD readable, no new per-frame cost, Low stays the reference. Offer 2 or 3 variants as static mockups (Guillaume prefers images over playable demos) before building.
+- Phone look idea (#405): judge portrait first; keep numbers and HUD readable, no new per-frame cost, Low stays the reference; 2 or 3 static mockups before building.
+- More cosmetics with the same validator rules; new figureheads follow the stem mount and the 60 triangle cap.
 
 ## 2. Pointers
 
