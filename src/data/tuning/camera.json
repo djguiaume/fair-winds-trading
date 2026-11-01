@@ -15,5 +15,16 @@
   "touchDegPerPx": -0.3,
   "touchTiltDegPerPx": 0.15,
   "resetRate": 4,
-  "returnAfterSeconds": 5
+  "returnAfterSeconds": 5,
+  "chase": {
+    "pitchDeg": 15,
+    "distance": 48,
+    "sightDistance": 110,
+    "lookAhead": 14,
+    "turnRate": 1.8,
+    "blendRate": 3.5,
+    "zoomMin": 0.7,
+    "zoomMax": 1.6,
+    "pinchSwitch": 0.4
+  }
 }

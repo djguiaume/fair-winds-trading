@@ -39,6 +39,10 @@ export class Input {
   /** A camera drag of (dx, dy) CSS pixels, by right-button mouse or two fingers. */
   onCameraTurn: (dx: number, dy: number, device: 'mouse' | 'touch') => void = () => {};
   onCameraReset: () => void = () => {};
+  /** The key that switches the close chase view. */
+  onCameraChase: () => void = () => {};
+  /** Two fingers spreading (< 1, zoom in) or closing (> 1); by default a zoom, like the wheel. */
+  onPinch: (factor: number) => void = (factor) => this.onZoom(factor);
 
   setEnabled(enabled: boolean) {
     this.enabled = enabled;
@@ -63,7 +67,7 @@ export class Input {
     // The right button turns the camera, so the browser's menu stays shut over the sea.
     surface.addEventListener('contextmenu', (e) => e.preventDefault());
     this.touchCamera.onTurn = (dx, dy) => this.onCameraTurn(dx, dy, 'touch');
-    this.touchCamera.onPinch = (factor) => this.onZoom(factor);
+    this.touchCamera.onPinch = (factor) => this.onPinch(factor);
   }
 
   /** Current steering: -1 = hard left, 1 = hard right. */
@@ -139,6 +143,9 @@ export class Input {
         break;
       case 'Home':
         this.onCameraReset();
+        break;
+      case 'KeyC':
+        if (!e.repeat) this.onCameraChase();
         break;
       default:
         handled = false;
