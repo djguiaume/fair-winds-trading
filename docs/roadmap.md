@@ -79,6 +79,7 @@ store plan of [0204](decisions/0204-selling-on-android-iphone-and-xbox.md) comes
   shipyard preview, Free Sailing sessions kept in memory only ([0266](decisions/0266-free-sailing-sessions-kept-in-memory-only.md), #300). **v1.4.1, "Cosmetics and free sailing"** (#357): cosmetics beyond the first set, Free Sailing polish.
 - **v1.5, "The far seas' story"** ([plan](v1.5/plan.md), tracker #358): data-only story release before the store
   build: a hazard step per sea, far-goods asks, a chapter after four-winds. Storyteller leads.
+- **v1.6, "A real game"** ([brief](v1.6/brief.md), [0268](decisions/0268-a-real-game-rebuild-the-ui-as-one-system-v16.md), proposed 2026-11-01): the UI rebuilt as one system with a chosen identity, in waves; may run alongside v1.5.
 - **The store plan** ([0204](decisions/0204-selling-on-android-iphone-and-xbox.md), parked): after a stranger
   playtest (#364), a licence decision and a trailer from the v2 look. Order: **Steam with a free web demo first,
   phones second, Xbox last.**
