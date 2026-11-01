@@ -23,7 +23,15 @@ import {
   setupFor,
   startFreeSession,
 } from '../src/sim/freeSailing';
-import { type SaveStorage, SAVE_KEY, clearSave, loadGame, saveGame } from '../src/sim/save';
+import { type QuestProgress, QUEST_DONE, QuestBook } from '../src/sim/quests';
+import {
+  type SaveStorage,
+  SAVE_KEY,
+  clearSave,
+  loadGame,
+  saveGame,
+  serializeWorld,
+} from '../src/sim/save';
 import { SLOOP } from '../src/sim/ship';
 import { setShipLook, shipLook } from '../src/sim/shipLooks';
 import { weatherAt } from '../src/sim/wind';
@@ -127,17 +135,30 @@ describe('Free Sailing', () => {
   });
 
   it('a whole session writes nothing to the voyage storage', () => {
-    // A voyage under way, saved in the browser.
+    // A voyage under way, saved in the browser: gold, a finished race with its records, a second
+    // ship with upgrades and a look.
     const browser = browserStub();
     const voyage = createWorld(GAME_MAP, SLOOP);
     voyage.trade.captain.gold = 4321;
+    voyage.trade.captain.ships['cutter'] = { sails: 2, hold: 3, hull: 1 };
+    voyage.trade.quests.byId['race-abbey'] = {
+      step: QUEST_DONE,
+      counts: [],
+      chose: {},
+      best: 12345,
+      medal: 2,
+      bests: { sloop: 12345 },
+    } as QuestProgress;
+    const look = { ...shipLook(voyage.trade.captain, 'sloop'), sailColour: colour };
+    expect(setShipLook(voyage.trade.captain, CAT, 'sloop', look, () => true)).toBe(true);
     saveGame(browser.storage, voyage);
     const saved = browser.storage.getItem(SAVE_KEY);
     browser.writes.length = 0;
-    // The session page: its own world on memory storage, as main.ts builds it for `?free`.
+    // The session page: its own world on memory storage and no quests, as main.ts builds it.
     const memory = memoryStorage();
     const world = createWorld(GAME_MAP, SLOOP);
     expect(loadGame(memory, world)).toBe(false);
+    expect(new QuestBook(world, []).quests).toEqual([]);
     const setup = setupFor(first);
     startFreeSession(world, first, setup, FREE_RULES);
     saveGame(memory, world);
@@ -150,10 +171,13 @@ describe('Free Sailing', () => {
     clearSave(memory);
     expect(browser.writes).toEqual([]);
     expect(browser.storage.getItem(SAVE_KEY)).toBe(saved);
-    // Back on the voyage page: the voyage loads as it was.
+    // Back on the voyage page: the voyage loads as it was, records and all.
     const back = createWorld(GAME_MAP, SLOOP);
     expect(loadGame(browser.storage, back)).toBe(true);
     expect(back.trade.captain.gold).toBe(4321);
+    expect(back.trade.captain.ships['cutter']).toEqual({ sails: 2, hold: 3, hull: 1 });
+    expect(back.trade.quests.byId['race-abbey']).toMatchObject({ best: 12345, medal: 2 });
+    expect(serializeWorld(back)).toEqual(serializeWorld(voyage));
   });
 
   describe('preset edits (editor page and npm run free)', () => {
