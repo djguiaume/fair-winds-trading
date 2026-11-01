@@ -2,7 +2,7 @@
 
 Lead review for Guillaume's ask (pain points: too basic, no cohesion, not good enough for a game, too cluttered, no identity). Inputs: the five screen sheets in the project files (`ui-review/screens/`, game v1.4.55), the [UI inventory](inventory.md), the [art bible](../../art/art-bible.md), the style E work ([0220](../../decisions/0220-a-game-like-ui-skin-style-e.md), [mockups](../../ui-refactor/style-e/README.md)) and Guillaume's references: Sea of Thieves, Skull and Bones, Seafarer, Forza Horizon, Zombie Assault Resurgence (mobile).
 
-The proposal that follows from this review is the [v1.6 brief](../../v1.6/brief.md) and its decision.
+The proposal that follows from this review is the [v1.5 brief](../../v1.5/brief.md) and its decision.
 
 ## 1. The one-line diagnosis
 
@@ -53,4 +53,4 @@ Full i18n, the pad focus and glyph system, the inline SVG icon sprite, no backdr
 
 ## 6. Recommendation
 
-Not a third skin. Build the UI as a game system once (tokens, components, screen stack, motion, theme as data), decide the identity from static mockups first, then rebuild the screens on it in waves. Details and the parts: [v1.6 brief](../../v1.6/brief.md).
+Not a third skin. Build the UI as a game system once (tokens, components, screen stack, motion, theme as data), decide the identity from static mockups first, then rebuild the screens on it in waves. Details and the parts: [v1.5 brief](../../v1.5/brief.md).

@@ -1,6 +1,6 @@
-# v1.6 "A real game" (UI rebuild) — brief
+# v1.5 "A real game" (UI rebuild) — brief
 
-Status: **proposed**, waiting for Guillaume's OK in his own words (then the milestone and issues are created, start-a-release skill). Why: [UI review](../reviews/ui/review.md), [UI inventory](../reviews/ui/inventory.md). Decision: 0268. Runs after v1.4.1 (#357) and may run **alongside v1.5** (data only: quests and text, no shared files).
+Status: **approved** by Guillaume on 2026-11-01 16:00Z ("Ok to create all issue with lots of details and start"); milestone "v1.5 A real game". Why: [UI review](../reviews/ui/review.md), [UI inventory](../reviews/ui/inventory.md). Decision: 0268. Runs after v1.4.1 (#357) and may run **alongside v1.6** "The far seas' story" (data only: quests and text, no shared files). Numbers swapped by Guillaume on 2026-11-01: the UI rebuild ships first as v1.5, the story follows as v1.6.
 
 Guillaume's "done when" (2026-11-01): one visual language on every screen; a proper title, pause and settings flow; juicy feedback (sounds, animations, toasts); less on screen at sea; a clear identity (logo, type, signature colour). Everything may move or be redesigned. Phone **landscape** only, portrait is no longer required. Keep: sailing numbers visible by default, hazards off in Settings, everything data driven, no backdrop blur, the phone budget, no blue/teal plus gold "AI look", no lines on paper.
 
@@ -10,7 +10,7 @@ Guillaume's "done when" (2026-11-01): one visual language on every screen; a pro
 
 ## Identity: chosen on 2026-11-01 (three mockup rounds)
 
-**Direction 1, "the chart table", round 3 D** (Guillaume, 2026-11-01 15:06Z; the art director agreed). Sheets and kit: project files `ui-review/mockups/` and [docs/ui-refactor/v1.6/](../ui-refactor/v1.6/) (PR #435). Ink on paper: sage `#4a6d41` as the signature on paper `#efe6d1` (night paper `#b9ab8a` at 80%), ink `#23303a`, IM Fell English for titles with Alegreya Sans for text, a compass rose with a banderole as the logo, torn paper edges as 9-slice images. Minimal at sea and on the title (text and marks on the scene with a hard 1 px ink halo, no boxes); framed paper in the harbour, Boat looks and the chart. Dropped: 2 "the sailing club" (round 1), 3 "the painted harbour" (round 2).
+**Direction 1, "the chart table", round 3 D** (Guillaume, 2026-11-01 15:06Z; the art director agreed). Sheets and kit: project files `ui-review/mockups/` and [docs/ui-refactor/v1.5/](../ui-refactor/v1.5/) (PR #435). Ink on paper: sage `#4a6d41` as the signature on paper `#efe6d1` (night paper `#b9ab8a` at 80%), ink `#23303a`, IM Fell English for titles with Alegreya Sans for text, a compass rose with a banderole as the logo, torn paper edges as 9-slice images. Minimal at sea and on the title (text and marks on the scene with a hard 1 px ink halo, no boxes); framed paper in the harbour, Boat looks and the chart. Dropped: 2 "the sailing club" (round 1), 3 "the painted harbour" (round 2).
 
 Rules fixed during the rounds (Guillaume unless noted):
 - The **wind compass with the no-go zone** is its own dial, **top right**, never folded into another instrument; at least 96 px on desktop and 72 px on the phone; the no-go wedge solid at about 55% ink, hatched, crisp, never red; a thick wind arrow; the point-of-sail word beside it. It may be switched off on the hardest level.

@@ -1,6 +1,6 @@
-# 0268. A real game: rebuild the UI as one system (v1.6)
+# 0268. A real game: rebuild the UI as one system (v1.5)
 
-**Status:** Proposed (2026-11-01). Becomes Accepted when Guillaume OKs the [v1.6 brief](../v1.6/brief.md) and the identity mockup is chosen.
+**Status:** Proposed (2026-11-01). Becomes Accepted when Guillaume OKs the [v1.5 brief](../v1.5/brief.md) and the identity mockup is chosen.
 
 ## Context
 
@@ -8,7 +8,7 @@ After the style E reskin ([0220](0220-a-game-like-ui-skin-style-e.md), v1.1) Gui
 
 ## Decision
 
-Not a third skin. v1.6 "A real game" rebuilds the UI as one system, in waves, with the identity decided first:
+Not a third skin. v1.5 "A real game" rebuilds the UI as one system, in waves, with the identity decided first:
 
 1. **Identity before build.** Three static mockup directions (the chart table, the sailing club, the painted harbour), each a full identity (logo, signature colour, type, motif, materials) on the same four screens. Guillaume picks one with the art director; the art bible's UI line is rewritten to it. No blue or teal with gold; no lines on paper.
 2. **One foundation.** Tokens for colour, type, space, radius, elevation, motion and z-index live in `src/data/ui/theme.json` and are editable in the editors and with `npm run theme`. One component set (button, tab bar, card, panel, list row, dialog, toast, screen header) in TypeScript, one screen stack with transitions, the pad focus and glyph system kept.
@@ -18,7 +18,7 @@ Not a third skin. v1.6 "A real game" rebuilds the UI as one system, in waves, wi
 
 ## Consequences
 
-- Every screen is rebuilt over four waves (brief), so v1.6 is a long release; it may run alongside v1.5, which touches only quest data and text.
+- Every screen is rebuilt over four waves (brief), so v1.5 is a long release; it may run alongside v1.6 "The far seas' story", which touches only quest data and text (numbers swapped by Guillaume, 2026-11-01).
 - Old per-screen CSS families are removed as screens move over; no screen keeps its own button or tab style.
 - The theme becomes authoring data with an editor page and a CLI, like every other authoring feature.
 - Visual parts wait for Guillaume's `visual-ok`; the identity mockups are the gate for everything after wave 1.
