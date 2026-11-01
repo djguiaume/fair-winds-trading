@@ -4,6 +4,7 @@ import type { MapDef } from '../../sim/map';
 import type { TownLevel } from './towns';
 import type { QualityLevel } from '../quality';
 import type { TerrainLook } from '../terrainLook';
+import type { BoatLook } from './boatLook';
 
 /**
  * Swap point for art (see docs/art-pipeline.md): any boat or island look only has to satisfy
@@ -45,11 +46,12 @@ export type UpgradeLevel = 1 | 2 | 3;
 
 /** The three upgrade tracks; every level is visible on the model. */
 export interface ShipUpgrades {
-  /** 1 patched canvas, 2 new canvas and an extra jib, 3 racing sails with a stripe and topsail. */
+  /** 1 patched canvas, 2 new canvas with a foot band and an extra jib, 3 head band, stripe and
+   * topsail (decision 0259). */
   sails: UpgradeLevel;
   /** More crates and barrels on deck as the hold grows. */
   hold: UpgradeLevel;
-  /** 1 bare wood, 2 painted class-colour band, 3 copper-sheathed bottom. */
+  /** 1 bare wood, 2 class-colour band and tan rubbing strake, 3 brass strake and copper bottom. */
   hull: UpgradeLevel;
 }
 
@@ -66,6 +68,8 @@ export interface BoatModelOptions {
   flag?: FlagDef;
   /** A racing number painted on the mainsail (decision 0217): Kestrel's "K 7". */
   sailNumber?: string;
+  /** Cosmetic colours and figurehead (decision 0259); left out, the class's stock look. */
+  look?: Partial<BoatLook>;
 }
 
 export type BoatModelFactory = (shipClassId: string, options?: BoatModelOptions) => BoatModel;

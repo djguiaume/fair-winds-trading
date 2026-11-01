@@ -1,4 +1,5 @@
 import { HULL_SCALE, HULL_BEAM_SCALE } from '../../sim/hullShape';
+import boatLook from '../../data/boat-look.json';
 /** Shared storybook palette and display scale (decisions 0012, 0016). */
 export const STYLE_D = {
   L: 1,
@@ -9,7 +10,8 @@ export const STYLE_D = {
   mastK: 0.95,
   flag: 1.3,
   sail: '#fbf6e8',
-  patchedSail: '#d9c9a2',
+  /** Sails 1's worn canvas (`boat-look.json`). */
+  patchedSail: boatLook.sails.canvas['1'],
   patches: ['#b8a27a', '#a89068'],
   /** A damaged sail's big patches (decision 0208): warm plank-toned canvas that shows about
    * 30 % darker than the sail. The sails' material adds a flat white glow (emissive 0.22), which
@@ -19,7 +21,8 @@ export const STYLE_D = {
   mast: '#5b3a1e',
   crate: '#c4914e',
   barrel: '#8a5a30',
-  copper: '#c8743c',
+  /** Hull 3's copper bottom (`boat-look.json`). */
+  copper: boatLook.hull.copper,
   rigging: '#2d2218',
   lamp: '#ffd774',
 };

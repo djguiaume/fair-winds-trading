@@ -10,21 +10,33 @@ const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 export class Faces {
   private pos: number[] = [];
   private colors: number[] = [];
-  tri(a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3, color: string) {
+  /** Per-vertex canvas glow (sailCanvas.ts), kept only by sails: `withGlow`. */
+  private glows: number[] = [];
+  constructor(private readonly withGlow = false) {}
+  tri(a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3, color: string, glow = 1) {
     const k = new THREE.Color(color);
     for (const p of [a, b, c]) {
       this.pos.push(p.x, p.y, p.z);
       this.colors.push(k.r, k.g, k.b);
+      if (this.withGlow) this.glows.push(glow);
     }
   }
-  quad(a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3, d: THREE.Vector3, color: string) {
-    this.tri(a, b, c, color);
-    this.tri(a, c, d, color);
+  quad(
+    a: THREE.Vector3,
+    b: THREE.Vector3,
+    c: THREE.Vector3,
+    d: THREE.Vector3,
+    color: string,
+    glow = 1,
+  ) {
+    this.tri(a, b, c, color, glow);
+    this.tri(a, c, d, color, glow);
   }
   geometry() {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(this.pos, 3));
     g.setAttribute('color', new THREE.Float32BufferAttribute(this.colors, 3));
+    if (this.withGlow) g.setAttribute('glow', new THREE.Float32BufferAttribute(this.glows, 1));
     g.computeVertexNormals();
     return g;
   }
@@ -38,6 +50,8 @@ export function hullGeometry(
     rail?: string;
   },
   damage = 0,
+  /** The rubbing strake under the band (decision 0259); null leaves bare topsides. */
+  strake: string | null = null,
 ) {
   const { length: L, band: BAND, hull: HULL } = rig;
   const B = rig.beam * ST.B;
@@ -50,8 +64,15 @@ export function hullGeometry(
     outline.map((p) => V(p.x * beam, deckAt(p.z * length) - H * t, p.z * length)),
   );
   const f = new Faces();
-  const strake = (r: number) =>
-    r === 0 && level >= 2 ? BAND : r === 2 && level >= 3 ? ST.copper : HULL;
+  // Top strake the class band from hull 2, then the rubbing strake, then copper at hull 3.
+  const strakeAt = (r: number) =>
+    r === 0 && level >= 2
+      ? BAND
+      : r === 1 && strake
+        ? strake
+        : r === 2 && level >= 3
+          ? ST.copper
+          : HULL;
   const marks = rig.damage ?? DEFAULT_DAMAGE;
   // The outline segment nearest a damage station (decision 0208), on its side of the hull.
   const segmentAt = (p: { z: number; side: number }) => {
@@ -71,7 +92,7 @@ export function hullGeometry(
     const j = (i + 1) % outline.length;
     f.tri(V(0, DECK, 0), outline[i]!, outline[j]!, ST.deck);
     for (let r = 0; r < rings.length - 1; r++)
-      f.quad(rings[r]![i]!, rings[r + 1]![i]!, rings[r + 1]![j]!, rings[r]![j]!, strake(r));
+      f.quad(rings[r]![i]!, rings[r + 1]![i]!, rings[r + 1]![j]!, rings[r]![j]!, strakeAt(r));
     const keel = rings[rings.length - 1]!;
     f.tri(V(0, DECK - H, 0), keel[j]!, keel[i]!, HULL);
     // A solid raised gunwale: outer face, cap and inner face follow the same sheer as the deck.
@@ -119,7 +140,7 @@ export function hullGeometry(
         [0, 0.5, 0.86, 0.3, 0.97],
         [1, 0.3, 0.7, 0.02, 0.55],
       ] as const)
-        f.quad(at(r, u0, v0), at(r, u0, v1), at(r, u1, v1), at(r, u1, v0), scuffed(strake(r)));
+        f.quad(at(r, u0, v0), at(r, u0, v1), at(r, u1, v1), at(r, u1, v0), scuffed(strakeAt(r)));
       // The game camera looks down on her, so the knocks show on the deck inside the rail too:
       // scraped planks, laid on the deck's own fan triangle just above it.
       const deck = (u: number, w: number) =>

@@ -40,6 +40,10 @@ export interface GaffMastData {
 export interface ShipModelData {
   hullColor: string;
   bandColor: string;
+  /** The sail bands' class colour (decision 0259): swift line blue, haulers teal. */
+  sailBandColor: string;
+  /** Where a figurehead sits (docs/v1.4/customisation.md); left out, she carries none. */
+  figureheadMount?: FigureheadMount;
   mastZ: number;
   mastHeight: number;
   boom: number;
@@ -63,6 +67,15 @@ export interface ShipModelData {
   parts?: string[];
   /** Where her damage shows (decision 0208); left out, `DEFAULT_DAMAGE` places it. */
   damage?: ShipDamageData;
+}
+
+/**
+ * A figurehead's place under the bowsprit: at the stem head, `drop` (reference units) below the
+ * bow's deck, scaled by `size` (a size-1 figurehead is about one reference unit tall).
+ */
+export interface FigureheadMount {
+  size: number;
+  drop: number;
 }
 
 /**
@@ -142,4 +155,21 @@ export function shipClassOf(file: ShipFile): ShipClass {
     upgradePrices: unlock.upgradePrices,
     ...(unlock.series ? { series: unlock.series } : {}),
   };
+}
+
+const HEX = /^#[0-9a-f]{6}$/i;
+
+/** What is wrong with a ship file's look (decision 0259): class colours and figurehead mount. */
+export function shipLookProblems(file: ShipFile): string[] {
+  const m = file.model;
+  const where = `src/data/ships/${file.id}.json model`;
+  const out: string[] = [];
+  for (const key of ['hullColor', 'bandColor', 'sailBandColor'] as const)
+    if (!HEX.test(m[key] ?? '')) out.push(`${where}.${key} must be a #rrggbb colour`);
+  const mount = m.figureheadMount;
+  if (mount && !(mount.size > 0 && mount.size <= 3))
+    out.push(`${where}.figureheadMount.size must be above 0 and at most 3`);
+  if (mount && !(mount.drop >= 0 && mount.drop <= file.hull.depth))
+    out.push(`${where}.figureheadMount.drop must be 0 to the hull depth (${file.hull.depth})`);
+  return out;
 }
