@@ -1,11 +1,82 @@
 {
+  "about": "How a boat's look draws (decisions 0259, 0262, issue #418): the upgrade canvas and glow, the marks painted on the mainsail, the sail patterns' shapes and the wake styles. The cosmetic items themselves are src/data/cosmetics.",
   "sails": {
-    "canvas": { "1": "#d9c9a2", "2": "#eee6d4", "3": "#f4efe2" },
+    "canvas": {
+      "1": "#d9c9a2",
+      "2": "#eee6d4",
+      "3": "#f4efe2"
+    },
     "glow": 0.22,
     "bandGlow": 0.1,
     "footBand": 1.8
   },
   "hull": {
     "copper": "#e08a4c"
+  },
+  "marks": {
+    "about": "Logos and racing numbers on the cloth. lift: how far (scene units) each mark is drawn toward the camera so it never sinks into the curved cloth. glow: the canvas glow a mark keeps (0 = plain paint). The logo's size and place are cosmetics/rules.json › emblem; the number's here: its centre up the sail (0 foot, 1 head), its glyph height as a share of the sail's width there.",
+    "lift": 0.12,
+    "glow": 0,
+    "number": {
+      "centreV": 0.45,
+      "height": 0.2,
+      "colour": "#22252a",
+      "width": 0.6,
+      "gap": 0.28,
+      "stroke": 0.14
+    },
+    "player": "FW 1"
+  },
+  "patterns": {
+    "about": "Sail pattern shapes on the cloth's panel grid (6 panels across, 6 up on most sails), in panels, painted panel by panel (no extra triangles). bandColours: which pattern colours the upgrade foot/head band and the stripe take (others: '*'). The foot and head bands keep their rows; a pattern other than bands takes the sails-3 stripe's rows.",
+    "bandColours": {
+      "bands": [0, 1],
+      "*": [1, 1]
+    },
+    "stripe": {
+      "halfWidth": 1
+    },
+    "panels": {
+      "every": 2
+    },
+    "chevron": {
+      "base": 1,
+      "depth": 1
+    },
+    "diamond": {
+      "outer": 2.5,
+      "core": 1
+    }
+  },
+  "wakes": {
+    "about": "Wake styles (cosmetics/rules.json › wakeStyles) as uniforms on the one wake mesh: dash (repeats per unit along the wake, 0 none) and duty (share of each repeat drawn), lines (1 = a thin double line on each edge), sparkle (soft twinkles toward the tail, 0 to 1), tint (how far an item's tint colours the foam). Low and Medium draw the tint only (patterns and sparkle on High and Ultra).",
+    "plain": {
+      "dash": 0,
+      "duty": 1,
+      "lines": 0,
+      "sparkle": 0,
+      "tint": 0.7
+    },
+    "foam": {
+      "dash": 0,
+      "duty": 1,
+      "lines": 0,
+      "sparkle": 0.6,
+      "tint": 0.7
+    },
+    "fine-foam": {
+      "dash": 0,
+      "duty": 1,
+      "lines": 1,
+      "sparkle": 0.3,
+      "tint": 0.7
+    },
+    "bubbles": {
+      "dash": 0.9,
+      "duty": 0.55,
+      "lines": 0,
+      "sparkle": 0.4,
+      "tint": 0.7
+    }
   }
 }

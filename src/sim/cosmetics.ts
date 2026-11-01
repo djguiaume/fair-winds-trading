@@ -136,6 +136,8 @@ export const APPEARANCE_SLOTS: Record<keyof Appearance, Slot> = {
 export interface ResolvedLook {
   sail: {
     cloth: string;
+    /** The stock canvas: the 3D sails keep each upgrade level's own canvas (decision 0259). */
+    stockCloth: boolean;
     pattern: { kind: string; colours: string[] };
     logo: { id: string; svg: string; colour: string } | null;
   };
@@ -212,6 +214,7 @@ export function resolveAppearance(
     look: {
       sail: {
         cloth: colour?.cloth ?? '#fbf6e8',
+        stockCloth: !colour || colour.id === stock.sailColour,
         pattern: { kind: pattern?.pattern ?? 'plain', colours: pattern?.colours ?? [] },
         logo: logoId
           ? { id: logoId.id, svg: cat.logos[logoId.id] ?? '', colour: logoId.colour }

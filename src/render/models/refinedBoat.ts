@@ -8,7 +8,8 @@ import { DEG } from '../../sim/math';
 import { flagGeometry } from './flag';
 import { Faces, hullGeometry } from './hullGeometry';
 import { resolveBoatLook, strakeColour } from './boatLook';
-import { cloth, type ClothWear } from './sailCloth';
+import { cloth, type ClothDress, type ClothWear } from './sailCloth';
+import { mainsailMarks } from './sailMarks';
 import { sailCanvasMaterial } from './sailCanvas';
 import { figureheadParts } from './figurehead';
 import {
@@ -203,110 +204,6 @@ function spar(a: THREE.Vector3, b: THREE.Vector3, radius = 0.045) {
   return paint(g, ST.mast);
 }
 
-/*
- * A racing number on a mainsail (decision 0217): block strokes in a unit cell, 0..1 across from
- * the luff and 0..1 up, for the letters and digits a sail number uses.
- */
-const SAIL_GLYPHS: Record<string, readonly (readonly [number, number, number, number])[]> = {
-  K: [
-    [0, 0, 0, 1],
-    [0.05, 0.45, 1, 1],
-    [0.3, 0.6, 1, 0],
-  ],
-  '0': [
-    [0, 0, 0, 1],
-    [1, 0, 1, 1],
-    [0, 1, 1, 1],
-    [0, 0, 1, 0],
-  ],
-  '1': [
-    [0.6, 0, 0.6, 1],
-    [0.2, 0.8, 0.6, 1],
-  ],
-  '2': [
-    [0, 1, 1, 1],
-    [1, 1, 1, 0.5],
-    [1, 0.5, 0, 0.5],
-    [0, 0.5, 0, 0],
-    [0, 0, 1, 0],
-  ],
-  '3': [
-    [0, 1, 1, 1],
-    [1, 1, 1, 0],
-    [0, 0, 1, 0],
-    [0.2, 0.5, 1, 0.5],
-  ],
-  '4': [
-    [0, 1, 0, 0.5],
-    [0, 0.5, 1, 0.5],
-    [0.8, 1, 0.8, 0],
-  ],
-  '5': [
-    [1, 1, 0, 1],
-    [0, 1, 0, 0.5],
-    [0, 0.5, 1, 0.5],
-    [1, 0.5, 1, 0],
-    [1, 0, 0, 0],
-  ],
-  '6': [
-    [1, 1, 0, 1],
-    [0, 1, 0, 0],
-    [0, 0, 1, 0],
-    [1, 0, 1, 0.5],
-    [1, 0.5, 0, 0.5],
-  ],
-  '7': [
-    [0, 1, 1, 1],
-    [1, 1, 0.35, 0],
-  ],
-  '8': [
-    [0, 0, 0, 1],
-    [1, 0, 1, 1],
-    [0, 1, 1, 1],
-    [0, 0, 1, 0],
-    [0, 0.5, 1, 0.5],
-  ],
-  '9': [
-    [1, 0, 1, 1],
-    [0, 1, 1, 1],
-    [0, 1, 0, 0.5],
-    [0, 0.5, 1, 0.5],
-    [1, 0, 0, 0],
-  ],
-};
-
-/**
- * Dark block glyphs standing through the cloth at `center` (in the sail's own frame, the sail in
- * its y-z plane), `h` tall, running from the luff toward the clew (-z). Thick enough to show on
- * both faces, so they ride the sail as it fills, swings and furls.
- */
-function sailNumber(text: string, center: THREE.Vector3, h: number): THREE.BufferGeometry[] {
-  const w = h * 0.6;
-  const gap = h * 0.28;
-  const stroke = h * 0.14;
-  const chars = [...text];
-  const width = chars.reduce((s, ch) => s + (ch === ' ' ? gap : w + gap), -gap);
-  const out: THREE.BufferGeometry[] = [];
-  let z0 = center.z + width / 2;
-  for (const ch of chars) {
-    if (ch === ' ') {
-      z0 -= gap;
-      continue;
-    }
-    for (const [u0, v0, u1, v1] of SAIL_GLYPHS[ch] ?? []) {
-      const a = V(center.x, center.y + (v0 - 0.5) * h, z0 - u0 * w);
-      const b = V(center.x, center.y + (v1 - 0.5) * h, z0 - u1 * w);
-      const d = b.clone().sub(a);
-      const g = new THREE.BoxGeometry(0.05, d.length() + stroke, stroke);
-      g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(V(0, 1, 0), d.normalize()));
-      g.translate((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
-      out.push(paint(g, '#22252a'));
-    }
-    z0 -= w + gap;
-  }
-  return out;
-}
-
 interface GaffSail {
   pivot: THREE.Group;
   sail: THREE.Mesh;
@@ -398,6 +295,7 @@ export class RefinedBoat implements BoatModel {
     this.jibSheetAnchor = V(0, deckAt(sheetZ) + 0.12, sheetZ);
     const upg = options.upgrades ?? STOCK_UPGRADES;
     const look = resolveBoatLook({ bandColor: BAND, sailBandColor: rig.sailBand }, options.look);
+    const sailMarks = mainsailMarks(look, options.sailNumber);
     this.riggingEnabled = options.rigging ?? true;
     const wood = vertexColorMaterial();
     const canvas = sailCanvasMaterial();
@@ -553,28 +451,18 @@ export class RefinedBoat implements BoatModel {
         ),
       );
       const main = z === MAST_Z;
-      const sails = [
-        cloth(V(0, 0, 0), clew, throat, peak, upg.sails, 0.32, look, 6, 6, main ? torn : patched),
-      ];
-      let number: THREE.BufferGeometry | null = null;
-      if (main && options.sailNumber) {
-        // Up the sail, halfway along: the cloth's own point there (its belly at u = v = 0.5).
-        const v = 0.6;
-        const center = V(
-          -0.32 * Math.sin(Math.PI * v),
-          throat.y * 0.5 * v + peak.y * 0.5 * v,
-          clew.z * 0.5 * (1 - v) + (throat.z + peak.z) * 0.5 * v,
-        );
-        number = mergeAll(sailNumber(options.sailNumber, center, height * 0.2));
-      }
+      // The logo or racing number (sailMarks.ts) goes on the mainsail; square riggers carry it
+      // on the main course instead.
+      const dress: ClothDress = main
+        ? { ...torn, marks: squareMasts.length ? [] : sailMarks }
+        : patched;
+      const sails = [cloth(V(0, 0, 0), clew, throat, peak, upg.sails, 0.32, look, 6, 6, dress)];
       if (topsail && upg.sails >= 3) {
         const top = V(0, height - 0.85, 0);
         sails.push(cloth(throat, peak, top, top, upg.sails, 0.13, look, 6, 6, patched));
         this.stats.topsail = true;
       }
       const sail = mesh(mergeAll(sails), canvas, name);
-      // The number rides the sail as a child, in plain paint: the canvas glow would grey it.
-      if (number) sail.add(mesh(number, wood, 'SailNumber'));
       pivot.add(sail);
       this.ship.add(pivot);
       this.gaffSails.push({
@@ -625,6 +513,10 @@ export class RefinedBoat implements BoatModel {
     // Square courses: each hangs from its own yard, just forward of the mast, and bellies toward
     // the bow. All of one mast's courses are one mesh; furling is a morph toward each course's
     // own yard, so every head stays on its yard and no geometry is rebuilt per frame.
+    const mainSquare = squareMasts.reduce<(typeof squareMasts)[number] | undefined>(
+      (aft, m) => (aft && aft.z < m.z ? aft : m),
+      undefined,
+    );
     for (const m of squareMasts) {
       const turn = new THREE.Group();
       turn.name = `${m.name}Brace`;
@@ -634,6 +526,7 @@ export class RefinedBoat implements BoatModel {
       const furled: number[] = [];
       const colors: number[] = [];
       const glows: number[] = [];
+      const markSides: number[] = [];
       const yardParts: THREE.BufferGeometry[] = [];
       const courses: SquareRig['courses'] = [];
       const yardArms: number[] = [];
@@ -653,16 +546,18 @@ export class RefinedBoat implements BoatModel {
           look,
           5,
           4,
-          k === 0 ? torn : patched,
+          k > 0 ? patched : m === mainSquare ? { ...torn, marks: sailMarks } : torn,
         ).rotateY(Math.PI / 2);
         const p = g.getAttribute('position');
         const c = g.getAttribute('color');
         const glow = g.getAttribute('glow');
+        const mark = g.getAttribute('mark');
         for (let i = 0; i < p.count; i++) {
           pos.push(p.getX(i), p.getY(i), p.getZ(i));
           furled.push(p.getX(i), yard + (p.getY(i) - yard) * 0.06, p.getZ(i));
           colors.push(c.getX(i), c.getY(i), c.getZ(i));
           glows.push(glow.getX(i));
+          markSides.push(mark.getX(i));
         }
         g.dispose();
         yardParts.push(spar(V(-head * 0.56, yard, 0), V(head * 0.56, yard, 0), 0.05));
@@ -673,6 +568,7 @@ export class RefinedBoat implements BoatModel {
       sailGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
       sailGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
       sailGeo.setAttribute('glow', new THREE.Float32BufferAttribute(glows, 1));
+      sailGeo.setAttribute('mark', new THREE.Float32BufferAttribute(markSides, 1));
       sailGeo.morphAttributes.position = [new THREE.Float32BufferAttribute(furled, 3)];
       sailGeo.computeVertexNormals();
       turn.add(mesh(mergeAll(yardParts), wood, `${m.name}Yards`));

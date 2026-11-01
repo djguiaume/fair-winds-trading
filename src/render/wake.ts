@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { waveHeight } from './oceanWaves';
 import { QUALITY, type QualityLevel } from './quality';
 import { PALETTE } from '../data/props';
+import { applyWakeStyle, WAKE_STYLE_BODY, WAKE_STYLE_HEAD, wakeStyleUniforms } from './wakeStyle';
 
 const CAPACITY = 64;
 /** Bounded history and transparency coverage; no spray particles or render targets. */
@@ -67,6 +68,7 @@ export class FoamStrips {
         uTime: { value: 0 },
         uFoam: { value: new THREE.Color(PALETTE.colors.wakeFoam as string) },
         uEdge: { value: new THREE.Color(PALETTE.colors.wakeEdge as string) },
+        ...wakeStyleUniforms(),
       },
       vertexShader: `attribute vec4 aFoam;
         varying vec4 vFoam;
@@ -77,6 +79,7 @@ export class FoamStrips {
       fragmentShader: `uniform float uTime;
         uniform vec3 uFoam;
         uniform vec3 uEdge;
+        ${WAKE_STYLE_HEAD}
         varying vec4 vFoam;
         void main() {
           float edge = 1.0 - smoothstep(0.3, 1.0, abs(vFoam.x));
@@ -84,6 +87,7 @@ export class FoamStrips {
                                   + 0.14 * sin(vFoam.y * 6.1 - vFoam.x * 7.0 + uTime * 0.5);
           float alpha = edge * smoothstep(0.18, 0.8, breakup) * vFoam.z;
           vec3 col = mix(uEdge, uFoam, vFoam.w);
+          ${WAKE_STYLE_BODY}
           gl_FragColor = vec4(col, alpha);
           #include <colorspace_fragment>
         }`,
@@ -213,6 +217,14 @@ export class Wake extends FoamStrips {
   setQuality(level: QualityLevel) {
     this.level = level;
     this.count = Math.min(this.count, WAKE_DETAIL[level].points);
+    applyWakeStyle(this.mesh.material, this.style, level);
+  }
+
+  /** The player's wake style (wakeStyle.ts): an item's style and tint, or null for plain. */
+  private style: { style: string; tint: string | null } | null = null;
+  setStyle(style: { style: string; tint: string | null } | null) {
+    this.style = style;
+    applyWakeStyle(this.mesh.material, style, this.level);
   }
 
   /** Clear on ship changes and teleports so unrelated positions are never joined. */
