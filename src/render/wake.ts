@@ -227,6 +227,31 @@ export class Wake extends FoamStrips {
     applyWakeStyle(this.mesh.material, style, this.level);
   }
 
+  private readonly previewAt = new THREE.Vector3();
+
+  /**
+   * A still boat's wake, as if she had sailed straight ahead at `speedKn` (the Boat looks
+   * screen's preview): the trail laid astern of `centre` along (dx, dz), `pace` scene units a
+   * second. Lays the whole trail at once; call it when the look or the view changes.
+   */
+  preview(
+    time: number,
+    centre: THREE.Vector3,
+    dx: number,
+    dz: number,
+    speedKn: number,
+    hull: WakeHull,
+    pace = speedKn * 0.5,
+  ) {
+    this.reset();
+    const { life, interval } = WAKE_DETAIL[this.level];
+    for (let i = Math.ceil(life / interval); i >= 0; i--) {
+      const back = pace * i * interval;
+      this.previewAt.set(centre.x - dx * back, centre.y, centre.z - dz * back);
+      this.update(interval, time - i * interval, this.previewAt, dx, dz, speedKn, hull);
+    }
+  }
+
   /** Clear on ship changes and teleports so unrelated positions are never joined. */
   reset() {
     this.count = 0;

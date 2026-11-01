@@ -112,3 +112,16 @@ describe('wake styles', () => {
     for (const style of RULES.wakeStyles) expect(file.wakes, style).toHaveProperty(style);
   });
 });
+
+describe("a still boat's wake preview", () => {
+  it('lays a trail astern without the boat moving', async () => {
+    const { Wake } = await import('../src/render/wake');
+    const wake = new Wake(() => 0);
+    wake.setQuality('high');
+    wake.setStyle({ style: 'bubbles', tint: null });
+    wake.preview(10, new THREE.Vector3(), 0, -1, 6, { length: 11, beam: 4.4 });
+    expect(wake.mesh.geometry.drawRange.count).toBeGreaterThan(100);
+    expect(wake.mesh.visible).toBe(true);
+    wake.dispose();
+  });
+});
