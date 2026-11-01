@@ -15,6 +15,16 @@ import { distance } from './math';
  * repair leaves her short of the cheapest load, the game asks first.
  */
 
+/** A load on credit (decision 0200): no interest and no deadline, one at a time. */
+export interface CreditLoan {
+  /** The port whose order the load is for: she pays back when she sells or delivers there. */
+  port: string;
+  good: GoodId;
+  qty: number;
+  /** Gold to pay back: what the load cost in the port that lent it. */
+  owed: number;
+}
+
 /** Units in "a load": the smallest a captain buys to start trading again. */
 const loadUnits = () => TUNING.economy.credit.loadUnits;
 
