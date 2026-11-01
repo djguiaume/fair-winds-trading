@@ -2,7 +2,7 @@ import { SHIP_FILES } from '../../data/ships';
 import { PROP_RECIPES, type RecipePart } from '../../data/props';
 import { type Catalogue, type Appearance, RULES, resolveAppearance } from '../../sim/cosmetics';
 import { FLAGS } from '../../sim/regatta';
-import { flagSvg } from '../regatta/doc';
+import { emblemShapes, flagSvg } from '../../ui/lookPictures';
 
 /**
  * A flat side view of a boat wearing a look, as SVG: the hull in her class colours, the sail with
@@ -38,12 +38,8 @@ export function lookSvg(cat: Catalogue, want: Partial<Appearance>, shipClass: st
 function emblem(svg: string, colour: string): string {
   const size = RULES.emblem.width * SAIL_FOOT;
   const y = 12 + RULES.emblem.centreV * SAIL_HEIGHT - size / 2;
-  return `<g fill="${colour}"><svg x="${(100 - 4 - size).toFixed(1)}" y="${y.toFixed(1)}" width="${size.toFixed(1)}" height="${size.toFixed(1)}" viewBox="0 0 32 32">${innerOf(svg)}</svg></g>`;
+  return `<g fill="${colour}"><svg x="${(100 - 4 - size).toFixed(1)}" y="${y.toFixed(1)}" width="${size.toFixed(1)}" height="${size.toFixed(1)}" viewBox="0 0 32 32">${emblemShapes(svg)}</svg></g>`;
 }
-
-/** The shapes inside an emblem's `<svg>`. */
-const innerOf = (svg: string) =>
-  svg.replace(/^[\s\S]*?<svg\b[^>]*>/, '').replace(/<\/svg>\s*$/, '');
 
 const n = (v: unknown, fallback = 0) => (typeof v === 'number' ? v : fallback);
 const HULL_PX = 132;

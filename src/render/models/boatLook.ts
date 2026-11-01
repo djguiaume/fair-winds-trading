@@ -1,5 +1,6 @@
 import boatLookFile from '../../data/boat-look.json';
 import type { UpgradeLevel } from './types';
+import type { ResolvedLook } from '../../sim/cosmetics';
 
 /**
  * A boat's paint (decision 0259, docs/v1.4/customisation.md): the colour channels the
@@ -93,4 +94,19 @@ export function canvasColour(look: BoatLook, level: number, worn: boolean): stri
   if (look.sailCloth) return look.sailCloth;
   const k = worn ? '1' : level >= 3 ? '3' : level >= 2 ? '2' : '1';
   return BOAT_LOOK.sails.canvas[k];
+}
+
+/** A resolved cosmetic look (decision 0261) as the model's colour channels. */
+export function boatLookOf(resolved: ResolvedLook): Partial<BoatLook> {
+  const [band, stripe] = resolved.sail.pattern.colours;
+  return {
+    sailCloth: resolved.sail.cloth,
+    ...(band ? { sailBand: band } : {}),
+    ...(stripe ? { sailStripe: stripe } : {}),
+    ...(resolved.hull.band ? { hullBand: resolved.hull.band } : {}),
+    hullStrake: resolved.hull.strake,
+    figurehead: resolved.figurehead
+      ? { recipe: resolved.figurehead.recipe, size: resolved.figurehead.size }
+      : null,
+  };
 }

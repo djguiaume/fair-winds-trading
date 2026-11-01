@@ -1,0 +1,12 @@
+{
+  "about": "The turntable boat of the Boat looks screen and Free Sailing (issue #299): camera, turn speed and the soft water disc under her.",
+  "fov": 28,
+  "tiltDeg": 24,
+  "lookUp": 0.35,
+  "margin": 1.04,
+  "startYaw": -125,
+  "spinDegPerSecond": 9,
+  "stepDeg": 45,
+  "discScale": 1.15,
+  "discSolid": 0.55
+}
