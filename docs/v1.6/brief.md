@@ -17,7 +17,7 @@ Rules fixed during the rounds (Guillaume unless noted):
 - The speed in knots stays the biggest number on screen. The instrument always has a faint ink backing (40%) and never sits over land unbacked (art director).
 - Harbour: Market and Quay as **one ledger across about 90%** of the width with the port as a strip above (round 3 D); Shipyard and Boat looks keep the boat visible (round 3 C) with the 3D preview area the biggest element and Buy below it. Rows about 64 px, names 18 px, prices 20 px, big Buy and Sell; the ledger fills down to the legend bar, never a blank lower half.
 - Status text at sea at full ink with a halo, 14 px or more on desktop; phone text 12 px minimum.
-- Title screen: still open; four proposals in that style are being drawn (round 4).
+- Title screen (round 4, Guillaume 2026-11-01 15:33Z): **the logbook page**, a full-height torn page on the left with the stacked logo and the menu (Continue as the one sage row, the other rows the same size), the key art on the right graded toward the game's sea and sand, with the torn edge kept where the page meets the art. The art director's condition: the key art is the real game (a golden-hour render at the Saltmere quay) or the cover graded to it; the tagline is confirmed by the storyteller.
 - Chart legend shows the wind and the no-go wedge (art director).
 
 ## Guillaume's ChatGPT mockups (2026-11-01)
