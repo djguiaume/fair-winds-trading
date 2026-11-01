@@ -45,7 +45,7 @@ export function newItem(slot: Slot | 'set', id: string): Item {
     case 'sail-logo':
       return { ...base, slot, colour: '#1f4e79' };
     case 'hull-colour':
-      return { ...base, slot, band: '#2f6f9f', strake: '#d8c7a0' };
+      return { ...base, slot, band: '#2f6f9f', strake: '#b9a58a' };
     case 'figurehead':
       return { ...base, slot, mount: RULES.mounts[0]!, recipe: '', tris: 40, size: 1 };
     case 'flag':

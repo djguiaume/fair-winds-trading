@@ -1,12 +1,12 @@
 {
-  "id": "butter",
+  "id": "linen",
   "slot": "sail-colour",
   "name": {
-    "en": "Butter",
-    "fr": "Beurre"
+    "en": "Linen",
+    "fr": "Lin"
   },
   "unlock": {
     "kind": "free"
   },
-  "cloth": "#f6e08a"
+  "cloth": "#e9e1d4"
 }

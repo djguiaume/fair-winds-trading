@@ -1,0 +1,13 @@
+{
+  "id": "plum-trim",
+  "slot": "hull-colour",
+  "name": {
+    "en": "Plum trim",
+    "fr": "Liseré prune"
+  },
+  "unlock": {
+    "kind": "free"
+  },
+  "band": "#7a5aa8",
+  "strake": "#b9a58a"
+}

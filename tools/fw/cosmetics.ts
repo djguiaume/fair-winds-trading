@@ -100,7 +100,7 @@ function sheet(doc: CosmeticsDoc, args: Args): string {
       '<svg ',
       `<svg x="${(n % 4) * 210}" y="${Math.floor(n / 4) * 176}" `,
     );
-    return `${svg}<text x="${(n % 4) * 210 + 4}" y="${Math.floor(n / 4) * 176 + 166}" font-size="11" font-family="sans-serif" fill="#22252a">${i.slot}/${i.id} · ${unlockText(i.unlock)}</text>`;
+    return `${svg}<text x="${(n % 4) * 210 + 4}" y="${Math.floor(n / 4) * 176 + 166}" font-size="11" font-family="sans-serif" fill="#22252a">${i.id} · ${i.unlock.kind}</text>`;
   };
   const rows = Math.ceil(items.length / 4);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="840" height="${rows * 176}" viewBox="0 0 840 ${rows * 176}"><rect width="840" height="${rows * 176}" fill="#f4f1e8"/>${items.map(cell).join('')}</svg>\n`;

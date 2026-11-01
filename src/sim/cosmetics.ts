@@ -100,6 +100,12 @@ export interface Rules {
   wakeStyles: string[];
   flagBands: { min: number; max: number };
   maxTriangles: { 'sail-logo': number; figurehead: number };
+  reservedColours: { name: string; hex: string; within: number }[];
+  /** Colours at least this white on every channel are refused. */
+  tooBright: string;
+  wake: { minLightness: number; maxChroma: number };
+  /** An emblem's width as a share of the sail's, and its centre down the sail (0 head, 1 foot). */
+  emblem: { width: number; centreV: number };
   mounts: string[];
 }
 export const RULES = rulesFile as unknown as Rules;

@@ -191,7 +191,7 @@ function flagRows(item: Extract<Item, { slot: 'flag' }>): HTMLElement[] {
 
 /** An emblem's SVG: flat filled shapes, edited as text. */
 function svgRow(id: string): HTMLElement {
-  const area = h('textarea', { rows: '5' });
+  const area = h('textarea', { rows: '9', class: 'cs-svg' });
   area.value = ctx.doc().logos[id] ?? '';
   area.addEventListener('change', () => ctx.edit(() => (ctx.doc().logos[id] = area.value)));
   return row(`${id}.svg`, area);

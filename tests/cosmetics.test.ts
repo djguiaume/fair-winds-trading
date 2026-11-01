@@ -12,7 +12,12 @@ import {
   shippedCosmeticsDoc,
 } from '../src/editor/cosmetics/doc';
 import { lookSvg } from '../src/editor/cosmetics/preview';
-import { logoProblems, logoTriangles, sailColourProblem } from '../src/sim/cosmeticChecks';
+import {
+  logoProblems,
+  logoTriangles,
+  reservedColourProblem,
+  sailColourProblem,
+} from '../src/sim/cosmeticChecks';
 import { type FlagItem, resolveAppearance, stockAppearance } from '../src/sim/cosmetics';
 import { FLAGS } from '../src/sim/regatta';
 import { SHIP_FILES } from '../src/data/ships';
@@ -60,7 +65,7 @@ describe('resolving a look', () => {
       sailColour: 'sky',
       sailPattern: 'bands-navy',
       sailLogo: 'gull',
-      hullColour: 'gold-trim',
+      hullColour: 'plum-trim',
       figurehead: 'sun',
       flag: 'signal-blue',
       wake: 'foam',
@@ -117,6 +122,28 @@ describe('the checks refuse', () => {
     expect(problemsAfter((d) => setField(find(d, 'wake', 'foam')!, 'style', 'fire'))[0]).toMatch(
       /not one of/,
     );
+  });
+
+  it('colours the game keeps for other things, and a wake that is not near white', () => {
+    expect(reservedColourProblem('#e8c46a')).toMatch(/player's brass/);
+    expect(reservedColourProblem('#ffb36b')).toMatch(/too close/);
+    expect(reservedColourProblem('#f2c230')).toMatch(/too close/);
+    expect(reservedColourProblem('#d93a2b')).toMatch(/too close/);
+    expect(reservedColourProblem('#fafcfd')).toMatch(/whiter/);
+    expect(reservedColourProblem('#a9d4ee')).toBeNull();
+    expect(
+      problemsAfter((d) => setField(find(d, 'sail-colour', 'sky')!, 'cloth', '#f0cc72'))[0],
+    ).toMatch(/too close/);
+    expect(problemsAfter((d) => setField(find(d, 'wake', 'foam')!, 'tint', '#33aa88'))[0]).toMatch(
+      /near white/,
+    );
+    expect(problemsAfter((d) => setField(find(d, 'wake', 'foam')!, 'tint', '#f0f4f8'))).toEqual([]);
+  });
+
+  it('an emblem of more than two colours', () => {
+    const three =
+      '<svg viewBox="0 0 1 1"><rect fill="#111111"/><rect fill="#222222"/><rect fill="#333333"/></svg>';
+    expect(logoProblems(three).join()).toMatch(/one or two colours/);
   });
 
   it('malformed values, ids and missing names', () => {

@@ -1,7 +1,7 @@
 import { SHIP_CLASSES } from '../../sim/ship';
 import { type Item, type Slot, APPEARANCE_SLOTS, type Appearance } from '../../sim/cosmetics';
 import { History } from '../model';
-import { h, select, textInput } from '../quest/form';
+import { h, row, select, textInput } from '../quest/form';
 import {
   type CosmeticsDoc,
   EDITED_COSMETICS_KEY,
@@ -15,8 +15,9 @@ import {
   shippedCosmeticsDoc,
 } from './doc';
 import { bindFields, slotRows, text, unlockRows } from './fields';
-import { lookSvg } from './preview';
+import { figureheadCard, lookSvg } from './preview';
 import '../controls/controls.css';
+import './cosmetics.css';
 
 /**
  * The Cosmetics page of the editors (decision 0261): every boat cosmetic in `src/data/cosmetics`
@@ -228,8 +229,8 @@ function drawSection(): HTMLElement[] {
       'div',
       { class: 'cp-head' },
       h('h2', {}, LABELS[section]),
-      h('p', {}, 'Cosmetics are pride, never power. Preview on: '),
-      classPick,
+      h('p', {}, 'Cosmetics are pride, never power.'),
+      row('preview on', classPick),
     ),
   ];
   for (const item of doc.items.filter((i) => i.slot === section)) out.push(drawItem(item));
@@ -260,7 +261,9 @@ function wearing(item: Item): Partial<Appearance> {
 
 function drawItem(item: Item): HTMLElement {
   const preview = h('div', { class: 'rg-flag' });
-  preview.innerHTML = lookSvg(doc, wearing(item), shipClass);
+  preview.innerHTML =
+    lookSvg(doc, wearing(item), shipClass) +
+    (item.slot === 'figurehead' ? figureheadCard(item.recipe, item.size) : '');
   const remove = h('button', { type: 'button' }, 'Remove item');
   remove.addEventListener('click', () => {
     if (confirm(`Remove ${item.slot}/${item.id}? Saves that own it keep the id.`))

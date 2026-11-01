@@ -33,6 +33,54 @@ export function hsl(hex: string): [number, number, number] {
   return [h * 60, s, l];
 }
 
+const rgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+
+/** Why a colour is refused anywhere on a boat: a colour the game keeps for something else, or glaring white. */
+export function reservedColourProblem(hex: string): string | null {
+  if (!HEX.test(hex)) return null;
+  const [r, g, b] = rgb(hex) as [number, number, number];
+  const [br, bg, bb] = rgb(RULES.tooBright) as [number, number, number];
+  if (r >= br && g >= bg && b >= bb)
+    return `${hex} is whiter than ${RULES.tooBright} (it blooms on tablets)`;
+  for (const k of RULES.reservedColours) {
+    const [kr, kg, kb] = rgb(k.hex) as [number, number, number];
+    if (Math.hypot(r - kr, g - kg, b - kb) <= k.within)
+      return `${hex} is too close to ${k.name} (${k.hex})`;
+  }
+  return null;
+}
+
+/** Every colour an item sets, to hold against the reserved ones. */
+function itemColours(item: Item): (string | null | undefined)[] {
+  switch (item.slot) {
+    case 'sail-colour':
+      return [item.cloth];
+    case 'sail-pattern':
+      return item.colours;
+    case 'sail-logo':
+      return [item.colour];
+    case 'hull-colour':
+      return [item.band, item.strake];
+    case 'flag':
+      return item.own?.bands ?? [];
+    case 'wake':
+      return [item.tint];
+    default:
+      return [];
+  }
+}
+
+/** A wake tint stays near white by day: it tints the foam, it never recolours it. */
+function wakeTintProblem(tint: string | null): string | null {
+  if (tint === null || !HEX.test(tint)) return null;
+  const [r, g, b] = rgb(tint) as [number, number, number];
+  const lightness = (Math.max(r, g, b) + Math.min(r, g, b)) / 510;
+  const chroma = (Math.max(r, g, b) - Math.min(r, g, b)) / 255;
+  return lightness >= RULES.wake.minLightness && chroma <= RULES.wake.maxChroma
+    ? null
+    : `tint ${tint} must stay near white (lightness at least ${RULES.wake.minLightness}, colour spread at most ${RULES.wake.maxChroma})`;
+}
+
 /** Why a sail colour is refused (too dark, or a hue kept for storms and damage), or null. */
 export function sailColourProblem(hex: string): string | null {
   const [h, s, l] = hsl(hex);
@@ -94,6 +142,9 @@ export function logoProblems(svg: string): string[] {
     if (!ELEMENTS.has(tag!)) out.push(`<${tag}> is not allowed (flat filled shapes only)`);
   if (/\son\w+=|href=|style=|<!\[CDATA|stroke-width/i.test(svg))
     out.push('no scripts, links, styles or strokes: fill the shapes');
+  const fills = new Set([...svg.matchAll(/\bfill="([^"]*)"/g)].map((m) => m[1]!.toLowerCase()));
+  fills.delete('none');
+  if (fills.size > 2) out.push('a logo is a flat silhouette of one or two colours');
   return [...new Set(out)];
 }
 
@@ -111,6 +162,14 @@ const hexes = (what: string, list: (string | undefined)[]) =>
 
 /** The slot-specific problems of one item. */
 function slotProblems(item: Item, cat: Catalogue, cx: CosmeticContext): string[] {
+  const reserved = itemColours(item)
+    .filter((c): c is string => typeof c === 'string')
+    .map(reservedColourProblem)
+    .filter((p): p is string => p !== null);
+  return [...reserved, ...ownProblems(item, cat, cx)];
+}
+
+function ownProblems(item: Item, cat: Catalogue, cx: CosmeticContext): string[] {
   switch (item.slot) {
     case 'sail-colour':
       return HEX.test(item.cloth)
@@ -164,6 +223,7 @@ function slotProblems(item: Item, cat: Catalogue, cx: CosmeticContext): string[]
           ? []
           : [`style "${item.style}" is not one of ${RULES.wakeStyles.join(', ')}`]),
         ...(item.tint === null ? [] : hexes('tint', [item.tint])),
+        ...[wakeTintProblem(item.tint)].filter((p) => p !== null),
       ];
     default:
       return [];

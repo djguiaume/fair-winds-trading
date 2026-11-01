@@ -11,7 +11,13 @@
   },
   "sail": {
     "minLightness": 0.55,
-    "reservedHues": [{ "from": 345, "to": 20, "minSaturation": 0.25 }]
+    "reservedHues": [
+      {
+        "from": 345,
+        "to": 20,
+        "minSaturation": 0.25
+      }
+    ]
   },
   "patterns": {
     "plain": 0,
@@ -23,7 +29,44 @@
     "diamond": 2
   },
   "wakeStyles": ["plain", "foam", "fine-foam", "bubbles"],
-  "flagBands": { "min": 1, "max": 3 },
-  "maxTriangles": { "sail-logo": 40, "figurehead": 60 },
-  "mounts": ["stem"]
+  "flagBands": {
+    "min": 1,
+    "max": 3
+  },
+  "maxTriangles": {
+    "sail-logo": 40,
+    "figurehead": 60
+  },
+  "mounts": ["stem"],
+  "reservedColours": [
+    {
+      "name": "the player's brass",
+      "hex": "#e8c46a",
+      "within": 60
+    },
+    {
+      "name": "storm amber",
+      "hex": "#ffb36b",
+      "within": 45
+    },
+    {
+      "name": "regatta yellow",
+      "hex": "#f2c230",
+      "within": 75
+    },
+    {
+      "name": "edge-buoy red",
+      "hex": "#d93a2b",
+      "within": 80
+    }
+  ],
+  "tooBright": "#f6f9fb",
+  "wake": {
+    "minLightness": 0.85,
+    "maxChroma": 0.1
+  },
+  "emblem": {
+    "width": 0.35,
+    "centreV": 0.3
+  }
 }
