@@ -1,5 +1,5 @@
 import { SHIPPED_CATALOGUE } from '../../data/cosmetics';
-import { isUnlocked } from '../../sim/cosmeticUnlocks';
+import { type UnlockProgress, isUnlocked } from '../../sim/cosmeticUnlocks';
 import { daylightAt } from '../../sim/daylight';
 import { damageStage, hullCondition } from '../../sim/hazards';
 import type { QuestBook } from '../../sim/quests';
@@ -16,6 +16,8 @@ interface LooksGame {
   quests: QuestBook;
   settings: { dayNight: boolean };
   autosave: () => void;
+  /** What may be worn instead of the voyage's own unlocks: Free Sailing's everything (0266). */
+  unlocked?: UnlockProgress | undefined;
 }
 
 /**
@@ -37,10 +39,8 @@ export function boatLooksIn(
 
 function gameLooksHost(game: LooksGame, quality: () => QualityLevel): BoatLooksHost {
   const { world, quests } = game;
-  const progress = () => ({
-    questDone: (id: string) => quests.isDone(id),
-    seriesWon: quests.won,
-  });
+  const progress = (): UnlockProgress =>
+    game.unlocked ?? { questDone: (id: string) => quests.isDone(id), seriesWon: quests.won };
   const level = (n: number | undefined) =>
     Math.min(3, Math.max(1, Math.round(n ?? 1))) as UpgradeLevel;
   return {

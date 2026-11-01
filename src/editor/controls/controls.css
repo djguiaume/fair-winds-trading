@@ -159,3 +159,11 @@
   gap: 6px;
   margin-top: 12px;
 }
+
+/* The Free Sailing page's chart (decision 0266): the sea, its islands and every preset's start. */
+.fp-chart {
+  display: block;
+  width: min(100%, 420px);
+  margin: 0 0 12px;
+  cursor: crosshair;
+}

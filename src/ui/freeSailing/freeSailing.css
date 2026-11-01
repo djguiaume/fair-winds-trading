@@ -1,0 +1,158 @@
+/*
+ * The Free Sailing setup (issue #300): the Boat looks screen's frame (boatLooks.css, decision
+ * 0265) with where-and-when cards at the left and ship and upgrades at the right. Style E tokens.
+ */
+.free-setup .fs-note {
+  margin: 0;
+  font-size: var(--fs-note);
+  line-height: 1.35;
+}
+.free-setup .fs-head {
+  margin: 6px 0 0;
+  font: 700 var(--fs-body) / 1.2 var(--serif);
+}
+.fs-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fs-preset {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 2px solid var(--paper-edge);
+  border-radius: 10px;
+  background: var(--paper-2);
+  color: var(--paper-ink);
+  text-align: left;
+}
+.fs-preset b {
+  font: 700 var(--fs-body) var(--serif);
+}
+.fs-preset small {
+  color: var(--teal);
+  font: 700 var(--fs-note) var(--display);
+}
+.fs-preset span {
+  font-size: var(--fs-note);
+  line-height: 1.3;
+}
+/* The chosen card stands out like a chosen Boat looks row. */
+.fs-preset[aria-checked='true'] {
+  background: #fffdf6;
+  box-shadow:
+    0 3px 0 rgba(0, 0, 0, 0.2),
+    inset 6px 0 0 var(--teal);
+}
+.fs-upgrades {
+  display: grid;
+  gap: 6px;
+}
+.fs-track {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+.fs-levels {
+  display: flex;
+  gap: 4px;
+}
+.fs-levels button {
+  width: 44px;
+  min-height: 40px;
+  border: 2px solid var(--paper-edge);
+  border-radius: 8px;
+  background: var(--tab);
+  color: var(--paper-ink);
+  font: 700 var(--fs-body) var(--display);
+}
+.fs-levels button[aria-checked='true'] {
+  border-color: var(--teal-edge);
+  background: var(--teal);
+  color: var(--on-fill);
+}
+.fs-ship-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.free-setup .fs-looks {
+  min-height: 40px;
+  padding: 0 14px;
+}
+.fs-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+/* --- Phone portrait: the boat on top, the cards in a snapping row, then ship and upgrades ---- */
+@media (orientation: portrait) {
+  .free-setup .fs-note,
+  .free-setup .bl-slots .fs-head {
+    display: none;
+  }
+  .fs-presets {
+    flex-direction: row;
+    padding: 2px 12px 6px;
+    overflow-x: auto;
+    scroll-padding: 0 12px;
+    scroll-snap-type: x mandatory;
+  }
+  .fs-preset {
+    flex: none;
+    width: 62vw;
+    scroll-snap-align: start;
+  }
+  .free-setup .bl-items {
+    gap: 6px;
+  }
+  .free-setup .fs-ships {
+    flex: none;
+    padding: 0 0 2px;
+  }
+  .free-setup .bl-items {
+    padding-bottom: 0;
+  }
+  .fs-actions {
+    grid-template-columns: 1fr auto;
+    position: sticky;
+    bottom: 0;
+    padding-bottom: max(12px, var(--safe-bottom, env(safe-area-inset-bottom)));
+    background: var(--paper);
+  }
+}
+
+/* --- At sea: a small label says the session keeps nothing --------------------------------- */
+.free-badge {
+  position: fixed;
+  top: max(6px, var(--safe-top, env(safe-area-inset-top)));
+  left: 50%;
+  z-index: 5;
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  border: 1px solid var(--brass-lo);
+  border-radius: 999px;
+  background: #123246e6;
+  color: var(--paper);
+  font: 600 var(--fs-small) var(--display);
+  pointer-events: none;
+}
+/* On a phone the top row is full: under it, clear of the compass and the Map button. */
+@media (max-width: 700px) {
+  .free-badge {
+    top: calc(max(6px, var(--safe-top, env(safe-area-inset-top))) + 64px);
+  }
+}
+body:not(.free-sailing) .free-badge,
+body.in-menu .free-badge {
+  display: none;
+}
+/* Nothing in a session can save or send a voyage (decision 0266). */
+body.free-sailing :is(#menu-tutorial, #menu-transfer, #reset-save) {
+  display: none;
+}

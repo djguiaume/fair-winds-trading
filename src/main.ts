@@ -127,7 +127,9 @@ import {
   useTextEdits,
 } from './i18n';
 import { TradePanel } from './ui/tradePanel';
+import { showTestSeaBadge } from './ui/testSeaBadge';
 import { boatLooksIn } from './ui/boatLooks/host';
+import { FREE_UNLOCKS, freeSailingIn, isFreeSailing } from './ui/freeSailing/session';
 import { HomePanel, buildingName, effectLine } from './ui/homePanel';
 import {
   PLOT_CAMERA,
@@ -170,6 +172,8 @@ const settings = loadSettings(location.search);
 // The `?bench` device benchmark (decision 0154) sails a fresh voyage kept in memory with every
 // hazard on and the shifting wind, so runs compare; it never saves the player's settings.
 const benchMode = new URLSearchParams(location.search).has('bench');
+// Free Sailing (decision 0266): `?free`, a session in memory only that never opens the voyage's save.
+const freeSailing = isFreeSailing(location.search);
 if (benchMode)
   Object.assign(settings, {
     weather: true,
@@ -220,16 +224,17 @@ const browserStorage: SaveStorage | null = (() => {
 // progress; so do the bigger-map test sea (decision 0115), `?map=stress`, and the ring alone
 // (`?map=ring`, how the game was before 0198). `?map=phase4` still opens the voyage sailed there
 // while the grown sea was a dev sea (decision 0152), on the game's own sea.
-const mapParam = new URLSearchParams(location.search).get('map');
+const mapParam = freeSailing ? null : new URLSearchParams(location.search).get('map');
 // The sea editor's grown sea (decision 0161): `?map=edited&sea=phase4`.
 const editedPhase4 = mapParam === 'edited' && editedSea(location.search);
 const phase4Voyage = mapParam === 'phase4';
 const stressTest = mapParam === 'stress';
 const ringAlone = mapParam === 'ring';
 const devSea = stressTest || ringAlone;
-const playtestMap =
-  editedMap(location.search, browserStorage) ??
-  (ringAlone ? PHASE1_MAP : stressTest ? prepareMap(stressMap(PHASE1_SOURCE)) : null);
+const playtestMap = freeSailing
+  ? null
+  : (editedMap(location.search, browserStorage) ??
+    (ringAlone ? PHASE1_MAP : stressTest ? prepareMap(stressMap(PHASE1_SOURCE)) : null));
 // The quest builder's quests and text sail with the edited map (decision 0142). A quest played
 // from one of its steps (`&quest=…&step=…`) starts a fresh voyage kept in memory only.
 const playtestQuests =
@@ -242,7 +247,7 @@ const questTest = playtestMap && !devSea ? questTestFrom(location.search) : null
 // The `?tune` panel (decision 0114): the edits kept in this browser apply before the world is
 // built, and tune mode sails its own test voyage so the real one is never touched. A shared link
 // (`?tune#tune=…`) asks before it replaces them.
-const tuneMode = new URLSearchParams(location.search).has('tune');
+const tuneMode = !freeSailing && new URLSearchParams(location.search).has('tune');
 if (tuneMode) {
   const shared = location.hash.includes(`#${TUNE_LINK_KEY}=`)
     ? decodeTuneCode(location.hash)
@@ -260,7 +265,7 @@ if (tuneMode) {
   applyChanges(loadTuneChanges(browserStorage));
 }
 const voyageStorage =
-  questTest || benchMode
+  freeSailing || questTest || benchMode
     ? memoryStorage()
     : (playtestMap || phase4Voyage) && browserStorage
       ? prefixedStorage(
@@ -279,29 +284,8 @@ const voyageStorage =
 const storage =
   tuneMode && voyageStorage ? prefixedStorage(voyageStorage, TUNE_PREFIX) : voyageStorage;
 const world = createWorld(playtestMap ?? GAME_MAP, SLOOP);
-if (playtestMap) {
-  document.title = `${stressTest ? 'Stress test' : ringAlone ? 'Ring alone' : questTest ? 'Quest test' : editedPhase4 ? 'Edited Phase 4 sea' : 'Edited map'} · ${document.title}`;
-  const badge = document.createElement('a');
-  badge.href = editedPhase4 ? './editor.html?sea=phase4' : './editor.html?sea=ring';
-  badge.textContent = stressTest
-    ? 'Stress test sea'
-    : ringAlone
-      ? 'The Windward Ring alone (test)'
-      : editedPhase4
-        ? 'Edited Phase 4 sea · back to editor'
-        : 'Edited map · back to editor';
-  badge.style.cssText =
-    'position:fixed;left:50%;bottom:6px;transform:translateX(-50%);z-index:50;padding:3px 10px;' +
-    'border-radius:10px;background:#123246e6;color:#f3d37e;font:600 12px sans-serif;' +
-    'text-decoration:none;';
-  // A label only: the stress sea and the ring alone have no editor page to go back to.
-  if (devSea) {
-    badge.removeAttribute('href');
-    badge.style.pointerEvents = 'none';
-  }
-  // The quest test bar says it all (and links back) instead.
-  if (!questTest) document.body.append(badge);
-}
+if (playtestMap)
+  showTestSeaBadge({ stressTest, ringAlone, questTest: !!questTest, editedPhase4: !!editedPhase4 });
 const resumedVoyage = storage ? loadGame(storage, world) : false;
 let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
 const { perfMode, perfScale, frameCap, tilt, antialias } = perfOptions(location.search, benchMode);
@@ -420,14 +404,16 @@ homePanel.onRepaired = (gold) => {
 };
 homePanel.onStored = () => autosave();
 // Quests (decision 0125), the tutorial too (decision 0151): saved with the voyage.
-const quests = new QuestBook(world, undefined, {
+// Free Sailing has no quests: no story, rewards, races or records (decision 0266).
+const quests = new QuestBook(world, freeSailing ? [] : undefined, {
   // A night step counts at any time when night is switched off (hazards stay optional).
   nightOk: () => !settings.dayNight || daylightAt(world.time).night >= 0.5,
   screen: () => (chart.isOpen ? 'chart' : tradePanel.isOpen ? 'market' : 'sea'),
 });
 // The regatta pennant won flies at her masthead (decision 0217).
 view.setPennant(flownPennant(quests));
-boatLooksIn($('trade-panel'), { world, quests, settings, autosave }, () => level);
+const unlocked = freeSailing ? FREE_UNLOCKS : undefined;
+boatLooksIn($('trade-panel'), { world, quests, settings, autosave, unlocked }, () => level);
 // Whether a fresh voyage offers the tutorial: kept in the browser across voyages.
 const tutorialChoice = new TutorialChoice(world.map.name, storage);
 // A lesson under way in the browser's storage before 0151 moves into the voyage once.
@@ -949,7 +935,7 @@ function showMenu() {
   if (tradePanel.isOpen) tradePanel.close();
   // Pause shows the voyage under the same menu (decision 0061).
   menu.classList.toggle('is-paused', started);
-  $('menu-status').hidden = !started;
+  $('menu-status').hidden = !started || freeSailing;
   $('menu-gold').textContent = String(world.trade.captain.gold);
   $('menu-cargo').textContent = `${trade.cargoUsed(world.trade)}/${trade.capacity(world.trade)}`;
   $('menu-play-label').textContent = started ? t('menu.resume') : t('menu.play');
@@ -964,7 +950,7 @@ function showMenu() {
  * preselected; the level can be changed later in Settings.
  */
 let chosenLevel: Difficulty = world.trade.difficulty;
-let levelPicked = resumedVoyage;
+let levelPicked = resumedVoyage || freeSailing;
 const levelCards = [...newVoyage.querySelectorAll<HTMLButtonElement>('.level-card')];
 const markLevelCards = () => {
   for (const c of levelCards)
@@ -1000,6 +986,7 @@ $('set-sail').addEventListener('click', () => {
 });
 
 function play() {
+  if (freeSetup && !freeSetup.sailed) return freeSetup.open();
   if (!levelPicked) {
     openNewVoyage();
     return;
@@ -1008,7 +995,8 @@ function play() {
   started = true;
   document.body.classList.remove('in-menu', 'at-title');
   menu.hidden = true;
-  if (tutorialChoice.shouldOffer(resumedVoyage) && !tutorialRunning()) tutorialOffer.showModal();
+  if (!freeSailing && tutorialChoice.shouldOffer(resumedVoyage) && !tutorialRunning())
+    tutorialOffer.showModal();
   refreshPause();
 }
 
@@ -1152,6 +1140,16 @@ $('menu-tutorial').addEventListener('click', () => {
   refreshPause();
 });
 playButton.addEventListener('click', play);
+// Free Sailing (decision 0266): the title menu's way in; in a session, its setup and way out.
+const freeSetup = freeSailingIn(freeSailing, {
+  world,
+  quality: () => level,
+  play: () => {
+    sailStep = world.boat.sailStep;
+    play();
+  },
+  menu: showMenu,
+});
 $('menu-help').addEventListener('click', openHelp);
 $('menu-settings').addEventListener('click', () => {
   menu.hidden = true;
@@ -1200,8 +1198,9 @@ function goBack() {
 }
 help.hidden = true;
 showMenu();
-// Opened from a QR code scanned with a camera app: offer that voyage straight away.
-if (location.hash.startsWith(`#${LINK_KEY}=`)) {
+freeSetup?.open();
+// Opened from a QR code scanned with a camera app: offer that voyage, never in Free Sailing.
+if (!freeSailing && location.hash.startsWith(`#${LINK_KEY}=`)) {
   const link = location.href;
   history.replaceState(null, '', location.pathname + location.search);
   menu.hidden = true;
