@@ -1,7 +1,7 @@
 /*
  * The identity fonts (v1.5 "A real game", the chart table): IM Fell English for titles, the wordmark
  * and port names, Alegreya Sans for the UI and the numbers. Licences in fonts/README.md.
- * Loaded from index.html; the screens pick them up through --font-title and --font-ui.
+ * Loaded from index.html; the theme (src/data/ui/theme.json) names them as --ui-font-title and --ui-font-text.
  */
 @font-face {
   font-family: 'IM Fell English';
@@ -37,9 +37,4 @@
   font-weight: 700;
   font-display: swap;
   src: url('./fonts/alegreya-sans-700.woff2') format('woff2');
-}
-
-:root {
-  --font-title: 'IM Fell English', 'Iowan Old Style', Georgia, serif;
-  --font-ui: 'Alegreya Sans', 'Segoe UI', system-ui, sans-serif;
 }

@@ -32,6 +32,10 @@ const TOOLS = {
     about: 'Free Sailing presets: list, add, edit, check; walk proves the voyage stays untouched',
     file: './free.mjs',
   },
+  theme: {
+    about: 'UI theme tokens (theme.json): list, set, check, export, import',
+    file: './theme.mjs',
+  },
   sound: { about: "the game's sounds into files: effects, sea beds, music", file: './sound.mjs' },
   editorperf: {
     about: "speed of the island builder's terrain brushes on the largest island",

@@ -33,7 +33,7 @@ function rose(small) {
 
 const wordmark = () => `
       <symbol id="i-wordmark" viewBox="-4 -78 458 92">
-        <text textLength="450" lengthAdjust="spacingAndGlyphs" style="font:400 100px var(--font-title,'IM Fell English',Georgia,serif);fill:${INK};stroke:${HALO};stroke-width:3;stroke-linejoin:round;paint-order:stroke">Fair Winds</text>
+        <text textLength="450" lengthAdjust="spacingAndGlyphs" style="font:400 100px var(--ui-font-title,'IM Fell English',Georgia,serif);fill:${INK};stroke:${HALO};stroke-width:3;stroke-linejoin:round;paint-order:stroke">Fair Winds</text>
       </symbol>`;
 
 const RIBBON = 'M14 6h272l-12 14 12 14H14l12-14z';
@@ -44,7 +44,7 @@ const banderole = (small) => `
           small
             ? ''
             : `
-        <text x="150" y="27" text-anchor="middle" textLength="150" lengthAdjust="spacingAndGlyphs" style="font:italic 400 22px var(--font-title,'IM Fell English',Georgia,serif);fill:${v('on-sig', '#efe6d1')}">Trading Company</text>`
+        <text x="150" y="27" text-anchor="middle" textLength="150" lengthAdjust="spacingAndGlyphs" style="font:italic 400 22px var(--ui-font-title,'IM Fell English',Georgia,serif);fill:${v('on-sig', '#efe6d1')}">Trading Company</text>`
         }
       </symbol>`;
 

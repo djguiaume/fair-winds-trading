@@ -54,6 +54,8 @@ Same pause rule as v1.4: Guillaume checks token use between waves and says go. A
 | 3 | #444 Chart rebuild (paper chart, book tabs, course in ink) | high | yes | Opus |
 | 4 | #445 Free Sailing, Boat looks, club board and regatta screens on the components; tutorial coach marks; remove the old CSS files; release notes and ADR acceptance | med | yes | Sonnet |
 
+Style E stays as `legacy` in `theme.json` (decision 0269): the old screens still read its on-paper role swap (`--brass` is teal on paper, the selector list in `src/ui/theme.css`). Each screen part (#440, #441, #443, #444, #445) takes its screens off that list as it rebuilds them on the components; #445 removes the list and the `legacy` block with the old CSS files.
+
 Not in scope: portrait layouts (dropped), the Xbox store work, any gameplay change. Prices, text and story stay with the storyteller.
 
 ## Done when

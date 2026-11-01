@@ -28,7 +28,8 @@
     "chart": "node tools/fw/fw.mjs chart",
     "review": "node tools/fw/fw.mjs review",
     "sound": "node tools/fw/fw.mjs sound",
-    "identity": "node tools/fw/fw.mjs identity"
+    "identity": "node tools/fw/fw.mjs identity",
+    "theme": "node tools/fw/fw.mjs theme"
   },
   "dependencies": {
     "fflate": "^0.8.3",
