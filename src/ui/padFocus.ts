@@ -149,7 +149,7 @@ export function guardSoftDisabled(root: HTMLElement) {
     true,
   );
 }
-/** Close buttons: the pad starts elsewhere, B already closes (`data-pad-close`: the v1.5 header). */
+/** Close buttons (`data-pad-close`: the v1.5 header): the pad starts elsewhere, B closes. */
 const CLOSE =
   '.close-btn, #tp-close, .d-btn.red.square, [data-chart-close], .home-close, [data-pad-close]';
 
@@ -166,10 +166,8 @@ export function reachable(root: HTMLElement): HTMLElement[] {
 }
 
 /**
- * Where the focus starts on a screen: its main button (brass, or a v1.5 primary button marked
- * `data-pad-main`), else its first control. A button marked `data-pad-start="never"` (the port's
- * Set sail, decision 0192) is the last resort, so a stray A on a Shipyard with nothing affordable
- * yet does not leave port.
+ * Where the focus starts: the main button (brass, `data-pad-main`), else the first control. One
+ * marked `data-pad-start="never"` (the port's Set sail, 0192) comes last: a stray A stays in port.
  */
 export function startOf(controls: readonly HTMLElement[]): HTMLElement | null {
   const open = controls.filter((el) => !el.matches(CLOSE) && !el.matches(TABS));
