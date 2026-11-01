@@ -70,8 +70,9 @@ export interface ShipModelData {
 }
 
 /**
- * A figurehead's place under the bowsprit: at the stem head, `drop` (reference units) below the
- * bow's deck, scaled by `size` (a size-1 figurehead is about one reference unit tall).
+ * A figurehead's place on the stem head, `drop` (reference units) below the bow's deck. `size`
+ * is a size-1 figurehead's longest reach from the side, in reference units (about a tenth of
+ * her length, the catalogue's `figurehead.share`, #297).
  */
 export interface FigureheadMount {
   size: number;

@@ -9,6 +9,7 @@ import {
   sailRowEdges,
   strakeColour,
 } from '../src/render/models/boatLook';
+import { figureheadParts } from '../src/render/models/figurehead';
 import { createShipModel } from '../src/render/models/shipModels';
 import type { BoatModelOptions, UpgradeLevel } from '../src/render/models/types';
 
@@ -167,6 +168,20 @@ describe('figurehead mounts', () => {
       const carved = triangles(file.id, { look: { figurehead: { recipe: 'beacon', size: 0.1 } } });
       expect(carved.tris, file.id).toBeGreaterThan(plain.tris);
       expect(carved.count, file.id).toBe(plain.count);
+    }
+  });
+
+  it('scales any recipe so its longest side reach is the mount size times the item size', () => {
+    for (const recipe of ['beacon', 'barn']) {
+      const parts = figureheadParts(
+        { recipe, size: 0.5 },
+        { size: 1.2, drop: 0 },
+        new THREE.Vector3(),
+      );
+      const box = new THREE.Box3();
+      for (const g of parts) box.union(g.computeBoundingBox() ?? g.boundingBox!);
+      const reach = box.getSize(new THREE.Vector3());
+      expect(Math.max(reach.y, reach.z), recipe).toBeCloseTo(0.6);
     }
   });
 
