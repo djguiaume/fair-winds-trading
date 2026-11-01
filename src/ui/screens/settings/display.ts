@@ -1,4 +1,5 @@
-import { LANGUAGES, language } from '../../../i18n';
+import { LANGUAGES, type MessageKey, language } from '../../../i18n';
+import { MOTION_MODES, type MotionMode } from '../../motionMode';
 import { effectSwitches, qualityOptions } from '../../graphicsSettings';
 import type { QualitySetting } from '../../../render/quality';
 import { t } from '../../../i18n';
@@ -40,6 +41,16 @@ export function displayTab(ctx: SettingsContext, host: RowHost) {
   ];
   const comfort = [
     flag('quiet-hud', 'settings.quietHud', 'quietHud'),
+    choiceRow({
+      id: 'motion',
+      key: 'settings.motion',
+      options: MOTION_MODES.map((id) => ({ id, label: t(`settings.motion.${id}` as MessageKey) })),
+      get: () => settings.motion,
+      set: (id) => {
+        settings.motion = id as MotionMode;
+        host.changed();
+      },
+    }),
     flag('gentle-motion', 'settings.gentleMotion', 'gentleMotion'),
     flag('camera-bob', 'settings.cameraBob', 'cameraBob'),
     choiceRow({

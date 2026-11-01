@@ -1,0 +1,203 @@
+/*
+ * The moments (decision 0274): the arrival banner, the race's countdown, the quest stamp, the
+ * finish board and the trade ticks. Paper and ink from the theme tokens only; no CSS filters.
+ * Motion comes from motion.ts (`data-enter`), so Reduced and Off hold everything still.
+ */
+
+.moments {
+  position: fixed;
+  inset: var(--moment-top, 56px) 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ui-space-2);
+  pointer-events: none;
+}
+.moment-banner {
+  min-width: min(320px, 80vw);
+  padding: var(--ui-space-3) var(--ui-space-5);
+  text-align: center;
+}
+.moment-title {
+  margin: 0;
+  font-family: var(--ui-font-title);
+  font-size: var(--fs-display);
+  font-weight: 400;
+  line-height: 1.1;
+}
+.moment-line {
+  margin: var(--ui-space-1) 0 0;
+  color: var(--ui-muted);
+  font-family: var(--ui-font-title);
+  font-size: var(--fs-sub);
+  font-style: italic;
+}
+.moment-banner--horn .moment-title {
+  font-family: var(--ui-font-text);
+  font-size: var(--fs-big);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+:root[data-layout='phone'] .moments {
+  --moment-top: 54px;
+}
+:root[data-layout='phone'] .moment-banner {
+  min-width: min(260px, 60vw);
+  padding: var(--ui-space-2) var(--ui-space-4);
+}
+:root[data-layout='phone'] .moment-title {
+  font-size: var(--fs-title);
+}
+:root[data-layout='phone'] .ui-toasts {
+  --ui-toast-top: 96px;
+}
+
+/* --- Quest stamp: ink pressed on the card ---------------------------------------------------- */
+.quest-body {
+  position: relative;
+}
+.moment-stamp {
+  position: absolute;
+  inset: var(--ui-space-2) var(--ui-space-3) auto auto;
+  padding: var(--ui-space-1) var(--ui-space-3);
+  border: 3px double var(--ui-sage-deep);
+  border-radius: var(--ui-radius-s);
+  background: var(--ui-face);
+  color: var(--ui-sage-deep);
+  font-family: var(--ui-font-title);
+  font-size: var(--fs-head);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  rotate: -9deg;
+  opacity: 0.85;
+  pointer-events: none;
+}
+[data-enter='stamp'] {
+  animation: moment-stamp var(--stamp-ms, 700ms) var(--ui-ease-out) both;
+}
+@keyframes moment-stamp {
+  from {
+    opacity: 0;
+    scale: 2.2;
+  }
+  60% {
+    opacity: 0.95;
+    scale: 0.94;
+  }
+}
+
+/* --- Trade ticks: the chip ticks as its number rolls ----------------------------------------- */
+[data-enter='pulse'] {
+  animation: moment-pulse var(--ui-dur-slow) var(--ui-ease-out) both;
+}
+@keyframes moment-pulse {
+  40% {
+    scale: 1.12;
+  }
+}
+
+/* --- Finish board: a paper slip on the card, so it reads on the legacy dark card too -------- */
+.race-board {
+  --gold-medal: #e8c46a;
+  --silver-medal: #c9d3d8;
+  --bronze-medal: #c98a52;
+  display: grid;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-3) var(--ui-space-4);
+  border: 1px solid var(--ui-rule);
+  border-radius: var(--ui-radius-m);
+  background: var(--ui-face);
+  box-shadow: var(--ui-shadow-2);
+  color: var(--ui-ink);
+  font-family: var(--ui-font-text);
+}
+.race-board.is-gold {
+  --medal: var(--gold-medal);
+}
+.race-board.is-silver {
+  --medal: var(--silver-medal);
+}
+.race-board.is-bronze {
+  --medal: var(--bronze-medal);
+}
+.race-board .race-medal {
+  display: inline-block;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--ui-ink);
+  border-radius: 50%;
+  background: var(--medal, var(--ui-face-off));
+}
+.race-board-place {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-3);
+  margin: 0;
+  font-family: var(--ui-font-title);
+  font-size: var(--fs-sub);
+}
+.race-board-rows,
+.race-board .race-times {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space-1) var(--ui-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-variant-numeric: tabular-nums;
+}
+.race-board-rows li {
+  display: flex;
+  gap: var(--ui-space-2);
+  align-items: baseline;
+  color: var(--ui-muted);
+}
+.race-board-rows li.is-you {
+  color: var(--ui-ink);
+}
+.race-board-rows li.is-you b {
+  font-size: var(--fs-big);
+}
+.race-board .race-label {
+  margin: 0;
+  color: var(--ui-muted);
+  font-size: var(--fs-note);
+}
+.race-board .race-times li {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-1);
+  font-weight: 700;
+}
+.race-board .race-times small {
+  color: var(--ui-sage-deep);
+}
+.race-board .race-times .icon {
+  width: 14px;
+  height: 14px;
+}
+.race-board .race-times li.is-won .race-medal {
+  box-shadow: 0 0 0 2px var(--ui-sage);
+}
+.race-board .race-times .is-gold .race-medal {
+  --medal: var(--gold-medal);
+}
+.race-board .race-times .is-silver .race-medal {
+  --medal: var(--silver-medal);
+}
+.race-board .race-times .is-bronze .race-medal {
+  --medal: var(--bronze-medal);
+}
+.race-board .race-times .race-medal {
+  width: 16px;
+  height: 16px;
+}
+
+/* --- Dusk: the paper cross-fades to the night paper ------------------------------------------ */
+html[data-dusk] :is(.ui-panel, .ui-btn, .ui-card, .ui-row, .ui-toast, .moment-stamp, .race-board) {
+  transition:
+    background-color var(--ui-dusk-ms) linear,
+    color var(--ui-dusk-ms) linear,
+    border-color var(--ui-dusk-ms) linear;
+}

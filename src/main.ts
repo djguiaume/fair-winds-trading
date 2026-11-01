@@ -52,7 +52,7 @@ import * as trade from './sim/trade';
 import { type Difficulty, knobs } from './sim/difficulty';
 import { daylightAt } from './sim/daylight';
 import { hazeSwitches } from './sim/windZones';
-import { type QuestEvent, QuestBook, roundStep, useEditedQuests } from './sim/quests';
+import { QuestBook, roundStep, useEditedQuests } from './sim/quests';
 import { questTestFrom, sailableHeading, testBerth } from './sim/questTest';
 import { QuestTestBar } from './ui/questTestBar';
 import { type StepEffects, type StepWind, syncSea } from './sim/stepEffects';
@@ -76,13 +76,7 @@ import {
   trackedMarkers,
 } from './ui/questView';
 import { gateMid } from './sim/regatta';
-import {
-  flownPennant,
-  raceBookCards,
-  raceHud,
-  raceResultCard,
-  starterLine,
-} from './ui/regattaView';
+import { flownPennant, raceBookCards, raceHud } from './ui/regattaView';
 import { LESSONS_QUEST, TUTORIAL_QUEST, TutorialChoice, TutorialCoach } from './ui/tutorial';
 import {
   type WorldEvent,
@@ -104,11 +98,14 @@ import {
   toggleFullscreen,
 } from './ui/fullscreen';
 import { Hud } from './ui/hud';
+import { Moments } from './ui/moments';
+import { raceEvents } from './ui/moments/raceEvents';
 import { CameraControls } from './ui/cameraControls';
 import { loadSettings, saveSettings } from './ui/settings';
 import type { Bench } from './perf/bench';
 import type { PerfReadout } from './perf/perfReadout';
 import { perfOptions } from './perf/perfOptions';
+import { SOUND_EVENTS } from './audio/catalog';
 import { Music } from './audio/music';
 import { SeaListener } from './audio/listener';
 import { wordCount } from './audio/babble';
@@ -662,40 +659,29 @@ quests.onEvent = (e) => {
     if (card) questNote.push(`${e.quest}:${step}`, card);
   }
 };
-/**
- * A race's events (decision 0217): the starter's line at the start, the horn, the result card
- * at once wherever she finishes, a give-up; no thanks card or note, the result card says it all.
- */
-function raceEvent(e: QuestEvent) {
-  const quest = quests.quests.find((q) => q.id === e.quest)!;
-  if (e.type === 'started') {
-    const line = starterLine(quest);
-    if (line) hud.showToast(line, 6);
-  } else if (e.type === 'horn') {
-    music.effectNamed('race-horn');
-    hud.showToast(t('regatta.hornToast'), 3);
-  } else if (e.type === 'retired') hud.showToast(t('regatta.retired'), 4);
-  else if (e.type === 'raced') {
-    // The committee boat's horn as she crosses the line: a horn, never a gun (no weapons in
-    // the game, the storyteller's rule for the regatta, decision 0217).
-    music.effectNamed('finish-horn');
-    view.setPennant(flownPennant(quests));
-    const card = raceResultCard(quests, world.map, e);
-    if (card && !bench) {
-      input.releaseAll();
-      hud.hideToast();
-      questCard.show(card);
-      music.speak(card.giver?.voice, wordCount(card.speech), card.mood);
-      refreshPause();
-    }
-  } else if (e.type === 'finished') {
-    view.setQuestsDone(questsDone(world.trade));
-    view.setPennant(flownPennant(quests));
-    // The Cup on her pier once it is won (decision 0217).
-    showHome();
-  }
-  if (e.type !== 'horn') autosave();
-}
+const moments = new Moments({
+  world,
+  play: (event) => music.effectNamed(SOUND_EVENTS[event].effect),
+  raceLeft: () => {
+    const race = quests.race();
+    return race?.state === 'sequence' ? race.left : null;
+  },
+});
+tradePanel.onTrade = () => moments.trade.traded();
+const raceEvent = raceEvents({
+  world,
+  quests,
+  music,
+  hud,
+  view,
+  input,
+  questCard,
+  showHome,
+  autosave,
+  refreshPause,
+  banner: moments.banner,
+  bench: () => !!bench,
+});
 /** "Race again", on the result card or the regatta book (decision 0217). */
 function raceAgain(id: string) {
   if (!quests.raceAgain(id).length) return;
@@ -1103,6 +1089,8 @@ function refreshMenuTutorial() {
   title.update(titleState());
 }
 refreshMenuTutorial();
+// The title's sting (decision 0274): at the first tap if sound is not unlocked yet.
+if (!started) music.effectWhenReady(SOUND_EVENTS.sting.effect);
 // A course set or cleared on the chart may move a lesson on (decision 0151).
 chart.onDestinationChange = () => quests.check();
 tradePanel.onRender = () => coach.render();
@@ -1435,6 +1423,7 @@ pad.onMenuPress = (p, context) => padFocus.press(p, context);
 const portRendered = tradePanel.onRender;
 tradePanel.onRender = () => {
   portRendered();
+  moments.trade.settle($('trade-panel'));
   padFocus.refreshHints();
 };
 // Texts that name controls follow the way of playing: touch, keys or pad (decision 0184).
@@ -1778,6 +1767,7 @@ function tick(now: number) {
   if (coachTick % 15 === 0) seaNews();
   showRunClock();
   questNote.update(dt, mode === 'play' && !paused && hudVisible, (key) => questSeen.has(key));
+  moments.update(dt, paused || !hudVisible);
   homePanel.update();
   // Coach marks follow moving targets (port signs) about ten times a second.
   if (++coachTick % 6 === 0) coach.place();
@@ -2036,6 +2026,7 @@ if (new URLSearchParams(location.search).has('debug')) {
       town,
       freePlay,
       music,
+      moments,
       hull,
       impact,
       /** The voyage as a save code, as Move your voyage sends it (`npm run shots -- --save-link`). */

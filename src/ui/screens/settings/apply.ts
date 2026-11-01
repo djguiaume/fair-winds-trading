@@ -1,6 +1,7 @@
 import type { World } from '../../../sim/world';
 import { hazeSwitches } from '../../../sim/windZones';
 import { type GraphicsView, applyGraphics } from '../../graphicsSettings';
+import { setMotionMode } from '../../motionMode';
 import type { Settings } from '../../settings';
 
 /** What the settings drive while the game runs. */
@@ -35,6 +36,7 @@ export class SettingsApplier {
     view.wakeStyles = s.wakeStyles;
     hud.quiet = s.quietHud;
     hud.compassOff = !s.windCompass;
+    setMotionMode(s.motion);
     applyGraphics(view, s);
     if (s.waves !== this.waves) view.setWaves((this.waves = s.waves));
     world.dynamicWeather = s.weather;

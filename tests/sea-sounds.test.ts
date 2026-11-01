@@ -8,7 +8,7 @@ import {
   seaIdAt,
   type PlaceDistances,
 } from '../src/audio/seaBed';
-import { SYNTHS } from '../src/audio/sfx';
+import { SYNTHS } from '../src/audio/synths';
 import { SEA_FILES } from '../src/data/grownMap';
 import { createRng } from '../src/sim/rng';
 import { checkStepEffects } from '../src/sim/stepEffects';
