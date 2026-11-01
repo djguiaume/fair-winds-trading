@@ -3,20 +3,11 @@ import { GOODS, isGood, type GoodAmounts, type GoodId } from './goods';
 import { landmarkSpot } from './landmarks';
 import type { MapDef } from './map';
 import { SHIP_CLASSES, type PointOfSail } from './ship';
-import {
-  buildingById,
-  giveHomeIsland,
-  hasBuilding,
-  homeSpots,
-  offerHomeSpot,
-  resolveSpot,
-} from './home';
-import { foundSite } from './founding';
-import { MAX_SETTLEMENT_LEVEL, settlementLevel } from './settlement';
+import { buildingById, hasBuilding, homeSpots } from './home';
+import { settlementLevel } from './settlement';
 import { homePort, isDiscovered, standingAt } from './shipyards';
 import type { TradeState } from './trade';
-import { hasVolcano } from '../data/islands';
-import { REGATTA, crossesForward, crossesGate, type Gate } from './regatta';
+import { REGATTA, crossesForward, crossesGate, seriesById, type Gate } from './regatta';
 
 /*
  * The quest engine's code library (decision 0125), like ship parts: the kinds of condition a quest
@@ -31,42 +22,6 @@ import { REGATTA, crossesForward, crossesGate, type Gate } from './regatta';
 export interface Condition {
   is: string;
   [param: string]: unknown;
-}
-
-/** What a quest, a step or a choice pays. */
-export interface QuestReward {
-  gold?: number;
-  /** Port → orders' worth of standing with its shipwright (decision 0048). */
-  standing?: Record<string, number>;
-  /** Ports put on the chart. */
-  discover?: string[];
-  /** Ports that go up one town level at once (decision 0120's "step up"). */
-  levelUp?: string[];
-  /**
-   * Empty islands founded (decision 0157): ports marked `site` in the map open at their start
-   * level and go on the chart.
-   */
-  found?: string[];
-  /**
-   * An island becomes the captain's: `true` for the map's home island (the prologue's reward,
-   * decision 0126), or the id of another island with build spots (decision 0128).
-   */
-  homeIsland?: boolean | string;
-  /**
-   * Arc spots offered: the captain picks one building of the pair there (0126). `spot-2` is on
-   * the home island, `<island>:spot-2` on another one (0128).
-   */
-  homeSpot?: string[];
-  /**
-   * Volcanoes that erupt (decision 0178): islands whose file has a peak with a crater. Spectacle
-   * only: it plays whatever the Eruptions switch says, once the boat is in sight.
-   */
-  erupt?: string[];
-  /**
-   * A standing order's pay (decision 0214): the step's goal lands goods at a port, and they are
-   * paid and grow the town like a help order there, on the voyage's level.
-   */
-  order?: true;
 }
 
 /** A point at sea, in map units. */
@@ -132,6 +87,8 @@ export interface ConditionContext {
   course?: string | null;
   /** What is open: the sea, the chart or the market (the harbour screen). */
   screen?: Screen;
+  /** The regatta series won so far (decision 0217). */
+  won?: readonly string[];
 }
 
 /** The surfaces the captain can have open, for `screen` and lesson coach marks. */
@@ -190,6 +147,7 @@ export type Param =
   | 'place'
   | 'good'
   | 'ship'
+  | 'series'
   | 'building'
   | 'island'
   | 'quest'
@@ -557,6 +515,10 @@ export const CONDITIONS: Record<string, ConditionKind> = {
     params: { ship: 'ship' },
     test: (c, ctx) => ctx.trade.captain.ships[c.ship as string] !== undefined,
   },
+  'series-won': {
+    params: { series: 'series' },
+    test: (c, ctx) => ctx.won?.includes(c.series as string) ?? false,
+  },
   /**
    * Goods handed over alongside `port`, sold or for an order, since the step began; buying the
    * same good back there counts off again. Slot: how many.
@@ -780,6 +742,7 @@ export const CONDITION_ABOUT: Record<string, string> = {
   built: 'a building stands on an island',
   moored: 'moored at an island’s pier',
   'owns-ship': 'owns a ship',
+  'series-won': 'a regatta series is won (every race at the winning medal)',
   delivered: 'hand over goods at a port',
   landed: 'land goods from the hold at a port or a spot (founding goods)',
   bought: 'buy goods at a port',
@@ -913,15 +876,6 @@ export function questsIn(c: Condition | undefined): string[] {
   return out;
 }
 
-export function rewardPorts(r: QuestReward | undefined): string[] {
-  return [
-    ...Object.keys(r?.standing ?? {}),
-    ...(r?.discover ?? []),
-    ...(r?.levelUp ?? []),
-    ...(r?.found ?? []),
-  ].filter((p) => p !== 'home' && !isVarRef(p));
-}
-
 /** What the checks need to know beyond the condition. */
 export interface CheckScope {
   map: MapDef;
@@ -939,7 +893,7 @@ export interface CheckScope {
 export const VAR_KINDS = ['port', 'good'] as const;
 export type VarKind = (typeof VAR_KINDS)[number];
 
-const isCount = (v: unknown) => typeof v === 'number' && Number.isInteger(v) && v >= 0;
+export const isCount = (v: unknown) => typeof v === 'number' && Number.isInteger(v) && v >= 0;
 const isNumber = (v: unknown) => typeof v === 'number' && Number.isFinite(v) && v >= 0;
 const isPoint = (p: unknown) =>
   typeof p === 'object' &&
@@ -979,6 +933,8 @@ function checkParam(
   }
   if (type === 'good' && !isGood(v)) bad(`no good "${String(v)}"`);
   if (type === 'ship' && !(typeof v === 'string' && SHIP_CLASSES[v])) bad(`no ship "${String(v)}"`);
+  if (type === 'series' && !(typeof v === 'string' && seriesById(v)))
+    bad(`no series "${String(v)}"`);
   if (type === 'building' && !buildingById(v as string)) bad(`no building "${String(v)}"`);
   if (type === 'island' && !homeSpots(scope.map, v as string).length)
     bad(`no island with build spots "${String(v)}"`);
@@ -1067,113 +1023,4 @@ export function checkCondition(
   )
     out.push(`${at} › reach: "maxKn" needs "holdSec"`);
   return out;
-}
-
-/**
- * Problems with a reward. The two-building choice of 0120 is made on the home island itself
- * (decision 0126): a reward offers the spot (`homeSpot`), the captain picks there.
- */
-export function checkReward(r: unknown, scope: CheckScope, at: string): string[] {
-  if (r === undefined) return [];
-  if (typeof r !== 'object' || r === null || Array.isArray(r)) return [`${at}: not a reward`];
-  const reward = r as Record<string, unknown>;
-  const out: string[] = [];
-  for (const key of Object.keys(reward))
-    if (
-      ![
-        'gold',
-        'standing',
-        'discover',
-        'levelUp',
-        'found',
-        'homeIsland',
-        'homeSpot',
-        'erupt',
-        'order',
-      ].includes(key)
-    )
-      out.push(`${at}: unknown reward "${key}"`);
-  if (reward.order !== undefined && reward.order !== true) out.push(`${at}.order: only ever true`);
-  if (reward.gold !== undefined && !isCount(reward.gold))
-    out.push(`${at}.gold: needs a whole number`);
-  if (reward.standing !== undefined) {
-    const s = reward.standing;
-    if (typeof s !== 'object' || s === null || Array.isArray(s))
-      out.push(`${at}.standing: port → number`);
-    else
-      for (const [p, n] of Object.entries(s)) {
-        if (!resolvePort(scope.map, p)) out.push(`${at}.standing: no port "${p}"`);
-        if (!isCount(n)) out.push(`${at}.standing.${p}: needs a whole number`);
-      }
-  }
-  const isSite = (p: unknown) => scope.map.ports.some((port) => port.id === p && port.site);
-  for (const key of ['discover', 'levelUp', 'found']) {
-    const list = reward[key];
-    if (list === undefined) continue;
-    if (!Array.isArray(list)) out.push(`${at}.${key}: needs a list of ports`);
-    else
-      for (const p of list)
-        if (!resolvePort(scope.map, p)) out.push(`${at}.${key}: no port "${String(p)}"`);
-        // A site opens by being founded, never by a chart or a level (decision 0157).
-        else if (key === 'found' && !isSite(p))
-          out.push(`${at}.found: "${String(p)}" is no empty island (a port with "site": true)`);
-        else if (key !== 'found' && isSite(p))
-          out.push(`${at}.${key}: "${String(p)}" is an empty island: found it with "found"`);
-  }
-  const island = reward.homeIsland === true ? scope.map.homeIsland : reward.homeIsland;
-  if (reward.homeIsland !== undefined && !homeSpots(scope.map, island as string).length)
-    out.push(`${at}.homeIsland: needs true (the map's home island) or an island with build spots`);
-  if (reward.homeSpot !== undefined) {
-    if (!Array.isArray(reward.homeSpot)) out.push(`${at}.homeSpot: needs a list of spots`);
-    else
-      for (const ref of reward.homeSpot)
-        if (!resolveSpot(scope.map, ref))
-          out.push(`${at}.homeSpot: no arc spot "${String(ref)}" (spot-2 or <island>:spot-2)`);
-  }
-  if (reward.erupt !== undefined) {
-    if (!Array.isArray(reward.erupt)) out.push(`${at}.erupt: needs a list of islands`);
-    else
-      for (const id of reward.erupt) {
-        const island = scope.map.islands.find((i) => i.id === id);
-        if (!island) out.push(`${at}.erupt: no island "${String(id)}"`);
-        else if (!hasVolcano(island))
-          out.push(`${at}.erupt: "${String(id)}" has no volcano (a peak with a crater)`);
-      }
-  }
-  return out;
-}
-
-/** Pay a reward into the voyage. A town put up a level calls `levelled` so its market follows. */
-export function payReward(
-  trade: TradeState,
-  map: MapDef,
-  r: QuestReward | undefined,
-  levelled: () => void,
-): void {
-  if (!r) return;
-  trade.captain.gold += r.gold ?? 0;
-  for (const [id, n] of Object.entries(r.standing ?? {})) {
-    const p = resolvePort(map, id);
-    if (p) trade.progress.standing[p] = (trade.progress.standing[p] ?? 0) + n;
-  }
-  for (const id of r.discover ?? []) {
-    const p = resolvePort(map, id);
-    if (p && !trade.progress.discovered.includes(p)) trade.progress.discovered.push(p);
-  }
-  let up = false;
-  for (const id of r.found ?? []) if (foundSite(trade, map, id)) up = true;
-  for (const id of r.levelUp ?? []) {
-    const town = trade.settlements.byPort[resolvePort(map, id) ?? ''];
-    if (!town || town.level >= MAX_SETTLEMENT_LEVEL) continue;
-    town.level += 1;
-    town.growth = 0;
-    up = true;
-  }
-  if (up) levelled();
-  if (r.homeIsland)
-    giveHomeIsland(trade, map, r.homeIsland === true ? map.homeIsland : r.homeIsland);
-  for (const ref of r.homeSpot ?? []) {
-    const at = resolveSpot(map, ref);
-    if (at) offerHomeSpot(trade, map, at.spot, at.island);
-  }
 }

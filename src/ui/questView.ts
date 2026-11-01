@@ -5,7 +5,6 @@ import {
   CONDITIONS,
   type Condition,
   type QuestPoint,
-  type QuestReward,
   deref,
   isSpot,
   pointOf,
@@ -13,6 +12,7 @@ import {
   slotLayout,
   type StepNews,
 } from '../sim/questLibrary';
+import type { QuestReward } from '../sim/questRewards';
 import {
   type CoachTarget,
   QUEST_DONE,
@@ -277,12 +277,11 @@ export function rewardWords(
     gold += r.gold ?? 0;
     if (r.homeIsland) more.push(t('quest.rewardIsland'));
     if (r.homeSpot?.length) more.push(t('quest.rewardBuilding'));
-    for (const id of r.levelUp ?? [])
-      more.push(t('quest.rewardGrows', { name: portName(map, id) ?? id }));
-    for (const id of r.discover ?? [])
-      more.push(t('quest.rewardDiscover', { name: portName(map, id) ?? id }));
-    for (const id of r.found ?? [])
-      more.push(t('quest.rewardFound', { name: portName(map, id) ?? id }));
+    if (r.ship) more.push(t('quest.rewardShip', { name: tOptional(`ship.${r.ship}`) ?? r.ship }));
+    const at = (key: MessageKey, ids: string[] = []) =>
+      ids.map((id) => t(key, { name: portName(map, id) ?? id }));
+    more.push(...at('quest.rewardGrows', r.levelUp), ...at('quest.rewardDiscover', r.discover));
+    more.push(...at('quest.rewardFound', r.found));
   }
   return gold || more.length ? { gold, more } : undefined;
 }

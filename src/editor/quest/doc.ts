@@ -15,9 +15,9 @@ import {
   type Condition,
   type Param,
   type QuestPoint,
-  type QuestReward,
   isSpot,
 } from '../../sim/questLibrary';
+import type { QuestReward } from '../../sim/questRewards';
 import {
   type QuestDef,
   type QuestStep,
@@ -128,6 +128,8 @@ export function conditionWords(c: Condition | undefined): string {
       return `moored at ${v.island ? String(v.island) : 'home'}`;
     case 'owns-ship':
       return `owns a ${String(v.ship)}`;
+    case 'series-won':
+      return `series ${String(v.series)} won`;
     case 'delivered':
       return `deliver ${String(v.qty)} ${String(v.good)} at ${String(v.port)}`;
     case 'landed':
@@ -516,6 +518,8 @@ export function defaultParam(type: Param, map: MapDef, questIds: string[]): unkn
       return 'fish';
     case 'ship':
       return 'sloop';
+    case 'series':
+      return REGATTA.series[0]?.id ?? '';
     case 'building':
       return 'workshop';
     case 'island':
@@ -946,16 +950,3 @@ export function mergeText(lang: Lang, edits: Record<string, string>): Record<str
   }
   return Object.fromEntries(merged);
 }
-
-/** Every reward kind with what it holds, for the reward form. */
-export const REWARD_FIELDS: { key: keyof QuestReward; label: string }[] = [
-  { key: 'gold', label: 'Gold' },
-  { key: 'standing', label: 'Standing' },
-  { key: 'discover', label: 'On the chart' },
-  { key: 'levelUp', label: 'Level up' },
-  { key: 'found', label: 'Found an outpost' },
-  { key: 'homeIsland', label: 'An island' },
-  { key: 'homeSpot', label: 'Building spots' },
-  { key: 'erupt', label: 'Eruption' },
-  { key: 'order', label: 'Paid like a help order' },
-];

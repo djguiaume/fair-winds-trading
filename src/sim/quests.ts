@@ -13,7 +13,6 @@ import {
   type Helm,
   MAP_PLACES,
   type QuestPoint,
-  type QuestReward,
   SCREENS,
   type Screen,
   VAR_KINDS,
@@ -22,14 +21,11 @@ import {
   deref,
   isVarRef,
   pointOf,
-  checkReward,
   itemsAboard,
   parFor,
-  payReward,
   portsIn,
   questsIn,
   resolvePort,
-  rewardPorts,
   slotLayout,
   testCondition,
   updateGoal,
@@ -41,6 +37,7 @@ import {
   RACE_GOING,
   RACE_HORN,
 } from './questLibrary';
+import { type QuestReward, checkReward, payReward, rewardPorts } from './questRewards';
 import {
   REGATTA,
   type MedalRank,
@@ -1192,6 +1189,7 @@ export class QuestBook {
       vars: quest ? this.progress(quest.id)?.vars : undefined,
       course: course && resolvePort(this.world.map, course) ? course : null,
       screen: this.screen(),
+      won: this.state.won,
     };
   }
 

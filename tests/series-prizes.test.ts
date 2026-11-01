@@ -5,6 +5,8 @@ import { REGATTA, checkRegattaData } from '../src/sim/regatta';
 import { SHIP_CLASSES, SLOOP } from '../src/sim/ship';
 import { holdCapacity } from '../src/sim/upgrades';
 import { shipOffer } from '../src/sim/shipyards';
+import { testCondition } from '../src/sim/questLibrary';
+import { checkReward, payReward } from '../src/sim/questRewards';
 import { grantSeriesPrizes } from '../src/sim/seriesPrizes';
 import { createWorld } from '../src/sim/world';
 
@@ -46,5 +48,38 @@ describe('series prize ships', () => {
     trade.quests.won = ['regatta-club'];
     for (const id of ['tern-pilot', 'tern-yawl'])
       expect(shipOffer(trade, PHASE1_MAP, id).status).not.toBe('no-yard');
+  });
+});
+
+describe('a ship as a quest reward', () => {
+  const scope = { map: PHASE1_MAP, quests: new Map(), steps: new Map(), items: [] };
+
+  it('gives the ship at stock levels, once, and keeps the one she has', () => {
+    const { trade } = createWorld(PHASE1_MAP, SLOOP);
+    payReward(trade, PHASE1_MAP, { ship: 'tern' }, () => {});
+    expect(trade.captain.ships.tern).toEqual({ sails: 1, hold: 1, hull: 1 });
+    trade.captain.ships.tern = { sails: 2, hold: 1, hull: 1 };
+    payReward(trade, PHASE1_MAP, { ship: 'tern' }, () => {});
+    expect(trade.captain.ships.tern!.sails).toBe(2);
+    expect(trade.captain.activeShip).toBe('sloop');
+  });
+
+  it('checks the ship is a class', () => {
+    expect(checkReward({ ship: 'tern' }, scope, 'r')).toEqual([]);
+    expect(checkReward({ ship: 'ghost' }, scope, 'r').join()).toContain('no ship "ghost"');
+  });
+
+  it('starts on a series won', () => {
+    const { trade } = createWorld(PHASE1_MAP, SLOOP);
+    const base = {
+      trade,
+      map: PHASE1_MAP,
+      isDone: () => false,
+      chose: () => false,
+      isAt: () => false,
+    };
+    const c = { is: 'series-won', series: 'regatta-club' };
+    expect(testCondition(c, base)).toBe(false);
+    expect(testCondition(c, { ...base, won: ['regatta-club'] })).toBe(true);
   });
 });
