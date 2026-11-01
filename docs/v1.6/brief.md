@@ -8,17 +8,17 @@ Guillaume's "done when" (2026-11-01): one visual language on every screen; a pro
 
 **One captain's instrument, not a website.** Every screen has one hero (the boat, the harbour, the chart, the sea), a few big choices, large type, one signature, and something moves whenever the game answers you.
 
-## Identity first: the mockup round (before any build)
+## Identity: chosen on 2026-11-01 (three mockup rounds)
 
-An Opus thread draws **three directions as static images** (Guillaume prefers mockups over demos), each a complete identity: wordmark or logo, signature colour on a neutral base, type pairing, one motif (a pennant, wind lines, a rope, a compass rose), materials. Each direction shows the same four screens, desktop and phone landscape, day and night where it matters: title screen, sea HUD, harbour screen, chart. One contact sheet per direction, JPG, at most 1280 px wide. Guillaume and the art director see them in one round.
+**Direction 1, "the chart table", round 3 D** (Guillaume, 2026-11-01 15:06Z; the art director agreed). Sheets and kit: project files `ui-review/mockups/` and [docs/ui-refactor/v1.6/](../ui-refactor/v1.6/) (PR #435). Ink on paper: sage `#4a6d41` as the signature on paper `#efe6d1` (night paper `#b9ab8a` at 80%), ink `#23303a`, IM Fell English for titles with Alegreya Sans for text, a compass rose with a banderole as the logo, torn paper edges as 9-slice images. Minimal at sea and on the title (text and marks on the scene with a hard 1 px ink halo, no boxes); framed paper in the harbour, Boat looks and the chart. Dropped: 2 "the sailing club" (round 1), 3 "the painted harbour" (round 2).
 
-| Direction | Idea | Feeds from |
-| --- | --- | --- |
-| **1. The chart table** | Ink and paper: engraved chart, a captain's ledger, brass instruments; a drawn wordmark with a swallow-tail pennant | Skull and Bones pages, Sea of Thieves materials |
-| **2. The sailing club** | Sportive and bold: condensed type, big numbers, flat sailcloth white and dark slate, a burgee (club pennant) as logo and a single accent colour | Forza Horizon, Seafarer instruments |
-| **3. The painted harbour** | Cosy and illustrated: painted wood and sailcloth, chunky rounded buttons, a hand-lettered logo, warm palette, colour-coded goods | Sea of Thieves, Zombie Assault Resurgence readability |
-
-Each direction names its signature colour; none uses blue or teal with gold as the pair. Lines on paper stay banned; a plank or canvas texture is fine on backgrounds. The mockup thread is told Guillaume's past rejections (red confirm buttons, plank seams, teal-and-brass menus).
+Rules fixed during the rounds (Guillaume unless noted):
+- The **wind compass with the no-go zone** is its own dial, **top right**, never folded into another instrument; at least 96 px on desktop and 72 px on the phone; the no-go wedge solid at about 55% ink, hatched, crisp, never red; a thick wind arrow; the point-of-sail word beside it. It may be switched off on the hardest level.
+- The speed in knots stays the biggest number on screen. The instrument always has a faint ink backing (40%) and never sits over land unbacked (art director).
+- Harbour: Market and Quay as **one ledger across about 90%** of the width with the port as a strip above (round 3 D); Shipyard and Boat looks keep the boat visible (round 3 C) with the 3D preview area the biggest element and Buy below it. Rows about 64 px, names 18 px, prices 20 px, big Buy and Sell; the ledger fills down to the legend bar, never a blank lower half.
+- Status text at sea at full ink with a halo, 14 px or more on desktop; phone text 12 px minimum.
+- Title screen: still open; four proposals in that style are being drawn (round 4).
+- Chart legend shows the wind and the no-go wedge (art director).
 
 ## Guillaume's ChatGPT mockups (2026-11-01)
 
@@ -43,7 +43,7 @@ Same pause rule as v1.4: Guillaume checks token use between waves and says go. A
 | Wave | Part | Effort | Visual | Model |
 | --- | --- | --- | --- | --- |
 | 0 (v1.4.1 or now) | Phone landscape bugs: clipped titles, port tab content cut off, pause sheet taller than the screen, quest card over the chip, settings scroll (#433) | low | yes | Sonnet |
-| M | Three identity mockups, one review round, identity chosen and recorded (art bible UI section rewritten) | med | yes | Opus |
+| M (done) | Identity mockups, three rounds, direction 1 round 3 D chosen; the art bible UI section is rewritten from the kit's README in wave 1 | med | yes | Opus |
 | 1 | UI foundation: tokens (colour, type, space, radius, elevation, motion, z) in `src/data/ui/theme.json`, components (button, tab bar, card, panel, list row, dialog, toast, screen header), a screen stack with transitions replacing the `hidden` wiring in `main.ts`, pad focus kept; theme editable in the editors and `npm run theme` (0153) | high | no | Opus |
 | 1 | Identity assets: logo, wordmark, pennant motif, icon style pass on the sprite (one weight), fonts | med | yes | Sonnet |
 | 1 | Title, pause, settings and New voyage on the foundation | med | yes | Sonnet |
