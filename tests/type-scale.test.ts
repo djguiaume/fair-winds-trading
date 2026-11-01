@@ -1,9 +1,11 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-// Game CSS takes its type from the tokens in theme.css (issue #319, ADR 0220).
+// Game CSS takes its type from the tokens in theme.css (issue #319, ADR 0220); fonts.css declares the identity fonts.
 const dir = 'src/ui';
-const sheets = readdirSync(dir).filter((f) => f.endsWith('.css') && f !== 'theme.css');
+const sheets = readdirSync(dir).filter(
+  (f) => f.endsWith('.css') && f !== 'theme.css' && f !== 'fonts.css',
+);
 const lines = (file: string) => readFileSync(`${dir}/${file}`, 'utf8').split('\n');
 
 const RAW = [
