@@ -1,4 +1,3 @@
-import './ui/sprite';
 import { maxHull } from './sim/hazards';
 import { renderDifficultyButtons, renderLevelCards } from './ui/levelCards';
 import { GAME_MAP, PHASE1_MAP, PHASE1_SOURCE, RING_PREFIX, prepareMap } from './data/maps';
