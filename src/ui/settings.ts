@@ -19,8 +19,10 @@ export interface Settings {
   /** The one-time "ease the sails" message has been shown (decision 0078). */
   seenPressHint: boolean;
   uiMode: UiMode;
-  /** Speed log (speed, heading, point of sail) shown at sea; on by default (decision 0049). */
-  showLog: boolean;
+  /** Quiet HUD (issue #441): only the wind compass and the instrument at sea; off by default. */
+  quietHud: boolean;
+  /** The wind compass dial; it can be switched off on the hardest level only (Guillaume). */
+  windCompass: boolean;
   /** Chosen language; null follows the browser (decision 0037). */
   language: LanguageId | null;
   /** Background music volume, 0 (off) to 1 (decision 0045). */
@@ -85,7 +87,8 @@ const DEFAULTS: Settings = {
   seenWindHint: false,
   seenPressHint: false,
   uiMode: 'adult',
-  showLog: true,
+  quietHud: false,
+  windCompass: true,
   language: null,
   musicVolume: 0.6,
   soundVolume: 0.7,

@@ -2,51 +2,54 @@ import { TUNING } from '../data/tuning';
 import { formatNumber, t } from '../i18n';
 import { seaDragAt } from '../sim/seaDrag';
 import type { World } from '../sim/world';
-
-function byId(id: string): HTMLElement {
-  const el = document.getElementById(id);
-  if (!el) throw new Error(`#${id} missing from index.html`);
-  return el;
-}
+import { compassPoint, setHidden, setText } from './hud/parts';
 
 /** The HUD's lines about the water she sails through: the current and the waves. */
 export class SeaLines {
-  /** Speed over the ground and the current, shown only while in a current (decision 0140). */
-  private readonly sogBox = byId('log-sog');
-  private readonly sog = byId('sog');
-  private readonly currentText = byId('current-text');
+  private readonly currentText = document.createElement('span');
   private readonly dragText = document.createElement('span');
+  private shownDrag = -1;
 
-  constructor() {
-    this.dragText.className = 'weather-text';
+  /**
+   * `lines`: the wind compass's lines, which these join; `showSog` puts her speed over the
+   * ground on the instrument (null hides it).
+   */
+  constructor(
+    lines: HTMLElement,
+    private readonly showSog: (text: string | null) => void,
+  ) {
+    this.currentText.id = 'current-text';
+    this.currentText.className = 'hud-line';
     // A footnote to the wind (art director, #284): one step dimmer than it.
-    this.dragText.style.color = 'var(--ink-dim)';
-    this.dragText.hidden = true;
-    this.currentText.after(this.dragText);
+    this.dragText.className = 'hud-line is-dim';
+    this.currentText.hidden = this.dragText.hidden = true;
+    lines.append(this.currentText, this.dragText);
   }
 
-  /** Both lines for this frame; `compassPoint` names a direction as the rest of the HUD does. */
-  show(world: World, showLog: boolean, compassPoint: (rad: number) => string) {
-    this.showCurrent(world, showLog, compassPoint);
+  /** Both lines, about eight times a second. */
+  show(world: World) {
+    this.showCurrent(world);
     this.showWaves(world);
   }
 
   /**
-   * In a current (decision 0140): SOG under the speed and "Current 1.8 kn E" (where it flows)
-   * under the wind. Both go with the log's eye toggle, and away in still water.
+   * In a current (decision 0140): her speed over the ground on the instrument and "Current 1.8 kn
+   * E" (where it flows) under the wind; both away in still water.
    */
-  private showCurrent(world: World, showLog: boolean, compassPoint: (rad: number) => string) {
+  private showCurrent(world: World) {
     const { water, sogKn } = world;
     const kn = Math.hypot(water.east, water.north);
-    const shown = showLog && !!water.id && kn >= 0.2;
-    this.sogBox.hidden = !shown;
-    this.currentText.hidden = !shown;
+    const shown = !!water.id && kn >= 0.2;
+    setHidden(this.currentText, !shown);
+    this.showSog(shown ? `${formatNumber(sogKn, 1)} ${t('unit.knots')}` : null);
     if (!shown) return;
-    this.sog.textContent = `${formatNumber(sogKn, 1)} ${t('unit.knots')}`;
-    this.currentText.textContent = t('hud.current', {
-      n: formatNumber(kn, 1),
-      dir: compassPoint(Math.atan2(water.east, water.north)),
-    });
+    setText(
+      this.currentText,
+      t('hud.current', {
+        n: formatNumber(kn, 1),
+        dir: compassPoint(Math.atan2(water.east, water.north)),
+      }),
+    );
   }
 
   /**
@@ -58,9 +61,9 @@ export class SeaLines {
     const drag = seaDragAt(world, boat, world.ship);
     const shown = drag >= TUNING.waves.drag.hudAt && boat.sail > 0 && boat.speedKn >= 1;
     const pc = shown ? Math.round(drag * 100) : 0;
-    if (this.dragText.dataset.pc === String(pc)) return;
-    this.dragText.dataset.pc = String(pc);
-    this.dragText.hidden = !shown;
+    if (pc === this.shownDrag) return;
+    this.shownDrag = pc;
+    setHidden(this.dragText, !shown);
     if (shown) this.dragText.textContent = t('hud.seaDrag', { n: pc });
   }
 }

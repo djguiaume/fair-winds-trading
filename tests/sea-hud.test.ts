@@ -28,38 +28,56 @@ describe('Sea HUD (decision 0049)', () => {
   it('fills the crate icon with the hold and shows the count without a bar', () => {
     const { world, hud } = setup();
     hud.update(0.2, project, size);
+    const fill = () => $('hud-cargo-box').querySelectorAll('rect')[1]!.getAttribute('height');
     expect($('hud-cargo').textContent).toBe('0/10');
-    expect($('hud-cargo-fill').getAttribute('height')).toBe('0.0');
+    expect(fill()).toBe('0.0');
     world.trade.captain.cargo.fish = 5;
     hud.update(0.2, project, size);
     expect($('hud-cargo').textContent).toBe('5/10');
-    expect($('hud-cargo-fill').getAttribute('height')).toBe('8.0');
+    expect(fill()).toBe('8.0');
     expect($('hud-cargo-box').classList.contains('is-full')).toBe(false);
   });
 
-  it('shows heading in degrees with the compass point, and the hull only when damaged', () => {
+  it('shows heading in degrees with the compass point, and the hull bar only when damaged', () => {
     const { world, hud } = setup();
     world.boat.heading = (125 * Math.PI) / 180;
     hud.update(0.2, project, size);
     expect($('heading').textContent).toBe('125° SE');
+    expect($('hud-hull').textContent).toBe('100%');
     expect($('hull-bar').hidden).toBe(true);
-    expect($('hud-hull-box').hidden).toBe(true);
     world.trade.captain.hullDamage[world.trade.captain.activeShip] = 10;
     hud.update(0.2, project, size);
     expect($('hull-bar').hidden).toBe(false);
-    expect($('hud-hull-box').hidden).toBe(false);
+    expect($('hud-hull-box').dataset.stage).toBeDefined();
   });
 
-  it('folds the speed log and remembers the choice', () => {
+  it('keeps only the compass and the instrument in the quiet HUD (issue #441)', () => {
     const { hud } = setup();
-    let saved: boolean | null = null;
-    hud.onLogToggle = (shown) => (saved = shown);
-    expect(hud.showLog).toBe(true);
-    $('log-toggle').click();
-    expect(hud.showLog).toBe(false);
-    expect($('speed-log').classList.contains('is-folded')).toBe(true);
-    expect(saved).toBe(false);
-    expect(loadSettings().showLog).toBe(true);
+    expect(loadSettings().quietHud).toBe(false);
+    hud.quiet = true;
+    expect($('hud').hasAttribute('data-quiet')).toBe(true);
+    hud.quiet = false;
+    expect($('hud').hasAttribute('data-quiet')).toBe(false);
+  });
+
+  it('lets the wind compass dial go on the hardest level only', () => {
+    const { world, hud } = setup();
+    hud.compassOff = true;
+    world.trade.difficulty = 'fair';
+    hud.update(0.2, project, size);
+    expect($('wind-help-trigger').hidden).toBe(false);
+    world.trade.difficulty = 'salt';
+    hud.update(0.2, project, size);
+    expect($('wind-help-trigger').hidden).toBe(true);
+  });
+
+  it('fades the status after a quiet spell and brings it back on a change', () => {
+    const { world, hud } = setup();
+    for (let i = 0; i < 50; i++) hud.update(0.15, project, size);
+    expect($('captain-stats').hasAttribute('data-idle')).toBe(true);
+    world.trade.captain.gold += 10;
+    hud.update(0.15, project, size);
+    expect($('captain-stats').hasAttribute('data-idle')).toBe(false);
   });
 
   it('sets the sails straight from a lever notch and mirrors the boat', () => {
@@ -96,7 +114,6 @@ describe('responsive overlay updates', () => {
     // Less than the text throttle; target selection must still be immediate.
     hud.update(1 / 60, project, size);
     expect($('obj-name').textContent).toBe('Watchman Key');
-    expect($('obj-arrow').style.transform).toBe(`rotate(${Math.PI}rad)`);
     expect(($('wp-arrow').firstElementChild as HTMLElement).style.transform).toBe(
       `rotate(${Math.PI}rad)`,
     );
@@ -203,19 +220,6 @@ describe('hidden HUD work', () => {
     expect($('hud-cargo').textContent).toBe('3/10');
     expect($('heading').textContent).toBe('90\u00b0 E');
     expect(spy).toHaveBeenCalled();
-  });
-
-  it('skips folded speed text and refreshes it immediately when unfolded', () => {
-    const { world, hud } = setup();
-    hud.update(0.2, project, size);
-    const heading = $('heading').textContent;
-    hud.showLog = false;
-    world.boat.heading = Math.PI;
-    hud.update(0.2, project, size);
-    expect($('heading').textContent).toBe(heading);
-    hud.showLog = true;
-    hud.update(1 / 60, project, size);
-    expect($('heading').textContent).toBe('180\u00b0 S');
   });
 });
 

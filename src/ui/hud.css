@@ -71,67 +71,6 @@ body {
   font-size: var(--fs-small);
 }
 
-/* Toast */
-.toast {
-  position: absolute;
-  top: 30%;
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: min(90vw, 460px);
-  text-align: center;
-  background: rgba(20, 40, 50, 0.85);
-  border: 2px solid #ffe680;
-  border-radius: 14px;
-  padding: 10px 16px;
-  font-weight: bold;
-  font-size: var(--fs-lead);
-  animation: toast-in 0.25s ease-out;
-}
-.toast[hidden] {
-  display: none;
-}
-.hazard-toast-badge {
-  width: 28px;
-  height: 28px;
-  margin: -4px 8px -4px 0;
-  vertical-align: middle;
-}
-@keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translate(-50%, 8px);
-  }
-}
-
-/* Tiller (drag-to-steer indicator) */
-.tiller {
-  position: absolute;
-  width: 0;
-  height: 0;
-}
-.tiller::before {
-  content: '';
-  position: absolute;
-  left: -60px;
-  top: -3px;
-  width: 120px;
-  height: 6px;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.25);
-}
-.tiller i {
-  position: absolute;
-  width: 34px;
-  height: 34px;
-  margin: -17px 0 0 -17px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  border: 2px solid #fff;
-}
-.tiller[hidden] {
-  display: none;
-}
-
 button.primary {
   background: #f2c230;
   color: var(--on-gold-soft);
@@ -933,55 +872,6 @@ button.primary {
   font-size: var(--fs-note);
   opacity: 0.85;
 }
-/* Wind strength gauge (decision 0040), hidden for now; the rest of the compass is in sea-hud.css. */
-.wind-gauge {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 3px;
-  height: 17px;
-  margin: 1px 0 2px;
-}
-.wind-gauge i {
-  display: block;
-  width: 12px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.18);
-  transition: background-color 0.4s;
-}
-.wind-gauge i:nth-child(1) {
-  height: 5px;
-}
-.wind-gauge i:nth-child(2) {
-  height: 8px;
-}
-.wind-gauge i:nth-child(3) {
-  height: 11px;
-}
-.wind-gauge i:nth-child(4) {
-  height: 14px;
-}
-.wind-gauge i:nth-child(5) {
-  height: 17px;
-}
-.wind-gauge i.on {
-  background: var(--force);
-}
-.wind-gauge[hidden],
-.wind-gust[hidden] {
-  display: none;
-}
-@media (max-height: 500px), (max-width: 600px) {
-  .wind-gauge i {
-    width: 10px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .wind-gauge i {
-    transition: none;
-  }
-}
-
 /* The quest test bar (decision 0142): editor-only, while a quest is played from a step. */
 .quest-test-bar {
   position: fixed;

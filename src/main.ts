@@ -318,24 +318,24 @@ const hud = new Hud(
 );
 // Press warning (decision 0078): a one-time "ease the sails" message, and a buzz and a creak
 // when she crosses into red.
-hud.seenPressHint = settings.seenPressHint;
-hud.onPressHintSeen = () => {
+hud.press.seenHint = settings.seenPressHint;
+hud.press.onHintSeen = () => {
   settings.seenPressHint = true;
   keepSettings();
 };
 // The first current met (decision 0140): a one-time hint, then a short "charted" line.
-hud.seenCurrentHint = settings.seenCurrentHint;
-hud.onCurrentHintSeen = () => {
+hud.toasts.seenCurrentHint = settings.seenCurrentHint;
+hud.toasts.onCurrentHintSeen = () => {
   settings.seenCurrentHint = true;
   keepSettings();
 };
 // The first storm belt met (decision 0167): a one-time hint; its HUD line says the rest.
-hud.seenBeltHint = settings.seenBeltHint;
-hud.onBeltHintSeen = () => {
+hud.toasts.seenBeltHint = settings.seenBeltHint;
+hud.toasts.onBeltHintSeen = () => {
   settings.seenBeltHint = true;
   keepSettings();
 };
-hud.onPressDanger = () => {
+hud.press.onDanger = () => {
   navigator.vibrate?.([70, 50, 70]);
   music.creak();
 };
@@ -576,7 +576,7 @@ function quayNow(): QuayItem[] {
 }
 // Every other quest's news away from its harbour: a small note at sea (decision 0141).
 const questNote = new QuestNote($<HTMLButtonElement>('quest-note'), $('captain-stats'));
-questNote.onOpen = () => chart.open();
+hud.onQuestOpen = questNote.onOpen = () => chart.open();
 /** Sites founded so far (decision 0157): a new one opens its harbour and goes on the chart. */
 let founded = foundedSites(world.map, world.trade).join();
 function checkFounded() {
@@ -739,6 +739,7 @@ function handOverGoods(id: string, good: string, n: number) {
 }
 questCard.onHandOver = handOverGoods;
 // Quest cargo in the hold lists, at sea and in harbour (decision 0213).
+hud.quests = quests;
 hud.questCargo = tradePanel.questCargo = chart.questCargo = () => cargoLines(quests);
 tradePanel.quay = {
   items: quayNow,
@@ -1456,10 +1457,6 @@ if (pad.usingPad) {
 // Start in the pause menu sets sail again, as the menu's own button does.
 padFocus.onResume = () => {
   if (started && screens.showing('pause')) pause.resume.click();
-};
-hud.onLogToggle = (shown) => {
-  settings.showLog = shown;
-  keepSettings();
 };
 const camera = new CameraControls(view, input, settings, tilt);
 world.traffic.cap = TUNING.seamanship.traffic.atOnce[level];

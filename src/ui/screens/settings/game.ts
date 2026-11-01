@@ -2,7 +2,7 @@ import { hasText, t } from '../../../i18n';
 import { DIFFICULTIES, DIFFICULTY, isDifficulty } from '../../../sim/difficulty';
 import { button, setDisabled } from '../../components';
 import type { RowHost, SettingsContext } from './context';
-import { type SettingRow, actionRow, choiceRow, text } from './rows';
+import { type SettingRow, actionRow, choiceRow, switchRow, text } from './rows';
 
 /** Settings › Game: the voyage's level and wind, the lessons, the hazards, the new game. */
 export function gameTab(ctx: SettingsContext, host: RowHost) {
@@ -19,6 +19,17 @@ export function gameTab(ctx: SettingsContext, host: RowHost) {
       get: () => ctx.difficulty.current(),
       set: (id) => {
         if (isDifficulty(id)) ctx.difficulty.choose(id);
+        host.changed();
+      },
+    }),
+    // The wind compass may go only on the hardest level (Guillaume, issue #441).
+    switchRow({
+      id: 'wind-compass-switch',
+      key: 'settings.windCompass',
+      hidden: () => ctx.difficulty.current() !== DIFFICULTIES[DIFFICULTIES.length - 1],
+      get: () => settings.windCompass,
+      set: (on) => {
+        settings.windCompass = on;
         host.changed();
       },
     }),

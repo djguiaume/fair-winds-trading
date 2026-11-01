@@ -117,7 +117,7 @@ export class PortLabels {
 
       this.portElements.set(port.id, {
         root: el,
-        anchor: this.harbours[port.id] ?? island,
+        anchor: seaward(this.harbours[port.id] ?? island, island),
         cue: el.querySelector('.port-marker-cue')!,
         boxEl: el.querySelector('.port-marker-box')!,
         nameEl: el.querySelector('.port-marker-name')!,
@@ -252,4 +252,17 @@ export class PortLabels {
       }
     }
   }
+}
+
+/**
+ * The sign's foot: the pier pushed out from the island's middle by `hud.json` › `portSignSeaward`,
+ * so the sign stands over the water and off the shoreline (issue #441).
+ */
+function seaward(pier: { x: number; y: number }, island: { x: number; y: number }) {
+  const dx = pier.x - island.x;
+  const dy = pier.y - island.y;
+  const length = Math.hypot(dx, dy);
+  if (length < 1e-6) return pier;
+  const k = TUNING.hud.portSignSeaward / length;
+  return { x: pier.x + dx * k, y: pier.y + dy * k };
 }

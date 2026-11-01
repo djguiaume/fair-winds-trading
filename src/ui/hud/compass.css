@@ -1,0 +1,255 @@
+/*
+ * Top right: the wind compass (Guillaume's must, issue #441). The dial on its faint ink backing,
+ * boat up, the card turning with her heading; the no-go wedge solid and hatched at about 55% ink
+ * with crisp light edges, never red; a thick wind arrow that grows with the wind. Beside it the
+ * point of sail and the breeze, then the weather's lines (storms in the storm amber).
+ */
+.hud-wind {
+  top: var(--top);
+  right: var(--right);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.hud-wind-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  max-width: 280px;
+  padding-top: 18px;
+  text-align: right;
+}
+.hud-pos {
+  color: var(--hud-sig);
+  font: 400 34px/1 var(--ui-font-title);
+}
+.hud-pos[data-point='down'] {
+  color: var(--hud-text);
+  font-size: 26px;
+}
+.hud-pos[data-point='in-irons'] {
+  color: var(--hud-storm);
+}
+.hud-breeze {
+  font-size: 18px;
+  font-weight: 600;
+}
+.hud-gust {
+  margin-left: 6px;
+  padding: 0 6px 1px;
+  border-radius: var(--ui-radius-s);
+  background: var(--hud-backing);
+  font-size: 12px;
+  font-weight: 700;
+}
+.hud-gust[hidden],
+.hud-line[hidden],
+.hud-chip[hidden],
+.hud-hint[hidden],
+.hud-dial[hidden] {
+  display: none;
+}
+.hud-lines {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 14px;
+  font-weight: 600;
+}
+.hud-line.is-dim {
+  opacity: 0.85;
+}
+#weather-text[data-kind='storm'],
+#wind-forecast[data-storm],
+#belt-text[data-squalls] {
+  color: var(--hud-storm);
+}
+.hud-chip,
+.hud-hint {
+  margin-top: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--hud-storm);
+  border-radius: var(--ui-radius-pill);
+  background: var(--hud-backing);
+  color: var(--hud-text);
+  font: 700 14px/1.2 var(--ui-font-text);
+  text-shadow: var(--hud-halo);
+  pointer-events: auto;
+  cursor: pointer;
+}
+.hud-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-color: var(--hud-text);
+  cursor: default;
+}
+.hud-hint-close {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: 700 18px/1 var(--ui-font-text);
+  cursor: pointer;
+}
+
+.hud-dial {
+  flex: none;
+  width: var(--hud-compass);
+  height: var(--hud-compass);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.hud-dial svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.hud-dial .face {
+  fill: var(--hud-backing);
+  stroke: var(--hud-text);
+  stroke-width: 2;
+}
+.hud-dial .nogo {
+  fill: var(--hud-nogo);
+  stroke: var(--hud-text);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+.hud-dial .nogo-hatch {
+  stroke: none;
+}
+.hud-dial .nogo-line {
+  stroke: var(--hud-text);
+  stroke-opacity: 0.6;
+  stroke-width: 1.4;
+}
+.hud-dial .ticks {
+  fill: none;
+  stroke: var(--hud-text);
+  stroke-width: 1.2;
+}
+.hud-dial .ticks.major {
+  stroke-width: 2.4;
+}
+.hud-dial text {
+  fill: var(--hud-text);
+  stroke: var(--ui-ink);
+  stroke-width: 2.5px;
+  paint-order: stroke;
+  font: 400 15px var(--ui-font-title);
+  text-anchor: middle;
+}
+.hud-dial .lubber {
+  fill: var(--hud-text);
+  stroke: var(--ui-ink);
+  stroke-width: 1.2;
+}
+.hud-dial .boat-under {
+  fill: none;
+  stroke: var(--ui-ink);
+  stroke-width: 3;
+}
+.hud-dial .boat {
+  fill: var(--hud-text);
+}
+.hud-dial .arrow,
+.hud-dial .arrow-under {
+  fill: none;
+  stroke-linecap: butt;
+}
+.hud-dial .arrow {
+  stroke: var(--hud-sig);
+  stroke-width: var(--arrow, 8px);
+}
+.hud-dial .arrow-under {
+  stroke: var(--ui-ink);
+  stroke-width: calc(var(--arrow, 8px) + 4px);
+}
+.hud-dial .arrow-head {
+  fill: var(--hud-sig);
+  stroke: var(--ui-ink);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+/* The arrow grows bolder as the wind rises; its length and direction stay. */
+.hud-wind[data-force='0'] {
+  --arrow: 5px;
+}
+.hud-wind[data-force='1'] {
+  --arrow: 6.5px;
+}
+.hud-wind[data-force='3'] {
+  --arrow: 9.5px;
+}
+.hud-wind[data-force='4'] {
+  --arrow: 11px;
+}
+.hud-dial .course circle {
+  fill: var(--hud-sig);
+  stroke: var(--ui-ink);
+  stroke-width: 1.5;
+}
+.hud-dial .course[hidden],
+.hud-dial .mark[hidden] {
+  display: none;
+}
+/* The prologue's wreck (decision 0127): a pulsing diamond on the rim. */
+.hud-dial .mark path {
+  fill: var(--hud-text);
+  stroke: var(--ui-ink);
+  stroke-width: 1.5;
+  animation: hud-mark 1.6s ease-in-out infinite;
+}
+.hud-wind.is-upwind .boat {
+  fill: var(--hud-storm);
+}
+.hud-wind.wind-pulse .nogo {
+  animation: hud-nogo 1.4s ease-in-out infinite;
+}
+@keyframes hud-mark {
+  50% {
+    opacity: 0.45;
+  }
+}
+@keyframes hud-nogo {
+  50% {
+    fill-opacity: 0.6;
+  }
+}
+
+html[data-layout='phone'] .hud-wind {
+  gap: 8px;
+}
+html[data-layout='phone'] .hud-dial {
+  width: var(--hud-compass-phone);
+  height: var(--hud-compass-phone);
+}
+html[data-layout='phone'] .hud-wind-text {
+  max-width: 200px;
+  padding-top: 10px;
+}
+html[data-layout='phone'] .hud-pos {
+  font-size: 20px;
+}
+html[data-layout='phone'] .hud-breeze,
+html[data-layout='phone'] .hud-lines,
+html[data-layout='phone'] .hud-chip,
+html[data-layout='phone'] .hud-hint {
+  font-size: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-dial .mark path,
+  .hud-wind.wind-pulse .nogo {
+    animation: none;
+  }
+}

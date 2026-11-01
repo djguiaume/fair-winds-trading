@@ -52,9 +52,9 @@ export class CameraControls {
     if (sea.resetCamera) this.orbit.reset();
   }
 
-  /** Every frame: the compass follows the camera. */
+  /** Every frame: the reset button shows while the camera is turned. */
   update() {
-    this.compass.update(this.orbit.heading, this.orbit.turned);
+    this.compass.update(this.orbit.turned);
   }
 
   /** Pushes the Settings switches to the camera and the sea motion. */
