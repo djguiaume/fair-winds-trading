@@ -124,7 +124,7 @@ describe('the checks refuse', () => {
     );
   });
 
-  it('colours the game keeps for other things, and a wake that is not near white', () => {
+  it('colours the game keeps for other things, and a green wake is fine', () => {
     expect(reservedColourProblem('#e8c46a')).toMatch(/player's brass/);
     expect(reservedColourProblem('#ffb36b')).toMatch(/too close/);
     expect(reservedColourProblem('#f2c230')).toMatch(/too close/);
@@ -134,9 +134,7 @@ describe('the checks refuse', () => {
     expect(
       problemsAfter((d) => setField(find(d, 'sail-colour', 'sky')!, 'cloth', '#f0cc72'))[0],
     ).toMatch(/too close/);
-    expect(problemsAfter((d) => setField(find(d, 'wake', 'foam')!, 'tint', '#33aa88'))[0]).toMatch(
-      /near white/,
-    );
+    expect(problemsAfter((d) => setField(find(d, 'wake', 'foam')!, 'tint', '#33aa88'))).toEqual([]);
     expect(problemsAfter((d) => setField(find(d, 'wake', 'foam')!, 'tint', '#f0f4f8'))).toEqual([]);
   });
 

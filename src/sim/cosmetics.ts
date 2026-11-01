@@ -103,7 +103,6 @@ export interface Rules {
   reservedColours: { name: string; hex: string; within: number }[];
   /** Colours at least this white on every channel are refused. */
   tooBright: string;
-  wake: { minLightness: number; maxChroma: number };
   /** An emblem's width as a share of the sail's, and its centre down the sail (0 head, 1 foot). */
   emblem: { width: number; centreV: number };
   /** A figurehead's longest reach as a share of the hull's length (times the item's `size`). */

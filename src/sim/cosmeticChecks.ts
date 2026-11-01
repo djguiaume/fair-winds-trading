@@ -70,17 +70,6 @@ function itemColours(item: Item): (string | null | undefined)[] {
   }
 }
 
-/** A wake tint stays near white by day: it tints the foam, it never recolours it. */
-function wakeTintProblem(tint: string | null): string | null {
-  if (tint === null || !HEX.test(tint)) return null;
-  const [r, g, b] = rgb(tint) as [number, number, number];
-  const lightness = (Math.max(r, g, b) + Math.min(r, g, b)) / 510;
-  const chroma = (Math.max(r, g, b) - Math.min(r, g, b)) / 255;
-  return lightness >= RULES.wake.minLightness && chroma <= RULES.wake.maxChroma
-    ? null
-    : `tint ${tint} must stay near white (lightness at least ${RULES.wake.minLightness}, colour spread at most ${RULES.wake.maxChroma})`;
-}
-
 /** Why a sail colour is refused (too dark, or a hue kept for storms and damage), or null. */
 export function sailColourProblem(hex: string): string | null {
   const [h, s, l] = hsl(hex);
@@ -223,7 +212,6 @@ function ownProblems(item: Item, cat: Catalogue, cx: CosmeticContext): string[] 
           ? []
           : [`style "${item.style}" is not one of ${RULES.wakeStyles.join(', ')}`]),
         ...(item.tint === null ? [] : hexes('tint', [item.tint])),
-        ...[wakeTintProblem(item.tint)].filter((p) => p !== null),
       ];
     default:
       return [];
