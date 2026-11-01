@@ -214,10 +214,9 @@ describe('finish board', () => {
     result,
   });
 
-  it('places only: first with no rival ahead, second with a medal, third without', () => {
-    expect(placeOf({ medal: 2 })).toBe('first');
-    expect(placeOf({ medal: 1, rival: 60 })).toBe('second');
-    expect(placeOf({ medal: 0, rival: 60 })).toBe('third');
+  it('says the real finish order: first unless Kestrel crossed before you', () => {
+    expect(placeOf({})).toBe('first');
+    expect(placeOf({ rival: 60 })).toBe('second');
   });
 
   it('shows the place line, the times and the medal list', () => {
@@ -227,10 +226,11 @@ describe('finish board', () => {
     expect(html).toContain('1:03.0');
     expect(html).toContain('is-bronze');
     expect(html).toContain('<li>x</li>');
+    expect(html).toContain('Bronze medal');
     setLanguage('fr');
-    expect(raceBoardHtml(info({ sec: 70, medal: 0, rival: 60, gold: 0 }), '')).toContain(
-      'Troisième, et bien rentré.',
-    );
+    const fr = raceBoardHtml(info({ sec: 70, medal: 0, rival: 60, gold: 0 }), '');
+    expect(fr).toContain('Deuxième, de près.');
+    expect(fr).not.toContain('Troisième');
   });
 });
 
