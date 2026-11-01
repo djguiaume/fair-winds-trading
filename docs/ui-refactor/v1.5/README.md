@@ -1,6 +1,6 @@
-# v1.6 identity mockups: four rounds to the chart table (2026-11-01)
+# v1.5 identity mockups: four rounds to the chart table (2026-11-01)
 
-Static mockups only, nothing built. Asked by the [v1.6 brief](../../v1.6/brief.md) ("Identity first") and the [UI review](../../reviews/ui/review.md). Each direction is a full identity (logo, signature colour, type pair, motif, materials) on the same screens over the real game: title, sea HUD at night (plus day with the arrival banner and a storm with the storm warning), harbour Market and chart, desktop 1280 × 800 and phone landscape 844 × 390.
+Static mockups only, nothing built. Asked by the [v1.5 brief](../../v1.5/brief.md) ("Identity first") and the [UI review](../../reviews/ui/review.md). Each direction is a full identity (logo, signature colour, type pair, motif, materials) on the same screens over the real game: title, sea HUD at night (plus day with the arrival banner and a storm with the storm warning), harbour Market and chart, desktop 1280 × 800 and phone landscape 844 × 390.
 
 Sheets (one per direction, JPG, 1280 px wide) and every screen at full size: project files `ui-review/mockups/`.
 
@@ -100,7 +100,7 @@ What changed, from Guillaume and the art director:
 - **Sage contrast** (chart table): the signature is darker, `#4a6d41`, so paper text on it is 5.1:1 (it was 4.2). Sage text on paper uses `#36532f` (7:1). On the sea the minimal HUD uses `#cfe0bf`.
 - **Bigger title**: logo 128 px, Continue 42 px, menu 34 px on desktop. The painted harbour sign is 620 px wide.
 
-Redraw round 2: `node docs/ui-refactor/v1.6/render.mjs --r2`, then `python3 docs/ui-refactor/v1.6/sheet_r2.py docs/ui-refactor/v1.6/out-r2 <dir>`. In a browser, add `&v=framed` or `&v=minimal` (loads `chart-r2.css` or `harbour-r2.css`).
+Redraw round 2: `node docs/ui-refactor/v1.5/render.mjs --r2`, then `python3 docs/ui-refactor/v1.5/sheet_r2.py docs/ui-refactor/v1.5/out-r2 <dir>`. In a browser, add `&v=framed` or `&v=minimal` (loads `chart-r2.css` or `harbour-r2.css`).
 
 ## Round 3 (2026-11-01): the chart table as the mix, variants C and D
 
@@ -119,7 +119,7 @@ What changed since round 2:
 - **Phone:** status and labels 12 px (11 px is the floor), a roomier title menu (items 24 px, Continue 30 px, 8 px apart).
 - **New screens:** the Quay (who is on the quay, the quest card with a big portrait, the step and the goal, Take the job and Not now); the Shipyard with a **reserved, empty area for the 3D model preview** (dashed, labelled, no painted render) beside the ship's numbers and Buy; Boat looks (#299's Wardrobe layout: slots, the real boat, the item grid, Use) on paper. On phone the Shipyard leaves the fleet list out (it would get its own tab).
 
-Redraw round 3: `node docs/ui-refactor/v1.6/render.mjs --r3`, then `python3 docs/ui-refactor/v1.6/sheet_r3.py docs/ui-refactor/v1.6/out-r3 <dir>`. In a browser: `mock.html?r=3&w=c|d&s=title|hud|market|quay|shipyard|looks|chart&z=desktop|phone&t=day|night` (`screens-r3.js`, `chart-r3.css` for the sea and the title, `chart-r3-port.css` for the harbour, Boat looks and the chart). New backgrounds in `bg.json`: the harbour at night (`hn-*`) and the docked sloop for Boat looks (`lk`).
+Redraw round 3: `node docs/ui-refactor/v1.5/render.mjs --r3`, then `python3 docs/ui-refactor/v1.5/sheet_r3.py docs/ui-refactor/v1.5/out-r3 <dir>`. In a browser: `mock.html?r=3&w=c|d&s=title|hud|market|quay|shipyard|looks|chart&z=desktop|phone&t=day|night` (`screens-r3.js`, `chart-r3.css` for the sea and the title, `chart-r3-port.css` for the harbour, Boat looks and the chart). New backgrounds in `bg.json`: the harbour at night (`hn-*`) and the docked sloop for Boat looks (`lk`).
 
 ## Round 4 (2026-11-01): four title screens in the chart table style
 
@@ -134,16 +134,16 @@ All four: the menu rows are large plain rows with the same height and type as Co
 
 **Picks (2026-11-01):** the art director recommends 3, on four conditions: key art that matches the game (a golden-hour render at the Saltmere quay, or the cover graded to the game's colours), a straight edge with a thin ink line between the art and the page, Continue as the only sage row, and a tagline the storyteller confirms. The UI lead prefers 2 (the player's boat as the ink mark) and accepts 3 on those terms. Drawn as **5** on the same sheet, then **6** (Guillaume's pick: 5 with 3's torn edge): title 3 with the cover graded by `grade_cover.py` (the teal sea pulled to the game's blue and quieted, a warm light from the top, baked into the image) and a straight inked page edge; the tagline "Read the wind, carry the cargo, find a home." is a placeholder for the storyteller. The game itself cannot light Saltmere at golden hour yet (its dusk is grey).
 
-Redraw round 4: `node docs/ui-refactor/v1.6/render.mjs --r4`, then `python3 docs/ui-refactor/v1.6/sheet_r3.py --titles docs/ui-refactor/v1.6/out-r4 <dir>`. In a browser: `mock.html?r=3&s=title&k=1..6&z=desktop|phone` (`titles-r3.js`, `chart-r3-title.css`).
+Redraw round 4: `node docs/ui-refactor/v1.5/render.mjs --r4`, then `python3 docs/ui-refactor/v1.5/sheet_r3.py --titles docs/ui-refactor/v1.5/out-r4 <dir>`. In a browser: `mock.html?r=3&s=title&k=1..6&z=desktop|phone` (`titles-r3.js`, `chart-r3-title.css`).
 
 ## Redraw
 
 The sheets in [sheets/](sheets/) are cut from the contact sheets by `archive.py` (pages at most 1900 px tall and 500 KB, cut only between rows).
 
 ```sh
-sh docs/ui-refactor/v1.6/setup.sh            # backgrounds, chart, portraits, fonts (from the real game)
-node docs/ui-refactor/v1.6/render.mjs        # every screen, all three directions, into out/
-python3 docs/ui-refactor/v1.6/sheet.py docs/ui-refactor/v1.6/out <dir>   # contact sheets
+sh docs/ui-refactor/v1.5/setup.sh            # backgrounds, chart, portraits, fonts (from the real game)
+node docs/ui-refactor/v1.5/render.mjs        # every screen, all three directions, into out/
+python3 docs/ui-refactor/v1.5/sheet.py docs/ui-refactor/v1.5/out <dir>   # contact sheets
 ```
 
 `mock.html?d=chart|club|harbour&s=title|hud|harbour|chart|identity&z=desktop|phone&t=night|day|storm` shows one screen in a browser (serve the folder). `screens.js` holds the shared markup, `art.js` the drawn parts (icons, goods, instruments, logos, chart overlay), `base.css` the shared layout and `chart.css`, `club.css`, `harbour.css` the three identities.
