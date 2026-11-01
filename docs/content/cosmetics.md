@@ -39,3 +39,10 @@ A paid kind may come later; nothing is built for it.
 3. `mount` (`stem`) and `size` are in the file; each ship file's mount position is the ship models' (#296).
 
 `npm run cosmetics -- sheet` writes `shots/cosmetics/sheet.svg`, every item on a boat, for a quick look.
+
+## How looks are saved (ADR 0263)
+
+- Each owned ship keeps its own look: `looks` in the save (`{ "<ship id>": { "sailColour": "<item id>", ... } }`), only slots that differ from stock. No `looks` means stock, so old saves load unchanged and `SAVE_VERSION` is still 1.
+- Only item ids are stored. On load an unknown slot, unknown or unfit id, or a ship no longer owned is dropped (that slot reverts to stock); the voyage always loads.
+- Save codes (FW2) carry it in section 15 as text ids; the FW1 code and the `.json` file carry the `looks` object. Adding items never changes old codes. New slots: append to `SLOT_ORDER` in `src/sim/saveLooksCode.ts`.
+- The Boat looks screen edits a `LookDraft` (`src/sim/shipLooks.ts`); only `apply` / `setShipLook` write to the captain, so previews never reach autosave or transfer.
