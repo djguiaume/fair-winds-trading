@@ -16,7 +16,7 @@ A bright, low-poly storybook sea: smooth-shaded land and depth-blue water under 
 | Towns | Grow visibly over four levels, each port its own way | [0060](../decisions/0060-growing-town-visuals.md) |
 | Day and night | 12-minute day, golden dusk, **deep blue moonlit night (never black)**, lit windows and lanterns | [0068](../decisions/0068-day-and-night.md), [0121](../decisions/0121-lighthouse-and-beacon-night-lights.md) |
 | Characters | **Low-poly portraits B**, SVG from a few values in `characters.json` | [0124](../decisions/0124-characters-look.md) |
-| UI | **Instrument style D**: navy and brass, colour icons, chunky buttons | [0049](../decisions/0049-ui-instrument-style.md) |
+| UI | **The chart table**: ink on paper, sage signature, IM Fell English + Alegreya Sans, one icon style (section 11) | [0268](../decisions/0268-a-real-game-rebuild-the-ui-as-one-system-v15.md) |
 | Props and buildings | Recipes in `src/data/props/`, colours by name from `src/data/palette.json` | [0135](../decisions/0135-props-as-data.md) |
 | Chart | Blank parchment in the fog of war | [0156](../decisions/0156-fog-of-war.md) |
 | South sea | `tropic` style: crater-rim Sunreach, tea house, palms, white lagoon beach | [0152](../decisions/0152-south-sea-sunreach-layout.md) |
@@ -143,3 +143,14 @@ Guillaume asked what each sea's buildings and landmarks should be (2026-10-24). 
 3. The art director reviews them for cohesion and sends notes back.
 4. Guillaume sees every screenshot, the chart and any schema before anything is merged.
 5. Where look and story meet (a port's signature, a character's look, something that appears after a quest), the art director agrees it with the head storyteller first.
+
+## 11. The UI: the chart table
+
+The UI is one identity ([decision 0268](../decisions/0268-a-real-game-rebuild-the-ui-as-one-system-v15.md), the rounds and picks in [docs/ui-refactor/v1.5](../ui-refactor/v1.5/README.md)): ink on paper, like a chart on the table. Instrument style D (navy and brass) is retired.
+
+- **Colour:** paper `#efe6d1` (night `#b9ab8a` at 80%), ink `#23303a`, muted ink `#5b6670`, one signature, **sage** `#4a6d41` (wash `#cfdcbc`). Sage is for selection and the one primary action per screen (Set sail, Buy and Sell, Continue) and the banderole, nothing else. Never red, amber, yellow or brass as a signature (they are the buoys, the storm warning, the regatta marks and the player's pennant), never pure white (the lightest is sailcloth `#f2f4ef`), never blue or teal with gold.
+- **Type:** IM Fell English for titles, the wordmark and port names; Alegreya Sans for everything else and all numbers (lining, tabular). Sentence case, no tracking, 11 px at the smallest, no blur.
+- **Logo:** the compass rose with its sage pennant, "Fair Winds" and the sage banderole "Trading Company" (`#i-logo`, `#i-wordmark`, `#i-banderole`; a small rose and no banderole text for headers). On paper it is ink (headers and the logbook-page title always use it); the scene variant, sailcloth with a hard 1 px ink halo, is only for title art or the splash, never for headers. The banderole is not a flag the player can fly, so it is not in `flags.json`. Made by `npm run identity`.
+- **Icons:** one style in one sprite: a 1.7 px ink line (`currentColor`, round joins), a flat fill where colour carries meaning, drawn on a 24 grid and checked at 16, 24 and 32 px. Goods keep their colour code (fish `#8fb0c6`, grain `#ddb860`, timber `#bf8f66`, stone `#aeb1ad`); coins are copper, never brass. Pad glyphs stay neutral, ink or sailcloth.
+- **Material:** plain paper with a fine grain and a torn edge (9-slice images, no per-frame filters), no leather, no brass, no lines on paper. Text on the scene gets a hard 1 px ink halo or a faint ink plate, never blur; instruments always have a backing.
+- **Rules learned:** the wind compass is its own dial with a hatched no-go zone; the speed is the biggest number; the harbour is one ledger with the port as a strip; menu rows are large plain rows; paper and halo text must read by day, at night and in the Stormbreak.

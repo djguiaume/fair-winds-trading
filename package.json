@@ -28,6 +28,7 @@
     "chart": "node tools/fw/fw.mjs chart",
     "review": "node tools/fw/fw.mjs review",
     "sound": "node tools/fw/fw.mjs sound",
+    "identity": "node tools/fw/fw.mjs identity",
     "theme": "node tools/fw/fw.mjs theme"
   },
   "dependencies": {
