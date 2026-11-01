@@ -308,8 +308,6 @@
   display: block;
   color: var(--ink-dim);
   font: 700 var(--fs-small)/1.2 var(--display);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 .good-hold {
   grid-area: hold;

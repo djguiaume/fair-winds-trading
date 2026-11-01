@@ -374,7 +374,6 @@ html[data-input='pad'] .chart-cross {
   fill: #fff;
   font-family: var(--display);
   font-weight: 700;
-  letter-spacing: 0.04em;
   paint-order: stroke;
   stroke: rgba(6, 20, 28, 0.85);
   stroke-width: 4px;
@@ -515,7 +514,6 @@ html[data-input='pad'] .chart-cross {
   fill: #fff;
   font-family: var(--display);
   font-weight: 700;
-  letter-spacing: 0.03em;
 }
 .chart-need {
   fill: var(--ink);
@@ -703,9 +701,7 @@ html[data-input='pad'] .chart-cross {
   padding: 4px;
   color: var(--ink-dim);
   font: 700 var(--fs-note) var(--display);
-  letter-spacing: 0.06em;
   text-align: left;
-  text-transform: uppercase;
 }
 .chart .chart-prices td {
   padding: 5px 4px;
@@ -828,7 +824,6 @@ html[data-input='pad'] .chart-cross {
 }
 .chart-zone-label.chart-zone-fog {
   --zone-ink: rgba(110, 86, 52, 0.8);
-  letter-spacing: 0.08em;
   stroke: rgba(234, 223, 198, 0.8);
 }
 /* A fog bank (decision 0169): grey edge, pale ink. */
