@@ -45,8 +45,8 @@
     "stern": {
       "about": "Three-quarter stern, a little high: her wake astern.",
       "yaw": 35,
-      "zoom": 1.3,
-      "at": [0, 0.05, 1.6],
+      "zoom": 1.15,
+      "at": [0, 0.05, 1.15],
       "tilt": 30
     },
     "side": {
