@@ -58,6 +58,40 @@ export function panelPaint(
   return { split, paint };
 }
 
+/** Every painted triangle of a pattern on an `nu` × `nv` grid, corners as (u, v) from 0 to 1. */
+export function patternTriangles(
+  kind: string,
+  nu = 6,
+  nv = 6,
+): { corners: [number, number][]; paint: 0 | 1 }[] {
+  const out: { corners: [number, number][]; paint: 0 | 1 }[] = [];
+  for (let i = 0; i < nu; i++)
+    for (let j = 0; j < nv; j++) {
+      const { split, paint } = panelPaint(kind, i, j, nu, nv);
+      const [a, b, c, d] = [
+        [i, j],
+        [i + 1, j],
+        [i + 1, j + 1],
+        [i, j + 1],
+      ].map(([x, y]) => [x! / nu, y! / nv] as [number, number]);
+      const tris =
+        split === 'ac'
+          ? [
+              [a, b, c],
+              [a, c, d],
+            ]
+          : [
+              [a, b, d],
+              [b, c, d],
+            ];
+      tris.forEach((corners, k) => {
+        const p = paint[k]!;
+        if (p >= 0) out.push({ corners: corners as [number, number][], paint: p as 0 | 1 });
+      });
+    }
+  return out;
+}
+
 /** Which pattern colours the upgrade band and stripe take (`patterns.bandColours`). */
 export function bandPaints(kind: string): [number, number] {
   const table = P.bandColours as unknown as Record<string, [number, number]>;

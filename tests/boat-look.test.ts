@@ -69,7 +69,7 @@ describe('sail bands (decision 0259, variant B)', () => {
     model.root.traverse((o) => {
       const mesh = o as THREE.Mesh;
       const material = mesh.material as THREE.Material | undefined;
-      if (material?.customProgramCacheKey() !== 'sail-canvas-glow') return;
+      if (material?.customProgramCacheKey() !== 'sail-canvas-glow-marks') return;
       const glow = mesh.geometry.getAttribute('glow');
       expect(glow?.count, mesh.name).toBe(mesh.geometry.getAttribute('position').count);
       for (let i = 0; i < glow.count; i++) glows.add(Math.round(glow.getX(i) * 100) / 100);
@@ -128,6 +128,8 @@ describe('stock look and ship files', () => {
       hullBand: '#c0533a',
       hullStrake: null,
       figurehead: null,
+      sailPattern: null,
+      sailLogo: null,
     });
     const look = resolveBoatLook(CLASS);
     expect([1, 2, 3].map((n) => canvasColour(look, n, false))).toEqual(

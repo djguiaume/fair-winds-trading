@@ -25,11 +25,11 @@ A paid kind may come later; nothing is built for it.
 
 | Slot | Fields |
 | --- | --- |
-| `sail-pattern` | `pattern` (a key of `rules.json` › `patterns`), `colours` (pattern, trim; as many as the pattern takes). Only `bands` is drawn so far (#296); the rest follow in #418. |
-| `sail-logo` | `colour`, and `<id>.svg` beside the file: viewBox, flat filled shapes only (`path rect circle ellipse polygon g`), no text, strokes, styles or images, about 40 triangles at most (the check estimates). |
+| `sail-pattern` | `pattern` (a key of `rules.json` › `patterns`: bands, stripe, panels, halves, chevron, diamond), `colours` (pattern, trim). The upgrade bands take the colours `boat-look.json` › `patterns.bandColours` names (decision 0264). |
+| `sail-logo` | `colour`, and `<id>.svg` beside the file: viewBox, flat filled shapes only (`path rect circle ellipse polygon g`, `transform` allowed), no text, strokes, styles or images, about 40 triangles at most (the check estimates). An outline inside another is a hole. Drawn on the mainsail (decision 0264). |
 | `hull-colour` | `band`, `strake` (hex); `stock` keeps the class's own. |
 | `flag` | `own: { shape, bands (1 to 3), length, height }` or `ref` (a regatta pennant of `flags.json`: earned by its series, never recoloured). A personal flag may not look like any flag of `flags.json`. |
-| `wake` | `style` (see `rules.json`), `tint` (hex or null). |
+| `wake` | `style` (see `rules.json`; how each draws: `boat-look.json` › `wakes`), `tint` (hex, any colour, or null). |
 | `set` | `items`: a slot to an item id. |
 
 ## A figurehead
@@ -46,3 +46,7 @@ A paid kind may come later; nothing is built for it.
 - Only item ids are stored. On load an unknown slot, unknown or unfit id, or a ship no longer owned is dropped (that slot reverts to stock); the voyage always loads.
 - Save codes (FW2) carry it in section 15 as text ids; the FW1 code and the `.json` file carry the `looks` object. Adding items never changes old codes. New slots: append to `SLOT_ORDER` in `src/sim/saveLooksCode.ts`.
 - The Boat looks screen edits a `LookDraft` (`src/sim/shipLooks.ts`); only `apply` / `setShipLook` write to the captain, so previews never reach autosave or transfer.
+
+## Seeing it on a boat
+
+`models.html?view=sloop&level=2&wear={"sailLogo":"gull","sailPattern":"chevron-plum"}` shows the 3D model in a look (`&number=FW 1` adds a racing number); the game takes the same `?wear=` for screenshots (`npm run shots -- --query 'wear={…}'`).

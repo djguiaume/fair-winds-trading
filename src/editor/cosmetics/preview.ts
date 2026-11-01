@@ -3,6 +3,7 @@ import { PROP_RECIPES, type RecipePart } from '../../data/props';
 import { type Catalogue, type Appearance, RULES, resolveAppearance } from '../../sim/cosmetics';
 import { FLAGS } from '../../sim/regatta';
 import { flagSvg } from '../regatta/doc';
+import { bandPaints, patternTriangles } from '../../render/models/sailPatterns';
 
 /**
  * A flat side view of a boat wearing a look, as SVG: the hull in her class colours, the sail with
@@ -19,11 +20,15 @@ export function lookSvg(cat: Catalogue, want: Partial<Appearance>, shipClass: st
   const model = SHIP_FILES.find((s) => s.id === shipClass)?.model;
   const hull = model?.hullColor ?? '#9a5a2a';
   const band = look.hull.band ?? model?.bandColor ?? '#2f6f9f';
-  const [c1 = band, c2 = '#f4f1e8'] = look.sail.pattern.colours;
+  const { kind, colours } = look.sail.pattern;
+  const [bandAt, stripeAt] = bandPaints(kind);
+  const [c1 = band, c2 = '#f4f1e8'] = [colours[bandAt], colours[stripeAt]];
+  // As on sails 3: the pattern, then the foot and head bands (the stripe with bands only).
+  const stripe = kind === 'bands' ? `<rect x="90" y="12" width="4" height="86" fill="${c2}"/>` : '';
   const bands =
-    look.sail.pattern.kind === 'plain'
+    kind === 'plain'
       ? ''
-      : `<g clip-path="url(#sail)"><rect x="20" y="84" width="90" height="14" fill="${c1}"/><rect x="20" y="12" width="90" height="10" fill="${c1}"/><rect x="90" y="12" width="4" height="86" fill="${c2}"/></g>`;
+      : `<g clip-path="url(#sail)">${motifSvg(kind, colours)}<rect x="20" y="84" width="90" height="14" fill="${c1}"/><rect x="20" y="12" width="90" height="10" fill="${c1}"/>${stripe}</g>`;
   const logo = look.sail.logo ? emblem(look.sail.logo.svg, look.sail.logo.colour) : '';
   const flag = look.flag ? flagSvg(look.flag, 26).replace('<svg ', '<svg x="100" y="2" ') : '';
   const head = look.figurehead ? figureheadSvg(look.figurehead.recipe, look.figurehead.size) : '';
@@ -32,6 +37,29 @@ export function lookSvg(cat: Catalogue, want: Partial<Appearance>, shipClass: st
     : '';
   const wake = `<path d="M30 132 Q60 140 90 132 T150 132" fill="none" stroke="${look.wake.tint ?? '#ffffff'}" stroke-width="${look.wake.style === 'plain' ? 2 : 4}" stroke-dasharray="${look.wake.style === 'bubbles' ? '1 6' : look.wake.style === 'plain' ? '' : '10 4'}" stroke-linecap="round" opacity="0.8"/>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" width="200" height="150" role="img" aria-label="${shipClass}${problems.length ? ': ' + problems.join('; ') : ''}"><defs><clipPath id="sail"><path d="${SAIL}"/></clipPath></defs><rect width="200" height="150" fill="#bfe3f0"/><path d="M0 128 H200 V150 H0 Z" fill="#6fb6d0"/>${wake}<path d="M34 106 H166 L156 128 H48 Z" fill="${hull}" stroke="#22252a"/><rect x="38" y="110" width="124" height="6" fill="${band}"/>${strake}${head}<rect x="98" y="10" width="3" height="96" fill="#5a3d24"/><path d="${SAIL}" fill="${look.sail.cloth}" stroke="#22252a"/>${bands}${logo}${flag}</svg>`;
+}
+
+/** A pattern's shapes (sailPatterns.ts, as the 3D sails paint them) on the flat sail. */
+function motifSvg(kind: string, colours: readonly string[]): string {
+  // Foot luff, foot leech, head leech, head luff of SAIL.
+  const [a, b, c, d] = [
+    [100, 98],
+    [26, 98],
+    [46, 40],
+    [100, 12],
+  ] as const;
+  const at = ([u, v]: [number, number]) =>
+    [0, 1]
+      .map((k) => (a[k]! * (1 - u) + b[k]! * u) * (1 - v) + (d[k]! * (1 - u) + c[k]! * u) * v)
+      .map((n) => n.toFixed(1))
+      .join(',');
+  return patternTriangles(kind)
+    .map((t) => {
+      // A hairline of the same colour hides the seams between neighbouring triangles.
+      const fill = colours[t.paint] ?? colours[0];
+      return `<polygon points="${t.corners.map(at).join(' ')}" fill="${fill}" stroke="${fill}" stroke-width="0.4"/>`;
+    })
+    .join('');
 }
 
 /** The emblem at the size and place `rules.json` gives: a share of the sail's width, centred, upper third. */

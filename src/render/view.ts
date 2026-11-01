@@ -1,19 +1,12 @@
 import * as THREE from 'three';
-import { bearingVector, clamp } from '../sim/math';
+import { bearingVector } from '../sim/math';
 import { windTo } from '../sim/wind';
 import { windStrength01 } from '../sim/windStrength';
 import { type World, currentWaypoint } from '../sim/world';
 import { townLevels } from '../sim/founding';
 import { TUNING } from '../data/tuning';
-import {
-  type IslandModel,
-  type BoatModel,
-  type ShipUpgrades,
-  type TownLevel,
-  type UpgradeLevel,
-  buildIslands,
-  createBoatModel,
-} from './models';
+import { type IslandModel, type BoatModel, type TownLevel, buildIslands } from './models';
+import { PlayerBoat } from './playerBoat';
 import { RigPose } from './boatPose';
 import { SeaMotion } from './seaMotion';
 import { BoatRide, type RideConditions } from './boatRide';
@@ -34,7 +27,6 @@ import { toScene } from './sceneSpace';
 import { HazeVeil } from './hazeVeil';
 import { Wake } from './wake';
 import { ImpactDebris } from './impactDebris';
-import { damageStage, hullCondition } from '../sim/hazards';
 import { WindStreaks } from './windStreaks';
 import type { GraphicsEffects, UltraPipeline } from './ultraPipeline';
 import { Rain, rainMayReachArea } from './rain';
@@ -56,7 +48,7 @@ import { Volcanoes } from './volcanoes';
 import { stormRain } from '../sim/storms';
 import { seaShape } from '../sim/seaEdge';
 import { CLEAR, type ZoneVisual, mapZones, zoneField, zoneVisualAt } from '../sim/windZones';
-import { type FlagDef, shipPennant } from '../sim/regatta';
+import type { FlagDef } from '../sim/regatta';
 import { smoothOutline } from '../sim/flowShapes';
 import { setNightPaper } from '../ui/nightPaper';
 import { designOf } from '../data/islands';
@@ -123,8 +115,7 @@ export class GameView {
   /** Town levels the islands were built at, 0 for a site not founded yet (decision 0157). */
   private levels: Record<string, TownLevel> = {};
   private boat: BoatModel;
-  /** Ship class and upgrade levels the boat model was built for; rebuilt when they change. */
-  private boatKey = '';
+  private readonly player = new PlayerBoat();
   private level: QualityLevel;
   private readonly rigPose = new RigPose();
   private readonly boatShadow = createBlobShadow(6.5, 14);
@@ -337,33 +328,14 @@ export class GameView {
     return this.islands.userData.harbours ?? {};
   }
 
-  /** Class and upgrade levels of the ship being sailed, and a key that changes with them. */
-  private activeBoat() {
-    const { captain } = this.world.trade;
-    const lv = captain.ships[captain.activeShip];
-    const level = (n: number | undefined) => clamp(Math.round(n ?? 1), 1, 3) as UpgradeLevel;
-    const upgrades: ShipUpgrades = {
-      sails: level(lv?.sails),
-      hold: level(lv?.hold),
-      hull: level(lv?.hull),
-    };
-    const id = captain.activeShip;
-    // The model shows the hull's damage in steps (decision 0208): a new step rebuilds it.
-    const damage = damageStage(hullCondition(this.world.trade));
-    const flag = this.pennant ?? shipPennant(id);
-    const key = `${id}:${upgrades.sails}${upgrades.hold}${upgrades.hull}:${damage}:${flag?.id ?? ''}`;
-    return { id, upgrades, damage, flag, key };
-  }
-
-  /** The model for the ship being sailed, with its upgrade levels visible (decision 0016). */
+  /** The model for the ship being sailed: her upgrades, damage, pennant and look (playerBoat.ts). */
   private buildBoat(): BoatModel {
-    const { id, upgrades, damage, flag, key } = this.activeBoat();
-    this.boatKey = key;
-    this.rigPose.setShip(id);
+    const boat = this.player.build(this.world.trade, this.pennant, this.world.dockHeld);
+    this.rigPose.setShip(this.world.trade.captain.activeShip);
     // Quality is a live toggle, not a permanent factory opt-out: Low → Medium must restore ropes.
-    const boat = createBoatModel(id, { upgrades, damage, ...(flag ? { flag } : {}) });
     boat.setLowDetail?.(QUALITY[this.level].lowDetail);
     boat.root.rotation.order = 'YXZ';
+    this.wake.setStyle(this.wakeStyles ? (this.player.worn?.wake ?? null) : null);
     return boat;
   }
 
@@ -375,18 +347,28 @@ export class GameView {
     this.refreshBoat();
   }
 
-  /** Rebuild the boat after a shipyard purchase, a ship change, a new damage step or a repair. */
+  /** Rebuild the boat after a shipyard purchase, a ship change, a new damage step, a repair, a
+   * new look, or a race starting or ending (`dockHeld`: its racing number, decision 0217). */
   private refreshBoat() {
-    const { id, key } = this.activeBoat();
-    if (key === this.boatKey) return;
+    if (!this.player.stale(this.world.trade, this.pennant, this.world.dockHeld)) return;
     // Only a new ship starts a fresh wake; a damage step keeps her trail.
-    if (id !== this.boatKey.split(':')[0]) this.wake.reset();
+    if (!this.player.isShip(this.world.trade.captain.activeShip)) this.wake.reset();
     this.scene.remove(this.boat.root);
     this.boat.dispose();
     this.boat = this.buildBoat();
     this.scene.add(this.boat.root);
     this.ultra?.sceneChanged();
   }
+
+  /** Settings › Wake styles (issue #418): off, the plain wake whatever the look. */
+  set wakeStyles(on: boolean) {
+    this.showWakeStyles = on;
+    this.wake.setStyle(on ? (this.player.worn?.wake ?? null) : null);
+  }
+  get wakeStyles() {
+    return this.showWakeStyles;
+  }
+  private showWakeStyles = true;
 
   /** A crash or a reef strike (decision 0208): a splash at her bow and planks floating off. */
   impact() {
