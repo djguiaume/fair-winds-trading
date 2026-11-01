@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { SHIPPED_CATALOGUE as CAT } from '../src/data/cosmetics';
 import { memoryStorage } from '../src/data/editedMap';
 import { FREE_PRESETS, FREE_RULES } from '../src/data/freeSailing';
+import { presetProblems } from '../src/sim/freeSailingChecks';
 import { GAME_MAP } from '../src/data/maps';
 import { TUNING } from '../src/data/tuning';
 import {
@@ -218,6 +219,12 @@ describe('Free Sailing', () => {
       expect(problems).toMatch(/land or shallows/);
       expect(problems).toMatch(/weather "fog"/);
       expect(problems).toMatch(/ship.sails must be 1 to 3/);
+    });
+
+    it('wants an icon for the weather of every preset', () => {
+      const rules = { ...FREE_RULES, weatherIcons: {} };
+      const problems = presetProblems(FREE_PRESETS, GAME_MAP, rules).join('\n');
+      expect(problems).toMatch(/no weatherIcons entry for "rain"/);
     });
   });
 });

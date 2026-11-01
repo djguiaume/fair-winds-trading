@@ -1,6 +1,13 @@
 {
-  "about": "Rules for the Free Sailing presets (decision 0266): every other file in this folder is one preset. clearance: sea room in metres round a start, beyond the largest hull, also kept from every harbour's docking reach. runway: open water in metres ahead of her on the preset's heading. searchDays: how many game days the session looks ahead for the preset's weather at its hour.",
+  "about": "Rules for the Free Sailing presets (decision 0266): every other file in this folder is one preset. clearance: sea room in metres round a start, beyond the largest hull, also kept from every harbour's docking reach. runway: open water in metres ahead of her on the preset's heading. searchDays: how many game days the session looks ahead for the preset's weather at its hour. weatherIcons: for each weather kind, the inner SVG (24 x 24, drawn in the card ink colour) of the icon on its preset cards.",
   "clearance": 30,
   "runway": 150,
-  "searchDays": 400
+  "searchDays": 400,
+  "weatherIcons": {
+    "calm": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8\"/>",
+    "breeze": "<path d=\"M3 9h10a2.5 2.5 0 1 0-2.5-2.5M3 14h14a2.5 2.5 0 1 1-2.5 2.5M3 19h7\"/>",
+    "rain": "<path d=\"M6 15.5a3.6 3.6 0 0 1 1.2-7 5 5 0 0 1 9.4 1.2 3 3 0 0 1 1.4 5.8z\"/><path d=\"M8 19l-1 2M12 19l-1 2M16 19l-1 2\"/>",
+    "gale": "<path d=\"M6 15.5a3.6 3.6 0 0 1 1.2-7 5 5 0 0 1 9.4 1.2 3 3 0 0 1 1.4 5.8z\"/><path d=\"M12.6 15.5l-2.6 3.6h2.6l-1.4 3 3.6-4.4h-2.4l1.2-2.2z\"/>",
+    "storm": "<path d=\"M6 15.5a3.6 3.6 0 0 1 1.2-7 5 5 0 0 1 9.4 1.2 3 3 0 0 1 1.4 5.8z\"/><path d=\"M12.6 15.5l-2.6 3.6h2.6l-1.4 3 3.6-4.4h-2.4l1.2-2.2z\"/>"
+  }
 }

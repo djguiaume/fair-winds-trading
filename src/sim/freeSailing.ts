@@ -41,6 +41,8 @@ export interface FreeRules {
   runway: number;
   /** How many game days to look ahead for the preset's weather at its hour. */
   searchDays: number;
+  /** Inner SVG (24 x 24, ink colour) of the icon on a preset card, by weather kind. */
+  weatherIcons: Record<string, string>;
 }
 
 /** What the player chose on the setup screen: kept in memory for the session, never saved. */
