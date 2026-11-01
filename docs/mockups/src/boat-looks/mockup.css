@@ -1,0 +1,520 @@
+/* Mockup only (#299). Style E tokens from src/ui/theme.css. */
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--body);
+  background: var(--leather-deep);
+}
+button {
+  font: inherit;
+  cursor: pointer;
+}
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 18px;
+  background: var(--planks);
+  color: var(--leather-ink);
+}
+h1 {
+  margin: 0;
+  font: 900 var(--fs-big) / 1 var(--serif);
+}
+h2 {
+  margin: 0 0 10px;
+  font: 700 var(--fs-head) var(--serif);
+}
+.round {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: var(--fs-head);
+}
+.close-btn {
+  margin-left: auto;
+}
+.d-btn {
+  min-height: 44px;
+  padding: 6px 22px;
+  border: 2px solid;
+  border-radius: 999px;
+  font: 700 var(--fs-lead) var(--serif);
+  box-shadow: inset 0 -3px 0 var(--lo);
+}
+.d-btn:disabled {
+  opacity: 0.45;
+}
+.d-btn.sail {
+  --lo: var(--sail-edge);
+  border-color: var(--sail-edge);
+  background: var(--sail);
+  color: var(--sail-ink);
+}
+.muted {
+  color: var(--paper-ink-dim);
+}
+
+/* Ship chooser: the owned ships, one chip each. */
+.ships {
+  display: flex;
+  gap: 6px;
+}
+.ships button {
+  padding: 6px 14px;
+  border: 2px solid var(--leather-deep);
+  border-radius: 999px;
+  background: var(--tab);
+  color: var(--paper-ink);
+  font: 700 var(--fs-body) var(--serif);
+}
+.ships button.on {
+  background: var(--paper);
+  border-color: var(--paper-edge);
+}
+
+/* The stage: sky and sea behind the real boat. */
+.stage {
+  position: relative;
+  min-width: 0;
+  background:
+    linear-gradient(#bfe0ea 0 52%, #79b9cc 52.2%, #4d9bb3 100%);
+}
+.stage canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.ship-line {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  color: var(--paper-ink);
+  font-size: var(--fs-note);
+}
+.ship-line b {
+  font: 900 var(--fs-title) var(--serif);
+}
+.compare {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  z-index: 1;
+  display: flex;
+  transform: translateX(-50%);
+  border: 2px solid var(--plate-edge);
+  border-radius: 999px;
+  background: var(--paper-card);
+  overflow: hidden;
+}
+.compare button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  background: none;
+  color: var(--paper-ink);
+  font: 700 var(--fs-body) var(--display);
+  white-space: nowrap;
+}
+.compare button.on {
+  background: var(--teal);
+  color: var(--on-fill);
+}
+.view-btns {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 1;
+  display: flex;
+  gap: 6px;
+}
+.view-btns .round {
+  border: 2px solid var(--plate-edge);
+  background: var(--paper-card);
+  color: var(--paper-ink);
+}
+
+/* The items: a grid of tiles, the tried-on one framed, the one in use dotted, locked ones dim. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 8px;
+  align-content: start;
+}
+.tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 96px;
+  padding: 8px 4px 6px;
+  border: 2px solid rgba(90, 60, 30, 0.25);
+  border-radius: 10px;
+  background: var(--paper-card);
+  color: var(--paper-ink);
+}
+.tile.on {
+  border: 3px solid var(--teal);
+  background: #fffaf0;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18);
+}
+.tile.locked > :not(.lock, .tile-name) {
+  opacity: 0.45;
+  filter: saturate(0.4);
+}
+.tile-name {
+  font: 600 var(--fs-small) / 1.1 var(--body);
+  text-align: center;
+}
+.swatch {
+  width: 46px;
+  height: 46px;
+  border: 2px solid rgba(53, 38, 26, 0.4);
+  border-radius: 50%;
+}
+.pic {
+  width: 56px;
+  height: 46px;
+}
+.pic.logo {
+  width: 46px;
+  border-radius: 8px;
+}
+.none-pic {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  color: var(--paper-ink-dim);
+  font-size: var(--fs-big);
+}
+.lock {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 16px;
+  height: 16px;
+  fill: var(--paper-ink);
+  stroke: var(--paper-ink);
+}
+.used-dot {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--green);
+}
+.detail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--paper-2);
+}
+.detail div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.detail b {
+  font: 700 var(--fs-sub) var(--serif);
+}
+.detail .muted,
+.earn {
+  font-size: var(--fs-note);
+}
+.earn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--amber);
+  font-weight: 700;
+}
+.earn .lock {
+  position: static;
+  fill: var(--amber);
+  stroke: var(--amber);
+}
+.badge.in-use {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--green);
+  color: var(--on-fill);
+  font: 700 var(--fs-body) var(--display);
+}
+
+/* --- A: garage --------------------------------------------------------------------------------- */
+.a main {
+  display: grid;
+  flex: 1;
+  grid-template-columns: 1fr 460px;
+  min-height: 0;
+}
+.a .panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  background: var(--paper);
+  overflow: auto;
+}
+.tabs,
+.sub {
+  display: flex;
+  gap: 4px;
+}
+.tabs button {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 8px 8px 0 0;
+  background: var(--tab);
+  color: var(--paper-ink);
+  font: 700 var(--fs-body) var(--serif);
+}
+.tabs button.on {
+  background: var(--paper-card);
+  box-shadow: inset 0 -3px 0 var(--teal);
+}
+.sub button {
+  padding: 6px 14px;
+  border: 2px solid rgba(90, 60, 30, 0.3);
+  border-radius: 999px;
+  background: none;
+  color: var(--paper-ink);
+  font: 700 var(--fs-note) var(--display);
+}
+.sub button.on {
+  border-color: var(--teal);
+  background: var(--teal);
+  color: var(--on-fill);
+}
+.a footer {
+  justify-content: space-between;
+}
+.hint {
+  color: var(--leather-ink);
+  font-size: var(--fs-note);
+  opacity: 0.85;
+}
+
+/* --- B: wardrobe -------------------------------------------------------------------------------- */
+.b {
+  flex-direction: row;
+  background: var(--planks);
+}
+.b .slots {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 320px;
+  padding: 16px;
+  background: var(--paper);
+}
+.b .stage {
+  flex: 1;
+}
+.slot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+.slot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--paper-2);
+  color: var(--paper-ink);
+  text-align: left;
+}
+.slot.on {
+  min-height: 66px;
+  margin: 0 -8px 0 0;
+  background: #fffdf6;
+  box-shadow:
+    0 3px 0 rgba(0, 0, 0, 0.2),
+    inset 6px 0 0 var(--teal);
+}
+.slot-pic {
+  display: grid;
+  place-items: center;
+  width: 44px;
+}
+.slot-pic .swatch {
+  width: 32px;
+  height: 32px;
+}
+.slot-pic .pic {
+  width: 40px;
+  height: 32px;
+}
+.slot-pic .none-pic {
+  width: 32px;
+  height: 32px;
+  font-size: var(--fs-head);
+}
+.slot-text {
+  display: flex;
+  flex-direction: column;
+}
+.slot-text small {
+  color: var(--paper-ink-dim);
+  font: 600 var(--fs-small) var(--body);
+}
+.slot-text b {
+  font: 700 var(--fs-lead) var(--serif);
+}
+.changed {
+  margin-left: auto;
+  color: var(--teal);
+}
+.b .items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 360px;
+  padding: 16px;
+  background: var(--paper);
+}
+.b > .close-btn {
+  position: absolute;
+  top: 12px;
+  right: 376px;
+}
+.b .ships button {
+  border-color: var(--paper-edge);
+}
+
+/* --- Phone portrait: the boat on top, the choices below ------------------------------------------- */
+.phone h1 {
+  font-size: var(--fs-title);
+}
+.phone .bar {
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+}
+.phone .a .ships {
+  order: 3;
+  width: 100%;
+}
+.phone .a main {
+  grid-template-columns: 1fr;
+  grid-template-rows: 300px 1fr;
+}
+.phone .a .panel {
+  padding: 10px;
+}
+.phone .tabs {
+  overflow-x: auto;
+}
+.phone .tabs button {
+  flex: none;
+  padding: 0 12px;
+}
+.phone .hint {
+  display: none;
+}
+.phone .grid {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.phone .tile {
+  min-height: 84px;
+}
+.phone .compare button {
+  min-height: 36px;
+  padding: 0 10px;
+  font-size: var(--fs-note);
+}
+.phone .view-btns {
+  top: 12px;
+  bottom: auto;
+}
+.phone .view-btns .round {
+  width: 40px;
+  height: 40px;
+}
+.phone .b {
+  flex-direction: column;
+}
+.phone .b .slots {
+  order: 2;
+  width: auto;
+  padding: 8px 10px;
+}
+.phone .b .slots h1,
+.phone .b .slots > .d-btn {
+  display: none;
+}
+.phone .b .slot-list {
+  flex-direction: row;
+  overflow-x: auto;
+}
+.phone .b .slot {
+  flex: none;
+  min-height: 52px;
+}
+.phone .b .slot.on {
+  margin: 0;
+  min-height: 52px;
+}
+.phone .b .stage {
+  flex: none;
+  order: 1;
+  height: 290px;
+}
+.phone .b .items {
+  order: 3;
+  flex: 1;
+  width: auto;
+  padding: 8px 10px;
+}
+.phone .b > .close-btn {
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+}
+.phone .b .ship-line {
+  left: 12px;
+}
+.phone .b .slots .ships {
+  order: -1;
+}
+
+.phone .b .view-btns {
+  top: auto;
+  bottom: 12px;
+}
+.phone .b .compare {
+  left: 12px;
+  transform: none;
+}
