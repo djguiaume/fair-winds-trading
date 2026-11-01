@@ -1,7 +1,7 @@
 {
   "name": "fair-winds-trading",
   "private": true,
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Browser sailing and trading game (three.js + TypeScript + Vite).",
   "type": "module",
   "scripts": {

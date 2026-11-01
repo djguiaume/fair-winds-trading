@@ -29,3 +29,5 @@ Rules: boats stay recognizable at sailing camera; every upgrade, cosmetic and da
 Ruling (Guillaume, 2026-10-31): sail colours and patterns are free; figureheads and pennants are earned through story or regatta wins; no coin prices; the Tern stays a single gift. Pick-one club prizes (#315) are later story content.
 
 Ruling (Guillaume, 2026-11-01): sail variant B (ADR 0259), to be reshaped by logos and patterns (#418); everything free for now. Customisation spec: [customisation.md](customisation.md); logo set and screen words from the storyteller in project files `story/v1.4-customisation.md`.
+
+Released 2026-11-01 as v1.4.351 ([0267](../decisions/0267-version-14-release-visible-upgrades.md)).
