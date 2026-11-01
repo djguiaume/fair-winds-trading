@@ -28,11 +28,11 @@
       "tilt": 24
     },
     "bow": {
-      "about": "Three-quarter bow, close: the figurehead.",
-      "yaw": 150,
-      "zoom": 3.0,
-      "at": [0, 0.15, -1.0],
-      "tilt": 12
+      "about": "Three-quarter bow, close, from the side her sails swing away from: the figurehead.",
+      "yaw": -120,
+      "zoom": 3.2,
+      "at": [0, 0.16, -0.95],
+      "tilt": 14
     },
     "masthead": {
       "about": "Up the mast: the flag.",

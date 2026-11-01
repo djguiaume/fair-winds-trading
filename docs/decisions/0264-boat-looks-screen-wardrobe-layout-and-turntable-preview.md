@@ -18,3 +18,5 @@ v1.4 needs a screen where the player dresses each owned ship from the catalogue 
 ## Consequences
 
 The Shipyard tab carries a "Boat looks" button; the screen changes nothing about sailing, prices or unlock places. Logos, the new patterns and wake styles show on the turntable boat as #418 draws them. A paid kind would only add a price line to the detail strip (storyteller's voice rules); nothing of it is built.
+
+Each slot has its own camera (`boat-preview.json` › `views`, `slotViews`): figurehead a close three-quarter bow from the side her sails swing away from, flag the masthead, wake the stern, logos broadside. So the carvings read there, the art director raised figureheads from a tenth to 0.15 of her length (`rules.json` › `figurehead.share`, every ship file's `figureheadMount.size` times 1.5; triangle cap unchanged), which updates decision 0262's "about a tenth".

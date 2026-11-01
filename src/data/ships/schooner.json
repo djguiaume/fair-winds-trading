@@ -82,7 +82,7 @@
     "bandColor": "#2f8f7a",
     "sailBandColor": "#2a64a6",
     "figureheadMount": {
-      "size": 0.82,
+      "size": 1.23,
       "drop": 0.06
     },
     "mastZ": -1.4,
