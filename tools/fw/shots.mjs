@@ -250,7 +250,11 @@ async function setScene(page, shot) {
     }
     if (s.levels) {
       const [sails, hold, hull] = s.levels;
-      Object.assign(world.trade.captain.ships[world.trade.captain.activeShip], { sails, hold, hull });
+      Object.assign(world.trade.captain.ships[world.trade.captain.activeShip], {
+        sails,
+        hold,
+        hull,
+      });
       world.ship = trade.activeShip(world.trade);
     }
     if (s.hull !== null) window.fwt.hull(s.hull);
