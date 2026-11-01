@@ -1,4 +1,4 @@
-/* global console, document, process */
+/* global console, document */
 // `npm run identity` (decision 0153): the game's identity assets from one source. The logo symbols
 // are drawn in identityLogo.mjs and live in the icon sprite of index.html between two markers; the
 // favicon and the PWA icons are rendered from them; the one-sheet shows logo, icons and type.

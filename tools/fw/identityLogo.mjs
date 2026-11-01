@@ -33,7 +33,7 @@ function rose(small) {
 
 const wordmark = () => `
       <symbol id="i-wordmark" viewBox="-4 -78 458 92">
-        <text textLength="450" lengthAdjust="spacingAndGlyphs" style="font:400 100px var(--font-title,'IM Fell English',Georgia,serif);fill:${INK};stroke:${HALO};stroke-width:5;stroke-linejoin:round;paint-order:stroke">Fair Winds</text>
+        <text textLength="450" lengthAdjust="spacingAndGlyphs" style="font:400 100px var(--font-title,'IM Fell English',Georgia,serif);fill:${INK};stroke:${HALO};stroke-width:7;stroke-linejoin:round;paint-order:stroke">Fair Winds</text>
       </symbol>`;
 
 const RIBBON = 'M14 6h272l-12 14 12 14H14l12-14z';
