@@ -201,6 +201,14 @@
         />
         <path d="M3 9.3h18M3 14.6h18" stroke="currentColor" stroke-width="1.7" />
       </symbol>
+<symbol id="i-flag" viewBox="0 0 24 24" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M6 21V4" fill="none" stroke="currentColor" stroke-width="1.9" />
+        <path d="M6 4h12l-3 4 3 4H6z" fill="currentColor" stroke="currentColor" stroke-width="1.5" />
+      </symbol>
+<symbol id="i-trend" viewBox="0 0 24 24" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M3 19l6-6 4 3 7-8" fill="none" stroke="currentColor" stroke-width="1.9" />
+        <path d="M15 8h5v5" fill="none" stroke="currentColor" stroke-width="1.9" />
+      </symbol>
 <defs>
   <path id="i-level-wave" d="M2 0 q5 -6 10 0 t10 0 t10 0 t10 0" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" />
 </defs>

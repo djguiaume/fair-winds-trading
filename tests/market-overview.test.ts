@@ -34,29 +34,27 @@ describe('top needs and market overview (decision 0036)', () => {
   });
 
   it('shows needs on the chart and a price table that sets a bearing', () => {
-    document.body.innerHTML = `<dialog id="chart"><button id="close-chart">Back</button><svg id="chart-map"></svg><span id="chart-wind"></span><span id="chart-course"></span><div id="chart-goods"></div><table id="chart-prices"></table><p id="chart-status"></p><button id="chart-clear-target">Clear</button></dialog>`;
+    document.body.innerHTML = '<dialog id="chart"></dialog>';
     const world = createWorld(PHASE1_MAP, SLOOP);
     world.trade.captain.cargo.timber = 4;
     const chart = new SeaChart(document.querySelector('dialog')!, world, {});
     chart.open();
     expect(document.querySelectorAll('.chart-need')).toHaveLength(ids.length);
-    // Opens on the good in the hold.
-    const active = document.querySelector('#chart-goods [aria-pressed="true"]')!;
+    // Opens on the good in the hold, named in the cartouche and picked on the Prices page.
+    expect(document.querySelector('#chart-prices-on')!.textContent).toContain('Timber');
+    const active = document.querySelector('#chart-market-goods [aria-pressed="true"]')!;
     expect(active.textContent).toContain('Timber');
-    const rows = document.querySelectorAll('#chart-prices tr');
-    expect(rows).toHaveLength(ids.length + 1);
+    const rows = document.querySelectorAll('#chart-prices [data-compare]');
+    expect(rows).toHaveLength(ids.length);
     expect(document.querySelector('#chart-prices')!.textContent).toContain('pays most');
-    const stone = [...document.querySelectorAll<HTMLButtonElement>('#chart-goods button')].find(
-      (b) => b.textContent!.includes('Stone'),
-    )!;
-    stone.click();
-    expect(document.querySelector('#chart-goods [aria-pressed="true"]')!.textContent).toContain(
-      'Stone',
-    );
-    // Tapping the picked good again leaves only the port names (decision 0058).
-    stone.click();
+    document.querySelector<HTMLButtonElement>('#chart-market-goods [data-good="stone"]')!.click();
+    expect(
+      document.querySelector('#chart-market-goods [aria-pressed="true"]')!.textContent,
+    ).toContain('Stone');
+    // Names only (decision 0058): the cartouche's clear leaves only the port names.
+    document.querySelector<HTMLButtonElement>('#chart-clear-prices')!.click();
     expect(document.querySelectorAll('.chart-need')).toHaveLength(0);
-    expect(document.querySelector('#chart-goods [aria-pressed="true"]')).toBeNull();
+    expect(document.querySelector<HTMLElement>('#chart-prices-on')!.hidden).toBe(true);
     document.querySelector<HTMLButtonElement>(`[data-compare="westholm"]`)!.click();
     expect(world.destination?.portId).toBe('westholm');
   });

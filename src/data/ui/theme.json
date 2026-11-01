@@ -95,6 +95,37 @@
     "tape": 420,
     "tape-phone": 240
   },
+  "chart": {
+    "land": "#c4cf9f",
+    "land-ice": "#e2e5df",
+    "land-volcano": "#cbc2ae",
+    "shallows": "#e3d6b2",
+    "bank": "#ddd3b4",
+    "ice": "#e9ebe4",
+    "lake": "#b6c8c2",
+    "current": "#9fb5b6",
+    "uncharted": "#f4ecd9",
+    "hatch": "#b3a78d",
+    "slate": "#3b4753",
+    "zone-doldrums": "#86601f",
+    "zone-trade-belt": "#2f6b55",
+    "zone-cold-gale": "#54467a",
+    "zone-sheltered": "#2f6487",
+    "zone-fog-bank": "#5f6c72"
+  },
+  "chartSize": {
+    "port": 19,
+    "place": 15,
+    "zone": 15,
+    "flag": 16,
+    "price": 14,
+    "tag": 14,
+    "rose": 220,
+    "rose-phone": 132,
+    "crate": 64,
+    "crate-phone": 40,
+    "crates": 12
+  },
   "edges": {
     "torn": {
       "size": 96,

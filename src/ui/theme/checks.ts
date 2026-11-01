@@ -15,6 +15,9 @@ const MIN_TYPE = 11;
 const MIN_TOUCH = 44;
 /** The sea HUD keeps this far from every screen edge (art director, issue #441). */
 const MIN_HUD_MARGIN = 12;
+/** The chart's words read on a small chart only from this size up (art director, #444). */
+const MIN_CHART_WORD = 13;
+const CHART_WORDS = ['port', 'place', 'zone', 'flag', 'price', 'tag'];
 const DURATION = { min: 150, max: 250 };
 
 /** Text colour on a background, both colour tokens. */
@@ -46,14 +49,15 @@ export function contrast(a: string, b: string): number {
 
 function colourProblems(theme: Theme): string[] {
   const out: string[] = [];
-  for (const [key, hex] of Object.entries(theme.colour)) {
-    if (!HEX.test(hex)) {
-      out.push(`colour.${key} is not a #rrggbb colour: ${hex}`);
-      continue;
+  for (const group of ['colour', 'chart'] as const)
+    for (const [key, hex] of Object.entries(theme[group])) {
+      if (!HEX.test(hex)) {
+        out.push(`${group}.${key} is not a #rrggbb colour: ${hex}`);
+        continue;
+      }
+      const reserved = reservedColourProblem(hex);
+      if (reserved) out.push(`${group}.${key}: ${reserved}`);
     }
-    const reserved = reservedColourProblem(hex);
-    if (reserved) out.push(`colour.${key}: ${reserved}`);
-  }
   for (const [text, on] of CONTRAST_PAIRS) {
     const a = theme.colour[text];
     const b = theme.colour[on];
@@ -82,6 +86,13 @@ function sizeProblems(theme: Theme): string[] {
   for (const key of ['margin', 'margin-phone'])
     if (!((theme.hud[key] ?? 0) >= MIN_HUD_MARGIN))
       out.push(`hud.${key} must be ${MIN_HUD_MARGIN}px or more (the HUD's safe margin)`);
+  for (const [key, n] of Object.entries(theme.chartSize)) {
+    const word = CHART_WORDS.includes(key);
+    if (!Number.isInteger(n) || n < (word ? MIN_CHART_WORD : 1))
+      out.push(
+        `chartSize.${key} is ${n}: whole pixels${word ? `, ${MIN_CHART_WORD} or more` : ''}`,
+      );
+  }
   for (const group of ['space', 'radius', 'z'] as const)
     for (const [key, n] of Object.entries(theme[group]))
       if (!Number.isFinite(n) || n < 0) out.push(`${group}.${key} must be a number, 0 or more`);

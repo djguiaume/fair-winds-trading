@@ -65,7 +65,6 @@
  */
 .on-paper,
 .port-screen .trade-content,
-.chart-sheet,
 .sheet-head,
 .sheet-body,
 dialog.quest-card,
@@ -155,8 +154,7 @@ dialog.quest-card,
 
 /* --- Plates: flat dark teal, a dark edge, a brass line inside, a hard drop shadow. No lines
    across them, no blur (decision 0006). */
-.port-chip,
-.chart-compass.compass {
+.port-chip {
   border: 2px solid var(--plate-edge);
   border-radius: 8px;
   background: var(--navy);

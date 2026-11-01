@@ -1,11 +1,6 @@
 import { TUNING } from '../../data/tuning';
-import { RULES } from '../../sim/cosmetics';
 import { SHIPPED_THEME, withOpacity } from '../theme/model';
-
-/** A signal colour the game keeps for itself (`rules.json` › `reservedColours`), by its name. */
-function signal(name: string): string {
-  return RULES.reservedColours.find((c) => c.name === name)?.hex ?? '#000000';
-}
+import { signal } from '../theme/signals';
 
 /**
  * The sea HUD's custom properties (issue #441): the two ink backings and the idle fade from

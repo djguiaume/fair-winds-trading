@@ -1,0 +1,388 @@
+/*
+ * The chart table (issue #444, round 3 D): the paper chart fills the screen; on it the title
+ * cartouche top left, the book tabs down the right edge, the engraved rose and its key bottom
+ * left, the zoom bottom right and the pad's buttons along the foot. Torn paper is the theme's
+ * 9-slice edge; the grain is one tiled image. Always lit, like a chart under the cabin lamp.
+ */
+dialog.chart {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: var(--ui-paper-off);
+  color: var(--ui-ink);
+  font-family: var(--ui-font-text);
+}
+dialog.chart::backdrop {
+  background: var(--ui-paper-off);
+}
+.chart-viewport {
+  position: absolute;
+  inset: 0;
+}
+/* The paper's grain over the whole chart: one tile, no filter. */
+.chart-viewport::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--chart-grain);
+  pointer-events: none;
+}
+
+/* Torn paper for the cartouche, the key, the zoom and the pad bar. */
+.chart-cartouche,
+.chart-keystrip,
+.chart-zoom-btn,
+.chart-padbar {
+  border: var(--ui-edge-torn-width) solid transparent;
+  border-image: var(--ui-edge-torn) var(--ui-edge-torn-slice) fill / var(--ui-edge-torn-width) round;
+  filter: none;
+}
+
+/* --- The title cartouche ------------------------------------------------------------------ */
+.chart-cartouche {
+  position: absolute;
+  top: var(--ui-space-3);
+  left: var(--ui-space-4);
+  max-width: min(520px, 44vw);
+  padding: var(--ui-space-1) var(--ui-space-3) var(--ui-space-2);
+}
+.chart-cartouche-title {
+  margin: 0;
+  font-family: var(--ui-font-title);
+  font-size: var(--fs-hero);
+  font-weight: 400;
+  line-height: 1.05;
+}
+.chart-cartouche-sub {
+  margin: 2px 0 0;
+  color: var(--ui-muted);
+  font-family: var(--ui-font-title);
+  font-size: var(--fs-lead);
+  font-style: italic;
+}
+.chart-cartouche-line {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  margin: var(--ui-space-2) 0 0;
+  padding-top: var(--ui-space-1);
+  border-top: 1px solid var(--ui-rule);
+  font-size: var(--fs-text);
+  font-weight: 600;
+}
+.chart-cartouche-line[hidden] {
+  display: none;
+}
+.chart-cartouche-line > span {
+  flex: 1;
+}
+.chart-line-clear {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--ui-rule);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-paper);
+  color: var(--ui-ink);
+  cursor: pointer;
+}
+.chart-line-clear .icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* --- Exit and the book tabs down the right edge ------------------------------------------ */
+.chart-close {
+  position: absolute;
+  z-index: 1;
+  top: var(--ui-space-3);
+  right: var(--ui-space-4);
+}
+.chart-book {
+  position: absolute;
+  z-index: 1;
+  top: 76px;
+  right: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--ui-space-2);
+}
+.chart-book .ui-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-3);
+  min-width: 156px;
+  padding: var(--ui-space-2) var(--ui-space-5) var(--ui-space-2) var(--ui-space-4);
+  border: 0;
+  border-image: none;
+  border-radius: var(--ui-radius-m) 0 0 var(--ui-radius-m);
+  background: var(--ui-paper-off);
+  box-shadow: var(--ui-shadow-2);
+  color: var(--ui-ink);
+  font-family: var(--ui-font-title);
+  font-size: var(--fs-title);
+  font-weight: 400;
+}
+.chart-book .ui-tab[aria-selected='true'] {
+  min-width: 172px;
+  border: 0;
+  border-image: none;
+  background: var(--ui-sage);
+  color: var(--ui-on-sage);
+}
+.chart-book .ui-tab[hidden] {
+  display: none;
+}
+.chart-tab-icon {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+.chart-tab-label {
+  flex: 1;
+  text-align: start;
+}
+.chart-book .pad-only.bumper {
+  margin: 0 var(--ui-space-4) 0 0;
+}
+
+/* --- The rose and its key, bottom left ---------------------------------------------------- */
+.chart-rose {
+  position: absolute;
+  bottom: var(--ui-space-2);
+  left: var(--ui-space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+}
+.chart-dial svg {
+  display: block;
+  width: var(--ui-chart-size-rose);
+  height: auto;
+  aspect-ratio: 124 / 136;
+}
+.chart-wind {
+  color: var(--ui-ink);
+  font-family: var(--ui-font-title);
+  font-size: var(--fs-text);
+  font-style: italic;
+  text-shadow:
+    1px 0 0 var(--ui-paper),
+    -1px 0 0 var(--ui-paper),
+    0 1px 0 var(--ui-paper),
+    0 -1px 0 var(--ui-paper);
+}
+.chart-keystrip {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-3);
+  margin-top: var(--ui-space-1);
+  padding: 2px var(--ui-space-2);
+  font-size: var(--fs-body);
+  white-space: nowrap;
+}
+.chart-keystrip-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-1);
+}
+.chart-keystrip-symbol {
+  width: 30px;
+  height: 20px;
+}
+
+/* --- Zoom bottom right, the pad's buttons and the status along the foot ------------------- */
+.chart-zoom {
+  position: absolute;
+  right: var(--ui-space-4);
+  bottom: var(--ui-space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-1);
+}
+.chart-zoom-btn {
+  display: grid;
+  border-width: 4px;
+  border-image-width: 14px;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  background: none;
+  color: var(--ui-ink);
+  font-family: var(--ui-font-text);
+  font-size: var(--fs-big);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+.chart-zoom-btn:disabled {
+  color: var(--ui-muted);
+  cursor: default;
+}
+.chart-zoom-btn:focus-visible {
+  outline: 2px solid var(--ui-ink);
+  outline-offset: -6px;
+}
+html[data-input='pad'] .chart-zoom {
+  display: none;
+}
+.chart-padbar {
+  position: absolute;
+  bottom: var(--ui-space-2);
+  left: 50%;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: var(--ui-space-4);
+  padding: 2px var(--ui-space-3);
+  transform: translateX(-50%);
+  font-size: var(--fs-text);
+  white-space: nowrap;
+}
+.chart-padbar-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-1);
+}
+.chart-padbar .pad-key {
+  border-color: var(--ui-ink);
+  background: var(--ui-ink);
+  color: var(--ui-paper);
+}
+.chart-status {
+  position: absolute;
+  bottom: 64px;
+  left: 50%;
+  max-width: 60vw;
+  margin: 0;
+  transform: translateX(-50%);
+  color: var(--ui-ink);
+  font-family: var(--ui-font-title);
+  font-size: var(--fs-lead);
+  font-style: italic;
+  text-align: center;
+  text-shadow:
+    1px 0 0 var(--ui-paper),
+    -1px 0 0 var(--ui-paper),
+    0 1px 0 var(--ui-paper),
+    0 -1px 0 var(--ui-paper);
+  pointer-events: none;
+}
+
+/* A controller's cross (decision 0183): the port nearest it takes A. */
+.chart-cross {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: none;
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
+  border: 2px solid var(--ui-ink);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.chart-cross::before,
+.chart-cross::after {
+  content: '';
+  position: absolute;
+  background: var(--ui-ink);
+}
+.chart-cross::before {
+  top: 50%;
+  left: -8px;
+  right: -8px;
+  height: 2px;
+  margin-top: -1px;
+}
+.chart-cross::after {
+  left: 50%;
+  top: -8px;
+  bottom: -8px;
+  width: 2px;
+  margin-left: -1px;
+}
+html[data-input='pad'] .chart[data-tab='map'] .chart-cross {
+  display: block;
+}
+
+/* A page open over the sea: the map's own controls step aside. */
+.chart[data-tab]:not([data-tab='map']) :is(.chart-rose, .chart-zoom, .chart-padbar, .chart-status) {
+  display: none;
+}
+
+/* --- Phone landscape ---------------------------------------------------------------------- */
+:root[data-layout='phone'] .chart-cartouche {
+  top: var(--ui-space-2);
+  left: var(--ui-space-3);
+  padding: 0 var(--ui-space-2) var(--ui-space-1);
+}
+:root[data-layout='phone'] .chart-cartouche-title {
+  font-size: var(--fs-title);
+}
+:root[data-layout='phone'] .chart-cartouche-sub {
+  font-size: var(--fs-small);
+}
+:root[data-layout='phone'] .chart-cartouche-line {
+  margin-top: var(--ui-space-1);
+  font-size: var(--fs-note);
+}
+:root[data-layout='phone'] .chart-close {
+  top: var(--ui-space-2);
+  right: var(--ui-space-3);
+}
+:root[data-layout='phone'] .chart-book {
+  top: 60px;
+  gap: var(--ui-space-1);
+}
+:root[data-layout='phone'] .chart-book .ui-tab {
+  min-width: 118px;
+  min-height: 40px;
+  padding: var(--ui-space-1) var(--ui-space-3);
+  font-size: var(--fs-lead);
+}
+:root[data-layout='phone'] .chart-book .ui-tab[aria-selected='true'] {
+  min-width: 128px;
+}
+:root[data-layout='phone'] .chart-tab-icon {
+  width: 18px;
+  height: 18px;
+}
+:root[data-layout='phone'] .chart-dial svg {
+  width: var(--ui-chart-size-rose-phone);
+}
+:root[data-layout='phone'] .chart-keystrip {
+  display: none;
+}
+:root[data-layout='phone'] .chart-wind {
+  font-size: var(--fs-small);
+}
+:root[data-layout='phone'] .chart-zoom {
+  flex-direction: row;
+  bottom: var(--ui-space-2);
+}
+:root[data-layout='phone'] .chart-zoom-btn {
+  width: 44px;
+  height: 44px;
+  font-size: var(--fs-head);
+}
+:root[data-layout='phone'] .chart-padbar {
+  gap: var(--ui-space-2);
+  font-size: var(--fs-small);
+}
+:root[data-layout='phone'] .chart-status {
+  bottom: 44px;
+  font-size: var(--fs-note);
+}

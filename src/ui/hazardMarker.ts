@@ -1,3 +1,5 @@
+import './hazard.css';
+
 /**
  * Hazard markers (decision 0070): one look for every danger, on the sea chart and in the warning
  * toast. A round badge with the hazard's icon, its name in the port-name lettering, and chevrons

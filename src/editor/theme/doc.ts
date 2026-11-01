@@ -65,7 +65,7 @@ export function setToken(theme: Theme, path: string, text: string): string | nul
   if (token.kind === 'number') {
     next = Number(value);
     if (!value || !Number.isFinite(next)) return `${path} takes a number, not "${text}"`;
-  } else if (path.startsWith('colour.') && !HEX.test(value))
+  } else if (/^(colour|chart)\./.test(path) && !HEX.test(value))
     return `${path} takes a #rrggbb colour, not "${text}"`;
   else if (!value) return `${path} cannot be empty`;
   const parts = path.split('.');
