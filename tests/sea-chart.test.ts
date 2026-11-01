@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import html from '../index.html?raw';
 import { PHASE1_MAP } from '../src/data/maps';
 import { DEG } from '../src/sim/math';
@@ -32,7 +32,7 @@ describe('full-screen chart planning', () => {
     expect(chart.currentTab).toBe('map');
     click('chart-tab-legend');
     expect(get<HTMLElement>('chart-legend-panel').hidden).toBe(false);
-    expect(get('chart-tab-legend').getAttribute('aria-pressed')).toBe('true');
+    expect(get('chart-tab-legend').getAttribute('aria-selected')).toBe('true');
     click('chart-tab-market');
     expect(get<HTMLElement>('chart-legend-panel').hidden).toBe(true);
     expect(get<HTMLElement>('chart-market-panel').hidden).toBe(false);
@@ -65,8 +65,8 @@ describe('full-screen chart planning', () => {
     chart.open();
     click('chart-tab-hold');
     expect(get<HTMLElement>('chart-hold-panel').hidden).toBe(false);
-    const sections = [...get('chart-hold-list').querySelectorAll('.hold-section')].map((el) =>
-      el.textContent!.replace(/\s+/g, ' ').trim(),
+    const sections = [...get('chart-hold-list').querySelectorAll('.chart-cargo-section')].map(
+      (el) => el.textContent!.replace(/\s+/g, ' ').trim(),
     );
     expect(sections[0]).toBe('In the hold5/10Grain×5');
     expect(sections[1]).toBe('On deck6/8Maren’s millstones ×1 · 6 deck space');
@@ -81,7 +81,7 @@ describe('full-screen chart planning', () => {
   it('steps through the goods with X, then names only (0196)', () => {
     const { chart } = setup();
     const pressed = () =>
-      get('chart-goods').querySelector('button[aria-pressed="true"]')?.textContent?.trim() ?? null;
+      get('chart-prices-on').hidden ? null : get('chart-prices-on').textContent!.trim();
     expect(pressed()).toBeNull();
     chart.nextGood();
     expect(pressed()).toMatch(/fish/i);
@@ -103,14 +103,16 @@ describe('full-screen chart planning', () => {
     expect(compass.querySelector('.nogo')!.parentElement!.getAttribute('transform')).toBe(
       'rotate(90)',
     );
+    // The arrow comes in over the ring from where the wind blows.
     expect(
       compass.querySelector('.wind')!.parentElement!.parentElement!.getAttribute('transform'),
-    ).toBe('rotate(270)');
+    ).toBe('rotate(90)');
     expect((compass.querySelector('.wp')!.parentElement as HTMLElement).style.display).toBe('');
     expect(compass.querySelector('.wp')!.parentElement!.getAttribute('transform')).toBe(
       'rotate(90)',
     );
-    expect(compass.querySelectorAll('svg [id]')).toHaveLength(0); // no duplicated HUD ids
+    // Its one id (the no-go hatching) is the chart's own, never one of the HUD's.
+    expect(compass.querySelectorAll('svg [id]:not([id^="chart-"])')).toHaveLength(0);
   });
 
   it('keeps the player screen-sized through zoom, bounds zoom, and resets to the overview', () => {
@@ -138,6 +140,47 @@ describe('full-screen chart planning', () => {
     expect(get<HTMLButtonElement>('chart-zoom-out').disabled).toBe(true);
   });
 
+  it('pinches to zoom round the point between the fingers, and the release redraws (#444)', () => {
+    vi.useFakeTimers();
+    setup();
+    const svg = get<SVGSVGElement>('chart-map');
+    const width = () => Number(svg.getAttribute('viewBox')!.split(' ')[2]);
+    const before = width();
+    const press = (type: string, pointerId: number, clientX: number) =>
+      svg.dispatchEvent(
+        new PointerEvent(type, {
+          pointerId,
+          clientX,
+          clientY: 300,
+          pointerType: 'touch',
+          bubbles: true,
+        }),
+      );
+    press('pointerdown', 1, 250);
+    press('pointerdown', 2, 350);
+    press('pointermove', 2, 450);
+    expect(width()).toBeCloseTo(before / 2);
+    press('pointerup', 2, 450);
+    press('pointerup', 1, 250);
+    // The fingers moved: no mark is dropped, and the words are placed again once it rests.
+    svg.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: 250, clientY: 300 }));
+    expect(svg.querySelector('.chart-flag-mark')).toBeNull();
+    vi.advanceTimersByTime(200);
+    expect(get<HTMLButtonElement>('chart-zoom-out').disabled).toBe(false);
+    vi.useRealTimers();
+  });
+
+  it('keeps a key of its marks on the map and every mark on the Legend page (#444)', () => {
+    setup();
+    expect(document.querySelectorAll('.chart-keystrip-item')).toHaveLength(4);
+    const legend = get('chart-legend-panel').textContent!;
+    for (const key of ['Your mark', 'Quest place', 'Uncharted waters', 'No-go'])
+      expect(legend).toContain(key);
+    // The rose carries the no-go wedge and the wind arrow; the pad's bar names its buttons.
+    expect(get('chart-compass').querySelector('.nogo-hatch')).not.toBeNull();
+    expect(document.querySelector('.chart-padbar')!.textContent).toContain('Back');
+  });
+
   it('selects ports by keyboard, retains focus, and outlines the chosen port card', () => {
     const { world } = setup();
     localStorage.setItem('fwt.save.v1', 'untouched');
@@ -163,13 +206,13 @@ describe('full-screen chart planning', () => {
     const charted = world.map.ports.filter((p) => !p.hidden);
     expect(document.querySelectorAll('.chart-port-name')).toHaveLength(charted.length);
     expect(document.querySelectorAll('.chart-need')).toHaveLength(0);
-    const stone = [...document.querySelectorAll<HTMLButtonElement>('#chart-goods button')].find(
-      (b) => b.textContent!.includes('Stone'),
-    )!;
-    stone.click();
-    expect(document.querySelector('#chart-goods [aria-pressed="true"]')!.textContent).toContain(
-      'Stone',
-    );
+    expect(get<HTMLElement>('chart-prices-on').hidden).toBe(true);
+    // A good picked on the Prices page prices every port on the map too.
+    get('chart-market-goods').querySelector<HTMLButtonElement>('[data-good="stone"]')!.click();
+    expect(
+      document.querySelector('#chart-market-goods [aria-pressed="true"]')!.textContent,
+    ).toContain('Stone');
+    expect(get('chart-prices-on').textContent).toContain('Stone');
     expect(document.querySelectorAll('.chart-need')).toHaveLength(charted.length);
     expect(document.querySelectorAll('.chart-need.best').length).toBeGreaterThan(0);
     expect(get('chart-market-title').textContent).toContain('Stone');
@@ -258,12 +301,12 @@ describe('journal: finished quests told again', () => {
     expect(row.textContent).toContain('The mill on the hill · Done');
     expect(row.getAttribute('aria-expanded')).toBe('false');
     row.click();
-    const story = get('chart-journal-list').querySelector('.journal-story')!;
+    const story = get('chart-journal-list').querySelector('.chart-story')!;
     const steps = story.querySelectorAll('li');
     expect(steps.length).toBe(4);
     expect(story.textContent).toContain('Flour on my hands');
     expect(steps[3]!.classList.contains('is-thanks')).toBe(true);
     get('chart-journal-list').querySelector<HTMLElement>('[data-open="westholm-mill"]')!.click();
-    expect(get('chart-journal-list').querySelector('.journal-story')).toBeNull();
+    expect(get('chart-journal-list').querySelector('.chart-story')).toBeNull();
   });
 });

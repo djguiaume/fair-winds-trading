@@ -71,6 +71,15 @@ describe('UI theme', () => {
     expect(problems).toMatch(/touch\.target is 30px/);
   });
 
+  it("holds the chart's inks to the same colour rules (#444)", () => {
+    const t = shippedTheme();
+    t.chart.land = 'green';
+    t.chart.hatch = '#ffb36b';
+    const problems = themeProblems(t).join('\n');
+    expect(problems).toMatch(/chart\.land is not a #rrggbb colour/);
+    expect(problems).toMatch(/chart\.hatch: .*too close to/);
+  });
+
   it("keeps the sea HUD's safe margin at 12 px or more", () => {
     const t = shippedTheme();
     t.hud['margin-phone'] = 8;

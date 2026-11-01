@@ -1,0 +1,335 @@
+/*
+ * The sea chart's drawing (issue #444, round 3 D): ink on paper. Coasts are engraved ink lines
+ * round a pale green wash, reefs dotted ink, shoals pale sand, names in IM Fell. Colours are theme
+ * tokens (`--ui-*`, `--ui-chart-*`) or the game's signals (`--chart-storm`, `--chart-race`); no
+ * filters but the currents' soft edge. Strokes keep their screen width at every zoom.
+ */
+#chart-map {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+}
+#chart-map:active {
+  cursor: grabbing;
+}
+#chart-map:focus-visible {
+  outline: 2px solid var(--ui-ink);
+  outline-offset: -4px;
+}
+/* Lines styled in CSS pixels keep their width at every zoom; those sized in code scale. */
+#chart-map
+  :is(
+    .chart-sea,
+    .chart-land,
+    .chart-lake,
+    .chart-reef,
+    .chart-shallows,
+    .chart-ice,
+    .chart-bergs,
+    .chart-berg,
+    .chart-port-dot,
+    .chart-home-dot,
+    .chart-course,
+    .chart-selected,
+    .chart-race,
+    .chart-quest-route,
+    .chart-quest-ring,
+    .chart-quest-area,
+    .chart-quest-glow,
+    .chart-quest-alert,
+    .chart-flag-disc,
+    .chart-flag-cross,
+    .chart-hit,
+    .chart-card-box,
+    text
+  ) {
+  vector-effect: non-scaling-stroke;
+}
+
+/* --- The sea and the land ---------------------------------------------------------------- */
+.chart-sea {
+  fill: var(--ui-paper);
+  stroke: var(--ui-ink);
+  stroke-width: 2px;
+}
+.chart-land {
+  fill: var(--ui-chart-land);
+  stroke: var(--ui-ink);
+  stroke-width: 1.4px;
+  stroke-linejoin: round;
+}
+.chart-lake {
+  fill: var(--ui-chart-lake);
+  stroke: var(--ui-ink);
+  stroke-width: 0.8px;
+}
+.chart-reef {
+  fill: none;
+  stroke: var(--ui-ink-muted);
+  stroke-width: 1.6px;
+  stroke-dasharray: 0.1 4;
+  stroke-linecap: round;
+}
+.chart-shallows {
+  fill: var(--ui-chart-shallows);
+  stroke: var(--ui-ink-muted);
+  stroke-width: 1px;
+  stroke-dasharray: 3 3;
+}
+.chart-bank {
+  fill: var(--ui-chart-bank);
+  stroke: none;
+}
+.chart-ice {
+  fill: var(--ui-chart-ice);
+  stroke: var(--ui-ink-muted);
+  stroke-width: 1px;
+}
+.chart-bergs {
+  fill: none;
+  stroke: var(--ui-ink-muted);
+  stroke-width: 1px;
+  stroke-dasharray: 5 4;
+}
+.chart-berg {
+  fill: var(--ui-chart-ice);
+  stroke: var(--ui-ink);
+  stroke-width: 1px;
+}
+
+/* --- Currents and wind zones (decisions 0140, 0152) ------------------------------------- */
+.chart-current {
+  fill: var(--ui-chart-current);
+  fill-opacity: 0.45;
+  pointer-events: none;
+}
+.chart-crests path {
+  fill: none;
+  stroke: var(--ui-ink-muted);
+  stroke-linecap: round;
+  pointer-events: none;
+}
+.chart-zone {
+  --zone: var(--ui-ink-muted);
+  fill: var(--zone);
+  fill-opacity: 0.06;
+  stroke: var(--zone);
+  stroke-opacity: 0.75;
+  pointer-events: none;
+}
+.chart-zone-doldrums {
+  --zone: var(--ui-chart-zone-doldrums);
+}
+.chart-zone-trade-belt {
+  --zone: var(--ui-chart-zone-trade-belt);
+}
+.chart-zone-stormy-coast,
+.chart-zone-cold-gale {
+  --zone: var(--ui-chart-zone-cold-gale);
+}
+.chart-zone-sheltered {
+  --zone: var(--ui-chart-zone-sheltered);
+}
+.chart-zone-fog-bank {
+  --zone: var(--ui-chart-zone-fog-bank);
+}
+
+/* --- Uncharted waters (decision 0156): lighter blank paper, a hatched edge --------------- */
+.chart-fog-paper {
+  fill: var(--ui-chart-uncharted);
+}
+.chart-fog-hatch {
+  fill: none;
+  stroke: var(--ui-chart-hatch);
+}
+
+/* --- Words: IM Fell in ink with a paper halo, never a blur -------------------------------- */
+#chart-map text {
+  font-family: var(--ui-font-title);
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: var(--ui-paper);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.chart-port-name,
+.chart-player-name {
+  fill: var(--ui-ink);
+}
+.chart-player-name {
+  font-style: italic;
+  text-anchor: start;
+}
+.chart-place,
+.chart-current-label,
+.chart-home-tag,
+.chart-flag-name {
+  fill: var(--ui-ink-muted);
+  font-style: italic;
+}
+.chart-zone-label {
+  fill: var(--zone);
+  font-style: italic;
+}
+#chart-map .chart-zone-label.chart-zone-fog {
+  fill: var(--ui-ink-muted);
+  stroke: var(--ui-chart-uncharted);
+}
+#chart-map .chart-need {
+  fill: var(--ui-ink-muted);
+  font-family: var(--ui-font-text);
+  font-weight: 700;
+}
+.chart-need.best {
+  fill: var(--ui-sage-deep);
+}
+
+/* --- Ports, her islands, the course ------------------------------------------------------ */
+.chart-port-target,
+.chart-flag {
+  cursor: pointer;
+  outline: none;
+}
+.chart-hit,
+.chart-card-box {
+  fill: transparent;
+  stroke: none;
+}
+.chart-port-dot {
+  fill: var(--ui-paper);
+  stroke: var(--ui-ink);
+  stroke-width: 1.8px;
+}
+.chart-port-target.is-selected .chart-port-dot {
+  fill: var(--ui-sage);
+}
+.chart-port-target:hover .chart-port-name,
+.chart-port-target.is-selected .chart-port-name {
+  fill: var(--ui-sage-deep);
+}
+.chart-port-target:focus-visible .chart-card-box,
+.chart-flag:focus-visible .chart-hit {
+  stroke: var(--ui-ink);
+  stroke-width: 2px;
+  stroke-dasharray: 4 3;
+}
+.chart-home-dot {
+  fill: var(--ui-sage-wash);
+  stroke: var(--ui-ink);
+  stroke-width: 1.4px;
+}
+.chart-home-icon {
+  color: var(--ui-ink);
+  fill: var(--ui-ink);
+}
+.chart-course {
+  stroke: var(--ui-ink);
+  stroke-width: 2.6px;
+  stroke-dasharray: 9 6;
+  stroke-linecap: round;
+}
+.chart-selected {
+  fill: none;
+  stroke: var(--ui-sage);
+  stroke-width: 2.6px;
+}
+.chart-race {
+  fill: none;
+  stroke: var(--chart-race);
+  stroke-width: 2.5px;
+  stroke-dasharray: 2 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.chart-player-hull {
+  fill: var(--ui-sage);
+  stroke: var(--ui-ink);
+  stroke-width: 1.4px;
+}
+
+/* --- Quests: sage rings and flags, her own mark an ink cross ------------------------------ */
+.chart-quest-route {
+  stroke: var(--ui-sage);
+  stroke-width: 1.6px;
+  stroke-dasharray: 2 5;
+  stroke-linecap: round;
+  opacity: 0.8;
+}
+.chart-quest-ring {
+  fill: none;
+  stroke: var(--ui-sage);
+  stroke-width: 2.2px;
+}
+.chart-quest-area {
+  fill: var(--ui-sage);
+  fill-opacity: 0.12;
+  stroke: var(--ui-sage);
+  stroke-width: 1.2px;
+  stroke-dasharray: 4 4;
+}
+.chart-flag-disc {
+  fill: var(--ui-paper);
+  stroke: var(--ui-ink);
+  stroke-width: 1.6px;
+}
+.chart-flag-quest .chart-flag-disc {
+  fill: var(--ui-sage-wash);
+  stroke: var(--ui-sage-deep);
+}
+.chart-flag-quest.is-selected .chart-flag-disc,
+.chart-flag-quest:hover .chart-flag-disc {
+  fill: var(--ui-sage);
+}
+.chart-flag-cloth {
+  fill: var(--ui-sage-deep);
+}
+.chart-flag-quest.is-selected .chart-flag-cloth,
+.chart-flag-quest:hover .chart-flag-cloth {
+  fill: var(--ui-on-sage);
+}
+.chart-flag-cross {
+  fill: none;
+  stroke: var(--ui-ink);
+  stroke-width: 2.4px;
+  stroke-linecap: round;
+}
+.chart-quest-glow {
+  fill: var(--ui-sage-wash);
+  stroke: var(--ui-sage);
+  stroke-width: 2px;
+}
+.chart-quest-alert {
+  fill: var(--ui-sage);
+  stroke: var(--ui-paper);
+  stroke-width: 1.4px;
+}
+#chart-map .chart-quest-mark {
+  fill: var(--ui-on-sage);
+  font-family: var(--ui-font-text);
+  font-weight: 700;
+  stroke: none;
+}
+
+/* Storms (decision 0070) on the chart: the slate badge, the amber chevrons. */
+#chart-map .hazard-storm {
+  --hazard-badge: var(--ui-chart-slate);
+  --hazard-ring: var(--ui-paper);
+  --hazard-chevron: var(--chart-storm);
+}
+#chart-map .hazard-name {
+  fill: var(--ui-ink);
+  stroke: var(--ui-paper);
+  font-family: var(--ui-font-title);
+  font-weight: 400;
+}
+#chart-map .hazard-cloud-core {
+  stop-color: var(--ui-chart-slate);
+  stop-opacity: 0.5;
+}
+#chart-map .hazard-cloud-mid {
+  stop-color: var(--ui-chart-slate);
+  stop-opacity: 0.3;
+}

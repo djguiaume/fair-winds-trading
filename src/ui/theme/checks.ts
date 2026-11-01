@@ -46,14 +46,15 @@ export function contrast(a: string, b: string): number {
 
 function colourProblems(theme: Theme): string[] {
   const out: string[] = [];
-  for (const [key, hex] of Object.entries(theme.colour)) {
-    if (!HEX.test(hex)) {
-      out.push(`colour.${key} is not a #rrggbb colour: ${hex}`);
-      continue;
+  for (const group of ['colour', 'chart'] as const)
+    for (const [key, hex] of Object.entries(theme[group])) {
+      if (!HEX.test(hex)) {
+        out.push(`${group}.${key} is not a #rrggbb colour: ${hex}`);
+        continue;
+      }
+      const reserved = reservedColourProblem(hex);
+      if (reserved) out.push(`${group}.${key}: ${reserved}`);
     }
-    const reserved = reservedColourProblem(hex);
-    if (reserved) out.push(`colour.${key}: ${reserved}`);
-  }
   for (const [text, on] of CONTRAST_PAIRS) {
     const a = theme.colour[text];
     const b = theme.colour[on];

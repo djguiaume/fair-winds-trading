@@ -30,6 +30,8 @@ export interface Theme {
   breakpoints: { 'phone-max-height': number; 'desktop-min-width': number };
   /** The sea HUD's sizes (issue #441): its safe margin, the compass, the speed digits, the tape. */
   hud: Record<string, number>;
+  /** The sea chart's own inks and washes (issue #444): land, shoals, uncharted paper, zones. */
+  chart: Record<string, string>;
   edges: Record<string, Edge>;
   /** Style E (decision 0220): the tokens of the screens not rebuilt yet, by surface. */
   legacy: {
@@ -55,6 +57,7 @@ const CSS_GROUPS: Record<string, { prefix: string; unit?: string }> = {
   z: { prefix: '--ui-z-' },
   touch: { prefix: '--ui-touch-', unit: 'px' },
   hud: { prefix: '--ui-hud-', unit: 'px' },
+  chart: { prefix: '--ui-chart-' },
 };
 
 /**
