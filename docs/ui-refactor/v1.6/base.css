@@ -142,3 +142,32 @@ svg { display: block; }
 .id-type .ty-b { font-size: 17px; }
 .id-type code { font: 12px ui-monospace, monospace; opacity: .8; margin-top: 2px; }
 .id-parts { display: flex; gap: 12px; align-items: center; }
+
+/* Round 2 layout: the wind compass is its own dial; a wider market; the boat and quay on the right. */
+.r2 .h-instr { width: 250px; }
+.r2 .h-wind { position: absolute; right: 286px; bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.r2 .wind-compass { width: 150px; height: 150px; }
+.r2 .hw-t { display: flex; gap: 6px; align-items: baseline; }
+.wc-card { text-anchor: middle; }
+.r2 .market { width: 800px; }
+.r2 .goods { flex: 1.35; }
+.r2 .g-head, .r2 .g-row { grid-template-columns: 56px 1fr 46px 64px 64px; min-height: 56px; }
+.r2 .g-head { min-height: 0; }
+.r2 .g-art { width: 52px; height: 48px; display: flex; align-items: center; justify-content: center; }
+.r2 .g-art .good { width: 42px; height: 42px; }
+.r2 .people { top: auto; bottom: 92px; width: 300px; }
+.r2 .d-act .btn { min-height: 64px; }
+.z-phone.r2 .h-instr { width: 186px; }
+.z-phone.r2 .h-wind { right: 206px; bottom: 10px; }
+.z-phone.r2 .wind-compass { width: 92px; height: 92px; }
+.z-phone.r2 .market { width: 540px; }
+.z-phone.r2 .g-head, .z-phone.r2 .g-row { grid-template-columns: 38px 1fr 30px 46px 46px; min-height: 42px; }
+.z-phone.r2 .g-head { min-height: 0; }
+.z-phone.r2 .g-art { width: 36px; height: 34px; } .z-phone.r2 .g-art .good { width: 28px; height: 28px; }
+.z-phone.r2 .people { bottom: auto; top: 64px; width: 230px; }
+.z-phone.r2 .d-act .btn { min-height: 46px; }
+/* Under-strokes only show on the minimal HUD (text and marks straight on the sea). */
+.t-under, .wc-boat-under, .wc-arrow-under { display: none; }
+.v-minimal .t-under, .v-minimal .wc-boat-under, .v-minimal .wc-arrow-under { display: inline; }
+.r2.s-harbour.z-desktop .bg { background-size: 108% auto; background-position: left top; }
+.r2.z-desktop .market { width: 790px; }

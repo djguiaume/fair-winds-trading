@@ -59,6 +59,23 @@ The layout is the same in all three (the brief's screen rules and the useful par
 - Port tagline "Home port" is a placeholder for the storyteller. The Boat looks screen's cream cards and bark tabs are not drawn; directions 1 and 3 absorb them naturally (paper, wood), direction 2 would repaint them slate.
 - No `?bench`, no French text, no real controller.
 
+## Round 2 (2026-11-01): chart table and painted harbour, framed and minimal
+
+Direction 2 (sailing club) is dropped. Sheets: project files `ui-review/mockups/round2/` (`1-chart-table-r2.jpg`, `3-painted-harbour-r2.jpg`), each with **A. Framed** (paper or paint plates) and **B. Minimal** (text and marks straight on the scene, nothing framed, after Guillaume's ChatGPT images 03, 06 and 10) side by side: title, sea by day, sea at night and harbour market, desktop and phone landscape.
+
+What changed, from Guillaume and the art director:
+
+- **Wind compass, its own dial** (next to the speed, never folded into it): boat up, the card turns with the heading, the wind arrow, and the **no-go zone** (45° each side of the wind) shaded with a dashed edge, not red. It could be switched off on the hardest level.
+- **Big-number instrument** in both: speed, point of sail, heading, sails (Down, Half, Full with LT and RT).
+- **Market** at about 62% of the width (790 px desktop, 540 px phone) with the boat and the quay visible to its right. Rows 56 px (42 px on phone), goods names 24 to 26 px, prices 22 px, Buy and Sell 64 px tall. Price trend in the detail pane.
+- **Goods colour coding** (fish, grain, timber, stone) and chunky Buy and Sell now in both directions. The chart table softens the colours to washes (`#8fb0c6`, `#ddb860`, `#bf8f66`, `#aeb1ad`).
+- **Night plates** are dimmer: night paper `#cbbd9c` and night sailcloth `#d6c9ad`, both at 90% opacity.
+- **No filters.** Torn paper and brushed paint are 9-slice PNGs made by `slices.py` (192 px at 2x, slice 40, the shadow baked in). The minimal variant uses text shadows and under-strokes for legibility.
+- **Sage contrast** (chart table): the signature is darker, `#4a6d41`, so paper text on it is 5.1:1 (it was 4.2). Sage text on paper uses `#36532f` (7:1). On the sea the minimal HUD uses `#cfe0bf`.
+- **Bigger title**: logo 128 px, Continue 42 px, menu 34 px on desktop. The painted harbour sign is 620 px wide.
+
+Redraw round 2: `node docs/ui-refactor/v1.6/render.mjs --r2`, then `python3 docs/ui-refactor/v1.6/sheet_r2.py docs/ui-refactor/v1.6/out-r2 <dir>`. In a browser, add `&v=framed` or `&v=minimal` (loads `chart-r2.css` or `harbour-r2.css`).
+
 ## Redraw
 
 ```sh

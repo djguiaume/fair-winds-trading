@@ -45,7 +45,8 @@
     for (let d = Math.ceil((heading - span) / 5) * 5; d <= heading + span; d += 5) {
       const x = width / 2 + (d - heading) * ppd, b = ((d % 360) + 360) % 360;
       const major = b % 45 === 0, mid = b % 15 === 0;
-      s += `<path class="t-tick${major ? ' major' : ''}" d="M${x} ${major ? 20 : mid ? 24 : 27}V32"/>`;
+      const tick = `d="M${x} ${major ? 20 : mid ? 24 : 27}V32"`;
+      s = `<path class="t-under${major ? ' major' : ''}" ${tick}/>` + s + `<path class="t-tick${major ? ' major' : ''}" ${tick}/>`;
       if (major) s += `<text class="t-card" x="${x}" y="15">${names[b]}</text>`;
       else if (mid) s += `<text class="t-num" x="${x}" y="17">${b}</text>`;
     }
@@ -71,6 +72,41 @@
       <path class="w-arrow" d="M${x} ${y}L${x2} ${y2}"/>
       <circle class="w-arrow-tail" cx="${x}" cy="${y}" r="4"/>
       <path class="w-arrow-head" d="M${x2} ${y2}l${Math.cos(a + 2.6) * 9} ${Math.sin(a + 2.6) * 9}l${Math.cos(a - 2.6) * 9 - Math.cos(a + 2.6) * 9} ${Math.sin(a - 2.6) * 9 - Math.sin(a + 2.6) * 9}z"/>`, 'wind-dial');
+  }
+
+  // Wind compass, its own dial (Guillaume, round 2): boat up, the card turns with the heading,
+  // the wind arrow from where the wind blows, and the no-go zone (no sail can point there) shaded.
+  function windCompass(heading, windFrom, noGo = 45) {
+    const rel = windFrom - heading, P = (deg, r) => {
+      const t = (deg - 90) * Math.PI / 180;
+      return [60 + Math.cos(t) * r, 60 + Math.sin(t) * r];
+    };
+    const arc = (a0, a1, r) => {
+      const [x0, y0] = P(a0, r), [x1, y1] = P(a1, r);
+      return `M60 60L${x0} ${y0}A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${x1} ${y1}z`;
+    };
+    let ticks = '', letters = '';
+    for (let b = 0; b < 360; b += 10) {
+      const [x0, y0] = P(b - heading, 54), [x1, y1] = P(b - heading, b % 90 === 0 ? 46 : b % 30 === 0 ? 49 : 51);
+      ticks += `<path class="wc-tick${b % 90 === 0 ? ' major' : ''}" d="M${x0} ${y0}L${x1} ${y1}"/>`;
+    }
+    for (const [b, n] of [[0, 'N'], [90, 'E'], [180, 'S'], [270, 'W']]) {
+      const [x, y] = P(b - heading, 38);
+      letters += `<text class="wc-card" x="${x}" y="${y + 4.5}">${n}</text>`;
+    }
+    const [ax, ay] = P(rel, 57), [bx, by] = P(rel, 30);
+    const head = (() => {
+      const t = (rel - 90) * Math.PI / 180, ux = -Math.cos(t), uy = -Math.sin(t);
+      return `M${bx + ux * -2} ${by + uy * -2}L${bx - ux * 10 - uy * 6} ${by - uy * 10 + ux * 6}L${bx - ux * 10 + uy * 6} ${by - uy * 10 - ux * 6}z`;
+    })();
+    return svg('0 0 120 120', `<circle class="wc-face" cx="60" cy="60" r="56"/>
+      <path class="wc-nogo" d="${arc(rel - noGo, rel + noGo, 54)}"/>
+      ${ticks}${letters}
+      <path class="wc-lubber" d="M60 2l4 7h-8z"/>
+      <path class="wc-boat-under" d="M60 40c5 5 7 12 7 19v15c0 3-3 6-7 6s-7-3-7-6V59c0-7 2-14 7-19z"/>
+      <path class="wc-boat" d="M60 40c5 5 7 12 7 19v15c0 3-3 6-7 6s-7-3-7-6V59c0-7 2-14 7-19z"/>
+      <path class="wc-arrow-under" d="M${ax} ${ay}L${bx} ${by}"/>
+      <path class="wc-arrow" d="M${ax} ${ay}L${bx} ${by}"/><path class="wc-head" d="${head}"/>`, 'wind-compass');
   }
 
   // Compass rose for the chart: 32 points, half the points filled (the classic engraved rose).
@@ -138,5 +174,5 @@
       </div>`,
   };
 
-  window.ART = { icon, good, face, pad, tape, windDial, rose, chartOverlay, logo: (d) => LOGOS[d]() };
+  window.ART = { windCompass, icon, good, face, pad, tape, windDial, rose, chartOverlay, logo: (d) => LOGOS[d]() };
 })();

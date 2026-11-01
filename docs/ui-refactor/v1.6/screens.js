@@ -1,17 +1,19 @@
 // The four mockup screens. The markup is shared; each direction's stylesheet gives it its identity.
 // mock.html?d=chart|club|harbour&s=title|hud|harbour|chart&z=desktop|phone&t=night|day|storm
+// Round 2: &v=framed|minimal (chart and harbour only) loads <d>-r2.css and the round 2 parts.
 (() => {
   const q = new URLSearchParams(location.search);
   const d = q.get('d') || 'chart', s = q.get('s') || 'title', z = q.get('z') || 'desktop';
   const t = q.get('t') || (s === 'hud' ? 'night' : 'day');
   const A = window.ART, size = z === 'phone' ? 'landscape' : 'desktop';
-  document.body.className = `d-${d} s-${s} z-${z} t-${t}`;
-  document.getElementById('dircss').href = `${d}.css`;
+  const v = q.get('v');
+  document.body.className = `d-${d} s-${s} z-${z} t-${t}${v ? ` r2 v-${v}` : ''}`;
+  document.getElementById('dircss').href = v ? `${d}-r2.css` : `${d}.css`;
 
   const BG = {
     title: `bg/t-c-${size}.jpg`,
     hud: { night: `bg/n-a-${size}.jpg`, day: `bg/s-day-${size}.jpg`, storm: `bg/s-storm-${size}.jpg` }[t],
-    harbour: z === 'phone' ? 'bg/h-e-landscape.jpg' : 'bg/h-a-desktop.jpg',
+    harbour: v ? (z === 'phone' ? 'bg/h-i-landscape.jpg' : 'bg/h-l-desktop.jpg') : z === 'phone' ? 'bg/h-e-landscape.jpg' : 'bg/h-a-desktop.jpg',
     chart: '',
   };
 
@@ -50,9 +52,10 @@
     <div class="h-instr">
       <div class="i-speed"><b>3.5</b><span class="i-unit">kn</span></div>
       <div class="i-pos">Beam reach</div>
-      <div class="i-row">${A.windDial(-75)}<div class="i-wind"><b>Breeze</b><span>NE, 12 kn</span><span>Heading 120°</span></div></div>
+      ${v ? '<div class="i-head">Heading 120°</div>' : `<div class="i-row">${A.windDial(-75)}<div class="i-wind"><b>Breeze</b><span>NE, 12 kn</span><span>Heading 120°</span></div></div>`}
       <div class="i-sails"><span class="sl-k">${A.pad('LT')}</span><span class="sl">Down</span><span class="sl">Half</span><span class="sl on">Full</span><span class="sl-k">${A.pad('RT')}</span></div>
-    </div>`;
+    </div>
+    ${v ? `<div class="h-wind">${A.windCompass(120, 45)}<div class="hw-t"><b>Breeze</b><span>NE, 12 kn</span></div></div>` : ''}`;
 
   const GOODS = [
     { id: 'fish', name: 'Fish', note: 'Made here', hold: 0, buy: 4, sell: 2, best: 'Port Calda pays 13', trend: [5, 5, 4, 4, 3, 4, 4] },

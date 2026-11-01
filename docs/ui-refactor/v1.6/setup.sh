@@ -10,4 +10,5 @@ npm run -s chart -- --sea phase4 --view=-430,-470,770,280 --layers names,marks -
 cp /tmp/fw-v16-chart.svg $k/chart-src.svg
 npx tsx $k/portraits.ts > $k/portraits-src.json
 python3 $k/fonts.py
+python3 $k/slices.py
 python3 $k/prep.py
