@@ -27,19 +27,19 @@ function rose(small) {
   }`;
   const hub = `<circle cx="60" cy="60" r="${small ? 6 : 4}" style="fill:${SIG};stroke:${INK};stroke-width:1.4"/>`;
   const pennant = `<path d="${PENNANT}" style="fill:${SIG};stroke:${INK};stroke-width:${small ? 2.4 : 1.2};stroke-linejoin:round"/>`;
-  const halo = `<g style="fill:${HALO};stroke:${HALO};stroke-width:${small ? 8 : 4};stroke-linejoin:round"><circle cx="60" cy="60" r="${54 + w / 2}"/><path d="${PENNANT}"/></g>`;
+  const halo = `<g style="fill:${HALO};stroke:${HALO};stroke-width:${small ? 8 : 2};stroke-linejoin:round"><circle cx="60" cy="60" r="${54 + w / 2}"/><path d="${PENNANT}"/></g>`;
   return `${halo}${rings}${points}${hub}${pennant}`;
 }
 
 const wordmark = () => `
       <symbol id="i-wordmark" viewBox="-4 -78 458 92">
-        <text textLength="450" lengthAdjust="spacingAndGlyphs" style="font:400 100px var(--font-title,'IM Fell English',Georgia,serif);fill:${INK};stroke:${HALO};stroke-width:7;stroke-linejoin:round;paint-order:stroke">Fair Winds</text>
+        <text textLength="450" lengthAdjust="spacingAndGlyphs" style="font:400 100px var(--font-title,'IM Fell English',Georgia,serif);fill:${INK};stroke:${HALO};stroke-width:3;stroke-linejoin:round;paint-order:stroke">Fair Winds</text>
       </symbol>`;
 
 const RIBBON = 'M14 6h272l-12 14 12 14H14l12-14z';
 const banderole = (small) => `
       <symbol id="i-banderole${small ? '-sm' : ''}" viewBox="0 0 300 40">
-        <path d="${RIBBON}" style="fill:none;stroke:${HALO};stroke-width:5;stroke-linejoin:round"/>
+        <path d="${RIBBON}" style="fill:none;stroke:${HALO};stroke-width:3;stroke-linejoin:round"/>
         <path d="${RIBBON}" style="fill:${SIG};stroke:${INK};stroke-width:1.6;stroke-linejoin:round"/>${
           small
             ? ''

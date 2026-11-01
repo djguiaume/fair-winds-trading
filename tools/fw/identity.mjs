@@ -2,45 +2,39 @@
 // `npm run identity` (decision 0153): the game's identity assets from one source. The logo symbols
 // are drawn in identityLogo.mjs and live in the icon sprite of index.html between two markers; the
 // favicon and the PWA icons are rendered from them; the one-sheet shows logo, icons and type.
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT, chromiumPath, startVite } from './lib.mjs';
 import { logoSymbols } from './identityLogo.mjs';
 import { sheetHtml } from './identitySheet.mjs';
 
 const HELP = `npm run identity -- <what> [options]
-  sprite [--check]   write the logo symbols into the index.html sprite (--check: only compare)
+  sprite [--check]   write the logo symbols (src/ui/sprite/logo.svg) (--check: only compare)
   icons              favicon.svg and the PNG icons (apple touch, 192, 512, maskable) in public/
   sheet [--out dir]  the one-sheet: logo, icons at 16, 24 and 32 px, type (default shots/identity)`;
 
-const START = '<!-- identity:start (npm run identity -- sprite) -->';
-const END = '<!-- identity:end -->';
-const INDEX = join(ROOT, 'index.html');
+const SPRITE = join(ROOT, 'src/ui/sprite');
+const LOGO_FILE = join(SPRITE, 'logo.svg');
 const PAPER = '#efe6d1';
 
-const withMarkers = (symbols) => `${START}\n${symbols}\n      ${END}`;
+const spriteFiles = () =>
+  ['ui', 'goods', 'logo'].map((n) => readFileSync(join(SPRITE, `${n}.svg`), 'utf8'));
 
 function writeSprite(check) {
-  const html = readFileSync(INDEX, 'utf8');
-  const block = withMarkers(logoSymbols());
-  const re = new RegExp(`${START.replace(/[().-]/g, '\\$&')}[\\s\\S]*?${END}`);
-  const next = re.test(html)
-    ? html.replace(re, () => block)
-    : html.replace(
-        /\n( *)<\/svg>(\s*<div id="stage">)/,
-        (m, indent, rest) => `\n      ${block}\n${indent}</svg>${rest}`,
-      );
-  if (next === html) return (console.log('sprite: up to date'), 0);
+  const next = `${logoSymbols().replace(/^ {6}/gm, '')}\n`;
+  const same = existsSync(LOGO_FILE) && readFileSync(LOGO_FILE, 'utf8') === next;
+  if (same) return (console.log('sprite: up to date'), 0);
   if (check)
-    return (console.log('sprite: index.html is out of date, run npm run identity -- sprite'), 1);
-  writeFileSync(INDEX, next);
+    return (console.log('sprite: logo.svg is out of date, run npm run identity -- sprite'), 1);
+  writeFileSync(LOGO_FILE, next);
   return (console.log('sprite: written'), 0);
 }
 
 /** A symbol as a standalone SVG: CSS variables replaced by their fallbacks. */
 const standalone = (id, extra = '') => {
-  const html = readFileSync(INDEX, 'utf8');
-  const sym = html.match(new RegExp(`<symbol id="${id}" viewBox="([^"]*)">([\\s\\S]*?)</symbol>`));
+  const sym = spriteFiles()
+    .join('')
+    .match(new RegExp(`<symbol id="${id}" viewBox="([^"]*)">([\\s\\S]*?)</symbol>`));
   return { viewBox: sym[1], body: sym[2].replace(/var\(--[\w-]+,([^)]*)\)/g, '$1') + extra };
 };
 
@@ -56,8 +50,7 @@ async function withPage(fn) {
   try {
     const page = await browser.newPage({ deviceScaleFactor: 1 });
     await page.goto(`${server.resolvedUrls.local[0]}tools/fw/identity.html`);
-    const html = readFileSync(INDEX, 'utf8');
-    const sprite = html.match(/<svg class="icon-sprite"[\s\S]*?\n {4}<\/svg>/)[0];
+    const sprite = `<svg class="icon-sprite">${spriteFiles().join('')}</svg>`;
     await page.evaluate((s) => (document.body.innerHTML = s), sprite);
     await fn(page);
   } finally {
@@ -97,8 +90,11 @@ async function writeIcons() {
 
 async function writeSheet(out) {
   mkdirSync(out, { recursive: true });
-  const html = readFileSync(INDEX, 'utf8');
-  const ids = [...html.matchAll(/<symbol id="i-([\w-]+)"/g)]
+  const ids = [
+    ...spriteFiles()
+      .join('')
+      .matchAll(/<symbol id="i-([\w-]+)"/g),
+  ]
     .map((m) => m[1])
     .filter((i) => !/^(logo|wordmark|banderole|emblem|chart-boat)/.test(i));
   const cover = `data:image/png;base64,${readFileSync(join(ROOT, 'docs/images/readme/cover.png')).toString('base64')}`;
