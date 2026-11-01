@@ -56,38 +56,3 @@
 .logo-small .logo-band {
   display: none;
 }
-
-/* The title menu: the logo over the tagline; light over the scene where the menu sits on it. */
-.menu .menu-brand {
-  flex-direction: column;
-  gap: 6px;
-  text-align: center;
-}
-.menu-brand .logo {
-  width: min(300px, 100%);
-}
-.menu-brand .logo-rose {
-  width: 84px;
-  height: 84px;
-}
-@media (max-height: 480px) {
-  .menu-brand .logo {
-    width: min(210px, 100%);
-    gap: 2px;
-  }
-  .menu-brand .logo-rose {
-    width: 44px;
-    height: 44px;
-  }
-  .menu .menu-tagline {
-    display: none;
-  }
-}
-@media (orientation: portrait) and (max-width: 700px) {
-  .menu:not(.is-paused) .menu-brand .logo {
-    --logo-ink: #f2f4ef;
-    --logo-paper: #23303a;
-    --logo-sig: #5f8a54;
-    --logo-halo: #23303a;
-  }
-}

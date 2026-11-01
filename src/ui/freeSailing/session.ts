@@ -3,7 +3,8 @@ import { FREE_PRESETS, FREE_RULES } from '../../data/freeSailing';
 import { FREE_PARAM, everythingUnlocked, startFreeSession } from '../../sim/freeSailing';
 import type { World } from '../../sim/world';
 import type { QualityLevel } from '../../render/quality';
-import { type MessageKey, t } from '../../i18n';
+import { t } from '../../i18n';
+import type { MenuRows } from '../screens/menuRows';
 import { FreeSetupScreen } from './setup';
 
 /**
@@ -24,19 +25,21 @@ interface FreeGame {
   play: () => void;
   /** The setup closed without setting sail: back to the menu. */
   menu: () => void;
+  /** The title and the pause card, which list the session's own rows. */
+  rows: readonly MenuRows[];
+}
+
+/** The title's Free Sailing row on the voyage page: a reload into `?free`. */
+export function enterFreeSailing() {
+  location.assign(`${location.pathname}?${FREE_PARAM}`);
 }
 
 /**
- * The menu rows: on the voyage page, Free Sailing (a reload into `?free`); in a session, its
- * setup screen, a badge at sea and the way back. Returns the setup, null on the voyage page.
+ * In a session: its setup screen, a badge at sea and the menu rows for changing the setup and
+ * for the way back. Returns the setup, null on the voyage page.
  */
 export function freeSailingIn(session: boolean, game: FreeGame): FreeSetupScreen | null {
-  if (!session) {
-    menuRow('menu-free', '#i-sail', 'menu.free', 'menu.freeNote').addEventListener('click', () =>
-      location.assign(`${location.pathname}?${FREE_PARAM}`),
-    );
-    return null;
-  }
+  if (!session) return null;
   document.body.classList.add('free-sailing');
   const badge = document.createElement('p');
   badge.className = 'free-badge';
@@ -53,27 +56,13 @@ export function freeSailingIn(session: boolean, game: FreeGame): FreeSetupScreen
     leave: leaveFreeSailing,
     closed: game.menu,
   });
-  menuRow('menu-free-setup', '#i-sail', 'menu.freeSetup').addEventListener('click', () =>
-    setup.open(),
-  );
-  menuRow('menu-free-leave', '#i-anchor', 'menu.freeLeave').addEventListener(
-    'click',
-    leaveFreeSailing,
-  );
+  for (const rows of game.rows) {
+    rows.addRow('menu-free-setup', t('menu.freeSetup'), () => setup.open());
+    rows.addRow('menu-free-leave', t('menu.freeLeave'), leaveFreeSailing);
+  }
   return setup;
 }
 
 function leaveFreeSailing() {
   location.assign(location.pathname);
-}
-
-/** A title menu row before Settings, in the menu's own markup. */
-function menuRow(id: string, icon: string, label: MessageKey, note?: MessageKey): HTMLElement {
-  const row = document.createElement('button');
-  row.id = id;
-  row.type = 'button';
-  row.className = 'menu-row';
-  row.innerHTML = `<svg class="icon" aria-hidden="true"><use href="${icon}" /></svg><span data-i18n="${label}">${t(label)}</span>${note ? `<small data-i18n="${note}">${t(note)}</small>` : ''}`;
-  document.getElementById('menu-settings')!.before(row);
-  return row;
 }

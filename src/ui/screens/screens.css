@@ -1,0 +1,19 @@
+/* What every screen of issue #440 shares: a fixed, paper-coloured layer above the HUD. */
+.title,
+.pause,
+.nv,
+.set-screen {
+  position: fixed;
+  z-index: 120;
+  color: var(--ui-ink);
+  font-family: var(--ui-font-text);
+}
+
+.title[hidden],
+.pause[hidden],
+.nv[hidden],
+.set-screen[hidden] {
+  display: none;
+}
+
+/* --- New voyage: three paper cards over the sea, the boat in view above ---------------------- */

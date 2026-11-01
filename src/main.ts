@@ -1,5 +1,4 @@
 import { maxHull } from './sim/hazards';
-import { renderDifficultyButtons, renderLevelCards } from './ui/levelCards';
 import { GAME_MAP, PHASE1_MAP, PHASE1_SOURCE, RING_PREFIX, prepareMap } from './data/maps';
 import { STRESS_PREFIX, stressMap } from './data/stressMap';
 import { PHASE4_PREFIX } from './data/grownMap';
@@ -21,7 +20,15 @@ import {
   loadTuneChanges,
   saveTuneChanges,
 } from './data/tuningEdits';
-import { GamepadPoller, PAD, chartPad, padInUse, seaPad, type PadContext } from './input/gamepad';
+import {
+  GamepadPoller,
+  PAD,
+  PAD_BRANDS,
+  chartPad,
+  padInUse,
+  seaPad,
+  type PadContext,
+} from './input/gamepad';
 import { PadFocus, type PadScreen } from './ui/padFocus';
 import { Input } from './input/input';
 import {
@@ -42,7 +49,7 @@ import { type SaveStorage, clearSave, loadGame, saveGame, serializeWorld } from 
 import { LINK_KEY, encodeSaveCode } from './sim/saveTransfer';
 import { SLOOP, noGoAngle } from './sim/ship';
 import * as trade from './sim/trade';
-import { type Difficulty, isDifficulty, knobs } from './sim/difficulty';
+import { type Difficulty, knobs } from './sim/difficulty';
 import { daylightAt } from './sim/daylight';
 import { hazeSwitches } from './sim/windZones';
 import { type QuestEvent, QuestBook, roundStep, useEditedQuests } from './sim/quests';
@@ -99,9 +106,6 @@ import {
 import { Hud } from './ui/hud';
 import { CameraControls } from './ui/cameraControls';
 import { loadSettings, saveSettings } from './ui/settings';
-import { addEffectSwitches, addQualityButtons } from './ui/graphicsSettings';
-import { wireViewSwitches } from './ui/viewSwitches';
-import { wireSeaSwitches } from './ui/seaSwitches';
 import type { Bench } from './perf/bench';
 import type { PerfReadout } from './perf/perfReadout';
 import { perfOptions } from './perf/perfOptions';
@@ -110,10 +114,8 @@ import { SeaListener } from './audio/listener';
 import { wordCount } from './audio/babble';
 import { SeaChart, questCourse } from './ui/seaChart';
 import {
-  LANGUAGES,
   browserLanguages,
   detectLanguage,
-  language,
   goodName,
   workshopName,
   formatNumber,
@@ -129,7 +131,12 @@ import {
 import { TradePanel } from './ui/tradePanel';
 import { showTestSeaBadge } from './ui/testSeaBadge';
 import { boatLooksIn } from './ui/boatLooks/host';
-import { FREE_UNLOCKS, freeSailingIn, isFreeSailing } from './ui/freeSailing/session';
+import {
+  FREE_UNLOCKS,
+  enterFreeSailing,
+  freeSailingIn,
+  isFreeSailing,
+} from './ui/freeSailing/session';
 import { HomePanel, buildingName, effectLine } from './ui/homePanel';
 import {
   PLOT_CAMERA,
@@ -146,15 +153,17 @@ import { startTvMode } from './input/tv';
 import { PadLog } from './ui/padLog';
 import { usePadBrand } from './ui/padGlyphs';
 import { askConfirm } from './ui/confirmDialog';
-import { type Screen, ScreenStack } from './ui/screens/stack';
+import { ScreenStack } from './ui/screens/stack';
+import { type TitleState, TitleScreen } from './ui/screens/title';
+import { PauseScreen } from './ui/screens/pause';
+import { NewVoyageScreen } from './ui/screens/newVoyage';
+import { SettingsScreen } from './ui/screens/settings';
+import { SettingsApplier } from './ui/screens/settings/apply';
+import { askDanger } from './ui/screens/confirm';
 import { WayOfPlaying, firstWay } from './input/wayOfPlaying';
 
 declare const __APP_VERSION__: string;
 declare const __BUILD_REVISION__: string;
-const appVersion = document.getElementById('app-version');
-if (appVersion) appVersion.textContent = `v${__APP_VERSION__}`;
-const release = document.getElementById('build-revision');
-if (release) release.textContent = __BUILD_REVISION__;
 
 // A console's browser on a TV (decision 0183): hand the pad to the game, keep clear of the
 // screen's edges, keep Back in the game. Before any screen is built.
@@ -198,9 +207,6 @@ for (const type of ['pointerdown', 'pointerup', 'touchend', 'keydown'] as const)
   window.addEventListener(type, unlockAudio, { capture: true, once: true });
 }
 setLanguage(settings.language ?? detectLanguage(browserLanguages()));
-// Level cards and the Settings level switch come from difficulty.json (decision 0113).
-renderLevelCards(document.getElementById('level-cards')!);
-renderDifficultyButtons(document.getElementById('difficulty')!);
 translateDom();
 const canvas = $<HTMLCanvasElement>('scene');
 
@@ -869,16 +875,12 @@ hud.onPortClick = async (portId: string) => {
   }
 };
 
-// --- Main menu, help card and pause ------------------------------------------------------------
-// The game opens on the title menu with the scene running behind it (decision 0017). The
-// simulation is paused while the menu or the help card is up.
-const menu = $('menu');
+// --- Title, pause, New voyage and the screens over them ----------------------------------------
+// The game opens on the title with the scene running behind it (decision 0017). The simulation
+// is paused while a screen or the help card is up (decision 0269, issue #440).
 const help = $('help');
 const windHelp = $<HTMLDialogElement>('wind-help');
 const helpClose = $('start');
-const settingsPanel = $('settings');
-const newVoyage = $('new-voyage');
-const playButton = $('menu-play');
 // Move a voyage to another device by QR code or file (decision 0066). The QR links back here.
 const transfer = new TransferPanel(
   $('transfer'),
@@ -889,17 +891,10 @@ const transfer = new TransferPanel(
 let mode: 'menu' | 'play' = 'menu';
 let started = false;
 let paused = true;
-// The menu and the screens over it (decision 0269): only the top one shows, Esc and B pop it.
+// The title or pause card and the screens over it: only the top one shows, Esc and B pop it.
 const screens = new ScreenStack(() => refreshPause());
-const menuScreen: Screen = { id: 'menu', root: menu, enter: 'fade', back: () => {} };
-const settingsScreen: Screen = { id: 'settings', root: settingsPanel, back: () => closeSettings() };
-const helpScreen: Screen = { id: 'help', root: help, back: () => closeHelp() };
-const newVoyageScreen: Screen = { id: 'new-voyage', root: newVoyage, back: () => showMenu() };
-const transferScreen: Screen = {
-  id: 'transfer',
-  root: $('transfer'),
-  back: () => transfer.close(),
-};
+const helpScreen = { id: 'help', root: help, back: () => closeHelp() };
+const transferScreen = { id: 'transfer', root: $('transfer'), back: () => transfer.close() };
 
 function refreshPause() {
   paused =
@@ -928,56 +923,154 @@ hud.onWindHelpChange = () => {
   refreshPause();
 };
 
+/** "Saltmere, day 12, 150 gold": where the saved voyage stands. */
+function saveLine(): string {
+  const port = world.trade.dockedAt && trade.findPort(world.map, world.trade.dockedAt)?.name;
+  return t('menu.saveLine', {
+    port: port || t('menu.atSea'),
+    day: String(Math.floor(world.time / TUNING.weather.daylight.daySeconds) + 1),
+    gold: String(world.trade.captain.gold),
+  });
+}
+
+function titleState(): TitleState {
+  const lesson = lessonFor(quests, view.harbours);
+  const unseen = tutorialChoice.status === 'unseen';
+  // The first voyage's story running without its coach (0160) keeps the sea to itself.
+  const disabled = !lesson && quests.lesson !== undefined;
+  return {
+    primary: freeSailing ? t('menu.play') : levelPicked ? t('menu.continue') : t('menu.newVoyage'),
+    saveLine: levelPicked && !freeSailing ? saveLine() : null,
+    offerNew: levelPicked && !freeSailing,
+    lessons: {
+      disabled,
+      label:
+        lesson?.quest === TUTORIAL_QUEST
+          ? t('menu.tutorialContinue')
+          : lesson?.quest === LESSONS_QUEST
+            ? t('menu.lessonsContinue')
+            : unseen
+              ? t('menu.tutorial')
+              : t('menu.lessons'),
+      note: lesson
+        ? t('menu.tutorialStep', {
+            step: String(Math.max(1, lesson.stepNo)),
+            total: String(lesson.steps),
+          })
+        : unseen
+          ? t('menu.tutorialNote')
+          : '',
+    },
+  };
+}
+
+const title = new TitleScreen({
+  play: () => play(),
+  newVoyage: () => void startOver(),
+  freeSailing: freeSailing ? null : enterFreeSailing,
+  settings: () => screens.push(settingsScreen.screen),
+  help: openHelp,
+  lessons: () => openLessons(),
+  transfer: () => {
+    transfer.open('send');
+    screens.push(transferScreen);
+  },
+  setLanguage: (id) => switchLanguage(id),
+});
+const pause = new PauseScreen({
+  resume: () => play(),
+  chart: () => {
+    play();
+    chart.open();
+  },
+  settings: () => screens.push(settingsScreen.screen),
+  quit: () => void quitToTitle(),
+});
+// The level picked on a fresh voyage's New voyage screen (decision 0083); Captain by default.
+let levelPicked = resumedVoyage || freeSailing;
+const newVoyage = new NewVoyageScreen({
+  initial: world.trade.difficulty,
+  sail: (chosen) => setSail(chosen),
+  close: () => showMenu(),
+});
+document.body.append(title.screen.root, pause.screen.root, newVoyage.screen.root);
+$('app-version').textContent = `v${__APP_VERSION__}`;
+$('build-revision').textContent = __BUILD_REVISION__;
+
 function showMenu() {
   mode = 'menu';
   document.body.classList.add('in-menu');
   document.body.classList.toggle('at-title', !started);
   if (transfer.isOpen) transfer.close();
   if (tradePanel.isOpen) tradePanel.close();
-  // Pause shows the voyage under the same menu (decision 0061).
-  menu.classList.toggle('is-paused', started);
-  $('menu-status').hidden = !started || freeSailing;
-  $('menu-gold').textContent = String(world.trade.captain.gold);
-  $('menu-cargo').textContent = `${trade.cargoUsed(world.trade)}/${trade.capacity(world.trade)}`;
-  $('menu-play-label').textContent = started ? t('menu.resume') : t('menu.play');
-  $('menu-play-icon').setAttribute('href', started ? '#i-play' : '#i-sail');
-  screens.reset(menuScreen);
-  playButton.focus({ preventScroll: true });
+  if (started) {
+    // Pause shows the voyage under a small card (decision 0061).
+    pause.update(
+      t('pause.status', {
+        gold: String(world.trade.captain.gold),
+        used: String(trade.cargoUsed(world.trade)),
+        cap: String(trade.capacity(world.trade)),
+      }),
+    );
+    screens.reset(pause.screen);
+    pause.resume.focus({ preventScroll: true });
+  } else {
+    title.update(titleState());
+    screens.reset(title.screen);
+    $('menu-play').focus({ preventScroll: true });
+  }
 }
 
-/*
- * New voyage (decision 0083): a fresh voyage starts by picking a difficulty level. Captain is
- * preselected; the level can be changed later in Settings.
- */
-let chosenLevel: Difficulty = world.trade.difficulty;
-let levelPicked = resumedVoyage || freeSailing;
-const levelCards = [...newVoyage.querySelectorAll<HTMLButtonElement>('.level-card')];
-const markLevelCards = () => {
-  for (const c of levelCards)
-    c.setAttribute('aria-checked', String(c.dataset.level === chosenLevel));
-};
-for (const c of levelCards)
-  c.addEventListener('click', () => {
-    if (isDifficulty(c.dataset.level)) chosenLevel = c.dataset.level;
-    markLevelCards();
-  });
+/** A fresh voyage starts by picking a difficulty level (decision 0083). */
 function openNewVoyage() {
-  markLevelCards();
-  screens.replace(newVoyageScreen);
-  levelCards.find((c) => c.dataset.level === chosenLevel)?.focus({ preventScroll: true });
+  screens.replace(newVoyage.screen);
 }
-$('close-new-voyage').addEventListener('click', () => showMenu());
-$('set-sail').addEventListener('click', () => {
-  trade.startVoyage(world.trade, chosenLevel);
-  applyLevelWind(chosenLevel);
-  markDifficulty();
+
+/** New voyage over a saved one: ask, erase the save and load the game afresh. */
+async function startOver() {
+  const yes = await askDanger({
+    title: t('menu.newVoyage'),
+    text: t('menu.newVoyageAsk'),
+    ok: t('menu.newVoyage'),
+  });
+  if (!yes) return;
+  leaving = true;
+  if (storage) clearSave(storage);
+  window.location.reload();
+}
+
+/** Pause › Quit to title: the voyage is saved, then the page loads afresh on the title. */
+async function quitToTitle() {
+  const yes = await askDanger({
+    title: t('pause.quit'),
+    text: t('pause.quitAsk'),
+    ok: t('pause.quit'),
+  });
+  if (!yes) return;
+  autosave();
+  leaving = true;
+  if (freeSailing) location.assign(location.pathname);
+  else window.location.reload();
+}
+
+/** The language switch saves the voyage and reloads, so every panel is rebuilt (decision 0037). */
+function switchLanguage(id: string) {
+  settings.language = id as typeof settings.language;
+  keepSettings();
+  autosave();
+  window.location.reload();
+}
+
+function setSail(chosen: Difficulty) {
+  trade.startVoyage(world.trade, chosen);
+  applyLevelWind(chosen);
   levelPicked = true;
   // The tutorial seen on an earlier voyage (New game in Settings) is not offered again, but the
   // fresh voyage still starts with the prologue's story, without the coach (decisions 0160, 0185).
   if (tutorialChoice.status !== 'unseen') startUncoachedPrologue();
   autosave();
   play();
-});
+}
 
 function play() {
   if (freeSetup && !freeSetup.sailed) return freeSetup.open();
@@ -1004,32 +1097,9 @@ function closeHelp() {
   screens.close('help');
 }
 
-/**
- * The title menu's lessons line: the tutorial until it is seen (start, continue at a step), then
- * the sailing lessons (decision 0164), which replace "Replay tutorial".
- */
+/** The title's lessons line: the tutorial, then the sailing lessons (decision 0164). */
 function refreshMenuTutorial() {
-  const lesson = lessonFor(quests, view.harbours);
-  const unseen = tutorialChoice.status === 'unseen';
-  const button = $('menu-tutorial') as HTMLButtonElement;
-  // The first voyage's story running without its coach (0160) keeps the sea to itself.
-  button.disabled = !lesson && quests.lesson !== undefined;
-  $('menu-tutorial-label').textContent =
-    lesson?.quest === TUTORIAL_QUEST
-      ? t('menu.tutorialContinue')
-      : lesson?.quest === LESSONS_QUEST
-        ? t('menu.lessonsContinue')
-        : unseen
-          ? t('menu.tutorial')
-          : t('menu.lessons');
-  $('menu-tutorial-note').textContent = lesson
-    ? t('menu.tutorialStep', {
-        step: String(Math.max(1, lesson.stepNo)),
-        total: String(lesson.steps),
-      })
-    : unseen
-      ? t('menu.tutorialNote')
-      : '';
+  title.update(titleState());
 }
 refreshMenuTutorial();
 // A course set or cleared on the chart may move a lesson on (decision 0151).
@@ -1110,7 +1180,8 @@ tutorialOffer.addEventListener('close', () => {
   refreshPause();
   $('menu-btn').focus({ preventScroll: true });
 });
-$('menu-tutorial').addEventListener('click', () => {
+/** The lessons line, on the title and in Settings: carry on with the lesson, or start one. */
+function openLessons() {
   // Enter play without automatically showing the first-voyage offer a second time.
   mode = 'play';
   started = true;
@@ -1128,9 +1199,8 @@ $('menu-tutorial').addEventListener('click', () => {
     autosave();
   }
   refreshPause();
-});
-playButton.addEventListener('click', play);
-// Free Sailing (decision 0266): the title menu's way in; in a session, its setup and way out.
+}
+// Free Sailing (decision 0266): the title's way in; in a session, its setup and way out.
 const freeSetup = freeSailingIn(freeSailing, {
   world,
   quality: () => level,
@@ -1139,15 +1209,7 @@ const freeSetup = freeSailingIn(freeSailing, {
     play();
   },
   menu: showMenu,
-});
-$('menu-help').addEventListener('click', openHelp);
-$('menu-settings').addEventListener('click', () => {
-  screens.push(settingsScreen);
-  $('close-settings').focus({ preventScroll: true });
-});
-$('menu-transfer').addEventListener('click', () => {
-  transfer.open('send');
-  screens.push(transferScreen);
+  rows: [title, pause],
 });
 transfer.onClose = () => screens.close('transfer');
 transfer.onReplaced = () => {
@@ -1194,7 +1256,6 @@ if (!freeSailing && location.hash.startsWith(`#${LINK_KEY}=`)) {
 function startQuestTest(test: NonNullable<typeof questTest>) {
   trade.startVoyage(world.trade, 'captain');
   applyLevelWind('captain');
-  markDifficulty();
   levelPicked = true;
   const bar = new QuestTestBar(quests, test.quest);
   const started = quests.testStart(test.quest, test.step).length > 0;
@@ -1269,34 +1330,6 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   });
 }
 
-// --- Language switcher ------------------------------------------------------------------------
-// Each language is named in its own words, without flags (decision 0037). Switching saves the
-// voyage and reloads, so every panel is rebuilt in the new language.
-// The menu footer shows short codes (EN, FR), the settings the full names.
-$('menu-language').setAttribute('aria-label', t('menu.language'));
-for (const [group, short] of [
-  [$('menu-language'), true],
-  [$('settings-language'), false],
-] as const) {
-  for (const lang of LANGUAGES) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.lang = lang.id;
-    b.textContent = short ? lang.id.toUpperCase() : lang.name;
-    if (short) b.setAttribute('aria-label', lang.name);
-    b.dataset.language = lang.id;
-    b.setAttribute('aria-pressed', String(lang.id === language()));
-    b.addEventListener('click', () => {
-      if (lang.id === language()) return;
-      settings.language = lang.id;
-      keepSettings();
-      autosave();
-      window.location.reload();
-    });
-    group.append(b);
-  }
-}
-
 // --- Controls ----------------------------------------------------------------------------------
 input.onDrag = (d) => hud.setTiller(d);
 hud.onSailStep = (step) => input.setSail(step);
@@ -1312,11 +1345,11 @@ const padLog = new URLSearchParams(location.search).has('padlog') ? new PadLog()
 const pad = new GamepadPoller(undefined, undefined, undefined, tvMode);
 if (padLog) pad.onPress((p) => padLog.press(p.button, p.repeat));
 // The pad's own button names on glyphs and in texts: A on Xbox, ✕ on PlayStation (decision 0186).
-usePadBrand(pad.brand);
+usePadBrand(settings.padGlyphs ?? pad.brand);
 // Buttons are read between frames too, so a quick tap is never missed (decision 0183).
 if (PAD.sampleEveryMs) setInterval(() => pad.sample(performance.now()), PAD.sampleEveryMs);
 pad.onBrand = (brand) => {
-  usePadBrand(brand);
+  usePadBrand(settings.padGlyphs ?? brand);
   coach.render();
 };
 pad.onConnect = (connected) => {
@@ -1422,219 +1455,95 @@ if (pad.usingPad) {
 }
 // Start in the pause menu sets sail again, as the menu's own button does.
 padFocus.onResume = () => {
-  if (started && screens.showing('menu')) playButton.click();
+  if (started && screens.showing('pause')) pause.resume.click();
 };
-const showLog = $<HTMLInputElement>('show-log');
 hud.onLogToggle = (shown) => {
   settings.showLog = shown;
-  showLog.checked = shown;
   keepSettings();
 };
-hud.showLog = settings.showLog;
-showLog.checked = settings.showLog;
-showLog.addEventListener('change', () => {
-  hud.showLog = showLog.checked;
-  settings.showLog = showLog.checked;
-  keepSettings();
-});
-
-// Day and night can be turned off for players who dislike sailing at night (decision 0068).
-const dayNight = $<HTMLInputElement>('day-night');
-view.dayNight = settings.dayNight;
-dayNight.checked = settings.dayNight;
-dayNight.addEventListener('change', () => {
-  view.dayNight = dayNight.checked;
-  settings.dayNight = dayNight.checked;
-  keepSettings();
-});
-
-const camera = new CameraControls(view, input, settings, keepSettings, tilt);
-
-// Weather and storms can be turned off like every hazard (decision 0067; pirates will follow in
-// Phase 5). Without weather there are no storms either, so that switch is greyed out.
-const weatherSwitch = $<HTMLInputElement>('weather');
-const storms = $<HTMLInputElement>('storms');
-const syncWeather = () => {
-  world.dynamicWeather = settings.weather;
-  world.storms = settings.storms;
-  weatherSwitch.checked = settings.weather;
-  storms.checked = settings.storms;
-  storms.disabled = !settings.weather;
-  // The storm belt's squalls (decision 0167) are storms in a wind zone: they need all three.
-  world.stormBelt = settings.stormBelt;
-  stormBelt.checked = settings.stormBelt;
-  stormBelt.disabled = !settings.weather || !settings.storms || !settings.windZones;
-};
-// Eruptions (decision 0178) and wake styles (issue #418): what the sea shows, each switchable.
-wireViewSwitches(view, settings, keepSettings);
-// Wind zones (decision 0140) have their own switch, like every hazard.
-const windZones = $<HTMLInputElement>('wind-zones');
-const stormBelt = $<HTMLInputElement>('storm-belt');
-syncWeather();
-world.windZones = settings.windZones;
-windZones.checked = settings.windZones;
-windZones.addEventListener('change', () => {
-  world.windZones = windZones.checked;
-  settings.windZones = windZones.checked;
-  syncWeather();
-  keepSettings();
-});
-stormBelt.addEventListener('change', () => {
-  settings.stormBelt = stormBelt.checked;
-  syncWeather();
-  keepSettings();
-});
-// The sea's hazards each have a switch (currents, waves, bergs, other ships, haze).
-wireSeaSwitches(world, settings, keepSettings);
+const camera = new CameraControls(view, input, settings, tilt);
 world.traffic.cap = TUNING.seamanship.traffic.atOnce[level];
-// Wind: steady trade wind or the shifting wind (decision 0083); the level sets its default.
-const windButtons = [...$('wind-choice').querySelectorAll<HTMLButtonElement>('[data-wind]')];
-const syncWind = () => {
-  world.steadyWind = settings.steadyWind;
-  for (const b of windButtons)
-    b.setAttribute('aria-checked', String((b.dataset.wind === 'steady') === settings.steadyWind));
-};
-syncWind();
-for (const b of windButtons)
-  b.addEventListener('click', () => {
-    settings.steadyWind = b.dataset.wind === 'steady';
-    syncWind();
-    keepSettings();
-  });
+
+// --- Settings ----------------------------------------------------------------------------------
+// One applier pushes every setting to the game; the Settings screen only edits `settings`.
+const applier = new SettingsApplier({
+  world,
+  view,
+  hud,
+  camera,
+  padGlyphs: (brand) => {
+    usePadBrand(brand ?? pad.brand);
+    coach.render();
+  },
+});
+const applySettings = () => applier.apply(settings);
+applySettings();
+/** The level's wind default (decision 0083): picking a difficulty sets Steady or Shifting. */
 function applyLevelWind(level: Difficulty) {
   settings.steadyWind = knobs(level).steadyWind;
-  syncWind();
+  applySettings();
   keepSettings();
 }
-
-// Difficulty (decision 0083): changeable at any time; it moves the Wind choice to the level's default.
-const difficultyButtons = [...$('difficulty').querySelectorAll<HTMLButtonElement>('[data-level]')];
-function markDifficulty() {
-  for (const b of difficultyButtons)
-    b.setAttribute('aria-checked', String(b.dataset.level === world.trade.difficulty));
-}
-markDifficulty();
-for (const b of difficultyButtons)
-  b.addEventListener('click', () => {
-    const level = b.dataset.level;
-    if (!isDifficulty(level) || level === world.trade.difficulty) return;
-    trade.setDifficulty(world.trade, level);
-    chosenLevel = level;
-    applyLevelWind(level);
-    markDifficulty();
-    autosave();
-  });
-
-weatherSwitch.addEventListener('change', () => {
-  settings.weather = weatherSwitch.checked;
-  syncWeather();
-  keepSettings();
-});
-storms.addEventListener('change', () => {
-  settings.storms = storms.checked;
-  syncWeather();
-  keepSettings();
-});
-
-// --- Settings panel ----------------------------------------------------------------------------
-const qualityButtons = addQualityButtons($('quality'));
-const showFps = $<HTMLInputElement>('show-fps');
-const qualityNow = $('quality-now');
-const markQuality = () => {
-  for (const b of qualityButtons)
-    b.setAttribute('aria-checked', String(b.dataset.quality === settings.quality));
-};
-markQuality();
-showFps.checked = settings.showFps;
-// Waves (decision 0250) and graphics effects (0221): a switch each, under the level that draws it.
-const qualityRow = $('quality').closest('.set-row')!;
-const showEffects = addEffectSwitches(qualityRow, settings, view, keepSettings);
-const describeQuality = () => {
-  qualityNow.textContent = t('settings.nowUsing', { level: t(`settings.${level}`) });
-  showEffects(level);
-};
-describeQuality();
-
-$('chart-btn').addEventListener('click', () => chart.open());
-function closeSettings() {
-  screens.close('settings');
-}
-$('close-settings').addEventListener('click', closeSettings);
-for (const b of qualityButtons)
-  b.addEventListener('click', () => {
-    settings.quality = b.dataset.quality as typeof settings.quality;
-    keepSettings();
-    markQuality();
-    setLevel(settings.quality === 'auto' ? guessQuality() : settings.quality);
-  });
-const musicVolume = $<HTMLInputElement>('music-volume');
-const musicValue = $('music-volume-value');
-musicVolume.value = String(Math.round(settings.musicVolume * 100));
-musicValue.textContent = `${musicVolume.value}%`;
-musicVolume.addEventListener('input', () => {
-  musicValue.textContent = `${musicVolume.value}%`;
-  settings.musicVolume = Number(musicVolume.value) / 100;
-  music.unlock();
-  music.setVolume(settings.musicVolume);
-});
-musicVolume.addEventListener('change', () => keepSettings());
-// Effects and the sea's bed (decision 0209): their own volume.
-const soundVolume = $<HTMLInputElement>('sound-volume');
-const soundValue = $('sound-volume-value');
-soundVolume.value = String(Math.round(settings.soundVolume * 100));
-soundValue.textContent = `${soundVolume.value}%`;
+const closeSettings = () => screens.close('settings');
+const settingsScreen = new SettingsScreen(
+  {
+    settings,
+    changed: () => {
+      applySettings();
+      keepSettings();
+    },
+    keep: keepSettings,
+    level: () => level,
+    setQuality: (choice) => {
+      settings.quality = choice;
+      setLevel(choice === 'auto' ? guessQuality() : choice);
+    },
+    view,
+    audio: music,
+    difficulty: {
+      current: () => world.trade.difficulty,
+      choose: (next) => {
+        if (next === world.trade.difficulty) return;
+        trade.setDifficulty(world.trade, next);
+        newVoyage.choose(next);
+        applyLevelWind(next);
+        autosave();
+      },
+    },
+    lessons: {
+      label: () => titleState().lessons.label,
+      note: () => titleState().lessons.note,
+      disabled: () => titleState().lessons.disabled,
+      open: () => openLessons(),
+    },
+    setLanguage: switchLanguage,
+    free: freeSailing,
+    newGame: () => void newGame(),
+    backToStart: () => {
+      resetBoat(world);
+      sailStep = world.boat.sailStep;
+      // The boat is back at the quay: show the scene, still paused, without the menu over it.
+      screens.reset();
+    },
+    // A testing aid, not a player setting: only with ?debug (decision 0061).
+    shiftWind: new URLSearchParams(location.search).has('debug')
+      ? () => {
+          world.windOffsetDeg = (world.windOffsetDeg + 45) % 360;
+          hud.showToast(t('toast.windShifts'), 1.5);
+        }
+      : null,
+    padBrands: Object.keys(PAD_BRANDS),
+  },
+  closeSettings,
+);
+document.body.append(settingsScreen.screen.root);
 music.setSoundVolume(settings.soundVolume);
-soundVolume.addEventListener('input', () => {
-  soundValue.textContent = `${soundVolume.value}%`;
-  settings.soundVolume = Number(soundVolume.value) / 100;
-  music.unlock();
-  music.setSoundVolume(settings.soundVolume);
-});
-soundVolume.addEventListener('change', () => keepSettings());
-// People's babble on their cards (decision 0132): a switch and a volume of their own.
-const voices = $<HTMLInputElement>('voices');
-const voiceVolume = $<HTMLInputElement>('voice-volume');
-const voiceValue = $('voice-volume-value');
-const applyVoices = () => {
-  voiceValue.textContent = `${voiceVolume.value}%`;
-  voiceVolume.disabled = !settings.voices;
-  music.setVoiceVolume(settings.voices ? settings.voiceVolume : 0);
-};
-voices.checked = settings.voices;
-voiceVolume.value = String(Math.round(settings.voiceVolume * 100));
-applyVoices();
-voices.addEventListener('change', () => {
-  settings.voices = voices.checked;
-  keepSettings();
-  music.unlock();
-  applyVoices();
-});
-voiceVolume.addEventListener('input', () => {
-  settings.voiceVolume = Number(voiceVolume.value) / 100;
-  music.unlock();
-  applyVoices();
-});
-voiceVolume.addEventListener('change', () => keepSettings());
-showFps.addEventListener('change', () => {
-  settings.showFps = showFps.checked;
-  keepSettings();
-});
-// A testing aid, not a player setting: only with ?debug (decision 0061).
-$('shift-wind').hidden = !new URLSearchParams(location.search).has('debug');
-$('shift-wind').addEventListener('click', () => {
-  world.windOffsetDeg = (world.windOffsetDeg + 45) % 360;
-  hud.showToast(t('toast.windShifts'), 1.5);
-});
-$('reset-boat').addEventListener('click', () => {
-  resetBoat(world);
-  sailStep = world.boat.sailStep;
-  // The boat is back at the quay: show the scene, still paused, without the menu over it.
-  screens.reset();
-});
-const resetSaveBtn = document.getElementById('reset-save');
-resetSaveBtn?.addEventListener('click', async () => {
+music.setVoiceVolume(settings.voices ? settings.voiceVolume : 0);
+$('chart-btn').addEventListener('click', () => chart.open());
+
+async function newGame() {
   // The game's own question: the browser's box leaves fullscreen on Xbox (decision 0183).
-  const yes = await askConfirm({
+  const yes = await askDanger({
     title: t('settings.newGame'),
     text: t('settings.confirmNewGame'),
     ok: t('settings.newGame'),
@@ -1644,7 +1553,7 @@ resetSaveBtn?.addEventListener('click', async () => {
     if (storage) clearSave(storage);
     window.location.reload();
   }
-});
+}
 
 function setLevel(next: QualityLevel) {
   if (next === level) return;
@@ -1652,7 +1561,6 @@ function setLevel(next: QualityLevel) {
   view.setQuality(level);
   world.traffic.cap = TUNING.seamanship.traffic.atOnce[level];
   chart.fogBlur = QUALITY[level].chartFogBlur;
-  describeQuality();
 }
 
 // --- Resize ------------------------------------------------------------------------------------
@@ -1963,7 +1871,6 @@ function driveBench(sec: number) {
 /** `?bench`: a fresh captain's voyage, no tutorial, then the route (decision 0154). */
 function startBench(created: Bench) {
   trade.startVoyage(world.trade, 'captain');
-  markDifficulty();
   levelPicked = true;
   tutorialChoice.set('skipped');
   const [x, y] = created.config.route[0]!;

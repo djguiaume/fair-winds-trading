@@ -1,0 +1,296 @@
+/* The title and the pause card (decision 0269, issue #440): tokens only, no filters. */
+
+/* At the title the sea's HUD is hidden; in pause it stays, dimmed, under the card. */
+body.in-menu.at-title #hud > * {
+  display: none;
+}
+
+body.at-title .in-game {
+  display: none !important;
+}
+
+/* --- Title: the logbook page beside the key art --------------------------------------------- */
+.title {
+  --page-w: min(540px, 46vw);
+  --edge: var(--ui-edge-torn-width);
+  inset: 0;
+  background: #2a3d4d;
+}
+
+.title-art {
+  /* Starts under the torn edge, so the crop is centred on the boat and the quay, not the page. */
+  position: absolute;
+  inset: 0 0 0 calc(var(--page-w) - var(--edge));
+  width: calc(100% - var(--page-w) + var(--edge));
+  height: 100%;
+  object-fit: cover;
+  object-position: 61% 58%;
+}
+
+/* The page is wider than it looks: its left, top and bottom torn edges run off the screen, so
+   only the edge towards the art shows. */
+.title-page {
+  position: absolute;
+  top: calc(-1 * var(--edge));
+  bottom: calc(-1 * var(--edge));
+  left: calc(-1 * var(--edge));
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-4);
+  width: calc(var(--page-w) + var(--edge));
+  padding: calc(var(--ui-space-6) + env(safe-area-inset-top, 0px)) var(--ui-space-6)
+    calc(var(--ui-space-5) + env(safe-area-inset-bottom, 0px))
+    calc(var(--ui-space-6) + env(safe-area-inset-left, 0px));
+  overflow-y: auto;
+}
+
+.title-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ui-space-2);
+  text-align: center;
+}
+
+.title-brand .logo {
+  width: 100%;
+}
+
+.title-tagline {
+  margin: 0;
+  color: var(--ui-sage-deep);
+  font-family: var(--ui-font-title);
+  font-size: var(--fs-lead);
+  font-style: italic;
+}
+
+.title-menu,
+.pause-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-2);
+}
+
+/* Every menu row the same size; Continue is the one sage row (art bible, section 11). */
+.title-row,
+.pause-row {
+  min-height: 60px;
+  max-height: none;
+  padding: 0 var(--ui-space-4);
+  border-radius: var(--ui-radius-s);
+  background: var(--ui-face-off);
+}
+
+.title-row .ui-row-label,
+.pause-row .ui-row-label {
+  font-family: var(--ui-font-title);
+  font-size: var(--fs-big);
+  font-weight: 400;
+}
+
+.title-row .ui-row-detail {
+  color: var(--ui-ink);
+  font-size: var(--fs-body);
+  white-space: normal;
+}
+
+.title-row .ui-row-value {
+  font-size: var(--fs-text);
+  font-weight: 500;
+}
+
+.title-row[hidden] {
+  display: none;
+}
+
+.title-row--main {
+  border: 2px solid var(--ui-ink);
+  background: var(--ui-sage);
+  color: var(--ui-on-sage);
+}
+
+.title-row--main .ui-row-label,
+.title-row--main .ui-row-value {
+  color: var(--ui-on-sage);
+}
+
+.title-row:focus-visible,
+.pause-row:focus-visible,
+.title-link:focus-visible,
+.title-lang:focus-visible {
+  outline: 2px solid var(--ui-ink);
+  outline-offset: 2px;
+}
+
+.title-small {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ui-space-1) var(--ui-space-3);
+  margin-top: auto;
+}
+
+.title-link,
+.title-lang {
+  min-height: var(--ui-touch-target);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ui-muted);
+  font-family: var(--ui-font-text);
+  font-size: var(--fs-body);
+  cursor: pointer;
+}
+
+.title-link:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.title-icon .icon {
+  width: 20px;
+  height: 20px;
+}
+
+.title-languages {
+  display: flex;
+  margin-left: auto;
+}
+
+.title-lang {
+  min-width: var(--ui-touch-target);
+  padding: 0 var(--ui-space-2);
+  border-radius: var(--ui-radius-s);
+  font-weight: 700;
+}
+
+.title-lang[aria-pressed='true'] {
+  background: var(--ui-ink);
+  color: var(--ui-surface);
+}
+
+.title-hint {
+  margin: 0;
+  color: var(--ui-muted);
+  font-size: var(--fs-note);
+}
+
+/* The version sits bottom right, on the art, as in the mock: small ink on a paper plate. */
+.title-version {
+  position: fixed;
+  right: calc(var(--ui-space-3) + env(safe-area-inset-right, 0px));
+  bottom: calc(var(--ui-space-2) + env(safe-area-inset-bottom, 0px));
+  margin: 0;
+  padding: 0 var(--ui-space-2);
+  border-radius: var(--ui-radius-s);
+  background: var(--ui-surface);
+  color: var(--ui-muted);
+  font-size: var(--fs-small);
+}
+
+.title-version .build-revision {
+  margin-left: var(--ui-space-2);
+}
+
+.title-version:empty {
+  display: none;
+}
+
+/* --- Pause: a small paper card over the dimmed sea ------------------------------------------ */
+.pause {
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--ui-shadow-backdrop);
+}
+
+.pause-card {
+  width: min(380px, calc(100vw - 2 * var(--ui-space-4)));
+}
+
+.pause-title {
+  margin: 0;
+  font-family: var(--ui-font-title);
+  font-size: var(--fs-display);
+  font-weight: 400;
+  text-align: center;
+}
+
+.pause-status {
+  margin: 0 0 var(--ui-space-3);
+  color: var(--ui-muted);
+  text-align: center;
+  font-size: var(--fs-text);
+}
+
+.pause-row .ui-row-icon {
+  width: 26px;
+  height: 26px;
+}
+
+.pause-row .ui-row-label {
+  font-size: var(--fs-sub);
+}
+
+/* --- Phone landscape ------------------------------------------------------------------------- */
+/* Selectors carry `:root[data-layout]` to beat the components' own phone padding. */
+:root[data-layout='phone'] .title {
+  --page-w: min(460px, 56vw);
+}
+
+:root[data-layout='phone'] .title-page {
+  gap: var(--ui-space-2);
+  padding: calc(var(--ui-space-3) + env(safe-area-inset-top, 0px)) var(--ui-space-5)
+    calc(var(--ui-space-2) + env(safe-area-inset-bottom, 0px))
+    calc(var(--ui-space-5) + env(safe-area-inset-left, 0px));
+}
+
+:root[data-layout='phone'] .title-brand {
+  gap: 2px;
+}
+
+:root[data-layout='phone'] .title-brand .logo {
+  width: 62%;
+  gap: 2px;
+}
+
+:root[data-layout='phone'] .title-brand .logo-rose {
+  width: 40px;
+  height: 40px;
+}
+
+:root[data-layout='phone'] .title-tagline {
+  font-size: var(--fs-body);
+}
+
+:root[data-layout='phone'] .title-menu {
+  gap: var(--ui-space-1);
+}
+
+:root[data-layout='phone'] .title-row,
+:root[data-layout='phone'] .pause-row {
+  min-height: 40px;
+}
+
+:root[data-layout='phone'] .title-row .ui-row-detail {
+  display: none;
+}
+
+:root[data-layout='phone'] .title-row .ui-row-label,
+:root[data-layout='phone'] .pause-row .ui-row-label {
+  font-size: var(--fs-sub);
+}
+
+:root[data-layout='phone'] .title-small {
+  gap: 0 var(--ui-space-3);
+}
+
+:root[data-layout='phone'] .title-link,
+:root[data-layout='phone'] .title-lang {
+  min-height: 36px;
+  font-size: var(--fs-body);
+}
+
+:root[data-layout='phone'] .ui-tab {
+  min-height: 36px;
+}

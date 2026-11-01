@@ -156,9 +156,10 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   expect(input.isEnabled).toBe(true);
   const before = JSON.stringify(world.trade);
   click('#menu-btn');
-  // Once the tutorial is done, the menu offers Rook's sailing lessons instead (decision 0164).
-  expect(document.getElementById('menu-tutorial-label')!.textContent).toBe('Sailing lessons');
-  click('#menu-tutorial');
+  click('#pause-settings');
+  // Once the tutorial is done, Settings offers Rook's sailing lessons instead (decision 0164).
+  expect(document.querySelector('#settings-lessons')!.textContent).toBe('Sailing lessons');
+  click('#settings-lessons');
   expect(offer.open).toBe(false);
   expect(quests.isRunning('sailing-lessons')).toBe(true);
   expect(quests.isRunning('first-voyage')).toBe(false);
@@ -167,7 +168,8 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   );
   expect(input.isEnabled).toBe(true);
   click('#menu-btn');
-  expect(document.getElementById('menu-tutorial-label')!.textContent).toBe('Continue the lessons');
+  click('#pause-settings');
+  expect(document.querySelector('#settings-lessons')!.textContent).toBe('Continue the lessons');
   // Rook's course off Saltmere: the boat is taken there; the voyage is otherwise untouched.
   expect([world.boat.x, world.boat.y]).toEqual([300, -85]);
   const kept = (trade: object) => JSON.stringify({ ...trade, quests: null, dockedAt: null });

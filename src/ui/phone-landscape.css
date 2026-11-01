@@ -33,44 +33,7 @@
   }
 }
 
-/* Pause menu: the title shrinks so Resume and every row stay on screen. */
 @media (max-height: 480px) {
-  .menu.is-paused .menu-side {
-    gap: 4px;
-  }
-  .menu.is-paused .menu-brand {
-    padding: 4px 8px 2px;
-    margin-top: 0;
-  }
-  .menu.is-paused .menu-kicker,
-  .menu.is-paused .menu-tagline {
-    display: none;
-  }
-  .menu.is-paused .menu-emblem {
-    width: 34px;
-    height: 34px;
-  }
-  .menu.is-paused .menu-title {
-    font-size: var(--fs-lead);
-  }
-  .menu.is-paused .menu-row {
-    min-height: 30px;
-    font-size: var(--fs-lead);
-  }
-  .menu.is-paused .d-btn.big {
-    min-height: 40px;
-  }
-
-  /* Settings stays two columns, with tighter rows, so more shows at once. */
-  .settings-body {
-    grid-template-columns: 1fr 1fr;
-    gap: 6px 18px;
-  }
-  .set-row {
-    min-height: 38px;
-    padding: 3px 10px;
-  }
-
   /* Quest note at sea: narrow, clear of the centred sea banner. */
   .quest-note {
     gap: 6px;

@@ -149,3 +149,7 @@ python3 docs/ui-refactor/v1.5/sheet.py docs/ui-refactor/v1.5/out <dir>   # conta
 ```
 
 `mock.html?d=chart|club|harbour&s=title|hud|harbour|chart|identity&z=desktop|phone&t=night|day|storm` shows one screen in a browser (serve the folder). `screens.js` holds the shared markup, `art.js` the drawn parts (icons, goods, instruments, logos, chart overlay), `base.css` the shared layout and `chart.css`, `club.css`, `harbour.css` the three identities.
+
+## Build, wave 1 (issue #440, decision [0271](../../decisions/0271-title-pause-settings-and-new-voyage-on-the-components.md))
+
+Title 6 is built: `src/ui/screens/title.ts` (page, logo, menu, small line) over `src/ui/screens/art/title-key.jpg`, the README cover cut at 18% from the left after `grade_cover.py` (a golden-hour render of Saltmere replaces it once approved). Pause is `pause.ts`, New voyage `newVoyage.ts` with `levelCards.ts`, Settings `settings/` (a file per tab, `rows.ts` for the three controls, `apply.ts` for the one place settings reach the game). Build shots: [docs/reviews/ui/wave1/](../../reviews/ui/wave1/).

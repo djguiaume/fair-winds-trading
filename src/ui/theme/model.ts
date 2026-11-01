@@ -26,7 +26,7 @@ export interface Theme {
   easing: Record<string, string>;
   press: { scale: number };
   z: { screen: number; dialog: number; toast: number };
-  touch: { target: number; 'row-min': number; 'row-max': number };
+  touch: { target: number; 'row-min': number; 'row-max': number; 'level-card': number };
   breakpoints: { 'phone-max-height': number; 'desktop-min-width': number };
   edges: Record<string, Edge>;
   /** Style E (decision 0220): the tokens of the screens not rebuilt yet, by surface. */

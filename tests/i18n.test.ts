@@ -22,6 +22,7 @@ import { createWorld } from '../src/sim/world';
 import { SeaChart } from '../src/ui/seaChart';
 import { loadSettings } from '../src/ui/settings';
 import { TradePanel } from '../src/ui/tradePanel';
+import { TitleScreen } from '../src/ui/screens/title';
 
 const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
 const body = () =>
@@ -73,14 +74,25 @@ describe('translations (decision 0037)', () => {
     document.body.innerHTML = body();
     setLanguage('fr');
     translateDom();
-    expect(document.getElementById('menu-play-label')!.textContent).toBe(fr['menu.play']);
-    expect(document.getElementById('menu-settings')!.textContent!.trim()).toBe(fr['menu.settings']);
-    expect(document.querySelector('.menu-tagline')!.textContent).toContain('Lisez le vent');
+    const noop = () => {};
+    const title = new TitleScreen({
+      play: noop,
+      newVoyage: noop,
+      freeSailing: noop,
+      settings: noop,
+      help: noop,
+      lessons: noop,
+      transfer: noop,
+      setLanguage: noop,
+    }).screen.root;
+    expect(title.querySelector('#menu-settings .ui-row-label')!.textContent).toBe(
+      fr['menu.settings'],
+    );
+    expect(title.querySelector('.title-tagline')!.textContent).toContain('Lisez le vent');
     expect(document.getElementById('chart-title')!.textContent).toBe(fr['chart.title']);
     expect(document.getElementById('sail-full')!.textContent!.trim()).toBe(fr['hud.sailFull']);
     expect(document.getElementById('sail-lever')!.getAttribute('aria-label')).toBe(fr['hud.sails']);
     expect(document.getElementById('help')!.textContent).toContain(fr['help.windCopy']);
-    expect(document.getElementById('settings')!.textContent).toContain(fr['settings.speedLog']);
     // The wind compass letters follow the language: W is O in French.
     expect(
       document.querySelector('#wind-help-trigger .cardinal[data-i18n="compass.W"]')!.textContent,

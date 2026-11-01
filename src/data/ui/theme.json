@@ -78,7 +78,8 @@
   "touch": {
     "target": 44,
     "row-min": 56,
-    "row-max": 64
+    "row-max": 64,
+    "level-card": 200
   },
   "breakpoints": {
     "phone-max-height": 500,
