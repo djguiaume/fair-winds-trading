@@ -35,14 +35,22 @@
   background: var(--ui-sage);
   color: var(--ui-on-sage);
 }
+/* Destructive: an ink outline, never a red fill; the words warn, danger is only a small mark. */
 .ui-btn--danger {
-  border-color: var(--ui-danger);
+  border: 2px solid var(--ui-ink);
+}
+.ui-btn--danger::before {
+  content: '';
+  width: var(--ui-space-2);
+  height: var(--ui-space-2);
+  border-radius: var(--ui-radius-pill);
   background: var(--ui-danger);
-  color: var(--ui-on-danger);
 }
 .ui-btn[aria-disabled='true'] {
+  border-color: var(--ui-rule);
+  background: var(--ui-face-off);
   box-shadow: none;
-  opacity: 0.5;
+  color: var(--ui-muted);
   cursor: default;
 }
 .ui-btn:focus-visible,
@@ -66,7 +74,7 @@
   border: var(--ui-edge-brushed-width) solid transparent;
   border-image: none;
   background: none;
-  color: var(--ui-ink-muted);
+  color: var(--ui-muted);
   font-family: var(--ui-font-text);
   font-size: var(--fs-lead);
   font-weight: 600;
@@ -79,6 +87,9 @@
 }
 .ui-tabs .pad-key {
   flex: none;
+  border-color: var(--ui-ink);
+  background: none;
+  color: var(--ui-ink);
 }
 
 /* --- Card ------------------------------------------------------------------------------------ */
@@ -116,7 +127,7 @@ button.ui-card {
   font-size: var(--fs-sub);
 }
 .ui-card-text {
-  color: var(--ui-ink-muted);
+  color: var(--ui-muted);
   font-family: var(--ui-font-text);
   font-size: var(--fs-body);
 }
@@ -140,16 +151,6 @@ button.ui-card {
   border-radius: var(--ui-radius-s);
   box-shadow: var(--ui-shadow-2);
 }
-.ui-panel--night {
-  --ui-surface: var(--ui-paper-night-fill);
-  --ui-face: var(--ui-paper-night);
-  --ui-edge-torn: var(--ui-edge-torn-night);
-}
-.ui-panel--day {
-  --ui-surface: var(--ui-paper);
-  --ui-face: var(--ui-paper);
-  --ui-edge-torn: var(--ui-edge-torn-day);
-}
 
 /* --- List row -------------------------------------------------------------------------------- */
 .ui-row {
@@ -171,7 +172,7 @@ button.ui-row {
   cursor: pointer;
 }
 .ui-row[aria-pressed='true'] {
-  background: var(--ui-sage-wash);
+  background: var(--ui-wash);
 }
 .ui-row-icon {
   width: 24px;
@@ -190,7 +191,7 @@ button.ui-row {
 }
 .ui-row-detail {
   overflow: hidden;
-  color: var(--ui-ink-muted);
+  color: var(--ui-muted);
   font-size: var(--fs-note);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -272,7 +273,7 @@ button.ui-row {
 .ui-header-legend {
   display: flex;
   gap: var(--ui-space-3);
-  color: var(--ui-ink-muted);
+  color: var(--ui-muted);
   font-size: var(--fs-small);
 }
 .ui-header-exit {

@@ -20,9 +20,12 @@ export const CONTRAST_PAIRS: readonly [text: string, on: string][] = [
   ['ink', 'paper'],
   ['ink-muted', 'paper'],
   ['ink', 'paper-night'],
+  ['ink-muted-night', 'paper-night'],
   ['ink', 'sage-wash'],
+  ['ink', 'sage-wash-night'],
   ['on-sage', 'sage'],
-  ['on-danger', 'danger'],
+  // Danger is for words and small marks only, never a filled button (art director, v1.5).
+  ['danger', 'paper'],
 ];
 
 function luminance(hex: string): number {

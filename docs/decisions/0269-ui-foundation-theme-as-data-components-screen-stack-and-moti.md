@@ -24,10 +24,12 @@ table identity; they need one system to build on first.
 - **One module, three ways in** (decision 0153): `src/editor/theme/doc.ts` is shared by the
   editors' Theme page (live preview of the components by day and night) and `npm run theme`
   (`list`, `set`, `check`, `export`, `import`). `npm run check` holds the rules: WCAG AA (4.5:1)
-  for ink on paper, night paper and sage wash and for text on sage and danger; no colour near the
+  for ink and muted ink on paper and night paper, ink on the sage washes, text on sage and the
+  danger colour on paper; no colour near the
   reserved signal colours or whiter than `#f6f9fb` (the cosmetics rules); type of 11 px or more;
   44 px touch targets; durations from 150 to 250 ms.
-- **Eight components** in `src/ui/components/`, one module each: button (primary, plain, danger),
+- **Eight components** in `src/ui/components/`, one module each: button (primary sage, plain
+  paper, danger as an ink outline with a small danger mark, never a red fill),
   tab bar (LB/RB glyphs), card, panel (torn edge, follows the night or is forced), list row
   (56–64 px), dialog, toast, screen header (back or close, pad legend slot). Primary buttons carry
   `data-pad-main` (the pad starts there), danger `data-pad-start="never"`, the header's exit

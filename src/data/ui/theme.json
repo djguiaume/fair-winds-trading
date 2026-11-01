@@ -3,14 +3,17 @@
   "colour": {
     "paper": "#efe6d1",
     "paper-night": "#b9ab8a",
+    "paper-off": "#d8ceb6",
+    "paper-night-off": "#a1957a",
     "ink": "#23303a",
     "ink-muted": "#5b6670",
+    "ink-muted-night": "#333c44",
     "sage": "#4a6d41",
     "sage-deep": "#3a5733",
     "sage-wash": "#cfdcbc",
+    "sage-wash-night": "#a3ad8c",
     "on-sage": "#efe6d1",
     "danger": "#7a2a1e",
-    "on-danger": "#efe6d1",
     "rule": "#8c8270"
   },
   "night": {

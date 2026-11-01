@@ -39,7 +39,12 @@ describe('UI theme', () => {
 
   it('scopes its CSS to the page or a preview box', () => {
     expect(themeCss(SHIPPED_THEME)).toMatch(/^:root \{[\s\S]*\n:root\[data-night\] \{/);
-    const box = themeCss(SHIPPED_THEME, { root: '.box', night: '.box[data-night]' });
+    const box = themeCss(SHIPPED_THEME, {
+      root: '.box',
+      night: '.box[data-night]',
+      forcedDay: '.box .ui-panel--day',
+      forcedNight: '.box .ui-panel--night',
+    });
     expect(box.startsWith('.box {')).toBe(true);
     expect(box).not.toContain(':root');
   });

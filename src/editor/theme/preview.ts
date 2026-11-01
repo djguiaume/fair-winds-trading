@@ -16,7 +16,12 @@ import { type Theme, themeCss } from '../../ui/theme/model';
  * same strip is what the art director sees in the screenshot of the components.
  */
 
-const SCOPE = { root: '.th-preview', night: '.th-preview[data-night]' };
+const SCOPE = {
+  root: '.th-preview',
+  night: '.th-preview[data-night]',
+  forcedDay: '.th-preview .ui-panel--day',
+  forcedNight: '.th-preview .ui-panel--night',
+};
 
 /** The working theme's custom properties, for the preview boxes only. */
 export function previewStyle(theme: Theme): string {
