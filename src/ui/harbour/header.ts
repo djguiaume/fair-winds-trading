@@ -7,7 +7,8 @@ import { COIN, crateIcon } from '../icons';
 /**
  * The harbour's header on every tab (issue #443): the port's name in IM Fell with its line
  * ("Home port. Makes fish, wants grain and timber."), the tabs with their badges between the LB
- * and RB glyphs, the gold and the hold, and the close button (B on a pad).
+ * and RB glyphs, the gold and the hold, and the close button (B on a pad). The port screen puts
+ * the tabs on its paper instead, under the banner (issue #464): `harbourTabs`.
  */
 
 export interface WalletFigures {
@@ -18,16 +19,19 @@ export interface WalletFigures {
   deck?: { used: number; cap: number };
 }
 
-export interface HarbourHeaderOptions {
-  title: string;
-  line: string;
+export interface HarbourTabsOptions {
   tabs: readonly Tab[];
   selected: string;
-  wallet: WalletFigures;
   onSelect: (id: string) => void;
-  onClose: () => void;
   /** The ids' prefix: `tp` for a port (`tp-close`, `tp-tab-market`), `home` for her island. */
   ids?: string;
+}
+
+export interface HarbourHeaderOptions extends Partial<HarbourTabsOptions> {
+  title: string;
+  line: string;
+  wallet: WalletFigures;
+  onClose: () => void;
 }
 
 export function harbourHeader(o: HarbourHeaderOptions): HTMLElement {
@@ -39,13 +43,21 @@ export function harbourHeader(o: HarbourHeaderOptions): HTMLElement {
   head.title.replaceWith(titles);
   titles.append(head.title, el('p', 'hb-line', o.line));
 
+  const { tabs, selected, onSelect } = o;
+  if (tabs && selected !== undefined && onSelect)
+    head.exit!.before(harbourTabs({ tabs, selected, onSelect, ids }));
+  head.exit!.before(wallet(o.wallet));
+  return head.root;
+}
+
+/** The tabs with their badges, each with its id (`tp-tab-market`) for the tools and the tests. */
+export function harbourTabs(o: HarbourTabsOptions): HTMLElement {
   const bar = new TabBar({ tabs: o.tabs, selected: o.selected, onSelect: o.onSelect });
   for (const tab of o.tabs) {
     const b = bar.root.querySelector<HTMLElement>(`[data-tab="${tab.id}"]`)!;
-    b.id = `${ids}-tab-${tab.id}`;
+    b.id = `${o.ids ?? 'tp'}-tab-${tab.id}`;
   }
-  head.exit!.before(bar.root, wallet(o.wallet));
-  return head.root;
+  return bar.root;
 }
 
 /** Gold and hold (and deck cargo) as ink figures; the trade ticks roll their numbers (0274). */

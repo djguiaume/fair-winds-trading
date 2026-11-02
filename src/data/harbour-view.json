@@ -1,9 +1,9 @@
 {
   "picture": {
-    "width": 1440,
-    "height": 300,
-    "supersample": 1.5,
-    "fovDeg": 20,
+    "width": 1920,
+    "height": 340,
+    "supersample": 1.25,
+    "fovDeg": 16,
     "quality": 0.82,
     "shift": 0.15
   },
@@ -17,5 +17,17 @@
   "light": {
     "nightFrom": 0.5,
     "goldenFrom": 0.5
+  },
+  "grade": {
+    "tealHue": 188,
+    "tealWidth": 28,
+    "hueShift": 18,
+    "tealDesaturate": 0.32,
+    "tealDarken": 0.12,
+    "warm": [1.0, 0.72, 0.42],
+    "light": 0.5,
+    "lightBase": 0.14,
+    "foreground": 0.18,
+    "nightWarmth": 0.25
   }
 }

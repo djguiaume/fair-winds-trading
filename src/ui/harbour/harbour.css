@@ -1,21 +1,26 @@
 /*
- * The harbour screen (v1.5, issue #443, round 3 D and C): one paper ledger about 90% wide
- * (Market, Orders, Quay) as tall as its rows, standing on the footer, with the port's picture
- * filling the room above it; or the Shipyard's paper at about 70% beside the live boat. Built from the v1.5 components and their `--ui-*` tokens only; sizes come from
- * theme.json › harbour (`--ui-harbour-*`). No CSS filters; the torn edge is the panel's 9-slice.
+ * The harbour screen (v1.5, issues #443 and #464, round 3 D): the port's picture as a banner
+ * across the top with its name, gold and close on it, then one paper ledger filling the room
+ * below at about 90% of the width, the same on every tab. The port screen is opaque: nothing of
+ * the scene shows. Her own island's screen (homePanel) keeps the clear overlay over its plots.
+ * Built from the v1.5 components and their `--ui-*` tokens only; sizes come from theme.json ›
+ * harbour (`--ui-harbour-*`). No CSS filters; the torn edge is the panel's 9-slice.
  */
 .hb-overlay:not([hidden]) {
   display: block;
   padding: 0;
   background: linear-gradient(to bottom, transparent 55%, rgb(35 48 58 / 0.35));
 }
-/* The sea HUD steps aside while the harbour is up: the port and the boat are the scene. */
+.hb-port-screen:not([hidden]) {
+  background: var(--ui-backdrop);
+}
+/* The sea HUD steps aside while the harbour is up. */
 html[data-screen='harbour'] #hud {
   visibility: hidden;
 }
 .harbour {
   --hb-margin: var(--ui-harbour-margin);
-  --hb-strip: var(--ui-harbour-strip);
+  --hb-banner: max(var(--ui-harbour-banner), 24vh);
   --hb-gap: var(--ui-space-3);
   --hb-sail: var(--ui-harbour-sail-height);
   position: absolute;
@@ -28,58 +33,82 @@ html[data-screen='harbour'] #hud {
 }
 html[data-layout='phone'] .harbour {
   --hb-margin: var(--ui-harbour-margin-phone);
-  --hb-strip: var(--ui-harbour-strip-phone);
+  --hb-banner: var(--ui-harbour-banner-phone);
   --hb-gap: var(--ui-space-2);
   --hb-sail: var(--ui-harbour-sail-height-phone);
 }
 
-/* The port's own picture (decision 0211) fills the room above the paper and fades into it. */
-.hb-strip {
-  flex: 1 0 var(--hb-strip);
-  margin-bottom: calc(-1 * var(--ui-space-7));
-  background: center 40% / cover no-repeat;
-  mask-image: linear-gradient(to bottom, #000 70%, transparent);
+/* The banner: the port's picture (decision 0211, or its own art), fading into the table at its
+   foot; the name, gold and close on it in paper with the HUD's ink halo, over a 40% ink wash. */
+.hb-banner {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: flex-start;
+  box-sizing: border-box;
+  height: var(--hb-banner);
+  padding: max(var(--hb-gap), env(safe-area-inset-top))
+    max(var(--hb-margin), env(safe-area-inset-right)) 0
+    max(var(--hb-margin), env(safe-area-inset-left));
+  background: var(--ui-backdrop) center 55% / cover no-repeat;
+}
+.hb-banner::before {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, color-mix(in srgb, var(--ui-ink) 40%, transparent), transparent 50%),
+    linear-gradient(to bottom, transparent 70%, var(--ui-backdrop));
+  content: '';
   pointer-events: none;
 }
-.hb-tab-shipyard .hb-strip {
-  display: none;
+.hb-banner .hb-head {
+  position: relative;
+  flex: 1;
+  padding: 0;
+  color: var(--ui-paper);
+  text-shadow: var(--hud-halo);
+}
+.hb-banner .ui-header-exit {
+  text-shadow: none;
 }
 
-/* The paper: header and the tab's panes, as tall as they are, never a blank lower third. */
+/* The paper: the tabs on top, then the tab's panes, filling the room under the banner. */
 .hb-sheet {
   position: relative;
   display: flex;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
-  margin-inline: max(var(--hb-margin), env(safe-area-inset-left))
-    max(var(--hb-margin), env(safe-area-inset-right));
+  margin: calc(-1 * var(--ui-space-5)) max(var(--hb-margin), env(safe-area-inset-right)) 0
+    max(var(--hb-margin), env(safe-area-inset-left));
+}
+.harbour:not(.hb-port) .hb-sheet {
+  flex: 0 1 auto;
+  margin-top: 0;
 }
 /* At night the ledger's paper is all but opaque (theme night › ledger-opacity): rows must read. */
 html[data-night] .hb-sheet {
   background: var(--ui-paper-night-ledger) padding-box;
 }
+/* On the port screen's opaque table the whole sheet, torn edge included, is that paper. */
+html[data-night] .hb-port .hb-sheet {
+  --ui-edge-torn: var(--ui-edge-torn-night-ledger);
+  background: none;
+}
 .hb-sheet > .hb-head,
-.hb-sheet > .hb-pane {
+.hb-sheet > .hb-pane,
+.hb-sheet > .ui-tabs {
   padding-inline: var(--ui-space-5);
 }
-.hb-tab-shipyard .hb-sheet {
-  flex: 1 1 auto;
-  align-self: flex-start;
-  width: min(var(--ui-harbour-yard), 72vw);
-  margin-top: max(var(--hb-gap), env(safe-area-inset-top));
-}
-/* Beside the boat the header closes up: a smaller name, gold only. */
-.hb-tab-shipyard .hb-head .ui-header-title {
-  font-size: var(--fs-display);
-}
-.hb-tab-shipyard .hb-chip:nth-child(2) {
-  display: none;
+.hb-sheet > .ui-tabs {
+  flex: none;
+  padding-top: var(--ui-space-3);
 }
 
 /* --- Header: the port's name and line, the tabs, gold and hold, close ---------------------- */
 .hb-head {
   flex: none;
+  flex-wrap: wrap;
   gap: var(--ui-space-2) var(--ui-space-4);
   padding-block: var(--ui-space-3) var(--ui-space-2);
 }
@@ -87,7 +116,7 @@ html[data-night] .hb-sheet {
   display: flex;
   flex: none;
   flex-direction: column;
-  max-width: 34%;
+  max-width: 50%;
 }
 .hb-head .ui-header-title {
   flex: none;
@@ -99,10 +128,11 @@ html[data-night] .hb-sheet {
   color: var(--ui-muted);
   font-size: var(--fs-body);
 }
-.hb-head {
-  flex-wrap: wrap;
+.hb-banner .hb-line {
+  color: inherit;
+  font-size: var(--fs-text);
 }
-/* The tabs take their own row under the name, and the rule runs the page's width. */
+/* Her island's header keeps its tabs on their own row under the name. */
 .hb-head .ui-tabs {
   order: 1;
   flex: 1 0 100%;
@@ -113,9 +143,8 @@ html[data-night] .hb-sheet {
 .hb-head .ui-header-exit {
   flex: none;
 }
-/* Beside the boat (or a plot) the paper is narrower: the trade line goes. */
-.hb-home.is-half .hb-line,
-.hb-tab-shipyard .hb-line {
+/* Beside a plot the paper is narrower: the trade line goes. */
+.hb-home.is-half .hb-line {
   display: none;
 }
 .hb-wallet {
@@ -294,8 +323,15 @@ html[data-input='pad'] .hb-legend {
 
 /* --- Phone landscape: the same panes, smaller; nothing cut by the bottom bar (#433) --------- */
 html[data-layout='phone'] .hb-sheet > .hb-head,
-html[data-layout='phone'] .hb-sheet > .hb-pane {
+html[data-layout='phone'] .hb-sheet > .hb-pane,
+html[data-layout='phone'] .hb-sheet > .ui-tabs {
   padding-inline: var(--ui-space-3);
+}
+html[data-layout='phone'] .hb-sheet {
+  margin-top: calc(-1 * var(--ui-space-2));
+}
+html[data-layout='phone'] .hb-sheet > .ui-tabs {
+  padding-top: var(--ui-space-1);
 }
 html[data-layout='phone'] .hb-head {
   gap: var(--ui-space-2);
@@ -331,9 +367,6 @@ html[data-layout='phone'] .hb-detail-name {
 }
 html[data-layout='phone'] .hb-list-title {
   font-size: var(--fs-sub);
-}
-html[data-layout='phone'] .hb-tab-shipyard .hb-sheet {
-  width: 80vw;
 }
 html[data-layout='phone'] .hb-foot .hb-sail {
   min-width: 0;

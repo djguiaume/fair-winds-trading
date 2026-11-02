@@ -287,14 +287,21 @@ export function tidyDesign(design: IslandDesign): IslandDesign {
       'density',
     ]),
     ...(d.harbourView && {
-      harbourView: ordered(d.harbourView, ['from', 'look', 'height', 'lookHeight', 'accent']),
+      harbourView: ordered(d.harbourView, [
+        'from',
+        'look',
+        'height',
+        'lookHeight',
+        'accent',
+        'art',
+      ]),
     }),
   };
 }
 
 /**
  * The harbour screen's picture of this island's port (decision 0211): the camera's place, where it
- * looks and its heights, and the port's accent colour. `null` clears a field; nothing left, none.
+ * looks and its heights, the port's accent colour and banner art (#464). `null` clears a field; nothing left, none.
  */
 export function setHarbourView(
   design: IslandDesign,

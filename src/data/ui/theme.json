@@ -17,7 +17,8 @@
     "rule": "#8c8270",
     "tab-paper": "#dccfb1",
     "tab-paper-night": "#aa9d7f",
-    "ink-soft": "#747876"
+    "ink-soft": "#747876",
+    "backdrop": "#1e2930"
   },
   "night": {
     "paper-opacity": 0.8,
@@ -147,8 +148,8 @@
     "crates": 12
   },
   "harbour": {
-    "strip": 150,
-    "strip-phone": 36,
+    "banner": 200,
+    "banner-phone": 76,
     "margin": 64,
     "margin-phone": 8,
     "row": 64,
@@ -157,7 +158,8 @@
     "detail-phone": 280,
     "people": 330,
     "people-phone": 220,
-    "yard": 920,
+    "preview": 168,
+    "preview-phone": 44,
     "portrait": 120,
     "portrait-phone": 48,
     "looks-slots": 300,

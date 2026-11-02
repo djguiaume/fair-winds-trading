@@ -1,10 +1,11 @@
 import { SHIPPED_CATALOGUE } from '../../data/cosmetics';
 import { FREE_PRESETS, FREE_RULES } from '../../data/freeSailing';
-import { FREE_PARAM, everythingUnlocked, startFreeSession } from '../../sim/freeSailing';
+import { FREE_PARAM, everythingUnlocked, refitFree, startFreeSession } from '../../sim/freeSailing';
 import type { World } from '../../sim/world';
 import type { QualityLevel } from '../../render/quality';
 import { t } from '../../i18n';
 import type { MenuRows } from '../screens/menuRows';
+import type { FreeYard } from '../harbour/freeYard';
 import { FreeSetupScreen } from './setup';
 
 /**
@@ -27,6 +28,8 @@ interface FreeGame {
   menu: () => void;
   /** The title and the pause card, which list the session's own rows. */
   rows: readonly MenuRows[];
+  /** The harbour screen: its Shipyard refits her for free in a session (issue #464). */
+  harbour: { freeYard: FreeYard | null };
 }
 
 /** The title's Free Sailing row on the voyage page: a reload into `?free`. */
@@ -56,6 +59,11 @@ export function freeSailingIn(session: boolean, game: FreeGame): FreeSetupScreen
     leave: leaveFreeSailing,
     closed: game.menu,
   });
+  game.harbour.freeYard = {
+    refit: (ship, upgrades) => {
+      if (refitFree(game.world.trade, ship, upgrades)) setup.adopt(ship, upgrades);
+    },
+  };
   for (const rows of game.rows) {
     rows.addRow('menu-free-setup', t('menu.freeSetup'), () => setup.open());
     rows.addRow('menu-free-leave', t('menu.freeLeave'), leaveFreeSailing);

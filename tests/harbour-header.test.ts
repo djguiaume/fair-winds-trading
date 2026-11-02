@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
+import { SHIP_FILES } from '../src/data/ships';
 import characterData from '../src/data/characters.json';
 import { ISLAND_DESIGNS } from '../src/data/islands';
 import { PHASE1_MAP, GAME_MAP } from '../src/data/maps';
@@ -8,6 +9,7 @@ import en from '../src/i18n/en.json';
 import fr from '../src/i18n/fr.json';
 import {
   harbourAccent,
+  portArt,
   harbourLight,
   harbourLightTime,
   harbourShot,
@@ -59,7 +61,10 @@ describe('the harbour screen picture (decision 0211)', () => {
     const design = structuredClone(ISLAND_DESIGNS.saltmere!);
     const step = stepFromArgs(
       'view',
-      parseArgs(['--from', '0.2,2', '--look', '0,0.5', '--height', '0.4', '--accent', '#123456']),
+      parseArgs([
+        ...['--from', '0.2,2', '--look', '0,0.5', '--height', '0.4', '--accent', '#123456'],
+        ...['--art', 'art/ports/saltmere.jpg'],
+      ]),
       [],
     );
     applySteps(design, [step]);
@@ -68,7 +73,10 @@ describe('the harbour screen picture (decision 0211)', () => {
       look: [0, 0.5],
       height: 0.4,
       accent: '#123456',
+      art: 'art/ports/saltmere.jpg',
     });
+    // No port ships its own banner art yet: the game renders each one (#464).
+    expect(portArt(GAME_MAP, 'saltmere')).toBeNull();
     applySteps(design, [stepFromArgs('view', parseArgs(['--accent', 'none']), [])]);
     expect(design.harbourView?.accent).toBeUndefined();
     applySteps(design, [{ do: 'view', clear: true }]);
@@ -138,20 +146,39 @@ describe('the keeper on the harbour screen (decision 0211)', () => {
     const panel = new TradePanel(container, world);
     panel.harbourPicture = () => 'blob:picture';
     panel.open();
-    // The keeper speaks from the footer, the port's picture is the strip above the ledger.
+    // The keeper speaks from the footer, the port's picture is the banner above the ledger.
     const face = container.querySelector('.hb-face')!;
     expect(face.textContent).toContain('Rook');
     expect(en).toHaveProperty(
       ['keeper.rook.before.1'],
       face.querySelector('.hb-face-line')!.textContent,
     );
-    expect(container.querySelector<HTMLElement>('.hb-strip')!.style.backgroundImage).toContain(
-      'blob:picture',
-    );
+    const banner = container.querySelector<HTMLElement>('.hb-banner')!;
+    expect(banner.style.backgroundImage).toContain('blob:picture');
+    // The name and close sit on the banner; the tabs head the paper (#464).
+    expect(banner.querySelector('#tp-close')).not.toBeNull();
+    expect(container.querySelector('.hb-sheet > .ui-tabs #tp-tab-market')).not.toBeNull();
     // The Quay with nobody on it shows the quay itself, and the town's next growth.
     panel.quay = { items: () => [], seen: () => {} } as never;
     panel.open('quay');
     expect(container.querySelector('.hb-quay-empty .hb-quay-view')).not.toBeNull();
     expect(container.querySelector('.hb-town-next')!.textContent).toContain('Next');
+  });
+});
+
+describe('the Shipyard in Free Sailing (#464)', () => {
+  it('lists every ship and refits her for free from the levels and the rows', () => {
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    world.trade.dockedAt = homePort(PHASE1_MAP).id;
+    document.body.innerHTML = '<div id="panel" hidden></div>';
+    const container = document.querySelector<HTMLElement>('#panel')!;
+    const panel = new TradePanel(container, world);
+    const refits: string[] = [];
+    panel.freeYard = { refit: (ship, l) => refits.push(`${ship} ${l.sails}${l.hold}${l.hull}`) };
+    panel.open('shipyard');
+    expect(container.querySelectorAll('[data-pick^="ship:"]').length).toBe(SHIP_FILES.length);
+    container.querySelector<HTMLElement>('[data-free="hold:3"]')!.click();
+    container.querySelector<HTMLElement>('[data-pick="ship:cutter"]')!.click();
+    expect(refits).toEqual(['sloop 131', 'cutter 111']);
   });
 });

@@ -20,6 +20,7 @@ import {
   everythingUnlocked,
   isFreeSailing,
   presetTime,
+  refitFree,
   sailedWeather,
   setupFor,
   startFreeSession,
@@ -119,6 +120,16 @@ describe('Free Sailing', () => {
     expect(shipLook(captain, 'indiaman').sailColour).toBe(colour);
     expect([world.boat.x, world.boat.y]).toEqual([first.place.x, first.place.y]);
     expect(world.ship.id).toBe('indiaman');
+  });
+
+  it('refits her for free in a harbour, never at sea (the Shipyard, #464)', () => {
+    const world = createWorld(GAME_MAP, SLOOP);
+    expect(refitFree(world.trade, 'cutter', { sails: 2, hold: 1, hull: 1 })).toBe(false);
+    world.trade.dockedAt = 'saltmere';
+    expect(refitFree(world.trade, 'no-such-ship', { sails: 1, hold: 1, hull: 1 })).toBe(false);
+    expect(refitFree(world.trade, 'clipper', { sails: 9, hold: 2, hull: 0 })).toBe(true);
+    expect(world.trade.captain.activeShip).toBe('clipper');
+    expect(world.trade.captain.ships).toEqual({ clipper: { sails: 3, hold: 2, hull: 1 } });
   });
 
   it('a restart never turns the clock back', () => {

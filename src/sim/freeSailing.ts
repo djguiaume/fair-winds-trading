@@ -6,7 +6,8 @@ import { weatherFor } from './difficulty';
 import { chartAreaIds } from './fog';
 import { emptyAmounts } from './goods';
 import type { ShipLooks } from './shipLooks';
-import { activeShip } from './trade';
+import { SHIP_CLASSES } from './ship';
+import { type TradeState, activeShip } from './trade';
 import { MAX_UPGRADE_LEVEL, UPGRADE_TRACKS, type UpgradeLevels } from './upgrades';
 import { type WeatherConfig, steadyWeather, weatherAt } from './wind';
 import type { World } from './world';
@@ -132,6 +133,20 @@ export function startFreeSession(
     (presetTime(preset, undefined, world.map.seed, from, 1) as number);
   world.course.legStart = world.time;
   world.ship = activeShip(trade);
+}
+
+/**
+ * The harbour's Shipyard in a session (issue #464): any ship with any upgrades, free, while she
+ * lies alongside, like the setup screen. False when she is not docked or the ship is unknown.
+ */
+export function refitFree(trade: TradeState, ship: string, upgrades: UpgradeLevels): boolean {
+  if (!trade.dockedAt || !SHIP_CLASSES[ship]) return false;
+  const levels = Object.fromEntries(
+    UPGRADE_TRACKS.map((t) => [t, level(upgrades[t])]),
+  ) as UpgradeLevels;
+  trade.captain.activeShip = ship;
+  trade.captain.ships = { [ship]: levels };
+  return true;
 }
 
 /**

@@ -161,6 +161,15 @@ export function renderIslandPanel(root: HTMLElement, host: IslandPanelHost) {
         host.change(() => setHarbourView(design, { accent: null })),
       );
     }
+    const artRow = div('Banner art');
+    const art = node(
+      'input',
+      { type: 'text', value: view.art ?? '', placeholder: 'rendered (art/ports/<id>.jpg)' },
+      artRow,
+    );
+    art.addEventListener('change', () =>
+      host.change(() => setHarbourView(design, { art: art.value.trim() || null })),
+    );
     node('p', {
       className: 'ed-note',
       textContent:

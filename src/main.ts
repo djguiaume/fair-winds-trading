@@ -126,7 +126,7 @@ import {
   useTextEdits,
 } from './i18n';
 import { TradePanel } from './ui/tradePanel';
-import { boatBeside } from './ui/harbour/camera';
+import { portArt } from './render/harbourView';
 import { showTestSeaBadge } from './ui/testSeaBadge';
 import { boatLooksIn } from './ui/boatLooks/host';
 import {
@@ -348,7 +348,7 @@ chart.onChange = () => {
   refreshPause();
 };
 const tradePanel = new TradePanel($('trade-panel'), world);
-tradePanel.harbourPicture = (portId) => view.harbourPicture?.(portId) ?? null;
+tradePanel.harbourPicture = (id) => portArt(world.map, id) ?? view.harbourPicture?.(id) ?? null;
 // The home island (decision 0126). Rook's thanks gives it (decision 0127); `?home` gives it to the
 // voyage being played and offers every arc spot, to try the build spots.
 if (new URLSearchParams(location.search).has('home')) {
@@ -811,8 +811,6 @@ chart.quests = {
 };
 tradePanel.uiMode = settings.uiMode;
 hud.portLabels.isKidMode = hud.isKidMode = settings.uiMode === 'kids';
-// The Shipyard keeps the live boat in sight beside its paper (#443): the camera makes room.
-tradePanel.onBoatSide = (beside) => boatBeside(view, world, beside);
 const monitor = new FrameMonitor();
 /** The `?perf` readout, once its chunk has loaded (decision 0148). */
 let perf: PerfReadout | null = null;
@@ -1198,6 +1196,7 @@ const freeSetup = freeSailingIn(freeSailing, {
   },
   menu: showMenu,
   rows: [title, pause],
+  harbour: tradePanel,
 });
 transfer.onClose = () => screens.close('transfer');
 transfer.onReplaced = () => {

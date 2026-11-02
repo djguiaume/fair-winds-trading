@@ -10,7 +10,7 @@ import { formatNumber, t } from '../i18n';
 import type { UiMode } from './settings';
 import { guardSoftDisabled, softDisable } from './padFocus';
 import { harbourAccent } from '../render/harbourView';
-import { el } from './components/dom';
+import { el, trapTab } from './components/dom';
 import { panel } from './components/panel';
 import { button } from './components/button';
 import { COIN } from './icons';
@@ -19,7 +19,8 @@ import { character } from './portraits';
 import { creditNote, questCargoNote } from './harbour/credit';
 import { HarbourDeals } from './harbour/deals';
 import { harbourFooter, type FooterFace } from './harbour/footer';
-import { harbourHeader, portLine } from './harbour/header';
+import { type FreeYard, freeYardPane } from './harbour/freeYard';
+import { harbourHeader, harbourTabs, portLine } from './harbour/header';
 import { KeeperLines } from './harbour/keeper';
 import { goodsLedger, tradedGoods } from './harbour/market';
 import { goodDetail, type Lot } from './harbour/marketDetail';
@@ -49,9 +50,9 @@ export interface PortQuay {
 }
 
 /**
- * The harbour screen (decisions 0049, 0141, 0211; v1.5 issue #443): the port as a strip above one
- * paper ledger across about 90% of the width (Market, Orders, Quay), or the Shipyard's paper
- * beside the live boat. One header and footer on every tab; the panes live in `harbour/`.
+ * The harbour screen (decisions 0049, 0141, 0211; v1.5 issues #443, #464): the port's picture as a
+ * banner with its name, gold and close, then one paper ledger filling the room below at about 90%
+ * of the width, the same on every tab; nothing of the scene shows. The panes live in `harbour/`.
  */
 export class TradePanel {
   private tab: TradePanelTab = 'market';
@@ -67,8 +68,8 @@ export class TradePanel {
   onTrade: (kind: 'buy' | 'sell', good: GoodId | null) => void = () => {};
   onRender: () => void = () => {};
   onClose: () => void = () => {};
-  /** The live boat beside the paper (the Shipyard) or not: the camera makes room for her. */
-  onBoatSide: (beside: boolean) => void = () => {};
+  /** In Free Sailing, the Shipyard refits her for free (issue #464); null on a voyage. */
+  freeYard: FreeYard | null = null;
   /** Quest cargo aboard, a line each (decision 0213). */
   questCargo: () => string[] = () => [];
   /** The port's picture for the strip, from the game's renderer (decision 0211); null: none. */
@@ -87,7 +88,7 @@ export class TradePanel {
       render: () => this.render(),
       isOpen: () => this.isOpen,
     });
-    container.classList.add('hb-overlay');
+    container.classList.add('hb-overlay', 'hb-port-screen');
     container.setAttribute('role', 'dialog');
     container.setAttribute('aria-modal', 'true');
     container.setAttribute('aria-label', t('trade.dialogLabel'));
@@ -129,7 +130,6 @@ export class TradePanel {
   close() {
     this.container.hidden = true;
     delete document.documentElement.dataset.screen;
-    this.onBoatSide(false);
     this.onClose();
     if (this.returnFocus?.isConnected) this.returnFocus.focus({ preventScroll: true });
   }
@@ -141,23 +141,7 @@ export class TradePanel {
       e.preventDefault();
       this.close();
     }
-    if (e.key !== 'Tab') return;
-    const buttons = [
-      ...this.container.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'),
-    ];
-    const first = buttons[0];
-    const last = buttons.at(-1);
-    const at = document.activeElement;
-    if (!first) {
-      e.preventDefault();
-      this.container.focus();
-    } else if (e.shiftKey && (at === first || at === this.container)) {
-      e.preventDefault();
-      last?.focus();
-    } else if (!e.shiftKey && at === last) {
-      e.preventDefault();
-      first.focus();
-    }
+    trapTab(this.container, e);
   }
 
   render() {
@@ -176,26 +160,18 @@ export class TradePanel {
     const people = this.quay?.items() ?? [];
     const fresh = people.filter((p) => p.fresh);
     if (!this.quay && this.tab === 'quay') this.tab = 'market';
-    this.onBoatSide(this.tab === 'shipyard');
 
-    const root = el('div', `harbour hb-tab-${this.tab}`);
-    const picture = this.harbourPicture(port.id);
-    if (picture) {
-      const strip = el('div', 'hb-strip');
-      strip.setAttribute('aria-hidden', 'true');
-      strip.style.backgroundImage = `url('${picture}')`;
-      root.append(strip);
-    }
+    const root = el('div', `harbour hb-port hb-tab-${this.tab}`);
     const accent = harbourAccent(map, port.id);
     if (accent) root.style.setProperty('--port-accent', accent);
 
     const sheet = panel({ tag: 'div' });
     sheet.classList.add('hb-sheet');
-    sheet.append(this.header(port.id, port.name, people), this.body(people));
+    sheet.append(this.tabs(people), this.body(people));
     // The tutorial's coach mark lives in this host while the harbour is up.
     const coach = el('div', '');
     coach.id = 'tutorial-market';
-    root.append(sheet, this.footer(fresh), coach);
+    root.append(this.banner(port.id, port.name), sheet, this.footer(fresh), coach);
     this.container.replaceChildren(root);
     softDisable(this.container);
     this.onRender();
@@ -221,12 +197,14 @@ export class TradePanel {
       .join('');
   }
 
-  private header(portId: string, name: string, people: readonly QuayItem[]): HTMLElement {
+  /** The port's picture (decision 0211, or its own art) with its name, line, gold and close. */
+  private banner(portId: string, name: string): HTMLElement {
     const { trade, map } = this.world;
-    const kids = this.uiMode === 'kids';
-    const fresh = people.filter((p) => p.fresh).length;
     const onDeck = trade.quests.hold ?? 0;
-    return harbourHeader({
+    const banner = el('header', 'hb-banner');
+    const picture = this.harbourPicture(portId);
+    if (picture) banner.style.backgroundImage = `url('${picture}')`;
+    const head = harbourHeader({
       title: name,
       line: portLine({
         home: portId === homePort(map).id,
@@ -234,6 +212,26 @@ export class TradePanel {
         wants: wantsAt(map, trade, portId),
         shipwright: !findPort(map, portId)!.produces.length,
       }),
+      wallet: {
+        gold: trade.captain.gold,
+        used: cargoUsed(trade),
+        cap: capacity(trade),
+        deck:
+          onDeck > 0
+            ? { used: onDeck, cap: SHIP_CLASSES[trade.captain.activeShip]!.deck }
+            : undefined,
+      },
+      onClose: () => this.close(),
+    });
+    banner.append(head);
+    return banner;
+  }
+
+  /** The tabs, on top of the paper. */
+  private tabs(people: readonly QuayItem[]): HTMLElement {
+    const kids = this.uiMode === 'kids';
+    const fresh = people.filter((p) => p.fresh).length;
+    return harbourTabs({
       tabs: [
         { id: 'market', label: t(kids ? 'kids.tabMarket' : 'trade.tabMarket') },
         { id: 'orders', label: t('trade.tabOrders'), badge: openOrderCount(this.world) },
@@ -249,17 +247,7 @@ export class TradePanel {
         { id: 'shipyard', label: t(kids ? 'kids.tabShipyard' : 'trade.tabShipyard') },
       ],
       selected: this.tab,
-      wallet: {
-        gold: trade.captain.gold,
-        used: cargoUsed(trade),
-        cap: capacity(trade),
-        deck:
-          onDeck > 0
-            ? { used: onDeck, cap: SHIP_CLASSES[trade.captain.activeShip]!.deck }
-            : undefined,
-      },
       onSelect: (id) => this.show(id as TradePanelTab),
-      onClose: () => this.close(),
     });
   }
 
@@ -298,6 +286,13 @@ export class TradePanel {
         this.harbourPicture(world.trade.dockedAt!),
       );
       body.addEventListener('click', (e) => this.quayAnswer(e));
+    } else if (this.tab === 'shipyard' && this.freeYard) {
+      const yard = this.freeYard;
+      body = freeYardPane(world, (ship, levels) => {
+        yard.refit(ship, levels);
+        this.onAction();
+        this.render();
+      });
     } else if (this.tab === 'shipyard') {
       body = shipyardPane(world, this.picked.ship ?? null, {
         upgrade: (track) => this.deals.upgrade(track),

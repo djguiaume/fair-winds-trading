@@ -9,7 +9,7 @@ import type { World } from '../../sim/world';
 import { button } from '../components/button';
 import { el } from '../components/dom';
 import { listRow } from '../components/listRow';
-import { coins } from './parts';
+import { coins, esc } from './parts';
 
 /**
  * The fleet (decision 0048, issue #443): the ships she owns or can find as a readable table, the
@@ -96,6 +96,7 @@ export function fleetTable(
   offers: readonly ShipOffer[],
   selected: string,
   pick: (id: string) => void,
+  state: (offer: ShipOffer) => string = (offer) => shipState(world, offer),
 ): HTMLElement {
   const table = el('div', 'hb-fleet');
   const head = el('div', 'hb-cols hb-fleet-cols');
@@ -111,7 +112,8 @@ export function fleetTable(
   table.append(head);
   // Ships of yards not on the chart yet are one line, so the table stays readable (#443).
   const known = offers.filter((o) => o.status !== 'undiscovered');
-  for (const offer of known) table.append(fleetRow(world, offer, offer.cls.id === selected, pick));
+  for (const offer of known)
+    table.append(fleetRow(world, offer, offer.cls.id === selected, pick, state(offer)));
   const more = offers.length - known.length;
   if (more) table.append(el('p', 'hb-muted hb-fleet-more', t('harbour.fleetMore', { n: more })));
   table.append(
@@ -129,6 +131,7 @@ function fleetRow(
   offer: ShipOffer,
   selected: boolean,
   pick: (id: string) => void,
+  stateHtml: string,
 ): HTMLElement {
   const { cls } = offer;
   const line =
@@ -143,12 +146,8 @@ function fleetRow(
   });
   row.classList.add('hb-row', 'hb-ship');
   row.dataset.pick = `ship:${cls.id}`;
-  const move = shipMove(world, offer);
   const state = el('span', 'hb-ship-state');
-  if (move.kind === 'sailing') state.textContent = t('fleet.sailing');
-  else if (move.kind === 'note') state.textContent = move.text;
-  else if (move.kind === 'buy') state.innerHTML = coins(move.price!);
-  else state.textContent = t('harbour.owned');
+  state.innerHTML = stateHtml;
   row.append(
     el('span', 'hb-num', String(holdCapacity(cls, levelsOf(world, cls)))),
     el('span', 'hb-num', `${cls.noGoDeg}°`),
@@ -156,6 +155,19 @@ function fleetRow(
     state,
   );
   return row;
+}
+
+/** A row's state: sailing, a note, its price or owned (HTML). */
+function shipState(world: World, offer: ShipOffer): string {
+  const move = shipMove(world, offer);
+  if (move.kind === 'buy') return coins(move.price!);
+  const text =
+    move.kind === 'sailing'
+      ? t('fleet.sailing')
+      : move.kind === 'note'
+        ? move.text
+        : t('harbour.owned');
+  return esc(text);
 }
 
 /** The picked ship's line of facts: hold, points off the wind, top speed. */

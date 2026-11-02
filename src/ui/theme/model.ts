@@ -145,6 +145,8 @@ export function dayTokens(theme: Theme): Record<string, string> {
     const [day, night, nightOpacity] = fills[name] ?? [c.paper ?? '', c['paper-night'] ?? '', 1];
     vars[`--ui-edge-${name}-day`] = edgeImage(edge, day);
     vars[`--ui-edge-${name}-night`] = edgeImage(edge, night, nightOpacity);
+    // The port screen's ledger stands on an opaque table: its edge as solid as its paper (#464).
+    vars[`--ui-edge-${name}-night-ledger`] = edgeImage(edge, night, theme.night['ledger-opacity']);
     vars[`--ui-edge-${name}-slice`] = String(edge.slice);
     vars[`--ui-edge-${name}-width`] = `${edge.slice}px`;
   }
