@@ -55,7 +55,7 @@ html[data-layout='phone'] .harbour {
   margin-inline: max(var(--hb-margin), env(safe-area-inset-left))
     max(var(--hb-margin), env(safe-area-inset-right));
 }
-/* At night the ledger's paper is nearly opaque (theme night › ledger-opacity): rows must read. */
+/* At night the ledger's paper is all but opaque (theme night › ledger-opacity): rows must read. */
 html[data-night] .hb-sheet {
   background: var(--ui-paper-night-ledger) padding-box;
 }
@@ -280,6 +280,8 @@ html[data-input='pad'] .hb-legend {
   min-height: var(--hb-sail);
   margin-left: auto;
   padding-inline: var(--ui-space-5);
+  border: 2px solid var(--ui-sage-deep);
+  box-shadow: var(--ui-shadow-3);
   font: 400 var(--fs-title) / 1 var(--ui-font-title);
 }
 

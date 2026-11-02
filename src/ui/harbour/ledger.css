@@ -230,13 +230,15 @@
   height: 16px;
 }
 
-/* --- Phone landscape: the trend stays, the best price elsewhere goes to the detail pane ---- */
+/* --- Phone landscape: the trend stays, the best price elsewhere goes to the detail pane, and
+ * "No history yet" is said once there, not in every row (#443 review). ---------------------- */
 html[data-layout='phone'] .hb-cols,
 html[data-layout='phone'] .hb-good {
   grid-template-columns: 32px minmax(5em, 1fr) 28px 52px 52px 64px;
   column-gap: var(--ui-space-2);
 }
-html[data-layout='phone'] .hb-c-best {
+html[data-layout='phone'] .hb-c-best,
+html[data-layout='phone'] .hb-c-trend .hb-muted {
   display: none;
 }
 html[data-layout='phone'] .hb-row {
