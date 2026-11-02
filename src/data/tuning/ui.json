@@ -5,5 +5,7 @@
   "stampMs": 700,
   "tradeRollMs": 500,
   "countdownFrom": 10,
-  "duskFadeMs": 6000
+  "duskFadeMs": 6000,
+  "priceLogDays": 7,
+  "yardBoatShift": 0.3
 }

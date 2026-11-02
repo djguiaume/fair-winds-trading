@@ -180,7 +180,7 @@ describe('trade ticks', () => {
     );
     const draw = () => {
       const root = document.createElement('div');
-      root.innerHTML = `<span class="port-chip"><b>${state.gold}</b></span><span class="port-chip"><b>${state.used}/${state.cap}</b></span>`;
+      root.innerHTML = `<span class="hb-chip"><b>${state.gold}</b></span><span class="hb-chip"><b>${state.used}/${state.cap}</b></span>`;
       return root;
     };
     ticks.settle(draw()); // the screen opens: remembers 100 gold

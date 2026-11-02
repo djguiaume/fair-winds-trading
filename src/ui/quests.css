@@ -375,10 +375,6 @@ dialog.quest-card.is-arrival::backdrop {
   color: var(--brass);
   font-style: normal;
 }
-.tab-badge.is-quay {
-  box-shadow: 0 0 0 4px rgba(232, 196, 106, 0.25);
-}
-
 /* --- The note at sea: a step moved on away from the person's harbour ---------------------- */
 .quest-note {
   position: fixed;
