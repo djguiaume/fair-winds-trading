@@ -1,6 +1,6 @@
 // Parsers of `npm run shots` options (shots.mjs): points, lists, files, key holds and `--look`.
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { basename, extname, resolve } from 'node:path';
 import { ROOT } from './lib.mjs';
 
 export const pair = (v) => {
@@ -25,4 +25,24 @@ export function lookOption(v) {
   const [first, ...rest] = Array.isArray(v) ? v : String(v).split(',');
   if (!/^v[12]$/.test(String(first))) return { look: pair(v), ground: null };
   return { look: rest.length ? pair(rest) : null, ground: first };
+}
+
+/** The file name of a shot when `--name` is not given. */
+export function defaultName(s) {
+  if (s.editor)
+    return ['editor', s.editor, s.select?.replace(/[:]/g, '-'), s.exportOpen && 'export']
+      .filter(Boolean)
+      .join('-');
+  const sea = s.seaFile ? basename(s.seaFile, extname(s.seaFile)) : s.sea;
+  const where = s.port ?? (s.at ? `${s.at[0]}_${s.at[1]}` : 'start');
+  return [
+    sea,
+    s.boot ?? (s.menu ? 'menu' : where),
+    s.chart && 'chart',
+    s.night && 'night',
+    s.ground === 'v1' && 'v1',
+    s.lang !== 'en' && s.lang,
+  ]
+    .filter(Boolean)
+    .join('-');
 }

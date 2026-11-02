@@ -36,6 +36,8 @@ Twelve images in the project files (`ui-review/references-chatgpt/`, notes there
 - **Cards and moments.** Quest card keeps its shape but never covers the quest chip or the whole phone screen. New moments: arrival banner ("Saltmere" with its tagline), sale and purchase ticks (coins roll, a sound), quest step stamp, race horn and finish board, day to night.
 - **Feedback and motion.** One motion system: 150 to 250 ms screen transitions, pressed buttons, number rolls, toasts that slide; every animation honours reduced motion and costs nothing per frame when idle.
 
+- **Loading screen and portrait page** (decision 0277). Loading: paper, the logo and tagline, a small ink sailboat sailing along a wave line that inks in behind it, "Hoisting sail" in muted ink; no percentage. A phone held upright (touch, short side of phone size) shows only a paper page asking to turn it sideways; the game stops behind it and starts when the phone is turned. Tablets and desktop windows are never blocked. Shots: `npm run shots -- --splash`, `--portrait-gate` ([sheet](shots/boot-screens.jpg)).
+
 ## Waves and parts
 
 Same pause rule as v1.4: Guillaume checks token use between waves and says go. At most 3 to 5 threads at once. Every visual part: `visual` label, Guillaume's `visual-ok` before merge.

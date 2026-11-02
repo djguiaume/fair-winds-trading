@@ -1,4 +1,4 @@
-# 0277. One tab bar on every screen
+# 0278. One tab bar on every screen
 
 **Status:** Accepted (2026-11-02).
 
