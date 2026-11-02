@@ -71,6 +71,17 @@ describe('tab bar', () => {
     bar.root.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
     expect(picked).toEqual(['market', 'quay', 'shipyard', 'quay']);
   });
+
+  it('changes a count while up and skips a hidden tab (#444)', () => {
+    const bar = new TabBar({ tabs });
+    bar.setBadge('shipyard', 3);
+    expect(bar.tab('shipyard')!.querySelector('.ui-tab-badge')!.textContent).toBe('3');
+    bar.setBadge('shipyard', 0);
+    expect(bar.tab('shipyard')!.querySelector('.ui-tab-badge')).toBeNull();
+    bar.tab('shipyard')!.hidden = true;
+    bar.step(1);
+    expect(bar.selected).toBe('quay');
+  });
 });
 
 describe('card and list row', () => {

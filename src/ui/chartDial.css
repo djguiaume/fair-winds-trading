@@ -1,68 +1,62 @@
-/* The chart's north-up wind dial (decision 0040), kept as it was when the sea HUD's compass moved
-   to its own boat-up dial (issue #441). The chart part (#444) restyles it. */
-.chart-compass {
-  --force: #7fe0a8;
-  text-align: center;
-}
-.chart-compass[data-force='0'] {
-  --force: #c9d6da;
-}
-.chart-compass[data-force='1'] {
-  --force: #9fe7ff;
-}
-.chart-compass[data-force='3'] {
-  --force: #ffe17a;
-}
-.chart-compass[data-force='4'] {
-  --force: #ffa25a;
-}
-.chart-compass svg {
+/* The chart's engraved compass rose (issue #444): ink and paper points in a ticked ring, the wind
+   arrow in ink, the no-go wedge as hatched ink (never red), her boat and the course in sage. */
+.chart-rose svg {
   overflow: visible;
 }
-.chart-compass .face {
-  fill: rgba(255, 255, 255, 0.04);
-  stroke: var(--brass-line);
-  stroke-width: 1.2;
+.chart-rose .face {
+  fill: var(--ui-paper);
+  fill-opacity: 0.6;
+  stroke: var(--ui-ink);
+  stroke-width: 1.4;
 }
-.chart-compass .band {
+.chart-rose .ring {
   fill: none;
-  stroke: var(--green);
-  stroke-width: 4;
-  stroke-linecap: round;
-  opacity: 0.8;
-}
-.chart-compass .nogo {
-  fill: rgba(255, 106, 85, 0.4);
-}
-.chart-compass .ticks {
-  stroke: var(--ink);
-  stroke-opacity: 0.55;
-  stroke-width: 1.3;
-}
-.chart-compass text {
-  font-family: var(--display);
-  font-size: var(--fs-micro);
-  font-weight: 700;
-  text-anchor: middle;
-}
-.chart-compass .north {
-  fill: var(--brass);
-}
-.chart-compass .cardinal {
-  fill: var(--ink-dim);
-}
-.chart-compass .wind {
-  fill: var(--force);
-  stroke: rgba(0, 0, 0, 0.5);
+  stroke: var(--ui-ink);
   stroke-width: 0.8;
 }
-.chart-compass .boat {
-  fill: var(--ink);
-  stroke: var(--outline);
-  stroke-width: 1;
+.chart-rose .ticks {
+  stroke: var(--ui-ink);
+  stroke-width: 0.9;
 }
-.chart-compass .wp {
-  fill: #ff5a4a;
-  stroke: #fff;
+.chart-rose .north {
+  fill: var(--ui-ink);
+  font-family: var(--ui-font-title);
+  text-anchor: middle;
+}
+.chart-rose .point-dark {
+  fill: var(--ui-ink);
+}
+.chart-rose .point-light {
+  fill: var(--ui-paper);
+  stroke: var(--ui-ink);
+  stroke-width: 0.8;
+  stroke-linejoin: round;
+}
+.chart-rose .nogo {
+  fill: var(--ui-ink);
+  fill-opacity: 0.22;
+  stroke: var(--ui-ink);
   stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.chart-rose .hatch {
+  stroke: var(--ui-ink);
+  stroke-width: 0.9;
+  stroke-opacity: 0.7;
+}
+.chart-rose .wind {
+  fill: var(--ui-ink);
+  stroke: var(--ui-paper);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.chart-rose .boat {
+  fill: var(--ui-sage);
+  stroke: var(--ui-ink);
+  stroke-width: 1.2;
+}
+.chart-rose .wp {
+  fill: var(--ui-sage);
+  stroke: var(--ui-paper);
+  stroke-width: 1.4;
 }

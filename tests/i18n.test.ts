@@ -91,7 +91,7 @@ describe('translations (decision 0037)', () => {
       fr['menu.settings'],
     );
     expect(title.querySelector('.title-tagline')!.textContent).toContain('Lisez le vent');
-    expect(document.getElementById('chart-title')!.textContent).toBe(fr['chart.title']);
+    expect(document.getElementById('chart')!.getAttribute('aria-label')).toBe(fr['chart.title']);
     expect(document.getElementById('sail-full')!.textContent!.trim()).toBe(fr['hud.sailFull']);
     expect(document.getElementById('sail-lever')!.getAttribute('aria-label')).toBe(fr['hud.sails']);
     expect(document.getElementById('help')!.textContent).toContain(fr['help.windCopy']);
