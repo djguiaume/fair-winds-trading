@@ -1,6 +1,6 @@
 # 0273. Sea HUD in three clusters, quiet HUD and idle fade
 
-**Status:** Proposed (2026-11-01).
+**Status:** Accepted (2026-11-02), with the v1.5 release ([0281](0281-version-15-release-a-real-game.md)).
 
 ## Context
 

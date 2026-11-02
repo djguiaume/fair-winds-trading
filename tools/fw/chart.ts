@@ -117,9 +117,9 @@ function editorStyles(): string {
 /** The game's fonts, inlined so the SVG looks the same anywhere. */
 function fontFaces(): string {
   return [
-    ['Barlow Condensed', 700, 'barlow-condensed-700'],
-    ['Barlow', 500, 'barlow-500'],
-    ['Barlow', 700, 'barlow-700'],
+    ['IM Fell English', 400, 'im-fell-english-400'],
+    ['Alegreya Sans', 500, 'alegreya-sans-500'],
+    ['Alegreya Sans', 700, 'alegreya-sans-700'],
   ]
     .map(([family, weight, file]) => {
       const data = readFileSync(join(ROOT, `src/ui/fonts/${file}.woff2`)).toString('base64');
@@ -152,14 +152,14 @@ svg.fw-chart { background: #1b7f8c; }
 .o-coast-drawn { stroke: #ffd23f; stroke-width: 2px; stroke-dasharray: 5 4; }
 .o-coast-bad { fill: #d7263d; fill-opacity: .55; stroke: #fff; stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
 .o-sailed { fill: none; stroke: #fff; stroke-width: 2.5px; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-.o-label { fill: #fff; stroke: #06141c; stroke-linejoin: round; paint-order: stroke; text-anchor: middle; font-family: 'Barlow', sans-serif; font-weight: 700; }
-.o-label.port { fill: #ffe39a; font-family: 'Barlow Condensed', sans-serif; }
-.o-label.big { font-family: 'Barlow Condensed', sans-serif; letter-spacing: .08em; fill-opacity: .9; }
+.o-label { fill: #fff; stroke: #06141c; stroke-linejoin: round; paint-order: stroke; text-anchor: middle; font-family: 'Alegreya Sans', sans-serif; font-weight: 700; }
+.o-label.port { fill: #ffe39a; font-family: 'IM Fell English', serif; }
+.o-label.big { font-family: 'IM Fell English', serif; letter-spacing: .08em; fill-opacity: .9; }
 .o-label.zone { fill: #fff7d6; }
 .o-label.note { fill: #e6f4f6; font-weight: 500; font-style: italic; }
-.fw-chart .fw-title { fill: #ffe39a; font: 700 26px 'Barlow Condensed', sans-serif; paint-order: stroke; stroke: #06141c; stroke-width: 5px; }
+.fw-chart .fw-title { fill: #ffe39a; font: 700 26px 'IM Fell English', serif; paint-order: stroke; stroke: #06141c; stroke-width: 5px; }
 .fw-legend rect.box { fill: #0d2433e8; stroke: #e8c46a; stroke-width: 1.5px; }
-.fw-legend text { fill: #eef3f4; font: 500 14px 'Barlow', sans-serif; }
+.fw-legend text { fill: #eef3f4; font: 500 14px 'Alegreya Sans', sans-serif; }
 `;
 
 /** Label sizes in screen pixels, by style. */

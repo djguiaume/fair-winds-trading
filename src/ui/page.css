@@ -1,0 +1,78 @@
+* {
+  box-sizing: border-box;
+}
+/*
+ * The screen's safe insets: a phone's notch and rounded corners, and on a TV (decision 0183) the
+ * edges an overscanning set may crop. TV mode sets `--tv-safe-x/y` from `controls.json` › `tv`;
+ * the UI reads `--safe-*` (with the bare `env()` as fallback where this file is not loaded).
+ */
+:root {
+  --safe-top: max(env(safe-area-inset-top, 0px), var(--tv-safe-y, 0px));
+  --safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--tv-safe-y, 0px));
+  --safe-left: max(env(safe-area-inset-left, 0px), var(--tv-safe-x, 0px));
+  --safe-right: max(env(safe-area-inset-right, 0px), var(--tv-safe-x, 0px));
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #1d6f7a;
+  font-family: var(--ui-font-text);
+  color: var(--ui-paper);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+#stage {
+  position: fixed;
+  inset: 0;
+  touch-action: none;
+}
+#scene {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/*
+ * Inside a fog bank or ash cloud (decision 0169): the sea round the boat stays clear and the haze
+ * thickens toward the screen's edges. Only its opacity changes per frame (no repaint), and its
+ * colour when the light changes.
+ */
+.haze-veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+#hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  --gap: max(12px, var(--safe-left, env(safe-area-inset-left)));
+}
+#hud button,
+#hud select,
+#hud input {
+  pointer-events: auto;
+}
+.muted {
+  opacity: 0.75;
+}
+
+/* The home island's screen (decision 0049) fills the page over the sea. */
+.trade-panel-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: stretch;
+  padding: 0;
+  background: var(--ui-shadow-backdrop);
+  touch-action: pan-y;
+}
+.trade-panel-overlay[hidden] {
+  display: none;
+}

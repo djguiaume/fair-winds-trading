@@ -1,6 +1,6 @@
 # 0280. Port screen: island banner over a full opaque ledger
 
-**Status:** Proposed (2026-11-02), part of v1.5 (#464). Amends 0276 for the port screen.
+**Status:** Accepted (2026-11-02), part of v1.5 (#464; Guillaume: "all good"). Amends 0276 for the port screen.
 
 ## Context
 

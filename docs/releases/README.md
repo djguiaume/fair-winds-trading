@@ -29,3 +29,4 @@ worth remembering.
    sets the next `1.<minor>.0` and its label.
 | [v1.3.335](v1.3.335.md) | merge of the 1.3.1 PR | 1.3.1 Boats that ride them: boats heave, pitch and roll, waves slow the boat, surf lines and beach wash, start view, bake coast |
 | [v1.4.351](v1.4.351.md) | merge of the 1.4 PR | 1.4 Visible upgrades: upgrades on every ship, Boat looks screen, logos and patterns, earned looks, Free Sailing |
+| [v1.5.372](v1.5.372.md) | merge of the 1.5 PR | 1.5 A real game: the UI rebuilt as one system with the chart-table identity, every screen on the same components, painted port banners, a close chase camera |

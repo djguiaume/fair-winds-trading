@@ -98,7 +98,7 @@ export function normalise(opts) {
     style: o.style ? readAll(o.style) : null,
     script: o.script ? readAll(o.script) : null,
     saveLink: !!o['save-link'],
-    sizes: list(o.sizes ?? (o['portrait-gate'] ? 'portrait' : 'desktop')),
+    sizes: list(o.sizes ?? (o['portrait-gate'] ? 'portrait' : 'desktop,landscape')),
     url: o.url ?? null,
     editor: o.editor === true ? 'phase4' : (o.editor ?? null),
     select: o.select ?? null,

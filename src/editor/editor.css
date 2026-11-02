@@ -3,25 +3,6 @@
  * tools on the left, the chart in the middle, the selected item and the checks on the right.
  * In portrait the panel moves under the chart.
  */
-@font-face {
-  font-family: 'Barlow Condensed';
-  font-weight: 700;
-  font-display: swap;
-  src: url('../ui/fonts/barlow-condensed-700.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Barlow';
-  font-weight: 500;
-  font-display: swap;
-  src: url('../ui/fonts/barlow-500.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Barlow';
-  font-weight: 700;
-  font-display: swap;
-  src: url('../ui/fonts/barlow-700.woff2') format('woff2');
-}
-
 :root {
   --navy: #0d2433;
   --navy-solid: #123246;
@@ -35,8 +16,8 @@
   --amber: #ffb36b;
   --red: #ff6a55;
   --outline: #06141c;
-  --display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
-  --body: 'Barlow', 'Trebuchet MS', sans-serif;
+  --display: 'Arial Narrow', 'Roboto Condensed', sans-serif;
+  --body: 'Trebuchet MS', sans-serif;
 }
 * {
   box-sizing: border-box;

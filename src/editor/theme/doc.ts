@@ -6,7 +6,7 @@ import { SHIPPED_THEME, type Theme } from '../../ui/theme/model';
  * The UI theme as the editors' Theme page and `npm run theme` edit it (decisions 0153, 0269).
  * Pure, so the page, the command and the tests share the same tokens, edits, checks and file.
  * A token is named by its path in `theme.json`: `colour.sage`, `duration.base`,
- * `legacy.root.brass`, `edges.torn.path`.
+ * `chart.land`, `edges.torn.path`.
  */
 
 export const THEME_FILE = 'src/data/ui/theme.json';
@@ -48,7 +48,7 @@ export function tokens(theme: Theme): Token[] {
   return out;
 }
 
-/** The token groups as the page lists them: `colour`, `type`… and `legacy.root`, `edges.torn`. */
+/** The token groups as the page lists them: `colour`, `type`… and `edges.torn`. */
 export function groupOf(path: string): string {
   const parts = path.split('.');
   return parts.length > 2 ? parts.slice(0, 2).join('.') : parts[0]!;

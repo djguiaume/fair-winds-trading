@@ -1,6 +1,6 @@
 # 0275. Paper sea chart: one theme, top tabs and split modules
 
-**Status:** Proposed (2026-11-01). Issue #444, v1.5 wave 3; mockup: round 3 D (decision 0268).
+**Status:** Accepted (2026-11-02). Issue #444, v1.5 wave 3; mockup: round 3 D (decision 0268).
 
 ## Context
 
