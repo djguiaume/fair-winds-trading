@@ -1,0 +1,3 @@
+/* A person's quest card and its race parts, as the game and the quest builder load them. */
+@import './card.css';
+@import './race.css';

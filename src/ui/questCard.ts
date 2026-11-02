@@ -9,8 +9,7 @@ import { type QuestCardModel, cardTag } from './questView';
 import { medalClass, raceBoardHtml } from './moments/raceBoard';
 import { stampCard } from './moments/stamp';
 import { type RaceCardInfo, raceClock } from './regattaView';
-import './quests/card.css';
-import './quests/race.css';
+import './quests/index.css';
 
 const esc = (s: string) =>
   s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
