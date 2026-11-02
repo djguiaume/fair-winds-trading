@@ -259,9 +259,9 @@
     "spacing": 0.185
   },
   "harbourView": {
-    "from": [0.35, 2.3],
+    "from": [0.6, 3.4],
     "look": [0, 0.6],
-    "height": 1,
+    "height": 1.6,
     "lookHeight": 0.1
   }
 }
