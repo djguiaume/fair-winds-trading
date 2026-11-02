@@ -20,7 +20,7 @@ import {
 import { type UpgradeTrack, upgradePrice } from '../../sim/upgrades';
 import type { World } from '../../sim/world';
 import { button } from '../components/button';
-import { askConfirm } from '../confirmDialog';
+import { askConfirm } from '../screens/confirm';
 import { COIN } from '../icons';
 
 /** What the harbour screen hears after a deal. */

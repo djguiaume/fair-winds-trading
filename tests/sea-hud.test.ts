@@ -194,7 +194,7 @@ describe('hidden HUD work', () => {
     observer.disconnect();
   });
 
-  it('keeps toast expiry and pause wind-cue resets running while covered', () => {
+  it('shows the news on the toaster and keeps pause wind-cue resets running while covered', () => {
     const { world, hud } = setup();
     world.boat.heading = world.wind.from;
     world.boat.sailStep = 2;
@@ -203,7 +203,7 @@ describe('hidden HUD work', () => {
     expect($('upwind-chip').hidden).toBe(false);
     hud.showToast('temporary', 1);
     hud.update(2, project, size, false, false);
-    expect($('toast').hidden).toBe(true);
+    expect(hud.toaster.current).toBe('temporary');
     hud.update(1 / 60, project, size, true, true);
     expect($('upwind-chip').hidden).toBe(true);
     expect($('wind-compass').classList.contains('wind-pulse')).toBe(false);

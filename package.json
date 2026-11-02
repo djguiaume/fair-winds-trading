@@ -29,7 +29,8 @@
     "review": "node tools/fw/fw.mjs review",
     "sound": "node tools/fw/fw.mjs sound",
     "identity": "node tools/fw/fw.mjs identity",
-    "theme": "node tools/fw/fw.mjs theme"
+    "theme": "node tools/fw/fw.mjs theme",
+    "tune": "node tools/fw/fw.mjs tune"
   },
   "dependencies": {
     "fflate": "^0.8.3",

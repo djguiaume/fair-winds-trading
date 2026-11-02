@@ -23,6 +23,8 @@ import { Status, type StatusFrame, trackedQuestLine } from './hud/status';
 import { applyHudTokens } from './hud/tokens';
 import { WindCompass, type WindFrame } from './hud/windCompass';
 import { EdgeArrow } from './hud/edgeArrow';
+import { windHelpDialog } from './hud/windHelp';
+import { Toaster } from './components';
 import { setHidden } from './hud/parts';
 import './hud/hud.css';
 import './hud/overlays.css';
@@ -54,6 +56,8 @@ export class Hud {
   readonly instrument = new Instrument();
   readonly actions = new Actions();
   readonly toasts: SeaToasts;
+  /** The screen's one Toaster: the news at sea, top centre. */
+  readonly toaster = new Toaster();
   readonly press: PressWarning;
   readonly portLabels: PortLabels;
   private readonly boatLabels: BoatLabels;
@@ -62,7 +66,7 @@ export class Hud {
   private readonly tiller = $('tiller');
   private readonly fps = $('fps');
   private readonly hullBar = $('hull-bar');
-  private readonly windHelp = $('wind-help') as HTMLDialogElement;
+  readonly windHelp = windHelpDialog();
   private readonly statusFade = new IdleFade();
   private readonly stripFade = new IdleFade();
   private wokeHeading = 0;
@@ -116,7 +120,8 @@ export class Hud {
     applyHudTokens(this.root);
     const { status, strip, compass, instrument, actions } = this;
     this.root.append(status.root, strip.root, compass.root, instrument.root, actions.root);
-    this.toasts = new SeaToasts($('toast'), world);
+    this.toasts = new SeaToasts(this.toaster, world);
+    document.body.append(this.toaster.root);
     this.press = new PressWarning(world, $('press-glow'), (text, sec) => this.showToast(text, sec));
     this.seaLines = new SeaLines(compass.lines, (sog) => instrument.showSog(sog));
     this.portLabels = new PortLabels($('port-labels'), world, harbours);
@@ -140,7 +145,7 @@ export class Hud {
     const open = () => {
       this.returnFocus = document.activeElement as HTMLElement | null;
       this.dismissWindHint();
-      windHelp.showModal();
+      void windHelp.ask().then(() => this.windHelpClosed());
       this.onWindHelpChange();
     };
     compass.trigger.addEventListener('click', open);
@@ -149,12 +154,14 @@ export class Hud {
       this.dismissWindHint();
       compass.trigger.focus({ preventScroll: true });
     });
-    $('close-wind-help').addEventListener('click', () => windHelp.close());
-    windHelp.addEventListener('close', () => {
-      this.onWindHelpChange();
-      // The delayed chip disappears while paused: fall back to the dial, which always stays.
-      const back = this.returnFocus;
-      (back?.isConnected && !back.hidden ? back : compass.trigger).focus({ preventScroll: true });
+  }
+
+  private windHelpClosed() {
+    this.onWindHelpChange();
+    // The delayed chip disappears while paused: fall back to the dial, which always stays.
+    const back = this.returnFocus;
+    (back?.isConnected && !back.hidden ? back : this.compass.trigger).focus({
+      preventScroll: true,
     });
   }
 
@@ -227,7 +234,6 @@ export class Hud {
   ) {
     const { world, compass } = this;
     const { boat, wind, ship } = world;
-    this.toasts.tick(dt);
     compass.tick(dt, wind.speedKn);
     this.press.update(project, active, visible);
     const twa = trueWindAngle(boat.heading, wind);

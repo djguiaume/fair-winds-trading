@@ -1,0 +1,143 @@
+/* How to play and the sailing tips: pen drawings on paper (issue #445). */
+.help-screen {
+  position: fixed;
+  z-index: 120;
+  inset: calc(-1 * var(--ui-edge-torn-width));
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-3);
+  padding: calc(var(--ui-edge-torn-width) + var(--ui-space-4) + env(safe-area-inset-top, 0px))
+    calc(var(--ui-edge-torn-width) + max(var(--ui-space-5), calc(50vw - 520px)))
+    calc(var(--ui-edge-torn-width) + var(--ui-space-3) + env(safe-area-inset-bottom, 0px));
+  color: var(--ui-ink);
+  font-family: var(--ui-font-text);
+}
+.help-screen[hidden] {
+  display: none;
+}
+.help-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-4);
+  overflow-y: auto;
+}
+.help-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--ui-space-3);
+}
+.help-cards .ui-card-media {
+  display: block;
+}
+.help-art-box,
+.help-art {
+  display: block;
+  width: 100%;
+}
+.help-art {
+  height: 150px;
+}
+.help-cards .ui-card-title {
+  font-size: var(--fs-sub);
+}
+.help-cards .ui-card-text {
+  font-size: var(--fs-text);
+}
+.help-controls {
+  display: grid;
+  gap: var(--ui-space-1);
+  font-size: var(--fs-body);
+  line-height: 1.7;
+}
+.help-line {
+  margin: 0;
+}
+.help-line b {
+  margin-right: var(--ui-space-2);
+  font-family: var(--ui-font-title);
+  font-size: var(--fs-lead);
+  font-weight: 400;
+}
+.help-line kbd {
+  display: inline-block;
+  min-width: 22px;
+  padding: 2px 6px;
+  border: 1px solid var(--ui-ink);
+  border-radius: var(--ui-radius-s);
+  background: var(--ui-face);
+  font: 600 var(--fs-note) / 1.2 var(--ui-font-text);
+  text-align: center;
+}
+.help-pad {
+  display: none;
+}
+.has-gamepad .help-pad {
+  display: block;
+}
+@media (hover: none) and (pointer: coarse) {
+  .help-keys {
+    display: none;
+  }
+}
+@media (max-width: 760px), (max-height: 500px) {
+  .help-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .help-art {
+    height: 70px;
+  }
+}
+
+/* --- The pen drawings: ink lines, a sage route, a hatch for the no-go zone ------------------ */
+.art-line,
+.art-sage {
+  fill: none;
+  stroke: var(--ui-ink);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.art-thin {
+  stroke-width: 1.6;
+}
+.art-sage {
+  stroke: var(--ui-sage);
+  stroke-width: 5;
+}
+.art-dash {
+  stroke-dasharray: 7 6;
+}
+.art-paper {
+  fill: var(--ui-face);
+  stroke: var(--ui-ink);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+.art-ink-fill {
+  fill: var(--ui-ink);
+}
+.art-icon {
+  color: var(--ui-ink);
+}
+.art-text {
+  fill: var(--ui-ink);
+  font: 400 14px var(--ui-font-title);
+}
+
+/* --- The sailing tips dialog ------------------------------------------------------------------ */
+.wind-help-body {
+  display: grid;
+  gap: var(--ui-space-2);
+  margin-bottom: var(--ui-space-4);
+}
+.help-diagram {
+  width: 100%;
+  max-height: 160px;
+}
+.wind-help-note {
+  margin: 0;
+  color: var(--ui-muted);
+  font-size: var(--fs-body);
+}

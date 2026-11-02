@@ -1,5 +1,6 @@
 import { type MessageKey, goodName, t, tOptional, zoneKindName } from '../../i18n';
 import { hullCondition } from '../../sim/hazards';
+import type { Toaster } from '../components';
 import type { World, WorldEvent } from '../../sim/world';
 import { type HazardKind, hazardBadge } from '../hazardMarker';
 import { compassWords } from './parts';
@@ -17,12 +18,11 @@ const CRASH_TEXT: Record<string, MessageKey> = {
 };
 
 /**
- * The one line of news at sea (`#toast`): what just happened, said once, then gone. Hazard
- * warnings carry the chart's badge (decision 0070); first meetings with a current or a storm belt
- * give their one-time hint (decisions 0140 and 0167).
+ * The news at sea, on the screen's one Toaster (top centre, two at most): what just happened, said
+ * once, then gone. Hazard warnings carry the chart's badge (decision 0070); first meetings with a
+ * current or a storm belt give their one-time hint (decisions 0140 and 0167).
  */
 export class SeaToasts {
-  private left = 0;
   /** The first current's hint was shown; main.ts keeps it in the settings. */
   seenCurrentHint = false;
   onCurrentHintSeen: () => void = () => {};
@@ -31,32 +31,24 @@ export class SeaToasts {
   onBeltHintSeen: () => void = () => {};
 
   constructor(
-    private readonly el: HTMLElement,
+    private readonly toaster: Toaster,
     private readonly world: World,
   ) {}
 
   show(text: string, seconds = 2.5, hazard?: HazardKind) {
-    this.el.textContent = text;
-    if (hazard) this.el.prepend(hazardBadge(hazard));
-    this.el.hidden = false;
-    this.left = seconds;
+    this.toaster.show(text, {
+      ms: seconds * 1000,
+      badge: hazard ? hazardBadge(hazard) : undefined,
+    });
   }
 
-  /** Clears the line now: a card opening over it says what comes next (decision 0217). */
+  /** Clears the lines now: a card opening over them says what comes next (decision 0217). */
   hide() {
-    this.el.hidden = true;
-    this.left = 0;
+    this.toaster.clear();
   }
 
   get showing(): boolean {
-    return this.left > 0;
-  }
-
-  /** Every frame, even while the HUD is hidden, so a line never outstays its time. */
-  tick(dt: number) {
-    if (this.left <= 0) return;
-    this.left -= dt;
-    if (this.left <= 0) this.el.hidden = true;
+    return this.toaster.visible > 0;
   }
 
   /** A step's sound plays (decision 0139): said in words too, for a muted phone, if it has words. */

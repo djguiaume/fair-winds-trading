@@ -25,6 +25,9 @@
   line-height: 1.1;
   cursor: pointer;
 }
+.ui-btn[hidden] {
+  display: none;
+}
 .ui-btn .icon {
   width: 18px;
   height: 18px;

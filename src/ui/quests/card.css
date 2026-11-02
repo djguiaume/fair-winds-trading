@@ -1,0 +1,357 @@
+/*
+ * A person's quest card (decision 0124) on the v1.5 paper: the face over the card's edge, the
+ * person's words, the ask in a ruled box, the reward and the answers as the components' buttons.
+ * A bottom card on wide screens, a bottom sheet in portrait. It never covers the quest line at
+ * the top of the sea: its height stops short of it and the body scrolls inside. Only `--ui-*` and
+ * `--fs-*` tokens.
+ */
+dialog.quest-card {
+  --face: 168px;
+  --clear-top: 96px;
+  /* Room kept under the card for "To the market" on an arrival. */
+  --reserve: 0px;
+  position: fixed;
+  inset: auto 0 max(16px, var(--safe-bottom, env(safe-area-inset-bottom))) 0;
+  width: min(900px, calc(100vw - 24px));
+  max-height: calc(100dvh - var(--clear-top) - var(--reserve));
+  margin: 0 auto;
+  padding: 0;
+  overflow: visible;
+  color: var(--ui-ink);
+}
+dialog.quest-card::backdrop {
+  background: linear-gradient(180deg, transparent 30%, var(--ui-shadow-backdrop));
+}
+.quest-card .icon {
+  width: 1.1em;
+  height: 1.1em;
+  flex: none;
+}
+.quest-face {
+  position: absolute;
+  top: calc(var(--face) * -0.35);
+  left: var(--ui-space-4);
+  z-index: 1;
+}
+.quest-face svg {
+  width: var(--face);
+  height: var(--face);
+}
+.quest-body {
+  position: relative;
+  max-height: calc(100dvh - var(--clear-top) - var(--reserve) - 2 * var(--ui-edge-torn-width));
+  padding: var(--ui-space-4) var(--ui-space-5) var(--ui-space-4)
+    calc(var(--face) + var(--ui-space-5));
+  overflow: auto;
+  box-sizing: border-box;
+}
+.quest-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--ui-space-1) var(--ui-space-3);
+}
+.quest-head h2 {
+  margin: 0;
+  font: 400 var(--fs-big) / 1 var(--ui-font-title);
+}
+.quest-role {
+  color: var(--ui-muted);
+  font: italic 400 var(--fs-text) / 1 var(--ui-font-title);
+}
+.quest-arc {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-3);
+  margin-top: var(--ui-space-1);
+  color: var(--ui-muted);
+  font: 600 var(--fs-body) / 1 var(--ui-font-text);
+}
+.quest-pips {
+  display: inline-flex;
+  gap: var(--ui-space-1);
+}
+.quest-pips i {
+  width: 18px;
+  height: 6px;
+  border: 1px solid var(--ui-ink-soft);
+  border-radius: 3px;
+}
+.quest-pips i.on {
+  border-color: var(--ui-sage-deep);
+  background: var(--ui-sage);
+}
+.quest-speech {
+  margin: var(--ui-space-3) 0 0;
+  font: 400 var(--fs-sub) / 1.4 var(--ui-font-text);
+}
+.quest-ask {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ui-space-2);
+  margin-top: var(--ui-space-3);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 1px solid var(--ui-ink);
+  border-radius: var(--ui-radius-m);
+  background: var(--ui-face);
+  font: 600 var(--fs-lead) / 1.2 var(--ui-font-text);
+}
+.quest-ask .icon {
+  width: 22px;
+  height: 22px;
+}
+.quest-count {
+  color: var(--ui-ink-soft);
+  white-space: nowrap;
+}
+.quest-where {
+  color: var(--ui-muted);
+  font-weight: 400;
+}
+.quest-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--ui-space-3);
+  margin-top: var(--ui-space-4);
+}
+.quest-actions.is-choice {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.quest-actions .quest-option {
+  flex-direction: column;
+  align-items: flex-start;
+  height: auto;
+  min-height: var(--ui-touch-row-min);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  text-align: left;
+}
+.quest-option span {
+  color: var(--ui-muted);
+  font: 400 var(--fs-body) / 1.3 var(--ui-font-text);
+}
+.quest-option b {
+  font-weight: 600;
+}
+/* "Not now" and "Don't offer again": words only, no box. */
+.ui-btn--quiet {
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+  color: var(--ui-muted);
+}
+
+/* --- What every card says (decision 0141): tag, dock news, the ask, the reward -------------- */
+.quest-tag {
+  display: inline-block;
+  margin-bottom: var(--ui-space-1);
+  padding: var(--ui-space-1) var(--ui-space-2);
+  border: 1px solid var(--ui-ink);
+  border-radius: var(--ui-radius-s);
+  font: 600 var(--fs-note) / 1 var(--ui-font-text);
+}
+.quest-tag.is-new {
+  border-color: var(--ui-sage-deep);
+  background: var(--ui-sage);
+  color: var(--ui-on-sage);
+}
+.quest-tag.is-done {
+  border-style: double;
+  border-width: 3px;
+  border-color: var(--ui-sage-deep);
+  color: var(--ui-sage-deep);
+}
+/* Dock news (decision 0213): what just happened here, a strip above the person's words. */
+.quest-news {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-2);
+  margin: 2px 0 var(--ui-space-2);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border-left: 3px solid var(--ui-sage);
+  background: var(--ui-wash);
+  font: 600 var(--fs-lead) / 1.3 var(--ui-font-text);
+}
+.quest-pin {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ui-ink);
+  color: var(--ui-face);
+  font: 700 var(--fs-note) / 1 var(--ui-font-text);
+}
+.quest-reward {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ui-space-1) var(--ui-space-2);
+  margin-top: var(--ui-space-2);
+  color: var(--ui-muted);
+  font: 600 var(--fs-text) / 1.2 var(--ui-font-text);
+}
+.quest-reward b {
+  color: var(--ui-ink);
+}
+.quest-reward .icon {
+  width: 16px;
+  height: 16px;
+}
+.quest-hand .icon {
+  width: 16px;
+  height: 16px;
+  margin-left: 3px;
+  vertical-align: -3px;
+}
+
+/* --- The arrival card: a main quest greets the captain before the harbour screen ------------ */
+dialog.quest-card.is-arrival {
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+}
+dialog.quest-card.is-arrival::backdrop {
+  background: var(--ui-shadow-backdrop);
+}
+.quest-arrival {
+  position: absolute;
+  bottom: calc(100% + var(--face) * 0.35 + var(--ui-space-3));
+  left: 0;
+  right: 0;
+  text-align: center;
+  pointer-events: none;
+}
+.quest-arrival h1 {
+  margin: 0;
+  color: var(--ui-face);
+  text-shadow:
+    0 0 3px var(--ui-ink),
+    0 1px 0 var(--ui-ink);
+  font: 400 var(--fs-display) / 1 var(--ui-font-title);
+}
+.quest-arrival small {
+  display: block;
+  margin-top: var(--ui-space-1);
+  color: var(--ui-face);
+  text-shadow:
+    0 0 3px var(--ui-ink),
+    0 1px 0 var(--ui-ink);
+  font: italic 400 var(--fs-lead) / 1.3 var(--ui-font-title);
+}
+.quest-to-market {
+  position: absolute;
+  top: calc(100% + var(--ui-space-3));
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+/* The controller's glyphs on the answers: A on the focused answer only; B and X always. */
+#quest-card .pad-press {
+  display: contents;
+}
+#quest-card button:not(:focus) .pad-press .pad-key {
+  display: none !important;
+}
+#quest-card .pad-only {
+  margin-right: var(--ui-space-2);
+  vertical-align: middle;
+}
+
+/* --- Short landscape phones: a lower card, a smaller face, the quest line left free --------- */
+@media (max-height: 450px) {
+  dialog.quest-card {
+    --face: 104px;
+    --clear-top: 124px;
+    inset: auto 0 var(--ui-space-2) 0;
+    width: calc(100vw - 24px);
+  }
+  .quest-body {
+    padding: var(--ui-space-2) var(--ui-space-3) var(--ui-space-2)
+      calc(var(--face) + var(--ui-space-4));
+  }
+  .quest-head h2 {
+    font-size: var(--fs-title);
+  }
+  .quest-speech {
+    margin-top: var(--ui-space-2);
+    font-size: var(--fs-text);
+  }
+  .quest-ask {
+    margin-top: var(--ui-space-2);
+    padding: var(--ui-space-1) var(--ui-space-2);
+    font-size: var(--fs-text);
+  }
+  .quest-actions {
+    margin-top: var(--ui-space-2);
+  }
+  /* The harbour's name is already on the sea's sign: no header over the card here. */
+  .quest-arrival {
+    display: none;
+  }
+  dialog.quest-card.is-arrival {
+    --reserve: 56px;
+    margin-top: auto;
+    margin-bottom: 56px;
+  }
+  .quest-to-market {
+    top: calc(100% + var(--ui-space-1));
+  }
+}
+
+/* --- Portrait: a bottom sheet, the face centred on its edge, full-width buttons -------------- */
+@media (orientation: portrait) {
+  dialog.quest-card {
+    --face: 128px;
+    inset: auto 0 0 0;
+    width: 100vw;
+    max-width: 100vw;
+  }
+  .quest-face {
+    left: 50%;
+    top: calc(var(--face) * -0.5);
+    transform: translateX(-50%);
+  }
+  .quest-body {
+    padding: calc(var(--face) * 0.55) var(--ui-space-4)
+      max(var(--ui-space-5), var(--safe-bottom, env(safe-area-inset-bottom)));
+  }
+  .quest-head,
+  .quest-arc {
+    justify-content: center;
+    text-align: center;
+  }
+  .quest-speech {
+    font-size: var(--fs-lead);
+  }
+  .quest-actions {
+    flex-direction: column;
+  }
+  .quest-actions .ui-btn {
+    width: 100%;
+  }
+  dialog.quest-card.is-arrival {
+    inset: auto 0 0 0;
+    margin: 0;
+  }
+  .quest-arrival {
+    bottom: calc(100% + var(--face) * 0.5 + var(--ui-space-3));
+  }
+  .quest-card .quest-tag {
+    display: table;
+    margin: 0 auto var(--ui-space-1);
+  }
+  .quest-arrival h1 {
+    font-size: var(--fs-big);
+  }
+  .quest-to-market {
+    position: static;
+    display: flex;
+    margin: 0 auto max(var(--ui-space-3), var(--safe-bottom, env(safe-area-inset-bottom)));
+    transform: none;
+  }
+}

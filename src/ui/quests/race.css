@@ -1,0 +1,142 @@
+/*
+ * A race of the regatta (decision 0217) on a quest card: the medal times, the record; the Sailing
+ * Club's board (decision 0226) with its rows of race, best time and par. The finish board is in
+ * moments/moments.css. Paper and ink from the theme tokens only.
+ */
+.race-card,
+.race-ask {
+  --gold-medal: #e8c46a;
+  --silver-medal: #c9d3d8;
+  --bronze-medal: #c98a52;
+}
+.race-ask {
+  display: inline-flex;
+  flex: none;
+}
+.race-ask .race-medal {
+  width: 22px;
+  height: 22px;
+}
+.race-card {
+  margin-top: var(--ui-space-3);
+}
+.race-medal {
+  display: inline-block;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--ui-ink);
+  border-radius: 50%;
+  background: var(--medal, var(--ui-face-off));
+  vertical-align: middle;
+}
+.is-gold > .race-medal {
+  --medal: var(--gold-medal);
+}
+.is-silver > .race-medal {
+  --medal: var(--silver-medal);
+}
+.is-bronze > .race-medal {
+  --medal: var(--bronze-medal);
+}
+.race-best {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  margin: 0;
+  font: 600 var(--fs-lead) / 1.2 var(--ui-font-text);
+}
+.race-label {
+  margin: var(--ui-space-2) 0 var(--ui-space-1);
+  color: var(--ui-muted);
+  font: 600 var(--fs-note) / 1.2 var(--ui-font-text);
+}
+.race-times {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space-2) var(--ui-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.race-times li {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  font: 700 var(--fs-lead) / 1 var(--ui-font-text);
+  font-variant-numeric: tabular-nums;
+}
+.race-times small {
+  color: var(--ui-sage-deep);
+  font-weight: 600;
+}
+.race-times .icon {
+  width: 14px;
+  height: 14px;
+}
+.race-times li.is-won .race-medal {
+  box-shadow: 0 0 0 2px var(--ui-sage);
+}
+
+/* --- The club's board on the Quay ------------------------------------------------------------ */
+.club-board {
+  max-width: 640px;
+}
+.club-series {
+  margin: var(--ui-space-3) 0 var(--ui-space-1);
+  font: 400 var(--fs-lead) / 1.2 var(--ui-font-title);
+}
+.club-rows {
+  display: grid;
+  gap: var(--ui-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.club-row {
+  display: grid;
+  grid-template-columns: 1fr auto 9.5em;
+  align-items: center;
+  gap: 2px var(--ui-space-3);
+  padding-bottom: var(--ui-space-2);
+  border-bottom: 1px solid var(--ui-rule);
+  font: 600 var(--fs-text) / 1.2 var(--ui-font-text);
+}
+.club-name {
+  grid-column: 1;
+}
+.club-time {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  font-variant-numeric: tabular-nums;
+}
+.club-row small {
+  grid-column: 1;
+  color: var(--ui-muted);
+}
+.club-row .ui-btn {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  justify-self: end;
+}
+@media (max-width: 600px) {
+  .club-head {
+    padding-right: 64px;
+  }
+  .club-row {
+    grid-template-columns: 1fr auto;
+    row-gap: var(--ui-space-1);
+  }
+  .club-time {
+    grid-row: 1;
+  }
+  .club-row .ui-btn {
+    grid-column: 2;
+    grid-row: 2;
+    min-height: var(--ui-touch-target);
+  }
+}

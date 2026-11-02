@@ -150,7 +150,6 @@ import { TransferPanel } from './ui/transferPanel';
 import { startTvMode } from './input/tv';
 import { PadLog } from './ui/padLog';
 import { usePadBrand } from './ui/padGlyphs';
-import { askConfirm } from './ui/confirmDialog';
 import { ScreenStack } from './ui/screens/stack';
 import { type TitleState, TitleScreen } from './ui/screens/title';
 import { PauseScreen } from './ui/screens/pause';
@@ -158,7 +157,10 @@ import { awayFromGame } from './ui/screens/portraitGate';
 import { NewVoyageScreen } from './ui/screens/newVoyage';
 import { SettingsScreen } from './ui/screens/settings';
 import { SettingsApplier } from './ui/screens/settings/apply';
-import { askDanger } from './ui/screens/confirm';
+import { askConfirm, askDanger } from './ui/screens/confirm';
+import { HelpScreen } from './ui/screens/help';
+import { showUnsupported } from './ui/screens/unsupported';
+import { tutorialOfferDialog } from './ui/screens/tutorialOffer';
 import { WayOfPlaying, firstWay } from './input/wayOfPlaying';
 
 declare const __APP_VERSION__: string;
@@ -211,9 +213,7 @@ const canvas = $<HTMLCanvasElement>('scene');
 
 // three.js needs WebGL2 (iOS 15+, Android Chrome since ~2017). Say so instead of a blank page.
 if (!document.createElement('canvas').getContext('webgl2')) {
-  const help = $('help');
-  help.innerHTML = `<div class="sheet-body"><h2>${t('game.title')}</h2><p>${t('webgl.unsupported')}</p></div>`;
-  help.hidden = false;
+  showUnsupported();
   throw new Error('WebGL2 not available');
 }
 
@@ -427,7 +427,7 @@ const legacyLesson = resumedVoyage ? tutorialChoice.legacy() : null;
 if (legacyLesson) quests.restore(TUTORIAL_QUEST, legacyLesson.step, legacyLesson.vars);
 const tutorialRunning = () => quests.isRunning(TUTORIAL_QUEST);
 const coach = new TutorialCoach(quests, view.harbours);
-const tutorialOffer = $<HTMLDialogElement>('tutorial-offer');
+const tutorialOffer = tutorialOfferDialog();
 // People's cards and the journal (decision 0124). `questSeen` holds the cards already shown this
 // session (`<quest>:<step>`, `<quest>:offer`); `questThanks` the finished quests still to thank for.
 const questCard = new QuestCard($<HTMLDialogElement>('quest-card'));
@@ -458,7 +458,7 @@ function dueMainCard() {
  */
 function showDueCard(): boolean {
   // The benchmark sails on through every card (decision 0154).
-  if (bench || questCard.isOpen || tutorialOffer.open || tradePanel.isOpen) return false;
+  if (bench || questCard.isOpen || tutorialOffer.root.open || tradePanel.isOpen) return false;
   const due = dueMainCard();
   const card = due && cardFor(quests, world.map, due.quest, due.kind);
   if (!due || !card) return showStopCard();
@@ -864,23 +864,18 @@ hud.onPortClick = async (portId: string) => {
 // --- Title, pause, New voyage and the screens over them ----------------------------------------
 // The game opens on the title with the scene running behind it (decision 0017). The simulation
 // is paused while a screen or the help card is up (decision 0269, issue #440).
-const help = $('help');
-const windHelp = $<HTMLDialogElement>('wind-help');
-const helpClose = $('start');
+const windHelp = hud.windHelp.root;
 // Move a voyage to another device by QR code or file (decision 0066). The QR links back here.
-const transfer = new TransferPanel(
-  $('transfer'),
-  world,
-  storage,
-  () => location.origin + location.pathname,
-);
+const transfer = new TransferPanel(world, storage, () => location.origin + location.pathname);
 let mode: 'menu' | 'play' = 'menu';
 let started = false;
 let paused = true;
 // The title or pause card and the screens over it: only the top one shows, Esc and B pop it.
 const screens = new ScreenStack(() => refreshPause());
-const helpScreen = { id: 'help', root: help, back: () => closeHelp() };
-const transferScreen = { id: 'transfer', root: $('transfer'), back: () => transfer.close() };
+const helpScreen = new HelpScreen(() => closeHelp()).screen;
+document.body.append(helpScreen.root);
+const transferScreen = { id: 'transfer', root: transfer.root, back: () => transfer.close() };
+document.body.append(transfer.root);
 
 function refreshPause() {
   paused =
@@ -890,10 +885,10 @@ function refreshPause() {
     homePanel.isOpen ||
     windHelp.open ||
     chart.isOpen ||
-    tutorialOffer.open ||
+    tutorialOffer.root.open ||
     questCard.isOpen;
   coach.setSurface(
-    mode === 'menu' || screens.depth > 0 || windHelp.open || tutorialOffer.open
+    mode === 'menu' || screens.depth > 0 || windHelp.open || tutorialOffer.root.open
       ? null
       : chart.isOpen
         ? 'chart'
@@ -1069,7 +1064,7 @@ function play() {
   document.body.classList.remove('in-menu', 'at-title');
   screens.reset();
   if (!freeSailing && tutorialChoice.shouldOffer(resumedVoyage) && !tutorialRunning())
-    tutorialOffer.showModal();
+    offerTutorial();
   refreshPause();
 }
 
@@ -1116,7 +1111,16 @@ coach.onMarket = () => {
   refreshPause();
 };
 coach.onTips = () => $('wind-help-trigger').click();
-$('tutorial-start').addEventListener('click', () => {
+/** The first voyage's offer; Esc and B skip the lessons. */
+function offerTutorial() {
+  void tutorialOffer.ask().then((answer) => {
+    if (answer === 'start') startTutorial();
+    else declineTutorial();
+    refreshPause();
+    $('menu-btn').focus({ preventScroll: true });
+  });
+}
+function startTutorial() {
   // A fresh voyage taking the tutorial begins alone at sea (decision 0127).
   if (!resumedVoyage && world.time < 60) {
     startAtPrologue(world);
@@ -1124,9 +1128,7 @@ $('tutorial-start').addEventListener('click', () => {
   }
   coach.finished = null;
   quests.ask(TUTORIAL_QUEST);
-  tutorialOffer.close();
-  refreshPause();
-});
+}
 /**
  * "Skip the lessons" (was "Free sailing", renamed by decision 0160): no lessons. A fresh voyage still plays the prologue's story without the coach
  * (decision 0160): alone at sea, sails down, the foghorn, the rescue, Rook's ride home. Otherwise
@@ -1158,16 +1160,6 @@ function startUncoachedPrologue(): boolean {
   refreshMenuTutorial();
   return true;
 }
-$('tutorial-free').addEventListener('click', () => {
-  declineTutorial();
-  tutorialOffer.close();
-  refreshPause();
-});
-tutorialOffer.addEventListener('cancel', declineTutorial);
-tutorialOffer.addEventListener('close', () => {
-  refreshPause();
-  $('menu-btn').focus({ preventScroll: true });
-});
 /** The lessons line, on the title and in Settings: carry on with the lesson, or start one. */
 function openLessons() {
   // Enter play without automatically showing the first-voyage offer a second time.
@@ -1177,7 +1169,7 @@ function openLessons() {
   screens.reset();
   if (tutorialRunning() || quests.isRunning(LESSONS_QUEST)) {
     // Carry on with the lesson under way.
-  } else if (tutorialChoice.status === 'unseen') tutorialOffer.showModal();
+  } else if (tutorialChoice.status === 'unseen') offerTutorial();
   else {
     // Seen the tutorial: Rook's sailing lessons, from wherever the boat is (decision 0164).
     coach.finished = null;
@@ -1206,7 +1198,6 @@ transfer.onReplaced = () => {
   window.location.reload();
 };
 $('menu-btn').addEventListener('click', showMenu);
-helpClose.addEventListener('click', closeHelp);
 window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyM' && !e.repeat && mode === 'play' && (chart.isOpen || !paused)) {
     e.preventDefault();
@@ -1214,7 +1205,7 @@ window.addEventListener('keydown', (e) => {
     else chart.open();
     return;
   }
-  if (e.code !== 'Escape' || windHelp.open || chart.isOpen || tutorialOffer.open) return;
+  if (e.code !== 'Escape' || windHelp.open || chart.isOpen || tutorialOffer.root.open) return;
   goBack();
 });
 /** Esc, and B on a controller (decision 0163): close the screen on top, or pause at sea. */
@@ -1347,7 +1338,7 @@ pad.onConnect = (connected) => {
 /** Where pad presses go: the boat, the open chart, or a menu, dialog or card on top. */
 function padContext(): PadContext {
   // The chart's map tab plays the cross; its pages (journal, prices, legend) are menus (0196).
-  if (chart.isOpen && !questCard.isOpen && !tutorialOffer.open && !windHelp.open)
+  if (chart.isOpen && !questCard.isOpen && !tutorialOffer.root.open && !windHelp.open)
     return chart.currentTab === 'map' ? 'chart' : 'menu';
   return paused ? 'menu' : 'sea';
 }
@@ -1750,7 +1741,7 @@ function tick(now: number) {
     if (steps === 6) accumulator = 0;
   }
 
-  if (!chart.isOpen && !tutorialOffer.open) view.render(dt);
+  if (!chart.isOpen && !tutorialOffer.root.open) view.render(dt);
   if (!paused) seaListener.update(world, dt);
   // Pause menus and translucent sheets leave sea instruments visible. Only the title's
   // CSS rule and the opaque, full-screen chart cover the entire HUD.
