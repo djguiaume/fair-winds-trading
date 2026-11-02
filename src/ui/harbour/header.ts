@@ -3,6 +3,7 @@ import { el } from '../components/dom';
 import { screenHeader } from '../components/screenHeader';
 import { type Tab, TabBar } from '../components/tabBar';
 import { COIN, crateIcon } from '../icons';
+import './banner.css';
 
 /**
  * The harbour's header on every tab (issue #443): the port's name in IM Fell with its line
