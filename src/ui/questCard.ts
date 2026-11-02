@@ -213,6 +213,7 @@ export class QuestCard {
       this.close();
     });
     dialog.addEventListener('close', () => {
+      document.body.classList.remove('card-open');
       const card = this.card;
       this.card = null;
       if (card) this.onClose(card);
@@ -264,10 +265,11 @@ export class QuestCard {
         : ''
     }`;
     stampCard(this.dialog.querySelector('.quest-body'), card);
+    document.body.classList.add('card-open');
     if (!this.dialog.open) this.dialog.showModal();
     this.dialog
       .querySelector<HTMLButtonElement>('.quest-actions button, .quest-to-market[data-pad-main]')
-      ?.focus();
+      ?.focus({ preventScroll: true });
   }
 
   close() {

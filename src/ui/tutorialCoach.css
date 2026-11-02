@@ -113,17 +113,17 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  min-height: 30px;
-  padding: 0 var(--ui-space-1);
+  min-height: 36px;
+  padding: 0 var(--ui-space-2);
   border: 0;
   background: none;
   color: var(--ui-muted);
-  font: 600 var(--fs-small) / 1 var(--ui-font-text);
+  font: 600 var(--fs-text) / 1 var(--ui-font-text);
   cursor: pointer;
 }
 .coach .coach-text-btn .icon {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
 .coach p {
   margin: var(--ui-space-1) 0 0;

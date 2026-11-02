@@ -470,6 +470,7 @@ function showDueCard(): boolean {
   else questSeen.add(`${due.quest}:${quests.progress(due.quest)!.step}`);
   input.releaseAll();
   const docked = world.trade.dockedAt;
+  hud.hideToast();
   questCard.show(card, docked ? trade.findPort(world.map, docked)?.name : undefined);
   music.speak(card.giver?.voice, wordCount(card.ask ?? card.speech), card.mood);
   refreshPause();
@@ -490,6 +491,7 @@ function showStopCard(): boolean {
   if (item.newsKey) questSeen.add(item.newsKey);
   if (item.card.kind === 'finished') questThanks.delete(item.card.quest);
   input.releaseAll();
+  hud.hideToast();
   questCard.show(item.card, trade.findPort(world.map, docked)?.name);
   music.speak(item.card.giver?.voice, wordCount(item.card.news ?? item.card.ask), item.card.mood);
   refreshPause();

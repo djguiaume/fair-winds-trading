@@ -180,7 +180,8 @@ html[data-layout='phone'] .hb-person svg {
 html[data-layout='phone'] .hb-person .ui-row-label {
   font-size: var(--fs-text);
 }
-html[data-layout='phone'] .hb-person-line,
+/* Several jobs from one person: on a phone each row shows its job's name, not the repeated role. */
+html[data-layout='phone'] .hb-person .ui-row-detail,
 html[data-layout='phone'] .hb-town-next {
   display: none;
 }

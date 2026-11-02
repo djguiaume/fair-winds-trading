@@ -39,10 +39,12 @@ export function shellHtml(): string {
         <h3 class="fs-head">${t('free.ship')}</h3>
         <button type="button" class="ui-header-exit ui-pressable bl-close" data-pad-close title="${t('customise.close')}" aria-label="${t('customise.close')}">${icon('close')}</button>
       </div>
+      <div class="fs-scroll">
       <button type="button" class="ui-btn ui-btn--plain ui-pressable fs-looks">${t('customise.title')}</button>
       <div class="bl-ships fs-ships" role="radiogroup" aria-label="${t('free.ship')}"></div>
       <h3 class="fs-head">${t('free.upgrades')}</h3>
       <div class="fs-upgrades"></div>
+      </div>
       <div class="fs-actions">
         <button type="button" class="ui-btn ui-btn--primary ui-pressable fs-sail" data-pad-main>${t('menu.play')}</button>
         <button type="button" class="ui-btn ui-btn--plain ui-pressable fs-leave">${t('free.leave')}</button>

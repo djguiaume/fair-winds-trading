@@ -59,7 +59,8 @@ function personRow(item: QuayItem, selected: boolean, pick: (key: string) => voi
 /** What the person is about, in one short line: their news, a job, or the step under way. */
 function personLine({ card }: QuayItem): string {
   if (card.news) return card.news;
-  if (card.kind === 'offer') return t('harbour.hasJob');
+  // Several jobs from one person read as several rows: each carries its job's name.
+  if (card.kind === 'offer') return card.arc;
   if (card.kind === 'finished') return t('quest.arcDone', { name: card.arc });
   return t('quest.arcStep', { name: card.arc, n: card.stepNo, total: card.steps });
 }

@@ -326,7 +326,7 @@ html[data-layout='phone'] .hud-quest-text b {
   font-size: var(--fs-lead);
 }
 html[data-layout='phone'] .hud-quest-text span {
-  font-size: var(--fs-note);
+  font-size: var(--fs-body);
 }
 html[data-layout='phone'] .hud-tape {
   width: var(--ui-hud-tape-phone);

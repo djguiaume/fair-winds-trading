@@ -274,6 +274,7 @@ button.ui-row {
 /* --- Dialog ---------------------------------------------------------------------------------- */
 .ui-dialog {
   z-index: var(--ui-z-dialog);
+  background: var(--ui-face) padding-box;
   width: min(440px, calc(100vw - 2 * var(--ui-space-4)));
   margin: auto;
 }

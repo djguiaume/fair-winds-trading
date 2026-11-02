@@ -17,7 +17,13 @@ dialog.quest-card {
   margin: 0 auto;
   padding: 0;
   overflow: visible;
+  /* Solid under the torn paper, so at night nothing of the sea or its signs shows through. */
+  background: var(--ui-face) padding-box;
   color: var(--ui-ink);
+}
+/* The harbour's name is on the card; the world's signs wait while a card is open. */
+.card-open :is(#port-labels, #boat-labels, .hud-dock) {
+  visibility: hidden;
 }
 dialog.quest-card::backdrop {
   background: linear-gradient(180deg, transparent 30%, var(--ui-shadow-backdrop));
@@ -266,12 +272,16 @@ dialog.quest-card.is-arrival::backdrop {
 @media (max-height: 450px) {
   dialog.quest-card {
     --face: 104px;
-    --clear-top: 124px;
+    --clear-top: 100px;
     inset: auto 0 var(--ui-space-2) 0;
     width: calc(100vw - 24px);
   }
+  /* The face sits inside the card here, so the card can stop below the quest line. */
+  .quest-face {
+    top: var(--ui-space-2);
+  }
   .quest-body {
-    padding: var(--ui-space-2) var(--ui-space-3) var(--ui-space-2)
+    padding: var(--ui-space-1) var(--ui-space-3) var(--ui-space-2)
       calc(var(--face) + var(--ui-space-4));
   }
   .quest-head h2 {
@@ -287,7 +297,11 @@ dialog.quest-card.is-arrival::backdrop {
     font-size: var(--fs-text);
   }
   .quest-actions {
-    margin-top: var(--ui-space-2);
+    margin-top: var(--ui-space-1);
+  }
+  .quest-tag {
+    float: left;
+    margin: 0 var(--ui-space-2) 0 0;
   }
   /* The harbour's name is already on the sea's sign: no header over the card here. */
   .quest-arrival {

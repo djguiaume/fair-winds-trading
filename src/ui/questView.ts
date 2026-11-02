@@ -341,10 +341,7 @@ export function cardFor(
   // A card counts the steps along the quest's main line, as a lesson's bubble does (decision
   // 0185); a step off it (Rook's offer to a stranger, 0190) counts as the step that leads there.
   const line = mainLine(quest);
-  const lineNo = (id: string) =>
-    line.indexOf(id) + 1 ||
-    line.findIndex((l) => quest.steps.find((s) => s.id === l)?.unless?.some((w) => w.to === id)) +
-      1;
+  const lineNo = (id: string) => lineNumber(quest, id);
   const card: QuestCardModel = {
     quest: quest.id,
     kind,
@@ -545,7 +542,7 @@ export function journal(book: QuestBook, map: MapDef): JournalEntry[] {
       giver,
       who: giver ? (port ? `${giver.name} · ${port}` : giver.name) : port,
       arc: arcName(quest),
-      steps: quest.steps.length,
+      steps: mainLine(quest).length,
       lines: [] as JournalStep[],
       chose: [] as string[],
     };
@@ -556,7 +553,7 @@ export function journal(book: QuestBook, map: MapDef): JournalEntry[] {
     const entry: JournalEntry = {
       ...base(quest),
       state: tracked ? 'tracked' : 'active',
-      stepNo: i + 1,
+      stepNo: lineNumber(quest, step.id),
     };
     if (tracked) {
       const p = book.progress(quest.id);
@@ -578,7 +575,7 @@ export function journal(book: QuestBook, map: MapDef): JournalEntry[] {
   for (const quest of book.quests) {
     const p = book.progress(quest.id);
     if (p?.step !== QUEST_DONE) continue;
-    const entry: JournalEntry = { ...base(quest), state: 'done', stepNo: quest.steps.length };
+    const entry: JournalEntry = { ...base(quest), state: 'done', stepNo: mainLine(quest).length };
     for (const [step, option] of Object.entries(p.chose))
       entry.chose.push(tOptional(`${quest.text}.${step}.${option}.title`) ?? option);
     entry.story = [];
@@ -829,6 +826,15 @@ export interface LessonModel {
  * A lesson's main line (decision 0151): from its first step, each step's goal (or, with none, its
  * first option) to the next. Steps off it are only reached by ways back and are not numbered.
  */
+/** A step's number on the main line; a step off it counts as the step that leads there. */
+export function lineNumber(quest: QuestDef, id: string): number {
+  const line = mainLine(quest);
+  return (
+    line.indexOf(id) + 1 ||
+    line.findIndex((l) => quest.steps.find((s) => s.id === l)?.unless?.some((w) => w.to === id)) + 1
+  );
+}
+
 export function mainLine(quest: QuestDef): string[] {
   const out: string[] = [];
   let step = quest.steps[0];

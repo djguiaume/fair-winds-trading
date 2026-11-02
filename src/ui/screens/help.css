@@ -81,12 +81,38 @@
     display: none;
   }
 }
-@media (max-width: 760px), (max-height: 500px) {
+/* A thin rule of a scrollbar always shows, so a cut card never looks like the end of the page. */
+.help-body {
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-ink-soft) transparent;
+}
+@media (max-width: 760px) {
   .help-cards {
     grid-template-columns: repeat(2, 1fr);
   }
   .help-art {
     height: 70px;
+  }
+}
+/* A phone on its side: the four cards in one row, so they all show without scrolling. */
+@media (max-height: 500px) {
+  .help-cards {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--ui-space-2);
+  }
+  .help-cards .ui-card {
+    padding: var(--ui-space-2);
+  }
+  .help-art {
+    height: 52px;
+  }
+  .help-cards .ui-card-title {
+    font-size: var(--fs-lead);
+  }
+  .help-cards .ui-card-text {
+    font-size: var(--fs-note);
+    line-height: 1.25;
   }
 }
 
