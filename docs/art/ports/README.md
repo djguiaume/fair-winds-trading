@@ -30,6 +30,14 @@ If the tool can, ask it next to **widen the picture to about 16:3 by extending t
 - **ChatGPT:** no Scenario credits.
 - **Scenario:** about 26 credit units (CU) an image with Gemini 3.1, so about 364 CU for all 14 ports out of the 693 left, plus 26 per retry. Run one port as a test first, and only after Guillaume's OK for that batch.
 
+## Made so far
+
+| Port | Tool | Settings | Raw | Notes |
+|---|---|---|---|---|
+| Saltmere | Scenario, Gemini 3.1 (`model_google-gemini-3-1-flash`, job `job_y841kEkZgD4SqvrwLFvHw8wL`) | the shared prompt and Saltmere's line, the key art and `ref/saltmere.jpg` as references, 21:9, 1K, 1 output | [`raw/saltmere.jpg`](raw/saltmere.jpg) | Test of 2026-11-02, OK'd by Guillaume for one image. Scaled to 1920 wide, cut at rows 300 to 640 so the smokehouses and quay fill the banner. |
+
+21:9 at 1K (1584 × 672) is wide enough: scale it to 1920 wide and cut a 340-row band round the town.
+
 ## One prompt per port
 
 Add the port's lines to the shared prompt.
