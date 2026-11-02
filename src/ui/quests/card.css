@@ -20,6 +20,7 @@ dialog.quest-card {
   /* Solid under the torn paper, so at night nothing of the sea or its signs shows through. */
   background: var(--ui-face) padding-box;
   color: var(--ui-ink);
+  border-image-source: var(--ui-edge-torn-solid);
 }
 /* The harbour's name is on the card; the world's signs wait while a card is open. */
 .card-open :is(#port-labels, #boat-labels, .hud-dock) {
@@ -274,7 +275,9 @@ dialog.quest-card.is-arrival::backdrop {
     --face: 104px;
     --clear-top: 100px;
     inset: auto 0 var(--ui-space-2) 0;
-    width: calc(100vw - 24px);
+    /* Narrower, on the left: the compass above and the sail lever at the right stay clear. */
+    width: calc(100vw - 24px - var(--card-gap-right, 200px));
+    margin-inline: 12px auto;
   }
   /* The face sits inside the card here, so the card can stop below the quest line. */
   .quest-face {
@@ -299,9 +302,26 @@ dialog.quest-card.is-arrival::backdrop {
   .quest-actions {
     margin-top: var(--ui-space-1);
   }
+  /* The stamp already says where the card stands. */
   .quest-tag {
-    float: left;
-    margin: 0 var(--ui-space-2) 0 0;
+    display: none;
+  }
+  /* The ask and the answer share a row, to fit the narrower card without scrolling. */
+  .quest-body {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    column-gap: var(--ui-space-3);
+  }
+  .quest-body > * {
+    grid-column: 1 / -1;
+  }
+  .quest-body > .quest-ask {
+    grid-column: 1;
+  }
+  .quest-body > .quest-actions {
+    grid-column: 2;
+    margin-top: var(--ui-space-2);
   }
   /* The harbour's name is already on the sea's sign: no header over the card here. */
   .quest-arrival {

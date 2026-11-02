@@ -209,3 +209,8 @@ html[data-layout='phone'] .hb-quay-card .quest-reward {
 html[data-layout='phone'] .hb-quay-card .quest-ask {
   font-size: var(--fs-text);
 }
+
+/* A phone's lists end in a soft edge, so a cut row reads as "more below". */
+html[data-layout='phone'] .hb-list {
+  mask-image: linear-gradient(to bottom, var(--ui-ink) calc(100% - 28px), transparent);
+}

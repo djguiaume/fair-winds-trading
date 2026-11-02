@@ -27,6 +27,7 @@ import { REGATTA } from '../sim/regatta';
 import { isDiscovered } from '../sim/shipyards';
 import { findPort, quoteHandOver } from '../sim/trade';
 import { type Character, type Mood, MOODS, character } from './portraits';
+import { lineNumber, mainLine } from './questLine';
 import { type RaceCardInfo, raceInfo, raceNext } from './regattaView';
 
 /*
@@ -341,7 +342,6 @@ export function cardFor(
   // A card counts the steps along the quest's main line, as a lesson's bubble does (decision
   // 0185); a step off it (Rook's offer to a stranger, 0190) counts as the step that leads there.
   const line = mainLine(quest);
-  const lineNo = (id: string) => lineNumber(quest, id);
   const card: QuestCardModel = {
     quest: quest.id,
     kind,
@@ -350,7 +350,7 @@ export function cardFor(
     look: step?.look,
     role: roleLine(map, giver),
     arc: arcName(quest),
-    stepNo: step ? lineNo(step.id) : line.length,
+    stepNo: step ? lineNumber(quest, step.id) : line.length,
     steps: line.length,
     speech: last
       ? tOptional(`${quest.text}.${last.id}.thanks`)
@@ -820,32 +820,6 @@ export interface LessonModel {
   port: string | null;
   /** The good whose market button the mark points at. */
   good: GoodId | null;
-}
-
-/**
- * A lesson's main line (decision 0151): from its first step, each step's goal (or, with none, its
- * first option) to the next. Steps off it are only reached by ways back and are not numbered.
- */
-/** A step's number on the main line; a step off it counts as the step that leads there. */
-export function lineNumber(quest: QuestDef, id: string): number {
-  const line = mainLine(quest);
-  return (
-    line.indexOf(id) + 1 ||
-    line.findIndex((l) => quest.steps.find((s) => s.id === l)?.unless?.some((w) => w.to === id)) + 1
-  );
-}
-
-export function mainLine(quest: QuestDef): string[] {
-  const out: string[] = [];
-  let step = quest.steps[0];
-  while (step && !out.includes(step.id)) {
-    out.push(step.id);
-    const next =
-      (step.goal ? step.next : (step.choose?.[0]?.next ?? step.next)) ??
-      quest.steps[quest.steps.indexOf(step) + 1]?.id;
-    step = quest.steps.find((s) => s.id === next);
-  }
-  return out;
 }
 
 /** The nearest charted harbour to the boat: the easiest first trip. */

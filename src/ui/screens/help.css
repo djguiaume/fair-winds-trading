@@ -84,6 +84,8 @@
 /* A thin rule of a scrollbar always shows, so a cut card never looks like the end of the page. */
 .help-body {
   overflow-y: scroll;
+  /* Few cards on a big screen sit in the middle of the page, not at its top. */
+  justify-content: safe center;
   scrollbar-width: thin;
   scrollbar-color: var(--ui-ink-soft) transparent;
 }

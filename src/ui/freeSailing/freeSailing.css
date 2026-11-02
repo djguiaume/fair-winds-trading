@@ -154,3 +154,7 @@ body.in-menu .free-badge {
 body.free-sailing :is(#menu-tutorial, #menu-transfer) {
   display: none;
 }
+
+html[data-layout='phone'] .fs-scroll {
+  mask-image: linear-gradient(to bottom, var(--ui-ink) calc(100% - 28px), transparent);
+}
