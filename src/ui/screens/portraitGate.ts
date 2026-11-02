@@ -61,6 +61,8 @@ function apply(portrait: boolean) {
 
 /** Shows the page while a phone is held upright; it goes away by itself on rotation. */
 export function installPortraitGate(): void {
+  // `npm run shots` sets this for its portrait look shots, which show the game itself (like __fwPad).
+  if ((window as { __fwNoGate?: boolean }).__fwNoGate) return;
   const media = query();
   apply(media.matches);
   media.addEventListener('change', (e) => apply(e.matches));
