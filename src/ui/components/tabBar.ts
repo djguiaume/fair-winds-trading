@@ -72,11 +72,27 @@ export class TabBar {
     }
   }
 
-  /** The next (1) or previous (-1) tab, round the ends. */
+  /** The next (1) or previous (-1) tab that shows, round the ends. */
   step(by: number) {
-    const tabs = this.o.tabs;
-    const at = tabs.findIndex((t) => t.id === this.current);
+    const tabs = this.o.tabs.filter((t) => !this.tab(t.id)?.hidden);
+    if (!tabs.length) return;
+    const at = Math.max(
+      0,
+      tabs.findIndex((t) => t.id === this.current),
+    );
     this.select(tabs[(at + by + tabs.length) % tabs.length]!.id);
+  }
+
+  /** A tab's button: to hide it, or to name it for a test or a tutorial. */
+  tab(id: string): HTMLButtonElement | undefined {
+    return this.buttons.find((b) => b.dataset.tab === id);
+  }
+
+  /** A tab's count when it changes while the bar is up; 0 takes it away. */
+  setBadge(id: string, n: number) {
+    const b = this.tab(id);
+    b?.querySelector('.ui-tab-badge')?.remove();
+    if (b && n > 0) b.append(tabBadge(n));
   }
 }
 

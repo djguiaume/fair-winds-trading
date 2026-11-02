@@ -1,0 +1,46 @@
+/* Hazard markers (decision 0070): a badge, a name with a halo, drift chevrons; storms add a soft
+   cloud for their reach. Storms are slate (weather); red stays free for pirates. The chart and the
+   warning toast restyle the badge's colours through these properties. */
+.hazard-storm {
+  --hazard-badge: #1d2a36;
+  --hazard-ring: #f4ead2;
+  --hazard-chevron: #f4ead2;
+}
+.hazard-badge {
+  fill: var(--hazard-badge);
+  stroke: var(--hazard-ring);
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+}
+.hazard-chevron {
+  fill: var(--hazard-chevron);
+  stroke: rgba(6, 20, 28, 0.6);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+.hazard-name {
+  fill: #fff;
+  font-family: var(--display);
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: rgba(6, 20, 28, 0.85);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  text-anchor: middle;
+  vector-effect: non-scaling-stroke;
+}
+.hazard-cloud-core {
+  stop-color: rgb(22, 32, 44);
+  stop-opacity: 0.75;
+}
+.hazard-cloud-mid {
+  stop-color: rgb(28, 40, 54);
+  stop-opacity: 0.5;
+}
+.hazard-cloud-edge {
+  stop-color: rgb(28, 40, 54);
+  stop-opacity: 0;
+}
+.chart-hazard {
+  pointer-events: none;
+}

@@ -32,6 +32,10 @@ export interface Theme {
   hud: Record<string, number>;
   /** The one tab bar's sizes (issue #457): edge width, gap, side padding, icon. */
   tabs: Record<string, number>;
+  /** The sea chart's own inks and washes (issue #444): land, shoals, uncharted paper, zones. */
+  chart: Record<string, string>;
+  /** The chart's sizes in screen pixels (art director, #444): its words, the rose, a crate. */
+  chartSize: Record<string, number>;
   /** The harbour screen's sizes (issue #443): the port strip, the ledger's margin, rows, panes. */
   harbour: Record<string, number>;
   edges: Record<string, Edge>;
@@ -60,6 +64,8 @@ const CSS_GROUPS: Record<string, { prefix: string; unit?: string }> = {
   touch: { prefix: '--ui-touch-', unit: 'px' },
   hud: { prefix: '--ui-hud-', unit: 'px' },
   tabs: { prefix: '--ui-tabs-', unit: 'px' },
+  chart: { prefix: '--ui-chart-' },
+  chartSize: { prefix: '--ui-chart-size-', unit: 'px' },
   harbour: { prefix: '--ui-harbour-', unit: 'px' },
 };
 
