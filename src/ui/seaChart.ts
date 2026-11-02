@@ -17,7 +17,7 @@ import './chart/frame.css';
 import './chart/pages.css';
 
 /** The chart's furniture that sits over the sea. */
-const COVERS = '.chart-cartouche, .chart-rose, .chart-zoom, .chart-book, .chart-close';
+const COVERS = '.chart-cartouche, .chart-dial, .chart-wind, .chart-keystrip, .chart-zoom-btn';
 
 export { CHART_TABS, type ChartQuests, type ChartTab };
 
@@ -76,12 +76,9 @@ export class SeaChart {
     const parts = buildChart(dialog, (tab) => this.setTab(tab));
     this.parts = parts;
     parts.dial.replaceChildren(this.dial.svg);
-    const book = parts.book.root;
     this.view = new ChartView(parts.svg, parts.cross, () => world.map, {
       redraw: () => this.isOpen && this.draw(),
       tap: (at) => this.dropMark(at),
-      sideRoom: () => book.getBoundingClientRect().width,
-      rightEdge: () => book.getBoundingClientRect().left || null,
     });
     this.prices = new PriceKey(world);
     this.journal = new JournalPage(parts.journal, {
@@ -128,11 +125,7 @@ export class SeaChart {
   }
   /** LB / RB: the next tab that shows (the journal hides with no quests). */
   stepTab(step: number) {
-    const shown = CHART_TABS.filter(
-      (id) => !this.dialog.querySelector(`#chart-tab-${id}`)?.hasAttribute('hidden'),
-    );
-    const at = Math.max(0, shown.indexOf(this.tab));
-    this.parts.book.select(shown[(at + step + shown.length) % shown.length]!);
+    this.parts.book.step(step);
   }
   get isOpen() {
     return this.dialog.open;
@@ -298,12 +291,9 @@ export class SeaChart {
     );
     drawCargo(p.hold, this.world, this.questCargo());
     const entries = this.quests?.journal() ?? [];
-    const tab = this.dialog.querySelector<HTMLElement>('#chart-tab-journal')!;
-    tab.hidden = entries.length === 0;
+    p.book.tab('journal')!.hidden = entries.length === 0;
     if (!entries.length && this.tab === 'journal') this.setTab('map');
-    const news = entries.filter((e) => e.state === 'offered').length;
-    p.journalBadge.hidden = news === 0;
-    p.journalBadge.textContent = String(news);
+    p.book.setBadge('journal', entries.filter((e) => e.state === 'offered').length, 'sage');
     this.journal.render(entries);
   }
 

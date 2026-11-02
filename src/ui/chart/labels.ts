@@ -37,6 +37,8 @@ export class Labels {
     private readonly land: readonly Box[],
     /** The port dots, people's faces and the chart's furniture: no word may cover one. */
     private readonly badges: readonly Box[],
+    /** The chart's furniture alone (rose, title, zoom): a name it would cut is left out. */
+    private readonly covers: readonly Box[] = [],
   ) {
     const [x, y, w, h] = (p.svg.getAttribute('viewBox') ?? '0 0 0 0').split(' ').map(Number);
     this.view = { x0: x!, y0: y!, x1: x! + w!, y1: y! + h! };
@@ -96,9 +98,15 @@ export class Labels {
     const w = Math.max(port.name.length, price.text.length * 0.9) * nameSize * LETTER;
     const h = nameSize * 1.15 + (price.text ? priceSize * 1.25 : 0);
     const at = this.spot(island.x, -island.y - island.radius, -island.y + island.radius, w, h);
-    this.placed.push(box(at.x, at.y, w, h));
     const top = at.y - h / 2;
-    // Invisible tap areas: the label and a finger-sized circle on the pier.
+    shape('circle', { cx: pier.x, cy: -pier.y, r: 20 * unit, class: 'chart-hit' }, group);
+    shape('circle', { cx: pier.x, cy: -pier.y, r: 5 * px, class: 'chart-port-dot' }, group);
+    group.addEventListener('click', (e) => {
+      e.stopPropagation();
+      o.onSelect();
+    });
+    if (!this.readable(box(at.x, at.y, w, h))) return;
+    // Invisible tap area on the label, as on the finger-sized circle on the pier.
     shape(
       'rect',
       {
@@ -110,8 +118,6 @@ export class Labels {
       },
       group,
     );
-    shape('circle', { cx: pier.x, cy: -pier.y, r: 20 * unit, class: 'chart-hit' }, group);
-    shape('circle', { cx: pier.x, cy: -pier.y, r: 5 * px, class: 'chart-port-dot' }, group);
     const name = shape(
       'text',
       { x: at.x, y: top + nameSize * 0.9, class: 'chart-port-name', 'font-size': nameSize },
@@ -131,10 +137,18 @@ export class Labels {
       );
       line.textContent = price.text;
     }
-    group.addEventListener('click', (e) => {
-      e.stopPropagation();
-      o.onSelect();
-    });
+  }
+
+  /**
+   * Whether a port's or an island's name can go there, and keeps it if so: pressed against the
+   * chart's edge or under the rose or the title it would be cut, so the dot stands alone.
+   */
+  private readable(b: Box) {
+    const { view } = this;
+    const within = b.x0 >= view.x0 && b.x1 <= view.x1 && b.y0 >= view.y0 && b.y1 <= view.y1;
+    if (!within || this.covers.some((c) => overlap(b, c) > 0)) return false;
+    this.placed.push(b);
+    return true;
   }
 
   /** One of her islands (decisions 0126, 0128): a house badge, its name and "your island". */
@@ -147,7 +161,6 @@ export class Labels {
     const w = Math.max(name.length * nameSize, tag.length * tagSize) * LETTER;
     const h = nameSize * 1.15 + tagSize * 1.2;
     const at = this.spot(island.x, -island.y - island.radius, -island.y + island.radius, w, h);
-    this.placed.push(box(at.x, at.y, w, h));
     const top = at.y - h / 2;
     const group = shape('g', {
       class: 'chart-home',
@@ -161,6 +174,7 @@ export class Labels {
       { href: '#i-home', x: island.x - s / 2, y: -island.y - s / 2, width: s, height: s },
       group,
     ).setAttribute('class', 'chart-home-icon');
+    if (!this.readable(box(at.x, at.y, w, h))) return;
     const label = shape(
       'text',
       { x: at.x, y: top + nameSize * 0.9, class: 'chart-port-name', 'font-size': nameSize },

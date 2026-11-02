@@ -63,11 +63,17 @@ export function drawSea(p: Paint, o: SeaDrawing) {
   const priced = o.prices.good !== null;
   const piers = charted.map((port) => o.pierOf(port.id)!);
   const pins = o.quests?.pins() ?? [];
-  const labels = new Labels(p, box(boat.x, -boat.y, 34 * unit, 34 * unit), land.landBoxes, [
-    ...piers.map((pier) => box(pier.x, -pier.y, 20 * p.px, 20 * p.px)),
-    ...pins.flatMap((pin) => faceBox(p, o.pierOf(pin.port))),
-    ...o.covered,
-  ]);
+  const labels = new Labels(
+    p,
+    box(boat.x, -boat.y, 34 * unit, 34 * unit),
+    land.landBoxes,
+    [
+      ...piers.map((pier) => box(pier.x, -pier.y, 20 * p.px, 20 * p.px)),
+      ...pins.flatMap((pin) => faceBox(p, o.pierOf(pin.port))),
+      ...o.covered,
+    ],
+    o.covered,
+  );
   charted.forEach((port, i) => {
     const quote = market.quotes.find((q) => q.portId === port.id);
     labels.port({

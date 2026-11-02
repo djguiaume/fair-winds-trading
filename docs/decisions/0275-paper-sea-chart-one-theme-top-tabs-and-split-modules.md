@@ -1,4 +1,4 @@
-# 0275. Paper sea chart: one theme, book tabs and split modules
+# 0275. Paper sea chart: one theme, top tabs and split modules
 
 **Status:** Proposed (2026-11-01). Issue #444, v1.5 wave 3; mockup: round 3 D (decision 0268).
 
@@ -6,7 +6,7 @@
 
 The sea chart was one 1700-line `seaChart.ts` with its own colours in `sea-chart.css`, a dark
 sheet with goods chips over the map, and tabs along the top. v1.5 turns it into the "chart table"
-look: an engraved paper chart with book tabs, drawn from the v1.5 components and the theme file.
+look: an engraved paper chart with its pages behind tabs, drawn from the v1.5 components and the theme file.
 
 ## Decision
 
@@ -20,10 +20,11 @@ look: an engraved paper chart with book tabs, drawn from the v1.5 components and
   reserved signal colours are read once in `src/ui/theme/signals.ts`.
 - **Sizes live in the theme file too.** A `chartSize` group holds the chart's word sizes (13 px
   or more, checked), the rose, the crates and how many crates a hold shows at most.
-- **The chart fills the page** (art director): in landscape the round sea spans the width left
-  of the book tabs, its top and bottom cut by the page; upright it fits whole.
-- **Layout:** title cartouche top left, book tabs (Chart, Journal, Cargo, Prices, Legend) down
-  the right edge, the engraved rose with the wind and no-go wedge and a short key bottom left,
+- **The chart fills the page** (art director): in landscape the round sea spans the width
+  under the tabs, its top and bottom cut by the page; upright it fits whole.
+- **Layout:** the components' tab bar along the top (Chart, Journal, Cargo, Prices, Legend) with
+  the close at its end, in the same place as on every screen (Guillaume, #457); the journal's
+  count is the tab's badge. Under it the title cartouche top left, the engraved rose with the wind and no-go wedge and a short key bottom left,
   zoom and fit bottom right. Journal, Cargo and Prices are flat paper pages over the whole chart
   made of `listRow`s, words 14 px or more; the goods chips on the map are gone (the Prices page
   picks the good; X on a pad steps through them). Cargo shows each room as a row of crates, full

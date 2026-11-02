@@ -14,12 +14,12 @@ import { keyStrip, legendPage } from './legend';
 export const CHART_TABS = ['map', 'journal', 'hold', 'market', 'legend'] as const;
 export type ChartTab = (typeof CHART_TABS)[number];
 
-const TABS: Record<ChartTab, { key: MessageKey; icon: string }> = {
-  map: { key: 'chart.tabMap', icon: 'map' },
-  journal: { key: 'journal.title', icon: 'flag' },
-  hold: { key: 'chart.tabHold', icon: 'deck' },
-  market: { key: 'chart.tabPrices', icon: 'trend' },
-  legend: { key: 'chart.legendTitle', icon: 'info' },
+const TABS: Record<ChartTab, MessageKey> = {
+  map: 'chart.tabMap',
+  journal: 'journal.title',
+  hold: 'chart.tabHold',
+  market: 'chart.tabPrices',
+  legend: 'chart.legendTitle',
 };
 
 /** The parts of the chart its code reaches for. */
@@ -35,7 +35,6 @@ export interface ChartParts {
   clearPrices: HTMLButtonElement;
   close: HTMLButtonElement;
   book: TabBar;
-  journalBadge: HTMLElement;
   compass: HTMLElement;
   dial: HTMLElement;
   wind: HTMLElement;
@@ -62,7 +61,7 @@ const button = (id: string, cls: string, html: string, aria: Record<string, Mess
 
 /**
  * Builds the chart table in its dialog (round 3 D, issue #444): the paper sea, the title
- * cartouche top left, the book tabs down the right edge, the compass rose and its key bottom left,
+ * cartouche top left under the row of tabs and the close, the compass rose and its key bottom left,
  * the zoom bottom right, the pad's buttons along the foot, and one paper page per tab.
  */
 export function buildChart(dialog: HTMLDialogElement, onTab: (tab: ChartTab) => void): ChartParts {
@@ -111,27 +110,23 @@ export function buildChart(dialog: HTMLDialogElement, onTab: (tab: ChartTab) => 
   });
   close.dataset.padClose = '';
 
+  // The tabs along the top as on every screen (Guillaume, #457), the close at the row's end.
   const book = new TabBar({
-    tabs: CHART_TABS.map((id) => ({ id, label: t(TABS[id].key) })),
+    tabs: CHART_TABS.map((id) => ({ id, label: t(TABS[id]) })),
     selected: 'map',
     onSelect: (id) => onTab(id as ChartTab),
   });
-  book.root.classList.add('chart-book');
   labelAttrs(book.root, { 'aria-label': 'chart.title' });
-  let journalBadge = el('span', '');
-  for (const b of book.root.querySelectorAll<HTMLButtonElement>('.ui-tab')) {
-    const id = b.dataset.tab as ChartTab;
-    b.id = `chart-tab-${id}`;
-    b.dataset.chartTab = id;
-    b.innerHTML = icon(TABS[id].icon, 'chart-tab-icon');
-    b.append(label(el('span', 'chart-tab-label'), TABS[id].key));
-    if (id === 'journal') {
-      journalBadge = el('span', 'tab-badge chart-journal-badge');
-      journalBadge.hidden = true;
-      b.append(journalBadge);
-      b.hidden = true;
-    }
+  for (const id of CHART_TABS) {
+    const tab = book.tab(id)!;
+    tab.id = `chart-tab-${id}`;
+    // Its words in a span of their own, so a language change leaves the badge alone.
+    tab.firstChild!.replaceWith(label(el('span', ''), TABS[id]));
   }
+  // The journal shows once she has quests (seaChart.drawPages).
+  book.tab('journal')!.hidden = true;
+  const top = el('header', 'chart-top');
+  top.append(book.root, close);
 
   const compass = el('aside', 'chart-rose');
   compass.id = 'chart-compass';
@@ -160,7 +155,7 @@ export function buildChart(dialog: HTMLDialogElement, onTab: (tab: ChartTab) => 
     const root = el('section', 'chart-page');
     root.id = `chart-${id}-panel`;
     root.hidden = true;
-    const head = label(el('h3', 'chart-page-title'), TABS[id].key);
+    const head = label(el('h3', 'chart-page-title'), TABS[id]);
     head.id = `chart-${id}-head`;
     root.setAttribute('aria-labelledby', head.id);
     root.append(head, ...body);
@@ -200,8 +195,7 @@ export function buildChart(dialog: HTMLDialogElement, onTab: (tab: ChartTab) => 
     padBar(),
     status,
     ...Object.values(pages),
-    book.root,
-    close,
+    top,
     tutorial,
   );
   return {
@@ -216,7 +210,6 @@ export function buildChart(dialog: HTMLDialogElement, onTab: (tab: ChartTab) => 
     clearPrices: prices.clear,
     close,
     book,
-    journalBadge,
     compass,
     dial,
     wind,

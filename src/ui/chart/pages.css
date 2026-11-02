@@ -1,14 +1,14 @@
 /*
  * The chart's pages (decision 0196, issue #444): Journal, Cargo, Prices and Legend as flat paper
- * pages over the whole chart, the book tabs on them, made of the v1.5 list rows. Words 14 px or
+ * pages over the whole chart under the row of tabs, made of the v1.5 list rows. Words 14 px or
  * more (art director). Only `--ui-*` and `--fs-*` tokens.
  */
 .chart-page {
   position: absolute;
-  inset: 0;
+  inset: var(--chart-bar) 0 0;
   display: flex;
   flex-direction: column;
-  padding: var(--ui-space-5) 200px var(--ui-space-4) var(--ui-space-6);
+  padding: var(--ui-space-4) var(--ui-space-6);
   background: var(--ui-paper);
   color: var(--ui-ink);
   font-size: var(--fs-lead);
@@ -217,21 +217,6 @@
   content: '→ ';
 }
 
-/* The journal's count of people asking: ink on the paper tab, paper on the sage one. */
-.chart-book .chart-journal-badge {
-  margin-left: auto;
-  background: var(--ui-ink);
-  color: var(--ui-paper);
-  font-family: var(--ui-font-text);
-}
-.chart-book .ui-tab[aria-selected='true'] .chart-journal-badge {
-  background: var(--ui-on-sage);
-  color: var(--ui-sage-deep);
-}
-.chart-journal-badge[hidden] {
-  display: none;
-}
-
 /* --- Prices: the goods down the left, the ports on the right ---------------------------- */
 .chart-market {
   display: grid;
@@ -337,7 +322,7 @@
 
 /* --- Phone landscape --------------------------------------------------------------------- */
 :root[data-layout='phone'] .chart-page {
-  padding: var(--ui-space-2) 148px var(--ui-space-2) var(--ui-space-4);
+  padding: var(--ui-space-2) var(--ui-space-4);
 }
 :root[data-layout='phone'] .chart-page-title {
   margin-bottom: var(--ui-space-1);

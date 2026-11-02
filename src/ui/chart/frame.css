@@ -1,10 +1,11 @@
 /*
- * The chart table (issue #444, round 3 D): the paper chart fills the screen; on it the title
- * cartouche top left, the book tabs down the right edge, the engraved rose and its key bottom
- * left, the zoom bottom right and the pad's buttons along the foot. Torn paper is the theme's
+ * The chart table (issue #444, round 3 D): the row of tabs along the top, the paper chart filling
+ * the screen under it; on the chart the title cartouche top left, the engraved rose and its key
+ * bottom left, the zoom bottom right and the pad's buttons along the foot. Torn paper is the theme's
  * 9-slice edge; the grain is one tiled image. Always lit, like a chart under the cabin lamp.
  */
 dialog.chart {
+  --chart-bar: var(--ui-chart-size-bar);
   position: fixed;
   inset: 0;
   width: 100%;
@@ -24,7 +25,7 @@ dialog.chart::backdrop {
 }
 .chart-viewport {
   position: absolute;
-  inset: 0;
+  inset: var(--chart-bar) 0 0;
 }
 /* The paper's grain over the whole chart: one tile, no filter. */
 .chart-viewport::after {
@@ -48,7 +49,7 @@ dialog.chart::backdrop {
 /* --- The title cartouche ------------------------------------------------------------------ */
 .chart-cartouche {
   position: absolute;
-  top: var(--ui-space-3);
+  top: calc(var(--chart-bar) + var(--ui-space-3));
   left: var(--ui-space-4);
   max-width: min(520px, 44vw);
   padding: var(--ui-space-1) var(--ui-space-3) var(--ui-space-2);
@@ -101,59 +102,21 @@ dialog.chart::backdrop {
   height: 14px;
 }
 
-/* --- Exit and the book tabs down the right edge ------------------------------------------ */
-.chart-close {
+/* --- The row along the top: the tabs as on every screen (#457), the close at its end ------ */
+.chart-top {
   position: absolute;
   z-index: 1;
-  top: var(--ui-space-3);
-  right: var(--ui-space-4);
-}
-.chart-book {
-  position: absolute;
-  z-index: 1;
-  top: 76px;
-  right: 0;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: var(--ui-space-2);
-}
-.chart-book .ui-tab {
+  inset: 0 0 auto;
   display: flex;
   align-items: center;
   gap: var(--ui-space-3);
-  min-width: 156px;
-  padding: var(--ui-space-2) var(--ui-space-5) var(--ui-space-2) var(--ui-space-4);
-  border: 0;
-  border-image: none;
-  border-radius: var(--ui-radius-m) 0 0 var(--ui-radius-m);
-  background: var(--ui-paper-off);
-  box-shadow: var(--ui-shadow-2);
-  color: var(--ui-ink);
-  font-family: var(--ui-font-title);
-  font-size: var(--fs-title);
-  font-weight: 400;
+  height: var(--chart-bar);
+  padding: 0 var(--ui-space-4);
+  border-bottom: 1px solid var(--ui-rule);
+  background: var(--ui-paper);
 }
-.chart-book .ui-tab[aria-selected='true'] {
-  min-width: 172px;
-  border: 0;
-  border-image: none;
-  background: var(--ui-sage);
-  color: var(--ui-on-sage);
-}
-.chart-book .ui-tab[hidden] {
-  display: none;
-}
-.chart-tab-icon {
-  width: 22px;
-  height: 22px;
-  flex: none;
-}
-.chart-tab-label {
-  flex: 1;
-  text-align: start;
-}
-.chart-book .pad-only.bumper {
-  margin: 0 var(--ui-space-4) 0 0;
+.chart-close {
+  margin-left: auto;
 }
 
 /* --- The rose and its key, bottom left ---------------------------------------------------- */
@@ -325,7 +288,7 @@ html[data-input='pad'] .chart[data-tab='map'] .chart-cross {
 
 /* --- Phone landscape ---------------------------------------------------------------------- */
 :root[data-layout='phone'] .chart-cartouche {
-  top: var(--ui-space-2);
+  top: calc(var(--chart-bar) + var(--ui-space-2));
   left: var(--ui-space-3);
   padding: 0 var(--ui-space-2) var(--ui-space-1);
 }
@@ -339,26 +302,11 @@ html[data-input='pad'] .chart[data-tab='map'] .chart-cross {
   margin-top: var(--ui-space-1);
   font-size: var(--fs-note);
 }
-:root[data-layout='phone'] .chart-close {
-  top: var(--ui-space-2);
-  right: var(--ui-space-3);
+:root[data-layout='phone'] dialog.chart {
+  --chart-bar: var(--ui-chart-size-bar-phone);
 }
-:root[data-layout='phone'] .chart-book {
-  top: 60px;
-  gap: var(--ui-space-1);
-}
-:root[data-layout='phone'] .chart-book .ui-tab {
-  min-width: 118px;
-  min-height: 40px;
-  padding: var(--ui-space-1) var(--ui-space-3);
-  font-size: var(--fs-lead);
-}
-:root[data-layout='phone'] .chart-book .ui-tab[aria-selected='true'] {
-  min-width: 128px;
-}
-:root[data-layout='phone'] .chart-tab-icon {
-  width: 18px;
-  height: 18px;
+:root[data-layout='phone'] .chart-top {
+  padding: 0 var(--ui-space-3);
 }
 :root[data-layout='phone'] .chart-dial svg {
   width: var(--ui-chart-size-rose-phone);

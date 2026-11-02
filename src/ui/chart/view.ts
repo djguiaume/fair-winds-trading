@@ -18,10 +18,6 @@ export interface ViewHooks {
   redraw: () => void;
   /** A tap on the chart, not a drag: the map point under it. */
   tap: (at: Point) => void;
-  /** The book tabs' width in landscape: the round sea fills the rest of the width. */
-  sideRoom: () => number;
-  /** The screen box the pad's cross keeps left of (the book tabs). */
-  rightEdge: () => number | null;
 }
 
 /**
@@ -82,9 +78,9 @@ export class ChartView {
     const rect = this.svg.getBoundingClientRect();
     const w = rect.width || 600,
       h = rect.height || 600;
-    // Landscape: the round sea fills the width left of the book tabs, its top and bottom cut by
+    // Landscape: the round sea fills the width under the tabs, its top and bottom cut by
     // the page as on a real chart table (art director, #444); upright, it fits whole.
-    const span = w > h ? w - this.hooks.sideRoom() : Math.min(w, h);
+    const span = w > h ? w : Math.min(w, h);
     return (this.extent * 2) / this.zoom / Math.max(1, span);
   }
 
@@ -169,17 +165,14 @@ export class ChartView {
     return { x0: a.x, y0: -a.y, x1: b.x, y1: -b.y };
   }
 
-  /** Where the cross may go, in pixels from the chart's middle: clear of the book tabs. */
+  /** Where the cross may go, in pixels from the chart's middle: the chart under the tabs. */
   private crossField(edgePx: number) {
     const r = this.svg.getBoundingClientRect();
     const cx = r.left + r.width / 2,
       cy = r.top + r.height / 2;
-    let right = r.right - edgePx;
-    const book = this.hooks.rightEdge();
-    if (book !== null && book > cx) right = Math.min(right, book - edgePx / 2);
     const out = {
       left: r.left + edgePx - cx,
-      right: right - cx,
+      right: r.right - edgePx - cx,
       top: r.top + edgePx - cy,
       bottom: r.bottom - edgePx - cy,
     };

@@ -124,6 +124,8 @@
     "rose-phone": 132,
     "crate": 64,
     "crate-phone": 40,
+    "bar": 60,
+    "bar-phone": 52,
     "crates": 12
   },
   "edges": {
