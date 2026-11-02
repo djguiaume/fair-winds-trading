@@ -1,8 +1,18 @@
-# Art director handover (v1.4 to v1.4.1, 2026-11-01)
+# Art director handover (v1.5 "A real game" to the next release, 2026-11-02)
 
-v1.4 "Visible upgrades" is built (release PR #428). Upgrade bands, cosmetics catalogue, logos, wakes, Boat looks screen and Free Sailing were reviewed and approved for Guillaume; his `visual-ok` is the final word.
+v1.5.372 shipped the UI rebuild: one identity, the chart table (art bible section 11, decision 0268). Your OK means "ready to show Guillaume", never "merged". Your own PRs are docs only. Earlier open items (v1.4 look rules, logos, figureheads) are kept below.
 
-For the next art director thread, in the format of [roles.md](../roles.md). Rules are in the [art bible](art-bible.md) (v2 look is the default). This page only holds what is open. Your OK means "ready to show Guillaume", never "merged". Your own PRs are docs only.
+## 0. The UI identity and the rules I enforced
+
+- **Identity:** ink on paper. Paper `#efe6d1`, ink `#23303a`, sage `#4a6d41` as the one signature (selection and the one primary action per screen), IM Fell English for titles and Alegreya Sans for UI and numbers. Torn paper edges as 9-slice images, no filters. Round picks: direction 1, ledger D for the harbour, logbook title page, file tabs on an ink rule (#457).
+- **Never:** red, amber, yellow or brass as UI colour (buoys, storm warning, regatta, player pennant), pure white, teal with gold, red confirm buttons (destructive actions are ink buttons), blur.
+- **Sea:** text straight on the scene gets a hard 1 px ink halo; instruments (compass, speed) always get a faint backing; status 14 px, destination 16 px, compass has a hatched ink no-go wedge, speed is the biggest number.
+- **Harbour:** banner of the port on top, opaque ledger below, the same on every tab; Set sail is solid sage and large; the 3D preview is a fixed box.
+- **Review habits:** check phone landscape for clipped rows and buttons, night paper opacity (about 95%), 11 px floor, tab and close keycaps in ink, text matches drawings (hatched zone, not red zone).
+
+### Nits left open
+
+Desktop Market and Orders leave the bottom about 20% empty; the Settings Game tab fills only the top third on desktop; night quest chips have thin contrast on 12 px text; phone lists need an edge fade as a scroll cue; quest card on phone sits close to the compass and speed plate; the Boat looks icon and goods list have dead space.
 
 ## 1. Open
 
