@@ -59,7 +59,8 @@ function personRow(item: QuayItem, selected: boolean, pick: (key: string) => voi
 /** What the person is about, in one short line: their news, a job, or the step under way. */
 function personLine({ card }: QuayItem): string {
   if (card.news) return card.news;
-  if (card.kind === 'offer') return t('harbour.hasJob');
+  // Several jobs from one person read as several rows: each carries its job's name.
+  if (card.kind === 'offer') return card.arc;
   if (card.kind === 'finished') return t('quest.arcDone', { name: card.arc });
   return t('quest.arcStep', { name: card.arc, n: card.stepNo, total: card.steps });
 }
@@ -69,7 +70,6 @@ function personCard(item: QuayItem): HTMLElement {
   const box = el('article', 'hb-detail hb-quay-card');
   if (item.fresh) box.classList.add('is-new');
   box.innerHTML = questCardBody(card, true);
-  asComponentButtons(box);
   // The big portrait beside the tag, the name and the step line; what they say runs below.
   const top = el('div', 'hb-quay-top');
   const who = el('div', 'hb-quay-who');
@@ -84,19 +84,6 @@ function personCard(item: QuayItem): HTMLElement {
   top.append(who);
   box.prepend(top);
   return box;
-}
-
-/**
- * The card's answers as the v1.5 buttons: its main answer sage (`data-pad-main`, where the pad's
- * focus starts), the others paper.
- */
-function asComponentButtons(root: HTMLElement) {
-  for (const b of root.querySelectorAll<HTMLButtonElement>('.d-btn')) {
-    const main = b.classList.contains('brass');
-    b.classList.remove('d-btn', 'brass', 'ghost');
-    b.classList.add('ui-btn', main ? 'ui-btn--primary' : 'ui-btn--plain', 'ui-pressable');
-    if (main) b.dataset.padMain = '';
-  }
 }
 
 function emptyQuay(picture: string | null): HTMLElement {

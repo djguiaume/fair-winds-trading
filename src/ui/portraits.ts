@@ -2,7 +2,7 @@ import characterData from '../data/characters.json';
 
 /**
  * Portraits of the people of the community arcs (decisions 0120, 0124): low-poly faces drawn in
- * code as SVG from a few values per person in `src/data/characters.json`, framed by a brass
+ * code as SVG from a few values per person in `src/data/characters.json`, framed by an ink
  * hexagon. Every part is a polygon broken into flat-shaded facets, like the 3D islands and ships.
  * No image files: a new person, or a new look for one (Rook soaked after the wreck), is data.
  */
@@ -561,5 +561,5 @@ export function portraitSvg(
 ): string {
   const { mood = 'neutral', variant, size = 96 } = opts;
   const clip = `fw-portrait-hex-${++clipIds}`;
-  return `<svg class="portrait" xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 204 204" width="${size}" height="${size}" role="img" aria-label="${c.name}"><defs><clipPath id="${clip}"><path d="${HEX}"/></clipPath></defs><g clip-path="url(#${clip})">${face(lookOf(c, variant), mood)}</g><path d="${HEX}" fill="none" stroke="#e8c46a" stroke-width="7" stroke-linejoin="round"/></svg>`;
+  return `<svg class="portrait" xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 204 204" width="${size}" height="${size}" role="img" aria-label="${c.name}"><defs><clipPath id="${clip}"><path d="${HEX}"/></clipPath></defs><g clip-path="url(#${clip})">${face(lookOf(c, variant), mood)}</g><path d="${HEX}" fill="none" style="stroke:var(--ui-ink,#23303a)" stroke-width="6" stroke-linejoin="round"/></svg>`;
 }

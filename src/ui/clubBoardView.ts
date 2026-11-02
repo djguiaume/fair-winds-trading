@@ -1,4 +1,3 @@
-import './club.css';
 import { t } from '../i18n';
 import type { ClubBoard, ClubRow } from './clubBoard';
 import { raceClock, seriesName } from './regattaView';
@@ -16,7 +15,7 @@ function rowHtml(r: ClubRow, canRace: boolean): string {
       : `<b>${esc(t('regatta.best', { time: raceClock(r.best) }))}</b>`;
   const again =
     r.best !== undefined && canRace
-      ? `<button type="button" class="d-btn" data-act="again" data-quest="${esc(r.quest)}">${esc(t('regatta.again'))}</button>`
+      ? `<button type="button" class="ui-btn ui-btn--plain ui-pressable" data-act="again" data-quest="${esc(r.quest)}">${esc(t('regatta.again'))}</button>`
       : '';
   return `<li class="club-row"><span class="club-name">${esc(r.name)}</span><span class="club-time race-best is-${MEDAL_CLASS[r.medal]}">${r.best === undefined ? '' : medal}${time}</span><small>${esc(t('club.board.par', { time: raceClock(r.par) }))}</small>${again}</li>`;
 }

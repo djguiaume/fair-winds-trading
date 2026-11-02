@@ -67,7 +67,12 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
     el.focus();
     el.click();
   };
-  const offer = document.getElementById('tutorial-offer') as HTMLDialogElement;
+  // The offer's dialog joins the page when it asks.
+  const offer = {
+    get open() {
+      return (document.getElementById('tutorial-offer') as HTMLDialogElement | null)?.open ?? false;
+    },
+  };
   const chart = document.getElementById('chart') as HTMLDialogElement;
   const flushClose = async () => {
     await new Promise((resolve) => setTimeout(resolve, 0));

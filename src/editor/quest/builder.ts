@@ -71,7 +71,7 @@ import { rewardForm } from './rewardForm';
 import { addRaceStorm, moveRaceStorm, shapeRaceStorm } from './raceStormDoc';
 import { raceRows } from './raceRows';
 import { stormShapes } from './raceStormView';
-import '../../ui/quests.css';
+import '../../ui/quests/index.css';
 import './quest.css';
 import gamePage from '../../../index.html?raw';
 

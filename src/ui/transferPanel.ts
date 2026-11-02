@@ -17,12 +17,10 @@ import { SHIP_CLASSES } from '../sim/ship';
 import type { World } from '../sim/world';
 import { qrSvg } from './qr';
 import { QrScanner, canScan } from './qrScanner';
+import { type TransferView, buildTransfer } from './screens/transferView';
 
 /** The ring alone (decision 0198): codes written before the grown sea was the game's still read. */
 const EARLIER_MAPS = [PHASE1_MAP];
-
-const $ = <T extends HTMLElement = HTMLElement>(root: ParentNode, id: string) =>
-  root.querySelector<T>(`#${id}`)!;
 
 /**
  * "Move your voyage" (decision 0066): Send shows the voyage as a QR code, with copy and file
@@ -34,47 +32,42 @@ export class TransferPanel {
   onReplaced: () => void = () => {};
   onClose: () => void = () => {};
 
+  readonly root: HTMLElement;
+  private readonly v: TransferView;
   private readonly scanner: QrScanner;
   private incoming: SaveData | null = null;
   private code = '';
   private copiedTimer = 0;
 
   constructor(
-    private readonly root: HTMLElement,
     private readonly world: World,
     private readonly storage: SaveStorage | null,
     private readonly gameUrl: () => string,
   ) {
-    this.scanner = new QrScanner($<HTMLVideoElement>(root, 'scan-video'));
-    $(root, 'transfer-tab-send').addEventListener('click', () => this.show('send'));
-    $(root, 'transfer-tab-receive').addEventListener('click', () => this.show('receive'));
-    $(root, 'close-transfer').addEventListener('click', () => this.close());
-    $(root, 'transfer-copy').addEventListener('click', () => void this.copy());
-    $(root, 'transfer-download').addEventListener('click', () => this.download());
-    $(root, 'scan-start').addEventListener('click', () => void this.startScan());
-    $(root, 'scan-stop').addEventListener('click', () => this.stopScan());
-    $(root, 'transfer-load').addEventListener('click', () =>
-      this.take(
-        readSaveCode(
-          $<HTMLTextAreaElement>(root, 'transfer-paste').value,
-          this.world,
-          EARLIER_MAPS,
-        ),
-      ),
+    const v = (this.v = buildTransfer(
+      () => this.close(),
+      (tab) => this.show(tab),
+    ));
+    this.root = v.root;
+    this.scanner = new QrScanner(v.video);
+    v.copy.addEventListener('click', () => void this.copy());
+    v.download.addEventListener('click', () => this.download());
+    v.scanStart.addEventListener('click', () => void this.startScan());
+    v.scanStop.addEventListener('click', () => this.stopScan());
+    v.load.addEventListener('click', () =>
+      this.take(readSaveCode(v.paste.value, this.world, EARLIER_MAPS)),
     );
-    const file = $<HTMLInputElement>(root, 'transfer-file');
-    $(root, 'transfer-open-file').addEventListener('click', () => file.click());
-    file.addEventListener('change', () => {
-      const f = file.files?.[0];
-      file.value = '';
+    v.openFile.addEventListener('click', () => v.file.click());
+    v.file.addEventListener('change', () => {
+      const f = v.file.files?.[0];
+      v.file.value = '';
       if (f) void f.text().then((text) => this.take(readSaveFile(text, this.world)));
     });
-    $(root, 'transfer-keep').addEventListener('click', () => {
+    v.keep.addEventListener('click', () => {
       this.incoming = null;
       this.show('receive');
     });
-    $(root, 'transfer-replace').addEventListener('click', () => this.replace());
-    $(root, 'scan-start').hidden = !canScan();
+    v.replace.addEventListener('click', () => this.replace());
   }
 
   get isOpen() {
@@ -102,17 +95,10 @@ export class TransferPanel {
 
   private show(tab: 'send' | 'receive' | 'confirm') {
     if (tab !== 'receive') this.stopScan();
-    $(this.root, 'transfer-send').hidden = tab !== 'send';
-    $(this.root, 'transfer-receive').hidden = tab !== 'receive';
-    $(this.root, 'transfer-confirm').hidden = tab !== 'confirm';
-    $(this.root, 'transfer-tabs').hidden = tab === 'confirm';
-    for (const [id, on] of [
-      ['transfer-tab-send', tab === 'send'],
-      ['transfer-tab-receive', tab === 'receive'],
-    ] as const) {
-      $(this.root, id).setAttribute('aria-selected', String(on));
-      $(this.root, id).setAttribute('aria-pressed', String(on));
-    }
+    const { panes, tabs } = this.v;
+    for (const [id, pane] of Object.entries(panes)) pane.hidden = id !== tab;
+    tabs.root.hidden = tab === 'confirm';
+    if (tab !== 'confirm') tabs.select(tab, false);
     if (tab === 'send') this.renderCode();
     if (tab === 'receive') this.error(null);
   }
@@ -120,9 +106,9 @@ export class TransferPanel {
   /** A fresh code every time Send opens: the voyage as it is now. */
   private renderCode() {
     this.code = encodeSaveCode(serializeWorld(this.world), this.world.map);
-    $(this.root, 'transfer-qr').innerHTML = qrSvg(transferLink(this.gameUrl(), this.code), 'M').svg;
+    this.v.qr.innerHTML = qrSvg(transferLink(this.gameUrl(), this.code), 'M').svg;
     window.clearTimeout(this.copiedTimer);
-    $(this.root, 'transfer-copy-label').textContent = t('transfer.copy');
+    this.v.copyLabel.textContent = t('transfer.copy');
   }
 
   private async copy() {
@@ -138,7 +124,7 @@ export class TransferPanel {
       document.execCommand('copy');
       area.remove();
     }
-    const label = $(this.root, 'transfer-copy-label');
+    const label = this.v.copyLabel;
     label.textContent = t('transfer.copied');
     window.clearTimeout(this.copiedTimer);
     this.copiedTimer = window.setTimeout(() => (label.textContent = t('transfer.copy')), 2000);
@@ -160,9 +146,9 @@ export class TransferPanel {
 
   private async startScan() {
     this.error(null);
-    $(this.root, 'scan-view').hidden = false;
-    $(this.root, 'scan-start').hidden = true;
-    $(this.root, 'scan-stop').hidden = false;
+    this.v.scanView.hidden = false;
+    this.v.scanStart.hidden = true;
+    this.v.scanStop.hidden = false;
     try {
       await this.scanner.start((text) => {
         const result = readSaveCode(text, this.world, EARLIER_MAPS);
@@ -179,9 +165,9 @@ export class TransferPanel {
 
   private stopScan() {
     this.scanner.stop();
-    $(this.root, 'scan-view').hidden = true;
-    $(this.root, 'scan-start').hidden = !canScan();
-    $(this.root, 'scan-stop').hidden = true;
+    this.v.scanView.hidden = true;
+    this.v.scanStart.hidden = !canScan();
+    this.v.scanStop.hidden = true;
   }
 
   private take(result: TransferResult) {
@@ -191,13 +177,13 @@ export class TransferPanel {
       return;
     }
     this.incoming = result.save;
-    this.fill('voyage-here', summarize(serializeWorld(this.world)));
-    this.fill('voyage-incoming', summarize(result.save));
+    this.fill(this.v.here, summarize(serializeWorld(this.world)));
+    this.fill(this.v.incoming, summarize(result.save));
     this.show('confirm');
-    $(this.root, 'transfer-keep').focus({ preventScroll: true });
+    this.v.keep.focus({ preventScroll: true });
   }
 
-  private fill(id: string, v: VoyageSummary) {
+  private fill(dl: HTMLElement, v: VoyageSummary) {
     const played =
       v.minutes >= 60
         ? t('transfer.hours', { h: String(Math.floor(v.minutes / 60)), m: String(v.minutes % 60) })
@@ -209,7 +195,6 @@ export class TransferPanel {
       [t('transfer.cargo'), String(v.cargo)],
       [t('transfer.played'), played],
     ];
-    const dl = $(this.root, id);
     dl.replaceChildren();
     for (const [k, val] of rows) {
       const dt = document.createElement('dt');
@@ -232,8 +217,7 @@ export class TransferPanel {
   }
 
   private error(text: string | null) {
-    const el = $(this.root, 'transfer-error');
-    el.hidden = !text;
-    el.textContent = text ?? '';
+    this.v.error.hidden = !text;
+    this.v.error.textContent = text ?? '';
   }
 }

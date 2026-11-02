@@ -64,7 +64,12 @@ it('Free sailing on a fresh voyage still plays the prologue, without the coach (
     expect(el, id).not.toBeNull();
     el.click();
   };
-  const offer = document.getElementById('tutorial-offer') as HTMLDialogElement;
+  // The offer's dialog joins the page when it asks.
+  const offer = {
+    get open() {
+      return (document.getElementById('tutorial-offer') as HTMLDialogElement | null)?.open ?? false;
+    },
+  };
   const bubble = () => document.querySelector<HTMLElement>('.tutorial-card');
   click('#menu-play');
   click('#set-sail');

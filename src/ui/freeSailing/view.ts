@@ -39,13 +39,15 @@ export function shellHtml(): string {
         <h3 class="fs-head">${t('free.ship')}</h3>
         <button type="button" class="ui-header-exit ui-pressable bl-close" data-pad-close title="${t('customise.close')}" aria-label="${t('customise.close')}">${icon('close')}</button>
       </div>
-      <button type="button" class="d-btn fs-looks">${t('customise.title')}</button>
+      <div class="fs-scroll">
+      <button type="button" class="ui-btn ui-btn--plain ui-pressable fs-looks">${t('customise.title')}</button>
       <div class="bl-ships fs-ships" role="radiogroup" aria-label="${t('free.ship')}"></div>
       <h3 class="fs-head">${t('free.upgrades')}</h3>
       <div class="fs-upgrades"></div>
+      </div>
       <div class="fs-actions">
-        <button type="button" class="d-btn brass big fs-sail">${t('menu.play')}</button>
-        <button type="button" class="d-btn fs-leave">${t('free.leave')}</button>
+        <button type="button" class="ui-btn ui-btn--primary ui-pressable fs-sail" data-pad-main>${t('menu.play')}</button>
+        <button type="button" class="ui-btn ui-btn--plain ui-pressable fs-leave">${t('free.leave')}</button>
       </div>
     </aside>`;
 }
@@ -60,8 +62,8 @@ export function presetsHtml(presets: readonly FreePreset[], current: string): st
   return presets
     .map((p) => {
       const when = `${clock(p.hour)} · ${t(`weather.${p.weather}` as MessageKey)}`;
-      return `<button type="button" role="radio" class="fs-preset" data-preset="${p.id}" aria-checked="${p.id === current}">
-        <b>${p.name[lang()]}</b><small>${weatherIcon(p.weather)}${when}</small><span>${p.about[lang()]}</span>
+      return `<button type="button" role="radio" class="ui-card ui-pressable fs-preset" data-preset="${p.id}" aria-checked="${p.id === current}" aria-pressed="${p.id === current}">
+        <span class="ui-card-title">${p.name[lang()]}</span><small>${weatherIcon(p.weather)}${when}</small><span class="ui-card-text">${p.about[lang()]}</span>
       </button>`;
     })
     .join('');

@@ -98,6 +98,8 @@ const ROLES: Record<string, [day: string, night: string]> = {
   '--ui-tab-rest': ['var(--ui-tab-paper)', 'var(--ui-tab-paper-night)'],
   '--ui-wash': ['var(--ui-sage-wash)', 'var(--ui-sage-wash-night)'],
   '--ui-edge-torn': ['var(--ui-edge-torn-day)', 'var(--ui-edge-torn-night)'],
+  // The same paper at night without its see-through, for a card that must hide the sea.
+  '--ui-edge-torn-solid': ['var(--ui-edge-torn-day)', 'var(--ui-edge-torn-night-solid)'],
   '--ui-edge-brushed': ['var(--ui-edge-brushed-day)', 'var(--ui-edge-brushed-night)'],
 };
 const roles = (time: 0 | 1) =>
@@ -145,6 +147,7 @@ export function dayTokens(theme: Theme): Record<string, string> {
     const [day, night, nightOpacity] = fills[name] ?? [c.paper ?? '', c['paper-night'] ?? '', 1];
     vars[`--ui-edge-${name}-day`] = edgeImage(edge, day);
     vars[`--ui-edge-${name}-night`] = edgeImage(edge, night, nightOpacity);
+    vars[`--ui-edge-${name}-night-solid`] = edgeImage(edge, night, 1);
     vars[`--ui-edge-${name}-slice`] = String(edge.slice);
     vars[`--ui-edge-${name}-width`] = `${edge.slice}px`;
   }

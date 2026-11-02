@@ -1,0 +1,151 @@
+/*
+ * The game controller on screen (decisions 0163, 0192, 0201): the ring round the control the pad is
+ * on, the button hints, the glyphs beside what they do, and the `?padlog` text. Paper and ink from
+ * the theme tokens; the glyph discs wear the pad's own button colours, the one place they show.
+ */
+.icon-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/*
+ * The ring only shows while the pad is the last input (mouse or touch hides it again). A paper
+ * band under an ink ring reads on the sea and on paper alike. `!important` because each screen
+ * has its own focus and pressed styles underneath; `data-pad-focus` shows it when the browser has
+ * no focus to give the page (Xbox, decision 0203).
+ */
+html[data-input='pad'] :is(:focus, [data-pad-focus]) {
+  outline: 3px solid var(--ui-ink) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 7px var(--ui-face) !important;
+}
+html[data-input='pad'] dialog:is(:focus, [data-pad-focus]),
+html[data-input='pad'] [role='dialog']:is(:focus, [data-pad-focus]) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* The hints: A Choose, B Back, and LB RB Tabs / LT RT Amount where the screen has them. */
+.pad-hints {
+  position: fixed;
+  z-index: 2147483000;
+  inset: auto auto var(--bottom, 12px) 50%;
+  margin: 0;
+  overflow: visible;
+  display: flex;
+  gap: var(--ui-space-4);
+  align-items: center;
+  padding: var(--ui-space-2) var(--ui-space-4);
+  border: 1px solid var(--ui-ink-soft);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-surface);
+  box-shadow: var(--ui-shadow-2);
+  color: var(--ui-ink);
+  font: 600 var(--fs-text) / 1 var(--ui-font-text);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, 8px);
+  transition:
+    opacity 0.4s,
+    transform 0.4s;
+  pointer-events: none;
+}
+html[data-input='pad'] .pad-hints.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.pad-hints > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+}
+
+/* Button glyphs beside what they do: LB / RB at the tab bar's ends, X on Sell all. */
+.pad-only {
+  display: none !important;
+}
+html[data-input='pad'] .pad-only {
+  display: inline-grid !important;
+}
+.pad-only.bumper {
+  align-self: center;
+  margin: 0 var(--ui-space-2);
+}
+.pad-only.x {
+  margin-right: var(--ui-space-2);
+}
+.pad-key {
+  --pad-a: #59b36b;
+  --pad-b: #d9604b;
+  --pad-x: #4aa3ff;
+  --pad-y: #e8c46a;
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  border: 1px solid var(--ui-ink);
+  border-radius: 50%;
+  color: var(--ui-ink);
+  font: 800 var(--fs-note) / 1 var(--ui-font-text);
+  font-style: normal;
+}
+.pad-key.a {
+  background: var(--pad-a);
+}
+.pad-key.b {
+  background: var(--pad-b);
+}
+.pad-key.x {
+  background: var(--pad-x);
+}
+.pad-key.y {
+  background: var(--pad-y);
+}
+.pad-key.bumper {
+  min-width: 28px;
+  height: 18px;
+  margin-right: 2px;
+  border-radius: var(--ui-radius-s);
+  background: var(--ui-face);
+  font-size: var(--fs-micro);
+}
+@media (max-width: 600px), (max-height: 450px) {
+  .pad-hints {
+    gap: var(--ui-space-3);
+    padding: var(--ui-space-1) var(--ui-space-3);
+    font-size: var(--fs-note);
+  }
+}
+/* Narrow screens: A and B only; the tab bar and the lot row carry their own glyphs. */
+@media (max-width: 1100px) {
+  .pad-hints > .extra {
+    display: none;
+  }
+}
+/* Portrait phones: no room above the bottom buttons, and A / B need no reminder there. */
+@media (max-width: 640px) {
+  .pad-hints {
+    display: none;
+  }
+}
+
+/* `?padlog` (decision 0201): the controller's events, for a photo from the console. */
+.pad-log {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  z-index: 100000;
+  max-width: 46vw;
+  margin: 0;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgb(0 0 0 / 0.75);
+  color: var(--ui-face);
+  font:
+    13px/1.3 ui-monospace,
+    monospace;
+  white-space: pre-wrap;
+  pointer-events: none;
+}

@@ -24,6 +24,7 @@ import { loadSettings } from '../src/ui/settings';
 import { TradePanel } from '../src/ui/tradePanel';
 import { TitleScreen } from '../src/ui/screens/title';
 import { Hud } from '../src/ui/hud';
+import { HelpScreen } from '../src/ui/screens/help';
 
 const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
 const body = () =>
@@ -94,7 +95,7 @@ describe('translations (decision 0037)', () => {
     expect(document.getElementById('chart')!.getAttribute('aria-label')).toBe(fr['chart.title']);
     expect(document.getElementById('sail-full')!.textContent!.trim()).toBe(fr['hud.sailFull']);
     expect(document.getElementById('sail-lever')!.getAttribute('aria-label')).toBe(fr['hud.sails']);
-    expect(document.getElementById('help')!.textContent).toContain(fr['help.windCopy']);
+    expect(new HelpScreen(noop).screen.root.textContent).toContain(fr['help.windCopy']);
     // The wind compass letters follow the language: W is O in French.
     expect(
       document.querySelector('#wind-help-trigger text[data-i18n="compass.W"]')!.textContent,

@@ -224,38 +224,11 @@ html[data-layout='phone'] .port-marker-tag small {
   height: 18px;
 }
 
-/* --- The line of news at sea: italic words on the scene, no box (round 3 D) ------------------ */
-.toast {
-  position: absolute;
-  top: 22%;
-  left: 50%;
-  z-index: 11;
-  max-width: min(80vw, 560px);
-  transform: translateX(-50%);
-  color: var(--hud-text);
-  font: italic 400 var(--fs-title) / 1.25 var(--ui-font-title);
-  text-align: center;
-  text-shadow: var(--hud-halo);
-  animation: toast-in var(--ui-dur-slow) var(--ui-ease-out);
-}
-.toast[hidden] {
-  display: none;
-}
 .hazard-toast-badge {
   width: 28px;
   height: 28px;
   margin: -4px 8px -4px 0;
   vertical-align: middle;
-}
-@keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translate(-50%, 8px);
-  }
-}
-html[data-layout='phone'] .toast {
-  top: 26%;
-  font-size: var(--fs-sub);
 }
 
 /* --- Press warning (decision 0078): the lee edge glows amber, then red; only opacity animates. */
@@ -347,7 +320,6 @@ html[data-input='pad'] :is(.hud-actions, .hud-sails) :focus {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .toast,
   .press-glow[data-press='2'] {
     animation: none;
   }

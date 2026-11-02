@@ -5,7 +5,6 @@ import { t } from '../../i18n';
 import { isDiscovered } from '../../sim/shipyards';
 import { cargoUsed, capacity } from '../../sim/trade';
 import type { World } from '../../sim/world';
-import { Toaster } from '../components';
 import { connectUiSounds } from '../uiSound';
 import { motionMode } from '../motionMode';
 import { ArrivalWatch, arrivalSpots, taglineOf } from './arrival';
@@ -25,7 +24,7 @@ export interface MomentsHost {
 
 /**
  * The game's moments (decision 0274): what answers an event with something to see and hear. The
- * arrival banner, the race's countdown, the trade ticks and the toasts live here; the quest stamp
+ * arrival banner, the race's countdown and the trade ticks live here (the toasts are the HUD's); the quest stamp
  * and the finish board are drawn on the cards (`stamp.ts`, `raceBoard.ts`). Everything is a timer
  * or a CSS animation, the sea is looked at four times a second, and nothing allocates then.
  */
@@ -34,7 +33,6 @@ export class Moments {
   readonly banner = new MomentBanner('arrival');
   /** The race's "Horn in 10". */
   readonly horn = new MomentBanner('horn');
-  readonly toaster = new Toaster();
   readonly trade: TradeTicks;
   private readonly watch: ArrivalWatch;
   private since = EVERY;
@@ -56,7 +54,7 @@ export class Moments {
     const layer = document.createElement('div');
     layer.className = 'moments';
     layer.append(this.banner.root, this.horn.root);
-    document.body.append(layer, this.toaster.root);
+    document.body.append(layer);
   }
 
   /** Each frame at sea; `covered`: a screen is over the sea, so nothing is announced. */

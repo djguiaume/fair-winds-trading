@@ -73,7 +73,14 @@ it.each(DIFFICULTIES)(
       window as unknown as { fwt: { world: World; input: Input; quests: QuestBook } }
     ).fwt;
     expect(localStorage.getItem(`fwt.tutorial.v1.${world.map.name}`)).toContain('skipped');
-    const offer = document.getElementById('tutorial-offer') as HTMLDialogElement;
+    // The offer's dialog joins the page when it asks.
+    const offer = {
+      get open() {
+        return (
+          (document.getElementById('tutorial-offer') as HTMLDialogElement | null)?.open ?? false
+        );
+      },
+    };
     document.querySelector<HTMLButtonElement>('#menu-play')!.click();
     document.querySelector<HTMLButtonElement>(`.level-card[data-level="${level}"]`)!.click();
     document.querySelector<HTMLButtonElement>('#set-sail')!.click();

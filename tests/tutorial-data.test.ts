@@ -3,7 +3,7 @@ import en from '../src/i18n/en.json';
 import fr from '../src/i18n/fr.json';
 import { PHASE1_MAP } from '../src/data/maps';
 import { COACH_TARGETS, QUESTS, type QuestDef, checkQuests, questsFor } from '../src/sim/quests';
-import { mainLine } from '../src/ui/questView';
+import { mainLine } from '../src/ui/questLine';
 import { TUTORIAL, tutorialVoyage } from './helpers/tutorial';
 
 // Decision 0113 made the tutorial data; decision 0151 made it an ordinary quest file.

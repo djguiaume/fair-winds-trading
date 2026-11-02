@@ -13,12 +13,15 @@ export interface ToastOptions {
   kind?: ToastKind;
   /** How long it stays, in ms. */
   ms?: number;
+  /** A small picture before the words (the chart's hazard badge). */
+  badge?: Node;
 }
 
 interface Waiting {
   text: string;
   kind: ToastKind;
   ms: number;
+  badge?: Node;
 }
 
 /** Timers, passed in so a test can run them by hand. */
@@ -33,6 +36,8 @@ export const MAX_TOASTS = 2;
 interface Slot {
   line: HTMLElement;
   showing: Waiting | null;
+  /** Bumped at every clear, so a timer set before it finds the line is no longer its own. */
+  gen: number;
 }
 
 export class Toaster {
@@ -47,7 +52,7 @@ export class Toaster {
     for (let i = 0; i < MAX_TOASTS; i++) {
       const line = el('p', 'ui-toast');
       line.hidden = true;
-      this.slots.push({ line, showing: null });
+      this.slots.push({ line, showing: null, gen: 0 });
       this.root.append(line);
     }
   }
@@ -69,8 +74,18 @@ export class Toaster {
   show(text: string, o: ToastOptions = {}) {
     const last = this.waiting.at(-1)?.text ?? this.newest();
     if (last === text) return;
-    this.waiting.push({ text, kind: o.kind ?? 'info', ms: o.ms ?? TOAST_MS });
+    this.waiting.push({ text, kind: o.kind ?? 'info', ms: o.ms ?? TOAST_MS, badge: o.badge });
     this.fill();
+  }
+
+  /** Clears every line now: a card opening over them says what comes next. */
+  clear() {
+    this.waiting.length = 0;
+    for (const slot of this.slots) {
+      slot.gen++;
+      slot.showing = null;
+      slot.line.hidden = true;
+    }
   }
 
   /** The line shown last, to ignore the same line twice in a row. */
@@ -94,17 +109,20 @@ export class Toaster {
   private start(slot: Slot, toast: Waiting) {
     const { line } = slot;
     slot.showing = toast;
-    line.textContent = toast.text;
+    line.replaceChildren(...(toast.badge ? [toast.badge, toast.text] : [toast.text]));
     line.dataset.kind = toast.kind;
     delete line.dataset.leave;
     line.hidden = false;
     playEnter(line, 'drop');
-    this.timers.set(() => this.leave(slot), toast.ms);
+    const { gen } = slot;
+    this.timers.set(() => slot.gen === gen && this.leave(slot), toast.ms);
   }
 
   private leave(slot: Slot) {
+    const { gen } = slot;
     slot.line.dataset.leave = '';
     this.timers.set(() => {
+      if (slot.gen !== gen) return;
       slot.showing = null;
       slot.line.hidden = true;
       this.fill();
