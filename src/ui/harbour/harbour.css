@@ -316,6 +316,11 @@ html[data-layout='phone'] .hb-pane {
   gap: var(--ui-space-3);
   padding-block: var(--ui-space-1) var(--ui-space-2);
 }
+/* The list scrolls on a phone: its foot fades out as a hint that more rows wait below. */
+html[data-layout='phone'] .hb-list {
+  padding-bottom: var(--ui-space-5);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - var(--ui-space-5)), transparent);
+}
 html[data-layout='phone'] .hb-detail {
   width: var(--ui-harbour-detail-phone);
   gap: var(--ui-space-2);
