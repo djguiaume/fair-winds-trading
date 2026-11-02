@@ -1,0 +1,44 @@
+/* The note at sea (decision 0141): a step moved on away from the person's harbour, on paper. */
+.quest-note {
+  position: fixed;
+  left: max(var(--ui-space-3), var(--safe-left, env(safe-area-inset-left)));
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-3);
+  max-width: min(360px, calc(100vw - 24px));
+  padding: var(--ui-space-2) var(--ui-space-3) var(--ui-space-2) var(--ui-space-2);
+  border: 1px solid var(--ui-ink-soft);
+  border-radius: var(--ui-radius-m);
+  background: var(--ui-surface);
+  box-shadow: var(--ui-shadow-2);
+  color: var(--ui-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: opacity 0.9s;
+}
+.quest-note[hidden] {
+  display: none;
+}
+.quest-note.is-fading {
+  opacity: 0;
+}
+.quest-note-face svg {
+  display: block;
+  width: 52px;
+  height: 52px;
+}
+.quest-note-text b {
+  display: block;
+  font: 400 var(--fs-lead) / 1.1 var(--ui-font-title);
+}
+.quest-note-text span {
+  display: block;
+  font: 400 var(--fs-text) / 1.25 var(--ui-font-text);
+}
+.quest-note-text small {
+  display: block;
+  margin-top: 2px;
+  color: var(--ui-muted);
+  font: 600 var(--fs-note) / 1.2 var(--ui-font-text);
+}

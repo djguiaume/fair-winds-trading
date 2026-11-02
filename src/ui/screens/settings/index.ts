@@ -21,15 +21,14 @@ export interface SettingGroup {
 type TabBuilder = (ctx: SettingsContext, host: RowHost) => SettingGroup[];
 
 const TABS: readonly { id: string; build: TabBuilder }[] = [
-  { id: 'game', build: gameTab },
-  { id: 'hazards', build: hazardsTab },
+  { id: 'game', build: (ctx, host) => [...gameTab(ctx, host), ...hazardsTab(ctx, host)] },
   { id: 'display', build: displayTab },
   { id: 'sound', build: soundTab },
   { id: 'controls', build: controlsTab },
 ];
 
 /**
- * Settings (decision 0269, issue #440): five tabs of list rows on one torn paper page, LB and RB
+ * Settings (decision 0269, issue #440): four tabs (the hazards sit under Game, so no page is left mostly empty) of list rows on one torn paper page, LB and RB
  * between them. Only the tab in view is on the page; every row refreshes after any change, and
  * again each time the screen shows, since the game can change a setting too (the speed log's own
  * toggle at sea).

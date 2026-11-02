@@ -150,8 +150,7 @@ export function guardSoftDisabled(root: HTMLElement) {
   );
 }
 /** Close buttons (`data-pad-close`: the v1.5 header): the pad starts elsewhere, B closes. */
-const CLOSE =
-  '.close-btn, #tp-close, .d-btn.red.square, [data-chart-close], .home-close, [data-pad-close]';
+const CLOSE = '.close-btn, #tp-close, [data-chart-close], .home-close, [data-pad-close]';
 
 function shown(el: HTMLElement): boolean {
   if ((el as HTMLButtonElement).disabled || el.closest('[hidden], [inert]')) return false;

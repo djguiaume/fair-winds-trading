@@ -1,4 +1,3 @@
-import { translateDom } from '../i18n';
 import type { Input } from '../input/input';
 import type { SeaPad } from '../input/gamepad';
 import type { CameraOrbit } from '../render/cameraOrbit';
@@ -50,17 +49,6 @@ export class CameraControls {
       () => chase.toggle(),
     );
     this.sync();
-    // The help card's mouse and controller lines name the camera's inputs too.
-    const help = document.querySelector('.help-controls')!;
-    const hint = (line: string, key: string, label = 'help.keyView') =>
-      help
-        .querySelector(line)!
-        .insertAdjacentHTML('beforeend', ` · ${key} <span data-i18n="${label}"></span>`);
-    hint('.keys', '<kbd data-i18n="help.rightDrag"></kbd>');
-    hint('.keys', '<kbd>C</kbd>', 'help.keyChase');
-    hint('.pad', '<kbd>R</kbd>');
-    hint('.pad', '<kbd>R</kbd>', 'help.keyChase');
-    translateDom(help);
   }
 
   /** The controller's zoom, turn and reset this frame. */

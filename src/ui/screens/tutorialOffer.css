@@ -1,0 +1,31 @@
+/* The first voyage's offer: the five things the hints cover, as a row of ink icons. */
+.offer-body {
+  display: grid;
+  gap: var(--ui-space-3);
+  margin-bottom: var(--ui-space-4);
+}
+.offer-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space-2) var(--ui-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.offer-steps li {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  font-family: var(--ui-font-title);
+  font-size: var(--fs-lead);
+}
+.offer-steps .icon {
+  width: 20px;
+  height: 20px;
+  color: var(--ui-ink);
+}
+.offer-note {
+  margin: 0;
+  color: var(--ui-muted);
+  font-size: var(--fs-body);
+}

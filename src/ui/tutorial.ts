@@ -222,7 +222,7 @@ export class TutorialCoach {
       const b = document.createElement('button');
       b.id = id;
       b.type = 'button';
-      b.className = kind;
+      b.className = kind.startsWith('coach') ? kind : `ui-btn ui-btn--${kind} ui-pressable`;
       b.textContent = label;
       b.addEventListener('click', action);
       host.append(b);
@@ -272,7 +272,7 @@ export class TutorialCoach {
     actions.className = 'coach-actions';
     this.card.append(actions);
     if (done) {
-      button(actions, 'tutorial-finish', t('tutorial.free'), 'd-btn brass', () => {
+      button(actions, 'tutorial-finish', t('tutorial.free'), 'primary', () => {
         this.finished = null;
         this.render();
       }).insertAdjacentHTML('afterbegin', padGlyph('a'));
@@ -286,7 +286,7 @@ export class TutorialCoach {
         actions,
         i ? `tutorial-option-${o.id}` : 'tutorial-continue',
         o.title,
-        'd-btn brass',
+        'primary',
         () => this.onOption(quest, o.id),
       );
       if (!i) b.insertAdjacentHTML('afterbegin', padGlyph('a'));
@@ -300,7 +300,7 @@ export class TutorialCoach {
         tips: t('tutorial.showTips'),
       }[lesson.action];
       const action = lesson.action;
-      const go = button(actions, 'tutorial-action', label, 'd-btn', () => {
+      const go = button(actions, 'tutorial-action', label, 'plain', () => {
         if (action === 'chart') this.onChart();
         else if (action === 'market') this.onMarket();
         else this.onTips();

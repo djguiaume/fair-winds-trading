@@ -58,7 +58,7 @@ html[data-night] .hb-sheet {
 }
 /* On the port screen's opaque table the whole sheet, torn edge included, is that paper. */
 html[data-night] .hb-port .hb-sheet {
-  --ui-edge-torn: var(--ui-edge-torn-night-ledger);
+  --ui-edge-torn: var(--ui-edge-torn-night-solid);
   background: none;
 }
 .hb-sheet > .hb-head,

@@ -1,3 +1,4 @@
+import './quests/note.css';
 import { t } from '../i18n';
 import { stampCard } from './moments/stamp';
 import { portraitSvg } from './portraits';

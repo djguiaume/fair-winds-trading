@@ -36,6 +36,11 @@ const TOOLS = {
     about: 'UI theme tokens (theme.json): list, set, check, export, import',
     file: './theme.mjs',
   },
+  tune: {
+    about:
+      'tuning numbers (hud.json and the other tuning files): list, set within the ?tune ranges',
+    file: './tune.mjs',
+  },
   sound: { about: "the game's sounds into files: effects, sea beds, music", file: './sound.mjs' },
   editorperf: {
     about: "speed of the island builder's terrain brushes on the largest island",

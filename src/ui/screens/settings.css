@@ -41,11 +41,11 @@
   font-weight: 400;
 }
 
-.set-page[data-tab='hazards'] {
-  grid-template-columns: 1fr;
+.set-group:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
 }
 
-.set-page[data-tab='hazards'] .set-list {
+.set-page[data-tab='game'] .set-group:last-child .set-list {
   display: grid;
   grid-template-columns: 1fr 1fr;
   column-gap: var(--ui-space-6);
@@ -198,12 +198,12 @@
   min-height: 44px;
 }
 
-:root[data-layout='phone'] .set-page[data-tab='hazards'] .set-list {
+:root[data-layout='phone'] .set-page[data-tab='game'] .set-group:last-child .set-list {
   grid-template-columns: repeat(3, 1fr);
   column-gap: var(--ui-space-4);
 }
 
-:root[data-layout='phone'] .set-page[data-tab='hazards'] .ui-row-detail {
+:root[data-layout='phone'] .set-page[data-tab='game'] .set-group:last-child .ui-row-detail {
   display: -webkit-box;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
@@ -212,8 +212,8 @@
 
 @media (max-width: 640px) {
   .set-page,
-  .set-page[data-tab='hazards'] .set-list,
-  :root[data-layout='phone'] .set-page[data-tab='hazards'] .set-list {
+  .set-page[data-tab='game'] .set-group:last-child .set-list,
+  :root[data-layout='phone'] .set-page[data-tab='game'] .set-group:last-child .set-list {
     grid-template-columns: 1fr;
   }
 }
