@@ -336,6 +336,12 @@ html[data-layout='phone'] .hb-sheet {
 }
 html[data-layout='phone'] .hb-banner {
   flex-grow: 0;
+  padding-top: max(var(--ui-space-1), env(safe-area-inset-top));
+}
+/* A smaller close on a phone, so it stays inside the banner, clear of the paper. */
+html[data-layout='phone'] .hb-banner .ui-header-exit {
+  width: 40px;
+  height: 40px;
 }
 /* On a phone Buy and Sell come before the price story, so they never fall below the fold. */
 html[data-layout='phone'] .hb-detail-trend {
@@ -367,10 +373,10 @@ html[data-layout='phone'] .hb-pane {
   gap: var(--ui-space-3);
   padding-block: var(--ui-space-1) var(--ui-space-2);
 }
-/* The list scrolls on a phone: its foot fades out as a hint that more rows wait below. */
+/* The list scrolls on a phone: its foot fades out over the last row, a hint that more wait. */
 html[data-layout='phone'] .hb-list {
-  padding-bottom: var(--ui-space-5);
-  mask-image: linear-gradient(to bottom, #000 calc(100% - var(--ui-space-5)), transparent);
+  padding-bottom: var(--ui-space-3);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - var(--ui-space-7)), transparent);
 }
 html[data-layout='phone'] .hb-detail {
   width: var(--ui-harbour-detail-phone);
