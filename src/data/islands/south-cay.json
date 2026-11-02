@@ -635,6 +635,7 @@
     "look": [-0.6, -0.4],
     "height": 3,
     "lookHeight": 0.6,
-    "art": "art/ports/stonehaven.jpg"
+    "art": "art/ports/stonehaven.jpg",
+    "nightArt": "art/ports/stonehaven-night.jpg"
   }
 }

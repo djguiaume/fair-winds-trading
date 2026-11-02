@@ -491,5 +491,9 @@
       [0.05, 0.05, 0.15]
     ]
   },
-  "harbourView": { "accent": "#d9622b", "art": "art/ports/emberhold.jpg" }
+  "harbourView": {
+    "accent": "#d9622b",
+    "art": "art/ports/emberhold.jpg",
+    "nightArt": "art/ports/emberhold-night.jpg"
+  }
 }

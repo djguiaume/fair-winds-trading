@@ -58,9 +58,10 @@ steps (island-radius units, harbour toward +z; --level n = from that town level)
   pier      --at x,z [--length 0.26] [--level n]
   remove    prop|ground|lane|ramp|river|spot|coast|pier <index>, or remove lake
   set       --name … --style … --seed …
-  view      --from x,z --look x,z [--height h --look-height h] [--accent #hex] [--art art/ports/id.jpg]
+  view      --from x,z --look x,z [--height h --look-height h] [--accent #hex] [--art art/ports/id.jpg] [--night-art …]
             the harbour screen's picture of its port (decision 0211; heights in radius units; --art: a
-            file under public/ for the banner instead of the render, #464; none clears one, --clear all)
+            file under public/ for the banner instead of the render, --night-art its night one, #464;
+            none clears one, --clear all)
   ground    <index> [--ramp] --material <palette.json ground: grass, rock, snow, ice…> [--height h] [--beach w (a coast ground: its beach width)]
             [--smooth 0..1 (the new look's rounding: 0 stays faceted, a stack or crater rim; 1 the default)]
             [--outline "x,z x,z …" (a new outline for a raised ground)]
@@ -241,6 +242,7 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
         lookHeight: orNone(args['look-height'], num),
         accent: orNone(args.accent, (v) => (typeof v === 'string' ? v : undefined)),
         art: orNone(args.art, (v) => (typeof v === 'string' ? v : undefined)),
+        nightArt: orNone(args['night-art'], (v) => (typeof v === 'string' ? v : undefined)),
         clear: args.clear ? true : undefined,
       });
     }

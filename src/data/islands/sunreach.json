@@ -722,6 +722,7 @@
     "height": 0.6,
     "lookHeight": 0.15,
     "accent": "#2a8f6e",
-    "art": "art/ports/sunreach.jpg"
+    "art": "art/ports/sunreach.jpg",
+    "nightArt": "art/ports/sunreach-night.jpg"
   }
 }

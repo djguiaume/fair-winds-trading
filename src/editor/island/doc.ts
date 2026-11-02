@@ -294,6 +294,7 @@ export function tidyDesign(design: IslandDesign): IslandDesign {
         'lookHeight',
         'accent',
         'art',
+        'nightArt',
       ]),
     }),
   };
@@ -301,7 +302,7 @@ export function tidyDesign(design: IslandDesign): IslandDesign {
 
 /**
  * The harbour screen's picture of this island's port (decision 0211): the camera's place, where it
- * looks and its heights, the port's accent colour and banner art (#464). `null` clears a field; nothing left, none.
+ * looks and its heights, the port's accent colour and banner art by day and night (#464). `null` clears a field; nothing left, none.
  */
 export function setHarbourView(
   design: IslandDesign,

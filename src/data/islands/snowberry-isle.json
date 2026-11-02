@@ -208,5 +208,8 @@
     "spacing": 0.12,
     "areas": [[0, -0.5, 0.45]]
   },
-  "harbourView": { "art": "art/ports/snowberry-isle.jpg" }
+  "harbourView": {
+    "art": "art/ports/snowberry-isle.jpg",
+    "nightArt": "art/ports/snowberry-isle-night.jpg"
+  }
 }

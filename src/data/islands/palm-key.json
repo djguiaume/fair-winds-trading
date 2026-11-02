@@ -165,5 +165,5 @@
     "margin": 0.06,
     "spacing": 0.11
   },
-  "harbourView": { "art": "art/ports/palm-key.jpg" }
+  "harbourView": { "art": "art/ports/palm-key.jpg", "nightArt": "art/ports/palm-key-night.jpg" }
 }

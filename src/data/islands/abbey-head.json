@@ -263,6 +263,7 @@
     "look": [0, 0.6],
     "height": 1.6,
     "lookHeight": 0.1,
-    "art": "art/ports/abbey-head.jpg"
+    "art": "art/ports/abbey-head.jpg",
+    "nightArt": "art/ports/abbey-head-night.jpg"
   }
 }

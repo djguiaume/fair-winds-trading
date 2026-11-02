@@ -202,5 +202,8 @@
     "margin": 0.1,
     "spacing": 0.2
   },
-  "harbourView": { "art": "art/ports/amber-strand.jpg" }
+  "harbourView": {
+    "art": "art/ports/amber-strand.jpg",
+    "nightArt": "art/ports/amber-strand-night.jpg"
+  }
 }

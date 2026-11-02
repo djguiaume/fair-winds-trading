@@ -78,11 +78,15 @@ export function harbourPictureKey(portId: string, light: HarbourLight, look: str
   return `${portId}|${light}|${look}`;
 }
 
-/** The port's own banner art (island file › `harbourView.art`) as a URL, or null: render it. */
-export function portArt(map: MapDef, portId: string): string | null {
+/**
+ * The port's own banner art in this light (island file › `harbourView.art`, `nightArt` at night) as
+ * a URL, or null: render it.
+ */
+export function portArt(map: MapDef, portId: string, light: HarbourLight = 'day'): string | null {
   const port = map.ports.find((p) => p.id === portId);
   const island = port && map.islands.find((i) => i.id === port.islandId);
-  const art = island && designOf(island)?.harbourView?.art;
+  const view = island && designOf(island)?.harbourView;
+  const art = (light === 'night' && view?.nightArt) || view?.art;
   return art ? `${import.meta.env.BASE_URL}${art}` : null;
 }
 

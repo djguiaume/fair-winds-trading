@@ -125,6 +125,7 @@ export type IslandStep =
       lookHeight?: number | null;
       accent?: string | null;
       art?: string | null;
+      nightArt?: string | null;
       clear?: boolean;
     }
   /** A river point's own width (decision 0176); no `width`: back to the river's. */
@@ -329,6 +330,7 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
         lookHeight: step.lookHeight,
         accent: step.accent,
         art: step.art,
+        nightArt: step.nightArt,
       });
       return design.harbourView ? 'harbour view set' : 'harbour view cleared';
     }

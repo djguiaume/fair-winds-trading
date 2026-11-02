@@ -22,7 +22,13 @@ If the tool can, ask it next to **widen the picture to about 16:3 by extending t
 - **What shows:** the banner fills the screen's width and is at most 170 px high on a desktop (56 px on a phone), centred at 55% of the picture's height. So on a desktop only the middle half of the 340 px is seen, and on a phone a thin band. The port's name, gold and hold sit over the left third on a dark wash, so keep that part quiet.
 - **Hook it up:** `npm run island -- <island> view --art art/ports/<port>.jpg` (or the island builder's **Banner art** field). The island id is the port id except Stonehaven, whose island is `south-cay`.
 - **Easiest:** post the raw image in the port screen thread (or drop it in `docs/art/ports/raw/`); a thread crops it, saves it and hooks it up.
-- **Night:** the same picture shows at night for now; a night version per port is a follow-up.
+- **Night:** `public/art/ports/<port>-night.jpg`, the same picture at night, cut the same way; `npm run island -- <island> view --night-art art/ports/<port>-night.jpg` (or the builder's **Night banner art**). Without one the night screen shows the day art. Golden hour shows the day art.
+
+## The night prompt
+
+Give the tool the port's day picture (`raw/<port>.jpg`) first and the key art second, with this prompt:
+
+> The same picture at night: keep the island, the town, the camera, the composition and the low-poly 3D style of the first attached image exactly; only the light changes. A deep blue moonlit night, never black: the sky a deep moonlit blue with a few stars and a pale moon, the sea a deep night blue with soft silver moonlight on the waves, coloured blue shadows. Every house window lit warm yellow, lanterns glowing warm along the quay and the paths, a lighthouse lamp lit if there is one, a soft warm glow over the town. Match the second attached image's low-poly look. No text, no logo, no frame, no border.
 - Any port with no art keeps the graded render, so the art can arrive one port at a time.
 
 ## Cost
@@ -32,11 +38,11 @@ If the tool can, ask it next to **widen the picture to about 16:3 by extending t
 
 ## Made so far
 
-All 14 ports have painted banners (2026-11-02, Guillaume's OK): Scenario, Gemini 3.1 (`model_google-gemini-3-1-flash`), the shared prompt and the port's line, the key art and `ref/<port>.jpg` as references (Cinder Isle used `ref/emberhold.jpg`), 21:9, 1K, one output, 13 CU each, 182 CU in all. Saltmere was the test.
+All 14 ports have painted banners (2026-11-02, Guillaume's OK): Scenario, Gemini 3.1 (`model_google-gemini-3-1-flash`), the shared prompt and the port's line, the key art and `ref/<port>.jpg` as references (Cinder Isle used `ref/emberhold.jpg`), 21:9, 1K, one output, 13 CU each, 182 CU in all. Saltmere was the test. The night banners followed the same day (another 182 CU, Guillaume's OK), each from its day picture with the night prompt, cut at the same rows.
 
-- `raw/<port>.jpg`: each picture as it came back (1584 × 672).
+- `raw/<port>.jpg`, `raw/<port>-night.jpg`: each picture as it came back (1584 × 672).
 - `raw/jobs.json`: each job's id, settings, cost and crop.
-- `public/art/ports/<port>.jpg`: the banner, the raw picture scaled to 1920 wide and cut to 340 rows from `crop.top`, chosen so the town sits in the band a desktop shows.
+- `public/art/ports/<port>.jpg` and `<port>-night.jpg`: the banners, the raw picture scaled to 1920 wide and cut to 340 rows from `crop.top`, chosen so the town sits in the band a desktop shows.
 
 To redo one port, run the same job again (the [Scenario client](../../../tools/scenario/scenario.py)) after Guillaume's OK for that batch, then crop it the same way.
 

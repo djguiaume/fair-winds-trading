@@ -64,7 +64,7 @@ describe('the harbour screen picture (decision 0211)', () => {
       'view',
       parseArgs([
         ...['--from', '0.2,2', '--look', '0,0.5', '--height', '0.4', '--accent', '#123456'],
-        ...['--art', 'art/ports/saltmere.jpg'],
+        ...['--art', 'art/ports/saltmere.jpg', '--night-art', 'art/ports/saltmere-night.jpg'],
       ]),
       [],
     );
@@ -75,13 +75,17 @@ describe('the harbour screen picture (decision 0211)', () => {
       height: 0.4,
       accent: '#123456',
       art: 'art/ports/saltmere.jpg',
+      nightArt: 'art/ports/saltmere-night.jpg',
     });
     // A port with painted art shows it; one without keeps the game's render (#464).
     expect(portArt(GAME_MAP, 'saltmere')).toBe('/art/ports/saltmere.jpg');
+    expect(portArt(GAME_MAP, 'saltmere', 'night')).toBe('/art/ports/saltmere-night.jpg');
+    expect(portArt(GAME_MAP, 'saltmere', 'golden')).toBe('/art/ports/saltmere.jpg');
     expect(portArt(GAME_MAP, 'nowhere')).toBeNull();
     for (const island of Object.values(ISLAND_DESIGNS)) {
-      const art = island.harbourView?.art;
-      if (art) expect(existsSync(`public/${art}`), art).toBe(true);
+      const { art, nightArt } = island.harbourView ?? {};
+      for (const file of [art, nightArt])
+        if (file) expect(existsSync(`public/${file}`), file).toBe(true);
     }
     applySteps(design, [stepFromArgs('view', parseArgs(['--accent', 'none']), [])]);
     expect(design.harbourView?.accent).toBeUndefined();

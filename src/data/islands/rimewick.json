@@ -502,6 +502,7 @@
     "height": 0.4,
     "lookHeight": 0.25,
     "accent": "#a8403a",
-    "art": "art/ports/rimewick.jpg"
+    "art": "art/ports/rimewick.jpg",
+    "nightArt": "art/ports/rimewick-night.jpg"
   }
 }

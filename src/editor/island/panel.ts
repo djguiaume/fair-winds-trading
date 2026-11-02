@@ -170,6 +170,19 @@ export function renderIslandPanel(root: HTMLElement, host: IslandPanelHost) {
     art.addEventListener('change', () =>
       host.change(() => setHarbourView(design, { art: art.value.trim() || null })),
     );
+    const nightRow = div('Night banner art');
+    const nightArt = node(
+      'input',
+      {
+        type: 'text',
+        value: view.nightArt ?? '',
+        placeholder: 'the day art (art/ports/<id>-night.jpg)',
+      },
+      nightRow,
+    );
+    nightArt.addEventListener('change', () =>
+      host.change(() => setHarbourView(design, { nightArt: nightArt.value.trim() || null })),
+    );
     node('p', {
       className: 'ed-note',
       textContent:

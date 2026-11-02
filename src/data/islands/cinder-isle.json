@@ -65,5 +65,8 @@
     "margin": 0.1,
     "spacing": 0.2
   },
-  "harbourView": { "art": "art/ports/cinder-isle.jpg" }
+  "harbourView": {
+    "art": "art/ports/cinder-isle.jpg",
+    "nightArt": "art/ports/cinder-isle-night.jpg"
+  }
 }

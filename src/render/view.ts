@@ -729,15 +729,17 @@ export class GameView {
   private picturesLook = '';
   private pictureCamera?: THREE.PerspectiveCamera;
 
+  /** The light the harbour screen's picture is in now: the shown time of day's. */
+  get pictureLight(): HarbourLight {
+    return harbourLight(shownDaylightAt(this.dayNight, this.world.time));
+  }
+
   /**
    * The harbour screen's picture of a port (decision 0211): the real scene from a fixed camera off
    * its harbour, in the given light, with no fog, rain or storm, the sea's own tint kept. Taken once
    * and cached per port, light and town look, as a JPEG object URL; null if the port has no pier.
    */
-  harbourPicture(
-    portId: string,
-    light: HarbourLight = harbourLight(shownDaylightAt(this.dayNight, this.world.time)),
-  ): string | null {
+  harbourPicture(portId: string, light: HarbourLight = this.pictureLight): string | null {
     const look = `${this.townVersion}/${this.landVersion}/${this.level}`;
     // A town or the land changed: every picture is old. The screen may still be loading one, so
     // they are let go a little later.
