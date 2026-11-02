@@ -4,10 +4,11 @@
 // level card, the tutorial offer and the harbour, sets the scene through `window.fwt` (the boat's
 // `place`, `dock`, the view, the chart) and shoots each size.
 import { readFileSync, mkdirSync } from 'node:fs';
-import { resolve, basename, extname, join } from 'node:path';
+import { resolve, join } from 'node:path';
 import { ROOT, chromiumPath, startVite } from './lib.mjs';
 import { padSteps } from './padSteps.mjs';
-import { keyHold, list, lookOption, pair, readAll } from './shotOptions.mjs';
+import { defaultName, keyHold, list, lookOption, pair, readAll } from './shotOptions.mjs';
+import { prepareBoot, shootBoot } from './shotsBoot.mjs';
 import { HELP } from './shotsHelp.mjs';
 export { HELP };
 
@@ -65,6 +66,8 @@ export function normalise(opts) {
     turn: (o.yaw ?? o.tilt) !== undefined ? [o.yaw ?? 0, o.tilt] : null,
     ...lookOption(o.look),
     menu: !!o.menu,
+    boot: o.splash ? 'splash' : o['portrait-gate'] ? 'gate' : null,
+    progress: Number(o.progress ?? 0.55),
     chart: !!o.chart,
     chartZoom: o['chart-zoom'] ?? 0,
     chartPan: o['chart-pan'] ? keyHold(o['chart-pan']) : null,
@@ -95,7 +98,7 @@ export function normalise(opts) {
     style: o.style ? readAll(o.style) : null,
     script: o.script ? readAll(o.script) : null,
     saveLink: !!o['save-link'],
-    sizes: list(o.sizes ?? 'desktop'),
+    sizes: list(o.sizes ?? (o['portrait-gate'] ? 'portrait' : 'desktop')),
     url: o.url ?? null,
     editor: o.editor === true ? 'phase4' : (o.editor ?? null),
     select: o.select ?? null,
@@ -112,25 +115,6 @@ export function normalise(opts) {
     throw new Error(`--editor ring|phase4, not ${shot.editor}`);
   shot.name = o.name ?? defaultName(shot);
   return shot;
-}
-
-function defaultName(s) {
-  if (s.editor)
-    return ['editor', s.editor, s.select?.replace(/[:]/g, '-'), s.exportOpen && 'export']
-      .filter(Boolean)
-      .join('-');
-  const sea = s.seaFile ? basename(s.seaFile, extname(s.seaFile)) : s.sea;
-  const where = s.port ?? (s.at ? `${s.at[0]}_${s.at[1]}` : 'start');
-  return [
-    sea,
-    s.menu ? 'menu' : where,
-    s.chart && 'chart',
-    s.night && 'night',
-    s.ground === 'v1' && 'v1',
-    s.lang !== 'en' && s.lang,
-  ]
-    .filter(Boolean)
-    .join('-');
 }
 
 /** The shots asked for: the list file's entries over the command line's options, or just those. */
@@ -334,8 +318,10 @@ async function shootOne(browser, base, shot, size, file) {
         window.__fwPad = pad;
         Object.defineProperty(window.navigator, 'getGamepads', { value: () => [pad] });
       });
+    await prepareBoot(page, shot);
     await page.goto(base + shotPath(shot));
-    if (shot.editor) await shootEditor(page, shot);
+    if (shot.boot) await shootBoot(page, shot);
+    else if (shot.editor) await shootEditor(page, shot);
     else if (shot.menu) {
       await page.locator('#menu-play').waitFor({ state: 'visible', timeout: 30000 });
       await pause(shot.wait);
