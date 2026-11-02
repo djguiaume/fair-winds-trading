@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { SHIP_FILES } from '../src/data/ships';
 import characterData from '../src/data/characters.json';
@@ -75,8 +76,13 @@ describe('the harbour screen picture (decision 0211)', () => {
       accent: '#123456',
       art: 'art/ports/saltmere.jpg',
     });
-    // No port ships its own banner art yet: the game renders each one (#464).
-    expect(portArt(GAME_MAP, 'saltmere')).toBeNull();
+    // A port with painted art shows it; the others keep the game's render (#464).
+    expect(portArt(GAME_MAP, 'saltmere')).toBe('/art/ports/saltmere.jpg');
+    expect(portArt(GAME_MAP, 'calda')).toBeNull();
+    for (const island of Object.values(ISLAND_DESIGNS)) {
+      const art = island.harbourView?.art;
+      if (art) expect(existsSync(`public/${art}`), art).toBe(true);
+    }
     applySteps(design, [stepFromArgs('view', parseArgs(['--accent', 'none']), [])]);
     expect(design.harbourView?.accent).toBeUndefined();
     applySteps(design, [{ do: 'view', clear: true }]);
