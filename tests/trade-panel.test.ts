@@ -173,7 +173,7 @@ describe('full-screen port (decision 0049)', () => {
   it('counts open orders on the Orders tab and shows them there', () => {
     const { panel, container, click } = setup();
     panel.open();
-    const badge = container.querySelector('#tp-tab-orders .tab-badge')!.textContent;
+    const badge = container.querySelector('#tp-tab-orders .ui-tab-badge')!.textContent;
     click('#tp-tab-orders');
     const listed = container.querySelectorAll('.contract-list li').length;
     expect(listed).toBeGreaterThan(0);

@@ -36,7 +36,7 @@ describe('the home island on the harbour paper (#443)', () => {
     const { $ } = setup();
     expect($('.home-screen .hb-head .ui-header-title')!.textContent).toBe('Skerry');
     expect($('.hb-line')!.textContent).toContain('1 plot to build');
-    expect($('#home-tab-island .tab-badge')!.textContent).toBe('1');
+    expect($('#home-tab-island .ui-tab-badge')!.textContent).toBe('1');
     const rows = document.querySelectorAll('.hb-plot');
     expect(rows[0]!.classList).toContain('is-open');
     expect(rows[0]!.textContent).toContain('Ines’s plot');

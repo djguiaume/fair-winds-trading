@@ -44,7 +44,7 @@ function personRow(item: QuayItem, selected: boolean, pick: (key: string) => voi
   row.classList.add('hb-row', 'hb-person');
   if (item.fresh) {
     row.classList.add('is-new');
-    row.querySelector('.ui-row-label')!.append(badge(t('harbour.new'), true));
+    row.querySelector('.ui-row-label')!.append(badge(t('harbour.new')));
   }
   row.dataset.pick = `person:${item.key}`;
   row.querySelector('.ui-row-words')!.append(el('span', 'hb-person-line', personLine(item)));

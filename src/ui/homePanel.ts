@@ -162,7 +162,7 @@ export class HomePanel {
       title: island.name ?? island.id,
       line: islandLine(toBuild),
       tabs: [
-        { id: 'island', label: t('home.tabIsland'), badge: toBuild, quay: true },
+        { id: 'island', label: t('home.tabIsland'), badge: toBuild },
         ...(warehouse ? [{ id: 'warehouse', label: t('home.tabWarehouse') }] : []),
       ],
       selected: this.tab,

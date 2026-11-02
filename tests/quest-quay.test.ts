@@ -144,7 +144,7 @@ describe('main quests and the Quay tab (decision 0141)', () => {
       hand: vi.fn(),
     };
     panel.open('market');
-    expect(document.querySelector('#tp-tab-quay .tab-badge')!.textContent).toBe('1');
+    expect(document.querySelector('#tp-tab-quay .ui-tab-badge')!.textContent).toBe('1');
     expect(document.querySelector('#tp-quay-hint')!.textContent).toContain('Kit Marlow');
     document.querySelector<HTMLButtonElement>('#tp-quay-hint')!.click();
     expect(document.querySelectorAll('.hb-person.is-new')).toHaveLength(1);
@@ -154,7 +154,7 @@ describe('main quests and the Quay tab (decision 0141)', () => {
     document.querySelector<HTMLButtonElement>('.hb-quay-card [data-act="accept"]')!.click();
     expect(act).toHaveBeenCalledWith('test-pier', 'accept', undefined);
     // Seen: no badge, no hint.
-    expect(document.querySelector('#tp-tab-quay .tab-badge')).toBeNull();
+    expect(document.querySelector('#tp-tab-quay .ui-tab-badge')).toBeNull();
     expect(document.querySelector('#tp-quay-hint')).toBeNull();
   });
 });

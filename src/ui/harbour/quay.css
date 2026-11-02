@@ -18,9 +18,12 @@
   gap: var(--ui-space-2);
   font: 400 var(--fs-head) / 1.1 var(--ui-font-title);
 }
-.hb-person .tab-badge {
-  padding: 0 var(--ui-space-2);
-  font-family: var(--ui-font-text);
+.hb-badge {
+  padding: var(--ui-space-1) var(--ui-space-2);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-sage);
+  color: var(--ui-on-sage);
+  font: 700 var(--fs-note) / 1 var(--ui-font-text);
 }
 .hb-person-line {
   overflow: hidden;

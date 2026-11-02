@@ -3,18 +3,12 @@ import { el } from '../components/dom';
 import { screenHeader } from '../components/screenHeader';
 import { type Tab, TabBar } from '../components/tabBar';
 import { COIN, crateIcon } from '../icons';
-import { badge } from './parts';
 
 /**
  * The harbour's header on every tab (issue #443): the port's name in IM Fell with its line
  * ("Home port. Makes fish, wants grain and timber."), the tabs with their badges between the LB
  * and RB glyphs, the gold and the hold, and the close button (B on a pad).
  */
-export interface HarbourTab extends Tab {
-  /** A count on the tab: open orders, new faces on the quay. */
-  badge?: number;
-  quay?: boolean;
-}
 
 export interface WalletFigures {
   gold: number;
@@ -27,7 +21,7 @@ export interface WalletFigures {
 export interface HarbourHeaderOptions {
   title: string;
   line: string;
-  tabs: readonly HarbourTab[];
+  tabs: readonly Tab[];
   selected: string;
   wallet: WalletFigures;
   onSelect: (id: string) => void;
@@ -49,7 +43,6 @@ export function harbourHeader(o: HarbourHeaderOptions): HTMLElement {
   for (const tab of o.tabs) {
     const b = bar.root.querySelector<HTMLElement>(`[data-tab="${tab.id}"]`)!;
     b.id = `${ids}-tab-${tab.id}`;
-    if (tab.badge) b.append(badge(tab.badge, tab.quay));
   }
   head.exit!.before(bar.root, wallet(o.wallet));
   return head.root;

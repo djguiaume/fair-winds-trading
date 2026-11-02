@@ -243,7 +243,7 @@ export class TradePanel {
                 id: 'quay',
                 label: t('trade.tabQuay'),
                 badge: this.tab === 'quay' ? 0 : fresh,
-                quay: true,
+                badgeTone: 'sage' as const,
               },
             ]
           : []),

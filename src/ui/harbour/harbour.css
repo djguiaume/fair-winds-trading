@@ -103,36 +103,10 @@ html[data-layout='phone'] .harbour {
 .hb-head .ui-header-exit {
   flex: none;
 }
-/* Beside the boat (or a plot) the paper is narrower: the trade line goes, the tabs close up. */
+/* Beside the boat (or a plot) the paper is narrower: the trade line goes. */
 .hb-home.is-half .hb-line,
 .hb-tab-shipyard .hb-line {
   display: none;
-}
-.hb-tab-shipyard .hb-head .ui-tab {
-  padding-inline: var(--ui-space-3);
-}
-.hb-head .ui-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ui-space-2);
-}
-.harbour .tab-badge {
-  display: inline-grid;
-  place-items: center;
-  width: auto;
-  min-width: 22px;
-  margin: 0;
-  height: 22px;
-  padding: 0 var(--ui-space-1);
-  border-radius: var(--ui-radius-pill);
-  background: var(--ui-ink);
-  color: var(--ui-paper);
-  font-size: var(--fs-note);
-  font-weight: 700;
-}
-.harbour .tab-badge.is-quay {
-  background: var(--ui-sage);
-  color: var(--ui-on-sage);
 }
 .hb-wallet {
   display: flex;
@@ -320,11 +294,6 @@ html[data-layout='phone'] .hb-line,
 html[data-layout='phone'] .hb-face > span,
 html[data-layout='phone'][data-input='pad'] .hb-legend {
   display: none;
-}
-html[data-layout='phone'] .hb-head .ui-tab {
-  min-height: 36px;
-  padding: 0 var(--ui-space-2);
-  font-size: var(--fs-text);
 }
 html[data-layout='phone'] .hb-chip {
   font-size: var(--fs-text);

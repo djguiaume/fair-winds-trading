@@ -27,9 +27,9 @@ export function pips(n: number, of: number): HTMLElement {
   return row;
 }
 
-/** A count on a tab or a person ("4", "New"); `quay` marks the people's sage one. */
-export function badge(text: string | number, quay = false): HTMLElement {
-  return el('span', `tab-badge${quay ? ' is-quay' : ''}`, String(text));
+/** A person's "New" on the Quay list (tabs carry their counts through the TabBar's badge). */
+export function badge(text: string): HTMLElement {
+  return el('span', 'hb-badge', text);
 }
 
 /** A labelled pair for a ledger cell: a big value over its small label. */
