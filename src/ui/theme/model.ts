@@ -30,6 +30,8 @@ export interface Theme {
   breakpoints: { 'phone-max-height': number; 'desktop-min-width': number };
   /** The sea HUD's sizes (issue #441): its safe margin, the compass, the speed digits, the tape. */
   hud: Record<string, number>;
+  /** The one tab bar's sizes (issue #457): edge width, gap, side padding, icon. */
+  tabs: Record<string, number>;
   edges: Record<string, Edge>;
   /** Style E (decision 0220): the tokens of the screens not rebuilt yet, by surface. */
   legacy: {
@@ -55,6 +57,7 @@ const CSS_GROUPS: Record<string, { prefix: string; unit?: string }> = {
   z: { prefix: '--ui-z-' },
   touch: { prefix: '--ui-touch-', unit: 'px' },
   hud: { prefix: '--ui-hud-', unit: 'px' },
+  tabs: { prefix: '--ui-tabs-', unit: 'px' },
 };
 
 /**

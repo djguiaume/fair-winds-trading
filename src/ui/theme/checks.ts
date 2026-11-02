@@ -77,6 +77,8 @@ function sizeProblems(theme: Theme): string[] {
   if (target < MIN_TOUCH) out.push(`touch.target is ${target}px, under ${MIN_TOUCH}px`);
   if (rowMin < target) out.push(`touch.row-min (${rowMin}px) is under touch.target`);
   if (rowMax < rowMin) out.push(`touch.row-max (${rowMax}px) is under touch.row-min`);
+  for (const [key, px] of Object.entries(theme.tabs))
+    if (!Number.isInteger(px) || px <= 0) out.push(`tabs.${key} must be whole pixels, over 0`);
   for (const [key, px] of Object.entries(theme.hud))
     if (!Number.isInteger(px) || px <= 0) out.push(`hud.${key} must be whole pixels, over 0`);
   for (const key of ['margin', 'margin-phone'])

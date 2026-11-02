@@ -95,6 +95,14 @@
     "tape": 420,
     "tape-phone": 240
   },
+  "tabs": {
+    "edge": 2,
+    "gap": 4,
+    "pad-x": 18,
+    "pad-x-phone": 12,
+    "icon": 22,
+    "icon-phone": 18
+  },
   "edges": {
     "torn": {
       "size": 96,

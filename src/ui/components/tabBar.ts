@@ -5,11 +5,18 @@ import { el } from './dom';
 /**
  * The one tab bar (decision 0269): `role="tab"` buttons between the LB and RB glyphs, which show
  * only while the pad is in use. LB/RB (padFocus.ts) and the arrow keys step through the tabs;
- * a click, a tap or A picks one.
+ * a click, a tap or A picks one. Always a row along the top of a screen.
+ * Choosing a tab only changes colours: every tab keeps its box and weight, so labels never move.
  */
 export interface Tab {
   id: string;
   label: string;
+  /** A small count after the label (open orders, new faces); nothing when 0 or left out. */
+  badge?: number;
+  /** `sage` for people waiting, `ink` (default) for things to do. */
+  badgeTone?: 'ink' | 'sage';
+  /** Inline SVG markup for the icon slot. */
+  icon?: string;
 }
 
 export interface TabBarOptions {
@@ -27,7 +34,11 @@ export class TabBar {
     this.root = el('div', 'ui-tabs');
     this.root.setAttribute('role', 'tablist');
     this.buttons = o.tabs.map((tab) => {
-      const b = el('button', 'ui-tab ui-pressable', tab.label);
+      const b = el('button', 'ui-tab ui-pressable');
+      if (tab.icon)
+        b.insertAdjacentHTML('beforeend', `<span class="ui-tab-icon">${tab.icon}</span>`);
+      b.append(el('span', 'ui-tab-label', tab.label));
+      if (tab.badge) b.append(tabBadge(tab.badge, tab.badgeTone));
       b.type = 'button';
       b.setAttribute('role', 'tab');
       b.dataset.tab = tab.id;
@@ -69,4 +80,8 @@ export class TabBar {
     const at = tabs.findIndex((t) => t.id === this.current);
     this.select(tabs[(at + by + tabs.length) % tabs.length]!.id);
   }
+}
+
+function tabBadge(n: number, tone: Tab['badgeTone'] = 'ink'): HTMLElement {
+  return el('span', `ui-tab-badge ui-tab-badge--${tone}`, String(n));
 }

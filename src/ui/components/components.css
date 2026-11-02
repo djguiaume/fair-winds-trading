@@ -62,34 +62,80 @@
   outline-offset: 2px;
 }
 
-/* --- Tab bar: the chosen tab sits on a brushed sage wash ------------------------------------ */
+/* --- Tab bar: paper tabs with an ink edge; the chosen one is sage wash with ink text ------------- */
+/* Every tab keeps one box and one weight, so choosing a tab only changes colours. */
 .ui-tabs {
   display: flex;
-  align-items: center;
-  gap: var(--ui-space-1);
+  align-items: flex-end;
+  gap: var(--ui-tabs-gap);
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: var(--ui-tabs-edge) solid var(--ui-ink);
+}
+.ui-tabs::-webkit-scrollbar {
+  display: none;
 }
 .ui-tab {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--ui-space-2);
   min-height: var(--ui-touch-target);
-  padding: 0 var(--ui-space-4);
-  border: var(--ui-edge-brushed-width) solid transparent;
-  border-image: none;
-  background: none;
+  margin-bottom: calc(-1 * var(--ui-tabs-edge));
+  padding: 0 var(--ui-tabs-pad-x);
+  border: var(--ui-tabs-edge) solid var(--ui-ink);
+  border-radius: var(--ui-radius-m) var(--ui-radius-m) 0 0;
+  background: var(--ui-face-off);
   color: var(--ui-muted);
   font-family: var(--ui-font-text);
   font-size: var(--fs-lead);
-  font-weight: 600;
+  font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
 }
 .ui-tab[aria-selected='true'] {
-  border-width: 0 var(--ui-space-2);
-  border-image: var(--ui-edge-brushed) var(--ui-edge-brushed-slice) fill / 0 var(--ui-space-2) round;
+  background: var(--ui-wash);
   color: var(--ui-ink);
+}
+.ui-tab-icon {
+  display: flex;
+  width: var(--ui-tabs-icon);
+  height: var(--ui-tabs-icon);
+}
+.ui-tab-icon svg {
+  width: 100%;
+  height: 100%;
+}
+.ui-tab-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 var(--ui-space-1);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-ink);
+  color: var(--ui-paper);
+  font-size: var(--fs-note);
+  font-weight: 700;
+  line-height: 1;
+}
+.ui-tab-badge--sage {
+  background: var(--ui-sage);
+  color: var(--ui-on-sage);
 }
 .ui-tabs .pad-key {
   flex: none;
+  align-self: center;
   border-color: var(--ui-ink);
   background: none;
   color: var(--ui-ink);
+}
+:root[data-layout='phone'] .ui-tab {
+  padding: 0 var(--ui-tabs-pad-x-phone);
+}
+:root[data-layout='phone'] .ui-tab-icon {
+  width: var(--ui-tabs-icon-phone);
+  height: var(--ui-tabs-icon-phone);
 }
 
 /* --- Card ------------------------------------------------------------------------------------ */

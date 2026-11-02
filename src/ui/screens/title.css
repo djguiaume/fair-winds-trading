@@ -291,6 +291,3 @@ body.at-title .in-game {
   font-size: var(--fs-body);
 }
 
-:root[data-layout='phone'] .ui-tab {
-  min-height: 36px;
-}
