@@ -10,6 +10,10 @@ import { el } from './dom';
 export interface Tab {
   id: string;
   label: string;
+  /** A small count after the label (open orders, new faces); nothing when 0 or left out. */
+  badge?: number;
+  /** `sage` for people waiting, `ink` (default) for things to do. */
+  badgeTone?: 'ink' | 'sage';
 }
 
 export interface TabBarOptions {
@@ -31,6 +35,7 @@ export class TabBar {
       b.type = 'button';
       b.setAttribute('role', 'tab');
       b.dataset.tab = tab.id;
+      if (tab.badge) b.append(tabBadge(tab.badge, tab.badgeTone));
       b.addEventListener('click', () => this.select(tab.id));
       return b;
     });
@@ -69,4 +74,8 @@ export class TabBar {
     const at = tabs.findIndex((t) => t.id === this.current);
     this.select(tabs[(at + by + tabs.length) % tabs.length]!.id);
   }
+}
+
+function tabBadge(n: number, tone: Tab['badgeTone'] = 'ink'): HTMLElement {
+  return el('span', `ui-tab-badge ui-tab-badge--${tone}`, String(n));
 }

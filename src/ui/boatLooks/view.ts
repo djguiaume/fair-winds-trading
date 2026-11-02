@@ -3,13 +3,15 @@ import { type Appearance, type Catalogue, flagOf, resolveAppearance } from '../.
 import { FLAGS } from '../../sim/regatta';
 import type { ShipUpgrades } from '../../render/models';
 import { type MessageKey, shipName, shipThe, t } from '../../i18n';
+import { panelClasses } from '../components/panel';
+import { icon } from '../icons';
 import { flagSvg, hullSwatchSvg, sailSwatchSvg, wakeSwatchSvg } from '../lookPictures';
 import { type Choice, type SlotKey, canUse, howToEarn, itemName } from './choices';
 
 /**
  * The Boat looks screen's markup (#299, layout B "Wardrobe" after Pokémon Z-A): the slot rows
  * with what each wears, the boat on her turntable, the slot's items and the one action. Strings
- * only; `screen.ts` puts them in place and wires them.
+ * only; `screen.ts` puts them in place and wires them. On the harbour's paper since v1.5 (#443).
  */
 
 export type Compare = 'stock' | 'yours' | 'all';
@@ -29,17 +31,19 @@ export const slotName = (slot: SlotKey) => t(SLOT_TEXT[slot]);
 const LOCK = `<svg class="bl-lock" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="8" rx="1.5"/><path d="M5 7 V5 a3 3 0 0 1 6 0 V7" fill="none" stroke-width="2"/></svg>`;
 const NONE = `<svg class="bl-none" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11" fill="none" stroke-width="2.5"/><path d="M8 24 L24 8" stroke-width="2.5"/></svg>`;
 const SEA = '#3f8fa8';
+/** The two side panes are the v1.5 paper (decision 0269), torn, following the scene's night. */
+const PAPER = panelClasses('torn');
 /** A logo's tile shows it larger than on the sail (a share of the sail's foot), so it reads. */
 const LOGO_TILE_EMBLEM = 0.8;
 
 /** The frame of the screen; the parts in it are filled by the functions below. */
 export function shellHtml(): string {
   return `
-    <aside class="bl-slots on-paper">
+    <aside class="bl-slots ${PAPER}">
       <h2 class="bl-title" id="bl-title">${t('customise.title')}</h2>
       <div class="bl-ships" role="group" aria-label="${t('customise.ships')}"></div>
       <div class="bl-slot-list" role="tablist" aria-orientation="vertical"></div>
-      <button type="button" class="d-btn bl-stock" title="${t('customise.stockTitle')}">${t('customise.stock')}</button>
+      <button type="button" class="ui-btn ui-btn--plain ui-pressable bl-stock" title="${t('customise.stockTitle')}">${t('customise.stock')}</button>
     </aside>
     <section class="bl-stage">
       <div class="bl-ship-line"></div>
@@ -53,12 +57,14 @@ export function shellHtml(): string {
         <button type="button" class="bl-round" data-turn="1" title="${t('customise.turnRight')}" aria-label="${t('customise.turnRight')}">⟳</button>
       </div>
     </section>
-    <aside class="bl-items on-paper" role="tabpanel" aria-labelledby="bl-items-title">
-      <h3 class="bl-items-title" id="bl-items-title"></h3>
+    <aside class="bl-items ${PAPER}" role="tabpanel" aria-labelledby="bl-items-title">
+      <div class="bl-items-head">
+        <h3 class="bl-items-title" id="bl-items-title"></h3>
+        <button type="button" class="ui-header-exit ui-pressable bl-close" data-pad-close title="${t('customise.close')}" aria-label="${t('customise.close')}">${icon('close')}</button>
+      </div>
       <div class="bl-grid"></div>
       <div class="bl-detail"></div>
-    </aside>
-    <button type="button" class="close-btn bl-close" title="${t('customise.close')}" aria-label="${t('customise.close')}">✕</button>`;
+    </aside>`;
 }
 
 export function shipsHtml(ships: readonly string[], current: string): string {
@@ -128,7 +134,7 @@ export function detailHtml(tried: Choice, inUse: Choice, shipClass: string): str
         : `<span class="bl-note">${tried.item?.unlock.kind === 'earned' ? t('customise.earned') : t('customise.free')} · ${t('customise.was', { item: itemName(inUse) })}</span>`;
   const action = tried.inUse
     ? `<span class="bl-badge">${t('customise.inUse')}</span>`
-    : `<button type="button" class="d-btn brass bl-use" data-pad="secondary" ${canUse(tried) ? '' : 'aria-disabled="true"'}>${t('customise.use')}</button>`;
+    : `<button type="button" class="ui-btn ui-btn--primary ui-pressable bl-use" data-pad="secondary" ${canUse(tried) ? '' : 'aria-disabled="true"'}>${t('customise.use')}</button>`;
   return `<div class="bl-detail-text"><b>${itemName(tried)}</b>${note}</div>${action}`;
 }
 

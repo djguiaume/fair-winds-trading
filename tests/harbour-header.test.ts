@@ -130,7 +130,7 @@ describe('the keeper on the harbour screen (decision 0211)', () => {
     expect(links.message).toContain('unknown keeper');
   });
 
-  it('shows the keeper, a line and the next growth under the Market rows', () => {
+  it('shows the keeper, a line and the next growth on the Quay', () => {
     const world = createWorld(PHASE1_MAP, SLOOP);
     world.trade.dockedAt = homePort(PHASE1_MAP).id;
     document.body.innerHTML = '<div id="panel" hidden></div>';
@@ -138,17 +138,20 @@ describe('the keeper on the harbour screen (decision 0211)', () => {
     const panel = new TradePanel(container, world);
     panel.harbourPicture = () => 'blob:picture';
     panel.open();
-    const card = container.querySelector('.keeper-card')!;
-    expect(card.textContent).toContain('Rook');
+    // The keeper speaks from the footer, the port's picture is the strip above the ledger.
+    const face = container.querySelector('.hb-face')!;
+    expect(face.textContent).toContain('Rook');
     expect(en).toHaveProperty(
       ['keeper.rook.before.1'],
-      card.querySelector('.keeper-line')!.textContent,
+      face.querySelector('.hb-face-line')!.textContent,
     );
-    expect(card.querySelector('.keeper-town')!.textContent).toContain('Next');
-    expect(container.querySelector('.trade-header.has-view .port-view')).not.toBeNull();
-    // The Quay with nobody on it shows the quay itself.
+    expect(container.querySelector<HTMLElement>('.hb-strip')!.style.backgroundImage).toContain(
+      'blob:picture',
+    );
+    // The Quay with nobody on it shows the quay itself, and the town's next growth.
     panel.quay = { items: () => [], seen: () => {} } as never;
     panel.open('quay');
-    expect(container.querySelector('.quay-empty .quay-view')).not.toBeNull();
+    expect(container.querySelector('.hb-quay-empty .hb-quay-view')).not.toBeNull();
+    expect(container.querySelector('.hb-town-next')!.textContent).toContain('Next');
   });
 });

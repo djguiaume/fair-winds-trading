@@ -88,12 +88,6 @@
   background: var(--teal);
   color: var(--on-fill);
 }
-.fs-ship-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
 .free-setup .fs-looks {
   min-height: 40px;
   padding: 0 14px;

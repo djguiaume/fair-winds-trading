@@ -91,10 +91,10 @@ describe('harbour UI with real trade state', () => {
     const opener = document.querySelector<HTMLButtonElement>('#return')!;
     opener.focus();
     panel.open();
-    const modal = container.querySelector<HTMLElement>('.trade-modal')!;
-    modal.scrollTop = 250;
+    const list = container.querySelector<HTMLElement>('.hb-list')!;
+    list.scrollTop = 250;
     click('[data-action="buy"][data-good="fish"]');
-    expect(container.querySelector('.trade-modal')!.scrollTop).toBe(250);
+    expect(container.querySelector<HTMLElement>('.hb-list')!.scrollTop).toBe(250);
     expect((document.activeElement as HTMLElement).dataset.action).toBe('buy');
     const close = container.querySelector<HTMLButtonElement>('#tp-close')!;
     const last = container.querySelector<HTMLButtonElement>('#tp-undock')!;
@@ -173,7 +173,7 @@ describe('full-screen port (decision 0049)', () => {
   it('counts open orders on the Orders tab and shows them there', () => {
     const { panel, container, click } = setup();
     panel.open();
-    const badge = container.querySelector('#tp-tab-orders .tab-badge')!.textContent;
+    const badge = container.querySelector('#tp-tab-orders .ui-tab-badge')!.textContent;
     click('#tp-tab-orders');
     const listed = container.querySelectorAll('.contract-list li').length;
     expect(listed).toBeGreaterThan(0);

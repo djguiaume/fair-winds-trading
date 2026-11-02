@@ -243,7 +243,8 @@ describe('shipyard tab (decision 0048)', () => {
     expect(panel.textContent).toContain('Upgrades are fitted at your home port, Saltmere.');
     expect(panel.textContent).toContain('Built at Saltmere · 1,500 gold');
     expect(panel.textContent).toContain('Orders to deliver at Watchman Key: 3');
-    expect(panel.textContent).toContain('Built at a port off the chart');
+    // Ships of yards still off the chart are one line under the table (#443).
+    expect(panel.textContent).toMatch(/\d+ more ships, built at yards off the chart/);
   });
 
   it('at a yard: buys the unlocked ship there', () => {

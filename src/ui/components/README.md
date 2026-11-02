@@ -5,7 +5,7 @@ Every rebuilt screen is made of these; no screen keeps its own button, tab or ca
 | Module            | Makes                                                                     |
 | ----------------- | ------------------------------------------------------------------------- |
 | `button.ts`       | `button({ label, variant: 'primary' \| 'plain' \| 'danger', icon })`      |
-| `tabBar.ts`       | `new TabBar({ tabs, selected, onSelect })`, LB/RB glyphs at the ends      |
+| `tabBar.ts`       | `new TabBar({ tabs, selected, onSelect })`, LB/RB glyphs at the ends; a tab's `badge` count (`badgeTone` `sage` for people) |
 | `card.ts`         | `card({ title, text, media, selected, onPress })`                         |
 | `panel.ts`        | `panel({ edge: 'torn' \| 'plain', night: 'auto' \| 'day' \| 'night' })`   |
 | `listRow.ts`      | `listRow({ label, detail, value, icon, selected, onPress })`, 56–64 px    |

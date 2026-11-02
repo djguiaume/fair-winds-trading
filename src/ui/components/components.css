@@ -69,9 +69,14 @@
   gap: var(--ui-space-1);
 }
 .ui-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-2);
   min-height: var(--ui-touch-target);
   padding: 0 var(--ui-space-4);
-  border: var(--ui-edge-brushed-width) solid transparent;
+  /* The same border chosen or not: picking a tab never moves the labels. */
+  border: solid transparent;
+  border-width: 0 var(--ui-space-2);
   border-image: none;
   background: none;
   color: var(--ui-muted);
@@ -84,6 +89,23 @@
   border-width: 0 var(--ui-space-2);
   border-image: var(--ui-edge-brushed) var(--ui-edge-brushed-slice) fill / 0 var(--ui-space-2) round;
   color: var(--ui-ink);
+}
+.ui-tab-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 var(--ui-space-1);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-ink);
+  color: var(--ui-paper);
+  font-size: var(--fs-note);
+  font-weight: 700;
+  line-height: 1;
+}
+.ui-tab-badge--sage {
+  background: var(--ui-sage);
+  color: var(--ui-on-sage);
 }
 .ui-tabs .pad-key {
   flex: none;
