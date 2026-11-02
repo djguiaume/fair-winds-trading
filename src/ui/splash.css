@@ -1,10 +1,12 @@
 /*
- * The start view (issue #396, decision 0252): drawn from one empty element in index.html, so it
- * needs no markup and no text of its own. Only the bar moves, on the compositor, so it keeps
- * running while the game builds. It stands alone on purpose: theme.css and its tokens load
- * with the game, after this view has painted, so the values here are plain.
+ * The loading screen (issue #459, decision 0269): the logo, a sailboat on a wave line. It stands
+ * alone on purpose: the theme's custom properties arrive with the game, after this view has
+ * painted, so each value falls back to the theme.json one under the same name (a test keeps them
+ * equal). boot.ts sets --splash-p (0 to 1) as the game loads; the boat and the inked wave follow.
  */
 #splash {
+  --splash-p: 0.06;
+  --splash-sea-w: min(360px, 78vw);
   position: fixed;
   inset: 0;
   z-index: 1000;
@@ -12,49 +14,107 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 18px;
+  gap: var(--ui-space-3, 12px);
   padding: 0 max(16px, env(safe-area-inset-left, 0px));
-  background: #0f2a3d;
-  color: var(--on-fill);
-  font-family: var(--display);
+  background: var(--ui-paper, #efe6d1);
+  color: var(--ui-ink, #23303a);
+  font-family: var(--ui-font-title, 'IM Fell English', Georgia, serif);
   transition: opacity 0.4s ease;
 }
 #splash.is-done {
   opacity: 0;
   pointer-events: none;
 }
-#splash::before {
-  content: 'Fair Winds Trading';
-  font-size: clamp(var(--fs-big), 8vw, var(--fs-hero));
-  font-weight: 700;
+.splash-logo {
+  width: min(300px, 62vw, 52vh);
+  height: auto;
+  overflow: visible;
+}
+.splash-tag {
+  margin: 0;
+  max-width: 34ch;
   text-align: center;
+  font-style: italic;
+  font-size: var(--fs-text, 16px);
+  color: var(--ui-ink-muted, #5b6670);
 }
-#splash i {
+
+/* --- The sea: the wave line fills with ink behind the boat as the game loads ---------------- */
+.splash-sea {
   position: relative;
-  width: min(360px, 100%);
-  height: 4px;
-  overflow: hidden;
-  border-radius: 2px;
-  background: rgba(244, 234, 210, 0.18);
+  width: var(--splash-sea-w);
+  height: 48px;
+  margin-top: var(--ui-space-4, 16px);
 }
-#splash i::before {
-  content: '';
+.splash-wave {
   position: absolute;
-  inset: 0 auto 0 0;
-  width: 40%;
-  background: #c9a24a;
-  animation: splash-run 1.2s ease-in-out infinite;
+  inset: 8px 0 0;
+  width: 100%;
+  height: 40px;
+  overflow: visible;
 }
-@keyframes splash-run {
-  from {
-    transform: translateX(-100%);
+.splash-wave path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.splash-wave--track path {
+  stroke: var(--ui-ink-muted, #5b6670);
+  stroke-width: 1.5px;
+  opacity: 0.45;
+}
+.splash-wave--fill {
+  clip-path: inset(0 calc((1 - var(--splash-p)) * 100%) 0 0);
+  transition: clip-path 0.5s ease-out;
+}
+.splash-wave--fill path {
+  stroke: var(--ui-ink, #23303a);
+  stroke-width: 2.5px;
+}
+.splash-boat {
+  position: absolute;
+  top: -4px;
+  left: calc(var(--splash-p) * 100%);
+  width: 36px;
+  height: 36px;
+  margin-left: -18px;
+  overflow: visible;
+  transition: left 0.5s ease-out;
+  animation: splash-bob 1.6s ease-in-out infinite;
+}
+.splash-boat path {
+  stroke: var(--ui-ink, #23303a);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+.splash-boat-sail {
+  fill: var(--ui-paper, #efe6d1);
+}
+.splash-boat-hull {
+  fill: var(--ui-sage, #4a6d41);
+}
+@keyframes splash-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3deg);
   }
-  to {
-    transform: translateX(250%);
+  50% {
+    transform: translateY(3px) rotate(3deg);
   }
 }
-#splash::after {
-  content: attr(data-status);
-  font-size: var(--fs-text);
-  opacity: 0.7;
+
+.splash-status {
+  margin: 0;
+  font-size: var(--fs-text, 16px);
+  color: var(--ui-ink-muted, #5b6670);
+}
+
+/* The boat jumps instead of gliding. */
+@media (prefers-reduced-motion: reduce) {
+  .splash-boat,
+  .splash-wave--fill {
+    transition: none;
+    animation: none;
+  }
 }

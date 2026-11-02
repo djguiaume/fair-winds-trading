@@ -7,9 +7,10 @@ import { join } from 'node:path';
 import { ROOT, chromiumPath, startVite } from './lib.mjs';
 import { logoSymbols } from './identityLogo.mjs';
 import { sheetHtml } from './identitySheet.mjs';
+import { withSplash } from './identitySplash.mjs';
 
 const HELP = `npm run identity -- <what> [options]
-  sprite [--check]   write the logo symbols (src/ui/sprite/logo.svg) (--check: only compare)
+  sprite [--check]   write the logo symbols (src/ui/sprite/logo.svg) and the loading screen's logo in index.html (--check: only compare)
   icons              favicon.svg and the PNG icons (apple touch, 192, 512, maskable) in public/
   sheet [--out dir]  the one-sheet: logo, icons at 16, 24 and 32 px, type (default shots/identity)`;
 
@@ -20,13 +21,27 @@ const PAPER = '#efe6d1';
 const spriteFiles = () =>
   ['ui', 'goods', 'logo'].map((n) => readFileSync(join(SPRITE, `${n}.svg`), 'utf8'));
 
+const INDEX_FILE = join(ROOT, 'index.html');
+
+/** Writes `file` with `next` unless it already holds it; returns whether it differs. */
+function sync(file, next, check) {
+  const same = existsSync(file) && readFileSync(file, 'utf8') === next;
+  if (!same && !check) writeFileSync(file, next);
+  return !same;
+}
+
 function writeSprite(check) {
-  const next = `${logoSymbols().replace(/^ {6}/gm, '')}\n`;
-  const same = existsSync(LOGO_FILE) && readFileSync(LOGO_FILE, 'utf8') === next;
-  if (same) return (console.log('sprite: up to date'), 0);
+  const logo = `${logoSymbols().replace(/^ {6}/gm, '')}\n`;
+  const html = withSplash(readFileSync(INDEX_FILE, 'utf8'), logo);
+  const changed = [sync(LOGO_FILE, logo, check), sync(INDEX_FILE, html, check)];
+  if (!changed.some(Boolean)) return (console.log('sprite: up to date'), 0);
   if (check)
-    return (console.log('sprite: logo.svg is out of date, run npm run identity -- sprite'), 1);
-  writeFileSync(LOGO_FILE, next);
+    return (
+      console.log(
+        'sprite: logo.svg or the splash logo is out of date, run npm run identity -- sprite',
+      ),
+      1
+    );
   return (console.log('sprite: written'), 0);
 }
 
