@@ -58,6 +58,7 @@ export class TradePanel {
   private tab: TradePanelTab = 'market';
   private returnFocus: HTMLElement | null = null;
   private lot: Lot = 1;
+  private pictureTries = 0;
   /** What each pane shows on its right: a good, an order (by port), a person, a ship. */
   private picked: { good?: GoodId; order?: string; person?: string; ship?: string } = {};
   private readonly keeper: KeeperLines;
@@ -120,6 +121,7 @@ export class TradePanel {
     }
     this.deals.docked();
     this.keeper.dock();
+    this.pictureTries = 0;
     this.tab = tab;
     this.container.hidden = false;
     document.documentElement.dataset.screen = 'harbour';
@@ -204,6 +206,8 @@ export class TradePanel {
     const banner = el('header', 'hb-banner');
     const picture = this.harbourPicture(portId);
     if (picture) banner.style.backgroundImage = `url('${picture}')`;
+    // On a fresh page the port may not be built yet: its picture comes a moment later (#464).
+    else if (this.pictureTries++ < 10) setTimeout(() => this.render(), 300);
     const head = harbourHeader({
       title: name,
       line: portLine({

@@ -27,7 +27,12 @@
   box-shadow: inset var(--ui-space-1) 0 0 var(--ui-sage);
 }
 .hb-row .ui-row-label {
-  font-size: var(--fs-sub);
+  font-size: var(--fs-head);
+}
+/* French runs long: a row's line wraps instead of being cut (#464). */
+.hb-row .ui-row-detail {
+  font-size: var(--fs-body);
+  white-space: normal;
 }
 .hb-good.is-wants .ui-row-detail {
   color: var(--ui-sage-deep);
@@ -83,11 +88,8 @@
   height: 16px;
 }
 .hb-c-best {
-  overflow: hidden;
   color: var(--ui-muted);
   font-size: var(--fs-body);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .hb-spark {
   display: block;

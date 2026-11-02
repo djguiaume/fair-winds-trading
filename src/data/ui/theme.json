@@ -17,8 +17,7 @@
     "rule": "#8c8270",
     "tab-paper": "#dccfb1",
     "tab-paper-night": "#aa9d7f",
-    "ink-soft": "#747876",
-    "backdrop": "#1e2930"
+    "ink-soft": "#747876"
   },
   "night": {
     "paper-opacity": 0.8,
@@ -149,10 +148,11 @@
   },
   "harbour": {
     "banner": 200,
-    "banner-phone": 76,
+    "banner-phone": 56,
+    "sheet": 600,
     "margin": 64,
     "margin-phone": 8,
-    "row": 64,
+    "row": 72,
     "act": 64,
     "detail": 360,
     "detail-phone": 280,

@@ -3,7 +3,7 @@
     "width": 1920,
     "height": 340,
     "supersample": 1.25,
-    "fovDeg": 16,
+    "fovDeg": 13,
     "quality": 0.82,
     "shift": 0.15
   },

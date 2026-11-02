@@ -12,7 +12,7 @@
   background: linear-gradient(to bottom, transparent 55%, rgb(35 48 58 / 0.35));
 }
 .hb-port-screen:not([hidden]) {
-  background: var(--ui-backdrop);
+  background: var(--ui-ink);
 }
 /* The sea HUD steps aside while the harbour is up. */
 html[data-screen='harbour'] #hud {
@@ -39,26 +39,26 @@ html[data-layout='phone'] .harbour {
 }
 
 /* The banner: the port's picture (decision 0211, or its own art), fading into the table at its
-   foot; the name, gold and close on it in paper with the HUD's ink halo, over a 40% ink wash. */
+   foot; the name, gold and close on it in paper with the HUD's ink halo, over an ink wash from
+   the top. It takes the room the paper leaves (the paper stops at harbour.sheet), never less
+   than --hb-banner. */
 .hb-banner {
   position: relative;
   display: flex;
-  flex: none;
+  flex: 1 0 var(--hb-banner);
   align-items: flex-start;
   box-sizing: border-box;
-  height: var(--hb-banner);
   padding: max(var(--hb-gap), env(safe-area-inset-top))
     max(var(--hb-margin), env(safe-area-inset-right)) 0
     max(var(--hb-margin), env(safe-area-inset-left));
-  background: var(--ui-backdrop) center 55% / cover no-repeat;
+  background: var(--ui-ink) center 55% / cover no-repeat;
 }
 .hb-banner::before {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(to right, color-mix(in srgb, var(--ui-ink) 40%, transparent), transparent 50%),
-    linear-gradient(to left, color-mix(in srgb, var(--ui-ink) 40%, transparent), transparent 30%),
-    linear-gradient(to bottom, transparent 70%, var(--ui-backdrop));
+    linear-gradient(to bottom, transparent 82%, var(--ui-ink)),
+    linear-gradient(to bottom, color-mix(in srgb, var(--ui-ink) 55%, transparent), transparent);
   content: '';
   pointer-events: none;
 }
@@ -77,10 +77,10 @@ html[data-layout='phone'] .harbour {
 .hb-sheet {
   position: relative;
   display: flex;
-  flex: 1 1 auto;
+  flex: 0 1 var(--ui-harbour-sheet);
   flex-direction: column;
   min-height: 0;
-  margin: calc(-1 * var(--ui-space-5)) max(var(--hb-margin), env(safe-area-inset-right)) 0
+  margin: calc(-1 * var(--ui-space-3)) max(var(--hb-margin), env(safe-area-inset-right)) 0
     max(var(--hb-margin), env(safe-area-inset-left));
 }
 .harbour:not(.hb-port) .hb-sheet {
@@ -130,7 +130,7 @@ html[data-night] .hb-port .hb-sheet {
 }
 .hb-banner .hb-line {
   color: inherit;
-  font-size: var(--fs-text);
+  font-size: var(--fs-body);
 }
 /* Her island's header keeps its tabs on their own row under the name. */
 .hb-head .ui-tabs {
@@ -187,6 +187,9 @@ html[data-night] .hb-port .hb-sheet {
   display: flex;
   flex: none;
   flex-direction: column;
+  align-self: flex-start;
+  max-height: 100%;
+  box-sizing: border-box;
   gap: var(--ui-space-3);
   width: var(--ui-harbour-detail);
   padding: var(--ui-space-4);
@@ -328,7 +331,22 @@ html[data-layout='phone'] .hb-sheet > .ui-tabs {
   padding-inline: var(--ui-space-3);
 }
 html[data-layout='phone'] .hb-sheet {
-  margin-top: calc(-1 * var(--ui-space-2));
+  flex-grow: 1;
+  margin-top: calc(-1 * var(--ui-space-1));
+}
+html[data-layout='phone'] .hb-banner {
+  flex-grow: 0;
+}
+/* On a phone Buy and Sell come before the price story, so they never fall below the fold. */
+html[data-layout='phone'] .hb-detail-trend {
+  order: 1;
+}
+/* Whatever scrolls on a phone fades at its foot: more waits below. */
+html[data-layout='phone'] .hb-detail,
+html[data-layout='phone'] .hb-yard-main,
+html[data-layout='phone'] .hb-yard-side {
+  padding-bottom: var(--ui-space-4);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - var(--ui-space-4)), transparent);
 }
 html[data-layout='phone'] .hb-head {
   gap: var(--ui-space-2);
