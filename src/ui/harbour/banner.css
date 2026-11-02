@@ -4,12 +4,12 @@
  */
 /* The banner: the port's picture (decision 0211, or its own art), fading into the table at its
    foot; the name, gold and close on it in paper with the HUD's ink halo, over an ink wash from
-   the top. It takes the room the paper leaves (the paper stops at harbour.sheet), never less
-   than --hb-banner. */
+   the top. A fixed strip (harbour.banner, at most a fifth of the height): the paper takes the
+   rest (Guillaume, #464 round 2). */
 .hb-banner {
   position: relative;
   display: flex;
-  flex: 1 0 var(--hb-banner);
+  flex: 0 0 var(--hb-banner);
   align-items: flex-start;
   box-sizing: border-box;
   padding: max(var(--hb-gap), env(safe-area-inset-top))
@@ -38,7 +38,6 @@
 }
 
 html[data-layout='phone'] .hb-banner {
-  flex-grow: 0;
   padding-top: max(var(--ui-space-1), env(safe-area-inset-top));
 }
 /* A smaller close on a phone, so it stays inside the banner, clear of the paper. */

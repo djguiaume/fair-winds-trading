@@ -147,9 +147,8 @@
     "crates": 12
   },
   "harbour": {
-    "banner": 200,
+    "banner": 170,
     "banner-phone": 56,
-    "sheet": 600,
     "margin": 64,
     "margin-phone": 8,
     "row": 72,

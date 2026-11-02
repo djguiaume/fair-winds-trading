@@ -207,7 +207,7 @@ export class TradePanel {
     const picture = this.harbourPicture(portId);
     if (picture) banner.style.backgroundImage = `url('${picture}')`;
     // On a fresh page the port may not be built yet: its picture comes a moment later (#464).
-    else if (this.pictureTries++ < 10) setTimeout(() => this.render(), 300);
+    else if (this.pictureTries++ < 40) setTimeout(() => this.render(), 300);
     const head = harbourHeader({
       title: name,
       line: portLine({

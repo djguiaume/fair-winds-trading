@@ -20,7 +20,7 @@ html[data-screen='harbour'] #hud {
 }
 .harbour {
   --hb-margin: var(--ui-harbour-margin);
-  --hb-banner: max(var(--ui-harbour-banner), 24vh);
+  --hb-banner: min(var(--ui-harbour-banner), 20vh);
   --hb-gap: var(--ui-space-3);
   --hb-sail: var(--ui-harbour-sail-height);
   position: absolute;
@@ -42,7 +42,7 @@ html[data-layout='phone'] .harbour {
 .hb-sheet {
   position: relative;
   display: flex;
-  flex: 0 1 var(--ui-harbour-sheet);
+  flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
   margin: calc(-1 * var(--ui-space-3)) max(var(--hb-margin), env(safe-area-inset-right)) 0
@@ -296,7 +296,6 @@ html[data-layout='phone'] .hb-sheet > .ui-tabs {
   padding-inline: var(--ui-space-3);
 }
 html[data-layout='phone'] .hb-sheet {
-  flex-grow: 1;
   margin-top: calc(-1 * var(--ui-space-1));
 }
 /* On a phone Buy and Sell come before the price story, so they never fall below the fold. */
