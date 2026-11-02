@@ -57,6 +57,7 @@ html[data-layout='phone'] .harbour {
   inset: 0;
   background:
     linear-gradient(to right, color-mix(in srgb, var(--ui-ink) 40%, transparent), transparent 50%),
+    linear-gradient(to left, color-mix(in srgb, var(--ui-ink) 40%, transparent), transparent 30%),
     linear-gradient(to bottom, transparent 70%, var(--ui-backdrop));
   content: '';
   pointer-events: none;
@@ -102,7 +103,6 @@ html[data-night] .hb-port .hb-sheet {
 }
 .hb-sheet > .ui-tabs {
   flex: none;
-  padding-top: var(--ui-space-3);
 }
 
 /* --- Header: the port's name and line, the tabs, gold and hold, close ---------------------- */
@@ -329,9 +329,6 @@ html[data-layout='phone'] .hb-sheet > .ui-tabs {
 }
 html[data-layout='phone'] .hb-sheet {
   margin-top: calc(-1 * var(--ui-space-2));
-}
-html[data-layout='phone'] .hb-sheet > .ui-tabs {
-  padding-top: var(--ui-space-1);
 }
 html[data-layout='phone'] .hb-head {
   gap: var(--ui-space-2);
