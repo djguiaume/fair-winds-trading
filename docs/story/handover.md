@@ -1,10 +1,23 @@
-# Storyteller handover to v1.4.1 (2026-11-01, after v1.4)
+# Storyteller handover to v1.6 (2026-11-02, after v1.5)
 
 From "Storyteller (v1.4)" to the next storyteller thread. Format: [roles.md](../roles.md). The voice, cast and every ruling live in the [storyteller brief](storyteller-brief.md); this file only says what is open.
 
 ## Open decisions
 
-Nothing waits on Guillaume. v1.4 "Visible upgrades" shipped (release PR #428). Next: v1.4.1 "Cosmetics and free sailing" (#357), then v1.5 ([plan](../v1.5/plan.md)), the next story release.
+Nothing waits on Guillaume. v1.4 "Visible upgrades" shipped (release PR #428). v1.5 "A real game" (UI rebuild) shipped as v1.5.372. Next: v1.6, the story release.
+
+## What v1.5 "A real game" ruled (words in `src/i18n`)
+
+- Title tagline: "Read the wind, carry the cargo, find a home." / « Lisez le vent, portez la cargaison, trouvez un port d'attache. » (`menu.tagline`). No pirates, guns or deadlines in taglines.
+- Compass words: "hatched zone" / « zone hachurée » for the no-go wedge; "no-go zone" / « zone de vent debout » stays the HUD name. Never name a colour for the compass (no "red zone", no "green band"). Quest and wreck marks are the "pale diamond" / « losange pâle ». Amber and red belong to the sails control only.
+- Loading: "Hoisting sail" / « On hisse la voile ». Plain "Loading" only for error or retry states.
+- Portrait landing: "Turn your phone sideways to set sail." / « Tournez votre téléphone sur le côté pour appareiller. »
+- Arrival taglines (`port.tagline.*`, 2 to 4 words, no punctuation): each says what the place is known for, never a promise. Port names stay untranslated in FR.
+- Race finish board lines: First "First home. Well sailed.", Second "Second, close behind.", Third "Third, and home safe.", Retired "Left the race. The marks will wait." Places only, no blame or loss word, no weather. Wren's `regatta.result.*` lines stay the speech.
+
+## Open for v1.6
+
+The story release: [plan](../v1.6/plan.md), tracker #358. The storyteller leads it and rules prices and progression before Guillaume.
 
 ## What v1.4 ruled
 
