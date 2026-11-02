@@ -28,3 +28,10 @@ a pull request); CI checks the result.
 - Place names (Saltmere, Port Calda…) are not translated and live in the map data.
 - Adding a language: copy `fr.json`, translate it, then ask for the one line of code that adds it
   to the language menu (`LANGUAGES` in `src/i18n/index.ts`).
+
+## Boot texts
+
+The few lines shown before the game loads (the loading screen's "Hoisting sail" and tagline, the
+portrait page's "Turn your phone sideways") live in `src/i18n/boot.json`, one object per language, so
+the first paint does not wait for `en.json` and `fr.json`. `menu.tagline` must say the same in both
+files (a test checks it).

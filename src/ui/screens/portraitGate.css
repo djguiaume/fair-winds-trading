@@ -1,0 +1,66 @@
+/* The portrait page on phones (issue #458): paper, the logo, one line, a phone turning. Shown while the game still loads, so each token has the theme's value as fallback. */
+.portrait-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-space-5, 20px);
+  padding: var(--ui-space-5, 20px);
+  background: var(--ui-paper, #efe6d1);
+  color: var(--ui-ink, #23303a);
+  text-align: center;
+  font-family: var(--ui-font-title, 'IM Fell English', Georgia, serif);
+}
+.portrait-gate .logo {
+  width: min(240px, 70vw);
+}
+.portrait-gate .logo-rose {
+  width: 96px;
+  height: 96px;
+}
+.gate-phone {
+  width: 96px;
+  height: 96px;
+  fill: none;
+  stroke: var(--ui-ink, #23303a);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.gate-phone-body {
+  transform-origin: 30px 27px;
+  animation: gate-turn 2.8s ease-in-out infinite;
+}
+.gate-phone-arrow {
+  stroke: var(--ui-sage, #4a6d41);
+}
+.gate-line {
+  margin: 0;
+  max-width: 18ch;
+  font-size: var(--fs-big, 24px);
+}
+.gate-tagline {
+  margin: 0;
+  max-width: 34ch;
+  font-style: italic;
+  color: var(--ui-ink-muted, #5b6670);
+}
+@keyframes gate-turn {
+  0%,
+  25% {
+    transform: rotate(0);
+  }
+  60%,
+  100% {
+    transform: rotate(-90deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gate-phone-body {
+    animation: none;
+    transform: rotate(-90deg);
+  }
+}

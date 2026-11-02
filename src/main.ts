@@ -153,6 +153,7 @@ import { askConfirm } from './ui/confirmDialog';
 import { ScreenStack } from './ui/screens/stack';
 import { type TitleState, TitleScreen } from './ui/screens/title';
 import { PauseScreen } from './ui/screens/pause';
+import { awayFromGame } from './ui/screens/portraitGate';
 import { NewVoyageScreen } from './ui/screens/newVoyage';
 import { SettingsScreen } from './ui/screens/settings';
 import { SettingsApplier } from './ui/screens/settings/apply';
@@ -1785,10 +1786,9 @@ function tick(now: number) {
   });
 }
 
-// Stop rendering while the tab is hidden (battery on phones and tablets).
 document.addEventListener('visibilitychange', () => {
-  music.setHidden(document.hidden);
-  if (document.hidden) {
+  music.setHidden(awayFromGame());
+  if (awayFromGame()) {
     autosave();
     cancelAnimationFrame(frame);
   } else {
