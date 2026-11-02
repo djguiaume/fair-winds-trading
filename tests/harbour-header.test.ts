@@ -76,9 +76,9 @@ describe('the harbour screen picture (decision 0211)', () => {
       accent: '#123456',
       art: 'art/ports/saltmere.jpg',
     });
-    // A port with painted art shows it; the others keep the game's render (#464).
+    // A port with painted art shows it; one without keeps the game's render (#464).
     expect(portArt(GAME_MAP, 'saltmere')).toBe('/art/ports/saltmere.jpg');
-    expect(portArt(GAME_MAP, 'calda')).toBeNull();
+    expect(portArt(GAME_MAP, 'nowhere')).toBeNull();
     for (const island of Object.values(ISLAND_DESIGNS)) {
       const art = island.harbourView?.art;
       if (art) expect(existsSync(`public/${art}`), art).toBe(true);

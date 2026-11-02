@@ -28,15 +28,17 @@ If the tool can, ask it next to **widen the picture to about 16:3 by extending t
 ## Cost
 
 - **ChatGPT:** no Scenario credits.
-- **Scenario:** about 26 credit units (CU) an image with Gemini 3.1, so about 364 CU for all 14 ports out of the 693 left, plus 26 per retry. Run one port as a test first, and only after Guillaume's OK for that batch.
+- **Scenario:** 13 credit units (CU) an image with Gemini 3.1 at 1K (182 CU for all 14 ports), plus 13 per retry. Run one port as a test first, and only after Guillaume's OK for that batch.
 
 ## Made so far
 
-| Port | Tool | Settings | Raw | Notes |
-|---|---|---|---|---|
-| Saltmere | Scenario, Gemini 3.1 (`model_google-gemini-3-1-flash`, job `job_y841kEkZgD4SqvrwLFvHw8wL`) | the shared prompt and Saltmere's line, the key art and `ref/saltmere.jpg` as references, 21:9, 1K, 1 output | [`raw/saltmere.jpg`](raw/saltmere.jpg) | Test of 2026-11-02, OK'd by Guillaume for one image. Scaled to 1920 wide, cut at rows 300 to 640 so the smokehouses and quay fill the banner. |
+All 14 ports have painted banners (2026-11-02, Guillaume's OK): Scenario, Gemini 3.1 (`model_google-gemini-3-1-flash`), the shared prompt and the port's line, the key art and `ref/<port>.jpg` as references (Cinder Isle used `ref/emberhold.jpg`), 21:9, 1K, one output, 13 CU each, 182 CU in all. Saltmere was the test.
 
-21:9 at 1K (1584 × 672) is wide enough: scale it to 1920 wide and cut a 340-row band round the town.
+- `raw/<port>.jpg`: each picture as it came back (1584 × 672).
+- `raw/jobs.json`: each job's id, settings, cost and crop.
+- `public/art/ports/<port>.jpg`: the banner, the raw picture scaled to 1920 wide and cut to 340 rows from `crop.top`, chosen so the town sits in the band a desktop shows.
+
+To redo one port, run the same job again (the [Scenario client](../../../tools/scenario/scenario.py)) after Guillaume's OK for that batch, then crop it the same way.
 
 ## One prompt per port
 

@@ -634,6 +634,7 @@
     "from": [1.8, 4.4],
     "look": [-0.6, -0.4],
     "height": 3,
-    "lookHeight": 0.6
+    "lookHeight": 0.6,
+    "art": "art/ports/stonehaven.jpg"
   }
 }
