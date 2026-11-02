@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 // @ts-expect-error plain .mjs tool module
-import { withSplashLogo } from '../tools/fw/identitySplash.mjs';
+import { withSplash } from '../tools/fw/identitySplash.mjs';
 import boot from '../src/i18n/boot.json';
 import en from '../src/i18n/en.json';
 import fr from '../src/i18n/fr.json';
@@ -35,6 +35,6 @@ describe('the loading screen', () => {
 
   it('carries the logo of the sprite in index.html', () => {
     const html = read('index.html');
-    expect(withSplashLogo(html, read('src/ui/sprite/logo.svg'))).toBe(html);
+    expect(withSplash(html, read('src/ui/sprite/logo.svg'))).toBe(html);
   });
 });

@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { ROOT, chromiumPath, startVite } from './lib.mjs';
 import { logoSymbols } from './identityLogo.mjs';
 import { sheetHtml } from './identitySheet.mjs';
-import { withSplashLogo } from './identitySplash.mjs';
+import { withSplash } from './identitySplash.mjs';
 
 const HELP = `npm run identity -- <what> [options]
   sprite [--check]   write the logo symbols (src/ui/sprite/logo.svg) and the loading screen's logo in index.html (--check: only compare)
@@ -32,7 +32,7 @@ function sync(file, next, check) {
 
 function writeSprite(check) {
   const logo = `${logoSymbols().replace(/^ {6}/gm, '')}\n`;
-  const html = withSplashLogo(readFileSync(INDEX_FILE, 'utf8'), logo);
+  const html = withSplash(readFileSync(INDEX_FILE, 'utf8'), logo);
   const changed = [sync(LOGO_FILE, logo, check), sync(INDEX_FILE, html, check)];
   if (!changed.some(Boolean)) return (console.log('sprite: up to date'), 0);
   if (check)
